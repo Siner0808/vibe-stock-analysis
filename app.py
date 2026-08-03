@@ -106,7 +106,7 @@ start_str = start_date.strftime("%Y-%m-%d")
 end_str = end_date.strftime("%Y-%m-%d")
 
 # ---- Run analysis ----
-if run_btn or "result" not in st.session_state or st.session_state.get("last_symbol") != symbol:
+if run_btn:
     with st.spinner(f"🤖 Đang chạy toàn bộ pipeline phân tích cho mã [{symbol}]..."):
         try:
             result = run_full_analysis(symbol, start_str, end_str, exchange)
@@ -114,47 +114,10 @@ if run_btn or "result" not in st.session_state or st.session_state.get("last_sym
             st.session_state["last_symbol"] = symbol
         except Exception as e:
             st.error(f"❌ Lỗi khi chạy pipeline: {e}")
-            st.stop()
 
 result = st.session_state.get("result")
-if not result:
-    st.info("👈 Nhấn nút **Chạy phân tích Multi-Agent** để bắt đầu.")
-    st.stop()
 
-# ---- Header Metrics ----
-packet_df = result["analyses"]["trend"]["details"]
-
-# Lấy giá từ OHLCV
-@st.cache_data(ttl=300)
-def load_stock_data(ticker, start, end):
-    try:
-        from vnstock import Quote
-        df = Quote(symbol=ticker, source='VCI').history(start=start, end=end)
-        return df
-    except Exception:
-        return None
-
-df = load_stock_data(symbol, start_str, end_str)
-
-if df is not None and not df.empty:
-    latest_close = df['close'].iloc[-1]
-    prev_close = df['close'].iloc[-2] if len(df) > 1 else latest_close
-    change = latest_close - prev_close
-    pct_change = (change / prev_close) * 100 if prev_close else 0
-    high_p = df['high'].max()
-    low_p = df['low'].min()
-    avg_vol = int(df['volume'].mean())
-
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Giá đóng cửa", f"{latest_close:,.2f} VNĐ", f"{change:+,.2f} ({pct_change:+.2f}%)")
-    c2.metric("Cao nhất (kỳ)", f"{high_p:,.2f} VNĐ")
-    c3.metric("Thấp nhất (kỳ)", f"{low_p:,.2f} VNĐ")
-    c4.metric("KL Trung bình", f"{avg_vol:,.0f}")
-    c5.metric("Chất lượng dữ liệu", result.get("data_quality", "OK"))
-
-st.divider()
-
-# ---- TABS ----
+# ---- TABS (always visible) ----
 tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_raw = st.tabs([
     "🧠 Kết quả Tổng hợp", "⚖️ Debate Council",
     "🔬 Chi tiết từng Agent",
@@ -163,82 +126,92 @@ tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_raw = st
 ])
 
 with tab_main:
-    final_score = result["final_score"]
-    recommendation = result["recommendation"]
-    action_color = result["action_color"]
-
-    # Score Gauge
-    gauge = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=final_score,
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': "Điểm đồng thuận (0-100)", 'font': {'size': 18, 'color': '#b0bec5'}},
-        gauge={
-            'axis': {'range': [0, 100], 'tickcolor': '#b0bec5'},
-            'bar': {'color': action_color},
-            'steps': [
-                {'range': [0, 30], 'color': '#1a1a2e'},
-                {'range': [30, 45], 'color': '#1e222d'},
-                {'range': [45, 62], 'color': '#252c3a'},
-                {'range': [62, 78], 'color': '#1b2a1e'},
-                {'range': [78, 100], 'color': '#0d2318'},
-            ],
-            'threshold': {'line': {'color': action_color, 'width': 4}, 'thickness': 0.75, 'value': final_score}
-        }
-    ))
-    gauge.update_layout(
-        height=280, template="plotly_dark",
-        margin=dict(l=30, r=30, t=30, b=10),
-        font={'color': '#ffffff'}
-    )
-
-    col_gauge, col_rec = st.columns([1, 1.5])
-    with col_gauge:
-        st.plotly_chart(gauge, use_container_width=True)
-    with col_rec:
-        st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #1e222d, #131722);
-                        padding: 28px; border-radius: 14px;
-                        border: 2px solid {action_color}; text-align: center; margin-top: 10px;">
-                <p style="color:#b0bec5; margin:0; font-size:0.95rem;">🧠 Master Consensus Agent — Khuyến nghị cuối</p>
-                <h1 style="color:{action_color}; margin: 14px 0; font-size: 2.4rem;">{recommendation}</h1>
-                <p style="color:#78909c; font-size:0.85rem; margin:0;">Mã: <b style="color:#ffffff">{result['symbol']}</b> &nbsp;|&nbsp; Sàn: <b style="color:#ffffff">{result['exchange']}</b></p>
-            </div>
+    if not result:
+        st.info("👈 Nhập mã cổ phiếu và nhấn **🚀 Chạy phân tích Multi-Agent** để bắt đầu.")
+        st.markdown("""
+        <div style="text-align:center; padding: 60px 20px; color: #475569;">
+            <div style="font-size: 4rem; margin-bottom: 16px;">🤖</div>
+            <h3 style="color: #64748b !important;">Hệ thống Multi-Agent đang chờ lệnh</h3>
+            <p style="color: #475569; font-size: 0.9rem;">Pipeline 5 tầng: Thu thập dữ liệu → 6 Agent Phân tích → Đồng thuận → Debate Council → Phán quyết cuối</p>
+        </div>
         """, unsafe_allow_html=True)
+    else:
+        final_score = result["final_score"]
+        recommendation = result["recommendation"]
+        action_color = result["action_color"]
 
-    breakdown = result["score_breakdown"]
-    agent_names  = ["Trend", "Momentum", "Volume", "S&R", "Risk", "📰 News"]
-    agent_scores = [
-        breakdown["trend_score"], breakdown["momentum_score"],
-        breakdown["volume_score"], breakdown["sr_score"],
-        breakdown["risk_score"],  breakdown.get("news_score", 50)
-    ]
-    colors = ["#00e676" if s >= 60 else "#ffca28" if s >= 40 else "#ef5350" for s in agent_scores]
+        # Score Gauge
+        gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=final_score,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': "Điểm đồng thuận (0-100)", 'font': {'size': 18, 'color': '#b0bec5'}},
+            gauge={
+                'axis': {'range': [0, 100], 'tickcolor': '#b0bec5'},
+                'bar': {'color': action_color},
+                'steps': [
+                    {'range': [0, 30], 'color': '#1a1a2e'},
+                    {'range': [30, 45], 'color': '#1e222d'},
+                    {'range': [45, 62], 'color': '#252c3a'},
+                    {'range': [62, 78], 'color': '#1b2a1e'},
+                    {'range': [78, 100], 'color': '#0d2318'},
+                ],
+                'threshold': {'line': {'color': action_color, 'width': 4}, 'thickness': 0.75, 'value': final_score}
+            }
+        ))
+        gauge.update_layout(
+            height=280, template="plotly_dark",
+            margin=dict(l=30, r=30, t=30, b=10),
+            font={'color': '#ffffff'}
+        )
 
-    bar_fig = go.Figure(go.Bar(
-        x=agent_names, y=agent_scores,
-        marker_color=colors,
-        text=[f"{s:.0f}" for s in agent_scores],
-        textposition="outside"
-    ))
-    bar_fig.add_hline(y=60, line_dash="dash", line_color="#00e676", annotation_text="Ngưỡng MUA (60)")
-    bar_fig.add_hline(y=40, line_dash="dash", line_color="#ef5350", annotation_text="Ngưỡng BÁN (40)")
-    bar_fig.update_layout(
-        template="plotly_dark", height=300,
-        yaxis=dict(range=[0, 105]),
-        margin=dict(l=20, r=20, t=20, b=20)
-    )
-    st.plotly_chart(bar_fig, use_container_width=True)
+        col_gauge, col_rec = st.columns([1, 1.5])
+        with col_gauge:
+            st.plotly_chart(gauge, use_container_width=True)
+        with col_rec:
+            st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #1e222d, #131722);
+                            padding: 28px; border-radius: 14px;
+                            border: 2px solid {action_color}; text-align: center; margin-top: 10px;">
+                    <p style="color:#b0bec5; margin:0; font-size:0.95rem;">🧠 Master Consensus Agent — Khuyến nghị cuối</p>
+                    <h1 style="color:{action_color}; margin: 14px 0; font-size: 2.4rem;">{recommendation}</h1>
+                    <p style="color:#78909c; font-size:0.85rem; margin:0;">Mã: <b style="color:#ffffff">{result['symbol']}</b> &nbsp;|&nbsp; Sàn: <b style="color:#ffffff">{result['exchange']}</b></p>
+                </div>
+            """, unsafe_allow_html=True)
 
-    # Key Reasons
-    st.subheader("💡 Luận điểm chính từ Master Agent")
-    for reason in result["key_reasons"]:
-        st.markdown(f"> {reason}")
+        breakdown = result["score_breakdown"]
+        agent_names  = ["Trend", "Momentum", "Volume", "S&R", "Risk", "📰 News"]
+        agent_scores = [
+            breakdown["trend_score"], breakdown["momentum_score"],
+            breakdown["volume_score"], breakdown["sr_score"],
+            breakdown["risk_score"],  breakdown.get("news_score", 50)
+        ]
+        colors = ["#00e676" if s >= 60 else "#ffca28" if s >= 40 else "#ef5350" for s in agent_scores]
 
-    # Data sources
-    with st.expander("📡 Nguồn dữ liệu đã sử dụng"):
-        for note in result.get("data_sources", []):
-            st.write(f"• {note}")
+        bar_fig = go.Figure(go.Bar(
+            x=agent_names, y=agent_scores,
+            marker_color=colors,
+            text=[f"{s:.0f}" for s in agent_scores],
+            textposition="outside"
+        ))
+        bar_fig.add_hline(y=60, line_dash="dash", line_color="#00e676", annotation_text="Ngưỡng MUA (60)")
+        bar_fig.add_hline(y=40, line_dash="dash", line_color="#ef5350", annotation_text="Ngưỡng BÁN (40)")
+        bar_fig.update_layout(
+            template="plotly_dark", height=300,
+            yaxis=dict(range=[0, 105]),
+            margin=dict(l=20, r=20, t=20, b=20)
+        )
+        st.plotly_chart(bar_fig, use_container_width=True)
+
+        # Key Reasons
+        st.subheader("💡 Luận điểm chính từ Master Agent")
+        for reason in result["key_reasons"]:
+            st.markdown(f"> {reason}")
+
+        # Data sources
+        with st.expander("📡 Nguồn dữ liệu đã sử dụng"):
+            for note in result.get("data_sources", []):
+                st.write(f"• {note}")
 
 # ════════════════════════════════════════════════════════════════
 with tab_debate:
@@ -333,9 +306,11 @@ with tab_debate:
                 "Dựa trên mức độ đồng thuận/bất đồng giữa các phe tranh luận.")
 
 with tab_detail:
-
-    analyses = result["analyses"]
-    agent_list = [
+    if not result:
+        st.info("👈 Hãy chạy phân tích để xem chi tiết từng Agent.")
+    else:
+        analyses = result["analyses"]
+        agent_list = [
         ("📈 Trend Analysis Agent", analyses["trend"], "trend"),
         ("⚡ Momentum & Oscillator Agent", analyses["momentum"], "momentum"),
         ("📊 Volume Analysis Agent", analyses["volume"], "volume"),
@@ -364,9 +339,12 @@ with tab_detail:
                 l3.metric("% Từ đáy", f"{lvl.get('pct_from_low',0):.1f}%")
 
 with tab_news:
-    news_res = result.get("analyses", {}).get("news", {})
-    if not news_res or news_res.get("total_articles", 0) == 0:
-        st.warning("⚠️ Không thu thập được tin tức. Hãy kiểm tra kết nối internet hoặc bật tùy chọn thu thập tin tức.")
+    if not result:
+        st.info("👈 Hãy chạy phân tích để xem dữ liệu tin tức & sentiment.")
+    else:
+        news_res = result.get("analyses", {}).get("news", {})
+        if not news_res or news_res.get("total_articles", 0) == 0:
+            st.warning("⚠️ Không thu thập được tin tức. Hãy kiểm tra kết nối internet hoặc bật tùy chọn thu thập tin tức.")
     else:
         # ── Header Metrics ──────────────────────────────────────────
         col_s, col_t, col_p, col_n = st.columns(4)
@@ -454,8 +432,9 @@ with tab_news:
                 st.markdown(f"- {sig}")
 
 with tab_chart:
-
-    if df is not None and not df.empty:
+    if not result:
+        st.info("👈 Hãy chạy phân tích để xem đồ thị kỹ thuật.")
+    elif df is not None and not df.empty:
         st.subheader(f"📊 Đồ thị Nến Nhật ({symbol})")
         df['MA20'] = df['close'].rolling(20).mean()
         df['MA50'] = df['close'].rolling(50).mean()
@@ -504,9 +483,12 @@ with tab_diagram:
         st.warning("Không tìm thấy file pipeline_diagram.html. Vui lòng kiểm tra lại.")
 
 with tab_raw:
-    st.subheader("📄 JSON Output toàn bộ kết quả phân tích")
-    raw_output = {k: v for k, v in result.items() if k != "analyses"}
-    st.code(json.dumps(raw_output, indent=2, ensure_ascii=False, default=str), language="json")
-    if df is not None:
+    if not result:
+        st.info("👈 Hãy chạy phân tích để xem dữ liệu thô.")
+    else:
+        st.subheader("📄 JSON Output toàn bộ kết quả phân tích")
+        raw_output = {k: v for k, v in result.items() if k != "analyses"}
+        st.code(json.dumps(raw_output, indent=2, ensure_ascii=False, default=str), language="json")
+        if df is not None:
         st.subheader("📋 Bảng dữ liệu OHLCV thô")
         st.dataframe(df.sort_values(by='time', ascending=False), use_container_width=True)
