@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sơ đồ 2: Quy trình Xử lý Khẩn cấp &amp; Post-Mortem Learning</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07090e;
+    --surface: #0f172a;
+    --border: rgba(255, 255, 255, 0.1);
+    --green: #00e676;
+    --blue: #38bdf8;
+    --purple: #c084fc;
+    --orange: #fb923c;
+    --red: #f87171;
+    --yellow: #facc15;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --mono: 'Fira Code', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    padding: 30px 20px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .diagram-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow-x: auto;
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .detail-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🚨 SƠ ĐỒ 2: QUY TRÌNH XỬ LÝ SỰ CỐ BIẾN CỐ ĐỊA CHÍNH TRỊ / ĐỘI LÁI &amp; MỔ XẺ KHÁM NGHIỆM (POST-MORTEM)</h1>
+    <p>Quy trình 2 giai đoạn: Xử lý khẩn cấp Real-Time khi kịch bản vi phạm ➔ Mổ xẻ rút kinh nghiệm &amp; Tự nâng cấp thuật toán</p>
+  </header>
+
+  <div class="diagram-box">
+    <div class="mermaid">
+    graph TD
+        subgraph P1["GIAI ĐOẠN 1: PHẢN ỨNG KHẨN CẤP REAL-TIME (T+1 / T+2)"]
+            A[Biến cố Tin tức / Giá sập ngược nhận định] --> B{News &amp; Emergency Agent}
+            B -->|Phát hiện Tin tức Thiên Nga Đen / Chiến tranh| C[🚨 Kích hoạt Cảnh báo EMERGENCY_EVENT]
+            B -->|Không có tin vĩ mô lớn| D{Risk &amp; Technical Agent}
+            
+            C --> E[Tầng 4 Debate Council Họp Khẩn]
+            D -->|Chạm Hard Stop-Loss ATR| F[🔴 LỆNH CẮT LỖ TỰ ĐỘNG - HARD CUT-OFF]
+            D -->|Chưa chạm Stop-Loss| E
+            
+            E -->|Bear Agent chiếm ưu thế - Hủy kịch bản Tăng| G[📉 HẠ KHUYẾN NGHỊ: BÁN HỦY VỊ THẾ SỚM]
+        end
+
+        subgraph P2["GIAI ĐOẠN 2: MỔ XẺ KHÁM NGHIỆM &amp; TỰ HỌC (POST-MORTEM LEARNING)"]
+            F --> H[Post-Mortem Learning Agent]
+            G --> H
+            
+            H --> I{Phân loại Nguyên nhân Thất bại}
+            I -->|Rủi ro Ngoại cảnh / Thiên Nga Đen| J[Mở rộng biên độ Stop-Loss &amp; Siết % Vốn Position Sizing]
+            I -->|Bẫy Thị trường / Đội lái Bull Trap| K[Lưu Mẫu hình Bẫy vào Negative Memory Vector DB]
+            
+            J --> L[Cập nhật Rule cho Pipeline Mới]
+            K --> L
+            L --> M[Siết chặt tiêu chí MUA: Nâng ngưỡng duyệt từ 62 lên 70 điểm]
+            L --> N[Tăng quyền lực phản biện cho Bear Agent trong 10 phiên kế tiếp]
+        end
+    </div>
+  </div>
+
+  <div class="detail-cards">
+    <div class="card">
+      <div class="card-title" style="color: var(--red);">🚨 Cắt lỗ Kỷ luật (Hard Cut-Off)</div>
+      <div class="card-desc">Khi giá chạm ngưỡng Stop-Loss ATR, hệ thống thực thi cắt lỗ 100% không cảm xúc, tuyệt đối không gồng lỗ hay tiếc nuối.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--orange);">⚠️ Thoát vị thế sớm (Invalidation)</div>
+      <div class="card-desc">Nếu tin tức chiến tranh/địa chính trị bùng nổ làm hủy hoại kịch bản gốc, Debate Council họp khẩn hạ khuyến nghị BÁN ngay lập tức dù chưa chạm Stop-Loss.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--purple);">🔬 Post-Mortem Agent</div>
+      <div class="card-desc">Phân tích nguyên nhân thua lỗ: Phân tách rõ ràng giữa Bẫy đội lái (Bull Trap) và Biến cố Thiên nga đen (Black Swan Event).</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--green);">🧠 Tự nâng cấp Thuật toán (Self-Correction)</div>
+      <div class="card-desc">Lưu mẫu hình Bẫy vào Negative Memory DB, siết tiêu chí duyệt lệnh MUA (62đ ➔ 70đ), nâng quyền lực phản biện cho Bear Agent.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose'
+  });
+</script>
+</body>
+</html>

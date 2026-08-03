@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sơ đồ 1: Kiến trúc System Multi-Agent (Có Loop & Debate Council)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07090e;
+    --surface: #0f172a;
+    --border: rgba(255, 255, 255, 0.1);
+    --green: #00e676;
+    --blue: #38bdf8;
+    --purple: #c084fc;
+    --orange: #fb923c;
+    --red: #f87171;
+    --yellow: #facc15;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --mono: 'Fira Code', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    padding: 30px 20px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .diagram-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow-x: auto;
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .detail-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📐 SƠ ĐỒ 1: KIẾN TRÚC MULTI-AGENT VỚI DEBATE COUNCIL &amp; FEEDBACK LOOP</h1>
+    <p>Hệ thống phân tích chu kỳ cổ phiếu tự động có cơ chế Phản biện đối kháng &amp; Tự học sau giao dịch (Self-Improving AI)</p>
+  </header>
+
+  <div class="diagram-box">
+    <div class="mermaid">
+    graph TD
+        subgraph L1["TẦNG 1: DỮ LIỆU &amp; QUAN SÁT"]
+            A1[Biểu đồ Nến &amp; Hình ảnh] --> B1[Vision Chart Agent]
+            A2[Dữ liệu OHLCV &amp; Indicators] --> B2[Quant Cycle Agent]
+            A3[BCTC &amp; Vĩ mô Ngành] --> B3[Fundamental Agent]
+        end
+
+        subgraph L2["TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ"]
+            B1 --> C[Wyckoff &amp; Pattern Classifier]
+            B2 --> C
+            B3 --> C
+            C -->|Gửi kịch bản chu kỳ| D1
+        end
+
+        subgraph L3["TẦNG 3: ĐỘI NGUĨ PHẢN BIỆN CHU KỲ"]
+            D1[🐂 Bull Agent: Bảo vệ Kịch bản Tăng/Tích lũy] <-->|Tranh luận 3 vòng| D2[🐻 Bear Agent: Cảnh báo Bull Trap/Phân phối]
+            D1 <--> D3[😈 Devil's Agent: Thách thức Confirmation Bias]
+            D2 <--> D3
+            D1 &amp; D2 &amp; D3 -->|Bàn giao kết quả| E[Master Consensus Moderator]
+        end
+
+        subgraph L4["TẦNG 4: PHÁN QUYẾT &amp; ĐIỂM QUẢN TRỊ RỦI RO"]
+            E --> F[Quyết định Đầu tư &amp; Thiết lập Stop-Loss/Take-Profit]
+        end
+
+        subgraph L5["TẦNG 5: CONTINUOUS FEEDBACK &amp; MEMORY LOOP"]
+            F --> G[Theo dõi Giá Thực tế theo Thời gian T+N]
+            G -->|Giá đi đúng dự đoán| H1[🟢 Reinforcement: Khắc sâu Mẫu hình vào Memory DB]
+            G -->|Bị dính Stop-Loss / Sai chu kỳ| H2[🔴 Post-Mortem Agent: Mổ xẻ Thất bại &amp; Điều chỉnh Trọng số]
+        end
+
+        H1 -->|Cập nhật Vector Pattern| D4[(Memory Database)]
+        H2 -->|Cập nhật Rule Phản biện &amp; Trọng số| D4
+        D4 -.->|Cung cấp dữ liệu quá khứ| C
+        D4 -.->|Cung cấp case-study phản biện| L3
+    </div>
+  </div>
+
+  <div class="detail-cards">
+    <div class="card">
+      <div class="card-title" style="color: var(--blue);">👁️ Tầng 1: Data Ingestion</div>
+      <div class="card-desc">Thu thập song song 3 luồng: Biểu đồ hình ảnh (Vision AI), Chỉ số kỹ thuật định lượng (Quant), Báo cáo tài chính &amp; Tin tức ngành (Fundamental).</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--purple);">🧠 Tầng 2: Wyckoff Classifier</div>
+      <div class="card-desc">Phân loại cổ phiếu vào 4 giai đoạn chu kỳ: Tích lũy (Accumulation), Đẩy giá (Markup), Phân phối (Distribution), Đè giá (Markdown).</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--orange);">⚖️ Tầng 3: Debate Council</div>
+      <div class="card-desc">Bull Advocate (🐂) tranh luận gay gắt với Bear Advocate (🐻) và Devil's Advocate (😈) qua 3 vòng để triệt hạ bẫy tâm lý Confirmation Bias.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--green);">🔄 Tầng 5: Feedback &amp; Memory Loop</div>
+      <div class="card-desc">Liên tục theo dõi giá thực tế sau T+N. Nếu giao dịch thua lỗ, Post-Mortem Agent mổ xẻ nguyên nhân và điều chỉnh trọng số phản biện cho tương lai.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose'
+  });
+</script>
+</body>
+</html>
