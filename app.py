@@ -1,4 +1,30 @@
 import json
+import subprocess
+import sys
+
+# Self-healing dependency check for Cloud deployment
+def _ensure_dependencies():
+    required_packages = {
+        "plotly": "plotly",
+        "vnstock": "vnstock>=4.0.5",
+        "tradingview_ta": "tradingview-ta",
+        "feedparser": "feedparser",
+        "bs4": "beautifulsoup4"
+    }
+    missing = []
+    for mod, pkg in required_packages.items():
+        try:
+            __import__(mod)
+        except ImportError:
+            missing.append(pkg)
+    if missing:
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing)
+        except Exception:
+            pass
+
+_ensure_dependencies()
+
 import streamlit as st
 import streamlit.components.v1
 import pandas as pd
