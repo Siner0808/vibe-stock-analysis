@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sơ đồ 2: Quy trình Xử lý Khẩn cấp &amp; Post-Mortem Learning</title>
+<title>Sơ đồ 2: Quy trình Xử lý Khẩn cấp, Safety Harness &amp; Post-Mortem Loop</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap');
@@ -20,6 +20,7 @@
     --orange: #fb923c;
     --red: #f87171;
     --yellow: #facc15;
+    --teal: #2dd4bf;
     --text: #f8fafc;
     --muted: #94a3b8;
     --mono: 'Fira Code', monospace;
@@ -35,7 +36,7 @@
   }
 
   .container {
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
   }
 
@@ -104,57 +105,79 @@
 
 <div class="container">
   <header>
-    <h1>🚨 SƠ ĐỒ 2: QUY TRÌNH XỬ LÝ SỰ CỐ BIẾN CỐ ĐỊA CHÍNH TRỊ / ĐỘI LÁI &amp; MỔ XẺ KHÁM NGHIỆM (POST-MORTEM)</h1>
-    <p>Quy trình 2 giai đoạn: Xử lý khẩn cấp Real-Time khi kịch bản vi phạm ➔ Mổ xẻ rút kinh nghiệm &amp; Tự nâng cấp thuật toán</p>
+    <h1>🚨 SƠ ĐỒ 2: QUY TRÌNH XỬ LÝ KHẨN CẤP, SAFETY HARNESS, TRANH LUẬN KHẨN CẤP &amp; VÒNG LẮP TỰ HỌC</h1>
+    <p>Tích hợp Safety Harness Giám sát An toàn, Đội ngũ Tranh luận Khẩn cấp (Bull vs Bear vs Devil), Vòng lặp Giám sát Real-time Loop &amp; Post-Mortem Feedback Loop</p>
   </header>
 
   <div class="diagram-box">
     <div class="mermaid">
     graph TD
-        subgraph P1["GIAI ĐOẠN 1: PHẢN ỨNG KHẨN CẤP REAL-TIME (T+1 / T+2)"]
-            A[Biến cố Tin tức / Giá sập ngược nhận định] --> B{News &amp; Emergency Agent}
-            B -->|Phát hiện Tin tức Thiên Nga Đen / Chiến tranh| C[🚨 Kích hoạt Cảnh báo EMERGENCY_EVENT]
+        %% GIAI ĐOẠN 1: PHÁT HIỆN SỰ CỐ & VÒNG LẮP GIÁM SÁT REAL-TIME
+        subgraph P1["GIAI ĐOẠN 1: REAL-TIME MONITORING LOOP (T+1 / T+2)"]
+            A[Tín hiệu Giá rơi / Tin xấu bất ngờ] --> B{News &amp; Emergency Agent}
+            B -->|Phát hiện Biến cố Thiên Nga Đen / Chiến tranh| C[🚨 Kích hoạt EMERGENCY_STATE]
             B -->|Không có tin vĩ mô lớn| D{Risk &amp; Technical Agent}
-            
-            C --> E[Tầng 4 Debate Council Họp Khẩn]
-            D -->|Chạm Hard Stop-Loss ATR| F[🔴 LỆNH CẮT LỖ TỰ ĐỘNG - HARD CUT-OFF]
-            D -->|Chưa chạm Stop-Loss| E
-            
-            E -->|Bear Agent chiếm ưu thế - Hủy kịch bản Tăng| G[📉 HẠ KHUYẾN NGHỊ: BÁN HỦY VỊ THẾ SỚM]
+            D -->|Chạm Hard Stop-Loss ATR| E[🔴 HARD STOP-LOSS SIGNAL]
+            D -->|Chưa chạm Stop-Loss| F[Vòng lặp Giám sát Real-Time Tick-by-Tick Loop]
+            F -.->|Continuous Monitoring| A
         end
 
-        subgraph P2["GIAI ĐOẠN 2: MỔ XẺ KHÁM NGHIỆM &amp; TỰ HỌC (POST-MORTEM LEARNING)"]
-            F --> H[Post-Mortem Learning Agent]
-            G --> H
+        %% GIAI ĐOẠN 2: SAFETY HARNESS & ĐỘI NGUĨ TRANH LUẬN KHẨN CẤP
+        subgraph P2["GIAI ĐOẠN 2: AGENTIC SAFETY HARNESS &amp; DEBATE COUNCIL"]
+            C --> G[🛡️ SAFETY HARNESS GUARDRAILS]
+            E --> G
+            F -->|Xuất hiện xung đột kỹ thuật| G
             
-            H --> I{Phân loại Nguyên nhân Thất bại}
-            I -->|Rủi ro Ngoại cảnh / Thiên Nga Đen| J[Mở rộng biên độ Stop-Loss &amp; Siết % Vốn Position Sizing]
-            I -->|Bẫy Thị trường / Đội lái Bull Trap| K[Lưu Mẫu hình Bẫy vào Negative Memory Vector DB]
-            
-            J --> L[Cập nhật Rule cho Pipeline Mới]
+            G --> H{Harness Risk Limit Check}
+            H -->|Vi phạm Invariable Rules| I[🔴 BẮT BUỘC BÁN THOÁT VỊ THẾ KỶ LUẬT]
+            H -->|Trong hạn mức rủi ro| J["⚖️ EMERGENCY DEBATE COUNCIL (TRANH LUẬN KHẨN CẤP)"]
+
+            J --> J1[🐂 Bull Agent: Phân tích Rủ bỏ / Panic Shakeout]
+            J --> J2[🐻 Bear Agent: Cảnh báo Phá vỡ Cấu trúc / Bull Trap]
+            J --> J3[😈 Devil's Advocate / Neutral Risk Auditor: Thách thức Bias]
+
+            J1 <-->|Tranh luận 3 vòng| J2
+            J2 <--> J3
+            J1 <--> J3
+
+            J1 &amp; J2 &amp; J3 --> K[Harness Final Decision: BÁN / THOÁT SỚM / HẠ TỶ TRỌNG]
+        end
+
+        %% GIAI ĐOẠN 3: POST-MORTEM & FEEDBACK LEARNING LOOP
+        subgraph P3["GIAI ĐOẠN 3: POST-MORTEM &amp; MEMORY FEEDBACK LOOP"]
+            I --> L[🔬 Post-Mortem Learning Agent]
             K --> L
-            L --> M[Siết chặt tiêu chí MUA: Nâng ngưỡng duyệt từ 62 lên 70 điểm]
-            L --> N[Tăng quyền lực phản biện cho Bear Agent trong 10 phiên kế tiếp]
+
+            L --> M{Khám nghiệm Nguyên nhân Thất bại}
+            M -->|Rủi ro Vĩ mô / Thiên Nga Đen| N[Điều chỉnh Position Sizing &amp; Tỷ lệ Phân bổ Vốn]
+            M -->|Bẫy Thị trường / Đội lái Bull Trap| O[Cập nhật Mẫu hình Bẫy vào Negative Memory Vector DB]
+
+            N --> P[Cập nhật System Prompt &amp; Weight Matrix]
+            O --> P
+
+            P -->|Nâng quyền lực phản biện cho Bear Agent| Q[Tăng Tiêu chuẩn duyệt MUA cho các phiên tiếp theo]
+            Q -.->|Cập nhật quy tắc cho Harness| G
+            Q -.->|Cập nhật dữ liệu bài học| A
         end
     </div>
   </div>
 
   <div class="detail-cards">
     <div class="card">
-      <div class="card-title" style="color: var(--red);">🚨 Cắt lỗ Kỷ luật (Hard Cut-Off)</div>
-      <div class="card-desc">Khi giá chạm ngưỡng Stop-Loss ATR, hệ thống thực thi cắt lỗ 100% không cảm xúc, tuyệt đối không gồng lỗ hay tiếc nuối.</div>
+      <div class="card-title" style="color: var(--blue);">🔄 Real-Time Monitoring Loop</div>
+      <div class="card-desc">Vòng lặp giám sát liên tục T+1, T+2... Cập nhật giá và tin tức theo real-time tick để phát hiện dấu hiệu vi phạm kịch bản ban đầu.</div>
     </div>
     <div class="card">
-      <div class="card-title" style="color: var(--orange);">⚠️ Thoát vị thế sớm (Invalidation)</div>
-      <div class="card-desc">Nếu tin tức chiến tranh/địa chính trị bùng nổ làm hủy hoại kịch bản gốc, Debate Council họp khẩn hạ khuyến nghị BÁN ngay lập tức dù chưa chạm Stop-Loss.</div>
+      <div class="card-title" style="color: var(--teal);">🛡️ Agentic Safety Harness</div>
+      <div class="card-desc">Tầng khung giám sát an toàn đặt các giới hạn bất biến (Risk Guardrails): Giới hạn lỗ tối đa, Position Sizing, và quy tắc chặn hoảng loạn (Anti-Panic Filter).</div>
     </div>
     <div class="card">
-      <div class="card-title" style="color: var(--purple);">🔬 Post-Mortem Agent</div>
-      <div class="card-desc">Phân tích nguyên nhân thua lỗ: Phân tách rõ ràng giữa Bẫy đội lái (Bull Trap) và Biến cố Thiên nga đen (Black Swan Event).</div>
+      <div class="card-title" style="color: var(--orange);">⚔️ Tranh luận Khẩn cấp (Emergency Debate)</div>
+      <div class="card-desc">Bull Agent (🐂) và Bear Agent (🐻) đối kháng khẩn cấp dưới sự kiểm soát của Devil's Advocate (😈) để xác định rủi ro thực sự vs Rủ bỏ (Shakeout).</div>
     </div>
     <div class="card">
-      <div class="card-title" style="color: var(--green);">🧠 Tự nâng cấp Thuật toán (Self-Correction)</div>
-      <div class="card-desc">Lưu mẫu hình Bẫy vào Negative Memory DB, siết tiêu chí duyệt lệnh MUA (62đ ➔ 70đ), nâng quyền lực phản biện cho Bear Agent.</div>
+      <div class="card-title" style="color: var(--purple);">🔬 Post-Mortem &amp; Memory Loop Back</div>
+      <div class="card-desc">Sau khi thoát vị thế, Post-Mortem Agent mổ xẻ nguyên nhân, lưu bẫy vào Negative Memory DB và nạp ngược bài học lại cho Harness &amp; Debate System.</div>
     </div>
   </div>
 </div>
