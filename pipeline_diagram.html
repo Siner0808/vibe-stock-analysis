@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Multi-Agent Architecture Terminal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07090e;
+    --card-bg: rgba(15, 23, 42, 0.75);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover: rgba(255, 255, 255, 0.16);
+    --green: #00e676;
+    --green-glow: rgba(0, 230, 118, 0.25);
+    --blue: #38bdf8;
+    --blue-glow: rgba(56, 189, 248, 0.25);
+    --purple: #c084fc;
+    --purple-glow: rgba(192, 132, 252, 0.25);
+    --orange: #fb923c;
+    --orange-glow: rgba(251, 146, 60, 0.25);
+    --red: #f87171;
+    --yellow: #facc15;
+    --teal: #2dd4bf;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'Fira Code', monospace;
+  }
+
+  body {
+    background-color: var(--bg);
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 60%, rgba(192, 132, 252, 0.05) 0%, transparent 40%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  /* --- Top Control Toolbar --- */
+  .terminal-bar {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .brand-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .status-indicator {
+    position: relative;
+    width: 12px;
+    height: 12px;
+  }
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--green);
+    border-radius: 50%;
+    position: absolute;
+  }
+  .status-pulse {
+    width: 12px;
+    height: 12px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes ping {
+    75%, 100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  .brand-title {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .metrics-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .metric-pill {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .metric-pill span.val {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .action-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  }
+  .action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  }
+  .action-btn.active {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  }
+
+  /* --- Main Pipeline Container --- */
+  .pipeline-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+  }
+
+  /* Layer Section */
+  .layer-block {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .layer-block.active-sim {
+    border-color: var(--green);
+    box-shadow: 0 0 25px var(--green-glow);
+  }
+
+  .layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .layer-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .layer-tag .badge-num {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    font-size: 10px;
+  }
+
+  .nodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  /* Agent Node Card */
+  .agent-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .agent-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 3px;
+    background: var(--accent-color, var(--blue));
+    opacity: 0.7;
+  }
+  .agent-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-color, var(--blue));
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4), 0 0 15px var(--accent-glow, var(--blue-glow));
+    background: rgba(30, 41, 59, 0.8);
+  }
+  .agent-card.active-sim-node {
+    border-color: var(--green);
+    animation: glowNode 1s ease-in-out infinite alternate;
+  }
+  @keyframes glowNode {
+    from { box-shadow: 0 0 10px var(--green-glow); }
+    to { box-shadow: 0 0 25px var(--green-glow), 0 0 5px var(--green); }
+  }
+
+  .agent-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .agent-icon {
+    font-size: 20px;
+  }
+  .agent-weight {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+  }
+
+  .agent-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .agent-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* Connector Visual */
+  .connector-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    position: relative;
+  }
+  .flow-line {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--card-border), var(--green), var(--card-border));
+    position: relative;
+    overflow: hidden;
+  }
+  .flow-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    position: absolute;
+    left: -2px;
+    box-shadow: 0 0 8px var(--green);
+    animation: flowDown 1.5s linear infinite;
+  }
+  @keyframes flowDown {
+    0% { top: -10%; opacity: 0; }
+    50% { opacity: 1; }
+    100% { top: 110%; opacity: 0; }
+  }
+
+  /* Special Debate Council Box */
+  .debate-container {
+    background: linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 23, 42, 0.6));
+    border: 1px solid rgba(251, 146, 60, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .debate-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .debate-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--orange);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .debate-badge {
+    background: rgba(251, 146, 60, 0.2);
+    color: var(--orange);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(251, 146, 60, 0.4);
+  }
+
+  .debate-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* Verdict Layer Cards */
+  .verdict-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .verdict-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .verdict-card:hover {
+    transform: scale(1.03);
+  }
+  .verdict-card.v-buy-strong { border-color: var(--green); background: rgba(0, 230, 118, 0.1); }
+  .verdict-card.v-buy { border-color: var(--blue); background: rgba(56, 189, 248, 0.1); }
+  .verdict-card.v-hold { border-color: var(--yellow); background: rgba(250, 204, 21, 0.1); }
+  .verdict-card.v-sell { border-color: var(--orange); background: rgba(251, 146, 60, 0.1); }
+  .verdict-card.v-sell-strong { border-color: var(--red); background: rgba(248, 113, 113, 0.1); }
+
+  .verdict-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  /* --- Slide-Out Inspector Drawer --- */
+  .inspector-drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid var(--card-border);
+    box-shadow: -10px 0 40px rgba(0,0,0,0.8);
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+  .inspector-drawer.open {
+    right: 0;
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 14px;
+  }
+  .drawer-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .close-btn:hover { color: var(--text-primary); }
+
+  .drawer-section {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .code-block {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #38bdf8;
+    background: rgba(15, 23, 42, 0.8);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top Navigation & Stats Bar -->
+  <div class="terminal-bar">
+    <div class="brand-info">
+      <div class="status-indicator">
+        <div class="status-pulse"></div>
+        <div class="status-dot"></div>
+      </div>
+      <div>
+        <div class="brand-title">VIBE CODING PIPELINE ARCHITECTURE</div>
+        <div class="brand-sub">Real-Time Autonomous Multi-Agent Consensus System</div>
+      </div>
+    </div>
+
+    <div class="metrics-group">
+      <div class="metric-pill">
+        STATUS: <span class="val">15 AGENTS ONLINE</span>
+      </div>
+      <div class="metric-pill">
+        LATENCY: <span class="val">~1.2s</span>
+      </div>
+      <button class="action-btn" id="simBtn" onclick="toggleSimulation()">
+        <span>▶</span> SIMULATE PIPELINE FLOW
+      </button>
+    </div>
+  </div>
+
+  <!-- Pipeline Main Container -->
+  <div class="pipeline-container">
+
+    <!-- LAYER 1A: DATA INGESTION -->
+    <div class="layer-block" id="layer-1a">
+      <div class="layer-header">
+        <div class="layer-tag" style="color: var(--blue);">
+          <span class="badge-num">LAYER 1A</span> MARKET DATA INGESTION
+        </div>
+        <span class="brand-sub">OHLCV + Real-Time MCP Indicators</span>
+      </div>
+      <div class="nodes-grid">
+        <div class="agent-card" style="--accent-color: var(--blue);" onclick="openInspector('vnstock')">
+          <div class="agent-top">
+            <span class="agent-icon">📦</span>
+            <span class="agent-weight">VCI SOURCE</span>
+          </div>
+          <div class="agent-name">VNStock Collector</div>
+          <div class="agent-desc">Historical OHLCV, Volume, Cashflow & Price Action Data</div>
+        </div>
+
+        <div class="agent-card" style="--accent-color: var(--blue);" onclick="openInspector('tradingview')">
+          <div class="agent-top">
+            <span class="agent-icon">📡</span>
+            <span class="agent-weight">MCP SOCKET</span>
+          </div>
+          <div class="agent-name">TradingView MCP</div>
+          <div class="agent-desc">Real-time Technical Oscillators & Moving Average Summary</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector-flow"><div class="flow-line"><div class="flow-dot"></div></div></div>
+
+    <!-- LAYER 1B: NEWS SCRAPERS -->
+    <div class="layer-block" id="layer-1b">
+      <div class="layer-header">
+        <div class="layer-tag" style="color: var(--purple);">
+          <span class="badge-num">LAYER 1B</span> MULTI-SOURCE NEWS SCRAPERS (5 AGENTS)
+        </div>
+        <span class="brand-sub">Parallel NLP Stream Parsing</span>
+      </div>
+      <div class="nodes-grid">
+        <div class="agent-card" style="--accent-color: var(--purple);" onclick="openInspector('news_domestic')">
+          <div class="agent-top"><span class="agent-icon">🇻🇳</span><span class="agent-weight">12 FEEDS</span></div>
+          <div class="agent-name">Domestic News</div>
+          <div class="agent-desc">VnExpress, CafeF, Vietstock, Tuổi Trẻ, NDH</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--purple);" onclick="openInspector('news_intl')">
+          <div class="agent-top"><span class="agent-icon">🌏</span><span class="agent-weight">13 FEEDS</span></div>
+          <div class="agent-name">International News</div>
+          <div class="agent-desc">Reuters, Bloomberg, CNBC, WSJ, Financial Times</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--purple);" onclick="openInspector('news_macro')">
+          <div class="agent-top"><span class="agent-icon">📊</span><span class="agent-weight">MACRO</span></div>
+          <div class="agent-name">Macro Data Agent</div>
+          <div class="agent-desc">NHNN, Ministry of Finance, FED, ECB, IMF</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--purple);" onclick="openInspector('news_sector')">
+          <div class="agent-top"><span class="agent-icon">🏭</span><span class="agent-weight">14 SECTORS</span></div>
+          <div class="agent-name">Sector News Agent</div>
+          <div class="agent-desc">Banking, Real Estate, Tech, Steel, Energy</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--purple);" onclick="openInspector('news_company')">
+          <div class="agent-top"><span class="agent-icon">🏢</span><span class="agent-weight">GOOGLE RSS</span></div>
+          <div class="agent-name">Company News</div>
+          <div class="agent-desc">Ticker-specific news & Exchange announcements</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector-flow"><div class="flow-line"><div class="flow-dot"></div></div></div>
+
+    <!-- LAYER 2: SPECIALIZED ANALYSIS AGENTS -->
+    <div class="layer-block" id="layer-2">
+      <div class="layer-header">
+        <div class="layer-tag" style="color: var(--green);">
+          <span class="badge-num">LAYER 2</span> SPECIALIZED ANALYSIS CORE (6 AGENTS)
+        </div>
+        <span class="brand-sub">Quantitative & Qualitative Feature Extraction</span>
+      </div>
+      <div class="nodes-grid">
+        <div class="agent-card" style="--accent-color: var(--green);" onclick="openInspector('trend')">
+          <div class="agent-top"><span class="agent-icon">📈</span><span class="agent-weight">22% WT</span></div>
+          <div class="agent-name">Trend Agent</div>
+          <div class="agent-desc">EMA20, SMA50/200, ADX 14 & Trend Structure</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--green);" onclick="openInspector('momentum')">
+          <div class="agent-top"><span class="agent-icon">⚡</span><span class="agent-weight">22% WT</span></div>
+          <div class="agent-name">Momentum Agent</div>
+          <div class="agent-desc">RSI, MACD Histogram, Stochastic %K/%D, CCI</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--green);" onclick="openInspector('volume')">
+          <div class="agent-top"><span class="agent-icon">📊</span><span class="agent-weight">18% WT</span></div>
+          <div class="agent-name">Volume Agent</div>
+          <div class="agent-desc">OBV, Volume MA5/20 Ratio, Spikes & Climax</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--green);" onclick="openInspector('sr')">
+          <div class="agent-top"><span class="agent-icon">📍</span><span class="agent-weight">13% WT</span></div>
+          <div class="agent-name">S&R Agent</div>
+          <div class="agent-desc">Bollinger Bands, Pivot Points R1/S1, 52W Hi/Lo</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--green);" onclick="openInspector('risk')">
+          <div class="agent-top"><span class="agent-icon">🛡️</span><span class="agent-weight">13% WT</span></div>
+          <div class="agent-name">Risk Agent</div>
+          <div class="agent-desc">Volatility, MaxDD, Sharpe, ATR, Position Sizing</div>
+        </div>
+        <div class="agent-card" style="--accent-color: var(--teal);" onclick="openInspector('sentiment')">
+          <div class="agent-top"><span class="agent-icon">📰</span><span class="agent-weight">12% WT</span></div>
+          <div class="agent-name">News Sentiment</div>
+          <div class="agent-desc">NLP Sentiment Score (-100 to +100) & Top News</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector-flow"><div class="flow-line"><div class="flow-dot"></div></div></div>
+
+    <!-- LAYER 3: MASTER CONSENSUS -->
+    <div class="layer-block" id="layer-3">
+      <div class="layer-header">
+        <div class="layer-tag" style="color: var(--purple);">
+          <span class="badge-num">LAYER 3</span> MASTER CONSENSUS ENGINE
+        </div>
+        <span class="brand-sub">Weighted Matrix Aggregation</span>
+      </div>
+      <div class="agent-card" style="--accent-color: var(--purple);" onclick="openInspector('master')">
+        <div class="agent-top">
+          <span class="agent-icon">🧠</span>
+          <span class="agent-weight">PRE-DEBATE AGGREGATOR</span>
+        </div>
+        <div class="agent-name" style="font-size: 15px;">Master Consensus Agent</div>
+        <div class="agent-desc">Combines 6 Analysis Agents + TradingView Bonus (±8 pts) into Pre-Debate Score (0-100)</div>
+      </div>
+    </div>
+
+    <div class="connector-flow"><div class="flow-line"><div class="flow-dot"></div></div></div>
+
+    <!-- LAYER 4: ADVERSARIAL DEBATE COUNCIL -->
+    <div class="debate-container" id="layer-4">
+      <div class="debate-header">
+        <div class="debate-title">
+          <span>⚖️ LAYER 4: ADVERSARIAL DEBATE COUNCIL</span>
+          <span class="debate-badge">3-ROUND DEBATE ENGINE</span>
+        </div>
+        <span class="brand-sub">Adversarial Collaboration & Adjustment</span>
+      </div>
+
+      <div class="debate-grid">
+        <div class="agent-card" style="--accent-color: var(--green); background: rgba(0, 230, 118, 0.05);" onclick="openInspector('bull')">
+          <div class="agent-top"><span class="agent-icon">🐂</span><span class="agent-weight">40% WT</span></div>
+          <div class="agent-name" style="color: var(--green);">Bull Advocate Agent</div>
+          <div class="agent-desc">Defends Buy Thesis, Upside Drivers & Scale-In Tactics</div>
+        </div>
+
+        <div class="agent-card" style="--accent-color: var(--red); background: rgba(248, 113, 113, 0.05);" onclick="openInspector('bear')">
+          <div class="agent-top"><span class="agent-icon">🐻</span><span class="agent-weight">40% WT</span></div>
+          <div class="agent-name" style="color: var(--red);">Bear Advocate Agent</div>
+          <div class="agent-desc">Defends Risk Thesis, Trap Warnings & Liquidity Risks</div>
+        </div>
+
+        <div class="agent-card" style="--accent-color: var(--yellow); background: rgba(250, 204, 21, 0.05);" onclick="openInspector('devil')">
+          <div class="agent-top"><span class="agent-icon">😈</span><span class="agent-weight">20% WT</span></div>
+          <div class="agent-name" style="color: var(--yellow);">Devil's Advocate</div>
+          <div class="agent-desc">Challenges Confirmation Bias & Black Swan Events</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector-flow"><div class="flow-line"><div class="flow-dot"></div></div></div>
+
+    <!-- LAYER 5: FINAL VERDICT MATRIX -->
+    <div class="layer-block" id="layer-5">
+      <div class="layer-header">
+        <div class="layer-tag" style="color: var(--teal);">
+          <span class="badge-num">LAYER 5</span> FINAL VERDICT & STRATEGY MATRIX
+        </div>
+        <span class="brand-sub">Action Signal Output</span>
+      </div>
+
+      <div class="verdict-grid">
+        <div class="verdict-card v-buy-strong">
+          <span class="agent-icon">🚀</span>
+          <div class="verdict-name" style="color: var(--green);">STRONG BUY</div>
+          <div class="brand-sub">Score ≥ 78</div>
+        </div>
+
+        <div class="verdict-card v-buy">
+          <span class="agent-icon">📈</span>
+          <div class="verdict-name" style="color: var(--blue);">BUY</div>
+          <div class="brand-sub">Score 62 - 77</div>
+        </div>
+
+        <div class="verdict-card v-hold">
+          <span class="agent-icon">👀</span>
+          <div class="verdict-name" style="color: var(--yellow);">HOLD</div>
+          <div class="brand-sub">Score 45 - 61</div>
+        </div>
+
+        <div class="verdict-card v-sell">
+          <span class="agent-icon">📉</span>
+          <div class="verdict-name" style="color: var(--orange);">SELL</div>
+          <div class="brand-sub">Score 30 - 44</div>
+        </div>
+
+        <div class="verdict-card v-sell-strong">
+          <span class="agent-icon">🔴</span>
+          <div class="verdict-name" style="color: var(--red);">STRONG SELL</div>
+          <div class="brand-sub">Score ≤ 29</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Slide-Out Inspector Drawer -->
+  <div class="inspector-drawer" id="inspectorDrawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawerTitle">Agent Inspector</div>
+      <button class="close-btn" onclick="closeInspector()">✕</button>
+    </div>
+
+    <div class="drawer-section">
+      <div class="section-label">Agent Overview</div>
+      <div id="drawerDesc" style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;"></div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="section-label">Core Formula & Indicators</div>
+      <div class="code-block" id="drawerFormula"></div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="section-label">Sample Data Output</div>
+      <div class="code-block" id="drawerSample"></div>
+    </div>
+  </div>
+
+  <script>
+    // Agent Detailed Data for Inspector
+    const agentData = {
+      vnstock: {
+        title: "📦 VNStock Collector Agent",
+        desc: "Fetches historical OHLCV data directly from VCI data source with 5-minute intelligent caching and exponential backoff retry logic.",
+        formula: "OHLCV = { open, high, low, close, volume, time }\nCache Key: {symbol}_{start}_{end}\nSource: VCI Realtime Socket API",
+        sample: '{\n  "close": 128500.0,\n  "change_pct": +2.4,\n  "volume": 4250000,\n  "data_quality": "HIGH"\n}'
+      },
+      tradingview: {
+        title: "📡 TradingView MCP Collector",
+        desc: "Queries TradingView Technical Analysis API via Model Context Protocol to extract technical summaries and 26+ indicators.",
+        formula: "RSI(14), MACD(12,26,9), BB(20,2)\nSummary = Weighted(Oscillators, MovingAverages)",
+        sample: '{\n  "recommendation": "STRONG_BUY",\n  "buy_count": 18,\n  "neutral_count": 4,\n  "sell_count": 1\n}'
+      },
+      trend: {
+        title: "📈 Trend Analysis Agent",
+        desc: "Evaluates trend direction and strength by parsing Exponential Moving Averages (EMA20) and Simple Moving Averages (SMA50, SMA200).",
+        formula: "TrendStrength = ADX(14)\nScore = (Close > EMA20 ? +2 : -2) + (EMA20 > SMA50 ? +3 : -3)",
+        sample: '{\n  "trend": "STRONG_UPTREND",\n  "trend_strength": "VERY_STRONG",\n  "score": +4.5\n}'
+      },
+      momentum: {
+        title: "⚡ Momentum Agent",
+        desc: "Detects overbought/oversold conditions and divergence across RSI, MACD Histogram, Stochastic, CCI, and Williams %R.",
+        formula: "Signal = RSI < 30 ? OVERBOUGHT_BUY : (RSI > 70 ? OVERBOUGHT_SELL : NEUTRAL)",
+        sample: '{\n  "momentum_signal": "STRONG_BUY",\n  "rsi_14": 42.5,\n  "score": +5.2\n}'
+      },
+      bull: {
+        title: "🐂 Bull Advocate Agent",
+        desc: "Adversarial agent in Layer 4 that advocates for buying, highlighting upside potential, risk:reward ratios, and scale-in entries.",
+        formula: "BullImpact = ArgStrength * 0.40\nWeightInDebate = 40%",
+        sample: '{\n  "stance": "BULL",\n  "impact": +2.8,\n  "statement": "R:R = 2.5:1, Trend supported by volume"\n}'
+      },
+      bear: {
+        title: "🐻 Bear Advocate Agent",
+        desc: "Adversarial agent in Layer 4 that warns against downside risks, bull traps, liquidity squeezes, and resistance breakouts.",
+        formula: "BearImpact = ArgStrength * -0.40\nWeightInDebate = 40%",
+        sample: '{\n  "stance": "BEAR",\n  "impact": -1.5,\n  "statement": "RSI overbought, MaxDD历史-22%"\n}'
+      },
+      devil: {
+        title: "😈 Devil's Advocate Agent",
+        desc: "Neutral challenger that questions confirmation bias, data gaps, and tail risk (Black Swan events).",
+        formula: "DevilImpact = ChallengeScore * 0.20\nWeightInDebate = 20%",
+        sample: '{\n  "stance": "NEUTRAL",\n  "impact": -0.5,\n  "statement": "Confirmation Bias detected: Bull arguments outweigh Bear 2.5x"\n}'
+      }
+    };
+
+    function openInspector(key) {
+      const drawer = document.getElementById('inspectorDrawer');
+      const data = agentData[key] || {
+        title: "Agent Inspector",
+        desc: "Detailed metrics and execution formulas for this active Agent.",
+        formula: "Score = Normalized(IndicatorValue)",
+        sample: '{\n  "status": "ACTIVE"\n}'
+      };
+
+      document.getElementById('drawerTitle').innerText = data.title;
+      document.getElementById('drawerDesc').innerText = data.desc;
+      document.getElementById('drawerFormula').innerText = data.formula;
+      document.getElementById('drawerSample').innerText = data.sample;
+
+      drawer.classList.add('open');
+    }
+
+    function closeInspector() {
+      document.getElementById('inspectorDrawer').classList.remove('open');
+    }
+
+    // Interactive Simulation Loop
+    let simActive = false;
+    let simInterval = null;
+
+    function toggleSimulation() {
+      const btn = document.getElementById('simBtn');
+      const layers = ['layer-1a', 'layer-1b', 'layer-2', 'layer-3', 'layer-4', 'layer-5'];
+
+      if (!simActive) {
+        simActive = true;
+        btn.classList.add('active');
+        btn.innerHTML = '<span>⏸</span> PAUSE SIMULATION';
+
+        let idx = 0;
+        simInterval = setInterval(() => {
+          layers.forEach(l => document.getElementById(l).classList.remove('active-sim'));
+          document.getElementById(layers[idx]).classList.add('active-sim');
+          idx = (idx + 1) % layers.length;
+        }, 1200);
+      } else {
+        simActive = false;
+        btn.classList.remove('active');
+        btn.innerHTML = '<span>▶</span> SIMULATE PIPELINE FLOW';
+        clearInterval(simInterval);
+        layers.forEach(l => document.getElementById(l).classList.remove('active-sim'));
+      }
+    }
+  </script>
+</body>
+</html>
