@@ -345,91 +345,91 @@ with tab_news:
         news_res = result.get("analyses", {}).get("news", {})
         if not news_res or news_res.get("total_articles", 0) == 0:
             st.warning("⚠️ Không thu thập được tin tức. Hãy kiểm tra kết nối internet hoặc bật tùy chọn thu thập tin tức.")
-    else:
-        # ── Header Metrics ──────────────────────────────────────────
-        col_s, col_t, col_p, col_n = st.columns(4)
-        col_s.metric("📰 Tổng bài viết", news_res["total_articles"])
-        col_t.metric("🌡️ Sentiment tổng", news_res["overall_sentiment"])
-        col_p.metric("✅ Bài tích cực", news_res["breakdown"].get("domestic", {}).get("positive", 0) +
-                     news_res["breakdown"].get("international", {}).get("positive", 0))
-        col_n.metric("🔴 Bài tiêu cực", news_res["breakdown"].get("domestic", {}).get("negative", 0) +
-                     news_res["breakdown"].get("international", {}).get("negative", 0))
+        else:
+            # ── Header Metrics ──────────────────────────────────────────
+            col_s, col_t, col_p, col_n = st.columns(4)
+            col_s.metric("📰 Tổng bài viết", news_res["total_articles"])
+            col_t.metric("🌡️ Sentiment tổng", news_res["overall_sentiment"])
+            col_p.metric("✅ Bài tích cực", news_res["breakdown"].get("domestic", {}).get("positive", 0) +
+                         news_res["breakdown"].get("international", {}).get("positive", 0))
+            col_n.metric("🔴 Bài tiêu cực", news_res["breakdown"].get("domestic", {}).get("negative", 0) +
+                         news_res["breakdown"].get("international", {}).get("negative", 0))
 
-        st.divider()
+            st.divider()
 
-        # ── Phân tích Sentiment theo Nguồn ─────────────────────────
-        st.subheader("📊 Điểm Sentiment theo Nguồn")
-        bd = news_res.get("breakdown", {})
-        src_names = []
-        src_scores = []
-        src_labels_map = {"domestic": "🇻🇳 Trong nước", "international": "🌏 Quốc tế", "macro": "📊 Vĩ mô"}
-        for k, label in src_labels_map.items():
-            if k in bd:
-                src_names.append(label)
-                src_scores.append(bd[k]["score"])
+            # ── Phân tích Sentiment theo Nguồn ─────────────────────────
+            st.subheader("📊 Điểm Sentiment theo Nguồn")
+            bd = news_res.get("breakdown", {})
+            src_names = []
+            src_scores = []
+            src_labels_map = {"domestic": "🇻🇳 Trong nước", "international": "🌏 Quốc tế", "macro": "📊 Vĩ mô"}
+            for k, label in src_labels_map.items():
+                if k in bd:
+                    src_names.append(label)
+                    src_scores.append(bd[k]["score"])
 
-        if src_names:
-            src_colors = ["#00e676" if s > 10 else "#ef5350" if s < -10 else "#ffca28" for s in src_scores]
-            src_fig = go.Figure(go.Bar(
-                x=src_names, y=src_scores,
-                marker_color=src_colors,
-                text=[f"{s:+.1f}" for s in src_scores], textposition="outside"
-            ))
-            src_fig.add_hline(y=0, line_color="#b0bec5")
-            src_fig.update_layout(
-                template="plotly_dark", height=250,
-                yaxis_title="Điểm sentiment (-100 → +100)",
-                margin=dict(l=20, r=20, t=10, b=20)
-            )
-            st.plotly_chart(src_fig, use_container_width=True)
+            if src_names:
+                src_colors = ["#00e676" if s > 10 else "#ef5350" if s < -10 else "#ffca28" for s in src_scores]
+                src_fig = go.Figure(go.Bar(
+                    x=src_names, y=src_scores,
+                    marker_color=src_colors,
+                    text=[f"{s:+.1f}" for s in src_scores], textposition="outside"
+                ))
+                src_fig.add_hline(y=0, line_color="#b0bec5")
+                src_fig.update_layout(
+                    template="plotly_dark", height=250,
+                    yaxis_title="Điểm sentiment (-100 → +100)",
+                    margin=dict(l=20, r=20, t=10, b=20)
+                )
+                st.plotly_chart(src_fig, use_container_width=True)
 
-        # ── Heatmap Sentiment theo Ngành ───────────────────────────
-        st.subheader("🏭 Sentiment theo Ngành (14 ngành)")
-        sector_sent = news_res.get("sector_sentiment", {})
-        if sector_sent:
-            sec_labels  = [v["label"] for v in sector_sent.values()]
-            sec_scores  = [v["score"] for v in sector_sent.values()]
-            sec_totals  = [v["total"] for v in sector_sent.values()]
+            # ── Heatmap Sentiment theo Ngành ───────────────────────────
+            st.subheader("🏭 Sentiment theo Ngành (14 ngành)")
+            sector_sent = news_res.get("sector_sentiment", {})
+            if sector_sent:
+                sec_labels  = [v["label"] for v in sector_sent.values()]
+                sec_scores  = [v["score"] for v in sector_sent.values()]
+                sec_totals  = [v["total"] for v in sector_sent.values()]
 
-            sec_colors = ["#00e676" if s > 15 else "#ef5350" if s < -15 else "#ffca28" for s in sec_scores]
-            sec_fig = go.Figure(go.Bar(
-                x=sec_labels, y=sec_scores,
-                marker_color=sec_colors,
-                customdata=[[t] for t in sec_totals],
-                hovertemplate="<b>%{x}</b><br>Score: %{y:+.1f}<br>Bài: %{customdata[0]}<extra></extra>",
-                text=[f"{s:+.0f}" for s in sec_scores], textposition="outside"
-            ))
-            sec_fig.add_hline(y=0, line_color="#b0bec5")
-            sec_fig.update_layout(
-                template="plotly_dark", height=380,
-                yaxis_title="Sentiment Score",
-                xaxis_tickangle=-35,
-                margin=dict(l=20, r=20, t=10, b=100)
-            )
-            st.plotly_chart(sec_fig, use_container_width=True)
+                sec_colors = ["#00e676" if s > 15 else "#ef5350" if s < -15 else "#ffca28" for s in sec_scores]
+                sec_fig = go.Figure(go.Bar(
+                    x=sec_labels, y=sec_scores,
+                    marker_color=sec_colors,
+                    customdata=[[t] for t in sec_totals],
+                    hovertemplate="<b>%{x}</b><br>Score: %{y:+.1f}<br>Bài: %{customdata[0]}<extra></extra>",
+                    text=[f"{s:+.0f}" for s in sec_scores], textposition="outside"
+                ))
+                sec_fig.add_hline(y=0, line_color="#b0bec5")
+                sec_fig.update_layout(
+                    template="plotly_dark", height=380,
+                    yaxis_title="Sentiment Score",
+                    xaxis_tickangle=-35,
+                    margin=dict(l=20, r=20, t=10, b=100)
+                )
+                st.plotly_chart(sec_fig, use_container_width=True)
 
-        # ── Top tin tức ─────────────────────────────────────────────
-        col_pos, col_neg = st.columns(2)
-        with col_pos:
-            st.markdown("### ✅ Top Tin tức Tích cực")
-            for item in news_res.get("top_positive", []):
-                url = item.get("url", "#")
-                link = f"[{item['title'][:80]}...]({url})" if url and url != "#" else item['title'][:80]
-                st.markdown(f"**{link}**  \n`{item['source']}` — {item.get('category','')}")
-                st.divider()
+            # ── Top tin tức ─────────────────────────────────────────────
+            col_pos, col_neg = st.columns(2)
+            with col_pos:
+                st.markdown("### ✅ Top Tin tức Tích cực")
+                for item in news_res.get("top_positive", []):
+                    url = item.get("url", "#")
+                    link = f"[{item['title'][:80]}...]({url})" if url and url != "#" else item['title'][:80]
+                    st.markdown(f"**{link}**  \n`{item['source']}` — {item.get('category','')}")
+                    st.divider()
 
-        with col_neg:
-            st.markdown("### 🔴 Top Tin tức Tiêu cực")
-            for item in news_res.get("top_negative", []):
-                url = item.get("url", "#")
-                link = f"[{item['title'][:80]}...]({url})" if url and url != "#" else item['title'][:80]
-                st.markdown(f"**{link}**  \n`{item['source']}` — {item.get('category','')}")
-                st.divider()
+            with col_neg:
+                st.markdown("### 🔴 Top Tin tức Tiêu cực")
+                for item in news_res.get("top_negative", []):
+                    url = item.get("url", "#")
+                    link = f"[{item['title'][:80]}...]({url})" if url and url != "#" else item['title'][:80]
+                    st.markdown(f"**{link}**  \n`{item['source']}` — {item.get('category','')}")
+                    st.divider()
 
-        # ── Tín hiệu từ News Agent ──────────────────────────────────
-        with st.expander("📋 Chi tiết tín hiệu News Sentiment Agent", expanded=False):
-            for sig in news_res.get("signals", []):
-                st.markdown(f"- {sig}")
+            # ── Tín hiệu từ News Agent ──────────────────────────────────
+            with st.expander("📋 Chi tiết tín hiệu News Sentiment Agent", expanded=False):
+                for sig in news_res.get("signals", []):
+                    st.markdown(f"- {sig}")
 
 with tab_chart:
     if not result:
