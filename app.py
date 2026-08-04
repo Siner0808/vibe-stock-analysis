@@ -180,21 +180,22 @@ st.markdown("""
 
     /* ─── Primary Action Button ──────────────────────────────── */
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #00e676 0%, #00c853 40%, #00b0ff 100%) !important;
-        color: #050b14 !important;
+        background: linear-gradient(135deg, #1a237e 0%, #4a148c 50%, #880e4f 100%) !important;
+        color: #ffffff !important;
         font-weight: 800 !important;
         font-size: 0.95rem !important;
         border: none !important;
         border-radius: 12px !important;
         padding: 14px 28px !important;
-        box-shadow: 0 6px 24px rgba(0,230,118,0.3) !important;
+        box-shadow: 0 6px 24px rgba(74,20,140,0.4) !important;
         transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94) !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     .stButton > button[kind="primary"]:hover {
         transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 10px 36px rgba(0,230,118,0.45) !important;
+        box-shadow: 0 10px 36px rgba(136,14,79,0.5) !important;
+        background: linear-gradient(135deg, #283593 0%, #6a1b9a 50%, #ad1457 100%) !important;
     }
     .stButton > button[kind="primary"]:active {
         transform: translateY(0) scale(0.98) !important;
