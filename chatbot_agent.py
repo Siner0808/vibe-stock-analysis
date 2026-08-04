@@ -45,8 +45,7 @@ class StockChatbotAgent:
             "gemini-2.0-flash-lite",
             "gemini-2.0-flash-001",
             "gemini-flash-lite-latest",
-            "gemini-pro-latest",
-            "gemini-2.0-flash"
+            "gemini-pro-latest"
         ]
 
         last_error = ""
