@@ -420,12 +420,21 @@ with tab_chart:
 
         fig = go.Figure()
         fig.add_trace(go.Candlestick(
-            x=df['time'], open=df['open'], high=df['high'], low=df['low'], close=df['close'], name="OHLC"
+            x=df['time'],
+            open=df['open'],
+            high=df['high'],
+            low=df['low'],
+            close=df['close'],
+            name="Nến Nhật (OHLC)",
+            increasing_line_color='#00e676',
+            increasing_fillcolor='#00e676',
+            decreasing_line_color='#ef5350',
+            decreasing_fillcolor='#ef5350'
         ))
-        fig.add_trace(go.Scatter(x=df['time'], y=df['MA20'], mode='lines', name='MA20', line=dict(color='#ff9800', width=1.5)))
-        fig.add_trace(go.Scatter(x=df['time'], y=df['MA50'], mode='lines', name='MA50', line=dict(color='#2196f3', width=1.5)))
+        fig.add_trace(go.Scatter(x=df['time'], y=df['MA20'], mode='lines', name='MA20 (Ngắn hạn)', line=dict(color='#ff9800', width=2)))
+        fig.add_trace(go.Scatter(x=df['time'], y=df['MA50'], mode='lines', name='MA50 (Trung hạn)', line=dict(color='#2196f3', width=2)))
         fig.update_layout(
-            template="plotly_dark", height=500,
+            template="plotly_dark", height=520,
             xaxis_rangeslider_visible=False,
             margin=dict(l=20, r=20, t=20, b=20),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
