@@ -35,18 +35,19 @@ class MarketDataPacket:
 # LAYER 1: DATA COLLECTION AGENTS (Tầng Thu thập Dữ liệu)
 # =====================================================================
 class VNStockCollectorAgent:
-    """Agent thu thập dữ liệu OHLCV lịch sử từ VNStock (nguồn VCI)"""
+    """Agent thu thập dữ liệu OHLCV lịch sử từ VNStock (nguồn VCI / TCBS / DNSE)"""
     NAME = "VNStock Collector Agent"
 
     def collect(self, symbol: str, start: str, end: str) -> dict:
         from vnstock import Quote
-        try:
-            df = Quote(symbol=symbol, source='VCI').history(start=start, end=end)
-            if df is None or df.empty:
-                return {"status": "FAILED", "df": None, "note": "Không tìm thấy dữ liệu OHLCV"}
-            return {"status": "OK", "df": df, "note": f"Tải thành công {len(df)} phiên giao dịch"}
-        except Exception as e:
-            return {"status": "FAILED", "df": None, "note": str(e)}
+        for src in ['VCI', 'TCBS', 'DNSE']:
+            try:
+                df = Quote(symbol=symbol, source=src).history(start=start, end=end)
+                if df is not None and not df.empty:
+                    return {"status": "OK", "df": df, "note": f"Tải thành công {len(df)} phiên từ nguồn {src}"}
+            except Exception as e:
+                continue
+        return {"status": "FAILED", "df": None, "note": "Không kết nối được các nguồn VNStock (VCI/TCBS/DNSE)"}
 
 
 class TradingViewCollectorAgent:

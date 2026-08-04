@@ -289,15 +289,17 @@ with tab_debate:
                 "Dựa trên mức độ đồng thuận/bất đồng giữa các phe tranh luận.")
 
 with tab_detail:
-
-    analyses = result["analyses"]
-    agent_list = [
-        ("📈 Trend Analysis Agent", analyses["trend"], "trend"),
-        ("⚡ Momentum & Oscillator Agent", analyses["momentum"], "momentum"),
-        ("📊 Volume Analysis Agent", analyses["volume"], "volume"),
-        ("📍 Support & Resistance Agent", analyses["support_resistance"], "sr"),
-        ("🛡️ Risk Management Agent", analyses["risk"], "risk"),
-    ]
+    analyses = result.get("analyses", {})
+    if not analyses:
+        st.warning("⚠️ Không thể tải dữ liệu phân tích chi tiết cho mã này.")
+    else:
+        agent_list = [
+            ("📈 Trend Analysis Agent", analyses.get("trend", {}), "trend"),
+            ("⚡ Momentum & Oscillator Agent", analyses.get("momentum", {}), "momentum"),
+            ("📊 Volume Analysis Agent", analyses.get("volume", {}), "volume"),
+            ("📍 Support & Resistance Agent", analyses.get("support_resistance", {}), "sr"),
+            ("🛡️ Risk Management Agent", analyses.get("risk", {}), "risk"),
+        ]
 
     for title, data, key in agent_list:
         with st.expander(f"{title}", expanded=False):
