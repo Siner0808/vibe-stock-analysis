@@ -60,8 +60,8 @@ class StockChatbotAgent:
                 }
             ],
             "generationConfig": {
-                "temperature": 0.4,
-                "maxOutputTokens": 1024
+                "temperature": 0.3,
+                "maxOutputTokens": 8192
             }
         }
 
@@ -135,9 +135,10 @@ DỮ LIỆU DEBATE COUNCIL & SAFETY HARNESS:
 - Dữ liệu Quản trị rủi ro ATR: Stop-loss price ({analyses.get('risk', {}).get('recommendations', {}).get('stop_loss_price', 'N/A')}), Position Sizing ({analyses.get('risk', {}).get('recommendations', {}).get('suggested_position_size_pct', 15)}%).
 
 NHIỆM VỤ CỦA BẠN:
-1. Trả lời câu hỏi của nhà đầu tư một cách sắc bén, ngắn gọn, khách quan và khoa học dựa trên dữ liệu 5 Tầng trên.
+1. Trả lời câu hỏi của nhà đầu tư một cách sắc bén, súc tích (khoảng 300 - 450 từ), khách quan và khoa học dựa trên dữ liệu 5 Tầng trên.
 2. Luôn giữ kỷ luật quản trị rủi ro (không bao giờ khuyên nới Stop-loss hay bắt đáy vô căn cứ khi đang Downtrend/Bán).
 3. Trả lời bằng tiếng Việt trình bày chuẩn GitHub Markdown, sử dụng icon sinh động.
+4. Đảm bảo HOÀN THÀNH TRỌN VẸN câu trả lời, có kết bài rõ ràng, tuyệt đối không bao giờ được dừng giữa chừng.
 """
 
         # Gọi Gemini LLM API
