@@ -301,25 +301,25 @@ with tab_detail:
             ("🛡️ Risk Management Agent", analyses.get("risk", {}), "risk"),
         ]
 
-    for title, data, key in agent_list:
-        with st.expander(f"{title}", expanded=False):
-            signals = data.get("signals", [])
-            for s in signals:
-                st.markdown(f"- {s}")
-            if key == "risk" and "recommendations" in data:
-                rec = data["recommendations"]
-                st.divider()
-                r1, r2, r3 = st.columns(3)
-                r1.metric("Stop-loss", f"{rec['stop_loss_price']:,.2f} VNĐ", f"-{rec['stop_loss_pct']}%", delta_color="inverse")
-                r2.metric("Take-profit", f"{rec['take_profit_price']:,.2f} VNĐ", f"+{rec['take_profit_pct']}%")
-                r3.metric("Phân bổ vốn", f"{rec['suggested_position_size_pct']}%", f"RR {rec['risk_reward_ratio']}")
-            if key == "sr" and "levels" in data:
-                lvl = data["levels"]
-                st.divider()
-                l1, l2, l3 = st.columns(3)
-                l1.metric("Đỉnh 52 tuần", f"{lvl.get('high_52w',0):,.2f}")
-                l2.metric("Đáy 52 tuần", f"{lvl.get('low_52w',0):,.2f}")
-                l3.metric("% Từ đáy", f"{lvl.get('pct_from_low',0):.1f}%")
+        for title, data, key in agent_list:
+            with st.expander(f"{title}", expanded=False):
+                signals = data.get("signals", [])
+                for s in signals:
+                    st.markdown(f"- {s}")
+                if key == "risk" and "recommendations" in data:
+                    rec = data["recommendations"]
+                    st.divider()
+                    r1, r2, r3 = st.columns(3)
+                    r1.metric("Stop-loss", f"{rec['stop_loss_price']:,.2f} VNĐ", f"-{rec['stop_loss_pct']}%", delta_color="inverse")
+                    r2.metric("Take-profit", f"{rec['take_profit_price']:,.2f} VNĐ", f"+{rec['take_profit_pct']}%")
+                    r3.metric("Phân bổ vốn", f"{rec['suggested_position_size_pct']}%", f"RR {rec['risk_reward_ratio']}")
+                if key == "sr" and "levels" in data:
+                    lvl = data["levels"]
+                    st.divider()
+                    l1, l2, l3 = st.columns(3)
+                    l1.metric("Đỉnh 52 tuần", f"{lvl.get('high_52w',0):,.2f}")
+                    l2.metric("Đáy 52 tuần", f"{lvl.get('low_52w',0):,.2f}")
+                    l3.metric("% Từ đáy", f"{lvl.get('pct_from_low',0):.1f}%")
 
 with tab_news:
     news_res = result.get("analyses", {}).get("news", {})
