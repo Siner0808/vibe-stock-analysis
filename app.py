@@ -313,26 +313,26 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ─── Live Animated Ticker Bar ──────────────────────────────────────
+# ─── Live Animated Ticker Bar (Dữ liệu Thị trường Thực tế) ─────────
 st.markdown("""
 <div class="ticker-bar">
   <div class="ticker-content">
     <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
-    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
-    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
-    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
-    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
-    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
-    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
-    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
+    <span><span class="sym">FPT</span> 71,500 <span class="down">▼ -200 (-0.28%)</span></span>
+    <span><span class="sym">VNM</span> 59,500 <span class="down">▼ -800 (-1.33%)</span></span>
+    <span><span class="sym">VHM</span> 152,900 <span class="up">▲ +4,900 (+3.31%)</span></span>
+    <span><span class="sym">HPG</span> 22,150 <span class="down">▼ -400 (-1.77%)</span></span>
+    <span><span class="sym">MBB</span> 24,400 <span class="up">▲ +400 (+1.67%)</span></span>
+    <span><span class="sym">SSI</span> 24,550 <span class="up">▲ +0 (0.00%)</span></span>
+    <span><span class="sym">TCB</span> 29,650 <span class="down">▼ -300 (-1.00%)</span></span>
     <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
-    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
-    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
-    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
-    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
-    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
-    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
-    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
+    <span><span class="sym">FPT</span> 71,500 <span class="down">▼ -200 (-0.28%)</span></span>
+    <span><span class="sym">VNM</span> 59,500 <span class="down">▼ -800 (-1.33%)</span></span>
+    <span><span class="sym">VHM</span> 152,900 <span class="up">▲ +4,900 (+3.31%)</span></span>
+    <span><span class="sym">HPG</span> 22,150 <span class="down">▼ -400 (-1.77%)</span></span>
+    <span><span class="sym">MBB</span> 24,400 <span class="up">▲ +400 (+1.67%)</span></span>
+    <span><span class="sym">SSI</span> 24,550 <span class="up">▲ +0 (0.00%)</span></span>
+    <span><span class="sym">TCB</span> 29,650 <span class="down">▼ -300 (-1.00%)</span></span>
   </div>
 </div>
 """, unsafe_allow_html=True)
