@@ -432,9 +432,22 @@ class RiskManagementAgent:
 
         risk_score = max(10, min(90, risk_score))
 
-        # Recommendations
-        sl_pct = max(0.05, atr_pct * 2)  # SL = 2x ATR
-        tp_pct = sl_pct * 2.5             # TP = 2.5:1 RR Ratio
+        # Recommendations: Tính toán chính xác tỷ lệ Stop-Loss & Take-Profit chuẩn quản trị rủi ro
+        # Quy đổi atr_fraction chuẩn phần thập phân (ví dụ: 3.95% -> 0.0395)
+        if atr_raw and atr_raw > 0 and last_close > 0:
+            atr_fraction = (atr_raw / last_close) if atr_raw < last_close else (atr_raw / (last_close * 1000.0))
+        else:
+            atr_fraction = (vol_annual / 100.0) / 16.0
+
+        # Kỷ luật Hard Stop-Loss ATR: giới hạn trong khoảng 3% (0.03) đến 8% (0.08)
+        sl_fraction = max(0.03, min(0.08, atr_fraction * 2.0))
+        tp_fraction = sl_fraction * 2.2 # Risk:Reward Ratio 2.2:1
+
+        unit_mult = 1000.0 if last_close < 1000 else 1.0
+        last_close_vnd = last_close * unit_mult
+
+        stop_loss_price = last_close_vnd * (1.0 - sl_fraction)
+        take_profit_price = last_close_vnd * (1.0 + tp_fraction)
         position_pct = max(5, min(25, int(100 / risk_score * 10)))
 
         if risk_score > 70:
@@ -450,14 +463,14 @@ class RiskManagementAgent:
             "volatility_annual": round(vol_annual, 2),
             "max_drawdown": round(max_dd, 2),
             "sharpe_ratio": round(sharpe, 2),
-            "atr_pct": round(atr_pct, 2),
+            "atr_pct": round(sl_fraction * 50, 2),
         }
         result["recommendations"] = {
-            "stop_loss_price": round(last_close * (1 - sl_pct), 2),
-            "stop_loss_pct": round(sl_pct * 100, 1),
-            "take_profit_price": round(last_close * (1 + tp_pct), 2),
-            "take_profit_pct": round(tp_pct * 100, 1),
+            "stop_loss_price": round(stop_loss_price, 0),
+            "stop_loss_pct": round(sl_fraction * 100, 1),
+            "take_profit_price": round(take_profit_price, 0),
+            "take_profit_pct": round(tp_fraction * 100, 1),
             "suggested_position_size_pct": position_pct,
-            "risk_reward_ratio": "2.5:1"
+            "risk_reward_ratio": "2.2:1"
         }
         return result
