@@ -112,50 +112,49 @@
   <div class="diagram-box">
     <div class="mermaid">
     graph TD
-        %% GIAI ĐOẠN 1: PHÁT HIỆN SỰ CỐ & VÒNG LẮP GIÁM SÁT REAL-TIME
-        subgraph P1["GIAI ĐOẠN 1: REAL-TIME MONITORING LOOP (T+1 / T+2)"]
-            A[Tín hiệu Giá rơi / Tin xấu bất ngờ] --> B{News &amp; Emergency Agent}
-            B -->|Phát hiện Biến cố Thiên Nga Đen / Chiến tranh| C[🚨 Kích hoạt EMERGENCY_STATE]
-            B -->|Không có tin vĩ mô lớn| D{Risk &amp; Technical Agent}
-            D -->|Chạm Hard Stop-Loss ATR| E[🔴 HARD STOP-LOSS SIGNAL]
-            D -->|Chưa chạm Stop-Loss| F[Vòng lặp Giám sát Real-Time Tick-by-Tick Loop]
+        subgraph P1["GIAI ĐOẠN 1: REAL-TIME MONITORING LOOP"]
+            A["Tín hiệu Giá rơi / Tin xấu bất ngờ"] --> B{"News & Emergency Agent"}
+            B -->|Phát hiện Biến cố Thiên Nga Đen / Chiến tranh| C["🚨 Kích hoạt EMERGENCY_STATE"]
+            B -->|Không có tin vĩ mô lớn| D{"Risk & Technical Agent"}
+            D -->|Chạm Hard Stop-Loss ATR| E["🔴 HARD STOP-LOSS SIGNAL"]
+            D -->|Chưa chạm Stop-Loss| F["Vòng lặp Giám sát Real-Time Loop"]
             F -.->|Continuous Monitoring| A
         end
 
-        %% GIAI ĐOẠN 2: SAFETY HARNESS & ĐỘI NGUĨ TRANH LUẬN KHẨN CẤP
-        subgraph P2["GIAI ĐOẠN 2: AGENTIC SAFETY HARNESS &amp; DEBATE COUNCIL"]
-            C --> G[🛡️ SAFETY HARNESS GUARDRAILS]
+        subgraph P2["GIAI ĐOẠN 2: AGENTIC SAFETY HARNESS & DEBATE COUNCIL"]
+            C --> G["🛡️ SAFETY HARNESS GUARDRAILS"]
             E --> G
             F -->|Xuất hiện xung đột kỹ thuật| G
             
-            G --> H{Harness Risk Limit Check}
-            H -->|Vi phạm Invariable Rules| I[🔴 BẮT BUỘC BÁN THOÁT VỊ THẾ KỶ LUẬT]
+            G --> H{"Harness Risk Limit Check"}
+            H -->|Vi phạm Invariable Rules| I["🔴 BẮT BUỘC BÁN THOÁT VỊ THẾ KỶ LUẬT"]
             H -->|Trong hạn mức rủi ro| J["⚖️ EMERGENCY DEBATE COUNCIL (TRANH LUẬN KHẨN CẤP)"]
 
-            J --> J1[🐂 Bull Agent: Phân tích Rủ bỏ / Panic Shakeout]
-            J --> J2[🐻 Bear Agent: Cảnh báo Phá vỡ Cấu trúc / Bull Trap]
-            J --> J3[😈 Devil's Advocate / Neutral Risk Auditor: Thách thức Bias]
+            J --> J1["🐂 Bull Agent: Phân tích Rủ bỏ / Panic Shakeout"]
+            J --> J2["🐻 Bear Agent: Cảnh báo Phá vỡ Cấu trúc / Bull Trap"]
+            J --> J3["😈 Devil's Advocate / Neutral Risk Auditor: Thách thức Bias"]
 
-            J1 <-->|Tranh luận 3 vòng| J2
-            J2 <--> J3
-            J1 <--> J3
+            J1 --- J2
+            J2 --- J3
+            J1 --- J3
 
-            J1 &amp; J2 &amp; J3 --> K[Harness Final Decision: BÁN / THOÁT SỚM / HẠ TỶ TRỌNG]
+            J1 --> K["Harness Final Decision: BÁN / THOÁT SỚM / HẠ TỶ TRỌNG"]
+            J2 --> K
+            J3 --> K
         end
 
-        %% GIAI ĐOẠN 3: POST-MORTEM & FEEDBACK LEARNING LOOP
-        subgraph P3["GIAI ĐOẠN 3: POST-MORTEM &amp; MEMORY FEEDBACK LOOP"]
-            I --> L[🔬 Post-Mortem Learning Agent]
+        subgraph P3["GIAI ĐOẠN 3: POST-MORTEM & MEMORY FEEDBACK LOOP"]
+            I --> L["🔬 Post-Mortem Learning Agent"]
             K --> L
 
-            L --> M{Khám nghiệm Nguyên nhân Thất bại}
-            M -->|Rủi ro Vĩ mô / Thiên Nga Đen| N[Điều chỉnh Position Sizing &amp; Tỷ lệ Phân bổ Vốn]
-            M -->|Bẫy Thị trường / Đội lái Bull Trap| O[Cập nhật Mẫu hình Bẫy vào Negative Memory Vector DB]
+            L --> M{"Khám nghiệm Nguyên nhân Thất bại"}
+            M -->|Rủi ro Vĩ mô / Thiên Nga Đen| N["Điều chỉnh Position Sizing & Tỷ lệ Phân bổ Vốn"]
+            M -->|Bẫy Thị trường / Đội lái Bull Trap| O["Cập nhật Mẫu hình Bẫy vào Negative Memory Vector DB"]
 
-            N --> P[Cập nhật System Prompt &amp; Weight Matrix]
+            N --> P["Cập nhật System Prompt & Weight Matrix"]
             O --> P
 
-            P -->|Nâng quyền lực phản biện cho Bear Agent| Q[Tăng Tiêu chuẩn duyệt MUA cho các phiên tiếp theo]
+            P -->|Nâng quyền lực phản biện cho Bear Agent| Q["Tăng Tiêu chuẩn duyệt MUA cho các phiên tiếp theo"]
             Q -.->|Cập nhật quy tắc cho Harness| G
             Q -.->|Cập nhật dữ liệu bài học| A
         end
