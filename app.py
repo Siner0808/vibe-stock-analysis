@@ -46,10 +46,6 @@ with st.sidebar:
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = st.slider("Số ngày lịch sử", min_value=60, max_value=365, value=200)
-    gemini_key_input = st.text_input("🔑 Gemini API Key", value=st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY), type="password", help="Hệ thống đã tự động tích hợp Gemini API Key chính thức của bạn").strip()
-    if gemini_key_input:
-        st.session_state["gemini_api_key"] = gemini_key_input
-    effective_gemini_key = st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY)
     
     run_btn = st.button("🚀 Chạy phân tích Multi-Agent", type="primary", use_container_width=True)
     
@@ -91,7 +87,7 @@ with st.sidebar:
     st.plotly_chart(fig_foreign, use_container_width=True)
 
     st.divider()
-    
+
     st.markdown("""
     **🏗️ Kiến trúc 5 Tầng:**
     - 📦 **L1A** VNStock + TradingView
@@ -101,6 +97,20 @@ with st.sidebar:
     - ⚖️ **L4** Debate Council (Bull/Bear/Devil)
     - 🏆 **L5** Phán quyết Cuối cùng
     """)
+
+    st.divider()
+
+    with st.expander("🔑 Cấu hình Gemini API Key", expanded=False):
+        gemini_key_input = st.text_input(
+            "API Key (Đã tự động lưu)",
+            value=st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY),
+            type="password",
+            help="API Key chính thức của bạn đã được mã hóa và tự động sử dụng."
+        ).strip()
+        if gemini_key_input:
+            st.session_state["gemini_api_key"] = gemini_key_input
+
+    effective_gemini_key = st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY)
 
 end_date = datetime.now()
 start_date = end_date - timedelta(days=days_back)
