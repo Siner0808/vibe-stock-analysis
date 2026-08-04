@@ -313,60 +313,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ─── Live Ticker Bar (Real Data from VNStock) ──────────────────────
-@st.cache_data(ttl=600)
-def _fetch_ticker_data():
-    """Thu thập giá thực từ vnstock cho thanh ticker."""
-    from datetime import datetime, timedelta
-    ticker_items = []
-    end_d = datetime.now().strftime("%Y-%m-%d")
-    start_d = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
-
-    tickers = [
-        ("VN30", "VN30"),
-        ("FPT", "FPT"),
-        ("VNM", "VNM"),
-        ("VHM", "VHM"),
-        ("HPG", "HPG"),
-        ("MBB", "MBB"),
-        ("SSI", "SSI"),
-        ("TCB", "TCB"),
-    ]
-    for label, sym in tickers:
-        try:
-            from vnstock import Quote
-            q = Quote(symbol=sym, source='vci')
-            df = q.history(start=start_d, end=end_d, interval='1D')
-            if df is not None and len(df) >= 2:
-                last = float(df['close'].iloc[-1])
-                prev = float(df['close'].iloc[-2])
-                chg = last - prev
-                pct = (chg / prev) * 100 if prev else 0
-                mult = 1000.0 if last < 1000 else 1.0
-                ticker_items.append({
-                    "label": label,
-                    "price": f"{last * mult:,.0f}",
-                    "chg": chg * mult,
-                    "pct": pct,
-                })
-        except Exception:
-            pass
-    return ticker_items
-
-_ticker_data = _fetch_ticker_data()
-if _ticker_data:
-    spans = ""
-    for t in _ticker_data:
-        arrow = "▲" if t["chg"] >= 0 else "▼"
-        css_cls = "up" if t["chg"] >= 0 else "down"
-        spans += f'<span><span class="sym">{t["label"]}</span> {t["price"]} <span class="{css_cls}">{arrow} {t["chg"]:+,.0f} ({t["pct"]:+.2f}%)</span></span>'
-    # Duplicate for seamless scroll
-    st.markdown(f"""
-    <div class="ticker-bar">
-      <div class="ticker-content">{spans}{spans}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
 st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
 
