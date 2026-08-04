@@ -1,3 +1,5 @@
+from data_collectors import MarketDataPacket
+from news_sentiment_agent import NewsSentimentAgent
 from debate_agents import DebateModerator, SafetyHarnessGuardrails, PostMortemLearningAgent
 from analysis_agents import (
     TrendAnalysisAgent, MomentumAgent,
