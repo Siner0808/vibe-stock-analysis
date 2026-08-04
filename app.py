@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta
 from master_agent import run_full_analysis
+from chatbot_agent import StockChatbotAgent
 
 # Streamlit Page Config
 st.set_page_config(
@@ -118,11 +119,11 @@ if df is not None and not df.empty:
 st.divider()
 
 # ---- TABS ----
-tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_raw = st.tabs([
+tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_chat, tab_raw = st.tabs([
     "🧠 Kết quả Tổng hợp", "⚖️ Debate Council",
     "🔬 Chi tiết từng Agent",
     "📰 Tin tức & Sentiment", "📊 Đồ thị Kỹ thuật",
-    "📐 Sơ đồ Pipeline", "📄 Dữ liệu thô"
+    "📐 Sơ đồ Pipeline", "💬 Trợ lý Chatbot AI", "📄 Dữ liệu thô"
 ])
 
 with tab_main:
@@ -497,6 +498,49 @@ with tab_diagram:
             st.components.v1.html(html3, height=920, scrolling=True)
         else:
             st.warning("⚠️ Chưa tìm thấy file pipeline_diagram.html")
+
+with tab_chat:
+    st.subheader(f"💬 Trợ lý AI Chatbot Phân tích ({symbol})")
+    st.caption("Chatbot tự động nắm ngữ cảnh kết quả phân tích Multi-Agent 5 Tầng mới nhất để giải đáp mọi thắc mắc của bạn.")
+
+    bot_agent = StockChatbotAgent()
+
+    if "chat_messages" not in st.session_state:
+        st.session_state["chat_messages"] = [
+            {
+                "role": "assistant",
+                "content": f"Xin chào! Tôi là Trợ lý AI Chatbot. Bạn có thắc mắc gì về kết quả phân tích mã **{symbol}** (Điểm số: {result.get('final_score', 50)}/100 - Khuyến nghị: {result.get('recommendation', '')}) không?"
+            }
+        ]
+
+    # Quick prompt buttons
+    st.markdown("##### 💡 Câu hỏi gợi ý nhanh:")
+    q_col1, q_col2, q_col3 = st.columns(3)
+    quick_query = None
+    if q_col1.button(f"❓ Tại sao {symbol} cho khuyến nghị này?", use_container_width=True):
+        quick_query = f"Tại sao mã {symbol} lại cho khuyến nghị hiện tại?"
+    if q_col2.button(f"🛡️ Stop-loss & quản trị vốn ra sao?", use_container_width=True):
+        quick_query = f"Mức Stop-loss và tỷ lệ đi vốn an toàn cho mã {symbol} là bao nhiêu?"
+    if q_col3.button(f"⚖️ Phán quyết Bull vs Bear tranh luận gì?", use_container_width=True):
+        quick_query = f"Phe Bull và Bear đã tranh luận những gì về mã {symbol}?"
+
+    # Display message history
+    for msg in st.session_state["chat_messages"]:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    user_input = st.chat_input(f"Hỏi AI Trợ lý về mã chứng khoán {symbol}...") or quick_query
+
+    if user_input:
+        st.session_state["chat_messages"].append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant"):
+            with st.spinner("🤖 AI đang suy nghĩ và tổng hợp từ kết quả 5 Tầng..."):
+                response = bot_agent.answer_question(user_input, result)
+                st.markdown(response)
+                st.session_state["chat_messages"].append({"role": "assistant", "content": response})
 
 with tab_raw:
     st.subheader("📄 JSON Output toàn bộ kết quả phân tích")
