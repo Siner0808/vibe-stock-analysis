@@ -17,27 +17,140 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Custom Ultra-Premium Dark Terminal Theme CSS
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .main { background-color: #0e1117; }
-    .score-ring { text-align: center; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    /* Global Page Styling */
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+    .stApp {
+        background: radial-gradient(circle at 50% 0%, #151d2a 0%, #0b0e14 70%);
+        color: #e0e6ed;
+    }
+    
+    /* Typography & Titles */
+    h1 {
+        background: linear-gradient(135deg, #ffffff 0%, #00e676 60%, #29b6f6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800 !important;
+        letter-spacing: -0.5px;
+    }
+    h2, h3 {
+        color: #00e676 !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Sidebar Aesthetics */
+    [data-testid="stSidebar"] {
+        background-color: #121722 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+        color: #b0bec5;
+    }
+    
+    /* Custom Card Containers */
     .agent-card {
-        background: linear-gradient(135deg, #1e222d 0%, #131722 100%);
-        border-radius: 12px; padding: 16px;
-        border-left: 4px solid #00e676;
-        margin-bottom: 12px;
+        background: linear-gradient(135deg, rgba(30, 34, 45, 0.8) 0%, rgba(19, 23, 34, 0.9) 100%);
+        border-radius: 14px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-left: 5px solid #00e676;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        margin-bottom: 16px;
+        backdrop-filter: blur(10px);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .agent-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0, 230, 118, 0.15);
     }
     .agent-card.warn { border-left-color: #ffca28; }
     .agent-card.danger { border-left-color: #ef5350; }
-    h2 { color: #00e676; }
-    h3 { color: #29b6f6 !important; }
+    
+    /* Streamlit Metric Cards Styling */
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #181f2c 0%, #11151f 100%);
+        border: 1px solid rgba(0, 230, 118, 0.2);
+        border-radius: 12px;
+        padding: 14px 18px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease-in-out;
+    }
+    [data-testid="stMetric"]:hover {
+        border-color: rgba(0, 230, 118, 0.5);
+        box-shadow: 0 6px 20px rgba(0, 230, 118, 0.2);
+    }
+    [data-testid="stMetricLabel"] {
+        color: #90a4ae !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    [data-testid="stMetricValue"] {
+        color: #ffffff !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Tabs Navigation Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: #121722;
+        padding: 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 42px;
+        border-radius: 8px;
+        color: #90a4ae;
+        font-weight: 600;
+        padding: 0 16px;
+        background-color: transparent;
+        transition: all 0.2s ease;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #00e676;
+        background-color: rgba(0, 230, 118, 0.08);
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%) !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
+    }
+    
+    /* Primary Action Buttons */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%) !important;
+        color: #050b14 !important;
+        font-weight: 700 !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 12px 24px !important;
+        box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3) !important;
+        transition: all 0.25s ease !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 22px rgba(0, 230, 118, 0.5) !important;
+    }
+
+    /* Dark Mode Scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0b0e14; }
+    ::-webkit-scrollbar-thumb { background: #263238; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00e676; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🤖 Vibe Coding — AI Multi-Agent Stock Analysis Platform")
+st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
 
 # ---- Sidebar ----
