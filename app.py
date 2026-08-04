@@ -345,7 +345,7 @@ with st.sidebar:
     st.header("⚙️ Cấu hình phân tích")
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
-    days_back = st.slider("Số ngày lịch sử", min_value=60, max_value=365, value=200)
+    days_back = 180  # Cố định 6 tháng (180 ngày)
     
     run_btn = st.button("🚀 Chạy phân tích Multi-Agent", type="primary", use_container_width=True)
     
