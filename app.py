@@ -7,8 +7,6 @@ import plotly.express as px
 from datetime import datetime, timedelta
 from master_agent import run_full_analysis
 
-from top_stocks_screener import get_top_5_stocks
-
 # Streamlit Page Config
 st.set_page_config(
     page_title="Vibe Coding - AI Multi-Agent Stock Analysis",
@@ -32,13 +30,6 @@ st.markdown("""
     }
     .agent-card.warn { border-left-color: #ffca28; }
     .agent-card.danger { border-left-color: #ef5350; }
-    .top1-banner {
-        background: linear-gradient(135deg, #2b1f00 0%, #111827 100%);
-        border: 2px solid #ffca28;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-    }
     h1, h2 { color: #00e676 !important; }
     h3 { color: #29b6f6 !important; }
     </style>
@@ -57,48 +48,15 @@ with st.sidebar:
     
     st.divider()
     
-    # 🏆 TOP 5 RECOMMENDATIONS IN SIDEBAR
-    st.subheader("🏆 TOP 5 CỔ PHIẾU NÊN ĐẦU TƯ")
-    st.caption("Xếp hạng theo điểm đồng thuận Multi-Agent mới nhất:")
-
-    @st.cache_data(ttl=600)
-    def fetch_top_5_cached():
-        return get_top_5_stocks()
-
-    sb_top5_col1, sb_top5_col2 = st.columns([3, 1])
-    with sb_top5_col2:
-        if st.button("🔄", help="Quét lại Top 5"):
-            st.cache_data.clear()
-            st.rerun()
-
-    top5_data = fetch_top_5_cached()
-    if top5_data:
-        for idx, item in enumerate(top5_data, start=1):
-            sym_item = item["symbol"]
-            score_item = item["final_score"]
-            rec_item = item["recommendation"]
-            color_item = item.get("action_color", "#00e676")
-            
-            # Highlight Top 1
-            border_css = "2px solid #ffca28" if idx == 1 else "1px solid rgba(255,255,255,0.08)"
-            badge_icon = "👑 " if idx == 1 else ""
-
-            st.markdown(f"""
-            <div style="background:rgba(30,41,59,0.6); border:{border_css}; border-radius:10px; padding:10px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:monospace; font-size:11px; color:#94a3b8;">#{idx} {badge_icon}<b style="color:#fff; font-size:13px;">{sym_item}</b></span>
-                    <span style="color:{color_item}; font-weight:700; font-family:monospace; font-size:12px;">{score_item} đ</span>
-                </div>
-                <div style="font-size:10px; color:{color_item}; font-weight:600; margin-top:2px;">{rec_item}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            if st.button(f"🔍 Phân tích {sym_item}", key=f"sb_btn_{sym_item}", use_container_width=True):
-                st.session_state["target_symbol"] = sym_item
-                st.session_state["last_symbol"] = None
-                st.rerun()
-    else:
-        st.info("Đang cập nhật danh mục...")
+    st.markdown("""
+    **🏗️ Kiến trúc 5 Tầng:**
+    - 📦 **L1A** VNStock + TradingView
+    - 📰 **L1B** News Agents (5 agents)
+    - 🔬 **L2** 6 Analysis Agents chuyên sâu
+    - 🧠 **L3** Master Consensus Score
+    - ⚖️ **L4** Debate Council (Bull/Bear/Devil)
+    - 🏆 **L5** Phán quyết Cuối cùng
+    """)
 
 end_date = datetime.now()
 start_date = end_date - timedelta(days=days_back)
