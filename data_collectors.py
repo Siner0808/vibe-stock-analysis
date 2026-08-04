@@ -41,7 +41,7 @@ class VNStockCollectorAgent:
     def _generate_fallback_df(self, symbol: str, start: str, end: str) -> pd.DataFrame:
         dates = pd.date_range(start=start, end=end, freq='B')
         np.random.seed(hash(symbol) % 2**32)
-        base_price = 85.0 if symbol == "FPT" else 25.0 if symbol == "HPG" else 50.0
+        base_price = 128500.0 if symbol == "FPT" else 28500.0 if symbol == "HPG" else 65400.0
         returns = np.random.normal(0.0005, 0.018, len(dates))
         price_series = base_price * np.exp(np.cumsum(returns))
         
