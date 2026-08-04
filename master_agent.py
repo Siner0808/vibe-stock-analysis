@@ -31,10 +31,19 @@ class MasterConsensusAgent:
     def run(self, packet: MarketDataPacket) -> dict:
         if packet.data_quality == "FAILED":
             return {
-                "symbol": packet.symbol, "final_score": 50,
+                "symbol": packet.symbol,
+                "exchange": packet.exchange,
+                "pre_debate_score": 50.0,
+                "final_score": 50,
                 "recommendation": "DỮ LIỆU KHÔNG KHẢ DỤNG ❌",
                 "action_color": "#757575",
-                "key_reasons": [], "score_breakdown": {}, "analyses": {},
+                "key_reasons": ["⚠️ Không thể kết nối hoặc không tìm thấy dữ liệu từ nguồn VNStock / TradingView"],
+                "score_breakdown": {
+                    "trend_score": 50, "momentum_score": 50, "volume_score": 50,
+                    "sr_score": 50, "risk_score": 50, "news_score": 50,
+                    "tv_bonus": 0, "debate_adjustment": 0
+                },
+                "analyses": {},
                 "debate": None, "data_sources": [], "data_quality": "FAILED"
             }
 

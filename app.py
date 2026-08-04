@@ -158,16 +158,16 @@ with tab_main:
                         border: 2px solid {action_color}; text-align: center; margin-top: 10px;">
                 <p style="color:#b0bec5; margin:0; font-size:0.95rem;">🧠 Master Consensus Agent — Khuyến nghị cuối</p>
                 <h1 style="color:{action_color}; margin: 14px 0; font-size: 2.4rem;">{recommendation}</h1>
-                <p style="color:#78909c; font-size:0.85rem; margin:0;">Mã: <b style="color:#ffffff">{result['symbol']}</b> &nbsp;|&nbsp; Sàn: <b style="color:#ffffff">{result['exchange']}</b></p>
+                <p style="color:#78909c; font-size:0.85rem; margin:0;">Mã: <b style="color:#ffffff">{result.get('symbol', symbol)}</b> &nbsp;|&nbsp; Sàn: <b style="color:#ffffff">{result.get('exchange', exchange)}</b></p>
             </div>
         """, unsafe_allow_html=True)
 
-    breakdown = result["score_breakdown"]
+    breakdown = result.get("score_breakdown", {})
     agent_names  = ["Trend", "Momentum", "Volume", "S&R", "Risk", "📰 News"]
     agent_scores = [
-        breakdown["trend_score"], breakdown["momentum_score"],
-        breakdown["volume_score"], breakdown["sr_score"],
-        breakdown["risk_score"],  breakdown.get("news_score", 50)
+        breakdown.get("trend_score", 50), breakdown.get("momentum_score", 50),
+        breakdown.get("volume_score", 50), breakdown.get("sr_score", 50),
+        breakdown.get("risk_score", 50),  breakdown.get("news_score", 50)
     ]
     colors = ["#00e676" if s >= 60 else "#ffca28" if s >= 40 else "#ef5350" for s in agent_scores]
 
