@@ -451,26 +451,45 @@ with tab_chart:
         st.warning("⚠️ Không có dữ liệu chuỗi nến OHLCV để vẽ đồ thị.")
 
 with tab_diagram:
-    st.subheader("📐 Kiến trúc Pipeline Multi-Agent — 5 Tầng")
-    import pathlib, os
+    st.subheader("📐 Sơ đồ Kiến trúc System & Luồng Vận hành Multi-Agent")
+    import pathlib
 
-    # Load diagram HTML from the dedicated file (built with html-diagram skill)
-    _diagram_paths = [
-        # Trong thư mục project
-        pathlib.Path(__file__).parent / "pipeline_diagram.html",
-        # Trong artifact dir
-        pathlib.Path(r"C:\Users\cuong\.gemini\antigravity\brain\94db5080-33a8-473d-9aa7-24e6bc20d5a5\pipeline_diagram.html"),
-    ]
-    _diagram_html = None
-    for _p in _diagram_paths:
-        if _p.exists():
-            _diagram_html = _p.read_text(encoding="utf-8")
-            break
+    def load_html_diagram(filename):
+        paths = [
+            pathlib.Path(__file__).parent / filename,
+            pathlib.Path(r"C:\Users\cuong\.gemini\antigravity\brain\94db5080-33a8-473d-9aa7-24e6bc20d5a5") / filename
+        ]
+        for p in paths:
+            if p.exists():
+                return p.read_text(encoding="utf-8")
+        return None
 
-    if _diagram_html:
-        st.components.v1.html(_diagram_html, height=860, scrolling=True)
-    else:
-        st.warning("Không tìm thấy file pipeline_diagram.html. Vui lòng kiểm tra lại.")
+    d_tab1, d_tab2, d_tab3 = st.tabs([
+        "🏛️ Sơ đồ 1: Kiến trúc System 5 Tầng (Loop & Debate Council)",
+        "🛡️ Sơ đồ 2: Safety Harness & Vòng lặp Post-Mortem (Xử lý Bẫy)",
+        "📊 Sơ đồ 3: Pipeline Luồng Dữ liệu Chi tiết"
+    ])
+
+    with d_tab1:
+        html1 = load_html_diagram("architecture_diagram.html")
+        if html1:
+            st.components.v1.html(html1, height=920, scrolling=True)
+        else:
+            st.warning("⚠️ Chưa tìm thấy file architecture_diagram.html")
+
+    with d_tab2:
+        html2 = load_html_diagram("emergency_flow_diagram.html")
+        if html2:
+            st.components.v1.html(html2, height=920, scrolling=True)
+        else:
+            st.warning("⚠️ Chưa tìm thấy file emergency_flow_diagram.html")
+
+    with d_tab3:
+        html3 = load_html_diagram("pipeline_diagram.html")
+        if html3:
+            st.components.v1.html(html3, height=920, scrolling=True)
+        else:
+            st.warning("⚠️ Chưa tìm thấy file pipeline_diagram.html")
 
 with tab_raw:
     st.subheader("📄 JSON Output toàn bộ kết quả phân tích")
