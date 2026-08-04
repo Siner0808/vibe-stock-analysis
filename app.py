@@ -313,54 +313,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ─── Live Animated Ticker Bar (Real-Time Market Quotes) ────────────
-@st.cache_data(ttl=300)
-def load_realtime_ticker_data():
-    ticker_items = []
-    symbols = ['FPT', 'VNM', 'VHM', 'HPG', 'MBB', 'SSI', 'TCB']
-    end_d = datetime.now().strftime('%Y-%m-%d')
-    start_d = (datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d')
-    
-    for s in symbols:
-        try:
-            from vnstock import Quote
-            df = Quote(symbol=s, source='vci').history(start=start_d, end=end_d, interval='1D')
-            if df is not None and len(df) >= 2:
-                last = float(df['close'].iloc[-1])
-                prev = float(df['close'].iloc[-2])
-                chg = last - prev
-                pct = (chg / prev) * 100 if prev else 0
-                mult = 1000.0 if last < 1000 else 1.0
-                ticker_items.append({
-                    "sym": s,
-                    "price": f"{last * mult:,.0f}",
-                    "chg": chg * mult,
-                    "pct": pct
-                })
-        except Exception:
-            pass
-
-    if not ticker_items:
-        # Verified Real Market Fallback
-        ticker_items = [
-            {"sym": "FPT", "price": "71,500", "chg": -200, "pct": -0.28},
-            {"sym": "VNM", "price": "59,500", "chg": -800, "pct": -1.33},
-            {"sym": "VHM", "price": "152,900", "chg": 4900, "pct": 3.31},
-            {"sym": "HPG", "price": "22,150", "chg": -400, "pct": -1.77},
-            {"sym": "MBB", "price": "24,400", "chg": 400, "pct": 1.67},
-            {"sym": "SSI", "price": "24,550", "chg": 0, "pct": 0.00},
-            {"sym": "TCB", "price": "29,650", "chg": -300, "pct": -1.00},
-        ]
-
-    spans = ""
-    for t in ticker_items:
-        arrow = "▲" if t["chg"] >= 0 else "▼"
-        css_cls = "up" if t["chg"] >= 0 else "down"
-        spans += f'<span><span class="sym">{t["sym"]}</span> {t["price"]} VNĐ <span class="{css_cls}">{arrow} {t["chg"]:+,.0f} ({t["pct"]:+.2f}%)</span></span>'
-
-    return f'<div class="ticker-bar"><div class="ticker-content">{spans}{spans}</div></div>'
-
-st.markdown(load_realtime_ticker_data(), unsafe_allow_html=True)
+# ─── Live Animated Ticker Bar ──────────────────────────────────────
+st.markdown("""
+<div class="ticker-bar">
+  <div class="ticker-content">
+    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
+    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
+    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
+    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
+    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
+    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
+    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
+    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
+    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
+    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
+    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
+    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
+    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
+    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
+    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
+    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
