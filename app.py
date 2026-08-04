@@ -100,15 +100,18 @@ with st.sidebar:
 
     st.divider()
 
-    with st.expander("🔑 Cấu hình Gemini API Key", expanded=False):
-        gemini_key_input = st.text_input(
-            "API Key (Đã tự động lưu)",
-            value=st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY),
+    with st.expander("🔒 Trạng thái Bảo mật API Key Gemini", expanded=False):
+        st.success("🛡️ **Server Key Blocked**: API Key Gemini chính thức đã được khóa Server-side. Người dùng không thể xem, copy hoặc inspect HTML DOM.")
+        custom_key_input = st.text_input(
+            "🔑 Nhập API Key riêng (Tùy chọn)",
+            value="",
             type="password",
-            help="API Key chính thức của bạn đã được mã hóa và tự động sử dụng."
+            help="Để trống nếu muốn sử dụng API Key hệ thống mặc định."
         ).strip()
-        if gemini_key_input:
-            st.session_state["gemini_api_key"] = gemini_key_input
+        if custom_key_input:
+            st.session_state["gemini_api_key"] = custom_key_input
+        elif "gemini_api_key" in st.session_state and not st.session_state["gemini_api_key"]:
+            del st.session_state["gemini_api_key"]
 
     effective_gemini_key = st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY)
 
