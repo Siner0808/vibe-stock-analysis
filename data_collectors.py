@@ -57,11 +57,11 @@ class VNStockCollectorAgent:
 
     def collect(self, symbol: str, start: str, end: str) -> dict:
         from vnstock import Quote
-        for src in ['VCI', 'TCBS', 'DNSE']:
+        for src in ['vci', 'kbs']:
             try:
                 df = Quote(symbol=symbol, source=src).history(start=start, end=end)
                 if df is not None and not df.empty:
-                    return {"status": "OK", "df": df, "note": f"Tải thành công {len(df)} phiên từ nguồn {src}"}
+                    return {"status": "OK", "df": df, "note": f"Tải dữ liệu Real-Time thành công ({len(df)} phiên từ {src.upper()})"}
             except Exception:
                 continue
         # Fallback offline generator to ensure pipeline never fails
