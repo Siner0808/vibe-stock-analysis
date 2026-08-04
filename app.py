@@ -17,141 +17,327 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Ultra-Premium Dark Terminal Theme CSS
+# ═══════════════════════════════════════════════════════════════════
+# ULTRA-PREMIUM DARK TERMINAL THEME v3 — "Aurora Midnight"
+# ═══════════════════════════════════════════════════════════════════
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-    
-    /* Global Page Styling */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    /* ─── Animated Aurora Background ─────────────────────────── */
+    @keyframes auroraShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes neonPulse {
+        0%, 100% { box-shadow: 0 0 8px rgba(0,230,118,0.15); }
+        50%      { box-shadow: 0 0 20px rgba(0,230,118,0.35); }
+    }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes gradientBorder {
+        0%   { border-color: rgba(0,230,118,0.3); }
+        50%  { border-color: rgba(41,182,246,0.5); }
+        100% { border-color: rgba(0,230,118,0.3); }
+    }
+
     html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     .stApp {
-        background: radial-gradient(circle at 50% 0%, #151d2a 0%, #0b0e14 70%);
+        background: linear-gradient(135deg, #070a10 0%, #0d1220 30%, #0a1628 60%, #070a10 100%);
+        background-size: 400% 400%;
+        animation: auroraShift 25s ease infinite;
         color: #e0e6ed;
     }
-    
-    /* Typography & Titles */
+
+    /* ─── Typography ─────────────────────────────────────────── */
     h1 {
-        background: linear-gradient(135deg, #ffffff 0%, #00e676 60%, #29b6f6 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #00e676 45%, #29b6f6 75%, #ab47bc 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800 !important;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.8px;
+        font-size: 2rem !important;
+        animation: fadeSlideUp 0.6s ease-out;
     }
-    h2, h3 {
+    h2 {
         color: #00e676 !important;
         font-weight: 700 !important;
+        text-shadow: 0 0 20px rgba(0,230,118,0.15);
     }
-    
-    /* Sidebar Aesthetics */
+    h3 {
+        color: #29b6f6 !important;
+        font-weight: 700 !important;
+    }
+    p, li, span { color: #cfd8dc; }
+
+    /* ─── Sidebar Glass Panel ────────────────────────────────── */
     [data-testid="stSidebar"] {
-        background-color: #121722 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+        background: linear-gradient(180deg, #0c111a 0%, #111827 50%, #0e1420 100%) !important;
+        border-right: 1px solid rgba(0,230,118,0.1) !important;
     }
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
         color: #b0bec5;
+        font-size: 0.9rem;
     }
-    
-    /* Custom Card Containers */
+    [data-testid="stSidebar"] .stSubheader {
+        color: #00e676 !important;
+    }
+
+    /* ─── Glassmorphic Agent Cards ────────────────────────────── */
     .agent-card {
-        background: linear-gradient(135deg, rgba(30, 34, 45, 0.8) 0%, rgba(19, 23, 34, 0.9) 100%);
-        border-radius: 14px;
-        padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(145deg, rgba(22,28,40,0.85) 0%, rgba(14,18,28,0.95) 100%);
+        border-radius: 16px;
+        padding: 22px;
+        border: 1px solid rgba(255,255,255,0.06);
         border-left: 5px solid #00e676;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
         margin-bottom: 16px;
-        backdrop-filter: blur(10px);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+        animation: fadeSlideUp 0.5s ease-out;
     }
     .agent-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 32px rgba(0, 230, 118, 0.15);
+        transform: translateY(-3px) scale(1.005);
+        box-shadow: 0 16px 48px rgba(0,230,118,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+        border-color: rgba(0,230,118,0.25);
     }
-    .agent-card.warn { border-left-color: #ffca28; }
+    .agent-card.warn  { border-left-color: #ffca28; }
     .agent-card.danger { border-left-color: #ef5350; }
-    
-    /* Streamlit Metric Cards Styling */
+
+    /* ─── Metric Cards — Neon Glow ───────────────────────────── */
     [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #181f2c 0%, #11151f 100%);
-        border: 1px solid rgba(0, 230, 118, 0.2);
-        border-radius: 12px;
-        padding: 14px 18px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s ease-in-out;
+        background: linear-gradient(145deg, #141c2b 0%, #0e1420 100%);
+        border: 1px solid rgba(0,230,118,0.15);
+        border-radius: 14px;
+        padding: 16px 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        animation: gradientBorder 4s ease infinite;
     }
     [data-testid="stMetric"]:hover {
-        border-color: rgba(0, 230, 118, 0.5);
-        box-shadow: 0 6px 20px rgba(0, 230, 118, 0.2);
+        border-color: rgba(0,230,118,0.5);
+        box-shadow: 0 8px 30px rgba(0,230,118,0.15);
+        transform: translateY(-2px);
     }
     [data-testid="stMetricLabel"] {
-        color: #90a4ae !important;
-        font-size: 0.85rem !important;
-        font-weight: 600 !important;
+        color: #78909c !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
     }
     [data-testid="stMetricValue"] {
         color: #ffffff !important;
         font-family: 'JetBrains Mono', monospace !important;
         font-weight: 700 !important;
+        font-size: 1.35rem !important;
     }
-    
-    /* Tabs Navigation Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #121722;
-        padding: 8px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 42px;
-        border-radius: 8px;
-        color: #90a4ae;
-        font-weight: 600;
-        padding: 0 16px;
-        background-color: transparent;
-        transition: all 0.2s ease;
-    }
-    .stTabs [data-baseweb="tab"]:hover {
-        color: #00e676;
-        background-color: rgba(0, 230, 118, 0.08);
-    }
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%) !important;
-        color: #000000 !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
-    }
-    
-    /* Primary Action Buttons */
-    .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%) !important;
-        color: #050b14 !important;
-        font-weight: 700 !important;
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 12px 24px !important;
-        box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3) !important;
-        transition: all 0.25s ease !important;
-    }
-    .stButton > button[kind="primary"]:hover {
-        transform: scale(1.02);
-        box-shadow: 0 6px 22px rgba(0, 230, 118, 0.5) !important;
+    [data-testid="stMetricDelta"] > div {
+        font-family: 'JetBrains Mono', monospace !important;
+        font-weight: 500 !important;
     }
 
-    /* Dark Mode Scrollbars */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #0b0e14; }
-    ::-webkit-scrollbar-thumb { background: #263238; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #00e676; }
+    /* ─── Pill Tab Navigation ────────────────────────────────── */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 6px;
+        background: linear-gradient(135deg, #0e1420 0%, #141c2b 100%);
+        padding: 8px 10px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        overflow-x: auto;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 40px;
+        border-radius: 10px;
+        color: #78909c;
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 0 14px;
+        background-color: transparent;
+        border: 1px solid transparent;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #e0e6ed;
+        background-color: rgba(0,230,118,0.06);
+        border-color: rgba(0,230,118,0.15);
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #00e676 0%, #00c853 50%, #00b0ff 100%) !important;
+        color: #050b14 !important;
+        font-weight: 800 !important;
+        border: none !important;
+        box-shadow: 0 4px 18px rgba(0,230,118,0.35), 0 0 40px rgba(0,230,118,0.08);
+    }
+
+    /* ─── Primary Action Button ──────────────────────────────── */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #00e676 0%, #00c853 40%, #00b0ff 100%) !important;
+        color: #050b14 !important;
+        font-weight: 800 !important;
+        font-size: 0.95rem !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 14px 28px !important;
+        box-shadow: 0 6px 24px rgba(0,230,118,0.3) !important;
+        transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stButton > button[kind="primary"]:hover {
+        transform: translateY(-2px) scale(1.02) !important;
+        box-shadow: 0 10px 36px rgba(0,230,118,0.45) !important;
+    }
+    .stButton > button[kind="primary"]:active {
+        transform: translateY(0) scale(0.98) !important;
+    }
+
+    /* ─── Input Fields & Selects ──────────────────────────────── */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div,
+    .stTextArea textarea {
+        background-color: #111827 !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 10px !important;
+        color: #e0e6ed !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .stTextInput > div > div > input:focus,
+    .stTextArea textarea:focus {
+        border-color: rgba(0,230,118,0.5) !important;
+        box-shadow: 0 0 0 3px rgba(0,230,118,0.1) !important;
+    }
+
+    /* ─── Expanders ──────────────────────────────────────────── */
+    .streamlit-expanderHeader {
+        background: linear-gradient(135deg, #141c2b, #0e1420) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255,255,255,0.06) !important;
+        color: #b0bec5 !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease;
+    }
+    .streamlit-expanderHeader:hover {
+        border-color: rgba(0,230,118,0.3) !important;
+        color: #00e676 !important;
+    }
+    .streamlit-expanderContent {
+        background-color: #0e1420 !important;
+        border: 1px solid rgba(255,255,255,0.04) !important;
+        border-top: none !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+
+    /* ─── Dividers ───────────────────────────────────────────── */
+    hr {
+        border: none !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent 0%, rgba(0,230,118,0.25) 50%, transparent 100%) !important;
+        margin: 20px 0 !important;
+    }
+
+    /* ─── Chat Message Bubbles ───────────────────────────────── */
+    [data-testid="stChatMessage"] {
+        background: linear-gradient(145deg, #141c2b 0%, #0e1420 100%) !important;
+        border: 1px solid rgba(255,255,255,0.06) !important;
+        border-radius: 16px !important;
+        padding: 16px 20px !important;
+        margin-bottom: 12px;
+        animation: fadeSlideUp 0.4s ease-out;
+    }
+
+    /* ─── Plotly Chart Containers ─────────────────────────────── */
+    [data-testid="stPlotlyChart"] {
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    /* ─── Success / Info / Warning / Error Alerts ─────────────── */
+    .stAlert {
+        border-radius: 12px !important;
+        border-left-width: 5px !important;
+        backdrop-filter: blur(8px);
+    }
+
+    /* ─── Custom Dark Scrollbars ──────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #1e293b, #334155);
+        border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #00e676, #00b0ff);
+    }
+
+    /* ─── Animated Ticker Bar ────────────────────────────────── */
+    @keyframes tickerScroll {
+        0%   { transform: translateX(0%); }
+        100% { transform: translateX(-50%); }
+    }
+    .ticker-bar {
+        width: 100%;
+        overflow: hidden;
+        background: linear-gradient(90deg, rgba(0,230,118,0.05) 0%, rgba(41,182,246,0.05) 50%, rgba(0,230,118,0.05) 100%);
+        border-radius: 8px;
+        padding: 6px 0;
+        margin-bottom: 10px;
+        border: 1px solid rgba(0,230,118,0.08);
+    }
+    .ticker-content {
+        display: inline-block;
+        white-space: nowrap;
+        animation: tickerScroll 30s linear infinite;
+        color: #78909c;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+    .ticker-content span {
+        padding: 0 24px;
+    }
+    .ticker-content .up   { color: #00e676; }
+    .ticker-content .down { color: #ef5350; }
+    .ticker-content .sym  { color: #ffffff; font-weight: 700; }
     </style>
 """, unsafe_allow_html=True)
 
+# ─── Live Animated Ticker Bar ──────────────────────────────────────
+st.markdown("""
+<div class="ticker-bar">
+  <div class="ticker-content">
+    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
+    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
+    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
+    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
+    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
+    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
+    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
+    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
+    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
+    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
+    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
+    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
+    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
+    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
+    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
+    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
-st.caption("Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
+st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
 
 # ---- Sidebar ----
 with st.sidebar:
