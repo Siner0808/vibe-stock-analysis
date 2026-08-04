@@ -111,42 +111,57 @@
   <div class="diagram-box">
     <div class="mermaid">
     graph TD
-        subgraph L1["TẦNG 1: DỮ LIỆU & QUAN SÁT"]
-            A1["Biểu đồ Nến & Hình ảnh"] --> B1["Vision Chart Agent"]
-            A2["Dữ liệu OHLCV & Indicators"] --> B2["Quant Cycle Agent"]
-            A3["BCTC & Vĩ mô Ngành"] --> B3["Fundamental Agent"]
+        subgraph L1["TẦNG 1: DỮ LIỆU VÀ QUAN SÁT"]
+            A1["Biểu đồ Nến VÀ Hình ảnh"] --> B1["Vision Chart Agent"]
+            A2["Dữ liệu OHLCV VÀ Indicators"] --> B2["Quant Cycle Agent"]
+            A3["BCTC VÀ Vĩ mô Ngành"] --> B3["Fundamental Agent"]
         end
 
         subgraph L2["TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ"]
-            B1 --> C["Wyckoff & Pattern Classifier"]
+            B1 --> C["Wyckoff VÀ Pattern Classifier"]
             B2 --> C
             B3 --> C
-            C -->|Gửi kịch bản chu kỳ| D1
         end
 
         subgraph L3["TẦNG 3: ĐỘI NGŨ TRANH LUẬN CHU KỲ"]
-            D1["🐂 Bull Agent: Bảo vệ Kịch bản Tăng/Tích lũy"] --- D2["🐻 Bear Agent: Cảnh báo Bull Trap/Phân phối"]
-            D1 --- D3["😈 Devil's Agent: Thách thức Confirmation Bias"]
+            D1["🐂 Bull Agent: Bảo vệ Kịch bản Tăng hoặc Tích lũy"]
+            D2["🐻 Bear Agent: Cảnh báo Bull Trap hoặc Phân phối"]
+            D3["😈 Devil's Agent: Thách thức Confirmation Bias"]
+            
+            D1 --- D2
+            D1 --- D3
             D2 --- D3
-            D1 --> E["Master Consensus Moderator"]
+
+            E["Master Consensus Moderator"]
+            D1 --> E
             D2 --> E
             D3 --> E
         end
 
-        subgraph L4["TẦNG 4: PHÁN QUYẾT & ĐIỂM QUẢN TRỊ RỦI RO"]
-            E --> F["Quyết định Đầu tư & Thiết lập Stop-Loss/Take-Profit"]
+        C -->|Gửi kịch bản chu kỳ| D1
+
+        subgraph L4["TẦNG 4: PHÁN QUYẾT VÀ ĐIỂM QUẢN TRỊ RỦI RO"]
+            F["Quyết định Đầu tư VÀ Thiết lập Stop-Loss / Take-Profit"]
         end
 
-        subgraph L5["TẦNG 5: CONTINUOUS FEEDBACK & MEMORY LOOP"]
-            F --> G["Theo dõi Giá Thực tế theo Thời gian T+N"]
-            G -->|Giá đi đúng dự đoán| H1["🟢 Reinforcement: Khắc sâu Mẫu hình vào Memory DB"]
-            G -->|Bị dính Stop-Loss / Sai chu kỳ| H2["🔴 Post-Mortem Agent: Mổ xẻ Thất bại & Điều chỉnh Trọng số"]
+        E --> F
+
+        subgraph L5["TẦNG 5: CONTINUOUS FEEDBACK VÀ MEMORY LOOP"]
+            G["Theo dõi Giá Thực tế theo Thời gian T+N"]
+            H1["🟢 Reinforcement: Khắc sâu Mẫu hình vào Memory DB"]
+            H2["🔴 Post-Mortem Agent: Mổ xẻ Thất bại VÀ Điều chỉnh Trọng số"]
+            
+            G -->|Giá đi đúng dự đoán| H1
+            G -->|Bị dính Stop-Loss hoặc Sai chu kỳ| H2
         end
 
-        H1 -->|Cập nhật Vector Pattern| D4[("(Memory Database)")]
-        H2 -->|Cập nhật Rule Phản biện & Trọng số| D4
+        F --> G
+
+        D4["Memory Database"]
+        H1 -->|Cập nhật Vector Pattern| D4
+        H2 -->|Cập nhật Rule Phản biện VÀ Trọng số| D4
         D4 -.->|Cung cấp dữ liệu quá khứ| C
-        D4 -.->|Cung cấp case-study phản biện| L3
+        D4 -.->|Cung cấp case-study phản biện| D1
     </div>
   </div>
 
