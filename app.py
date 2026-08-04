@@ -465,12 +465,11 @@ if df is not None and not df.empty:
     high_p_fmt = high_p * mult
     low_p_fmt = low_p * mult
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Giá đóng cửa", f"{latest_close_fmt:,.0f} VNĐ", f"{change_fmt:+,.0f} ({pct_change:+.2f}%)")
     c2.metric("Cao nhất (kỳ)", f"{high_p_fmt:,.0f} VNĐ")
     c3.metric("Thấp nhất (kỳ)", f"{low_p_fmt:,.0f} VNĐ")
     c4.metric("KL Trung bình", f"{avg_vol:,.0f}")
-    c5.metric("Chất lượng dữ liệu", result.get("data_quality", "OK"))
 
 st.divider()
 
