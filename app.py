@@ -55,18 +55,6 @@ with st.sidebar:
     
     st.divider()
     
-    st.markdown("""
-    **🏗️ Kiến trúc 5 Tầng:**
-    - 📦 **L1A** VNStock + TradingView
-    - 📰 **L1B** News Agents (5 agents)
-    - 🔬 **L2** 6 Analysis Agents chuyên sâu
-    - 🧠 **L3** Master Consensus Score
-    - ⚖️ **L4** Debate Council (Bull/Bear/Devil)
-    - 🏆 **L5** Phán quyết Cuối cùng
-    """)
-
-    st.divider()
-    
     # Financial Collector Quick Sidebar Summary
     fin_coll = FinancialDataCollector()
     co_info = fin_coll.get_company_overview(symbol)
@@ -101,6 +89,18 @@ with st.sidebar:
         yaxis=dict(showgrid=True, gridcolor='#222', tickfont=dict(color='#888', size=9))
     )
     st.plotly_chart(fig_foreign, use_container_width=True)
+
+    st.divider()
+    
+    st.markdown("""
+    **🏗️ Kiến trúc 5 Tầng:**
+    - 📦 **L1A** VNStock + TradingView
+    - 📰 **L1B** News Agents (5 agents)
+    - 🔬 **L2** 6 Analysis Agents chuyên sâu
+    - 🧠 **L3** Master Consensus Score
+    - ⚖️ **L4** Debate Council (Bull/Bear/Devil)
+    - 🏆 **L5** Phán quyết Cuối cùng
+    """)
 
 end_date = datetime.now()
 start_date = end_date - timedelta(days=days_back)
