@@ -89,7 +89,7 @@ class BullAdvocateAgent:
                 )
                 impact += 1.5
             if "giảm" in bear_stmts.lower() or "downtrend" in bear_stmts.lower():
-                sharpe = risk.get("metrics", {}).get("sharpe_ratio", 0)
+                sharpe = (risk.get("metrics", {}) or {}).get("sharpe_ratio") or 0.0
                 arguments.append(
                     f"🔄 Phản bác Bear về xu hướng: Sharpe Ratio = {sharpe:.2f}. "
                     f"Dù ngắn hạn có biến động, lịch sử dài hạn cho thấy hiệu suất sinh lời ổn định."
@@ -148,7 +148,7 @@ class BearAdvocateAgent:
                 arguments.append("📉 Thị trường đang sideway — không có lý do rõ ràng để mua vào, tiền sẽ bị giam lạnh.")
                 impact -= 0.5
 
-            vol_ratio = volume.get("stats", {}).get("vol_ratio_vs_ma20", 1.0)
+            vol_ratio = (volume.get("stats", {}) or {}).get("vol_ratio_vs_ma20") or 1.0
             if vol_ratio < 0.7:
                 arguments.append(
                     f"📊 Khối lượng sụt giảm (chỉ {vol_ratio:.1f}x trung bình) — thiếu sự xác nhận từ dòng tiền. "
@@ -156,8 +156,8 @@ class BearAdvocateAgent:
                 )
                 impact -= 1.5
 
-            risk_score = risk.get("risk_score", 50)
-            max_dd = risk.get("metrics", {}).get("max_drawdown", 0)
+            risk_score = risk.get("risk_score") or 50
+            max_dd = (risk.get("metrics", {}) or {}).get("max_drawdown") or 0.0
             if risk_score > 60:
                 arguments.append(f"🔴 Điểm rủi ro = {risk_score}/100. Max Drawdown lịch sử = -{max_dd:.1f}%. Rủi ro quá cao so với cơ hội.")
                 impact -= 1.5
@@ -197,7 +197,7 @@ class BearAdvocateAgent:
 
         elif round_num == 3:
             # Phiên 3: Kết luận Bear
-            vol = risk.get("metrics", {}).get("volatility_annual", 0)
+            vol = (risk.get("metrics", {}) or {}).get("volatility_annual") or 0.0
             arguments.append(
                 f"🏁 Kết luận BEAR: Với biến động hàng năm {vol:.1f}% và nhiều yếu tố rủi ro chưa được giải quyết, "
                 f"chiến lược thận trọng (chờ đợi / giảm tỷ trọng) là tối ưu hơn là mua mới. "
@@ -341,10 +341,10 @@ class DebateModerator:
         trend = analyses.get("trend", {})
         momentum = analyses.get("momentum", {})
 
-        vol = risk.get("metrics", {}).get("volatility_annual", 0)
-        max_dd = risk.get("metrics", {}).get("max_drawdown", 0)
-        sharpe = risk.get("metrics", {}).get("sharpe_ratio", 0)
-        rsi = momentum.get("indicators_summary", {}).get("RSI", 50)
+        vol = (risk.get("metrics", {}) or {}).get("volatility_annual") or 0.0
+        max_dd = (risk.get("metrics", {}) or {}).get("max_drawdown") or 0.0
+        sharpe = (risk.get("metrics", {}) or {}).get("sharpe_ratio") or 0.0
+        rsi = (momentum.get("indicators_summary", {}) or {}).get("RSI") or 50.0
 
         if max_dd > 20: key_risks.append(f"Max Drawdown cao: -{max_dd:.1f}%")
         if vol > 35:    key_risks.append(f"Biến động hàng năm cao: {vol:.1f}%")
