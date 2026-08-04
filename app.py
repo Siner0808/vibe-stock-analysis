@@ -317,7 +317,7 @@ st.markdown("""
 st.markdown("""
 <div class="ticker-bar">
   <div class="ticker-content">
-    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
+    <span><span class="sym">VN-INDEX</span> 1,777.23 <span class="up">▲ +14.39 (+0.82%)</span></span>
     <span><span class="sym">FPT</span> 71,500 <span class="down">▼ -200 (-0.28%)</span></span>
     <span><span class="sym">VNM</span> 59,500 <span class="down">▼ -800 (-1.33%)</span></span>
     <span><span class="sym">VHM</span> 152,900 <span class="up">▲ +4,900 (+3.31%)</span></span>
@@ -325,7 +325,7 @@ st.markdown("""
     <span><span class="sym">MBB</span> 24,400 <span class="up">▲ +400 (+1.67%)</span></span>
     <span><span class="sym">SSI</span> 24,550 <span class="up">▲ +0 (0.00%)</span></span>
     <span><span class="sym">TCB</span> 29,650 <span class="down">▼ -300 (-1.00%)</span></span>
-    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
+    <span><span class="sym">VN-INDEX</span> 1,777.23 <span class="up">▲ +14.39 (+0.82%)</span></span>
     <span><span class="sym">FPT</span> 71,500 <span class="down">▼ -200 (-0.28%)</span></span>
     <span><span class="sym">VNM</span> 59,500 <span class="down">▼ -800 (-1.33%)</span></span>
     <span><span class="sym">VHM</span> 152,900 <span class="up">▲ +4,900 (+3.31%)</span></span>
