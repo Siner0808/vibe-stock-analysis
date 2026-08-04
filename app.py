@@ -80,8 +80,6 @@ if not result:
     st.stop()
 
 # ---- Header Metrics ----
-packet_df = result["analyses"]["trend"]["details"]
-
 # Lấy giá từ OHLCV
 @st.cache_data(ttl=300)
 def load_stock_data(ticker, start, end):
