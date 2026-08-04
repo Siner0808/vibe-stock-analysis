@@ -342,12 +342,12 @@ st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents
 
 # ---- Sidebar ----
 with st.sidebar:
-    st.header("⚙️ Cấu hình phân tích")
+    st.header("🔍 Tìm kiếm mã CK")
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = 180  # Cố định 6 tháng (180 ngày)
     
-    run_btn = st.button("🚀 Chạy phân tích Multi-Agent", type="primary", use_container_width=True)
+    run_btn = st.button("⚡ Phân tích ngay", type="primary", use_container_width=True)
     
     st.divider()
     
