@@ -313,30 +313,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ─── Live Animated Ticker Bar ──────────────────────────────────────
-st.markdown("""
-<div class="ticker-bar">
-  <div class="ticker-content">
-    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
-    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
-    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
-    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
-    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
-    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
-    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
-    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
-    <span><span class="sym">VN-INDEX</span> 1,298.45 <span class="up">▲ +12.38 (+0.96%)</span></span>
-    <span><span class="sym">HNX</span> 242.17 <span class="up">▲ +1.85 (+0.77%)</span></span>
-    <span><span class="sym">UPCOM</span> 96.82 <span class="down">▼ -0.34 (-0.35%)</span></span>
-    <span><span class="sym">FPT</span> 128,500 <span class="up">▲ +1,200</span></span>
-    <span><span class="sym">VNM</span> 72,800 <span class="down">▼ -400</span></span>
-    <span><span class="sym">VHM</span> 43,500 <span class="up">▲ +350</span></span>
-    <span><span class="sym">HPG</span> 26,150 <span class="up">▲ +250</span></span>
-    <span><span class="sym">MBB</span> 27,300 <span class="down">▼ -150</span></span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
 st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
 
