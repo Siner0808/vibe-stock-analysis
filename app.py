@@ -84,9 +84,9 @@ if not result:
 @st.cache_data(ttl=300)
 def load_stock_data(ticker, start, end):
     try:
-        from vnstock import Quote
-        df = Quote(symbol=ticker, source='VCI').history(start=start, end=end)
-        return df
+        from data_collectors import VNStockCollectorAgent
+        res = VNStockCollectorAgent().collect(ticker, start, end)
+        return res.get("df")
     except Exception:
         return None
 
@@ -438,6 +438,8 @@ with tab_chart:
         vol_fig = go.Figure(go.Bar(x=df['time'], y=df['volume'], marker_color=vol_colors, name='Volume'))
         vol_fig.update_layout(template="plotly_dark", height=180, margin=dict(l=20, r=20, t=5, b=20))
         st.plotly_chart(vol_fig, use_container_width=True)
+    else:
+        st.warning("⚠️ Không có dữ liệu chuỗi nến OHLCV để vẽ đồ thị.")
 
 with tab_diagram:
     st.subheader("📐 Kiến trúc Pipeline Multi-Agent — 5 Tầng")
