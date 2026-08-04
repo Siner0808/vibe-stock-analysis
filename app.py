@@ -30,7 +30,7 @@ st.markdown("""
     }
     .agent-card.warn { border-left-color: #ffca28; }
     .agent-card.danger { border-left-color: #ef5350; }
-    h1, h2 { color: #00e676 !important; }
+    h2 { color: #00e676; }
     h3 { color: #29b6f6 !important; }
     </style>
 """, unsafe_allow_html=True)
