@@ -1,30 +1,95 @@
 """
 chatbot_agent.py
 ──────────────────────────────────────────────────────────────────────
-Trợ lý AI Chatbot Phân tích Chứng khoán (Context-Aware AI Stock Assistant)
-Tự động tích hợp kết quả phân tích Multi-Agent 5 Tầng để trả lời
-mọi thắc mắc của nhà đầu tư theo thời gian thực.
+Trợ lý AI Chatbot Phân tích Chứng khoán tích hợp Google Gemini API
+(Context-Aware Gemini LLM AI Stock Assistant)
+Tự động nạp ngữ cảnh kết quả phân tích Multi-Agent 5 Tầng và kết nối
+Google Gemini LLM (gemini-1.5-flash / gemini-2.0-flash) để phản hồi tự nhiên.
 ──────────────────────────────────────────────────────────────────────
 """
-import re
+import os
+import json
+import requests
 
 class StockChatbotAgent:
     """
-    Agent Trợ lý AI Chatbot thông minh:
-    Giải thích kết quả phân tích, khuyến nghị đầu tư, tranh luận Bull/Bear,
-    và tư vấn quản trị rủi ro dựa trên ngữ cảnh Multi-Agent.
+    Agent Trợ lý AI Chatbot thông minh dùng Gemini API:
+    Kết nối trực tiếp tới Google Gemini LLM để trả lời các câu hỏi về chứng khoán,
+    lập luận 5 Tầng Multi-Agent và chiến lược quản trị rủi ro.
     """
-    NAME = "💬 AI Stock Assistant Chatbot"
+    NAME = "💬 AI Stock Assistant Chatbot (Gemini Powered)"
 
-    def answer_question(self, user_prompt: str, result: dict) -> str:
+    def __init__(self, api_key: str = None):
+        self.api_key = (
+            api_key 
+            or os.environ.get("GEMINI_API_KEY") 
+            or os.environ.get("GOOGLE_API_KEY")
+        )
+
+    def _call_gemini_api(self, system_instruction: str, user_prompt: str) -> str:
+        """Gọi trực tiếp Google Gemini REST API (gemini-1.5-flash / gemini-2.0-flash)"""
+        if not self.api_key:
+            return None
+
+        # Endpoint Google Gemini v1beta REST API
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+        
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {"text": f"{system_instruction}\n\n---\nCâu hỏi của nhà đầu tư: {user_prompt}"}
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.3,
+                "maxOutputTokens": 1024
+            }
+        }
+
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=12)
+            if res.status_code == 200:
+                data = res.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "")
+            elif res.status_code == 400 or res.status_code == 403:
+                # API Key không hợp lệ hoặc bị chặn
+                return None
+        except Exception:
+            pass
+
+        # Thử thư viện SDK google.generativeai nếu REST API gặp sự cố
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=self.api_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            full_prompt = f"{system_instruction}\n\nCâu hỏi: {user_prompt}"
+            resp = model.generate_content(full_prompt)
+            if resp and resp.text:
+                return resp.text
+        except Exception:
+            pass
+
+        return None
+
+    def answer_question(self, user_prompt: str, result: dict, user_api_key: str = None) -> str:
+        if user_api_key:
+            self.api_key = user_api_key
+
         if not result or result.get("data_quality") == "FAILED":
             return (
                 "⚠️ Hiện tại chưa có dữ liệu phân tích Multi-Agent cho mã cổ phiếu này "
-                "hoặc kết nối dữ liệu bị gián đoạn. Vui lòng bấm nút **🚀 Chạy phân tích Multi-Agent** ở thanh Sidebar để cập nhật dữ liệu mới nhất trước khi chat với tôi nhé!"
+                "hoặc kết nối dữ liệu bị gián đoạn. Vui lòng bấm nút **🚀 Chạy phân tích Multi-Agent** ở thanh Sidebar để cập nhật dữ liệu trước khi chat nhé!"
             )
 
-        prompt_lower = user_prompt.lower()
-        symbol = result.get("symbol", "cổ phiếu")
+        symbol = result.get("symbol", "Cổ phiếu")
         exchange = result.get("exchange", "HOSE")
         score = result.get("final_score", 50)
         rec = result.get("recommendation", "NẮM GIỮ")
@@ -33,120 +98,78 @@ class StockChatbotAgent:
         debate = result.get("debate", {})
         analyses = result.get("analyses", {})
 
-        # ── HỎI VỀ KHUYẾN NGHỊ / TẠI SAO BÁN HOẶC MUA ───────────────────
+        # Tạo System Context phong phú nạp toàn bộ kết quả phân tích 5 Tầng
+        system_context = f"""
+Bạn là Trợ lý AI Chuyên gia Phân tích Chứng khoán Việt Nam chuyên nghiệp (Vibe Stock Assistant Powered by Gemini).
+Bạn đang phân tích trực tiếp mã chứng khoán: [{symbol}] (Sàn {exchange}).
+
+DỮ LIỆU PHÂN TÍCH MULTI-AGENT 5 TẦNG MỚI NHẤT:
+- Điểm tổng hợp đồng thuận: {score}/100
+- Khuyến nghị hành động chính thức: {rec}
+- Các lý do cốt lõi từ Master Agent: {json.dumps(reasons, ensure_ascii=False)}
+- Điểm chi tiết 6 Agent:
+  + Trend (Xu hướng): {breakdown.get('trend_score', 50)}/100
+  + Momentum (Động lượng): {breakdown.get('momentum_score', 50)}/100
+  + Volume (Khối lượng): {breakdown.get('volume_score', 50)}/100
+  + Support & Resistance (Kháng cự/Hỗ trợ): {breakdown.get('sr_score', 50)}/100
+  + Risk (Rủi ro): {breakdown.get('risk_score', 50)}/100
+  + News (Sentiment tin tức): {breakdown.get('news_score', 50)}/100
+
+DỮ LIỆU DEBATE COUNCIL & SAFETY HARNESS:
+- Kết quả Tranh luận Khẩn cấp: Bull Score ({debate.get('bull_score', 0)}), Bear Score ({debate.get('bear_score', 0)}), Tóm tắt: "{debate.get('verdict_summary', '')}"
+- Rủi ro lớn nhất: {json.dumps(debate.get('key_risks', []), ensure_ascii=False)}
+- Cơ hội lớn nhất: {json.dumps(debate.get('key_opportunities', []), ensure_ascii=False)}
+- Dữ liệu Quản trị rủi ro ATR: Stop-loss price ({analyses.get('risk', {}).get('recommendations', {}).get('stop_loss_price', 'N/A')}), Position Sizing ({analyses.get('risk', {}).get('recommendations', {}).get('suggested_position_size_pct', 15)}%).
+
+NHIỆM VỤ CỦA BẠN:
+1. Trả lời câu hỏi của nhà đầu tư một cách sắc bén, ngắn gọn, khách quan và khoa học dựa trên dữ liệu 5 Tầng trên.
+2. Luôn giữ kỷ luật quản trị rủi ro (không bao giờ khuyên nới Stop-loss hay bắt đáy vô căn cứ khi đang Downtrend/Bán).
+3. Trả lời bằng tiếng Việt trình bày chuẩn GitHub Markdown, sử dụng icon sinh động.
+"""
+
+        # Thử gọi Gemini LLM
+        gemini_response = self._call_gemini_api(system_context, user_prompt)
+        if gemini_response:
+            return gemini_response
+
+        # ── FALLBACK ENGINE (Nếu chưa nạp Gemini API Key hoặc lỗi mạng API) ────
+        prompt_lower = user_prompt.lower()
+        reasons_str = "\n".join([f"• {r}" for r in reasons])
+
         if any(w in prompt_lower for w in ["tại sao", "tai sao", "khuyên nghị", "khuyen nghi", "lý do", "ly do", "sao lại"]):
-            reasons_str = "\n".join([f"• {r}" for r in reasons])
             return f"""
-🤖 **Giải thích Khuyến nghị cho mã [{symbol}]:**
+🤖 **[Gemini Engine Fallback] Trả lời giải thích Khuyến nghị cho [{symbol}]:**
 
 • **Điểm đồng thuận 5 Tầng:** `{score}/100`  
-• **Phán quyết cuối:** **{rec}** (Sàn: {exchange})
+• **Khuyến nghị chính thức:** **{rec}** (Sàn: {exchange})
 
 **Các luận điểm chính từ Master Agent:**
 {reasons_str}
 
-**Chi tiết điểm số từng Agent:**
-- 📈 Trend (Xu hướng): `{breakdown.get('trend_score', 50)}/100`
-- ⚡ Momentum (Động lượng): `{breakdown.get('momentum_score', 50)}/100`
-- 📊 Volume (Khối lượng): `{breakdown.get('volume_score', 50)}/100`
-- 📍 S&R (Vùng hỗ trợ/kháng cự): `{breakdown.get('sr_score', 50)}/100`
-- 🛡️ Risk (Rủi ro): `{breakdown.get('risk_score', 50)}/100`
-- 📰 News (Sentiment tin tức): `{breakdown.get('news_score', 50)}/100`
+**Điểm chi tiết từng Agent:**
+- 📈 Trend: `{breakdown.get('trend_score', 50)}/100` | ⚡ Momentum: `{breakdown.get('momentum_score', 50)}/100`
+- 📊 Volume: `{breakdown.get('volume_score', 50)}/100` | 📍 S&R: `{breakdown.get('sr_score', 50)}/100`
+- 🛡️ Risk: `{breakdown.get('risk_score', 50)}/100` | 📰 News: `{breakdown.get('news_score', 50)}/100`
 
-💡 *Nếu điểm dưới 45, hệ thống sẽ khuyến nghị BÁN/KHÔNG MUA để bảo vệ vị thế vốn trước các rủi ro kỹ thuật hoặc bẫy giá (Bull Trap).*
+🔑 *Mẹo: Nhập Gemini API Key ở Sidebar để mở khóa Gemini LLM thông minh 100%!*
 """
-
-        # ── HỎI VỀ STOP-LOSS / CẮT LỖ / ĐI VỐN ──────────────────────────
-        elif any(w in prompt_lower for w in ["stop-loss", "stop loss", "cắt lỗ", "cat lo", "chốt lời", "chot loi", "vốn", "von", "quản trị", "quan tri"]):
-            risk_data = analyses.get("risk", {})
-            recs = risk_data.get("recommendations", {})
-            sl_p = recs.get("stop_loss_price", 0)
-            sl_pct = recs.get("stop_loss_pct", 7.0)
-            tp_p = recs.get("take_profit_price", 0)
-            tp_pct = recs.get("take_profit_pct", 15.0)
-            pos_sz = recs.get("suggested_position_size_pct", 15.0)
-            rr = recs.get("risk_reward_ratio", "2.1:1")
-
+        elif any(w in prompt_lower for w in ["stop-loss", "stop loss", "cắt lỗ", "cat lo", "chốt lời", "chot loi", "vốn", "von"]):
+            risk_recs = analyses.get("risk", {}).get("recommendations", {})
             return f"""
-🛡️ **Khung Quản trị Rủi ro & Đi vốn (Safety Harness) cho [{symbol}]:**
+🛡️ **[Gemini Engine Fallback] Quản trị Rủi ro & Đi vốn cho [{symbol}]:**
 
-1. 🛑 **Mức Cắt lỗ kỷ luật (Hard Stop-Loss):**
-   - Giá cắt lỗ: `{sl_p:,.2f} VNĐ` (tương đương `-{sl_pct}%` từ điểm vào).
-   - Quy tắc Safety Harness: Tuyệt đối không nới Stop-loss khi giá vi phạm ngưỡng kỷ luật!
+1. 🛑 **Hard Stop-Loss (Cắt lỗ kỷ luật):** `{risk_recs.get('stop_loss_price', 0):,.2f} VNĐ` (`-{risk_recs.get('stop_loss_pct', 7.0)}%`).
+2. 🎯 **Take-Profit (Chốt lời mục tiêu):** `{risk_recs.get('take_profit_price', 0):,.2f} VNĐ` (`+{risk_recs.get('take_profit_pct', 15.0)}%`).
+3. 💰 **Tỷ lệ Đi vốn an toàn:** Max **`{risk_recs.get('suggested_position_size_pct', 15.0)}%`** danh mục.
 
-2. 🎯 **Mức Chốt lời mục tiêu (Take-Profit):**
-   - Giá mục tiêu: `{tp_p:,.2f} VNĐ` (tương đương `+{tp_pct}%`).
-   - Tỷ lệ Risk : Reward = `{rr}`.
-
-3. 💰 **Tỷ lệ Phân bổ vốn an toàn (Position Sizing):**
-   - Khuyến nghị đi vốn: Max **`{pos_sz}%`** tổng giá trị danh mục.
-   - Không gia tăng tỷ trọng khi cổ phiếu đang trong xu hướng giảm (Downtrend).
+🔑 *Mẹo: Nhập Gemini API Key ở Sidebar để mở khóa Gemini LLM thông minh 100%!*
 """
-
-        # ── HỎI VỀ TRANH LUẬN BULL / BEAR / DEBATE ───────────────────────
-        elif any(w in prompt_lower for w in ["tranh luận", "tranh luan", "debate", "bull", "bear", "đối lập", "doi lap"]):
-            if not debate:
-                return "⚠️ Hiện chưa có dữ liệu chi tiết từ Debate Council."
-            
-            b_score = debate.get("bull_score", 0)
-            be_score = debate.get("bear_score", 0)
-            conf = debate.get("confidence_level", "TRUNG BÌNH")
-            risks = "\n".join([f"• {r}" for r in debate.get("key_risks", [])])
-            opps = "\n".join([f"• {o}" for o in debate.get("key_opportunities", [])])
-
-            return f"""
-⚖️ **Kết quả Tranh luận Khẩn cấp (Debate Council) cho [{symbol}]:**
-
-• **Bull Advocate Score (🐂):** `{b_score:+.1f}` điểm  
-• **Bear Advocate Score (🐻):** `{be_score:+.1f}` điểm  
-• **Độ tin cậy của Hội đồng:** `{conf}`
-
-🔴 **Rủi ro lớn nhất do Bear Agent & Devil's Advocate đưa ra:**
-{risks}
-
-🟢 **Cơ hội lớn nhất do Bull Agent đưa ra:**
-{opps}
-
-💡 *Tóm tắt:* {debate.get('verdict_summary', '')}
-"""
-
-        # ── HỎI VỀ TIN TỨC / VI MÔ ───────────────────────────────────────
-        elif any(w in prompt_lower for w in ["tin tức", "tin tuc", "news", "vĩ mô", "vi mo", "sentiment"]):
-            news_data = analyses.get("news", {})
-            total_art = news_data.get("total_articles", 0)
-            overall_s = news_data.get("overall_sentiment", "N/A")
-            top_pos = news_data.get("top_positive", [])
-            top_neg = news_data.get("top_negative", [])
-
-            pos_titles = "\n".join([f"• {a['title'][:70]}... ({a['source']})" for a in top_pos[:2]])
-            neg_titles = "\n".join([f"• {a['title'][:70]}... ({a['source']})" for a in top_neg[:2]])
-
-            return f"""
-📰 **Tổng hợp Tin tức & Sentiment cho mã [{symbol}]:**
-
-• **Tổng số bài báo đã thu thập:** `{total_art}` bài  
-• **Sentiment chung:** `{overall_s}`
-
-✅ **Tin tức tích cực tiêu biểu:**
-{pos_titles if pos_titles else "• Chưa ghi nhận tin tức tích cực đột biến."}
-
-🔴 **Tin tức rủi ro / tiêu cực tiêu biểu:**
-{neg_titles if neg_titles else "• Chưa ghi nhận tin tức tiêu cực lớn."}
-"""
-
-        # ── CÂU HỎI TỔNG QUÁT / TƯ VẤN CÓ NÊN MUA KHÔNG ───────────────────
         else:
             return f"""
-🤖 **Trả lời từ AI Stock Assistant cho mã [{symbol}]:**
+🤖 **[Gemini Engine Fallback] Trợ lý AI cho mã [{symbol}]:**
 
-Dựa trên phân tích 5 Tầng mới nhất cho mã **{symbol}**:
-- **Khuyến nghị hiện tại:** **{rec}** (Điểm số: `{score}/100`).
-- **Xu hướng chính:** `{reasons[0] if reasons else 'Đang cập nhật'}`.
-- **Lời khuyên hành động:** 
-  {"• Nếu bạn ĐANG CÓ HÀNG: Nên xem xét chốt lời / hạ tỷ trọng hoặc cắt lỗ bảo vệ vốn." if score < 50 else "• Nếu bạn ĐANG MUỐN MUA: Có thể tham khảo tích lũy từng phần (DCA) theo vùng hỗ trợ."}
+Mã **{symbol}** có điểm đồng thuận **{score}/100** với khuyến nghị **{rec}**.
+Luận điểm chính: {reasons[0] if reasons else 'Đang theo dõi tín hiệu thị trường.'}
 
-💬 *Bạn có thể hỏi thêm tôi về:*
-1. *"Tại sao mã này lại cho khuyến nghị {rec}?"*
-2. *"Mức Stop-loss và tỷ lệ phân bổ vốn an toàn là bao nhiêu?"*
-3. *"Phe Bull và Bear tranh luận những gì về {symbol}?"*
+🔑 *Bạn có thể nhập **Gemini API Key** ở thanh Sidebar để kích hoạt Gemini LLM trả lời tự nhiên và sâu sắc nhất!*
 """

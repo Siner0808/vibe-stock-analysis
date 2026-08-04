@@ -45,6 +45,7 @@ with st.sidebar:
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = st.slider("Số ngày lịch sử", min_value=60, max_value=365, value=200)
+    gemini_key_input = st.text_input("🔑 Gemini API Key (Tùy chọn)", type="password", help="Nhập Google Gemini API Key để kích hoạt Trợ lý Chatbot AI Gemini LLM thông minh").strip()
     run_btn = st.button("🚀 Chạy phân tích Multi-Agent", type="primary", use_container_width=True)
     
     st.divider()
@@ -537,8 +538,8 @@ with tab_chat:
             st.markdown(user_input)
 
         with st.chat_message("assistant"):
-            with st.spinner("🤖 AI đang suy nghĩ và tổng hợp từ kết quả 5 Tầng..."):
-                response = bot_agent.answer_question(user_input, result)
+            with st.spinner("🤖 AI Gemini đang suy nghĩ và tổng hợp từ kết quả 5 Tầng..."):
+                response = bot_agent.answer_question(user_input, result, user_api_key=gemini_key_input)
                 st.markdown(response)
                 st.session_state["chat_messages"].append({"role": "assistant", "content": response})
 
