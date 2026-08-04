@@ -1,6 +1,4 @@
-from data_collectors import MarketDataPacket
-from news_sentiment_agent import NewsSentimentAgent
-from debate_agents import DebateModerator
+from debate_agents import DebateModerator, SafetyHarnessGuardrails, PostMortemLearningAgent
 from analysis_agents import (
     TrendAnalysisAgent, MomentumAgent,
     VolumeAnalysisAgent, SupportResistanceAgent, RiskManagementAgent
@@ -8,14 +6,15 @@ from analysis_agents import (
 
 # =====================================================================
 # LAYER 3: MASTER CONSENSUS AGENT  (Tầng Tổng hợp Sơ bộ)
-# LAYER 4: DEBATE COUNCIL          (Tầng Tranh luận Đối lập)
-# LAYER 5: FINAL VERDICT           (Phán quyết Cuối cùng)
+# LAYER 4: DEBATE COUNCIL & HARNESS (Tầng Tranh luận & Safety Guardrails)
+# LAYER 5: FINAL VERDICT & MEMORY  (Phán quyết & Feedback Loop)
 # =====================================================================
 
 class MasterConsensusAgent:
     """
-    Tổng hợp sơ bộ từ 6 Analysis Agents → điểm pre-debate (0-100).
-    Sau đó bàn giao sang Debate Council để thách thức & tinh chỉnh.
+    Tổng hợp 5 Tầng theo đúng Sơ đồ Kiến trúc 1 & 2:
+    L1 (Data) -> L2 (Analysis Agents) -> L3 (Master Consensus & Debate Council)
+    -> L4 (Safety Harness Guardrails) -> L5 (Final Verdict & Post-Mortem Memory)
     """
     NAME = "Master Consensus Agent"
 
@@ -27,6 +26,8 @@ class MasterConsensusAgent:
         self.risk_agent     = RiskManagementAgent()
         self.news_agent     = NewsSentimentAgent()
         self.debate         = DebateModerator()
+        self.harness        = SafetyHarnessGuardrails()
+        self.post_mortem    = PostMortemLearningAgent()
 
     def run(self, packet: MarketDataPacket) -> dict:
         if packet.data_quality == "FAILED":

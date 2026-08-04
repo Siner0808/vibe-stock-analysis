@@ -398,3 +398,86 @@ class DebateModerator:
             key_opportunities=key_opportunities,
             confidence_level=confidence,
         )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# AGENTIC SAFETY HARNESS GUARDRAILS (Tầng 4: Khung Giám sát An toàn)
+# ─────────────────────────────────────────────────────────────────────
+class SafetyHarnessGuardrails:
+    """
+    Tầng Khung An toàn (Safety Harness) kiểm tra các quy tắc bất biến:
+    1. Giới hạn lỗ tối đa (Hard ATR Stop-Loss Enforcement)
+    2. Phân bổ vị thế an toàn (Max Position Sizing <= 25%)
+    3. Bộ lọc chống hoảng loạn (Anti-Panic Shakeout Filter)
+    """
+    NAME = "🛡️ Safety Harness Guardrails"
+
+    def evaluate_safety(self, analyses: dict, initial_verdict_score: float) -> dict:
+        risk = analyses.get("risk", {})
+        recommendations = risk.get("recommendations", {})
+        sl_pct = recommendations.get("stop_loss_pct", 7.0)
+        pos_size = recommendations.get("suggested_position_size_pct", 15.0)
+
+        safety_violations = []
+        is_safe = True
+        adjusted_score = initial_verdict_score
+
+        # Rule 1: Khống chế tỷ lệ lỗ tối đa không quá 10%
+        if sl_pct > 10.0:
+            safety_violations.append(f"🔴 Vi phạm Risk Guardrail: Mức Stop-loss {sl_pct}% vượt trần 10%. Ép giảm tỷ trọng.")
+            pos_size = min(pos_size, 10.0)
+            is_safe = False
+
+        # Rule 2: Khống chế quy mô vị thế tối đa 25% danh mục
+        if pos_size > 25.0:
+            safety_violations.append(f"⚠️ Vi phạm Position Sizing: Tỷ lệ vốn {pos_size}% quá cao. Harness hạ xuống 20%.")
+            pos_size = 20.0
+
+        # Rule 3: Bộ lọc rủi ro bẫy giá (Bull Trap Risk Adjustment)
+        trend = analyses.get("trend", {})
+        if "DOWNTREND" in trend.get("trend", "") and initial_verdict_score > 60:
+            safety_violations.append("🛡️ Harness Warning: Xu hướng chung là DOWNTREND nhưng điểm MUA cao. Trừ 10 điểm phạt rủi ro Bull Trap.")
+            adjusted_score -= 10.0
+            is_safe = False
+
+        return {
+            "is_safe": is_safe,
+            "adjusted_score": max(5.0, min(95.0, adjusted_score)),
+            "safe_position_size": pos_size,
+            "safety_violations": safety_violations
+        }
+
+
+# ─────────────────────────────────────────────────────────────────────
+# POST-MORTEM & CONTINUOUS MEMORY LEARNING AGENT (Tầng 5)
+# ─────────────────────────────────────────────────────────────────────
+class PostMortemLearningAgent:
+    """
+    Tầng Post-Mortem & Feedback Loop:
+    - Theo dõi nhận định theo thời gian T+N.
+    - Mổ xẻ nguyên nhân khi dính Stop-Loss / Bẫy giá (Bull Trap) hoặc Thiên Nga Đen.
+    - Lưu vết học hỏi vào Negative Memory DB để tăng quyền lực phản biện cho Bear Agent các phiên sau.
+    """
+    NAME = "🔬 Post-Mortem Learning Agent"
+
+    def analyze_failure_event(self, symbol: str, entry_score: float, failure_type: str) -> dict:
+        memory_log = {
+            "symbol": symbol,
+            "entry_score": entry_score,
+            "failure_type": failure_type, # BULL_TRAP / BLACK_SWAN / STOP_LOSS_HIT
+            "lesson_learned": "",
+            "weight_adjustment": {}
+        }
+
+        if failure_type == "BULL_TRAP":
+            memory_log["lesson_learned"] = "⚠️ Nhận diện bẫy giá tăng giả. Tăng 15% trọng số cảnh báo rủi ro cho Bear Advocate Agent trong 10 phiên tới."
+            memory_log["weight_adjustment"] = {"bear_weight_boost": 0.15}
+        elif failure_type == "BLACK_SWAN":
+            memory_log["lesson_learned"] = "🚨 Sự kiện thiên nga đen địa chính trị. Tự động thắt chặt Stop-loss ATR và hạ 30% Position Sizing tối đa."
+            memory_log["weight_adjustment"] = {"max_position_penalty": 0.30}
+        else:
+            memory_log["lesson_learned"] = "📉 Chạm Stop-loss kỷ luật T+2. Cập nhật mẫu hình kỹ thuật vào Negative Pattern Memory DB."
+            memory_log["weight_adjustment"] = {"stop_loss_stricter": 0.05}
+
+        return memory_log
+
