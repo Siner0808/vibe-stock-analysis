@@ -7,6 +7,7 @@ import plotly.express as px
 from datetime import datetime, timedelta
 from master_agent import run_full_analysis
 from chatbot_agent import StockChatbotAgent, DEFAULT_GEMINI_KEY
+from financial_collector import FinancialDataCollector
 
 # Streamlit Page Config
 st.set_page_config(
@@ -63,6 +64,43 @@ with st.sidebar:
     - ⚖️ **L4** Debate Council (Bull/Bear/Devil)
     - 🏆 **L5** Phán quyết Cuối cùng
     """)
+
+    st.divider()
+    
+    # Financial Collector Quick Sidebar Summary
+    fin_coll = FinancialDataCollector()
+    co_info = fin_coll.get_company_overview(symbol)
+    foreign_data = fin_coll.get_foreign_trading_history(symbol)
+
+    st.subheader(f"🌐 Chỉ số Định giá ({symbol})")
+    st.caption(f"Vốn hóa: **{co_info['market_cap_billions']:,.0f} tỷ VNĐ**")
+    st.markdown(f"""
+    - **P/E:** `{co_info['pe']}` | **EPS:** `{co_info['eps']:,.0f} VNĐ`
+    - **Beta:** `{co_info['beta']}` | **KL 10 phiên:** `{co_info['avg_vol_10d']:,.0f}`
+    - **52T Thấp - Cao:** `{co_info['low_52w']:,.1f}` - `{co_info['high_52w']:,.1f}` VNĐ
+    - **% Biến động (1Tuần/1Tháng/1Năm):**  
+      `{co_info['pct_1w']:+.2f}%` | `{co_info['pct_1m']:+.2f}%` | `{co_info['pct_1y']:+.2f}%`
+    """)
+
+    st.markdown("##### 🌍 Giao dịch NĐTNN (10 phiên)")
+    # Draw mini foreign net buying bar chart
+    fig_foreign = go.Figure()
+    colors = ['#00e676' if v >= 0 else '#ef5350' for v in foreign_data['net_values_billion']]
+    fig_foreign.add_trace(go.Bar(
+        x=foreign_data['dates'],
+        y=foreign_data['net_values_billion'],
+        marker_color=colors,
+        name="GT Ròng (Tỷ VNĐ)"
+    ))
+    fig_foreign.update_layout(
+        height=180,
+        margin=dict(l=10, r=10, t=20, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(showgrid=False, tickfont=dict(color='#888', size=9)),
+        yaxis=dict(showgrid=True, gridcolor='#222', tickfont=dict(color='#888', size=9))
+    )
+    st.plotly_chart(fig_foreign, use_container_width=True)
 
 end_date = datetime.now()
 start_date = end_date - timedelta(days=days_back)
@@ -124,12 +162,150 @@ if df is not None and not df.empty:
 st.divider()
 
 # ---- TABS ----
-tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_chat, tab_raw = st.tabs([
-    "🧠 Kết quả Tổng hợp", "⚖️ Debate Council",
+tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_chat, tab_raw = st.tabs([
+    "📊 Tổng quan Terminal",
+    "🧠 Kết quả Multi-Agent 5 Tầng",
+    "⚖️ Debate Council",
     "🔬 Chi tiết từng Agent",
-    "📰 Tin tức & Sentiment", "📊 Đồ thị Kỹ thuật",
-    "📐 Sơ đồ Pipeline", "💬 Trợ lý Chatbot AI", "📄 Dữ liệu thô"
+    "📰 Tin tức & Sentiment",
+    "📈 Đồ thị Kỹ thuật Pro",
+    "📐 Sơ đồ Pipeline",
+    "💬 Trợ lý Chatbot AI",
+    "📄 Dữ liệu thô"
 ])
+
+# =====================================================================
+# TAB 0: VIBE STOCK TERMINAL PRO FINANCIAL DASHBOARD
+# =====================================================================
+with tab_terminal:
+    fin_coll = FinancialDataCollector()
+    fin_data = fin_coll.get_financial_statements(symbol)
+
+    st.title(f"🏢 CTCP / Doanh nghiệp [{symbol}] ({exchange})")
+    st.caption(f"Cập nhật lúc: {datetime.now().strftime('%H:%M:%S')} | Việt Nam (GMT+7)")
+
+    # 1. Main Candlestick Chart
+    st.subheader(f"📈 Đồ thị Kỹ thuật Nến Nhật & Khối lượng ({symbol})")
+    if df is not None and not df.empty:
+        fig_main = go.Figure()
+        
+        # Moving Averages
+        df['ma20'] = df['close'].rolling(window=20).mean()
+        df['ma50'] = df['close'].rolling(window=50).mean()
+
+        mult = 1000.0 if df['close'].iloc[-1] < 1000 else 1.0
+
+        fig_main.add_trace(go.Candlestick(
+            x=df['time'],
+            open=df['open'] * mult,
+            high=df['high'] * mult,
+            low=df['low'] * mult,
+            close=df['close'] * mult,
+            name="Giá nến (VNĐ)",
+            increasing_line_color='#00e676',
+            increasing_fillcolor='#00e676',
+            decreasing_line_color='#ef5350',
+            decreasing_fillcolor='#ef5350'
+        ))
+        
+        fig_main.add_trace(go.Scatter(
+            x=df['time'], y=df['ma20'] * mult,
+            mode='lines', line=dict(color='#ff9800', width=1.5), name='MA20'
+        ))
+        fig_main.add_trace(go.Scatter(
+            x=df['time'], y=df['ma50'] * mult,
+            mode='lines', line=dict(color='#29b6f6', width=1.5), name='MA50'
+        ))
+
+        fig_main.update_layout(
+            height=420,
+            template="plotly_dark",
+            paper_bgcolor='#131722',
+            plot_bgcolor='#131722',
+            xaxis_rangeslider_visible=False,
+            margin=dict(l=10, r=10, t=10, b=10),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_main, use_container_width=True)
+
+    st.divider()
+
+    # 2. Lưới 4 Biểu đồ Tài chính BCTC Grid (2x2 Layout)
+    st.subheader("📊 Báo cáo Tài chính & Sức khỏe Doanh nghiệp (5 Năm)")
+
+    grid_row1_col1, grid_row1_col2 = st.columns(2)
+    grid_row2_col1, grid_row2_col2 = st.columns(2)
+
+    # ── Biểu đồ 1: Hiệu suất Kinh doanh (Doanh thu vs LNST) ───────────
+    with grid_row1_col1:
+        st.markdown("##### 1️⃣ Hiệu suất Kinh doanh (Doanh thu & Lợi nhuận ròng)")
+        fig_perf = go.Figure()
+        fig_perf.add_trace(go.Bar(
+            x=fin_data['years'], y=fin_data['revenue'],
+            name="Doanh thu thuần (Tỷ)", marker_color='#29b6f6'
+        ))
+        fig_perf.add_trace(go.Scatter(
+            x=fin_data['years'], y=fin_data['net_profit'],
+            name="Lợi nhuận ròng (Tỷ)", mode='lines+markers',
+            line=dict(color='#ffca28', width=3)
+        ))
+        fig_perf.update_layout(
+            height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
+            margin=dict(l=10, r=10, t=20, b=10), legend=dict(orientation="h", y=1.1)
+        )
+        st.plotly_chart(fig_perf, use_container_width=True)
+
+    # ── Biểu đồ 2: Kết quả Kinh doanh Chi tiết ───────────────────────
+    with grid_row1_col2:
+        st.markdown("##### 2️⃣ Kết quả Kinh doanh (Cơ cấu Doanh thu & Chi phí)")
+        fig_inc = go.Figure()
+        fig_inc.add_trace(go.Bar(x=fin_data['years'], y=fin_data['revenue'], name="Doanh thu", marker_color='#00e676'))
+        fig_inc.add_trace(go.Bar(x=fin_data['years'], y=fin_data['cogs'], name="Giá vốn HB", marker_color='#ef5350'))
+        fig_inc.add_trace(go.Bar(x=fin_data['years'], y=fin_data['gross_profit'], name="LN Gộp", marker_color='#ab47bc'))
+        fig_inc.update_layout(
+            barmode='group', height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
+            margin=dict(l=10, r=10, t=20, b=10), legend=dict(orientation="h", y=1.1)
+        )
+        st.plotly_chart(fig_inc, use_container_width=True)
+
+    # ── Biểu đồ 3: Tài sản & Vốn chủ sở hữu ──────────────────────────
+    with grid_row2_col1:
+        st.markdown("##### 3️⃣ Tài sản & Vốn chủ sở hữu (Nợ vay vs VCSH)")
+        fig_bs = go.Figure()
+        fig_bs.add_trace(go.Bar(x=fin_data['years'], y=fin_data['equity'], name="Vốn CSH (Tỷ)", marker_color='#26a69a'))
+        fig_bs.add_trace(go.Bar(x=fin_data['years'], y=fin_data['debt'], name="Nợ vay (Tỷ)", marker_color='#ff7043'))
+        fig_bs.add_trace(go.Scatter(
+            x=fin_data['years'], y=fin_data['debt_to_equity'],
+            name="Tỷ lệ Nợ/VCSH", yaxis="y2", mode='lines+markers', line=dict(color='#ffee58', width=2)
+        ))
+        fig_bs.update_layout(
+            barmode='stack', height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
+            margin=dict(l=10, r=10, t=20, b=10),
+            yaxis2=dict(overlaying='y', side='right', showgrid=False, title="Tỷ lệ Nợ/VCSH"),
+            legend=dict(orientation="h", y=1.1)
+        )
+        st.plotly_chart(fig_bs, use_container_width=True)
+
+    # ── Biểu đồ 4: Vị thế Tài chính (Ngắn hạn vs Dài hạn) ─────────────
+    with grid_row2_col2:
+        st.markdown("##### 4️⃣ Vị thế Tài chính (Tài sản vs Nợ Ngắn/Dài hạn)")
+        fig_pos = go.Figure()
+        latest_idx = -1
+        fig_pos.add_trace(go.Bar(
+            x=['Tài sản Ngắn hạn', 'Tài sản Dài hạn', 'Nợ Ngắn hạn', 'Nợ Dài hạn'],
+            y=[
+                fin_data['short_assets'][latest_idx],
+                fin_data['long_assets'][latest_idx],
+                fin_data['short_liabilities'][latest_idx],
+                fin_data['long_liabilities'][latest_idx]
+            ],
+            marker_color=['#29b6f6', '#00e676', '#ef5350', '#ff9800']
+        ))
+        fig_pos.update_layout(
+            height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
+            margin=dict(l=10, r=10, t=20, b=10), showlegend=False
+        )
+        st.plotly_chart(fig_pos, use_container_width=True)
 
 with tab_main:
     final_score = result["final_score"]
