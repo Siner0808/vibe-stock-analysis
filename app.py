@@ -288,20 +288,43 @@ st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
 
 # ---- Sidebar ----
+@st.cache_data(ttl=300)
+def load_stock_data(ticker, start, end):
+    """Trả (df, status). PHẢI kiểm tra status — bộ thu thập có nhánh dự phòng
+    sinh dữ liệu ngẫu nhiên (SYNTHETIC) để giữ ứng dụng chạy được. Dữ liệu đó
+    không bao giờ được vẽ lên biểu đồ hay hiển thị như giá thật.
+
+    Định nghĩa TRƯỚC sidebar để sidebar dùng được ngay trong lần chạy đầu —
+    nếu không, các chỉ số tính từ giá sẽ hiện "—" cho tới lần rerun sau.
+    """
+    try:
+        from data_collectors import VNStockCollectorAgent
+        res = VNStockCollectorAgent().collect(ticker, start, end)
+        return res.get("df"), res.get("status", "OK")
+    except Exception:
+        return None, "FAILED"
+
+
 with st.sidebar:
     st.header("🔍 Tìm kiếm mã CK")
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = 180  # Cố định 6 tháng (180 ngày)
-    
+
     run_btn = st.button("⚡ Phân tích ngay", type="primary", use_container_width=True)
-    
+
     st.divider()
-    
+
     # Financial Collector Quick Sidebar Summary
     # Nguyên tắc: thiếu dữ liệu thì nói thiếu, KHÔNG điền số thay thế.
+    _end = datetime.now()
+    _start = _end - timedelta(days=days_back)
+    _df_price, _sidebar_status = load_stock_data(
+        symbol, _start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"))
+    if _sidebar_status != "OK":
+        _df_price = None          # không tính chỉ số từ dữ liệu không đáng tin
+
     fin_coll = FinancialDataCollector()
-    _df_price = st.session_state.get("last_ohlcv_df")
     co_info = fin_coll.get_company_overview(symbol, _df_price)
     foreign_data = fin_coll.get_foreign_trading_history(symbol)
 
@@ -411,19 +434,6 @@ if not result:
 
 # ---- Header Metrics ----
 # Lấy giá từ OHLCV
-@st.cache_data(ttl=300)
-def load_stock_data(ticker, start, end):
-    """Trả (df, status). PHẢI kiểm tra status — bộ thu thập có nhánh dự phòng
-    sinh dữ liệu ngẫu nhiên (SYNTHETIC) để giữ ứng dụng chạy được. Dữ liệu đó
-    không bao giờ được vẽ lên biểu đồ hay hiển thị như giá thật.
-    """
-    try:
-        from data_collectors import VNStockCollectorAgent
-        res = VNStockCollectorAgent().collect(ticker, start, end)
-        return res.get("df"), res.get("status", "OK")
-    except Exception:
-        return None, "FAILED"
-
 df, _price_status = load_stock_data(symbol, start_str, end_str)
 
 if _price_status != "OK":

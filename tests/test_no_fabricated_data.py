@@ -42,16 +42,27 @@ def _no_network():
     return fake
 
 
+# Chặn mạng trong tiến trình con: test phải nhanh và tất định, không phụ
+# thuộc việc máy chạy test có ra được internet hay không.
+_STUB_NET = """
+import sys, types
+_f = types.ModuleType("vnstock")
+def _boom(*a, **kw): raise ConnectionError("test: chặn mạng")
+_f.Finance = _f.Trading = _f.Company = _f.Quote = _boom
+sys.modules["vnstock"] = _f
+"""
+
+
 def _isolated(fn_body: str) -> str:
-    """Chạy đoạn mã trong tiến trình riêng (hash seed khác nhau).
+    """Chạy đoạn mã trong tiến trình riêng (hash seed khác nhau), không mạng.
 
     Ném lỗi nếu tiến trình con thất bại. Không có bước này, 5 lần chạy cùng
     ném một traceback giống nhau sẽ bị coi là "kết quả tất định" — test báo
     PASS trong khi thực chất chẳng đo được gì.
     """
-    out = subprocess.run(
-        [sys.executable, "-c", f"import sys; sys.path.insert(0, {ROOT!r})\n{fn_body}"],
-        capture_output=True, text=True, timeout=120)
+    src = f"import sys; sys.path.insert(0, {ROOT!r})\n{_STUB_NET}\n{fn_body}"
+    out = subprocess.run([sys.executable, "-c", src],
+                         capture_output=True, text=True, timeout=120)
     if out.returncode != 0:
         raise RuntimeError(
             f"tiến trình con lỗi (mã {out.returncode}): {out.stderr.strip()[-300:]}")
@@ -202,6 +213,43 @@ def test_data_collectors_van_gan_nhan_synthetic():
         "nhánh dự phòng không còn khai báo SYNTHETIC — dữ liệu giả sẽ bị coi là thật"
     assert '_generate_fallback_df' in src
     print("PASS  data_collectors vẫn gắn nhãn SYNTHETIC cho dữ liệu sinh")
+
+
+def test_goi_vnstock_dung_chu_ky_ham():
+    """Bắt lỗi sai chữ ký hàm mà không cần mạng.
+
+    Bối cảnh: facade `vnstock.Finance` bắt buộc tham số `source`, còn lớp
+    explorer bên dưới thì không. Gọi thiếu `source` -> TypeError, và vì mọi
+    lỗi đều bị nuốt thành "không có dữ liệu", triệu chứng nhìn y hệt mất mạng.
+    Test này phân biệt hai thứ đó.
+    """
+    try:
+        import vnstock
+    except ImportError:
+        print("SKIP  vnstock chưa cài — bỏ qua kiểm tra chữ ký")
+        return
+
+    import inspect
+    checks = [
+        (vnstock.Finance, dict(source="VCI", symbol="FPT",
+                               period="year", show_log=False)),
+        (vnstock.Trading, dict(source="VCI", symbol="FPT", show_log=False)),
+    ]
+    for cls, kwargs in checks:
+        sig = inspect.signature(cls.__init__)
+        try:
+            sig.bind(None, **kwargs)          # None thay cho self
+        except TypeError as e:
+            raise AssertionError(
+                f"{cls.__name__} gọi sai chữ ký với {kwargs}: {e}") from None
+
+    # Đối chứng: thiếu `source` PHẢI hỏng — chứng minh test có tác dụng
+    try:
+        inspect.signature(vnstock.Finance.__init__).bind(None, symbol="FPT")
+        raise AssertionError("thiếu `source` mà vẫn hợp lệ — test vô dụng")
+    except TypeError:
+        pass
+    print("PASS  chữ ký gọi vnstock đúng (và test bắt được khi thiếu `source`)")
 
 
 def test_app_khong_ve_du_lieu_synthetic():

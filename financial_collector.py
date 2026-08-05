@@ -93,6 +93,7 @@ class FinancialDataCollector:
             "available": False,
             "price_available": False,
             "note": "",
+            "diagnostic": "",
             # từ OHLCV
             "latest_price": None, "high_52w": None, "low_52w": None,
             "pct_1w": None, "pct_1m": None, "pct_1y": None, "avg_vol_10d": None,
@@ -122,9 +123,10 @@ class FinancialDataCollector:
                 result["avg_vol_10d"] = int(df_ohlcv["volume"].iloc[-10:].mean())
 
         # ── Phần lấy từ API ────────────────────────────────────────────
-        ratios = _cached(f"ratio:{symbol}", lambda: self._fetch_ratio(symbol))
+        ratios, diag = _cached(f"ratio:{symbol}", lambda: self._fetch_ratio(symbol))
+        result["diagnostic"] = diag
         if ratios is None:
-            result["note"] = "Không lấy được chỉ số định giá từ nguồn dữ liệu."
+            result["note"] = f"Không lấy được chỉ số định giá. Lý do: {diag}"
             return result
 
         result.update(ratios)
@@ -132,18 +134,24 @@ class FinancialDataCollector:
             result[k] is not None for k in ("pe", "eps", "beta", "market_cap_billions")
         )
         if not result["available"]:
-            result["note"] = "Nguồn dữ liệu không có chỉ số định giá cho mã này."
+            result["note"] = f"Nguồn trả về dữ liệu nhưng thiếu chỉ số. {diag}"
         return result
 
-    def _fetch_ratio(self, symbol: str) -> dict | None:
+    def _fetch_ratio(self, symbol: str) -> tuple[dict | None, str]:
+        """Trả (dữ liệu, chẩn đoán). Chuỗi chẩn đoán giúp phân biệt
+        'mất mạng' / 'thiếu API key' / 'tên cột không khớp' — ba nguyên nhân
+        cho ra cùng một kết quả trống nhưng cần cách sửa hoàn toàn khác nhau.
+        """
         try:
             from vnstock import Finance
-            df = Finance(symbol=symbol, period="year",
+            # `source` là tham số BẮT BUỘC của facade vnstock.Finance
+            # (lớp explorer bên dưới thì không cần) — thiếu nó là TypeError.
+            df = Finance(source="VCI", symbol=symbol, period="year",
                          show_log=False).ratio(lang="en", dropna=True)
-        except Exception:
-            return None
+        except Exception as e:
+            return None, f"{type(e).__name__}: {str(e)[:160]}"
         if df is None or not isinstance(df, pd.DataFrame) or df.empty:
-            return None
+            return None, "nguồn trả về bảng rỗng"
 
         pe = _first_value(df, _pick(df, "p/e", "pe "))
         eps = _first_value(df, _pick(df, "eps"))
@@ -153,9 +161,15 @@ class FinancialDataCollector:
 
         # vnstock thường trả vốn hóa theo đồng -> quy về tỷ đồng
         mcap_billions = mcap / 1e9 if mcap and mcap > 1e9 else mcap
-        return {"pe": pe, "eps": eps, "beta": beta,
-                "market_cap_billions": mcap_billions,
-                "shares_outstanding": int(shares) if shares else None}
+        found = {"pe": pe, "eps": eps, "beta": beta,
+                 "market_cap_billions": mcap_billions,
+                 "shares_outstanding": int(shares) if shares else None}
+
+        if all(v is None for v in found.values()):
+            # Lấy được bảng nhưng không nhận ra cột nào -> in tên cột để sửa từ khoá
+            sample = list(_flat_columns(df))[:8]
+            return found, f"không khớp tên cột. Cột thực tế: {sample}"
+        return found, "OK"
 
     # ───────────────────────── Báo cáo tài chính ────────────────────────
     def get_financial_statements(self, symbol: str) -> dict:
@@ -169,7 +183,7 @@ class FinancialDataCollector:
     def _fetch_statements(self, symbol: str) -> dict | None:
         try:
             from vnstock import Finance
-            fin = Finance(symbol=symbol, period="year", show_log=False)
+            fin = Finance(source="VCI", symbol=symbol, period="year", show_log=False)
             inc = fin.income_statement(lang="en", dropna=True)
             bal = fin.balance_sheet(lang="en", dropna=True)
         except Exception:
@@ -227,7 +241,8 @@ class FinancialDataCollector:
     def _fetch_foreign(self, symbol: str, days: int) -> dict | None:
         try:
             from vnstock import Trading
-            df = Trading(symbol=symbol, show_log=False).foreign_trade()
+            df = Trading(source="VCI", symbol=symbol,
+                         show_log=False).foreign_trade()
         except Exception:
             return None
         if df is None or not isinstance(df, pd.DataFrame) or df.empty:
