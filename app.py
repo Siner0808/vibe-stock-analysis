@@ -388,7 +388,10 @@ with st.sidebar:
 
     st.divider()
 
-    with st.expander("🔑 Cấu hình API Key Gemini", expanded=False):
+    with st.expander("🔑 Cấu hình API Key", expanded=False):
+        from vnstock_auth import status_message as _vn_key_status
+        st.caption(f"**vnstock:** {_vn_key_status()}")
+        st.divider()
         _system_key = load_system_api_key()
         if _system_key:
             st.success("✅ Đã cấu hình API Key hệ thống (đọc từ `.streamlit/secrets.toml` "

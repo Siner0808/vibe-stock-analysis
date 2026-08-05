@@ -252,6 +252,88 @@ def test_goi_vnstock_dung_chu_ky_ham():
     print("PASS  chữ ký gọi vnstock đúng (và test bắt được khi thiếu `source`)")
 
 
+def test_api_key_khong_bao_gio_lo_ra_ngoai():
+    """Module nạp key không được để key lọt vào trạng thái hay thông báo UI."""
+    import vnstock_auth
+
+    SECRET = "vnstock_TESTKEY_khong_duoc_xuat_hien_o_dau_ca"
+    saved_env = os.environ.get("VNSTOCK_API_KEY")
+    saved_mod = sys.modules.get("vnstock")
+
+    fake = types.ModuleType("vnstock")
+    seen = {}
+    fake.change_api_key = lambda k: seen.setdefault("key", k) or True
+    sys.modules["vnstock"] = fake
+    os.environ["VNSTOCK_API_KEY"] = SECRET
+    try:
+        status = vnstock_auth.ensure_api_key(force=True)
+        msg = vnstock_auth.status_message()
+    finally:
+        sys.modules.pop("vnstock", None)
+        if saved_mod is not None:
+            sys.modules["vnstock"] = saved_mod
+        os.environ.pop("VNSTOCK_API_KEY", None)
+        if saved_env is not None:
+            os.environ["VNSTOCK_API_KEY"] = saved_env
+        vnstock_auth._STATE.update(done=False, ok=False, source="", error="")
+
+    assert seen.get("key") == SECRET, "key chưa được chuyển tới vnstock"
+    assert status["ok"] is True and status["configured"] is True
+    for blob in (str(status), msg):
+        assert SECRET not in blob, f"KEY BỊ LỘ trong: {blob[:120]}"
+    print(f"PASS  key được nạp nhưng không lộ — UI chỉ thấy: {msg[:60]}...")
+
+
+def test_thieu_key_van_chay_binh_thuong():
+    """Không có key thì app vẫn phải chạy, chỉ báo trạng thái."""
+    import vnstock_auth
+
+    saved_env = os.environ.pop("VNSTOCK_API_KEY", None)
+    saved_mod = sys.modules.get("vnstock")
+    fake_vnai = types.ModuleType("vnai")
+    fake_vnai.get_api_key = lambda: None
+    saved_vnai = sys.modules.get("vnai")
+    sys.modules["vnai"] = fake_vnai
+    try:
+        s = vnstock_auth.ensure_api_key(force=True)
+        msg = vnstock_auth.status_message()
+    finally:
+        sys.modules.pop("vnai", None)
+        if saved_vnai is not None:
+            sys.modules["vnai"] = saved_vnai
+        if saved_mod is not None:
+            sys.modules["vnstock"] = saved_mod
+        if saved_env is not None:
+            os.environ["VNSTOCK_API_KEY"] = saved_env
+        vnstock_auth._STATE.update(done=False, ok=False, source="", error="")
+
+    assert s["ok"] is False and "chưa cấu hình" in s["error"]
+    assert "Chưa cấu hình" in msg and "vẫn hoạt động" in msg
+    print("PASS  thiếu key vẫn chạy, thông báo rõ ràng")
+
+
+def test_khong_co_key_trong_ma_nguon():
+    """Chống tái phạm: không file .py nào chứa key vnstock hay Gemini."""
+    import glob
+    import re
+
+    offenders = []
+    for path in glob.glob(os.path.join(ROOT, "*.py")) + \
+            glob.glob(os.path.join(ROOT, "*", "*.py")):
+        if os.sep + "tests" + os.sep in path or os.sep + ".venv" + os.sep in path:
+            continue
+        src = open(path, encoding="utf-8").read()
+        for m in re.findall(r"""["']([A-Za-z0-9_\-.]{25,})["']""", src):
+            if m.startswith("vnstock_") or m.startswith("AIza") or (
+                any(c.isupper() for c in m) and any(c.islower() for c in m)
+                and any(c.isdigit() for c in m)
+            ):
+                offenders.append(f"{os.path.basename(path)}: {m[:12]}...")
+    assert not offenders, f"chuỗi giống credential trong mã nguồn: {offenders[:3]}"
+    print(f"PASS  không có credential trong mã nguồn "
+          f"({len(glob.glob(os.path.join(ROOT, '*.py')))} file .py gốc)")
+
+
 def test_app_khong_ve_du_lieu_synthetic():
     """app.py phải kiểm tra status trước khi vẽ, không chỉ lấy df."""
     src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()

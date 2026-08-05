@@ -143,6 +143,9 @@ class FinancialDataCollector:
         cho ra cùng một kết quả trống nhưng cần cách sửa hoàn toàn khác nhau.
         """
         try:
+            from vnstock_auth import ensure_api_key
+            ensure_api_key()          # idempotent, không cần key vẫn chạy tiếp
+
             from vnstock import Finance
             # `source` là tham số BẮT BUỘC của facade vnstock.Finance
             # (lớp explorer bên dưới thì không cần) — thiếu nó là TypeError.
@@ -182,6 +185,9 @@ class FinancialDataCollector:
 
     def _fetch_statements(self, symbol: str) -> dict | None:
         try:
+            from vnstock_auth import ensure_api_key
+            ensure_api_key()
+
             from vnstock import Finance
             fin = Finance(source="VCI", symbol=symbol, period="year", show_log=False)
             inc = fin.income_statement(lang="en", dropna=True)
