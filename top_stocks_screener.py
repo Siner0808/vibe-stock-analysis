@@ -36,7 +36,8 @@ def get_top_5_stocks(universe: list[str] = None, max_workers: int = 4) -> list[d
     if not universe:
         universe = DEFAULT_UNIVERSE
 
-    end_date = datetime.now()
+    from data_quality import now_vn
+    end_date = now_vn()
     start_date = end_date - timedelta(days=200)
     start_str = start_date.strftime("%Y-%m-%d")
     end_str = end_date.strftime("%Y-%m-%d")

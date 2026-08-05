@@ -106,7 +106,8 @@ class FinancialDataCollector:
         if df_ohlcv is not None and not df_ohlcv.empty and "close" in df_ohlcv:
             close = df_ohlcv["close"]
             latest = float(close.iloc[-1])
-            mult = 1000.0 if latest < 1000 else 1.0   # nghìn đồng -> đồng
+            from data_quality import price_multiplier
+            mult = price_multiplier(df_ohlcv)
             result.update({
                 "latest_price": latest * mult,
                 "high_52w": float(df_ohlcv["high"].max()) * mult,

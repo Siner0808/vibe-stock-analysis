@@ -12,7 +12,7 @@ class MarketDataPacket:
     """Gói dữ liệu chuẩn hóa được bàn giao giữa các tầng Agent"""
     symbol: str
     exchange: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: __import__('data_quality').now_vn().isoformat())
     
     # Dữ liệu thô từ VNStock
     ohlcv_df: Optional[pd.DataFrame] = None
@@ -55,15 +55,41 @@ class VNStockCollectorAgent:
         })
         return df
 
-    def collect(self, symbol: str, start: str, end: str) -> dict:
+    def collect(self, symbol: str, start: str, end: str,
+                exchange: str = "HOSE") -> dict:
+        """Tải OHLCV và KIỂM ĐỊNH trước khi bàn giao.
+
+        Dữ liệu không qua được kiểm định thì bị coi như không lấy được —
+        thử nguồn tiếp theo. Thà thiếu còn hơn sai.
+        """
+        from data_quality import normalize_ohlcv, validate_ohlcv
         from vnstock import Quote
+
+        last_report = None
         for src in ['vci', 'kbs']:
             try:
                 df = Quote(symbol=symbol, source=src).history(start=start, end=end)
-                if df is not None and not df.empty:
-                    return {"status": "OK", "df": df, "note": f"Tải dữ liệu Real-Time thành công ({len(df)} phiên từ {src.upper()})"}
             except Exception:
                 continue
+            if df is None or df.empty:
+                continue
+
+            df = normalize_ohlcv(df)
+            report = validate_ohlcv(df, symbol=symbol, exchange=exchange)
+            last_report = report
+            if report.blocked:
+                continue          # nguồn này cho dữ liệu hỏng -> thử nguồn khác
+
+            note = f"Tải dữ liệu thành công ({len(df)} phiên từ {src.upper()})"
+            if report.warnings:
+                note += " · " + report.summary()
+            return {"status": "OK", "df": df, "note": note,
+                    "quality": report, "source": src}
+
+        if last_report is not None and last_report.blocked:
+            return {"status": "FAILED", "df": None,
+                    "note": f"Dữ liệu không qua kiểm định: {last_report.summary()}",
+                    "quality": last_report, "source": ""}
         # Fallback offline generator: giữ pipeline chạy được để demo/dev,
         # NHƯNG phải báo status SYNTHETIC để tầng trên từ chối ra khuyến nghị.
         # Dữ liệu này là random walk, không phải giá thật.

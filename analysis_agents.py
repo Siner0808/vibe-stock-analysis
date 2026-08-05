@@ -443,7 +443,8 @@ class RiskManagementAgent:
         sl_fraction = max(0.03, min(0.08, atr_fraction * 2.0))
         tp_fraction = sl_fraction * 2.2 # Risk:Reward Ratio 2.2:1
 
-        unit_mult = 1000.0 if last_close < 1000 else 1.0
+        from data_quality import price_multiplier
+        unit_mult = price_multiplier(df)
         last_close_vnd = last_close * unit_mult
 
         stop_loss_price = last_close_vnd * (1.0 - sl_fraction)

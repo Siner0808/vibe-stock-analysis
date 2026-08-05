@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from master_agent import run_full_analysis
 from chatbot_agent import StockChatbotAgent, load_system_api_key
 from financial_collector import FinancialDataCollector
+from data_quality import now_vn, price_multiplier
 
 # Streamlit Page Config
 st.set_page_config(
@@ -289,7 +290,7 @@ st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents
 
 # ---- Sidebar ----
 @st.cache_data(ttl=300)
-def load_stock_data(ticker, start, end):
+def load_stock_data(ticker, start, end, exch="HOSE"):
     """Trả (df, status). PHẢI kiểm tra status — bộ thu thập có nhánh dự phòng
     sinh dữ liệu ngẫu nhiên (SYNTHETIC) để giữ ứng dụng chạy được. Dữ liệu đó
     không bao giờ được vẽ lên biểu đồ hay hiển thị như giá thật.
@@ -299,10 +300,12 @@ def load_stock_data(ticker, start, end):
     """
     try:
         from data_collectors import VNStockCollectorAgent
-        res = VNStockCollectorAgent().collect(ticker, start, end)
-        return res.get("df"), res.get("status", "OK")
+        res = VNStockCollectorAgent().collect(ticker, start, end, exchange=exch)
+        quality = res.get("quality")
+        warns = [i.message for i in quality.warnings] if quality is not None else []
+        return res.get("df"), res.get("status", "OK"), warns
     except Exception:
-        return None, "FAILED"
+        return None, "FAILED", []
 
 
 with st.sidebar:
@@ -317,10 +320,10 @@ with st.sidebar:
 
     # Financial Collector Quick Sidebar Summary
     # Nguyên tắc: thiếu dữ liệu thì nói thiếu, KHÔNG điền số thay thế.
-    _end = datetime.now()
+    _end = now_vn()
     _start = _end - timedelta(days=days_back)
-    _df_price, _sidebar_status = load_stock_data(
-        symbol, _start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"))
+    _df_price, _sidebar_status, _ = load_stock_data(
+        symbol, _start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"), exchange)
     if _sidebar_status != "OK":
         _df_price = None          # không tính chỉ số từ dữ liệu không đáng tin
 
@@ -414,7 +417,7 @@ with st.sidebar:
 
     effective_gemini_key = st.session_state.get("gemini_api_key") or load_system_api_key()
 
-end_date = datetime.now()
+end_date = now_vn()
 start_date = end_date - timedelta(days=days_back)
 start_str = start_date.strftime("%Y-%m-%d")
 end_str = end_date.strftime("%Y-%m-%d")
@@ -437,7 +440,8 @@ if not result:
 
 # ---- Header Metrics ----
 # Lấy giá từ OHLCV
-df, _price_status = load_stock_data(symbol, start_str, end_str)
+df, _price_status, _quality_warnings = load_stock_data(
+    symbol, start_str, end_str, exchange)
 
 if _price_status != "OK":
     df = None          # chặn mọi thứ vẽ từ dữ liệu không đáng tin
@@ -448,6 +452,10 @@ if _price_status != "OK":
     )
 else:
     st.session_state["last_ohlcv_df"] = df
+    # Cảnh báo mức nhẹ: dữ liệu dùng được nhưng có điểm đáng lưu ý.
+    # Lỗi nặng đã bị chặn ở tầng thu thập nên không tới được đây.
+    if _quality_warnings:
+        st.warning("🟡 **Lưu ý về dữ liệu:** " + " · ".join(_quality_warnings))
 
 if df is not None and not df.empty:
     latest_close = df['close'].iloc[-1]
@@ -459,7 +467,7 @@ if df is not None and not df.empty:
     avg_vol = int(df['volume'].mean())
 
     # Tự động quy đổi giá từ Nghìn đồng sang VNĐ chuẩn (ví dụ 65.41 -> 65,410 VNĐ)
-    mult = 1000.0 if latest_close < 1000 else 1.0
+    mult = price_multiplier(df)   # quyết định từ trung vị cả chuỗi
     latest_close_fmt = latest_close * mult
     change_fmt = change * mult
     high_p_fmt = high_p * mult
@@ -493,7 +501,7 @@ with tab_terminal:
     fin_data = fin_coll.get_financial_statements(symbol)
 
     st.title(f"🏢 CTCP / Doanh nghiệp [{symbol}] ({exchange})")
-    st.caption(f"Cập nhật lúc: {datetime.now().strftime('%H:%M:%S')} | Việt Nam (GMT+7)")
+    st.caption(f"Cập nhật lúc: {now_vn().strftime('%H:%M:%S %d/%m')} | Việt Nam (GMT+7)")
 
     # 1. Main Candlestick Chart
     st.subheader(f"📈 Đồ thị Kỹ thuật Nến Nhật & Khối lượng ({symbol})")
@@ -504,7 +512,7 @@ with tab_terminal:
         df['ma20'] = df['close'].rolling(window=20).mean()
         df['ma50'] = df['close'].rolling(window=50).mean()
 
-        mult = 1000.0 if df['close'].iloc[-1] < 1000 else 1.0
+        mult = price_multiplier(df)
 
         fig_main.add_trace(go.Candlestick(
             x=df['time'],

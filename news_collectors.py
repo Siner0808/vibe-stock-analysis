@@ -41,7 +41,7 @@ class NewsItem:
 class NewsPacket:
     """Gói tin tức chuẩn hoá chuyển sang Analysis Layer"""
     symbol: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: __import__('data_quality').now_vn().isoformat())
     domestic_news: list[NewsItem]      = field(default_factory=list)
     international_news: list[NewsItem] = field(default_factory=list)
     macro_news: list[NewsItem]         = field(default_factory=list)
