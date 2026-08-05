@@ -74,6 +74,82 @@ def _first_value(df: pd.DataFrame, col) -> float | None:
         return None
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Xử lý bảng XOAY NGANG (row-oriented)
+# vnstock trả báo cáo tài chính dưới dạng: mỗi HÀNG là một chỉ tiêu
+# (cột `item` / `item_en` chứa tên), mỗi CỘT là một năm ('2018', '2019'...).
+# Đây là lý do việc dò theo tên cột không tìm thấy gì.
+# ─────────────────────────────────────────────────────────────────────
+NAME_COLUMNS = ("item_en", "item", "chỉ tiêu", "index")
+
+
+def _year_columns(df: pd.DataFrame) -> list:
+    """Các cột là năm, sắp xếp tăng dần."""
+    found = []
+    for col in df.columns:
+        label = str(col[-1] if isinstance(col, tuple) else col).strip()
+        if label.isdigit() and 1990 <= int(label) <= 2100:
+            found.append((int(label), col))
+    return [c for _, c in sorted(found)]
+
+
+def _is_row_oriented(df: pd.DataFrame) -> bool:
+    cols = _flat_columns(df)
+    has_name = any(any(n == lbl or n in lbl for lbl in cols) for n in NAME_COLUMNS)
+    return has_name and bool(_year_columns(df))
+
+
+def _name_series(df: pd.DataFrame) -> pd.Series:
+    """Ghép mọi cột tên chỉ tiêu thành một chuỗi để dò từ khoá."""
+    cols = _flat_columns(df)
+    parts = []
+    for n in NAME_COLUMNS:
+        for lbl, original in cols.items():
+            if n == lbl or n in lbl:
+                parts.append(df[original].astype(str))
+    if not parts:
+        return pd.Series([""] * len(df), index=df.index)
+    out = parts[0]
+    for p in parts[1:]:
+        out = out + " | " + p
+    return out.str.lower()
+
+
+def _row_latest(df: pd.DataFrame, *keywords: str) -> float | None:
+    """Tìm hàng theo tên chỉ tiêu, trả giá trị của năm gần nhất có số liệu."""
+    years = _year_columns(df)
+    if not years:
+        return None
+    names = _name_series(df)
+    for kw in keywords:
+        hit = names.str.contains(kw.lower(), regex=False, na=False)
+        if not hit.any():
+            continue
+        row = df[hit].iloc[0]
+        for col in reversed(years):          # từ năm mới nhất lùi dần
+            val = pd.to_numeric(pd.Series([row[col]]), errors="coerce").iloc[0]
+            if pd.notna(val):
+                return float(val)
+    return None
+
+
+def _row_series(df: pd.DataFrame, *keywords: str) -> tuple[list[str], list[float | None]]:
+    """Trả (danh sách năm, chuỗi giá trị) cho một chỉ tiêu."""
+    years = _year_columns(df)
+    if not years:
+        return [], []
+    labels = [str(c[-1] if isinstance(c, tuple) else c) for c in years]
+    names = _name_series(df)
+    for kw in keywords:
+        hit = names.str.contains(kw.lower(), regex=False, na=False)
+        if hit.any():
+            row = df[hit].iloc[0]
+            vals = pd.to_numeric(pd.Series([row[c] for c in years]),
+                                 errors="coerce")
+            return labels, [None if pd.isna(v) else float(v) for v in vals]
+    return labels, []
+
+
 class FinancialDataCollector:
     """Thu thập chỉ số định giá, BCTC và giao dịch khối ngoại từ nguồn thật."""
 
@@ -157,23 +233,35 @@ class FinancialDataCollector:
         if df is None or not isinstance(df, pd.DataFrame) or df.empty:
             return None, "nguồn trả về bảng rỗng"
 
-        pe = _first_value(df, _pick(df, "p/e", "pe "))
-        eps = _first_value(df, _pick(df, "eps"))
-        beta = _first_value(df, _pick(df, "beta"))
-        mcap = _first_value(df, _pick(df, "market capital", "market cap", "vốn hóa"))
-        shares = _first_value(df, _pick(df, "outstanding share", "shares outstanding"))
+        if _is_row_oriented(df):
+            # Dạng thường gặp: chỉ tiêu ở hàng, năm ở cột
+            get = lambda *kw: _row_latest(df, *kw)
+            layout = "hàng-chỉ-tiêu"
+        else:
+            get = lambda *kw: _first_value(df, _pick(df, *kw))
+            layout = "cột-chỉ-tiêu"
 
-        # vnstock thường trả vốn hóa theo đồng -> quy về tỷ đồng
+        pe = get("p/e", "pe ratio", "price to earning")
+        eps = get("eps", "earning per share")
+        beta = get("beta")
+        mcap = get("market capital", "market cap", "vốn hóa")
+        shares = get("outstanding share", "shares outstanding", "khối lượng lưu hành")
+
+        # Nguồn trả vốn hóa theo đồng -> quy về tỷ đồng
         mcap_billions = mcap / 1e9 if mcap and mcap > 1e9 else mcap
         found = {"pe": pe, "eps": eps, "beta": beta,
                  "market_cap_billions": mcap_billions,
                  "shares_outstanding": int(shares) if shares else None}
 
         if all(v is None for v in found.values()):
-            # Lấy được bảng nhưng không nhận ra cột nào -> in tên cột để sửa từ khoá
-            sample = list(_flat_columns(df))[:8]
-            return found, f"không khớp tên cột. Cột thực tế: {sample}"
-        return found, "OK"
+            # Lấy được bảng nhưng không nhận ra chỉ tiêu nào -> in mẫu để sửa từ khoá
+            if _is_row_oriented(df):
+                sample = _name_series(df).head(10).tolist()
+                return found, (f"bảng {layout} nhưng không khớp từ khoá. "
+                               f"Chỉ tiêu thực tế: {sample}")
+            sample = list(_flat_columns(df))[:10]
+            return found, f"bảng {layout}, cột thực tế: {sample}"
+        return found, f"OK ({layout})"
 
     # ───────────────────────── Báo cáo tài chính ────────────────────────
     def get_financial_statements(self, symbol: str) -> dict:
@@ -198,36 +286,50 @@ class FinancialDataCollector:
         if inc is None or inc.empty:
             return None
 
-        year_col = _pick(inc, "yearreport", "year", "kỳ")
-        rev_col = _pick(inc, "revenue", "net sales", "doanh thu")
-        profit_col = _pick(inc, "attribute to parent", "net profit", "lợi nhuận sau thuế")
-        if year_col is None or rev_col is None:
+        if _is_row_oriented(inc):
+            # Chỉ tiêu ở hàng, năm ở cột — dạng vnstock thực sự trả về
+            years, revenue = _row_series(inc, "net revenue", "revenue",
+                                         "net sales", "doanh thu thuần", "doanh thu")
+            _, net_profit = _row_series(inc, "attribute to parent",
+                                        "profit after tax", "net profit",
+                                        "lợi nhuận sau thuế")
+            equity = debt = []
+            if bal is not None and not bal.empty and _is_row_oriented(bal):
+                _, equity = _row_series(bal, "owner's equity", "equity", "vốn chủ")
+                _, debt = _row_series(bal, "liabilities", "nợ phải trả")
+        else:
+            year_col = _pick(inc, "yearreport", "year", "kỳ")
+            rev_col = _pick(inc, "revenue", "net sales", "doanh thu")
+            profit_col = _pick(inc, "attribute to parent", "net profit",
+                               "lợi nhuận sau thuế")
+            if year_col is None or rev_col is None:
+                return None
+            years = [str(y) for y in inc[year_col].tolist()]
+            revenue = pd.to_numeric(inc[rev_col], errors="coerce").tolist()
+            net_profit = (pd.to_numeric(inc[profit_col], errors="coerce").tolist()
+                          if profit_col is not None else [None] * len(years))
+            equity = debt = []
+            if bal is not None and not bal.empty:
+                eq_col = _pick(bal, "owner's equity", "equity", "vốn chủ")
+                debt_col = _pick(bal, "liabilities", "nợ phải trả")
+                if eq_col is not None:
+                    equity = pd.to_numeric(bal[eq_col], errors="coerce").tolist()
+                if debt_col is not None:
+                    debt = pd.to_numeric(bal[debt_col], errors="coerce").tolist()
+            order = sorted(range(len(years)), key=lambda i: years[i])
+            pick = lambda xs: [xs[i] for i in order] if len(xs) == len(years) else xs
+            years, revenue, net_profit = pick(years), pick(revenue), pick(net_profit)
+            equity, debt = pick(equity), pick(debt)
+
+        if not years or not revenue:
             return None
 
-        years = [str(y) for y in inc[year_col].tolist()]
-        revenue = pd.to_numeric(inc[rev_col], errors="coerce").tolist()
-        net_profit = (pd.to_numeric(inc[profit_col], errors="coerce").tolist()
-                      if profit_col is not None else [None] * len(years))
-
-        equity, debt, d2e = [], [], []
-        if bal is not None and not bal.empty:
-            eq_col = _pick(bal, "owner's equity", "equity", "vốn chủ")
-            debt_col = _pick(bal, "liabilities", "nợ phải trả")
-            if eq_col is not None:
-                equity = pd.to_numeric(bal[eq_col], errors="coerce").tolist()
-            if debt_col is not None:
-                debt = pd.to_numeric(bal[debt_col], errors="coerce").tolist()
-            if equity and debt:
-                d2e = [round(d / e, 2) if e else None for d, e in zip(debt, equity)]
-
-        # Sắp xếp năm tăng dần cho biểu đồ
-        order = sorted(range(len(years)), key=lambda i: years[i])
-        pick = lambda xs: [xs[i] for i in order] if len(xs) == len(years) else xs
+        d2e = ([round(d / e, 2) if (d is not None and e) else None
+                for d, e in zip(debt, equity)] if equity and debt else [])
 
         return {"available": True, "note": "Nguồn: vnstock (VCI)",
-                "years": pick(years), "revenue": pick(revenue),
-                "net_profit": pick(net_profit), "equity": pick(equity),
-                "debt": pick(debt), "debt_to_equity": pick(d2e)}
+                "years": years, "revenue": revenue, "net_profit": net_profit,
+                "equity": equity, "debt": debt, "debt_to_equity": d2e}
 
     # ──────────────────────── Giao dịch khối ngoại ──────────────────────
     def get_foreign_trading_history(self, symbol: str, days: int = 10) -> dict:

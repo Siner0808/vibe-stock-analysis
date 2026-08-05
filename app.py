@@ -312,7 +312,10 @@ with st.sidebar:
     st.header("🔍 Tìm kiếm mã CK")
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
-    days_back = 180  # Cố định 6 tháng (180 ngày)
+    # 400 ngày ≈ 13 tháng. Cần đủ để nhãn "52 tuần" và "% biến động 1 năm"
+    # nói đúng sự thật — với 180 ngày thì "52T Thấp-Cao" thực chất là biên độ
+    # 6 tháng, và biến động 1 năm không bao giờ tính được (cần 200 phiên).
+    days_back = 400
 
     run_btn = st.button("⚡ Phân tích ngay", type="primary", use_container_width=True)
 

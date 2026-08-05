@@ -252,6 +252,68 @@ def test_goi_vnstock_dung_chu_ky_ham():
     print("PASS  chữ ký gọi vnstock đúng (và test bắt được khi thiếu `source`)")
 
 
+def test_doc_duoc_bang_xoay_ngang_cua_vnstock():
+    """vnstock trả BCTC dạng: chỉ tiêu ở HÀNG, năm ở CỘT.
+
+    Bản trước dò theo tên cột nên không tìm thấy gì — app hiện toàn "—"
+    dù API trả về dữ liệu đầy đủ. Cột thực tế quan sát được trên bản deploy:
+    ['item', 'item_en', 'item_id', '2018', ...]
+    """
+    import pandas as pd
+
+    import financial_collector as fcm
+
+    df = pd.DataFrame({
+        "item": ["Chỉ số P/E", "EPS", "Beta", "Doanh thu thuần"],
+        "item_en": ["P/E", "EPS (VND)", "Beta", "Net Revenue"],
+        "item_id": [1, 2, 3, 4],
+        "2023": [18.0, 4000.0, 1.1, 50_000.0],
+        "2024": [20.0, 4200.0, 1.2, 55_000.0],
+        "2025": [22.5, 4500.0, 1.3, 60_000.0],
+    })
+
+    assert fcm._is_row_oriented(df), "không nhận ra bảng xoay ngang"
+    assert [str(c) for c in fcm._year_columns(df)] == ["2023", "2024", "2025"]
+
+    # lấy giá trị năm gần nhất
+    assert fcm._row_latest(df, "p/e") == 22.5
+    assert fcm._row_latest(df, "eps") == 4500.0
+    assert fcm._row_latest(df, "beta") == 1.3
+    assert fcm._row_latest(df, "khong-ton-tai") is None
+
+    # lấy cả chuỗi theo năm
+    years, rev = fcm._row_series(df, "net revenue")
+    assert years == ["2023", "2024", "2025"]
+    assert rev == [50_000.0, 55_000.0, 60_000.0]
+    print("PASS  đọc được bảng xoay ngang (chỉ tiêu ở hàng, năm ở cột)")
+
+
+def test_bo_qua_nam_thieu_so_lieu():
+    """Năm gần nhất trống thì lùi về năm có số liệu, không trả None."""
+    import pandas as pd
+
+    import financial_collector as fcm
+
+    df = pd.DataFrame({
+        "item_en": ["P/E"],
+        "2023": [18.0], "2024": [19.0], "2025": [None],
+    })
+    assert fcm._row_latest(df, "p/e") == 19.0
+    print("PASS  năm mới nhất trống -> lùi về năm có số liệu")
+
+
+def test_bang_dang_cot_van_doc_duoc():
+    """Không được làm hỏng đường xử lý bảng dạng cột (nếu nguồn đổi định dạng)."""
+    import pandas as pd
+
+    import financial_collector as fcm
+
+    df = pd.DataFrame({"yearReport": [2024, 2025], "P/E": [18.0, 20.0]})
+    assert not fcm._is_row_oriented(df)
+    assert fcm._first_value(df, fcm._pick(df, "p/e")) == 18.0
+    print("PASS  bảng dạng cột vẫn xử lý được")
+
+
 def test_api_key_khong_bao_gio_lo_ra_ngoai():
     """Module nạp key không được để key lọt vào trạng thái hay thông báo UI."""
     import vnstock_auth
