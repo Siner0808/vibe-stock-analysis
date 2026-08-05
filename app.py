@@ -281,70 +281,8 @@ st.markdown("""
     ::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(180deg, #00e676, #00b0ff);
     }
-
-    /* ─── Animated Ticker Bar ────────────────────────────────── */
-    @keyframes tickerScroll {
-        0%   { transform: translateX(0%); }
-        100% { transform: translateX(-50%); }
-    }
-    .ticker-bar {
-        width: 100%;
-        overflow: hidden;
-        background: linear-gradient(90deg, rgba(0,230,118,0.05) 0%, rgba(41,182,246,0.05) 50%, rgba(0,230,118,0.05) 100%);
-        border-radius: 8px;
-        padding: 6px 0;
-        margin-bottom: 10px;
-        border: 1px solid rgba(0,230,118,0.08);
-    }
-    .ticker-content {
-        display: inline-block;
-        white-space: nowrap;
-        animation: tickerScroll 30s linear infinite;
-        color: #78909c;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.78rem;
-        font-weight: 500;
-    }
-    .ticker-content span {
-        padding: 0 24px;
-    }
-    .ticker-content .up   { color: #00e676; }
-    .ticker-content .down { color: #ef5350; }
-    .ticker-content .sym  { color: #ffffff; font-weight: 700; }
     </style>
 """, unsafe_allow_html=True)
-
-# ─── Ticker Bar ────────────────────────────────────────────────────
-# Render tức thì không gọi I/O mạng chắn main thread gây timeout Streamlit Cloud
-def render_ticker_bar() -> None:
-    quotes = [
-        {"sym": "VN-INDEX", "price": 1777.23, "delta": 14.39, "pct": 0.82},
-        {"sym": "FPT", "price": 71500, "delta": -200, "pct": -0.28},
-        {"sym": "VNM", "price": 59500, "delta": -800, "pct": -1.33},
-        {"sym": "VHM", "price": 152900, "delta": 4900, "pct": 3.31},
-        {"sym": "HPG", "price": 22150, "delta": -400, "pct": -1.77},
-        {"sym": "MBB", "price": 24400, "delta": 400, "pct": 1.67},
-        {"sym": "SSI", "price": 24550, "delta": 0, "pct": 0.00},
-        {"sym": "TCB", "price": 29650, "delta": -300, "pct": -1.00},
-    ]
-    stamp = datetime.now().strftime("%H:%M %d/%m")
-    items = []
-    for q in quotes:
-        cls = "up" if q["delta"] >= 0 else "down"
-        arrow = "▲" if q["delta"] >= 0 else "▼"
-        items.append(
-            f'<span><span class="sym">{q["sym"]}</span> {q["price"]:,.0f} '
-            f'<span class="{cls}">{arrow} {q["delta"]:+,.0f} ({q["pct"]:+.2f}%)</span></span>'
-        )
-    items.append(f'<span style="color:#546e7a">cập nhật {stamp} · giá đóng cửa phiên gần nhất</span>')
-    content = "".join(items * 2)   # lặp 2 lần cho hiệu ứng cuộn liền mạch
-    st.markdown(
-        f'<div class="ticker-bar"><div class="ticker-content">{content}</div></div>',
-        unsafe_allow_html=True,
-    )
-
-
-render_ticker_bar()
 
 st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
