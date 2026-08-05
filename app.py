@@ -474,7 +474,7 @@ if df is not None and not df.empty:
 st.divider()
 
 # ---- TABS ----
-tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_chat, tab_raw = st.tabs([
+tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_chat = st.tabs([
     "📊 Tổng quan Terminal",
     "🧠 Kết quả Multi-Agent 5 Tầng",
     "⚖️ Debate Council",
@@ -482,8 +482,7 @@ tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram
     "📰 Tin tức & Sentiment",
     "📈 Đồ thị Kỹ thuật Pro",
     "📐 Sơ đồ Pipeline",
-    "💬 Trợ lý Chatbot AI",
-    "📄 Dữ liệu thô"
+    "💬 Trợ lý Chatbot AI"
 ])
 
 # =====================================================================
@@ -1035,10 +1034,4 @@ with tab_chat:
                 st.markdown(response)
                 st.session_state["chat_messages"].append({"role": "assistant", "content": response})
 
-with tab_raw:
-    st.subheader("📄 JSON Output toàn bộ kết quả phân tích")
-    raw_output = {k: v for k, v in result.items() if k != "analyses"}
-    st.code(json.dumps(raw_output, indent=2, ensure_ascii=False, default=str), language="json")
-    if df is not None:
-        st.subheader("📋 Bảng dữ liệu OHLCV thô")
-        st.dataframe(df.sort_values(by='time', ascending=False), use_container_width=True)
+
