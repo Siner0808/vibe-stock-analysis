@@ -1,6 +1,6 @@
 from data_collectors import MarketDataPacket
 from news_sentiment_agent import NewsSentimentAgent
-from debate_agents import DebateModerator, SafetyHarnessGuardrails, PostMortemLearningAgent
+from debate_agents import DebateModerator, SafetyHarnessGuardrails
 from analysis_agents import (
     TrendAnalysisAgent, MomentumAgent,
     VolumeAnalysisAgent, SupportResistanceAgent, RiskManagementAgent
@@ -9,14 +9,17 @@ from analysis_agents import (
 # =====================================================================
 # LAYER 3: MASTER CONSENSUS AGENT  (Tầng Tổng hợp Sơ bộ)
 # LAYER 4: DEBATE COUNCIL & HARNESS (Tầng Tranh luận & Safety Guardrails)
-# LAYER 5: FINAL VERDICT & MEMORY  (Phán quyết & Feedback Loop)
+# LAYER 5: FINAL VERDICT          (Phán quyết cuối)
 # =====================================================================
 
 class MasterConsensusAgent:
     """
-    Tổng hợp 5 Tầng theo đúng Sơ đồ Kiến trúc 1 & 2:
-    L1 (Data) -> L2 (Analysis Agents) -> L3 (Master Consensus & Debate Council)
-    -> L4 (Safety Harness Guardrails) -> L5 (Final Verdict & Post-Mortem Memory)
+    Luồng thực thi THỰC TẾ (khớp với code, không phải với sơ đồ):
+    L1 (Data) -> L2 (Analysis Agents) -> L3 (Master Consensus)
+    -> L4 (Debate Council) -> L4b (Safety Harness) -> L5 (Final Verdict)
+
+    Lưu ý: tầng "Post-Mortem Memory" trong sơ đồ kiến trúc CHƯA được triển
+    khai — xem ghi chú cuối debate_agents.py trước khi định làm.
     """
     NAME = "Master Consensus Agent"
 
@@ -29,25 +32,44 @@ class MasterConsensusAgent:
         self.news_agent     = NewsSentimentAgent()
         self.debate         = DebateModerator()
         self.harness        = SafetyHarnessGuardrails()
-        self.post_mortem    = PostMortemLearningAgent()
+
+    # Các mức chất lượng dữ liệu KHÔNG được phép sinh khuyến nghị mua/bán.
+    NO_VERDICT_QUALITY = {
+        "FAILED": (
+            "DỮ LIỆU KHÔNG KHẢ DỤNG ❌",
+            "⚠️ Không thể kết nối hoặc không tìm thấy dữ liệu từ nguồn VNStock / TradingView",
+        ),
+        "SYNTHETIC": (
+            "DỮ LIỆU MÔ PHỎNG — KHÔNG DÙNG ĐỂ QUYẾT ĐỊNH ⚠️",
+            "⚠️ Không kết nối được nguồn giá thật. Dữ liệu đang hiển thị là chuỗi "
+            "NGẪU NHIÊN sinh tự động để giữ ứng dụng chạy được. Mọi chỉ báo tính từ "
+            "nó đều vô nghĩa — vui lòng thử lại khi có kết nối.",
+        ),
+    }
 
     def run(self, packet: MarketDataPacket) -> dict:
-        if packet.data_quality == "FAILED":
+        if packet.data_quality in self.NO_VERDICT_QUALITY:
+            recommendation, reason = self.NO_VERDICT_QUALITY[packet.data_quality]
             return {
                 "symbol": packet.symbol,
                 "exchange": packet.exchange,
                 "pre_debate_score": 50.0,
                 "final_score": 50,
-                "recommendation": "DỮ LIỆU KHÔNG KHẢ DỤNG ❌",
+                "recommendation": recommendation,
                 "action_color": "#757575",
-                "key_reasons": ["⚠️ Không thể kết nối hoặc không tìm thấy dữ liệu từ nguồn VNStock / TradingView"],
+                "key_reasons": [reason],
                 "score_breakdown": {
                     "trend_score": 50, "momentum_score": 50, "volume_score": 50,
                     "sr_score": 50, "risk_score": 50, "news_score": 50,
-                    "tv_bonus": 0, "debate_adjustment": 0
+                    "tv_bonus": 0, "debate_adjustment": 0, "safety_adjustment": 0
                 },
+                "safety": {"is_safe": False, "adjusted_score": 50.0,
+                           "safe_position_size": 0.0,
+                           "safety_violations": ["🛡️ Không đánh giá an toàn "
+                                                 "vì dữ liệu không đáng tin."]},
                 "analyses": {},
-                "debate": None, "data_sources": [], "data_quality": "FAILED"
+                "debate": None, "data_sources": packet.source_notes,
+                "data_quality": packet.data_quality
             }
 
         # ── LAYER 2: Phân tích chuyên sâu ────────────────────────────
@@ -96,9 +118,15 @@ class MasterConsensusAgent:
 
         # ── LAYER 4: Debate Council – Tranh luận đối lập ─────────────
         verdict = self.debate.run_debate(analyses_map, pre_debate_score)
+        post_debate_score = pre_debate_score + verdict.final_adjustment
 
-        # ── LAYER 5: Phán quyết cuối sau tranh luận ───────────────────
-        final_score = max(5, min(95, int(pre_debate_score + verdict.final_adjustment)))
+        # ── LAYER 4b: Safety Harness – chốt chặn bất biến ─────────────
+        # Chạy SAU tranh luận: dù Bull thắng thuyết phục đến đâu, các quy tắc
+        # cứng (bull trap, trần stop-loss, trần tỷ trọng vốn) vẫn phải áp dụng.
+        safety = self.harness.evaluate_safety(analyses_map, post_debate_score)
+
+        # ── LAYER 5: Phán quyết cuối sau tranh luận + harness ─────────
+        final_score = max(5, min(95, int(safety["adjusted_score"])))
 
         if final_score >= 78:
             recommendation = "MUA MẠNH 🚀"; action_color = "#00e676"
@@ -128,8 +156,11 @@ class MasterConsensusAgent:
             key_reasons.append(
                 f"💰 SL={rec['stop_loss_price']:,.2f} VNĐ (-{rec['stop_loss_pct']}%) | "
                 f"TP={rec['take_profit_price']:,.2f} VNĐ (+{rec['take_profit_pct']}%) | "
-                f"RR={rec['risk_reward_ratio']} | Vốn: {rec['suggested_position_size_pct']}%"
+                f"RR={rec['risk_reward_ratio']} | "
+                f"Vốn tối đa (sau Harness): {safety['safe_position_size']}%"
             )
+        # Vi phạm quy tắc an toàn phải hiển thị cho người dùng, không im lặng
+        key_reasons.extend(safety["safety_violations"])
 
         return {
             "symbol": packet.symbol,
@@ -148,7 +179,9 @@ class MasterConsensusAgent:
                 "news_score":     round(news_norm, 1),
                 "tv_bonus":       tv_bonus,
                 "debate_adjustment": verdict.final_adjustment,
+                "safety_adjustment": round(safety["adjusted_score"] - post_debate_score, 1),
             },
+            "safety": safety,
             "analyses": analyses_map,
             "debate": {
                 "verdict_summary":    verdict.verdict_summary,

@@ -449,35 +449,22 @@ class SafetyHarnessGuardrails:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# POST-MORTEM & CONTINUOUS MEMORY LEARNING AGENT (Tầng 5)
+# GHI CHÚ THIẾT KẾ — Post-Mortem / Feedback Loop (CHƯA TRIỂN KHAI)
 # ─────────────────────────────────────────────────────────────────────
-class PostMortemLearningAgent:
-    """
-    Tầng Post-Mortem & Feedback Loop:
-    - Theo dõi nhận định theo thời gian T+N.
-    - Mổ xẻ nguyên nhân khi dính Stop-Loss / Bẫy giá (Bull Trap) hoặc Thiên Nga Đen.
-    - Lưu vết học hỏi vào Negative Memory DB để tăng quyền lực phản biện cho Bear Agent các phiên sau.
-    """
-    NAME = "🔬 Post-Mortem Learning Agent"
-
-    def analyze_failure_event(self, symbol: str, entry_score: float, failure_type: str) -> dict:
-        memory_log = {
-            "symbol": symbol,
-            "entry_score": entry_score,
-            "failure_type": failure_type, # BULL_TRAP / BLACK_SWAN / STOP_LOSS_HIT
-            "lesson_learned": "",
-            "weight_adjustment": {}
-        }
-
-        if failure_type == "BULL_TRAP":
-            memory_log["lesson_learned"] = "⚠️ Nhận diện bẫy giá tăng giả. Tăng 15% trọng số cảnh báo rủi ro cho Bear Advocate Agent trong 10 phiên tới."
-            memory_log["weight_adjustment"] = {"bear_weight_boost": 0.15}
-        elif failure_type == "BLACK_SWAN":
-            memory_log["lesson_learned"] = "🚨 Sự kiện thiên nga đen địa chính trị. Tự động thắt chặt Stop-loss ATR và hạ 30% Position Sizing tối đa."
-            memory_log["weight_adjustment"] = {"max_position_penalty": 0.30}
-        else:
-            memory_log["lesson_learned"] = "📉 Chạm Stop-loss kỷ luật T+2. Cập nhật mẫu hình kỹ thuật vào Negative Pattern Memory DB."
-            memory_log["weight_adjustment"] = {"stop_loss_stricter": 0.05}
-
-        return memory_log
+# Sơ đồ kiến trúc có mô tả một tầng "Post-Mortem Learning" tự rút kinh
+# nghiệm từ các lần thua (bull trap, chạm stop-loss, thiên nga đen) rồi
+# điều chỉnh trọng số cho các phiên sau.
+#
+# Bản cài đặt cũ (class PostMortemLearningAgent) đã bị gỡ vì:
+#   1. Nó chỉ trả về dict cứng theo if/else, không ghi vào bất kỳ đâu.
+#      "Negative Memory DB" mà docstring nhắc tới chưa từng tồn tại.
+#   2. Không nơi nào gọi nó — chỉ được khởi tạo rồi bỏ đó.
+#   3. Nếu bật lên nguyên trạng, nó sẽ GÂY HẠI: tăng trọng số Bear sau
+#      mỗi lần thua gần đây là học theo chế độ thị trường vừa qua, không
+#      phải học quy luật. Thị trường đảo chiều thì logic này sai ngược.
+#
+# ĐIỀU KIỆN để triển khai thật (đừng bật trước khi có đủ):
+#   - Có backtest chứng minh hệ thống chấm điểm hiện tại có giá trị.
+#   - Có cách đo tách bạch "kỹ năng" khỏi "may rủi thị trường chung".
+#   - Có cơ chế phát hiện chế độ thị trường đổi để vô hiệu bài học cũ.
 

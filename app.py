@@ -1,4 +1,5 @@
 import json
+import os
 import streamlit as st
 import streamlit.components.v1
 import pandas as pd
@@ -6,7 +7,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta
 from master_agent import run_full_analysis
-from chatbot_agent import StockChatbotAgent, DEFAULT_GEMINI_KEY
+from chatbot_agent import StockChatbotAgent, load_system_api_key
 from financial_collector import FinancialDataCollector
 
 # Streamlit Page Config
@@ -313,29 +314,69 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ─── Live Animated Ticker Bar (Dữ liệu Thị trường Thực tế) ─────────
-st.markdown("""
-<div class="ticker-bar">
-  <div class="ticker-content">
-    <span><span class="sym">VN-INDEX</span> 1,777.23 <span class="up">▲ +14.39 (+0.82%)</span></span>
-    <span><span class="sym">FPT</span> 71,500 <span class="down">▼ -200 (-0.28%)</span></span>
-    <span><span class="sym">VNM</span> 59,500 <span class="down">▼ -800 (-1.33%)</span></span>
-    <span><span class="sym">VHM</span> 152,900 <span class="up">▲ +4,900 (+3.31%)</span></span>
-    <span><span class="sym">HPG</span> 22,150 <span class="down">▼ -400 (-1.77%)</span></span>
-    <span><span class="sym">MBB</span> 24,400 <span class="up">▲ +400 (+1.67%)</span></span>
-    <span><span class="sym">SSI</span> 24,550 <span class="up">▲ +0 (0.00%)</span></span>
-    <span><span class="sym">TCB</span> 29,650 <span class="down">▼ -300 (-1.00%)</span></span>
-    <span><span class="sym">VN-INDEX</span> 1,777.23 <span class="up">▲ +14.39 (+0.82%)</span></span>
-    <span><span class="sym">FPT</span> 71,500 <span class="down">▼ -200 (-0.28%)</span></span>
-    <span><span class="sym">VNM</span> 59,500 <span class="down">▼ -800 (-1.33%)</span></span>
-    <span><span class="sym">VHM</span> 152,900 <span class="up">▲ +4,900 (+3.31%)</span></span>
-    <span><span class="sym">HPG</span> 22,150 <span class="down">▼ -400 (-1.77%)</span></span>
-    <span><span class="sym">MBB</span> 24,400 <span class="up">▲ +400 (+1.67%)</span></span>
-    <span><span class="sym">SSI</span> 24,550 <span class="up">▲ +0 (0.00%)</span></span>
-    <span><span class="sym">TCB</span> 29,650 <span class="down">▼ -300 (-1.00%)</span></span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+# ─── Ticker Bar ────────────────────────────────────────────────────
+# Nguyên tắc: KHÔNG BAO GIỜ hiển thị giá cứng như giá thị trường.
+# Lấy thật (có cache) → kèm mốc thời gian. Lấy không được → ẩn hẳn.
+TICKER_SYMBOLS = ["FPT", "VNM", "VHM", "HPG", "MBB", "SSI", "TCB"]
+
+
+@st.cache_data(ttl=300, show_spinner=False)   # cache 5 phút, không chặn UI
+def fetch_ticker_quotes(symbols: tuple) -> tuple[list[dict], str]:
+    """Lấy giá đóng cửa gần nhất + thay đổi so với phiên trước.
+
+    Trả về ([], "") nếu không lấy được — chủ ý fail-closed để tránh
+    hiển thị dữ liệu cũ/giả như dữ liệu live.
+    """
+    from vnstock import Quote
+    end = datetime.now()
+    start = end - timedelta(days=14)
+    rows = []
+    for sym in symbols:
+        try:
+            df = Quote(symbol=sym, source="vci").history(
+                start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"))
+            if df is None or len(df) < 2:
+                continue
+            last, prev = float(df["close"].iloc[-1]), float(df["close"].iloc[-2])
+            if prev == 0:
+                continue
+            rows.append({
+                "sym": sym,
+                "price": last,
+                "delta": last - prev,
+                "pct": (last - prev) / prev * 100,
+            })
+        except Exception:
+            continue          # một mã lỗi không làm hỏng cả thanh ticker
+    stamp = datetime.now().strftime("%H:%M %d/%m") if rows else ""
+    return rows, stamp
+
+
+def render_ticker_bar() -> None:
+    try:
+        quotes, stamp = fetch_ticker_quotes(tuple(TICKER_SYMBOLS))
+    except Exception:
+        return                # không lấy được → không hiển thị gì cả
+    if not quotes:
+        return
+
+    items = []
+    for q in quotes:
+        cls = "up" if q["delta"] >= 0 else "down"
+        arrow = "▲" if q["delta"] >= 0 else "▼"
+        items.append(
+            f'<span><span class="sym">{q["sym"]}</span> {q["price"]:,.0f} '
+            f'<span class="{cls}">{arrow} {q["delta"]:+,.0f} ({q["pct"]:+.2f}%)</span></span>'
+        )
+    items.append(f'<span style="color:#546e7a">cập nhật {stamp} · giá đóng cửa phiên gần nhất</span>')
+    content = "".join(items * 2)   # lặp 2 lần cho hiệu ứng cuộn liền mạch
+    st.markdown(
+        f'<div class="ticker-bar"><div class="ticker-content">{content}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+render_ticker_bar()
 
 st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
 st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
@@ -400,20 +441,28 @@ with st.sidebar:
 
     st.divider()
 
-    with st.expander("🔒 Trạng thái Bảo mật API Key Gemini", expanded=False):
-        st.success("🛡️ **Server Key Blocked**: API Key Gemini chính thức đã được khóa Server-side. Người dùng không thể xem, copy hoặc inspect HTML DOM.")
+    with st.expander("🔑 Cấu hình API Key Gemini", expanded=False):
+        _system_key = load_system_api_key()
+        if _system_key:
+            st.success("✅ Đã cấu hình API Key hệ thống (đọc từ `.streamlit/secrets.toml` "
+                       "hoặc biến môi trường). Key không nằm trong mã nguồn.")
+        else:
+            st.info("ℹ️ Chưa cấu hình API Key hệ thống. Chatbot sẽ dùng **engine nội bộ** "
+                    "(trả lời từ kết quả phân tích, không qua LLM). "
+                    "Để bật Gemini: tạo `.streamlit/secrets.toml` với dòng "
+                    "`GEMINI_API_KEY = \"...\"`, hoặc nhập key riêng bên dưới.")
         custom_key_input = st.text_input(
-            "🔑 Nhập API Key riêng (Tùy chọn)",
+            "Nhập API Key riêng (Tùy chọn)",
             value="",
             type="password",
-            help="Để trống nếu muốn sử dụng API Key hệ thống mặc định."
+            help="Key chỉ tồn tại trong phiên làm việc của bạn, không được lưu lại."
         ).strip()
         if custom_key_input:
             st.session_state["gemini_api_key"] = custom_key_input
         elif "gemini_api_key" in st.session_state and not st.session_state["gemini_api_key"]:
             del st.session_state["gemini_api_key"]
 
-    effective_gemini_key = st.session_state.get("gemini_api_key", DEFAULT_GEMINI_KEY)
+    effective_gemini_key = st.session_state.get("gemini_api_key") or load_system_api_key()
 
 end_date = datetime.now()
 start_date = end_date - timedelta(days=days_back)
@@ -955,10 +1004,13 @@ with tab_diagram:
     import pathlib
 
     def load_html_diagram(filename):
-        paths = [
-            pathlib.Path(__file__).parent / filename,
-            pathlib.Path(r"C:\Users\cuong\.gemini\antigravity\brain\94db5080-33a8-473d-9aa7-24e6bc20d5a5") / filename
-        ]
+        # Chỉ tìm cạnh mã nguồn. Đường dẫn tuyệt đối theo máy cá nhân đã bị gỡ
+        # vì dự án sẽ không chạy được trên máy/CI khác.
+        # Cần thư mục khác? Đặt biến môi trường VIBE_DIAGRAM_DIR.
+        paths = [pathlib.Path(__file__).parent / filename]
+        extra = os.environ.get("VIBE_DIAGRAM_DIR")
+        if extra:
+            paths.append(pathlib.Path(extra) / filename)
         for p in paths:
             if p.exists():
                 return p.read_text(encoding="utf-8")

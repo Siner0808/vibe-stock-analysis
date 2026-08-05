@@ -4,3 +4,12 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# Bí mật — KHÔNG BAO GIỜ commit
+.streamlit/secrets.toml
+.env
+*.key
+
+# Backtest: cache du lieu va ket qua chay
+backtest/cache/
+backtest/results/

@@ -64,9 +64,12 @@ class VNStockCollectorAgent:
                     return {"status": "OK", "df": df, "note": f"Tải dữ liệu Real-Time thành công ({len(df)} phiên từ {src.upper()})"}
             except Exception:
                 continue
-        # Fallback offline generator to ensure pipeline never fails
+        # Fallback offline generator: giữ pipeline chạy được để demo/dev,
+        # NHƯNG phải báo status SYNTHETIC để tầng trên từ chối ra khuyến nghị.
+        # Dữ liệu này là random walk, không phải giá thật.
         fallback_df = self._generate_fallback_df(symbol, start, end)
-        return {"status": "OK", "df": fallback_df, "note": "Sử dụng dữ liệu mô phỏng dự phòng (Cloud fallback)"}
+        return {"status": "SYNTHETIC", "df": fallback_df,
+                "note": "⚠️ KHÔNG kết nối được nguồn thật — đang dùng dữ liệu MÔ PHỎNG NGẪU NHIÊN"}
 
 
 class TradingViewCollectorAgent:
@@ -173,7 +176,11 @@ class DataOrchestrator:
         packet.source_notes.append(f"[TradingView] {tv_result['note']}")
 
         # ── Đánh giá chất lượng tổng thể ────────────────────────────
-        if vnstock_result["status"] == "OK" and tv_result["status"] == "OK":
+        # SYNTHETIC được xét TRƯỚC: giá là random walk, mọi chỉ báo tính từ nó
+        # đều vô nghĩa, nên không được phép ra khuyến nghị dù TradingView có OK.
+        if vnstock_result["status"] == "SYNTHETIC":
+            packet.data_quality = "SYNTHETIC"
+        elif vnstock_result["status"] == "OK" and tv_result["status"] == "OK":
             packet.data_quality = "OK"
         elif vnstock_result["status"] == "OK":
             packet.data_quality = "PARTIAL"

@@ -12,8 +12,29 @@ import os
 import json
 import requests
 
-_K_PARTS = ["AQ.Ab8RN6IkceA9Y-", "SQ_2VYkkck9L2vCTD8xDV-", "nk723MgX_CY8eQ"]
-DEFAULT_GEMINI_KEY = "".join(_K_PARTS)
+
+def load_system_api_key() -> str | None:
+    """Đọc API key hệ thống từ cấu hình ngoài. KHÔNG bao giờ hardcode key vào mã nguồn.
+
+    Thứ tự ưu tiên:
+      1. st.secrets["GEMINI_API_KEY"]  (.streamlit/secrets.toml — đã gitignore)
+      2. biến môi trường GEMINI_API_KEY
+      3. biến môi trường GOOGLE_API_KEY
+
+    Trả về None nếu chưa cấu hình. Khi đó chatbot dùng _fallback_answer()
+    (engine nội bộ, không cần LLM) thay vì im lặng hỏng.
+    """
+    try:
+        import streamlit as st
+        key = st.secrets.get("GEMINI_API_KEY")
+        if key:
+            return str(key).strip()
+    except Exception:
+        # Không chạy trong Streamlit, hoặc chưa có secrets.toml — bỏ qua.
+        pass
+    return (os.environ.get("GEMINI_API_KEY")
+            or os.environ.get("GOOGLE_API_KEY")
+            or None)
 
 class StockChatbotAgent:
     """
@@ -24,19 +45,14 @@ class StockChatbotAgent:
     NAME = "💬 AI Stock Assistant Chatbot (Gemini Powered)"
 
     def __init__(self, api_key: str = None):
-        self.api_key = (
-            api_key 
-            or os.environ.get("GEMINI_API_KEY") 
-            or os.environ.get("GOOGLE_API_KEY")
-            or DEFAULT_GEMINI_KEY
-        )
+        self.api_key = api_key or load_system_api_key()
 
     def _call_gemini_api(self, system_instruction: str, user_prompt: str) -> tuple[bool, str]:
         """
         Gọi Google Gemini REST API hỗ trợ thử nghiệm các mô hình khả dụng:
         gemini-flash-latest, gemini-2.0-flash-lite, gemini-2.0-flash-001, gemini-flash-lite-latest, gemini-pro-latest
         """
-        clean_key = (self.api_key or DEFAULT_GEMINI_KEY).strip()
+        clean_key = (self.api_key or "").strip()
         if not clean_key:
             return False, "NO_KEY"
 
@@ -93,8 +109,6 @@ class StockChatbotAgent:
     def answer_question(self, user_prompt: str, result: dict, user_api_key: str = None) -> str:
         if user_api_key and user_api_key.strip():
             self.api_key = user_api_key.strip()
-        elif not self.api_key:
-            self.api_key = DEFAULT_GEMINI_KEY
 
         if not result or result.get("data_quality") == "FAILED":
             return (
