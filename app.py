@@ -299,39 +299,57 @@ with st.sidebar:
     st.divider()
     
     # Financial Collector Quick Sidebar Summary
+    # Nguyên tắc: thiếu dữ liệu thì nói thiếu, KHÔNG điền số thay thế.
     fin_coll = FinancialDataCollector()
-    co_info = fin_coll.get_company_overview(symbol)
+    _df_price = st.session_state.get("last_ohlcv_df")
+    co_info = fin_coll.get_company_overview(symbol, _df_price)
     foreign_data = fin_coll.get_foreign_trading_history(symbol)
 
+    def _fmt(value, spec="", suffix=""):
+        """Định dạng số, trả '—' nếu không có dữ liệu."""
+        if value is None:
+            return "—"
+        try:
+            return f"{value:{spec}}{suffix}" if spec else f"{value}{suffix}"
+        except (ValueError, TypeError):
+            return "—"
+
     st.subheader(f"🌐 Chỉ số Định giá ({symbol})")
-    st.caption(f"Vốn hóa: **{co_info['market_cap_billions']:,.0f} tỷ VNĐ**")
+    if co_info.get("market_cap_billions") is not None:
+        st.caption(f"Vốn hóa: **{co_info['market_cap_billions']:,.0f} tỷ VNĐ**")
+
     st.markdown(f"""
-    - **P/E:** `{co_info['pe']}` | **EPS:** `{co_info['eps']:,.0f} VNĐ`
-    - **Beta:** `{co_info['beta']}` | **KL 10 phiên:** `{co_info['avg_vol_10d']:,.0f}`
-    - **52T Thấp - Cao:** `{co_info['low_52w']:,.1f}` - `{co_info['high_52w']:,.1f}` VNĐ
-    - **% Biến động (1Tuần/1Tháng/1Năm):**  
-      `{co_info['pct_1w']:+.2f}%` | `{co_info['pct_1m']:+.2f}%` | `{co_info['pct_1y']:+.2f}%`
+    - **P/E:** `{_fmt(co_info['pe'], ',.2f')}` | **EPS:** `{_fmt(co_info['eps'], ',.0f', ' VNĐ')}`
+    - **Beta:** `{_fmt(co_info['beta'], ',.2f')}` | **KL 10 phiên:** `{_fmt(co_info['avg_vol_10d'], ',.0f')}`
+    - **52T Thấp - Cao:** `{_fmt(co_info['low_52w'], ',.0f')}` - `{_fmt(co_info['high_52w'], ',.0f')}` VNĐ
+    - **% Biến động (1Tuần/1Tháng/1Năm):**
+      `{_fmt(co_info['pct_1w'], '+.2f', '%')}` | `{_fmt(co_info['pct_1m'], '+.2f', '%')}` | `{_fmt(co_info['pct_1y'], '+.2f', '%')}`
     """)
+    if not co_info.get("available") and co_info.get("note"):
+        st.caption(f"ℹ️ {co_info['note']}")
 
     st.markdown("##### 🌍 Giao dịch NĐTNN (10 phiên)")
-    # Draw mini foreign net buying bar chart
-    fig_foreign = go.Figure()
-    colors = ['#00e676' if v >= 0 else '#ef5350' for v in foreign_data['net_values_billion']]
-    fig_foreign.add_trace(go.Bar(
-        x=foreign_data['dates'],
-        y=foreign_data['net_values_billion'],
-        marker_color=colors,
-        name="GT Ròng (Tỷ VNĐ)"
-    ))
-    fig_foreign.update_layout(
-        height=180,
-        margin=dict(l=10, r=10, t=20, b=20),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, tickfont=dict(color='#888', size=9)),
-        yaxis=dict(showgrid=True, gridcolor='#222', tickfont=dict(color='#888', size=9))
-    )
-    st.plotly_chart(fig_foreign, use_container_width=True)
+    if foreign_data.get("available") and foreign_data.get("net_values_billion"):
+        fig_foreign = go.Figure()
+        colors = ['#00e676' if v >= 0 else '#ef5350'
+                  for v in foreign_data['net_values_billion']]
+        fig_foreign.add_trace(go.Bar(
+            x=foreign_data['dates'],
+            y=foreign_data['net_values_billion'],
+            marker_color=colors,
+            name="GT Ròng (Tỷ VNĐ)"
+        ))
+        fig_foreign.update_layout(
+            height=180,
+            margin=dict(l=10, r=10, t=20, b=20),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(showgrid=False, tickfont=dict(color='#888', size=9)),
+            yaxis=dict(showgrid=True, gridcolor='#222', tickfont=dict(color='#888', size=9))
+        )
+        st.plotly_chart(fig_foreign, use_container_width=True)
+    else:
+        st.caption(f"ℹ️ {foreign_data.get('note', 'Không có dữ liệu.')}")
 
     st.divider()
 
@@ -395,14 +413,28 @@ if not result:
 # Lấy giá từ OHLCV
 @st.cache_data(ttl=300)
 def load_stock_data(ticker, start, end):
+    """Trả (df, status). PHẢI kiểm tra status — bộ thu thập có nhánh dự phòng
+    sinh dữ liệu ngẫu nhiên (SYNTHETIC) để giữ ứng dụng chạy được. Dữ liệu đó
+    không bao giờ được vẽ lên biểu đồ hay hiển thị như giá thật.
+    """
     try:
         from data_collectors import VNStockCollectorAgent
         res = VNStockCollectorAgent().collect(ticker, start, end)
-        return res.get("df")
+        return res.get("df"), res.get("status", "OK")
     except Exception:
-        return None
+        return None, "FAILED"
 
-df = load_stock_data(symbol, start_str, end_str)
+df, _price_status = load_stock_data(symbol, start_str, end_str)
+
+if _price_status != "OK":
+    df = None          # chặn mọi thứ vẽ từ dữ liệu không đáng tin
+    st.error(
+        "⚠️ **Không kết nối được nguồn giá thật.** Ứng dụng không hiển thị "
+        "biểu đồ hay chỉ số cho tới khi có dữ liệu thật — thà thiếu còn hơn sai. "
+        "Vui lòng thử lại sau."
+    )
+else:
+    st.session_state["last_ohlcv_df"] = df
 
 if df is not None and not df.empty:
     latest_close = df['close'].iloc[-1]
@@ -496,82 +528,67 @@ with tab_terminal:
 
     st.divider()
 
-    # 2. Lưới 4 Biểu đồ Tài chính BCTC Grid (2x2 Layout)
-    st.subheader("📊 Báo cáo Tài chính & Sức khỏe Doanh nghiệp (5 Năm)")
+    # 2. Biểu đồ Báo cáo tài chính — CHỈ vẽ từ số liệu thật
+    # Bản cũ có 4 biểu đồ, nhưng 2 trong số đó (cơ cấu giá vốn, tài sản
+    # ngắn/dài hạn) được dựng từ tỷ lệ tự đặt (cogs = doanh thu × 0.65 v.v.)
+    # chứ không phải số liệu công bố. Đã gỡ. Chỉ giữ phần lấy được từ nguồn.
+    st.subheader("📊 Báo cáo Tài chính & Sức khỏe Doanh nghiệp")
 
-    grid_row1_col1, grid_row1_col2 = st.columns(2)
-    grid_row2_col1, grid_row2_col2 = st.columns(2)
-
-    # ── Biểu đồ 1: Hiệu suất Kinh doanh (Doanh thu vs LNST) ───────────
-    with grid_row1_col1:
-        st.markdown("##### 1️⃣ Hiệu suất Kinh doanh (Doanh thu & Lợi nhuận ròng)")
-        fig_perf = go.Figure()
-        fig_perf.add_trace(go.Bar(
-            x=fin_data['years'], y=fin_data['revenue'],
-            name="Doanh thu thuần (Tỷ)", marker_color='#29b6f6'
-        ))
-        fig_perf.add_trace(go.Scatter(
-            x=fin_data['years'], y=fin_data['net_profit'],
-            name="Lợi nhuận ròng (Tỷ)", mode='lines+markers',
-            line=dict(color='#ffca28', width=3)
-        ))
-        fig_perf.update_layout(
-            height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
-            margin=dict(l=10, r=10, t=20, b=10), legend=dict(orientation="h", y=1.1)
+    if not fin_data.get("available"):
+        st.info(
+            f"ℹ️ {fin_data.get('note', 'Không có dữ liệu báo cáo tài chính.')}\n\n"
+            "Ứng dụng không hiển thị số liệu ước tính thay thế."
         )
-        st.plotly_chart(fig_perf, use_container_width=True)
+    else:
+        st.caption(f"Nguồn: {fin_data.get('note', 'vnstock')}")
+        grid_col1, grid_col2 = st.columns(2)
 
-    # ── Biểu đồ 2: Kết quả Kinh doanh Chi tiết ───────────────────────
-    with grid_row1_col2:
-        st.markdown("##### 2️⃣ Kết quả Kinh doanh (Cơ cấu Doanh thu & Chi phí)")
-        fig_inc = go.Figure()
-        fig_inc.add_trace(go.Bar(x=fin_data['years'], y=fin_data['revenue'], name="Doanh thu", marker_color='#00e676'))
-        fig_inc.add_trace(go.Bar(x=fin_data['years'], y=fin_data['cogs'], name="Giá vốn HB", marker_color='#ef5350'))
-        fig_inc.add_trace(go.Bar(x=fin_data['years'], y=fin_data['gross_profit'], name="LN Gộp", marker_color='#ab47bc'))
-        fig_inc.update_layout(
-            barmode='group', height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
-            margin=dict(l=10, r=10, t=20, b=10), legend=dict(orientation="h", y=1.1)
-        )
-        st.plotly_chart(fig_inc, use_container_width=True)
+        # ── Doanh thu & Lợi nhuận ròng ─────────────────────────────────
+        with grid_col1:
+            st.markdown("##### 1️⃣ Doanh thu & Lợi nhuận ròng")
+            fig_perf = go.Figure()
+            fig_perf.add_trace(go.Bar(
+                x=fin_data['years'], y=fin_data['revenue'],
+                name="Doanh thu thuần", marker_color='#29b6f6'
+            ))
+            if any(v is not None for v in fin_data.get('net_profit', [])):
+                fig_perf.add_trace(go.Scatter(
+                    x=fin_data['years'], y=fin_data['net_profit'],
+                    name="Lợi nhuận ròng", mode='lines+markers',
+                    line=dict(color='#ffca28', width=3)
+                ))
+            fig_perf.update_layout(
+                height=300, template="plotly_dark", paper_bgcolor='#1e222d',
+                plot_bgcolor='#1e222d', margin=dict(l=10, r=10, t=20, b=10),
+                legend=dict(orientation="h", y=1.1)
+            )
+            st.plotly_chart(fig_perf, use_container_width=True)
 
-    # ── Biểu đồ 3: Tài sản & Vốn chủ sở hữu ──────────────────────────
-    with grid_row2_col1:
-        st.markdown("##### 3️⃣ Tài sản & Vốn chủ sở hữu (Nợ vay vs VCSH)")
-        fig_bs = go.Figure()
-        fig_bs.add_trace(go.Bar(x=fin_data['years'], y=fin_data['equity'], name="Vốn CSH (Tỷ)", marker_color='#26a69a'))
-        fig_bs.add_trace(go.Bar(x=fin_data['years'], y=fin_data['debt'], name="Nợ vay (Tỷ)", marker_color='#ff7043'))
-        fig_bs.add_trace(go.Scatter(
-            x=fin_data['years'], y=fin_data['debt_to_equity'],
-            name="Tỷ lệ Nợ/VCSH", yaxis="y2", mode='lines+markers', line=dict(color='#ffee58', width=2)
-        ))
-        fig_bs.update_layout(
-            barmode='stack', height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
-            margin=dict(l=10, r=10, t=20, b=10),
-            yaxis2=dict(overlaying='y', side='right', showgrid=False, title="Tỷ lệ Nợ/VCSH"),
-            legend=dict(orientation="h", y=1.1)
-        )
-        st.plotly_chart(fig_bs, use_container_width=True)
-
-    # ── Biểu đồ 4: Vị thế Tài chính (Ngắn hạn vs Dài hạn) ─────────────
-    with grid_row2_col2:
-        st.markdown("##### 4️⃣ Vị thế Tài chính (Tài sản vs Nợ Ngắn/Dài hạn)")
-        fig_pos = go.Figure()
-        latest_idx = -1
-        fig_pos.add_trace(go.Bar(
-            x=['Tài sản Ngắn hạn', 'Tài sản Dài hạn', 'Nợ Ngắn hạn', 'Nợ Dài hạn'],
-            y=[
-                fin_data['short_assets'][latest_idx],
-                fin_data['long_assets'][latest_idx],
-                fin_data['short_liabilities'][latest_idx],
-                fin_data['long_liabilities'][latest_idx]
-            ],
-            marker_color=['#29b6f6', '#00e676', '#ef5350', '#ff9800']
-        ))
-        fig_pos.update_layout(
-            height=300, template="plotly_dark", paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
-            margin=dict(l=10, r=10, t=20, b=10), showlegend=False
-        )
-        st.plotly_chart(fig_pos, use_container_width=True)
+        # ── Vốn chủ sở hữu & Nợ phải trả ───────────────────────────────
+        with grid_col2:
+            st.markdown("##### 2️⃣ Vốn chủ sở hữu & Nợ phải trả")
+            if fin_data.get('equity') and fin_data.get('debt'):
+                fig_bs = go.Figure()
+                fig_bs.add_trace(go.Bar(x=fin_data['years'], y=fin_data['equity'],
+                                        name="Vốn CSH", marker_color='#26a69a'))
+                fig_bs.add_trace(go.Bar(x=fin_data['years'], y=fin_data['debt'],
+                                        name="Nợ phải trả", marker_color='#ff7043'))
+                if fin_data.get('debt_to_equity'):
+                    fig_bs.add_trace(go.Scatter(
+                        x=fin_data['years'], y=fin_data['debt_to_equity'],
+                        name="Nợ/VCSH", yaxis="y2", mode='lines+markers',
+                        line=dict(color='#ffee58', width=2)
+                    ))
+                fig_bs.update_layout(
+                    barmode='stack', height=300, template="plotly_dark",
+                    paper_bgcolor='#1e222d', plot_bgcolor='#1e222d',
+                    margin=dict(l=10, r=10, t=20, b=10),
+                    yaxis2=dict(overlaying='y', side='right', showgrid=False),
+                    legend=dict(orientation="h", y=1.1)
+                )
+                st.plotly_chart(fig_bs, use_container_width=True)
+            else:
+                st.info("ℹ️ Nguồn dữ liệu không có bảng cân đối kế toán cho mã này.")
 
 with tab_main:
     final_score = result["final_score"]

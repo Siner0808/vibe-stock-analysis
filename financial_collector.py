@@ -1,133 +1,250 @@
 """
 financial_collector.py
 ──────────────────────────────────────────────────────────────────────
-Module thu thập & xử lý dữ liệu tài chính doanh nghiệp & Khối ngoại (NĐTNN)
-Phục vụ Giao diện Vibe Stock Terminal Pro Financial Dashboard
-──────────────────────────────────────────────────────────────────────
+Thu thập dữ liệu tài chính doanh nghiệp từ nguồn THẬT (vnstock).
+
+NGUYÊN TẮC BẤT BIẾN CỦA MODULE NÀY
+──────────────────────────────────
+KHÔNG BAO GIỜ sinh số liệu tài chính. Không random, không hash, không
+giá trị mặc định "trông giống thật".
+
+Bản cũ của file này sinh P/E, EPS, Beta, vốn hóa từ `hash(symbol)` và
+báo cáo tài chính 5 năm từ `np.random`. Vì hash chuỗi trong Python được
+ngẫu nhiên hoá theo tiến trình, cùng một mã cho ra P/E khác nhau sau mỗi
+lần khởi động — số liệu đó không chỉ sai mà còn không ổn định.
+
+Mọi hàm ở đây trả về dict có khoá `available`:
+    available=True  → số liệu lấy từ nguồn thật, dùng được
+    available=False → KHÔNG lấy được; giao diện phải hiển thị "không có
+                      dữ liệu", tuyệt đối không điền số thay thế.
 """
+from __future__ import annotations
+
+import time
+from typing import Any
+
 import pandas as pd
-import numpy as np
+
+_CACHE: dict[str, tuple[float, Any]] = {}
+_TTL_SECONDS = 900          # 15 phút — số liệu cơ bản đổi rất chậm
+
+
+def _cached(key: str, fn, ttl: int = _TTL_SECONDS):
+    """Cache TTL tối giản, không phụ thuộc Streamlit để test được offline."""
+    now = time.time()
+    hit = _CACHE.get(key)
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    value = fn()
+    _CACHE[key] = (now, value)
+    return value
+
+
+def _flat_columns(df: pd.DataFrame) -> dict[str, Any]:
+    """Làm phẳng cột (kể cả MultiIndex) -> {tên viết thường: cột gốc}."""
+    out = {}
+    for col in df.columns:
+        label = " ".join(str(p) for p in col) if isinstance(col, tuple) else str(col)
+        out[label.strip().lower()] = col
+    return out
+
+
+def _pick(df: pd.DataFrame, *candidates: str):
+    """Tìm cột đầu tiên khớp một trong các từ khoá. Trả None nếu không có.
+
+    Tên cột của vnstock đổi theo nguồn và phiên bản, nên dò theo chuỗi con
+    thay vì khớp tuyệt đối. Không tìm thấy thì trả None — KHÔNG đoán.
+    """
+    cols = _flat_columns(df)
+    for cand in candidates:
+        c = cand.lower()
+        for label, original in cols.items():
+            if c in label:
+                return original
+    return None
+
+
+def _first_value(df: pd.DataFrame, col) -> float | None:
+    if col is None or df.empty:
+        return None
+    try:
+        val = pd.to_numeric(df[col], errors="coerce").dropna()
+        return float(val.iloc[0]) if len(val) else None
+    except Exception:
+        return None
+
 
 class FinancialDataCollector:
-    """
-    Thu thập chỉ số định giá (P/E, EPS, Beta, Vốn hóa),
-    Báo cáo tài chính (BCTC 4 biểu đồ) và Lịch sử Giao dịch Khối ngoại (10 phiên).
-    """
+    """Thu thập chỉ số định giá, BCTC và giao dịch khối ngoại từ nguồn thật."""
+
     NAME = "Financial Data Collector Agent"
 
-    def get_company_overview(self, symbol: str, df_ohlcv: pd.DataFrame = None) -> dict:
-        """Thu thập thông tin tổng quan doanh nghiệp và các chỉ số định giá cốt lõi"""
-        # Mặc định lấy từ dữ liệu nến hiện tại nếu có
-        latest_price = 85.0
-        high_52w = 95.0
-        low_52w = 60.0
-        pct_1w, pct_1m, pct_1y = 1.5, -2.4, 18.5
+    # ───────────────────────── Chỉ số định giá ─────────────────────────
+    def get_company_overview(self, symbol: str,
+                             df_ohlcv: pd.DataFrame | None = None) -> dict:
+        """Chỉ số định giá.
 
-        if df_ohlcv is not None and not df_ohlcv.empty:
-            latest_price = float(df_ohlcv['close'].iloc[-1])
-            high_52w = float(df_ohlcv['high'].max())
-            low_52w = float(df_ohlcv['low'].min())
-            
-            # Tính % biến động
-            if len(df_ohlcv) >= 5:
-                pct_1w = ((latest_price - df_ohlcv['close'].iloc[-5]) / df_ohlcv['close'].iloc[-5]) * 100
-            if len(df_ohlcv) >= 20:
-                pct_1m = ((latest_price - df_ohlcv['close'].iloc[-20]) / df_ohlcv['close'].iloc[-20]) * 100
-            if len(df_ohlcv) >= 200:
-                pct_1y = ((latest_price - df_ohlcv['close'].iloc[-200]) / df_ohlcv['close'].iloc[-200]) * 100
-
-        # Tự động điều chỉnh hệ số tiền tệ VNĐ chuẩn
-        mult = 1000.0 if latest_price < 1000 else 1.0
-        price_vnd = latest_price * mult
-
-        # Giá trị ước tính định giá theo từng mã
-        hash_val = abs(hash(symbol)) % 100
-        shares = 120000000 + (hash_val * 10000000)
-        market_cap_billions = (price_vnd * shares) / 1000000000
-        pe = round(12.5 + (hash_val % 15), 2)
-        eps = round(price_vnd / pe if pe else 3500, 0)
-        beta = round(0.85 + (hash_val % 50) / 100, 2)
-        avg_vol_10d = int(df_ohlcv['volume'].iloc[-10:].mean()) if df_ohlcv is not None and len(df_ohlcv) >= 10 else 2500000
-
-        return {
+        Tách làm hai phần với độ tin cậy khác nhau:
+          - Từ OHLCV (giá, 52T, % biến động, KLTB): tính trực tiếp, luôn thật.
+          - Từ API (P/E, EPS, Beta, vốn hóa, số CP): có thể None nếu không lấy được.
+        """
+        result: dict[str, Any] = {
             "symbol": symbol,
-            "latest_price": price_vnd,
-            "high_52w": high_52w * mult,
-            "low_52w": low_52w * mult,
-            "pct_1w": pct_1w,
-            "pct_1m": pct_1m,
-            "pct_1y": pct_1y,
-            "market_cap_billions": market_cap_billions,
-            "shares_outstanding": shares,
-            "pe": pe,
-            "eps": eps,
-            "beta": beta,
-            "avg_vol_10d": avg_vol_10d,
-            "foreign_room": 45500000
+            "available": False,
+            "price_available": False,
+            "note": "",
+            # từ OHLCV
+            "latest_price": None, "high_52w": None, "low_52w": None,
+            "pct_1w": None, "pct_1m": None, "pct_1y": None, "avg_vol_10d": None,
+            # từ API
+            "pe": None, "eps": None, "beta": None,
+            "market_cap_billions": None, "shares_outstanding": None,
         }
 
+        # ── Phần tính từ dữ liệu giá thật ──────────────────────────────
+        if df_ohlcv is not None and not df_ohlcv.empty and "close" in df_ohlcv:
+            close = df_ohlcv["close"]
+            latest = float(close.iloc[-1])
+            mult = 1000.0 if latest < 1000 else 1.0   # nghìn đồng -> đồng
+            result.update({
+                "latest_price": latest * mult,
+                "high_52w": float(df_ohlcv["high"].max()) * mult,
+                "low_52w": float(df_ohlcv["low"].min()) * mult,
+                "price_available": True,
+            })
+            if len(close) >= 6:
+                result["pct_1w"] = (latest - close.iloc[-6]) / close.iloc[-6] * 100
+            if len(close) >= 21:
+                result["pct_1m"] = (latest - close.iloc[-21]) / close.iloc[-21] * 100
+            if len(close) >= 200:
+                result["pct_1y"] = (latest - close.iloc[-200]) / close.iloc[-200] * 100
+            if "volume" in df_ohlcv and len(df_ohlcv) >= 10:
+                result["avg_vol_10d"] = int(df_ohlcv["volume"].iloc[-10:].mean())
+
+        # ── Phần lấy từ API ────────────────────────────────────────────
+        ratios = _cached(f"ratio:{symbol}", lambda: self._fetch_ratio(symbol))
+        if ratios is None:
+            result["note"] = "Không lấy được chỉ số định giá từ nguồn dữ liệu."
+            return result
+
+        result.update(ratios)
+        result["available"] = any(
+            result[k] is not None for k in ("pe", "eps", "beta", "market_cap_billions")
+        )
+        if not result["available"]:
+            result["note"] = "Nguồn dữ liệu không có chỉ số định giá cho mã này."
+        return result
+
+    def _fetch_ratio(self, symbol: str) -> dict | None:
+        try:
+            from vnstock import Finance
+            df = Finance(symbol=symbol, period="year",
+                         show_log=False).ratio(lang="en", dropna=True)
+        except Exception:
+            return None
+        if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+            return None
+
+        pe = _first_value(df, _pick(df, "p/e", "pe "))
+        eps = _first_value(df, _pick(df, "eps"))
+        beta = _first_value(df, _pick(df, "beta"))
+        mcap = _first_value(df, _pick(df, "market capital", "market cap", "vốn hóa"))
+        shares = _first_value(df, _pick(df, "outstanding share", "shares outstanding"))
+
+        # vnstock thường trả vốn hóa theo đồng -> quy về tỷ đồng
+        mcap_billions = mcap / 1e9 if mcap and mcap > 1e9 else mcap
+        return {"pe": pe, "eps": eps, "beta": beta,
+                "market_cap_billions": mcap_billions,
+                "shares_outstanding": int(shares) if shares else None}
+
+    # ───────────────────────── Báo cáo tài chính ────────────────────────
     def get_financial_statements(self, symbol: str) -> dict:
-        """Dữ liệu 4 Biểu đồ Tài chính BCTC (Năm & Quý)"""
-        years = ['2021', '2022', '2023', '2024', '2025']
-        np.random.seed(abs(hash(symbol)) % 2**32)
+        """BCTC nhiều năm. available=False nếu không lấy được — không bịa."""
+        empty = {"available": False, "note": "Không lấy được báo cáo tài chính.",
+                 "years": [], "revenue": [], "net_profit": [],
+                 "equity": [], "debt": [], "debt_to_equity": []}
+        data = _cached(f"fs:{symbol}", lambda: self._fetch_statements(symbol))
+        return data or empty
 
-        # 1. Hiệu suất & Kết quả kinh doanh (Doanh thu & Lợi nhuận ròng)
-        base_rev = 4500 if symbol == "FPT" else 2500 if symbol == "SSI" else 3200
-        revenue = [int(base_rev * (1 + i * 0.15 + np.random.uniform(-0.05, 0.08))) for i in range(len(years))]
-        net_profit = [int(r * np.random.uniform(0.12, 0.22)) for r in revenue]
-        cogs = [int(r * 0.65) for r in revenue]
-        gross_profit = [r - c for r, c in zip(revenue, cogs)]
-        operating_exp = [int(gp * 0.4) for gp in gross_profit]
+    def _fetch_statements(self, symbol: str) -> dict | None:
+        try:
+            from vnstock import Finance
+            fin = Finance(symbol=symbol, period="year", show_log=False)
+            inc = fin.income_statement(lang="en", dropna=True)
+            bal = fin.balance_sheet(lang="en", dropna=True)
+        except Exception:
+            return None
+        if inc is None or inc.empty:
+            return None
 
-        # 2. Tài sản & Vốn chủ sở hữu (Bảng Cân đối Kế toán)
-        equity = [int(r * 1.2) for r in revenue]
-        debt = [int(e * np.random.uniform(0.3, 0.6)) for e in equity]
-        debt_to_equity = [round(d / e, 2) for d, e in zip(debt, equity)]
+        year_col = _pick(inc, "yearreport", "year", "kỳ")
+        rev_col = _pick(inc, "revenue", "net sales", "doanh thu")
+        profit_col = _pick(inc, "attribute to parent", "net profit", "lợi nhuận sau thuế")
+        if year_col is None or rev_col is None:
+            return None
 
-        # 3. Vị thế tài chính (Ngắn hạn vs Dài hạn)
-        short_assets = [int(e * 0.55) for e in equity]
-        long_assets = [int(e * 0.75) for e in equity]
-        short_liabilities = [int(d * 0.7) for d in debt]
-        long_liabilities = [int(d * 0.3) for d in debt]
+        years = [str(y) for y in inc[year_col].tolist()]
+        revenue = pd.to_numeric(inc[rev_col], errors="coerce").tolist()
+        net_profit = (pd.to_numeric(inc[profit_col], errors="coerce").tolist()
+                      if profit_col is not None else [None] * len(years))
 
-        return {
-            "years": years,
-            "revenue": revenue,
-            "net_profit": net_profit,
-            "cogs": cogs,
-            "gross_profit": gross_profit,
-            "operating_exp": operating_exp,
-            "equity": equity,
-            "debt": debt,
-            "debt_to_equity": debt_to_equity,
-            "short_assets": short_assets,
-            "long_assets": long_assets,
-            "short_liabilities": short_liabilities,
-            "long_liabilities": long_liabilities
-        }
+        equity, debt, d2e = [], [], []
+        if bal is not None and not bal.empty:
+            eq_col = _pick(bal, "owner's equity", "equity", "vốn chủ")
+            debt_col = _pick(bal, "liabilities", "nợ phải trả")
+            if eq_col is not None:
+                equity = pd.to_numeric(bal[eq_col], errors="coerce").tolist()
+            if debt_col is not None:
+                debt = pd.to_numeric(bal[debt_col], errors="coerce").tolist()
+            if equity and debt:
+                d2e = [round(d / e, 2) if e else None for d, e in zip(debt, equity)]
 
+        # Sắp xếp năm tăng dần cho biểu đồ
+        order = sorted(range(len(years)), key=lambda i: years[i])
+        pick = lambda xs: [xs[i] for i in order] if len(xs) == len(years) else xs
+
+        return {"available": True, "note": "Nguồn: vnstock (VCI)",
+                "years": pick(years), "revenue": pick(revenue),
+                "net_profit": pick(net_profit), "equity": pick(equity),
+                "debt": pick(debt), "debt_to_equity": pick(d2e)}
+
+    # ──────────────────────── Giao dịch khối ngoại ──────────────────────
     def get_foreign_trading_history(self, symbol: str, days: int = 10) -> dict:
-        """Dữ liệu Thống kê Giao dịch Khối ngoại (NĐTNN Mua/Bán ròng 10 phiên)"""
-        dates = pd.date_range(end=pd.Timestamp.now(), periods=days, freq='B')
-        date_strs = dates.strftime('%d/%m').tolist()
+        """Giao dịch NĐTNN.
 
-        np.random.seed((abs(hash(symbol)) + 99) % 2**32)
-        # Giá trị ròng rải rác từ -15 tỷ đến +25 tỷ VNĐ
-        net_values_billion = np.random.uniform(-0.25, 0.45, days).round(2)
-        
-        buy_val_billion = np.abs(net_values_billion) + np.random.uniform(0.1, 0.3, days).round(2)
-        sell_val_billion = buy_val_billion - net_values_billion
+        Nguồn VCI hiện không cung cấp dữ liệu này qua vnstock. Trả về
+        available=False để giao diện ẩn biểu đồ, thay vì vẽ số ngẫu nhiên
+        như bản cũ.
+        """
+        empty = {"available": False,
+                 "note": "Nguồn dữ liệu hiện không cung cấp giao dịch khối ngoại.",
+                 "dates": [], "net_values_billion": [],
+                 "buy_val_billion": [], "sell_val_billion": []}
+        data = _cached(f"ft:{symbol}:{days}",
+                       lambda: self._fetch_foreign(symbol, days))
+        return data or empty
 
-        latest_buy = round(buy_val_billion[-1], 2)
-        latest_sell = round(sell_val_billion[-1], 2)
-        latest_net = round(net_values_billion[-1], 2)
+    def _fetch_foreign(self, symbol: str, days: int) -> dict | None:
+        try:
+            from vnstock import Trading
+            df = Trading(symbol=symbol, show_log=False).foreign_trade()
+        except Exception:
+            return None
+        if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+            return None
 
-        return {
-            "dates": date_strs,
-            "net_values_billion": net_values_billion.tolist(),
-            "buy_val_billion": buy_val_billion.tolist(),
-            "sell_val_billion": sell_val_billion.tolist(),
-            "latest_buy_billion": latest_buy,
-            "latest_sell_billion": latest_sell,
-            "latest_net_billion": latest_net
-        }
+        date_col = _pick(df, "date", "ngày", "time")
+        net_col = _pick(df, "net", "ròng")
+        buy_col = _pick(df, "buy", "mua")
+        sell_col = _pick(df, "sell", "bán")
+        if date_col is None or net_col is None:
+            return None
+
+        sub = df.head(days).iloc[::-1]
+        to_billion = lambda c: (pd.to_numeric(sub[c], errors="coerce") / 1e9).round(2).tolist() \
+            if c is not None else []
+        return {"available": True, "note": "Nguồn: vnstock",
+                "dates": [str(d)[:10] for d in sub[date_col].tolist()],
+                "net_values_billion": to_billion(net_col),
+                "buy_val_billion": to_billion(buy_col),
+                "sell_val_billion": to_billion(sell_col)}
