@@ -171,8 +171,11 @@ class FinancialDataCollector:
             "note": "",
             "diagnostic": "",
             # từ OHLCV
-            "latest_price": None, "high_52w": None, "low_52w": None,
-            "pct_1w": None, "pct_1m": None, "pct_1y": None, "avg_vol_10d": None,
+            # Tên trường nói rõ "period" = kỳ dữ liệu thực có, KHÔNG phải 52 tuần.
+            # Nhãn hiển thị lấy từ `period_label`, suy ra từ dữ liệu thật.
+            "latest_price": None, "high_period": None, "low_period": None,
+            "period_label": "", "period_days": 0,
+            "pct_1w": None, "pct_1m": None, "pct_period": None, "avg_vol_10d": None,
             # từ API
             "pe": None, "eps": None, "beta": None,
             "market_cap_billions": None, "shares_outstanding": None,
@@ -180,22 +183,28 @@ class FinancialDataCollector:
 
         # ── Phần tính từ dữ liệu giá thật ──────────────────────────────
         if df_ohlcv is not None and not df_ohlcv.empty and "close" in df_ohlcv:
+            from data_quality import (period_label, period_span_days,
+                                      price_multiplier)
             close = df_ohlcv["close"]
             latest = float(close.iloc[-1])
-            from data_quality import price_multiplier
             mult = price_multiplier(df_ohlcv)
+            span = period_span_days(df_ohlcv)
             result.update({
                 "latest_price": latest * mult,
-                "high_52w": float(df_ohlcv["high"].max()) * mult,
-                "low_52w": float(df_ohlcv["low"].min()) * mult,
+                # Đỉnh/đáy TRONG KỲ DỮ LIỆU CÓ THẬT, không phải 52 tuần.
+                "high_period": float(df_ohlcv["high"].max()) * mult,
+                "low_period": float(df_ohlcv["low"].min()) * mult,
+                "period_days": span,
+                "period_label": period_label(span),
                 "price_available": True,
             })
             if len(close) >= 6:
                 result["pct_1w"] = (latest - close.iloc[-6]) / close.iloc[-6] * 100
             if len(close) >= 21:
                 result["pct_1m"] = (latest - close.iloc[-21]) / close.iloc[-21] * 100
-            if len(close) >= 200:
-                result["pct_1y"] = (latest - close.iloc[-200]) / close.iloc[-200] * 100
+            first = float(close.iloc[0])
+            if first:
+                result["pct_period"] = (latest - first) / first * 100
             if "volume" in df_ohlcv and len(df_ohlcv) >= 10:
                 result["avg_vol_10d"] = int(df_ohlcv["volume"].iloc[-10:].mean())
 

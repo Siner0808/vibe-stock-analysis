@@ -161,12 +161,12 @@ def test_gia_tinh_tu_ohlcv_that_van_hoat_dong():
 
     assert o["price_available"] is True
     assert o["latest_price"] == close.iloc[-1]
-    assert o["high_52w"] == max(close) * 1.01
+    assert o["high_period"] == max(close) * 1.01
     assert o["avg_vol_10d"] == 1_000_000
-    assert o["pct_1w"] > 0 and o["pct_1y"] > 0
+    assert o["pct_1w"] > 0 and o["pct_period"] > 0
     # nhưng chỉ số định giá vẫn phải là None
     assert o["pe"] is None and o["market_cap_billions"] is None
-    print(f"PASS  giá thật vẫn tính được (52T cao {o['high_52w']:,.0f}), "
+    print(f"PASS  giá thật vẫn tính được (đỉnh kỳ {o['high_period']:,.0f}), "
           "chỉ số định giá vẫn None")
 
 

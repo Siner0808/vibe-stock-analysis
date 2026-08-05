@@ -312,10 +312,9 @@ with st.sidebar:
     st.header("🔍 Tìm kiếm mã CK")
     symbol = st.text_input("Mã chứng khoán", value=st.session_state.get("target_symbol", "FPT")).upper()
     exchange = st.selectbox("Sàn giao dịch", ["HOSE", "HNX", "UPCOM"], index=0)
-    # 400 ngày ≈ 13 tháng. Cần đủ để nhãn "52 tuần" và "% biến động 1 năm"
-    # nói đúng sự thật — với 180 ngày thì "52T Thấp-Cao" thực chất là biên độ
-    # 6 tháng, và biến động 1 năm không bao giờ tính được (cần 200 phiên).
-    days_back = 400
+    days_back = 180  # Cố định 6 tháng — yêu cầu sản phẩm.
+    # Mọi nhãn thời gian trong giao diện phải SUY RA từ cửa sổ này
+    # (co_info["period_label"]), không được ghi cứng "52 tuần"/"1 năm".
 
     run_btn = st.button("⚡ Phân tích ngay", type="primary", use_container_width=True)
 
@@ -343,6 +342,7 @@ with st.sidebar:
         except (ValueError, TypeError):
             return "—"
 
+    _period = co_info.get("period_label") or "kỳ"
     st.subheader(f"🌐 Chỉ số Định giá ({symbol})")
     if co_info.get("market_cap_billions") is not None:
         st.caption(f"Vốn hóa: **{co_info['market_cap_billions']:,.0f} tỷ VNĐ**")
@@ -350,9 +350,9 @@ with st.sidebar:
     st.markdown(f"""
     - **P/E:** `{_fmt(co_info['pe'], ',.2f')}` | **EPS:** `{_fmt(co_info['eps'], ',.0f', ' VNĐ')}`
     - **Beta:** `{_fmt(co_info['beta'], ',.2f')}` | **KL 10 phiên:** `{_fmt(co_info['avg_vol_10d'], ',.0f')}`
-    - **52T Thấp - Cao:** `{_fmt(co_info['low_52w'], ',.0f')}` - `{_fmt(co_info['high_52w'], ',.0f')}` VNĐ
-    - **% Biến động (1Tuần/1Tháng/1Năm):**
-      `{_fmt(co_info['pct_1w'], '+.2f', '%')}` | `{_fmt(co_info['pct_1m'], '+.2f', '%')}` | `{_fmt(co_info['pct_1y'], '+.2f', '%')}`
+    - **Thấp - Cao ({_period}):** `{_fmt(co_info['low_period'], ',.0f')}` - `{_fmt(co_info['high_period'], ',.0f')}` VNĐ
+    - **% Biến động (1 Tuần / 1 Tháng / {_period}):**
+      `{_fmt(co_info['pct_1w'], '+.2f', '%')}` | `{_fmt(co_info['pct_1m'], '+.2f', '%')}` | `{_fmt(co_info['pct_period'], '+.2f', '%')}`
     """)
     if not co_info.get("available") and co_info.get("note"):
         st.caption(f"ℹ️ {co_info['note']}")
@@ -813,8 +813,9 @@ with tab_detail:
                     lvl = data["levels"]
                     st.divider()
                     l1, l2, l3 = st.columns(3)
-                    l1.metric("Đỉnh 52 tuần", f"{lvl.get('high_52w',0):,.2f}")
-                    l2.metric("Đáy 52 tuần", f"{lvl.get('low_52w',0):,.2f}")
+                    _lbl = lvl.get('period_label', 'kỳ')
+                    l1.metric(f"Đỉnh {_lbl}", f"{lvl.get('high_period',0):,.2f}")
+                    l2.metric(f"Đáy {_lbl}", f"{lvl.get('low_period',0):,.2f}")
                     l3.metric("% Từ đáy", f"{lvl.get('pct_from_low',0):.1f}%")
 
 with tab_news:

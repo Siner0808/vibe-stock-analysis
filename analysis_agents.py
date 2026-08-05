@@ -294,18 +294,23 @@ class SupportResistanceAgent:
         low = df['low']
         last_close = close.iloc[-1]
 
-        # Tính vùng hỗ trợ/kháng cự từ 52 tuần
-        high_52w = high.rolling(min(len(df), 252)).max().iloc[-1]
-        low_52w = low.rolling(min(len(df), 252)).min().iloc[-1]
-        pct_from_low = (last_close - low_52w) / (high_52w - low_52w) * 100 if high_52w != low_52w else 50
+        # Vùng hỗ trợ/kháng cự tính trên TOÀN BỘ kỳ dữ liệu có thật.
+        # Nhãn suy ra từ dữ liệu, không ghi cứng "52 tuần" — với cửa sổ 6
+        # tháng thì nhãn đó sai, dù con số vẫn đúng.
+        from data_quality import period_label, period_span_days
+        _label = period_label(period_span_days(df))
+        high_period = high.max()
+        low_period = low.min()
+        pct_from_low = ((last_close - low_period) / (high_period - low_period) * 100
+                        if high_period != low_period else 50)
 
-        signals.append(f"📍 Giá hiện tại cách đáy 52 tuần: {pct_from_low:.1f}%")
+        signals.append(f"📍 Giá hiện tại cách đáy {_label}: {pct_from_low:.1f}%")
         if pct_from_low < 20:
             score += 2.0
-            signals.append("✅ Gần vùng đáy 52 tuần - Điểm tích lũy hấp dẫn")
+            signals.append(f"✅ Gần vùng đáy {_label} - Điểm tích lũy hấp dẫn")
         elif pct_from_low > 80:
             score -= 1.5
-            signals.append("🔴 Gần vùng đỉnh 52 tuần - Rủi ro từ vùng kháng cự mạnh")
+            signals.append(f"🔴 Gần vùng đỉnh {_label} - Rủi ro từ vùng kháng cự mạnh")
 
         # Bollinger Bands từ TradingView
         bb_upper = tv.get("BB_Upper")
@@ -335,8 +340,9 @@ class SupportResistanceAgent:
         result["score"] = round(score, 2)
         result["signals"] = signals
         result["levels"] = {
-            "high_52w": round(high_52w, 2),
-            "low_52w": round(low_52w, 2),
+            "high_period": round(high_period, 2),
+            "low_period": round(low_period, 2),
+            "period_label": _label,
             "pct_from_low": round(pct_from_low, 2),
             "pivot": round(pivot, 2),
             "resistance_1": round(r1, 2),

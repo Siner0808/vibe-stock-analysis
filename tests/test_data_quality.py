@@ -207,6 +207,38 @@ def test_normalize_khong_bia_du_lieu():
     print("PASS  chuẩn hoá giữ nguyên ô thiếu, không tự lấp")
 
 
+# ─────────────────────────────────────────────────────────────────────
+# 7. Nhãn thời gian phải suy ra từ dữ liệu, không ghi cứng
+# ─────────────────────────────────────────────────────────────────────
+def test_nhan_ky_suy_ra_tu_du_lieu_that():
+    """Ứng dụng từng ghi "52T Thấp - Cao" khi chỉ có 180 ngày dữ liệu.
+
+    Số liệu đúng, nhãn sai — loại lỗi khó thấy hơn dữ liệu bịa vì người
+    dùng không có cách nào biết. Nhãn phải bám theo cửa sổ dữ liệu thật.
+    """
+    from data_quality import period_label, period_span_days
+
+    assert period_span_days(clean_df(120)) > 0
+    cases = {30: "4 tuần", 90: "3 tháng", 180: "6 tháng", 365: "1 năm"}
+    for days, expected in cases.items():
+        got = period_label(days)
+        assert got == expected, f"{days} ngày -> {got!r}, mong đợi {expected!r}"
+    assert period_label(0) == "không rõ kỳ"
+    print("PASS  nhãn kỳ suy ra đúng: " +
+          " · ".join(f"{d}d→{period_label(d)}" for d in (30, 90, 180, 365)))
+
+
+def test_cua_so_6_thang_khong_bao_gio_gan_nhan_1_nam():
+    """Chốt chặn: dữ liệu 6 tháng phải cho nhãn 6 tháng, không phải 52 tuần."""
+    from data_quality import period_label, period_span_days
+
+    df = clean_df(n=125)                      # ~180 ngày lịch
+    label = period_label(period_span_days(df))
+    assert "năm" not in label and "52" not in label, label
+    assert "tháng" in label
+    print(f"PASS  cửa sổ 6 tháng -> nhãn {label!r}, không lệch thành 1 năm")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]

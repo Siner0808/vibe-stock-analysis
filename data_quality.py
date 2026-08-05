@@ -101,6 +101,35 @@ class QualityReport:
 UNIT_THRESHOLD = 1000.0
 
 
+def period_span_days(df: pd.DataFrame | None) -> int:
+    """Số ngày dữ liệu thực sự có, tính từ cột `time`."""
+    if df is None or not isinstance(df, pd.DataFrame) or "time" not in df:
+        return 0
+    t = pd.to_datetime(df["time"], errors="coerce").dropna()
+    if len(t) < 2:
+        return 0
+    return int((t.max() - t.min()).days)
+
+
+def period_label(days: int) -> str:
+    """Nhãn mô tả khoảng thời gian, suy ra từ DỮ LIỆU THẬT.
+
+    Lý do tồn tại: nhãn cứng trong giao diện sẽ lệch khỏi dữ liệu ngay khi
+    ai đó đổi cửa sổ lấy dữ liệu. Ứng dụng từng hiển thị "52T Thấp - Cao"
+    trong khi chỉ có 180 ngày — số liệu đúng, nhãn sai.
+    """
+    if days <= 0:
+        return "không rõ kỳ"
+    if days < 45:
+        return f"{max(1, round(days / 7))} tuần"
+    months = round(days / 30.44)
+    if months < 12:
+        return f"{months} tháng"
+    years = days / 365.25
+    return f"{years:.0f} năm" if abs(years - round(years)) < 0.15 \
+        else f"{round(days / 30.44)} tháng"
+
+
 def price_multiplier(df: pd.DataFrame | None) -> float:
     """Hệ số quy đổi giá thô sang VNĐ cho một bảng OHLCV.
 
