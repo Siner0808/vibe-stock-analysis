@@ -320,18 +320,24 @@ with st.sidebar:
 
     st.divider()
 
-    # Financial Collector Quick Sidebar Summary
-    # Nguyên tắc: thiếu dữ liệu thì nói thiếu, KHÔNG điền số thay thế.
-    _end = now_vn()
-    _start = _end - timedelta(days=days_back)
-    _df_price, _sidebar_status, _ = load_stock_data(
-        symbol, _start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"), exchange)
-    if _sidebar_status != "OK":
-        _df_price = None          # không tính chỉ số từ dữ liệu không đáng tin
+    # Financial Collector Quick Sidebar Summary (Cached & Fail-Safe)
+    @st.cache_data(ttl=900, show_spinner=False)
+    def _fetch_sidebar_info(sym: str, exch: str, days: int):
+        try:
+            _end = now_vn()
+            _start = _end - timedelta(days=days)
+            _df, _stat, _ = load_stock_data(
+                sym, _start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"), exch)
+            if _stat != "OK":
+                _df = None
+            coll = FinancialDataCollector()
+            info = coll.get_company_overview(sym, _df)
+            foreign = coll.get_foreign_trading_history(sym)
+            return info, foreign
+        except Exception:
+            return {"available": False}, {"available": False}
 
-    fin_coll = FinancialDataCollector()
-    co_info = fin_coll.get_company_overview(symbol, _df_price)
-    foreign_data = fin_coll.get_foreign_trading_history(symbol)
+    co_info, foreign_data = _fetch_sidebar_info(symbol, exchange, days_back)
 
     def _fmt(value, spec="", suffix=""):
         """Định dạng số, trả '—' nếu không có dữ liệu."""
