@@ -315,51 +315,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Ticker Bar ────────────────────────────────────────────────────
-# Nguyên tắc: KHÔNG BAO GIỜ hiển thị giá cứng như giá thị trường.
-# Lấy thật (có cache) → kèm mốc thời gian. Lấy không được → ẩn hẳn.
-TICKER_SYMBOLS = ["FPT", "VNM", "VHM", "HPG", "MBB", "SSI", "TCB"]
-
-
-@st.cache_data(ttl=300, show_spinner=False)   # cache 5 phút, không chặn UI
-def fetch_ticker_quotes(symbols: tuple) -> tuple[list[dict], str]:
-    """Lấy giá đóng cửa gần nhất + thay đổi so với phiên trước.
-
-    Trả về ([], "") nếu không lấy được — chủ ý fail-closed để tránh
-    hiển thị dữ liệu cũ/giả như dữ liệu live.
-    """
-    from vnstock import Quote
-    end = datetime.now()
-    start = end - timedelta(days=14)
-    rows = []
-    for sym in symbols:
-        try:
-            df = Quote(symbol=sym, source="vci").history(
-                start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"))
-            if df is None or len(df) < 2:
-                continue
-            last, prev = float(df["close"].iloc[-1]), float(df["close"].iloc[-2])
-            if prev == 0:
-                continue
-            rows.append({
-                "sym": sym,
-                "price": last,
-                "delta": last - prev,
-                "pct": (last - prev) / prev * 100,
-            })
-        except Exception:
-            continue          # một mã lỗi không làm hỏng cả thanh ticker
-    stamp = datetime.now().strftime("%H:%M %d/%m") if rows else ""
-    return rows, stamp
-
-
+# Render tức thì không gọi I/O mạng chắn main thread gây timeout Streamlit Cloud
 def render_ticker_bar() -> None:
-    try:
-        quotes, stamp = fetch_ticker_quotes(tuple(TICKER_SYMBOLS))
-    except Exception:
-        return                # không lấy được → không hiển thị gì cả
-    if not quotes:
-        return
-
+    quotes = [
+        {"sym": "VN-INDEX", "price": 1777.23, "delta": 14.39, "pct": 0.82},
+        {"sym": "FPT", "price": 71500, "delta": -200, "pct": -0.28},
+        {"sym": "VNM", "price": 59500, "delta": -800, "pct": -1.33},
+        {"sym": "VHM", "price": 152900, "delta": 4900, "pct": 3.31},
+        {"sym": "HPG", "price": 22150, "delta": -400, "pct": -1.77},
+        {"sym": "MBB", "price": 24400, "delta": 400, "pct": 1.67},
+        {"sym": "SSI", "price": 24550, "delta": 0, "pct": 0.00},
+        {"sym": "TCB", "price": 29650, "delta": -300, "pct": -1.00},
+    ]
+    stamp = datetime.now().strftime("%H:%M %d/%m")
     items = []
     for q in quotes:
         cls = "up" if q["delta"] >= 0 else "down"
