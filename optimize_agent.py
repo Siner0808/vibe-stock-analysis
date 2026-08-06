@@ -1,8 +1,8 @@
 """
 optimize_agent.py
 ──────────────────────────────────────────────────────────────────────
-Tối ưu hóa 10 Vòng (10-Iteration Optimization Loop) học từ các vị thế SL/TP
-để tìm bộ tham số quản trị rủi ro & điểm vào tối ưu nhất.
+Tối ưu hóa 10 Vòng (10-Iteration Optimization Loop) trong khung điểm từ 40.0 đến 50.0
+để đánh giá hiệu năng khi mở rộng tần suất vào lệnh.
 """
 import os
 import sys
@@ -19,7 +19,7 @@ from paper_runner import cmd_seed
 sys.stdout.reconfigure(encoding="utf-8")
 
 symbols = ["FPT", "HPG", "VNM", "MBB", "SSI", "TCB", "VHM", "MWG"]
-print("🚀 Bắt đầu Vòng lặp Học hỏi & Tối ưu hóa 10 Iterations...")
+print("🚀 Bắt đầu Vòng lặp Học hỏi & Tối ưu hóa 10 Iterations (Khung điểm 40 - 50)...")
 
 # Đảm bảo có cache
 dataset = load_all(symbols)
@@ -31,16 +31,16 @@ if not dataset:
     download(symbols, start_date, end_date)
 
 iterations = [
-    {"loop": 1, "buy_threshold": 50.0, "stride": 2, "note": "Thử nghiệm Ngưỡng mua rộng (50 điểm)"},
-    {"loop": 2, "buy_threshold": 55.0, "stride": 2, "note": "Ngưỡng mua chuẩn (55 điểm)"},
-    {"loop": 3, "buy_threshold": 58.0, "stride": 2, "note": "Ngưỡng mua lọc tín hiệu nhiễu (58 điểm)"},
-    {"loop": 4, "buy_threshold": 60.0, "stride": 2, "note": "Ngưỡng mua chất lượng cao (60 điểm)"},
-    {"loop": 5, "buy_threshold": 62.0, "stride": 2, "note": "Ngưỡng mua kỷ luật cao (62 điểm)"},
-    {"loop": 6, "buy_threshold": 65.0, "stride": 2, "note": "Ngưỡng mua sàng lọc gắt gao (65 điểm)"},
-    {"loop": 7, "buy_threshold": 58.0, "stride": 1, "note": "Quét toàn bộ phiên (Stride=1, Threshold=58)"},
-    {"loop": 8, "buy_threshold": 60.0, "stride": 1, "note": "Quét toàn bộ phiên (Stride=1, Threshold=60)"},
-    {"loop": 9, "buy_threshold": 62.0, "stride": 1, "note": "Quét toàn bộ phiên (Stride=1, Threshold=62)"},
-    {"loop": 10, "buy_threshold": 64.0, "stride": 1, "note": "Quét toàn bộ phiên chọn lọc nhất (Threshold=64)"},
+    {"loop": 1, "buy_threshold": 40.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 40.0"},
+    {"loop": 2, "buy_threshold": 41.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 41.0"},
+    {"loop": 3, "buy_threshold": 42.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 42.0"},
+    {"loop": 4, "buy_threshold": 43.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 43.0"},
+    {"loop": 5, "buy_threshold": 44.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 44.0"},
+    {"loop": 6, "buy_threshold": 45.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 45.0"},
+    {"loop": 7, "buy_threshold": 46.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 46.0"},
+    {"loop": 8, "buy_threshold": 47.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 47.0"},
+    {"loop": 9, "buy_threshold": 48.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 48.0"},
+    {"loop": 10, "buy_threshold": 50.0, "stride": 2, "note": "Ngưỡng điểm vào lệnh 50.0"},
 ]
 
 results = []
@@ -99,17 +99,24 @@ for item in iterations:
             pass
 
 df_res = pd.DataFrame(results)
-print("\n" + "="*75)
-print("📊 BẢNG KẾT QUẢ TỐI ƯU HÓA 10 VÒNG HỌC HỎI CỦA AGENT")
-print("="*75)
+print("\n" + "="*80)
+print("📊 BẢNG KẾT QUẢ TỐI ƯU HÓA 10 VÒNG HỌC HỎI CỦA AGENT (KHUNG ĐIỂM 40 - 50)")
+print("="*80)
 for _, r in df_res.iterrows():
-    print(f"Vòng {r['loop']:02d} | Threshold={r['buy_threshold']} | Lệnh đóng: {r['closed_trades']:02d} | Thắng: {r['win_rate']:.1f}% | Kỳ vọng: {r['expectancy']:+.2f}% | MaxDD: {r['max_dd']:.1f}% | Lãi ròng: {r['net_return']:+.2f}% | ({r['note']})")
+    print(f"Vòng {r['loop']:02d} | Threshold={r['buy_threshold']} | Lệnh đóng: {r['closed_trades']:03d} | Thắng: {r['win_rate']:.1f}% | Kỳ vọng: {r['expectancy']:+.2f}% | MaxDD: {r['max_dd']:.1f}% | Lãi ròng: {r['net_return']:+.2f}% | ({r['note']})")
 
-best_row = df_res.sort_values(by="expectancy", ascending=False).iloc[0]
+# Lọc chỉ các vòng có lệnh đóng phát sinh thực tế
+active_df = df_res[df_res["closed_trades"] > 0]
+if not active_df.empty:
+    best_row = active_df.sort_values(by="expectancy", ascending=False).iloc[0]
+else:
+    best_row = df_res.iloc[0]
+
 print("\n" + "🏆"*25)
-print(" VÒNG TỐI ƯU HÓA XUẤT SẮC NHẤT:")
+print(" VÒNG TỐI ƯU HÓA XUẤT SẮC NHẤT KHUNG ĐIỂM 40 - 50:")
 print(f"-> Vòng {best_row['loop']:02d} ({best_row['note']})")
 print(f"-> Ngưỡng mua tối ưu: {best_row['buy_threshold']} điểm")
+print(f"-> Tổng lệnh đóng thực hiện: {best_row['closed_trades']} lệnh")
 print(f"-> Tỷ lệ thắng: {best_row['win_rate']:.1f}%")
 print(f"-> Kỳ vọng/lệnh: {best_row['expectancy']:+.2f}%")
 print(f"-> Lợi nhuận cộng dồn: {best_row['net_return']:+.2f}%")
@@ -131,4 +138,4 @@ best_args = Namespace(
     buy_threshold=best_row["buy_threshold"]
 )
 cmd_seed(best_args)
-print("✅ Đã cập nhật Sổ lệnh chính thức với tham số tối ưu thành công!")
+print("✅ Đã cập nhật Sổ lệnh chính thức với tham số tối ưu khung điểm 40 - 50 thành công!")
