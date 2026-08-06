@@ -118,8 +118,14 @@ def test_dong_theo_nguyen_tac_khi_tin_hieu_dao_chieu():
     closed = j.evaluate_open("FPT", "2026-08-07", bar(100, 105, 98, 99),
                              current_score=40)
     assert closed[0]["reason"] == ExitReason.SIGNAL_REVERSED
-    assert closed[0]["exit_price"] == 99.0
-    print("PASS  đóng theo nguyên tắc khi agent đảo chiều")
+    # Chưa khớp ngay: tín hiệu chỉ biết sau khi đóng cửa -> chờ mở cửa phiên sau
+    assert closed[0]["exit_price"] is None and closed[0]["pending"] is True
+    assert j.open_position("FPT").status == Status.CLOSING
+
+    assert j.fill_closing("FPT", "2026-08-10", 97.5) == 1
+    t = j.all_trades(Status.CLOSED)[0]
+    assert t.exit_price == 97.5 and t.exit_date == "2026-08-10"
+    print("PASS  đảo chiều -> chờ khớp giá mở cửa phiên sau, không bán ở giá đóng cửa")
 
 
 def test_dong_khi_het_han_nam_giu():
@@ -128,7 +134,10 @@ def test_dong_khi_het_han_nam_giu():
     j.fill_pending("FPT", "2026-01-06", 100.0)
     closed = j.evaluate_open("FPT", "2026-05-06", bar(100, 105, 98, 103))
     assert closed[0]["reason"] == ExitReason.MAX_HOLD
-    print("PASS  đóng khi hết hạn nắm giữ")
+    assert closed[0]["pending"] is True
+    assert j.fill_closing("FPT", "2026-05-07", 102.0) == 1
+    assert j.all_trades(Status.CLOSED)[0].exit_price == 102.0
+    print("PASS  hết hạn nắm giữ -> cũng khớp ở giá mở cửa phiên sau")
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -262,6 +271,92 @@ def test_drawdown_va_profit_factor():
     assert perf.max_drawdown_pct > 0
     assert perf.profit_factor > 0
     print(f"PASS  {perf.summary()}")
+
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 6. Vòng chạy một phiên — thứ tự thao tác quyết định tính đúng
+# ─────────────────────────────────────────────────────────────────────
+def test_tin_hieu_hom_nay_khong_khop_trong_hom_nay():
+    """Bất biến của runner: tín hiệu phiên T không được khớp ở phiên T.
+
+    Nếu run_session gọi consider_entry TRƯỚC fill_pending thì lệnh sẽ khớp
+    ngay trong phiên có tín hiệu — nhìn trộm, và sổ đẹp lên có hệ thống.
+    """
+    import numpy as np
+    import pandas as pd
+
+    import paper_runner as pr
+
+    n = 120
+    close = 50_000 * np.power(1.003, np.arange(n))
+    df = pd.DataFrame({
+        "time": pd.bdate_range("2026-01-01", periods=n).strftime("%Y-%m-%d"),
+        "open": close * 0.999, "high": close * 1.006,
+        "low": close * 0.994, "close": close,
+        "volume": np.full(n, 2_000_000),
+    })
+
+    j = new_journal()
+    # Thay hệ chấm điểm bằng stub: test này kiểm tra THỨ TỰ THAO TÁC của
+    # runner, không phải chất lượng tín hiệu. Trộn hai thứ vào một test thì
+    # khi fail sẽ không biết cái nào hỏng.
+    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+        75, sl=float(hist["close"].iloc[-1]) * 0.9,
+        tp=float(hist["close"].iloc[-1]) * 1.5)
+
+    seen_entry_dates = []
+    for t in range(60, n):
+        row = df.iloc[t]
+        pr.run_session(j, "T", df.iloc[: t + 1],
+                       {"open": float(row["open"]), "high": float(row["high"]),
+                        "low": float(row["low"]), "close": float(row["close"])},
+                       str(row["time"]))
+        pos = j.open_position("T")
+        if pos and pos.entry_date:
+            seen_entry_dates.append((pos.signal_date, pos.entry_date))
+
+    assert seen_entry_dates, "không có lệnh nào được khớp"
+    for signal_date, entry_date in seen_entry_dates:
+        assert entry_date > signal_date, (
+            f"khớp ngày {entry_date} cho tín hiệu ngày {signal_date} — nhìn trộm")
+    print(f"PASS  {len(set(seen_entry_dates))} lệnh, mọi ngày khớp đều SAU ngày tín hiệu")
+
+
+def test_gia_vao_dung_bang_gia_mo_cua_phien_khop():
+    import numpy as np
+    import pandas as pd
+
+    import paper_runner as pr
+
+    n = 100
+    close = np.linspace(50_000, 70_000, n)
+    df = pd.DataFrame({
+        "time": pd.bdate_range("2026-01-01", periods=n).strftime("%Y-%m-%d"),
+        "open": close * 0.99, "high": close * 1.01,
+        "low": close * 0.98, "close": close,
+        "volume": np.full(n, 2_000_000),
+    })
+
+    j = new_journal()
+    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+        75, sl=float(hist["close"].iloc[-1]) * 0.5,
+        tp=float(hist["close"].iloc[-1]) * 5.0)
+
+    for t in range(60, n):
+        row = df.iloc[t]
+        pr.run_session(j, "T", df.iloc[: t + 1],
+                       {"open": float(row["open"]), "high": float(row["high"]),
+                        "low": float(row["low"]), "close": float(row["close"])},
+                       str(row["time"]))
+
+    opened = [t for t in j.all_trades() if t.entry_price is not None]
+    assert opened, "không có lệnh nào khớp"
+    for t in opened:
+        idx = list(df["time"]).index(t.entry_date)
+        assert abs(t.entry_price - float(df["open"].iloc[idx])) < 1e-6, (
+            f"giá vào {t.entry_price} khác giá mở cửa {df['open'].iloc[idx]}")
+    print(f"PASS  {len(opened)} lệnh, giá vào đúng bằng giá mở cửa phiên khớp")
 
 
 if __name__ == "__main__":

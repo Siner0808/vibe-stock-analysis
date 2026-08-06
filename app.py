@@ -491,12 +491,14 @@ if df is not None and not df.empty:
 st.divider()
 
 # ---- TABS ----
-tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_diagram, tab_chat = st.tabs([
+(tab_terminal, tab_main, tab_debate, tab_detail, tab_news,
+ tab_paper, tab_diagram, tab_chat) = st.tabs([
     "📊 Tổng quan Terminal",
     "🧠 Kết quả Multi-Agent 5 Tầng",
     "⚖️ Debate Council",
     "🔬 Chi tiết từng Agent",
     "📰 Tin tức & Sentiment",
+    "📒 Sổ lệnh Agent",
     "📐 Sơ đồ Pipeline",
     "💬 Trợ lý Chatbot AI"
 ])
@@ -916,6 +918,105 @@ with tab_news:
                 st.markdown(f"- {sig}")
 
 
+
+with tab_paper:
+    st.subheader("📒 Sổ lệnh Giấy của Agent")
+    st.caption("Ghi lại mọi quyết định của agent để kiểm chứng hiệu quả. "
+               "**Không đặt lệnh thật** — đây là sổ theo dõi, không phải "
+               "công cụ giao dịch.")
+
+    import pathlib as _pl
+
+    _db = _pl.Path(__file__).parent / "paper_trades.db"
+    if not _db.exists():
+        st.info(
+            "Sổ chưa có dữ liệu.\n\n"
+            "Nạp từ lịch sử:\n"
+            "```\npython3 backtest/run.py fetch\n"
+            "python3 paper_runner.py seed --buy-threshold 55\n```\n"
+            "Hoặc chạy từng phiên:\n"
+            "```\npython3 paper_runner.py daily --symbols FPT,HPG,VNM\n```"
+        )
+    else:
+        from paper_metrics import compute as _perf
+        from paper_trading import PaperTradingJournal as _PJ
+
+        _j = _PJ(str(_db))
+        _trades = _j.all_trades()
+        _closed = [t for t in _trades if t.status == "CLOSED"]
+        _perf_res = _perf(_trades)
+
+        if _perf_res is None:
+            st.warning(f"Có {len(_trades)} lệnh nhưng chưa lệnh nào đóng.")
+        else:
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Lệnh đã đóng", f"{_perf_res.n_trades}")
+            c2.metric("Tỷ lệ thắng", f"{_perf_res.win_rate:.0%}")
+            c3.metric("Kỳ vọng/lệnh", f"{_perf_res.expectancy:+.2f}%",
+                      help="Đã trừ phí môi giới hai chiều và thuế bán")
+            c4.metric("Sụt giảm tối đa", f"{_perf_res.max_drawdown_pct:.1f}%")
+
+            from paper_metrics import expectancy_significant as _sig
+            _s = _sig(_trades)
+            if _s["expectancy"] is None:
+                st.warning(f"⚠️ {_s['verdict']}")
+            elif _s["significant"]:
+                st.success(f"✅ {_s['verdict']} — kỳ vọng {_s['expectancy']:+.2f}% "
+                           f"[KTC 95%: {_s['ci'][0]:+.2f}%, {_s['ci'][1]:+.2f}%]")
+            else:
+                st.warning(
+                    f"⚠️ {_s['verdict']}\n\n"
+                    f"Kỳ vọng {_s['expectancy']:+.2f}% nhưng khoảng tin cậy "
+                    f"[{_s['ci'][0]:+.2f}%, {_s['ci'][1]:+.2f}%] chứa 0 — "
+                    "chưa kết luận được gì. Cần thêm mẫu.")
+
+            st.markdown("##### Lý do đóng lệnh")
+            _labels = {"STOP_LOSS": "Chạm cắt lỗ", "TAKE_PROFIT": "Chạm chốt lời",
+                       "SIGNAL_REVERSED": "Tín hiệu đảo chiều",
+                       "MAX_HOLD": "Hết hạn nắm giữ"}
+            _rows = [{"Lý do": _labels.get(k, k), "Số lệnh": v,
+                      "Tỷ lệ": f"{v / _perf_res.n_trades:.0%}"}
+                     for k, v in sorted(_perf_res.by_exit_reason.items(),
+                                        key=lambda x: -x[1])]
+            st.dataframe(pd.DataFrame(_rows), use_container_width=True,
+                         hide_index=True)
+
+        _open = [t for t in _trades if t.status in ("OPEN", "PENDING", "CLOSING")]
+        if _open:
+            st.markdown("##### Vị thế đang mở")
+            st.dataframe(pd.DataFrame([{
+                "Mã": t.symbol, "Trạng thái": t.status,
+                "Ngày tín hiệu": t.signal_date, "Ngày vào": t.entry_date or "—",
+                "Giá vào": f"{t.entry_price:,.0f}" if t.entry_price else "—",
+                "Cắt lỗ": f"{t.stop_loss:,.0f}",
+                "Chốt lời": f"{t.take_profit:,.0f}",
+                "Điểm vào": t.entry_score,
+            } for t in _open]), use_container_width=True, hide_index=True)
+
+        if _closed:
+            st.markdown("##### Lệnh gần nhất")
+            st.dataframe(pd.DataFrame([{
+                "Mã": t.symbol, "Vào": t.entry_date, "Ra": t.exit_date,
+                "Giá vào": f"{t.entry_price:,.0f}",
+                "Giá ra": f"{t.exit_price:,.0f}",
+                "Lý do": _labels.get(t.exit_reason, t.exit_reason),
+                "Lãi/lỗ sau phí": f"{t.net_return_pct():+.2f}%",
+                "Điểm vào": t.entry_score,
+            } for t in _closed[-25:][::-1]]), use_container_width=True,
+                hide_index=True)
+
+        _skipped = _j.decisions(acted=False)
+        _all = _j.decisions()
+        st.caption(
+            f"Đã ghi {len(_all):,} quyết định — vào lệnh {len(_all) - len(_skipped):,}, "
+            f"bỏ qua {len(_skipped):,}. Ghi cả quyết định không vào lệnh để sổ "
+            "không bị thiên lệch chọn mẫu."
+        )
+        st.info(
+            "ℹ️ Sổ này chỉ đo **tín hiệu**. Giao dịch thật còn có trượt giá, "
+            "khớp một phần và tâm lý — kết quả thực tế sẽ thấp hơn. "
+            "Dưới ~100 lệnh, mọi kết luận đều mong manh."
+        )
 
 with tab_diagram:
     st.subheader("📐 Sơ đồ Kiến trúc System & Luồng Vận hành Multi-Agent")

@@ -55,8 +55,9 @@ SELL_TAX_PCT = 0.001        # 0,1% thuế trên giá trị bán
 
 
 class Status:
-    PENDING = "PENDING"     # đã có tín hiệu, chờ giá mở cửa phiên sau
+    PENDING = "PENDING"     # đã có tín hiệu vào, chờ giá mở cửa phiên sau
     OPEN = "OPEN"
+    CLOSING = "CLOSING"     # đã có tín hiệu ra, chờ giá mở cửa phiên sau
     CLOSED = "CLOSED"
 
 
@@ -142,7 +143,8 @@ class PaperTradingJournal:
 
     # ─────────────────── Mở lệnh ──────────────────────────────────────
     def consider_entry(self, symbol: str, signal_date: str, result: dict,
-                       exchange: str = "HOSE") -> Optional[int]:
+                       exchange: str = "HOSE",
+                       buy_threshold: float | None = None) -> Optional[int]:
         """Xét mở lệnh theo ngưỡng. Trả id lệnh, hoặc None kèm lý do đã ghi sổ.
 
         Lệnh ở trạng thái PENDING: giá vào lấy ở phiên SAU, không phải phiên
@@ -150,12 +152,13 @@ class PaperTradingJournal:
         """
         score = int(result.get("final_score", 0))
         quality = result.get("data_quality", "")
+        threshold = BUY_THRESHOLD if buy_threshold is None else buy_threshold
 
         skip = None
         if quality != "OK":
             skip = f"chất lượng dữ liệu {quality!r}"
-        elif score < BUY_THRESHOLD:
-            skip = f"điểm {score} dưới ngưỡng {BUY_THRESHOLD}"
+        elif score < threshold:
+            skip = f"điểm {score} dưới ngưỡng {threshold:g}"
         elif self.open_position(symbol) is not None:
             skip = "đã có vị thế đang mở"
         else:
@@ -227,14 +230,11 @@ class PaperTradingJournal:
             sl, tp = float(r["stop_loss"]), float(r["take_profit"])
             reason = price = None
 
+            # SL/TP là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
             if low <= sl:
                 reason, price = ExitReason.STOP_LOSS, sl
             elif high >= tp:
                 reason, price = ExitReason.TAKE_PROFIT, tp
-            elif current_score is not None and current_score < EXIT_SIGNAL_THRESHOLD:
-                reason, price = ExitReason.SIGNAL_REVERSED, float(bar["close"])
-            elif self._sessions_held(r["entry_date"], session_date) >= MAX_HOLD_SESSIONS:
-                reason, price = ExitReason.MAX_HOLD, float(bar["close"])
 
             if reason:
                 self.db.execute(
@@ -243,9 +243,42 @@ class PaperTradingJournal:
                     (session_date, price, reason, Status.CLOSED, r["id"]))
                 closed.append({"id": r["id"], "symbol": symbol,
                                "reason": reason, "exit_price": price})
+                continue
+
+            # Thoát theo TÍN HIỆU hoặc HẾT HẠN: chỉ biết được sau khi phiên
+            # đóng cửa, nên không thể bán ở chính giá đóng cửa đó. Đánh dấu
+            # CLOSING và khớp ở giá mở cửa phiên sau — đối xứng với lúc vào.
+            if current_score is not None and current_score < EXIT_SIGNAL_THRESHOLD:
+                reason = ExitReason.SIGNAL_REVERSED
+            elif self._sessions_held(r["entry_date"], session_date) >= MAX_HOLD_SESSIONS:
+                reason = ExitReason.MAX_HOLD
+
+            if reason:
+                self.db.execute(
+                    "UPDATE trades SET exit_reason=?, status=? WHERE id=?",
+                    (reason, Status.CLOSING, r["id"]))
+                closed.append({"id": r["id"], "symbol": symbol,
+                               "reason": reason, "exit_price": None,
+                               "pending": True})
         if closed:
             self.db.commit()
         return closed
+
+    def fill_closing(self, symbol: str, session_date: str,
+                     open_price: float) -> int:
+        """Khớp các lệnh CLOSING ở giá mở cửa phiên sau khi có tín hiệu ra."""
+        rows = self.db.execute(
+            "SELECT id, entry_date FROM trades WHERE symbol=? AND status=?",
+            (symbol, Status.CLOSING)).fetchall()
+        filled = 0
+        for r in rows:
+            self.db.execute(
+                "UPDATE trades SET exit_date=?, exit_price=?, status=?"
+                " WHERE id=?",
+                (session_date, float(open_price), Status.CLOSED, r["id"]))
+            filled += 1
+        self.db.commit()
+        return filled
 
     @staticmethod
     def _sessions_held(entry_date: str, session_date: str) -> int:
@@ -261,8 +294,8 @@ class PaperTradingJournal:
     # ─────────────────── Truy vấn ─────────────────────────────────────
     def open_position(self, symbol: str) -> Optional[Trade]:
         r = self.db.execute(
-            "SELECT * FROM trades WHERE symbol=? AND status IN (?,?) LIMIT 1",
-            (symbol, Status.OPEN, Status.PENDING)).fetchone()
+            "SELECT * FROM trades WHERE symbol=? AND status IN (?,?,?) LIMIT 1",
+            (symbol, Status.OPEN, Status.PENDING, Status.CLOSING)).fetchone()
         return self._to_trade(r) if r else None
 
     def all_trades(self, status: str | None = None) -> list[Trade]:
