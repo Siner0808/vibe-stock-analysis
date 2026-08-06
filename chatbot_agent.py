@@ -192,17 +192,16 @@ NHIỆM VỤ CỦA BẠN:
 - 📊 Volume: `{breakdown.get('volume_score', 50)}/100` | 📍 S&R: `{breakdown.get('sr_score', 50)}/100`
 - 🛡️ Risk: `{breakdown.get('risk_score', 50)}/100` | 📰 News: `{breakdown.get('news_score', 50)}/100`
 """
-        elif any(w in prompt_lower for w in ["stop-loss", "stop loss", "cắt lỗ", "cat lo", "chốt lời", "chot loi", "vốn", "von", "vào lệnh", "vung gia", "gia mua", "mua"]):
-            risk_recs = analyses.get("risk", {}).get("recommendations", {})
-            entry_p = risk_recs.get("entry_price") or 0
-            entry_str = f"`{entry_p:,.0f} VNĐ`" if entry_p else "`Giá tham chiếu hiện tại`"
+            tp2_p = risk_recs.get("tp2_price") or 0
+            tp2_str = f"| TP2 (Gồng lãi): `{tp2_p:,.0f} VNĐ` (`+{risk_recs.get('tp2_pct', 20.0)}%`)" if tp2_p else ""
             return f"""
-🛡️ **[Multi-Agent Internal Engine] Quản trị Rủi ro & Đi vốn cho [{symbol}]:**
+🛡️ **[Multi-Agent Internal Engine] Quản trị Rủi ro & Chốt lời 2 Tầng cho [{symbol}]:**
 
-1. 🎯 **Giá vào lệnh (Entry Price):** {entry_str} (Vùng mua đề xuất: `{risk_recs.get('entry_range', 'N/A')} VNĐ`).
-2. 🛑 **Hard Stop-Loss (Cắt lỗ kỷ luật):** `{risk_recs.get('stop_loss_price', 0):,.0f} VNĐ` (`-{risk_recs.get('stop_loss_pct', 7.0)}%`).
-3. 🎯 **Take-Profit (Chốt lời mục tiêu):** `{risk_recs.get('take_profit_price', 0):,.0f} VNĐ` (`+{risk_recs.get('take_profit_pct', 15.0)}%`).
-4. 💰 **Tỷ lệ Đi vốn an toàn:** Max **`{risk_recs.get('suggested_position_size_pct', 15.0)}%`** danh mục.
+1. 🎯 **Giá vào lệnh (Entry Price):** {entry_str} (Vùng mua: `{risk_recs.get('entry_range', 'N/A')} VNĐ`).
+2. 🛑 **Hard Stop-Loss (Cắt lỗ ATR):** `{risk_recs.get('stop_loss_price', 0):,.0f} VNĐ` (`-{risk_recs.get('stop_loss_pct', 5.0)}%`).
+3. 🎯 **Take-Profit TP1 (Chốt 50% vốn):** `{risk_recs.get('take_profit_price', 0):,.0f} VNĐ` (`+{risk_recs.get('take_profit_pct', 10.0)}%`).
+4. 🚀 **Trailing Stop (Gồng 50% còn lại):** {tp2_str} (Nâng SL hòa vốn khi qua TP1).
+5. 💰 **Tỷ lệ Đi vốn an toàn:** Max **`{risk_recs.get('suggested_position_size_pct', 15.0)}%`** danh mục.
 """
         else:
             return f"""
