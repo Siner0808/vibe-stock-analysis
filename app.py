@@ -1005,6 +1005,51 @@ with tab_paper:
             } for t in _closed[-25:][::-1]]), use_container_width=True,
                 hide_index=True)
 
+        # ── Xem lại từng quyết định trên biểu đồ ──────────────────────
+        if _closed:
+            st.divider()
+            st.markdown("##### 🔍 Xem lại quyết định trên biểu đồ")
+            st.caption("Vùng mờ bên phải là phần agent **chưa biết** khi ra "
+                       "quyết định. Che nó đi mới đánh giá được: với thông tin "
+                       "có lúc đó, quyết định này có hợp lý không?")
+
+            _opts = {
+                f"{t.symbol} · {t.signal_date} · {t.net_return_pct():+.2f}% "
+                f"({t.exit_reason})": t
+                for t in _closed[::-1][:100]
+            }
+            _pick = st.selectbox("Chọn lệnh", list(_opts.keys()))
+            _t = _opts[_pick]
+
+            try:
+                from backtest import data as _btd
+                _price_df = _btd.load(_t.symbol)
+            except Exception:
+                _price_df = None
+
+            if _price_df is None:
+                st.info(f"ℹ️ Chưa có dữ liệu giá của {_t.symbol} trong cache. "
+                        f"Chạy `python3 backtest/run.py fetch` để tải về.")
+            else:
+                import trade_review as _tr
+                st.plotly_chart(_tr.build_figure(_price_df, _t),
+                                use_container_width=True)
+                st.caption(f"**Kết cục:** {_tr.outcome_summary(_t)}")
+
+                _ctx = _tr.decision_context(_j, _t)
+                if _ctx:
+                    _c1, _c2 = st.columns([1, 2])
+                    with _c1:
+                        st.markdown("**Điểm lúc quyết định**")
+                        st.metric("Tổng", _ctx["score"])
+                        for _k, _v in (_ctx.get("components") or {}).items():
+                            if _k.endswith("_score"):
+                                st.caption(f"{_k.replace('_score','')}: {_v}")
+                    with _c2:
+                        st.markdown("**Lý do agent đưa ra lúc đó**")
+                        for _r in (_ctx.get("reasons") or [])[:8]:
+                            st.caption(f"• {_r}")
+
         _skipped = _j.decisions(acted=False)
         _all = _j.decisions()
         st.caption(
