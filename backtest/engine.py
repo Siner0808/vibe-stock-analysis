@@ -38,6 +38,13 @@ BULLISH = ("MUA MẠNH", "MUA")
 BEARISH = ("BÁN MẠNH", "BÁN")
 
 
+# Điểm thành phần cần theo dõi riêng. Đo cả hệ thống chỉ cho MỘT con số —
+# nếu nó bằng 0 thì không biết vì sao. Đo từng thành phần mới biết cái nào
+# có tín hiệu, cái nào là nhiễu, và đó mới là thứ hành động được.
+COMPONENTS = ("trend_score", "momentum_score", "volume_score",
+              "sr_score", "risk_score", "news_score")
+
+
 @dataclass
 class Observation:
     """Một quan sát: hệ thống nói gì tại ngày T, và sau đó giá đi thế nào."""
@@ -46,6 +53,7 @@ class Observation:
     score: int
     recommendation: str
     bucket: str                       # MUA MẠNH / MUA / NẮM GIỮ / BÁN / BÁN MẠNH
+    components: dict[str, float] = field(default_factory=dict)
     fwd_return: dict[int, float] = field(default_factory=dict)   # horizon -> %
     excess_return: dict[int, float] = field(default_factory=dict)
 
@@ -84,12 +92,15 @@ def run_symbol(symbol: str, df: pd.DataFrame, *,
         except Exception:
             continue
 
+        breakdown = result.get("score_breakdown", {}) or {}
         o = Observation(
             symbol=symbol,
             date=str(df["time"].iloc[t]),
             score=int(result["final_score"]),
             recommendation=result["recommendation"],
             bucket=_bucket(result["recommendation"]),
+            components={k: float(breakdown[k]) for k in COMPONENTS
+                        if isinstance(breakdown.get(k), (int, float))},
         )
         p0 = close[t]
         if p0 <= 0:
@@ -138,6 +149,7 @@ def to_frame(obs: list[Observation], horizons: tuple[int, ...] = (20, 60)) -> pd
     for o in obs:
         row = {"symbol": o.symbol, "date": o.date, "score": o.score,
                "bucket": o.bucket, "recommendation": o.recommendation}
+        row.update(o.components)
         for h in horizons:
             row[f"ret_{h}d"] = o.fwd_return.get(h)
             row[f"excess_{h}d"] = o.excess_return.get(h)

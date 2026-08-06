@@ -259,6 +259,75 @@ def test_canh_bao_khi_mot_phia_vang_mat():
     print("PASS  cảnh báo rõ khi thiếu một phía, không lọt NaN")
 
 
+
+def test_ghi_lai_diem_tung_thanh_phan():
+    """Backtest phải lưu điểm từng agent, không chỉ điểm tổng.
+
+    Điểm tổng cho một con số; nếu nó bằng 0 thì không biết vì sao. Phân rã
+    theo thành phần mới chỉ ra được cái nào mang tín hiệu, cái nào là nhiễu.
+    """
+    df = make_df(trending(200, 1.002))
+    obs = engine.run_symbol("T", df, horizons=(20,), min_history=60, stride=20)
+    assert obs, "không có quan sát nào"
+    assert obs[0].components, "không ghi lại điểm thành phần"
+    for key in ("trend_score", "momentum_score", "volume_score"):
+        assert key in obs[0].components, f"thiếu {key}"
+
+    frame = engine.to_frame(obs, (20,))
+    assert "trend_score" in frame.columns
+    print(f"PASS  ghi {len(obs[0].components)} điểm thành phần vào mỗi quan sát")
+
+
+def test_bang_phan_ra_khong_ket_luan_bua():
+    """Trên nhiễu thuần tuý, không thành phần nào được báo là 'CÓ tín hiệu'."""
+    rng = np.random.default_rng(5)
+    n = 300
+    data = {
+        "score": rng.integers(30, 70, n),
+        "trend_score": rng.integers(20, 80, n),
+        "momentum_score": rng.integers(20, 80, n),
+        "excess_20d": rng.normal(0, 6, n),
+    }
+    frame = pd.DataFrame(data)
+    table = report.component_table(frame, 20, "excess")
+    assert not table.empty
+    assert "CÓ tín hiệu" not in table["Kết luận"].tolist(), table.to_string()
+    print(f"PASS  phân rã trên nhiễu -> {len(table)} thành phần, "
+          "không cái nào bị kết luận có tín hiệu")
+
+
+def test_bang_phan_ra_bat_duoc_tin_hieu_that():
+    """Thành phần thực sự tương quan phải được nhận ra."""
+    rng = np.random.default_rng(6)
+    n = 300
+    signal = rng.normal(50, 15, n)
+    frame = pd.DataFrame({
+        "score": rng.integers(30, 70, n),
+        "trend_score": signal,
+        "excess_20d": signal * 0.3 + rng.normal(0, 4, n),   # tương quan thật
+    })
+    table = report.component_table(frame, 20, "excess")
+    row = table[table["Thành phần"] == "Xu hướng"].iloc[0]
+    assert row["Kết luận"] == "CÓ tín hiệu", table.to_string()
+    print(f"PASS  phân rã bắt được tín hiệu thật (rho={row['rho']})")
+
+
+def test_thanh_phan_khong_bien_thien_khong_bao_NaN():
+    """Thành phần hằng số phải báo 'không đủ biến thiên', không để lọt NaN."""
+    rng = np.random.default_rng(7)
+    n = 200
+    frame = pd.DataFrame({
+        "score": rng.integers(30, 70, n),
+        "news_score": [50.0] * n,              # hằng số
+        "excess_20d": rng.normal(0, 5, n),
+    })
+    table = report.component_table(frame, 20, "excess")
+    row = table[table["Thành phần"] == "Tin tức"].iloc[0]
+    assert row["rho"] == "—" and "không đủ biến thiên" in row["Kết luận"]
+    assert "nan" not in table.to_string().lower()
+    print("PASS  thành phần hằng số báo rõ, không lọt NaN")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]

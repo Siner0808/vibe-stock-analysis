@@ -94,6 +94,49 @@ def spearman_ci(xs: list[float], ys: list[float], iters: int = 2000,
             "significant": not (lo <= 0 <= hi)}
 
 
+COMPONENT_LABELS = {
+    "score": "ĐIỂM TỔNG",
+    "trend_score": "Xu hướng",
+    "momentum_score": "Động lượng",
+    "volume_score": "Khối lượng",
+    "sr_score": "Hỗ trợ/Kháng cự",
+    "risk_score": "Rủi ro",
+    "news_score": "Tin tức",
+}
+
+
+def component_table(df: pd.DataFrame, horizon: int, col: str = "excess") -> pd.DataFrame:
+    """Sức dự báo của TỪNG thành phần, không chỉ điểm tổng.
+
+    Điểm tổng cho một con số; nếu nó bằng 0 thì không biết vì sao. Bảng này
+    chỉ ra thành phần nào mang tín hiệu và thành phần nào là nhiễu — đó mới
+    là thứ hành động được (bỏ bớt, chứ không phải chỉnh trọng số mò).
+    """
+    field = f"{col}_{horizon}d"
+    if field not in df.columns:
+        return pd.DataFrame()
+
+    rows = []
+    for key, label in COMPONENT_LABELS.items():
+        if key not in df.columns:
+            continue
+        sub = df[[key, field]].dropna()
+        if len(sub) < 30:
+            continue
+        if sub[key].nunique() < 3:
+            rows.append({"Thành phần": label, "rho": "—", "KTC 95%": "—",
+                         "Kết luận": "không đủ biến thiên để đo"})
+            continue
+        sc = spearman_ci(sub[key].tolist(), sub[field].tolist())
+        rows.append({
+            "Thành phần": label,
+            "rho": f"{sc['rho']:+.3f}",
+            "KTC 95%": f"[{sc['ci'][0]:+.3f}, {sc['ci'][1]:+.3f}]",
+            "Kết luận": "CÓ tín hiệu" if sc["significant"] else "không có bằng chứng",
+        })
+    return pd.DataFrame(rows)
+
+
 def score_quantile_table(df: pd.DataFrame, horizon: int, col: str = "ret",
                          q: int = 5) -> pd.DataFrame:
     """Chia quan sát theo NGŨ PHÂN VỊ ĐIỂM, xem lợi nhuận từng nhóm.
@@ -261,6 +304,27 @@ def summarize(df: pd.DataFrame, horizons: tuple[int, ...] = (20, 60)) -> str:
                 add(f"  Tương quan hạng điểm↔lợi nhuận: rho = {sc['rho']:+.3f}  "
                     f"[KTC 95%: {sc['ci'][0]:+.3f}, {sc['ci'][1]:+.3f}]")
                 add(f"     → {'CÓ quan hệ có ý nghĩa' if sc['significant'] else 'KHÔNG có bằng chứng điểm dự báo được lợi nhuận'}")
+
+    # ── Phân rã theo thành phần ───────────────────────────────────────
+    for h in horizons:
+        ct = component_table(df, h, "excess")
+        if ct.empty:
+            continue
+        add("")
+        add("─" * 68)
+        add(f"SỨC DỰ BÁO TỪNG THÀNH PHẦN — lợi nhuận vượt thị trường, {h} phiên")
+        add("─" * 68)
+        add(ct.to_string(index=False))
+        signal = ct[ct["Kết luận"] == "CÓ tín hiệu"]["Thành phần"].tolist()
+        add("")
+        if signal:
+            add(f"  → Có tín hiệu: {', '.join(signal)}")
+            add("    Các thành phần còn lại chưa chứng minh được giá trị. Cân nhắc")
+            add("    giảm trọng số hoặc bỏ, thay vì thêm chỉ báo mới.")
+        else:
+            add("  → KHÔNG thành phần nào có tín hiệu có ý nghĩa thống kê.")
+            add("    Chỉnh trọng số sẽ không cứu được: vấn đề nằm ở bản thân các")
+            add("    chỉ báo trên khung thời gian này, không phải ở cách tổng hợp.")
 
     add("")
     add("=" * 68)
