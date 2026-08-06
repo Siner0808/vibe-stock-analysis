@@ -13,3 +13,6 @@ __pycache__/
 # Backtest: cache du lieu va ket qua chay
 backtest/cache/
 backtest/results/
+
+# Sổ lệnh giấy — dữ liệu chạy, không commit
+paper_trades.db
