@@ -811,9 +811,11 @@ with tab_detail:
                 if key == "risk" and "recommendations" in data:
                     rec = data["recommendations"]
                     st.divider()
-                    r1, r2, r3 = st.columns(3)
-                    r1.metric("Stop-loss", f"{rec['stop_loss_price']:,.2f} VNĐ", f"-{rec['stop_loss_pct']}%", delta_color="inverse")
-                    r2.metric("Take-profit", f"{rec['take_profit_price']:,.2f} VNĐ", f"+{rec['take_profit_pct']}%")
+                    r0, r1, r2, r3 = st.columns(4)
+                    entry_p = rec.get("entry_price", 0)
+                    r0.metric("Giá vào lệnh", f"{entry_p:,.0f} VNĐ" if entry_p else "—", "Vùng mua đề xuất")
+                    r1.metric("Stop-loss", f"{rec['stop_loss_price']:,.0f} VNĐ", f"-{rec['stop_loss_pct']}%", delta_color="inverse")
+                    r2.metric("Take-profit", f"{rec['take_profit_price']:,.0f} VNĐ", f"+{rec['take_profit_pct']}%")
                     r3.metric("Phân bổ vốn", f"{rec['suggested_position_size_pct']}%", f"RR {rec['risk_reward_ratio']}")
                 if key == "sr" and "levels" in data:
                     lvl = data["levels"]

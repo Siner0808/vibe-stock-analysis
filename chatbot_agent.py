@@ -146,7 +146,7 @@ DỮ LIỆU DEBATE COUNCIL & SAFETY HARNESS:
 - Kết quả Tranh luận Khẩn cấp: Bull Score ({debate.get('bull_score', 0)}), Bear Score ({debate.get('bear_score', 0)}), Tóm tắt: "{debate.get('verdict_summary', '')}"
 - Rủi ro lớn nhất: {json.dumps(debate.get('key_risks', []), ensure_ascii=False)}
 - Cơ hội lớn nhất: {json.dumps(debate.get('key_opportunities', []), ensure_ascii=False)}
-- Dữ liệu Quản trị rủi ro ATR: Stop-loss price ({analyses.get('risk', {}).get('recommendations', {}).get('stop_loss_price', 'N/A')}), Position Sizing ({analyses.get('risk', {}).get('recommendations', {}).get('suggested_position_size_pct', 15)}%).
+- Dữ liệu Quản trị rủi ro ATR: Entry price ({analyses.get('risk', {}).get('recommendations', {}).get('entry_price', 'N/A')}), Stop-loss price ({analyses.get('risk', {}).get('recommendations', {}).get('stop_loss_price', 'N/A')}), Take-profit price ({analyses.get('risk', {}).get('recommendations', {}).get('take_profit_price', 'N/A')}), Position Sizing ({analyses.get('risk', {}).get('recommendations', {}).get('suggested_position_size_pct', 15)}%).
 
 NHIỆM VỤ CỦA BẠN:
 1. Trả lời câu hỏi của nhà đầu tư một cách sắc bén, súc tích (khoảng 300 - 450 từ), khách quan và khoa học dựa trên dữ liệu 5 Tầng trên.
@@ -192,14 +192,17 @@ NHIỆM VỤ CỦA BẠN:
 - 📊 Volume: `{breakdown.get('volume_score', 50)}/100` | 📍 S&R: `{breakdown.get('sr_score', 50)}/100`
 - 🛡️ Risk: `{breakdown.get('risk_score', 50)}/100` | 📰 News: `{breakdown.get('news_score', 50)}/100`
 """
-        elif any(w in prompt_lower for w in ["stop-loss", "stop loss", "cắt lỗ", "cat lo", "chốt lời", "chot loi", "vốn", "von"]):
+        elif any(w in prompt_lower for w in ["stop-loss", "stop loss", "cắt lỗ", "cat lo", "chốt lời", "chot loi", "vốn", "von", "vào lệnh", "vung gia", "gia mua", "mua"]):
             risk_recs = analyses.get("risk", {}).get("recommendations", {})
+            entry_p = risk_recs.get("entry_price") or 0
+            entry_str = f"`{entry_p:,.0f} VNĐ`" if entry_p else "`Giá tham chiếu hiện tại`"
             return f"""
 🛡️ **[Multi-Agent Internal Engine] Quản trị Rủi ro & Đi vốn cho [{symbol}]:**
 
-1. 🛑 **Hard Stop-Loss (Cắt lỗ kỷ luật):** `{risk_recs.get('stop_loss_price', 0):,.2f} VNĐ` (`-{risk_recs.get('stop_loss_pct', 7.0)}%`).
-2. 🎯 **Take-Profit (Chốt lời mục tiêu):** `{risk_recs.get('take_profit_price', 0):,.2f} VNĐ` (`+{risk_recs.get('take_profit_pct', 15.0)}%`).
-3. 💰 **Tỷ lệ Đi vốn an toàn:** Max **`{risk_recs.get('suggested_position_size_pct', 15.0)}%`** danh mục.
+1. 🎯 **Giá vào lệnh (Entry Price):** {entry_str} (Vùng mua đề xuất: `{risk_recs.get('entry_range', 'N/A')} VNĐ`).
+2. 🛑 **Hard Stop-Loss (Cắt lỗ kỷ luật):** `{risk_recs.get('stop_loss_price', 0):,.0f} VNĐ` (`-{risk_recs.get('stop_loss_pct', 7.0)}%`).
+3. 🎯 **Take-Profit (Chốt lời mục tiêu):** `{risk_recs.get('take_profit_price', 0):,.0f} VNĐ` (`+{risk_recs.get('take_profit_pct', 15.0)}%`).
+4. 💰 **Tỷ lệ Đi vốn an toàn:** Max **`{risk_recs.get('suggested_position_size_pct', 15.0)}%`** danh mục.
 """
         else:
             return f"""

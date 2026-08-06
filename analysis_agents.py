@@ -473,6 +473,8 @@ class RiskManagementAgent:
             "atr_pct": round(sl_fraction * 50, 2),
         }
         result["recommendations"] = {
+            "entry_price": round(last_close_vnd, 0),
+            "entry_range": f"{round(last_close_vnd * 0.995, 0):,.0f} - {round(last_close_vnd * 1.005, 0):,.0f}",
             "stop_loss_price": round(stop_loss_price, 0),
             "stop_loss_pct": round(sl_fraction * 100, 1),
             "take_profit_price": round(take_profit_price, 0),

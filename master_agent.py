@@ -153,9 +153,12 @@ class MasterConsensusAgent:
         ]
         if risk_res.get("recommendations"):
             rec = risk_res["recommendations"]
+            entry_p = rec.get("entry_price", 0)
+            entry_str = f"Vào lệnh={entry_p:,.0f} VNĐ | " if entry_p else ""
             key_reasons.append(
-                f"💰 SL={rec['stop_loss_price']:,.2f} VNĐ (-{rec['stop_loss_pct']}%) | "
-                f"TP={rec['take_profit_price']:,.2f} VNĐ (+{rec['take_profit_pct']}%) | "
+                f"🎯 {entry_str}"
+                f"SL={rec['stop_loss_price']:,.0f} VNĐ (-{rec['stop_loss_pct']}%) | "
+                f"TP={rec['take_profit_price']:,.0f} VNĐ (+{rec['take_profit_pct']}%) | "
                 f"RR={rec['risk_reward_ratio']} | "
                 f"Vốn tối đa (sau Harness): {safety['safe_position_size']}%"
             )
