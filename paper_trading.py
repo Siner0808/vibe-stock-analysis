@@ -155,7 +155,15 @@ class PaperTradingJournal:
         threshold = BUY_THRESHOLD if buy_threshold is None else buy_threshold
 
         skip = None
-        if quality != "OK":
+        try:
+            from market_filter import is_vni_bullish
+            vni_ok = is_vni_bullish(signal_date)
+        except Exception:
+            vni_ok = True
+
+        if not vni_ok:
+            skip = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"
+        elif quality != "OK":
             skip = f"chất lượng dữ liệu {quality!r}"
         elif score < threshold:
             skip = f"điểm {score} dưới ngưỡng {threshold:g}"
