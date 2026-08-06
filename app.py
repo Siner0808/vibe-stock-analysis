@@ -1029,12 +1029,14 @@ with tab_paper:
             try:
                 from backtest import data as _btd
                 _price_df = _btd.load(_t.symbol)
+                if _price_df is None or _price_df.empty:
+                    _end_d = now_vn().strftime("%Y-%m-%d")
+                    _price_df = _btd.fetch_one(_t.symbol, "2024-01-01", _end_d)
             except Exception:
                 _price_df = None
 
-            if _price_df is None:
-                st.info(f"ℹ️ Chưa có dữ liệu giá của {_t.symbol} trong cache. "
-                        f"Chạy `python3 backtest/run.py fetch` để tải về.")
+            if _price_df is None or _price_df.empty:
+                st.warning(f"⚠️ Chưa có dữ liệu giá của {_t.symbol}. Đang kết nối lại nguồn dữ liệu...")
             else:
                 import trade_review as _tr
                 st.plotly_chart(_tr.build_figure(_price_df, _t),
