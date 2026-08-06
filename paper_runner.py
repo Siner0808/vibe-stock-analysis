@@ -135,6 +135,39 @@ def cmd_daily(args) -> int:
     return 0
 
 
+def build_benchmark(trades, dataset: dict) -> dict:
+    """Lợi nhuận của rổ ĐỀU TRỌNG SỐ trong đúng khoảng thời gian mỗi lệnh.
+
+    Vì sao dùng rổ thay vì VN-INDEX: câu hỏi cần trả lời là "chọn ĐÚNG mã,
+    ĐÚNG lúc có hơn việc cầm đều tất cả không?". Rổ đều trọng số cô lập
+    được kỹ năng chọn mã; VN-INDEX còn lẫn cả khác biệt về thành phần và
+    tỷ trọng vốn hoá. Rổ cũng tính được offline từ cache sẵn có.
+    """
+    if not dataset:
+        return {}
+    closes = {}
+    for sym, df in dataset.items():
+        s = df.set_index(df["time"].astype(str))["close"].astype(float)
+        closes[sym] = s[~s.index.duplicated(keep="last")]
+
+    bench: dict[tuple[str, str], float] = {}
+    for t in trades:
+        if t.status != "CLOSED" or not t.entry_date or not t.exit_date:
+            continue
+        key = (t.entry_date, t.exit_date)
+        if key in bench:
+            continue
+        rets = []
+        for s in closes.values():
+            if key[0] in s.index and key[1] in s.index:
+                a, b = float(s[key[0]]), float(s[key[1]])
+                if a > 0:
+                    rets.append((b - a) / a * 100)
+        if rets:
+            bench[key] = sum(rets) / len(rets)
+    return bench
+
+
 # ─────────────────────────────── report ──────────────────────────────
 def cmd_report(args) -> int:
     journal = PaperTradingJournal(args.db)
@@ -143,7 +176,16 @@ def cmd_report(args) -> int:
         print("Sổ trống. Chạy `seed` hoặc `daily` trước.")
         return 1
 
-    print(build_report(trades))
+    bench = None
+    if not args.no_benchmark:
+        try:
+            from backtest import data as bt_data
+            syms = args.symbols.split(",") if args.symbols else None
+            bench = build_benchmark(trades, bt_data.load_all(syms)) or None
+        except Exception:
+            bench = None
+
+    print(build_report(trades, bench))
 
     decisions = journal.decisions()
     skipped = journal.decisions(acted=False)
@@ -185,6 +227,9 @@ def main() -> int:
     d.set_defaults(func=cmd_daily)
 
     r = sub.add_parser("report", help="Báo cáo hiệu quả")
+    r.add_argument("--symbols", help="Rổ dùng làm chuẩn đối chiếu")
+    r.add_argument("--no-benchmark", action="store_true", dest="no_benchmark",
+                   help="Bỏ đối chiếu chuẩn (không khuyến khích)")
     r.set_defaults(func=cmd_report)
 
     args = p.parse_args()

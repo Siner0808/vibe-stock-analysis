@@ -247,9 +247,9 @@ def test_ky_vong_duong_ro_rang_thi_ket_luan_duoc():
     print(f"PASS  120 lệnh lãi rõ -> {r['verdict']}")
 
 
-def test_bao_cao_canh_bao_khi_thieu_doi_chieu_chi_so():
+def test_bao_cao_canh_bao_khi_thieu_doi_chieu_chuan():
     text = pm.report(_closed_trades([5, -3, 8, -2, 6, 1, -4, 9, 2, -1, 3, 7]))
-    assert "Chưa có đối chiếu với chỉ số" in text
+    assert "Chưa có đối chiếu chuẩn" in text
     assert "phí" in text
     print("PASS  báo cáo cảnh báo rõ khi thiếu đối chiếu chỉ số")
 
@@ -260,7 +260,7 @@ def test_so_voi_chi_so_bat_duoc_thua_thi_truong():
     bench = {("2026-01-02", "2026-02-02"): 12.0}
     r = pm.vs_benchmark(trades, bench)
     assert r["alpha"] < 0 and r["significant"]
-    assert "THUA" in r["verdict"]
+    assert "THUA chuẩn" in r["verdict"]
     print(f"PASS  lãi 8% khi chỉ số +12% -> {r['verdict']} ({r['alpha']:+.2f}%)")
 
 

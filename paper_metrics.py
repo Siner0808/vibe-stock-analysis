@@ -6,7 +6,7 @@ Chấm điểm sổ lệnh giấy.
 Câu hỏi phải trả lời, theo thứ tự khắt khe dần:
   1. Kỳ vọng mỗi lệnh có dương không? (sau phí)
   2. Con số đó có vượt được ngẫu nhiên không?
-  3. Có hơn việc chỉ mua và giữ chỉ số không?
+  3. Có hơn việc chỉ cầm đều cả rổ không?
 
 Câu 3 là câu quyết định. Lãi 8% khi VN-INDEX tăng 12% là THUA — và đây
 đúng là cái bẫy đã gặp ở backtest: thị trường tăng làm mọi thứ trông đẹp.
@@ -111,9 +111,9 @@ def expectancy_significant(trades: list[Trade], iters: int = 5000,
 
 def vs_benchmark(trades: list[Trade],
                  benchmark_return_by_period: dict[tuple[str, str], float]) -> dict:
-    """So từng lệnh với việc nắm chỉ số trong CÙNG khoảng thời gian.
+    """So từng lệnh với việc cầm CHUẨN trong CÙNG khoảng thời gian.
 
-    benchmark_return_by_period: {(ngày_vào, ngày_ra): % thay đổi chỉ số}
+    benchmark_return_by_period: {(ngày_vào, ngày_ra): % thay đổi của chuẩn}
 
     Đây là phép đo quyết định. Không có nó, một thị trường tăng sẽ khiến
     mọi hệ thống trông như thiên tài.
@@ -144,9 +144,9 @@ def vs_benchmark(trades: list[Trade],
         "alpha": statistics.mean(diffs),
         "ci": (lo, hi),
         "significant": not (lo <= 0 <= hi),
-        "verdict": ("VƯỢT chỉ số có ý nghĩa" if lo > 0 else
-                    "THUA chỉ số có ý nghĩa" if hi < 0 else
-                    "không khác chỉ số một cách có ý nghĩa"),
+        "verdict": ("VƯỢT chuẩn có ý nghĩa" if lo > 0 else
+                    "THUA chuẩn có ý nghĩa" if hi < 0 else
+                    "không khác chuẩn một cách có ý nghĩa"),
     }
 
 
@@ -193,13 +193,13 @@ def report(trades: list[Trade],
         b = vs_benchmark(trades, benchmark)
         add("")
         if b.get("alpha") is not None:
-            add(f"So với nắm chỉ số cùng kỳ: {b['alpha']:+.2f}%/lệnh  "
+            add(f"So với cầm đều cả rổ cùng kỳ: {b['alpha']:+.2f}%/lệnh  "
                 f"[{b['ci'][0]:+.2f}%, {b['ci'][1]:+.2f}%]")
         add(f"  → {b['verdict']}")
     else:
         add("")
-        add("⚠️ Chưa có đối chiếu với chỉ số. Con số ở trên KHÔNG nói lên")
-        add("   được gì cho tới khi biết thị trường chung đi thế nào cùng kỳ.")
+        add("⚠️ Chưa có đối chiếu chuẩn. Con số ở trên KHÔNG nói lên được gì")
+        add("   cho tới khi biết thị trường chung đi thế nào trong cùng kỳ.")
 
     add("")
     add("=" * 64)
@@ -207,7 +207,7 @@ def report(trades: list[Trade],
     add("=" * 64)
     add("• Dưới ~100 lệnh, mọi kết luận đều mong manh. Kiên nhẫn.")
     add("• Kỳ vọng dương mà khoảng tin cậy chứa 0 = chưa biết gì.")
-    add("• Chỉ so với chỉ số mới tách được kỹ năng khỏi xu hướng chung.")
+    add("• Chỉ so với chuẩn mới tách được kỹ năng chọn mã khỏi xu hướng chung.")
     add("• Sổ này chỉ đo TÍN HIỆU. Giao dịch thật còn có trượt giá, khớp")
     add("  một phần và tâm lý — kết quả thực tế sẽ thấp hơn.")
     return "\n".join(out)
