@@ -929,14 +929,19 @@ with tab_paper:
 
     _db = _pl.Path(__file__).parent / "paper_trades.db"
     if not _db.exists():
-        st.info(
-            "Sổ chưa có dữ liệu.\n\n"
-            "Nạp từ lịch sử:\n"
-            "```\npython3 backtest/run.py fetch\n"
-            "python3 paper_runner.py seed --buy-threshold 55\n```\n"
-            "Hoặc chạy từng phiên:\n"
-            "```\npython3 paper_runner.py daily --symbols FPT,HPG,VNM\n```"
-        )
+        st.info("ℹ️ Sổ lệnh giấy chưa có dữ liệu lịch sử. Bạn có thể nhấn nút dưới đây để khởi tạo sổ lệnh tự động.")
+        if st.button("🚀 Khởi tạo Sổ Lệnh Giấy (Seed Demo Data)", type="primary", use_container_width=True):
+            with st.spinner("⚡ Đang nạp dữ liệu lịch sử và tạo sổ lệnh..."):
+                try:
+                    from paper_runner import cmd_seed
+                    from argparse import Namespace
+                    symbols = ["FPT", "HPG", "MBB", "SSI", "VNM"]
+                    args = Namespace(db=str(_db), symbols=",".join(symbols), min_history=30, stride=3, buy_threshold=55.0)
+                    cmd_seed(args)
+                    st.success("✅ Đã khởi tạo sổ lệnh thành công!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Không thể khởi tạo tự động: {e}")
     else:
         from paper_metrics import compute as _perf
         from paper_trading import PaperTradingJournal as _PJ
