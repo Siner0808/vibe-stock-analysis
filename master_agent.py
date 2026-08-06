@@ -91,10 +91,7 @@ class MasterConsensusAgent:
             "risk": risk_res, "news": news_res,
         }
 
-        # ── LAYER 3: Tính điểm sơ bộ (pre-debate) ────────────────────
-        weights = {"trend": 0.22, "momentum": 0.22, "volume": 0.18,
-                   "sr": 0.13, "risk": 0.13, "news": 0.12}
-
+        # ── LAYER 3: Tính điểm sơ bộ với Trọng số Động (Dynamic Adaptive Weights) ─
         def normalize(score, max_range=5.0):
             return max(0.0, min(100.0, 50.0 + (score / max_range) * 50.0))
 
@@ -104,6 +101,17 @@ class MasterConsensusAgent:
         sr_norm       = normalize(sr_res["score"], 4.0)
         risk_norm     = 100.0 - risk_res["risk_score"]
         news_norm     = normalize(news_res.get("score", 0.0), 5.0)
+
+        # Chế độ Trọng số Động: Nếu Trend & Volume phát tín hiệu Breakout mạnh,
+        # ưu tiên Trọng số Trend/Volume (65%) và giảm phạt quá mua RSI của Momentum.
+        if trend_norm >= 60.0 and volume_norm >= 55.0:
+            weights = {"trend": 0.35, "volume": 0.30, "sr": 0.15, "momentum": 0.10, "risk": 0.05, "news": 0.05}
+            # Trong sóng tăng mạnh (Uptrend Surge), RSI > 70 là chuyện bình thường -> nới điểm Momentum
+            momentum_norm = max(momentum_norm, 65.0)
+        elif sr_norm >= 60.0: # Chế độ tích lũy hỗ trợ
+            weights = {"sr": 0.30, "volume": 0.25, "trend": 0.25, "momentum": 0.10, "risk": 0.05, "news": 0.05}
+        else:
+            weights = {"trend": 0.22, "momentum": 0.22, "volume": 0.18, "sr": 0.13, "risk": 0.13, "news": 0.12}
 
         tv_rec   = packet.tv_recommendation
         tv_bonus = {"STRONG_BUY": 8, "BUY": 4, "NEUTRAL": 0,
