@@ -445,14 +445,14 @@ class RiskManagementAgent:
         else:
             atr_fraction = (vol_annual / 100.0) / 16.0
 
-        # Kỷ luật Hard Stop-Loss ATR: nới rộng linh hoạt (4% - 8.5%) để tránh bị rung lắc mất hàng (Shakeout)
-        sl_fraction = max(0.04, min(0.085, atr_fraction * 2.2))
+        # Kỷ luật Hard Stop-Loss ATR: 4% - 6.5%
+        sl_fraction = max(0.04, min(0.065, atr_fraction * 2.0))
         
-        # Chiến lược Chốt lời 2 Tầng & Trailing Stop:
-        # - TP1: Risk:Reward = 1.8:1 (~7% - 12%) -> Chốt 50% bảo vệ thành quả
-        # - TP2 / Trailing Target: Risk:Reward = 3.5:1 (~15% - 28%) -> Gồng lãi trọn sóng
-        tp1_fraction = sl_fraction * 1.8
-        tp2_fraction = sl_fraction * 3.5
+        # Quy tắc Chốt lời gồng sóng VN50 (+20% đến +30% Trailing Target):
+        # - Khi đạt +5% lãi: Dời Stop-Loss về 0% (Hòa vốn Break-Even) + Kích hoạt Mua bổ sung Pyramiding
+        # - Mục tiêu Chốt lời mở rộng: +20% đến +30% cho tới khi đảo chiều mạnh
+        tp1_fraction = 0.20  # TP1: +20%
+        tp2_fraction = 0.30  # TP2 Trailing: +30%
 
         from data_quality import price_multiplier
         unit_mult = price_multiplier(df)
@@ -461,7 +461,7 @@ class RiskManagementAgent:
         stop_loss_price = last_close_vnd * (1.0 - sl_fraction)
         take_profit_price = last_close_vnd * (1.0 + tp1_fraction)
         tp2_price = last_close_vnd * (1.0 + tp2_fraction)
-        position_pct = max(5, min(25, int(100 / risk_score * 10)))
+        position_pct = max(15, min(25, int(100 / risk_score * 12)))
 
         if risk_score > 70:
             result["risk_level"] = "CAO 🔴"
@@ -472,6 +472,8 @@ class RiskManagementAgent:
 
         result["risk_score"] = risk_score
         result["signals"] = signals
+        result["signals"].append("⚡ Quy tắc Break-Even: Dời SL về 0% khi lãi đạt +5%")
+        result["signals"].append("🚀 Quy tắc Pyramiding: Nhồi mua bổ sung khi lãi đạt +5%")
         result["metrics"] = {
             "volatility_annual": round(vol_annual, 2),
             "max_drawdown": round(max_dd, 2),
@@ -484,11 +486,11 @@ class RiskManagementAgent:
             "stop_loss_price": round(stop_loss_price, 0),
             "stop_loss_pct": round(sl_fraction * 100, 1),
             "take_profit_price": round(take_profit_price, 0),
-            "take_profit_pct": round(tp1_fraction * 100, 1),
+            "take_profit_pct": 20.0,
             "tp2_price": round(tp2_price, 0),
-            "tp2_pct": round(tp2_fraction * 100, 1),
-            "trailing_stop_pct": round(sl_fraction * 100 * 0.7, 1),
+            "tp2_pct": 30.0,
+            "break_even_pct": 5.0,
             "suggested_position_size_pct": position_pct,
-            "risk_reward_ratio": "1.8:1 (TP1) | 3.5:1 (Trailing TP2)"
+            "risk_reward_ratio": "1:4 (Gồng lãi VN50 +20% - +30%)"
         }
         return result

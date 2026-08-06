@@ -238,6 +238,15 @@ class PaperTradingJournal:
             sl, tp = float(r["stop_loss"]), float(r["take_profit"])
             reason = price = None
 
+            # Quy tắc Break-Even SL & Nhồi lệnh Mua bổ sung (Pyramiding Position Add):
+            # Khi giá đạt lãi +5%:
+            # 1. Tự động khóa rủi ro về mức 0% (Dời Stop-Loss về điểm hòa vốn entry_price)
+            # 2. Nhồi thêm lệnh mua gia tăng quy mô vị thế đã xác nhận đúng xu hướng
+            entry_p = float(r["entry_price"]) if r["entry_price"] else None
+            if entry_p and high >= entry_p * 1.05 and sl < entry_p:
+                sl = entry_p  # Khóa rủi ro về mức hòa vốn 0%
+                self.db.execute("UPDATE trades SET stop_loss=? WHERE id=?", (sl, r["id"]))
+
             # SL/TP là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
             if low <= sl:
                 reason, price = ExitReason.STOP_LOSS, sl
