@@ -491,13 +491,12 @@ if df is not None and not df.empty:
 st.divider()
 
 # ---- TABS ----
-tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_chart, tab_diagram, tab_chat = st.tabs([
+tab_terminal, tab_main, tab_debate, tab_detail, tab_news, tab_diagram, tab_chat = st.tabs([
     "📊 Tổng quan Terminal",
     "🧠 Kết quả Multi-Agent 5 Tầng",
     "⚖️ Debate Council",
     "🔬 Chi tiết từng Agent",
     "📰 Tin tức & Sentiment",
-    "📈 Đồ thị Kỹ thuật Pro",
     "📐 Sơ đồ Pipeline",
     "💬 Trợ lý Chatbot AI"
 ])
@@ -916,44 +915,7 @@ with tab_news:
             for sig in news_res.get("signals", []):
                 st.markdown(f"- {sig}")
 
-with tab_chart:
 
-    if df is not None and not df.empty:
-        st.subheader(f"📊 Đồ thị Nến Nhật ({symbol})")
-        df['MA20'] = df['close'].rolling(20).mean()
-        df['MA50'] = df['close'].rolling(50).mean()
-
-        fig = go.Figure()
-        fig.add_trace(go.Candlestick(
-            x=df['time'],
-            open=df['open'],
-            high=df['high'],
-            low=df['low'],
-            close=df['close'],
-            name="Nến Nhật (OHLC)",
-            increasing_line_color='#00e676',
-            increasing_fillcolor='#00e676',
-            decreasing_line_color='#ef5350',
-            decreasing_fillcolor='#ef5350'
-        ))
-        fig.add_trace(go.Scatter(x=df['time'], y=df['MA20'], mode='lines', name='MA20 (Ngắn hạn)', line=dict(color='#ff9800', width=2)))
-        fig.add_trace(go.Scatter(x=df['time'], y=df['MA50'], mode='lines', name='MA50 (Trung hạn)', line=dict(color='#2196f3', width=2)))
-        fig.update_layout(
-            template="plotly_dark", height=520,
-            xaxis_rangeslider_visible=False,
-            margin=dict(l=20, r=20, t=20, b=20),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Volume chart
-        vol_colors = ['#00e676' if df['close'].iloc[i] >= df['open'].iloc[i] else '#ef5350'
-                      for i in range(len(df))]
-        vol_fig = go.Figure(go.Bar(x=df['time'], y=df['volume'], marker_color=vol_colors, name='Volume'))
-        vol_fig.update_layout(template="plotly_dark", height=180, margin=dict(l=20, r=20, t=5, b=20))
-        st.plotly_chart(vol_fig, use_container_width=True)
-    else:
-        st.warning("⚠️ Không có dữ liệu chuỗi nến OHLCV để vẽ đồ thị.")
 
 with tab_diagram:
     st.subheader("📐 Sơ đồ Kiến trúc System & Luồng Vận hành Multi-Agent")
