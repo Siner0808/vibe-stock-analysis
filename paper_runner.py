@@ -54,7 +54,19 @@ def run_session(journal: PaperTradingJournal, symbol: str,
                 history: pd.DataFrame, bar: dict, session_date: str,
                 exchange: str = "HOSE",
                 buy_threshold: float | None = None) -> dict:
-    """Xử lý MỘT phiên cho MỘT mã. `history` chỉ chứa dữ liệu tới hết phiên này."""
+    """Xử lý MỘT phiên cho MỘT mã. `history` chỉ chứa dữ liệu tới hết phiên này.
+
+    ĐƠN VỊ: mọi giá đưa vào sổ đều quy về VNĐ.
+    Nguồn vnstock trả giá theo nghìn đồng (FPT = 71.2), trong khi
+    RiskManagementAgent trả stop_loss/take_profit theo VNĐ (66.000).
+    So thẳng hai thứ đó thì `low <= stop_loss` luôn đúng — mọi lệnh đóng
+    ngay phiên sau với lợi nhuận vô nghĩa hàng chục nghìn phần trăm.
+    """
+    from data_quality import price_multiplier
+
+    mult = price_multiplier(history)
+    bar = {k: (float(v) * mult if v is not None else v) for k, v in bar.items()}
+
     stats = {"filled_in": 0, "filled_out": 0, "closed": 0, "opened": 0}
 
     stats["filled_in"] = journal.fill_pending(symbol, session_date, bar["open"])

@@ -359,6 +359,61 @@ def test_gia_vao_dung_bang_gia_mo_cua_phien_khop():
     print(f"PASS  {len(opened)} lệnh, giá vào đúng bằng giá mở cửa phiên khớp")
 
 
+
+# ─────────────────────────────────────────────────────────────────────
+# 7. ĐƠN VỊ GIÁ — lỗi này làm hỏng toàn bộ sổ mà không ai thấy
+# ─────────────────────────────────────────────────────────────────────
+def test_gia_nghin_dong_khong_lam_hong_so_lenh():
+    """Nguồn vnstock trả nghìn đồng (FPT = 71.2); SL/TP tính bằng VNĐ (66.000).
+
+    So thẳng hai đơn vị đó thì `low <= stop_loss` LUÔN đúng — mọi lệnh đóng
+    ngay phiên sau với lợi nhuận hàng chục nghìn phần trăm. Dữ liệu test
+    tổng hợp ở mức 50.000 nên đơn vị trùng nhau và lỗi hoàn toàn vô hình.
+    Test này dùng đúng thang nghìn đồng như dữ liệu thật.
+    """
+    import numpy as np
+    import pandas as pd
+
+    import paper_runner as pr
+
+    n = 120
+    close_k = 71.2 * np.power(1.002, np.arange(n))     # nghìn đồng
+    df = pd.DataFrame({
+        "time": pd.bdate_range("2026-01-01", periods=n).strftime("%Y-%m-%d"),
+        "open": close_k * 0.998, "high": close_k * 1.006,
+        "low": close_k * 0.994, "close": close_k,
+        "volume": np.full(n, 2_000_000),
+    })
+
+    # SL/TP do RiskManagementAgent trả về: đơn vị VNĐ
+    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+        75,
+        sl=float(hist["close"].iloc[-1]) * 1000 * 0.93,
+        tp=float(hist["close"].iloc[-1]) * 1000 * 1.15)
+
+    j = new_journal()
+    for t in range(60, n):
+        row = df.iloc[t]
+        pr.run_session(j, "T", df.iloc[: t + 1],
+                       {"open": float(row["open"]), "high": float(row["high"]),
+                        "low": float(row["low"]), "close": float(row["close"])},
+                       str(row["time"]))
+
+    closed = j.all_trades(Status.CLOSED)
+    opened = [t for t in j.all_trades() if t.entry_price is not None]
+    assert opened, "không có lệnh nào khớp"
+
+    for t in opened:
+        assert 10_000 < t.entry_price < 500_000, (
+            f"giá vào {t.entry_price} không phải VNĐ — đơn vị chưa quy đổi")
+    for t in closed:
+        g = t.gross_return_pct()
+        assert -60 < g < 60, (
+            f"lợi nhuận {g:,.0f}% vô lý — dấu hiệu lẫn đơn vị nghìn đồng/VNĐ")
+    print(f"PASS  giá nghìn đồng quy đúng về VNĐ ({opened[0].entry_price:,.0f}), "
+          f"{len(closed)} lệnh đóng với lợi nhuận hợp lý")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]
