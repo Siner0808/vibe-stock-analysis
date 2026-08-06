@@ -245,6 +245,16 @@ class PaperTradingJournal:
                 reason, price = ExitReason.TAKE_PROFIT, tp
 
             if reason:
+                if reason == ExitReason.STOP_LOSS:
+                    try:
+                        from post_mortem_learning import PostMortemLearningEngine
+                        engine = PostMortemLearningEngine()
+                        breakdown = json.loads(r["components"]) if r["components"] else {}
+                        reasons = json.loads(r["reasons"]) if r["reasons"] else []
+                        engine.record_sl_trade(symbol, int(r["entry_score"] or 0), breakdown, reasons)
+                    except Exception:
+                        pass
+
                 self.db.execute(
                     "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
                     " status=? WHERE id=?",

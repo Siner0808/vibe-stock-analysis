@@ -117,11 +117,25 @@ class MasterConsensusAgent:
         tv_bonus = {"STRONG_BUY": 8, "BUY": 4, "NEUTRAL": 0,
                     "SELL": -4, "STRONG_SELL": -8}.get(tv_rec, 0)
 
+        # Kiểm tra Bộ nhớ Phản xạ SL (Post-Mortem Learning Engine)
+        sl_penalty = 0.0
+        try:
+            from post_mortem_learning import PostMortemLearningEngine
+            engine = PostMortemLearningEngine()
+            current_bd = {
+                "trend_score": int(trend_norm),
+                "momentum_score": int(momentum_norm),
+                "volume_score": int(volume_norm)
+            }
+            sl_penalty = engine.get_penalty_for_pattern(current_bd)
+        except Exception:
+            pass
+
         pre_debate_score = (
             trend_norm * weights["trend"] + momentum_norm * weights["momentum"] +
             volume_norm * weights["volume"] + sr_norm * weights["sr"] +
             risk_norm * weights["risk"] + news_norm * weights["news"]
-        ) + tv_bonus
+        ) + tv_bonus + sl_penalty
         pre_debate_score = max(5.0, min(95.0, pre_debate_score))
 
         # ── LAYER 4: Debate Council – Tranh luận đối lập ─────────────
