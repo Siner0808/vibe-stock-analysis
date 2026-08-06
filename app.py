@@ -991,10 +991,20 @@ with tab_paper:
         _open = [t for t in _trades if t.status in ("OPEN", "PENDING", "CLOSING")]
         if _open:
             st.markdown("##### Vị thế đang mở")
+            def _get_entry_display(t):
+                if t.entry_price:
+                    return f"{t.entry_price:,.0f}"
+                if t.status == "PENDING" and t.stop_loss:
+                    # Ước tính giá mua đề xuất từ mức Stop-Loss (-5%)
+                    est_p = round(t.stop_loss / 0.95, 0)
+                    return f"~{est_p:,.0f} (Đề xuất)"
+                return "Chờ khớp phiên tới"
+
             st.dataframe(pd.DataFrame([{
                 "Mã": t.symbol, "Trạng thái": t.status,
-                "Ngày tín hiệu": t.signal_date, "Ngày vào": t.entry_date or "—",
-                "Giá vào": f"{t.entry_price:,.0f}" if t.entry_price else "—",
+                "Ngày tín hiệu": t.signal_date,
+                "Ngày vào": t.entry_date or "Chờ phiên sau",
+                "Giá vào": _get_entry_display(t),
                 "Cắt lỗ": f"{t.stop_loss:,.0f}",
                 "Chốt lời": f"{t.take_profit:,.0f}",
                 "Điểm vào": t.entry_score,
