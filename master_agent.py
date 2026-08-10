@@ -47,6 +47,20 @@ class MasterConsensusAgent:
         ),
     }
 
+    @staticmethod
+    def _session_date(packet: MarketDataPacket) -> str | None:
+        """Ngày của phiên cuối trong gói dữ liệu — mốc thời gian agent đang đứng.
+
+        Dùng để chặn mọi cơ chế học hỏi khỏi việc đọc dữ liệu sau mốc này.
+        """
+        df = packet.ohlcv_df
+        try:
+            if df is not None and len(df) and "time" in df.columns:
+                return str(df["time"].iloc[-1])[:10]
+        except Exception:
+            pass
+        return None
+
     def run(self, packet: MarketDataPacket) -> dict:
         if packet.data_quality in self.NO_VERDICT_QUALITY:
             recommendation, reason = self.NO_VERDICT_QUALITY[packet.data_quality]
@@ -105,42 +119,48 @@ class MasterConsensusAgent:
         # Chế độ Trọng số Động: Nếu Trend & Volume phát tín hiệu Breakout mạnh,
         # ưu tiên Trọng số Trend/Volume (65%) và giảm phạt quá mua RSI của Momentum.
         if trend_norm >= 60.0 and volume_norm >= 55.0:
-            weights = {"trend": 0.35, "volume": 0.30, "sr": 0.15, "momentum": 0.10, "risk": 0.05, "news": 0.05}
+            weights = {"trend": 0.35, "volume": 0.30, "sr": 0.15, "momentum": 0.10, "risk": 0.10, "news": 0.0}
             # Trong sóng tăng mạnh (Uptrend Surge), RSI > 70 là chuyện bình thường -> nới điểm Momentum
             momentum_norm = max(momentum_norm, 65.0)
         elif sr_norm >= 60.0: # Chế độ tích lũy hỗ trợ
-            weights = {"sr": 0.30, "volume": 0.25, "trend": 0.25, "momentum": 0.10, "risk": 0.05, "news": 0.05}
+            weights = {"sr": 0.30, "volume": 0.25, "trend": 0.25, "momentum": 0.10, "risk": 0.10, "news": 0.0}
         else:
-            weights = {"trend": 0.22, "momentum": 0.22, "volume": 0.18, "sr": 0.13, "risk": 0.13, "news": 0.12}
+            weights = {"trend": 0.25, "momentum": 0.25, "volume": 0.20, "sr": 0.15, "risk": 0.15, "news": 0.0}
 
         tv_rec   = packet.tv_recommendation
         tv_bonus = {"STRONG_BUY": 8, "BUY": 4, "NEUTRAL": 0,
                     "SELL": -4, "STRONG_SELL": -8}.get(tv_rec, 0)
 
-        # Kiểm tra Bộ nhớ Phản xạ SL (Post-Mortem Learning Engine)
+        # Bộ nhớ mẫu hình cắt lỗ. MẶC ĐỊNH TẮT — xem đầu post_mortem_learning.py.
+        # `as_of` là ngày của phiên đang chấm; thiếu nó thì điểm phạt luôn bằng 0,
+        # nên cơ chế này không thể nhìn trộm các lệnh lỗ xảy ra sau ngày đó.
         sl_penalty = 0.0
         try:
             from post_mortem_learning import PostMortemLearningEngine
             engine = PostMortemLearningEngine()
-            current_bd = {
-                "trend_score": int(trend_norm),
-                "momentum_score": int(momentum_norm),
-                "volume_score": int(volume_norm)
-            }
-            sl_penalty = engine.get_penalty_for_pattern(current_bd)
+            if engine.enabled:
+                current_bd = {
+                    "trend_score": int(trend_norm),
+                    "momentum_score": int(momentum_norm),
+                    "volume_score": int(volume_norm)
+                }
+                sl_penalty = engine.get_penalty_for_pattern(
+                    current_bd, as_of=self._session_date(packet))
         except Exception:
             pass
 
         pre_debate_score = (
             trend_norm * weights["trend"] + momentum_norm * weights["momentum"] +
             volume_norm * weights["volume"] + sr_norm * weights["sr"] +
-            risk_norm * weights["risk"] + news_norm * weights["news"]
+            risk_norm * weights["risk"]
         ) + tv_bonus + sl_penalty
         pre_debate_score = max(5.0, min(95.0, pre_debate_score))
 
         # ── LAYER 4: Debate Council – Tranh luận đối lập ─────────────
         verdict = self.debate.run_debate(analyses_map, pre_debate_score)
-        post_debate_score = pre_debate_score + verdict.final_adjustment
+        
+        # Vô hiệu hóa ảnh hưởng của Debate Council (chỉ gây nhiễu +-0.9, xem luong-phan-tich.html)
+        post_debate_score = pre_debate_score
 
         # ── LAYER 4b: Safety Harness – chốt chặn bất biến ─────────────
         # Chạy SAU tranh luận: dù Bull thắng thuyết phục đến đâu, các quy tắc

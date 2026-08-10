@@ -273,6 +273,90 @@ def test_drawdown_va_profit_factor():
     print(f"PASS  {perf.summary()}")
 
 
+def _trade(sym, entry_date, exit_date, gross_pct, tid=0, size=100.0):
+    return pt.Trade(
+        id=tid, symbol=sym, signal_date=entry_date, entry_date=entry_date,
+        entry_price=100.0, exit_date=exit_date,
+        exit_price=100.0 * (1 + gross_pct / 100),
+        exit_reason=ExitReason.MAX_HOLD, stop_loss=90.0, take_profit=120.0,
+        size_pct=size, entry_score=70, status=Status.CLOSED)
+
+
+def test_duong_von_khong_phu_thuoc_thu_tu_ban_ghi():
+    """Sổ trả lệnh theo id (hết mã A rồi tới mã B), không theo thời gian.
+
+    Dựng đường vốn theo thứ tự đó cho ra một chuỗi lãi/lỗ chưa từng tồn tại.
+    Đảo thứ tự chèn mà kết quả đổi thì chỉ số đang đo thứ tự lưu trữ, không
+    đo hiệu quả giao dịch.
+    """
+    # Theo id  : -10, -10, +30  -> hai lỗ liền nhau, đáy 19% dưới đỉnh
+    # Theo ngày: -10, +30, -10  -> hai lỗ bị cái lãi tách ra, đáy chỉ ~10%
+    a = [_trade("AAA", "2026-01-05", "2026-01-10", -10, 1),
+         _trade("AAA", "2026-03-05", "2026-03-10", -10, 2),
+         _trade("BBB", "2026-02-05", "2026-02-10", +30, 3)]
+    b = [a[2], a[1], a[0]]                     # cùng tập lệnh, khác thứ tự chèn
+
+    pa, pb = pm.compute(a), pm.compute(b)
+    assert abs(pa.max_drawdown_pct - pb.max_drawdown_pct) < 1e-9, (
+        f"MaxDD đổi theo thứ tự chèn: {pa.max_drawdown_pct:.2f} "
+        f"vs {pb.max_drawdown_pct:.2f}")
+    assert abs(pa.total_net_pct - pb.total_net_pct) < 1e-9
+    # Và phải ra con số của thứ tự THỜI GIAN, không phải của thứ tự chèn
+    assert pa.max_drawdown_pct < 12.0, (
+        f"MaxDD {pa.max_drawdown_pct:.2f}% là của thứ tự chèn (~19%), "
+        "không phải thứ tự thời gian (~10%)")
+    print(f"PASS  đảo thứ tự chèn không đổi MaxDD ({pa.max_drawdown_pct:.2f}%)")
+
+
+def test_drawdown_dung_bang_muc_sut_giam_thuc():
+    """Chuỗi có drawdown biết trước: +20% rồi -30% -> đáy sâu 30% dưới đỉnh."""
+    trades = [_trade("AAA", "2026-01-05", "2026-01-10", +20, 1),
+              _trade("BBB", "2026-02-05", "2026-02-10", -30, 2)]
+    perf = pm.compute(trades)
+    # phí hai chiều làm lệch nhẹ so với 30% lý thuyết
+    assert 30.0 <= perf.max_drawdown_pct <= 31.0, perf.max_drawdown_pct
+    print(f"PASS  drawdown thực {perf.max_drawdown_pct:.2f}% (lý thuyết ~30%)")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 5b. Dời stop về hoà vốn — không được chọn kết cục có lợi
+# ─────────────────────────────────────────────────────────────────────
+def test_doi_stop_hoa_von_khong_co_hieu_luc_trong_chinh_phien_do():
+    """Nến vừa chạm +5% vừa thủng cắt lỗ: phải khớp ở SL GỐC.
+
+    Nến ngày không cho biết đỉnh hay đáy tới trước. Dời stop rồi xét ngay
+    trong chính cây nến đó là giả định đỉnh luôn tới trước — chọn kết cục
+    có lợi, đúng thứ bất biến "giả định bất lợi" của sổ này cấm.
+    """
+    j = new_journal()
+    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=95.0, tp=130.0))
+    j.fill_pending("FPT", "2026-08-06", 100.0)
+
+    # high 106 (>= +5%), low 94 (thủng SL gốc 95)
+    closed = j.evaluate_open("FPT", "2026-08-07", bar(100, 106, 94, 96))
+    assert len(closed) == 1
+    assert closed[0]["exit_price"] == 95.0, (
+        f"khớp ở {closed[0]['exit_price']} thay vì SL gốc 95.0 — "
+        "stop hoà vốn đã bảo vệ ngược lại chính cây nến tạo ra nó")
+    print("PASS  nến vừa chạm +5% vừa thủng SL -> khớp ở SL gốc, không phải hoà vốn")
+
+
+def test_doi_stop_hoa_von_co_hieu_luc_tu_phien_sau():
+    """Nhưng quy tắc vẫn phải hoạt động — chỉ là chậm một phiên."""
+    j = new_journal()
+    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=95.0, tp=130.0))
+    j.fill_pending("FPT", "2026-08-06", 100.0)
+
+    # Phiên 1: chạm +5%, không thủng SL -> stop được nâng lên 100
+    assert j.evaluate_open("FPT", "2026-08-07", bar(100, 106, 99, 105)) == []
+    assert j.open_position("FPT").stop_loss == 100.0
+
+    # Phiên 2: giá lùi về 99 -> khớp ở mức hoà vốn 100
+    closed = j.evaluate_open("FPT", "2026-08-10", bar(104, 105, 99, 99))
+    assert len(closed) == 1 and closed[0]["exit_price"] == 100.0
+    print("PASS  stop hoà vốn có hiệu lực từ phiên sau (khớp ở 100.0)")
+
+
 
 # ─────────────────────────────────────────────────────────────────────
 # 6. Vòng chạy một phiên — thứ tự thao tác quyết định tính đúng

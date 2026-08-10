@@ -181,8 +181,23 @@ class PaperTradingJournal:
             return None
 
         risk = result["analyses"]["risk"]["recommendations"]
-        size = float(result.get("safety", {}).get("safe_position_size")
-                     or risk.get("suggested_position_size_pct", 10.0))
+        raw_score = float(result.get("final_score", 50))
+
+        # Ý TƯỞNG C & E: Phân bổ cỡ vị thế theo Độ tự tin tín hiệu (Confidence) & Biến động (Volatility)
+        # - Tín hiệu Rất Cao (Score >= 60): Phân bổ 25% - 30% vốn (Lợi thế cao nhân vốn)
+        # - Tín hiệu Trung bình (Score 54 - 59): Phân bổ 18% - 22% vốn
+        # - Tín hiệu Tiêu chuẩn (Score < 54): Phân bổ 12% - 15% vốn
+        if raw_score >= 60.0:
+            size = 28.0
+        elif raw_score >= 54.0:
+            size = 20.0
+        else:
+            size = 14.0
+
+        # Điều chỉnh theo độ rủi ro Risk Score
+        risk_score = float(result.get("analyses", {}).get("risk", {}).get("risk_score", 50))
+        vol_factor = max(0.7, min(1.3, 50.0 / max(1.0, risk_score)))
+        size = round(max(10.0, min(30.0, size * vol_factor)), 1)
         cur = self.db.execute(
             "INSERT INTO trades (symbol, exchange, signal_date, entry_date,"
             " entry_price, exit_date, exit_price, exit_reason, stop_loss,"
@@ -238,29 +253,45 @@ class PaperTradingJournal:
             sl, tp = float(r["stop_loss"]), float(r["take_profit"])
             reason = price = None
 
-            # Quy tắc Break-Even SL & Nhồi lệnh Mua bổ sung (Pyramiding Position Add):
-            # Khi giá đạt lãi +5%:
-            # 1. Tự động khóa rủi ro về mức 0% (Dời Stop-Loss về điểm hòa vốn entry_price)
-            # 2. Nhồi thêm lệnh mua gia tăng quy mô vị thế đã xác nhận đúng xu hướng
             entry_p = float(r["entry_price"]) if r["entry_price"] else None
-            if entry_p and high >= entry_p * 1.05 and sl < entry_p:
-                sl = entry_p  # Khóa rủi ro về mức hòa vốn 0%
-                self.db.execute("UPDATE trades SET stop_loss=? WHERE id=?", (sl, r["id"]))
 
-            # SL/TP là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
+            # SL là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
+            # BỎ CHỐT LỜI CỨNG (Hard TP) - Fat-Tail Exploitation
             if low <= sl:
                 reason, price = ExitReason.STOP_LOSS, sl
-            elif high >= tp:
-                reason, price = ExitReason.TAKE_PROFIT, tp
+
+            # TRAILING STOP & BREAK-EVEN: CHỈ CÓ HIỆU LỰC TỪ PHIÊN SAU.
+            close_p = float(bar["close"])
+            if reason is None and entry_p:
+                new_sl = sl
+                # 1. Dời stop về hoà vốn khi giá đạt +5%
+                if high >= entry_p * 1.05 and sl < entry_p:
+                    new_sl = entry_p
+                
+                # 2. Trailing Stop 7% (Cho phép giá rung lắc 7% từ đỉnh gần nhất)
+                trail_sl = close_p * 0.93
+                if trail_sl > new_sl:
+                    new_sl = trail_sl
+                
+                # Chỉ cập nhật database nếu SL được nâng lên
+                if new_sl > sl:
+                    self.db.execute("UPDATE trades SET stop_loss=? WHERE id=?",
+                                    (new_sl, r["id"]))
 
             if reason:
                 if reason == ExitReason.STOP_LOSS:
                     try:
                         from post_mortem_learning import PostMortemLearningEngine
                         engine = PostMortemLearningEngine()
-                        breakdown = json.loads(r["components"]) if r["components"] else {}
-                        reasons = json.loads(r["reasons"]) if r["reasons"] else []
-                        engine.record_sl_trade(symbol, int(r["entry_score"] or 0), breakdown, reasons)
+                        if engine.enabled:
+                            breakdown = json.loads(r["components"]) if r["components"] else {}
+                            reasons = json.loads(r["reasons"]) if r["reasons"] else []
+                            # signal_date, KHÔNG phải session_date: mẫu hình thuộc về
+                            # thời điểm sinh tín hiệu, và đó là mốc dùng để so sánh
+                            # thời gian ở get_penalty_for_pattern.
+                            engine.record_sl_trade(
+                                symbol, int(r["entry_score"] or 0), breakdown,
+                                reasons, signal_date=r["signal_date"])
                     except Exception:
                         pass
 
@@ -272,10 +303,14 @@ class PaperTradingJournal:
                                "reason": reason, "exit_price": price})
                 continue
 
-            # Thoát theo TÍN HIỆU hoặc HẾT HẠN: chỉ biết được sau khi phiên
-            # đóng cửa, nên không thể bán ở chính giá đóng cửa đó. Đánh dấu
-            # CLOSING và khớp ở giá mở cửa phiên sau — đối xứng với lúc vào.
-            if current_score is not None and current_score < EXIT_SIGNAL_THRESHOLD:
+            # Ý TƯỞNG A & D: Khai thác đuôi béo (Fat-Tail Exploitation)
+            # Tắt đảo chiều bằng điểm số cho lệnh đang LÃI (unrealized_profit > 0).
+            # Khi lệnh đã có lãi, để Trailing Stop & Stop-Loss quản trị việc thoát lệnh,
+            # KHÔNG để biến động điểm số ngắn hạn ép chốt non cắt đuôi lãi chạy!
+            close_p = float(bar["close"])
+            is_profitable = entry_p is not None and close_p > entry_p
+
+            if current_score is not None and current_score < EXIT_SIGNAL_THRESHOLD and not is_profitable:
                 reason = ExitReason.SIGNAL_REVERSED
             elif self._sessions_held(r["entry_date"], session_date) >= MAX_HOLD_SESSIONS:
                 reason = ExitReason.MAX_HOLD

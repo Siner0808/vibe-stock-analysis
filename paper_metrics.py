@@ -55,9 +55,19 @@ def compute(trades: list[Trade]) -> Performance | None:
     gross_win = sum(wins)
     gross_loss = abs(sum(losses))
 
-    # Đường vốn: mỗi lệnh đóng góp theo tỷ trọng vốn của nó
+    # Đường vốn: mỗi lệnh đóng góp theo tỷ trọng vốn của nó.
+    #
+    # PHẢI sắp theo NGÀY ĐÓNG LỆNH. Danh sách lấy từ sổ mặc định xếp theo id,
+    # tức thứ tự chèn: hết toàn bộ lệnh của mã A rồi mới tới mã B. Dựng đường
+    # vốn theo thứ tự đó cho ra một chuỗi lãi/lỗ chưa từng tồn tại, và
+    # drawdown tính từ nó không phải mức sụt giảm tài khoản thật sự chịu.
+    # Đo trên rổ 50 mã: 23,0% theo id so với 30,7% theo thời gian.
     closed = [t for t in trades if t.status == "CLOSED"
               and t.net_return_pct() is not None]
+    
+    # Sắp xếp lệnh theo thời điểm ĐÓNG LỆNH để tính chính xác MaxDD theo thời gian
+    closed.sort(key=lambda x: x.exit_date or "")
+    
     equity, peak, max_dd = 100.0, 100.0, 0.0
     for t in closed:
         equity *= 1 + (t.net_return_pct() / 100) * (t.size_pct / 100)

@@ -162,6 +162,64 @@ class DataOrchestrator:
         self.vnstock_agent = VNStockCollectorAgent()
         self.tv_agent = TradingViewCollectorAgent()
 
+    def _compute_local_indicators(self, df: pd.DataFrame) -> dict:
+        """Tự tính toán các chỉ báo kỹ thuật cốt lõi từ OHLCV để phục vụ backtest."""
+        if df is None or len(df) < 20:
+            return {}
+        
+        close = df['close']
+        high = df['high']
+        low = df['low']
+        
+        inds = {}
+        # MAs
+        inds['EMA20'] = close.ewm(span=20, adjust=False).mean().iloc[-1]
+        inds['SMA50'] = close.rolling(50).mean().iloc[-1] if len(df) >= 50 else None
+        inds['SMA200'] = close.rolling(200).mean().iloc[-1] if len(df) >= 200 else None
+        
+        # RSI (14)
+        delta = close.diff()
+        up = delta.clip(lower=0)
+        down = -1 * delta.clip(upper=0)
+        ema_up = up.ewm(com=13, adjust=False).mean()
+        ema_down = down.ewm(com=13, adjust=False).mean()
+        rs = ema_up / ema_down
+        inds['RSI'] = (100 - (100 / (1 + rs))).iloc[-1]
+        
+        # MACD (12, 26, 9)
+        ema12 = close.ewm(span=12, adjust=False).mean()
+        ema26 = close.ewm(span=26, adjust=False).mean()
+        macd = ema12 - ema26
+        signal = macd.ewm(span=9, adjust=False).mean()
+        inds['MACD'] = macd.iloc[-1]
+        inds['MACD_Signal'] = signal.iloc[-1]
+        
+        # Bollinger Bands (20, 2)
+        sma20 = close.rolling(20).mean()
+        std20 = close.rolling(20).std()
+        inds['BB_Upper'] = (sma20 + 2 * std20).iloc[-1]
+        inds['BB_Lower'] = (sma20 - 2 * std20).iloc[-1]
+        
+        # Stochastic (14, 3, 3)
+        low14 = low.rolling(14).min()
+        high14 = high.rolling(14).max()
+        stoch_k = 100 * (close - low14) / (high14 - low14)
+        stoch_d = stoch_k.rolling(3).mean()
+        inds['Stoch_K'] = stoch_k.iloc[-1]
+        inds['Stoch_D'] = stoch_d.iloc[-1]
+        
+        # Williams %R (14)
+        inds['Williams_R'] = ((high14 - close) / (high14 - low14) * -100).iloc[-1]
+        
+        # ATR (14)
+        tr1 = high - low
+        tr2 = (high - close.shift()).abs()
+        tr3 = (low - close.shift()).abs()
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+        inds['ATR'] = tr.rolling(14).mean().iloc[-1]
+        
+        return inds
+
     def collect_and_handoff(self) -> MarketDataPacket:
         import concurrent.futures
         packet = MarketDataPacket(symbol=self.symbol, exchange=self.exchange)
@@ -212,5 +270,14 @@ class DataOrchestrator:
             packet.data_quality = "PARTIAL"
         else:
             packet.data_quality = "FAILED"
+
+        # TỰ ĐỘNG TÍNH TOÁN CHỈ BÁO LOCAL TỪ OHLCV (Cực kỳ quan trọng cho Backtest)
+        # TradingView MCP luôn trả về dữ liệu realtime hiện tại -> Gây sai lệch trong quá khứ.
+        # Ta cần tính các chỉ báo này từ chính OHLCV lịch sử để đưa vào tv_indicators.
+        if packet.ohlcv_df is not None and len(packet.ohlcv_df) >= 20:
+            local_inds = self._compute_local_indicators(packet.ohlcv_df)
+            # Ghi đè vào tv_indicators để các Agent Tầng 2 có thể đọc được
+            packet.tv_indicators.update({k: v for k, v in local_inds.items() if v is not None})
+            packet.source_notes.append("[Local] Đã tự tính RSI, MACD, BB, MAs... từ OHLCV lịch sử")
 
         return packet

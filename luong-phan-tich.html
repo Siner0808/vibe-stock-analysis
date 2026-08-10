@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luồng phân tích Vn-Stock — đo thật</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fff; --line:#e5e2d9; --line2:#cdc9bd;
+  --tx:#1a1a17; --tx2:#5f5e5a; --tx3:#8a8880;
+  --alive:#1D9E75; --alive-bg:#E1F5EE; --alive-tx:#0F6E56;
+  --dead:#888780;  --dead-bg:#F1EFE8;  --dead-tx:#444441;
+  --warn:#BA7517;  --warn-bg:#FAEEDA;  --warn-tx:#854F0B;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#191917; --card:#232320; --line:#35342f; --line2:#4a4842;
+    --tx:#eeece5; --tx2:#a8a69e; --tx3:#7a786f;
+    --alive-bg:#085041; --alive-tx:#9FE1CB;
+    --dead-bg:#3a3935;  --dead-tx:#B4B2A9;
+    --warn-bg:#633806;  --warn-tx:#FAC775;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:400 15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+h1{font-size:22px;font-weight:500;margin:0 0 6px}
+.sub{color:var(--tx2);font-size:14px;margin:0 0 28px}
+.bar{display:flex;gap:10px;margin:0 0 24px;flex-wrap:wrap}
+.bar button{font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;
+  border:1px solid var(--line2);background:var(--card);color:var(--tx);cursor:pointer}
+.bar button[aria-pressed=true]{background:var(--alive-bg);color:var(--alive-tx);
+  border-color:var(--alive)}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.tier{margin:0 0 8px}
+.tlabel{font-size:12px;color:var(--tx3);letter-spacing:.04em;margin:18px 0 8px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.node{flex:1 1 150px;min-width:140px;text-align:left;font:inherit;cursor:pointer;
+  padding:12px 14px;border-radius:10px;border:1px solid var(--line2);
+  background:var(--card);color:var(--tx)}
+.node:hover{border-color:var(--tx3)}
+.node[aria-pressed=true]{outline:2px solid var(--alive);outline-offset:1px}
+.node .n{font-weight:500;font-size:14px;display:block}
+.node .m{font-size:12px;color:var(--tx2);display:block;margin-top:3px}
+.node.alive{background:var(--alive-bg);border-color:var(--alive)}
+.node.alive .n{color:var(--alive-tx)} .node.alive .m{color:var(--alive-tx);opacity:.8}
+.node.dead{background:var(--dead-bg);border-color:var(--line2)}
+.node.dead .n{color:var(--dead-tx)} .node.dead .m{color:var(--dead-tx);opacity:.75}
+.node.warn{background:var(--warn-bg);border-color:var(--warn)}
+.node.warn .n{color:var(--warn-tx)} .node.warn .m{color:var(--warn-tx);opacity:.85}
+.flow{text-align:center;color:var(--tx3);font-size:15px;line-height:1;margin:6px 0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:18px 18px 20px;position:sticky;top:24px}
+.panel h2{font-size:16px;font-weight:500;margin:0 0 4px}
+.panel .role{font-size:12px;color:var(--tx3);margin:0 0 14px}
+.kv{margin:0 0 12px}
+.kv dt{font-size:12px;color:var(--tx3);margin:0 0 2px}
+.kv dd{margin:0 0 10px;font-size:14px}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+.verdict{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:4px}
+.v-alive{background:var(--alive-bg);color:var(--alive-tx)}
+.v-dead{background:var(--dead-bg);color:var(--dead-tx)}
+.v-warn{background:var(--warn-bg);color:var(--warn-tx)}
+.src{font-family:ui-monospace,monospace;font-size:12px;color:var(--tx3)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--tx2);
+  margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:3px;
+  margin-right:6px;vertical-align:-1px}
+.foot{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--tx2)}
+.foot code{font-size:12px;background:var(--dead-bg);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Luồng phân tích Vn-Stock</h1>
+<p class="sub">Trạng thái đo trên 573 phiên thật của 10 mã, dữ liệu 2021-10 đến 2026-08.
+Bấm vào từng nút để xem số đo và vị trí trong mã nguồn.</p>
+
+<div class="bar">
+  <button id="bMeasured" aria-pressed="true">Đo thật</button>
+  <button id="bClaimed" aria-pressed="false">Sơ đồ mô tả</button>
+</div>
+
+<div class="grid">
+<div id="pipe"></div>
+<aside class="panel" id="panel"></aside>
+</div>
+
+<div class="legend">
+  <span><i class="dot" style="background:var(--alive)"></i>mang thông tin</span>
+  <span><i class="dot" style="background:var(--warn)"></i>hoạt động một phần</span>
+  <span><i class="dot" style="background:var(--dead)"></i>hằng số hoặc không đóng góp</span>
+</div>
+
+<p class="foot">Sinh từ các phép đo trong <code>MO-XE-KIEN-TRUC.md</code>.
+Chạy lại bằng <code>python experiment_signal_source.py</code> và
+<code>python walkforward_vn100.py</code>.</p>
+</div>
+
+<script>
+const D = {
+  src: {name:"Tầng 1 — nguồn dữ liệu", role:"data_collectors.py", state:"warn",
+    metric:"1/3 nguồn hoạt động",
+    claimed:"3 nguồn song song: giá, chỉ báo TradingView, tin tức thời gian thực",
+    measured:"OHLCV từ vnstock chạy tốt. Khi backtest, tv_indicators là {} rỗng và news_packet là None — không tồn tại nguồn TradingView hay tin tức theo lịch sử để dựng lại.",
+    num:"tv_indicators = {}\nnews_packet = None",
+    verdict:"Đây là gốc rễ của mọi thứ bên dưới. Không phải lỗi mã — không có dữ liệu lịch sử để backtest hai nguồn kia."},
+
+  trend: {name:"Xu hướng", role:"analysis_agents.py — TrendAnalysisAgent", state:"warn",
+    metric:"3 giá trị: 35 / 50 / 65",
+    claimed:"EMA20, SMA50, SMA200, ADX và cấu trúc giá — 5 luật chấm điểm",
+    measured:"4 trong 5 luật đọc từ TradingView. Chỉ luật thứ 5 (giá > MA10 > MA20) chạy được, nên thang ±5 co lại còn ±1,5.",
+    num:"rho với lợi nhuận 20 phiên sau: −0,028\nKTC 95%: [−0,104 ; +0,064]",
+    verdict:"Công tắc 3 nấc, không phải thang điểm liên tục."},
+
+  mom: {name:"Động lượng", role:"analysis_agents.py — MomentumAgent", state:"dead",
+    metric:"hằng số",
+    claimed:"RSI, MACD, Stochastic, CCI, Williams %R — phát hiện quá mua quá bán",
+    measured:"Đọc DUY NHẤT từ packet.tv_indicators. Không có TradingView thì mọi chỉ báo là None, mọi nhánh if bị bỏ qua, score = 0. Giá trị 65 duy nhất khác 50 không do agent sinh ra — nó đến từ dòng ghi đè momentum_norm = max(momentum_norm, 65.0) trong master_agent.py.",
+    num:"tương quan với xu hướng: 0,76\n(gần như cùng một biến)",
+    verdict:"Điểm động lượng thực chất là hàm của xu hướng và khối lượng."},
+
+  vol: {name:"Khối lượng", role:"analysis_agents.py — VolumeAnalysisAgent", state:"alive",
+    metric:"12 giá trị, khoảng 25–100",
+    claimed:"Đột biến khối lượng, MA5 so MA20, OBV",
+    measured:"Tính hoàn toàn từ OHLCV nên chạy đủ. Đây là nguồn thông tin giàu nhất trong 6 agent và tương quan cao nhất với điểm cuối.",
+    num:"tương quan với điểm cuối: +0,76\nrho với lợi nhuận: +0,014 [−0,067 ; +0,097]",
+    verdict:"Sống và giàu thông tin — nhưng vẫn không dự báo được lợi nhuận."},
+
+  sr: {name:"Hỗ trợ kháng cự", role:"analysis_agents.py — SupportResistanceAgent", state:"warn",
+    metric:"3 giá trị: 31 / 50 / 75",
+    claimed:"Bollinger Bands, pivot points, vùng đỉnh đáy",
+    measured:"Bollinger lấy từ TradingView nên mất. Chỉ còn pct_from_low tính từ OHLCV.",
+    num:"tương quan với điểm cuối: +0,19\nrho với lợi nhuận: −0,024",
+    verdict:"Đóng góp rất ít vào điểm cuối."},
+
+  risk: {name:"Rủi ro", role:"analysis_agents.py — RiskManagementAgent", state:"alive",
+    metric:"9 giá trị, khoảng 10–65",
+    claimed:"Biến động, drawdown, Sharpe, ATR, đề xuất cắt lỗ chốt lời",
+    measured:"Chạy đủ từ OHLCV. Ngoài chấm điểm, đây là nơi sinh ra stop-loss và take-profit cho mọi lệnh — vai trò quan trọng hơn phần điểm số của nó.",
+    num:"tương quan với điểm cuối: +0,13\nrho với lợi nhuận: −0,094 [−0,158 ; +0,009]",
+    verdict:"Giá trị nằm ở quản trị rủi ro, không ở dự báo."},
+
+  news: {name:"Tin tức", role:"news_sentiment_agent.py", state:"dead",
+    metric:"hằng số 50",
+    claimed:"Phân tích cảm xúc tin tức, tín hiệu theo ngành",
+    measured:"paper_runner truyền news_packet=None vì không có kho tin lịch sử. Điểm luôn bằng 50 trong 573/573 phiên.",
+    num:"số giá trị khác nhau: 1",
+    verdict:"Nên gỡ khỏi công thức trọng số, hoặc ghi rõ 'chưa hoạt động' trên giao diện thay vì hiển thị 50/100 như một kết quả phân tích."},
+
+  score: {name:"Tầng 3 — điểm tổng hợp", role:"master_agent.py", state:"warn",
+    metric:"dải thực tế 34–72",
+    claimed:"Trọng số động ba chế độ: breakout, tích luỹ, mặc định",
+    measured:"Vì động lượng và tin tức là hằng số, hai nhánh trong công thức chỉ cộng thêm một số cố định. Thang 0–100 thực tế chỉ dùng khoảng 38 điểm ở giữa.",
+    num:"trung bình 49,9 · độ lệch 8,4",
+    verdict:"Đây là lý do mọi lần chỉnh ngưỡng mua chỉ dịch qua lại trong dải rất hẹp, và ngưỡng 62 gần như là trần."},
+
+  debate: {name:"Tầng 4 — tranh luận", role:"debate_agents.py", state:"dead",
+    metric:"biên độ ±0,9 điểm",
+    claimed:"Hội đồng tranh luận đa chiều giữa quan điểm tăng và giảm",
+    measured:"Chạy mọi phiên nhưng điều chỉnh dưới 1 điểm trên thang 100, trung bình đúng bằng 0 — không nghiêng về phía nào.",
+    num:"trung bình −0,00 · độ lệch 0,42\nnhỏ nhất −0,8 · lớn nhất +0,9",
+    verdict:"Bỏ hẳn tầng này và safety harness: 572/573 phiên cho cùng quyết định mua hay không mua."},
+
+  safety: {name:"Tầng 4b — safety harness", role:"debate_agents.py", state:"dead",
+    metric:"0% kích hoạt",
+    claimed:"Chốt chặn bất biến: bẫy tăng giá, trần cắt lỗ, trần tỷ trọng vốn",
+    measured:"Có khả năng trừ tới 10 điểm nhưng chưa lần nào dùng đến trong 573 phiên.",
+    num:"số phiên khác 0: 0/573",
+    verdict:"Chốt chặn thì nên hiếm kích hoạt — nhưng 'hiếm' khác 'chưa bao giờ'. Cần test dựng đúng tình huống nó phải chặn, hoặc gỡ khỏi sơ đồ."},
+
+  final: {name:"Tầng 5 — khuyến nghị cuối", role:"master_agent.py", state:"dead",
+    metric:"rho −0,019 với lợi nhuận",
+    claimed:"Phán quyết mua, nắm giữ hoặc bán dựa trên đồng thuận 5 tầng",
+    measured:"Phân bố: nắm giữ 55%, bán 33%, mua 10%. Tương quan hạng giữa điểm tại phiên T và lợi nhuận 20 phiên sau đó không khác 0 một cách có ý nghĩa.",
+    num:"rho −0,019  KTC [−0,100 ; +0,064]\nwalkforward alpha −0,36% [−0,83 ; +0,10]\nso với chọn ngẫu nhiên: −0,34% [−1,20 ; +0,55]",
+    verdict:"Bốn phép đo độc lập cùng chỉ một hướng: không có lợi thế khai thác được trên dữ liệu giá."}
+};
+
+const TIERS = [
+  ["Tầng 1 — thu thập", ["src"]],
+  ["Tầng 2 — sáu agent phân tích", ["trend","mom","vol","sr","risk","news"]],
+  ["Tầng 3 — tổng hợp", ["score"]],
+  ["Tầng 4 — tranh luận và chốt chặn", ["debate","safety"]],
+  ["Tầng 5 — phán quyết", ["final"]]
+];
+
+let mode = "measured", sel = "src";
+
+function render(){
+  const p = document.getElementById("pipe");
+  p.innerHTML = TIERS.map(([label, keys], i) => {
+    const row = keys.map(k => {
+      const d = D[k];
+      const cls = mode === "claimed" ? "alive" : d.state;
+      const m = mode === "claimed" ? "theo sơ đồ" : d.metric;
+      return `<button class="node ${cls}" data-k="${k}"
+        aria-pressed="${sel===k}"><span class="n">${d.name}</span>
+        <span class="m">${m}</span></button>`;
+    }).join("");
+    const arrow = i < TIERS.length-1 ? '<div class="flow">↓</div>' : '';
+    return `<div class="tier"><div class="tlabel">${label}</div>
+      <div class="row">${row}</div></div>${arrow}`;
+  }).join("");
+  p.querySelectorAll(".node").forEach(b =>
+    b.onclick = () => { sel = b.dataset.k; render(); });
+  panel();
+}
+
+function panel(){
+  const d = D[sel];
+  const body = mode === "claimed" ? d.claimed : d.measured;
+  const vcls = mode === "claimed" ? "v-alive"
+    : d.state === "alive" ? "v-alive" : d.state === "warn" ? "v-warn" : "v-dead";
+  document.getElementById("panel").innerHTML = `
+    <h2>${d.name}</h2>
+    <p class="role src">${d.role}</p>
+    <dl class="kv">
+      <dt>${mode === "claimed" ? "Mô tả trong sơ đồ kiến trúc" : "Đo được"}</dt>
+      <dd>${body}</dd>
+      ${mode === "measured" ? `<dt>Số đo</dt>
+        <dd class="num" style="white-space:pre-line">${d.num}</dd>` : ""}
+    </dl>
+    ${mode === "measured"
+      ? `<div class="verdict ${vcls}">${d.verdict}</div>`
+      : `<div class="verdict v-warn">Bấm "Đo thật" để xem tầng này thực sự làm gì.</div>`}`;
+}
+
+document.getElementById("bMeasured").onclick = () => {
+  mode = "measured";
+  document.getElementById("bMeasured").setAttribute("aria-pressed","true");
+  document.getElementById("bClaimed").setAttribute("aria-pressed","false");
+  render();
+};
+document.getElementById("bClaimed").onclick = () => {
+  mode = "claimed";
+  document.getElementById("bClaimed").setAttribute("aria-pressed","true");
+  document.getElementById("bMeasured").setAttribute("aria-pressed","false");
+  render();
+};
+render();
+</script>
+</body>
+</html>

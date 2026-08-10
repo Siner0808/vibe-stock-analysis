@@ -35,14 +35,20 @@ download(symbols, start_date, end_date)
 thresholds = [40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0,
               50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 60.0]
 
+# stride PHẢI cố định. Bản trước để `2 if idx % 2 == 1 else 3`, nên so vòng 1
+# với vòng 2 là so cả ngưỡng LẪN stride — hai biến trộn nhau, không kết luận
+# được biến nào gây ra chênh lệch. Tệ hơn: stride=3 nghĩa là chỉ kiểm tra vị
+# thế 3 phiên một lần, giá có thể xuyên sâu qua cắt lỗ rồi mới bị phát hiện.
+# Đó là thay đổi bản chất mô phỏng, không liên quan gì tới ngưỡng mua.
+STRIDE = 2
+
 iterations = []
 for idx, th in enumerate(thresholds, 1):
-    stride = 2 if idx % 2 == 1 else 3
     iterations.append({
         "loop": idx,
         "buy_threshold": th,
-        "stride": stride,
-        "note": f"Threshold {th:.1f} (Stride={stride})"
+        "stride": STRIDE,
+        "note": f"Threshold {th:.1f} (Stride={STRIDE})"
     })
 
 results = []
@@ -130,18 +136,21 @@ sign = "+" if best_row['net_profit_vnd'] >= 0 else ""
 print(f"-> LỢI NHUẬN RÒNG THỰC TẾ: {sign}{best_row['net_profit_vnd']:,.0f} VNĐ ({best_row['net_pct']:+.2f}%)")
 print("🏆"*35 + "\n")
 
-# Nạp bộ tham số xuất sắc nhất vào paper_trades.db chính thức
-print("⚡ Nạp bộ tham số tối ưu chiến thắng vào sổ lệnh chính thức paper_trades.db...")
-if os.path.exists("paper_trades.db"):
-    try: os.remove("paper_trades.db")
-    except Exception: pass
+print("""
+⚠️  ĐỌC TRƯỚC KHI DÙNG CON SỐ Ở TRÊN
 
-best_args = Namespace(
-    db="paper_trades.db",
-    symbols=",".join(symbols),
-    min_history=30,
-    stride=best_row["stride"],
-    buy_threshold=best_row["buy_threshold"]
-)
-cmd_seed(best_args)
-print("✅ Đã cập nhật Sổ lệnh chính thức VN100 (18 Tháng) với tham số tối ưu thành công!")
+Bảng này là 20 lần chạy trên CÙNG một bộ dữ liệu, rồi lấy vòng lãi cao nhất.
+Cực đại của 20 phép thử trên cùng dữ liệu luôn bị thổi phồng — nó đo độ may
+của phép tìm kiếm, không đo lợi thế của chiến lược. Không có tập kiểm định
+nào ở đây, nên KHÔNG con số nào trong bảng là kết quả ngoài mẫu.
+
+Dòng đáng tin nhất là dòng có NHIỀU LỆNH NHẤT, không phải dòng lãi cao nhất:
+mẫu càng lớn thì sai số càng nhỏ. Ngưỡng càng cao thì lệnh càng ít, nhiễu
+càng lớn, và "chiến thắng" xuất hiện đúng ở chỗ nhiễu lớn nhất.
+
+Dùng walkforward_vn100.py để có con số ngoài mẫu thật sự.
+
+Script này KHÔNG ghi vào paper_trades.db. Sổ lệnh đó là nhật ký tiến bước,
+ghi đè nó bằng kết quả in-sample là xoá mất bằng chứng duy nhất chưa bị
+tối ưu chạm vào.
+""")

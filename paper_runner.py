@@ -37,7 +37,7 @@ from paper_trading import PaperTradingJournal, Status
 
 def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict:
     """Chạy pipeline thật trên lịch sử đã cắt tới ngày T."""
-    from data_collectors import MarketDataPacket
+    from data_collectors import MarketDataPacket, DataOrchestrator
     from master_agent import MasterConsensusAgent
 
     packet = MarketDataPacket(
@@ -47,6 +47,14 @@ def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict
         news_packet=None,
         data_quality="OK",
     )
+    
+    # BẮT BUỘC: Tính toán indicator cho backtest (vì TradingView MCP không hỗ trợ quá khứ)
+    if packet.ohlcv_df is not None and len(packet.ohlcv_df) >= 20:
+        orchestrator = DataOrchestrator(symbol, "", "")
+        local_inds = orchestrator._compute_local_indicators(packet.ohlcv_df)
+        packet.tv_indicators.update({k: v for k, v in local_inds.items() if v is not None})
+        packet.source_notes.append("[Local] Đã tự tính RSI, MACD, BB, MAs... từ OHLCV lịch sử")
+
     return MasterConsensusAgent().run(packet)
 
 

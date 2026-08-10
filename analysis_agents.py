@@ -486,11 +486,11 @@ class RiskManagementAgent:
             "stop_loss_price": round(stop_loss_price, 0),
             "stop_loss_pct": round(sl_fraction * 100, 1),
             "take_profit_price": round(take_profit_price, 0),
-            "take_profit_pct": 20.0,
+            "take_profit_pct": "Không giới hạn",
             "tp2_price": round(tp2_price, 0),
-            "tp2_pct": 30.0,
+            "tp2_pct": "Vô cực",
             "break_even_pct": 5.0,
             "suggested_position_size_pct": position_pct,
-            "risk_reward_ratio": "1:4 (Gồng lãi VN50 +20% - +30%)"
+            "risk_reward_ratio": "Fat-Tail (Trailing Stop 7% từ đỉnh)"
         }
         return result

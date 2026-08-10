@@ -328,6 +328,80 @@ def test_thanh_phan_khong_bien_thien_khong_bao_NaN():
     print("PASS  thành phần hằng số báo rõ, không lọt NaN")
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Nối dài lịch sử — chỗ hai kiểu dữ liệu gặp nhau
+# ─────────────────────────────────────────────────────────────────────
+def test_ghep_cache_cu_voi_du_lieu_moi_khac_kieu_ngay():
+    """Cache CSV cho `time` kiểu chuỗi, vnstock trả Timestamp.
+
+    Ghép thẳng hai thứ đó rồi sắp xếp thì pandas ném
+    "'<' not supported between instances of 'Timestamp' and 'str'".
+    Lỗi chỉ xuất hiện khi có cache CŨ — chạy trên máy trắng sẽ không thấy.
+    """
+    import tempfile
+    from pathlib import Path
+
+    from backtest import data as bt
+
+    old = pd.DataFrame({                       # như đọc từ CSV: chuỗi
+        "time": ["2025-07-17", "2025-07-18"],
+        "open": [10.0, 11.0], "high": [11.0, 12.0],
+        "low": [9.0, 10.0], "close": [10.5, 11.5],
+        "volume": [1000, 1100]})
+    fresh = pd.DataFrame({                     # như vnstock trả: Timestamp
+        "time": pd.to_datetime(["2022-01-04", "2022-01-05", "2025-07-17"]),
+        "open": [5.0, 5.1, 99.0], "high": [5.5, 5.6, 99.0],
+        "low": [4.9, 5.0, 99.0], "close": [5.2, 5.3, 99.0],
+        "volume": [500, 510, 520]})
+
+    tmp = Path(tempfile.mkdtemp())
+    saved_dir, saved_fetch = bt.CACHE_DIR, bt.fetch_one
+    try:
+        bt.CACHE_DIR = tmp
+        old.to_csv(tmp / "TST.csv", index=False)
+        bt.fetch_one = lambda *a, **k: fresh
+
+        changed = bt.extend_history(["TST"], "2022-01-01", "2026-01-01")
+        assert "TST" in changed, "không nối được lịch sử"
+
+        merged = pd.read_csv(tmp / "TST.csv")
+        assert list(merged["time"]) == ["2022-01-04", "2022-01-05",
+                                        "2025-07-17", "2025-07-18"]
+        # Trùng ngày -> giữ bản GHI CŨ (10.5), không lấy bản mới (99.0)
+        row = merged[merged["time"] == "2025-07-17"].iloc[0]
+        assert float(row["close"]) == 10.5, (
+            "bản ghi cũ bị ghi đè — kết quả trước đó sẽ không tái dựng được")
+        print(f"PASS  ghép cache chuỗi + dữ liệu Timestamp -> "
+              f"{len(merged)} phiên, giữ bản ghi cũ khi trùng ngày")
+    finally:
+        bt.CACHE_DIR, bt.fetch_one = saved_dir, saved_fetch
+
+
+def test_bo_qua_ma_da_du_lich_su():
+    """Chạy lại nhiều lần phải an toàn và không gọi mạng thừa."""
+    import tempfile
+    from pathlib import Path
+
+    from backtest import data as bt
+
+    tmp = Path(tempfile.mkdtemp())
+    called = []
+    saved_dir, saved_fetch = bt.CACHE_DIR, bt.fetch_one
+    try:
+        bt.CACHE_DIR = tmp
+        pd.DataFrame({"time": ["2022-01-04", "2022-01-05"],
+                      "open": [1.0, 1.0], "high": [1.0, 1.0],
+                      "low": [1.0, 1.0], "close": [1.0, 1.0],
+                      "volume": [1, 1]}).to_csv(tmp / "TST.csv", index=False)
+        bt.fetch_one = lambda *a, **k: called.append(1) or None
+
+        changed = bt.extend_history(["TST"], "2022-01-01", "2026-01-01")
+        assert changed == {} and called == [], "gọi mạng dù đã đủ lịch sử"
+        print("PASS  mã đã đủ lịch sử -> bỏ qua, không gọi mạng")
+    finally:
+        bt.CACHE_DIR, bt.fetch_one = saved_dir, saved_fetch
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]
