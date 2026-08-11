@@ -12,7 +12,7 @@ from datetime import datetime
 os.environ["POST_MORTEM_ENABLED"] = "1"
 sys.stdout.reconfigure(encoding="utf-8")
 
-from vn100_symbols import VN100_SYMBOLS
+from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
 from paper_trading import PaperTradingJournal
 from paper_metrics import compute, report
 from paper_runner import run_session
@@ -26,7 +26,7 @@ def execute_daily_scan():
     now_time = now_vn()
     print("=" * 80)
     print(f"🚀 KÍCH HOẠT QUÉT THỊ TRƯỜNG DỰ BÁO VIBE CODING: {now_time:%Y-%m-%d %H:%M:%S}")
-    print(f"📌 Rổ chứng khoán: VN100 ({len(VN100_SYMBOLS)} mã)")
+    print(f"📌 Rổ chứng khoán Theo dõi: Danh mục Tùy chỉnh 16 Ngành ({len(CUSTOM_WATCHLIST_SYMBOLS)} mã)")
     print(f"📌 Ngưỡng điểm mua: {BUY_THRESHOLD} điểm (Tối ưu từ 20 Vòng lặp)")
     print(f"📌 Chế độ: Self-Improving AI (Post-Mortem Memory Loop ACTIVE)")
     print("=" * 80)
