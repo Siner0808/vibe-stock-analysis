@@ -928,6 +928,7 @@ with tab_paper:
         _trades = _j.all_trades()
         _closed = [t for t in _trades if t.status == "CLOSED"]
         _open = [t for t in _trades if t.status in ("OPEN", "PENDING", "CLOSING")]
+        _perf_res = _perf(_trades)
         st.markdown("### 📌 DANH SÁCH LỆNH ĐANG MỞ & CHỜ KHỚP (ACTIVE POSITIONS)")
         if _open:
             def _get_entry_display(t):
