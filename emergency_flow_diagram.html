@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sơ đồ 2: Quy trình Xử lý Khẩn cấp, Safety Harness &amp; Post-Mortem Loop</title>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<title>Sơ đồ 2: Quy trình Xử lý Khẩn cấp, Safety Harness & Post-Mortem Loop</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -12,195 +11,259 @@
 
   :root {
     --bg: #07090e;
-    --surface: #0f172a;
-    --border: rgba(255, 255, 255, 0.1);
+    --card-bg: rgba(15, 23, 42, 0.75);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover: rgba(255, 255, 255, 0.16);
     --green: #00e676;
     --blue: #38bdf8;
     --purple: #c084fc;
     --orange: #fb923c;
     --red: #f87171;
-    --yellow: #facc15;
+    --red-glow: rgba(248, 113, 113, 0.25);
     --teal: #2dd4bf;
-    --text: #f8fafc;
-    --muted: #94a3b8;
-    --mono: 'Fira Code', monospace;
-    --sans: 'Inter', sans-serif;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'Fira Code', monospace;
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    padding: 30px 20px;
+    background-color: var(--bg);
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(248, 113, 113, 0.08) 0%, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    padding: 24px;
     min-height: 100vh;
   }
 
-  .container {
-    max-width: 1240px;
-    margin: 0 auto;
-  }
-
-  header {
+  .header {
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--card-border);
   }
-  header h1 {
-    font-family: var(--mono);
+  .header h1 {
+    font-family: var(--font-mono);
     font-size: 20px;
     color: var(--red);
     margin-bottom: 6px;
-  }
-  header p {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .diagram-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    overflow-x: auto;
-  }
-
-  .mermaid {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 10px;
   }
-
-  .detail-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-  }
-
-  .card {
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    transition: transform 0.2s;
-  }
-  .card:hover { transform: translateY(-3px); }
-  .card-title {
-    font-family: var(--mono);
+  .header p {
     font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto 30px;
+  }
+
+  .tier-box {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    position: relative;
+    transition: all 0.25s ease;
+  }
+  .tier-box:hover {
+    border-color: var(--card-hover);
+    transform: translateY(-2px);
+  }
+
+  .tier-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .tier-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
     font-weight: 700;
-    margin-bottom: 8px;
+    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .card-desc {
+  .badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+
+  @media (max-width: 768px) {
+    .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .node-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .node-card.danger {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.35);
+  }
+  .node-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .node-desc {
     font-size: 12px;
-    color: var(--muted);
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .arrow-down {
+    text-align: center;
+    color: var(--red);
+    font-size: 18px;
+    margin: -10px 0;
+    text-shadow: 0 0 10px var(--red-glow);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .info-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .info-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .info-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
     line-height: 1.5;
   }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <h1>🚨 SƠ ĐỒ 2: QUY TRÌNH XỬ LÝ KHẨN CẤP, SAFETY HARNESS, TRANH LUẬN KHẨN CẤP &amp; VÒNG LẮP TỰ HỌC</h1>
-    <p>Tích hợp Safety Harness Giám sát An toàn, Đội ngũ Tranh luận Khẩn cấp (Bull vs Bear vs Devil), Vòng lặp Giám sát Real-time Loop &amp; Post-Mortem Feedback Loop</p>
-  </header>
+<div class="header">
+  <h1>🚨 SƠ ĐỒ 2: QUY TRÌNH XỬ LÝ KHẨN CẤP, SAFETY HARNESS & POST-MORTEM LOOP</h1>
+  <p>Tích hợp Safety Harness Giám sát An toàn, Đội ngũ Tranh luận Khẩn cấp (Bull vs Bear vs Devils), Vòng lặp Giám sát Real-time & Post-Mortem Feedback Loop</p>
+</div>
 
-  <div class="diagram-box">
-    <div class="mermaid">
-    graph TD
-        subgraph P1["GIAI ĐOẠN 1: REAL-TIME MONITORING LOOP"]
-            A["Tín hiệu Giá rơi hoặc Tin xấu bất ngờ"] --> B["News và Emergency Agent"]
-            B -->|Phát hiện Biến cố Thiên Nga Đen| C["Kích hoạt EMERGENCY_STATE"]
-            B -->|Không có tin vĩ mô lớn| D["Risk và Technical Agent"]
-            D -->|Chạm Hard Stop-Loss ATR| E["HARD STOP-LOSS SIGNAL"]
-            D -->|Chưa chạm Stop-Loss| F["Vòng lặp Giám sát Real-Time Loop"]
-            F -.->|Continuous Monitoring| A
-        end
+<div class="pipeline">
 
-        subgraph P2["GIAI ĐOẠN 2: AGENTIC SAFETY HARNESS VÀ DEBATE COUNCIL"]
-            G["SAFETY HARNESS GUARDRAILS"]
-            C --> G
-            E --> G
-            F -->|Xuất hiện xung đột kỹ thuật| G
-            
-            H["Harness Risk Limit Check"]
-            G --> H
-            I["BẮT BUỘC BÁN THOÁT VỊ THẾ KỶ LUẬT"]
-            H -->|Vi phạm Invariable Rules| I
-            J["EMERGENCY DEBATE COUNCIL - TRANH LUẬN KHẨN CẤP"]
-            H -->|Trong hạn mức rủi ro| J
-
-            J1["Bull Agent: Phân tích Rủ bỏ hoặc Panic Shakeout"]
-            J2["Bear Agent: Cảnh báo Phá vỡ Cấu trúc hoặc Bull Trap"]
-            J3["Devils Advocate - Neutral Risk Auditor: Thách thức Bias"]
-            J --> J1
-            J --> J2
-            J --> J3
-
-            J1 --- J2
-            J2 --- J3
-            J1 --- J3
-
-            K["Harness Final Decision: BÁN - THOÁT SỚM - HẠ TỶ TRỌNG"]
-            J1 --> K
-            J2 --> K
-            J3 --> K
-        end
-
-        subgraph P3["GIAI ĐOẠN 3: POST-MORTEM VÀ MEMORY FEEDBACK LOOP"]
-            L["Post-Mortem Learning Agent"]
-            I --> L
-            K --> L
-
-            M["Khám nghiệm Nguyên nhân Thất bại"]
-            L --> M
-            N["Điều chỉnh Position Sizing và Tỷ lệ Phân bổ Vốn"]
-            O["Cập nhật Mẫu hình Bẫy vào Negative Memory Vector DB"]
-            M -->|Rủi ro Vĩ mô hoặc Thiên Nga Đen| N
-            M -->|Bẫy Thị trường hoặc Đội lái Bull Trap| O
-
-            P["Cập nhật System Prompt và Weight Matrix"]
-            N --> P
-            O --> P
-
-            Q["Tăng Tiêu chuẩn duyệt MUA cho các phiên tiếp theo"]
-            P -->|Nâng quyền lực phản biện cho Bear Agent| Q
-            Q -.->|Cập nhật quy tắc cho Harness| G
-            Q -.->|Cập nhật dữ liệu bài học| A
-        end
+  <!-- GIAI ĐOẠN 1 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--blue);">🔄 GIAI ĐOẠN 1: REAL-TIME MONITORING LOOP</div>
+      <span class="badge" style="background: rgba(56,189,248,0.15); color: var(--blue);">GIÁM SÁT REAL-TIME 24/7</span>
+    </div>
+    <div class="grid-3">
+      <div class="node-card">
+        <div class="node-title">📡 Tín hiệu Biến động Real-Time</div>
+        <div class="node-desc">Phát hiện giá rơi bất ngờ hoặc tin tức vĩ mô tiêu cực theo thời gian thực.</div>
+      </div>
+      <div class="node-card danger">
+        <div class="node-title" style="color: var(--red);">🚨 Kích hoạt Emergency State</div>
+        <div class="node-desc">Phát hiện sự kiện Thiên Nga Đen (Black Swan) hoặc biến cố vĩ mô lớn.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">🎯 Hard Stop-Loss ATR Check</div>
+        <div class="node-desc">Kiểm tra mức vi phạm ngưỡng cắt lỗ động ATR kỷ luật.</div>
+      </div>
     </div>
   </div>
 
-  <div class="detail-cards">
-    <div class="card">
-      <div class="card-title" style="color: var(--blue);">🔄 Real-Time Monitoring Loop</div>
-      <div class="card-desc">Vòng lặp giám sát liên tục T+1, T+2... Cập nhật giá và tin tức theo real-time tick để phát hiện dấu hiệu vi phạm kịch bản ban đầu.</div>
+  <div class="arrow-down">↓</div>
+
+  <!-- GIAI ĐOẠN 2 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--teal);">🛡️ GIAI ĐOẠN 2: AGENTIC SAFETY HARNESS & EMERGENCY DEBATE</div>
+      <span class="badge" style="background: rgba(45,212,191,0.15); color: var(--teal);">CHỐT CHẶN BẤT BIẾN</span>
     </div>
-    <div class="card">
-      <div class="card-title" style="color: var(--teal);">🛡️ Agentic Safety Harness</div>
-      <div class="card-desc">Tầng khung giám sát an toàn đặt các giới hạn bất biến (Risk Guardrails): Giới hạn lỗ tối đa, Position Sizing, và quy tắc chặn hoảng loạn (Anti-Panic Filter).</div>
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="node-card danger">
+        <div class="node-title" style="color: var(--red);">🛑 BẮT BUỘC BÁN THOÁT VỊ THẾ (Rule Violation)</div>
+        <div class="node-desc">Khi vi phạm các quy tắc bất biến (Invariable Risk Rules), Safety Harness kích hoạt lệnh thoát kỷ luật không cần bàn cãi.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title" style="color: var(--orange);">⚔️ Emergency Debate Council</div>
+        <div class="node-desc">Khi nằm trong hạn mức rủi ro, Bull Agent (🐂), Bear Agent (🐻) và Devils Advocate (😈) tranh luận khẩn cấp để xác định Shakeout vs Phân phối.</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title" style="color: var(--orange);">⚔️ Tranh luận Khẩn cấp (Emergency Debate)</div>
-      <div class="card-desc">Bull Agent (🐂) và Bear Agent (🐻) đối kháng khẩn cấp dưới sự kiểm soát của Devil's Advocate (😈) để xác định rủi ro thực sự vs Rủ bỏ (Shakeout).</div>
+    <div class="node-card">
+      <div class="node-title" style="color: var(--teal);">⚖️ Phán quyết Cuối của Harness: BÁN - THOÁT SỚM - HẠ TỶ TRỌNG</div>
+      <div class="node-desc">Đưa ra chỉ thị quản trị rủi ro ngay lập tức để bảo vệ nguồn vốn tài khoản.</div>
     </div>
-    <div class="card">
-      <div class="card-title" style="color: var(--purple);">🔬 Post-Mortem &amp; Memory Loop Back</div>
-      <div class="card-desc">Sau khi thoát vị thế, Post-Mortem Agent mổ xẻ nguyên nhân, lưu bẫy vào Negative Memory DB và nạp ngược bài học lại cho Harness &amp; Debate System.</div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+
+  <!-- GIAI ĐOẠN 3 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--purple);">🔬 GIAI ĐOẠN 3: POST-MORTEM & NEGATIVE MEMORY FEEDBACK LOOP</div>
+      <span class="badge" style="background: rgba(192,132,252,0.15); color: var(--purple);">RÚT BÀI HỌC VÀ NẠP SỔ ĐEN</span>
     </div>
+    <div class="grid-2">
+      <div class="node-card">
+        <div class="node-title">🧬 Mổ xẻ Nguyên nhân & Cập nhật Vector Memory</div>
+        <div class="node-desc">Post-Mortem Agent phân tích nguyên nhân thua lỗ, nạp mẫu hình bẫy vào Negative Memory Vector DB.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">📈 Nâng Tiêu chuẩn Duyệt MUA cho Phiên Sau</div>
+        <div class="node-desc">Tăng quyền lực phản biện cho Bear Agent và siết chặt tiêu chuẩn duyệt lệnh cho toàn hệ thống.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="card-grid">
+  <div class="info-card">
+    <div class="info-title" style="color: var(--blue);">🔄 Real-Time Monitoring Loop</div>
+    <div class="info-desc">Vòng lặp giám sát liên tục T+1, T+2... Cập nhật giá và tin tức theo real-time tick để phát hiện dấu hiệu vi phạm kịch bản ban đầu.</div>
+  </div>
+  <div class="info-card">
+    <div class="info-title" style="color: var(--teal);">🛡️ Agentic Safety Harness</div>
+    <div class="info-desc">Tầng khung giám sát an toàn đặt các giới hạn bất biến (Risk Guardrails): Giới hạn lỗ tối đa, Position Sizing, và quy tắc chặn hoảng loạn (Anti-Panic Filter).</div>
+  </div>
+  <div class="info-card">
+    <div class="info-title" style="color: var(--orange);">⚔️ Tranh luận Khẩn cấp (Emergency Debate)</div>
+    <div class="info-desc">Bull Agent (🐂) và Bear Agent (🐻) đối kháng khẩn cấp dưới sự kiểm soát của Devils Advocate (😈) để xác định rủi ro thực sự vs Rủ bỏ (Shakeout).</div>
+  </div>
+  <div class="info-card">
+    <div class="info-title" style="color: var(--purple);">🔬 Post-Mortem & Memory Loop Back</div>
+    <div class="info-desc">Sau khi thoát vị thế, Post-Mortem Agent mổ xẻ nguyên nhân, lưu bẫy vào Negative Memory DB và nạp ngược bài học lại cho Harness & Debate System.</div>
   </div>
 </div>
 
-<script>
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: 'dark',
-    securityLevel: 'loose'
-  });
-</script>
 </body>
 </html>

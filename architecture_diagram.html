@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sơ đồ 1: Kiến trúc System Multi-Agent (Có Loop & Debate Council)</title>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<title>Sơ đồ 1: Kiến trúc System Multi-Agent 5 Tầng</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -12,185 +11,314 @@
 
   :root {
     --bg: #07090e;
-    --surface: #0f172a;
-    --border: rgba(255, 255, 255, 0.1);
+    --card-bg: rgba(15, 23, 42, 0.75);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover: rgba(255, 255, 255, 0.16);
     --green: #00e676;
+    --green-glow: rgba(0, 230, 118, 0.2);
     --blue: #38bdf8;
+    --blue-glow: rgba(56, 189, 248, 0.2);
     --purple: #c084fc;
+    --purple-glow: rgba(192, 132, 252, 0.2);
     --orange: #fb923c;
+    --orange-glow: rgba(251, 146, 60, 0.2);
     --red: #f87171;
-    --yellow: #facc15;
-    --text: #f8fafc;
-    --muted: #94a3b8;
-    --mono: 'Fira Code', monospace;
-    --sans: 'Inter', sans-serif;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'Fira Code', monospace;
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    padding: 30px 20px;
+    background-color: var(--bg);
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    padding: 24px;
     min-height: 100vh;
   }
 
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  header {
+  .header {
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--card-border);
   }
-  header h1 {
-    font-family: var(--mono);
+  .header h1 {
+    font-family: var(--font-mono);
     font-size: 20px;
     color: var(--green);
     margin-bottom: 6px;
-  }
-  header p {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .diagram-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    overflow-x: auto;
-  }
-
-  .mermaid {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 10px;
   }
-
-  .detail-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-  }
-
-  .card {
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    transition: transform 0.2s;
-  }
-  .card:hover { transform: translateY(-3px); }
-  .card-title {
-    font-family: var(--mono);
+  .header p {
     font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto 30px;
+  }
+
+  .tier-box {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    position: relative;
+    transition: all 0.25s ease;
+  }
+  .tier-box:hover {
+    border-color: var(--card-hover);
+    transform: translateY(-2px);
+  }
+
+  .tier-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .tier-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
     font-weight: 700;
-    margin-bottom: 8px;
+    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .card-desc {
+  .badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+  @media (max-width: 768px) {
+    .grid-3, .grid-2, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  .node-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .node-card.highlight {
+    background: rgba(0, 230, 118, 0.06);
+    border-color: rgba(0, 230, 118, 0.3);
+  }
+  .node-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .node-desc {
     font-size: 12px;
-    color: var(--muted);
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .arrow-down {
+    text-align: center;
+    color: var(--green);
+    font-size: 18px;
+    margin: -10px 0;
+    text-shadow: 0 0 10px var(--green-glow);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .info-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .info-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .info-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
     line-height: 1.5;
   }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <h1>📐 SƠ ĐỒ 1: KIẾN TRÚC MULTI-AGENT VỚI DEBATE COUNCIL &amp; FEEDBACK LOOP</h1>
-    <p>Hệ thống phân tích chu kỳ cổ phiếu tự động có cơ chế Phản biện đối kháng &amp; Tự học sau giao dịch (Self-Improving AI)</p>
-  </header>
+<div class="header">
+  <h1>📐 SƠ ĐỒ 1: KIẾN TRÚC MULTI-AGENT VỚI DEBATE COUNCIL & FEEDBACK LOOP</h1>
+  <p>Hệ thống phân tích chu kỳ cổ phiếu tự động có cơ chế Phản biện đối kháng & Tự học sau giao dịch (Self-Improving AI)</p>
+</div>
 
-  <div class="diagram-box">
-    <div class="mermaid">
-    graph TD
-        subgraph L1["TẦNG 1: DỮ LIỆU VÀ QUAN SÁT"]
-            A1["Biểu đồ Nến và Hình ảnh"] --> B1["Vision Chart Agent"]
-            A2["Dữ liệu OHLCV và Chỉ báo"] --> B2["Quant Cycle Agent"]
-            A3["BCTC và Vĩ mô Ngành"] --> B3["Fundamental Agent"]
-        end
+<div class="pipeline">
 
-        subgraph L2["TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ"]
-            B1 --> C["Wyckoff và Pattern Classifier"]
-            B2 --> C
-            B3 --> C
-        end
-
-        subgraph L3["TẦNG 3: ĐỘI NGŨ TRANH LUẬN CHU KỲ"]
-            D1["Bull Agent: Bảo vệ Kịch bản Tăng hoặc Tích lũy"]
-            D2["Bear Agent: Cảnh báo Bull Trap hoặc Phân phối"]
-            D3["Devils Agent: Thách thức Confirmation Bias"]
-            
-            D1 --- D2
-            D1 --- D3
-            D2 --- D3
-
-            E["Master Consensus Moderator"]
-            D1 --> E
-            D2 --> E
-            D3 --> E
-        end
-
-        C -->|Gửi kịch bản chu kỳ| D1
-
-        subgraph L4["TẦNG 4: PHÁN QUYẾT VÀ ĐIỂM QUẢN TRỊ RỦI RO"]
-            F["Quyết định Đầu tư và Thiết lập StopLoss - TakeProfit"]
-        end
-
-        E --> F
-
-        subgraph L5["TẦNG 5: CONTINUOUS FEEDBACK VÀ MEMORY LOOP"]
-            G["Theo dõi Giá Thực tế sau Giao dịch"]
-            H1["Reinforcement: Khắc sâu Mẫu hình vào Memory DB"]
-            H2["Post-Mortem Agent: Mổ xẻ Thất bại và Điều chỉnh Trọng số"]
-            
-            G -->|Giá đi đúng dự đoán| H1
-            G -->|Bị dính Stop-Loss hoặc Sai chu kỳ| H2
-        end
-
-        F --> G
-
-        D4["Memory Database"]
-        H1 -->|Cập nhật Vector Pattern| D4
-        H2 -->|Cập nhật Rule Phản biện và Trọng số| D4
-        D4 -.->|Cung cấp dữ liệu quá khứ| C
-        D4 -.->|Cung cấp case-study phản biện| D1
+  <!-- TẦNG 1 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--blue);">📦 TẦNG 1: THU THẬP DỮ LIỆU & QUAN SÁT (DATA INGESTION)</div>
+      <span class="badge" style="background: rgba(56,189,248,0.15); color: var(--blue);">3 LUỒNG SONG SONG</span>
+    </div>
+    <div class="grid-3">
+      <div class="node-card">
+        <div class="node-title">👁️ Vision Chart Agent</div>
+        <div class="node-desc">Nhận diện mẫu hình nến và cấu trúc đồ thị từ hình ảnh kỹ thuật.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">📈 Quant Cycle Agent</div>
+        <div class="node-desc">Tính toán chỉ số kỹ thuật định lượng (RSI, MACD, OBV, Bollinger Bands, Moving Averages).</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">📰 Fundamental Agent</div>
+        <div class="node-desc">Thu thập báo cáo tài chính doanh nghiệp, chỉ số vĩ mô và tin tức ngành real-time.</div>
+      </div>
     </div>
   </div>
 
-  <div class="detail-cards">
-    <div class="card">
-      <div class="card-title" style="color: var(--blue);">👁️ Tầng 1: Data Ingestion</div>
-      <div class="card-desc">Thu thập song song 3 luồng: Biểu đồ hình ảnh (Vision AI), Chỉ số kỹ thuật định lượng (Quant), Báo cáo tài chính &amp; Tin tức ngành (Fundamental).</div>
+  <div class="arrow-down">↓</div>
+
+  <!-- TẦNG 2 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--purple);">🧠 TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ (WYCKOFF CLASSIFIER)</div>
+      <span class="badge" style="background: rgba(192,132,252,0.15); color: var(--purple);">PHÂN LOẠI 4 PHA CHU KỲ</span>
     </div>
-    <div class="card">
-      <div class="card-title" style="color: var(--purple);">🧠 Tầng 2: Wyckoff Classifier</div>
-      <div class="card-desc">Phân loại cổ phiếu vào 4 giai đoạn chu kỳ: Tích lũy (Accumulation), Đẩy giá (Markup), Phân phối (Distribution), Đè giá (Markdown).</div>
+    <div class="grid-4">
+      <div class="node-card">
+        <div class="node-title" style="color: var(--green);">1. Tích lũy (Accumulation)</div>
+        <div class="node-desc">Dòng tiền lớn gom hàng ẩn sau chuỗi nến đi ngang.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title" style="color: var(--blue);">2. Đẩy giá (Markup)</div>
+        <div class="node-desc">Bứt phá khỏi nền giá (Breakout) bước vào sóng tăng.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title" style="color: var(--orange);">3. Phân phối (Distribution)</div>
+        <div class="node-desc">Tạo đỉnh, dòng tiền cá mập âm thầm rút vốn.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title" style="color: var(--red);">4. Đè giá (Markdown)</div>
+        <div class="node-desc">Sụt giảm mạnh, bước vào chu kỳ đơ giá dài hạn.</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title" style="color: var(--orange);">⚖️ Tầng 3: Debate Council</div>
-      <div class="card-desc">Bull Advocate (🐂) tranh luận gay gắt với Bear Advocate (🐻) và Devil's Advocate (😈) qua 3 vòng để triệt hạ bẫy tâm lý Confirmation Bias.</div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+
+  <!-- TẦNG 3 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--orange);">⚖️ TẦNG 3: HỘI ĐỒNG TRANH LUẬN CHU KỲ (DEBATE COUNCIL)</div>
+      <span class="badge" style="background: rgba(251,146,60,0.15); color: var(--orange);">TRIỆT HẠ CONFIRMATION BIAS</span>
     </div>
-    <div class="card">
-      <div class="card-title" style="color: var(--green);">🔄 Tầng 5: Feedback &amp; Memory Loop</div>
-      <div class="card-desc">Liên tục theo dõi giá thực tế sau T+N. Nếu giao dịch thua lỗ, Post-Mortem Agent mổ xẻ nguyên nhân và điều chỉnh trọng số phản biện cho tương lai.</div>
+    <div class="grid-3" style="margin-bottom: 12px;">
+      <div class="node-card">
+        <div class="node-title">🐂 Bull Advocate Agent</div>
+        <div class="node-desc">Bảo vệ kịch bản Tăng giá, tìm kiếm động lực bứt phá và hỗ trợ Wyckoff.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">🐻 Bear Advocate Agent</div>
+        <div class="node-desc">Cảnh báo Bull Trap, phân phối đỉnh và vi phạm các vùng kháng cự.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">😈 Devils Advocate Agent</div>
+        <div class="node-desc">Đóng vai kẻ phản biện cực đoan, truy tìm góc tối rủi ro bị bỏ sót.</div>
+      </div>
     </div>
+    <div class="node-card highlight">
+      <div class="node-title" style="color: var(--green);">👑 Master Consensus Moderator</div>
+      <div class="node-desc">Chủ tọa tổng hợp phán quyết từ 3 phía tranh luận, chấm điểm trọng số đồng thuận từ 0 đến 100.</div>
+    </div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+
+  <!-- TẦNG 4 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: var(--green);">🛡️ TẦNG 4: PHÁN QUYẾT & QUẢN TRỊ RỦI RO (DECISION ENGINE)</div>
+      <span class="badge" style="background: rgba(0,230,118,0.15); color: var(--green);">MUA / BÁN / NẮM GIỮ</span>
+    </div>
+    <div class="grid-2">
+      <div class="node-card">
+        <div class="node-title">🎯 Quyết định Đầu tư Cuối cùng</div>
+        <div class="node-desc">Xác định vị thế Mua (Score ≥ 50.0), Nắm giữ (Hold) hoặc Bán thoát vị thế.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title">📐 Thiết lập Stop-Loss ATR & Volatility Sizing</div>
+        <div class="node-desc">Tự động tính ngưỡng cắt lỗ theo độ biến động ATR và quản trị rủi ro cố định 1% vốn.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+
+  <!-- TẦNG 5 -->
+  <div class="tier-box">
+    <div class="tier-header">
+      <div class="tier-title" style="color: #38bdf8;">🔄 TẦNG 5: CONTINUOUS FEEDBACK & MEMORY LOOP (SELF-IMPROVING AI)</div>
+      <span class="badge" style="background: rgba(56,189,248,0.15); color: #38bdf8;">TỰ HỌC SAU GIAO DỊCH</span>
+    </div>
+    <div class="grid-2">
+      <div class="node-card">
+        <div class="node-title" style="color: var(--green);">🟢 Reinforcement Memory DB (Đi đúng kịch bản)</div>
+        <div class="node-desc">Khắc sâu mẫu hình chiến thắng vào Vector DB để tăng cường độ chính xác cho các lệnh sau.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-title" style="color: var(--red);">🔴 Post-Mortem Learning Agent (Dính Cắt Lỗ)</div>
+        <div class="node-desc">Mổ xẻ nguyên nhân giao dịch thất bại, lưu bẫy vào Sổ Đen và tự động điều chỉnh trọng số phản biện.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="card-grid">
+  <div class="info-card">
+    <div class="info-title" style="color: var(--blue);">👁️ Data Ingestion</div>
+    <div class="info-desc">Thu thập 3 luồng: Biểu đồ hình ảnh (Vision AI), Định lượng (Quant), BCTC & Tin tức vĩ mô.</div>
+  </div>
+  <div class="info-card">
+    <div class="info-title" style="color: var(--purple);">🧠 Wyckoff Classifier</div>
+    <div class="info-desc">Phân loại cổ phiếu vào 4 giai đoạn: Tích lũy, Đẩy giá, Phân phối, Đè giá.</div>
+  </div>
+  <div class="info-card">
+    <div class="info-title" style="color: var(--orange);">⚖️ Debate Council</div>
+    <div class="info-desc">Bull Agent tranh luận đối kháng với Bear & Devils Advocate để triệt hạ bẫy tâm lý Confirmation Bias.</div>
+  </div>
+  <div class="info-card">
+    <div class="info-title" style="color: var(--green);">🔄 Feedback & Memory Loop</div>
+    <div class="info-desc">Post-Mortem Agent mổ xẻ nguyên nhân thua lỗ, nạp bài học vào Sổ Đen để AI tự thông minh hơn.</div>
   </div>
 </div>
 
-<script>
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: 'dark',
-    securityLevel: 'loose'
-  });
-</script>
 </body>
 </html>
