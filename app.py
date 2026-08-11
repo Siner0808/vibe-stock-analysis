@@ -911,10 +911,8 @@ with tab_paper:
         if st.button("🚀 Khởi tạo Sổ Lệnh Giấy (Seed Demo Data)", type="primary", use_container_width=True):
             with st.spinner("⚡ Đang nạp dữ liệu lịch sử và tạo sổ lệnh..."):
                 try:
-                    from paper_runner import cmd_seed
-                    from argparse import Namespace
-                    symbols = ["FPT", "HPG", "MBB", "SSI", "VNM"]
-                    args = Namespace(db=str(_db), symbols=",".join(symbols), min_history=30, stride=3, buy_threshold=55.0)
+                    from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS
+                    args = Namespace(db=str(_db), symbols=",".join(CUSTOM_WATCHLIST_SYMBOLS), min_history=60, stride=2, buy_threshold=50.0)
                     cmd_seed(args)
                     st.success("✅ Đã khởi tạo sổ lệnh thành công!")
                     st.rerun()

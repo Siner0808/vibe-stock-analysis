@@ -14,9 +14,8 @@ __pycache__/
 backtest/cache/
 backtest/results/
 
-# Sổ lệnh giấy — dữ liệu chạy, không commit
-paper_trades.db
-*.db
+# Sổ lệnh giấy — bỏ qua các DB tạm của backtest
+paper_custom*.db
 
 # Bộ nhớ mẫu hình cắt lỗ — trạng thái chạy, phình ra sau mỗi lần chạy.
 # Commit nó vào git là để một file 2 MB quyết định điểm số của agent.
