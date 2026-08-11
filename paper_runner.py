@@ -141,7 +141,10 @@ def cmd_daily(args) -> int:
     from data_collectors import VNStockCollectorAgent
 
     journal = PaperTradingJournal(args.db)
-    symbols = [s.strip().upper() for s in args.symbols.split(",")]
+    if isinstance(args.symbols, list):
+        symbols = [s.strip().upper() for s in args.symbols]
+    else:
+        symbols = [s.strip().upper() for s in args.symbols.split(",")]
     end = now_vn()
     start = end - pd.Timedelta(days=args.days)
 

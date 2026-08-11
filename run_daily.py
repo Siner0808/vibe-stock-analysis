@@ -42,7 +42,7 @@ def execute_daily_scan():
     collector = VNStockCollectorAgent()
 
     import time
-    for idx, sym in enumerate(VN100_SYMBOLS, 1):
+    for idx, sym in enumerate(CUSTOM_WATCHLIST_SYMBOLS, 1):
         retry = 0
         while retry < 3:
             try:
