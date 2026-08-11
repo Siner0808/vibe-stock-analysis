@@ -136,8 +136,8 @@ class MasterConsensusAgent:
         # nên cơ chế này không thể nhìn trộm các lệnh lỗ xảy ra sau ngày đó.
         sl_penalty = 0.0
         try:
-            from post_mortem_learning import PostMortemLearningEngine
-            engine = PostMortemLearningEngine()
+            from post_mortem_learning import get_learning_engine
+            engine = get_learning_engine()
             if engine.enabled:
                 current_bd = {
                     "trend_score": int(trend_norm),

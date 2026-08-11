@@ -113,30 +113,30 @@
     <div class="mermaid">
     graph TD
         subgraph P1["GIAI ĐOẠN 1: REAL-TIME MONITORING LOOP"]
-            A["Tín hiệu Giá rơi hoặc Tin xấu bất ngờ"] --> B["News VÀ Emergency Agent"]
-            B -->|Phát hiện Biến cố Thiên Nga Đen| C["🚨 Kích hoạt EMERGENCY_STATE"]
-            B -->|Không có tin vĩ mô lớn| D["Risk VÀ Technical Agent"]
-            D -->|Chạm Hard Stop-Loss ATR| E["🔴 HARD STOP-LOSS SIGNAL"]
+            A["Tín hiệu Giá rơi hoặc Tin xấu bất ngờ"] --> B["News & Emergency Agent"]
+            B -->|Phát hiện Biến cố Thiên Nga Đen| C["Kích hoạt EMERGENCY_STATE"]
+            B -->|Không có tin vĩ mô lớn| D["Risk & Technical Agent"]
+            D -->|Chạm Hard Stop-Loss ATR| E["HARD STOP-LOSS SIGNAL"]
             D -->|Chưa chạm Stop-Loss| F["Vòng lặp Giám sát Real-Time Loop"]
             F -.->|Continuous Monitoring| A
         end
 
         subgraph P2["GIAI ĐOẠN 2: AGENTIC SAFETY HARNESS VÀ DEBATE COUNCIL"]
-            G["🛡️ SAFETY HARNESS GUARDRAILS"]
+            G["SAFETY HARNESS GUARDRAILS"]
             C --> G
             E --> G
             F -->|Xuất hiện xung đột kỹ thuật| G
             
             H["Harness Risk Limit Check"]
             G --> H
-            I["🔴 BẮT BUỘC BÁN THOÁT VỊ THẾ KỶ LUẬT"]
+            I["BẮT BUỘC BÁN THOÁT VỊ THẾ KỶ LUẬT"]
             H -->|Vi phạm Invariable Rules| I
-            J["⚖️ EMERGENCY DEBATE COUNCIL - TRANH LUẬN KHẨN CẤP"]
+            J["EMERGENCY DEBATE COUNCIL - TRANH LUẬN KHẨN CẤP"]
             H -->|Trong hạn mức rủi ro| J
 
-            J1["🐂 Bull Agent: Phân tích Rủ bỏ hoặc Panic Shakeout"]
-            J2["🐻 Bear Agent: Cảnh báo Phá vỡ Cấu trúc hoặc Bull Trap"]
-            J3["😈 Devil's Advocate / Neutral Risk Auditor: Thách thức Bias"]
+            J1["Bull Agent: Phân tích Rủ bỏ hoặc Panic Shakeout"]
+            J2["Bear Agent: Cảnh báo Phá vỡ Cấu trúc hoặc Bull Trap"]
+            J3["Devils Advocate - Neutral Risk Auditor: Thách thức Bias"]
             J --> J1
             J --> J2
             J --> J3
@@ -145,25 +145,25 @@
             J2 --- J3
             J1 --- J3
 
-            K["Harness Final Decision: BÁN / THOÁT SỚM / HẠ TỶ TRỌNG"]
+            K["Harness Final Decision: BÁN - THOÁT SỚM - HẠ TỶ TRỌNG"]
             J1 --> K
             J2 --> K
             J3 --> K
         end
 
         subgraph P3["GIAI ĐOẠN 3: POST-MORTEM VÀ MEMORY FEEDBACK LOOP"]
-            L["🔬 Post-Mortem Learning Agent"]
+            L["Post-Mortem Learning Agent"]
             I --> L
             K --> L
 
             M["Khám nghiệm Nguyên nhân Thất bại"]
             L --> M
-            N["Điều chỉnh Position Sizing VÀ Tỷ lệ Phân bổ Vốn"]
+            N["Điều chỉnh Position Sizing & Tỷ lệ Phân bổ Vốn"]
             O["Cập nhật Mẫu hình Bẫy vào Negative Memory Vector DB"]
-            M -->|Rủi ro Vĩ mô / Thiên Nga Đen| N
-            M -->|Bẫy Thị trường / Đội lái Bull Trap| O
+            M -->|Rủi ro Vĩ mô hoặc Thiên Nga Đen| N
+            M -->|Bẫy Thị trường hoặc Đội lái Bull Trap| O
 
-            P["Cập nhật System Prompt VÀ Weight Matrix"]
+            P["Cập nhật System Prompt & Weight Matrix"]
             N --> P
             O --> P
 

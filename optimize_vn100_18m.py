@@ -14,6 +14,8 @@ from datetime import datetime, timedelta
 from argparse import Namespace
 import pandas as pd
 
+os.environ["POST_MORTEM_ENABLED"] = "1"
+
 from backtest.data import download, load_all
 from paper_trading import PaperTradingJournal
 from paper_metrics import compute
@@ -51,9 +53,9 @@ for idx, th in enumerate(thresholds, 1):
         "note": f"Threshold {th:.1f} (Stride={STRIDE})"
     })
 
-results = []
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-for item in iterations:
+def run_single_loop(item):
     loop_num = item["loop"]
     db_temp = f"paper_vn100_18m_loop_{loop_num}.db"
     if os.path.exists(db_temp):
@@ -87,7 +89,14 @@ for item in iterations:
         final_capital = INITIAL_CAPITAL
         net_profit_vnd = 0
 
-    results.append({
+    journal.db.close()
+    del journal
+    gc.collect()
+    if os.path.exists(db_temp):
+        try: os.remove(db_temp)
+        except Exception: pass
+
+    return {
         "loop": loop_num,
         "note": item["note"],
         "buy_threshold": item["buy_threshold"],
@@ -99,14 +108,21 @@ for item in iterations:
         "net_pct": net_pct,
         "final_capital": final_capital,
         "net_profit_vnd": net_profit_vnd
-    })
-    
-    journal.db.close()
-    del journal
-    gc.collect()
-    if os.path.exists(db_temp):
-        try: os.remove(db_temp)
-        except Exception: pass
+    }
+
+print("🔥 Đang nạp Cache phân tích 17,000 phiên lịch sử (Vòng 1)...")
+results = [run_single_loop(iterations[0])]
+print("   ✓ Vòng 01 hoàn tất. Đã nạp xong Cache vào RAM!")
+
+print("\n🚀 Đang kích hoạt 8 Luồng CPU song song chạy 19 Vòng lặp còn lại...")
+with ThreadPoolExecutor(max_workers=8) as executor:
+    futures = [executor.submit(run_single_loop, item) for item in iterations[1:]]
+    for future in as_completed(futures):
+        res = future.result()
+        results.append(res)
+        print(f"   ✓ Đã hoàn thành Vòng {res['loop']:02d} (Ngưỡng {res['buy_threshold']:.1f})")
+
+results.sort(key=lambda x: x["loop"])
 
 df_res = pd.DataFrame(results)
 print("\n" + "="*100)

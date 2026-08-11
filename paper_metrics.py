@@ -176,6 +176,21 @@ def report(trades: list[Trade],
 
     add(f"Đã đóng   : {perf.n_trades} lệnh   |  Đang mở/chờ: {n_open}")
     add(f"Tỷ lệ thắng: {perf.win_rate:.1%}")
+
+    # Bổ sung danh sách chi tiết các vị thế ĐANG MỞ / CHỜ KHỚP
+    active_trades = [t for t in trades if t.status in ("OPEN", "PENDING")]
+    if active_trades:
+        add("")
+        add("─" * 64)
+        add("📌 DANH SÁCH LỆNH ĐANG MỞ & CHỜ KHỚP (ACTIVE POSITIONS):")
+        add("─" * 64)
+        add(f"{'MÃ':<6} | {'TRẠNG THÁI':<9} | {'NGÀY VÀO':<10} | {'GIÁ VÀO (VNĐ)':<13} | {'STOP LOSS':<10} | {'VỐN':<5}")
+        add("─" * 64)
+        for t in active_trades:
+            entry_p = f"{t.entry_price:,.0f}" if t.entry_price else "Chờ mở cửa"
+            sl_p = f"{t.stop_loss:,.0f}" if t.stop_loss else "N/A"
+            add(f"{t.symbol:<6} | {t.status:<9} | {str(t.entry_date or t.signal_date):<10} | {entry_p:<13} | {sl_p:<10} | {t.size_pct:.0f}%")
+        add("─" * 64)
     add(f"Lãi TB    : {perf.avg_win:+.2f}%   |  Lỗ TB: {perf.avg_loss:+.2f}%")
     add(f"Kỳ vọng   : {perf.expectancy:+.2f}% mỗi lệnh (đã trừ "
         f"{ROUND_TRIP_COST_PCT:.2f}% phí)")

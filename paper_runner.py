@@ -35,8 +35,16 @@ from paper_metrics import report as build_report
 from paper_trading import PaperTradingJournal, Status
 
 
+_ANALYZE_CACHE: dict[tuple, dict] = {}
+
 def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict:
     """Chạy pipeline thật trên lịch sử đã cắt tới ngày T."""
+    global _ANALYZE_CACHE
+    last_time = str(history["time"].iloc[-1]) if "time" in history.columns and len(history) else ""
+    cache_key = (symbol, len(history), last_time)
+    if cache_key in _ANALYZE_CACHE:
+        return _ANALYZE_CACHE[cache_key]
+
     from data_collectors import MarketDataPacket, DataOrchestrator
     from master_agent import MasterConsensusAgent
 
@@ -55,7 +63,9 @@ def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict
         packet.tv_indicators.update({k: v for k, v in local_inds.items() if v is not None})
         packet.source_notes.append("[Local] Đã tự tính RSI, MACD, BB, MAs... từ OHLCV lịch sử")
 
-    return MasterConsensusAgent().run(packet)
+    res = MasterConsensusAgent().run(packet)
+    _ANALYZE_CACHE[cache_key] = res
+    return res
 
 
 def run_session(journal: PaperTradingJournal, symbol: str,
@@ -223,6 +233,7 @@ def cmd_report(args) -> int:
 
 
 def main() -> int:
+    sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description="Sổ lệnh giấy của agent")
     p.add_argument("--db", default="paper_trades.db")
     sub = p.add_subparsers(dest="cmd", required=True)

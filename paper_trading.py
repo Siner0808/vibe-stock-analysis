@@ -104,6 +104,8 @@ class PaperTradingJournal:
     def __init__(self, path: str = DB_PATH) -> None:
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA synchronous = OFF;")
+        self.db.execute("PRAGMA journal_mode = MEMORY;")
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS decisions (
               seq INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -181,23 +183,25 @@ class PaperTradingJournal:
             return None
 
         risk = result["analyses"]["risk"]["recommendations"]
-        raw_score = float(result.get("final_score", 50))
-
-        # Ý TƯỞNG C & E: Phân bổ cỡ vị thế theo Độ tự tin tín hiệu (Confidence) & Biến động (Volatility)
-        # - Tín hiệu Rất Cao (Score >= 60): Phân bổ 25% - 30% vốn (Lợi thế cao nhân vốn)
-        # - Tín hiệu Trung bình (Score 54 - 59): Phân bổ 18% - 22% vốn
-        # - Tín hiệu Tiêu chuẩn (Score < 54): Phân bổ 12% - 15% vốn
-        if raw_score >= 60.0:
-            size = 28.0
-        elif raw_score >= 54.0:
-            size = 20.0
-        else:
-            size = 14.0
-
-        # Điều chỉnh theo độ rủi ro Risk Score
-        risk_score = float(result.get("analyses", {}).get("risk", {}).get("risk_score", 50))
-        vol_factor = max(0.7, min(1.3, 50.0 / max(1.0, risk_score)))
-        size = round(max(10.0, min(30.0, size * vol_factor)), 1)
+        
+        # Ý TƯỞNG C & E: Phân bổ cỡ vị thế theo Volatility (Fixed Fractional Risk)
+        # Fixed Risk = 1.0% tài khoản trên mỗi lệnh
+        account_risk_pct = 1.0
+        
+        entry_price = float(risk["entry_price"])
+        stop_loss = float(risk["stop_loss_price"])
+        
+        # Khoảng cách Stop Loss tính bằng %
+        sl_pct_dist = (entry_price - stop_loss) / entry_price if entry_price > stop_loss else 0.05
+        
+        # Capping khoảng cách tối thiểu 3% để tránh chia cho số quá nhỏ dẫn đến all-in
+        sl_pct_dist = max(0.03, sl_pct_dist)
+        
+        # Tính kích cỡ lệnh: (Rủi ro % / Khoảng cách SL %)
+        size = account_risk_pct / sl_pct_dist
+        
+        # Giới hạn kích cỡ: Tối thiểu 5%, tối đa 33.3% (Tránh dồn vốn vào 1 mã)
+        size = round(max(5.0, min(33.3, size)), 1)
         cur = self.db.execute(
             "INSERT INTO trades (symbol, exchange, signal_date, entry_date,"
             " entry_price, exit_date, exit_price, exit_reason, stop_loss,"
@@ -281,8 +285,8 @@ class PaperTradingJournal:
             if reason:
                 if reason == ExitReason.STOP_LOSS:
                     try:
-                        from post_mortem_learning import PostMortemLearningEngine
-                        engine = PostMortemLearningEngine()
+                        from post_mortem_learning import get_learning_engine
+                        engine = get_learning_engine()
                         if engine.enabled:
                             breakdown = json.loads(r["components"]) if r["components"] else {}
                             reasons = json.loads(r["reasons"]) if r["reasons"] else []

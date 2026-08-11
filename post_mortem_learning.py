@@ -47,21 +47,23 @@ def _enabled_by_default() -> bool:
     return os.environ.get("POST_MORTEM_ENABLED", "").strip() == "1"
 
 
-class PostMortemLearningEngine:
-    """Bộ nhớ mẫu hình cắt lỗ, có ràng buộc thời gian và mặc định tắt.
+_ENGINE_CACHE = None
 
-    Tham số
-    ───────
-    memory_file : đường dẫn file bộ nhớ.
-    enabled     : None -> lấy theo biến môi trường POST_MORTEM_ENABLED.
-                  Đặt True/False để ép trong test.
-    """
+def get_learning_engine(memory_file: str = MEMORY_FILE, enabled: Optional[bool] = None):
+    global _ENGINE_CACHE
+    if _ENGINE_CACHE is None or _ENGINE_CACHE.memory_file != memory_file:
+        _ENGINE_CACHE = PostMortemLearningEngine(memory_file, enabled)
+    return _ENGINE_CACHE
+
+class PostMortemLearningEngine:
+    """Bộ nhớ mẫu hình cắt lỗ, có ràng buộc thời gian và mặc định tắt."""
 
     def __init__(self, memory_file: str = MEMORY_FILE,
                  enabled: Optional[bool] = None):
         self.memory_file = memory_file
         self.enabled = _enabled_by_default() if enabled is None else bool(enabled)
         self.sl_patterns: List[Dict[str, Any]] = self.load_memory()
+        self._dirty = False
 
     # ─────────────────────────── Lưu / đọc ──────────────────────────
     def load_memory(self) -> List[Dict[str, Any]]:
@@ -74,10 +76,13 @@ class PostMortemLearningEngine:
         except Exception:
             return []
 
-    def save_memory(self) -> None:
+    def save_memory(self, force: bool = False) -> None:
+        if not self._dirty and not force:
+            return
         try:
             with open(self.memory_file, "w", encoding="utf-8") as f:
                 json.dump(self.sl_patterns, f, ensure_ascii=False, indent=2)
+            self._dirty = False
         except Exception:
             pass
 
@@ -85,14 +90,6 @@ class PostMortemLearningEngine:
     def record_sl_trade(self, symbol: str, entry_score: int,
                         score_breakdown: dict, key_reasons: list,
                         signal_date: Optional[str] = None) -> bool:
-        """Ghi mẫu hình của một lệnh vừa dính cắt lỗ.
-
-        `signal_date` là ngày sinh tín hiệu vào lệnh. Thiếu nó thì mẫu hình
-        không dùng được (vì không so sánh thời gian được), nên bỏ qua luôn
-        thay vì ghi một bản ghi vô dụng.
-
-        Trả về True nếu có ghi.
-        """
         if not self.enabled or not signal_date:
             return False
         self.sl_patterns.append({
@@ -104,7 +101,7 @@ class PostMortemLearningEngine:
             "volume_score": score_breakdown.get("volume_score", 50),
             "reasons": key_reasons[:3] if key_reasons else [],
         })
-        self.save_memory()
+        self._dirty = True
         return True
 
     # ─────────────────────────── Tra cứu ────────────────────────────
