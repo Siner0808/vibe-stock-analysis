@@ -402,23 +402,6 @@ with st.sidebar:
     with st.expander("🔑 Cấu hình API Key", expanded=False):
         from vnstock_auth import status_message as _vn_key_status
         st.caption(f"**vnstock:** {_vn_key_status()}")
-        st.divider()
-        _system_key = load_system_api_key()
-        if _system_key:
-            st.success("✅ Đã cấu hình API Key hệ thống (đọc từ `.streamlit/secrets.toml` "
-                       "hoặc biến môi trường). Key không nằm trong mã nguồn.")
-        custom_key_input = st.text_input(
-            "Nhập API Key riêng (Tùy chọn)",
-            value="",
-            type="password",
-            help="Key chỉ tồn tại trong phiên làm việc của bạn, không được lưu lại."
-        ).strip()
-        if custom_key_input:
-            st.session_state["gemini_api_key"] = custom_key_input
-        elif "gemini_api_key" in st.session_state and not st.session_state["gemini_api_key"]:
-            del st.session_state["gemini_api_key"]
-
-    effective_gemini_key = st.session_state.get("gemini_api_key") or load_system_api_key()
 
 end_date = now_vn()
 start_date = end_date - timedelta(days=days_back)
