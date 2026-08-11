@@ -112,13 +112,13 @@
     <div class="mermaid">
     graph TD
         subgraph L1["TẦNG 1: DỮ LIỆU VÀ QUAN SÁT"]
-            A1["Biểu đồ Nến & Hình ảnh"] --> B1["Vision Chart Agent"]
-            A2["Dữ liệu OHLCV & Chỉ báo"] --> B2["Quant Cycle Agent"]
-            A3["BCTC & Vĩ mô Ngành"] --> B3["Fundamental Agent"]
+            A1["Biểu đồ Nến và Hình ảnh"] --> B1["Vision Chart Agent"]
+            A2["Dữ liệu OHLCV và Chỉ báo"] --> B2["Quant Cycle Agent"]
+            A3["BCTC và Vĩ mô Ngành"] --> B3["Fundamental Agent"]
         end
 
         subgraph L2["TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ"]
-            B1 --> C["Wyckoff & Pattern Classifier"]
+            B1 --> C["Wyckoff và Pattern Classifier"]
             B2 --> C
             B3 --> C
         end
@@ -141,7 +141,7 @@
         C -->|Gửi kịch bản chu kỳ| D1
 
         subgraph L4["TẦNG 4: PHÁN QUYẾT VÀ ĐIỂM QUẢN TRỊ RỦI RO"]
-            F["Quyết định Đầu tư & Thiết lập StopLoss - TakeProfit"]
+            F["Quyết định Đầu tư và Thiết lập StopLoss - TakeProfit"]
         end
 
         E --> F
@@ -149,7 +149,7 @@
         subgraph L5["TẦNG 5: CONTINUOUS FEEDBACK VÀ MEMORY LOOP"]
             G["Theo dõi Giá Thực tế sau Giao dịch"]
             H1["Reinforcement: Khắc sâu Mẫu hình vào Memory DB"]
-            H2["Post-Mortem Agent: Mổ xẻ Thất bại & Điều chỉnh Trọng số"]
+            H2["Post-Mortem Agent: Mổ xẻ Thất bại và Điều chỉnh Trọng số"]
             
             G -->|Giá đi đúng dự đoán| H1
             G -->|Bị dính Stop-Loss hoặc Sai chu kỳ| H2
@@ -159,7 +159,7 @@
 
         D4["Memory Database"]
         H1 -->|Cập nhật Vector Pattern| D4
-        H2 -->|Cập nhật Rule Phản biện & Trọng số| D4
+        H2 -->|Cập nhật Rule Phản biện và Trọng số| D4
         D4 -.->|Cung cấp dữ liệu quá khứ| C
         D4 -.->|Cung cấp case-study phản biện| D1
     </div>
