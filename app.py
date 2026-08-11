@@ -927,7 +927,31 @@ with tab_paper:
         _j = _PJ(str(_db))
         _trades = _j.all_trades()
         _closed = [t for t in _trades if t.status == "CLOSED"]
-        _perf_res = _perf(_trades)
+        _open = [t for t in _trades if t.status in ("OPEN", "PENDING", "CLOSING")]
+        st.markdown("### 📌 DANH SÁCH LỆNH ĐANG MỞ & CHỜ KHỚP (ACTIVE POSITIONS)")
+        if _open:
+            def _get_entry_display(t):
+                if t.entry_price:
+                    return f"{t.entry_price:,.0f} VNĐ"
+                if t.status == "PENDING" and t.stop_loss:
+                    est_p = round(t.stop_loss / 0.95, 0)
+                    return f"~{est_p:,.0f} VNĐ (Đề xuất)"
+                return "Chờ khớp phiên tới"
+
+            st.dataframe(pd.DataFrame([{
+                "Mã": t.symbol,
+                "Trạng thái": t.status,
+                "Ngày vào": t.entry_date or t.signal_date or "Chờ phiên sau",
+                "Giá vào": _get_entry_display(t),
+                "Cắt lỗ (SL)": f"{t.stop_loss:,.0f} VNĐ" if t.stop_loss else "—",
+                "Chốt lời (TP)": f"{t.take_profit:,.0f} VNĐ" if t.take_profit else "—",
+                "Vốn": f"{getattr(t, 'position_size_pct', 30):.0f}%",
+                "Điểm vào": t.entry_score,
+            } for t in _open]), use_container_width=True, hide_index=True)
+        else:
+            st.info("ℹ️ **Hiện tại không có lệnh nào đang mở.** Tất cả vị thế đã được đóng / cắt lỗ / chốt lời an toàn.")
+
+        st.divider()
 
         if _perf_res is None:
             st.warning(f"Có {len(_trades)} lệnh nhưng chưa lệnh nào đóng.")
@@ -963,28 +987,6 @@ with tab_paper:
                                         key=lambda x: -x[1])]
             st.dataframe(pd.DataFrame(_rows), use_container_width=True,
                          hide_index=True)
-
-        _open = [t for t in _trades if t.status in ("OPEN", "PENDING", "CLOSING")]
-        if _open:
-            st.markdown("##### Vị thế đang mở")
-            def _get_entry_display(t):
-                if t.entry_price:
-                    return f"{t.entry_price:,.0f}"
-                if t.status == "PENDING" and t.stop_loss:
-                    # Ước tính giá mua đề xuất từ mức Stop-Loss (-5%)
-                    est_p = round(t.stop_loss / 0.95, 0)
-                    return f"~{est_p:,.0f} (Đề xuất)"
-                return "Chờ khớp phiên tới"
-
-            st.dataframe(pd.DataFrame([{
-                "Mã": t.symbol, "Trạng thái": t.status,
-                "Ngày tín hiệu": t.signal_date,
-                "Ngày vào": t.entry_date or "Chờ phiên sau",
-                "Giá vào": _get_entry_display(t),
-                "Cắt lỗ": f"{t.stop_loss:,.0f}",
-                "Chốt lời": f"{t.take_profit:,.0f}",
-                "Điểm vào": t.entry_score,
-            } for t in _open]), use_container_width=True, hide_index=True)
 
         if _closed:
             st.markdown("##### Lệnh gần nhất")
