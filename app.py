@@ -936,14 +936,14 @@ with tab_paper:
                     from data_quality import now_vn
                     c = VNStockCollectorAgent()
                     now_dt = now_vn()
-                    st_d = (now_dt - pd.Timedelta(days=10)).strftime("%Y-%m-%d")
+                    st_d = (now_dt - pd.Timedelta(days=60)).strftime("%Y-%m-%d")
                     end_d = now_dt.strftime("%Y-%m-%d")
                     res = c.collect(sym, st_d, end_d, exchange="HOSE")
                     if res.get("status") == "OK" and res.get("df") is not None and not res["df"].empty:
                         r = res["df"].iloc[-1]
                         raw_p = float(r["close"])
                         return raw_p * (1000.0 if raw_p < 500.0 else 1.0)
-                except Exception:
+                except Exception as e:
                     pass
                 return None
 
@@ -960,7 +960,12 @@ with tab_paper:
 
             for t in _open:
                 entry_p = t.entry_price
-                curr_p = _fetch_latest_price(t.symbol) if t.status == "OPEN" else None
+                curr_p = None
+                if t.status == "OPEN":
+                    if 'latest_close_fmt' in locals() and t.symbol == symbol:
+                        curr_p = latest_close_fmt
+                    else:
+                        curr_p = _fetch_latest_price(t.symbol)
                 
                 if entry_p and curr_p and t.status == "OPEN":
                     pnl_pct = ((curr_p - entry_p) / entry_p) * 100.0
