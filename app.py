@@ -1077,29 +1077,29 @@ with tab_diagram:
         return None
 
     d_tab1, d_tab2, d_tab3 = st.tabs([
-        "🏛️ Sơ đồ 1: Kiến trúc System 5 Tầng (Loop & Debate Council)",
-        "🛡️ Sơ đồ 2: Safety Harness & Vòng lặp Post-Mortem (Xử lý Bẫy)",
+        "🏛️ Sơ đồ 1: Kiến trúc System Multi-Agent (Debate Council & Feedback Loop)",
+        "🛡️ Sơ đồ 2: Engine Tất định & Phản biện Khác hãng (Architecture v2)",
         "📊 Sơ đồ 3: Pipeline Luồng Dữ liệu Chi tiết"
     ])
 
     with d_tab1:
         html1 = load_html_diagram("architecture_diagram.html")
         if html1:
-            st.components.v1.html(html1, height=920, scrolling=True)
+            st.components.v1.html(html1, height=1000, scrolling=True)
         else:
             st.warning("⚠️ Chưa tìm thấy file architecture_diagram.html")
 
     with d_tab2:
-        html2 = load_html_diagram("emergency_flow_diagram.html")
+        html2 = load_html_diagram("architecture_diagram_v2.html") or load_html_diagram("emergency_flow_diagram.html")
         if html2:
-            st.components.v1.html(html2, height=920, scrolling=True)
+            st.components.v1.html(html2, height=1000, scrolling=True)
         else:
-            st.warning("⚠️ Chưa tìm thấy file emergency_flow_diagram.html")
+            st.warning("⚠️ Chưa tìm thấy file architecture_diagram_v2.html")
 
     with d_tab3:
         html3 = load_html_diagram("pipeline_diagram.html")
         if html3:
-            st.components.v1.html(html3, height=920, scrolling=True)
+            st.components.v1.html(html3, height=1000, scrolling=True)
         else:
             st.warning("⚠️ Chưa tìm thấy file pipeline_diagram.html")
 
