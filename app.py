@@ -929,6 +929,24 @@ with tab_paper:
         _perf_res = _perf(_trades)
         st.markdown("### 📌 DANH SÁCH LỆNH ĐANG MỞ & CHỜ KHỚP (ACTIVE POSITIONS)")
         if _open:
+            @st.cache_data(ttl=60)
+            def _fetch_latest_price(sym):
+                try:
+                    from data_collectors import VNStockCollectorAgent
+                    from data_quality import now_vn
+                    c = VNStockCollectorAgent()
+                    now_dt = now_vn()
+                    st_d = (now_dt - pd.Timedelta(days=10)).strftime("%Y-%m-%d")
+                    end_d = now_dt.strftime("%Y-%m-%d")
+                    res = c.collect(sym, st_d, end_d, exchange="HOSE")
+                    if res.get("status") == "OK" and res.get("df") is not None and not res["df"].empty:
+                        r = res["df"].iloc[-1]
+                        raw_p = float(r["close"])
+                        return raw_p * (1000.0 if raw_p < 500.0 else 1.0)
+                except Exception:
+                    pass
+                return None
+
             def _get_entry_display(t):
                 if t.entry_price:
                     return f"{t.entry_price:,.0f} VNĐ"
@@ -937,16 +955,48 @@ with tab_paper:
                     return f"~{est_p:,.0f} VNĐ (Đề xuất)"
                 return "Chờ khớp phiên tới"
 
-            st.dataframe(pd.DataFrame([{
-                "Mã": t.symbol,
-                "Trạng thái": t.status,
-                "Ngày vào": t.entry_date or t.signal_date or "Chờ phiên sau",
-                "Giá vào": _get_entry_display(t),
-                "Cắt lỗ (SL)": f"{t.stop_loss:,.0f} VNĐ" if t.stop_loss else "—",
-                "Chốt lời (TP)": f"{t.take_profit:,.0f} VNĐ" if t.take_profit else "—",
-                "Vốn": f"{getattr(t, 'position_size_pct', 30):.0f}%",
-                "Điểm vào": t.entry_score,
-            } for t in _open]), use_container_width=True, hide_index=True)
+            row_data = []
+            total_unrealized_vnd = 0.0
+
+            for t in _open:
+                entry_p = t.entry_price
+                curr_p = _fetch_latest_price(t.symbol) if t.status == "OPEN" else None
+                
+                if entry_p and curr_p and t.status == "OPEN":
+                    pnl_pct = ((curr_p - entry_p) / entry_p) * 100.0
+                    size_pct = getattr(t, 'position_size_pct', 30)
+                    # Tính Lãi/Lỗ tạm tính trên quy mô danh mục chuẩn 100 triệu VNĐ
+                    position_capital = 100_000_000 * (size_pct / 100.0)
+                    pnl_vnd = position_capital * (pnl_pct / 100.0)
+                    total_unrealized_vnd += pnl_vnd
+
+                    curr_p_str = f"{curr_p:,.0f} VNĐ"
+                    pnl_pct_str = f"{pnl_pct:+.2f}%"
+                    pnl_vnd_str = f"{pnl_vnd:+,.0f} VNĐ"
+                elif t.entry_price:
+                    curr_p_str = f"{t.entry_price:,.0f} VNĐ"
+                    pnl_pct_str = "0.00%"
+                    pnl_vnd_str = "0 VNĐ"
+                else:
+                    curr_p_str = "Chờ khớp"
+                    pnl_pct_str = "—"
+                    pnl_vnd_str = "—"
+
+                row_data.append({
+                    "Mã": t.symbol,
+                    "Trạng thái": t.status,
+                    "Ngày vào": t.entry_date or t.signal_date or "Chờ phiên sau",
+                    "Giá vào": _get_entry_display(t),
+                    "Giá hiện tại": curr_p_str,
+                    "Lãi/Lỗ (%)": pnl_pct_str,
+                    "Lãi/Lỗ (VNĐ)": pnl_vnd_str,
+                    "Cắt lỗ (SL)": f"{t.stop_loss:,.0f} VNĐ" if t.stop_loss else "—",
+                    "Chốt lời (TP)": f"{t.take_profit:,.0f} VNĐ" if t.take_profit else "—",
+                    "Vốn": f"{getattr(t, 'position_size_pct', 30):.0f}%",
+                    "Điểm AI": t.entry_score,
+                })
+
+            st.dataframe(pd.DataFrame(row_data), use_container_width=True, hide_index=True)
         else:
             st.info("ℹ️ **Hiện tại không có lệnh nào đang mở.** Tất cả vị thế đã được đóng / cắt lỗ / chốt lời an toàn.")
 
