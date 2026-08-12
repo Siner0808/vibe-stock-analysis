@@ -129,10 +129,12 @@ def cmd_seed(args) -> int:
                             str(row["time"]), buy_threshold=args.buy_threshold)
             total["opened"] += s["opened"]
             total["closed"] += s["closed"]
-        print(f"  [{i}/{len(dataset)}] {sym}: xong {n - args.min_history} phiên")
+        if not getattr(args, 'no_summary', False):
+            print(f"  [{i}/{len(dataset)}] {sym}: xong {n - args.min_history} phiên")
 
-    print(f"\nĐã nạp: {total['opened']} lệnh mở, {total['closed']} lệnh đóng")
-    print(f"Sổ: {args.db}")
+    if not getattr(args, 'no_summary', False):
+        print(f"\nĐã nạp: {total['opened']} lệnh mở, {total['closed']} lệnh đóng")
+        print(f"Sổ: {args.db}")
     return 0
 
 
