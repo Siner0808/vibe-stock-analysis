@@ -14,8 +14,11 @@ __pycache__/
 backtest/cache/
 backtest/results/
 
-# Sổ lệnh giấy — bỏ qua các DB tạm của backtest
-paper_custom*.db
+# Sổ lệnh giấy — MỌI file .db đều là trạng thái chạy, không commit.
+# Trước đây chỉ chặn `paper_custom*.db` nên `paper_trades.db` lọt qua và bị
+# commit 16 lần; commit e2f98b4 đã ghi đè 96/113 lệnh thật bằng kết quả
+# in-sample. Bản sạch cuối cùng nằm ở commit e9c5113.
+*.db
 
 # Bộ nhớ mẫu hình cắt lỗ — trạng thái chạy, phình ra sau mỗi lần chạy.
 # Commit nó vào git là để một file 2 MB quyết định điểm số của agent.
