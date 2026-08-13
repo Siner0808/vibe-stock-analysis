@@ -4,11 +4,12 @@
 > `AGENTS.md` do vnstock tự đồng bộ nên sẽ bị ghi đè — các quy tắc dưới đây
 > nằm ở file này.
 
-Dự án này đã ba lần cho ra những con số rất đẹp mà sau đó hoá ra vô nghĩa:
-+22,42% từ backtest có nhìn trộm, +14,88% "OOS" trên vùng đã tối ưu, +14,24%
-là cực đại của 20 lần thử trên cùng dữ liệu. Không lần nào có ai cố ý gian
-lận — mỗi lần đều là một lỗi kỹ thuật nhỏ, âm thầm, và luôn nghiêng về phía
-làm kết quả đẹp lên.
+Dự án này đã **bốn** lần cho ra những con số rất đẹp mà sau đó hoá ra vô
+nghĩa: +22,42% từ backtest có nhìn trộm, +14,88% "OOS" trên vùng đã tối ưu,
++14,24% là cực đại của 20 lần thử trên cùng dữ liệu, và **+636,11% từ một sổ
+lệnh dùng đòn bẩy 2,2 lần** (xem dưới). Không lần nào có ai cố ý gian lận —
+mỗi lần đều là một lỗi kỹ thuật nhỏ, âm thầm, và luôn nghiêng về phía làm
+kết quả đẹp lên.
 
 Đó là quy luật: **lỗi đo lường gần như không bao giờ làm kết quả xấu đi.**
 Nếu một thay đổi làm con số đẹp lên đáng kể, giả định đầu tiên phải là có lỗi.
@@ -70,6 +71,15 @@ khoảng **khác**. Xem `walkforward_vn100.py`.
 Trong dải kết quả, **dòng đáng tin nhất là dòng có nhiều lệnh nhất**, không
 phải dòng lãi cao nhất.
 
+### 7b. Cộng dồn lệnh chồng lấn là đòn bẩy trá hình
+Đường vốn nhân dồn từng lệnh vào **toàn bộ** vốn hiện có, lần lượt theo ngày
+đóng. Phép nhân đó chỉ đúng khi mỗi thời điểm có một lệnh mở. Nhiều lệnh
+chồng lên nhau thì tổng vốn cam kết vượt 100% — con số cộng dồn khi đó là
+lợi nhuận của một tài khoản vay được, không phải tài khoản thật.
+
+Luôn đọc `Performance.avg_capital_deployed_pct` kèm `total_net_pct`. Vượt
+100% thì chia tỷ trọng cho đúng bội số rồi đo lại.
+
 ### 8. Vùng kiểm định nằm ở QUÁ KHỨ
 Trực giác nói tối ưu trên quá khứ, kiểm định trên hiện tại. Ở đây ngược lại:
 hàng trăm vòng loop đã chạy trên toàn bộ cache kéo tới hôm nay, nên giai đoạn
@@ -102,6 +112,34 @@ lỗi ở mục 7.
   in-sample là xoá mất bằng chứng duy nhất chưa bị tối ưu chạm vào.
 
 ---
+
+## Lần thứ tư: +636,11% (12/08/2026)
+
+`brain/…/20loop_custom71_18m_optimization_report.md` công bố ngưỡng 50,0 là
+"QUÁN QUÂN TỐI ƯU" với +636,11% trên 71 mã, 18 tháng. Con số **tái lập được
+chính xác** từ `paper_custom20loop_18m_loop_11.db` — nó không bịa. Nhưng:
+
+```
+Vốn cam kết cùng lúc : 224% trung bình · 1.160% đỉnh điểm  → đòn bẩy 2,2x
+Quy về 100% vốn      : +155,66%
+VN-INDEX cùng kỳ     : +39,56%
+```
+
+Bốn bất biến bị vi phạm cùng lúc: cực đại của 20 lần thử trên cùng dữ liệu
+(mục 7), cộng dồn lệnh chồng lấn (mục 7b), không có khoảng tin cậy (mục 5),
+không có alpha khớp từng lệnh (mục 6). Đo trên 18 tháng gần nhất — giai đoạn
+đã bị nhìn nhiều nhất (mục 8).
+
+23 phút sau, ngưỡng 50,0 được nạp đè vào `paper_trades.db` (commit
+`e2f98b4`): 96/113 lệnh thật biến mất, vị thế ACB đang mở bị xoá.
+
+Ba việc đã làm sau sự cố: `guard_not_real_ledger()` chặn script tối ưu ghi
+vào sổ thật; `Performance.avg_capital_deployed_pct` bắt đòn bẩy ẩn; app và
+`paper_metrics.report()` cảnh báo khi vốn vượt 100%.
+
+Bài học riêng của lần này: **báo cáo nằm ngoài repo thì nằm ngoài mọi bất
+biến.** Thư mục `brain/` không được git theo dõi, không ai review, và là nơi
+con số được diễn giải thành kết luận.
 
 ## Kết quả ngoài mẫu gần nhất (07/08/2026)
 

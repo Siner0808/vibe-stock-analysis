@@ -12,7 +12,7 @@ from argparse import Namespace
 import pandas as pd
 
 from backtest.data import load_all
-from paper_trading import PaperTradingJournal
+from paper_trading import PaperTradingJournal, guard_not_real_ledger
 from paper_metrics import compute
 from paper_runner import cmd_seed
 
@@ -136,16 +136,22 @@ sign = "+" if best_row['net_profit_vnd'] >= 0 else ""
 print(f"-> LỢI NHUẬN RÒNG THỰC TẾ: {sign}{best_row['net_profit_vnd']:,.0f} VNĐ ({best_row['net_pct']:+.2f}%)")
 print("🏆"*35 + "\n")
 
-# Áp dụng bộ tham số tốt nhất vào paper_trades.db chính thức!
-print("⚡ Nạp bộ tham số tối ưu chiến thắng vào sổ lệnh chính thức paper_trades.db...")
-if os.path.exists("paper_trades.db"):
+# KHÔNG ghi vào paper_trades.db. Vòng thắng ở đây là cực đại của 20 lần thử
+# trên CÙNG một bộ dữ liệu — đó là độ may của phép tìm kiếm, không phải lợi
+# thế của chiến lược (NGUYEN-TAC-DO-LUONG.md, bất biến 7). Nạp nó vào sổ
+# lệnh thật đã xoá 96/113 lệnh thật ngày 12/08/2026.
+SCRATCH_DB = "paper_optimize_20loops_insample.db"
+guard_not_real_ledger(SCRATCH_DB, caller="optimize_20_loops.py")
+
+print(f"⚡ Ghi kết quả in-sample ra {SCRATCH_DB} (KHÔNG đụng sổ lệnh thật)...")
+if os.path.exists(SCRATCH_DB):
     try:
-        os.remove("paper_trades.db")
+        os.remove(SCRATCH_DB)
     except Exception:
         pass
 
 best_args = Namespace(
-    db="paper_trades.db",
+    db=SCRATCH_DB,
     symbols=",".join(symbols),
     min_history=30,
     stride=best_row["stride"],

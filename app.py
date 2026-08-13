@@ -907,14 +907,23 @@ with tab_paper:
 
     _db = _pl.Path(__file__).parent / "paper_trades.db"
     if not _db.exists():
-        st.info("ℹ️ Sổ lệnh giấy chưa có dữ liệu lịch sử. Bạn có thể nhấn nút dưới đây để khởi tạo sổ lệnh tự động.")
-        if st.button("🚀 Khởi tạo Sổ Lệnh Giấy (Seed Demo Data)", type="primary", use_container_width=True):
+        st.info("ℹ️ Sổ lệnh giấy chưa có dữ liệu lịch sử.")
+        st.warning(
+            "⚠️ **Nút dưới đây tạo lệnh MÔ PHỎNG chạy ngược trên dữ liệu quá "
+            "khứ, không phải thành tích thật của agent.**\n\n"
+            "Agent đã biết trước toàn bộ giai đoạn được mô phỏng, nên kết quả "
+            "sinh ra chỉ dùng để xem giao diện — **không** được đọc như bằng "
+            "chứng hiệu quả, và không được dùng để chọn ngưỡng mua.\n\n"
+            "Thành tích thật chỉ tích luỹ được bằng cách chạy `run_daily.py` "
+            "mỗi phiên, tiến về phía trước.")
+        if st.button("🚀 Tạo dữ liệu MÔ PHỎNG để xem giao diện",
+                     type="secondary", use_container_width=True):
             with st.spinner("⚡ Đang nạp dữ liệu lịch sử và tạo sổ lệnh..."):
                 try:
                     from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS
                     args = Namespace(db=str(_db), symbols=",".join(CUSTOM_WATCHLIST_SYMBOLS), min_history=60, stride=2, buy_threshold=50.0)
                     cmd_seed(args)
-                    st.success("✅ Đã khởi tạo sổ lệnh thành công!")
+                    st.success("✅ Đã tạo dữ liệu mô phỏng (KHÔNG phải thành tích thật).")
                     st.rerun()
                 except Exception as e:
                     st.error(f"❌ Không thể khởi tạo tự động: {e}")
@@ -1016,6 +1025,24 @@ with tab_paper:
             c3.metric("Kỳ vọng/lệnh", f"{_perf_res.expectancy:+.2f}%",
                       help="Đã trừ phí môi giới hai chiều và thuế bán")
             c4.metric("Sụt giảm tối đa", f"{_perf_res.max_drawdown_pct:.1f}%")
+
+            # Vốn cam kết cùng lúc. Vượt 100% nghĩa là mọi con số cộng dồn ở
+            # trên là của một tài khoản dùng đòn bẩy — phải nói ra, vì đây
+            # đúng là chỗ báo cáo +636% ngày 12/08/2026 đã trượt.
+            if _perf_res.is_leveraged:
+                _don_bay = _perf_res.avg_capital_deployed_pct / 100
+                st.error(
+                    f"🚨 **Sổ này dùng đòn bẩy {_don_bay:.1f}x — các con số "
+                    f"cộng dồn ở trên không có thật.**\n\n"
+                    f"Vốn cam kết cùng lúc: **{_perf_res.avg_capital_deployed_pct:.0f}%** "
+                    f"trung bình, đỉnh **{_perf_res.peak_capital_deployed_pct:.0f}%**. "
+                    f"Tài khoản thật không giữ quá 100%.\n\n"
+                    f"Chia tỷ trọng mỗi lệnh cho {_don_bay:.1f} rồi đo lại.")
+            else:
+                st.caption(
+                    f"Vốn cam kết cùng lúc: "
+                    f"{_perf_res.avg_capital_deployed_pct:.0f}% trung bình · "
+                    f"đỉnh {_perf_res.peak_capital_deployed_pct:.0f}%")
 
             from paper_metrics import expectancy_significant as _sig
             _s = _sig(_trades)

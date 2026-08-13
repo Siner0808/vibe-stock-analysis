@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import random
 import statistics
-from dataclasses import dataclass
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import date
 
 from paper_trading import BROKER_FEE_PCT, SELL_TAX_PCT, ExitReason, Trade
 
@@ -33,16 +35,76 @@ class Performance:
     total_net_pct: float       # tổng lợi nhuận cộng dồn theo tỷ trọng
     max_drawdown_pct: float
     by_exit_reason: dict[str, int]
+    # Vốn đã cam kết cùng lúc, tính theo % tài khoản. Vượt 100% nghĩa là
+    # `total_net_pct` ở trên là lợi nhuận của một tài khoản dùng đòn bẩy.
+    avg_capital_deployed_pct: float = 0.0
+    peak_capital_deployed_pct: float = 0.0
+
+    @property
+    def is_leveraged(self) -> bool:
+        return self.avg_capital_deployed_pct > 100.0
 
     def summary(self) -> str:
-        return (f"{self.n_trades} lệnh · thắng {self.win_rate:.0%} · "
-                f"kỳ vọng {self.expectancy:+.2f}%/lệnh · "
-                f"PF {self.profit_factor:.2f} · DD tối đa {self.max_drawdown_pct:.1f}%")
+        s = (f"{self.n_trades} lệnh · thắng {self.win_rate:.0%} · "
+             f"kỳ vọng {self.expectancy:+.2f}%/lệnh · "
+             f"PF {self.profit_factor:.2f} · DD tối đa {self.max_drawdown_pct:.1f}%")
+        if self.is_leveraged:
+            s += (f" · ⚠️ ĐÒN BẨY {self.avg_capital_deployed_pct / 100:.1f}x "
+                  f"({self.avg_capital_deployed_pct:.0f}% vốn)")
+        return s
 
 
 def _returns(trades: list[Trade]) -> list[float]:
     return [t.net_return_pct() for t in trades
             if t.status == "CLOSED" and t.net_return_pct() is not None]
+
+
+def _capital_deployment(closed: list[Trade]) -> tuple[float, float]:
+    """Vốn cam kết cùng lúc: trung bình theo thời gian, và đỉnh điểm.
+
+    Đường vốn ở compute() nhân dồn từng lệnh vào TOÀN BỘ vốn hiện có, lần
+    lượt theo ngày đóng. Phép nhân đó chỉ đúng khi mỗi thời điểm chỉ có một
+    lệnh mở. Khi nhiều lệnh chồng lên nhau, tổng vốn cam kết vượt 100% và
+    con số lợi nhuận cộng dồn trở thành lợi nhuận của một tài khoản dùng
+    đòn bẩy — không tài khoản thật nào chạy được như vậy.
+
+    Đây chính là chỗ báo cáo 20 vòng (12/08/2026) trượt: +636,11% ở ngưỡng
+    50,0 tái lập được, nhưng bộ lệnh đó giữ trung bình 224% vốn (đỉnh
+    1.160%) — đòn bẩy 2,2 lần.
+
+    Trả về (trung_bình, đỉnh) tính theo % tài khoản.
+    """
+    deltas: dict[date, float] = defaultdict(float)
+    for t in closed:
+        if not t.entry_date or not t.exit_date:
+            continue
+        try:
+            d_in = date.fromisoformat(str(t.entry_date)[:10])
+            d_out = date.fromisoformat(str(t.exit_date)[:10])
+        except ValueError:
+            continue
+        if d_out < d_in:
+            continue
+        size = float(t.size_pct or 0.0)
+        deltas[d_in] += size
+        deltas[d_out] -= size
+
+    if not deltas:
+        return 0.0, 0.0
+
+    moc = sorted(deltas)
+    level = peak = weighted = 0.0
+    total_days = 0
+    for i, d in enumerate(moc):
+        level += deltas[d]
+        peak = max(peak, level)
+        if i + 1 < len(moc):
+            span = (moc[i + 1] - d).days
+            weighted += level * span
+            total_days += span
+
+    avg = weighted / total_days if total_days else peak
+    return avg, peak
 
 
 def compute(trades: list[Trade]) -> Performance | None:
@@ -78,6 +140,8 @@ def compute(trades: list[Trade]) -> Performance | None:
     for t in closed:
         reasons[t.exit_reason or "?"] = reasons.get(t.exit_reason or "?", 0) + 1
 
+    avg_deployed, peak_deployed = _capital_deployment(closed)
+
     return Performance(
         n_trades=len(rets),
         win_rate=len(wins) / len(rets),
@@ -88,6 +152,8 @@ def compute(trades: list[Trade]) -> Performance | None:
         total_net_pct=equity - 100.0,
         max_drawdown_pct=max_dd,
         by_exit_reason=reasons,
+        avg_capital_deployed_pct=avg_deployed,
+        peak_capital_deployed_pct=peak_deployed,
     )
 
 
@@ -197,6 +263,20 @@ def report(trades: list[Trade],
     add(f"Profit factor: {perf.profit_factor:.2f}")
     add(f"Lợi nhuận cộng dồn: {perf.total_net_pct:+.2f}%")
     add(f"Sụt giảm tối đa   : {perf.max_drawdown_pct:.1f}%")
+    add(f"Vốn triển khai    : {perf.avg_capital_deployed_pct:.0f}% trung bình "
+        f"| {perf.peak_capital_deployed_pct:.0f}% đỉnh điểm")
+
+    if perf.is_leveraged:
+        don_bay = perf.avg_capital_deployed_pct / 100
+        add("")
+        add("🚨 CẢNH BÁO ĐÒN BẨY — con số lợi nhuận ở trên KHÔNG có thật")
+        add(f"   Sổ này giữ trung bình {perf.avg_capital_deployed_pct:.0f}% vốn "
+            f"cùng lúc, tức đòn bẩy {don_bay:.1f} lần.")
+        add(f"   'Lợi nhuận cộng dồn {perf.total_net_pct:+.2f}%' là của một tài "
+            f"khoản vay được")
+        add(f"   {don_bay:.1f}x vốn. Tài khoản thật không chạy được như vậy.")
+        add(f"   Chia tỷ trọng cho {don_bay:.1f} rồi đo lại mới ra con số dùng được.")
+
     add("")
     add("Lý do đóng lệnh:")
     labels = {ExitReason.STOP_LOSS: "Chạm cắt lỗ",

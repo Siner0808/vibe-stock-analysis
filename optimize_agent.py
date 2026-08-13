@@ -12,7 +12,7 @@ from argparse import Namespace
 import pandas as pd
 
 from backtest.data import load_all
-from paper_trading import PaperTradingJournal
+from paper_trading import PaperTradingJournal, guard_not_real_ledger
 from paper_metrics import compute
 from paper_runner import cmd_seed
 
@@ -122,16 +122,20 @@ print(f"-> Kỳ vọng/lệnh: {best_row['expectancy']:+.2f}%")
 print(f"-> Lợi nhuận cộng dồn: {best_row['net_return']:+.2f}%")
 print("🏆"*25 + "\n")
 
-# Áp dụng bộ tham số tốt nhất vào paper_trades.db chính thức!
-print("⚡ Nạp bộ tham số tối ưu chiến thắng vào sổ lệnh chính thức paper_trades.db...")
-if os.path.exists("paper_trades.db"):
+# KHÔNG ghi vào paper_trades.db — xem NGUYEN-TAC-DO-LUONG.md, bất biến 7.
+# Vòng thắng là cực đại của N lần thử trên cùng dữ liệu, không phải kết quả.
+SCRATCH_DB = "paper_optimize_agent_insample.db"
+guard_not_real_ledger(SCRATCH_DB, caller="optimize_agent.py")
+
+print(f"⚡ Ghi kết quả in-sample ra {SCRATCH_DB} (KHÔNG đụng sổ lệnh thật)...")
+if os.path.exists(SCRATCH_DB):
     try:
-        os.remove("paper_trades.db")
+        os.remove(SCRATCH_DB)
     except Exception:
         pass
 
 best_args = Namespace(
-    db="paper_trades.db",
+    db=SCRATCH_DB,
     symbols=",".join(symbols),
     min_history=30,
     stride=best_row["stride"],

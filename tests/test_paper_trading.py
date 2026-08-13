@@ -14,13 +14,33 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import market_filter
 import paper_metrics as pm
 import paper_trading as pt
 from paper_trading import ExitReason, PaperTradingJournal, Status
 
+# ─────────────────────────────────────────────────────────────────────
+# CÁCH LY BỘ LỌC VN-INDEX
+#
+# consider_entry() hỏi market_filter.is_vni_bullish(signal_date). Bộ lọc đó
+# đọc cache VNINDEX thật, nên kết quả test phụ thuộc vào việc thị trường
+# nằm trên hay dưới MA50 vào đúng ngày được hardcode trong test.
+#
+# Hậu quả đã xảy ra: VN-INDEX xuống dưới MA50 ngày 2026-08-05 làm 11 test
+# đỏ mà không ai đụng vào mã. Nguy hiểm hơn là chiều ngược lại — chúng sẽ
+# tự xanh trở lại khi thị trường đổi chiều, che mất hồi quy thật.
+#
+# File này kiểm thử SỔ LỆNH, không kiểm thử bộ lọc. Ghim bộ lọc mở để test
+# tái lập được và không cần cache VNINDEX.
+market_filter.is_vni_bullish = lambda _signal_date: True
+
 
 def make_result(score: int, sl: float = 90.0, tp: float = 120.0,
-                quality: str = "OK", size: float = 10.0) -> dict:
+                quality: str = "OK", size: float = 10.0,
+                entry: float = 100.0) -> dict:
+    # `entry_price` là bắt buộc: từ khi cỡ lệnh tính theo khoảng cách cắt lỗ
+    # (rủi ro cố định 1%/lệnh), consider_entry() cần giá vào để suy ra
+    # sl_pct_dist. Fixture thiếu khoá này làm 15 test đỏ âm thầm.
     return {
         "final_score": score,
         "recommendation": "MUA 📈" if score >= 62 else "NẮM GIỮ 👀",
@@ -29,6 +49,7 @@ def make_result(score: int, sl: float = 90.0, tp: float = 120.0,
         "key_reasons": ["Xu hướng tăng"],
         "safety": {"safe_position_size": size},
         "analyses": {"risk": {"recommendations": {
+            "entry_price": entry,
             "stop_loss_price": sl, "take_profit_price": tp,
             "suggested_position_size_pct": size}}},
     }
@@ -100,14 +121,32 @@ def test_sl_va_tp_cung_cham_thi_lay_sl():
     print("PASS  SL và TP cùng chạm -> lấy SL (giả định bất lợi)")
 
 
-def test_cham_tp_thi_dong_o_tp():
+def test_cham_muc_tp_khong_con_dong_lenh_ma_nang_trailing_stop():
+    """Chốt lời cứng ĐÃ BỊ GỠ có chủ ý (paper_trading.py, 'Fat-Tail
+    Exploitation'): giá chạm mức take_profit không còn đóng lệnh nữa, chỉ
+    trailing stop 7% mới đóng.
+
+    Test cũ ở đây khoá hành vi ngược lại và đã đỏ âm thầm. Giữ lại test này
+    để (a) ghi nhận luật hiện hành, (b) bắt được nếu Hard TP bị đưa trở lại
+    mà không ai bàn.
+    """
     j = new_journal()
     j.consider_entry("FPT", "2026-08-05", make_result(70, sl=90, tp=120))
     j.fill_pending("FPT", "2026-08-06", 100.0)
+
+    # high 122 vượt mức TP 120 — trước đây đóng ở 120, nay KHÔNG đóng.
     closed = j.evaluate_open("FPT", "2026-08-07", bar(105, 122, 104, 121))
-    assert closed[0]["reason"] == ExitReason.TAKE_PROFIT
-    assert closed[0]["exit_price"] == 120.0
-    print("PASS  chạm chốt lời -> đóng đúng ở giá TP")
+    assert closed == [], f"chạm mức TP không được đóng lệnh nữa, nhận {closed}"
+
+    t = j.open_position("FPT")
+    assert t is not None and t.status == Status.OPEN
+
+    # Đổi lại, stop phải được nâng: hoà vốn (>= +5%) rồi trailing 7% từ giá
+    # đóng cửa 121 -> 112.53, và trailing cao hơn nên thắng.
+    assert abs(t.stop_loss - 121 * 0.93) < 1e-9, (
+        f"trailing stop phải nâng lên {121 * 0.93:.2f}, đang là {t.stop_loss}")
+    print(f"PASS  chạm mức TP không đóng lệnh, trailing stop nâng lên "
+          f"{t.stop_loss:.2f}")
 
 
 def test_dong_theo_nguyen_tac_khi_tin_hieu_dao_chieu():
@@ -144,10 +183,15 @@ def test_dong_khi_het_han_nam_giu():
 # 3. PHÍ — bỏ qua thì mọi con số lạc quan giả
 # ─────────────────────────────────────────────────────────────────────
 def test_loi_nhuan_da_tru_phi():
+    # Đóng lệnh bằng tín hiệu đảo chiều rồi khớp ở giá mở cửa phiên sau.
+    # Trước đây test này đóng bằng chốt lời cứng — cơ chế đó đã bị gỡ, nhưng
+    # bất biến cần khoá (lợi nhuận phải trừ phí) thì không đổi.
     j = new_journal()
     j.consider_entry("FPT", "2026-08-05", make_result(70, sl=90, tp=110))
     j.fill_pending("FPT", "2026-08-06", 100.0)
-    j.evaluate_open("FPT", "2026-08-07", bar(105, 112, 104, 111))
+    j.evaluate_open("FPT", "2026-08-07", bar(100, 105, 98, 99),
+                    current_score=40)
+    assert j.fill_closing("FPT", "2026-08-10", 110.0) == 1
 
     t = j.all_trades(Status.CLOSED)[0]
     assert t.gross_return_pct() == 10.0            # 100 -> 110
@@ -161,9 +205,11 @@ def test_loi_nhuan_da_tru_phi():
 def test_lenh_hoa_von_thuc_ra_lo_vi_phi():
     """Vào 100 ra 100 là LỖ, vì phí. Đây là chỗ dễ tự lừa nhất."""
     j = new_journal()
-    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=99.9, tp=100.0))
+    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=90.0, tp=120.0))
     j.fill_pending("FPT", "2026-08-06", 100.0)
-    j.evaluate_open("FPT", "2026-08-07", bar(100, 100.5, 100.0, 100.0))
+    j.evaluate_open("FPT", "2026-08-07", bar(100, 100.5, 98.0, 99.0),
+                    current_score=40)
+    assert j.fill_closing("FPT", "2026-08-10", 100.0) == 1
     t = j.all_trades(Status.CLOSED)[0]
     assert t.gross_return_pct() == 0.0
     assert t.net_return_pct() < 0
@@ -221,6 +267,62 @@ def _closed_trades(returns_pct: list[float]) -> list:
             exit_reason=ExitReason.MAX_HOLD, stop_loss=90.0, take_profit=120.0,
             size_pct=10.0, entry_score=70, status=Status.CLOSED))
     return trades
+
+
+def _overlapping_trades(n: int, size_pct: float) -> list:
+    """n lệnh mở CÙNG LÚC, mỗi lệnh chiếm size_pct vốn."""
+    return [pt.Trade(
+        id=i, symbol=f"S{i}", signal_date="2026-01-01",
+        entry_date="2026-01-02", entry_price=100.0,
+        exit_date="2026-02-02", exit_price=105.0,
+        exit_reason=ExitReason.MAX_HOLD, stop_loss=90.0, take_profit=120.0,
+        size_pct=size_pct, entry_score=70, status=Status.CLOSED)
+        for i in range(n)]
+
+
+def test_von_trien_khai_phat_hien_don_bay_an():
+    """Đường vốn nhân dồn từng lệnh vào TOÀN BỘ vốn, lần lượt. Phép nhân đó
+    chỉ đúng khi mỗi thời điểm có một lệnh mở.
+
+    Sự cố 12/08/2026: báo cáo 20 vòng công bố +636,11% ở ngưỡng 50,0. Con
+    số tái lập được, nhưng bộ lệnh đó giữ trung bình 224% vốn (đỉnh 1.160%)
+    — lợi nhuận của một tài khoản dùng đòn bẩy 2,2 lần, không phải tài
+    khoản thật. Không có phép đo nào bắt được điều đó, nên nó thành 'kết
+    quả' và được nạp đè vào sổ lệnh thật.
+    """
+    perf = pm.compute(_overlapping_trades(12, 30.0))
+    assert perf is not None
+    assert abs(perf.avg_capital_deployed_pct - 360.0) < 1e-6, (
+        f"12 lệnh × 30% mở cùng lúc = 360% vốn, "
+        f"đo được {perf.avg_capital_deployed_pct}")
+    assert abs(perf.peak_capital_deployed_pct - 360.0) < 1e-6
+    print(f"PASS  bắt được đòn bẩy ẩn: "
+          f"{perf.avg_capital_deployed_pct:.0f}% vốn trung bình")
+
+
+def test_von_trien_khai_khong_bao_dong_gia_khi_lenh_noi_tiep():
+    """Lệnh nối tiếp nhau, không chồng lấn -> vốn triển khai đúng bằng
+    tỷ trọng một lệnh. Không được báo động giả."""
+    trades = [pt.Trade(
+        id=i, symbol="X", signal_date="2026-01-01",
+        entry_date=f"2026-0{i + 1}-01", entry_price=100.0,
+        exit_date=f"2026-0{i + 2}-01", exit_price=105.0,
+        exit_reason=ExitReason.MAX_HOLD, stop_loss=90.0, take_profit=120.0,
+        size_pct=25.0, entry_score=70, status=Status.CLOSED)
+        for i in range(3)]
+    perf = pm.compute(trades)
+    assert abs(perf.peak_capital_deployed_pct - 25.0) < 1e-6, (
+        f"không chồng lấn thì đỉnh phải là 25%, "
+        f"đo được {perf.peak_capital_deployed_pct}")
+    print(f"PASS  lệnh nối tiếp -> {perf.peak_capital_deployed_pct:.0f}% vốn, "
+          f"không báo động giả")
+
+
+def test_bao_cao_canh_bao_khi_von_vuot_100():
+    text = pm.report(_overlapping_trades(12, 30.0))
+    assert "đòn bẩy" in text.lower(), "báo cáo phải nói rõ đây là đòn bẩy"
+    assert "360" in text
+    print("PASS  báo cáo cảnh báo khi vốn triển khai vượt 100%")
 
 
 def test_it_lenh_thi_khong_ket_luan():

@@ -44,6 +44,34 @@ from data_quality import now_vn
 
 DB_PATH = "paper_trades.db"
 
+
+class ProtectedLedgerError(RuntimeError):
+    """Có thứ gì đó định ghi đè sổ lệnh thật bằng kết quả backtest."""
+
+
+def guard_not_real_ledger(path: str, *, caller: str) -> None:
+    """Chặn script tối ưu ghi đè `paper_trades.db`.
+
+    Đã xảy ra ngày 12/08/2026: ba script tối ưu kết thúc bằng
+    `os.remove("paper_trades.db")` rồi seed lại bằng vòng lãi cao nhất
+    trong 20 vòng chạy trên cùng dữ liệu. Kết quả: 96/113 lệnh thật biến
+    mất, vị thế ACB đang mở bị xoá, và bằng chứng duy nhất chưa bị tối ưu
+    chạm vào bị thay bằng chính thứ nó phải dùng để kiểm chứng.
+
+    Sổ lệnh thật là dữ liệu quan sát, không phải nơi chứa đầu ra của
+    backtest. Kết quả in-sample phải đi vào file scratch riêng.
+
+    Xem NGUYEN-TAC-DO-LUONG.md, bất biến 7.
+    """
+    import os as _os
+
+    if _os.path.basename(str(path)) == _os.path.basename(DB_PATH):
+        raise ProtectedLedgerError(
+            f"{caller} định ghi vào sổ lệnh thật ({DB_PATH}). Bị chặn.\n"
+            f"Sổ lệnh thật chỉ được ghi bởi paper_runner.py và run_daily.py.\n"
+            f"Kết quả tối ưu phải ghi ra file scratch riêng.")
+
+
 # ── Quy tắc mặc định ────────────────────────────────────────────────
 BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
