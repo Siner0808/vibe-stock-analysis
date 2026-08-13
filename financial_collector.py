@@ -20,10 +20,16 @@ Mọi hàm ở đây trả về dict có khoá `available`:
 """
 from __future__ import annotations
 
+import datetime as _dt
 import time
 from typing import Any
 
 import pandas as pd
+
+# Chỉ số định giá cũ hơn ngần này năm thì BỎ, không hiện lên giao diện.
+# Báo cáo năm chốt sau vài tháng nên năm liền trước là bình thường; cách
+# hai năm trở lên thì nguồn đang trả dữ liệu hỏng, không phải dữ liệu trễ.
+NAM_TOI_DA_CU = 2
 
 _CACHE: dict[str, tuple[float, Any]] = {}
 _TTL_SECONDS = 900          # 15 phút — số liệu cơ bản đổi rất chậm
@@ -83,14 +89,24 @@ def _first_value(df: pd.DataFrame, col) -> float | None:
 NAME_COLUMNS = ("item_en", "item", "chỉ tiêu", "index")
 
 
-def _year_columns(df: pd.DataFrame) -> list:
-    """Các cột là năm, sắp xếp tăng dần."""
-    found = []
-    for col in df.columns:
+def _year_columns(df: pd.DataFrame) -> list[tuple[int, int]]:
+    """[(năm, VỊ TRÍ cột)] tăng dần, mỗi năm một lần.
+
+    Trả về VỊ TRÍ chứ không phải nhãn cột, vì vnstock có thể trả nhiều cột
+    trùng nhãn: nguồn VCI cho ACB trả 16 cột đều tên `'2018'`. Khi đó
+    `row['2018']` trả về một Series chứ không phải một số, `pd.to_numeric`
+    ra NaN, và mọi chỉ số im lặng thành None — đúng triệu chứng P/E, EPS,
+    Beta hiện `—` trên giao diện.
+
+    Trùng năm thì giữ cột cuối cùng. Bảng như vậy thường là hỏng, nhưng
+    việc chặn nó là của chốt độ tươi bên dưới, không phải của hàm này.
+    """
+    theo_nam: dict[int, int] = {}
+    for pos, col in enumerate(df.columns):
         label = str(col[-1] if isinstance(col, tuple) else col).strip()
         if label.isdigit() and 1990 <= int(label) <= 2100:
-            found.append((int(label), col))
-    return [c for _, c in sorted(found)]
+            theo_nam[int(label)] = pos
+    return sorted(theo_nam.items())
 
 
 def _is_row_oriented(df: pd.DataFrame) -> bool:
@@ -115,22 +131,48 @@ def _name_series(df: pd.DataFrame) -> pd.Series:
     return out.str.lower()
 
 
-def _row_latest(df: pd.DataFrame, *keywords: str) -> float | None:
-    """Tìm hàng theo tên chỉ tiêu, trả giá trị của năm gần nhất có số liệu."""
+def _row_latest(df: pd.DataFrame, *keywords: str) -> tuple[float | None, int | None]:
+    """Tìm hàng theo tên chỉ tiêu, trả (giá trị, NĂM) của năm gần nhất có số.
+
+    Trả kèm năm là bắt buộc: không có nó thì không phân biệt được P/E của
+    2025 với P/E của 2018, và một con số cũ 8 năm hiện lên giao diện y hệt
+    một con số hiện tại.
+    """
     years = _year_columns(df)
     if not years:
-        return None
+        return None, None
     names = _name_series(df)
     for kw in keywords:
         hit = names.str.contains(kw.lower(), regex=False, na=False)
         if not hit.any():
             continue
         row = df[hit].iloc[0]
-        for col in reversed(years):          # từ năm mới nhất lùi dần
-            val = pd.to_numeric(pd.Series([row[col]]), errors="coerce").iloc[0]
+        for nam, pos in reversed(years):     # từ năm mới nhất lùi dần
+            val = pd.to_numeric(pd.Series([row.iloc[pos]]), errors="coerce").iloc[0]
             if pd.notna(val):
-                return float(val)
-    return None
+                return float(val), nam
+    return None, None
+
+
+def _loc_qua_cu(chi_so: dict[str, tuple[float | None, int | None]],
+                nam_min: int) -> tuple[dict[str, float | None], list[str]]:
+    """Bỏ chỉ số cũ hơn `nam_min`. Trả (giá trị đã lọc, danh sách đã bỏ).
+
+    Một con số cũ hiện trên giao diện trông y hệt một con số hiện tại —
+    người đọc không có cách nào phân biệt. Nguồn VCI trả P/E 2018 cho ACB;
+    hiện nó ra như chỉ số hôm nay là bịa số, chỉ khác là nguồn bịa hộ.
+
+    Thà để trống và nói rõ lý do, còn hơn hiện một con số sai trông hợp lý.
+    """
+    ket_qua: dict[str, float | None] = {}
+    da_bo: list[str] = []
+    for ten, (gia_tri, nam) in chi_so.items():
+        if gia_tri is not None and nam is not None and nam < nam_min:
+            ket_qua[ten] = None
+            da_bo.append(f"{ten} ({nam})")
+        else:
+            ket_qua[ten] = gia_tri
+    return ket_qua, da_bo
 
 
 def _row_series(df: pd.DataFrame, *keywords: str) -> tuple[list[str], list[float | None]]:
@@ -138,13 +180,13 @@ def _row_series(df: pd.DataFrame, *keywords: str) -> tuple[list[str], list[float
     years = _year_columns(df)
     if not years:
         return [], []
-    labels = [str(c[-1] if isinstance(c, tuple) else c) for c in years]
+    labels = [str(nam) for nam, _ in years]
     names = _name_series(df)
     for kw in keywords:
         hit = names.str.contains(kw.lower(), regex=False, na=False)
         if hit.any():
             row = df[hit].iloc[0]
-            vals = pd.to_numeric(pd.Series([row[c] for c in years]),
+            vals = pd.to_numeric(pd.Series([row.iloc[pos] for _, pos in years]),
                                  errors="coerce")
             return labels, [None if pd.isna(v) else float(v) for v in vals]
     return labels, []
@@ -231,46 +273,81 @@ class FinancialDataCollector:
         try:
             from vnstock_auth import ensure_api_key
             ensure_api_key()          # idempotent, không cần key vẫn chạy tiếp
-
-            from vnstock import Finance
-            # `source` là tham số BẮT BUỘC của facade vnstock.Finance
-            # (lớp explorer bên dưới thì không cần) — thiếu nó là TypeError.
-            df = Finance(source="VCI", symbol=symbol, period="year",
-                         show_log=False).ratio(lang="en", dropna=True)
+            from vnstock.api.financial import Finance
         except Exception as e:
             return None, f"{type(e).__name__}: {str(e)[:160]}"
-        if df is None or not isinstance(df, pd.DataFrame) or df.empty:
-            return None, "nguồn trả về bảng rỗng"
+
+        # KBS TRƯỚC, VCI sau. Đo ngày 13/08/2026 trên ACB:
+        #   KBS → cột 2025/2024/2023/2022 rõ ràng, có P/E, EPS, Beta
+        #   VCI → 16 cột đều tên '2018', dữ liệu bốn quý lặp lại bốn lần
+        # VCI vẫn giữ làm dự phòng vì nó có Vốn hoá và Số CP lưu hành, hai
+        # chỉ tiêu KBS không trả. Chốt độ tươi bên dưới lo phần dữ liệu cũ.
+        df, loi = None, []
+        for nguon in ("KBS", "VCI"):
+            try:
+                thu = Finance(source=nguon, symbol=symbol, period="year",
+                              show_log=False).ratio(lang="en", dropna=True)
+            except Exception as e:
+                loi.append(f"{nguon}: {type(e).__name__}")
+                continue
+            if thu is not None and isinstance(thu, pd.DataFrame) and not thu.empty:
+                df, self._nguon_ratio = thu, nguon
+                break
+            loi.append(f"{nguon}: bảng rỗng")
+
+        if df is None:
+            return None, "; ".join(loi) or "nguồn trả về bảng rỗng"
 
         if _is_row_oriented(df):
             # Dạng thường gặp: chỉ tiêu ở hàng, năm ở cột
             get = lambda *kw: _row_latest(df, *kw)
             layout = "hàng-chỉ-tiêu"
         else:
-            get = lambda *kw: _first_value(df, _pick(df, *kw))
+            get = lambda *kw: (_first_value(df, _pick(df, *kw)), None)
             layout = "cột-chỉ-tiêu"
 
-        pe = get("p/e", "pe ratio", "price to earning")
-        eps = get("eps", "earning per share")
-        beta = get("beta")
-        mcap = get("market capital", "market cap", "vốn hóa")
-        shares = get("outstanding share", "shares outstanding", "khối lượng lưu hành")
+        # Từ khoá riêng nhất đặt trước, để không khớp nhầm chỉ tiêu khác.
+        pe, nam_pe = get("pe_ratio", "p/e", "price to earning")
+        eps, nam_eps = get("trailing_eps", "(eps)", "earning per share")
+        beta, nam_beta = get("beta")
+        mcap, nam_mcap = get("market capital", "market cap", "vốn hóa")
+        shares, _ = get("outstanding share", "shares outstanding",
+                        "khối lượng lưu hành")
+
+        nam_min = _dt.date.today().year - NAM_TOI_DA_CU
+        loc, qua_cu = _loc_qua_cu(
+            {"P/E": (pe, nam_pe), "EPS": (eps, nam_eps),
+             "Beta": (beta, nam_beta), "vốn hoá": (mcap, nam_mcap)}, nam_min)
+        pe, eps, beta, mcap = (loc["P/E"], loc["EPS"], loc["Beta"], loc["vốn hoá"])
 
         # Nguồn trả vốn hóa theo đồng -> quy về tỷ đồng
         mcap_billions = mcap / 1e9 if mcap and mcap > 1e9 else mcap
         found = {"pe": pe, "eps": eps, "beta": beta,
                  "market_cap_billions": mcap_billions,
-                 "shares_outstanding": int(shares) if shares else None}
+                 "shares_outstanding": int(shares) if shares else None,
+                 "nam_du_lieu": nam_pe or nam_eps or nam_beta}
+
+        nguon = getattr(self, "_nguon_ratio", "?")
 
         if all(v is None for v in found.values()):
+            if qua_cu:
+                return found, (f"{nguon} chỉ có dữ liệu quá cũ: "
+                               f"{', '.join(qua_cu)} — cần từ {nam_min} trở lại "
+                               f"đây. Đã BỎ thay vì hiện như chỉ số hiện tại.")
             # Lấy được bảng nhưng không nhận ra chỉ tiêu nào -> in mẫu để sửa từ khoá
             if _is_row_oriented(df):
                 sample = _name_series(df).head(10).tolist()
-                return found, (f"bảng {layout} nhưng không khớp từ khoá. "
+                return found, (f"{nguon}: bảng {layout} nhưng không khớp từ khoá. "
                                f"Chỉ tiêu thực tế: {sample}")
             sample = list(_flat_columns(df))[:10]
-            return found, f"bảng {layout}, cột thực tế: {sample}"
-        return found, f"OK ({layout})"
+            return found, f"{nguon}: bảng {layout}, cột thực tế: {sample}"
+
+        ghi_chu = f"OK ({nguon}, {layout}"
+        if found["nam_du_lieu"]:
+            ghi_chu += f", số liệu năm {found['nam_du_lieu']}"
+        if qua_cu:
+            ghi_chu += f"; đã bỏ vì quá cũ: {', '.join(qua_cu)}"
+        return found, ghi_chu + ")"
 
     # ───────────────────────── Báo cáo tài chính ────────────────────────
     def get_financial_statements(self, symbol: str) -> dict:

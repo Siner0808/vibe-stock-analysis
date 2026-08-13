@@ -327,8 +327,12 @@ def test_dong_trong_dem_khong_bi_dem_nham():
 
 # ── 5. Trạng thái kho ngoài ──────────────────────────────────────────
 def test_bao_ro_khi_chua_cau_hinh():
+    # Truyền mapping tường minh = "đây là toàn bộ cấu hình". Không được âm
+    # thầm rơi về st.secrets hay file trên đĩa — nếu rơi, test mô phỏng
+    # "chưa cấu hình" sẽ nói chuyện với Google Sheet THẬT mà không ai biết.
     assert ss.open_from_secrets({}) is None
     assert ss.open_from_secrets({"GOOGLE_SHEET_KEY": ""}) is None
+    assert ss.open_from_secrets({"GOOGLE_SHEET_KEY": "x"}) is None  # thiếu creds
     tt = ss.trang_thai(None)
     assert tt["bat"] is False and "Chưa cấu hình" in tt["ghi_chu"]
     print("PASS  chưa cấu hình -> tắt sạch, nói rõ lý do")

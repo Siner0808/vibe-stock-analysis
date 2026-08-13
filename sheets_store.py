@@ -314,6 +314,11 @@ def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
     bắt buộc phải có Google Cloud. Nhưng cấu hình SAI thì phải nổ, vì
     "tưởng đã sao lưu mà thật ra không" là trạng thái tệ nhất.
     """
+    # Chỉ tự đi tìm khi hàm gọi KHÔNG chỉ định gì. Truyền vào một mapping
+    # tường minh nghĩa là "đây là toàn bộ cấu hình" — kể cả khi nó rỗng.
+    # Trước đây phần dự phòng chạy cả khi đã truyền mapping, nên
+    # open_from_secrets({}) vẫn mở được kết nối thật: test mô phỏng "chưa
+    # cấu hình" lại âm thầm nói chuyện với Google Sheet thật.
     if secrets is None:
         try:
             import streamlit as st
@@ -322,15 +327,17 @@ def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
         except Exception:
             pass
 
-    if secrets is None or "GOOGLE_SHEET_KEY" not in secrets:
-        try:
-            import pathlib
-            import toml
-            p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
-            if p.exists():
-                secrets = toml.load(str(p))
-        except Exception:
-            pass
+        # Chạy ngoài Streamlit (run_daily.py, cron) thì không có st.secrets,
+        # đọc thẳng file cấu hình.
+        if secrets is None:
+            try:
+                import pathlib
+                import toml
+                p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+                if p.exists():
+                    secrets = toml.load(str(p))
+            except Exception:
+                pass
 
     try:
         key = secrets["GOOGLE_SHEET_KEY"]

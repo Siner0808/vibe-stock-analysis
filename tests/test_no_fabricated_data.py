@@ -273,13 +273,16 @@ def test_doc_duoc_bang_xoay_ngang_cua_vnstock():
     })
 
     assert fcm._is_row_oriented(df), "không nhận ra bảng xoay ngang"
-    assert [str(c) for c in fcm._year_columns(df)] == ["2023", "2024", "2025"]
+    # _year_columns trả (năm, VỊ TRÍ cột) — vị trí chứ không phải nhãn, vì
+    # vnstock có thể trả nhiều cột trùng nhãn (VCI trả 16 cột đều '2018').
+    assert fcm._year_columns(df) == [(2023, 3), (2024, 4), (2025, 5)]
 
-    # lấy giá trị năm gần nhất
-    assert fcm._row_latest(df, "p/e") == 22.5
-    assert fcm._row_latest(df, "eps") == 4500.0
-    assert fcm._row_latest(df, "beta") == 1.3
-    assert fcm._row_latest(df, "khong-ton-tai") is None
+    # lấy (giá trị, năm) của năm gần nhất — năm là bắt buộc, nếu không thì
+    # không phân biệt được số của 2025 với số của 2018
+    assert fcm._row_latest(df, "p/e") == (22.5, 2025)
+    assert fcm._row_latest(df, "eps") == (4500.0, 2025)
+    assert fcm._row_latest(df, "beta") == (1.3, 2025)
+    assert fcm._row_latest(df, "khong-ton-tai") == (None, None)
 
     # lấy cả chuỗi theo năm
     years, rev = fcm._row_series(df, "net revenue")
@@ -298,8 +301,8 @@ def test_bo_qua_nam_thieu_so_lieu():
         "item_en": ["P/E"],
         "2023": [18.0], "2024": [19.0], "2025": [None],
     })
-    assert fcm._row_latest(df, "p/e") == 19.0
-    print("PASS  năm mới nhất trống -> lùi về năm có số liệu")
+    assert fcm._row_latest(df, "p/e") == (19.0, 2024), "phải lùi về 2024 kèm năm"
+    print("PASS  năm mới nhất trống -> lùi về năm có số liệu, báo đúng năm")
 
 
 def test_bang_dang_cot_van_doc_duoc():
