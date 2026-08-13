@@ -23,263 +23,274 @@ st.set_page_config(
 # ═══════════════════════════════════════════════════════════════════
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    /* ═══════════════════════════════════════════════════════════════
+       TERMINAL TỔ CHỨC — bảng màu và chữ cho công cụ phân tích
+       ───────────────────────────────────────────────────────────────
+       Nguyên tắc: MÀU CHỈ ĐỂ MANG NGHĨA.
 
-    /* ─── Animated Aurora Background ─────────────────────────── */
-    @keyframes auroraShift {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    @keyframes neonPulse {
-        0%, 100% { box-shadow: 0 0 8px rgba(0,230,118,0.15); }
-        50%      { box-shadow: 0 0 20px rgba(0,230,118,0.35); }
-    }
-    @keyframes fadeSlideUp {
-        from { opacity: 0; transform: translateY(12px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes gradientBorder {
-        0%   { border-color: rgba(0,230,118,0.3); }
-        50%  { border-color: rgba(41,182,246,0.5); }
-        100% { border-color: rgba(0,230,118,0.3); }
+       Bản trước ("Aurora Midnight") dùng nền chuyển màu động 25 giây,
+       tiêu đề đổ gradient bốn màu, chữ phát sáng neon. Khi mọi thứ đều
+       nổi bật thì không gì nổi bật cả — và quan trọng hơn, không còn màu
+       nào dành riêng cho ý nghĩa. Xanh neon của tiêu đề trông y hệt xanh
+       của một khoản lãi.
+
+       App này đo lường nghiêm khắc: khoảng tin cậy, cảnh báo đòn bẩy,
+       "chưa đủ bằng chứng". Giao diện phải nói cùng một giọng đó.
+
+       Bảng màu ngữ nghĩa — KHÔNG dùng cho mục đích trang trí:
+         tăng/lãi   #26A65B      giảm/lỗ    #E5484D
+         cảnh báo   #F5A524      thông tin  #4B8FE3
+       Mọi thứ khác là thang xám trung tính.
+       ═══════════════════════════════════════════════════════════════ */
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+        --nen:        #0B0E14;
+        --nen-2:      #12161F;   /* thẻ, vùng phụ */
+        --nen-3:      #171C27;   /* hover, đầu bảng */
+        --vien:       #232A38;
+        --vien-manh:  #303A4D;
+
+        --chu:        #E6E9EF;
+        --chu-2:      #97A0B0;
+        /* #7C8698 chứ không phải #6B7484: chữ mờ dùng cho nhãn thẻ (0,72rem)
+           và chú thích (0,8rem) — đều là chữ NHỎ nên cần >= 4,5:1. Sắc cũ
+           chỉ đạt 4,10:1 trên nền và 3,84:1 trên thẻ, tức dưới chuẩn AA ở
+           đúng chỗ hay đặt thông tin phụ nhưng vẫn cần đọc được. */
+        --chu-mo:     #7C8698;
+
+        --tang:       #26A65B;
+        --giam:       #E5484D;
+        --canh-bao:   #F5A524;
+        --thong-tin:  #4B8FE3;
+
+        --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
     }
 
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .stApp {
-        background: linear-gradient(135deg, #070a10 0%, #0d1220 30%, #0a1628 60%, #070a10 100%);
-        background-size: 400% 400%;
-        animation: auroraShift 25s ease infinite;
-        color: #e0e6ed;
-    }
+    html, body, [class*="css"] { font-family: var(--sans); }
 
-    /* ─── Typography ─────────────────────────────────────────── */
+    /* Nền PHẲNG. Nền động kéo mắt khỏi dữ liệu và không mang thông tin nào. */
+    .stApp { background: var(--nen); color: var(--chu); }
+
+    /* ─── Chữ: phân cấp bằng cỡ và độ đậm, không bằng màu ─────────── */
     h1 {
-        background: linear-gradient(135deg, #ffffff 0%, #00e676 45%, #29b6f6 75%, #ab47bc 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800 !important;
-        letter-spacing: -0.8px;
-        font-size: 2rem !important;
-        animation: fadeSlideUp 0.6s ease-out;
+        color: var(--chu) !important;
+        font-weight: 600 !important;
+        font-size: 1.6rem !important;
+        letter-spacing: -0.02em;
     }
     h2 {
-        color: #00e676 !important;
-        font-weight: 700 !important;
-        text-shadow: 0 0 20px rgba(0,230,118,0.15);
+        color: var(--chu) !important;
+        font-weight: 600 !important;
+        font-size: 1.22rem !important;
+        letter-spacing: -0.01em;
     }
     h3 {
-        color: #29b6f6 !important;
-        font-weight: 700 !important;
+        color: var(--chu) !important;
+        font-weight: 600 !important;
+        font-size: 1.02rem !important;
     }
-    p, li, span { color: #cfd8dc; }
+    h4, h5, h6 { color: var(--chu-2) !important; font-weight: 600 !important; }
+    p, li, span, label { color: var(--chu); }
 
-    /* ─── Sidebar Glass Panel ────────────────────────────────── */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0c111a 0%, #111827 50%, #0e1420 100%) !important;
-        border-right: 1px solid rgba(0,230,118,0.1) !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
-        color: #b0bec5;
-        font-size: 0.9rem;
-    }
-    [data-testid="stSidebar"] .stSubheader {
-        color: #00e676 !important;
+    /* ─── Số: font đều cột, canh phải ─────────────────────────────
+       Số tài chính phải xếp thẳng cột để so sánh bằng mắt. `tabular-nums`
+       cho mọi chữ số cùng bề rộng, nên 1.111 và 8.888 dài bằng nhau. */
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricDelta"],
+    .stDataFrame td, .stDataFrame th,
+    code, pre, .stCode {
+        font-family: var(--mono) !important;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
     }
 
-    /* ─── Glassmorphic Agent Cards ────────────────────────────── */
-    .agent-card {
-        background: linear-gradient(145deg, rgba(22,28,40,0.85) 0%, rgba(14,18,28,0.95) 100%);
-        border-radius: 16px;
-        padding: 22px;
-        border: 1px solid rgba(255,255,255,0.06);
-        border-left: 5px solid #00e676;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
-        margin-bottom: 16px;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
-        animation: fadeSlideUp 0.5s ease-out;
-    }
-    .agent-card:hover {
-        transform: translateY(-3px) scale(1.005);
-        box-shadow: 0 16px 48px rgba(0,230,118,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
-        border-color: rgba(0,230,118,0.25);
-    }
-    .agent-card.warn  { border-left-color: #ffca28; }
-    .agent-card.danger { border-left-color: #ef5350; }
-
-    /* ─── Metric Cards — Neon Glow ───────────────────────────── */
+    /* ─── Thẻ chỉ số ──────────────────────────────────────────────── */
     [data-testid="stMetric"] {
-        background: linear-gradient(145deg, #141c2b 0%, #0e1420 100%);
-        border: 1px solid rgba(0,230,118,0.15);
-        border-radius: 14px;
-        padding: 16px 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-        animation: gradientBorder 4s ease infinite;
+        background: var(--nen-2);
+        border: 1px solid var(--vien);
+        border-radius: 8px;
+        padding: 14px 16px;
     }
-    [data-testid="stMetric"]:hover {
-        border-color: rgba(0,230,118,0.5);
-        box-shadow: 0 8px 30px rgba(0,230,118,0.15);
-        transform: translateY(-2px);
-    }
+    [data-testid="stMetric"]:hover { border-color: var(--vien-manh); }
     [data-testid="stMetricLabel"] {
-        color: #78909c !important;
-        font-size: 0.78rem !important;
-        font-weight: 700 !important;
+        color: var(--chu-mo) !important;
+        font-size: 0.72rem !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        letter-spacing: 1px;
     }
     [data-testid="stMetricValue"] {
-        color: #ffffff !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-weight: 700 !important;
-        font-size: 1.35rem !important;
-    }
-    [data-testid="stMetricDelta"] > div {
-        font-family: 'JetBrains Mono', monospace !important;
-        font-weight: 500 !important;
+        color: var(--chu) !important;
+        font-weight: 600 !important;
+        font-size: 1.5rem !important;
+        letter-spacing: -0.01em;
     }
 
-    /* ─── Pill Tab Navigation ────────────────────────────────── */
+    /* ─── Tab: gạch chân, không phải viên thuốc gradient ──────────── */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-        background: linear-gradient(135deg, #0e1420 0%, #141c2b 100%);
-        padding: 8px 10px;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.05);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        gap: 2px;
+        background: transparent;
+        border-bottom: 1px solid var(--vien);
+        padding: 0;
         overflow-x: auto;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 40px;
-        border-radius: 10px;
-        color: #78909c;
-        font-weight: 600;
-        font-size: 0.82rem;
+        height: 38px;
+        border-radius: 0;
+        color: var(--chu-2);
+        font-weight: 500;
+        font-size: 0.85rem;
         padding: 0 14px;
-        background-color: transparent;
-        border: 1px solid transparent;
-        transition: all 0.25s ease;
+        background: transparent;
+        border-bottom: 2px solid transparent;
         white-space: nowrap;
     }
-    .stTabs [data-baseweb="tab"]:hover {
-        color: #e0e6ed;
-        background-color: rgba(0,230,118,0.06);
-        border-color: rgba(0,230,118,0.15);
-    }
+    .stTabs [data-baseweb="tab"]:hover { color: var(--chu); }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #00e676 0%, #00c853 50%, #00b0ff 100%) !important;
-        color: #050b14 !important;
-        font-weight: 800 !important;
-        border: none !important;
-        box-shadow: 0 4px 18px rgba(0,230,118,0.35), 0 0 40px rgba(0,230,118,0.08);
+        color: var(--chu) !important;
+        font-weight: 600 !important;
+        background: transparent !important;
+        border-bottom: 2px solid var(--chu) !important;
+        box-shadow: none !important;
     }
 
-    /* ─── Primary Action Button ──────────────────────────────── */
+    /* ─── Nút ─────────────────────────────────────────────────────── */
+    .stButton > button {
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        font-size: 0.88rem !important;
+        border: 1px solid var(--vien-manh) !important;
+        background: var(--nen-2) !important;
+        color: var(--chu) !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        transition: background .15s ease, border-color .15s ease !important;
+    }
+    .stButton > button:hover {
+        background: var(--nen-3) !important;
+        border-color: var(--chu-mo) !important;
+    }
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #1a237e 0%, #4a148c 50%, #880e4f 100%) !important;
-        color: #ffffff !important;
-        font-weight: 800 !important;
-        font-size: 0.95rem !important;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 14px 28px !important;
-        box-shadow: 0 6px 24px rgba(74,20,140,0.4) !important;
-        transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94) !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        background: #1F6FEB !important;
+        border-color: #1F6FEB !important;
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        padding: 10px 20px !important;
+        box-shadow: none !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
     }
     .stButton > button[kind="primary"]:hover {
-        transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 10px 36px rgba(136,14,79,0.5) !important;
-        background: linear-gradient(135deg, #283593 0%, #6a1b9a 50%, #ad1457 100%) !important;
+        background: #388BFD !important;
+        border-color: #388BFD !important;
+        transform: none !important;
     }
-    .stButton > button[kind="primary"]:active {
-        transform: translateY(0) scale(0.98) !important;
-    }
-
-    /* ─── Input Fields & Selects ──────────────────────────────── */
-    .stTextInput > div > div > input,
-    .stSelectbox > div > div,
-    .stTextArea textarea {
-        background-color: #111827 !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-        border-radius: 10px !important;
-        color: #e0e6ed !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-    .stTextInput > div > div > input:focus,
-    .stTextArea textarea:focus {
-        border-color: rgba(0,230,118,0.5) !important;
-        box-shadow: 0 0 0 3px rgba(0,230,118,0.1) !important;
+    .stButton > button:focus-visible {
+        outline: 2px solid var(--thong-tin) !important;
+        outline-offset: 2px !important;
     }
 
-    /* ─── Expanders ──────────────────────────────────────────── */
-    .streamlit-expanderHeader {
-        background: linear-gradient(135deg, #141c2b, #0e1420) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(255,255,255,0.06) !important;
-        color: #b0bec5 !important;
-        font-weight: 600 !important;
-        transition: all 0.2s ease;
+    /* ─── Ô nhập ──────────────────────────────────────────────────── */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"] > div,
+    .stNumberInput input {
+        background: var(--nen-2) !important;
+        border: 1px solid var(--vien) !important;
+        border-radius: 6px !important;
+        color: var(--chu) !important;
     }
-    .streamlit-expanderHeader:hover {
-        border-color: rgba(0,230,118,0.3) !important;
-        color: #00e676 !important;
-    }
-    .streamlit-expanderContent {
-        background-color: #0e1420 !important;
-        border: 1px solid rgba(255,255,255,0.04) !important;
-        border-top: none !important;
-        border-radius: 0 0 12px 12px !important;
+    .stTextInput input:focus {
+        border-color: var(--thong-tin) !important;
+        box-shadow: 0 0 0 2px rgba(75,143,227,0.2) !important;
     }
 
-    /* ─── Dividers ───────────────────────────────────────────── */
-    hr {
-        border: none !important;
-        height: 1px !important;
-        background: linear-gradient(90deg, transparent 0%, rgba(0,230,118,0.25) 50%, transparent 100%) !important;
-        margin: 20px 0 !important;
-    }
-
-    /* ─── Chat Message Bubbles ───────────────────────────────── */
-    [data-testid="stChatMessage"] {
-        background: linear-gradient(145deg, #141c2b 0%, #0e1420 100%) !important;
-        border: 1px solid rgba(255,255,255,0.06) !important;
-        border-radius: 16px !important;
-        padding: 16px 20px !important;
-        margin-bottom: 12px;
-        animation: fadeSlideUp 0.4s ease-out;
-    }
-
-    /* ─── Plotly Chart Containers ─────────────────────────────── */
-    [data-testid="stPlotlyChart"] {
-        border-radius: 14px;
+    /* ─── Bảng ────────────────────────────────────────────────────── */
+    .stDataFrame, [data-testid="stTable"] {
+        border: 1px solid var(--vien);
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .stDataFrame thead th, [data-testid="stTable"] thead th {
+        background: var(--nen-3) !important;
+        color: var(--chu-mo) !important;
+        font-family: var(--sans) !important;
+        font-size: 0.74rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--vien) !important;
+    }
+    .stDataFrame tbody td, [data-testid="stTable"] tbody td {
+        border-bottom: 1px solid rgba(35,42,56,0.6) !important;
+        font-size: 0.86rem !important;
+    }
+    .stDataFrame tbody tr:hover td { background: var(--nen-2) !important; }
+
+    /* ─── Hộp thông báo: đây là NỘI DUNG, không phải trang trí ─────
+       App này sống bằng việc nói ra điều nó chưa chứng minh được. Các
+       hộp cảnh báo phải rõ hơn sau khi đổi giao diện, không mờ đi. */
+    /* KHÔNG đặt màu viền ở đây. Streamlit đã tô sẵn nền và chữ theo loại
+       (xanh cho thông tin, vàng cho cảnh báo, đỏ cho lỗi); thêm một viền
+       xám trung tính lên trên là làm phẳng đúng tín hiệu cần giữ.
+       `currentColor` khiến thanh viền trái tự lấy màu chữ của từng loại,
+       nên mỗi hộp có đúng sắc của nó mà không phải bám vào class băm
+       `st-emotion-cache-*` — thứ đổi theo mỗi phiên bản Streamlit. */
+    .stAlertContainer {
+        border-left: 3px solid currentColor !important;
+        border-radius: 8px;
+        padding: 14px 16px;
+    }
+    [data-testid="stAlert"] p { font-size: 0.9rem; line-height: 1.55; }
+
+    /* ─── Thanh bên ───────────────────────────────────────────────── */
+    [data-testid="stSidebar"] {
+        background: var(--nen-2);
+        border-right: 1px solid var(--vien);
+    }
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 { font-size: 0.95rem !important; }
+
+    /* ─── Khối mở rộng ────────────────────────────────────────────── */
+    [data-testid="stExpander"] {
+        border: 1px solid var(--vien);
+        border-radius: 8px;
+        background: var(--nen-2);
+    }
+    [data-testid="stExpander"] summary { font-size: 0.88rem; font-weight: 500; }
+
+    /* ─── Đường kẻ, chú thích, mã ─────────────────────────────────── */
+    hr { border-color: var(--vien); }
+    [data-testid="stCaptionContainer"], .stCaption {
+        color: var(--chu-mo) !important;
+        font-size: 0.8rem !important;
+    }
+    code {
+        background: var(--nen-3) !important;
+        color: var(--chu) !important;
+        border: 1px solid var(--vien);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 0.84em !important;
     }
 
-    /* ─── Success / Info / Warning / Error Alerts ─────────────── */
-    .stAlert {
-        border-radius: 12px !important;
-        border-left-width: 5px !important;
-        backdrop-filter: blur(8px);
-    }
-
-    /* ─── Custom Dark Scrollbars ──────────────────────────────── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
+    /* ─── Thanh cuộn ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--nen); }
     ::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, #1e293b, #334155);
-        border-radius: 3px;
+        background: var(--vien-manh);
+        border-radius: 5px;
+        border: 2px solid var(--nen);
     }
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(180deg, #00e676, #00b0ff);
+    ::-webkit-scrollbar-thumb:hover { background: var(--chu-mo); }
+
+    /* ─── Tôn trọng người tắt hiệu ứng chuyển động ────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: .01ms !important;
+            transition-duration: .01ms !important;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
