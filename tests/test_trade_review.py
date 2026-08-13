@@ -15,8 +15,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import pandas as pd
 
+import market_filter
 import trade_review as tr
 from paper_trading import PaperTradingJournal, Status
+
+# Ghim bộ lọc VN-INDEX mở: consider_entry() hỏi market_filter, và bộ lọc đó
+# đọc cache VNINDEX thật nên kết quả test phụ thuộc hướng thị trường vào
+# ngày hardcode — test tự đỏ/xanh theo thị trường mà không ai đụng vào mã.
+# File này kiểm thử BIỂU ĐỒ XEM LẠI, không kiểm thử bộ lọc.
+market_filter.is_vni_bullish = lambda _signal_date: True
 
 
 def df_nghin_dong(n: int = 140) -> pd.DataFrame:
@@ -29,13 +36,17 @@ def df_nghin_dong(n: int = 140) -> pd.DataFrame:
 
 
 def make_result(score: int = 75, sl: float = 66_000.0,
-                tp: float = 82_000.0) -> dict:
+                tp: float = 82_000.0, entry: float = 72_000.0) -> dict:
+    # `entry_price` là bắt buộc từ khi cỡ lệnh tính theo khoảng cách cắt lỗ
+    # (rủi ro cố định 1%/lệnh). Thiếu nó, consider_entry() ném KeyError và
+    # cả 7 test ở file này đỏ — cùng nguyên nhân với test_paper_trading.py.
     return {
         "final_score": score, "recommendation": "MUA 📈", "data_quality": "OK",
         "score_breakdown": {"trend_score": 72.0, "momentum_score": 66.0},
         "key_reasons": ["Xu hướng tăng", "Khối lượng tích cực"],
         "safety": {"safe_position_size": 10.0},
         "analyses": {"risk": {"recommendations": {
+            "entry_price": entry,
             "stop_loss_price": sl, "take_profit_price": tp,
             "suggested_position_size_pct": 10.0}}}}
 
@@ -46,9 +57,13 @@ def _one_closed_trade():
     j = PaperTradingJournal(":memory:")
     j.consider_entry("FPT", df["time"].iloc[80], make_result())
     j.fill_pending("FPT", df["time"].iloc[81], float(df["open"].iloc[81]) * 1000)
+    # Đóng lệnh bằng CẮT LỖ. Trước đây helper này đẩy high lên 90.000 để
+    # chạm take_profit 82.000 — chốt lời cứng đã bị gỡ có chủ ý (Fat-Tail,
+    # thay bằng trailing stop 7%) nên cách đó không còn đóng lệnh, khiến cả
+    # 7 test ở đây đỏ. Cắt lỗ là lệnh chờ đặt sẵn nên khớp ngay trong phiên.
     j.evaluate_open("FPT", df["time"].iloc[95], {
         "open": float(df["open"].iloc[95]) * 1000, "high": 90_000.0,
-        "low": float(df["low"].iloc[95]) * 1000,
+        "low": 65_000.0,
         "close": float(df["close"].iloc[95]) * 1000})
     return df, j, j.all_trades(Status.CLOSED)[0]
 
