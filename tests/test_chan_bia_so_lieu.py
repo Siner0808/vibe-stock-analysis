@@ -197,6 +197,60 @@ def test_ma_that_cua_du_an_khong_bi_bao_nham():
     print(f"PASS  quét {len(list(GOC.glob('*.py')))} file thật -> 0 chặn nhầm")
 
 
+def test_return_0_trong_main_la_ma_thoat_khong_phai_so_do():
+    """Chính hook này bị nó chặn oan ngay lần đầu: `except: return 0` trong
+    main() nghĩa là "không chặn", chứ không phải "đo được 0"."""
+    p = _do("def main():\n"
+            "    try:\n"
+            "        x = doc()\n"
+            "    except Exception:\n"
+            "        return 0\n"
+            "    return 0\n")
+    assert p == [], f"mã thoát bị coi là số đo: {[x.thong_diep for x in p]}"
+    print("PASS  return 0 trong main() -> mã thoát, không bị chặn")
+
+
+def test_return_0_trong_ham_do_luong_van_bi_chan():
+    """Nới cho main() không được nới cho hàm đo."""
+    p = _do("def so_phien_nam_giu(a, b):\n"
+            "    try:\n"
+            "        return tinh(a, b)\n"
+            "    except Exception:\n"
+            "        return 0\n")
+    assert "R3" in _ma(p), "hàm đo lường vẫn phải bị chặn"
+    print("PASS  return 0 trong hàm đo lường vẫn bị chặn")
+
+
+def test_chong_bao_trung():
+    """Hook đăng ký ở cả settings người dùng lẫn settings dự án sẽ chạy hai
+    lần trên cùng một file. Lần hai phải im."""
+    import hashlib
+    import tempfile as tf
+    from pathlib import Path as P
+
+    ma = 'x = getattr(t, "position_size_pct", 30)\n'
+    f = GOC / "__tam_chong_trung.py"
+    dau = hashlib.sha256(f"{f.resolve()}\n{ma}".encode()).hexdigest()[:32]
+    moc = P(tf.gettempdir()) / f"chan_bia_{dau}.moc"
+    try:
+        if moc.exists():
+            moc.unlink()
+        f.write_text(ma, encoding="utf-8")
+        lan1 = hook.da_bao_gan_day(f.resolve(), ma)
+        lan2 = hook.da_bao_gan_day(f.resolve(), ma)
+        assert lan1 is False, "lần đầu phải báo"
+        assert lan2 is True, "lần hai (hook trùng) phải im"
+
+        # nội dung đổi -> phải báo lại ngay, không được nuốt lỗi thật
+        ma2 = 'y = getattr(t, "position_size_pct", 30)\n'
+        assert hook.da_bao_gan_day(f.resolve(), ma2) is False
+    finally:
+        for x in (f, moc):
+            if x.exists():
+                x.unlink()
+    print("PASS  chạy trùng -> im; nội dung đổi -> báo lại ngay")
+
+
 def chay_tat_ca() -> int:
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]

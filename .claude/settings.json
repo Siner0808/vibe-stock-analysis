@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/chan_bia_so_lieu.py\"",
+            "timeout": 20,
+            "statusMessage": "Quét mẫu bịa số liệu..."
+          }
+        ]
+      }
+    ]
+  }
+}

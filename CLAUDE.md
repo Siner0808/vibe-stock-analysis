@@ -151,6 +151,30 @@ Hai test đang khoá bất biến quan trọng, đừng làm hỏng:
 - `tests/test_paper_trading.py::test_duong_von_khong_phu_thuoc_thu_tu_ban_ghi`
   — drawdown dựng theo thời gian, không theo id
 
+## Hook chặn bịa số liệu — chạy tự động
+
+`.claude/settings.json` đăng ký `tools/chan_bia_so_lieu.py` làm PostToolUse
+hook: sau mỗi Write/Edit, file được phân tích bằng AST và **chặn** nếu thấy
+mẫu đã làm hỏng dự án này.
+
+| Luật | Mức | Mẫu |
+|---|---|---|
+| R1 | CHẶN | `getattr(o, "tên", <số>)` — mặc định là con số |
+| R2 | CHẶN | tên trường không tồn tại nhưng rất giống trường thật |
+| R3 | CHẶN | `except … → return <số>` — nuốt lỗi rồi thay bằng số |
+| R4 | cảnh báo | `.get("k", <số khác 0/1/100>)` |
+| R5 | cảnh báo | `x = max(x, <số>)` |
+
+Cửa thoát: `# bia-ok: <lý do>` trên chính dòng đó hoặc trong khối chú thích
+ngay trên. **Bắt buộc có lý do** — `# bia-ok:` rỗng bị từ chối. Mục đích
+không phải cấm, mà là buộc nói ra vì sao con số này không phải bịa.
+
+Miễn trừ: `tests/`, `scratch/`, `.venv/`, và mọi file ngoài gốc dự án.
+
+Hook tìm ra chính lỗi nó sinh ra để chặn: `getattr(t, 'position_size_pct',
+30)` còn sống ở `app.py` (2 chỗ) và `run_daily.py` — luôn trả 30 cho mọi vị
+thế, trong khi chỉ 5/113 lệnh thật có `size_pct = 30`.
+
 ## Kiểm tra định kỳ những chỗ hỏng âm thầm
 
 ```python

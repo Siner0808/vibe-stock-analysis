@@ -36,9 +36,24 @@ from __future__ import annotations
 
 import ast
 import difflib
+import hashlib
 import json
+import os
 import sys
+import tempfile
+import time
 from pathlib import Path
+
+# Hook được đăng ký ở HAI nơi: ~/.claude/settings.json (bảo vệ mọi phiên
+# trên máy này, kể cả khi mở Claude Code từ thư mục khác) và .claude/
+# settings.json trong repo (đi theo dự án cho người khác). Khi cwd đúng là
+# repo thì cả hai cùng nạp và hook chạy hai lần — cùng một file, cùng một
+# nội dung, báo trùng hai lần.
+#
+# Chống trùng theo NỘI DUNG chứ không theo thời gian: cùng file + cùng hash
+# trong CUA_SO_TRUNG giây thì lần sau im lặng. Nội dung đổi -> hash đổi ->
+# báo lại ngay, nên không bao giờ nuốt mất một lỗi thật.
+CUA_SO_TRUNG = 5.0
 
 GOC_DU_AN = Path(__file__).resolve().parent.parent
 
@@ -148,11 +163,28 @@ def _gan_nhat(ten: str, moi_truong: dict[str, set[str]]) -> tuple[str, str]:
 
 
 # ── Bộ dò ────────────────────────────────────────────────────────────
+# Hàm điều phối: `return 0` trong đó là MÃ THOÁT tiến trình, không phải số
+# đo. Chính hook này bị nó chặn oan ngay lần đầu — `except: return 0` trong
+# main() nghĩa là "không chặn", chứ không phải "đo được 0".
+HAM_MA_THOAT = {"main", "cli", "chay_tat_ca", "run"}
+
+
 class BoDo(ast.NodeVisitor):
     def __init__(self, moi_truong: dict[str, set[str]], la_test: bool) -> None:
         self.moi_truong = moi_truong
         self.la_test = la_test
+        self.ham_hien_tai: list[str] = []
         self.phat_hien: list[PhatHien] = []
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.ham_hien_tai.append(node.name)
+        self.generic_visit(node)
+        self.ham_hien_tai.pop()
+
+    visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
+
+    def _trong_ham_ma_thoat(self) -> bool:
+        return bool(self.ham_hien_tai) and self.ham_hien_tai[-1] in HAM_MA_THOAT
 
     def _them(self, *a, **kw) -> None:
         self.phat_hien.append(PhatHien(*a, **kw))
@@ -206,7 +238,8 @@ class BoDo(ast.NodeVisitor):
         # R3 — nuốt lỗi rồi trả về một con số
         for con in node.body:
             if isinstance(con, ast.Return) and con.value is not None \
-                    and _la_so(con.value) and not self.la_test:
+                    and _la_so(con.value) and not self.la_test \
+                    and not self._trong_ham_ma_thoat():
                 v = _gia_tri_so(con.value)
                 self._them(
                     con.lineno, "R3", True,
@@ -279,6 +312,26 @@ def kiem_tra(duong_dan: Path) -> list[PhatHien]:
     return [p for p in bo_do.phat_hien if not co_cua_thoat(dong_ma, p.dong)]
 
 
+def da_bao_gan_day(duong_dan: Path, ma_nguon: str) -> bool:
+    """Đã báo đúng file + đúng nội dung này trong vài giây gần đây chưa.
+
+    Khoá theo HASH nội dung, không theo thời gian sửa: nội dung đổi thì hash
+    đổi và báo lại ngay, nên không bao giờ nuốt mất một lỗi thật. Chỉ nuốt
+    đúng thứ cần nuốt — lần chạy thứ hai của cùng một hook trên cùng một
+    file y hệt.
+    """
+    dau = hashlib.sha256(
+        f"{duong_dan}\n{ma_nguon}".encode("utf-8")).hexdigest()[:32]
+    moc = Path(tempfile.gettempdir()) / f"chan_bia_{dau}.moc"
+    try:
+        if moc.exists() and (time.time() - moc.stat().st_mtime) < CUA_SO_TRUNG:
+            return True
+        moc.write_text(str(time.time()), encoding="utf-8")
+    except OSError:
+        return False                     # không ghi được mốc thì cứ báo
+    return False
+
+
 def trong_pham_vi(duong_dan: Path) -> bool:
     if duong_dan.suffix != ".py" or not duong_dan.exists():
         return False
@@ -312,6 +365,12 @@ def main() -> int:
     duong_dan = Path(str(thô)).resolve()
     if not trong_pham_vi(duong_dan):
         return 0
+
+    try:
+        if da_bao_gan_day(duong_dan, duong_dan.read_text(encoding="utf-8")):
+            return 0                     # lần chạy trùng của hook thứ hai
+    except OSError:
+        pass
 
     try:
         phat_hien = kiem_tra(duong_dan)
