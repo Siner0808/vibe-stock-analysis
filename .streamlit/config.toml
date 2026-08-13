@@ -1,13 +1,8 @@
-# Theme "Terminal tổ chức" — màu chỉ dùng để mang nghĩa.
-# primaryColor là màu của tiêu điểm và điều khiển, KHÔNG phải màu thương
-# hiệu: xanh dương trung tính để không lẫn với xanh lá của một khoản lãi.
-# Bản trước dùng #00e676 (xanh neon) làm primaryColor, nên nút bấm và số
-# lãi dùng chung một màu — mắt không tách được "bấm được" khỏi "đang lãi".
 [theme]
-primaryColor = "#1F6FEB"
-backgroundColor = "#0B0E14"
-secondaryBackgroundColor = "#12161F"
-textColor = "#E6E9EF"
+primaryColor = "#00e676"
+backgroundColor = "#070a10"
+secondaryBackgroundColor = "#0e1420"
+textColor = "#e0e6ed"
 font = "sans serif"
 
 [server]
