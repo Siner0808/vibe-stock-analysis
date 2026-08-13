@@ -196,6 +196,51 @@ def test_lenh_doi_trang_thai_duoc_cap_nhat():
     print("PASS  HPG chờ->mở được cập nhật, không sinh dòng trùng")
 
 
+# ── 2b. Chặn sổ co lại xoá sạch sheet ────────────────────────────────
+def test_tu_choi_day_khi_so_local_it_hon_sheet():
+    """Kịch bản runner CI: máy sạch không có paper_trades.db -> sổ RỖNG.
+    Vì trades ghi đè toàn phần, cú đẩy đầu tiên sẽ xoá trắng lệnh thật
+    trên sheet — đúng cơ chế mất 96/113 lệnh ngày 12/08, nhưng tự động và
+    lặp lại mỗi lần chạy."""
+    goc = so_lenh_mau()
+    sheet = ss.InMemorySheet()
+    ss.push(goc.db, sheet)
+    truoc = sheet.read_rows(ss.TAB_TRADES)
+
+    rong = PaperTradingJournal(":memory:")      # runner sạch
+    try:
+        ss.push(rong.db, sheet)
+        raise AssertionError("phải từ chối đẩy sổ rỗng đè lên sheet có dữ liệu")
+    except ss.SheetError as e:
+        assert "TỪ CHỐI ĐẨY" in str(e) and "pull()" in str(e)
+
+    assert sheet.read_rows(ss.TAB_TRADES) == truoc, "sheet bị đụng dù đã từ chối"
+    print("PASS  sổ rỗng không xoá được 3 lệnh trên sheet")
+
+
+def test_day_duoc_khi_so_lenh_khong_giam():
+    """Không được cản trở đường chạy bình thường: bằng hoặc nhiều hơn thì qua."""
+    goc = so_lenh_mau()
+    sheet = ss.InMemorySheet()
+    ss.push(goc.db, sheet)
+    ss.push(goc.db, sheet)                       # bằng -> qua
+
+    goc.consider_entry("MWG", "2026-04-01", make_result())
+    bc = ss.push(goc.db, sheet)                  # nhiều hơn -> qua
+    assert bc["trades"] == 4
+    print("PASS  số lệnh bằng hoặc tăng -> đẩy bình thường")
+
+
+def test_co_lai_van_duoc_khi_noi_ro():
+    goc = so_lenh_mau()
+    sheet = ss.InMemorySheet()
+    ss.push(goc.db, sheet)
+    rong = PaperTradingJournal(":memory:")
+    bc = ss.push(rong.db, sheet, cho_phep_co_lai=True)
+    assert bc["trades"] == 0
+    print("PASS  cho_phep_co_lai=True thì vẫn thay được bằng bản nhỏ hơn")
+
+
 # ── 3. pull() từ chối ghi đè ─────────────────────────────────────────
 def test_pull_tu_choi_ghi_de_so_dang_co_du_lieu():
     """Đây chính là cách 96/113 lệnh thật biến mất ngày 12/08/2026."""

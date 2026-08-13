@@ -1,0 +1,119 @@
+# Quét sổ lệnh tự động trên GitHub Actions.
+#
+# VÌ SAO KHÔNG DÙNG WINDOWS TASK SCHEDULER NỮA
+# Task Scheduler chỉ chạy khi máy bật. Máy tắt hoặc ngủ là mất phiên đó,
+# và không có gì báo. GitHub Actions chạy độc lập máy.
+#
+# THỨ TỰ BA BƯỚC LÀ BẮT BUỘC — SAI THỨ TỰ LÀ MẤT SỔ LỆNH
+#   1. KÉO sổ lệnh từ Google Sheets về runner
+#   2. QUÉT (run_daily.py tự đẩy lên Sheets ở cuối)
+#
+# Runner luôn sạch: không có paper_trades.db. Nếu bỏ bước 1, run_daily.py
+# sẽ tạo một sổ RỖNG, quét trên sổ rỗng đó rồi đẩy lên — mà bảng trades
+# ghi đè toàn phần, nên cú đẩy đó XOÁ TRẮNG toàn bộ lệnh thật. Đúng cơ
+# chế đã làm mất 96/113 lệnh ngày 12/08/2026, chỉ khác là tự động và lặp
+# lại mỗi 30 phút.
+#
+# sheets_store.push() có chốt chặn từ chối đẩy khi sổ local ít lệnh hơn
+# sheet, nên kể cả quên bước 1 thì cũng dừng chứ không xoá. Nhưng chốt đó
+# là lưới an toàn cuối, không phải lý do để bỏ bước kéo.
+
+name: Quét sổ lệnh
+
+on:
+  schedule:
+    # Giờ cron của GitHub là UTC. Việt Nam UTC+7.
+    # 02:00–08:00 UTC = 09:00–15:00 ICT, đúng giờ giao dịch HOSE.
+    # */30 = mỗi 30 phút. Thứ 2 đến thứ 6.
+    #
+    # LƯU Ý: lịch của GitHub Actions là "cố gắng hết sức" — lúc hệ thống
+    # tải cao có thể trễ 5–20 phút hoặc bỏ hẳn một nhịp. Không dùng nó
+    # cho việc cần đúng giây.
+    - cron: '*/30 2-8 * * 1-5'
+  workflow_dispatch:        # cho phép bấm chạy tay để kiểm tra
+
+# Không bao giờ để hai lần quét chạy chồng nhau: cả hai cùng kéo về, cùng
+# quét, rồi cùng đẩy — lần đẩy sau ghi đè lần trước và một phần kết quả
+# biến mất.
+concurrency:
+  group: quet-so-lenh
+  cancel-in-progress: false
+
+jobs:
+  quet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        run: pip install -r requirements.txt
+
+      - name: Nạp cấu hình bí mật
+        # Bí mật KHÔNG nằm trong repo. Đặt ở Settings → Secrets and
+        # variables → Actions, tên STREAMLIT_SECRETS_TOML, nội dung là
+        # toàn bộ file .streamlit/secrets.toml.
+        env:
+          NOI_DUNG: ${{ secrets.STREAMLIT_SECRETS_TOML }}
+        run: |
+          if [ -z "$NOI_DUNG" ]; then
+            echo "::error::Thiếu secret STREAMLIT_SECRETS_TOML."
+            exit 1
+          fi
+          mkdir -p .streamlit
+          printf '%s' "$NOI_DUNG" > .streamlit/secrets.toml
+
+      - name: Kéo sổ lệnh từ Google Sheets
+        # BẮT BUỘC chạy trước bước quét. Xem ghi chú đầu file.
+        run: |
+          python - <<'PY'
+          import sys
+          import google_sheets_sync as gs
+          bc = gs.restore_journal_from_google_sheets("paper_trades.db")
+          if bc is None:
+              print("::error::Kho ngoài chưa cấu hình — dừng để không quét trên sổ rỗng.")
+              sys.exit(1)
+          print(f"Đã kéo về {bc['trades']} lệnh, {bc['decisions']} quyết định.")
+          if bc["trades"] == 0:
+              print("::warning::Sheet không có lệnh nào. Nếu đây không phải "
+                    "lần chạy đầu tiên thì có gì đó sai.")
+          PY
+
+      - name: Quét thị trường và cập nhật sổ lệnh
+        # run_daily.py tự đẩy lên Google Sheets ở cuối.
+        run: python run_daily.py
+
+      - name: Đối chiếu sổ local với kho ngoài
+        # Quét xong mà sheet không khớp sổ local nghĩa là cú đẩy hỏng —
+        # phải biết ngay, vì "tưởng đã sao lưu mà thật ra không" là trạng
+        # thái tệ nhất.
+        run: |
+          python - <<'PY'
+          import sqlite3, sys
+          import sheets_store as ss
+          local = sqlite3.connect("paper_trades.db")
+          n_local = local.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
+          tt = ss.trang_thai(ss.open_from_secrets())
+          print(f"local {n_local} lệnh · sheet {tt.get('trades')} lệnh")
+          if not tt["bat"] or tt.get("trades") != n_local:
+              print(f"::error::Sheet KHÔNG khớp sổ local. {tt.get('ghi_chu')}")
+              sys.exit(1)
+          PY
+
+      - name: Lưu nhật ký chạy
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhat-ky-${{ github.run_id }}
+          path: |
+            daily_execution_log.txt
+            latest_daily_report.md
+            reports/
+          retention-days: 14
+          if-no-files-found: ignore

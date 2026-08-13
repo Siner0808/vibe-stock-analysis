@@ -206,11 +206,22 @@ def _kiem_tra_header(tab: str, header: list[str], mong_doi: tuple[str, ...]) -> 
 # ─────────────────────────────────────────────────────────────────────
 # Đẩy lên
 # ─────────────────────────────────────────────────────────────────────
-def push(db: sqlite3.Connection, backend: SheetBackend) -> dict:
+def push(db: sqlite3.Connection, backend: SheetBackend,
+         cho_phep_co_lai: bool = False) -> dict:
     """Đẩy sổ lệnh lên sheet.
 
     trades: ghi đè toàn phần (lệnh có đổi trạng thái).
     decisions: chỉ thêm dòng mới (bảng chỉ-thêm).
+
+    TỪ CHỐI đẩy nếu số lệnh local ÍT HƠN số đang có trên sheet, trừ khi
+    gọi kèm cho_phep_co_lai=True. Bảng trades chỉ có tăng: lệnh được thêm
+    vào, không bao giờ bị xoá. Co lại nghĩa là sổ local không phải bản đầy
+    đủ — và vì trades ghi đè toàn phần, đẩy tiếp là xoá sạch bằng chứng.
+
+    Đây không phải lo xa. Runner CI sạch không có paper_trades.db sẽ tạo
+    một sổ RỖNG, và nếu quy trình quên bước kéo về trước thì cú đẩy đầu
+    tiên xoá trắng toàn bộ lệnh thật trên sheet — đúng cơ chế đã làm mất
+    96/113 lệnh ngày 12/08/2026, chỉ khác là tự động và lặp lại mỗi giờ.
 
     Trả về báo cáo số dòng đã ghi. Gọi hai lần liên tiếp thì lần thứ hai
     thêm 0 decision — phép đẩy là idempotent.
@@ -220,6 +231,20 @@ def push(db: sqlite3.Connection, backend: SheetBackend) -> dict:
     # ── trades: soi gương toàn phần ──────────────────────────────────
     rows = db.execute(
         f"SELECT {', '.join(TRADE_COLS)} FROM trades ORDER BY id").fetchall()
+
+    tren_sheet = backend.read_rows(TAB_TRADES)
+    so_tren_sheet = sum(1 for r in tren_sheet[1:] if r and any(c != "" for c in r))
+    if len(rows) < so_tren_sheet and not cho_phep_co_lai:
+        raise SheetError(
+            f"TỪ CHỐI ĐẨY: sổ local có {len(rows)} lệnh, sheet đang có "
+            f"{so_tren_sheet}.\n"
+            f"Bảng trades ghi đè toàn phần, nên đẩy bản ít hơn là XOÁ MẤT "
+            f"{so_tren_sheet - len(rows)} lệnh.\n"
+            f"Gần như chắc chắn sổ local chưa được kéo về từ sheet — gọi "
+            f"pull() trước.\n"
+            f"Nếu thật sự muốn thay bằng bản nhỏ hơn: push(..., "
+            f"cho_phep_co_lai=True).")
+
     bang_trades = [list(TRADE_COLS)]
     bang_trades += [[_to_cell(c, r[c]) for c in TRADE_COLS] for r in rows]
     backend.write_all(TAB_TRADES, bang_trades)
