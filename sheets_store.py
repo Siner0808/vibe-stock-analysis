@@ -210,7 +210,7 @@ def push(db: sqlite3.Connection, backend: SheetBackend) -> dict:
     # ── decisions: chỉ thêm phần mới ─────────────────────────────────
     hien_co = backend.read_rows(TAB_DECISIONS)
     seq_lon_nhat = 0
-    if hien_co:
+    if hien_co and hien_co[0]:
         _kiem_tra_header(TAB_DECISIONS, hien_co[0], DECISION_COLS)
         for r in hien_co[1:]:
             if r and r[0] != "":
