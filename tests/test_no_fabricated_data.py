@@ -327,10 +327,23 @@ def test_api_key_khong_bao_gio_lo_ra_ngoai():
     fake.change_api_key = lambda k: seen.setdefault("key", k) or True
     sys.modules["vnstock"] = fake
     os.environ["VNSTOCK_API_KEY"] = SECRET
+
+    # Cách ly nguồn secrets. _read_key() ưu tiên st.secrets hơn biến môi
+    # trường, nên trên máy có .streamlit/secrets.toml thật thì key thật
+    # thắng key giả của test và test đỏ — dù mã không hề đổi. Máy không có
+    # secrets.toml lại xanh. Ghim st.secrets rỗng để test đo đúng thứ nó
+    # định đo: key có tới được vnstock không, và có lộ ra ngoài không.
+    saved_st = sys.modules.get("streamlit")
+    st_gia = types.ModuleType("streamlit")
+    st_gia.secrets = types.SimpleNamespace(get=lambda *a, **k: None)
+    sys.modules["streamlit"] = st_gia
     try:
         status = vnstock_auth.ensure_api_key(force=True)
         msg = vnstock_auth.status_message()
     finally:
+        sys.modules.pop("streamlit", None)
+        if saved_st is not None:
+            sys.modules["streamlit"] = saved_st
         sys.modules.pop("vnstock", None)
         if saved_mod is not None:
             sys.modules["vnstock"] = saved_mod

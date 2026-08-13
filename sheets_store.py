@@ -145,10 +145,27 @@ class GoogleSheet:
         return self._tab(tab).get_all_values()
 
     def write_all(self, tab: str, rows: list[list[str]]) -> None:
+        """Ghi đè bảng bằng MỘT lệnh gọi duy nhất.
+
+        KHÔNG dùng clear() rồi update(): giữa hai lệnh đó có một khoảng
+        thời gian tab rỗng. Mạng đứt đúng lúc ấy là sổ lệnh trên kho ngoài
+        mất sạch — đúng kiểu mất bằng chứng mà dự án này đã dính một lần.
+
+        Thay vào đó ghi đè tại chỗ, đệm thêm dòng trống để xoá phần dư của
+        lần ghi trước. Thất bại giữa chừng thì cùng lắm là ghi thiếu, chứ
+        không có trạng thái trung gian rỗng.
+        """
         ws = self._tab(tab)
-        ws.clear()
-        if rows:
-            ws.update(rows, "A1")
+        if not rows:
+            return
+
+        so_dong_cu = len(ws.get_all_values())
+        so_cot = max(len(r) for r in rows)
+        day_du = [list(r) + [""] * (so_cot - len(r)) for r in rows]
+        for _ in range(max(0, so_dong_cu - len(rows))):
+            day_du.append([""] * so_cot)
+
+        ws.update(day_du, "A1")
 
     def append_rows(self, tab: str, rows: list[list[str]]) -> None:
         if rows:
@@ -331,12 +348,14 @@ def trang_thai(backend: Optional[SheetBackend]) -> dict:
         return {"bat": False, "ghi_chu": "Chưa cấu hình GOOGLE_SHEET_KEY / "
                                          "gcp_service_account — sổ lệnh chỉ "
                                          "nằm trên ổ đĩa tạm"}
+    def _dem(rows: list[list[str]]) -> int:
+        # Bỏ header và các dòng trống đệm do write_all() để lại.
+        return sum(1 for r in rows[1:] if r and any(c != "" for c in r))
+
     try:
-        trades = backend.read_rows(TAB_TRADES)
-        dec = backend.read_rows(TAB_DECISIONS)
         return {"bat": True,
-                "trades": max(0, len(trades) - 1),
-                "decisions": max(0, len(dec) - 1),
+                "trades": _dem(backend.read_rows(TAB_TRADES)),
+                "decisions": _dem(backend.read_rows(TAB_DECISIONS)),
                 "ghi_chu": "Kho ngoài hoạt động"}
     except Exception as e:
         return {"bat": False, "ghi_chu": f"Kho ngoài LỖI: {type(e).__name__}: {e}"}

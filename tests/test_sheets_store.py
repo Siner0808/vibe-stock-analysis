@@ -275,6 +275,56 @@ def test_giu_nguyen_null_cot_chu():
     print("PASS  NULL giữ NULL, chuỗi rỗng giữ chuỗi rỗng — đúng từng cột")
 
 
+def test_ghi_de_khong_di_qua_trang_thai_rong():
+    """Ghi đè bảng trades KHÔNG được có khoảnh khắc bảng rỗng.
+
+    Bản đầu dùng clear() rồi update(): mạng đứt giữa hai lệnh là sổ lệnh
+    trên kho ngoài mất sạch. Backend thật nay ghi đè bằng một lệnh gọi
+    duy nhất. Test này theo dõi mọi trạng thái trung gian mà backend đi
+    qua và bắt lỗi nếu có lúc nào bảng rỗng."""
+    class SheetTheoDoi(ss.InMemorySheet):
+        def __init__(self):
+            super().__init__()
+            self.lich_su: list[int] = []
+
+        def write_all(self, tab, rows):
+            super().write_all(tab, rows)
+            if tab == ss.TAB_TRADES:
+                self.lich_su.append(len(self.tabs[tab]))
+
+    goc = so_lenh_mau()
+    sheet = SheetTheoDoi()
+    ss.push(goc.db, sheet)
+    ss.push(goc.db, sheet)          # ghi đè lần hai
+
+    assert all(n > 0 for n in sheet.lich_su), (
+        f"có lúc bảng trades rỗng: {sheet.lich_su}")
+    moi = PaperTradingJournal(":memory:")
+    ss.pull(moi.db, sheet)
+    assert len(moi.all_trades()) == 3
+    print(f"PASS  ghi đè không đi qua trạng thái rỗng {sheet.lich_su}")
+
+
+def test_dong_trong_dem_khong_bi_dem_nham():
+    """write_all() của backend thật đệm dòng trống để xoá phần dư. Những
+    dòng đó không được tính thành bản ghi, và không được kéo về thành lệnh."""
+    goc = so_lenh_mau()
+    sheet = ss.InMemorySheet()
+    ss.push(goc.db, sheet)
+
+    rows = sheet.read_rows(ss.TAB_TRADES)
+    so_cot = len(rows[0])
+    sheet.write_all(ss.TAB_TRADES, rows + [[""] * so_cot for _ in range(5)])
+
+    tt = ss.trang_thai(sheet)
+    assert tt["trades"] == 3, f"dòng trống bị đếm nhầm: {tt}"
+
+    moi = PaperTradingJournal(":memory:")
+    bc = ss.pull(moi.db, sheet)
+    assert bc["trades"] == 3 and len(moi.all_trades()) == 3
+    print("PASS  5 dòng trống đệm -> vẫn đếm 3 lệnh, kéo về 3 lệnh")
+
+
 # ── 5. Trạng thái kho ngoài ──────────────────────────────────────────
 def test_bao_ro_khi_chua_cau_hinh():
     assert ss.open_from_secrets({}) is None
