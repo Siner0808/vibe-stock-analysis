@@ -29,3 +29,7 @@ walkforward_results/
 *.pkl
 *.txt
 *.log
+
+# File nháp để soi lỗi bằng tay — không phải mã của dự án.
+# Hook chan_bia_so_lieu.py cũng miễn trừ thư mục này.
+scratch/

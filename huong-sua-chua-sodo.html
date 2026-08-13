@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sơ đồ luồng sửa chữa — Vn-Stock</title>
+<style>
+:root{
+  --paper:#f7f5ef; --sheet:#fffdf8; --rule:#e0dbcd; --rule2:#c8c2ae;
+  --ink:#1c1b16; --ink2:#5d594c; --ink3:#8b8676;
+  --t1:#1d7a5e; --t1bg:#e4f2eb;
+  --t2:#a8641a; --t2bg:#f7ecdb;
+  --t3:#6b675a; --t3bg:#eeebe1;
+  --flow:#a39d8a;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#161512; --sheet:#1e1d19; --rule:#33312a; --rule2:#4a473d;
+    --ink:#eceadf; --ink2:#a8a496; --ink3:#7a7668;
+    --t1:#6cc5a4; --t1bg:#123329;
+    --t2:#d99b4a; --t2bg:#33240f;
+    --t3:#a9a496; --t3bg:#26241e;
+    --flow:#5a574c;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  *{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:400 16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.sheet{max-width:1220px;margin:0 auto;padding:48px 24px 96px}
+
+header{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:36px}
+h1{font-size:26px;font-weight:500;margin:0 0 4px;letter-spacing:-.01em}
+.lede{color:var(--ink2);font-size:15px;margin:0;max-width:66ch}
+.src{margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--ink3)}
+
+.zone{border:1px dashed var(--rule2);border-radius:4px;padding:22px 24px 26px;margin:0 auto}
+.zone-label{display:flex;align-items:baseline;gap:10px;margin:0 0 16px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink3);
+  text-transform:uppercase}
+.zone-label b{color:var(--ink2);font-weight:600}
+.zone-label span{font-family:inherit;text-transform:none;letter-spacing:0}
+
+/* ---- stage 1: measured state ---- */
+.meas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule)}
+.meas-card{background:var(--sheet);padding:14px 16px}
+.meas-card dt{font-size:12.5px;color:var(--ink2);margin:0 0 8px;max-width:26ch}
+.meas-card dd{margin:0;font-family:var(--mono)}
+.meas-card .val{font-size:19px;color:var(--ink)}
+.meas-card .rng{display:block;font-size:11.5px;color:var(--ink3);margin-top:3px}
+
+.verdict{margin-top:18px;padding:14px 18px;background:var(--sheet);
+  border-left:3px solid var(--ink);font-size:14px;color:var(--ink2);max-width:74ch}
+.verdict strong{color:var(--ink);font-weight:500}
+
+/* ---- connectors ---- */
+.fork,.converge{position:relative;max-width:1180px;margin:0 auto;height:52px}
+.ln{position:absolute;background:var(--flow)}
+.ar{position:absolute;width:0;height:0;border-left:5px solid transparent;
+  border-right:5px solid transparent;border-top:6px solid var(--flow)}
+.fork .v-top{left:50%;top:0;width:2px;height:20px;transform:translateX(-50%)}
+.fork .h-bar{left:16.667%;right:16.667%;top:20px;height:2px}
+.fork .v-l{left:16.667%;top:20px;width:2px;height:26px;transform:translateX(-50%)}
+.fork .v-m{left:50%;top:20px;width:2px;height:26px;transform:translateX(-50%)}
+.fork .v-r{left:83.333%;top:20px;width:2px;height:26px;transform:translateX(-50%)}
+.fork .ar.l{left:16.667%;top:44px;transform:translateX(-50%)}
+.fork .ar.m{left:50%;top:44px;transform:translateX(-50%)}
+.fork .ar.r{left:83.333%;top:44px;transform:translateX(-50%)}
+.converge .v-l{left:16.667%;top:0;width:2px;height:18px;transform:translateX(-50%)}
+.converge .v-m{left:50%;top:0;width:2px;height:18px;transform:translateX(-50%)}
+.converge .v-r{left:83.333%;top:0;width:2px;height:18px;transform:translateX(-50%)}
+.converge .h-bar{left:16.667%;right:16.667%;top:18px;height:2px}
+.converge .v-bottom{left:50%;top:18px;width:2px;height:28px;transform:translateX(-50%)}
+.converge .ar.c{left:50%;top:44px;transform:translateX(-50%)}
+.ln,.ar{transition:opacity .15s}
+.fork[data-dim],.converge[data-dim]{}
+.fork[data-dim="t1"] .v-m,.fork[data-dim="t1"] .v-r,.fork[data-dim="t1"] .ar.m,.fork[data-dim="t1"] .ar.r{opacity:.2}
+.fork[data-dim="t2"] .v-l,.fork[data-dim="t2"] .v-r,.fork[data-dim="t2"] .ar.l,.fork[data-dim="t2"] .ar.r{opacity:.2}
+.fork[data-dim="t3"] .v-l,.fork[data-dim="t3"] .v-m,.fork[data-dim="t3"] .ar.l,.fork[data-dim="t3"] .ar.m{opacity:.2}
+
+/* ---- filters ---- */
+.filters{display:flex;gap:8px;margin:28px 0;flex-wrap:wrap;align-items:center;
+  justify-content:center}
+.filters span{font-size:13px;color:var(--ink3);margin-right:4px}
+.filters button{font:inherit;font-size:13px;padding:6px 14px;cursor:pointer;
+  border:1px solid var(--rule2);background:transparent;color:var(--ink2);border-radius:3px}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.filters button:focus-visible{outline:2px solid var(--t1);outline-offset:2px}
+
+/* ---- lanes ---- */
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:1180px;margin:0 auto}
+.lane{padding:0 14px;transition:opacity .2s,filter .2s}
+.lane.dim{opacity:.32;filter:grayscale(.5)}
+.lane-head{padding-bottom:12px;margin-bottom:12px;border-bottom:2px solid var(--ink)}
+.lane-t1 .lane-head{border-color:var(--t1)}
+.lane-t2 .lane-head{border-color:var(--t2)}
+.lane-t3 .lane-head{border-color:var(--t3)}
+.lane-tag{display:inline-block;font-family:var(--mono);font-size:11px;
+  padding:2px 7px;border-radius:2px;margin-bottom:8px}
+.lane-t1 .lane-tag{background:var(--t1bg);color:var(--t1)}
+.lane-t2 .lane-tag{background:var(--t2bg);color:var(--t2)}
+.lane-t3 .lane-tag{background:var(--t3bg);color:var(--t3)}
+.lane-head h3{font-size:16.5px;font-weight:500;margin:0 0 6px}
+.lane-head p{font-size:13px;color:var(--ink2);margin:0;line-height:1.55}
+
+.card{border:1px solid var(--rule);background:var(--sheet);margin-bottom:10px;border-radius:3px}
+.card-head{width:100%;display:flex;gap:10px;align-items:flex-start;padding:12px 12px 12px 13px;
+  border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;
+  border-left:3px solid transparent}
+.lane-t1 .card-head{border-left-color:var(--t1)}
+.lane-t2 .card-head{border-left-color:var(--t2)}
+.lane-t3 .card-head{border-left-color:var(--t3)}
+.card-head:hover{background:var(--paper)}
+.card-head:focus-visible{outline:2px solid var(--t1);outline-offset:-2px}
+.num{font-family:var(--mono);font-size:12px;color:var(--ink3);white-space:nowrap;margin-top:2px}
+.card-main{flex:1;min-width:0}
+.card-main .ttl{font-size:14.5px;display:block}
+.card-main em{font-style:normal;color:var(--ink2);font-size:12.5px;display:block;margin-top:3px}
+.tag{display:inline-block;margin-top:7px;font-size:10.5px;font-family:var(--mono);
+  padding:2px 7px;border-radius:2px;white-space:nowrap}
+.tag.no{background:var(--t3bg);color:var(--ink2)}
+.tag.yes{background:var(--t1bg);color:var(--t1)}
+.tag.dec{background:var(--t2bg);color:var(--t2)}
+.chev{font-size:11px;color:var(--ink3);margin-top:3px;transition:transform .15s}
+.card.open .chev{transform:rotate(90deg)}
+
+.card-body{display:none;padding:0 13px 16px 26px}
+.card.open .card-body{display:block}
+.card-body h4{font-size:11px;font-weight:600;color:var(--ink3);margin:12px 0 4px;
+  letter-spacing:.03em;text-transform:uppercase}
+.card-body p{margin:0 0 6px;font-size:13.5px;color:var(--ink);max-width:60ch;line-height:1.55}
+.card-body code{font-family:var(--mono);font-size:12px;background:var(--t3bg);
+  padding:1px 5px;border-radius:2px}
+.card-body pre{font-family:var(--mono);font-size:11.5px;background:var(--paper);
+  border:1px solid var(--rule);padding:9px 11px;margin:4px 0 0;overflow-x:auto;line-height:1.5}
+.card-warn{border-left:3px solid var(--t2);padding:8px 0 8px 12px;margin:12px 0 0;
+  background:var(--t2bg);font-size:13px}
+.card-warn strong{font-weight:600}
+
+/* ---- closing ---- */
+.closing{margin-top:0}
+.closing-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:start}
+.done-list{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:13px;
+  color:var(--ink2);line-height:2}
+.done-list li{padding-left:16px;position:relative}
+.done-list li::before{content:"✓";position:absolute;left:0;color:var(--t1)}
+.stamp{border:2px solid var(--t1);border-radius:6px;padding:20px;text-align:center;
+  background:var(--t1bg)}
+.stamp .big{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--t1);line-height:1}
+.stamp .cap{font-size:12px;color:var(--ink2);margin-top:6px;letter-spacing:.03em}
+
+.legend{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);
+  display:flex;flex-wrap:wrap;gap:20px;font-size:12px;color:var(--ink3)}
+.legend .lg{display:flex;align-items:center;gap:6px}
+.legend .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dot.d1{background:var(--t1)}.dot.d2{background:var(--t2)}.dot.d3{background:var(--t3)}
+.legend .bar{width:16px;height:2px;background:var(--flow);flex:none}
+
+@media (max-width:860px){
+  .lanes{grid-template-columns:1fr;gap:22px}
+  .lane{padding:0}
+  .fork,.converge{display:none}
+  .closing-grid{grid-template-columns:1fr}
+  .meas-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:480px){.meas-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <h1>Sơ đồ luồng sửa chữa — Vn-Stock</h1>
+  <p class="lede">Từ số đo thật, tới phân loại việc theo ai chứng minh và ai quyết,
+  tới trạng thái đã chốt. Bấm vào từng việc để xem chi tiết và lệnh kiểm chứng.</p>
+  <p class="src">nguồn: huong-sua-chua.html · tính đến 11/08/2026</p>
+</header>
+
+<section class="zone" aria-labelledby="lbl-measure">
+  <p class="zone-label" id="lbl-measure"><b>01</b><span>trạng thái đo được</span></p>
+  <dl class="meas-grid">
+    <div class="meas-card">
+      <dt>Walk-forward 50 mã, alpha khớp từng lệnh</dt>
+      <dd><span class="val">−0,36%</span><span class="rng">[−0,83 ; +0,10]</span></dd>
+    </div>
+    <div class="meas-card">
+      <dt>Điểm cuối ↔ lợi nhuận 20 phiên sau</dt>
+      <dd><span class="val">ρ −0,019</span><span class="rng">[−0,100 ; +0,064]</span></dd>
+    </div>
+    <div class="meas-card">
+      <dt>Điểm agent so với chọn ngẫu nhiên</dt>
+      <dd><span class="val">−0,34%</span><span class="rng">[−1,20 ; +0,55]</span></dd>
+    </div>
+    <div class="meas-card">
+      <dt>Dữ liệu tài chính, 7 kỳ</dt>
+      <dd><span class="val">chưa kết luận được</span><span class="rng">lực thống kê ~10%</span></dd>
+    </div>
+  </dl>
+  <p class="verdict"><strong>Bốn phép đo độc lập, ba trong đó có khoảng tin cậy đủ hẹp để
+  kết luận.</strong> Không phép đo nào tìm thấy lợi thế khai thác được trên dữ liệu giá —
+  kết quả này là điểm khởi đầu cho toàn bộ phân loại bên dưới.</p>
+</section>
+
+<div class="fork" id="fork" aria-hidden="true">
+  <span class="ln v-top"></span><span class="ln h-bar"></span>
+  <span class="ln v-l"></span><span class="ln v-m"></span><span class="ln v-r"></span>
+  <span class="ar l"></span><span class="ar m"></span><span class="ar r"></span>
+</div>
+
+<div class="filters" role="group" aria-label="Lọc theo nhóm">
+  <span>Lọc:</span>
+  <button data-f="all" aria-pressed="true">Tất cả</button>
+  <button data-f="t1" aria-pressed="false">T1 · Chứng minh được</button>
+  <button data-f="t2" aria-pressed="false">T2 · Cần bạn quyết</button>
+  <button data-f="t3" aria-pressed="false">T3 · Không sửa được</button>
+</div>
+
+<section class="zone" aria-labelledby="lbl-triage">
+  <p class="zone-label" id="lbl-triage"><b>02</b><span>phân loại — ai làm, bằng gì chứng minh</span></p>
+  <div class="lanes">
+
+    <div class="lane lane-t1" data-tier="t1">
+      <div class="lane-head">
+        <span class="lane-tag">NHÓM 1 · 5 việc</span>
+        <h3>Dọn dẹp, có test chứng minh</h3>
+        <p>Rẻ, an toàn, mỗi việc có một lệnh chạy để xác nhận. Không việc nào đổi
+        alpha — chỉ làm hệ thống trung thực hơn về chính nó.</p>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">1.1</span>
+          <span class="card-main">
+            <span class="ttl">Gỡ điểm tin tức khỏi công thức
+              <em>news_score là hằng số 50 trong 573/573 phiên</em></span>
+            <span class="tag no">alpha không đổi</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Hiện tại</h4>
+          <p><code>news_norm * weights["news"]</code> cộng một hằng số vào mọi phiên
+          (50 × 0,12 = 6 điểm ở chế độ mặc định). Giao diện hiển thị 50/100 như một
+          kết quả phân tích.</p>
+          <h4>Sửa</h4>
+          <p>Bỏ khỏi công thức, chuẩn hoá lại trọng số về tổng 1,0. Thay 50/100 bằng
+          nhãn "chưa hoạt động".</p>
+          <h4>Chứng minh</h4>
+          <pre>test: điểm cuối không đổi khi ép news_score = 0, 50, 100
+python3 tests/test_data_quality_gate.py</pre>
+          <div class="card-warn"><strong>Rủi ro:</strong> mọi ngưỡng mua dịch đi vài
+          đơn vị. Phải chạy lại <code>walkforward_vn100.py</code> sau khi sửa.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">1.2</span>
+          <span class="card-main">
+            <span class="ttl">Gỡ dòng ghi đè điểm động lượng
+              <em>momentum_norm = max(momentum_norm, 65.0)</em></span>
+            <span class="tag no">alpha không đổi</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Hiện tại</h4>
+          <p>Biến điểm động lượng thành hàm của xu hướng và khối lượng. Tương quan
+          giữa hai agent là 0,76; động lượng chỉ nhận đúng 2 giá trị trong toàn mẫu —
+          đang đếm cùng một tín hiệu hai lần.</p>
+          <h4>Sửa</h4>
+          <p>Bỏ dòng ghi đè. Khi không có TradingView, để điểm đứng ở 50 và đánh dấu
+          không khả dụng — giống cách xử lý tin tức.</p>
+          <h4>Chứng minh</h4>
+          <pre>test: momentum_score chỉ phụ thuộc packet.tv_indicators
+không đổi khi trend_score và volume_score đổi</pre>
+          <p>Trên app chạy trực tiếp có TradingView thật, agent vẫn hoạt động bình
+          thường — việc gỡ chỉ ảnh hưởng backtest, nơi duy nhất đo được nó có ích hay
+          không.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">1.3</span>
+          <span class="card-main">
+            <span class="ttl">Chốt số phận tầng tranh luận và safety harness
+              <em>470 dòng · 572/573 phiên không đổi quyết định</em></span>
+            <span class="tag no">alpha không đổi</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Hiện tại</h4>
+          <p>Tầng tranh luận điều chỉnh ±0,9 điểm/100, trung bình bằng 0. Safety
+          harness có thể trừ tới 10 điểm nhưng kích hoạt 0/573 phiên.</p>
+          <h4>Hai đường, chọn một</h4>
+          <p><strong>Giữ</strong> — viết test dựng đúng tình huống safety phải chặn.
+          <strong>Gỡ</strong> — tháo khỏi pipeline, walkforward trước/sau phải giống
+          nhau.</p>
+          <h4>Chứng minh</h4>
+          <pre>python3 tests/test_safety_harness.py     # nếu giữ
+python walkforward_vn100.py             # nếu gỡ, so trước/sau</pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">1.4</span>
+          <span class="card-main">
+            <span class="ttl">Xoá sl_pattern_memory.json
+              <em>1,9 MB · 6.037 bản ghi · 0 bản ghi có signal_date</em></span>
+            <span class="tag yes">đã vô hiệu</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Hiện tại</h4>
+          <p>Sau bản sửa hàng rào <code>as_of</code>, mọi mẫu hình thiếu
+          <code>signal_date</code> bị bỏ qua. Cả 6.037 bản ghi đều thiếu trường này —
+          file hoàn toàn trơ, và chỉ là 37 mẫu hình khác nhau (1 mẫu lặp 1.621 lần).</p>
+          <h4>Sửa</h4>
+          <p>Xoá file. Đã gỡ khỏi git và vào <code>.gitignore</code>.</p>
+          <h4>Chứng minh</h4>
+          <pre>python3 tests/test_post_mortem.py    # 7/7 đã khoá hành vi</pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">1.5</span>
+          <span class="card-main">
+            <span class="ttl">Đổi tên ba file sơ đồ cũ
+              <em>mô tả "15 AGENTS ONLINE", "Wyckoff Classifier"</em></span>
+            <span class="tag no">alpha không đổi</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Hiện tại</h4>
+          <p><code>architecture_diagram.html</code>, <code>pipeline_diagram.html</code>,
+          <code>emergency_flow_diagram.html</code> mô tả thành phần không tồn tại
+          trong mã nguồn.</p>
+          <h4>Sửa</h4>
+          <p>Đổi đuôi thành <code>-concept.html</code> để phân biệt với
+          <code>luong-phan-tich.html</code> — bản dựng từ số đo thật.</p>
+          <h4>Chứng minh</h4>
+          <p>Không có test — vệ sinh tài liệu, ngăn đọc nhầm sơ đồ mô tả thành luồng
+          đang chạy.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="lane lane-t2" data-tier="t2">
+      <div class="lane-head">
+        <span class="lane-tag">NHÓM 2 · 2 việc</span>
+        <h3>Không test nào quyết thay được</h3>
+        <p>Hai câu hỏi không có đáp án kỹ thuật. Chúng quyết định dự án là gì, và
+        chỉ bạn trả lời được.</p>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">2.1</span>
+          <span class="card-main">
+            <span class="ttl">App này là công cụ gì
+              <em>khuyến nghị mua bán, hay công cụ kỷ luật</em></span>
+            <span class="tag dec">bạn quyết</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Đường A — giữ vai trò khuyến nghị</h4>
+          <p>Cần có alpha. Bốn phép đo nói không có, trên dữ liệu giá.</p>
+          <h4>Đường B — công cụ kỷ luật</h4>
+          <p>Buộc viết lý do trước khi vào lệnh, đặt sẵn cắt lỗ, ghi cả quyết định
+          không vào lệnh, xem lại sau. Bảng <code>decisions</code> đã ghi mọi quyết
+          định kèm ngày, điểm, lý do. Chọn B thì gỡ điểm số khỏi vị trí trung tâm
+          giao diện, giữ phần quản trị rủi ro và sổ lệnh.</p>
+          <div class="card-warn">Không phải lựa chọn giữa thành công và thất bại.
+          Phần lớn người xây hệ thống giao dịch không bao giờ đo tới mức này.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">2.2</span>
+          <span class="card-main">
+            <span class="ttl">Có tiếp tục tìm alpha không
+              <em>chi phí: nâng gói dữ liệu để có ≥40 quý</em></span>
+            <span class="tag dec">bạn quyết</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <h4>Hiện trạng</h4>
+          <p>Gói cộng đồng vnstock giới hạn 8 quý. Với 7 kỳ dùng được, phép đo phát
+          hiện tín hiệu ở mức IC thực tế của yếu tố cơ bản với xác suất ~10%.</p>
+          <h4>Nếu nâng gói</h4>
+          <pre>IC thật    8 quý   20 quý   40 quý
+ 0,03        8%      13%      23%
+ 0,05       12%      31%      52%
+ 0,10       38%      80%      98%</pre>
+          <h4>Nếu không nâng</h4>
+          <p>Câu hỏi đóng lại ở <em>chưa biết</em>, không phải <em>đã thử và không
+          có</em> — kết luận trung thực và hoàn toàn chấp nhận được.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="lane lane-t3" data-tier="t3">
+      <div class="lane-head">
+        <span class="lane-tag">NHÓM 3 · 4 việc</span>
+        <h3>Không sửa được bằng dữ liệu hiện có</h3>
+        <p>Bốn hạn chế này không phải lỗi mã nguồn. Ghi ra để không ai mất thời
+        gian tìm cách sửa chúng bằng code.</p>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">3.1</span>
+          <span class="card-main">
+            <span class="ttl">Không có TradingView theo lịch sử
+              <em>hai agent chết trong mọi backtest</em></span>
+            <span class="tag no">chặn cứng</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <p>Agent động lượng đọc duy nhất từ <code>tv_indicators</code>; agent xu
+          hướng có 4/5 luật đọc từ đó. Không tồn tại nguồn cấp chỉ báo TradingView
+          theo từng ngày quá khứ.</p>
+          <p><em>Phần đo được thì không có tín hiệu, phần có thể có tín hiệu thì
+          không đo được.</em></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">3.2</span>
+          <span class="card-main">
+            <span class="ttl">Không có kho tin tức theo lịch sử
+              <em>agent tin tức chết trong mọi backtest</em></span>
+            <span class="tag no">chặn cứng</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <p><code>paper_runner</code> truyền <code>news_packet=None</code> vì
+          không có cách dựng lại dòng tin của một ngày trong quá khứ. Đây cũng là
+          hướng duy nhất mà bộ nhớ vector thật sự có chỗ dùng.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">3.3</span>
+          <span class="card-main">
+            <span class="ttl">Báo cáo tài chính giới hạn 8 quý
+              <em>phép đo chỉ có lực khoảng 10%</em></span>
+            <span class="tag no">cần nâng gói</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <p>Xem mục 2.2 — giới hạn gói dữ liệu, không phải mã nguồn.
+          <code>experiment_fundamentals.py</code> đã sẵn sàng. Thêm mã không cứu
+          được: số kỳ mới quyết định lực thống kê.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="card-head" aria-expanded="false">
+          <span class="num">3.4</span>
+          <span class="card-main">
+            <span class="ttl">Thiên lệch sống sót
+              <em>mọi kết quả lạc quan hơn thực tế</em></span>
+            <span class="tag no">chặn cứng</span>
+          </span>
+          <span class="chev">▸</span>
+        </button>
+        <div class="card-body">
+          <p>Rổ là ảnh chụp hiện tại. Doanh nghiệp phá sản hoặc huỷ niêm yết không
+          có mặt — đúng nhóm mà chỉ số xấu lẽ ra phải cảnh báo.</p>
+          <p>Vì thiên lệch đẩy mọi thứ theo chiều <em>đẹp lên</em>, kết luận "không
+          có lợi thế" càng vững — dữ liệu đã được ưu ái mà vẫn không tìm ra gì.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="converge" id="converge" aria-hidden="true">
+  <span class="ln v-l"></span><span class="ln v-m"></span><span class="ln v-r"></span>
+  <span class="ln h-bar"></span><span class="ln v-bottom"></span>
+  <span class="ar c"></span>
+</div>
+
+<section class="zone closing" aria-labelledby="lbl-done">
+  <p class="zone-label" id="lbl-done"><b>03</b><span>đã chốt — không cần làm lại</span></p>
+  <div class="closing-grid">
+    <div>
+      <p style="font-size:14px;color:var(--ink2);margin:0 0 12px;max-width:60ch">
+      Tám lỗi đo lường đã sửa, mỗi lỗi kèm test. Hai bản sửa quan trọng nhất đã
+      kiểm tra ngược: bỏ bản sửa đi thì test đỏ đúng như mong đợi.</p>
+      <ul class="done-list">
+        <li>rò rỉ trạng thái sl_pattern_memory — hàng rào as_of, mặc định tắt</li>
+        <li>MaxDD dựng theo thứ tự id — sắp theo exit_date</li>
+        <li>dời stop hoà vốn trong cùng nến — chỉ hiệu lực từ phiên sau</li>
+        <li>crash avg_win_pct — sửa</li>
+        <li>optimizer xoá paper_trades.db — gỡ</li>
+        <li>stride xen kẽ 2/3 — cố định</li>
+        <li>bộ lọc VN-INDEX hỏng âm thầm — thêm status()</li>
+        <li>28 mã chỉ có 13 tháng — kéo cả rổ về 2021-10</li>
+      </ul>
+    </div>
+    <div class="stamp">
+      <div class="big">101/101</div>
+      <div class="cap">test xanh</div>
+    </div>
+  </div>
+</section>
+
+<footer class="legend">
+  <span class="lg"><span class="dot d1"></span> T1 · an toàn, có test, alpha không đổi</span>
+  <span class="lg"><span class="dot d2"></span> T2 · cần chủ dự án quyết</span>
+  <span class="lg"><span class="dot d3"></span> T3 · không sửa được bằng dữ liệu hiện có</span>
+  <span class="lg"><span class="bar"></span> luồng đo lường → phân loại → chốt</span>
+</footer>
+
+</div>
+
+<script>
+document.querySelectorAll('.card-head').forEach(function(h){
+  h.addEventListener('click', function(){
+    var card = h.closest('.card');
+    var open = card.classList.toggle('open');
+    h.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+});
+
+var filterBtns = document.querySelectorAll('.filters button');
+var fork = document.getElementById('fork');
+var converge = document.getElementById('converge');
+filterBtns.forEach(function(b){
+  b.addEventListener('click', function(){
+    var f = b.dataset.f;
+    filterBtns.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    document.querySelectorAll('.lane').forEach(function(lane){
+      lane.classList.toggle('dim', f !== 'all' && lane.dataset.tier !== f);
+    });
+    if (f === 'all'){ fork.removeAttribute('data-dim'); converge.removeAttribute('data-dim'); }
+    else { fork.setAttribute('data-dim', f); converge.setAttribute('data-dim', f); }
+  });
+});
+</script>
+</body>
+</html>
