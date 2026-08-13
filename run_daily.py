@@ -174,7 +174,7 @@ def execute_daily_scan():
             sl_str = f"{t.stop_loss:,.0f} VNĐ" if t.stop_loss else "—"
             tp_str = f"{t.take_profit:,.0f} VNĐ" if t.take_profit else "—"
             entry_p = f"{t.entry_price:,.0f} VNĐ" if t.entry_price else "Chờ khớp phiên tới"
-            size_pct = f"{getattr(t, 'position_size_pct', 30):.0f}%"
+            size_pct = f"{t.size_pct:.0f}%"
             report_md += f"| **{t.symbol}** | `{t.status}` | {t.entry_date or t.signal_date} | {entry_p} | {sl_str} | {tp_str} | {size_pct} |\n"
     else:
         report_md += "ℹ️ **Hiện tại không có lệnh nào đang mở.** Tất cả vị thế đã được chốt lời / cắt lỗ an toàn.\n"

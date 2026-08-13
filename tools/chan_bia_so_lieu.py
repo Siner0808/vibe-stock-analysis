@@ -1,0 +1,367 @@
+#!/usr/bin/env python3
+"""
+chan_bia_so_lieu.py — hook chặn mẫu bịa số liệu.
+
+Chạy như PostToolUse hook của Claude Code sau mỗi Write/Edit. Đọc JSON từ
+stdin, phân tích file vừa sửa bằng AST, và CHẶN nếu thấy mẫu đã từng làm
+hỏng dự án này.
+
+VÌ SAO CÓ FILE NÀY
+──────────────────
+Ngày 12/08/2026, `google_sheets_sync.py` đọc `t.position_size_pct` trong
+khi lớp Trade tên trường là `size_pct`. getattr không tìm thấy nên rơi về
+mặc định và ghi **hằng số 30** cho mọi lệnh — 108/113 lệnh bị ghi sai. Con
+số 30% nhân với số lệnh chồng lấn chính là phép tính đẻ ra "+636,11%".
+
+Không ai cố ý. Đó là một dòng `getattr(o, "ten_sai", 30)` trông vô hại.
+Con người review sẽ bỏ qua; máy thì không.
+
+Quy luật của dự án: **lỗi đo lường gần như không bao giờ làm kết quả xấu
+đi.** Nên hook này chặn theo hướng một chiều — nghi ngờ thì dừng.
+
+DÙNG AST, KHÔNG DÙNG REGEX
+──────────────────────────
+Regex bắt nhầm chuỗi, chú thích, và tên biến chứa từ khoá. AST chỉ thấy mã
+thật sự chạy.
+
+CỬA THOÁT
+─────────
+Thêm `# bia-ok: <lý do>` ngay dòng đó hoặc dòng ngay trên. Bắt buộc có lý
+do — mục đích không phải cấm tuyệt đối, mà là buộc người viết nói ra vì
+sao con số này không phải bịa.
+
+Tự kiểm thử:  python tools/chan_bia_so_lieu.py --tu-kiem-tra
+"""
+from __future__ import annotations
+
+import ast
+import difflib
+import json
+import sys
+from pathlib import Path
+
+GOC_DU_AN = Path(__file__).resolve().parent.parent
+
+# Thư mục được miễn: test và scratch dựng dữ liệu giả là đúng việc của chúng.
+MIEN_TRU = ("tests", "scratch", ".venv", "backtest/cache", "__pycache__")
+
+CUA_THOAT = "bia-ok:"
+
+# Vật chứa kiểu tuỳ chọn/cấu hình: getattr trên chúng là đọc CỜ, không phải
+# đọc số đo. `getattr(args, "no_summary", False)` hoàn toàn hợp lệ, và
+# argparse.Namespace không có lược đồ để đối chiếu tên trường.
+VAT_CHUA_TUY_CHON = {"args", "arg", "opts", "options", "cfg", "config",
+                     "ns", "namespace", "params", "kwargs", "settings", "self"}
+
+# Số bị coi là "trung tính" khi kẹp biên — 0/1/100 thường là biên hợp lệ
+# của thang điểm, không phải giá trị bịa.
+SO_TRUNG_TINH = {0, 1, 100, 0.0, 1.0, 100.0, -1, -1.0}
+
+
+class PhatHien:
+    def __init__(self, dong: int, ma: str, chan: bool, thong_diep: str,
+                 goi_y: str = "") -> None:
+        self.dong, self.ma, self.chan = dong, ma, chan
+        self.thong_diep, self.goi_y = thong_diep, goi_y
+
+
+# ── Tiện ích AST ─────────────────────────────────────────────────────
+def _la_so(node: ast.AST) -> bool:
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return not isinstance(node.value, bool)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+        return _la_so(node.operand)
+    return False
+
+
+def _gia_tri_so(node: ast.AST):
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, ast.UnaryOp):
+        v = _gia_tri_so(node.operand)
+        return -v if isinstance(node.op, ast.USub) else v
+    return None
+
+
+def _chuoi(node: ast.AST):
+    return node.value if isinstance(node, ast.Constant) and isinstance(
+        node.value, str) else None
+
+
+def _ten(node: ast.AST):
+    return node.id if isinstance(node, ast.Name) else None
+
+
+# ── Thu thập tên trường của mọi dataclass trong dự án ────────────────
+def thu_thap_truong(goc: Path) -> dict[str, set[str]]:
+    """{ten_lop: {ten_truong}} — dùng để bắt tên trường viết sai."""
+    ket_qua: dict[str, set[str]] = {}
+    for f in goc.glob("*.py"):
+        try:
+            cay = ast.parse(f.read_text(encoding="utf-8"))
+        except (SyntaxError, OSError, UnicodeDecodeError):
+            continue
+        for n in ast.walk(cay):
+            if not isinstance(n, ast.ClassDef):
+                continue
+            co_dataclass = any(
+                (_ten(d) == "dataclass")
+                or (isinstance(d, ast.Call) and _ten(d.func) == "dataclass")
+                or (isinstance(d, ast.Attribute) and d.attr == "dataclass")
+                for d in n.decorator_list)
+            if not co_dataclass:
+                continue
+            ket_qua[n.name] = {
+                t.target.id for t in n.body
+                if isinstance(t, ast.AnnAssign) and isinstance(t.target, ast.Name)}
+    return ket_qua
+
+
+def _gan_nhat(ten: str, moi_truong: dict[str, set[str]]) -> tuple[str, str]:
+    """Trả (ten_truong_gan_nhat, ten_lop) nếu đủ giống, ngược lại ('','').
+
+    Chỉ báo khi tín hiệu MẠNH, vì báo nhầm là con đường nhanh nhất để hook
+    bị tắt:
+
+    a) Bao hàm — `size_pct` nằm trong `position_size_pct`. Đây đúng là hình
+       dạng của lỗi thật: người viết thêm tiền tố/hậu tố vào tên trường.
+       Tỷ lệ giống của cặp đó chỉ 0,64 nên ngưỡng đơn thuần bỏ sót nó.
+    b) Rất giống (>= 0,9) — `entry_scores` vs `entry_score`, sai một ký tự.
+
+    Tên nào đã là trường thật thì im lặng ngay.
+    """
+    if any(ten in truong for truong in moi_truong.values()):
+        return ("", "")
+
+    for lop, truong in moi_truong.items():
+        for t in truong:
+            if len(t) >= 5 and (t in ten or ten in t):
+                return (t, lop)
+
+    tot_nhat, diem, lop_tot = "", 0.0, ""
+    for lop, truong in moi_truong.items():
+        for t in truong:
+            d = difflib.SequenceMatcher(None, ten, t).ratio()
+            if d > diem:
+                tot_nhat, diem, lop_tot = t, d, lop
+    return (tot_nhat, lop_tot) if diem >= 0.9 else ("", "")
+
+
+# ── Bộ dò ────────────────────────────────────────────────────────────
+class BoDo(ast.NodeVisitor):
+    def __init__(self, moi_truong: dict[str, set[str]], la_test: bool) -> None:
+        self.moi_truong = moi_truong
+        self.la_test = la_test
+        self.phat_hien: list[PhatHien] = []
+
+    def _them(self, *a, **kw) -> None:
+        self.phat_hien.append(PhatHien(*a, **kw))
+
+    def visit_Call(self, node: ast.Call) -> None:
+        ten_ham = _ten(node.func)
+
+        # R1/R2 — getattr(obj, "ten", mac_dinh)
+        if ten_ham == "getattr" and len(node.args) >= 2:
+            khoa = _chuoi(node.args[1])
+            # Mặc định boolean = đọc cờ bật/tắt, không phải đọc số đo.
+            mac_dinh_co = (len(node.args) >= 3
+                           and isinstance(node.args[2], ast.Constant)
+                           and isinstance(node.args[2].value, bool))
+            tuy_chon = _ten(node.args[0]) in VAT_CHUA_TUY_CHON
+            if khoa:
+                gan, lop = _gan_nhat(khoa, self.moi_truong) \
+                    if not (tuy_chon or mac_dinh_co) else ("", "")
+                if gan:
+                    self._them(
+                        node.lineno, "R2", True,
+                        f'getattr đọc trường "{khoa}" — không lớp nào có trường này.',
+                        f'Ý bạn là "{gan}" (của {lop})? Trường sai làm getattr '
+                        f'luôn rơi về mặc định, tức mọi bản ghi nhận cùng một '
+                        f'giá trị bịa. Đây đúng là lỗi size_pct/position_size_pct.')
+                if len(node.args) >= 3 and _la_so(node.args[2]) and not self.la_test:
+                    v = _gia_tri_so(node.args[2])
+                    self._them(
+                        node.lineno, "R1", True,
+                        f'getattr(..., "{khoa}", {v}) — mặc định là con số.',
+                        'Trường thiếu thì phải NỔ hoặc trả None, không được '
+                        'lặng lẽ thay bằng số. Một con số bịa trông y hệt số đo '
+                        'thật ở mọi khâu phía sau.')
+
+        # R4 — d.get("khoa", <so khac 0>)
+        if (isinstance(node.func, ast.Attribute) and node.func.attr == "get"
+                and len(node.args) >= 2 and _la_so(node.args[1])
+                and not self.la_test):
+            v = _gia_tri_so(node.args[1])
+            if v not in SO_TRUNG_TINH:
+                khoa = _chuoi(node.args[0]) or "?"
+                self._them(
+                    node.lineno, "R4", False,
+                    f'.get("{khoa}", {v}) — thiếu dữ liệu thì thay bằng {v}.',
+                    'Nếu {v} là số đo thật thì phải lấy từ nguồn; nếu là mặc '
+                    'định thì ghi rõ bằng "# bia-ok: <lý do>".')
+
+        self.generic_visit(node)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
+        # R3 — nuốt lỗi rồi trả về một con số
+        for con in node.body:
+            if isinstance(con, ast.Return) and con.value is not None \
+                    and _la_so(con.value) and not self.la_test:
+                v = _gia_tri_so(con.value)
+                self._them(
+                    con.lineno, "R3", True,
+                    f'except ... -> return {v}: lỗi bị nuốt, thay bằng con số.',
+                    'Hỏng mà vẫn trả số nghĩa là phía sau không phân biệt được '
+                    '"đo được {v}" với "không đo được". Ném lỗi, hoặc trả None.')
+        self.generic_visit(node)
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        # R5 — x = max(x, <so>) : nâng sàn một giá trị đã đo
+        if (len(node.targets) == 1 and isinstance(node.value, ast.Call)
+                and _ten(node.value.func) in ("max", "min")
+                and len(node.value.args) == 2 and not self.la_test):
+            dich = _ten(node.targets[0])
+            nguon = [_ten(a) for a in node.value.args]
+            so = [a for a in node.value.args if _la_so(a)]
+            if dich and dich in nguon and so:
+                v = _gia_tri_so(so[0])
+                if v not in SO_TRUNG_TINH:
+                    self._them(
+                        node.lineno, "R5", False,
+                        f'{dich} = {_ten(node.value.func)}({dich}, {v}) — '
+                        f'ghi đè giá trị đã đo bằng hằng số.',
+                        'Đây là mẫu `momentum_norm = max(momentum_norm, 65.0)`: '
+                        'điểm số trông như do agent tính, thật ra do dòng này '
+                        'đặt ra.')
+        self.generic_visit(node)
+
+
+# ── Chạy ─────────────────────────────────────────────────────────────
+def _co_marker(dong_van: str) -> bool:
+    """Có `# bia-ok:` KÈM lý do không. Rỗng thì không tính."""
+    return CUA_THOAT in dong_van and bool(
+        dong_van.split(CUA_THOAT, 1)[1].strip())
+
+
+def co_cua_thoat(dong_ma: list[str], dong: int) -> bool:
+    """`# bia-ok: lý do` ở chính dòng đó, hoặc trong khối chú thích ngay trên.
+
+    Quét ngược qua các dòng chú thích liền kề, không chỉ một dòng — lý do
+    tử tế thường dài hơn một dòng, và phạt người viết dài là khuyến khích
+    viết cụt.
+    """
+    i = dong - 1
+    if 0 <= i < len(dong_ma) and _co_marker(dong_ma[i]):
+        return True
+
+    i -= 1
+    while 0 <= i < len(dong_ma) and dong_ma[i].strip().startswith("#"):
+        if _co_marker(dong_ma[i]):
+            return True
+        i -= 1
+    return False
+
+
+def kiem_tra(duong_dan: Path) -> list[PhatHien]:
+    ma = duong_dan.read_text(encoding="utf-8")
+    try:
+        cay = ast.parse(ma)
+    except SyntaxError:
+        return []                        # file đang dở; Python sẽ tự báo
+
+    tuong_doi = duong_dan.relative_to(GOC_DU_AN).as_posix()
+    la_test = tuong_doi.startswith("tests/")
+
+    bo_do = BoDo(thu_thap_truong(GOC_DU_AN), la_test)
+    bo_do.visit(cay)
+
+    dong_ma = ma.splitlines()
+    return [p for p in bo_do.phat_hien if not co_cua_thoat(dong_ma, p.dong)]
+
+
+def trong_pham_vi(duong_dan: Path) -> bool:
+    if duong_dan.suffix != ".py" or not duong_dan.exists():
+        return False
+    try:
+        tuong_doi = duong_dan.relative_to(GOC_DU_AN).as_posix()
+    except ValueError:
+        return False                     # ngoài dự án
+    return not any(tuong_doi.startswith(m) or f"/{m}/" in f"/{tuong_doi}"
+                   for m in MIEN_TRU if m != "tests")
+
+
+def main() -> int:
+    # Console Windows mặc định cp1258 -> in tiếng Việt và emoji sẽ nổ
+    # UnicodeEncodeError, và hook chết là hook không bảo vệ được gì.
+    for luong in (sys.stdout, sys.stderr):
+        try:
+            luong.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+    try:
+        du_lieu = json.load(sys.stdin)
+    except Exception:
+        return 0
+
+    thô = (du_lieu.get("tool_input", {}).get("file_path")
+           or du_lieu.get("tool_response", {}).get("filePath"))
+    if not thô:
+        return 0
+
+    duong_dan = Path(str(thô)).resolve()
+    if not trong_pham_vi(duong_dan):
+        return 0
+
+    try:
+        phat_hien = kiem_tra(duong_dan)
+    except Exception as e:
+        # Hook hỏng thì báo, nhưng không chặn công việc.
+        print(json.dumps({"systemMessage":
+                          f"⚠️ chan_bia_so_lieu lỗi: {type(e).__name__}: {e}"},
+                         ensure_ascii=False))
+        return 0
+
+    if not phat_hien:
+        return 0
+
+    chan = [p for p in phat_hien if p.chan]
+    ten = duong_dan.name
+
+    dong_bao = []
+    for p in sorted(phat_hien, key=lambda x: x.dong):
+        muc = "CHẶN" if p.chan else "CẢNH BÁO"
+        dong_bao.append(f"  [{p.ma}/{muc}] {ten}:{p.dong} — {p.thong_diep}")
+        if p.goi_y:
+            dong_bao.append(f"      → {p.goi_y}")
+
+    than = "\n".join(dong_bao)
+
+    if chan:
+        ly_do = (
+            f"🚫 CHẶN BỊA SỐ LIỆU — {len(chan)} lỗi trong {ten}\n\n{than}\n\n"
+            "Sổ lệnh là bằng chứng. Một con số bịa trông y hệt số đo thật ở mọi "
+            "khâu phía sau, nên phải chặn ngay tại chỗ ghi.\n"
+            "Sửa cho đúng nguồn dữ liệu, hoặc nếu thật sự chính đáng thì thêm "
+            "`# bia-ok: <lý do>` — bắt buộc có lý do.\n"
+            "Xem NGUYEN-TAC-DO-LUONG.md.")
+        print(json.dumps({
+            "decision": "block",
+            "reason": ly_do,
+            "systemMessage": f"🚫 Chặn {len(chan)} mẫu bịa số liệu trong {ten}",
+        }, ensure_ascii=False))
+        return 0
+
+    print(json.dumps({
+        "systemMessage": f"⚠️ {len(phat_hien)} cảnh báo bịa số liệu trong {ten}",
+        "hookSpecificOutput": {"hookEventName": "PostToolUse",
+                               "additionalContext": than},
+    }, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    if "--tu-kiem-tra" in sys.argv:
+        from test_chan_bia_so_lieu import chay_tat_ca  # type: ignore
+        sys.exit(chay_tat_ca())
+    sys.exit(main())

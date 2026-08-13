@@ -1043,7 +1043,7 @@ with tab_paper:
                 
                 if entry_p and curr_p and t.status == "OPEN":
                     pnl_pct = ((curr_p - entry_p) / entry_p) * 100.0
-                    size_pct = getattr(t, 'position_size_pct', 30)
+                    size_pct = t.size_pct
                     # Tính Lãi/Lỗ tạm tính trên quy mô danh mục chuẩn 100 triệu VNĐ
                     position_capital = 100_000_000 * (size_pct / 100.0)
                     pnl_vnd = position_capital * (pnl_pct / 100.0)
@@ -1071,7 +1071,7 @@ with tab_paper:
                     "Lãi/Lỗ (VNĐ)": pnl_vnd_str,
                     "Cắt lỗ (SL)": f"{t.stop_loss:,.0f} VNĐ" if t.stop_loss else "—",
                     "Chốt lời (TP)": f"{t.take_profit:,.0f} VNĐ" if t.take_profit else "—",
-                    "Vốn": f"{getattr(t, 'position_size_pct', 30):.0f}%",
+                    "Vốn": f"{t.size_pct:.0f}%",
                     "Điểm AI": t.entry_score,
                 })
 

@@ -382,6 +382,9 @@ class PaperTradingJournal:
             a = _dt.date.fromisoformat(entry_date[:10])
             b = _dt.date.fromisoformat(session_date[:10])
         except Exception:
+            # bia-ok: ngày không đọc được -> coi như vừa vào lệnh, để một bản
+            # ghi hỏng không làm sập cả phiên quét. Đánh đổi có chủ ý và cần
+            # biết: lệnh đó sẽ KHÔNG bao giờ chạm MAX_HOLD.
             return 0
         return int((b - a).days * 5 / 7)
 
