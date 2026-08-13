@@ -95,9 +95,36 @@ không đo được.*
 tự ghi ra đều mất. `st.session_state` và `@st.cache_data` chỉ nằm trong RAM.
 
 Hệ quả với `paper_trades.db`: trên cloud app khởi động với bản .db được
-commit, nhưng mọi lệnh ghi sau đó **không sống sót**. Nếu cần vòng học chạy
-được trên cloud, dữ liệu phải đẩy ra dịch vụ ngoài (Google Sheets qua
-gspread là lựa chọn đã bàn — miễn phí, mở ra soi tay được).
+commit, nhưng mọi lệnh ghi sau đó **không sống sót**.
+
+**Đã dựng kho ngoài: `sheets_store.py`.** SQLite vẫn là máy chạy, Google
+Sheets là kho bền. Không đồng bộ hai chiều — hai chiều sinh xung đột, mà
+xung đột trên sổ lệnh nghĩa là mất bằng chứng.
+
+| Bảng | Cách đẩy | Vì sao |
+|---|---|---|
+| `decisions` | chỉ thêm dòng có `seq` lớn hơn | bảng chỉ-thêm, 9.002 dòng, không ghi lại |
+| `trades` | soi gương toàn phần | lệnh đổi trạng thái và stop_loss được nâng |
+
+Bốn bất biến, khoá bởi `tests/test_sheets_store.py` (14 test, chạy offline
+không cần mạng lẫn credential nhờ `InMemorySheet`):
+
+1. `pull()` **từ chối** ghi vào sổ đang có dữ liệu, trừ khi
+   `allow_overwrite=True` — đúng cách 96/113 lệnh biến mất ngày 12/08
+2. lệch cấu trúc cột thì **nổ**, không đoán
+3. `id` và `seq` giữ nguyên khi khôi phục — đánh số lại làm lần đẩy sau
+   nhân đôi dữ liệu
+4. vòng đẩy–kéo không mất gì, kể cả NULL cột chữ và chuỗi rỗng (hai nghĩa
+   khác nhau của ô trống, khai báo tách bạch ở `_NULLABLE_TEXT_COLS`)
+
+Đã kiểm trên sổ thật: 113 lệnh + 9.002 decisions đẩy–kéo ra **giống hệt
+từng bản ghi**.
+
+Cấu hình ở `.streamlit/secrets.toml` (`GOOGLE_SHEET_KEY` +
+`[gcp_service_account]`); hướng dẫn dựng 6 bước nằm trong
+`secrets.toml.example`. Không cấu hình thì tắt sạch, app chạy như cũ.
+`run_daily.py` tự đẩy cuối mỗi phiên quét; tab Sổ lệnh có nút đẩy tay và
+hiện trạng thái kho.
 
 Ngược lại, Config ngưỡng nên nằm trong repo dưới dạng file: git chính là cơ
 chế versioning, và việc app không ghi được vào đó lại đúng với nguyên tắc

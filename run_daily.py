@@ -194,8 +194,30 @@ def execute_daily_scan():
     print("=" * 80)
     print(report_md)
 
+    # ── Đẩy sổ lệnh ra kho ngoài ─────────────────────────────────────
+    # PHẢI làm trước khi đóng kết nối. Trên Streamlit Cloud ổ đĩa là tạm,
+    # nên nếu không đẩy ra ngoài thì mọi lệnh vừa ghi sẽ mất khi app ngủ
+    # hoặc redeploy.
+    #
+    # Lỗi đẩy KHÔNG được làm hỏng phiên quét — dữ liệu đã nằm an toàn
+    # trong .db local rồi. Nhưng phải kêu to: "tưởng đã sao lưu mà thật
+    # ra không" là trạng thái tệ nhất.
+    try:
+        import sheets_store as _ss
+        _backend = _ss.open_from_secrets()
+        if _backend is None:
+            print("\nℹ️ Kho ngoài chưa cấu hình — sổ lệnh chỉ nằm trên ổ đĩa này.")
+        else:
+            _bc = _ss.push(journal.db, _backend)
+            print(f"\n☁️ Đã đẩy sổ lệnh ra Google Sheets: "
+                  f"{_bc['trades']} lệnh · thêm {_bc['decisions_moi']} quyết định mới")
+    except Exception as _e:
+        print(f"\n🚨 ĐẨY KHO NGOÀI THẤT BẠI: {type(_e).__name__}: {_e}")
+        print("   Sổ lệnh local vẫn nguyên. Nhưng trên cloud, dữ liệu phiên "
+              "này SẼ MẤT nếu không đẩy lại được.")
+
     journal.db.close()
-    
+
     # 1. Ghi log ngắn ra daily_execution_log.txt
     log_file = "daily_execution_log.txt"
     with open(log_file, "a", encoding="utf-8") as f:

@@ -906,7 +906,41 @@ with tab_paper:
     import pathlib as _pl
 
     _db = _pl.Path(__file__).parent / "paper_trades.db"
+
+    # ── Kho ngoài Google Sheets ──────────────────────────────────────
+    # Ổ đĩa Streamlit Cloud là tạm: app ngủ hoặc redeploy là mất sạch file
+    # tự ghi. Kho ngoài là đường duy nhất để sổ lệnh sống sót trên cloud.
+    import sheets_store as _ss
+    from paper_trading import PaperTradingJournal as _PJ
+    try:
+        _sheet = _ss.open_from_secrets()
+    except Exception as _e:
+        _sheet = None
+        st.error(f"🚨 Kho ngoài cấu hình LỖI: {type(_e).__name__}: {_e}")
+    _kho = _ss.trang_thai(_sheet)
+
     if not _db.exists():
+        if _kho["bat"] and _kho.get("trades", 0) > 0:
+            st.info(
+                f"☁️ Sổ lệnh chưa có trên máy này, nhưng kho ngoài đang giữ "
+                f"**{_kho['trades']} lệnh** và **{_kho['decisions']} quyết định**.")
+            if st.button("⬇️ Khôi phục sổ lệnh thật từ Google Sheets",
+                         type="primary", use_container_width=True):
+                with st.spinner("Đang kéo sổ lệnh về..."):
+                    try:
+                        _j = _PJ(str(_db))
+                        _bc = _ss.pull(_j.db, _sheet)
+                        _j.db.close()
+                        st.success(f"✅ Đã khôi phục {_bc['trades']} lệnh, "
+                                   f"{_bc['decisions']} quyết định.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Khôi phục thất bại: {e}")
+            st.divider()
+        elif not _kho["bat"]:
+            st.warning(f"☁️ Kho ngoài chưa sẵn sàng — {_kho['ghi_chu']}. "
+                       "Trên Streamlit Cloud, mọi lệnh ghi sau khi deploy sẽ mất.")
+
         st.info("ℹ️ Sổ lệnh giấy chưa có dữ liệu lịch sử.")
         st.warning(
             "⚠️ **Nút dưới đây tạo lệnh MÔ PHỎNG chạy ngược trên dữ liệu quá "
@@ -929,9 +963,40 @@ with tab_paper:
                     st.error(f"❌ Không thể khởi tạo tự động: {e}")
     else:
         from paper_metrics import compute as _perf
-        from paper_trading import PaperTradingJournal as _PJ
 
         _j = _PJ(str(_db))
+
+        # ── Trạng thái kho ngoài ─────────────────────────────────────
+        # Hiện ngay cạnh sổ, vì một đường sao lưu hỏng âm thầm còn tệ hơn
+        # không có đường nào — người dùng phải thấy được nó sống hay chết.
+        with st.expander(
+                ("☁️ Kho ngoài: đang hoạt động" if _kho["bat"]
+                 else "⚠️ Kho ngoài: CHƯA SẴN SÀNG"),
+                expanded=not _kho["bat"]):
+            if _kho["bat"]:
+                st.caption(
+                    f"Google Sheets đang giữ **{_kho['trades']} lệnh** và "
+                    f"**{_kho['decisions']} quyết định**. Trên Streamlit Cloud "
+                    f"đây là bản duy nhất sống sót qua mỗi lần redeploy.")
+                if st.button("⬆️ Đẩy sổ lệnh hiện tại lên Google Sheets",
+                             use_container_width=True):
+                    with st.spinner("Đang đẩy..."):
+                        try:
+                            _bc = _ss.push(_j.db, _sheet)
+                            st.success(
+                                f"✅ Đã đẩy {_bc['trades']} lệnh · thêm "
+                                f"{_bc['decisions_moi']} quyết định mới.")
+                        except Exception as e:
+                            st.error(f"❌ Đẩy thất bại: {type(e).__name__}: {e}")
+            else:
+                st.warning(_kho["ghi_chu"])
+                st.caption(
+                    "Sổ lệnh hiện chỉ nằm trên ổ đĩa của máy chạy app. Trên "
+                    "Streamlit Cloud, ổ đĩa đó là **tạm**: app ngủ khi không "
+                    "dùng và redeploy mỗi lần có push, mọi lệnh ghi sau đó "
+                    "đều mất. Xem hướng dẫn cấu hình trong "
+                    "`.streamlit/secrets.toml.example`.")
+
         _trades = _j.all_trades()
         _closed = [t for t in _trades if t.status == "CLOSED"]
         _open = [t for t in _trades if t.status in ("OPEN", "PENDING", "CLOSING")]
