@@ -317,9 +317,20 @@ def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
     if secrets is None:
         try:
             import streamlit as st
-            secrets = st.secrets
+            if "GOOGLE_SHEET_KEY" in st.secrets:
+                secrets = st.secrets
         except Exception:
-            return None
+            pass
+
+    if secrets is None or "GOOGLE_SHEET_KEY" not in secrets:
+        try:
+            import pathlib
+            import toml
+            p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+            if p.exists():
+                secrets = toml.load(str(p))
+        except Exception:
+            pass
 
     try:
         key = secrets["GOOGLE_SHEET_KEY"]
