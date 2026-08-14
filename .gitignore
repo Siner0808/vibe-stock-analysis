@@ -14,6 +14,13 @@ __pycache__/
 backtest/cache/
 backtest/results/
 
+# Cache nen noi phien — tai lai duoc tu nguon, khong phai ma nguon.
+# Mot ma / mot khung ~2.200 nen mot nam; ca ro se rat nang neu commit.
+intraday_cache/
+
+# Ket qua chay hang ngay — trang thai chay, khong phai ma nguon.
+reports/
+
 # Sổ lệnh giấy — MỌI file .db đều là trạng thái chạy, không commit.
 # Trước đây chỉ chặn `paper_custom*.db` nên `paper_trades.db` lọt qua và bị
 # commit 16 lần; commit e2f98b4 đã ghi đè 96/113 lệnh thật bằng kết quả
