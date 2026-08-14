@@ -33,6 +33,35 @@ def execute_daily_scan():
     print(f"📌 Chế độ: Self-Improving AI (Post-Mortem Memory Loop ACTIVE)")
     print("=" * 80)
 
+    # ── KÉO SỔ LỆNH TỪ KHO NGOÀI TRƯỚC KHI QUÉT ──────────────────────
+    # Bắt buộc khi có nhiều nơi cùng quét (máy này + GitHub Actions).
+    #
+    # Không kéo trước thì mỗi nơi đánh số `seq` theo sổ riêng của nó. Ví dụ
+    # thật ngày 14/08: sheet ở seq 9.282, sổ máy ở 9.142. Máy quét xong sẽ
+    # sinh seq 9.143–9.212, mà push() chỉ đẩy dòng có seq > 9.282 — nên 70
+    # quyết định vừa ghi bị BỎ QUA lặng lẽ. Không nổ, không log, chỉ mất.
+    #
+    # Kéo trước thì cả hai nơi cùng nối tiếp dãy seq của sheet, không đụng
+    # nhau. Điều kiện còn lại là đừng chạy trùng giờ.
+    _da_keo = False
+    try:
+        import sheets_store as _ss
+        if _ss.open_from_secrets() is not None:
+            import google_sheets_sync as _gs
+            _bc = _gs.restore_journal_from_google_sheets(
+                DB_PATH, allow_overwrite=True)
+            _da_keo = True
+            print(f"⬇️ Đã kéo sổ lệnh từ kho ngoài: {_bc['trades']} lệnh, "
+                  f"{_bc['decisions']} quyết định.")
+        else:
+            print("ℹ️ Kho ngoài chưa cấu hình — quét trên sổ lệnh của máy này.")
+    except Exception as _e:
+        # Kho ngoài CÓ cấu hình nhưng kéo hỏng: DỪNG. Quét tiếp trên sổ cũ
+        # rồi đẩy lên sẽ làm mất lặng lẽ đúng như mô tả ở trên.
+        print(f"🚨 KÉO SỔ LỆNH THẤT BẠI: {type(_e).__name__}: {_e}")
+        print("   Dừng phiên quét để không ghi đè lên dữ liệu mới hơn trên kho ngoài.")
+        raise
+
     journal = PaperTradingJournal(DB_PATH)
     start_date = (now_time - pd.Timedelta(days=60)).strftime("%Y-%m-%d")
     end_date = now_time.strftime("%Y-%m-%d")

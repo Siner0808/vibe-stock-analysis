@@ -126,6 +126,28 @@ Cấu hình ở `.streamlit/secrets.toml` (`GOOGLE_SHEET_KEY` +
 `run_daily.py` tự đẩy cuối mỗi phiên quét; tab Sổ lệnh có nút đẩy tay và
 hiện trạng thái kho.
 
+## Quét tự động — HAI nơi cùng chạy
+
+| Nơi | Nhịp | Chạy khi |
+|---|---|---|
+| Task Scheduler (`VibeStock_QuetPhien`) | 09:10 → 15:10, mỗi 30 phút, T2–T6 | máy bật |
+| GitHub Actions (`.github/workflows/quet-so-lenh.yml`) | `*/30 2-8 * * 1-5` UTC | luôn luôn |
+
+Đo ngày 14/08/2026: lịch GitHub chỉ nổ ~1/7 nhịp — nó là "cố gắng hết sức",
+ưu tiên thấp, bỏ nhịp khi tải cao. Máy chạy đúng phút nhưng cần bật. Hai
+nơi bù cho nhau. Giờ lệch nhau 10 phút để tránh chạy trùng.
+
+**Điều kiện để hai nơi cùng ghi mà không hỏng: PHẢI kéo từ Sheets trước
+khi quét.** `run_daily.py` làm việc đó ngay đầu `execute_daily_scan()`.
+
+Không kéo trước thì mỗi nơi đánh số `seq` theo sổ riêng. Ví dụ thật ngày
+14/08: sheet ở seq 9.422, sổ máy kẹt ở 9.142. Máy quét xong sinh seq
+9.143–9.212, mà `push()` chỉ đẩy dòng có seq > 9.422 — **70 quyết định vừa
+ghi bị bỏ qua lặng lẽ**. Không nổ, không log, chỉ mất.
+
+Kéo hỏng thì `run_daily.py` **dừng phiên quét** chứ không quét tiếp trên sổ
+cũ rồi đẩy đè lên dữ liệu mới hơn.
+
 Ngược lại, Config ngưỡng nên nằm trong repo dưới dạng file: git chính là cơ
 chế versioning, và việc app không ghi được vào đó lại đúng với nguyên tắc
 "luật chỉ đổi khi qua kiểm định".
