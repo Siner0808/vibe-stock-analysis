@@ -1,5 +1,5 @@
 # 📊 BÁO CÁO PHÂN TÍCH THỊ TRƯỜNG DỰ BÁO VIBE CODING
-**Khung giờ thực thi:** Phiên CHIỀU ATC (15:15) lúc 12/08/2026 16:44:53  
+**Khung giờ thực thi:** Phiên CHIỀU ATC (15:15) lúc 17/08/2026 15:10:02  
 **Rổ chứng khoán theo dõi:** 71 mã thuộc 16 Ngành Tùy chỉnh  
 **Ngưỡng điểm mua (Buy Threshold):** 50.0 điểm | **Chế độ:** Self-Improving Post-Mortem AI
 
@@ -17,16 +17,16 @@
 
 | STT | Mã CK | Giá Đóng Cửa (VNĐ) | Điểm Multi-Agent | Trạng Thái Lệnh |
 | :---: | :---: | :---: | :---: | :---: |
-| 1 | **BSR** | 26 | **50.0/100** | 👀 THEO DÕI |
-| 2 | **PVD** | 19 | **50.0/100** | 👀 THEO DÕI |
-| 3 | **PVS** | 36 | **50.0/100** | 👀 THEO DÕI |
-| 4 | **PLX** | 37 | **50.0/100** | 👀 THEO DÕI |
-| 5 | **OIL** | 13 | **50.0/100** | 👀 THEO DÕI |
-| 6 | **HPG** | 22 | **50.0/100** | 👀 THEO DÕI |
-| 7 | **HHP** | 15 | **50.0/100** | 👀 THEO DÕI |
-| 8 | **HSG** | 11 | **50.0/100** | 👀 THEO DÕI |
-| 9 | **NKG** | 11 | **50.0/100** | 👀 THEO DÕI |
-| 10 | **MSR** | 39 | **50.0/100** | 👀 THEO DÕI |
+| 1 | **BSR** | 26,000 | **50.0/100** | 👀 THEO DÕI |
+| 2 | **PVD** | 18,150 | **50.0/100** | 👀 THEO DÕI |
+| 3 | **PVS** | 34,500 | **50.0/100** | 👀 THEO DÕI |
+| 4 | **PLX** | 35,500 | **50.0/100** | 👀 THEO DÕI |
+| 5 | **OIL** | 13,200 | **50.0/100** | 👀 THEO DÕI |
+| 6 | **HPG** | 21,200 | **50.0/100** | 👀 THEO DÕI |
+| 7 | **HHP** | 15,200 | **50.0/100** | 👀 THEO DÕI |
+| 8 | **HSG** | 10,650 | **50.0/100** | 👀 THEO DÕI |
+| 9 | **NKG** | 10,800 | **50.0/100** | 👀 THEO DÕI |
+| 10 | **MSR** | 42,400 | **50.0/100** | 👀 THEO DÕI |
 
 ---
 
@@ -82,6 +82,7 @@ Kỳ vọng   : +0.79% mỗi lệnh (đã trừ 0.40% phí)
 Profit factor: 1.34
 Lợi nhuận cộng dồn: +14.24%
 Sụt giảm tối đa   : 9.9%
+Vốn triển khai    : 29% trung bình | 208% đỉnh điểm
 
 Lý do đóng lệnh:
   Tín hiệu đảo chiều       48  (43%)

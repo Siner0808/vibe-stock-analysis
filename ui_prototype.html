@@ -1,0 +1,594 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Stock Terminal — Premium UI v5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg:#06080f; --c-s1:#0c111e; --c-s2:#111827; --c-s3:#1a2235;
+      --c-border:rgba(255,255,255,0.06); --c-border-h:rgba(255,255,255,0.14);
+      --c-g:#00d97e; --c-g-dim:rgba(0,217,126,0.12); --c-g-glow:rgba(0,217,126,0.3);
+      --c-b:#3b82f6; --c-b-dim:rgba(59,130,246,0.12);
+      --c-p:#a78bfa; --c-p-dim:rgba(167,139,250,0.12);
+      --c-r:#f87171; --c-r-dim:rgba(248,113,113,0.12);
+      --c-a:#fbbf24; --c-a-dim:rgba(251,191,36,0.12);
+      --c-t1:#f1f5f9; --c-t2:#94a3b8; --c-t3:#475569;
+      --r-sm:8px; --r-md:14px; --r-lg:20px;
+      --ff:'Inter',system-ui,sans-serif; --fm:'JetBrains Mono',monospace;
+      --ease:cubic-bezier(0.16,1,0.3,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--ff);background:var(--c-bg);color:var(--c-t1);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+    body::before{width:700px;height:700px;background:radial-gradient(circle,rgba(0,217,126,0.055) 0%,transparent 65%);top:-150px;left:-150px;animation:orbF 20s ease-in-out infinite alternate}
+    body::after{width:600px;height:600px;background:radial-gradient(circle,rgba(59,130,246,0.055) 0%,transparent 65%);bottom:-100px;right:-100px;animation:orbF 25s ease-in-out infinite alternate-reverse}
+    @keyframes orbF{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,35px) scale(1.08)}}
+
+    /* TOPBAR */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;background:rgba(6,8,15,0.88);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+    .tb-l{display:flex;align-items:center;gap:14px}
+    .logo{width:30px;height:30px;background:conic-gradient(from 0deg,#00d97e,#3b82f6,#00d97e);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#030a06;box-shadow:0 0 18px rgba(0,217,126,0.45);flex-shrink:0}
+    .logo-t{font-size:15px;font-weight:800;letter-spacing:-.3px}
+    .logo-t span{color:var(--c-g)}
+    .badge{font-size:10px;font-weight:700;color:var(--c-g);background:var(--c-g-dim);border:1px solid rgba(0,217,126,0.25);padding:2px 8px;border-radius:20px;text-transform:uppercase}
+    .tb-r{display:flex;align-items:center;gap:10px}
+    .tickers{display:flex;align-items:center;gap:18px;font-size:12px;font-family:var(--fm)}
+    .ti{display:flex;flex-direction:column;align-items:flex-end}
+    .ti-l{color:var(--c-t3);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+    .ti-v{font-weight:700;font-size:13px}
+    .ti-v.up{color:var(--c-g)} .ti-v.bl{color:var(--c-b)}
+    .live-pill{display:flex;align-items:center;gap:6px;background:rgba(0,217,126,0.08);border:1px solid rgba(0,217,126,0.2);padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;color:var(--c-g)}
+    .dot{width:6px;height:6px;background:var(--c-g);border-radius:50%;box-shadow:0 0 7px var(--c-g);animation:blink 2s ease infinite}
+    @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+    /* LAYOUT */
+    .layout{display:grid;grid-template-columns:290px 1fr;min-height:100vh;padding-top:56px;position:relative;z-index:1}
+
+    /* SIDEBAR */
+    .sb{background:var(--c-s1);border-right:1px solid var(--c-border);padding:18px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+    .sec-l{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--c-t3);text-transform:uppercase;padding:0 2px;margin-bottom:6px}
+    .sb-blk{display:flex;flex-direction:column;gap:8px}
+    select.sel,input.inp{width:100%;background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:10px 12px;font-family:var(--ff);color:var(--c-t1);font-size:13px;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;cursor:pointer;-webkit-appearance:none}
+    select.sel:focus,input.inp:focus{border-color:var(--c-g);box-shadow:0 0 0 3px rgba(0,217,126,.1)}
+
+    /* SEARCH AUTOCOMPLETE */
+    .search-wrap{position:relative;width:100%}
+    .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--c-t3);pointer-events:none;z-index:1}
+    .search-inp{width:100%;background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:10px 12px 10px 34px;font-family:var(--ff);color:var(--c-t1);font-size:13px;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s}
+    .search-inp::placeholder{color:var(--c-t3)}
+    .search-inp:focus{border-color:var(--c-g);box-shadow:0 0 0 3px rgba(0,217,126,.1)}
+    .search-inp.has-val{border-color:rgba(0,217,126,.4)}
+    .ac-drop{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--c-s2);border:1px solid rgba(0,217,126,.25);border-radius:var(--r-md);overflow:hidden;z-index:999;box-shadow:0 16px 40px rgba(0,0,0,.55);display:none}
+    .ac-drop.show{display:block;animation:fu .18s var(--ease) both}
+    .ac-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;cursor:pointer;transition:background .14s;border-bottom:1px solid var(--c-border)}
+    .ac-item:last-child{border-bottom:none}
+    .ac-item:hover,.ac-item.sel{background:rgba(0,217,126,.08)}
+    .ac-sym{font-family:var(--fm);font-size:13px;font-weight:800;color:var(--c-g)}
+    .ac-name{font-size:11px;color:var(--c-t3);margin-top:1px}
+    .ac-left{display:flex;flex-direction:column}
+    .ac-score{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--c-t3);white-space:nowrap}
+    .ac-score.high{color:var(--c-g)} .ac-score.mid{color:var(--c-a)}
+    .no-res{padding:12px 13px;font-size:12px;color:var(--c-t3);text-align:center}
+    .selected-tag{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--c-g-dim);border:1px solid rgba(0,217,126,.25);border-radius:var(--r-sm);font-size:12px;font-weight:600;color:var(--c-g);margin-top:4px}
+    .selected-tag .tag-sym{font-family:var(--fm);font-weight:800;font-size:13px}
+    .selected-tag .tag-rm{margin-left:auto;cursor:pointer;color:var(--c-t3);font-size:14px;line-height:1;transition:color .15s}
+    .selected-tag .tag-rm:hover{color:var(--c-r)}
+    .sl-w{display:flex;flex-direction:column;gap:7px}
+    .sl-h{display:flex;justify-content:space-between;align-items:center}
+    .sl-t{font-size:12px;font-weight:600;color:var(--c-t2)} .sl-v{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--c-g)}
+    input[type=range]{width:100%;height:3px;-webkit-appearance:none;background:var(--c-s3);border-radius:2px;outline:none;cursor:pointer}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--c-g);box-shadow:0 0 9px var(--c-g-glow);transition:transform .2s}
+    input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.35)}
+    .chips{display:flex;gap:5px;flex-wrap:wrap}
+    .chip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--c-border);color:var(--c-t2);background:var(--c-s2);cursor:pointer;transition:all .18s}
+    .chip:hover{border-color:var(--c-g);color:var(--c-g)}
+    .chip.on{background:var(--c-g-dim);border-color:var(--c-g);color:var(--c-g)}
+    .btn-run{width:100%;padding:12px;background:linear-gradient(135deg,#00d97e 0%,#059669 50%,#3b82f6 100%);background-size:200% 200%;border:none;border-radius:var(--r-md);color:#030a06;font-family:var(--ff);font-size:13px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 22px rgba(0,217,126,.35);transition:all .3s var(--ease);position:relative;overflow:hidden}
+    .btn-run:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,217,126,.5)}
+    .btn-run:active{transform:translateY(0)}
+    .a-rows{display:flex;flex-direction:column;gap:7px}
+    .a-row{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:var(--c-s2);border-radius:var(--r-sm);border:1px solid var(--c-border);font-size:11.5px}
+    .a-lbl{color:var(--c-t2);font-weight:500}
+    .a-st{font-weight:700;display:flex;align-items:center;gap:4px}
+    .a-st.ok{color:var(--c-g)} .a-st.ac{color:var(--c-p)} .a-st.in{color:var(--c-b)} .a-st.wn{color:var(--c-a)}
+    .sdot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor}
+
+    /* MAIN */
+    .main{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--c-bg)}
+
+    /* KPI STRIP */
+    .kpi{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--c-border)}
+    .kc{padding:18px 22px;border-right:1px solid var(--c-border);position:relative;overflow:hidden;cursor:default;transition:background .22s}
+    .kc:last-child{border-right:none}
+    .kc:hover{background:var(--c-s1)}
+    .kc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--acc,var(--c-g));transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+    .kc:hover::after{transform:scaleX(1)}
+    .kc.bl{--acc:var(--c-b)} .kc.am{--acc:var(--c-a)}
+    .kl{font-size:10.5px;font-weight:600;letter-spacing:.6px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px}
+    .kv{font-family:var(--fm);font-size:21px;font-weight:800;color:var(--c-t1);line-height:1;margin-bottom:3px}
+    .kv.pos{color:var(--c-g)}
+    .ks{font-size:10.5px;font-weight:600;color:var(--c-t3)}
+    .ks.pos{color:var(--c-g)} .ks.bl{color:var(--c-b)} .ks.am{color:var(--c-a)}
+
+    /* DASHBOARD */
+    .dash{padding:20px;display:flex;flex-direction:column;gap:18px}
+    .split{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;min-height:460px}
+    .card{background:var(--c-s1);border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden;transition:border-color .22s,box-shadow .22s}
+    .card:hover{border-color:var(--c-border-h);box-shadow:0 8px 38px rgba(0,0,0,.38)}
+    .ch{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--c-border)}
+    .cht{font-size:13px;font-weight:700;color:var(--c-t1);display:flex;align-items:center;gap:7px}
+    .chs{font-size:11px;color:var(--c-t3)}
+    .chart-a{padding:14px 18px}
+    .sym-r{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .sym-n{font-family:var(--fm);font-size:19px;font-weight:800;color:var(--c-g)}
+    .ptag{font-size:10px;font-weight:700;background:var(--c-g-dim);border:1px solid rgba(0,217,126,.3);color:var(--c-g);padding:3px 9px;border-radius:20px}
+    .stag{font-size:10px;font-weight:600;background:var(--c-r-dim);border:1px solid rgba(248,113,113,.25);color:var(--c-r);padding:3px 9px;border-radius:20px;font-family:var(--fm)}
+    canvas{width:100%;display:block;border-radius:6px}
+
+    /* DEBATE */
+    .debate{height:390px;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+    .debate::-webkit-scrollbar{width:3px}
+    .debate::-webkit-scrollbar-thumb{background:var(--c-s3);border-radius:2px}
+    .mb{border-radius:11px;padding:11px 13px;font-size:12.5px;line-height:1.58;animation:sIn .38s var(--ease) both}
+    @keyframes sIn{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:translateX(0)}}
+    .mb.bull{background:rgba(0,217,126,.06);border:1px solid rgba(0,217,126,.14);border-left:3px solid var(--c-g)}
+    .mb.bear{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.14);border-left:3px solid var(--c-r)}
+    .mb.mst{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-left:3px solid var(--c-p)}
+    .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+    .mn{font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
+    .mn.bull{color:var(--c-g)} .mn.bear{color:var(--c-r)} .mn.mst{color:var(--c-p)}
+    .mt{font-size:10px;color:var(--c-t3);font-family:var(--fm)}
+    .mb-b{color:var(--c-t2)}
+
+    /* TABS */
+    .tab-r{display:flex;gap:2px;padding:0 22px;border-bottom:1px solid var(--c-border);background:var(--c-s1)}
+    .tb{padding:12px 15px;font-size:12.5px;font-weight:600;color:var(--c-t3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .18s,border-color .18s;white-space:nowrap}
+    .tb:hover{color:var(--c-t2)}
+    .tb.on{color:var(--c-g);border-bottom-color:var(--c-g);font-weight:700}
+
+    /* TABLE */
+    .tw{padding:0 22px 22px}
+    .dt{width:100%;border-collapse:collapse;font-size:12px}
+    .dt thead tr{border-bottom:1px solid var(--c-border)}
+    .dt th{padding:11px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.7px;color:var(--c-t3);text-transform:uppercase}
+    .dt tbody tr{border-bottom:1px solid rgba(255,255,255,.025);transition:background .14s}
+    .dt tbody tr:hover{background:rgba(255,255,255,.018)}
+    .dt td{padding:13px 12px;font-family:var(--fm);font-size:11.5px;color:var(--c-t2)}
+    .td-s{font-weight:800;font-size:13px!important;color:var(--c-t1)!important}
+    .td-pos{color:var(--c-g)!important;font-weight:700} .td-bl{color:var(--c-b)!important;font-weight:600}
+    .sp{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+    .sp.op{background:var(--c-g-dim);color:var(--c-g)} .sp.pe{background:var(--c-b-dim);color:var(--c-b)}
+
+    /* PIPELINE */
+    .pf{padding:20px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;row-gap:14px}
+    .pn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 14px;background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);font-size:10.5px;font-weight:700;color:var(--c-t2);text-align:center;min-width:100px;transition:all .22s}
+    .pn:hover{border-color:var(--c-g);color:var(--c-t1);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,217,126,.15)}
+    .pn .ic{font-size:20px}
+    .pa{font-size:16px;color:var(--c-t3);padding:0 4px}
+
+    /* BOTTOM */
+    .bbar{background:var(--c-s1);border-top:1px solid var(--c-border);padding:9px 22px;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--c-t3)}
+    .bbl{display:flex;align-items:center;gap:14px}
+    .bs{display:flex;align-items:center;gap:4px}
+    .bs-k{font-weight:600} .bs-v{font-family:var(--fm);font-weight:700}
+    .bs-v.pos{color:var(--c-g)}
+
+    /* ANIMATION */
+    @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .ai{animation:fu .45s var(--ease) both}
+    .d1{animation-delay:.07s} .d2{animation-delay:.14s} .d3{animation-delay:.21s} .d4{animation-delay:.28s}
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <div class="tb-l">
+      <div class="logo">V</div>
+      <div class="logo-t">VIBE <span>STOCK</span> TERMINAL</div>
+      <span class="badge">Multi-Agent AI v5.0</span>
+    </div>
+    <div class="tb-r">
+      <div class="tickers">
+        <div class="ti"><span class="ti-l">VN-Index</span><span class="ti-v up">1,245.80 ▲ +0.85%</span></div>
+        <div class="ti"><span class="ti-l">20-Loop Return</span><span class="ti-v up">+636.11%</span></div>
+        <div class="ti"><span class="ti-l">Threshold</span><span class="ti-v bl">50.0 pts</span></div>
+      </div>
+      <div class="live-pill"><div class="dot"></div>Sheets Synced</div>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside class="sb">
+      <div class="sb-blk ai">
+        <div class="sec-l">Tim kiem ma co phieu</div>
+        <div class="search-wrap" id="sw">
+          <span class="search-icon">&#128269;</span>
+          <input class="search-inp" id="si" type="text"
+                 placeholder="Nhap ma hoac ten: ACB, FPT..."
+                 autocomplete="off"
+                 oninput="onSearch(this.value)"
+                 onkeydown="onKey(event)">
+          <div class="ac-drop" id="ac"></div>
+        </div>
+        <div id="sel-tag" style="display:none" class="selected-tag">
+          <span class="tag-sym" id="sel-sym">ACB</span>
+          <span id="sel-name" style="color:var(--c-t2);font-size:11px"></span>
+          <span class="tag-rm" onclick="clearSel()">&#10005;</span>
+        </div>
+      </div>
+
+      <div class="sb-blk ai d1">
+        <div class="sl-w">
+          <div class="sl-h"><span class="sl-t">Nguong diem mua AI</span><span class="sl-v" id="sv">50.0 diem</span></div>
+          <input type="range" min="40" max="65" value="50" step="0.5"
+                 oninput="document.getElementById('sv').textContent=parseFloat(this.value).toFixed(1)+' diem'">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--c-t3)">
+            <span>40.0 (Rui ro)</span><span style="color:var(--c-g)">Toi uu</span><span>65.0 (Than trong)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sb-blk ai d2">
+        <div class="sec-l">Che do von</div>
+        <div class="chips">
+          <div class="chip on" onclick="ck(this)">30% / vi the</div>
+          <div class="chip" onclick="ck(this)">Kelly Dynamic</div>
+          <div class="chip" onclick="ck(this)">1% Fixed Risk</div>
+        </div>
+      </div>
+
+      <button class="btn-run ai d3" onclick="runAnim(this)">&#9889; Kich hoat Multi-Agent Scan</button>
+
+      <div class="sb-blk ai d4">
+        <div class="sec-l">Trang thai agents</div>
+        <div class="a-rows">
+          <div class="a-row"><span class="a-lbl">Technical Agent</span><span class="a-st ok"><span class="sdot"></span>ONLINE</span></div>
+          <div class="a-row"><span class="a-lbl">Fundamental Agent</span><span class="a-st in"><span class="sdot"></span>ONLINE</span></div>
+          <div class="a-row"><span class="a-lbl">Debate Council</span><span class="a-st ac"><span class="sdot"></span>ACTIVE</span></div>
+          <div class="a-row"><span class="a-lbl">Post-Mortem Mem</span><span class="a-st wn"><span class="sdot"></span>39 Mau</span></div>
+          <div class="a-row"><span class="a-lbl">TradingView MCP</span><span class="a-st ok"><span class="sdot"></span>LIVE</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- KPI -->
+      <div class="kpi">
+        <div class="kc ai"><div class="kl">Tai khoan mo phong</div><div class="kv pos">7.361 Ty</div><div class="ks pos">+636.11% Net / 20 Loop</div></div>
+        <div class="kc bl ai d1"><div class="kl">Tong lenh thuc hien</div><div class="kv">1,787</div><div class="ks bl">Profit Factor: 1.43 · WR: 61.2%</div></div>
+        <div class="kc ai d2"><div class="kl">Vi the ACB (dang mo)</div><div class="kv pos">+7.77%</div><div class="ks pos">+2,330,649 VND — Risk-Free</div></div>
+        <div class="kc am ai d3"><div class="kl">Max Drawdown</div><div class="kv">19.4%</div><div class="ks am">&#9888; Kiem soat tot (duoi 20%)</div></div>
+      </div>
+
+      <div class="dash">
+        <div class="split">
+          <!-- Chart -->
+          <div class="card ai">
+            <div class="ch">
+              <div class="cht">&#128200; Bieu Do Gia &mdash; Phan Tich Ky Thuat</div>
+              <span class="chs">Khung D1 &mdash; 15:00 ICT</span>
+            </div>
+            <div class="chart-a">
+              <div class="sym-r">
+                <span class="sym-n">ACB.VN</span>
+                <span class="ptag">Pha C &mdash; Wyckoff Spring</span>
+                <span class="stag">SL: 21,158 VND</span>
+              </div>
+              <canvas id="mc" height="260"></canvas>
+            </div>
+          </div>
+
+          <!-- Debate -->
+          <div class="card ai d1" style="display:flex;flex-direction:column">
+            <div class="ch"><div class="cht">&#128172; Debate Council</div><span class="chs">Bull vs Bear &middot; 3 Vong</span></div>
+            <div class="debate">
+              <div class="mb bull" style="animation-delay:.1s">
+                <div class="mh"><span class="mn bull">&#128002; Bull Agent</span><span class="mt">10:45</span></div>
+                <div class="mb-b">Wyckoff Spring tai vung ho tro 21,100 — volume thap khi rut, lon khi bat. Tin hieu tich luy pha C cuc manh. Khuyen nghi mua 30% von ngay phien sang.</div>
+              </div>
+              <div class="mb bear" style="animation-delay:.2s">
+                <div class="mh"><span class="mn bear">&#128059; Bear Agent</span><span class="mt">10:46</span></div>
+                <div class="mb-b">Canh bao: VN-Index dang phan hoa, khong co catalyst ngan han. Rui ro Gap Down con ton tai. De nghi Stop-Loss ngat tai 21,110 VND.</div>
+              </div>
+              <div class="mb mst" style="animation-delay:.3s">
+                <div class="mh"><span class="mn mst">&#127942; Master Strategy</span><span class="mt">10:47</span></div>
+                <div class="mb-b">Dong thuan mo vi the. Diem AI 60.0 &ge; 50.0. Da doi Cat Lo ve Breakeven khi PnL dat +7.77%. Trang thai: <strong style="color:var(--c-g)">RUI RO BANG 0 — Risk-Free</strong>.</div>
+              </div>
+              <div class="mb bull" style="animation-delay:.4s">
+                <div class="mh"><span class="mn bull">&#128002; Bull &mdash; Vong 2</span><span class="mt">14:05</span></div>
+                <div class="mb-b">ACB vuot khang cu 22,500 voi volume dong thuan. Ky vong TP 26,052 VND (+23%) trong 8-12 tuan. Giu vi the.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab card -->
+        <div class="card ai d2" style="overflow:visible">
+          <div class="tab-r">
+            <button class="tb on" onclick="sw(0,this)">&#128204; Vi the dang mo (1)</button>
+            <button class="tb" onclick="sw(1,this)">&#128220; Lich su (1,787)</button>
+            <button class="tb" onclick="sw(2,this)">&#128202; Bao cao 3 phien</button>
+            <button class="tb" onclick="sw(3,this)">&#128295; Pipeline v2</button>
+          </div>
+
+          <div id="t0" class="tw">
+            <table class="dt"><thead><tr>
+              <th>Ma CK</th><th>Trang thai</th><th>Ngay vao</th><th>Gia vao</th>
+              <th>Gia HT</th><th>PnL %</th><th>PnL (VND)</th><th>Stop-Loss</th><th>TP</th><th>% Von</th><th>Score</th>
+            </tr></thead><tbody><tr>
+              <td class="td-s">ACB</td>
+              <td><span class="sp op">OPEN</span></td>
+              <td>2026-05-29</td><td>21,110</td>
+              <td class="td-bl">22,750</td><td class="td-pos">+7.77%</td>
+              <td class="td-pos">+2,330,649</td><td class="td-pos">21,158 ✓</td>
+              <td>26,052</td><td>30%</td><td class="td-pos">60.0</td>
+            </tr></tbody></table>
+          </div>
+
+          <div id="t1" class="tw" style="display:none">
+            <div style="padding:18px;color:var(--c-t3);font-size:13px">&#128220; 1,787 lenh lich su — phan trang trong app thuc.</div>
+          </div>
+
+          <div id="t2" class="tw" style="display:none">
+            <div style="padding:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px">
+                <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:7px">Phien Sang (09:30)</div>
+                <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800">Mua ACB</div>
+                <div style="font-size:11px;color:var(--c-t3);margin-top:3px">Score: 60.0 &middot; LONG</div>
+              </div>
+              <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px">
+                <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:7px">Phien Trua (12:00)</div>
+                <div style="font-family:var(--fm);font-size:15px;color:var(--c-b);font-weight:800">Hold</div>
+                <div style="font-size:11px;color:var(--c-t3);margin-top:3px">Score: 55.2 &middot; Giu vi the</div>
+              </div>
+              <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px">
+                <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:7px">Phien Chieu (15:15)</div>
+                <div style="font-family:var(--fm);font-size:15px;color:var(--c-a);font-weight:800">Xem lai FPT</div>
+                <div style="font-size:11px;color:var(--c-t3);margin-top:3px">Score: 48.0 &middot; Duoi nguong</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="t3" style="display:none">
+            <div class="pf">
+              <div class="pn"><span class="ic">&#128225;</span>TradingView MCP<br><small style="color:var(--c-g);font-size:9px;font-weight:700">LIVE DATA</small></div>
+              <span class="pa">&rarr;</span>
+              <div class="pn"><span class="ic">&#128202;</span>Technical Agent<br><small style="color:var(--c-t3);font-size:9px">RSI &middot; MACD &middot; Vol</small></div>
+              <span class="pa">&rarr;</span>
+              <div class="pn"><span class="ic">&#128188;</span>Fundamental Agent<br><small style="color:var(--c-t3);font-size:9px">BCTCK Q2/2026</small></div>
+              <span class="pa">&rarr;</span>
+              <div class="pn"><span class="ic">&#9876;&#65039;</span>Debate Council<br><small style="color:var(--c-p);font-size:9px;font-weight:700">Bull vs Bear</small></div>
+              <span class="pa">&rarr;</span>
+              <div class="pn"><span class="ic">&#127942;</span>Master Strategy<br><small style="color:var(--c-t3);font-size:9px">Final Decision</small></div>
+              <span class="pa">&rarr;</span>
+              <div class="pn"><span class="ic">&#128218;</span>Paper Trading<br><small style="color:var(--c-t3);font-size:9px">+SL Manager</small></div>
+              <span class="pa">&rarr;</span>
+              <div class="pn"><span class="ic">&#9925;</span>Google Sheets<br><small style="color:var(--c-g);font-size:9px;font-weight:700">LIVE SYNC</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bbar">
+        <div class="bbl">
+          <div class="bs"><span class="bs-k">Cap nhat:</span><span class="bs-v" id="cl">—</span></div>
+          <div class="bs"><span class="bs-k">Nguong:</span><span class="bs-v pos">50.0 pts</span></div>
+          <div class="bs"><span class="bs-k">Vi the mo:</span><span class="bs-v">1 / 3</span></div>
+        </div>
+        <div style="font-size:10px">Vibe Stock Terminal &middot; Multi-Agent AI &middot; VNStock + TradingView + Gemini</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function tick(){const n=new Date(),s=n.toLocaleTimeString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});document.getElementById('cl').textContent=s+' ICT'}
+    tick();setInterval(tick,1000);
+    function sw(i,b){for(let j=0;j<4;j++){const e=document.getElementById('t'+j);if(e)e.style.display=i===j?'':'none'}document.querySelectorAll('.tb').forEach((x,j)=>x.classList.toggle('on',j===i))}
+    function ck(el){el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on')}
+    function runAnim(b){const o=b.innerHTML;b.innerHTML='&#9203; Dang quet 71 ma...';b.disabled=true;b.style.opacity='.7';setTimeout(()=>{b.innerHTML='&#10003; Hoan tat!';setTimeout(()=>{b.innerHTML=o;b.disabled=false;b.style.opacity='1'},1400)},2400)}
+
+    const c=document.getElementById('mc'),x=c.getContext('2d');
+    function sz(){c.width=c.parentElement.clientWidth-36;c.height=260}
+    sz();window.addEventListener('resize',()=>{sz();dr()});
+    function dr(){
+      const W=c.width,H=c.height;
+      x.clearRect(0,0,W,H);
+      x.fillStyle='#090d16';x.beginPath();x.roundRect(0,0,W,H,6);x.fill();
+
+      // Margins
+      const PL=68,PB=32,PT=16,PR=18;
+      const CW=W-PL-PR,CH=H-PB-PT;
+
+      // Price range (ACB: 19000-24000)
+      const PMIN=18800,PMAX=24200,PRNG=PMAX-PMIN;
+
+      // Generate data: Accumulation -> Spring dip -> Markup
+      const pts=[],N=Math.floor(CW/10);
+      let price=20200;
+      for(let i=0;i<N;i++){
+        const r=i/N;
+        let tr=r<0.28?0:r<0.36?-2.2:r<0.45?2.8:1.3+(r-0.45)*5;
+        price+=tr*16+(Math.random()-0.48)*20;
+        price=Math.max(PMIN+300,Math.min(PMAX-300,price));
+        pts.push(price);
+      }
+
+      function py(p){return PT+CH-((p-PMIN)/PRNG*CH);}
+      function gx(i){return PL+(i/(N-1))*CW;}
+
+      // Grid Y
+      [19000,20000,21000,21158,22000,23000,24000].forEach(p=>{
+        if(p<PMIN||p>PMAX)return;
+        const yy=py(p),isSL=p===21158;
+        x.strokeStyle=isSL?'rgba(0,217,126,0.18)':'rgba(255,255,255,0.04)';
+        x.lineWidth=isSL?1.5:1;x.setLineDash(isSL?[4,4]:[]);
+        x.beginPath();x.moveTo(PL,yy);x.lineTo(W-PR,yy);x.stroke();
+        x.setLineDash([]);
+      });
+
+      // Grid X
+      const xStep=Math.floor(N/7);
+      for(let i=0;i<N;i+=xStep){
+        x.strokeStyle='rgba(255,255,255,0.04)';x.lineWidth=1;
+        x.beginPath();x.moveTo(gx(i),PT);x.lineTo(gx(i),H-PB);x.stroke();
+      }
+
+      // Area fill
+      const ag=x.createLinearGradient(0,PT,0,H-PB);
+      ag.addColorStop(0,'rgba(59,130,246,0.2)');ag.addColorStop(1,'rgba(59,130,246,0)');
+      x.beginPath();pts.forEach((p,i)=>{i===0?x.moveTo(gx(i),py(p)):x.lineTo(gx(i),py(p))});
+      x.lineTo(gx(N-1),H-PB);x.lineTo(gx(0),H-PB);x.closePath();x.fillStyle=ag;x.fill();
+
+      // Price line
+      x.strokeStyle='#3b82f6';x.lineWidth=2;x.lineJoin='round';
+      x.beginPath();pts.forEach((p,i)=>{i===0?x.moveTo(gx(i),py(p)):x.lineTo(gx(i),py(p))});x.stroke();
+
+      // Y-axis labels
+      x.font='11px "JetBrains Mono"';x.textAlign='right';x.textBaseline='middle';
+      [19000,20000,21000,21158,22000,23000,24000].forEach(p=>{
+        if(p<PMIN||p>PMAX)return;
+        const isSL=p===21158;
+        x.fillStyle=isSL?'rgba(0,217,126,0.9)':'rgba(100,120,150,0.75)';
+        x.fillText(isSL?'21,158':p.toLocaleString('vi-VN'),PL-8,py(p));
+      });
+
+      // Y-axis line
+      x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.setLineDash([]);
+      x.beginPath();x.moveTo(PL,PT);x.lineTo(PL,H-PB);x.stroke();
+
+      // X-axis labels
+      const t0=new Date('2025-12-01');
+      x.font='10px "JetBrains Mono"';x.textAlign='center';x.textBaseline='top';
+      x.fillStyle='rgba(100,120,150,0.75)';
+      for(let i=0;i<N;i+=xStep){
+        const d=new Date(t0);d.setDate(d.getDate()+Math.round(i*(120/N)));
+        const lbl=(d.getMonth()+1).toString().padStart(2,'0')+'/'+(d.getDate()).toString().padStart(2,'0');
+        x.fillText(lbl,gx(i),H-PB+6);
+      }
+
+      // X-axis line
+      x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;
+      x.beginPath();x.moveTo(PL,H-PB);x.lineTo(W-PR,H-PB);x.stroke();
+
+      // SL Breakeven line
+      const slY=py(21158);
+      x.strokeStyle='rgba(0,217,126,0.65)';x.lineWidth=1.5;x.setLineDash([5,5]);
+      x.beginPath();x.moveTo(gx(Math.floor(N*0.42)),slY);x.lineTo(W-PR,slY);x.stroke();
+      x.setLineDash([]);
+
+      // Spring annotation
+      const si2=Math.floor(N*0.34),se=Math.floor(N*0.42);
+      let smi=si2,smp=pts[si2];
+      for(let i=si2;i<se;i++){if(pts[i]<smp){smp=pts[i];smi=i;}}
+      const spx=gx(smi),spy=py(smp);
+      x.beginPath();x.arc(spx,spy,6,0,Math.PI*2);x.fillStyle='rgba(0,217,126,0.2)';x.fill();
+      x.strokeStyle='#00d97e';x.lineWidth=1.5;x.stroke();
+      x.fillStyle='rgba(0,217,126,0.9)';x.font='bold 10px "JetBrains Mono"';
+      x.textAlign='left';x.textBaseline='middle';x.fillText('Spring',spx+10,spy);
+
+      // Current price glow dot
+      const cpx=gx(N-1),cpy=py(pts[N-1]);
+      const gr=x.createRadialGradient(cpx,cpy,0,cpx,cpy,12);
+      gr.addColorStop(0,'rgba(0,217,126,0.6)');gr.addColorStop(1,'rgba(0,217,126,0)');
+      x.beginPath();x.arc(cpx,cpy,12,0,Math.PI*2);x.fillStyle=gr;x.fill();
+      x.beginPath();x.arc(cpx,cpy,3.5,0,Math.PI*2);x.fillStyle='#00d97e';x.fill();
+      // Price label next to dot
+      const lastP=Math.round(pts[N-1]);
+      x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 11px "JetBrains Mono"';
+      x.textAlign='right';x.textBaseline='middle';
+      x.fillText(lastP.toLocaleString('vi-VN'),cpx-14,cpy);
+    }
+    dr();
+
+    // ── STOCK AUTOCOMPLETE (71 ma) ───────────────────────
+    const STOCKS=[
+      {s:'ACB',n:'Ngan hang A Chau',sc:60.0},{s:'FPT',n:'Cong ty CP FPT',sc:55.5},
+      {s:'HPG',n:'Tap doan Hoa Phat',sc:52.0},{s:'VNM',n:'Vinamilk',sc:51.0},
+      {s:'MBB',n:'Ngan hang Quan doi MB',sc:53.5},{s:'TCB',n:'Techcombank',sc:50.5},
+      {s:'VHM',n:'Vinhomes',sc:49.0},{s:'VIC',n:'Tap doan Vingroup',sc:47.5},
+      {s:'SSI',n:'Chung khoan SSI',sc:54.0},{s:'BSR',n:'Loc Hoa Dau Binh Son',sc:52.5},
+      {s:'GAS',n:'Tong cong ty Khi VN',sc:50.0},{s:'PLX',n:'Tap doan Xang dau VN',sc:48.5},
+      {s:'PNJ',n:'Trang suc PNJ',sc:56.0},{s:'REE',n:'Co dien lanh REE',sc:51.5},
+      {s:'DGC',n:'Hoa chat Duc Giang',sc:53.0},{s:'MSN',n:'Tap doan Masan',sc:49.5},
+      {s:'VRE',n:'Vincom Retail',sc:47.0},{s:'BVH',n:'Bao Viet Holdings',sc:46.5},
+      {s:'TPB',n:'TPBank',sc:52.0},{s:'HDB',n:'HDBank',sc:51.0},
+      {s:'LPB',n:'Lien Viet Post Bank',sc:50.0},{s:'OCB',n:'Orient Commercial Bank',sc:48.0},
+      {s:'VPB',n:'VPBank',sc:53.0},{s:'STB',n:'Sacombank',sc:49.5},
+      {s:'EIB',n:'Eximbank',sc:47.0},{s:'CTG',n:'VietinBank',sc:52.5},
+      {s:'BID',n:'BIDV',sc:51.5},{s:'VCB',n:'Vietcombank',sc:54.0},
+      {s:'KDH',n:'Khang Dien Housing',sc:50.5},{s:'NLG',n:'Nam Long Group',sc:49.0},
+      {s:'DXG',n:'Dat Xanh Group',sc:47.5},{s:'PDR',n:'Phat Dat Real Estate',sc:46.5},
+      {s:'VGC',n:'Viglacera',sc:48.0},{s:'HSG',n:'Thep Hoa Sen',sc:50.0},
+      {s:'NKG',n:'Thep Nam Kim',sc:49.0},{s:'GEX',n:'Gelex Group',sc:50.5},
+      {s:'DBC',n:'Dabaco Group',sc:51.0},{s:'VHC',n:'Hung Vuong Seafood',sc:52.0},
+      {s:'ANV',n:'Nam Viet Seafood',sc:50.5},{s:'PHR',n:'Cao su Phuoc Hoa',sc:49.0},
+      {s:'DPM',n:'Phan bon Dau khi',sc:51.5},{s:'DCM',n:'Phan bon Ca Mau',sc:50.5},
+      {s:'PVT',n:'Van tai Dau khi',sc:49.5},{s:'GMD',n:'Gemadept Logistics',sc:53.0},
+      {s:'HAH',n:'Hai An Transport',sc:52.5},{s:'VSC',n:'Container Viet Nam',sc:51.0},
+      {s:'VTP',n:'Viettel Post',sc:50.0},{s:'FTS',n:'Chung khoan FPT',sc:54.5},
+      {s:'MBS',n:'Chung khoan MB',sc:51.5},{s:'VCI',n:'Viet Capital Securities',sc:53.0},
+      {s:'HCM',n:'Chung khoan TP.HCM',sc:52.0},{s:'CII',n:'Ha tang ky thuat CII',sc:48.0},
+      {s:'HHV',n:'Ha Tang Hanh Viet',sc:47.5},{s:'DGW',n:'Dien may DGW',sc:55.0},
+      {s:'MWG',n:'Dien may Xanh',sc:56.5},{s:'FRT',n:'FPT Retail',sc:54.0},
+      {s:'BMP',n:'Nhua Binh Minh',sc:51.5},{s:'AAA',n:'Nhua An Phat Xanh',sc:50.5},
+      {s:'PC1',n:'PCC1 Corp',sc:49.5},{s:'SZC',n:'Sonadezi Chau Duc',sc:48.5},
+      {s:'IDC',n:'IDC Investment',sc:47.0},{s:'CSV',n:'Hoa chat co ban',sc:48.5},
+      {s:'TLH',n:'Thep Tien Len',sc:47.5},{s:'POM',n:'Thep Pomina',sc:45.5},
+      {s:'MML',n:'Masan MEATLife',sc:50.0},{s:'TDC',n:'Kinh Bac Land',sc:47.0},
+      {s:'IJC',n:'Becamex IJC',sc:49.5},{s:'PET',n:'Petrovietnam Trading',sc:48.0},
+      {s:'LCG',n:'Licogi 16',sc:46.5},{s:'VDS',n:'Chung khoan Rong Viet',sc:50.0},
+    ];
+    let acIdx=-1,filtered=[];
+    function onSearch(v){
+      const q=v.trim().toUpperCase(),inp=document.getElementById('si');
+      inp.classList.toggle('has-val',q.length>0);
+      if(!q){closeAc();return;}
+      filtered=STOCKS.filter(s=>s.s.startsWith(q)||s.n.toUpperCase().includes(q)).slice(0,8);
+      renderAc(q);
+    }
+    function renderAc(q){
+      const drop=document.getElementById('ac');acIdx=-1;
+      if(!filtered.length){drop.innerHTML='<div class="no-res">Khong tim thay ma phu hop</div>';drop.classList.add('show');return;}
+      drop.innerHTML=filtered.map((s,i)=>{
+        const sc=s.sc>=55?'high':s.sc>=50?'mid':'';
+        return '<div class="ac-item" onmousedown="pickStock('+i+')">'
+          +'<div class="ac-left"><span class="ac-sym">'+s.s+'</span><span class="ac-name">'+s.n+'</span></div>'
+          +'<span class="ac-score '+sc+'">'+s.sc.toFixed(1)+' pts</span></div>';
+      }).join('');
+      drop.classList.add('show');
+    }
+    function onKey(e){
+      const drop=document.getElementById('ac'),items=drop.querySelectorAll('.ac-item');
+      if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));e.preventDefault();}
+      else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,0);items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));e.preventDefault();}
+      else if(e.key==='Enter'&&acIdx>=0){pickStock(acIdx);}
+      else if(e.key==='Escape'){closeAc();}
+    }
+    function pickStock(i){
+      const s=filtered[i];if(!s)return;
+      document.getElementById('si').value='';
+      document.getElementById('si').classList.remove('has-val');
+      closeAc();
+      document.getElementById('sel-sym').textContent=s.s;
+      document.getElementById('sel-name').textContent=s.n;
+      document.getElementById('sel-tag').style.display='flex';
+      document.querySelector('.sym-n').textContent=s.s+'.VN';
+    }
+    function clearSel(){
+      document.getElementById('sel-tag').style.display='none';
+      document.getElementById('si').value='';
+      document.getElementById('si').classList.remove('has-val');
+      document.getElementById('si').focus();
+    }
+    function closeAc(){
+      const d=document.getElementById('ac');d.classList.remove('show');d.innerHTML='';acIdx=-1;
+    }
+    document.addEventListener('click',e=>{if(!document.getElementById('sw').contains(e.target))closeAc();});
+  </script>
+</body>
+</html>
