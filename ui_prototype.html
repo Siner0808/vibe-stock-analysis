@@ -182,6 +182,24 @@
     @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     .ai{animation:fu .45s var(--ease) both}
     .d1{animation-delay:.07s} .d2{animation-delay:.14s} .d3{animation-delay:.21s} .d4{animation-delay:.28s}
+
+    /* MARKET DATA STRIP */
+    .mds{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--c-border);border:1px solid var(--c-border);border-radius:var(--r-md);overflow:hidden;margin-bottom:14px}
+    .md-cell{background:var(--c-s1);padding:14px 18px;display:flex;flex-direction:column;gap:4px;transition:background .18s;position:relative}
+    .md-cell:hover{background:var(--c-s2)}
+    .md-cell:not(:last-child){border-right:1px solid var(--c-border)}
+    .md-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--c-t3)}
+    .md-val{font-family:var(--fm);font-size:20px;font-weight:800;color:var(--c-t1);letter-spacing:-.5px}
+    .md-delta{font-family:var(--fm);font-size:11px;font-weight:600;margin-top:2px}
+    .md-delta.up{color:var(--c-g)} .md-delta.dn{color:var(--c-r)} .md-delta.nt{color:var(--c-t3)}
+    /* ACCOUNT KPI in tab */
+    .acct-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px}
+    .ak{background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+    .ak-l{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--c-t3)}
+    .ak-v{font-family:var(--fm);font-size:18px;font-weight:800;color:var(--c-t1)}
+    .ak-v.pos{color:var(--c-g)} .ak-v.bl{color:var(--c-b)} .ak-v.am{color:var(--c-a)}
+    .ak-s{font-size:11px;color:var(--c-t3)}
+    .ak-s.pos{color:rgba(0,217,126,.7)} .ak-s.bl{color:rgba(59,130,246,.7)} .ak-s.am{color:rgba(251,191,36,.7)}
   </style>
 </head>
 <body>
@@ -257,10 +275,14 @@
     </aside>
 
     <main class="main">
-      <!-- KPI -->
-      <div class="kpi">
-        <div class="kc ai"><div class="kl">Tai khoan mo phong</div><div class="kv pos">7.361 Ty</div><div class="ks pos">+636.11% Net / 20 Loop</div></div>
-        <div class="kc bl ai d1"><div class="kl">Tong lenh thuc hien</div><div class="kv">1,787</div><div class="ks bl">Profit Factor: 1.43 · WR: 61.2%</div></div>
+      <!-- MARKET DATA STRIP -->
+      <div class="mds" id="mds">
+        <div class="md-cell"><span class="md-label">Gia Dong Cua</span><span class="md-val" id="md-close">22,750</span><span class="md-delta up" id="md-delta">&#9650; +500 (+2.25%)</span></div>
+        <div class="md-cell"><span class="md-label">Cao Nhat (Ky)</span><span class="md-val" id="md-high">24,100</span><span class="md-delta nt">High 6 thang</span></div>
+        <div class="md-cell"><span class="md-label">Thap Nhat (Ky)</span><span class="md-val" id="md-low">18,900</span><span class="md-delta nt">Low 6 thang</span></div>
+        <div class="md-cell"><span class="md-label">KL Trung Binh</span><span class="md-val" id="md-vol">8,420,000</span><span class="md-delta nt">Trung binh 20 phien</span></div>
+      </div>
+</div>
         <div class="kc ai d2"><div class="kl">Vi the ACB (dang mo)</div><div class="kv pos">+7.77%</div><div class="ks pos">+2,330,649 VND — Risk-Free</div></div>
         <div class="kc am ai d3"><div class="kl">Max Drawdown</div><div class="kv">19.4%</div><div class="ks am">&#9888; Kiem soat tot (duoi 20%)</div></div>
       </div>
@@ -314,6 +336,7 @@
             <button class="tb" onclick="sw(1,this)">&#128220; Lich su (1,787)</button>
             <button class="tb" onclick="sw(2,this)">&#128202; Bao cao 3 phien</button>
             <button class="tb" onclick="sw(3,this)">&#128295; Pipeline v2</button>
+            <button class="tb" onclick="sw(4,this)">&#128184; Tai khoan Gia lap</button>
           </div>
 
           <div id="t0" class="tw">
@@ -370,7 +393,21 @@
               <span class="pa">&rarr;</span>
               <div class="pn"><span class="ic">&#9925;</span>Google Sheets<br><small style="color:var(--c-g);font-size:9px;font-weight:700">LIVE SYNC</small></div>
             </div>
+          
+          <div id="t4" style="display:none">
+            <div class="acct-kpi">
+              <div class="ak"><span class="ak-l">Tai khoan Mo phong</span><span class="ak-v pos">7.361 Ty</span><span class="ak-s pos">+636.11% Net &middot; 20 Loop</span></div>
+              <div class="ak"><span class="ak-l">Tong Lenh Thuc Hien</span><span class="ak-v bl">1,787</span><span class="ak-s bl">Profit Factor: 1.43 &middot; WR: 61.2%</span></div>
+              <div class="ak"><span class="ak-l">Vi The Dang Mo</span><span class="ak-v pos" id="ak-pnl">+7.77%</span><span class="ak-s pos" id="ak-pnlvnd">+2,330,649 VND &#8212; Risk-Free</span></div>
+              <div class="ak"><span class="ak-l">Max Drawdown</span><span class="ak-v am">19.4%</span><span class="ak-s am">&#9888; Kiem soat tot (duoi 20%)</span></div>
+            </div>
+            <div style="padding:0 14px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+              <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px"><div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:7px">Von Hien Tai</div><div style="font-family:var(--fm);font-size:17px;color:var(--c-g);font-weight:800">1,000,000,000 VND</div><div style="font-size:11px;color:var(--c-t3);margin-top:3px">Von ban dau: 1 ty VND</div></div>
+              <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px"><div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:7px">Von Trien Khai TB</div><div style="font-family:var(--fm);font-size:17px;color:var(--c-b);font-weight:800">29% / ky</div><div style="font-size:11px;color:var(--c-t3);margin-top:3px">Dinh diem: 208% &middot; Kelly Dynamic</div></div>
+              <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px"><div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:7px">Sharpe Ratio (20-Loop)</div><div style="font-family:var(--fm);font-size:17px;color:var(--c-a);font-weight:800">2.84</div><div style="font-size:11px;color:var(--c-t3);margin-top:3px">Win streak max: 8 lenh lien tiep</div></div>
+            </div>
           </div>
+</div>
         </div>
       </div>
 
@@ -395,7 +432,7 @@
 
   // ── TAB SWITCHING ────────────────────────────────────────
   function sw(i,b){
-    for(let j=0;j<4;j++){const e=document.getElementById('t'+j);if(e)e.style.display=i===j?'':'none';}
+    for(let j=0;j<5;j++){const e=document.getElementById('t'+j);if(e)e.style.display=i===j?'':'none';}
     document.querySelectorAll('.tb').forEach((x,j)=>x.classList.toggle('on',j===i));
   }
 
@@ -758,7 +795,36 @@
       `;
     }
 
-    // 6. Redraw Chart
+    // 6. Update Market Data Strip
+    const close = s.cur;
+    const hi = Math.round(s.pMax * 0.97);
+    const lo = Math.round(s.pMin * 1.03);
+    const vol = Math.round(5000000 + Math.random() * 15000000);
+    const prevClose = Math.round(close * (1 - (s.pnl/100) * 0.15));
+    const delta = close - prevClose;
+    const deltaPct = ((delta / prevClose) * 100).toFixed(2);
+    const isUp = delta >= 0;
+    const mdClose = document.getElementById("md-close");
+    const mdDelta = document.getElementById("md-delta");
+    const mdHigh = document.getElementById("md-high");
+    const mdLow = document.getElementById("md-low");
+    const mdVol = document.getElementById("md-vol");
+    if(mdClose) mdClose.textContent = close.toLocaleString("vi-VN");
+    if(mdDelta){
+      mdDelta.textContent = (isUp ? "\u25B2" : "\u25BC") + " " + Math.abs(delta).toLocaleString("vi-VN") + " (" + (isUp ? "+" : "") + deltaPct + "%)";
+      mdDelta.className = "md-delta " + (isUp ? "up" : "dn");
+    }
+    if(mdHigh) mdHigh.textContent = hi.toLocaleString("vi-VN");
+    if(mdLow) mdLow.textContent = lo.toLocaleString("vi-VN");
+    if(mdVol) mdVol.textContent = vol.toLocaleString("vi-VN");
+
+    // Update account tab pnl
+    const akPnl = document.getElementById("ak-pnl");
+    const akPnlVnd = document.getElementById("ak-pnlvnd");
+    if(akPnl) akPnl.textContent = (s.pnl >= 0 ? "+" : "") + s.pnl + "%";
+    if(akPnlVnd) akPnlVnd.textContent = "+" + s.pnlVnd.toLocaleString("vi-VN") + " VND";
+
+    // 7. Redraw Chart
     dr();
   }
 
