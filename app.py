@@ -245,6 +245,9 @@ st.markdown("""
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #1e293b, #334155);
+        border-radius: 3px;
+    }
     ::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(180deg, #00e676, #00b0ff);
     }
