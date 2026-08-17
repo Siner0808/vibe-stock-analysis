@@ -207,11 +207,11 @@
       <div class="sb-blk ai">
         <div class="sec-l">Tim kiem ma co phieu</div>
         <div class="search-wrap" id="sw">
-          <span class="search-icon">&#128269;</span>
+          <span class="search-icon" style="cursor:pointer;pointer-events:auto;" onclick="onKey({key:'Enter',preventDefault:function(){}})">&#128269;</span>
           <input class="search-inp" id="si" type="text"
                  placeholder="Nhap ma hoac ten: ACB, FPT..."
                  autocomplete="off"
-                 oninput="onSearch(this.value)"
+                 oninput="onSearch(this.value)" onfocus="onSearch(this.value)"
                  onkeydown="onKey(event)">
           <div class="ac-drop" id="ac"></div>
         </div>
@@ -386,209 +386,478 @@
   </div>
 
   <script>
-    function tick(){const n=new Date(),s=n.toLocaleTimeString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});document.getElementById('cl').textContent=s+' ICT'}
-    tick();setInterval(tick,1000);
-    function sw(i,b){for(let j=0;j<4;j++){const e=document.getElementById('t'+j);if(e)e.style.display=i===j?'':'none'}document.querySelectorAll('.tb').forEach((x,j)=>x.classList.toggle('on',j===i))}
-    function ck(el){el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on')}
-    function runAnim(b){const o=b.innerHTML;b.innerHTML='&#9203; Dang quet 71 ma...';b.disabled=true;b.style.opacity='.7';setTimeout(()=>{b.innerHTML='&#10003; Hoan tat!';setTimeout(()=>{b.innerHTML=o;b.disabled=false;b.style.opacity='1'},1400)},2400)}
+  // ── LIVE CLOCK ───────────────────────────────────────────
+  function tick(){
+    const n=new Date(),s=n.toLocaleTimeString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
+    document.getElementById('cl').textContent=s+' ICT';
+  }
+  tick(); setInterval(tick,1000);
 
-    const c=document.getElementById('mc'),x=c.getContext('2d');
-    function sz(){c.width=c.parentElement.clientWidth-36;c.height=260}
-    sz();window.addEventListener('resize',()=>{sz();dr()});
-    function dr(){
-      const W=c.width,H=c.height;
-      x.clearRect(0,0,W,H);
-      x.fillStyle='#090d16';x.beginPath();x.roundRect(0,0,W,H,6);x.fill();
+  // ── TAB SWITCHING ────────────────────────────────────────
+  function sw(i,b){
+    for(let j=0;j<4;j++){const e=document.getElementById('t'+j);if(e)e.style.display=i===j?'':'none';}
+    document.querySelectorAll('.tb').forEach((x,j)=>x.classList.toggle('on',j===i));
+  }
 
-      // Margins
-      const PL=68,PB=32,PT=16,PR=18;
-      const CW=W-PL-PR,CH=H-PB-PT;
+  // ── CHIP TOGGLE ──────────────────────────────────────────
+  function ck(el){
+    el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    el.classList.add('on');
+  }
 
-      // Price range (ACB: 19000-24000)
-      const PMIN=18800,PMAX=24200,PRNG=PMAX-PMIN;
+  // ── COMPREHENSIVE 71 STOCKS DATABASE WITH FULL DYNAMICS ──
+  const STOCKS = [
+    {
+      s:'ACB', n:'Ngân hàng Á Châu', sc:60.0,
+      cur:22750, entry:21110, sl:21158, tp:26052, pnl:7.77, pnlVnd:2330649,
+      pMin:19000, pMax:24200, phase:'Pha C — Wyckoff Spring',
+      bull:'Wyckoff Spring tại vùng hỗ trợ 21,100 — volume thấp khi rũ, tăng vọt khi bật lên. Tín hiệu tích lũy pha C hoàn hảo. Khuyến nghị giải ngân 30% vốn.',
+      bear:'Cảnh báo: VN-Index đang phân hóa. Biên lợi nhuận ngắn hạn khoảng +8.5%, yêu cầu duy trì trailing stop bảo toàn vốn.',
+      master:'Đồng thuận mở vị thế. Điểm AI đạt 60.0/100. Đã dời Stop-Loss lên 21,158 (Breakeven). Hiện trạng: RỦI RO BẰNG 0 (Risk-Free).'
+    },
+    {
+      s:'SSI', n:'Chứng khoán SSI', sc:56.5,
+      cur:36400, entry:34500, sl:34200, tp:42000, pnl:5.51, pnlVnd:1650000,
+      pMin:31000, pMax:39500, phase:'Pha D — SOS Breakout',
+      bull:'Thanh khoản ngành chứng khoán bùng nổ, SSI vượt cản 35,000 với volume gấp 2.4x trung bình 20 phiên. Dòng tiền tạo lập đẩy giá rõ nét.',
+      bear:'Thị trường chung chưa bứt phá hoàn toàn 1,260, cần đề phòng nhịp retest lại vùng đỉnh cũ 35,500.',
+      master:'Khuyến nghị MUA 30% vị thế SSI tại 35,500. Thiết lập Stop-Loss 34,200 VNĐ, mục tiêu trung hạn 42,000 VNĐ. Điểm AI: 56.5/100.'
+    },
+    {
+      s:'FPT', n:'Công ty CP FPT', sc:58.0,
+      cur:128500, entry:121000, sl:122000, tp:145000, pnl:6.20, pnlVnd:1860000,
+      pMin:112000, pMax:136000, phase:'Pha E — Markup Trend',
+      bull:'Xu hướng tăng trung dài hạn bền vững, mảng AI và xuất khẩu phần mềm tăng trưởng 24% YoY. FPT duy trì vị thế dẫn dắt dòng tiền công nghệ.',
+      bear:'Chỉ báo RSI đạt 71 (tiệm cận vùng quá mua ngắn hạn), khuyến nghị không mua đuổi ở các phiên hưng phấn.',
+      master:'Xác nhận XU HƯỚNG TĂNG. Điểm AI đạt 58.0/100. Tiếp tục nắm giữ, dời Stop-Loss lên mức bảo toàn 122,000 VNĐ.'
+    },
+    {
+      s:'HPG', n:'Tập đoàn Hòa Phát', sc:53.5,
+      cur:26800, entry:25600, sl:25100, tp:31000, pnl:4.69, pnlVnd:1406250,
+      pMin:23000, pMax:29000, phase:'Pha C — Last Point of Support (LPS)',
+      bull:'Giá thép nội địa tạo đáy phục hồi, lò cao Dung Quất 2 sắp vận hành thương mại. Lực cầu hấp thụ lượng bán tại 25,500 rất mạnh.',
+      bear:'Biên độ giao động ngắn hạn chưa bứt phá khỏi kênh tích lũy, khối ngoại còn bán ròng nhẹ.',
+      master:'MỞ VỊ THẾ THĂM DÒ 20% vốn tại vùng giá 26,000. Điểm AI: 53.5/100. Stop-Loss: 25,100 VNĐ.'
+    },
+    {
+      s:'VNM', n:'Công ty CP Vinamilk', sc:52.0,
+      cur:68500, entry:66200, sl:65000, tp:76000, pnl:3.47, pnlVnd:1042000,
+      pMin:61000, pMax:73000, phase:'Pha A — Selling Climax Absorption',
+      bull:'Định giá P/E 13.2x thấp hơn trung bình 5 năm, tỷ suất cổ tức tiền mặt đều đặn 5.8%/năm. Dòng tiền phòng thủ bắt đầu gom mạnh.',
+      bear:'Tăng trưởng doanh thu ngành sữa đi ngang, cần thêm động lực từ thị trường xuất khẩu.',
+      master:'NẮM GIỮ TỶ TRỌNG PHÒNG THỦ. Điểm AI: 52.0/100. Thiết lập Stop-Loss 65,000 VNĐ.'
+    },
+    {
+      s:'BSR', n:'Lọc Hóa Dầu Bình Sơn', sc:55.0,
+      cur:26000, entry:24500, sl:24200, tp:30000, pnl:6.12, pnlVnd:1836000,
+      pMin:22000, pMax:28500, phase:'Pha D — SOS Breakout',
+      bull:'Biên lọc dầu (Crack spread) duy trì mức cao, nâng cấp mở rộng nhà máy Dung Quất được đẩy mạnh. Dòng tiền dầu khí bứt phá mạnh.',
+      bear:'Giá dầu thô thế giới biến động mạnh do căng thẳng địa chính trị, cần quản trị rủi ro chặt.',
+      master:'MUA MỚI 30% vốn BSR tại 25,200. Điểm AI: 55.0/100. Mục tiêu 30,000 VNĐ.'
+    },
+    {
+      s:'MBB', n:'Ngân hàng Quân Đội MB', sc:54.5,
+      cur:24200, entry:23100, sl:22800, tp:28000, pnl:4.76, pnlVnd:1428000,
+      pMin:21000, pMax:26000, phase:'Pha C — Wyckoff Spring',
+      bull:'Tăng trưởng tín dụng dẫn đầu toàn ngành ngân hàng (>18%), CASA đạt 38%. Dòng tiền tổ chức nâng đỡ giá tốt.',
+      bear:'Áp lực trích lập dự phòng nợ xấu nhóm BĐS vẫn cần theo dõi trong Q3.',
+      master:'MUA TÍCH LŨY MBB tại 23,800. Stop-Loss 22,800 VNĐ. Điểm AI: 54.5/100.'
+    },
+    {
+      s:'TCB', n:'Ngân hàng Techcombank', sc:53.0,
+      cur:23800, entry:22900, sl:22500, tp:27500, pnl:3.93, pnlVnd:1179000,
+      pMin:20500, pMax:25500, phase:'Pha B — Accumulation',
+      bull:'Cổ tức cổ phiếu và tiền mặt tăng sức hút, mảng ngân hàng bán lẻ và bảo hiểm phục hồi mạnh.',
+      bear:'Khối lượng giao dịch đi ngang tích lũy, chưa có phiên bùng nổ theo đà (FTD).',
+      master:'MUA THĂM DÒ TCB vùng 23,000. Điểm AI: 53.0/100. Quản trị tỷ trọng 20% danh mục.'
+    },
+    {
+      s:'VHM', n:'Công ty CP Vinhomes', sc:49.5,
+      cur:42500, entry:41000, sl:40000, tp:48000, pnl:3.66, pnlVnd:1098000,
+      pMin:38000, pMax:46000, phase:'Pha B — Secondary Test',
+      bull:'Kế hoạch mua lại cổ phiếu quỹ quy mô lớn tạo bệ đỡ tâm lý và hỗ trợ định giá.',
+      bear:'Thị trường bất động sản phục hồi phân hóa, thanh khoản các dự án lớn cần thời gian hấp thụ.',
+      master:'THEO DÕI CHỜ TÍN HIỆU XÁC NHẬN. Điểm AI: 49.5/100 (Dưới ngưỡng 50.0). Chưa vội mở vị thế lớn.'
+    },
+    {
+      s:'MWG', n:'Thế Giới Di Động', sc:57.0,
+      cur:65200, entry:61500, sl:60800, tp:74000, pnl:6.02, pnlVnd:1805000,
+      pMin:57000, pMax:69000, phase:'Pha D — SOS Markup',
+      bull:'Bách Hóa Xanh đạt điểm hòa vốn và bắt đầu đóng góp lợi nhuận, biên lãi gộp chuỗi Điện Máy Xanh tăng trưởng rõ rệt.',
+      bear:'Sức mua ngành hàng điện tử tiêu dùng cần thêm thời gian để tăng trưởng bùng nổ.',
+      master:'MUA MỞ RỘNG VỊ THẾ MWG. Điểm AI: 57.0/100. Target: 74,000 VNĐ. Stop-loss: 60,800 VNĐ.'
+    },
+    {
+      s:'DGC', n:'Hóa chất Đức Giang', sc:54.0,
+      cur:118000, entry:112000, sl:110000, tp:132000, pnl:5.36, pnlVnd:1607000,
+      pMin:105000, pMax:125000, phase:'Pha C — Wyckoff Spring',
+      bull:'Nhu cầu Phốt pho vàng (P4) toàn cầu tăng trưởng phục vụ chip bán dẫn và pin xe điện.',
+      bear:'Biến động giá điện sản xuất và chi phí nguyên liệu đầu vào cần lưu tâm.',
+      master:'MUA DGC vùng 115,000. Điểm AI: 54.0/100. Stop-Loss 110,000 VNĐ.'
+    },
+    {
+      s:'PNJ', n:'Vàng Bạc Đá Quý Phú Nhuận', sc:56.0,
+      cur:98500, entry:93000, sl:91500, tp:110000, pnl:5.91, pnlVnd:1774000,
+      pMin:88000, pMax:105000, phase:'Pha D — SOS Breakout',
+      bull:'Doanh thu bán lẻ trang sức vàng 24K và vàng trang sức tăng trưởng 2 chữ số, mở mới hệ thống cửa hàng hiệu quả.',
+      bear:'Giá vàng biến động thất thường tạo áp lực tồn kho nguyên liệu.',
+      master:'MUA PNJ vùng 95,000. Điểm AI: 56.0/100. Target: 110,000 VNĐ.'
+    }
+  ];
 
-      // Generate data: Accumulation -> Spring dip -> Markup
-      const pts=[],N=Math.floor(CW/10);
-      let price=20200;
-      for(let i=0;i<N;i++){
-        const r=i/N;
-        let tr=r<0.28?0:r<0.36?-2.2:r<0.45?2.8:1.3+(r-0.45)*5;
-        price+=tr*16+(Math.random()-0.48)*20;
-        price=Math.max(PMIN+300,Math.min(PMAX-300,price));
-        pts.push(price);
-      }
-
-      function py(p){return PT+CH-((p-PMIN)/PRNG*CH);}
-      function gx(i){return PL+(i/(N-1))*CW;}
-
-      // Grid Y
-      [19000,20000,21000,21158,22000,23000,24000].forEach(p=>{
-        if(p<PMIN||p>PMAX)return;
-        const yy=py(p),isSL=p===21158;
-        x.strokeStyle=isSL?'rgba(0,217,126,0.18)':'rgba(255,255,255,0.04)';
-        x.lineWidth=isSL?1.5:1;x.setLineDash(isSL?[4,4]:[]);
-        x.beginPath();x.moveTo(PL,yy);x.lineTo(W-PR,yy);x.stroke();
-        x.setLineDash([]);
+  // Populate fallback for any other ticker from remaining list
+  const EXTENDED_SYMBOLS = [
+    'VIC','GAS','PLX','REE','MSN','VRE','BVH','TPB','HDB','LPB','OCB','VPB','STB','EIB','CTG','BID',
+    'VCB','KDH','NLG','DXG','PDR','VGC','HSG','NKG','GEX','DBC','VHC','ANV','PHR','DPM','DCM','PVT',
+    'GMD','HAH','VSC','VTP','FTS','MBS','VCI','HCM','CII','HHV','DGW','FRT','BMP','AAA','PC1','SZC',
+    'IDC','CSV','TLH','POM','MML','TDC','IJC','PET','LCG','VDS','PVD','PVS','OIL','MSR','HHP'
+  ];
+  EXTENDED_SYMBOLS.forEach(sym => {
+    if(!STOCKS.find(x => x.s === sym)){
+      const base = 25000 + Math.floor(Math.random()*45000);
+      const sc = 48.0 + (Math.random()*8.0);
+      STOCKS.push({
+        s: sym,
+        n: 'Mã cổ phiếu ' + sym + ' (Rổ 71 mã)',
+        sc: parseFloat(sc.toFixed(1)),
+        cur: base,
+        entry: Math.round(base * 0.95),
+        sl: Math.round(base * 0.92),
+        tp: Math.round(base * 1.18),
+        pnl: parseFloat(((base - (base*0.95))/(base*0.95)*100).toFixed(2)),
+        pnlVnd: Math.round(30000000 * 0.05),
+        pMin: Math.round(base * 0.85),
+        pMax: Math.round(base * 1.15),
+        phase: sc >= 54 ? 'Pha D — SOS Breakout' : sc >= 50 ? 'Pha C — Wyckoff Spring' : 'Pha B — Accumulation',
+        bull: 'Tín hiệu kỹ thuật của ' + sym + ' cho thấy lực mua chủ động chiếm ưu thế. Khối lượng tích lũy gia tăng rõ rệt.',
+        bear: 'Cần theo dõi sát diễn biến dòng tiền toàn ngành và áp lực chốt lời ngắn hạn.',
+        master: (sc >= 50 ? 'Đồng thuận MUA thăm dò ' : 'THEO DÕI CHỜ TÍN HIỆU ') + sym + '. Điểm AI: ' + sc.toFixed(1) + '/100.'
       });
+    }
+  });
 
-      // Grid X
-      const xStep=Math.floor(N/7);
-      for(let i=0;i<N;i+=xStep){
-        x.strokeStyle='rgba(255,255,255,0.04)';x.lineWidth=1;
-        x.beginPath();x.moveTo(gx(i),PT);x.lineTo(gx(i),H-PB);x.stroke();
-      }
+  let currentStock = STOCKS[0]; // Default ACB
+  let filtered = [];
+  let acIdx = -1;
 
-      // Area fill
-      const ag=x.createLinearGradient(0,PT,0,H-PB);
-      ag.addColorStop(0,'rgba(59,130,246,0.2)');ag.addColorStop(1,'rgba(59,130,246,0)');
-      x.beginPath();pts.forEach((p,i)=>{i===0?x.moveTo(gx(i),py(p)):x.lineTo(gx(i),py(p))});
-      x.lineTo(gx(N-1),H-PB);x.lineTo(gx(0),H-PB);x.closePath();x.fillStyle=ag;x.fill();
+  // ── CANVAS CHART ENGINE ──────────────────────────────────
+  const c = document.getElementById('mc'), x = c.getContext('2d');
+  function sz(){ c.width = c.parentElement.clientWidth - 36; c.height = 260; }
+  sz();
+  window.addEventListener('resize', ()=>{ sz(); dr(); });
 
-      // Price line
-      x.strokeStyle='#3b82f6';x.lineWidth=2;x.lineJoin='round';
-      x.beginPath();pts.forEach((p,i)=>{i===0?x.moveTo(gx(i),py(p)):x.lineTo(gx(i),py(p))});x.stroke();
+  function dr(){
+    const W = c.width, H = c.height;
+    x.clearRect(0,0,W,H);
+    x.fillStyle = '#090d16'; x.beginPath(); x.roundRect(0,0,W,H,6); x.fill();
 
-      // Y-axis labels
-      x.font='11px "JetBrains Mono"';x.textAlign='right';x.textBaseline='middle';
-      [19000,20000,21000,21158,22000,23000,24000].forEach(p=>{
-        if(p<PMIN||p>PMAX)return;
-        const isSL=p===21158;
-        x.fillStyle=isSL?'rgba(0,217,126,0.9)':'rgba(100,120,150,0.75)';
-        x.fillText(isSL?'21,158':p.toLocaleString('vi-VN'),PL-8,py(p));
-      });
+    const PL=72, PB=32, PT=16, PR=18;
+    const CW=W-PL-PR, CH=H-PB-PT;
 
-      // Y-axis line
-      x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.setLineDash([]);
-      x.beginPath();x.moveTo(PL,PT);x.lineTo(PL,H-PB);x.stroke();
+    const s = currentStock;
+    const PMIN = s.pMin, PMAX = s.pMax, PRNG = PMAX - PMIN;
 
-      // X-axis labels
-      const t0=new Date('2025-12-01');
-      x.font='10px "JetBrains Mono"';x.textAlign='center';x.textBaseline='top';
-      x.fillStyle='rgba(100,120,150,0.75)';
-      for(let i=0;i<N;i+=xStep){
-        const d=new Date(t0);d.setDate(d.getDate()+Math.round(i*(120/N)));
-        const lbl=(d.getMonth()+1).toString().padStart(2,'0')+'/'+(d.getDate()).toString().padStart(2,'0');
-        x.fillText(lbl,gx(i),H-PB+6);
-      }
+    // Generate continuous smooth realistic curve
+    const pts = [], N = Math.floor(CW / 10);
+    let p = s.entry;
+    for(let i=0; i<N; i++){
+      const r = i / N;
+      let tr = r < 0.28 ? (Math.random()-0.5)*0.2 :
+               r < 0.36 ? -2.2 :
+               r < 0.45 ? 2.8 : 1.4 + (r - 0.45)*5;
+      p += tr * (PRNG / 350) + (Math.random()-0.48)*(PRNG/400);
+      p = Math.max(PMIN + PRNG*0.05, Math.min(PMAX - PRNG*0.05, p));
+      pts.push(p);
+    }
+    // Ensure last point ends near current price
+    pts[pts.length - 1] = s.cur;
 
-      // X-axis line
-      x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;
-      x.beginPath();x.moveTo(PL,H-PB);x.lineTo(W-PR,H-PB);x.stroke();
+    function py(val){ return PT + CH - ((val - PMIN) / PRNG * CH); }
+    function gx(idx){ return PL + (idx / (N - 1)) * CW; }
 
-      // SL Breakeven line
-      const slY=py(21158);
-      x.strokeStyle='rgba(0,217,126,0.65)';x.lineWidth=1.5;x.setLineDash([5,5]);
-      x.beginPath();x.moveTo(gx(Math.floor(N*0.42)),slY);x.lineTo(W-PR,slY);x.stroke();
+    // Grid Y
+    const step = Math.round(PRNG / 5 / 100) * 100;
+    for(let pL = Math.ceil(PMIN/step)*step; pL <= PMAX; pL += step){
+      const yy = py(pL);
+      if(yy < PT || yy > H - PB) continue;
+      x.strokeStyle = 'rgba(255,255,255,0.04)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(PL,yy); x.lineTo(W-PR,yy); x.stroke();
+    }
+
+    // Grid X
+    const xStep = Math.floor(N / 7);
+    for(let i=0; i<N; i+=xStep){
+      x.strokeStyle = 'rgba(255,255,255,0.04)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(gx(i),PT); x.lineTo(gx(i),H-PB); x.stroke();
+    }
+
+    // Area fill
+    const ag = x.createLinearGradient(0,PT,0,H-PB);
+    ag.addColorStop(0, 'rgba(59,130,246,0.22)');
+    ag.addColorStop(1, 'rgba(59,130,246,0.0)');
+    x.beginPath();
+    pts.forEach((pv,i)=>{ i===0 ? x.moveTo(gx(i),py(pv)) : x.lineTo(gx(i),py(pv)); });
+    x.lineTo(gx(N-1), H-PB); x.lineTo(gx(0), H-PB); x.closePath();
+    x.fillStyle = ag; x.fill();
+
+    // Price line
+    x.strokeStyle = '#3b82f6'; x.lineWidth = 2.2; x.lineJoin = 'round';
+    x.beginPath();
+    pts.forEach((pv,i)=>{ i===0 ? x.moveTo(gx(i),py(pv)) : x.lineTo(gx(i),py(pv)); });
+    x.stroke();
+
+    // Y-Axis Labels
+    x.font = '11px "JetBrains Mono"'; x.textAlign = 'right'; x.textBaseline = 'middle';
+    for(let pL = Math.ceil(PMIN/step)*step; pL <= PMAX; pL += step){
+      const yy = py(pL);
+      if(yy < PT + 5 || yy > H - PB - 5) continue;
+      x.fillStyle = 'rgba(100,120,150,0.85)';
+      x.fillText(pL.toLocaleString('vi-VN'), PL - 8, yy);
+    }
+
+    // Stop Loss Highlight Line & Label on Y-axis
+    if(s.sl >= PMIN && s.sl <= PMAX){
+      const slY = py(s.sl);
+      x.strokeStyle = 'rgba(0,217,126,0.65)'; x.lineWidth = 1.5; x.setLineDash([5,5]);
+      x.beginPath(); x.moveTo(gx(Math.floor(N*0.4)), slY); x.lineTo(W-PR, slY); x.stroke();
       x.setLineDash([]);
-
-      // Spring annotation
-      const si2=Math.floor(N*0.34),se=Math.floor(N*0.42);
-      let smi=si2,smp=pts[si2];
-      for(let i=si2;i<se;i++){if(pts[i]<smp){smp=pts[i];smi=i;}}
-      const spx=gx(smi),spy=py(smp);
-      x.beginPath();x.arc(spx,spy,6,0,Math.PI*2);x.fillStyle='rgba(0,217,126,0.2)';x.fill();
-      x.strokeStyle='#00d97e';x.lineWidth=1.5;x.stroke();
-      x.fillStyle='rgba(0,217,126,0.9)';x.font='bold 10px "JetBrains Mono"';
-      x.textAlign='left';x.textBaseline='middle';x.fillText('Spring',spx+10,spy);
-
-      // Current price glow dot
-      const cpx=gx(N-1),cpy=py(pts[N-1]);
-      const gr=x.createRadialGradient(cpx,cpy,0,cpx,cpy,12);
-      gr.addColorStop(0,'rgba(0,217,126,0.6)');gr.addColorStop(1,'rgba(0,217,126,0)');
-      x.beginPath();x.arc(cpx,cpy,12,0,Math.PI*2);x.fillStyle=gr;x.fill();
-      x.beginPath();x.arc(cpx,cpy,3.5,0,Math.PI*2);x.fillStyle='#00d97e';x.fill();
-      // Price label next to dot
-      const lastP=Math.round(pts[N-1]);
-      x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 11px "JetBrains Mono"';
-      x.textAlign='right';x.textBaseline='middle';
-      x.fillText(lastP.toLocaleString('vi-VN'),cpx-14,cpy);
+      x.fillStyle = 'rgba(0,217,126,0.95)';
+      x.fillText(s.sl.toLocaleString('vi-VN') + ' ✓', PL - 8, slY);
     }
+
+    // Y & X Axis Borders
+    x.strokeStyle = 'rgba(255,255,255,0.08)'; x.lineWidth = 1; x.setLineDash([]);
+    x.beginPath(); x.moveTo(PL,PT); x.lineTo(PL,H-PB); x.lineTo(W-PR,H-PB); x.stroke();
+
+    // X-Axis Date Labels
+    const t0 = new Date('2025-12-01');
+    x.font = '10px "JetBrains Mono"'; x.textAlign = 'center'; x.textBaseline = 'top';
+    x.fillStyle = 'rgba(100,120,150,0.75)';
+    for(let i=0; i<N; i+=xStep){
+      const d = new Date(t0); d.setDate(d.getDate() + Math.round(i*(120/N)));
+      const lbl = (d.getMonth()+1).toString().padStart(2,'0')+'/'+(d.getDate()).toString().padStart(2,'0');
+      x.fillText(lbl, gx(i), H-PB+6);
+    }
+
+    // Spring Annotation Point
+    const si2 = Math.floor(N*0.34), se = Math.floor(N*0.42);
+    let smi = si2, smp = pts[si2];
+    for(let i=si2; i<se; i++){ if(pts[i]<smp){ smp=pts[i]; smi=i; } }
+    const spx = gx(smi), spy = py(smp);
+    x.beginPath(); x.arc(spx, spy, 6, 0, Math.PI*2);
+    x.fillStyle = 'rgba(0,217,126,0.2)'; x.fill();
+    x.strokeStyle = '#00d97e'; x.lineWidth = 1.5; x.stroke();
+    x.fillStyle = 'rgba(0,217,126,0.95)';
+    x.font = 'bold 10px "JetBrains Mono"'; x.textAlign = 'left'; x.textBaseline = 'middle';
+    x.fillText('Spring', spx+10, spy);
+
+    // Current Price Glow Dot & Badge
+    const cpx = gx(N-1), cpy = py(pts[N-1]);
+    const gr = x.createRadialGradient(cpx,cpy,0,cpx,cpy,12);
+    gr.addColorStop(0,'rgba(0,217,126,0.6)'); gr.addColorStop(1,'rgba(0,217,126,0)');
+    x.beginPath(); x.arc(cpx,cpy,12,0,Math.PI*2); x.fillStyle = gr; x.fill();
+    x.beginPath(); x.arc(cpx,cpy,3.5,0,Math.PI*2); x.fillStyle = '#00d97e'; x.fill();
+
+    x.fillStyle = '#00d97e'; x.font = 'bold 11px "JetBrains Mono"';
+    x.textAlign = 'right'; x.textBaseline = 'middle';
+    x.fillText(s.cur.toLocaleString('vi-VN'), cpx-14, cpy);
+  }
+  dr();
+
+  // ── CORE STOCK SELECTION & DYNAMIC UI UPDATER ─────────────
+  function selectStock(s){
+    if(!s) return;
+    currentStock = s;
+
+    // 1. Update Search Box & Selected Tag
+    document.getElementById('si').value = '';
+    document.getElementById('si').classList.remove('has-val');
+    closeAc();
+    document.getElementById('sel-sym').textContent = s.s;
+    document.getElementById('sel-name').textContent = s.n;
+    document.getElementById('sel-tag').style.display = 'flex';
+
+    // 2. Update Chart Header
+    document.querySelector('.sym-n').textContent = s.s + '.VN';
+    document.querySelector('.ptag').textContent = s.phase;
+    document.querySelector('.stag').textContent = 'SL: ' + s.sl.toLocaleString('vi-VN') + ' VND';
+
+    // 3. Update KPI Card 3 (Vị thế đang mở)
+    const kpiCard3 = document.querySelectorAll('.kc')[2];
+    if(kpiCard3){
+      kpiCard3.querySelector('.kl').textContent = 'Vị thế ' + s.s + ' (đang mở)';
+      kpiCard3.querySelector('.kv').textContent = (s.pnl >= 0 ? '+' : '') + s.pnl + '%';
+      kpiCard3.querySelector('.ks').textContent = (s.pnl >= 0 ? '+' : '') + s.pnlVnd.toLocaleString('vi-VN') + ' VND — Risk-Free';
+    }
+
+    // 4. Update Debate Council Feed with Animated Bubbles
+    const debateBox = document.querySelector('.debate');
+    if(debateBox){
+      debateBox.innerHTML = `
+        <div class="mb bull" style="animation-delay:.05s">
+          <div class="mh"><span class="mn bull">🐂 Bull Agent (${s.s})</span><span class="mt">10:45</span></div>
+          <div class="mb-b">${s.bull}</div>
+        </div>
+        <div class="mb bear" style="animation-delay:.15s">
+          <div class="mh"><span class="mn bear">🐻 Bear Agent (Phản biện)</span><span class="mt">10:46</span></div>
+          <div class="mb-b">${s.bear}</div>
+        </div>
+        <div class="mb mst" style="animation-delay:.25s">
+          <div class="mh"><span class="mn mst">🏆 Master Strategy</span><span class="mt">10:47</span></div>
+          <div class="mb-b">${s.master}</div>
+        </div>
+      `;
+    }
+
+    // 5. Update Active Positions Table (#t0)
+    const tbody = document.querySelector('#t0 tbody');
+    if(tbody){
+      tbody.innerHTML = `
+        <tr>
+          <td class="td-s">${s.s}</td>
+          <td><span class="sp op">OPEN</span></td>
+          <td>2026-05-29</td>
+          <td>${s.entry.toLocaleString('vi-VN')}</td>
+          <td class="td-bl">${s.cur.toLocaleString('vi-VN')}</td>
+          <td class="td-pos">${(s.pnl >= 0 ? '+' : '') + s.pnl}%</td>
+          <td class="td-pos">${(s.pnl >= 0 ? '+' : '') + s.pnlVnd.toLocaleString('vi-VN')}</td>
+          <td class="td-pos">${s.sl.toLocaleString('vi-VN')} ✓</td>
+          <td>${s.tp.toLocaleString('vi-VN')}</td>
+          <td>30%</td>
+          <td class="td-pos">${s.sc.toFixed(1)}</td>
+        </tr>
+      `;
+    }
+
+    // 6. Redraw Chart
     dr();
+  }
 
-    // ── STOCK AUTOCOMPLETE (71 ma) ───────────────────────
-    const STOCKS=[
-      {s:'ACB',n:'Ngan hang A Chau',sc:60.0},{s:'FPT',n:'Cong ty CP FPT',sc:55.5},
-      {s:'HPG',n:'Tap doan Hoa Phat',sc:52.0},{s:'VNM',n:'Vinamilk',sc:51.0},
-      {s:'MBB',n:'Ngan hang Quan doi MB',sc:53.5},{s:'TCB',n:'Techcombank',sc:50.5},
-      {s:'VHM',n:'Vinhomes',sc:49.0},{s:'VIC',n:'Tap doan Vingroup',sc:47.5},
-      {s:'SSI',n:'Chung khoan SSI',sc:54.0},{s:'BSR',n:'Loc Hoa Dau Binh Son',sc:52.5},
-      {s:'GAS',n:'Tong cong ty Khi VN',sc:50.0},{s:'PLX',n:'Tap doan Xang dau VN',sc:48.5},
-      {s:'PNJ',n:'Trang suc PNJ',sc:56.0},{s:'REE',n:'Co dien lanh REE',sc:51.5},
-      {s:'DGC',n:'Hoa chat Duc Giang',sc:53.0},{s:'MSN',n:'Tap doan Masan',sc:49.5},
-      {s:'VRE',n:'Vincom Retail',sc:47.0},{s:'BVH',n:'Bao Viet Holdings',sc:46.5},
-      {s:'TPB',n:'TPBank',sc:52.0},{s:'HDB',n:'HDBank',sc:51.0},
-      {s:'LPB',n:'Lien Viet Post Bank',sc:50.0},{s:'OCB',n:'Orient Commercial Bank',sc:48.0},
-      {s:'VPB',n:'VPBank',sc:53.0},{s:'STB',n:'Sacombank',sc:49.5},
-      {s:'EIB',n:'Eximbank',sc:47.0},{s:'CTG',n:'VietinBank',sc:52.5},
-      {s:'BID',n:'BIDV',sc:51.5},{s:'VCB',n:'Vietcombank',sc:54.0},
-      {s:'KDH',n:'Khang Dien Housing',sc:50.5},{s:'NLG',n:'Nam Long Group',sc:49.0},
-      {s:'DXG',n:'Dat Xanh Group',sc:47.5},{s:'PDR',n:'Phat Dat Real Estate',sc:46.5},
-      {s:'VGC',n:'Viglacera',sc:48.0},{s:'HSG',n:'Thep Hoa Sen',sc:50.0},
-      {s:'NKG',n:'Thep Nam Kim',sc:49.0},{s:'GEX',n:'Gelex Group',sc:50.5},
-      {s:'DBC',n:'Dabaco Group',sc:51.0},{s:'VHC',n:'Hung Vuong Seafood',sc:52.0},
-      {s:'ANV',n:'Nam Viet Seafood',sc:50.5},{s:'PHR',n:'Cao su Phuoc Hoa',sc:49.0},
-      {s:'DPM',n:'Phan bon Dau khi',sc:51.5},{s:'DCM',n:'Phan bon Ca Mau',sc:50.5},
-      {s:'PVT',n:'Van tai Dau khi',sc:49.5},{s:'GMD',n:'Gemadept Logistics',sc:53.0},
-      {s:'HAH',n:'Hai An Transport',sc:52.5},{s:'VSC',n:'Container Viet Nam',sc:51.0},
-      {s:'VTP',n:'Viettel Post',sc:50.0},{s:'FTS',n:'Chung khoan FPT',sc:54.5},
-      {s:'MBS',n:'Chung khoan MB',sc:51.5},{s:'VCI',n:'Viet Capital Securities',sc:53.0},
-      {s:'HCM',n:'Chung khoan TP.HCM',sc:52.0},{s:'CII',n:'Ha tang ky thuat CII',sc:48.0},
-      {s:'HHV',n:'Ha Tang Hanh Viet',sc:47.5},{s:'DGW',n:'Dien may DGW',sc:55.0},
-      {s:'MWG',n:'Dien may Xanh',sc:56.5},{s:'FRT',n:'FPT Retail',sc:54.0},
-      {s:'BMP',n:'Nhua Binh Minh',sc:51.5},{s:'AAA',n:'Nhua An Phat Xanh',sc:50.5},
-      {s:'PC1',n:'PCC1 Corp',sc:49.5},{s:'SZC',n:'Sonadezi Chau Duc',sc:48.5},
-      {s:'IDC',n:'IDC Investment',sc:47.0},{s:'CSV',n:'Hoa chat co ban',sc:48.5},
-      {s:'TLH',n:'Thep Tien Len',sc:47.5},{s:'POM',n:'Thep Pomina',sc:45.5},
-      {s:'MML',n:'Masan MEATLife',sc:50.0},{s:'TDC',n:'Kinh Bac Land',sc:47.0},
-      {s:'IJC',n:'Becamex IJC',sc:49.5},{s:'PET',n:'Petrovietnam Trading',sc:48.0},
-      {s:'LCG',n:'Licogi 16',sc:46.5},{s:'VDS',n:'Chung khoan Rong Viet',sc:50.0},
-    ];
-    let acIdx=-1,filtered=[];
-    function onSearch(v){
-      const q=v.trim().toUpperCase(),inp=document.getElementById('si');
-      inp.classList.toggle('has-val',q.length>0);
-      if(!q){closeAc();return;}
-      filtered=STOCKS.filter(s=>s.s.startsWith(q)||s.n.toUpperCase().includes(q)).slice(0,8);
-      renderAc(q);
-    }
-    function renderAc(q){
-      const drop=document.getElementById('ac');acIdx=-1;
-      if(!filtered.length){drop.innerHTML='<div class="no-res">Khong tim thay ma phu hop</div>';drop.classList.add('show');return;}
-      drop.innerHTML=filtered.map((s,i)=>{
-        const sc=s.sc>=55?'high':s.sc>=50?'mid':'';
-        return '<div class="ac-item" onmousedown="pickStock('+i+')">'
-          +'<div class="ac-left"><span class="ac-sym">'+s.s+'</span><span class="ac-name">'+s.n+'</span></div>'
-          +'<span class="ac-score '+sc+'">'+s.sc.toFixed(1)+' pts</span></div>';
-      }).join('');
+  // ── AUTOCOMPLETE & SEARCH INPUT HANDLERS ──────────────────
+  function onSearch(v){
+    const q = v.trim().toUpperCase();
+    const inp = document.getElementById('si');
+    inp.classList.toggle('has-val', q.length > 0);
+    if(!q){ filtered = STOCKS.slice(0,8); renderAc(''); return; }
+    filtered = STOCKS.filter(s => s.s.startsWith(q) || s.n.toUpperCase().includes(q)).slice(0,8);
+    renderAc(q);
+  }
+
+  function renderAc(q){
+    const drop = document.getElementById('ac');
+    acIdx = -1;
+    if(!filtered.length){
+      drop.innerHTML = '<div class="no-res">Không tìm thấy mã phù hợp — Bấm Enter để phân tích ' + q + '</div>';
       drop.classList.add('show');
+      return;
     }
-    function onKey(e){
-      const drop=document.getElementById('ac'),items=drop.querySelectorAll('.ac-item');
-      if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));e.preventDefault();}
-      else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,0);items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));e.preventDefault();}
-      else if(e.key==='Enter'&&acIdx>=0){pickStock(acIdx);}
-      else if(e.key==='Escape'){closeAc();}
-    }
-    function pickStock(i){
-      const s=filtered[i];if(!s)return;
-      document.getElementById('si').value='';
-      document.getElementById('si').classList.remove('has-val');
+    drop.innerHTML = filtered.map((s,i)=>{
+      const hl = s.s.replace(new RegExp('^'+q,'i'), m => `<span style="color:#fff;font-weight:900">${m}</span>`);
+      const scClass = s.sc >= 55 ? 'high' : s.sc >= 50 ? 'mid' : '';
+      return `<div class="ac-item" data-i="${i}" onmousedown="pickStock(${i})">
+        <div class="ac-left">
+          <span class="ac-sym">${hl}</span>
+          <span class="ac-name">${s.n}</span>
+        </div>
+        <span class="ac-score ${scClass}">${s.sc.toFixed(1)} pts</span>
+      </div>`;
+    }).join('');
+    drop.classList.add('show');
+  }
+
+  function onKey(e){
+    const drop = document.getElementById('ac');
+    const items = drop.querySelectorAll('.ac-item');
+    if(e.key === 'ArrowDown'){
+      acIdx = Math.min(acIdx + 1, items.length - 1);
+      items.forEach((el,i)=> el.classList.toggle('sel', i === acIdx));
+      e.preventDefault();
+    } else if(e.key === 'ArrowUp'){
+      acIdx = Math.max(acIdx - 1, 0);
+      items.forEach((el,i)=> el.classList.toggle('sel', i === acIdx));
+      e.preventDefault();
+    } else if(e.key === 'Enter'){
+      e.preventDefault();
+      if(acIdx >= 0 && filtered[acIdx]){
+        pickStock(acIdx);
+      } else if(filtered.length > 0){
+        pickStock(0);
+      } else {
+        const query = document.getElementById('si').value.trim().toUpperCase();
+        if(query){
+          const found = STOCKS.find(s => s.s === query);
+          if(found) selectStock(found);
+          else {
+            // Create runtime ticker
+            const newStock = {
+              s: query, n: 'Mã ' + query + ' (Tìm kiếm mới)', sc: 52.0,
+              cur: 35000, entry: 33000, sl: 32000, tp: 41000, pnl: 6.06, pnlVnd: 1818000,
+              pMin: 29000, pMax: 40000, phase: 'Pha D — SOS Breakout',
+              bull: 'Lực cầu chủ động gia tăng mạnh mẽ tại ' + query + '. Vượt đỉnh ngắn hạn với khối lượng uy tín.',
+              bear: 'Cần duy trì ngưỡng dừng lỗ chặt chẽ để phòng ngừa rủi ro rung lắc của VN-Index.',
+              master: 'Xác nhận tín hiệu MUA ' + query + '. Điểm AI: 52.0/100. Kích hoạt dời Stop-Loss bảo toàn vốn.'
+            };
+            STOCKS.push(newStock);
+            selectStock(newStock);
+          }
+        }
+      }
+    } else if(e.key === 'Escape'){
       closeAc();
-      document.getElementById('sel-sym').textContent=s.s;
-      document.getElementById('sel-name').textContent=s.n;
-      document.getElementById('sel-tag').style.display='flex';
-      document.querySelector('.sym-n').textContent=s.s+'.VN';
     }
-    function clearSel(){
-      document.getElementById('sel-tag').style.display='none';
-      document.getElementById('si').value='';
-      document.getElementById('si').classList.remove('has-val');
-      document.getElementById('si').focus();
+  }
+
+  function pickStock(i){
+    const s = filtered[i];
+    if(!s) return;
+    selectStock(s);
+  }
+
+  function clearSel(){
+    document.getElementById('sel-tag').style.display = 'none';
+    document.getElementById('si').value = '';
+    document.getElementById('si').classList.remove('has-val');
+    document.getElementById('si').focus();
+    selectStock(STOCKS[0]); // Reset to ACB
+  }
+
+  function closeAc(){
+    const d = document.getElementById('ac');
+    d.classList.remove('show');
+    d.innerHTML = '';
+    acIdx = -1;
+  }
+
+  document.addEventListener('click', e => {
+    const sw = document.getElementById('sw');
+    if(sw && !sw.contains(e.target)) closeAc();
+  });
+
+  // ── SCAN BUTTON ACTION ───────────────────────────────────
+  function runAnim(b){
+    const inpVal = document.getElementById('si').value.trim().toUpperCase();
+    let target = currentStock;
+    if(inpVal){
+      const match = STOCKS.find(s => s.s === inpVal || s.n.toUpperCase().includes(inpVal));
+      if(match) target = match;
     }
-    function closeAc(){
-      const d=document.getElementById('ac');d.classList.remove('show');d.innerHTML='';acIdx=-1;
-    }
-    document.addEventListener('click',e=>{if(!document.getElementById('sw').contains(e.target))closeAc();});
-  </script>
+    const orig = b.innerHTML;
+    b.innerHTML = '⏳ Đang quét Multi-Agent ' + target.s + '...';
+    b.disabled = true;
+    b.style.opacity = '0.75';
+    setTimeout(()=>{
+      b.innerHTML = '⚙️ Đang tổng hợp Phân tích + Biện luận...';
+      setTimeout(()=>{
+        b.innerHTML = '✅ Hoàn tất!';
+        selectStock(target);
+        setTimeout(()=>{
+          b.innerHTML = orig;
+          b.disabled = false;
+          b.style.opacity = '1';
+        }, 1000);
+      }, 1200);
+    }, 1200);
+  }
+</script>
 </body>
 </html>
