@@ -547,121 +547,150 @@
   window.addEventListener('resize', ()=>{ sz(); dr(); });
 
   function dr(){
-    const W = c.width, H = c.height;
+    const W=c.width,H=c.height;
     x.clearRect(0,0,W,H);
-    x.fillStyle = '#090d16'; x.beginPath(); x.roundRect(0,0,W,H,6); x.fill();
+    x.fillStyle='#090d16';x.beginPath();x.roundRect(0,0,W,H,6);x.fill();
 
-    const PL=72, PB=32, PT=16, PR=18;
-    const CW=W-PL-PR, CH=H-PB-PT;
+    const PL=72,PB=32,PT=14,PR=18;
+    const CW=W-PL-PR,CH=H-PB-PT;
+    const s=currentStock;
+    const PMIN=s.pMin,PMAX=s.pMax,PRNG=PMAX-PMIN;
 
-    const s = currentStock;
-    const PMIN = s.pMin, PMAX = s.pMax, PRNG = PMAX - PMIN;
+    // === Generate OHLC Candlestick Data ===
+    const N=Math.floor(CW/14); // number of candles
+    const cw=Math.max(4,Math.floor(CW/N)-2); // candle body width
+    const candles=[];
+    let close=s.entry;
 
-    // Generate continuous smooth realistic curve
-    const pts = [], N = Math.floor(CW / 10);
-    let p = s.entry;
-    for(let i=0; i<N; i++){
-      const r = i / N;
-      let tr = r < 0.28 ? (Math.random()-0.5)*0.2 :
-               r < 0.36 ? -2.2 :
-               r < 0.45 ? 2.8 : 1.4 + (r - 0.45)*5;
-      p += tr * (PRNG / 350) + (Math.random()-0.48)*(PRNG/400);
-      p = Math.max(PMIN + PRNG*0.05, Math.min(PMAX - PRNG*0.05, p));
-      pts.push(p);
+    for(let i=0;i<N;i++){
+      const r=i/N;
+      // Wyckoff phases: Accumulation -> Spring -> Markup
+      let trend;
+      if(r<0.28){trend=(Math.random()-0.52)*0.15;}       // Pha A-B: đi ngang
+      else if(r<0.32){trend=-0.35;}                       // Spring test đầu
+      else if(r<0.38){trend=-0.55;}                       // Spring chính (dip)
+      else if(r<0.44){trend=0.65;}                        // Bật lên mạnh
+      else{trend=0.25+(r-0.44)*1.2;}                      // Markup
+      
+      const volatility=PRNG/200;
+      const bodyRange=Math.abs(trend)*volatility*8+(Math.random()*volatility*3);
+      const open=close;
+      const dir=trend+(Math.random()-0.5)*0.3;
+      close=Math.max(PMIN+PRNG*0.04,Math.min(PMAX-PRNG*0.04,
+            open+dir*volatility*10));
+      const high=Math.max(open,close)+Math.random()*volatility*4;
+      const low=Math.min(open,close)-Math.random()*volatility*4;
+      candles.push({o:open,h:high,l:low,c:close});
     }
-    // Ensure last point ends near current price
-    pts[pts.length - 1] = s.cur;
-
-    function py(val){ return PT + CH - ((val - PMIN) / PRNG * CH); }
-    function gx(idx){ return PL + (idx / (N - 1)) * CW; }
-
-    // Grid Y
-    const step = Math.round(PRNG / 5 / 100) * 100;
-    for(let pL = Math.ceil(PMIN/step)*step; pL <= PMAX; pL += step){
-      const yy = py(pL);
-      if(yy < PT || yy > H - PB) continue;
-      x.strokeStyle = 'rgba(255,255,255,0.04)'; x.lineWidth = 1;
-      x.beginPath(); x.moveTo(PL,yy); x.lineTo(W-PR,yy); x.stroke();
-    }
-
-    // Grid X
-    const xStep = Math.floor(N / 7);
-    for(let i=0; i<N; i+=xStep){
-      x.strokeStyle = 'rgba(255,255,255,0.04)'; x.lineWidth = 1;
-      x.beginPath(); x.moveTo(gx(i),PT); x.lineTo(gx(i),H-PB); x.stroke();
-    }
-
-    // Area fill
-    const ag = x.createLinearGradient(0,PT,0,H-PB);
-    ag.addColorStop(0, 'rgba(59,130,246,0.22)');
-    ag.addColorStop(1, 'rgba(59,130,246,0.0)');
-    x.beginPath();
-    pts.forEach((pv,i)=>{ i===0 ? x.moveTo(gx(i),py(pv)) : x.lineTo(gx(i),py(pv)); });
-    x.lineTo(gx(N-1), H-PB); x.lineTo(gx(0), H-PB); x.closePath();
-    x.fillStyle = ag; x.fill();
-
-    // Price line
-    x.strokeStyle = '#3b82f6'; x.lineWidth = 2.2; x.lineJoin = 'round';
-    x.beginPath();
-    pts.forEach((pv,i)=>{ i===0 ? x.moveTo(gx(i),py(pv)) : x.lineTo(gx(i),py(pv)); });
-    x.stroke();
-
-    // Y-Axis Labels
-    x.font = '11px "JetBrains Mono"'; x.textAlign = 'right'; x.textBaseline = 'middle';
-    for(let pL = Math.ceil(PMIN/step)*step; pL <= PMAX; pL += step){
-      const yy = py(pL);
-      if(yy < PT + 5 || yy > H - PB - 5) continue;
-      x.fillStyle = 'rgba(100,120,150,0.85)';
-      x.fillText(pL.toLocaleString('vi-VN'), PL - 8, yy);
+    // Pin last close to current price
+    candles[N-1].c=s.cur;
+    if(s.cur>candles[N-1].o){
+      candles[N-1].h=Math.max(candles[N-1].h,s.cur+PRNG*0.005);
+    } else {
+      candles[N-1].l=Math.min(candles[N-1].l,s.cur-PRNG*0.005);
     }
 
-    // Stop Loss Highlight Line & Label on Y-axis
-    if(s.sl >= PMIN && s.sl <= PMAX){
-      const slY = py(s.sl);
-      x.strokeStyle = 'rgba(0,217,126,0.65)'; x.lineWidth = 1.5; x.setLineDash([5,5]);
-      x.beginPath(); x.moveTo(gx(Math.floor(N*0.4)), slY); x.lineTo(W-PR, slY); x.stroke();
+    function py(p){return PT+CH-((p-PMIN)/PRNG*CH);}
+    function cx2(i){return PL+(i+0.5)*(CW/N);}
+
+    // === Y-axis Grid & Labels ===
+    const rawStep=PRNG/5;
+    const magnitude=Math.pow(10,Math.floor(Math.log10(rawStep)));
+    const step=Math.round(rawStep/magnitude)*magnitude||magnitude;
+    x.font='11px "JetBrains Mono"';x.textAlign='right';x.textBaseline='middle';
+    for(let pL=Math.ceil(PMIN/step)*step;pL<=PMAX;pL+=step){
+      const yy=py(pL);
+      if(yy<PT+4||yy>H-PB-4)continue;
+      x.strokeStyle='rgba(255,255,255,0.04)';x.lineWidth=1;x.setLineDash([]);
+      x.beginPath();x.moveTo(PL,yy);x.lineTo(W-PR,yy);x.stroke();
+      x.fillStyle='rgba(100,120,150,0.8)';
+      x.fillText(pL.toLocaleString('vi-VN'),PL-8,yy);
+    }
+
+    // === X-axis Grid & Labels ===
+    const xStep=Math.max(1,Math.floor(N/7));
+    const t0=new Date('2025-12-01');
+    x.font='10px "JetBrains Mono"';x.textAlign='center';x.textBaseline='top';
+    x.fillStyle='rgba(100,120,150,0.75)';
+    for(let i=0;i<N;i+=xStep){
+      const gxx=cx2(i);
+      x.strokeStyle='rgba(255,255,255,0.04)';x.lineWidth=1;
+      x.beginPath();x.moveTo(gxx,PT);x.lineTo(gxx,H-PB);x.stroke();
+      const d=new Date(t0);d.setDate(d.getDate()+Math.round(i*(120/N)));
+      const lbl=(d.getMonth()+1).toString().padStart(2,'0')+'/'+(d.getDate()).toString().padStart(2,'0');
+      x.fillText(lbl,gxx,H-PB+6);
+    }
+
+    // === Axis borders ===
+    x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.setLineDash([]);
+    x.beginPath();x.moveTo(PL,PT);x.lineTo(PL,H-PB);x.lineTo(W-PR,H-PB);x.stroke();
+
+    // === SL Breakeven line ===
+    if(s.sl>=PMIN&&s.sl<=PMAX){
+      const slY=py(s.sl);
+      x.strokeStyle='rgba(0,217,126,0.7)';x.lineWidth=1.5;x.setLineDash([6,4]);
+      x.beginPath();x.moveTo(cx2(Math.floor(N*0.4)),slY);x.lineTo(W-PR,slY);x.stroke();
       x.setLineDash([]);
-      x.fillStyle = 'rgba(0,217,126,0.95)';
-      x.fillText(s.sl.toLocaleString('vi-VN') + ' ✓', PL - 8, slY);
+      // SL label on Y-axis
+      x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 11px "JetBrains Mono"';
+      x.textAlign='right';x.textBaseline='middle';
+      x.fillText(s.sl.toLocaleString('vi-VN')+' ✓',PL-8,slY);
     }
 
-    // Y & X Axis Borders
-    x.strokeStyle = 'rgba(255,255,255,0.08)'; x.lineWidth = 1; x.setLineDash([]);
-    x.beginPath(); x.moveTo(PL,PT); x.lineTo(PL,H-PB); x.lineTo(W-PR,H-PB); x.stroke();
+    // === Draw Candlesticks ===
+    const halfW=Math.max(2,Math.floor(cw/2)-1);
+    for(let i=0;i<N;i++){
+      const cd=candles[i];
+      const bull=cd.c>=cd.o;
+      const bodyColor=bull?'#00d97e':'#f87171';
+      const wickColor=bull?'rgba(0,217,126,0.55)':'rgba(248,113,113,0.55)';
+      const bodyTop=py(Math.max(cd.o,cd.c));
+      const bodyBot=py(Math.min(cd.o,cd.c));
+      const bodyH=Math.max(1,bodyBot-bodyTop);
+      const cx3=cx2(i);
 
-    // X-Axis Date Labels
-    const t0 = new Date('2025-12-01');
-    x.font = '10px "JetBrains Mono"'; x.textAlign = 'center'; x.textBaseline = 'top';
-    x.fillStyle = 'rgba(100,120,150,0.75)';
-    for(let i=0; i<N; i+=xStep){
-      const d = new Date(t0); d.setDate(d.getDate() + Math.round(i*(120/N)));
-      const lbl = (d.getMonth()+1).toString().padStart(2,'0')+'/'+(d.getDate()).toString().padStart(2,'0');
-      x.fillText(lbl, gx(i), H-PB+6);
+      // Wick (shadow)
+      x.strokeStyle=wickColor;x.lineWidth=1.5;
+      x.beginPath();x.moveTo(cx3,py(cd.h));x.lineTo(cx3,bodyTop);x.stroke();
+      x.beginPath();x.moveTo(cx3,bodyBot);x.lineTo(cx3,py(cd.l));x.stroke();
+
+      // Body
+      x.fillStyle=bodyColor;
+      x.fillRect(cx3-halfW,bodyTop,halfW*2,bodyH);
+
+      // Subtle border on body
+      x.strokeStyle=bull?'rgba(0,255,140,0.3)':'rgba(255,80,80,0.25)';
+      x.lineWidth=0.5;x.setLineDash([]);
+      x.strokeRect(cx3-halfW,bodyTop,halfW*2,bodyH);
     }
 
-    // Spring Annotation Point
-    const si2 = Math.floor(N*0.34), se = Math.floor(N*0.42);
-    let smi = si2, smp = pts[si2];
-    for(let i=si2; i<se; i++){ if(pts[i]<smp){ smp=pts[i]; smi=i; } }
-    const spx = gx(smi), spy = py(smp);
-    x.beginPath(); x.arc(spx, spy, 6, 0, Math.PI*2);
-    x.fillStyle = 'rgba(0,217,126,0.2)'; x.fill();
-    x.strokeStyle = '#00d97e'; x.lineWidth = 1.5; x.stroke();
-    x.fillStyle = 'rgba(0,217,126,0.95)';
-    x.font = 'bold 10px "JetBrains Mono"'; x.textAlign = 'left'; x.textBaseline = 'middle';
-    x.fillText('Spring', spx+10, spy);
+    // === Spring Annotation (at Spring candle lowest low) ===
+    const si2=Math.floor(N*0.32),se=Math.floor(N*0.40);
+    let smi=si2,smpLow=candles[si2].l;
+    for(let i=si2;i<se;i++){if(candles[i].l<smpLow){smpLow=candles[i].l;smi=i;}}
+    const spx=cx2(smi),spy=py(smpLow)+14;
+    // Arrow pointing up
+    x.strokeStyle='rgba(0,217,126,0.9)';x.lineWidth=1.5;x.setLineDash([]);
+    x.beginPath();x.moveTo(spx,spy+18);x.lineTo(spx,spy+4);x.stroke();
+    x.beginPath();x.moveTo(spx-4,spy+8);x.lineTo(spx,spy+3);x.lineTo(spx+4,spy+8);x.stroke();
+    // Label
+    x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 10px "JetBrains Mono"';
+    x.textAlign='center';x.textBaseline='top';x.fillText('Spring',spx,spy+20);
 
-    // Current Price Glow Dot & Badge
-    const cpx = gx(N-1), cpy = py(pts[N-1]);
-    const gr = x.createRadialGradient(cpx,cpy,0,cpx,cpy,12);
-    gr.addColorStop(0,'rgba(0,217,126,0.6)'); gr.addColorStop(1,'rgba(0,217,126,0)');
-    x.beginPath(); x.arc(cpx,cpy,12,0,Math.PI*2); x.fillStyle = gr; x.fill();
-    x.beginPath(); x.arc(cpx,cpy,3.5,0,Math.PI*2); x.fillStyle = '#00d97e'; x.fill();
-
-    x.fillStyle = '#00d97e'; x.font = 'bold 11px "JetBrains Mono"';
-    x.textAlign = 'right'; x.textBaseline = 'middle';
-    x.fillText(s.cur.toLocaleString('vi-VN'), cpx-14, cpy);
+    // === Current Price Glow Dot (last candle top) ===
+    const lastC=candles[N-1];
+    const cpx=cx2(N-1),cpy=py(lastC.c);
+    const gr=x.createRadialGradient(cpx,cpy,0,cpx,cpy,14);
+    gr.addColorStop(0,'rgba(0,217,126,0.65)');gr.addColorStop(1,'rgba(0,217,126,0)');
+    x.beginPath();x.arc(cpx,cpy,14,0,Math.PI*2);x.fillStyle=gr;x.fill();
+    x.beginPath();x.arc(cpx,cpy,3.5,0,Math.PI*2);x.fillStyle='#00d97e';x.fill();
+    // Price badge
+    const lastP=Math.round(lastC.c);
+    x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 11px "JetBrains Mono"';
+    x.textAlign='right';x.textBaseline='middle';
+    x.fillText(lastP.toLocaleString('vi-VN'),cpx-16,cpy);
   }
+}
   dr();
 
   // ── CORE STOCK SELECTION & DYNAMIC UI UPDATER ─────────────
