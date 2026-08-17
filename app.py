@@ -284,8 +284,55 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🤖 Vibe Stock Terminal — Pro AI Multi-Agent Trading Intelligence")
-st.caption("⚡ Real-time Pipeline 5 tầng: Data Collection → Analysis Agents → Consensus → Debate Council → Final Verdict")
+# ── Header Terminal Glassmorphism ─────────────────────────────────
+st.markdown("""
+<div style="
+    background: linear-gradient(135deg, rgba(15, 22, 35, 0.95) 0%, rgba(20, 30, 48, 0.9) 100%);
+    border: 1px solid rgba(0, 230, 118, 0.25);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+">
+    <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+            <span style="
+                background: linear-gradient(135deg, #00e676, #29b6f6);
+                color: #050b14;
+                font-weight: 900;
+                font-size: 14px;
+                padding: 4px 10px;
+                border-radius: 8px;
+                letter-spacing: 0.5px;
+            ">PRO TERMINAL</span>
+            <span style="color: #8b9bb4; font-size: 13px; font-weight: 600;">Self-Improving Multi-Agent Engine v4.2</span>
+        </div>
+        <h1 style="margin: 0; font-size: 2.1rem !important; background: linear-gradient(135deg, #ffffff 0%, #00e676 50%, #29b6f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🤖 Vibe Stock Terminal — AI Trading Intelligence
+        </h1>
+        <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 0.88rem;">
+            ⚡ Quét real-time 71 mã / 16 Ngành hàng • Tối ưu 20-Loop Sweet Spot (50.0đ) • Tự động đẩy Google Sheets
+        </p>
+    </div>
+    <div style="display: flex; gap: 16px; align-items: center;">
+        <div style="background: rgba(0, 230, 118, 0.1); border: 1px solid rgba(0, 230, 118, 0.3); border-radius: 12px; padding: 10px 16px; text-align: right;">
+            <div style="font-size: 11px; color: #00e676; font-weight: 700; text-transform: uppercase;">20-Loop Return</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 800; color: #ffffff;">+636.11%</div>
+        </div>
+        <div style="background: rgba(41, 182, 246, 0.1); border: 1px solid rgba(41, 182, 246, 0.3); border-radius: 12px; padding: 10px 16px; text-align: right;">
+            <div style="font-size: 11px; color: #29b6f6; font-weight: 700; text-transform: uppercase;">Cloud Storage</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #29b6f6; display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                <span style="width: 8px; height: 8px; background: #00e676; border-radius: 50%; display: inline-block;"></span>
+                Google Sheets Live
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ---- Sidebar ----
 @st.cache_data(ttl=300)
