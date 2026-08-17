@@ -23,13 +23,11 @@ name: Quét sổ lệnh
 on:
   schedule:
     # Giờ cron của GitHub là UTC. Việt Nam UTC+7.
-    # 02:00–08:00 UTC = 09:00–15:00 ICT, đúng giờ giao dịch HOSE.
-    # */30 = mỗi 30 phút. Thứ 2 đến thứ 6.
-    #
-    # LƯU Ý: lịch của GitHub Actions là "cố gắng hết sức" — lúc hệ thống
-    # tải cao có thể trễ 5–20 phút hoặc bỏ hẳn một nhịp. Không dùng nó
-    # cho việc cần đúng giây.
-    - cron: '*/30 2-8 * * 1-5'
+    # Phiên sáng:  09:00–11:30 ICT = 02:00–04:30 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
+    # Nghỉ trưa:  11:30–13:00 ICT = BỎ QUA HOÀN TOÀN (Không quét trong giờ nghỉ trưa)
+    # Phiên chiều: 13:00–15:00 ICT = 06:00–08:00 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
+    - cron: '0,30 2-4 * * 1-5'
+    - cron: '0,30 6-8 * * 1-5'
   workflow_dispatch:        # cho phép bấm chạy tay để kiểm tra
 
 # Không bao giờ để hai lần quét chạy chồng nhau: cả hai cùng kéo về, cùng
