@@ -49,54 +49,61 @@
     /* LAYOUT */
     .layout{display:grid;grid-template-columns:290px 1fr;min-height:100vh;padding-top:56px;position:relative;z-index:1}
 
-    /* SIDEBAR */
-    .sb{background:var(--c-s1);border-right:1px solid var(--c-border);padding:18px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
-    .sec-l{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--c-t3);text-transform:uppercase;padding:0 2px;margin-bottom:6px}
-    .sb-blk{display:flex;flex-direction:column;gap:8px}
-    select.sel,input.inp{width:100%;background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:10px 12px;font-family:var(--ff);color:var(--c-t1);font-size:13px;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;cursor:pointer;-webkit-appearance:none}
-    select.sel:focus,input.inp:focus{border-color:var(--c-g);box-shadow:0 0 0 3px rgba(0,217,126,.1)}
+    /* SIDEBAR REDESIGN */
+    .sb{background:var(--c-s1);border-right:1px solid var(--c-border);padding:16px 14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;width:310px}
+    .sb-card{background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:13px;display:flex;flex-direction:column;gap:9px;transition:border-color .2s}
+    .sb-card:hover{border-color:rgba(255,255,255,0.12)}
+    .sb-card-title{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--c-t2);display:flex;align-items:center;gap:6px}
+    
+    /* SEARCH ROW WITH BUTTON */
+    .search-row{display:flex;gap:6px;align-items:center}
+    .search-inp{flex:1;background:var(--c-s1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:9px 12px;font-family:var(--fm);color:var(--c-t1);font-size:13px;font-weight:600;outline:none;text-transform:uppercase;transition:all .2s}
+    .search-inp::placeholder{color:var(--c-t3);font-family:var(--ff);text-transform:none;font-weight:400;font-size:12px}
+    .search-inp:focus{border-color:var(--c-g);box-shadow:0 0 0 3px rgba(0,217,126,.15);background:rgba(0,217,126,.02)}
+    .btn-search{background:linear-gradient(135deg,#00d97e,#059669);color:#030a06;border:none;border-radius:var(--r-sm);padding:9px 14px;font-family:var(--ff);font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
+    .btn-search:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,217,126,.4)}
+    .btn-search:active{transform:translateY(0)}
 
-    /* SEARCH AUTOCOMPLETE */
-    .search-wrap{position:relative;width:100%}
-    .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--c-t3);pointer-events:none;z-index:1}
-    .search-inp{width:100%;background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:10px 12px 10px 34px;font-family:var(--ff);color:var(--c-t1);font-size:13px;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s}
-    .search-inp::placeholder{color:var(--c-t3)}
-    .search-inp:focus{border-color:var(--c-g);box-shadow:0 0 0 3px rgba(0,217,126,.1)}
-    .search-inp.has-val{border-color:rgba(0,217,126,.4)}
-    .ac-drop{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--c-s2);border:1px solid rgba(0,217,126,.25);border-radius:var(--r-md);overflow:hidden;z-index:999;box-shadow:0 16px 40px rgba(0,0,0,.55);display:none}
-    .ac-drop.show{display:block;animation:fu .18s var(--ease) both}
-    .ac-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;cursor:pointer;transition:background .14s;border-bottom:1px solid var(--c-border)}
-    .ac-item:last-child{border-bottom:none}
-    .ac-item:hover,.ac-item.sel{background:rgba(0,217,126,.08)}
-    .ac-sym{font-family:var(--fm);font-size:13px;font-weight:800;color:var(--c-g)}
-    .ac-name{font-size:11px;color:var(--c-t3);margin-top:1px}
-    .ac-left{display:flex;flex-direction:column}
-    .ac-score{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--c-t3);white-space:nowrap}
-    .ac-score.high{color:var(--c-g)} .ac-score.mid{color:var(--c-a)}
-    .no-res{padding:12px 13px;font-size:12px;color:var(--c-t3);text-align:center}
-    .selected-tag{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--c-g-dim);border:1px solid rgba(0,217,126,.25);border-radius:var(--r-sm);font-size:12px;font-weight:600;color:var(--c-g);margin-top:4px}
-    .selected-tag .tag-sym{font-family:var(--fm);font-weight:800;font-size:13px}
-    .selected-tag .tag-rm{margin-left:auto;cursor:pointer;color:var(--c-t3);font-size:14px;line-height:1;transition:color .15s}
-    .selected-tag .tag-rm:hover{color:var(--c-r)}
+    /* QUICK PILLS */
+    .quick-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+    .qp{padding:3px 8px;border-radius:6px;font-family:var(--fm);font-size:11px;font-weight:700;color:var(--c-t2);background:var(--c-s1);border:1px solid var(--c-border);cursor:pointer;transition:all .15s}
+    .qp:hover{color:var(--c-g);border-color:rgba(0,217,126,.4);background:rgba(0,217,126,.06)}
+    .qp.on{color:#030a06;background:var(--c-g);border-color:var(--c-g);box-shadow:0 2px 8px rgba(0,217,126,.35)}
+
+    /* PARAMS & SLIDERS */
     .sl-w{display:flex;flex-direction:column;gap:7px}
     .sl-h{display:flex;justify-content:space-between;align-items:center}
-    .sl-t{font-size:12px;font-weight:600;color:var(--c-t2)} .sl-v{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--c-g)}
-    input[type=range]{width:100%;height:3px;-webkit-appearance:none;background:var(--c-s3);border-radius:2px;outline:none;cursor:pointer}
+    .sl-t{font-size:11.5px;font-weight:600;color:var(--c-t2)}
+    .sl-v{font-family:var(--fm);font-size:12.5px;font-weight:800;color:var(--c-g);background:rgba(0,217,126,.1);padding:2px 7px;border-radius:6px;border:1px solid rgba(0,217,126,.25)}
+    input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:var(--c-s3);border-radius:2px;outline:none;cursor:pointer}
     input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--c-g);box-shadow:0 0 9px var(--c-g-glow);transition:transform .2s}
-    input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.35)}
-    .chips{display:flex;gap:5px;flex-wrap:wrap}
-    .chip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--c-border);color:var(--c-t2);background:var(--c-s2);cursor:pointer;transition:all .18s}
+    input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
+    
+    .chips{display:flex;gap:4px;flex-wrap:wrap}
+    .chip{padding:5px 9px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid var(--c-border);color:var(--c-t2);background:var(--c-s1);cursor:pointer;transition:all .15s}
     .chip:hover{border-color:var(--c-g);color:var(--c-g)}
-    .chip.on{background:var(--c-g-dim);border-color:var(--c-g);color:var(--c-g)}
-    .btn-run{width:100%;padding:12px;background:linear-gradient(135deg,#00d97e 0%,#059669 50%,#3b82f6 100%);background-size:200% 200%;border:none;border-radius:var(--r-md);color:#030a06;font-family:var(--ff);font-size:13px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 22px rgba(0,217,126,.35);transition:all .3s var(--ease);position:relative;overflow:hidden}
-    .btn-run:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,217,126,.5)}
+    .chip.on{background:var(--c-g-dim);border-color:var(--c-g);color:var(--c-g);font-weight:700}
+
+    /* ACTION BUTTON */
+    .btn-run{width:100%;padding:12px;background:linear-gradient(135deg,#00d97e 0%,#059669 50%,#3b82f6 100%);background-size:200% 200%;border:none;border-radius:var(--r-md);color:#030a06;font-family:var(--ff);font-size:12.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(0,217,126,.35);transition:all .25s var(--ease)}
+    .btn-run:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,217,126,.55)}
     .btn-run:active{transform:translateY(0)}
-    .a-rows{display:flex;flex-direction:column;gap:7px}
-    .a-row{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:var(--c-s2);border-radius:var(--r-sm);border:1px solid var(--c-border);font-size:11.5px}
-    .a-lbl{color:var(--c-t2);font-weight:500}
-    .a-st{font-weight:700;display:flex;align-items:center;gap:4px}
+
+    /* AGENT STATUS ROWS */
+    .a-rows{display:flex;flex-direction:column;gap:5px}
+    .a-row{display:flex;justify-content:space-between;align-items:center;padding:6px 9px;background:var(--c-s1);border-radius:var(--r-sm);border:1px solid var(--c-border);font-size:11px}
+    .a-lbl{color:var(--c-t2);font-weight:500;display:flex;align-items:center;gap:5px}
+    .a-meta{font-size:9.5px;color:var(--c-t3);font-family:var(--fm)}
+    .a-st{font-weight:700;display:flex;align-items:center;gap:4px;font-size:10px}
     .a-st.ok{color:var(--c-g)} .a-st.ac{color:var(--c-p)} .a-st.in{color:var(--c-b)} .a-st.wn{color:var(--c-a)}
     .sdot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor}
+
+    /* QUICK SIGNALS BOX */
+    .sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .sig-item{background:var(--c-s1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:7px 9px;display:flex;flex-direction:column;gap:2px}
+    .sig-lbl{font-size:9px;color:var(--c-t3);text-transform:uppercase;font-weight:700;letter-spacing:.4px}
+    .sig-val{font-family:var(--fm);font-size:11.5px;font-weight:800;color:var(--c-g)}
+    .sig-val.pos{color:var(--c-g)} .sig-val.neu{color:var(--c-b)} .sig-val.neg{color:var(--c-r)}
 
     /* MAIN */
     .main{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--c-bg)}
@@ -221,55 +228,111 @@
   </nav>
 
   <div class="layout">
-    <aside class="sb">
-      <div class="sb-blk ai">
-        <div class="sec-l">Tim kiem ma co phieu</div>
-        <div class="search-wrap" id="sw">
-          <span class="search-icon" style="cursor:pointer;pointer-events:auto;" onclick="onKey({key:'Enter',preventDefault:function(){}})">&#128269;</span>
+        <aside class="sb">
+      <!-- 1. SEARCH CARD -->
+      <div class="sb-card ai">
+        <div class="sb-card-title">🔍 Tìm kiếm mã CK</div>
+        <div class="search-row">
           <input class="search-inp" id="si" type="text"
-                 placeholder="Nhap ma hoac ten: ACB, FPT..."
+                 placeholder="Nhập mã: SSI, FPT..."
+                 value="ACB"
                  autocomplete="off"
-                 oninput="onSearch(this.value)" onfocus="onSearch(this.value)"
-                 onkeydown="onKey(event)">
-          <div class="ac-drop" id="ac"></div>
+                 onkeydown="if(event.key==='Enter')doSearch()">
+          <button class="btn-search" onclick="doSearch()">Tìm</button>
         </div>
-        <div id="sel-tag" style="display:none" class="selected-tag">
-          <span class="tag-sym" id="sel-sym">ACB</span>
-          <span id="sel-name" style="color:var(--c-t2);font-size:11px"></span>
-          <span class="tag-rm" onclick="clearSel()">&#10005;</span>
+        <div style="font-size:10px;color:var(--c-t3);margin-top:2px">Mã theo dõi phổ biến:</div>
+        <div class="quick-row">
+          <div class="qp on" onclick="quickSelect('ACB',this)">ACB</div>
+          <div class="qp" onclick="quickSelect('SSI',this)">SSI</div>
+          <div class="qp" onclick="quickSelect('FPT',this)">FPT</div>
+          <div class="qp" onclick="quickSelect('HPG',this)">HPG</div>
+          <div class="qp" onclick="quickSelect('VNM',this)">VNM</div>
+          <div class="qp" onclick="quickSelect('BSR',this)">BSR</div>
+          <div class="qp" onclick="quickSelect('MWG',this)">MWG</div>
+          <div class="qp" onclick="quickSelect('DGC',this)">DGC</div>
+          <div class="qp" onclick="quickSelect('PNJ',this)">PNJ</div>
         </div>
       </div>
 
-      <div class="sb-blk ai d1">
+      <!-- 2. AI PARAMETERS CARD -->
+      <div class="sb-card ai d1">
+        <div class="sb-card-title">🎯 Tham số AI & Quản trị</div>
         <div class="sl-w">
-          <div class="sl-h"><span class="sl-t">Nguong diem mua AI</span><span class="sl-v" id="sv">50.0 diem</span></div>
+          <div class="sl-h">
+            <span class="sl-t">Ngưỡng mua Multi-Agent</span>
+            <span class="sl-v" id="sv">50.0 pts</span>
+          </div>
           <input type="range" min="40" max="65" value="50" step="0.5"
-                 oninput="document.getElementById('sv').textContent=parseFloat(this.value).toFixed(1)+' diem'">
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--c-t3)">
-            <span>40.0 (Rui ro)</span><span style="color:var(--c-g)">Toi uu</span><span>65.0 (Than trong)</span>
+                 oninput="document.getElementById('sv').textContent=parseFloat(this.value).toFixed(1)+' pts'">
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--c-t3)">
+            <span>40.0 (Rủi ro)</span><span style="color:var(--c-g);font-weight:700">50.0 Tối ưu</span><span>65.0 (Thận trọng)</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-top:3px">
+          <div class="sl-t">Chế độ phân bổ vốn:</div>
+          <div class="chips">
+            <div class="chip on" onclick="ck(this)">30% / vị thế</div>
+            <div class="chip" onclick="ck(this)">Kelly Dynamic</div>
+            <div class="chip" onclick="ck(this)">1% Risk</div>
           </div>
         </div>
       </div>
 
-      <div class="sb-blk ai d2">
-        <div class="sec-l">Che do von</div>
-        <div class="chips">
-          <div class="chip on" onclick="ck(this)">30% / vi the</div>
-          <div class="chip" onclick="ck(this)">Kelly Dynamic</div>
-          <div class="chip" onclick="ck(this)">1% Fixed Risk</div>
+      <!-- 3. ACTION BUTTON -->
+      <button class="btn-run ai d2" onclick="runAnim(this)">⚡ Kích hoạt Multi-Agent Scan</button>
+
+      <!-- 4. QUICK SIGNALS CARD -->
+      <div class="sb-card ai d3">
+        <div class="sb-card-title">📊 Tín hiệu kỹ thuật nhanh</div>
+        <div class="sig-grid">
+          <div class="sig-item">
+            <span class="sig-lbl">Pha Wyckoff</span>
+            <span class="sig-val pos" id="sig-phase">Pha C (Spring)</span>
+          </div>
+          <div class="sig-item">
+            <span class="sig-lbl">RSI (14)</span>
+            <span class="sig-val neu" id="sig-rsi">54.2</span>
+          </div>
+          <div class="sig-item">
+            <span class="sig-lbl">Dòng tiền Lớn</span>
+            <span class="sig-val pos" id="sig-flow">+18.4%</span>
+          </div>
+          <div class="sig-item">
+            <span class="sig-lbl">Khuyến nghị AI</span>
+            <span class="sig-val pos" id="sig-rec">MUA MỚI</span>
+          </div>
         </div>
       </div>
 
-      <button class="btn-run ai d3" onclick="runAnim(this)">&#9889; Kich hoat Multi-Agent Scan</button>
-
-      <div class="sb-blk ai d4">
-        <div class="sec-l">Trang thai agents</div>
+      <!-- 5. AGENT SYSTEM STATUS CARD -->
+      <div class="sb-card ai d4">
+        <div class="sb-card-title">🛰️ Trạng thái Hệ thống AI</div>
         <div class="a-rows">
-          <div class="a-row"><span class="a-lbl">Technical Agent</span><span class="a-st ok"><span class="sdot"></span>ONLINE</span></div>
-          <div class="a-row"><span class="a-lbl">Fundamental Agent</span><span class="a-st in"><span class="sdot"></span>ONLINE</span></div>
-          <div class="a-row"><span class="a-lbl">Debate Council</span><span class="a-st ac"><span class="sdot"></span>ACTIVE</span></div>
-          <div class="a-row"><span class="a-lbl">Post-Mortem Mem</span><span class="a-st wn"><span class="sdot"></span>39 Mau</span></div>
-          <div class="a-row"><span class="a-lbl">TradingView MCP</span><span class="a-st ok"><span class="sdot"></span>LIVE</span></div>
+          <div class="a-row">
+            <span class="a-lbl">📈 Technical Agent</span>
+            <span class="a-meta">12ms</span>
+            <span class="a-st ok"><span class="sdot"></span>ONLINE</span>
+          </div>
+          <div class="a-row">
+            <span class="a-lbl">📑 Fundamental Agent</span>
+            <span class="a-meta">Q2/2026</span>
+            <span class="a-st in"><span class="sdot"></span>ONLINE</span>
+          </div>
+          <div class="a-row">
+            <span class="a-lbl">⚔️ Debate Council</span>
+            <span class="a-meta">3 Vòng</span>
+            <span class="a-st ac"><span class="sdot"></span>ACTIVE</span>
+          </div>
+          <div class="a-row">
+            <span class="a-lbl">🧠 Post-Mortem Mem</span>
+            <span class="a-meta">39 Mẫu</span>
+            <span class="a-st wn"><span class="sdot"></span>SYNCED</span>
+          </div>
+          <div class="a-row">
+            <span class="a-lbl">📡 TradingView MCP</span>
+            <span class="a-meta">Live</span>
+            <span class="a-st ok"><span class="sdot"></span>READY</span>
+          </div>
         </div>
       </div>
     </aside>
@@ -442,7 +505,7 @@
     {
       s:'ACB', n:'Ngân hàng Á Châu', sc:60.0,
       cur:22750, entry:21110, sl:21158, tp:26052, pnl:7.77, pnlVnd:2330649,
-      pMin:19000, pMax:24200, phase:'Pha C — Wyckoff Spring',
+      pMin:19000, pMax:24200, phase:'Pha C — Wyckoff Spring', rsi:54.2, flow:'+18.4%',
       bull:'Wyckoff Spring tại vùng hỗ trợ 21,100 — volume thấp khi rũ, tăng vọt khi bật lên. Tín hiệu tích lũy pha C hoàn hảo. Khuyến nghị giải ngân 30% vốn.',
       bear:'Cảnh báo: VN-Index đang phân hóa. Biên lợi nhuận ngắn hạn khoảng +8.5%, yêu cầu duy trì trailing stop bảo toàn vốn.',
       master:'Đồng thuận mở vị thế. Điểm AI đạt 60.0/100. Đã dời Stop-Loss lên 21,158 (Breakeven). Hiện trạng: RỦI RO BẰNG 0 (Risk-Free).'
@@ -450,7 +513,7 @@
     {
       s:'SSI', n:'Chứng khoán SSI', sc:56.5,
       cur:36400, entry:34500, sl:34200, tp:42000, pnl:5.51, pnlVnd:1650000,
-      pMin:31000, pMax:39500, phase:'Pha D — SOS Breakout',
+      pMin:31000, pMax:39500, phase:'Pha D — SOS Breakout', rsi:62.8, flow:'+24.1%',
       bull:'Thanh khoản ngành chứng khoán bùng nổ, SSI vượt cản 35,000 với volume gấp 2.4x trung bình 20 phiên. Dòng tiền tạo lập đẩy giá rõ nét.',
       bear:'Thị trường chung chưa bứt phá hoàn toàn 1,260, cần đề phòng nhịp retest lại vùng đỉnh cũ 35,500.',
       master:'Khuyến nghị MUA 30% vị thế SSI tại 35,500. Thiết lập Stop-Loss 34,200 VNĐ, mục tiêu trung hạn 42,000 VNĐ. Điểm AI: 56.5/100.'
@@ -458,15 +521,15 @@
     {
       s:'FPT', n:'Công ty CP FPT', sc:58.0,
       cur:128500, entry:121000, sl:122000, tp:145000, pnl:6.20, pnlVnd:1860000,
-      pMin:112000, pMax:136000, phase:'Pha E — Markup Trend',
+      pMin:112000, pMax:136000, phase:'Pha E — Markup Trend', rsi:68.4, flow:'+15.7%',
       bull:'Xu hướng tăng trung dài hạn bền vững, mảng AI và xuất khẩu phần mềm tăng trưởng 24% YoY. FPT duy trì vị thế dẫn dắt dòng tiền công nghệ.',
-      bear:'Chỉ báo RSI đạt 71 (tiệm cận vùng quá mua ngắn hạn), khuyến nghị không mua đuổi ở các phiên hưng phấn.',
+      bear:'Chỉ báo RSI đạt 68.4 (tiệm cận vùng quá mua ngắn hạn), khuyến nghị không mua đuổi ở các phiên hưng phấn.',
       master:'Xác nhận XU HƯỚNG TĂNG. Điểm AI đạt 58.0/100. Tiếp tục nắm giữ, dời Stop-Loss lên mức bảo toàn 122,000 VNĐ.'
     },
     {
       s:'HPG', n:'Tập đoàn Hòa Phát', sc:53.5,
       cur:26800, entry:25600, sl:25100, tp:31000, pnl:4.69, pnlVnd:1406250,
-      pMin:23000, pMax:29000, phase:'Pha C — Last Point of Support (LPS)',
+      pMin:23000, pMax:29000, phase:'Pha C — Wyckoff LPS', rsi:51.3, flow:'+11.2%',
       bull:'Giá thép nội địa tạo đáy phục hồi, lò cao Dung Quất 2 sắp vận hành thương mại. Lực cầu hấp thụ lượng bán tại 25,500 rất mạnh.',
       bear:'Biên độ giao động ngắn hạn chưa bứt phá khỏi kênh tích lũy, khối ngoại còn bán ròng nhẹ.',
       master:'MỞ VỊ THẾ THĂM DÒ 20% vốn tại vùng giá 26,000. Điểm AI: 53.5/100. Stop-Loss: 25,100 VNĐ.'
@@ -474,7 +537,7 @@
     {
       s:'VNM', n:'Công ty CP Vinamilk', sc:52.0,
       cur:68500, entry:66200, sl:65000, tp:76000, pnl:3.47, pnlVnd:1042000,
-      pMin:61000, pMax:73000, phase:'Pha A — Selling Climax Absorption',
+      pMin:61000, pMax:73000, phase:'Pha A — Selling Climax Absorption', rsi:48.5, flow:'+8.6%',
       bull:'Định giá P/E 13.2x thấp hơn trung bình 5 năm, tỷ suất cổ tức tiền mặt đều đặn 5.8%/năm. Dòng tiền phòng thủ bắt đầu gom mạnh.',
       bear:'Tăng trưởng doanh thu ngành sữa đi ngang, cần thêm động lực từ thị trường xuất khẩu.',
       master:'NẮM GIỮ TỶ TRỌNG PHÒNG THỦ. Điểm AI: 52.0/100. Thiết lập Stop-Loss 65,000 VNĐ.'
@@ -482,39 +545,15 @@
     {
       s:'BSR', n:'Lọc Hóa Dầu Bình Sơn', sc:55.0,
       cur:26000, entry:24500, sl:24200, tp:30000, pnl:6.12, pnlVnd:1836000,
-      pMin:22000, pMax:28500, phase:'Pha D — SOS Breakout',
+      pMin:22000, pMax:28500, phase:'Pha D — SOS Breakout', rsi:59.1, flow:'+21.5%',
       bull:'Biên lọc dầu (Crack spread) duy trì mức cao, nâng cấp mở rộng nhà máy Dung Quất được đẩy mạnh. Dòng tiền dầu khí bứt phá mạnh.',
       bear:'Giá dầu thô thế giới biến động mạnh do căng thẳng địa chính trị, cần quản trị rủi ro chặt.',
       master:'MUA MỚI 30% vốn BSR tại 25,200. Điểm AI: 55.0/100. Mục tiêu 30,000 VNĐ.'
     },
     {
-      s:'MBB', n:'Ngân hàng Quân Đội MB', sc:54.5,
-      cur:24200, entry:23100, sl:22800, tp:28000, pnl:4.76, pnlVnd:1428000,
-      pMin:21000, pMax:26000, phase:'Pha C — Wyckoff Spring',
-      bull:'Tăng trưởng tín dụng dẫn đầu toàn ngành ngân hàng (>18%), CASA đạt 38%. Dòng tiền tổ chức nâng đỡ giá tốt.',
-      bear:'Áp lực trích lập dự phòng nợ xấu nhóm BĐS vẫn cần theo dõi trong Q3.',
-      master:'MUA TÍCH LŨY MBB tại 23,800. Stop-Loss 22,800 VNĐ. Điểm AI: 54.5/100.'
-    },
-    {
-      s:'TCB', n:'Ngân hàng Techcombank', sc:53.0,
-      cur:23800, entry:22900, sl:22500, tp:27500, pnl:3.93, pnlVnd:1179000,
-      pMin:20500, pMax:25500, phase:'Pha B — Accumulation',
-      bull:'Cổ tức cổ phiếu và tiền mặt tăng sức hút, mảng ngân hàng bán lẻ và bảo hiểm phục hồi mạnh.',
-      bear:'Khối lượng giao dịch đi ngang tích lũy, chưa có phiên bùng nổ theo đà (FTD).',
-      master:'MUA THĂM DÒ TCB vùng 23,000. Điểm AI: 53.0/100. Quản trị tỷ trọng 20% danh mục.'
-    },
-    {
-      s:'VHM', n:'Công ty CP Vinhomes', sc:49.5,
-      cur:42500, entry:41000, sl:40000, tp:48000, pnl:3.66, pnlVnd:1098000,
-      pMin:38000, pMax:46000, phase:'Pha B — Secondary Test',
-      bull:'Kế hoạch mua lại cổ phiếu quỹ quy mô lớn tạo bệ đỡ tâm lý và hỗ trợ định giá.',
-      bear:'Thị trường bất động sản phục hồi phân hóa, thanh khoản các dự án lớn cần thời gian hấp thụ.',
-      master:'THEO DÕI CHỜ TÍN HIỆU XÁC NHẬN. Điểm AI: 49.5/100 (Dưới ngưỡng 50.0). Chưa vội mở vị thế lớn.'
-    },
-    {
       s:'MWG', n:'Thế Giới Di Động', sc:57.0,
       cur:65200, entry:61500, sl:60800, tp:74000, pnl:6.02, pnlVnd:1805000,
-      pMin:57000, pMax:69000, phase:'Pha D — SOS Markup',
+      pMin:57000, pMax:69000, phase:'Pha D — SOS Markup', rsi:61.4, flow:'+19.8%',
       bull:'Bách Hóa Xanh đạt điểm hòa vốn và bắt đầu đóng góp lợi nhuận, biên lãi gộp chuỗi Điện Máy Xanh tăng trưởng rõ rệt.',
       bear:'Sức mua ngành hàng điện tử tiêu dùng cần thêm thời gian để tăng trưởng bùng nổ.',
       master:'MUA MỞ RỘNG VỊ THẾ MWG. Điểm AI: 57.0/100. Target: 74,000 VNĐ. Stop-loss: 60,800 VNĐ.'
@@ -522,7 +561,7 @@
     {
       s:'DGC', n:'Hóa chất Đức Giang', sc:54.0,
       cur:118000, entry:112000, sl:110000, tp:132000, pnl:5.36, pnlVnd:1607000,
-      pMin:105000, pMax:125000, phase:'Pha C — Wyckoff Spring',
+      pMin:105000, pMax:125000, phase:'Pha C — Wyckoff Spring', rsi:55.7, flow:'+14.3%',
       bull:'Nhu cầu Phốt pho vàng (P4) toàn cầu tăng trưởng phục vụ chip bán dẫn và pin xe điện.',
       bear:'Biến động giá điện sản xuất và chi phí nguyên liệu đầu vào cần lưu tâm.',
       master:'MUA DGC vùng 115,000. Điểm AI: 54.0/100. Stop-Loss 110,000 VNĐ.'
@@ -530,14 +569,14 @@
     {
       s:'PNJ', n:'Vàng Bạc Đá Quý Phú Nhuận', sc:56.0,
       cur:98500, entry:93000, sl:91500, tp:110000, pnl:5.91, pnlVnd:1774000,
-      pMin:88000, pMax:105000, phase:'Pha D — SOS Breakout',
+      pMin:88000, pMax:105000, phase:'Pha D — SOS Breakout', rsi:58.9, flow:'+17.6%',
       bull:'Doanh thu bán lẻ trang sức vàng 24K và vàng trang sức tăng trưởng 2 chữ số, mở mới hệ thống cửa hàng hiệu quả.',
       bear:'Giá vàng biến động thất thường tạo áp lực tồn kho nguyên liệu.',
       master:'MUA PNJ vùng 95,000. Điểm AI: 56.0/100. Target: 110,000 VNĐ.'
     }
   ];
 
-  // Populate fallback for any other ticker from remaining list
+  // Auto populate other tickers
   const EXTENDED_SYMBOLS = [
     'VIC','GAS','PLX','REE','MSN','VRE','BVH','TPB','HDB','LPB','OCB','VPB','STB','EIB','CTG','BID',
     'VCB','KDH','NLG','DXG','PDR','VGC','HSG','NKG','GEX','DBC','VHC','ANV','PHR','DPM','DCM','PVT',
@@ -561,6 +600,8 @@
         pMin: Math.round(base * 0.85),
         pMax: Math.round(base * 1.15),
         phase: sc >= 54 ? 'Pha D — SOS Breakout' : sc >= 50 ? 'Pha C — Wyckoff Spring' : 'Pha B — Accumulation',
+        rsi: parseFloat((45 + Math.random()*20).toFixed(1)),
+        flow: '+' + (8 + Math.random()*15).toFixed(1) + '%',
         bull: 'Tín hiệu kỹ thuật của ' + sym + ' cho thấy lực mua chủ động chiếm ưu thế. Khối lượng tích lũy gia tăng rõ rệt.',
         bear: 'Cần theo dõi sát diễn biến dòng tiền toàn ngành và áp lực chốt lời ngắn hạn.',
         master: (sc >= 50 ? 'Đồng thuận MUA thăm dò ' : 'THEO DÕI CHỜ TÍN HIỆU ') + sym + '. Điểm AI: ' + sc.toFixed(1) + '/100.'
@@ -569,8 +610,6 @@
   });
 
   let currentStock = STOCKS[0]; // Default ACB
-  let filtered = [];
-  let acIdx = -1;
 
   // ── CANVAS CHART ENGINE ──────────────────────────────────
   const c = document.getElementById('mc'), x = c.getContext('2d');
@@ -588,33 +627,29 @@
     const s=currentStock;
     const PMIN=s.pMin,PMAX=s.pMax,PRNG=PMAX-PMIN;
 
-    // === Generate OHLC Candlestick Data ===
-    const N=Math.floor(CW/14); // number of candles
-    const cw=Math.max(4,Math.floor(CW/N)-2); // candle body width
+    // Generate Candlestick Data
+    const N=Math.floor(CW/14);
+    const cw=Math.max(4,Math.floor(CW/N)-2);
     const candles=[];
     let close=s.entry;
 
     for(let i=0;i<N;i++){
       const r=i/N;
-      // Wyckoff phases: Accumulation -> Spring -> Markup
       let trend;
-      if(r<0.28){trend=(Math.random()-0.52)*0.15;}       // Pha A-B: đi ngang
-      else if(r<0.32){trend=-0.35;}                       // Spring test đầu
-      else if(r<0.38){trend=-0.55;}                       // Spring chính (dip)
-      else if(r<0.44){trend=0.65;}                        // Bật lên mạnh
-      else{trend=0.25+(r-0.44)*1.2;}                      // Markup
+      if(r<0.28){trend=(Math.random()-0.52)*0.15;}
+      else if(r<0.32){trend=-0.35;}
+      else if(r<0.38){trend=-0.55;}
+      else if(r<0.44){trend=0.65;}
+      else{trend=0.25+(r-0.44)*1.2;}
       
       const volatility=PRNG/200;
-      const bodyRange=Math.abs(trend)*volatility*8+(Math.random()*volatility*3);
       const open=close;
       const dir=trend+(Math.random()-0.5)*0.3;
-      close=Math.max(PMIN+PRNG*0.04,Math.min(PMAX-PRNG*0.04,
-            open+dir*volatility*10));
+      close=Math.max(PMIN+PRNG*0.04,Math.min(PMAX-PRNG*0.04, open+dir*volatility*10));
       const high=Math.max(open,close)+Math.random()*volatility*4;
       const low=Math.min(open,close)-Math.random()*volatility*4;
       candles.push({o:open,h:high,l:low,c:close});
     }
-    // Pin last close to current price
     candles[N-1].c=s.cur;
     if(s.cur>candles[N-1].o){
       candles[N-1].h=Math.max(candles[N-1].h,s.cur+PRNG*0.005);
@@ -625,7 +660,7 @@
     function py(p){return PT+CH-((p-PMIN)/PRNG*CH);}
     function cx2(i){return PL+(i+0.5)*(CW/N);}
 
-    // === Y-axis Grid & Labels ===
+    // Y-Axis Grid
     const rawStep=PRNG/5;
     const magnitude=Math.pow(10,Math.floor(Math.log10(rawStep)));
     const step=Math.round(rawStep/magnitude)*magnitude||magnitude;
@@ -639,7 +674,7 @@
       x.fillText(pL.toLocaleString('vi-VN'),PL-8,yy);
     }
 
-    // === X-axis Grid & Labels ===
+    // X-Axis Grid
     const xStep=Math.max(1,Math.floor(N/7));
     const t0=new Date('2025-12-01');
     x.font='10px "JetBrains Mono"';x.textAlign='center';x.textBaseline='top';
@@ -653,23 +688,22 @@
       x.fillText(lbl,gxx,H-PB+6);
     }
 
-    // === Axis borders ===
+    // Axis borders
     x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.setLineDash([]);
     x.beginPath();x.moveTo(PL,PT);x.lineTo(PL,H-PB);x.lineTo(W-PR,H-PB);x.stroke();
 
-    // === SL Breakeven line ===
+    // Stop Loss Line
     if(s.sl>=PMIN&&s.sl<=PMAX){
       const slY=py(s.sl);
       x.strokeStyle='rgba(0,217,126,0.7)';x.lineWidth=1.5;x.setLineDash([6,4]);
       x.beginPath();x.moveTo(cx2(Math.floor(N*0.4)),slY);x.lineTo(W-PR,slY);x.stroke();
       x.setLineDash([]);
-      // SL label on Y-axis
       x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 11px "JetBrains Mono"';
       x.textAlign='right';x.textBaseline='middle';
       x.fillText(s.sl.toLocaleString('vi-VN')+' ✓',PL-8,slY);
     }
 
-    // === Draw Candlesticks ===
+    // Draw Candlesticks
     const halfW=Math.max(2,Math.floor(cw/2)-1);
     for(let i=0;i<N;i++){
       const cd=candles[i];
@@ -681,42 +715,36 @@
       const bodyH=Math.max(1,bodyBot-bodyTop);
       const cx3=cx2(i);
 
-      // Wick (shadow)
       x.strokeStyle=wickColor;x.lineWidth=1.5;
       x.beginPath();x.moveTo(cx3,py(cd.h));x.lineTo(cx3,bodyTop);x.stroke();
       x.beginPath();x.moveTo(cx3,bodyBot);x.lineTo(cx3,py(cd.l));x.stroke();
 
-      // Body
       x.fillStyle=bodyColor;
       x.fillRect(cx3-halfW,bodyTop,halfW*2,bodyH);
 
-      // Subtle border on body
       x.strokeStyle=bull?'rgba(0,255,140,0.3)':'rgba(255,80,80,0.25)';
       x.lineWidth=0.5;x.setLineDash([]);
       x.strokeRect(cx3-halfW,bodyTop,halfW*2,bodyH);
     }
 
-    // === Spring Annotation (at Spring candle lowest low) ===
+    // Spring Annotation
     const si2=Math.floor(N*0.32),se=Math.floor(N*0.40);
     let smi=si2,smpLow=candles[si2].l;
     for(let i=si2;i<se;i++){if(candles[i].l<smpLow){smpLow=candles[i].l;smi=i;}}
     const spx=cx2(smi),spy=py(smpLow)+14;
-    // Arrow pointing up
     x.strokeStyle='rgba(0,217,126,0.9)';x.lineWidth=1.5;x.setLineDash([]);
     x.beginPath();x.moveTo(spx,spy+18);x.lineTo(spx,spy+4);x.stroke();
     x.beginPath();x.moveTo(spx-4,spy+8);x.lineTo(spx,spy+3);x.lineTo(spx+4,spy+8);x.stroke();
-    // Label
     x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 10px "JetBrains Mono"';
     x.textAlign='center';x.textBaseline='top';x.fillText('Spring',spx,spy+20);
 
-    // === Current Price Glow Dot (last candle top) ===
+    // Current Price Glow Dot
     const lastC=candles[N-1];
     const cpx=cx2(N-1),cpy=py(lastC.c);
     const gr=x.createRadialGradient(cpx,cpy,0,cpx,cpy,14);
     gr.addColorStop(0,'rgba(0,217,126,0.65)');gr.addColorStop(1,'rgba(0,217,126,0)');
     x.beginPath();x.arc(cpx,cpy,14,0,Math.PI*2);x.fillStyle=gr;x.fill();
     x.beginPath();x.arc(cpx,cpy,3.5,0,Math.PI*2);x.fillStyle='#00d97e';x.fill();
-    // Price badge
     const lastP=Math.round(lastC.c);
     x.fillStyle='rgba(0,217,126,0.95)';x.font='bold 11px "JetBrains Mono"';
     x.textAlign='right';x.textBaseline='middle';
@@ -729,28 +757,31 @@
     if(!s) return;
     currentStock = s;
 
-    // 1. Update Search Box & Selected Tag
-    document.getElementById('si').value = '';
-    document.getElementById('si').classList.remove('has-val');
-    closeAc();
-    document.getElementById('sel-sym').textContent = s.s;
-    document.getElementById('sel-name').textContent = s.n;
-    document.getElementById('sel-tag').style.display = 'flex';
+    // 1. Update Input Value
+    document.getElementById('si').value = s.s;
 
     // 2. Update Chart Header
     document.querySelector('.sym-n').textContent = s.s + '.VN';
     document.querySelector('.ptag').textContent = s.phase;
     document.querySelector('.stag').textContent = 'SL: ' + s.sl.toLocaleString('vi-VN') + ' VND';
 
-    // 3. Update KPI Card 3 (Vị thế đang mở)
-    const kpiCard3 = document.querySelectorAll('.kc')[2];
-    if(kpiCard3){
-      kpiCard3.querySelector('.kl').textContent = 'Vị thế ' + s.s + ' (đang mở)';
-      kpiCard3.querySelector('.kv').textContent = (s.pnl >= 0 ? '+' : '') + s.pnl + '%';
-      kpiCard3.querySelector('.ks').textContent = (s.pnl >= 0 ? '+' : '') + s.pnlVnd.toLocaleString('vi-VN') + ' VND — Risk-Free';
+    // 3. Update Quick Signals Box in Sidebar
+    const sigPhase = document.getElementById('sig-phase');
+    const sigRsi = document.getElementById('sig-rsi');
+    const sigFlow = document.getElementById('sig-flow');
+    const sigRec = document.getElementById('sig-rec');
+    if(sigPhase) sigPhase.textContent = s.phase.split('—')[1] || s.phase;
+    if(sigRsi) {
+      sigRsi.textContent = s.rsi || 54.2;
+      sigRsi.className = 'sig-val ' + (s.rsi >= 65 ? 'neg' : s.rsi <= 40 ? 'pos' : 'neu');
+    }
+    if(sigFlow) sigFlow.textContent = s.flow || '+15.2%';
+    if(sigRec) {
+      sigRec.textContent = s.sc >= 55 ? 'MUA 30%' : s.sc >= 50 ? 'MUA THĂM DÒ' : 'THEO DÕI';
+      sigRec.className = 'sig-val ' + (s.sc >= 50 ? 'pos' : 'neu');
     }
 
-    // 4. Update Debate Council Feed with Animated Bubbles
+    // 4. Update Debate Council Feed
     const debateBox = document.querySelector('.debate');
     if(debateBox){
       debateBox.innerHTML = `
@@ -789,7 +820,7 @@
       `;
     }
 
-    // 6. Update Market Data Strip
+    // 6. Update Market Data Strip (Top)
     const close = s.cur;
     const hi = Math.round(s.pMax * 0.97);
     const lo = Math.round(s.pMin * 1.03);
@@ -805,131 +836,62 @@
     const mdVol = document.getElementById("md-vol");
     if(mdClose) mdClose.textContent = close.toLocaleString("vi-VN");
     if(mdDelta){
-      mdDelta.textContent = (isUp ? "\u25B2" : "\u25BC") + " " + Math.abs(delta).toLocaleString("vi-VN") + " (" + (isUp ? "+" : "") + deltaPct + "%)";
+      mdDelta.textContent = (isUp ? "▲" : "▼") + " " + Math.abs(delta).toLocaleString("vi-VN") + " (" + (isUp ? "+" : "") + deltaPct + "%)";
       mdDelta.className = "md-delta " + (isUp ? "up" : "dn");
     }
     if(mdHigh) mdHigh.textContent = hi.toLocaleString("vi-VN");
     if(mdLow) mdLow.textContent = lo.toLocaleString("vi-VN");
     if(mdVol) mdVol.textContent = vol.toLocaleString("vi-VN");
 
-    // Update account tab pnl
+    // 7. Update Account Tab PnL
     const akPnl = document.getElementById("ak-pnl");
     const akPnlVnd = document.getElementById("ak-pnlvnd");
     if(akPnl) akPnl.textContent = (s.pnl >= 0 ? "+" : "") + s.pnl + "%";
     if(akPnlVnd) akPnlVnd.textContent = "+" + s.pnlVnd.toLocaleString("vi-VN") + " VND";
 
-    // 7. Redraw Chart
+    // 8. Redraw Candlestick Chart
     dr();
   }
 
-  // ── AUTOCOMPLETE & SEARCH INPUT HANDLERS ──────────────────
-  function onSearch(v){
-    const q = v.trim().toUpperCase();
-    const inp = document.getElementById('si');
-    inp.classList.toggle('has-val', q.length > 0);
-    if(!q){ filtered = STOCKS.slice(0,8); renderAc(''); return; }
-    filtered = STOCKS.filter(s => s.s.startsWith(q) || s.n.toUpperCase().includes(q)).slice(0,8);
-    renderAc(q);
-  }
+  // ── SEARCH BUTTON & QUICK SELECT HANDLERS ────────────────
+  function doSearch(){
+    const query = document.getElementById('si').value.trim().toUpperCase();
+    if(!query) return;
+    
+    // Update quick pill visual active state if matches
+    document.querySelectorAll('.qp').forEach(el => {
+      el.classList.toggle('on', el.textContent.trim().toUpperCase() === query);
+    });
 
-  function renderAc(q){
-    const drop = document.getElementById('ac');
-    acIdx = -1;
-    if(!filtered.length){
-      drop.innerHTML = '<div class="no-res">Không tìm thấy mã phù hợp — Bấm Enter để phân tích ' + q + '</div>';
-      drop.classList.add('show');
-      return;
-    }
-    drop.innerHTML = filtered.map((s,i)=>{
-      const hl = s.s.replace(new RegExp('^'+q,'i'), m => `<span style="color:#fff;font-weight:900">${m}</span>`);
-      const scClass = s.sc >= 55 ? 'high' : s.sc >= 50 ? 'mid' : '';
-      return `<div class="ac-item" data-i="${i}" onmousedown="pickStock(${i})">
-        <div class="ac-left">
-          <span class="ac-sym">${hl}</span>
-          <span class="ac-name">${s.n}</span>
-        </div>
-        <span class="ac-score ${scClass}">${s.sc.toFixed(1)} pts</span>
-      </div>`;
-    }).join('');
-    drop.classList.add('show');
-  }
-
-  function onKey(e){
-    const drop = document.getElementById('ac');
-    const items = drop.querySelectorAll('.ac-item');
-    if(e.key === 'ArrowDown'){
-      acIdx = Math.min(acIdx + 1, items.length - 1);
-      items.forEach((el,i)=> el.classList.toggle('sel', i === acIdx));
-      e.preventDefault();
-    } else if(e.key === 'ArrowUp'){
-      acIdx = Math.max(acIdx - 1, 0);
-      items.forEach((el,i)=> el.classList.toggle('sel', i === acIdx));
-      e.preventDefault();
-    } else if(e.key === 'Enter'){
-      e.preventDefault();
-      if(acIdx >= 0 && filtered[acIdx]){
-        pickStock(acIdx);
-      } else if(filtered.length > 0){
-        pickStock(0);
-      } else {
-        const query = document.getElementById('si').value.trim().toUpperCase();
-        if(query){
-          const found = STOCKS.find(s => s.s === query);
-          if(found) selectStock(found);
-          else {
-            // Create runtime ticker
-            const newStock = {
-              s: query, n: 'Mã ' + query + ' (Tìm kiếm mới)', sc: 52.0,
-              cur: 35000, entry: 33000, sl: 32000, tp: 41000, pnl: 6.06, pnlVnd: 1818000,
-              pMin: 29000, pMax: 40000, phase: 'Pha D — SOS Breakout',
-              bull: 'Lực cầu chủ động gia tăng mạnh mẽ tại ' + query + '. Vượt đỉnh ngắn hạn với khối lượng uy tín.',
-              bear: 'Cần duy trì ngưỡng dừng lỗ chặt chẽ để phòng ngừa rủi ro rung lắc của VN-Index.',
-              master: 'Xác nhận tín hiệu MUA ' + query + '. Điểm AI: 52.0/100. Kích hoạt dời Stop-Loss bảo toàn vốn.'
-            };
-            STOCKS.push(newStock);
-            selectStock(newStock);
-          }
-        }
-      }
-    } else if(e.key === 'Escape'){
-      closeAc();
+    const found = STOCKS.find(s => s.s === query);
+    if(found){
+      selectStock(found);
+    } else {
+      const base = 30000 + Math.floor(Math.random()*30000);
+      const newStock = {
+        s: query, n: 'Mã ' + query + ' (Tìm kiếm mới)', sc: 52.5,
+        cur: base, entry: Math.round(base * 0.95), sl: Math.round(base * 0.92), tp: Math.round(base * 1.18),
+        pnl: 5.26, pnlVnd: 1578000, pMin: Math.round(base * 0.85), pMax: Math.round(base * 1.15),
+        phase: 'Pha D — SOS Breakout', rsi: 56.4, flow: '+14.2%',
+        bull: 'Lực cầu chủ động gia tăng mạnh mẽ tại ' + query + '. Vượt đỉnh ngắn hạn với khối lượng uy tín.',
+        bear: 'Cần duy trì ngưỡng dừng lỗ chặt chẽ để phòng ngừa rủi ro rung lắc của VN-Index.',
+        master: 'Xác nhận tín hiệu MUA ' + query + '. Điểm AI: 52.5/100. Kích hoạt dời Stop-Loss bảo toàn vốn.'
+      };
+      STOCKS.push(newStock);
+      selectStock(newStock);
     }
   }
 
-  function pickStock(i){
-    const s = filtered[i];
-    if(!s) return;
-    selectStock(s);
+  function quickSelect(sym, el){
+    document.querySelectorAll('.qp').forEach(e => e.classList.remove('on'));
+    if(el) el.classList.add('on');
+    const s = STOCKS.find(x => x.s === sym);
+    if(s) selectStock(s);
   }
 
-  function clearSel(){
-    document.getElementById('sel-tag').style.display = 'none';
-    document.getElementById('si').value = '';
-    document.getElementById('si').classList.remove('has-val');
-    document.getElementById('si').focus();
-    selectStock(STOCKS[0]); // Reset to ACB
-  }
-
-  function closeAc(){
-    const d = document.getElementById('ac');
-    d.classList.remove('show');
-    d.innerHTML = '';
-    acIdx = -1;
-  }
-
-  document.addEventListener('click', e => {
-    const sw = document.getElementById('sw');
-    if(sw && !sw.contains(e.target)) closeAc();
-  });
-
-  // ── SCAN BUTTON ACTION ───────────────────────────────────
+  // ── ACTION BUTTON HANDLER ────────────────────────────────
   function runAnim(b){
-    const inpVal = document.getElementById('si').value.trim().toUpperCase();
-    let target = currentStock;
-    if(inpVal){
-      const match = STOCKS.find(s => s.s === inpVal || s.n.toUpperCase().includes(inpVal));
-      if(match) target = match;
-    }
+    const target = currentStock;
     const orig = b.innerHTML;
     b.innerHTML = '⏳ Đang quét Multi-Agent ' + target.s + '...';
     b.disabled = true;
@@ -944,8 +906,8 @@
           b.disabled = false;
           b.style.opacity = '1';
         }, 1000);
-      }, 1200);
-    }, 1200);
+      }, 1000);
+    }, 1000);
   }
 </script>
 </body>
