@@ -174,9 +174,10 @@ st.markdown("""
     .sb-brand-header {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 4px 6px 14px 6px;
-        margin-bottom: 12px;
+        gap: 10px;
+        padding: 0 4px 10px 4px;
+        margin-top: -32px !important;
+        margin-bottom: 10px;
         border-bottom: 1px solid var(--c-border);
     }
     .sb-brand-info {
@@ -275,11 +276,22 @@ st.markdown("""
     }
     .dot { width: 5px; height: 5px; background: var(--c-g); border-radius: 50%; box-shadow: 0 0 6px var(--c-g); }
 
-    /* ─── SIDEBAR GLASS ──────────────────────────────────────── */
-    [data-testid="stSidebar"] {
+    /* ─── SIDEBAR GLASS & ZERO TOP PADDING ─────────────────────── */
+    section[data-testid="stSidebar"] {
         background: var(--c-s1) !important;
         border-right: 1px solid var(--c-border) !important;
-        padding-top: 10px !important;
+        padding-top: 0px !important;
+    }
+    div[data-testid="stSidebarHeader"] {
+        padding: 6px 12px 0 12px !important;
+        height: auto !important;
+        min-height: 0px !important;
+        background: transparent !important;
+    }
+    div[data-testid="stSidebarUserContent"] {
+        padding-top: 0px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
     .sb-card {
         background: var(--c-s2);
