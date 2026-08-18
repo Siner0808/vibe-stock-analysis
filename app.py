@@ -17,33 +17,26 @@ from data_collectors import VNStockCollectorAgent
 
 # ── Animated Brand Logo Generator ─────────────────────────────────
 def get_animated_logo_html(size=44, uid="sb"):
-    return f"""
-    <div class="vibe-logo-wrap" style="width:{size}px;height:{size}px;">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 184" width="{size}" height="{size}" class="vibe-animated-logo">
-        <defs>
-          <clipPath id="core_{uid}"><circle cx="92" cy="92" r="84"></circle></clipPath>
-        </defs>
-        <!-- Dark Core Circle -->
-        <circle cx="92" cy="92" r="84" fill="#131a22"></circle>
-        
-        <!-- Live Equalizer Financial Chart Bars -->
-        <g clip-path="url(#core_{uid})">
-          <rect class="vbar b1" x="33.5" y="86" width="17" height="58" fill="#319cfc" rx="4"></rect>
-          <rect class="vbar b2" x="58.5" y="104" width="17" height="40" fill="#e24947" rx="4"></rect>
-          <rect class="vbar b3" x="83.5" y="62" width="17" height="82" fill="#fcaa2b" rx="4"></rect>
-          <rect class="vbar b4" x="108.5" y="32" width="17" height="112" fill="#61cc69" rx="4"></rect>
-          <rect class="vbar b5" x="133.5" y="78" width="17" height="66" fill="#9964e5" rx="4"></rect>
-        </g>
-        
-        <!-- Continuous Smooth Rotating Neon Outer Orbit Rings -->
-        <g class="orbit-group">
-          <path d="M 135.250 17.089 A 86.5 86.5 0 0 1 139.111 164.545" fill="none" stroke="#41dca5" stroke-width="6" stroke-linecap="round"></path>
-          <path d="M 131.270 169.072 A 86.5 86.5 0 0 1 5.619 96.527" fill="none" stroke="#00ccf9" stroke-width="6" stroke-linecap="round"></path>
-          <path d="M 5.619 87.473 A 86.5 86.5 0 0 1 131.270 14.928" fill="none" stroke="#9c93ff" stroke-width="6" stroke-linecap="round"></path>
-        </g>
-      </svg>
-    </div>
-    """
+    return (
+        f'<div class="vibe-logo-wrap" style="width:{size}px;height:{size}px;">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 184" width="{size}" height="{size}" class="vibe-animated-logo">'
+        f'<defs><clipPath id="core_{uid}"><circle cx="92" cy="92" r="84"></circle></clipPath></defs>'
+        f'<circle cx="92" cy="92" r="84" fill="#131a22"></circle>'
+        f'<g clip-path="url(#core_{uid})">'
+        f'<rect class="vbar b1" x="33.5" y="86" width="17" height="58" fill="#319cfc" rx="4"></rect>'
+        f'<rect class="vbar b2" x="58.5" y="104" width="17" height="40" fill="#e24947" rx="4"></rect>'
+        f'<rect class="vbar b3" x="83.5" y="62" width="17" height="82" fill="#fcaa2b" rx="4"></rect>'
+        f'<rect class="vbar b4" x="108.5" y="32" width="17" height="112" fill="#61cc69" rx="4"></rect>'
+        f'<rect class="vbar b5" x="133.5" y="78" width="17" height="66" fill="#9964e5" rx="4"></rect>'
+        f'</g>'
+        f'<g class="orbit-group">'
+        f'<path d="M 135.250 17.089 A 86.5 86.5 0 0 1 139.111 164.545" fill="none" stroke="#41dca5" stroke-width="6" stroke-linecap="round"></path>'
+        f'<path d="M 131.270 169.072 A 86.5 86.5 0 0 1 5.619 96.527" fill="none" stroke="#00ccf9" stroke-width="6" stroke-linecap="round"></path>'
+        f'<path d="M 5.619 87.473 A 86.5 86.5 0 0 1 131.270 14.928" fill="none" stroke="#9c93ff" stroke-width="6" stroke-linecap="round"></path>'
+        f'</g>'
+        f'</svg>'
+        f'</div>'
+    )
 
 # ── Streamlit Page Config ─────────────────────────────────────────
 st.set_page_config(
@@ -410,30 +403,22 @@ st.markdown("""
 
 # ── 1. COMPACT TOPBAR ──────────────────────────────────────────────
 topbar_logo_html = get_animated_logo_html(size=28, uid="tb")
-st.markdown(f"""
-<div class="topbar">
-    <div class="tb-l">
-        {topbar_logo_html}
-        <div class="logo-t">VIBE <span>STOCK</span> TERMINAL</div>
-        <span class="badge">Multi-Agent AI v5.0</span>
-    </div>
-    <div class="tb-r">
-        <div class="ti-item">
-            <span class="ti-l">VN-Index</span>
-            <span class="ti-v up">1,245.80 ▲ +0.85%</span>
-        </div>
-        <div class="ti-item">
-            <span class="ti-l">20-Loop Return</span>
-            <span class="ti-v up">+636.11%</span>
-        </div>
-        <div class="ti-item">
-            <span class="ti-l">Threshold</span>
-            <span class="ti-v bl">50.0 pts</span>
-        </div>
-        <div class="live-pill"><div class="dot"></div>Sheets Synced</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    f'<div class="topbar">'
+    f'<div class="tb-l">'
+    f'{topbar_logo_html}'
+    f'<div class="logo-t">VIBE <span>STOCK</span> TERMINAL</div>'
+    f'<span class="badge">Multi-Agent AI v5.0</span>'
+    f'</div>'
+    f'<div class="tb-r">'
+    f'<div class="ti-item"><span class="ti-l">VN-Index</span><span class="ti-v up">1,245.80 ▲ +0.85%</span></div>'
+    f'<div class="ti-item"><span class="ti-l">20-Loop Return</span><span class="ti-v up">+636.11%</span></div>'
+    f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">50.0 pts</span></div>'
+    f'<div class="live-pill"><div class="dot"></div>Sheets Synced</div>'
+    f'</div>'
+    f'</div>',
+    unsafe_allow_html=True
+)
 
 # ── Data Helper Functions ──────────────────────────────────────────
 @st.cache_data(ttl=300)
@@ -462,15 +447,13 @@ def calculate_rsi(series, period=14):
 with st.sidebar:
     # Sidebar Brand Header with Live Animated Circular Logo
     sidebar_logo_html = get_animated_logo_html(size=44, uid="sb")
-    st.markdown(f"""
-    <div class="sb-brand-header">
-        {sidebar_logo_html}
-        <div class="sb-brand-info">
-            <div class="sb-brand-name">VIBE <span>STOCK</span></div>
-            <div class="sb-brand-tag">Terminal AI v5.0</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="sb-brand-header">'
+        f'{sidebar_logo_html}'
+        f'<div class="sb-brand-info"><div class="sb-brand-name">VIBE <span>STOCK</span></div><div class="sb-brand-tag">Terminal AI v5.0</div></div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
     st.markdown('<div class="sb-card-title">🔍 Tìm kiếm mã CK</div>', unsafe_allow_html=True)
     target_sym = st.session_state.get("target_symbol", "ACB")
