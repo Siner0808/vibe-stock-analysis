@@ -15,18 +15,35 @@ from financial_collector import FinancialDataCollector
 from data_quality import now_vn, price_multiplier
 from data_collectors import VNStockCollectorAgent
 
-# ── Load Brand Logo ───────────────────────────────────────────────
-_logo_png_path = pathlib.Path(__file__).parent / "assets" / "export-5b" / "vibe-5b-256.png"
-_logo_svg_path = pathlib.Path(__file__).parent / "assets" / "export-5b" / "vibe-5b.svg"
-
-if _logo_png_path.exists():
-    with open(_logo_png_path, "rb") as f:
-        _logo_b64 = f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
-elif _logo_svg_path.exists():
-    with open(_logo_svg_path, "rb") as f:
-        _logo_b64 = f"data:image/svg+xml;base64,{base64.b64encode(f.read()).decode('utf-8')}"
-else:
-    _logo_b64 = ""
+# ── Animated Brand Logo Generator ─────────────────────────────────
+def get_animated_logo_html(size=44, uid="sb"):
+    return f"""
+    <div class="vibe-logo-wrap" style="width:{size}px;height:{size}px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 184" width="{size}" height="{size}" class="vibe-animated-logo">
+        <defs>
+          <clipPath id="core_{uid}"><circle cx="92" cy="92" r="84"></circle></clipPath>
+        </defs>
+        <!-- Dark Core Circle -->
+        <circle cx="92" cy="92" r="84" fill="#131a22"></circle>
+        
+        <!-- Live Equalizer Financial Chart Bars -->
+        <g clip-path="url(#core_{uid})">
+          <rect class="vbar b1" x="33.5" y="86" width="17" height="58" fill="#319cfc" rx="4"></rect>
+          <rect class="vbar b2" x="58.5" y="104" width="17" height="40" fill="#e24947" rx="4"></rect>
+          <rect class="vbar b3" x="83.5" y="62" width="17" height="82" fill="#fcaa2b" rx="4"></rect>
+          <rect class="vbar b4" x="108.5" y="32" width="17" height="112" fill="#61cc69" rx="4"></rect>
+          <rect class="vbar b5" x="133.5" y="78" width="17" height="66" fill="#9964e5" rx="4"></rect>
+        </g>
+        
+        <!-- Continuous Smooth Rotating Neon Outer Orbit Rings -->
+        <g class="orbit-group">
+          <path d="M 135.250 17.089 A 86.5 86.5 0 0 1 139.111 164.545" fill="none" stroke="#41dca5" stroke-width="6" stroke-linecap="round"></path>
+          <path d="M 131.270 169.072 A 86.5 86.5 0 0 1 5.619 96.527" fill="none" stroke="#00ccf9" stroke-width="6" stroke-linecap="round"></path>
+          <path d="M 5.619 87.473 A 86.5 86.5 0 0 1 131.270 14.928" fill="none" stroke="#9c93ff" stroke-width="6" stroke-linecap="round"></path>
+        </g>
+      </svg>
+    </div>
+    """
 
 # ── Streamlit Page Config ─────────────────────────────────────────
 st.set_page_config(
@@ -119,6 +136,47 @@ st.markdown("""
         background: var(--c-bg) !important;
     }
 
+    /* ─── LIVE ANIMATED LOGO ─────────────────────────────────── */
+    .vibe-logo-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        filter: drop-shadow(0 0 12px rgba(0, 217, 126, 0.45));
+        animation: logoBreathing 3.5s ease-in-out infinite alternate;
+    }
+    .vibe-animated-logo {
+        display: block;
+    }
+    .orbit-group {
+        transform-origin: 92px 92px;
+        animation: orbitSpin 10s linear infinite;
+    }
+    @keyframes orbitSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes logoBreathing {
+        0% { filter: drop-shadow(0 0 10px rgba(0, 217, 126, 0.35)); }
+        50% { filter: drop-shadow(0 0 20px rgba(0, 217, 126, 0.85)) drop-shadow(0 0 26px rgba(59, 130, 246, 0.5)); }
+        100% { filter: drop-shadow(0 0 10px rgba(0, 217, 126, 0.35)); }
+    }
+    .vbar {
+        transform-origin: center bottom;
+        animation: barBounce 1.8s ease-in-out infinite alternate;
+    }
+    .vbar.b1 { animation-delay: 0.1s; animation-duration: 2.1s; }
+    .vbar.b2 { animation-delay: 0.4s; animation-duration: 1.7s; }
+    .vbar.b3 { animation-delay: 0.2s; animation-duration: 2.4s; }
+    .vbar.b4 { animation-delay: 0.5s; animation-duration: 1.9s; }
+    .vbar.b5 { animation-delay: 0.3s; animation-duration: 2.2s; }
+
+    @keyframes barBounce {
+        0% { transform: scaleY(0.90); opacity: 0.8; }
+        50% { transform: scaleY(1.10); opacity: 1.0; }
+        100% { transform: scaleY(0.90); opacity: 0.8; }
+    }
+
     /* ─── SIDEBAR BRAND HEADER ───────────────────────────────── */
     .sb-brand-header {
         display: flex;
@@ -127,17 +185,6 @@ st.markdown("""
         padding: 4px 6px 14px 6px;
         margin-bottom: 12px;
         border-bottom: 1px solid var(--c-border);
-    }
-    .sb-logo-img {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        box-shadow: 0 0 16px rgba(0, 217, 126, 0.45);
-        transition: transform 0.3s ease;
-        object-fit: contain;
-    }
-    .sb-logo-img:hover {
-        transform: scale(1.06);
     }
     .sb-brand-info {
         display: flex;
@@ -215,12 +262,6 @@ st.markdown("""
         margin-bottom: 14px;
     }
     .tb-l { display: flex; align-items: center; gap: 12px; }
-    .tb-logo-img {
-        width: 30px; height: 30px;
-        border-radius: 50%;
-        box-shadow: 0 0 10px rgba(0,217,126,0.45);
-        object-fit: contain;
-    }
     .logo-t { font-size: 14px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
     .logo-t span { color: var(--c-g); }
     .badge {
@@ -368,10 +409,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── 1. COMPACT TOPBAR ──────────────────────────────────────────────
+topbar_logo_html = get_animated_logo_html(size=28, uid="tb")
 st.markdown(f"""
 <div class="topbar">
     <div class="tb-l">
-        <img src="{_logo_b64}" class="tb-logo-img" alt="Logo" />
+        {topbar_logo_html}
         <div class="logo-t">VIBE <span>STOCK</span> TERMINAL</div>
         <span class="badge">Multi-Agent AI v5.0</span>
     </div>
@@ -418,10 +460,11 @@ def calculate_rsi(series, period=14):
 
 # ── 2. SIDEBAR SETUP & CONTROLS ────────────────────────────────────
 with st.sidebar:
-    # Sidebar Brand Header with Circular Logo
+    # Sidebar Brand Header with Live Animated Circular Logo
+    sidebar_logo_html = get_animated_logo_html(size=44, uid="sb")
     st.markdown(f"""
     <div class="sb-brand-header">
-        <img src="{_logo_b64}" class="sb-logo-img" alt="Logo" />
+        {sidebar_logo_html}
         <div class="sb-brand-info">
             <div class="sb-brand-name">VIBE <span>STOCK</span></div>
             <div class="sb-brand-tag">Terminal AI v5.0</div>
