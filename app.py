@@ -192,7 +192,7 @@ st.markdown("""
 
     /* ─── DEBATE STREAM ──────────────────────────────────────── */
     .debate {
-        height: 340px; overflow-y: auto; padding: 12px 14px;
+        height: 385px; overflow-y: auto; padding: 12px 14px;
         display: flex; flex-direction: column; gap: 8px;
     }
     .mb {
