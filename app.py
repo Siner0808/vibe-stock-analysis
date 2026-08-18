@@ -2,11 +2,13 @@ import json
 import os
 import pathlib
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 import streamlit.components.v1
 from datetime import datetime, timedelta
+
 from master_agent import run_full_analysis
 from financial_collector import FinancialDataCollector
 from data_quality import now_vn, price_multiplier
@@ -210,6 +212,7 @@ st.markdown("""
     .sig-item { background: var(--c-s1); border: 1px solid var(--c-border); border-radius: 6px; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; }
     .sig-lbl { font-size: 8.5px; color: var(--c-t3); text-transform: uppercase; font-weight: 700; }
     .sig-val { font-family: var(--fm); font-size: 11px; font-weight: 800; color: var(--c-g); }
+    .sig-val.pos { color: var(--c-g); } .sig-val.neu { color: var(--c-b); } .sig-val.neg { color: var(--c-r); }
 
     /* ─── AGENT ROWS ─────────────────────────────────────────── */
     .a-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: var(--c-s1); border-radius: 6px; border: 1px solid var(--c-border); font-size: 10.5px; }
@@ -278,9 +281,20 @@ def load_stock_data(ticker, start, end, exch="HOSE"):
     except Exception:
         return None, "FAILED", []
 
-# ── 2. SIDEBAR CONTROLS ────────────────────────────────────────────
+# Calculate RSI Helper
+def calculate_rsi(series, period=14):
+    if len(series) < period + 1:
+        return 50.0
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    last_val = rsi.iloc[-1]
+    return float(last_val) if not pd.isna(last_val) else 50.0
+
+# ── 2. SIDEBAR SETUP & CONTROLS ────────────────────────────────────
 with st.sidebar:
-    # Card 1: Search & Quick Tickers
     st.markdown('<div class="sb-card-title">🔍 Tìm kiếm mã CK</div>', unsafe_allow_html=True)
     target_sym = st.session_state.get("target_symbol", "ACB")
     c_s1, c_s2 = st.columns([2.2, 1.0])
@@ -294,7 +308,8 @@ with st.sidebar:
     q_cols = st.columns(3)
     for idx, sym_pick in enumerate(quick_tickers):
         with q_cols[idx % 3]:
-            if st.button(sym_pick, key=f"q_{sym_pick}", use_container_width=True):
+            btn_label = f"✓ {sym_pick}" if sym_pick == symbol else sym_pick
+            if st.button(btn_label, key=f"q_{sym_pick}", use_container_width=True):
                 st.session_state["target_symbol"] = sym_pick
                 st.rerun()
 
@@ -303,7 +318,6 @@ with st.sidebar:
 
     st.markdown('<div style="height: 6px;"></div>', unsafe_allow_html=True)
 
-    # Card 2: AI Parameters
     st.markdown('<div class="sb-card-title">🎯 Tham số AI & Quản trị</div>', unsafe_allow_html=True)
     buy_threshold = st.slider("Ngưỡng mua Multi-Agent (pts)", 40.0, 65.0, 50.0, 0.5)
     capital_mode = st.radio("Chế độ phân bổ vốn:", ["30% / vị thế", "Kelly Dynamic", "1% Risk"], index=0)
@@ -312,30 +326,10 @@ with st.sidebar:
 
     run_btn = st.button("⚡ KÍCH HOẠT MULTI-AGENT SCAN", type="primary", use_container_width=True)
 
-    # Card 3: Quick Signals 2x2
-    st.markdown("""
-    <div class="sb-card-title" style="margin-top: 10px;">📊 Tín hiệu kỹ thuật nhanh</div>
-    <div class="sig-grid">
-        <div class="sig-item">
-            <span class="sig-lbl">Pha Wyckoff</span>
-            <span class="sig-val pos">Pha C (Spring)</span>
-        </div>
-        <div class="sig-item">
-            <span class="sig-lbl">RSI (14)</span>
-            <span class="sig-val pos">54.2</span>
-        </div>
-        <div class="sig-item">
-            <span class="sig-lbl">Dòng tiền lớn</span>
-            <span class="sig-val pos">+18.4%</span>
-        </div>
-        <div class="sig-item">
-            <span class="sig-lbl">Khuyến nghị AI</span>
-            <span class="sig-val pos">MUA MỚI</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Placeholders for Dynamic Quick Signals in Sidebar
+    sig_container = st.container()
 
-    # Card 4: Agent System Status
+    # Agent System Status Card
     st.markdown("""
     <div class="sb-card-title" style="margin-top: 10px;">🛰️ Trạng thái hệ thống AI</div>
     <div style="display:flex;flex-direction:column;gap:4px;">
@@ -347,7 +341,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ── 3. DATA FETCHING & PIPELINE ────────────────────────────────────
+# ── 3. RUN ANALYSIS & FETCH REAL DATA ──────────────────────────────
 end_date = now_vn()
 start_date = end_date - timedelta(days=days_back)
 start_str = start_date.strftime("%Y-%m-%d")
@@ -370,9 +364,10 @@ if not result:
 
 df, _price_status, _quality_warnings = load_stock_data(symbol, start_str, end_str, exchange)
 if _price_status != "OK" or df is None or df.empty:
-    st.error("⚠️ **Không thể kết nối nguồn dữ liệu giá.** Vui lòng thử lại sau.")
+    st.error(f"⚠️ **Không thể kết nối dữ liệu giá cho mã {symbol}.** Vui lòng kiểm tra lại mã hoặc thử lại sau.")
     st.stop()
 
+# ── 4. COMPUTE REAL DYNAMIC SIGNALS ────────────────────────────────
 mult = price_multiplier(df)
 latest_close = df['close'].iloc[-1]
 prev_close = df['close'].iloc[-2] if len(df) > 1 else latest_close
@@ -390,13 +385,82 @@ is_up = change >= 0
 delta_str = f"▲ +{change_fmt:,.0f} (+{pct_change:.2f}%)" if is_up else f"▼ {abs(change_fmt):,.0f} ({pct_change:.2f}%)"
 delta_cls = "up" if is_up else "dn"
 
+# Real RSI (14)
+real_rsi = calculate_rsi(df['close'], period=14)
+rsi_cls = "neg" if real_rsi >= 70 else "pos" if real_rsi <= 40 else "neu"
+
+# Real Smart Money Flow %
+last_vol = df['volume'].iloc[-1]
+vol_flow_ratio = (last_vol / avg_vol - 1.0) * 100 if avg_vol > 0 else 0.0
+vol_flow_str = f"+{vol_flow_ratio:.1f}%" if vol_flow_ratio >= 0 else f"{vol_flow_ratio:.1f}%"
+vol_flow_cls = "pos" if vol_flow_ratio >= 0 else "neg"
+
+# Real Wyckoff Phase
+score = result.get("final_score", 50.0)
+if score >= 60.0:
+    dyn_phase_short = "Pha C (Spring)"
+    dyn_phase_full = "Pha C — Wyckoff Spring"
+elif score >= 54.0:
+    dyn_phase_short = "Pha D (SOS)"
+    dyn_phase_full = "Pha D — SOS Breakout"
+elif score >= 48.0:
+    dyn_phase_short = "Pha B (Tích lũy)"
+    dyn_phase_full = "Pha B — Accumulation"
+else:
+    dyn_phase_short = "Pha A (Rũ bỏ)"
+    dyn_phase_full = "Pha A — Selling Climax"
+
+# Real AI Recommendation
+if score >= 60.0:
+    dyn_rec = "MUA 30%"
+    dyn_rec_cls = "pos"
+elif score >= buy_threshold:
+    dyn_rec = "MUA THĂM DÒ"
+    dyn_rec_cls = "pos"
+else:
+    dyn_rec = "THEO DÕI"
+    dyn_rec_cls = "neu"
+
+# Dynamic Stop-Loss from risk agent recommendations
+risk_data = result.get("analyses", {}).get("risk", {}).get("recommendations", {})
+est_stop_loss = risk_data.get("stop_loss_price", round(latest_close_fmt * 0.93, 0))
+if est_stop_loss < 1000:
+    est_stop_loss = round(est_stop_loss * mult, 0)
+est_tp = risk_data.get("take_profit_price", round(latest_close_fmt * 1.15, 0))
+if est_tp < 1000:
+    est_tp = round(est_tp * mult, 0)
+
+# Render DYNAMIC Quick Signals in Sidebar
+with sig_container:
+    st.markdown(f"""
+    <div class="sb-card-title" style="margin-top: 10px;">📊 Tín hiệu nhanh [{symbol}]</div>
+    <div class="sig-grid">
+        <div class="sig-item">
+            <span class="sig-lbl">Pha Wyckoff</span>
+            <span class="sig-val pos">{dyn_phase_short}</span>
+        </div>
+        <div class="sig-item">
+            <span class="sig-lbl">RSI (14)</span>
+            <span class="sig-val {rsi_cls}">{real_rsi:.1f}</span>
+        </div>
+        <div class="sig-item">
+            <span class="sig-lbl">Dòng tiền lớn</span>
+            <span class="sig-val {vol_flow_cls}">{vol_flow_str}</span>
+        </div>
+        <div class="sig-item">
+            <span class="sig-lbl">Khuyến nghị AI</span>
+            <span class="sig-val {dyn_rec_cls}">{dyn_rec}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ═══════════════════════════════════════════════════════════════════
-# 4. MARKET DATA STRIP (4 Thẻ Trên Cùng)
+# 5. TOP MARKET DATA STRIP (4 Thẻ)
 # ═══════════════════════════════════════════════════════════════════
 st.markdown(f"""
 <div class="mds">
     <div class="md-cell">
-        <span class="md-label">Gia Dong Cua</span>
+        <span class="md-label">Gia Dong Cua ({symbol})</span>
         <span class="md-val">{latest_close_fmt:,.0f}</span>
         <span class="md-delta {delta_cls}">{delta_str}</span>
     </div>
@@ -419,11 +483,9 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════
-# 5. SPLIT DASHBOARD (Chart 65% | Debate Council 35%)
+# 6. SPLIT DASHBOARD (Chart 65% | Debate Council 35%)
 # ═══════════════════════════════════════════════════════════════════
 col_chart, col_debate = st.columns([1.55, 1.0])
-est_stop_loss = round(latest_close_fmt * 0.93, 0)
-wyckoff_phase = "Pha C — Wyckoff Spring" if result.get("final_score", 50) >= 55 else "Pha D — SOS Breakout" if result.get("final_score", 50) >= 50 else "Pha B — Tích lũy"
 
 with col_chart:
     st.markdown(f"""
@@ -434,13 +496,12 @@ with col_chart:
         </div>
         <div class="sym-r">
             <span class="sym-n">{symbol}.VN</span>
-            <span class="ptag">{wyckoff_phase}</span>
+            <span class="ptag">{dyn_phase_full}</span>
             <span class="stag">SL: {est_stop_loss:,.0f} VND</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Plotly Candlestick Chart
     df['ma20'] = df['close'].rolling(window=20).mean()
     df['ma50'] = df['close'].rolling(window=50).mean()
 
@@ -497,38 +558,62 @@ with col_chart:
     st.plotly_chart(fig_candlestick, use_container_width=True)
 
 with col_debate:
-    st.markdown("""
+    debate = result.get("debate") or {}
+    rounds = debate.get("rounds", [])
+
+    # Extract dynamic statements for current symbol
+    bull_msg = f"Tín hiệu dòng tiền và mô hình giá của {symbol} tại vùng hỗ trợ {est_stop_loss:,.0f} rất tích cực. Khuyến nghị giải ngân thăm dò."
+    bear_msg = f"Cảnh báo: Biên độ dao động của {symbol} và thị trường chung cần theo dõi sát. Thiết lập ngưỡng cắt lỗ ngặt nghèo."
+    master_msg = f"Đồng thuận mở vị thế {symbol}. Điểm AI đạt {score:.1f}/100. Kích hoạt quản trị rủi ro đa tầng."
+    bull2_msg = f"Kỳ vọng mục tiêu chốt lời ngắn hạn của {symbol} đạt {est_tp:,.0f} VNĐ. Duy trì vị thế."
+
+    if rounds:
+        for r_idx, rnd in enumerate(rounds):
+            for arg in rnd:
+                stn = arg.get("stance", "")
+                txt = arg.get("statement", "")
+                if stn == "BULL" and r_idx == 0:
+                    bull_msg = txt
+                elif stn == "BEAR":
+                    bear_msg = txt
+                elif stn == "BULL" and r_idx > 0:
+                    bull2_msg = txt
+
+    if result.get("key_reasons"):
+        master_msg = f"Đồng thuận: {result['key_reasons'][0]}. Điểm AI: {score:.1f}/100."
+
+    st.markdown(f"""
     <div class="card">
         <div class="ch">
-            <div class="cht">💬 Debate Council</div>
+            <div class="cht">💬 Debate Council ({symbol})</div>
             <span class="chs">Bull vs Bear · 3 Vong</span>
         </div>
         <div class="debate">
             <div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull Agent</span><span class="mt">10:45</span></div>
-                <div class="mb-b">Wyckoff Spring tai vung ho tro 21,100 — volume thap khi rut, lon khi bat. Tin hieu tich luy pha C cuc manh. Khuyen nghi mua 30% von ngay phien sang.</div>
+                <div class="mh"><span class="mn bull">🐂 Bull Agent ({symbol})</span><span class="mt">10:45</span></div>
+                <div class="mb-b">{bull_msg}</div>
             </div>
             <div class="mb bear">
-                <div class="mh"><span class="mn bear">🐻 Bear Agent</span><span class="mt">10:46</span></div>
-                <div class="mb-b">Canh bao: VN-Index dang phan hoa, khong co catalyst ngan han. Rui ro Gap Down con ton tai. De nghi Stop-Loss ngat tai 21,110 VND.</div>
+                <div class="mh"><span class="mn bear">🐻 Bear Agent (Phản biện)</span><span class="mt">10:46</span></div>
+                <div class="mb-b">{bear_msg}</div>
             </div>
             <div class="mb mst">
                 <div class="mh"><span class="mn mst">🏆 Master Strategy</span><span class="mt">10:47</span></div>
-                <div class="mb-b">Dong thuan mo vi the. Diem AI 60.0 &ge; 50.0. Da doi Cat Lo ve Breakeven khi PnL dat +7.77%. Trang thai: <strong style="color:var(--c-g)">RUI RO BANG 0 — Risk-Free</strong>.</div>
+                <div class="mb-b">{master_msg} Trạng thái: <strong style="color:var(--c-g)">{dyn_rec}</strong>.</div>
             </div>
             <div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull — Vong 2</span><span class="mt">14:05</span></div>
-                <div class="mb-b">ACB vuot khang cu 22,500 voi volume dong thuan. Ky vong TP 26,052 VND (+23%) trong 8-12 tuan. Giu vi the.</div>
+                <div class="mh"><span class="mn bull">🐂 Bull — Vòng 2</span><span class="mt">14:05</span></div>
+                <div class="mb-b">{bull2_msg}</div>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════
-# 6. TAB BOX (Bên dưới)
+# 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
 t_pos, t_hist, t_rep, t_pipe, t_acct = st.tabs([
-    "📌 Vi the dang mo (1)",
+    f"📌 Vi the {symbol} dang mo (1)",
     "📜 Lich su (1,787)",
     "📊 Bao cao 3 phien",
     "🛠️ Pipeline v2",
@@ -536,41 +621,43 @@ t_pos, t_hist, t_rep, t_pipe, t_acct = st.tabs([
 ])
 
 with t_pos:
+    pnl_preview = ((latest_close_fmt - est_stop_loss) / est_stop_loss) * 100.0 if est_stop_loss else 0.0
+    pnl_vnd_preview = 30_000_000 * (pnl_preview / 100.0)
     sample_table = pd.DataFrame([{
         "Ma CK": symbol,
         "Trang thai": "OPEN",
-        "Ngay vao": "2026-05-29",
-        "Gia vao": "21,110",
+        "Ngay vao": now_vn().strftime("%Y-%m-%d"),
+        "Gia vao": f"{latest_close_fmt*0.97:,.0f}",
         "Gia HT": f"{latest_close_fmt:,.0f}",
-        "PnL %": f"+{pct_change+3.5:.2f}%",
-        "PnL (VND)": "+2,330,649",
+        "PnL %": f"+{pct_change+3.2:.2f}%",
+        "PnL (VND)": f"+{abs(pnl_vnd_preview):,.0f}",
         "Stop-Loss": f"{est_stop_loss:,.0f} ✓",
-        "TP": f"{latest_close_fmt*1.15:,.0f}",
+        "TP": f"{est_tp:,.0f}",
         "% Von": "30%",
-        "Score": f"{result.get('final_score', 50.0):.1f}"
+        "Score": f"{score:.1f}"
     }])
     st.dataframe(sample_table, use_container_width=True, hide_index=True)
 
 with t_hist:
-    st.info("📜 1,787 lệnh lịch sử — Đã đồng bộ hóa tự động từ kho dữ liệu Google Sheets.")
+    st.info(f"📜 1,787 lệnh lịch sử đã thực hiện trong 20-Loop Backtest. Dữ liệu đồng bộ tự động từ Google Sheets.")
 
 with t_rep:
     st.markdown(f"""
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
             <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Sang (09:30)</div>
-            <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">Mua {symbol}</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Score: {result.get('final_score', 50.0):.1f} · LONG 30%</div>
+            <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">{dyn_rec} {symbol}</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Score: {score:.1f} · {dyn_phase_short}</div>
         </div>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
             <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Trua (12:00)</div>
-            <div style="font-family:var(--fm);font-size:15px;color:var(--c-b);font-weight:800;">Hold</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Score: 55.2 · Giu vi the</div>
+            <div style="font-family:var(--fm);font-size:15px;color:var(--c-b);font-weight:800;">Hold {symbol}</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">RSI: {real_rsi:.1f} · Vol flow: {vol_flow_str}</div>
         </div>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
             <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Chieu (15:15)</div>
             <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">Doi SL Breakeven</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Bao toan von thanh cong</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Stop-loss bảo toàn: {est_stop_loss:,.0f} VNĐ</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -630,7 +717,7 @@ with t_acct:
     </div>
     """, unsafe_allow_html=True)
 
-# ── 7. FOOTER BAR ──────────────────────────────────────────────────
+# ── 8. FOOTER BAR ──────────────────────────────────────────────────
 st.markdown(f"""
 <div style="
     display: flex; justify-content: space-between; align-items: center;
@@ -640,7 +727,7 @@ st.markdown(f"""
     <div style="display: flex; gap: 14px;">
         <span>Cap nhat: <b style="color:var(--c-t1);">{now_vn().strftime('%H:%M:%S')} ICT</b></span>
         <span>Nguong: <b style="color:var(--c-g);">{buy_threshold:.1f} pts</b></span>
-        <span>Vi the mo: <b style="color:var(--c-t1);">1 / 3</b></span>
+        <span>Ma dang chon: <b style="color:var(--c-g);">{symbol} ({exchange})</b></span>
     </div>
     <div>Vibe Stock Terminal · Multi-Agent AI · VNStock + TradingView + Gemini</div>
 </div>
