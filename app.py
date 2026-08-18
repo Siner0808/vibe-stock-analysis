@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import pathlib
@@ -13,6 +14,19 @@ from master_agent import run_full_analysis
 from financial_collector import FinancialDataCollector
 from data_quality import now_vn, price_multiplier
 from data_collectors import VNStockCollectorAgent
+
+# ── Load Brand Logo ───────────────────────────────────────────────
+_logo_png_path = pathlib.Path(__file__).parent / "assets" / "export-5b" / "vibe-5b-256.png"
+_logo_svg_path = pathlib.Path(__file__).parent / "assets" / "export-5b" / "vibe-5b.svg"
+
+if _logo_png_path.exists():
+    with open(_logo_png_path, "rb") as f:
+        _logo_b64 = f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+elif _logo_svg_path.exists():
+    with open(_logo_svg_path, "rb") as f:
+        _logo_b64 = f"data:image/svg+xml;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+else:
+    _logo_b64 = ""
 
 # ── Streamlit Page Config ─────────────────────────────────────────
 st.set_page_config(
@@ -105,6 +119,89 @@ st.markdown("""
         background: var(--c-bg) !important;
     }
 
+    /* ─── SIDEBAR BRAND HEADER ───────────────────────────────── */
+    .sb-brand-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 6px 14px 6px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--c-border);
+    }
+    .sb-logo-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        box-shadow: 0 0 16px rgba(0, 217, 126, 0.45);
+        transition: transform 0.3s ease;
+        object-fit: contain;
+    }
+    .sb-logo-img:hover {
+        transform: scale(1.06);
+    }
+    .sb-brand-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .sb-brand-name {
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: -0.3px;
+        color: #ffffff;
+        font-family: var(--ff);
+    }
+    .sb-brand-name span {
+        color: var(--c-g);
+    }
+    .sb-brand-tag {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--c-t2);
+        font-family: var(--fm);
+    }
+
+    /* ─── SEARCH INPUT & PILLS THEME ─────────────────────────── */
+    [data-testid="stSidebar"] div[data-baseweb="input"] {
+        background: rgba(15, 23, 42, 0.85) !important;
+        border: 1px solid rgba(0, 217, 126, 0.3) !important;
+        border-radius: 10px !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4) !important;
+        transition: all 0.25s ease !important;
+    }
+    [data-testid="stSidebar"] div[data-baseweb="input"]:focus-within {
+        border-color: #00d97e !important;
+        box-shadow: 0 0 14px rgba(0, 217, 126, 0.4), inset 0 2px 4px rgba(0,0,0,0.4) !important;
+        background: rgba(15, 23, 42, 0.98) !important;
+    }
+    [data-testid="stSidebar"] div[data-baseweb="input"] input {
+        color: #ffffff !important;
+        font-family: var(--fm) !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase !important;
+    }
+    [data-testid="stSidebar"] div[data-testid="column"] button {
+        background: rgba(17, 24, 39, 0.65) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: var(--c-t2) !important;
+        font-family: var(--fm) !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        padding: 5px 6px !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+    [data-testid="stSidebar"] div[data-testid="column"] button:hover {
+        border-color: rgba(0, 217, 126, 0.5) !important;
+        color: #00d97e !important;
+        background: rgba(0, 217, 126, 0.1) !important;
+        transform: translateY(-1px) !important;
+    }
+
     /* ─── TOPBAR BANNER ──────────────────────────────────────── */
     .topbar {
         background: rgba(12, 17, 30, 0.95);
@@ -118,13 +215,11 @@ st.markdown("""
         margin-bottom: 14px;
     }
     .tb-l { display: flex; align-items: center; gap: 12px; }
-    .logo {
-        width: 28px; height: 28px;
-        background: conic-gradient(from 0deg, #00d97e, #3b82f6, #00d97e);
-        border-radius: 6px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 14px; font-weight: 900; color: #030a06;
-        box-shadow: 0 0 14px rgba(0,217,126,0.45);
+    .tb-logo-img {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(0,217,126,0.45);
+        object-fit: contain;
     }
     .logo-t { font-size: 14px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
     .logo-t span { color: var(--c-g); }
@@ -273,10 +368,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── 1. COMPACT TOPBAR ──────────────────────────────────────────────
-st.markdown("""
+st.markdown(f"""
 <div class="topbar">
     <div class="tb-l">
-        <div class="logo">V</div>
+        <img src="{_logo_b64}" class="tb-logo-img" alt="Logo" />
         <div class="logo-t">VIBE <span>STOCK</span> TERMINAL</div>
         <span class="badge">Multi-Agent AI v5.0</span>
     </div>
@@ -323,6 +418,17 @@ def calculate_rsi(series, period=14):
 
 # ── 2. SIDEBAR SETUP & CONTROLS ────────────────────────────────────
 with st.sidebar:
+    # Sidebar Brand Header with Circular Logo
+    st.markdown(f"""
+    <div class="sb-brand-header">
+        <img src="{_logo_b64}" class="sb-logo-img" alt="Logo" />
+        <div class="sb-brand-info">
+            <div class="sb-brand-name">VIBE <span>STOCK</span></div>
+            <div class="sb-brand-tag">Terminal AI v5.0</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown('<div class="sb-card-title">🔍 Tìm kiếm mã CK</div>', unsafe_allow_html=True)
     target_sym = st.session_state.get("target_symbol", "ACB")
     c_s1, c_s2 = st.columns([2.2, 1.0])
