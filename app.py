@@ -57,9 +57,37 @@ st.markdown("""
         --fm: 'JetBrains Mono', monospace;
     }
 
-    /* Hide Streamlit Header and Reduce Top Padding */
-    header[data-testid="stHeader"] { display: none !important; }
-    .stApp > header { display: none !important; }
+    /* Transparent Streamlit Header & Persistent Sidebar Reopen Button */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        height: 0px !important;
+        min-height: 0px !important;
+        z-index: 99999 !important;
+    }
+    div[data-testid="stSidebarCollapsedControl"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarHeader"] button {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: #111827 !important;
+        border: 1px solid rgba(0, 217, 126, 0.5) !important;
+        border-radius: 8px !important;
+        color: #00d97e !important;
+        box-shadow: 0 0 12px rgba(0, 217, 126, 0.3) !important;
+        cursor: pointer !important;
+        z-index: 100000 !important;
+    }
+    div[data-testid="stSidebarCollapsedControl"] svg,
+    button[data-testid="stSidebarCollapseButton"] svg {
+        fill: #00d97e !important;
+        stroke: #00d97e !important;
+    }
+    div[data-testid="stSidebarCollapsedControl"]:hover,
+    button[data-testid="stSidebarCollapseButton"]:hover {
+        border-color: #00d97e !important;
+        box-shadow: 0 0 16px rgba(0, 217, 126, 0.6) !important;
+    }
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 2rem !important;
