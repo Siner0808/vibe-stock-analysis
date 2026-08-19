@@ -413,6 +413,39 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# ── SỔ LỆNH GIẤY — nguồn DUY NHẤT cho mọi con số hiệu quả trên giao diện ──
+# Trên Streamlit Cloud, `.gitignore` chặn `*.db` nên paper_trades.db KHÔNG
+# tồn tại. Bản cũ khi đó rơi vào nhánh dự phòng dựng sẵn một vị thế ACB
+# +7,77% và bốn ô KPI bê từ ui_prototype.html — tức nhánh bịa là nhánh LUÔN
+# chạy trên cloud. Nay: không đọc được sổ thì nói "chưa có dữ liệu".
+_db_path = pathlib.Path(__file__).parent / "paper_trades.db"
+real_open_trades = []
+so_lenh_perf = None
+so_lenh_dong = 0
+if _db_path.exists():
+    try:
+        from paper_metrics import compute as _compute
+        from paper_trading import PaperTradingJournal as _PJ
+        _j = _PJ(str(_db_path))
+        _all = _j.all_trades()
+        _j.db.close()
+        real_open_trades = [t for t in _all
+                            if t.status in ("OPEN", "PENDING", "CLOSING")]
+        _dong = [t for t in _all if t.status == "CLOSED"]
+        so_lenh_dong = len(_dong)
+        so_lenh_perf = _compute(_dong)
+        so_lenh_loi = None
+    except Exception as _e:
+        so_lenh_loi = f"lỗi đọc sổ lệnh: {type(_e).__name__}: {_e}"
+else:
+    so_lenh_loi = "không tìm thấy paper_trades.db (bình thường trên Streamlit Cloud)"
+
+
+def _so(gia_tri, dinh_dang="{:,.2f}"):
+    """Số thật, hoặc dấu gạch. KHÔNG BAO GIỜ là một con số thay thế."""
+    return "—" if gia_tri is None else dinh_dang.format(gia_tri)
+
+
 # ── 1. COMPACT TOPBAR ──────────────────────────────────────────────
 topbar_logo_html = get_animated_logo_html(size=28, uid="tb")
 st.markdown(
@@ -423,8 +456,9 @@ st.markdown(
     f'<span class="badge">Multi-Agent AI v5.0</span>'
     f'</div>'
     f'<div class="tb-r">'
-    f'<div class="ti-item"><span class="ti-l">VN-Index</span><span class="ti-v up">1,245.80 ▲ +0.85%</span></div>'
-    f'<div class="ti-item"><span class="ti-l">20-Loop Return</span><span class="ti-v up">+636.11%</span></div>'
+    f'<div class="ti-item"><span class="ti-l">VN-Index</span><span class="ti-v">—</span></div>'
+    f'<div class="ti-item"><span class="ti-l">Sổ lệnh (net)</span>'
+    f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span></div>'
     f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">50.0 pts</span></div>'
     f'<div class="live-pill"><div class="dot"></div>Sheets Synced</div>'
     f'</div>'
@@ -445,15 +479,17 @@ def load_stock_data(ticker, start, end, exch="HOSE"):
 
 # Calculate RSI Helper
 def calculate_rsi(series, period=14):
+    # Thiếu dữ liệu thì trả None. Trả 50.0 là bịa một chỉ báo trung tính
+    # rồi hiển thị nó như quan sát được.
     if len(series) < period + 1:
-        return 50.0
+        return None
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
     rs = gain / loss
     rsi = 100 - (100 / (1 + rs))
     last_val = rsi.iloc[-1]
-    return float(last_val) if not pd.isna(last_val) else 50.0
+    return float(last_val) if not pd.isna(last_val) else None
 
 # ── 2. SIDEBAR SETUP & CONTROLS ────────────────────────────────────
 with st.sidebar:
@@ -501,17 +537,38 @@ with st.sidebar:
     # Placeholders for Dynamic Quick Signals in Sidebar
     sig_container = st.container()
 
-    # Agent System Status Card
-    st.markdown("""
-    <div class="sb-card-title" style="margin-top: 10px;">🛰️ Trạng thái hệ thống AI</div>
-    <div style="display:flex;flex-direction:column;gap:4px;">
-        <div class="a-row"><span class="a-lbl">📈 Technical Agent</span><span style="font-size:9.5px;color:#475569;">12ms</span><span class="a-st ok">● ONLINE</span></div>
-        <div class="a-row"><span class="a-lbl">📑 Fundamental Agent</span><span style="font-size:9.5px;color:#475569;">Q2/2026</span><span class="a-st ok">● ONLINE</span></div>
-        <div class="a-row"><span class="a-lbl">⚔️ Debate Council</span><span style="font-size:9.5px;color:#475569;">3 Vòng</span><span class="a-st ac">● ACTIVE</span></div>
-        <div class="a-row"><span class="a-lbl">🧠 Post-Mortem Mem</span><span style="font-size:9.5px;color:#475569;">39 Mẫu</span><span class="a-st wn">● SYNCED</span></div>
-        <div class="a-row"><span class="a-lbl">📡 TradingView MCP</span><span style="font-size:9.5px;color:#475569;">Live</span><span class="a-st ok">● READY</span></div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Trạng thái hệ thống — chỉ khẳng định thứ ĐO ĐƯỢC tại chỗ.
+    # Bản cũ dán cứng "12ms · ONLINE · Q2/2026 · 3 Vòng · 39 Mẫu · SYNCED ·
+    # Live · READY", không dòng nào đọc từ đâu. Riêng số mẫu post-mortem
+    # lệch thực tế hơn 160 lần — file thật có 6.327 mẫu.
+    _pm_path = pathlib.Path(__file__).parent / "sl_pattern_memory.json"
+    _pm_n = None
+    if _pm_path.exists():
+        try:
+            _pm_n = len(json.loads(_pm_path.read_text(encoding="utf-8")))
+        except Exception:
+            _pm_n = None
+    _pm_bat = os.environ.get("POST_MORTEM_ENABLED") == "1"
+    _pm_chi_tiet = "—" if _pm_n is None else f"{_pm_n:,} mẫu"
+    _pm_trang_thai = "● BẬT" if _pm_bat else "● TẮT"
+
+    def _hang(nhan, chi_tiet, trang_thai, lop="wn"):
+        return (f'<div class="a-row"><span class="a-lbl">{nhan}</span>'
+                f'<span style="font-size:9.5px;color:#475569;">{chi_tiet}</span>'
+                f'<span class="a-st {lop}">{trang_thai}</span></div>')
+
+    st.markdown(
+        '<div class="sb-card-title" style="margin-top: 10px;">'
+        '🛰️ Trạng thái hệ thống AI</div>'
+        '<div style="display:flex;flex-direction:column;gap:4px;">'
+        + _hang("🧠 Post-Mortem Mem", _pm_chi_tiet, _pm_trang_thai,
+                "ac" if _pm_bat else "wn")
+        + _hang("📈 Technical Agent", "—", "● chưa đo")
+        + _hang("📑 Fundamental Agent", "—", "● chưa đo")
+        + _hang("⚔️ Debate Council", "—", "● chưa đo")
+        + _hang("📡 TradingView MCP", "—", "● chưa đo")
+        + '</div>',
+        unsafe_allow_html=True)
 
 # ── 3. RUN ANALYSIS & FETCH REAL DATA ──────────────────────────────
 end_date = now_vn()
@@ -559,7 +616,9 @@ delta_cls = "up" if is_up else "dn"
 
 # Real RSI (14)
 real_rsi = calculate_rsi(df['close'], period=14)
-rsi_cls = "neg" if real_rsi >= 70 else "pos" if real_rsi <= 40 else "neu"
+rsi_txt = _so(real_rsi, "{:.1f}")
+rsi_cls = ("neu" if real_rsi is None
+           else "neg" if real_rsi >= 70 else "pos" if real_rsi <= 40 else "neu")
 
 # Real Smart Money Flow %
 last_vol = df['volume'].iloc[-1]
@@ -567,20 +626,22 @@ vol_flow_ratio = (last_vol / avg_vol - 1.0) * 100 if avg_vol > 0 else 0.0
 vol_flow_str = f"+{vol_flow_ratio:.1f}%" if vol_flow_ratio >= 0 else f"{vol_flow_ratio:.1f}%"
 vol_flow_cls = "pos" if vol_flow_ratio >= 0 else "neg"
 
-# Real Wyckoff Phase
-score = result.get("final_score", 50.0)
+# Bốn nhãn dưới đây CHỈ là điểm cuối chia thành 4 khoảng — không có phân
+# tích Wyckoff nào ở đây. Bản cũ gọi chúng là "Pha C — Wyckoff Spring" và
+# hiển thị như kết quả nhận diện cấu trúc giá.
+score = result["final_score"]
 if score >= 60.0:
-    dyn_phase_short = "Pha C (Spring)"
-    dyn_phase_full = "Pha C — Wyckoff Spring"
+    dyn_phase_short = "Điểm ≥ 60"
+    dyn_phase_full = "Vùng điểm ≥ 60 (điểm cuối, không phải pha Wyckoff)"
 elif score >= 54.0:
-    dyn_phase_short = "Pha D (SOS)"
-    dyn_phase_full = "Pha D — SOS Breakout"
+    dyn_phase_short = "Điểm 54–60"
+    dyn_phase_full = "Vùng điểm 54–60 (điểm cuối, không phải pha Wyckoff)"
 elif score >= 48.0:
-    dyn_phase_short = "Pha B (Tích lũy)"
-    dyn_phase_full = "Pha B — Accumulation"
+    dyn_phase_short = "Điểm 48–54"
+    dyn_phase_full = "Vùng điểm 48–54 (điểm cuối, không phải pha Wyckoff)"
 else:
-    dyn_phase_short = "Pha A (Rũ bỏ)"
-    dyn_phase_full = "Pha A — Selling Climax"
+    dyn_phase_short = "Điểm < 48"
+    dyn_phase_full = "Vùng điểm < 48 (điểm cuối, không phải pha Wyckoff)"
 
 # Real AI Recommendation
 if score >= 60.0:
@@ -595,12 +656,21 @@ else:
 
 # Dynamic Stop-Loss from risk agent recommendations
 risk_data = result.get("analyses", {}).get("risk", {}).get("recommendations", {})
-est_stop_loss = risk_data.get("stop_loss_price", round(latest_close_fmt * 0.93, 0))
-if est_stop_loss < 1000:
+# Thiếu khuyến nghị của risk agent thì để TRỐNG. Bản cũ suy ra
+# close×0,93 và close×1,15 rồi hiển thị như mức do agent tính.
+est_stop_loss = risk_data.get("stop_loss_price")
+if est_stop_loss is not None and est_stop_loss < 1000:
     est_stop_loss = round(est_stop_loss * mult, 0)
-est_tp = risk_data.get("take_profit_price", round(latest_close_fmt * 1.15, 0))
-if est_tp < 1000:
+est_tp = risk_data.get("take_profit_price")
+if est_tp is not None and est_tp < 1000:
     est_tp = round(est_tp * mult, 0)
+
+sl_txt = _so(est_stop_loss, "{:,.0f}")
+tp_txt = _so(est_tp, "{:,.0f}")
+_pct = lambda muc: (None if muc is None or not latest_close_fmt
+                    else (muc / latest_close_fmt - 1.0) * 100.0)
+sl_pct_txt = _so(_pct(est_stop_loss), "{:+.1f}%")
+tp_pct_txt = _so(_pct(est_tp), "{:+.1f}%")
 
 # Render DYNAMIC Quick Signals in Sidebar
 with sig_container:
@@ -608,12 +678,12 @@ with sig_container:
     <div class="sb-card-title" style="margin-top: 10px;">📊 Tín hiệu nhanh [{symbol}]</div>
     <div class="sig-grid">
         <div class="sig-item">
-            <span class="sig-lbl">Pha Wyckoff</span>
+            <span class="sig-lbl">Vùng điểm AI</span>
             <span class="sig-val pos">{dyn_phase_short}</span>
         </div>
         <div class="sig-item">
             <span class="sig-lbl">RSI (14)</span>
-            <span class="sig-val {rsi_cls}">{real_rsi:.1f}</span>
+            <span class="sig-val {rsi_cls}">{rsi_txt}</span>
         </div>
         <div class="sig-item">
             <span class="sig-lbl">Dòng tiền lớn</span>
@@ -669,7 +739,7 @@ with col_chart:
         <div class="sym-r">
             <span class="sym-n">{symbol}.VN</span>
             <span class="ptag">{dyn_phase_full}</span>
-            <span class="stag">SL: {est_stop_loss:,.0f} VND</span>
+            <span class="stag">SL: {sl_txt} VND</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -704,11 +774,12 @@ with col_chart:
         mode='lines', line=dict(color='#3b82f6', width=1.2), name='MA50'
     ), row=1, col=1)
 
-    fig_candlestick.add_hline(
-        y=est_stop_loss, line_dash="dash", line_color="#00d97e",
-        annotation_text=f"SL: {est_stop_loss:,.0f}",
-        annotation_position="top left", row=1, col=1
-    )
+    if est_stop_loss is not None:
+        fig_candlestick.add_hline(
+            y=est_stop_loss, line_dash="dash", line_color="#00d97e",
+            annotation_text=f"SL: {est_stop_loss:,.0f}",
+            annotation_position="top left", row=1, col=1
+        )
 
     vol_colors = ['#00d97e' if df['close'].iloc[i] >= df['open'].iloc[i] else '#f87171' for i in range(len(df))]
     fig_candlestick.add_trace(go.Bar(
@@ -734,10 +805,10 @@ with col_debate:
     rounds = debate.get("rounds", [])
 
     # Extract dynamic statements for current symbol
-    bull_msg = f"Tín hiệu dòng tiền và mô hình giá của {symbol} tại vùng hỗ trợ {est_stop_loss:,.0f} rất tích cực. Khuyến nghị giải ngân thăm dò."
+    bull_msg = f"Tín hiệu dòng tiền và mô hình giá của {symbol} tại vùng hỗ trợ {sl_txt} rất tích cực. Khuyến nghị giải ngân thăm dò."
     bear_msg = f"Cảnh báo: Biên độ dao động của {symbol} và thị trường chung cần theo dõi sát. Thiết lập ngưỡng cắt lỗ ngặt nghèo."
     master_msg = f"Đồng thuận mở vị thế {symbol}. Điểm AI đạt {score:.1f}/100. Kích hoạt quản trị rủi ro đa tầng."
-    bull2_msg = f"Kỳ vọng mục tiêu chốt lời ngắn hạn của {symbol} đạt {est_tp:,.0f} VNĐ. Duy trì vị thế."
+    bull2_msg = f"Kỳ vọng mục tiêu chốt lời ngắn hạn của {symbol} đạt {tp_txt} VNĐ. Duy trì vị thế."
 
     if rounds:
         for r_idx, rnd in enumerate(rounds):
@@ -781,25 +852,13 @@ with col_debate:
     </div>
     """, unsafe_allow_html=True)
 
-# ── Load Real Portfolio Open Positions ────────────────────────────
-_db_path = pathlib.Path(__file__).parent / "paper_trades.db"
-real_open_trades = []
-if _db_path.exists():
-    try:
-        from paper_trading import PaperTradingJournal as _PJ
-        _j = _PJ(str(_db_path))
-        real_open_trades = [t for t in _j.all_trades() if t.status in ("OPEN", "PENDING", "CLOSING")]
-        _j.db.close()
-    except Exception:
-        real_open_trades = []
-
 # ═══════════════════════════════════════════════════════════════════
 # 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
-num_open_positions = len(real_open_trades) if real_open_trades else 1
+num_open_positions = len(real_open_trades)
 t_pos, t_hist, t_rep, t_pipe, t_acct = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
-    "📜 Lịch sử giao dịch (1,787)",
+    f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
     "📊 Báo cáo 3 phiên",
     "🛠️ Pipeline v2",
     "💰 Tài khoản Giả lập"
@@ -810,50 +869,30 @@ with t_pos:
     if real_open_trades:
         open_rows = []
         for t in real_open_trades:
-            if t.symbol == symbol:
-                curr_p = latest_close_fmt
-            else:
-                curr_p = t.entry_price or 22750.0
-            
-            ent_p = t.entry_price or curr_p
-            pnl_pct = ((curr_p - ent_p) / ent_p) * 100.0 if ent_p > 0 else 0.0
-            pos_capital = 30_000_000
-            pnl_vnd = pos_capital * (pnl_pct / 100.0)
-            sl_val = t.stop_loss or (ent_p * 0.95)
-            tp_val = t.take_profit or (ent_p * 1.15)
-            
+            # Thiếu trường nào thì để trống trường đó. Bản cũ thay bằng
+            # 22.750đ, ngày 2026-05-29, điểm 60.0 và vốn 30 triệu/vị thế —
+            # bốn con số không đọc từ đâu cả.
+            ent_p = t.entry_price
+            curr_p = latest_close_fmt if t.symbol == symbol else None
+            pnl_pct = (None if not ent_p or curr_p is None
+                       else (curr_p - ent_p) / ent_p * 100.0)
             open_rows.append({
                 "Mã CK": t.symbol,
                 "Trạng thái": t.status,
-                "Ngày vào": t.entry_date or "2026-05-29",
-                "Giá vào": f"{ent_p:,.0f}",
-                "Giá HT": f"{curr_p:,.0f}",
-                "PnL %": f"{pnl_pct:+.2f}%",
-                "PnL (VNĐ)": f"{pnl_vnd:+,.0f}",
-                "Stop-Loss": f"{sl_val:,.0f} ✓",
-                "Take-Profit": f"{tp_val:,.0f}",
-                "% Vốn": f"{t.size_pct:.0f}%",
-                "Điểm AI": f"{t.entry_score:.1f}" if t.entry_score else "60.0"
+                "Ngày vào": t.entry_date or "—",
+                "Giá vào": _so(ent_p, "{:,.0f}"),
+                "Giá HT": _so(curr_p, "{:,.0f}"),
+                "PnL %": _so(pnl_pct, "{:+.2f}%"),
+                "Stop-Loss": _so(t.stop_loss, "{:,.0f}"),
+                "Take-Profit": _so(t.take_profit, "{:,.0f}"),
+                "% Vốn": _so(t.size_pct, "{:.0f}%"),
+                "Điểm AI": _so(t.entry_score, "{:.1f}"),
             })
         st.dataframe(pd.DataFrame(open_rows), use_container_width=True, hide_index=True)
+    elif so_lenh_loi:
+        st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}")
     else:
-        # Default active ACB position
-        default_pnl = 7.77
-        default_pnl_vnd = 2330649
-        sample_open = pd.DataFrame([{
-            "Mã CK": "ACB",
-            "Trạng thái": "OPEN",
-            "Ngày vào": "2026-05-29",
-            "Giá vào": "21,110",
-            "Giá HT": f"{latest_close_fmt:,.0f}" if symbol == "ACB" else "22,750",
-            "PnL %": f"+{default_pnl:.2f}%",
-            "PnL (VNĐ)": f"+{default_pnl_vnd:,.0f}",
-            "Stop-Loss": "21,158 ✓",
-            "Take-Profit": "26,052",
-            "% Vốn": "30%",
-            "Điểm AI": "60.0"
-        }])
-        st.dataframe(sample_open, use_container_width=True, hide_index=True)
+        st.info("Sổ lệnh không có vị thế nào đang mở.")
 
     st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
     
@@ -864,9 +903,10 @@ with t_pos:
             "Mã CK": symbol,
             "Khuyến nghị": dyn_rec,
             "Vùng giá mua đề xuất": f"{latest_close_fmt:,.0f} VNĐ",
-            "Cắt lỗ (SL)": f"{est_stop_loss:,.0f} VNĐ (-7.0%)",
-            "Chốt lời (TP)": f"{est_tp:,.0f} VNĐ (+15.0%)",
-            "Tỷ trọng vốn": "30%",
+            "Cắt lỗ (SL)": f"{sl_txt} VNĐ ({sl_pct_txt})",
+            "Chốt lời (TP)": f"{tp_txt} VNĐ ({tp_pct_txt})",
+            "Tỷ trọng vốn": _so(
+                result.get("safety", {}).get("safe_position_size"), "{:.0f}%"),
             "Điểm AI": f"{score:.1f} / 100",
             "Trạng thái": "SẴN SÀNG GIẢI NGÂN"
         }])
@@ -875,7 +915,12 @@ with t_pos:
         st.warning(f"⚠️ Mã **{symbol}** hiện có Điểm AI **{score:.1f}/100** (thấp hơn ngưỡng mua **{buy_threshold:.1f} pts**). Hệ thống khuyến nghị tiếp tục **THEO DÕI** và chưa kích hoạt mở vị thế mua.")
 
 with t_hist:
-    st.info(f"📜 1,787 lệnh lịch sử đã thực hiện trong 20-Loop Backtest. Dữ liệu đồng bộ tự động từ Google Sheets.")
+    if so_lenh_perf:
+        st.info(f"📜 {so_lenh_dong:,} lệnh đã đóng trong sổ lệnh giấy "
+                f"(`paper_trades.db`). Đây là sổ ghi tiến về phía trước, "
+                f"không phải kết quả backtest.")
+    else:
+        st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}")
 
 with t_rep:
     st.markdown(f"""
@@ -888,12 +933,12 @@ with t_rep:
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
             <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Trua (12:00)</div>
             <div style="font-family:var(--fm);font-size:15px;color:var(--c-b);font-weight:800;">Hold {symbol}</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">RSI: {real_rsi:.1f} · Vol flow: {vol_flow_str}</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">RSI: {rsi_txt} · Vol flow: {vol_flow_str}</div>
         </div>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
             <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Chieu (15:15)</div>
             <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">Doi SL Breakeven</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Stop-loss bảo toàn: {est_stop_loss:,.0f} VNĐ</div>
+            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Stop-loss bảo toàn: {sl_txt} VNĐ</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -928,30 +973,56 @@ with t_pipe:
     """, unsafe_allow_html=True)
 
 with t_acct:
-    st.markdown("""
+    # Mọi con số ở đây đi qua paper_metrics.compute(). Bản cũ là HTML tĩnh
+    # bê từ ui_prototype.html: 7.361 Tỷ · +636,11% · 1.787 lệnh · PF 1,43 ·
+    # WR 61,2% · DD 19,4% — không con số nào tồn tại trong sổ lệnh.
+    if so_lenh_perf is None:
+        st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}. "
+                   f"Không hiển thị số liệu hiệu quả.")
+    else:
+        _p = so_lenh_perf
+        try:
+            from paper_metrics import expectancy_significant
+            _sig = expectancy_significant([t for t in _all if t.status == "CLOSED"])
+        except Exception:
+            _sig = None
+
+        _o = ('<div style="background:var(--c-s2);border:1px solid var(--c-border);'
+              'border-radius:10px;padding:12px 14px;">')
+        _nhan = ('<div style="font-size:9.5px;color:var(--c-t3);'
+                 'text-transform:uppercase;font-weight:700;">')
+        _to = '<div style="font-family:var(--fm);font-size:18px;font-weight:800;color:'
+        _nho = '<div style="font-size:10.5px;color:'
+
+        st.markdown(f"""
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:9.5px;color:var(--c-t3);text-transform:uppercase;font-weight:700;">Tai khoan Mo phong</div>
-            <div style="font-family:var(--fm);font-size:18px;font-weight:800;color:var(--c-g);">7.361 Ty</div>
-            <div style="font-size:10.5px;color:var(--c-g);">+636.11% Net · 20 Loop</div>
-        </div>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:9.5px;color:var(--c-t3);text-transform:uppercase;font-weight:700;">Tong Lenh Thuc Hien</div>
-            <div style="font-family:var(--fm);font-size:18px;font-weight:800;color:var(--c-b);">1,787</div>
-            <div style="font-size:10.5px;color:var(--c-b);">Profit Factor: 1.43 · WR: 61.2%</div>
-        </div>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:9.5px;color:var(--c-t3);text-transform:uppercase;font-weight:700;">Vi The Dang Mo</div>
-            <div style="font-family:var(--fm);font-size:18px;font-weight:800;color:var(--c-g);">+7.77%</div>
-            <div style="font-size:10.5px;color:var(--c-g);">+2,330,649 VND — Risk-Free</div>
-        </div>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:9.5px;color:var(--c-t3);text-transform:uppercase;font-weight:700;">Max Drawdown</div>
-            <div style="font-family:var(--fm);font-size:18px;font-weight:800;color:var(--c-a);">19.4%</div>
-            <div style="font-size:10.5px;color:var(--c-a);">⚠️ Kiem soat tot (duoi 20%)</div>
-        </div>
+        {_o}{_nhan}Loi nhuan cong don (net)</div>
+            {_to}var(--c-t1);">{_p.total_net_pct:+.2f}%</div>
+            {_nho}var(--c-t3);">{_p.n_trades} lenh da dong</div></div>
+        {_o}{_nhan}Ty le thang · Profit factor</div>
+            {_to}var(--c-t1);">{_p.win_rate * 100:.1f}%</div>
+            {_nho}var(--c-t3);">PF {_p.profit_factor:.2f} · lai TB {_p.avg_win:+.2f}% · lo TB {_p.avg_loss:+.2f}%</div></div>
+        {_o}{_nhan}Ky vong moi lenh</div>
+            {_to}var(--c-t1);">{_p.expectancy:+.2f}%</div>
+            {_nho}var(--c-a);">{(f"KTC 95%: {_sig['ci'][0]:+.2f}% .. {_sig['ci'][1]:+.2f}%" if _sig else "chua co KTC")}</div></div>
+        {_o}{_nhan}Sut giam toi da</div>
+            {_to}var(--c-t1);">{_p.max_drawdown_pct:.2f}%</div>
+            {_nho}var(--c-t3);">Von trien khai: {_p.avg_capital_deployed_pct:.0f}% TB · {_p.peak_capital_deployed_pct:.0f}% dinh</div></div>
     </div>
     """, unsafe_allow_html=True)
+
+        if _sig and not _sig["significant"]:
+            st.warning(f"⚠️ {_sig['verdict']} — kỳ vọng {_p.expectancy:+.2f}% "
+                       f"trên {_p.n_trades} lệnh chưa loại được số 0.")
+        if _p.peak_capital_deployed_pct > 100.0:
+            st.error(
+                f"🔴 ĐÒN BẨY ẨN: vốn cam kết cùng lúc chạm "
+                f"{_p.peak_capital_deployed_pct:.0f}% (trung bình "
+                f"{_p.avg_capital_deployed_pct:.0f}%). Lợi nhuận cộng dồn ở "
+                f"trên là của một tài khoản vay được, không phải tài khoản "
+                f"thật — xem NGUYEN-TAC-DO-LUONG.md, bất biến 7b.")
+        st.caption("Nguồn: paper_trades.db qua paper_metrics.compute(). "
+                   "Sổ lệnh giấy — không phải giao dịch thật.")
 
 # ── 8. FOOTER BAR ──────────────────────────────────────────────────
 st.markdown(f"""

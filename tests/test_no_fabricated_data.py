@@ -420,6 +420,119 @@ def test_app_khong_ve_du_lieu_synthetic():
     print("PASS  app.py chặn dữ liệu SYNTHETIC trước khi vẽ")
 
 
+
+def test_bao_cao_phien_khong_doc_diem_bang_mac_dinh_so():
+    """run_daily.py không được lấy điểm qua `.get(khoá, <số>)`.
+
+    Đây là phía TIÊU THỤ của cùng một lỗ hổng: `s.get("score", 50.0)` trong
+    khi run_session() không đặt khoá "score". Không có gì nổ, không có gì
+    log — mọi báo cáo phiên chỉ lặng lẽ in 50.0 cho toàn bộ 71 mã.
+
+    Chính là luật R4 của tools/chan_bia_so_lieu.py, nhưng hook đó là
+    PostToolUse và chỉ bắt Write/Edit của Claude Code, nên sửa từ IDE hay
+    tay người đều lọt. Khoá lại bằng test để CI bắt được.
+    """
+    src = open(os.path.join(ROOT, "run_daily.py"), encoding="utf-8").read()
+    loi = []
+    for node in ast.walk(ast.parse(src)):
+        if not (isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "get"
+                and len(node.args) == 2):
+            continue
+        khoa, mac_dinh = node.args
+        if (isinstance(khoa, ast.Constant) and isinstance(khoa.value, str)
+                and "score" in khoa.value.lower()
+                and isinstance(mac_dinh, ast.Constant)
+                and isinstance(mac_dinh.value, (int, float))
+                and not isinstance(mac_dinh.value, bool)):
+            loi.append(f"dòng {node.lineno}: .get({khoa.value!r}, {mac_dinh.value!r})")
+
+    assert not loi, (
+        "run_daily.py đọc điểm với mặc định là MỘT CON SỐ — thiếu khoá thì "
+        "báo cáo in số đó như kết quả phân tích: " + " · ".join(loi))
+    print("PASS  run_daily.py không đọc điểm bằng mặc định số")
+
+
+
+# Các con số bịa trong app.py, bê nguyên từ ui_prototype.html (mockup).
+# Giá trị THẬT lấy từ paper_metrics.compute() trên paper_trades.db.
+SO_CUNG_TRONG_APP = {
+    "636.11":    "lợi nhuận 20-Loop — sổ thật: +14,24%",
+    "1,787":     "tổng số lệnh — sổ thật: 113",
+    "61.2":      "win rate — sổ thật: 25,0%",
+    "1.43":      "profit factor — sổ thật: 1,3396",
+    "19.4":      "max drawdown — sổ thật: 9,91%",
+    "7.361":     "giá trị tài khoản — không tồn tại trong DB",
+    "2330649":   "PnL VNĐ của vị thế ACB dựng sẵn",
+    "2,330,649": "PnL VNĐ của vị thế ACB dựng sẵn",
+    "1,245.80":  "VN-Index — số cứng, không đọc từ nguồn nào",
+    "22750":     "giá mặc định khi thiếu entry_price",
+    "30_000_000": "vốn mỗi vị thế — bịa, dùng để tính PnL VNĐ",
+    "2026-05-29": "ngày vào lệnh mặc định",
+    "21,110":    "giá vào của vị thế ACB dựng sẵn",
+    "21,158":    "stop-loss của vị thế ACB dựng sẵn",
+    "26,052":    "take-profit của vị thế ACB dựng sẵn",
+    "default_pnl": "nhánh dựng hàng ACB giả khi không đọc được sổ",
+    # Thẻ "Trạng thái hệ thống AI" ở sidebar — không audit nào bắt được,
+    # smoke test bằng trình duyệt mới lộ ra.
+    "39 Mẫu": "số mẫu hình post-mortem — file thật có 6.327, lệch 162 lần",
+    "12ms":   "độ trễ Technical Agent — không đo từ đâu",
+    "Q2/2026": "kỳ báo cáo Fundamental Agent — dán cứng",
+    "3 Vòng": "số vòng tranh luận — dán cứng",
+    "Pha Wyckoff": "nhãn cho 4 khoảng điểm — không có phân tích Wyckoff nào",
+}
+
+
+def test_app_khong_hien_so_cung_tu_mockup():
+    """app.py không được hiển thị con số nào không đọc từ sổ lệnh.
+
+    Bối cảnh: hai commit UI ngày 18/08 (`65f819d`, `8b0ebf2`) chép số từ
+    `ui_prototype.html` vào `app.py` và xoá cùng lúc tích hợp `sheets_store`,
+    nút khôi phục sổ từ Sheets, và cảnh báo đòn bẩy khi vốn vượt 100%.
+    Kết quả: `grep -c "sheets_store\\|paper_metrics" app.py` = 0 — không một
+    con số nào trên giao diện đi qua compute().
+
+    Nặng nhất là +636,11%: chính con số mà NGUYEN-TAC-DO-LUONG.md đã kết
+    luận là đòn bẩy 2,2× (quy về 100% vốn còn +155,66%), đang là ô số liệu
+    lớn nhất trên màn hình.
+
+    Riêng `default_pnl`: trên Streamlit Cloud `.gitignore` chặn `*.db` nên
+    `paper_trades.db` KHÔNG tồn tại — nhánh dựng hàng ACB giả là nhánh LUÔN
+    chạy, không phải nhánh dự phòng.
+    """
+    # Bỏ chú thích trước khi quét: ghi lại con số CŨ trong comment để giải
+    # thích vì sao nó sai là việc nên làm, không phải vi phạm. Test này hỏi
+    # "app HIỂN THỊ gì", không hỏi "app nhắc tới gì".
+    import io
+    import tokenize
+    with open(os.path.join(ROOT, "app.py"), "rb") as fh:
+        toks = list(tokenize.tokenize(fh.readline))
+    src = "".join(t.string for t in toks if t.type != tokenize.COMMENT)
+
+    loi = [f"{k!r} — {vi_sao}" for k, vi_sao in SO_CUNG_TRONG_APP.items()
+           if k in src]
+    assert not loi, (
+        f"app.py còn {len(loi)} con số bịa trên mặt người đọc:\n  "
+        + "\n  ".join(loi))
+    print("PASS  app.py không còn số cứng từ mockup")
+
+
+def test_app_doc_so_lenh_qua_paper_metrics():
+    """Số liệu hiệu quả trên app phải đi qua `paper_metrics`, không tự tính.
+
+    Cộng dồn phần trăm từng lệnh không phải một tỷ suất lợi nhuận — nó bỏ
+    qua tỷ trọng vốn (bất biến 4) và lệnh chồng lấn (bất biến 7b). Chỉ
+    `paper_metrics.compute()` mới trả về `peak_capital_deployed_pct` để
+    biết con số đang đứng trên đòn bẩy bao nhiêu.
+    """
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    assert "paper_metrics" in src, (
+        "app.py không import paper_metrics — mọi số hiệu quả trên giao diện "
+        "đều nằm ngoài mọi bất biến đo lường của dự án")
+    print("PASS  app.py đọc số hiệu quả qua paper_metrics")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]
