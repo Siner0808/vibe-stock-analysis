@@ -3,13 +3,19 @@
 Hệ thống phân tích cổ phiếu Việt Nam. Streamlit + Python 3.11, dữ liệu từ
 vnstock. Phát triển local → commit → push GitHub → Streamlit Cloud tự deploy.
 
+> **TRẠNG THÁI HIỆN TẠI: đọc `docs/STATE.md` trước tiên.**
+> File này mô tả *kiến trúc và luật chơi* — thứ ít đổi. `docs/STATE.md` ghi
+> *đang đứng ở đâu*: nhánh nào, Phase nào đã qua Gate, số test thật, việc gì
+> còn treo, và những ô cấu hình chưa ai trả lời. Hai file có mâu thuẫn thì
+> `docs/STATE.md` mới hơn.
+
 ---
 
 ## Đọc hai file này TRƯỚC KHI sửa bất cứ thứ gì liên quan tới kết quả
 
 | File | Nội dung | Vì sao bắt buộc |
 |---|---|---|
-| `NGUYEN-TAC-DO-LUONG.md` | 8 bất biến đo lường | Dự án đã 3 lần cho ra số đẹp mà sau đó hoá ra vô nghĩa (+22,42% · +14,88% · +14,24%). Không lần nào cố ý — đều là lỗi kỹ thuật nhỏ, và **lỗi đo lường gần như không bao giờ làm kết quả xấu đi**. |
+| `NGUYEN-TAC-DO-LUONG.md` | 8 bất biến đo lường | Dự án đã **5 lần** cho ra số đẹp mà sau đó hoá ra vô nghĩa (+22,42% · +14,88% · +14,24% · +636,11%, và lần thứ năm là chính giao diện công bố +636,11% suốt nhiều ngày — xem `docs/STATE.md`). Không lần nào cố ý — đều là lỗi kỹ thuật nhỏ, và **lỗi đo lường gần như không bao giờ làm kết quả xấu đi**. |
 | `MO-XE-KIEN-TRUC.md` | Đo thực tế 573 phiên | Cho biết thành phần nào đang thật sự chạy, thành phần nào là trang trí. |
 
 **Quy tắc số 1: nếu một thay đổi làm con số đẹp lên đáng kể, giả định đầu
@@ -20,32 +26,23 @@ tiên phải là có lỗi.**
 
 ---
 
-## Việc đang dở — làm trước tiên
+## Sự cố 12/08/2026 — đã xử lý xong, giữ lại để không lặp lại
 
-Phiên 13/08/2026 phát hiện commit `e2f98b4` đã **ghi đè sổ lệnh thật bằng kết
-quả backtest in-sample**: 96/113 lệnh thật biến mất, vị thế ACB đang mở
-(vào 27/05, giá 21.110) bị xoá.
+Commit `e2f98b4` **ghi đè sổ lệnh thật bằng kết quả backtest in-sample**:
+96/113 lệnh thật biến mất, vị thế ACB đang mở (tín hiệu 27/05, khớp 29/05,
+giá 21.110) bị xoá. Nguyên nhân: ba script tối ưu kết thúc bằng
+`os.remove("paper_trades.db")` rồi seed lại bằng vòng lãi cao nhất trong 20
+vòng chạy trên cùng dữ liệu.
 
-Bản sạch đã trích sẵn ra `paper_trades_RECOVERED_e9c5113.db` (113 lệnh,
-9.002 decisions). `.gitignore` đã sửa `paper_custom*.db` → `*.db`.
+Đã khôi phục và dọn xong: không còn `.db` nào bị git theo dõi,
+`backtest/cache/` đã gỡ khỏi index, sổ in-sample đổi tên thành
+`paper_trades_seeded_insample.db`.
 
-Còn lại phần git chưa chạy:
-
-```bash
-del .git\index.lock        # lock cũ còn sót, chặn mọi lệnh git
-del __probe.txt            # file rác
-
-git rm --cached paper_trades.db
-ren paper_trades.db paper_trades_seeded_insample.db
-ren paper_trades_RECOVERED_e9c5113.db paper_trades.db
-
-git add .gitignore
-git commit -m "fix: go paper_trades.db khoi git, khoi phuc so lenh that"
-```
-
-Ngoài ra `backtest/cache/` có trong `.gitignore` nhưng **23 file vẫn đang bị
-track** (gitignore không áp dụng cho file đã track). Cần `git rm --cached -r
-backtest/cache/` nếu muốn dứt điểm.
+**Đường dẫn tới sự cố đã bị đóng (19/08/2026):** gác chống ghi đè nay nằm
+trong `PaperTradingJournal.__init__`, mặc định **từ chối** — mở
+`paper_trades.db` phải khai báo `cho_phep_so_that=True`. Bản cũ đặt gác ở
+phía người gọi và truyền hằng số tên file scratch, nên nó không bao giờ có
+thể kích hoạt.
 
 ---
 
@@ -160,12 +157,20 @@ chế versioning, và việc app không ghi được vào đó lại đúng vớ
 streamlit run app.py              # chạy app
 python run_daily.py               # quét VN100, cập nhật sổ lệnh
 python paper_runner.py            # chạy paper trading
-python walkforward_vn100.py       # walk-forward (chọn tham số 1 khoảng, đo khoảng khác)
 python extend_history.py --check  # kiểm tra độ phủ dữ liệu
 
-pytest tests/ -q                  # toàn bộ test
-pytest tests/test_post_mortem.py  # khoá tính tái lập của chấm điểm
+pytest tests/ -q                          # toàn bộ test
+pytest tests/test_post_mortem.py          # khoá tính tái lập của chấm điểm
+python tools/chan_bia_so_lieu.py --quet-repo   # quét mẫu bịa số toàn repo
 ```
+
+**`walkforward_vn100.py` KHÔNG còn là walk-forward** — đừng dùng nó làm nguồn
+số "ngoài mẫu". Nó chạy `run_simulation` **một lần** trên toàn khoảng rồi lọc
+`exit_date` để gọi là OOS; ngưỡng 50,0 nhập sẵn thay vì chọn trên in-sample;
+mốc chia là `datetime.now() - 182 ngày` nên OOS luôn là giai đoạn **gần nhất**
+— đúng giai đoạn đã bị hàng trăm vòng loop nhìn qua (bất biến 8). Nó còn
+`os.remove("sl_pattern_memory.json")` ngay khi khởi động. Bản đúng ở
+`git show 025507c`.
 
 Hai test đang khoá bất biến quan trọng, đừng làm hỏng:
 - `tests/test_post_mortem.py::test_cham_diem_khong_doi_khi_chay_lai` — cùng
@@ -193,9 +198,15 @@ không phải cấm, mà là buộc nói ra vì sao con số này không phải 
 
 Miễn trừ: `tests/`, `scratch/`, `.venv/`, và mọi file ngoài gốc dự án.
 
-Hook tìm ra chính lỗi nó sinh ra để chặn: `getattr(t, 'position_size_pct',
-30)` còn sống ở `app.py` (2 chỗ) và `run_daily.py` — luôn trả 30 cho mọi vị
-thế, trong khi chỉ 5/113 lệnh thật có `size_pct = 30`.
+Hook từng tìm ra chính lỗi nó sinh ra để chặn — `getattr(t,
+'position_size_pct', 30)` ở `app.py` và `run_daily.py`. **Đã sửa xong**, cả
+hai file nay dùng `t.size_pct` thật.
+
+**Hai giới hạn của hook, phải biết:** nó là `PostToolUse` nên chạy *sau* khi
+ghi (chuông báo cháy, không phải cửa chống cháy), và matcher chỉ bắt
+`Write|Edit` của Claude Code — sửa từ IDE, Antigravity, tay người,
+`git checkout`, `git merge` đều không kích hoạt. Vì thế có
+`--quet-repo` để CI quét toàn bộ; xem `.github/workflows/kiem-dinh.yml`.
 
 ## Kiểm tra định kỳ những chỗ hỏng âm thầm
 

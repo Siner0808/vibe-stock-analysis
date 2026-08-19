@@ -314,3 +314,264 @@ Nhánh `sua-chua/phase-0`, **chưa commit**. Tổng Phase 1A + 1B:
   không phải vnstock trực tiếp — nên chưa xác nhận đường lấy dữ liệu live.
 - Nhánh "không đọc được sổ" (Streamlit Cloud) chỉ được kiểm bằng test tĩnh,
   chưa render thật với `paper_trades.db` vắng mặt.
+
+---
+
+## Phiên 1 (tiếp) — 19/08/2026 · PHASE 4: HÀNG RÀO TỰ ĐỘNG
+
+### Vì sao làm Phase 4 trước Phase 2
+
+Phase 2 cần ô C1 + C5 (chưa có). Còn Phase 4 không cần ô nào, và không có
+nó thì mọi thứ vừa sửa ở 1A/1B **không được gì bảo vệ**: `grep pytest
+.github/workflows/` = 0, Streamlit Cloud deploy theo push, push không đi
+qua test. Hai test chặn `+636,11%` quay lại chỉ chạy nếu ai đó nhớ gõ
+`pytest`.
+
+### Đã làm
+
+**1. Chế độ `--quet-repo` cho `tools/chan_bia_so_lieu.py`**
+
+Hook hiện tại là PostToolUse (chạy *sau* khi ghi) và matcher chỉ bắt
+`Write|Edit` của Claude Code. Chế độ mới quét toàn bộ `.py` trong dự án,
+trả exit 1 nếu có phát hiện mức CHẶN.
+
+Hiện trạng đo được: **0 CHẶN · 35 cảnh báo**
+
+| File | Cảnh báo | Mẫu |
+|---|---|---|
+| `chatbot_agent.py` | 18 | `.get("trend_score", 50)`, `.get("risk_score", 50)`… — cùng bệnh với `run_daily.py:108` vừa sửa |
+| `post_mortem_learning.py` | 6 | `.get("trend_score", 50)` |
+| `debate_agents.py` | 6 | `.get("stop_loss_pct", 7)`, `pos_size = min(pos_size, 10.0)` |
+| `master_agent.py` | 1 | `momentum_norm = max(momentum_norm, 65.0)` — dòng đã biến momentum thành hàm của trend+volume |
+| khác | 4 | |
+
+Mức CHẶN sạch nên CI xanh được ngay. 35 cảnh báo là món nợ đã hiện rõ,
+không thuộc phạm vi Phase 4.
+
+**2. `.github/workflows/kiem-dinh.yml`** — chạy trên mọi push và PR:
+quét bịa số liệu → `pytest tests/ -q` → chạy lại pytest **khi mạng bị chặn**.
+
+**3. Hai test mới** khoá `--quet-repo`: bắt được mẫu R1/R2, và "repo hiện
+tại sạch ở mức CHẶN" (bất biến — đỏ nghĩa là một mẫu cũ vừa quay lại).
+
+Bộ test: **208 → 210 passed**.
+
+### Một gác GIẢ tự tay bắt được
+
+Bản đầu của bước "kiểm test chạy được khi không có mạng" viết:
+
+```python
+socket.socket.connect = chan
+sys.exit(subprocess.call([sys.executable, "-m", "pytest", ...]))
+```
+
+Nó **chạy xanh** — và hoàn toàn vô nghĩa: `subprocess` sinh một tiến trình
+Python mới, patch ở tiến trình cha không theo sang. Đã chứng minh bằng cách
+cho tiến trình con `connect(("pypi.org", 443))` — nó ra mạng được.
+
+Bản sửa chạy `pytest.main()` **in-process** sau khi patch, và tự kiểm chính
+mình trước: nếu vẫn connect được thì thoát với thông báo "GÁC HỎNG". Kiểm
+lại: chặn thành công, 210 passed offline.
+
+Đây đúng mẫu mà chính Phase 0 đã cảnh báo — thành phần được test kỹ nhưng
+dây chưa cắm, và mọi chỉ số vẫn xanh.
+
+### GIỚI HẠN — không vá được bằng mã nguồn
+
+**Streamlit Cloud không nghe lệnh GitHub Actions.** Workflow này chỉ báo
+đỏ, không chặn được deploy. Muốn thật sự chặn, bạn phải làm trên GitHub:
+
+1. `Settings → Branches → Add branch protection rule` cho `main`
+2. Bật **Require status checks to pass before merging** → chọn `kiem-dinh`
+3. Làm việc trên nhánh khác, chỉ merge vào `main` khi check xanh
+
+Đây là thay đổi **thói quen**, và là chỗ dễ trượt nhất của cả kế hoạch.
+
+### Việc bạn phải tự làm
+
+`.github/workflows/kiem-dinh.yml` **không ghi được qua cầu nối** — file
+workflow được bảo vệ (đúng: nó là file chạy code). Bản đầy đủ đã gửi trong
+khung chat; bạn tự lưu vào `.github/workflows/` rồi `git add`.
+
+### Trạng thái git
+
+Nhánh `sua-chua/phase-0`, **3 commit**:
+
+```
+955a2ec feat(ci): che do --quet-repo cho bo do bia so lieu
+e70b5f6 fix(app): go moi con so bia khoi giao dien, doc so lenh qua paper_metrics
+6a54e90 fix(bao-cao): tra diem THAT ra bao cao phien, bo mac dinh 50.0
+```
+
+Chưa push. Chưa merge vào `main` — nên Streamlit Cloud vẫn đang chạy bản cũ
+với `+636,11%`.
+
+### Bước tiếp theo
+
+1. **Chạy `python run_daily.py` một lượt** — điều kiện cuối của Gate 1A.
+   Báo cáo sinh ra phải có > 1 giá trị điểm.
+2. Đặt `kiem-dinh.yml` vào repo + bật branch protection.
+3. Trả lời **C1–C5** để mở khoá Phase 2. Hoặc làm tiếp Phase 3A–3D /
+   Phase 5A–5B (không cần ô nào).
+
+---
+
+## Phiên 1 (tiếp) — 19/08/2026 · PHASE 3A–3D: ĐÓNG ĐƯỜNG MẤT BẰNG CHỨNG
+
+3E (hai nơi ghi song song) cần ô **C2**, chưa làm.
+
+### Verify
+
+| Bước | Kết quả |
+|---|---|
+| 7 test viết TRƯỚC | ✅ đều ĐỎ trước khi sửa |
+| `pytest tests/ -q` | ✅ **217 passed** (mốc 210), 0 failed |
+| `--quet-repo` | ✅ 0 CHẶN |
+| Streamlit + Playwright sau khi đổi chữ ký `__init__` | ✅ HTTP 200, 0 traceback, topbar `+14.24%`, tab `Lịch sử giao dịch (112)` |
+
+### 3A — gác chuyển từ phía người gọi vào `__init__`
+
+Bản cũ gọi `guard_not_real_ledger(SCRATCH_DB, ...)` — truyền **hằng số tên
+file scratch**, tức không bao giờ có thể kích hoạt — và chỉ gọi ở 3/7 script
+tối ưu. Đó là lời tự khai, không phải cái cửa.
+
+Nay: mở `paper_trades.db` phải khai báo `cho_phep_so_that=True`. Mặc định
+**từ chối**, nên script viết sau này cũng phải đi qua.
+
+| Được miễn (có lý do) | Không được miễn |
+|---|---|
+| `run_daily.py` · `cmd_daily` · `cmd_report` · `google_sheets_sync` · `app.py` (chỉ đọc) | **`cmd_seed`** · 7 script `optimize_*` · `walkforward_vn100` · `run_oos_test` · `run_vn100_18m_test` · `evaluate_custom71_results` |
+
+`cmd_seed` mặc định trỏ vào `paper_trades.db` — đúng đường đã đi ngày
+12/08/2026. Nay nó nổ.
+
+### 3B — `push()` phát hiện dòng bị bỏ sót
+
+Khoá nhận dạng là **`(seq, symbol, signal_date)`**, không phải một mình
+`seq`. Đây là chi tiết quyết định: khi hai nơi cùng ghi, chúng sinh ra
+**cùng dải seq cho nội dung khác nhau** — so một mình `seq` thì thấy "đủ"
+trong khi thật ra là hai bản ghi khác nhau đội cùng một số. Bản đầu của tôi
+so mình `seq` và **không bắt được cả sự cố 14/08 lẫn test của chính nó**.
+
+### 3D — nâng stop commit ngay
+
+Đo trên DB tạm: stop **108,81** trong phiên → **90,0** sau khi đóng kết nối.
+Test tái lập đúng con số đó trước khi sửa.
+
+### 3C — ĐỔI HÀNH VI, cần bạn duyệt
+
+`open_from_secrets()` nay **nổ** khi cấu hình nửa vời (có key thiếu creds,
+hoặc ngược lại, hoặc key rỗng). Trước đây trả `None`, tức gộp "cấu hình
+HỎNG" vào "chưa cấu hình".
+
+Căn cứ: **chính docstring của hàm đó** viết *"Không có credential thì tính
+năng TẮT sạch… Nhưng cấu hình SAI thì phải nổ, vì 'tưởng đã sao lưu mà thật
+ra không' là trạng thái tệ nhất."* Hành vi cũ trái với hợp đồng nó tự tuyên bố.
+
+**Test cũ `test_bao_ro_khi_chua_cau_hinh` khoá lại hành vi cũ.** Tôi đã sửa
+test đó và ghi rõ lý do ngay tại chỗ. Đây là lần duy nhất trong phiên tôi
+sửa một test đang xanh — cần bạn xác nhận.
+
+Ảnh hưởng thực tế: `secrets.toml` sai cú pháp, thiếu thư viện `toml` (không
+có trong `requirements.txt`), hoặc key rỗng → `run_daily.py` **dừng phiên
+quét** thay vì in "chưa cấu hình" rồi chạy tiếp trên sổ cũ.
+
+### Trạng thái git
+
+Nhánh `sua-chua/phase-0`, **4 commit**:
+
+```
+a679a8b fix(so-lenh): dong bon duong lam mat bang chung im lang
+955a2ec feat(ci): che do --quet-repo cho bo do bia so lieu
+e70b5f6 fix(app): go moi con so bia khoi giao dien...
+6a54e90 fix(bao-cao): tra diem THAT ra bao cao phien...
+```
+
+Bộ test: 204 → **217**. Chưa push, chưa merge vào `main`.
+
+### Còn treo
+
+1. **`python run_daily.py` một lượt** — Gate 1A chưa đóng. Nay còn quan
+   trọng hơn: 3C có thể làm phiên quét dừng nếu `secrets.toml` có vấn đề,
+   và đó chính là thứ cần biết.
+2. `.github/workflows/kiem-dinh.yml` + branch protection (chỉ bạn làm được).
+3. **C1–C5** → Phase 2, 3E, 5D.
+
+---
+
+## Phiên 1 (tiếp) — 19/08/2026 · GATE 1A ĐÃ ĐÓNG
+
+### Cách chạy được
+
+`run_daily.py` **không chạy được trên máy người dùng qua cầu nối** — môi
+trường đó có Python 3.10, thiếu `vnstock`/`streamlit`/`gspread`, và không có
+mạng. Đã chạy trên **bản sao** trong container, nguồn dữ liệu thay bằng
+`backtest/cache/` qua harness đặt NGOÀI dự án. Sổ lệnh của bản sao đã được
+sao lưu trước khi chạy và **khôi phục nguyên trạng sau đó** (md5 khớp).
+
+### Điều kiện cuối của Gate 1A: ĐẠT
+
+```
+Số giá trị điểm KHÁC NHAU trong báo cáo mới:  5
+Các giá trị:  52,0 · 53,0 · 59,0 · 63,0 · 64,0
+```
+
+Trước khi sửa: **1 giá trị duy nhất** (50,0) trong suốt 21 báo cáo.
+
+| Mục | Trước | Sau |
+|---|---|---|
+| "Số cổ phiếu đạt ngưỡng ≥ 50,0" | `71/71` (vì `50 >= 50` luôn đúng) | **`7/71`** |
+| TOP 1–3 | BSR · PVD · PVS — 10 mã **đầu watchlist** | **HHP 64,0 · VHM 63,0 · BCM 59,0** |
+| Điểm trung bình ngành | cả 16 ngành đúng `50,0đ` | **28,0đ → 41,6đ**, xếp hạng thật |
+| Mã dẫn đầu ngành | mã **đầu danh sách** mỗi ngành | mã điểm cao nhất ngành |
+
+Trong `decisions` vừa ghi: **49 giá trị điểm khác nhau, dải 16–71**.
+
+### Những thứ khác cùng lúc được xác nhận
+
+- **3A không chặn nhầm**: `run_daily` mở sổ thật với `cho_phep_so_that=True`,
+  chạy trọn 71 mã, không nổ.
+- **3C hoạt động đúng ở nhánh "chưa cấu hình"**: không có `secrets.toml` →
+  in *"Kho ngoài chưa cấu hình"* → quét tiếp. Đúng ý.
+- **Cổng VN-INDEX vẫn chặn 70/70**: mọi quyết định mang một lý do duy nhất
+  *"VN-INDEX nằm dưới MA50"*. 0 lệnh mở, dù có mã đạt 64 và 71 điểm.
+  Đây là Phase 2, chưa động tới.
+- Sổ lệnh không hỏng: 113 lệnh trước và sau, `seq` liên tục.
+
+### Bổ sung 3C — nửa quan trọng hơn mà bản sửa đầu bỏ sót
+
+`except Exception: pass` bọc quanh **cả** `import toml` **lẫn**
+`toml.load()`. Hai đường vào rất thật:
+
+- `toml` **không có trong `requirements.txt`** — máy nào thiếu thư viện đó
+  thì `secrets.toml` bị bỏ qua lặng lẽ;
+- `secrets.toml` sai cú pháp sau một lần sửa tay.
+
+Cả hai đều ra *"Kho ngoài chưa cấu hình"*, `run_daily` quét tiếp mà **không
+kéo sổ về trước** — đúng tiền đề của sự cố mất 70 dòng ngày 14/08. Nay file
+CÓ mặt thì mọi lỗi đọc nó đều là "cấu hình hỏng" → `SheetError`.
+
+**Rủi ro cho 09:10 sáng mai:** nếu máy bạn thiếu `toml`, phiên quét sẽ
+**dừng** thay vì âm thầm bỏ qua Sheets. Đó là hành vi đúng, nhưng bạn cần
+biết trước. Kiểm bằng: `python -c "import toml; print(toml.__version__)"`.
+
+### Trạng thái git
+
+Nhánh `sua-chua/phase-0`, **5 commit**. Bộ test: 204 → **218**.
+
+```
+aceade1 fix(sheets): secrets.toml co mat ma khong doc duoc thi NO
+a679a8b fix(so-lenh): dong bon duong lam mat bang chung im lang
+955a2ec feat(ci): che do --quet-repo cho bo do bia so lieu
+e70b5f6 fix(app): go moi con so bia khoi giao dien...
+6a54e90 fix(bao-cao): tra diem THAT ra bao cao phien...
+```
+
+### Còn treo
+
+1. **Chạy `python run_daily.py` trên MÁY BẠN** — bản chạy ở trên dùng cache
+   (dữ liệu dừng 07–11/08) và không có Sheets. Lần chạy thật với vnstock
+   live + `secrets.toml` thật vẫn chưa được kiểm.
+2. Kiểm `toml` đã cài chưa (xem trên).
+3. `.github/workflows/kiem-dinh.yml` + branch protection.
+4. **C1–C5** → Phase 2, 3E, 5D.

@@ -66,7 +66,14 @@ Quét 20 ngưỡng trên cùng một bộ dữ liệu rồi lấy vòng lãi cao
 may của phép tìm kiếm, không đo lợi thế của chiến lược.
 
 Kết quả chỉ có giá trị khi tham số được chọn trên một khoảng và đo trên một
-khoảng **khác**. Xem `walkforward_vn100.py`.
+khoảng **khác**.
+
+> ⚠️ `walkforward_vn100.py` **không còn làm việc đó** (đo 19/08/2026). Nó
+> chạy `run_simulation` một lần trên toàn khoảng rồi lọc `exit_date` để gọi
+> là OOS, ngưỡng 50,0 nhập sẵn thay vì chọn trên in-sample, và mốc chia là
+> `datetime.now() - 182 ngày` nên OOS luôn rơi vào giai đoạn gần nhất —
+> đúng thứ mục 8 cấm. Bản làm đúng nằm ở `git show 025507c`. Cho tới khi
+> dựng lại, **dự án không có công cụ nào hiện thực hoá bất biến 7 và 8.**
 
 Trong dải kết quả, **dòng đáng tin nhất là dòng có nhiều lệnh nhất**, không
 phải dòng lãi cao nhất.
