@@ -419,8 +419,52 @@ def main() -> int:
     return 0
 
 
+def quet_repo() -> int:
+    """Quét TOÀN BỘ dự án. Trả 1 nếu có phát hiện mức CHẶN.
+
+    Vì sao cần chế độ này: hook PostToolUse chỉ chạy SAU khi ghi và chỉ bắt
+    Write/Edit của Claude Code — sửa từ IDE, Antigravity, tay người,
+    `git checkout` hay `git merge` đều không kích hoạt. 15 commit UI gần
+    nhất đi vào repo theo đúng đường đó. Chế độ này để CI chạy: cửa chống
+    cháy, không phải chuông báo cháy.
+    """
+    for luong in (sys.stdout, sys.stderr):
+        try:
+            luong.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+    tong_chan = tong_canh_bao = 0
+    for duong_dan in sorted(GOC_DU_AN.rglob("*.py")):
+        if not trong_pham_vi(duong_dan):
+            continue
+        try:
+            phat_hien = kiem_tra(duong_dan)
+        except Exception as e:
+            print(f"  [LỖI] {duong_dan.name}: {type(e).__name__}: {e}")
+            continue
+        for p in sorted(phat_hien, key=lambda x: x.dong):
+            muc = "CHẶN" if p.chan else "CẢNH BÁO"
+            ten = duong_dan.relative_to(GOC_DU_AN).as_posix()
+            print(f"  [{p.ma}/{muc}] {ten}:{p.dong} — {p.thong_diep}")
+            if p.goi_y:
+                print(f"      → {p.goi_y}")
+            if p.chan:
+                tong_chan += 1
+            else:
+                tong_canh_bao += 1
+
+    print(f"\nQuét xong: {tong_chan} CHẶN · {tong_canh_bao} cảnh báo")
+    if tong_chan:
+        print("Sửa cho đúng nguồn dữ liệu, hoặc thêm `# bia-ok: <lý do>` "
+              "— bắt buộc có lý do. Xem NGUYEN-TAC-DO-LUONG.md.")
+    return 1 if tong_chan else 0
+
+
 if __name__ == "__main__":
     if "--tu-kiem-tra" in sys.argv:
         from test_chan_bia_so_lieu import chay_tat_ca  # type: ignore
         sys.exit(chay_tat_ca())
+    if "--quet-repo" in sys.argv:
+        sys.exit(quet_repo())
     sys.exit(main())

@@ -265,5 +265,34 @@ def chay_tat_ca() -> int:
     return 1 if failed else 0
 
 
+
+# ── 5. Chế độ quét toàn repo cho CI ──────────────────────────────────
+def test_quet_repo_bat_duoc_mau_chan():
+    """`--quet-repo` phải trả 1 khi có file vi phạm mức CHẶN.
+
+    Hook PostToolUse chỉ chạy SAU khi ghi và chỉ bắt Write/Edit của Claude
+    Code — sửa từ IDE, Antigravity, tay người, `git checkout` hay
+    `git merge` đều không kích hoạt. Chế độ này để CI chạy: cửa chống
+    cháy, không phải chuông báo cháy.
+    """
+    with tempfile.TemporaryDirectory(dir=str(GOC)) as d:
+        Path(d, "vi_pham_tam.py").write_text(
+            'x = getattr(t, "position_size_pct", 30)\n', encoding="utf-8")
+        assert hook.quet_repo() == 1, (
+            "quét toàn repo KHÔNG bắt được mẫu R1/R2 mức CHẶN")
+    print("PASS  --quet-repo trả 1 khi có mẫu chặn")
+
+
+def test_repo_hien_tai_sach_o_muc_chan():
+    """Bất biến: mã nguồn đang có KHÔNG chứa mẫu bịa số mức CHẶN.
+
+    Test này là thứ CI dựa vào. Nó đỏ nghĩa là một mẫu đã từng làm hỏng dự
+    án vừa quay lại — đọc output để biết file và dòng nào.
+    """
+    assert hook.quet_repo() == 0, (
+        "repo có mẫu bịa số liệu mức CHẶN — xem danh sách in ở trên")
+    print("PASS  repo sạch ở mức CHẶN")
+
+
 if __name__ == "__main__":
     sys.exit(chay_tat_ca())
