@@ -105,7 +105,7 @@ def execute_daily_scan():
                 pending_count += s["filled_in"]
 
                 # Thu thập thông tin phân tích cho báo cáo
-                last_score = s.get("score", 50.0)
+                last_score = s["final_score"]
                 raw_close = float(row["close"])
                 close_vnd = raw_close * (1000.0 if raw_close < 500.0 else 1.0)
                 scan_details.append({

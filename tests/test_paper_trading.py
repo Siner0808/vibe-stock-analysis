@@ -600,6 +600,61 @@ def test_gia_nghin_dong_khong_lam_hong_so_lenh():
           f"{len(closed)} lệnh đóng với lợi nhuận hợp lý")
 
 
+
+def test_run_session_tra_ve_diem_that_khong_phai_hang_so():
+    """run_session() phải trả ĐIỂM THẬT ra ngoài cho bên dựng báo cáo.
+
+    Bối cảnh: run_daily.py dựng báo cáo phiên bằng `s.get("score", 50.0)`,
+    trong khi run_session() không hề đặt khoá đó — điểm thật được tính bên
+    trong rồi bị vứt đi. Hệ quả đo được: 210/210 điểm cổ phiếu và 336/336
+    điểm ngành trong 21 file reports/ đều bằng 50.0, không một giá trị nào
+    khác trong 6 ngày. Ba mục dẫn xuất ("71/71 mã đạt ngưỡng", "TOP 10 tín
+    hiệu", "Mã dẫn đầu ngành") vì thế là số bịa.
+
+    Test kiểm HAI điều, vì mỗi điều một mình đều lọt được:
+      - khoá tồn tại và mang đúng điểm của mã đó (không phải một số bất kỳ);
+      - hai mã điểm khác nhau thì giá trị trả về phải khác nhau (không phải
+        một hằng số dùng chung).
+    """
+    import numpy as np
+    import pandas as pd
+
+    import paper_runner as pr
+
+    n = 80
+    close = 50_000 * np.power(1.002, np.arange(n))
+    df = pd.DataFrame({
+        "time": pd.bdate_range("2026-01-01", periods=n).strftime("%Y-%m-%d"),
+        "open": close * 0.999, "high": close * 1.006,
+        "low": close * 0.994, "close": close,
+        "volume": np.full(n, 2_000_000),
+    })
+
+    diem = {"AA": 73, "BB": 41}
+    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+        diem[sym], sl=float(hist["close"].iloc[-1]) * 0.9,
+        tp=float(hist["close"].iloc[-1]) * 1.5)
+
+    j = new_journal()
+    row = df.iloc[-1]
+    b = {"open": float(row["open"]), "high": float(row["high"]),
+         "low": float(row["low"]), "close": float(row["close"])}
+    ra = {sym: pr.run_session(j, sym, df, b, str(row["time"]))
+          for sym in ("AA", "BB")}
+
+    for sym in ("AA", "BB"):
+        assert "final_score" in ra[sym], (
+            f"run_session() không trả điểm ra ngoài (mã {sym}) — bên dựng báo "
+            f"cáo buộc phải bịa một con số. Khoá có: {sorted(ra[sym])}")
+        assert ra[sym]["final_score"] == float(diem[sym]), (
+            f"mã {sym}: trả {ra[sym]['final_score']}, đáng lẽ {float(diem[sym])}")
+
+    assert ra["AA"]["final_score"] != ra["BB"]["final_score"], (
+        "hai mã điểm khác nhau nhưng trả về cùng một giá trị — vẫn là hằng số")
+    print(f"PASS  run_session trả điểm thật: AA={ra['AA']['final_score']}, "
+          f"BB={ra['BB']['final_score']}")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]

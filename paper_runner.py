@@ -102,6 +102,10 @@ def run_session(journal: PaperTradingJournal, symbol: str,
         if journal.consider_entry(symbol, session_date, result, exchange,
                                   buy_threshold) is not None:
             stats["opened"] = 1
+
+    # Điểm THẬT của phiên này. Bên dựng báo cáo cần nó; trước đây nó được
+    # tính ở đây rồi vứt đi, nên báo cáo phải bịa một hằng số thay thế.
+    stats["final_score"] = float(result["final_score"])
     return stats
 
 
