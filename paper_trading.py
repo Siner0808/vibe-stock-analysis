@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -129,7 +130,23 @@ class Trade:
 class PaperTradingJournal:
     """Sổ lệnh giấy, lưu SQLite. Bảng quyết định chỉ-thêm."""
 
-    def __init__(self, path: str = DB_PATH) -> None:
+    def __init__(self, path: str = DB_PATH, *,
+                 cho_phep_so_that: bool = False) -> None:
+        """Mở sổ. Mở `paper_trades.db` phải khai báo `cho_phep_so_that=True`.
+
+        Mặc định TỪ CHỐI. Bản cũ đặt gác ở phía người gọi —
+        `guard_not_real_ledger(SCRATCH_DB, ...)` — nên nó chỉ được gọi ở
+        3/7 script tối ưu, và mỗi lần đều truyền hằng số tên file scratch,
+        tức không bao giờ có thể kích hoạt. Gác ở phía người gọi là lời tự
+        khai; gác ở đây là cái cửa, và script viết sau này cũng phải đi qua.
+        """
+        if not cho_phep_so_that:
+            import sys as _sys
+            try:
+                nguoi_goi = Path(_sys._getframe(1).f_code.co_filename).name
+            except Exception:
+                nguoi_goi = "?"
+            guard_not_real_ledger(path, caller=nguoi_goi)
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA synchronous = OFF;")
@@ -309,6 +326,15 @@ class PaperTradingJournal:
                 if new_sl > sl:
                     self.db.execute("UPDATE trades SET stop_loss=? WHERE id=?",
                                     (new_sl, r["id"]))
+                    # Commit NGAY. Bản cũ chỉ commit khi có lệnh ĐÓNG, nên
+                    # phiên nào chỉ nâng stop mà không đóng lệnh thì lần
+                    # nâng đó biến mất lúc đóng kết nối. Đo được: stop
+                    # 100,0 trong phiên -> 90,0 sau khi đóng. Nặng hơn:
+                    # run_daily.py gọi push() TRƯỚC db.close(), nên Sheets
+                    # nhận stop mới còn DB local rollback về stop cũ, và
+                    # pull() từ chối ghi đè sổ không rỗng -> hai kho lệch
+                    # nhau vĩnh viễn.
+                    self.db.commit()
 
             if reason:
                 if reason == ExitReason.STOP_LOSS:

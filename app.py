@@ -426,7 +426,7 @@ if _db_path.exists():
     try:
         from paper_metrics import compute as _compute
         from paper_trading import PaperTradingJournal as _PJ
-        _j = _PJ(str(_db_path))
+        _j = _PJ(str(_db_path), cho_phep_so_that=True)
         _all = _j.all_trades()
         _j.db.close()
         real_open_trades = [t for t in _all

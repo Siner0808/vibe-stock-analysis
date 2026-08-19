@@ -376,8 +376,22 @@ def test_bao_ro_khi_chua_cau_hinh():
     # thầm rơi về st.secrets hay file trên đĩa — nếu rơi, test mô phỏng
     # "chưa cấu hình" sẽ nói chuyện với Google Sheet THẬT mà không ai biết.
     assert ss.open_from_secrets({}) is None
-    assert ss.open_from_secrets({"GOOGLE_SHEET_KEY": ""}) is None
-    assert ss.open_from_secrets({"GOOGLE_SHEET_KEY": "x"}) is None  # thiếu creds
+
+    # ĐỔI HÀNH VI (19/08/2026, Phase 3C). Bản cũ trả None cho cả hai dòng
+    # dưới, tức gộp "cấu hình HỎNG" vào "chưa cấu hình". Chính docstring
+    # của open_from_secrets đã nói ngược lại: "cấu hình SAI thì phải nổ,
+    # vì 'tưởng đã sao lưu mà thật ra không' là trạng thái tệ nhất."
+    # Hậu quả của cách cũ: secrets.toml sai cú pháp / thiếu thư viện toml
+    # / key rỗng đều in "chưa cấu hình", quét bình thường, quyết định nằm
+    # lại local, rồi lần pull() thành công kế tiếp DELETE sạch.
+    for hong in ({"GOOGLE_SHEET_KEY": ""}, {"GOOGLE_SHEET_KEY": "x"}):
+        try:
+            ss.open_from_secrets(hong)
+        except ss.SheetError:
+            pass
+        else:
+            raise AssertionError(f"cấu hình hỏng {hong} bị nuốt thành None")
+
     tt = ss.trang_thai(None)
     assert tt["bat"] is False and "Chưa cấu hình" in tt["ghi_chu"]
     print("PASS  chưa cấu hình -> tắt sạch, nói rõ lý do")
@@ -400,6 +414,98 @@ def test_sheet_rong_thi_keo_ve_so_rong():
     assert bao_cao == {"trades": 0, "decisions": 0}
     assert moi.all_trades() == []
     print("PASS  sheet rỗng -> sổ rỗng, không vỡ")
+
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 3B — phát hiện dòng bị bỏ sót thay vì mất im lặng
+# ─────────────────────────────────────────────────────────────────────
+def test_push_no_khi_co_dong_local_khong_co_tren_sheet():
+    """Đúng cơ chế đã làm mất 70 dòng ngày 14/08/2026.
+
+    Hai nơi cùng quét. Sheet đi tới seq 9.422 trong khi sổ máy còn ở
+    9.142; máy quét xong sinh seq 9.143–9.212, mà push() chỉ đẩy dòng có
+    seq > 9.422 — nên 70 quyết định vừa ghi bị BỎ QUA. Không nổ, không
+    log, chỉ in "thêm 0 quyết định mới" rồi exit 0. Actions xanh. Lần
+    pull() kế tiếp DELETE sạch 70 dòng đó.
+
+    Bước "đối chiếu sổ local với kho ngoài" trong workflow không bắt được
+    vì nó chỉ so bảng `trades`.
+    """
+    sheet = ss.InMemorySheet()
+
+    # Sheet đã có 5 quyết định (seq 1..5)
+    goc = so_lenh_mau()
+    ss.push(goc.db, sheet)
+
+    # Sổ máy đang ở trạng thái CŨ hơn sheet (seq 1..3), rồi tự sinh thêm
+    # seq 4 với nội dung KHÁC dòng seq 4 đang nằm trên sheet.
+    may = PaperTradingJournal(":memory:")
+    ss.pull(may.db, sheet)
+    may.db.execute("DELETE FROM decisions WHERE seq > 3")
+    may.db.execute(
+        "INSERT INTO decisions (seq, at, symbol, signal_date, score,"
+        " recommendation, acted, skip_reason, components, reasons,"
+        " data_quality) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        (4, 0.0, "ZZZ", "2026-08-14", 61, "MUA", 0, "thu", "{}", "[]", "OK"))
+    may.db.commit()
+
+    try:
+        ss.push(may.db, sheet)
+    except ss.SheetError as e:
+        assert "4" in str(e), f"phải nói rõ seq nào bị bỏ sót: {e}"
+    else:
+        raise AssertionError(
+            "push() BỎ QUA dòng local không có trên sheet mà không báo — "
+            "đúng cơ chế đã làm mất 70 dòng ngày 14/08")
+    print("PASS  push() nổ khi có dòng local không có trên sheet")
+
+
+def test_push_binh_thuong_van_chay_khi_khong_thieu_dong():
+    """Bộ phát hiện không được báo nhầm: đẩy hai lần liên tiếp phải êm."""
+    sheet = ss.InMemorySheet()
+    goc = so_lenh_mau()
+    ss.push(goc.db, sheet)
+    bao_cao = ss.push(goc.db, sheet)
+    assert bao_cao["decisions_moi"] == 0, bao_cao
+    assert bao_cao.get("decisions_bo_sot", 0) == 0, bao_cao
+    print("PASS  đẩy lại lần hai không báo nhầm")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 3C — "chưa cấu hình" KHÁC "cấu hình hỏng"
+# ─────────────────────────────────────────────────────────────────────
+def test_chua_cau_hinh_thi_tra_none():
+    """Không có credential thì tắt sạch — người dùng local không bắt buộc
+    phải có Google Cloud."""
+    assert ss.open_from_secrets({}) is None
+    print("PASS  chưa cấu hình -> None, chạy tiếp bình thường")
+
+
+def test_cau_hinh_hong_thi_NO_chu_khong_im_lang():
+    """Cấu hình SAI phải nổ, không được lẫn với "chưa cấu hình".
+
+    Bản cũ nuốt mọi lỗi bằng `except Exception: pass` và
+    `except (KeyError, TypeError): return None`. Hệ quả: secrets.toml sai
+    cú pháp, thiếu thư viện `toml` (không có trong requirements.txt), hoặc
+    key rỗng — cả ba đều in "Kho ngoài chưa cấu hình", quét bình thường,
+    quyết định nằm lại local, rồi lần pull() thành công kế tiếp DELETE
+    sạch. Exit code 0, không dòng nào chứa chữ "LỖI".
+    """
+    for mo_ta, cau_hinh in [
+        ("có key nhưng thiếu gcp_service_account",
+         {"GOOGLE_SHEET_KEY": "abc123"}),
+        ("có gcp_service_account nhưng thiếu key",
+         {"gcp_service_account": {"client_email": "x@y.z"}}),
+        ("key rỗng", {"GOOGLE_SHEET_KEY": "", "gcp_service_account": {"a": 1}}),
+    ]:
+        try:
+            ss.open_from_secrets(cau_hinh)
+        except ss.SheetError:
+            continue
+        raise AssertionError(
+            f"cấu hình hỏng ({mo_ta}) bị nuốt thành 'chưa cấu hình'")
+    print("PASS  cấu hình hỏng nổ, không lẫn với chưa cấu hình")
 
 
 if __name__ == "__main__":

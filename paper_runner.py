@@ -146,7 +146,7 @@ def cmd_seed(args) -> int:
 def cmd_daily(args) -> int:
     from data_collectors import VNStockCollectorAgent
 
-    journal = PaperTradingJournal(args.db)
+    journal = PaperTradingJournal(args.db, cho_phep_so_that=True)
     if isinstance(args.symbols, list):
         symbols = [s.strip().upper() for s in args.symbols]
     else:
@@ -209,7 +209,7 @@ def build_benchmark(trades, dataset: dict) -> dict:
 
 # ─────────────────────────────── report ──────────────────────────────
 def cmd_report(args) -> int:
-    journal = PaperTradingJournal(args.db)
+    journal = PaperTradingJournal(args.db, cho_phep_so_that=True)
     trades = journal.all_trades()
     if not trades:
         print("Sổ trống. Chạy `seed` hoặc `daily` trước.")

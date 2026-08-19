@@ -655,6 +655,105 @@ def test_run_session_tra_ve_diem_that_khong_phai_hang_so():
           f"BB={ra['BB']['final_score']}")
 
 
+
+# ─────────────────────────────────────────────────────────────────────
+# 5. ĐÓNG ĐƯỜNG GHI VÀO SỔ THẬT  (Phase 3A, 3D)
+# ─────────────────────────────────────────────────────────────────────
+def test_mo_so_that_phai_khai_bao_ro():
+    """Mở `paper_trades.db` mà không khai báo thì NỔ.
+
+    Bản cũ: guard_not_real_ledger() chỉ được gọi ở 3/7 script tối ưu, và
+    mỗi lần đều truyền HẰNG SỐ tên file scratch — tức nó không bao giờ có
+    thể kích hoạt. Nó là lời tự khai, không phải cái cửa.
+
+    KHÔNG gọi ở: optimize_20loops_custom71_18m.py (script sinh ra
+    +636,11%), optimize_custom_71stocks_18m.py, optimize_vn100_18m.py,
+    walkforward_vn100.py, run_oos_test.py, run_vn100_18m_test.py,
+    PaperTradingJournal.__init__, paper_runner.cmd_seed.
+
+    Nay gác nằm TRONG __init__: mọi đường ghi đều phải đi qua, kể cả
+    script viết sau này.
+    """
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        duong_dan = os.path.join(d, "paper_trades.db")
+        try:
+            PaperTradingJournal(duong_dan)
+        except pt.ProtectedLedgerError as e:
+            assert "paper_trades.db" in str(e)
+        else:
+            raise AssertionError(
+                "mở sổ thật KHÔNG bị chặn — script tối ưu vẫn ghi đè được")
+
+        # Khai báo rõ thì cho qua: người gọi đã nói ra ý định.
+        j = PaperTradingJournal(duong_dan, cho_phep_so_that=True)
+        j.db.close()
+    print("PASS  mở sổ thật phải khai báo cho_phep_so_that=True")
+
+
+def test_cmd_seed_khong_ghi_duoc_vao_so_that():
+    """`paper_runner.py seed` mặc định trỏ vào paper_trades.db.
+
+    Đúng đường đã đi ngày 12/08/2026: ba script tối ưu kết thúc bằng
+    os.remove("paper_trades.db") rồi seed lại bằng vòng lãi cao nhất
+    trong 20 vòng chạy trên cùng dữ liệu — 96/113 lệnh thật biến mất.
+    """
+    import argparse
+    import os
+    import tempfile
+
+    import paper_runner as pr
+
+    with tempfile.TemporaryDirectory() as d:
+        args = argparse.Namespace(
+            db=os.path.join(d, "paper_trades.db"), symbols="FPT",
+            min_history=30, stride=5, buy_threshold=None, no_summary=True)
+        try:
+            pr.cmd_seed(args)
+        except pt.ProtectedLedgerError:
+            pass
+        else:
+            raise AssertionError("cmd_seed ghi thẳng vào sổ thật, không gặp gác")
+    print("PASS  cmd_seed bị chặn khi trỏ vào sổ thật")
+
+
+def test_nang_stop_duoc_ghi_ngay_khong_cho_lenh_dong():
+    """Nâng stop phải commit ngay, không chờ có lệnh đóng.
+
+    Bản cũ: `UPDATE trades SET stop_loss=?` chạy, nhưng `commit()` chỉ xảy
+    ra khi danh sách `closed` không rỗng. Đóng kết nối là mất. Nặng hơn:
+    run_daily.py gọi push() TRƯỚC journal.db.close(), nên Sheets nhận stop
+    mới còn DB local rollback về stop cũ — và pull() từ chối ghi đè sổ
+    không rỗng, nên hai kho lệch nhau vĩnh viễn.
+    """
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        duong_dan = os.path.join(d, "so_tam.db")
+        j = PaperTradingJournal(duong_dan)
+        tid = j.consider_entry("T", "2026-01-05", make_result(75), "HOSE")
+        j.fill_pending("T", "2026-01-06", 100.0)
+        # Giá chạm mốc dời stop, KHÔNG có lệnh nào đóng trong phiên này
+        j.evaluate_open("T", "2026-01-07", bar(o=112, h=118, l=111, c=117),
+                        current_score=75)
+        sl_trong_phien = j.db.execute(
+            "SELECT stop_loss FROM trades WHERE id=?", (tid,)).fetchone()[0]
+        j.db.close()
+
+        j2 = PaperTradingJournal(duong_dan)
+        sl_sau_khi_dong = j2.db.execute(
+            "SELECT stop_loss FROM trades WHERE id=?", (tid,)).fetchone()[0]
+        j2.db.close()
+
+    assert sl_sau_khi_dong == sl_trong_phien, (
+        f"stop trong phiên {sl_trong_phien} nhưng sau khi đóng kết nối còn "
+        f"{sl_sau_khi_dong} — lần nâng stop bị rollback")
+    print(f"PASS  stop nâng lên {sl_trong_phien:,.1f} sống sót qua đóng kết nối")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]

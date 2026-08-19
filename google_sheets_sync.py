@@ -57,13 +57,13 @@ def _mo_db(nguon: Any) -> tuple[sqlite3.Connection, Optional[PaperTradingJournal
             "hoặc: sync_trades_to_google_sheets(journal)     # hoặc đường dẫn .db")
 
     if nguon is None:
-        j = PaperTradingJournal(DB_PATH)
+        j = PaperTradingJournal(DB_PATH, cho_phep_so_that=True)
         return j.db, j
     if isinstance(nguon, PaperTradingJournal):
         return nguon.db, None
     if isinstance(nguon, sqlite3.Connection):
         return nguon, None
-    j = PaperTradingJournal(str(nguon))
+    j = PaperTradingJournal(str(nguon), cho_phep_so_that=True)
     return j.db, j
 
 
@@ -159,7 +159,7 @@ def restore_journal_from_google_sheets(db_path: str = DB_PATH,
     b = get_backend(backend)
     if b is None:
         return None
-    j = PaperTradingJournal(db_path)
+    j = PaperTradingJournal(db_path, cho_phep_so_that=True)
     try:
         return _ss.pull(j.db, b, allow_overwrite=allow_overwrite)
     finally:

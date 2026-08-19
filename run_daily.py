@@ -62,7 +62,7 @@ def execute_daily_scan():
         print("   Dừng phiên quét để không ghi đè lên dữ liệu mới hơn trên kho ngoài.")
         raise
 
-    journal = PaperTradingJournal(DB_PATH)
+    journal = PaperTradingJournal(DB_PATH, cho_phep_so_that=True)
     start_date = (now_time - pd.Timedelta(days=60)).strftime("%Y-%m-%d")
     end_date = now_time.strftime("%Y-%m-%d")
 
