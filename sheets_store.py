@@ -382,14 +382,31 @@ def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
         # Chạy ngoài Streamlit (run_daily.py, cron) thì không có st.secrets,
         # đọc thẳng file cấu hình.
         if secrets is None:
-            try:
-                import pathlib
-                import toml
-                p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
-                if p.exists():
+            import pathlib
+            p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+            if p.exists():
+                # File CÓ mặt thì mọi lỗi đọc nó đều là "cấu hình hỏng",
+                # không phải "chưa cấu hình". Bản cũ bọc `except Exception:
+                # pass` quanh cả `import toml` lẫn `toml.load()`, nên hai
+                # tình huống rất thật bị nuốt: (a) `toml` KHÔNG có trong
+                # requirements.txt nên máy nào thiếu nó thì secrets.toml bị
+                # bỏ qua lặng lẽ; (b) file sai cú pháp sau một lần sửa tay.
+                # Cả hai đều dẫn tới run_daily.py quét mà KHÔNG kéo sổ về
+                # trước — đúng tiền đề của sự cố mất 70 dòng ngày 14/08.
+                try:
+                    import toml
+                except ModuleNotFoundError as e:
+                    raise SheetError(
+                        f"Có {p} nhưng thiếu thư viện `toml` ({e}). Kho ngoài "
+                        f"sẽ TẮT lặng lẽ và phiên quét chạy trên sổ cũ. "
+                        f"Cài: pip install toml") from e
+                try:
                     secrets = toml.load(str(p))
-            except Exception:
-                pass
+                except Exception as e:
+                    raise SheetError(
+                        f"Không đọc được {p}: {type(e).__name__}: {e}. "
+                        f"Đây KHÁC với 'chưa cấu hình' — sửa file rồi chạy "
+                        f"lại, đừng quét tiếp.") from e
 
     # "Chưa cấu hình" và "cấu hình hỏng" là HAI trạng thái khác nhau.
     # Bản cũ gộp cả hai thành None, nên secrets.toml sai cú pháp, thiếu

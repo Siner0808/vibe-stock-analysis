@@ -508,6 +508,78 @@ def test_cau_hinh_hong_thi_NO_chu_khong_im_lang():
     print("PASS  cấu hình hỏng nổ, không lẫn với chưa cấu hình")
 
 
+
+def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
+    """File cấu hình CÓ mặt mà không đọc được thì phải nổ.
+
+    Đây là nửa quan trọng hơn của Phase 3C, và bản sửa đầu của tôi bỏ sót:
+    `except Exception: pass` bọc quanh `import toml` + `toml.load()`.
+
+    Hai đường vào thực tế:
+      • `toml` KHÔNG có trong requirements.txt. Máy nào thiếu thư viện đó
+        thì secrets.toml bị bỏ qua lặng lẽ -> "chưa cấu hình" -> run_daily
+        quét mà KHÔNG kéo sổ về trước. Đúng tiền đề của sự cố 14/08.
+      • secrets.toml sai cú pháp sau một lần sửa tay -> y hệt.
+
+    Cả hai đều không phân biệt được với "người dùng local chưa dựng Google
+    Cloud", nên không ai biết kho ngoài đã tắt.
+    """
+    import pathlib
+    import sys
+    import types
+
+    goc = pathlib.Path(ss.__file__).parent
+    thu_muc = goc / ".streamlit"
+    da_co = thu_muc.exists()
+    thu_muc.mkdir(exist_ok=True)
+    f = thu_muc / "secrets.toml"
+    da_co_file = f.exists()
+    if da_co_file:
+        luu = f.read_text(encoding="utf-8")
+
+    toml_that = sys.modules.get("toml")
+    try:
+        f.write_text('GOOGLE_SHEET_KEY = "chua dong ngoac\n', encoding="utf-8")
+
+        # (a) toml có mặt nhưng file sai cú pháp
+        try:
+            ss.open_from_secrets()
+        except ss.SheetError:
+            pass
+        else:
+            raise AssertionError(
+                "secrets.toml sai cú pháp bị nuốt thành 'chưa cấu hình'")
+
+        # (b) thiếu thư viện toml -- import nổ ModuleNotFoundError
+        hong = types.ModuleType("toml")
+        def _no(*a, **k):
+            raise ModuleNotFoundError("No module named 'toml'")
+        hong.load = _no
+        sys.modules["toml"] = hong
+        try:
+            ss.open_from_secrets()
+        except ss.SheetError:
+            pass
+        else:
+            raise AssertionError(
+                "thiếu thư viện toml bị nuốt thành 'chưa cấu hình'")
+    finally:
+        if toml_that is not None:
+            sys.modules["toml"] = toml_that
+        else:
+            sys.modules.pop("toml", None)
+        if da_co_file:
+            f.write_text(luu, encoding="utf-8")
+        else:
+            f.unlink(missing_ok=True)
+            if not da_co:
+                try:
+                    thu_muc.rmdir()
+                except OSError:
+                    pass
+    print("PASS  secrets.toml không đọc được -> nổ, không lẫn với chưa cấu hình")
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]
