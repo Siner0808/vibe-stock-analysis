@@ -912,3 +912,88 @@ tín hiệu, nên rào thực tế đã là ~62 chứ không phải 50.
 Hệ thống **đã ở đúng trạng thái này 14 ngày** — nhưng do tai nạn. Chọn C5
 như thế này không tốn gì, và ngăn tai nạn đó im lặng kết thúc vào đúng lúc
 Phase 2 gỡ cổng VN-INDEX.
+
+---
+
+## PHASE 2 — CỔNG CHẶN PHẢI LỘ RA (20/08/2026)
+
+Làm được vì **C5 đã khoá việc mở vị thế mới trước**. Không có C5 thì giây
+phút cổng được gỡ là lệnh mở ở lượt quét kế tiếp, bằng ngưỡng 50,0.
+
+### C5 — dừng mở vị thế mới ✅
+
+`paper_trading.CHO_PHEP_MO_LENH_MOI = False`. Hệ thống vẫn quét, vẫn chấm,
+vẫn ghi quyết định, vẫn đóng vị thế đang mở — chỉ không mở mới. Chốt đặt
+**sau** mọi cổng khác có chủ đích, để lý do ghi vào sổ cho biết lệnh đó *lẽ
+ra* đã mở, và để 2B vẫn thống kê được từng cổng.
+
+Ngoại lệ hẹp: `cmd_seed` bọc trong `_cho_phep_mo_lenh()` — backtest tồn tại
+để **đo** chính logic vào lệnh.
+
+> **Bắt được một hỏng học im lặng do chính thay đổi này gây ra.** Ba file
+> test dựng fixture *bằng* `consider_entry()`. Với công tắc tắt chúng trả
+> sổ **rỗng**, và mọi assert kiểu "không có giá trị 30 trong sổ" đều đúng
+> vô nghĩa — 246 test vẫn xanh. Đã bật công tắc trong cả ba, **và** thêm
+> `assert j.all_trades()` ngay trong hàm dựng fixture. Đã kiểm chốt đó bằng
+> cách tắt công tắc rồi chạy lại: nó nổ đúng như mong đợi.
+
+### 2A — cổng lộ ra khi nó tự tắt ✅
+
+`status()` nay trả về **tuổi dữ liệu** (`ngay_cuoi`, `tuoi_phien`) và đặt
+`active=False` khi quá hạn. Quá hạn (>3 phiên, ô C1) thì `is_vni_bullish`
+**ném `CacheQuaHanError`** chứ không trả `False` lặng lẽ.
+
+Độ cũ đo so với **ngày đang chấm**, không so với hôm nay — cache chạy tới
+2026 mà chấm phiên 2024 thì không hề quá hạn. Đo sai chiều là mọi backtest
+nổ oan.
+
+Đã gỡ `except Exception: vni_ok = True` trong `consider_entry`, và cho
+`CacheQuaHanError` **xuyên qua** bộ bắt lỗi theo từng mã trong `run_daily`.
+
+### 2B — báo cáo nói về cổng ✅
+
+Trước: `grep "market_filter|status()" run_daily.py` = **0**. Nay mỗi báo cáo
+có khối "CỔNG CHẶN — TRẠNG THÁI THẬT". Nghiệm thu bằng lượt chạy thật:
+
+```
+Cổng VN-INDEX: BẬT · dữ liệu tới 2026-08-20 · trễ 0 phiên (ngưỡng 3)
+Quyết định KHÔNG vào lệnh: 70 — VN-INDEX nằm dưới MA50
+```
+
+Lần đầu tiên báo cáo nói ra **vì sao** không có lệnh nào. Và cache VNINDEX
+đã được làm mới trong ngày (07/08 → 20/08), nên cổng đang chặn vì thị
+trường **thật sự** dưới MA50, không phải vì cache đóng băng.
+
+### 2C — ĐÃ ĐO, CHƯA BẬT
+
+Điều kiện 5 của Gate 2. Chạy `validate_ohlcv` trên cả hai đường:
+
+| Đường | OK | WARN | BLOCK |
+|---|---|---|---|
+| **cache backtest** (71 mã) | **0%** | 31% | **69%** |
+| **quét live** (mẫu 10 mã) | **100%** | 0% | 0% |
+
+Nguyên nhân gần như hoàn toàn là `STALE`: 49 mã dữ liệu cũ 13 ngày (tới
+2026-08-07), 22 mã cũ 9 ngày (tới 2026-08-11), thêm 3 mã `PRICE_JUMP`.
+
+**Kết luận, và nó khác một chút so với dự đoán của kế hoạch.** Kế hoạch đoán
+bật cổng sẽ chặn nhiều hơn — đúng, nhưng chỉ với **backtest**. Đường quét
+live có dữ liệu tươi và 10/10 mã sạch. Nghĩa là:
+
+- bật cổng chất lượng **không** chặn phiên quét production
+- nó **sẽ** phơi ra ngay rằng cache backtest cũ 13 ngày
+- và việc tiếp theo đúng là **sửa dữ liệu** (`extend_history()`, không phải
+  `download()` — `download()` bỏ qua mọi mã đã có cache), không phải nới cổng
+
+### Gate 2 — 4/5
+
+```
+✓ test: cache VNINDEX cũ → status() báo KHÔNG hoạt động
+✓ test: cache quá ngưỡng → phiên quét dừng có thông báo
+✓ báo cáo phiên có dòng về cổng VN-INDEX (nghiệm thu bằng lượt chạy thật)
+✗ test: packet có WARN → decision ghi đúng mức đó, KHÔNG phải 'OK'
+✓ đã có con số đo
+```
+
+Điều kiện 4 là việc **bật** cổng — chưa làm vì nó chặn 69% backtest và đó
+là thay đổi hành vi đủ lớn để cần người dùng quyết.
