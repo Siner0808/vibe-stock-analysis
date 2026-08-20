@@ -26,6 +26,7 @@ mở cửa hôm nay bằng thông tin đó.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import sys
 
 import pandas as pd
@@ -194,6 +195,27 @@ def run_session(journal: PaperTradingJournal, symbol: str,
 
 
 # ─────────────────────────────── seed ────────────────────────────────
+@contextlib.contextmanager
+def _cho_phep_mo_lenh():
+    """Bật `CHO_PHEP_MO_LENH_MOI` trong suốt một lượt backtest.
+
+    Ô C5 tắt việc mở vị thế mới trên hệ thống chạy thật. Nhưng backtest tồn
+    tại ĐỂ ĐO chính logic vào lệnh — chạy nó với công tắc tắt thì mọi sổ
+    đều rỗng, và mọi kết luận kiểu "không có giá trị X trong sổ" đều đúng
+    một cách vô nghĩa.
+
+    Đây là ngoại lệ HẸP và TƯỜNG MINH: chỉ trong `cmd_seed`, chỉ trong thời
+    gian nó chạy, và luôn trả trạng thái cũ về ở `finally`.
+    """
+    import paper_trading as _pt
+    cu = _pt.CHO_PHEP_MO_LENH_MOI
+    _pt.CHO_PHEP_MO_LENH_MOI = True
+    try:
+        yield
+    finally:
+        _pt.CHO_PHEP_MO_LENH_MOI = cu
+
+
 def _cat_khoang(df, bat_dau, ket_thuc):
     """Cắt DataFrame về khoảng [bat_dau, ket_thuc] theo cột `time`.
 
@@ -249,20 +271,21 @@ def cmd_seed(args) -> int:
                  if (bat_dau or ket_thuc) else " · KHÔNG cắt khoảng"))
 
     total = {"opened": 0, "closed": 0}
-    for i, (sym, df) in enumerate(sorted(dataset.items()), 1):
-        n = len(df)
-        for t in range(args.min_history, n, args.stride):
-            row = df.iloc[t]
-            # Lịch sử CHỈ tới hết phiên t — đây là dòng chống nhìn trộm
-            history = df.iloc[: t + 1]
-            s = run_session(journal, sym, history,
-                            {"open": float(row["open"]), "high": float(row["high"]),
-                             "low": float(row["low"]), "close": float(row["close"])},
-                            str(row["time"]), buy_threshold=args.buy_threshold)
-            total["opened"] += s["opened"]
-            total["closed"] += s["closed"]
-        if not getattr(args, 'no_summary', False):
-            print(f"  [{i}/{len(dataset)}] {sym}: xong {n - args.min_history} phiên")
+    with _cho_phep_mo_lenh():
+        for i, (sym, df) in enumerate(sorted(dataset.items()), 1):
+            n = len(df)
+            for t in range(args.min_history, n, args.stride):
+                row = df.iloc[t]
+                # Lịch sử CHỈ tới hết phiên t — đây là dòng chống nhìn trộm
+                history = df.iloc[: t + 1]
+                s = run_session(journal, sym, history,
+                                {"open": float(row["open"]), "high": float(row["high"]),
+                                 "low": float(row["low"]), "close": float(row["close"])},
+                                str(row["time"]), buy_threshold=args.buy_threshold)
+                total["opened"] += s["opened"]
+                total["closed"] += s["closed"]
+            if not getattr(args, 'no_summary', False):
+                print(f"  [{i}/{len(dataset)}] {sym}: xong {n - args.min_history} phiên")
 
     if not getattr(args, 'no_summary', False):
         print(f"\nĐã nạp: {total['opened']} lệnh mở, {total['closed']} lệnh đóng")

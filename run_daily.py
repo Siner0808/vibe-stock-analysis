@@ -187,7 +187,8 @@ def execute_daily_scan():
     report_md = f"""# 📊 BÁO CÁO PHÂN TÍCH THỊ TRƯỜNG DỰ BÁO VIBE CODING
 **Khung giờ thực thi:** Phiên {session_name} lúc {now_time:%d/%m/%Y %H:%M:%S}  
 **Rổ chứng khoán theo dõi:** {len(CUSTOM_WATCHLIST_SYMBOLS)} mã thuộc 16 Ngành Tùy chỉnh  
-**Ngưỡng điểm mua (Buy Threshold):** {BUY_THRESHOLD:.1f} điểm | **Chế độ:** Self-Improving Post-Mortem AI
+**Ngưỡng LỌC THEO DÕI:** {BUY_THRESHOLD:.1f} điểm — **KHÔNG phải ngưỡng mua**
+**Trạng thái vào lệnh:** ⛔ DỪNG mở vị thế mới (ô C5)
 
 ---
 
@@ -195,11 +196,18 @@ def execute_daily_scan():
 - **Số lệnh mới phát hiện mở mua:** `{opened_count}` lệnh
 - **Số lệnh chờ đã khớp mua:** `{pending_count}` lệnh
 - **Số lệnh đã chốt lời / cắt lỗ:** `{closed_count}` lệnh
-- **Số cổ phiếu đạt ngưỡng theo dõi (Score ≥ {BUY_THRESHOLD:.1f}):** `{len(top_candidates)}/{len(scan_details)}` mã
+- **Số cổ phiếu vượt ngưỡng lọc theo dõi (Score ≥ {BUY_THRESHOLD:.1f}):** `{len(top_candidates)}/{len(scan_details)}` mã
+
+> ⛔ **Vì sao 0 lệnh mới, kể cả khi có mã vượt ngưỡng.** Ngưỡng mua đang ĐỂ
+> TRỐNG (ô C5). Đo ngày 20/08/2026 trên dải ngưỡng 48–59: win rate chỉ trải
+> 28,2%–30,7%, trong khi tương quan ngưỡng↔số lệnh là −0,999 và số
+> lệnh↔vốn đỉnh là +0,990 — ngưỡng không cải thiện chất lượng chọn mã, nó
+> chỉ điều khiển đòn bẩy. Hệ thống mở lại khi Phase 5D chọn được ngưỡng
+> bằng walk-forward hợp lệ. Xem `docs/STATE.md`.
 
 ---
 
-### ⭐ 2. TOP CỔ PHIẾU CÓ TÍN HIỆU TÍCH CỰC NHẤT THỊ TRƯỜNG (SCORE ≥ {BUY_THRESHOLD:.1f})
+### ⭐ 2. CỔ PHIẾU ĐIỂM CAO NHẤT PHIÊN (SCORE ≥ {BUY_THRESHOLD:.1f}) — CHỈ THEO DÕI
 
 """
     if top_candidates:

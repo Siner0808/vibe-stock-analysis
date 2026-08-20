@@ -75,6 +75,35 @@ def guard_not_real_ledger(path: str, *, caller: str) -> None:
 
 # ── Quy tắc mặc định ────────────────────────────────────────────────
 BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
+
+# ── Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG ──────────────────────────────────────
+# Mặc định TẮT: hệ thống vẫn quét, vẫn chấm điểm, vẫn ghi quyết định, vẫn
+# theo dõi và đóng các vị thế đang mở — nhưng KHÔNG mở vị thế mới.
+#
+# Vì sao không phải 50,0 và cũng không phải 62. Đo ngày 20/08/2026 trên 8
+# trong 20 sổ còn sót của chính lần chạy sinh ra +636,11%:
+#
+#   win rate toàn dải ngưỡng 48→59   28,2% → 30,7%   (chênh 2,5 điểm)
+#   tương quan ngưỡng ↔ số lệnh      −0,999
+#   tương quan số lệnh ↔ vốn đỉnh    +0,990
+#   ngưỡng 50 hơn ngưỡng 48          1,57/636 = 0,25%
+#
+# Ngưỡng KHÔNG cải thiện chất lượng chọn mã — win rate phẳng chứng minh
+# điều đó, và nó còn cao hơn ở ngưỡng 58–59. Thứ ngưỡng điều khiển là số
+# lệnh, và số lệnh điều khiển đòn bẩy. "Quán quân" chỉ là vòng ôm nhiều vị
+# thế cùng lúc nhất. Thêm nữa: alpha in-sample +0,090% (KTC chứa 0) và
+# alpha ngoài mẫu 07/08 là −0,63% (cũng chứa 0).
+#
+# Bật lại khi Phase 5D sinh ra một ngưỡng chọn trên khoảng A và đo trên
+# khoảng B, A ∩ B = ∅. Không sớm hơn.
+#
+# Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính logic
+# vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
+CHO_PHEP_MO_LENH_MOI = False
+
+LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
+            "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
+            "bằng walk-forward hợp lệ")
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
@@ -222,6 +251,12 @@ class PaperTradingJournal:
             sl, tp = risk.get("stop_loss_price"), risk.get("take_profit_price")
             if not sl or not tp:
                 skip = "thiếu stop-loss/take-profit"
+
+        # Chốt cuối cùng, ĐẶT SAU mọi cổng khác có chủ đích: lý do ghi vào sổ
+        # khi đó cho biết lệnh này LẼ RA đã mở. Đặt trước thì cổng VN-INDEX và
+        # cổng chất lượng dữ liệu không còn thống kê được nữa.
+        if skip is None and not CHO_PHEP_MO_LENH_MOI:
+            skip = LY_DO_C5
 
         if skip:
             self.record_decision(symbol, signal_date, result, False, skip)

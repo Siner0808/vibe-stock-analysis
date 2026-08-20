@@ -34,6 +34,15 @@ from paper_trading import ExitReason, PaperTradingJournal, Status
 # tái lập được và không cần cache VNINDEX.
 market_filter.is_vni_bullish = lambda _signal_date: True
 
+# ─────────────────────────────────────────────────────────────────────
+# Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG
+#
+# `paper_trading.CHO_PHEP_MO_LENH_MOI` mặc định TẮT: hệ thống chạy thật
+# không mở vị thế mới cho tới khi Phase 5D sinh ra một ngưỡng chọn bằng
+# walk-forward hợp lệ. File này kiểm thử chính logic vào lệnh, nên phải
+# bật công tắc — nếu không mọi test vào lệnh đều đo nhầm cái công tắc.
+pt.CHO_PHEP_MO_LENH_MOI = True
+
 
 def make_result(score: int, sl: float = 90.0, tp: float = 120.0,
                 quality: str = "OK", size: float = 10.0,
@@ -425,6 +434,79 @@ def test_ro_chuan_chuan_hoa_ngay_o_CA_HAI_phia():
     assert ro_thieu == {}
     assert pm.vs_benchmark(trades, ro_thieu)["bo_qua"] == 3
     print("PASS  rổ chuẩn chuẩn hoá ngày hai phía, thiếu ngày thì đếm chứ không đoán")
+
+
+def test_C5_khong_mo_lenh_moi_khi_nguong_chua_chon():
+    """Ô C5: quét tiếp, ghi quyết định tiếp, nhưng KHÔNG mở vị thế mới.
+
+    Đây là chốt chặn cho đúng cạm bẫy mà docs/HANDOFF.md cảnh báo: giây
+    phút Phase 2 gỡ cổng VN-INDEX, `consider_entry()` sẽ chạy tới dòng so
+    ngưỡng và mở lệnh ở lượt quét kế tiếp, bằng ngưỡng 50,0 — con số mà
+    NGUYEN-TAC-DO-LUONG.md mục 7 đã tuyên bố vô hiệu.
+
+    Đo được trong phiên 20/08: win rate cả dải ngưỡng 48–59 chỉ trải
+    28,2%–30,7%, tương quan ngưỡng↔số lệnh −0,999 và số lệnh↔vốn đỉnh
+    +0,990. Ngưỡng không cải thiện chất lượng chọn mã; nó chỉ điều khiển
+    đòn bẩy.
+
+    Quan trọng: quyết định VẪN được ghi sổ, kèm lý do. Im lặng không mở
+    lệnh thì không phân biệt được với "không có tín hiệu nào".
+    """
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        j = PaperTradingJournal(os.path.join(d, "so.db"))
+        cu = pt.CHO_PHEP_MO_LENH_MOI
+        try:  # noqa: đóng sổ ở cuối, xem finally phía dưới
+            pt.CHO_PHEP_MO_LENH_MOI = False
+            tid = j.consider_entry("FPT", "2026-08-05", make_result(95),
+                                   buy_threshold=50.0)
+        finally:
+            pt.CHO_PHEP_MO_LENH_MOI = cu
+
+        assert tid is None, "điểm 95 vẫn mở lệnh dù công tắc C5 đang TẮT"
+
+        dong = j.db.execute(
+            "select skip_reason, score, acted from decisions "
+            "where symbol='FPT'").fetchall()
+        assert dong, "không mở lệnh mà cũng KHÔNG ghi quyết định — mất dấu vết"
+        ly_do, diem, acted = dong[0]
+        assert acted == 0
+        assert int(diem) == 95, f"điểm thật không được ghi: {diem}"
+        assert "C5" in (ly_do or ""), f"lý do không nhắc ô C5: {ly_do!r}"
+        j.db.close()
+    print("PASS  C5: không mở lệnh mới, nhưng vẫn ghi quyết định kèm lý do")
+
+
+
+def test_C5_backtest_duoc_mo_cong_tac_va_luon_tra_lai():
+    """Ngoại lệ hẹp của C5: backtest tồn tại ĐỂ ĐO logic vào lệnh.
+
+    Chạy backtest với công tắc tắt thì mọi sổ đều rỗng, và mọi kết luận
+    kiểu "không có giá trị X trong sổ" đều đúng một cách vô nghĩa. Nhưng
+    ngoại lệ phải TRẢ LẠI trạng thái cũ, kể cả khi có lỗi ở giữa.
+    """
+    import paper_runner as pr
+
+    cu = pt.CHO_PHEP_MO_LENH_MOI
+    try:
+        pt.CHO_PHEP_MO_LENH_MOI = False
+        with pr._cho_phep_mo_lenh():
+            assert pt.CHO_PHEP_MO_LENH_MOI is True, "backtest không được mở công tắc"
+        assert pt.CHO_PHEP_MO_LENH_MOI is False, "không trả lại trạng thái cũ"
+
+        try:
+            with pr._cho_phep_mo_lenh():
+                raise RuntimeError("lỗi giữa chừng")
+        except RuntimeError:
+            pass
+        assert pt.CHO_PHEP_MO_LENH_MOI is False, (
+            "lỗi giữa chừng làm công tắc kẹt ở BẬT — hệ thống chạy thật sẽ "
+            "mở lệnh mà không ai biết")
+    finally:
+        pt.CHO_PHEP_MO_LENH_MOI = cu
+    print("PASS  backtest mở công tắc rồi trả lại, kể cả khi có lỗi")
+
 
 
 def test_drawdown_va_profit_factor():

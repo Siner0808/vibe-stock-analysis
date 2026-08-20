@@ -21,6 +21,15 @@ import market_filter
 import sheets_store as ss
 from paper_trading import PaperTradingJournal, Status
 
+# ─────────────────────────────────────────────────────────────────────
+# Ô C5 — paper_trading.CHO_PHEP_MO_LENH_MOI mặc định TẮT, nên
+# consider_entry() không mở vị thế nào. File này dựng dữ liệu mẫu BẰNG
+# consider_entry(), nên không bật công tắc thì mọi fixture ở đây trả về sổ
+# RỖNG và các test vẫn xanh — xanh vô nghĩa.
+import paper_trading as _pt
+_pt.CHO_PHEP_MO_LENH_MOI = True
+
+
 market_filter.is_vni_bullish = lambda _d: True
 
 
@@ -57,6 +66,13 @@ def so_lenh_mau() -> PaperTradingJournal:
     # quyết định không vào lệnh
     j.consider_entry("VNM", "2026-03-05", make_result(score=40))
     j.consider_entry("SSI", "2026-03-06", make_result(score=30))
+    # Chốt: fixture dựng bằng consider_entry(), mà consider_entry() có thể
+    # từ chối mở lệnh vì nhiều lý do (cổng VN-INDEX, chất lượng dữ liệu, ô
+    # C5). Sổ rỗng thì mọi assert kiểu "không có giá trị X" đều đúng một
+    # cách vô nghĩa. Nổ ngay ở đây thay vì để test xanh nhầm.
+    assert j.all_trades(), (
+        "fixture trả về sổ RỖNG — consider_entry() đã từ chối mọi lệnh. "
+        "Kiểm paper_trading.CHO_PHEP_MO_LENH_MOI và market_filter.")
     return j
 
 
