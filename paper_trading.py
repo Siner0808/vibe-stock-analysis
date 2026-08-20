@@ -188,6 +188,7 @@ class PaperTradingJournal:
             except Exception:
                 nguoi_goi = "?"
             guard_not_real_ledger(path, caller=nguoi_goi)
+        self.duong_dan = str(path)
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA synchronous = OFF;")
@@ -402,7 +403,8 @@ class PaperTradingJournal:
                             # thời gian ở get_penalty_for_pattern.
                             engine.record_sl_trade(
                                 symbol, int(r["entry_score"] or 0), breakdown,
-                                reasons, signal_date=r["signal_date"])
+                                reasons, signal_date=r["signal_date"],
+                                trade_id=r["id"], nguon=self.duong_dan)
                     except Exception:
                         pass
 

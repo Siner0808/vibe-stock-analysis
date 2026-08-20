@@ -11,6 +11,7 @@ Bốn test dưới đây khoá cả hai đường lại.
 
 Chạy offline:  python3 tests/test_post_mortem.py
 """
+import itertools
 import os
 import sys
 import tempfile
@@ -29,8 +30,19 @@ def new_engine(enabled=True):
     return PostMortemLearningEngine(memory_file=path, enabled=enabled), path
 
 
+#: Đếm để mỗi mẫu gieo có một trade_id riêng.
+_dem_seed = itertools.count(1)
+
+
 def seed(eng, signal_date):
-    eng.record_sl_trade("AAA", 70, BD, ["lý do"], signal_date=signal_date)
+    """Gieo một mẫu hình cắt lỗ KÈM NGUỒN GỐC.
+
+    `record_sl_trade` từ chối mẫu không khai `trade_id` + `nguon` — đó là
+    thứ ngăn bộ nhớ thoái hoá về đúng trạng thái file cũ: 6.327 mẫu mà chỉ
+    56 (0,89%) truy được về một lệnh thật.
+    """
+    eng.record_sl_trade("AAA", 70, BD, ["lý do"], signal_date=signal_date,
+                        trade_id=next(_dem_seed), nguon="test")
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -176,12 +188,16 @@ def test_tai_lap_qua_HAI_TIEN_TRINH_voi_post_mortem_BAT():
     # Lưới bước 10 với dung sai 5 phủ kín 0..100 trên cả ba chiều, nên mọi
     # breakdown đều khớp và điểm phạt là tất định — không phụ thuộc agent
     # hôm nay tình cờ cho ra con số nào.
+    # Mỗi mẫu phải khai nguồn, nếu không load_memory() bỏ hết và test này
+    # xanh vì lý do sai: bộ nhớ rỗng thì BẬT và TẮT cho cùng điểm.
     hat_giong = [{"symbol": "SEED", "entry_score": 60,
                   "trend_score": t, "momentum_score": m, "volume_score": v,
-                  "key_reasons": [], "signal_date": "2020-01-01"}
-                 for t in range(0, 101, 10)
-                 for m in range(0, 101, 10)
-                 for v in range(0, 101, 10)]
+                  "key_reasons": [], "signal_date": "2020-01-01",
+                  "nguon": "test", "trade_id": i}
+                 for i, (t, m, v) in enumerate(
+                     ((t, m, v) for t in range(0, 101, 10)
+                      for m in range(0, 101, 10)
+                      for v in range(0, 101, 10)), 1)]
 
     def chay(thu_muc, bat):
         moi_truong = dict(os.environ)

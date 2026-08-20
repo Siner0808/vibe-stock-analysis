@@ -65,7 +65,16 @@ def execute_daily_scan():
     print(f"⏰ Thời gian: {now_time:%Y-%m-%d %H:%M:%S}")
     print(f"📌 Rổ chứng khoán Theo dõi: Danh mục Tùy chỉnh 16 Ngành ({len(CUSTOM_WATCHLIST_SYMBOLS)} mã)")
     print(f"📌 Ngưỡng điểm mua: {BUY_THRESHOLD} điểm (Tối ưu từ 20 Vòng lặp)")
-    print(f"📌 Chế độ: Self-Improving AI (Post-Mortem Memory Loop ACTIVE)")
+    # "Self-Improving AI (Post-Mortem Memory Loop ACTIVE)" la mot khang dinh
+    # sai o hai muc. Mot: bo nho cu la 6.327 mau dư luong in-sample, chi
+    # 56 (0,89%) truy duoc ve mot lenh that -- no khong hoc, no lap lai ket
+    # qua cua chinh cac vong toi uu. Hai: `save_memory()` khong duoc goi o
+    # BAT KY dau, nen no khong tich luy gi ca. Noi dung thu dang chay.
+    from post_mortem_learning import get_learning_engine as _may
+    _pm = _may()
+    print(f"📌 Post-mortem: {'BẬT' if _pm.enabled else 'TẮT'}"
+          f" · {len(_pm.sl_patterns)} mẫu, đều từ lệnh thật đã đóng"
+          f" · CHƯA tích luỹ (save_memory chưa được gọi ở đâu)")
     # Bat bien: bao cao nao noi "da loc theo xu huong thi truong" deu phai
     # goi status() truoc. Ban cu KHONG he nhac toi bo loc -- grep
     # "market_filter|status()" run_daily.py tra ve 0 -- nen suot 14 ngay
