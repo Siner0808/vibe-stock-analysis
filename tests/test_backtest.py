@@ -389,10 +389,18 @@ def test_bo_qua_ma_da_du_lich_su():
     saved_dir, saved_fetch = bt.CACHE_DIR, bt.fetch_one
     try:
         bt.CACHE_DIR = tmp
-        pd.DataFrame({"time": ["2022-01-04", "2022-01-05"],
-                      "open": [1.0, 1.0], "high": [1.0, 1.0],
-                      "low": [1.0, 1.0], "close": [1.0, 1.0],
-                      "volume": [1, 1]}).to_csv(tmp / "TST.csv", index=False)
+        # Fixture phải PHỦ THẬT khoảng được yêu cầu. Bản cũ chỉ có 2 phiên
+        # tháng 1/2022 trong khi `end` là 2026-01-01 — tức đuôi cũ 4 NĂM mà
+        # vẫn bị coi là "đã đủ lịch sử". Nó khoá đúng cái lỗ hổng đã làm 69%
+        # rổ bị BLOCK vì STALE mà không công cụ nào sửa được: extend_history
+        # chỉ hỏi "lịch sử đã đủ xa chưa", không hỏi "đuôi còn tươi không".
+        # Trường hợp đuôi cũ nay do tests/test_cache_tuoi.py khoá riêng.
+        _ngay = pd.bdate_range("2022-01-04", "2026-01-01").strftime("%Y-%m-%d")
+        _n = len(_ngay)
+        pd.DataFrame({"time": _ngay,
+                      "open": [1.0] * _n, "high": [1.0] * _n,
+                      "low": [1.0] * _n, "close": [1.0] * _n,
+                      "volume": [1] * _n}).to_csv(tmp / "TST.csv", index=False)
         bt.fetch_one = lambda *a, **k: called.append(1) or None
 
         changed = bt.extend_history(["TST"], "2022-01-01", "2026-01-01")

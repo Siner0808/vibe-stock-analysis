@@ -10,6 +10,12 @@ from pathlib import Path
 
 import pandas as pd
 
+# Ngưỡng độ tươi lấy TRỰC TIẾP từ data_quality để hai bên không thể lệch
+# nhau. Một cache mà extend_history() coi là "đã tươi" nhưng validate_ohlcv()
+# lại gắn STALE thì không công cụ nào sửa được nó — đúng tình trạng ngày
+# 20/08/2026: 69% rổ bị BLOCK vì STALE mà không có đường nào làm mới.
+from data_quality import STALE_WARN_DAYS
+
 CACHE_DIR = Path(__file__).parent / "cache"
 
 # Ảnh chụp rổ VN30 (cập nhật 08/2026). Rổ VN30 được HOSE cơ cấu định kỳ,
@@ -125,12 +131,30 @@ def extend_history(symbols: list[str], start: str, end: str,
 
         if old is not None and len(old) and "time" in old.columns:
             have_from = str(old["time"].min())[:10]
+            have_to = str(old["time"].max())[:10]
+
             # Dung sai vài ngày: mốc yêu cầu thường rơi vào ngày nghỉ hoặc
             # cuối tuần, nên phiên đầu tiên có thật luôn muộn hơn một chút.
             # So bằng dấu <= sẽ khiến những mã đó bị tải lại MỖI LẦN chạy.
-            if _within_days(have_from, start, SKIP_TOLERANCE_DAYS):
-                print(f"[{i}/{len(symbols)}] {sym}: đã có từ {have_from} — bỏ qua")
+            du_lich_su = _within_days(have_from, start, SKIP_TOLERANCE_DAYS)
+
+            # Bản cũ CHỈ hỏi "lịch sử đã đủ xa chưa" nên một mã có lịch sử
+            # từ 2022 mà đuôi dừng ở 2026-08-07 vẫn bị bỏ qua mãi mãi. Cộng
+            # với `download()` bỏ qua mọi mã đã có cache, dự án không còn
+            # đường nào đưa cache tới hiện tại — đo ngày 20/08/2026: 69% rổ
+            # bị BLOCK vì STALE. Đường duy nhất còn lại là
+            # `download(force=True)`, mà nó ghi đè trọn khoảng nên LÀM MẤT
+            # lịch sử: VNINDEX.csv đã đi từ 1.724 phiên (2019-09-13) xuống
+            # 1.655 phiên (2020-01-02) đúng theo cách đó.
+            da_tuoi = _within_days(end, have_to, STALE_WARN_DAYS)
+
+            if du_lich_su and da_tuoi:
+                print(f"[{i}/{len(symbols)}] {sym}: đã có {have_from} → "
+                      f"{have_to} — bỏ qua")
                 continue
+            if du_lich_su:
+                print(f"[{i}/{len(symbols)}] {sym}: lịch sử đủ nhưng đuôi cũ "
+                      f"({have_to}) — nối tới {end}")
         else:
             have_from = None
 
