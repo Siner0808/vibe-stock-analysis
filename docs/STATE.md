@@ -997,3 +997,77 @@ live có dữ liệu tươi và 10/10 mã sạch. Nghĩa là:
 
 Điều kiện 4 là việc **bật** cổng — chưa làm vì nó chặn 69% backtest và đó
 là thay đổi hành vi đủ lớn để cần người dùng quyết.
+
+---
+
+## PHASE 2 HOÀN TẤT — Gate 2 đủ 5/5 (20/08/2026)
+
+### Phát hiện lớn nhất: không có công cụ nào làm mới được cache
+
+Truy từ phép đo 2C (69% rổ BLOCK vì `STALE`):
+
+```
+download(force=False)   bỏ qua MỌI mã đã có cache      → không làm mới
+download(force=True)    ghi đè trọn khoảng             → MẤT lịch sử
+extend_history()        bỏ qua nếu lịch sử đủ xa       → chỉ nối về quá khứ
+```
+
+Đường duy nhất còn lại là `download(force=True)`, và nó đã gây hậu quả thật
+**ngay trong ngày**: `backtest/cache/VNINDEX.csv` đi từ 1.724 phiên
+(2019-09-13 → 2026-08-07) xuống **1.655 phiên** (2020-01-02 → 2026-08-20).
+Tươi lên và **mất 4 tháng lịch sử** — đúng thứ bất biến 8 cần.
+
+`extend_history()` đã biết hợp nhất giữ bản ghi cũ (2/3 test mới xanh ngay
+từ đầu). Nó chỉ thiếu một điều kiện: cũ ở **đuôi** thì cũng phải nối.
+Ngưỡng độ tươi lấy trực tiếp từ `data_quality.STALE_WARN_DAYS` để hai bên
+không thể lệch nhau.
+
+**Kết quả chạy thật trên 71 mã:**
+
+```
+độ phủ     49 mã @08-07 + 22 mã @08-11   →   71/71 @2026-08-20
+lịch sử    0 mã mất phần đầu (đối chiếu bản sao lưu trước khi chạy)
+chất lượng OK 0% / WARN 31% / BLOCK 69%  →  OK 88,7% / WARN 11,3% / BLOCK 0%
+```
+
+### 2C — cổng chất lượng đã cắm ✅
+
+Cắm vào gặp **đúng cùng lỗi khái niệm với 2A**: `validate_ohlcv` đo độ cũ so
+với *hôm nay*, nên backtest replay phiên 2024 thì mọi lát cắt "cũ 2 năm" và
+bị BLOCK sạch. Đã thêm `as_of` — đo so với **ngày đang chấm**.
+
+Luật chặn qua **ba** lần lặp, mỗi lần do một test bắt được:
+
+| Bản | Luật | Vì sao sai |
+|---|---|---|
+| gốc | `!= "OK"` | code chết — packet luôn mang `"OK"` cứng |
+| thứ hai | `== "BLOCK"` | quá hẹp — chuỗi `'SYNTHETIC'` (dữ liệu bịa) lọt qua |
+| cuối | `not in {"OK","WARN"}` | fail-closed với mọi mức lạ |
+
+WARN không còn bị chặn như BLOCK: gộp hai mức là mất thông tin.
+
+> **Một lượt quét thật ghi 70/70 dòng `OK` — trông y hệt hành vi dán cứng.**
+> Dữ liệu tươi thì OK là đúng, nhưng *"đúng vì tính ra"* và *"đúng vì dán
+> cứng"* không phân biệt được từ kết quả. Đã thêm test ép một trường hợp
+> KHÔNG-OK đi qua trọn đường `run_session → _analyze → consider_entry →
+> record_decision`.
+
+### Gate 2 — 5/5 ✅
+
+```
+✓ cache VNINDEX cũ → status() báo KHÔNG hoạt động
+✓ quá ngưỡng → phiên quét dừng có thông báo
+✓ báo cáo phiên có dòng về cổng (nghiệm thu bằng lượt chạy thật)
+✓ packet có WARN → decision ghi đúng mức đó, KHÔNG phải 'OK'
+✓ đã có con số đo
+```
+
+### Công cụ mới: `tools/kiem_ban_sach.py`
+
+Clone HEAD ra thư mục tạm rồi chạy pytest ở đó — tái hiện runner CI. Riêng
+phiên 20/08 đã gặp **bốn** lỗi phụ thuộc môi trường, nên *"xanh ở máy tôi"*
+không còn là bằng chứng đủ.
+
+Chính công cụ này cho tôi một kết quả sai lệch khi mới dùng: nó clone HEAD
+chứ không phải cây làm việc, nên báo "xanh" trong khi thay đổi chưa commit.
+Nay nó cảnh báo rõ khi cây làm việc bẩn.
