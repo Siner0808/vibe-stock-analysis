@@ -664,3 +664,81 @@ Nhánh `sua-chua/phase-0`, **12 commit**, chưa push. Bộ test: 204 → 218 →
 Phase 5A (test tái lập 2 tiến trình, post-mortem BẬT) và Phase 5B
 (`vs_benchmark` vào đường tự động — `grep benchmark run_daily.py` = 0).
 Kế hoạch ghi rõ hai mục này **không cần ô C nào**. Phase 6 cần Gate 5A trước.
+
+---
+
+## Phiên 2 (tiếp) — PHASE 5A + 5B
+
+### Gate 5A — bất biến 2: trạng thái phải tái lập ✅
+
+Test mới `test_tai_lap_qua_HAI_TIEN_TRINH_voi_post_mortem_BAT` khẳng định
+**hai** điều; điều thứ hai quan trọng ngang điều thứ nhất:
+
+```
+post-mortem BẬT, tiến trình 1 : 48
+post-mortem BẬT, tiến trình 2 : 48    ← tái lập
+post-mortem TẮT               : 60    ← bộ nhớ CÓ cắn, đúng -12 = PENALTY
+```
+
+Thiếu vế thứ hai thì test vẫn xanh khi post-mortem âm thầm không chạy.
+Cách ly bằng `cwd` (vì `MEMORY_FILE` là đường dẫn tương đối) nên
+`sl_pattern_memory.json` thật giữ nguyên md5.
+
+### Đo được cho Phase 6 — lớn hơn dự đoán của kế hoạch
+
+`run_daily.py:12` đặt `POST_MORTEM_ENABLED = "1"` → **post-mortem ĐANG BẬT
+trong mọi phiên quét production.**
+
+Trên 280 lượt chấm của các phiên hôm nay:
+
+```
+Số mã khớp mẫu hình cắt lỗ → bị trừ 12 điểm:  259/280 = 92,5%
+```
+
+Hệ quả cụ thể, ngưỡng mua là 50,0:
+
+| Mã | Điểm ghi vào sổ | Nếu không có bộ nhớ |
+|---|---|---|
+| PLX | 48 | **60** ← vượt ngưỡng |
+| BSR | 42 | **54** ← vượt ngưỡng |
+| PVD | 39 | **51** ← vượt ngưỡng |
+
+Kế hoạch ước "gần như 1"; đo trên không gian giá trị đều thì chỉ 49,4%,
+nhưng theo **tần suất thật** là 92,5% — kế hoạch đúng. Đây là đòn bẩy lớn
+nhất đang tác động lên hành vi hệ thống, và nó dựng hoàn toàn từ dư lượng
+in-sample. **Gate 6 điều kiện 1 coi như đã có số đo.**
+
+### Gate 5B — bất biến 6: alpha khớp từng lệnh ✅
+
+Hai lỗi riêng biệt, cùng một họ: `vs_benchmark` **chưa bao giờ được gọi**
+trên đường tự động, và nó **bỏ mẫu im lặng** khi lệch định dạng ngày.
+
+Đã vá lệch định dạng ở **điểm dùng** (`ro_chuan_tu_chuoi_gia` chuẩn hoá cả
+hai phía) thay vì sửa 125 file cache gốc.
+
+**Phép đo bất biến 6 đầu tiên của dự án:**
+
+```
+lệnh đã đóng                        112
+lệnh bị bỏ vì thiếu cặp ngày          0
+TB lợi nhuận mỗi lệnh của hệ thống  +0,792%
+TB VN-INDEX trong CÙNG khoảng đó    +0,702%
+alpha                               +0,090%
+KTC 95%                             [−1,166% ; +1,391%]   ← chứa 0
+kết luận            không khác chuẩn một cách có ý nghĩa
+số lệnh thắng chuẩn                  35/112  (31%)
+```
+
+**Gần như toàn bộ +14,24% cộng dồn là beta thị trường.** Con số này độc
+lập với rho = −0,019 của `MO-XE-KIEN-TRUC.md` và đi cùng hướng.
+
+### Còn treo sau 5A/5B
+
+- **Quyết định thiết kế chưa chốt (mục 5A của kế hoạch):** `run_daily` ghi
+  `stop_loss` lại ở mỗi nhịp quét, tính trên nến **chưa đóng**. Mức stop
+  cuối phụ thuộc giờ nào máy được bật. Hoặc chỉ ghi trailing stop ở ATC,
+  hoặc chấp nhận và ghi rõ rằng sổ này không tái lập được. **Cần người dùng.**
+- **5C** (cấm in "quán quân", mỗi vòng một tiến trình) và **5D** (dựng lại
+  walk-forward — chặn bởi C4) chưa làm.
+- **Phase 6** giờ đã có số đo để quyết, nhưng ba phương án A/B/C vẫn cần
+  người dùng chọn.
