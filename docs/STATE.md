@@ -753,3 +753,60 @@ lập với rho = −0,019 của `MO-XE-KIEN-TRUC.md` và đi cùng hướng.
   walk-forward — chặn bởi C4) chưa làm.
 - **Phase 6** giờ đã có số đo để quyết, nhưng ba phương án A/B/C vẫn cần
   người dùng chọn.
+
+---
+
+## Phiên 2 (tiếp) — PHASE 5C
+
+Bất biến 7. Làm được **3/4 phần**; phần thứ tư cần người dùng quyết.
+
+### Đã xong
+
+**1. Khoá `_ANALYZE_CACHE` phải mang trạng thái bộ nhớ post-mortem.**
+Kế hoạch mô tả vấn đề là "20 vòng không độc lập". Đọc mã thì cơ chế cụ thể
+hơn: `_analyze()` ghi nhớ một giá trị **không phải hàm thuần của khoá** —
+`master_agent.run()` cộng `sl_penalty` lấy từ bộ nhớ đang phình ra. Đo được:
+bộ nhớ đổi 0 → 1.331 mẫu, cùng lát cắt, điểm vẫn y nguyên 61. Sau khi sửa:
+61 → 49, đúng −12 = `PENALTY`.
+
+**2. Gỡ 7 khối "quán quân"** khỏi `evaluate_custom71_results`,
+`optimize_20_loops`, `optimize_20loops_custom71_18m`, `optimize_agent`,
+`optimize_custom_71stocks_18m`, `optimize_vn100_18m`, `optimize_vn50`.
+Thêm `dai_ket_qua.py` (bảng dải sắp theo **số lệnh**, đánh dấu dòng nhiều
+mẫu nhất) và cổng chặn tái phạm quét chuỗi bằng AST.
+
+> **Phát hiện nặng hơn việc in:** 3 script không chỉ *in* quán quân, chúng
+> **dùng** tham số của nó — chạy lại `cmd_seed` với ngưỡng vòng thắng rồi in
+> *"✅ Đã cập nhật Sổ lệnh chính thức với tham số tối ưu 20 Vòng thành công!"*
+> Chúng ghi vào `SCRATCH_DB` chứ không phải `paper_trades.db` — gác chống
+> ghi đè hoạt động đúng. Chỉ **lời thông báo** là sai. Đây đúng hình dạng sự
+> cố 12/08, khác mỗi đích đến. Đã sửa thông báo thành nội dung thật.
+
+**3. Nhãn "18 tháng" là bịa — đã sửa.** Subcommand `seed` **không có**
+`--start`/`--end` trong argparse, và `cmd_seed` không đọc hai trường đó.
+Tham số được đặt, được truyền, và bị bỏ qua. Nay `cmd_seed` tôn trọng
+start/end (so trên 10 ký tự đầu để chịu được cả hai định dạng cache) và
+**luôn in ĐỘ PHỦ THẬT** trước khi chạy.
+
+**Ngừng xoá bằng chứng.** Hai script kết thúc bằng `os.remove()` xoá sạch
+các `.db` mỗi vòng. Đó là lý do chỉ còn 8/20 sổ của lần chạy sinh ra
++636,11% — và chính 8 sổ còn sót mới cho phép đo lại hôm nay rằng **win
+rate cả dải 48–59 chỉ trải 28,2%–30,7%**, tức ngưỡng không hề cải thiện
+chất lượng chọn mã.
+
+### Chưa xong — cần quyết định
+
+**Tách tiến trình mỗi vòng.** Bản sửa khoá cache làm ô nhiễm *lộ ra*, nhưng
+**không gỡ** nó: `_ENGINE_CACHE` vẫn giữ MỘT engine, `sl_patterns` vẫn dùng
+chung cho cả 8 luồng và 20 vòng. Luồng không sửa được: đặt lại cache giữa
+vòng sẽ đè lên các vòng đang chạy song song, còn thread-local thì rò rỉ vì
+20 vòng dùng chung 8 luồng.
+
+Chỉ tiến trình riêng mới đúng. Nhưng `download()` nằm ở **mức module**
+(`optimize_20loops_custom71_18m.py:40`), ngoài `if __name__` ở dòng 156 —
+trên Windows `ProcessPoolExecutor` dùng spawn nên mỗi worker sẽ tải lại 71
+mã. Phải dời phần dựng dữ liệu vào `main()` trước, và đó là bản sửa **không
+kiểm chứng được trong phiên này** vì script chạy hàng giờ.
+
+**Gate 5C** ("chạy 2 lần cùng một script optimize → ra CÙNG bảng") vì thế
+**chưa xanh**.
