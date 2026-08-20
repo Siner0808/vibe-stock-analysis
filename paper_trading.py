@@ -231,11 +231,12 @@ class PaperTradingJournal:
         threshold = BUY_THRESHOLD if buy_threshold is None else buy_threshold
 
         skip = None
-        try:
-            from market_filter import is_vni_bullish
-            vni_ok = is_vni_bullish(signal_date)
-        except Exception:
-            vni_ok = True
+        # KHONG bat Exception o day nua. Ban cu nuot MOI loi thanh
+        # `vni_ok = True`, tuc "hoi cong that bai" bien thanh "cong cho qua".
+        # Cong VN-INDEX qua han nay nem CacheQuaHanError va no PHAI di ra
+        # ngoai de dung ca phien quet -- do la o C1.
+        from market_filter import is_vni_bullish
+        vni_ok = is_vni_bullish(signal_date)
 
         if not vni_ok:
             skip = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"

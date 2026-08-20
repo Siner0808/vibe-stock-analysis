@@ -18,6 +18,7 @@ from paper_metrics import compute, report, ro_chuan_tu_chuoi_gia
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
 from data_quality import now_vn
+import market_filter
 
 DB_PATH = "paper_trades.db"
 BUY_THRESHOLD = 50.0
@@ -55,6 +56,8 @@ def _ro_chuan_vnindex(trades):
 
 
 def execute_daily_scan():
+    import time as _time
+    moc_bat_dau = _time.time()
     now_time = now_vn()
     session_name = "SÁNG (09:30)" if now_time.hour < 11 else ("TRƯA (12:00)" if now_time.hour < 14 else "CHIỀU ATC (15:15)")
     print("=" * 80)
@@ -63,6 +66,14 @@ def execute_daily_scan():
     print(f"📌 Rổ chứng khoán Theo dõi: Danh mục Tùy chỉnh 16 Ngành ({len(CUSTOM_WATCHLIST_SYMBOLS)} mã)")
     print(f"📌 Ngưỡng điểm mua: {BUY_THRESHOLD} điểm (Tối ưu từ 20 Vòng lặp)")
     print(f"📌 Chế độ: Self-Improving AI (Post-Mortem Memory Loop ACTIVE)")
+    # Bat bien: bao cao nao noi "da loc theo xu huong thi truong" deu phai
+    # goi status() truoc. Ban cu KHONG he nhac toi bo loc -- grep
+    # "market_filter|status()" run_daily.py tra ve 0 -- nen suot 14 ngay
+    # khong ai biet cong da dong cung.
+    _cong = market_filter.status()
+    print(f"📌 Cổng VN-INDEX: {'BẬT' if _cong.get('active') else 'TẮT'}"
+          f" · dữ liệu tới {_cong.get('ngay_cuoi', '?')}"
+          f" · trễ {_cong.get('tuoi_phien', '?')} phiên")
     print("=" * 80)
 
     # ── KÉO SỔ LỆNH TỪ KHO NGOÀI TRƯỚC KHI QUÉT ──────────────────────
@@ -148,6 +159,11 @@ def execute_daily_scan():
                     "filled": s["filled_in"] > 0
                 })
                 break
+            except market_filter.CacheQuaHanError:
+                # O C1: qua han thi DUNG CA PHIEN, khong bo qua tung ma.
+                # Bat o day roi di tiep se thanh 71 dong canh bao va mot
+                # phien quet chay tren cong da chet -- dung thu da xay ra.
+                raise
             except Exception as e:
                 err_msg = str(e)
                 if "Rate limit" in err_msg or "429" in err_msg:
@@ -162,6 +178,35 @@ def execute_daily_scan():
 
     trades = journal.all_trades()
     rep = report(trades, benchmark=_ro_chuan_vnindex(trades))
+
+    # Vi sao dem theo `at` chu khong theo signal_date: cac ma co ngay phien
+    # cuoi khac nhau, con `at` la moc GHI nen no khoanh dung mot luot quet.
+    _cong_sau = market_filter.status()
+    try:
+        _bi_chan = journal.db.execute(
+            "select skip_reason, count(*) from decisions "
+            "where at >= ? and acted = 0 group by skip_reason "
+            "order by count(*) desc", (moc_bat_dau,)).fetchall()
+    except Exception as _e:
+        _bi_chan = []
+        print(f"⚠️  Không đếm được quyết định bị chặn: {type(_e).__name__}: {_e}")
+
+    dong_cong = [
+        "",
+        "### 🚦 CỔNG CHẶN — TRẠNG THÁI THẬT",
+        "",
+        f"- **Cổng VN-INDEX:** {'BẬT' if _cong_sau.get('active') else '⛔ TẮT'}"
+        f" · dữ liệu tới `{_cong_sau.get('ngay_cuoi', '?')}`"
+        f" · trễ **{_cong_sau.get('tuoi_phien', '?')}** phiên"
+        f" (ngưỡng {market_filter.TRE_TOI_DA_PHIEN})",
+    ]
+    if _bi_chan:
+        dong_cong.append("- **Quyết định KHÔNG vào lệnh trong phiên này:**")
+        for _ly_do, _n in _bi_chan:
+            dong_cong.append(f"    - `{_n}` — {_ly_do or '(không ghi lý do)'}")
+    else:
+        dong_cong.append("- **Quyết định KHÔNG vào lệnh trong phiên này:** không có dòng nào")
+    khoi_cong = chr(10).join(dong_cong)
 
     # ── TẠO BÁO CÁO PHÂN TÍCH CHUYÊN SÂU KHI HOÀN THÀNH ──────────────
     scan_details.sort(key=lambda x: -x["score"])
@@ -204,6 +249,7 @@ def execute_daily_scan():
 > lệnh↔vốn đỉnh là +0,990 — ngưỡng không cải thiện chất lượng chọn mã, nó
 > chỉ điều khiển đòn bẩy. Hệ thống mở lại khi Phase 5D chọn được ngưỡng
 > bằng walk-forward hợp lệ. Xem `docs/STATE.md`.
+{khoi_cong}
 
 ---
 
@@ -306,4 +352,15 @@ def execute_daily_scan():
     print(f"\n✅ Đã lưu Báo cáo Phân tích Chuyên sâu vào file 'latest_daily_report.md' và '{report_hist_file}'")
 
 if __name__ == "__main__":
-    execute_daily_scan()
+    try:
+        execute_daily_scan()
+    except market_filter.CacheQuaHanError as e:
+        print()
+        print("=" * 78)
+        print("DUNG PHIEN QUET — CONG VN-INDEX QUA HAN")
+        print("=" * 78)
+        print(str(e))
+        print()
+        print("O C1 da chon: qua han thi dung, khong am tham cho qua va cung")
+        print("khong am tham chan het. Khong quet tiep tren mot cong da chet.")
+        sys.exit(1)
