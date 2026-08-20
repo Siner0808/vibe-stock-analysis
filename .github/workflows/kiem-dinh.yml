@@ -1,0 +1,51 @@
+# Hàng rào tự động — Phase 4 của kế hoạch sửa chữa.
+#
+# Vì sao cần: 204 test tồn tại mà không cái nào chặn được commit hay deploy.
+# Streamlit Cloud deploy theo push, push không đi qua test — đúng đường mà
+# +636,11% đã lên production và nằm đó nhiều ngày.
+#
+# GIỚI HẠN PHẢI BIẾT: Streamlit Cloud KHÔNG nghe lệnh GitHub Actions.
+# Workflow này chỉ báo đỏ, nó không chặn được deploy. Muốn nó thành cửa
+# thật thì phải bật Settings -> Branches -> Require status checks -> chọn
+# `kiem-dinh`, rồi làm việc trên nhánh và chỉ merge vào main khi xanh.
+# Đó là thay đổi THÓI QUEN, không phải thay đổi mã nguồn.
+
+name: kiem-dinh
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  kiem-dinh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        # pytest KHÔNG nằm trong requirements.txt vì nó là thư viện phát
+        # triển, còn requirements.txt là thứ Streamlit Cloud cài để chạy app.
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Bộ test
+        # Runner sạch: không secrets.toml, không paper_trades.db, không
+        # sl_pattern_memory.json, không backtest/cache/ — tất cả đều
+        # gitignore. Bộ test được viết để chạy trong đúng điều kiện đó.
+        run: python -m pytest tests/ -q
+
+      - name: Quét mẫu bịa số liệu toàn repo
+        # Hook .claude/settings.json là PostToolUse và chỉ bắt Write/Edit
+        # của Claude Code — sửa từ IDE, Antigravity, tay người, git merge
+        # đều không kích hoạt. Bước này quét TOÀN BỘ repo, không phụ thuộc
+        # ai đã sửa file bằng công cụ gì.
+        # Thoát 1 khi có mẫu mức CHẶN; cảnh báo không làm đỏ.
+        run: python tools/chan_bia_so_lieu.py --quet-repo
