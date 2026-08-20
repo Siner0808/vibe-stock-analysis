@@ -627,11 +627,22 @@ is_vni_bullish('2030-01-01')  = False
 | Ba pill khẳng định trạng thái không kiểm | cùng họ Phase 1 |
 | Ngưỡng mua về một nguồn duy nhất | dọn đường cho C5 |
 
-**Lỗi production tìm thấy và đã sửa:** `toml` không có trong
-`requirements.txt`, mà `quet-so-lenh.yml` cài đúng file đó rồi gọi
-`restore_journal_from_google_sheets()` → `open_from_secrets()` → `import toml`.
-**Mọi lượt quét trên GitHub Actions đều chết ở bước kéo sổ.** Máy local có
-`toml` sẵn nên không ai thấy; chỉ runner sạch mới lộ.
+**`toml` vào `requirements.txt` — ĐÍNH CHÍNH mức độ.** Bản đầu của mục này
+(và commit `9a6050f`) khẳng định "mọi lượt quét trên GitHub Actions đều chết
+ở bước kéo sổ". **Sai.** `toml` là phụ thuộc của `streamlit`
+(`pip show toml` → `Required-by: streamlit`), mà `streamlit` có trong
+`requirements.txt`, nên runner vẫn cài được nó. Đã kiểm trên trang Actions:
+10/12 lượt `Quét sổ lệnh` gần nhất XANH, chạy đủ 8–9 phút.
+
+Việc khai báo `toml` vẫn đúng, nhưng lý do khác: nó là phụ thuộc **ngầm**.
+Streamlit đã và đang chuyển dần sang `tomli`/`tomllib`; ngày nó bỏ `toml`
+khỏi danh sách phụ thuộc, `open_from_secrets()` sẽ bắt đầu ném `SheetError`
+và phiên quét dừng — không phải vì cấu hình hỏng mà vì một thư viện biến mất
+sau một lần nâng cấp không liên quan. Đây là **nguy cơ tiềm ẩn**, không phải
+sự cố đang xảy ra. `tests/test_requirements.py` khoá đúng nguy cơ đó.
+
+**Hai lượt quét ĐỎ** (45s và 38s, trong 12 lượt gần nhất) chưa truy nguyên —
+không phải do `toml` vì các lượt khác cùng dependency vẫn xanh.
 
 ### Phát hiện mới, CHƯA sửa — cố ý
 
