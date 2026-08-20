@@ -538,6 +538,22 @@ def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
         luu = f.read_text(encoding="utf-8")
 
     toml_that = sys.modules.get("toml")
+
+    # Ghim st.secrets rỗng — cùng liều thuốc test_no_fabricated_data.py dùng.
+    # open_from_secrets() đọc st.secrets TRƯỚC khi đọc file, và streamlit
+    # CACHE secrets sau lần chạm đầu tiên. Trên máy có secrets.toml thật,
+    # một test chạy trước đã nạp bản HỢP LỆ vào cache; test này làm hỏng
+    # file trên đĩa nhưng `"GOOGLE_SHEET_KEY" in st.secrets` vẫn True, nên
+    # nhánh đọc-file — đúng nhánh đang đo — không bao giờ chạy tới. Tệ hơn:
+    # hàm dựng GoogleSheet bằng credential THẬT rồi gọi mạng tới Sheet
+    # production, trong khi cả bộ test này được thiết kế chạy offline.
+    # Hệ quả: xanh khi chạy riêng, đỏ khi chạy cả bộ, mà mã không hề đổi.
+    # Rỗng = "chưa cấu hình", đúng bối cảnh run_daily.py/cron chạy ngoài
+    # Streamlit — chính bối cảnh test này muốn đo.
+    saved_st = sys.modules.get("streamlit")
+    st_gia = types.ModuleType("streamlit")
+    st_gia.secrets = {}
+    sys.modules["streamlit"] = st_gia
     try:
         f.write_text('GOOGLE_SHEET_KEY = "chua dong ngoac\n', encoding="utf-8")
 
@@ -564,6 +580,9 @@ def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
             raise AssertionError(
                 "thiếu thư viện toml bị nuốt thành 'chưa cấu hình'")
     finally:
+        sys.modules.pop("streamlit", None)
+        if saved_st is not None:
+            sys.modules["streamlit"] = saved_st
         if toml_that is not None:
             sys.modules["toml"] = toml_that
         else:
