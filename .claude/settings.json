@@ -12,6 +12,19 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_doc_bat_buoc.py\"",
+            "timeout": 15,
+            "statusMessage": "Kiểm tài liệu bắt buộc..."
+          }
+        ]
+      }
     ]
   }
 }
