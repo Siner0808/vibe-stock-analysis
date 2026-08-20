@@ -1,3 +1,24 @@
+# ══════════════════════════════════════════════════════════════════════
+# FILE NAY DA BI VO HIEU HOA — 20/08/2026
+#
+# Doi duoi thanh .broken CO CHU DICH: no khong con import duoc, khong con
+# chay duoc, va khong con bi bo do quet nham la ma nguon dang song.
+#
+# BA LY DO:
+#   1. No KHONG con lam walk-forward. Chay run_simulation MOT lan tren toan
+#      khoang roi loc exit_date de goi la OOS.
+#   2. Nguong 50,0 nhap san thay vi CHON tren in-sample.
+#   3. Moc chia la datetime.now() - 182 ngay, nen OOS luon roi vao giai doan
+#      GAN NHAT -- dung thu bat bien 8 cam, vi do la giai doan da bi hang
+#      tram vong loop nhin qua.
+#
+# Kem mot rui ro rieng: day la script DUY NHAT trong repo goi
+# os.remove(sl_pattern_memory.json) ngay khi khoi dong.
+#
+# BAN THAY THE:  walkforward.py  (cung thu muc)
+# Ban co cau truc dung nhung sai huong chia: git show 025507c
+# ══════════════════════════════════════════════════════════════════════
+
 """
 walkforward_vn100.py
 ──────────────────────────────────────────────────────────────────────

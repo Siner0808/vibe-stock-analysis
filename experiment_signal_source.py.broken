@@ -1,3 +1,20 @@
+# ══════════════════════════════════════════════════════════════════════
+# FILE NAY CHUA BAO GIO CHAY DUOC — phat hien 20/08/2026
+#
+# Dong 55: `from walkforward_vn100 import _slim, bootstrap_ci`
+# Ca hai ten do KHONG TON TAI, va chua bao gio ton tai:
+#     grep "def bootstrap_ci" toan repo        -> 0 ket qua
+#     git log -S"def bootstrap_ci" --all       -> 0 commit
+#     python -c "import experiment_signal_source" -> ImportError
+#
+# Khong file nao trong repo tham chieu file nay. No la ma chet ngay tu luc
+# duoc viet, khong phai do lan doi ten walkforward_vn100.py ngay 20/08.
+#
+# Doi duoi thay vi xoa: giu lai y tuong ben trong de ai muon dung lai thi
+# doc duoc, nhung khong de no nam trong be mat ma nguon dang song va lam
+# nhieu moi phep quet.
+# ══════════════════════════════════════════════════════════════════════
+
 """
 experiment_signal_source.py
 ──────────────────────────────────────────────────────────────────────

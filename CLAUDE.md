@@ -169,7 +169,8 @@ pytest tests/test_post_mortem.py          # khoá tính tái lập của chấm 
 python tools/chan_bia_so_lieu.py --quet-repo   # quét mẫu bịa số toàn repo
 ```
 
-**`walkforward_vn100.py` KHÔNG còn là walk-forward** — đừng dùng nó làm nguồn
+**`walkforward_vn100.py` đã đổi đuôi thành `.broken` (20/08/2026)** — bản
+thay thế là **`walkforward.py`**. Đừng dùng file cũ làm nguồn
 số "ngoài mẫu". Nó chạy `run_simulation` **một lần** trên toàn khoảng rồi lọc
 `exit_date` để gọi là OOS; ngưỡng 50,0 nhập sẵn thay vì chọn trên in-sample;
 mốc chia là `datetime.now() - 182 ngày` nên OOS luôn là giai đoạn **gần nhất**
