@@ -111,6 +111,48 @@ def test_consider_entry_chan_theo_BLOCK_chu_khong_chan_ca_WARN():
     print("PASS  BLOCK chặn, WARN chỉ cảnh báo, sổ ghi đúng mức")
 
 
+def test_run_session_ghi_muc_that_vao_SO_khong_phai_hang_OK():
+    """Gate 2 điều kiện 4, đo qua ĐƯỜNG THẬT: run_session -> _analyze ->
+    consider_entry -> record_decision.
+
+    Vì sao cần test này dù đã có test cho từng mảnh: một lượt quét thật
+    ngày 20/08 ghi 70/70 dòng `OK` — trông **y hệt** hành vi dán cứng cũ.
+    Dữ liệu tươi thì OK là đúng, nhưng "đúng vì tính ra" và "đúng vì dán
+    cứng" không phân biệt được từ kết quả. Chỉ ép một trường hợp KHÔNG-OK
+    đi qua trọn đường mới phân biệt được.
+    """
+    import os
+    import tempfile
+
+    import market_filter
+    import paper_runner as pr
+    import paper_trading as pt
+
+    market_filter.is_vni_bullish = lambda _d: True
+    df = _chuoi("2026-07-01", n=140)
+    bar = {"open": 10.0, "high": 10.4, "low": 9.7, "close": 10.1}
+
+    cache_cu = pr._ANALYZE_CACHE
+    with tempfile.TemporaryDirectory() as d:
+        j = pt.PaperTradingJournal(os.path.join(d, "s.db"))
+        try:
+            pr._ANALYZE_CACHE = {}
+            # Lát cắt dừng 2026-07-01, chấm phiên 2026-08-20 -> cũ thật.
+            pr.run_session(j, "TST", df, bar, "2026-08-20")
+        finally:
+            pr._ANALYZE_CACHE = cache_cu
+
+        muc = [r[0] for r in j.db.execute(
+            "select data_quality from decisions where symbol='TST'").fetchall()]
+        j.db.close()
+
+    assert muc, "không ghi quyết định nào"
+    assert muc[0] != "OK", (
+        f"sổ ghi {muc[0]!r} cho lát cắt cũ 7 tuần — cổng chất lượng vẫn là "
+        f"hằng số, chỉ khác chỗ dán")
+    print(f"PASS  run_session ghi mức thật vào sổ: {muc[0]!r}")
+
+
 if __name__ == "__main__":
     for f in [v for k, v in sorted(globals().items()) if k.startswith("test_")]:
         f()
