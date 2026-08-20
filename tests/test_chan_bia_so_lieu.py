@@ -343,5 +343,69 @@ def test_or_trong_tests_duoc_mien():
     print("PASS  tests/ được miễn R6")
 
 
+# ── R7 — chuỗi TRÔNG NHƯ f-string mà thiếu tiền tố `f` ───────────────
+# Lỗi thật, hai lần trong cùng một phiên: `run_daily.py` đổi nhãn ngưỡng
+# thành {BUY_THRESHOLD:.1f} nhưng dòng đó là chuỗi THƯỜNG, nên báo cáo sẽ
+# in ra nguyên văn "{BUY_THRESHOLD:.1f}". Và chính chan_bia_so_lieu.py in
+# "{v}" nguyên văn trong lời khuyên của R1/R3/R4 vì cùng lỗi đó.
+def test_bat_chuoi_thieu_tien_to_f_trong_print():
+    p = _do('print("Nguong: {BUY_THRESHOLD:.1f} diem")')
+    assert "R7" in _ma(p)
+    print("PASS  bắt được print(\"...{x}...\") thiếu f")
+
+
+def test_bat_chuoi_thieu_tien_to_f_khi_cong_don():
+    p = _do('report_md += "Diem: {score} tren 100"')
+    assert "R7" in _ma(p)
+    print("PASS  bắt được `s += \"...{x}...\"` thiếu f")
+
+
+def test_khong_bao_nham_f_string_that():
+    p = _do('print(f"Nguong: {th:.1f} diem")')
+    assert "R7" not in _ma(p)
+    print("PASS  f-string thật không bị báo")
+
+
+def test_khong_bao_nham_template_dung_format():
+    """`"...{ten}...".format(...)` là cách dùng hợp lệ, không phải quên f."""
+    for ma in ('print("Xin chao {ten}".format(ten="A"))',
+               'MAU = "Xin chao {ten}"',
+               'print("100% xong")',
+               'print("dict rong: {}")'):
+        assert "R7" not in _ma(_do(ma)), ma
+    print("PASS  .format(), hằng mẫu, và {} rỗng không bị báo nhầm")
+
+
+# ── R8 — trạng thái vận hành dán cứng làm giá trị MẶC ĐỊNH ───────────
+# Lỗi thật: MarketDataPacket.data_quality: str = "OK" (data_collectors.py).
+# Đó là gốc của 12.984/12.984 dòng decisions ghi 'OK', và là lý do nhánh
+# `elif quality != "OK"` trong consider_entry() không bao giờ đúng.
+def test_bat_trang_thai_dan_cung_lam_mac_dinh_dataclass():
+    ma = chr(10).join(["from dataclasses import dataclass",
+                       "@dataclass",
+                       "class P:",
+                       '    data_quality: str = "OK"'])
+    p = _do(ma)
+    assert "R8" in _ma(p)
+    print("PASS  bắt được trường dataclass mặc định 'OK'")
+
+
+def test_bat_trang_thai_dan_cung_trong_get_va_getattr():
+    for ma in ('q = packet.get("data_quality", "OK")',
+               'q = getattr(p, "trang_thai", "SYNCED")',
+               'def f(quality="ACTIVE"): pass'):
+        assert "R8" in _ma(_do(ma)), ma
+    print("PASS  bắt được 'OK'/'SYNCED'/'ACTIVE' làm mặc định")
+
+
+def test_khong_bao_nham_chuoi_trang_thai_khong_phai_mac_dinh():
+    """So sánh với 'OK' là ĐỌC trạng thái, không phải khẳng định nó."""
+    for ma in ('if quality != "OK": raise ValueError(quality)',
+               'print("OK")',
+               'trang_thai = tinh_trang_thai_that()'):
+        assert "R8" not in _ma(_do(ma)), ma
+    print("PASS  đọc/so sánh trạng thái không bị báo nhầm")
+
+
 if __name__ == "__main__":
     sys.exit(chay_tat_ca())

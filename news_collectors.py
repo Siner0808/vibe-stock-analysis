@@ -47,6 +47,9 @@ class NewsPacket:
     macro_news: list[NewsItem]         = field(default_factory=list)
     sector_news: dict[str, list[NewsItem]] = field(default_factory=dict)
     total_articles: int = 0
+    # bia-ok: cung ho voi data_collectors.MarketDataPacket.data_quality —
+    # goi tin tuc mac dinh tu nhan la lay day du. Thuoc Phase 2C. Chua sua
+    # vi chua ai do duoc bao nhieu phien that su thieu tin.
     status: str = "OK"   # OK / PARTIAL / FAILED
     notes: list[str]  = field(default_factory=list)
 
