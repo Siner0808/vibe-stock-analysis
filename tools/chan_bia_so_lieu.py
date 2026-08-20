@@ -268,6 +268,25 @@ class BoDo(ast.NodeVisitor):
                         'đặt ra.')
         self.generic_visit(node)
 
+    def visit_BoolOp(self, node: ast.BoolOp) -> None:
+        # R6 — `x or <số>` : thiếu giá trị đo thì thay bằng hằng số
+        if isinstance(node.op, ast.Or) and not self.la_test:
+            for gia_tri in node.values[1:]:
+                if not _la_so(gia_tri):
+                    continue
+                v = _gia_tri_so(gia_tri)
+                if v in SO_TRUNG_TINH:
+                    continue
+                self._them(
+                    node.lineno, "R6", False,
+                    f'... or {v} — thiếu giá trị thật thì thay bằng hằng số.',
+                    f'Đây là mẫu `t.entry_price or 22750.0` từng sống trong '
+                    f'app.py: khi dữ liệu vắng mặt, phía sau không phân biệt '
+                    f'được "đo được {v}" với "không đo được". Để None rồi xử '
+                    f'lý tường minh, hoặc hiện dấu gạch.')
+                break
+        self.generic_visit(node)
+
 
 # ── Chạy ─────────────────────────────────────────────────────────────
 def _co_marker(dong_van: str) -> bool:

@@ -294,5 +294,54 @@ def test_repo_hien_tai_sach_o_muc_chan():
     print("PASS  repo sạch ở mức CHẶN")
 
 
+# ── R6 — `X or <số>` ─────────────────────────────────────────────────
+# Mẫu cuối cùng còn thiếu trong bộ dò, theo kế hoạch sửa chữa. Cùng họ với
+# R4: một giá trị đo được thiếu thì bị thay bằng hằng số, và phía sau không
+# phân biệt được "đo được" với "không đo được". Từng sống ở app.py dưới
+# dạng `t.entry_price or 22750.0` và `t.entry_date or "2026-05-29"`.
+def test_bat_duoc_or_voi_so_mac_dinh():
+    p = _do("gia = t.entry_price or 22750.0")
+    assert "R6" in _ma(p)
+    print("PASS  bắt được `x or 22750.0` — giá bịa khi thiếu dữ liệu")
+
+
+def test_bat_duoc_or_voi_so_nguyen_lon():
+    p = _do("von = pos_capital or 30_000_000")
+    assert "R6" in _ma(p)
+    print("PASS  bắt được `x or 30_000_000`")
+
+
+def test_khong_bao_nham_or_giua_hai_bien():
+    """`a or b` không có hằng số nào — không phải bịa."""
+    p = _do("ten = ten_moi or ten_cu")
+    assert "R6" not in _ma(p)
+    print("PASS  `a or b` không bị báo nhầm")
+
+
+def test_khong_bao_nham_or_voi_so_trung_tinh():
+    """0 · 1 · 100 là giá trị rỗng/đơn vị, không phải con số đo bịa ra."""
+    for ma in ("n = so_luong or 0", "he_so = k or 1", "pct = p or 100"):
+        assert "R6" not in _ma(_do(ma)), ma
+    print("PASS  `x or 0/1/100` không bị báo nhầm")
+
+
+def test_khong_bao_nham_or_voi_chuoi_rong_va_none():
+    for ma in ('ten = t.symbol or ""', "v = a or None", "ds = xs or []"):
+        assert "R6" not in _ma(_do(ma)), ma
+    print("PASS  `x or ''/None/[]` không bị báo nhầm")
+
+
+def test_or_trong_tests_duoc_mien():
+    """Miễn trừ tính theo THƯ MỤC tests/, không theo tên file."""
+    f = GOC / "tests" / "__tam_kiem_tra_r6.py"
+    try:
+        f.write_text("gia = t.entry_price or 22750.0", encoding="utf-8")
+        assert "R6" not in _ma(hook.kiem_tra(f))
+    finally:
+        if f.exists():
+            f.unlink()
+    print("PASS  tests/ được miễn R6")
+
+
 if __name__ == "__main__":
     sys.exit(chay_tat_ca())
