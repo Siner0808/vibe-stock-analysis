@@ -1161,3 +1161,57 @@ Bật ngây thơ sẽ quay lại lỗi 47-vs-59 — trong một phiên quét, m�
 bằng cắt lỗ sẽ làm lệch điểm mã B. Sửa đúng cần **một trục thời gian thứ
 hai**: chỉ dùng mẫu đã học *trước khi phiên bắt đầu*, giống bất biến 3
 ("dời stop chỉ có hiệu lực từ phiên sau"). Việc riêng.
+
+---
+
+## PHASE 5D — dựng lại walk-forward (20/08/2026)
+
+Ô C4 đã chọn "dựng lại". Bản ở `git show 025507c` có cấu trúc đúng (chọn
+trên IS, đo trên OOS) nhưng vẫn lấy **6 tháng gần nhất** làm OOS — trái bất
+biến 8, vì giai đoạn gần nhất là giai đoạn *đã bị nhìn nhiều nhất*.
+
+### Cách chia khác hẳn: theo **dữ liệu nào đã tồn tại**
+
+Khi nối cache về 2022-01-01 hôm nay, **33/71 mã được kéo về thêm 25.219
+phiên** — dữ liệu **không tồn tại** trong cache lúc các vòng tối ưu chạy,
+nên không vòng nào *có thể* đã nhìn thấy.
+
+Đó là vùng kiểm định duy nhất trong dự án mà tính "chưa nhìn" **chứng minh
+được**, thay vì giả định.
+
+Ranh giới đó chỉ tồn tại trong bản sao lưu tạm, nên đã ghi lại ngay:
+`docs/moc_du_lieu_sach.json` — 71 mã, kèm provenance.
+
+```
+vùng sạch : 25.219/80.939 phiên = 31,2%, trên 33/71 mã
+OOS (đo)          = phiên <  mốc     ← chưa thể đã nhìn
+IS  (chọn ngưỡng) = phiên >= mốc     ← vùng đã bị nhìn
+```
+
+### Luật chọn ngưỡng nêu TRƯỚC
+
+Chỉ ngưỡng đạt **≥30 lệnh** trên IS mới đủ tư cách; trong số đó lấy kỳ vọng
+cao nhất. Không có luật nêu trước thì "chọn trên in-sample" chỉ là cực đại
+của N lần thử dưới một cái tên khác.
+
+### Nghiệm thu end-to-end (3 mã · 2 ngưỡng · stride 25)
+
+```
+ngưỡng 48 :  8 lệnh · kỳ vọng +11,02%
+ngưỡng 55 :  4 lệnh · kỳ vọng  +8,10%
+ngưỡng chọn: None  →  TỪ CHỐI dòng 8 lệnh, không chạy OOS
+```
+
+Máy chạy đúng, **và gác hoạt động**.
+
+### Hai file bị vô hiệu hoá
+
+| File | Vì sao |
+|---|---|
+| `walkforward_vn100.py.broken` | ba lỗi đã ghi ở đầu file. Lợi ích phụ: nó là script **duy nhất** gọi `os.remove(sl_pattern_memory.json)` — nay `grep` toàn repo trả về **0** |
+| `experiment_signal_source.py.broken` | import `_slim`/`bootstrap_ci` từ `walkforward_vn100`. Hai tên đó **chưa bao giờ tồn tại** — `git log -S"def bootstrap_ci" --all` trả về 0 commit. File chưa bao giờ nạp được, và không ai tham chiếu. **Không phải hậu quả của lần đổi tên hôm nay** |
+
+Chốt `test_requirements` là thứ bắt được file thứ hai. Đã tách thông báo của
+nó thành hai trường hợp — *"thư viện ngoài chưa khai báo"* và *"import
+HỎNG — module không tồn tại ở đâu cả"* — vì gộp chung làm thông báo nói sai
+bản chất vấn đề.
