@@ -1215,3 +1215,34 @@ Chốt `test_requirements` là thứ bắt được file thứ hai. Đã tách t
 nó thành hai trường hợp — *"thư viện ngoài chưa khai báo"* và *"import
 HỎNG — module không tồn tại ở đâu cả"* — vì gộp chung làm thông báo nói sai
 bản chất vấn đề.
+
+---
+
+## KẾT QUẢ WALK-FORWARD — 20/08/2026
+
+Chi tiết đầy đủ: `docs/ket-qua-walkforward-20260820.md`. Tóm tắt:
+
+```
+IS  : 71 mã, ngưỡng chọn = 62,0 (luật nêu trước: ≥30 lệnh, rồi kỳ vọng cao nhất)
+OOS : 33 mã, 408 lệnh, trên 25.219 phiên CHƯA THỂ đã bị nhìn
+
+kỳ vọng   +0,431%   KTC [−0,469 ; +1,407]   ← chứa 0
+alpha     +0,428%   KTC [−0,375 ; +1,275]   ← chứa 0
+          → không khác chuẩn một cách có ý nghĩa
+vốn đỉnh  542%  ·  net +36,14%  →  quy về 100% vốn: +23,92%
+```
+
+Kỳ vọng trong mẫu +1,52% → ngoài mẫu **+0,43%** (mất 72%). WR 32,3% → 25,5%.
+
+**Phép đo thứ tư cho cùng một câu trả lời, và là phép đo chính xác nhất**
+(KTC ±0,82 so với ±1,5 của hai lần trước, vì mẫu 408 lệnh lớn nhất).
+
+**Đính chính:** kết luận trước đó của tôi — *"win rate phẳng 28,2–30,7%,
+ngưỡng không cải thiện chất lượng chọn mã"* — đo trên 8 sổ còn sót và **sai
+với vùng IS này**: WR tăng đều 26,8% → 32,3%. Kết luận đúng: ngưỡng **có**
+cải thiện **trong mẫu**, nhưng phần cải thiện đó **không sống sót ra ngoài
+mẫu**.
+
+**C5 không đổi**, nhưng lý do đổi: từ "chờ vì chưa có cách chọn" thành
+"đã chọn được bằng cách hợp lệ, và phép đo nói ngưỡng đó không có lợi thế
+phân biệt được với cầm đều cả rổ".
