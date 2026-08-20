@@ -3,11 +3,16 @@
 Hệ thống phân tích cổ phiếu Việt Nam. Streamlit + Python 3.11, dữ liệu từ
 vnstock. Phát triển local → commit → push GitHub → Streamlit Cloud tự deploy.
 
-> **TRẠNG THÁI HIỆN TẠI: đọc `docs/STATE.md` trước tiên.**
-> File này mô tả *kiến trúc và luật chơi* — thứ ít đổi. `docs/STATE.md` ghi
-> *đang đứng ở đâu*: nhánh nào, Phase nào đã qua Gate, số test thật, việc gì
-> còn treo, và những ô cấu hình chưa ai trả lời. Hai file có mâu thuẫn thì
-> `docs/STATE.md` mới hơn.
+> **BẮT ĐẦU Ở ĐÂY: đọc `docs/HANDOFF.md` trước tiên.**
+> Ba tài liệu, ba vai trò khác nhau:
+> - `docs/HANDOFF.md` — *bắt đầu từ đâu*: ba lệnh chạy đầu tiên, năm ô đang
+>   chặn, ba ràng buộc khi làm việc. Ngắn, đọc hết trong 5 phút.
+> - `docs/STATE.md` — *nhật ký từng Phase*: Gate nào đã qua, đo được gì,
+>   cái gì chưa kiểm được.
+> - `CLAUDE.md` (file này) — *kiến trúc và luật chơi*, thứ ít đổi nhất.
+>
+> Hai file mâu thuẫn thì file mới hơn đúng, theo thứ tự
+> `HANDOFF` → `STATE` → `CLAUDE.md`.
 
 ---
 
