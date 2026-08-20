@@ -418,6 +418,13 @@ st.markdown("""
 # tồn tại. Bản cũ khi đó rơi vào nhánh dự phòng dựng sẵn một vị thế ACB
 # +7,77% và bốn ô KPI bê từ ui_prototype.html — tức nhánh bịa là nhánh LUÔN
 # chạy trên cloud. Nay: không đọc được sổ thì nói "chưa có dữ liệu".
+# Nguong mua mac dinh cua giao dien. Topbar render TRUOC sidebar nen khong
+# doc duoc bien cua thanh truot; truoc day cho do in cung "50.0 pts", nen
+# keo truot sang 65 thi topbar van noi 50. Nay ca hai doc chung mot nguon:
+# hang so nay cho lan render dau, session_state cho moi lan sau.
+NGUONG_MUA_MAC_DINH = 50.0
+KHOA_NGUONG_MUA = "nguong_mua_pts"
+
 _db_path = pathlib.Path(__file__).parent / "paper_trades.db"
 real_open_trades = []
 so_lenh_perf = None
@@ -459,7 +466,8 @@ st.markdown(
     f'<div class="ti-item"><span class="ti-l">VN-Index</span><span class="ti-v">—</span></div>'
     f'<div class="ti-item"><span class="ti-l">Sổ lệnh (net)</span>'
     f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span></div>'
-    f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">50.0 pts</span></div>'
+    f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">'
+    f'{st.session_state.get(KHOA_NGUONG_MUA, NGUONG_MUA_MAC_DINH):.1f} pts</span></div>'
     # Truoc day pill nay noi "Sheets Synced" kem cham xanh, trong khi
     # app.py khong he import sheets_store va chua bao gio goi trang_thai().
     # Cung ho voi market_filter.status() bao active=True trong khi cong
@@ -532,7 +540,8 @@ with st.sidebar:
     st.markdown('<div style="height: 6px;"></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sb-card-title">🎯 Tham số AI & Quản trị</div>', unsafe_allow_html=True)
-    buy_threshold = st.slider("Ngưỡng mua Multi-Agent (pts)", 40.0, 65.0, 50.0, 0.5)
+    buy_threshold = st.slider("Ngưỡng mua Multi-Agent (pts)", 40.0, 65.0,
+                              NGUONG_MUA_MAC_DINH, 0.5, key=KHOA_NGUONG_MUA)
     capital_mode = st.radio("Chế độ phân bổ vốn:", ["30% / vị thế", "Kelly Dynamic", "1% Risk"], index=0)
     exchange = st.selectbox("Sàn giao dịch:", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = 180

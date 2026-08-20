@@ -133,7 +133,7 @@ def execute_daily_scan():
 
     # ── TẠO BÁO CÁO PHÂN TÍCH CHUYÊN SÂU KHI HOÀN THÀNH ──────────────
     scan_details.sort(key=lambda x: -x["score"])
-    top_candidates = [x for x in scan_details if x["score"] >= 50.0]
+    top_candidates = [x for x in scan_details if x["score"] >= BUY_THRESHOLD]
 
     open_trades = [t for t in trades if t.status in ("OPEN", "PENDING", "CLOSING")]
 
@@ -163,11 +163,11 @@ def execute_daily_scan():
 - **Số lệnh mới phát hiện mở mua:** `{opened_count}` lệnh
 - **Số lệnh chờ đã khớp mua:** `{pending_count}` lệnh
 - **Số lệnh đã chốt lời / cắt lỗ:** `{closed_count}` lệnh
-- **Số cổ phiếu đạt ngưỡng theo dõi (Score ≥ 50.0):** `{len(top_candidates)}/{len(scan_details)}` mã
+- **Số cổ phiếu đạt ngưỡng theo dõi (Score ≥ {BUY_THRESHOLD:.1f}):** `{len(top_candidates)}/{len(scan_details)}` mã
 
 ---
 
-### ⭐ 2. TOP CỔ PHIẾU CÓ TÍN HIỆU TÍCH CỰC NHẤT THỊ TRƯỜNG (SCORE ≥ 50.0)
+### ⭐ 2. TOP CỔ PHIẾU CÓ TÍN HIỆU TÍCH CỰC NHẤT THỊ TRƯỜNG (SCORE ≥ {BUY_THRESHOLD:.1f})
 
 """
     if top_candidates:
@@ -177,7 +177,7 @@ def execute_daily_scan():
             stt_str = "🟢 MUA MỚI" if item["opened"] else ("🔵 ĐÃ KHỚP" if item["filled"] else "👀 THEO DÕI")
             report_md += f"| {i} | **{item['symbol']}** | {item['close']:,.0f} | **{item['score']:.1f}/100** | {stt_str} |\n"
     else:
-        report_md += "ℹ️ *Phiên này không có cổ phiếu nào vượt ngưỡng mua 50.0 điểm. Hệ thống duy trì trạng thái kiên nhẫn đứng ngoài an toàn.*\n"
+        report_md += f"ℹ️ *Phiên này không có cổ phiếu nào vượt ngưỡng mua {BUY_THRESHOLD:.1f} điểm. Hệ thống duy trì trạng thái kiên nhẫn đứng ngoài an toàn.*\n"
 
     report_md += """
 ---

@@ -489,7 +489,55 @@ SO_CUNG_TRONG_APP = {
     "Sheets Synced": "pill topbar — chưa bao giờ gọi sheets_store.trang_thai()",
     "LIVE DATA": "thẻ TradingView MCP ở tab Pipeline — không đo từ đâu",
     "LIVE SYNC": "thẻ Google Sheets ở tab Pipeline — không đo từ đâu",
+    # Topbar in ngưỡng mua bằng hằng số, trong khi thanh trượt ở sidebar
+    # mới là thứ quyết định. Kéo trượt sang 65 thì topbar vẫn nói 50.
+    "50.0 pts": "ngưỡng mua ở topbar — không bám theo thanh trượt",
 }
+
+
+def test_run_daily_khong_chep_cung_nguong_mua():
+    """Ngưỡng mua chỉ được viết MỘT lần, ở dòng khai báo BUY_THRESHOLD.
+
+    run_daily.py có BUY_THRESHOLD, và cùng một báo cáo đã in
+    `{BUY_THRESHOLD:.1f}` ở dòng tiêu đề. Nhưng bộ lọc chọn TOP và hai
+    nhãn "Score >= 50.0" lại chép cứng con số. Hôm nay hai giá trị bằng
+    nhau nên không ai thấy; đổi ngưỡng một cái là báo cáo tự mâu thuẫn:
+    tiêu đề nói ngưỡng mới, mục 2 vẫn nói 50.0, và bộ lọc vẫn lọc theo 50.0.
+
+    Đây là ô C5 của kế hoạch. Ngày nó được trả lời, chỗ chép cứng này sẽ
+    im lặng giữ nguyên hành vi cũ.
+
+    Test đọc giá trị từ chính dòng khai báo nên không hỏng khi C5 đổi số.
+    """
+    import ast
+    import io
+    import tokenize
+
+    duong_dan = os.path.join(ROOT, "run_daily.py")
+    nguon = open(duong_dan, encoding="utf-8").read()
+
+    gia_tri = None
+    for nut in ast.parse(nguon).body:
+        if isinstance(nut, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == "BUY_THRESHOLD"
+                for t in nut.targets):
+            gia_tri = nut.value.value
+    assert gia_tri is not None, "khong tim thay khai bao BUY_THRESHOLD"
+
+    # Bỏ chú thích: ghi lại con số cũ trong comment để giải thích là việc
+    # nên làm, không phải vi phạm.
+    with open(duong_dan, "rb") as fh:
+        toks = list(tokenize.tokenize(fh.readline))
+    khong_chu_thich = "".join(
+        t.string for t in toks if t.type != tokenize.COMMENT)
+
+    dang_chu = str(gia_tri)
+    so_lan = khong_chu_thich.count(dang_chu)
+    assert so_lan == 1, (
+        f"run_daily.py viet '{dang_chu}' {so_lan} lan; chi duoc 1 lan o dong "
+        f"khai bao BUY_THRESHOLD. Moi ban chep them la mot cho se khong doi "
+        f"theo khi C5 duoc tra loi.")
+    print("PASS  nguong mua chi viet mot lan trong run_daily.py")
 
 
 def test_app_khong_hien_so_cung_tu_mockup():
