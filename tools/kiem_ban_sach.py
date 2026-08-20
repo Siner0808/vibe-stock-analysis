@@ -27,6 +27,33 @@ GOC = Path(__file__).resolve().parent.parent
 
 
 def main() -> int:
+    # Tien trinh con (pytest) ghi thang ra stdout, con print() cua ta bi
+    # dem khi output di qua pipe -> thu tu doc bi dao, canh bao quan trong
+    # nhat lai hien sau cung. Mot cong cu chan doan doc sai thu tu thi vo
+    # dung.
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
+
+    # `git clone` lay HEAD, KHONG lay cay lam viec. Neu con thay doi chua
+    # commit thi bao cao "xanh" o duoi noi ve ban CU -- dung loai dam bao
+    # gia ma du an nay hay dinh. Noi ra truoc khi chay.
+    ban = subprocess.run(["git", "status", "--porcelain"], cwd=str(GOC),
+                         capture_output=True, text=True)
+    ban_do = [d for d in ban.stdout.splitlines() if d.strip()]
+    if ban_do:
+        print("!" * 70)
+        print(f"CANH BAO: cay lam viec con {len(ban_do)} muc chua commit.")
+        print("Cong cu nay chay tren HEAD, nen ket qua duoi day KHONG noi ve")
+        print("nhung thay doi do. Commit truoc roi chay lai.")
+        for d in ban_do[:8]:
+            print("   ", d)
+        if len(ban_do) > 8:
+            print(f"    ... va {len(ban_do) - 8} muc nua")
+        print("!" * 70)
+        print()
+
     tam = Path(tempfile.mkdtemp(prefix="kiem_ban_sach_"))
     ban_sao = tam / "sach"
     try:

@@ -175,7 +175,8 @@ STALE_BLOCK_DAYS = 10
 
 
 def validate_ohlcv(df: pd.DataFrame | None, symbol: str = "",
-                   exchange: str = "HOSE") -> QualityReport:
+                   exchange: str = "HOSE",
+                   as_of: str | None = None) -> QualityReport:
     """Kiểm định một bảng OHLCV. Không sửa dữ liệu, chỉ báo cáo."""
     rep = QualityReport(symbol=symbol)
     add = lambda c, s, m: rep.issues.append(Issue(c, s, m))
@@ -242,7 +243,12 @@ def validate_ohlcv(df: pd.DataFrame | None, symbol: str = "",
 
     last = times.dropna().max()
     rep.last_date = last.strftime("%Y-%m-%d")
-    age = (today_vn().date() - last.date()).days
+    # Do do cu so voi NGAY DANG CHAM, khong so voi hom nay. Backtest replay
+    # phien 2024 thi moi lat cat deu "cu 2 nam" va bi BLOCK sach -- dung
+    # cung mot loi khai niem voi cong VN-INDEX (xem market_filter).
+    _moc = (pd.Timestamp(str(as_of)[:10]).date() if as_of
+            else today_vn().date())
+    age = (_moc - last.date()).days
     if age >= STALE_BLOCK_DAYS:
         add("STALE", Severity.BLOCK,
             f"dữ liệu cũ {age} ngày (phiên gần nhất {rep.last_date})")

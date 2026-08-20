@@ -121,16 +121,19 @@ def _dau_van_bo_nho() -> tuple:
     return (bool(may.enabled), len(may.sl_patterns))
 
 
-def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict:
+def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE",
+             session_date: str | None = None) -> dict:
     """Chạy pipeline thật trên lịch sử đã cắt tới ngày T."""
     global _ANALYZE_CACHE
     _gac_da_luong()
     last_time = str(history["time"].iloc[-1]) if "time" in history.columns and len(history) else ""
-    cache_key = (symbol, len(history), last_time) + _dau_van_bo_nho()
+    cache_key = ((symbol, len(history), last_time, str(session_date or ""))
+                 + _dau_van_bo_nho())
     if cache_key in _ANALYZE_CACHE:
         return _ANALYZE_CACHE[cache_key]
 
     from data_collectors import MarketDataPacket, DataOrchestrator
+    from data_quality import validate_ohlcv
     from master_agent import MasterConsensusAgent
 
     packet = MarketDataPacket(
@@ -138,7 +141,12 @@ def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict
         ohlcv_df=history.reset_index(drop=True),
         tv_recommendation="NEUTRAL",   # không có TradingView lịch sử
         news_packet=None,
-        data_quality="OK",
+        # Muc chat luong THAT, khong phai hang so. Ban cu ghi "OK" cung o
+        # day, nen decisions.data_quality = 'OK' cho 12.984/12.984 dong va
+        # nhanh `elif quality != "OK"` trong consider_entry() la code chet.
+        data_quality=validate_ohlcv(
+            history, symbol, exchange,
+            as_of=session_date or last_time).level.name,
     )
     
     # BẮT BUỘC: Tính toán indicator cho backtest (vì TradingView MCP không hỗ trợ quá khứ)
@@ -177,13 +185,13 @@ def run_session(journal: PaperTradingJournal, symbol: str,
 
     result = None
     if journal.open_position(symbol) is not None:
-        result = _analyze(symbol, history, exchange)
+        result = _analyze(symbol, history, exchange, session_date)
         closed = journal.evaluate_open(symbol, session_date, bar,
                                        current_score=int(result["final_score"]))
         stats["closed"] = len(closed)
 
     if journal.open_position(symbol) is None:
-        result = result or _analyze(symbol, history, exchange)
+        result = result or _analyze(symbol, history, exchange, session_date)
         if journal.consider_entry(symbol, session_date, result, exchange,
                                   buy_threshold) is not None:
             stats["opened"] = 1

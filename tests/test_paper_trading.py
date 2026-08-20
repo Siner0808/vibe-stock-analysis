@@ -630,7 +630,7 @@ def test_tin_hieu_hom_nay_khong_khop_trong_hom_nay():
     # Thay hệ chấm điểm bằng stub: test này kiểm tra THỨ TỰ THAO TÁC của
     # runner, không phải chất lượng tín hiệu. Trộn hai thứ vào một test thì
     # khi fail sẽ không biết cái nào hỏng.
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         75, sl=float(hist["close"].iloc[-1]) * 0.9,
         tp=float(hist["close"].iloc[-1]) * 1.5)
 
@@ -668,7 +668,7 @@ def test_gia_vao_dung_bang_gia_mo_cua_phien_khop():
     })
 
     j = new_journal()
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         75, sl=float(hist["close"].iloc[-1]) * 0.5,
         tp=float(hist["close"].iloc[-1]) * 5.0)
 
@@ -715,7 +715,7 @@ def test_gia_nghin_dong_khong_lam_hong_so_lenh():
     })
 
     # SL/TP do RiskManagementAgent trả về: đơn vị VNĐ
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         75,
         sl=float(hist["close"].iloc[-1]) * 1000 * 0.93,
         tp=float(hist["close"].iloc[-1]) * 1000 * 1.15)
@@ -774,7 +774,7 @@ def test_run_session_tra_ve_diem_that_khong_phai_hang_so():
     })
 
     diem = {"AA": 73, "BB": 41}
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         diem[sym], sl=float(hist["close"].iloc[-1]) * 0.9,
         tp=float(hist["close"].iloc[-1]) * 1.5)
 

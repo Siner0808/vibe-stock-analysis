@@ -101,6 +101,18 @@ BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 # vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
 CHO_PHEP_MO_LENH_MOI = False
 
+#: Muc chat luong du lieu con DUNG DUOC de vao lenh.
+#:
+#: "OK" la sach; "WARN" la co dau hieu la nhung van dung duoc (sau khi noi
+#: lai cache ngay 20/08, ca 71 ma cua ro deu 0% BLOCK va 11,3% WARN, toan
+#: bo la PRICE_JUMP). Moi muc KHAC deu chan -- ke ca mot chuoi la khong
+#: nam trong bang Severity, vi "khong biet muc nay la gi" phai nghieng ve
+#: phia chan chu khong phai phia cho qua.
+#:
+#: Ban cu chan moi thu khac "OK", tuc gop WARN vao cung BLOCK. Ban truoc do
+#: nua thi nhanh nay la CODE CHET vi packet luon mang "OK" cung.
+MUC_CHAT_LUONG_DUNG_DUOC = frozenset({"OK", "WARN"})
+
 LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
             "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
             "bằng walk-forward hợp lệ")
@@ -240,8 +252,13 @@ class PaperTradingJournal:
 
         if not vni_ok:
             skip = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"
-        elif quality != "OK":
-            skip = f"chất lượng dữ liệu {quality!r}"
+        elif str(quality).upper() not in MUC_CHAT_LUONG_DUNG_DUOC:
+            # CHAN theo muc BLOCK, khong chan ca WARN. Ban cu chan moi thu
+            # khac "OK" -- gop hai muc lam mot la mat thong tin: WARN nghia
+            # la "co dau hieu la, van dung duoc", BLOCK nghia la "khong dung
+            # duoc". Sau khi noi lai cache ngay 20/08, ro 71 ma con 0% BLOCK
+            # va 11,3% WARN (deu la PRICE_JUMP).
+            skip = f"chất lượng dữ liệu {quality!r} — không dùng được"
         elif score < threshold:
             skip = f"điểm {score} dưới ngưỡng {threshold:g}"
         elif self.open_position(symbol) is not None:
