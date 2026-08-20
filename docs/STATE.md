@@ -1110,3 +1110,54 @@ Log Actions cần đăng nhập; **annotation thì công khai qua API**. Trướ
 sửa, một lượt CI đỏ chỉ để lại đúng dòng `Process completed with exit code 1`
 — không đủ để sửa bất cứ gì. Nay bước test in tên test đỏ thành `::error::`,
 và câu trả lời hiện ra ngay ở lần chạy kế tiếp.
+
+---
+
+## PHASE 6 — phương án C (20/08/2026)
+
+Người dùng hỏi thẳng: *"tại sao phải xoá đi xây lại?"* Câu hỏi đúng. Đo lại
+thì không cần xoá — cần **thay dữ liệu bẩn bằng dữ liệu thật**.
+
+```
+file cũ: 6.327 mẫu · 100 mã · tín hiệu 2021-11 → 2026-07
+         trường nói vòng nào/dữ liệu nào sinh ra : KHÔNG CÓ
+         khớp một lệnh THẬT trong sổ            : 56/6.327 = 0,89%
+```
+
+Rổ thật 71 mã, sổ thật 113 lệnh — không cách nào sinh ra 6.327 mẫu từ 100 mã.
+
+**Không chọn B** (giữ file, bổ sung provenance): thông tin để truy nguồn
+**không tồn tại** — các vòng sinh ra nó đã bị `os.remove()` xoá.
+**Không chọn A** (xoá sạch): A để lại hệ thống sạch nhưng **không còn đường
+ống**; ngày muốn học thật vẫn phải dựng lại từ đầu.
+
+### Gate 6 — 3/3 ✅
+
+```
+1. đo trước–sau trên 280 lượt chấm gần nhất
+     TRƯỚC (6.327 mẫu): 255/280 = 91,1% bị trừ 12 điểm
+     SAU   (   44 mẫu):   7/280 =  2,5%
+     → 248/280 mã (88,6%) được TRẢ LẠI 12 điểm
+2. Gate 5A vẫn xanh sau khi đổi
+3. không còn khẳng định "Self-Improving" — có test khoá
+```
+
+### Ba chốt giữ cho C không thoái hoá
+
+1. `record_sl_trade` **từ chối** mẫu không khai `trade_id` + `nguon`
+2. `load_memory` **bỏ** mẫu không có provenance và **nói ra** bao nhiêu
+3. `tools/dung_lai_bo_nho.py` dựng lại từ lệnh cắt lỗ đã đóng; thiếu
+   breakdown thì **bỏ**, không điền mặc định
+
+### Nói thẳng về kỳ vọng
+
+44 mẫu phủ **0,9%** không gian giá trị agent sinh ra — cơ chế gần như vô
+hiệu. Đó là câu trả lời trung thực với 113 lệnh, không phải thất bại. Giá
+trị của C là **đường ống đúng đang chạy và tích luỹ trung thực**.
+
+### Chưa làm, có chủ đích: không bật `save_memory()`
+
+Bật ngây thơ sẽ quay lại lỗi 47-vs-59 — trong một phiên quét, mã A đóng
+bằng cắt lỗ sẽ làm lệch điểm mã B. Sửa đúng cần **một trục thời gian thứ
+hai**: chỉ dùng mẫu đã học *trước khi phiên bắt đầu*, giống bất biến 3
+("dời stop chỉ có hiệu lực từ phiên sau"). Việc riêng.
