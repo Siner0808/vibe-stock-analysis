@@ -11,3 +11,4 @@ requests
 lxml
 google-generativeai
 gspread
+toml

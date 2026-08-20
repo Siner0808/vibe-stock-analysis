@@ -40,3 +40,6 @@ walkforward_results/
 # File nháp để soi lỗi bằng tay — không phải mã của dự án.
 # Hook chan_bia_so_lieu.py cũng miễn trừ thư mục này.
 scratch/
+# Ban sao bang chung Phase 0 -- phai nam NGOAI repo (xem docs/STATE.md)
+_phase0_snapshot.tar.gz
+*.tar.gz
