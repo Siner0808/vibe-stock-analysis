@@ -575,3 +575,92 @@ e70b5f6 fix(app): go moi con so bia khoi giao dien...
 2. Kiểm `toml` đã cài chưa (xem trên).
 3. `.github/workflows/kiem-dinh.yml` + branch protection.
 4. **C1–C5** → Phase 2, 3E, 5D.
+
+---
+
+## Phiên 2 — 20/08/2026 · CHẠY THẬT + DỌN NỢ TỒN ĐỌNG
+
+Phiên Claude Code trên máy người dùng. Ba lệnh mục 0 của `HANDOFF.md` đã
+chạy; toàn bộ nợ **không bị C1–C5 chặn** đã đóng.
+
+### Ba lệnh khởi động — kết quả thật
+
+| Lệnh | Kết quả |
+|---|---|
+| `pytest tests/ -q` | **218 collected · 217 passed · 1 failed** |
+| `import toml` | ✅ 0.10.2 có sẵn |
+| `python run_daily.py` | ✅ **exit 0**, lượt chạy live đầu tiên |
+
+**Test đỏ KHÔNG phải hồi quy.** `test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO`
+xanh khi chạy riêng, đỏ khi chạy cả bộ. `open_from_secrets()` đọc `st.secrets`
+trước file, và streamlit **cache** secrets sau lần chạm đầu; một test chạy
+trước đã nạp bản hợp lệ vào cache, nên nhánh đọc-file không bao giờ chạy tới.
+Mốc 218 đo trên bản sao Linux **không có `secrets.toml` thật** — máy có file
+thật thì đổi màu mà mã không đổi. Kèm theo: lượt chạy cả bộ đã dựng
+`GoogleSheet` bằng credential thật và gọi mạng tới Sheet production.
+
+**`run_daily.py` — gate của HANDOFF ĐẠT.** Kéo sổ trước khi quét chạy đúng
+(113 lệnh, 12.634 quyết định), ghi 70 quyết định mới, đẩy Sheets thành công.
+Điểm **không còn là hằng 50,0**: 27 giá trị phân biệt trong 70 dòng mới
+(min 21 · max 55). Kiểm chéo báo cáo ↔ bảng `decisions`: **6/6 mã khớp**.
+
+**Chẩn đoán cốt lõi được xác nhận bằng chạy hàm:**
+```
+market_filter.status()        = {'active': True, ... → 2026-08-07}
+is_vni_bullish('2026-08-20')  = False
+is_vni_bullish('2030-01-01')  = False
+```
+6/71 mã vượt ngưỡng hôm nay, **0 lệnh mở**. Không phải thiếu tín hiệu — là cổng.
+`data_quality = 'OK'` × **12.704/12.704**: cổng chất lượng vẫn là code chết.
+
+### Đã đóng trong phiên này
+
+| Việc | Gate liên quan |
+|---|---|
+| Cách ly `st.secrets` trong test 3C | mốc test về 218 xanh |
+| **`toml` vào `requirements.txt`** + test chặn tái phạm | — |
+| Xoá 12 file rác 0 byte trong `.git/` | STATE.md mục "việc đầu tiên" |
+| `_phase0_snapshot.tar.gz` ra ngoài repo | **Gate 0 điều kiện 2** |
+| Smoke test app với sổ lệnh vắng mặt | **Gate 1 điều kiện 3** |
+| Luật **R6** `X or <số>` cho bộ dò | Phase 4 bước 4 |
+| **`.github/workflows/kiem-dinh.yml`** | Phase 4 bước 1+2 |
+| Ba pill khẳng định trạng thái không kiểm | cùng họ Phase 1 |
+| Ngưỡng mua về một nguồn duy nhất | dọn đường cho C5 |
+
+**Lỗi production tìm thấy và đã sửa:** `toml` không có trong
+`requirements.txt`, mà `quet-so-lenh.yml` cài đúng file đó rồi gọi
+`restore_journal_from_google_sheets()` → `open_from_secrets()` → `import toml`.
+**Mọi lượt quét trên GitHub Actions đều chết ở bước kéo sổ.** Máy local có
+`toml` sẵn nên không ai thấy; chỉ runner sạch mới lộ.
+
+### Phát hiện mới, CHƯA sửa — cố ý
+
+- **R6 bắt ngay 2 chỗ đang sống**, cả hai là con số 50:
+  `debate_agents.py:159` `risk.get("risk_score") or 50` và
+  `debate_agents.py:347` `(...).get("RSI") or 50.0`. Chỗ thứ hai nằm **đúng
+  trong danh sách Phase 1B** ("RSI bịa 50,0 khi thiếu phiên") — Phase 1B gỡ
+  nó khỏi `app.py`, bản sao trong `debate_agents.py` sống sót.
+  Không sửa vì chúng nằm trên đường tính điểm: sửa là đổi điểm, mà chưa có
+  **Gate 5A** thì không đo được thay đổi ấy đúng hay sai.
+- **`paper_trading.py:77` khai báo `BUY_THRESHOLD = 62`** trong khi
+  `run_daily.py:23` là `50.0`. Cùng tên, khác giá trị, cùng dự án. Hôm nay
+  62 không chạy (chỉ là mặc định dự phòng; `run_daily` luôn truyền 50.0).
+  Hợp nhất là chọn giữa 50 và 62 — **đúng là ô C5**.
+- Chuỗi lời khuyên của R1/R3/R4 in `{v}` nguyên văn vì thiếu tiền tố `f`.
+
+### Trạng thái git
+
+Nhánh `sua-chua/phase-0`, **12 commit**, chưa push. Bộ test: 204 → 218 → **226**.
+
+### Còn treo — chỉ người dùng làm được
+
+1. **Push nhánh** để `kiem-dinh.yml` chạy lần đầu.
+2. **Branch protection**: Settings → Branches → Require status checks →
+   `kiem-dinh`. Streamlit Cloud không nghe Actions; đây là thay đổi thói quen.
+3. **C1–C5** → chặn Phase 2, 3E, 5D.
+
+### Còn treo — làm được, chưa làm
+
+Phase 5A (test tái lập 2 tiến trình, post-mortem BẬT) và Phase 5B
+(`vs_benchmark` vào đường tự động — `grep benchmark run_daily.py` = 0).
+Kế hoạch ghi rõ hai mục này **không cần ô C nào**. Phase 6 cần Gate 5A trước.
