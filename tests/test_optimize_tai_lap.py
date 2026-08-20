@@ -122,3 +122,62 @@ def test_cat_khoang_ton_trong_start_end():
     assert len(pr._cat_khoang(df, None, None)) == len(df)
     assert len(pr._cat_khoang(df, "", "")) == len(df)
     print("PASS  _cat_khoang tôn trọng start/end và chịu được hai định dạng ngày")
+
+
+# ── Gác đa luồng: cấu hình không thể cho kết quả hợp lệ thì phải NỔ ──
+def _chay_hai_luong(so_luong=2):
+    """Gọi gác từ `so_luong` luồng, trả về danh sách lỗi bắt được."""
+    import threading
+    loi = []
+
+    def than():
+        try:
+            pr._gac_da_luong()
+        except Exception as e:
+            loi.append(e)
+
+    ts = [threading.Thread(target=than) for _ in range(so_luong)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    return loi
+
+
+def test_gac_no_khi_post_mortem_bat_va_chay_da_luong():
+    """Bất biến 7: 20 vòng dùng chung một bộ nhớ thì không vòng nào độc lập.
+
+    Bản sửa khoá cache làm ô nhiễm LỘ RA nhưng không gỡ nó: `_ENGINE_CACHE`
+    vẫn giữ MỘT engine và `sl_patterns` vẫn dùng chung cho cả 8 luồng.
+    Luồng không sửa được — đặt lại cache giữa vòng sẽ đè lên các vòng đang
+    chạy song song, còn thread-local thì rò rỉ vì 20 vòng dùng chung 8 luồng.
+
+    Nên cấu hình này phải NỔ chứ không âm thầm cho ra bảng không tái lập.
+    """
+    may = get_learning_engine()
+    bat_cu, da_bat_cu = os.environ.get("POST_MORTEM_ENABLED"), may.enabled
+    try:
+        os.environ["POST_MORTEM_ENABLED"] = "1"
+        may.enabled = True
+
+        pr._reset_gac_da_luong()
+        assert not _chay_hai_luong(1), "một luồng mà đã nổ — gác quá nhạy"
+
+        pr._reset_gac_da_luong()
+        loi = _chay_hai_luong(2)
+        assert loi, "hai luồng với post-mortem BẬT mà không nổ"
+        assert "bất biến 7" in str(loi[0]).lower() or "độc lập" in str(loi[0]).lower()
+
+        # Tắt post-mortem thì đa luồng HỢP LỆ: sl_penalty luôn 0 nên
+        # `_analyze` trở lại là hàm thuần, các vòng chỉ khác nhau ở ngưỡng.
+        may.enabled = False
+        os.environ["POST_MORTEM_ENABLED"] = "0"
+        pr._reset_gac_da_luong()
+        assert not _chay_hai_luong(2), "post-mortem TẮT mà vẫn chặn đa luồng"
+    finally:
+        pr._reset_gac_da_luong()
+        may.enabled = da_bat_cu
+        os.environ.pop("POST_MORTEM_ENABLED", None)
+        if bat_cu is not None:
+            os.environ["POST_MORTEM_ENABLED"] = bat_cu
+    print("PASS  gác nổ đúng khi post-mortem BẬT + đa luồng, im khi TẮT")

@@ -13,7 +13,7 @@ import gc
 from datetime import datetime, timedelta
 from argparse import Namespace
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 os.environ["POST_MORTEM_ENABLED"] = "1"
 sys.stdout.reconfigure(encoding="utf-8")
@@ -24,33 +24,17 @@ from paper_metrics import compute
 from paper_runner import cmd_seed
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
 
-INITIAL_CAPITAL = 1_000_000_000  # 1 Tỷ VNĐ
-symbols = CUSTOM_WATCHLIST_SYMBOLS
-end_date = datetime.now().strftime("%Y-%m-%d")
-start_date = (datetime.now() - timedelta(days=547)).strftime("%Y-%m-%d")
-
-print("=" * 90)
-print(f"💰 KHỞI TẠO TỐI ƯU HÓA 20 VÒNG LẶP DỰ BÁO VIBE CODING - 16 NGÀNH ({len(symbols)} MÃ CỔ PHIẾU)")
-print(f"📅 Khoảng thời gian: {start_date} đến {end_date} (18 Tháng gần nhất)")
-print(f"⚙️ Chế độ: Self-Improving AI (Post-Mortem Loop) | 8 Tiến trình song song (Parallel Worker Threads)")
-print("=" * 90)
-
-# 1. Tải và đồng bộ dữ liệu OHLCV 18 tháng cho 71 mã
-print("📥 Đang tải và kiểm tra dữ liệu 71 cổ phiếu...")
-download(symbols, start_date, end_date)
-
-# 2. Thiết lập 20 Vòng lặp từ ngưỡng 40.0 đến 59.0 điểm (bước nhảy 1.0 điểm)
-thresholds = [round(40.0 + i * 1.0, 1) for i in range(20)]
+INITIAL_CAPITAL = 1_000_000_000  # 1 Ty VND
 STRIDE = 2
 
-iterations = []
-for idx, th in enumerate(thresholds, 1):
-    iterations.append({
-        "loop": idx,
-        "buy_threshold": th,
-        "stride": STRIDE,
-        "note": f"Ngưỡng {th:.1f} điểm"
-    })
+# Phan dung du lieu DA DUOC DOI vao main(). Voi ProcessPoolExecutor, moi
+# tien trinh con NAP LAI module nay (spawn tren Windows) -- neu download()
+# con nam o muc module thi 8 worker se tai lai 71 ma, moi worker mot lan.
+# Chi nhung thu RE va CAN co trong worker moi duoc o lai day:
+# POST_MORTEM_ENABLED va cac hang so.
+#
+# Vi ly do do, run_single_loop() nhan moi tham so qua `item` chu khong doc
+# bien toan cuc: bien gan trong main() khong ton tai o tien trinh con.
 
 def run_single_loop(item):
     loop_num = item["loop"]
@@ -63,9 +47,9 @@ def run_single_loop(item):
 
     try:
         args = Namespace(
-            symbols=",".join(symbols),
-            start=start_date,
-            end=end_date,
+            symbols=item["symbols"],
+            start=item["start"],
+            end=item["end"],
             stride=item["stride"],
             min_history=60,
             initial_capital=INITIAL_CAPITAL,
@@ -107,12 +91,37 @@ def run_single_loop(item):
         return {"loop": loop_num, "threshold": th, "status": "FAILED", "error": str(e)}
 
 def main():
+    symbols = CUSTOM_WATCHLIST_SYMBOLS
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    start_date = (datetime.now() - timedelta(days=547)).strftime("%Y-%m-%d")
+
+    print("=" * 90)
+    print(f"KHOI TAO TOI UU HOA 20 VONG LAP - 16 NGANH ({len(symbols)} MA)")
+    print(f"Khoang thoi gian YEU CAU: {start_date} -> {end_date}")
+    print("   (cmd_seed se in DO PHU THAT sau khi nap cache -- doc dong do,"
+          " khong doc dong nay)")
+    print("Che do: post-mortem BAT | 8 TIEN TRINH rieng biet")
+    print("=" * 90)
+
+    print("Dang tai va kiem tra du lieu 71 co phieu...")
+    download(symbols, start_date, end_date)
+
+    thresholds = [round(40.0 + i * 1.0, 1) for i in range(20)]
+    iterations = [{
+        "loop": idx,
+        "buy_threshold": th,
+        "stride": STRIDE,
+        "symbols": ",".join(symbols),
+        "start": start_date,
+        "end": end_date,
+        "note": f"Nguong {th:.1f} diem",
+    } for idx, th in enumerate(thresholds, 1)]
     print(f"\n🚀 THỰC THI THÍ NGHIỆM 20 VÒNG LẶP SONG SONG TRÊN 71 MÃ CỔ PHIẾU...")
     start_time = datetime.now()
 
     results = []
     # Kích hoạt 8 luồng chạy song song để đạt tốc độ cao nhất
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    with ProcessPoolExecutor(max_workers=8) as executor:
         futures = {executor.submit(run_single_loop, item): item for item in iterations}
         for future in as_completed(futures):
             res = future.result()

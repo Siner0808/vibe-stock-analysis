@@ -35,6 +35,62 @@ from paper_metrics import report as build_report
 from paper_trading import PaperTradingJournal, Status
 
 
+class DaLuongVoiBoNhoError(RuntimeError):
+    """Chấm điểm đa luồng trong khi post-mortem BẬT — kết quả không tái lập."""
+
+
+_LUONG_DA_GOI: set = set()
+
+
+def _reset_gac_da_luong() -> None:
+    """Xoá dấu vết luồng đã gọi. Dành cho test và cho tiến trình con."""
+    _LUONG_DA_GOI.clear()
+
+
+def _gac_da_luong() -> None:
+    """Nổ nếu chấm điểm chạy trên nhiều luồng trong khi post-mortem BẬT.
+
+    Bất biến 7. `post_mortem_learning._ENGINE_CACHE` giữ MỘT engine cho cả
+    tiến trình, và `record_sl_trade()` nối thêm vào `sl_patterns` dùng chung.
+    Nên khi 20 vòng tối ưu chạy qua `ThreadPoolExecutor(max_workers=8)`,
+    vòng 3 đóng một lệnh bằng cắt lỗ và làm lệch điểm của vòng 11 — vòng nào
+    chạy trước là do lịch luồng, nên chạy lại ra bảng khác. "Quán quân của
+    20 vòng" khi đó không tái lập được.
+
+    Luồng KHÔNG sửa được chuyện này: đặt lại cache giữa vòng sẽ đè lên các
+    vòng đang chạy song song, còn thread-local thì rò rỉ vì 20 vòng dùng
+    chung 8 luồng. Chỉ tiến trình riêng mới cho độc lập thật.
+
+    Hai lối đi hợp lệ, cả hai đều được nêu trong thông báo lỗi:
+      • mỗi vòng một TIẾN TRÌNH (ProcessPoolExecutor)
+      • hoặc TẮT post-mortem — khi đó `sl_penalty` luôn 0, `_analyze` trở
+        lại là hàm thuần, và các vòng chỉ khác nhau ở ngưỡng. Đa luồng khi
+        đó hợp lệ.
+
+    Không có cửa thoát bằng biến môi trường: cấu hình bị chặn ở đây không
+    cho ra kết quả dùng được, nên "cho phép tạm" chỉ là cách viết khác của
+    "cho ra số sai nhưng đừng báo".
+    """
+    import threading
+
+    from post_mortem_learning import get_learning_engine
+    if not get_learning_engine().enabled:
+        return
+
+    _LUONG_DA_GOI.add(threading.get_ident())
+    if len(_LUONG_DA_GOI) > 1:
+        raise DaLuongVoiBoNhoError(
+            "Chấm điểm đang chạy trên "
+            + str(len(_LUONG_DA_GOI))
+            + " luồng trong CÙNG một tiến trình, trong khi post-mortem BẬT. "
+              "Các vòng dùng chung sl_patterns nên KHÔNG vòng nào độc lập — "
+              "bảng kết quả không tái lập được, và lấy vòng lãi cao nhất "
+              "trong đó là vi phạm bất biến 7. "
+              "Sửa bằng MỘT trong hai cách: cho mỗi vòng một tiến trình "
+              "riêng (ProcessPoolExecutor, nhớ dời phần dựng dữ liệu ở mức "
+              "module vào main() trước), hoặc đặt POST_MORTEM_ENABLED=0.")
+
+
 _ANALYZE_CACHE: dict[tuple, dict] = {}
 
 
@@ -67,6 +123,7 @@ def _dau_van_bo_nho() -> tuple:
 def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict:
     """Chạy pipeline thật trên lịch sử đã cắt tới ngày T."""
     global _ANALYZE_CACHE
+    _gac_da_luong()
     last_time = str(history["time"].iloc[-1]) if "time" in history.columns and len(history) else ""
     cache_key = (symbol, len(history), last_time) + _dau_van_bo_nho()
     if cache_key in _ANALYZE_CACHE:
