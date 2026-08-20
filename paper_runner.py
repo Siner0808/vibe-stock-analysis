@@ -37,11 +37,38 @@ from paper_trading import PaperTradingJournal, Status
 
 _ANALYZE_CACHE: dict[tuple, dict] = {}
 
+
+def _dau_van_bo_nho() -> tuple:
+    """Dấu vân trạng thái bộ nhớ post-mortem, để đưa vào khoá cache.
+
+    Bất biến 7. Điểm của một lát cắt KHÔNG chỉ phụ thuộc lát cắt: nó còn
+    cộng `sl_penalty` lấy từ `post_mortem_learning`, mà bộ nhớ ở đó phình
+    ra trong lúc chạy. Bản cũ khoá cache bằng
+    `(symbol, len(history), last_time)` — tức ghi nhớ một giá trị KHÔNG
+    phải hàm thuần của khoá.
+
+    Hậu quả trong `optimize_20loops_custom71_18m.py`: 20 vòng chạy trong
+    MỘT tiến trình qua `ThreadPoolExecutor(max_workers=8)`, dùng chung cả
+    `_ANALYZE_CACHE` lẫn `_ENGINE_CACHE`. Vòng 3 đóng một lệnh bằng cắt lỗ
+    làm bộ nhớ phình thêm; vòng 11 gọi `_analyze` cho cùng lát cắt và nhận
+    lại điểm mà vòng 3 đã tính TRƯỚC khi bộ nhớ đổi. Vòng nào tính trước
+    là do luồng nào chạy trước — nên chạy lại ra bảng khác, và "quán quân
+    của 20 vòng" không tái lập được.
+
+    Dùng ĐỘ DÀI làm dấu vân được vì `record_sl_trade()` chỉ nối thêm, không
+    bao giờ sửa hay xoá. Ngày nào có đường xoá/sửa mẫu hình thì dấu vân này
+    phải đổi thành hash nội dung.
+    """
+    from post_mortem_learning import get_learning_engine
+    may = get_learning_engine()
+    return (bool(may.enabled), len(may.sl_patterns))
+
+
 def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict:
     """Chạy pipeline thật trên lịch sử đã cắt tới ngày T."""
     global _ANALYZE_CACHE
     last_time = str(history["time"].iloc[-1]) if "time" in history.columns and len(history) else ""
-    cache_key = (symbol, len(history), last_time)
+    cache_key = (symbol, len(history), last_time) + _dau_van_bo_nho()
     if cache_key in _ANALYZE_CACHE:
         return _ANALYZE_CACHE[cache_key]
 
