@@ -126,12 +126,26 @@ def test_cat_khoang_ton_trong_start_end():
 
 # ── Gác đa luồng: cấu hình không thể cho kết quả hợp lệ thì phải NỔ ──
 def _chay_hai_luong(so_luong=2):
-    """Gọi gác từ `so_luong` luồng, trả về danh sách lỗi bắt được."""
+    """Gọi gác từ `so_luong` luồng ĐỒNG THỜI, trả về danh sách lỗi bắt được.
+
+    Rào chắn (Barrier) là bắt buộc, không phải trang trí. `threading
+    .get_ident()` chỉ duy nhất giữa các luồng CÒN SỐNG — tài liệu Python nói
+    rõ id được tái sử dụng khi một luồng kết thúc. Không có rào chắn thì trên
+    máy nhanh, luồng 1 xong trước khi luồng 2 bắt đầu và cả hai nhận CÙNG một
+    id, nên gác không nổ. Đó chính là lý do test này xanh trên Windows và đỏ
+    trên runner Ubuntu.
+
+    Và điều đó không có nghĩa gác hỏng: chạy TUẦN TỰ thì an toàn thật, vì
+    hai vòng không bao giờ đọc cùng `sl_patterns` một lúc. Mối nguy là chạy
+    ĐỒNG THỜI — đó mới là thứ cần đo.
+    """
     import threading
     loi = []
+    rao = threading.Barrier(so_luong, timeout=30)
 
     def than():
         try:
+            rao.wait()
             pr._gac_da_luong()
         except Exception as e:
             loi.append(e)
@@ -141,7 +155,9 @@ def _chay_hai_luong(so_luong=2):
         t.start()
     for t in ts:
         t.join()
-    return loi
+    # BrokenBarrierError là lỗi của rào chắn, không phải của gác.
+    import threading as _th
+    return [e for e in loi if not isinstance(e, _th.BrokenBarrierError)]
 
 
 def test_gac_no_khi_post_mortem_bat_va_chay_da_luong():

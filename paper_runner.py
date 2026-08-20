@@ -78,6 +78,12 @@ def _gac_da_luong() -> None:
     if not get_learning_engine().enabled:
         return
 
+    # `get_ident()` chi duy nhat giua cac luong CON SONG: id duoc tai su
+    # dung khi mot luong ket thuc. Nghia la gac nay co the BO SOT truong hop
+    # hai vong chay TUAN TU tren cung mot id -- va do la dieu dung, vi tuan
+    # tu thi an toan that: khong bao gio co hai vong doc cung sl_patterns
+    # mot luc. Thu can chan la chay DONG THOI, va truong hop do thi cac id
+    # deu con song nen phan biet duoc.
     _LUONG_DA_GOI.add(threading.get_ident())
     if len(_LUONG_DA_GOI) > 1:
         raise DaLuongVoiBoNhoError(
