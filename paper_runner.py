@@ -137,6 +137,27 @@ def run_session(journal: PaperTradingJournal, symbol: str,
 
 
 # ─────────────────────────────── seed ────────────────────────────────
+def _cat_khoang(df, bat_dau, ket_thuc):
+    """Cắt DataFrame về khoảng [bat_dau, ket_thuc] theo cột `time`.
+
+    Không truyền thì giữ nguyên — im lặng cắt bớt còn tệ hơn không cắt.
+
+    So sánh trên 10 ký tự đầu vì `backtest/cache/` có HAI định dạng cột
+    `time` trong cùng một thư mục: 40/125 file dạng '2025-02-10 07:00:00',
+    85/125 dạng '2021-10-14'. So chuỗi nguyên vẹn sẽ bỏ sót cả nhóm kia.
+    """
+    if df is None or "time" not in getattr(df, "columns", []):
+        return df
+    ngay = df["time"].astype(str).str.slice(0, 10)
+    loc = None
+    if bat_dau:
+        loc = ngay >= str(bat_dau)[:10]
+    if ket_thuc:
+        v = ngay <= str(ket_thuc)[:10]
+        loc = v if loc is None else (loc & v)
+    return df if loc is None else df[loc]
+
+
 def cmd_seed(args) -> int:
     from backtest import data as bt_data
 
@@ -146,6 +167,29 @@ def cmd_seed(args) -> int:
     if not dataset:
         print("❌ Chưa có cache. Chạy `python3 backtest/run.py fetch` trước.")
         return 1
+
+    # Bản cũ BỎ QUA args.start/args.end: nó gọi load_all() rồi duyệt trọn
+    # file cache. Các script tối ưu vẫn dựng Namespace(start=..., end=...)
+    # và in "18 Tháng gần nhất", nên nhãn đó là trang trí — độ phủ thật lên
+    # tới ~4,8 năm với 34 mã. Nay tôn trọng nếu có, và LUÔN nói ra độ phủ
+    # thật để nhãn không thể sai một lần nữa.
+    bat_dau = getattr(args, "start", None)
+    ket_thuc = getattr(args, "end", None)
+    if bat_dau or ket_thuc:
+        dataset = {k: _cat_khoang(v, bat_dau, ket_thuc) for k, v in dataset.items()}
+        dataset = {k: v for k, v in dataset.items() if v is not None and len(v)}
+        if not dataset:
+            print(f"❌ Không mã nào có dữ liệu trong khoảng {bat_dau} → {ket_thuc}.")
+            return 1
+
+    _ngay = [str(v["time"].iloc[i])[:10] for v in dataset.values()
+             for i in (0, -1) if "time" in v.columns and len(v)]
+    if _ngay:
+        _phien = [len(v) for v in dataset.values()]
+        print(f"📅 ĐỘ PHỦ THẬT: {min(_ngay)} → {max(_ngay)} · {len(dataset)} mã · "
+              f"{min(_phien)}–{max(_phien)} phiên mỗi mã"
+              + (f" · đã cắt theo {bat_dau or '…'} → {ket_thuc or '…'}"
+                 if (bat_dau or ket_thuc) else " · KHÔNG cắt khoảng"))
 
     total = {"opened": 0, "closed": 0}
     for i, (sym, df) in enumerate(sorted(dataset.items()), 1):

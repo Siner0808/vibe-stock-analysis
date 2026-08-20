@@ -93,3 +93,32 @@ def test_analyze_khong_tra_diem_cu_khi_bo_nho_da_doi():
 
 if __name__ == "__main__":
     test_analyze_khong_tra_diem_cu_khi_bo_nho_da_doi()
+
+
+# ── Nhãn khoảng thời gian phải nói đúng thứ đã chạy ──────────────────
+def test_cat_khoang_ton_trong_start_end():
+    """`cmd_seed` phải TÔN TRỌNG start/end, hoặc nhãn "18 tháng" là bịa.
+
+    optimize_20loops_custom71_18m.py:67 dựng Namespace(start=..., end=...)
+    và in "📅 Khoảng thời gian: ... (18 Tháng gần nhất)". Nhưng subcommand
+    `seed` KHÔNG có --start/--end, và `cmd_seed` không đọc hai trường đó:
+    nó gọi `load_all()` rồi duyệt trọn file cache. Độ phủ thật lên tới
+    ~4,8 năm với 34 mã.
+    """
+    import pandas as pd
+
+    df = pd.DataFrame({
+        "time": ["2021-06-01", "2024-03-01 07:00:00", "2025-07-15",
+                 "2026-01-20 07:00:00", "2026-08-01"],
+        "close": [1.0, 2.0, 3.0, 4.0, 5.0]})
+
+    het = pr._cat_khoang(df, "2025-01-01", "2026-06-30")
+    assert list(het["close"]) == [3.0, 4.0], f"cắt sai: {list(het['close'])}"
+
+    # Cache có HAI định dạng cột time — hàm phải chịu được cả hai.
+    assert "2026-01-20 07:00:00" in list(het["time"]), "bỏ mất dòng có hậu tố giờ"
+
+    # Không truyền gì thì giữ nguyên, không được im lặng cắt bớt.
+    assert len(pr._cat_khoang(df, None, None)) == len(df)
+    assert len(pr._cat_khoang(df, "", "")) == len(df)
+    print("PASS  _cat_khoang tôn trọng start/end và chịu được hai định dạng ngày")

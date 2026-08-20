@@ -147,12 +147,11 @@ def main():
     from dai_ket_qua import CANH_BAO
     print(CANH_BAO)
 
-    # Dọn dẹp các db tạm
-    for i in range(1, 21):
-        tmp_db = f"paper_custom20loop_18m_loop_{i}.db"
-        if os.path.exists(tmp_db):
-            try: os.remove(tmp_db)
-            except Exception: pass
+    # KHONG xoa cac .db moi vong. Chung la bang chung cua TOAN DAI:
+    # bo chung di thi chi con lai con so trong bao cao, ma bao cao nam
+    # ngoai repo thi nam ngoai moi bat bien (NGUYEN-TAC-DO-LUONG.md).
+    # Sau su co 12/08, 12/20 so cua lan chay do da bi xoa mat.
+    print("ℹ️  Giu lai cac .db moi vong lam bang chung — xoa tay khi khong can.")
 
 if __name__ == "__main__":
     main()
