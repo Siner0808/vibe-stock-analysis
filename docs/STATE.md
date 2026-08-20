@@ -794,19 +794,36 @@ các `.db` mỗi vòng. Đó là lý do chỉ còn 8/20 sổ của lần chạy 
 rate cả dải 48–59 chỉ trải 28,2%–30,7%**, tức ngưỡng không hề cải thiện
 chất lượng chọn mã.
 
-### Chưa xong — cần quyết định
+### 4. Gác đa luồng + tiến trình riêng ✅
 
-**Tách tiến trình mỗi vòng.** Bản sửa khoá cache làm ô nhiễm *lộ ra*, nhưng
-**không gỡ** nó: `_ENGINE_CACHE` vẫn giữ MỘT engine, `sl_patterns` vẫn dùng
-chung cho cả 8 luồng và 20 vòng. Luồng không sửa được: đặt lại cache giữa
-vòng sẽ đè lên các vòng đang chạy song song, còn thread-local thì rò rỉ vì
-20 vòng dùng chung 8 luồng.
+Người dùng chọn **B rồi A**.
 
-Chỉ tiến trình riêng mới đúng. Nhưng `download()` nằm ở **mức module**
-(`optimize_20loops_custom71_18m.py:40`), ngoài `if __name__` ở dòng 156 —
-trên Windows `ProcessPoolExecutor` dùng spawn nên mỗi worker sẽ tải lại 71
-mã. Phải dời phần dựng dữ liệu vào `main()` trước, và đó là bản sửa **không
-kiểm chứng được trong phiên này** vì script chạy hàng giờ.
+**B — gác.** Bản sửa khoá cache làm ô nhiễm *lộ ra* nhưng không gỡ nó:
+`_ENGINE_CACHE` vẫn giữ MỘT engine, `sl_patterns` vẫn dùng chung. Luồng
+không sửa được — đặt lại cache giữa vòng sẽ đè lên các vòng chạy song song,
+thread-local thì rò rỉ vì 20 vòng dùng chung 8 luồng. Nên cấu hình này nay
+**nổ**: `_gac_da_luong()` chặn khi post-mortem BẬT và `_analyze` bị gọi từ
+hơn một luồng trong cùng tiến trình.
 
-**Gate 5C** ("chạy 2 lần cùng một script optimize → ra CÙNG bảng") vì thế
-**chưa xanh**.
+Thông báo lỗi nêu **hai** lối đi hợp lệ: một tiến trình mỗi vòng, hoặc
+`POST_MORTEM_ENABLED=0` — khi tắt, `sl_penalty` luôn 0 nên `_analyze` trở
+lại là hàm thuần và đa luồng hợp lệ. **Không có cửa thoát bằng biến môi
+trường:** cấu hình bị chặn ở đây không cho ra kết quả dùng được.
+
+**A — dựng lại script.** Chỉ đổi executor thì hỏng: `download()` nằm ở mức
+module, spawn khiến 8 worker tải lại 71 mã. Đã dời phần dựng dữ liệu vào
+`main()`; `run_single_loop()` nhận tham số qua `item` thay vì biến toàn cục.
+
+Kiểm chứng bằng chạy:
+
+```
+nạp module            0,47s, không tải gì     (trước: tải 71 mã)
+run_single_loop       pickle được
+POST_MORTEM_ENABLED   có mặt trong worker = 1
+biến toàn cục symbols đã biến mất
+mức module            không còn lời gọi có tác dụng phụ nào
+```
+
+**Gate 5C vẫn CHƯA nghiệm thu** — "chạy 2 lần cùng một script → ra cùng
+bảng" cần chạy script thật, hàng giờ, không làm được trong phiên. Nhưng cấu
+hình sai nay không còn chạy im lặng được nữa.
