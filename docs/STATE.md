@@ -1071,3 +1071,42 @@ không còn là bằng chứng đủ.
 Chính công cụ này cho tôi một kết quả sai lệch khi mới dùng: nó clone HEAD
 chứ không phải cây làm việc, nên báo "xanh" trong khi thay đổi chưa commit.
 Nay nó cảnh báo rõ khi cây làm việc bẩn.
+
+---
+
+## CI — bốn lỗi phụ thuộc môi trường trong một phiên
+
+`kiem-dinh` đỏ trên runner trong khi mọi thứ xanh ở máy. Ba bậc tái hiện,
+mỗi bậc loại trừ một biến:
+
+| Môi trường | Kết quả |
+|---|---|
+| máy phát triển (Win, 3.13, đủ file) | xanh |
+| clone sạch (Win, 3.13, thiếu file) | bắt được lỗi #3 |
+| clone sạch + Python 3.11 | xanh → không phải phiên bản Python |
+| runner Ubuntu | vẫn đỏ → còn lại là **thời gian chạy** |
+
+Bốn lỗi, cùng một họ — *test đo môi trường chứ không đo hành vi*:
+
+1. **`st.secrets` bị cache** — nhánh đọc-file không bao giờ chạy tới.
+2. **`is_vni_bullish` bị ghim ở mức module** trong `test_paper_trading.py`,
+   rò sang `test_market_filter.py`.
+3. **`test_thieu_key_van_chay_binh_thuong`** không cách ly `st.secrets`; máy
+   có key thì xanh, runner không có thì đi tiếp tới `import vnstock` và nổ
+   `ImportError` vì module `vnai` giả của test thiếu `optimize_execution`.
+4. **`test_gac_no_khi_post_mortem_bat_va_chay_da_luong`** —
+   `threading.get_ident()` chỉ duy nhất giữa các luồng **còn sống**. Thân
+   hàm quá ngắn nên trên máy nhanh luồng 1 xong trước khi luồng 2 bắt đầu,
+   cả hai nhận **cùng id**, gác không nổ.
+
+Lỗi #4 đáng chú ý vì nó cho thấy **gác đúng còn test sai**: chạy tuần tự thì
+an toàn thật — không bao giờ có hai vòng đọc cùng `sl_patterns` một lúc.
+Thứ cần chặn là chạy **đồng thời**, và khi đó các id đều còn sống nên phân
+biệt được. Đã thêm `threading.Barrier` để ép hai luồng chồng nhau.
+
+### Làm cho lỗi CI đọc được mà không cần đăng nhập
+
+Log Actions cần đăng nhập; **annotation thì công khai qua API**. Trước khi
+sửa, một lượt CI đỏ chỉ để lại đúng dòng `Process completed with exit code 1`
+— không đủ để sửa bất cứ gì. Nay bước test in tên test đỏ thành `::error::`,
+và câu trả lời hiện ra ngay ở lần chạy kế tiếp.
