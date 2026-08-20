@@ -827,3 +827,88 @@ mức module            không còn lời gọi có tác dụng phụ nào
 **Gate 5C vẫn CHƯA nghiệm thu** — "chạy 2 lần cùng một script → ra cùng
 bảng" cần chạy script thật, hàng giờ, không làm được trong phiên. Nhưng cấu
 hình sai nay không còn chạy im lặng được nữa.
+
+---
+
+## NĂM Ô C1–C5 — ĐÃ TRẢ LỜI (20/08/2026)
+
+Người dùng uỷ quyền cho phiên này chọn. Mỗi ô kèm bằng chứng đo được trong
+phiên, không phải kèm khuyến nghị sẵn của kế hoạch.
+
+### C1 — Cache VN-INDEX quá hạn → **DỪNG PHIÊN QUÉT** (ngưỡng 3 phiên)
+
+Chạy hàm thật hôm nay:
+```
+market_filter.status()        = {'active': True, ... → 2026-08-07}
+is_vni_bullish('2026-08-20')  = False
+is_vni_bullish('2030-01-01')  = False
+```
+Cổng báo **BẬT** trong khi từ chối **mọi ngày tương lai vĩnh viễn**. 14 ngày,
+0 lệnh, không ai biết. Chỗ nguy hiểm không phải *mất* dữ liệu — mà là **dữ
+liệu cũ trông giống dữ liệu mới**. Mất dữ liệu thì fail-open còn nhìn thấy
+được; cũ mà im lặng thì fail-closed âm thầm, đúng chiều tệ nhất.
+
+Kèm theo, bắt buộc: bỏ `except Exception: vni_ok = True`
+(`paper_trading.py:208`) — lỗi khi hỏi cổng không được im lặng thành "cho qua".
+
+### C2 — **MỘT NƠI: GitHub Actions.** Tắt Task Scheduler.
+
+Đo trên trang Actions hôm nay: **27/29 lượt xanh**, mỗi lượt 8–9 phút, chạy
+bất kể máy có bật hay không, và mọi lượt hỏng đều để lại log + artifact.
+
+Máy cục bộ thì phủ sóng phụ thuộc máy có thức: 18/08 chỉ 5 lượt (máy tắt
+phần lớn ngày), 19/08 được 14 lượt. Và lượt hỏng **không để lại gì**.
+
+Bằng chứng trực tiếp cho rủi ro hai nơi: ngay trong phiên này, Task
+Scheduler chạy lúc 09:10 và ghi 70 quyết định **trong lúc tôi đang sửa
+`run_daily.py`**.
+
+> **Điều kiện trước khi tắt máy cục bộ:** thêm retry cho bước "Kéo sổ lệnh".
+> Cả 2/29 lượt đỏ đều chết ở đúng bước đó, sau 2 giây, và bước quét bị
+> skipped — nhịp đó không quét gì cả.
+
+### C3 — App cloud: **GIỮ "chưa có dữ liệu"**
+
+Đã smoke test hôm nay với `paper_trades.db` đổi tên: tab Tài khoản chỉ còn
+một dòng cảnh báo, không hàng ACB bịa nào. Nó hoạt động.
+
+Cho app đọc Sheets sẽ thêm một lời gọi mạng và một hộ tiêu thụ quota vào
+**mỗi lần tải trang**, đồng thời thêm một bên tham gia vào kho ngoài đúng
+lúc C2 đang rút bớt. Chỉ xem lại nếu có người thật sự cần xem sổ trên cloud.
+
+### C4 — **DỰNG LẠI** walk-forward từ `025507c`
+
+Phase 5C làm cho **phép tìm kiếm** trung thực, nhưng không sinh ra được một
+ngưỡng dùng được. Không có 5D thì **không có cơ chế nào** sinh ra nó —
+`NGUYEN-TAC-DO-LUONG.md` nói thẳng: *"cho tới khi dựng lại, dự án không có
+công cụ nào hiện thực hoá bất biến 7 và 8"*.
+
+Dự án **đã từng** làm được: phép đo 07/08 cho 108 lệnh ngoài mẫu, alpha
+−0,63% KTC [−2,09; +0,84]. Công cụ bị mất, không phải năng lực bị mất.
+
+Việc đầu tiên: đổi tên `walkforward_vn100.py` → `.broken` — nó vẫn
+`os.remove(sl_pattern_memory.json)` ở dòng 36.
+
+### C5 — **ĐỂ TRỐNG + DỪNG MỞ LỆNH MỚI** cho tới khi 5D sinh ra ngưỡng hợp lệ
+
+Đo được hôm nay trên 8/20 sổ còn sót của chính lần chạy sinh ra +636,11%:
+
+```
+win rate toàn dải ngưỡng 48→59      28,2% → 30,7%   (chênh 2,5 điểm)
+tương quan ngưỡng ↔ số lệnh         −0,999
+tương quan số lệnh ↔ vốn đỉnh       +0,990
+ngưỡng 50 hơn ngưỡng 48             1,57/636 = 0,25%
+```
+
+**Ngưỡng không cải thiện chất lượng chọn mã** — win rate phẳng chứng minh
+điều đó, và nó còn *cao hơn* ở ngưỡng 58–59. Thứ ngưỡng điều khiển là **số
+lệnh**, và số lệnh điều khiển **đòn bẩy**. "Quán quân" chỉ là vòng ôm nhiều
+vị thế cùng lúc nhất.
+
+Cộng thêm: alpha in-sample +0,090% KTC [−1,166; +1,391] chứa 0; alpha ngoài
+mẫu 07/08 là −0,63% cũng chứa 0. Và post-mortem đang trừ 12 điểm cho 92,5%
+tín hiệu, nên rào thực tế đã là ~62 chứ không phải 50.
+
+Hệ thống **đã ở đúng trạng thái này 14 ngày** — nhưng do tai nạn. Chọn C5
+như thế này không tốn gì, và ngăn tai nạn đó im lặng kết thúc vào đúng lúc
+Phase 2 gỡ cổng VN-INDEX.
