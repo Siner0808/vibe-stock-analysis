@@ -368,17 +368,42 @@ def test_thieu_key_van_chay_binh_thuong():
 
     saved_env = os.environ.pop("VNSTOCK_API_KEY", None)
     saved_mod = sys.modules.get("vnstock")
-    fake_vnai = types.ModuleType("vnai")
-    fake_vnai.get_api_key = lambda: None
-    saved_vnai = sys.modules.get("vnai")
-    sys.modules["vnai"] = fake_vnai
+
+    # Cách ly st.secrets — cùng liều thuốc mà test_goi_vnstock_dung_chu_ky_ham
+    # ở trên đã dùng. Thiếu nó, kết quả đổi theo MÔI TRƯỜNG: máy có key thì
+    # _read_key() trả None và test xanh; runner CI không có thì _read_key()
+    # lại tìm ra key ở nơi khác, đi tiếp tới `import vnstock` và nổ. Đúng lỗi
+    # đã làm CI đỏ ngày 20/08 trong khi máy vẫn xanh.
+    saved_st = sys.modules.get("streamlit")
+    st_gia = types.ModuleType("streamlit")
+    st_gia.secrets = types.SimpleNamespace(get=lambda *a, **k: None)
+    sys.modules["streamlit"] = st_gia
+
+    # Vá THUỘC TÍNH của vnai thật, không thay cả module. Module giả chỉ có
+    # get_api_key làm `import vnstock` nổ ImportError vì thiếu
+    # `optimize_execution` — và thông báo lỗi khi đó nói về ImportError chứ
+    # không nói về "chưa cấu hình", tức test đo nhầm thứ.
+    try:
+        import vnai as _vnai
+    except Exception:
+        _vnai = types.ModuleType("vnai")
+        sys.modules["vnai"] = _vnai
+    goc_get = getattr(_vnai, "get_api_key", None)
+    _vnai.get_api_key = lambda: None
     try:
         s = vnstock_auth.ensure_api_key(force=True)
         msg = vnstock_auth.status_message()
     finally:
-        sys.modules.pop("vnai", None)
-        if saved_vnai is not None:
-            sys.modules["vnai"] = saved_vnai
+        if goc_get is not None:
+            _vnai.get_api_key = goc_get
+        else:
+            try:
+                del _vnai.get_api_key
+            except AttributeError:
+                pass
+        sys.modules.pop("streamlit", None)
+        if saved_st is not None:
+            sys.modules["streamlit"] = saved_st
         if saved_mod is not None:
             sys.modules["vnstock"] = saved_mod
         if saved_env is not None:
