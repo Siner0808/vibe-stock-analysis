@@ -14,13 +14,45 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
 from paper_trading import PaperTradingJournal
-from paper_metrics import compute, report
+from paper_metrics import compute, report, ro_chuan_tu_chuoi_gia
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
 from data_quality import now_vn
 
 DB_PATH = "paper_trades.db"
 BUY_THRESHOLD = 50.0
+
+def _ro_chuan_vnindex(trades):
+    """Rổ đối chiếu VN-INDEX cho báo cáo phiên — bất biến 6.
+
+    Trước đây `report(trades)` được gọi KHÔNG có tham số benchmark, nên
+    `vs_benchmark` có test nhưng chưa bao giờ chạy trên đường tự động:
+    đúng mẫu "test đúng nhưng dây chưa cắm". Mọi báo cáo phiên đều in
+    "Chưa có đối chiếu chuẩn", tức lợi nhuận cộng dồn không nói lên được
+    gì vì không biết thị trường chung đi thế nào cùng kỳ.
+
+    Không dựng được thì trả None và NÓI RA lý do; báo cáo khi đó vẫn in
+    cảnh báo thiếu đối chiếu như cũ. Lệnh nào không tìm được cặp ngày sẽ
+    được `vs_benchmark` đếm vào `bo_qua` và báo cáo in ra con số đó —
+    cache VN-INDEX đóng băng ở 2026-08-07 nên các lệnh đóng sau ngày đó
+    chắc chắn rơi vào nhóm này, và điều đó phải nhìn thấy được.
+    """
+    try:
+        import market_filter
+        df = market_filter.get_vni_df()
+        if df is None or len(df) == 0:
+            print("⚠️  Không có chuỗi VN-INDEX — báo cáo phiên sẽ thiếu đối chiếu chuẩn.")
+            return None
+        gia = dict(zip(df["time"].astype(str), df["close"].astype(float)))
+        ro = ro_chuan_tu_chuoi_gia(trades, gia)
+        if not ro:
+            print("⚠️  Rổ đối chiếu VN-INDEX rỗng — không lệnh nào khớp cặp ngày.")
+            return None
+        return ro
+    except Exception as e:
+        print(f"⚠️  Không dựng được rổ đối chiếu VN-INDEX: {type(e).__name__}: {e}")
+        return None
+
 
 def execute_daily_scan():
     now_time = now_vn()
@@ -129,7 +161,7 @@ def execute_daily_scan():
         time.sleep(1.0) # Tạm dừng 1.0s giữa các request
 
     trades = journal.all_trades()
-    rep = report(trades)
+    rep = report(trades, benchmark=_ro_chuan_vnindex(trades))
 
     # ── TẠO BÁO CÁO PHÂN TÍCH CHUYÊN SÂU KHI HOÀN THÀNH ──────────────
     scan_details.sort(key=lambda x: -x["score"])

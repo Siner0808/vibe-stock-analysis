@@ -366,6 +366,67 @@ def test_so_voi_chi_so_bat_duoc_thua_thi_truong():
     print(f"PASS  lãi 8% khi chỉ số +12% -> {r['verdict']} ({r['alpha']:+.2f}%)")
 
 
+def test_vs_benchmark_bao_ro_so_lenh_bi_bo_vi_thieu_cap_ngay():
+    """Gate 5B — một phép đo im lặng bỏ mẫu là phép đo hỏng.
+
+    Đây là cơ chế thật, không phải giả định: `backtest/cache/` có HAI định
+    dạng cột `time` trong cùng một thư mục — 40/125 file dạng
+    `2025-02-10 07:00:00`, 85/125 dạng `2021-10-14` — trong khi 113/113
+    lệnh trong sổ đều dùng `YYYY-MM-DD` sạch. Khoá đối chiếu là chuỗi
+    nguyên vẹn, nên rổ dựng từ nhóm file có hậu tố giờ KHÔNG khớp một lệnh
+    nào, và `vs_benchmark` `continue` im lặng qua từng lệnh một.
+
+    Hậu quả không phải là báo lỗi mà là một câu vô hại: "mới 0 lệnh có đối
+    chiếu, chưa đủ" — đọc như thiếu dữ liệu, thật ra là lỗi định dạng.
+    """
+    trades = _closed_trades([5.0] * 12)
+
+    # Rổ chuẩn dựng từ file cache CÓ hậu tố giờ: không khớp lệnh nào.
+    ro_hong = {("2026-01-02 07:00:00", "2026-02-02 07:00:00"): 3.0}
+    r = pm.vs_benchmark(trades, ro_hong)
+    assert r["n"] == 0
+    assert r.get("bo_qua") == 12, (
+        f"bỏ 12/12 lệnh mà không nói ra: bo_qua={r.get('bo_qua')!r}")
+
+    # Rổ đúng định dạng: khớp hết, không bỏ lệnh nào.
+    ro_dung = {("2026-01-02", "2026-02-02"): 3.0}
+    r2 = pm.vs_benchmark(trades, ro_dung)
+    assert r2["n"] == 12 and r2.get("bo_qua") == 0
+
+    # Và báo cáo phải NÓI RA con số đó, không giấu trong dict.
+    text = pm.report(trades, ro_hong)
+    assert "12" in text and "bỏ" in text.lower(), (
+        "báo cáo không nhắc tới số lệnh bị bỏ:" + chr(10) + text)
+    print("PASS  vs_benchmark nói ra 12/12 lệnh bị bỏ vì lệch định dạng ngày")
+
+
+def test_ro_chuan_chuan_hoa_ngay_o_CA_HAI_phia():
+    """Gate 5B — lệch định dạng ngày phải được vá ở ĐIỂM DÙNG.
+
+    `backtest/cache/` có 40/125 file mang hậu tố ' 07:00:00'. Sửa 125 file
+    dữ liệu là một việc; dựng rổ chuẩn sao cho không quan tâm hậu tố là
+    việc khác, rẻ hơn và không đụng vào dữ liệu gốc.
+    """
+    trades = _closed_trades([5.0] * 3)          # vào 2026-01-02, ra 2026-02-02
+
+    # Chuỗi giá mang hậu tố giờ — đúng dạng 40/125 file cache đang có.
+    gia = {"2026-01-02 07:00:00": 100.0, "2026-02-02 07:00:00": 110.0}
+    ro = pm.ro_chuan_tu_chuoi_gia(trades, gia)
+
+    assert ("2026-01-02", "2026-02-02") in ro, f"khoá chưa chuẩn hoá: {list(ro)}"
+    assert abs(ro[("2026-01-02", "2026-02-02")] - 10.0) < 1e-9
+
+    # Và rổ đó phải khớp thật khi đem đi đo, không bỏ lệnh nào.
+    r = pm.vs_benchmark(trades, ro)
+    assert r["bo_qua"] == 0, f"vẫn bỏ {r['bo_qua']} lệnh"
+
+    # Thiếu ngày trong chuỗi giá -> KHÔNG dựng khoá, để vs_benchmark đếm.
+    ro_thieu = pm.ro_chuan_tu_chuoi_gia(trades, {"2026-01-02": 100.0})
+    assert ro_thieu == {}
+    assert pm.vs_benchmark(trades, ro_thieu)["bo_qua"] == 3
+    print("PASS  rổ chuẩn chuẩn hoá ngày hai phía, thiếu ngày thì đếm chứ không đoán")
+
+
 def test_drawdown_va_profit_factor():
     perf = pm.compute(_closed_trades([10, -5, 8, -12, 6]))
     assert perf.n_trades == 5
