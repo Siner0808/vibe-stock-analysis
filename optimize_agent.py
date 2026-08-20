@@ -112,15 +112,11 @@ if not active_df.empty:
 else:
     best_row = df_res.iloc[0]
 
-print("\n" + "🏆"*25)
-print(" VÒNG TỐI ƯU HÓA XUẤT SẮC NHẤT KHUNG ĐIỂM 40 - 50:")
-print(f"-> Vòng {best_row['loop']:02d} ({best_row['note']})")
-print(f"-> Ngưỡng mua tối ưu: {best_row['buy_threshold']} điểm")
-print(f"-> Tổng lệnh đóng thực hiện: {best_row['closed_trades']} lệnh")
-print(f"-> Tỷ lệ thắng: {best_row['win_rate']:.1f}%")
-print(f"-> Kỳ vọng/lệnh: {best_row['expectancy']:+.2f}%")
-print(f"-> Lợi nhuận cộng dồn: {best_row['net_return']:+.2f}%")
-print("🏆"*25 + "\n")
+# Bat bien 7: KHONG de cu mot dong nao trong bang tren lam "ket qua".
+# Bang o tren la TOAN DAI; lay dong lai cao nhat trong do la do do may
+# cua phep tim kiem. Xem dai_ket_qua.py va NGUYEN-TAC-DO-LUONG.md muc 7.
+from dai_ket_qua import CANH_BAO
+print(CANH_BAO)
 
 # KHÔNG ghi vào paper_trades.db — xem NGUYEN-TAC-DO-LUONG.md, bất biến 7.
 # Vòng thắng là cực đại của N lần thử trên cùng dữ liệu, không phải kết quả.
@@ -142,4 +138,6 @@ best_args = Namespace(
     buy_threshold=best_row["buy_threshold"]
 )
 cmd_seed(best_args)
-print("✅ Đã cập nhật Sổ lệnh chính thức với tham số tối ưu khung điểm 40 - 50 thành công!")
+print(f"✅ Đã ghi kết quả IN-SAMPLE ra {SCRATCH_DB}. Đây KHÔNG phải sổ lệnh thật.")
+print("   Tham số dùng ở đây là cực đại của N lần thử trên CÙNG bộ dữ liệu,")
+print("   nên theo bất biến 7 nó chưa dùng được để giao dịch.")

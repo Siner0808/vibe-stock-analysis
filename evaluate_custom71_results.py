@@ -18,8 +18,6 @@ print("=" * 95)
 print(f"{'Vòng':<6}{'Ngưỡng Mua':<12}{'Số Lệnh':<10}{'Lợi Nhuận (%)':<18}{'Giá Trị Cuối (Tỷ)':<20}{'Thắng (%)':<12}{'ProfitFactor':<14}{'MaxDD (%)':<10}")
 print("-" * 95)
 
-best_pnl = -999.0
-best_item = None
 
 for loop_num, th in enumerate(thresholds, 1):
     db_file = f"paper_custom71_18m_loop_{loop_num}.db"
@@ -43,18 +41,6 @@ for loop_num, th in enumerate(thresholds, 1):
     pf = m.profit_factor
     mdd = m.max_drawdown_pct
 
-    if pnl > best_pnl:
-        best_pnl = pnl
-        best_item = {
-            "loop": loop_num,
-            "threshold": th,
-            "closed": closed,
-            "pnl": pnl,
-            "final_equity": final_eq,
-            "win_rate": wr,
-            "profit_factor": pf,
-            "max_dd": mdd
-        }
 
     pnl_str = f"{pnl:+.2f}%"
     eq_str = f"{final_eq / 1e9:.3f} Tỷ VNĐ"
@@ -62,11 +48,8 @@ for loop_num, th in enumerate(thresholds, 1):
 
 print("=" * 95)
 
-if best_item:
-    print(f"\n🏆 VÒNG LẶP XUẤT SẮC NHẤT TRÊN DANH MỤC 71 MÃ:")
-    print(f"   - Ngưỡng mua tối ưu: {best_item['threshold']:.1f} điểm")
-    print(f"   - Tổng lợi nhuận: {best_item['pnl']:+.2f}% ({best_item['final_equity']/1e9:.3f} Tỷ VNĐ từ 1 Tỷ ban đầu)")
-    print(f"   - Tỷ lệ thắng (Win Rate): {best_item['win_rate']:.1f}%")
-    print(f"   - Chỉ số Profit Factor: {best_item['profit_factor']:.2f}")
-    print(f"   - Sức chịu đựng rủi ro (Max Drawdown): {best_item['max_dd']:.1f}%")
-    print("=" * 95)
+# Bat bien 7: KHONG de cu mot dong nao trong bang tren lam "ket qua".
+# Bang o tren la TOAN DAI; lay dong lai cao nhat trong do la do do may
+# cua phep tim kiem. Xem dai_ket_qua.py va NGUYEN-TAC-DO-LUONG.md muc 7.
+from dai_ket_qua import CANH_BAO
+print(CANH_BAO)

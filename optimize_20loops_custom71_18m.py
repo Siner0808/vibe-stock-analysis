@@ -128,15 +128,10 @@ def main():
     print(f"{'Vòng':<6}{'Ngưỡng Mua':<14}{'Số Lệnh':<10}{'Lợi Nhuận (%)':<18}{'Vốn Cuối (VNĐ)':<18}{'Thắng (%)':<12}{'Profit Factor':<15}{'MaxDD (%)':<10}")
     print("-" * 100)
 
-    best_pnl = -999.0
-    best_item = None
 
     for r in results:
         if r.get("status") == "SUCCESS":
             pnl_val = r['pnl']
-            if pnl_val > best_pnl:
-                best_pnl = pnl_val
-                best_item = r
 
             pnl_str = f"{r['pnl']:+.2f}%"
             final_val_vnd = r['final_equity'] / 1e9
@@ -146,14 +141,11 @@ def main():
 
     print("=" * 100)
 
-    if best_item:
-        print(f"\n🏆 VÒNG LẶP TỐI ƯU XUẤT SẮC NHẤT NĂM:")
-        print(f"   - Ngưỡng mua đạt hiệu suất cao nhất: {best_item['threshold']:.1f} điểm")
-        print(f"   - Tổng lợi nhuận ròng: {best_item['pnl']:+.2f}% (Tài khoản từ 1.0 Tỷ -> {best_item['final_equity']/1e9:.3f} Tỷ VNĐ)")
-        print(f"   - Tỷ lệ thắng (Win Rate): {best_item['win_rate']:.1f}%")
-        print(f"   - Hệ số Lợi nhuận/Rủi ro (Profit Factor): {best_item['profit_factor']:.2f}")
-        print(f"   - Sụt giảm tài khoản tối đa (Max Drawdown): {best_item['max_dd']:.1f}%")
-        print("=" * 100)
+    # Bat bien 7: KHONG de cu mot dong nao trong bang tren lam "ket qua".
+    # Bang o tren la TOAN DAI; lay dong lai cao nhat trong do la do do may
+    # cua phep tim kiem. Xem dai_ket_qua.py va NGUYEN-TAC-DO-LUONG.md muc 7.
+    from dai_ket_qua import CANH_BAO
+    print(CANH_BAO)
 
     # Dọn dẹp các db tạm
     for i in range(1, 21):

@@ -133,24 +133,12 @@ for _, r in df_res.iterrows():
     sign = "+" if r['net_profit_vnd'] >= 0 else ""
     print(f"Vòng {r['loop']:02d} | Th={r['buy_threshold']:4.1f} | Lệnh: {r['closed_trades']:03d} | Thắng: {r['win_rate']:4.1f}% | Kỳ vọng: {r['expectancy']:+5.2f}% | MaxDD: {r['max_dd']:4.1f}% | Giá trị tài sản: {r['final_capital']:,.0f} VNĐ ({sign}{r['net_profit_vnd']:,.0f} VNĐ)")
 
-active_df = df_res[df_res["closed_trades"] > 0]
-if not active_df.empty:
-    best_row = active_df.sort_values(by="final_capital", ascending=False).iloc[0]
-else:
-    best_row = df_res.iloc[0]
 
-print("\n" + "🏆"*35)
-print(" VÒNG TỐI ƯU HÓA VN100 18 THÁNG XUẤT SẮC NHẤT (VỐN 1 TỶ ĐỒNG):")
-print(f"-> Vòng {best_row['loop']:02d} ({best_row['note']})")
-print(f"-> Ngưỡng mua tối ưu: {best_row['buy_threshold']} điểm")
-print(f"-> Tổng số lệnh đóng: {best_row['closed_trades']} lệnh")
-print(f"-> Tỷ lệ thắng: {best_row['win_rate']:.1f}%")
-print(f"-> Kỳ vọng lợi nhuận / lệnh: {best_row['expectancy']:+.2f}%")
-print(f"-> Mức sụt giảm tài sản tối đa (MaxDD): {best_row['max_dd']:.1f}%")
-print(f"-> GIÁ TRỊ TÀI SẢN CUỐI KỲ: {best_row['final_capital']:,.0f} VNĐ")
-sign = "+" if best_row['net_profit_vnd'] >= 0 else ""
-print(f"-> LỢI NHUẬN RÒNG THỰC TẾ: {sign}{best_row['net_profit_vnd']:,.0f} VNĐ ({best_row['net_pct']:+.2f}%)")
-print("🏆"*35 + "\n")
+# Bat bien 7: KHONG de cu mot dong nao trong bang tren lam "ket qua".
+# Bang o tren la TOAN DAI; lay dong lai cao nhat trong do la do do may
+# cua phep tim kiem. Xem dai_ket_qua.py va NGUYEN-TAC-DO-LUONG.md muc 7.
+from dai_ket_qua import CANH_BAO
+print(CANH_BAO)
 
 print("""
 ⚠️  ĐỌC TRƯỚC KHI DÙNG CON SỐ Ở TRÊN
