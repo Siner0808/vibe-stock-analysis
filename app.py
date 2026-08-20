@@ -460,7 +460,12 @@ st.markdown(
     f'<div class="ti-item"><span class="ti-l">Sổ lệnh (net)</span>'
     f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span></div>'
     f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">50.0 pts</span></div>'
-    f'<div class="live-pill"><div class="dot"></div>Sheets Synced</div>'
+    # Truoc day pill nay noi "Sheets Synced" kem cham xanh, trong khi
+    # app.py khong he import sheets_store va chua bao gio goi trang_thai().
+    # Cung ho voi market_filter.status() bao active=True trong khi cong
+    # dong cung. Kiem that can mot cu goi mang moi lan render, nen o day
+    # chi noi dung thu minh biet: chua kiem.
+    f'<div class="live-pill">Sheets: chưa kiểm</div>'
     f'</div>'
     f'</div>',
     unsafe_allow_html=True
@@ -947,7 +952,7 @@ with t_pipe:
     st.markdown("""
     <div style="padding:16px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;">
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">📡</span><br><b style="font-size:11px;">TradingView MCP</b><br><small style="color:var(--c-g);font-size:9px;">LIVE DATA</small>
+            <span style="font-size:18px;">📡</span><br><b style="font-size:11px;">TradingView MCP</b><br><small style="color:var(--c-t3);font-size:9px;">chưa đo</small>
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
@@ -967,7 +972,7 @@ with t_pipe:
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-g);font-size:9px;">LIVE SYNC</small>
+            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:9px;">chưa đo</small>
         </div>
     </div>
     """, unsafe_allow_html=True)

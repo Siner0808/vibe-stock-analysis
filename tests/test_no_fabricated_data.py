@@ -481,6 +481,14 @@ SO_CUNG_TRONG_APP = {
     "Q2/2026": "kỳ báo cáo Fundamental Agent — dán cứng",
     "3 Vòng": "số vòng tranh luận — dán cứng",
     "Pha Wyckoff": "nhãn cho 4 khoảng điểm — không có phân tích Wyckoff nào",
+    # Ba lời khẳng định TRẠNG THÁI mà không chỗ nào kiểm. Cùng họ với
+    # market_filter.status() báo active=True trong khi cổng đóng cứng:
+    # một đường sao lưu hỏng âm thầm còn tệ hơn không có đường nào.
+    # Lộ ra khi smoke test app với paper_trades.db bị đổi tên — không có
+    # sổ, không có kiểm tra nào, pill vẫn nói "Synced".
+    "Sheets Synced": "pill topbar — chưa bao giờ gọi sheets_store.trang_thai()",
+    "LIVE DATA": "thẻ TradingView MCP ở tab Pipeline — không đo từ đâu",
+    "LIVE SYNC": "thẻ Google Sheets ở tab Pipeline — không đo từ đâu",
 }
 
 
