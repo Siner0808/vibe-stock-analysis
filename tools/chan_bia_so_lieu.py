@@ -35,6 +35,7 @@ Tự kiểm thử:  python tools/chan_bia_so_lieu.py --tu-kiem-tra
 from __future__ import annotations
 
 import ast
+import re
 import difflib
 import hashlib
 import json
@@ -71,6 +72,15 @@ VAT_CHUA_TUY_CHON = {"args", "arg", "opts", "options", "cfg", "config",
 # Số bị coi là "trung tính" khi kẹp biên — 0/1/100 thường là biên hợp lệ
 # của thang điểm, không phải giá trị bịa.
 SO_TRUNG_TINH = {0, 1, 100, 0.0, 1.0, 100.0, -1, -1.0}
+
+#: Chuỗi trông như một trường f-string: {ten}, {ten.attr}, {ten:.1f}, {ten!r}
+MAU_O_TRONG = re.compile(r"\{[A-Za-z_][A-Za-z0-9_.\[\]'\"]*(?:![rsa])?(?::[^{}]*)?\}")
+
+#: Từ vựng khẳng định trạng thái vận hành. Dán cứng một trong số này làm
+#: GIÁ TRỊ MẶC ĐỊNH nghĩa là "coi như đang chạy tốt cho tới khi có bằng
+#: chứng ngược lại" — mà bằng chứng ngược lại thì không ai đi lấy.
+TU_TRANG_THAI = {"OK", "SYNCED", "LIVE", "ACTIVE", "HEALTHY", "CONNECTED",
+                 "ONLINE", "READY", "PASS", "VALID", "NORMAL"}
 
 
 class PhatHien:
@@ -177,6 +187,14 @@ class BoDo(ast.NodeVisitor):
         self.phat_hien: list[PhatHien] = []
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        for m in list(node.args.defaults) + list(node.args.kw_defaults):
+            if (m is not None and not self.la_test
+                    and isinstance(m, ast.Constant) and isinstance(m.value, str)
+                    and m.value.strip().upper() in TU_TRANG_THAI):
+                self._them(
+                    node.lineno, "R8", True,
+                    f'tham số mặc định {m.value!r} — khẳng định trạng thái.',
+                    'Người gọi quên truyền thì hàm tự nhận là mọi thứ đang tốt.')
         self.ham_hien_tai.append(node.name)
         self.generic_visit(node)
         self.ham_hien_tai.pop()
@@ -191,6 +209,33 @@ class BoDo(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call) -> None:
         ten_ham = _ten(node.func)
+
+        ten_ham = ten_ham or ""
+
+        # `_them` la cua ra van ban cua chinh bo do nay — no cung dinh
+        # dung loi R7, xem chu thich cua R4 ben duoi.
+        goi = ten_ham or (node.func.attr
+                          if isinstance(node.func, ast.Attribute) else "")
+        if goi in ("print", "warning", "error", "info", "_them"):
+            for a in node.args:
+                self._soi_o_trong(a, "in ra")
+
+        # R8 — mặc định là một từ khẳng định trạng thái
+        vi_tri = None
+        if ten_ham == "getattr" and len(node.args) >= 3:
+            vi_tri = node.args[2]
+        elif (isinstance(node.func, ast.Attribute) and node.func.attr == "get"
+              and len(node.args) >= 2):
+            vi_tri = node.args[1]
+        if (vi_tri is not None and not self.la_test
+                and isinstance(vi_tri, ast.Constant)
+                and isinstance(vi_tri.value, str)
+                and vi_tri.value.strip().upper() in TU_TRANG_THAI):
+            self._them(
+                node.lineno, "R8", True,
+                f'mặc định là {vi_tri.value!r} — khẳng định trạng thái chưa kiểm.',
+                'Thiếu dữ liệu mà trả về "đang tốt" thì phía sau không phân '
+                'biệt được "đo được là tốt" với "không đo được".')
 
         # R1/R2 — getattr(obj, "ten", mac_dinh)
         if ten_ham == "getattr" and len(node.args) >= 2:
@@ -229,9 +274,45 @@ class BoDo(ast.NodeVisitor):
                 self._them(
                     node.lineno, "R4", False,
                     f'.get("{khoa}", {v}) — thiếu dữ liệu thì thay bằng {v}.',
-                    'Nếu {v} là số đo thật thì phải lấy từ nguồn; nếu là mặc '
+                    f'Nếu {v} là số đo thật thì phải lấy từ nguồn; nếu là mặc '
                     'định thì ghi rõ bằng "# bia-ok: <lý do>".')
 
+        self.generic_visit(node)
+
+    def _soi_o_trong(self, nut, ngu_canh: str) -> None:
+        """R7 — chuỗi mang {ten} mà KHÔNG phải f-string thì in ra nguyên văn."""
+        if self.la_test or not isinstance(nut, ast.Constant):
+            return
+        if not isinstance(nut.value, str) or not MAU_O_TRONG.search(nut.value):
+            return
+        khop = MAU_O_TRONG.search(nut.value).group(0)
+        self._them(
+            nut.lineno, "R7", True,
+            f'{ngu_canh} một chuỗi chứa {khop} nhưng thiếu tiền tố `f`.',
+            'Nó sẽ in ra nguyên văn thay vì giá trị. Đã xảy ra hai lần: nhãn '
+            'ngưỡng trong báo cáo phiên, và chính lời khuyên của bộ dò này. '
+            'Thêm `f`, hoặc dùng .format() nếu cố ý làm hằng mẫu.')
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        if isinstance(node.op, ast.Add):
+            self._soi_o_trong(node.value, "cộng dồn")
+        self.generic_visit(node)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        # R8 — trường có chú thích kiểu, mặc định là một từ trạng thái.
+        # Đây là `MarketDataPacket.data_quality: str = "OK"`: gốc của
+        # 12.984/12.984 dòng decisions ghi 'OK', và là lý do nhánh
+        # `elif quality != "OK"` trong consider_entry() không bao giờ đúng.
+        v = node.value
+        if (not self.la_test and isinstance(v, ast.Constant)
+                and isinstance(v.value, str)
+                and v.value.strip().upper() in TU_TRANG_THAI):
+            self._them(
+                node.lineno, "R8", True,
+                f'mặc định là {v.value!r} — khẳng định trạng thái chưa ai kiểm.',
+                'Một trường trạng thái mặc định "tốt" nghĩa là mọi bản ghi đều '
+                'nói "tốt" cho tới khi có ai đó chủ động đặt khác — và không ai '
+                'đi làm việc đó. Để None rồi buộc bên tạo phải điền.')
         self.generic_visit(node)
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
@@ -245,7 +326,7 @@ class BoDo(ast.NodeVisitor):
                     con.lineno, "R3", True,
                     f'except ... -> return {v}: lỗi bị nuốt, thay bằng con số.',
                     'Hỏng mà vẫn trả số nghĩa là phía sau không phân biệt được '
-                    '"đo được {v}" với "không đo được". Ném lỗi, hoặc trả None.')
+                    f'"đo được {v}" với "không đo được". Ném lỗi, hoặc trả None.')
         self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
@@ -266,6 +347,25 @@ class BoDo(ast.NodeVisitor):
                         'Đây là mẫu `momentum_norm = max(momentum_norm, 65.0)`: '
                         'điểm số trông như do agent tính, thật ra do dòng này '
                         'đặt ra.')
+        self.generic_visit(node)
+
+    def visit_BoolOp(self, node: ast.BoolOp) -> None:
+        # R6 — `x or <số>` : thiếu giá trị đo thì thay bằng hằng số
+        if isinstance(node.op, ast.Or) and not self.la_test:
+            for gia_tri in node.values[1:]:
+                if not _la_so(gia_tri):
+                    continue
+                v = _gia_tri_so(gia_tri)
+                if v in SO_TRUNG_TINH:
+                    continue
+                self._them(
+                    node.lineno, "R6", False,
+                    f'... or {v} — thiếu giá trị thật thì thay bằng hằng số.',
+                    f'Đây là mẫu `t.entry_price or 22750.0` từng sống trong '
+                    f'app.py: khi dữ liệu vắng mặt, phía sau không phân biệt '
+                    f'được "đo được {v}" với "không đo được". Để None rồi xử '
+                    f'lý tường minh, hoặc hiện dấu gạch.')
+                break
         self.generic_visit(node)
 
 
@@ -419,8 +519,52 @@ def main() -> int:
     return 0
 
 
+def quet_repo() -> int:
+    """Quét TOÀN BỘ dự án. Trả 1 nếu có phát hiện mức CHẶN.
+
+    Vì sao cần chế độ này: hook PostToolUse chỉ chạy SAU khi ghi và chỉ bắt
+    Write/Edit của Claude Code — sửa từ IDE, Antigravity, tay người,
+    `git checkout` hay `git merge` đều không kích hoạt. 15 commit UI gần
+    nhất đi vào repo theo đúng đường đó. Chế độ này để CI chạy: cửa chống
+    cháy, không phải chuông báo cháy.
+    """
+    for luong in (sys.stdout, sys.stderr):
+        try:
+            luong.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+    tong_chan = tong_canh_bao = 0
+    for duong_dan in sorted(GOC_DU_AN.rglob("*.py")):
+        if not trong_pham_vi(duong_dan):
+            continue
+        try:
+            phat_hien = kiem_tra(duong_dan)
+        except Exception as e:
+            print(f"  [LỖI] {duong_dan.name}: {type(e).__name__}: {e}")
+            continue
+        for p in sorted(phat_hien, key=lambda x: x.dong):
+            muc = "CHẶN" if p.chan else "CẢNH BÁO"
+            ten = duong_dan.relative_to(GOC_DU_AN).as_posix()
+            print(f"  [{p.ma}/{muc}] {ten}:{p.dong} — {p.thong_diep}")
+            if p.goi_y:
+                print(f"      → {p.goi_y}")
+            if p.chan:
+                tong_chan += 1
+            else:
+                tong_canh_bao += 1
+
+    print(f"\nQuét xong: {tong_chan} CHẶN · {tong_canh_bao} cảnh báo")
+    if tong_chan:
+        print("Sửa cho đúng nguồn dữ liệu, hoặc thêm `# bia-ok: <lý do>` "
+              "— bắt buộc có lý do. Xem NGUYEN-TAC-DO-LUONG.md.")
+    return 1 if tong_chan else 0
+
+
 if __name__ == "__main__":
     if "--tu-kiem-tra" in sys.argv:
         from test_chan_bia_so_lieu import chay_tat_ca  # type: ignore
         sys.exit(chay_tat_ca())
+    if "--quet-repo" in sys.argv:
+        sys.exit(quet_repo())
     sys.exit(main())

@@ -127,15 +127,10 @@ def main():
     print(f"{'Vòng':<6}{'Ngưỡng Mua':<12}{'Số Lệnh':<10}{'Lợi Nhuận (%)':<16}{'Thắng (%)':<12}{'ProfitFactor':<14}{'MaxDD (%)':<10}")
     print("-" * 90)
 
-    best_pnl = -999.0
-    best_item = None
 
     for r in results:
         if r.get("status") == "SUCCESS":
             pnl_val = r['pnl']
-            if pnl_val > best_pnl:
-                best_pnl = pnl_val
-                best_item = r
 
             pnl_str = f"{r['pnl']:+.2f}%"
             final_val_vnd = r['final_equity'] / 1e9
@@ -145,20 +140,17 @@ def main():
 
     print("=" * 90)
 
-    if best_item:
-        print(f"\n🏆 VÒNG LẶP XUẤT SẮC NHẤT:")
-        print(f"   - Ngưỡng mua tối ưu: {best_item['threshold']:.1f} điểm")
-        print(f"   - Tổng lợi nhuận: {best_item['pnl']:+.2f}% ({best_item['final_equity']/1e9:.2f} Tỷ VNĐ)")
-        print(f"   - Win Rate: {best_item['win_rate']:.1f}% | Profit Factor: {best_item['profit_factor']:.2f}")
-        print(f"   - Sức chịu đựng rủi ro (Max Drawdown): {best_item['max_dd']:.1f}%")
-        print("=" * 90)
+    # Bat bien 7: KHONG de cu mot dong nao trong bang tren lam "ket qua".
+    # Bang o tren la TOAN DAI; lay dong lai cao nhat trong do la do do may
+    # cua phep tim kiem. Xem dai_ket_qua.py va NGUYEN-TAC-DO-LUONG.md muc 7.
+    from dai_ket_qua import CANH_BAO
+    print(CANH_BAO)
 
-    # Dọn dẹp các file temp db
-    for i in range(1, 11):
-        tmp_db = f"paper_custom71_18m_loop_{i}.db"
-        if os.path.exists(tmp_db):
-            try: os.remove(tmp_db)
-            except Exception: pass
+    # KHONG xoa cac .db moi vong. Chung la bang chung cua TOAN DAI:
+    # bo chung di thi chi con lai con so trong bao cao, ma bao cao nam
+    # ngoai repo thi nam ngoai moi bat bien (NGUYEN-TAC-DO-LUONG.md).
+    # Sau su co 12/08, 12/20 so cua lan chay do da bi xoa mat.
+    print("ℹ️  Giu lai cac .db moi vong lam bang chung — xoa tay khi khong can.")
 
 if __name__ == "__main__":
     main()

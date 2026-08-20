@@ -265,5 +265,147 @@ def chay_tat_ca() -> int:
     return 1 if failed else 0
 
 
+
+# ── 5. Chế độ quét toàn repo cho CI ──────────────────────────────────
+def test_quet_repo_bat_duoc_mau_chan():
+    """`--quet-repo` phải trả 1 khi có file vi phạm mức CHẶN.
+
+    Hook PostToolUse chỉ chạy SAU khi ghi và chỉ bắt Write/Edit của Claude
+    Code — sửa từ IDE, Antigravity, tay người, `git checkout` hay
+    `git merge` đều không kích hoạt. Chế độ này để CI chạy: cửa chống
+    cháy, không phải chuông báo cháy.
+    """
+    with tempfile.TemporaryDirectory(dir=str(GOC)) as d:
+        Path(d, "vi_pham_tam.py").write_text(
+            'x = getattr(t, "position_size_pct", 30)\n', encoding="utf-8")
+        assert hook.quet_repo() == 1, (
+            "quét toàn repo KHÔNG bắt được mẫu R1/R2 mức CHẶN")
+    print("PASS  --quet-repo trả 1 khi có mẫu chặn")
+
+
+def test_repo_hien_tai_sach_o_muc_chan():
+    """Bất biến: mã nguồn đang có KHÔNG chứa mẫu bịa số mức CHẶN.
+
+    Test này là thứ CI dựa vào. Nó đỏ nghĩa là một mẫu đã từng làm hỏng dự
+    án vừa quay lại — đọc output để biết file và dòng nào.
+    """
+    assert hook.quet_repo() == 0, (
+        "repo có mẫu bịa số liệu mức CHẶN — xem danh sách in ở trên")
+    print("PASS  repo sạch ở mức CHẶN")
+
+
+# ── R6 — `X or <số>` ─────────────────────────────────────────────────
+# Mẫu cuối cùng còn thiếu trong bộ dò, theo kế hoạch sửa chữa. Cùng họ với
+# R4: một giá trị đo được thiếu thì bị thay bằng hằng số, và phía sau không
+# phân biệt được "đo được" với "không đo được". Từng sống ở app.py dưới
+# dạng `t.entry_price or 22750.0` và `t.entry_date or "2026-05-29"`.
+def test_bat_duoc_or_voi_so_mac_dinh():
+    p = _do("gia = t.entry_price or 22750.0")
+    assert "R6" in _ma(p)
+    print("PASS  bắt được `x or 22750.0` — giá bịa khi thiếu dữ liệu")
+
+
+def test_bat_duoc_or_voi_so_nguyen_lon():
+    p = _do("von = pos_capital or 30_000_000")
+    assert "R6" in _ma(p)
+    print("PASS  bắt được `x or 30_000_000`")
+
+
+def test_khong_bao_nham_or_giua_hai_bien():
+    """`a or b` không có hằng số nào — không phải bịa."""
+    p = _do("ten = ten_moi or ten_cu")
+    assert "R6" not in _ma(p)
+    print("PASS  `a or b` không bị báo nhầm")
+
+
+def test_khong_bao_nham_or_voi_so_trung_tinh():
+    """0 · 1 · 100 là giá trị rỗng/đơn vị, không phải con số đo bịa ra."""
+    for ma in ("n = so_luong or 0", "he_so = k or 1", "pct = p or 100"):
+        assert "R6" not in _ma(_do(ma)), ma
+    print("PASS  `x or 0/1/100` không bị báo nhầm")
+
+
+def test_khong_bao_nham_or_voi_chuoi_rong_va_none():
+    for ma in ('ten = t.symbol or ""', "v = a or None", "ds = xs or []"):
+        assert "R6" not in _ma(_do(ma)), ma
+    print("PASS  `x or ''/None/[]` không bị báo nhầm")
+
+
+def test_or_trong_tests_duoc_mien():
+    """Miễn trừ tính theo THƯ MỤC tests/, không theo tên file."""
+    f = GOC / "tests" / "__tam_kiem_tra_r6.py"
+    try:
+        f.write_text("gia = t.entry_price or 22750.0", encoding="utf-8")
+        assert "R6" not in _ma(hook.kiem_tra(f))
+    finally:
+        if f.exists():
+            f.unlink()
+    print("PASS  tests/ được miễn R6")
+
+
+# ── R7 — chuỗi TRÔNG NHƯ f-string mà thiếu tiền tố `f` ───────────────
+# Lỗi thật, hai lần trong cùng một phiên: `run_daily.py` đổi nhãn ngưỡng
+# thành {BUY_THRESHOLD:.1f} nhưng dòng đó là chuỗi THƯỜNG, nên báo cáo sẽ
+# in ra nguyên văn "{BUY_THRESHOLD:.1f}". Và chính chan_bia_so_lieu.py in
+# "{v}" nguyên văn trong lời khuyên của R1/R3/R4 vì cùng lỗi đó.
+def test_bat_chuoi_thieu_tien_to_f_trong_print():
+    p = _do('print("Nguong: {BUY_THRESHOLD:.1f} diem")')
+    assert "R7" in _ma(p)
+    print("PASS  bắt được print(\"...{x}...\") thiếu f")
+
+
+def test_bat_chuoi_thieu_tien_to_f_khi_cong_don():
+    p = _do('report_md += "Diem: {score} tren 100"')
+    assert "R7" in _ma(p)
+    print("PASS  bắt được `s += \"...{x}...\"` thiếu f")
+
+
+def test_khong_bao_nham_f_string_that():
+    p = _do('print(f"Nguong: {th:.1f} diem")')
+    assert "R7" not in _ma(p)
+    print("PASS  f-string thật không bị báo")
+
+
+def test_khong_bao_nham_template_dung_format():
+    """`"...{ten}...".format(...)` là cách dùng hợp lệ, không phải quên f."""
+    for ma in ('print("Xin chao {ten}".format(ten="A"))',
+               'MAU = "Xin chao {ten}"',
+               'print("100% xong")',
+               'print("dict rong: {}")'):
+        assert "R7" not in _ma(_do(ma)), ma
+    print("PASS  .format(), hằng mẫu, và {} rỗng không bị báo nhầm")
+
+
+# ── R8 — trạng thái vận hành dán cứng làm giá trị MẶC ĐỊNH ───────────
+# Lỗi thật: MarketDataPacket.data_quality: str = "OK" (data_collectors.py).
+# Đó là gốc của 12.984/12.984 dòng decisions ghi 'OK', và là lý do nhánh
+# `elif quality != "OK"` trong consider_entry() không bao giờ đúng.
+def test_bat_trang_thai_dan_cung_lam_mac_dinh_dataclass():
+    ma = chr(10).join(["from dataclasses import dataclass",
+                       "@dataclass",
+                       "class P:",
+                       '    data_quality: str = "OK"'])
+    p = _do(ma)
+    assert "R8" in _ma(p)
+    print("PASS  bắt được trường dataclass mặc định 'OK'")
+
+
+def test_bat_trang_thai_dan_cung_trong_get_va_getattr():
+    for ma in ('q = packet.get("data_quality", "OK")',
+               'q = getattr(p, "trang_thai", "SYNCED")',
+               'def f(quality="ACTIVE"): pass'):
+        assert "R8" in _ma(_do(ma)), ma
+    print("PASS  bắt được 'OK'/'SYNCED'/'ACTIVE' làm mặc định")
+
+
+def test_khong_bao_nham_chuoi_trang_thai_khong_phai_mac_dinh():
+    """So sánh với 'OK' là ĐỌC trạng thái, không phải khẳng định nó."""
+    for ma in ('if quality != "OK": raise ValueError(quality)',
+               'print("OK")',
+               'trang_thai = tinh_trang_thai_that()'):
+        assert "R8" not in _ma(_do(ma)), ma
+    print("PASS  đọc/so sánh trạng thái không bị báo nhầm")
+
+
 if __name__ == "__main__":
     sys.exit(chay_tat_ca())

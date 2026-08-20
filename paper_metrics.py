@@ -185,6 +185,37 @@ def expectancy_significant(trades: list[Trade], iters: int = 5000,
     }
 
 
+def _ngay(gia_tri) -> str:
+    """Cắt về YYYY-MM-DD. `backtest/cache/` có hai định dạng cột `time`
+    trong cùng một thư mục; sổ lệnh thì sạch. Chuẩn hoá ở ĐIỂM DÙNG rẻ hơn
+    và an toàn hơn sửa 125 file dữ liệu gốc."""
+    return str(gia_tri or "")[:10]
+
+
+def ro_chuan_tu_chuoi_gia(trades: list[Trade],
+                          gia_theo_ngay: dict) -> dict:
+    """Dựng {(ngày vào, ngày ra): % thay đổi của chuẩn} cho từng lệnh đã đóng.
+
+    Chuẩn hoá ngày ở CẢ HAI phía — chuỗi giá và sổ lệnh — nên rổ chạy được
+    với cache dạng nào cũng được.
+
+    Thiếu một trong hai đầu ngày thì KHÔNG dựng khoá. Đoán bằng ngày gần
+    nhất sẽ làm phép đo trông đầy đủ hơn thực tế; để trống thì
+    `vs_benchmark` đếm nó vào `bo_qua` và báo cáo nói ra con số đó.
+    """
+    gia = {_ngay(k): v for k, v in gia_theo_ngay.items()}
+    ro: dict = {}
+    for t in trades:
+        if t.status != "CLOSED":
+            continue
+        vao, ra = _ngay(t.entry_date), _ngay(t.exit_date)
+        p_vao, p_ra = gia.get(vao), gia.get(ra)
+        if not vao or not ra or not p_vao or not p_ra:
+            continue
+        ro[(vao, ra)] = (p_ra - p_vao) / p_vao * 100.0
+    return ro
+
+
 def vs_benchmark(trades: list[Trade],
                  benchmark_return_by_period: dict[tuple[str, str], float]) -> dict:
     """So từng lệnh với việc cầm CHUẨN trong CÙNG khoảng thời gian.
@@ -195,18 +226,30 @@ def vs_benchmark(trades: list[Trade],
     mọi hệ thống trông như thiên tài.
     """
     diffs = []
+    bo_qua = 0
     for t in trades:
         if t.status != "CLOSED" or t.net_return_pct() is None:
             continue
         key = (t.entry_date or "", t.exit_date or "")
         bench = benchmark_return_by_period.get(key)
         if bench is None:
+            # Đếm, không nuốt. Một lệnh đã đóng mà không tìm được cặp ngày
+            # trong rổ chuẩn là MẪU BỊ BỎ, không phải mẫu không tồn tại.
+            # `backtest/cache/` có hai định dạng cột `time` (40/125 file
+            # mang hậu tố ' 07:00:00', 85/125 chỉ có ngày) trong khi
+            # 113/113 lệnh trong sổ đều sạch, nên rổ dựng từ nhóm file kia
+            # không khớp một lệnh nào. Bản cũ `continue` im lặng và trả về
+            # "mới 0 lệnh có đối chiếu, chưa đủ" — đọc như thiếu dữ liệu,
+            # thật ra là lỗi định dạng.
+            bo_qua += 1
             continue
         diffs.append(t.net_return_pct() - bench)
 
     if len(diffs) < 10:
-        return {"n": len(diffs), "alpha": None,
-                "verdict": f"mới {len(diffs)} lệnh có đối chiếu, chưa đủ"}
+        return {"n": len(diffs), "alpha": None, "bo_qua": bo_qua,
+                "verdict": f"mới {len(diffs)} lệnh có đối chiếu, chưa đủ"
+                           + (f" ({bo_qua} lệnh bị BỎ vì không tìm được cặp "
+                              f"ngày trong rổ chuẩn)" if bo_qua else "")}
 
     rng = random.Random(0)
     means = []
@@ -217,6 +260,7 @@ def vs_benchmark(trades: list[Trade],
     lo, hi = means[125], means[4874]
     return {
         "n": len(diffs),
+        "bo_qua": bo_qua,
         "alpha": statistics.mean(diffs),
         "ci": (lo, hi),
         "significant": not (lo <= 0 <= hi),
@@ -301,6 +345,10 @@ def report(trades: list[Trade],
             add(f"So với cầm đều cả rổ cùng kỳ: {b['alpha']:+.2f}%/lệnh  "
                 f"[{b['ci'][0]:+.2f}%, {b['ci'][1]:+.2f}%]")
         add(f"  → {b['verdict']}")
+        if b.get("bo_qua"):
+            add(f"  ⚠️ ĐÃ BỎ {b['bo_qua']} lệnh vì không tìm được cặp ngày "
+                f"trong rổ chuẩn — phép đo này chỉ nói về "
+                f"{b['n']}/{b['n'] + b['bo_qua']} lệnh.")
     else:
         add("")
         add("⚠️ Chưa có đối chiếu chuẩn. Con số ở trên KHÔNG nói lên được gì")

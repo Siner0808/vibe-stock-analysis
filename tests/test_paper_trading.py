@@ -34,6 +34,15 @@ from paper_trading import ExitReason, PaperTradingJournal, Status
 # tái lập được và không cần cache VNINDEX.
 market_filter.is_vni_bullish = lambda _signal_date: True
 
+# ─────────────────────────────────────────────────────────────────────
+# Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG
+#
+# `paper_trading.CHO_PHEP_MO_LENH_MOI` mặc định TẮT: hệ thống chạy thật
+# không mở vị thế mới cho tới khi Phase 5D sinh ra một ngưỡng chọn bằng
+# walk-forward hợp lệ. File này kiểm thử chính logic vào lệnh, nên phải
+# bật công tắc — nếu không mọi test vào lệnh đều đo nhầm cái công tắc.
+pt.CHO_PHEP_MO_LENH_MOI = True
+
 
 def make_result(score: int, sl: float = 90.0, tp: float = 120.0,
                 quality: str = "OK", size: float = 10.0,
@@ -366,6 +375,140 @@ def test_so_voi_chi_so_bat_duoc_thua_thi_truong():
     print(f"PASS  lãi 8% khi chỉ số +12% -> {r['verdict']} ({r['alpha']:+.2f}%)")
 
 
+def test_vs_benchmark_bao_ro_so_lenh_bi_bo_vi_thieu_cap_ngay():
+    """Gate 5B — một phép đo im lặng bỏ mẫu là phép đo hỏng.
+
+    Đây là cơ chế thật, không phải giả định: `backtest/cache/` có HAI định
+    dạng cột `time` trong cùng một thư mục — 40/125 file dạng
+    `2025-02-10 07:00:00`, 85/125 dạng `2021-10-14` — trong khi 113/113
+    lệnh trong sổ đều dùng `YYYY-MM-DD` sạch. Khoá đối chiếu là chuỗi
+    nguyên vẹn, nên rổ dựng từ nhóm file có hậu tố giờ KHÔNG khớp một lệnh
+    nào, và `vs_benchmark` `continue` im lặng qua từng lệnh một.
+
+    Hậu quả không phải là báo lỗi mà là một câu vô hại: "mới 0 lệnh có đối
+    chiếu, chưa đủ" — đọc như thiếu dữ liệu, thật ra là lỗi định dạng.
+    """
+    trades = _closed_trades([5.0] * 12)
+
+    # Rổ chuẩn dựng từ file cache CÓ hậu tố giờ: không khớp lệnh nào.
+    ro_hong = {("2026-01-02 07:00:00", "2026-02-02 07:00:00"): 3.0}
+    r = pm.vs_benchmark(trades, ro_hong)
+    assert r["n"] == 0
+    assert r.get("bo_qua") == 12, (
+        f"bỏ 12/12 lệnh mà không nói ra: bo_qua={r.get('bo_qua')!r}")
+
+    # Rổ đúng định dạng: khớp hết, không bỏ lệnh nào.
+    ro_dung = {("2026-01-02", "2026-02-02"): 3.0}
+    r2 = pm.vs_benchmark(trades, ro_dung)
+    assert r2["n"] == 12 and r2.get("bo_qua") == 0
+
+    # Và báo cáo phải NÓI RA con số đó, không giấu trong dict.
+    text = pm.report(trades, ro_hong)
+    assert "12" in text and "bỏ" in text.lower(), (
+        "báo cáo không nhắc tới số lệnh bị bỏ:" + chr(10) + text)
+    print("PASS  vs_benchmark nói ra 12/12 lệnh bị bỏ vì lệch định dạng ngày")
+
+
+def test_ro_chuan_chuan_hoa_ngay_o_CA_HAI_phia():
+    """Gate 5B — lệch định dạng ngày phải được vá ở ĐIỂM DÙNG.
+
+    `backtest/cache/` có 40/125 file mang hậu tố ' 07:00:00'. Sửa 125 file
+    dữ liệu là một việc; dựng rổ chuẩn sao cho không quan tâm hậu tố là
+    việc khác, rẻ hơn và không đụng vào dữ liệu gốc.
+    """
+    trades = _closed_trades([5.0] * 3)          # vào 2026-01-02, ra 2026-02-02
+
+    # Chuỗi giá mang hậu tố giờ — đúng dạng 40/125 file cache đang có.
+    gia = {"2026-01-02 07:00:00": 100.0, "2026-02-02 07:00:00": 110.0}
+    ro = pm.ro_chuan_tu_chuoi_gia(trades, gia)
+
+    assert ("2026-01-02", "2026-02-02") in ro, f"khoá chưa chuẩn hoá: {list(ro)}"
+    assert abs(ro[("2026-01-02", "2026-02-02")] - 10.0) < 1e-9
+
+    # Và rổ đó phải khớp thật khi đem đi đo, không bỏ lệnh nào.
+    r = pm.vs_benchmark(trades, ro)
+    assert r["bo_qua"] == 0, f"vẫn bỏ {r['bo_qua']} lệnh"
+
+    # Thiếu ngày trong chuỗi giá -> KHÔNG dựng khoá, để vs_benchmark đếm.
+    ro_thieu = pm.ro_chuan_tu_chuoi_gia(trades, {"2026-01-02": 100.0})
+    assert ro_thieu == {}
+    assert pm.vs_benchmark(trades, ro_thieu)["bo_qua"] == 3
+    print("PASS  rổ chuẩn chuẩn hoá ngày hai phía, thiếu ngày thì đếm chứ không đoán")
+
+
+def test_C5_khong_mo_lenh_moi_khi_nguong_chua_chon():
+    """Ô C5: quét tiếp, ghi quyết định tiếp, nhưng KHÔNG mở vị thế mới.
+
+    Đây là chốt chặn cho đúng cạm bẫy mà docs/HANDOFF.md cảnh báo: giây
+    phút Phase 2 gỡ cổng VN-INDEX, `consider_entry()` sẽ chạy tới dòng so
+    ngưỡng và mở lệnh ở lượt quét kế tiếp, bằng ngưỡng 50,0 — con số mà
+    NGUYEN-TAC-DO-LUONG.md mục 7 đã tuyên bố vô hiệu.
+
+    Đo được trong phiên 20/08: win rate cả dải ngưỡng 48–59 chỉ trải
+    28,2%–30,7%, tương quan ngưỡng↔số lệnh −0,999 và số lệnh↔vốn đỉnh
+    +0,990. Ngưỡng không cải thiện chất lượng chọn mã; nó chỉ điều khiển
+    đòn bẩy.
+
+    Quan trọng: quyết định VẪN được ghi sổ, kèm lý do. Im lặng không mở
+    lệnh thì không phân biệt được với "không có tín hiệu nào".
+    """
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        j = PaperTradingJournal(os.path.join(d, "so.db"))
+        cu = pt.CHO_PHEP_MO_LENH_MOI
+        try:  # noqa: đóng sổ ở cuối, xem finally phía dưới
+            pt.CHO_PHEP_MO_LENH_MOI = False
+            tid = j.consider_entry("FPT", "2026-08-05", make_result(95),
+                                   buy_threshold=50.0)
+        finally:
+            pt.CHO_PHEP_MO_LENH_MOI = cu
+
+        assert tid is None, "điểm 95 vẫn mở lệnh dù công tắc C5 đang TẮT"
+
+        dong = j.db.execute(
+            "select skip_reason, score, acted from decisions "
+            "where symbol='FPT'").fetchall()
+        assert dong, "không mở lệnh mà cũng KHÔNG ghi quyết định — mất dấu vết"
+        ly_do, diem, acted = dong[0]
+        assert acted == 0
+        assert int(diem) == 95, f"điểm thật không được ghi: {diem}"
+        assert "C5" in (ly_do or ""), f"lý do không nhắc ô C5: {ly_do!r}"
+        j.db.close()
+    print("PASS  C5: không mở lệnh mới, nhưng vẫn ghi quyết định kèm lý do")
+
+
+
+def test_C5_backtest_duoc_mo_cong_tac_va_luon_tra_lai():
+    """Ngoại lệ hẹp của C5: backtest tồn tại ĐỂ ĐO logic vào lệnh.
+
+    Chạy backtest với công tắc tắt thì mọi sổ đều rỗng, và mọi kết luận
+    kiểu "không có giá trị X trong sổ" đều đúng một cách vô nghĩa. Nhưng
+    ngoại lệ phải TRẢ LẠI trạng thái cũ, kể cả khi có lỗi ở giữa.
+    """
+    import paper_runner as pr
+
+    cu = pt.CHO_PHEP_MO_LENH_MOI
+    try:
+        pt.CHO_PHEP_MO_LENH_MOI = False
+        with pr._cho_phep_mo_lenh():
+            assert pt.CHO_PHEP_MO_LENH_MOI is True, "backtest không được mở công tắc"
+        assert pt.CHO_PHEP_MO_LENH_MOI is False, "không trả lại trạng thái cũ"
+
+        try:
+            with pr._cho_phep_mo_lenh():
+                raise RuntimeError("lỗi giữa chừng")
+        except RuntimeError:
+            pass
+        assert pt.CHO_PHEP_MO_LENH_MOI is False, (
+            "lỗi giữa chừng làm công tắc kẹt ở BẬT — hệ thống chạy thật sẽ "
+            "mở lệnh mà không ai biết")
+    finally:
+        pt.CHO_PHEP_MO_LENH_MOI = cu
+    print("PASS  backtest mở công tắc rồi trả lại, kể cả khi có lỗi")
+
+
+
 def test_drawdown_va_profit_factor():
     perf = pm.compute(_closed_trades([10, -5, 8, -12, 6]))
     assert perf.n_trades == 5
@@ -487,7 +630,7 @@ def test_tin_hieu_hom_nay_khong_khop_trong_hom_nay():
     # Thay hệ chấm điểm bằng stub: test này kiểm tra THỨ TỰ THAO TÁC của
     # runner, không phải chất lượng tín hiệu. Trộn hai thứ vào một test thì
     # khi fail sẽ không biết cái nào hỏng.
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         75, sl=float(hist["close"].iloc[-1]) * 0.9,
         tp=float(hist["close"].iloc[-1]) * 1.5)
 
@@ -525,7 +668,7 @@ def test_gia_vao_dung_bang_gia_mo_cua_phien_khop():
     })
 
     j = new_journal()
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         75, sl=float(hist["close"].iloc[-1]) * 0.5,
         tp=float(hist["close"].iloc[-1]) * 5.0)
 
@@ -572,7 +715,7 @@ def test_gia_nghin_dong_khong_lam_hong_so_lenh():
     })
 
     # SL/TP do RiskManagementAgent trả về: đơn vị VNĐ
-    pr._analyze = lambda sym, hist, exch="HOSE": make_result(
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
         75,
         sl=float(hist["close"].iloc[-1]) * 1000 * 0.93,
         tp=float(hist["close"].iloc[-1]) * 1000 * 1.15)
@@ -598,6 +741,160 @@ def test_gia_nghin_dong_khong_lam_hong_so_lenh():
             f"lợi nhuận {g:,.0f}% vô lý — dấu hiệu lẫn đơn vị nghìn đồng/VNĐ")
     print(f"PASS  giá nghìn đồng quy đúng về VNĐ ({opened[0].entry_price:,.0f}), "
           f"{len(closed)} lệnh đóng với lợi nhuận hợp lý")
+
+
+
+def test_run_session_tra_ve_diem_that_khong_phai_hang_so():
+    """run_session() phải trả ĐIỂM THẬT ra ngoài cho bên dựng báo cáo.
+
+    Bối cảnh: run_daily.py dựng báo cáo phiên bằng `s.get("score", 50.0)`,
+    trong khi run_session() không hề đặt khoá đó — điểm thật được tính bên
+    trong rồi bị vứt đi. Hệ quả đo được: 210/210 điểm cổ phiếu và 336/336
+    điểm ngành trong 21 file reports/ đều bằng 50.0, không một giá trị nào
+    khác trong 6 ngày. Ba mục dẫn xuất ("71/71 mã đạt ngưỡng", "TOP 10 tín
+    hiệu", "Mã dẫn đầu ngành") vì thế là số bịa.
+
+    Test kiểm HAI điều, vì mỗi điều một mình đều lọt được:
+      - khoá tồn tại và mang đúng điểm của mã đó (không phải một số bất kỳ);
+      - hai mã điểm khác nhau thì giá trị trả về phải khác nhau (không phải
+        một hằng số dùng chung).
+    """
+    import numpy as np
+    import pandas as pd
+
+    import paper_runner as pr
+
+    n = 80
+    close = 50_000 * np.power(1.002, np.arange(n))
+    df = pd.DataFrame({
+        "time": pd.bdate_range("2026-01-01", periods=n).strftime("%Y-%m-%d"),
+        "open": close * 0.999, "high": close * 1.006,
+        "low": close * 0.994, "close": close,
+        "volume": np.full(n, 2_000_000),
+    })
+
+    diem = {"AA": 73, "BB": 41}
+    pr._analyze = lambda sym, hist, exch="HOSE", session_date=None: make_result(
+        diem[sym], sl=float(hist["close"].iloc[-1]) * 0.9,
+        tp=float(hist["close"].iloc[-1]) * 1.5)
+
+    j = new_journal()
+    row = df.iloc[-1]
+    b = {"open": float(row["open"]), "high": float(row["high"]),
+         "low": float(row["low"]), "close": float(row["close"])}
+    ra = {sym: pr.run_session(j, sym, df, b, str(row["time"]))
+          for sym in ("AA", "BB")}
+
+    for sym in ("AA", "BB"):
+        assert "final_score" in ra[sym], (
+            f"run_session() không trả điểm ra ngoài (mã {sym}) — bên dựng báo "
+            f"cáo buộc phải bịa một con số. Khoá có: {sorted(ra[sym])}")
+        assert ra[sym]["final_score"] == float(diem[sym]), (
+            f"mã {sym}: trả {ra[sym]['final_score']}, đáng lẽ {float(diem[sym])}")
+
+    assert ra["AA"]["final_score"] != ra["BB"]["final_score"], (
+        "hai mã điểm khác nhau nhưng trả về cùng một giá trị — vẫn là hằng số")
+    print(f"PASS  run_session trả điểm thật: AA={ra['AA']['final_score']}, "
+          f"BB={ra['BB']['final_score']}")
+
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 5. ĐÓNG ĐƯỜNG GHI VÀO SỔ THẬT  (Phase 3A, 3D)
+# ─────────────────────────────────────────────────────────────────────
+def test_mo_so_that_phai_khai_bao_ro():
+    """Mở `paper_trades.db` mà không khai báo thì NỔ.
+
+    Bản cũ: guard_not_real_ledger() chỉ được gọi ở 3/7 script tối ưu, và
+    mỗi lần đều truyền HẰNG SỐ tên file scratch — tức nó không bao giờ có
+    thể kích hoạt. Nó là lời tự khai, không phải cái cửa.
+
+    KHÔNG gọi ở: optimize_20loops_custom71_18m.py (script sinh ra
+    +636,11%), optimize_custom_71stocks_18m.py, optimize_vn100_18m.py,
+    walkforward_vn100.py, run_oos_test.py, run_vn100_18m_test.py,
+    PaperTradingJournal.__init__, paper_runner.cmd_seed.
+
+    Nay gác nằm TRONG __init__: mọi đường ghi đều phải đi qua, kể cả
+    script viết sau này.
+    """
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        duong_dan = os.path.join(d, "paper_trades.db")
+        try:
+            PaperTradingJournal(duong_dan)
+        except pt.ProtectedLedgerError as e:
+            assert "paper_trades.db" in str(e)
+        else:
+            raise AssertionError(
+                "mở sổ thật KHÔNG bị chặn — script tối ưu vẫn ghi đè được")
+
+        # Khai báo rõ thì cho qua: người gọi đã nói ra ý định.
+        j = PaperTradingJournal(duong_dan, cho_phep_so_that=True)
+        j.db.close()
+    print("PASS  mở sổ thật phải khai báo cho_phep_so_that=True")
+
+
+def test_cmd_seed_khong_ghi_duoc_vao_so_that():
+    """`paper_runner.py seed` mặc định trỏ vào paper_trades.db.
+
+    Đúng đường đã đi ngày 12/08/2026: ba script tối ưu kết thúc bằng
+    os.remove("paper_trades.db") rồi seed lại bằng vòng lãi cao nhất
+    trong 20 vòng chạy trên cùng dữ liệu — 96/113 lệnh thật biến mất.
+    """
+    import argparse
+    import os
+    import tempfile
+
+    import paper_runner as pr
+
+    with tempfile.TemporaryDirectory() as d:
+        args = argparse.Namespace(
+            db=os.path.join(d, "paper_trades.db"), symbols="FPT",
+            min_history=30, stride=5, buy_threshold=None, no_summary=True)
+        try:
+            pr.cmd_seed(args)
+        except pt.ProtectedLedgerError:
+            pass
+        else:
+            raise AssertionError("cmd_seed ghi thẳng vào sổ thật, không gặp gác")
+    print("PASS  cmd_seed bị chặn khi trỏ vào sổ thật")
+
+
+def test_nang_stop_duoc_ghi_ngay_khong_cho_lenh_dong():
+    """Nâng stop phải commit ngay, không chờ có lệnh đóng.
+
+    Bản cũ: `UPDATE trades SET stop_loss=?` chạy, nhưng `commit()` chỉ xảy
+    ra khi danh sách `closed` không rỗng. Đóng kết nối là mất. Nặng hơn:
+    run_daily.py gọi push() TRƯỚC journal.db.close(), nên Sheets nhận stop
+    mới còn DB local rollback về stop cũ — và pull() từ chối ghi đè sổ
+    không rỗng, nên hai kho lệch nhau vĩnh viễn.
+    """
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        duong_dan = os.path.join(d, "so_tam.db")
+        j = PaperTradingJournal(duong_dan)
+        tid = j.consider_entry("T", "2026-01-05", make_result(75), "HOSE")
+        j.fill_pending("T", "2026-01-06", 100.0)
+        # Giá chạm mốc dời stop, KHÔNG có lệnh nào đóng trong phiên này
+        j.evaluate_open("T", "2026-01-07", bar(o=112, h=118, l=111, c=117),
+                        current_score=75)
+        sl_trong_phien = j.db.execute(
+            "SELECT stop_loss FROM trades WHERE id=?", (tid,)).fetchone()[0]
+        j.db.close()
+
+        j2 = PaperTradingJournal(duong_dan)
+        sl_sau_khi_dong = j2.db.execute(
+            "SELECT stop_loss FROM trades WHERE id=?", (tid,)).fetchone()[0]
+        j2.db.close()
+
+    assert sl_sau_khi_dong == sl_trong_phien, (
+        f"stop trong phiên {sl_trong_phien} nhưng sau khi đóng kết nối còn "
+        f"{sl_sau_khi_dong} — lần nâng stop bị rollback")
+    print(f"PASS  stop nâng lên {sl_trong_phien:,.1f} sống sót qua đóng kết nối")
 
 
 if __name__ == "__main__":

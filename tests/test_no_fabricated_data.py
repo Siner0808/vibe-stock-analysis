@@ -368,17 +368,42 @@ def test_thieu_key_van_chay_binh_thuong():
 
     saved_env = os.environ.pop("VNSTOCK_API_KEY", None)
     saved_mod = sys.modules.get("vnstock")
-    fake_vnai = types.ModuleType("vnai")
-    fake_vnai.get_api_key = lambda: None
-    saved_vnai = sys.modules.get("vnai")
-    sys.modules["vnai"] = fake_vnai
+
+    # Cách ly st.secrets — cùng liều thuốc mà test_goi_vnstock_dung_chu_ky_ham
+    # ở trên đã dùng. Thiếu nó, kết quả đổi theo MÔI TRƯỜNG: máy có key thì
+    # _read_key() trả None và test xanh; runner CI không có thì _read_key()
+    # lại tìm ra key ở nơi khác, đi tiếp tới `import vnstock` và nổ. Đúng lỗi
+    # đã làm CI đỏ ngày 20/08 trong khi máy vẫn xanh.
+    saved_st = sys.modules.get("streamlit")
+    st_gia = types.ModuleType("streamlit")
+    st_gia.secrets = types.SimpleNamespace(get=lambda *a, **k: None)
+    sys.modules["streamlit"] = st_gia
+
+    # Vá THUỘC TÍNH của vnai thật, không thay cả module. Module giả chỉ có
+    # get_api_key làm `import vnstock` nổ ImportError vì thiếu
+    # `optimize_execution` — và thông báo lỗi khi đó nói về ImportError chứ
+    # không nói về "chưa cấu hình", tức test đo nhầm thứ.
+    try:
+        import vnai as _vnai
+    except Exception:
+        _vnai = types.ModuleType("vnai")
+        sys.modules["vnai"] = _vnai
+    goc_get = getattr(_vnai, "get_api_key", None)
+    _vnai.get_api_key = lambda: None
     try:
         s = vnstock_auth.ensure_api_key(force=True)
         msg = vnstock_auth.status_message()
     finally:
-        sys.modules.pop("vnai", None)
-        if saved_vnai is not None:
-            sys.modules["vnai"] = saved_vnai
+        if goc_get is not None:
+            _vnai.get_api_key = goc_get
+        else:
+            try:
+                del _vnai.get_api_key
+            except AttributeError:
+                pass
+        sys.modules.pop("streamlit", None)
+        if saved_st is not None:
+            sys.modules["streamlit"] = saved_st
         if saved_mod is not None:
             sys.modules["vnstock"] = saved_mod
         if saved_env is not None:
@@ -418,6 +443,175 @@ def test_app_khong_ve_du_lieu_synthetic():
     assert "_price_status" in src, "app.py không kiểm tra status của nguồn giá"
     assert 'res.get("status"' in src, "load_stock_data vẫn bỏ qua status"
     print("PASS  app.py chặn dữ liệu SYNTHETIC trước khi vẽ")
+
+
+
+def test_bao_cao_phien_khong_doc_diem_bang_mac_dinh_so():
+    """run_daily.py không được lấy điểm qua `.get(khoá, <số>)`.
+
+    Đây là phía TIÊU THỤ của cùng một lỗ hổng: `s.get("score", 50.0)` trong
+    khi run_session() không đặt khoá "score". Không có gì nổ, không có gì
+    log — mọi báo cáo phiên chỉ lặng lẽ in 50.0 cho toàn bộ 71 mã.
+
+    Chính là luật R4 của tools/chan_bia_so_lieu.py, nhưng hook đó là
+    PostToolUse và chỉ bắt Write/Edit của Claude Code, nên sửa từ IDE hay
+    tay người đều lọt. Khoá lại bằng test để CI bắt được.
+    """
+    src = open(os.path.join(ROOT, "run_daily.py"), encoding="utf-8").read()
+    loi = []
+    for node in ast.walk(ast.parse(src)):
+        if not (isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "get"
+                and len(node.args) == 2):
+            continue
+        khoa, mac_dinh = node.args
+        if (isinstance(khoa, ast.Constant) and isinstance(khoa.value, str)
+                and "score" in khoa.value.lower()
+                and isinstance(mac_dinh, ast.Constant)
+                and isinstance(mac_dinh.value, (int, float))
+                and not isinstance(mac_dinh.value, bool)):
+            loi.append(f"dòng {node.lineno}: .get({khoa.value!r}, {mac_dinh.value!r})")
+
+    assert not loi, (
+        "run_daily.py đọc điểm với mặc định là MỘT CON SỐ — thiếu khoá thì "
+        "báo cáo in số đó như kết quả phân tích: " + " · ".join(loi))
+    print("PASS  run_daily.py không đọc điểm bằng mặc định số")
+
+
+
+# Các con số bịa trong app.py, bê nguyên từ ui_prototype.html (mockup).
+# Giá trị THẬT lấy từ paper_metrics.compute() trên paper_trades.db.
+SO_CUNG_TRONG_APP = {
+    "636.11":    "lợi nhuận 20-Loop — sổ thật: +14,24%",
+    "1,787":     "tổng số lệnh — sổ thật: 113",
+    "61.2":      "win rate — sổ thật: 25,0%",
+    "1.43":      "profit factor — sổ thật: 1,3396",
+    "19.4":      "max drawdown — sổ thật: 9,91%",
+    "7.361":     "giá trị tài khoản — không tồn tại trong DB",
+    "2330649":   "PnL VNĐ của vị thế ACB dựng sẵn",
+    "2,330,649": "PnL VNĐ của vị thế ACB dựng sẵn",
+    "1,245.80":  "VN-Index — số cứng, không đọc từ nguồn nào",
+    "22750":     "giá mặc định khi thiếu entry_price",
+    "30_000_000": "vốn mỗi vị thế — bịa, dùng để tính PnL VNĐ",
+    "2026-05-29": "ngày vào lệnh mặc định",
+    "21,110":    "giá vào của vị thế ACB dựng sẵn",
+    "21,158":    "stop-loss của vị thế ACB dựng sẵn",
+    "26,052":    "take-profit của vị thế ACB dựng sẵn",
+    "default_pnl": "nhánh dựng hàng ACB giả khi không đọc được sổ",
+    # Thẻ "Trạng thái hệ thống AI" ở sidebar — không audit nào bắt được,
+    # smoke test bằng trình duyệt mới lộ ra.
+    "39 Mẫu": "số mẫu hình post-mortem — file thật có 6.327, lệch 162 lần",
+    "12ms":   "độ trễ Technical Agent — không đo từ đâu",
+    "Q2/2026": "kỳ báo cáo Fundamental Agent — dán cứng",
+    "3 Vòng": "số vòng tranh luận — dán cứng",
+    "Pha Wyckoff": "nhãn cho 4 khoảng điểm — không có phân tích Wyckoff nào",
+    # Ba lời khẳng định TRẠNG THÁI mà không chỗ nào kiểm. Cùng họ với
+    # market_filter.status() báo active=True trong khi cổng đóng cứng:
+    # một đường sao lưu hỏng âm thầm còn tệ hơn không có đường nào.
+    # Lộ ra khi smoke test app với paper_trades.db bị đổi tên — không có
+    # sổ, không có kiểm tra nào, pill vẫn nói "Synced".
+    "Sheets Synced": "pill topbar — chưa bao giờ gọi sheets_store.trang_thai()",
+    "LIVE DATA": "thẻ TradingView MCP ở tab Pipeline — không đo từ đâu",
+    "LIVE SYNC": "thẻ Google Sheets ở tab Pipeline — không đo từ đâu",
+    # Topbar in ngưỡng mua bằng hằng số, trong khi thanh trượt ở sidebar
+    # mới là thứ quyết định. Kéo trượt sang 65 thì topbar vẫn nói 50.
+    "50.0 pts": "ngưỡng mua ở topbar — không bám theo thanh trượt",
+}
+
+
+def test_run_daily_khong_chep_cung_nguong_mua():
+    """Ngưỡng mua chỉ được viết MỘT lần, ở dòng khai báo BUY_THRESHOLD.
+
+    run_daily.py có BUY_THRESHOLD, và cùng một báo cáo đã in
+    `{BUY_THRESHOLD:.1f}` ở dòng tiêu đề. Nhưng bộ lọc chọn TOP và hai
+    nhãn "Score >= 50.0" lại chép cứng con số. Hôm nay hai giá trị bằng
+    nhau nên không ai thấy; đổi ngưỡng một cái là báo cáo tự mâu thuẫn:
+    tiêu đề nói ngưỡng mới, mục 2 vẫn nói 50.0, và bộ lọc vẫn lọc theo 50.0.
+
+    Đây là ô C5 của kế hoạch. Ngày nó được trả lời, chỗ chép cứng này sẽ
+    im lặng giữ nguyên hành vi cũ.
+
+    Test đọc giá trị từ chính dòng khai báo nên không hỏng khi C5 đổi số.
+    """
+    import ast
+    import io
+    import tokenize
+
+    duong_dan = os.path.join(ROOT, "run_daily.py")
+    nguon = open(duong_dan, encoding="utf-8").read()
+
+    gia_tri = None
+    for nut in ast.parse(nguon).body:
+        if isinstance(nut, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == "BUY_THRESHOLD"
+                for t in nut.targets):
+            gia_tri = nut.value.value
+    assert gia_tri is not None, "khong tim thay khai bao BUY_THRESHOLD"
+
+    # Bỏ chú thích: ghi lại con số cũ trong comment để giải thích là việc
+    # nên làm, không phải vi phạm.
+    with open(duong_dan, "rb") as fh:
+        toks = list(tokenize.tokenize(fh.readline))
+    khong_chu_thich = "".join(
+        t.string for t in toks if t.type != tokenize.COMMENT)
+
+    dang_chu = str(gia_tri)
+    so_lan = khong_chu_thich.count(dang_chu)
+    assert so_lan == 1, (
+        f"run_daily.py viet '{dang_chu}' {so_lan} lan; chi duoc 1 lan o dong "
+        f"khai bao BUY_THRESHOLD. Moi ban chep them la mot cho se khong doi "
+        f"theo khi C5 duoc tra loi.")
+    print("PASS  nguong mua chi viet mot lan trong run_daily.py")
+
+
+def test_app_khong_hien_so_cung_tu_mockup():
+    """app.py không được hiển thị con số nào không đọc từ sổ lệnh.
+
+    Bối cảnh: hai commit UI ngày 18/08 (`65f819d`, `8b0ebf2`) chép số từ
+    `ui_prototype.html` vào `app.py` và xoá cùng lúc tích hợp `sheets_store`,
+    nút khôi phục sổ từ Sheets, và cảnh báo đòn bẩy khi vốn vượt 100%.
+    Kết quả: `grep -c "sheets_store\\|paper_metrics" app.py` = 0 — không một
+    con số nào trên giao diện đi qua compute().
+
+    Nặng nhất là +636,11%: chính con số mà NGUYEN-TAC-DO-LUONG.md đã kết
+    luận là đòn bẩy 2,2× (quy về 100% vốn còn +155,66%), đang là ô số liệu
+    lớn nhất trên màn hình.
+
+    Riêng `default_pnl`: trên Streamlit Cloud `.gitignore` chặn `*.db` nên
+    `paper_trades.db` KHÔNG tồn tại — nhánh dựng hàng ACB giả là nhánh LUÔN
+    chạy, không phải nhánh dự phòng.
+    """
+    # Bỏ chú thích trước khi quét: ghi lại con số CŨ trong comment để giải
+    # thích vì sao nó sai là việc nên làm, không phải vi phạm. Test này hỏi
+    # "app HIỂN THỊ gì", không hỏi "app nhắc tới gì".
+    import io
+    import tokenize
+    with open(os.path.join(ROOT, "app.py"), "rb") as fh:
+        toks = list(tokenize.tokenize(fh.readline))
+    src = "".join(t.string for t in toks if t.type != tokenize.COMMENT)
+
+    loi = [f"{k!r} — {vi_sao}" for k, vi_sao in SO_CUNG_TRONG_APP.items()
+           if k in src]
+    assert not loi, (
+        f"app.py còn {len(loi)} con số bịa trên mặt người đọc:\n  "
+        + "\n  ".join(loi))
+    print("PASS  app.py không còn số cứng từ mockup")
+
+
+def test_app_doc_so_lenh_qua_paper_metrics():
+    """Số liệu hiệu quả trên app phải đi qua `paper_metrics`, không tự tính.
+
+    Cộng dồn phần trăm từng lệnh không phải một tỷ suất lợi nhuận — nó bỏ
+    qua tỷ trọng vốn (bất biến 4) và lệnh chồng lấn (bất biến 7b). Chỉ
+    `paper_metrics.compute()` mới trả về `peak_capital_deployed_pct` để
+    biết con số đang đứng trên đòn bẩy bao nhiêu.
+    """
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    assert "paper_metrics" in src, (
+        "app.py không import paper_metrics — mọi số hiệu quả trên giao diện "
+        "đều nằm ngoài mọi bất biến đo lường của dự án")
+    print("PASS  app.py đọc số hiệu quả qua paper_metrics")
 
 
 if __name__ == "__main__":

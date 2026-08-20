@@ -26,6 +26,7 @@ mở cửa hôm nay bằng thông tin đó.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import sys
 
 import pandas as pd
@@ -35,17 +36,110 @@ from paper_metrics import report as build_report
 from paper_trading import PaperTradingJournal, Status
 
 
+class DaLuongVoiBoNhoError(RuntimeError):
+    """Chấm điểm đa luồng trong khi post-mortem BẬT — kết quả không tái lập."""
+
+
+_LUONG_DA_GOI: set = set()
+
+
+def _reset_gac_da_luong() -> None:
+    """Xoá dấu vết luồng đã gọi. Dành cho test và cho tiến trình con."""
+    _LUONG_DA_GOI.clear()
+
+
+def _gac_da_luong() -> None:
+    """Nổ nếu chấm điểm chạy trên nhiều luồng trong khi post-mortem BẬT.
+
+    Bất biến 7. `post_mortem_learning._ENGINE_CACHE` giữ MỘT engine cho cả
+    tiến trình, và `record_sl_trade()` nối thêm vào `sl_patterns` dùng chung.
+    Nên khi 20 vòng tối ưu chạy qua `ThreadPoolExecutor(max_workers=8)`,
+    vòng 3 đóng một lệnh bằng cắt lỗ và làm lệch điểm của vòng 11 — vòng nào
+    chạy trước là do lịch luồng, nên chạy lại ra bảng khác. "Quán quân của
+    20 vòng" khi đó không tái lập được.
+
+    Luồng KHÔNG sửa được chuyện này: đặt lại cache giữa vòng sẽ đè lên các
+    vòng đang chạy song song, còn thread-local thì rò rỉ vì 20 vòng dùng
+    chung 8 luồng. Chỉ tiến trình riêng mới cho độc lập thật.
+
+    Hai lối đi hợp lệ, cả hai đều được nêu trong thông báo lỗi:
+      • mỗi vòng một TIẾN TRÌNH (ProcessPoolExecutor)
+      • hoặc TẮT post-mortem — khi đó `sl_penalty` luôn 0, `_analyze` trở
+        lại là hàm thuần, và các vòng chỉ khác nhau ở ngưỡng. Đa luồng khi
+        đó hợp lệ.
+
+    Không có cửa thoát bằng biến môi trường: cấu hình bị chặn ở đây không
+    cho ra kết quả dùng được, nên "cho phép tạm" chỉ là cách viết khác của
+    "cho ra số sai nhưng đừng báo".
+    """
+    import threading
+
+    from post_mortem_learning import get_learning_engine
+    if not get_learning_engine().enabled:
+        return
+
+    # `get_ident()` chi duy nhat giua cac luong CON SONG: id duoc tai su
+    # dung khi mot luong ket thuc. Nghia la gac nay co the BO SOT truong hop
+    # hai vong chay TUAN TU tren cung mot id -- va do la dieu dung, vi tuan
+    # tu thi an toan that: khong bao gio co hai vong doc cung sl_patterns
+    # mot luc. Thu can chan la chay DONG THOI, va truong hop do thi cac id
+    # deu con song nen phan biet duoc.
+    _LUONG_DA_GOI.add(threading.get_ident())
+    if len(_LUONG_DA_GOI) > 1:
+        raise DaLuongVoiBoNhoError(
+            "Chấm điểm đang chạy trên "
+            + str(len(_LUONG_DA_GOI))
+            + " luồng trong CÙNG một tiến trình, trong khi post-mortem BẬT. "
+              "Các vòng dùng chung sl_patterns nên KHÔNG vòng nào độc lập — "
+              "bảng kết quả không tái lập được, và lấy vòng lãi cao nhất "
+              "trong đó là vi phạm bất biến 7. "
+              "Sửa bằng MỘT trong hai cách: cho mỗi vòng một tiến trình "
+              "riêng (ProcessPoolExecutor, nhớ dời phần dựng dữ liệu ở mức "
+              "module vào main() trước), hoặc đặt POST_MORTEM_ENABLED=0.")
+
+
 _ANALYZE_CACHE: dict[tuple, dict] = {}
 
-def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict:
+
+def _dau_van_bo_nho() -> tuple:
+    """Dấu vân trạng thái bộ nhớ post-mortem, để đưa vào khoá cache.
+
+    Bất biến 7. Điểm của một lát cắt KHÔNG chỉ phụ thuộc lát cắt: nó còn
+    cộng `sl_penalty` lấy từ `post_mortem_learning`, mà bộ nhớ ở đó phình
+    ra trong lúc chạy. Bản cũ khoá cache bằng
+    `(symbol, len(history), last_time)` — tức ghi nhớ một giá trị KHÔNG
+    phải hàm thuần của khoá.
+
+    Hậu quả trong `optimize_20loops_custom71_18m.py`: 20 vòng chạy trong
+    MỘT tiến trình qua `ThreadPoolExecutor(max_workers=8)`, dùng chung cả
+    `_ANALYZE_CACHE` lẫn `_ENGINE_CACHE`. Vòng 3 đóng một lệnh bằng cắt lỗ
+    làm bộ nhớ phình thêm; vòng 11 gọi `_analyze` cho cùng lát cắt và nhận
+    lại điểm mà vòng 3 đã tính TRƯỚC khi bộ nhớ đổi. Vòng nào tính trước
+    là do luồng nào chạy trước — nên chạy lại ra bảng khác, và "quán quân
+    của 20 vòng" không tái lập được.
+
+    Dùng ĐỘ DÀI làm dấu vân được vì `record_sl_trade()` chỉ nối thêm, không
+    bao giờ sửa hay xoá. Ngày nào có đường xoá/sửa mẫu hình thì dấu vân này
+    phải đổi thành hash nội dung.
+    """
+    from post_mortem_learning import get_learning_engine
+    may = get_learning_engine()
+    return (bool(may.enabled), len(may.sl_patterns))
+
+
+def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE",
+             session_date: str | None = None) -> dict:
     """Chạy pipeline thật trên lịch sử đã cắt tới ngày T."""
     global _ANALYZE_CACHE
+    _gac_da_luong()
     last_time = str(history["time"].iloc[-1]) if "time" in history.columns and len(history) else ""
-    cache_key = (symbol, len(history), last_time)
+    cache_key = ((symbol, len(history), last_time, str(session_date or ""))
+                 + _dau_van_bo_nho())
     if cache_key in _ANALYZE_CACHE:
         return _ANALYZE_CACHE[cache_key]
 
     from data_collectors import MarketDataPacket, DataOrchestrator
+    from data_quality import validate_ohlcv
     from master_agent import MasterConsensusAgent
 
     packet = MarketDataPacket(
@@ -53,7 +147,12 @@ def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE") -> dict
         ohlcv_df=history.reset_index(drop=True),
         tv_recommendation="NEUTRAL",   # không có TradingView lịch sử
         news_packet=None,
-        data_quality="OK",
+        # Muc chat luong THAT, khong phai hang so. Ban cu ghi "OK" cung o
+        # day, nen decisions.data_quality = 'OK' cho 12.984/12.984 dong va
+        # nhanh `elif quality != "OK"` trong consider_entry() la code chet.
+        data_quality=validate_ohlcv(
+            history, symbol, exchange,
+            as_of=session_date or last_time).level.name,
     )
     
     # BẮT BUỘC: Tính toán indicator cho backtest (vì TradingView MCP không hỗ trợ quá khứ)
@@ -92,20 +191,66 @@ def run_session(journal: PaperTradingJournal, symbol: str,
 
     result = None
     if journal.open_position(symbol) is not None:
-        result = _analyze(symbol, history, exchange)
+        result = _analyze(symbol, history, exchange, session_date)
         closed = journal.evaluate_open(symbol, session_date, bar,
                                        current_score=int(result["final_score"]))
         stats["closed"] = len(closed)
 
     if journal.open_position(symbol) is None:
-        result = result or _analyze(symbol, history, exchange)
+        result = result or _analyze(symbol, history, exchange, session_date)
         if journal.consider_entry(symbol, session_date, result, exchange,
                                   buy_threshold) is not None:
             stats["opened"] = 1
+
+    # Điểm THẬT của phiên này. Bên dựng báo cáo cần nó; trước đây nó được
+    # tính ở đây rồi vứt đi, nên báo cáo phải bịa một hằng số thay thế.
+    stats["final_score"] = float(result["final_score"])
     return stats
 
 
 # ─────────────────────────────── seed ────────────────────────────────
+@contextlib.contextmanager
+def _cho_phep_mo_lenh():
+    """Bật `CHO_PHEP_MO_LENH_MOI` trong suốt một lượt backtest.
+
+    Ô C5 tắt việc mở vị thế mới trên hệ thống chạy thật. Nhưng backtest tồn
+    tại ĐỂ ĐO chính logic vào lệnh — chạy nó với công tắc tắt thì mọi sổ
+    đều rỗng, và mọi kết luận kiểu "không có giá trị X trong sổ" đều đúng
+    một cách vô nghĩa.
+
+    Đây là ngoại lệ HẸP và TƯỜNG MINH: chỉ trong `cmd_seed`, chỉ trong thời
+    gian nó chạy, và luôn trả trạng thái cũ về ở `finally`.
+    """
+    import paper_trading as _pt
+    cu = _pt.CHO_PHEP_MO_LENH_MOI
+    _pt.CHO_PHEP_MO_LENH_MOI = True
+    try:
+        yield
+    finally:
+        _pt.CHO_PHEP_MO_LENH_MOI = cu
+
+
+def _cat_khoang(df, bat_dau, ket_thuc):
+    """Cắt DataFrame về khoảng [bat_dau, ket_thuc] theo cột `time`.
+
+    Không truyền thì giữ nguyên — im lặng cắt bớt còn tệ hơn không cắt.
+
+    So sánh trên 10 ký tự đầu vì `backtest/cache/` có HAI định dạng cột
+    `time` trong cùng một thư mục: 40/125 file dạng '2025-02-10 07:00:00',
+    85/125 dạng '2021-10-14'. So chuỗi nguyên vẹn sẽ bỏ sót cả nhóm kia.
+    """
+    if df is None or "time" not in getattr(df, "columns", []):
+        return df
+    ngay = df["time"].astype(str).str.slice(0, 10)
+    loc = None
+    if bat_dau:
+        loc = ngay >= str(bat_dau)[:10]
+    if ket_thuc:
+        v = ngay <= str(ket_thuc)[:10]
+        loc = v if loc is None else (loc & v)
+    return df if loc is None else df[loc]
+
+
 def cmd_seed(args) -> int:
     from backtest import data as bt_data
 
@@ -116,21 +261,45 @@ def cmd_seed(args) -> int:
         print("❌ Chưa có cache. Chạy `python3 backtest/run.py fetch` trước.")
         return 1
 
+    # Bản cũ BỎ QUA args.start/args.end: nó gọi load_all() rồi duyệt trọn
+    # file cache. Các script tối ưu vẫn dựng Namespace(start=..., end=...)
+    # và in "18 Tháng gần nhất", nên nhãn đó là trang trí — độ phủ thật lên
+    # tới ~4,8 năm với 34 mã. Nay tôn trọng nếu có, và LUÔN nói ra độ phủ
+    # thật để nhãn không thể sai một lần nữa.
+    bat_dau = getattr(args, "start", None)
+    ket_thuc = getattr(args, "end", None)
+    if bat_dau or ket_thuc:
+        dataset = {k: _cat_khoang(v, bat_dau, ket_thuc) for k, v in dataset.items()}
+        dataset = {k: v for k, v in dataset.items() if v is not None and len(v)}
+        if not dataset:
+            print(f"❌ Không mã nào có dữ liệu trong khoảng {bat_dau} → {ket_thuc}.")
+            return 1
+
+    _ngay = [str(v["time"].iloc[i])[:10] for v in dataset.values()
+             for i in (0, -1) if "time" in v.columns and len(v)]
+    if _ngay:
+        _phien = [len(v) for v in dataset.values()]
+        print(f"📅 ĐỘ PHỦ THẬT: {min(_ngay)} → {max(_ngay)} · {len(dataset)} mã · "
+              f"{min(_phien)}–{max(_phien)} phiên mỗi mã"
+              + (f" · đã cắt theo {bat_dau or '…'} → {ket_thuc or '…'}"
+                 if (bat_dau or ket_thuc) else " · KHÔNG cắt khoảng"))
+
     total = {"opened": 0, "closed": 0}
-    for i, (sym, df) in enumerate(sorted(dataset.items()), 1):
-        n = len(df)
-        for t in range(args.min_history, n, args.stride):
-            row = df.iloc[t]
-            # Lịch sử CHỈ tới hết phiên t — đây là dòng chống nhìn trộm
-            history = df.iloc[: t + 1]
-            s = run_session(journal, sym, history,
-                            {"open": float(row["open"]), "high": float(row["high"]),
-                             "low": float(row["low"]), "close": float(row["close"])},
-                            str(row["time"]), buy_threshold=args.buy_threshold)
-            total["opened"] += s["opened"]
-            total["closed"] += s["closed"]
-        if not getattr(args, 'no_summary', False):
-            print(f"  [{i}/{len(dataset)}] {sym}: xong {n - args.min_history} phiên")
+    with _cho_phep_mo_lenh():
+        for i, (sym, df) in enumerate(sorted(dataset.items()), 1):
+            n = len(df)
+            for t in range(args.min_history, n, args.stride):
+                row = df.iloc[t]
+                # Lịch sử CHỈ tới hết phiên t — đây là dòng chống nhìn trộm
+                history = df.iloc[: t + 1]
+                s = run_session(journal, sym, history,
+                                {"open": float(row["open"]), "high": float(row["high"]),
+                                 "low": float(row["low"]), "close": float(row["close"])},
+                                str(row["time"]), buy_threshold=args.buy_threshold)
+                total["opened"] += s["opened"]
+                total["closed"] += s["closed"]
+            if not getattr(args, 'no_summary', False):
+                print(f"  [{i}/{len(dataset)}] {sym}: xong {n - args.min_history} phiên")
 
     if not getattr(args, 'no_summary', False):
         print(f"\nĐã nạp: {total['opened']} lệnh mở, {total['closed']} lệnh đóng")
@@ -142,7 +311,7 @@ def cmd_seed(args) -> int:
 def cmd_daily(args) -> int:
     from data_collectors import VNStockCollectorAgent
 
-    journal = PaperTradingJournal(args.db)
+    journal = PaperTradingJournal(args.db, cho_phep_so_that=True)
     if isinstance(args.symbols, list):
         symbols = [s.strip().upper() for s in args.symbols]
     else:
@@ -205,7 +374,7 @@ def build_benchmark(trades, dataset: dict) -> dict:
 
 # ─────────────────────────────── report ──────────────────────────────
 def cmd_report(args) -> int:
-    journal = PaperTradingJournal(args.db)
+    journal = PaperTradingJournal(args.db, cho_phep_so_that=True)
     trades = journal.all_trades()
     if not trades:
         print("Sổ trống. Chạy `seed` hoặc `daily` trước.")

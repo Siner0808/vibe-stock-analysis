@@ -42,6 +42,24 @@ MATCH_TOLERANCE = 5.0
 #: Điểm trừ khi khớp mẫu hình đã từng cắt lỗ.
 PENALTY = -12.0
 
+#: Trường BẮT BUỘC để một mẫu được vào bộ nhớ.
+#:
+#: Đo ngày 20/08/2026 trên file cũ: 6.327 mẫu, 100 mã, KHÔNG trường nào nói
+#: vòng nào hay dữ liệu nào sinh ra chúng — và chỉ 56/6.327 (0,89%) ứng với
+#: một lệnh thật trong sổ. 99,1% là dư lượng của các vòng seed/tối ưu
+#: in-sample, gồm cả những vòng đã bị bất biến 7 tuyên bố vô hiệu.
+#:
+#: Không sửa được bằng cách bổ sung provenance sau: các vòng sinh ra chúng
+#: đã bị `os.remove()` xoá, nên thông tin để truy nguồn KHÔNG TỒN TẠI.
+#:
+#: Hai trường này là thứ ngăn bộ nhớ mới thoái hoá về đúng trạng thái đó.
+TRUONG_NGUON = ("nguon", "trade_id")
+
+
+def _now_iso() -> str:
+    from datetime import datetime, timedelta, timezone
+    return datetime.now(timezone(timedelta(hours=7))).isoformat(timespec="seconds")
+
 
 def _enabled_by_default() -> bool:
     return os.environ.get("POST_MORTEM_ENABLED", "").strip() == "1"
@@ -67,14 +85,33 @@ class PostMortemLearningEngine:
 
     # ─────────────────────────── Lưu / đọc ──────────────────────────
     def load_memory(self) -> List[Dict[str, Any]]:
+        """Nạp bộ nhớ, BỎ mọi mẫu không khai nguồn gốc — và nói ra.
+
+        Im lặng bỏ thì không phân biệt được với "file rỗng"; im lặng nạp
+        thì bộ nhớ bịa lại tiếp tục trừ điểm. Cả hai đều đã xảy ra.
+        """
         if not os.path.exists(self.memory_file):
             return []
         try:
             with open(self.memory_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            return data if isinstance(data, list) else []
-        except Exception:
+        except Exception as e:
+            print(f"⚠️  Không đọc được {self.memory_file}: "
+                  f"{type(e).__name__}: {e}")
             return []
+        if not isinstance(data, list):
+            return []
+
+        hop_le = [p for p in data
+                  if isinstance(p, dict) and all(k in p for k in TRUONG_NGUON)]
+        bo = len(data) - len(hop_le)
+        if bo:
+            print(f"⚠️  Bỏ {bo}/{len(data)} mẫu trong {self.memory_file} vì "
+                  f"KHÔNG khai nguồn gốc (thiếu {'/'.join(TRUONG_NGUON)}). "
+                  f"Một mẫu không truy được về lệnh nào thì không dùng để "
+                  f"trừ điểm ai được. Dựng lại bằng "
+                  f"tools/dung_lai_bo_nho.py.")
+        return hop_le
 
     def save_memory(self, force: bool = False) -> None:
         if not self._dirty and not force:
@@ -89,8 +126,18 @@ class PostMortemLearningEngine:
     # ─────────────────────────── Ghi nhận ───────────────────────────
     def record_sl_trade(self, symbol: str, entry_score: int,
                         score_breakdown: dict, key_reasons: list,
-                        signal_date: Optional[str] = None) -> bool:
+                        signal_date: Optional[str] = None,
+                        trade_id: Optional[int] = None,
+                        nguon: Optional[str] = None) -> bool:
+        """Ghi một mẫu hình cắt lỗ. TỪ CHỐI nếu không khai nguồn gốc.
+
+        `trade_id` và `nguon` là bắt buộc: chúng cho phép truy ngược một
+        mẫu về đúng lệnh đã sinh ra nó. Thiếu chúng thì mẫu này y hệt
+        6.271 mẫu không truy nguồn được trong file cũ.
+        """
         if not self.enabled or not signal_date:
+            return False
+        if trade_id is None or not nguon:
             return False
         self.sl_patterns.append({
             "symbol": symbol,
@@ -100,6 +147,10 @@ class PostMortemLearningEngine:
             "momentum_score": score_breakdown.get("momentum_score", 50),
             "volume_score": score_breakdown.get("volume_score", 50),
             "reasons": key_reasons[:3] if key_reasons else [],
+            # ── provenance ──
+            "nguon": str(nguon),
+            "trade_id": int(trade_id),
+            "ghi_luc": _now_iso(),
         })
         self._dirty = True
         return True

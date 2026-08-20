@@ -28,6 +28,34 @@ import pandas as pd
 from backtest import data as _btd
 
 MA_WINDOW = 50
+#: Ô C1 — cache VN-INDEX trễ quá bao nhiêu phiên thì coi là KHÔNG CÓ dữ liệu.
+#: Trễ trong ngưỡng là bình thường (cuối tuần, nghỉ lễ, chưa chạy phiên thu).
+TRE_TOI_DA_PHIEN = 3
+
+
+class CacheQuaHanError(RuntimeError):
+    """Cache VN-INDEX quá cũ để phán quyết về ngày đang chấm.
+
+    Ô C1 đã chọn: quá hạn thì DỪNG PHIÊN QUÉT, không âm thầm cho qua và
+    cũng không âm thầm chặn hết.
+
+    Vì sao không trả về False: bản cũ làm đúng thế, và kết quả là 14 ngày
+    liền không mở được lệnh nào trong khi `status()` vẫn báo `active: True`.
+    Chỗ nguy hiểm không phải *mất* dữ liệu — mất thì fail-open còn nhìn
+    thấy được. Nguy hiểm là **dữ liệu cũ trông giống dữ liệu mới**.
+    """
+
+
+def _tre_phien(ngay_cuoi: str, moc: str) -> int:
+    """Số phiên (ngày làm việc) từ sau `ngay_cuoi` tới hết `moc`."""
+    ngay_cuoi, moc = str(ngay_cuoi)[:10], str(moc)[:10]
+    if moc <= ngay_cuoi:
+        return 0
+    return len(pd.bdate_range(
+        start=pd.Timestamp(ngay_cuoi) + pd.Timedelta(days=1),
+        end=pd.Timestamp(moc)))
+
+
 _STATUS = {"active": False, "note": "chưa nạp", "rows": 0}
 
 
@@ -70,14 +98,33 @@ def get_vni_df():
         return None
 
 
-def status() -> dict:
+def status(hom_nay: str | None = None) -> dict:
     """Bộ lọc có thật sự đang hoạt động không.
 
     Báo cáo nào nói "đã lọc theo xu hướng thị trường" đều phải gọi hàm này
     trước, nếu không nó đang khẳng định một điều có thể không đúng.
+
+    Bản cũ chỉ trả lời "df có nạp được không" — nên nó báo `active: True`
+    suốt 14 ngày trong khi cổng đóng cứng cho mọi ngày tương lai. Nay nó
+    trả về cả TUỔI của dữ liệu, và `active` là False khi dữ liệu quá hạn.
+    Một cổng dùng dữ liệu 13 ngày trước không phải cổng đang hoạt động.
     """
-    get_vni_df()
-    return dict(_STATUS)
+    df = get_vni_df()
+    st = dict(_STATUS)
+    if df is None or len(df) == 0:
+        return st
+
+    moc = str(hom_nay or date.today().isoformat())[:10]
+    cuoi = str(df["time"].iloc[-1])[:10]
+    tre = _tre_phien(cuoi, moc)
+    st["ngay_cuoi"] = cuoi
+    st["tuoi_phien"] = tre
+    if tre > TRE_TOI_DA_PHIEN:
+        st["active"] = False
+        st["note"] = (f"VN-INDEX QUÁ HẠN: dữ liệu tới {cuoi}, trễ {tre} phiên "
+                      f"so với {moc} (ngưỡng {TRE_TOI_DA_PHIEN}). Bộ lọc KHÔNG "
+                      f"dùng được — xem ô C1 trong docs/STATE.md.")
+    return st
 
 
 def is_vni_bullish(signal_date: str) -> bool:
@@ -87,7 +134,23 @@ def is_vni_bullish(signal_date: str) -> bool:
     """
     vni_df = get_vni_df()
     if vni_df is None or vni_df.empty:
+        # MẤT dữ liệu -> cho qua. Bộ lọc này chỉ CHẶN, nên khi không có dữ
+        # liệu, cho qua là lựa chọn ít gây hại hơn — và `status()` nói ra.
+        # Khác hẳn với dữ liệu CŨ, xử lý ngay bên dưới.
         return True
+
+    # Độ cũ đo so với NGÀY ĐANG CHẤM, không so với hôm nay: cache chạy tới
+    # 2026 mà chấm phiên 2024 thì không hề quá hạn. Đo sai chiều là mọi
+    # backtest nổ oan.
+    cuoi = str(vni_df["time"].iloc[-1])[:10]
+    tre = _tre_phien(cuoi, signal_date)
+    if tre > TRE_TOI_DA_PHIEN:
+        raise CacheQuaHanError(
+            f"VN-INDEX chỉ có dữ liệu tới {cuoi}, trễ {tre} phiên so với "
+            f"{str(signal_date)[:10]} (ngưỡng {TRE_TOI_DA_PHIEN}). Không đủ "
+            f"căn cứ để phán quyết về ngày này. Ô C1: dừng phiên quét. "
+            f"Cập nhật bằng `extend_history.py`, KHÔNG phải `download()` — "
+            f"download() bỏ qua mọi mã đã có cache.")
 
     sub = vni_df[vni_df["time"] <= signal_date]
     if sub.empty:

@@ -123,18 +123,11 @@ if not active_df.empty:
 else:
     best_row = df_res.iloc[0]
 
-print("\n" + "🏆"*35)
-print(" VÒNG TỐI ƯU HÓA HIỆU QUẢ TÀI SẢN CAO NHẤT (VỐN 1 TỶ ĐỒNG):")
-print(f"-> Vòng {best_row['loop']:02d} ({best_row['note']})")
-print(f"-> Ngưỡng mua tối ưu: {best_row['buy_threshold']} điểm")
-print(f"-> Tổng số lệnh đóng: {best_row['closed_trades']} lệnh")
-print(f"-> Tỷ lệ thắng: {best_row['win_rate']:.1f}%")
-print(f"-> Kỳ vọng lợi nhuận / lệnh: {best_row['expectancy']:+.2f}%")
-print(f"-> Mức sụt giảm tài sản tối đa (MaxDD): {best_row['max_dd']:.1f}%")
-print(f"-> GIÁ TRỊ TÀI SẢN CUỐI KỲ: {best_row['final_capital']:,.0f} VNĐ")
-sign = "+" if best_row['net_profit_vnd'] >= 0 else ""
-print(f"-> LỢI NHUẬN RÒNG THỰC TẾ: {sign}{best_row['net_profit_vnd']:,.0f} VNĐ ({best_row['net_pct']:+.2f}%)")
-print("🏆"*35 + "\n")
+# Bat bien 7: KHONG de cu mot dong nao trong bang tren lam "ket qua".
+# Bang o tren la TOAN DAI; lay dong lai cao nhat trong do la do do may
+# cua phep tim kiem. Xem dai_ket_qua.py va NGUYEN-TAC-DO-LUONG.md muc 7.
+from dai_ket_qua import CANH_BAO
+print(CANH_BAO)
 
 # KHÔNG ghi vào paper_trades.db. Vòng thắng ở đây là cực đại của 20 lần thử
 # trên CÙNG một bộ dữ liệu — đó là độ may của phép tìm kiếm, không phải lợi
@@ -158,4 +151,6 @@ best_args = Namespace(
     buy_threshold=best_row["buy_threshold"]
 )
 cmd_seed(best_args)
-print("✅ Đã cập nhật Sổ lệnh chính thức với tham số tối ưu 20 Vòng thành công!")
+print(f"✅ Đã ghi kết quả IN-SAMPLE ra {SCRATCH_DB}. Đây KHÔNG phải sổ lệnh thật.")
+print("   Tham số dùng ở đây là cực đại của N lần thử trên CÙNG bộ dữ liệu,")
+print("   nên theo bất biến 7 nó chưa dùng được để giao dịch.")

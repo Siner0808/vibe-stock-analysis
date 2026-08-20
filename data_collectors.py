@@ -28,6 +28,12 @@ class MarketDataPacket:
     news_packet: object = None   # NewsPacket | None
 
     # Metadata trạng thái
+    # bia-ok: NO DEBT DA BIET, thuoc Phase 2C cua ke hoach sua chua.
+    # Day chinh la goc cua 12.984/12.984 dong `decisions` ghi OK, va la ly do
+    # nhanh `elif quality != "OK"` trong consider_entry() khong bao gio dung.
+    # KHONG sua o day duoc: doi mac dinh thanh None hay "CHUA_DO" se lam
+    # consider_entry() chan MOI quyet dinh ngay lap tuc. Ke hoach yeu cau DO
+    # truoc (bao nhieu %% ma/phien se bi WARN/BLOCK), roi moi bat cong.
     data_quality: str = "OK"  # OK / PARTIAL / FAILED
     source_notes: list = field(default_factory=list)
 

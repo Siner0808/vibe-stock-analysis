@@ -21,6 +21,15 @@ import market_filter
 import sheets_store as ss
 from paper_trading import PaperTradingJournal, Status
 
+# ─────────────────────────────────────────────────────────────────────
+# Ô C5 — paper_trading.CHO_PHEP_MO_LENH_MOI mặc định TẮT, nên
+# consider_entry() không mở vị thế nào. File này dựng dữ liệu mẫu BẰNG
+# consider_entry(), nên không bật công tắc thì mọi fixture ở đây trả về sổ
+# RỖNG và các test vẫn xanh — xanh vô nghĩa.
+import paper_trading as _pt
+_pt.CHO_PHEP_MO_LENH_MOI = True
+
+
 market_filter.is_vni_bullish = lambda _d: True
 
 
@@ -57,6 +66,13 @@ def so_lenh_mau() -> PaperTradingJournal:
     # quyết định không vào lệnh
     j.consider_entry("VNM", "2026-03-05", make_result(score=40))
     j.consider_entry("SSI", "2026-03-06", make_result(score=30))
+    # Chốt: fixture dựng bằng consider_entry(), mà consider_entry() có thể
+    # từ chối mở lệnh vì nhiều lý do (cổng VN-INDEX, chất lượng dữ liệu, ô
+    # C5). Sổ rỗng thì mọi assert kiểu "không có giá trị X" đều đúng một
+    # cách vô nghĩa. Nổ ngay ở đây thay vì để test xanh nhầm.
+    assert j.all_trades(), (
+        "fixture trả về sổ RỖNG — consider_entry() đã từ chối mọi lệnh. "
+        "Kiểm paper_trading.CHO_PHEP_MO_LENH_MOI và market_filter.")
     return j
 
 
@@ -376,8 +392,22 @@ def test_bao_ro_khi_chua_cau_hinh():
     # thầm rơi về st.secrets hay file trên đĩa — nếu rơi, test mô phỏng
     # "chưa cấu hình" sẽ nói chuyện với Google Sheet THẬT mà không ai biết.
     assert ss.open_from_secrets({}) is None
-    assert ss.open_from_secrets({"GOOGLE_SHEET_KEY": ""}) is None
-    assert ss.open_from_secrets({"GOOGLE_SHEET_KEY": "x"}) is None  # thiếu creds
+
+    # ĐỔI HÀNH VI (19/08/2026, Phase 3C). Bản cũ trả None cho cả hai dòng
+    # dưới, tức gộp "cấu hình HỎNG" vào "chưa cấu hình". Chính docstring
+    # của open_from_secrets đã nói ngược lại: "cấu hình SAI thì phải nổ,
+    # vì 'tưởng đã sao lưu mà thật ra không' là trạng thái tệ nhất."
+    # Hậu quả của cách cũ: secrets.toml sai cú pháp / thiếu thư viện toml
+    # / key rỗng đều in "chưa cấu hình", quét bình thường, quyết định nằm
+    # lại local, rồi lần pull() thành công kế tiếp DELETE sạch.
+    for hong in ({"GOOGLE_SHEET_KEY": ""}, {"GOOGLE_SHEET_KEY": "x"}):
+        try:
+            ss.open_from_secrets(hong)
+        except ss.SheetError:
+            pass
+        else:
+            raise AssertionError(f"cấu hình hỏng {hong} bị nuốt thành None")
+
     tt = ss.trang_thai(None)
     assert tt["bat"] is False and "Chưa cấu hình" in tt["ghi_chu"]
     print("PASS  chưa cấu hình -> tắt sạch, nói rõ lý do")
@@ -400,6 +430,189 @@ def test_sheet_rong_thi_keo_ve_so_rong():
     assert bao_cao == {"trades": 0, "decisions": 0}
     assert moi.all_trades() == []
     print("PASS  sheet rỗng -> sổ rỗng, không vỡ")
+
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 3B — phát hiện dòng bị bỏ sót thay vì mất im lặng
+# ─────────────────────────────────────────────────────────────────────
+def test_push_no_khi_co_dong_local_khong_co_tren_sheet():
+    """Đúng cơ chế đã làm mất 70 dòng ngày 14/08/2026.
+
+    Hai nơi cùng quét. Sheet đi tới seq 9.422 trong khi sổ máy còn ở
+    9.142; máy quét xong sinh seq 9.143–9.212, mà push() chỉ đẩy dòng có
+    seq > 9.422 — nên 70 quyết định vừa ghi bị BỎ QUA. Không nổ, không
+    log, chỉ in "thêm 0 quyết định mới" rồi exit 0. Actions xanh. Lần
+    pull() kế tiếp DELETE sạch 70 dòng đó.
+
+    Bước "đối chiếu sổ local với kho ngoài" trong workflow không bắt được
+    vì nó chỉ so bảng `trades`.
+    """
+    sheet = ss.InMemorySheet()
+
+    # Sheet đã có 5 quyết định (seq 1..5)
+    goc = so_lenh_mau()
+    ss.push(goc.db, sheet)
+
+    # Sổ máy đang ở trạng thái CŨ hơn sheet (seq 1..3), rồi tự sinh thêm
+    # seq 4 với nội dung KHÁC dòng seq 4 đang nằm trên sheet.
+    may = PaperTradingJournal(":memory:")
+    ss.pull(may.db, sheet)
+    may.db.execute("DELETE FROM decisions WHERE seq > 3")
+    may.db.execute(
+        "INSERT INTO decisions (seq, at, symbol, signal_date, score,"
+        " recommendation, acted, skip_reason, components, reasons,"
+        " data_quality) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        (4, 0.0, "ZZZ", "2026-08-14", 61, "MUA", 0, "thu", "{}", "[]", "OK"))
+    may.db.commit()
+
+    try:
+        ss.push(may.db, sheet)
+    except ss.SheetError as e:
+        assert "4" in str(e), f"phải nói rõ seq nào bị bỏ sót: {e}"
+    else:
+        raise AssertionError(
+            "push() BỎ QUA dòng local không có trên sheet mà không báo — "
+            "đúng cơ chế đã làm mất 70 dòng ngày 14/08")
+    print("PASS  push() nổ khi có dòng local không có trên sheet")
+
+
+def test_push_binh_thuong_van_chay_khi_khong_thieu_dong():
+    """Bộ phát hiện không được báo nhầm: đẩy hai lần liên tiếp phải êm."""
+    sheet = ss.InMemorySheet()
+    goc = so_lenh_mau()
+    ss.push(goc.db, sheet)
+    bao_cao = ss.push(goc.db, sheet)
+    assert bao_cao["decisions_moi"] == 0, bao_cao
+    assert bao_cao.get("decisions_bo_sot", 0) == 0, bao_cao
+    print("PASS  đẩy lại lần hai không báo nhầm")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 3C — "chưa cấu hình" KHÁC "cấu hình hỏng"
+# ─────────────────────────────────────────────────────────────────────
+def test_chua_cau_hinh_thi_tra_none():
+    """Không có credential thì tắt sạch — người dùng local không bắt buộc
+    phải có Google Cloud."""
+    assert ss.open_from_secrets({}) is None
+    print("PASS  chưa cấu hình -> None, chạy tiếp bình thường")
+
+
+def test_cau_hinh_hong_thi_NO_chu_khong_im_lang():
+    """Cấu hình SAI phải nổ, không được lẫn với "chưa cấu hình".
+
+    Bản cũ nuốt mọi lỗi bằng `except Exception: pass` và
+    `except (KeyError, TypeError): return None`. Hệ quả: secrets.toml sai
+    cú pháp, thiếu thư viện `toml` (không có trong requirements.txt), hoặc
+    key rỗng — cả ba đều in "Kho ngoài chưa cấu hình", quét bình thường,
+    quyết định nằm lại local, rồi lần pull() thành công kế tiếp DELETE
+    sạch. Exit code 0, không dòng nào chứa chữ "LỖI".
+    """
+    for mo_ta, cau_hinh in [
+        ("có key nhưng thiếu gcp_service_account",
+         {"GOOGLE_SHEET_KEY": "abc123"}),
+        ("có gcp_service_account nhưng thiếu key",
+         {"gcp_service_account": {"client_email": "x@y.z"}}),
+        ("key rỗng", {"GOOGLE_SHEET_KEY": "", "gcp_service_account": {"a": 1}}),
+    ]:
+        try:
+            ss.open_from_secrets(cau_hinh)
+        except ss.SheetError:
+            continue
+        raise AssertionError(
+            f"cấu hình hỏng ({mo_ta}) bị nuốt thành 'chưa cấu hình'")
+    print("PASS  cấu hình hỏng nổ, không lẫn với chưa cấu hình")
+
+
+
+def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
+    """File cấu hình CÓ mặt mà không đọc được thì phải nổ.
+
+    Đây là nửa quan trọng hơn của Phase 3C, và bản sửa đầu của tôi bỏ sót:
+    `except Exception: pass` bọc quanh `import toml` + `toml.load()`.
+
+    Hai đường vào thực tế:
+      • `toml` KHÔNG có trong requirements.txt. Máy nào thiếu thư viện đó
+        thì secrets.toml bị bỏ qua lặng lẽ -> "chưa cấu hình" -> run_daily
+        quét mà KHÔNG kéo sổ về trước. Đúng tiền đề của sự cố 14/08.
+      • secrets.toml sai cú pháp sau một lần sửa tay -> y hệt.
+
+    Cả hai đều không phân biệt được với "người dùng local chưa dựng Google
+    Cloud", nên không ai biết kho ngoài đã tắt.
+    """
+    import pathlib
+    import sys
+    import types
+
+    goc = pathlib.Path(ss.__file__).parent
+    thu_muc = goc / ".streamlit"
+    da_co = thu_muc.exists()
+    thu_muc.mkdir(exist_ok=True)
+    f = thu_muc / "secrets.toml"
+    da_co_file = f.exists()
+    if da_co_file:
+        luu = f.read_text(encoding="utf-8")
+
+    toml_that = sys.modules.get("toml")
+
+    # Ghim st.secrets rỗng — cùng liều thuốc test_no_fabricated_data.py dùng.
+    # open_from_secrets() đọc st.secrets TRƯỚC khi đọc file, và streamlit
+    # CACHE secrets sau lần chạm đầu tiên. Trên máy có secrets.toml thật,
+    # một test chạy trước đã nạp bản HỢP LỆ vào cache; test này làm hỏng
+    # file trên đĩa nhưng `"GOOGLE_SHEET_KEY" in st.secrets` vẫn True, nên
+    # nhánh đọc-file — đúng nhánh đang đo — không bao giờ chạy tới. Tệ hơn:
+    # hàm dựng GoogleSheet bằng credential THẬT rồi gọi mạng tới Sheet
+    # production, trong khi cả bộ test này được thiết kế chạy offline.
+    # Hệ quả: xanh khi chạy riêng, đỏ khi chạy cả bộ, mà mã không hề đổi.
+    # Rỗng = "chưa cấu hình", đúng bối cảnh run_daily.py/cron chạy ngoài
+    # Streamlit — chính bối cảnh test này muốn đo.
+    saved_st = sys.modules.get("streamlit")
+    st_gia = types.ModuleType("streamlit")
+    st_gia.secrets = {}
+    sys.modules["streamlit"] = st_gia
+    try:
+        f.write_text('GOOGLE_SHEET_KEY = "chua dong ngoac\n', encoding="utf-8")
+
+        # (a) toml có mặt nhưng file sai cú pháp
+        try:
+            ss.open_from_secrets()
+        except ss.SheetError:
+            pass
+        else:
+            raise AssertionError(
+                "secrets.toml sai cú pháp bị nuốt thành 'chưa cấu hình'")
+
+        # (b) thiếu thư viện toml -- import nổ ModuleNotFoundError
+        hong = types.ModuleType("toml")
+        def _no(*a, **k):
+            raise ModuleNotFoundError("No module named 'toml'")
+        hong.load = _no
+        sys.modules["toml"] = hong
+        try:
+            ss.open_from_secrets()
+        except ss.SheetError:
+            pass
+        else:
+            raise AssertionError(
+                "thiếu thư viện toml bị nuốt thành 'chưa cấu hình'")
+    finally:
+        sys.modules.pop("streamlit", None)
+        if saved_st is not None:
+            sys.modules["streamlit"] = saved_st
+        if toml_that is not None:
+            sys.modules["toml"] = toml_that
+        else:
+            sys.modules.pop("toml", None)
+        if da_co_file:
+            f.write_text(luu, encoding="utf-8")
+        else:
+            f.unlink(missing_ok=True)
+            if not da_co:
+                try:
+                    thu_muc.rmdir()
+                except OSError:
+                    pass
+    print("PASS  secrets.toml không đọc được -> nổ, không lẫn với chưa cấu hình")
 
 
 if __name__ == "__main__":

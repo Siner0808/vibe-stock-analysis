@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -74,6 +75,47 @@ def guard_not_real_ledger(path: str, *, caller: str) -> None:
 
 # ── Quy tắc mặc định ────────────────────────────────────────────────
 BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
+
+# ── Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG ──────────────────────────────────────
+# Mặc định TẮT: hệ thống vẫn quét, vẫn chấm điểm, vẫn ghi quyết định, vẫn
+# theo dõi và đóng các vị thế đang mở — nhưng KHÔNG mở vị thế mới.
+#
+# Vì sao không phải 50,0 và cũng không phải 62. Đo ngày 20/08/2026 trên 8
+# trong 20 sổ còn sót của chính lần chạy sinh ra +636,11%:
+#
+#   win rate toàn dải ngưỡng 48→59   28,2% → 30,7%   (chênh 2,5 điểm)
+#   tương quan ngưỡng ↔ số lệnh      −0,999
+#   tương quan số lệnh ↔ vốn đỉnh    +0,990
+#   ngưỡng 50 hơn ngưỡng 48          1,57/636 = 0,25%
+#
+# Ngưỡng KHÔNG cải thiện chất lượng chọn mã — win rate phẳng chứng minh
+# điều đó, và nó còn cao hơn ở ngưỡng 58–59. Thứ ngưỡng điều khiển là số
+# lệnh, và số lệnh điều khiển đòn bẩy. "Quán quân" chỉ là vòng ôm nhiều vị
+# thế cùng lúc nhất. Thêm nữa: alpha in-sample +0,090% (KTC chứa 0) và
+# alpha ngoài mẫu 07/08 là −0,63% (cũng chứa 0).
+#
+# Bật lại khi Phase 5D sinh ra một ngưỡng chọn trên khoảng A và đo trên
+# khoảng B, A ∩ B = ∅. Không sớm hơn.
+#
+# Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính logic
+# vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
+CHO_PHEP_MO_LENH_MOI = False
+
+#: Muc chat luong du lieu con DUNG DUOC de vao lenh.
+#:
+#: "OK" la sach; "WARN" la co dau hieu la nhung van dung duoc (sau khi noi
+#: lai cache ngay 20/08, ca 71 ma cua ro deu 0% BLOCK va 11,3% WARN, toan
+#: bo la PRICE_JUMP). Moi muc KHAC deu chan -- ke ca mot chuoi la khong
+#: nam trong bang Severity, vi "khong biet muc nay la gi" phai nghieng ve
+#: phia chan chu khong phai phia cho qua.
+#:
+#: Ban cu chan moi thu khac "OK", tuc gop WARN vao cung BLOCK. Ban truoc do
+#: nua thi nhanh nay la CODE CHET vi packet luon mang "OK" cung.
+MUC_CHAT_LUONG_DUNG_DUOC = frozenset({"OK", "WARN"})
+
+LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
+            "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
+            "bằng walk-forward hợp lệ")
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
@@ -129,7 +171,24 @@ class Trade:
 class PaperTradingJournal:
     """Sổ lệnh giấy, lưu SQLite. Bảng quyết định chỉ-thêm."""
 
-    def __init__(self, path: str = DB_PATH) -> None:
+    def __init__(self, path: str = DB_PATH, *,
+                 cho_phep_so_that: bool = False) -> None:
+        """Mở sổ. Mở `paper_trades.db` phải khai báo `cho_phep_so_that=True`.
+
+        Mặc định TỪ CHỐI. Bản cũ đặt gác ở phía người gọi —
+        `guard_not_real_ledger(SCRATCH_DB, ...)` — nên nó chỉ được gọi ở
+        3/7 script tối ưu, và mỗi lần đều truyền hằng số tên file scratch,
+        tức không bao giờ có thể kích hoạt. Gác ở phía người gọi là lời tự
+        khai; gác ở đây là cái cửa, và script viết sau này cũng phải đi qua.
+        """
+        if not cho_phep_so_that:
+            import sys as _sys
+            try:
+                nguoi_goi = Path(_sys._getframe(1).f_code.co_filename).name
+            except Exception:
+                nguoi_goi = "?"
+            guard_not_real_ledger(path, caller=nguoi_goi)
+        self.duong_dan = str(path)
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA synchronous = OFF;")
@@ -185,16 +244,22 @@ class PaperTradingJournal:
         threshold = BUY_THRESHOLD if buy_threshold is None else buy_threshold
 
         skip = None
-        try:
-            from market_filter import is_vni_bullish
-            vni_ok = is_vni_bullish(signal_date)
-        except Exception:
-            vni_ok = True
+        # KHONG bat Exception o day nua. Ban cu nuot MOI loi thanh
+        # `vni_ok = True`, tuc "hoi cong that bai" bien thanh "cong cho qua".
+        # Cong VN-INDEX qua han nay nem CacheQuaHanError va no PHAI di ra
+        # ngoai de dung ca phien quet -- do la o C1.
+        from market_filter import is_vni_bullish
+        vni_ok = is_vni_bullish(signal_date)
 
         if not vni_ok:
             skip = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"
-        elif quality != "OK":
-            skip = f"chất lượng dữ liệu {quality!r}"
+        elif str(quality).upper() not in MUC_CHAT_LUONG_DUNG_DUOC:
+            # CHAN theo muc BLOCK, khong chan ca WARN. Ban cu chan moi thu
+            # khac "OK" -- gop hai muc lam mot la mat thong tin: WARN nghia
+            # la "co dau hieu la, van dung duoc", BLOCK nghia la "khong dung
+            # duoc". Sau khi noi lai cache ngay 20/08, ro 71 ma con 0% BLOCK
+            # va 11,3% WARN (deu la PRICE_JUMP).
+            skip = f"chất lượng dữ liệu {quality!r} — không dùng được"
         elif score < threshold:
             skip = f"điểm {score} dưới ngưỡng {threshold:g}"
         elif self.open_position(symbol) is not None:
@@ -205,6 +270,12 @@ class PaperTradingJournal:
             sl, tp = risk.get("stop_loss_price"), risk.get("take_profit_price")
             if not sl or not tp:
                 skip = "thiếu stop-loss/take-profit"
+
+        # Chốt cuối cùng, ĐẶT SAU mọi cổng khác có chủ đích: lý do ghi vào sổ
+        # khi đó cho biết lệnh này LẼ RA đã mở. Đặt trước thì cổng VN-INDEX và
+        # cổng chất lượng dữ liệu không còn thống kê được nữa.
+        if skip is None and not CHO_PHEP_MO_LENH_MOI:
+            skip = LY_DO_C5
 
         if skip:
             self.record_decision(symbol, signal_date, result, False, skip)
@@ -309,6 +380,15 @@ class PaperTradingJournal:
                 if new_sl > sl:
                     self.db.execute("UPDATE trades SET stop_loss=? WHERE id=?",
                                     (new_sl, r["id"]))
+                    # Commit NGAY. Bản cũ chỉ commit khi có lệnh ĐÓNG, nên
+                    # phiên nào chỉ nâng stop mà không đóng lệnh thì lần
+                    # nâng đó biến mất lúc đóng kết nối. Đo được: stop
+                    # 100,0 trong phiên -> 90,0 sau khi đóng. Nặng hơn:
+                    # run_daily.py gọi push() TRƯỚC db.close(), nên Sheets
+                    # nhận stop mới còn DB local rollback về stop cũ, và
+                    # pull() từ chối ghi đè sổ không rỗng -> hai kho lệch
+                    # nhau vĩnh viễn.
+                    self.db.commit()
 
             if reason:
                 if reason == ExitReason.STOP_LOSS:
@@ -323,7 +403,8 @@ class PaperTradingJournal:
                             # thời gian ở get_penalty_for_pattern.
                             engine.record_sl_trade(
                                 symbol, int(r["entry_score"] or 0), breakdown,
-                                reasons, signal_date=r["signal_date"])
+                                reasons, signal_date=r["signal_date"],
+                                trade_id=r["id"], nguon=self.duong_dan)
                     except Exception:
                         pass
 

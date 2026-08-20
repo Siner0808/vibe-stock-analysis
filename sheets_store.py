@@ -252,13 +252,40 @@ def push(db: sqlite3.Connection, backend: SheetBackend,
     # ── decisions: chỉ thêm phần mới ─────────────────────────────────
     hien_co = backend.read_rows(TAB_DECISIONS)
     seq_lon_nhat = 0
+    # Khoá nhận dạng là (seq, symbol, signal_date), KHÔNG phải mình seq.
+    # Khi hai nơi cùng ghi, chúng sinh ra cùng DẢI seq cho nội dung khác
+    # nhau — so mình seq thì thấy "đủ" trong khi thật ra là hai bản ghi
+    # khác nhau đội cùng một số.
+    tren_sheet: set[tuple] = set()
     if hien_co and hien_co[0]:
         _kiem_tra_header(TAB_DECISIONS, hien_co[0], DECISION_COLS)
         for r in hien_co[1:]:
             if r and r[0] != "":
-                seq_lon_nhat = max(seq_lon_nhat, int(r[0]))
+                v = int(r[0])
+                tren_sheet.add((v, str(r[2]), str(r[3])))
+                seq_lon_nhat = max(seq_lon_nhat, v)
     else:
         backend.write_all(TAB_DECISIONS, [list(DECISION_COLS)])
+
+    # Dòng local có seq <= mốc trên sheet nhưng KHÔNG có trên sheet thì
+    # vĩnh viễn không bao giờ được đẩy — `WHERE seq > seq_lon_nhat` bỏ qua
+    # chúng. Đây đúng là cơ chế đã làm mất 70 dòng ngày 14/08/2026: sheet
+    # ở 9.422, sổ máy ở 9.142, máy sinh seq 9.143–9.212, push() in "thêm 0
+    # quyết định mới" rồi exit 0, và lần pull() kế tiếp DELETE sạch chúng.
+    # Bước đối chiếu trong workflow không bắt được vì chỉ so bảng `trades`.
+    bo_sot = [int(r[0]) for r in db.execute(
+        "SELECT seq, symbol, signal_date FROM decisions WHERE seq <= ?"
+        " ORDER BY seq", (seq_lon_nhat,)).fetchall()
+        if (int(r[0]), str(r[1]), str(r[2])) not in tren_sheet]
+    if bo_sot:
+        raise SheetError(
+            f"{len(bo_sot)} quyết định trong sổ local KHÔNG có trên sheet và "
+            f"sẽ không bao giờ được đẩy (seq {bo_sot[0]}"
+            f"{'..' + str(bo_sot[-1]) if len(bo_sot) > 1 else ''}, "
+            f"mốc sheet {seq_lon_nhat}).\n"
+            f"Nghĩa là hai nơi cùng ghi mà không kéo trước. Kéo sổ về "
+            f"(restore_journal_from_google_sheets) rồi quét lại, ĐỪNG đẩy "
+            f"chồng lên — xem NGUYEN-TAC-DO-LUONG.md.")
 
     moi = db.execute(
         f"SELECT {', '.join(DECISION_COLS)} FROM decisions"
@@ -269,7 +296,7 @@ def push(db: sqlite3.Connection, backend: SheetBackend,
             [[_to_cell(c, r[c]) for c in DECISION_COLS] for r in moi])
 
     return {"trades": len(rows), "decisions_moi": len(moi),
-            "decisions_da_co": seq_lon_nhat}
+            "decisions_da_co": seq_lon_nhat, "decisions_bo_sot": 0}
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -355,23 +382,60 @@ def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
         # Chạy ngoài Streamlit (run_daily.py, cron) thì không có st.secrets,
         # đọc thẳng file cấu hình.
         if secrets is None:
-            try:
-                import pathlib
-                import toml
-                p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
-                if p.exists():
+            import pathlib
+            p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+            if p.exists():
+                # File CÓ mặt thì mọi lỗi đọc nó đều là "cấu hình hỏng",
+                # không phải "chưa cấu hình". Bản cũ bọc `except Exception:
+                # pass` quanh cả `import toml` lẫn `toml.load()`, nên hai
+                # tình huống rất thật bị nuốt: (a) `toml` KHÔNG có trong
+                # requirements.txt nên máy nào thiếu nó thì secrets.toml bị
+                # bỏ qua lặng lẽ; (b) file sai cú pháp sau một lần sửa tay.
+                # Cả hai đều dẫn tới run_daily.py quét mà KHÔNG kéo sổ về
+                # trước — đúng tiền đề của sự cố mất 70 dòng ngày 14/08.
+                try:
+                    import toml
+                except ModuleNotFoundError as e:
+                    raise SheetError(
+                        f"Có {p} nhưng thiếu thư viện `toml` ({e}). Kho ngoài "
+                        f"sẽ TẮT lặng lẽ và phiên quét chạy trên sổ cũ. "
+                        f"Cài: pip install toml") from e
+                try:
                     secrets = toml.load(str(p))
-            except Exception:
-                pass
+                except Exception as e:
+                    raise SheetError(
+                        f"Không đọc được {p}: {type(e).__name__}: {e}. "
+                        f"Đây KHÁC với 'chưa cấu hình' — sửa file rồi chạy "
+                        f"lại, đừng quét tiếp.") from e
 
-    try:
-        key = secrets["GOOGLE_SHEET_KEY"]
-        creds = secrets["gcp_service_account"]
-    except (KeyError, TypeError):
+    # "Chưa cấu hình" và "cấu hình hỏng" là HAI trạng thái khác nhau.
+    # Bản cũ gộp cả hai thành None, nên secrets.toml sai cú pháp, thiếu
+    # thư viện `toml` (không có trong requirements.txt) hay key rỗng đều
+    # in "Kho ngoài chưa cấu hình", quét bình thường, rồi lần pull() thành
+    # công kế tiếp DELETE sạch phần vừa ghi. Exit code 0, không dòng nào
+    # chứa chữ "LỖI".
+    if not isinstance(secrets, dict) and not hasattr(secrets, "get"):
         return None
 
+    co_key = "GOOGLE_SHEET_KEY" in secrets
+    co_creds = "gcp_service_account" in secrets
+    if not co_key and not co_creds:
+        return None                       # chưa cấu hình — tắt sạch, đúng ý
+
+    if not co_key or not co_creds:
+        raise SheetError(
+            "Cấu hình kho ngoài KHÔNG đầy đủ: thiếu "
+            + ("GOOGLE_SHEET_KEY" if not co_key else "[gcp_service_account]")
+            + ". Đây KHÁC với 'chưa cấu hình' — nửa vời nghĩa là bạn tưởng "
+              "đã sao lưu mà thật ra không. Xem .streamlit/secrets.toml.example.")
+
+    key = secrets["GOOGLE_SHEET_KEY"]
+    creds = secrets["gcp_service_account"]
     if not key:
-        return None
+        raise SheetError(
+            "GOOGLE_SHEET_KEY rỗng. Bản cũ coi đây là 'chưa cấu hình' và "
+            "chạy tiếp — mọi quyết định ghi ra sẽ nằm lại local rồi bị "
+            "lần pull() kế tiếp xoá.")
 
     creds = dict(creds)
     # secrets.toml giữ private_key nhiều dòng bằng \n theo nghĩa đen
