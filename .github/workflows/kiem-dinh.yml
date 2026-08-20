@@ -40,7 +40,22 @@ jobs:
         # Runner sạch: không secrets.toml, không paper_trades.db, không
         # sl_pattern_memory.json, không backtest/cache/ — tất cả đều
         # gitignore. Bộ test được viết để chạy trong đúng điều kiện đó.
-        run: python -m pytest tests/ -q
+        #
+        # In tên test đỏ ra dưới dạng `::error::` để chúng thành ANNOTATION.
+        # Log của Actions cần đăng nhập mới đọc được, còn annotation thì
+        # công khai qua API. Không có nó thì một lượt CI đỏ chỉ để lại đúng
+        # dòng "Process completed with exit code 1" — không đủ để sửa.
+        run: |
+          set +e
+          python -m pytest tests/ -q --tb=short > kq.txt 2>&1
+          ma=$?
+          cat kq.txt
+          grep '^FAILED' kq.txt | while read -r d; do echo "::error::$d"; done
+          if [ "$ma" -ne 0 ] && ! grep -q '^FAILED' kq.txt; then
+            echo "::error::pytest thoát $ma nhưng không có dòng FAILED nào — xem log đầy đủ"
+            tail -30 kq.txt | while read -r d; do echo "::error::$d"; done
+          fi
+          exit $ma
 
       - name: Quét mẫu bịa số liệu toàn repo
         # Hook .claude/settings.json là PostToolUse và chỉ bắt Write/Edit
