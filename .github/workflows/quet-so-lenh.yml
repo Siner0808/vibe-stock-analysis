@@ -97,6 +97,63 @@ jobs:
         # run_daily.py tự đẩy lên Google Sheets ở cuối.
         run: python run_daily.py
 
+      - name: Cảnh báo chạm SL/TP trong phiên
+        # Chạy SAU bước quét để sổ lệnh đã cập nhật.
+        #
+        # KHÔNG BAO GIỜ LÀM ĐỎ LƯỢT CHẠY — kể cả khi có cảnh báo, kể cả khi
+        # chính nó hỏng. `tools/chuong_bao_quet.py` đếm
+        # `conclusion == "success"` để biết một ngày có được quét không. Nếu
+        # chạm stop-loss làm job đỏ thì chuông sẽ báo "ngày này không có lượt
+        # quét nào" — một báo động giả sinh ra từ một cảnh báo thật, và nó
+        # che mất đúng thứ chuông sinh ra để canh.
+        #
+        # Vì thế cảnh báo đi bằng `::warning::` và `$GITHUB_STEP_SUMMARY`
+        # (hiện ngay trên trang lượt chạy), không đi bằng mã thoát.
+        #
+        # HỆ QUẢ PHẢI BIẾT: GitHub chỉ gửi email khi workflow theo lịch THẤT
+        # BẠI, nên cảnh báo này KHÔNG tự tới hộp thư. Muốn có email thì cần
+        # một đường thông báo riêng — chưa dựng.
+        if: always()
+        run: |
+          python - <<'PYCB' || true
+          from datetime import datetime, timedelta, timezone
+          import os
+
+          import canh_bao_noi_phien as cb
+          import intraday_data as idd
+
+          VN = timezone(timedelta(hours=7))
+          bay_gio = datetime.now(VN)
+          ngay = bay_gio.strftime("%Y-%m-%d")
+
+          def tai(sym, n):
+              return idd.tai(sym, n, n, "30m", dung_cache=False)
+
+          r = cb.quet("paper_trades.db", ngay, bay_gio, tai)
+          print(f"Vị thế đang mở: {r['so_vi_the']}")
+
+          dong = []
+          for c in r["canh_bao"]:
+              print(f"::warning::{c.dong_log()}")
+              dong.append(f"- **{c.symbol}** chạm {c.loai} `{c.muc:,.0f}` "
+                          f"lúc `{c.luc_nen}` — trễ {c.tre_phut:.0f} phút")
+          for e in r["loi"]:
+              print(f"::warning::không kiểm được — {e}")
+
+          tom_tat = os.environ.get("GITHUB_STEP_SUMMARY")
+          if tom_tat:
+              with open(tom_tat, "a", encoding="utf-8") as f:
+                  if dong:
+                      print("### ⚠️ Chạm SL/TP trong phiên", file=f)
+                      for d in dong:
+                          print(d, file=f)
+                  elif r["so_vi_the"]:
+                      print(f"### Nội phiên: {r['so_vi_the']} vị thế mở, "
+                            f"chưa chạm SL/TP", file=f)
+
+          if not r["canh_bao"] and not r["loi"]:
+              print("Không vị thế nào chạm SL/TP.")
+          PYCB
       - name: Đối chiếu sổ local với kho ngoài
         # Quét xong mà sheet không khớp sổ local nghĩa là cú đẩy hỏng —
         # phải biết ngay, vì "tưởng đã sao lưu mà thật ra không" là trạng
