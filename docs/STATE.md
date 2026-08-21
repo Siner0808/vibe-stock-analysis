@@ -867,6 +867,41 @@ Scheduler chạy lúc 09:10 và ghi 70 quyết định **trong lúc tôi đang s
 > Cả 2/29 lượt đỏ đều chết ở đúng bước đó, sau 2 giây, và bước quét bị
 > skipped — nhịp đó không quét gì cả.
 
+#### 21/08/2026 — điều kiện đã đủ, và một phép đo làm đổi cách hiểu C2
+
+Retry đã có: `google_sheets_sync.keo_so_co_thu_lai()`, workflow gọi nó,
+8 test khoá ở `tests/test_keo_so_thu_lai.py`. Test then chốt nhất là điều
+kiện tiên quyết của mọi cơ chế thử lại — *một lần `pull()` hỏng để lại sổ
+y như trước*. Thiếu tính chất đó thì thử lại còn tệ hơn không thử. Test
+đó được kiểm bằng đột biến: sửa `pull()` thành DELETE+commit trước lời
+gọi mạng thứ hai thì test đỏ `(0,1) != (1,1)`.
+
+Task Scheduler **đã ở trạng thái Disabled** khi kiểm (chạy lần cuối 20/08
+lúc 10:40), tức C2 đã xảy ra trên thực tế trước khi điều kiện của nó đủ.
+
+Đo lại độ tin cậy của lịch GitHub trên 35 nhịp thay vì 1 ngày:
+
+```
+Ngày làm việc đủ (17→20/08) : 6/12 nhịp mỗi ngày = 50%
+Nổ đúng phút đã hẹn         : 1/32 lần
+Trễ điển hình               : 5 → 90 phút
+Lượt sau giờ đóng cửa       : 4/4 ngày, 15:29→15:33 giờ VN
+```
+
+Cách hiểu cũ ("Actions chạy đều, máy thì phụ thuộc máy có thức") không
+sai nhưng thiếu. Đúng hơn là: **Actions rơi mất khoảng một nửa số nhịp
+trong phiên, nhưng chưa ngày nào lỡ lượt sau đóng cửa** — và vì
+`evaluate_open()` chấm trên nến ngày, lượt đó mới là lượt quyết định.
+
+Hai điều C2 chưa xử lý, ghi ra để không quên:
+
+1. **Không có lưới dự phòng và không có chuông.** Một ngày mà mọi lượt
+   Actions đều hỏng thì ngày đó không được quét, và không ai biết. Trước
+   đây máy cục bộ vô tình làm lưới; giờ không còn.
+2. **Việc né giờ nghỉ trưa trong cron không còn hiệu lực.** Nhịp 04:30
+   UTC bị trễ đã rơi vào 05:03 → 05:56 UTC, tức 12:03 → 12:56 giờ VN.
+   Không gây hại (giá đứng yên) nhưng ý định trong mã không khớp thực tế.
+
 ### C3 — App cloud: **GIỮ "chưa có dữ liệu"**
 
 Đã smoke test hôm nay với `paper_trades.db` đổi tên: tab Tài khoản chỉ còn

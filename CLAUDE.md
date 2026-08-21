@@ -128,16 +128,45 @@ Cấu hình ở `.streamlit/secrets.toml` (`GOOGLE_SHEET_KEY` +
 `run_daily.py` tự đẩy cuối mỗi phiên quét; tab Sổ lệnh có nút đẩy tay và
 hiện trạng thái kho.
 
-## Quét tự động — HAI nơi cùng chạy
+## Quét tự động — nay chỉ còn MỘT nơi (21/08/2026)
 
-| Nơi | Nhịp | Chạy khi |
+| Nơi | Nhịp khai báo | Trạng thái |
 |---|---|---|
-| Task Scheduler (`VibeStock_QuetPhien`) | 09:10 → 15:10, mỗi 30 phút, T2–T6 | máy bật |
-| GitHub Actions (`.github/workflows/quet-so-lenh.yml`) | `*/30 2-8 * * 1-5` UTC | luôn luôn |
+| Task Scheduler (`VibeStock_QuetPhien`) | 09:10 → 15:10, mỗi 30 phút, T2–T6 | **Disabled** — chạy lần cuối 20/08 lúc 10:40 |
+| GitHub Actions (`quet-so-lenh.yml`) | `0,30 2-4` và `0,30 6-8` UTC, T2–T6 | đang chạy |
 
-Đo ngày 14/08/2026: lịch GitHub chỉ nổ ~1/7 nhịp — nó là "cố gắng hết sức",
-ưu tiên thấp, bỏ nhịp khi tải cao. Máy chạy đúng phút nhưng cần bật. Hai
-nơi bù cho nhau. Giờ lệch nhau 10 phút để tránh chạy trùng.
+Đo lại trên 35 nhịp (13→21/08/2026), thay cho con số "~1/7" ghi ngày
+14/08 — con số đó đo trên một ngày duy nhất và **sai**:
+
+```
+Ngày làm việc đủ (17→20/08) : 6/12 nhịp mỗi ngày  = 50%
+Toàn giai đoạn              : 32/84               = 38%
+Nổ đúng phút đã hẹn         : 1/32 lần
+Trễ điển hình               : 5 → 90 phút
+```
+
+Ba hệ quả, cái thứ ba quan trọng nhất:
+
+1. **Mất khoảng một nửa số nhịp.** GitHub gộp nhịp trễ: nhịp sau tới khi
+   nhịp trước chưa chạy thì nhịp trước bị bỏ.
+2. **Việc né giờ nghỉ trưa không còn hiệu lực.** Cron cố tình bỏ trống
+   giờ 05 UTC (11:30–13:00 ICT), nhưng nhịp 04:30 bị trễ đã rơi vào
+   05:03, 05:04, 05:25 và 05:56 UTC — tức 12:03 → 12:56 giờ VN.
+3. **"Giờ lệch nhau 10 phút để tránh chạy trùng" là bảo vệ tưởng tượng.**
+   Với sai số ±90 phút, hai nơi có thể chạy chồng bất cứ lúc nào. Cơ chế
+   `concurrency` trong workflow chỉ ngăn Actions chồng Actions, nó không
+   biết gì về máy local. Cái thật sự giữ an toàn là kéo-trước-khi-quét
+   cộng chốt chặn trong `push()`, không phải khoảng lệch giờ.
+
+**Điều đang còn đúng: mỗi ngày đều có ít nhất một lượt quét sau giờ đóng
+cửa.** 4/4 ngày có lượt chạy trong 15:29 → 15:33 giờ VN (đóng cửa 15:00).
+Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lượt quyết
+định — nhịp trong phiên chủ yếu để thấy sớm, không đổi kết quả.
+
+Đó là lý do tắt Task Scheduler chấp nhận được. Nhưng nó cũng nghĩa là
+**không còn lưới dự phòng**: một ngày mà mọi lượt Actions đều hỏng thì
+ngày đó không được quét, và không có gì báo. Chưa có cảnh báo cho tình
+huống này — xem `docs/STATE.md` ô C2.
 
 **Điều kiện để hai nơi cùng ghi mà không hỏng: PHẢI kéo từ Sheets trước
 khi quét.** `run_daily.py` làm việc đó ngay đầu `execute_daily_scan()`.
