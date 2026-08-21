@@ -144,8 +144,15 @@ class MasterConsensusAgent:
                     "momentum_score": int(momentum_norm),
                     "volume_score": int(volume_norm)
                 }
+                _phien = self._session_date(packet)
+                # HAI truc thoi gian, hai muc dich khac nhau:
+                #   as_of          -> chong nhin trom tuong lai (bat bien 1)
+                #   phien_hien_tai -> giu tinh tai lap (bat bien 2)
+                # Mot minh as_of khong du: mot lenh tin hieu thang 1 dong bang
+                # cat lo hom nay se LOT hang rao thu nhat, roi lam lech diem
+                # cua chinh phien hom nay. Do la su co 47-vs-59.
                 sl_penalty = engine.get_penalty_for_pattern(
-                    current_bd, as_of=self._session_date(packet))
+                    current_bd, as_of=_phien, phien_hien_tai=_phien)
         except Exception:
             pass
 

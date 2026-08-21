@@ -404,7 +404,25 @@ class PaperTradingJournal:
                             engine.record_sl_trade(
                                 symbol, int(r["entry_score"] or 0), breakdown,
                                 reasons, signal_date=r["signal_date"],
-                                trade_id=r["id"], nguon=self.duong_dan)
+                                trade_id=r["id"], nguon=self.duong_dan,
+                                # phien_hoc = phien LENH DONG, khac
+                                # signal_date la phien sinh tin hieu. Day la
+                                # truc thoi gian thu hai.
+                                phien_hoc=session_date)
+
+                            # CHI SO THAT moi duoc boi vao bo nho tren dia.
+                            #
+                            # Ba script optimize dat POST_MORTEM_ENABLED=1.
+                            # Neu save_memory() chay cho ca so scratch thi moi
+                            # lan backtest lai boi them mau vao bo nho that --
+                            # dung co che da de ra khoi 6.327 mau, trong do
+                            # 99,1% khong ung voi mot lenh that nao.
+                            #
+                            # Day la mat kia cua guard_not_real_ledger(): o do
+                            # so that duoc bao ve khoi backtest GHI VAO; o day
+                            # bo nho that duoc bao ve khoi backtest BOI THEM.
+                            if Path(self.duong_dan).name == Path(DB_PATH).name:
+                                engine.save_memory()
                     except Exception:
                         pass
 

@@ -44,7 +44,10 @@ def _luoi_phu_kin() -> list:
     """Mẫu hình phủ kín 0..100 trên cả ba chiều với dung sai 5."""
     return [{"symbol": "SEED", "entry_score": 60,
              "trend_score": t, "momentum_score": m, "volume_score": v,
-             "key_reasons": [], "signal_date": "2020-01-01"}
+             "key_reasons": [], "signal_date": "2020-01-01",
+             # phien_hoc bat buoc tu khi co truc thoi gian thu hai: mau
+             # khong ro hoc luc nao thi bi BO (fail-closed).
+             "nguon": "test", "trade_id": 1, "phien_hoc": "2020-01-02"}
             for t in range(0, 101, 10)
             for m in range(0, 101, 10)
             for v in range(0, 101, 10)]

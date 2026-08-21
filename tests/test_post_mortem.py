@@ -193,7 +193,10 @@ def test_tai_lap_qua_HAI_TIEN_TRINH_voi_post_mortem_BAT():
     hat_giong = [{"symbol": "SEED", "entry_score": 60,
                   "trend_score": t, "momentum_score": m, "volume_score": v,
                   "key_reasons": [], "signal_date": "2020-01-01",
-                  "nguon": "test", "trade_id": i}
+                  "nguon": "test", "trade_id": i,
+                  # Truc thoi gian thu hai: mau phai co phien_hoc, va no
+                  # phai TRUOC phien dang cham, neu khong se bi bo.
+                  "phien_hoc": "2020-01-02"}
                  for i, (t, m, v) in enumerate(
                      ((t, m, v) for t in range(0, 101, 10)
                       for m in range(0, 101, 10)
