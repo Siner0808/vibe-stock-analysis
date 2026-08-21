@@ -158,9 +158,18 @@ def _dung_bo_nho(che_do: str, duong_bo_nho: str | None):
             os.remove(duong_bo_nho)          # lượt này bắt đầu từ số không
         may = dat_lai_engine(duong_bo_nho, enabled=True)
 
-    # Điểm đã ghi nhớ phụ thuộc bộ nhớ. Đổi engine mà giữ cache là dùng lại
-    # điểm tính bằng bộ nhớ khác.
-    _xoa_cache_phan_tich()
+    # Xoá cache CHỈ khi bộ nhớ bật. Bật thì mỗi lượt một engine riêng nên
+    # các mục cũ không bao giờ dùng lại được — giữ chúng chỉ tốn RAM.
+    #
+    # Tắt thì NGƯỢC LẠI: điểm là hàm thuần của lát cắt, bảy lượt dò ngưỡng
+    # chấm đúng những lát cắt giống nhau, và dùng chung cache là đúng chứ
+    # không phải may. Xoá vô điều kiện làm mỗi lượt chấm lại từ đầu —
+    # `che_do_hoc="tat"` đi từ 8,1 lên 27,7 phút.
+    #
+    # Tính đúng đắn không dựa vào việc xoá: dấu vân đã phân biệt các engine.
+    # Xoá chỉ là dọn RAM.
+    if may.enabled:
+        _xoa_cache_phan_tich()
     return may
 
 

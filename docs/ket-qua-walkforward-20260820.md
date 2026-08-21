@@ -1,3 +1,19 @@
+> ⛔ **ĐÍNH CHÍNH (21/08/2026) — đọc trước khi trích bất cứ con số nào.**
+>
+> Hai chỗ trong tài liệu này không dùng được:
+>
+> 1. **alpha `+0,428%` là SAI.** Chạy lại trên đúng 408 lệnh đó, mọi cách
+>    dựng rổ chuẩn đều cho alpha từ **−0,160%** đến **+0,247%**. Muốn có
+>    +0,428% thì rổ chuẩn phải lãi ≈ 0,003%, tức gần như đứng yên — dữ liệu
+>    không chống đỡ điều đó. Kỳ vọng `+0,431%` thì đúng và tái lập được.
+>
+> 2. **Phụ lục A/B về cơ chế học không dùng được.** Bảy lượt dò ngưỡng khi
+>    đó dùng chung một bộ nhớ đang lớn dần (`_ENGINE_CACHE` là một engine
+>    cho cả tiến trình), nên chúng không độc lập — đúng thứ bất biến 7 cấm.
+>
+> Cả hai đã đo lại trong **`ket-qua-bo-nho-rieng-20260821.md`**. Phần còn
+> lại của tài liệu này — dải in-sample, cách chia vùng, số lệnh — vẫn đúng.
+
 # Kết quả walk-forward — 20/08/2026
 
 Phép đo đầu tiên của dự án trên vùng dữ liệu **chứng minh được là chưa từng
@@ -41,8 +57,7 @@ Ngưỡng chọn theo luật nêu trước (≥30 lệnh, rồi kỳ vọng cao 
 số lệnh                 408          (bỏ sót 0 lệnh khi đối chiếu)
 kỳ vọng mỗi lệnh        +0,431%      KTC 95% [−0,469% ; +1,407%]  ← chứa 0
 win rate                25,5%        (trong mẫu ở ngưỡng này: 32,3%)
-alpha khớp từng lệnh    +0,428%      KTC 95% [−0,375% ; +1,275%]  ← chứa 0
-                        → không khác chuẩn một cách có ý nghĩa
+alpha khớp từng lệnh    +0,428%      ← SAI, xem đính chính đầu file
 vốn triển khai          151% trung bình · 542% đỉnh
 lợi nhuận cộng dồn      +36,14%
 quy về 100% vốn         +23,92%      (chia cho bội số 1,51×)
