@@ -129,8 +129,19 @@ jobs:
           def tai(sym, n):
               return idd.tai(sym, n, n, "30m", dung_cache=False)
 
-          r = cb.quet("paper_trades.db", ngay, bay_gio, tai)
-          print(f"Vị thế đang mở: {r['so_vi_the']}")
+          print(f"[noi-phien] bắt đầu lúc {bay_gio:%Y-%m-%d %H:%M:%S} ICT")
+          try:
+              r = cb.quet("paper_trades.db", ngay, bay_gio, tai)
+          except Exception as e:
+              # Mọi hỏng hóc phải thành ANNOTATION, không chỉ thành dòng log.
+              # Nhật ký chạy và artifact đều đòi đăng nhập mới đọc được;
+              # annotation thì đọc được qua API công khai. Đó là khác biệt
+              # giữa "chẩn đoán được từ xa" và "phải đoán".
+              import traceback
+              print(f"::warning::[noi-phien] hỏng: {type(e).__name__}: {e}")
+              traceback.print_exc()
+              raise SystemExit(0)
+          print(f"[noi-phien] vị thế đang mở: {r['so_vi_the']}")
 
           dong = []
           for c in r["canh_bao"]:
@@ -140,19 +151,29 @@ jobs:
           for e in r["loi"]:
               print(f"::warning::không kiểm được — {e}")
 
+          # LUÔN ghi tóm tắt, kể cả khi không có gì. Bản đầu chỉ ghi khi có
+          # vị thế hoặc có cảnh báo, nên "không thấy gì trên trang lượt chạy"
+          # KHÔNG phân biệt được với "bước này chưa từng chạy" — mà `|| true`
+          # ở dòng mở heredoc lại khiến bước luôn xanh. Lượt chạy tay đầu
+          # tiên (21/08/2026) mất 0 giây và không để lại dấu vết nào, và tôi
+          # không có cách nào biết nó đã chạy hay đã chết.
           tom_tat = os.environ.get("GITHUB_STEP_SUMMARY")
           if tom_tat:
               with open(tom_tat, "a", encoding="utf-8") as f:
+                  print(f"### Nội phiên · {bay_gio:%Y-%m-%d %H:%M} ICT", file=f)
+                  print(f"{r['so_vi_the']} vị thế đang mở.", file=f)
                   if dong:
-                      print("### ⚠️ Chạm SL/TP trong phiên", file=f)
+                      print("", file=f)
                       for d in dong:
                           print(d, file=f)
                   elif r["so_vi_the"]:
-                      print(f"### Nội phiên: {r['so_vi_the']} vị thế mở, "
-                            f"chưa chạm SL/TP", file=f)
+                      print("Chưa vị thế nào chạm SL/TP.", file=f)
+                  for e in r["loi"]:
+                      print(f"- ⚠️ {e}", file=f)
 
           if not r["canh_bao"] and not r["loi"]:
-              print("Không vị thế nào chạm SL/TP.")
+              print("[noi-phien] không vị thế nào chạm SL/TP.")
+          print("[noi-phien] xong.")
           PYCB
       - name: Đối chiếu sổ local với kho ngoài
         # Quét xong mà sheet không khớp sổ local nghĩa là cú đẩy hỏng —
