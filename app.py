@@ -498,6 +498,26 @@ st.markdown(
 
 # ── Data Helper Functions ──────────────────────────────────────────
 @st.cache_data(ttl=300)
+def nen_noi_phien(ticker: str, ngay: str):
+    """Nến 30 phút của ĐÚNG ngày `ngay`. Trả (DataFrame | None, lý do lỗi).
+
+    Trả lý do thay vì nuốt lỗi: giao diện phải phân biệt được "hôm nay chưa
+    có nến nào" với "không lấy được nến". Hai thứ đó nhìn giống nhau nếu chỉ
+    trả None.
+
+    Lọc lại theo ngày vì nguồn trả dư — xin một ngày mà nhận về 12 nến gồm
+    cả phiên hôm trước, trong khi một phiên HOSE chỉ có 9 nến 30 phút.
+    """
+    try:
+        import canh_bao_noi_phien as _cb
+        import intraday_data as _idd
+        d = _idd.tai(ticker, ngay, ngay, "30m", dung_cache=False)
+        return _cb.loc_dung_ngay(d, ngay), None
+    except Exception as e:
+        return None, f"{type(e).__name__}: {str(e)[:90]}"
+
+
+@st.cache_data(ttl=300)
 def load_stock_data(ticker, start, end, exch="HOSE"):
     try:
         res = VNStockCollectorAgent().collect(ticker, start, end, exchange=exch)
@@ -926,11 +946,18 @@ with col_debate:
     debate = result.get("debate") or {}
     rounds = debate.get("rounds", [])
 
-    # Extract dynamic statements for current symbol
-    bull_msg = f"Tín hiệu dòng tiền và mô hình giá của {symbol} tại vùng hỗ trợ {sl_txt} rất tích cực. Khuyến nghị giải ngân thăm dò."
-    bear_msg = f"Cảnh báo: Biên độ dao động của {symbol} và thị trường chung cần theo dõi sát. Thiết lập ngưỡng cắt lỗ ngặt nghèo."
-    master_msg = f"Đồng thuận mở vị thế {symbol}. Điểm AI đạt {score:.1f}/100. Kích hoạt quản trị rủi ro đa tầng."
-    bull2_msg = f"Kỳ vọng mục tiêu chốt lời ngắn hạn của {symbol} đạt {tp_txt} VNĐ. Duy trì vị thế."
+    # GIÁ TRỊ DỰ PHÒNG KHI TẦNG TRANH LUẬN KHÔNG TRẢ VỀ GÌ.
+    #
+    # Bản cũ đặt sẵn bốn câu như "Khuyến nghị giải ngân thăm dò" và "Đồng
+    # thuận mở vị thế" rồi mới ghi đè bằng phát biểu thật. Bình thường thì
+    # debate có vòng nên chúng bị thay — nhưng đúng lúc tầng đó hỏng, giao
+    # diện lại hiện một khuyến nghị MUA tự tin mà không agent nào nói ra.
+    # Chỗ dự phòng là chỗ dễ bịa nhất, vì nó chỉ lộ ra khi có sự cố.
+    _chua = "— tầng tranh luận không trả về phát biểu nào cho lượt này."
+    bull_msg = _chua
+    bear_msg = _chua
+    master_msg = _chua
+    bull2_msg = _chua
 
     if rounds:
         for r_idx, rnd in enumerate(rounds):
@@ -981,7 +1008,11 @@ num_open_positions = len(real_open_trades)
 t_pos, t_hist, t_rep, t_pipe, t_acct = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
     f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
-    "📊 Báo cáo 3 phiên",
+    # Đổi tên 21/08/2026: ba thẻ bên trong không còn là ba phiên trong ngày.
+    # Hai trong ba từng là chuỗi viết cứng ("Hold {mã}", "Doi SL Breakeven")
+    # nên cái tên "3 phiên" mô tả một kế hoạch không tồn tại. Nay chúng đọc
+    # thật: phân tích hôm nay · diễn biến trong phiên · vị thế trong sổ.
+    "📊 Hôm nay",
     "🛠️ Pipeline v2",
     "💰 Tài khoản Giả lập"
 ])
@@ -1045,22 +1076,90 @@ with t_hist:
         st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}")
 
 with t_rep:
+    # BA THẺ NÀY TỪNG LÀ HAI CHUỖI VIẾT CỨNG (21/08/2026).
+    #
+    # Thẻ giữa in "Hold {symbol}", thẻ phải in "Doi SL Breakeven" — không
+    # phụ thuộc mã, không phụ thuộc điểm, không phụ thuộc gì cả. Chúng hiện
+    # ra như kế hoạch giao dịch theo phiên do hệ thống sinh ra, trong khi
+    # không thành phần nào sinh ra chúng.
+    #
+    # Nay cả ba đọc dữ liệu thật, và quan trọng hơn: chúng nói SỰ KIỆN chứ
+    # không nói LỜI KHUYÊN. Hệ thống chấm trên nến ngày và không đặt lệnh —
+    # nó biết "giá đang ở đâu" và "vị thế đã chạm mốc chưa", nó không biết
+    # "nên Hold" hay "nên dời stop-loss".
+    _ngay_nay = end_date.strftime("%Y-%m-%d")
+    _nen_np, _loi_np = nen_noi_phien(symbol, _ngay_nay)
+
+    # ── Thẻ 2: trong phiên hôm nay ──
+    if _nen_np is not None and len(_nen_np):
+        _gia_cuoi = float(_nen_np["close"].iloc[-1])
+        _mo = float(_nen_np["open"].iloc[0])
+        _bien = (_gia_cuoi - _mo) / _mo * 100 if _mo else 0.0
+        _np_chinh = f"{_gia_cuoi:,.0f} VNĐ"
+        _np_phu = (f"{len(_nen_np)} nến 30' · thấp {_nen_np['low'].min():,.0f}"
+                   f" · cao {_nen_np['high'].max():,.0f} · {_bien:+.2f}% từ mở cửa")
+        _np_mau = "var(--c-g)" if _bien >= 0 else "var(--c-r)"
+    elif _loi_np:
+        _np_chinh = "chưa lấy được"
+        _np_phu = f"nến nội phiên: {_loi_np}"
+        _np_mau = "var(--c-t3)"
+    else:
+        _np_chinh = "chưa có nến"
+        _np_phu = f"phiên {_ngay_nay} chưa có nến 30 phút nào"
+        _np_mau = "var(--c-t3)"
+
+    # ── Thẻ 3: vị thế THẬT của mã này trong sổ lệnh ──
+    _vt = next((t for t in real_open_trades if t.symbol == symbol), None)
+    if _vt is None:
+        _vt_chinh = "không có vị thế"
+        _vt_phu = f"{symbol} không nằm trong sổ lệnh đang mở"
+        _vt_mau = "var(--c-t3)"
+    else:
+        _cham = None
+        if _nen_np is not None and len(_nen_np):
+            try:
+                import canh_bao_noi_phien as _cbm
+                from datetime import timezone as _tz
+                _cham = _cbm.kiem_mot(
+                    {"symbol": symbol, "stop_loss": _vt.stop_loss,
+                     "take_profit": _vt.take_profit},
+                    _nen_np, end_date if end_date.tzinfo else
+                    end_date.replace(tzinfo=_cbm.MUI_GIO_VN))
+            except Exception:
+                _cham = None
+        if _cham is not None:
+            _vt_chinh = f"chạm {_cham.loai} lúc {_cham.luc_nen[11:]}"
+            _vt_phu = (f"mức {_cham.muc:,.0f} · giá {_cham.gia_cham:,.0f}"
+                       f" — sổ lệnh vẫn chấm theo nến NGÀY")
+            _vt_mau = "var(--c-r)" if _cham.loai == "SL" else "var(--c-g)"
+        else:
+            _vt_chinh = "đang mở, chưa chạm mốc"
+            _vt_phu = (f"SL {_vt.stop_loss:,.0f} · TP {_vt.take_profit:,.0f}"
+                       f" · vào {_vt.entry_date or '—'}")
+            _vt_mau = "var(--c-b)"
+
+    _o = ('background:var(--c-s2);border:1px solid var(--c-border);'
+          'border-radius:var(--r-md);padding:14px;')
+    _nhan = ('font-size:10px;color:var(--c-t3);text-transform:uppercase;'
+             'margin-bottom:5px;')
+    _phu = 'font-size:11px;color:var(--c-t3);margin-top:2px;'
+
     st.markdown(f"""
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
-            <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Sang (09:30)</div>
+        <div style="{_o}">
+            <div style="{_nhan}">Phân tích hôm nay</div>
             <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">{dyn_rec} {symbol}</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Score: {score:.1f} · {dyn_phase_short}</div>
+            <div style="{_phu}">Điểm {score:.1f} · {dyn_phase_short}</div>
         </div>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
-            <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Trua (12:00)</div>
-            <div style="font-family:var(--fm);font-size:15px;color:var(--c-b);font-weight:800;">Hold {symbol}</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">RSI: {rsi_txt} · Vol flow: {vol_flow_str}</div>
+        <div style="{_o}">
+            <div style="{_nhan}">Trong phiên {_ngay_nay}</div>
+            <div style="font-family:var(--fm);font-size:15px;color:{_np_mau};font-weight:800;">{_np_chinh}</div>
+            <div style="{_phu}">{_np_phu}</div>
         </div>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:14px;">
-            <div style="font-size:10px;color:var(--c-t3);text-transform:uppercase;margin-bottom:5px;">Phien Chieu (15:15)</div>
-            <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">Doi SL Breakeven</div>
-            <div style="font-size:11px;color:var(--c-t3);margin-top:2px;">Stop-loss bảo toàn: {sl_txt} VNĐ</div>
+        <div style="{_o}">
+            <div style="{_nhan}">Vị thế {symbol}</div>
+            <div style="font-family:var(--fm);font-size:15px;color:{_vt_mau};font-weight:800;">{_vt_chinh}</div>
+            <div style="{_phu}">{_vt_phu}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1163,6 +1262,11 @@ st.markdown(f"""
         <span>Nguong: <b style="color:var(--c-g);">{buy_threshold:.1f} pts</b></span>
         <span>Ma dang chon: <b style="color:var(--c-g);">{symbol} ({exchange})</b></span>
     </div>
-    <div>Vibe Stock Terminal · Multi-Agent AI · VNStock + TradingView + Gemini</div>
+    <!-- Đã bỏ "Gemini" (21/08/2026): chữ đó xuất hiện ĐÚNG MỘT LẦN trong
+         toàn bộ app, và là ở chính dòng này. `chatbot_agent.py` không được
+         app import lần nào. Ghi tên một thành phần vào chân trang là khẳng
+         định nó đang chạy. VNStock và TradingView thì có thật — đã kiểm,
+         TradingView trả 15 chỉ báo mỗi lượt phân tích. -->
+    <div>Vibe Stock Terminal · Multi-Agent AI · VNStock + TradingView</div>
 </div>
 """, unsafe_allow_html=True)
