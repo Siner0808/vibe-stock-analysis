@@ -215,7 +215,25 @@ python extend_history.py --check  # kiểm tra độ phủ dữ liệu
 pytest tests/ -q                          # toàn bộ test
 pytest tests/test_post_mortem.py          # khoá tính tái lập của chấm điểm
 python tools/chan_bia_so_lieu.py --quet-repo   # quét mẫu bịa số toàn repo
+python tools/kiem_cu_phap_311.py               # CHẠY TRƯỚC KHI PUSH — xem dưới
 ```
+
+### Máy chạy 3.13, CI chạy 3.11 — khoảng cách đó ẩn được lỗi
+
+`pytest` xanh tại máy **không** bảo đảm CI xanh. Cú pháp có từ 3.12 nạp bình
+thường ở máy rồi làm `ast.parse` nổ trên runner.
+
+Đã xảy ra 21/08/2026: một biểu thức điều kiện xuống dòng ngay trong ô thay
+thế của f-string (PEP 701, chỉ có từ 3.12) trong `run_daily.py`. 319 test
+xanh tại máy, CI đỏ ngay bước đầu, hai test `test_no_fabricated_data` báo
+`File "<unknown>", line 83`.
+
+`ast.parse(src, feature_version=(3, 11))` **KHÔNG** bắt được — `feature_version`
+không hạ cấp bộ tách token, mà f-string đổi ở đúng tầng đó. Phải chạy bằng
+một trình thông dịch 3.11 thật. `tools/kiem_cu_phap_311.py` tự tìm nó
+(`PYTHON311`, bản uv, hoặc `py -0p`), tự kiểm mình bằng một đoạn 3.12-mới
+trước khi kiểm repo, và phân biệt "chưa kiểm được" (mã thoát 2) với "sạch"
+(mã thoát 0).
 
 **`walkforward_vn100.py` đã đổi đuôi thành `.broken` (20/08/2026)** — bản
 thay thế là **`walkforward.py`**. Đừng dùng file cũ làm nguồn

@@ -78,10 +78,15 @@ def execute_daily_scan():
     # vẫn được in ra mỗi phiên quét trong suốt thời gian đó. Một câu khẳng
     # định về hành vi mà không đọc hành vi thì chỉ đúng cho tới lần sửa sau.
     _ghi = _pm.enabled and not getattr(_pm, "chi_doc", False)
+    # Tính chuỗi RA NGOÀI f-string. Bản đầu đặt biểu thức điều kiện xuống
+    # dòng ngay trong ô thay thế — cú pháp đó là PEP 701, chỉ có từ Python
+    # 3.12. Máy phát triển chạy 3.13 nên nó nạp bình thường; CI chạy 3.11
+    # nên `ast.parse` nổ ở đúng dòng này và hai test đỏ.
+    _cach = ("CÓ tích luỹ — mỗi lệnh cắt lỗ ghi thêm một mẫu" if _ghi
+             else "chỉ đọc, không ghi thêm")
     print(f"📌 Post-mortem: {'BẬT' if _pm.enabled else 'TẮT'}"
           f" · {len(_pm.sl_patterns)} mẫu, đều từ lệnh thật đã đóng"
-          f" · {'CÓ tích luỹ — mỗi lệnh cắt lỗ ghi thêm một mẫu'
-               if _ghi else 'chỉ đọc, không ghi thêm'}")
+          f" · {_cach}")
     if _ghi:
         print("   ↳ đo 21/08/2026: cơ chế này CHƯA cho bằng chứng nó giúp gì"
               " — xem docs/ket-qua-bo-nho-rieng-20260821.md")
