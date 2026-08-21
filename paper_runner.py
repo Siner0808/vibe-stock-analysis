@@ -118,13 +118,40 @@ def _dau_van_bo_nho() -> tuple:
     là do luồng nào chạy trước — nên chạy lại ra bảng khác, và "quán quân
     của 20 vòng" không tái lập được.
 
-    Dùng ĐỘ DÀI làm dấu vân được vì `record_sl_trade()` chỉ nối thêm, không
-    bao giờ sửa hay xoá. Ngày nào có đường xoá/sửa mẫu hình thì dấu vân này
-    phải đổi thành hash nội dung.
+    KHÔNG dùng riêng độ dài nữa (21/08/2026). Độ dài chỉ phân biệt được các
+    trạng thái của MỘT bộ nhớ duy nhất — đúng khi cả tiến trình chỉ có một
+    engine. Từ khi mỗi lượt backtest có bộ nhớ riêng
+    (`walkforward.chay(che_do_hoc=...)`) thì hai bộ nhớ nội dung khác hẳn
+    nhau vẫn có thể cùng độ dài, khoá cache trùng trong khi điểm thì khác.
+    Đó là đúng lỗi cũ, chỉ đổi vỏ.
+
+    Dấu vân nay là `(enabled, the_engine, len)`. Cả hai phần mới đều có
+    test riêng, và bỏ phần nào thì test đó đỏ — đã kiểm bằng đột biến:
+
+      `the_engine`  phân biệt các engine với nhau
+                    -> test_dau_van_phan_biet_hai_bo_nho_cung_dai
+      `len`         phân biệt các trạng thái của cùng một engine
+                    -> test_dau_van_bat_duoc_sua_tai_cho
+
+    Có thử thêm một bộ đếm `so_lan_doi` trên engine để phòng ngày có đường
+    XOÁ hay SỬA mẫu hình — khi đó độ dài không đổi mà nội dung đổi. Đã gỡ:
+    bỏ nó ra không test nào đỏ, vì hôm nay `record_sl_trade()` chỉ nối
+    thêm nên mọi thay đổi đều kéo theo độ dài. Ngày nào có đường xoá/sửa
+    thật thì thêm lại — kèm test chứng minh nó cần.
     """
     from post_mortem_learning import get_learning_engine
     may = get_learning_engine()
-    return (bool(may.enabled), len(may.sl_patterns))
+    return (bool(may.enabled), may.the_engine, len(may.sl_patterns))
+
+
+def _xoa_cache_phan_tich() -> None:
+    """Xoá điểm đã ghi nhớ. BẮT BUỘC gọi sau khi đổi engine bộ nhớ.
+
+    Điểm của một lát cắt phụ thuộc bộ nhớ post-mortem. Đổi engine mà không
+    xoá cache thì các mục cũ vẫn nằm đó — vô hại nhờ dấu vân đã đổi, nhưng
+    chúng chỉ lớn dần và không bao giờ được dùng lại.
+    """
+    _ANALYZE_CACHE.clear()
 
 
 def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE",

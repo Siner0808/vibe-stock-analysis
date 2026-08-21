@@ -30,6 +30,10 @@ reports/
 # Bộ nhớ mẫu hình cắt lỗ — trạng thái chạy, phình ra sau mỗi lần chạy.
 # Commit nó vào git là để một file 2 MB quyết định điểm số của agent.
 sl_pattern_memory.json
+# Bộ nhớ RIÊNG của từng lượt backtest (walkforward.chay(che_do_hoc=...)).
+# Cùng loại với sl_pattern_memory.json: trạng thái chạy, sinh lại được
+# bằng cách chạy lại, và commit vào là đưa kết quả in-sample vào repo.
+wf_bo_nho_*.json
 
 # Kết quả và log chạy thử nghiệm
 walkforward_results/
