@@ -69,11 +69,21 @@ jobs:
 
       - name: Kéo sổ lệnh từ Google Sheets
         # BẮT BUỘC chạy trước bước quét. Xem ghi chú đầu file.
+        #
+        # Có thử lại: 2/35 nhịp (18/08 và 19/08/2026) chết ở đúng đây sau
+        # 2 giây, bước quét bị skipped, nhịp đó mất trắng. Logic thử lại
+        # nằm trong google_sheets_sync.keo_so_co_thu_lai() chứ KHÔNG viết
+        # ở đây — mã trong heredoc YAML thì test không bao giờ chạy tới.
+        # Khoá bởi tests/test_keo_so_thu_lai.py.
         run: |
           python - <<'PY'
           import sys
           import google_sheets_sync as gs
-          bc = gs.restore_journal_from_google_sheets("paper_trades.db")
+          try:
+              bc = gs.keo_so_co_thu_lai("paper_trades.db")
+          except gs.KeoSoThatBai as e:
+              print(f"::error::{e}")
+              sys.exit(1)
           if bc is None:
               print("::error::Kho ngoài chưa cấu hình — dừng để không quét trên sổ rỗng.")
               sys.exit(1)
