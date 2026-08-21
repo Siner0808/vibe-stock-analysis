@@ -92,8 +92,82 @@ def chon_nguong(ket_qua_is: list[dict],
 
 
 # ── Chạy mô phỏng ────────────────────────────────────────────────────
+CHE_DO_HOC = ("tat", "co_san", "tich_luy")
+
+
+def _dung_bo_nho(che_do: str, duong_bo_nho: str | None):
+    """Dựng bộ nhớ post-mortem RIÊNG cho một lượt. Trả về engine.
+
+    Ba chế độ, ba câu hỏi khác nhau:
+
+    `tat`      — không bộ nhớ, engine RỖNG hẳn. Mặc định, và là mốc để so.
+    `co_san`   — nạp bộ nhớ hiện có (44 mẫu từ lệnh thật), CHỈ ĐỌC: dùng để
+                 chấm điểm nhưng không ghi thêm mẫu nào. Trả lời "bộ nhớ
+                 ĐANG CÓ giúp gì không".
+    `tich_luy` — bắt đầu RỖNG, lớn dần trong chính lượt này. Trả lời "việc
+                 TÍCH LUỸ giúp gì không" — câu trước đây không đo được.
+
+    Hai chế độ sau phải TÁCH BẠCH. Bản đầu của hàm này để `co_san` vừa nạp
+    44 mẫu vừa tích luỹ tiếp — chạy thử thấy nó học thêm 52 mẫu trong một
+    lượt. Khi đó nó đo một hiệu ứng GỘP và không quy được cho bên nào.
+
+    Mỗi lượt một engine mới. Không làm thế thì bảy lượt dò ngưỡng dùng chung
+    `_ENGINE_CACHE` và lượt sau khởi động với bộ nhớ do lượt trước bồi vào —
+    bảy lượt không độc lập, mà chọn lượt tốt nhất trong đó là bất biến 7.
+
+    `co_san` chạy trên BẢN SAO chứ không trỏ thẳng vào `sl_pattern_memory.json`.
+    Hôm nay không có đường nào ghi ngược vào file thật, nhưng dự án này đã một
+    lần ghi đè sổ thật bằng kết quả backtest — bản sao là một dòng lệnh, còn
+    hậu quả của lần sau thì không.
+    """
+    import os
+    import shutil
+    import tempfile
+
+    from paper_runner import _xoa_cache_phan_tich
+    from post_mortem_learning import MEMORY_FILE, dat_lai_engine
+
+    if che_do not in CHE_DO_HOC:
+        raise ValueError(f"che_do_hoc phải là một trong {CHE_DO_HOC}, "
+                         f"nhận {che_do!r}")
+
+    if che_do == "tat":
+        # Trỏ vào một đường dẫn KHÔNG tồn tại để engine rỗng thật, thay vì
+        # nạp 44 mẫu rồi để đó. Engine tắt thì các mẫu đó vô hại, nhưng
+        # "vô hại vì có một công tắc đang tắt" yếu hơn "không có gì để dùng".
+        fd, trong = tempfile.mkstemp(suffix=".json", prefix="wf_bo_nho_tat_")
+        os.close(fd)
+        os.remove(trong)
+        may = dat_lai_engine(trong, enabled=False)
+    elif che_do == "co_san":
+        # Bản sao + chi_doc là hai lớp cho cùng một việc. `chi_doc` chặn ghi
+        # ở engine; bản sao chặn ở tầng file, phòng khi có đường ghi khác
+        # xuất hiện sau này. Dự án này đã một lần ghi đè sổ thật bằng kết
+        # quả backtest — hai lớp cho một file 44 dòng là rẻ.
+        fd, ban_sao = tempfile.mkstemp(suffix=".json", prefix="wf_bo_nho_")
+        os.close(fd)
+        if os.path.exists(MEMORY_FILE):
+            shutil.copyfile(MEMORY_FILE, ban_sao)
+        else:
+            os.remove(ban_sao)
+        may = dat_lai_engine(ban_sao, enabled=True, chi_doc=True)
+    else:
+        if not duong_bo_nho:
+            raise ValueError("che_do_hoc='tich_luy' cần duong_bo_nho")
+        if os.path.exists(duong_bo_nho):
+            os.remove(duong_bo_nho)          # lượt này bắt đầu từ số không
+        may = dat_lai_engine(duong_bo_nho, enabled=True)
+
+    # Điểm đã ghi nhớ phụ thuộc bộ nhớ. Đổi engine mà giữ cache là dùng lại
+    # điểm tính bằng bộ nhớ khác.
+    _xoa_cache_phan_tich()
+    return may
+
+
 def _mo_phong(du_lieu: dict, nguong: float, db: str,
-              stride: int = 2, min_history: int = 60) -> dict:
+              stride: int = 2, min_history: int = 60,
+              che_do_hoc: str = "tat",
+              duong_bo_nho: str | None = None) -> dict:
     """Chạy một lượt trên `du_lieu` với `nguong`, trả về chỉ số đo được.
 
     `du_lieu` là {mã: DataFrame} ĐÃ CẮT sẵn về đúng vùng cần chạy — hàm này
@@ -104,6 +178,9 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
     from paper_metrics import compute
     from paper_runner import _cho_phep_mo_lenh, run_session
     from paper_trading import PaperTradingJournal
+
+    may = _dung_bo_nho(che_do_hoc, duong_bo_nho)
+    mau_dau = len(may.sl_patterns)
 
     if os.path.exists(db):
         os.remove(db)
@@ -119,10 +196,21 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
                             str(hang["time"]), buy_threshold=nguong)
     lenh = so.all_trades()
     so.db.close()
+
+    # Ghi lại bộ nhớ của lượt này để soi được nó đã học gì. Chỉ chế độ
+    # tich_luy mới ghi: `co_san` chạy trên bản sao tạm, ghi ra là ghi vào
+    # rác; `tat` thì không có gì để ghi.
+    mau_cuoi = len(may.sl_patterns)
+    if che_do_hoc == "tich_luy":
+        may.save_memory(force=True)
+
     dong = [x for x in lenh if x.status == "CLOSED"]
     m = compute(dong)
     return {
         "nguong": nguong,
+        "che_do_hoc": che_do_hoc,
+        "mau_dau": mau_dau,
+        "mau_hoc_them": mau_cuoi - mau_dau,
         "so_lenh": m.n_trades,
         "ky_vong": m.expectancy,
         "net_pct": m.total_net_pct,
@@ -135,13 +223,21 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 
 def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None,
          stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_",
-         post_mortem: bool = False) -> dict:
+         che_do_hoc: str = "tat") -> dict:
     """Walk-forward đầy đủ. Trả về {is: [...], nguong_chon, oos: {...}}.
 
-    Post-mortem bị TẮT trong suốt lượt chạy. Bộ nhớ hiện tại dựng từ 44 lệnh
-    có tín hiệu 2024-01 → 2026-06, tức nằm trong vùng IS; vùng OOS thì nằm
-    TRƯỚC đó. Hàng rào `as_of` đã chặn việc mẫu tương lai áp vào quá khứ,
-    nhưng tắt hẳn thì phép đo không phải dựa vào một hàng rào nào cả.
+    `che_do_hoc` — xem `_dung_bo_nho()`. Mặc định `tat`, và đó là chủ đích:
+    bộ nhớ hiện có dựng từ 44 lệnh có tín hiệu 2024-01 → 2026-06, tức nằm
+    trong vùng IS, trong khi vùng OOS nằm TRƯỚC đó. Hàng rào `as_of` chặn
+    việc mẫu tương lai áp vào quá khứ, nhưng tắt hẳn thì phép đo không phải
+    dựa vào hàng rào nào cả.
+
+    Mỗi lượt có bộ nhớ RIÊNG, dựng lại từ đầu. Trước 21/08/2026 thì không:
+    cả bảy lượt dò ngưỡng và lượt OOS dùng chung một `_ENGINE_CACHE`, và
+    `record_sl_trade()` nối thêm vào danh sách dùng chung đó — đo được là
+    ba lệnh cắt lỗ đủ đưa bộ nhớ từ 44 lên 47 mẫu dù không mẫu nào ghi ra
+    đĩa. Nghĩa là lượt ngưỡng 62 khởi động với bộ nhớ to hơn lượt ngưỡng 45.
+    Mọi con số `post_mortem=True` đo trước ngày đó đều dính lỗi này.
     """
     import os
 
@@ -163,22 +259,18 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
         if len(i) > min_history:
             vung_is[sym] = i.reset_index(drop=True)
 
-    # `post_mortem=False` la mac dinh CO CHU DICH. Bat len chi de DO xem co
-    # che hoc co giup gi khong -- va phai do bang cach chay ca hai chieu roi
-    # so, khong phai bang cach nhin mot con so.
-    #
-    # Luu y: cac so tam (`wf_*.db`) khong phai so that, nen save_memory()
-    # khong chay -- bo nho GIU NGUYEN 44 mau goc suot luot chay. Nghia la
-    # phep do nay tra loi "bo nho hien co giup gi khong", KHONG phai "viec
-    # tich luy them giup gi khong". Cau hoi thu hai can bo nho rieng cho moi
-    # luot backtest, va do la viec khac.
+    # Chế độ học được đặt qua `enabled=` của từng engine chứ không qua biến
+    # môi trường, nhưng POST_MORTEM_ENABLED vẫn phải khớp: `paper_runner`
+    # đọc nó ở vài chỗ khác, và hai nguồn sự thật lệch nhau thì sớm muộn
+    # cũng có chỗ đọc nhầm nguồn.
     cu = os.environ.get("POST_MORTEM_ENABLED")
-    os.environ["POST_MORTEM_ENABLED"] = "1" if post_mortem else "0"
+    os.environ["POST_MORTEM_ENABLED"] = "0" if che_do_hoc == "tat" else "1"
     try:
         ket_qua_is = []
         for ng in dai_nguong:
             r = _mo_phong(vung_is, ng, f"{tien_to_db}is_{ng:g}.db",
-                          stride, min_history)
+                          stride, min_history, che_do_hoc,
+                          f"{tien_to_db}bo_nho_is_{ng:g}.json")
             r.pop("_lenh", None)
             ket_qua_is.append(r)
 
@@ -186,13 +278,21 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
         oos = None
         if chon is not None and vung_oos:
             oos = _mo_phong(vung_oos, chon, f"{tien_to_db}oos.db",
-                            stride, min_history)
+                            stride, min_history, che_do_hoc,
+                            f"{tien_to_db}bo_nho_oos.json")
     finally:
         os.environ.pop("POST_MORTEM_ENABLED", None)
         if cu is not None:
             os.environ["POST_MORTEM_ENABLED"] = cu
+        # Trả engine về mặc định: hàm này đã thay `_ENGINE_CACHE` toàn tiến
+        # trình, để nguyên là mọi thứ chạy sau đó thừa hưởng bộ nhớ backtest.
+        from paper_runner import _xoa_cache_phan_tich
+        from post_mortem_learning import MEMORY_FILE, dat_lai_engine
+        dat_lai_engine(MEMORY_FILE)
+        _xoa_cache_phan_tich()
 
     return {"is": ket_qua_is, "nguong_chon": chon, "oos": oos,
+            "che_do_hoc": che_do_hoc,
             "so_ma_is": len(vung_is), "so_ma_oos": len(vung_oos)}
 
 
@@ -211,10 +311,16 @@ def main() -> int:
     ap.add_argument("--symbols", help="danh sách mã, cách nhau bằng dấu phẩy")
     ap.add_argument("--stride", type=int, default=2)
     ap.add_argument("--min-history", type=int, default=60, dest="min_history")
+    ap.add_argument("--che-do-hoc", choices=CHE_DO_HOC, default="tat",
+                    dest="che_do_hoc",
+                    help="tat: khong co bo nho (mac dinh) | "
+                         "co_san: nap bo nho hien co, chi doc | "
+                         "tich_luy: bat dau rong, lon dan trong luot nay")
     a = ap.parse_args()
 
     ma = a.symbols.split(",") if a.symbols else None
-    kq = chay(symbols=ma, stride=a.stride, min_history=a.min_history)
+    kq = chay(symbols=ma, stride=a.stride, min_history=a.min_history,
+              che_do_hoc=a.che_do_hoc)
 
     print("=" * 72)
     print("WALK-FORWARD — chọn trên IS, đo trên OOS, hai vùng KHÔNG giao nhau")

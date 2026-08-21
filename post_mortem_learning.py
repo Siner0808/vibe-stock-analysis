@@ -67,19 +67,88 @@ def _enabled_by_default() -> bool:
 
 _ENGINE_CACHE = None
 
-def get_learning_engine(memory_file: str = MEMORY_FILE, enabled: Optional[bool] = None):
+# Định danh duy nhất cho mỗi engine trong một tiến trình. Dùng làm một
+# nửa của dấu vân bộ nhớ ở paper_runner._dau_van_bo_nho(): từ khi mỗi
+# lượt backtest có bộ nhớ RIÊNG, hai bộ nhớ khác nhau hoàn toàn có thể
+# cùng độ dài, nên độ dài một mình không còn phân biệt được chúng.
+_DEM_ENGINE = 0
+
+# Dấu hiệu "không nêu đường dẫn". KHÔNG để mặc định là MEMORY_FILE: gọi
+# không tham số nghĩa là "cho tôi engine đang dùng", không phải "ép về bộ
+# nhớ mặc định".
+_KHONG_NEU = object()
+
+
+def get_learning_engine(memory_file=_KHONG_NEU, enabled: Optional[bool] = None):
+    """Engine hiện hành. Nêu đường dẫn thì đổi sang bộ nhớ đó nếu đang khác.
+
+    VÌ SAO CÓ `_KHONG_NEU`. Bản cũ để mặc định `memory_file=MEMORY_FILE`, nên
+    một lời gọi KHÔNG tham số cũng bị coi là "yêu cầu bộ nhớ mặc định" và sẽ
+    THAY engine hiện hành nếu nó đang trỏ chỗ khác. Mà `master_agent`,
+    `paper_trading` và `paper_runner` đều gọi không tham số — tức mọi bộ nhớ
+    riêng vừa đặt sẽ bị vứt ngay lần chấm điểm đầu tiên, âm thầm, và backtest
+    quay về dùng bộ nhớ mặc định trong khi tưởng là đang dùng bộ nhớ riêng.
+
+    Bắt được bởi `tests/test_bo_nho_rieng.py::test_dau_van_doi_khi_ghi_them_mau`
+    (21/08/2026): dấu vân trả `enabled=False` ngay sau khi vừa bật.
+    """
     global _ENGINE_CACHE
+    if memory_file is _KHONG_NEU:
+        if _ENGINE_CACHE is None:
+            _ENGINE_CACHE = PostMortemLearningEngine(MEMORY_FILE, enabled)
+        return _ENGINE_CACHE
     if _ENGINE_CACHE is None or _ENGINE_CACHE.memory_file != memory_file:
         _ENGINE_CACHE = PostMortemLearningEngine(memory_file, enabled)
+    return _ENGINE_CACHE
+
+
+def dat_lai_engine(memory_file: str = MEMORY_FILE,
+                   enabled: Optional[bool] = None,
+                   chi_doc: bool = False):
+    """Ép dựng engine MỚI, kể cả khi đường dẫn không đổi.
+
+    `get_learning_engine()` cố tình dùng lại engine cũ khi trùng đường dẫn —
+    đúng cho app và cho phiên quét hằng ngày, nhưng SAI cho backtest nhiều
+    lượt: bảy lượt dò ngưỡng trong `walkforward.chay()` chạy trong cùng một
+    tiến trình nên dùng chung `_ENGINE_CACHE`, và `record_sl_trade()` nối
+    thêm vào danh sách dùng chung đó. Lượt ngưỡng 62 khởi động với bộ nhớ
+    to hơn lượt ngưỡng 45 — bảy lượt KHÔNG độc lập, mà chọn lượt tốt nhất
+    trong một dải không độc lập chính là bất biến 7.
+
+    Đo được ngày 21/08/2026: ba lệnh cắt lỗ liên tiếp trong một sổ tạm làm
+    bộ nhớ đi từ 44 lên 47 mẫu, dù không mẫu nào được ghi ra đĩa.
+
+    Gọi hàm này giữa hai lượt thì mỗi lượt có bộ nhớ riêng. Nhớ xoá cả
+    `paper_runner._ANALYZE_CACHE` — điểm đã ghi nhớ phụ thuộc bộ nhớ.
+    """
+    global _ENGINE_CACHE
+    _ENGINE_CACHE = PostMortemLearningEngine(memory_file, enabled, chi_doc)
     return _ENGINE_CACHE
 
 class PostMortemLearningEngine:
     """Bộ nhớ mẫu hình cắt lỗ, có ràng buộc thời gian và mặc định tắt."""
 
     def __init__(self, memory_file: str = MEMORY_FILE,
-                 enabled: Optional[bool] = None):
+                 enabled: Optional[bool] = None,
+                 chi_doc: bool = False):
+        global _DEM_ENGINE
+        _DEM_ENGINE += 1
+        # Định danh duy nhất trong tiến trình. Đi vào dấu vân bộ nhớ ở
+        # paper_runner._dau_van_bo_nho(): từ khi mỗi lượt backtest có bộ nhớ
+        # riêng, độ dài một mình không phân biệt được hai bộ nhớ khác nhau.
+        self.the_engine = _DEM_ENGINE
+
         self.memory_file = memory_file
         self.enabled = _enabled_by_default() if enabled is None else bool(enabled)
+
+        # CHỈ ĐỌC: dùng bộ nhớ để chấm điểm nhưng KHÔNG ghi thêm mẫu nào.
+        # Khác `enabled=False` (không dùng cũng không ghi) và khác mặc định
+        # (vừa dùng vừa ghi). Cần chế độ thứ ba này để tách hai câu hỏi:
+        # "bộ nhớ ĐANG CÓ giúp gì không" và "việc TÍCH LUỸ giúp gì không".
+        # Trộn chúng lại thì đo được một hiệu ứng gộp, không quy được cho
+        # bên nào.
+        self.chi_doc = bool(chi_doc)
+
         self.sl_patterns: List[Dict[str, Any]] = self.load_memory()
         self._dirty = False
 
@@ -136,7 +205,7 @@ class PostMortemLearningEngine:
         mẫu về đúng lệnh đã sinh ra nó. Thiếu chúng thì mẫu này y hệt
         6.271 mẫu không truy nguồn được trong file cũ.
         """
-        if not self.enabled or not signal_date:
+        if not self.enabled or self.chi_doc or not signal_date:
             return False
         if trade_id is None or not nguon:
             return False
