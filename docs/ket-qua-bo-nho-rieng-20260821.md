@@ -118,6 +118,73 @@ một chuỗi giá; bộ nhớ post-mortem chỉ ghi lại các tổ hợp của
 
 ---
 
+## 44 mẫu có quá ít không? Không — trần của nó là **2**
+
+Câu hỏi tự nhiên sau kết quả trên: bộ nhớ chỉ có 44 mẫu, có phải nó chưa
+đủ mẫu để phát huy? Đo trên sổ lệnh thật (13.589 quyết định, 113 lệnh đã
+mở) thì câu trả lời không phải "ít" mà là "đã bão hoà".
+
+### 44 mẫu là 2 mẩu kiến thức, ghi lại 44 lần
+
+```
+trend 65 · momentum 65 · volume 100,0    ×37
+trend 65 · momentum 65 · volume  93,8    ×7
+```
+
+Hai bộ ba. Không hơn. `MATCH_TOLERANCE = 5,0` nên chúng là hai ô tách biệt
+(cách nhau 6,2 ở volume), nhưng vẫn chỉ là hai ô.
+
+### Chúng phủ được 3,2% thực tế
+
+| | |
+|---|---|
+| Quyết định có đủ ba điểm | 13.589 |
+| Bộ ba **khác nhau** từng xuất hiện | **155** |
+| Bộ ba bộ nhớ phủ | **2** |
+| Quyết định khớp một mẫu | 437 = **3,2%** |
+
+Và không một bộ ba nào trong **10 bộ phổ biến nhất** được phủ. Bộ ba hay
+gặp nhất là `trend 65 · mom 65 · vol 62,5` (1.200 lần) — bộ nhớ không chạm
+tới.
+
+### Trần trên là 2, và thêm lệnh không nâng được nó
+
+```
+13.589 quyết định  →  155 bộ ba khác nhau
+   113 lệnh ĐÃ MỞ  →    2 bộ ba khác nhau
+```
+
+Bộ nhớ **chỉ học từ lệnh đã mở** — không mở lệnh thì không có lãi/lỗ để
+hậu nghiệm. Mà lệnh chỉ mở khi điểm vượt ngưỡng, và điểm chỉ vượt ngưỡng
+khi `trend = 65` **và** `momentum = 65` **và** volume gần kịch trần. Trong
+backtest `trend` chỉ có 3 giá trị và `momentum` chỉ có 2 (xem
+`MO-XE-KIEN-TRUC.md`), nên cánh cửa mua mở ra đúng một góc hẹp — và 113/113
+lệnh trong lịch sử đều rơi vào góc đó.
+
+Thêm 10.000 lệnh thật nữa sẽ cho 10.044 mẫu và **vẫn 2 bộ ba**. Đây không
+phải vấn đề cỡ mẫu mà là vòng lặp kín: bộ nhớ học từ đầu ra của cổng mua,
+nên nó không bao giờ thấy được thứ cổng mua không cho qua.
+
+### Điều này giải thích lại kết quả A/B ở trên
+
+Trước đó tôi mô tả `tich_luy` là "thêm nhiễu". Cơ chế cụ thể hơn thế:
+
+Bộ nhớ trừ điểm đúng những tín hiệu nằm trong góc mà cổng mua cho qua. Càng
+tích luỹ, nó càng chặn chính tín hiệu mua của mình — số lệnh ở ngưỡng 62
+tụt từ 871 xuống 332 (−62%). Nó không học để chọn tốt hơn; nó học để **tự
+tắt dần**.
+
+### Có sửa được không
+
+Sửa phần đa dạng thì cũng không cứu được, vì lý do nằm sâu hơn: tương quan
+giữa điểm và lợi nhuận 20 phiên sau là rho = −0,019, KTC [−0,100 ; +0,064]
+(`MO-XE-KIEN-TRUC.md`). Một bộ nhớ ghi lại các tổ hợp của ba con số không
+dự báo được gì thì phủ 2 ô hay 155 ô cũng vậy.
+
+Nút thắt vẫn là **dữ liệu độc lập**, không phải số lượng mẫu.
+
+---
+
 ## Đính chính: alpha `+0,428%` trong tài liệu 20/08 là SAI
 
 Tài liệu đó ghi cho lượt `tat`, ngưỡng 62, 408 lệnh:

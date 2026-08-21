@@ -250,6 +250,28 @@ Hai test đang khoá bất biến quan trọng, đừng làm hỏng:
 - `tests/test_paper_trading.py::test_duong_von_khong_phu_thuoc_thu_tu_ban_ghi`
   — drawdown dựng theo thời gian, không theo id
 
+## Bộ nhớ hậu nghiệm — hai nơi CỐ Ý lệch nhau
+
+```
+backtest (walkforward.chay)  ->  co_san   : dùng 44 mẫu, KHÔNG ghi thêm
+đường chạy thật (run_daily)  ->  tích luỹ : dùng 44 mẫu, CÓ ghi thêm
+```
+
+Lệch này là **quyết định, không phải sơ sót** (21/08/2026). Backtest đo một
+bộ nhớ đứng yên để phép đo tái lập được; sổ thật vẫn gom mẫu tiếp.
+
+Hệ quả phải biết khi đọc số: con số ngoài mẫu nói về cấu hình `co_san`,
+không nói về cấu hình đang chạy thật. Hôm nay khác biệt đó nhỏ — đo được
+rằng 44 mẫu gần như không đổi kết quả gì — nhưng sẽ lớn dần nếu bộ nhớ lớn
+dần.
+
+**Bộ nhớ này đã bão hoà, không phải thiếu mẫu.** 44 mẫu chỉ gồm **2** bộ ba
+khác nhau, phủ 3,2% số quyết định. Trần trên là 2 và thêm lệnh không nâng
+được: bộ nhớ chỉ học từ lệnh ĐÃ MỞ, mà 113/113 lệnh trong lịch sử đều rơi
+vào đúng 2 ô (`trend 65 · mom 65 · vol 100` và `… vol 93,8`), vì cổng mua
+chỉ mở ở góc đó. Chi tiết và số liệu:
+`docs/ket-qua-bo-nho-rieng-20260821.md`.
+
 ## Hook chặn bịa số liệu — chạy tự động
 
 `.claude/settings.json` đăng ký `tools/chan_bia_so_lieu.py` làm PostToolUse
