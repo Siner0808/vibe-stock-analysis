@@ -594,10 +594,25 @@ start_date = end_date - timedelta(days=days_back)
 start_str = start_date.strftime("%Y-%m-%d")
 end_str = end_date.strftime("%Y-%m-%d")
 
+# Cửa sổ dữ liệu cho PHÂN TÍCH tách khỏi cửa sổ cho BIỂU ĐỒ.
+#
+# `days_back = 180` (~124 phiên) là lựa chọn hiển thị, nhưng SMA200 cần 200
+# phiên. Thiếu thì `_compute_local_indicators()` trả None cho SMA200, và
+# trước 21/08/2026 giá trị VNĐ của TradingView nằm lại trong gói — agent xu
+# hướng so 69,63 với 82.942 rồi trừ 2,0 điểm "Bear Market" cho MỌI mã.
+#
+# Nay `data_collectors` bỏ chỉ báo lệch đơn vị thay vì để lẫn, nên lỗi đó
+# không còn. Nhưng bỏ đi cũng là mất một luật chấm điểm. Kéo dài cửa sổ
+# phân tích để local tính nổi SMA200 thì luật đó sống lại, bằng đúng đơn vị
+# của OHLCV. 420 ngày lịch ~ 285 phiên, dư so với 200.
+NGAY_LICH_SU_PHAN_TICH = 420
+start_str_phan_tich = (end_date - timedelta(days=NGAY_LICH_SU_PHAN_TICH)
+                       ).strftime("%Y-%m-%d")
+
 if run_btn or search_btn or "result" not in st.session_state or st.session_state.get("last_symbol") != symbol:
     with st.spinner(f"🤖 Đang quét dữ liệu Multi-Agent cho mã [{symbol}]..."):
         try:
-            result = run_full_analysis(symbol, start_str, end_str, exchange)
+            result = run_full_analysis(symbol, start_str_phan_tich, end_str, exchange)
             st.session_state["result"] = result
             st.session_state["last_symbol"] = symbol
         except Exception as e:

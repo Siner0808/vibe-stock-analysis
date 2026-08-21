@@ -152,6 +152,18 @@ class TradingViewCollectorAgent:
         }
 
 
+# Chỉ báo mang ĐƠN VỊ GIÁ. TradingView trả bằng VNĐ, còn chỉ báo tính tại chỗ
+# từ OHLCV của vnstock mang đơn vị của chính OHLCV đó (thường là nghìn đồng).
+# Trộn hai nguồn cho các khoá này là so sánh hai thang đo khác nhau.
+#
+# RSI, Stoch, ADX, CCI, Williams %R KHÔNG nằm đây: chúng không mang đơn vị giá
+# nên lấy từ nguồn nào cũng so sánh được.
+CHI_BAO_THEO_GIA = frozenset({
+    "EMA20", "SMA50", "SMA200", "BB_Upper", "BB_Lower",
+    "ATR", "MACD", "MACD_Signal", "Mom",
+})
+
+
 class DataOrchestrator:
     """
     Điều phối tầng thu thập: nhận dữ liệu từ VNStock, TradingView VÀ
@@ -282,8 +294,34 @@ class DataOrchestrator:
         # Ta cần tính các chỉ báo này từ chính OHLCV lịch sử để đưa vào tv_indicators.
         if packet.ohlcv_df is not None and len(packet.ohlcv_df) >= 20:
             local_inds = self._compute_local_indicators(packet.ohlcv_df)
-            # Ghi đè vào tv_indicators để các Agent Tầng 2 có thể đọc được
             packet.tv_indicators.update({k: v for k, v in local_inds.items() if v is not None})
-            packet.source_notes.append("[Local] Đã tự tính RSI, MACD, BB, MAs... từ OHLCV lịch sử")
+
+            # KHÔNG ĐƯỢC TRỘN HAI HỆ ĐƠN VỊ.
+            #
+            # TradingView báo giá bằng VNĐ (SMA200 = 82.942); vnstock trả nghìn
+            # đồng nên chỉ báo tính tại chỗ ra 69,63. Vòng update ở trên chỉ ghi
+            # đè những khoá mà local TÍNH ĐƯỢC — khoá nào local trả None thì giá
+            # trị VNĐ của TradingView nằm lại.
+            #
+            # Hậu quả đo được 21/08/2026: app dùng days_back=180 (~124 phiên) nên
+            # local KHÔNG BAO GIỜ tính nổi SMA200 (cần 200 phiên). Agent xu hướng
+            # so `sma50 > sma200` tức 69,63 > 82.942 — SAI với MỌI mã, MỌI lần —
+            # rồi trừ 2,0 điểm và in "🔴 Xu hướng trung-dài hạn GIẢM (Bear
+            # Market)". FPT bị gắn nhãn giảm trong khi chính TradingView chấm BUY.
+            #
+            # Bỏ đi chứ không quy đổi: quy đổi cần đoán đúng chiều nhân/chia, mà
+            # đoán sai thì lại ra một con số trông hợp lý và sai. Thiếu chỉ báo
+            # thì agent bỏ qua luật đó (`if sma50 and sma200`) — bỏ qua là trung
+            # thực, so sai đơn vị là bịa.
+            bo_di = [k for k in CHI_BAO_THEO_GIA
+                     if k in packet.tv_indicators and local_inds.get(k) is None]
+            for k in bo_di:
+                packet.tv_indicators.pop(k, None)
+
+            ghi = "[Local] Đã tự tính RSI, MACD, BB, MAs... từ OHLCV lịch sử"
+            if bo_di:
+                ghi += (f" · bỏ {len(bo_di)} chỉ báo TradingView khác hệ đơn vị: "
+                        f"{', '.join(sorted(bo_di))}")
+            packet.source_notes.append(ghi)
 
         return packet
