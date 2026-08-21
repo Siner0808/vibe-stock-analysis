@@ -388,3 +388,21 @@ def test_bo_nho_tat_thi_dau_van_giong_nhau_moi_engine():
     finally:
         _tra_engine_ve_mac_dinh()
         _don(a, b)
+
+
+def test_mac_dinh_cua_chay_la_co_san():
+    """Khoá mặc định lại, để nó không trôi mà không ai biết.
+
+    Mặc định này là một QUYẾT ĐỊNH có đánh đổi, không phải giá trị tiện tay:
+    `co_san` đo hệ thống đang chạy, nhưng phép đo khi đó phụ thuộc vào các
+    hàng rào chống nhìn trộm còn đúng. Đổi nó thì phải đọc docstring của
+    `chay()` trước.
+    """
+    import inspect
+    ch = inspect.signature(wf.chay).parameters["che_do_hoc"].default
+    assert ch == "co_san", f"mặc định của chay() đã đổi thành {ch!r}"
+
+    mp = inspect.signature(wf._mo_phong).parameters["che_do_hoc"].default
+    assert mp is None, (
+        f"_mo_phong có mặc định {mp!r} — hai mặc định sẽ trôi ra khỏi nhau")
+    print("PASS  mặc định là co_san, và chỉ có MỘT mặc định")
