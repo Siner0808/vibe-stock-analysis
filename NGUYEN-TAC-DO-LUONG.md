@@ -68,7 +68,13 @@ may của phép tìm kiếm, không đo lợi thế của chiến lược.
 Kết quả chỉ có giá trị khi tham số được chọn trên một khoảng và đo trên một
 khoảng **khác**.
 
-> ⚠️ `walkforward_vn100.py` **không còn làm việc đó** (đo 19/08/2026). Nó
+> ✅ **Đã dựng lại: `walkforward.py`** (20/08/2026). Nó chia IS/OOS theo
+> **dữ liệu nào đã tồn tại khi các vòng tối ưu chạy** — xem
+> `docs/moc_du_lieu_sach.json` — chứ không theo ngày lịch, nên vùng kiểm
+> định là vùng **không thể đã bị nhìn**, không phải vùng *giả định* chưa
+> nhìn. Đo được: 25.219/80.939 phiên = 31,2%, trên 33/71 mã.
+>
+> ⚠️ Bản cũ `walkforward_vn100.py` (nay là `.broken`) **không làm việc đó**. Nó
 > chạy `run_simulation` một lần trên toàn khoảng rồi lọc `exit_date` để gọi
 > là OOS, ngưỡng 50,0 nhập sẵn thay vì chọn trên in-sample, và mốc chia là
 > `datetime.now() - 182 ngày` nên OOS luôn rơi vào giai đoạn gần nhất —

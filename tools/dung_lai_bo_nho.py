@@ -80,6 +80,9 @@ def dung_lai(db_path: str = SO_MAC_DINH) -> list[dict]:
             "trade_id": int(r["id"]),
             "entry_date": str(r["entry_date"] or "")[:10],
             "exit_date": str(r["exit_date"] or "")[:10],
+            # Truc thoi gian thu hai: mau nay tro nen biet duoc vao dung
+            # phien lenh dong, khong phai phien sinh tin hieu.
+            "phien_hoc": str(r["exit_date"] or "")[:10],
             "ghi_luc": now,
         })
     return mau

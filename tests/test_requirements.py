@@ -77,13 +77,33 @@ def test_requirements_phu_het_import_o_goc_du_an():
         thieu[mod] = sorted(files)
 
     if thieu:
-        chi_tiet = "; ".join(
-            "%s (import boi %s)" % (m, ", ".join(f)) for m, f in sorted(thieu.items()))
-        raise AssertionError(
-            "Thu vien duoc import nhung KHONG co trong requirements.txt: "
-            + chi_tiet
-            + ". GitHub Actions cai theo requirements.txt, nen runner se "
-              "thieu no va phien quet chet giua chung.")
+        # Hai truong hop rat khac nhau, thong bao phai noi dung cai nao:
+        #  - module CO THE nap duoc -> that su la thu vien ngoai chua khai bao
+        #  - module KHONG nap duoc  -> import HONG, khong lien quan requirements
+        import importlib.util
+        chua_khai, hong = [], []
+        for m, files in sorted(thieu.items()):
+            mo_ta = "%s (import boi %s)" % (m, ", ".join(files))
+            try:
+                co = importlib.util.find_spec(m) is not None
+            except Exception:
+                co = False
+            (chua_khai if co else hong).append(mo_ta)
+
+        loi = []
+        if chua_khai:
+            loi.append(
+                "Thu vien ngoai duoc import nhung KHONG co trong "
+                "requirements.txt: " + "; ".join(chua_khai)
+                + ". GitHub Actions cai theo requirements.txt, nen runner se "
+                  "thieu no va phien quet chet giua chung.")
+        if hong:
+            loi.append(
+                "IMPORT HONG — module khong ton tai o dau ca: "
+                + "; ".join(hong)
+                + ". Day khong phai van de requirements: file do khong nap "
+                  "duoc trong bat ky moi truong nao.")
+        raise AssertionError(" | ".join(loi))
     print("PASS  requirements.txt phu het import o goc du an")
 
 

@@ -128,7 +128,8 @@ class PostMortemLearningEngine:
                         score_breakdown: dict, key_reasons: list,
                         signal_date: Optional[str] = None,
                         trade_id: Optional[int] = None,
-                        nguon: Optional[str] = None) -> bool:
+                        nguon: Optional[str] = None,
+                        phien_hoc: Optional[str] = None) -> bool:
         """Ghi một mẫu hình cắt lỗ. TỪ CHỐI nếu không khai nguồn gốc.
 
         `trade_id` và `nguon` là bắt buộc: chúng cho phép truy ngược một
@@ -151,19 +152,38 @@ class PostMortemLearningEngine:
             "nguon": str(nguon),
             "trade_id": int(trade_id),
             "ghi_luc": _now_iso(),
+            # Trục thời gian THỨ HAI: phiên mà mẫu này trở nên biết được,
+            # tức phiên lệnh đóng. Khác `signal_date` (phiên sinh tín hiệu).
+            "phien_hoc": str(phien_hoc or "")[:10],
         })
         self._dirty = True
         return True
 
     # ─────────────────────────── Tra cứu ────────────────────────────
     def get_penalty_for_pattern(self, current_breakdown: dict,
-                                as_of: Optional[str] = None) -> float:
+                                as_of: Optional[str] = None,
+                                phien_hien_tai: Optional[str] = None) -> float:
         """Điểm phạt nếu tín hiệu hiện tại trùng mẫu hình đã từng cắt lỗ.
 
-        `as_of` là ngày của phiên đang chấm. Chỉ những mẫu hình có
-        `signal_date` NHỎ HƠN `as_of` mới được tính — đây là hàng rào chống
-        nhìn trộm tương lai, và nó không có đường vòng: không có `as_of`
-        thì không có điểm phạt.
+        HAI hàng rào, hai mục đích khác nhau:
+
+        `as_of` — ngày của phiên đang chấm. Chỉ mẫu có `signal_date` NHỎ HƠN
+        `as_of` mới được tính. Đây là hàng rào chống NHÌN TRỘM TƯƠNG LAI, và
+        nó không có đường vòng: không có `as_of` thì không có điểm phạt.
+
+        `phien_hien_tai` — chỉ mẫu có `phien_hoc` NHỎ HƠN nó mới được tính.
+        Đây là hàng rào giữ TÍNH TÁI LẬP, và một mình `as_of` không làm được
+        việc đó. Xét một lệnh tín hiệu 2026-01-05 đóng bằng cắt lỗ ngày
+        2026-08-20: `signal_date` của nó nhỏ hơn `as_of`, nên nó LỌT hàng rào
+        thứ nhất — dù mẫu đó chỉ tồn tại từ 20/08. Trong chính phiên quét
+        20/08, mã A đóng bằng cắt lỗ sẽ làm lệch điểm mã B, và cùng một input
+        cho hai kết quả tuỳ thứ tự quét. Đó là sự cố 47-vs-59.
+
+        Cùng hình dạng với bất biến 3: dời stop về hoà vốn chỉ có hiệu lực từ
+        phiên sau, vì lệnh dời stop chỉ đặt được sau khi đã thấy giá chạm mốc.
+
+        Không truyền `phien_hien_tai` thì giữ nguyên hành vi cũ, để chỗ gọi
+        chưa cập nhật không im lặng đổi kết quả.
         """
         if not self.enabled or not self.sl_patterns or not as_of:
             return 0.0
@@ -177,6 +197,14 @@ class PostMortemLearningEngine:
             past = p.get("signal_date")
             if not past or str(past) >= as_of:
                 continue                      # cùng ngày hoặc tương lai -> bỏ
+
+            if phien_hien_tai is not None:
+                hoc = p.get("phien_hoc")
+                # Không biết học lúc nào thì KHÔNG dùng. Fail-closed: một mẫu
+                # không xác định được thời điểm thì không chứng minh được nó
+                # đã tồn tại trước phiên này.
+                if not hoc or str(hoc)[:10] >= str(phien_hien_tai)[:10]:
+                    continue
             if (abs(c_trend - p["trend_score"]) <= MATCH_TOLERANCE and
                     abs(c_mom - p["momentum_score"]) <= MATCH_TOLERANCE and
                     abs(c_vol - p["volume_score"]) <= MATCH_TOLERANCE):
