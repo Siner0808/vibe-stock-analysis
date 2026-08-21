@@ -1262,8 +1262,12 @@ IS  : 71 mã, ngưỡng chọn = 62,0 (luật nêu trước: ≥30 lệnh, rồi
 OOS : 33 mã, 408 lệnh, trên 25.219 phiên CHƯA THỂ đã bị nhìn
 
 kỳ vọng   +0,431%   KTC [−0,469 ; +1,407]   ← chứa 0
-alpha     +0,428%   KTC [−0,375 ; +1,275]   ← chứa 0
+alpha     −0,160%   KTC [−0,903 ; +0,646]   ← chứa 0
           → không khác chuẩn một cách có ý nghĩa
+
+(alpha sửa 21/08/2026. Con số cũ +0,428% SAI — nó so với một rổ chuẩn
+ lãi ≈ 0%, thứ dữ liệu không chống đỡ. Chi tiết và độ nhạy của alpha
+ theo cách dựng rổ: docs/ket-qua-bo-nho-rieng-20260821.md)
 vốn đỉnh  542%  ·  net +36,14%  →  quy về 100% vốn: +23,92%
 ```
 
