@@ -1,0 +1,48 @@
+# Chuông báo: ngày làm việc mà không có lượt quét sổ lệnh nào thành công.
+#
+# VÌ SAO CẦN. Từ 20/08/2026 Task Scheduler đã tắt, chỉ còn Actions quét.
+# Trước đó máy cục bộ vô tình làm lưới dự phòng. Giờ một ngày mà mọi lượt
+# quét đều hỏng thì sổ lệnh không cập nhật và KHÔNG AI BIẾT.
+#
+# GIỚI HẠN PHẢI BIẾT. Chuông này chạy bằng chính cron GitHub — thứ đã đo
+# được là rơi mất khoảng một nửa số nhịp. Chuông không kêu thì im lặng.
+# Vì thế nó soát BA ngày làm việc gần nhất chứ không chỉ hôm nay: một
+# nhịp chuông rơi thì nhịp hôm sau vẫn bắt được ngày đó. Cửa sổ im lặng
+# thu từ "một nhịp" xuống "ba nhịp liên tiếp", không xuống 0.
+#
+# Chuông kêu bằng cách để lượt chạy này ĐỎ. GitHub gửi email cho người
+# sửa cron gần nhất khi một workflow theo lịch thất bại — đó là đường
+# thông báo, không cần dựng thêm gì.
+
+name: Chuông báo quét
+
+on:
+  schedule:
+    # 09:00 UTC = 16:00 ICT, sau giờ đóng cửa (15:00) và sau lượt quét
+    # cuối cùng trong ngày (đo được: 15:29–15:33 ICT).
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+# Chỉ cần đọc danh sách lượt chạy. Không ghi gì.
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  chuong:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      # Không cài thư viện: công cụ chỉ dùng urllib trong thư viện chuẩn.
+      # Ít bộ phận hơn thì ít chỗ hỏng hơn — chuông mà hỏng thì vô dụng.
+      - name: Soát ba ngày làm việc gần nhất
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/chuong_bao_quet.py

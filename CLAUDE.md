@@ -165,8 +165,27 @@ Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lư
 
 Đó là lý do tắt Task Scheduler chấp nhận được. Nhưng nó cũng nghĩa là
 **không còn lưới dự phòng**: một ngày mà mọi lượt Actions đều hỏng thì
-ngày đó không được quét, và không có gì báo. Chưa có cảnh báo cho tình
-huống này — xem `docs/STATE.md` ô C2.
+ngày đó không được quét.
+
+**Đã có chuông (21/08/2026):** `.github/workflows/chuong-bao-quet.yml`
+chạy 09:00 UTC (16:00 ICT) mỗi ngày làm việc, soát **ba** ngày làm việc
+gần nhất và để lượt chạy đỏ nếu ngày nào không có lượt quét thành công
+nào. Soát ba ngày vì chính chuông cũng chạy bằng cron GitHub và cũng bị
+rơi nhịp — một nhịp chuông rơi thì nhịp hôm sau vẫn bắt được. Cửa sổ im
+lặng thu từ một nhịp xuống ba nhịp liên tiếp, không xuống 0.
+
+### Ba kiểu hỏng của một lượt Actions — chỉ kiểu đầu là ồn ào
+
+| Kiểu | `status` / `conclusion` | Có báo không |
+|---|---|---|
+| Chạy rồi hỏng | `completed` / `failure` | ✅ đỏ, GitHub gửi email |
+| Nhịp bị rơi | không có lượt nào | ❌ im — chuông bắt |
+| **Kẹt hàng đợi** | `queued` / `None` | ❌ im hoàn toàn |
+
+Kiểu thứ ba tìm ra ngày 21/08: lượt 19/08 lúc 04:08 UTC vẫn `queued` sau
+hai ngày, chưa từng chạy. Không đỏ nên không có email, không xanh nên
+không quét được gì. Vì thế chuông chỉ đếm `conclusion == "success"` —
+`queued` và `cancelled` đều KHÔNG được coi là đã quét.
 
 **Điều kiện để hai nơi cùng ghi mà không hỏng: PHẢI kéo từ Sheets trước
 khi quét.** `run_daily.py` làm việc đó ngay đầu `execute_daily_scan()`.
