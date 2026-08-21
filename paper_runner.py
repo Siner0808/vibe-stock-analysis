@@ -141,7 +141,17 @@ def _dau_van_bo_nho() -> tuple:
     """
     from post_mortem_learning import get_learning_engine
     may = get_learning_engine()
-    return (bool(may.enabled), may.the_engine, len(may.sl_patterns))
+    if not may.enabled:
+        # Bộ nhớ TẮT thì `get_penalty_for_pattern()` trả 0,0 ngay, nên điểm
+        # là hàm thuần của lát cắt và KHÔNG phụ thuộc engine nào đang cầm.
+        # Dấu vân phải giống nhau cho mọi engine tắt, nếu không thì bảy lượt
+        # dò ngưỡng mỗi lượt một khoá và chấm lại từ đầu.
+        #
+        # Đo được 21/08/2026: kèm định danh engine vào cả nhánh tắt làm một
+        # lượt walk-forward `che_do_hoc="tat"` đi từ 8,1 lên 28,7 phút —
+        # chậm 3,5 lần mà không đúng thêm gì.
+        return (False,)
+    return (True, may.the_engine, len(may.sl_patterns))
 
 
 def _xoa_cache_phan_tich() -> None:

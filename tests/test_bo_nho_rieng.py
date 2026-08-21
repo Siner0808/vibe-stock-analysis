@@ -357,3 +357,34 @@ if __name__ == "__main__":
         if ten.startswith("test_"):
             ham()
     print("\nTẤT CẢ ĐỀU QUA")
+
+
+def test_bo_nho_tat_thi_dau_van_giong_nhau_moi_engine():
+    """Engine TẮT thì dấu vân phải giống nhau, dù là engine nào.
+
+    Bộ nhớ tắt thì `get_penalty_for_pattern()` trả 0,0 ngay, nên điểm là
+    hàm thuần của lát cắt. Bảy lượt dò ngưỡng đáng lẽ dùng chung được điểm
+    đã ghi nhớ. Kèm định danh engine vào cả nhánh tắt làm một lượt
+    walk-forward đi từ 8,1 lên 28,7 phút — chậm 3,5 lần, không đúng thêm gì.
+    """
+    a, b = _file_tam(), _file_tam()
+    try:
+        _ghi_bo_nho(a, [_mau("2026-01-05", 70.0)])
+        _ghi_bo_nho(b, [_mau("2026-03-09", 31.0), _mau("2026-04-01", 40.0)])
+
+        pml.dat_lai_engine(a, enabled=False)
+        van_a = pr._dau_van_bo_nho()
+        pml.dat_lai_engine(b, enabled=False)
+        van_b = pr._dau_van_bo_nho()
+
+        assert van_a == van_b, (
+            f"hai engine đều TẮT mà dấu vân khác nhau ({van_a} vs {van_b}) — "
+            f"mỗi lượt sẽ chấm lại từ đầu mà không đúng thêm gì")
+
+        # Nhưng BẬT lên thì phải phân biệt lại.
+        pml.dat_lai_engine(a, enabled=True)
+        assert pr._dau_van_bo_nho() != van_a
+        print("PASS  engine tắt -> dấu vân chung; bật -> phân biệt trở lại")
+    finally:
+        _tra_engine_ve_mac_dinh()
+        _don(a, b)
