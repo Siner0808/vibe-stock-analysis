@@ -134,7 +134,8 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 
 
 def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None,
-         stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_") -> dict:
+         stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_",
+         post_mortem: bool = False) -> dict:
     """Walk-forward đầy đủ. Trả về {is: [...], nguong_chon, oos: {...}}.
 
     Post-mortem bị TẮT trong suốt lượt chạy. Bộ nhớ hiện tại dựng từ 44 lệnh
@@ -162,8 +163,17 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
         if len(i) > min_history:
             vung_is[sym] = i.reset_index(drop=True)
 
+    # `post_mortem=False` la mac dinh CO CHU DICH. Bat len chi de DO xem co
+    # che hoc co giup gi khong -- va phai do bang cach chay ca hai chieu roi
+    # so, khong phai bang cach nhin mot con so.
+    #
+    # Luu y: cac so tam (`wf_*.db`) khong phai so that, nen save_memory()
+    # khong chay -- bo nho GIU NGUYEN 44 mau goc suot luot chay. Nghia la
+    # phep do nay tra loi "bo nho hien co giup gi khong", KHONG phai "viec
+    # tich luy them giup gi khong". Cau hoi thu hai can bo nho rieng cho moi
+    # luot backtest, va do la viec khac.
     cu = os.environ.get("POST_MORTEM_ENABLED")
-    os.environ["POST_MORTEM_ENABLED"] = "0"
+    os.environ["POST_MORTEM_ENABLED"] = "1" if post_mortem else "0"
     try:
         ket_qua_is = []
         for ng in dai_nguong:
