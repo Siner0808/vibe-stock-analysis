@@ -175,8 +175,8 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
     """
     import os
 
-    from paper_metrics import compute
-    from paper_runner import _cho_phep_mo_lenh, run_session
+    from paper_metrics import compute, vs_benchmark
+    from paper_runner import _cho_phep_mo_lenh, build_benchmark, run_session
     from paper_trading import PaperTradingJournal
 
     may = _dung_bo_nho(che_do_hoc, duong_bo_nho)
@@ -185,17 +185,25 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
     if os.path.exists(db):
         os.remove(db)
     so = PaperTradingJournal(db)
-    with _cho_phep_mo_lenh():
-        for sym, df in sorted(du_lieu.items()):
-            n = len(df)
-            for t in range(min_history, n, stride):
-                hang = df.iloc[t]
-                run_session(so, sym, df.iloc[: t + 1],
-                            {"open": float(hang["open"]), "high": float(hang["high"]),
-                             "low": float(hang["low"]), "close": float(hang["close"])},
-                            str(hang["time"]), buy_threshold=nguong)
-    lenh = so.all_trades()
-    so.db.close()
+    # try/finally: bản cũ gọi `so.db.close()` sau vòng lặp, nên một ngoại lệ
+    # giữa chừng để kết nối SQLite mở vĩnh viễn. Trên Windows điều đó khoá
+    # luôn file — dọn dẹp sau đó nhận PermissionError WinError 32, và lỗi
+    # thứ hai đó che mất lỗi thứ nhất.
+    try:
+        with _cho_phep_mo_lenh():
+            for sym, df in sorted(du_lieu.items()):
+                n = len(df)
+                for t in range(min_history, n, stride):
+                    hang = df.iloc[t]
+                    run_session(so, sym, df.iloc[: t + 1],
+                                {"open": float(hang["open"]),
+                                 "high": float(hang["high"]),
+                                 "low": float(hang["low"]),
+                                 "close": float(hang["close"])},
+                                str(hang["time"]), buy_threshold=nguong)
+        lenh = so.all_trades()
+    finally:
+        so.db.close()
 
     # Ghi lại bộ nhớ của lượt này để soi được nó đã học gì. Chỉ chế độ
     # tich_luy mới ghi: `co_san` chạy trên bản sao tạm, ghi ra là ghi vào
@@ -206,8 +214,40 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 
     dong = [x for x in lenh if x.status == "CLOSED"]
     m = compute(dong)
+
+    # Alpha khớp từng lệnh — bất biến 6, và là phép đo QUYẾT ĐỊNH. Trước
+    # 21/08/2026 hàm này không tính nó: nó in kỳ vọng và lợi nhuận cộng
+    # dồn, tức là "lãi hơn 0 không", trong khi câu cần trả lời là "giỏi hơn
+    # cầm đều cả rổ không". Trong một thị trường đi lên, hai câu đó cho hai
+    # câu trả lời rất khác nhau.
+    chuan = build_benchmark(dong, du_lieu)
+    a = vs_benchmark(dong, chuan) if chuan else {"n": 0, "alpha": None,
+                                                 "verdict": "chưa có đối chiếu"}
+
+    # `compute()` trả None khi KHÔNG có lệnh đóng nào, và bản cũ đọc thẳng
+    # `m.n_trades` nên nổ AttributeError. Một ngưỡng cao không mở lệnh nào
+    # là kết quả HỢP LỆ và là thông tin quan trọng — "ngưỡng này không giao
+    # dịch" khác hẳn "lượt chạy hỏng". Nổ ở đây làm sập cả walk-forward vì
+    # một dòng đáng lẽ chỉ ghi 0 lệnh.
+    if m is None:
+        return {
+            "nguong": nguong, "che_do_hoc": che_do_hoc,
+            "mau_dau": mau_dau, "mau_hoc_them": mau_cuoi - mau_dau,
+            "so_lenh": 0, "ky_vong": None, "net_pct": None,
+            "win_rate": None, "von_tb": None, "von_dinh": None,
+            "alpha": None, "alpha_ktc": None, "alpha_so_lenh": 0,
+            "alpha_bo_qua": 0,
+            "alpha_ket_luan": "không lệnh nào đóng — chưa có gì để đo",
+            "_lenh": [],
+        }
+
     return {
         "nguong": nguong,
+        "alpha": a.get("alpha"),
+        "alpha_ktc": a.get("ci"),
+        "alpha_so_lenh": a.get("n"),
+        "alpha_bo_qua": a.get("bo_qua"),
+        "alpha_ket_luan": a.get("verdict"),
         "che_do_hoc": che_do_hoc,
         "mau_dau": mau_dau,
         "mau_hoc_them": mau_cuoi - mau_dau,
@@ -353,6 +393,18 @@ def main() -> int:
     print(f"  kỳ vọng mỗi lệnh : {o['ky_vong']:+.2f}%")
     print(f"  win rate         : {o['win_rate']:.1f}%")
     print(f"  lợi nhuận cộng dồn: {o['net_pct']:+.2f}%")
+    if o.get("alpha") is not None:
+        print(f"  alpha khớp từng lệnh: {o['alpha']:+.2f}%/lệnh"
+              f"   KTC 95% [{o['alpha_ktc'][0]:+.2f} ; {o['alpha_ktc'][1]:+.2f}]")
+        print(f"    → {o['alpha_ket_luan']}")
+    else:
+        print(f"  alpha khớp từng lệnh: chưa đo được"
+              f"   ({o.get('alpha_ket_luan')})")
+    if o.get("alpha_bo_qua"):
+        print(f"    ⚠️ bỏ {o['alpha_bo_qua']} lệnh vì không dựng được cặp "
+              f"ngày trong rổ chuẩn")
+    print(f"  bộ nhớ học: đầu {o['mau_dau']} mẫu, học thêm "
+          f"{o['mau_hoc_them']}   (chế độ {o['che_do_hoc']})")
     print(f"  vốn triển khai   : {o['von_tb']:.0f}% trung bình"
           f" · {o['von_dinh']:.0f}% đỉnh")
     if o["von_dinh"] > 100:
