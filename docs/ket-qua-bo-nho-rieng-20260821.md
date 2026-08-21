@@ -33,6 +33,25 @@ Bản đầu để `co_san` vừa nạp 44 mẫu vừa tích luỹ tiếp — ch
 thêm 52 mẫu trong một lượt. Khi đó nó đo một hiệu ứng **gộp** và không quy
 được cho bên nào. Đã tách bằng công tắc `chi_doc`.
 
+### Mặc định là `co_san`
+
+Chạy `python walkforward.py` không tham số thì được `co_san`: đo hệ thống
+**đang chạy**, có bộ nhớ 44 mẫu của nó, thay vì đo một cấu hình không ai dùng.
+
+Đánh đổi phải biết: `tat` không dựa vào hàng rào nào cả, còn `co_san` thì có.
+Bộ nhớ 44 mẫu dựng từ lệnh có tín hiệu 2024-01 → 2026-06, tức nằm trong vùng
+IS, trong khi vùng OOS nằm **trước** đó — nên con số ngoài mẫu ở chế độ này
+chỉ đúng chừng nào ba hàng rào còn đúng: `as_of`, `phien_hien_tai`, và việc
+mẫu thiếu `phien_hoc` bị bỏ. Cả ba có test riêng ở `tests/test_post_mortem.py`
+và `tests/test_truc_thoi_gian_thu_hai.py`. **Test nào trong số đó hỏng thì
+con số `co_san` mất giá trị** — chạy lại bằng `--che-do-hoc tat` để có một
+phép đo không phụ thuộc hàng rào.
+
+Và `co_san` **không** phải bản sao chính xác của đường chạy thật: sổ lệnh
+thật vừa dùng bộ nhớ vừa tích luỹ tiếp, còn `co_san` là chỉ đọc. Hôm nay
+khác biệt đó nhỏ — đo được rằng 44 mẫu gần như không đổi kết quả gì — nhưng
+nó sẽ lớn dần khi bộ nhớ lớn dần, và lúc ấy phải đo lại.
+
 ## Kết quả ngoài mẫu
 
 71 mã có vùng IS · 33 mã có vùng OOS · stride 2

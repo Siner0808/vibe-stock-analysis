@@ -175,12 +175,18 @@ def _dung_bo_nho(che_do: str, duong_bo_nho: str | None):
 
 def _mo_phong(du_lieu: dict, nguong: float, db: str,
               stride: int = 2, min_history: int = 60,
-              che_do_hoc: str = "tat",
+              che_do_hoc: str | None = None,
               duong_bo_nho: str | None = None) -> dict:
     """Chạy một lượt trên `du_lieu` với `nguong`, trả về chỉ số đo được.
 
     `du_lieu` là {mã: DataFrame} ĐÃ CẮT sẵn về đúng vùng cần chạy — hàm này
     không tự cắt, để không có đường nào lẫn IS sang OOS.
+
+    `che_do_hoc` KHÔNG có mặc định — bỏ trống thì `_dung_bo_nho()` nổ. Đặt
+    một mặc định ở đây nghĩa là có hai mặc định (một ở đây, một ở `chay()`),
+    và hai mặc định thì sớm muộn cũng trôi ra khỏi nhau: người sửa một chỗ
+    không biết chỗ kia tồn tại, rồi một lượt chạy âm thầm dùng cấu hình
+    khác lượt bên cạnh. Một mặc định duy nhất, đặt ở `chay()`.
     """
     import os
 
@@ -272,14 +278,29 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 
 def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None,
          stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_",
-         che_do_hoc: str = "tat") -> dict:
+         che_do_hoc: str = "co_san") -> dict:
     """Walk-forward đầy đủ. Trả về {is: [...], nguong_chon, oos: {...}}.
 
-    `che_do_hoc` — xem `_dung_bo_nho()`. Mặc định `tat`, và đó là chủ đích:
-    bộ nhớ hiện có dựng từ 44 lệnh có tín hiệu 2024-01 → 2026-06, tức nằm
-    trong vùng IS, trong khi vùng OOS nằm TRƯỚC đó. Hàng rào `as_of` chặn
-    việc mẫu tương lai áp vào quá khứ, nhưng tắt hẳn thì phép đo không phải
-    dựa vào hàng rào nào cả.
+    `che_do_hoc` — xem `_dung_bo_nho()`. Mặc định `co_san` (21/08/2026): đo
+    hệ thống ĐANG CHẠY, có bộ nhớ 44 mẫu của nó, thay vì đo một cấu hình
+    không ai dùng.
+
+    ĐÁNH ĐỔI PHẢI BIẾT. `tat` từng là mặc định vì nó không dựa vào hàng rào
+    nào cả. `co_san` thì có: bộ nhớ 44 mẫu dựng từ lệnh có tín hiệu
+    2024-01 → 2026-06, tức nằm trong vùng IS, trong khi vùng OOS nằm TRƯỚC
+    đó — nên phép đo chỉ đúng chừng nào hàng rào chống nhìn trộm còn đúng.
+    Ba hàng rào đó là `as_of`, `phien_hien_tai`, và việc mẫu thiếu
+    `phien_hoc` bị bỏ; cả ba có test riêng ở `tests/test_post_mortem.py` và
+    `tests/test_truc_thoi_gian_thu_hai.py`. Test nào trong số đó hỏng thì
+    con số ngoài mẫu ở chế độ này mất giá trị — chạy lại bằng `tat` để có
+    một phép đo không phụ thuộc hàng rào.
+
+    `co_san` KHÔNG phải bản sao chính xác của đường chạy thật. Sổ lệnh thật
+    vừa dùng bộ nhớ vừa TÍCH LUỸ tiếp (`paper_trading.evaluate_open` gọi
+    `record_sl_trade` rồi `save_memory`), còn `co_san` là chỉ đọc. Đo được
+    ngày 21/08: 44 mẫu hiện có gần như không đổi kết quả gì (`co_san` trùng
+    khít `tat`), nên khác biệt đó hôm nay là nhỏ — nhưng nó sẽ lớn dần khi
+    bộ nhớ lớn dần, và lúc ấy phải đo lại.
 
     Mỗi lượt có bộ nhớ RIÊNG, dựng lại từ đầu. Trước 21/08/2026 thì không:
     cả bảy lượt dò ngưỡng và lượt OOS dùng chung một `_ENGINE_CACHE`, và
@@ -360,10 +381,11 @@ def main() -> int:
     ap.add_argument("--symbols", help="danh sách mã, cách nhau bằng dấu phẩy")
     ap.add_argument("--stride", type=int, default=2)
     ap.add_argument("--min-history", type=int, default=60, dest="min_history")
-    ap.add_argument("--che-do-hoc", choices=CHE_DO_HOC, default="tat",
+    ap.add_argument("--che-do-hoc", choices=CHE_DO_HOC, default="co_san",
                     dest="che_do_hoc",
-                    help="tat: khong co bo nho (mac dinh) | "
-                         "co_san: nap bo nho hien co, chi doc | "
+                    help="co_san: nap bo nho hien co, chi doc (mac dinh) | "
+                         "tat: khong co bo nho -- phep do khong dua vao "
+                         "hang rao chong nhin trom nao | "
                          "tich_luy: bat dau rong, lon dan trong luot nay")
     a = ap.parse_args()
 
