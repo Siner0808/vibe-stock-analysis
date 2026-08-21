@@ -1,6 +1,23 @@
 import base64
 import json
 import os
+
+# Bật bộ nhớ hậu nghiệm cho app, giống `run_daily.py` (21/08/2026).
+#
+# VÌ SAO. Trước đây app KHÔNG bật, còn phiên quét sinh sổ lệnh thì có. Cùng
+# một mã, cùng một ngày, app chấm cao hơn tới 12 điểm (PENALTY = -12,0) so
+# với điểm đã ghi vào sổ — nên app có thể hiện MUA đúng mã mà phiên quét bỏ
+# qua. Đo trên sổ thật: 437 quyết định trùng một ô bộ nhớ, trong đó 166 nằm
+# trong vùng bị lật ở ngưỡng 58.
+#
+# PHẢI đặt TRƯỚC khi `post_mortem_learning` được nạp lần đầu, vì engine đọc
+# biến này lúc khởi tạo.
+#
+# Lưu ý khi đọc số: bộ nhớ này đã BÃO HOÀ, không phải thiếu mẫu — 44 mẫu chỉ
+# gồm 2 bộ ba khác nhau và phủ 3,2% số quyết định. Bật lên là để app KHỚP
+# với sổ lệnh, không phải vì nó làm điểm tốt hơn; đo được là nó không.
+# Xem docs/ket-qua-bo-nho-rieng-20260821.md.
+os.environ.setdefault("POST_MORTEM_ENABLED", "1")
 import pathlib
 import pandas as pd
 import numpy as np
@@ -575,18 +592,15 @@ with st.sidebar:
                 f'<span style="font-size:9.5px;color:#475569;">{chi_tiet}</span>'
                 f'<span class="a-st {lop}">{trang_thai}</span></div>')
 
-    st.markdown(
-        '<div class="sb-card-title" style="margin-top: 10px;">'
-        '🛰️ Trạng thái hệ thống AI</div>'
-        '<div style="display:flex;flex-direction:column;gap:4px;">'
-        + _hang("🧠 Post-Mortem Mem", _pm_chi_tiet, _pm_trang_thai,
-                "ac" if _pm_bat else "wn")
-        + _hang("📈 Technical Agent", "—", "● chưa đo")
-        + _hang("📑 Fundamental Agent", "—", "● chưa đo")
-        + _hang("⚔️ Debate Council", "—", "● chưa đo")
-        + _hang("📡 TradingView MCP", "—", "● chưa đo")
-        + '</div>',
-        unsafe_allow_html=True)
+    # MỌI dòng dưới đây ĐỌC trạng thái thật của lượt phân tích gần nhất.
+    #
+    # Bản cũ viết cứng "● chưa đo" cho bốn dòng — chúng không đọc gì cả, nên
+    # nói sai ngay cả khi thành phần đó đang chạy tốt. Đo ngày 21/08/2026:
+    # TradingView trả 15 chỉ báo, tin tức về 155 bài, Debate Council chạy đủ
+    # vòng — cả ba đều bị bảng gắn nhãn "chưa đo".
+    #
+    # "Chưa chạy" khác "chưa đo": chưa chạy là chưa bấm nút, đọc được từ
+    # session_state. Bảng không được nói gì hơn thế.
 
 # ── 3. RUN ANALYSIS & FETCH REAL DATA ──────────────────────────────
 end_date = now_vn()
@@ -620,6 +634,81 @@ if run_btn or search_btn or "result" not in st.session_state or st.session_state
             st.stop()
 
 result = st.session_state.get("result")
+
+# ── Bảng trạng thái hệ thống: vẽ SAU khi đã có kết quả ────────────
+#
+# Streamlit chạy kịch bản từ trên xuống. Đặt bảng này trong khối
+# `with st.sidebar:` ở đầu file thì nó vẽ TRƯỚC khi `run_full_analysis`
+# chạy, nên ở đúng lượt vừa quét xong nó vẫn hiện "chưa chạy" — người
+# dùng bấm quét, thấy kết quả hiện ra, mà bảng bên cạnh vẫn nói chưa
+# chạy gì. `st.sidebar` dùng được ở bất cứ đâu, nên chỗ đúng của nó là
+# sau khi `result` có giá trị.
+with st.sidebar:
+        _kq = st.session_state.get("result") or {}
+        _nguon = " ".join(_kq.get("data_sources") or [])
+        _bd = _kq.get("score_breakdown") or {}
+        _da_chay = bool(_kq)
+
+        def _chua_chay(dong):
+            return _hang(dong, "—", "● chưa chạy", "wn")
+
+        # ── Technical: sáu agent phân tích, đọc điểm thành phần thật ──
+        if not _da_chay:
+            _row_tech = _chua_chay("📈 Technical Agent")
+        else:
+            _n_ind = len((_kq.get("analyses") or {}))
+            _row_tech = _hang(
+                "📈 Technical Agent",
+                f"trend {_bd.get('trend_score', '—')} · "
+                f"vol {_bd.get('volume_score', '—')}",
+                f"● {_n_ind} agent", "ac" if _n_ind else "wn")
+
+        # ── Debate Council: đọc số vòng thật và mức điều chỉnh thật ──
+        if not _da_chay:
+            _row_debate = _chua_chay("⚔️ Debate Council")
+        else:
+            _dbt = _kq.get("debate") or {}
+            _vong = len(_dbt.get("rounds") or [])
+            _dc = _bd.get("debate_adjustment", 0) or 0
+            _row_debate = _hang(
+                "⚔️ Debate Council",
+                f"{_vong} vòng · {_dc:+.1f} điểm" if _vong else "không chạy",
+                "● BẬT" if _vong else "● TẮT", "ac" if _vong else "wn")
+
+        # ── TradingView: đọc từ ghi chú nguồn thật ──
+        if not _da_chay:
+            _row_tv = _chua_chay("📡 TradingView")
+        else:
+            _tv_ok = "[TradingView] Lấy dữ liệu" in _nguon
+            _row_tv = _hang(
+                "📡 TradingView",
+                f"khuyến nghị {_kq.get('score_breakdown', {}).get('tv_bonus', 0):+d} đ"
+                if _tv_ok else "không lấy được",
+                "● BẬT" if _tv_ok else "● TẮT", "ac" if _tv_ok else "wn")
+
+        st.markdown(
+            '<div class="sb-card-title" style="margin-top: 10px;">'
+            '🛰️ Trạng thái hệ thống AI</div>'
+            '<div style="display:flex;flex-direction:column;gap:4px;">'
+            + _hang("🧠 Post-Mortem Mem", _pm_chi_tiet, _pm_trang_thai,
+                    "ac" if _pm_bat else "wn")
+            + _row_tech
+            + _row_debate
+            + _row_tv
+            + '</div>'
+            # Fundamental Agent ĐÃ BỊ GỠ KHỎI BẢNG (21/08/2026), không phải đổi
+            # nhãn. Trong repo không có lớp nào như vậy, và không agent nào đọc
+            # báo cáo tài chính — `grep -rn "fundamental" master_agent.py
+            # analysis_agents.py` trả về rỗng. `FinancialDataCollector` có được
+            # import vào app.py nhưng KHÔNG được gọi lần nào.
+            #
+            # Liệt kê một thành phần không tồn tại rồi dán nhãn "chưa đo" đọc
+            # như "có nhưng chưa kịp đo", tức là một lời hứa. Bỏ hẳn dòng đó
+            # cho tới ngày thật sự có agent phân tích cơ bản.
+            '<div style="font-size:9px;color:#475569;margin-top:6px;'
+            'line-height:1.45;">Chưa có Fundamental Agent — không thành phần nào '
+            'trong pipeline đọc báo cáo tài chính.</div>',
+            unsafe_allow_html=True)
 if not result:
     st.info("👈 Nhấn nút **KÍCH HOẠT MULTI-AGENT SCAN** để bắt đầu.")
     st.stop()
@@ -977,18 +1066,23 @@ with t_rep:
     """, unsafe_allow_html=True)
 
 with t_pipe:
+    # Sơ đồ này VẼ LUỒNG DỮ LIỆU, nên mỗi ô phải là một chặng có thật.
+    #
+    # Đã gỡ ô "Fundamental Agent · BCTCK Q2" (21/08/2026): trong repo không
+    # có lớp nào như vậy, và không thành phần nào trong pipeline đọc báo cáo
+    # tài chính. Vẽ một ô vào giữa luồng là khẳng định dữ liệu chảy qua đó.
+    #
+    # Hai ô ghi "chưa đo" cũng đã thay bằng nhãn thật: TradingView đang trả
+    # 15 chỉ báo mỗi lượt, Google Sheets đang là kho sổ lệnh. "Chưa đo" ở
+    # đây không phải khiêm tốn mà là sai.
     st.markdown("""
     <div style="padding:16px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;">
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">📡</span><br><b style="font-size:11px;">TradingView MCP</b><br><small style="color:var(--c-t3);font-size:9px;">chưa đo</small>
+            <span style="font-size:18px;">📡</span><br><b style="font-size:11px;">TradingView</b><br><small style="color:var(--c-t3);font-size:9px;">RSI·MACD·ADX</small>
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
             <span style="font-size:18px;">📊</span><br><b style="font-size:11px;">Technical Agent</b><br><small style="color:var(--c-t3);font-size:9px;">RSI · MACD</small>
-        </div>
-        <span>→</span>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">💼</span><br><b style="font-size:11px;">Fundamental Agent</b><br><small style="color:var(--c-t3);font-size:9px;">BCTCK Q2</small>
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
@@ -1000,7 +1094,7 @@ with t_pipe:
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:9px;">chưa đo</small>
+            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:9px;">kho sổ lệnh</small>
         </div>
     </div>
     """, unsafe_allow_html=True)
