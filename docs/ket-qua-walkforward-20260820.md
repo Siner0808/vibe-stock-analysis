@@ -90,3 +90,61 @@ ngoài mẫu của chính ngưỡng đó cho alpha chứa 0.
 
 Nên câu trả lời cho C5 **không đổi**: để trống, dừng mở vị thế mới. Khác
 biệt là bây giờ đó là kết luận **có bằng chứng**, không phải trạng thái chờ.
+
+---
+
+# Phụ lục — cơ chế học có giúp gì không?
+
+Chạy lại **cùng một walk-forward**, chỉ khác một biến: post-mortem TẮT hay BẬT.
+
+| | TẮT | BẬT |
+|---|---|---|
+| ngưỡng chọn trên IS | 62,0 | 55,0 |
+| lệnh IS ở ngưỡng đó | 871 | 731 |
+| **lệnh OOS** | **408** | **292** |
+| win rate OOS | 25,5% | 28,1% |
+| **alpha** | **+0,428%** | **+0,288%** |
+| **KTC 95%** | **[−0,375 ; +1,275]** | **[−0,638 ; +1,278]** |
+| kết luận | không khác chuẩn | không khác chuẩn |
+| thời gian chạy | 8,1 phút | 31,2 phút |
+
+## Đọc bảng này
+
+**Không có bằng chứng cơ chế học giúp được gì.** Trên mọi chiều đo, bật nó
+làm mọi thứ *hơi tệ hơn hoặc không đổi*:
+
+- điểm ước lượng alpha **thấp hơn** (+0,288% so với +0,428%)
+- khoảng tin cậy **rộng hơn** (±0,96 so với ±0,82), vì mẫu nhỏ hơn
+- số lệnh OOS **giảm 28%** (408 → 292) — bộ nhớ chủ yếu làm việc *chặn bớt*
+- chi phí tính toán **gấp gần 4 lần**
+
+Nói cho công bằng: hai khoảng tin cậy chồng lấn gần như hoàn toàn, nên cũng
+**không kết luận được rằng nó gây hại**. Kết luận đúng là: *không phân biệt
+được với việc không có nó* — trong khi tốn gấp 4 lần thời gian.
+
+## Một chi tiết đáng chú ý
+
+Với post-mortem **TẮT**, kỳ vọng trên IS tăng **đơn điệu** theo ngưỡng:
+
+```
++0,30 → +0,38 → +0,52 → +0,56 → +0,82 → +1,00 → +1,52
+```
+
+Với post-mortem **BẬT**, nó hết đơn điệu:
+
+```
++0,59 → +0,83 → +0,88 → +0,70 → +0,91 → +0,88 → +0,59
+```
+
+Một quan hệ đơn điệu bị bẻ thành răng cưa là dấu hiệu **thêm nhiễu**, không
+phải thêm tín hiệu.
+
+## Hạn chế của chính phép đo này
+
+Sổ tạm không phải sổ thật nên `save_memory()` không chạy — bộ nhớ **giữ
+nguyên 44 mẫu** suốt lượt. Nên bảng trên trả lời *"bộ nhớ hiện có giúp gì
+không"*, **không** phải *"việc tích luỹ thêm giúp gì không"*.
+
+Câu hỏi thứ hai cần bộ nhớ riêng cho mỗi lượt backtest, và cần đủ lệnh để
+tích luỹ có ý nghĩa. Với 44 mẫu sau ~2 năm, đó là câu hỏi của nhiều năm nữa,
+không phải của tuần này.
