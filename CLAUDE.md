@@ -76,9 +76,13 @@ Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròn
 > **Đã đi được một bước theo hướng đó (22/08/2026):** `fundamental_agent.py`
 > đọc BCTC thật và hiện lên giao diện. Nhưng **trọng số của nó bằng 0**, nên
 > nó CHƯA thay đổi con số nào ở trên. Đọc mục "Agent Cơ Bản" bên dưới trước
-> khi định bật — 8 quý dữ liệu chỉ đủ phát hiện tín hiệu với xác suất ~10%,
-> nên bật rồi thấy lãi tăng là kịch bản của quy tắc số 1, không phải bằng
-> chứng.
+> khi định bật — bật rồi thấy lãi tăng là kịch bản của quy tắc số 1, không
+> phải bằng chứng.
+>
+> **Con số "8 quý" nay đã đổi.** Gói Silver cho **34 quý**, nhưng chỉ khi
+> `vnii` được cài — xem mục "Hạng gói vnstock" bên dưới. Trước khi lấy 8 quý
+> làm lý do để không đo, hãy chạy `vnstock_goi.kiem_goi()` xem app đang thật
+> sự ở hạng nào.
 
 Lưu ý phạm vi: các agent "chết" ở trên là chết **trong backtest/paper
 trading** vì không có lịch sử TradingView và tin tức. Trên app chạy trực tiếp
@@ -138,6 +142,41 @@ NHẤT bật `doc_co_ban=True`.
 Điểm cơ bản tham gia theo dạng **cộng lệch** `(điểm − 50) × trọng số`, cố ý
 không trộn vào bộ trọng số động phía trên: trọng số 0 cho ra đúng con số như
 trước khi có agent này, và điều đó kiểm được bằng mắt.
+
+---
+
+## Hạng gói vnstock — thứ đã mua khác thứ đang chạy
+
+Ngày 22/08/2026: tài khoản Silver (hạn 22/11/2026), app chạy như gói miễn
+phí. **BCTC bị cắt còn 8/34 kỳ, hạn mức 60 thay vì 300 req/phút.** Không lỗi,
+không cảnh báo.
+
+Gốc ở `vnai/beam/auth.py`: `_detect_tier()` gọi `_check_vnii_tier()`, package
+`vnii` chưa cài nên `ImportError` bị nuốt và hàm rơi xuống `return "free"`.
+Việc cắt số kỳ nằm ở `vnai/beam/fundamental.py`, `PERIOD_LIMITS['free'] = 8`
+còn `['silver'] = None` (không giới hạn) — **máy chủ vẫn gửi đủ, vnai cắt tại
+máy**.
+
+`vnstock_goi.kiem_goi()` hỏi máy chủ rồi so với hạng cục bộ. Ba trạng thái:
+`KHỚP` / `LỆCH` / `CHƯA KIỂM ĐƯỢC`. Trạng thái thứ ba bắt buộc — mất mạng mà
+trả "khớp" thì phép kiểm này thành đúng thứ nó sinh ra để bắt.
+
+**Không bao giờ ép hạng trong mã nguồn.** Ghi `authenticator._cached_tier =
+"silver"` sẽ làm app tiếp tục khẳng định silver sau ngày hết hạn rồi cắt dữ
+liệu sai mà không ai biết. Cách đúng là cài `vnii` + bốn package
+(`vnstock_data`, `vnstock_ta`, `vnstock_pipeline`, `vnstock_news`) — chúng
+**không có trên PyPI công khai**, phải lấy từ khu vực thành viên.
+
+Sau khi cài xong, `fetch_fundamentals.py` **tự tải lại** cả rổ: cache mang sổ
+tay `_hang_da_tai.json`, đổi hạng thì tải lại. Không có sổ tay đó thì 60 file
+CSV tải lúc hạng free ở lại vĩnh viễn với 8 kỳ — đúng cái bẫy `download()`
+trong `NGUYEN-TAC-DO-LUONG.md`.
+
+**Tài liệu skill của vnstock KHÔNG được commit vào repo.** Giấy phép ghi rõ
+*"Zero Disk Persistence… Do not save, dump, or write these files to the
+user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
+
+`vnai.setup_agent_environment()` chính là thứ ghi đè `AGENTS.md` ở gốc dự án.
 
 ---
 
