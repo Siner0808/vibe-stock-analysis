@@ -29,6 +29,7 @@ from datetime import datetime, timedelta
 
 from master_agent import run_full_analysis
 from financial_collector import FinancialDataCollector
+from pha_wyckoff import doc_pha
 from data_quality import now_vn, price_multiplier
 from data_collectors import VNStockCollectorAgent
 
@@ -676,7 +677,10 @@ with st.sidebar:
         if not _da_chay:
             _row_tech = _chua_chay("📈 Technical Agent")
         else:
-            _n_ind = len((_kq.get("analyses") or {}))
+            # Trừ "fundamental": nó có dòng riêng bên dưới, và đếm một
+            # agent đọc báo cáo tài chính vào ô "Technical" là nói sai.
+            _n_ind = len([k for k in (_kq.get("analyses") or {})
+                          if k != "fundamental"])
             _row_tech = _hang(
                 "📈 Technical Agent",
                 f"trend {_bd.get('trend_score', '—')} · "
@@ -694,6 +698,27 @@ with st.sidebar:
                 "⚔️ Debate Council",
                 f"{_vong} vòng · {_dc:+.1f} điểm" if _vong else "không chạy",
                 "● BẬT" if _vong else "● TẮT", "ac" if _vong else "wn")
+
+        # ── Agent Cơ Bản: đọc báo cáo tài chính thật ──
+        #
+        # Dòng này từng bị GỠ (21/08/2026) vì trong repo không có lớp nào
+        # như vậy. Nay có `fundamental_agent.FundamentalAgent`, và mọi con
+        # số dưới đây đọc từ kết quả chạy thật — kỳ báo cáo lấy từ nguồn
+        # chứ không dán cứng "Q2/2026" như bản mockup.
+        _fa = (_kq.get("analyses") or {}).get("fundamental") or {}
+        if not _da_chay:
+            _row_fa = _chua_chay("📑 Fundamental Agent")
+        elif not _fa.get("available"):
+            _row_fa = _hang(
+                "📑 Fundamental Agent",
+                (_fa.get("signals") or ["không đọc được"])[0]
+                .lstrip("⚠️🟡 ")[:40],
+                "● TẮT", "wn")
+        else:
+            _row_fa = _hang(
+                "📑 Fundamental Agent",
+                f"{_fa['xep_hang']} {_fa['diem']:.0f}/100 · BCTC {_fa['nam']}",
+                "● BẬT", "ac")
 
         # ── TradingView: đọc từ ghi chú nguồn thật ──
         if not _da_chay:
@@ -713,21 +738,18 @@ with st.sidebar:
             + _hang("🧠 Post-Mortem Mem", _pm_chi_tiet, _pm_trang_thai,
                     "ac" if _pm_bat else "wn")
             + _row_tech
+            + _row_fa
             + _row_debate
             + _row_tv
             + '</div>'
-            # Fundamental Agent ĐÃ BỊ GỠ KHỎI BẢNG (21/08/2026), không phải đổi
-            # nhãn. Trong repo không có lớp nào như vậy, và không agent nào đọc
-            # báo cáo tài chính — `grep -rn "fundamental" master_agent.py
-            # analysis_agents.py` trả về rỗng. `FinancialDataCollector` có được
-            # import vào app.py nhưng KHÔNG được gọi lần nào.
-            #
-            # Liệt kê một thành phần không tồn tại rồi dán nhãn "chưa đo" đọc
-            # như "có nhưng chưa kịp đo", tức là một lời hứa. Bỏ hẳn dòng đó
-            # cho tới ngày thật sự có agent phân tích cơ bản.
+            # Ảnh hưởng bằng 0 phải được NÓI RA ngay cạnh dòng "● BẬT".
+            # Một thành phần bật mà không tác động, nếu không ghi chú, đọc
+            # y hệt một thành phần đang tham gia quyết định.
             '<div style="font-size:9px;color:#475569;margin-top:6px;'
-            'line-height:1.45;">Chưa có Fundamental Agent — không thành phần nào '
-            'trong pipeline đọc báo cáo tài chính.</div>',
+            'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất (vnstock). '
+            '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — 8 quý dữ liệu chỉ đủ '
+            'phát hiện tín hiệu với xác suất ~10%, nên chưa đo được nó có ích '
+            'không. Xem <code>fundamental_agent.py</code>.</div>',
             unsafe_allow_html=True)
 if not result:
     st.info("👈 Nhấn nút **KÍCH HOẠT MULTI-AGENT SCAN** để bắt đầu.")
@@ -768,22 +790,23 @@ vol_flow_ratio = (last_vol / avg_vol - 1.0) * 100 if avg_vol > 0 else 0.0
 vol_flow_str = f"+{vol_flow_ratio:.1f}%" if vol_flow_ratio >= 0 else f"{vol_flow_ratio:.1f}%"
 vol_flow_cls = "pos" if vol_flow_ratio >= 0 else "neg"
 
-# Bốn nhãn dưới đây CHỈ là điểm cuối chia thành 4 khoảng — không có phân
-# tích Wyckoff nào ở đây. Bản cũ gọi chúng là "Pha C — Wyckoff Spring" và
-# hiển thị như kết quả nhận diện cấu trúc giá.
 score = result["final_score"]
-if score >= 60.0:
-    dyn_phase_short = "Điểm ≥ 60"
-    dyn_phase_full = "Vùng điểm ≥ 60 (điểm cuối, không phải pha Wyckoff)"
-elif score >= 54.0:
-    dyn_phase_short = "Điểm 54–60"
-    dyn_phase_full = "Vùng điểm 54–60 (điểm cuối, không phải pha Wyckoff)"
-elif score >= 48.0:
-    dyn_phase_short = "Điểm 48–54"
-    dyn_phase_full = "Vùng điểm 48–54 (điểm cuối, không phải pha Wyckoff)"
-else:
-    dyn_phase_short = "Điểm < 48"
-    dyn_phase_full = "Vùng điểm < 48 (điểm cuối, không phải pha Wyckoff)"
+
+# ── PHA WYCKOFF — đọc cấu trúc giá thật ──────────────────────────────
+#
+# Ô này từng hiện "Pha C — Wyckoff Spring" cho MỌI mã có điểm ≥ 60; ngày
+# 21/08/2026 nhãn bị gỡ vì không có phân tích nào đứng sau, và thay bằng
+# "Vùng điểm ≥ 60 (điểm cuối, không phải pha Wyckoff)". Nay nó đọc từ
+# `pha_wyckoff.doc_pha()`, tức là từ tương quan giá–khối lượng.
+#
+# `doc_pha` trả "Chưa đủ bằng chứng" khá thường xuyên, và đó KHÔNG phải
+# lỗi: pha B của tích luỹ và pha B của phân phối trông giống hệt nhau,
+# nên gán hướng ở đó là bịa. Đừng "sửa" bằng cách nới ngưỡng cho ra nhãn
+# đẹp hơn — đó đúng là cách cái nhãn cũ ra đời.
+wy = doc_pha(df, mult)
+dyn_phase_short = wy.nhan_ngan
+dyn_phase_full = wy.nhan_day
+phase_cls = {"tang": "pos", "giam": "neg"}.get(wy.huong, "neu")
 
 # Real AI Recommendation
 if score >= 60.0:
@@ -820,8 +843,8 @@ with sig_container:
     <div class="sb-card-title" style="margin-top: 10px;">📊 Tín hiệu nhanh [{symbol}]</div>
     <div class="sig-grid">
         <div class="sig-item">
-            <span class="sig-lbl">Vùng điểm AI</span>
-            <span class="sig-val pos">{dyn_phase_short}</span>
+            <span class="sig-lbl">Pha Wyckoff</span>
+            <span class="sig-val {phase_cls}">{dyn_phase_short}</span>
         </div>
         <div class="sig-item">
             <span class="sig-lbl">RSI (14)</span>
@@ -942,6 +965,30 @@ with col_chart:
     )
     st.plotly_chart(fig_candlestick, use_container_width=True)
 
+    # ── Bằng chứng của phép đọc Wyckoff ──────────────────────────────
+    #
+    # Một nhãn pha không kèm bằng chứng thì không ai kiểm được, và thứ
+    # không kiểm được thì không đo được. Ba mục dưới đây là bắt buộc theo
+    # đúng phương pháp: bằng chứng ủng hộ, bằng chứng PHẢN BIỆN, và điều
+    # kiện phủ định — "cần nhìn thấy gì để biết mình đã đọc sai".
+    with st.expander(f"🔍 Bằng chứng Wyckoff — {wy.nhan_ngan} "
+                     f"({wy.do_tin})", expanded=False):
+        if wy.san is not None:
+            st.markdown(
+                f"**Hai biên vùng:** sàn `{wy.san:,.0f}` — trần "
+                f"`{wy.tran:,.0f}` · nền `{wy.so_phien_nen}` phiên")
+        if wy.bang_chung:
+            st.markdown("**Bằng chứng ủng hộ**")
+            st.markdown("\n".join(f"- {b}" for b in wy.bang_chung))
+        st.markdown("**Bằng chứng phản biện**")
+        st.markdown("\n".join(f"- {p}" for p in wy.phan_bien))
+        st.markdown(f"**Điều kiện phủ định** — {wy.phu_dinh}")
+        st.caption("Phân tích cấu trúc phục vụ việc đọc bối cảnh, không "
+                   "phải khuyến nghị mua bán. Chỉ đọc khung ngày và không "
+                   "đối chiếu VN-INDEX; cổ phiếu Việt Nam đồng pha với chỉ "
+                   "số rất cao nên phần lớn mã chỉ đang phản chiếu thị "
+                   "trường. Kết quả này KHÔNG tham gia chấm điểm.")
+
 with col_debate:
     debate = result.get("debate") or {}
     rounds = debate.get("rounds", [])
@@ -1005,7 +1052,7 @@ with col_debate:
 # 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
 num_open_positions = len(real_open_trades)
-t_pos, t_hist, t_rep, t_pipe, t_acct = st.tabs([
+t_pos, t_hist, t_rep, t_fund, t_pipe, t_acct = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
     f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
     # Đổi tên 21/08/2026: ba thẻ bên trong không còn là ba phiên trong ngày.
@@ -1013,6 +1060,7 @@ t_pos, t_hist, t_rep, t_pipe, t_acct = st.tabs([
     # nên cái tên "3 phiên" mô tả một kế hoạch không tồn tại. Nay chúng đọc
     # thật: phân tích hôm nay · diễn biến trong phiên · vị thế trong sổ.
     "📊 Hôm nay",
+    "📑 Cơ bản",
     "🛠️ Pipeline v2",
     "💰 Tài khoản Giả lập"
 ])
@@ -1164,12 +1212,74 @@ with t_rep:
     </div>
     """, unsafe_allow_html=True)
 
+with t_fund:
+    # Mọi con số ở tab này đọc từ `fundamental_agent.FundamentalAgent`.
+    # Không đọc được thì hiện lý do và DỪNG — không có nhánh nào điền số
+    # thay thế. Bản cũ của `financial_collector.py` từng sinh P/E từ
+    # `hash(symbol)`, và vì hash chuỗi được ngẫu nhiên hoá theo tiến
+    # trình, cùng một mã cho ra P/E khác nhau sau mỗi lần khởi động.
+    _fu = (result.get("analyses") or {}).get("fundamental") or {}
+    st.markdown(f"##### 📑 Sức khoẻ tài chính — {symbol}")
+
+    if not _fu.get("available"):
+        st.warning((_fu.get("signals") or ["Không đọc được báo cáo tài chính."])[0])
+    else:
+        _cs = _fu["chi_so"]
+        _c1, _c2, _c3, _c4 = st.columns(4)
+        _c1.metric("Xếp hạng", _fu["xep_hang"], f"{_fu['diem']:.0f}/100")
+        _c2.metric("ROE", "—" if _cs.roe_pct is None else f"{_cs.roe_pct:.1f}%")
+        _c3.metric("P/E", "—" if _cs.pe is None else f"{_cs.pe:.1f}")
+        _c4.metric("P/B", "—" if _cs.pb is None else f"{_cs.pb:.2f}")
+
+        # Hai nhóm ngành, hai bộ chỉ tiêu. Ngân hàng vay tiền là nghiệp vụ
+        # chứ không phải rủi ro, nên chấm họ bằng Nợ vay/VCSH là chấm sai
+        # bản chất — xem `fundamental_agent._cham_an_toan`.
+        _rieng = ([("NIM", _cs.nim_pct, "{:.2f}%"),
+                   ("Vốn chủ / Tổng tài sản", _cs.vcsh_tren_tts_pct, "{:.1f}%")]
+                  if _cs.nhom == "ngân hàng" else
+                  [("Biên lợi nhuận", _cs.bien_ln_pct, "{:.1f}%"),
+                   ("Nợ vay / Vốn chủ", _cs.no_vay_tren_vcsh_pct, "{:.0f}%"),
+                   ("Khả năng trả lãi", _cs.kha_nang_tra_lai, "{:.1f} lần")])
+        _bang = [{"Chỉ tiêu": t,
+                  "Giá trị": "—" if v is None else f.format(v)}
+                 for t, v, f in _rieng + [
+                     ("ROA", _cs.roa_pct, "{:.2f}%"),
+                     ("EPS", _cs.eps, "{:,.0f} đ"),
+                     ("Tỷ suất cổ tức", _cs.co_tuc_pct, "{:.2f}%"),
+                     # Hậu tố "tăng trưởng" trong nhãn là bắt buộc: nguồn
+                     # đặt tên ba dòng này y hệt số dư (`total_assets`,
+                     # `owners_equity`), mà giá trị lại là phần trăm.
+                     ("Tăng trưởng LNST", _cs.ln_tang_pct, "{:+.1f}%"),
+                     ("Tăng trưởng vốn chủ", _cs.vcsh_tang_pct, "{:+.1f}%"),
+                     ("Tăng trưởng tổng tài sản", _cs.tts_tang_pct, "{:+.1f}%")]]
+        st.dataframe(pd.DataFrame(_bang), use_container_width=True,
+                     hide_index=True)
+
+        if _fu.get("canh_bao"):
+            st.error("🔴 Cảnh báo: " + " · ".join(_fu["canh_bao"]))
+        st.markdown("**Diễn giải**")
+        st.markdown("\n".join(f"- {s}" for s in _fu["signals"]))
+        st.caption(f"Nhóm: {_cs.nhom} · kỳ báo cáo: năm {_fu['nam']} · "
+                   f"nguồn: {_fu['nguon']}")
+
+    st.info(
+        "**Ảnh hưởng lên điểm giao dịch: 0.** Agent này chạy đủ và trả số "
+        "thật, nhưng `master_agent.TRONG_SO_CO_BAN = 0.0` nên nó không làm "
+        "dịch điểm một ly nào. Lý do: gói dữ liệu cộng đồng chỉ có 8 quý, "
+        "mà yếu tố cơ bản có IC ≈ 0,03–0,05 — thiết kế đó phát hiện được "
+        "tín hiệu với xác suất khoảng 10%. Thêm vào đó, số liệu đã điều "
+        "chỉnh hồi tố, rổ chỉ gồm mã còn sống, và cửa sổ nằm trong vùng đã "
+        "tối ưu; cả ba đều đẩy kết quả đẹp lên. Bật trọng số là một quyết "
+        "định ĐO LƯỜNG — xem `experiment_fundamentals.py`.")
+
 with t_pipe:
     # Sơ đồ này VẼ LUỒNG DỮ LIỆU, nên mỗi ô phải là một chặng có thật.
     #
-    # Đã gỡ ô "Fundamental Agent · BCTCK Q2" (21/08/2026): trong repo không
-    # có lớp nào như vậy, và không thành phần nào trong pipeline đọc báo cáo
-    # tài chính. Vẽ một ô vào giữa luồng là khẳng định dữ liệu chảy qua đó.
+    # Ô "Fundamental Agent" bị gỡ ngày 21/08/2026 vì lúc đó không lớp nào
+    # như vậy tồn tại. Nay `fundamental_agent.FundamentalAgent` có thật và
+    # `master_agent` gọi nó, nên ô được vẽ lại — kèm nhãn nói rõ nó KHÔNG
+    # nằm trên đường chấm điểm (trọng số 0), vì vẽ nó vào giữa luồng mà
+    # không ghi chú sẽ khẳng định điểm số chảy qua đó.
     #
     # Hai ô ghi "chưa đo" cũng đã thay bằng nhãn thật: TradingView đang trả
     # 15 chỉ báo mỗi lượt, Google Sheets đang là kho sổ lệnh. "Chưa đo" ở
@@ -1182,6 +1292,10 @@ with t_pipe:
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
             <span style="font-size:18px;">📊</span><br><b style="font-size:11px;">Technical Agent</b><br><small style="color:var(--c-t3);font-size:9px;">RSI · MACD</small>
+        </div>
+        <span>→</span>
+        <div style="background:var(--c-s2);border:1px dashed var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;opacity:.75;">
+            <span style="font-size:18px;">📑</span><br><b style="font-size:11px;">Fundamental Agent</b><br><small style="color:var(--c-t3);font-size:9px;">BCTC năm · trọng số 0</small>
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">

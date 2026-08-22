@@ -505,7 +505,16 @@ SO_CUNG_TRONG_APP = {
     "12ms":   "độ trễ Technical Agent — không đo từ đâu",
     "Q2/2026": "kỳ báo cáo Fundamental Agent — dán cứng",
     "3 Vòng": "số vòng tranh luận — dán cứng",
-    "Pha Wyckoff": "nhãn cho 4 khoảng điểm — không có phân tích Wyckoff nào",
+    # "Pha Wyckoff" ĐÃ RỜI danh sách này ngày 22/08/2026.
+    #
+    # Nó nằm đây vì cái nhãn ấy từng là tên gọi mỹ miều cho bốn khoảng
+    # điểm, không phải vì hai chữ "Wyckoff" tự nó là điều cấm. Nay
+    # `pha_wyckoff.doc_pha()` đọc cấu trúc giá thật, nên cấm cái nhãn là
+    # cấm nhầm — và một phép cấm nhầm sẽ đẩy người sau đi vòng thay vì
+    # làm đúng.
+    #
+    # Thứ thay thế nó là `test_nhan_pha_wyckoff_phai_co_module_dung_sau`
+    # bên dưới: nhãn được phép hiện, VỚI ĐIỀU KIỆN có module đứng sau.
     # Ba lời khẳng định TRẠNG THÁI mà không chỗ nào kiểm. Cùng họ với
     # market_filter.status() báo active=True trong khi cổng đóng cứng:
     # một đường sao lưu hỏng âm thầm còn tệ hơn không có đường nào.
@@ -597,6 +606,45 @@ def test_app_khong_hien_so_cung_tu_mockup():
         f"app.py còn {len(loi)} con số bịa trên mặt người đọc:\n  "
         + "\n  ".join(loi))
     print("PASS  app.py không còn số cứng từ mockup")
+
+
+def test_nhan_pha_wyckoff_phai_co_module_dung_sau():
+    """Hiện "Pha Wyckoff" thì phải có phân tích Wyckoff, không phải nhãn suông.
+
+    Đây là quy tắc thay cho lệnh cấm cũ. Từ 21/08/2026 tới 22/08/2026 nhãn
+    này bị cấm hẳn, vì nó từng là tên gọi cho bốn khoảng điểm cuối. Cấm là
+    đúng lúc đó, nhưng cấm mãi thì cũng cấm luôn việc làm thật.
+
+    Điều kiện: nếu app.py in nhãn ra thì nó phải gọi `pha_wyckoff.doc_pha`.
+    """
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    if "Pha Wyckoff" not in src:
+        print("SKIP  app.py không hiện nhãn Pha Wyckoff")
+        return
+    assert "doc_pha" in src and "pha_wyckoff" in src, (
+        "app.py hiện nhãn 'Pha Wyckoff' nhưng không gọi pha_wyckoff.doc_pha "
+        "— đây đúng là lỗi đã sửa ngày 21/08/2026, đang quay lại")
+    assert os.path.exists(os.path.join(ROOT, "pha_wyckoff.py"))
+    print("PASS  nhãn Pha Wyckoff có module đứng sau")
+
+
+def test_nhan_fundamental_agent_phai_co_lop_dung_sau():
+    """Tương tự cho Fundamental Agent.
+
+    Ô này bị gỡ khỏi cả bảng trạng thái lẫn sơ đồ pipeline ngày
+    21/08/2026, vì `grep -rn "fundamental" master_agent.py` trả về rỗng.
+    Vẽ một ô vào giữa luồng là khẳng định dữ liệu chảy qua đó.
+    """
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    if "Fundamental Agent" not in src:
+        print("SKIP  app.py không hiện ô Fundamental Agent")
+        return
+    master = open(os.path.join(ROOT, "master_agent.py"), encoding="utf-8").read()
+    assert "FundamentalAgent" in master, (
+        "app.py vẽ ô Fundamental Agent nhưng master_agent.py không gọi lớp "
+        "nào như vậy — luồng dữ liệu không đi qua đó")
+    assert os.path.exists(os.path.join(ROOT, "fundamental_agent.py"))
+    print("PASS  ô Fundamental Agent có lớp đứng sau và được master gọi")
 
 
 def test_app_doc_so_lenh_qua_paper_metrics():

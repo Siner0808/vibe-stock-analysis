@@ -285,7 +285,7 @@ biết tên. Muốn tìm cái chưa biết thì phải **render rồi đọc mà
 | `est_stop_loss` / `est_tp` | thiếu khuyến nghị → `close×0,93` / `close×1,15` | → `None`, hiển thị `—`; đường SL trên chart chỉ vẽ khi có số |
 | Nhãn SL/TP | `(-7.0%)` / `(+15.0%)` cứng | phần trăm tính thật từ giá hiện tại |
 | Tỷ trọng vốn trong kế hoạch vào lệnh | `"30%"` | `safety.safe_position_size` thật |
-| "Pha Wyckoff" | `Pha C — Wyckoff Spring` … | `Vùng điểm ≥ 60 (điểm cuối, không phải pha Wyckoff)` … |
+| "Pha Wyckoff" | `Pha C — Wyckoff Spring` … | `Vùng điểm ≥ 60 (điểm cuối, không phải pha Wyckoff)` … — **đã thay lần nữa ngày 22/08/2026 bằng phép đọc cấu trúc thật, xem mục cuối file** |
 | Thẻ trạng thái hệ thống | 5 dòng dán cứng | Post-Mortem đọc thật (`6.327 mẫu · ● TẮT`), 4 dòng còn lại `— · ● chưa đo` |
 
 Ba gác dựng sau sự cố thứ tư giờ đã chạm tới mặt người đọc: cảnh báo đòn
@@ -1412,3 +1412,138 @@ Khoá bởi `tests/test_doan_nhung_workflow.py` (7 test). Test cuối neo vào
 **Còn chưa biết:** canh gác chưa chạy trên runner lần nào. Nhịp theo lịch
 gần nhất (thứ Hai 09:00 ICT) sẽ là câu trả lời — và câu trả lời đó đọc được
 ngay trên trang lượt chạy, không cần tải nhật ký về.
+
+---
+
+## PHA WYCKOFF THẬT, VÀ AGENT CƠ BẢN THẬT (22/08/2026)
+
+Hai ô trên giao diện từng bị gỡ ngày 21/08/2026 vì cùng một lý do: chúng
+hứa một thứ không tồn tại. Hôm nay chúng được trả lại, lần này có mã nguồn
+đứng sau.
+
+### 1. `pha_wyckoff.py` — ô "Vùng điểm AI" trở lại thành "Pha Wyckoff"
+
+Ô này từng hiện `Pha C — Wyckoff Spring` cho **mọi** mã có điểm ≥ 60. Nó
+là điểm số chia thành bốn khoảng, đội lốt một kết luận về hành vi dòng
+tiền lớn. Bản vá 21/08 đổi nhãn thành `Vùng điểm ≥ 60 (điểm cuối, không
+phải pha Wyckoff)` — đúng nhưng vô dụng.
+
+`doc_pha(df, he_so_gia)` nay đọc tương quan giá–khối lượng: tìm cụm cao
+trào 3 phiên, kiểm nhịp AR, dựng sàn/trần, rồi tìm Spring / UTAD / SOS /
+SOW / Markup / Markdown trong 10 phiên gần nhất.
+
+**Ba quyết định thiết kế, cả ba đều để nó không kết luận bừa:**
+
+| Quyết định | Vì sao |
+|---|---|
+| Biên vùng dựng từ phần **nền**, sự kiện tìm ở phần **sau** — hai phần không giao nhau | Lấy min/max trên cả đoạn thì chính cây thủng sâu nhất định nghĩa ra cái sàn, nên `low < san` không bao giờ đúng và bộ nhận dạng **không bao giờ kêu**. Cùng họ với những phép kiểm báo xanh trên 0 mẫu ở dự án này. |
+| Cửa sổ tìm cao trào bị chặn **cả hai đầu** | Cụm khối lượng lớn nhất trong 120 phiên có thể thuộc một cấu trúc đã kết thúc. Bỏ chặn trái, đo trên dữ liệu thật: "vùng dao động" rộng **96%** ở VHM, **61%** ở SSI. Con số đó tự nó nói phép đọc sai. |
+| Pha B trả về `CHƯA PHÂN ĐỊNH`, không đoán hướng | Pha B của tích luỹ và pha B của phân phối trông giống hệt nhau. Khác biệt chỉ lộ ra ở pha C. |
+
+Đo trên 40 mã VN100, dữ liệu tới 20/08: 11 pha B · 3 Spring · 2 SOS ·
+2 pha A · 1 UTAD · 1 Markdown · 20 "chưa đủ bằng chứng" (7 thiếu AR,
+13 biên độ nền quá rộng). Tỷ lệ không kết luận cao là **đúng kỷ luật của
+phương pháp**, không phải lỗi ngưỡng. Đừng nới ngưỡng cho ra nhãn đẹp hơn
+— đó đúng là cách cái nhãn cũ ra đời.
+
+**Một lỗi logic do smoke test trình duyệt lôi ra, không phải do test bắt.**
+Lượt quét ACB hiện `Pha C — Spring · TÍCH LUỸ · đã xác nhận` trong khi
+dòng bằng chứng ngay bên dưới ghi **"cao trào MUA"**. Nhánh sự kiện tự ghi
+đè cấu trúc mà không ai đối chiếu lại với điểm neo. Nay `_doi_chieu_boi_canh()`
+chạy trên cấu trúc ĐÃ KẾT LUẬN: mâu thuẫn thì nói thẳng ("nhiều khả năng
+là tái tích luỹ") và **hạ độ tin**. ACB sau vá: `nhiều khả năng`.
+
+Đây là lần thứ hai một lỗi mặt-người-đọc chỉ lộ ra qua trình duyệt chứ
+không qua test — lần trước là thẻ "Trạng thái hệ thống AI" hôm 21/08.
+
+### 2. `fundamental_agent.py` — Agent Cơ Bản
+
+Ô "Fundamental Agent · BCTC Q2" bị gỡ khỏi cả bảng trạng thái lẫn sơ đồ
+pipeline ngày 21/08, vì `grep -rn "fundamental" master_agent.py
+analysis_agents.py` trả về rỗng.
+
+Nay có thật: đọc bảng `ratio` theo năm từ vnstock/KBS, chấm sinh lời — an
+toàn — tăng trưởng — định giá, trả `diem` 0-100 kèm xếp hạng và danh sách
+cảnh báo. Đo thật ngày 22/08: FPT `TỐT 87`, VNM `TỐT 71`, ACB `KHÁ 68`,
+HPG `KHÁ 64`, SSI `KHÁ 58` (kèm cảnh báo đòn bẩy cao).
+
+**Bốn cái bẫy phát hiện khi dò dữ liệu thật, cả bốn đều có test riêng:**
+
+```
+1. `total_assets` / `owners_equity` / `profit_after_tax_...` trong bảng
+   ratio là TĂNG TRƯỞNG %, không phải số dư. FPT 2022: total_assets =
+   -3,81. Tổng tài sản âm là bất khả — đó là -3,81%.
+2. Ngân hàng KHÔNG có net_margin / debt_to_equity / interest_coverage.
+   Chấm ACB bằng thước doanh nghiệp sản xuất là loại sạch nhóm nặng ký
+   nhất rổ VN30.
+3. `roe_trailling` và `roa_trailling` bằng 0,0 ở mọi mã, mọi năm.
+4. Số liệu cũ hơn 2 năm trông y hệt số liệu hiện hành trên giao diện.
+```
+
+### 3. Ảnh hưởng lên điểm giao dịch: **0** — và đó là một quyết định
+
+`master_agent.TRONG_SO_CO_BAN = 0.0`. Điểm cơ bản tham gia theo dạng cộng
+lệch `(điểm − 50) × trọng số`, nên trọng số 0 cho ra **đúng** con số như
+trước khi có agent này — kiểm được bằng mắt, không cần chạy lại cả sổ lệnh.
+
+Vì sao chưa bật: `experiment_fundamentals.py` đã tính sẵn lực thống kê —
+gói cộng đồng vnstock chỉ trả 8 quý, mà yếu tố cơ bản có IC ≈ 0,03–0,05,
+nên thiết kế này phát hiện tín hiệu với xác suất ~10%. Ba thiên lệch còn
+lại đều đẩy kết quả ĐẸP lên. Quy tắc số 1: một thay đổi làm con số đẹp lên
+thì giả định đầu tiên phải là có lỗi.
+
+**Và một rào chắn quan trọng hơn trọng số:** `MasterConsensusAgent(doc_co_ban=False)`
+là mặc định. Bảng chỉ số theo năm là trạng thái HIỆN TẠI, đã gồm mọi điều
+chỉnh hồi tố, và **không kèm ngày công bố**. Đưa nó vào một phiên năm 2022
+là chấm phiên đó bằng số liệu 2025 — nhìn trộm tương lai ở dạng thô nhất.
+`backtest/engine.py` và `paper_runner.py` dựng agent bằng constructor rỗng
+nên giữ nguyên hành vi cũ và không phát sinh lời gọi mạng nào. Chỉ
+`run_full_analysis()` bật nó lên.
+
+### Khoá bằng gì
+
+```
+tests/test_pha_wyckoff.py            26 test
+tests/test_fundamental_agent.py      22 test  (offline, tiêm hàm tải giả)
+tests/test_co_ban_trong_pipeline.py  10 test
+tests/test_no_fabricated_data.py     +2 test  (nhãn phải có module đứng sau)
+```
+
+`"Pha Wyckoff"` đã **rời** danh sách cấm trong `test_no_fabricated_data.py`.
+Nó nằm đó vì cái nhãn từng là tên gọi mỹ miều cho bốn khoảng điểm, không
+phải vì hai chữ "Wyckoff" tự nó là điều cấm. Thay chỗ nó là hai test có
+điều kiện: nhãn được phép hiện, VỚI ĐIỀU KIỆN app.py gọi `pha_wyckoff.doc_pha`
+và `master_agent.py` gọi `FundamentalAgent`.
+
+Mười đột biến đã thử, **cả mười đều làm test đỏ**:
+
+```
+biên vùng lấy từ CẢ ĐOẠN (vòng lặp logic)   -> đỏ
+bỏ chặn trái khi tìm cao trào               -> đỏ
+pha B đoán bừa là TÍCH LUỸ                  -> đỏ
+bỏ đối chiếu bối cảnh                       -> đỏ
+Spring không cần Test vẫn "đã xác nhận"     -> đỏ
+ngân hàng bị chấm bằng thước doanh nghiệp   -> đỏ
+thiếu dữ liệu -> điểm 50 "trung tính"       -> đỏ
+bỏ chốt độ tươi số liệu                     -> đỏ
+bật trọng số cơ bản lên 0,3                 -> đỏ
+backtest cũng đọc dữ liệu cơ bản            -> đỏ
+```
+
+Lần chạy đột biến ĐẦU TIÊN có một mục xanh: "bỏ chặn trái khi tìm cao
+trào". Test khẳng định `so_phien_nen <= 60`, mà nhánh "chưa đủ bằng chứng"
+trả `so_phien_nen = 0` nên cũng thoả — test xanh trên 0 phép kiểm. Đã thêm
+`assert r.ket_luan_duoc` trước cận trên đó.
+
+### Trạng thái sau bản vá
+
+```
+420 test xanh (394 + 26 Wyckoff, trong đó có 22 cơ bản + 10 pipeline)
+0 CHẶN · 37 cảnh báo (không đổi)
+94 file .py + 3 đoạn nhúng — nạp được bằng 3.11
+Smoke test trình duyệt: 0 traceback, 0 stException, 2 dataframe render
+```
+
+**Còn chưa biết:** trọng số cơ bản có nên khác 0 hay không. Câu trả lời
+cần ≥40 quý; gói dữ liệu hiện tại cho 8. Đó là giới hạn gói dữ liệu, không
+phải giới hạn của mã nguồn.

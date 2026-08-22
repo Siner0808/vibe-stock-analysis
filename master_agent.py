@@ -1,10 +1,30 @@
 from data_collectors import MarketDataPacket
 from news_sentiment_agent import NewsSentimentAgent
 from debate_agents import DebateModerator, SafetyHarnessGuardrails
+from fundamental_agent import FundamentalAgent
 from analysis_agents import (
     TrendAnalysisAgent, MomentumAgent,
     VolumeAnalysisAgent, SupportResistanceAgent, RiskManagementAgent
 )
+
+# =====================================================================
+# TRỌNG SỐ CỦA AGENT CƠ BẢN — MẶC ĐỊNH 0, ĐỌC TRƯỚC KHI ĐỔI
+# =====================================================================
+# Điểm cơ bản (0-100) tham gia theo dạng CỘNG LỆCH: `(điểm - 50) * trọng
+# số`. Nhờ vậy trọng số 0 cho ra đúng con số như trước khi có agent này —
+# kiểm được bằng mắt, không cần chạy lại cả sổ lệnh để chứng minh.
+#
+# Vì sao để 0: chưa ai đo được nó có ích không.
+# `experiment_fundamentals.py` đã tính sẵn lực thống kê — gói cộng đồng
+# vnstock chỉ trả 8 quý, mà yếu tố cơ bản có IC ≈ 0,03–0,05, nên thiết kế
+# này phát hiện được tín hiệu với xác suất ~10%. Ba thiên lệch còn lại
+# (số liệu điều chỉnh hồi tố, thiên lệch sống sót, cửa sổ nằm trong vùng
+# đã tối ưu) đều đẩy kết quả ĐẸP lên.
+#
+# Quy tắc số 1 của `NGUYEN-TAC-DO-LUONG.md`: nếu một thay đổi làm con số
+# đẹp lên đáng kể, giả định đầu tiên phải là có lỗi. Bật trọng số rồi thấy
+# lãi tăng chính là kịch bản đó.
+TRONG_SO_CO_BAN = 0.0
 
 # =====================================================================
 # LAYER 3: MASTER CONSENSUS AGENT  (Tầng Tổng hợp Sơ bộ)
@@ -23,15 +43,54 @@ class MasterConsensusAgent:
     """
     NAME = "Master Consensus Agent"
 
-    def __init__(self):
+    def __init__(self, doc_co_ban: bool = False):
+        # `doc_co_ban` MẶC ĐỊNH TẮT, và mặc định đó là một rào chắn chứ
+        # không phải một lựa chọn hiệu năng.
+        #
+        # Bảng chỉ số theo NĂM mà nguồn trả về là trạng thái HIỆN TẠI, đã
+        # gồm mọi lần điều chỉnh hồi tố, và không kèm ngày công bố. Đưa nó
+        # vào một phiên năm 2022 là chấm phiên đó bằng số liệu năm 2025 —
+        # nhìn trộm tương lai ở dạng thô nhất (bất biến 1).
+        #
+        # `backtest/engine.py` và `paper_runner.py` dựng agent này bằng
+        # constructor rỗng, nên chúng giữ nguyên hành vi cũ và không phát
+        # sinh lời gọi mạng nào. Chỉ `run_full_analysis()` — đường phân
+        # tích MỘT mã tại thời điểm HIỆN TẠI — mới bật nó lên.
+        self.doc_co_ban     = doc_co_ban
         self.trend_agent    = TrendAnalysisAgent()
         self.momentum_agent = MomentumAgent()
         self.volume_agent   = VolumeAnalysisAgent()
         self.sr_agent       = SupportResistanceAgent()
         self.risk_agent     = RiskManagementAgent()
         self.news_agent     = NewsSentimentAgent()
+        self.fundamental_agent = FundamentalAgent()
         self.debate         = DebateModerator()
         self.harness        = SafetyHarnessGuardrails()
+
+    def _phan_tich_co_ban(self, packet: MarketDataPacket) -> dict:
+        """Kết quả Agent Cơ Bản, hoặc một kết quả 'không đọc' rõ ràng.
+
+        Không bao giờ ném: một lỗi mạng ở tầng cơ bản không được làm hỏng
+        cả lượt chấm kỹ thuật.
+        """
+        if not self.doc_co_ban:
+            return {"agent": FundamentalAgent.NAME, "symbol": packet.symbol,
+                    "available": False, "diem": None,
+                    "xep_hang": "KHÔNG ĐỌC",
+                    "signals": ["🟡 Không đọc báo cáo tài chính ở đường chạy "
+                                "này (backtest / sổ lệnh giấy) — dữ liệu cơ "
+                                "bản theo năm không có ngày công bố nên "
+                                "dùng cho phiên quá khứ là nhìn trộm."],
+                    "canh_bao": [], "nhom": "", "nam": None, "chi_so": None}
+        try:
+            return self.fundamental_agent.analyze(packet.symbol)
+        except Exception as e:
+            return {"agent": FundamentalAgent.NAME, "symbol": packet.symbol,
+                    "available": False, "diem": None,
+                    "xep_hang": "KHÔNG CÓ DỮ LIỆU",
+                    "signals": [f"⚠️ Agent Cơ Bản lỗi: "
+                                f"{type(e).__name__}: {str(e)[:120]}"],
+                    "canh_bao": [], "nhom": "", "nam": None, "chi_so": None}
 
     # Các mức chất lượng dữ liệu KHÔNG được phép sinh khuyến nghị mua/bán.
     NO_VERDICT_QUALITY = {
@@ -75,6 +134,7 @@ class MasterConsensusAgent:
                 "score_breakdown": {
                     "trend_score": 50, "momentum_score": 50, "volume_score": 50,
                     "sr_score": 50, "risk_score": 50, "news_score": 50,
+                    "fundamental_score": None, "fundamental_adjustment": 0.0,
                     "tv_bonus": 0, "debate_adjustment": 0, "safety_adjustment": 0
                 },
                 "safety": {"is_safe": False, "adjusted_score": 50.0,
@@ -99,10 +159,12 @@ class MasterConsensusAgent:
             "top_positive": [], "top_negative": [], "sector_sentiment": {}, "total_articles": 0
         }
 
+        fund_res = self._phan_tich_co_ban(packet)
+
         analyses_map = {
             "trend": trend_res, "momentum": momentum_res,
             "volume": volume_res, "support_resistance": sr_res,
-            "risk": risk_res, "news": news_res,
+            "risk": risk_res, "news": news_res, "fundamental": fund_res,
         }
 
         # ── LAYER 3: Tính điểm sơ bộ với Trọng số Động (Dynamic Adaptive Weights) ─
@@ -156,11 +218,18 @@ class MasterConsensusAgent:
         except Exception:
             pass
 
+        # Cộng LỆCH so với mốc 50, không trộn vào bộ trọng số phía trên.
+        # Trọng số 0 -> số hạng này bằng 0 -> điểm y hệt trước khi có Agent
+        # Cơ Bản. Đọc một dòng là biết, không phải chạy lại cả sổ lệnh.
+        dong_gop_co_ban = 0.0
+        if TRONG_SO_CO_BAN and fund_res.get("diem") is not None:
+            dong_gop_co_ban = (fund_res["diem"] - 50.0) * TRONG_SO_CO_BAN
+
         pre_debate_score = (
             trend_norm * weights["trend"] + momentum_norm * weights["momentum"] +
             volume_norm * weights["volume"] + sr_norm * weights["sr"] +
             risk_norm * weights["risk"]
-        ) + tv_bonus + sl_penalty
+        ) + tv_bonus + sl_penalty + dong_gop_co_ban
         pre_debate_score = max(5.0, min(95.0, pre_debate_score))
 
         # ── LAYER 4: Debate Council – Tranh luận đối lập ─────────────
@@ -197,6 +266,12 @@ class MasterConsensusAgent:
             f"🛡️ Mức rủi ro: {risk_res['risk_level']}",
             f"📡 TradingView MCP: {tv_rec} (Osc: {packet.tv_oscillators} | MA: {packet.tv_moving_averages})",
             f"📰 Tin tức: {news_res.get('overall_sentiment','N/A')} ({news_res.get('total_articles',0)} bài)",
+            (f"📑 Cơ bản ({fund_res.get('nhom') or '?'}, BCTC "
+             f"{fund_res.get('nam')}): {fund_res['xep_hang']} "
+             f"{fund_res['diem']:.0f}/100 · ảnh hưởng điểm "
+             f"{dong_gop_co_ban:+.1f}"
+             if fund_res.get("available")
+             else f"📑 Cơ bản: {fund_res['xep_hang']}"),
             f"⚖️ Debate Council: Bull {verdict.bull_score:+.1f} | Bear {verdict.bear_score:+.1f} "
             f"| Điều chỉnh {verdict.final_adjustment:+.1f} | Tin cậy: {verdict.confidence_level}",
         ]
@@ -231,6 +306,8 @@ class MasterConsensusAgent:
                 "sr_score":       round(sr_norm, 1),
                 "risk_score":     round(risk_norm, 1),
                 "news_score":     round(news_norm, 1),
+                "fundamental_score": fund_res.get("diem"),
+                "fundamental_adjustment": round(dong_gop_co_ban, 2),
                 "tv_bonus":       tv_bonus,
                 "debate_adjustment": verdict.final_adjustment,
                 "safety_adjustment": round(safety["adjusted_score"] - post_debate_score, 1),
@@ -269,13 +346,17 @@ def run_full_analysis(symbol: str, start: str, end: str,
     Pipeline 5 tầng:
       Layer 1A: VNStock + TradingView MCP
       Layer 1B: News Agents (5 agents song song)
-      Layer 2:  6 Analysis Agents chuyên sâu
+      Layer 2:  6 Analysis Agents chuyên sâu + Agent Cơ Bản
       Layer 3:  Master Consensus (điểm sơ bộ)
       Layer 4:  Debate Council (Bull vs Bear vs Devil)
       Layer 5:  Final Verdict (phán quyết cuối)
+
+    Đây là đường chạy PHÂN TÍCH MỘT MÃ TẠI THỜI ĐIỂM HIỆN TẠI, nên Agent
+    Cơ Bản được bật. Backtest và sổ lệnh giấy dựng `MasterConsensusAgent()`
+    trực tiếp và giữ mặc định tắt — xem ghi chú ở `__init__`.
     """
     from data_collectors import DataOrchestrator
     orchestrator = DataOrchestrator(symbol, start, end, exchange, collect_news=collect_news)
     packet = orchestrator.collect_and_handoff()
-    master = MasterConsensusAgent()
+    master = MasterConsensusAgent(doc_co_ban=True)
     return master.run(packet)
