@@ -187,6 +187,29 @@ hai ngày, chưa từng chạy. Không đỏ nên không có email, không xanh 
 không quét được gì. Vì thế chuông chỉ đếm `conclusion == "success"` —
 `queued` và `cancelled` đều KHÔNG được coi là đã quét.
 
+### Cảnh báo nội phiên — thứ tự bước là bắt buộc, không phải sở thích
+
+`evaluate_open()` chấm trên nến NGÀY, mà trong phiên nến ngày đã phản ánh
+cái đáy vừa tạo. Nên một vị thế thủng stop-loss lúc 10:30 sẽ bị chính nhịp
+quét kế tiếp đóng ngay. **Đặt bước cảnh báo SAU bước quét thì nó luôn thấy
+lệnh đã đóng và KHÔNG BAO GIỜ KÊU.** Bản đầu đặt sai đúng như vậy.
+
+Thứ tự đúng, đã xác nhận trên runner ngày 22/08/2026:
+`kéo sổ → cảnh báo → quét → đối chiếu`.
+
+Cảnh báo đi bằng `::warning::` và `$GITHUB_STEP_SUMMARY`, **không** bằng mã
+thoát: `tools/chuong_bao_quet.py` đếm `conclusion == "success"` để biết một
+ngày có được quét không, nên một cảnh báo thật làm job đỏ sẽ sinh ra báo
+động giả che mất chính thứ chuông sinh ra để canh.
+
+**Canh gác khi sổ rỗng.** `quet()` chỉ gọi hàm tải nến khi CÓ vị thế đang
+mở, nên với 113 lệnh đã đóng và 0 lệnh mở thì `intraday_data.tai()` không
+chạy lần nào. Mà 0 vị thế không phải chuyện tạm: ngưỡng mua để trống VÀ
+VN-INDEX dưới MA50. `quet_va_canh_gac()` nạp thử một mã khi sổ rỗng — hỏi
+một **khoảng** 10 ngày chứ không hỏi riêng hôm nay, vì nhịp 09:00 chạy
+trước khi nến 30 phút đầu tiên kịp đóng và "hôm nay 0 nến" là bình thường.
+Chi tiết: `docs/STATE.md`, mục 22/08/2026.
+
 **Điều kiện để hai nơi cùng ghi mà không hỏng: PHẢI kéo từ Sheets trước
 khi quét.** `run_daily.py` làm việc đó ngay đầu `execute_daily_scan()`.
 
@@ -234,6 +257,14 @@ một trình thông dịch 3.11 thật. `tools/kiem_cu_phap_311.py` tự tìm n�
 (`PYTHON311`, bản uv, hoặc `py -0p`), tự kiểm mình bằng một đoạn 3.12-mới
 trước khi kiểm repo, và phân biệt "chưa kiểm được" (mã thoát 2) với "sạch"
 (mã thoát 0).
+
+**Từ 22/08/2026 nó kiểm cả python nhúng trong workflow YAML.** Bước cảnh báo
+nội phiên có hơn 70 dòng python nằm trong heredoc — chạy trên runner y hệt
+một file `.py`, nhưng `rglob("*.py")` không thấy và không test nào import.
+`doan_nhung()` trích mọi heredoc **có trích dẫn** (`<<'X'`) rồi kiểm cùng
+lượt. Heredoc **không** trích dẫn bị bỏ qua có chủ đích: shell nội suy `$…`
+trước khi python thấy, nên thứ trên đĩa không phải thứ chạy thật. Số đoạn
+nhúng được in cùng số file để một số 0 ở đó nhìn thấy được.
 
 **`walkforward_vn100.py` đã đổi đuôi thành `.broken` (20/08/2026)** — bản
 thay thế là **`walkforward.py`**. Đừng dùng file cũ làm nguồn

@@ -186,3 +186,127 @@ def quet(db_path: str, ngay: str, bay_gio: datetime, tai_nen) -> dict:
             canh_bao.append(cb)
 
     return {"so_vi_the": len(mo), "canh_bao": canh_bao, "loi": loi}
+
+
+# ═════════════════════════════════════════════════════════════════════
+# CANH GÁC ĐƯỜNG DỮ LIỆU
+#
+# VÌ SAO CẦN
+# ──────────
+# `quet()` chỉ gọi `tai_nen` khi CÓ vị thế đang mở. Sổ rỗng thì vòng lặp
+# không chạy lần nào, nên toàn bộ đường dữ liệu — gọi mạng, khoá API, lọc
+# lưới 24/7, quy đơn vị — KHÔNG hề được thực thi.
+#
+# Đo trên lượt chạy 22/08/2026: 113 lệnh, tất cả đã đóng, 0 đang mở. Bước
+# cảnh báo hết 0,35 giây và in "không vị thế nào chạm SL/TP" — đúng, nhưng
+# nó không chứng minh được gì ngoài việc `vi_the_dang_mo()` chạy được.
+#
+# Và 0 vị thế không phải chuyện tạm thời: ngưỡng mua đang để trống (ô C5)
+# VÀ VN-INDEX nằm dưới MA50. Đường mã đó sẽ nằm im cho tới đúng ngày đầu
+# tiên có lệnh mở — tức nó chạy lần đầu vào đúng lúc nó buộc phải đúng.
+#
+# Canh gác nạp thử MỘT mã khi sổ rỗng. Có vị thế thì các lần nạp thật đã
+# tự chứng minh rồi, nên điều kiện này phủ đúng chỗ trống, không phủ chồng.
+#
+# KHÔNG ĐƯỢC KÊU OAN
+# ──────────────────
+# Nhịp 09:00 chạy trước khi nến 30 phút đầu tiên kịp đóng, nên "hôm nay 0
+# nến" là BÌNH THƯỜNG chứ không phải hỏng. Vì thế canh gác hỏi một KHOẢNG
+# ngày chứ không hỏi riêng hôm nay: nguồn trả được nến của tuần trước là
+# nguồn còn sống, bất kể chạy lúc mấy giờ. Chỉ khi nguồn NÉM hoặc trả rỗng
+# cả khoảng mới tính là hỏng.
+# ═════════════════════════════════════════════════════════════════════
+
+# Mã canh gác phải là vốn hoá lớn, thanh khoản cao, và có giá VNĐ cao hơn
+# hẳn NGUONG_VND — xem `_kiem_thang_gia`.
+MA_CANH_GAC = "ACB"
+
+# Đủ trùm một kỳ nghỉ lễ dài. Ngắn hơn thì nghỉ Tết hoá thành "nguồn hỏng".
+SO_NGAY_CANH_GAC = 10
+
+# Giá VNĐ của một mã vốn hoá lớn không bao giờ xuống dưới mức này; giá theo
+# NGHÌN ĐỒNG thì không bao giờ lên trên. Ranh giới tách hai hệ đơn vị.
+NGUONG_VND = 1_000.0
+
+
+@dataclass(frozen=True)
+class CanhGac:
+    ma: str
+    song: bool              # nguồn trả về được dữ liệu
+    so_ngay: int
+    so_nen_tong: int
+    so_nen_hom_nay: int
+    gia_giua: float | None
+    loi: str | None
+
+    @property
+    def dat(self) -> bool:
+        """Đường dữ liệu vừa sống vừa đúng thang đo."""
+        return self.song and self.loi is None
+
+    def dong_log(self) -> str:
+        if not self.song:
+            return f"canh gác {self.ma}: ĐƯỜNG DỮ LIỆU HỎNG — {self.loi}"
+        if self.loi is not None:
+            return f"canh gác {self.ma}: dữ liệu bất thường — {self.loi}"
+        return (f"canh gác {self.ma}: nguồn sống — {self.so_nen_tong} nến "
+                f"trong {self.so_ngay} ngày gần nhất, {self.so_nen_hom_nay} "
+                f"nến hôm nay, giá trung vị {self.gia_giua:,.0f} VNĐ")
+
+
+def _kiem_thang_gia(ma: str, giua: float) -> str | None:
+    """None nếu giá đúng thang VNĐ, ngược lại trả câu giải thích.
+
+    Đây là cái bẫy đã ghi ở NGUYEN-TAC-DO-LUONG.md: nguồn trả nghìn đồng
+    thì `low <= stop_loss` đúng với MỌI vị thế, tức báo động giả toàn bộ.
+    `_kiem_don_vi()` bắt được nó — nhưng chỉ khi có vị thế để so. Sổ rỗng
+    thì không có mốc nào, nên ở đây so với một hằng số thay cho mốc.
+    """
+    if giua >= NGUONG_VND:
+        return None
+    return (f"giá trung vị {giua:,.2f} < {NGUONG_VND:,.0f} — {ma} là mã vốn "
+            f"hoá lớn nên giá VNĐ phải cao hơn nhiều. Nhiều khả năng nguồn "
+            f"đã chuyển sang nghìn đồng.")
+
+
+def canh_gac(ngay: str, tai_khoang, ma: str = MA_CANH_GAC,
+             so_ngay: int = SO_NGAY_CANH_GAC) -> CanhGac:
+    """Nạp thử nến của một mã để chứng minh đường dữ liệu còn dùng được.
+
+    `tai_khoang(ma, tu_ngay, den_ngay)` tách ra làm tham số để test chạy
+    offline, y như `tai_nen` của `quet()`.
+    """
+    den = str(ngay)[:10]
+    tu = (datetime.strptime(den, "%Y-%m-%d")
+          - timedelta(days=so_ngay)).strftime("%Y-%m-%d")
+
+    def _hong(ly_do: str) -> CanhGac:
+        return CanhGac(ma=ma, song=False, so_ngay=so_ngay, so_nen_tong=0,
+                       so_nen_hom_nay=0, gia_giua=None, loi=ly_do)
+
+    try:
+        nen = tai_khoang(ma, tu, den)
+    except Exception as e:
+        return _hong(f"{type(e).__name__}: {str(e)[:140]}")
+
+    if nen is None or len(nen) == 0:
+        return _hong(f"nguồn trả bảng rỗng cho {tu}..{den}")
+
+    giua = float(nen["close"].median())
+    return CanhGac(ma=ma, song=True, so_ngay=so_ngay, so_nen_tong=len(nen),
+                   so_nen_hom_nay=len(loc_dung_ngay(nen, den)),
+                   gia_giua=giua, loi=_kiem_thang_gia(ma, giua))
+
+
+def quet_va_canh_gac(db_path: str, ngay: str, bay_gio: datetime,
+                     tai_nen, tai_khoang, ma: str = MA_CANH_GAC) -> dict:
+    """`quet()`, cộng canh gác khi sổ KHÔNG có vị thế nào đang mở.
+
+    Điều kiện nằm ở đây chứ không nằm trong YAML là có chủ đích: "khi nào
+    cần canh gác" là logic, mà logic trong heredoc thì không test được —
+    bài học đã lặp lại nhiều lần ở dự án này.
+    """
+    r = quet(db_path, ngay, bay_gio, tai_nen)
+    r["canh_gac"] = (canh_gac(ngay, tai_khoang, ma)
+                     if r["so_vi_the"] == 0 else None)
+    return r

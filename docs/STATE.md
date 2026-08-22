@@ -1285,3 +1285,130 @@ mẫu**.
 **C5 không đổi**, nhưng lý do đổi: từ "chờ vì chưa có cách chọn" thành
 "đã chọn được bằng cách hợp lệ, và phép đo nói ngưỡng đó không có lợi thế
 phân biệt được với cầm đều cả rổ".
+
+---
+
+## CẢNH BÁO NỘI PHIÊN — ĐÃ TỰ LÀM CHỨNG, VÀ ĐÃ CÓ CANH GÁC (22/08/2026)
+
+### Lượt chạy tay 22/08 trả lời được câu hỏi bỏ ngỏ hôm 21/08
+
+Lượt `88216494021`, 08:18 ICT thứ Bảy. Bốn dòng mốc hiện ra trong nhật ký:
+
+```
+[noi-phien] bắt đầu lúc 2026-08-22 08:18:04 ICT
+[noi-phien] vị thế đang mở: 0
+[noi-phien] không vị thế nào chạm SL/TP.
+[noi-phien] xong.
+```
+
+Lượt 21/08 để lại **0 dòng**, và khi đó không phân biệt được "chạy rồi,
+không có gì" với "chết ngay từ dòng đầu". Nay phân biệt được. Dòng `xong.`
+in ra *sau* khối ghi `$GITHUB_STEP_SUMMARY`, nên nó cũng chứng minh khối đó
+chạy trót lọt — không phải suy đoán.
+
+Thứ tự bước xác nhận đúng trên runner thật, và đây là thứ tự bắt buộc:
+
+```
+5. Kéo sổ lệnh từ Google Sheets   → 113 lệnh, 14.085 quyết định
+6. Cảnh báo chạm SL/TP trong phiên
+7. Quét thị trường và cập nhật sổ lệnh
+8. Đối chiếu sổ local với kho ngoài → local 113 · sheet 113
+```
+
+Không có annotation thật nào phát ra. Mọi chuỗi `::warning::` tìm thấy
+trong nhật ký đều là dòng mã được echo lại, không phải output.
+
+### Nhưng phần quan trọng vẫn chưa chạy lần nào
+
+`vi_the_dang_mo()` trả về danh sách **rỗng**, nên vòng lặp trong `quet()`
+không chạy. Nghĩa là `intraday_data.tai()` — gọi mạng, `ensure_api_key()`,
+lọc lưới 24/7, quy đơn vị, `_kiem_don_vi()` — **chưa từng thực thi trên
+runner**. Cái chuông đã chứng minh nó biết nói "không có gì"; nó chưa chứng
+minh được nó biết kêu.
+
+Và 0 vị thế không phải chuyện tạm thời. Hai cổng cùng chặn:
+
+```
+Ngưỡng mua        : ĐỂ TRỐNG (ô C5)
+Cổng VN-INDEX     : BẬT · VN-INDEX dưới MA50
+71/71 quyết định  : KHÔNG vào lệnh
+Sổ lệnh           : 113 đã đóng · 0 đang mở
+```
+
+Nên đường mã đó sẽ nằm im cho tới đúng ngày đầu tiên có lệnh mở — tức nó
+chạy lần đầu vào đúng lúc nó buộc phải đúng. Đó là lúc tệ nhất để phát hiện
+vnstock không gọi được từ IP của runner.
+
+### Canh gác — nạp thử một mã khi sổ rỗng
+
+`canh_bao_noi_phien.canh_gac()` + `quet_va_canh_gac()`. Khi `so_vi_the == 0`
+thì nạp nến 30 phút của một mã (mặc định ACB) để chứng minh đường dữ liệu
+còn dùng được. Có vị thế thì các lần nạp thật đã tự chứng minh rồi, nên điều
+kiện này phủ **đúng** chỗ trống chứ không phủ chồng.
+
+Ba điểm thiết kế, đều là để nó không kêu oan:
+
+| Điểm | Vì sao |
+|---|---|
+| Hỏi một **khoảng** 10 ngày, không hỏi riêng hôm nay | Nhịp 09:00 chạy trước khi nến 30 phút đầu tiên kịp đóng. Hỏi riêng hôm nay thì mỗi phiên có đúng 1 báo động giả, và vài ngày là người ta thôi đọc. |
+| Nguồn **ném** hoặc **rỗng cả khoảng** mới tính là hỏng | "Chưa có nến hôm nay" là bình thường, không phải sự cố. |
+| So giá trung vị với hằng số 1.000 VNĐ | Sổ rỗng thì không có mốc SL/TP nào để `_kiem_don_vi()` so. Nguồn lặng lẽ đổi sang nghìn đồng làm `low <= stop_loss` đúng với **mọi** vị thế — chính cái bẫy ở `NGUYEN-TAC-DO-LUONG.md`. |
+
+Điều kiện "khi nào cần canh gác" nằm trong module, **không** nằm trong YAML.
+Logic trong heredoc thì không test được — bài học đã lặp lại nhiều lần ở dự
+án này.
+
+Khoá bởi `tests/test_canh_gac_du_lieu.py` (14 test, chạy offline). Ba đột
+biến đã thử, cả ba đều làm test đỏ:
+
+```
+đòi phải có nến HÔM NAY mới coi là đạt  -> 1 đỏ  (kêu oan lúc 09:00)
+canh gác LUÔN LUÔN, kể cả khi có vị thế -> 1 đỏ  (gọi mạng thừa mỗi nhịp)
+bỏ phép kiểm thang giá                  -> 2 đỏ
+```
+
+### Chỗ mù thứ hai: python nhúng trong YAML chưa từng được kiểm cú pháp
+
+Bước cảnh báo có hơn 70 dòng python nằm trong heredoc. Đoạn đó chạy trên
+runner y hệt một file `.py`, nhưng `rglob("*.py")` không thấy nó và không
+test nào import nó. Sau bản vá hôm nay nó còn dài thêm.
+
+Đây đúng là lớp lỗi đã làm CI đỏ hôm 21/08 (PEP 701, f-string 3.12-mới).
+Lần đó nó nằm trong một file `.py` nên `tools/kiem_cu_phap_311.py` bắt được.
+Nằm trong heredoc thì không có gì bắt.
+
+`kiem_cu_phap_311.doan_nhung()` nay trích mọi heredoc **có trích dẫn**
+(`<<'X'`) từ `.github/workflows/*.yml`, ghi ra file tạm và kiểm cùng một
+lượt với các file `.py`. Heredoc **không** trích dẫn thì bỏ qua có chủ đích:
+shell nội suy `$…` trước khi python thấy, nên thứ trên đĩa không phải thứ
+chạy thật, và kiểm nhầm còn tệ hơn không kiểm.
+
+Số đoạn nhúng được in ra cùng số file, để một số 0 ở đó **nhìn thấy được**:
+
+```
+Đã kiểm 89 file .py + 3 đoạn nhúng trong workflow, bằng Python 3.11.
+```
+
+Đã kiểm chứng bằng cách nhét một biểu thức 3.12-mới vào đúng heredoc đó:
+
+```
+⛔ quet-so-lenh.yml:136 (PYCB):76  —  unterminated string literal
+1 chỗ KHÔNG nạp được bằng 3.11. CI sẽ đỏ.      (mã thoát 1)
+```
+
+Khoá bởi `tests/test_doan_nhung_workflow.py` (7 test). Test cuối neo vào
+**file thật**, không phải file giả — một bộ trích trả rỗng vẫn in
+"✅ Mọi file nạp được bằng 3.11", y hệt khi mọi thứ đều sạch. Đột biến
+`doan_nhung` luôn trả rỗng làm 4 test đỏ.
+
+### Trạng thái sau bản vá
+
+```
+360 test xanh (339 + 14 canh gác + 7 trích đoạn nhúng)
+0 CHẶN · 37 cảnh báo (không đổi)
+89 file .py + 3 đoạn nhúng — nạp được bằng 3.11
+```
+
+**Còn chưa biết:** canh gác chưa chạy trên runner lần nào. Nhịp theo lịch
+gần nhất (thứ Hai 09:00 ICT) sẽ là câu trả lời — và câu trả lời đó đọc được
+ngay trên trang lượt chạy, không cần tải nhật ký về.

@@ -123,6 +123,15 @@ jobs:
         # HỆ QUẢ PHẢI BIẾT: GitHub chỉ gửi email khi workflow theo lịch THẤT
         # BẠI, nên cảnh báo này KHÔNG tự tới hộp thư. Muốn có email thì cần
         # một đường thông báo riêng — chưa dựng.
+        #
+        # CANH GÁC KHI SỔ RỖNG. `quet()` chỉ gọi hàm tải nến khi CÓ vị thế
+        # đang mở. Lượt 22/08/2026 có 113 lệnh nhưng cả 113 đều đã đóng,
+        # nên `intraday_data.tai()` chưa từng chạy trên runner — bước này
+        # in "không vị thế nào chạm SL/TP" mà thật ra chưa chứng minh được
+        # đường dữ liệu còn sống. Và 0 vị thế không phải chuyện tạm: ngưỡng
+        # mua đang để trống VÀ VN-INDEX dưới MA50, nên đường mã đó sẽ nằm
+        # im tới đúng ngày đầu tiên có lệnh mở. Canh gác nạp thử một mã khi
+        # sổ rỗng, để biết hôm nay thay vì biết vào lúc muộn nhất.
         run: |
           python - <<'PYCB' || true
           from datetime import datetime, timedelta, timezone
@@ -138,9 +147,13 @@ jobs:
           def tai(sym, n):
               return idd.tai(sym, n, n, "30m", dung_cache=False)
 
+          def tai_khoang(ma, tu, den):
+              return idd.tai(ma, tu, den, "30m", dung_cache=False)
+
           print(f"[noi-phien] bắt đầu lúc {bay_gio:%Y-%m-%d %H:%M:%S} ICT")
           try:
-              r = cb.quet("paper_trades.db", ngay, bay_gio, tai)
+              r = cb.quet_va_canh_gac("paper_trades.db", ngay, bay_gio,
+                                      tai, tai_khoang)
           except Exception as e:
               # Mọi hỏng hóc phải thành ANNOTATION, không chỉ thành dòng log.
               # Nhật ký chạy và artifact đều đòi đăng nhập mới đọc được;
@@ -151,6 +164,15 @@ jobs:
               traceback.print_exc()
               raise SystemExit(0)
           print(f"[noi-phien] vị thế đang mở: {r['so_vi_the']}")
+
+          # Sổ rỗng thì vòng lặp dưới đây không gọi mạng lần nào, nên canh
+          # gác là thứ DUY NHẤT chứng minh đường dữ liệu còn dùng được.
+          # Xem phần CANH GÁC trong canh_bao_noi_phien.py.
+          g = r["canh_gac"]
+          if g is not None:
+              print(f"[noi-phien] {g.dong_log()}")
+              if not g.dat:
+                  print(f"::warning::[noi-phien] {g.dong_log()}")
 
           dong = []
           for c in r["canh_bao"]:
@@ -171,6 +193,9 @@ jobs:
               with open(tom_tat, "a", encoding="utf-8") as f:
                   print(f"### Nội phiên · {bay_gio:%Y-%m-%d %H:%M} ICT", file=f)
                   print(f"{r['so_vi_the']} vị thế đang mở.", file=f)
+                  if g is not None:
+                      dau = "✅" if g.dat else "⚠️"
+                      print(f"{dau} {g.dong_log()}", file=f)
                   if dong:
                       print("", file=f)
                       for d in dong:

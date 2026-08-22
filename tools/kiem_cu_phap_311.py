@@ -44,15 +44,25 @@ from __future__ import annotations
 
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import tempfile
+import textwrap
 
 # Đoạn này PHẢI hỏng trên 3.11. Nạp được nghĩa là trình thông dịch không
 # phải 3.11, và mọi kết luận sau đó vô nghĩa.
 MOI_3_12 = "x = 1\nprint(f\"v {'A'\n  if x else 'B'}\")\n"
 
 BO_QUA = {".venv", ".git", "__pycache__", "scratch", "node_modules", "brain"}
+
+# Đoạn python nhúng trong workflow YAML chạy trên runner y hệt một file
+# .py, nhưng nó KHÔNG có đuôi .py nên `rglob("*.py")` không thấy nó, và
+# cũng không test nào chạm tới. Lỗi PEP 701 hôm 21/08 nằm trong một file
+# .py nên bắt được; lần sau nó nằm trong heredoc thì chỉ CI mới biết, và
+# biết bằng cách để cả lượt quét đỏ. Riêng bước cảnh báo nội phiên đã có
+# hơn 70 dòng python nằm đúng chỗ mù đó.
+MO_HEREDOC = re.compile(r"^\s*python\s+-\s+<<'([A-Za-z_][A-Za-z0-9_]*)'")
 
 DUONG_DOAN = (
     os.environ.get("PYTHON311", ""),
@@ -145,6 +155,39 @@ def cac_file(goc: pathlib.Path) -> list:
             if not BO_QUA & set(f.relative_to(goc).parts)]
 
 
+def doan_nhung(goc: pathlib.Path) -> list:
+    """[(nhãn, mã nguồn)] cho mọi đoạn python nhúng trong .github/workflows.
+
+    CHỈ nhận heredoc có trích dẫn (`<<'X'`). Dạng không trích dẫn để shell
+    nội suy `$…` và dấu chéo ngược TRƯỚC khi python nhìn thấy, nên thứ nằm
+    trên đĩa không phải thứ chạy thật — kiểm nó là kiểm nhầm, mà một phép
+    kiểm nhầm còn tệ hơn không kiểm.
+    """
+    ra = []
+    thu_muc = goc / ".github" / "workflows"
+    if not thu_muc.is_dir():
+        return ra
+    for f in sorted(thu_muc.glob("*.yml")) + sorted(thu_muc.glob("*.yaml")):
+        dong = f.read_text(encoding="utf-8").splitlines()
+        i = 0
+        while i < len(dong):
+            m = MO_HEREDOC.match(dong[i])
+            if not m:
+                i += 1
+                continue
+            ket = m.group(1)
+            j = i + 1
+            while j < len(dong) and dong[j].strip() != ket:
+                j += 1
+            if j >= len(dong):
+                raise RuntimeError(
+                    f"{f.name}:{i + 1} — heredoc {ket!r} không có dòng đóng")
+            than = textwrap.dedent(chr(10).join(dong[i + 1:j])) + chr(10)
+            ra.append((f"{f.name}:{i + 1} ({ket})", than))
+            i = j + 1
+    return ra
+
+
 def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -188,22 +231,48 @@ def main() -> int:
         return 2
 
     try:
-        hong = kiem_bang_311(py, ds)
+        nhung = doan_nhung(goc)
+    except (RuntimeError, OSError) as e:
+        print(f"⛔ CHƯA KIỂM ĐƯỢC — đọc workflow hỏng: "
+              f"{type(e).__name__}: {e}")
+        return 2
+
+    nhan, tam = {}, []
+    for ten, ma in nhung:
+        fd, d = tempfile.mkstemp(suffix=".py", prefix="wf_")
+        os.close(fd)
+        pathlib.Path(d).write_text(ma, encoding="utf-8")
+        tam.append(d)
+        nhan[d] = ten
+
+    try:
+        hong = kiem_bang_311(py, ds + tam)
     except (RuntimeError, subprocess.SubprocessError, OSError) as e:
         print(f"⛔ CHƯA KIỂM ĐƯỢC — {type(e).__name__}: {e}")
         return 2
+    finally:
+        for d in tam:
+            if os.path.exists(d):
+                os.remove(d)
 
     print(f"Trình thông dịch: {py}")
-    print(f"Đã kiểm {len(ds)} file .py bằng Python 3.11.\n")
+    # In cả số đoạn nhúng: một số 0 ở đây phải NHÌN THẤY được, nếu
+    # không thì bộ trích hỏng sẽ báo xanh y như khi mọi thứ đều sạch.
+    print(f"Đã kiểm {len(ds)} file .py + {len(nhung)} đoạn nhúng "
+          f"trong workflow, bằng Python 3.11.")
+    print()
 
     if hong:
         for d, dong, ly_do in hong:
-            try:
-                ten = pathlib.Path(d).relative_to(goc)
-            except ValueError:
-                ten = d
+            ten = nhan.get(d)
+            if ten is None:
+                try:
+                    ten = pathlib.Path(d).relative_to(goc)
+                except ValueError:
+                    ten = d
             print(f"  ⛔ {ten}:{dong}  —  {ly_do}")
-        print(f"\n{len(hong)} file KHÔNG nạp được bằng 3.11. CI sẽ đỏ.")
+        print()
+        print(f"{len(hong)} chỗ KHÔNG nạp được bằng 3.11. CI sẽ đỏ.")
         return 1
 
     print("✅ Mọi file nạp được bằng 3.11.")
