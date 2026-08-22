@@ -65,11 +65,19 @@ def test_khop_thi_dat(monkeypatch):
 
 
 def test_liet_ke_dung_goi_con_thieu(monkeypatch):
+    """Tên gói ở đây phải là tên KHÔNG BAO GIỜ cài được.
+
+    Bản đầu dùng `vnstock_data` và `vnstock_news` làm ví dụ "chưa cài".
+    Ngày 22/08/2026 hai gói đó được cài thật và test đỏ — nó đang đo môi
+    trường chứ không đo logic lọc. Một test buộc vào trạng thái máy sẽ
+    đỏ đúng lúc mọi thứ đang chạy tốt.
+    """
     _cuc_bo(monkeypatch)
     t = _goi(monkeypatch,
-             tai_ve=_tra(goi=("vnstock_data", "pytest", "vnstock_news")))
+             tai_ve=_tra(goi=("goi_khong_ton_tai_a", "pytest",
+                              "goi_khong_ton_tai_b")))
     assert "pytest" not in t.goi_thieu, "pytest có cài, không được coi là thiếu"
-    assert set(t.goi_thieu) == {"vnstock_data", "vnstock_news"}
+    assert set(t.goi_thieu) == {"goi_khong_ton_tai_a", "goi_khong_ton_tai_b"}
     print(f"PASS  thiếu đúng {t.goi_thieu}, bỏ qua gói đã cài")
 
 

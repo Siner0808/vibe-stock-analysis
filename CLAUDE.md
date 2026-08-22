@@ -79,10 +79,10 @@ Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròn
 > khi định bật — bật rồi thấy lãi tăng là kịch bản của quy tắc số 1, không
 > phải bằng chứng.
 >
-> **Con số "8 quý" nay đã đổi.** Gói Silver cho **34 quý**, nhưng chỉ khi
-> `vnii` được cài — xem mục "Hạng gói vnstock" bên dưới. Trước khi lấy 8 quý
-> làm lý do để không đo, hãy chạy `vnstock_goi.kiem_goi()` xem app đang thật
-> sự ở hạng nào.
+> **Con số "8 quý" đã hết hiệu lực (22/08/2026).** Gói tài trợ đã cài, đo
+> được **34 quý** trên máy local. Lý do để trọng số bằng 0 đổi từ *không đo
+> được* sang *chưa chạy phép đo* — hai chuyện khác hẳn. Ba thiên lệch thì
+> không đổi.
 
 Lưu ý phạm vi: các agent "chết" ở trên là chết **trong backtest/paper
 trading** vì không có lịch sử TradingView và tin tức. Trên app chạy trực tiếp
@@ -163,14 +163,51 @@ trả "khớp" thì phép kiểm này thành đúng thứ nó sinh ra để bắ
 
 **Không bao giờ ép hạng trong mã nguồn.** Ghi `authenticator._cached_tier =
 "silver"` sẽ làm app tiếp tục khẳng định silver sau ngày hết hạn rồi cắt dữ
-liệu sai mà không ai biết. Cách đúng là cài `vnii` + bốn package
-(`vnstock_data`, `vnstock_ta`, `vnstock_pipeline`, `vnstock_news`) — chúng
-**không có trên PyPI công khai**, phải lấy từ khu vực thành viên.
+liệu sai mà không ai biết.
 
-Sau khi cài xong, `fetch_fundamentals.py` **tự tải lại** cả rổ: cache mang sổ
-tay `_hang_da_tai.json`, đổi hạng thì tải lại. Không có sổ tay đó thì 60 file
-CSV tải lúc hạng free ở lại vĩnh viễn với 8 kỳ — đúng cái bẫy `download()`
-trong `NGUYEN-TAC-DO-LUONG.md`.
+### Đã cài xong (22/08/2026) — hai bước, bước hai không hiển nhiên
+
+Bốn gói **không có trên PyPI công khai**. Đường thật, đọc ra từ mã của `vnii`:
+
+```
+GET  /api/packages                      # công khai: vnii + vnstock-installer
+GET  /api/vnstock/packages/list         # Bearer <key> -> accessible / locked
+POST /api/vnstock/packages/download     # -> downloadUrl
+```
+
+`vnstock_pipeline` **bị KHOÁ ở hạng silver** — `license/verify` liệt kê nó
+nhưng `packages/list` mới là bảng đúng. Tệp tải về mang tên `.whl` nhưng nội
+dung là sdist `.tar.gz`; tên thật nằm trong header gzip.
+
+1. **`vnii`** sửa việc nhận diện hạng. Cài là xong.
+2. **`vnstock_data` và `vnstock_ta` vẫn ném `SystemExit` khi import** cho tới
+   khi có `~/.vnstock/user.json`. Phép kiểm ở `vnstock_ta/utils/env.py::idv()`
+   chỉ đòi tệp đó tồn tại với trường `user` khác rỗng — một tệp đánh dấu đã
+   chạy setup, do `vnstock_installer.api.create_user_info()` tạo (mặc định ghi
+   `"user": "vnstock_installer"`). `vnii` ghi `auth_state.json`, **không** ghi
+   `user.json`.
+
+`fetch_fundamentals.py` tự tải lại cả rổ khi hạng đổi, nhờ sổ tay
+`_hang_da_tai.json`. Không có sổ tay đó thì 60 file CSV tải lúc hạng free ở
+lại vĩnh viễn với 8 kỳ — đúng cái bẫy `download()` trong
+`NGUYEN-TAC-DO-LUONG.md`.
+
+### Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý
+
+| Nơi | Hạng | BCTC | Hạn mức |
+|---|---|---|---|
+| Máy local | silver | không giới hạn (đo được 34 kỳ) | 300/phút |
+| GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút |
+
+Cả hai nơi kia chạy `pip install -r requirements.txt`, mà bốn gói này không
+cài được từ đó. **Khai báo chúng trong `requirements.txt` làm CI và cloud
+hỏng ngay ở bước cài** — hỏng toàn bộ, kể cả phần không đụng dữ liệu tài trợ.
+
+Hệ quả: **không mã nào ở gốc dự án được `import vnstock_data` ở mức module.**
+Dùng thì import bên trong hàm, bọc `try/except`, có đường lui. Hai gác trong
+`tests/test_requirements.py` khoá cả hai điều này.
+
+`vnstock_goi.kiem_goi()` báo **LỆCH trên cloud vĩnh viễn** — đó là báo ĐÚNG.
 
 **Tài liệu skill của vnstock KHÔNG được commit vào repo.** Giấy phép ghi rõ
 *"Zero Disk Persistence… Do not save, dump, or write these files to the

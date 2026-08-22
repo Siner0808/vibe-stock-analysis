@@ -14,12 +14,11 @@ from analysis_agents import (
 # số`. Nhờ vậy trọng số 0 cho ra đúng con số như trước khi có agent này —
 # kiểm được bằng mắt, không cần chạy lại cả sổ lệnh để chứng minh.
 #
-# Vì sao để 0: chưa ai đo được nó có ích không.
-# `experiment_fundamentals.py` đã tính sẵn lực thống kê — gói cộng đồng
-# vnstock chỉ trả 8 quý, mà yếu tố cơ bản có IC ≈ 0,03–0,05, nên thiết kế
-# này phát hiện được tín hiệu với xác suất ~10%. Ba thiên lệch còn lại
-# (số liệu điều chỉnh hồi tố, thiên lệch sống sót, cửa sổ nằm trong vùng
-# đã tối ưu) đều đẩy kết quả ĐẸP lên.
+# Vì sao để 0: chưa ai CHẠY phép đo. (Tới 22/08/2026 lý do còn mạnh hơn
+# — không đo ĐƯỢC, vì gói cộng đồng chỉ trả 8 quý và lực phát hiện ~10%.
+# Gói tài trợ mở giới hạn đó lên ~34 quý, lực phát hiện ~46% ở IC 0,05.)
+# Ba thiên lệch còn lại — số liệu điều chỉnh hồi tố, thiên lệch sống sót,
+# cửa sổ nằm trong vùng đã tối ưu — KHÔNG đổi và đều đẩy kết quả ĐẸP lên.
 #
 # Quy tắc số 1 của `NGUYEN-TAC-DO-LUONG.md`: nếu một thay đổi làm con số
 # đẹp lên đáng kể, giả định đầu tiên phải là có lỗi. Bật trọng số rồi thấy

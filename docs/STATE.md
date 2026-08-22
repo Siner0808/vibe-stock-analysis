@@ -1711,3 +1711,146 @@ Smoke test trình duyệt: 0 traceback, dòng "🎫 Gói vnstock ● LỆCH" hi�
 Cổng 3.11 bắt được một lỗi thật trong lượt này: `app.py` thiếu một dấu `+`
 giữa hai chuỗi. **444 test vẫn xanh** vì không test nào import `app.py` —
 đúng lý do cổng đó tồn tại.
+
+---
+
+## ĐÃ CÀI GÓI TÀI TRỢ — 8 KỲ THÀNH 34 KỲ (22/08/2026, cùng ngày)
+
+### Đường phát hành, tìm ra sau vài ngõ cụt
+
+Bốn gói không có trên PyPI công khai. Ba ngõ cụt trước khi ra:
+
+```
+skill `env-setup` mà tài liệu bootstrap chỉ sang   -> HTTP 404, không tồn tại
+nâng vnstock 4.0.5→4.0.7, vnai 2.5.6→2.5.9         -> vẫn "free"
+https://vnstocks.com/simple                        -> trả HTML trang web, không phải index
+```
+
+Đường thật nằm trong mã của chính `vnii`:
+
+```
+GET  https://vnstocks.com/api/packages                      # công khai: vnii + vnstock-installer
+GET  https://vnstocks.com/api/vnstock/packages/list         # Bearer <key> -> accessible/locked
+POST https://vnstocks.com/api/vnstock/packages/download     # {"package_name","version"} -> downloadUrl
+```
+
+**Điều chỉnh so với hôm qua: `vnstock_pipeline` bị KHOÁ ở hạng silver.** Endpoint
+`license/verify` liệt kê nó trong `availablePackages`, nhưng `packages/list`
+tách rõ `accessible` (3) và `locked` (1). Bảng thứ hai mới đúng.
+
+Một cái bẫy nhỏ khi tải: máy chủ đặt tên tệp là `<ten>.whl` nhưng nội dung
+là **sdist .tar.gz**. pip từ chối cả hai kiểu tên sai. Tên đúng nằm trong
+header gzip (`vnstock_data-3.2.8.tar`).
+
+### Hai bước, và bước thứ hai không hiển nhiên
+
+**1. `vnii` sửa việc nhận diện hạng.** Cài xong là xong:
+
+```
+vnai.get_user_tier() -> {"tier": "silver", "limits": {"per_minute": 300}}
+fundamental.get_max_periods() -> None      (không giới hạn)
+```
+
+**2. `vnstock_data` và `vnstock_ta` vẫn ném `SystemExit` khi import:**
+*"Không tìm thấy thông tin người dùng hợp lệ."*
+
+Phép kiểm nằm ở `vnstock_ta/utils/env.py::idv()` và nó rất đơn giản: đòi
+`~/.vnstock/user.json` tồn tại với trường `user` khác rỗng. Không phải giấy
+phép mã hoá — quyền thật đã xác minh phía máy chủ và các gói đã tải qua API
+có xác thực. `vnii` ghi `auth_state.json` chứ không ghi `user.json`; thứ tạo
+`user.json` là `vnstock_installer.api.create_user_info()` — mà mặc định nó
+ghi `"user": "vnstock_installer"`, tức một **tệp đánh dấu đã chạy setup**.
+
+Đã chạy đúng hàm đó của vendor (bỏ qua tầng GUI Eel bằng cách nạp thẳng
+`api.py`), **không** gọi `device-register` vì máy đã đăng ký sẵn.
+
+### Đo lại trên dữ liệu thật
+
+```
+FPT quarter income_statement:  8 kỳ  ->  34 kỳ  (2018-Q1 → 2026-Q2)
+ACB quarter income_statement:  8 kỳ  ->  34 kỳ
+fetch_fundamentals.py:  income 32-34 kỳ, balance 33-34 kỳ
+vnstock_goi.kiem_goi(): KHỚP — "silver, hết hạn 2026-11-22"
+```
+
+Sổ tay `_hang_da_tai.json` hoạt động đúng như thiết kế: `Hạng đang áp dụng
+khi tải: silver`, và mọi mã có cache cũ đều được tải lại.
+
+### Bất đối xứng vĩnh viễn: local có, CI và cloud KHÔNG
+
+Bốn gói này không cài được bằng `pip install -r requirements.txt`. GitHub
+Actions và Streamlit Cloud đều chạy đúng lệnh đó, nên **khai báo chúng ở
+requirements.txt sẽ làm cả hai hỏng ngay ở bước cài** — hỏng toàn bộ, kể cả
+những phần không đụng tới dữ liệu tài trợ.
+
+Vì vậy:
+
+| Nơi | Hạng | BCTC | Hạn mức |
+|---|---|---|---|
+| Máy local | silver | không giới hạn | 300/phút |
+| GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút |
+
+`vnstock_goi.kiem_goi()` sẽ báo **LỆCH trên cloud vĩnh viễn**. Đó là báo
+ĐÚNG, không phải lỗi cần sửa.
+
+Hai gác mới trong `tests/test_requirements.py`:
+
+```
+test_goi_tai_tro_khong_nam_trong_requirements   — chặn khai báo
+test_khong_import_goi_tai_tro_o_muc_module      — chặn import ở mức module
+```
+
+Cái thứ hai quan trọng hơn: một `import vnstock_data` ở đầu file gốc sẽ làm
+`run_daily.py` chết ngay dòng đầu trên runner. Muốn dùng thì import BÊN
+TRONG hàm, bọc try/except, có đường lui.
+
+### Một test đỏ, và nó đỏ đúng
+
+`test_liet_ke_dung_goi_con_thieu` dùng chính `vnstock_data`/`vnstock_news`
+làm ví dụ "chưa cài". Cài xong là nó đỏ — test đang đo **môi trường** chứ
+không đo logic lọc. Đã thay bằng tên gói không bao giờ tồn tại. Một test
+buộc vào trạng thái máy sẽ đỏ đúng lúc mọi thứ đang chạy tốt.
+
+### Bốn khẳng định "8 quý" nay đã sai, đã xoá
+
+Ràng buộc đổi thì mọi câu chữ dựa trên nó phải đổi theo, nếu không chúng
+thành lời nói dối có tuổi thọ dài:
+
+```
+app.py  (thẻ trạng thái)          "8 quý … ~10%"  -> "chưa CHẠY phép đo"
+app.py  (tab Cơ bản)              đoạn lý do      -> nêu cả trước và sau
+fundamental_agent.py (docstring)  lý do trọng số 0
+master_agent.py (chú thích)       lý do trọng số 0
+experiment_fundamentals.py        in hằng số ~10% -> suy từ SỐ KỲ THẬT
+```
+
+Chỗ cuối đáng chú ý nhất: script vốn in cứng `"xác suất ~10%"`. Con số đó
+đúng khi gói cộng đồng khoá ở 8 kỳ, và thành sai ngay giây phút giới hạn
+được mở. Nay nó nội suy từ `F["quarter"].nunique()` và cảnh báo nếu số kỳ
+< 20 rằng **gói tài trợ chưa có hiệu lực ở môi trường đang chạy**.
+
+**`TRONG_SO_CO_BAN` vẫn bằng 0.** Lý do đổi từ *không đo được* sang *chưa
+chạy phép đo* — hai chuyện khác hẳn, và chỉ chuyện thứ hai mới sửa được
+bằng cách ngồi xuống đo. Ba thiên lệch (điều chỉnh hồi tố, thiên lệch sống
+sót, cửa sổ đã tối ưu) **không đổi** và vẫn đẩy kết quả ĐẸP lên.
+
+### Trạng thái sau bản vá
+
+```
+446 test xanh (+2 gác requirements)
+0 CHẶN · 37 cảnh báo
+96 file .py + 3 đoạn nhúng — nạp được bằng 3.11
+Smoke test: 0 traceback · "🎫 Gói vnstock  silver · hết hạn 2026-11-22  ● ĐÚNG"
+```
+
+Gói mới kéo theo scipy 1.18.1, numba 0.67.0, llvmlite, flask, aiohttp,
+werkzeug, unidecode. numpy 2.2.6 và pandas 2.3.3 **không đổi**, và cả 446
+test vẫn xanh.
+
+### Chưa làm
+
+Chưa dùng API mới nào của `vnstock_data` trong pipeline. `insights.flow.foreign()`,
+`financial_health(com_type=...)`, `volume_profile()`, nến 1m/5m vẫn nằm đó.
+Đưa chúng vào là thay đổi kết quả đo, nên phải đo trước — và phải xử lý
+bất đối xứng local/cloud ở trên trước khi bất cứ đường chạy tự động nào
+phụ thuộc vào chúng.

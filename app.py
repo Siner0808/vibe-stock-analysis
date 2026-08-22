@@ -778,9 +778,9 @@ with st.sidebar:
             # y hệt một thành phần đang tham gia quyết định.
             + '<div style="font-size:9px;color:#475569;margin-top:6px;'
             'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất (vnstock). '
-            '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — 8 quý dữ liệu chỉ đủ '
-            'phát hiện tín hiệu với xác suất ~10%, nên chưa đo được nó có ích '
-            'không. Xem <code>fundamental_agent.py</code>.</div>',
+            '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — chưa CHẠY phép đo, '
+            'không phải không đo được. Xem <code>fundamental_agent.py</code> '
+            'và <code>experiment_fundamentals.py</code>.</div>',
             unsafe_allow_html=True)
 if not result:
     st.info("👈 Nhấn nút **KÍCH HOẠT MULTI-AGENT SCAN** để bắt đầu.")
@@ -1296,12 +1296,16 @@ with t_fund:
     st.info(
         "**Ảnh hưởng lên điểm giao dịch: 0.** Agent này chạy đủ và trả số "
         "thật, nhưng `master_agent.TRONG_SO_CO_BAN = 0.0` nên nó không làm "
-        "dịch điểm một ly nào. Lý do: gói dữ liệu cộng đồng chỉ có 8 quý, "
-        "mà yếu tố cơ bản có IC ≈ 0,03–0,05 — thiết kế đó phát hiện được "
-        "tín hiệu với xác suất khoảng 10%. Thêm vào đó, số liệu đã điều "
-        "chỉnh hồi tố, rổ chỉ gồm mã còn sống, và cửa sổ nằm trong vùng đã "
-        "tối ưu; cả ba đều đẩy kết quả đẹp lên. Bật trọng số là một quyết "
-        "định ĐO LƯỜNG — xem `experiment_fundamentals.py`.")
+        "dịch điểm một ly nào.\n\n"
+        "Cho tới 22/08/2026 lý do là **không đo được**: gói cộng đồng chỉ "
+        "trả 8 quý, mà yếu tố cơ bản có IC ≈ 0,03–0,05 nên lực phát hiện "
+        "chỉ ~10%. Gói tài trợ đã mở giới hạn đó — nay lấy được ~34 quý, "
+        "lực phát hiện lên khoảng 46% ở IC 0,05. Lý do nay là **chưa chạy "
+        "phép đo**, một chuyện khác hẳn.\n\n"
+        "Ba thiên lệch còn nguyên: số liệu đã điều chỉnh hồi tố, rổ chỉ "
+        "gồm mã còn sống, cửa sổ nằm trong vùng đã tối ưu — cả ba đều đẩy "
+        "kết quả ĐẸP lên. Bật trọng số vẫn là một quyết định ĐO LƯỜNG; "
+        "xem `experiment_fundamentals.py`.")
 
 with t_pipe:
     # Sơ đồ này VẼ LUỒNG DỮ LIỆU, nên mỗi ô phải là một chặng có thật.

@@ -233,8 +233,15 @@ def main() -> int:
     print("\n" + "=" * 86)
     print("CÁCH ĐỌC — quan trọng hơn chính các con số ở trên")
     print("=" * 86)
-    print(f"Chỉ có {F['quarter'].nunique()} kỳ. Ở mức IC thực tế của yếu tố cơ bản")
-    print("(0,03–0,05), thiết kế này phát hiện được với xác suất ~10%.")
+    # Lực phát hiện phải suy từ SỐ KỲ THẬT SỰ ĐỌC ĐƯỢC, không in một hằng
+    # số. Trước 22/08/2026 gói cộng đồng khoá ở 8 kỳ nên "~10%" luôn đúng;
+    # gói tài trợ mở lên ~34 kỳ và con số cứng đó lập tức thành lời nói dối.
+    _n = F["quarter"].nunique()
+    _luc = {8: "~12%", 20: "~31%", 40: "~52%"}
+    _gan = min(_luc, key=lambda k: abs(k - _n))
+    print(f"Có {_n} kỳ. Ở mức IC thực tế của yếu tố cơ bản (0,03–0,05),")
+    print(f"thiết kế này phát hiện được với xác suất khoảng {_luc[_gan]} "
+          f"(nội suy từ mốc {_gan} kỳ).")
     print("")
     print("→ Dòng 'không phân biệt được với 0' KHÔNG có nghĩa là chỉ số đó vô")
     print("  dụng. Nó có nghĩa là mẫu quá nhỏ để nói bất cứ điều gì.")
@@ -242,8 +249,13 @@ def main() -> int:
     print("  tố, rổ chỉ gồm mã còn sống, và cửa sổ nằm trong vùng đã tối ưu —")
     print("  cả ba đều tạo tín hiệu giả theo chiều dương.")
     print("")
-    print("Muốn có câu trả lời thật cần ≥40 quý. Đó là giới hạn gói dữ liệu,")
-    print("không phải giới hạn của mã nguồn.")
+    if _n < 20:
+        print("Muốn có câu trả lời thật cần ≥40 quý. Số kỳ ít thế này nghĩa là")
+        print("gói tài trợ CHƯA có hiệu lực ở môi trường đang chạy — kiểm bằng")
+        print("`python -c \"import vnstock_goi; print(vnstock_goi.kiem_goi().dong_log())\"`")
+    else:
+        print("Số kỳ đã đủ để phép đo có nghĩa. Nhưng ba thiên lệch ở đầu file")
+        print("vẫn nguyên, nên một kết quả DƯƠNG MẠNH vẫn phải nghi ngờ trước.")
     return 0
 
 

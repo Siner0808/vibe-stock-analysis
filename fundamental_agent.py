@@ -58,12 +58,20 @@ Agent này chạy đủ, trả số thật, và hiện lên giao diện. Nhưng
 `master_agent.TRONG_SO_CO_BAN` mặc định bằng 0, nên nó KHÔNG làm dịch
 điểm giao dịch một ly nào.
 
-Không phải vì làm dở, mà vì chưa ai đo được nó có ích không.
-`experiment_fundamentals.py` đã tính sẵn lực thống kê: gói cộng đồng
+Không phải vì làm dở, mà vì **chưa ai chạy phép đo**.
+
+Cho tới 22/08/2026 lý do mạnh hơn thế: không đo ĐƯỢC. Gói cộng đồng
 vnstock chỉ trả 8 quý, mà yếu tố giá trị/chất lượng trong tài liệu học
-thuật có IC ≈ 0,03–0,05. Ở mức đó, 8 quý phát hiện được tín hiệu với xác
-suất ~10%. Ba thiên lệch còn lại (số liệu điều chỉnh hồi tố, thiên lệch
-sống sót, cửa sổ nằm trong vùng đã tối ưu) đều đẩy kết quả ĐẸP lên.
+thuật có IC ≈ 0,03–0,05, nên lực phát hiện chỉ ~10%. Gói tài trợ đã mở
+giới hạn đó: lấy được ~34 quý, lực phát hiện lên khoảng 46% ở IC 0,05
+(nội suy từ bảng trong `experiment_fundamentals.py`). Ràng buộc đã đổi
+từ *không thể* sang *chưa làm*.
+
+Ba thiên lệch còn lại (số liệu điều chỉnh hồi tố, thiên lệch sống sót,
+cửa sổ nằm trong vùng đã tối ưu) **không đổi** và đều đẩy kết quả ĐẸP lên.
+
+Lưu ý: ~34 quý chỉ có ở máy đã cài gói tài trợ. CI và Streamlit Cloud
+không có chúng nên vẫn ở 8 quý — xem `requirements.txt`.
 
 Quy tắc số 1 của dự án: nếu một thay đổi làm con số đẹp lên đáng kể, giả
 định đầu tiên phải là có lỗi. Bật trọng số lên rồi thấy lãi tăng chính là
