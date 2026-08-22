@@ -1,9 +1,26 @@
+# Chỉ liệt kê thứ cài được từ PyPI CÔNG KHAI.
+#
+# GitHub Actions và Streamlit Cloud đều chạy `pip install -r requirements.txt`.
+# Bốn gói tài trợ của vnstock — vnstock_data, vnstock_ta, vnstock_news,
+# vnstock_pipeline — cùng `vnii` KHÔNG có trên PyPI công khai; chúng tải qua
+# API có xác thực bằng khoá. Thêm chúng vào đây sẽ làm CI và cloud hỏng ngay
+# ở bước cài, chứ không phải hỏng lúc chạy.
+#
+# Hệ quả phải biết: máy local có gói tài trợ nên chạy ở hạng silver
+# (BCTC không giới hạn số kỳ, 300 req/phút); CI và Streamlit Cloud không có
+# nên chạy ở hạng free (8 kỳ, 60 req/phút). `vnstock_goi.kiem_goi()` sẽ báo
+# LỆCH trên cloud — đó là báo ĐÚNG, không phải lỗi cần sửa.
+#
+# Vì vậy KHÔNG mã nào ở gốc dự án được `import vnstock_data` ở mức module.
+# Khoá bởi tests/test_requirements.py.
 streamlit
 pandas
 numpy
 plotly
-vnstock>=4.0.5
-vnai>=2.5.2
+# vnstock>=4.0.6 và vnai>=2.5.7 là mức tối thiểu tài liệu Vibe Onboarding
+# của vnstock yêu cầu (đọc 22/08/2026).
+vnstock>=4.0.6
+vnai>=2.5.7
 tradingview-ta
 feedparser
 beautifulsoup4

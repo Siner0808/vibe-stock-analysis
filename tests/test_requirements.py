@@ -109,3 +109,66 @@ def test_requirements_phu_het_import_o_goc_du_an():
 
 if __name__ == "__main__":
     test_requirements_phu_het_import_o_goc_du_an()
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Gói tài trợ vnstock — KHÔNG được lọt vào requirements.txt
+# ─────────────────────────────────────────────────────────────────────
+
+GOI_TAI_TRO = ("vnstock_data", "vnstock-data", "vnstock_ta", "vnstock-ta",
+               "vnstock_news", "vnstock-news", "vnstock_pipeline",
+               "vnstock-pipeline", "vnii")
+
+
+def test_goi_tai_tro_khong_nam_trong_requirements():
+    """Bốn gói tài trợ + vnii không có trên PyPI công khai.
+
+    GitHub Actions và Streamlit Cloud đều chạy `pip install -r
+    requirements.txt`. Khai báo chúng ở đó thì cả hai hỏng NGAY Ở BƯỚC CÀI
+    — sớm và ồn ào, nhưng hỏng toàn bộ, kể cả những phần không dùng tới
+    dữ liệu tài trợ.
+
+    Chúng được cài ở máy local qua API có xác thực bằng khoá. Sự bất đối
+    xứng đó là CỐ Ý, và `vnstock_goi.kiem_goi()` báo LỆCH trên cloud chính
+    là báo đúng.
+    """
+    khai_bao = _da_khai_bao()
+    lot = [g for g in GOI_TAI_TRO if g.lower() in khai_bao]
+    assert not lot, (
+        f"requirements.txt khai báo gói không có trên PyPI công khai: {lot}. "
+        f"CI và Streamlit Cloud sẽ hỏng ở bước `pip install`.")
+    print("PASS  không gói tài trợ nào lọt vào requirements.txt")
+
+
+def test_khong_import_goi_tai_tro_o_muc_module():
+    """Mã ở gốc dự án không được `import vnstock_data` ở mức module.
+
+    Gốc dự án là đúng tập file mà GitHub Actions chạy. Một import ở mức
+    module sẽ làm `run_daily.py` chết ngay dòng đầu trên runner — nơi
+    không có gói tài trợ và sẽ không bao giờ có.
+
+    Muốn dùng thì import BÊN TRONG hàm, bọc try/except, và có đường lui.
+    """
+    import ast
+    import pathlib
+
+    xau = []
+    for f in sorted(pathlib.Path(GOC).glob("*.py")):
+        try:
+            cay = ast.parse(f.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        for nut in cay.body:                       # CHỈ mức module
+            ten = []
+            if isinstance(nut, ast.Import):
+                ten = [a.name.split(".")[0] for a in nut.names]
+            elif isinstance(nut, ast.ImportFrom) and nut.module:
+                ten = [nut.module.split(".")[0]]
+            for t in ten:
+                if t.replace("-", "_") in {g.replace("-", "_")
+                                           for g in GOI_TAI_TRO}:
+                    xau.append(f"{f.name}:{nut.lineno} -> {t}")
+    assert not xau, (
+        "import gói tài trợ ở mức module (CI không có chúng):\n  "
+        + "\n  ".join(xau))
+    print("PASS  không file gốc nào import gói tài trợ ở mức module")
