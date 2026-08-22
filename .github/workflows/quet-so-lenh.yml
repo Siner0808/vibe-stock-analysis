@@ -93,12 +93,22 @@ jobs:
                     "lần chạy đầu tiên thì có gì đó sai.")
           PY
 
-      - name: Quét thị trường và cập nhật sổ lệnh
-        # run_daily.py tự đẩy lên Google Sheets ở cuối.
-        run: python run_daily.py
-
       - name: Cảnh báo chạm SL/TP trong phiên
-        # Chạy SAU bước quét để sổ lệnh đã cập nhật.
+        # PHẢI chạy TRƯỚC bước quét. Đây không phải sở thích sắp xếp.
+        #
+        # `run_session()` gọi `evaluate_open()` với NẾN NGÀY hôm nay — mà
+        # trong phiên, nến ngày đã phản ánh cái đáy vừa tạo. Nên một vị thế
+        # thủng stop-loss lúc 10:30 sẽ bị chính nhịp quét kế tiếp đóng ngay.
+        #
+        # Đặt cảnh báo SAU bước quét thì nó luôn thấy lệnh đã đóng và
+        # KHÔNG BAO GIỜ KÊU. Bản đầu đặt sai chỗ đúng như vậy; lượt chạy tay
+        # 21/08/2026 báo "Vị thế đang mở: 0" vì bước quét vừa đóng ACB bằng
+        # MAX_HOLD ngay trước đó.
+        #
+        # Chạy trước thì nó thấy vị thế còn mở, và nói được điều mà sổ lệnh
+        # KHÔNG ghi: chạm lúc mấy giờ. `exit_date` chỉ có ngày, không có giờ.
+        #
+        # Cần sổ đã kéo về từ Sheets, nên vị trí đúng là ngay sau bước kéo.
         #
         # KHÔNG BAO GIỜ LÀM ĐỎ LƯỢT CHẠY — kể cả khi có cảnh báo, kể cả khi
         # chính nó hỏng. `tools/chuong_bao_quet.py` đếm
@@ -113,7 +123,6 @@ jobs:
         # HỆ QUẢ PHẢI BIẾT: GitHub chỉ gửi email khi workflow theo lịch THẤT
         # BẠI, nên cảnh báo này KHÔNG tự tới hộp thư. Muốn có email thì cần
         # một đường thông báo riêng — chưa dựng.
-        if: always()
         run: |
           python - <<'PYCB' || true
           from datetime import datetime, timedelta, timezone
@@ -175,6 +184,10 @@ jobs:
               print("[noi-phien] không vị thế nào chạm SL/TP.")
           print("[noi-phien] xong.")
           PYCB
+      - name: Quét thị trường và cập nhật sổ lệnh
+        # run_daily.py tự đẩy lên Google Sheets ở cuối.
+        run: python run_daily.py
+
       - name: Đối chiếu sổ local với kho ngoài
         # Quét xong mà sheet không khớp sổ local nghĩa là cú đẩy hỏng —
         # phải biết ngay, vì "tưởng đã sao lưu mà thật ra không" là trạng

@@ -299,3 +299,30 @@ def test_loc_dung_ngay_giu_nguyen_khi_rong():
     assert cb.loc_dung_ngay(None, "2026-08-21") is None
     assert len(cb.loc_dung_ngay(_nen([]), "2026-08-21")) == 0
     print("PASS  lọc ngày trên bảng rỗng -> không nổ")
+
+
+def test_buoc_canh_bao_phai_dung_TRUOC_buoc_quet():
+    """Thứ tự này là bất biến, không phải sở thích sắp xếp.
+
+    `run_session()` gọi `evaluate_open()` với nến NGÀY hôm nay, mà trong
+    phiên nến ngày đã phản ánh cái đáy vừa tạo. Một vị thế thủng stop-loss
+    lúc 10:30 bị chính nhịp quét kế tiếp đóng ngay.
+
+    Đặt cảnh báo SAU bước quét thì nó luôn thấy lệnh đã đóng và KHÔNG BAO
+    GIỜ kêu — bước vẫn xanh, vẫn in "0 vị thế đang mở", và trông y hệt một
+    ngày bình yên.
+    """
+    import io
+    goc = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    p = os.path.join(goc, ".github", "workflows", "quet-so-lenh.yml")
+    s = io.open(p, encoding="utf-8").read()
+
+    i_keo = s.index("Kéo sổ lệnh từ Google Sheets")
+    i_cb = s.index("Cảnh báo chạm SL/TP trong phiên")
+    i_quet = s.index("Quét thị trường và cập nhật sổ lệnh")
+
+    assert i_keo < i_cb, "cảnh báo chạy trước khi kéo sổ — sổ chưa cập nhật"
+    assert i_cb < i_quet, (
+        "bước cảnh báo đang nằm SAU bước quét, nên nó sẽ không bao giờ thấy "
+        "vị thế nào còn mở")
+    print("PASS  thứ tự: kéo sổ -> cảnh báo -> quét")
