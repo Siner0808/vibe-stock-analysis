@@ -160,3 +160,77 @@ def is_vni_bullish(signal_date: str) -> bool:
     if pd.notna(latest.get("vni_ma50")):
         return float(latest["close"]) >= float(latest["vni_ma50"])
     return True
+
+
+# ── VN-INDEX cho THANH TIÊU ĐỀ (khác đường dùng của bộ lọc) ──────────
+#
+# Ô "VN-Index" trên topbar viết cứng dấu gạch "—" từ đầu: nó không đọc gì,
+# nên không bao giờ có số. Nay nó đọc thật.
+#
+# VÌ SAO KHÔNG DÙNG LẠI `get_vni_df()`
+# Hàm đó phục vụ bộ lọc: nó ưu tiên cache trên đĩa và chỉ ra mạng khi cache
+# RỖNG — cache cũ vẫn được coi là dùng được. Đúng cho backtest (phải tất
+# định), sai cho thanh tiêu đề (phải là phiên gần nhất). Đo 22/08/2026:
+# cache dừng ở 20/08 với 1.734,24 trong khi phiên 21/08 đóng 1.768,12 —
+# lệch 1,96%. Một con số cũ trông y hệt một con số mới.
+#
+# Nên đường này ưu tiên MẠNG, chỉ lùi về cache khi mạng hỏng, và LUÔN trả
+# về ngày của phiên để giao diện hiện ngày cạnh con số. Số không kèm ngày
+# là số không kiểm được.
+SO_PHIEN_TOPBAR = 12
+
+
+def chi_so_moi_nhat(so_phien: int = SO_PHIEN_TOPBAR) -> dict:
+    """Phiên VN-INDEX gần nhất: {dong_cua, thay_doi, phan_tram, ngay, nguon, loi}.
+
+    Luôn trả dict, không bao giờ ném. Không lấy được thì mọi con số là None
+    và `loi` nói vì sao.
+    """
+    trong = {"dong_cua": None, "thay_doi": None, "phan_tram": None,
+             "ngay": None, "nguon": None, "loi": None}
+    df, nguon, loi = None, None, None
+
+    try:
+        from datetime import timedelta
+        hom_nay = date.today()
+        # Xin dư ngày lịch để chắc chắn có ít nhất hai phiên kể cả khi rơi
+        # vào kỳ nghỉ dài.
+        df = _btd.fetch_one("VNINDEX",
+                            (hom_nay - timedelta(days=so_phien * 3)).isoformat(),
+                            hom_nay.isoformat())
+        if df is not None and not df.empty:
+            nguon = "mạng"
+    except Exception as e:
+        loi = f"mạng: {type(e).__name__}"
+        df = None
+
+    if df is None or df.empty:
+        try:
+            df = _btd.load("VNINDEX")
+            if df is not None and not df.empty:
+                nguon = "cache trên đĩa"
+        except Exception as e:
+            loi = f"{loi or ''} cache: {type(e).__name__}".strip()
+            df = None
+
+    if df is None or df.empty:
+        return {**trong, "loi": loi or "không lấy được VN-INDEX"}
+
+    try:
+        d = df.copy()
+        d["time"] = d["time"].astype(str)
+        d = d.sort_values("time").reset_index(drop=True)
+        if len(d) < 2:
+            return {**trong, "nguon": nguon,
+                    "loi": "chỉ có một phiên, không tính được thay đổi"}
+        dong = float(d["close"].iloc[-1])
+        truoc = float(d["close"].iloc[-2])
+        return {"dong_cua": dong,
+                "thay_doi": dong - truoc,
+                "phan_tram": (dong - truoc) / truoc * 100.0 if truoc else None,
+                "ngay": str(d["time"].iloc[-1])[:10],
+                "nguon": nguon,
+                "loi": None}
+    except Exception as e:
+        return {**trong, "nguon": nguon,
+                "loi": f"{type(e).__name__}: {str(e)[:80]}"}

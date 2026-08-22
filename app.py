@@ -32,6 +32,7 @@ from financial_collector import FinancialDataCollector
 from pha_wyckoff import doc_pha
 from data_quality import now_vn, price_multiplier
 from data_collectors import VNStockCollectorAgent
+import mau_bang_gia as _mbg
 
 # ── Animated Brand Logo Generator ─────────────────────────────────
 def get_animated_logo_html(size=44, uid="sb"):
@@ -358,6 +359,18 @@ st.markdown("""
     .md-delta.dn { color: var(--c-r); }
     .md-delta.nt { color: var(--c-t3); }
 
+    /* ─── NĂM MÀU BẢNG GIÁ VIỆT NAM ──────────────────────────── */
+    /* Lớp do `mau_bang_gia.MauGia.lop_css` chọn — đừng gán tay ở đây.
+       Tím và xanh lam chỉ xuất hiện khi ĐỌC ĐƯỢC biên độ thật của đúng
+       phiên đó từ bảng giá sở; không đọc được thì chỉ còn ba màu. Lý do
+       đầy đủ nằm trong docstring của `mau_bang_gia.py`. */
+    .bg-tran { color: var(--c-p) !important; }   /* tím      — giá TRẦN   */
+    .bg-tang { color: var(--c-g) !important; }   /* xanh lá  — tăng       */
+    .bg-tc   { color: var(--c-a) !important; }   /* vàng cam — tham chiếu */
+    .bg-giam { color: var(--c-r) !important; }   /* đỏ       — giảm       */
+    .bg-san  { color: var(--c-b) !important; }   /* xanh lam — giá SÀN    */
+    .bg-kb   { color: var(--c-t3) !important; }  /* xám      — chưa biết  */
+
     /* ─── CARDS & HEADERS ────────────────────────────────────── */
     .card {
         background: var(--c-s1);
@@ -471,6 +484,57 @@ def _so(gia_tri, dinh_dang="{:,.2f}"):
     return "—" if gia_tri is None else dinh_dang.format(gia_tri)
 
 
+def _tip(chuoi) -> str:
+    """Chuỗi an toàn để nhét vào thuộc tính `title="..."`.
+
+    Nội dung tooltip có phần bê nguyên thông báo lỗi từ thư viện ngoài, mà
+    một dấu nháy kép trong đó là đủ để cắt đứt thẻ HTML và làm hỏng cả
+    thanh tiêu đề.
+    """
+    return (str(chuoi).replace("&", "&amp;").replace('"', "&quot;")
+            .replace("<", "&lt;").replace(">", "&gt;"))
+
+
+# ── VN-INDEX cho topbar ────────────────────────────────────────────
+# Ô này viết cứng dấu gạch "—" từ ngày dựng giao diện: nó không đọc gì nên
+# không bao giờ có số. `market_filter.chi_so_moi_nhat()` ưu tiên MẠNG (khác
+# `get_vni_df()` của bộ lọc, vốn ưu tiên cache trên đĩa) và luôn trả kèm
+# NGÀY PHIÊN — nhãn hiện ngày cạnh con số để một phiên cũ không thể giả
+# dạng phiên mới. TTL 5 phút: đủ tươi trong phiên, đủ thưa để Streamlit vẽ
+# lại không kéo theo một cú gọi mạng.
+@st.cache_data(ttl=300, show_spinner=False)
+def _vnindex_topbar():
+    try:
+        from market_filter import chi_so_moi_nhat
+        return chi_so_moi_nhat()
+    except Exception as e:
+        return {"dong_cua": None, "thay_doi": None, "phan_tram": None,
+                "ngay": None, "nguon": None,
+                "loi": f"{type(e).__name__}: {str(e)[:80]}"}
+
+
+_vni = _vnindex_topbar()
+if _vni.get("dong_cua") is None:
+    _vni_nhan, _vni_val, _vni_lop = "VN-Index", "—", "bg-kb"
+    _vni_tip = f"Không lấy được VN-INDEX — {_vni.get('loi') or 'không rõ lý do'}"
+else:
+    # Chỉ số không có trần/sàn, nên gọi không kèm bảng giá: hàm tự tụt
+    # xuống ba màu. Dung sai theo ĐƠN VỊ CHỈ SỐ, không phải đơn vị giá.
+    _vni_mau = _mbg.mau_cho_phien(
+        _vni["dong_cua"],
+        _vni["dong_cua"] - (_vni.get("thay_doi") or 0.0),
+        dung_sai=_mbg.DUNG_SAI_CHI_SO)
+    _vni_ngay = _vni["ngay"] or ""
+    _vni_nhan = f"VN-Index · {_vni_ngay[8:10]}/{_vni_ngay[5:7]}" if _vni_ngay else "VN-Index"
+    _vni_lop = _vni_mau.lop_css
+    _vni_val = (f"{_vni['dong_cua']:,.2f} "
+                f"<span style=\"font-size:10px;font-weight:600;\">"
+                f"{_vni_mau.mui_ten} {_so(_vni.get('phan_tram'), '{:+.2f}%')}"
+                f"</span>")
+    _vni_tip = (f"VN-INDEX phiên {_vni_ngay} — nguồn: {_vni.get('nguon')}. "
+                f"Đây là phiên GẦN NHẤT lấy được; nó không mặc định là "
+                f"hôm nay.")
+
 # ── 1. COMPACT TOPBAR ──────────────────────────────────────────────
 topbar_logo_html = get_animated_logo_html(size=28, uid="tb")
 st.markdown(
@@ -481,7 +545,9 @@ st.markdown(
     f'<span class="badge">Multi-Agent AI v5.0</span>'
     f'</div>'
     f'<div class="tb-r">'
-    f'<div class="ti-item"><span class="ti-l">VN-Index</span><span class="ti-v">—</span></div>'
+    f'<div class="ti-item" title="{_tip(_vni_tip)}">'
+    f'<span class="ti-l">{_vni_nhan}</span>'
+    f'<span class="ti-v {_vni_lop}">{_vni_val}</span></div>'
     f'<div class="ti-item"><span class="ti-l">Sổ lệnh (net)</span>'
     f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span></div>'
     f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">'
@@ -805,9 +871,55 @@ latest_close_fmt = latest_close * mult
 change_fmt = change * mult
 high_p_fmt = high_p * mult
 low_p_fmt = low_p * mult
-is_up = change >= 0
-delta_str = f"▲ +{change_fmt:,.0f} (+{pct_change:.2f}%)" if is_up else f"▼ {abs(change_fmt):,.0f} ({pct_change:.2f}%)"
-delta_cls = "up" if is_up else "dn"
+# ── NĂM MÀU BẢNG GIÁ ───────────────────────────────────────────────
+#
+# Bản cũ có hai màu và `is_up = change >= 0`, nên một phiên đứng giá được tô
+# xanh và ghi "▲ +0 (+0.00%)" — đứng giá không phải tăng. Nó cũng không có
+# cách nào nói TRẦN hay SÀN, hai trạng thái mà người xem bảng giá Việt Nam
+# đọc trước tiên.
+#
+# Không tự suy ra trần bằng ngưỡng phần trăm. Đo 21/08/2026: SSI trần ở
+# +6,96% còn SHS tăng +8,16% mà KHÔNG trần (HNX biên 10%, trần 16.100, đóng
+# 15.900). Mọi ngưỡng cứng đều tô sai ít nhất một trong hai mã đó.
+#
+# Tham chiếu lấy từ bảng giá khi có, vì `close.iloc[-2]` KHÔNG phải giá
+# tham chiếu vào ngày giao dịch không hưởng quyền.
+@st.cache_data(ttl=180, show_spinner=False)
+def _bang_gia(ma: str):
+    return _mbg.doc_bang_gia(ma)
+
+
+_ngay_nen = str(df["time"].iloc[-1])[:10] if "time" in df.columns else None
+_mau = _mbg.mau_cho_phien(latest_close_fmt, prev_close * mult,
+                          _ngay_nen, _bang_gia(symbol))
+delta_cls = _mau.lop_css
+
+# Từ đây trở đi phần trăm hiển thị là phần trăm SO VỚI THAM CHIẾU đang dùng,
+# không phải so với `close.iloc[-2]`. Hai con số bằng nhau ở phiên thường và
+# khác nhau ở phiên không hưởng quyền — dùng lẫn thì màu và số nói hai
+# chuyện khác nhau về cùng một phiên.
+if _mau.thay_doi is not None:
+    change_fmt, pct_change = _mau.thay_doi, _mau.phan_tram
+
+_hau_to = (f" · {_mau.nhan}"
+           if _mau.ma in (_mbg.TRAN, _mbg.SAN, _mbg.THAM_CHIEU,
+                          _mbg.KHONG_BIET) else "")
+if _mau.thay_doi is None:
+    delta_str = f"— chưa có tham chiếu{_hau_to}"
+else:
+    delta_str = (f"{_mau.mui_ten} {change_fmt:+,.0f} "
+                 f"({pct_change:+.2f}%){_hau_to}")
+
+# Tooltip là chỗ KIỂM lại màu. Một màu không nói được nó dựa trên số nào thì
+# không ai bắt được lúc nó sai.
+_mau_tip = f"Tham chiếu: {_so(_mau.tham_chieu, '{:,.0f}')} đ"
+if _mau.biet_bien_do:
+    _mau_tip += (f" · trần {_mau.tran:,.0f} · sàn {_mau.san:,.0f}")
+else:
+    _mau_tip += " · KHÔNG biết biên độ, nên không kết luận trần/sàn"
+_mau_tip += f" · nguồn: {_mau.nguon}"
+if _mau.ghi_chu:
+    _mau_tip += f" · {_mau.ghi_chu}"
 
 # Real RSI (14)
 real_rsi = calculate_rsi(df['close'], period=14)
@@ -897,9 +1009,9 @@ with sig_container:
 # ═══════════════════════════════════════════════════════════════════
 st.markdown(f"""
 <div class="mds">
-    <div class="md-cell">
+    <div class="md-cell" title="{_tip(_mau_tip)}">
         <span class="md-label">Gia Dong Cua ({symbol})</span>
-        <span class="md-val">{latest_close_fmt:,.0f}</span>
+        <span class="md-val {delta_cls}">{latest_close_fmt:,.0f}</span>
         <span class="md-delta {delta_cls}">{delta_str}</span>
     </div>
     <div class="md-cell">

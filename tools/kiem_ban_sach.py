@@ -31,8 +31,12 @@ def main() -> int:
     # dem khi output di qua pipe -> thu tu doc bi dao, canh bao quan trong
     # nhat lai hien sau cung. Mot cong cu chan doan doc sai thu tu thi vo
     # dung.
+    # Them encoding: thieu no thi console cp1258 cua Windows lam cong cu
+    # NO ngay dong print dau tien co dau mui ten. Mot cong cu kiem tra ma
+    # khong chay duoc thi khong kiem gi ca -- do la mot cong xanh gia.
     try:
-        sys.stdout.reconfigure(line_buffering=True)
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace",
+                               line_buffering=True)
     except Exception:
         pass
 

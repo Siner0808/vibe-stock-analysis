@@ -1854,3 +1854,141 @@ Chưa dùng API mới nào của `vnstock_data` trong pipeline. `insights.flow.f
 Đưa chúng vào là thay đổi kết quả đo, nên phải đo trước — và phải xử lý
 bất đối xứng local/cloud ở trên trước khi bất cứ đường chạy tự động nào
 phụ thuộc vào chúng.
+
+---
+
+## NĂM MÀU BẢNG GIÁ VÀ Ô VN-INDEX (22/08/2026, cùng ngày)
+
+Hai chỗ trên giao diện, và một bài học về chính cái gác vừa dựng.
+
+### Ô VN-Index viết cứng dấu gạch từ ngày dựng giao diện
+
+```python
+f'<div class="ti-item"><span class="ti-l">VN-Index</span><span class="ti-v">—</span></div>'
+```
+
+Không đọc gì, nên không bao giờ có số. Dấu gạch thì trung thực — nó nói
+"không có số". Nguy hiểm là bước dễ làm tiếp theo: dán một con số vào đúng
+chỗ ấy cho đẹp.
+
+Nay nó gọi `market_filter.chi_so_moi_nhat()`. Đường này KHÁC `get_vni_df()`
+của bộ lọc, và khác có chủ ý:
+
+| | ưu tiên | vì sao |
+|---|---|---|
+| `get_vni_df()` — bộ lọc | cache trên đĩa | backtest phải tất định |
+| `chi_so_moi_nhat()` — topbar | mạng | thanh tiêu đề phải là phiên gần nhất |
+
+Đo ngày 22/08: cache dừng ở 20/08 với **1.734,24** trong khi phiên 21/08
+đóng **1.768,12** — lệch 1,96%. Nếu topbar dùng lại đường của bộ lọc, nó
+hiện một con số cũ trông y hệt số mới. Nên nhãn ô hiện **NGÀY PHIÊN** cạnh
+con số (`VN-Index · 21/08`), và `test_chi_so_KHONG_dung_lai_duong_cache_cua_bo_loc`
+chặn lần "dọn dẹp" gộp hai đường làm một.
+
+### Năm màu, và điều kiện để được nói TRẦN
+
+Bảng giá Việt Nam có năm màu. Bản cũ có hai, cộng thêm `is_up = change >= 0`
+nên một phiên đứng giá bị tô xanh và ghi `▲ +0 (+0.00%)`.
+
+Cách rẻ tiền để thêm màu tím là `pct >= 6.9 → trần`. Nó SAI, và sai êm ái:
+đúng phần lớn phiên nên không ai kiểm lại. Đo thật phiên 21/08/2026:
+
+```
+SSI  HOSE  +6,96%  ->  ĐÚNG là trần   (tham chiếu 19.400, trần 20.750, đóng 20.750)
+SHS  HNX   +8,16%  ->  KHÔNG trần     (tham chiếu 14.700, trần 16.100, đóng 15.900)
+```
+
+Một ngưỡng cứng tô sai ít nhất một trong hai. Ba nguồn sai:
+
+  · biên độ khác nhau theo sàn (HOSE 7%, HNX 10%, UPCOM 15%), và khác nữa
+    ở phiên chào sàn hay phiên giao dịch lại sau đình chỉ;
+  · giá trần là `tham_chiếu × (1 + biên)` **làm tròn xuống theo bước giá**,
+    mà bước giá phụ thuộc mức giá — 19.400 × 1,07 = 20.758 → 20.750;
+  · tham chiếu KHÔNG phải giá đóng cửa phiên trước vào ngày giao dịch
+    không hưởng quyền, mà chuỗi giá lịch sử lại đã điều chỉnh hồi tố.
+
+Sở công bố sẵn cả ba con số. `Trading(source="vci").price_board([ma])` trả
+`listing/ceiling`, `listing/floor`, `listing/ref_price`, `listing/trading_date`,
+`listing/exchange`. Đọc số thật rẻ hơn và đúng hơn suy lại luật, nên
+`mau_bang_gia.py` KHÔNG có hàm tính trần.
+
+Hệ quả đã chọn: **không có bảng giá thì không được nói trần/sàn.** Không
+đọc được, hoặc bảng thuộc phiên khác với nến đang hiện, thì tụt xuống ba
+màu. Mất một màu tím còn hơn tô tím một mã không hề trần — người xem không
+có cách nào phát hiện màu sai.
+
+Hai cổng chặn, cả hai đều đo được:
+
+```
+chặn ngày      bảng giá và nến phải cùng một phiên; thiếu ngày ở một phía
+               cũng là không dùng được (sáng thứ Hai bảng đã lật, nến chưa)
+điều kiện phủ  giá đóng cửa KHÔNG THỂ nằm ngoài biên độ của chính phiên đó.
+định           Nằm ngoài nghĩa là biên độ thuộc phiên khác -> vứt biên độ.
+```
+
+Phần trăm hiển thị cũng đổi theo: nó là phần trăm so với **tham chiếu đang
+dùng**, không phải so với `close.iloc[-2]`. Hai con số bằng nhau ở phiên
+thường và khác nhau ở phiên không hưởng quyền; dùng lẫn thì màu và số nói
+hai chuyện khác nhau về cùng một phiên.
+
+Tooltip trên ô là chỗ KIỂM lại màu:
+
+```
+Tham chiếu: 19,400 đ · trần 20,750 · sàn 18,050 · nguồn: bảng giá HSX phiên 2026-08-21
+```
+
+Một màu không nói được nó dựa trên số nào thì không ai bắt được lúc nó sai.
+
+### Chính cái gác mới dựng lại là đồ giả
+
+Hai gác viết đầu tiên dùng `"chi_so_moi_nhat" in src` và `"mau_bang_gia" in src`.
+Đem đục thử — xoá hẳn lời gọi trong thân hàm — **cả hai VẪN XANH**.
+
+Lý do: chuỗi đó còn nằm trong khối chú thích ngay phía trên, và `in` không
+phân biệt được mã chạy với lời kể về mã. Càng viết chú thích kỹ thì gác
+càng dễ vô hiệu — đúng chiều ngược với trực giác.
+
+Nay mọi khẳng định "app.py CÓ GỌI X" đi qua AST (`_ten_da_nhap_va_goi`).
+Hai gác CŨ mắc đúng lỗi này cũng đã siết luôn:
+
+```
+test_nhan_pha_wyckoff_phai_co_module_dung_sau     "doc_pha" in src        -> AST
+test_nhan_fundamental_agent_phai_co_lop_dung_sau  "FundamentalAgent" in.. -> AST
+```
+
+Năm phép đục, cả năm nay đều đỏ. Trước khi siết, hai trong số đó xanh.
+
+### Một công cụ kiểm tra không chạy được
+
+`tools/kiem_ban_sach.py` nổ `UnicodeEncodeError` ngay dòng `print` đầu tiên
+có dấu mũi tên: nó gọi `sys.stdout.reconfigure(line_buffering=True)` mà
+quên `encoding="utf-8"` — năm công cụ khác trong `tools/` đều có. Console
+cp1258 của Windows làm nó chết trước khi kiểm được gì.
+
+Một cổng không chạy được là một cổng xanh giả: không ai chạy nó thì cũng
+không ai thấy nó đỏ. Đã sửa; chạy lại thì nó làm đúng việc — cảnh báo có
+thay đổi chưa commit, rồi clone HEAD ra bản sạch (không secrets, không
+`paper_trades.db`, không `backtest/cache`) và chạy pytest ở đó.
+
+### Trạng thái sau bản vá
+
+```
+480 test xanh (+32: 25 màu bảng giá, 7 VN-INDEX topbar, +2 gác app)
+98 file .py + 3 đoạn nhúng — nạp được bằng 3.11
+tools/chan_bia_so_lieu.py: sạch
+Smoke test: 0 traceback
+  VN-INDEX · 21/08   1,768.12 ▲ +1.95%   (xanh lá)
+  GIA DONG CUA (SSI) 20,750  ▲ +1,350 (+6.96%) · TRẦN   (tím, #a78bfa)
+  GIA DONG CUA (ACB) 22,750  ▲ +800 (+3.64%)            (xanh lá)
+```
+
+### Chưa làm
+
+Màu **vàng cam** (tham chiếu) và **xanh lam** (sàn) mới chỉ chứng minh
+được bằng test, chưa gặp trên dữ liệu thật — phiên 21/08 không có mã nào
+trong rổ đứng giá hoặc kịch sàn.
+
+`price_board` là một cú gọi mạng mỗi 3 phút cho mã đang xem. Trên Streamlit
+Cloud nó chạy ở hạng free (60 req/phút) — dư sức cho một mã, nhưng nếu sau
+này có màn hình nhiều mã thì phải gọi theo lô, vì `price_board` nhận cả
+danh sách trong một lần.

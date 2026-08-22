@@ -126,6 +126,112 @@ def test_khong_co_du_lieu_thi_van_fail_open_nhung_LO_RA():
         print("PASS  mất dữ liệu -> fail-open, nhưng status báo TẮT")
 
 
+# ─────────────────────────────────────────────────────────────────────
+# `chi_so_moi_nhat` — VN-INDEX cho thanh tiêu đề
+#
+# Đây là ĐƯỜNG KHÁC với `get_vni_df()` ở trên, và khác có chủ ý. Bộ lọc
+# phải tất định nên nó ưu tiên cache trên đĩa; thanh tiêu đề phải là phiên
+# gần nhất nên nó ưu tiên mạng. Đo 22/08/2026: cache dừng ở 20/08 với
+# 1.734,24 trong khi phiên 21/08 đóng 1.768,12 — lệch 1,96%.
+#
+# Nếu ai đó "dọn dẹp" bằng cách cho hàm này gọi lại `get_vni_df()`, thanh
+# tiêu đề sẽ hiện một con số cũ trông y hệt số mới. Các test dưới đây tồn
+# tại để chặn đúng lần dọn dẹp đó.
+# ─────────────────────────────────────────────────────────────────────
+
+@contextlib.contextmanager
+def _ghim_nguon(mang=None, cache=None, mang_no=False):
+    goc_load, goc_fetch = mf._btd.load, mf._btd.fetch_one
+
+    def _fetch(*a, **k):
+        if mang_no:
+            raise ConnectionError("mạng hỏng")
+        return mang
+
+    mf._btd.fetch_one = _fetch
+    mf._btd.load = lambda _ma: cache
+    try:
+        yield
+    finally:
+        mf._btd.load, mf._btd.fetch_one = goc_load, goc_fetch
+
+
+def _phien(ngay_cuoi, closes):
+    ngay = pd.bdate_range(end=ngay_cuoi, periods=len(closes)).strftime("%Y-%m-%d")
+    return pd.DataFrame({"time": ngay, "close": list(closes)})
+
+
+def test_chi_so_uu_tien_mang_hon_cache_cu():
+    """Đúng con số đã đo: cache 1.734,24 (20/08) vs mạng 1.768,12 (21/08)."""
+    with _ghim_nguon(mang=_phien("2026-08-21", [1734.24, 1768.12]),
+                     cache=_phien("2026-08-20", [1726.69, 1734.24])):
+        r = mf.chi_so_moi_nhat()
+    assert r["dong_cua"] == 1768.12, "lấy phải số cũ trong cache"
+    assert r["ngay"] == "2026-08-21"
+    assert r["nguon"] == "mạng"
+    assert r["phan_tram"] > 1.9
+
+
+def test_chi_so_luon_kem_ngay_phien():
+    """Số không kèm ngày là số không kiểm được — cả hai đường đều phải kèm."""
+    with _ghim_nguon(mang=_phien("2026-08-21", [1734.24, 1768.12])):
+        assert mf.chi_so_moi_nhat()["ngay"] == "2026-08-21"
+    with _ghim_nguon(mang=None, cache=_phien("2026-08-20", [1726.69, 1734.24])):
+        assert mf.chi_so_moi_nhat()["ngay"] == "2026-08-20"
+
+
+def test_chi_so_lui_ve_cache_khi_mang_hong_va_NOI_RA():
+    with _ghim_nguon(mang_no=True,
+                     cache=_phien("2026-08-20", [1726.69, 1734.24])):
+        r = mf.chi_so_moi_nhat()
+    assert r["dong_cua"] == 1734.24
+    assert r["nguon"] == "cache trên đĩa", "không nói nguồn thì không phân biệt được"
+    assert r["loi"] is None
+
+
+def test_chi_so_mat_ca_hai_nguon_thi_tra_None_chu_khong_nem():
+    with _ghim_nguon(mang=None, cache=None):
+        r = mf.chi_so_moi_nhat()
+    assert r["dong_cua"] is None
+    assert r["phan_tram"] is None
+    assert r["loi"]
+
+
+def test_chi_so_mot_phien_thi_khong_bia_ra_muc_khong_phan_tram():
+    """Một phiên không đủ để tính thay đổi. Trả 0% là bịa một quan sát."""
+    with _ghim_nguon(mang=_phien("2026-08-21", [1768.12])):
+        r = mf.chi_so_moi_nhat()
+    assert r["phan_tram"] is None
+    assert r["dong_cua"] is None
+    assert "một phiên" in r["loi"]
+
+
+def test_chi_so_khong_gay_ra_boi_du_lieu_khong_sap_xep():
+    """Nguồn trả ngược thứ tự thì vẫn phải lấy đúng phiên gần nhất."""
+    d = _phien("2026-08-21", [1734.24, 1768.12]).iloc[::-1].reset_index(drop=True)
+    with _ghim_nguon(mang=d):
+        r = mf.chi_so_moi_nhat()
+    assert r["dong_cua"] == 1768.12 and r["ngay"] == "2026-08-21"
+
+
+def test_chi_so_KHONG_dung_lai_duong_cache_cua_bo_loc():
+    """Chặn lần "dọn dẹp" gộp hai đường làm một.
+
+    `get_vni_df()` chỉ ra mạng khi cache RỖNG. Nếu `chi_so_moi_nhat()` gọi
+    nó, thì với cache cũ nhưng không rỗng, hàm sẽ trả số cũ mà vẫn ghi
+    nguồn là gì đó nghe ổn.
+    """
+    goi = []
+    goc = mf.get_vni_df
+    mf.get_vni_df = lambda *a, **k: goi.append(1)
+    try:
+        with _ghim_nguon(mang=_phien("2026-08-21", [1734.24, 1768.12])):
+            mf.chi_so_moi_nhat()
+    finally:
+        mf.get_vni_df = goc
+    assert not goi, "chi_so_moi_nhat() đi qua đường cache của bộ lọc"
+
+
 if __name__ == "__main__":
     for f in [v for k, v in sorted(globals().items()) if k.startswith("test_")]:
         f()
