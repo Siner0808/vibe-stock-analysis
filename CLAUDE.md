@@ -73,11 +73,71 @@ giá nên về lý thuyết không tạo được thông tin ngoài thứ đã c
 Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròng —
 `financial_collector.py` đã có sẵn đường lấy dữ liệu.
 
+> **Đã đi được một bước theo hướng đó (22/08/2026):** `fundamental_agent.py`
+> đọc BCTC thật và hiện lên giao diện. Nhưng **trọng số của nó bằng 0**, nên
+> nó CHƯA thay đổi con số nào ở trên. Đọc mục "Agent Cơ Bản" bên dưới trước
+> khi định bật — 8 quý dữ liệu chỉ đủ phát hiện tín hiệu với xác suất ~10%,
+> nên bật rồi thấy lãi tăng là kịch bản của quy tắc số 1, không phải bằng
+> chứng.
+
 Lưu ý phạm vi: các agent "chết" ở trên là chết **trong backtest/paper
 trading** vì không có lịch sử TradingView và tin tức. Trên app chạy trực tiếp
 chúng sẽ sống dậy — nhưng khi đó lại không đo được. Đây là mâu thuẫn cốt lõi
 của dự án: *phần đo được thì không có tín hiệu, phần có thể có tín hiệu thì
 không đo được.*
+
+---
+
+## Pha Wyckoff và Agent Cơ Bản — hai ô từng bị gỡ vì không có thật
+
+Ngày 21/08/2026 hai thứ trên giao diện bị gỡ vì chúng hứa một thành phần
+không tồn tại: nhãn `Pha C — Wyckoff Spring` (thật ra là điểm số chia bốn
+khoảng) và ô `Fundamental Agent · BCTC Q2` (thật ra `grep -rn "fundamental"
+master_agent.py` trả về rỗng). Ngày 22/08/2026 cả hai được trả lại, lần này
+có mã nguồn đứng sau.
+
+### `pha_wyckoff.doc_pha(df, he_so_gia)`
+
+Hàm thuần, không đọc file trạng thái, không gọi mạng. **KHÔNG tham gia chấm
+điểm** — nó là một lớp đọc bối cảnh.
+
+Ba chỗ dễ sửa sai, đều đã có test và đột biến canh:
+
+1. **Biên vùng dựng từ phần `nền`, sự kiện tìm ở phần `gần đây`.** Hai phần
+   không giao nhau. Lấy min/max trên cả đoạn thì chính cây thủng sâu nhất
+   định nghĩa ra cái sàn, nên `low < san` không bao giờ đúng — bộ nhận dạng
+   không bao giờ kêu mà vẫn xanh.
+2. **Cửa sổ tìm cao trào chặn cả hai đầu.** Bỏ chặn trái, đo trên dữ liệu
+   thật: "vùng dao động" rộng 96% ở VHM, 61% ở SSI.
+3. **`_doi_chieu_boi_canh()` chạy trên cấu trúc ĐÃ KẾT LUẬN, không trên
+   hướng điểm neo.** Bản đầu làm ngược và smoke test ACB lôi ra: nhãn hiện
+   "TÍCH LUỸ · đã xác nhận" ngay trên dòng bằng chứng ghi "cao trào MUA".
+
+Tỷ lệ "chưa đủ bằng chứng" cao (20/40 mã VN100) là **đúng kỷ luật của
+phương pháp**. Đừng nới ngưỡng cho ra nhãn đẹp hơn — đó đúng là cách cái
+nhãn cũ ra đời.
+
+### `fundamental_agent.FundamentalAgent`
+
+Đọc bảng `ratio` theo năm từ vnstock/KBS. Bốn cái bẫy đã ghi ở đầu file đó;
+quan trọng nhất: **`total_assets`, `owners_equity`,
+`profit_after_tax_...` trong bảng ratio là TĂNG TRƯỞNG %, không phải số dư**
+(FPT 2022 cho `total_assets = -3,81`), và **ngân hàng có bộ chỉ tiêu khác
+hẳn** (không có `net_margin`, `debt_to_equity`, `interest_coverage`).
+
+**HAI cái van, đừng nhầm chúng với nhau:**
+
+| Van | Mặc định | Mở ra thì sao |
+|---|---|---|
+| `master_agent.TRONG_SO_CO_BAN` | `0.0` | Điểm cơ bản bắt đầu dịch điểm giao dịch. Đây là quyết định ĐO LƯỜNG: 8 quý dữ liệu, IC ≈ 0,03–0,05, lực phát hiện ~10%. |
+| `MasterConsensusAgent(doc_co_ban=...)` | `False` | **Đây là rào chắn chống nhìn trộm, không phải công tắc hiệu năng.** Bảng chỉ số theo năm là trạng thái HIỆN TẠI, đã gồm điều chỉnh hồi tố, không kèm ngày công bố. Bật cho `backtest/engine.py` hay `paper_runner.py` là chấm phiên 2022 bằng số liệu 2025. |
+
+`run_full_analysis()` — đường phân tích một mã tại hiện tại — là chỗ DUY
+NHẤT bật `doc_co_ban=True`.
+
+Điểm cơ bản tham gia theo dạng **cộng lệch** `(điểm − 50) × trọng số`, cố ý
+không trộn vào bộ trọng số động phía trên: trọng số 0 cho ra đúng con số như
+trước khi có agent này, và điều đó kiểm được bằng mắt.
 
 ---
 
