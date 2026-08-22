@@ -1547,3 +1547,167 @@ Smoke test trình duyệt: 0 traceback, 0 stException, 2 dataframe render
 **Còn chưa biết:** trọng số cơ bản có nên khác 0 hay không. Câu trả lời
 cần ≥40 quý; gói dữ liệu hiện tại cho 8. Đó là giới hạn gói dữ liệu, không
 phải giới hạn của mã nguồn.
+
+---
+
+## GÓI SILVER ĐÃ MUA NHƯNG APP CHẠY NHƯ GÓI MIỄN PHÍ (22/08/2026)
+
+### Đo được gì
+
+Tài khoản nâng lên Silver, còn hạn tới 22/11/2026. Máy chủ vnstocks.com tự
+xác nhận qua `GET /api/vnstock/license/verify`:
+
+```json
+{"deviceRegistered": true, "userType": "paid", "hasActiveSubscription": true,
+ "subscription": {"tier": "silver", "endDate": "2026-11-22", "isActive": true},
+ "availablePackages": ["vnstock_data","vnstock_ta","vnstock_pipeline","vnstock_news"]}
+```
+
+Nhưng thư viện cục bộ nói khác:
+
+```
+vnai.get_user_tier() -> {"tier": "free", "limits": {"per_minute": 60}}
+```
+
+### Gốc: một ImportError bị nuốt
+
+`vnai/beam/auth.py`:
+
+```python
+def _detect_tier(self):
+    tier_from_vnii = self._check_vnii_tier()   # import vnii -> ImportError
+    if tier_from_vnii: return tier_from_vnii
+    if self._has_api_key(): return "free"      # rơi vào đây, không kêu
+```
+
+Package `vnii` chưa cài. `_check_vnii_tier()` bắt `ImportError`, log ở mức
+debug, trả `None`. Hàm gọi nó rơi xuống `"free"`. **Không lỗi, không cảnh
+báo, không dấu vết trên giao diện.**
+
+Chính tài liệu bootstrap của vnstock cũng cảnh báo đúng chỗ này: *"Do not
+rely exclusively on local `vnii` logs as it might not be installed yet and
+could incorrectly report 'Community'."*
+
+### Hai hậu quả, cả hai đều đo được
+
+| | Đang chạy | Đã trả tiền cho |
+|---|---|---|
+| BCTC theo quý | **8 kỳ** | **34 kỳ** (2018-Q1 → 2026-Q2) |
+| Hạn mức API | 60 req/phút | 300 req/phút |
+
+Việc cắt xuống 8 kỳ nằm ở `vnai/beam/fundamental.py`:
+
+```python
+PERIOD_LIMITS = {'guest': 4, 'free': 8, 'bronze': None, 'silver': None}
+```
+
+`None` = không giới hạn. Chẩn đoán bằng cách đặt `authenticator._cached_tier
+= "silver"` **trong bộ nhớ một tiến trình riêng** (không sửa file nào): cùng
+một lời gọi cho ra **8 kỳ → 34 kỳ**. Máy chủ vẫn luôn gửi đủ; vnai cắt tại
+máy sau khi nhận.
+
+### Vì sao điều này quan trọng hơn nó trông
+
+`experiment_fundamentals.py` để ngỏ câu hỏi "có nên bật `TRONG_SO_CO_BAN`"
+với lý do ghi ngay trong file: *"Muốn có câu trả lời thật cần ≥40 quý. Đó là
+giới hạn gói dữ liệu, không phải giới hạn của mã nguồn."*
+
+Bảng lực thống kê trong chính file đó:
+
+```
+   IC thật   8 quý   20 quý   40 quý
+     0,05     12%     31%      52%
+     0,10     38%     80%      98%
+```
+
+34 quý nội suy ra ~46% ở IC 0,05 và ~93% ở IC 0,10 — chuyển câu hỏi từ
+*không đo được* sang *đáng chạy*. Ba thiên lệch còn lại (điều chỉnh hồi tố,
+thiên lệch sống sót, cửa sổ đã tối ưu) **vẫn nguyên** và vẫn đẩy kết quả đẹp
+lên.
+
+### `vnstock_goi.py` — dòng trạng thái nói thật về hạng gói
+
+`kiem_goi()` hỏi máy chủ, đọc hạng vnai đang áp dụng, so hai bên. **Ba**
+trạng thái chứ không phải hai:
+
+```
+KHỚP            hai bên khớp
+LỆCH            mua cao hơn thứ đang chạy
+CHƯA KIỂM ĐƯỢC  mất mạng / thiếu khoá / máy chủ trả rác
+```
+
+Trạng thái thứ ba là bắt buộc. Một phép kiểm hạng gói mà khi mất mạng lại
+trả "khớp" thì chính nó trở thành đúng thứ nó sinh ra để bắt — cùng họ với
+`market_filter.status()` từng báo `active=True` trong khi cổng đóng cứng.
+`.dat` chỉ True ở đúng một nhánh.
+
+**Module CHỈ ĐỌC.** Không ghi `_cached_tier`, không vá `PERIOD_LIMITS`. Ép
+cứng hạng thành "silver" sẽ khiến app tiếp tục khẳng định silver sau ngày
+hết hạn rồi cắt dữ liệu sai mà không ai biết — tạo ra đúng lời nói dối âm
+thầm mà file này viết ra để phát hiện. Có test đọc mã nguồn để khoá điều đó.
+
+### Cache BCTC đã bị đóng băng ở hạng free
+
+`fetch_fundamentals.py` bỏ qua mọi mã đã có cache — đúng cái bẫy `download()`
+ghi trong `NGUYEN-TAC-DO-LUONG.md`. 60 file CSV trong `backtest/fundamentals/`
+(20 mã × 3 bảng) đều tải ở hạng free, nên **8 kỳ đóng băng vĩnh viễn**, kể
+cả sau khi cài xong package.
+
+Nay cache mang sổ tay `_hang_da_tai.json` ghi mỗi mã tải ở hạng nào. Điều
+kiện bỏ qua gồm cả hạng, không chỉ sự tồn tại của file. Mã chưa có trong sổ
+tay được coi là "không rõ hạng" nên tải lại một lần — đó là chủ ý, vì 60 file
+hiện tại đều thuộc nhóm đó.
+
+### Còn gì trong gói mà chưa dùng
+
+Đọc `https://vnstocks.com/docs/vnstock-data`. Bốn thứ chạm trực tiếp vào
+những chỗ đang tắc của dự án:
+
+| Thứ | Gọi bằng | Chạm vào chỗ nào |
+|---|---|---|
+| Khối ngoại / tự doanh **theo mã, có khoảng ngày** | `market.equity(sym).foreign_flow(start,end)` · `.proprietary_flow(start,end)` | `CLAUDE.md` nói nguyên nhân gốc là **thiếu dữ liệu độc lập** — 6 agent đều tính từ cùng một chuỗi giá. Đây là chuỗi KHÔNG suy ra từ giá, và có lịch sử nên backtest được. Skill Wyckoff cũng gọi nó là proxy trực quan nhất cho Composite Man. |
+| `financial_health(com_type=...)` | `fun.equity(sym).financial_health(scorecard, lang, limit)` | `com_type` nhận `bank / securities / insurance / regular`. Đúng giới hạn đã ghi trong `fundamental_agent.py`: công ty chứng khoán đang bị chấm bằng thước doanh nghiệp sản xuất (SSI ra "đòn bẩy cao 188%"). |
+| `volume_profile()` | `market.equity(sym).volume_profile()` | Khối lượng theo mức giá — đúng thứ `pha_wyckoff.py` đang phải suy ra gián tiếp từ cụm nến. |
+| Nến 1m/5m/15m/1H | `market.equity(sym).ohlcv(interval=...)` | `intraday_data.py` đang chỉ dùng 30m. Nến mịn hơn là thứ cần để đo giả định bất lợi (bất biến 3) tốn bao nhiêu. |
+
+Thứ **không** có, đã kiểm: `Reference` không cung cấp thành phần chỉ số theo
+lịch sử. **Thiên lệch sống sót vẫn không xử lý được** bằng nguồn này.
+
+Danh mục skill: 18 cái, key hiện mở được 9 (6 free + 3 silver:
+`market-screener`, `indicator-calculator`, `macro-analyzer`). **Không commit
+chúng vào repo** — giấy phép vnstock ghi rõ *"Zero Disk Persistence… Do not
+save, dump, or write these files to the user's local disk"*. Dùng đúng cách
+là `vnai.load_skill("<slug>")` lúc chạy.
+
+Tiện thể biết luôn cơ chế ghi đè `AGENTS.md`: `vnai.setup_agent_environment()`
+ghi file đó vào gốc dự án.
+
+### Việc phải làm để mở khoá
+
+Bốn package `vnstock_data`, `vnstock_ta`, `vnstock_pipeline`, `vnstock_news`
+(và `vnii`) **không có trên PyPI công khai** — đã thử `pip install --dry-run`
+cả bảy biến thể tên, đều `No matching distribution found`. Chúng phát hành
+riêng cho thành viên, nên phải lấy từ khu vực thành viên hoặc kênh hỗ trợ.
+
+Sau khi cài xong, thứ tự đúng:
+
+```
+1. python -c "import vnstock_goi; print(vnstock_goi.kiem_goi().dong_log())"
+   -> phải ra KHỚP
+2. python fetch_fundamentals.py       # tự tải lại cả 20 mã vì sổ tay đổi hạng
+   -> mỗi mã phải in ~34 kỳ, không phải 8
+3. python experiment_fundamentals.py  # nay mới có lực thống kê để đọc
+```
+
+### Trạng thái sau bản vá
+
+```
+444 test xanh (+24 cho hạng gói và cache BCTC)
+0 CHẶN · 37 cảnh báo (không đổi)
+96 file .py + 3 đoạn nhúng — nạp được bằng 3.11
+Smoke test trình duyệt: 0 traceback, dòng "🎫 Gói vnstock ● LỆCH" hiện đúng
+```
+
+Cổng 3.11 bắt được một lỗi thật trong lượt này: `app.py` thiếu một dấu `+`
+giữa hai chuỗi. **444 test vẫn xanh** vì không test nào import `app.py` —
+đúng lý do cổng đó tồn tại.

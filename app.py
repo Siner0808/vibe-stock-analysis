@@ -720,6 +720,33 @@ with st.sidebar:
                 f"{_fa['xep_hang']} {_fa['diem']:.0f}/100 · BCTC {_fa['nam']}",
                 "● BẬT", "ac")
 
+        # ── Gói vnstock: hạng ĐANG CÓ HIỆU LỰC, không phải hạng đã mua ──
+        #
+        # Dòng này tồn tại vì ngày 22/08/2026 tài khoản đã lên Silver mà app
+        # vẫn chạy như gói miễn phí: BCTC bị cắt còn 8/34 kỳ, hạn mức 60 thay
+        # vì 300 req/phút. Không có lỗi nào, không cảnh báo nào — `vnai` nuốt
+        # ImportError của package `vnii` rồi trả "free".
+        #
+        # Không dùng `_da_chay` làm điều kiện: hạng gói không phụ thuộc lượt
+        # quét, và nó sai NGAY CẢ KHI chưa quét gì.
+        try:
+            import vnstock_goi as _vg
+            _goi = _vg.kiem_goi()
+            _row_goi = _hang(
+                "🎫 Gói vnstock",
+                (f"{_goi.hang_may_chu} · hết hạn {_goi.het_han}"
+                 if _goi.dat else
+                 f"mua {_goi.hang_may_chu} · chạy như {_goi.hang_cuc_bo}"
+                 if _goi.tinh_trang == _vg.LECH else _goi.ly_do[:38]),
+                "● ĐÚNG" if _goi.dat
+                else "● LỆCH" if _goi.tinh_trang == _vg.LECH else "● ?",
+                "ac" if _goi.dat else "wn")
+        except Exception as _e:
+            _goi = None
+            _row_goi = _hang("🎫 Gói vnstock",
+                             f"không kiểm được ({type(_e).__name__})",
+                             "● ?", "wn")
+
         # ── TradingView: đọc từ ghi chú nguồn thật ──
         if not _da_chay:
             _row_tv = _chua_chay("📡 TradingView")
@@ -741,11 +768,15 @@ with st.sidebar:
             + _row_fa
             + _row_debate
             + _row_tv
+            + _row_goi
             + '</div>'
+            + (f'<div style="font-size:9px;color:#f59e0b;margin-top:6px;'
+               f'line-height:1.45;">⚠️ {_goi.dong_log()}</div>'
+               if _goi is not None and not _goi.dat else '')
             # Ảnh hưởng bằng 0 phải được NÓI RA ngay cạnh dòng "● BẬT".
             # Một thành phần bật mà không tác động, nếu không ghi chú, đọc
             # y hệt một thành phần đang tham gia quyết định.
-            '<div style="font-size:9px;color:#475569;margin-top:6px;'
+            + '<div style="font-size:9px;color:#475569;margin-top:6px;'
             'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất (vnstock). '
             '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — 8 quý dữ liệu chỉ đủ '
             'phát hiện tín hiệu với xác suất ~10%, nên chưa đo được nó có ích '
