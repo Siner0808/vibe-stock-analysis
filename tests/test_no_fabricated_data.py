@@ -621,7 +621,10 @@ def test_nhan_pha_wyckoff_phai_co_module_dung_sau():
     if "Pha Wyckoff" not in src:
         print("SKIP  app.py không hiện nhãn Pha Wyckoff")
         return
-    assert "doc_pha" in src and "pha_wyckoff" in src, (
+    # Trước 22/08/2026 dòng này là `"doc_pha" in src`, và nó xanh cả khi
+    # lời gọi bị xoá — vì tên hàm còn nằm trong chú thích ngay bên trên.
+    nhap, goi = _ten_da_nhap_va_goi(os.path.join(ROOT, "app.py"))
+    assert "pha_wyckoff" in nhap and "doc_pha" in goi, (
         "app.py hiện nhãn 'Pha Wyckoff' nhưng không gọi pha_wyckoff.doc_pha "
         "— đây đúng là lỗi đã sửa ngày 21/08/2026, đang quay lại")
     assert os.path.exists(os.path.join(ROOT, "pha_wyckoff.py"))
@@ -639,12 +642,93 @@ def test_nhan_fundamental_agent_phai_co_lop_dung_sau():
     if "Fundamental Agent" not in src:
         print("SKIP  app.py không hiện ô Fundamental Agent")
         return
-    master = open(os.path.join(ROOT, "master_agent.py"), encoding="utf-8").read()
-    assert "FundamentalAgent" in master, (
-        "app.py vẽ ô Fundamental Agent nhưng master_agent.py không gọi lớp "
+    nhap_m, goi_m = _ten_da_nhap_va_goi(os.path.join(ROOT, "master_agent.py"))
+    assert "FundamentalAgent" in nhap_m and "FundamentalAgent" in goi_m, (
+        "app.py vẽ ô Fundamental Agent nhưng master_agent.py không DỰNG lớp "
         "nào như vậy — luồng dữ liệu không đi qua đó")
     assert os.path.exists(os.path.join(ROOT, "fundamental_agent.py"))
     print("PASS  ô Fundamental Agent có lớp đứng sau và được master gọi")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Gác bằng AST, không bằng `in`
+#
+# Ngày 22/08/2026 hai gác mới viết bằng `"chi_so_moi_nhat" in src` được đem
+# đục thử: xoá hẳn lời gọi trong thân hàm, gác VẪN XANH. Lý do là chuỗi đó
+# còn nằm trong khối chú thích ngay phía trên, và `in` không phân biệt được
+# mã chạy với lời kể về mã.
+#
+# Đây đúng là họ lỗi mà cả file này tồn tại để chặn — chỉ khác chỗ lần này
+# nạn nhân là chính cái gác. Nên mọi khẳng định "app.py CÓ GỌI X" từ đây
+# phải đi qua AST.
+# ─────────────────────────────────────────────────────────────────────
+
+def _ten_da_nhap_va_goi(duong_dan: str) -> tuple[set, set]:
+    """(tên module đã import, tên hàm đã được gọi) — đọc từ cây cú pháp."""
+    import ast
+    cay = ast.parse(open(duong_dan, encoding="utf-8").read())
+    nhap, goi = set(), set()
+    for nut in ast.walk(cay):
+        if isinstance(nut, ast.Import):
+            for a in nut.names:
+                nhap.add(a.name.split(".")[0])
+                if a.asname:
+                    nhap.add(a.asname)
+        elif isinstance(nut, ast.ImportFrom):
+            if nut.module:
+                nhap.add(nut.module.split(".")[0])
+            for a in nut.names:
+                nhap.add(a.asname or a.name)
+        elif isinstance(nut, ast.Call):
+            f = nut.func
+            if isinstance(f, ast.Name):
+                goi.add(f.id)
+            elif isinstance(f, ast.Attribute):
+                goi.add(f.attr)
+    return nhap, goi
+
+
+def test_o_vnindex_phai_doc_du_lieu_that():
+    """Hiện một con số VN-Index thì phải có nguồn đứng sau.
+
+    Ô này viết cứng dấu gạch "—" từ ngày dựng giao diện tới 22/08/2026: nó
+    không đọc gì cả. Dấu gạch là trung thực — nó nói "không có số". Nguy
+    hiểm là bước tiếp theo mà ai đó dễ làm: dán một con số vào đúng chỗ ấy
+    cho đẹp. Nên điều kiện là: có nhãn VN-Index kèm số thì phải gọi
+    `market_filter.chi_so_moi_nhat`.
+    """
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    if "VN-Index" not in src:
+        print("SKIP  app.py không hiện ô VN-Index")
+        return
+    nhap, goi = _ten_da_nhap_va_goi(os.path.join(ROOT, "app.py"))
+    assert "chi_so_moi_nhat" in nhap and "chi_so_moi_nhat" in goi, (
+        "app.py hiện ô VN-Index nhưng không gọi market_filter.chi_so_moi_nhat "
+        "— con số đó không có nguồn")
+    mf = open(os.path.join(ROOT, "market_filter.py"), encoding="utf-8").read()
+    assert "def chi_so_moi_nhat" in mf
+    # Ngày phiên phải đi kèm con số. Một chỉ số không kèm ngày thì phiên cũ
+    # trông y hệt phiên mới — đúng lỗi đã làm bộ lọc chặn 14 ngày liền.
+    assert '"ngay"' in mf and "_vni_ngay" in src, (
+        "ô VN-Index không hiện ngày phiên: số cũ sẽ giả dạng số mới")
+    print("PASS  ô VN-Index đọc dữ liệu thật và có kèm ngày phiên")
+
+
+def test_o_gia_dong_cua_khong_tu_ket_luan_tran():
+    """Màu trần/sàn phải dựa trên biên độ THẬT, không dựa ngưỡng phần trăm."""
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    if "TRẦN" not in src and "mau_bang_gia" not in src:
+        print("SKIP  app.py chưa có năm màu bảng giá")
+        return
+    nhap, goi = _ten_da_nhap_va_goi(os.path.join(ROOT, "app.py"))
+    assert "mau_bang_gia" in nhap, (
+        "app.py nhắc tới TRẦN nhưng không import mau_bang_gia — nhãn không "
+        "có biên độ nào đứng sau")
+    assert "mau_cho_phien" in goi and "doc_bang_gia" in goi, (
+        "app.py import mau_bang_gia nhưng không gọi mau_cho_phien/doc_bang_gia "
+        "— màu đang do luật khác quyết định")
+    assert os.path.exists(os.path.join(ROOT, "mau_bang_gia.py"))
+    print("PASS  nhãn TRẦN/SÀN có biên độ thật đứng sau")
 
 
 def test_app_doc_so_lenh_qua_paper_metrics():

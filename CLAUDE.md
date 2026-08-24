@@ -145,6 +145,66 @@ trước khi có agent này, và điều đó kiểm được bằng mắt.
 
 ---
 
+## Năm màu bảng giá — `mau_bang_gia.py`
+
+Bảng giá Việt Nam có **năm** màu, và ba trong số đó là kết luận chứ không
+phải phép so sánh:
+
+| màu | trạng thái | biến |
+|---|---|---|
+| tím `--c-p` | giá TRẦN | `bg-tran` |
+| xanh lá `--c-g` | tăng | `bg-tang` |
+| vàng cam `--c-a` | tham chiếu | `bg-tc` |
+| đỏ `--c-r` | giảm | `bg-giam` |
+| xanh lam `--c-b` | giá SÀN | `bg-san` |
+
+**Không bao giờ suy ra trần bằng ngưỡng phần trăm.** Đo phiên 21/08/2026:
+SSI trần ở **+6,96%**, còn SHS tăng **+8,16%** mà KHÔNG trần. Mọi ngưỡng
+cứng tô sai ít nhất một trong hai. Trần là `tham_chiếu × (1 + biên)` làm
+tròn xuống theo bước giá, biên khác nhau theo sàn, và tham chiếu KHÔNG phải
+`close.iloc[-2]` vào ngày giao dịch không hưởng quyền.
+
+Sở công bố sẵn cả ba con số — `Trading(source="vci").price_board([ma])` trả
+`listing/ceiling`, `listing/floor`, `listing/ref_price`, `listing/trading_date`.
+Module này ĐỌC chúng và cố ý **không có hàm tính trần**.
+
+Hệ quả đã chọn: **không đọc được bảng giá thì không được nói trần/sàn**,
+tụt xuống ba màu. Bảng giá còn phải chứng minh được là của ĐÚNG phiên đang
+hiện (chặn ngày), và giá đóng cửa phải nằm trong biên độ nhận được (điều
+kiện phủ định) — sáng thứ Hai bảng đã lật sang phiên mới trong khi nến vẫn
+là thứ Sáu.
+
+Phần trăm hiển thị đi theo **tham chiếu đang dùng**, không theo
+`close.iloc[-2]`. Dùng lẫn thì màu và số nói hai chuyện khác nhau về cùng
+một phiên.
+
+### Ô VN-Index trên topbar
+
+Gọi `market_filter.chi_so_moi_nhat()`, KHÔNG phải `get_vni_df()`. Hai đường
+cố ý khác nhau: bộ lọc ưu tiên cache trên đĩa (backtest phải tất định),
+topbar ưu tiên mạng (phải là phiên gần nhất). Đo 22/08/2026: cache 1.734,24
+(20/08) vs mạng 1.768,12 (21/08). Nhãn ô luôn kèm **ngày phiên** để số cũ
+không giả dạng số mới.
+
+---
+
+## Gác phải đọc AST, không đọc `in`
+
+Ngày 22/08/2026 hai gác mới viết bằng `"chi_so_moi_nhat" in src` được đem
+đục thử — xoá hẳn lời gọi trong thân hàm — và **cả hai vẫn xanh**, vì tên
+đó còn nằm trong khối chú thích ngay phía trên.
+
+Càng viết chú thích kỹ thì gác kiểu `in` càng dễ vô hiệu. Mọi khẳng định
+"file X CÓ GỌI Y" phải đi qua `_ten_da_nhap_va_goi()` trong
+`tests/test_no_fabricated_data.py`. Gác dạng văn bản chỉ còn dùng cho thứ
+thật sự là văn bản — CSS nằm trong chuỗi, chẳng hạn.
+
+Một công cụ kiểm tra không chạy được cũng là cổng xanh giả: cùng ngày,
+`tools/kiem_ban_sach.py` nổ `UnicodeEncodeError` ngay dòng print đầu tiên
+vì thiếu `encoding="utf-8"` trong `sys.stdout.reconfigure`.
+
+---
+
 ## Hạng gói vnstock — thứ đã mua khác thứ đang chạy
 
 Ngày 22/08/2026: tài khoản Silver (hạn 22/11/2026), app chạy như gói miễn
@@ -472,8 +532,10 @@ ghi (chuông báo cháy, không phải cửa chống cháy), và matcher chỉ b
 ## Kiểm tra định kỳ những chỗ hỏng âm thầm
 
 ```python
-market_filter.status()        # bộ lọc VN-INDEX có thật sự bật không
+market_filter.status()           # bộ lọc VN-INDEX có thật sự bật không
+market_filter.chi_so_moi_nhat()  # topbar lấy được phiên nào, từ nguồn nào
 data_quality.price_multiplier()  # vnstock trả nghìn đồng vs agent trả VNĐ
+mau_bang_gia.doc_bang_gia("SSI") # trần/sàn/tham chiếu thật, `loi` nói vì sao thiếu
 ```
 
 ---
