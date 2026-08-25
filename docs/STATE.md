@@ -1992,3 +1992,57 @@ trong rổ đứng giá hoặc kịch sàn.
 Cloud nó chạy ở hạng free (60 req/phút) — dư sức cho một mã, nhưng nếu sau
 này có màn hình nhiều mã thì phải gọi theo lô, vì `price_board` nhận cả
 danh sách trong một lần.
+
+---
+
+## KHOẢNG TRỐNG BÊN PHẢI BIỂU ĐỒ (22/08/2026)
+
+Cây nến cuối dán sát mép phải làm mắt đọc nó như hồi kết của câu chuyện,
+trong khi nó chỉ là chỗ dữ liệu DỪNG LẠI. Sơ đồ Wyckoff chỉ hiển nhiên khi
+nhìn lại; cạnh phải luôn mơ hồ. Nay chừa trống `PHIEN_TRONG_BEN_PHAI = 15`
+phiên.
+
+**Đơn vị là PHIÊN, nhưng trục hoành là trục THỜI GIAN.** Cuối tuần và ngày
+nghỉ vẫn chiếm chỗ trên đó, nên bề rộng một phiên phải ĐO trên chính cửa
+sổ đang vẽ:
+
+```
+cua so 180 ngay = 124 phien -> 1,4 ngay lich / phien
+lay cung 1 ngay/phien       -> khoang trong hut 28%
+```
+
+**Phải dùng `update_xaxes`, KHÔNG phải `update_layout(xaxis=...)`.** Đo
+trực tiếp trên đối tượng figure:
+
+```
+update_layout(xaxis=dict(range=...))  ->  xaxis.range  da dat
+                                          xaxis2.range = None
+update_xaxes(range=...)               ->  ca hai truc deu dat
+```
+
+Hai hàng dùng hai trục (`xaxis` cho nến, `xaxis2` cho khối lượng). Đặt qua
+layout thì cột khối lượng vẫn tự co về đúng dữ liệu trong khi hàng nến đã
+kéo dài — hai hàng nói về hai khoảng thời gian khác nhau, tệ hơn hẳn việc
+không có khoảng trống. `gridcolor` đặt trước đó KHÔNG bị xoá (`update_*`
+là cập nhật đệ quy, không phải thay thế).
+
+Kèm một vạch đứt mảnh tại phiên cuối, ngăn ĐÃ QUAN SÁT với CHƯA QUAN SÁT.
+Không có nó, khoảng trống mơ hồ theo kiểu khác: trông như dữ liệu bị mất
+chứ không như tương lai chưa tới. `add_vline` không kèm `row/col` sinh hai
+shape, mỗi hàng một cái — đã kiểm.
+
+Đo trên app đang chạy:
+
+```
+xaxis.range == xaxis2.range          True
+khoang trong ben phai                10,3% be ngang vung ve
+so shape                             3  (1 hline SL + 2 vline ranh gioi)
+traceback                            0
+```
+
+Không có test tự động cho phần này: hình vẽ dựng ngay trong thân
+`with col_chart:` của `app.py` nên không import được, và một gác dạng
+`"update_xaxes" in src` thì không chứng minh được nó dùng cho `range` —
+đúng loại gác yếu mà file `test_no_fabricated_data.py` vừa phải bỏ. Bất
+biến thật ở đây là "hai hàng cùng một khoảng thời gian", và nó chỉ kiểm
+được khi hình đã dựng xong.
