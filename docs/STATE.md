@@ -2046,3 +2046,114 @@ Không có test tự động cho phần này: hình vẽ dựng ngay trong thân
 đúng loại gác yếu mà file `test_no_fabricated_data.py` vừa phải bỏ. Bất
 biến thật ở đây là "hai hàng cùng một khoảng thời gian", và nó chỉ kiểm
 được khi hình đã dựng xong.
+
+---
+
+## SCHEMA vnstock_data 3.2.8 — ĐỌC TRƯỚC KHI ĐỔI `import vnstock` (23/08/2026)
+
+Ngày 23/08/2026 có tài liệu `vnstock_3.2.8_schema_migration_reference.csv`
+(khu vực thành viên, hạng Bronze trở lên — **không đưa vào repo**). Nó ánh
+xạ khoá cũ theo từng nguồn (VCI / MAS / KBS) sang một bộ mã thống nhất.
+1.757 dòng: note 1.087, balance_sheet 256, cash_flow 194, income_statement
+160, **ratio 60**.
+
+**Hiện tại KHÔNG có gì hỏng.** App vẫn `from vnstock import ...` nên nhận
+schema cũ. Banner của thư viện giục đổi sang `from vnstock_data import ...`;
+mục này ghi lại giá của lần đổi đó, đo ngày 23/08/2026.
+
+### Bẫy 1 — đổi HÌNH DẠNG, không phải đổi tên cột
+
+```
+vnstock      (rong): item · item_id · 2025 · 2024 · 2023 · 2022
+vnstock_data (dai) : period · id · name · order · level · unit · value
+```
+
+`fundamental_agent._lay()` tra cột năm theo tên — cách đó không còn áp
+dụng. Và khoá là **mã phân loại** (`RT_PRT_ROE`), không phải tên cột trong
+tài liệu (`roe`).
+
+### Bẫy 2 — ĐƠN VỊ LỆCH 100 LẦN, nhãn vẫn ghi "%"
+
+Đo FPT 2025:
+
+```
+CU   vnstock/KBS  roe        = 23.59      net_margin = 16.02
+MOI  vnstock_data RT_PRT_ROE =  0.2359    RT_PRT_NET_MARGIN = 0.1602
+                  unit       = "%"        unit = "%"
+```
+
+Đây là bẫy nguy hiểm nhất trong cả tài liệu. Mọi ngưỡng trong
+`fundamental_agent.py` (`ROE_TOT`, `ROE_KHA`, `ROE_YEU`…) tính theo thang
+phần trăm. Đổi nguồn mà không nhân 100 thì **mọi mã đều đọc ra "ROE thấp"**
+— sai đều, sai êm, không mã nào lộ ra bất thường.
+
+### Bẫy 3 — nguồn KBS mất gần hết chỉ tiêu trong schema mới
+
+```
+CU   vnstock/KBS      58/58 chi tieu co so cho nam 2025
+MOI  vnstock_data KBS 10/60
+MOI  vnstock_data VCI 45/60
+```
+
+Dưới KBS, schema mới chỉ trả P/E, P/B, P/S, EV/EBITDA, cổ tức, EPS, beta,
+BVPS, ROE, ROA. `net_margin`, `debt_to_equity`, `interest_coverage`,
+`equity_total_assets` và hai trường tăng trưởng đều NaN.
+
+Nghĩa là chuyển schema **bắt buộc kéo theo đổi nguồn KBS → VCI**. Đó là
+đổi NGUỒN SỐ LIỆU, không phải đổi thư viện — thuộc phạm vi
+`NGUYEN-TAC-DO-LUONG.md`, phải đo chứ không được đổi rồi tin.
+
+### Bẫy 4 — phép nhận diện ngân hàng gãy
+
+`fundamental_agent._doc()` phân biệt ngân hàng bằng sự CÓ MẶT của
+`net_interest_margin_nim`. Trong schema mới, mã không phải ngân hàng vẫn có
+đủ dòng ngân hàng, **giá trị 0.0 chứ không phải NaN**:
+
+```
+FPT / VCI 2025:  RT_BANK_NIM = 0.0   RT_BANK_NPL = 0.0   RT_BANK_CIR = 0.0
+```
+
+Nên FPT sẽ bị chấm bằng thước ngân hàng và nhận cảnh báo "biên lãi thuần
+mỏng" cho một công ty phần mềm.
+
+### Chính tài liệu SAI ở phần `ratio`
+
+Đối chiếu mã phân loại trong tài liệu với mã thư viện 3.2.8 thật sự trả về:
+
+| bảng | tài liệu | thư viện | khớp |
+|---|---|---|---|
+| ratio | 60 | 60 | **27** |
+| income_statement | 160 | 40 | 40 |
+| balance_sheet | 256 | 168 | 168 |
+| cash_flow | 194 | 73 | 73 |
+
+Ba bảng kia khớp 100% (thư viện chỉ trả các dòng có dữ liệu, nên ít hơn là
+bình thường). Riêng `ratio` lệch 33/60, và lệch đúng ba tiền tố:
+
+```
+tai lieu RT_AST_*   ->  thu vien RT_ASSETS_*
+tai lieu RT_BNK_*   ->  thu vien RT_BANK_*
+tai lieu RT_VAL_*   ->  thu vien RT_VALUE_*
+```
+
+Ai viết mã bám theo tài liệu sẽ nhận `None` cho toàn bộ nhóm định giá,
+nhóm ngân hàng và nhóm tài sản — tức đúng một phần ba bảng, và im lặng.
+`ratio` lại chính là bảng duy nhất `fundamental_agent.py` đọc.
+
+### Một lỗ của gói CŨ, phát hiện nhân tiện — KHÔNG ảnh hưởng app
+
+```
+vnstock      KBS balance_sheet  year -> (0, 0)   quarter -> (0, 0)
+vnstock_data KBS balance_sheet  year -> (472, 8)
+```
+
+Lặp lại hai lần, cùng kết quả. App không dính vì nó chỉ dùng KBS cho bảng
+`ratio`; bảng cân đối lấy từ VCI (`fetch_fundamentals.py`,
+`financial_collector.py`).
+
+### Kết luận
+
+Chưa chuyển. Bốn cái bẫy trên cộng lại nghĩa là bản chuyển đổi này **thay
+đổi con số**, không chỉ thay đổi cách gọi — và ba trong bốn đều hỏng âm
+thầm. Nếu chuyển thì phải chuyển kèm phép đo đối chiếu từng chỉ tiêu giữa
+hai schema trên cả rổ, không phải chuyển rồi xem app có chạy không.
