@@ -1032,6 +1032,22 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── KHOẢNG TRỐNG BÊN PHẢI BIỂU ĐỒ ─────────────────────────────────
+#
+# Cạnh phải của mọi biểu đồ đều mơ hồ. Sơ đồ Wyckoff chỉ hiển nhiên khi
+# nhìn lại: cây nến cuối dán sát mép làm mắt đọc nó như hồi kết của câu
+# chuyện, trong khi nó chỉ là chỗ dữ liệu DỪNG LẠI. Chừa trống một quãng
+# là cách rẻ nhất để phần chưa biết trông đúng như chưa biết.
+#
+# Đơn vị là PHIÊN, nhưng trục hoành là trục THỜI GIAN — cuối tuần và ngày
+# nghỉ vẫn chiếm chỗ trên đó. Nên bề rộng một phiên phải ĐO trên chính cửa
+# sổ đang vẽ, không lấy cứng 1 ngày: cửa sổ 180 ngày chứa ~124 phiên, tức
+# ~1,4 ngày lịch mỗi phiên. Đo thử: lấy cứng 1 ngày thì khoảng trống hụt
+# 28%, và hụt nhiều hơn nữa nếu người dùng kéo cửa sổ dài ra.
+#
+# 15 phiên trên cửa sổ 180 ngày cho khoảng trống chiếm ~11% bề ngang.
+PHIEN_TRONG_BEN_PHAI = 15
+
 # ═══════════════════════════════════════════════════════════════════
 # 6. SPLIT DASHBOARD (Chart 65% | Debate Council 35%)
 # ═══════════════════════════════════════════════════════════════════
@@ -1106,6 +1122,27 @@ with col_chart:
         xaxis=dict(gridcolor='rgba(255,255,255,0.04)'),
         yaxis=dict(gridcolor='rgba(255,255,255,0.04)')
     )
+
+    # Đẩy nến sang trái, chừa trống bên phải. `update_xaxes` chứ không phải
+    # `update_layout(xaxis=...)`: hai hàng dùng hai trục (`xaxis`,`xaxis2`),
+    # đặt qua layout chỉ trúng hàng trên và cột khối lượng sẽ lệch pha với
+    # nến — hai hàng nói về hai khoảng thời gian khác nhau là lỗi tệ hơn
+    # hẳn so với việc không có khoảng trống.
+    _tg = pd.to_datetime(df['time'])
+    _rong_phien = ((_tg.iloc[-1] - _tg.iloc[0]) / (len(_tg) - 1)
+                   if len(_tg) > 1 else pd.Timedelta(days=1))
+    _mep_phai = _tg.iloc[-1] + _rong_phien * PHIEN_TRONG_BEN_PHAI
+    fig_candlestick.update_xaxes(range=[_tg.iloc[0], _mep_phai])
+
+    # Vạch ranh giới giữa ĐÃ QUAN SÁT và CHƯA QUAN SÁT.
+    #
+    # Khoảng trống không kèm vạch thì mơ hồ đúng theo kiểu khác: nó trông
+    # như dữ liệu bị mất chứ không như tương lai chưa tới. Vạch mảnh, không
+    # nhãn — nó là mốc đọc, không phải một kết luận.
+    fig_candlestick.add_vline(
+        x=_tg.iloc[-1], line_width=1, line_dash="dot",
+        line_color="rgba(255,255,255,0.18)")
+
     st.plotly_chart(fig_candlestick, use_container_width=True)
 
     # ── Bằng chứng của phép đọc Wyckoff ──────────────────────────────
