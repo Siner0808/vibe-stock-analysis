@@ -2410,3 +2410,107 @@ Ba hệ quả:
 Trạng thái sổ lúc ghi: 113 lệnh (112 đóng, **1 đang mở**), 13.589 quyết
 định, quyết định gần nhất 20/08/2026 — hệ thống vẫn quét và vẫn ghi, chỉ
 không mở vị thế mới.
+
+---
+
+## SỔ LỆNH "THẬT" ĐƯỢC GHI TRONG 258 GIÂY (23/08/2026)
+
+Đi tìm giá của giả định bất lợi (bất biến 3) thì đụng phải hai thứ khác,
+cái thứ hai đổi cách đọc gần như mọi con số nói về sổ lệnh.
+
+### Một, chốt lời cứng đã bị gỡ — nhưng docstring vẫn hứa nó
+
+`PaperTradingJournal.evaluate_open()` mở đầu bằng:
+
+> *"Thứ tự ưu tiên khi cả SL và TP cùng chạm trong một phiên: LẤY SL."*
+
+Ngay bên dưới, trong thân hàm:
+
+```python
+# SL là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
+# BỎ CHỐT LỜI CỨNG (Hard TP) - Fat-Tail Exploitation
+if low <= sl:
+    reason, price = ExitReason.STOP_LOSS, sl
+```
+
+Không còn nhánh nào so `high` với `take_profit`. `grep -rn ExitReason.TAKE_PROFIT`
+toàn repo trả về **0 chỗ gán** — chỉ còn định nghĩa hằng số và hai chỗ tra
+nhãn hiển thị. Cột `take_profit` vẫn được tính và vẫn được ghi vào DB, và
+vẫn không có gì đọc nó để ra quyết định.
+
+**Hệ quả cho mục "đo giá của giả định bất lợi" trong danh sách tồn đọng:
+tình huống ấy không còn đường chạy.** SL và TP không thể "cùng chạm" khi TP
+không được kiểm. Giả định bất lợi còn sống ở chỗ khác và ở đó nó ĐANG đúng:
+trailing stop và dời-về-hoà-vốn chỉ có hiệu lực **từ phiên sau**.
+
+### Hai, 19/112 lệnh đã đóng mang một lý do mà mã hiện tại không sinh ra được
+
+```
+ly do dong        n    thang        TB       min       max
+TAKE_PROFIT      19    19 (100%)  +17,23%   +4,92%   +23,81%
+STOP_LOSS        44     0 (  0%)   -3,02%  -10,12%    -0,40%
+SIGNAL_REVERSED  48     8 ( 17%)   -2,46%   -8,44%    +4,76%
+MAX_HOLD          1     1 (100%)  +12,39%
+                        ---------
+tong             112   28 ( 25%)   +0,792%
+```
+
+Toàn bộ kỳ vọng dương của sổ nằm ở 19 dòng ấy: +17,23% × 19 = +327 điểm,
+93 dòng còn lại = −239 điểm, chia 112 ra +0,79%.
+
+**Đừng đọc thành "luật mới tệ hơn".** Bỏ 19 dòng ra rồi tính lại cho
+−2,567% (KTC [−3,192 ; −1,941]) là một con số **sai**: dưới luật hiện hành,
+những lệnh từng chạm chốt lời sẽ chạy tiếp và thoát bằng trailing stop hoặc
+đảo tín hiệu, chứ không biến mất. Xoá dòng không mô phỏng được luật mới.
+
+Điều đọc được là: **sổ này trộn hai chế độ thoát lệnh, nên không đọc được
+như một chiến lược.** Trong đó có `alpha in-sample +0,090%` — một trong
+những con số đang được dùng để biện minh cho việc giữ cổng đóng.
+
+Riêng walk-forward thì KHÔNG dính: `walkforward._mo_phong` gọi
+`paper_runner.run_session` + `PaperTradingJournal`, tức đúng luật hiện
+hành. 408 lệnh OOS đều là chế độ hiện tại.
+
+### Ba, và đây là cái lớn: cả 113 lệnh được ghi trong 258 giây
+
+```
+trades.created_at   min 2026-08-07 14:41:16
+                    max 2026-08-07 14:45:35     -> 258 giay
+so dong ghi sau 08/08/2026:  0
+```
+
+113 lệnh trải từ tín hiệu 2024-01-05 đến 2026-06-26 — hơn hai năm rưỡi —
+được viết vào đĩa trong hơn bốn phút.
+
+`created_at` **có** trong `sheets_store._COLS` nên nó đi qua vòng đẩy–kéo
+mà không bị ghi lại. Nghĩa là lần khôi phục sau sự cố 12/08 giữ nguyên dấu
+thời gian gốc, chứ không đóng dấu mới. Con số 07/08 là lần ghi thật.
+
+**Sổ này chưa bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía
+trước.** Nó là kết quả của MỘT lượt mô phỏng chạy ngày 07/08/2026, bốn ngày
+trước sự cố ghi đè.
+
+Bảng `decisions` thì ngược lại — vẫn chạy thật, 5.071 quyết định riêng
+tháng 08/2026. Máy vẫn quét, vẫn chấm, vẫn ghi. Nó chỉ chưa bao giờ mở một
+vị thế nào ngoài lượt mô phỏng đó.
+
+### Vì sao điều này đổi ô C5
+
+`CLAUDE.md` gọi `paper_trades.db` là *"bằng chứng duy nhất chưa bị tối ưu
+chạm vào"*. Câu ấy đúng theo nghĩa hẹp — không vòng tối ưu nào ghi đè nó
+nữa — nhưng nó **không phải** một bản ghi tích luỹ tiến về phía trước, và
+đó là thứ mà cách gọi "sổ lệnh thật" gợi ra.
+
+Hệ quả cho quyết định mở/đóng cổng:
+
+- Giữ đóng thì bằng chứng tiến-về-phía-trước **vẫn là 0 lệnh**, không phải
+  "113 lệnh và chờ thêm". Nhịp không chậm — nó bằng không, và đã bằng
+  không từ đầu.
+- Mở cổng là con đường duy nhất sinh ra loại bằng chứng đó. Ở sổ giấy,
+  không có tiền thật nào bị đặt vào.
+- Cái mất khi mở không phải tiền mà là **tính thuần nhất**: sổ sẽ có thêm
+  một chế độ thứ ba (lệnh sinh tiến-về-trước) cạnh hai chế độ đang trộn.
+  Muốn tránh thì phải tách sổ, hoặc ít nhất đánh dấu được dòng nào thuộc
+  lượt mô phỏng 07/08.
+
+Chưa đụng gì vào cổng. Đây là ghi chép, không phải thay đổi.
