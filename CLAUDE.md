@@ -252,6 +252,31 @@ dung là sdist `.tar.gz`; tên thật nằm trong header gzip.
 lại vĩnh viễn với 8 kỳ — đúng cái bẫy `download()` trong
 `NGUYEN-TAC-DO-LUONG.md`.
 
+### KHÔNG đổi `import vnstock` sang `import vnstock_data` mà chưa đo
+
+Banner của thư viện giục đổi. Đổi thì được, nhưng nó **thay đổi con số**,
+không chỉ thay đổi cách gọi. Đo ngày 23/08/2026 (chi tiết trong
+`docs/STATE.md`):
+
+| | `vnstock` (đang dùng) | `vnstock_data` 3.2.8 |
+|---|---|---|
+| hình dạng bảng | rộng: `item_id` × cột năm | dài: `period·id·name·unit·value` |
+| khoá | `roe` | `RT_PRT_ROE` |
+| **ROE của FPT 2025** | **23.59** | **0.2359** (nhãn vẫn ghi `%`) |
+| KBS: chỉ tiêu có số (2025) | 58/58 | 10/60 — VCI được 45/60 |
+| dòng ngân hàng ở mã phi ngân hàng | không có | **0.0**, không phải NaN |
+
+Ba hàng cuối đều hỏng ÂM THẦM. Lệch 100 lần làm mọi mã đọc ra "ROE thấp";
+KBS mất chỉ tiêu buộc phải đổi nguồn sang VCI (tức đổi NGUỒN SỐ LIỆU, thuộc
+`NGUYEN-TAC-DO-LUONG.md`); và `RT_BANK_NIM = 0.0` làm
+`fundamental_agent._doc()` chấm FPT bằng thước ngân hàng.
+
+**Tài liệu `vnstock_3.2.8_schema_migration_reference.csv` sai ở phần `ratio`:**
+33/60 mã không khớp thư viện 3.2.8 thật. Ba tiền tố bị đổi tên —
+`RT_AST_*`→`RT_ASSETS_*`, `RT_BNK_*`→`RT_BANK_*`, `RT_VAL_*`→`RT_VALUE_*`.
+Ba bảng còn lại khớp 100%. Bám tài liệu thì mất im lặng cả nhóm định giá,
+ngân hàng và tài sản. Tệp đó thuộc khu vực thành viên — **không đưa vào repo**.
+
 ### Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý
 
 | Nơi | Hạng | BCTC | Hạn mức |
