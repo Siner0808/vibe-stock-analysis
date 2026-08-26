@@ -758,3 +758,41 @@ if __name__ == "__main__":
             print(f"FAIL  {fn.__name__}: {type(e).__name__}: {e}")
     print(f"\n===== {len(fns) - failed}/{len(fns)} test PASS =====")
     sys.exit(1 if failed else 0)
+
+
+def test_o_hieu_qua_so_lenh_phai_noi_ra_nguon_goc_cua_so():
+    """Hiện kỳ vọng của sổ lệnh thì phải nói sổ ấy được sinh ra thế nào.
+
+    Đo ngày 23/08/2026: cả 113 lệnh trong `paper_trades.db` có `created_at`
+    nằm trong 258 giây ngày 07/08/2026, trong khi `signal_date` của chúng
+    trải 903 ngày. Sổ ấy chưa bao giờ tích luỹ một lệnh nào từ việc quét
+    tiến về phía trước.
+
+    Con số `+0,79% kỳ vọng` vẫn đúng như phép tính. Cái sai là đọc nó như
+    kết quả tích luỹ — mà tab tên "Sổ lệnh" cộng với cách gọi "sổ lệnh
+    thật" trong tài liệu đẩy người đọc đúng về phía đó.
+
+    Gác đọc AST: `"tom_tat_lo_ghi" in src` sẽ khớp phải chính đoạn chú
+    thích này.
+    """
+    src = open(os.path.join(ROOT, "app.py"), encoding="utf-8").read()
+    if "expectancy" not in src:
+        print("SKIP  app.py không hiện kỳ vọng sổ lệnh")
+        return
+    nhap, goi = _ten_da_nhap_va_goi(os.path.join(ROOT, "app.py"))
+    assert "tom_tat_lo_ghi" in nhap and "tom_tat_lo_ghi" in goi, (
+        "app.py hiện kỳ vọng sổ lệnh nhưng không gọi "
+        "paper_metrics.tom_tat_lo_ghi — người đọc không có cách nào biết "
+        "sổ ấy sinh ra từ một lượt mô phỏng hay tích luỹ qua từng phiên")
+    pm = open(os.path.join(ROOT, "paper_metrics.py"), encoding="utf-8").read()
+    assert "def tom_tat_lo_ghi" in pm and "def lo_ghi_hang_loat" in pm
+    print("PASS  ô hiệu quả sổ lệnh có gọi tom_tat_lo_ghi (xác nhận bằng AST)")
+
+
+def test_bao_cao_paper_metrics_phai_noi_ra_nguon_goc_cua_so():
+    """Cùng điều kiện, cho đường báo cáo văn bản của `run_daily.py`."""
+    nhap, goi = _ten_da_nhap_va_goi(os.path.join(ROOT, "paper_metrics.py"))
+    assert "tom_tat_lo_ghi" in goi, (
+        "paper_metrics.report() không gọi tom_tat_lo_ghi — một phép đo "
+        "không ai nhìn thấy thì không bảo vệ được gì")
+    print("PASS  report() có gọi tom_tat_lo_ghi (xác nhận bằng AST)")
