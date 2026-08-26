@@ -2368,3 +2368,45 @@ tools/chan_bia_so_lieu.py --quet-repo : 0 CHAN · 36 canh bao
 tools/kiem_cu_phap_311.py             : 99 file + 3 doan nhung, sach
 dot bien: 4/4 do (t_crit) · 4/4 do (fetch thieu bang) · 4/4 do (forward_return)
 ```
+
+---
+
+## Ô C5 — CẦN BAO NHIÊU LỆNH ĐỂ TRẢ LỜI ĐƯỢC (23/08/2026)
+
+Không phải phép đo mới. Đây là **số học trên các con số đã ghi** ở
+`docs/ket-qua-walkforward-20260820.md`, để biết "chờ thêm dữ liệu" có phải
+một lựa chọn thật hay không.
+
+Từ một khoảng tin cậy 95% suy ngược ra độ lệch chuẩn mỗi lệnh, rồi hỏi cần
+bao nhiêu lệnh để nửa khoảng nhỏ hơn chính điểm ước lượng:
+
+```
+ky vong OOS (walk-forward)  n=408   TB=+0,431%  sigma=9,67%  -> can >= 1.932 lenh  (4,7x)
+alpha in-sample (so that)   n=112   TB=+0,090%  sigma=6,90%  -> can >=  22.601 lenh (202x)
+```
+
+Đối chiếu với nhịp sinh lệnh thật của hệ thống:
+
+```
+so that : 113 lenh · 2024-01-05 -> 2026-06-26 = ~45 lenh/nam
+1.932 lenh o nhip do            = ~43 nam
+```
+
+Ba hệ quả:
+
+1. **"Chờ thêm lệnh thật rồi quyết" không phải một lựa chọn.** Ở nhịp hiện
+   tại, câu hỏi mất bốn thập kỷ để tự trả lời. Và từ 20/08 cổng đã đóng nên
+   nhịp là **0** — lệnh có tín hiệu gần nhất là 26/06/2026.
+2. **Alpha thì còn xa hơn nữa.** Điểm ước lượng +0,090% quá nhỏ so với σ =
+   6,90%; muốn khoảng tin cậy loại được số 0 cần hơn hai vạn lệnh. Nói cách
+   khác: với thiết kế này, alpha **không thể** được chứng minh bằng sổ lệnh
+   thật, dù chờ bao lâu.
+3. Muốn rút ngắn thì phải **giảm σ hoặc tăng điểm ước lượng**, không phải
+   tăng n. Giảm σ nghĩa là vào lệnh nhất quán hơn (bớt phụ thuộc phiên nào
+   máy được bật, bớt biên độ R:R). Tăng điểm ước lượng nghĩa là tìm nguồn
+   tín hiệu độc lập — mà nguồn ứng viên gần nhất, dữ liệu cơ bản, vừa đo
+   xong và **không có** (mục 23/08/2026 ở trên).
+
+Trạng thái sổ lúc ghi: 113 lệnh (112 đóng, **1 đang mở**), 13.589 quyết
+định, quyết định gần nhất 20/08/2026 — hệ thống vẫn quét và vẫn ghi, chỉ
+không mở vị thế mới.
