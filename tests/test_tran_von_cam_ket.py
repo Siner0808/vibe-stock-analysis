@@ -142,3 +142,100 @@ def test_tran_mac_dinh_la_100_phan_tram():
     """
     assert pt.TRAN_VON_CAM_KET_PCT == 100.0
     print("PASS  trần = 100%")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Lệnh mồ côi khi hết dữ liệu — chỗ trần vốn bị rò
+# ─────────────────────────────────────────────────────────────────────
+#
+# `walkforward._mo_phong` chạy THEO MÃ: xong toàn bộ lịch sử của FPT rồi
+# mới sang ACB. Lệnh còn mở lúc hết dữ liệu của FPT không bao giờ được
+# đóng — nó nằm lại trong DB suốt phần còn lại của lượt chạy.
+#
+# Trước khi có trần vốn điều đó vô hại: `[x for x in lenh if x.status ==
+# CLOSED]` lặng lẽ bỏ chúng ra. Có trần rồi thì chúng ĂN VÀO HẠN MỨC của
+# mọi mã sau. Đo 24/08/2026 trên vùng OOS: 4 lệnh mồ côi của 4 mã khác
+# nhau chiếm 93,8% hạn mức, và số lệnh tụt 386 → 142. Con số đó là chỗ bị
+# chiếm, KHÔNG phải giá của trần.
+
+
+def test_dong_so_sach_dong_lenh_OPEN_va_XOA_lenh_PENDING(so_lenh):
+    """Hai trạng thái, hai cách xử lý khác nhau — và khác nhau là cố ý."""
+    _mo(so_lenh, "AAA")
+    so_lenh.fill_pending("AAA", "2026-03-03", 100.0)
+    _mo(so_lenh, "BBB")                       # để nguyên PENDING
+
+    n = so_lenh.dong_so_sach("AAA", "2026-03-10", 108.0)
+    assert n == 1
+    t = [x for x in so_lenh.all_trades() if x.symbol == "AAA"][0]
+    assert t.status == "CLOSED"
+    assert t.exit_reason == pt.ExitReason.HET_DU_LIEU
+    assert t.exit_price == 108.0
+
+    m = so_lenh.dong_so_sach("BBB", "2026-03-10", 100.0)
+    assert m == 1
+    assert [x for x in so_lenh.all_trades() if x.symbol == "BBB"] == [], (
+        "lệnh PENDING chưa bao giờ khớp — ghi lãi/lỗ cho nó là bịa ra một "
+        "giao dịch")
+    print("PASS  OPEN -> đóng ở giá cuối · PENDING -> xoá")
+
+
+def test_dong_so_sach_GIAI_PHONG_han_muc(so_lenh):
+    """Đây là lý do hàm này tồn tại."""
+    for i in range(30):
+        _mo(so_lenh, f"M{i:02d}")
+    day = so_lenh.von_dang_cam_ket()
+    assert day > 0
+    for i in range(30):
+        so_lenh.dong_so_sach(f"M{i:02d}", "2026-03-10", 100.0)
+    assert so_lenh.von_dang_cam_ket() == 0.0, (
+        "đóng sổ sách xong mà hạn mức vẫn bị chiếm -> mã sau vẫn bị chặn "
+        "bởi lệnh của mã trước")
+    print(f"PASS  {day:.1f}% hạn mức -> 0% sau khi đóng sổ sách")
+
+
+def test_dong_so_sach_KHONG_dung_toi_ma_khac(so_lenh):
+    """Mã kia phải ở trạng thái OPEN, không phải PENDING.
+
+    Bản đầu của test này để BBB ở PENDING, nên đột biến "đóng sạch MỌI mã"
+    (chỉ đụng OPEN) vẫn xanh. Một gác không đặt đúng trạng thái cần bảo vệ
+    thì không bảo vệ được gì.
+    """
+    _mo(so_lenh, "AAA")
+    _mo(so_lenh, "BBB")
+    so_lenh.fill_pending("AAA", "2026-03-03", 100.0)
+    so_lenh.fill_pending("BBB", "2026-03-03", 100.0)
+    assert {x.symbol: x.status for x in so_lenh.all_trades()}["BBB"] == "OPEN"
+
+    so_lenh.dong_so_sach("AAA", "2026-03-10", 100.0)
+    sau = {x.symbol: x.status for x in so_lenh.all_trades()}
+    assert sau["AAA"] == "CLOSED"
+    assert sau["BBB"] == "OPEN", (
+        "đóng sổ sách của AAA lại đụng tới BBB — mọi mã sau sẽ mất vị thế "
+        "đang mở của chúng")
+    print("PASS  đóng sổ sách AAA -> BBB vẫn OPEN")
+
+
+def test_dong_so_sach_tren_so_rong_khong_no(so_lenh):
+    assert so_lenh.dong_so_sach("XXX", "2026-03-10", 100.0) == 0
+    print("PASS  sổ rỗng -> 0, không nổ")
+
+
+def test_walkforward_PHAI_goi_dong_so_sach():
+    """Gác đọc AST: `"dong_so_sach" in src` sẽ khớp phải chú thích ở trên.
+
+    Không có lời gọi này thì trần vốn trong mọi lượt walk-forward bị lệnh
+    mồ côi ăn mất hạn mức, và kết quả trông như "trần đắt" trong khi thật
+    ra là đo nhầm.
+    """
+    import ast
+    import os
+    goc = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    cay = ast.parse(open(os.path.join(goc, "walkforward.py"),
+                         encoding="utf-8").read())
+    goi = {n.func.attr for n in ast.walk(cay)
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+    assert "dong_so_sach" in goi, (
+        "walkforward.py không gọi dong_so_sach — lệnh mồ côi sẽ ăn vào "
+        "trần vốn của mọi mã phía sau")
+    print("PASS  walkforward có gọi dong_so_sach (xác nhận bằng AST)")

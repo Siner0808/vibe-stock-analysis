@@ -183,6 +183,10 @@ class ExitReason:
     TAKE_PROFIT = "TAKE_PROFIT"
     SIGNAL_REVERSED = "SIGNAL_REVERSED"
     MAX_HOLD = "MAX_HOLD"
+    #: Hết dữ liệu của mã đó trong lượt mô phỏng — KHÔNG phải một quy
+    #: tắc giao dịch. Chỉ `walkforward._mo_phong` sinh ra lý do này;
+    #: đường chạy thật không bao giờ hết dữ liệu.
+    HET_DU_LIEU = "HET_DU_LIEU"
 
 
 def _lay_cot(r: Any, ten: str):
@@ -298,6 +302,35 @@ class PaperTradingJournal:
         self.db.commit()
 
     # ─────────────────── Mở lệnh ──────────────────────────────────────
+    def dong_so_sach(self, symbol: str, session_date: str,
+                     close_price: float) -> int:
+        """Đóng nốt vị thế của `symbol` khi hết dữ liệu. Trả số lệnh đã xử lý.
+
+        Chỉ dùng cho mô phỏng. `_mo_phong` chạy THEO MÃ — xong toàn bộ
+        lịch sử của mã này rồi mới sang mã sau — nên lệnh còn mở lúc
+        hết dữ liệu nằm lại trong DB suốt phần còn lại của lượt chạy.
+
+        Trước khi có trần vốn điều đó vô hại: `[x for x in lenh if
+        x.status == CLOSED]` lặng lẽ bỏ chúng ra. Có trần rồi thì chúng
+        ĂN VÀO HẠN MỨC của mọi mã sau. Đo 24/08/2026 trên vùng OOS: 4
+        lệnh mồ côi của 4 mã khác nhau chiếm 93,8% hạn mức, và số lệnh
+        tụt từ 386 xuống 142 — con số đó là chỗ bị chiếm, KHÔNG phải
+        giá của trần.
+
+        PENDING bị XOÁ chứ không đóng: chúng chưa bao giờ khớp, nên
+        ghi một lệnh lãi/lỗ cho chúng là bịa ra một giao dịch.
+        """
+        n = self.db.execute(
+            "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
+            " status=? WHERE symbol=? AND status=?",
+            (session_date, float(close_price), ExitReason.HET_DU_LIEU,
+             Status.CLOSED, symbol, Status.OPEN)).rowcount
+        m = self.db.execute(
+            "DELETE FROM trades WHERE symbol=? AND status=?",
+            (symbol, Status.PENDING)).rowcount
+        self.db.commit()
+        return n + m
+
     def von_dang_cam_ket(self) -> float:
         """Tổng `size_pct` của các lệnh ĐANG MỞ **và ĐANG CHỜ KHỚP**.
 
