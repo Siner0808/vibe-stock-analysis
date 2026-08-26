@@ -79,10 +79,27 @@ Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròn
 > khi định bật — bật rồi thấy lãi tăng là kịch bản của quy tắc số 1, không
 > phải bằng chứng.
 >
-> **Con số "8 quý" đã hết hiệu lực (22/08/2026).** Gói tài trợ đã cài, đo
-> được **34 quý** trên máy local. Lý do để trọng số bằng 0 đổi từ *không đo
-> được* sang *chưa chạy phép đo* — hai chuyện khác hẳn. Ba thiên lệch thì
-> không đổi.
+> **Phép đo ĐÃ CHẠY (23/08/2026) — và nó nói ĐỪNG bật.** Cache BCTC nay là
+> 71 mã × 34 kỳ (hạng silver), nhưng cache GIÁ chỉ lùi tới 2021-10 nên còn
+> **19 kỳ dùng được**. Kết quả trên 1.267 quan sát:
+>
+> | | IC TB | sau Bonferroni (5 chỉ số) |
+> |---|---|---|
+> | roe · roa | +0,027 · −0,040 | chứa 0 — **0/12 ô lưới có tín hiệu** |
+> | leverage | **+0,100** | chứa 0 (7/12 ô, bền nhất) |
+> | growth_profit | −0,077 | chứa 0 |
+> | earnings_yield | +0,025 | chứa 0 |
+>
+> **Không chỉ số nào sống sót qua Bonferroni.** Nặng hơn thế: `leverage`
+> dương và `growth_profit` âm đều **ngược dấu** với cách agent chấm
+> (`_cham_an_toan` trừ 8 điểm cho nợ vay cao, `_cham_tang_truong` cộng 10
+> cho tăng trưởng tốt). Còn ROE — thứ `_cham_sinh_loi` cộng tới 12 điểm —
+> là nhiễu ở cả 12 ô lưới. Bật trọng số dương là đẩy điểm ngược hướng dữ
+> liệu. Lý do để trọng số bằng 0 nay là *đã đo, và phép đo không ủng hộ*.
+>
+> Điều kiện xem lại: cache giá lùi được về 2018 (19 kỳ → ~30), hoặc rổ có
+> thêm mã đã huỷ niêm yết. KHÔNG phải chạy lại với tham số khác cho tới khi
+> ra số đẹp. Chi tiết và 12 ô lưới: `docs/STATE.md`, mục 23/08/2026.
 
 Lưu ý phạm vi: các agent "chết" ở trên là chết **trong backtest/paper
 trading** vì không có lịch sử TradingView và tin tức. Trên app chạy trực tiếp
@@ -133,7 +150,7 @@ hẳn** (không có `net_margin`, `debt_to_equity`, `interest_coverage`).
 
 | Van | Mặc định | Mở ra thì sao |
 |---|---|---|
-| `master_agent.TRONG_SO_CO_BAN` | `0.0` | Điểm cơ bản bắt đầu dịch điểm giao dịch. Đây là quyết định ĐO LƯỜNG: 8 quý dữ liệu, IC ≈ 0,03–0,05, lực phát hiện ~10%. |
+| `master_agent.TRONG_SO_CO_BAN` | `0.0` | Điểm cơ bản bắt đầu dịch điểm giao dịch. Đây là quyết định ĐO LƯỜNG, và phép đo đã chạy 23/08/2026: 19 kỳ dùng được, không chỉ số nào sống sót qua Bonferroni, hai khối chấm điểm ngược dấu dữ liệu. |
 | `MasterConsensusAgent(doc_co_ban=...)` | `False` | **Đây là rào chắn chống nhìn trộm, không phải công tắc hiệu năng.** Bảng chỉ số theo năm là trạng thái HIỆN TẠI, đã gồm điều chỉnh hồi tố, không kèm ngày công bố. Bật cho `backtest/engine.py` hay `paper_runner.py` là chấm phiên 2022 bằng số liệu 2025. |
 
 `run_full_analysis()` — đường phân tích một mã tại hiện tại — là chỗ DUY
