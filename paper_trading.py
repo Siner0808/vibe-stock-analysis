@@ -320,6 +320,27 @@ class PaperTradingJournal:
         PENDING bị XOÁ chứ không đóng: chúng chưa bao giờ khớp, nên
         ghi một lệnh lãi/lỗ cho chúng là bịa ra một giao dịch.
         """
+        # Chan sai don vi TRUOC khi ghi. Mot gia dong cua lech qua 10 lan
+        # so voi gia vao khong phai bien dong thi truong -- bien do san
+        # la 7-15% mot phien. Do la nghin dong gap VND, dung cai bay
+        # `NGUYEN-TAC-DO-LUONG.md` liet ke trong bang "hong am tham", va
+        # no da xay ra that ngay 24/08/2026 khi ham nay vua ra doi.
+        #
+        # No o day chu khong sua lang le: sua lang le nghia la doan xem
+        # nguoi goi DINH noi gi, va doan sai thi khong ai biet.
+        for r in self.db.execute(
+                "SELECT id, entry_price FROM trades"
+                " WHERE symbol=? AND status=?",
+                (symbol, Status.OPEN)).fetchall():
+            vao = float(r["entry_price"] or 0.0)
+            if vao > 0 and not (0.1 <= float(close_price) / vao <= 10.0):
+                raise ValueError(
+                    f"dong_so_sach({symbol}): gia dong {close_price:,.4f} "
+                    f"lech {float(close_price) / vao:.4g} lan so voi gia "
+                    f"vao {vao:,.2f}. Day la sai DON VI (nghin dong vs "
+                    f"VND), khong phai bien dong gia — nhan "
+                    f"data_quality.price_multiplier() truoc khi goi.")
+
         n = self.db.execute(
             "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
             " status=? WHERE symbol=? AND status=?",

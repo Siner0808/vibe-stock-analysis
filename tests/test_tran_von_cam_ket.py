@@ -235,7 +235,56 @@ def test_walkforward_PHAI_goi_dong_so_sach():
                          encoding="utf-8").read())
     goi = {n.func.attr for n in ast.walk(cay)
            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+    goi |= {n.func.id for n in ast.walk(cay)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
     assert "dong_so_sach" in goi, (
         "walkforward.py không gọi dong_so_sach — lệnh mồ côi sẽ ăn vào "
         "trần vốn của mọi mã phía sau")
+    # Và phải nhân hệ số giá. vnstock trả nghìn đồng, sổ lệnh ghi VNĐ;
+    # truyền giá thô vào `dong_so_sach` cho ra −99,90% cho MỌI lệnh. Đã
+    # xảy ra thật ngày 24/08/2026 — bốn lệnh kéo kỳ vọng OOS từ +0,616%
+    # xuống −0,419%, và không có gì đỏ cho tới khi đọc từng dòng lệnh.
+    assert "price_multiplier" in goi, (
+        "walkforward.py gọi dong_so_sach mà không gọi price_multiplier — "
+        "giá thô theo nghìn đồng sẽ đóng mọi lệnh mồ côi ở −99,90%")
     print("PASS  walkforward có gọi dong_so_sach (xác nhận bằng AST)")
+
+
+def test_dong_so_sach_NEM_khi_sai_don_vi(so_lenh):
+    """Nghìn đồng gặp VNĐ — bẫy trong bảng "hỏng âm thầm" của
+    NGUYEN-TAC-DO-LUONG.md, và nó đã xảy ra thật ngày 24/08/2026 ngay khi
+    `dong_so_sach` vừa ra đời.
+
+    Bốn lệnh HET_DU_LIEU trong lượt OOS đều đúng −99,90% — không phải bốn
+    mã cùng sập, mà là giá thô 23,27 đứng cạnh giá vào 23.440. Bốn lệnh đó
+    kéo kỳ vọng OOS từ +0,616% xuống −0,419%.
+
+    Nổ chứ không tự sửa: tự nhân 1000 nghĩa là đoán xem người gọi ĐỊNH nói
+    gì, và đoán sai thì không ai biết.
+    """
+    _mo(so_lenh, "AAA")
+    so_lenh.fill_pending("AAA", "2026-03-03", 23_440.0)
+    with pytest.raises(ValueError, match="DON VI"):
+        so_lenh.dong_so_sach("AAA", "2026-03-10", 23.27)
+    print("PASS  giá thô nghìn đồng -> nổ, không ghi -99,9%")
+
+
+def test_dong_so_sach_KHONG_nem_voi_bien_dong_that(so_lenh):
+    """Chốt phải rộng hơn mọi biến động giá có thể có.
+
+    Biên độ sàn 7–15% một phiên; kể cả một lệnh giữ lâu rồi rơi 60% vẫn
+    phải đi qua. Chốt bắt ở mức lệch 10 LẦN, không phải 10 phần trăm.
+    """
+    _mo(so_lenh, "AAA")
+    so_lenh.fill_pending("AAA", "2026-03-03", 23_440.0)
+    so_lenh.dong_so_sach("AAA", "2026-03-10", 9_000.0)      # -61,6%
+    t = [x for x in so_lenh.all_trades() if x.symbol == "AAA"][0]
+    assert t.status == "CLOSED" and t.exit_price == 9_000.0
+    print("PASS  rơi 61,6% vẫn đóng bình thường")
+
+
+def test_dong_so_sach_khong_nem_khi_chua_co_gia_vao(so_lenh):
+    """Lệnh PENDING chưa có `entry_price` — không có gì để đối chiếu."""
+    _mo(so_lenh, "AAA")
+    assert so_lenh.dong_so_sach("AAA", "2026-03-10", 0.001) == 1
+    print("PASS  PENDING không entry_price -> xoá, không nổ")
