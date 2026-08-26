@@ -62,8 +62,21 @@ from vn100_symbols import VN100_SYMBOLS
 OUT = Path(__file__).parent / "backtest" / "fundamentals"
 
 
+BANG = ("ratio", "income", "balance")
+
+#: Số lần thử lại mỗi bảng. Đo ngày 23/08/2026: 6/71 mã ném
+#: `UnboundLocalError: threading` ở lần gọi đầu và thành công ngay ở
+#: lần thứ hai — lỗi nhất thời trong thư viện, không phải mã không có
+#: dữ liệu. Không thử lại thì 6 mã đó rơi khỏi phép đo một cách im lặng.
+SO_LAN_THU = 3
+
+
 def fetch_symbol(symbol: str) -> dict[str, pd.DataFrame]:
-    """Tải các bảng theo quý. Trả dict rỗng nếu không lấy được."""
+    """Tải các bảng theo quý. Trả dict RỖNG hoặc THIẾU bảng nếu hỏng.
+
+    Người gọi PHẢI kiểm `len(...) == len(BANG)`. Một dict thiếu bảng
+    trông y hệt một dict đủ bảng ở mọi chỗ khác trong mã.
+    """
     from vnstock import Finance
 
     fin = Finance(source="VCI", symbol=symbol, period="quarter", show_log=False)
@@ -71,12 +84,18 @@ def fetch_symbol(symbol: str) -> dict[str, pd.DataFrame]:
     for name, fn in (("ratio", lambda: fin.ratio(lang="en", dropna=False)),
                      ("income", lambda: fin.income_statement(lang="en", dropna=False)),
                      ("balance", lambda: fin.balance_sheet(lang="en", dropna=False))):
-        try:
-            df = fn()
-            if df is not None and not df.empty:
-                out[name] = df
-        except Exception as e:
-            print(f"    {name}: ❌ {type(e).__name__}: {str(e)[:70]}")
+        for lan in range(1, SO_LAN_THU + 1):
+            try:
+                df = fn()
+                if df is not None and not df.empty:
+                    out[name] = df
+                    break
+                print(f"    {name}: rỗng (lần {lan}/{SO_LAN_THU})")
+            except Exception as e:
+                print(f"    {name}: ❌ {type(e).__name__}: {str(e)[:70]}"
+                      f" (lần {lan}/{SO_LAN_THU})")
+            if lan < SO_LAN_THU:
+                time.sleep(1.5)
     return out
 
 
@@ -192,6 +211,7 @@ def main() -> int:
     print(f"Hạng đang áp dụng khi tải: {hang}")
 
     ok = skipped = 0
+    hong: list[tuple[str, list[str]]] = []
     for i, sym in enumerate(syms, 1):
         paths = {n: OUT / f"{sym}_{n}.csv" for n in ("ratio", "income", "balance")}
         tai, vi_sao = can_tai(sym, paths, so_tay, hang)
@@ -207,6 +227,25 @@ def main() -> int:
             continue
         for name, df in tables.items():
             df.to_csv(paths[name], index=False)
+
+        # Thiếu bảng thì KHÔNG ghi sổ tay, và xoá bảng cũ còn sót.
+        #
+        # Hai việc, hai lý do khác nhau. Không ghi sổ tay để lần chạy
+        # sau còn tải lại — ghi vào là đóng băng cái thiếu vĩnh viễn,
+        # đúng cái bẫy sổ tay này sinh ra để chống. Xoá file cũ vì một
+        # bảng 8 kỳ nằm cạnh hai bảng 34 kỳ trông hợp lệ hoàn toàn:
+        # `load_features()` vẫn đọc được, chỉ ra NaN ở 26 kỳ, và không
+        # có gì trên đĩa nói ra rằng chúng thuộc hai lần tải khác nhau.
+        thieu = [n for n in BANG if n not in tables]
+        if thieu:
+            for n in thieu:
+                if paths[n].exists():
+                    paths[n].unlink()
+            hong.append((sym, thieu))
+            print(f"[{i}/{len(syms)}] {sym}: ⚠️ THIẾU {', '.join(thieu)}"
+                  f" — đã xoá bản cũ, không ghi sổ tay")
+            continue
+
         so_tay[sym] = hang
         ghi_so_tay(so_tay)
         ok += 1
@@ -221,6 +260,10 @@ def main() -> int:
         time.sleep(0.5)
 
     print(f"\nTải mới {ok} mã, bỏ qua {skipped} mã đã có ở đúng hạng {hang}.")
+    if hong:
+        print(f"⚠️ {len(hong)} mã THIẾU bảng — chạy lại lệnh này để vá:")
+        for sym, thieu in hong:
+            print(f"     {sym}: thiếu {', '.join(thieu)}")
     print(f"Cache: {OUT}")
     print("\nBước tiếp theo: chạy `python fetch_fundamentals.py --schema` "
           "rồi dán kết quả để viết phần đo.")

@@ -2157,3 +2157,214 @@ Chưa chuyển. Bốn cái bẫy trên cộng lại nghĩa là bản chuyển đ
 đổi con số**, không chỉ thay đổi cách gọi — và ba trong bốn đều hỏng âm
 thầm. Nếu chuyển thì phải chuyển kèm phép đo đối chiếu từng chỉ tiêu giữa
 hai schema trên cả rổ, không phải chuyển rồi xem app có chạy không.
+
+---
+
+## LÀM MỚI CACHE BCTC RỒI CHẠY PHÉP ĐO — TRỌNG SỐ VẪN 0 (23/08/2026)
+
+Hai việc trong danh sách tồn đọng: **C1** làm mới `backtest/fundamentals/`
+ở hạng silver, **C2** chạy `experiment_fundamentals.py` để quyết
+`TRONG_SO_CO_BAN`.
+
+Kết luận đi trước: **trọng số vẫn 0,0.** Nhưng lý do đổi từ *chưa chạy phép
+đo* sang *đã chạy, và phép đo không ủng hộ việc bật* — hai chuyện khác hẳn,
+và chỉ chuyện thứ hai mới đóng được câu hỏi.
+
+### C1 — cache BCTC: 20 mã × 8 kỳ → 71 mã × 34 kỳ
+
+```
+TRUOC   20 ma co cache (19 trong ro + SAB ngoai ro)
+        income/balance : 8 ky   (2024-Q3 -> 2026-Q2)
+        ratio          : 4 ky   (2018-Q1 -> 2018-Q4)   <- xem "ba phat hien"
+        1,1 MB · 60 file
+
+SAU     71/71 ma cua ro
+        income/balance : trung vi 34 ky (2018-Q1 -> 2026-Q2), it nhat 6 (GEL)
+        ratio          : van 4 ky
+        5,8 MB · 217 file
+```
+
+`_hang_da_tai.json` chưa tồn tại nên `can_tai()` coi mọi mã là "không rõ
+hạng" và tải lại toàn bộ — đúng thiết kế của sổ tay đó.
+
+### Ba phát hiện khi làm C1
+
+**1. Bảng `ratio` của nguồn VCI hỏng, và không liên quan hạng gói.**
+
+```
+Finance(source="VCI", period="quarter").ratio()  -> 54x7,  4 cot, toan 2018
+Finance(source="VCI", period="year").ratio()     -> 54x19, 16 cot
+   nhung 16 cot do la 4 quy 2018 NHAN BAN 4 LAN — gia tri trung khit
+   dong "Nam" = 2018 cho ca 16 cot; dong "Quy" = 1,2,3,4,1,2,3,4,...
+   BSR con co mot cot mang nhan "2018" voi Quy = 5
+```
+
+Đo trên 71/71 mã: `ratio` không mã nào quá 4 kỳ, trong khi `income` và
+`balance` cùng lời gọi cho 34. Không phải vnai cắt theo hạng — hạng silver
+không cắt gì.
+
+**Không ảnh hưởng phép đo và không ảnh hưởng app.**
+`experiment_fundamentals.load_features()` chỉ đọc `income` và `balance`;
+`fundamental_agent` đọc `ratio` nhưng qua nguồn **KBS**, không phải VCI.
+Ba file `*_ratio.csv` vẫn được ghi vì `fetch_symbol` tải cả ba — chúng là
+gánh nặng vô ích, chưa xoá vì xoá là đổi giao diện dữ liệu.
+
+**2. `UnboundLocalError: threading` nhất thời — 6/71 mã.**
+
+Lần gọi đầu ném, lần thứ hai thành công ngay. Không thử lại thì 6 mã rơi
+khỏi phép đo mà bảng kết quả vẫn ghi "71/71 mã". Đã thêm `SO_LAN_THU = 3`.
+
+**3. Bẫy ghi một phần — im lặng nhất trong ba.**
+
+`fetch_symbol` chỉ ghi những bảng tải được, rồi `main` vẫn chạy
+`so_tay[sym] = hang`. Hệ quả đo được trên MBB:
+
+```
+MBB_income.csv    34 ky  (vua tai, hang silver)
+MBB_balance.csv    8 ky  (con lai tu hang free)
+```
+
+Ba file cùng tên, cùng thư mục, cùng trông hợp lệ. `load_features()` đọc
+được, chỉ trả NaN ở 26 kỳ. Và vì sổ tay đã ghi "MBB: silver", lần chạy sau
+sẽ **bỏ qua** mã này — sổ tay dựng ra để chống đóng băng cache lại tự đóng
+băng cache.
+
+Đã vá: thiếu bảng thì **không** ghi sổ tay **và** xoá bảng cũ còn sót, kèm
+danh sách in ra cuối lượt. 4 test mới, 4 đột biến đều đỏ.
+
+### Ba lỗi trong CHÍNH script đo — cả ba đều nghiêng về phía "có tín hiệu"
+
+**1. Chưa bao giờ chạy nổi trên Windows.** `experiment_fundamentals.py`
+thiếu `sys.stdout.reconfigure(encoding="utf-8")` nên chết ở `print` dòng
+tiêu đề, **trước** khi đo bất cứ thứ gì. Cùng bệnh với
+`tools/kiem_ban_sach.py` hôm 22/08.
+
+**2. `tcrit` tra sai bảng.** Bảng có khoá là SỐ QUAN SÁT, lời gọi truyền
+BẬC TỰ DO:
+
+```
+n = 3  -> khoa 2 -> khong co trong bang -> hang so 2,1   (t that: 4,303)
+n = 10 -> khoa 9 -> khong co trong bang -> hang so 2,1   (t that: 2,262)
+```
+
+Với n = 3 khoảng tin cậy hẹp còn chưa tới một nửa. Đã thay bằng
+`t_crit_95(n)` tra theo df thật, ngoài bảng thì lấy mốc df **thấp hơn** —
+tức luôn nghiêng về phía khoảng RỘNG.
+
+**3. `forward_return` ghép quý 2018 với cửa sổ giá 2022.** Đây là lỗi lớn
+nhất, và nó **do chính C1 đánh thức**.
+
+`t.searchsorted(ngay)` trả 0 cho mọi ngày sớm hơn dữ liệu, và hàm chỉ chặn
+đầu bên phải. Đo trên FPT (cache giá bắt đầu 2021-10-14):
+
+```
+from_date = 2018-05-15  ->  -5,478%
+from_date = 2019-08-14  ->  -5,478%     <- cung mot con so
+from_date = 2021-06-01  ->  -5,478%     <- cung mot con so
+from_date = 2022-06-01  ->  -5,556%
+```
+
+Mọi quý trước cache giá nhận đúng lợi nhuận 60 phiên **đầu tiên** của
+cache. Lỗi này ngủ yên suốt thời gian BCTC chỉ lùi tới 2024-Q3 — nằm gọn
+trong cache giá. Làm mới lên 2018-Q1 là đánh thức nó.
+
+```
+TRUOC va : 2.270 quan sat · 33 ky
+SAU  va  : 1.267 quan sat · 19 ky
+           -> 1.003 quan sat (44%) la ghep sai, khong phai du lieu
+```
+
+Cùng cái bẫy ở nhánh tính `earnings_yield` (EPS quý 2018 chia cho giá phiên
+đầu 2022) — đã vá cùng chỗ. 5 test mới, 4 đột biến đều đỏ.
+
+> Đây đúng là hình mẫu của quy tắc số 1. Bản trước khi vá cho
+> `growth_profit` một kết luận "CÓ tín hiệu âm" và `leverage` "CÓ tín hiệu
+> dương"; sau khi bỏ 44% quan sát bịa thì `growth_profit` mất kết luận. Nếu
+> đọc bản đầu rồi dừng lại, dự án đã có thêm một con số đẹp vô nghĩa.
+
+### C2 — kết quả sau khi vá cả ba
+
+`python experiment_fundamentals.py` · lag 45 ngày · nắm giữ 60 phiên ·
+71/71 mã · 1.267 quan sát · 19 kỳ dùng được (2021-Q4 → 2026-Q1).
+
+| chỉ số | IC TB | KTC 95% (một lần thử) | KTC 99% (Bonferroni 5) |
+|---|---|---|---|
+| roe | +0,027 | [−0,114 ; +0,167] chứa 0 | [−0,166 ; +0,219] chứa 0 |
+| roa | −0,040 | [−0,159 ; +0,079] chứa 0 | [−0,204 ; +0,123] chứa 0 |
+| **leverage** | **+0,100** | **[+0,013 ; +0,188] loại 0** | [−0,020 ; +0,220] chứa 0 |
+| growth_profit | −0,077 | [−0,199 ; +0,045] chứa 0 | [−0,244 ; +0,090] chứa 0 |
+| earnings_yield | +0,025 | [−0,063 ; +0,112] chứa 0 | [−0,096 ; +0,145] chứa 0 |
+
+**Năm chỉ số kiểm cùng lúc.** Xác suất ít nhất một cái vượt ngưỡng 95% do
+may là 1 − 0,95⁵ = 23%. Sửa theo Bonferroni thì **không chỉ số nào còn loại
+được số 0**.
+
+### Độ bền — 12 ô lưới, in hết, không lọc
+
+Không phải để chọn ô đẹp nhất (bất biến 7). Mục đích ngược lại: kết luận
+đổi dấu khi đổi một tham số không ai có lý do cố định trước thì đó là nhiễu.
+
+```
+lag  hz          roe        roa    leverage  growth_profit  earn_yield
+ 30  20       -0,049     -0,004      -0,017       +0,002       +0,007
+ 30  40       -0,034     -0,023      +0,021       -0,031       +0,018
+ 30  60       +0,028     -0,030   +0,103 D        -0,036       +0,039
+ 30 120       +0,015     -0,049   +0,090 D        -0,089       +0,051
+ 45  20       -0,064     -0,026      -0,014       -0,058       +0,007
+ 45  40       +0,019     -0,026      +0,085       -0,069       +0,037
+ 45  60       +0,027     -0,040   +0,100 D        -0,077       +0,025
+ 45 120       +0,038     -0,040   +0,089 D        -0,096       +0,070
+ 60  20       -0,026     -0,040      +0,036       -0,082       +0,032
+ 60  40       +0,079     -0,040   +0,150 D        -0,045       +0,032
+ 60  60       +0,020     -0,046   +0,083 D        -0,062       +0,022
+ 60 120       +0,031     -0,064   +0,105 D        -0,109 A     +0,040
+
+so o tuyen bo "co tin hieu":  roe 0/12 · roa 0/12 · leverage 7/12
+                              growth_profit 1/12 · earnings_yield 0/12
+```
+
+### Đọc kết quả — ba điều, điều thứ ba quyết định
+
+**1. ROE và ROA là nhiễu.** 0/12 ô. Đó chính là hai thứ
+`fundamental_agent._cham_sinh_loi()` chấm điểm (ROE ≥ ngưỡng tốt → +12,
+thấp → −6).
+
+**2. `leverage` là chỉ số duy nhất bền — và nó ngược dấu với agent.** Đòn
+bẩy CAO đi với lợi nhuận tương lai CAO trên mẫu này, trong khi
+`_cham_an_toan()` trừ 8 điểm cho nợ vay trên vốn chủ cao và cộng 5 cho
+thấp. `growth_profit` âm ở 11/12 ô, trong khi `_cham_tang_truong()` cộng 10
+cho tăng trưởng tốt. **Hai trong ba khối chấm điểm đang chỉ ngược hướng dữ
+liệu.**
+
+**3. Chỉ số bền duy nhất cũng là chỉ số bẩn nhất.** Thiên lệch sống sót cắn
+mạnh nhất đúng vào `leverage`: doanh nghiệp vay nhiều mà chết thì không có
+trong rổ. Cộng thêm 2021-Q4 → 2026-Q1 là giai đoạn thị trường đi lên, mà
+trong thị trường đi lên đòn bẩy cao thắng — đó là beta, không phải kỹ năng.
+
+### Vì sao KHÔNG bật trọng số
+
+```
+TRONG_SO_CO_BAN = 0.0   (master_agent.py:26 — khong doi)
+```
+
+Bốn lý do, xếp theo sức nặng:
+
+1. Không chỉ số nào sống sót qua Bonferroni.
+2. Hai trong ba khối chấm điểm của agent ngược dấu với dữ liệu đo được.
+   Bật trọng số dương là đẩy điểm đi ngược hướng mẫu này chỉ ra.
+3. Chỉ số duy nhất bền là chỉ số thiên lệch sống sót cắn mạnh nhất.
+4. 19 kỳ cho lực phát hiện ~30% ở IC = 0,05. Kết quả "không có tín hiệu" ở
+   đây **không** chứng minh dữ liệu cơ bản vô dụng — nó nói mẫu chưa đủ.
+
+Điều kiện để xem lại: cache giá lùi được về 2018 (khớp cache BCTC, đưa 19 kỳ
+lên ~30), hoặc rổ có thêm mã đã huỷ niêm yết để bớt thiên lệch sống sót.
+Không phải "chạy lại với tham số khác cho tới khi ra số đẹp".
+
+### Kiểm sau khi làm
+
+```
+499 test xanh (+19: 15 experiment_fundamentals, 4 fetch_fundamentals)
+tools/chan_bia_so_lieu.py --quet-repo : 0 CHAN · 36 canh bao
+tools/kiem_cu_phap_311.py             : 99 file + 3 doan nhung, sach
+dot bien: 4/4 do (t_crit) · 4/4 do (fetch thieu bang) · 4/4 do (forward_return)
+```

@@ -275,3 +275,92 @@ def test_thieu_mot_file_thi_van_tai(tmp_path):
     tai, _ = ff.can_tai("FPT", d, {"FPT": "silver"}, "silver")
     assert tai, "thiếu 1 trong 3 bảng mà vẫn bỏ qua -> cache khuyết vĩnh viễn"
     print("PASS  thiếu một bảng -> vẫn tải")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 5. Tải THIẾU bảng không được ghi sổ tay — bẫy đo được 23/08/2026
+# ─────────────────────────────────────────────────────────────────────
+#
+# MBB có `income` 34 kỳ MỚI nằm cạnh `balance` 8 kỳ CŨ, vì lần tải balance
+# ném `UnboundLocalError` còn hai bảng kia thành công. Cả ba file cùng tên,
+# cùng thư mục, cùng trông hợp lệ. `load_features()` đọc được, chỉ trả NaN
+# ở 26 kỳ — không nổ, không log.
+#
+# Nguy hiểm nằm ở dòng `so_tay[sym] = hang` chạy bất kể thiếu hay đủ: lần
+# chạy sau thấy "đã có cache đúng hạng" và BỎ QUA. Sổ tay dựng ra để chống
+# đóng băng cache lại tự đóng băng cache.
+
+
+def _chay_main(tmp_path, monkeypatch, tra_ve, ma="FPT"):
+    """Chạy `main()` với mạng bị chặn, trả (ma_thoat, thu_muc, so_tay)."""
+    import json
+    import sys
+    import types
+
+    ff = _fetch_mod()
+    monkeypatch.setattr(ff, "OUT", tmp_path)
+    monkeypatch.setattr(ff, "SO_TAY", tmp_path / "_hang_da_tai.json")
+    monkeypatch.setattr(ff, "VN100_SYMBOLS", [ma])
+    monkeypatch.setattr(ff, "hang_hien_tai", lambda: "silver")
+    monkeypatch.setattr(ff, "fetch_symbol", lambda s: tra_ve)
+    monkeypatch.setattr(ff.time, "sleep", lambda *_: None)
+
+    # Chặn hai lời gọi mạng ở đầu main(); cả hai đã nằm trong try/except.
+    for ten in ("vnstock_auth", "vnstock_goi"):
+        gia = types.ModuleType(ten)
+        monkeypatch.setitem(sys.modules, ten, gia)
+
+    monkeypatch.setattr(sys, "argv", ["fetch_fundamentals.py"])
+    ma_thoat = ff.main()
+    so_tay = {}
+    p = tmp_path / "_hang_da_tai.json"
+    if p.exists():
+        so_tay = json.loads(p.read_text(encoding="utf-8"))
+    return ma_thoat, tmp_path, so_tay
+
+
+def _bang(so_ky: int):
+    import pandas as pd
+    cot = {f"2026-Q{(i % 4) + 1}": [i] for i in range(so_ky)}
+    return pd.DataFrame({"item_id": ["roe"], **cot})
+
+
+def test_tai_DU_ba_bang_thi_ghi_so_tay(tmp_path, monkeypatch):
+    du = {n: _bang(3) for n in ("ratio", "income", "balance")}
+    ma_thoat, thu_muc, so_tay = _chay_main(tmp_path, monkeypatch, du)
+    assert ma_thoat == 0
+    assert so_tay == {"FPT": "silver"}
+    assert all((thu_muc / f"FPT_{n}.csv").exists() for n in du)
+    print("PASS  đủ ba bảng -> ghi sổ tay")
+
+
+def test_tai_THIEU_bang_thi_KHONG_ghi_so_tay(tmp_path, monkeypatch):
+    """Không có gác này, lần chạy sau bỏ qua mã và cái thiếu thành vĩnh viễn."""
+    thieu = {n: _bang(3) for n in ("ratio", "income")}
+    _, _, so_tay = _chay_main(tmp_path, monkeypatch, thieu)
+    assert "FPT" not in so_tay, (
+        "ghi sổ tay khi thiếu bảng -> lần sau bỏ qua, cache khuyết vĩnh viễn")
+    print("PASS  thiếu bảng -> không ghi sổ tay")
+
+
+def test_tai_THIEU_bang_thi_XOA_ban_cu_khong_de_lai_ban_lai(tmp_path,
+                                                            monkeypatch):
+    """Đúng tình huống MBB: income mới 34 kỳ nằm cạnh balance cũ 8 kỳ."""
+    cu = tmp_path / "FPT_balance.csv"
+    cu.write_text("item_id,2024-Q1\nroe,1\n", encoding="utf-8")
+    thieu = {n: _bang(34) for n in ("ratio", "income")}
+    _chay_main(tmp_path, monkeypatch, thieu)
+    assert not cu.exists(), (
+        "để lại bảng cũ cạnh hai bảng mới -> ba file trông hợp lệ nhưng "
+        "thuộc hai lần tải khác nhau, và không gì nói ra điều đó")
+    print("PASS  thiếu bảng -> xoá bản cũ còn sót")
+
+
+def test_khong_tai_duoc_bang_nao_thi_khong_dong_vao_dia(tmp_path,
+                                                        monkeypatch):
+    cu = tmp_path / "FPT_balance.csv"
+    cu.write_text("item_id,2024-Q1\nroe,1\n", encoding="utf-8")
+    _, _, so_tay = _chay_main(tmp_path, monkeypatch, {})
+    assert cu.exists(), "dict rỗng là 'không tải được', không phải 'thiếu'"
+    assert "FPT" not in so_tay
+    print("PASS  không tải được bảng nào -> giữ nguyên đĩa")
