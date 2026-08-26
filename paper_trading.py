@@ -89,6 +89,14 @@ BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 #: lệnh đó chạy tiếp và thoát bằng trailing stop. Chỉ có chạy lại cả
 #: hai bên mới trả lời được.
 #:
+#: ĐÃ CHẠY (23/08/2026), hai lượt walk-forward đầy đủ:
+#:   ngoai mau  TAT +0,616%/lenh · BAT +0,426%   chenh KTC chua 0
+#:   alpha      TAT -0,008%      · BAT -0,006%   hai luat GIONG NHAU
+#:   sigma      TAT  10,18%      · BAT   7,72%   TP giam phuong sai 24%
+#: Gỡ chốt lời cứng không làm hỏng gì; phần kỳ vọng dôi ra là do giữ
+#: lâu hơn 17% (20,3 so với 17,4 ngày), tức beta chứ không phải alpha.
+#: Chi tiết: `docs/STATE.md`, mục 23/08/2026.
+#:
 #: Thứ tự kiểm giữ nguyên bất biến 3: SL kiểm TRƯỚC, nên khi cả hai
 #: cùng chạm trong một phiên thì vẫn LẤY SL. `elif` là thứ bảo đảm
 #: điều đó, không phải quy ước.
