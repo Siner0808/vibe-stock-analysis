@@ -125,7 +125,41 @@ CHOT_LOI_CUNG = False
 #
 # Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính logic
 # vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
-CHO_PHEP_MO_LENH_MOI = False
+# ── Ô C5 ĐÃ MỞ (24/08/2026) ─────────────────────────────────────────
+#
+# Lý do mở KHÔNG phải vì tìm thấy lợi thế. Mọi phép đo alpha đều chứa
+# số 0: rho điểm cuối −0,019 · alpha walk-forward −0,011% · alpha sổ
+# +0,090% · hai luật chốt lời giống hệt nhau.
+#
+# Lý do là ba điều đo được, cộng lại:
+#
+# 1. Cấu hình chạy TRỰC TIẾP chưa bao giờ được đo. Backtest đo một hệ
+#    bị cắt tay chân — không có lịch sử TradingView và tin tức nên 2
+#    agent là hằng số, 2 agent là công tắc ba nấc. Sáu agent đầy đủ chỉ
+#    đo được TIẾN VỀ PHÍA TRƯỚC.
+#
+# 2. Chờ thêm dữ liệu không phải một lựa chọn. Cả 113 lệnh trong sổ
+#    được ghi trong 258 giây ngày 07/08/2026 — sổ chưa bao giờ tích luỹ
+#    một lệnh nào từ quét tiến về phía trước. Giữ đóng thì bằng chứng
+#    tiến-về-trước đứng mãi ở 0 lệnh, không phải '113 và chờ thêm'.
+#
+# 3. Điều kiện mở lại ghi trong chính khối này ĐÃ ĐẠT: Phase 5D chọn
+#    ngưỡng 62 trên khoảng A, đo trên khoảng B, A ∩ B = ∅. Thứ không đạt
+#    là ý nghĩa thống kê — vốn chưa bao giờ nằm trong điều kiện. Siết
+#    thêm sau khi đã thấy kết quả là tự đổi thước.
+#
+# BA THỨ PHẢI DỰNG TRƯỚC, và cả ba đã dựng:
+#   • TRAN_VON_CAM_KET_PCT = 100 — sổ thật từng chạm 208% vốn cam kết
+#   • run_daily NHẬP BUY_THRESHOLD thay vì cầm 50,0 song song với 62
+#   • paper_metrics.dieu_kien_dong_lai() — điều kiện đóng lại nêu TRƯỚC
+#
+# ĐÓNG LẠI KHI: ≥60 lệnh tiến-về-trước đã đóng VÀ cận trên KTC 95% của
+# kỳ vọng < 0. `paper_metrics.report()` in trạng thái này mỗi phiên quét.
+# Đừng chế điều kiện khác sau khi đã nhìn số.
+#
+# Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính
+# logic vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
+CHO_PHEP_MO_LENH_MOI = True
 
 #: Muc chat luong du lieu con DUNG DUOC de vao lenh.
 #:
@@ -139,6 +173,7 @@ CHO_PHEP_MO_LENH_MOI = False
 #: nua thi nhanh nay la CODE CHET vi packet luon mang "OK" cung.
 MUC_CHAT_LUONG_DUNG_DUOC = frozenset({"OK", "WARN"})
 
+# Giữ lại: `consider_entry` vẫn dùng khi ai đó đóng cổng lại bằng tay.
 LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
             "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
             "bằng walk-forward hợp lệ")

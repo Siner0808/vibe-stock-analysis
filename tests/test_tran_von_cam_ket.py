@@ -288,3 +288,27 @@ def test_dong_so_sach_khong_nem_khi_chua_co_gia_vao(so_lenh):
     _mo(so_lenh, "AAA")
     assert so_lenh.dong_so_sach("AAA", "2026-03-10", 0.001) == 1
     print("PASS  PENDING không entry_price -> xoá, không nổ")
+
+
+def test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT():
+    """Cổng C5 mở thì trần vốn và điều kiện đóng lại phải tồn tại.
+
+    Buộc ba thứ đi cùng nhau. Mở cổng mà không có trần là mời lại đúng cơ
+    chế sinh ra +636,11% (sổ thật từng chạm 208% vốn cam kết). Mở cổng mà
+    không có điều kiện đóng lại nêu trước thì ngày phải đóng, điều kiện sẽ
+    được chế ra sau khi đã nhìn số.
+    """
+    if not pt.CHO_PHEP_MO_LENH_MOI:
+        print("SKIP  cổng đang đóng")
+        return
+    import paper_metrics as pm
+    assert pt.TRAN_VON_CAM_KET_PCT <= 100.0, (
+        f"cổng MỞ mà trần vốn {pt.TRAN_VON_CAM_KET_PCT}% > 100% — đòn bẩy ẩn")
+    assert hasattr(pm, "dieu_kien_dong_lai"), (
+        "cổng MỞ mà không có điều kiện đóng lại nêu trước")
+    import run_daily
+    assert run_daily.BUY_THRESHOLD == pt.BUY_THRESHOLD, (
+        f"cổng MỞ mà đường chạy thật dùng ngưỡng {run_daily.BUY_THRESHOLD} "
+        f"trong khi mọi phép đo ngoài mẫu đo ở {pt.BUY_THRESHOLD}")
+    print(f"PASS  cổng MỞ · trần {pt.TRAN_VON_CAM_KET_PCT:.0f}% · "
+          f"ngưỡng {pt.BUY_THRESHOLD} · có điều kiện đóng lại")
