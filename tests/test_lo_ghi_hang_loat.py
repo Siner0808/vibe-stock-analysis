@@ -156,3 +156,98 @@ def test_report_so_that_KHONG_in_canh_bao():
     ts = [_lenh(i, _ngay(i), MOC + i * 86400) for i in range(150)]
     assert "KHÔNG PHẢI BẢN GHI TÍCH LUỸ" not in pm.report(ts)
     print("PASS  sổ tích luỹ -> report() im lặng, đúng")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 5. Điều kiện ĐÓNG LẠI cổng C5 — nêu trước, không chế sau
+# ─────────────────────────────────────────────────────────────────────
+#
+# Ngày 24/08/2026 cổng được mở ở ngưỡng 62, không phải vì tìm thấy lợi thế
+# mà vì cấu hình chạy trực tiếp chưa bao giờ được đo. Điều kiện đóng lại
+# phải viết ra TRƯỚC khi có dữ liệu — viết sau là chọn ngưỡng theo kết quả,
+# cùng một lỗi với bất biến 7 chỉ đổi hướng.
+
+
+def _lenh_kq(i, ngay, ghi_luc, loi_nhuan):
+    """Lệnh đã đóng với lợi nhuận cho trước (vào 100, ra theo %)."""
+    return Trade(
+        id=i, symbol="FPT", signal_date=ngay, entry_date=ngay,
+        entry_price=100.0, exit_date=ngay,
+        exit_price=100.0 * (1 + loi_nhuan / 100),
+        exit_reason="STOP_LOSS", stop_loss=93.0, take_profit=110.0,
+        size_pct=10.0, entry_score=62, status="CLOSED", created_at=ghi_luc)
+
+
+def test_lenh_trong_lo_mo_phong_KHONG_tinh_la_tien_ve_truoc():
+    """113 dòng ngày 07/08 không phải bằng chứng tiến-về-trước."""
+    lo = [_lenh_kq(i, _ngay(i * 8), MOC + i * 2.3, -5.0) for i in range(113)]
+    assert pm.lenh_tien_ve_truoc(lo) == []
+    print("PASS  lô mô phỏng -> 0 lệnh tiến-về-trước")
+
+
+def test_lenh_ghi_rai_rac_sau_do_MOI_tinh_la_tien_ve_truoc():
+    lo = [_lenh_kq(i, _ngay(i * 8), MOC + i * 2.3, -5.0) for i in range(113)]
+    sau = [_lenh_kq(1000 + i, _ngay(950 + i * 3),
+                    MOC + 86400 * (i + 5), -5.0) for i in range(20)]
+    assert len(pm.lenh_tien_ve_truoc(lo + sau)) == 20
+    print("PASS  20 lệnh ghi cách nhau mỗi ngày -> tiến-về-trước")
+
+
+def test_lenh_thieu_dau_thoi_gian_KHONG_duoc_tinh_la_bang_chung():
+    """Bằng chứng chưa rõ nguồn gốc thì không được tính là bằng chứng."""
+    mo = [Trade(id=i, symbol="FPT", signal_date=_ngay(i), entry_date=None,
+                entry_price=None, exit_date=None, exit_price=None,
+                exit_reason=None, stop_loss=0.0, take_profit=0.0,
+                size_pct=10.0, entry_score=62, status="CLOSED")
+          for i in range(80)]
+    assert pm.lenh_tien_ve_truoc(mo) == []
+    assert pm.dieu_kien_dong_lai(mo)["so_lenh"] == 0
+    print("PASS  thiếu created_at -> không tính là bằng chứng")
+
+
+def test_chua_du_lenh_thi_KHONG_dong():
+    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1), -8.0)
+          for i in range(30)]
+    kq = pm.dieu_kien_dong_lai(ts)
+    assert kq["dat"] is False and "chưa đủ" in kq["ly_do"]
+    print(f"PASS  30 lệnh lỗ nặng nhưng chưa đủ mẫu -> không đóng")
+
+
+def test_lo_NANG_va_du_mau_thi_DONG():
+    """−8%/lệnh trên 80 lệnh: KTC loại được số 0."""
+    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1),
+                   -8.0 + (i % 5) * 0.4) for i in range(80)]
+    kq = pm.dieu_kien_dong_lai(ts)
+    assert kq["dat"] is True, kq
+    assert kq["ci"][1] < 0
+    print(f"PASS  đủ mẫu và lỗ đo được -> ĐÓNG ({kq['ly_do'][:60]}…)")
+
+
+def test_lo_NHE_thi_KHONG_dong_du_du_mau():
+    """Kỳ vọng âm thôi chưa đủ — phải âm tới mức KTC loại được số 0.
+
+    Với σ ≈ 10%, một chuỗi âm nhẹ là chuyện thường. Đóng cổng vì nó là
+    phản ứng với nhiễu.
+    """
+    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1),
+                   -0.5 + (i % 21 - 10) * 2.0) for i in range(80)]
+    kq = pm.dieu_kien_dong_lai(ts)
+    assert kq["dat"] is False, kq
+    assert kq["ci"][1] > 0
+    print(f"PASS  lỗ nhẹ trong nhiễu -> KHÔNG đóng ({kq['ci']})")
+
+
+def test_lai_thi_khong_bao_gio_dong():
+    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1), +6.0)
+          for i in range(80)]
+    assert pm.dieu_kien_dong_lai(ts)["dat"] is False
+    print("PASS  đang lãi -> không đóng")
+
+
+def test_report_phai_in_trang_thai_cong_C5():
+    """Một điều kiện không ai nhìn thấy thì không bảo vệ được gì."""
+    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1), -8.0)
+          for i in range(80)]
+    bao = pm.report(ts)
+    assert "Cổng C5" in bao and "ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT" in bao
+    print("PASS  report() in trạng thái cổng C5 và cảnh báo khi đạt")

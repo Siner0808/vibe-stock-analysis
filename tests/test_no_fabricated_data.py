@@ -542,6 +542,14 @@ def test_run_daily_khong_chep_cung_nguong_mua():
     im lặng giữ nguyên hành vi cũ.
 
     Test đọc giá trị từ chính dòng khai báo nên không hỏng khi C5 đổi số.
+
+    Cập nhật 24/08/2026 — ô C5 ĐÃ được trả lời và đúng cái test này lường
+    trước đã xảy ra. `run_daily` cầm 50,0 trong khi `paper_trading` cầm 62;
+    cổng đóng nên hai con số chưa bao giờ gặp nhau. Nay `run_daily` NHẬP
+    hằng số thay vì khai lại, nên gác nới ra ở một chỗ và siết lại ở chỗ
+    khác:
+      • chấp nhận `from paper_trading import BUY_THRESHOLD`
+      • nhưng CẤM hai nơi cùng khai báo — đó chính là lỗi vừa xảy ra
     """
     import ast
     import io
@@ -550,13 +558,33 @@ def test_run_daily_khong_chep_cung_nguong_mua():
     duong_dan = os.path.join(ROOT, "run_daily.py")
     nguon = open(duong_dan, encoding="utf-8").read()
 
-    gia_tri = None
-    for nut in ast.parse(nguon).body:
-        if isinstance(nut, ast.Assign) and any(
-                isinstance(t, ast.Name) and t.id == "BUY_THRESHOLD"
-                for t in nut.targets):
-            gia_tri = nut.value.value
-    assert gia_tri is not None, "khong tim thay khai bao BUY_THRESHOLD"
+    def _khai_bao(duong: str):
+        for nut in ast.parse(open(duong, encoding="utf-8").read()).body:
+            if isinstance(nut, ast.Assign) and any(
+                    isinstance(t, ast.Name) and t.id == "BUY_THRESHOLD"
+                    for t in nut.targets):
+                return nut.value.value
+        return None
+
+    tu_pt = _khai_bao(os.path.join(ROOT, "paper_trading.py"))
+    tu_rd = _khai_bao(duong_dan)
+    assert tu_pt is not None, "paper_trading.py phải khai báo BUY_THRESHOLD"
+
+    # MỘT nơi khai báo, chấm hết. Không phải "hai nơi nhưng phải bằng nhau":
+    # hai bản bằng nhau hôm nay là đúng cái hình dạng của lỗi 24/08/2026 —
+    # `run_daily` 50,0 và `paper_trading` 62 cũng từng "không xung đột" suốt
+    # nhiều tháng, vì cổng C5 đóng nên không ai chạy tới chỗ chúng gặp nhau.
+    # Bản sao thứ hai không sai vào ngày nó ra đời; nó sai vào ngày bản gốc
+    # đổi và nó thì không.
+    assert tu_rd is None, (
+        f"run_daily.py khai báo lại BUY_THRESHOLD = {tu_rd}. Chỉ được NHẬP "
+        f"từ paper_trading (đang là {tu_pt}). Bằng nhau hôm nay không cứu "
+        f"được: đổi bản gốc thì bản sao im lặng giữ giá trị cũ.")
+    nhap, _ = _ten_da_nhap_va_goi(duong_dan)
+    assert "BUY_THRESHOLD" in nhap, (
+        "run_daily.py không khai báo mà cũng không NHẬP BUY_THRESHOLD "
+        "— vậy nó lấy ngưỡng ở đâu?")
+    gia_tri = tu_pt
 
     # Bỏ chú thích: ghi lại con số cũ trong comment để giải thích là việc
     # nên làm, không phải vi phạm.
@@ -567,11 +595,17 @@ def test_run_daily_khong_chep_cung_nguong_mua():
 
     dang_chu = str(gia_tri)
     so_lan = khong_chu_thich.count(dang_chu)
-    assert so_lan == 1, (
-        f"run_daily.py viet '{dang_chu}' {so_lan} lan; chi duoc 1 lan o dong "
-        f"khai bao BUY_THRESHOLD. Moi ban chep them la mot cho se khong doi "
-        f"theo khi C5 duoc tra loi.")
-    print("PASS  nguong mua chi viet mot lan trong run_daily.py")
+    # Khai báo tại chỗ thì con số được viết ĐÚNG một lần; nhập từ
+    # `paper_trading` thì KHÔNG lần nào. Cả hai đều hợp lệ; điều bị cấm là
+    # con số xuất hiện thêm ở bất kỳ chỗ nào khác.
+    toi_da = 0    # nhap chu khong khai -> con so khong xuat hien lan nao
+    assert so_lan == toi_da, (
+        f"run_daily.py viet '{dang_chu}' {so_lan} lan; chi duoc {toi_da} lan. "
+        f"Moi ban chep them la mot cho se khong doi theo khi nguong doi — "
+        f"dung loi da xay ra ngay 24/08/2026 (run_daily 50,0 vs "
+        f"paper_trading 62).")
+    print(f"PASS  nguong mua ({dang_chu}) viet {so_lan} lan trong "
+          f"run_daily.py, dung nhu ky vong")
 
 
 def test_app_khong_hien_so_cung_tu_mockup():

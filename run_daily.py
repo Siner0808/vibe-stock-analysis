@@ -13,7 +13,7 @@ os.environ["POST_MORTEM_ENABLED"] = "1"
 sys.stdout.reconfigure(encoding="utf-8")
 
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
-from paper_trading import PaperTradingJournal
+from paper_trading import BUY_THRESHOLD, PaperTradingJournal
 from paper_metrics import compute, report, ro_chuan_tu_chuoi_gia
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
@@ -21,7 +21,18 @@ from data_quality import now_vn
 import market_filter
 
 DB_PATH = "paper_trades.db"
-BUY_THRESHOLD = 50.0
+
+# NGƯỠNG MUA nhập từ `paper_trading`, KHÔNG khai lại ở đây.
+#
+# Bản trước cầm 50,0 chạy song song với `paper_trading.BUY_THRESHOLD =
+# 62`. Hai con số chưa bao giờ gặp nhau vì cổng C5 đang đóng — mở cổng
+# ra thì hệ thống chạy ở 50 trong khi mọi phép đo ngoài mẫu đều đo ở
+# 62, và không có gì đỏ.
+#
+# 62 là con số `walkforward.chay()` chọn theo luật nêu trước (≥30 lệnh
+# trên IS, rồi kỳ vọng cao nhất), trên vùng chưa thể đã nhìn. 50,0 là
+# 'quán quân' của 20 vòng tối ưu chạy trên CÙNG một bộ dữ liệu — đúng
+# thứ bất biến 7 cấm.
 
 def _ro_chuan_vnindex(trades):
     """Rổ đối chiếu VN-INDEX cho báo cáo phiên — bất biến 6.

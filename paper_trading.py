@@ -142,6 +142,27 @@ MUC_CHAT_LUONG_DUNG_DUOC = frozenset({"OK", "WARN"})
 LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
             "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
             "bằng walk-forward hợp lệ")
+#: Trần vốn cam kết cùng lúc, tính theo % tài khoản.
+#:
+#: Bất biến 7b: đường vốn nhân dồn từng lệnh vào TOÀN BỘ vốn hiện có.
+#: Phép nhân đó chỉ đúng khi mỗi thời điểm có một lệnh mở. Nhiều lệnh
+#: chồng lên nhau thì tổng vốn cam kết vượt 100% và con số cộng dồn
+#: trở thành lợi nhuận của một tài khoản VAY ĐƯỢC.
+#:
+#: Trước 24/08/2026 KHÔNG có gì chặn — `Performance.avg_capital_deployed_pct`
+#: chỉ BÁO CÁO sau khi việc đã rồi. Đo được:
+#:     so lenh that      29% trung binh · 208% DINH
+#:     walk-forward OOS 145% trung binh · 524% dinh
+#: Đó đúng là cơ chế sinh ra +636,11% ngày 12/08/2026.
+#:
+#: Trần theo VỐN chứ không theo SỐ vị thế: `size_pct` chạy từ 5% tới
+#: 33,3% tuỳ khoảng cách stop, nên đếm vị thế không ràng buộc được
+#: thứ cần ràng buộc. Ở mức trung bình 18,8% thì 100% ≈ 5,3 vị thế.
+TRAN_VON_CAM_KET_PCT = 100.0
+
+LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng đòn bẩy "
+                  "(bất biến 7b)")
+
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
@@ -277,6 +298,19 @@ class PaperTradingJournal:
         self.db.commit()
 
     # ─────────────────── Mở lệnh ──────────────────────────────────────
+    def von_dang_cam_ket(self) -> float:
+        """Tổng `size_pct` của các lệnh ĐANG MỞ **và ĐANG CHỜ KHỚP**.
+
+        Phải gồm cả PENDING. Lệnh chờ sẽ khớp ở phiên sau và cam kết
+        vốn thật; bỏ nó ra thì xếp bao nhiêu lệnh chờ cũng lọt, rồi
+        sáng hôm sau tất cả cùng khớp một lượt — trần thành vô hiệu
+        đúng vào phiên nó cần chặn nhất.
+        """
+        r = self.db.execute(
+            "SELECT COALESCE(SUM(size_pct), 0) FROM trades WHERE status IN (?,?)",
+            (Status.OPEN, Status.PENDING)).fetchone()
+        return float(r[0] or 0.0)
+
     def consider_entry(self, symbol: str, signal_date: str, result: dict,
                        exchange: str = "HOSE",
                        buy_threshold: float | None = None) -> Optional[int]:
@@ -347,6 +381,19 @@ class PaperTradingJournal:
         
         # Giới hạn kích cỡ: Tối thiểu 5%, tối đa 33.3% (Tránh dồn vốn vào 1 mã)
         size = round(max(5.0, min(33.3, size)), 1)
+
+        # Trần vốn — chốt cuối cùng, và bắt buộc nằm ở ĐÂY chứ không
+        # nằm cùng chỗ với các cổng trên: nó cần `size`, mà `size` chỉ
+        # tính được sau khi đã có stop-loss. Lý do ghi vào sổ vì thế
+        # cho biết lệnh này đã qua MỌI cổng khác và chỉ dừng ở trần.
+        dang_cam_ket = self.von_dang_cam_ket()
+        if dang_cam_ket + size > TRAN_VON_CAM_KET_PCT:
+            self.record_decision(
+                symbol, signal_date, result, False,
+                f"{LY_DO_TRAN_VON}: đang cam kết {dang_cam_ket:.1f}% "
+                f"+ {size:.1f}% > {TRAN_VON_CAM_KET_PCT:.0f}%")
+            return None
+
         cur = self.db.execute(
             "INSERT INTO trades (symbol, exchange, signal_date, entry_date,"
             " entry_price, exit_date, exit_price, exit_reason, stop_loss,"

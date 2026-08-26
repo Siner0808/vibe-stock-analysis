@@ -334,6 +334,7 @@ def lo_ghi_hang_loat(trades: list[Trade]) -> list[dict]:
             continue
         ra.append({
             "so_lenh": len(nhom),
+            "ids": {t.id for t in nhom},
             "ghi_tu": float(nhom[0].created_at),
             "ghi_den": float(nhom[-1].created_at),
             "giay": float(nhom[-1].created_at) - float(nhom[0].created_at),
@@ -353,6 +354,66 @@ def tom_tat_lo_ghi(trades: list[Trade]) -> dict:
         "so_lenh_khong_ro": sum(1 for t in trades if t.created_at is None),
         "lo": lo,
     }
+
+
+# ── Điều kiện ĐÓNG LẠI cổng C5 — nêu TRƯỚC, không chế sau ────────────
+#
+# Ngày 24/08/2026 cổng `CHO_PHEP_MO_LENH_MOI` được mở ở ngưỡng 62. Lý do
+# mở KHÔNG phải vì đã tìm thấy lợi thế — mọi phép đo alpha đều chứa số 0.
+# Lý do là: cấu hình chạy trực tiếp (sáu agent đầy đủ, có TradingView và
+# tin tức) CHƯA BAO GIỜ được đo, và nó chỉ đo được tiến về phía trước.
+#
+# Điều kiện đóng lại phải viết ra TRƯỚC khi có dữ liệu. Viết sau là chọn
+# ngưỡng theo kết quả — cùng một lỗi với bất biến 7, chỉ đổi hướng.
+
+#: Số lệnh tiến-về-trước tối thiểu trước khi phép kiểm này có nghĩa.
+#: Với σ ≈ 10%/lệnh, 60 lệnh cho SE ≈ 1,3% — đủ để một kỳ vọng âm nặng
+#: (dưới −2,5%) lộ ra, và chưa đủ để nhiễu bình thường kích hoạt.
+TOI_THIEU_LENH_DE_DONG = 60
+
+
+def lenh_tien_ve_truoc(trades: list[Trade]) -> list[Trade]:
+    """Lệnh KHÔNG thuộc lô ghi hàng loạt nào và có dấu thời gian ghi.
+
+    Lệnh thiếu `created_at` bị loại — không phải vì chúng xấu, mà vì
+    không chứng minh được chúng tích luỹ tiến về phía trước. Bằng chứng
+    chưa rõ nguồn gốc thì không được tính là bằng chứng.
+    """
+    trong_lo: set = set()
+    for x in lo_ghi_hang_loat(trades):
+        trong_lo |= x.get("ids", set())
+    return [t for t in trades
+            if t.created_at is not None and t.id not in trong_lo]
+
+
+def dieu_kien_dong_lai(trades: list[Trade]) -> dict:
+    """Cổng C5 có nên đóng lại không. `dat=True` nghĩa là NÊN ĐÓNG.
+
+    Điều kiện, nêu ngày 24/08/2026 trước khi có lệnh tiến-về-trước nào:
+      • đã có ≥ TOI_THIEU_LENH_DE_DONG lệnh tiến-về-trước ĐÃ ĐÓNG, VÀ
+      • cận TRÊN của KTC 95% cho kỳ vọng của riêng nhóm đó < 0
+
+    Vế thứ hai cố ý khắt khe. "Kỳ vọng âm" thôi thì chưa đủ — với σ ≈ 10%
+    một chuỗi âm ngắn là chuyện thường. Điều kiện là âm ĐẾN MỨC khoảng
+    tin cậy loại được số 0.
+    """
+    tien = [t for t in lenh_tien_ve_truoc(trades) if t.status == "CLOSED"]
+    n = len(tien)
+    if n < TOI_THIEU_LENH_DE_DONG:
+        return {"dat": False, "so_lenh": n, "ci": (None, None),
+                "ly_do": (f"mới {n}/{TOI_THIEU_LENH_DE_DONG} lệnh "
+                          f"tiến-về-trước — chưa đủ để kết luận")}
+    sig = expectancy_significant(tien)
+    lo, hi = sig["ci"]
+    if hi is not None and hi < 0:
+        return {"dat": True, "so_lenh": n, "ci": (lo, hi),
+                "ly_do": (f"{n} lệnh tiến-về-trước, kỳ vọng "
+                          f"{sig['expectancy']:+.2f}% với KTC 95% "
+                          f"[{lo:+.2f}; {hi:+.2f}] — cận trên dưới 0, "
+                          f"hệ thống đang lỗ một cách đo được")}
+    return {"dat": False, "so_lenh": n, "ci": (lo, hi),
+            "ly_do": (f"{n} lệnh tiến-về-trước, KTC 95% "
+                      f"[{lo:+.2f}; {hi:+.2f}] — chưa loại được số 0")}
 
 
 def report(trades: list[Trade],
@@ -419,6 +480,12 @@ def report(trades: list[Trade],
         add("   Đó là dấu vết của MỘT lượt mô phỏng, không phải nhiều phiên")
         add("   quét tiến về phía trước. Kỳ vọng, KTC và alpha ở trên vẫn")
         add("   đúng như phép tính, nhưng chúng nói về lượt mô phỏng ấy.")
+    _dk = dieu_kien_dong_lai(trades)
+    add("")
+    add(f"Cổng C5 (mở vị thế mới): {_dk['ly_do']}")
+    if _dk["dat"]:
+        add("   🔴 ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT — nêu trước ngày 24/08/2026.")
+        add("   Đặt CHO_PHEP_MO_LENH_MOI = False rồi báo người dùng.")
     if lo["so_lenh_khong_ro"]:
         add(f"   ({lo['so_lenh_khong_ro']} lệnh không có dấu thời gian ghi — "
             f"không kết luận được)")
