@@ -76,6 +76,24 @@ def guard_not_real_ledger(path: str, *, caller: str) -> None:
 # ── Quy tắc mặc định ────────────────────────────────────────────────
 BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 
+#: Chốt lời cứng — TẮT, và tắt là hành vi đang chạy từ trước.
+#:
+#: Công tắc này KHÔNG dựng ra để bật lại. Nó dựng ra để câu hỏi "gỡ
+#: chốt lời cứng đi là đúng hay sai" trở thành một câu hỏi ĐO ĐƯỢC:
+#: chạy walk-forward hai lần trên đúng cùng dữ liệu, mỗi lần một bên.
+#:
+#: Vì sao cần: đo ngày 23/08/2026, 19/112 lệnh đã đóng trong sổ vẫn
+#: mang `exit_reason = TAKE_PROFIT` — di sản của luật cũ — và toàn bộ
+#: kỳ vọng dương của sổ (+0,792%) nằm ở đúng 19 dòng ấy. Nhưng xoá 19
+#: dòng rồi tính lại KHÔNG mô phỏng được luật mới: dưới luật mới những
+#: lệnh đó chạy tiếp và thoát bằng trailing stop. Chỉ có chạy lại cả
+#: hai bên mới trả lời được.
+#:
+#: Thứ tự kiểm giữ nguyên bất biến 3: SL kiểm TRƯỚC, nên khi cả hai
+#: cùng chạm trong một phiên thì vẫn LẤY SL. `elif` là thứ bảo đảm
+#: điều đó, không phải quy ước.
+CHOT_LOI_CUNG = False
+
 # ── Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG ──────────────────────────────────────
 # Mặc định TẮT: hệ thống vẫn quét, vẫn chấm điểm, vẫn ghi quyết định, vẫn
 # theo dõi và đóng các vị thế đang mở — nhưng KHÔNG mở vị thế mới.
@@ -138,6 +156,20 @@ class ExitReason:
     MAX_HOLD = "MAX_HOLD"
 
 
+def _lay_cot(r: Any, ten: str):
+    """Đọc một cột có thể KHÔNG tồn tại trong hàng.
+
+    `sqlite3.Row` ném `IndexError` chứ không trả None khi thiếu cột,
+    và sổ cũ hơn schema hiện tại thì thiếu thật. Trả None ở đây là
+    trung thực — "không biết" — chứ không phải nuốt lỗi: hàm gọi
+    (`lo_ghi_hang_loat`) coi None là không kết luận được.
+    """
+    try:
+        return r[ten]
+    except (IndexError, KeyError):
+        return None
+
+
 @dataclass
 class Trade:
     id: int
@@ -153,6 +185,12 @@ class Trade:
     size_pct: float
     entry_score: int
     status: str
+    #: Dấu thời gian LÚC GHI VÀO ĐĨA (epoch giây) — khác hẳn
+    #: `signal_date` là ngày mô phỏng. Chênh lệch giữa hai thứ này
+    #: là thứ duy nhất phân biệt một sổ tích luỹ tiến về phía trước
+    #: với một sổ sinh ra từ một lượt mô phỏng. Xem
+    #: `paper_metrics.lo_ghi_hang_loat()`.
+    created_at: Optional[float] = None
 
     def gross_return_pct(self) -> Optional[float]:
         if self.entry_price and self.exit_price:
@@ -340,9 +378,15 @@ class PaperTradingJournal:
                       current_score: Optional[int] = None) -> list[dict]:
         """Xét đóng các lệnh đang mở theo quy tắc, dựa trên nến phiên hiện tại.
 
-        Thứ tự ưu tiên khi cả SL và TP cùng chạm trong một phiên: LẤY SL.
-        Nến ngày không cho biết cái nào chạm trước, nên chọn giả định bất lợi —
-        giả định có lợi sẽ thổi phồng kết quả một cách có hệ thống.
+        Mặc định `CHOT_LOI_CUNG = False`, nên **không có lối thoát bằng
+        chốt lời** — lệnh chỉ đóng bằng cắt lỗ, đảo tín hiệu, hoặc trần
+        thời gian nắm giữ. Docstring bản trước hứa một nhánh TP mà thân
+        hàm đã gỡ; đọc nó rồi tin là hiểu sai hệ thống đang chạy.
+
+        Khi bật công tắc: thứ tự ưu tiên lúc cả SL và TP cùng chạm trong
+        một phiên là LẤY SL. Nến ngày không cho biết cái nào chạm trước,
+        nên chọn giả định bất lợi — giả định có lợi sẽ thổi phồng kết quả
+        một cách có hệ thống (bất biến 3).
         """
         closed = []
         rows = self.db.execute(
@@ -359,9 +403,14 @@ class PaperTradingJournal:
             entry_p = float(r["entry_price"]) if r["entry_price"] else None
 
             # SL là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
-            # BỎ CHỐT LỜI CỨNG (Hard TP) - Fat-Tail Exploitation
+            #
+            # `elif` chứ không phải `if` thứ hai: cả hai cùng chạm thì
+            # LẤY SL (bất biến 3). Đổi sang hai `if` rời là để TP ghi đè
+            # SL — đúng cái giả định có lợi bị cấm.
             if low <= sl:
                 reason, price = ExitReason.STOP_LOSS, sl
+            elif CHOT_LOI_CUNG and high >= tp:
+                reason, price = ExitReason.TAKE_PROFIT, tp
 
             # TRAILING STOP & BREAK-EVEN: CHỈ CÓ HIỆU LỰC TỪ PHIÊN SAU.
             close_p = float(bar["close"])
@@ -519,4 +568,5 @@ class PaperTradingJournal:
             exit_date=r["exit_date"], exit_price=r["exit_price"],
             exit_reason=r["exit_reason"], stop_loss=r["stop_loss"],
             take_profit=r["take_profit"], size_pct=r["size_pct"],
-            entry_score=r["entry_score"], status=r["status"])
+            entry_score=r["entry_score"], status=r["status"],
+            created_at=_lay_cot(r, "created_at"))

@@ -2514,3 +2514,89 @@ Hệ quả cho quyết định mở/đóng cổng:
   lượt mô phỏng 07/08.
 
 Chưa đụng gì vào cổng. Đây là ghi chép, không phải thay đổi.
+
+---
+
+## `lo_ghi_hang_loat()` — sổ tự khai nó được sinh ra thế nào (23/08/2026)
+
+Việc 1 của hai việc chốt sau khi phát hiện 113 lệnh được ghi trong 258 giây.
+
+### Không thêm cột — dấu vết đã nằm sẵn trong dữ liệu
+
+Cách hiển nhiên là thêm một cột `nguon` vào bảng `trades` rồi điền tay cho
+113 dòng. Không làm, vì ba lý do:
+
+1. `sheets_store` soi gương toàn phần và **nổ khi lệch cấu trúc cột** —
+   thêm cột là kéo theo một lần di trú trên cả kho ngoài.
+2. Nhãn điền tay chỉ đúng cho 113 dòng đã biết. Lô hàng loạt tiếp theo sẽ
+   lại lọt.
+3. Dấu vết đã có sẵn: `created_at` là lúc GHI VÀO ĐĨA, `signal_date` là
+   ngày mô phỏng. Một sổ tích luỹ tiến về phía trước ghi mỗi lần một lệnh,
+   cách nhau hàng giờ; một lượt mô phỏng ghi hàng trăm lệnh trong vài giây.
+
+Nên đây là một **phép đo**, không phải một nhãn.
+
+### Ba ngưỡng, và cái thứ ba mới là cái phân biệt
+
+```python
+KHE_TOI_DA_GIAY   = 60.0   # cach nhau hon the -> hai lo khac nhau
+TOI_THIEU_LENH_LO = 10     # it hon thi khong noi duoc gi
+TOI_THIEU_NGAY_TRAI = 90   # signal_date cua lo phai TRAI dai
+```
+
+Hai ngưỡng đầu là hiển nhiên. Ngưỡng thứ ba là thứ giữ cho cảnh báo không
+kêu bậy: **một phiên bận rộn mở 20 lệnh trong 30 giây trông y hệt một lượt
+mô phỏng nếu chỉ nhìn `created_at`** — khác nhau ở chỗ 20 lệnh ấy cùng một
+ngày tín hiệu, còn mô phỏng ghi lệnh của 2024 cạnh lệnh của 2026.
+
+Đo trên sổ thật:
+
+```
+so_lo 1 · so_lenh_trong_lo 113 · so_lenh_khong_ro 0
+   ghi   07/08/2026 14:41:16 -> 14:45:35   (258 giay)
+   tin hieu  2024-01-05 -> 2026-06-26      (903 ngay)
+```
+
+`paper_metrics.report()` in cảnh báo ngay trên mục "Lý do đóng lệnh", cùng
+chỗ và cùng giọng với cảnh báo đòn bẩy.
+
+### Rỗng nghĩa là "không thấy", không phải "không có"
+
+`Trade.created_at` mặc định `None`, và `_lay_cot()` trả `None` khi hàng
+thiếu cột — sổ cũ hơn schema hiện tại thì thiếu thật, `sqlite3.Row` ném
+`IndexError` chứ không trả `None`. `tom_tat_lo_ghi()` báo riêng
+`so_lenh_khong_ro` để phần chưa biết không lẫn vào phần đã kết luận.
+
+### 10 test, 5 đột biến đỏ — và một đột biến từng SỐNG
+
+Đột biến "bỏ ngưỡng số lệnh tối thiểu của một lô" ban đầu vẫn **xanh**: mọi
+trường hợp ít lệnh trong bộ test đều bị chặn sớm ở lối vào hàm
+(`len(co) < TOI_THIEU_LENH_LO`), nên phép kiểm bên trong vòng lặp chưa bao
+giờ được chạm tới. Thêm
+`test_lo_NHO_nam_canh_lo_lon_van_phai_bi_bo_qua` (30 lệnh cạnh 4 lệnh) thì
+5/5 đỏ.
+
+---
+
+## Công tắc `CHOT_LOI_CUNG` — dựng để ĐO, không phải để bật
+
+Việc 2 cần chạy walk-forward hai lần trên đúng cùng dữ liệu, nên cần một
+đường bật lại chốt lời cứng mà **không đổi hành vi mặc định**.
+
+```python
+CHOT_LOI_CUNG = False        # tat = hanh vi dang chay tu truoc
+...
+if low <= sl:
+    reason, price = ExitReason.STOP_LOSS, sl
+elif CHOT_LOI_CUNG and high >= tp:
+    reason, price = ExitReason.TAKE_PROFIT, tp
+```
+
+`elif` chứ không phải `if` thứ hai — đó là thứ giữ bất biến 3 khi công tắc
+bật: cả hai cùng chạm trong một phiên thì vẫn LẤY SL. Đổi sang hai `if` rời
+là để TP ghi đè SL, đúng cái giả định có lợi bị cấm. Đột biến đó đỏ.
+
+Docstring của `evaluate_open()` cũng được sửa: bản trước hứa một nhánh TP
+mà thân hàm đã gỡ từ lâu — đọc nó rồi tin là hiểu sai hệ thống đang chạy.
+
+512 test xanh · 0 CHẶN · 3.11 sạch.

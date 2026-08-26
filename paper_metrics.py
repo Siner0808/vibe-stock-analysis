@@ -17,7 +17,7 @@ import random
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 
 from paper_trading import BROKER_FEE_PCT, SELL_TAX_PCT, ExitReason, Trade
 
@@ -270,6 +270,91 @@ def vs_benchmark(trades: list[Trade],
     }
 
 
+
+# ── Sổ này được tích luỹ, hay được sinh ra trong một lượt? ───────────
+#
+# Đo ngày 23/08/2026 trên `paper_trades.db`: cả 113 lệnh có `created_at`
+# nằm trong khoảng 258 giây ngày 07/08/2026, trong khi `signal_date` của
+# chúng trải từ 2024-01-05 đến 2026-06-26 — hơn hai năm rưỡi. Sổ ấy chưa
+# bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước.
+#
+# Không có gì SAI khi sổ sinh ra như vậy; sai là đọc nó như bằng chứng
+# tích luỹ. Bốn phép đo dưới đây — kỳ vọng, KTC, alpha, drawdown — đều
+# mang nghĩa khác hẳn giữa hai trường hợp.
+
+#: Hai lần ghi cách nhau quá ngưỡng này thì thuộc hai lô khác nhau.
+#: 60 giây: một lượt quét thật ghi từng lệnh sau khi tải nến và chấm
+#: điểm, không thể nhanh hơn thế trên cả một rổ.
+KHE_TOI_DA_GIAY = 60.0
+
+#: Dưới ngưỡng này thì không đủ để nói gì — một phiên thật có thể mở vài
+#: lệnh liền nhau.
+TOI_THIEU_LENH_LO = 10
+
+#: Và điều kiện phân biệt thật sự: lô phải trải trên một khoảng
+#: `signal_date` DÀI. Một phiên bận rộn mở 15 lệnh trong 30 giây, nhưng
+#: cả 15 lệnh cùng một ngày tín hiệu. Chỉ mô phỏng mới ghi lệnh của
+#: 2024 và lệnh của 2026 cách nhau vài giây.
+TOI_THIEU_NGAY_TRAI = 90
+
+
+def lo_ghi_hang_loat(trades: list[Trade]) -> list[dict]:
+    """Các lô lệnh được ghi vào đĩa hàng loạt. Rỗng nghĩa là không thấy.
+
+    Trả `[]` cả khi KHÔNG KẾT LUẬN ĐƯỢC (sổ cũ không có `created_at`) —
+    người gọi phải hiểu rỗng là "không thấy", không phải "đã chứng minh
+    là không có". `so_lenh_khong_ro` trong `tom_tat_lo_ghi()` nói ra
+    phần chưa biết đó.
+    """
+    co = [t for t in trades if t.created_at is not None]
+    if len(co) < TOI_THIEU_LENH_LO:
+        return []
+    co.sort(key=lambda t: float(t.created_at))
+
+    lo: list[list[Trade]] = [[co[0]]]
+    for t in co[1:]:
+        if float(t.created_at) - float(lo[-1][-1].created_at) <= KHE_TOI_DA_GIAY:
+            lo[-1].append(t)
+        else:
+            lo.append([t])
+
+    ra = []
+    for nhom in lo:
+        if len(nhom) < TOI_THIEU_LENH_LO:
+            continue
+        ngay = sorted(str(t.signal_date)[:10] for t in nhom if t.signal_date)
+        if not ngay:
+            continue
+        try:
+            trai = (date.fromisoformat(ngay[-1])
+                    - date.fromisoformat(ngay[0])).days
+        except ValueError:
+            continue
+        if trai < TOI_THIEU_NGAY_TRAI:
+            continue
+        ra.append({
+            "so_lenh": len(nhom),
+            "ghi_tu": float(nhom[0].created_at),
+            "ghi_den": float(nhom[-1].created_at),
+            "giay": float(nhom[-1].created_at) - float(nhom[0].created_at),
+            "tin_hieu_tu": ngay[0],
+            "tin_hieu_den": ngay[-1],
+            "ngay_trai": trai,
+        })
+    return ra
+
+
+def tom_tat_lo_ghi(trades: list[Trade]) -> dict:
+    """{so_lo, so_lenh_trong_lo, so_lenh_khong_ro, lo: [...]}"""
+    lo = lo_ghi_hang_loat(trades)
+    return {
+        "so_lo": len(lo),
+        "so_lenh_trong_lo": sum(x["so_lenh"] for x in lo),
+        "so_lenh_khong_ro": sum(1 for t in trades if t.created_at is None),
+        "lo": lo,
+    }
+
+
 def report(trades: list[Trade],
            benchmark: dict[tuple[str, str], float] | None = None) -> str:
     out: list[str] = []
@@ -320,6 +405,23 @@ def report(trades: list[Trade],
             f"khoản vay được")
         add(f"   {don_bay:.1f}x vốn. Tài khoản thật không chạy được như vậy.")
         add(f"   Chia tỷ trọng cho {don_bay:.1f} rồi đo lại mới ra con số dùng được.")
+
+    lo = tom_tat_lo_ghi(trades)
+    if lo["so_lo"]:
+        add("")
+        add("⚠️ SỔ NÀY KHÔNG PHẢI BẢN GHI TÍCH LUỸ")
+        for x in lo["lo"]:
+            t1 = datetime.fromtimestamp(x["ghi_tu"]).strftime("%d/%m/%Y %H:%M")
+            add(f"   {x['so_lenh']} lệnh được ghi trong {x['giay']:.0f} giây "
+                f"({t1}),")
+            add(f"   nhưng tín hiệu của chúng trải {x['tin_hieu_tu']} → "
+                f"{x['tin_hieu_den']} ({x['ngay_trai']} ngày).")
+        add("   Đó là dấu vết của MỘT lượt mô phỏng, không phải nhiều phiên")
+        add("   quét tiến về phía trước. Kỳ vọng, KTC và alpha ở trên vẫn")
+        add("   đúng như phép tính, nhưng chúng nói về lượt mô phỏng ấy.")
+    if lo["so_lenh_khong_ro"]:
+        add(f"   ({lo['so_lenh_khong_ro']} lệnh không có dấu thời gian ghi — "
+            f"không kết luận được)")
 
     add("")
     add("Lý do đóng lệnh:")
