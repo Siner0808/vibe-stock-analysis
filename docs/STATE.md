@@ -3112,3 +3112,182 @@ nói rằng có test đang ghi file tạm vào repo thay vì vào thư mục t�
 thống. Chạy tuần tự thì sạch.
 
 571 test xanh · đột biến 7/7 đỏ · 0 CHẶN · 3.11 sạch.
+
+---
+
+## GỐC RỄ CỦA CỔNG C5 — BỐN NGUYÊN NHÂN, VÀ MỘT CHUỖI TÁM MẮT XÍCH
+## (28/08/2026)
+
+Tài liệu này viết để một phiên khởi động TRẮNG TRÍ NHỚ vẫn sửa được cổng
+C5 mà không phải đào lại git. Đọc mục này trước khi động vào
+`paper_metrics.dieu_kien_dong_lai()` hay `paper_trading.CHO_PHEP_MO_LENH_MOI`.
+
+### Trạng thái đo được ngày 28/08/2026
+
+```
+Tổng lệnh trong sổ    : 113   (đã đóng 112, đang mở 1)
+Lô ghi hàng loạt      : 1 lô — 113 lệnh trong 0 giây
+Lệnh TIẾN-VỀ-TRƯỚC    : 0
+Điều kiện đóng        : 0/60 — chưa đủ để kết luận
+Kỳ vọng toàn sổ       : +0,792%  KTC 95% [-0,688 ; +2,323]  (CHƯA có chi phí)
+σ mỗi lệnh            : 8,21%
+```
+
+Ngoài mẫu, KHI BẬT chi phí thực thi (đo cùng ngày, n=385):
+kỳ vọng **−0,291%**, alpha **−0,927%**, KTC alpha [−1,689 ; −0,076] **loại 0**.
+
+### Nguyên nhân 1 — hiệu chuẩn theo THẢM HOẠ, không theo BẤT LỢI
+
+Điều kiện viết trong `0f67047`, 26/08/2026 15:51. Chú thích cạnh hằng số:
+
+> *"Với σ ≈ 10%/lệnh, 60 lệnh cho SE ≈ 1,3% — đủ để một kỳ vọng âm nặng
+> (dưới −2,5%) lộ ra, và chưa đủ để nhiễu bình thường kích hoạt."*
+
+**Phép tính lực phát hiện ĐÃ được làm, và nó ĐÚNG.** Tính lại với σ đo
+thật (8,21%) ra ngưỡng −2,08%, khớp với −2,5% ước ở σ ≈ 10%.
+
+Sai không nằm ở số học mà ở MỤC TIÊU: quy tắc hỏi *"hệ thống có hỏng nặng
+không?"* (−2,5%/lệnh) trong khi câu cần hỏi là *"hệ thống có tệ hơn mua rồi
+giữ không?"* (−0,927%/lệnh). Lệch nhau **8 lần độ lớn**.
+
+### Nguyên nhân 2 — chỉ định giá MỘT loại sai lầm
+
+Thông điệp `0f67047` lập luận đúng một chiều:
+
+> *"'Kỳ vọng âm' thôi chưa đủ: với σ ~10% một chuỗi âm ngắn là chuyện
+> thường, đóng cổng vì nó là phản ứng với nhiễu."*
+
+Sai lầm loại I (đóng nhầm vì nhiễu) được tính toán và chống lại. Sai lầm
+loại II (**để mở trong khi đang lỗ thật**) không được nhắc một lần. Cái giá
+hai bên không đối xứng: đóng nhầm mất cơ hội quan sát, để mở nhầm mất tiền
+suốt thời gian chờ.
+
+### Nguyên nhân 3 — quy tắc bị đóng băng, hệ đo lường vẫn chạy tiếp
+
+```
+21/08  5d9c3c8  walk-forward báo alpha kèm KTC   -> công cụ SẴN SÀNG
+24/08  be446b0  mở cổng, alpha ≈ 0               -> tiền đề: "không đo được lợi thế"
+26/08  0f67047  viết điều kiện, mục tiêu −2,5%   -> hiệu chuẩn theo kỳ vọng
+28/08  79a8d32  nối chi phí thực thi             -> alpha ≈0 --> −0,927%
+```
+
+Giữa 26/08 và 28/08 **sổ lệnh không đổi một dòng**. Cái đổi là mô hình về
+hiện thực. Quy tắc không trở nên sai — thế giới nó được viết cho đã biến mất.
+
+Vì sao dùng kỳ vọng chứ không alpha: **KHÔNG phải vì thiếu công cụ** — đã
+kiểm, `vs_benchmark()` trả `alpha` kèm `ci` từ trước `0f67047`, và commit đó
+không hề đụng vào `vs_benchmark`. Lý do thật: lúc ấy alpha là +0,090% KTC
+[−1,166; +1,391], tức KHÔNG PHÂN BIỆT ĐƯỢC VỚI 0 — mà không thể hiệu chuẩn
+một phép kiểm cho hiệu ứng độ lớn 0 (câu hỏi "bao nhiêu lệnh để phát hiện
+alpha = 0" phân kỳ). Kỳ vọng là đại lượng duy nhất khi ấy có độ lớn nhìn
+thấy được. Lựa chọn đó HỢP LÝ với thông tin lúc đó.
+
+### Nguyên nhân 4 — điều kiện KHÔNG CÓ AI THI HÀNH (nặng nhất)
+
+`dieu_kien_dong_lai()` được gọi đúng MỘT chỗ trong toàn dự án: bên trong
+`paper_metrics.report()` — một hàm **nối chuỗi ký tự**.
+
+```python
+if _dk["dat"]:
+    add("   🔴 ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT — nêu trước ngày 24/08/2026.")
+    add("   Đặt CHO_PHEP_MO_LENH_MOI = False rồi báo người dùng.")
+```
+
+Khi đạt, nó thêm một CÂU VĂN nhờ con người đi sửa mã nguồn. Không nhánh nào
+đóng cổng. Và câu văn đó đi đâu:
+
+```
+report() -> latest_daily_report.md -> actions/upload-artifact -> zip, giữ 14 ngày
+```
+
+`chuong-bao-quet.yml` không kiểm gì về C5: không `::error::`, không mở issue,
+không báo động. **Kể cả nếu điều kiện có lực phát hiện 100%, nó vẫn không
+đóng được cổng.** Đây đúng mẫu "silent pass" mà dự án săn lùng khắp nơi —
+hàng rào an toàn hoá ra là một chuỗi ký tự.
+
+### Chuỗi tám mắt xích — cái nào lành, cái nào gãy
+
+Liệt kê cả mắt LÀNH là cố ý: không có chúng thì không ai biết đã soi hết hay
+chưa.
+
+| # | Mắt xích | Kiểm bằng | Trạng thái |
+|---|---|---|---|
+| 1 | Lệnh mới có `created_at` | đọc INSERT | ✅ `now_vn().timestamp()`, ghi mọi lệnh |
+| 2 | Lệnh quét thật không bị lọc nhầm thành "lô mô phỏng" | **chạy** | ✅ 3 lệnh/phiên cùng ngày tín hiệu → 0 lô |
+| 3 | Lệnh đóng lại được để mà đếm | đo sổ | ✅ trung vị 6 ngày, TB 12,5, p90 32, max 89 |
+| 4 | Đủ lệnh tích luỹ trong thời gian hợp lý | đo OOS | ✅ ~2,17 lệnh mở/phiên (71 mã, ngưỡng 62) |
+| 5 | Alpha tính được trên đường chạy thật | **chạy** | ✅ `run_daily.py:249` truyền rổ chuẩn VN-INDEX |
+| 6 | Đo đúng đại lượng | đọc mã | ❌ kỳ vọng, không phải alpha |
+| 7 | Ngưỡng có lực phát hiện | tính lại | ❌ chỉnh cho −2,5%, thực tế −0,927% |
+| 8 | Có thứ gì HÀNH ĐỘNG khi điều kiện đạt | tra toàn repo | ❌ không có gì |
+
+Mắt 5 lành là tin tốt cho phương án sửa: **điều kiện dựa trên alpha làm được
+ngay**, không phải xây thêm hạ tầng.
+
+### Lực phát hiện — vì sao đổi một chữ là đổi hẳn bài toán
+
+σ = 8,21%; điều kiện đóng ⟺ trung bình quan sát < −1,96·σ/√n.
+
+```
+     n   phải thấp hơn   xác suất ĐÓNG (mu=-0,291%)   ~thời gian
+    60          -2,08%                        4,6%     1,3 tháng
+   200          -1,14%                        7,2%     4,4 tháng
+  1000          -0,51%                       20,1%    21,9 tháng
+  6248          -0,21%                       80,0%    11,4 NĂM
+```
+
+| đo cái gì | mức thật | n để đạt 80% lực | thời gian |
+|---|---|---|---|
+| kỳ vọng | −0,291% | 6.248 | **11,4 năm** |
+| **alpha** | **−0,927%** | **595** | **13 tháng** |
+
+Nhịp: ~2,17 lệnh MỞ/phiên. 60 lệnh **ĐÃ ĐÓNG** ≈ 28 phiên + trễ nắm giữ
+≈ **37 phiên ≈ 1,7 tháng** (con số 1,3 tháng nêu trước đó là của lệnh MỞ,
+lạc quan hơn thực tế).
+
+### Ba giả định yếu — cả ba đều đẩy theo hướng LẠC QUAN
+
+1. σ = 8,21% đo từ 112 lệnh **chưa có chi phí thực thi**.
+2. Nhịp 2,17 lệnh/phiên suy từ vùng OOS 2022-01 → 2025-02, chế độ thị
+   trường khác, và walk-forward chạy `stride=2`.
+3. Vốn trung bình OOS 139% ⇒ lệnh chồng lệnh (bất biến 7b). Các lệnh chồng
+   nhau chia sẻ cùng cú sốc thị trường ⇒ **cỡ mẫu hiệu dụng nhỏ hơn n** ⇒
+   mọi con số lực phát hiện ở trên là lạc quan.
+
+### CHỖ TỐI CHƯA KIỂM — ứng viên nguyên nhân thứ 5
+
+**Bất đối xứng gói vnstock.** Máy cá nhân chạy gói tài trợ; GitHub Actions
+và Streamlit Cloud chạy gói miễn phí. Nếu lượng dữ liệu lịch sử khác nhau
+làm điểm chấm khác nhau, thì **σ = 8,21% và nhịp 2,17 lệnh/phiên là số của
+một hệ thống khác** với hệ thống thật sự sinh lệnh từ 31/08.
+
+Chưa liệt vào danh sách nguyên nhân vì CHƯA ĐO. Cách đo: chạy cùng một mã
+chấm điểm trên cả hai gói rồi so điểm — phải làm từ CI, không làm được từ
+máy cá nhân. **Việc này rẻ và nên làm trước khi viết lại điều kiện.**
+
+### Đề xuất: điều khoản sửa đổi có kiểm soát
+
+Nguyên tắc "viết quy tắc dừng TRƯỚC khi có dữ liệu" bảo vệ trước một thứ:
+chọn ngưỡng theo kết quả. Nó KHÔNG dự liệu tình huống chính hệ đo lường tiến
+bộ và làm tiền đề của quy tắc sụp đổ. Đề xuất bổ sung:
+
+> Một quy tắc dừng được phép viết lại khi — và chỉ khi — cả ba đồng thời đúng:
+> 1. **Tiền đề của nó bị bác bỏ bằng một phép đo mới**, không phải kết quả ra xấu;
+> 2. **Chưa có một điểm dữ liệu kết quả nào** thuộc loại quy tắc đang chờ;
+> 3. **Bản cũ, bản mới và lý do đổi đều được ghi lại.**
+
+Tính tới 28/08/2026 cả ba đều thoả (0 lệnh tiến-về-trước). **Sau 09:00 thứ
+Hai 31/08, điều kiện 2 vĩnh viễn không còn thoả** — phiên quét tự động đầu
+tiên có chi phí thực thi sẽ chạy, và từ đó mọi sửa đổi dù có lý đến đâu cũng
+không chứng minh được nó không phải chọn quy tắc theo kết quả.
+
+### Nếu viết lại, phải kèm hàng rào
+
+Điểm mù sinh ra lỗi này — chỉ nghĩ về sai lầm loại I — sẽ lặp lại ở quy tắc
+kế tiếp nếu chỉ sửa con số mà không sửa quy trình. Đề nghị:
+
+- **Mọi ngưỡng dừng phải công bố lực phát hiện ở MỨC HIỆU ỨNG THỰC TẾ**, không
+  chỉ ở mức thảm hoạ, và có test bắt buộc điều đó.
+- **Mọi điều kiện an toàn phải có nơi HÀNH ĐỘNG**, không chỉ nơi in ra. Test
+  phải chứng minh: điều kiện đạt ⇒ có thứ gì đó thay đổi trạng thái, không
+  phải chỉ thêm một dòng chữ.
