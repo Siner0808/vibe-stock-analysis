@@ -33,6 +33,14 @@ from datetime import date
 from backtest.data import coverage, extend_history
 from vn100_symbols import VN100_SYMBOLS
 
+# Console Windows mặc định cp1258, không mã hoá nổi tiếng Việt. Thiếu
+# dòng này thì script chết ở lệnh print đầu tiên, TRƯỚC khi làm được
+# việc gì — và một công cụ không chạy được cũng là một cổng xanh giả.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 
 def print_coverage(symbols: list[str]) -> None:
     cov = coverage(symbols)

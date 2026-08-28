@@ -2708,3 +2708,192 @@ hành, và nó không tệ hơn luật cũ.** Nhưng nó cũng không có alpha 
 
 Nên phép đo này **không** mở khoá ô C5. Nó chỉ gỡ một lý do để trì hoãn:
 không còn nghi ngờ rằng việc gỡ chốt lời cứng đã âm thầm làm hỏng thứ gì.
+
+---
+
+## CỔNG C5 ĐÃ MỞ, VÀ NHỮNG GÌ PHẢI DỰNG TRƯỚC ĐÓ (24/08/2026)
+
+`CHO_PHEP_MO_LENH_MOI = True`, ngưỡng 62.
+
+**Lý do mở KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha đều chứa số
+0: rho điểm cuối −0,019 · alpha walk-forward −0,011% · alpha sổ +0,090% ·
+hai luật chốt lời giống hệt nhau · năm chỉ số cơ bản không cái nào sống sót
+qua Bonferroni.
+
+Lý do là ba điều đo được, cộng lại:
+
+1. **Cấu hình chạy TRỰC TIẾP chưa bao giờ được đo.** Backtest đo một hệ bị
+   cắt tay chân — không có lịch sử TradingView và tin tức nên 2 agent là
+   hằng số, 2 agent là công tắc ba nấc. Sáu agent đầy đủ chỉ đo được tiến
+   về phía trước. Giữ cổng đóng bảo đảm nó không bao giờ được đo.
+2. **Chờ thêm dữ liệu không phải một lựa chọn.** Cả 113 lệnh được ghi trong
+   258 giây ngày 07/08/2026. Giữ đóng thì bằng chứng tiến-về-trước đứng mãi
+   ở 0 lệnh, không phải "113 và chờ thêm". Số học: cần 1.050 lệnh để kỳ
+   vọng loại được số 0, tức ~23 năm ở nhịp 45 lệnh/năm; alpha cần 22.601
+   lệnh, tức không bao giờ.
+3. **Điều kiện mở lại ghi trong chính mã ĐÃ ĐẠT.** 5D chọn ngưỡng 62 trên
+   khoảng A, đo trên khoảng B, A ∩ B = ∅. Thứ không đạt là ý nghĩa thống kê
+   — vốn chưa bao giờ nằm trong điều kiện. Siết thêm sau khi đã thấy kết
+   quả là tự đổi thước, cùng họ với bất biến 7.
+
+### Ba thứ dựng trước khi mở
+
+| | |
+|---|---|
+| `TRAN_VON_CAM_KET_PCT = 100` | sổ thật từng chạm **208%** vốn cam kết |
+| `run_daily` NHẬP `BUY_THRESHOLD` | trước đó cầm **50,0** song song với 62 |
+| `dieu_kien_dong_lai()` | nêu TRƯỚC khi có dữ liệu |
+
+**Ngưỡng đôi là lỗi nguy hiểm nhất trong ba.** `run_daily.BUY_THRESHOLD =
+50.0` chạy song song với `paper_trading.BUY_THRESHOLD = 62` — cổng đóng nên
+hai con số chưa bao giờ gặp nhau. Mở cổng mà không sửa thì hệ thống chạy ở
+50 trong khi mọi phép đo ngoài mẫu đều đo ở 62. Và 50,0 chính là "quán
+quân" của 20 vòng tối ưu trên cùng dữ liệu — đúng thứ bất biến 7 cấm.
+
+Gác cũ `test_run_daily_khong_chep_cung_nguong_mua` đỏ khi đổi sang nhập, vì
+nó đòi một lệnh gán tại chỗ. Đã siết chặt hơn thay vì nới: **cấm khai báo
+lại, kể cả khai đúng 62**. Bằng nhau hôm nay không cứu được — bản sao không
+sai vào ngày nó ra đời, nó sai vào ngày bản gốc đổi và nó thì không.
+
+### Điều kiện đóng lại — nêu trước, không chế sau
+
+```
+>= 60 lenh tien-ve-truoc DA DONG   VA   can tren KTC 95% cua ky vong < 0
+```
+
+Vế thứ hai cố ý khắt khe: với σ ≈ 10% một chuỗi âm ngắn là chuyện thường,
+đóng cổng vì nó là phản ứng với nhiễu. `report()` in trạng thái mỗi phiên.
+`lenh_tien_ve_truoc()` loại cả lô mô phỏng 07/08 lẫn lệnh thiếu
+`created_at` — bằng chứng chưa rõ nguồn gốc không được tính là bằng chứng.
+
+### GIÁ CỦA TRẦN — và ba lần đo, hai lần sai
+
+| | lệnh | kỳ vọng | von_tb | von_đỉnh | alpha |
+|---|---|---|---|---|---|
+| không trần | 386 | +0,616% | 145% | 524% | −0,008% |
+| **có trần** | **390** | **+0,614%** | 143% | 524% | −0,011% |
+
+**Trần không tốn gì — và cũng không chặn được gì trong backtest.** Vốn
+triển khai không hề giảm.
+
+Vì `_mo_phong` chạy **theo mã**: xong toàn bộ lịch sử FPT rồi mới sang ACB.
+Nên tại mọi điểm quyết định chỉ có vị thế của mã đang chạy đang mở. Trong
+khi `paper_metrics` dựng lại vốn triển khai theo LỊCH trên toàn bộ mã.
+
+> **Các con số đòn bẩy 145% / 524% / 1372% mô tả một danh mục mà máy chưa
+> bao giờ thực sự nắm.** Chúng đúng như một mô tả về độ chồng lấn của tập
+> lệnh, nhưng không phải một quyết định máy đã ra — và không ràng buộc danh
+> mục nào kiểm định được trong máy này. Giá trị của trần nằm ở đường chạy
+> THẬT, nơi `run_daily` quét cả rổ trong cùng một phiên và nơi 208% đã xảy
+> ra.
+
+**Hai lần đo trước đều sai, và cả hai lần con số trông đủ hợp lý để báo
+cáo.**
+
+*Lần một* — 142 lệnh, tưởng là "trần cắt 63% số lệnh". Thật ra là **4 lệnh
+mồ côi chiếm 93,8% hạn mức**: lệnh còn mở lúc hết dữ liệu của một mã không
+bao giờ được đóng, nằm lại trong DB suốt phần còn lại của lượt chạy. Trước
+khi có trần thì vô hại (`[x for x in lenh if x.status == CLOSED]` lặng lẽ
+bỏ chúng ra); có trần rồi thì chúng ăn vào hạn mức của mọi mã sau. Vá bằng
+`dong_so_sach()`: OPEN đóng ở giá phiên cuối với lý do `HET_DU_LIEU`,
+PENDING **xoá** vì chúng chưa bao giờ khớp.
+
+*Lần hai* — kỳ vọng −0,419%, alpha −1,044%, tưởng là "trần làm hệ thống
+lỗ". Con số đổi quá nhiều cho 4 lệnh thêm vào nên mở sổ ra đếm:
+
+```
+BAF  vao  23.440,0  ra  23,27  -> -99,90%
+FRT  vao 138.120,0  ra 141,32  -> -99,90%
+HAX  vao  16.000,0  ra  15,86  -> -99,90%
+VTP  vao  97.880,0  ra 100,30  -> -99,90%
+```
+
+Bốn mã cùng −99,90% không phải bốn mã cùng sập. **Nghìn đồng gặp VNĐ** —
+đúng bẫy trong bảng "hỏng âm thầm" của `NGUYEN-TAC-DO-LUONG.md`, và đúng
+thứ docstring của `run_session` cảnh báo dài dòng. Giá thô được truyền vào
+`dong_so_sach` mà thiếu `price_multiplier`.
+
+Đáng chú ý: lỗi này đẩy kết quả **xấu đi** — ngược hướng quy tắc số 1 mô
+tả. Nó vẫn sai y như vậy. Hướng của thiên lệch là một chỉ báo, không phải
+một phép kiểm.
+
+Nay `dong_so_sach` **tự chặn**: giá đóng lệch quá **10 lần** so với giá vào
+thì ném `ValueError`. Biên độ sàn 7–15% một phiên nên 10 lần không thể là
+biến động. Ném chứ không tự nhân 1000 — tự sửa nghĩa là đoán xem người gọi
+*định* nói gì.
+
+---
+
+## SAU KHI MỞ CỔNG — thứ tự ưu tiên đổi (24/08/2026)
+
+Cổng đóng thì một kết luận sai chỉ nằm trong báo cáo. Cổng mở rồi thì nó
+sinh ra lệnh. Ba việc làm ngay sau đó:
+
+### 1. "0 lệnh" phải nói được vì sao
+
+`execute_daily_scan` bỏ qua một mã bằng `break` khi nguồn trả `SYNTHETIC`
+(mất kết nối → `data_collectors` sinh giá bằng `np.random`) hoặc khi không
+đủ 20 nến. **Cả hai nhánh im lặng hoàn toàn.** Một ngày cả 71 mã mất nguồn
+cho ra đúng cùng một báo cáo với một ngày không có tín hiệu nào.
+
+Đã kiểm: dữ liệu SYNTHETIC **không** tới được `run_session` — nhánh `break`
+chặn trước. Vấn đề là sự im lặng, không phải dữ liệu bịa.
+
+Nay đếm theo lý do, in ra, và thêm dòng "Số mã quét được" vào báo cáo phiên.
+Quét được dưới **một nửa** rổ thì báo động: phiên đó không kết luận được gì
+về thị trường, nó chỉ kết luận được rằng nguồn đang hỏng. Cảnh báo đi bằng
+văn bản chứ **không** bằng mã thoát — một job đỏ sinh báo động giả che mất
+chính thứ chuông sinh ra để canh.
+
+### 2. Post-mortem: thiếu thành phần thì KHÔNG được đoán
+
+```python
+c_trend = current_breakdown.get("trend_score", 50)   # ban cu
+```
+
+Với dung sai ±5 trên ba chiều, một toạ độ bịa vẫn khớp được một mẫu và trừ
+**12 điểm** trên thang 100 — trong khi ngưỡng mua là 62. Đường này đang
+chấm điểm thật: `save_memory()` bật cho sổ thật từ 21/08, cổng mở từ 24/08.
+
+Nay fail-closed cả hai chiều, cùng kỷ luật module đã tuyên bố cho
+`phien_hoc`. Dùng `is None` chứ không `not` — điểm 0 là giá trị hợp lệ, và
+`momentum` đo được là **luôn** trả 0.
+
+Một đột biến **sống sót** ở lần đầu: test dùng mẫu (65,65,100) rồi bỏ
+`trend_score`, nhưng |50−65| = 15 > dung sai 5 nên bản cũ cũng không khớp —
+xanh cả hai bên. Con số bịa chỉ cắn khi bộ nhớ có mẫu ở gần nó, và đó đúng
+là điều sẽ xảy ra khi bộ nhớ lớn dần.
+
+### 3. Lần thứ BA cùng một lỗi — nên vá theo hệ thống
+
+```
+22/08  tools/kiem_ban_sach.py       — cong kiem ban sach
+23/08  experiment_fundamentals.py   — script quyet TRONG_SO_CO_BAN
+24/08  extend_history.py            — lenh CLAUDE.md bao nen chay
+```
+
+Cả ba chết ở `print` đầu tiên vì console cp1258, TRƯỚC khi làm được việc gì.
+Không lần nào có test đỏ, vì test **import** module chứ không **chạy** nó.
+
+`tests/test_script_chay_duoc_tren_windows.py` quét toàn repo: mọi file có
+`if __name__ == "__main__"` và có `print` đều phải gọi `reconfigure`, xác
+nhận bằng AST. 15 script, tất cả đều đạt sau khi vá thêm
+`tools/dung_lai_bo_nho.py` và `tools/nap_service_account.py`.
+
+Kèm một chốt tự soi: gác phải nhìn thấy ≥12 script. Bộ lọc hỏng trả về 2
+file thì test trên vẫn xanh mà chẳng gác gì.
+
+Chạy được rồi, `extend_history.py --check` nói ra một điều chưa ai biết:
+
+```
+Moc chung som nhat cua CA RO: 2026-02-06
+Phien it nhat: 132 (GEL) · nhieu nhat: 1210 (DIG)
+```
+
+### Dọn nhánh
+
+15 nhánh đã merged, mỗi nhánh **0 commit riêng** so với `main`, đã xoá khỏi
+remote. SHA ghi lại trong commit dọn dẹp phòng khi cần
+`git push origin <sha>:refs/heads/<tên>`.
+
+Còn lại `main` và `du-lieu/lam-moi-co-ban`.

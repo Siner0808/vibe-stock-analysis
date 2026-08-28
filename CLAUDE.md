@@ -220,6 +220,12 @@ Một công cụ kiểm tra không chạy được cũng là cổng xanh giả: 
 `tools/kiem_ban_sach.py` nổ `UnicodeEncodeError` ngay dòng print đầu tiên
 vì thiếu `encoding="utf-8"` trong `sys.stdout.reconfigure`.
 
+Lỗi đó tái diễn hai lần nữa (`experiment_fundamentals.py` 23/08, `extend_history.py`
+24/08 — cả hai đều là công cụ đo lường). Từ 24/08 có gác toàn repo:
+`tests/test_script_chay_duoc_tren_windows.py` — mọi file có `__main__` và có
+`print` đều phải gọi `reconfigure`, xác nhận bằng AST. Test **import** module
+chứ không **chạy** nó, nên không lần nào có test đỏ.
+
 ---
 
 ## Hạng gói vnstock — thứ đã mua khác thứ đang chạy
@@ -369,6 +375,86 @@ lợi nhuận.
 ngoài mẫu cho đúng cùng hình dạng: 55 lệnh TP, 55/55 thắng, +17,81%; 375
 lệnh còn lại −2,12%. Đó không phải dấu hiệu luật cũ tốt — **đó là hình dạng
 mà mọi luật chốt lời cứng đều tạo ra.**
+
+---
+
+## CỔNG MỞ LỆNH ĐÃ BẬT (24/08/2026) — ba thứ đi kèm, đừng tách rời
+
+```python
+paper_trading.CHO_PHEP_MO_LENH_MOI = True    # nguong 62
+paper_trading.TRAN_VON_CAM_KET_PCT = 100.0
+paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
+```
+
+**Lý do bật KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha vẫn chứa số
+0. Lý do là: **cấu hình chạy trực tiếp chưa bao giờ được đo**, và nó chỉ đo
+được tiến về phía trước — đúng mâu thuẫn cốt lõi ghi ở đầu file này. Giữ
+cổng đóng bảo đảm nó không bao giờ được đo, vì sổ 113 lệnh không phải bản
+ghi tích luỹ (xem mục trên) nên bằng chứng tiến-về-trước đang là **0**.
+
+Số học: cần 1.050 lệnh để kỳ vọng loại được số 0 (~23 năm ở nhịp 45
+lệnh/năm), alpha cần 22.601 lệnh. "Chờ thêm dữ liệu rồi quyết" không phải
+một lựa chọn.
+
+**ĐÓNG LẠI KHI** ≥60 lệnh tiến-về-trước đã đóng VÀ cận trên KTC 95% của kỳ
+vọng < 0. `report()` in trạng thái mỗi phiên. Đừng chế điều kiện khác sau
+khi đã nhìn số — đó là bất biến 7 đổi hướng.
+
+### Trần vốn cam kết — chặn được, nhưng CHỈ ở đường chạy thật
+
+`avg_capital_deployed_pct` chỉ **báo cáo** sau khi việc đã rồi. Sổ thật
+từng chạm **208%**. Nay `consider_entry` từ chối lệnh mới khi tổng `size_pct`
+đang mở + lệnh mới > 100%, đếm cả `PENDING`.
+
+**Trần KHÔNG chặn được gì trong backtest, và đó không phải lỗi của trần.**
+`walkforward._mo_phong` chạy **theo mã** — xong toàn bộ lịch sử FPT rồi mới
+sang ACB — nên tại mọi điểm quyết định chỉ có vị thế của mã đang chạy. Hệ
+quả phải nhớ khi đọc số:
+
+> Các con số đòn bẩy 145% / 524% / 1372% trong mọi báo cáo walk-forward mô
+> tả một danh mục **máy chưa bao giờ thực sự nắm**. Chúng đúng như mô tả về
+> độ chồng lấn theo lịch của tập lệnh, nhưng không phải quyết định máy đã
+> ra — và **không ràng buộc danh mục nào kiểm định được trong máy này.**
+
+Đo giá của trần: 386 → 390 lệnh, kỳ vọng +0,616% → +0,614%, alpha −0,008%
+→ −0,011%. Không tốn gì.
+
+### Một ngưỡng mua, một chỗ
+
+`run_daily` **NHẬP** `BUY_THRESHOLD` từ `paper_trading`. Trước 24/08 nó cầm
+`50.0` song song với `62` — cổng đóng nên hai con số chưa bao giờ gặp nhau.
+Gác cấm khai báo lại, **kể cả khai đúng 62**: bản sao không sai vào ngày nó
+ra đời, nó sai vào ngày bản gốc đổi và nó thì không.
+
+### Lệnh mồ côi trong backtest
+
+Lệnh còn mở lúc hết dữ liệu của một mã nằm lại trong DB suốt lượt chạy.
+Trước khi có trần thì vô hại; có trần rồi thì chúng ăn vào hạn mức của mọi
+mã sau. `dong_so_sach()` đóng sổ cuối mỗi mã — OPEN đóng ở giá phiên cuối
+(`HET_DU_LIEU`), PENDING **xoá** vì chưa bao giờ khớp.
+
+**PHẢI nhân `price_multiplier` khi gọi nó.** Quên là mọi lệnh mồ côi đóng ở
+−99,90% (nghìn đồng gặp VNĐ) và kéo kỳ vọng OOS từ +0,616% xuống −0,419%.
+Đã xảy ra thật. Nay hàm tự ném `ValueError` khi giá lệch quá 10 lần so với
+giá vào — biên độ sàn là 7–15% một phiên nên 10 lần không thể là biến động.
+
+---
+
+## Ba lỗi im lặng đã đóng sau khi mở cổng (24/08/2026)
+
+Cổng đóng thì một kết luận sai chỉ nằm trong báo cáo. Cổng mở rồi thì nó
+sinh ra lệnh.
+
+| Chỗ | Hỏng thế nào | Nay |
+|---|---|---|
+| `execute_daily_scan` | mã bị bỏ qua (SYNTHETIC / thiếu nến) **im lặng** — cả rổ mất nguồn ra đúng cùng báo cáo với "không có tín hiệu" | đếm theo lý do; quét dưới **một nửa** rổ thì báo động trong báo cáo phiên |
+| `post_mortem_learning` | `.get("trend_score", 50)` — toạ độ bịa vẫn khớp mẫu với dung sai ±5 và trừ **12 điểm** thật | fail-closed cả khi tra phạt lẫn khi ghi mẫu; `is None` chứ không `not` vì điểm 0 hợp lệ |
+| 3 script | thiếu `sys.stdout.reconfigure` nên chết ở `print` đầu tiên, chưa bao giờ chạy nổi trên Windows | `tests/test_script_chay_duoc_tren_windows.py` quét toàn repo bằng AST |
+
+Cái thứ ba là lần thứ **BA** cùng một lỗi (`kiem_ban_sach` 22/08,
+`experiment_fundamentals` 23/08, `extend_history` 24/08). Vá từng file là
+cách sửa ba lần đầu; gác toàn repo là cách sửa lần thứ tư. Test **import**
+module chứ không **chạy** nó, nên không lần nào có test đỏ.
 
 ---
 
