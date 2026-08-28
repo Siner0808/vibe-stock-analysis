@@ -45,7 +45,7 @@ bốn package đi kèm.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 DUONG_DAN_XAC_MINH = "https://vnstocks.com/api/vnstock/license/verify"
 TTL_GIAY = 1800          # hạng gói đổi rất chậm; 30 phút là quá đủ

@@ -6,13 +6,9 @@ Bao gồm tin tức vĩ mô, ngành, doanh nghiệp và cảm xúc thị trườ
 ──────────────────────────────────────────────────────────────────────
 """
 import feedparser
-import requests
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional
 from bs4 import BeautifulSoup
 import concurrent.futures
-import re
 
 HEADERS = {
     "User-Agent": (

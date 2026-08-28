@@ -779,3 +779,27 @@ mau_bang_gia.doc_bang_gia("SSI") # trần/sàn/tham chiếu thật, `loi` nói v
 
 Ba bản đầu mô tả thứ *nên* chạy. Chỉ bản as-built mô tả thứ *đang* chạy.
 Khi hai bên lệch nhau, bản as-built đúng.
+
+---
+
+## Dọn code chết — cái bẫy đã gặp
+
+Đã rà 28/08/2026. Ghi lại để lần sau khỏi vấp:
+
+1. **Dùng AST, đừng dùng grep.** `"news" in src` khớp cả chữ trong chú
+   thích. File càng nhiều chú thích trung thực thì grep càng nói dối.
+2. **`from __future__ import annotations` KHÔNG phải import thừa.** Mọi
+   máy quét sẽ gắn cờ nó ở ~20 file. Gỡ ra là CI 3.11 đỏ.
+3. **Khoá cấu hình không ai đọc nguy hiểm hơn code không ai chạy.** Code
+   chết thì im lặng; núm vặn giả thì mời người ta vặn. Bộ trọng số từng
+   mang `"news": 0.0` mà biểu thức điểm không hề đọc tới.
+4. **Xoá trùng lặp, đừng xoá năng lực.** `tradingview_mcp.py` là bản sao
+   thứ hai của thứ đã có → xoá. `top_stocks_screener.py` mồ côi nhưng là
+   tính năng riêng → để lại cho người quyết.
+5. **Chạy `tools/kiem_cu_phap_311.py` khi pytest đã xong**, không song
+   song: có test ghi thư mục tạm vào gốc repo và gây đỏ giả.
+
+Hai hàng rào mới đáng biết:
+`tests/test_trong_so_that_su_duoc_dung.py` bắt mọi khoá trọng số không
+được nhân vào điểm (và mọi hạng tử bị quên khỏi tổng).
+`tests/test_dau_hieu_tranh_luan.py` khoá quy ước dấu Bull(+)/Bear(−)/Devil(−).

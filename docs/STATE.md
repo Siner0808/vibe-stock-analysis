@@ -3022,3 +3022,93 @@ nguyên. Chỉ phép so bằng-tuyệt-đối là hỏng.
 mở cửa (trượt cỡ đó là mô hình hỏng, không phải chi phí).
 
 564 test xanh · đột biến 6/6 đỏ · 0 CHẶN · 3.11 sạch.
+
+---
+
+## RÀ SOÁT CODE CHẾT — VÀ MỘT NÚM VẶN GIẢ
+## (28/08/2026)
+
+Kiểm kê bằng **AST**, không bằng grep chuỗi. Lý do không phải là sự cầu
+kỳ: `"news" in src` khớp cả chữ trong chú thích, mà `master_agent.py` đầy
+chú thích nói về news. Grep sẽ báo "còn dùng" cho đúng thứ đã chết.
+
+Mốc: **564 test xanh** trước → **571** sau (+7 test gác mới). 3.11 sạch.
+Điểm chấm **không dịch một ly** — đo lại bằng cùng kịch bản trước/sau:
+60 / 68 / 64 / 60 / 56 / 52, y hệt.
+
+### Đã xoá
+
+| Thứ | Ở đâu | Vì sao chắc là chết |
+|---|---|---|
+| `tradingview_mcp.py`, 106 dòng | gốc repo | Bản sao thứ hai của `TradingViewCollectorAgent`. AST: không file nào import; không .md nào nhắc. |
+| Nhánh `if bull_total < 0:` | `debate_agents.py:352` | Sàn cấu trúc của `bull_total` là **+1,5**; đo 262 lượt thật, thấp nhất +1,50. |
+| Khoá `"news": 0.0` × 3 | `master_agent.py` | Không biểu thức nào đọc `weights["news"]`. |
+| 24 import thừa | 14 file | Tên chỉ xuất hiện đúng một lần trong file — chính dòng import. |
+
+`from __future__ import annotations` **không** bị đụng tới ở bất kỳ file
+nào. Máy quét gắn cờ nó ở 20 file vì nó không phải một cái tên được dùng
+— nhưng nó là chỉ thị biên dịch, và gỡ nó ra là làm hỏng CI 3.11. Đây là
+cái bẫy lớn nhất của việc "dọn import tự động".
+
+### Núm vặn giả — thứ đáng kể nhất tìm được
+
+Cả ba bộ trọng số động mang khoá `"news": 0.0`, mà biểu thức
+`pre_debate_score` không hề nhắc tới `weights["news"]`. Đặt `0.25` vào đó
+thì **không có gì xảy ra**: chạy xong, số không đổi, không ai biết mình
+vừa không làm gì. Đúng dạng "silent pass" mà `NGUYEN-TAC-DO-LUONG.md`
+cảnh báo, chỉ khác là nó nằm ở chỗ người ta tưởng mình đang chỉnh chiến
+lược.
+
+Chọn **gỡ khoá** chứ không phải nối `news_norm` vào tổng. Nối vào thì
+0,0 × NaN = NaN — `normalize()` kẹp bằng `max/min`, mà NaN đi qua `max/min`
+không đoán trước được, nên một điểm tin tức hỏng sẽ đầu độc cả điểm chấm.
+Gỡ khoá không thêm rủi ro nào và vẫn đóng được cái bẫy.
+
+`news_norm` vẫn được tính, vì `score_breakdown["news_score"]` hiển thị nó.
+Nó là số để NHÌN, không phải số để CHẤM — nay đã ghi thành lời tại chỗ.
+
+### Bốn phép soi KHÔNG tìm thấy gì
+
+Cũng là kết quả, và là kết quả tốt:
+
+| Soi cái gì | Thấy |
+|---|---|
+| Định nghĩa trùng tên trong cùng phạm vi (bản sau đè bản trước) | 0 |
+| Lệnh nằm sau `return` / `raise` / `continue` / `break` | 0 |
+| Method của lớp không nơi nào nhắc tên | 0 |
+| Import vòng | 0 |
+
+### Hai hàng rào mới, cả hai đều qua đột biến
+
+**`tests/test_dau_hieu_tranh_luan.py`** — quy ước dấu của Debate Council:
+Bull chỉ dương, Bear chỉ âm, Devil chỉ âm. Phép cộng
+`bull*0,4 + bear*0,4 + devil*0,2` chỉ có nghĩa "hai phe triệt tiêu nhau"
+khi quy ước đó đúng, mà không dòng nào trong `debate_agents.py` phát biểu
+nó thành lời. Phá quy ước thì điểm vẫn nằm trong ±8 và vẫn trông hợp lý.
+Đột biến 4/4 đỏ.
+
+**`tests/test_trong_so_that_su_duoc_dung.py`** — mọi khoá trong bộ trọng
+số phải thực sự được nhân vào điểm, và ngược lại. Gác cả hai chiều: khoá
+thừa là núm vặn giả, khoá thiếu là `KeyError` ở đúng nhánh đó. Đột biến
+3/3 đỏ — kể cả đột biến **quên một hạng tử** (bỏ `risk_norm * weights["risk"]`
+khỏi tổng), thứ mà một test so-điểm-cuối bình thường sẽ không bắt được.
+
+### Nghi chết nhưng KHÔNG xoá — chờ người quyết
+
+| Thứ | Vì sao dừng tay |
+|---|---|
+| `top_stocks_screener.py` (57 dòng) | Mồ côi thật, nhưng là **năng lực riêng** (quét song song top 5), không phải bản sao. Xoá là bỏ một tính năng, khác với dọn trùng lặp. |
+| `google_sheets_sync.get_gspread_client()` | Không ai gọi, nhưng docstring nói rõ nó là **cửa thoát hiểm soi lỗi bằng tay**. Chết theo nghĩa đếm lời gọi, sống theo nghĩa chủ ý. |
+| 9 script `optimize_*` / `run_*_test.py` ở gốc repo | Có thể là **nguồn gốc** của những con số đang nằm trong docs. Xoá trước khi truy nguồn là mất dấu vết đo lường. |
+| `test_trailing_sim.py` ở gốc repo | Có trong git nhưng nằm ngoài `tests/`, nên pytest không hề chạy nó. Một test không ai chạy là tệ hơn không có test. |
+| `*.db` ở gốc repo | Dữ liệu đo lường. Không đụng. |
+
+### Một chuyện nhỏ phát hiện lúc chạy
+
+`tools/kiem_cu_phap_311.py` đỏ nếu chạy **song song** với `pytest`: có test
+tạo thư mục tạm ngay trong gốc repo (`tmpXXXX/vi_pham_tam.py`), trình kiểm
+duyệt đi vào đúng lúc nó đang bị xoá. Không phải lỗi cú pháp — nhưng nó
+nói rằng có test đang ghi file tạm vào repo thay vì vào thư mục tạm của hệ
+thống. Chạy tuần tự thì sạch.
+
+571 test xanh · đột biến 7/7 đỏ · 0 CHẶN · 3.11 sạch.

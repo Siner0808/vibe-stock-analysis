@@ -33,7 +33,7 @@ import pandas as pd
 
 from data_quality import now_vn
 from paper_metrics import report as build_report
-from paper_trading import PaperTradingJournal, Status
+from paper_trading import PaperTradingJournal
 
 
 class DaLuongVoiBoNhoError(RuntimeError):

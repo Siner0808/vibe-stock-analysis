@@ -39,7 +39,6 @@ import re
 import difflib
 import hashlib
 import json
-import os
 import sys
 import tempfile
 import time

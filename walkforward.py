@@ -385,7 +385,7 @@ def main() -> int:
     import argparse
     import sys
 
-    from dai_ket_qua import CANH_BAO, in_toan_dai
+    from dai_ket_qua import in_toan_dai
 
     try:
         sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
