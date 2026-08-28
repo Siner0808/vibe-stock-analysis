@@ -909,3 +909,56 @@ if __name__ == "__main__":
             print(f"FAIL  {fn.__name__}: {type(e).__name__}: {e}")
     print(f"\n===== {len(fns) - failed}/{len(fns)} test PASS =====")
     sys.exit(1 if failed else 0)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Công tắc CHOT_LOI_CUNG — dựng để ĐO, không phải để bật
+# ─────────────────────────────────────────────────────────────────────
+#
+# Nó tồn tại vì câu hỏi "gỡ chốt lời cứng đi là đúng hay sai" chỉ trả lời
+# được bằng cách chạy walk-forward hai lần trên đúng cùng dữ liệu. Ba gác
+# dưới đây khoá hai điều: mặc định phải TẮT, và khi BẬT thì bất biến 3 vẫn
+# phải đứng.
+
+
+def test_cong_tac_chot_loi_cung_mac_dinh_phai_TAT():
+    """Đổi mặc định là đổi luật giao dịch, không phải đổi cấu hình.
+
+    Không có gác này thì một dòng `CHOT_LOI_CUNG = True` lọt vào sẽ làm
+    mọi con số sau đó nói về một hệ thống khác, mà không test nào đỏ.
+    """
+    assert pt.CHOT_LOI_CUNG is False, (
+        "mặc định phải TẮT — đó là hành vi đang chạy từ trước")
+    print("PASS  CHOT_LOI_CUNG mặc định = False")
+
+
+def test_bat_chot_loi_cung_thi_van_LAY_SL_khi_ca_hai_cung_cham(monkeypatch):
+    """Bất biến 3 không được nới ra khi bật công tắc.
+
+    `elif` chứ không phải `if` thứ hai là thứ bảo đảm điều này. Đổi sang
+    hai `if` rời thì TP ghi đè SL — đúng cái giả định có lợi bị cấm.
+    """
+    monkeypatch.setattr(pt, "CHOT_LOI_CUNG", True)
+    j = new_journal()
+    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=90, tp=120))
+    j.fill_pending("FPT", "2026-08-06", 100.0)
+    closed = j.evaluate_open("FPT", "2026-08-07", bar(100, 125, 85, 110))
+    assert len(closed) == 1
+    assert closed[0]["reason"] == ExitReason.STOP_LOSS, (
+        "bật chốt lời cứng mà TP thắng SL -> giả định có lợi, thổi phồng "
+        "kết quả một cách có hệ thống")
+    assert closed[0]["exit_price"] == 90.0
+    print("PASS  bật công tắc: cả hai cùng chạm -> vẫn LẤY SL")
+
+
+def test_bat_chot_loi_cung_thi_cham_TP_moi_dong_bang_TP(monkeypatch):
+    """Và công tắc phải thật sự làm gì đó — nếu không nó là mã chết."""
+    monkeypatch.setattr(pt, "CHOT_LOI_CUNG", True)
+    j = new_journal()
+    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=90, tp=120))
+    j.fill_pending("FPT", "2026-08-06", 100.0)
+    closed = j.evaluate_open("FPT", "2026-08-07", bar(100, 125, 98, 121))
+    assert len(closed) == 1
+    assert closed[0]["reason"] == ExitReason.TAKE_PROFIT
+    assert closed[0]["exit_price"] == 120.0
+    print("PASS  bật công tắc: chạm TP mà không thủng SL -> đóng ở TP")

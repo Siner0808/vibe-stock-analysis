@@ -319,6 +319,59 @@ user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
 
 ---
 
+## Sổ lệnh giấy KHÔNG phải bản ghi tích luỹ — kiểm trước khi trích số
+
+Đo 23/08/2026: cả **113 lệnh** trong `paper_trades.db` có `created_at` nằm
+trong **258 giây** ngày 07/08/2026, trong khi `signal_date` của chúng trải
+2024-01-05 → 2026-06-26 (**903 ngày**). Không dòng nào ghi sau đó.
+`created_at` có trong `sheets_store._COLS` nên lần khôi phục sau sự cố
+12/08 giữ nguyên dấu thời gian gốc.
+
+Sổ ấy chưa bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước.
+Bảng `decisions` thì ngược lại — vẫn chạy thật, 5.071 quyết định riêng
+tháng 08/2026.
+
+`paper_metrics.tom_tat_lo_ghi()` phát hiện việc này **từ chính dữ liệu**,
+không cần thêm cột. Ba ngưỡng, và ngưỡng thứ ba mới là cái phân biệt: một
+phiên bận rộn mở 20 lệnh trong 30 giây trông y hệt một lượt mô phỏng nếu
+chỉ nhìn `created_at` — khác ở chỗ 20 lệnh ấy **cùng một ngày tín hiệu**.
+Cảnh báo hiện ở cả `report()` lẫn tab Sổ lệnh của app; hai gác AST trong
+`tests/test_no_fabricated_data.py` khoá cả hai đường.
+
+**Hệ quả khi đọc mọi con số về sổ:** kỳ vọng +0,79%, KTC, alpha +0,090%,
+drawdown — tất cả vẫn đúng như phép tính, nhưng chúng nói về **một lượt mô
+phỏng**, không phải về kết quả tích luỹ qua từng phiên quét.
+
+### Chốt lời cứng đã bị gỡ — và việc gỡ nó KHÔNG làm hỏng gì
+
+`evaluate_open()` không còn nhánh nào so `high` với `take_profit`. Cột
+`take_profit` vẫn được tính và ghi, vẫn không có gì đọc nó để ra quyết
+định. Công tắc `CHOT_LOI_CUNG` (mặc định **False**) dựng ra để ĐO, không
+phải để bật.
+
+Hai lượt walk-forward đầy đủ, cùng dữ liệu, khác duy nhất công tắc:
+
+| | ngoài mẫu | alpha | σ | nắm giữ TB |
+|---|---|---|---|---|
+| **TẮT** (hiện hành) | +0,616%/lệnh | −0,008% | 10,18% | 20,3 ngày |
+| BẬT (luật cũ) | +0,426%/lệnh | −0,006% | 7,72% | 17,4 ngày |
+
+Chênh lệch kỳ vọng +0,190% có KTC [−1,061 ; +1,440] — **chứa 0**. Và trên
+alpha, thước quyết định của bất biến 6, hai luật **giống hệt nhau**. Phần
+kỳ vọng dôi ra của bản TẮT mua bằng thời gian ở trong thị trường (dài hơn
+17%), tức beta.
+
+Thứ chốt lời cứng thật sự làm là **giảm phương sai 24%**, không phải tăng
+lợi nhuận.
+
+**Bí ẩn "19 lệnh vàng" trong sổ đã có lời giải.** Sổ thật: 19 lệnh
+`TAKE_PROFIT`, 19/19 thắng, +17,23%; 93 lệnh còn lại −2,567%. Lượt BẬT
+ngoài mẫu cho đúng cùng hình dạng: 55 lệnh TP, 55/55 thắng, +17,81%; 375
+lệnh còn lại −2,12%. Đó không phải dấu hiệu luật cũ tốt — **đó là hình dạng
+mà mọi luật chốt lời cứng đều tạo ra.**
+
+---
+
 ## Ranh giới không vượt qua
 
 - **Không đặt lệnh thật.** Agent chuẩn bị → người xác nhận → người đặt lệnh.

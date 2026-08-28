@@ -76,6 +76,32 @@ def guard_not_real_ledger(path: str, *, caller: str) -> None:
 # ── Quy tắc mặc định ────────────────────────────────────────────────
 BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 
+#: Chốt lời cứng — TẮT, và tắt là hành vi đang chạy từ trước.
+#:
+#: Công tắc này KHÔNG dựng ra để bật lại. Nó dựng ra để câu hỏi "gỡ
+#: chốt lời cứng đi là đúng hay sai" trở thành một câu hỏi ĐO ĐƯỢC:
+#: chạy walk-forward hai lần trên đúng cùng dữ liệu, mỗi lần một bên.
+#:
+#: Vì sao cần: đo ngày 23/08/2026, 19/112 lệnh đã đóng trong sổ vẫn
+#: mang `exit_reason = TAKE_PROFIT` — di sản của luật cũ — và toàn bộ
+#: kỳ vọng dương của sổ (+0,792%) nằm ở đúng 19 dòng ấy. Nhưng xoá 19
+#: dòng rồi tính lại KHÔNG mô phỏng được luật mới: dưới luật mới những
+#: lệnh đó chạy tiếp và thoát bằng trailing stop. Chỉ có chạy lại cả
+#: hai bên mới trả lời được.
+#:
+#: ĐÃ CHẠY (23/08/2026), hai lượt walk-forward đầy đủ:
+#:   ngoai mau  TAT +0,616%/lenh · BAT +0,426%   chenh KTC chua 0
+#:   alpha      TAT -0,008%      · BAT -0,006%   hai luat GIONG NHAU
+#:   sigma      TAT  10,18%      · BAT   7,72%   TP giam phuong sai 24%
+#: Gỡ chốt lời cứng không làm hỏng gì; phần kỳ vọng dôi ra là do giữ
+#: lâu hơn 17% (20,3 so với 17,4 ngày), tức beta chứ không phải alpha.
+#: Chi tiết: `docs/STATE.md`, mục 23/08/2026.
+#:
+#: Thứ tự kiểm giữ nguyên bất biến 3: SL kiểm TRƯỚC, nên khi cả hai
+#: cùng chạm trong một phiên thì vẫn LẤY SL. `elif` là thứ bảo đảm
+#: điều đó, không phải quy ước.
+CHOT_LOI_CUNG = False
+
 # ── Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG ──────────────────────────────────────
 # Mặc định TẮT: hệ thống vẫn quét, vẫn chấm điểm, vẫn ghi quyết định, vẫn
 # theo dõi và đóng các vị thế đang mở — nhưng KHÔNG mở vị thế mới.
@@ -99,7 +125,41 @@ BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 #
 # Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính logic
 # vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
-CHO_PHEP_MO_LENH_MOI = False
+# ── Ô C5 ĐÃ MỞ (24/08/2026) ─────────────────────────────────────────
+#
+# Lý do mở KHÔNG phải vì tìm thấy lợi thế. Mọi phép đo alpha đều chứa
+# số 0: rho điểm cuối −0,019 · alpha walk-forward −0,011% · alpha sổ
+# +0,090% · hai luật chốt lời giống hệt nhau.
+#
+# Lý do là ba điều đo được, cộng lại:
+#
+# 1. Cấu hình chạy TRỰC TIẾP chưa bao giờ được đo. Backtest đo một hệ
+#    bị cắt tay chân — không có lịch sử TradingView và tin tức nên 2
+#    agent là hằng số, 2 agent là công tắc ba nấc. Sáu agent đầy đủ chỉ
+#    đo được TIẾN VỀ PHÍA TRƯỚC.
+#
+# 2. Chờ thêm dữ liệu không phải một lựa chọn. Cả 113 lệnh trong sổ
+#    được ghi trong 258 giây ngày 07/08/2026 — sổ chưa bao giờ tích luỹ
+#    một lệnh nào từ quét tiến về phía trước. Giữ đóng thì bằng chứng
+#    tiến-về-trước đứng mãi ở 0 lệnh, không phải '113 và chờ thêm'.
+#
+# 3. Điều kiện mở lại ghi trong chính khối này ĐÃ ĐẠT: Phase 5D chọn
+#    ngưỡng 62 trên khoảng A, đo trên khoảng B, A ∩ B = ∅. Thứ không đạt
+#    là ý nghĩa thống kê — vốn chưa bao giờ nằm trong điều kiện. Siết
+#    thêm sau khi đã thấy kết quả là tự đổi thước.
+#
+# BA THỨ PHẢI DỰNG TRƯỚC, và cả ba đã dựng:
+#   • TRAN_VON_CAM_KET_PCT = 100 — sổ thật từng chạm 208% vốn cam kết
+#   • run_daily NHẬP BUY_THRESHOLD thay vì cầm 50,0 song song với 62
+#   • paper_metrics.dieu_kien_dong_lai() — điều kiện đóng lại nêu TRƯỚC
+#
+# ĐÓNG LẠI KHI: ≥60 lệnh tiến-về-trước đã đóng VÀ cận trên KTC 95% của
+# kỳ vọng < 0. `paper_metrics.report()` in trạng thái này mỗi phiên quét.
+# Đừng chế điều kiện khác sau khi đã nhìn số.
+#
+# Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính
+# logic vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
+CHO_PHEP_MO_LENH_MOI = True
 
 #: Muc chat luong du lieu con DUNG DUOC de vao lenh.
 #:
@@ -113,9 +173,31 @@ CHO_PHEP_MO_LENH_MOI = False
 #: nua thi nhanh nay la CODE CHET vi packet luon mang "OK" cung.
 MUC_CHAT_LUONG_DUNG_DUOC = frozenset({"OK", "WARN"})
 
+# Giữ lại: `consider_entry` vẫn dùng khi ai đó đóng cổng lại bằng tay.
 LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
             "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
             "bằng walk-forward hợp lệ")
+#: Trần vốn cam kết cùng lúc, tính theo % tài khoản.
+#:
+#: Bất biến 7b: đường vốn nhân dồn từng lệnh vào TOÀN BỘ vốn hiện có.
+#: Phép nhân đó chỉ đúng khi mỗi thời điểm có một lệnh mở. Nhiều lệnh
+#: chồng lên nhau thì tổng vốn cam kết vượt 100% và con số cộng dồn
+#: trở thành lợi nhuận của một tài khoản VAY ĐƯỢC.
+#:
+#: Trước 24/08/2026 KHÔNG có gì chặn — `Performance.avg_capital_deployed_pct`
+#: chỉ BÁO CÁO sau khi việc đã rồi. Đo được:
+#:     so lenh that      29% trung binh · 208% DINH
+#:     walk-forward OOS 145% trung binh · 524% dinh
+#: Đó đúng là cơ chế sinh ra +636,11% ngày 12/08/2026.
+#:
+#: Trần theo VỐN chứ không theo SỐ vị thế: `size_pct` chạy từ 5% tới
+#: 33,3% tuỳ khoảng cách stop, nên đếm vị thế không ràng buộc được
+#: thứ cần ràng buộc. Ở mức trung bình 18,8% thì 100% ≈ 5,3 vị thế.
+TRAN_VON_CAM_KET_PCT = 100.0
+
+LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng đòn bẩy "
+                  "(bất biến 7b)")
+
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
@@ -136,6 +218,24 @@ class ExitReason:
     TAKE_PROFIT = "TAKE_PROFIT"
     SIGNAL_REVERSED = "SIGNAL_REVERSED"
     MAX_HOLD = "MAX_HOLD"
+    #: Hết dữ liệu của mã đó trong lượt mô phỏng — KHÔNG phải một quy
+    #: tắc giao dịch. Chỉ `walkforward._mo_phong` sinh ra lý do này;
+    #: đường chạy thật không bao giờ hết dữ liệu.
+    HET_DU_LIEU = "HET_DU_LIEU"
+
+
+def _lay_cot(r: Any, ten: str):
+    """Đọc một cột có thể KHÔNG tồn tại trong hàng.
+
+    `sqlite3.Row` ném `IndexError` chứ không trả None khi thiếu cột,
+    và sổ cũ hơn schema hiện tại thì thiếu thật. Trả None ở đây là
+    trung thực — "không biết" — chứ không phải nuốt lỗi: hàm gọi
+    (`lo_ghi_hang_loat`) coi None là không kết luận được.
+    """
+    try:
+        return r[ten]
+    except (IndexError, KeyError):
+        return None
 
 
 @dataclass
@@ -153,6 +253,12 @@ class Trade:
     size_pct: float
     entry_score: int
     status: str
+    #: Dấu thời gian LÚC GHI VÀO ĐĨA (epoch giây) — khác hẳn
+    #: `signal_date` là ngày mô phỏng. Chênh lệch giữa hai thứ này
+    #: là thứ duy nhất phân biệt một sổ tích luỹ tiến về phía trước
+    #: với một sổ sinh ra từ một lượt mô phỏng. Xem
+    #: `paper_metrics.lo_ghi_hang_loat()`.
+    created_at: Optional[float] = None
 
     def gross_return_pct(self) -> Optional[float]:
         if self.entry_price and self.exit_price:
@@ -231,6 +337,69 @@ class PaperTradingJournal:
         self.db.commit()
 
     # ─────────────────── Mở lệnh ──────────────────────────────────────
+    def dong_so_sach(self, symbol: str, session_date: str,
+                     close_price: float) -> int:
+        """Đóng nốt vị thế của `symbol` khi hết dữ liệu. Trả số lệnh đã xử lý.
+
+        Chỉ dùng cho mô phỏng. `_mo_phong` chạy THEO MÃ — xong toàn bộ
+        lịch sử của mã này rồi mới sang mã sau — nên lệnh còn mở lúc
+        hết dữ liệu nằm lại trong DB suốt phần còn lại của lượt chạy.
+
+        Trước khi có trần vốn điều đó vô hại: `[x for x in lenh if
+        x.status == CLOSED]` lặng lẽ bỏ chúng ra. Có trần rồi thì chúng
+        ĂN VÀO HẠN MỨC của mọi mã sau. Đo 24/08/2026 trên vùng OOS: 4
+        lệnh mồ côi của 4 mã khác nhau chiếm 93,8% hạn mức, và số lệnh
+        tụt từ 386 xuống 142 — con số đó là chỗ bị chiếm, KHÔNG phải
+        giá của trần.
+
+        PENDING bị XOÁ chứ không đóng: chúng chưa bao giờ khớp, nên
+        ghi một lệnh lãi/lỗ cho chúng là bịa ra một giao dịch.
+        """
+        # Chan sai don vi TRUOC khi ghi. Mot gia dong cua lech qua 10 lan
+        # so voi gia vao khong phai bien dong thi truong -- bien do san
+        # la 7-15% mot phien. Do la nghin dong gap VND, dung cai bay
+        # `NGUYEN-TAC-DO-LUONG.md` liet ke trong bang "hong am tham", va
+        # no da xay ra that ngay 24/08/2026 khi ham nay vua ra doi.
+        #
+        # No o day chu khong sua lang le: sua lang le nghia la doan xem
+        # nguoi goi DINH noi gi, va doan sai thi khong ai biet.
+        for r in self.db.execute(
+                "SELECT id, entry_price FROM trades"
+                " WHERE symbol=? AND status=?",
+                (symbol, Status.OPEN)).fetchall():
+            vao = float(r["entry_price"] or 0.0)
+            if vao > 0 and not (0.1 <= float(close_price) / vao <= 10.0):
+                raise ValueError(
+                    f"dong_so_sach({symbol}): gia dong {close_price:,.4f} "
+                    f"lech {float(close_price) / vao:.4g} lan so voi gia "
+                    f"vao {vao:,.2f}. Day la sai DON VI (nghin dong vs "
+                    f"VND), khong phai bien dong gia — nhan "
+                    f"data_quality.price_multiplier() truoc khi goi.")
+
+        n = self.db.execute(
+            "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
+            " status=? WHERE symbol=? AND status=?",
+            (session_date, float(close_price), ExitReason.HET_DU_LIEU,
+             Status.CLOSED, symbol, Status.OPEN)).rowcount
+        m = self.db.execute(
+            "DELETE FROM trades WHERE symbol=? AND status=?",
+            (symbol, Status.PENDING)).rowcount
+        self.db.commit()
+        return n + m
+
+    def von_dang_cam_ket(self) -> float:
+        """Tổng `size_pct` của các lệnh ĐANG MỞ **và ĐANG CHỜ KHỚP**.
+
+        Phải gồm cả PENDING. Lệnh chờ sẽ khớp ở phiên sau và cam kết
+        vốn thật; bỏ nó ra thì xếp bao nhiêu lệnh chờ cũng lọt, rồi
+        sáng hôm sau tất cả cùng khớp một lượt — trần thành vô hiệu
+        đúng vào phiên nó cần chặn nhất.
+        """
+        r = self.db.execute(
+            "SELECT COALESCE(SUM(size_pct), 0) FROM trades WHERE status IN (?,?)",
+            (Status.OPEN, Status.PENDING)).fetchone()
+        return float(r[0] or 0.0)
+
     def consider_entry(self, symbol: str, signal_date: str, result: dict,
                        exchange: str = "HOSE",
                        buy_threshold: float | None = None) -> Optional[int]:
@@ -301,6 +470,19 @@ class PaperTradingJournal:
         
         # Giới hạn kích cỡ: Tối thiểu 5%, tối đa 33.3% (Tránh dồn vốn vào 1 mã)
         size = round(max(5.0, min(33.3, size)), 1)
+
+        # Trần vốn — chốt cuối cùng, và bắt buộc nằm ở ĐÂY chứ không
+        # nằm cùng chỗ với các cổng trên: nó cần `size`, mà `size` chỉ
+        # tính được sau khi đã có stop-loss. Lý do ghi vào sổ vì thế
+        # cho biết lệnh này đã qua MỌI cổng khác và chỉ dừng ở trần.
+        dang_cam_ket = self.von_dang_cam_ket()
+        if dang_cam_ket + size > TRAN_VON_CAM_KET_PCT:
+            self.record_decision(
+                symbol, signal_date, result, False,
+                f"{LY_DO_TRAN_VON}: đang cam kết {dang_cam_ket:.1f}% "
+                f"+ {size:.1f}% > {TRAN_VON_CAM_KET_PCT:.0f}%")
+            return None
+
         cur = self.db.execute(
             "INSERT INTO trades (symbol, exchange, signal_date, entry_date,"
             " entry_price, exit_date, exit_price, exit_reason, stop_loss,"
@@ -340,9 +522,15 @@ class PaperTradingJournal:
                       current_score: Optional[int] = None) -> list[dict]:
         """Xét đóng các lệnh đang mở theo quy tắc, dựa trên nến phiên hiện tại.
 
-        Thứ tự ưu tiên khi cả SL và TP cùng chạm trong một phiên: LẤY SL.
-        Nến ngày không cho biết cái nào chạm trước, nên chọn giả định bất lợi —
-        giả định có lợi sẽ thổi phồng kết quả một cách có hệ thống.
+        Mặc định `CHOT_LOI_CUNG = False`, nên **không có lối thoát bằng
+        chốt lời** — lệnh chỉ đóng bằng cắt lỗ, đảo tín hiệu, hoặc trần
+        thời gian nắm giữ. Docstring bản trước hứa một nhánh TP mà thân
+        hàm đã gỡ; đọc nó rồi tin là hiểu sai hệ thống đang chạy.
+
+        Khi bật công tắc: thứ tự ưu tiên lúc cả SL và TP cùng chạm trong
+        một phiên là LẤY SL. Nến ngày không cho biết cái nào chạm trước,
+        nên chọn giả định bất lợi — giả định có lợi sẽ thổi phồng kết quả
+        một cách có hệ thống (bất biến 3).
         """
         closed = []
         rows = self.db.execute(
@@ -359,9 +547,14 @@ class PaperTradingJournal:
             entry_p = float(r["entry_price"]) if r["entry_price"] else None
 
             # SL là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
-            # BỎ CHỐT LỜI CỨNG (Hard TP) - Fat-Tail Exploitation
+            #
+            # `elif` chứ không phải `if` thứ hai: cả hai cùng chạm thì
+            # LẤY SL (bất biến 3). Đổi sang hai `if` rời là để TP ghi đè
+            # SL — đúng cái giả định có lợi bị cấm.
             if low <= sl:
                 reason, price = ExitReason.STOP_LOSS, sl
+            elif CHOT_LOI_CUNG and high >= tp:
+                reason, price = ExitReason.TAKE_PROFIT, tp
 
             # TRAILING STOP & BREAK-EVEN: CHỈ CÓ HIỆU LỰC TỪ PHIÊN SAU.
             close_p = float(bar["close"])
@@ -519,4 +712,5 @@ class PaperTradingJournal:
             exit_date=r["exit_date"], exit_price=r["exit_price"],
             exit_reason=r["exit_reason"], stop_loss=r["stop_loss"],
             take_profit=r["take_profit"], size_pct=r["size_pct"],
-            entry_score=r["entry_score"], status=r["status"])
+            entry_score=r["entry_score"], status=r["status"],
+            created_at=_lay_cot(r, "created_at"))

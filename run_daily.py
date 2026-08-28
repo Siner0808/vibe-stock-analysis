@@ -13,7 +13,7 @@ os.environ["POST_MORTEM_ENABLED"] = "1"
 sys.stdout.reconfigure(encoding="utf-8")
 
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
-from paper_trading import PaperTradingJournal
+from paper_trading import BUY_THRESHOLD, PaperTradingJournal
 from paper_metrics import compute, report, ro_chuan_tu_chuoi_gia
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
@@ -21,7 +21,38 @@ from data_quality import now_vn
 import market_filter
 
 DB_PATH = "paper_trades.db"
-BUY_THRESHOLD = 50.0
+
+# NGƯỠNG MUA nhập từ `paper_trading`, KHÔNG khai lại ở đây.
+#
+# Bản trước cầm 50,0 chạy song song với `paper_trading.BUY_THRESHOLD =
+# 62`. Hai con số chưa bao giờ gặp nhau vì cổng C5 đang đóng — mở cổng
+# ra thì hệ thống chạy ở 50 trong khi mọi phép đo ngoài mẫu đều đo ở
+# 62, và không có gì đỏ.
+#
+# 62 là con số `walkforward.chay()` chọn theo luật nêu trước (≥30 lệnh
+# trên IS, rồi kỳ vọng cao nhất), trên vùng chưa thể đã nhìn. 50,0 là
+# 'quán quân' của 20 vòng tối ưu chạy trên CÙNG một bộ dữ liệu — đúng
+# thứ bất biến 7 cấm.
+
+def canh_bao_nguon(quet_duoc: int, bo_qua: dict, tong_ma: int) -> str:
+    """Chuỗi cảnh báo cho dòng "Số mã quét được" trong báo cáo phiên.
+
+    Hàm thuần, tách ra khỏi thân `execute_daily_scan` để kiểm được không
+    cần mạng. "0 lệnh" phải nói được VÌ SAO: một ngày cả rổ mất nguồn cho
+    ra đúng cùng một con số với một ngày không có tín hiệu nào.
+
+    Ngưỡng một nửa: quét được dưới nửa rổ thì phiên đó không kết luận được
+    gì về thị trường — nó chỉ kết luận được rằng nguồn dữ liệu đang hỏng.
+    """
+    ra = ""
+    if bo_qua:
+        chi_tiet = " · ".join(f"{k}: {v}" for k, v in sorted(bo_qua.items()))
+        ra = f" — bỏ qua {sum(bo_qua.values())} mã ({chi_tiet})"
+    if tong_ma and quet_duoc * 2 < tong_ma:
+        ra += (f" · ⛔ CHỈ QUÉT ĐƯỢC {quet_duoc}/{tong_ma} MÃ — phiên này "
+               f"không kết luận được gì về thị trường")
+    return ra
+
 
 def _ro_chuan_vnindex(trades):
     """Rổ đối chiếu VN-INDEX cho báo cáo phiên — bất biến 6.
@@ -138,6 +169,12 @@ def execute_daily_scan():
     pending_count = 0
 
     scan_details = []
+    # Đếm mã bị BỎ QUA và vì sao. Trước 24/08/2026 nhánh `break` bên dưới
+    # im lặng hoàn toàn: một ngày mà cả 71 mã trả SYNTHETIC (mất nguồn) ra
+    # đúng cùng một báo cáo với một ngày không có tín hiệu nào — '0 lệnh'.
+    # Cổng C5 đóng thì hai thứ đó như nhau; cổng mở rồi thì chúng khác hẳn.
+    bo_qua = {}
+    quet_duoc = 0
     collector = VNStockCollectorAgent()
 
     import time
@@ -153,10 +190,16 @@ def execute_daily_scan():
                         time.sleep(40)
                         retry += 1
                         continue
+                    ly_do = str(res.get("status", "?"))
+                    bo_qua[ly_do] = bo_qua.get(ly_do, 0) + 1
+                    print(f"  ⚠️ {sym}: bỏ qua — {ly_do} · {note[:60]}")
                     break
                 
                 df = res["df"]
                 if df is None or df.empty or len(df) < 20:
+                    n = 0 if df is None else len(df)
+                    bo_qua["thiếu nến"] = bo_qua.get("thiếu nến", 0) + 1
+                    print(f"  ⚠️ {sym}: bỏ qua — chỉ {n} nến, cần ≥20")
                     break
                 
                 row = df.iloc[-1]
@@ -167,6 +210,7 @@ def execute_daily_scan():
                     "close": float(row["close"])
                 }
                 s = run_session(journal, sym, df, bar, str(row["time"]), "HOSE", BUY_THRESHOLD)
+                quet_duoc += 1
                 opened_count += s["opened"]
                 closed_count += s["closed"]
                 pending_count += s["filled_in"]
@@ -233,6 +277,15 @@ def execute_daily_scan():
     khoi_cong = chr(10).join(dong_cong)
 
     # ── TẠO BÁO CÁO PHÂN TÍCH CHUYÊN SÂU KHI HOÀN THÀNH ──────────────
+    # '0 lệnh' phải nói được vì sao. Quét được dưới một nửa rổ nghĩa là
+    # phiên này KHÔNG kết luận được gì về thị trường, chỉ kết luận được
+    # rằng nguồn dữ liệu đang hỏng.
+    _tong_ma = len(CUSTOM_WATCHLIST_SYMBOLS)
+    _canh_bao_nguon = canh_bao_nguon(quet_duoc, bo_qua, _tong_ma)
+    if _canh_bao_nguon:
+        print("")
+        print(f"⚠️ Quét được {quet_duoc}/{_tong_ma} mã{_canh_bao_nguon}")
+
     scan_details.sort(key=lambda x: -x["score"])
     top_candidates = [x for x in scan_details if x["score"] >= BUY_THRESHOLD]
 
@@ -262,6 +315,7 @@ def execute_daily_scan():
 ---
 
 ### 🚀 1. TỔNG QUAN PHIÊN QUÉT MULTI-AGENT
+- **Số mã quét được:** `{quet_duoc}`/`{len(CUSTOM_WATCHLIST_SYMBOLS)}`{_canh_bao_nguon}
 - **Số lệnh mới phát hiện mở mua:** `{opened_count}` lệnh
 - **Số lệnh chờ đã khớp mua:** `{pending_count}` lệnh
 - **Số lệnh đã chốt lời / cắt lỗ:** `{closed_count}` lệnh

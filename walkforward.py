@@ -216,6 +216,20 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
                                  "low": float(hang["low"]),
                                  "close": float(hang["close"])},
                                 str(hang["time"]), buy_threshold=nguong)
+                # Hết dữ liệu của mã này -> đóng sổ sách cho nó TRƯỚC khi
+                # sang mã sau. Vòng lặp chạy theo mã, nên lệnh còn mở ở
+                # đây sẽ nằm lại suốt phần còn lại của lượt chạy và ăn
+                # vào trần vốn của mọi mã phía sau.
+                # PHAI nhan he so gia, y het `run_session`. vnstock tra
+                # gia theo NGHIN DONG (FPT = 71,2) con so lenh ghi VND
+                # (71.200). Truyen gia tho vao day cho ra -99,90% cho
+                # MOI lenh — do duoc ngay 24/08/2026: bon lenh
+                # HET_DU_LIEU deu dung -99,90%, va bon lenh do keo ky
+                # vong OOS tu +0,616% xuong -0,419%.
+                from data_quality import price_multiplier
+                cuoi = df.iloc[-1]
+                so.dong_so_sach(sym, str(cuoi["time"]),
+                                float(cuoi["close"]) * price_multiplier(df))
         lenh = so.all_trades()
     finally:
         so.db.close()

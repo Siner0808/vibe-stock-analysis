@@ -2514,3 +2514,197 @@ Hệ quả cho quyết định mở/đóng cổng:
   lượt mô phỏng 07/08.
 
 Chưa đụng gì vào cổng. Đây là ghi chép, không phải thay đổi.
+
+---
+
+## `lo_ghi_hang_loat()` — sổ tự khai nó được sinh ra thế nào (23/08/2026)
+
+Việc 1 của hai việc chốt sau khi phát hiện 113 lệnh được ghi trong 258 giây.
+
+### Không thêm cột — dấu vết đã nằm sẵn trong dữ liệu
+
+Cách hiển nhiên là thêm một cột `nguon` vào bảng `trades` rồi điền tay cho
+113 dòng. Không làm, vì ba lý do:
+
+1. `sheets_store` soi gương toàn phần và **nổ khi lệch cấu trúc cột** —
+   thêm cột là kéo theo một lần di trú trên cả kho ngoài.
+2. Nhãn điền tay chỉ đúng cho 113 dòng đã biết. Lô hàng loạt tiếp theo sẽ
+   lại lọt.
+3. Dấu vết đã có sẵn: `created_at` là lúc GHI VÀO ĐĨA, `signal_date` là
+   ngày mô phỏng. Một sổ tích luỹ tiến về phía trước ghi mỗi lần một lệnh,
+   cách nhau hàng giờ; một lượt mô phỏng ghi hàng trăm lệnh trong vài giây.
+
+Nên đây là một **phép đo**, không phải một nhãn.
+
+### Ba ngưỡng, và cái thứ ba mới là cái phân biệt
+
+```python
+KHE_TOI_DA_GIAY   = 60.0   # cach nhau hon the -> hai lo khac nhau
+TOI_THIEU_LENH_LO = 10     # it hon thi khong noi duoc gi
+TOI_THIEU_NGAY_TRAI = 90   # signal_date cua lo phai TRAI dai
+```
+
+Hai ngưỡng đầu là hiển nhiên. Ngưỡng thứ ba là thứ giữ cho cảnh báo không
+kêu bậy: **một phiên bận rộn mở 20 lệnh trong 30 giây trông y hệt một lượt
+mô phỏng nếu chỉ nhìn `created_at`** — khác nhau ở chỗ 20 lệnh ấy cùng một
+ngày tín hiệu, còn mô phỏng ghi lệnh của 2024 cạnh lệnh của 2026.
+
+Đo trên sổ thật:
+
+```
+so_lo 1 · so_lenh_trong_lo 113 · so_lenh_khong_ro 0
+   ghi   07/08/2026 14:41:16 -> 14:45:35   (258 giay)
+   tin hieu  2024-01-05 -> 2026-06-26      (903 ngay)
+```
+
+`paper_metrics.report()` in cảnh báo ngay trên mục "Lý do đóng lệnh", cùng
+chỗ và cùng giọng với cảnh báo đòn bẩy.
+
+### Rỗng nghĩa là "không thấy", không phải "không có"
+
+`Trade.created_at` mặc định `None`, và `_lay_cot()` trả `None` khi hàng
+thiếu cột — sổ cũ hơn schema hiện tại thì thiếu thật, `sqlite3.Row` ném
+`IndexError` chứ không trả `None`. `tom_tat_lo_ghi()` báo riêng
+`so_lenh_khong_ro` để phần chưa biết không lẫn vào phần đã kết luận.
+
+### 10 test, 5 đột biến đỏ — và một đột biến từng SỐNG
+
+Đột biến "bỏ ngưỡng số lệnh tối thiểu của một lô" ban đầu vẫn **xanh**: mọi
+trường hợp ít lệnh trong bộ test đều bị chặn sớm ở lối vào hàm
+(`len(co) < TOI_THIEU_LENH_LO`), nên phép kiểm bên trong vòng lặp chưa bao
+giờ được chạm tới. Thêm
+`test_lo_NHO_nam_canh_lo_lon_van_phai_bi_bo_qua` (30 lệnh cạnh 4 lệnh) thì
+5/5 đỏ.
+
+---
+
+## Công tắc `CHOT_LOI_CUNG` — dựng để ĐO, không phải để bật
+
+Việc 2 cần chạy walk-forward hai lần trên đúng cùng dữ liệu, nên cần một
+đường bật lại chốt lời cứng mà **không đổi hành vi mặc định**.
+
+```python
+CHOT_LOI_CUNG = False        # tat = hanh vi dang chay tu truoc
+...
+if low <= sl:
+    reason, price = ExitReason.STOP_LOSS, sl
+elif CHOT_LOI_CUNG and high >= tp:
+    reason, price = ExitReason.TAKE_PROFIT, tp
+```
+
+`elif` chứ không phải `if` thứ hai — đó là thứ giữ bất biến 3 khi công tắc
+bật: cả hai cùng chạm trong một phiên thì vẫn LẤY SL. Đổi sang hai `if` rời
+là để TP ghi đè SL, đúng cái giả định có lợi bị cấm. Đột biến đó đỏ.
+
+Docstring của `evaluate_open()` cũng được sửa: bản trước hứa một nhánh TP
+mà thân hàm đã gỡ từ lâu — đọc nó rồi tin là hiểu sai hệ thống đang chạy.
+
+512 test xanh · 0 CHẶN · 3.11 sạch.
+
+---
+
+## GỠ CHỐT LỜI CỨNG LÀ ĐÚNG HAY SAI — ĐÃ ĐO (23/08/2026)
+
+Việc 2. Chạy `walkforward.chay()` **hai lần**, cùng dữ liệu, cùng stride,
+cùng chế độ bộ nhớ, cùng luật chọn ngưỡng nêu trước. Khác duy nhất một
+thứ: `paper_trading.CHOT_LOI_CUNG`. Mỗi lượt ~24 phút.
+
+### In-sample (71 mã) — TẮT thắng ở mọi ngưỡng
+
+```
+nguong    TAT      BAT     chenh      (ky vong moi lenh)
+   45   +0,302   +0,036   +0,266
+   48   +0,389   +0,147   +0,242
+   50   +0,548   +0,223   +0,325
+   52   +0,545   +0,152   +0,393
+   55   +0,721   +0,277   +0,444
+   58   +0,883   +0,400   +0,483
+   62   +1,310   +0,648   +0,662
+```
+
+Khoảng cách **rộng dần theo ngưỡng**. Cả hai bên đều chọn 62 theo luật nêu
+trước (≥30 lệnh, rồi kỳ vọng cao nhất).
+
+### Ngoài mẫu (33 mã, vùng chưa thể đã nhìn)
+
+```
+          lenh   ky vong    WR     nam giu   sigma   von_tb  von_dinh
+TAT        386   +0,616%   26,7%   20,3 ng   10,18%   145%     524%
+BAT        430   +0,426%   28,8%   17,4 ng    7,72%   137%     533%
+
+alpha khop tung lenh
+TAT     -0,008%   KTC [-0,797 ; +0,845]   chua 0
+BAT     -0,006%   KTC [-0,607 ; +0,629]   chua 0
+```
+
+### Ba điều đọc được, điều thứ hai là điều quyết định
+
+**1. Gỡ chốt lời cứng KHÔNG làm hỏng gì.** Kỳ vọng cao hơn ở mọi ngưỡng
+in-sample và cao hơn ngoài mẫu (+0,616% so với +0,426%). Nhưng chênh lệch
+ấy **không phân biệt được với 0**:
+
+```
+chenh lech TAT - BAT = +0,190%   SE 0,638   KTC 95% [-1,061 ; +1,440]
+```
+
+**2. Trên alpha — thước quyết định của bất biến 6 — hai luật GIỐNG HỆT
+NHAU.** −0,008% và −0,006%, cách nhau 0,002 điểm phần trăm, cả hai đều
+chứa 0. Nghĩa là phần kỳ vọng dôi ra của bản TẮT được mua bằng **thời gian
+ở trong thị trường**, không phải bằng kỹ năng:
+
+```
+nam giu TB   20,3 ngay (TAT)  vs  17,4 ngay (BAT)   -> dai hon 17%
+so lenh         386           vs     430            -> it vong quay hon
+```
+
+Giữ lâu hơn thì rổ chuẩn trong cùng khoảng ấy cũng lãi hơn, nên alpha
+không đổi. Đây đúng là cái bẫy bất biến 6 sinh ra để bắt.
+
+**3. Thứ chốt lời cứng THẬT SỰ làm là giảm phương sai, không phải tăng
+lợi nhuận.** σ 10,18% → 7,72%, tức **giảm 24%**. Đó là một tác dụng có
+thật và đo được — nó chỉ không phải tác dụng mà cái tên "chốt lời" gợi ra.
+
+### Và bí ẩn "19 lệnh vàng" trong sổ thật đã có lời giải
+
+Sổ thật: 19 lệnh `TAKE_PROFIT`, **19/19 thắng**, trung bình **+17,23%**;
+93 lệnh còn lại −2,567%. Trông như thể luật cũ là nguồn của toàn bộ lợi
+nhuận.
+
+Lượt BẬT ngoài mẫu cho ra **đúng cùng một hình dạng**:
+
+```
+TAKE_PROFIT   55 lenh   55/55 thang   +17,81%
+con lai      375 lenh                  -2,12%
+```
+
+Đó không phải dấu hiệu luật cũ tốt. **Đó là hình dạng mà MỌI luật chốt lời
+cứng đều tạo ra**: một khối thắng chắc chắn ở mức chốt, cạnh một khối thua
+lớn hơn nhiều. Và phản chứng nay đã đo được — dưới luật hiện hành, cùng thị
+trường ấy cho kỳ vọng **cao hơn**, không thấp hơn.
+
+Cảnh báo ghi ngày 23/08 (*"đừng đọc thành luật mới tệ hơn"*) là đúng, và
+giờ nó là một câu đo được chứ không còn là một lời nhắc thận trọng.
+
+### Hai điều phải nhớ khi trích số từ hai lượt này
+
+- **Cả hai đều dùng đòn bẩy**: vốn triển khai 145% / 137% trung bình,
+  524% / 533% đỉnh. Mọi con số CỘNG DỒN từ hai lượt này là của một tài
+  khoản vay được (bất biến 7b). Kỳ vọng mỗi lệnh và alpha thì tính theo
+  từng lệnh nên không dính.
+- Số lệnh cần để kỳ vọng loại được số 0:
+
+```
+TAT   TB +0,616%  sigma 10,18%  ->  1.050 lenh   (2,7x so voi 386 hien co)
+BAT   TB +0,426%  sigma  7,72%  ->  1.261 lenh   (2,9x so voi 430)
+```
+
+Bản TẮT cần ÍT mẫu hơn để chứng minh — kỳ vọng tăng nhiều hơn phần σ giảm.
+
+### Kết luận cho ô C5
+
+Câu hỏi "luật nào sẽ chạy nếu mở cổng" nay đã trả lời được: **luật hiện
+hành, và nó không tệ hơn luật cũ.** Nhưng nó cũng không có alpha — cả hai
+đều không.
+
+Nên phép đo này **không** mở khoá ô C5. Nó chỉ gỡ một lý do để trì hoãn:
+không còn nghi ngờ rằng việc gỡ chốt lời cứng đã âm thầm làm hỏng thứ gì.

@@ -17,7 +17,7 @@ import random
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 
 from paper_trading import BROKER_FEE_PCT, SELL_TAX_PCT, ExitReason, Trade
 
@@ -270,6 +270,152 @@ def vs_benchmark(trades: list[Trade],
     }
 
 
+
+# ── Sổ này được tích luỹ, hay được sinh ra trong một lượt? ───────────
+#
+# Đo ngày 23/08/2026 trên `paper_trades.db`: cả 113 lệnh có `created_at`
+# nằm trong khoảng 258 giây ngày 07/08/2026, trong khi `signal_date` của
+# chúng trải từ 2024-01-05 đến 2026-06-26 — hơn hai năm rưỡi. Sổ ấy chưa
+# bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước.
+#
+# Không có gì SAI khi sổ sinh ra như vậy; sai là đọc nó như bằng chứng
+# tích luỹ. Bốn phép đo dưới đây — kỳ vọng, KTC, alpha, drawdown — đều
+# mang nghĩa khác hẳn giữa hai trường hợp.
+
+#: Hai lần ghi cách nhau quá ngưỡng này thì thuộc hai lô khác nhau.
+#: 60 giây: một lượt quét thật ghi từng lệnh sau khi tải nến và chấm
+#: điểm, không thể nhanh hơn thế trên cả một rổ.
+KHE_TOI_DA_GIAY = 60.0
+
+#: Dưới ngưỡng này thì không đủ để nói gì — một phiên thật có thể mở vài
+#: lệnh liền nhau.
+TOI_THIEU_LENH_LO = 10
+
+#: Và điều kiện phân biệt thật sự: lô phải trải trên một khoảng
+#: `signal_date` DÀI. Một phiên bận rộn mở 15 lệnh trong 30 giây, nhưng
+#: cả 15 lệnh cùng một ngày tín hiệu. Chỉ mô phỏng mới ghi lệnh của
+#: 2024 và lệnh của 2026 cách nhau vài giây.
+TOI_THIEU_NGAY_TRAI = 90
+
+
+def lo_ghi_hang_loat(trades: list[Trade]) -> list[dict]:
+    """Các lô lệnh được ghi vào đĩa hàng loạt. Rỗng nghĩa là không thấy.
+
+    Trả `[]` cả khi KHÔNG KẾT LUẬN ĐƯỢC (sổ cũ không có `created_at`) —
+    người gọi phải hiểu rỗng là "không thấy", không phải "đã chứng minh
+    là không có". `so_lenh_khong_ro` trong `tom_tat_lo_ghi()` nói ra
+    phần chưa biết đó.
+    """
+    co = [t for t in trades if t.created_at is not None]
+    if len(co) < TOI_THIEU_LENH_LO:
+        return []
+    co.sort(key=lambda t: float(t.created_at))
+
+    lo: list[list[Trade]] = [[co[0]]]
+    for t in co[1:]:
+        if float(t.created_at) - float(lo[-1][-1].created_at) <= KHE_TOI_DA_GIAY:
+            lo[-1].append(t)
+        else:
+            lo.append([t])
+
+    ra = []
+    for nhom in lo:
+        if len(nhom) < TOI_THIEU_LENH_LO:
+            continue
+        ngay = sorted(str(t.signal_date)[:10] for t in nhom if t.signal_date)
+        if not ngay:
+            continue
+        try:
+            trai = (date.fromisoformat(ngay[-1])
+                    - date.fromisoformat(ngay[0])).days
+        except ValueError:
+            continue
+        if trai < TOI_THIEU_NGAY_TRAI:
+            continue
+        ra.append({
+            "so_lenh": len(nhom),
+            "ids": {t.id for t in nhom},
+            "ghi_tu": float(nhom[0].created_at),
+            "ghi_den": float(nhom[-1].created_at),
+            "giay": float(nhom[-1].created_at) - float(nhom[0].created_at),
+            "tin_hieu_tu": ngay[0],
+            "tin_hieu_den": ngay[-1],
+            "ngay_trai": trai,
+        })
+    return ra
+
+
+def tom_tat_lo_ghi(trades: list[Trade]) -> dict:
+    """{so_lo, so_lenh_trong_lo, so_lenh_khong_ro, lo: [...]}"""
+    lo = lo_ghi_hang_loat(trades)
+    return {
+        "so_lo": len(lo),
+        "so_lenh_trong_lo": sum(x["so_lenh"] for x in lo),
+        "so_lenh_khong_ro": sum(1 for t in trades if t.created_at is None),
+        "lo": lo,
+    }
+
+
+# ── Điều kiện ĐÓNG LẠI cổng C5 — nêu TRƯỚC, không chế sau ────────────
+#
+# Ngày 24/08/2026 cổng `CHO_PHEP_MO_LENH_MOI` được mở ở ngưỡng 62. Lý do
+# mở KHÔNG phải vì đã tìm thấy lợi thế — mọi phép đo alpha đều chứa số 0.
+# Lý do là: cấu hình chạy trực tiếp (sáu agent đầy đủ, có TradingView và
+# tin tức) CHƯA BAO GIỜ được đo, và nó chỉ đo được tiến về phía trước.
+#
+# Điều kiện đóng lại phải viết ra TRƯỚC khi có dữ liệu. Viết sau là chọn
+# ngưỡng theo kết quả — cùng một lỗi với bất biến 7, chỉ đổi hướng.
+
+#: Số lệnh tiến-về-trước tối thiểu trước khi phép kiểm này có nghĩa.
+#: Với σ ≈ 10%/lệnh, 60 lệnh cho SE ≈ 1,3% — đủ để một kỳ vọng âm nặng
+#: (dưới −2,5%) lộ ra, và chưa đủ để nhiễu bình thường kích hoạt.
+TOI_THIEU_LENH_DE_DONG = 60
+
+
+def lenh_tien_ve_truoc(trades: list[Trade]) -> list[Trade]:
+    """Lệnh KHÔNG thuộc lô ghi hàng loạt nào và có dấu thời gian ghi.
+
+    Lệnh thiếu `created_at` bị loại — không phải vì chúng xấu, mà vì
+    không chứng minh được chúng tích luỹ tiến về phía trước. Bằng chứng
+    chưa rõ nguồn gốc thì không được tính là bằng chứng.
+    """
+    trong_lo: set = set()
+    for x in lo_ghi_hang_loat(trades):
+        trong_lo |= x.get("ids", set())
+    return [t for t in trades
+            if t.created_at is not None and t.id not in trong_lo]
+
+
+def dieu_kien_dong_lai(trades: list[Trade]) -> dict:
+    """Cổng C5 có nên đóng lại không. `dat=True` nghĩa là NÊN ĐÓNG.
+
+    Điều kiện, nêu ngày 24/08/2026 trước khi có lệnh tiến-về-trước nào:
+      • đã có ≥ TOI_THIEU_LENH_DE_DONG lệnh tiến-về-trước ĐÃ ĐÓNG, VÀ
+      • cận TRÊN của KTC 95% cho kỳ vọng của riêng nhóm đó < 0
+
+    Vế thứ hai cố ý khắt khe. "Kỳ vọng âm" thôi thì chưa đủ — với σ ≈ 10%
+    một chuỗi âm ngắn là chuyện thường. Điều kiện là âm ĐẾN MỨC khoảng
+    tin cậy loại được số 0.
+    """
+    tien = [t for t in lenh_tien_ve_truoc(trades) if t.status == "CLOSED"]
+    n = len(tien)
+    if n < TOI_THIEU_LENH_DE_DONG:
+        return {"dat": False, "so_lenh": n, "ci": (None, None),
+                "ly_do": (f"mới {n}/{TOI_THIEU_LENH_DE_DONG} lệnh "
+                          f"tiến-về-trước — chưa đủ để kết luận")}
+    sig = expectancy_significant(tien)
+    lo, hi = sig["ci"]
+    if hi is not None and hi < 0:
+        return {"dat": True, "so_lenh": n, "ci": (lo, hi),
+                "ly_do": (f"{n} lệnh tiến-về-trước, kỳ vọng "
+                          f"{sig['expectancy']:+.2f}% với KTC 95% "
+                          f"[{lo:+.2f}; {hi:+.2f}] — cận trên dưới 0, "
+                          f"hệ thống đang lỗ một cách đo được")}
+    return {"dat": False, "so_lenh": n, "ci": (lo, hi),
+            "ly_do": (f"{n} lệnh tiến-về-trước, KTC 95% "
+                      f"[{lo:+.2f}; {hi:+.2f}] — chưa loại được số 0")}
+
+
 def report(trades: list[Trade],
            benchmark: dict[tuple[str, str], float] | None = None) -> str:
     out: list[str] = []
@@ -320,6 +466,29 @@ def report(trades: list[Trade],
             f"khoản vay được")
         add(f"   {don_bay:.1f}x vốn. Tài khoản thật không chạy được như vậy.")
         add(f"   Chia tỷ trọng cho {don_bay:.1f} rồi đo lại mới ra con số dùng được.")
+
+    lo = tom_tat_lo_ghi(trades)
+    if lo["so_lo"]:
+        add("")
+        add("⚠️ SỔ NÀY KHÔNG PHẢI BẢN GHI TÍCH LUỸ")
+        for x in lo["lo"]:
+            t1 = datetime.fromtimestamp(x["ghi_tu"]).strftime("%d/%m/%Y %H:%M")
+            add(f"   {x['so_lenh']} lệnh được ghi trong {x['giay']:.0f} giây "
+                f"({t1}),")
+            add(f"   nhưng tín hiệu của chúng trải {x['tin_hieu_tu']} → "
+                f"{x['tin_hieu_den']} ({x['ngay_trai']} ngày).")
+        add("   Đó là dấu vết của MỘT lượt mô phỏng, không phải nhiều phiên")
+        add("   quét tiến về phía trước. Kỳ vọng, KTC và alpha ở trên vẫn")
+        add("   đúng như phép tính, nhưng chúng nói về lượt mô phỏng ấy.")
+    _dk = dieu_kien_dong_lai(trades)
+    add("")
+    add(f"Cổng C5 (mở vị thế mới): {_dk['ly_do']}")
+    if _dk["dat"]:
+        add("   🔴 ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT — nêu trước ngày 24/08/2026.")
+        add("   Đặt CHO_PHEP_MO_LENH_MOI = False rồi báo người dùng.")
+    if lo["so_lenh_khong_ro"]:
+        add(f"   ({lo['so_lenh_khong_ro']} lệnh không có dấu thời gian ghi — "
+            f"không kết luận được)")
 
     add("")
     add("Lý do đóng lệnh:")

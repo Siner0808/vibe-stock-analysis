@@ -1535,6 +1535,27 @@ with t_acct:
     </div>
     """, unsafe_allow_html=True)
 
+        # Nguồn gốc của sổ nói TRƯỚC mọi con số đo trên nó. Một sổ sinh ra
+        # từ một lượt mô phỏng và một sổ tích luỹ qua hàng trăm phiên cho
+        # ra cùng loại thống kê, nhưng chúng KHÔNG nói cùng một điều — và
+        # cách gọi "sổ lệnh thật" đẩy người đọc về phía hiểu sai.
+        try:
+            from paper_metrics import tom_tat_lo_ghi
+            _lo = tom_tat_lo_ghi(_all)
+        except Exception:
+            _lo = None
+        if _lo and _lo["so_lo"]:
+            _x = _lo["lo"][0]
+            st.warning(
+                f"⚠️ SỔ NÀY KHÔNG PHẢI BẢN GHI TÍCH LUỸ — "
+                f"{_x['so_lenh']} lệnh được ghi vào đĩa trong "
+                f"{_x['giay']:.0f} giây, trong khi tín hiệu của chúng trải "
+                f"{_x['tin_hieu_tu']} → {_x['tin_hieu_den']} "
+                f"({_x['ngay_trai']} ngày). Đó là dấu vết của MỘT lượt mô "
+                f"phỏng. Các con số trên vẫn đúng như phép tính, nhưng "
+                f"chúng nói về lượt mô phỏng ấy, không phải về kết quả "
+                f"tích luỹ qua từng phiên quét.")
+
         if _sig and not _sig["significant"]:
             st.warning(f"⚠️ {_sig['verdict']} — kỳ vọng {_p.expectancy:+.2f}% "
                        f"trên {_p.n_trades} lệnh chưa loại được số 0.")
