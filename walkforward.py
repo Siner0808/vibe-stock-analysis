@@ -214,7 +214,8 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
                                 {"open": float(hang["open"]),
                                  "high": float(hang["high"]),
                                  "low": float(hang["low"]),
-                                 "close": float(hang["close"])},
+                                 "close": float(hang["close"]),
+                                 "volume": float(hang.get("volume") or 0.0)},
                                 str(hang["time"]), buy_threshold=nguong)
                 # Hết dữ liệu của mã này -> đóng sổ sách cho nó TRƯỚC khi
                 # sang mã sau. Vòng lặp chạy theo mã, nên lệnh còn mở ở

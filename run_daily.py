@@ -207,7 +207,9 @@ def execute_daily_scan():
                     "open": float(row["open"]),
                     "high": float(row["high"]),
                     "low": float(row["low"]),
-                    "close": float(row["close"])
+                    "close": float(row["close"]),
+                    # Khối lượng cho mô hình trượt giá. KHÔNG nhân hệ số giá.
+                    "volume": float(row["volume"]) if "volume" in row else 0.0,
                 }
                 s = run_session(journal, sym, df, bar, str(row["time"]), "HOSE", BUY_THRESHOLD)
                 quet_duoc += 1

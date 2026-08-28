@@ -198,6 +198,30 @@ TRAN_VON_CAM_KET_PCT = 100.0
 LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng đòn bẩy "
                   "(bất biến 7b)")
 
+#: Mô phỏng trượt giá, lô chẵn, biên độ và khớp một phần.
+#:
+#: `truot_gia.py` và `vong_doi_lenh.py` có từ lâu, có 29 test, và cho
+#: tới 24/08/2026 KHÔNG file nào ngoài test của chính chúng import —
+#: hai module mồ côi. Sổ lệnh vẫn coi mọi lệnh khớp TOÀN BỘ, NGAY, ở
+#: đúng giá mong muốn. Cuối mỗi báo cáo có một câu cảnh báo về trượt
+#: giá; câu đó đúng nhưng nó là lời cảnh báo, không phải phép đo.
+#:
+#: Bật lên thì MỌI chỉ số sẽ xấu đi. Đó là dấu hiệu ĐÚNG — con số đang
+#: tiến gần thực tế, không phải chiến lược vừa tệ đi.
+MO_PHONG_TRUOT_GIA = False
+
+#: Vốn danh mục giả định, đơn vị VNĐ. CHỈ dùng để đổi `size_pct` sang
+#: SỐ CỔ PHIẾU — mà số cổ phiếu là thứ quyết định tác động thị trường
+#: (`√(khối lượng lệnh / khối lượng nến)`).
+#:
+#: Đây là GIẢ ĐỊNH, không phải số đo, và nó điều khiển kết quả: danh
+#: mục lớn gấp 100 lần thì tác động lớn gấp 10. Sổ lệnh không có khái
+#: niệm vốn tuyệt đối (`paper_metrics` nhân dồn theo % nên không cần),
+#: nên con số này phải nêu ra chứ không suy được từ đâu.
+VON_DANH_MUC_VND = 1_000_000_000
+
+LY_DO_TU_CHOI_LENH = "sàn từ chối lệnh"
+
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
@@ -387,6 +411,32 @@ class PaperTradingJournal:
         self.db.commit()
         return n + m
 
+    def _gia_ban_that(self, gia: float, size_pct, bar: dict) -> float:
+        """Giá bán sau trượt. Trả nguyên giá khi công tắc tắt hoặc thiếu nến.
+
+        Bán KHÔNG đi qua `vong_doi_lenh`: một vị thế đang mở phải thoát
+        được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. Cái đo được ở
+        đây là trượt giá, không phải rủi ro không khớp.
+        """
+        if not MO_PHONG_TRUOT_GIA:
+            return float(gia)
+        if not bar or not bar.get("volume"):
+            return float(gia)
+        try:
+            from truot_gia import BAN, khoi_luong_hop_le, truot_gia
+            g = float(gia)
+            if g <= 0:
+                return float(gia)
+            so_cp = khoi_luong_hop_le(
+                int(VON_DANH_MUC_VND * (float(size_pct or 0.0) / 100.0) / g))
+            if so_cp <= 0:
+                return float(gia)
+            return float(truot_gia(g, BAN, bar, so_cp)["gia_khop"])
+        except Exception:
+            # Không nuốt im lặng: trả nguyên giá và để cảnh báo nổi lên ở
+            # test. Nhưng cũng không để một lỗi mô hình làm sập phiên quét.
+            return float(gia)
+
     def von_dang_cam_ket(self) -> float:
         """Tổng `size_pct` của các lệnh ĐANG MỞ **và ĐANG CHỜ KHỚP**.
 
@@ -500,22 +550,70 @@ class PaperTradingJournal:
         return int(cur.lastrowid)
 
     def fill_pending(self, symbol: str, session_date: str,
-                     open_price: float) -> int:
-        """Khớp các lệnh PENDING bằng giá MỞ CỬA của phiên sau ngày tín hiệu."""
+                     open_price: float, nen: dict | None = None) -> int:
+        """Khớp các lệnh PENDING bằng giá MỞ CỬA của phiên sau ngày tín hiệu.
+
+        `nen` — {"high", "low", "volume", "tham_chieu"} của phiên khớp. Chỉ
+        cần khi `MO_PHONG_TRUOT_GIA` bật; thiếu nó thì khớp như cũ, ở đúng
+        giá mở cửa. Tham số tuỳ chọn để mọi chỗ gọi cũ không phải đổi.
+        """
         rows = self.db.execute(
-            "SELECT id, signal_date FROM trades WHERE symbol=? AND status=?",
+            "SELECT id, signal_date, size_pct FROM trades"
+            " WHERE symbol=? AND status=?",
             (symbol, Status.PENDING)).fetchall()
         filled = 0
         for r in rows:
             if session_date <= r["signal_date"]:
                 continue                      # chưa tới phiên sau -> chưa khớp
+
+            gia = float(open_price)
+            size = float(r["size_pct"] or 0.0)
+
+            if MO_PHONG_TRUOT_GIA and nen:
+                kq = self._khop_that(symbol, gia, size, nen)
+                if kq is None:
+                    # Sàn từ chối hoặc không khớp nổi một lô. Lệnh này KHÔNG
+                    # tồn tại — xoá chứ không mở rồi đóng ngay, vì một lệnh
+                    # không khớp không phải một giao dịch lãi/lỗ 0%.
+                    self.db.execute("DELETE FROM trades WHERE id=?", (r["id"],))
+                    continue
+                gia, size = kq
+
             self.db.execute(
-                "UPDATE trades SET entry_date=?, entry_price=?, status=?"
-                " WHERE id=?",
-                (session_date, float(open_price), Status.OPEN, r["id"]))
+                "UPDATE trades SET entry_date=?, entry_price=?, size_pct=?,"
+                " status=? WHERE id=?",
+                (session_date, gia, size, Status.OPEN, r["id"]))
             filled += 1
         self.db.commit()
         return filled
+
+    def _khop_that(self, symbol: str, gia_mo: float, size_pct: float,
+                   nen: dict):
+        """(giá bình quân, size_pct thực khớp) — hoặc None nếu không khớp.
+
+        Đi qua `vong_doi_lenh` chứ không tự tính: module đó đã mô hình hoá
+        lô chẵn, biên độ ±7%, trần thanh khoản mỗi nến và khớp một phần,
+        kèm 29 test. Viết lại ở đây là dựng bản sao thứ hai sẽ trôi đi.
+        """
+        from vong_doi_lenh import KHOP_DU, KHOP_MOT_PHAN, dat_lenh, khop_trong_nen
+        from truot_gia import MUA
+
+        if gia_mo <= 0 or size_pct <= 0:
+            return None
+        so_cp = int(VON_DANH_MUC_VND * (size_pct / 100.0) / gia_mo)
+        tham_chieu = float(nen.get("tham_chieu") or gia_mo)
+        try:
+            lenh = dat_lenh(symbol, MUA, so_cp, gia_mo, tham_chieu)
+        except Exception:
+            return None
+        if lenh.trang_thai not in (KHOP_DU, KHOP_MOT_PHAN):
+            khop_trong_nen(lenh, nen)
+        if lenh.da_khop <= 0 or lenh.gia_binh_quan is None:
+            return None
+        # Khớp một phần -> vốn cam kết THẬT nhỏ hơn ý định. Giữ nguyên
+        # size_pct sẽ ghi một vị thế chưa bao giờ tồn tại.
+        ty_le = lenh.da_khop / lenh.khoi_luong
+        return float(lenh.gia_binh_quan), round(size_pct * ty_le, 4)
 
     # ─────────────────── Đóng lệnh ────────────────────────────────────
     def evaluate_open(self, symbol: str, session_date: str, bar: dict,
@@ -619,6 +717,7 @@ class PaperTradingJournal:
                     except Exception:
                         pass
 
+                price = self._gia_ban_that(price, r["size_pct"], bar)
                 self.db.execute(
                     "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
                     " status=? WHERE id=?",
