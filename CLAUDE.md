@@ -803,3 +803,34 @@ Hai hàng rào mới đáng biết:
 `tests/test_trong_so_that_su_duoc_dung.py` bắt mọi khoá trọng số không
 được nhân vào điểm (và mọi hạng tử bị quên khỏi tổng).
 `tests/test_dau_hieu_tranh_luan.py` khoá quy ước dấu Bull(+)/Bear(−)/Devil(−).
+
+---
+
+## Cổng C5 — đọc trước khi sửa
+
+Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA CỔNG C5"**
+(28/08/2026). Tóm tắt để khỏi sửa nhầm:
+
+`paper_metrics.dieu_kien_dong_lai()` hỏng vì **bốn** lý do, không phải một:
+
+1. Hiệu chuẩn để bắt **thảm hoạ** (−2,5%/lệnh), trong khi cái có thật là
+   **bất lợi** (−0,927%/lệnh alpha). Phép tính hồi đó ĐÚNG; mục tiêu sai.
+2. Chỉ định giá sai lầm loại I (đóng nhầm vì nhiễu). Loại II — để mở trong
+   khi đang lỗ — không được nhắc một lần.
+3. Quy tắc ghim vào ảnh chụp hiểu biết ngày 26/08; ngày 28/08 chi phí thực
+   thi làm alpha từ ≈0 xuống −0,927%. Tiền đề sụp, quy tắc không đi theo.
+4. **Nặng nhất: điều kiện KHÔNG CÓ AI THI HÀNH.** Nó chỉ được gọi trong
+   `report()` và chỉ thêm một câu chữ vào một tệp zip lưu 14 ngày trên
+   GitHub Actions. Đạt hay không đạt đều không đóng được cổng.
+
+Đo đúng đại lượng đổi hẳn bài toán: **kỳ vọng cần 11,4 năm để đạt 80% lực
+phát hiện; alpha cần 13 tháng.** Alpha đã tính được trên đường chạy thật
+(`run_daily.py:249` truyền rổ chuẩn VN-INDEX) — không phải xây thêm gì.
+
+**Chưa đo:** điểm chấm trên gói vnstock miễn phí (CI/Cloud) có bằng gói tài
+trợ (máy cá nhân) không. Nếu lệch thì σ và nhịp lệnh dùng trong mọi tính
+toán trên đều sai. Nên đo trước khi viết lại điều kiện.
+
+**Hạn:** 09:00 thứ Hai 31/08/2026 — phiên quét đầu tiên có chi phí thực thi.
+Sau mốc đó, sửa quy tắc dừng không còn phân biệt được với chọn quy tắc theo
+kết quả.
