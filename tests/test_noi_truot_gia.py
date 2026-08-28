@@ -190,10 +190,10 @@ def test_cong_tac_mac_dinh_phai_la_lua_chon_CO_Y_THUC():
     cấu hình. Test này ghim giá trị hiện tại để lần đổi sau phải đi qua
     đây — cùng cách `CHOT_LOI_CUNG` và `TRAN_VON_CAM_KET_PCT` được ghim.
     """
-    assert pt.MO_PHONG_TRUOT_GIA is False, (
+    assert pt.MO_PHONG_TRUOT_GIA is True, (
         "mặc định đã đổi — cập nhật docs/STATE.md và CLAUDE.md cùng lúc, "
         "kèm con số đo được trước và sau")
-    print("PASS  MO_PHONG_TRUOT_GIA mặc định = False")
+    print("PASS  MO_PHONG_TRUOT_GIA mặc định = True (bật 24/08/2026)")
 
 
 def test_run_session_KHONG_duoc_nhan_he_so_gia_vao_KHOI_LUONG(tmp_path,

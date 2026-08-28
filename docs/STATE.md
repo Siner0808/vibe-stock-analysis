@@ -2897,3 +2897,128 @@ remote. SHA ghi lại trong commit dọn dẹp phòng khi cần
 `git push origin <sha>:refs/heads/<tên>`.
 
 Còn lại `main` và `du-lieu/lam-moi-co-ban`.
+
+---
+
+## NỐI TRƯỢT GIÁ VÀO — VÀ KẾT QUẢ CÓ Ý NGHĨA THỐNG KÊ ĐẦU TIÊN CỦA DỰ ÁN
+## (24/08/2026)
+
+`truot_gia.py` và `vong_doi_lenh.py` có 29 test và tồn tại từ lâu, nhưng
+cho tới hôm nay **không file nào ngoài test của chính chúng import**. Sổ
+lệnh vẫn coi mọi lệnh khớp TOÀN BỘ, NGAY, ở đúng giá mong muốn. Cuối mỗi
+báo cáo có câu *"Giao dịch thật còn có trượt giá, khớp một phần và tâm lý
+— kết quả thực tế sẽ thấp hơn"*. Câu đó đúng, nhưng nó là **lời cảnh báo,
+không phải phép đo**.
+
+### Đường nối
+
+| | qua module nào | vì sao |
+|---|---|---|
+| **vào lệnh** | `vong_doi_lenh.dat_lenh` → `khop_trong_nen` | dùng cả hai module: lô chẵn, biên độ ±7%, trần thanh khoản mỗi nến, khớp một phần, rồi mới tới trượt giá |
+| **ra lệnh** | `truot_gia(..., BAN, ...)` | **không** qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn |
+
+Khớp một phần thì `size_pct` giảm theo tỷ lệ thực khớp — giữ nguyên là ghi
+vào sổ một vị thế chưa bao giờ tồn tại. Sàn từ chối thì **xoá** lệnh
+PENDING, không mở rồi đóng ngay: một lệnh không khớp không phải một giao
+dịch lãi/lỗ 0%.
+
+### In-sample: −0,43 điểm phần trăm mỗi lệnh, ở MỌI ngưỡng
+
+```
+nguong    TAT      BAT     chenh    WR TAT   WR BAT
+    45  +0,305   -0,141   -0,446     26,9     24,9
+    48  +0,389   -0,043   -0,432     27,8     26,1
+    50  +0,548   +0,116   -0,432     28,5     26,9
+    52  +0,545   +0,109   -0,436     28,9     27,4
+    55  +0,721   +0,300   -0,421     29,6     27,9
+    58  +0,883   +0,452   -0,431     30,3     28,4
+    62  +1,310   +0,888   -0,422     31,9     29,0
+```
+
+Chênh lệch **gần như bằng nhau ở cả bảy ngưỡng**. Đó là dấu hiệu mô hình
+hành xử đúng: chi phí thực thi là chi phí **mỗi lệnh**, không co giãn theo
+độ chọn lọc. Nếu nó biến động mạnh theo ngưỡng thì phải nghi ngờ trước.
+
+Ngưỡng chọn vẫn là 62 ở cả hai bên — trượt giá không đổi thứ tự các ngưỡng.
+
+### Ngoài mẫu: đổi KẾT LUẬN, không chỉ đổi con số
+
+```
+        lenh   ky vong    WR     von_tb   alpha      KTC 95%
+TAT      390   +0,614%   26,9%    143%   -0,011%   [-0,766 ; +0,832]  chua 0
+BAT      385   -0,291%   25,5%    139%   -0,927%   [-1,689 ; -0,076]  LOAI 0
+```
+
+> **Đây là kết quả có ý nghĩa thống kê đầu tiên trong toàn bộ lịch sử dự
+> án. Và nó âm.**
+>
+> Với chi phí thực thi thực tế, chiến lược **thua rổ chuẩn 0,927% mỗi
+> lệnh**, khoảng tin cậy 95% loại được số 0 — đo trên vùng dữ liệu chứng
+> minh được là chưa thể đã bị nhìn.
+
+Bốn lần trước dự án cho ra số đẹp rồi hoá ra vô nghĩa. Đây là lần đầu một
+con số **xấu** đạt mức có ý nghĩa. Cùng một kỷ luật đo lường, hướng ngược
+lại.
+
+Cách đọc đúng: rổ chuẩn mua một lần rồi giữ, trả chi phí thực thi **hai
+lần**. Chiến lược quay vòng 385 lệnh, trả **770 lần**. Lợi thế của nó vốn
+đã không phân biệt được với 0; cộng chi phí quay vòng vào thì phần âm lộ ra.
+
+### Kết quả KHÔNG phụ thuộc giả định vốn danh mục
+
+`VON_DANH_MUC_VND = 1 tỷ` là giả định cần để đổi `size_pct` sang **số cổ
+phiếu** — mà số cổ phiếu là thứ quyết định tác động thị trường. Đã kiểm
+độ nhạy ở giá vào trung vị 16.100đ của chính tập lệnh OOS:
+
+```
+von (ty)    so CP   ty trong  chenh lech  tac dong   tong %
+     0,1    1.100     0,0006          50         9    0,311
+     0,5    5.900     0,0029          50        21    0,311
+     1,0   11.800     0,0059          50        30    0,311   <- dang dung
+     5,0   59.000     0,0295          50        66    0,621
+    20,0  236.000     0,1180          50       133    0,932
+```
+
+**Từ 100 triệu tới 1 tỷ, chi phí y hệt nhau.** Tác động thị trường (9đ,
+21đ, 30đ) quá nhỏ để đẩy qua bước giá kế tiếp. Cái tốn tiền là **bước giá
+50đ** — một sự thật của lưới giá, không phải lựa chọn mô hình. Kết luận
+trên đó vững trong toàn bộ dải danh mục cá nhân.
+
+Chỉ từ 5 tỷ trở lên tác động mới bắt đầu cộng thêm một bước.
+
+### Công tắc BẬT mặc định từ hôm nay
+
+```python
+MO_PHONG_TRUOT_GIA = True
+VON_DANH_MUC_VND = 1_000_000_000
+```
+
+**Mọi con số đo TRƯỚC 24/08/2026 trong docs đều KHÔNG có chi phí thực thi.**
+Đọc chúng thì phải trừ hao khoảng 0,43 điểm phần trăm mỗi lệnh — kể cả kỳ
+vọng sổ +0,79%, kể cả alpha +0,090%, kể cả mọi bảng walk-forward.
+
+### Hai đột biến sống sót ở lần đầu
+
+**1. "công tắc mặc định BẬT" vẫn xanh** — mọi test đều monkeypatch công
+tắc nên mặc định chưa bao giờ được khẳng định. Đã ghim.
+
+**2. "nhân hệ số giá vào cả `volume`" vẫn xanh** — và đây là cái nguy hiểm.
+`run_session` nhân mọi giá trị trong `bar` với `price_multiplier` để quy
+nghìn đồng về VNĐ. Nhân nhầm cả khối lượng thì tỷ trọng nhỏ đi **1.000
+lần**, tác động thị trường gần như biến mất, trượt giá tụt còn đúng một
+bước giá — mà kết quả vẫn trông hợp lý hoàn toàn. Test cũ gọi thẳng
+`paper_trading` nên không bao giờ đi qua chỗ đó. Đã thêm test chặn
+`fill_pending` và soi nến nó nhận được.
+
+### Một test cũ đỏ, và nó đỏ đúng chỗ
+
+`test_gia_vao_dung_bang_gia_mo_cua_phien_khop` khẳng định giá vào **bằng
+đúng** giá mở cửa. Bất biến nó khoá là bất biến 1 — khớp ở phiên SAU ngày
+tín hiệu, không nhìn trộm giá đóng cửa phiên tín hiệu — và bất biến đó vẫn
+nguyên. Chỉ phép so bằng-tuyệt-đối là hỏng.
+
+Đã thay bằng hai điều kiện, cộng lại **chặt hơn** phép so cũ: giá vào phải
+≥ giá mở cửa (trượt sai chiều là đang tặng tiền cho mình) và ≤ 2% trên giá
+mở cửa (trượt cỡ đó là mô hình hỏng, không phải chi phí).
+
+564 test xanh · đột biến 6/6 đỏ · 0 CHẶN · 3.11 sạch.

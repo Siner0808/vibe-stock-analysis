@@ -458,6 +458,54 @@ module chứ không **chạy** nó, nên không lần nào có test đỏ.
 
 ---
 
+## CHI PHÍ THỰC THI ĐÃ BẬT (24/08/2026) — mọi số cũ phải trừ hao
+
+```python
+paper_trading.MO_PHONG_TRUOT_GIA = True
+paper_trading.VON_DANH_MUC_VND = 1_000_000_000
+```
+
+`truot_gia.py` + `vong_doi_lenh.py` từng là hai module mồ côi: 29 test,
+không file nào ngoài test của chính chúng import. Nay `fill_pending` đi qua
+`vong_doi_lenh` (lô chẵn · biên độ ±7% · trần thanh khoản mỗi nến · khớp
+một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
+
+**Giá phải trả, đo bằng hai lượt walk-forward trên cùng dữ liệu:**
+
+| | lệnh | kỳ vọng | alpha | KTC 95% |
+|---|---|---|---|---|
+| TẮT (mọi số trước 24/08) | 390 | +0,614% | −0,011% | [−0,766 ; +0,832] chứa 0 |
+| **BẬT** (từ nay) | 385 | **−0,291%** | **−0,927%** | **[−1,689 ; −0,076] LOẠI 0** |
+
+> **Đây là kết quả có ý nghĩa thống kê ĐẦU TIÊN của dự án, và nó âm.** Với
+> chi phí thực thi thực tế, chiến lược thua rổ chuẩn 0,927% mỗi lệnh trên
+> vùng chứng minh được là chưa thể đã bị nhìn.
+>
+> Cách đọc: rổ chuẩn mua một lần rồi giữ, trả chi phí **hai lần**. Chiến
+> lược quay vòng 385 lệnh, trả **770 lần**. Lợi thế vốn đã không phân biệt
+> được với 0; cộng chi phí quay vòng vào thì phần âm lộ ra.
+
+In-sample: **−0,43 điểm phần trăm mỗi lệnh, gần như bằng nhau ở cả bảy
+ngưỡng** (45 → 62). Ổn định như vậy là dấu hiệu mô hình đúng — chi phí thực
+thi là chi phí MỖI LỆNH, không co giãn theo độ chọn lọc.
+
+**Kết luận KHÔNG phụ thuộc giả định vốn 1 tỷ.** Ở giá vào trung vị 16.100đ,
+từ 100 triệu tới 1 tỷ chi phí y hệt nhau (0,311% một chiều): tác động thị
+trường quá nhỏ để đẩy qua bước giá kế tiếp. Cái tốn tiền là **bước giá
+50đ** — sự thật của lưới giá, không phải lựa chọn mô hình. Chỉ từ 5 tỷ trở
+lên tác động mới cộng thêm một bước.
+
+**MỌI con số trong tài liệu này đo TRƯỚC 24/08/2026 đều không có chi phí
+thực thi** — kỳ vọng sổ +0,79%, alpha +0,090%, mọi bảng walk-forward. Trừ
+hao ~0,43 điểm phần trăm mỗi lệnh khi đọc chúng.
+
+**`volume` KHÔNG được nhân `price_multiplier`.** `run_session` nhân mọi giá
+trị trong `bar` để quy nghìn đồng về VNĐ; nhân nhầm khối lượng thì tỷ trọng
+nhỏ đi 1.000 lần, trượt giá tụt còn một bước giá, và kết quả vẫn trông hợp
+lý hoàn toàn. Có test riêng chặn `fill_pending` để soi nến nó nhận được.
+
+---
+
 ## Ranh giới không vượt qua
 
 - **Không đặt lệnh thật.** Agent chuẩn bị → người xác nhận → người đặt lệnh.

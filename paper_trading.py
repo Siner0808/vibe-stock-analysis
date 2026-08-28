@@ -208,7 +208,28 @@ LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng �
 #:
 #: Bật lên thì MỌI chỉ số sẽ xấu đi. Đó là dấu hiệu ĐÚNG — con số đang
 #: tiến gần thực tế, không phải chiến lược vừa tệ đi.
-MO_PHONG_TRUOT_GIA = False
+#:
+#: BẬT từ 24/08/2026, sau khi đo hai lượt walk-forward đầy đủ trên cùng
+#: dữ liệu. Giá phải trả, ổn định ở MỌI ngưỡng in-sample:
+#:
+#:     nguong   TAT      BAT      chenh
+#:        45  +0,305   -0,141    -0,446
+#:        50  +0,548   +0,116    -0,432
+#:        55  +0,721   +0,300    -0,421
+#:        62  +1,310   +0,888    -0,422
+#:
+#: −0,43 điểm phần trăm mỗi lệnh, gần như bằng nhau ở mọi ngưỡng — đó
+#: là dấu hiệu mô hình hành xử đúng: chi phí thực thi là chi phí MỖI
+#: LỆNH, không co giãn theo độ chọn lọc.
+#:
+#: NGOÀI MẪU thì nó đổi KẾT LUẬN, không chỉ đổi con số:
+#:     TAT  390 lenh  ky vong +0,614%  alpha -0,011%  KTC chua 0
+#:     BAT  385 lenh  ky vong -0,291%  alpha -0,927%  KTC [-1,689;-0,076]
+#: Đây là kết quả CÓ Ý NGHĨA THỐNG KÊ đầu tiên của dự án, và nó âm.
+#:
+#: Mọi con số đo TRƯỚC 24/08/2026 trong docs đều KHÔNG có chi phí thực
+#: thi. Đọc chúng thì phải trừ hao khoảng 0,43 điểm phần trăm mỗi lệnh.
+MO_PHONG_TRUOT_GIA = True
 
 #: Vốn danh mục giả định, đơn vị VNĐ. CHỈ dùng để đổi `size_pct` sang
 #: SỐ CỔ PHIẾU — mà số cổ phiếu là thứ quyết định tác động thị trường
