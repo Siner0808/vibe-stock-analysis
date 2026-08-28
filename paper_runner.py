@@ -33,7 +33,7 @@ import pandas as pd
 
 from data_quality import now_vn
 from paper_metrics import report as build_report
-from paper_trading import PaperTradingJournal, Status
+from paper_trading import PaperTradingJournal
 
 
 class DaLuongVoiBoNhoError(RuntimeError):
@@ -219,11 +219,25 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     from data_quality import price_multiplier
 
     mult = price_multiplier(history)
-    bar = {k: (float(v) * mult if v is not None else v) for k, v in bar.items()}
+    # KHÔNG nhân hệ số vào `volume` — nó là số cổ phiếu, không phải giá.
+    # Nhân nhầm thì tác động thị trường nhỏ đi 1.000 lần và trượt giá gần
+    # như biến mất, mà kết quả vẫn trông hợp lý.
+    bar = {k: (float(v) * mult if v is not None and k != "volume" else v)
+           for k, v in bar.items()}
+    if "volume" not in bar and "volume" in getattr(history, "columns", []):
+        bar["volume"] = float(history["volume"].iloc[-1])
 
     stats = {"filled_in": 0, "filled_out": 0, "closed": 0, "opened": 0}
 
-    stats["filled_in"] = journal.fill_pending(symbol, session_date, bar["open"])
+    # Nến khớp cho mô hình trượt giá. `tham_chieu` là giá đóng cửa phiên
+    # TRƯỚC — mốc mà biên độ ±7% quay quanh, không phải giá mở cửa hôm nay.
+    _nen = None
+    if len(history) >= 2:
+        _nen = {"high": bar.get("high"), "low": bar.get("low"),
+                "volume": bar.get("volume"),
+                "tham_chieu": float(history["close"].iloc[-2]) * mult}
+    stats["filled_in"] = journal.fill_pending(symbol, session_date,
+                                              bar["open"], _nen)
     stats["filled_out"] = journal.fill_closing(symbol, session_date, bar["open"])
 
     result = None

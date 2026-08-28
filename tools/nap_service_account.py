@@ -33,6 +33,14 @@ import json
 import sys
 from pathlib import Path
 
+# Console Windows mặc định cp1258, không mã hoá nổi tiếng Việt. Thiếu
+# dòng này thì script chết ở lệnh print đầu tiên, TRƯỚC khi làm được
+# việc gì — và một công cụ không chạy được cũng là một cổng xanh giả.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 GOC = Path(__file__).resolve().parent.parent
 SECRETS = GOC / ".streamlit" / "secrets.toml"
 BAN_DAN = GOC / ".streamlit" / "secrets_cloud_paste.txt"

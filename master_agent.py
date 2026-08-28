@@ -175,18 +175,24 @@ class MasterConsensusAgent:
         volume_norm   = normalize(volume_res["score"], 4.0)
         sr_norm       = normalize(sr_res["score"], 4.0)
         risk_norm     = 100.0 - risk_res["risk_score"]
+        # `news_norm` CHI de hien thi (`score_breakdown["news_score"]`).
+        # No KHONG nam trong `pre_debate_score`, va tu 28/08/2026 khoa
+        # `"news"` cung da bi go khoi ba bo trong so: de lai mot khoa
+        # khong ai doc nghia la ai do co the dat no thanh 0,25 roi tin
+        # rang tin tuc dang chi phoi diem — trong khi khong gi doi ca.
+        # Muon bat tin tuc len thi phai sua CA bieu thuc ben duoi.
         news_norm     = normalize(news_res.get("score", 0.0), 5.0)
 
         # Chế độ Trọng số Động: Nếu Trend & Volume phát tín hiệu Breakout mạnh,
         # ưu tiên Trọng số Trend/Volume (65%) và giảm phạt quá mua RSI của Momentum.
         if trend_norm >= 60.0 and volume_norm >= 55.0:
-            weights = {"trend": 0.35, "volume": 0.30, "sr": 0.15, "momentum": 0.10, "risk": 0.10, "news": 0.0}
+            weights = {"trend": 0.35, "volume": 0.30, "sr": 0.15, "momentum": 0.10, "risk": 0.10}
             # Trong sóng tăng mạnh (Uptrend Surge), RSI > 70 là chuyện bình thường -> nới điểm Momentum
             momentum_norm = max(momentum_norm, 65.0)
         elif sr_norm >= 60.0: # Chế độ tích lũy hỗ trợ
-            weights = {"sr": 0.30, "volume": 0.25, "trend": 0.25, "momentum": 0.10, "risk": 0.10, "news": 0.0}
+            weights = {"sr": 0.30, "volume": 0.25, "trend": 0.25, "momentum": 0.10, "risk": 0.10}
         else:
-            weights = {"trend": 0.25, "momentum": 0.25, "volume": 0.20, "sr": 0.15, "risk": 0.15, "news": 0.0}
+            weights = {"trend": 0.25, "momentum": 0.25, "volume": 0.20, "sr": 0.15, "risk": 0.15}
 
         tv_rec   = packet.tv_recommendation
         tv_bonus = {"STRONG_BUY": 8, "BUY": 4, "NEUTRAL": 0,

@@ -209,13 +209,26 @@ class PostMortemLearningEngine:
             return False
         if trade_id is None or not nguon:
             return False
+        # Thiếu một thành phần thì KHÔNG ghi mẫu — fail-closed, cùng kỷ
+        # luật với `phien_hoc` bên dưới.
+        #
+        # Bản cũ thay bằng 50. Một mẫu mang 50 bịa đứng lẫn giữa 44 mẫu
+        # thật, và với dung sai ±5 trên ba chiều nó khớp cả một vùng
+        # 45-55 mà không lệnh thật nào từng đi qua — rồi trừ 12 điểm trên
+        # thang 100 cho những mã rơi vào vùng đó. Đo 24/08/2026: 44/44 mẫu
+        # hiện có đều là (65,65,100) hoặc (65,65,93), KHÔNG mẫu nào chứa
+        # 50. Nên chốt này hôm nay không đổi hành vi — nó chặn đường.
+        thieu = [k for k in ("trend_score", "momentum_score", "volume_score")
+                 if score_breakdown.get(k) is None]
+        if thieu:
+            return False
         self.sl_patterns.append({
             "symbol": symbol,
             "signal_date": str(signal_date),
             "entry_score": entry_score,
-            "trend_score": score_breakdown.get("trend_score", 50),
-            "momentum_score": score_breakdown.get("momentum_score", 50),
-            "volume_score": score_breakdown.get("volume_score", 50),
+            "trend_score": score_breakdown["trend_score"],
+            "momentum_score": score_breakdown["momentum_score"],
+            "volume_score": score_breakdown["volume_score"],
             "reasons": key_reasons[:3] if key_reasons else [],
             # ── provenance ──
             "nguon": str(nguon),
@@ -258,9 +271,15 @@ class PostMortemLearningEngine:
             return 0.0
 
         as_of = str(as_of)
-        c_trend = current_breakdown.get("trend_score", 50)
-        c_mom = current_breakdown.get("momentum_score", 50)
-        c_vol = current_breakdown.get("volume_score", 50)
+        # Thiếu thành phần thì KHÔNG phạt. Bản cũ thay bằng 50, tức bịa ra
+        # một toạ độ rồi so nó với bộ nhớ — dung sai ±5 nghĩa là con số bịa
+        # ấy vẫn khớp được một mẫu nào đó và trừ 12 điểm thật.
+        if any(current_breakdown.get(k) is None
+               for k in ("trend_score", "momentum_score", "volume_score")):
+            return 0.0
+        c_trend = current_breakdown["trend_score"]
+        c_mom = current_breakdown["momentum_score"]
+        c_vol = current_breakdown["volume_score"]
 
         for p in self.sl_patterns:
             past = p.get("signal_date")

@@ -6,7 +6,7 @@ Các Agent đối lập nhau để thách thức phân tích, trước khi đưa
 kết luận cuối qua Moderator. Phương pháp Adversarial Collaboration.
 ──────────────────────────────────────────────────────────────────────
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -349,7 +349,15 @@ class DebateModerator:
         if max_dd > 20: key_risks.append(f"Max Drawdown cao: -{max_dd:.1f}%")
         if vol > 35:    key_risks.append(f"Biến động hàng năm cao: {vol:.1f}%")
         if rsi > 70:    key_risks.append(f"RSI quá mua: {rsi:.1f} — nguy cơ điều chỉnh")
-        if bull_total < 0: key_risks.append("Lập luận tăng giá yếu hơn giảm giá")
+        # Ở đây từng có: `if bull_total < 0: key_risks.append(...)`.
+        # Gỡ 28/08/2026 — nhánh KHÔNG THỂ chạy. Bull cộng vô điều kiện
+        # +0,5 (vòng 2) và +1,0 (vòng 3), mọi nhánh khác chỉ `+=`, nên
+        # sàn của `bull_total` là +1,5; đo 262 lượt thật thấy thấp nhất
+        # +1,50. Ý ĐỊNH của nó — cảnh báo khi phe tăng yếu hơn phe giảm
+        # — vẫn hợp lý, nhưng phải viết theo `bull_total + bear_total`
+        # (hai phe ngược dấu), không phải so bull_total với 0. Chưa
+        # viết lại vì làm vậy là ĐỔI cảnh báo hiển thị, cần người quyết.
+        # Quy ước dấu được gác ở tests/test_dau_hieu_tranh_luan.py.
         key_risks.append("Rủi ro sự kiện vĩ mô bất ngờ (FED, NHNN, địa chính trị)")
 
         if sharpe > 1:   key_opportunities.append(f"Sharpe Ratio tốt: {sharpe:.2f} — hiệu quả sinh lời lịch sử")

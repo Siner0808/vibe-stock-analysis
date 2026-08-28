@@ -2708,3 +2708,407 @@ hành, và nó không tệ hơn luật cũ.** Nhưng nó cũng không có alpha 
 
 Nên phép đo này **không** mở khoá ô C5. Nó chỉ gỡ một lý do để trì hoãn:
 không còn nghi ngờ rằng việc gỡ chốt lời cứng đã âm thầm làm hỏng thứ gì.
+
+---
+
+## CỔNG C5 ĐÃ MỞ, VÀ NHỮNG GÌ PHẢI DỰNG TRƯỚC ĐÓ (24/08/2026)
+
+`CHO_PHEP_MO_LENH_MOI = True`, ngưỡng 62.
+
+**Lý do mở KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha đều chứa số
+0: rho điểm cuối −0,019 · alpha walk-forward −0,011% · alpha sổ +0,090% ·
+hai luật chốt lời giống hệt nhau · năm chỉ số cơ bản không cái nào sống sót
+qua Bonferroni.
+
+Lý do là ba điều đo được, cộng lại:
+
+1. **Cấu hình chạy TRỰC TIẾP chưa bao giờ được đo.** Backtest đo một hệ bị
+   cắt tay chân — không có lịch sử TradingView và tin tức nên 2 agent là
+   hằng số, 2 agent là công tắc ba nấc. Sáu agent đầy đủ chỉ đo được tiến
+   về phía trước. Giữ cổng đóng bảo đảm nó không bao giờ được đo.
+2. **Chờ thêm dữ liệu không phải một lựa chọn.** Cả 113 lệnh được ghi trong
+   258 giây ngày 07/08/2026. Giữ đóng thì bằng chứng tiến-về-trước đứng mãi
+   ở 0 lệnh, không phải "113 và chờ thêm". Số học: cần 1.050 lệnh để kỳ
+   vọng loại được số 0, tức ~23 năm ở nhịp 45 lệnh/năm; alpha cần 22.601
+   lệnh, tức không bao giờ.
+3. **Điều kiện mở lại ghi trong chính mã ĐÃ ĐẠT.** 5D chọn ngưỡng 62 trên
+   khoảng A, đo trên khoảng B, A ∩ B = ∅. Thứ không đạt là ý nghĩa thống kê
+   — vốn chưa bao giờ nằm trong điều kiện. Siết thêm sau khi đã thấy kết
+   quả là tự đổi thước, cùng họ với bất biến 7.
+
+### Ba thứ dựng trước khi mở
+
+| | |
+|---|---|
+| `TRAN_VON_CAM_KET_PCT = 100` | sổ thật từng chạm **208%** vốn cam kết |
+| `run_daily` NHẬP `BUY_THRESHOLD` | trước đó cầm **50,0** song song với 62 |
+| `dieu_kien_dong_lai()` | nêu TRƯỚC khi có dữ liệu |
+
+**Ngưỡng đôi là lỗi nguy hiểm nhất trong ba.** `run_daily.BUY_THRESHOLD =
+50.0` chạy song song với `paper_trading.BUY_THRESHOLD = 62` — cổng đóng nên
+hai con số chưa bao giờ gặp nhau. Mở cổng mà không sửa thì hệ thống chạy ở
+50 trong khi mọi phép đo ngoài mẫu đều đo ở 62. Và 50,0 chính là "quán
+quân" của 20 vòng tối ưu trên cùng dữ liệu — đúng thứ bất biến 7 cấm.
+
+Gác cũ `test_run_daily_khong_chep_cung_nguong_mua` đỏ khi đổi sang nhập, vì
+nó đòi một lệnh gán tại chỗ. Đã siết chặt hơn thay vì nới: **cấm khai báo
+lại, kể cả khai đúng 62**. Bằng nhau hôm nay không cứu được — bản sao không
+sai vào ngày nó ra đời, nó sai vào ngày bản gốc đổi và nó thì không.
+
+### Điều kiện đóng lại — nêu trước, không chế sau
+
+```
+>= 60 lenh tien-ve-truoc DA DONG   VA   can tren KTC 95% cua ky vong < 0
+```
+
+Vế thứ hai cố ý khắt khe: với σ ≈ 10% một chuỗi âm ngắn là chuyện thường,
+đóng cổng vì nó là phản ứng với nhiễu. `report()` in trạng thái mỗi phiên.
+`lenh_tien_ve_truoc()` loại cả lô mô phỏng 07/08 lẫn lệnh thiếu
+`created_at` — bằng chứng chưa rõ nguồn gốc không được tính là bằng chứng.
+
+### GIÁ CỦA TRẦN — và ba lần đo, hai lần sai
+
+| | lệnh | kỳ vọng | von_tb | von_đỉnh | alpha |
+|---|---|---|---|---|---|
+| không trần | 386 | +0,616% | 145% | 524% | −0,008% |
+| **có trần** | **390** | **+0,614%** | 143% | 524% | −0,011% |
+
+**Trần không tốn gì — và cũng không chặn được gì trong backtest.** Vốn
+triển khai không hề giảm.
+
+Vì `_mo_phong` chạy **theo mã**: xong toàn bộ lịch sử FPT rồi mới sang ACB.
+Nên tại mọi điểm quyết định chỉ có vị thế của mã đang chạy đang mở. Trong
+khi `paper_metrics` dựng lại vốn triển khai theo LỊCH trên toàn bộ mã.
+
+> **Các con số đòn bẩy 145% / 524% / 1372% mô tả một danh mục mà máy chưa
+> bao giờ thực sự nắm.** Chúng đúng như một mô tả về độ chồng lấn của tập
+> lệnh, nhưng không phải một quyết định máy đã ra — và không ràng buộc danh
+> mục nào kiểm định được trong máy này. Giá trị của trần nằm ở đường chạy
+> THẬT, nơi `run_daily` quét cả rổ trong cùng một phiên và nơi 208% đã xảy
+> ra.
+
+**Hai lần đo trước đều sai, và cả hai lần con số trông đủ hợp lý để báo
+cáo.**
+
+*Lần một* — 142 lệnh, tưởng là "trần cắt 63% số lệnh". Thật ra là **4 lệnh
+mồ côi chiếm 93,8% hạn mức**: lệnh còn mở lúc hết dữ liệu của một mã không
+bao giờ được đóng, nằm lại trong DB suốt phần còn lại của lượt chạy. Trước
+khi có trần thì vô hại (`[x for x in lenh if x.status == CLOSED]` lặng lẽ
+bỏ chúng ra); có trần rồi thì chúng ăn vào hạn mức của mọi mã sau. Vá bằng
+`dong_so_sach()`: OPEN đóng ở giá phiên cuối với lý do `HET_DU_LIEU`,
+PENDING **xoá** vì chúng chưa bao giờ khớp.
+
+*Lần hai* — kỳ vọng −0,419%, alpha −1,044%, tưởng là "trần làm hệ thống
+lỗ". Con số đổi quá nhiều cho 4 lệnh thêm vào nên mở sổ ra đếm:
+
+```
+BAF  vao  23.440,0  ra  23,27  -> -99,90%
+FRT  vao 138.120,0  ra 141,32  -> -99,90%
+HAX  vao  16.000,0  ra  15,86  -> -99,90%
+VTP  vao  97.880,0  ra 100,30  -> -99,90%
+```
+
+Bốn mã cùng −99,90% không phải bốn mã cùng sập. **Nghìn đồng gặp VNĐ** —
+đúng bẫy trong bảng "hỏng âm thầm" của `NGUYEN-TAC-DO-LUONG.md`, và đúng
+thứ docstring của `run_session` cảnh báo dài dòng. Giá thô được truyền vào
+`dong_so_sach` mà thiếu `price_multiplier`.
+
+Đáng chú ý: lỗi này đẩy kết quả **xấu đi** — ngược hướng quy tắc số 1 mô
+tả. Nó vẫn sai y như vậy. Hướng của thiên lệch là một chỉ báo, không phải
+một phép kiểm.
+
+Nay `dong_so_sach` **tự chặn**: giá đóng lệch quá **10 lần** so với giá vào
+thì ném `ValueError`. Biên độ sàn 7–15% một phiên nên 10 lần không thể là
+biến động. Ném chứ không tự nhân 1000 — tự sửa nghĩa là đoán xem người gọi
+*định* nói gì.
+
+---
+
+## SAU KHI MỞ CỔNG — thứ tự ưu tiên đổi (24/08/2026)
+
+Cổng đóng thì một kết luận sai chỉ nằm trong báo cáo. Cổng mở rồi thì nó
+sinh ra lệnh. Ba việc làm ngay sau đó:
+
+### 1. "0 lệnh" phải nói được vì sao
+
+`execute_daily_scan` bỏ qua một mã bằng `break` khi nguồn trả `SYNTHETIC`
+(mất kết nối → `data_collectors` sinh giá bằng `np.random`) hoặc khi không
+đủ 20 nến. **Cả hai nhánh im lặng hoàn toàn.** Một ngày cả 71 mã mất nguồn
+cho ra đúng cùng một báo cáo với một ngày không có tín hiệu nào.
+
+Đã kiểm: dữ liệu SYNTHETIC **không** tới được `run_session` — nhánh `break`
+chặn trước. Vấn đề là sự im lặng, không phải dữ liệu bịa.
+
+Nay đếm theo lý do, in ra, và thêm dòng "Số mã quét được" vào báo cáo phiên.
+Quét được dưới **một nửa** rổ thì báo động: phiên đó không kết luận được gì
+về thị trường, nó chỉ kết luận được rằng nguồn đang hỏng. Cảnh báo đi bằng
+văn bản chứ **không** bằng mã thoát — một job đỏ sinh báo động giả che mất
+chính thứ chuông sinh ra để canh.
+
+### 2. Post-mortem: thiếu thành phần thì KHÔNG được đoán
+
+```python
+c_trend = current_breakdown.get("trend_score", 50)   # ban cu
+```
+
+Với dung sai ±5 trên ba chiều, một toạ độ bịa vẫn khớp được một mẫu và trừ
+**12 điểm** trên thang 100 — trong khi ngưỡng mua là 62. Đường này đang
+chấm điểm thật: `save_memory()` bật cho sổ thật từ 21/08, cổng mở từ 24/08.
+
+Nay fail-closed cả hai chiều, cùng kỷ luật module đã tuyên bố cho
+`phien_hoc`. Dùng `is None` chứ không `not` — điểm 0 là giá trị hợp lệ, và
+`momentum` đo được là **luôn** trả 0.
+
+Một đột biến **sống sót** ở lần đầu: test dùng mẫu (65,65,100) rồi bỏ
+`trend_score`, nhưng |50−65| = 15 > dung sai 5 nên bản cũ cũng không khớp —
+xanh cả hai bên. Con số bịa chỉ cắn khi bộ nhớ có mẫu ở gần nó, và đó đúng
+là điều sẽ xảy ra khi bộ nhớ lớn dần.
+
+### 3. Lần thứ BA cùng một lỗi — nên vá theo hệ thống
+
+```
+22/08  tools/kiem_ban_sach.py       — cong kiem ban sach
+23/08  experiment_fundamentals.py   — script quyet TRONG_SO_CO_BAN
+24/08  extend_history.py            — lenh CLAUDE.md bao nen chay
+```
+
+Cả ba chết ở `print` đầu tiên vì console cp1258, TRƯỚC khi làm được việc gì.
+Không lần nào có test đỏ, vì test **import** module chứ không **chạy** nó.
+
+`tests/test_script_chay_duoc_tren_windows.py` quét toàn repo: mọi file có
+`if __name__ == "__main__"` và có `print` đều phải gọi `reconfigure`, xác
+nhận bằng AST. 15 script, tất cả đều đạt sau khi vá thêm
+`tools/dung_lai_bo_nho.py` và `tools/nap_service_account.py`.
+
+Kèm một chốt tự soi: gác phải nhìn thấy ≥12 script. Bộ lọc hỏng trả về 2
+file thì test trên vẫn xanh mà chẳng gác gì.
+
+Chạy được rồi, `extend_history.py --check` nói ra một điều chưa ai biết:
+
+```
+Moc chung som nhat cua CA RO: 2026-02-06
+Phien it nhat: 132 (GEL) · nhieu nhat: 1210 (DIG)
+```
+
+### Dọn nhánh
+
+15 nhánh đã merged, mỗi nhánh **0 commit riêng** so với `main`, đã xoá khỏi
+remote. SHA ghi lại trong commit dọn dẹp phòng khi cần
+`git push origin <sha>:refs/heads/<tên>`.
+
+Còn lại `main` và `du-lieu/lam-moi-co-ban`.
+
+---
+
+## NỐI TRƯỢT GIÁ VÀO — VÀ KẾT QUẢ CÓ Ý NGHĨA THỐNG KÊ ĐẦU TIÊN CỦA DỰ ÁN
+## (24/08/2026)
+
+`truot_gia.py` và `vong_doi_lenh.py` có 29 test và tồn tại từ lâu, nhưng
+cho tới hôm nay **không file nào ngoài test của chính chúng import**. Sổ
+lệnh vẫn coi mọi lệnh khớp TOÀN BỘ, NGAY, ở đúng giá mong muốn. Cuối mỗi
+báo cáo có câu *"Giao dịch thật còn có trượt giá, khớp một phần và tâm lý
+— kết quả thực tế sẽ thấp hơn"*. Câu đó đúng, nhưng nó là **lời cảnh báo,
+không phải phép đo**.
+
+### Đường nối
+
+| | qua module nào | vì sao |
+|---|---|---|
+| **vào lệnh** | `vong_doi_lenh.dat_lenh` → `khop_trong_nen` | dùng cả hai module: lô chẵn, biên độ ±7%, trần thanh khoản mỗi nến, khớp một phần, rồi mới tới trượt giá |
+| **ra lệnh** | `truot_gia(..., BAN, ...)` | **không** qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn |
+
+Khớp một phần thì `size_pct` giảm theo tỷ lệ thực khớp — giữ nguyên là ghi
+vào sổ một vị thế chưa bao giờ tồn tại. Sàn từ chối thì **xoá** lệnh
+PENDING, không mở rồi đóng ngay: một lệnh không khớp không phải một giao
+dịch lãi/lỗ 0%.
+
+### In-sample: −0,43 điểm phần trăm mỗi lệnh, ở MỌI ngưỡng
+
+```
+nguong    TAT      BAT     chenh    WR TAT   WR BAT
+    45  +0,305   -0,141   -0,446     26,9     24,9
+    48  +0,389   -0,043   -0,432     27,8     26,1
+    50  +0,548   +0,116   -0,432     28,5     26,9
+    52  +0,545   +0,109   -0,436     28,9     27,4
+    55  +0,721   +0,300   -0,421     29,6     27,9
+    58  +0,883   +0,452   -0,431     30,3     28,4
+    62  +1,310   +0,888   -0,422     31,9     29,0
+```
+
+Chênh lệch **gần như bằng nhau ở cả bảy ngưỡng**. Đó là dấu hiệu mô hình
+hành xử đúng: chi phí thực thi là chi phí **mỗi lệnh**, không co giãn theo
+độ chọn lọc. Nếu nó biến động mạnh theo ngưỡng thì phải nghi ngờ trước.
+
+Ngưỡng chọn vẫn là 62 ở cả hai bên — trượt giá không đổi thứ tự các ngưỡng.
+
+### Ngoài mẫu: đổi KẾT LUẬN, không chỉ đổi con số
+
+```
+        lenh   ky vong    WR     von_tb   alpha      KTC 95%
+TAT      390   +0,614%   26,9%    143%   -0,011%   [-0,766 ; +0,832]  chua 0
+BAT      385   -0,291%   25,5%    139%   -0,927%   [-1,689 ; -0,076]  LOAI 0
+```
+
+> **Đây là kết quả có ý nghĩa thống kê đầu tiên trong toàn bộ lịch sử dự
+> án. Và nó âm.**
+>
+> Với chi phí thực thi thực tế, chiến lược **thua rổ chuẩn 0,927% mỗi
+> lệnh**, khoảng tin cậy 95% loại được số 0 — đo trên vùng dữ liệu chứng
+> minh được là chưa thể đã bị nhìn.
+
+Bốn lần trước dự án cho ra số đẹp rồi hoá ra vô nghĩa. Đây là lần đầu một
+con số **xấu** đạt mức có ý nghĩa. Cùng một kỷ luật đo lường, hướng ngược
+lại.
+
+Cách đọc đúng: rổ chuẩn mua một lần rồi giữ, trả chi phí thực thi **hai
+lần**. Chiến lược quay vòng 385 lệnh, trả **770 lần**. Lợi thế của nó vốn
+đã không phân biệt được với 0; cộng chi phí quay vòng vào thì phần âm lộ ra.
+
+### Kết quả KHÔNG phụ thuộc giả định vốn danh mục
+
+`VON_DANH_MUC_VND = 1 tỷ` là giả định cần để đổi `size_pct` sang **số cổ
+phiếu** — mà số cổ phiếu là thứ quyết định tác động thị trường. Đã kiểm
+độ nhạy ở giá vào trung vị 16.100đ của chính tập lệnh OOS:
+
+```
+von (ty)    so CP   ty trong  chenh lech  tac dong   tong %
+     0,1    1.100     0,0006          50         9    0,311
+     0,5    5.900     0,0029          50        21    0,311
+     1,0   11.800     0,0059          50        30    0,311   <- dang dung
+     5,0   59.000     0,0295          50        66    0,621
+    20,0  236.000     0,1180          50       133    0,932
+```
+
+**Từ 100 triệu tới 1 tỷ, chi phí y hệt nhau.** Tác động thị trường (9đ,
+21đ, 30đ) quá nhỏ để đẩy qua bước giá kế tiếp. Cái tốn tiền là **bước giá
+50đ** — một sự thật của lưới giá, không phải lựa chọn mô hình. Kết luận
+trên đó vững trong toàn bộ dải danh mục cá nhân.
+
+Chỉ từ 5 tỷ trở lên tác động mới bắt đầu cộng thêm một bước.
+
+### Công tắc BẬT mặc định từ hôm nay
+
+```python
+MO_PHONG_TRUOT_GIA = True
+VON_DANH_MUC_VND = 1_000_000_000
+```
+
+**Mọi con số đo TRƯỚC 24/08/2026 trong docs đều KHÔNG có chi phí thực thi.**
+Đọc chúng thì phải trừ hao khoảng 0,43 điểm phần trăm mỗi lệnh — kể cả kỳ
+vọng sổ +0,79%, kể cả alpha +0,090%, kể cả mọi bảng walk-forward.
+
+### Hai đột biến sống sót ở lần đầu
+
+**1. "công tắc mặc định BẬT" vẫn xanh** — mọi test đều monkeypatch công
+tắc nên mặc định chưa bao giờ được khẳng định. Đã ghim.
+
+**2. "nhân hệ số giá vào cả `volume`" vẫn xanh** — và đây là cái nguy hiểm.
+`run_session` nhân mọi giá trị trong `bar` với `price_multiplier` để quy
+nghìn đồng về VNĐ. Nhân nhầm cả khối lượng thì tỷ trọng nhỏ đi **1.000
+lần**, tác động thị trường gần như biến mất, trượt giá tụt còn đúng một
+bước giá — mà kết quả vẫn trông hợp lý hoàn toàn. Test cũ gọi thẳng
+`paper_trading` nên không bao giờ đi qua chỗ đó. Đã thêm test chặn
+`fill_pending` và soi nến nó nhận được.
+
+### Một test cũ đỏ, và nó đỏ đúng chỗ
+
+`test_gia_vao_dung_bang_gia_mo_cua_phien_khop` khẳng định giá vào **bằng
+đúng** giá mở cửa. Bất biến nó khoá là bất biến 1 — khớp ở phiên SAU ngày
+tín hiệu, không nhìn trộm giá đóng cửa phiên tín hiệu — và bất biến đó vẫn
+nguyên. Chỉ phép so bằng-tuyệt-đối là hỏng.
+
+Đã thay bằng hai điều kiện, cộng lại **chặt hơn** phép so cũ: giá vào phải
+≥ giá mở cửa (trượt sai chiều là đang tặng tiền cho mình) và ≤ 2% trên giá
+mở cửa (trượt cỡ đó là mô hình hỏng, không phải chi phí).
+
+564 test xanh · đột biến 6/6 đỏ · 0 CHẶN · 3.11 sạch.
+
+---
+
+## RÀ SOÁT CODE CHẾT — VÀ MỘT NÚM VẶN GIẢ
+## (28/08/2026)
+
+Kiểm kê bằng **AST**, không bằng grep chuỗi. Lý do không phải là sự cầu
+kỳ: `"news" in src` khớp cả chữ trong chú thích, mà `master_agent.py` đầy
+chú thích nói về news. Grep sẽ báo "còn dùng" cho đúng thứ đã chết.
+
+Mốc: **564 test xanh** trước → **571** sau (+7 test gác mới). 3.11 sạch.
+Điểm chấm **không dịch một ly** — đo lại bằng cùng kịch bản trước/sau:
+60 / 68 / 64 / 60 / 56 / 52, y hệt.
+
+### Đã xoá
+
+| Thứ | Ở đâu | Vì sao chắc là chết |
+|---|---|---|
+| `tradingview_mcp.py`, 106 dòng | gốc repo | Bản sao thứ hai của `TradingViewCollectorAgent`. AST: không file nào import; không .md nào nhắc. |
+| Nhánh `if bull_total < 0:` | `debate_agents.py:352` | Sàn cấu trúc của `bull_total` là **+1,5**; đo 262 lượt thật, thấp nhất +1,50. |
+| Khoá `"news": 0.0` × 3 | `master_agent.py` | Không biểu thức nào đọc `weights["news"]`. |
+| 24 import thừa | 14 file | Tên chỉ xuất hiện đúng một lần trong file — chính dòng import. |
+
+`from __future__ import annotations` **không** bị đụng tới ở bất kỳ file
+nào. Máy quét gắn cờ nó ở 20 file vì nó không phải một cái tên được dùng
+— nhưng nó là chỉ thị biên dịch, và gỡ nó ra là làm hỏng CI 3.11. Đây là
+cái bẫy lớn nhất của việc "dọn import tự động".
+
+### Núm vặn giả — thứ đáng kể nhất tìm được
+
+Cả ba bộ trọng số động mang khoá `"news": 0.0`, mà biểu thức
+`pre_debate_score` không hề nhắc tới `weights["news"]`. Đặt `0.25` vào đó
+thì **không có gì xảy ra**: chạy xong, số không đổi, không ai biết mình
+vừa không làm gì. Đúng dạng "silent pass" mà `NGUYEN-TAC-DO-LUONG.md`
+cảnh báo, chỉ khác là nó nằm ở chỗ người ta tưởng mình đang chỉnh chiến
+lược.
+
+Chọn **gỡ khoá** chứ không phải nối `news_norm` vào tổng. Nối vào thì
+0,0 × NaN = NaN — `normalize()` kẹp bằng `max/min`, mà NaN đi qua `max/min`
+không đoán trước được, nên một điểm tin tức hỏng sẽ đầu độc cả điểm chấm.
+Gỡ khoá không thêm rủi ro nào và vẫn đóng được cái bẫy.
+
+`news_norm` vẫn được tính, vì `score_breakdown["news_score"]` hiển thị nó.
+Nó là số để NHÌN, không phải số để CHẤM — nay đã ghi thành lời tại chỗ.
+
+### Bốn phép soi KHÔNG tìm thấy gì
+
+Cũng là kết quả, và là kết quả tốt:
+
+| Soi cái gì | Thấy |
+|---|---|
+| Định nghĩa trùng tên trong cùng phạm vi (bản sau đè bản trước) | 0 |
+| Lệnh nằm sau `return` / `raise` / `continue` / `break` | 0 |
+| Method của lớp không nơi nào nhắc tên | 0 |
+| Import vòng | 0 |
+
+### Hai hàng rào mới, cả hai đều qua đột biến
+
+**`tests/test_dau_hieu_tranh_luan.py`** — quy ước dấu của Debate Council:
+Bull chỉ dương, Bear chỉ âm, Devil chỉ âm. Phép cộng
+`bull*0,4 + bear*0,4 + devil*0,2` chỉ có nghĩa "hai phe triệt tiêu nhau"
+khi quy ước đó đúng, mà không dòng nào trong `debate_agents.py` phát biểu
+nó thành lời. Phá quy ước thì điểm vẫn nằm trong ±8 và vẫn trông hợp lý.
+Đột biến 4/4 đỏ.
+
+**`tests/test_trong_so_that_su_duoc_dung.py`** — mọi khoá trong bộ trọng
+số phải thực sự được nhân vào điểm, và ngược lại. Gác cả hai chiều: khoá
+thừa là núm vặn giả, khoá thiếu là `KeyError` ở đúng nhánh đó. Đột biến
+3/3 đỏ — kể cả đột biến **quên một hạng tử** (bỏ `risk_norm * weights["risk"]`
+khỏi tổng), thứ mà một test so-điểm-cuối bình thường sẽ không bắt được.
+
+### Nghi chết nhưng KHÔNG xoá — chờ người quyết
+
+| Thứ | Vì sao dừng tay |
+|---|---|
+| `top_stocks_screener.py` (57 dòng) | Mồ côi thật, nhưng là **năng lực riêng** (quét song song top 5), không phải bản sao. Xoá là bỏ một tính năng, khác với dọn trùng lặp. |
+| `google_sheets_sync.get_gspread_client()` | Không ai gọi, nhưng docstring nói rõ nó là **cửa thoát hiểm soi lỗi bằng tay**. Chết theo nghĩa đếm lời gọi, sống theo nghĩa chủ ý. |
+| 9 script `optimize_*` / `run_*_test.py` ở gốc repo | Có thể là **nguồn gốc** của những con số đang nằm trong docs. Xoá trước khi truy nguồn là mất dấu vết đo lường. |
+| `test_trailing_sim.py` ở gốc repo | Có trong git nhưng nằm ngoài `tests/`, nên pytest không hề chạy nó. Một test không ai chạy là tệ hơn không có test. |
+| `*.db` ở gốc repo | Dữ liệu đo lường. Không đụng. |
+
+### Một chuyện nhỏ phát hiện lúc chạy
+
+`tools/kiem_cu_phap_311.py` đỏ nếu chạy **song song** với `pytest`: có test
+tạo thư mục tạm ngay trong gốc repo (`tmpXXXX/vi_pham_tam.py`), trình kiểm
+duyệt đi vào đúng lúc nó đang bị xoá. Không phải lỗi cú pháp — nhưng nó
+nói rằng có test đang ghi file tạm vào repo thay vì vào thư mục tạm của hệ
+thống. Chạy tuần tự thì sạch.
+
+571 test xanh · đột biến 7/7 đỏ · 0 CHẶN · 3.11 sạch.

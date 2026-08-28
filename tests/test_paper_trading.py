@@ -683,9 +683,25 @@ def test_gia_vao_dung_bang_gia_mo_cua_phien_khop():
     assert opened, "không có lệnh nào khớp"
     for t in opened:
         idx = list(df["time"]).index(t.entry_date)
-        assert abs(t.entry_price - float(df["open"].iloc[idx])) < 1e-6, (
-            f"giá vào {t.entry_price} khác giá mở cửa {df['open'].iloc[idx]}")
-    print(f"PASS  {len(opened)} lệnh, giá vào đúng bằng giá mở cửa phiên khớp")
+        mo = float(df["open"].iloc[idx])
+        if not pt.MO_PHONG_TRUOT_GIA:
+            assert abs(t.entry_price - mo) < 1e-6, (
+                f"giá vào {t.entry_price} khác giá mở cửa {mo}")
+            continue
+        # Bật mô phỏng trượt giá (mặc định từ 24/08/2026): giá vào KHÔNG
+        # còn bằng đúng giá mở cửa. Bất biến mà test này khoá vẫn nguyên —
+        # lệnh khớp ở phiên SAU ngày tín hiệu, neo vào giá mở cửa phiên đó,
+        # không nhìn trộm giá đóng cửa phiên tín hiệu.
+        #
+        # Hai điều kiện thay cho phép so bằng, và cộng lại chúng CHẶT hơn:
+        assert t.entry_price >= mo, (
+            f"mua mà giá vào {t.entry_price:,.0f} THẤP hơn giá mở cửa "
+            f"{mo:,.0f} — trượt giá sai chiều, đang tặng tiền cho mình")
+        assert t.entry_price <= mo * 1.02, (
+            f"giá vào {t.entry_price:,.0f} cao hơn giá mở cửa {mo:,.0f} quá "
+            f"2% — trượt giá cỡ đó nghĩa là mô hình hỏng, không phải chi phí")
+    print(f"PASS  {len(opened)} lệnh, giá vào neo đúng vào giá mở cửa phiên "
+          f"khớp (trượt giá: {pt.MO_PHONG_TRUOT_GIA})")
 
 
 

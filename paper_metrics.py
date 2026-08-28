@@ -16,7 +16,7 @@ from __future__ import annotations
 import random
 import statistics
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime
 
 from paper_trading import BROKER_FEE_PCT, SELL_TAX_PCT, ExitReason, Trade

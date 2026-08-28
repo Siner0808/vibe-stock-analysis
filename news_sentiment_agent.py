@@ -6,7 +6,6 @@ Nhận NewsPacket từ NewsOrchestrator, xuất bản điểm sentiment tổng h
 ──────────────────────────────────────────────────────────────────────
 """
 from news_collectors import NewsPacket, NewsItem
-from collections import Counter
 
 SECTOR_LABEL = {
     "banking":          "🏦 Ngân hàng",

@@ -7,14 +7,13 @@ Script tự động quét danh mục VN100 và cập nhật Sổ Lệnh Giấy p
 import os
 import sys
 import pandas as pd
-from datetime import datetime
 
 os.environ["POST_MORTEM_ENABLED"] = "1"
 sys.stdout.reconfigure(encoding="utf-8")
 
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
 from paper_trading import BUY_THRESHOLD, PaperTradingJournal
-from paper_metrics import compute, report, ro_chuan_tu_chuoi_gia
+from paper_metrics import report, ro_chuan_tu_chuoi_gia
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
 from data_quality import now_vn
@@ -207,7 +206,9 @@ def execute_daily_scan():
                     "open": float(row["open"]),
                     "high": float(row["high"]),
                     "low": float(row["low"]),
-                    "close": float(row["close"])
+                    "close": float(row["close"]),
+                    # Khối lượng cho mô hình trượt giá. KHÔNG nhân hệ số giá.
+                    "volume": float(row["volume"]) if "volume" in row else 0.0,
                 }
                 s = run_session(journal, sym, df, bar, str(row["time"]), "HOSE", BUY_THRESHOLD)
                 quet_duoc += 1
