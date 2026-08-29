@@ -39,11 +39,38 @@ GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
 
 
-def kiem(trades: list, cong_dang_mo: bool) -> tuple[int, str]:
+def ro_chuan(trades: list):
+    """Rổ đối chiếu VN-INDEX cho nhóm lệnh này, hoặc None kèm lý do in ra.
+
+    Điều kiện dừng đo ALPHA khớp từng lệnh, nên chuông cũng cần rổ chuẩn.
+    Không dựng được thì `kiem()` sẽ báo "không đo được" — và đó là một
+    trạng thái đáng kêu, không phải một trạng thái im lặng.
+    """
+    try:
+        import market_filter
+        from paper_metrics import ro_chuan_tu_chuoi_gia
+
+        df = market_filter.get_vni_df()
+        if df is None or len(df) == 0:
+            print("Không có chuỗi VN-INDEX — không dựng được rổ đối chiếu.")
+            return None
+        gia = dict(zip(df["time"].astype(str), df["close"].astype(float)))
+        return ro_chuan_tu_chuoi_gia(trades, gia) or None
+    except Exception as e:
+        print(f"Không dựng được rổ đối chiếu: {type(e).__name__}: {e}")
+        return None
+
+
+def kiem(trades: list, cong_dang_mo: bool, benchmark=None) -> tuple[int, str]:
     """(mã thoát, thông điệp). 0 = không phải làm gì, 1 = phải kêu."""
     from paper_metrics import dieu_kien_dong_lai
 
-    dk = dieu_kien_dong_lai(trades)
+    dk = dieu_kien_dong_lai(trades, benchmark)
+    if not dk.get("do_duoc"):
+        # Không đo được KHÔNG phải "không sao". Chuông sinh ra để canh;
+        # một cái chuông im lặng vì không nhìn thấy gì thì tệ hơn không có
+        # chuông, vì nó tạo cảm giác đang được canh.
+        return 1, f"CHUÔNG C5 KHÔNG ĐO ĐƯỢC — {dk['ly_do']}"
     if not dk["dat"]:
         trang_thai = "MỞ" if cong_dang_mo else "ĐÓNG"
         return 0, (f"Cổng C5 đang {trang_thai}. Điều kiện dừng CHƯA đạt: "
@@ -87,7 +114,7 @@ def main() -> int:
         return 1
 
     trades = PaperTradingJournal(str(tam)).all_trades()
-    ma, thong_diep = kiem(trades, pt.CHO_PHEP_MO_LENH_MOI)
+    ma, thong_diep = kiem(trades, pt.CHO_PHEP_MO_LENH_MOI, ro_chuan(trades))
 
     print(f"Sổ lệnh: {bc['trades']} lệnh · {bc['decisions']} quyết định")
     print(f"paper_trading.CHO_PHEP_MO_LENH_MOI = {pt.CHO_PHEP_MO_LENH_MOI}")

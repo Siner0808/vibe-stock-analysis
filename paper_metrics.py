@@ -13,6 +13,7 @@ Câu 3 là câu quyết định. Lãi 8% khi VN-INDEX tăng 12% là THUA — và
 """
 from __future__ import annotations
 
+import math
 import random
 import statistics
 from collections import defaultdict
@@ -217,7 +218,8 @@ def ro_chuan_tu_chuoi_gia(trades: list[Trade],
 
 
 def vs_benchmark(trades: list[Trade],
-                 benchmark_return_by_period: dict[tuple[str, str], float]) -> dict:
+                 benchmark_return_by_period: dict[tuple[str, str], float],
+                 z: float = 1.959964) -> dict:
     """So từng lệnh với việc cầm CHUẨN trong CÙNG khoảng thời gian.
 
     benchmark_return_by_period: {(ngày_vào, ngày_ra): % thay đổi của chuẩn}
@@ -251,13 +253,22 @@ def vs_benchmark(trades: list[Trade],
                            + (f" ({bo_qua} lệnh bị BỎ vì không tìm được cặp "
                               f"ngày trong rổ chuẩn)" if bo_qua else "")}
 
+    # `z` cho phép người gọi chọn độ rộng khoảng. Mặc định 1,959964 giữ
+    # nguyên KTC 95% và ra ĐÚNG hai chỉ số cũ (125 và 4874), nên mọi chỗ
+    # gọi sẵn có không đổi một chữ số.
+    #
+    # `dieu_kien_dong_lai` cần z rộng hơn vì nó được đánh giá LIÊN TỤC —
+    # mỗi lượt quét, 12 lượt một ngày. Nhìn nhiều lần ở cùng một mức thì
+    # xác suất chạm biên do nhiễu cộng dồn lên.
     rng = random.Random(0)
+    VONG = 5000
     means = []
-    for _ in range(5000):
+    for _ in range(VONG):
         s = [diffs[rng.randrange(len(diffs))] for _ in range(len(diffs))]
         means.append(statistics.mean(s))
     means.sort()
-    lo, hi = means[125], means[4874]
+    _duoi = int(statistics.NormalDist().cdf(-z) * VONG)
+    lo, hi = means[_duoi], means[VONG - 1 - _duoi]
     return {
         "n": len(diffs),
         "bo_qua": bo_qua,
@@ -366,10 +377,75 @@ def tom_tat_lo_ghi(trades: list[Trade]) -> dict:
 # Điều kiện đóng lại phải viết ra TRƯỚC khi có dữ liệu. Viết sau là chọn
 # ngưỡng theo kết quả — cùng một lỗi với bất biến 7, chỉ đổi hướng.
 
-#: Số lệnh tiến-về-trước tối thiểu trước khi phép kiểm này có nghĩa.
-#: Với σ ≈ 10%/lệnh, 60 lệnh cho SE ≈ 1,3% — đủ để một kỳ vọng âm nặng
-#: (dưới −2,5%) lộ ra, và chưa đủ để nhiễu bình thường kích hoạt.
-TOI_THIEU_LENH_DE_DONG = 60
+# ── BẢN 2, viết ngày 29/08/2026 — vì sao bản 1 bị thay ──────────────
+#
+# BẢN 1 (26/08/2026, commit `0f67047`), ghi lại nguyên văn để đối chiếu:
+#
+#     TOI_THIEU_LENH_DE_DONG = 60
+#     đóng ⟺ ≥60 lệnh tiến-về-trước ĐÃ ĐÓNG **và** cận trên KTC 95% của
+#     KỲ VỌNG < 0
+#
+# Bốn lý do thay, đo và ghi ở `docs/STATE.md` — "GỐC RỄ CỦA CỔNG C5":
+#
+#   1. Đo sai ĐẠI LƯỢNG. Kỳ vọng trả lời "hệ thống có lãi không"; câu cần
+#      hỏi là "hệ thống có hơn cầm cả rổ không" — alpha khớp từng lệnh
+#      (bất biến 6).
+#   2. Hiệu chuẩn để bắt THẢM HOẠ (−2,5%/lệnh) trong khi mức bất lợi đo
+#      được là −0,927% alpha. Lệch 8 lần độ lớn: kỳ vọng cần 11,4 năm để
+#      đạt 80% lực phát hiện, alpha cần 13 tháng.
+#   3. Chỉ định giá sai lầm loại I (đóng nhầm vì nhiễu). Loại II — để mở
+#      trong khi đang lỗ — không được nhắc một lần, nên bản 1 KHÔNG BAO
+#      GIỜ đóng một hệ thống chỉ đơn giản là không có lợi thế.
+#   4. Đếm mù lệnh chưa đóng. Ngày 29/08/2026 sổ có 4 lệnh PENDING mà bản
+#      1 báo "0/60" — vô hình với chính phép kiểm sinh ra để canh chúng.
+#
+# Điều khoản sửa đổi (`docs/STATE.md`) cho phép viết lại khi cả ba đúng:
+# tiền đề bị bác bỏ bằng một phép ĐO MỚI (không phải vì kết quả ra xấu);
+# chưa có điểm dữ liệu kết quả nào thuộc loại quy tắc đang chờ; và bản
+# cũ, bản mới, lý do đổi đều được ghi. Ngày 29/08/2026 cả ba thoả —
+# 4 lệnh tiến-về-trước còn PENDING, chưa lệnh nào đóng.
+
+#: Độ lệch chuẩn của alpha MỖI LỆNH. Nêu TRƯỚC, suy từ phép đo ngoài mẫu
+#: n=385 (docs/STATE.md): alpha −0,927%, KTC 95% [−1,689 ; −0,076]
+#:   nửa độ rộng 0,8065  →  SE 0,4115  →  σ = 0,4115·√385 = 8,075%
+SIGMA_ALPHA = 8.075
+
+#: Mức bất lợi ĐO ĐƯỢC ngoài mẫu khi bật chi phí thực thi. Ngưỡng phải có
+#: lực phát hiện ở ĐÂY, không phải ở mức thảm hoạ.
+MUC_BAT_LOI = -0.927
+
+#: Cỡ mẫu cho 80% lực phát hiện ở `MUC_BAT_LOI`, hai phía 5%:
+#:     n = ((1,95996 + 0,84162)·σ/|μ|)² = (2,80158·8,075/0,927)² = 595,31
+#: làm tròn LÊN → 596. `docs/STATE.md` ghi 595 vì làm tròn xuống; chênh
+#: một lệnh, không đổi đặc tính, nhưng mã phải khớp chính công thức của nó.
+#: KHÔNG viết tay con số này — `co_mau_cho_luc()` tính ra nó, và
+#: `tests/test_dieu_kien_dung_alpha.py` bắt hai bên phải khớp.
+N_DAY_DU = 596
+
+#: Dưới mốc này thì chưa đánh giá. 150 ≈ 25% thông tin của `N_DAY_DU`.
+N_TOI_THIEU = 150
+
+#: Biên HẠI được đánh giá LIÊN TỤC (mỗi lượt quét), nên phải nới rộng hơn
+#: 1,96. Mô phỏng 40.000 lần với σ trên, đánh giá ở MỌI n từ 150:
+#:     z=1,96 → sai lầm loại I 11,7%    z=2,30 → 5,8%    z=2,50 → 3,7%
+#: Chọn 2,30 để giữ loại I ở mức ~5%.
+Z_BIEN_HAI = 2.30
+
+#: Mốc `N_DAY_DU` là MỘT phép kiểm tại một điểm, không nhìn lặp, nên giữ
+#: 1,96.
+Z_LOI_THE = 1.959964
+
+
+def co_mau_cho_luc(muc: float = MUC_BAT_LOI, sigma: float = SIGMA_ALPHA,
+                   luc: float = 0.80) -> int:
+    """Cỡ mẫu để đạt `luc` lực phát hiện cho hiệu ứng `muc`, hai phía 5%.
+
+    Tồn tại để `N_DAY_DU` KHÔNG phải một con số chọn bằng trực giác. Mọi
+    ngưỡng dừng trong dự án này phải suy được từ lực phát hiện ở mức hiệu
+    ứng THỰC TẾ — đó chính là chỗ bản 1 sai.
+    """
+    z_b = {0.80: 0.841621, 0.90: 1.281552}[luc]
+    return math.ceil(((1.959964 + z_b) * sigma / abs(muc)) ** 2)
 
 
 def lenh_tien_ve_truoc(trades: list[Trade]) -> list[Trade]:
@@ -386,34 +462,103 @@ def lenh_tien_ve_truoc(trades: list[Trade]) -> list[Trade]:
             if t.created_at is not None and t.id not in trong_lo]
 
 
-def dieu_kien_dong_lai(trades: list[Trade]) -> dict:
+def dieu_kien_dong_lai(trades: list[Trade],
+                       benchmark: dict | None = None) -> dict:
     """Cổng C5 có nên đóng lại không. `dat=True` nghĩa là NÊN ĐÓNG.
 
-    Điều kiện, nêu ngày 24/08/2026 trước khi có lệnh tiến-về-trước nào:
-      • đã có ≥ TOI_THIEU_LENH_DE_DONG lệnh tiến-về-trước ĐÃ ĐÓNG, VÀ
-      • cận TRÊN của KTC 95% cho kỳ vọng của riêng nhóm đó < 0
+    Đo bằng ALPHA KHỚP TỪNG LỆNH (bất biến 6), trên nhóm lệnh
+    tiến-về-trước ĐÃ ĐÓNG và khớp được cặp ngày với rổ chuẩn.
 
-    Vế thứ hai cố ý khắt khe. "Kỳ vọng âm" thôi thì chưa đủ — với σ ≈ 10%
-    một chuỗi âm ngắn là chuyện thường. Điều kiện là âm ĐẾN MỨC khoảng
-    tin cậy loại được số 0.
+        n < N_TOI_THIEU        chưa đủ để kết luận
+        N_TOI_THIEU ≤ n < N_DAY_DU
+                               ĐÓNG nếu cận TRÊN của KTC (z=2,30) < 0
+                               → alpha âm một cách đo được   [biên HẠI]
+        n ≥ N_DAY_DU           ĐÓNG TRỪ KHI cận DƯỚI của KTC (z=1,96) > 0
+                               → đã đủ cỡ mẫu nêu trước mà vẫn chưa chứng
+                                 minh được lợi thế             [đảo gánh nặng]
+
+    Vế thứ ba là chỗ bản 1 không có, và là chỗ định giá sai lầm loại II:
+    một hệ thống chỉ đơn giản KHÔNG có lợi thế sẽ bị đóng, chứ không được
+    chạy vô hạn vì chưa ai chứng minh được nó có hại.
+
+    Đặc tính đo bằng mô phỏng 40.000 lần (σ = 8,075%/lệnh, chạy tại n=595):
+
+        μ thật     ĐÓNG    vì hại  chưa chứng minh   n trung bình
+        −2,000%   100,0%   100,0%          0,0%          161
+        −0,927%   100,0%    81,1%         18,9%          335
+        −0,500%   100,0%    39,1%         60,9%          482
+         0,000%    99,6%     5,8%         93,8%          580
+        +0,500%    79,7%     0,4%         79,3%          686
+        +0,927%    27,6%     0,0%         27,6%          890
+        +2,000%     0,0%     0,0%          0,0%          995
+
+    Đọc đúng hai dòng khó chịu nhất:
+      • μ=0 → đóng 99,6%. ĐÚNG Ý ĐỒ: không lợi thế thì dừng.
+      • μ=+0,5% → đóng 79,7%. Một lợi thế thật nhưng NHỎ HƠN mức thiết kế
+        (±0,927%) cần ~2.050 lệnh mới phân biệt được với 0. Dự án không
+        chạy đủ dài cho mức đó, nên nó chọn dừng thay vì chạy tiếp bằng
+        hy vọng. Đây là một lựa chọn được nêu ra, không phải một điểm mù.
+
+    `benchmark` THIẾU thì KHÔNG kết luận, và nói ra lý do. Không được lặng
+    lẽ quay về kỳ vọng — đó đúng là lỗi đang sửa.
     """
-    tien = [t for t in lenh_tien_ve_truoc(trades) if t.status == "CLOSED"]
-    n = len(tien)
-    if n < TOI_THIEU_LENH_DE_DONG:
-        return {"dat": False, "so_lenh": n, "ci": (None, None),
-                "ly_do": (f"mới {n}/{TOI_THIEU_LENH_DE_DONG} lệnh "
-                          f"tiến-về-trước — chưa đủ để kết luận")}
-    sig = expectancy_significant(tien)
-    lo, hi = sig["ci"]
-    if hi is not None and hi < 0:
-        return {"dat": True, "so_lenh": n, "ci": (lo, hi),
-                "ly_do": (f"{n} lệnh tiến-về-trước, kỳ vọng "
-                          f"{sig['expectancy']:+.2f}% với KTC 95% "
-                          f"[{lo:+.2f}; {hi:+.2f}] — cận trên dưới 0, "
-                          f"hệ thống đang lỗ một cách đo được")}
-    return {"dat": False, "so_lenh": n, "ci": (lo, hi),
-            "ly_do": (f"{n} lệnh tiến-về-trước, KTC 95% "
-                      f"[{lo:+.2f}; {hi:+.2f}] — chưa loại được số 0")}
+    tien = lenh_tien_ve_truoc(trades)
+    dong = [t for t in tien if t.status == "CLOSED"]
+    cam_ket = [t for t in tien if t.status in ("OPEN", "PENDING", "CLOSING")]
+    #: `do_duoc=False` nghĩa là phép kiểm KHÔNG chạy được, khác hẳn
+    #: `dat=False` nghĩa là đã chạy và chưa tới ngưỡng. Người gọi phải
+    #: phân biệt được hai thứ đó mà không phải so chuỗi lý do.
+    khung = {"so_lenh": 0, "n_cam_ket": len(cam_ket), "alpha": None,
+             "ci": (None, None), "bo_qua": 0, "do_duoc": False}
+
+    if benchmark is None:
+        return {**khung, "dat": False,
+                "ly_do": ("KHÔNG đo được — thiếu rổ đối chiếu VN-INDEX. "
+                          "Điều kiện này đo ALPHA, không đo kỳ vọng; không "
+                          "có rổ chuẩn thì nó không kết luận gì cả")}
+
+    b = vs_benchmark(dong, benchmark, z=Z_BIEN_HAI)
+    n = b["n"]
+    duoi_ke = (f" · {len(cam_ket)} lệnh đã cam kết chưa đóng"
+               if cam_ket else "")
+    bo_ke = (f" · {b['bo_qua']} lệnh BỊ BỎ vì không khớp cặp ngày trong rổ"
+             if b.get("bo_qua") else "")
+    khung.update(so_lenh=n, bo_qua=b.get("bo_qua", 0), do_duoc=True)
+
+    if n < N_TOI_THIEU:
+        return {**khung, "dat": False,
+                "ly_do": (f"mới {n}/{N_TOI_THIEU} lệnh tiến-về-trước có đối "
+                          f"chiếu — chưa đủ để kết luận{duoi_ke}{bo_ke}")}
+
+    lo, hi = b["ci"]
+    alpha = b["alpha"]
+    khung.update(alpha=alpha, ci=(lo, hi))
+
+    if hi < 0:
+        return {**khung, "dat": True,
+                "ly_do": (f"{n} lệnh, alpha {alpha:+.3f}%/lệnh, KTC 97,9% "
+                          f"[{lo:+.3f}; {hi:+.3f}] — cận trên dưới 0, hệ "
+                          f"thống THUA rổ chuẩn một cách đo được{duoi_ke}")}
+
+    if n >= N_DAY_DU:
+        b95 = vs_benchmark(dong, benchmark, z=Z_LOI_THE)
+        lo95, hi95 = b95["ci"]
+        if not lo95 > 0:
+            return {**khung, "ci": (lo95, hi95), "dat": True,
+                    "ly_do": (f"{n} lệnh — đã đủ cỡ mẫu nêu trước "
+                              f"({N_DAY_DU}) mà alpha {alpha:+.3f}%/lệnh vẫn "
+                              f"chưa chứng minh được lợi thế: KTC 95% "
+                              f"[{lo95:+.3f}; {hi95:+.3f}] không loại được "
+                              f"số 0{duoi_ke}")}
+        return {**khung, "ci": (lo95, hi95), "dat": False,
+                "ly_do": (f"{n} lệnh, alpha {alpha:+.3f}%/lệnh, KTC 95% "
+                          f"[{lo95:+.3f}; {hi95:+.3f}] — VƯỢT rổ chuẩn có ý "
+                          f"nghĩa{duoi_ke}")}
+
+    return {**khung, "dat": False,
+            "ly_do": (f"{n}/{N_DAY_DU} lệnh, alpha {alpha:+.3f}%/lệnh, KTC "
+                      f"97,9% [{lo:+.3f}; {hi:+.3f}] — chưa chạm biên hại"
+                      f"{duoi_ke}{bo_ke}")}
 
 
 def report(trades: list[Trade],
@@ -480,11 +625,11 @@ def report(trades: list[Trade],
         add("   Đó là dấu vết của MỘT lượt mô phỏng, không phải nhiều phiên")
         add("   quét tiến về phía trước. Kỳ vọng, KTC và alpha ở trên vẫn")
         add("   đúng như phép tính, nhưng chúng nói về lượt mô phỏng ấy.")
-    _dk = dieu_kien_dong_lai(trades)
+    _dk = dieu_kien_dong_lai(trades, benchmark)
     add("")
     add(f"Cổng C5 (mở vị thế mới): {_dk['ly_do']}")
     if _dk["dat"]:
-        add("   🔴 ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT — nêu trước ngày 24/08/2026.")
+        add("   🔴 ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT — bản 2, nêu 29/08/2026.")
         add("   Đặt CHO_PHEP_MO_LENH_MOI = False rồi báo người dùng.")
     if lo["so_lenh_khong_ro"]:
         add(f"   ({lo['so_lenh_khong_ro']} lệnh không có dấu thời gian ghi — "

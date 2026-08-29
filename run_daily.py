@@ -85,7 +85,8 @@ def canh_bao_nguon(quet_duoc: int, bo_qua: dict, tong_ma: int) -> str:
 NGAY_LICH_SU = 1095
 
 
-def thi_hanh_dieu_kien_dung(trades, dat_co) -> tuple[bool, str]:
+def thi_hanh_dieu_kien_dung(trades, dat_co,
+                            benchmark=None) -> tuple[bool, str]:
     """Điều kiện dừng phải ĐỔI TRẠNG THÁI, không chỉ in ra một câu.
 
     Đây là chỗ vá nguyên nhân 4 trong `docs/STATE.md` — "GỐC RỄ CỦA CỔNG
@@ -94,6 +95,10 @@ def thi_hanh_dieu_kien_dung(trades, dat_co) -> tuple[bool, str]:
     thêm một CÂU VĂN nhờ con người đi sửa mã nguồn, và câu văn đó đi vào
     một tệp zip lưu 14 ngày. Kể cả nếu điều kiện có lực phát hiện 100%,
     nó vẫn không đóng được cổng.
+
+    `benchmark` — rổ đối chiếu VN-INDEX ({(ngày vào, ngày ra): %}). Điều
+    kiện đo ALPHA khớp từng lệnh (bất biến 6), nên THIẾU rổ này thì nó
+    KHÔNG kết luận gì — và nói ra điều đó, không lặng lẽ quay về kỳ vọng.
 
     `dat_co(gia_tri)` — hàm đặt `paper_trading.CHO_PHEP_MO_LENH_MOI`.
     Truyền vào chứ không gán thẳng trong đây, để test chứng minh được
@@ -119,9 +124,10 @@ def thi_hanh_dieu_kien_dung(trades, dat_co) -> tuple[bool, str]:
        "ngày này không có lượt quét nào" và che mất đúng thứ chuông sinh
        ra để canh. Chuông riêng cho C5 nằm ở `tools/canh_cong_c5.py`.
     """
-    dk = dieu_kien_dong_lai(trades)
+    dk = dieu_kien_dong_lai(trades, benchmark)
     if not dk["dat"]:
-        return False, f"Cổng C5 (mở vị thế mới): {dk['ly_do']}"
+        dau = "" if dk.get("do_duoc") else "⚠️ "
+        return False, f"{dau}Cổng C5 (mở vị thế mới): {dk['ly_do']}"
     dat_co(False)
     return True, (
         "ĐIỀU KIỆN DỪNG ĐÃ ĐẠT — đã TẮT mở vị thế mới cho lượt quét này. "
@@ -276,9 +282,11 @@ def execute_daily_scan():
     # Đọc/ghi cờ qua thuộc tính module chứ không qua `from ... import`:
     # bản sao lấy lúc nạp thì gán vào không ai thấy.
     import paper_trading as _pt
+    _so_truoc_quet = journal.all_trades()
     _c5_da_dong, _c5_thong_diep = thi_hanh_dieu_kien_dung(
-        journal.all_trades(),
-        lambda v: setattr(_pt, "CHO_PHEP_MO_LENH_MOI", v))
+        _so_truoc_quet,
+        lambda v: setattr(_pt, "CHO_PHEP_MO_LENH_MOI", v),
+        _ro_chuan_vnindex(_so_truoc_quet))
     print(f"🚦 {_c5_thong_diep}")
     if _c5_da_dong:
         # Annotation đọc được qua API công khai; nhật ký chạy và artifact

@@ -3640,3 +3640,109 @@ nhưng nó tự giới hạn phạm vi, ghi rõ trong docstring:
 
 Cùng một hình dạng với nguyên nhân 4 của cổng C5: **một luật có ghi phạm vi
 hẹp, phạm vi ấy hết đúng, và không có gì báo khi nó hết đúng.**
+
+---
+
+## BƯỚC 3 — ĐIỀU KIỆN DỪNG BẢN 2: ĐO BẰNG ALPHA (29/08/2026)
+
+### Bản cũ, ghi lại nguyên văn để đối chiếu
+
+```
+TOI_THIEU_LENH_DE_DONG = 60
+đóng ⟺ ≥60 lệnh tiến-về-trước ĐÃ ĐÓNG  và  cận trên KTC 95% của KỲ VỌNG < 0
+```
+
+Điều khoản sửa đổi đòi ba điều cùng đúng mới được viết lại: tiền đề bị bác
+bỏ bằng một **phép đo mới** (không phải vì kết quả ra xấu), **chưa có điểm
+dữ liệu kết quả nào** thuộc loại quy tắc đang chờ, và **bản cũ, bản mới, lý
+do đổi đều được ghi**. Ngày 29/08/2026 cả ba thoả: bốn lệnh tiến-về-trước
+đầu tiên còn PENDING, chưa lệnh nào đóng.
+
+### Bản mới
+
+```
+n < 150              chưa đủ để kết luận
+150 ≤ n < 596        ĐÓNG nếu cận TRÊN của KTC (z=2,30) < 0        [biên HẠI]
+n ≥ 596              ĐÓNG TRỪ KHI cận DƯỚI của KTC (z=1,96) > 0    [đảo gánh
+                     nặng chứng minh, sau khi đã đủ cỡ mẫu nêu trước]
+```
+
+`n` là số lệnh tiến-về-trước **đã đóng và khớp được cặp ngày với rổ chuẩn
+VN-INDEX**. Thiếu rổ chuẩn thì điều kiện **không kết luận gì** và nói ra
+điều đó — không lặng lẽ quay về kỳ vọng.
+
+### Bốn hằng số, và vì sao chúng có giá trị đó
+
+| Hằng số | Giá trị | Suy từ đâu |
+|---|---|---|
+| `SIGMA_ALPHA` | 8,075%/lệnh | KTC của phép đo OOS n=385: nửa độ rộng 0,8065 → SE 0,4115 → σ = 0,4115·√385 |
+| `MUC_BAT_LOI` | −0,927%/lệnh | mức bất lợi **đo được** ngoài mẫu khi bật chi phí thực thi |
+| `N_DAY_DU` | 596 | `co_mau_cho_luc()` — 80% lực phát hiện ở `MUC_BAT_LOI`, hai phía 5% |
+| `N_TOI_THIEU` | 150 | ≈25% thông tin của `N_DAY_DU` |
+
+`N_DAY_DU` **không được gõ tay**: `co_mau_cho_luc()` tính ra nó và một test
+bắt hai bên phải khớp. Đây chính là chỗ bản 1 sai — nó chọn 60 từ một ước
+lượng σ ≈ 10% cho một mục tiêu (−2,5%) không phải mức hiệu ứng thực tế.
+
+`docs` từng ghi 595; con số đúng khi làm tròn LÊN là 596. Chênh một lệnh,
+không đổi đặc tính, nhưng mã phải khớp chính công thức của nó.
+
+### Vì sao hai giá trị z khác nhau
+
+Biên HẠI được đánh giá **liên tục** — mỗi lượt quét, tới 12 lượt một ngày.
+Nhìn nhiều lần ở cùng một mức thì xác suất chạm biên do nhiễu cộng dồn.
+Mô phỏng 40.000 lần, đánh giá ở MỌI n từ 150:
+
+```
+z = 1,96  ->  sai lầm loại I 11,7%
+z = 2,30  ->                  5,8%     <- chọn
+z = 2,50  ->                  3,7%
+```
+
+Mốc `N_DAY_DU` thì là **một** phép kiểm tại một điểm, không nhìn lặp, nên
+giữ z = 1,96.
+
+### Đặc tính đo được (40.000 lần mô phỏng, σ = 8,075%)
+
+| μ thật | ĐÓNG | vì hại | vì chưa chứng minh | n trung bình |
+|---|---|---|---|---|
+| −2,000% | 100,0% | 100,0% | 0,0% | 161 |
+| −0,927% | 100,0% | 81,1% | 18,9% | 335 |
+| −0,500% | 100,0% | 39,1% | 60,9% | 482 |
+| 0,000% | 99,6% | **5,8%** | 93,8% | 580 |
+| +0,500% | 79,7% | 0,4% | 79,3% | 686 |
+| +0,927% | 27,6% | 0,0% | 27,6% | 890 |
+| +2,000% | **0,0%** | 0,0% | 0,0% | 995 |
+
+Hai dòng khó chịu nhất, đọc cho đúng:
+
+- **μ = 0 → đóng 99,6%.** Đúng ý đồ. Bản 1 sẽ chạy vô hạn ở dòng này vì nó
+  chỉ biết đóng khi có HẠI đo được. Đây là chỗ sai lầm loại II được định giá.
+- **μ = +0,5% → đóng 79,7%.** Một lợi thế THẬT nhưng nhỏ hơn mức thiết kế
+  (±0,927%) cần ~2.050 lệnh mới phân biệt được với 0. Dự án không chạy đủ
+  dài cho mức đó, nên nó chọn dừng thay vì chạy tiếp bằng hy vọng. Đây là
+  một lựa chọn **được nêu ra**, không phải một điểm mù.
+
+### Bốn nguyên nhân — trạng thái sau bước 3
+
+| # | Nguyên nhân | Trạng thái |
+|---|---|---|
+| 1 | Hiệu chuẩn theo thảm hoạ, không theo bất lợi | ✅ ngưỡng suy từ `co_mau_cho_luc()` ở `MUC_BAT_LOI` |
+| 2 | Chỉ định giá sai lầm loại I | ✅ biên đảo gánh nặng tại `N_DAY_DU` |
+| 3 | Đo sai đại lượng (kỳ vọng thay vì alpha) | ✅ `vs_benchmark`, và AST cấm gọi lại `expectancy_significant` |
+| 4 | Không có ai thi hành | ✅ đã sửa ở bước 1 (28/08) |
+
+Thêm một lỗi phát hiện trong lúc sửa: bản 1 **đếm mù lệnh chưa đóng** — ngày
+29/08 sổ có 4 lệnh PENDING mà nó báo "0/60". Bản 2 đếm và nói ra
+(`n_cam_ket`), và trả cờ `do_duoc` để người gọi phân biệt "chưa tới ngưỡng"
+với "không đo được" mà không phải so chuỗi.
+
+Chuông `tools/canh_cong_c5.py` nay **kêu khi không đo được**. Một cái chuông
+im lặng vì không nhìn thấy gì thì tệ hơn không có chuông.
+
+### Kiểm định
+
+`tests/test_dieu_kien_dung_alpha.py` — 14 test. Đột biến **8/8 đỏ**: quay về
+đo kỳ vọng · bỏ biên đảo gánh nặng · biên hại không nới rộng · ngưỡng gõ tay
+· thiếu rổ chuẩn vẫn kết luận · bỏ đếm lệnh đã cam kết · hàm đặt cờ rỗng ·
+tắt cờ cả khi chưa đạt.

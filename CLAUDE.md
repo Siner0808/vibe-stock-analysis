@@ -826,7 +826,16 @@ Hai hàng rào mới đáng biết:
 Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA CỔNG C5"**
 (28/08/2026). Tóm tắt để khỏi sửa nhầm:
 
-`paper_metrics.dieu_kien_dong_lai()` hỏng vì **bốn** lý do, không phải một:
+> **BẢN 2 đã thay bản 1 ngày 29/08/2026.** Điều kiện nay đo **alpha khớp
+> từng lệnh**, ngưỡng suy từ `co_mau_cho_luc()` (596 lệnh cho 80% lực phát
+> hiện ở −0,927%), và có **biên đảo gánh nặng**: đủ cỡ mẫu nêu trước mà
+> chưa chứng minh được lợi thế thì ĐÓNG. Sai lầm loại I 5,8%; một hệ thống
+> alpha = 0 bị đóng 99,6%; alpha = +2% không bao giờ bị đóng. Chi tiết và
+> bảng đặc tính: `docs/STATE.md`, mục **"BƯỚC 3 — ĐIỀU KIỆN DỪNG BẢN 2"**.
+>
+> Bốn nguyên nhân dưới đây là của BẢN 1, giữ lại để không ai sửa ngược.
+
+`paper_metrics.dieu_kien_dong_lai()` bản 1 hỏng vì **bốn** lý do, không phải một:
 
 1. Hiệu chuẩn để bắt **thảm hoạ** (−2,5%/lệnh), trong khi cái có thật là
    **bất lợi** (−0,927%/lệnh alpha). Phép tính hồi đó ĐÚNG; mục tiêu sai.
