@@ -3546,3 +3546,97 @@ và không được ghi ở đâu.
    đổi quyết định mã nào, nhưng phải ghi.
 3. Phép đo này là **một ngày, 71 mã**. Con số 6/71 là ảnh chụp, không phải
    tỷ lệ ổn định.
+
+### Chốt con số: 1095 ngày, và cái giá của nó
+
+Đo tiếp trên cùng 71 mã, ba lát cắt từ **một** lần tải mỗi mã. Ba mã
+(GVR, PNJ, ACV) rơi vào dữ liệu mô phỏng trong lượt đó — đã loại, còn 68:
+
+| Bước | \|lệch\| TB | ≥5 điểm | **Đổi quyết định** |
+|---|---|---|---|
+| 44 → 288 phiên (60 → 420 ngày) | 5,51 | 29/68 | **6/68** |
+| 288 → 747 phiên (420 → 1095 ngày) | 1,97 | 10/68 | **1/68** |
+
+Sáu mã đổi ở bước đầu **trùng khớp hoàn toàn** với lượt đo độc lập trước
+đó (HHP, MSR, NAF, TCB, HDB, HUT). Hai lượt riêng biệt cho cùng kết quả —
+điểm chấm tái lập được.
+
+Bước thứ hai nhỏ hơn nhiều nhưng không bằng 0: TCB 60 → **62**, tức nó đi
+qua ngưỡng theo chiều ngược lại. Cũng vì thế mà chọn 1095 chứ không dừng ở
+420: ngưỡng 62 được hiệu chuẩn trên cửa sổ MỞ RỘNG của walk-forward, nên
+điểm phải sinh ra từ một cửa sổ gần với nó nhất có thể.
+
+**Giá phải trả, đo thật (tải + chấm, 8 mã):**
+
+```
+ 420 ngày (301 phiên)  ->  2,35 s/mã  ->  71 mã ≈  4,0 phút
+1095 ngày (747 phiên)  ->  8,88 s/mã  ->  71 mã ≈ 11,7 phút
+```
+
+Chấm điểm chỉ tốn 0,02–0,03 s/mã — toàn bộ chi phí nằm ở tải dữ liệu. Vì
+thế `quet-so-lenh.yml` nới `timeout-minutes` từ **25 lên 40**: 25 phút cho
+cả sáu bước với cửa sổ 1095 là quá sát.
+`tests/test_cua_so_du_lieu_quet.py` khoá cặp này lại — cửa sổ ≥1000 ngày mà
+timeout <40 phút thì test đỏ.
+
+**Phải kiểm sau lượt quét đầu tiên:** thời gian chạy thật trên runner của
+GitHub (chậm hơn máy cá nhân), và số phiên mà gói MIỄN PHÍ trả về cho
+1095 ngày. Nếu CI chỉ nhận được ít phiên hơn thì cửa sổ dài chỉ là danh
+nghĩa — so `decisions.components` của lượt đó với điểm chấm ở máy.
+
+### Một cái bẫy gặp phải khi đo — và chỗ mã nguồn ĐÃ chặn nó
+
+Ba mã cho điểm khác nhau giữa hai lượt đo (ACV 58 vs 48, PNJ 56 vs 59,
+GVR 57 vs 54). Nghi ngờ đầu tiên là điểm chấm không tái lập — **sai**.
+
+Nguyên nhân: `VNStockCollectorAgent.collect()` thử `vci` rồi `kbs`; hỏng cả
+hai thì trả `_generate_fallback_df()` — **một chuỗi random walk** — kèm
+`status="SYNTHETIC"`. Hôm đó mạng có nhiều `Read timed out`, ba mã rơi vào
+nhánh đó, và **kịch bản đo của tôi không kiểm `status`** nên đã chấm điểm
+trên giá bịa. Dấu vết nhận ra được: chúng có 783 phiên trong 1095 ngày —
+đúng số ngày làm việc (`freq='B'`), không phải số phiên giao dịch thật (747).
+
+`run_daily.py:285` thì CÓ chặn: `if res.get("status") != "OK": ... break`,
+đếm vào `bo_qua` và bỏ mã đó. **Đường sản xuất không bao giờ chấm trên dữ
+liệu mô phỏng.** Lỗi nằm ở công cụ đo, không ở hệ thống.
+
+Cũng đã kiểm và loại một nghi ngờ khác: `vci` trả 301 phiên cho cửa sổ 420
+ngày còn `kbs` trả 288 — chênh 13 dòng, nhưng đó là do `vci` trả sớm hơn
+ngày yêu cầu, không phải dòng trùng. Giá khớp nhau tới từng chữ số và
+**điểm chấm từ hai nguồn giống hệt nhau** trên cả 5 mã thử.
+
+### CI đỏ ngay lượt đầu — và cái guard lẽ ra phải bắt được
+
+Lượt kiểm định đầu tiên của thay đổi này ĐỎ, chặn merge:
+
+```
+FAILED tests/test_cua_so_du_lieu_quet.py::test_cua_so_dai_thi_workflow…
+        ModuleNotFoundError: No module named 'yaml'
+```
+
+Test mới đọc `timeout-minutes` bằng `import yaml`. Xanh ở máy vì streamlit
+kéo theo PyYAML; đỏ trên runner sạch vì `kiem-dinh.yml` chỉ cài
+`requirements.txt` cộng `pytest`, và **PyYAML không nằm trong đó**.
+
+Đã có sẵn một guard cho đúng loại lỗi này — `tests/test_requirements.py` —
+nhưng nó tự giới hạn phạm vi, ghi rõ trong docstring:
+
+> *"Phạm vi: chỉ file .py ở GỐC dự án. tests/ và tools/ không nằm trong
+> đường chạy của Actions."*
+
+**Tiền đề đó sai.** Cả ba workflow đều chạy mã trong hai thư mục ấy:
+`kiem-dinh.yml` chạy `pytest tests/` và `tools/chan_bia_so_lieu.py`;
+`chuong-bao-quet.yml` chạy `tools/chuong_bao_quet.py`;
+`canh-cong-c5.yml` chạy `tools/canh_cong_c5.py`.
+
+Đã sửa cả hai đầu:
+
+- Test đọc `timeout-minutes` bằng tay, không thêm phụ thuộc nào. Đưa một
+  thư viện vào `requirements.txt` chỉ để test đọc một con số là trả giá ở
+  đường chạy sản xuất cho tiện lợi của test.
+- `test_requirements.py` thêm phép kiểm phủ `tests/` và `tools/`, ngoại lệ
+  duy nhất là `pytest` (CI cài riêng). Đột biến: thêm lại `import yaml` vào
+  một test → guard ĐỎ.
+
+Cùng một hình dạng với nguyên nhân 4 của cổng C5: **một luật có ghi phạm vi
+hẹp, phạm vi ấy hết đúng, và không có gì báo khi nó hết đúng.**

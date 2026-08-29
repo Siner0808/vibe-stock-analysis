@@ -40,7 +40,12 @@ concurrency:
 jobs:
   quet:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # 40 chứ không phải 25: từ 29/08/2026 cửa sổ dữ liệu là 1095 ngày lịch
+    # (~747 phiên) thay vì 60 ngày (~44 phiên), vì ngưỡng 62 được
+    # walk-forward hiệu chuẩn trên cửa sổ dài — xem `run_daily.NGAY_LICH_SU`.
+    # Đo thật: 8,88 s/mã, 71 mã ≈ 11,7 phút cho riêng bước quét, so với
+    # ~4 phút ở 420 ngày. 25 phút cho CẢ SÁU BƯỚC là quá sát.
+    timeout-minutes: 40
 
     steps:
       - uses: actions/checkout@v7

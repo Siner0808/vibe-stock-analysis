@@ -54,6 +54,37 @@ def canh_bao_nguon(quet_duoc: int, bo_qua: dict, tong_ma: int) -> str:
     return ra
 
 
+#: Cửa sổ dữ liệu của MỘT lượt quét, tính bằng ngày lịch.
+#:
+#: Bản cũ: 60 ngày = **44 phiên**. Đó không phải một lựa chọn có cân nhắc,
+#: và nó là thứ có ảnh hưởng lớn nhất tới việc mã nào được mua.
+#:
+#: Đo ngày 29/08/2026, cả 71 mã, hai lượt độc lập cho cùng kết quả
+#: (`docs/STATE.md` — "BƯỚC 2 — ĐO CHỖ TỐI"):
+#:
+#:     44 -> 288 phiên : |lệch| 5,51 điểm · 29/68 mã lệch ≥5 · ĐỔI 6/68
+#:    288 -> 747 phiên : |lệch| 1,97 điểm · 10/68 mã lệch ≥5 · ĐỔI 1/68
+#:
+#: Cơ chế: `_compute_local_indicators()` trả None cho SMA50 dưới 50 phiên
+#: và SMA200 dưới 200 phiên. Thiếu chúng thì các luật dài hạn của agent xu
+#: hướng bị bỏ qua và `trend_score` kẹt trong 35/50/65 — không bao giờ
+#: chạm 100 hay 15.
+#:
+#: Vì sao 1095 chứ không phải 420: ngưỡng 62 do Phase 5D chọn bằng
+#: walk-forward, mà `walkforward.py` truyền `df.iloc[: t + 1]` — cửa sổ MỞ
+#: RỘNG, hàng trăm phiên. Ngưỡng và điểm phải cùng một phân phối. 1095
+#: ngày ≈ 747 phiên là mức gần nhất với walk-forward mà vẫn chạy lọt hạn
+#: mức thời gian của Actions.
+#:
+#: GIÁ PHẢI TRẢ, đo thật ngày 29/08/2026 (tải + chấm, 8 mã):
+#:     420 ngày  → 2,35 s/mã → 71 mã ≈  4,0 phút
+#:    1095 ngày  → 8,88 s/mã → 71 mã ≈ 11,7 phút
+#: Vì thế `quet-so-lenh.yml` nới `timeout-minutes` từ 25 lên 40. Đổi hằng
+#: số này lên nữa mà không nới thời gian là tự tạo một phiên quét chết
+#: giữa chừng — `tests/test_cua_so_du_lieu_quet.py` khoá cặp đó lại.
+NGAY_LICH_SU = 1095
+
+
 def thi_hanh_dieu_kien_dung(trades, dat_co) -> tuple[bool, str]:
     """Điều kiện dừng phải ĐỔI TRẠNG THÁI, không chỉ in ra một câu.
 
@@ -260,7 +291,7 @@ def execute_daily_scan():
                 print("### 🔴 CỔNG C5 TỰ ĐÓNG TRONG LƯỢT NÀY", file=_f)
                 print("", file=_f)
                 print(_c5_thong_diep, file=_f)
-    start_date = (now_time - pd.Timedelta(days=60)).strftime("%Y-%m-%d")
+    start_date = (now_time - pd.Timedelta(days=NGAY_LICH_SU)).strftime("%Y-%m-%d")
     end_date = now_time.strftime("%Y-%m-%d")
 
     opened_count = 0
