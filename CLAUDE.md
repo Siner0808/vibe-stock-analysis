@@ -833,6 +833,12 @@ Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA 
 > alpha = 0 bị đóng 99,6%; alpha = +2% không bao giờ bị đóng. Chi tiết và
 > bảng đặc tính: `docs/STATE.md`, mục **"BƯỚC 3 — ĐIỀU KIỆN DỪNG BẢN 2"**.
 >
+> **Hàng rào quy trình:** `tests/test_hang_rao_quy_trinh.py` giữ một SỔ
+> ĐĂNG KÝ điều kiện an toàn. Thêm một hàm `dieu_kien_*` mà không khai →
+> test đỏ. Khai rồi thì buộc chứng minh hai điều: ngưỡng bằng
+> `co_mau_cho_luc()`, và điều kiện đạt thì lá cờ ĐỔI THẬT (chạy, không đọc
+> mã). Đột biến 7/7 đỏ, gồm cả đột biến tái tạo đúng nguyên nhân 1.
+>
 > Bốn nguyên nhân dưới đây là của BẢN 1, giữ lại để không ai sửa ngược.
 
 `paper_metrics.dieu_kien_dong_lai()` bản 1 hỏng vì **bốn** lý do, không phải một:

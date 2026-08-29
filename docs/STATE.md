@@ -3746,3 +3746,82 @@ im lặng vì không nhìn thấy gì thì tệ hơn không có chuông.
 đo kỳ vọng · bỏ biên đảo gánh nặng · biên hại không nới rộng · ngưỡng gõ tay
 · thiếu rổ chuẩn vẫn kết luận · bỏ đếm lệnh đã cam kết · hàm đặt cờ rỗng ·
 tắt cờ cả khi chưa đạt.
+
+---
+
+## BƯỚC 4 — HÀNG RÀO QUY TRÌNH (29/08/2026)
+
+Sửa riêng cổng C5 thì lần sau một điều kiện khác sẽ hỏng y hệt. Hai điểm
+mù sinh ra nó là điểm mù của **quy trình**, không của một hàm:
+
+- **Ngưỡng chọn bằng trực giác.** Bản 1 hiệu chuẩn để bắt −2,5%/lệnh
+  trong khi mức bất lợi thật là −0,927%.
+- **Điều kiện không có nơi hành động.** Bản 1 chỉ được gọi trong
+  `report()`, một hàm nối chuỗi.
+
+`tests/test_hang_rao_quy_trinh.py` rào cả hai bằng **một sổ đăng ký**:
+
+```python
+DIEU_KIEN_AN_TOAN = {
+    "dieu_kien_dong_lai": {
+        "module": pm,
+        "thi_hanh": rd.thi_hanh_dieu_kien_dung,
+        "co": (pt, "CHO_PHEP_MO_LENH_MOI"),
+        "nguong": "N_DAY_DU",
+        "luc": (pm.MUC_BAT_LOI, pm.SIGMA_ALPHA),
+    },
+}
+```
+
+Tám phép kiểm, chia ba nhóm:
+
+**Không điều kiện nào được nằm ngoài sổ.** Quét AST ba file ảnh hưởng kết
+quả tìm mọi hàm `dieu_kien_*`; thấy một hàm chưa khai → đỏ. Khai nó thì
+buộc phải nói ra nơi thi hành và ngưỡng — không khai được nửa vời.
+
+**Ngưỡng phải SUY TỪ lực phát hiện.** Với mỗi điều kiện, ngưỡng phải bằng
+`co_mau_cho_luc(mức, σ)`. Và mức hiệu ứng phải là một **hằng số có tên** ở
+mức module, không phải một con số rời trong công thức — đặt tên cho một giả
+định là bước đầu để ai đó cãi nó.
+
+**Điều kiện đạt thì trạng thái phải ĐỔI THẬT.** Chạy thật, không đọc mã:
+dựng một sổ lệnh chắc chắn đạt, gọi hàm thi hành, rồi kiểm lá cờ đã đổi
+`True → False`. Kèm hai vế ngược: chưa đạt thì KHÔNG được đụng vào trạng
+thái (một hàng rào tự sập khi chưa cần thì sớm muộn bị gỡ), và điều kiện
+phải có nơi thi hành NGOÀI `report()`.
+
+**Và lực phát hiện phải được ĐO, không chỉ công bố.** Hai phép kiểm mô
+phỏng đúng cách mã đánh giá — liên tục, mỗi lượt quét — bằng chính các hằng
+số mã đang dùng: lực ≥70% ở `MUC_BAT_LOI`, sai lầm loại I ≤10%. Một phép
+kiểm nữa đo loại I của z=1,96 để chứng minh vì sao phải nới lên 2,30; nếu
+con số đó thay đổi thì chú thích trong mã cũng phải viết lại.
+
+### Đột biến 7/7 đỏ
+
+```
+thêm một điều kiện an toàn mà không khai      -> đỏ
+ngưỡng gõ tay (596 -> 400)                    -> đỏ
+hiệu chuẩn cho mức thảm hoạ (−0,927 -> −2,5)  -> đỏ
+điều kiện đạt nhưng không đổi trạng thái      -> đỏ
+đụng vào trạng thái kể cả khi chưa đạt        -> đỏ
+biên hại không nới rộng dù nhìn liên tục      -> đỏ
+chỉ còn report() gọi điều kiện                -> đỏ
+```
+
+Đột biến thứ ba đáng chú ý: nó tái tạo **đúng** nguyên nhân 1 của cổng C5 —
+hiệu chuẩn cho thảm hoạ thay vì cho bất lợi thực tế. Từ nay lỗi đó không
+thể vào repo mà không làm đỏ CI.
+
+### Bốn nguyên nhân — trạng thái cuối
+
+| # | Nguyên nhân | Sửa ở |
+|---|---|---|
+| 1 | Hiệu chuẩn theo thảm hoạ | bước 3 · rào ở bước 4 |
+| 2 | Chỉ định giá sai lầm loại I | bước 3 · rào ở bước 4 |
+| 3 | Đo sai đại lượng (kỳ vọng ≠ alpha) | bước 3 |
+| 4 | Không có ai thi hành | bước 1 · rào ở bước 4 |
+
+Thêm hai lỗi tìm ra trong lúc sửa, đều đã vá và đều đã rào: báo cáo phiên
+viết cứng trạng thái cổng (bước 1), và cửa sổ dữ liệu 44 phiên khiến ngưỡng
+62 được áp lên một phân phối điểm khác với phân phối đã hiệu chuẩn nó
+(bước 2).
