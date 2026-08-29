@@ -46,6 +46,37 @@ PHIEN_MOI_NGAY = 0.66
 PHIEN_CAN_CHO_SMA200 = 200
 
 
+def _timeout_phut(ten_file: str, job: str) -> int:
+    """`timeout-minutes` của một job, đọc bằng tay — KHÔNG dùng PyYAML.
+
+    `kiem-dinh.yml` chỉ cài `requirements.txt` (cộng `pytest`), và PyYAML
+    KHÔNG nằm trong đó. Bản đầu của test này `import yaml`: xanh ở máy vì
+    streamlit kéo theo PyYAML, đỏ trên runner sạch —
+    `ModuleNotFoundError: No module named 'yaml'`, chặn merge PR.
+
+    Thêm một phụ thuộc vào `requirements.txt` chỉ để một test đọc được
+    một con số là trả giá ở đường chạy sản xuất cho tiện lợi của test.
+    File workflow là của chính dự án và đủ đơn giản để đọc bằng tay.
+    """
+    dong = (GOC / ".github" / "workflows" / ten_file).read_text(
+        encoding="utf-8").splitlines()
+    trong_job = False
+    for d in dong:
+        if d.strip().startswith("#"):
+            continue
+        if d.startswith(f"  {job}:"):
+            trong_job = True
+            continue
+        if not trong_job:
+            continue
+        # Thụt lề đúng 2 dấu cách = sang job khác.
+        if d.strip() and d.startswith("  ") and not d.startswith("   "):
+            break
+        if d.strip().startswith("timeout-minutes:"):
+            return int(d.split(":", 1)[1].strip())
+    raise AssertionError(f"{ten_file}: không thấy timeout-minutes của job {job}")
+
+
 def _hang_so(ten_file: str, ten: str):
     """Đọc hằng số mức module bằng AST — `app.py` là script Streamlit,
     import nó sẽ chạy cả giao diện."""
@@ -123,11 +154,7 @@ def test_cua_so_dai_thi_workflow_phai_duoc_noi_thoi_gian():
     1095 ngày → 8,88 s/mã (71 mã ≈ 11,7 phút). Job có SÁU bước, nên
     25 phút cho cửa sổ 1095 là quá sát.
     """
-    import yaml
-    d = yaml.safe_load(
-        (GOC / ".github" / "workflows" / "quet-so-lenh.yml").read_text(
-            encoding="utf-8"))
-    tm = d["jobs"]["quet"]["timeout-minutes"]
+    tm = _timeout_phut("quet-so-lenh.yml", "quet")
     can = 40 if rd.NGAY_LICH_SU >= 1000 else 25
     assert tm >= can, (
         f"cửa sổ {rd.NGAY_LICH_SU} ngày cần timeout-minutes ≥ {can}, "

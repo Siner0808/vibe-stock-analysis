@@ -9,8 +9,18 @@ runner KHÔNG có nó, và lỗi chỉ lộ ra khi phiên quét đã chạy đư
 trước khi quét. Thiếu nó thì bước "Kéo sổ lệnh từ Google Sheets" chết ở
 MỌI lượt chạy, mà requirements.txt trông vẫn bình thường khi đọc bằng mắt.
 
-Phạm vi: chỉ file .py ở GỐC dự án -- đúng tập file mà workflow chạy.
-tests/ và tools/ không nằm trong đường chạy của Actions.
+Phạm vi: HAI phép kiểm.
+  • `..._o_goc_du_an`      -- file .py ở gốc, thứ `run_daily.py` kéo theo.
+  • `..._o_tests_va_tools` -- tests/ và tools/, vì chúng CŨNG chạy trên
+    Actions: `kiem-dinh.yml` chạy `pytest tests/` và
+    `tools/chan_bia_so_lieu.py`, `chuong-bao-quet.yml` chạy
+    `tools/chuong_bao_quet.py`, `canh-cong-c5.yml` chạy
+    `tools/canh_cong_c5.py`.
+
+Bản đầu của file này ghi "tests/ và tools/ không nằm trong đường chạy của
+Actions" và chỉ soát ở gốc. Tiền đề đó sai, và nó cho qua một lỗi thật
+ngày 29/08/2026: một test import `yaml`, xanh ở máy (streamlit kéo theo
+PyYAML) và đỏ trên runner sạch, chặn merge PR.
 """
 import ast
 import pathlib
@@ -118,6 +128,71 @@ if __name__ == "__main__":
 GOI_TAI_TRO = ("vnstock_data", "vnstock-data", "vnstock_ta", "vnstock-ta",
                "vnstock_news", "vnstock-news", "vnstock_pipeline",
                "vnstock-pipeline", "vnii")
+
+
+#: `kiem-dinh.yml` chạy `pip install -r requirements.txt` RỒI `pip install
+#: pytest`. Đó là ngoại lệ DUY NHẤT được cài thêm.
+NGOAI_LE_CI = {"pytest"}
+
+
+def _import_cua_file(duong_dan) -> set:
+    """Tên module cấp cao nhất mà MỘT file import."""
+    try:
+        cay = ast.parse(duong_dan.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return set()
+    ra = set()
+    for nut in ast.walk(cay):
+        if isinstance(nut, ast.Import):
+            ra |= {a.name.split(".")[0] for a in nut.names}
+        elif isinstance(nut, ast.ImportFrom) and nut.level == 0 and nut.module:
+            ra.add(nut.module.split(".")[0])
+    return ra
+
+
+def _module_noi_bo_mo_rong() -> set:
+    """Stem của mọi .py trong dự án: gốc + tests/ + tools/.
+
+    Dựng TRÊN NỀN `_module_noi_bo()` (đã gồm gói `backtest/` và các thư
+    mục có `__init__.py`) rồi thêm stem của tests/ và tools/. Không sửa
+    hàm kia: nới nó ra có thể che một phụ thuộc thật ở đường chạy sản
+    xuất chỉ vì trùng tên với một file trong tests/.
+    """
+    ten = _module_noi_bo()
+    for thu_muc in ("tests", "tools"):
+        ten |= {p.stem for p in (GOC / thu_muc).glob("*.py")}
+    return ten
+
+
+def test_requirements_phu_het_import_o_tests_va_tools():
+    """tests/ và tools/ CŨNG nằm trên đường chạy của Actions.
+
+    Bản đầu của file này ghi "tests/ và tools/ không nằm trong đường chạy
+    của Actions". Tiền đề đó SAI, và nó đã cho qua một lỗi thật ngày
+    29/08/2026: `tests/test_cua_so_du_lieu_quet.py` import `yaml`, xanh ở
+    máy (streamlit kéo theo PyYAML) và đỏ trên runner sạch, chặn merge PR.
+
+    Ba workflow đều chạy mã trong hai thư mục này:
+      • `kiem-dinh.yml`      -> `pytest tests/` và `tools/chan_bia_so_lieu.py`
+      • `chuong-bao-quet.yml` -> `tools/chuong_bao_quet.py`
+      • `canh-cong-c5.yml`    -> `tools/canh_cong_c5.py`
+    """
+    khai_bao = _da_khai_bao() | NGOAI_LE_CI
+    noi_bo = _module_noi_bo_mo_rong()
+    thieu: dict = {}
+    for thu_muc in ("tests", "tools"):
+        for f in sorted((GOC / thu_muc).glob("*.py")):
+            for m in _import_cua_file(f):
+                if m in noi_bo or m in sys.stdlib_module_names:
+                    continue
+                goi = TEN_GOI.get(m, m).lower()
+                if goi not in khai_bao:
+                    thieu.setdefault(goi, set()).add(f"{thu_muc}/{f.name}")
+    assert not thieu, (
+        "import thư viện KHÔNG khai báo trong requirements.txt: "
+        + " · ".join(f"{g} ({', '.join(sorted(fs))})"
+                     for g, fs in sorted(thieu.items())))
+    print("PASS  tests/ và tools/ không import gì ngoài requirements + pytest")
 
 
 def test_goi_tai_tro_khong_nam_trong_requirements():

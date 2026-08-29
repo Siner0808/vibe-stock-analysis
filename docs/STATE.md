@@ -3604,3 +3604,39 @@ Cũng đã kiểm và loại một nghi ngờ khác: `vci` trả 301 phiên cho 
 ngày còn `kbs` trả 288 — chênh 13 dòng, nhưng đó là do `vci` trả sớm hơn
 ngày yêu cầu, không phải dòng trùng. Giá khớp nhau tới từng chữ số và
 **điểm chấm từ hai nguồn giống hệt nhau** trên cả 5 mã thử.
+
+### CI đỏ ngay lượt đầu — và cái guard lẽ ra phải bắt được
+
+Lượt kiểm định đầu tiên của thay đổi này ĐỎ, chặn merge:
+
+```
+FAILED tests/test_cua_so_du_lieu_quet.py::test_cua_so_dai_thi_workflow…
+        ModuleNotFoundError: No module named 'yaml'
+```
+
+Test mới đọc `timeout-minutes` bằng `import yaml`. Xanh ở máy vì streamlit
+kéo theo PyYAML; đỏ trên runner sạch vì `kiem-dinh.yml` chỉ cài
+`requirements.txt` cộng `pytest`, và **PyYAML không nằm trong đó**.
+
+Đã có sẵn một guard cho đúng loại lỗi này — `tests/test_requirements.py` —
+nhưng nó tự giới hạn phạm vi, ghi rõ trong docstring:
+
+> *"Phạm vi: chỉ file .py ở GỐC dự án. tests/ và tools/ không nằm trong
+> đường chạy của Actions."*
+
+**Tiền đề đó sai.** Cả ba workflow đều chạy mã trong hai thư mục ấy:
+`kiem-dinh.yml` chạy `pytest tests/` và `tools/chan_bia_so_lieu.py`;
+`chuong-bao-quet.yml` chạy `tools/chuong_bao_quet.py`;
+`canh-cong-c5.yml` chạy `tools/canh_cong_c5.py`.
+
+Đã sửa cả hai đầu:
+
+- Test đọc `timeout-minutes` bằng tay, không thêm phụ thuộc nào. Đưa một
+  thư viện vào `requirements.txt` chỉ để test đọc một con số là trả giá ở
+  đường chạy sản xuất cho tiện lợi của test.
+- `test_requirements.py` thêm phép kiểm phủ `tests/` và `tools/`, ngoại lệ
+  duy nhất là `pytest` (CI cài riêng). Đột biến: thêm lại `import yaml` vào
+  một test → guard ĐỎ.
+
+Cùng một hình dạng với nguyên nhân 4 của cổng C5: **một luật có ghi phạm vi
+hẹp, phạm vi ấy hết đúng, và không có gì báo khi nó hết đúng.**
