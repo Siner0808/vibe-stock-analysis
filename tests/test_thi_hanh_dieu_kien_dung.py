@@ -48,21 +48,38 @@ def _lenh(i: int, loi_nhuan: float) -> Trade:
         created_at=MOC + 86400 * (i + 1))
 
 
-def _so_lo_nang() -> list[Trade]:
-    """80 lệnh −8%/lệnh: KTC loại được số 0 ⇒ điều kiện ĐẠT."""
-    return [_lenh(i, -8.0 + (i % 5) * 0.4) for i in range(80)]
+def _ro(ts: list[Trade], alpha: float) -> dict:
+    """Rổ chuẩn sao cho alpha mỗi lệnh đúng bằng `alpha`.
+
+    Dựng từ chính `net_return_pct()` nên không phải tự viết phép tính lợi
+    nhuận — thứ `NGUYEN-TAC-DO-LUONG.md` cấm.
+    """
+    return {(t.entry_date, t.exit_date): t.net_return_pct() - alpha
+            for t in ts}
 
 
-def _so_chua_du() -> list[Trade]:
-    """30 lệnh, lỗ nặng nhưng chưa đủ mẫu ⇒ điều kiện KHÔNG đạt."""
-    return [_lenh(i, -8.0) for i in range(30)]
+def _so_lo_nang() -> tuple[list[Trade], dict]:
+    """200 lệnh, alpha −3%/lệnh: KTC loại được 0 ⇒ điều kiện ĐẠT.
+
+    Từ bản 2 (29/08/2026) điều kiện đo ALPHA chứ không đo kỳ vọng, và mốc
+    tối thiểu là `paper_metrics.N_TOI_THIEU` chứ không phải 60.
+    """
+    ts = [_lenh(i, -8.0 + (i % 5) * 0.4) for i in range(200)]
+    return ts, _ro(ts, -3.0)
+
+
+def _so_chua_du() -> tuple[list[Trade], dict]:
+    """Ít hơn mốc tối thiểu, lỗ nặng ⇒ điều kiện KHÔNG đạt."""
+    ts = [_lenh(i, -8.0) for i in range(30)]
+    return ts, _ro(ts, -3.0)
 
 
 # ── 1. Đạt điều kiện thì cờ THẬT SỰ đổi ──────────────────────────────
 
 def test_dat_dieu_kien_thi_TAT_co():
     ghi = []
-    da_dong, thong_diep = rd.thi_hanh_dieu_kien_dung(_so_lo_nang(), ghi.append)
+    da_dong, thong_diep = rd.thi_hanh_dieu_kien_dung(*_so_lo_nang()[:1], ghi.append,
+                                                 _so_lo_nang()[1])
     assert da_dong is True, thong_diep
     assert ghi == [False], f"cờ được đặt thành {ghi}, phải là [False]"
     assert "ĐÃ ĐẠT" in thong_diep, thong_diep
@@ -74,9 +91,9 @@ def test_co_thuc_su_doi_gia_tri_tren_module():
     cu = pt.CHO_PHEP_MO_LENH_MOI
     try:
         pt.CHO_PHEP_MO_LENH_MOI = True
+        _ts, _ro_c = _so_lo_nang()
         rd.thi_hanh_dieu_kien_dung(
-            _so_lo_nang(),
-            lambda v: setattr(pt, "CHO_PHEP_MO_LENH_MOI", v))
+            _ts, lambda v: setattr(pt, "CHO_PHEP_MO_LENH_MOI", v), _ro_c)
         assert pt.CHO_PHEP_MO_LENH_MOI is False
     finally:
         pt.CHO_PHEP_MO_LENH_MOI = cu
@@ -87,22 +104,23 @@ def test_co_thuc_su_doi_gia_tri_tren_module():
 
 def test_chua_du_mau_thi_KHONG_dung_vao_co():
     ghi = []
-    da_dong, thong_diep = rd.thi_hanh_dieu_kien_dung(_so_chua_du(), ghi.append)
+    da_dong, thong_diep = rd.thi_hanh_dieu_kien_dung(_so_chua_du()[0], ghi.append,
+                                                 _so_chua_du()[1])
     assert da_dong is False and ghi == [], f"đã đụng vào cờ: {ghi}"
     print(f"PASS  chưa đủ mẫu -> không đụng cờ · {thong_diep[:48]}…")
 
 
 def test_dang_lai_thi_KHONG_dung_vao_co():
     ghi = []
-    da_dong, _ = rd.thi_hanh_dieu_kien_dung(
-        [_lenh(i, +6.0) for i in range(80)], ghi.append)
+    _ts = [_lenh(i, +6.0) for i in range(200)]
+    da_dong, _ = rd.thi_hanh_dieu_kien_dung(_ts, ghi.append, _ro(_ts, +3.0))
     assert da_dong is False and ghi == []
     print("PASS  đang lãi -> không đụng cờ")
 
 
 def test_so_rong_thi_KHONG_dung_vao_co():
     ghi = []
-    assert rd.thi_hanh_dieu_kien_dung([], ghi.append)[0] is False
+    assert rd.thi_hanh_dieu_kien_dung([], ghi.append, {})[0] is False
     assert ghi == []
     print("PASS  sổ rỗng -> không đụng cờ")
 
@@ -152,21 +170,24 @@ def test_ham_dat_co_that_su_gan_vao_co_C5():
 # ── 4. Chuông C5 kêu đúng lúc ────────────────────────────────────────
 
 def test_chuong_kEU_khi_dat_ma_cong_van_MO():
-    ma, td = canh_cong_c5.kiem(_so_lo_nang(), cong_dang_mo=True)
+    ma, td = canh_cong_c5.kiem(*_so_lo_nang()[:1], cong_dang_mo=True,
+                               benchmark=_so_lo_nang()[1])
     assert ma == 1 and "VẪN MỞ" in td, td
     print(f"PASS  đạt + cổng mở -> kêu ({ma})")
 
 
 def test_chuong_IM_khi_dat_nhung_cong_da_DONG():
     """Kêu khi đã đúng trạng thái là dạy người ta bỏ qua chuông."""
-    ma, td = canh_cong_c5.kiem(_so_lo_nang(), cong_dang_mo=False)
+    ma, td = canh_cong_c5.kiem(_so_lo_nang()[0], cong_dang_mo=False,
+                               benchmark=_so_lo_nang()[1])
     assert ma == 0 and "ĐÃ ĐÓNG" in td, td
     print(f"PASS  đạt + cổng đóng -> im ({ma})")
 
 
 def test_chuong_IM_khi_chua_dat():
     for mo in (True, False):
-        ma, td = canh_cong_c5.kiem(_so_chua_du(), cong_dang_mo=mo)
+        ma, td = canh_cong_c5.kiem(_so_chua_du()[0], cong_dang_mo=mo,
+                                   benchmark=_so_chua_du()[1])
         assert ma == 0, (mo, td)
     print("PASS  chưa đạt -> im, dù cổng mở hay đóng")
 

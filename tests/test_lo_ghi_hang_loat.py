@@ -205,49 +205,20 @@ def test_lenh_thieu_dau_thoi_gian_KHONG_duoc_tinh_la_bang_chung():
     print("PASS  thiếu created_at -> không tính là bằng chứng")
 
 
-def test_chua_du_lenh_thi_KHONG_dong():
-    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1), -8.0)
-          for i in range(30)]
-    kq = pm.dieu_kien_dong_lai(ts)
-    assert kq["dat"] is False and "chưa đủ" in kq["ly_do"]
-    print(f"PASS  30 lệnh lỗ nặng nhưng chưa đủ mẫu -> không đóng")
-
-
-def test_lo_NANG_va_du_mau_thi_DONG():
-    """−8%/lệnh trên 80 lệnh: KTC loại được số 0."""
-    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1),
-                   -8.0 + (i % 5) * 0.4) for i in range(80)]
-    kq = pm.dieu_kien_dong_lai(ts)
-    assert kq["dat"] is True, kq
-    assert kq["ci"][1] < 0
-    print(f"PASS  đủ mẫu và lỗ đo được -> ĐÓNG ({kq['ly_do'][:60]}…)")
-
-
-def test_lo_NHE_thi_KHONG_dong_du_du_mau():
-    """Kỳ vọng âm thôi chưa đủ — phải âm tới mức KTC loại được số 0.
-
-    Với σ ≈ 10%, một chuỗi âm nhẹ là chuyện thường. Đóng cổng vì nó là
-    phản ứng với nhiễu.
-    """
-    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1),
-                   -0.5 + (i % 21 - 10) * 2.0) for i in range(80)]
-    kq = pm.dieu_kien_dong_lai(ts)
-    assert kq["dat"] is False, kq
-    assert kq["ci"][1] > 0
-    print(f"PASS  lỗ nhẹ trong nhiễu -> KHÔNG đóng ({kq['ci']})")
-
-
-def test_lai_thi_khong_bao_gio_dong():
-    ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1), +6.0)
-          for i in range(80)]
-    assert pm.dieu_kien_dong_lai(ts)["dat"] is False
-    print("PASS  đang lãi -> không đóng")
+# Các phép kiểm về ĐIỀU KIỆN DỪNG đã chuyển sang
+# `tests/test_dieu_kien_dung_alpha.py` ngày 29/08/2026, khi bản 2 thay bản
+# 1: điều kiện nay đo ALPHA khớp từng lệnh nên nó cần rổ đối chiếu
+# VN-INDEX — thứ nằm ngoài phạm vi file này (nhận diện lô ghi hàng loạt).
+#
+# Giữ lại đúng một phép kiểm ở đây: trạng thái cổng phải HIỆN RA trong báo
+# cáo. Một điều kiện không ai nhìn thấy thì không bảo vệ được gì.
 
 
 def test_report_phai_in_trang_thai_cong_C5():
-    """Một điều kiện không ai nhìn thấy thì không bảo vệ được gì."""
     ts = [_lenh_kq(i, _ngay(i * 3), MOC + 86400 * (i + 1), -8.0)
-          for i in range(80)]
-    bao = pm.report(ts)
+          for i in range(200)]
+    # Rổ chuẩn dựng từ chính lợi nhuận của lệnh: alpha mỗi lệnh = −3%.
+    ro = {(t.entry_date, t.exit_date): t.net_return_pct() + 3.0 for t in ts}
+    bao = pm.report(ts, benchmark=ro)
     assert "Cổng C5" in bao and "ĐIỀU KIỆN ĐÓNG LẠI ĐÃ ĐẠT" in bao
     print("PASS  report() in trạng thái cổng C5 và cảnh báo khi đạt")
