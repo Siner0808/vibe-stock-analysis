@@ -1,0 +1,59 @@
+# Chuông cổng C5: điều kiện dừng đã đạt mà cổng vẫn mở thì báo động.
+#
+# VÌ SAO KHÔNG GỘP VÀO "Quét sổ lệnh"
+# `tools/chuong_bao_quet.py` đếm lượt chạy `conclusion == "success"` của
+# workflow quét để biết một ngày có được quét không. Làm đỏ workflow đó
+# vì cổng C5 sẽ sinh ra báo động giả "ngày này không có lượt quét nào",
+# che mất đúng thứ chuông kia sinh ra để canh. Cùng cái bẫy mà
+# `quet-so-lenh.yml` đã ghi cho bước cảnh báo nội phiên.
+#
+# Chuông kêu bằng cách để lượt chạy này ĐỎ. GitHub gửi email cho người
+# sửa cron gần nhất khi một workflow theo lịch thất bại — đó là đường
+# thông báo, không cần dựng thêm gì.
+#
+# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub, thứ đã đo được
+# là rơi mất khoảng một nửa số nhịp. Rơi một nhịp thì nhịp hôm sau vẫn
+# bắt được — điều kiện dừng không tự biến mất, nó chỉ có thể đạt thêm.
+
+name: Chuông cổng C5
+
+on:
+  schedule:
+    # 09:30 UTC = 16:30 ICT — sau giờ đóng cửa, sau lượt quét cuối cùng
+    # (đo được: 15:29–15:33 ICT), và sau chuông báo quét (09:00 UTC) để
+    # hai chuông không lẫn vào nhau trong hộp thư.
+    - cron: '30 9 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chuong-c5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        run: pip install -r requirements.txt
+
+      - name: Nạp cấu hình bí mật
+        env:
+          NOI_DUNG: ${{ secrets.STREAMLIT_SECRETS_TOML }}
+        run: |
+          if [ -z "$NOI_DUNG" ]; then
+            echo "::error::Thiếu secret STREAMLIT_SECRETS_TOML."
+            exit 1
+          fi
+          mkdir -p .streamlit
+          printf '%s' "$NOI_DUNG" > .streamlit/secrets.toml
+
+      - name: Soát điều kiện dừng
+        run: python tools/canh_cong_c5.py

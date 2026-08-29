@@ -3387,17 +3387,53 @@ ghi quyết định, nên không để lại dòng lý do nào. Chỗ mù nhỏ,
   chạy: vài file test gán cờ ở mức module và rò sang mọi test sau).
   Đột biến 4/4 đỏ.
 
+### Bước 1 ĐÃ XONG — điều kiện dừng nay có nơi HÀNH ĐỘNG
+
+`run_daily.thi_hanh_dieu_kien_dung(trades, dat_co)` chạy ngay sau khi mở
+sổ và **trước** vòng quét. Đạt điều kiện thì nó TẮT `CHO_PHEP_MO_LENH_MOI`
+cho lượt đó — mọi mã sau đó nhận `LY_DO_C5` và không mã nào vào lệnh. Đây
+là lần đầu điều kiện đổi được một **trạng thái** thay vì thêm một dòng chữ.
+
+Bốn thứ nó KHÔNG làm, ghi thẳng trong docstring, vì một hàng rào bị tưởng
+nhầm phạm vi còn tệ hơn không có hàng rào:
+
+1. không huỷ lệnh PENDING — `fill_pending()` không đọc cờ này;
+2. không đóng vị thế đang mở — dừng MỞ THÊM khác với thoát hàng;
+3. **không phải chốt một cửa.** Cờ chỉ sống trong tiến trình đó; lượt sau
+   tính lại từ đầu. Kho ngoài chỉ có hai bảng `trades` và `decisions` —
+   không có chỗ nào ghi được một lá cờ sống qua nhiều lượt chạy trên
+   nhiều runner. Chốt bền duy nhất vẫn là dòng `CHO_PHEP_MO_LENH_MOI =
+   False` trong MÃ NGUỒN, do người sửa, khoá bởi `test_c5_noi_that.py`;
+4. **không làm đỏ lượt quét.**
+
+Điểm 4 là một cái bẫy suýt sập vào. `tools/chuong_bao_quet.py` đếm lượt
+`conclusion == "success"` của workflow "Quét sổ lệnh" để biết một ngày có
+được quét không. Làm đỏ workflow đó vì cổng C5 sẽ sinh ra báo động giả
+"ngày này không có lượt quét nào" — báo động giả sinh ra từ một cảnh báo
+thật, che mất đúng thứ chuông kia sinh ra để canh. `quet-so-lenh.yml` đã
+ghi nguyên văn cảnh báo này cho bước cảnh báo nội phiên; đây là cùng cái
+bẫy, ở chỗ khác.
+
+Nên chuông C5 tách riêng: `tools/canh_cong_c5.py` +
+`.github/workflows/canh-cong-c5.yml`, chạy 09:30 UTC (16:30 ICT) các ngày
+làm việc. Nó kêu **chỉ khi có việc chưa ai làm** — điều kiện đạt VÀ cổng
+vẫn mở trong mã nguồn. Điều kiện đạt mà cổng đã đóng là trạng thái ĐÚNG;
+kêu lúc đó là dạy người ta bỏ qua chuông. Kéo sổ hỏng thì cũng kêu: một
+cái chuông im lặng vì không nhìn thấy gì còn tệ hơn không có chuông, vì
+nó tạo cảm giác đang được canh.
+
+Khoá bởi `tests/test_thi_hanh_dieu_kien_dung.py` — 10 test, **đột biến
+7/7 đỏ**, trong đó có một đột biến dời khối thi hành xuống SAU vòng quét
+(muộn đúng một phiên — phiên đáng lẽ không được có) và một đột biến thay
+hàm đặt cờ bằng hàm rỗng.
+
 ### Còn lại — thứ tự làm
 
-1. **Cho điều kiện một nơi HÀNH ĐỘNG** (nguyên nhân 4). Kiểm ở đầu
-   `execute_daily_scan`; đạt thì tắt cờ cho lượt đó, vẫn quản lý vị thế
-   đang mở, rồi `::error::` + thoát khác 0 để GitHub gửi mail. Kèm chốt
-   một chiều: đã đóng thì lượt sau không tự mở lại.
-2. **Đo chỗ tối** — chấm lại 71 mã `signal_date = 2026-08-28`, so với
+1. **Đo chỗ tối** — chấm lại 71 mã `signal_date = 2026-08-28`, so với
    `decisions` của lượt 21:13. Làm mới cache VN-INDEX trước.
-3. **Viết lại điều kiện theo alpha** (nguyên nhân 1+2+3), ngưỡng suy từ
+2. **Viết lại điều kiện theo alpha** (nguyên nhân 1+2+3), ngưỡng suy từ
    lực phát hiện ở mức hiệu ứng thật, định giá cả sai lầm loại II, và
    đếm cả lệnh PENDING/OPEN vào phần đã cam kết.
-4. **Hàng rào quy trình** — test buộc mọi ngưỡng dừng công bố lực phát
+3. **Hàng rào quy trình** — test buộc mọi ngưỡng dừng công bố lực phát
    hiện ở mức hiệu ứng thực tế, và buộc mọi điều kiện an toàn có nơi
    hành động.

@@ -837,6 +837,12 @@ Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA 
 4. **Nặng nhất: điều kiện KHÔNG CÓ AI THI HÀNH.** Nó chỉ được gọi trong
    `report()` và chỉ thêm một câu chữ vào một tệp zip lưu 14 ngày trên
    GitHub Actions. Đạt hay không đạt đều không đóng được cổng.
+   → **Đã sửa 29/08/2026.** `run_daily.thi_hanh_dieu_kien_dung()` chạy
+   trước vòng quét và TẮT cờ cho lượt đó; chuông riêng
+   `tools/canh_cong_c5.py` + `canh-cong-c5.yml` làm đỏ một workflow RIÊNG
+   (làm đỏ lượt quét sẽ khiến `chuong_bao_quet.py` báo giả "ngày này
+   không có lượt quét nào"). Cờ trong tiến trình KHÔNG sống qua lượt sau
+   — chốt bền vẫn là dòng trong mã nguồn.
 
 Đo đúng đại lượng đổi hẳn bài toán: **kỳ vọng cần 11,4 năm để đạt 80% lực
 phát hiện; alpha cần 13 tháng.** Alpha đã tính được trên đường chạy thật

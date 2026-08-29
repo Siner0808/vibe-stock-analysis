@@ -13,7 +13,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST
 from paper_trading import BUY_THRESHOLD, PaperTradingJournal
-from paper_metrics import report, ro_chuan_tu_chuoi_gia
+from paper_metrics import (dieu_kien_dong_lai, report,
+                           ro_chuan_tu_chuoi_gia)
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
 from data_quality import now_vn
@@ -51,6 +52,50 @@ def canh_bao_nguon(quet_duoc: int, bo_qua: dict, tong_ma: int) -> str:
         ra += (f" · ⛔ CHỈ QUÉT ĐƯỢC {quet_duoc}/{tong_ma} MÃ — phiên này "
                f"không kết luận được gì về thị trường")
     return ra
+
+
+def thi_hanh_dieu_kien_dung(trades, dat_co) -> tuple[bool, str]:
+    """Điều kiện dừng phải ĐỔI TRẠNG THÁI, không chỉ in ra một câu.
+
+    Đây là chỗ vá nguyên nhân 4 trong `docs/STATE.md` — "GỐC RỄ CỦA CỔNG
+    C5". Trước hàm này, `dieu_kien_dong_lai()` chỉ được gọi bên trong
+    `paper_metrics.report()`, một hàm nối chuỗi: khi điều kiện đạt, nó
+    thêm một CÂU VĂN nhờ con người đi sửa mã nguồn, và câu văn đó đi vào
+    một tệp zip lưu 14 ngày. Kể cả nếu điều kiện có lực phát hiện 100%,
+    nó vẫn không đóng được cổng.
+
+    `dat_co(gia_tri)` — hàm đặt `paper_trading.CHO_PHEP_MO_LENH_MOI`.
+    Truyền vào chứ không gán thẳng trong đây, để test chứng minh được
+    trạng thái ĐÃ đổi mà không phải vá module rồi dọn.
+
+    Trả `(đã_đóng, thông_điệp)`.
+
+    BỐN THỨ HÀM NÀY KHÔNG LÀM — phải biết, vì một hàng rào mà người ta
+    tưởng nhầm phạm vi thì tệ hơn không có hàng rào:
+
+    1. **Không huỷ lệnh PENDING.** `fill_pending()` khớp bằng giá mở cửa
+       phiên sau và không đọc cờ này. Lệnh đã cam kết vẫn vào.
+    2. **Không đóng vị thế đang mở.** Dừng MỞ THÊM khác với thoát hàng.
+    3. **Không phải chốt một cửa.** Cờ đặt ở đây chỉ sống trong tiến
+       trình này; lượt sau tính lại từ đầu. Chốt bền duy nhất hiện có là
+       `CHO_PHEP_MO_LENH_MOI = False` trong MÃ NGUỒN, do người sửa, khoá
+       bởi `tests/test_c5_noi_that.py`. Kho ngoài chỉ có hai bảng
+       `trades` và `decisions`, không có chỗ nào ghi được một lá cờ sống
+       qua nhiều lượt chạy trên nhiều runner.
+    4. **Không làm đỏ lượt quét.** `tools/chuong_bao_quet.py` đếm lượt
+       `conclusion == "success"` của workflow "Quét sổ lệnh" để biết một
+       ngày có được quét không; làm đỏ nó ở đây sẽ sinh ra báo động giả
+       "ngày này không có lượt quét nào" và che mất đúng thứ chuông sinh
+       ra để canh. Chuông riêng cho C5 nằm ở `tools/canh_cong_c5.py`.
+    """
+    dk = dieu_kien_dong_lai(trades)
+    if not dk["dat"]:
+        return False, f"Cổng C5 (mở vị thế mới): {dk['ly_do']}"
+    dat_co(False)
+    return True, (
+        "ĐIỀU KIỆN DỪNG ĐÃ ĐẠT — đã TẮT mở vị thế mới cho lượt quét này. "
+        f"{dk['ly_do']}. Đặt paper_trading.CHO_PHEP_MO_LENH_MOI = False "
+        "trong mã nguồn để nó sống qua lượt sau.")
 
 
 def trang_thai_c5(cho_phep: bool, nguong: float) -> tuple[str, str]:
@@ -192,6 +237,29 @@ def execute_daily_scan():
         raise
 
     journal = PaperTradingJournal(DB_PATH, cho_phep_so_that=True)
+
+    # ── THI HÀNH ĐIỀU KIỆN DỪNG — TRƯỚC vòng quét, không phải sau ────
+    # Đặt sau vòng quét thì lượt này đã kịp mở lệnh rồi mới đóng cổng:
+    # muộn đúng một phiên, và phiên đó là phiên đáng lẽ không được có.
+    #
+    # Đọc/ghi cờ qua thuộc tính module chứ không qua `from ... import`:
+    # bản sao lấy lúc nạp thì gán vào không ai thấy.
+    import paper_trading as _pt
+    _c5_da_dong, _c5_thong_diep = thi_hanh_dieu_kien_dung(
+        journal.all_trades(),
+        lambda v: setattr(_pt, "CHO_PHEP_MO_LENH_MOI", v))
+    print(f"🚦 {_c5_thong_diep}")
+    if _c5_da_dong:
+        # Annotation đọc được qua API công khai; nhật ký chạy và artifact
+        # thì đòi đăng nhập. Đó là khác biệt giữa chẩn đoán được từ xa và
+        # phải đoán.
+        print(f"::error::{_c5_thong_diep}")
+        _tom_tat = os.environ.get("GITHUB_STEP_SUMMARY")
+        if _tom_tat:
+            with open(_tom_tat, "a", encoding="utf-8") as _f:
+                print("### 🔴 CỔNG C5 TỰ ĐÓNG TRONG LƯỢT NÀY", file=_f)
+                print("", file=_f)
+                print(_c5_thong_diep, file=_f)
     start_date = (now_time - pd.Timedelta(days=60)).strftime("%Y-%m-%d")
     end_date = now_time.strftime("%Y-%m-%d")
 
@@ -338,9 +406,9 @@ def execute_daily_scan():
 
     sorted_sectors = sorted(sector_summary.items(), key=lambda x: -x[1]["avg_score"])
 
-    # Đọc thuộc tính module chứ không `from ... import` giá trị: backtest
-    # và test bật cờ này lúc chạy, còn bản sao lấy lúc nạp thì không thấy.
-    import paper_trading as _pt
+    # `_pt` đã nạp ở khối thi hành điều kiện dừng phía trên. Đọc thuộc
+    # tính module chứ không `from ... import` giá trị: backtest và test
+    # bật cờ này lúc chạy, còn bản sao lấy lúc nạp thì không thấy.
     _trang_thai_c5, _giai_thich_c5 = trang_thai_c5(
         _pt.CHO_PHEP_MO_LENH_MOI, BUY_THRESHOLD)
 
