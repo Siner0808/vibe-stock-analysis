@@ -3437,3 +3437,112 @@ hàm đặt cờ bằng hàm rỗng.
 3. **Hàng rào quy trình** — test buộc mọi ngưỡng dừng công bố lực phát
    hiện ở mức hiệu ứng thực tế, và buộc mọi điều kiện an toàn có nơi
    hành động.
+
+---
+
+## BƯỚC 2 — ĐO CHỖ TỐI. GÓI VNSTOCK KHÔNG PHẢI VẤN ĐỀ; CỬA SỔ DỮ LIỆU MỚI LÀ
+## (29/08/2026)
+
+Đo trên **cả 71 mã**, cùng một thời điểm, dữ liệu tới hết phiên 2026-08-28.
+Ba đường chấm điểm, tách riêng từng hiệu ứng:
+
+```
+A — đường QUÉT TỰ ĐỘNG   run_daily.py:263  60 ngày lịch  ->  44 phiên
+C — cùng mã, cửa sổ dài   420 ngày lịch                  -> 301 phiên
+B — đường ỨNG DỤNG        app.py + DataOrchestrator (TradingView THẬT)
+```
+
+### Kết quả — ba phép so, ba kết luận khác hẳn nhau
+
+| Phép so | Lệch TB | \|Lệch\| TB | Lớn nhất | ≥5 điểm | **ĐỔI QUYẾT ĐỊNH** |
+|---|---|---|---|---|---|
+| Gói vnstock (miễn phí → tài trợ) | −0,19 | 0,46 | −5 | 1/67 | **0/67** |
+| TradingView (C → B) | +0,25 | 0,59 | +8 | 1/71 | **0/71** |
+| **Cửa sổ dữ liệu (A → C)** | **−3,10** | **5,86** | **−16** | **32/71** | **6/71** |
+
+**Chỗ tối nghi ngờ hôm 28/08 — gói vnstock — đã đo và KHÔNG phải vấn đề.**
+Điểm sản xuất (CI, gói miễn phí) so với điểm máy này (gói tài trợ), cùng cửa
+sổ 60 ngày: lệch trung bình 0,46 điểm, **không mã nào đổi quyết định**. Khớp
+với `requirements.txt`: khác biệt của hạng gói là số kỳ BCTC (8 vs không
+giới hạn) và hạn mức request — mà `TRONG_SO_CO_BAN = 0.0` nên BCTC đóng góp 0.
+
+**TradingView cũng không phải vấn đề.** 0/71 mã đổi quyết định. Lý do:
+`DataOrchestrator.collect_and_handoff()` GHI ĐÈ `tv_indicators` bằng chỉ báo
+tự tính từ OHLCV, và bỏ hẳn chỉ báo TradingView mang đơn vị giá. Thứ duy
+nhất còn lại của TradingView là `tv_recommendation` → `tv_bonus` (±4, ±8), và
+59/71 mã hôm đó là NEUTRAL nên bonus bằng 0.
+
+### Cửa sổ dữ liệu: sáu mã đổi quyết định, ba trong số đó ĐÃ THÀNH LỆNH
+
+```
+HHP   54 -> 66   KHÔNG MUA -> MUA
+MSR   53 -> 67   KHÔNG MUA -> MUA
+HDB   56 -> 65   KHÔNG MUA -> MUA
+NAF   62 -> 61   MUA -> KHÔNG MUA      <- lệnh #114, PENDING
+TCB   63 -> 60   MUA -> KHÔNG MUA      <- lệnh #116, PENDING
+HUT   65 -> 53   MUA -> KHÔNG MUA      <- lệnh #117, PENDING
+```
+
+**Ba trong bốn lệnh tiến-về-trước đầu tiên chỉ tồn tại vì cửa sổ 44 phiên.**
+Chỉ STB sống sót, và nó còn mạnh lên (65 → 76).
+
+### Cơ chế — cửa sổ ngắn làm liệt agent xu hướng
+
+Bóc từng thành phần bảy mã trên:
+
+| Mã | `trend_score` A→C | `risk_score` A→C | điểm cuối |
+|---|---|---|---|
+| STB | 65 → **100** | 50 → 40 | +11 |
+| HHP | 65 → **100** | 55 → 50 | +12 |
+| MSR | 65 → **100** | 50 → 30 | +14 |
+| HDB | 65 → **100** | 75 → 40 | +9 |
+| HUT | 50 → **15** | 45 → **10** | −12 |
+| TCB | 65 → 60 | 25 → 15 | −3 |
+| NAF | 65 → 70 | 50 → 50 | −1 |
+
+`momentum_score` và `volume_score` **không đổi một mã nào** — chúng chỉ cần
+cửa sổ ngắn. Toàn bộ chênh lệch đến từ `trend` và `risk`.
+
+Nguyên nhân trực tiếp: `DataOrchestrator._compute_local_indicators()` trả
+`None` cho `SMA50` khi dưới 50 phiên và `SMA200` khi dưới 200 phiên. Với 44
+phiên, cả hai đều `None`, nên các luật của agent xu hướng dùng chúng bị bỏ
+qua — `trend_score` kẹt trong dải 35/50/65 và **không bao giờ chạm 100 hay
+15**. Agent rủi ro thì tính biến động, drawdown, Sharpe trên 44 phiên thay
+vì 301.
+
+Đây cũng là lời giải cho một kết luận cũ: `MO-XE-KIEN-TRUC.md` ghi
+*"trend — 3 giá trị — công tắc 3 nấc"*. **Đó chưa bao giờ là tính chất của
+mã nguồn. Đó là tính chất của CỬA SỔ.** Cho đủ lịch sử thì agent xu hướng
+trải từ 15 tới 100.
+
+### Vì sao điều này nghiêm trọng hơn cả bốn nguyên nhân của cổng C5
+
+Ngưỡng 62 do Phase 5D chọn bằng walk-forward. `walkforward.py:213` gọi
+`run_session(so, sym, df.iloc[: t + 1], ...)` — **cửa sổ MỞ RỘNG**, bắt đầu
+từ `min_history = 60` phiên rồi lớn dần tới hết cache (2020–2022 trở đi sau
+khi `extend_history` chạy). Tức ngưỡng 62 được hiệu chuẩn trên phân phối
+điểm của cửa sổ DÀI.
+
+`run_daily.py:263` cho cửa sổ **60 ngày lịch, cố định — 44 phiên**.
+
+> **Ngưỡng đang chạy trong sản xuất được hiệu chuẩn cho một phân phối điểm
+> khác với phân phối điểm mà nó đang được áp lên.**
+
+Không ai chọn điều đó. `start_date = now - 60 days` là một dòng viết cho tốc
+độ, và nó âm thầm quyết định luật chấm điểm nào được phép chạy. Đúng mẫu
+"núm vặn giả" — chỉ khác là núm này CÓ tác dụng, tác dụng lớn nhất hệ thống,
+và không được ghi ở đâu.
+
+### Chưa đo — phải kiểm sau khi đổi
+
+1. **Gói miễn phí có phục vụ nổi 420 ngày OHLCV không.** Bằng chứng gián
+   tiếp: CI đang kéo VN-INDEX từ 2020-01-01 (1.655 phiên) mỗi lượt và cổng
+   C1 sống, nên OHLCV dài không bị chặn theo hạng. Nhưng chỉ số khác cổ
+   phiếu — phải so điểm sản xuất với điểm máy sau lượt quét đầu tiên.
+2. **`tv_recommendation` không tái lập.** Hai lần chạy cách nhau chưa tới
+   một giờ, thị trường ĐÃ ĐÓNG, MSR đổi từ `STRONG_BUY` sang `NEUTRAL`
+   (điểm B 75 → 67). Bất biến 2 nói chấm cùng một gói dữ liệu hai lần phải
+   ra cùng một điểm. Với `tv_bonus` thì không. Hiện vô hại vì bonus không
+   đổi quyết định mã nào, nhưng phải ghi.
+3. Phép đo này là **một ngày, 71 mã**. Con số 6/71 là ảnh chụp, không phải
+   tỷ lệ ổn định.

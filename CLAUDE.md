@@ -848,15 +848,34 @@ Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA 
 phát hiện; alpha cần 13 tháng.** Alpha đã tính được trên đường chạy thật
 (`run_daily.py:249` truyền rổ chuẩn VN-INDEX) — không phải xây thêm gì.
 
-**Chưa đo:** điểm chấm trên gói vnstock miễn phí (CI/Cloud) có bằng gói tài
-trợ (máy cá nhân) không. Nếu lệch thì σ và nhịp lệnh dùng trong mọi tính
-toán trên đều sai. Nên đo trước khi viết lại điều kiện.
+**Đã đo 29/08/2026 — và chỗ tối hoá ra nằm chỗ khác.** Đo cả 71 mã, dữ liệu
+tới hết 2026-08-28, tách ba hiệu ứng (chi tiết: `docs/STATE.md`, mục "BƯỚC 2
+— ĐO CHỖ TỐI"):
 
-Phép đo này nay RẺ: bảng `decisions` lưu đủ từng thành phần điểm kèm
-`signal_date`, và sản xuất đã chấm 71 mã cho `2026-08-28` trên gói miễn
-phí. Chấm lại đúng ngày đó ở máy rồi so từng thành phần — không cần dựng
-job CI. Làm mới cache VN-INDEX trước: bản ở máy cũ tới 2026-08-20, trễ 6
-phiên, `market_filter.status()` báo cổng C1 cục bộ không dùng được.
+| Hiệu ứng | \|lệch\| TB | Đổi quyết định |
+|---|---|---|
+| Gói vnstock (miễn phí ↔ tài trợ) | 0,46 điểm | **0/67** |
+| TradingView thật ↔ không có | 0,59 điểm | **0/71** |
+| **Cửa sổ dữ liệu 44 phiên ↔ 301 phiên** | **5,86 điểm** | **6/71** |
+
+Gói vnstock KHÔNG phải vấn đề. TradingView cũng không. Thứ quyết định là
+`run_daily.py:263` — `start_date = now - 60 days` cho **44 phiên**, trong
+khi `walkforward.py:213` truyền `df.iloc[:t+1]` (cửa sổ MỞ RỘNG, hàng trăm
+phiên) và `app.py` dùng 420 ngày (~301 phiên).
+
+Dưới 50 phiên thì `_compute_local_indicators()` trả `None` cho SMA50 và
+SMA200, nên các luật của agent xu hướng dùng chúng bị bỏ qua: `trend_score`
+kẹt ở 35/50/65, không bao giờ chạm 100 hay 15. **Ngưỡng 62 do walk-forward
+chọn trên phân phối điểm của cửa sổ DÀI, đang được áp lên điểm của cửa sổ
+NGẮN.** Ba trong bốn lệnh PENDING (NAF, TCB, HUT) chỉ tồn tại vì cửa sổ đó.
+
+Kèm theo: `MO-XE-KIEN-TRUC.md` ghi "trend — công tắc 3 nấc" — đó chưa bao
+giờ là tính chất của mã nguồn, đó là tính chất của CỬA SỔ.
+
+**Chưa đo:** gói miễn phí có phục vụ nổi 420 ngày OHLCV cho cổ phiếu không
+(CI đã kéo được 1.655 phiên VN-INDEX, nhưng chỉ số khác cổ phiếu), và
+`tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` → `NEUTRAL` trong
+chưa tới một giờ khi thị trường đã đóng (bất biến 2).
 
 **Hạn — đã qua một phần.** Bốn lệnh chờ khớp sáng 31/08/2026, nên điều kiện
 2 của điều khoản sửa đổi ("chưa có một điểm dữ liệu kết quả nào") hết hiệu
