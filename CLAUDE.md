@@ -808,6 +808,21 @@ Hai hàng rào mới đáng biết:
 
 ## Cổng C5 — đọc trước khi sửa
 
+> **TRẠNG THÁI 29/08/2026 — CỔNG ĐANG ĐÓNG.**
+> `paper_trading.CHO_PHEP_MO_LENH_MOI = False`, đóng **bằng tay**, không
+> phải do điều kiện kích hoạt. Khoá bởi `tests/test_c5_noi_that.py` — mở
+> lại thì phải sửa cả test đó, có chủ đích.
+>
+> **Sổ THẬT nằm trên Google Sheets, không phải `paper_trades.db` ở máy.**
+> File ở máy đứng yên từ 20/08/2026; đo trạng thái bằng nó là đo một bản
+> sao chết, và ngày 28/08 đã sai đúng như vậy một lần.
+>
+> **Bốn lệnh tiến-về-trước đầu tiên đã tồn tại** — NAF 62 · STB 65 ·
+> TCB 63 · HUT 65, tín hiệu 2026-08-28, PENDING. Chúng khớp sáng 31/08:
+> `fill_pending()` không đọc cờ C5, nên đóng cổng KHÔNG huỷ lệnh chờ.
+>
+> Chi tiết: `docs/STATE.md`, mục **"CỔNG C5 ĐÃ ĐÓNG LẠI"** (29/08/2026).
+
 Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA CỔNG C5"**
 (28/08/2026). Tóm tắt để khỏi sửa nhầm:
 
@@ -831,6 +846,14 @@ phát hiện; alpha cần 13 tháng.** Alpha đã tính được trên đường
 trợ (máy cá nhân) không. Nếu lệch thì σ và nhịp lệnh dùng trong mọi tính
 toán trên đều sai. Nên đo trước khi viết lại điều kiện.
 
-**Hạn:** 09:00 thứ Hai 31/08/2026 — phiên quét đầu tiên có chi phí thực thi.
-Sau mốc đó, sửa quy tắc dừng không còn phân biệt được với chọn quy tắc theo
-kết quả.
+Phép đo này nay RẺ: bảng `decisions` lưu đủ từng thành phần điểm kèm
+`signal_date`, và sản xuất đã chấm 71 mã cho `2026-08-28` trên gói miễn
+phí. Chấm lại đúng ngày đó ở máy rồi so từng thành phần — không cần dựng
+job CI. Làm mới cache VN-INDEX trước: bản ở máy cũ tới 2026-08-20, trễ 6
+phiên, `market_filter.status()` báo cổng C1 cục bộ không dùng được.
+
+**Hạn — đã qua một phần.** Bốn lệnh chờ khớp sáng 31/08/2026, nên điều kiện
+2 của điều khoản sửa đổi ("chưa có một điểm dữ liệu kết quả nào") hết hiệu
+lực từ mốc đó. Cổng đã đóng nên không lệnh MỚI nào cộng thêm, nhưng mọi
+quy tắc dừng viết sau mốc này phải ghi rõ nó được viết khi trong tay đã có
+bao nhiêu kết quả.

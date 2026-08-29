@@ -159,7 +159,46 @@ CHOT_LOI_CUNG = False
 #
 # Backtest và test PHẢI bật công tắc này — chúng tồn tại để đo chính
 # logic vào lệnh. `cmd_seed` bật nó trong suốt lượt chạy.
-CHO_PHEP_MO_LENH_MOI = True
+
+# ── Ô C5 ĐÓNG LẠI (29/08/2026) ──────────────────────────────────────
+#
+# ĐÓNG BẰNG TAY. Không phải do điều kiện dưới đây kích hoạt — điều kiện
+# đó chưa bao giờ đóng được gì. Xem `docs/STATE.md`, mục "GỐC RỄ CỦA
+# CỔNG C5", nguyên nhân 4.
+#
+# Đo ngày 29/08/2026 trên sổ THẬT kéo từ Google Sheets — KHÔNG phải
+# `paper_trades.db` ở máy cá nhân, file đó đứng yên từ 20/08:
+#
+#   Sheet 117 lệnh · lượt quét 28/08 21:13 là lượt đầu tiên chạy ngưỡng
+#   62 trên đường tự động, và nó mở 4 lệnh ngay:
+#   NAF 62 · STB 65 · TCB 63 · HUT 65 — cùng tín hiệu 2026-08-28, PENDING
+#
+# Ba điều buộc phải đóng ngay:
+#
+# 1. `dieu_kien_dong_lai()` báo 0/60 trong khi sổ đã có 4 lệnh cam kết.
+#    Nó chỉ đếm lệnh ĐÃ ĐÓNG, nên lệnh đang chờ và đang mở vô hình với
+#    chính phép kiểm sinh ra để canh chúng.
+# 2. Điều kiện hiệu chuẩn để bắt kỳ vọng −2,5%/lệnh, trong khi mức bất
+#    lợi đo được là alpha −0,927%/lệnh. Lệch 8 lần độ lớn: nó cần 11,4
+#    năm để đạt 80% lực phát hiện, alpha cần 13 tháng.
+# 3. Kể cả khi đạt, KHÔNG CÓ GÌ THI HÀNH. Nó chỉ thêm một câu chữ vào
+#    `latest_daily_report.md` — một tệp zip lưu 14 ngày.
+#
+# CỜ NÀY KHÔNG HUỶ LỆNH PENDING. `fill_pending()` khớp bằng giá mở cửa
+# phiên sau và không đọc cờ này. Bốn lệnh trên VẪN khớp sáng 31/08 —
+# lựa chọn có chủ đích: giữ chúng làm điểm dữ liệu tiến-về-trước đầu
+# tiên. Cờ chỉ chặn lệnh MỚI.
+#
+# MỞ LẠI KHI cả ba xong, không sớm hơn:
+#   • điều kiện dừng đo bằng ALPHA khớp từng lệnh (bất biến 6), ngưỡng
+#     suy từ lực phát hiện ở MỨC HIỆU ỨNG THẬT, và định giá cả sai lầm
+#     loại II chứ không chỉ loại I;
+#   • có nơi HÀNH ĐỘNG khi điều kiện đạt, kèm test chứng minh trạng thái
+#     đổi — không phải chỉ thêm một dòng chữ;
+#   • đã đo lệch điểm giữa gói vnstock miễn phí (CI, Streamlit Cloud) và
+#     gói tài trợ (máy cá nhân). Chưa đo thì σ và nhịp lệnh dùng để hiệu
+#     chuẩn là số của một hệ thống khác.
+CHO_PHEP_MO_LENH_MOI = False
 
 #: Muc chat luong du lieu con DUNG DUOC de vao lenh.
 #:
@@ -173,10 +212,13 @@ CHO_PHEP_MO_LENH_MOI = True
 #: nua thi nhanh nay la CODE CHET vi packet luon mang "OK" cung.
 MUC_CHAT_LUONG_DUNG_DUOC = frozenset({"OK", "WARN"})
 
-# Giữ lại: `consider_entry` vẫn dùng khi ai đó đóng cổng lại bằng tay.
-LY_DO_C5 = ("ngưỡng mua ĐỂ TRỐNG (ô C5) — đủ điều kiện vào lệnh nhưng hệ "
-            "thống dừng mở vị thế mới cho tới khi Phase 5D chọn được ngưỡng "
-            "bằng walk-forward hợp lệ")
+# Lý do ghi vào sổ khi cổng chặn. Bản cũ nói "chờ Phase 5D chọn ngưỡng
+# bằng walk-forward" — đã sai từ 24/08/2026: ngưỡng 62 CHÍNH LÀ kết quả
+# của Phase 5D. Một lý do sai ghi vào 13.589 dòng quyết định thì mọi lần
+# đọc lại sổ sau này đều đọc nhầm.
+LY_DO_C5 = ("ô C5 ĐÓNG (29/08/2026) — đủ điều kiện vào lệnh nhưng hệ thống "
+            "dừng mở vị thế mới cho tới khi điều kiện dừng được viết lại "
+            "theo alpha VÀ có nơi thi hành nó")
 #: Trần vốn cam kết cùng lúc, tính theo % tài khoản.
 #:
 #: Bất biến 7b: đường vốn nhân dồn từng lệnh vào TOÀN BỘ vốn hiện có.

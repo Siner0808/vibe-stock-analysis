@@ -3291,3 +3291,113 @@ kế tiếp nếu chỉ sửa con số mà không sửa quy trình. Đề nghị
 - **Mọi điều kiện an toàn phải có nơi HÀNH ĐỘNG**, không chỉ nơi in ra. Test
   phải chứng minh: điều kiện đạt ⇒ có thứ gì đó thay đổi trạng thái, không
   phải chỉ thêm một dòng chữ.
+
+---
+
+## CỔNG C5 ĐÃ ĐÓNG LẠI — VÀ VÌ SAO PHẢI ĐÓNG BẰNG TAY (29/08/2026)
+
+Đọc sau mục "GỐC RỄ CỦA CỔNG C5" (28/08). Mục này sửa một khẳng định của
+mục đó và ghi ba chỗ hỏng mới cùng họ.
+
+### Sổ thật không nằm ở máy này
+
+Mọi con số ngày 28/08 đo trên `paper_trades.db` ở máy cá nhân. **File đó
+đứng yên từ 20/08/2026.** Sổ thật nằm trên Google Sheets: `run_daily.py`
+kéo về đầu mỗi lượt và đẩy lên ở cuối. Kéo về ngày 29/08 (bản sao trong
+thư mục tạm, không đụng file gốc):
+
+```
+Sheet : 117 lệnh · 15.714 quyết định
+Máy   : 113 lệnh · 13.589 quyết định   <- ảnh chụp 20/08, đã cũ 9 ngày
+```
+
+Sửa lại: **"0 lệnh tiến-về-trước" đúng với ảnh chụp 20/08, SAI với sản
+xuất.** Bài học lặp lại lần thứ n: đo trạng thái sống bằng một bản sao
+chết thì con số ra đúng cú pháp và sai sự thật.
+
+### Bốn lệnh tiến-về-trước đầu tiên của dự án
+
+| # | Mã | Điểm | Tín hiệu | Ghi lúc | Trạng thái |
+|---|---|---|---|---|---|
+| 114 | NAF | 62 | 2026-08-28 | 28/08 21:13 | PENDING |
+| 115 | STB | 65 | 2026-08-28 | 28/08 21:13 | PENDING |
+| 116 | TCB | 63 | 2026-08-28 | 28/08 21:14 | PENDING |
+| 117 | HUT | 65 | 2026-08-28 | 28/08 21:16 | PENDING |
+
+Lượt quét 28/08 21:13 là lượt **đầu tiên chạy ngưỡng 62** trên đường tự
+động. Mọi lượt trước (26/08 → 28/08 00:17) đều bị `LY_DO_C5` chặn ở
+ngưỡng 50 — mã cũ. Lượt đầu tiên chạy mã mới mở 4 lệnh ngay lập tức.
+
+Lượt kế (29/08 01:10) quét 67/71 mã, điểm cao nhất 60, không mở thêm. Bốn
+mã vắng mặt đúng là bốn mã đang có lệnh chờ — chúng bị bỏ qua TRƯỚC khi
+ghi quyết định, nên không để lại dòng lý do nào. Chỗ mù nhỏ, cùng họ với
+"0 lệnh phải nói được vì sao".
+
+### Ba chỗ hỏng mới, cùng một họ với nguyên nhân 4
+
+1. **Điều kiện không nhìn thấy lệnh chưa đóng.** `dieu_kien_dong_lai()`
+   báo `0/60` trong khi sổ đã có 4 lệnh cam kết. Nó lọc
+   `status == "CLOSED"`, nên PENDING và OPEN vô hình với chính phép kiểm
+   sinh ra để canh chúng.
+
+2. **Đóng cổng KHÔNG huỷ lệnh chờ.** `fill_pending()` khớp bằng giá mở
+   cửa phiên sau và không hề đọc `CHO_PHEP_MO_LENH_MOI`. Bốn lệnh trên
+   VẪN khớp sáng 31/08. Đã chọn giữ chúng làm điểm dữ liệu tiến-về-trước
+   đầu tiên; cờ chỉ chặn lệnh MỚI.
+
+3. **Báo cáo phiên nói ngược với việc nó vừa làm.** Template trong
+   `run_daily.py` viết cứng `⛔ DỪNG mở vị thế mới (ô C5)`. Đúng lúc viết
+   (20/08), sai từ 24/08. Lượt 28/08 21:13 **mở 4 lệnh** và báo cáo của
+   chính lượt đó nói đang dừng mở vị thế mới — suốt 5 ngày không ai đọc
+   ra điều ngược lại từ báo cáo.
+
+### Hai tin tốt cho phương án sửa
+
+- **Mắt xích 5 (alpha) chắc hơn tưởng.** `backtest/cache/` bị gitignore
+  nên runner luôn sạch và tải VN-INDEX mới mỗi lượt → rổ chuẩn trên
+  đường sản xuất luôn tươi. (Cache ở máy cá nhân cũ tới 2026-08-20, trễ
+  6 phiên, `market_filter.status()` báo cổng C1 cục bộ **không dùng
+  được** — phải làm mới trước khi đo lại ở đây.)
+
+- **Chỗ tối đo được ngay, không cần dựng job CI.** Bảng `decisions` lưu
+  đủ từng thành phần điểm kèm `signal_date`. Sản xuất chạy gói vnstock
+  miễn phí; chấm lại 71 mã với `signal_date = 2026-08-28` ở máy (gói tài
+  trợ) rồi so từng thành phần là xong phép đo. Trong dữ liệu sản xuất
+  ngày 28/08 đã thấy: `momentum_score = 62,5` (backtest luôn 50 — tức 4
+  agent "sống dậy" đúng như giả thiết mở cổng), và `tv_bonus = 0` (tức
+  TradingView vẫn đóng góp 0 kể cả khi chạy thật).
+
+### Đã làm ngày 29/08
+
+- `paper_trading.CHO_PHEP_MO_LENH_MOI = False` — đóng **bằng tay**,
+  không phải do điều kiện kích hoạt. Kèm khối ghi chú nêu rõ ba lý do và
+  ba việc phải xong trước khi mở lại.
+- `LY_DO_C5` viết lại. Bản cũ nói "chờ Phase 5D chọn ngưỡng bằng
+  walk-forward hợp lệ" — sai từ 24/08, vì ngưỡng 62 CHÍNH LÀ kết quả của
+  Phase 5D. Một lý do sai ghi vào 13.589 dòng quyết định thì mọi lần đọc
+  lại sổ về sau đều đọc nhầm.
+- `run_daily.trang_thai_c5()` — trạng thái C5 in ra báo cáo nay SUY RA từ
+  cờ. Tách ra mức module vì một chuỗi nằm giữa hàm quét 300 dòng cần cả
+  mạng lẫn sổ lệnh mới chạm tới được, tức là không test được, tức là lại
+  một câu chữ không ai canh.
+- `tests/test_c5_noi_that.py` — 7 test, ba tầng khoá: hàm trả đúng hai
+  nhánh · template không chứa hằng chuỗi tự khẳng định C5 · template có
+  nội suy đúng hai biến. Thêm một test đọc AST `paper_trading.py` để
+  khẳng định cờ đang `False` **trong mã nguồn** (không đọc giá trị lúc
+  chạy: vài file test gán cờ ở mức module và rò sang mọi test sau).
+  Đột biến 4/4 đỏ.
+
+### Còn lại — thứ tự làm
+
+1. **Cho điều kiện một nơi HÀNH ĐỘNG** (nguyên nhân 4). Kiểm ở đầu
+   `execute_daily_scan`; đạt thì tắt cờ cho lượt đó, vẫn quản lý vị thế
+   đang mở, rồi `::error::` + thoát khác 0 để GitHub gửi mail. Kèm chốt
+   một chiều: đã đóng thì lượt sau không tự mở lại.
+2. **Đo chỗ tối** — chấm lại 71 mã `signal_date = 2026-08-28`, so với
+   `decisions` của lượt 21:13. Làm mới cache VN-INDEX trước.
+3. **Viết lại điều kiện theo alpha** (nguyên nhân 1+2+3), ngưỡng suy từ
+   lực phát hiện ở mức hiệu ứng thật, định giá cả sai lầm loại II, và
+   đếm cả lệnh PENDING/OPEN vào phần đã cam kết.
+4. **Hàng rào quy trình** — test buộc mọi ngưỡng dừng công bố lực phát
+   hiện ở mức hiệu ứng thực tế, và buộc mọi điều kiện an toàn có nơi
+   hành động.
