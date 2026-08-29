@@ -53,6 +53,38 @@ def canh_bao_nguon(quet_duoc: int, bo_qua: dict, tong_ma: int) -> str:
     return ra
 
 
+def trang_thai_c5(cho_phep: bool, nguong: float) -> tuple[str, str]:
+    """(dòng trạng thái, khối giải thích) cho báo cáo phiên — SUY RA từ cờ.
+
+    Bản cũ viết CỨNG hai chỗ này trong template: "⛔ DỪNG mở vị thế mới
+    (ô C5)" và một khối dài giải thích vì sao 0 lệnh. Đúng lúc viết
+    (20/08/2026), SAI từ 24/08 khi cổng mở — và lượt quét 28/08/2026
+    21:13 MỞ 4 LỆNH trong khi chính báo cáo của nó nói đang dừng mở vị
+    thế mới. Suốt 5 ngày không ai đọc ra điều đó từ báo cáo.
+
+    Cùng lỗi với dòng post-mortem trong `execute_daily_scan`: một câu
+    khẳng định về hành vi mà không đọc hành vi thì chỉ đúng cho tới lần
+    sửa sau.
+
+    Tách ra mức module vì một chuỗi nằm giữa hàm quét 300 dòng cần cả
+    mạng lẫn sổ lệnh mới chạm tới được — tức là không test được, tức là
+    lại một câu chữ không ai canh.
+    """
+    if cho_phep:
+        return (f"✅ CHO PHÉP mở vị thế mới — ô C5 MỞ, ngưỡng {nguong:.1f}",
+                "> ✅ **Ô C5 đang MỞ.** Mã đạt ngưỡng SẼ được vào lệnh. Điều "
+                "kiện đóng lại nằm ở `paper_metrics.dieu_kien_dong_lai()`; "
+                "trạng thái của nó in ở mục 5 bên dưới.")
+    return ("⛔ DỪNG mở vị thế mới — ô C5 ĐÓNG",
+            "> ⛔ **Vì sao 0 lệnh mới, kể cả khi có mã vượt ngưỡng.** Ô C5 "
+            "đóng ngày 29/08/2026. Điều kiện dừng cũ đo bằng KỲ VỌNG chứ "
+            "không phải alpha khớp từng lệnh, hiệu chuẩn cho mức −2,5%/lệnh "
+            "trong khi mức bất lợi đo được là −0,927%, và KHÔNG CÓ GÌ thi "
+            "hành nó khi đạt. Mở lại khi điều kiện được viết lại theo alpha "
+            "VÀ có nơi hành động. Xem `docs/STATE.md`, mục \"GỐC RỄ CỦA "
+            "CỔNG C5\".")
+
+
 def _ro_chuan_vnindex(trades):
     """Rổ đối chiếu VN-INDEX cho báo cáo phiên — bất biến 6.
 
@@ -306,12 +338,18 @@ def execute_daily_scan():
 
     sorted_sectors = sorted(sector_summary.items(), key=lambda x: -x[1]["avg_score"])
 
+    # Đọc thuộc tính module chứ không `from ... import` giá trị: backtest
+    # và test bật cờ này lúc chạy, còn bản sao lấy lúc nạp thì không thấy.
+    import paper_trading as _pt
+    _trang_thai_c5, _giai_thich_c5 = trang_thai_c5(
+        _pt.CHO_PHEP_MO_LENH_MOI, BUY_THRESHOLD)
+
     # Dựng báo cáo dạng Markdown
     report_md = f"""# 📊 BÁO CÁO PHÂN TÍCH THỊ TRƯỜNG DỰ BÁO VIBE CODING
 **Khung giờ thực thi:** Phiên {session_name} lúc {now_time:%d/%m/%Y %H:%M:%S}  
 **Rổ chứng khoán theo dõi:** {len(CUSTOM_WATCHLIST_SYMBOLS)} mã thuộc 16 Ngành Tùy chỉnh  
 **Ngưỡng LỌC THEO DÕI:** {BUY_THRESHOLD:.1f} điểm — **KHÔNG phải ngưỡng mua**
-**Trạng thái vào lệnh:** ⛔ DỪNG mở vị thế mới (ô C5)
+**Trạng thái vào lệnh:** {_trang_thai_c5}
 
 ---
 
@@ -322,12 +360,7 @@ def execute_daily_scan():
 - **Số lệnh đã chốt lời / cắt lỗ:** `{closed_count}` lệnh
 - **Số cổ phiếu vượt ngưỡng lọc theo dõi (Score ≥ {BUY_THRESHOLD:.1f}):** `{len(top_candidates)}/{len(scan_details)}` mã
 
-> ⛔ **Vì sao 0 lệnh mới, kể cả khi có mã vượt ngưỡng.** Ngưỡng mua đang ĐỂ
-> TRỐNG (ô C5). Đo ngày 20/08/2026 trên dải ngưỡng 48–59: win rate chỉ trải
-> 28,2%–30,7%, trong khi tương quan ngưỡng↔số lệnh là −0,999 và số
-> lệnh↔vốn đỉnh là +0,990 — ngưỡng không cải thiện chất lượng chọn mã, nó
-> chỉ điều khiển đòn bẩy. Hệ thống mở lại khi Phase 5D chọn được ngưỡng
-> bằng walk-forward hợp lệ. Xem `docs/STATE.md`.
+{_giai_thich_c5}
 {khoi_cong}
 
 ---
