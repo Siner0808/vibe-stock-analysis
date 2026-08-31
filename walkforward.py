@@ -173,10 +173,70 @@ def _dung_bo_nho(che_do: str, duong_bo_nho: str | None):
     return may
 
 
+def lich_theo_ngay(du_lieu: dict, min_history: int,
+                   stride: int) -> list[tuple[str, str, int]]:
+    """Lịch chạy gộp mọi mã, xếp theo NGÀY. Trả [(ngày, mã, chỉ số hàng)].
+
+    BẤT BIẾN: hàm này chỉ đổi THỨ TỰ, không đổi TẬP phiên được chấm. Đổi
+    tập phiên là đổi dữ liệu đầu vào chứ không phải đổi cách chạy, và hai
+    chế độ khi đó không còn so được với nhau. Khoá bởi
+    `tests/test_walkforward_theo_ngay.py`.
+
+    Khoá phụ là mã, nên cùng một `du_lieu` luôn cho cùng một lịch — bất
+    biến 2. Không có khoá phụ thì thứ tự trong một ngày phụ thuộc thứ tự
+    duyệt dict, và hai lượt chạy có thể ra hai kết quả khác nhau khi trần
+    vốn chạm đúng ngày đó.
+    """
+    return sorted(
+        (str(df["time"].iloc[t])[:10], sym, t)
+        for sym, df in du_lieu.items()
+        for t in range(min_history, len(df), stride))
+
+
+def _chay_mot_phien(so, sym: str, df, t: int, nguong: float) -> None:
+    """Chấm một phiên cho một mã. Tách ra để hai chế độ dùng CHUNG một bản.
+
+    Hai bản sao của lời gọi này là chỗ hai chế độ trôi ra khỏi nhau, và
+    khi đó phép so giữa chúng đo cả sự khác biệt lẫn cái lỗi.
+
+    Import NẰM TRONG HÀM, y như `_mo_phong` vẫn làm. `paper_runner` kéo
+    theo cả chuỗi agent nên import ở mức module làm mọi thứ chạm tới
+    `walkforward` phải trả giá đó — kể cả `tests/` chỉ muốn gọi
+    `chia_vung`. Bản đầu của hàm này quên mất điều đó và
+    `test_mo_phong_bao_alpha_va_trang_thai_bo_nho` nổ `NameError`.
+    """
+    from paper_runner import run_session
+
+    hang = df.iloc[t]
+    run_session(so, sym, df.iloc[: t + 1],
+                {"open": float(hang["open"]),
+                 "high": float(hang["high"]),
+                 "low": float(hang["low"]),
+                 "close": float(hang["close"]),
+                 "volume": float(hang.get("volume") or 0.0)},
+                str(hang["time"]), buy_threshold=nguong)
+
+
+def _dong_so_cuoi(so, sym: str, df) -> None:
+    """Đóng sổ sách cho một mã ở giá phiên cuối CỦA CHÍNH NÓ.
+
+    PHẢI nhân hệ số giá, y hệt `run_session`. vnstock trả giá theo NGHÌN
+    ĐỒNG (FPT = 71,2) còn sổ lệnh ghi VNĐ (71.200). Truyền giá thô vào đây
+    cho ra -99,90% cho MỌI lệnh — đo được ngày 24/08/2026: bốn lệnh
+    HET_DU_LIEU đều đúng -99,90%, và bốn lệnh đó kéo kỳ vọng OOS từ
+    +0,616% xuống -0,419%.
+    """
+    from data_quality import price_multiplier
+    cuoi = df.iloc[-1]
+    so.dong_so_sach(sym, str(cuoi["time"]),
+                    float(cuoi["close"]) * price_multiplier(df))
+
+
 def _mo_phong(du_lieu: dict, nguong: float, db: str,
               stride: int = 2, min_history: int = 60,
               che_do_hoc: str | None = None,
-              duong_bo_nho: str | None = None) -> dict:
+              duong_bo_nho: str | None = None,
+              theo_ngay: bool = False) -> dict:
     """Chạy một lượt trên `du_lieu` với `nguong`, trả về chỉ số đo được.
 
     `du_lieu` là {mã: DataFrame} ĐÃ CẮT sẵn về đúng vùng cần chạy — hàm này
@@ -187,6 +247,19 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
     và hai mặc định thì sớm muộn cũng trôi ra khỏi nhau: người sửa một chỗ
     không biết chỗ kia tồn tại, rồi một lượt chạy âm thầm dùng cấu hình
     khác lượt bên cạnh. Một mặc định duy nhất, đặt ở `chay()`.
+
+    `theo_ngay` — CHẠY THEO NGÀY THAY VÌ THEO MÃ. Mặc định False, và mặc
+    định đó giữ nguyên từng con số của mọi lượt chạy trước.
+
+    Vì sao cần: bản theo mã chạy xong toàn bộ lịch sử FPT rồi mới sang ACB,
+    nên tại mọi điểm quyết định chỉ có vị thế của MỘT mã.
+    `TRAN_VON_CAM_KET_PCT` vì thế **không bao giờ chạm** — và các con số
+    đòn bẩy 145% / 524% / 1372% trong mọi báo cáo walk-forward mô tả một
+    danh mục máy chưa bao giờ nắm.
+
+    Hệ quả trực tiếp: mọi thay đổi về CỠ VỊ THẾ đều vô hình ở chế độ theo
+    mã. Muốn đo "giữ 15 vị thế thay vì 5" thì phải bật cờ này, nếu không
+    phép đo chỉ co đường vốn lại chứ không sinh thêm một lệnh nào.
     """
     import os
 
@@ -206,31 +279,26 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
     # thứ hai đó che mất lỗi thứ nhất.
     try:
         with _cho_phep_mo_lenh():
-            for sym, df in sorted(du_lieu.items()):
-                n = len(df)
-                for t in range(min_history, n, stride):
-                    hang = df.iloc[t]
-                    run_session(so, sym, df.iloc[: t + 1],
-                                {"open": float(hang["open"]),
-                                 "high": float(hang["high"]),
-                                 "low": float(hang["low"]),
-                                 "close": float(hang["close"]),
-                                 "volume": float(hang.get("volume") or 0.0)},
-                                str(hang["time"]), buy_threshold=nguong)
-                # Hết dữ liệu của mã này -> đóng sổ sách cho nó TRƯỚC khi
-                # sang mã sau. Vòng lặp chạy theo mã, nên lệnh còn mở ở
-                # đây sẽ nằm lại suốt phần còn lại của lượt chạy và ăn
-                # vào trần vốn của mọi mã phía sau.
-                # PHAI nhan he so gia, y het `run_session`. vnstock tra
-                # gia theo NGHIN DONG (FPT = 71,2) con so lenh ghi VND
-                # (71.200). Truyen gia tho vao day cho ra -99,90% cho
-                # MOI lenh — do duoc ngay 24/08/2026: bon lenh
-                # HET_DU_LIEU deu dung -99,90%, va bon lenh do keo ky
-                # vong OOS tu +0,616% xuong -0,419%.
-                from data_quality import price_multiplier
-                cuoi = df.iloc[-1]
-                so.dong_so_sach(sym, str(cuoi["time"]),
-                                float(cuoi["close"]) * price_multiplier(df))
+            if theo_ngay:
+                # Gộp mọi mã rồi chạy theo thứ tự NGÀY. Chỉ ở chế độ này
+                # danh mục mới tồn tại: nhiều mã cùng mở vị thế một lúc,
+                # nên `TRAN_VON_CAM_KET_PCT` mới có gì để chặn.
+                for _, sym, t in lich_theo_ngay(du_lieu, min_history, stride):
+                    _chay_mot_phien(so, sym, du_lieu[sym], t, nguong)
+                # Đóng sổ SAU toàn bộ vòng, không phải giữa chừng: ở đây
+                # "hết dữ liệu của một mã" không còn nghĩa là "tới lượt mã
+                # sau" nữa.
+                for sym, df in sorted(du_lieu.items()):
+                    _dong_so_cuoi(so, sym, df)
+            else:
+                for sym, df in sorted(du_lieu.items()):
+                    for t in range(min_history, len(df), stride):
+                        _chay_mot_phien(so, sym, df, t, nguong)
+                    # Hết dữ liệu của mã này -> đóng sổ sách cho nó TRƯỚC
+                    # khi sang mã sau. Vòng lặp chạy theo mã, nên lệnh còn
+                    # mở ở đây sẽ nằm lại suốt phần còn lại của lượt chạy
+                    # và ăn vào trần vốn của mọi mã phía sau.
+                    _dong_so_cuoi(so, sym, df)
         lenh = so.all_trades()
     finally:
         so.db.close()
@@ -293,7 +361,7 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 
 def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None,
          stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_",
-         che_do_hoc: str = "co_san") -> dict:
+         che_do_hoc: str = "co_san", theo_ngay: bool = False) -> dict:
     """Walk-forward đầy đủ. Trả về {is: [...], nguong_chon, oos: {...}}.
 
     `che_do_hoc` — xem `_dung_bo_nho()`. Mặc định `co_san` (21/08/2026): đo
@@ -355,7 +423,8 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
         for ng in dai_nguong:
             r = _mo_phong(vung_is, ng, f"{tien_to_db}is_{ng:g}.db",
                           stride, min_history, che_do_hoc,
-                          f"{tien_to_db}bo_nho_is_{ng:g}.json")
+                          f"{tien_to_db}bo_nho_is_{ng:g}.json",
+                          theo_ngay=theo_ngay)
             r.pop("_lenh", None)
             ket_qua_is.append(r)
 
@@ -364,7 +433,8 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
         if chon is not None and vung_oos:
             oos = _mo_phong(vung_oos, chon, f"{tien_to_db}oos.db",
                             stride, min_history, che_do_hoc,
-                            f"{tien_to_db}bo_nho_oos.json")
+                            f"{tien_to_db}bo_nho_oos.json",
+                            theo_ngay=theo_ngay)
     finally:
         os.environ.pop("POST_MORTEM_ENABLED", None)
         if cu is not None:
@@ -402,11 +472,15 @@ def main() -> int:
                          "tat: khong co bo nho -- phep do khong dua vao "
                          "hang rao chong nhin trom nao | "
                          "tich_luy: bat dau rong, lon dan trong luot nay")
+    ap.add_argument("--theo-ngay", action="store_true", dest="theo_ngay",
+                    help="chay theo NGAY thay vi theo MA. Chi che do nay moi "
+                         "co danh muc that, nen TRAN_VON_CAM_KET_PCT moi co "
+                         "gi de chan. Doi MOI con so so voi cac luot truoc.")
     a = ap.parse_args()
 
     ma = a.symbols.split(",") if a.symbols else None
     kq = chay(symbols=ma, stride=a.stride, min_history=a.min_history,
-              che_do_hoc=a.che_do_hoc)
+              che_do_hoc=a.che_do_hoc, theo_ngay=a.theo_ngay)
 
     print("=" * 72)
     print("WALK-FORWARD — chọn trên IS, đo trên OOS, hai vùng KHÔNG giao nhau")
