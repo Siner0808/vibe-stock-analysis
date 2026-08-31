@@ -1,0 +1,6 @@
+﻿Timestamp,Order_Type,Symbol,Sector,Quantity,Price,Total_Value,Stop_Loss,Take_Profit,Reason
+2026-08-24 10:34:20,BUY_ENTRY,BSR,Dầu khí,7200,"27,650","199,080,000","25,991","31,797",Diem manh 92/100 - Wyckoff Pha D/E & SMC MSS
+2026-08-24 10:34:20,BUY_ENTRY,SSI,Dịch vụ tài chính,9400,"21,250","199,750,000","19,975","24,437",Diem manh 88/100 - Wyckoff Pha D/E & SMC MSS
+2026-08-24 10:34:20,BUY_ENTRY,DPM,Hóa chất,8800,"22,650","199,320,000","21,291","26,047",Diem manh 86/100 - Wyckoff Pha D/E & SMC MSS
+2026-08-24 10:34:20,BUY_ENTRY,GAS,"Điện, Nước & Khí đốt",2300,"85,700","197,110,000","80,558","98,555",Diem manh 86/100 - Wyckoff Pha D/E & SMC MSS
+2026-08-24 10:34:20,BUY_ENTRY,GEX,Hàng & Dịch vụ công nghiệp,7500,"26,600","199,500,000","25,004","30,590",Diem manh 84/100 - Wyckoff Pha D/E & SMC MSS

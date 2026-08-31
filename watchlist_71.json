@@ -1,0 +1,18 @@
+{
+  "⛽ Dầu khí": ["BSR", "PVD", "PVS", "PLX", "OIL"],
+  "⛏️ Tài nguyên cơ bản": ["HPG", "HHP", "HSG", "NKG", "MSR"],
+  "🏭 Hàng & Dịch vụ công nghiệp": ["VSC", "GEX", "PVT", "VTP"],
+  "🥖 Thực phẩm & Đồ uống": ["VNM", "HAG", "MSN", "BAF", "NAF"],
+  "🏥 Y tế": ["DHG", "DCL"],
+  "🏦 Ngân hàng": ["STB", "VCB", "LPB", "BID", "CTG", "TCB", "HDB", "SHB", "MBB", "ACB"],
+  "🏢 Bất động sản": ["NVL", "VHM", "KDH", "PDR", "DIG", "VRE", "VIC", "DXG", "NLG", "BCM"],
+  "💻 Công nghệ thông tin": ["FPT"],
+  "🧪 Hóa chất": ["AAA", "DPM", "DCM", "GVR"],
+  "🏗️ Xây dựng & Vật liệu": ["CII", "HHV", "VCG", "GEL", "PC1"],
+  "🚗 Ô tô": ["HAX", "HUT"],
+  "💎 Hàng cá nhân & Gia dụng": ["PNJ", "GIL"],
+  "🛒 Bán lẻ": ["FRT", "MWG"],
+  "✈️ Dịch vụ & Giải trí": ["VJC", "VPL", "HVN", "ACV"],
+  "⚡ Điện, Nước & Khí đốt": ["POW", "GAS", "PLX"],
+  "📈 Dịch vụ tài chính": ["VIX", "SSI", "VCI", "HCM", "SHS", "VND", "MBS", "VCK"]
+}
