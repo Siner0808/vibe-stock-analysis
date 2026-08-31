@@ -297,8 +297,19 @@ EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng 
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
 # Chi phí thị trường VN (điều chỉnh theo công ty chứng khoán của bạn)
-BROKER_FEE_PCT = 0.0015     # 0,15% mỗi chiều
+BROKER_FEE_PCT = 0.0015     # 0,15% mỗi chiều — CẬN DƯỚI của dải bán lẻ
 SELL_TAX_PCT = 0.001        # 0,1% thuế trên giá trị bán
+
+#: Phí Sở giao dịch, 0,03% MỖI CHIỀU. Khoản này bị bỏ sót từ đầu — bảng
+#: phí của công ty chứng khoán tách riêng nó với hoa hồng, nên đọc lướt
+#: thì chỉ thấy hai dòng. Nó nhỏ (0,06% một vòng) nhưng đi cùng chiều với
+#: mọi khoản khác: làm kết quả XẤU đi, tức đúng chiều an toàn theo quy
+#: tắc số 1.
+#:
+#: Lưu ý khi đọc `BROKER_FEE_PCT`: 0,15% là cận DƯỚI của dải bán lẻ thật
+#: (0,15–0,35% mỗi chiều). Vòng đủ ở đây là 0,46%; với công ty đắt hơn có
+#: thể tới 0,76%. Con số trong repo vì thế vẫn LẠC QUAN, không bi quan.
+EXCHANGE_FEE_PCT = 0.0003
 
 
 class Status:
@@ -365,7 +376,7 @@ class Trade:
         g = self.gross_return_pct()
         if g is None:
             return None
-        cost = (BROKER_FEE_PCT * 2 + SELL_TAX_PCT) * 100
+        cost = ((BROKER_FEE_PCT + EXCHANGE_FEE_PCT) * 2 + SELL_TAX_PCT) * 100
         return g - cost
 
 

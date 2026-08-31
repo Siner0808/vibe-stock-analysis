@@ -204,11 +204,45 @@ def test_loi_nhuan_da_tru_phi():
 
     t = j.all_trades(Status.CLOSED)[0]
     assert t.gross_return_pct() == 10.0            # 100 -> 110
-    expected_cost = (pt.BROKER_FEE_PCT * 2 + pt.SELL_TAX_PCT) * 100
+    expected_cost = ((pt.BROKER_FEE_PCT + pt.EXCHANGE_FEE_PCT) * 2
+                     + pt.SELL_TAX_PCT) * 100
     assert abs(t.net_return_pct() - (10.0 - expected_cost)) < 1e-9
     assert t.net_return_pct() < t.gross_return_pct()
     print(f"PASS  lợi nhuận thô 10.00% -> sau phí {t.net_return_pct():.2f}% "
           f"(phí {expected_cost:.2f}%)")
+
+
+def test_phi_so_giao_dich_that_su_bi_tru():
+    """Phí Sở 0,03%/chiều phải NẰM TRONG con số trừ ra, không chỉ khai.
+
+    Test trên derive công thức từ hằng số, nên gỡ `EXCHANGE_FEE_PCT` khỏi
+    CẢ hai nơi thì nó vẫn xanh. Test này ghim con số thật để cái đó không
+    lọt: 0,15×2 + 0,03×2 + 0,10 = 0,46%.
+
+    Ghim số ở đây là CỐ Ý. Đổi một hằng số chi phí phải làm test này đỏ —
+    nó buộc người sửa nhìn lại mọi con số đo trước đó, đúng như lần bật
+    mô hình trượt giá ngày 24/08/2026 đã phải làm.
+    """
+    j = new_journal()
+    j.consider_entry("FPT", "2026-08-05", make_result(70, sl=90, tp=110))
+    j.fill_pending("FPT", "2026-08-06", 100.0)
+    j.evaluate_open("FPT", "2026-08-07", bar(100, 105, 98, 99),
+                    current_score=40)
+    assert j.fill_closing("FPT", "2026-08-10", 100.0) == 1
+
+    t = j.all_trades(Status.CLOSED)[0]
+    tru_ra = t.gross_return_pct() - t.net_return_pct()
+    assert abs(tru_ra - 0.46) < 1e-9, (
+        f"vòng đủ phải là 0,46% (gồm phí Sở 0,06%), đang là {tru_ra:.4f}%")
+    assert pt.EXCHANGE_FEE_PCT > 0, "phí Sở bị đặt về 0"
+
+    # `paper_metrics` giữ công thức SONG SONG — hai bản phải khớp, nếu
+    # không báo cáo nói một đằng và sổ tính một nẻo.
+    import paper_metrics as pm
+    assert abs(pm.ROUND_TRIP_COST_PCT - tru_ra) < 1e-9, (
+        f"paper_metrics {pm.ROUND_TRIP_COST_PCT:.4f}% "
+        f"lệch sổ {tru_ra:.4f}%")
+    print(f"PASS  vòng đủ {tru_ra:.2f}% — phí Sở có mặt, hai công thức khớp")
 
 
 def test_lenh_hoa_von_thuc_ra_lo_vi_phi():
