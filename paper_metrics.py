@@ -20,9 +20,14 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
 
-from paper_trading import BROKER_FEE_PCT, SELL_TAX_PCT, ExitReason, Trade
+from paper_trading import (BROKER_FEE_PCT, EXCHANGE_FEE_PCT, SELL_TAX_PCT,
+                           ExitReason, Trade)
 
-ROUND_TRIP_COST_PCT = (BROKER_FEE_PCT * 2 + SELL_TAX_PCT) * 100
+#: PHẢI khớp từng số hạng với `Trade.net_return_pct()`. Hai công thức song
+#: song là chỗ trôi ra khỏi nhau âm thầm — cùng cơ chế đã làm `run_daily`
+#: cầm `50.0` trong khi `paper_trading` cầm `62`.
+ROUND_TRIP_COST_PCT = ((BROKER_FEE_PCT + EXCHANGE_FEE_PCT) * 2
+                       + SELL_TAX_PCT) * 100
 
 
 @dataclass
