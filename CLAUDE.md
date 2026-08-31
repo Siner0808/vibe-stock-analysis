@@ -302,10 +302,14 @@ ngân hàng và tài sản. Tệp đó thuộc khu vực thành viên — **khô
 
 ### Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý
 
-| Nơi | Hạng | BCTC | Hạn mức |
-|---|---|---|---|
-| Máy local | silver | không giới hạn (đo được 34 kỳ) | 300/phút |
-| GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút |
+| Nơi | Hạng | BCTC | Hạn mức | OHLCV |
+|---|---|---|---|---|
+| Máy local | silver | không giới hạn (đo được 34 kỳ) | 300/phút | 784 phiên / 1095 ngày |
+| GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút | **784 phiên — y hệt** |
+
+Cột OHLCV đo ngày 31/08/2026 trên cả hai nơi. Bất đối xứng CHỈ nằm ở BCTC
+và hạn mức; lịch sử giá thì không — điều này quan trọng vì lịch sử giá là
+thứ ngưỡng mua được hiệu chuẩn trên đó.
 
 Cả hai nơi kia chạy `pip install -r requirements.txt`, mà bốn gói này không
 cài được từ đó. **Khai báo chúng trong `requirements.txt` làm CI và cloud
@@ -895,10 +899,15 @@ NGẮN.** Ba trong bốn lệnh PENDING (NAF, TCB, HUT) chỉ tồn tại vì c�
 Kèm theo: `MO-XE-KIEN-TRUC.md` ghi "trend — công tắc 3 nấc" — đó chưa bao
 giờ là tính chất của mã nguồn, đó là tính chất của CỬA SỔ.
 
-**Chưa đo:** gói miễn phí có phục vụ nổi 420 ngày OHLCV cho cổ phiếu không
-(CI đã kéo được 1.655 phiên VN-INDEX, nhưng chỉ số khác cổ phiếu), và
-`tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` → `NEUTRAL` trong
-chưa tới một giờ khi thị trường đã đóng (bất biến 2).
+**ĐÃ ĐO 31/08/2026 — gói miễn phí phục vụ ĐỦ cửa sổ dài.** Annotation của
+lượt quét trên runner: 71 mã, **trung vị 784 phiên**, ít nhất 138, **0 mã
+dưới mốc 50 phiên**. Đúng bằng con số máy local hạng silver. Giới hạn của
+gói nằm ở BCTC và hạn mức request, KHÔNG ở lịch sử giá — nên SMA50/SMA200
+tính được cho cả rổ và ngưỡng 62 chạy trên đúng phân phối đã hiệu chuẩn
+nó. Chi tiết: `docs/STATE.md`, mục **"BƯỚC 6"**.
+
+**Chưa đo:** `tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` →
+`NEUTRAL` trong chưa tới một giờ khi thị trường đã đóng (bất biến 2).
 
 **Hạn — đã qua một phần.** Bốn lệnh chờ khớp sáng 31/08/2026, nên điều kiện
 2 của điều khoản sửa đổi ("chưa có một điểm dữ liệu kết quả nào") hết hiệu

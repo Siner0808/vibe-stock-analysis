@@ -3972,3 +3972,127 @@ không có lý do ghi lại thì đó là một lỗi mới.
 > cấu hình nay không còn tồn tại. **Bốn điểm dữ liệu kết quả đầu tiên của
 > dự án thuộc về một hệ thống khác với hệ thống sẽ sinh ra các lệnh sau.**
 > Ghi ở đây để không ai gộp chúng vào một chuỗi rồi đọc như một chuỗi.
+
+
+---
+
+## BƯỚC 6 — LƯỢT CHẠY THẬT ĐẦU TIÊN, VÀ Ô C1 ĐẾM SAI ĐƠN VỊ (31/08/2026)
+
+### Thị trường nghỉ lễ Quốc khánh 31/08 → 02/09
+
+Ba ngày làm việc liên tiếp không có phiên — một cấu hình hệ thống chưa
+từng chạy qua. Ba hệ quả đã kiểm bằng cách chạy, không bằng suy luận:
+
+- **Bốn lệnh chờ KHÔNG khớp**, đúng như thiết kế. `fill_pending` có chốt
+  `session_date <= signal_date thì bỏ qua`, mà nến cuối vẫn là 28/08 —
+  bằng đúng ngày tín hiệu. Chúng đợi phiên 03/09.
+- **Cron GitHub vẫn nổ T2–T6**, không biết lịch nghỉ Việt Nam. Các lượt đó
+  chấm lại nến thứ Sáu. Cổng đóng nên vô hại.
+- **Phép thử cổng dời sang 03/09.**
+
+### Lượt chạy tay 09:17 — cả ba câu hỏi đều có đáp án
+
+Bấm `workflow_dispatch` vì cron đã trễ 6–10 tiếng hai phiên liền, và hai
+phép đo dựng ở bước 5 chỉ lấy được lúc máy quét đang chạy.
+
+**1. Cửa sổ dữ liệu trên gói MIỄN PHÍ — chỗ tối của BƯỚC 2 đã đóng.**
+Annotation `::notice::` của lượt chạy:
+
+```
+CỬA SỔ DỮ LIỆU: 71 mã · trung vị 784 phiên (ít nhất 138 · nhiều nhất 784)
+· 0 mã dưới 50 phiên — mốc SMA50/SMA200 trả None
+· kỳ vọng 746 phiên theo VN-INDEX tới 2026-08-28
+```
+
+**784 phiên — đúng bằng con số máy local hạng silver.** Gói miễn phí phục
+vụ đủ cửa sổ 1095 ngày cho cổ phiếu; giới hạn của gói nằm ở BCTC và hạn
+mức request, không ở lịch sử giá. Và **0 mã dưới mốc 50 phiên**: SMA50 và
+SMA200 tính được cho cả rổ, nên `trend_score` không còn kẹt ở ba nấc.
+Ngưỡng 62 nay được áp lên đúng phân phối điểm đã hiệu chuẩn nó.
+
+Mốc "ít nhất 138" là một mã mới niêm yết — trên mốc 50, không ảnh hưởng.
+
+**2. Thời gian bước quét: 492 giây (8,2 phút)** ở cửa sổ 1095 ngày, so với
+318 giây ở cửa sổ 60 ngày. `timeout-minutes` để 40 là rộng rãi. Runner
+nhanh hơn máy local (đo 11,7 phút) — dự phòng nằm đúng chiều an toàn.
+
+**3. Cổng C5 chặn THẬT trên đường chạy sản xuất.** 67 quyết định ghi mới,
+ngày tín hiệu 2026-08-28:
+
+```
+điểm ≥ 62      : 3 mã — cả 3 mang skip_reason "ô C5 ĐÓNG (29/08/2026)…"
+đã vào lệnh    : 0
+phân bố điểm   : 20s:1 · 30s:12 · 40s:34 · 50s:17 · 60s:3
+đối chiếu rò rỉ: 0 quyết định vào lệnh kể từ 29/08 trên 15.781 dòng
+```
+
+Đây là lần đầu cổng gặp tín hiệu thật đạt ngưỡng và chặn được. Trước hôm
+nay mọi khẳng định "cổng đang đóng" đều chỉ là đọc mã nguồn.
+
+### Ô C1 đếm bằng NGÀY LÀM VIỆC, không bằng PHIÊN
+
+Kỳ nghỉ này lôi ra một lỗi có sẵn. `_tre_phien` đếm bằng
+`pd.bdate_range` — T2 tới T6 — nhưng thị trường nghỉ lễ:
+
+```
+31/08 → 1     01/09 → 2     02/09 → 3     03/09 → 4   ⚠️ vượt ngưỡng 3
+```
+
+Sáng thứ Năm 03/09, phiên ĐẦU TIÊN mở lại, bộ đếm cũ báo trễ 4 phiên
+trong khi dữ liệu chỉ cũ **một** phiên. Tết 2027 sẽ cho 8–9.
+
+Hai hậu quả, và cái thứ hai nặng hơn nhiều:
+
+- `status()` in "Cổng VN-INDEX: TẮT" trong báo cáo phiên — báo sai. Nó
+  không đổi quyết định nào (`status()` chỉ in), nhưng một dòng "TẮT" sai
+  làm người đọc quen bỏ qua dòng "TẮT" thật.
+- `is_vni_bullish()` **ném `CacheQuaHanError` và dừng cả phiên quét** nếu
+  nguồn giá cổ phiếu có nến 03/09 trước khi chuỗi VN-INDEX có. Lệch thật
+  là một phiên; bộ đếm cũ gọi nó là bốn, và bốn thì vượt ngưỡng.
+
+### Sửa: lịch lấy từ chính chuỗi giá
+
+`vnstock` không có API lịch giao dịch — đã kiểm. Nhưng **chuỗi giá chính
+là bản ghi phiên**: thị trường có phiên thì có nến. `run_daily` nạp lịch
+từ rổ đang quét qua `market_filter.ghi_nhan_lich_phien()`, một lần, ngay
+sau mã đầu tiên tải được và TRƯỚC khi chấm nó — để mã đầu và mã cuối dùng
+cùng một lịch.
+
+**Cái bẫy, và chốt chặn cho nó.** Nếu chính lịch cũng cũ hơn mốc thì phép
+đếm ra 0 và ô C1 tắt lặng lẽ — đúng thứ nó sinh ra để bắt. Nên lịch chỉ
+được dùng khi nó PHỦ TỚI mốc; không phủ thì lùi về đếm ngày làm việc, và
+`status()` trả thêm cờ `uoc_tinh` để một con số nghỉ lễ không trông giống
+một con số cache chết.
+
+Báo cáo sau quét nay đối chiếu với **phiên cuối của rổ**, không với
+`date.today()`: ngày nghỉ lễ không phải một phiên bị lỡ.
+
+Bốn tình huống, đo bằng cách chạy:
+
+| Tình huống | Ngày làm việc | Phiên thật | Đúng? |
+|---|---|---|---|
+| Nghỉ lễ, hai nguồn cùng ở 28/08 | 3 | **0** | ✅ |
+| 03/09, chỉ số chậm 1 phiên | 4 → **NỔ** | **1** | ✅ không nổ |
+| Cache chết thật (07/08 vs 20/08) | 9 | **9** | ✅ vẫn nổ |
+| Lịch cũ hơn mốc | 4 | **4** (lùi) | ✅ không tắt lặng lẽ |
+
+### Đột biến 8/8 đỏ
+
+```
+bỏ chốt chặn lịch cũ hơn mốc        -> đỏ    lệch một phiên (tính cả ngày cuối) -> đỏ
+bỏ qua lịch, luôn đếm ngày làm việc -> đỏ    status không bao giờ nói ước tính  -> đỏ
+nạp lịch TÍCH LUỸ thay vì ghi đè    -> đỏ    máy quét không nạp lịch nữa        -> đỏ
+_lich_phu_toi luôn báo CÓ           -> đỏ    báo cáo đối chiếu với hôm nay      -> đỏ
+```
+
+Đột biến "tích luỹ thay vì ghi đè" canh bất biến 2: lịch nạp lại phải ghi
+đè, không cộng dồn, nếu không lượt sau đếm trên một lịch khác lượt trước —
+đúng cơ chế `sl_pattern_memory.json` đã làm cùng input ra 47 và 59.
+
+629 → 636 test xanh · Python 3.11 sạch · `chan_bia_so_lieu` 0 CHẶN.
+
+### Còn lại cho thứ Năm 03/09
+
+Bốn lệnh chờ khớp ở giá mở cửa. Đó là bốn điểm dữ liệu kết quả đầu tiên
+của dự án — và ba trong bốn (NAF, TCB, HUT) do cấu hình 44 phiên sinh ra,
+cấu hình nay không còn tồn tại.
