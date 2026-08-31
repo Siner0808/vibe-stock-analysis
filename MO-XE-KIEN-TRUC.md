@@ -3,14 +3,35 @@
 > Đo trên 564–573 phiên thật của 10 mã (ACB, FPT, HPG, VNM, SSI, MWG, VCB,
 > STB, GAS, POW), dữ liệu 2021-10 → 2026-08. Mọi con số dưới đây tái lập
 > được bằng cách chạy lại pipeline trên cùng cache.
+>
+> ⚠️ **ĐO LẠI 31/08/2026 — phần "số nấc" bên dưới đã SAI, phần kết luận thì
+> KHÔNG.** Chấm lại 63.389 phiên trên 69 mã với cửa sổ mở rộng
+> (`df.iloc[:t+1]`, `min_history` 250): bốn agent giàu hơn hẳn bảng cũ.
+> Nguyên nhân đã được chính dự án đo ngày 29/08: dưới 50 phiên thì
+> `_compute_local_indicators()` trả `None` cho SMA50/SMA200 nên phần lớn
+> luật bị bỏ qua. **"Công tắc 3 nấc" là tính chất của CỬA SỔ, chưa bao giờ
+> là tính chất của mã nguồn.**
+>
+> Điều này KHÔNG cứu được kết luận của tài liệu — xem cuối file. Đặc trưng
+> giàu hơn mà tương quan với lợi nhuận vẫn ở sàn nhiễu thì kết luận còn
+> mạnh hơn, không yếu đi.
 
 ---
 
 ## Tóm tắt một dòng
 
-Kiến trúc mô tả 5 tầng, 6 agent. Khi chạy thật thì **2 agent là hằng số,
-2 agent chỉ có 3 trạng thái, và 2 tầng cuối gần như không tồn tại** — điểm
-số hữu ích thực chất đến từ hai nguồn: khối lượng và biến động giá.
+Kiến trúc mô tả 5 tầng, 6 agent. Khi chạy thật thì **1 agent là hằng số
+(`news`), 5 agent còn lại có biến thiên thật trên cửa sổ dài, và 2 tầng
+cuối gần như không tồn tại**.
+
+Nhưng điều quan trọng hơn: **cả 5 agent có biến thiên đó cộng lại vẫn
+không dự báo được lợi nhuận.** Đo 31/08/2026, cách gộp tuyến tính TỐI ƯU
+TRONG MẪU của 5 điểm agent cho rho = 0,0115 ở nhịp 5 phiên — dưới sàn
+nhiễu 0,0404. Đó là cận trên: không cách gộp nào tốt hơn tồn tại.
+
+> Bản đầu của tài liệu này viết "2 agent là hằng số, 2 agent chỉ có 3
+> trạng thái". Điều đó đúng với **cửa sổ ngắn** nó đo, và sai với cấu hình
+> đang chạy. Kết luận thì không đổi — chỉ có lý do là khác.
 
 ---
 
@@ -35,19 +56,34 @@ lịch sử để backtest. Nhưng hệ quả thì rất lớn.
 
 | Agent | Khoảng | Số giá trị khác nhau | Nguồn dữ liệu | Đánh giá |
 |---|---|---|---|---|
-| **news** | 50–50 | **1** | tin tức | ❌ hằng số tuyệt đối |
-| **momentum** | 50–65 | **2** | RSI, MACD, Stoch, CCI — *toàn bộ từ TradingView* | ❌ agent luôn trả 0 |
-| **trend** | 35–65 | **3** | 5 luật, chỉ 1 luật dùng OHLCV | ⚠️ công tắc 3 nấc |
-| **sr** | 31–75 | **3** | Bollinger từ TV, `pct_from_low` từ OHLCV | ⚠️ công tắc 3 nấc |
-| **risk** | 10–65 | 9 | biến động, drawdown, Sharpe — OHLCV | ✅ có biến thiên |
-| **volume** | 25–100 | **12** | khối lượng, OBV — OHLCV | ✅ giàu thông tin nhất |
+| Agent | Cửa sổ NGẮN (bản đầu) | **Cửa sổ DÀI (31/08/2026)** | Nguồn dữ liệu |
+|---|---|---|---|
+| **news** | 1 nấc · 50–50 | **1 nấc · 50–50** | tin tức — ❌ vẫn là hằng số |
+| **momentum** | 2 nấc · 50–65 | **17 nấc · 4,2–95,8** | RSI, MACD, Stoch — `_compute_local_indicators` tự tính |
+| **trend** | 3 nấc · 35–65 | **10 nấc · 0–100** | 5 luật; SMA50/SMA200 sống lại nên chạm được cả hai biên |
+| **sr** | 3 nấc · 31–75 | **7 nấc · 6,2–100** | Bollinger tự tính, `pct_from_low` |
+| **risk** | 9 nấc · 10–65 | **8 nấc · 10–45** | biến động, drawdown, Sharpe |
+| **volume** | 12 nấc · 25–100 | **13 nấc · 25–100** | khối lượng, OBV |
+| **điểm cuối** | — | **61 nấc · 23–83** | tổng có trọng số |
+
+Cột thứ hai đo trên 63.389 phiên / 69 mã, cửa sổ mở rộng, `min_history`
+250. Cột thứ nhất giữ lại để thấy **cùng một mã nguồn cho hai bảng khác
+hẳn nhau khi cửa sổ đổi** — đó là bài học chính của lần đo lại này.
 
 ### Điều này nghĩa là gì
 
-`MomentumAgent` đọc **duy nhất** từ `packet.tv_indicators`. Không có
-TradingView thì mọi chỉ báo là `None`, mọi nhánh `if` bị bỏ qua, `score = 0`
-→ chuẩn hoá thành 50. Giá trị 65 duy nhất còn lại **không phải do agent sinh
-ra** — nó đến từ dòng ghi đè trong `master_agent.py`:
+`MomentumAgent` đọc **duy nhất** từ `packet.tv_indicators`. Nhưng
+`packet.tv_indicators` KHÔNG rỗng khi thiếu TradingView:
+`DataOrchestrator._compute_local_indicators()` tự tính RSI, MACD, Stoch,
+Bollinger, ATR từ OHLCV rồi đổ vào đúng khoá đó.
+
+Cái quyết định vì thế là **độ dài cửa sổ**, không phải có TradingView hay
+không. Dưới 50 phiên thì `SMA50`/`SMA200` là `None` và phần lớn luật bị bỏ
+qua — đó là lý do bản đầu đo ra 2 nấc. Trên cửa sổ dài, agent này ra **17
+nấc trải 4,2–95,8**.
+
+Dòng ghi đè dưới đây vẫn tồn tại và vẫn đáng ngờ, nhưng nó không còn là
+nguồn DUY NHẤT của biến thiên:
 
 ```python
 momentum_norm = max(momentum_norm, 65.0)   # khi trend>=60 và volume>=55
@@ -91,6 +127,10 @@ Trọng số động ba chế độ (breakout / tích luỹ / mặc định). V�
 `news` là hằng số, hai nhánh trong công thức chỉ cộng thêm một số cố định.
 Điểm cuối dao động 34–72, trung bình 49,9 — **thang 0–100 thực tế chỉ dùng
 khoảng 38 điểm ở giữa**.
+
+> **Đo lại 31/08/2026 trên cửa sổ dài: 23–83, trung bình 51,3, 61 nấc.**
+> Dải rộng hơn (60 điểm thay vì 38) nhưng nhận xét bên dưới về ngưỡng 62
+> vẫn đứng — 62 nằm ở phân vị rất cao của phân phối này.
 
 Đây là lý do mọi lần chỉnh ngưỡng mua chỉ dịch qua lại trong một dải rất hẹp,
 và vì sao ngưỡng 62 gần như là trần.
@@ -158,9 +198,27 @@ KTC [−0,83 ; +0,10].
 
 ## Kết luận
 
-**Thứ đang chạy khác hẳn thứ được vẽ.** Sơ đồ có 6 agent độc lập, tranh luận
-đa chiều, chốt chặn an toàn. Thực tế: 2 nguồn tín hiệu (khối lượng, biến
-động), 2 công tắc 3 nấc, 2 hằng số, và 2 tầng cuối điều chỉnh dưới 1 điểm.
+**Thứ đang chạy khác hẳn thứ được vẽ** — nhưng không theo cách bản đầu của
+tài liệu này mô tả. Sơ đồ có 6 agent độc lập, tranh luận đa chiều, chốt
+chặn an toàn. Thực tế (đo 31/08/2026, cửa sổ dài): **5 agent có biến thiên
+thật, 1 hằng số (`news`), tầng tranh luận bị VỨT BỎ** (`post_debate_score =
+pre_debate_score`), và Safety Harness kích hoạt 0%.
+
+**Đặc trưng giàu, mà vẫn không có tín hiệu.** Đây là kết quả nặng nhất của
+lần đo lại. Cách gộp tuyến tính tối ưu trong mẫu — cận trên tuyệt đối —
+cho rho dưới sàn nhiễu ở cả ba nhịp 5/10/20:
+
+```
+                         h=5      h=10     h=20
+5 điểm agent           0,0115   0,0093   0,0071
+8 chỉ báo thô          0,0234   0,0443   0,0640
+sàn nhiễu (hoán vị)    0,0446   0,0609   0,0839
+```
+
+Ở h=5 phép đo có chứng cứ dương: tiêm tín hiệu giả bằng **nửa mức rào hoà
+vốn** thì nó bắt được. Nên kết quả null ở đó là bằng chứng vắng mặt thật.
+Ở h=20 phép đo thiếu lực — không đọc được. Chi tiết: `docs/STATE.md`, mục
+**"BƯỚC 7"**.
 
 **Nguyên nhân không phải mã kém, mà là thiếu dữ liệu.** Bốn agent phụ thuộc
 TradingView và tin tức — hai nguồn không có lịch sử để backtest. Trên ứng
