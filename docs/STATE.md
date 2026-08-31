@@ -4302,3 +4302,187 @@ Chạy không có cờ đó thì script TỰ NÓI ra rằng kết quả chưa đ
 chủ ý: một dòng "DƯỚI sàn nhiễu" không phân biệt được "không có tín hiệu"
 với "phép đo thiếu lực", và dự án này đã bốn lần đọc nhầm một con số theo
 hướng có lợi.
+
+
+---
+
+## BƯỚC 8 — DANH MỤC THẬT, VÀ LẦN THỨ NĂM MỘT CON SỐ ĐẸP TAN RA (31/08/2026)
+
+Xuất phát từ một cần gạt tưởng là nhỏ: *giữ 15 vị thế thay vì 5*. Đọc mã
+thì cần gạt đó hoá ra **không đo được**, và lý do dẫn tới một phép đo lớn
+hơn nhiều.
+
+### Vì sao cần gạt số vị thế không đo được bằng công cụ cũ
+
+`walkforward._mo_phong` chạy `for sym ... for t` — xong toàn bộ lịch sử FPT
+rồi mới sang ACB. Cộng với chốt trong `consider_entry`:
+
+```python
+elif self.open_position(symbol) is not None:
+    skip = "đã có vị thế đang mở"
+```
+
+**Số vị thế đồng thời THẬT ở chế độ đó luôn bằng MỘT.** `TRAN_VON_CAM_KET_PCT`
+không bao giờ chạm. Nên mọi thay đổi về cỡ vị thế chỉ co đường vốn lại, không
+sinh thêm một lệnh nào — cần gạt hoàn toàn vô hình.
+
+Đã thêm `_mo_phong(..., theo_ngay=False)` (PR #36). Mặc định TẮT, nên không
+con số walk-forward nào đã công bố bị đổi âm thầm.
+
+### Phản chứng: cùng dữ liệu, khác duy nhất thứ tự vòng lặp
+
+71 mã · vùng IS · ngưỡng 62 · stride 2 · `che_do_hoc="co_san"`:
+
+| | theo mã (cũ) | **THEO NGÀY (mới)** |
+|---|---|---|
+| số lệnh | 820 | **214** |
+| **kỳ vọng mỗi lệnh** | **+0,83%** | **−0,093%** |
+| alpha | −0,110% (không ý nghĩa) | −0,370% (không ý nghĩa) |
+| vị thế đồng thời | TB 13,9 · đỉnh **54** | TB **4,2** · đỉnh 7 |
+| vốn cam kết | TB 211% · đỉnh **1049%** | TB 57% · đỉnh **100,0%** |
+| ngày vượt 100% | 714/962 | 25/889 |
+
+> **Đây là lần thứ NĂM một con số đẹp của dự án tan ra khi đo đúng — và là
+> lần đầu đo được bằng PHẢN CHỨNG thay vì chỉ cảnh báo.** Bất biến 7b mô tả
+> cơ chế từ lâu ("cộng dồn lệnh chồng lấn là đòn bẩy trá hình"), nhưng chưa
+> ai chạy hai lượt để thấy độ lớn. **606 trong 820 lệnh cũ đòi vốn tài khoản
+> không có.**
+
+### Cách đọc thứ hai — ĐÃ ĐO, VÀ ĐÃ SAI
+
+Kỳ vọng là trung bình **mỗi lệnh**, nên bỏ bớt lệnh lẽ ra không đổi nó. Nó
+đổi vì **tập lệnh đổi**. Giả thuyết tôi đưa ra khi thấy con số:
+
+> *Trần chặn theo thứ tự đến trước, nên nó loại đúng các cụm tín hiệu — mà
+> cụm nổ ra lúc thị trường mạnh, tức đúng lúc lợi nhuận tốt. Trần đang cắt
+> vào phần ngon.*
+
+**Đo xong thì giả thuyết đó SAI.** Nới trần bằng cách giảm cỡ vị thế (mục
+tiêu 15 thay vì 4,2) mở thêm 365 lệnh — và những lệnh thêm vào **xấu hơn**
+nhóm cũ, chứ không tốt hơn:
+
+| | sizing cũ (4,2 vị thế) | **sizing mới (15)** |
+|---|---|---|
+| số lệnh | 214 | **579** (2,7×) |
+| vị thế đồng thời | TB 4,2 · trung vị 4 · đỉnh 7 | TB **9,7** · trung vị **11** |
+| **kỳ vọng mỗi lệnh** | −0,093% | **−0,193%** |
+| **alpha** | −0,370% | **−0,545%** |
+| vốn TB · đỉnh | 57,5% · 100,0% | 49,2% · 100,0% |
+
+Giữ lại giả thuyết sai ở đây có chủ đích: nó nghe hợp lý, nó đến từ dữ liệu,
+và nó vẫn sai. Đó đúng là hình dạng của bốn lần trước.
+
+### Số vị thế thật: 4,2 — không phải 5,3, cũng không phải 3
+
+`paper_trading.py:245` ghi *"ở mức trung bình 18,8% thì 100% ≈ 5,3 vị thế"*.
+Đó là một **chú thích**, suy từ cỡ trung bình chia vào trần. Đo thật:
+
+```
+size_pct     : trung vị 16,9% · TB 18,7%  (chú thích ghi 18,8% — sát)
+k/c stop     : trung vị 0,0515 · TB 0,0543
+vị thế thật  : TB 4,2 · trung vị 4 · đỉnh 7
+```
+
+### Ba cảnh báo phải đọc kèm
+
+1. **Đây là vùng IS** — vùng đã bị hàng trăm vòng loop nhìn qua. Không phải
+   OOS. Mọi con số trên là in-sample.
+2. **Alpha KHÔNG có ý nghĩa ở cả hai chế độ.** 214 lệnh là quá ít; cận trên
+   KTC vẫn chứa 0.
+3. **Con số "đỉnh vốn 130,7%" trong phần đếm theo lịch là artifact của chính
+   phép đếm đó** — sổ lệnh tự ghi đỉnh **100,0%**. `pd.bdate_range` không
+   biết lịch nghỉ VN và đếm cả ngày lệnh chưa khớp. Đúng cùng loại artifact
+   đã sinh ra 1049% ở chế độ cũ. Số đúng là con số sổ lệnh ghi.
+
+### Thiết kế sizing — suy ra, không gõ
+
+```
+mục tiêu 15 vị thế dưới trần 100%  ->  cỡ trung bình 100/15 = 6,67%
+account_risk_pct = 6,67 × 0,0515 (k/c stop trung vị đo được) = 0,343
+```
+
+Hai chốt `[5,0 ; 33,3]` gần như không phải đụng: với risk 0,343 và khoảng
+cách stop 4–6,5%, `size` rơi vào 5,3–8,6%.
+
+**Cảnh báo viết TRƯỚC khi đo, và nó đúng:** `IR = TC × IC × √BR` — nếu
+IC ≈ 0 thì IR = 0 bất kể BR. Thêm vị thế **không tạo ra alpha từ hư không**;
+nó chia trung bình trên nhiều mẫu hơn, tức **thu hẹp nhiễu quanh alpha đang
+có**. Cần gạt này làm câu trả lời **đến nhanh hơn, không đẹp hơn**.
+
+Đo xong: đúng như vậy, và theo chiều khó chịu. 2,7× số lệnh làm khoảng tin
+cậy hẹp lại đáng kể — nhưng thứ nó đang hội tụ về là **âm** (−0,545%, vẫn
+chưa loại được 0 ở 579 lệnh).
+
+**Kết luận về cần gạt:** nó hoạt động đúng như thiết kế — 4,2 → 9,7 vị thế
+đồng thời, 214 → 579 lệnh, trần vẫn giữ đúng 100,0%. Giá trị của nó là **tốc
+độ phân giải**, không phải lợi nhuận. Và nó KHÔNG phải lý do để mở cổng C5:
+mọi con số ở đây là in-sample, và cả hai cấu hình đều cho alpha âm.
+
+### WALK-FORWARD ĐẦY ĐỦ Ở CHẾ ĐỘ DANH MỤC — CON SỐ QUYẾT ĐỊNH
+
+Lượt đầu tiên của dự án chọn ngưỡng trên IS rồi đo trên OOS **với một danh
+mục có thật**. Sizing cũ (4,2 vị thế), chi phí đã gồm phí Sở.
+
+**Dải IS** — và bảng này tự nó là một bài học:
+
+```
+ngưỡng   số lệnh   lợi nhuận   kỳ vọng   win rate
+  45      287       −33,27%     −0,93      23,7%   << nhiều mẫu nhất
+  50      278       −30,61%     −0,88      28,8%
+  48      273       −15,68%     −0,37      26,0%
+  52      270       −17,61%     −0,51      27,4%
+  55      259        +8,97%     +0,11      28,2%
+  58      245        +8,61%     +0,16      26,9%   << luật chọn lấy dòng này
+  62      214        +4,41%     −0,09      26,2%
+```
+
+Luật nêu trước (≥30 lệnh, kỳ vọng cao nhất) chọn **58**. Dòng nhiều mẫu
+nhất là 45 với kỳ vọng **−0,93**.
+
+**Kết quả OOS ở ngưỡng 58:**
+
+```
+số lệnh              : 181
+kỳ vọng mỗi lệnh     : −1,54%
+win rate             : 21,5%
+lợi nhuận cộng dồn   : −40,41%
+alpha khớp từng lệnh : −1,99%/lệnh   KTC 95% [−2,95 ; −0,92]
+                       → THUA CHUẨN CÓ Ý NGHĨA
+vốn triển khai       : 51% trung bình · 100% đỉnh
+```
+
+> **Ngưỡng tốt nhất trên IS là ngưỡng tệ nhất trên OOS.** Bất biến 7 và 8
+> đang tự chứng minh chúng tồn tại vì lý do gì, trên chính dữ liệu của dự án.
+
+**So với con số OOS cũ (chế độ theo mã):**
+
+| | theo mã (mọi báo cáo trước) | **THEO NGÀY (danh mục thật)** |
+|---|---|---|
+| alpha | −0,927% | **−1,99%** |
+| KTC 95% | [−1,689 ; −0,076] | **[−2,95 ; −0,92]** |
+| loại được 0 | vừa đủ | **dứt khoát** |
+
+Bất lợi thật **hơn gấp đôi** con số dự án vẫn dùng. Ba nguồn, theo thứ tự
+độ lớn: (1) danh mục thật thay cho đòn bẩy ẩn, (2) ngưỡng 58 do luật chọn
+thay vì 62, (3) phí Sở +0,06 đpt.
+
+### `MUC_BAT_LOI = −0.927` NAY ĐÃ CŨ — cần người quyết
+
+`paper_metrics.MUC_BAT_LOI` ghi mức bất lợi ĐO ĐƯỢC, và `N_DAY_DU = 596`
+suy ra từ nó. Cả hai dựa trên lượt walk-forward chế độ theo mã — cấu hình
+nay biết là dựng trên đòn bẩy chưa bao giờ tồn tại.
+
+Ở mức −1,99%, cỡ mẫu cho 80% lực tụt từ **596 xuống ~129 lệnh**.
+
+**Chưa sửa, và cố ý.** Đây là hằng số của một điều kiện an toàn; đổi nó sau
+khi nhìn số mới là việc phải nêu ra chứ không lặng lẽ làm, kể cả khi hướng
+đổi là *thận trọng hơn*. Hàng rào `tests/test_hang_rao_quy_trinh.py` cũng
+sẽ đòi chứng minh lại. Để người quyết.
+
+**Cổng C5 vẫn ĐÓNG, và kết quả này củng cố việc đóng.**
+
+### Tái lập
+
+```bash
+python walkforward.py --theo-ngay     # toàn bộ walk-forward, chế độ mới
+```
