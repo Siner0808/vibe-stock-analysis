@@ -57,6 +57,28 @@ jobs:
           fi
           exit $ma
 
+      - name: Cú pháp Python 3.11 — gồm cả python nhúng trong workflow YAML
+        # Chỗ mù mà KHÔNG bước nào khác canh: `quet-so-lenh.yml` có hơn 70
+        # dòng python nằm trong heredoc. Chúng chạy trên runner y hệt một
+        # file `.py`, nhưng `rglob("*.py")` không thấy và không test nào
+        # import. Hỏng thì chỉ lộ ra khi cron nổ giữa phiên giao dịch.
+        #
+        # Trước 31/08/2026 công cụ này chỉ chạy bằng tay ("CHẠY TRƯỚC KHI
+        # PUSH" trong CLAUDE.md) — tức là một hàng rào dựa vào trí nhớ.
+        #
+        # Mã thoát 2 nghĩa là "CHƯA KIỂM ĐƯỢC", và trên runner này đó là
+        # LỖI chứ không phải bỏ qua: runner CHÍNH LÀ 3.11. Coi 2 là xanh
+        # thì đây thành đúng thứ cổng xanh giả mà nó sinh ra để chặn.
+        run: |
+          set +e
+          python tools/kiem_cu_phap_311.py
+          ma=$?
+          if [ "$ma" -eq 2 ]; then
+            echo "::error::kiem_cu_phap_311 trả 2 (chưa kiểm được) — trên CI đó là lỗi, runner này là 3.11"
+            exit 1
+          fi
+          exit $ma
+
       - name: Quét mẫu bịa số liệu toàn repo
         # Hook .claude/settings.json là PostToolUse và chỉ bắt Write/Edit
         # của Claude Code — sửa từ IDE, Antigravity, tay người, git merge

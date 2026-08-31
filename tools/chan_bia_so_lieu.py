@@ -518,6 +518,56 @@ def main() -> int:
     return 0
 
 
+def file_da_doi() -> list:
+    """File `.py` mà git báo là đã sửa hoặc chưa theo dõi.
+
+    Dùng git chứ không dùng dấu thời gian: dấu thời gian đổi khi `git
+    checkout` chạy, và khi đó ta quét lại cả rổ file không ai sửa.
+
+    Không có git (bản tải zip, thư mục tạm) thì trả rỗng — người gọi phải
+    coi rỗng là "KHÔNG BIẾT", không phải "sạch". `quet_thay_doi()` lùi về
+    quét toàn repo trong trường hợp đó.
+    """
+    import subprocess
+
+    ra: set = set()
+    for lenh in (["git", "diff", "--name-only", "HEAD"],
+                 ["git", "ls-files", "--others", "--exclude-standard"]):
+        try:
+            r = subprocess.run(lenh, cwd=GOC_DU_AN, capture_output=True,
+                               text=True, encoding="utf-8", errors="replace",
+                               timeout=10)
+        except Exception:
+            return []
+        if r.returncode != 0:
+            return []
+        for d in (r.stdout or "").splitlines():
+            d = d.strip()
+            if d.endswith(".py"):
+                ra.add(GOC_DU_AN / d)
+    return sorted(p for p in ra if p.exists())
+
+
+def quet_thay_doi() -> int:
+    """Quét CHỈ file đã đổi. Cho hook `Stop` — quét cả repo mất 24 giây.
+
+    Vì sao cần: hook `PostToolUse` khớp `Write|Edit`, nên MỌI thay đổi đi
+    qua Bash đều lọt. Mà chính quy ước của dự án ("vá lớn thì viết một file
+    `.py` rồi chạy nó") đi đúng đường đó — quy ước tự vô hiệu hoá cái gác
+    của chính nó. Đo ngày 31/08/2026: cả một phiên làm việc sửa 6 file mà
+    hook không chạy lần nào.
+
+    CI vẫn quét toàn repo khi push. Chế độ này thu cửa sổ im lặng từ "tới
+    lúc push" xuống "tới lúc dừng phiên".
+    """
+    ds = file_da_doi()
+    if not ds:
+        # Rỗng có HAI nghĩa: không đổi gì, hoặc không hỏi được git. Không
+        # phân biệt được thì quét cả repo — chậm nhưng không bỏ sót.
+        return quet_repo()
+    return _quet(ds, f"{len(ds)} file đã đổi")
+
+
 def quet_repo() -> int:
     """Quét TOÀN BỘ dự án. Trả 1 nếu có phát hiện mức CHẶN.
 
@@ -527,14 +577,20 @@ def quet_repo() -> int:
     nhất đi vào repo theo đúng đường đó. Chế độ này để CI chạy: cửa chống
     cháy, không phải chuông báo cháy.
     """
+    return _quet(sorted(GOC_DU_AN.rglob("*.py")), "toàn repo")
+
+
+def _quet(duong_dans, nhan: str) -> int:
+    """Quét một danh sách file. Trả 1 nếu có phát hiện mức CHẶN."""
     for luong in (sys.stdout, sys.stderr):
         try:
             luong.reconfigure(encoding="utf-8", errors="replace")
         except Exception:
             pass
 
+    print(f"Quét {nhan}:")
     tong_chan = tong_canh_bao = 0
-    for duong_dan in sorted(GOC_DU_AN.rglob("*.py")):
+    for duong_dan in duong_dans:
         if not trong_pham_vi(duong_dan):
             continue
         try:
@@ -566,4 +622,6 @@ if __name__ == "__main__":
         sys.exit(chay_tat_ca())
     if "--quet-repo" in sys.argv:
         sys.exit(quet_repo())
+    if "--quet-thay-doi" in sys.argv:
+        sys.exit(quet_thay_doi())
     sys.exit(main())
