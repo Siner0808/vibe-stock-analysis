@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sơ đồ Kiến trúc System Multi-Agent (Debate Council & Feedback Loop)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #07090e;
+    --bg-card: rgba(15, 23, 42, 0.75);
+    --bg-card-hover: rgba(30, 41, 59, 0.85);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-bright: rgba(56, 189, 248, 0.3);
+    
+    --cyan: #38bdf8;
+    --blue: #3b82f6;
+    --purple: #c084fc;
+    --pink: #f472b6;
+    --green: #10b981;
+    --emerald: #34d399;
+    --red: #f43f5e;
+    --orange: #fb923c;
+    --amber: #f59e0b;
+    --yellow: #facc15;
+    
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    
+    --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    --font-mono: 'Fira Code', monospace;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    background-image: 
+      radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 80% 60%, rgba(192, 132, 252, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      linear-gradient(to bottom, #07090e, #0c1017);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding: 24px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+
+  /* Header Design */
+  header {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+  }
+
+  .header-title-group h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 30%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .header-title-group h1 .badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(56, 189, 248, 0.12);
+    color: var(--cyan);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    -webkit-text-fill-color: var(--cyan);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .header-title-group p {
+    color: var(--text-muted);
+    font-size: 14px;
+    max-width: 780px;
+  }
+
+  .controls-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background: rgba(30, 41, 59, 0.8);
+    color: var(--text-main);
+    border: 1px solid var(--border-subtle);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-sans);
+  }
+
+  .btn:hover {
+    background: rgba(51, 65, 85, 0.9);
+    border-color: var(--cyan);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.15);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+  }
+
+  .btn-primary.simulating {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+  }
+
+  /* Main Canvas Container */
+  .diagram-wrapper {
+    position: relative;
+    background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
+    padding: 32px 24px;
+    margin-bottom: 28px;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0,0,0,0.7);
+    overflow: hidden;
+  }
+
+  .status-banner {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-bright);
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  .status-dot.active {
+    animation: pulseDot 1.2s infinite alternate;
+  }
+
+  @keyframes pulseDot {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    100% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 16px var(--cyan); }
+  }
+
+  /* SVG Styling & Nodes */
+  .svg-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+  }
+
+  .layer-group-rect {
+    fill: rgba(15, 23, 42, 0.35);
+    stroke: rgba(255, 255, 255, 0.06);
+    stroke-width: 1.5;
+    rx: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .layer-group-rect:hover {
+    stroke: rgba(255, 255, 255, 0.12);
+    fill: rgba(15, 23, 42, 0.5);
+  }
+
+  .layer-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    fill: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* Nodes */
+  .node-group {
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .node-group:hover {
+    transform: translateY(-4px);
+  }
+
+  .node-bg {
+    fill: #0f172a;
+    stroke: var(--border-subtle);
+    stroke-width: 1.5px;
+    rx: 12px;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  }
+
+  .node-group:hover .node-bg {
+    stroke: var(--cyan);
+    fill: #1e293b;
+    filter: drop-shadow(0 8px 24px rgba(56, 189, 248, 0.25));
+  }
+
+  .node-group.active .node-bg {
+    stroke: var(--cyan);
+    stroke-width: 2.5px;
+    fill: #1e293b;
+    filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));
+  }
+
+  .node-title {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text-main);
+  }
+
+  .node-subtitle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    fill: var(--text-muted);
+  }
+
+  /* Specific Node Themes */
+  .node-bull .node-bg { stroke: rgba(16, 185, 129, 0.4); fill: rgba(6, 78, 59, 0.25); }
+  .node-bull:hover .node-bg { stroke: var(--emerald); fill: rgba(6, 78, 59, 0.5); filter: drop-shadow(0 8px 24px rgba(16, 185, 129, 0.3)); }
+  .node-bull .node-title { fill: var(--emerald); }
+
+  .node-bear .node-bg { stroke: rgba(244, 63, 94, 0.4); fill: rgba(136, 19, 55, 0.25); }
+  .node-bear:hover .node-bg { stroke: var(--red); fill: rgba(136, 19, 55, 0.5); filter: drop-shadow(0 8px 24px rgba(244, 63, 94, 0.3)); }
+  .node-bear .node-title { fill: var(--red); }
+
+  .node-devil .node-bg { stroke: rgba(192, 132, 252, 0.4); fill: rgba(88, 28, 135, 0.25); }
+  .node-devil:hover .node-bg { stroke: var(--purple); fill: rgba(88, 28, 135, 0.5); filter: drop-shadow(0 8px 24px rgba(192, 132, 252, 0.3)); }
+  .node-devil .node-title { fill: var(--purple); }
+
+  .node-master .node-bg { stroke: rgba(245, 158, 11, 0.5); fill: rgba(120, 53, 15, 0.3); }
+  .node-master:hover .node-bg { stroke: var(--amber); fill: rgba(120, 53, 15, 0.6); filter: drop-shadow(0 8px 24px rgba(245, 158, 11, 0.35)); }
+  .node-master .node-title { fill: var(--amber); }
+
+  .node-memory .node-bg { stroke: rgba(56, 189, 248, 0.4); fill: rgba(12, 74, 110, 0.3); }
+  .node-memory:hover .node-bg { stroke: var(--cyan); fill: rgba(12, 74, 110, 0.6); filter: drop-shadow(0 8px 24px rgba(56, 189, 248, 0.35)); }
+
+  /* Paths & Connectors */
+  .edge-path {
+    fill: none;
+    stroke: rgba(148, 163, 184, 0.25);
+    stroke-width: 1.8px;
+    transition: all 0.3s ease;
+  }
+
+  .edge-path.active-flow {
+    stroke: var(--cyan);
+    stroke-width: 2.5px;
+    filter: drop-shadow(0 0 8px var(--cyan));
+  }
+
+  .edge-path.loop-back {
+    stroke-dasharray: 6 5;
+    stroke: rgba(192, 132, 252, 0.5);
+  }
+
+  .edge-path.loop-back.active-flow {
+    stroke: var(--purple);
+    stroke-dasharray: 8 4;
+    animation: dashLoop 1s linear infinite;
+  }
+
+  @keyframes dashLoop {
+    to { stroke-dashoffset: -24; }
+  }
+
+  .edge-label-bg {
+    fill: #07090e;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+    rx: 4px;
+  }
+
+  .edge-label-text {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    fill: var(--text-muted);
+    text-anchor: middle;
+    font-weight: 500;
+  }
+
+  /* Animated Flow Particles */
+  .flow-particle {
+    fill: var(--cyan);
+    r: 4;
+    filter: drop-shadow(0 0 6px var(--cyan));
+    opacity: 0;
+  }
+
+  /* Bottom Detail Cards Section */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .detail-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--card-accent, var(--cyan)), transparent);
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+
+  .detail-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-bright);
+    background: var(--bg-card-hover);
+    box-shadow: 0 12px 30px -10px rgba(0,0,0,0.5);
+  }
+
+  .detail-card:hover::before {
+    opacity: 1;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .card-title-group h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .card-title-group span {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+
+  .card-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Drawer Modal for Node Inspection */
+  .inspector-drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100vh;
+    background: rgba(11, 15, 25, 0.95);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid var(--border-bright);
+    box-shadow: -15px 0 40px rgba(0,0,0,0.8);
+    z-index: 100;
+    padding: 30px 24px;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .inspector-drawer.open {
+    right: 0;
+  }
+
+  .drawer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .drawer-close:hover {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+
+  .drawer-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--cyan);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .drawer-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    color: var(--text-main);
+  }
+
+  .drawer-section {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .drawer-section-title {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .drawer-desc {
+    font-size: 13.5px;
+    color: #cbd5e1;
+    line-height: 1.6;
+  }
+
+  .code-block {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #38bdf8;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 900px) {
+    header { flex-direction: column; align-items: flex-start; }
+    .controls-toolbar { width: 100%; justify-content: flex-start; }
+    .inspector-drawer { width: 100%; right: -100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Header Section -->
+  <header>
+    <div class="header-title-group">
+      <h1>
+        📐 KIẾN TRÚC MULTI-AGENT VỚI DEBATE COUNCIL
+        <span class="badge">SYSTEM V2.5</span>
+      </h1>
+      <p>Hệ thống tự động phân tích chu kỳ cổ phiếu Wyckoff với cơ chế Tranh luận Phản biện (Debate Council) &amp; Tự nâng cấp mô hình liên tục (Self-Improving AI Memory Loop).</p>
+    </div>
+    <div class="controls-toolbar">
+      <button class="btn btn-primary" id="btnSimulate" onclick="toggleSimulation()">
+        <span id="simIcon">▶</span> <span id="simText">Mô phỏng Dòng Luồng Data</span>
+      </button>
+      <button class="btn" onclick="resetZoom()">
+        🔄 Reset View
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive SVG Diagram Container -->
+  <div class="diagram-wrapper">
+    <div class="status-banner" id="statusBanner">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Trạng thái: Sẵn sàng (Sơ đồ Tương tác Ready)</span>
+    </div>
+
+    <svg class="svg-canvas" viewBox="0 0 1160 1000" id="mainSvg" role="img" aria-labelledby="svg-title svg-desc">
+      <title id="svg-title">Sơ đồ Kiến trúc Multi-Agent Wyckoff Trading System</title>
+      <desc id="svg-desc">Sơ đồ luồng dữ liệu 5 tầng từ Data Ingestion, Wyckoff Classifier, Debate Council, Risk Decision đến Continuous Feedback Memory Loop.</desc>
+
+      <defs>
+        <!-- Arrow Head Markers -->
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#64748b" />
+        </marker>
+        <marker id="arrow-active" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#38bdf8" />
+        </marker>
+        <marker id="arrow-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#c084fc" />
+        </marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#10b981" />
+        </marker>
+
+        <!-- Subtle Glow Filters -->
+        <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      <!-- ================= TẦNG 1: DỮ LIỆU & QUAN SÁT ================= -->
+      <g id="layer1">
+        <rect class="layer-group-rect" x="30" y="30" width="1100" height="150" />
+        <text class="layer-title" x="50" y="55">TẦNG 1: DỮ LIỆU &amp; QUAN SÁT (MULTI-MODAL DATA INGESTION)</text>
+
+        <!-- Stream 1: Vision -->
+        <g class="node-group" onclick="inspectNode('nodeA1')">
+          <rect class="node-bg" x="60" y="75" width="140" height="42" />
+          <text class="node-title" x="130" y="96" text-anchor="middle">Biểu đồ Nến &amp; Hình</text>
+          <text class="node-subtitle" x="130" y="109" text-anchor="middle">RAW CHART IMAGES</text>
+        </g>
+        <path class="edge-path" id="e_A1_B1" d="M 200 96 L 240 96" marker-end="url(#arrow)" />
+        <g class="node-group" id="nodeB1" onclick="inspectNode('nodeB1')">
+          <rect class="node-bg" x="240" y="75" width="150" height="42" />
+          <text class="node-title" x="315" y="96" text-anchor="middle">Vision Chart Agent</text>
+          <text class="node-subtitle" x="315" y="109" text-anchor="middle">GPT-4o Vision / Claude</text>
+        </g>
+
+        <!-- Stream 2: Quant -->
+        <g class="node-group" onclick="inspectNode('nodeA2')">
+          <rect class="node-bg" x="430" y="75" width="140" height="42" />
+          <text class="node-title" x="500" y="96" text-anchor="middle">Dữ liệu OHLCV &amp; Ind</text>
+          <text class="node-subtitle" x="500" y="109" text-anchor="middle">TICK &amp; INDICATORS</text>
+        </g>
+        <path class="edge-path" id="e_A2_B2" d="M 570 96 L 610 96" marker-end="url(#arrow)" />
+        <g class="node-group" id="nodeB2" onclick="inspectNode('nodeB2')">
+          <rect class="node-bg" x="610" y="75" width="150" height="42" />
+          <text class="node-title" x="685" y="96" text-anchor="middle">Quant Cycle Agent</text>
+          <text class="node-subtitle" x="685" y="109" text-anchor="middle">Vnstock + Python Engine</text>
+        </g>
+
+        <!-- Stream 3: Fundamental -->
+        <g class="node-group" onclick="inspectNode('nodeA3')">
+          <rect class="node-bg" x="800" y="75" width="140" height="42" />
+          <text class="node-title" x="870" y="96" text-anchor="middle">BCTC &amp; Vĩ mô Ngành</text>
+          <text class="node-subtitle" x="870" y="109" text-anchor="middle">FINANCIALS &amp; NEWS</text>
+        </g>
+        <path class="edge-path" id="e_A3_B3" d="M 940 96 L 980 96" marker-end="url(#arrow)" />
+        <g class="node-group" id="nodeB3" onclick="inspectNode('nodeB3')">
+          <rect class="node-bg" x="980" y="75" width="130" height="42" />
+          <text class="node-title" x="1045" y="96" text-anchor="middle">Fundamental Agent</text>
+          <text class="node-subtitle" x="1045" y="109" text-anchor="middle">FA Context Analyzer</text>
+        </g>
+      </g>
+
+      <!-- Connection Layer 1 -> Layer 2 -->
+      <path class="edge-path" id="e_B1_C" d="M 315 117 L 315 150 L 580 150 L 580 215" marker-end="url(#arrow)" />
+      <path class="edge-path" id="e_B2_C" d="M 685 117 L 685 150 L 580 150 L 580 215" marker-end="url(#arrow)" />
+      <path class="edge-path" id="e_B3_C" d="M 1045 117 L 1045 150 L 580 150 L 580 215" marker-end="url(#arrow)" />
+
+      <!-- ================= TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ ================= -->
+      <g id="layer2">
+        <rect class="layer-group-rect" x="30" y="200" width="1100" height="110" />
+        <text class="layer-title" x="50" y="225">TẦNG 2: DỰ BÁO CHU KỲ SƠ BỘ (WYCKOFF PHASE CLASSIFICATION)</text>
+
+        <g class="node-group" id="nodeC" onclick="inspectNode('nodeC')">
+          <rect class="node-bg" x="410" y="235" width="340" height="54" style="stroke: var(--purple); fill: rgba(147, 51, 234, 0.15);" />
+          <text class="node-title" x="580" y="258" text-anchor="middle" style="fill: #e9d5ff; font-size: 14px;">🧠 Wyckoff &amp; Pattern Classifier Agent</text>
+          <text class="node-subtitle" x="580" y="275" text-anchor="middle">Phân loại: Tích lũy | Đẩy giá | Phân phối | Đè giá</text>
+        </g>
+      </g>
+
+      <!-- Connection Layer 2 -> Layer 3 -->
+      <path class="edge-path" id="e_C_L3" d="M 580 289 L 580 355" marker-end="url(#arrow)" />
+      <rect class="edge-label-bg" x="500" y="310" width="160" height="18" />
+      <text class="edge-label-text" x="580" y="322">Gửi Kịch bản Chu kỳ Sơ bộ</text>
+
+      <!-- ================= TẦNG 3: ĐỘI NGŨ PHẢN BIỆN CHU KỲ ================= -->
+      <g id="layer3">
+        <rect class="layer-group-rect" x="30" y="340" width="1100" height="230" />
+        <text class="layer-title" x="50" y="365">TẦNG 3: ĐỘI NGŨ PHẢN BIỆN CHU KỲ (ADVERSARIAL DEBATE COUNCIL)</text>
+
+        <!-- Bull Agent -->
+        <g class="node-group node-bull" id="nodeD1" onclick="inspectNode('nodeD1')">
+          <rect class="node-bg" x="70" y="390" width="280" height="54" />
+          <text class="node-title" x="210" y="413" text-anchor="middle">🐂 Bull Agent</text>
+          <text class="node-subtitle" x="210" y="430" text-anchor="middle">Bảo vệ Kịch bản Tăng / Tích lũy (SOS/LPS)</text>
+        </g>
+
+        <!-- Devil's Agent -->
+        <g class="node-group node-devil" id="nodeD3" onclick="inspectNode('nodeD3')">
+          <rect class="node-bg" x="440" y="390" width="280" height="54" />
+          <text class="node-title" x="580" y="413" text-anchor="middle">😈 Devil's Advocate Agent</text>
+          <text class="node-subtitle" x="580" y="430" text-anchor="middle">Thách thức Confirmation Bias &amp; Bẫy Thị Trường</text>
+        </g>
+
+        <!-- Bear Agent -->
+        <g class="node-group node-bear" id="nodeD2" onclick="inspectNode('nodeD2')">
+          <rect class="node-bg" x="810" y="390" width="280" height="54" />
+          <text class="node-title" x="950" y="413" text-anchor="middle">🐻 Bear Agent</text>
+          <text class="node-subtitle" x="950" y="430" text-anchor="middle">Cảnh báo Bull Trap / Phân phối (UTAD/SOW)</text>
+        </g>
+
+        <!-- Debate Loop Connections -->
+        <path class="edge-path" id="e_D1_D3" d="M 350 417 L 440 417" marker-end="url(#arrow-purple)" />
+        <path class="edge-path" id="e_D3_D2" d="M 720 417 L 810 417" marker-end="url(#arrow-purple)" />
+        <path class="edge-path" id="e_D1_D2_top" d="M 210 390 L 210 375 L 950 375 L 950 390" marker-end="url(#arrow-purple)" />
+        
+        <rect class="edge-label-bg" x="480" y="366" width="200" height="18" />
+        <text class="edge-label-text" x="580" y="378">Tranh luận Đối kháng 3 Vòng (Debate Engine)</text>
+
+        <!-- Moderator Agent -->
+        <g class="node-group node-master" id="nodeE" onclick="inspectNode('nodeE')">
+          <rect class="node-bg" x="410" y="495" width="340" height="54" />
+          <text class="node-title" x="580" y="518" text-anchor="middle">⚖️ Master Consensus Moderator Agent</text>
+          <text class="node-subtitle" x="580" y="535" text-anchor="middle">Tổng hợp Tranh luận &amp; Tính Consensus Score</text>
+        </g>
+
+        <path class="edge-path" id="e_D1_E" d="M 210 444 L 210 470 L 480 470 L 480 495" marker-end="url(#arrow)" />
+        <path class="edge-path" id="e_D3_E" d="M 580 444 L 580 495" marker-end="url(#arrow)" />
+        <path class="edge-path" id="e_D2_E" d="M 950 444 L 950 470 L 680 470 L 680 495" marker-end="url(#arrow)" />
+      </g>
+
+      <!-- Connection Layer 3 -> Layer 4 -->
+      <path class="edge-path" id="e_E_F" d="M 580 549 L 580 605" marker-end="url(#arrow)" />
+      <rect class="edge-label-bg" x="500" y="568" width="160" height="18" />
+      <text class="edge-label-text" x="580" y="580">Bàn giao Kết quả Đồng thuận</text>
+
+      <!-- ================= TẦNG 4: PHÁN QUYẾT & QUẢN TRỊ RỦI RO ================= -->
+      <g id="layer4">
+        <rect class="layer-group-rect" x="30" y="590" width="1100" height="110" />
+        <text class="layer-title" x="50" y="615">TẦNG 4: PHÁN QUYẾT &amp; QUẢN TRỊ RỦI RO (RISK &amp; EXECUTION)</text>
+
+        <g class="node-group" id="nodeF" onclick="inspectNode('nodeF')">
+          <rect class="node-bg" x="380" y="625" width="400" height="54" style="stroke: var(--emerald); fill: rgba(16, 185, 129, 0.15);" />
+          <text class="node-title" x="580" y="648" text-anchor="middle" style="fill: #a7f3d0; font-size: 14px;">🎯 Quyết định Đầu tư &amp; Quản trị Rủi ro Agent</text>
+          <text class="node-subtitle" x="580" y="665" text-anchor="middle">Thiết lập Vùng Mua, Risk/Reward, Stop-Loss &amp; Take-Profit</text>
+        </g>
+      </g>
+
+      <!-- Connection Layer 4 -> Layer 5 -->
+      <path class="edge-path" id="e_F_G" d="M 580 679 L 580 735" marker-end="url(#arrow)" />
+
+      <!-- ================= TẦNG 5: CONTINUOUS FEEDBACK & MEMORY LOOP ================= -->
+      <g id="layer5">
+        <rect class="layer-group-rect" x="30" y="720" width="1100" height="250" />
+        <text class="layer-title" x="50" y="745">TẦNG 5: CONTINUOUS FEEDBACK &amp; MEMORY LOOP (SELF-IMPROVING AI)</text>
+
+        <!-- Real Price Monitoring -->
+        <g class="node-group" id="nodeG" onclick="inspectNode('nodeG')">
+          <rect class="node-bg" x="410" y="750" width="340" height="46" />
+          <text class="node-title" x="580" y="770" text-anchor="middle">📈 Theo dõi Giá Thực tế T+N</text>
+          <text class="node-subtitle" x="580" y="784" text-anchor="middle">Real-time Performance Tracker</text>
+        </g>
+
+        <!-- Success Outcome -->
+        <path class="edge-path" id="e_G_H1" d="M 410 773 L 230 773 L 230 820" marker-end="url(#arrow-green)" />
+        <rect class="edge-label-bg" x="250" y="764" width="120" height="18" />
+        <text class="edge-label-text" x="310" y="776" style="fill: var(--emerald);">Giá đi đúng kịch bản</text>
+
+        <g class="node-group node-bull" id="nodeH1" onclick="inspectNode('nodeH1')">
+          <rect class="node-bg" x="80" y="820" width="300" height="50" />
+          <text class="node-title" x="230" y="842" text-anchor="middle">🟢 Reinforcement Agent</text>
+          <text class="node-subtitle" x="230" y="857" text-anchor="middle">Khắc sâu Mẫu hình Đúng vào Memory Vector DB</text>
+        </g>
+
+        <!-- Failure Outcome -->
+        <path class="edge-path" id="e_G_H2" d="M 750 773 L 930 773 L 930 820" marker-end="url(#arrow)" />
+        <rect class="edge-label-bg" x="790" y="764" width="130" height="18" />
+        <text class="edge-label-text" x="855" y="776" style="fill: var(--red);">Chạm Stop-loss / Sai</text>
+
+        <g class="node-group node-bear" id="nodeH2" onclick="inspectNode('nodeH2')">
+          <rect class="node-bg" x="780" y="820" width="300" height="50" />
+          <text class="node-title" x="930" y="842" text-anchor="middle">🔴 Post-Mortem Agent</text>
+          <text class="node-subtitle" x="930" y="857" text-anchor="middle">Mổ xẻ Thất bại &amp; Điều chỉnh Trọng số Phản biện</text>
+        </g>
+
+        <!-- Memory Database -->
+        <g class="node-group node-memory" id="nodeD4" onclick="inspectNode('nodeD4')">
+          <rect class="node-bg" x="410" y="890" width="340" height="56" />
+          <text class="node-title" x="580" y="913" text-anchor="middle" style="fill: var(--cyan); font-size: 14px;">💾 Memory Database (Vector DB &amp; Knowledge Graph)</text>
+          <text class="node-subtitle" x="580" y="930" text-anchor="middle">Lưu trữ Case-studies, Historical Patterns &amp; Dynamic Rules</text>
+        </g>
+
+        <path class="edge-path" id="e_H1_D4" d="M 230 870 L 230 918 L 410 918" marker-end="url(#arrow-active)" />
+        <path class="edge-path" id="e_H2_D4" d="M 930 870 L 930 918 L 750 918" marker-end="url(#arrow-active)" />
+      </g>
+
+      <!-- RETROACTIVE FEEDBACK LOOPS (Back to Layer 2 & Layer 3) -->
+      <path class="edge-path loop-back" id="e_D4_C" d="M 410 900 L 40 900 L 40 262 L 410 262" marker-end="url(#arrow-purple)" />
+      <rect class="edge-label-bg" x="80" y="580" width="160" height="18" />
+      <text class="edge-label-text" x="160" y="592" style="fill: var(--purple);">Cung cấp Dữ liệu Quá khứ</text>
+
+      <path class="edge-path loop-back" id="e_D4_L3" d="M 750 900 L 1120 900 L 1120 495 L 750 495" marker-end="url(#arrow-purple)" />
+      <rect class="edge-label-bg" x="930" y="580" width="170" height="18" />
+      <text class="edge-label-text" x="1015" y="592" style="fill: var(--purple);">Cung cấp Case-study Phản biện</text>
+
+    </svg>
+  </div>
+
+  <!-- Detail Cards Grid Section -->
+  <div class="cards-grid">
+    <div class="detail-card" style="--card-accent: var(--cyan);">
+      <div class="card-header">
+        <div class="card-icon" style="color: var(--cyan);">👁️</div>
+        <div class="card-title-group">
+          <h3>Tầng 1: Multi-Modal Data</h3>
+          <span>Data Ingestion Layer</span>
+        </div>
+      </div>
+      <div class="card-body">
+        Thu thập và đồng bộ song song 3 nguồn dữ liệu: Hình ảnh kỹ thuật (Vision AI), Chỉ số định lượng OHLCV (Quant Engine), và Báo cáo tài chính tin tức vĩ mô (Fundamental Context).
+      </div>
+    </div>
+
+    <div class="detail-card" style="--card-accent: var(--purple);">
+      <div class="card-header">
+        <div class="card-icon" style="color: var(--purple);">🧠</div>
+        <div class="card-title-group">
+          <h3>Tầng 2: Wyckoff Classifier</h3>
+          <span>Preliminary Forecast</span>
+        </div>
+      </div>
+      <div class="card-body">
+        Phân loại chính xác cổ phiếu vào 1 trong 4 giai đoạn chu kỳ Wyckoff: <b>Tích lũy</b> (Accumulation), <b>Đẩy giá</b> (Markup), <b>Phân phối</b> (Distribution), hoặc <b>Đè giá</b> (Markdown).
+      </div>
+    </div>
+
+    <div class="detail-card" style="--card-accent: var(--orange);">
+      <div class="card-header">
+        <div class="card-icon" style="color: var(--orange);">⚖️</div>
+        <div class="card-title-group">
+          <h3>Tầng 3: Debate Council</h3>
+          <span>Adversarial Council</span>
+        </div>
+      </div>
+      <div class="card-body">
+        Hội đồng 3 Agent (Bull 🐂, Bear 🐻, Devil 😈) tranh luận nảy lửa qua 3 vòng đối kháng nhằm triệt hạ hoàn toàn bẫy tâm lý <i>Confirmation Bias</i> trước khi ra quyết định.
+      </div>
+    </div>
+
+    <div class="detail-card" style="--card-accent: var(--emerald);">
+      <div class="card-header">
+        <div class="card-icon" style="color: var(--emerald);">🔄</div>
+        <div class="card-title-group">
+          <h3>Tầng 5: Feedback Loop</h3>
+          <span>Self-Improving Memory</span>
+        </div>
+      </div>
+      <div class="card-body">
+        Liên tục đối soát giá thực tế theo T+N. Nếu lệnh thua lỗ, <b>Post-Mortem Agent</b> mổ xẻ nguyên nhân sai lầm và tự động cập nhật trọng số tranh luận cho các giao dịch tương lai.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Node Inspector Drawer (Slide-over Modal) -->
+<div class="inspector-drawer" id="inspectorDrawer">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <div class="drawer-tag" id="drawerTag">AGENT DETAIL</div>
+  <h2 class="drawer-title" id="drawerTitle">Vision Chart Agent</h2>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Nhiệm vụ &amp; Vai trò</div>
+    <div class="drawer-desc" id="drawerDesc">
+      Phân tích các mẫu hình nến, đường hỗ trợ/kháng cự, cấu trúc Wyckoff trực tiếp từ hình ảnh biểu đồ.
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Mô hình AI &amp; Tool sử dụng</div>
+    <div class="code-block" id="drawerTech">
+LLM: GPT-4o / Claude 3.5 Sonnet Vision
+Tools: PyWav patterns, OpenCV image recognition
+Input: Chart Screenshots (PNG/JPG)
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Ví dụ Output Mock Data</div>
+    <div class="code-block" id="drawerOutput">
+{
+  "phase": "Accumulation_Phase_C",
+  "pattern": "Spring_Test",
+  "confidence": 0.88
+}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Node Data Dictionary for Inspector
+  const nodeDetails = {
+    'nodeA1': {
+      tag: 'INPUT DATA',
+      title: 'Biểu đồ Nến & Hình ảnh',
+      desc: 'Dữ liệu hình ảnh chụp biểu đồ kỹ thuật từ TradingView hoặc hệ thống chứng khoán, bao gồm nến Nhật, Volume, và các chỉ báo trực quan.',
+      tech: 'Format: PNG / JPG / WebP\nResolution: 1920x1080\nSource: Charting API / Browser Render',
+      output: '{\n  "source": "FPT_D1_chart.png",\n  "timestamp": "2026-08-12"\n}'
+    },
+    'nodeB1': {
+      tag: 'VISION AI AGENT',
+      title: 'Vision Chart Agent',
+      desc: 'Sử dụng các mô hình Vision LLM hàng đầu để "đọc" biểu đồ như một Trader chuyên nghiệp. Nhận diện các đường Trendline, Vùng Kháng cự/Hỗ trợ, và Mẫu hình Nến.',
+      tech: 'Model: Claude 3.5 Sonnet / GPT-4o\nPrompt: Wyckoff Visual Pattern Extraction\nConfidence Score Threshold: 0.80',
+      output: '{\n  "detected_patterns": ["Spring", "LPS"],\n  "visual_phase": "Accumulation_Phase_C",\n  "volume_climax_detected": true\n}'
+    },
+    'nodeA2': {
+      tag: 'INPUT DATA',
+      title: 'Dữ liệu OHLCV & Indicators',
+      desc: 'Dữ liệu số liệu thô chuỗi thời gian (Time-series data): Giá Mở/Cao/Thấp/Đóng, Khối lượng giao dịch và các chỉ số tính toán như RSI, MACD, MA20/50/200.',
+      tech: 'Provider: Vnstock API / Realtime Websocket\nFrequency: 1D / 1H / 15M\nLibrary: pandas, numpy, ta-lib',
+      output: '{\n  "ticker": "FPT",\n  "close": 135.5,\n  "rsi_14": 42.1,\n  "vol_vs_ma20": 1.85\n}'
+    },
+    'nodeB2': {
+      tag: 'QUANT AGENT',
+      title: 'Quant Cycle Agent',
+      desc: 'Mô hình định lượng thuật toán chạy các chỉ số toán học để phát hiện độ bất thường về giá và khối lượng (Volume Anomalies), tính toán điểm tích tụ sức mạnh (SOS/SOW).',
+      tech: 'Language: Python 3.10+\nPackage: Vnstock, SciPy, Scikit-Learn\nAlgorithm: Wyckoff Volume Spread Analysis (VSA)',
+      output: '{\n  "vsa_signal": "No_Supply_Bar",\n  "relative_strength_sector": "+4.2%",\n  "money_flow_index": 68.4\n}'
+    },
+    'nodeA3': {
+      tag: 'INPUT DATA',
+      title: 'BCTC & Vĩ mô Ngành',
+      desc: 'Báo cáo tài chính hàng quý, dữ liệu tăng trưởng doanh thu/LNTT, kế hoạch kinh doanh và tin tức vĩ mô dòng tiền ngành.',
+      tech: 'Data Source: Vnstock Finance, CafeF, Vietstock\nParser: PDF Parser + Financial Ratio Engine',
+      output: '{\n  "pe_ratio": 18.2,\n  "roe": 26.4%,\n  "revenue_growth_yoy": "+22.5%"\n}'
+    },
+    'nodeB3': {
+      tag: 'FUNDAMENTAL AGENT',
+      title: 'Fundamental Agent',
+      desc: 'Phân tích sức mạnh nội tại của doanh nghiệp. Đảm bảo cổ phiếu được giao dịch có nền tảng cơ bản tốt, tránh các cổ phiếu rác (Penny/Pumping) khi vào sóng tăng.',
+      tech: 'LLM: Gemini Flash / Claude Haiku\nMetric: CANSLIM / FA Rating Score\nOutput Weight: 25% Total Score',
+      output: '{\n  "fa_score": 8.5,\n  "catalyst": "AI Server Export Revenue Growth",\n  "risk_flag": "None"\n}'
+    },
+    'nodeC': {
+      tag: 'CLASSIFIER ENGINE',
+      title: 'Wyckoff & Pattern Classifier Agent',
+      desc: 'Tổng hợp dữ liệu từ 3 Agent Tầng 1, đối soát với cơ sở dữ liệu chu kỳ Wyckoff chuẩn để đưa ra kịch bản dự báo sơ bộ về giai đoạn cổ phiếu đang trải qua.',
+      tech: 'Core Algorithm: Multi-modal Fusion Neural Prompting\nWyckoff Phases: Accumulation (A-E), Markup, Distribution (A-E), Markdown',
+      output: '{\n  "preliminary_stage": "Accumulation_Phase_C",\n  "primary_event": "Spring_Test_Completed",\n  "expected_next_move": "SOS_Jump_Across_Creek",\n  "probability": 0.82\n}'
+    },
+    'nodeD1': {
+      tag: 'ADVERSARIAL AGENT',
+      title: '🐂 Bull Agent (Bảo vệ Kịch bản Tăng)',
+      desc: 'Đại diện phe Mua. Đưa ra các luận điểm, bằng chứng kỹ thuật và vĩ mô tốt nhất để chứng minh cổ phiếu đang trong giai đoạn Tích lũy chuẩn bị bứt phá Tăng giá.',
+      tech: 'Role: Bullish Advocate\nBias: Maximum Optimism with Structural Proof\nStrategy: Highlight SOS, LPS, Higher Lows, Insider Buying',
+      output: '{\n  "stance": "BULLISH",\n  "core_arguments": [\n    "Nến Spring rút chân mạnh với Vol thấp",\n    "Doanh thu Q3 dự báo tăng 25%",\n    "Khối ngoại quay lại mua ròng 5 phiên"\n  ]\n}'
+    },
+    'nodeD2': {
+      tag: 'ADVERSARIAL AGENT',
+      title: '🐻 Bear Agent (Cảnh báo Rủi ro)',
+      desc: 'Đại diện phe Bán. Tìm kiếm mọi dấu hiệu bất thường, bẫy giá Bull Trap, rủi ro phân phối hoặc tin tức tiêu cực ẩn giấu để phản biện lại Bull Agent.',
+      tech: 'Role: Bearish Advocate\nBias: Maximum Pessimism & Trap Detection\nStrategy: Highlight UTAD, Upthrust, Divergence, Sector Weakness',
+      output: '{\n  "stance": "BEARISH_WARNING",\n  "counter_arguments": [\n    "Vùng kháng cự 140 có lượng cung treo lơ lửng rất lớn",\n    "Phân kỳ âm RSI trên khung Tuần",\n    "Áp lực chốt lời cổ phiếu cùng ngành"\n  ]\n}'
+    },
+    'nodeD3': {
+      tag: 'ADVERSARIAL AGENT',
+      title: '😈 Devil\'s Advocate Agent',
+      desc: 'Kẻ phá bĩnh thông minh. Chuyên thách thức các thiên kiến xác nhận (Confirmation Bias) của cả Bull và Bear. Đặt ra các câu hỏi giả định "Điều gì xảy ra nếu...".',
+      tech: 'Role: Bias Killer & Stress Tester\nStrategy: Test Tail-Risk Scenarios, Black Swan & Fake-out Cases',
+      output: '{\n  "stress_test_passed": false,\n  "hidden_trap_identified": "Thị trường chung VN-Index đang chạm kháng cự mạnh",\n  "verdict": "Cần thêm 1 nhịp Test lại đáy trước khi gia tăng tỷ trọng"\n}'
+    },
+    'nodeE': {
+      tag: 'CONSENSUS MODERATOR',
+      title: '⚖️ Master Consensus Moderator Agent',
+      desc: 'Chủ tọa hội đồng. Lắng nghe cuộc tranh luận 3 vòng giữa Bull, Bear và Devil. Chấm điểm trọng số lập luận và đưa ra kết luận Đồng thuận cuối cùng (Consensus Score).',
+      tech: 'Algorithm: Weighted Debate Resolution + Historical Memory Bias Adjustment\nThreshold: Consensus Score > 0.75 for Long Entry',
+      output: '{\n  "final_consensus": "BUY_ON_LPS_TEST",\n  "consensus_score": 0.81,\n  "bull_confidence": 0.78,\n  "bear_risk_mitigated": true\n}'
+    },
+    'nodeF': {
+      tag: 'RISK MANAGEMENT',
+      title: '🎯 Quyết định Đầu tư & Quản trị Rủi ro Agent',
+      desc: 'Biến kết luận đồng thuận thành kế hoạch giao dịch chi tiết: Vùng giá giải ngân (Entry Zone), Tỷ trọng danh mục (Position Size), Điểm Cắt lỗ (Stop-Loss) và Chốt lời (Take-Profit).',
+      tech: 'Risk Framework: Fixed Fractional Position Sizing\nMax Risk per Trade: 1.5% Portfolio\nTarget R:R Ratio: >= 1:3',
+      output: '{\n  "ticker": "FPT",\n  "action": "BUY_LIMIT",\n  "entry_range": [133.0, 135.0],\n  "stop_loss": 128.5,\n  "take_profit_1": 150.0,\n  "take_profit_2": 165.0,\n  "position_size_pct": 15.0\n}'
+    },
+    'nodeG': {
+      tag: 'PERFORMANCE TRACKER',
+      title: '📈 Theo dõi Giá Thực tế T+N',
+      desc: 'Theo dõi diễn biến giá của cổ phiếu sau khi phát lệnh giao dịch trong các khoảng thời gian T+3, T+10, T+30 để đánh giá độ chính xác của dự báo.',
+      tech: 'Realtime Monitor: Automatic PnL & Drawdown Evaluator\nTrigger: Target hit OR Stop-loss breached OR Time-stop expired',
+      output: '{\n  "trade_id": "TR_20260812_01",\n  "status": "CLOSED_PROFIT",\n  "realized_return": "+14.2%",\n  "holding_period_days": 12\n}'
+    },
+    'nodeH1': {
+      tag: 'REINFORCEMENT LEARNING',
+      title: '🟢 Reinforcement Agent',
+      desc: 'Khi giao dịch thành công đạt lợi nhuận, Agent này đóng gói toàn bộ đặc trưng biểu đồ, luận điểm tranh luận và lưu trữ vào Vector DB để củng cố các mẫu hình tương tự.',
+      tech: 'Engine: Fine-Tuning Data Collector + Vector Embedding Generator\nVector Model: OpenAI text-embedding-3-large',
+      output: '{\n  "action": "STORE_SUCCESS_PATTERN",\n  "vector_id": "vec_wyckoff_fpt_2026",\n  "weight_boost": "+5% for Bull Agent Spring pattern"\n}'
+    },
+    'nodeH2': {
+      tag: 'POST-MORTEM AGENT',
+      title: '🔴 Post-Mortem Agent (Mổ xẻ Thất bại)',
+      desc: 'Khi lệnh bị dính Stop-Loss hoặc đi sai kịch bản, Agent này tiến hành "mổ xẻ tử thi" giao dịch: Tìm xem Agent nào đã phân tích sai, điều chỉnh giảm trọng số của Agent đó.',
+      tech: 'Algorithm: Backpropagation on Agent Weights & Prompt Rule Mutation\nGoal: Eliminate Repetitive Mistakes',
+      output: '{\n  "failure_reason": "Bỏ qua yếu tố Vn-Index bị đảo chiều vĩ mô",\n  "penalty_applied": "Bear Agent weight increased +10% in high volatility",\n  "rule_added": "Bắt buộc kiểm tra Index Filter trước khi kích hoạt Spring Phase C"\n}'
+    },
+    'nodeD4': {
+      tag: 'SYSTEM MEMORY',
+      title: '💾 Memory Database (Vector DB & Knowledge Graph)',
+      desc: 'Kho trí nhớ dài hạn của hệ thống (Long-term System Memory). Nơi lưu trữ hàng nghìn case-studies quá khứ, các quy tắc phản biện được cập nhật và trọng số năng lực Agent.',
+      tech: 'Database: Qdrant / Pinecone Vector DB + Neo4j Knowledge Graph\nEmbedding Dim: 1536\nUpdate Mode: Realtime Post-Trade Sync',
+      output: '{\n  "total_case_studies": 1420,\n  "win_rate_historical": "74.6%",\n  "active_rules_count": 86\n}'
+    }
+  };
+
+  // Drawer Inspection Function
+  function inspectNode(nodeId) {
+    const data = nodeDetails[nodeId];
+    if (!data) return;
+
+    document.getElementById('drawerTag').innerText = data.tag;
+    document.getElementById('drawerTitle').innerText = data.title;
+    document.getElementById('drawerDesc').innerText = data.desc;
+    document.getElementById('drawerTech').innerText = data.tech;
+    document.getElementById('drawerOutput').innerText = data.output;
+
+    document.getElementById('inspectorDrawer').classList.add('open');
+
+    // Highlight active node in SVG
+    document.querySelectorAll('.node-group').forEach(el => el.classList.remove('active'));
+    const activeEl = document.getElementById(nodeId);
+    if (activeEl) activeEl.classList.add('active');
+  }
+
+  function closeDrawer() {
+    document.getElementById('inspectorDrawer').classList.remove('open');
+    document.querySelectorAll('.node-group').forEach(el => el.classList.remove('active'));
+  }
+
+  // Interactive Flow Simulation Logic
+  let isSimulating = false;
+  let simTimer = null;
+  const flowSequence = [
+    { edges: ['e_A1_B1', 'e_A2_B2', 'e_A3_B3'], status: 'Tầng 1: Thu thập dữ liệu Multi-modal (Vision, Quant, FA)...' },
+    { edges: ['e_B1_C', 'e_B2_C', 'e_B3_C'], status: 'Tầng 2: Wyckoff Agent phân loại kịch bản chu kỳ sơ bộ...' },
+    { edges: ['e_C_L3'], status: 'Chuyển kịch bản đến Hội đồng Phản biện (Debate Council)...' },
+    { edges: ['e_D1_D3', 'e_D3_D2', 'e_D1_D2_top'], status: 'Tầng 3: Bull, Bear & Devil tranh luận đối kháng 3 vòng...' },
+    { edges: ['e_D1_E', 'e_D3_E', 'e_D2_E'], status: 'Master Moderator tổng hợp và tính điểm Consensus Score...' },
+    { edges: ['e_E_F'], status: 'Chuyển kết quả đồng thuận sang Tầng 4 Quản trị Rủi ro...' },
+    { edges: ['e_F_G'], status: 'Kích hoạt lệnh & Theo dõi diễn biến giá thực tế T+N...' },
+    { edges: ['e_G_H1', 'e_G_H2'], status: 'Tầng 5: Đánh giá PnL -> Phân nhánh Reinforcement / Post-Mortem...' },
+    { edges: ['e_H1_D4', 'e_H2_D4'], status: 'Cập nhật tri thức mới vào Vector Memory Database...' },
+    { edges: ['e_D4_C', 'e_D4_L3'], status: 'Feedback Loop: Memory phản hồi dữ liệu tự học lại Tầng 2 & Tầng 3!' }
+  ];
+
+  function toggleSimulation() {
+    if (isSimulating) {
+      stopSimulation();
+    } else {
+      startSimulation();
+    }
+  }
+
+  function startSimulation() {
+    isSimulating = true;
+    document.getElementById('simIcon').innerText = '⏹';
+    document.getElementById('simText').innerText = 'Dừng Mô phỏng';
+    document.getElementById('btnSimulate').classList.add('simulating');
+    document.getElementById('statusDot').classList.add('active');
+
+    let step = 0;
+    
+    function runStep() {
+      // Clear previous flows
+      document.querySelectorAll('.edge-path').forEach(p => p.classList.remove('active-flow'));
+
+      if (step >= flowSequence.length) {
+        step = 0; // Loop simulation continuously
+      }
+
+      const current = flowSequence[step];
+      document.getElementById('statusText').innerText = 'Trạng thái: ' + current.status;
+
+      current.edges.forEach(edgeId => {
+        const pathEl = document.getElementById(edgeId);
+        if (pathEl) pathEl.classList.add('active-flow');
+      });
+
+      step++;
+      simTimer = setTimeout(runStep, 2000);
+    }
+
+    runStep();
+  }
+
+  function stopSimulation() {
+    isSimulating = false;
+    clearTimeout(simTimer);
+    document.getElementById('simIcon').innerText = '▶';
+    document.getElementById('simText').innerText = 'Mô phỏng Dòng Luồng Data';
+    document.getElementById('btnSimulate').classList.remove('simulating');
+    document.getElementById('statusDot').classList.remove('active');
+    document.getElementById('statusText').innerText = 'Trạng thái: Sẵn sàng (Sơ đồ Tương tác Ready)';
+
+    document.querySelectorAll('.edge-path').forEach(p => p.classList.remove('active-flow'));
+  }
+
+  function resetZoom() {
+    stopSimulation();
+    closeDrawer();
+  }
+</script>
+</body>
+</html>

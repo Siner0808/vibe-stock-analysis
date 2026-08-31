@@ -1,0 +1,55 @@
+item,item_en,item_id,2018-Q1,2018-Q2,2018-Q3,2018-Q4
+Năm,,year,2018,2018,2018,2018
+Quý,,quarter,1,2,3,4
+Mã TTM,Ratio TTM Id,ratioTTMId,2699115,2713142,2715737,2717442
+Loại tỷ lệ,Ratio Type,ratioType,RATIO_TTM,RATIO_TTM,RATIO_TTM,RATIO_TTM
+Số CP lưu hành (triệu),Outstanding Shares (mil),outstanding_shares,541611334,541611334,541611334,541611334
+Vốn hóa,Market Cap,market_cap,78262837763000.0,68243028084000.0,66726516348800.0,64180943079000.0
+Tỷ suất cổ tức (%),Dividend Yield (%),dividend_yield,0.0,0.0158730159,0.0162337662,0.0253164557
+P/E,P/E,pe_ratio,14.212077628,14.4580683825,12.2751317148,12.0300854167
+P/B,P/B,pb_ratio,5.6617590639,5.8066162237,5.3598940206,4.5723747664
+P/S,P/S,ps_ratio,1.5711307748,1.447102786,1.2429350503,1.1979142884
+Giá/ Dòng tiền,Price/Cash Flow,price_to_cash_flow,7.122507687,7.4420253281,7.5287286316,14.4911553852
+EV/EBITDA,EV/EBITDA,ev_to_ebitda,12.4554152025,12.2972684967,10.6938441998,10.0938543881
+Hệ số thanh toán tiền,Cash Ratio,cash_ratio,0.5135593761,0.4164985989,0.4060961077,0.5458185909
+Hệ số thanh toán nhanh,Quick Ratio,quick_ratio,1.4173449264,1.2836932467,1.3144782828,1.2456269172
+Hệ số thanh toán hiện hành,Current Ratio,current_ratio,1.4427644484,1.3067656398,1.3364352348,1.276999521
+Vốn chủ sở hữu,Owners Equity,owners_equity,0.0546847194,0.0511889944,0.0488205141,0.0407615873
+Nợ/Vốn chủ,Debt/Equity,debtPerEquity,0.5641334953,0.6432930779,0.6133575983,0.3939174721
+Nợ trên vốn chủ,Debt to Equity,debt_to_equity,1.8114143902,1.9125518547,1.807646374,1.7842127072
+ROE (%),ROE (%),roe,0.5925564005,0.4537848023,0.475130983,0.4331680927
+ROA (%),ROA (%),roa,0.1911096562,0.1513475909,0.1628848361,0.1508255922
+Số ngày phải thu,Days Sales Outstanding,days_sales_outstanding,13.1914579213,14.4900725429,13.0036966185,14.8454417521
+Số ngày tồn kho,Days Inventory Outstanding,days_inventory_outstanding,1.9564022017,2.38923864,2.3969084459,2.9142344742
+Số ngày phải trả,Days Payable Outstanding,days_payable_outstanding,3.0789958913,3.8078233734,3.4206683411,5.8763630196
+Biên LN gộp (%),Gross Margin (%),gross_margin,0.1416855058,0.1377841473,0.1344771824,0.1398321236
+Biên EBIT (%),EBIT Margin (%),ebit_margin,0.124978462,0.1192693638,0.1183535995,0.1210236293
+Biên LN trước thuế (%),Pre-tax Profit Margin (%),pre_tax_profit_margin,0.1166688884,0.1060486532,0.1049655263,0.1085522313
+Biên LN sau thuế (%),After-tax Profit Margin (%),net_margin,0.1105348088,0.1000698464,0.1012451776,0.0995775507
+Vòng quay tài sản,Asset Turnover,asset_turnover,1.7287327787,1.5121205205,1.6086382128,1.5146699352
+Biên lãi thuần,Net Interest Margin,net_interest_margin,0.0,0.0,0.0,0.0
+Lãi suất bình quân tài sản sinh lãi,Avg Yield on Earning Assets,avg_yield_on_earning_assets,0.0,0.0,0.0,0.0
+Chi phí vốn bình quân,Avg Cost of Financing,avg_cost_of_financing,0.0,0.0,0.0,0.0
+Thu nhập ngoài lãi,Non-interest Income,non_interest_income,0.0,0.0,0.0,0.0
+Tỷ lệ CIR,Cost/Income Ratio,cost_to_income_ratio,0.0,0.0,0.0,0.0
+Tăng trưởng cho vay (%),Loans Growth (%),loans_growth,0.0,0.0,0.0,0.0
+Tăng trưởng tiền gửi (%),Deposit Growth (%),deposit_growth,0.0,0.0,0.0,0.0
+Vốn chủ/Tổng nợ,Equity/Total Liabilities,equity_to_liabilities,0.0,0.0,0.0,0.0
+Vốn chủ/Cho vay,Equity/Loans,equity_to_loans,0.0,0.0,0.0,0.0
+Vốn chủ/Tổng tài sản,Equity/Total Assets,equity_to_assets,0.0,0.0,0.0,0.0
+LDR (%),LDR (%),ldr,0.0,0.0,0.0,0.0
+Nợ xấu (%),NPL (%),npl,0.0,0.0,0.0,0.0
+DP rủi ro/Nợ xấu,Loan Loss Reserves/NPLs,loan_loss_reserves_to_npls,0.0,0.0,0.0,0.0
+DP rủi ro/Cho vay,Loan Loss Reserve/Loans,loan_loss_reserve_to_loans,0.0,0.0,0.0,0.0
+Trích lập DP/Cho vay,Provision/Outstanding Loans,provision_to_outstanding_loans,0.0,0.0,0.0,0.0
+EBIT,EBIT,ebit,6225560120867.0,5624550394543.0,6353769964510.0,6484112209265.0
+EBITDA,EBITDA,ebitda,6347230177332.0,5762677232421.0,6496648700923.0,6630626239007.0
+ROIC,ROIC,roic,0.3454759457,0.2911849776,0.3163087686,0.3313543326
+Chu kỳ tiền,Cash Cycle,cash_cycle,78.8807350184,91.3803811506,87.7247206867,78.6063652299
+Vòng quay TS cố định,Fixed Asset Turnover,fixed_asset_turnover,35.6485066255,31.0669573089,32.8986957778,33.7484408667
+Đòn bẩy tài chính,Financial Leverage,financial_leverage,1.8114143902,1.9125518547,1.807646374,1.7842127072
+CIR,CIR,cir,0.0,0.0,0.0,0.0
+CAR,CAR,car,,,,
+Vốn chủ sở hữu,Equity,equity,,,,
+Tỷ lệ CASA,CASA Ratio,casa_ratio,,,,
+Mã năm tỷ lệ,Ratio Year Id,ratioYearId,,,,

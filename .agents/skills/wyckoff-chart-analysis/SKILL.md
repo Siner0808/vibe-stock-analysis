@@ -136,7 +136,7 @@ Theo sơ đồ Wyckoff, sự kiện nào được kỳ vọng xảy ra kế ti�
 - Nói rõ khi bằng chứng chưa đủ. "Chưa xác định được" là một câu trả lời hợp lệ và thường là câu trả lời đúng.
 - Bám vào bằng chứng quan sát được trên biểu đồ, dẫn mốc giá và mốc thời gian cụ thể.
 - Nhắc rằng cạnh phải của biểu đồ luôn mơ hồ — sơ đồ chỉ hiển nhiên khi nhìn lại.
-- Nêu rằng đây là phân tích cấu trúc phục vụ học tập, không phải khuyến nghị đầu tư.
+- Nêu rằng đây là phân tích cấu trúc phục vụ học tập & nghiên cứu định lượng, không phải khuyến nghị đầu tư.
 
 **Không bao giờ làm:**
 

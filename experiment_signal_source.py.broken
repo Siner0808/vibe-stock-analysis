@@ -1,0 +1,335 @@
+# ══════════════════════════════════════════════════════════════════════
+# FILE NAY CHUA BAO GIO CHAY DUOC — phat hien 20/08/2026
+#
+# Dong 55: `from walkforward_vn100 import _slim, bootstrap_ci`
+# Ca hai ten do KHONG TON TAI, va chua bao gio ton tai:
+#     grep "def bootstrap_ci" toan repo        -> 0 ket qua
+#     git log -S"def bootstrap_ci" --all       -> 0 commit
+#     python -c "import experiment_signal_source" -> ImportError
+#
+# Khong file nao trong repo tham chieu file nay. No la ma chet ngay tu luc
+# duoc viet, khong phai do lan doi ten walkforward_vn100.py ngay 20/08.
+#
+# Doi duoi thay vi xoa: giu lai y tuong ben trong de ai muon dung lai thi
+# doc duoc, nhung khong de no nam trong be mat ma nguon dang song va lam
+# nhieu moi phep quet.
+# ══════════════════════════════════════════════════════════════════════
+
+"""
+experiment_signal_source.py
+──────────────────────────────────────────────────────────────────────
+Tầng chấm điểm có đang PHÁ HUỶ thông tin không?
+
+BẰNG CHỨNG DẪN TỚI THÍ NGHIỆM NÀY
+Đo trên 724 phiên, k-NN có chặn thời gian:
+    vector = 5 điểm của agent      rho ≈ 0 với mọi k
+    vector = đặc trưng giá liên tục rho = +0,114  [+0,036 ; +0,193]
+
+Cùng một chuỗi giá, nhưng dạng liên tục có tín hiệu (yếu) còn dạng đã
+lượng tử hoá thành công tắc 3 nấc thì không. Giả thuyết: phép nén
+`normalize(score, max_range)` vứt đi phần biến thiên mang tin.
+
+THIẾT KẾ — mọi thứ giống nhau trừ ĐÚNG MỘT biến
+Ba nhánh dùng CHUNG kết quả pipeline đã chấm sẵn, nên chúng có:
+  · cùng stop-loss / take-profit (từ RiskManagementAgent)
+  · cùng phí, cùng quy tắc khớp giá mở cửa phiên sau
+  · cùng giả định bất lợi khi nến không phân định được
+Chỉ `final_score` — tức tín hiệu QUYẾT ĐỊNH VÀO LỆNH — là khác:
+
+    A. agent   : điểm gốc (đã lượng tử hoá)
+    B. liên tục: cùng ba thứ agent nhìn (xu hướng, khối lượng, biến động)
+                 nhưng giữ nguyên dạng liên tục
+    C. ngẫu nhiên: đối chứng. Nếu A không hơn C thì tầng chấm điểm không
+                 đóng góp gì.
+
+CHỐNG TỰ LỪA
+  · Ngưỡng của B và C KHÔNG chọn theo lợi nhuận. Chúng được chọn sao cho
+    SỐ LỆNH xấp xỉ nhánh A — so sánh mới cùng cỡ mẫu.
+  · Chuẩn hoá z dùng cửa sổ trượt CHỈ CHỨA QUÁ KHỨ của chính mã đó.
+  · Báo cáo alpha khớp từng lệnh kèm KTC, và tách hai nửa thời gian.
+
+CHẠY
+    python experiment_signal_source.py            # 12 mã, stride 4
+    python experiment_signal_source.py --symbols 20 --stride 3
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import pickle
+import random
+import statistics
+import sys
+
+import numpy as np
+
+import paper_runner as pr
+from backtest import data as bt_data
+from paper_metrics import compute, vs_benchmark
+from paper_runner import build_benchmark
+from paper_trading import PaperTradingJournal
+from vn100_symbols import VN100_SYMBOLS
+from walkforward_vn100 import _slim, bootstrap_ci
+
+CACHE = ".experiment_scores.pkl"
+Z_WINDOW = 250          # cửa sổ chuẩn hoá, ~1 năm giao dịch
+MIN_HISTORY = 60
+
+
+# ══════════════════════════════════════════════════════════════════
+# Đặc trưng liên tục — cùng ba thứ agent nhìn, không lượng tử hoá
+# ══════════════════════════════════════════════════════════════════
+def continuous_scores(df) -> dict[str, float]:
+    """Điểm liên tục theo ngày, chỉ dùng dữ liệu tới hết phiên đó.
+
+    Ba thành phần cố ý khớp với ba agent còn sống của tầng 2:
+        xu hướng  ← giá so với MA20   (TrendAnalysisAgent nén thành 35/50/65)
+        khối lượng ← KL so với MA20   (VolumeAnalysisAgent, 12 mức)
+        biến động ← độ lệch log-return (RiskManagementAgent, 9 mức)
+
+    Trả {ngày: điểm}. Điểm ~50 là trung tính, thang cố ý giống agent để
+    hai nhánh so được với nhau bằng mắt.
+    """
+    c = df["close"].astype(float).to_numpy()
+    v = df["volume"].astype(float).to_numpy()
+    t = df["time"].astype(str).to_numpy()
+    n = len(c)
+
+    ma20 = np.full(n, np.nan)
+    vma20 = np.full(n, np.nan)
+    vol20 = np.full(n, np.nan)
+    for i in range(20, n):
+        ma20[i] = c[i - 20:i].mean()
+        vma20[i] = max(v[i - 20:i].mean(), 1.0)
+        lr = np.diff(np.log(np.maximum(c[i - 20:i + 1], 1e-9)))
+        vol20[i] = lr.std()
+
+    f_trend = c / ma20 - 1.0
+    f_vol = np.log(np.maximum(v / vma20, 1e-9))
+    f_risk = vol20
+
+    out: dict[str, float] = {}
+    for i in range(MIN_HISTORY, n):
+        lo = max(20, i - Z_WINDOW)
+        z = []
+        for f in (f_trend, f_vol, f_risk):
+            w = f[lo:i]                      # CHỈ quá khứ, không gồm phiên i
+            w = w[np.isfinite(w)]
+            if len(w) < 30 or w.std() < 1e-12:
+                z.append(0.0)
+            else:
+                z.append(float(np.clip((f[i] - w.mean()) / w.std(), -3, 3)))
+        # Trọng số cố định, không dò: xu hướng và khối lượng thuận,
+        # biến động nghịch. Đây đúng là chiều mà agent gốc dùng.
+        out[t[i]] = 50.0 + 6.0 * z[0] + 6.0 * z[1] - 3.0 * z[2]
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════
+def build_cache(dataset, stride):
+    cache = {}
+    if os.path.exists(CACHE):
+        try:
+            with open(CACHE, "rb") as f:
+                cache = pickle.load(f)
+        except Exception:
+            cache = {}
+    scores = {}
+    todo = 0
+    for i, (sym, df) in enumerate(sorted(dataset.items()), 1):
+        ck = (sym, stride, len(df))
+        if ck in cache:
+            scores.update(cache[ck])
+            continue
+        todo += 1
+        per = {}
+        for t in range(MIN_HISTORY, len(df), stride):
+            per[(sym, str(df["time"].iloc[t]))] = _slim(pr._analyze(sym, df.iloc[:t + 1]))
+        cache[ck] = per
+        scores.update(per)
+        print(f"  [{i}/{len(dataset)}] {sym}: {len(per)} phiên", flush=True)
+        with open(CACHE, "wb") as f:
+            pickle.dump(cache, f)
+    if not todo:
+        print(f"  (dùng lại toàn bộ {len(dataset)} mã từ cache)")
+    return scores
+
+
+def replay(dataset, scores, override, threshold, stride):
+    """Chạy sổ lệnh. `override[(sym,date)]` thay cho final_score nếu có."""
+    j = PaperTradingJournal(":memory:")
+    saved = pr._analyze
+
+    def fake(sym, hist, exch="HOSE"):
+        d = str(hist["time"].iloc[-1])
+        base = scores.get((sym, d))
+        if base is None:
+            return {"final_score": 0, "data_quality": "SKIP", "score_breakdown": {},
+                    "key_reasons": [], "safety": {}, "analyses": {"risk": {}}}
+        if override is None:
+            return base
+        r = dict(base)
+        r["final_score"] = override.get((sym, d), 0.0)
+        return r
+
+    pr._analyze = fake
+    try:
+        for sym, df in sorted(dataset.items()):
+            for t in range(MIN_HISTORY, len(df), stride):
+                row = df.iloc[t]
+                pr.run_session(j, sym, df.iloc[:t + 1],
+                               {"open": float(row["open"]), "high": float(row["high"]),
+                                "low": float(row["low"]), "close": float(row["close"])},
+                               str(row["time"]), buy_threshold=threshold)
+    finally:
+        pr._analyze = saved
+    return j.all_trades()
+
+
+def threshold_for_count(values, target_n, lo=0.0, hi=100.0):
+    """Ngưỡng cho ra xấp xỉ `target_n` tín hiệu. KHÔNG nhìn lợi nhuận."""
+    v = sorted(values, reverse=True)
+    if target_n >= len(v):
+        return lo
+    return float(v[min(target_n, len(v) - 1)])
+
+
+def _alphas(trades, dataset) -> list[float]:
+    """Alpha của TỪNG lệnh so với cầm đều cả rổ cùng khoảng thời gian."""
+    bench = build_benchmark(trades, dataset)
+    out = []
+    for t in trades:
+        if t.status != "CLOSED" or t.net_return_pct() is None:
+            continue
+        b = bench.get((t.entry_date or "", t.exit_date or ""))
+        if b is not None:
+            out.append(t.net_return_pct() - b)
+    return out
+
+
+def diff_vs_control(a_alphas, c_alphas, *_ignored):
+    """Chênh lệch alpha giữa một nhánh và đối chứng, kèm KTC bootstrap.
+
+    Hai nhánh vào lệnh ở những phiên KHÁC nhau nên không ghép cặp được;
+    lấy mẫu lại độc lập từng bên rồi lấy hiệu của hai trung bình.
+    Nhìn hai khoảng tin cậy có chồng nhau hay không là cách đọc SAI —
+    phải dựng khoảng cho chính hiệu số.
+    """
+    rng = random.Random(11)
+    na, nc = len(a_alphas), len(c_alphas)
+    if na < 10 or nc < 10:
+        return 0.0, 0.0, 0.0
+    d = statistics.mean(a_alphas) - statistics.mean(c_alphas)
+    boot = []
+    for _ in range(4000):
+        ma = statistics.mean([a_alphas[rng.randrange(na)] for _ in range(na)])
+        mc = statistics.mean([c_alphas[rng.randrange(nc)] for _ in range(nc)])
+        boot.append(ma - mc)
+    boot.sort()
+    return d, boot[100], boot[3899]
+
+
+def measure(trades, dataset, label):
+    perf = compute(trades)
+    if perf is None or perf.n_trades < 5:
+        return {"label": label, "n": 0, "_rets": []}
+    rets = [t.net_return_pct() for t in trades
+            if t.status == "CLOSED" and t.net_return_pct() is not None]
+    lo, hi = bootstrap_ci(rets)
+    vb = vs_benchmark(trades, build_benchmark(trades, dataset))
+    return {"label": label, "n": perf.n_trades, "win": perf.win_rate * 100,
+            "exp": perf.expectancy, "ci": (lo, hi),
+            "alpha": vb.get("alpha"), "aci": vb.get("ci"),
+            "verdict": vb.get("verdict", ""),
+            "_rets": _alphas(trades, dataset)}
+
+
+def show(r):
+    if not r["n"]:
+        print(f"  {r['label']:<22} không đủ lệnh")
+        return
+    ci = f"[{r['ci'][0]:+.2f},{r['ci'][1]:+.2f}]" if r["ci"][0] is not None else "—"
+    if r["alpha"] is None:
+        a = "—"
+    else:
+        a = f"{r['alpha']:+.2f}% [{r['aci'][0]:+.2f},{r['aci'][1]:+.2f}]"
+    print(f"  {r['label']:<22}{r['n']:>5}{r['win']:>7.1f}%{r['exp']:>+8.2f}% "
+          f"{ci:<18}{a}")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--symbols", type=int, default=12)
+    ap.add_argument("--stride", type=int, default=4)
+    ap.add_argument("--agent-threshold", type=float, default=62.0,
+                    dest="agent_threshold")
+    a = ap.parse_args()
+
+    syms = VN100_SYMBOLS[:a.symbols]
+    dataset = bt_data.load_all(syms)
+    print("=" * 88)
+    print("NGUỒN TÍN HIỆU VÀO LỆNH — mọi thứ khác giữ nguyên")
+    print("=" * 88)
+    print(f"{len(dataset)} mã · stride {a.stride}\n")
+
+    scores = build_cache(dataset, a.stride)
+    print(f"→ {len(scores)} phiên đã chấm\n")
+
+    cont = {}
+    for sym, df in dataset.items():
+        for d, s in continuous_scores(df).items():
+            cont[(sym, d)] = s
+    rng = random.Random(7)
+    rand = {k: rng.uniform(0, 100) for k in scores}
+
+    # A — điểm agent gốc
+    ta = replay(dataset, scores, None, a.agent_threshold, a.stride)
+    n_signals = sum(1 for k in scores
+                    if scores[k].get("final_score", 0) >= a.agent_threshold)
+
+    # B, C — ngưỡng đặt theo SỐ TÍN HIỆU của A, không theo lợi nhuận
+    th_b = threshold_for_count([cont[k] for k in scores if k in cont], n_signals)
+    th_c = threshold_for_count(list(rand.values()), n_signals)
+    tb = replay(dataset, cont and scores, cont, th_b, a.stride)
+    tc = replay(dataset, scores, rand, th_c, a.stride)
+
+    print(f"Ngưỡng: A={a.agent_threshold:g} · B={th_b:.1f} · C={th_c:.1f}")
+    print(f"(B và C chọn ngưỡng để số tín hiệu ≈ {n_signals} của A, "
+          f"KHÔNG theo lợi nhuận)\n")
+
+    print(f"  {'Nguồn tín hiệu':<22}{'Lệnh':>5}{'Thắng':>7}{'Kỳ vọng':>9} "
+          f"{'KTC kỳ vọng':<18}alpha khớp từng lệnh")
+    print("  " + "─" * 84)
+    ra = measure(ta, dataset, "A. điểm agent")
+    rb = measure(tb, dataset, "B. giá liên tục")
+    rc = measure(tc, dataset, "C. ngẫu nhiên")
+    for r in (ra, rb, rc):
+        show(r)
+
+    print("\n" + "=" * 88)
+    print("ĐỌC KẾT QUẢ")
+    print("=" * 88)
+    print("MỌI nhánh phải so với C — ĐỐI CHỨNG NGẪU NHIÊN, không so với nhau.")
+    print("B hơn A mà cả hai đều ngang C thì không nhánh nào có kỹ năng cả.\n")
+
+    if rc["alpha"] is None:
+        print("Không đo được đối chứng.")
+        return 0
+
+    for r, name in ((ra, "A. điểm agent"), (rb, "B. giá liên tục")):
+        if r["alpha"] is None:
+            continue
+        d, lo, hi = diff_vs_control(r["_rets"], rc["_rets"], dataset, r, rc)
+        tag = ("HƠN ngẫu nhiên" if lo > 0 else
+               "KÉM ngẫu nhiên" if hi < 0 else
+               "không phân biệt được với ngẫu nhiên")
+        print(f"{name:<18} so với ngẫu nhiên: {d:+.2f}%/lệnh  "
+              f"[{lo:+.2f}, {hi:+.2f}]  → {tag}")
+
+    print("\nLƯU Ý: KTC chứa 0 thì chưa phân biệt được với may rủi, dù ước lượng")
+    print("điểm có dương hay âm. Với vài trăm lệnh, khoảng này còn rất rộng.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

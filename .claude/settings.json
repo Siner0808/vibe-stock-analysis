@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/chan_bia_so_lieu.py\"",
+            "timeout": 20,
+            "statusMessage": "Quét mẫu bịa số liệu..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_doc_bat_buoc.py\"",
+            "timeout": 15,
+            "statusMessage": "Kiểm tài liệu bắt buộc..."
+          }
+        ]
+      }
+    ]
+  }
+}

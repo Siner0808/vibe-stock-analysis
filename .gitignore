@@ -1,28 +1,39 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Caches and data
-data_cache/
-*.cache
-
-# Environments
+# Environments & Python Bytecode
 .venv/
 env/
 venv/
 ENV/
+__pycache__/
+*.py[cod]
+*.pyc
+*$py.class
 
-# Configuration & Secrets
+# Configuration & Secrets — KHÔNG BAO GIỜ commit
 .env
 notification_config.json
+.streamlit/secrets.toml
+*.key
 
-# IDEs
+# Data caches & temporary runtime outputs
+data_cache/
+*.cache
+intraday_cache/
+backtest/cache/
+backtest/results/
+walkforward_results/
+reports/
+scratch/
+sl_pattern_memory.json
+wf_bo_nho_*.json
+*.db
+*.pkl
+*.log
+*.tar.gz
+
+# IDE & OS
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS files
 .DS_Store
 Thumbs.db

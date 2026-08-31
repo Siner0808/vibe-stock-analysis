@@ -1,0 +1,248 @@
+# Quét sổ lệnh tự động trên GitHub Actions.
+#
+# VÌ SAO KHÔNG DÙNG WINDOWS TASK SCHEDULER NỮA
+# Task Scheduler chỉ chạy khi máy bật. Máy tắt hoặc ngủ là mất phiên đó,
+# và không có gì báo. GitHub Actions chạy độc lập máy.
+#
+# THỨ TỰ BA BƯỚC LÀ BẮT BUỘC — SAI THỨ TỰ LÀ MẤT SỔ LỆNH
+#   1. KÉO sổ lệnh từ Google Sheets về runner
+#   2. QUÉT (run_daily.py tự đẩy lên Sheets ở cuối)
+#
+# Runner luôn sạch: không có paper_trades.db. Nếu bỏ bước 1, run_daily.py
+# sẽ tạo một sổ RỖNG, quét trên sổ rỗng đó rồi đẩy lên — mà bảng trades
+# ghi đè toàn phần, nên cú đẩy đó XOÁ TRẮNG toàn bộ lệnh thật. Đúng cơ
+# chế đã làm mất 96/113 lệnh ngày 12/08/2026, chỉ khác là tự động và lặp
+# lại mỗi 30 phút.
+#
+# sheets_store.push() có chốt chặn từ chối đẩy khi sổ local ít lệnh hơn
+# sheet, nên kể cả quên bước 1 thì cũng dừng chứ không xoá. Nhưng chốt đó
+# là lưới an toàn cuối, không phải lý do để bỏ bước kéo.
+
+name: Quét sổ lệnh
+
+on:
+  schedule:
+    # Giờ cron của GitHub là UTC. Việt Nam UTC+7.
+    # Phiên sáng:  09:00–11:30 ICT = 02:00–04:30 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
+    # Nghỉ trưa:  11:30–13:00 ICT = BỎ QUA HOÀN TOÀN (Không quét trong giờ nghỉ trưa)
+    # Phiên chiều: 13:00–15:00 ICT = 06:00–08:00 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
+    - cron: '0,30 2-4 * * 1-5'
+    - cron: '0,30 6-8 * * 1-5'
+  workflow_dispatch:        # cho phép bấm chạy tay để kiểm tra
+
+# Không bao giờ để hai lần quét chạy chồng nhau: cả hai cùng kéo về, cùng
+# quét, rồi cùng đẩy — lần đẩy sau ghi đè lần trước và một phần kết quả
+# biến mất.
+concurrency:
+  group: quet-so-lenh
+  cancel-in-progress: false
+
+jobs:
+  quet:
+    runs-on: ubuntu-latest
+    # 40 chứ không phải 25: từ 29/08/2026 cửa sổ dữ liệu là 1095 ngày lịch
+    # (~747 phiên) thay vì 60 ngày (~44 phiên), vì ngưỡng 62 được
+    # walk-forward hiệu chuẩn trên cửa sổ dài — xem `run_daily.NGAY_LICH_SU`.
+    # Đo thật: 8,88 s/mã, 71 mã ≈ 11,7 phút cho riêng bước quét, so với
+    # ~4 phút ở 420 ngày. 25 phút cho CẢ SÁU BƯỚC là quá sát.
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        run: pip install -r requirements.txt
+
+      - name: Nạp cấu hình bí mật
+        # Bí mật KHÔNG nằm trong repo. Đặt ở Settings → Secrets and
+        # variables → Actions, tên STREAMLIT_SECRETS_TOML, nội dung là
+        # toàn bộ file .streamlit/secrets.toml.
+        env:
+          NOI_DUNG: ${{ secrets.STREAMLIT_SECRETS_TOML }}
+        run: |
+          if [ -z "$NOI_DUNG" ]; then
+            echo "::error::Thiếu secret STREAMLIT_SECRETS_TOML."
+            exit 1
+          fi
+          mkdir -p .streamlit
+          printf '%s' "$NOI_DUNG" > .streamlit/secrets.toml
+
+      - name: Kéo sổ lệnh từ Google Sheets
+        # BẮT BUỘC chạy trước bước quét. Xem ghi chú đầu file.
+        #
+        # Có thử lại: 2/35 nhịp (18/08 và 19/08/2026) chết ở đúng đây sau
+        # 2 giây, bước quét bị skipped, nhịp đó mất trắng. Logic thử lại
+        # nằm trong google_sheets_sync.keo_so_co_thu_lai() chứ KHÔNG viết
+        # ở đây — mã trong heredoc YAML thì test không bao giờ chạy tới.
+        # Khoá bởi tests/test_keo_so_thu_lai.py.
+        run: |
+          python - <<'PY'
+          import sys
+          import google_sheets_sync as gs
+          try:
+              bc = gs.keo_so_co_thu_lai("paper_trades.db")
+          except gs.KeoSoThatBai as e:
+              print(f"::error::{e}")
+              sys.exit(1)
+          if bc is None:
+              print("::error::Kho ngoài chưa cấu hình — dừng để không quét trên sổ rỗng.")
+              sys.exit(1)
+          print(f"Đã kéo về {bc['trades']} lệnh, {bc['decisions']} quyết định.")
+          if bc["trades"] == 0:
+              print("::warning::Sheet không có lệnh nào. Nếu đây không phải "
+                    "lần chạy đầu tiên thì có gì đó sai.")
+          PY
+
+      - name: Cảnh báo chạm SL/TP trong phiên
+        # PHẢI chạy TRƯỚC bước quét. Đây không phải sở thích sắp xếp.
+        #
+        # `run_session()` gọi `evaluate_open()` với NẾN NGÀY hôm nay — mà
+        # trong phiên, nến ngày đã phản ánh cái đáy vừa tạo. Nên một vị thế
+        # thủng stop-loss lúc 10:30 sẽ bị chính nhịp quét kế tiếp đóng ngay.
+        #
+        # Đặt cảnh báo SAU bước quét thì nó luôn thấy lệnh đã đóng và
+        # KHÔNG BAO GIỜ KÊU. Bản đầu đặt sai chỗ đúng như vậy; lượt chạy tay
+        # 21/08/2026 báo "Vị thế đang mở: 0" vì bước quét vừa đóng ACB bằng
+        # MAX_HOLD ngay trước đó.
+        #
+        # Chạy trước thì nó thấy vị thế còn mở, và nói được điều mà sổ lệnh
+        # KHÔNG ghi: chạm lúc mấy giờ. `exit_date` chỉ có ngày, không có giờ.
+        #
+        # Cần sổ đã kéo về từ Sheets, nên vị trí đúng là ngay sau bước kéo.
+        #
+        # KHÔNG BAO GIỜ LÀM ĐỎ LƯỢT CHẠY — kể cả khi có cảnh báo, kể cả khi
+        # chính nó hỏng. `tools/chuong_bao_quet.py` đếm
+        # `conclusion == "success"` để biết một ngày có được quét không. Nếu
+        # chạm stop-loss làm job đỏ thì chuông sẽ báo "ngày này không có lượt
+        # quét nào" — một báo động giả sinh ra từ một cảnh báo thật, và nó
+        # che mất đúng thứ chuông sinh ra để canh.
+        #
+        # Vì thế cảnh báo đi bằng `::warning::` và `$GITHUB_STEP_SUMMARY`
+        # (hiện ngay trên trang lượt chạy), không đi bằng mã thoát.
+        #
+        # HỆ QUẢ PHẢI BIẾT: GitHub chỉ gửi email khi workflow theo lịch THẤT
+        # BẠI, nên cảnh báo này KHÔNG tự tới hộp thư. Muốn có email thì cần
+        # một đường thông báo riêng — chưa dựng.
+        #
+        # CANH GÁC KHI SỔ RỖNG. `quet()` chỉ gọi hàm tải nến khi CÓ vị thế
+        # đang mở. Lượt 22/08/2026 có 113 lệnh nhưng cả 113 đều đã đóng,
+        # nên `intraday_data.tai()` chưa từng chạy trên runner — bước này
+        # in "không vị thế nào chạm SL/TP" mà thật ra chưa chứng minh được
+        # đường dữ liệu còn sống. Và 0 vị thế không phải chuyện tạm: ngưỡng
+        # mua đang để trống VÀ VN-INDEX dưới MA50, nên đường mã đó sẽ nằm
+        # im tới đúng ngày đầu tiên có lệnh mở. Canh gác nạp thử một mã khi
+        # sổ rỗng, để biết hôm nay thay vì biết vào lúc muộn nhất.
+        run: |
+          python - <<'PYCB' || true
+          from datetime import datetime, timedelta, timezone
+          import os
+
+          import canh_bao_noi_phien as cb
+          import intraday_data as idd
+
+          VN = timezone(timedelta(hours=7))
+          bay_gio = datetime.now(VN)
+          ngay = bay_gio.strftime("%Y-%m-%d")
+
+          def tai(sym, n):
+              return idd.tai(sym, n, n, "30m", dung_cache=False)
+
+          def tai_khoang(ma, tu, den):
+              return idd.tai(ma, tu, den, "30m", dung_cache=False)
+
+          print(f"[noi-phien] bắt đầu lúc {bay_gio:%Y-%m-%d %H:%M:%S} ICT")
+          try:
+              r = cb.quet_va_canh_gac("paper_trades.db", ngay, bay_gio,
+                                      tai, tai_khoang)
+          except Exception as e:
+              # Mọi hỏng hóc phải thành ANNOTATION, không chỉ thành dòng log.
+              # Nhật ký chạy và artifact đều đòi đăng nhập mới đọc được;
+              # annotation thì đọc được qua API công khai. Đó là khác biệt
+              # giữa "chẩn đoán được từ xa" và "phải đoán".
+              import traceback
+              print(f"::warning::[noi-phien] hỏng: {type(e).__name__}: {e}")
+              traceback.print_exc()
+              raise SystemExit(0)
+          print(f"[noi-phien] vị thế đang mở: {r['so_vi_the']}")
+
+          # Sổ rỗng thì vòng lặp dưới đây không gọi mạng lần nào, nên canh
+          # gác là thứ DUY NHẤT chứng minh đường dữ liệu còn dùng được.
+          # Xem phần CANH GÁC trong canh_bao_noi_phien.py.
+          g = r["canh_gac"]
+          if g is not None:
+              print(f"[noi-phien] {g.dong_log()}")
+              if not g.dat:
+                  print(f"::warning::[noi-phien] {g.dong_log()}")
+
+          dong = []
+          for c in r["canh_bao"]:
+              print(f"::warning::{c.dong_log()}")
+              dong.append(f"- **{c.symbol}** chạm {c.loai} `{c.muc:,.0f}` "
+                          f"lúc `{c.luc_nen}` — trễ {c.tre_phut:.0f} phút")
+          for e in r["loi"]:
+              print(f"::warning::không kiểm được — {e}")
+
+          # LUÔN ghi tóm tắt, kể cả khi không có gì. Bản đầu chỉ ghi khi có
+          # vị thế hoặc có cảnh báo, nên "không thấy gì trên trang lượt chạy"
+          # KHÔNG phân biệt được với "bước này chưa từng chạy" — mà `|| true`
+          # ở dòng mở heredoc lại khiến bước luôn xanh. Lượt chạy tay đầu
+          # tiên (21/08/2026) mất 0 giây và không để lại dấu vết nào, và tôi
+          # không có cách nào biết nó đã chạy hay đã chết.
+          tom_tat = os.environ.get("GITHUB_STEP_SUMMARY")
+          if tom_tat:
+              with open(tom_tat, "a", encoding="utf-8") as f:
+                  print(f"### Nội phiên · {bay_gio:%Y-%m-%d %H:%M} ICT", file=f)
+                  print(f"{r['so_vi_the']} vị thế đang mở.", file=f)
+                  if g is not None:
+                      dau = "✅" if g.dat else "⚠️"
+                      print(f"{dau} {g.dong_log()}", file=f)
+                  if dong:
+                      print("", file=f)
+                      for d in dong:
+                          print(d, file=f)
+                  elif r["so_vi_the"]:
+                      print("Chưa vị thế nào chạm SL/TP.", file=f)
+                  for e in r["loi"]:
+                      print(f"- ⚠️ {e}", file=f)
+
+          if not r["canh_bao"] and not r["loi"]:
+              print("[noi-phien] không vị thế nào chạm SL/TP.")
+          print("[noi-phien] xong.")
+          PYCB
+      - name: Quét thị trường và cập nhật sổ lệnh
+        # run_daily.py tự đẩy lên Google Sheets ở cuối.
+        run: python run_daily.py
+
+      - name: Đối chiếu sổ local với kho ngoài
+        # Quét xong mà sheet không khớp sổ local nghĩa là cú đẩy hỏng —
+        # phải biết ngay, vì "tưởng đã sao lưu mà thật ra không" là trạng
+        # thái tệ nhất.
+        run: |
+          python - <<'PY'
+          import sqlite3, sys
+          import sheets_store as ss
+          local = sqlite3.connect("paper_trades.db")
+          n_local = local.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
+          tt = ss.trang_thai(ss.open_from_secrets())
+          print(f"local {n_local} lệnh · sheet {tt.get('trades')} lệnh")
+          if not tt["bat"] or tt.get("trades") != n_local:
+              print(f"::error::Sheet KHÔNG khớp sổ local. {tt.get('ghi_chu')}")
+              sys.exit(1)
+          PY
+
+      - name: Lưu nhật ký chạy
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nhat-ky-${{ github.run_id }}
+          path: |
+            daily_execution_log.txt
+            latest_daily_report.md
+            reports/
+          retention-days: 14
+          if-no-files-found: ignore
