@@ -248,6 +248,46 @@ TRAN_VON_CAM_KET_PCT = 100.0
 LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng đòn bẩy "
                   "(bất biến 7b)")
 
+#: Số vị thế MỤC TIÊU nắm đồng thời. ĐÂY LÀ QUYẾT ĐỊNH ĐO LƯỜNG, KHÔNG PHẢI
+#: QUYẾT ĐỊNH LỢI NHUẬN — đọc kỹ trước khi vặn.
+#:
+#: `IR = TC × IC × √BR`. Nếu IC ≈ 0 thì IR = 0 bất kể BR: thêm vị thế KHÔNG
+#: tạo ra alpha từ hư không. Cái nó làm là chia trung bình trên nhiều mẫu
+#: hơn, tức thu hẹp nhiễu quanh alpha ĐANG CÓ. Alpha đo được ngày 31/08/2026
+#: là −0,370% (chế độ theo ngày, vùng IS). Cần gạt này làm câu trả lời tới
+#: NHANH HƠN, không phải ĐẸP HƠN.
+#:
+#: Lý do làm nó: trần vốn chặn theo thứ tự đến trước, nên nó loại đúng các
+#: CỤM tín hiệu — mà cụm nổ ra lúc thị trường mạnh. Đo được: 820 lệnh khi
+#: không có trần, 214 khi trần chặn thật. Trần đang cắt vào phần ngon.
+#: Chi tiết: `docs/STATE.md`, mục "BƯỚC 8".
+SO_VI_THE_MUC_TIEU = 15
+
+#: Cỡ vị thế trung bình để đạt mục tiêu đó dưới trần vốn.
+CO_MUC_TIEU_PCT = TRAN_VON_CAM_KET_PCT / SO_VI_THE_MUC_TIEU
+
+#: Khoảng cách stop TRUNG VỊ — ĐO ĐƯỢC, không giả định. 820 lệnh trên vùng
+#: IS ngày 31/08/2026: trung vị 0,0515 · trung bình 0,0543 · min 0,0028 ·
+#: max 0,1375. Dùng TRUNG VỊ vì phân phối lệch phải.
+#:
+#: Con số này là ẢNH CHỤP của `RiskManagementAgent._sl_fraction` hiện tại
+#: (`max(0.04, min(0.065, atr_fraction * 2))`). Sửa luật stop thì PHẢI đo
+#: lại đây, nếu không số vị thế thật trôi khỏi mục tiêu mà không ai thấy.
+SL_TRUNG_VI = 0.0515
+
+#: Rủi ro mỗi lệnh — SUY RA từ ba con số trên. Trước 31/08/2026 nó là hằng
+#: số 1,0 gõ thẳng trong `consider_entry`, cho cỡ trung bình 18,7% và
+#: 4,2 vị thế đồng thời.
+RUI_RO_MOI_LENH_PCT = CO_MUC_TIEU_PCT * SL_TRUNG_VI
+
+#: Sàn và trần cỡ vị thế, cũng suy ra. Hai chốt cũ là 5,0 và 33,3 — với cỡ
+#: mục tiêu 6,67% thì trần 33,3 cho phép MỘT lệnh ăn năm suất, còn sàn 5,0
+#: bằng 75% cỡ trung bình nên nó ghì mọi lệnh stop rộng lên gần mức trung
+#: bình. Để nguyên hai chốt đó thì đổi `RUI_RO_MOI_LENH_PCT` không tới đích.
+CO_TOI_THIEU_PCT = round(CO_MUC_TIEU_PCT / 2, 1)
+CO_TOI_DA_PCT = round(CO_MUC_TIEU_PCT * 2, 1)
+
+
 #: Mô phỏng trượt giá, lô chẵn, biên độ và khớp một phần.
 #:
 #: `truot_gia.py` và `vong_doi_lenh.py` có từ lâu, có 29 test, và cho
@@ -584,9 +624,10 @@ class PaperTradingJournal:
 
         risk = result["analyses"]["risk"]["recommendations"]
         
-        # Ý TƯỞNG C & E: Phân bổ cỡ vị thế theo Volatility (Fixed Fractional Risk)
-        # Fixed Risk = 1.0% tài khoản trên mỗi lệnh
-        account_risk_pct = 1.0
+        # Phân bổ cỡ vị thế theo biến động (Fixed Fractional Risk).
+        # Con số SUY RA từ `SO_VI_THE_MUC_TIEU`, xem chú thích ở đó — đừng
+        # gõ lại ở đây.
+        account_risk_pct = RUI_RO_MOI_LENH_PCT
         
         entry_price = float(risk["entry_price"])
         stop_loss = float(risk["stop_loss_price"])
@@ -600,8 +641,9 @@ class PaperTradingJournal:
         # Tính kích cỡ lệnh: (Rủi ro % / Khoảng cách SL %)
         size = account_risk_pct / sl_pct_dist
         
-        # Giới hạn kích cỡ: Tối thiểu 5%, tối đa 33.3% (Tránh dồn vốn vào 1 mã)
-        size = round(max(5.0, min(33.3, size)), 1)
+        # Sàn và trần cũng suy từ cỡ mục tiêu. Ghim 5,0 / 33,3 ở đây thì
+        # đổi `SO_VI_THE_MUC_TIEU` không tới đích được.
+        size = round(max(CO_TOI_THIEU_PCT, min(CO_TOI_DA_PCT, size)), 1)
 
         # Trần vốn — chốt cuối cùng, và bắt buộc nằm ở ĐÂY chứ không
         # nằm cùng chỗ với các cổng trên: nó cần `size`, mà `size` chỉ

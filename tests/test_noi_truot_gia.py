@@ -20,6 +20,17 @@ pytest.importorskip("pandas")
 NEN = {"high": 20_500.0, "low": 19_800.0, "volume": 3_000_000.0,
        "tham_chieu": 20_000.0}
 
+#: Cỡ vị thế ĐẦY ĐỦ cho khoảng cách stop của bộ dữ liệu này (20.000 -> 19.000
+#: = 5%). SUY RA chứ không gõ.
+#:
+#: Trước 31/08/2026 chỗ này là hằng số 20.0 — đúng cỡ mà `account_risk_pct
+#: = 1.0` cho ra. Đổi sizing sang mục tiêu 15 vị thế làm hai test ở đây đỏ,
+#: dù chúng khoá TRƯỢT GIÁ chứ không khoá sizing. Bản sao của một con số
+#: không sai vào ngày nó ra đời, nó sai vào ngày bản gốc đổi.
+CO_DAY_DU = round(max(pt.CO_TOI_THIEU_PCT,
+                      min(pt.CO_TOI_DA_PCT,
+                          pt.RUI_RO_MOI_LENH_PCT / 0.05)), 1)
+
 
 def _kq(entry=20_000.0, sl=19_000.0, tp=26_000.0):
     return {"final_score": 70, "recommendation": "MUA", "data_quality": "OK",
@@ -50,8 +61,8 @@ def _vao(so, bat, monkeypatch, nen=NEN, gia_mo=20_000.0):
 
 def test_TAT_thi_khop_dung_gia_mo_cua(so_lenh, monkeypatch):
     t = _vao(so_lenh, False, monkeypatch)
-    assert t.entry_price == 20_000.0 and t.size_pct == 20.0
-    print("PASS  tắt -> khớp đúng 20.000, size nguyên vẹn")
+    assert t.entry_price == 20_000.0 and t.size_pct == CO_DAY_DU
+    print(f"PASS  tắt -> khớp đúng 20.000, size nguyên vẹn ({CO_DAY_DU}%)")
 
 
 def test_TAT_thi_ban_dung_gia_stop(so_lenh, monkeypatch):
@@ -115,10 +126,10 @@ def test_thanh_khoan_can_thi_khop_MOT_PHAN_va_size_giam(so_lenh, monkeypatch):
     """
     nen = dict(NEN, volume=20_000.0)
     t = _vao(so_lenh, True, monkeypatch, nen=nen)
-    assert t.size_pct < 20.0, (
-        f"nến chỉ cho khớp ~2.000 CP mà vẫn ghi đủ size 20% "
+    assert t.size_pct < CO_DAY_DU, (
+        f"nến chỉ cho khớp ~2.000 CP mà vẫn ghi đủ size {CO_DAY_DU}% "
         f"(nhận {t.size_pct}%)")
-    print(f"PASS  thanh khoản cạn -> size 20% giảm còn {t.size_pct}%")
+    print(f"PASS  thanh khoản cạn -> size {CO_DAY_DU}% giảm còn {t.size_pct}%")
 
 
 def test_ngoai_bien_do_thi_KHONG_co_lenh(so_lenh, monkeypatch):
