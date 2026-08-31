@@ -220,6 +220,52 @@ Một công cụ kiểm tra không chạy được cũng là cổng xanh giả: 
 `tools/kiem_ban_sach.py` nổ `UnicodeEncodeError` ngay dòng print đầu tiên
 vì thiếu `encoding="utf-8"` trong `sys.stdout.reconfigure`.
 
+### Test KIỂM LẠI CHÍNH NÓ — lỗi mắc BA LẦN trong ngày 31/08/2026
+
+Khác với lỗi `in` ở trên, và nguy hiểm hơn vì nó trông đúng hoàn toàn.
+
+Mẫu: test **dựng lại công thức của mã** rồi so hai bên. Nó kiểm công thức
+của test, không kiểm công thức của mã — nên mọi đột biến giữ nguyên GIÁ TRỊ
+tại điểm đang thử đều sống sót.
+
+| Lần | Đột biến sống sót | Vì sao lọt |
+|---|---|---|
+| `theo_ngay` | nhánh mới thành no-op, chạy lại vòng theo mã | test kiểm `lich_theo_ngay` như hàm THUẦN, không kiểm nhánh CÓ GỌI nó |
+| sizing | `TRAN * N / 225` — cho đúng 6,667 tại N=15 | test tự dựng lại công thức; mọi phép so giá trị đều mù, kể cả `CỠ × N == TRẦN` |
+| hook | matcher đổi thành `NotebookEdit` | test đọc `command`, bỏ qua `matcher` — hook tồn tại nhưng không nối vào đâu |
+
+Cả ba đều **chỉ đột biến mới tìm ra**. Không lần nào bộ test tự phát hiện.
+
+**Quy tắc rút ra: gác một phép SUY RA thì phải kiểm HÌNH DẠNG biểu thức
+bằng AST, không kiểm giá trị nó cho ra.** Giá trị trùng nhau tại một điểm
+là chuyện thường; cấu trúc sai thì sai ở mọi điểm khác.
+
+```python
+v = _gan("CO_MUC_TIEU_PCT")                       # ast.Assign -> value
+assert isinstance(v.op, ast.Div)                  # CHIA, không phải NHÂN
+assert v.left.id == "TRAN_VON_CAM_KET_PCT"
+assert v.right.id == "SO_VI_THE_MUC_TIEU"
+```
+
+Và hệ quả thứ hai: **viết đột biến TRƯỚC khi tin một gác mới.** Ba lần trên
+đều là gác vừa viết xong, vừa xanh, và vừa vô dụng.
+
+### Hook KHÔNG thấy gì đi qua Bash — và quy ước của dự án đi đúng đường đó
+
+`PostToolUse` khớp `Write|Edit`. Nhưng quy ước "vá lớn thì viết một file
+`.py` rồi chạy nó" (xem mục CRLF) đi qua **Bash**. Quy ước tự vô hiệu hoá
+cái gác của chính nó.
+
+Đo ngày 31/08/2026: một phiên sửa 6 file mà hook không chạy lần nào.
+`--quet-repo` có được gọi, nhưng vì người nhớ ra chứ không vì máy bắt.
+
+**Đã đóng:** hook `Stop` chạy `chan_bia_so_lieu.py --quet-thay-doi` — quét
+chỉ file git báo đã đổi, 0,5 giây thay vì 24. Cửa sổ im lặng thu từ "tới
+lúc push" xuống "tới lúc dừng phiên". CI vẫn quét toàn repo.
+
+Khoá bởi `tests/test_hang_rao_tu_dong.py`, và test đó kiểm CẢ MATCHER —
+xem bảng trên.
+
 Lỗi đó tái diễn hai lần nữa (`experiment_fundamentals.py` 23/08, `extend_history.py`
 24/08 — cả hai đều là công cụ đo lường). Từ 24/08 có gác toàn repo:
 `tests/test_script_chay_duoc_tren_windows.py` — mọi file có `__main__` và có
@@ -666,8 +712,9 @@ python extend_history.py --check  # kiểm tra độ phủ dữ liệu
 
 pytest tests/ -q                          # toàn bộ test
 pytest tests/test_post_mortem.py          # khoá tính tái lập của chấm điểm
-python tools/chan_bia_so_lieu.py --quet-repo   # quét mẫu bịa số toàn repo
-python tools/kiem_cu_phap_311.py               # CHẠY TRƯỚC KHI PUSH — xem dưới
+python tools/chan_bia_so_lieu.py --quet-repo       # quét mẫu bịa số toàn repo
+python tools/chan_bia_so_lieu.py --quet-thay-doi  # chỉ file đã đổi (hook Stop)
+python tools/kiem_cu_phap_311.py                  # NAY CI CŨNG CHẠY — xem dưới
 ```
 
 ### Máy chạy 3.13, CI chạy 3.11 — khoảng cách đó ẩn được lỗi

@@ -25,6 +25,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/chan_bia_so_lieu.py\" --quet-thay-doi",
+            "timeout": 60,
+            "statusMessage": "Soát lại file đã đổi..."
+          }
+        ]
+      }
     ]
   }
 }

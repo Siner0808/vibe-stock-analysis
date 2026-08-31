@@ -66,6 +66,13 @@ MO_HEREDOC = re.compile(r"^\s*python\s+-\s+<<'([A-Za-z_][A-Za-z0-9_]*)'")
 
 DUONG_DOAN = (
     os.environ.get("PYTHON311", ""),
+    # Chính trình thông dịch đang chạy. `_la_311` kiểm phiên bản thật nên
+    # dòng này chỉ trúng khi nó ĐÚNG là 3.11 — ở máy dev (3.13) nó rơi
+    # xuống dòng dưới, còn trên runner CI (`setup-python` 3.11) nó trúng
+    # ngay. Thiếu dòng này thì trên Linux CI công cụ phải trông vào
+    # `python3.11` có nằm trên PATH hay không, mà điều đó không bảo đảm —
+    # và "chưa kiểm được" (mã 2) trên CI là một cổng xanh giả.
+    sys.executable,
     os.path.expanduser(
         "~/AppData/Roaming/uv/python/"
         "cpython-3.11.15-windows-x86_64-none/python.exe"),
