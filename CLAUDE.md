@@ -821,6 +821,14 @@ Hai hàng rào mới đáng biết:
 > TCB 63 · HUT 65, tín hiệu 2026-08-28, PENDING. Chúng khớp sáng 31/08:
 > `fill_pending()` không đọc cờ C5, nên đóng cổng KHÔNG huỷ lệnh chờ.
 >
+> **Cổng đóng nay ĐỐI CHIẾU ĐƯỢC, không chỉ khai (31/08/2026).**
+> `tools/canh_cong_c5.kiem_ro_ri()` hỏi sổ lệnh — chứ không hỏi mã nguồn —
+> rằng kể từ `paper_trading.NGAY_DONG_CONG_C5` đã có vị thế mới nào được
+> mở chưa. Đo 31/08: **0 trên 15.714 quyết định.** Và mỗi lượt quét nay tự
+> đo cửa sổ dữ liệu nó NHẬN ĐƯỢC (`run_daily.bao_cua_so_du_lieu`), phát ra
+> bằng `::notice::` để đọc được qua API công khai. Chi tiết:
+> `docs/STATE.md`, mục **"BƯỚC 5"**.
+>
 > Chi tiết: `docs/STATE.md`, mục **"CỔNG C5 ĐÃ ĐÓNG LẠI"** (29/08/2026).
 
 Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA CỔNG C5"**

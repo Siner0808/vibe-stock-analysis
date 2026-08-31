@@ -84,6 +84,75 @@ def canh_bao_nguon(quet_duoc: int, bo_qua: dict, tong_ma: int) -> str:
 #: giữa chừng — `tests/test_cua_so_du_lieu_quet.py` khoá cặp đó lại.
 NGAY_LICH_SU = 1095
 
+#: Tỷ lệ tối thiểu giữa TRUNG VỊ số phiên nhận được và số phiên VN-INDEX có
+#: trong cùng cửa sổ. Dưới mức này là dấu hiệu nguồn đang cắt lịch sử.
+#:
+#: Ngưỡng này KHÔNG tinh tế, và đó là chủ ý: khoảng cần phân biệt là 6%
+#: (44 trên 747 phiên — cấu hình trước 29/08/2026) so với ~100%. Mọi giá
+#: trị trong dải 0,5–0,9 cho cùng một kết luận. Chọn 0,80 để chừa chỗ cho
+#: nghỉ lễ và mã tạm ngừng giao dịch.
+TY_LE_PHIEN_TOI_THIEU = 0.80
+
+
+def phien_ky_vong(start_date: str, end_date: str) -> tuple[int | None, str]:
+    """Số phiên VN-INDEX nằm trong cửa sổ — kỳ vọng ĐO ĐƯỢC, không gõ tay.
+
+    Vì sao lấy từ chỉ số chứ không tính bằng "52 tuần × 5 ngày trừ lễ":
+    một con số gõ tay không biết runner hôm nay thấy được gì. Chuỗi
+    VN-INDEX kéo trên CHÍNH máy đang quét, cùng gói, cùng lúc — nên nó là
+    thước đo tại chỗ, và nó tự đúng lại khi lịch nghỉ đổi.
+
+    Trả `(None, lý do)` khi không dựng được. Không đoán một con số thay thế:
+    một kỳ vọng bịa ra sẽ đẻ ra cảnh báo giả hoặc im lặng giả, mà cả hai
+    đều tệ hơn việc nói thẳng là chưa đo được.
+    """
+    try:
+        df = market_filter.get_vni_df()
+        if df is None or len(df) == 0:
+            return None, "không có chuỗi VN-INDEX"
+        ngay = df["time"].astype(str).str[:10]
+        trong_cua_so = ngay[(ngay >= start_date) & (ngay <= end_date)]
+        return int(len(trong_cua_so)), str(ngay.iloc[-1])
+    except Exception as e:
+        return None, f"{type(e).__name__}: {e}"
+
+
+def bao_cua_so_du_lieu(phien_nhan, ky_vong, ngay_ro) -> tuple[str, str]:
+    """(dòng luôn in, dòng cảnh báo hoặc rỗng) về cửa sổ dữ liệu thật nhận.
+
+    HỎI 1095 NGÀY KHÔNG CÓ NGHĨA LÀ NHẬN ĐỦ. Ngày 29/08/2026 đã đo được
+    rằng cửa sổ dữ liệu — chứ không phải gói vnstock hay TradingView — là
+    thứ lật 6/71 quyết định: dưới 50 phiên thì SMA50/SMA200 trả None và
+    agent xu hướng kẹt ở ba nấc. Ngưỡng mua do walk-forward chọn trên phân
+    phối điểm của cửa sổ DÀI, nên chạy nó trên cửa sổ ngắn là áp một
+    ngưỡng lên một phân phối khác.
+
+    Cửa sổ ở máy local đã đo được. Cửa sổ mà GÓI MIỄN PHÍ trên runner
+    thật sự trả về thì CHƯA — `CLAUDE.md` ghi thẳng đó là chỗ chưa đo.
+    Hàm này biến mỗi lượt quét thành một phép đo của chính nó.
+    """
+    if not phien_nhan:
+        return "CỬA SỔ DỮ LIỆU: không mã nào chấm được — không đo được.", ""
+    xep = sorted(phien_nhan)
+    trung_vi = xep[len(xep) // 2]
+    duoi_50 = sum(1 for x in xep if x < 50)
+    dong = (f"CỬA SỔ DỮ LIỆU: {len(xep)} mã · trung vị {trung_vi} phiên "
+            f"(ít nhất {xep[0]} · nhiều nhất {xep[-1]}) · {duoi_50} mã dưới "
+            f"50 phiên — mốc SMA50/SMA200 trả None")
+    if ky_vong is None:
+        return f"{dong} · chưa so được với kỳ vọng ({ngay_ro})", ""
+    dong += f" · kỳ vọng {ky_vong} phiên theo VN-INDEX tới {ngay_ro}"
+    if ky_vong <= 0:
+        return dong, ""
+    ty_le = trung_vi / ky_vong
+    if ty_le >= TY_LE_PHIEN_TOI_THIEU:
+        return dong, ""
+    return dong, (
+        f"CỬA SỔ DỮ LIỆU BỊ CẮT: trung vị {trung_vi} phiên trên kỳ vọng "
+        f"{ky_vong} ({ty_le:.0%}). Ngưỡng {BUY_THRESHOLD} được walk-forward "
+        f"hiệu chuẩn trên cửa sổ dài; điểm của cửa sổ ngắn là một phân phối "
+        f'KHÁC. Xem docs/STATE.md, mục "BƯỚC 2 — ĐO CHỖ TỐI".')
+
 
 def thi_hanh_dieu_kien_dung(trades, dat_co,
                             benchmark=None) -> tuple[bool, str]:
@@ -313,6 +382,8 @@ def execute_daily_scan():
     # Cổng C5 đóng thì hai thứ đó như nhau; cổng mở rồi thì chúng khác hẳn.
     bo_qua = {}
     quet_duoc = 0
+    # Số phiên nến THẬT SỰ nhận được cho từng mã đã chấm được điểm.
+    phien_nhan = []
     collector = VNStockCollectorAgent()
 
     import time
@@ -351,6 +422,7 @@ def execute_daily_scan():
                 }
                 s = run_session(journal, sym, df, bar, str(row["time"]), "HOSE", BUY_THRESHOLD)
                 quet_duoc += 1
+                phien_nhan.append(len(df))
                 opened_count += s["opened"]
                 closed_count += s["closed"]
                 pending_count += s["filled_in"]
@@ -383,6 +455,21 @@ def execute_daily_scan():
                     break
 
         time.sleep(1.0) # Tạm dừng 1.0s giữa các request
+
+    # ── CỬA SỔ DỮ LIỆU THẬT SỰ NHẬN ĐƯỢC ─────────────────────────────
+    # Đi bằng `::notice::` vì annotation đọc được qua API công khai,
+    # còn nhật ký chạy và artifact thì đòi đăng nhập — cùng lý do đã
+    # ghi ở khối thi hành điều kiện dừng phía trên.
+    _ky_vong, _ngay_ro = phien_ky_vong(start_date, end_date)
+    _dong_do, _dong_canh = bao_cua_so_du_lieu(phien_nhan, _ky_vong, _ngay_ro)
+    print(f"📏 {_dong_do}")
+    print(f"::notice::{_dong_do}")
+    if _dong_canh:
+        print(f"⚠️ {_dong_canh}")
+        # `::warning::` chứ KHÔNG phải mã thoát: làm đỏ lượt quét sẽ
+        # khiến `tools/chuong_bao_quet.py` báo giả 'ngày này không có
+        # lượt quét nào' và che mất đúng thứ chuông kia sinh ra để canh.
+        print(f"::warning::{_dong_canh}")
 
     trades = journal.all_trades()
     rep = report(trades, benchmark=_ro_chuan_vnindex(trades))
