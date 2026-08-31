@@ -20,11 +20,13 @@ MỞ RỘNG, hàng trăm phiên. **Ngưỡng được hiệu chuẩn trên một
 khác với phân phối nó đang được áp lên.** Ba trong bốn lệnh tiến-về-trước
 đầu tiên (NAF, TCB, HUT) chỉ tồn tại vì cửa sổ ngắn.
 
-File này khoá ba thứ:
+File này khoá bốn thứ:
   1. cửa sổ đủ dài để `SMA200` tính được — sàn suy từ CƠ CHẾ, không từ ý thích;
   2. cửa sổ là một HẰNG SỐ CÓ TÊN, không phải con số nằm giữa thân hàm;
   3. máy quét không bao giờ nhìn ít hơn giao diện — hai nơi lệch nhau thì
-     người dùng thấy một điểm và máy vào lệnh theo một điểm khác.
+     người dùng thấy một điểm và máy vào lệnh theo một điểm khác;
+  4. và — thêm 31/08/2026 — cửa sổ THẬT SỰ NHẬN ĐƯỢC phải được đo mỗi lượt
+     quét, vì ba thứ trên chỉ nói về cửa sổ mã nguồn XIN.
 """
 import ast
 import sys
@@ -160,6 +162,127 @@ def test_cua_so_dai_thi_workflow_phai_duoc_noi_thoi_gian():
         f"cửa sổ {rd.NGAY_LICH_SU} ngày cần timeout-minutes ≥ {can}, "
         f"workflow đang để {tm}")
     print(f"PASS  cửa sổ {rd.NGAY_LICH_SU} ngày · timeout {tm} phút ≥ {can}")
+
+
+# ══ CỬA SỔ XIN ĐƯỢC ≠ CỬA SỔ NHẬN ĐƯỢC ══════════════════════════════════
+#
+# Năm phép kiểm trên đo cửa sổ mã nguồn **xin**. Không phép nào biết máy
+# chủ thật sự **trả về** bao nhiêu. Hai lý do phải đo cả vế kia:
+#
+#   • Đo ngày 31/08/2026 tại máy local: xin từ 2023-09-01, nhận về từ
+#     2023-07-10 — nguồn không trả đúng khoảng được hỏi.
+#   • `CLAUDE.md` ghi thẳng rằng gói **miễn phí** trên runner chưa bao giờ
+#     được đo ở đại lượng này ("Chưa đo: gói miễn phí có phục vụ nổi 420
+#     ngày OHLCV cho cổ phiếu không").
+#
+# Một cửa sổ bị cắt âm thầm tái tạo ĐÚNG lỗi ngày 29/08: ngưỡng 62 hiệu
+# chuẩn trên phân phối điểm của cửa sổ dài, đem áp lên điểm của cửa sổ
+# ngắn. Nên mỗi lượt quét phải tự đo lấy, và phải nói ra được TỪ XA —
+# nhật ký chạy đòi đăng nhập, annotation thì không.
+
+
+def _ham(ten: str):
+    """Hàm mức module của `run_daily.py`, đọc từ cây cú pháp."""
+    cay = ast.parse((GOC / "run_daily.py").read_text(encoding="utf-8"))
+    for n in ast.walk(cay):
+        if isinstance(n, ast.FunctionDef) and n.name == ten:
+            return n
+    raise AssertionError(f"run_daily.py không có hàm {ten}")
+
+
+def test_cua_so_bi_cat_thi_PHAI_keu():
+    """44 phiên trên kỳ vọng 747 — đúng cấu hình đã lật 6/71 quyết định."""
+    _, canh = rd.bao_cua_so_du_lieu([44] * 71, 747, "2026-08-28")
+    assert canh, "cửa sổ 44/747 phiên mà không cảnh báo gì"
+    assert "44" in canh and "747" in canh, canh
+    assert str(rd.BUY_THRESHOLD) in canh, (
+        "cảnh báo phải nói rõ ngưỡng nào đang bị áp lên một phân phối khác")
+    print(f"PASS  44/747 phiên -> kêu")
+
+
+def test_du_phien_thi_IM():
+    """Kêu cả khi không có việc gì là dạy người ta bỏ qua chuông."""
+    _, canh = rd.bao_cua_so_du_lieu([784] * 71, 747, "2026-08-28")
+    assert canh == "", canh
+    print("PASS  784/747 phiên -> im")
+
+
+def test_khong_co_ky_vong_thi_KHONG_ket_luan():
+    """Không dựng được kỳ vọng thì NÓI RA, không bịa một con số thay thế.
+
+    Một kỳ vọng bịa ra đẻ ra cảnh báo giả hoặc im lặng giả — cả hai đều
+    tệ hơn việc nói thẳng là chưa đo được.
+    """
+    dong, canh = rd.bao_cua_so_du_lieu([44] * 71, None, "không có chuỗi VN-INDEX")
+    assert canh == "", "chưa có kỳ vọng mà đã kết luận bị cắt"
+    assert "chưa so được" in dong, dong
+    print("PASS  thiếu kỳ vọng -> nói ra, không kết luận")
+
+
+def test_dong_do_luon_dem_ma_duoi_moc_SMA():
+    """50 phiên là mốc CƠ CHẾ — phải đếm được, không chỉ suy từ trung vị."""
+    dong, _ = rd.bao_cua_so_du_lieu([44, 44, 300, 784], 747, "2026-08-28")
+    assert "2 mã dưới 50 phiên" in dong, dong
+    print("PASS  đếm đúng 2 mã dưới mốc SMA50")
+
+
+def test_nguong_ty_le_la_hang_so_co_ten():
+    """Đặt tên cho một giả định là bước đầu để ai đó cãi nó."""
+    assert isinstance(rd.TY_LE_PHIEN_TOI_THIEU, float)
+    assert 0.5 <= rd.TY_LE_PHIEN_TOI_THIEU <= 0.9, rd.TY_LE_PHIEN_TOI_THIEU
+    print(f"PASS  TY_LE_PHIEN_TOI_THIEU = {rd.TY_LE_PHIEN_TOI_THIEU}")
+
+
+def test_ky_vong_hong_thi_tra_None_chu_khong_no(monkeypatch):
+    """Phép đo hỏng không được làm chết lượt quét nó đang đo."""
+    def no():
+        raise RuntimeError("mất mạng")
+    monkeypatch.setattr(rd.market_filter, "get_vni_df", no)
+    ky_vong, ly_do = rd.phien_ky_vong("2023-09-01", "2026-08-31")
+    assert ky_vong is None and "RuntimeError" in ly_do, (ky_vong, ly_do)
+    print("PASS  nguồn hỏng -> (None, lý do), không ném")
+
+
+def test_may_quet_THAT_SU_goi_phep_do():
+    """Test đúng mà dây chưa cắm — đúng lỗi `vs_benchmark` đã mắc."""
+    ham = _ham("execute_daily_scan")
+    goi = {n.func.id for n in ast.walk(ham)
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "bao_cua_so_du_lieu" in goi, "execute_daily_scan không gọi phép đo"
+    assert "phien_ky_vong" in goi, "execute_daily_scan không dựng kỳ vọng"
+    print("PASS  execute_daily_scan gọi cả hai hàm đo")
+
+
+def test_canh_bao_di_bang_warning_KHONG_phai_error():
+    """Làm đỏ lượt quét ở đây là sinh ra một báo động giả che mất chuông.
+
+    `tools/chuong_bao_quet.py` đếm `conclusion == "success"` của workflow
+    "Quét sổ lệnh" để biết một ngày có được quét không. Một cảnh báo thật
+    làm job đỏ sẽ khiến chuông kia báo "ngày này không có lượt quét nào".
+
+    Đọc hằng chuỗi trong CÂY CÚ PHÁP chứ không grep: chú thích ngay trên
+    khối này có nhắc cả `::warning::` lẫn `::error::`, nên một phép kiểm
+    dạng `in src` sẽ xanh kể cả khi mã nguồn làm ngược lại.
+    """
+    ham = _ham("execute_daily_scan")
+    khoi = [n for n in ast.walk(ham) if isinstance(n, ast.If)
+            and isinstance(n.test, ast.Name) and n.test.id == "_dong_canh"]
+    assert len(khoi) == 1, f"thấy {len(khoi)} khối cảnh báo cửa sổ, phải 1"
+    chu = "".join(n.value for n in ast.walk(khoi[0])
+                  if isinstance(n, ast.Constant) and isinstance(n.value, str))
+    assert "::warning::" in chu, chu
+    assert "::error::" not in chu, (
+        "cảnh báo cửa sổ đi bằng ::error:: sẽ làm đỏ lượt quét")
+    print("PASS  cảnh báo cửa sổ đi bằng ::warning::")
+
+
+def test_phep_do_khong_no_voi_dau_vao_ky_quac():
+    """Dụng cụ đo hỏng phải BÁO, không được làm sập thứ nó đang đo."""
+    for phien, ky_vong in [([], 747), ([0], 747), ([44] * 71, 0),
+                           ([44] * 71, -5), ([1], None), ([784], 1)]:
+        dong, canh = rd.bao_cua_so_du_lieu(phien, ky_vong, "2026-08-28")
+        assert isinstance(dong, str) and isinstance(canh, str), (phien, ky_vong)
+    print("PASS  6 đầu vào kỳ quặc -> đều trả về hai chuỗi")
 
 
 if __name__ == "__main__":

@@ -200,6 +200,14 @@ CHOT_LOI_CUNG = False
 #     chuẩn là số của một hệ thống khác.
 CHO_PHEP_MO_LENH_MOI = False
 
+#: Ngay cong C5 duoc dong lai bang tay — moc de DOI CHIEU, khong phai
+#: mot ghi chu. Khoi chu thich tren da noi ngay nay tu 29/08/2026, nhung
+#: mot ngay nam trong chu thich thi khong ai kiem duoc.
+#: `tools/canh_cong_c5.py::kiem_ro_ri` dung no de tra loi cau hoi khac
+#: han cau hoi "ma nguon khai gi": KE TU MOC NAY CO VI THE MOI NAO DUOC
+#: MO KHONG. Mo lai cong roi dong lan nua thi phai cap nhat ngay nay.
+NGAY_DONG_CONG_C5 = "2026-08-29"
+
 #: Muc chat luong du lieu con DUNG DUOC de vao lenh.
 #:
 #: "OK" la sach; "WARN" la co dau hieu la nhung van dung duoc (sau khi noi

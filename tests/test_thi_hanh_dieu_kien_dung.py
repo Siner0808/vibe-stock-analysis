@@ -9,11 +9,14 @@ một hàm nối chuỗi, và khi đạt nó thêm đúng một CÂU VĂN vào m
 lưu 14 ngày. Kể cả nếu điều kiện có lực phát hiện 100%, nó vẫn không
 đóng được cổng.
 
-File này khoá bốn thứ, và thứ tự quan trọng:
+File này khoá năm thứ, và thứ tự quan trọng:
   1. đạt điều kiện ⇒ cờ THẬT SỰ đổi giá trị (không phải trả về một chuỗi);
   2. chưa đạt ⇒ KHÔNG đụng vào cờ (một hàng rào hay tự sập thì bị gỡ);
   3. chỗ gọi nằm TRƯỚC vòng quét (sau vòng quét là muộn đúng một phiên);
-  4. chuông C5 kêu đúng lúc — và KHÔNG kêu khi cổng đã đóng.
+  4. chuông C5 kêu đúng lúc — và KHÔNG kêu khi cổng đã đóng;
+  5. và — thêm 31/08/2026 — cổng đã đóng phải CHỨNG MINH ĐƯỢC TỪ SỔ LỆNH
+     rằng nó chặn. Bốn thứ trên đều đọc mã nguồn; thứ năm đọc dữ liệu, và
+     đó là khác biệt giữa "đã khai là chặn" và "đã chặn".
 """
 import ast
 import datetime as dt
@@ -190,6 +193,126 @@ def test_chuong_IM_khi_chua_dat():
                                    benchmark=_so_chua_du()[1])
         assert ma == 0, (mo, td)
     print("PASS  chưa đạt -> im, dù cổng mở hay đóng")
+
+
+# ── 5. Cổng đã đóng có CHẶN THẬT không ───────────────────────────────
+#
+# `kiem()` hỏi "điều kiện đạt chưa, cổng còn mở không" — cả hai vế đọc từ
+# MÃ NGUỒN. `kiem_ro_ri()` hỏi một câu chỉ dữ liệu trả lời được: kể từ
+# lúc đóng, đã có vị thế mới nào được mở chưa.
+#
+# Vì sao câu hỏi đó không thừa: ngày 31/08/2026 bốn lệnh chờ đầu tiên
+# khớp trong khi cổng đang đóng. Đó là hành vi ĐÚNG (`fill_pending`
+# không đọc cờ C5), nhưng nó cũng là ngày đầu tiên sổ lệnh động đậy dưới
+# một cái cổng đóng — tức ngày đầu tiên câu "cổng có chặn không" có thể
+# trả lời sai mà không ai thấy.
+
+_MOC_DONG = canh_cong_c5.moc_dong_cong(pt.NGAY_DONG_CONG_C5)
+
+
+def _qd(acted: int, at: float, symbol: str = "FPT") -> dict:
+    """Một dòng `decisions` rút gọn — đúng ba trường mà `kiem_ro_ri` đọc."""
+    return {"acted": acted, "at": at, "symbol": symbol}
+
+
+def _ham_chuong(ten: str) -> ast.FunctionDef:
+    cay = ast.parse((GOC / "tools" / "canh_cong_c5.py").read_text(
+        encoding="utf-8"))
+    for n in ast.walk(cay):
+        if isinstance(n, ast.FunctionDef) and n.name == ten:
+            return n
+    raise AssertionError(f"canh_cong_c5.py không có hàm {ten}")
+
+
+def test_cong_dong_ma_van_vao_lenh_thi_KEU():
+    ma, td = canh_cong_c5.kiem_ro_ri(
+        [_qd(0, _MOC_DONG + 100), _qd(1, _MOC_DONG + 200, "STB")],
+        cong_dang_mo=False, moc=_MOC_DONG, ngay_dong=pt.NGAY_DONG_CONG_C5)
+    assert ma == 1, td
+    assert "RÒ RỈ" in td and "STB" in td, td
+    print("PASS  cổng đóng + 1 quyết định vào lệnh -> kêu, nêu tên mã")
+
+
+def test_khong_ro_ri_thi_IM_va_NOI_RA_da_doi_chieu():
+    """Im lặng phải phân biệt được với chưa kiểm — nên nó nói ra con số."""
+    ma, td = canh_cong_c5.kiem_ro_ri(
+        [_qd(0, _MOC_DONG + 100), _qd(0, _MOC_DONG + 200)],
+        cong_dang_mo=False, moc=_MOC_DONG, ngay_dong=pt.NGAY_DONG_CONG_C5)
+    assert ma == 0, td
+    assert "0 quyết định vào lệnh" in td and "2 quyết định" in td, td
+    print("PASS  không rò rỉ -> im, và nói rõ đã đối chiếu bao nhiêu dòng")
+
+
+def test_lenh_mo_TRUOC_khi_dong_cong_KHONG_lam_keu_oan():
+    """113 lệnh cũ mở hồi cổng còn mở — kêu vì chúng là dạy bỏ qua chuông."""
+    ma, td = canh_cong_c5.kiem_ro_ri(
+        [_qd(1, _MOC_DONG - 86400 * 30), _qd(1, _MOC_DONG - 1)],
+        cong_dang_mo=False, moc=_MOC_DONG, ngay_dong=pt.NGAY_DONG_CONG_C5)
+    assert ma == 0, td
+    print("PASS  quyết định trước mốc đóng -> không kêu oan")
+
+
+def test_cong_dang_MO_thi_khong_co_gi_de_doi_chieu():
+    ma, td = canh_cong_c5.kiem_ro_ri(
+        [_qd(1, _MOC_DONG + 500)], cong_dang_mo=True, moc=_MOC_DONG,
+        ngay_dong=pt.NGAY_DONG_CONG_C5)
+    assert ma == 0 and "đang MỞ" in td, td
+    print("PASS  cổng mở -> không đối chiếu, không kêu")
+
+
+def test_fill_pending_KHONG_ghi_quyet_dinh():
+    """Nền móng của phép kiểm trên: lệnh chờ khớp không sinh `acted = 1`.
+
+    Đọc từ cây cú pháp chứ không tin chú thích. Ngày nào `fill_pending`
+    bắt đầu ghi quyết định thì bốn lệnh chờ khớp sáng 31/08 sẽ làm chuông
+    kêu oan, và phép kiểm này đỏ TRƯỚC khi điều đó xảy ra trên sổ thật.
+    """
+    cay = ast.parse((GOC / "paper_trading.py").read_text(encoding="utf-8"))
+    ham = [n for n in ast.walk(cay)
+           if isinstance(n, ast.FunctionDef) and n.name == "fill_pending"]
+    assert len(ham) == 1, f"thấy {len(ham)} hàm fill_pending"
+    goi = {n.func.attr for n in ast.walk(ham[0])
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+    assert "record_decision" not in goi, (
+        "fill_pending nay CÓ ghi quyết định — kiem_ro_ri sẽ kêu oan mỗi "
+        "lần một lệnh chờ khớp dưới cổng đóng")
+    print("PASS  fill_pending không ghi quyết định")
+
+
+def test_moc_dong_cong_dung_mui_gio_VN():
+    """Lệch 7 tiếng đủ để một quyết định sáng sớm rơi sai phía của mốc.
+
+    Việt Nam là UTC+7 quanh năm, không có giờ mùa hè — nên 00:00 ngày
+    29/08 giờ VN phải là 17:00 ngày 28/08 giờ UTC. Kiểm bằng sự thật đó
+    chứ không dựng lại cùng phép tính của mã nguồn.
+    """
+    moc = canh_cong_c5.moc_dong_cong("2026-08-29")
+    utc = dt.datetime.fromtimestamp(moc, dt.timezone.utc)
+    assert utc.strftime("%Y-%m-%d %H:%M") == "2026-08-28 17:00", utc
+    print(f"PASS  mốc = {utc:%Y-%m-%d %H:%M} UTC = 00:00 ngày 29/08 giờ VN")
+
+
+def test_ngay_dong_cong_la_hang_so_co_ten_khong_o_tuong_lai():
+    ngay = dt.date.fromisoformat(pt.NGAY_DONG_CONG_C5)
+    assert ngay <= dt.date.today(), (
+        f"NGAY_DONG_CONG_C5 = {ngay} nằm ở tương lai — mốc đối chiếu như "
+        f"vậy làm mọi rò rỉ lọt lưới")
+    print(f"PASS  NGAY_DONG_CONG_C5 = {ngay}")
+
+
+def test_chuong_THAT_SU_goi_kiem_ro_ri_va_dua_VAO_MA_THOAT():
+    """Gọi mà không đưa vào mã thoát thì workflow vẫn xanh — chuông câm."""
+    main = _ham_chuong("main")
+    goi = {n.func.id for n in ast.walk(main)
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "kiem_ro_ri" in goi, "main() không gọi kiem_ro_ri"
+    assert "moc_dong_cong" in goi, "main() không dựng mốc đóng cổng"
+    tra_ve = [n for n in ast.walk(main) if isinstance(n, ast.Return)]
+    ten = {m.id for n in tra_ve for m in ast.walk(n)
+           if isinstance(m, ast.Name)}
+    assert "ma_rr" in ten, (
+        "kết quả đối chiếu rò rỉ không đi vào mã thoát của main()")
+    print("PASS  main() gọi kiem_ro_ri và đưa kết quả vào mã thoát")
 
 
 if __name__ == "__main__":

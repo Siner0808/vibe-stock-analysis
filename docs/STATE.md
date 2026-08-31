@@ -3825,3 +3825,150 @@ Thêm hai lỗi tìm ra trong lúc sửa, đều đã vá và đều đã rào: 
 viết cứng trạng thái cổng (bước 1), và cửa sổ dữ liệu 44 phiên khiến ngưỡng
 62 được áp lên một phân phối điểm khác với phân phối đã hiệu chuẩn nó
 (bước 2).
+
+
+---
+
+## BƯỚC 5 — DỰNG ĐỒ ĐO TRƯỚC LƯỢT CHẠY THẬT ĐẦU TIÊN (31/08/2026)
+
+Bốn bước trên sửa cổng C5 vào cuối tuần, khi không có phiên nào chạy. Thứ
+Hai 31/08 là **ngày đầu tiên toàn bộ thay đổi gặp thị trường thật**, và
+cũng là ngày bốn lệnh chờ đầu tiên khớp. Trước khi nó chạy, dựng đồ đo.
+
+### Trạng thái đã chốt lúc 08:15, TRƯỚC lượt quét đầu tiên
+
+```
+sổ thật (Google Sheets) : 117 lệnh · 15.714 quyết định
+bốn lệnh chờ            : NAF 62 · STB 65 · TCB 63 · HUT 65 — tín hiệu
+                          2026-08-28, còn PENDING, chưa lệnh nào khớp
+quyết định hôm nay      : 0 (chưa có lượt quét nào)
+cờ trong mã nguồn       : CHO_PHEP_MO_LENH_MOI = False
+đối chiếu rò rỉ         : 0 quyết định vào lệnh kể từ 29/08 trên 15.714 dòng
+điều kiện dừng          : 0/150 lệnh có đối chiếu — chưa đủ để kết luận
+```
+
+Có mốc "trước" thì sau mới nói được cái gì đã đổi. Không có nó thì mọi
+quan sát chiều nay đều là một con số không có gốc so.
+
+### Nhịp cron GitHub đã xấu đi hẳn — đo lại trên 30 lượt gần nhất
+
+`CLAUDE.md` ghi "6/12 nhịp mỗi ngày = 50%, trễ điển hình 5→90 phút" (đo
+13→21/08). Đo lại 31/08, giờ đã quy về ICT:
+
+| Ngày | Số lượt | Giờ chạy (ICT) |
+|---|---|---|
+| 24 · 25 · 26/08 | 6 mỗi ngày | 10:10 → 15:43, rải đều trong phiên |
+| **27/08** | **2** | **19:38 · 00:16 (hôm sau)** |
+| **28/08** | **2** | **21:12 · 01:08 (hôm sau)** |
+
+Hai phiên gần nhất **không có lượt quét nào trong giờ giao dịch** — trễ
+không còn tính bằng phút mà bằng 6–10 tiếng. Chuông `chuong_bao_quet.py`
+KHÔNG kêu, và nó đúng: nó đếm "ngày đó có lượt quét thành công nào không",
+mà cả hai ngày đều có.
+
+Điều đang còn đúng: `evaluate_open()` chấm trên nến NGÀY, nên lượt sau
+đóng cửa là lượt quyết định — hai ngày đó vẫn được quét đầy đủ, và bốn
+lệnh chờ chính là sản phẩm của một lượt như vậy. Nhưng hệ quả cho việc
+quan sát hôm nay phải nói thẳng: **không có gì bảo đảm lượt quét rơi vào
+giờ ta đang nhìn.** Nút "Run workflow" của `quet-so-lenh.yml` là đường
+chạy tay khi cần một lượt đúng lúc.
+
+### Cửa sổ dữ liệu: `start` CÓ được tôn trọng — đo tại máy, hạng silver
+
+Nghi ngờ ban đầu là nguồn trả về một số nến cố định bất kể khoảng xin.
+Đo bốn cửa sổ trên FPT:
+
+| Xin | Nhận | Phiên/ngày |
+|---|---|---|
+| 60 ngày | 45 phiên | 0,750 |
+| 420 ngày | 303 phiên | 0,721 |
+| 1095 ngày | **784 phiên** | 0,716 |
+| 2200 ngày | 1573 phiên | 0,715 |
+
+Nhất quán. Nguồn chỉ **đệm thêm ~5% ở đầu** (xin từ 2023-09-01, trả từ
+2023-07-10), không cắt. Mười mã đo cùng lúc — gồm cả bốn mã đang PENDING
+— đều đúng 784 phiên, 0 mã dưới mốc 50 phiên.
+
+**Nhưng đó là hạng silver.** Con số của gói MIỄN PHÍ trên runner vẫn là
+chỗ tối, đúng như `CLAUDE.md` ghi. Không có cách nào đo nó từ máy này.
+
+### Dụng cụ 1 — mỗi lượt quét tự đo cửa sổ nó nhận được
+
+`run_daily.phien_ky_vong()` + `bao_cua_so_du_lieu()`. Ba lựa chọn thiết kế:
+
+**Kỳ vọng ĐO ĐƯỢC, không gõ tay.** Số phiên kỳ vọng lấy từ chính chuỗi
+VN-INDEX kéo trên máy đang quét, đếm những phiên nằm trong cửa sổ. Một
+công thức "52 tuần × 5 ngày trừ lễ" không biết runner hôm nay thấy gì;
+chuỗi chỉ số thì biết, và nó tự đúng lại khi lịch nghỉ đổi. Dựng không
+được thì trả `None` và NÓI RA — không đoán một con số thay thế, vì một kỳ
+vọng bịa ra đẻ ra cảnh báo giả hoặc im lặng giả.
+
+**Đi bằng `::notice::`.** Nhật ký chạy trả 403 cho người chưa đăng nhập;
+annotation thì đọc được qua API công khai. Đã kiểm lại đường đó còn sống.
+Cùng lý do đã ghi cho khối thi hành điều kiện dừng.
+
+**Cảnh báo bằng `::warning::`, KHÔNG bằng mã thoát.** Làm đỏ lượt quét sẽ
+khiến `chuong_bao_quet.py` báo giả "ngày này không có lượt quét nào" —
+đúng cái bẫy đã ghi hai lần trong repo này.
+
+Ngưỡng `TY_LE_PHIEN_TOI_THIEU = 0,80` và nó KHÔNG tinh tế: khoảng cần
+phân biệt là 6% (44/747 phiên — cấu hình trước 29/08) so với ~100%.
+
+### Dụng cụ 2 — cổng đóng phải CHỨNG MINH ĐƯỢC là nó chặn
+
+`tools/canh_cong_c5.kiem_ro_ri()`. `kiem()` sẵn có hỏi "điều kiện đạt
+chưa, cổng còn mở không" — cả hai vế đọc từ **mã nguồn**. Hàm mới hỏi câu
+chỉ **dữ liệu** trả lời được: kể từ mốc đóng, đã có vị thế mới nào được mở
+chưa. Đó là khác biệt giữa *đã khai là chặn* và *đã chặn*.
+
+`acted = 1` là dấu hiệu đúng vì `record_decision` chỉ được gọi từ
+`consider_entry`, và `fill_pending` KHÔNG ghi quyết định — nên bốn lệnh
+chờ khớp sáng nay không làm chuông kêu oan. Một phép kiểm AST khoá đúng
+tính chất đó lại, để ngày nào `fill_pending` đổi thì test đỏ TRƯỚC khi
+chuông kêu oan trên sổ thật.
+
+Ngày đóng cổng chuyển từ **chú thích** thành hằng số
+`paper_trading.NGAY_DONG_CONG_C5` — một ngày nằm trong chú thích thì
+không ai đối chiếu được.
+
+### Đột biến 14/14 đỏ
+
+```
+DỤNG CỤ 1                                      DỤNG CỤ 2
+không bao giờ cảnh báo            -> đỏ        không bao giờ báo rò rỉ        -> đỏ
+ngưỡng tỷ lệ nới tới vô dụng      -> đỏ        bỏ qua mốc đóng cổng           -> đỏ
+bịa kỳ vọng khi phép đo hỏng      -> đỏ        đối chiếu cả khi cổng đang MỞ  -> đỏ
+gỡ dây: máy quét không gọi nữa    -> đỏ        kết quả không vào mã thoát     -> đỏ
+cảnh báo làm ĐỎ lượt quét         -> đỏ        mốc quên múi giờ (lệch 7h)     -> đỏ
+bỏ đếm số mã dưới mốc SMA50       -> đỏ        fill_pending ghi quyết định    -> đỏ
+cảnh báo không nói ngưỡng nào     -> đỏ        mốc đóng đặt ở tương lai       -> đỏ
+```
+
+612 → 629 test xanh · Python 3.11 sạch · `chan_bia_so_lieu` 0 CHẶN.
+
+Một gác CÓ SẴN đã bắt tôi trong lúc làm: `test_run_daily_khong_chep_cung_nguong_mua`
+đỏ vì tôi viết số 62 vào một docstring của `run_daily.py`. Bốn lần "62"
+khác trong file nằm trong chú thích `#` nên gác bỏ qua; docstring là chuỗi
+thật nên nó bắt. Gác đúng, đã sửa thành "ngưỡng mua".
+
+### Còn phải đọc sau lượt quét — hai câu hỏi, và cách đọc câu trả lời
+
+**1. Gói miễn phí trả về bao nhiêu phiên?** Đọc annotation `::notice::`
+của lượt quét. Trung vị ≈ 784 thì cửa sổ 1095 ngày là thật trên CI và
+`docs/STATE.md` mục "BƯỚC 2" khép lại. Trung vị ≈ 44 thì `::warning::` sẽ
+tự nổ, và ngưỡng mua đang chạy trên một phân phối khác — phải xử lý trước
+mọi việc khác.
+
+**2. Bước quét mất bao lâu?** Đọc `steps` của job qua API công khai —
+bước "Quét thị trường và cập nhật sổ lệnh". Nền ở cửa sổ 60 ngày: 318
+giây (28/08). Đo tại máy ở 1095 ngày: 8,88 s/mã ≈ 11,7 phút.
+`timeout-minutes` đang là 40.
+
+Và một quan sát nữa, không cần dụng cụ: **bốn lệnh chờ có khớp không.**
+Chúng phải khớp — `fill_pending()` không đọc cờ C5. Không khớp mà cũng
+không có lý do ghi lại thì đó là một lỗi mới.
+
+> Ba trong bốn lệnh ấy (NAF, TCB, HUT) do cấu hình 44 phiên sinh ra —
+> cấu hình nay không còn tồn tại. **Bốn điểm dữ liệu kết quả đầu tiên của
+> dự án thuộc về một hệ thống khác với hệ thống sẽ sinh ra các lệnh sau.**
+> Ghi ở đây để không ai gộp chúng vào một chuỗi rồi đọc như một chuỗi.
