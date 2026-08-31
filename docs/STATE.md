@@ -4096,3 +4096,209 @@ _lich_phu_toi luôn báo CÓ           -> đỏ    báo cáo đối chiếu vớ
 Bốn lệnh chờ khớp ở giá mở cửa. Đó là bốn điểm dữ liệu kết quả đầu tiên
 của dự án — và ba trong bốn (NAF, TCB, HUT) do cấu hình 44 phiên sinh ra,
 cấu hình nay không còn tồn tại.
+
+
+---
+
+## BƯỚC 7 — TRẦN CỦA ĐẶC TRƯNG, VÀ RÀO SO VỚI THẾ GIỚI (31/08/2026)
+
+Xuất phát từ một câu hỏi tưởng là về mô hình: *rho ≈ 0 vì sáu agent không
+chứa tín hiệu, hay vì bộ trọng số tay gộp chúng sai cách?* Trả lời xong thì
+câu hỏi lớn hơn lộ ra, và nó không phải câu hỏi về mô hình.
+
+### Thiết kế trước, chạy sau — và thiết kế đã bác kế hoạch đầu tiên
+
+Kế hoạch ban đầu: đo trên vùng sạch, nhịp 20 phiên. **Tính lực phát hiện
+trước khi chạy thì nó không đủ.**
+
+```
+vùng sạch 25.219 phiên  −min_history 250 −purge 21  →  16.276 quan sát
+nhãn 20 phiên chồng lấn → chia (h+1) → 23,8 khối/mã × 33 mã = n hiệu dụng 784
+|rho| nhỏ nhất phát hiện được (80% lực)  : 0,100
+rào hoà vốn kinh tế @top5%               : 0,048
+```
+
+Chạy xong mà ra "không có tín hiệu" thì đó là **thiếu bằng chứng, không
+phải bằng chứng vắng mặt**. Ba con số phải đo trước khi thiết kế:
+
+| Đo | Kết quả | Hệ quả |
+|---|---|---|
+| Nhãn nào giữ được cỡ mẫu | thô **+0,368** · vượt rổ **−0,012** | Nhãn thô làm 68 mã sụp còn **2,6 mã độc lập**. Bắt buộc dùng nhãn vượt rổ — trùng bất biến 6. |
+| Đặc trưng có nghèo như `MO-XE` ghi | trend **10** · mom **17** · sr **7** · điểm **61** nấc | Không. Con số cũ là tính chất của cửa sổ 44 phiên. |
+| Chấm điểm mất bao lâu | **15,6 ms**/phiên | Toàn cache 8,5 phút. Chấm một lần, mọi horizon dùng lại. |
+
+### Chặng 1 — cận trên trong mẫu
+
+Khớp mô hình tuyến tính trên **toàn bộ** dữ liệu, không giữ lại phần nào.
+Đây là cận trên đúng nghĩa: không quy trình trung thực nào vượt được điểm
+tối ưu trong mẫu. Sàn nhiễu dựng bằng **hoán vị dịch vòng theo mã** (1.000
+lần, seed 0) — giữ tự tương quan trong mã và cấu trúc chéo, chỉ phá liên
+kết đặc trưng↔nhãn, nên nó tự nuốt phần lạm phát do khớp trong mẫu.
+
+Chấm 63.389 phiên / 69 mã, 512 giây:
+
+```
+                         h=5      h=10     h=20     rào hoà vốn @top5%
+Điểm hệ thống (0 tham số) −0,0117  −0,0050  +0,0040  0,101 · 0,070 · 0,048
+Trần A — 5 điểm agent      0,0115   0,0093   0,0071
+Trần B — 8 chỉ báo thô     0,0234   0,0443   0,0640
+sàn nhiễu (hoán vị)        0,0446   0,0609   0,0839
+```
+
+> **Mọi con số rào trong mục này tính ở chi phí 0,89%/vòng — tức ĐÃ gồm
+> phí Sở sửa cùng ngày (PR #33).** Bản chạy đầu dùng 0,83% và cho
+> 0,094 · 0,065 · 0,045. `experiment_tran_dac_trung.py` lấy phí THẲNG từ
+> `paper_metrics.ROUND_TRIP_COST_PCT` nên rào tự dịch khi hằng số phí đổi
+> — không có bản sao nào để trôi ra khỏi nhau.
+
+**Điểm hệ thống ở h=5 khác 0 có ý nghĩa, và ÂM** (sàn nhiễu đối xứng
+[−0,010 ; +0,023]). Cùng dấu với −0,019 mà `MO-XE` đo độc lập trên 10 mã.
+
+### Chứng cứ dương — bước quyết định, không phải kết quả null
+
+Không có bước này thì *"không tìm thấy gì"* và *"máy đo hỏng"* trông y hệt
+nhau. Tiêm một đặc trưng giả có mức tương quan **biết trước**:
+
+| Tiêm | h=5 bắt được? | h=20 bắt được? |
+|---|---|---|
+| không có gì | ❌ đúng | ❌ đúng |
+| nửa rào | ✅ **CÓ** | ❌ không |
+| **đúng bằng rào** | ✅ **CÓ** | ❌ **không** |
+| 1,5× rào | ✅ CÓ | ✅ CÓ |
+
+**h=5: phép đo hoạt động** → kết quả null ở đó là bằng chứng vắng mặt thật.
+**h=20: tiêm đúng rào mà máy vẫn im** → kết quả "dưới sàn nhiễu" ở h=20
+KHÔNG đọc được.
+
+> **Lỗi khai báo trước, ghi lại để không lặp.** Test chính được khai là
+> h=20 vì nó khớp nhịp nắm giữ thật 20,3 ngày. Bảng lực — viết TRƯỚC lượt
+> chạy — đã ghi h=20 là "sát biên". Chọn test chính theo **ý nghĩa kinh tế**
+> thay vì theo **lực phát hiện** là sai. Kết luận h=5/h=10 vẫn đứng vì lực
+> của chúng được xác lập trước lượt chạy, không phải chọn ra sau khi thấy số.
+
+**Cổng sang chặng 2: ĐÓNG.** Tiêu chí khai trước — *vượt phân vị 95 hoán vị
+VÀ ≥ rào hoà vốn* — không đạt vế nào, ở nhịp nào. Chặng 2 (trần phi tuyến)
+và chặng 3 (xác nhận trên vùng sạch) **không chạy**, và **vùng sạch 25.219
+phiên vẫn nguyên vẹn, chưa bị nhìn**.
+
+### Hiệu chuẩn ngoài — chỗ dữ liệu nội bộ không trả lời được
+
+Rào hoà vốn của dự án là 0,041–0,086 tuỳ nhịp. Câu hỏi không tự trả lời
+được: *mức đó so với thứ ngành thật sự đạt được thì thế nào?*
+
+```
+Factor cổ phiếu điển hình (IC công bố)        rho 0,020 – 0,050
+Gu–Kelly–Xiu 2020 — trần thực nghiệm          rho 0,057 – 0,063
+  R² ngoài mẫu theo tháng 0,33–0,40%, cây + mạng nơ-ron,
+  ~900 biến dự báo, cổ phiếu Mỹ, 60 năm dữ liệu
+──────────────────────────────────────────────────────────────
+Rào dự án · h=5    0,101   CAO HƠN mọi kết quả đã công bố
+Rào dự án · h=10   0,070   trên cả mức "mạnh" của ngành
+Rào dự án · h=20   0,048   trong vùng, biên an toàn ≈ 0
+Rào dự án · h=60   0,026   lần đầu có biên thật
+```
+
+**Ở nhịp 5 và 10, rào cao hơn cả kết quả tốt nhất thế giới từng công bố**
+(0,101 và 0,070 so với trần GKX 0,063).
+Nghĩa là dù đặc trưng có tín hiệu đi nữa, cấu hình đó vẫn không thể lãi.
+Vấn đề không nằm ở việc tìm mô hình tốt hơn.
+
+**Anomaly được ghi nhận ở Việt Nam là ĐẢO CHIỀU, không phải momentum.**
+Tài liệu về HOSE: danh mục "kẻ thua" vượt "kẻ thắng" 1,80% và 2,17% ở tháng
+thứ hai và thứ ba. Momentum VN yếu và biến mất khi kiểm soát rủi ro; chỉ
+tồn tại ở nhịp dài (hình thành 6 tháng, nắm 9 tháng). Mà điểm của dự án bị
+chi phối bởi `trend` và `momentum` — tương quan 0,76 với nhau, trọng số lớn
+nhất. Ba đường độc lập chỉ cùng một hướng.
+
+> **Đây là giả thuyết để kiểm, KHÔNG phải chiến lược.** Ba cảnh báo: nghiên
+> cứu chạy trên mẫu cũ và phần lớn không khử thiên lệch sống sót; hiệu ứng
+> có thể đã phân rã; và tài liệu về chi phí nói chiến lược đảo chiều **chết
+> vì chi phí ở nhóm vốn hoá nhỏ**, chỉ sống ở vốn hoá lớn.
+>
+> Nếu kiểm: giả thuyết đến TỪ TÀI LIỆU NGOÀI, cố định trước khi nhìn dữ
+> liệu — nên hợp lệ với bất biến 7 và 8. Lật dấu SAU khi thấy số âm thì
+> không.
+
+**Nghiên cứu gần dự án nhất đã cho cùng phán quyết.** 1.400 cổ phiếu, 24
+thị trường cận biên, 1997–2008, dữ liệu khử thiên lệch sống sót: hơn 30
+chiến lược đã công bố cho alpha có ý nghĩa; sau khi tính hoa hồng, chênh
+mua-bán, quy mô và ràng buộc cấm bán khống thì **chỉ một nhúm còn lãi**.
+Kết quả −0,927% của dự án là điều **bình thường** ở lớp thị trường này.
+
+### Đòn bẩy lớn nhất là SỐ VỊ THẾ, không phải tín hiệu
+
+Luật cơ bản của quản lý chủ động: `IR = TC × IC × √BR`. Dự án đã đo được
+rằng nhãn vượt rổ giữa các mã gần như độc lập (−0,012) nên breadth khả dụng
+rất lớn — nhưng BR đếm **vị thế đã vào**, không phải mã có sẵn.
+
+| Cấu hình | BR/năm | IC | TC | IR |
+|---|---|---|---|---|
+| Hiện tại — ~45 lệnh/năm, ~3 vị thế | 45 | 0,030 | 0,20 | **0,040** |
+| Nếu IC đạt mức GKX, vẫn 3 vị thế | 45 | 0,063 | 0,20 | 0,085 |
+| Giữ 15 vị thế thay vì 3 | 225 | 0,030 | 0,50 | **0,225** |
+| 15 vị thế + IC mức GKX | 225 | 0,063 | 0,50 | 0,473 |
+
+Có tín hiệu tốt nhất thế giới cũng không cứu được breadth quá nhỏ. Và điều
+này khớp với chính con số dự án đã tự tính — *"cần 1.050 lệnh, ~23 năm ở
+nhịp 45 lệnh/năm"*. Cùng một hiện tượng nhìn từ phía thống kê. **Tăng số vị
+thế gạt cả hai nút thắt bằng một cần, và không cần thêm tín hiệu nào.**
+
+### Dự án đã tự phát minh lại một khung có sẵn tên
+
+| Dự án đang có | Tên trong tài liệu | Phần chưa có |
+|---|---|---|
+| Bất biến 7 — cấm lấy cực đại của N lần thử | **Deflated Sharpe Ratio** (Bailey & López de Prado 2014) | Công thức **chiết khấu định lượng** theo số lần thử, thay vì cấm tuyệt đối |
+| `co_mau_cho_luc()` | **Minimum Track Record Length** | Bản chuẩn tính cả **độ lệch và độ nhọn** — phân phối của dự án lệch mạnh (trung vị −0,40% trong khi kỳ vọng +2,17%) |
+| Bất biến 8 — vùng kiểm định ở quá khứ | **Probability of Backtest Overfitting** | Một CON SỐ thay cho một quy tắc định tính |
+
+### Đã sửa trong ngày: phí Sở giao dịch (PR #33)
+
+Bảng phí của công ty chứng khoán tách riêng phí Sở với hoa hồng, nên đọc
+lướt chỉ thấy hai dòng. Khoản 0,03%/chiều bị bỏ sót từ đầu.
+
+```
+trước : 0,15% ×2 + 0,10%            = 0,40%
+nay   : 0,15% ×2 + 0,03% ×2 + 0,10% = 0,46%
+```
+
+Rổ chuẩn trong `ro_chuan_tu_chuoi_gia` là **gộp** — `(p_ra − p_vao)/p_vao`,
+không trừ phí nào — còn `vs_benchmark` lấy `net_return_pct() − chuẩn`. Nên
+**alpha dịch đúng −0,06 đpt: −0,927% → −0,987%.** Đại số trên mã nguồn,
+không phải suy đoán.
+
+`MUC_BAT_LOI = −0.927` **cố ý GIỮ nguyên**: nó là con số đo được bằng một
+lượt walk-forward thật, và `N_DAY_DU = 596` suy ra từ nó. Gõ tay thành
+−0,987 là thay một con số đo bằng một con số suy. Cập nhật khi walk-forward
+chạy lại với chi phí mới.
+
+Đột biến 5/5 đỏ. Test cũ derive công thức từ hằng số nên gỡ
+`EXCHANGE_FEE_PCT` khỏi CẢ hai nơi thì vẫn xanh — vì vậy test mới **ghim**
+con số 0,46%, và đối chiếu trực tiếp hai bản công thức song song
+(`Trade.net_return_pct()` vs `paper_metrics.ROUND_TRIP_COST_PCT`).
+
+**Con số trong repo vẫn LẠC QUAN:** 0,15%/chiều là cận DƯỚI của dải bán lẻ
+thật (0,15–0,35%). Với công ty đắt hơn, vòng đủ tới 0,76%. Và Bộ Tài chính
+đã **đề xuất** thuế 20% trên lãi vốn chuyển nhượng chứng khoán — mới là đề
+xuất, nhưng nếu ban hành thì mọi phép tính chi phí phải làm lại.
+
+### Việc tiếp, xếp theo đòn bẩy
+
+1. **Tăng số vị thế đồng thời (3 → 15).** IR ×5,6 ở cùng IC, đồng thời tăng
+   lực đo. Động vào `consider_entry` và trần vốn — cần thiết kế và đo riêng.
+2. **Kéo dài nhịp nắm giữ.** h=60 đưa rào xuống 0,024. Nhưng dữ liệu hiện
+   có không đủ lực đo ở nhịp đó, nên là quyết định bằng **lý lẽ kinh tế**,
+   biết trước rằng nó sẽ không kiểm định được sớm.
+3. **Kiểm giả thuyết đảo chiều** ở nhóm vốn hoá lớn, một lần, khai trước.
+
+**Cổng C5 giữ ĐÓNG.** Không phát hiện nào ở đây tạo ra lý do mở.
+
+### Tái lập
+
+```bash
+python experiment_tran_dac_trung.py --chung-cu-duong
+```
+
+Chạy không có cờ đó thì script TỰ NÓI ra rằng kết quả chưa đọc được. Đó là
+chủ ý: một dòng "DƯỚI sàn nhiễu" không phân biệt được "không có tín hiệu"
+với "phép đo thiếu lực", và dự án này đã bốn lần đọc nhầm một con số theo
+hướng có lợi.
