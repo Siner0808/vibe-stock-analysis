@@ -46,17 +46,60 @@ def _duong_dan_nhac_toi(src: str) -> set:
     return ra
 
 
+def _git_biet(d: str) -> bool | None:
+    """git CÓ BIẾT đường dẫn này không — theo dõi HOẶC cố ý bỏ qua.
+
+    Trả None khi không hỏi được git (bản tải zip): người gọi lùi về kiểm
+    sự tồn tại trên đĩa.
+
+    Vì sao không kiểm `Path.exists()`: máy dev có TRẠNG THÁI CHẠY mà CI
+    không có. `sl_pattern_memory.json` được SKILL.md nhắc tới chính vì nó
+    là thứ CẤM COMMIT — nó gitignore, nên nó tồn tại ở máy và vắng mặt
+    trên runner. Bản đầu của gác này kiểm `exists()` và vì thế xanh tại
+    máy, đỏ trên CI (31/08/2026). Đúng cùng lớp bất đối xứng với "máy chạy
+    3.13, CI chạy 3.11", chỉ khác chỗ nó là trạng thái file chứ không phải
+    cú pháp.
+    """
+    import subprocess
+
+    def _chay(lenh):
+        try:
+            return subprocess.run(lenh, cwd=GOC, capture_output=True,
+                                  text=True, timeout=10)
+        except Exception:
+            return None
+
+    r = _chay(["git", "ls-files", "--error-unmatch", d])
+    if r is None:
+        return None
+    if r.returncode == 0:
+        return True
+    r2 = _chay(["git", "check-ignore", "-q", d])
+    if r2 is None:
+        return None
+    return r2.returncode == 0
+
+
 def test_moi_file_skill_nhac_toi_deu_CO_THAT():
-    """Trỏ tới file không tồn tại là hứa một thành phần không có."""
+    """Trỏ tới file git KHÔNG BIẾT là hứa một thành phần không có.
+
+    "git không biết" khác "không có trên đĩa": file gitignore thì git biết
+    và cố ý bỏ qua — đó là mention hợp lệ. Chỉ tên gõ sai hoặc file đã đổi
+    tên mới làm git ngơ ngác.
+    """
     thieu = []
     for f in (SKILL, BAY):
         for d in _duong_dan_nhac_toi(f.read_text(encoding="utf-8")):
-            # Bỏ qua đường dẫn tương đối trong chính thư mục skill
-            ung_vien = [GOC / d, SKILL.parent / d]
-            if not any(u.exists() for u in ung_vien):
-                thieu.append(f"{f.name} -> {d}")
-    assert not thieu, "skill trỏ tới file không tồn tại:\n  " + "\n  ".join(thieu)
-    print("PASS  mọi file skill nhắc tới đều có thật")
+            tuong_doi = [d, (SKILL.parent.relative_to(GOC) / d).as_posix()]
+            ket = [_git_biet(x) for x in tuong_doi]
+            if any(k is True for k in ket):
+                continue
+            if all(k is None for k in ket):     # không có git -> lùi về đĩa
+                if any((GOC / x).exists() for x in tuong_doi):
+                    continue
+            thieu.append(f"{f.name} -> {d}")
+    assert not thieu, "skill trỏ tới file git không biết:\n  " + "\n  ".join(thieu)
+    print("PASS  mọi file skill nhắc tới đều được git biết")
 
 
 def test_moi_TEST_skill_nhac_toi_deu_CO_THAT():
