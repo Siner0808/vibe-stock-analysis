@@ -46,14 +46,76 @@ class CacheQuaHanError(RuntimeError):
     """
 
 
-def _tre_phien(ngay_cuoi: str, moc: str) -> int:
-    """Số phiên (ngày làm việc) từ sau `ngay_cuoi` tới hết `moc`."""
+def _tre_phien(ngay_cuoi: str, moc: str, lich=None) -> int:
+    """Số PHIÊN từ sau `ngay_cuoi` tới hết `moc`.
+
+    ĐẾM BẰNG GÌ — VÀ VÌ SAO CÂU ĐÓ QUAN TRỌNG
+    ──────────────────────────────────────────
+    Bản trước đếm bằng `pd.bdate_range`, tức ngày làm việc T2–T6. Ngày làm
+    việc KHÁC phiên giao dịch: thị trường Việt Nam nghỉ lễ. Đo ngày
+    31/08/2026, với nến cuối là thứ Sáu 28/08 và kỳ nghỉ Quốc khánh 31/08
+    → 02/09:
+
+        31/08 → 1     01/09 → 2     02/09 → 3     03/09 → **4**
+
+    Sáng thứ Năm 03/09 — phiên đầu tiên mở lại — bộ đếm cũ báo trễ 4 phiên
+    trong khi dữ liệu chỉ cũ MỘT phiên theo lịch thị trường. Tết còn nặng
+    hơn: cùng phép đo cho 8–9. Một ngưỡng đúng đơn vị không cứu được một
+    phép đo sai đơn vị.
+
+    LỊCH LẤY TỪ ĐÂU
+    ───────────────
+    Không có API lịch giao dịch trong `vnstock`. Nhưng chuỗi giá CHÍNH LÀ
+    bản ghi phiên: thị trường có phiên thì có nến. `lich` là tập ngày phiên
+    quan sát được — `run_daily` nạp nó từ rổ đang quét bằng
+    `ghi_nhan_lich_phien()`.
+
+    CÁI BẪY, VÀ CHỐT CHẶN CHO NÓ
+    ────────────────────────────
+    Nếu chính `lich` cũng cũ hơn `moc` thì phép đếm ra 0 và ô C1 tắt lặng
+    lẽ — đúng thứ nó sinh ra để bắt. Nên lịch chỉ được dùng khi nó PHỦ TỚI
+    `moc`; không phủ thì lùi về đếm ngày làm việc, và `status()` nói rõ đó
+    là ước tính.
+    """
     ngay_cuoi, moc = str(ngay_cuoi)[:10], str(moc)[:10]
     if moc <= ngay_cuoi:
         return 0
+    lich = _LICH_PHIEN if lich is None else tuple(
+        sorted({str(d)[:10] for d in lich}))
+    if lich and max(lich) >= moc:
+        return sum(1 for d in lich if ngay_cuoi < d <= moc)
     return len(pd.bdate_range(
         start=pd.Timestamp(ngay_cuoi) + pd.Timedelta(days=1),
         end=pd.Timestamp(moc)))
+
+
+def _lich_phu_toi(moc: str, lich=None) -> bool:
+    """Lịch phiên có phủ tới `moc` không — tức phép đếm có CHẮC không."""
+    lich = _LICH_PHIEN if lich is None else lich
+    return bool(lich) and max(str(d)[:10] for d in lich) >= str(moc)[:10]
+
+
+#: Lịch phiên THẬT quan sát được trong lượt chạy này, nạp từ rổ đang quét.
+#: Rỗng thì `_tre_phien` lùi về đếm ngày làm việc — hành vi của bản trước.
+_LICH_PHIEN: tuple[str, ...] = ()
+
+
+def ghi_nhan_lich_phien(ngay) -> int:
+    """Nạp lịch phiên thật. Trả số ngày đã nạp.
+
+    Gọi MỘT lần đầu lượt quét, từ chuỗi giá vừa tải. Không đọc file, không
+    gọi mạng, và không tích luỹ qua lượt — nạp lại là ghi đè, nên cùng một
+    gói dữ liệu vẫn cho cùng một kết quả (bất biến 2).
+    """
+    global _LICH_PHIEN
+    _LICH_PHIEN = tuple(sorted({str(d)[:10] for d in ngay}))
+    return len(_LICH_PHIEN)
+
+
+def quen_lich_phien() -> None:
+    """Xoá lịch — cho test, và cho bất kỳ ai muốn về hành vi lùi."""
+    global _LICH_PHIEN
+    _LICH_PHIEN = ()
 
 
 _STATUS = {"active": False, "note": "chưa nạp", "rows": 0}
@@ -98,7 +160,7 @@ def get_vni_df():
         return None
 
 
-def status(hom_nay: str | None = None) -> dict:
+def status(hom_nay: str | None = None, lich=None) -> dict:
     """Bộ lọc có thật sự đang hoạt động không.
 
     Báo cáo nào nói "đã lọc theo xu hướng thị trường" đều phải gọi hàm này
@@ -116,9 +178,13 @@ def status(hom_nay: str | None = None) -> dict:
 
     moc = str(hom_nay or date.today().isoformat())[:10]
     cuoi = str(df["time"].iloc[-1])[:10]
-    tre = _tre_phien(cuoi, moc)
+    tre = _tre_phien(cuoi, moc, lich)
     st["ngay_cuoi"] = cuoi
     st["tuoi_phien"] = tre
+    # Đếm chắc (có lịch phiên phủ tới mốc) khác hẳn đếm ước tính (ngày làm
+    # việc). Không nói ra thì một con số nghỉ lễ trông y hệt một con số
+    # cache chết.
+    st["uoc_tinh"] = not _lich_phu_toi(moc, lich)
     if tre > TRE_TOI_DA_PHIEN:
         st["active"] = False
         st["note"] = (f"VN-INDEX QUÁ HẠN: dữ liệu tới {cuoi}, trễ {tre} phiên "

@@ -310,7 +310,8 @@ def execute_daily_scan():
     _cong = market_filter.status()
     print(f"📌 Cổng VN-INDEX: {'BẬT' if _cong.get('active') else 'TẮT'}"
           f" · dữ liệu tới {_cong.get('ngay_cuoi', '?')}"
-          f" · trễ {_cong.get('tuoi_phien', '?')} phiên")
+          f" · trễ {_cong.get('tuoi_phien', '?')} phiên"
+          f"{' (ước tính theo ngày làm việc — chưa có lịch phiên)' if _cong.get('uoc_tinh') else ''}")
     print("=" * 80)
 
     # ── KÉO SỔ LỆNH TỪ KHO NGOÀI TRƯỚC KHI QUÉT ──────────────────────
@@ -382,6 +383,7 @@ def execute_daily_scan():
     # Cổng C5 đóng thì hai thứ đó như nhau; cổng mở rồi thì chúng khác hẳn.
     bo_qua = {}
     quet_duoc = 0
+    _da_nap_lich = False
     # Số phiên nến THẬT SỰ nhận được cho từng mã đã chấm được điểm.
     phien_nhan = []
     collector = VNStockCollectorAgent()
@@ -405,6 +407,15 @@ def execute_daily_scan():
                     break
                 
                 df = res["df"]
+                # Nạp lịch phiên THẬT cho ô C1, một lần, từ mã đầu
+                # tiên tải được. Thị trường có phiên thì có nến — đó
+                # là lịch giao dịch duy nhất lấy được, vì `vnstock`
+                # không có API lịch. Nạp TRƯỚC `run_session` để mã
+                # đầu tiên cũng được chấm với cùng lịch như mã cuối.
+                if not _da_nap_lich and df is not None and len(df):
+                    _n = market_filter.ghi_nhan_lich_phien(df["time"])
+                    _da_nap_lich = True
+                    print(f"📅 Lịch phiên cho ô C1: {_n} phiên từ {sym}")
                 if df is None or df.empty or len(df) < 20:
                     n = 0 if df is None else len(df)
                     bo_qua["thiếu nến"] = bo_qua.get("thiếu nến", 0) + 1
@@ -433,6 +444,7 @@ def execute_daily_scan():
                 close_vnd = raw_close * (1000.0 if raw_close < 500.0 else 1.0)
                 scan_details.append({
                     "symbol": sym,
+                    "ngay": str(row["time"])[:10],
                     "close": close_vnd,
                     "score": last_score,
                     "opened": s["opened"] > 0,
@@ -476,7 +488,12 @@ def execute_daily_scan():
 
     # Vi sao dem theo `at` chu khong theo signal_date: cac ma co ngay phien
     # cuoi khac nhau, con `at` la moc GHI nen no khoanh dung mot luot quet.
-    _cong_sau = market_filter.status()
+    # Mốc đối chiếu là PHIÊN CUỐI của rổ, không phải `date.today()`:
+    # ngày nghỉ lễ không phải một phiên bị lỡ. Không quét được mã nào
+    # thì không có mốc, và `status()` lùi về ước tính — nó tự nói ra.
+    _phien_cuoi = max((d["ngay"] for d in scan_details if d.get("ngay")),
+                      default=None)
+    _cong_sau = market_filter.status(hom_nay=_phien_cuoi)
     try:
         _bi_chan = journal.db.execute(
             "select skip_reason, count(*) from decisions "
