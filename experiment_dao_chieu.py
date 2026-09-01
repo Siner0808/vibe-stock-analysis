@@ -69,6 +69,31 @@ CHỨNG CỨ DƯƠNG VẪN BẮT BUỘC
 Cùng lý do như script anh em: không có nó thì "không có tín hiệu" và
 "máy đo hỏng" trông y hệt nhau. Ở đây tín hiệu tiêm vào mang dấu ÂM.
 
+HAI CÁCH KIỂM LẠI SÀN NHIỄU, VÀ MỘT TRONG HAI CÁI TỰ NÓ SAI
+Chứng cứ dương hỏi *"máy có kêu khi CÓ tín hiệu không"*. Nó không hỏi
+*"máy có im khi KHÔNG có tín hiệu không"*, và hai câu đó hỏng độc lập.
+
+`chung_cu_am` (viết trước) đếm số lần báo động giả trên đặc trưng giả, và
+báo 14% ở h=21 — gấp ba mức danh nghĩa. `nguong_hieu_chuan` (viết sau)
+dựng thẳng phân phối của thống kê khi không có liên kết. Hai câu trả lời
+MÂU THUẪN nhau, và cái đúng là cái thứ hai:
+
+      h       san_nhieu    đo trực tiếp    đổi phán xử?
+       5       −0,0100        −0,0104         không
+      10       −0,0142        −0,0141         không
+      21       −0,0188        −0,0170         không
+      42       −0,0241        −0,0219         không
+      63       −0,0250        −0,0275         không
+
+**`chung_cu_am` mới là cái lệch.** Nó dịch vòng ĐẶC TRƯNG rồi vẫn dựng sàn
+nhiễu bằng cách xáo nhãn; độ dịch hiệu dụng khi đó là hiệu của hai phép
+dịch, và hiệu ấy quấn vòng nên nuốt phải các độ dịch NHỎ — đúng những độ
+dịch mà phép kiểm thật loại trừ theo thiết kế (`k >= h+1`). Sàn nhiễu của
+nó vì thế bị kéo lên và nó tự báo động giả.
+
+Giữ lại cả hai, có chủ đích: một phép hiệu chuẩn nghe rất hợp lý mà vẫn
+sai là thứ đáng giữ hơn một phép hiệu chuẩn đúng.
+
 KẾT QUẢ ĐÃ CHẠY: `docs/STATE.md`, mục "BƯỚC 9".
 """
 import argparse
@@ -102,6 +127,31 @@ CUA_SO_THANH_KHOAN = 250
 
 SO_HOAN_VI = 1000
 ALPHA = 0.05
+
+#: Chứng cứ âm: bao nhiêu lượt đặc trưng giả, và bao nhiêu hoán vị mỗi
+#: lượt.
+#:
+#: 200, KHÔNG PHẢI 40 — và con số 40 của bản đầu là một lỗi đã xảy ra
+#: thật ngày 01/09/2026. Ở 40 lượt, hai lần chạy khác hạt giống cho
+#: 5,0%/30,0% và 10,0%/17,5%: cùng kết luận định tính, nhưng không con số
+#: nào tái lập được. Với tỷ lệ thật 5%, sai số chuẩn của 40 lượt là 3,4
+#: điểm phần trăm — quá rộng để in ra một chữ số thập phân.
+SO_LAN_CHUNG_CU_AM = 200
+SO_HOAN_VI_AM = 200
+
+#: Trên mức này thì ô coi như KHÔNG đọc được, dù chứng cứ dương có qua.
+TY_LE_BAO_GIA_TOI_DA = 2 * ALPHA
+
+#: Mức tin cậy của khoảng Wilson quanh tỷ lệ báo động giả. Một tỷ lệ không
+#: kèm khoảng là đúng thứ bất biến 5 cấm, và bản đầu của `chung_cu_am` đã
+#: vi phạm nó.
+Z_KHOANG = 1.96
+
+#: Số đặc trưng giả để dựng NGƯỠNG hiệu chuẩn. Rẻ hơn `chung_cu_am` hàng
+#: trăm lần vì không cần một sàn nhiễu hoán vị cho MỖI lượt — chỉ cần
+#: chính phân phối của thống kê khi không có liên kết. 2.000 lượt cho
+#: phân vị 5 dựa trên 100 quan sát ở đuôi.
+SO_LAN_NGUONG = 2000
 
 
 def loi_nhuan_qua_khu(df: pd.DataFrame, J: int) -> np.ndarray:
@@ -209,6 +259,82 @@ def chung_cu_duong(kh: dict, J: int, h: int, rng, so_vong: int = 400) -> bool:
     return doc_duoc
 
 
+def khoang_wilson(k: int, n: int, z: float = Z_KHOANG) -> tuple:
+    """Khoảng tin cậy Wilson cho một tỷ lệ. KHÔNG dùng khoảng chuẩn.
+
+    Ở đây tỷ lệ thật nằm gần 0,05 và n vài trăm — vùng mà khoảng chuẩn
+    `p ± z√(p(1−p)/n)` tụt hẳn dưới mức phủ danh nghĩa và có thể trả cận
+    dưới ÂM. Wilson không có hai tật đó.
+    """
+    p = k / n
+    d = 1 + z * z / n
+    giua = (p + z * z / (2 * n)) / d
+    nua = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return float(giua - nua), float(giua + nua)
+
+
+def _dac_trung_gia(x: np.ndarray, chi_so: dict, h: int, rng) -> np.ndarray:
+    """Dịch vòng đặc trưng thật trong từng mã — giữ tự tương quan, mất liên kết."""
+    xg = x.copy()
+    for _, idx in chi_so.items():
+        n = len(idx)
+        if n > 2 * (h + 1):
+            k = int(rng.integers(h + 1, n - h - 1))
+            xg[idx] = np.roll(x[idx], k)
+    return xg
+
+
+def nguong_hieu_chuan(kh: dict, J: int, h: int, rng,
+                      so_lan: int = SO_LAN_NGUONG) -> dict:
+    """Ngưỡng ALPHA ĐO TRỰC TIẾP, không đi qua hoán vị nhãn.
+
+    `san_nhieu` dựng null bằng cách xáo NHÃN, và đo được ngày 01/09/2026 là
+    nó dễ dãi ở mọi nhịp đã thử (báo động giả 14% ở h=21 thay vì 5%). Hàm
+    này dựng null bằng cách xáo ĐẶC TRƯNG và giữ nguyên nhãn — nên cấu
+    trúc chéo theo ngày của nhãn vượt rổ (tổng bằng 0 mỗi phiên) còn
+    nguyên vẹn, và ngưỡng thu được là ngưỡng của chính thống kê đang dùng.
+
+    Rẻ hơn `chung_cu_am` hàng trăm lần: một lượt ở đây là MỘT phép tính
+    tương quan, không phải một sàn nhiễu 200 hoán vị.
+
+    KHÔNG thay luật quyết định đã khai trước. Ngưỡng này CHẶT hơn, nên nó
+    chỉ có thể làm một "ĐẠT" biến mất, không thể tạo ra một "ĐẠT" mới.
+    """
+    x, y, chi_so = bang(kh, J, h)
+    mau = np.empty(so_lan)
+    for i in range(so_lan):
+        mau[i] = rho_hang(_dac_trung_gia(x, chi_so, h, rng), y)
+    mau.sort()
+    return {"nguong": float(mau[int(ALPHA * so_lan)]),
+            "tb": float(mau.mean()), "sd": float(mau.std()),
+            "so_lan": so_lan}
+
+
+def chung_cu_am(kh: dict, J: int, h: int, rng,
+                so_lan: int = SO_LAN_CHUNG_CU_AM,
+                so_hoan_vi: int = SO_HOAN_VI_AM) -> tuple:
+    """(số lần kêu, số lượt). Tỷ lệ báo động giả phải xấp xỉ ALPHA.
+
+    Trả về ĐẾM chứ không trả tỷ lệ: người gọi cần cả tử lẫn mẫu để dựng
+    khoảng tin cậy. Trả sẵn một tỷ lệ là mời người ta in nó ra trần —
+    đúng lỗi bản đầu đã mắc ngày 01/09/2026.
+
+    Đặc trưng giả dựng bằng cách dịch vòng chính đặc trưng THẬT trong
+    từng mã: giữ nguyên tự tương quan và phân phối, chỉ phá liên kết với
+    nhãn. Dùng nhiễu trắng thay vào đây sẽ cho một câu trả lời dễ dãi —
+    tự tương quan mới là thứ làm sàn nhiễu hẹp lại.
+    """
+    x, y, chi_so = bang(kh, J, h)
+    keu = 0
+    for _ in range(so_lan):
+        xg = _dac_trung_gia(x, chi_so, h, rng)
+        null = san_nhieu(lambda yp: rho_hang(xg, yp), y, chi_so, h, rng,
+                         so_hoan_vi)
+        if rho_hang(xg, y) < float(null[int(ALPHA * so_hoan_vi)]):
+            keu += 1
+    return keu, so_lan
+
+
 def _in_dong(k: dict, nhan_o: str = "") -> None:
     print(f"  {k['J']:>3} {k['h']:>4} {k['n']:>9,} {k['n_eff']:>8.0f}"
           f" {k['rho']:>9.4f} {k['p5']:>9.4f} {k['rao']:>8.3f}"
@@ -222,6 +348,10 @@ def main() -> int:
                     help="BAT BUOC de doc duoc ket qua null")
     ap.add_argument("--phan-tang", action="store_true",
                     help="chay them phan tang thanh khoan (THU CAP, thieu luc)")
+    ap.add_argument("--chung-cu-am", action="store_true",
+                    help="do ty le BAO DONG GIA cua san nhieu tung o")
+    ap.add_argument("--nguong-hieu-chuan", action="store_true",
+                    help="nguong ALPHA do truc tiep, thay cho san nhieu hoan vi")
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args()
 
@@ -261,6 +391,40 @@ def main() -> int:
             k = kiem_o(kh, J_CHINH, H_CHINH, rng, a.hoan_vi, tang)
             print(f"  {ten:>10} {k['n']:>9,} {k['n_eff']:>8.0f}"
                   f" {k['rho']:>9.4f} {k['p5']:>9.4f} {k['rao']:>8.3f}")
+
+    if a.nguong_hieu_chuan:
+        print("\n── NGƯỠNG HIỆU CHUẨN · đo trực tiếp, không qua hoán vị ──")
+        print(f"  {'ô':>10} {'rho':>9} {'nhiễu5% cũ':>11} {'ngưỡng mới':>11}"
+              f" {'null TB':>9} {'null sd':>8}  đổi phán xử?")
+        for J, h in ((J_CHINH, H_CHINH), *O_THU_CAP):
+            k = kiem_o(kh, J, h, rng, a.hoan_vi)
+            n = nguong_hieu_chuan(kh, J, h, rng)
+            cu = k["rho"] < k["p5"]
+            moi = k["rho"] < n["nguong"]
+            print(f"  J={J} h={h:<4} {k['rho']:>9.4f} {k['p5']:>11.4f}"
+                  f" {n['nguong']:>11.4f} {n['tb']:>9.4f} {n['sd']:>8.4f}"
+                  f"  {'CÓ' if cu != moi else 'không'}"
+                  f" ({'có ý nghĩa' if cu else 'không'} -> "
+                  f"{'có ý nghĩa' if moi else 'không'})")
+        print("  Ngưỡng mới CHẶT hơn thì chỉ xoá được một 'ĐẠT', không tạo"
+              " ra 'ĐẠT' mới.")
+
+    if a.chung_cu_am:
+        print("\n── CHỨNG CỨ ÂM · sàn nhiễu có báo động giả không ──")
+        print(f"  {'ô':>10} {'báo giả':>9} {'KTC 95%':>16} {'ngưỡng':>8}"
+              f"  đọc được?")
+        for J, h in ((J_CHINH, H_CHINH), *O_THIEU_LUC):
+            keu, tong = chung_cu_am(kh, J, h, rng)
+            duoi, tren = khoang_wilson(keu, tong)
+            # FAIL-CLOSED: đọc được chỉ khi CHỨNG MINH ĐƯỢC là hiệu chuẩn,
+            # tức CẬN TRÊN dưới ngưỡng. Lấy điểm ước lượng ở đây là để một
+            # phép đo quá ít lượt tự xưng là sạch.
+            ok = tren <= TY_LE_BAO_GIA_TOI_DA
+            print(f"  J={J} h={h:<4} {keu / tong:>8.1%} "
+                  f"[{duoi:>6.1%} ; {tren:>6.1%}] {TY_LE_BAO_GIA_TOI_DA:>7.1%}"
+                  f"  {'CÓ' if ok else 'KHÔNG — chưa chứng minh được'}")
+        print(f"  Fail-closed: cần CẬN TRÊN dưới ngưỡng, không phải điểm "
+              f"ước lượng.")
 
     if a.chung_cu_duong:
         doc_duoc = chung_cu_duong(kh, J_CHINH, H_CHINH, rng)

@@ -46,6 +46,48 @@ Mọi script có `__main__` và `print` phải gọi:
 sys.stdout.reconfigure(encoding="utf-8")
 ```
 
+### 4. Dụng cụ đi KIỂM cũng hỏng được — và hôm đó nó mới là cái hỏng
+
+Ngày 01/09/2026 tôi viết một phép hiệu chuẩn để kiểm sàn nhiễu hoán vị.
+Nó báo sàn nhiễu hỏng nặng ở mọi nhịp. Dựng thêm một ngưỡng bằng **đường
+thứ hai** — đo thẳng phân phối của thống kê thay vì xáo nhãn — thì hai
+ngưỡng khớp nhau ở cả năm nhịp và **không ô nào đổi phán xử**.
+
+Cái hỏng là phép hiệu chuẩn, không phải thứ nó đi kiểm. Nếu tin nó, BƯỚC 7
+và BƯỚC 9 đều đã bị tuyên là không đọc được — một kết luận sai, đắt, và
+nghe rất có kỷ luật.
+
+**Một kết quả "dụng cụ hỏng" phải được đối chiếu đúng như một kết quả
+"tìm thấy tín hiệu".** Nó cũng đẹp theo cách riêng: nó cho phép gạt bỏ mọi
+thứ khó chịu mà vẫn tỏ ra nghiêm khắc. Quy tắc số 1 áp dụng cho nó y hệt.
+
+Cách rẻ nhất để bắt: dựng đại lượng đó bằng **hai đường độc lập**. Ở đây
+đường thứ hai còn rẻ hơn đường thứ nhất hàng trăm lần.
+
+### 4b. Chính PHÉP KIỂM cũng là một phép đo — nó cũng cần khoảng tin cậy
+
+Cùng phép hiệu chuẩn đó, chạy **40 lượt**, in ra `5,0%` và `30,0%` như
+hai con số. Lượt chạy lại khác hạt giống cho `10,0%` và `17,5%`.
+
+Cùng kết luận định tính, **không con số nào tái lập được**. Với tỷ lệ thật ~14%,
+sai số chuẩn của 40 lượt là 5,5 điểm phần trăm — cả bốn con số nằm trong
+nhiễu của nhau.
+
+Bất biến 5 nói "mọi con số phải kèm khoảng tin cậy", và tôi đã đọc nó
+trong cùng phiên đó. Nó vẫn lọt, vì phần đầu óc đang canh bất biến 5 thì
+canh *kết quả*, còn con số này nằm ở *dụng cụ*.
+
+Hai việc phải làm, không phải một:
+
+- Tỷ lệ đi kèm **khoảng Wilson** (khoảng chuẩn trả `[0 ; 0]` khi đếm được
+  0 lần — nó biến "chưa thấy" thành "chắc chắn không có").
+- Phán xử **fail-closed**: "đọc được" chỉ khi **cận trên** dưới ngưỡng.
+  Lấy điểm ước lượng cho phép một phép đo quá ít lượt tự xưng là sạch.
+
+Hệ quả kèm theo: số lượt phải **tự biện minh được**. Nếu một ô hiệu chuẩn
+hoàn hảo vẫn cho cận trên vượt ngưỡng thì phép đo không kết luận nổi điều
+gì, và cờ hiệu chuẩn thành trang trí. Có gác cho đúng việc đó.
+
 ---
 
 ## Thay đổi không đo được
