@@ -4486,3 +4486,297 @@ sẽ đòi chứng minh lại. Để người quyết.
 ```bash
 python walkforward.py --theo-ngay     # toàn bộ walk-forward, chế độ mới
 ```
+
+
+---
+
+## BƯỚC 9 — ĐẢO CHIỀU BỊ BÁC BỎ, VÀ MỘT DỤNG CỤ ĐI KIỂM TỰ SAI (01/09/2026)
+
+Việc thứ ba trong danh sách cuối BƯỚC 7: *"kiểm giả thuyết đảo chiều ở
+nhóm vốn hoá lớn, một lần, khai trước."* Đã chạy. Giả thuyết bị **bác bỏ**
+ở ô chính, với chứng cứ dương đứng sau nên đó là bằng chứng vắng mặt thật.
+
+Thứ đắt hơn nằm ở đường đi. Tôi viết thêm một phép hiệu chuẩn để kiểm sàn
+nhiễu, nó báo sàn nhiễu hỏng nặng ở mọi nhịp, và **chính nó mới là cái
+hỏng** — dựng ngưỡng bằng một đường thứ hai thì sàn nhiễu cũ đúng ở cả năm
+nhịp. Nếu tin phép hiệu chuẩn ấy thì BƯỚC 7 lẫn BƯỚC 9 đều đã bị tuyên là
+không đọc được.
+
+### Bản khai trước nằm ở một commit RIÊNG, trước lượt chạy
+
+`51adc88` chứa **chỉ** `experiment_dao_chieu.py` — thiết kế, bảng lực,
+luật quyết định — và không có một con số kết quả nào. Kết quả nằm ở commit
+sau. Lịch sử git vì thế tự chứng minh thứ tự, không cần ai tin lời kể.
+
+Ba thứ được chốt trước khi nhìn bất kỳ tương quan nào:
+
+| Chốt trước | Nội dung |
+|---|---|
+| **Nguồn giả thuyết** | Tài liệu ngoài về HOSE (kẻ thua vượt kẻ thắng 1,80% và 2,17% ở tháng 2 và 3). Không đến từ dữ liệu dự án → hợp lệ với bất biến 7 và 8. |
+| **Dấu** | ÂM. Một rho DƯƠNG có ý nghĩa **bác bỏ** giả thuyết, không phải "tìm thấy tín hiệu". Luật này nằm trong hàm `phan_xu`, không nằm trong đầu người đọc. |
+| **Ô chính** | J=21 h=21, chọn theo **lực phát hiện**. |
+
+### Ô chính chọn theo LỰC, và đó là chỗ BƯỚC 7 đã sai
+
+Bảng lực tính TRƯỚC lượt chạy. Ba đại lượng dựng nên nó — cỡ mẫu, n hiệu
+dụng, độ lệch chuẩn của nhãn — đều không phụ thuộc liên kết đặc trưng↔nhãn,
+nên chọn thiết kế theo chúng không phải là nhìn trộm.
+
+```
+   J    h   quan sát   n hiệu dụng   phát hiện 80%   rào @5%   đủ lực?
+  21   21     73.584         3.345           0,043     0,044      CÓ   <- Ô CHÍNH
+  10   10     74.343         6.758           0,030     0,066      CÓ
+   5    5     74.693        12.449           0,022     0,095      CÓ
+  21   42     72.135         1.678           0,061     0,031     không
+  21   63     70.686         1.104           0,075     0,025     không
+```
+
+**Phát hiện của tài liệu nằm ở tháng 2–3, tức h=42 — và ô đó KHÔNG đủ lực.**
+Chọn nó làm ô chính vì nó "khớp tài liệu" là đúng lỗi BƯỚC 7 tự ghi lại:
+chọn theo ý nghĩa kinh tế trong khi bảng lực đã ghi là sát biên. Ô chính vì
+thế là (21, 21) — đảo chiều một tháng cổ điển, ô duy nhất vừa được tài liệu
+đỡ vừa đủ lực. Các ô còn lại vẫn chạy, kèm nhãn khai trước.
+
+### Kết quả
+
+69 mã · 73.584 quan sát · nhãn vượt rổ · hoán vị dịch vòng 1.000 lần · seed 0:
+
+```
+   J    h   quan sát    n_eff       rho   nhiễu5%      rào   phán xử
+  21   21    73.584     3345   +0,0018   −0,0180    0,044   không vượt sàn nhiễu   <<< Ô CHÍNH
+  10   10    74.343     6758   +0,0140   −0,0140    0,066   không vượt sàn nhiễu
+   5    5    74.693    12449   −0,0017   −0,0104    0,095   không vượt sàn nhiễu
+  21   42    72.135     1678   −0,0258   −0,0213    0,031   vượt nhiễu, dưới rào   (khai trước: không đọc được)
+  21   63    70.686     1104   −0,0349   −0,0265    0,025   "ĐẠT"                  (khai trước: không đọc được)
+```
+
+**Ô chính: +0,0018, tức ngược dấu giả thuyết và bằng không.** Chứng cứ
+dương ở đúng ô đó qua sạch: tiêm 0 thì im, tiêm nửa rào thì kêu, tiêm đúng
+rào thì kêu. Nên đây là **bằng chứng vắng mặt**, không phải thiếu bằng chứng.
+
+Lực thật còn tốt hơn bản khai trước, vì sàn nhiễu đo được HẸP hơn lý thuyết
+(sd 0,0151 so với 1/√n_eff = 0,0173 — nhãn vượt rổ bị ràng buộc tổng bằng 0
+mỗi ngày nên phương sai co lại):
+
+```
+n hiệu dụng thật    4.386   (khai trước 3.345)
+phát hiện 80% thật  0,0375  (khai trước 0,043) — nay DƯỚI rào 0,044
+lực nếu hiệu ứng đúng bằng mức tài liệu công bố (−0,063)  : 99,9%
+lực nếu hiệu ứng chỉ bằng NỬA mức công bố      (−0,032)  : 81,4%
+lực nếu hiệu ứng đúng bằng rào hoà vốn         (−0,044)  : 95,7%
+```
+
+> **Nếu hiệu ứng đảo chiều mà tài liệu công bố có mặt trong dữ liệu này ở
+> đúng độ lớn đó, phép đo đã bắt được nó gần như chắc chắn.** Nó không có
+> mặt. Ngay cả một nửa độ lớn ấy cũng bị loại với 81% lực.
+
+### Sàn nhiễu có đáng tin không — hỏi hai lần, hai câu trả lời cãi nhau
+
+Ô duy nhất cho ra "ĐẠT" là h=63, ô đã khai trước là không đọc được. Trước
+khi nói bất cứ điều gì về nó, phải hỏi ngược lại: *máy đo có im khi KHÔNG
+có gì không?* Chứng cứ dương không hỏi câu đó.
+
+Hỏi bằng hai cách, và **hai cách trả lời trái nhau**. Đó mới là kết quả
+đáng giá nhất của ngày.
+
+#### Cách 1 — đếm báo động giả (`--chung-cu-am`)
+
+Dựng đặc trưng **giả** bằng cách dịch vòng chính đặc trưng thật trong từng
+mã, rồi chạy hết quy trình. Tỷ lệ "âm có ý nghĩa" phải xấp xỉ 5%:
+
+```
+           ô   báo giả          KTC 95%   ngưỡng  đọc được?
+  J=21 h=21      14.0% [  9.9% ;  19.5%]   10.0%  KHÔNG — chưa chứng minh được
+  J=21 h=42      19.0% [ 14.2% ;  25.0%]   10.0%  KHÔNG — chưa chứng minh được
+  J=21 h=63      30.5% [ 24.5% ;  37.2%]   10.0%  KHÔNG — chưa chứng minh được
+  Fail-closed: cần CẬN TRÊN dưới ngưỡng, không phải điểm ước lượng.
+```
+
+Đọc thẳng thì đây là một dụng cụ hỏng nặng, hỏng ở mọi nhịp, hỏng theo
+chiều dễ ra phát hiện.
+
+#### Cách 2 — đo thẳng ngưỡng (`--nguong-hieu-chuan`)
+
+Không đi qua hoán vị nhãn. Dựng luôn phân phối của thống kê khi không có
+liên kết rồi lấy phân vị 5%. Rẻ hơn cách 1 hàng trăm lần vì mỗi lượt chỉ
+là **một** phép tính tương quan, không phải một sàn nhiễu 200 hoán vị:
+
+```
+           ô       rho  nhiễu5% cũ  ngưỡng mới   null TB  null sd  đổi phán xử?
+  J=21 h=21      0.0018     -0.0188     -0.0170    0.0054   0.0149  không (không -> không)
+  J=10 h=10      0.0140     -0.0142     -0.0141    0.0024   0.0105  không (không -> không)
+  J=5 h=5      -0.0017     -0.0100     -0.0104    0.0010   0.0072  không (không -> không)
+  J=21 h=42     -0.0258     -0.0241     -0.0219    0.0024   0.0154  không (có ý nghĩa -> có ý nghĩa)
+  J=21 h=63     -0.0349     -0.0250     -0.0275   -0.0018   0.0160  không (có ý nghĩa -> có ý nghĩa)
+  Ngưỡng mới CHẶT hơn thì chỉ xoá được một 'ĐẠT', không tạo ra 'ĐẠT' mới.
+```
+
+Hai ngưỡng **khớp ở cả năm nhịp**, chênh nhiều nhất 0,0025, và **không ô
+nào đổi phán xử**. Ở ba nhịp giữa, sàn nhiễu hoán vị còn hơi CHẶT hơn.
+
+#### Cái sai là CÁCH 1, và cơ chế đo được bằng số
+
+`chung_cu_am` dịch vòng ĐẶC TRƯNG rồi vẫn dựng sàn nhiễu bằng cách xáo
+NHÃN. Độ dịch hiệu dụng khi đó là **hiệu** của hai phép dịch — và hiệu ấy
+quấn vòng, nên nó nuốt phải các độ dịch NHỎ, đúng những độ dịch mà phép
+kiểm thật loại trừ theo thiết kế (`k >= h+1`). Sàn nhiễu của nó bị kéo lên
+và nó tự báo động giả.
+
+Dải bị nuốt rộng đúng `2(h+1)/n`, với n ≈ 1.070 phiên mỗi mã:
+
+| nhịp | dải bị nuốt `2(h+1)/n` | báo giả vượt mức 5% | tỷ số |
+|---|---|---|---|
+| h=21 | 4,1% | +9,0 đpt | 2,2 |
+| h=42 | 8,0% | +14,0 đpt | 1,8 |
+| h=63 | 12,0% | +25.5 đpt | 2,1 |
+
+Tỷ số gần như hằng số quanh 2, và khoảng tin cậy của cả ba đều chứa 2.
+Dòng h=63 là một **tiên đoán ra trước** khi lượt chạy tới ô đó — dự kiến
++20 đpt, đo được +25,5 [19,5 ; 32,2]. Không phải một lời giải thích ghép
+vào sau khi đã thấy số.
+
+> **Một phép hiệu chuẩn cũng là một phép đo, nên nó cũng sai được.** Hôm
+> nay dụng cụ đi kiểm sai, còn dụng cụ bị kiểm thì đúng. Chỉ chạy cách 1
+> thì BƯỚC 7 và BƯỚC 9 đều đã bị tuyên là không đọc được — một kết luận
+> sai, đắt, và nghe rất có kỷ luật.
+>
+> Kết quả *"dụng cụ hỏng"* phải được đối chiếu đúng như kết quả *"tìm thấy
+> tín hiệu"*: nó cũng đẹp theo cách riêng, vì nó cho phép gạt bỏ mọi thứ
+> khó chịu mà vẫn tỏ ra nghiêm khắc.
+
+Giữ cả hai trong repo, có chủ đích: một phép hiệu chuẩn nghe rất hợp lý mà
+vẫn sai thì đáng giữ hơn một phép hiệu chuẩn đúng.
+
+#### Và một lỗi thứ hai, trong cùng phép đo đó
+
+Bản đầu của `chung_cu_am` chạy **40 lượt** rồi in `5,0%` và `30,0%` như hai
+con số. Lượt chạy lại khác hạt giống cho `10,0%` và `17,5%`. Với tỷ lệ thật
+~14%, sai số chuẩn của 40 lượt là 5,5 điểm phần trăm — cả bốn con số nằm
+trong nhiễu của nhau.
+
+Bất biến 5 — *"mọi con số phải kèm khoảng tin cậy"* — được đọc trong cùng
+phiên và vẫn lọt, vì phần đầu óc đang canh bất biến 5 thì canh **kết quả**,
+còn con số này nằm ở **dụng cụ**. Đã sửa ba chỗ, mỗi chỗ một gác kèm đột
+biến:
+
+| Sửa | Vì sao |
+|---|---|
+| 40 → **200 lượt** | để một ô hiệu chuẩn thật CHỨNG MINH ĐƯỢC là dưới ngưỡng |
+| tỷ lệ → **khoảng Wilson** | khoảng chuẩn trả `[0 ; 0]` khi đếm 0 lần — biến "chưa thấy" thành "chắc chắn không có" |
+| phán xử → **fail-closed** | đọc được chỉ khi **cận trên** dưới ngưỡng, không phải điểm ước lượng |
+
+Kèm một gác bắt số lượt **tự biện minh được**: nếu một ô hiệu chuẩn hoàn
+hảo vẫn cho cận trên vượt ngưỡng thì cờ hiệu chuẩn chỉ là trang trí.
+
+### Bảng lực khai trước đã ĐÁNH GIÁ THẤP cỡ mẫu hiệu dụng
+
+Hệ quả thứ hai của việc đo thẳng, và nó chạm tới cả BƯỚC 7. Bảng lực dùng
+công thức quen `n_eff = n/(h+1)` cho nhãn chồng lấn. Độ lệch chuẩn ĐO ĐƯỢC
+của phân phối null nói khác:
+
+```
+        n_eff theo công thức   n_eff suy từ sd đo được   tỷ lệ
+h = 21          3.345                   4.504            1,3×
+h = 42          1.678                   4.219            2,5×
+h = 63          1.104                   3.906            3,5×
+```
+
+Công thức càng sai khi nhịp càng dài. Giả thuyết hợp lý nhất — **chưa
+kiểm**: nhãn vượt rổ đã bỏ thành phần thị trường chung, mà đó là nguồn dai
+dẳng nhất của tự tương quan, nên phần chồng lấn còn lại tốn ít cỡ mẫu hơn
+công thức giả định.
+
+Phải nói rõ: **nhãn "thiếu lực" dán cho h=42 và h=63 dựa trên một công
+thức nay biết là bi quan.** Nhưng nhãn ấy dán TRƯỚC lượt chạy nên nó ở
+lại — gỡ nhãn sau khi đã thấy số là đúng thứ bất biến 7 cấm, kể cả khi lý
+do gỡ là một lý do kỹ thuật đúng.
+
+### h=63: không phải phát hiện, nhưng nay là câu hỏi CÓ ĐỊA CHỈ
+
+Ô ấy cho rho −0,0349, vượt cả sàn nhiễu hoán vị (−0,0250) lẫn ngưỡng đo
+trực tiếp (−0,0275), và nằm TRÊN rào hoà vốn 0,025. Một phía, p ≈ 0,019.
+
+Ba lý do nó vẫn KHÔNG phải kết quả, cả ba có trước con số:
+
+1. Khai trước là không đọc được. Nhãn đó ở lại.
+2. **Năm ô cùng lúc.** Bonferroni cho ngưỡng 0,01; p = 0,019 không qua.
+3. Chặng 2 của chính bản khai trước — xác nhận trên vùng sạch — chỉ chạy
+   nếu **ô chính** ĐẠT. Ô chính không đạt, nên chặng 2 KHÔNG chạy và
+   25.219 phiên sạch vẫn nguyên vẹn.
+
+Việc đúng cho lần sau: **một** phép kiểm khai trước riêng cho h=63, tính
+lực bằng độ lệch chuẩn ĐO ĐƯỢC (0,0160) chứ không bằng công thức. Ở mức
+hiệu ứng 0,035 cần sd ≤ 0,0141, tức khoảng **1,3× dữ liệu hiện có** — lần
+đầu một câu hỏi của dự án này nằm trong tầm với thay vì cần hàng chục năm.
+
+### Bản khai trước đã trả đúng thứ nó sinh ra để trả
+
+Nếu quét năm ô rồi báo cáo ô đẹp nhất, tiêu đề hôm nay sẽ là:
+
+> *"Tìm thấy đảo chiều ở nhịp 63 phiên: rho −0,035, vượt sàn nhiễu VÀ trên
+> rào hoà vốn 0,025."*
+
+Câu đó sai vì **hai** lý do độc lập, và cả hai được ghi trước khi con số
+xuất hiện: ô ấy khai trước là thiếu lực, và năm ô chạy cùng lúc thì
+Bonferroni đòi p < 0,01 trong khi nó cho 0,019. Đây là lần đầu trong dự án
+một bản khai trước chặn được một phát hiện giả **ngay ở lượt chạy đầu**,
+thay vì phải phát hiện ngược lại vài ngày sau.
+
+### Phân tầng thanh khoản — không đỡ giả thuyết, mà cũng không đủ lực
+
+Tài liệu nói đảo chiều **chết vì chi phí ở vốn hoá nhỏ**, chỉ sống ở vốn
+hoá lớn. Xếp hạng dựng nhân quả (trung vị 250 phiên tính tới hết phiên T,
+xếp hạng chéo trong đúng ngày đó — xếp bằng trung vị toàn mẫu là nhìn trộm):
+
+```
+tầng    quan sát   n_eff       rho   nhiễu5%     rào
+lớn       20.921     951   +0,0267   −0,0362   0,048
+nhỏ       19.897     904   +0,0119   −0,0168   0,044
+```
+
+Cả hai tầng đều **dương**, tức ngược chiều giả thuyết, và không tầng nào có
+ý nghĩa. Cắt còn một phần ba làm n hiệu dụng chia ba TRONG KHI rào ở nhóm
+lớn lại CAO HƠN vì σ nhỏ hơn — hai chiều cùng xấu, đã nói trước khi chạy.
+Nên đây là quan sát, không phải kết luận.
+
+### Ba điều phải đọc kèm, và một trong ba làm kết luận MẠNH hơn
+
+1. **Giai đoạn khác.** Cache dự án là 2021-10 → 2026-08; tài liệu HOSE chạy
+   trên mẫu cũ hơn nhiều. Hiệu ứng có thể đã phân rã. Đây là một trong ba
+   cảnh báo đã viết ở BƯỚC 7 trước khi chạy.
+2. **Thiên lệch sống sót làm kết luận MẠNH hơn, không yếu đi.** Rổ là ảnh
+   chụp hôm nay, nên mã rớt hẳn không có mặt — mà đó đúng là *"kẻ thua
+   không hồi phục"*. Bỏ chúng ra làm nhóm thua còn lại trông TỐT hơn thực
+   tế, tức **thổi phồng** đảo chiều đo được. Đo ra ≈ 0 trên một mẫu đã
+   nghiêng về phía có đảo chiều thì hiệu ứng thật ≤ 0.
+3. **Đây là kiểm sự TỒN TẠI của tín hiệu, không phải kiểm một chiến lược.**
+   Không lệnh nào được mở, không cần gạt nào được vặn.
+
+### Hệ quả cho BƯỚC 7 — không rút lại gì
+
+BƯỚC 7 dùng cùng `san_nhieu` ở h=5/10/20. Phép đo thẳng hôm nay xác nhận
+sàn nhiễu ấy đúng ở h=5, 10, 21, 42 và 63 — nên **mọi kết luận của BƯỚC 7
+đứng nguyên**, và "h=20 không đọc được" vẫn dựa đúng vào lý do cũ của nó là
+chứng cứ dương, không phải một khuyết tật của sàn nhiễu.
+
+Cái phải ghi thêm là bảng lực của BƯỚC 7: `|rho| phát hiện được 0,100` ở
+h=20 tính bằng đúng công thức `n/(h+1)` nay biết là bi quan. Con số thật
+nhiều khả năng thấp hơn. Điều đó **không** cứu được kết luận null nào — nó
+chỉ nói phép đo hồi ấy mạnh hơn nó tự nghĩ.
+
+### Cổng C5 giữ ĐÓNG
+
+Không phát hiện nào ở đây tạo ra lý do mở. Một giả thuyết bị bác bỏ không
+làm alpha −1,99% khá lên.
+
+### Tái lập
+
+```bash
+python experiment_dao_chieu.py --chung-cu-duong --phan-tang   # ket qua chinh
+python experiment_dao_chieu.py --nguong-hieu-chuan            # nguong duong 2
+python experiment_dao_chieu.py --chung-cu-am                  # ~50 phut
+```
+
+Lệnh thứ hai là bắt buộc trước khi tin một phán xử ở nhịp dài — và nó rẻ.
+Lệnh thứ ba giữ lại phép hiệu chuẩn ĐÃ SAI, có chủ đích: nó là bằng chứng
+đọc lại được cho mục "Cái sai là CÁCH 1".

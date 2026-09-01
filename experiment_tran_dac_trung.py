@@ -56,6 +56,11 @@ import numpy as np
 import pandas as pd
 
 sys.stdout.reconfigure(encoding="utf-8")
+# stderr CUNG phai reconfigure: canh bao hieu chuan cua san_nhieu di
+# duong nay va no co dau tieng Viet. Thieu dong duoi thi canh bao ra
+# dang ệ... — khong no, nhung khong ai doc noi, ma mot canh bao
+# khong doc noi thi bang khong co.
+sys.stderr.reconfigure(encoding="utf-8")
 
 GOC = Path(__file__).resolve().parent
 CACHE = GOC / "backtest" / "cache"
@@ -77,6 +82,20 @@ TEN_DAC_TRUNG = ("rsi", "macd_hist", "bb_pctb", "stoch_kd",
 
 HORIZONS = (5, 10, 20)
 SO_HOAN_VI = 1000
+
+#: Những nhịp mà sàn nhiễu này đã được ĐỐI CHIẾU với một ngưỡng dựng
+#: bằng cách khác (`experiment_dao_chieu.nguong_hieu_chuan`, xáo ĐẶC
+#: TRƯNG thay vì xáo nhãn). Đo 01/09/2026, cả năm nhịp đều khớp và không
+#: nhịp nào đổi phán xử — chi tiết: `docs/STATE.md`, BƯỚC 9.
+#:
+#: Đây KHÔNG phải danh sách "nhịp an toàn" theo lý lẽ; nó là danh sách
+#: nhịp đã có người đi kiểm. Ngoài danh sách thì chưa ai kiểm, và
+#: `san_nhieu` tự nói ra điều đó thay vì im lặng tỏ ra đáng tin.
+NHIP_DA_DOI_CHIEU = (5, 10, 21, 42, 63)
+
+#: Đã cảnh báo cho nhịp nào rồi — một cảnh báo lặp hàng trăm lần là một
+#: cảnh báo bị bỏ qua.
+_DA_CANH_BAO = set()
 _ND = NormalDist()
 
 
@@ -213,7 +232,32 @@ def san_nhieu(ham, y: np.ndarray, chi_so: dict, h: int,
     Dịch ≫ h để không quan sát nào giữ lại nhãn cũ của nó qua phần chồng
     lấn. Mã quá ngắn thì để nguyên — dịch một chuỗi 30 phiên với h=20
     không phá được gì mà còn làm null hẹp lại một cách giả tạo.
+
+    ĐÃ ĐỐI CHIẾU NGÀY 01/09/2026 — VÀ NÓ ĐÚNG
+    Ngưỡng 5% của hàm này được đem so với một ngưỡng dựng bằng đường khác
+    hẳn: `experiment_dao_chieu.nguong_hieu_chuan` xáo ĐẶC TRƯNG và giữ
+    nguyên nhãn, nên cấu trúc chéo theo ngày của nhãn vượt rổ còn nguyên.
+
+        h       ngưỡng hàm này    ngưỡng đo trực tiếp
+         5          −0,0100            −0,0104
+        10          −0,0142            −0,0141
+        21          −0,0188            −0,0170
+        42          −0,0241            −0,0219
+        63          −0,0250            −0,0275
+
+    Khớp ở cả năm nhịp, và KHÔNG nhịp nào đổi phán xử. Ở ba nhịp giữa hàm
+    này còn hơi CHẶT hơn.
+
+    ⚠️ Ngoài `NHIP_DA_DOI_CHIEU` thì chưa ai kiểm. Hàm vẫn chạy nhưng tự
+    khai ra điều đó — chặn hẳn thì công cụ đo sẽ bị đi vòng, mà một công
+    cụ bị đi vòng thì bằng không có.
     """
+    if h not in NHIP_DA_DOI_CHIEU and h not in _DA_CANH_BAO:
+        _DA_CANH_BAO.add(h)
+        print(f"⚠️  san_nhieu: nhịp h={h} CHƯA được đối chiếu. Đã kiểm: "
+              f"{NHIP_DA_DOI_CHIEU}. Chạy `experiment_dao_chieu.py "
+              f"--nguong-hieu-chuan` để dựng ngưỡng bằng đường thứ hai "
+              f"trước khi tin kết quả ở nhịp này.", file=sys.stderr)
     out = np.empty(so)
     for i in range(so):
         yp = y.copy()
