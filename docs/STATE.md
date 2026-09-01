@@ -4780,3 +4780,134 @@ python experiment_dao_chieu.py --chung-cu-am                  # ~50 phut
 Lệnh thứ hai là bắt buộc trước khi tin một phán xử ở nhịp dài — và nó rẻ.
 Lệnh thứ ba giữ lại phép hiệu chuẩn ĐÃ SAI, có chủ đích: nó là bằng chứng
 đọc lại được cho mục "Cái sai là CÁCH 1".
+
+
+---
+
+## BƯỚC 10 — NEO LẠI `MUC_BAT_LOI`, VÀ BỐN LỆNH CHƯA HỀ KHỚP (01/09/2026)
+
+Việc treo từ BƯỚC 8: `MUC_BAT_LOI = −0,927` dựng trên phép đo n=385 chế độ
+THEO MÃ, mà cấu hình đó nay biết là dựa trên đòn bẩy tài khoản chưa bao giờ
+có. Người dùng quyết hướng sau khi thấy mô phỏng.
+
+### Bản "cập nhật thẳng sang −1,99" đã bị BÁC — bằng mô phỏng, trước khi sửa
+
+Trực giác nói: đo mới cho −1,99% thì thay vào. Cỡ mẫu tụt từ 596 xuống 130,
+quyết định đến sớm hơn nhiều. Nghe hợp lý, và **sai**.
+
+`MUC_BAT_LOI` không phải *"mức hại đã đo"*. Nó là *"mức hại mà phép kiểm
+BẮT BUỘC phải có lực phát hiện"*. Đặt nó LỚN thì cỡ mẫu tụt và phép kiểm
+mất lực trước những mức hại nhỏ hơn — đúng lỗi bản 1, vốn hiệu chuẩn cho
+thảm hoạ −2,5%.
+
+Mô phỏng cả HAI nhánh của `dieu_kien_dong_lai` (bản `_mo_phong` cũ chỉ soi
+nhánh biên HẠI, mà nhánh hỏng là nhánh đảo gánh nặng):
+
+```
+                                          μ thật = +2,0%/lệnh
+cấu hình                              N_DAY_DU   hệ thống TỐT bị đóng
+A  giữ nguyên   (−0,927 · σ 8,075)        596            0,0%
+B  μ = −1,99, giữ σ                       130           25,9%   ✗
+C  μ = −1,99 và σ = 6,967 (cả hai mới)     97           25,1%   ✗
+D  μ = −0,920 · σ = 6,967                 451            0,0%   ← chọn
+```
+
+**Cứ bốn hệ thống xuất sắc thì một bị tắt.** `docs/STATE.md` và mã nguồn
+đều ghi đặc tính *"alpha = +2% không bao giờ bị đóng"* — bản cập nhật nghe
+hợp lý nhất phá đúng nó.
+
+### Đã chọn: neo lại cả hai hằng số theo phép đo mới, μ lấy CẬN TRÊN
+
+```
+                    cũ                    mới
+MUC_BAT_LOI      −0,927                −0,920   ← cận TRÊN KTC của đo mới
+SIGMA_ALPHA       8,075                 6,967   ← từ n=181, chế độ danh mục
+N_DAY_DU            596                   451   ← suy ra, không gõ
+N_TOI_THIEU         150                   113   ← nay SUY RA: round(N/4)
+Z_BIEN_HAI         2,30                  2,30   ← hiệu chuẩn lại, vẫn 2,30
+```
+
+Lấy **cận trên** (−0,92) chứ không phải ước lượng điểm (−1,99) là chọn mức
+hại NHỎ NHẤT mà dữ liệu không loại được — tức giữ lực trước cả hai khả
+năng. Nếu hại thật là −1,99 thì phép kiểm dư lực; nếu hại thật là −0,92 thì
+nó vẫn vừa đủ. Chiều ngược lại không có tính chất đó.
+
+`σ` nhỏ đi (8,075 → 6,967) **không** phải nới lỏng: nó là bỏ đi phần phương
+sai của một cấu hình dùng đòn bẩy chưa bao giờ tồn tại. 606/820 lệnh của
+chế độ cũ đòi vốn tài khoản không có (BƯỚC 8).
+
+Đặc tính mới, mô phỏng 40.000 lượt, trần 1.000 lệnh — **giống hệt bản cũ về
+hình dạng, chỉ đến sớm hơn**:
+
+```
+   μ thật     ĐÓNG    vì hại  chưa chứng minh   n trung bình
+   −2,000%   100,0%   100,0%          0,0%          121   (cũ: 161)
+   −0,920%   100,0%    80,8%         19,2%          255   (cũ: 335)
+    0,000%    99,7%     5,9%         93,8%          440   (cũ: 580)
+   +0,500%    80,4%     0,4%         80,0%          572
+   +0,920%    27,5%     0,0%         27,4%          854
+   +2,000%     0,0%     0,0%          0,0%        1.000
+```
+
+Hiệu chuẩn lại `Z_BIEN_HAI` với hằng số mới: z=1,96 cho loại I 11,1%;
+z=2,30 cho 5,6%; z=2,50 cho 3,6%. Giữ 2,30, lý do cũ vẫn đứng.
+
+### Gác mới: thứ duy nhất bắt được bản "cập nhật hợp lý"
+
+`tests/test_hang_rao_quy_trinh.py::test_he_thong_THAT_SU_TOT_khong_bao_gio_bi_dong`
+mô phỏng CẢ HAI nhánh và đòi tỷ lệ đóng nhầm ở μ=+2% phải ≤ 2%. Đột biến
+đặt `MUC_BAT_LOI = −1.99` làm nó đỏ; **không test cũ nào đỏ trước thay đổi
+đó**, vì `_mo_phong` chỉ soi nhánh biên HẠI.
+
+Điểm mù của chính gác này đã ghi trong docstring của nó: nó DỰNG LẠI logic
+chứ không gọi hàm thật, nên bắt được đột biến ở HẰNG SỐ mà không bắt được ở
+THÂN HÀM. Phần thân do các test mục 3 canh. Hai gác bù nhau.
+
+Thêm `test_N_TOI_THIEU_phai_SUY_RA_tu_N_DAY_DU`: bản cũ gõ tay `150` trong
+khi 596/4 = 149 — một con số làm tròn cho đẹp mắt lọt vào đúng chỗ đáng lẽ
+phải suy ra, và không gì kêu suốt từ 29/08.
+
+Đột biến **6/6 đỏ**, gồm cả đột biến tái tạo đúng lỗi bản 1 (μ = −2,5).
+
+### BỐN LỆNH CHƯA HỀ KHỚP — tài liệu sai, không phải sổ
+
+Điều khoản sửa đổi buộc ghi rõ lúc viết lại đã có bao nhiêu kết quả trong
+tay. Đọc thẳng sổ THẬT trên Google Sheets thay vì tin tài liệu:
+
+```
+kho ngoài : 117 lệnh · 16.049 quyết định
+lệnh tiến-về-trước : 4, TẤT CẢ vẫn PENDING
+  NAF · STB · TCB · HUT   tín hiệu 2026-08-28
+  entry_date = None       entry_price = None
+KẾT QUẢ ĐÃ ĐÓNG : 0
+```
+
+`CLAUDE.md` và `docs/STATE.md` (BƯỚC 5, BƯỚC 6) đều ghi bốn lệnh này **"khớp
+sáng 31/08/2026"**, và `CLAUDE.md` suy từ đó rằng điều kiện 2 của điều khoản
+sửa đổi đã hết hiệu lực. Sổ nói ngược lại: chúng chưa bao giờ khớp.
+
+Hai hệ quả, và cái thứ hai chưa xử lý:
+
+1. **Điều kiện 2 VẪN THOẢ** — chưa có một điểm dữ liệu kết quả nào. Việc
+   viết lại hôm nay vì thế hợp lệ đầy đủ, không cần viện tới ngoại lệ nào.
+2. **Vì sao chúng không khớp sau bốn phiên quét?** Chưa biết. Sổ vẫn chạy
+   (16.049 quyết định, nhiều hơn bản sao ở máy 2.460 dòng), nên không phải
+   quét chết. `fill_pending()` không đọc cờ C5 nên cổng đóng KHÔNG chặn
+   khớp. Đây là **việc treo mới**, và nó đáng đứng trước mọi việc khác:
+   một lệnh chờ bốn phiên không khớp thì hoặc luật khớp sai, hoặc bằng
+   chứng tiến-về-trước sẽ không bao giờ tích luỹ được.
+
+> Bài học lặp lại lần thứ ba trong dự án: **đừng đọc trạng thái từ tài
+> liệu, đọc từ sổ.** Ngày 28/08 đã đo trạng thái bằng bản sao chết ở máy và
+> sai; hôm nay tài liệu chép lại một sự kiện chưa xảy ra.
+
+### Cổng C5 giữ ĐÓNG
+
+Không có gì ở đây là lý do mở. Neo lại một hằng số an toàn không phải một
+phát hiện về lợi thế.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_hang_rao_quy_trinh.py tests/test_dieu_kien_dung_alpha.py -q
+```

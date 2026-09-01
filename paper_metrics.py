@@ -409,30 +409,56 @@ def tom_tat_lo_ghi(trades: list[Trade]) -> dict:
 # chưa có điểm dữ liệu kết quả nào thuộc loại quy tắc đang chờ; và bản
 # cũ, bản mới, lý do đổi đều được ghi. Ngày 29/08/2026 cả ba thoả —
 # 4 lệnh tiến-về-trước còn PENDING, chưa lệnh nào đóng.
+#
+# VIẾT LẠI LẦN HAI, 01/09/2026 — và số kết quả trong tay là ĐÃ ĐO, không
+# phải giả định. Đọc thẳng sổ THẬT trên Google Sheets: 117 lệnh, 4 lệnh
+# tiến-về-trước, cả 4 vẫn PENDING với `entry_date`/`entry_price` là None.
+#     -> KẾT QUẢ ĐÃ ĐÓNG: 0. Điều kiện 2 vẫn thoả.
+# Lưu ý: `CLAUDE.md` và `docs/STATE.md` ghi bốn lệnh này "khớp sáng
+# 31/08/2026". Sổ nói KHÔNG. Tài liệu sai, không phải sổ.
 
-#: Độ lệch chuẩn của alpha MỖI LỆNH. Nêu TRƯỚC, suy từ phép đo ngoài mẫu
-#: n=385 (docs/STATE.md): alpha −0,927%, KTC 95% [−1,689 ; −0,076]
-#:   nửa độ rộng 0,8065  →  SE 0,4115  →  σ = 0,4115·√385 = 8,075%
-SIGMA_ALPHA = 8.075
+#: Độ lệch chuẩn của alpha MỖI LỆNH. Suy từ phép đo ngoài mẫu MỚI — chế
+#: độ DANH MỤC, n=181 (docs/STATE.md, BƯỚC 8): alpha −1,99%, KTC 95%
+#: [−2,95 ; −0,92]
+#:   nửa độ rộng 1,0150  →  SE 0,5179  →  σ = 0,5179·√181 = 6,967%
+#:
+#: Bản cũ lấy 8,075 từ phép đo n=385 chế độ THEO MÃ. Cấu hình đó dựng trên
+#: đòn bẩy tài khoản chưa bao giờ có (606/820 lệnh đòi vốn không tồn tại),
+#: nên σ của nó không mô tả danh mục nào kiểm định được.
+SIGMA_ALPHA = 6.967
 
-#: Mức bất lợi ĐO ĐƯỢC ngoài mẫu khi bật chi phí thực thi. Ngưỡng phải có
-#: lực phát hiện ở ĐÂY, không phải ở mức thảm hoạ.
-MUC_BAT_LOI = -0.927
+#: Mức bất lợi dùng làm ĐIỂM THIẾT KẾ: cận TRÊN của KTC phép đo mới
+#: (−0,92), KHÔNG phải ước lượng điểm (−1,99). Cố ý, và ngược trực giác.
+#:
+#: `MUC_BAT_LOI` không phải "mức hại đã đo" — nó là "mức hại mà phép kiểm
+#: BẮT BUỘC phải có lực phát hiện". Lấy mức LỚN thì cỡ mẫu tụt và phép
+#: kiểm mất lực trước những mức hại nhỏ hơn; đó đúng là lỗi bản 1, vốn
+#: hiệu chuẩn cho thảm hoạ −2,5%. Lấy cận trên là chọn mức hại NHỎ NHẤT
+#: mà dữ liệu không loại được, tức giữ lực trước cả hai khả năng.
+#:
+#: Đã mô phỏng bản "cập nhật thẳng sang −1,99": nó ĐÓNG NHẦM một hệ thống
+#: +2%/lệnh **25,9%** số lần, trong khi bản này 0,0%. Một cập nhật nghe
+#: rất hợp lý phá đúng đặc tính mà điều kiện này sinh ra để có.
+MUC_BAT_LOI = -0.920
 
 #: Cỡ mẫu cho 80% lực phát hiện ở `MUC_BAT_LOI`, hai phía 5%:
-#:     n = ((1,95996 + 0,84162)·σ/|μ|)² = (2,80158·8,075/0,927)² = 595,31
-#: làm tròn LÊN → 596. `docs/STATE.md` ghi 595 vì làm tròn xuống; chênh
-#: một lệnh, không đổi đặc tính, nhưng mã phải khớp chính công thức của nó.
+#:     n = ((1,95996 + 0,84162)·σ/|μ|)² = (2,80158·6,967/0,920)² = 450,07
+#: làm tròn LÊN → 451. Quyết định đến sớm hơn 145 lệnh so với bản cũ, với
+#: đặc tính mô phỏng GIỐNG HỆT — không phải nới lỏng, mà là bỏ đi phần
+#: phương sai của một cấu hình chưa bao giờ tồn tại.
 #: KHÔNG viết tay con số này — `co_mau_cho_luc()` tính ra nó, và
 #: `tests/test_dieu_kien_dung_alpha.py` bắt hai bên phải khớp.
-N_DAY_DU = 596
+N_DAY_DU = 451
 
-#: Dưới mốc này thì chưa đánh giá. 150 ≈ 25% thông tin của `N_DAY_DU`.
-N_TOI_THIEU = 150
+#: Dưới mốc này thì chưa đánh giá — 25% thông tin của `N_DAY_DU`. SUY RA,
+#: không gõ: bản cũ ghi 150 trong khi 596/4 = 149, tức một con số làm tròn
+#: cho đẹp mắt đã lọt vào đúng chỗ đáng lẽ phải suy ra.
+N_TOI_THIEU = round(N_DAY_DU / 4)
 
 #: Biên HẠI được đánh giá LIÊN TỤC (mỗi lượt quét), nên phải nới rộng hơn
-#: 1,96. Mô phỏng 40.000 lần với σ trên, đánh giá ở MỌI n từ 150:
-#:     z=1,96 → sai lầm loại I 11,7%    z=2,30 → 5,8%    z=2,50 → 3,7%
+#: 1,96. Mô phỏng 40.000 lần với σ và hai mốc trên, đánh giá ở MỌI n từ
+#: `N_TOI_THIEU`:
+#:     z=1,96 → sai lầm loại I 11,1%    z=2,30 → 5,6%    z=2,50 → 3,6%
 #: Chọn 2,30 để giữ loại I ở mức ~5%.
 Z_BIEN_HAI = 2.30
 
@@ -486,21 +512,21 @@ def dieu_kien_dong_lai(trades: list[Trade],
     một hệ thống chỉ đơn giản KHÔNG có lợi thế sẽ bị đóng, chứ không được
     chạy vô hạn vì chưa ai chứng minh được nó có hại.
 
-    Đặc tính đo bằng mô phỏng 40.000 lần (σ = 8,075%/lệnh, chạy tại n=595):
+    Đặc tính đo bằng mô phỏng 40.000 lần (σ = 6,967%/lệnh, trần 1.000 lệnh):
 
         μ thật     ĐÓNG    vì hại  chưa chứng minh   n trung bình
-        −2,000%   100,0%   100,0%          0,0%          161
-        −0,927%   100,0%    81,1%         18,9%          335
-        −0,500%   100,0%    39,1%         60,9%          482
-         0,000%    99,6%     5,8%         93,8%          580
-        +0,500%    79,7%     0,4%         79,3%          686
-        +0,927%    27,6%     0,0%         27,6%          890
-        +2,000%     0,0%     0,0%          0,0%          995
+        −2,000%   100,0%   100,0%          0,0%          121
+        −0,920%   100,0%    80,8%         19,2%          255
+        −0,500%   100,0%    38,6%         61,4%          366
+         0,000%    99,7%     5,9%         93,8%          440
+        +0,500%    80,4%     0,4%         80,0%          572
+        +0,920%    27,5%     0,0%         27,4%          854
+        +2,000%     0,0%     0,0%          0,0%        1.000
 
     Đọc đúng hai dòng khó chịu nhất:
-      • μ=0 → đóng 99,6%. ĐÚNG Ý ĐỒ: không lợi thế thì dừng.
-      • μ=+0,5% → đóng 79,7%. Một lợi thế thật nhưng NHỎ HƠN mức thiết kế
-        (±0,927%) cần ~2.050 lệnh mới phân biệt được với 0. Dự án không
+      • μ=0 → đóng 99,7%. ĐÚNG Ý ĐỒ: không lợi thế thì dừng.
+      • μ=+0,5% → đóng 80,4%. Một lợi thế thật nhưng NHỎ HƠN mức thiết kế
+        (±0,920%) cần ~1.524 lệnh mới phân biệt được với 0. Dự án không
         chạy đủ dài cho mức đó, nên nó chọn dừng thay vì chạy tiếp bằng
         hy vọng. Đây là một lựa chọn được nêu ra, không phải một điểm mù.
 

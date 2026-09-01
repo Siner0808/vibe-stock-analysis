@@ -956,8 +956,19 @@ nó. Chi tiết: `docs/STATE.md`, mục **"BƯỚC 6"**.
 **Chưa đo:** `tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` →
 `NEUTRAL` trong chưa tới một giờ khi thị trường đã đóng (bất biến 2).
 
-**Hạn — đã qua một phần.** Bốn lệnh chờ khớp sáng 31/08/2026, nên điều kiện
-2 của điều khoản sửa đổi ("chưa có một điểm dữ liệu kết quả nào") hết hiệu
-lực từ mốc đó. Cổng đã đóng nên không lệnh MỚI nào cộng thêm, nhưng mọi
-quy tắc dừng viết sau mốc này phải ghi rõ nó được viết khi trong tay đã có
-bao nhiêu kết quả.
+**Hạn — CHƯA qua. Đoạn dưới đây từng ghi ngược, sửa 01/09/2026.**
+
+Bản trước viết: *"Bốn lệnh chờ khớp sáng 31/08/2026, nên điều kiện 2 của
+điều khoản sửa đổi hết hiệu lực từ mốc đó."* **Sai.** Đọc thẳng sổ thật
+trên Google Sheets ngày 01/09/2026: bốn lệnh NAF · STB · TCB · HUT vẫn
+`PENDING`, `entry_date` và `entry_price` đều là `None`. Chúng chưa bao giờ
+khớp.
+
+Nên: **kết quả tiến-về-trước đã đóng = 0, và điều kiện 2 vẫn thoả.** Mọi
+quy tắc dừng viết sau mốc này vẫn phải ghi rõ nó được viết khi trong tay
+có bao nhiêu kết quả — yêu cầu đó không đổi, chỉ có con số là 0 chứ không
+phải 4.
+
+**Việc treo sinh ra từ đây:** vì sao bốn lệnh chờ không khớp sau nhiều
+phiên quét, trong khi sổ vẫn chạy (16.049 quyết định) và `fill_pending()`
+không đọc cờ C5? Chưa biết. Chi tiết: `docs/STATE.md`, BƯỚC 10.
