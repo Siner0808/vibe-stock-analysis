@@ -288,11 +288,16 @@ def nguong_hieu_chuan(kh: dict, J: int, h: int, rng,
                       so_lan: int = SO_LAN_NGUONG) -> dict:
     """Ngưỡng ALPHA ĐO TRỰC TIẾP, không đi qua hoán vị nhãn.
 
-    `san_nhieu` dựng null bằng cách xáo NHÃN, và đo được ngày 01/09/2026 là
-    nó dễ dãi ở mọi nhịp đã thử (báo động giả 14% ở h=21 thay vì 5%). Hàm
-    này dựng null bằng cách xáo ĐẶC TRƯNG và giữ nguyên nhãn — nên cấu
-    trúc chéo theo ngày của nhãn vượt rổ (tổng bằng 0 mỗi phiên) còn
-    nguyên vẹn, và ngưỡng thu được là ngưỡng của chính thống kê đang dùng.
+    `san_nhieu` dựng null bằng cách xáo NHÃN; hàm này xáo ĐẶC TRƯNG và giữ
+    nguyên nhãn — nên cấu trúc chéo theo ngày của nhãn vượt rổ (tổng bằng
+    0 mỗi phiên) còn nguyên vẹn, và ngưỡng thu được là ngưỡng của chính
+    thống kê đang dùng.
+
+    Đây là ĐƯỜNG ĐỐI CHIẾU ĐỘC LẬP, không phải bản thay thế. Đo
+    01/09/2026: hai ngưỡng khớp ở cả năm nhịp (5/10/21/42/63) và KHÔNG ô
+    nào đổi phán xử — tức `san_nhieu` ĐÚNG. Con số "báo động giả 14%" mà
+    `chung_cu_am` báo là khuyết tật của chính `chung_cu_am`; xem docstring
+    của nó và `docs/STATE.md`, BƯỚC 9.
 
     Rẻ hơn `chung_cu_am` hàng trăm lần: một lượt ở đây là MỘT phép tính
     tương quan, không phải một sàn nhiễu 200 hoán vị.
@@ -321,8 +326,18 @@ def chung_cu_am(kh: dict, J: int, h: int, rng,
 
     Đặc trưng giả dựng bằng cách dịch vòng chính đặc trưng THẬT trong
     từng mã: giữ nguyên tự tương quan và phân phối, chỉ phá liên kết với
-    nhãn. Dùng nhiễu trắng thay vào đây sẽ cho một câu trả lời dễ dãi —
-    tự tương quan mới là thứ làm sàn nhiễu hẹp lại.
+    nhãn. Dùng nhiễu trắng thay vào đây sẽ cho một câu trả lời dễ dãi.
+
+    ⚠️ HÀM NÀY LỆCH, VÀ ĐỘ LỆCH ĐÃ ĐO ĐƯỢC (01/09/2026)
+    Nó dịch vòng ĐẶC TRƯNG rồi vẫn dựng sàn nhiễu bằng cách xáo NHÃN, nên
+    độ dịch hiệu dụng là HIỆU của hai phép dịch. Hiệu ấy quấn vòng và nuốt
+    phải các độ dịch NHỎ — đúng những độ dịch mà phép kiểm thật loại trừ
+    theo thiết kế (`k >= h+1`). Kết quả: nó tự báo động giả 14% / 19% /
+    30,5% ở h=21 / 42 / 63, tỷ lệ thuận với dải bị nuốt `2(h+1)/n`.
+
+    `nguong_hieu_chuan` mới là phép đối chiếu đúng, và nó cho thấy
+    `san_nhieu` KHÔNG hỏng. Giữ hàm này lại có chủ đích: một phép hiệu
+    chuẩn nghe rất hợp lý mà vẫn sai thì đáng giữ hơn một phép đúng.
     """
     x, y, chi_so = bang(kh, J, h)
     keu = 0

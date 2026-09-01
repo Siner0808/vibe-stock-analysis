@@ -12,9 +12,10 @@ người ta đã thấy con số:
      không chạy nó thì lời khai ấy chỉ là trang trí.
 
 Và một điều nữa, tìm ra ngày 01/09/2026 khi chạy lượt đầu: ô duy nhất
-"ĐẠT" là ô đã khai trước là thiếu lực — mà chứng cứ ÂM cho thấy ở nhịp đó
-sàn nhiễu báo động giả 30% số lần. Không có chứng cứ âm thì cái "ĐẠT" ấy
-đã thành một phát hiện.
+"ĐẠT" là ô đã khai trước là thiếu lực. Thứ chặn nó thành một phát hiện là
+BẢN KHAI TRƯỚC cộng hiệu chỉnh năm ô (Bonferroni đòi p < 0,01; nó cho
+0,019) — KHÔNG phải chứng cứ âm. Chứng cứ âm hôm ấy báo sàn nhiễu hỏng,
+và chính nó mới là cái sai; xem `docs/STATE.md`, BƯỚC 9.
 """
 import ast
 import sys
@@ -120,9 +121,9 @@ def test_nguong_bao_gia_SUY_RA_tu_ALPHA_chu_khong_go_tay():
 def test_chung_cu_am_dung_DAC_TRUNG_THAT_dich_vong_khong_dung_nhieu_trang():
     """Nhiễu trắng cho một câu trả lời dễ dãi.
 
-    Thứ làm sàn nhiễu hẹp lại ở nhịp dài chính là TỰ TƯƠNG QUAN của đặc
-    trưng. Thay đặc trưng giả bằng `standard_normal` là bỏ mất đúng tính
-    chất đang cần kiểm, và phép hiệu chuẩn sẽ báo "5%" ở mọi nhịp.
+    Đặc trưng giả phải giữ TỰ TƯƠNG QUAN của đặc trưng thật. Thay bằng
+    `standard_normal` là bỏ mất đúng tính chất đang cần kiểm, và cả
+    `chung_cu_am` lẫn `nguong_hieu_chuan` sẽ cho một câu trả lời dễ dãi.
     """
     goi = _goi_trong(_ham("chung_cu_am"))
     assert "_dac_trung_gia" in goi, (

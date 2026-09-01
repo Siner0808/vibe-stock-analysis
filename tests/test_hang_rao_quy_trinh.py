@@ -223,6 +223,79 @@ def test_nguong_co_luc_phat_hien_that_o_muc_da_cong_bo():
     print(f"PASS  lực {luc:.1%} ở {pm.MUC_BAT_LOI}% · loại I {loai_i:.1%}")
 
 
+def _mo_phong_ca_hai(mu: float, so_lan: int = 3000, tran: int = 1000,
+                     seed: int = 20260901) -> float:
+    """Tỷ lệ ĐÓNG qua CẢ HAI nhánh, đúng như `dieu_kien_dong_lai` đánh giá.
+
+    `_mo_phong` ở trên chỉ chạy nhánh biên HẠI. Nhưng `N_DAY_DU` điều
+    khiển nhánh ĐẢO GÁNH NẶNG, và đó chính là nhánh mà một thay đổi hằng
+    số làm hỏng mà không nhánh kia hé ra điều gì.
+    """
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    n = np.arange(1, tran + 1)
+    tb = np.cumsum(rng.normal(mu, pm.SIGMA_ALPHA, size=(so_lan, tran)),
+                   axis=1) / n
+    se = pm.SIGMA_ALPHA / np.sqrt(n)
+    hai = tb + pm.Z_BIEN_HAI * se < 0
+    hai[:, :pm.N_TOI_THIEU - 1] = False
+    ganh = ~(tb - pm.Z_LOI_THE * se > 0)
+    ganh[:, :max(pm.N_TOI_THIEU, pm.N_DAY_DU) - 1] = False
+    return float((hai | ganh).any(axis=1).mean())
+
+
+def test_he_thong_THAT_SU_TOT_khong_bao_gio_bi_dong():
+    """Một hệ thống +2%/lệnh phải KHÔNG BAO GIỜ bị đóng.
+
+    Đây là đặc tính đắt nhất của điều kiện này, và là đặc tính mà một bản
+    cập nhật nghe rất hợp lý phá mất. Ngày 01/09/2026 phép đo mới cho
+    alpha −1,99%; đặt thẳng `MUC_BAT_LOI = −1.99` thì `N_DAY_DU` tụt còn
+    130, nhánh đảo gánh nặng nổ khi mẫu còn quá nhỏ để chứng minh bất cứ
+    điều gì, và mô phỏng cho **25,9%** — cứ bốn hệ thống xuất sắc thì một
+    bị tắt.
+
+    Không test nào cũ đỏ trước thay đổi đó: `_mo_phong` chỉ soi nhánh biên
+    HẠI, mà nhánh hỏng là nhánh kia. Gác này đóng đúng lỗ đó.
+
+    ĐIỂM MÙ, nói ra vì nó có thật: `_mo_phong_ca_hai` DỰNG LẠI logic chứ
+    không gọi `dieu_kien_dong_lai`. Nó vì thế bắt được đột biến ở HẰNG SỐ
+    mà không bắt được đột biến ở THÂN HÀM. Phần thân hàm do các test mục 3
+    canh — chúng gọi hàm thật và kiểm cờ có đổi. Hai gác bù nhau, và không
+    gác nào một mình đủ.
+    """
+    xau = _mo_phong_ca_hai(+2.0)
+    assert xau <= 0.02, (
+        f"hệ thống +2,0%/lệnh bị đóng {xau:.1%} số lần — trên 2%. "
+        f"Bộ hằng số hiện tại (μ={pm.MUC_BAT_LOI} σ={pm.SIGMA_ALPHA} "
+        f"N_DAY_DU={pm.N_DAY_DU} N_TOI_THIEU={pm.N_TOI_THIEU}) đang tắt "
+        f"những hệ thống đáng lẽ phải được chạy tiếp.")
+
+    khong_loi_the = _mo_phong_ca_hai(0.0)
+    assert khong_loi_the >= 0.90, (
+        f"μ=0 chỉ bị đóng {khong_loi_the:.1%} — dưới 90%. Vế đảo gánh nặng "
+        f"tồn tại để một hệ thống KHÔNG có lợi thế bị dừng, chứ không được "
+        f"chạy vô hạn vì chưa ai chứng minh được nó có hại.")
+    print(f"PASS  +2,0% bị đóng {xau:.1%} · μ=0 bị đóng {khong_loi_the:.1%}")
+
+
+def test_N_TOI_THIEU_phai_SUY_RA_tu_N_DAY_DU():
+    """Kiểm HÌNH DẠNG, không kiểm giá trị.
+
+    Bản cũ gõ tay `150` trong khi 596/4 = 149 — một con số làm tròn cho
+    đẹp mắt lọt vào đúng chỗ đáng lẽ phải suy ra, và không gì kêu. Mọi đột
+    biến trả về đúng 113 tại điểm này đều lọt qua một phép so giá trị.
+    """
+    cay = ast.parse((GOC / "paper_metrics.py").read_text(encoding="utf-8"))
+    v = next(n.value for n in ast.walk(cay) if isinstance(n, ast.Assign)
+             and any(isinstance(t, ast.Name) and t.id == "N_TOI_THIEU"
+                     for t in n.targets))
+    ten = {n.id for n in ast.walk(v) if isinstance(n, ast.Name)}
+    assert "N_DAY_DU" in ten, (
+        f"N_TOI_THIEU không suy ra từ N_DAY_DU — biểu thức chỉ nhắc {ten}")
+    assert not isinstance(v, ast.Constant), "N_TOI_THIEU là hằng số gõ tay"
+    print(f"PASS  N_TOI_THIEU suy từ N_DAY_DU (= {pm.N_TOI_THIEU})")
+
+
 def test_nhin_lien_tuc_thi_z_phai_rong_hon_1_96():
     """Chứng minh vì sao z=2,30: đo loại I của chính z=1,96."""
     hep = _mo_phong(0.0, pm.SIGMA_ALPHA, pm.N_TOI_THIEU, pm.N_DAY_DU, 1.959964)
