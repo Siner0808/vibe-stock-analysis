@@ -264,8 +264,14 @@ def test_fill_pending_KHONG_ghi_quyet_dinh():
     """Nền móng của phép kiểm trên: lệnh chờ khớp không sinh `acted = 1`.
 
     Đọc từ cây cú pháp chứ không tin chú thích. Ngày nào `fill_pending`
-    bắt đầu ghi quyết định thì bốn lệnh chờ khớp sáng 31/08 sẽ làm chuông
-    kêu oan, và phép kiểm này đỏ TRƯỚC khi điều đó xảy ra trên sổ thật.
+    bắt đầu ghi quyết định thì lệnh chờ lúc khớp sẽ làm chuông kêu oan,
+    và phép kiểm này đỏ TRƯỚC khi điều đó xảy ra trên sổ thật.
+
+    Bản trước viết "bốn lệnh chờ khớp sáng 31/08" như một việc đã rồi.
+    SAI — đo 02/09/2026 cả bốn vẫn `PENDING`, vì không có phiên nào sau
+    28/08 (BƯỚC 11). Tính chất bị khoá ở đây vì thế CHƯA từng được thử
+    trên sổ thật, và đó đúng là lý do phải khoá bằng AST: một tính chất
+    chưa bao giờ được quan sát thì không có quan sát nào canh nó.
     """
     cay = ast.parse((GOC / "paper_trading.py").read_text(encoding="utf-8"))
     ham = [n for n in ast.walk(cay)
