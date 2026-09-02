@@ -1,0 +1,47 @@
+# Chuông nguồn đứng: có phiên theo lịch mà không có nến mới thì báo động.
+#
+# VÌ SAO LÀ WORKFLOW RIÊNG, KHÔNG GỘP VÀO "Quét sổ lệnh"
+# `tools/chuong_bao_quet.py` đếm lượt chạy `conclusion == "success"` của
+# workflow quét để biết một ngày có được quét không. Làm đỏ workflow đó ở
+# đây sẽ sinh báo động giả "ngày này không có lượt quét nào", che mất
+# đúng thứ chuông kia sinh ra để canh. Cùng cái bẫy mà `canh-cong-c5.yml`
+# và bước cảnh báo nội phiên trong `quet-so-lenh.yml` đã ghi.
+#
+# KHÔNG CẦN SECRET. Chuông chỉ đọc chuỗi giá VN-INDEX và bảng lịch trong
+# repo — không mở sổ lệnh, không cần credential Google Sheets. Nhờ thế nó
+# vẫn kêu được đúng vào lúc những thứ kia hỏng.
+#
+# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub, thứ đã đo được
+# là rơi khoảng một nửa số nhịp. Rơi một nhịp không giấu được gì lâu:
+# nguồn đứng thì độ trễ chỉ tăng, nên nhịp hôm sau vẫn bắt được.
+
+name: Chuông nguồn đứng
+
+on:
+  schedule:
+    # 10:00 UTC = 17:00 ICT — sau giờ đóng cửa và sau cả hai chuông kia
+    # (báo quét 09:00, cổng C5 09:30) để ba chuông không lẫn trong hộp thư.
+    - cron: '0 10 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chuong-nguon-dung:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        run: pip install -r requirements.txt
+
+      - name: Đối chiếu nến mới nhất với lịch công bố
+        run: python tools/chuong_nguon_dung.py
