@@ -5037,6 +5037,38 @@ hỏi mà không kiểm cột `time` sẽ gán nhãn ngày sai cho toàn bộ n�
 Cùng họ: `fetch_one("VNINDEX", ...)` trả về `2026-08-28` **hai lần** ở cuối
 chuỗi. Dòng cuối trùng lặp không nổ ở đâu cả.
 
+### ĐÃ XÁC MINH BẰNG NGUỒN NGOÀI vnstock (cùng ngày, muộn hơn)
+
+Điểm yếu nêu trên — "cả ba đường đều là vnstock" — đã đóng. Thông báo của
+HOSE, đối chiếu qua báo chí tài chính:
+
+```
+HOSE · HNX nghỉ giao dịch 31/08 → 02/09/2026, mở lại thứ Năm 03/09.
+Ngày làm bù hoán đổi sang thứ Bảy 22/08, và HOSE nói rõ hôm đó KHÔNG
+tổ chức giao dịch.
+```
+
+Chi tiết cuối là một **phép thử chéo không dựng ra để thử**: bảng đo lượt
+quét ở trên đã có sẵn dòng `chạy 2026-08-22 · nến mới nhất 2026-08-21`, và
+danh sách nến trong sổ nhảy thẳng từ 21/08 sang 24/08. Một thông báo phát
+trước, khớp với dữ liệu đo được trước khi đọc thông báo ấy.
+
+### VÀ CÂU TRẢ LỜI ĐÃ NẰM SẴN TRONG REPO TỪ 31/08
+
+`market_filter._tre_phien` có docstring viết ngày 31/08/2026:
+
+> *"Đo ngày 31/08/2026, với nến cuối là thứ Sáu 28/08 và kỳ nghỉ Quốc
+> khánh 31/08 → 02/09: 31/08 → 1, 01/09 → 2, 02/09 → 3, 03/09 → 4."*
+
+Ngày 01/09, BƯỚC 10 ghi câu hỏi "vì sao bốn lệnh chờ không khớp" là **chưa
+biết**. Hai dòng ấy nằm trong cùng một repo, cách nhau một file.
+
+> Bài học, và nó KHÁC bài học của BƯỚC 10. BƯỚC 10 nói *đừng đọc trạng
+> thái từ tài liệu, đọc từ sổ*. Lần này tài liệu ĐÚNG và không ai đọc.
+> Điểm chung không phải "tài liệu sai" mà là **thông tin không tự tìm tới
+> câu hỏi**. Cái sửa được không phải một tài liệu tốt hơn, mà là một dụng
+> cụ tự kiểm — xem BƯỚC 12.
+
 ### Trạng thái sau BƯỚC 11
 
 ```
@@ -5056,4 +5088,121 @@ thật lần nào** — đúng lý do phải khoá bằng AST chứ không chờ
 
 ```bash
 python -m pytest tests/test_thi_hanh_dieu_kien_dung.py -q
+```
+
+
+---
+
+## BƯỚC 12 — LỊCH PHIÊN CÔNG BỐ TRƯỚC, VÀ CHUÔNG NGUỒN ĐỨNG (02/09/2026)
+
+Chỗ tối BƯỚC 11 để lại: không dụng cụ nào phân biệt được *thị trường nghỉ*
+với *nguồn dữ liệu chết*. BƯỚC 11 kết luận cần "nguồn giá thứ hai" và vì
+thế chưa dựng được chuông. **Kết luận đó sai hướng.**
+
+Thứ cần không phải nguồn giá thứ hai, mà là **lịch nghỉ giao dịch công bố
+trước**. Sở công bố từng năm, dữ liệu ít, biết trước, và độc lập hoàn toàn
+với chuỗi giá. Chỉ cần nó là tách được hai thứ.
+
+### `lich_giao_dich.py` — bảng ĐÃ BỊ DỮ LIỆU KIỂM, không phải chép rồi tin
+
+Bản chép từ bài báo lần đầu **SAI**: nó ghi 02/01/2026 có phiên. Đối chiếu
+với chuỗi VN-INDEX thật thì ngày đó không có nến — Sở nghỉ cả 01 và 02/01,
+thứ Sáu 02/01 hoán đổi sang thứ Bảy 10/01. Sửa xong mới khớp:
+
+```
+chuỗi VN-INDEX 2026-01-05 → 2026-08-28 : 162 phiên
+bảng dự kiến                            : 162 phiên
+bảng nói CÓ mà không có nến             : 0
+có nến mà bảng nói NGHỈ                 : 0
+```
+
+Phụ phẩm của phép đối chiếu, trả lời một câu chưa ai hỏi: **0 phiên thứ
+Bảy trong toàn bộ 162 phiên.** Cả hai ngày làm bù (10/01 và 22/08) đều
+không giao dịch. Vì thế `NGAY_NGHI` chỉ chứa ngày trong tuần — thêm một
+thứ Bảy vào đó là thêm một dòng không có tác dụng mà lại trông như luật.
+
+### Đột biến bắt được lỗ trong gác của chính tôi
+
+Gác "bảng phải tái lập 162 phiên" bản đầu đếm từ `"2026-01-04"` với quy
+ước nửa mở — cửa sổ đếm vì thế **bắt đầu từ 05/01, nằm sau cả 01/01 lẫn
+02/01**. Đột biến "bỏ 02/01 khỏi bảng", tái tạo đúng lỗi đã mắc thật, cho
+ra vẫn 162 và **test vẫn xanh**.
+
+> Một gác ghim đúng con số mà không phủ đúng chỗ dễ sai nhất thì không gác
+> gì cả. Chỗ dễ sai nhất ở đây là hai ngày đầu năm — đúng hai ngày mà cửa
+> sổ đếm bỏ qua. Bản sửa đếm từ `PHU_TU` và thêm một gác riêng ghim phiên
+> đầu năm là 05/01.
+
+### Bốn trạng thái, và trạng thái thứ tư là bắt buộc
+
+`chan_doan(nến_mới_nhất, hôm_nay)`:
+
+| trạng thái | nghĩa |
+|---|---|
+| `OK` | số phiên đáng lẽ đã có còn dưới ngưỡng |
+| `NGUON_DUNG` | qua ≥ 2 phiên mà không có nến mới |
+| `BANG_SAI` | có nến vào ngày bảng gọi là NGHỈ — **dữ liệu canh bảng** |
+| `CHUA_BIET` | ngoài phạm vi bảng |
+
+`CHUA_BIET` **không được gộp vào `OK`**, và nó cũng nằm trong danh sách
+làm đỏ chuông. Lịch 2026 hết hiệu lực mà chuông báo "ổn" thì việc quên cập
+nhật lịch biến thành cả năm 2027 im lặng trong khi mọi lượt chạy vẫn xanh.
+`BANG_SAI` là chiều ngược: bảng sai thì mọi phán quyết khác dựa trên nó
+đều vô giá trị, nên nó phải dừng lại chứ không được đi tiếp.
+
+Ngưỡng 2 phiên, không phải 1: trong một phiên đang diễn ra, nến ngày chưa
+đóng, nên trễ 1 phiên là trạng thái **bình thường** của mọi lượt quét chạy
+trước giờ đóng cửa.
+
+### `tools/chuong_nguon_dung.py` — chạy thật hôm nay
+
+```
+Hôm nay 2026-09-02 · nến VN-INDEX mới nhất (mạng) 2026-08-28
+[OK] trễ 0 phiên so với 2026-09-02 (ngưỡng 2). Khớp lịch công bố.
+```
+
+Bộ đếm ngày làm việc cũ sẽ nói 3. Đây đúng là phép phân biệt cần có.
+
+Ba lựa chọn thiết kế, mỗi cái đóng một đường hỏng đã gặp:
+
+1. **Kéo thẳng từ mạng bằng `fetch_one`, KHÔNG qua `get_vni_df()`.** Hàm
+   kia ưu tiên cache — đúng cho backtest, nhưng ở đây cache CHÍNH LÀ thứ
+   có thể đang che việc nguồn đã chết. Đo hôm nay: cache máy dừng ở 20/08
+   trong khi mạng có tới 28/08. Khoá bằng gác AST, vì tên `get_vni_df` có
+   mặt trong khối chú thích nên phép kiểm văn bản sẽ nói ngược.
+2. **Workflow RIÊNG** (`chuong-nguon-dung.yml`, 10:00 UTC). Làm đỏ lượt
+   quét sẽ khiến `chuong_bao_quet.py` báo giả "ngày này không có lượt quét
+   nào" — cùng cái bẫy `canh-cong-c5.yml` đã ghi.
+3. **Không cần secret, không đọc sổ lệnh.** Chuông chỉ cần chuỗi giá và
+   bảng lịch, nên nó vẫn kêu được đúng lúc sổ lệnh hoặc credential hỏng —
+   tức đúng lúc cần nó nhất.
+
+Đột biến **14/14 đỏ** (10 cho lịch, 4 cho chuông).
+
+### CHƯA nối vào `market_filter._tre_phien` — nói rõ vì sao
+
+Nối vào sẽ sửa được chỗ đếm bằng `pd.bdate_range`: sáng 03/09, phiên đầu
+mở lại, bộ đếm cũ báo trễ **4** phiên trong khi lịch công bố nói **1**.
+Chính docstring của hàm ấy đã than phiền về việc này.
+
+Không làm hôm nay vì `tests/test_market_filter.py:274` đang **ghim có chủ
+đích** con số cũ:
+
+```python
+assert mf._tre_phien("2026-08-28", "2026-09-02") == 3
+```
+
+Sửa một test đang ghim hành vi cũ là thay đổi hành vi ở mã sát kết quả, và
+việc đó cần lượt đột biến riêng của nó. Hệ quả để lại, đo được chứ không
+đoán: sai lệch chỉ nằm ở dòng báo cáo `status()`; `is_vni_bullish` đo độ
+cũ so với NGÀY ĐANG CHẤM nên quyết định vào lệnh không bị ảnh hưởng.
+
+**Việc treo:** nối `lich_giao_dich.so_phien_giua()` vào `_tre_phien` làm
+nhánh lùi, thay `pd.bdate_range`, và sửa test 274 kèm đột biến.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_lich_giao_dich.py -q
+python tools/chuong_nguon_dung.py
 ```
