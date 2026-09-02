@@ -5206,3 +5206,103 @@ nhánh lùi, thay `pd.bdate_range`, và sửa test 274 kèm đột biến.
 python -m pytest tests/test_lich_giao_dich.py -q
 python tools/chuong_nguon_dung.py
 ```
+
+
+---
+
+## BƯỚC 13 — BẢN KHAI TRƯỚC CHO Ô h=63 (02/09/2026)
+
+Commit này **chỉ chứa bản khai**, không chứa kết quả. Kết quả sẽ ở một
+commit sau, nếu có ngày nó chạy được. Lịch sử git vì thế chứng minh được
+thứ tự — cùng cách làm ở BƯỚC 9 (`51adc88`).
+
+### Con số "~1,3× dữ liệu" ghi hôm qua là SAI KIỂU, không phải sai số học
+
+BƯỚC 11 và ghi chú hàng đợi viết ô này "cần ~1,3× dữ liệu". Con số ấy tính
+lực so với **−0,0349**, tức so với chính giá trị đã quan sát. Mà giá trị ấy
+là **cực đại của năm ô** — nó mang sẵn phần thắng của phép tìm kiếm và gần
+như chắc chắn lớn hơn hiệu ứng thật.
+
+Neo lực vào nó là tự cho mình một phép kiểm dễ: chọn cỡ mẫu vừa đủ để bắt
+đúng con số đã nhìn thấy thì kiểu gì cũng "vừa đủ".
+
+Đây đúng là lỗi mà `MUC_BAT_LOI` đã tránh ngày 01/09 — ở đó ước lượng điểm
+là −1,99 nhưng điểm thiết kế lấy cận trên −0,92. Hai lần, cùng một hình
+dạng: **điểm thiết kế phải là hiệu ứng NHỎ NHẤT còn đáng quan tâm, không
+phải hiệu ứng đã đo.**
+
+Ở đây mức nhỏ nhất còn đáng quan tâm là **rào hoà vốn** (0,025): dưới mức
+ấy thì dù tương quan có thật cũng không bù nổi chi phí, nên biết hay không
+đều không đổi hành động nào.
+
+### Lực, tính bằng sd null ĐO ĐƯỢC (0,0160), không bằng công thức
+
+```
+    điểm thiết kế       α        lực HIỆN NAY   sd cần cho 80%   n phải nhân
+ quan sát −0,0349   1 phía 5%       66,4%          0,01331          1,44×
+ quan sát −0,0349   2 phía 5%       54,3%          0,01181          1,83×
+ rào       −0,025   1 phía 5%       42,3%          0,00933          2,94×
+ rào       −0,025   2 phía 5%       30,5%          0,00828         3,73×  ← chọn
+```
+
+`n_eff = n/(h+1)` cho 1.104 ở h=63 trong khi đo trực tiếp ra 3.906 — hụt
+3,5 lần. Mọi con số trên tính từ sd null đo được (2.000 lượt hiệu chuẩn).
+
+### Hai phía, cố ý, dù giả thuyết có hướng
+
+Hướng (đảo chiều ⇒ rho âm) đã khai trong `experiment_dao_chieu.phan_xu`
+TRƯỚC khi thấy bất kỳ kết quả h=63 nào, nên một phía hợp lệ về lý thuyết.
+Vẫn chọn hai phía vì **dữ liệu này đã bị nhìn một lần, đúng theo chiều
+đó**. Một phía sau khi đã nhìn là thứ không cãi được với người đọc hoài
+nghi, kể cả khi đúng về hình thức. Mất lực (2,94× → 3,73×) là giá của việc
+không phải tranh cãi.
+
+### Cổng: phép kiểm này CHƯA ĐƯỢC PHÉP CHẠY
+
+`du_dieu_kien_chay()` từ chối ở cỡ mẫu hiện nay — lực mới 30,5%. Không
+chạy rồi dán nhãn "thiếu lực": BƯỚC 7 đã làm đúng thế, và về sau chính cái
+nhãn ấy hoá ra dựa trên công thức hụt 3,5 lần, nên **không ai còn biết ô
+nào thật sự thiếu lực**. Một phép kiểm đã chạy thì con số của nó tồn tại
+và sẽ được đọc, dù dán nhãn gì lên.
+
+Cổng còn đóng khi **rào lệch quá 20%** so với lúc khai: rào đổi nghĩa là
+chi phí hoặc phân phối nhãn đã đổi, và khi đó bản khai này nói về một bài
+toán khác. Dùng lại nó là mượn tính chính danh của một bản khai cho câu
+hỏi nó chưa từng hỏi.
+
+### Đường lấy thêm dữ liệu: MỞ RỘNG RỔ, không phải chờ
+
+Chuỗi hiện trải ~5 năm; nhân 3,73 lần theo trục thời gian là chờ tới những
+năm 2040. Trục cắt ngang mở được ngay — rổ hiện 68 mã sau lọc.
+
+**Cảnh báo đi kèm:** rổ mới phải khai trước bằng một luật máy móc (ví dụ
+mọi mã HOSE có trung vị GTGD 250 phiên trên một ngưỡng nêu trước), KHÔNG
+chọn tay. Chọn tay rồi đo là mở lại đúng cánh cửa bất biến 7 đóng.
+
+### Một tính chất lộ ra khi viết gác
+
+Ở sd hiện nay, ngưỡng bác bỏ (−0,0332) đã nằm NGOÀI rào (0,025), nên nhánh
+"có ý nghĩa nhưng dưới rào" **không thể chạm tới**. Ở sd lúc đủ lực
+(0,00828) ngưỡng thành −0,0180 và khoảng (0,0180 ; 0,025) mở ra.
+
+Tức điều khoản rào hôm nay là **chữ chết, và nó sống dậy đúng vào ngày
+phép kiểm được phép đọc** — nên phải viết từ bây giờ, không phải lúc đó.
+Test đầu tiên tôi viết cho nhánh ấy đã đỏ vì kiểm ở sd hiện nay; cái sai
+là của test, và nó chỉ ra tính chất này.
+
+### Ghi rõ để không ai đọc nhầm
+
+−0,0349 **vượt** ngưỡng hai phía −0,0332 nếu kiểm MỘT MÌNH trên đúng dữ
+liệu cũ. Ô ấy sẽ cho ra "ĐẠT". Thứ chặn việc đó không phải con số, mà là
+điều kiện *dữ liệu chưa dùng* cộng cổng lực. Nếu ngày nào đó có người chạy
+lại ô này trên dữ liệu cũ và thấy "ĐẠT", đây là chỗ ghi trước rằng con số
+ấy đã được biết từ 01/09/2026 và không phải một phát hiện mới.
+
+Đột biến **10/10 đỏ**, gồm cả đột biến thay điểm thiết kế bằng giá trị đã
+quan sát và đột biến đổi sang một phía "để đủ lực".
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_khai_truoc_h63.py -q
+```
