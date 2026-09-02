@@ -185,9 +185,16 @@ CHOT_LOI_CUNG = False
 #    `latest_daily_report.md` — một tệp zip lưu 14 ngày.
 #
 # CỜ NÀY KHÔNG HUỶ LỆNH PENDING. `fill_pending()` khớp bằng giá mở cửa
-# phiên sau và không đọc cờ này. Bốn lệnh trên VẪN khớp sáng 31/08 —
-# lựa chọn có chủ đích: giữ chúng làm điểm dữ liệu tiến-về-trước đầu
-# tiên. Cờ chỉ chặn lệnh MỚI.
+# phiên sau và không đọc cờ này — cơ chế ấy vẫn đúng, và bốn lệnh trên
+# vẫn được giữ có chủ đích làm điểm dữ liệu tiến-về-trước đầu tiên. Cờ
+# chỉ chặn lệnh MỚI.
+#
+# NHƯNG CÂU "chúng khớp sáng 31/08" LÀ SAI — sửa 02/09/2026. Đo sổ thật:
+# cả bốn VẪN `PENDING`, `entry_price` là None. Không phải vì cơ chế hỏng,
+# mà vì CHƯA HỀ CÓ PHIÊN NÀO SAU 28/08 để lấy giá mở cửa — 31/08, 01/09
+# và 02/09 đều không có nến ở cả ba endpoint vnstock. `fill_pending` bỏ
+# qua đúng theo thiết kế (`session_date <= signal_date`).
+#   -> Kết quả tiến-về-trước ĐÃ ĐÓNG vẫn là 0. Xem `docs/STATE.md`, BƯỚC 11.
 #
 # MỞ LẠI KHI cả ba xong, không sớm hơn:
 #   • điều kiện dừng đo bằng ALPHA khớp từng lệnh (bất biến 6), ngưỡng

@@ -869,8 +869,11 @@ Hai hàng rào mới đáng biết:
 > sao chết, và ngày 28/08 đã sai đúng như vậy một lần.
 >
 > **Bốn lệnh tiến-về-trước đầu tiên đã tồn tại** — NAF 62 · STB 65 ·
-> TCB 63 · HUT 65, tín hiệu 2026-08-28, PENDING. Chúng khớp sáng 31/08:
+> TCB 63 · HUT 65, tín hiệu 2026-08-28, và tới 02/09/2026 cả bốn **vẫn
+> `PENDING`**. Câu "chúng khớp sáng 31/08" ở bản trước là SAI: không có
+> phiên nào sau 28/08 để lấy giá mở cửa. Cơ chế thì vẫn đúng —
 > `fill_pending()` không đọc cờ C5, nên đóng cổng KHÔNG huỷ lệnh chờ.
+> Xem `docs/STATE.md`, BƯỚC 11.
 >
 > **Cổng đóng nay ĐỐI CHIẾU ĐƯỢC, không chỉ khai (31/08/2026).**
 > `tools/canh_cong_c5.kiem_ro_ri()` hỏi sổ lệnh — chứ không hỏi mã nguồn —
@@ -969,6 +972,10 @@ quy tắc dừng viết sau mốc này vẫn phải ghi rõ nó được viết 
 có bao nhiêu kết quả — yêu cầu đó không đổi, chỉ có con số là 0 chứ không
 phải 4.
 
-**Việc treo sinh ra từ đây:** vì sao bốn lệnh chờ không khớp sau nhiều
-phiên quét, trong khi sổ vẫn chạy (16.049 quyết định) và `fill_pending()`
-không đọc cờ C5? Chưa biết. Chi tiết: `docs/STATE.md`, BƯỚC 10.
+**Việc treo đó đã ĐÓNG (02/09/2026): không có lỗi nào cả.** Chưa hề có
+phiên nào sau 28/08 — 31/08, 01/09 và 02/09 đều không có nến ở cả ba
+endpoint vnstock (OHLCV theo mã, VN-INDEX kéo thẳng từ mạng bỏ qua cache,
+nến 30 phút nội phiên). `fill_pending()` bỏ qua vì
+`session_date <= signal_date`, đúng thiết kế: không có nến thì không có
+giá mở cửa để khớp. Trước đó **17 ngày quét liên tiếp đều trễ 0 phiên**.
+Chi tiết: `docs/STATE.md`, BƯỚC 11.

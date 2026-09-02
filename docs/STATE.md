@@ -3341,9 +3341,12 @@ ghi quyết định, nên không để lại dòng lý do nào. Chỗ mù nhỏ,
    sinh ra để canh chúng.
 
 2. **Đóng cổng KHÔNG huỷ lệnh chờ.** `fill_pending()` khớp bằng giá mở
-   cửa phiên sau và không hề đọc `CHO_PHEP_MO_LENH_MOI`. Bốn lệnh trên
-   VẪN khớp sáng 31/08. Đã chọn giữ chúng làm điểm dữ liệu tiến-về-trước
-   đầu tiên; cờ chỉ chặn lệnh MỚI.
+   cửa phiên sau và không hề đọc `CHO_PHEP_MO_LENH_MOI`. Đã chọn giữ bốn
+   lệnh trên làm điểm dữ liệu tiến-về-trước đầu tiên; cờ chỉ chặn lệnh MỚI.
+
+   > Câu gốc viết tiếp: *"Bốn lệnh trên VẪN khớp sáng 31/08."* Đó là một
+   > DỰ ĐOÁN, và nó SAI — đo 02/09/2026 cả bốn vẫn `PENDING`. Cơ chế
+   > không hỏng; chỉ là chưa có phiên nào sau 28/08. Xem BƯỚC 11.
 
 3. **Báo cáo phiên nói ngược với việc nó vừa làm.** Template trong
    `run_daily.py` viết cứng `⛔ DỪNG mở vị thế mới (ô C5)`. Đúng lúc viết
@@ -3922,10 +3925,15 @@ chỉ **dữ liệu** trả lời được: kể từ mốc đóng, đã có v�
 chưa. Đó là khác biệt giữa *đã khai là chặn* và *đã chặn*.
 
 `acted = 1` là dấu hiệu đúng vì `record_decision` chỉ được gọi từ
-`consider_entry`, và `fill_pending` KHÔNG ghi quyết định — nên bốn lệnh
-chờ khớp sáng nay không làm chuông kêu oan. Một phép kiểm AST khoá đúng
-tính chất đó lại, để ngày nào `fill_pending` đổi thì test đỏ TRƯỚC khi
-chuông kêu oan trên sổ thật.
+`consider_entry`, và `fill_pending` KHÔNG ghi quyết định — nên lệnh chờ
+lúc khớp sẽ không làm chuông kêu oan. Một phép kiểm AST khoá đúng tính
+chất đó lại, để ngày nào `fill_pending` đổi thì test đỏ TRƯỚC khi chuông
+kêu oan trên sổ thật.
+
+> Bản gốc viết "bốn lệnh chờ khớp sáng nay". SAI — đo 02/09/2026 cả bốn
+> vẫn `PENDING`. Tính chất được khoá thì không đổi; chỉ là nó **chưa từng
+> được thử trên sổ thật lần nào**, và đó chính là lý do phải khoá bằng
+> AST chứ không chờ quan sát. Xem BƯỚC 11.
 
 Ngày đóng cổng chuyển từ **chú thích** thành hằng số
 `paper_trading.NGAY_DONG_CONG_C5` — một ngày nằm trong chú thích thì
@@ -4910,4 +4918,142 @@ phát hiện về lợi thế.
 
 ```bash
 python -m pytest tests/test_hang_rao_quy_trinh.py tests/test_dieu_kien_dung_alpha.py -q
+```
+
+
+---
+
+## BƯỚC 11 — BỐN LỆNH CHỜ: KHÔNG CÓ LỖI NÀO CẢ (02/09/2026)
+
+Việc treo từ BƯỚC 10: vì sao NAF · STB · TCB · HUT vẫn `PENDING` sau nhiều
+phiên quét, trong khi sổ vẫn chạy và `fill_pending()` không đọc cờ C5.
+
+**Trả lời: chưa hề có phiên nào sau 28/08 để lấy giá mở cửa.**
+
+### Phép đo
+
+Mỗi lượt quét ghi `at` (lúc chạy) và `signal_date` (nến nó thấy). Đối chiếu
+hai cột đó trên toàn bộ 16.183 quyết định của sổ thật:
+
+```
+ngày chạy    thứ   nến mới nhất   trễ
+2026-08-27   Thu   2026-08-27      0
+2026-08-28   Fri   2026-08-28      0     <- tín hiệu 4 lệnh
+2026-08-29   T7CN  2026-08-28      0
+2026-08-31   Mon   2026-08-28      1
+2026-09-01   Tue   2026-08-28      2
+2026-09-02   Wed   2026-08-28      3
+```
+
+**17 ngày quét liên tiếp trước đó trễ 0 phiên.** Độ trễ bắt đầu đúng ở
+31/08 và tăng đều 1 → 2 → 3.
+
+Ba endpoint vnstock khác nhau, hỏi cùng một câu, cho cùng một câu trả lời:
+
+| Đường hỏi | Kết quả |
+|---|---|
+| OHLCV theo mã (`VNStockCollectorAgent`) | dừng ở 28/08, ba lượt quét liên tiếp |
+| VN-INDEX `fetch_one()` — **bỏ qua cache, kéo thẳng từ mạng** | dừng ở 28/08 |
+| Nến 30 phút `intraday_data.tai()`, hỏi riêng 31/08 · 01/09 · 02/09 | trả về 26–28/08 |
+
+`fill_pending()` bỏ qua vì `session_date <= r["signal_date"]` — **đúng thiết
+kế**. Không có nến thì không có giá mở cửa, và một lệnh không khớp thì không
+phải một giao dịch lãi/lỗ 0%. Luật khớp không sai chỗ nào.
+
+2/9 rơi vào thứ Tư năm nay, nên nghỉ T2–T4 khớp với kỳ Quốc khánh. Cảnh báo
+về sức mạnh bằng chứng: **cả ba đường trên đều là vnstock**, tức một nhà
+cung cấp qua ba cửa, không phải ba nguồn độc lập.
+
+### Một giả thuyết giữa đường đã bị chính việc đọc mã bác bỏ
+
+Trên đường đo, `market_filter.status()` tự khai:
+
+```
+active = False
+note   = 'VN-INDEX QUÁ HẠN: dữ liệu tới 2026-08-20, trễ 9 phiên
+          so với 2026-09-02 (ngưỡng 3). Bộ lọc KHÔNG dùng được.'
+```
+
+Và `get_vni_df()` đọc cache trước, chỉ ra mạng khi cache **rỗng**, lại còn
+`@lru_cache(maxsize=1)`. Nhìn qua thì đó là một bộ lọc an toàn chết âm thầm.
+
+**Sai.** `is_vni_bullish()` tách hai trường hợp, và nó tách đúng:
+
+- dữ liệu **mất** → trả `True` (cho qua), và `status()` nói ra;
+- dữ liệu **cũ so với NGÀY ĐANG CHẤM** → `raise CacheQuaHanError`, và
+  `run_daily` bắt ở hai chỗ để **dừng phiên quét**.
+
+Tức là fail-**closed**. Việc ưu tiên cache là chủ ý — backtest phải tất định
+— và thanh tiêu đề đã có đường riêng `chi_so_moi_nhat()` ưu tiên mạng. Thứ
+duy nhất còn lại là **trạng thái chạy ở một máy**: cache VN-INDEX ở máy phát
+triển đứng ở 20/08 nên mọi lượt quét local sẽ dừng bằng `CacheQuaHanError`;
+cách sửa nằm ngay trong thông báo lỗi (`extend_history.py`, KHÔNG phải
+`download()`). Trên CI cache rỗng nên kéo mạng tươi.
+
+> Bài học của đoạn này: một dụng cụ tự khai "tôi không dùng được" là dụng cụ
+> đang làm đúng việc của nó. Đọc thêm mười dòng rẻ hơn viết một bản vá cho
+> thứ không hỏng.
+
+### Đọc đúng con số 16.183 quyết định
+
+39,9% số dòng (6.453/16.183) là **chấm lại cùng một cặp (mã, nến)**; chỉ có
+9.730 cặp khác nhau. Riêng nến 28/08 được chấm 8,5 lần mỗi mã.
+
+**Đây KHÔNG phải hỏng.** Lịch quét là 2–3 lượt mỗi ngày (sáng · trưa · ATC),
+và trong phiên thì nến ngày còn đang chạy nên điểm đổi thật. Ghi ra đây vì
+con số tổng rất dễ bị đọc thành "sổ đang tích luỹ nhanh": **mọi thống kê đếm
+trên bảng `decisions` phải khử trùng lặp theo (mã, nến) trước.**
+
+### Chỗ tối còn lại — CHƯA đóng
+
+Không dụng cụ nào trong dự án phân biệt được **"thị trường nghỉ"** với
+**"nguồn dữ liệu chết"**. Hai thứ đó cho ra tín hiệu giống hệt nhau:
+
+- `chuong_bao_quet.py` đếm lượt quét **thành công** — cả ba ngày qua đều
+  thành công, nên chuông im. Đúng chức năng của nó.
+- `bao_cua_so_du_lieu()` so **số phiên** nhận được với kỳ vọng, mà kỳ vọng
+  cũng lấy từ chính chuỗi VN-INDEX đó — nguồn đứng thì cả hai vế cùng đứng,
+  tỷ lệ vẫn ~100%.
+- `is_vni_bullish()` đo độ cũ **so với ngày đang chấm**, mà ngày đang chấm
+  CHÍNH LÀ nến mới nhất — nên độ trễ luôn bằng 0 theo định nghĩa. Cố ý, để
+  backtest chạy được; hệ quả là nó mù với kiểu hỏng này.
+
+Ba dụng cụ, không cái nào sai, và cùng nhau vẫn để lọt. Hôm nay vô hại vì
+đúng là nghỉ lễ. Nhưng **một nguồn chết sẽ có đúng chữ ký này**, và chữ ký
+đó im lặng hoàn toàn.
+
+Chưa dựng chuông cho nó, có lý do: từ MỘT nhà cung cấp thì "hôm nay đáng lẽ
+có phiên không" là câu **không quyết định được**. Nguồn đứng thì lịch phiên
+cũng đứng theo. Một cái chuông tự nhận biết được sẽ phải nói dối. Việc này
+để lại cho người quyết, kèm điều kiện: **cần nguồn thứ hai độc lập** thì mới
+dựng được chuông không nói dối.
+
+### Bẫy dữ liệu mới, ghi lại để khỏi vấp
+
+`intraday_data.tai("FPT", "2026-08-31", "2026-08-31")` trả về **21 nến của
+26–28/08** — dữ liệu NGOÀI khoảng đã hỏi, không phải rỗng. Ai tin khoảng đã
+hỏi mà không kiểm cột `time` sẽ gán nhãn ngày sai cho toàn bộ nến.
+
+Cùng họ: `fetch_one("VNINDEX", ...)` trả về `2026-08-28` **hai lần** ở cuối
+chuỗi. Dòng cuối trùng lặp không nổ ở đâu cả.
+
+### Trạng thái sau BƯỚC 11
+
+```
+kết quả tiến-về-trước ĐÃ ĐÓNG : 0   (không đổi)
+điều kiện 2 của điều khoản sửa đổi : VẪN THOẢ
+cổng C5 : giữ ĐÓNG — không có gì ở đây là lý do mở
+```
+
+Năm chỗ trong mã và tài liệu khẳng định bốn lệnh "khớp sáng 31/08" đã được
+sửa: `CLAUDE.md` (2), `docs/STATE.md` (2, đánh dấu tại chỗ thay vì viết lại
+lịch sử), `paper_trading.py`, và docstring của
+`tests/test_thi_hanh_dieu_kien_dung.py::test_fill_pending_KHONG_ghi_quyet_dinh`.
+Chỗ cuối đáng chú ý: tính chất mà test đó khoá **chưa từng được thử trên sổ
+thật lần nào** — đúng lý do phải khoá bằng AST chứ không chờ quan sát.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_thi_hanh_dieu_kien_dung.py -q
 ```
