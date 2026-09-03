@@ -5592,3 +5592,70 @@ python -m pytest tests/test_chi_dan_chay_duoc.py -q
 python extend_history.py --check
 ```
 
+
+---
+
+## BƯỚC 17 — ĐỘ TRỄ KHỚP LỆNH LÀ MỘT BIẾN KHÔNG AI ĐO (03/09/2026)
+
+Ghi lại làm mốc. **Chưa dựng dụng cụ** — quyết định có chủ đích, không
+phải bỏ sót.
+
+### Cơ chế
+
+`run_daily.py:434` lấy `row = df.iloc[-1]` — nến **mới nhất** — rồi
+truyền `str(row["time"])` làm `session_date` cho `run_session`.
+`fill_pending()` khớp bằng đúng phiên nhận được; chốt duy nhất của nó là
+`session_date <= signal_date` thì bỏ qua.
+
+Hệ quả: **phiên khớp là phiên mà lượt quét TÌNH CỜ chạy, không phải T+1.**
+Bốn lệnh NAF · STB · TCB · HUT có tín hiệu 28/08; T+1 là 03/09. Nếu hôm
+nay mọi nhịp cron đều rơi thì lượt quét ngày mai khớp chúng ở giá mở cửa
+**04/09**, và sổ ghi `entry_date = 2026-09-04` mà không có gì kêu.
+
+Trong khi mọi con số walk-forward của dự án đều khớp ở T+1, vì
+`walkforward._mo_phong` duyệt từng phiên nên không bao giờ nhảy cóc.
+
+### Nói cho công bằng
+
+Khớp muộn **không sai về mặt mô phỏng**: không có ai đặt lệnh ngày đó thì
+không có giao dịch ngày đó, và sổ vẫn nhất quán nội tại — `paper_metrics`
+so mỗi lệnh với rổ chuẩn trong đúng khoảng nắm giữ của chính nó, nên
+alpha không bị lệch bởi việc vào muộn.
+
+Vấn đề nằm ở hai chỗ khác:
+
+1. **Khả năng so sánh.** Đường chạy thật và đường đo được khác nhau ở một
+   biến, và biến đó là **độ tin cậy cron của GitHub** — thứ không liên
+   quan gì tới chiến lược. Đo 03/09: 33,9% nhịp nổ, và 6 nhịp buổi sáng
+   hôm nay rơi sạch.
+2. **Không ai nhìn.** Hai mốc `signal_date` và `entry_date` đều được lưu
+   nên độ trễ **suy ra được** — nhưng không dụng cụ nào đọc nó, và
+   `paper_metrics.py:624` cùng `run_daily.py:625` hiển thị
+   `entry_date or signal_date`, tức **gộp hai cột thành một** và che đúng
+   khoảng cách ấy.
+
+Đây không phải "dữ liệu bị thiếu". Đây là dữ liệu đã có mà chưa ai hỏi —
+cùng hạng với việc `created_at` của 113 lệnh nằm gọn trong 258 giây suốt
+nhiều tháng trước khi có người đếm.
+
+### Trạng thái lúc ghi
+
+Tới **10:20 ngày 03/09 chưa có lượt quét nào**; lượt gần nhất là 02/09
+17:32. Cả 5 workflow đều `state: active` khi hỏi API, nên đây là cron
+GitHub không đáng tin chứ không phải workflow bị tắt — một phân biệt phải
+hỏi mới biết, vì hai trường hợp trông giống hệt nhau từ bên ngoài.
+
+Nhịp gần đây hay nổ vào đầu giờ chiều (13:58 · 17:32), nên nhiều khả năng
+vẫn khớp trong hôm nay.
+
+### Việc còn treo
+
+Dựng dụng cụ đo `so_phien_giua(signal_date, entry_date)`, cảnh báo khi
+lớn hơn 1, và tách hai cột bị gộp. Hàm đếm đã có sẵn từ BƯỚC 14
+(`lich_giao_dich.so_phien_giua`) nên phần khó không nằm ở phép đếm, mà ở
+việc quyết định khớp muộn thì ghi thế nào — và quyết định ấy không nên ra
+giữa lúc bốn lệnh đang chờ khớp.
+
+**Phép kiểm quyết định, đọc được ngay hôm nay:** `entry_date` của bốn
+lệnh ra `2026-09-03` hay muộn hơn.
+
