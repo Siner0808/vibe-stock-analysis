@@ -5813,3 +5813,83 @@ GitHub khuyên đúng điều này, và `40 8 * * 1-5` (15:40 giờ VN) rơi nga
 sau nhịp quét cuối trong ngày, lệch giờ chẵn, ngoài khung nghẽn. Nhưng
 đổi lịch chuông là đổi hành vi của thứ đang canh gác, nên để người quyết.
 
+
+---
+
+## BƯỚC 20 — DỜI CRON BA CHUÔNG, KÈM TIÊU CHÍ PHÁN XỬ KHAI TRƯỚC (03/09/2026)
+
+| chuông | cũ (UTC) | **mới (UTC)** | giờ VN |
+|---|---|---|---|
+| `chuong-bao-quet` | `0 9` | **`23 9`** | 16:23 |
+| `canh-cong-c5` | `30 9` | **`43 9`** | 16:43 |
+| `chuong-nguon-dung` | `0 10` | **`17 10`** | 17:17 |
+
+Chỉ dời **lệch khỏi mốc `:00` và `:30`**, không đổi giờ. Tài liệu GitHub
+khuyên tránh đầu giờ vì đó là lúc nhiều workflow nhất cùng xin chạy.
+
+### Vì sao KHÔNG dời sớm hơn, dù 15:40 nghe hợp lý hơn
+
+Phương án đầu là `40 8` (15:40 giờ VN, ngay sau nhịp quét cuối). Đọc mã
+thì phải bỏ: `chuong_bao_quet.kiem_tra()` đưa **chính ngày hôm nay** vào
+cửa sổ soát và báo đỏ khi *bất kỳ* ngày nào có 0 lượt quét thành công.
+Chạy sớm hơn lượt quét cuối là tự chế báo động giả trong đúng cái chuông
+canh việc quét — thứ dự án đã ghi là nguy hiểm hơn không có chuông.
+
+Nên ràng buộc "không nhịp nào được dời SỚM hơn bản cũ" thành một test
+riêng, không phải một câu ghi nhớ.
+
+### ĐÂY LÀ GIẢ THUYẾT, KHÔNG PHẢI PHÉP SỬA ĐÃ CHỨNG MINH
+
+Điều đã đo (BƯỚC 19): nhịp ở `:00` và `:30` của khung 09:00–10:00 UTC trễ
+trung vị 4–4,7 giờ. Điều **chưa** đo: nguyên nhân có phải là phút trong
+giờ hay không. Có thể là tải chung của GitHub ở khung giờ ấy, hoặc là cách
+GitHub xếp hàng cron cho repo này nói chung — phép đo hiện có không tách
+được ba khả năng đó.
+
+Nên tiêu chí phán xử viết **trước** khi có số liệu mới:
+
+```
+Đại lượng : trễ TRUNG VỊ của chuong-bao-quet, các lượt event=schedule
+Vì sao nó : mỗi ngày đúng MỘT nhịp -> không có nhịp nào để quy nhầm
+Nền       : 247 phút (n = 9), đo 03/09/2026 trên lịch cũ `0 9`
+Cỡ mẫu    : 10 ngày làm việc kế tiếp, tức tới hết 17/09/2026 (n ≈ 10)
+
+  ≤  60 phút  ->  DỜI CÓ TÁC DỤNG
+  >  120 phút ->  DỜI KHÔNG CÓ TÁC DỤNG; độ trễ không do phút trong giờ
+  60–120 phút ->  CHƯA KẾT LUẬN ĐƯỢC, đo tiếp
+```
+
+Ba trạng thái chứ không hai — cùng quy ước với `lich_giao_dich.chan_doan`
+và `vnstock_goi.kiem_goi`. Ngưỡng chọn theo mức đáng hành động: dưới một
+giờ thì giờ khai báo trở lại có nghĩa; trên hai giờ thì việc dời không
+giải quyết được gì và phải tìm nguyên nhân khác.
+
+**Giới hạn phải nêu trước:** đây không phải thí nghiệm có đối chứng. Tải
+của GitHub đổi theo tuần, và không có nhóm chứng chạy song song ở lịch cũ.
+Kết quả dương vì thế là **gợi ý**, không phải quan hệ nhân quả. Ghi ra để
+sau này không ai đọc nó mạnh hơn thực chất — cùng lý do đã ghi cho ô h=63.
+
+### Gác
+
+`tests/test_lich_cron_chuong.py`, 14 test, canh bốn thứ:
+
+1. cron đúng như đã khai;
+2. không nhịp nào quay về mốc `:00`/`:30`;
+3. không nhịp nào dời sớm hơn bản cũ;
+4. **chú thích trong file khớp với cron của chính file đó**, và dòng nhắc
+   chéo trong `chuong-nguon-dung.yml` khớp với cron của hai file kia.
+
+Điểm 4 là loại đã hỏng ba lần trong ngày hôm nay — `extend_history.py`
+trỏ tới một file `.broken`, và chính ba chú thích này nêu sai giờ ngay sau
+khi cron đổi. Đây là gác VĂN BẢN, và ở đây văn bản mới là thứ cần kiểm.
+
+Đột biến **7/7 đỏ**, gồm cả đột biến dời sớm hơn bản cũ và đột biến để chú
+thích lệch khỏi cron.
+
+### Rủi ro chuyển tiếp
+
+Đổi lịch một workflow có thể làm GitHub bỏ nhịp đầu tiên sau khi đổi. Nếu
+ngày mai `chuong-bao-quet` không có lượt `schedule` nào thì **chưa** được
+tính vào cỡ mẫu ở trên; nó là hiệu ứng của việc đổi, không phải của lịch
+mới.
+
