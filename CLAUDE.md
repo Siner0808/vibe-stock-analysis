@@ -625,6 +625,11 @@ Nổ đúng phút đã hẹn         : 1/32 lần
 Trễ điển hình               : 5 → 90 phút
 ```
 
+> ⚠️ **Con số "5 → 90 phút" chỉ đúng cho khung 02:00–08:30 UTC, và ngay cả
+> ở đó nó cũng không đo được (03/09/2026).** Ba chuông chạy ở khung
+> 09:00–10:00 UTC trễ **trung vị 4–4,7 GIỜ**. Xem `docs/STATE.md`,
+> BƯỚC 19.
+
 Ba hệ quả, cái thứ ba quan trọng nhất:
 
 1. **Mất khoảng một nửa số nhịp.** GitHub gộp nhịp trễ: nhịp sau tới khi
