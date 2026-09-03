@@ -442,6 +442,11 @@ paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
 cổng đóng bảo đảm nó không bao giờ được đo, vì sổ 113 lệnh không phải bản
 ghi tích luỹ (xem mục trên) nên bằng chứng tiến-về-trước đang là **0**.
 
+> **Cập nhật 03/09/2026 — đọc kỹ hai chữ "ĐÃ ĐÓNG".** Bốn lệnh đầu tiên
+> đã khớp và đang **MỞ**. Bằng chứng tiến-về-trước **đã đóng** vẫn là
+> **0**, và điều kiện dừng ở trên đếm đúng loại đã đóng — nên không con
+> số nào trong mục này đổi. Đây là chỗ dễ đọc nhầm nhất của cả tài liệu.
+
 Số học: cần 1.050 lệnh để kỳ vọng loại được số 0 (~23 năm ở nhịp 45
 lệnh/năm), alpha cần 22.601 lệnh. "Chờ thêm dữ liệu rồi quyết" không phải
 một lựa chọn.
@@ -874,6 +879,13 @@ Hai hàng rào mới đáng biết:
 > phiên nào sau 28/08 để lấy giá mở cửa. Cơ chế thì vẫn đúng —
 > `fill_pending()` không đọc cờ C5, nên đóng cổng KHÔNG huỷ lệnh chờ.
 > Xem `docs/STATE.md`, BƯỚC 11.
+>
+> **✅ CẢ BỐN ĐÃ KHỚP 03/09/2026** — giá mở cửa phiên đầu mở lại, đúng
+> T+1 theo lịch giao dịch (`so_phien_giua('2026-08-28','2026-09-03') = 1`;
+> đếm bằng ngày làm việc sẽ ra 4). Nay là 4 vị thế **OPEN**.
+>
+> Và điều đoạn trên khẳng định nay đã được **kiểm sống**: cổng C5 vẫn
+> `False` tại thời điểm khớp. Xem `docs/STATE.md`, BƯỚC 18.
 >
 > **Cổng đóng nay ĐỐI CHIẾU ĐƯỢC, không chỉ khai (31/08/2026).**
 > `tools/canh_cong_c5.kiem_ro_ri()` hỏi sổ lệnh — chứ không hỏi mã nguồn —

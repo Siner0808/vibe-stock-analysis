@@ -5659,3 +5659,83 @@ giữa lúc bốn lệnh đang chờ khớp.
 **Phép kiểm quyết định, đọc được ngay hôm nay:** `entry_date` của bốn
 lệnh ra `2026-09-03` hay muộn hơn.
 
+
+---
+
+## BƯỚC 18 — BỐN LỆNH ĐẦU TIÊN ĐÃ KHỚP THẬT (03/09/2026)
+
+Đọc sổ trên Google Sheets lúc 15:26, sau khi thị trường đóng cửa:
+
+```
+117 lệnh · PENDING 0 · OPEN 4
+```
+
+| mã | tín hiệu | khớp | mở cửa 03/09 | giá khớp | chênh |
+|---|---|---|---|---|---|
+| HUT | 28/08 | 03/09 | 13.200 | 13.250 | **+50** |
+| NAF | 28/08 | 03/09 | 48.450 | 48.500 | **+50** |
+| STB | 28/08 | 03/09 | 75.200 | 75.300 | **+100** |
+| TCB | 28/08 | 03/09 | 33.100 | 33.150 | **+50** |
+
+### Ba thứ được kiểm SỐNG, không còn là khẳng định trong mã
+
+**1. Khớp đúng T+1, đo bằng lịch chứ không bằng ngày.**
+`lich_giao_dich.so_phien_giua('2026-08-28','2026-09-03')` = **1**. Đếm
+bằng ngày làm việc cho **4**. Cuốn lịch dựng ngày 02/09 lần đầu được dùng
+để phán xử một sự kiện thật, và nó khớp.
+
+**2. Trượt giá đi đúng chiều BẤT LỢI.** Mọi lệnh khớp ở giá mở cửa cộng
+một tới hai bước giá 50đ — trả thêm để mua, không phải mua rẻ hơn. STB
+lệch hai bước, đúng như dự đoán của mô hình: tỷ trọng lớn nhất trên giá
+cao nhất. Đây là chiều duy nhất đọc được mà không phải nghi ngờ; nếu giá
+khớp TỐT hơn giá mở cửa thì theo quy tắc số 1 phải giả định có lỗi.
+
+**3. Đóng cổng C5 KHÔNG huỷ lệnh chờ.** `CHO_PHEP_MO_LENH_MOI = False`
+tại thời điểm khớp, và bốn lệnh vẫn vào. Trước hôm nay đây là một suy
+luận từ mã nguồn (`fill_pending` không đọc cờ); nay là quan sát.
+
+### Đây có thật là tiến-về-trước không — hỏi `created_at`
+
+| | ghi lúc | khoảng |
+|---|---|---|
+| 113 lệnh cũ | 07/08/2026 14:41:16 → 14:45:35 | **258 giây** |
+| 4 lệnh mới | 28/08/2026 21:13:43 → 21:16:30 | lượt quét sau đóng cửa ngày tín hiệu |
+
+Bốn dòng được tạo bởi một lượt quét thật vào tối ngày tín hiệu, rồi được
+khớp bởi một lượt quét khác 21 ngày sau. Đó là hai sự kiện tách rời trên
+trục thời gian — thứ mà 113 lệnh kia, sinh ra trong 258 giây, không có.
+
+### KHÔNG có con số nào của điều kiện dừng đổi
+
+**Vị thế tiến-về-trước đang MỞ: 4. Kết quả tiến-về-trước ĐÃ ĐÓNG: vẫn 0.**
+
+`dieu_kien_dong_lai()` đếm lệnh **đã đóng** (ngưỡng 60, suy từ
+`co_mau_cho_luc()`), nên nó chưa nhận thêm gì. Ghi rõ vì đây là chỗ dễ
+đọc nhầm nhất: "đã có bốn lệnh thật" nghe như bằng chứng vừa tăng, trong
+khi đại lượng mà mọi quyết định treo lên vẫn đứng ở 0.
+
+Cũng không đọc lãi/lỗ ngày đầu. n = 4, và bất biến 5 nói một con số không
+có khoảng tin cậy thì không nói lên gì — với n = 4 thì khoảng tin cậy phủ
+gần như mọi thứ.
+
+### Nguy cơ BƯỚC 17 không thành hiện thực — nhưng suýt
+
+Cả ngày **đúng MỘT** lượt quét nổ, lúc 14:02. Sáu nhịp buổi sáng rơi
+sạch; tới 10:45 vẫn chưa có gì. Nếu nhịp 14:02 cũng rơi thì bốn lệnh này
+đã khớp ở giá mở cửa 04/09 và sổ ghi `entry_date = 2026-09-04` mà không
+có gì kêu — đúng kịch bản viết ra sáng nay.
+
+Điểm dữ liệu đầu tiên của dự án phụ thuộc vào một lượt chạy duy nhất. Nó
+đúng lần này. Con số hôm nay nối vào chuỗi đang thấp: **1, 2, 2, 2, 2, 1**
+nhịp mỗi ngày kể từ 27/08, so với 5,8 của giai đoạn trước đó.
+
+Việc treo ở BƯỚC 17 vì thế **không mất giá trị vì lần này may**: nó vẫn
+là biến không ai đo, và hôm nay là bằng chứng cho thấy biên an toàn mỏng
+tới mức nào.
+
+### Tái lập
+
+```bash
+python -c "import lich_giao_dich as l; print(l.so_phien_giua('2026-08-28','2026-09-03'))"
+```
+
