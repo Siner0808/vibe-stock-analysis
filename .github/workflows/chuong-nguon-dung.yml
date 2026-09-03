@@ -19,9 +19,17 @@ name: Chuông nguồn đứng
 
 on:
   schedule:
-    # 10:00 UTC = 17:00 ICT — sau giờ đóng cửa và sau cả hai chuông kia
-    # (báo quét 09:00, cổng C5 09:30) để ba chuông không lẫn trong hộp thư.
-    - cron: '0 10 * * 1-5'
+    # 10:17 UTC = 17:17 ICT — sau giờ đóng cửa và sau cả hai chuông kia
+    # (báo quét 09:23, cổng C5 09:43) để ba chuông không lẫn trong hộp thư.
+    # LỆCH KHỎI MỐC :00 VÀ :30 CÓ CHỦ ĐÍCH (03/09/2026)
+    # Đo được: nhịp ở 09:00 và 09:30 UTC trễ trung vị 4–4,7 GIỜ, trong khi
+    # tài liệu dự án ghi "5 → 90 phút". Tài liệu GitHub khuyên tránh đầu
+    # giờ vì đó là lúc nhiều workflow cùng xin chạy nhất.
+    # Đây là GIẢ THUYẾT, chưa phải phép sửa đã chứng minh — tiêu chí phán
+    # xử khai trước ở docs/STATE.md, BƯỚC 20. KHÔNG dời sớm hơn:
+    # `chuong_bao_quet.kiem_tra()` soát cả ngày hôm nay và báo đỏ khi ngày
+    # đó chưa có lượt quét nào.
+    - cron: '17 10 * * 1-5'
   workflow_dispatch:
 
 permissions:

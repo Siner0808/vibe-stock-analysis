@@ -18,9 +18,17 @@ name: Chuông báo quét
 
 on:
   schedule:
-    # 09:00 UTC = 16:00 ICT, sau giờ đóng cửa (15:00) và sau lượt quét
+    # 09:23 UTC = 16:23 ICT, sau giờ đóng cửa (15:00) và sau lượt quét
     # cuối cùng trong ngày (đo được: 15:29–15:33 ICT).
-    - cron: '0 9 * * 1-5'
+    # LỆCH KHỎI MỐC :00 VÀ :30 CÓ CHỦ ĐÍCH (03/09/2026)
+    # Đo được: nhịp ở 09:00 và 09:30 UTC trễ trung vị 4–4,7 GIỜ, trong khi
+    # tài liệu dự án ghi "5 → 90 phút". Tài liệu GitHub khuyên tránh đầu
+    # giờ vì đó là lúc nhiều workflow cùng xin chạy nhất.
+    # Đây là GIẢ THUYẾT, chưa phải phép sửa đã chứng minh — tiêu chí phán
+    # xử khai trước ở docs/STATE.md, BƯỚC 20. KHÔNG dời sớm hơn:
+    # `chuong_bao_quet.kiem_tra()` soát cả ngày hôm nay và báo đỏ khi ngày
+    # đó chưa có lượt quét nào.
+    - cron: '23 9 * * 1-5'
   workflow_dispatch:
 
 # Chỉ cần đọc danh sách lượt chạy. Không ghi gì.
