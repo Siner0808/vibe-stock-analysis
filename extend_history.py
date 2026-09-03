@@ -42,6 +42,26 @@ except Exception:
     pass
 
 
+def _tai_cache(ma: str):
+    """Đọc cache một mã để BÁO CÁO, không để quyết định gì."""
+    from backtest import data as _btd
+    return _btd.load(ma)
+
+
+#: Mã KHÔNG nằm trong rổ nhưng vẫn phải được kéo dài.
+#:
+#: `market_filter` đọc VN-INDEX, và khi cache quá hạn nó ném
+#: `CacheQuaHanError` với thông báo bảo người dùng chạy CHÍNH script này
+#: — "Cập nhật bằng `extend_history.py`, KHÔNG phải `download()`".
+#:
+#: Trước 03/09/2026 script không hề đụng tới VNINDEX: nó lặp trên
+#: `VN100_SYMBOLS`, mà VN-INDEX là chỉ số chứ không phải cổ phiếu trong rổ.
+#: Nên chỉ dẫn ấy không sửa được đúng thứ nó nói là sẽ sửa. Đo ngày
+#: 03/09/2026 ngay sau một lượt chạy đầy đủ: 71/71 mã lên 03/09, VNINDEX
+#: vẫn đứng ở 20/08 và cổng C1 vẫn báo TẮT.
+CHI_SO_NGOAI_RO: tuple[str, ...] = ("VNINDEX",)
+
+
 def print_coverage(symbols: list[str]) -> None:
     cov = coverage(symbols)
     have = cov[cov["sessions"] > 0]
@@ -90,13 +110,27 @@ def main() -> int:
     print(f"Nối dài lịch sử về {a.start}")
     print(f"{'=' * 66}\n")
 
-    changed = extend_history(symbols, a.start, a.end)
+    can_tai = list(symbols) + [m for m in CHI_SO_NGOAI_RO
+                               if m not in symbols]
+    changed = extend_history(can_tai, a.start, a.end)
 
     print(f"\n{'=' * 66}")
-    print(f"Đã cập nhật {len(changed)}/{len(symbols)} mã")
+    print(f"Đã cập nhật {len(changed)}/{len(can_tai)} mã "
+          f"(rổ {len(symbols)} + {len(CHI_SO_NGOAI_RO)} chỉ số ngoài rổ)")
     print_coverage(symbols)
 
-    print("\nBước tiếp theo:  python walkforward_vn100.py")
+    # Nói ra đuôi của chỉ số, vì đó là thứ quyết định cổng C1 bật hay tắt
+    # và là lý do người dùng được chỉ tới đây.
+    for ma in CHI_SO_NGOAI_RO:
+        try:
+            df = _tai_cache(ma)
+            duoi = str(df["time"].astype(str).max())[:10] if df is not None \
+                else "KHÔNG CÓ CACHE"
+        except Exception as e:
+            duoi = f"chưa đọc được ({type(e).__name__})"
+        print(f"  {ma}: nến cuối {duoi}")
+
+    print("\nBước tiếp theo:  python walkforward.py")
     return 0
 
 

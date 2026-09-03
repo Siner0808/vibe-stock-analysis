@@ -5474,3 +5474,121 @@ cứu được nữa.
 python -m pytest tests/test_bi_mat_bi_che.py -q
 git check-ignore -v --no-index .streamlit/secrets_cloud_paste.json
 ```
+
+
+---
+
+## BƯỚC 16 — ĐO NHỊP QUÉT, VÀ BA CÔNG CỤ NÓI SAI VỀ CHÍNH MÌNH (03/09/2026)
+
+### Nhịp quét: con số cũ vẫn đúng, linh cảm mới thì sai
+
+Nhìn 5 lượt cuối danh sách API rồi kết luận "2/12 = 17%, tệ hơn hẳn 38%
+đã đo". Đếm tử tế theo ngày thì **61/180 = 33,9%** trên 15 ngày làm việc,
+so với 32/84 = 38,1% đo ngày 21/08. Gần như không đổi.
+
+Bài học nhỏ mà lặp lại nhiều: *5 phần tử cuối một danh sách không phải
+một mẫu.* Chúng là đuôi của một chuỗi có thứ tự, và đuôi thì thiên lệch
+theo đúng thứ đang muốn đo.
+
+Nhưng phép đếm theo ngày lộ ra thứ không tìm:
+
+```
+17→26/08 (8 ngày) : 5,8,5,4,6,6,6,6  → 5,8 nhịp/ngày
+27/08 → 02/09 (5) : 1,2,2,2,2        → 1,8 nhịp/ngày
+```
+
+**Giả thuyết đã kiểm và BỊ BÁC:** "lượt quét chạy lâu hơn nên GitHub bỏ
+nhịp". Ngày 17/08 lượt quét dài 8,6 phút mà nổ 8 nhịp — nhiều nhất cả
+giai đoạn. Nhịp cách nhau 30 phút nên một lượt 16 phút cũng không chồng
+được lên nhịp sau. Cơ chế không tồn tại.
+
+**Một nửa giả thuyết vẫn đúng, và nó là của ta:** thời lượng lượt quét
+tăng thật, trung vị **3,9 → 9,5 phút**, và ba ngày gần nhất là 12,7–14,6.
+Mốc trùng với `e781b35` (29/08, cửa sổ dữ liệu máy quét 60 → 1095 ngày).
+Đó là cái giá gấp bốn lần của một thay đổi đúng đắn mà **chưa ai đo**.
+
+Việc rơi nhịp thì bắt đầu 27/08, trước mọi thay đổi liên quan, và
+`git log -- .github/workflows/` không có commit nào ngày đó. `cancelled`
+bằng 0 nên cũng không phải `concurrency`. Nguyên nhân nằm ngoài repo.
+**5 ngày là mỏng** — ghi lại làm mốc, phép kiểm quyết định là vài ngày
+tới, không phải một lập luận thêm.
+
+### Thứ THẬT SỰ quan trọng thì không đổi
+
+| | |
+|---|---|
+| A. hạ tầng — nhịp nổ / nhịp khai báo | 61/180 = **33,9%** |
+| B. **phiên có ít nhất một lượt quét thành công** | 11/12 = **91,7%** |
+
+Phiên duy nhất trượt là **13/08**, đúng ngày workflow mới dựng. Từ 14/08
+tới nay không phiên nào bị bỏ. A là dự phòng; B là thứ quyết định sổ lệnh
+có đứng hay không, và B vẫn nguyên.
+
+### `extend_history.py` không kéo VN-INDEX — trong khi thông báo lỗi bảo chạy nó
+
+`market_filter.CacheQuaHanError` ghi: *"Cập nhật bằng `extend_history.py`,
+KHÔNG phải `download()`"*. Script ấy lặp trên `VN100_SYMBOLS`, mà VN-INDEX
+là chỉ số chứ không phải cổ phiếu trong rổ — nên nó **chưa bao giờ đụng
+tới VNINDEX**.
+
+Đo ngay sau một lượt chạy đầy đủ hôm nay: 71/71 mã trong rổ lên 03/09,
+VNINDEX vẫn đứng ở 20/08, `status()` vẫn báo *trễ 7 phiên · cổng TẮT*.
+Một chỉ dẫn không sửa được đúng thứ nó nói là sẽ sửa. Sau khi vá:
+`active: True`, nến cuối 03/09, trễ 0.
+
+Cùng file còn kết thúc bằng *"Bước tiếp theo: … `walkforward_vn100.py`"* —
+file đã đổi đuôi `.broken` từ 20/08 và bị `CLAUDE.md` cấm dùng.
+
+Cả hai cùng một hình dạng: **văn bản hướng dẫn không được ai kiểm.** Nên
+gác mới là một luật tổng quát chứ không phải hai bản vá:
+`tests/test_chi_dan_chay_duoc.py` quét toàn repo và cấm mọi chỉ dẫn dạng
+`<lệnh chạy> <file>.py` trỏ tới file không tồn tại. Quét 201 file, và
+trên repo thật nó chỉ bắt đúng một chỗ — đủ sạch để làm luật vĩnh viễn.
+
+### Lần thứ TƯ trong ngày: một cổng xanh không kiểm gì
+
+Bản đầu của chính gác trên **bỏ qua toàn bộ repo**. Nó loại trừ thư mục
+`scratch`, so trên `f.parts` của đường TUYỆT ĐỐI — mà repo này nằm ở
+`…\antigravity\scratch\vibe_preview`. Mọi file đều khớp. Quét 0 file,
+xanh vì không kiểm gì.
+
+Dự án **đã gặp đúng bẫy này** và ghi lại ở `tools/kiem_cu_phap_311.py`,
+dòng 30. `tools/chan_bia_so_lieu.py` thì lọc theo đường tương đối nên an
+toàn. Nhưng một bài học nằm trong chú thích của một công cụ **không bảo
+vệ được công cụ viết sau nó** — và người viết công cụ sau, lần này, là
+người vừa đọc cả hai file ấy sáng nay.
+
+Chỉ đột biến tìm ra: trỏ ngược chỉ dẫn về `walkforward_vn100.py` mà test
+vẫn xanh.
+
+**Chốt chặn chung rút ra, áp cho mọi gác quét-toàn-repo về sau:** máy quét
+phải tự khai đã quét bao nhiêu file, và có một sàn. `kiem_cu_phap_311` in
+số file ra đúng vì lý do này; nay nó thành một `assert`. Hằng số sàn được
+khoá bằng test riêng, vì đột biến hạ sàn về 0 lúc đầu vẫn xanh — hạ sàn
+chính là gỡ gác.
+
+Sửa xong, gác lập tức bắt thêm **ba** chỗ — cả ba nằm trong docstring và
+chú thích của chính nó. Đã viết lại văn bản thay vì khoét ngoại lệ: một
+gác có ngoại lệ là một gác đã bắt đầu mục ruỗng.
+
+### Đột biến
+
+| đột biến | |
+|---|---|
+| trỏ ngược về `walkforward_vn100.py` | ĐỎ |
+| truyền `symbols` thay `can_tai` | ĐỎ |
+| `CHI_SO_NGOAI_RO` rỗng | ĐỎ |
+| `can_tai` quên trộn chỉ số vào | ĐỎ |
+| thông báo C1 không còn trỏ tới công cụ nào | ĐỎ |
+| lọc lại theo đường tuyệt đối (bẫy `scratch`) | ĐỎ |
+| hạ `SAN_SO_FILE` về 0 | ĐỎ *(sau khi khoá hằng số)* |
+
+**741 test** (từ 735), 7/7 đỏ, hai cổng sạch.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_chi_dan_chay_duoc.py -q
+python extend_history.py --check
+```
+
