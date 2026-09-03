@@ -888,6 +888,10 @@ Trễ điển hình               : 5 → 90 phút
 Lượt sau giờ đóng cửa       : 4/4 ngày, 15:29→15:33 giờ VN
 ```
 
+> ⚠️ **Con số "5 → 90 phút" chỉ đúng cho khung 02:00–08:30 UTC, và ngay cả
+> ở đó nó cũng không đo được (03/09/2026).** Ba chuông chạy ở khung
+> 09:00–10:00 UTC trễ **trung vị 4–4,7 GIỜ**. Xem BƯỚC 19.
+
 Cách hiểu cũ ("Actions chạy đều, máy thì phụ thuộc máy có thức") không
 sai nhưng thiếu. Đúng hơn là: **Actions rơi mất khoảng một nửa số nhịp
 trong phiên, nhưng chưa ngày nào lỡ lượt sau đóng cửa** — và vì
@@ -5738,4 +5742,74 @@ tới mức nào.
 ```bash
 python -c "import lich_giao_dich as l; print(l.so_phien_giua('2026-08-28','2026-09-03'))"
 ```
+
+
+---
+
+## BƯỚC 19 — GIỜ KHAI BÁO CỦA BA CHUÔNG GẦN NHƯ LÀ HƯ CẤU (03/09/2026)
+
+Sau khi bấm tay cho `chuong-nguon-dung` chạy lần đầu, câu còn lại là
+"cron có nổ nó không". Lúc 17:01 chưa thấy gì. Thay vì đứng canh, hỏi hai
+chuông kia — khung 16:00 và 16:30 giờ VN của chúng đã trôi qua.
+
+Chúng cũng chưa nổ. Và lịch sử cho biết vì sao.
+
+| workflow | nhịp khai báo (UTC) | n | **trễ trung vị** | nhỏ nhất | lớn nhất |
+|---|---|---|---|---|---|
+| `chuong-bao-quet` | 09:00 | 9 | **247 ph** (4h07) | 27 ph | 692 ph |
+| `canh-cong-c5` | 09:30 | 3 | **282 ph** (4h42) | 255 ph | 458 ph |
+| `chuong-nguon-dung` | 10:00 | 0 | — | | |
+
+`CLAUDE.md` ghi *"trễ điển hình 5 → 90 phút"*, đo ngày 21/08/2026. Với
+khung 09:00–10:00 UTC con số ấy **sai một bậc độ lớn**. Đã đánh dấu tại
+chỗ ở cả hai nơi thay vì sửa đè — con số cũ không sai lúc nó ra đời, nó
+chỉ nói về một khung giờ khác.
+
+### Phép đo của chính bước này cũng có một chỗ KHÔNG dùng được
+
+Cùng lúc đó tôi đo `quet-so-lenh` và ra trung vị **10 phút** — con số ấy
+phải vứt. Workflow đó có **12 nhịp cách nhau 30 phút**, còn phép đo quy
+mỗi lượt chạy về nhịp khai báo gần nhất TRƯỚC nó. Nên mọi độ trễ quá 30
+phút bị quy nhầm sang nhịp kế tiếp: **phép đo tự chặn trên bởi khoảng
+cách giữa hai nhịp.**
+
+Hai nhóm vì thế không so sánh được với nhau, dù cùng một bảng và cùng một
+đơn vị. Thứ đứng vững là ba hàng trên: mỗi ngày đúng một nhịp, không có
+nhịp nào để quy nhầm.
+
+Ghi lại vì đây là **cùng hình dạng với ngưỡng đo bằng ngày làm việc**
+(BƯỚC 14): một phép đo trả về con số trông hợp lý ở mọi trường hợp, và
+sai đơn vị ở tất cả. Khác ở chỗ lần này cái sai nằm trong phép đo tôi vừa
+viết để kiểm thứ khác, chứ không nằm trong mã của dự án.
+
+`canh-cong-c5` có n = 3 — mỏng. Hàng đứng vững nhất là `chuong-bao-quet`
+với n = 9.
+
+### Hệ quả: lời khuyên "canh 17:00" sai gấp đôi
+
+Sai **giờ** — chuông 10:00 UTC nhiều khả năng nổ trong khoảng 20:00–00:30
+giờ VN. Và sai **ngưỡng kết luận** — "quá 18:30 mà im thì hỏng" được suy
+từ đúng con số 5–90 phút vừa bị bác.
+
+Không có gì hỏng. Lượt bấm tay lúc 16:12 đã chứng minh workflow chạy
+được, thư viện cài được, script không nổ trên runner. Thứ chưa chứng minh
+được vẫn là cron, và nay đã biết phải chờ tới đâu mới được kết luận.
+
+### Điều này KHÔNG làm hỏng chức năng của chuông
+
+Ba chuông đều là phép soát theo NGÀY, không phải cảnh báo thời gian thực.
+`chuong_bao_quet` còn cố ý soát **ba** ngày làm việc gần nhất đúng vì
+biết cron rơi nhịp. Nổ muộn bốn tiếng vẫn nổ trong ngày, và vẫn bắt được
+thứ chúng sinh ra để bắt.
+
+Cái mất là **khả năng dự đoán**: không ai nhìn vào file mà biết chuông
+kêu lúc mấy giờ, và một người chờ tới 18:30 rồi kết luận "chuông hỏng" sẽ
+kết luận sai — như tôi hôm nay.
+
+### Việc treo, KHÔNG tự làm
+
+Dời ba nhịp khỏi đầu giờ chẵn và khỏi khung 09:00–10:00 UTC. Tài liệu
+GitHub khuyên đúng điều này, và `40 8 * * 1-5` (15:40 giờ VN) rơi ngay
+sau nhịp quét cuối trong ngày, lệch giờ chẵn, ngoài khung nghẽn. Nhưng
+đổi lịch chuông là đổi hành vi của thứ đang canh gác, nên để người quyết.
 
