@@ -5416,3 +5416,61 @@ trong khi đếm bằng nguồn khác.
 python -m pytest tests/test_market_filter.py tests/test_lich_giao_dich.py -q
 python -c "import market_filter as m; print(m.status(hom_nay='2026-09-03'))"
 ```
+
+---
+
+## BƯỚC 15 — BÍ MẬT ĐƯỢC CHE ĐÍCH DANH (03/09/2026)
+
+`.streamlit/secrets_cloud_paste.txt` chứa credential thật của kho ngoài.
+Nó chưa bao giờ bị commit, nhưng thứ giữ nó nằm ngoài repo là dòng `*.txt`
+ở mục *"Kết quả và log chạy thử nghiệm"* — một luật không hề nói về bí
+mật. Repo này là public.
+
+Luật ấy không sai vào ngày nó ra đời. Nó sai vào ngày ai đó lưu cùng nội
+dung thành `.json`, `.md` hay bỏ hẳn đuôi. Nay che theo **tiền tố**:
+
+```gitignore
+.streamlit/secrets*
+!.streamlit/secrets.toml.example
+```
+
+### Gác hỏi git, và lần đầu nó hỏi sai
+
+`tests/test_bi_mat_bi_che.py` gọi `git check-ignore` thay vì đọc lại
+`.gitignore` rồi tự diễn giải — dựng lại luật của git trong test là kiểm
+công thức của test, đúng cái bẫy ngày 31/08.
+
+Nhưng bản đầu vẫn hỏng, và **chỉ đột biến tìm ra**: xoá dòng phủ định
+`!.streamlit/secrets.toml.example` mà test vẫn XANH. Nguyên nhân là
+`git check-ignore` **bỏ qua hoàn toàn file đang được theo dõi** và trả
+"không bị che" bất kể luật viết gì. Bản mẫu đang được theo dõi, nên câu
+hỏi "có bị che quá tay không" chưa bao giờ được trả lời.
+
+Thêm `--no-index` thì đột biến ấy đỏ. Đây là lần thứ ba dự án gặp cùng
+hình dạng — công cụ chạy, in ra kết quả xanh, và không kiểm gì:
+`tools/kiem_ban_sach.py` chết ở dòng `print` đầu tiên (22/08), ba gác dạng
+`"tên" in src` khớp chữ trong chú thích (31/08), và nay một cờ dòng lệnh
+thiếu làm câu hỏi bị lặng lẽ từ chối.
+
+### Đột biến
+
+| đột biến | kết quả |
+|---|---|
+| bỏ hẳn luật đích danh (về trước 03/09) | ĐỎ |
+| bỏ dòng phủ định → che cả bản mẫu | ĐỎ |
+| thu hẹp về đúng hai đuôi đã biết | ĐỎ |
+| **bỏ luật chung `*.txt`** | **XANH — đúng ý đồ** |
+
+Đột biến cuối là phép kiểm ngược: gác không được phụ thuộc vào `*.txt`,
+vì chính sự phụ thuộc ấy là thứ đang sửa.
+
+**735 test** (từ 725). `.gitignore` chỉ áp cho file CHƯA theo dõi, nên có
+gác riêng hỏi `git ls-files` — file đã lỡ commit thì `.gitignore` không
+cứu được nữa.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_bi_mat_bi_che.py -q
+git check-ignore -v --no-index .streamlit/secrets_cloud_paste.json
+```
