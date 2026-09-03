@@ -25,6 +25,7 @@ from datetime import date
 
 import pandas as pd
 
+import lich_giao_dich as _lgd
 from backtest import data as _btd
 
 MA_WINDOW = 50
@@ -73,20 +74,81 @@ def _tre_phien(ngay_cuoi: str, moc: str, lich=None) -> int:
     CÁI BẪY, VÀ CHỐT CHẶN CHO NÓ
     ────────────────────────────
     Nếu chính `lich` cũng cũ hơn `moc` thì phép đếm ra 0 và ô C1 tắt lặng
-    lẽ — đúng thứ nó sinh ra để bắt. Nên lịch chỉ được dùng khi nó PHỦ TỚI
-    `moc`; không phủ thì lùi về đếm ngày làm việc, và `status()` nói rõ đó
-    là ước tính.
+    lẽ — đúng thứ nó sinh ra để bắt. Nên lịch quan sát chỉ được dùng khi
+    nó PHỦ TỚI `moc`.
+
+    THANG BA NẤC — VÀ VÌ SAO NẤC GIỮA PHẢI CÓ (03/09/2026)
+    ──────────────────────────────────────────────────────
+    Không phủ thì trước đây lùi thẳng về ngày làm việc, tức lùi về đúng
+    phép đo sai đơn vị mà cả docstring này nói là sai. Sáng 03/09 điều đó
+    thành báo động giả thật: nến cuối 28/08, chưa lượt quét nào nạp lịch,
+    `status()` báo "trễ 4 phiên · bộ lọc KHÔNG dùng được" trong khi thị
+    trường mới mở lại được MỘT phiên.
+
+    Nay có nấc giữa: `lich_giao_dich` — bảng lịch **công bố trước**, đối
+    chiếu 162/162 phiên với chuỗi VN-INDEX thật, lệch 0 ở cả hai chiều.
+
+        1. lịch QUAN SÁT được trong lượt này, nếu nó phủ tới `moc`
+        2. lịch CÔNG BỐ, nếu bảng phủ cả hai đầu
+        3. ngày làm việc T2–T6 — ước tính, có thể sai
+
+    Nấc 2 KHÔNG làm yếu ô C1, và đây là chỗ phải kiểm kỹ vì nó chỉ có thể
+    làm con số NHỎ ĐI (phiên ⊆ ngày làm việc), tức đúng chiều quy tắc số
+    1. Lý lẽ: nguồn đứng thì phiên vẫn dồn lên theo bảng — cache chết từ
+    07/08 tới 20/08 vẫn ra 9 phiên, vẫn vượt ngưỡng. Phần bị trừ đi đúng
+    bằng số ngày nghỉ, mà ngày nghỉ chưa bao giờ là dữ liệu bị thiếu.
+
+    Bảng công bố khác lịch quan sát ở chỗ nó ĐỘC LẬP với chuỗi giá, nên
+    nguồn chết không làm nó chết theo — đó là lý do nó dùng được làm
+    đường lùi còn lịch quan sát đã cũ thì không.
+
+    Bảng chỉ phủ một năm; ngoài phạm vi `so_phien_giua` trả `None` và
+    thang rơi xuống nấc 3. `tools/chuong_nguon_dung.py` kêu khi bảng hết
+    hạn, nên nấc 3 không quay lại lặng lẽ.
     """
+    nguon = _nguon_dem(ngay_cuoi, moc, lich)
     ngay_cuoi, moc = str(ngay_cuoi)[:10], str(moc)[:10]
-    if moc <= ngay_cuoi:
+    if nguon == NGUON_KHONG_CAN:
         return 0
-    lich = _LICH_PHIEN if lich is None else tuple(
-        sorted({str(d)[:10] for d in lich}))
-    if lich and max(lich) >= moc:
-        return sum(1 for d in lich if ngay_cuoi < d <= moc)
+    if nguon == NGUON_QUAN_SAT:
+        # KHỬ TRÙNG LẶP trước khi đếm. `run_daily` gom ngày phiên từ cả
+        # rổ 71 mã, nên cùng một phiên xuất hiện tới 71 lần; đếm thẳng
+        # trên danh sách thô cho ra một độ trễ gấp bội và ô C1 dừng phiên
+        # quét vì một lỗi của phép đếm, không phải vì dữ liệu.
+        ds = _LICH_PHIEN if lich is None else {str(d)[:10] for d in lich}
+        return sum(1 for d in ds if ngay_cuoi < str(d)[:10] <= moc)
+    if nguon == NGUON_CONG_BO:
+        return _lgd.so_phien_giua(ngay_cuoi, moc)
     return len(pd.bdate_range(
         start=pd.Timestamp(ngay_cuoi) + pd.Timedelta(days=1),
         end=pd.Timestamp(moc)))
+
+
+#: Ba nguồn đếm, xếp theo độ tin cậy giảm dần. `status()` phát ra tên nguồn
+#: thay vì chỉ một cờ hai trạng thái: gộp "đo được trong lượt này" với "tra
+#: bảng công bố" thành cùng một chữ "chắc" là đúng kiểu gộp mà dự án đã cấm
+#: — trạng thái thứ ba không bao giờ được nhập vào trạng thái đầu.
+NGUON_QUAN_SAT = "lich_quan_sat"
+NGUON_CONG_BO = "lich_cong_bo"
+NGUON_LAM_VIEC = "ngay_lam_viec"
+NGUON_KHONG_CAN = "khong_can_dem"
+
+
+def _nguon_dem(ngay_cuoi: str, moc: str, lich=None) -> str:
+    """Thang ba nấc quyết định ở ĐÂY, và chỉ ở đây.
+
+    `_tre_phien` phân nhánh theo giá trị hàm này trả về, nên không tồn tại
+    đường nào đếm bằng một nguồn mà lại khai một nguồn khác. Tách đôi hai
+    phép quyết định ấy là cách một báo cáo bắt đầu nói sai về chính nó.
+    """
+    ngay_cuoi, moc = str(ngay_cuoi)[:10], str(moc)[:10]
+    if moc <= ngay_cuoi:
+        return NGUON_KHONG_CAN
+    if _lich_phu_toi(moc, lich):
+        return NGUON_QUAN_SAT
+    if _lgd.so_phien_giua(ngay_cuoi, moc) is None:
+        return NGUON_LAM_VIEC
+    return NGUON_CONG_BO
 
 
 def _lich_phu_toi(moc: str, lich=None) -> bool:
@@ -181,10 +243,13 @@ def status(hom_nay: str | None = None, lich=None) -> dict:
     tre = _tre_phien(cuoi, moc, lich)
     st["ngay_cuoi"] = cuoi
     st["tuoi_phien"] = tre
-    # Đếm chắc (có lịch phiên phủ tới mốc) khác hẳn đếm ước tính (ngày làm
-    # việc). Không nói ra thì một con số nghỉ lễ trông y hệt một con số
-    # cache chết.
-    st["uoc_tinh"] = not _lich_phu_toi(moc, lich)
+    # Không nói ra nguồn đếm thì một con số nghỉ lễ trông y hệt một con số
+    # cache chết. `nguon_dem` là câu trả lời đầy đủ; `uoc_tinh` giữ lại
+    # nghĩa HẸP của nó — "đang đếm bằng ngày làm việc", nấc duy nhất thật
+    # sự là phỏng đoán. Bảng công bố không phải phỏng đoán, nhưng cũng
+    # không phải thứ đo được trong lượt này, nên nó có nấc riêng.
+    st["nguon_dem"] = _nguon_dem(cuoi, moc, lich)
+    st["uoc_tinh"] = st["nguon_dem"] == NGUON_LAM_VIEC
     if tre > TRE_TOI_DA_PHIEN:
         st["active"] = False
         st["note"] = (f"VN-INDEX QUÁ HẠN: dữ liệu tới {cuoi}, trễ {tre} phiên "

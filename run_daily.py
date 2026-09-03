@@ -307,11 +307,20 @@ def execute_daily_scan():
     # goi status() truoc. Ban cu KHONG he nhac toi bo loc -- grep
     # "market_filter|status()" run_daily.py tra ve 0 -- nen suot 14 ngay
     # khong ai biet cong da dong cung.
+    #: Nguồn nào đếm ra con số "trễ N phiên" — ba nấc, ba câu khác nhau.
+    #: Bản trước chỉ có một câu "(ước tính theo ngày làm việc)" gắn với một
+    #: cờ hai trạng thái, nên khi có thêm nấc giữa thì câu đó thành sai.
+    _NHAN_NGUON_DEM = {
+        market_filter.NGUON_QUAN_SAT: " (lịch phiên đo được trong lượt này)",
+        market_filter.NGUON_CONG_BO: " (theo lịch công bố — chưa nạp lịch quét)",
+        market_filter.NGUON_LAM_VIEC: " (ƯỚC TÍNH theo ngày làm việc — "
+                                      "không có lịch nào phủ)",
+    }
     _cong = market_filter.status()
     print(f"📌 Cổng VN-INDEX: {'BẬT' if _cong.get('active') else 'TẮT'}"
           f" · dữ liệu tới {_cong.get('ngay_cuoi', '?')}"
           f" · trễ {_cong.get('tuoi_phien', '?')} phiên"
-          f"{' (ước tính theo ngày làm việc — chưa có lịch phiên)' if _cong.get('uoc_tinh') else ''}")
+          f"{_NHAN_NGUON_DEM.get(_cong.get('nguon_dem'), '')}")
     print("=" * 80)
 
     # ── KÉO SỔ LỆNH TỪ KHO NGOÀI TRƯỚC KHI QUÉT ──────────────────────

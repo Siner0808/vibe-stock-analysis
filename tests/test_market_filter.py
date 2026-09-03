@@ -270,20 +270,28 @@ def test_nghi_le_KHONG_bi_tinh_la_tre():
     """Ba ngày nghỉ lễ không phải ba phiên bị lỡ."""
     lich = _lich_that("2026-08-01", "2026-09-04")
     assert mf._tre_phien("2026-08-28", "2026-08-28", lich) == 0
-    # Bản cũ (ngày làm việc) đếm 3 cho cùng khoảng này.
-    assert mf._tre_phien("2026-08-28", "2026-09-02") == 3
     assert mf._tre_phien("2026-08-28", "2026-09-02", lich) == 0
-    print("PASS  nghỉ lễ 3 ngày -> 0 phiên trễ (ngày làm việc đếm 3)")
+    # Không có lịch quan sát thì rơi xuống lịch CÔNG BỐ — vẫn 0, vì bảng
+    # cũng biết ba ngày ấy là nghỉ. Con số ngày làm việc tính TẠI CHỖ để
+    # thấy khoảng cách, thay vì ghim nó như thể là hành vi của mã.
+    assert mf._tre_phien("2026-08-28", "2026-09-02") == 0
+    ngay_lam_viec = len(pd.bdate_range("2026-08-29", "2026-09-02"))
+    assert ngay_lam_viec == 3, ngay_lam_viec
+    print(f"PASS  nghỉ lễ 3 ngày -> 0 phiên trễ (ngày làm việc {ngay_lam_viec})")
 
 
 def test_thu_nam_sau_nghi_le_dem_dung_MOT_phien():
     """Đây là ngày ô C1 suýt dừng cả phiên quét vì một phép đếm sai đơn vị."""
     lich = _lich_that("2026-08-01", "2026-09-04")
-    cu = mf._tre_phien("2026-08-28", "2026-09-03")
-    moi = mf._tre_phien("2026-08-28", "2026-09-03", lich)
-    assert cu == 4 and cu > mf.TRE_TOI_DA_PHIEN, cu
-    assert moi == 1 and moi <= mf.TRE_TOI_DA_PHIEN, moi
-    print(f"PASS  03/09: ngày làm việc {cu} (vượt ngưỡng) -> phiên {moi} (không)")
+    ngay_lam_viec = len(pd.bdate_range("2026-08-29", "2026-09-03"))
+    assert ngay_lam_viec == 4 and ngay_lam_viec > mf.TRE_TOI_DA_PHIEN
+
+    # CẢ HAI nấc lịch phải cho 1. Sáng 03/09 chưa lượt quét nào chạy nên
+    # nấc quan sát còn trống — nếu chỉ nấc ấy đúng thì báo động giả vẫn nổ.
+    assert mf._tre_phien("2026-08-28", "2026-09-03", lich) == 1
+    assert mf._tre_phien("2026-08-28", "2026-09-03") == 1
+    assert 1 <= mf.TRE_TOI_DA_PHIEN
+    print(f"PASS  03/09: ngày làm việc {ngay_lam_viec} (vượt ngưỡng) -> phiên 1")
 
 
 def test_cache_CHET_that_van_bi_bat_nguyen_ven():
@@ -298,30 +306,149 @@ def test_cache_CHET_that_van_bi_bat_nguyen_ven():
     print(f"PASS  cache chết thật -> {tre} phiên, vẫn vượt ngưỡng")
 
 
-def test_lich_CU_hon_moc_thi_LUI_VE_uoc_tinh():
+def test_lich_QUAN_SAT_cu_hon_moc_thi_KHONG_duoc_dung_de_dem():
     """Cái bẫy: lịch cũ hơn mốc thì đếm ra 0 và ô C1 tắt lặng lẽ.
 
-    Đúng thứ ô C1 sinh ra để bắt — nên lịch chỉ được dùng khi nó PHỦ TỚI
-    mốc. Không phủ thì lùi về ngày làm việc, tức về phía an toàn.
+    Bản trước chứng minh điều đó bằng con số 4 của ngày làm việc. Con số
+    ấy là của ĐƯỜNG LÙI, không phải của cái bẫy — nên khi đường lùi đổi
+    sang lịch công bố (03/09/2026) test cũ đỏ dù tính chất nó canh vẫn
+    còn nguyên. Nay ghim thẳng tính chất: **không bao giờ ra 0**.
     """
     lich_cu = _lich_that("2026-08-01", "2026-08-28")
     tre = mf._tre_phien("2026-08-28", "2026-09-03", lich_cu)
-    assert tre == 4, f"lịch cũ mà vẫn dùng để đếm -> {tre}"
+    assert tre != 0, "lịch cũ được dùng để đếm -> ô C1 tắt lặng lẽ"
+    assert tre == 1, tre
+    assert mf._nguon_dem("2026-08-28", "2026-09-03",
+                         lich_cu) == mf.NGUON_CONG_BO
     assert mf._lich_phu_toi("2026-09-03", lich_cu) is False
     assert mf._lich_phu_toi("2026-08-28", lich_cu) is True
-    print("PASS  lịch cũ hơn mốc -> lùi về ước tính, không tắt lặng lẽ")
+    print("PASS  lịch quan sát cũ -> không dùng để đếm, không tắt lặng lẽ")
+
+
+def test_NGUON_CHET_qua_ky_nghi_VAN_bi_bat():
+    """Đổi đường lùi chỉ được phép bỏ báo động GIẢ, không bỏ báo động thật.
+
+    Đây là phép kiểm cho chiều nguy hiểm của quy tắc số 1: phiên là tập
+    con của ngày làm việc, nên thay đổi này chỉ có thể làm con số NHỎ ĐI.
+    Ba kịch bản nguồn chết thật, không kịch bản nào được lọt.
+    """
+    lich_cu = _lich_that("2026-08-01", "2026-08-07")
+    # cache chết 07/08 -> 20/08, đúng sự cố nguyên bản
+    assert mf._tre_phien("2026-08-07", "2026-08-20", lich_cu) == 9
+    # nguồn chết vắt qua Tết (5 ngày nghỉ) — nơi phần bị trừ lớn nhất
+    assert mf._tre_phien("2026-02-13", "2026-03-16") == 16
+    # và trọn kỳ Quốc khánh cộng vài phiên
+    assert mf._tre_phien("2026-08-28", "2026-09-08") > mf.TRE_TOI_DA_PHIEN
+    print("PASS  nguồn chết thật vẫn vượt ngưỡng ở cả ba kịch bản")
+
+
+def test_lich_QUAN_SAT_thang_lich_CONG_BO_khi_hai_ben_lech():
+    """Thứ tự nấc là một quyết định, không phải tình cờ.
+
+    Bảng công bố biết trước ngày nghỉ đã hẹn; nó KHÔNG biết một phiên bị
+    đóng đột xuất. Chuỗi giá thì biết, vì không có phiên thì không có
+    nến. Nên khi lịch quan sát phủ tới mốc, nó phải thắng.
+    """
+    # bảng công bố nói 03/09 và 04/09 đều có phiên
+    assert mf._tre_phien("2026-09-02", "2026-09-04") == 2
+    # nhưng quan sát được chỉ một phiên -> quan sát thắng
+    lich = ["2026-09-02", "2026-09-04"]
+    assert mf._tre_phien("2026-09-02", "2026-09-04", lich) == 1
+    assert mf._nguon_dem("2026-09-02", "2026-09-04",
+                         lich) == mf.NGUON_QUAN_SAT
+    print("PASS  lịch quan sát thắng lịch công bố khi hai bên lệch")
+
+
+def test_NGOAI_pham_vi_bang_thi_lui_ve_ngay_lam_viec():
+    """Bảng phủ một năm. Hết phạm vi phải LỘ RA, không được đoán tiếp."""
+    assert mf._nguon_dem("2027-03-01", "2027-03-10") == mf.NGUON_LAM_VIEC
+    assert mf._tre_phien("2027-03-01", "2027-03-10") == 7
+    assert mf._nguon_dem("2025-12-20", "2026-01-05") == mf.NGUON_LAM_VIEC
+    print("PASS  ngoài phạm vi bảng -> lùi về ngày làm việc, có tên nguồn")
+
+
+def test_KHONG_CO_GI_de_dem_thi_phai_khai_dung_the():
+    """Đột biến 10 sống sót vì nó không đổi con số nào — chỉ đổi LỜI KHAI.
+
+    Bỏ nhánh `NGUON_KHONG_CAN` thì mọi phép đếm vẫn ra 0 (tổng rỗng, danh
+    sách rỗng, `bdate_range` ngược đầu đều là 0), nên mọi test kiểm giá
+    trị đều xanh. Cái đổi là `status()` bắt đầu khai một cuốn lịch nó
+    chưa hề mở — đúng thứ thang nấc này sinh ra để chặn.
+
+    Nên gác phải đọc thẳng lời khai, không đọc con số nó kèm theo.
+    """
+    assert mf._nguon_dem("2026-08-28", "2026-08-28") == mf.NGUON_KHONG_CAN
+    assert mf._nguon_dem("2026-08-28", "2026-08-27") == mf.NGUON_KHONG_CAN
+    assert mf._tre_phien("2026-08-28", "2026-08-27") == 0
+
+    # Có lịch phủ tới mốc cũng KHÔNG được nhấc nó lên: không có gì để đếm
+    # thì không cuốn lịch nào được ghi công.
+    lich = _lich_that("2026-08-01", "2026-09-04")
+    assert mf._nguon_dem("2026-08-28", "2026-08-28",
+                         lich) == mf.NGUON_KHONG_CAN
+    print("PASS  không có gì để đếm -> khai đúng thế, không mượn tên lịch")
+
+
+def test_lich_TRUNG_LAP_khong_lam_phong_do_tre():
+    """`run_daily` gom ngày phiên từ cả rổ 71 mã — trùng lặp là mặc định.
+
+    Đếm thẳng trên danh sách thô cho ra độ trễ gấp bội và ô C1 dừng phiên
+    quét vì lỗi của phép đếm. Sai theo chiều an toàn, nhưng vẫn là sai.
+    """
+    tho = ["2026-08-27", "2026-08-28"] * 71
+    assert mf._tre_phien("2026-08-26", "2026-08-28", tho) == 2
+    print("PASS  ngày phiên trùng lặp không làm phồng độ trễ")
+
+
+def test_PHEP_DEM_va_TEN_NGUON_khong_the_lech_nhau():
+    """Gác HÌNH DẠNG: `_tre_phien` phân nhánh theo `_nguon_dem`, chỉ vậy.
+
+    Nếu hàm đếm tự quyết định lại bằng `_lich_phu_toi` thì có hai phép
+    quyết định song song, và ngày chúng trôi khỏi nhau là ngày `status()`
+    khai một nguồn trong khi đếm bằng nguồn khác. Kiểm giá trị không bắt
+    được — hôm nay hai bên còn cho cùng kết quả.
+    """
+    import ast
+    cay = ast.parse((GOC / "market_filter.py").read_text(encoding="utf-8"))
+    ham = [n for n in ast.walk(cay)
+           if isinstance(n, ast.FunctionDef) and n.name == "_tre_phien"]
+    assert len(ham) == 1
+    goi = {n.func.id for n in ast.walk(ham[0])
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "_nguon_dem" in goi, "không hỏi nguồn, tự quyết định lấy"
+    assert "_lich_phu_toi" not in goi, (
+        "_tre_phien quyết định lại thang nấc — hai nguồn sự thật song song")
+    ten = {n.id for n in ast.walk(ham[0]) if isinstance(n, ast.Name)}
+    thieu = {"NGUON_KHONG_CAN", "NGUON_QUAN_SAT", "NGUON_CONG_BO"} - ten
+    assert not thieu, f"nhánh không đi qua hằng nguồn: {thieu}"
+    print("PASS  một nơi quyết định thang nấc, một nơi duy nhất")
 
 
 def test_status_NOI_RA_khi_dang_uoc_tinh():
-    """Một con số nghỉ lễ trông y hệt một con số cache chết nếu không nói."""
+    """Một con số nghỉ lễ trông y hệt một con số cache chết nếu không nói.
+
+    Ba nấc phải phát ra ba tên khác nhau. `uoc_tinh` giữ nghĩa HẸP — chỉ
+    nấc ngày làm việc — vì đó là nấc duy nhất thật sự là phỏng đoán; gộp
+    "tra bảng công bố" chung một chữ với "đo được trong lượt này" là đúng
+    kiểu gộp trạng thái thứ ba vào trạng thái đầu mà dự án đã cấm.
+    """
     with _ghim(_cache_gia("2026-08-28")):
         st = mf.status(hom_nay="2026-09-03")
-        assert st["uoc_tinh"] is True, st
+        assert st["nguon_dem"] == mf.NGUON_CONG_BO, st
+        assert st["uoc_tinh"] is False, st
+        assert st["tuoi_phien"] == 1 and st["active"] is True, st
+
         st2 = mf.status(hom_nay="2026-09-03",
                         lich=_lich_that("2026-08-01", "2026-09-04"))
+        assert st2["nguon_dem"] == mf.NGUON_QUAN_SAT, st2
         assert st2["uoc_tinh"] is False, st2
         assert st2["tuoi_phien"] == 1 and st2["active"] is True, st2
-    print("PASS  status() phân biệt đếm chắc với đếm ước tính")
+
+        # Ngoài phạm vi bảng thì mới là ước tính thật.
+        st3 = mf.status(hom_nay="2027-01-05")
+        assert st3["nguon_dem"] == mf.NGUON_LAM_VIEC, st3
+        assert st3["uoc_tinh"] is True, st3
+    print("PASS  status() phát ra ba nấc nguồn đếm, không gộp làm hai")
 
 
 def test_nap_lich_GHI_DE_chu_khong_tich_luy():

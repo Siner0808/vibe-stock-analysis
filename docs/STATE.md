@@ -5200,6 +5200,9 @@ cũ so với NGÀY ĐANG CHẤM nên quyết định vào lệnh không bị ả
 **Việc treo:** nối `lich_giao_dich.so_phien_giua()` vào `_tre_phien` làm
 nhánh lùi, thay `pd.bdate_range`, và sửa test 274 kèm đột biến.
 
+> ✅ **ĐÃ ĐÓNG 03/09/2026 — xem BƯỚC 14.** Đúng sáng phiên đầu mở lại, tức
+> đúng ngày duy nhất trong năm mà báo động giả ấy nổ được.
+
 ### Tái lập
 
 ```bash
@@ -5305,4 +5308,169 @@ quan sát và đột biến đổi sang một phía "để đủ lực".
 
 ```bash
 python -m pytest tests/test_khai_truoc_h63.py -q
+```
+
+
+---
+
+## BƯỚC 14 — THANG BA NẤC CHO PHÉP ĐẾM TRỄ (03/09/2026)
+
+Sáng nay là phiên đầu mở lại sau kỳ nghỉ Quốc khánh — ngày duy nhất trong
+năm mà việc treo của BƯỚC 12 nổ được thành báo động giả. Nay `_tre_phien`
+có ba nấc thay vì hai:
+
+```
+1. lịch QUAN SÁT được trong lượt quét này, nếu nó phủ tới mốc
+2. lịch CÔNG BỐ (`lich_giao_dich`), nếu bảng phủ cả hai đầu
+3. ngày làm việc T2–T6 — ước tính, có thể sai
+```
+
+Nấc 2 là nấc mới. Nó dùng được làm đường lùi đúng vì nó **độc lập với
+chuỗi giá**: nguồn chết không làm nó chết theo, trong khi lịch quan sát đã
+cũ thì chính nó là thứ nguồn chết tạo ra.
+
+### Chiều nguy hiểm: thay đổi này chỉ có thể làm con số NHỎ ĐI
+
+Phiên là tập con của ngày làm việc, nên mọi ô đều giảm hoặc giữ nguyên —
+tức nghiêng đúng về phía làm báo động ít nổ hơn. Quy tắc số 1 nói giả định
+đầu tiên phải là có lỗi, nên phần chứng minh nằm ở đây chứ không ở phần
+con số đẹp:
+
+| kịch bản | cũ | mới | ngưỡng 3 |
+|---|---|---|---|
+| **sáng 03/09, nến cuối 28/08** | 4 → dừng phiên quét | **1** | không nổ — đúng |
+| cache chết 07/08 → 20/08 (sự cố gốc) | 9 | **9** | nổ — đúng |
+| nguồn chết vắt qua Tết, 13/02 → 16/03 | 21 | **16** | nổ — đúng |
+| trọn kỳ Quốc khánh + vài phiên | 8 | **6** | nổ — đúng |
+
+Phần bị trừ đi đúng bằng số ngày nghỉ, mà ngày nghỉ chưa bao giờ là dữ
+liệu bị thiếu. Nguồn đứng thật thì phiên vẫn dồn lên theo bảng công bố và
+ngưỡng vẫn bị vượt — chỉ chậm hơn vài ngày trong mùa lễ, và đó là lúc
+`tools/chuong_nguon_dung.py` canh bằng nguồn khác.
+
+Đo trên máy ngay sau khi sửa, `status(hom_nay="2026-09-03")`: cache
+VN-INDEX ở máy dừng ở **20/08** (mạng đã có 28/08) → **trễ 7 phiên, cổng
+TẮT**. Báo động thật không bị bịt. Ngày làm việc cho 10; cả hai đều vượt
+ngưỡng, nhưng 7 mới là con số đúng đơn vị.
+
+### `uoc_tinh` thu hẹp nghĩa, và `nguon_dem` nói phần còn lại
+
+Cờ hai trạng thái không đủ cho thang ba nấc. Gộp "tra bảng công bố" chung
+một chữ "chắc" với "đo được trong lượt này" là đúng kiểu gộp trạng thái
+thứ ba vào trạng thái đầu mà dự án đã cấm ở `vnstock_goi.kiem_goi()` và ở
+`lich_giao_dich.chan_doan()`. Nên:
+
+- `nguon_dem` — bốn giá trị, câu trả lời đầy đủ, `run_daily` in ra ba câu
+  khác nhau thay vì một câu có thể sai;
+- `uoc_tinh` — giữ nghĩa HẸP "đang đếm bằng ngày làm việc", nấc duy nhất
+  thật sự là phỏng đoán.
+
+Bảng công bố không phải phỏng đoán, nhưng cũng không phải thứ đo được
+trong lượt này: nó biết trước ngày nghỉ đã hẹn và **không** biết một phiên
+đóng đột xuất. Vì thế lịch quan sát vẫn thắng khi nó phủ tới mốc — thứ tự
+nấc là một quyết định, có test riêng ghim.
+
+### Một lỗi tự gây ra, và nó bắt được ngay
+
+Viết lại thân hàm làm rơi phép khử trùng lặp của bản cũ. `run_daily` gom
+ngày phiên từ cả rổ 71 mã, nên cùng một phiên xuất hiện tới 71 lần và
+`_tre_phien(..., lich=<danh sách thô>)` sẽ cho độ trễ gấp bội — ô C1 dừng
+phiên quét vì lỗi của phép đếm, không vì dữ liệu. Đường qua
+`ghi_nhan_lich_phien()` vẫn an toàn (hàm ấy tự khử), chỉ đường truyền
+thẳng hở. Đã trả lại, kèm `test_lich_TRUNG_LAP_khong_lam_phong_do_tre`.
+
+Đáng ghi vì nó sai theo chiều **an toàn** — báo động nhiều hơn, không ít
+hơn — nên nó sẽ không bao giờ lộ ra qua một kết quả đẹp bất thường.
+
+### Đột biến 10 sống sót, và nó dạy một điều mới
+
+Đục thử 10 chỗ; lần chạy đầu **9/10 đỏ**. Đột biến sống sót là bỏ nhánh
+`NGUON_KHONG_CAN` khỏi `_nguon_dem` — và nó sống sót vì nó **không đổi con
+số nào**: mốc không sau nến cuối thì tổng rỗng, danh sách rỗng và
+`bdate_range` ngược đầu đều cho 0.
+
+Cái nó đổi là **lời khai**: `status()` bắt đầu ghi tên một cuốn lịch nó
+chưa hề mở. Đó đúng là thứ thang nấc này sinh ra để chặn, và không một
+test kiểm giá trị nào bắt được — kể cả bộ test vừa viết xong.
+
+Khác với bài học "kiểm hình dạng, đừng kiểm giá trị" ngày 31/08 (ở đó giá
+trị TRÙNG NHAU tại một điểm), lần này giá trị **giống nhau ở mọi điểm** và
+thứ khác chỉ là mô tả mà hàm tự đưa ra về mình. Gác phải đọc thẳng lời
+khai: `_nguon_dem(...) == NGUON_KHONG_CAN`, không đọc con số đi kèm.
+
+Thêm `test_KHONG_CO_GI_de_dem_thi_phai_khai_dung_the` → **10/10 đỏ**.
+
+Kèm theo, một gác hình dạng: `_tre_phien` phải phân nhánh theo
+`_nguon_dem` và **không** được gọi `_lich_phu_toi`. Hai phép quyết định
+song song thì ngày chúng trôi khỏi nhau là ngày báo cáo khai một nguồn
+trong khi đếm bằng nguồn khác.
+
+### Số liệu
+
+**725 test** (từ 719), **10/10 đột biến đỏ**, `kiem_cu_phap_311` 124 file
++ 3 đoạn nhúng, `chan_bia_so_lieu --quet-thay-doi` 0 chặn 0 cảnh báo.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_market_filter.py tests/test_lich_giao_dich.py -q
+python -c "import market_filter as m; print(m.status(hom_nay='2026-09-03'))"
+```
+
+---
+
+## BƯỚC 15 — BÍ MẬT ĐƯỢC CHE ĐÍCH DANH (03/09/2026)
+
+`.streamlit/secrets_cloud_paste.txt` chứa credential thật của kho ngoài.
+Nó chưa bao giờ bị commit, nhưng thứ giữ nó nằm ngoài repo là dòng `*.txt`
+ở mục *"Kết quả và log chạy thử nghiệm"* — một luật không hề nói về bí
+mật. Repo này là public.
+
+Luật ấy không sai vào ngày nó ra đời. Nó sai vào ngày ai đó lưu cùng nội
+dung thành `.json`, `.md` hay bỏ hẳn đuôi. Nay che theo **tiền tố**:
+
+```gitignore
+.streamlit/secrets*
+!.streamlit/secrets.toml.example
+```
+
+### Gác hỏi git, và lần đầu nó hỏi sai
+
+`tests/test_bi_mat_bi_che.py` gọi `git check-ignore` thay vì đọc lại
+`.gitignore` rồi tự diễn giải — dựng lại luật của git trong test là kiểm
+công thức của test, đúng cái bẫy ngày 31/08.
+
+Nhưng bản đầu vẫn hỏng, và **chỉ đột biến tìm ra**: xoá dòng phủ định
+`!.streamlit/secrets.toml.example` mà test vẫn XANH. Nguyên nhân là
+`git check-ignore` **bỏ qua hoàn toàn file đang được theo dõi** và trả
+"không bị che" bất kể luật viết gì. Bản mẫu đang được theo dõi, nên câu
+hỏi "có bị che quá tay không" chưa bao giờ được trả lời.
+
+Thêm `--no-index` thì đột biến ấy đỏ. Đây là lần thứ ba dự án gặp cùng
+hình dạng — công cụ chạy, in ra kết quả xanh, và không kiểm gì:
+`tools/kiem_ban_sach.py` chết ở dòng `print` đầu tiên (22/08), ba gác dạng
+`"tên" in src` khớp chữ trong chú thích (31/08), và nay một cờ dòng lệnh
+thiếu làm câu hỏi bị lặng lẽ từ chối.
+
+### Đột biến
+
+| đột biến | kết quả |
+|---|---|
+| bỏ hẳn luật đích danh (về trước 03/09) | ĐỎ |
+| bỏ dòng phủ định → che cả bản mẫu | ĐỎ |
+| thu hẹp về đúng hai đuôi đã biết | ĐỎ |
+| **bỏ luật chung `*.txt`** | **XANH — đúng ý đồ** |
+
+Đột biến cuối là phép kiểm ngược: gác không được phụ thuộc vào `*.txt`,
+vì chính sự phụ thuộc ấy là thứ đang sửa.
+
+**735 test** (từ 725). `.gitignore` chỉ áp cho file CHƯA theo dõi, nên có
+gác riêng hỏi `git ls-files` — file đã lỡ commit thì `.gitignore` không
+cứu được nữa.
+
+### Tái lập
+
+```bash
+python -m pytest tests/test_bi_mat_bi_che.py -q
+git check-ignore -v --no-index .streamlit/secrets_cloud_paste.json
 ```
