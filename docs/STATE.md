@@ -6145,3 +6145,109 @@ Cùng họ với con số 10 phút phải vứt hôm 03/09: một phép đo cho 
 trông hợp lý ở mọi trường hợp và sai ở tất cả. Lần này nó tự lộ vì "sớm
 nhất" lớn hơn "muộn nhất"; lần trước thì không có dấu hiệu nào.
 
+
+---
+
+## BƯỚC 23 — TIÊU CHÍ ĐỌC THÍ NGHIỆM STRIDE, KHAI TRƯỚC KHI CHẠY (04/09/2026)
+
+**Commit này KHÔNG chứa số liệu.** Nó chỉ chứa tiêu chí. Lịch sử git vì
+thế chứng minh được tiêu chí có trước dữ liệu — đó là toàn bộ mục đích của
+việc tách nó thành một commit riêng.
+
+### Câu hỏi
+
+BƯỚC 21 tìm ra: đường mô phỏng khớp lệnh ở **T+2**, đường chạy thật khớp ở
+**T+1**, vì `walkforward._mo_phong(stride=2)` không bao giờ ghé phiên t+1
+còn `run_session` gọi `fill_pending` trước `consider_entry`.
+
+Câu hỏi: **mọi con số walk-forward của dự án có phụ thuộc vào núm vặn ấy
+không?**
+
+### Thiết kế
+
+Hai lượt `walkforward.chay()`, khác **duy nhất** `stride`, chạy trên **cùng
+một ảnh chụp dữ liệu hôm nay**. Không so với con số cũ trong `CLAUDE.md`:
+những con số ấy đo trên một ảnh chụp khác, nên so chéo là trộn thêm một
+biến nữa.
+
+```
+arm A : stride = 2   (hien hanh)
+arm B : stride = 1
+cung : symbols, min_history=60, che_do_hoc='co_san', DAI_NGUONG, du lieu
+```
+
+### GIỚI HẠN, nêu TRƯỚC — đây là hiệu ứng GỘP
+
+`stride` đổi **hai** thứ cùng lúc:
+
+1. **tập điểm quyết định** — stride=2 chỉ chấm phiên chẵn, nên nó không
+   bao giờ thấy tín hiệu sinh ở phiên lẻ;
+2. **phiên khớp lệnh** — thứ BƯỚC 21 tìm ra.
+
+Chênh lệch đo được là hiệu ứng của **cả hai**. Thí nghiệm này KHÔNG tách
+được riêng phần độ trễ khớp. Muốn tách thì phải sửa mô phỏng để quyết ở
+stride=2 nhưng khớp ở t+1 — thay đổi lớn hơn nhiều, và không làm ở đây.
+
+Hệ quả thứ hai phải nhớ khi đọc: stride=1 cho **gấp đôi** điểm quyết định,
+nên gấp đôi lệnh, nên KTC hẹp lại khoảng √2 lần. **Một KTC chuyển từ
+"chứa 0" sang "loại 0" có thể chỉ vì cỡ mẫu, không vì alpha đổi.** Vì thế
+tiêu chí chính bên dưới đặt trên ĐỘ LỚN CHÊNH LỆCH, không đặt trên việc
+KTC có loại 0 hay không.
+
+### Tiêu chí chính
+
+```
+Dai luong : alpha khop tung lenh, vung OOS  (bat bien 6)
+Delta     : alpha(stride=1) - alpha(stride=2), don vi diem phan tram / lenh
+h         : NUA be rong KTC 95% cua alpha(stride=2), do trong chinh lan nay
+
+  |Delta| <= h/2   ->  BEN. Num van khong dich ket qua qua nua do bat
+                       dinh cua chinh phep do.
+  |Delta| >  h     ->  PHU THUOC NUM VAN. Moi con so walk-forward tu nay
+                       phai doc kem stride, va bang trong CLAUDE.md phai
+                       ghi ro no do o stride nao.
+  h/2 < |Delta| <= h  ->  CHUA KET LUAN DUOC.
+
+SAN: arm nao co duoi 113 lenh OOS (paper_metrics.N_TOI_THIEU) thi
+     CHUA KET LUAN DUOC, bat ke Delta bang bao nhieu.
+```
+
+Ba trạng thái, cùng quy ước với `lich_giao_dich.chan_doan` và
+`vnstock_goi.kiem_goi`.
+
+### Kiểm chiều — và sửa một câu viết lỏng ở BƯỚC 21
+
+BƯỚC 21 viết: *"vào muộn một phiên đáng lẽ làm kết quả xấu đi… nếu số đẹp
+lên thì đó là hướng đáng ngờ."* Hai vế ấy mâu thuẫn nhau, sửa lại cho
+đúng ở đây.
+
+Lập luận cơ chế "vào muộn thì mua đắt hơn" chỉ đứng được **nếu tín hiệu có
+sức dự báo**. Dự án đã đo và **không** tìm thấy sức dự báo nào (rho ≈ 0,
+alpha chứa 0 trước chi phí). Nên dự đoán đúng là:
+
+> **Chênh lệch kỳ vọng ≈ 0**, vì không có lợi thế đo được nào để thời điểm
+> vào lệnh bắt lấy.
+
+Từ đó:
+
+- `|Delta|` nhỏ, hướng nào cũng được — **bình thường**, đúng như dự đoán.
+- `Delta > 0` (stride=1 đẹp hơn) VÀ `|Delta| > h` — **đáng ngờ**. Không có
+  lợi thế đo được nào trả cho khoản chênh đó, nên giả định đầu tiên là
+  **có lỗi**, không phải có phát hiện. Phải truy trước khi ghi thành kết
+  quả.
+- `Delta < 0` VÀ `|Delta| > h` — cũng phải giải thích, nhưng đây là chiều
+  an toàn.
+
+### Biến gây nhiễu thứ ba, phải kiểm khi có số
+
+`chay()` chọn ngưỡng trên IS rồi mới chạy OOS. Nếu **hai arm chọn hai
+ngưỡng khác nhau**, phép so OOS trộn thêm biến ngưỡng. Khi đó phải chạy
+thêm một lượt OOS ở ngưỡng của arm kia mới so được. Ghi lại ngưỡng mỗi arm
+chọn, kể cả khi chúng trùng nhau.
+
+### Ràng buộc vận hành
+
+File `.db` tạm ghi vào thư mục scratch ngoài repo, KHÔNG dùng tiền tố mặc
+định `wf_` ở gốc — gốc repo đang có 26 file `.db` là dữ liệu đo của người
+dùng, và `_mo_phong()` mở đầu bằng `os.remove(db)`.
+
