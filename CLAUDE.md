@@ -62,6 +62,30 @@ Trên 573 phiên của 10 mã (2021-10 → 2026-08):
 - **2 agent là công tắc 3 nấc** (`trend`, `sr` — mất 4/5 luật vì thiếu
   TradingView).
 - **2 agent còn tín hiệu**: `volume` (12 giá trị), `risk` (9 giá trị).
+
+> ⚠️ **BỐN GẠCH ĐẦU DÒNG VỀ "SỐ NẤC" Ở TRÊN ĐÃ BỊ ĐO LẠI (31/08/2026).**
+> Chúng đúng với **cửa sổ 573 phiên / 10 mã** ghi ở đầu mục, và sai với
+> cấu hình đang chạy. Trên cửa sổ DÀI (63.389 phiên / 69 mã,
+> `min_history` 250):
+>
+> | agent | bảng trên | đo lại 31/08 |
+> |---|---|---|
+> | `momentum` | "luôn trả 0" | **17 nấc · 4,2–95,8** |
+> | `trend` | 3 nấc | **10 nấc · 0–100** |
+> | `sr` | 3 nấc | **7 nấc · 6,2–100** |
+> | `risk` | 9 nấc | 8 nấc · 10–45 |
+> | `volume` | 12 nấc | 13 nấc · 25–100 |
+>
+> Chỉ `news` thật sự là hằng số. **"Hằng số" và "công tắc 3 nấc" là tính
+> chất của CỬA SỔ, chưa bao giờ là tính chất của mã nguồn** — xem
+> `MO-XE-KIEN-TRUC.md`, bảng Tầng 2.
+>
+> **KẾT LUẬN thì KHÔNG đổi, và còn mạnh hơn:** đặc trưng giàu hơn mà
+> tương quan với lợi nhuận vẫn ở dưới sàn nhiễu thì phát hiện null
+> nặng hơn, không nhẹ đi.
+>
+> Vế `trend` đã được đánh dấu ở cuối file này từ 29/08; ba vế còn lại thì
+> bị bỏ quên tới 04/09/2026.
 - **Tầng tranh luận điều chỉnh ±0,9 điểm** trên thang 100, trung bình −0,00.
   **Safety Harness kích hoạt 0%.** Bỏ hẳn cả hai: 572/573 phiên cho cùng
   quyết định.
@@ -455,6 +479,38 @@ một lựa chọn.
 vọng < 0. `report()` in trạng thái mỗi phiên. Đừng chế điều kiện khác sau
 khi đã nhìn số — đó là bất biến 7 đổi hướng.
 
+> 🔴 **ĐOẠN NGAY TRÊN LÀ BẢN 1, ĐÃ BỊ THAY TỪ 29/08/2026.** Giữ lại để
+> đối chiếu, KHÔNG phải để làm theo. Điều kiện đang chạy trong
+> `paper_metrics.dieu_kien_dong_lai()`:
+>
+> ```
+> n <  N_TOI_THIEU (113)        chua du de ket luan
+>
+> N_TOI_THIEU <= n < N_DAY_DU (451)
+>       DONG neu can TREN cua KTC (z=2,30) < 0           [bien HAI]
+>
+> n >= N_DAY_DU (451)
+>       DONG TRU KHI can DUOI cua KTC (z=1,96) > 0  [dao ganh nang]
+> ```
+>
+> Hai ngưỡng `N_TOI_THIEU` và `N_DAY_DU` **suy ra** từ
+> `co_mau_cho_luc()` ở `MUC_BAT_LOI` = −0,920%, không gõ tay. Con số
+> trong ngoặc chỉ để đọc — nguồn sự thật là `paper_metrics.py`, và
+> `tests/test_tai_lieu_khop_hang_so.py` bắt hai bên phải khớp.
+>
+> Ba khác biệt, và cả ba đều quan trọng: đo **alpha** chứ không đo **kỳ
+> vọng** (bất biến 6); ngưỡng **suy ra** từ `co_mau_cho_luc()` chứ không
+> gõ tay 60; và có **vế thứ ba** định giá sai lầm loại II — bản 1 không
+> bao giờ đóng một hệ thống chỉ đơn giản là không có lợi thế.
+>
+> **Cùng file này mô tả bản 2 ở mục "Cổng C5 — đọc trước khi sửa".** Hai
+> điều kiện dừng khác nhau cùng tự giới thiệu là hiện hành, và đoạn trên
+> còn được một ghi chú ngày 03/09 củng cố thêm — ghi chú ấy đúng về việc
+> "đếm loại ĐÃ ĐÓNG", nhưng nó vô tình xác nhận một quy tắc đã chết.
+>
+> Tìm ra 04/09/2026. Lý do nó sống lâu: không có gác nào đối chiếu con số
+> trong tài liệu với hằng số trong mã.
+
 ### Trần vốn cam kết — chặn được, nhưng CHỈ ở đường chạy thật
 
 `avg_capital_deployed_pct` chỉ **báo cáo** sau khi việc đã rồi. Sổ thật
@@ -535,6 +591,21 @@ một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 > **Đây là kết quả có ý nghĩa thống kê ĐẦU TIÊN của dự án, và nó âm.** Với
 > chi phí thực thi thực tế, chiến lược thua rổ chuẩn 0,927% mỗi lệnh trên
 > vùng chứng minh được là chưa thể đã bị nhìn.
+>
+> ⚠️ **KHÔNG CÒN ĐÚNG VỚI MÃ HIỆN HÀNH (đo lại 04/09/2026).** Cùng cấu
+> hình, cùng dữ liệu, chạy trên HEAD: **379 lệnh · alpha −0,676% · KTC
+> [−1,470 ; +0,211] — CHỨA 0.**
+>
+> Con số −0,927% đo trên mã ngày 31/08, ở **vốn cam kết trung bình
+> 138,66%** — tức đòn bẩy 1,39 lần, đúng thứ bất biến 7b bắt phải chia ra
+> rồi đo lại. `fac319b` (31/08) sửa đúng việc đó: cỡ vị thế 5–33,3% →
+> 3,3–13,3%, vốn về 48,47%. Commit ấy CÓ đo lại alpha, nhưng ở chế độ
+> `theo_ngay`; chế độ mặc định theo-mã — đúng chế độ bảng này mô tả —
+> không ai đo lại.
+>
+> **Dự án hiện KHÔNG có kết quả nào loại được số 0.** Cả bảng số trong
+> mục này cần một lượt đo đầy đủ ở cấu hình hiện hành. Chi tiết và bằng
+> chứng thô: `docs/STATE.md`, BƯỚC 25.
 >
 > Cách đọc: rổ chuẩn mua một lần rồi giữ, trả chi phí **hai lần**. Chiến
 > lược quay vòng 385 lệnh, trả **770 lần**. Lợi thế vốn đã không phân biệt
@@ -828,6 +899,7 @@ mẫu đã làm hỏng dự án này.
 | R3 | CHẶN | `except … → return <số>` — nuốt lỗi rồi thay bằng số |
 | R4 | cảnh báo | `.get("k", <số khác 0/1/100>)` |
 | R5 | cảnh báo | `x = max(x, <số>)` |
+| R6 | cảnh báo | `x or <số>` — thiếu giá trị đo thì thay bằng hằng số |
 
 Cửa thoát: `# bia-ok: <lý do>` trên chính dòng đó hoặc trong khối chú thích
 ngay trên. **Bắt buộc có lý do** — `# bia-ok:` rỗng bị từ chối. Mục đích
@@ -937,6 +1009,22 @@ Phân tích gốc rễ đầy đủ: `docs/STATE.md`, mục **"GỐC RỄ CỦA 
 > chưa chứng minh được lợi thế thì ĐÓNG. Sai lầm loại I 5,8%; một hệ thống
 > alpha = 0 bị đóng 99,6%; alpha = +2% không bao giờ bị đóng. Chi tiết và
 > bảng đặc tính: `docs/STATE.md`, mục **"BƯỚC 3 — ĐIỀU KIỆN DỪNG BẢN 2"**.
+>
+> ⚠️ **HAI CON SỐ TRONG ĐOẠN TRÊN ĐÃ LẠC HẬU SO VỚI MÃ (04/09/2026).**
+>
+> | | đoạn trên ghi | `paper_metrics.py` hiện tại |
+> |---|---|---|
+> | `N_DAY_DU` | 596 | **451** |
+> | `MUC_BAT_LOI` | −0,927% | **−0,920%** |
+>
+> Neo lại ở `7644b8e` (01/09) và ĐÃ ghi đúng ở `docs/STATE.md` BƯỚC 10 —
+> chỉ có file này không được cập nhật theo. Đây là **cỡ mẫu quyết định
+> khi nào cổng C5 đóng lại**, nên lệch 24% ở đó không phải chuyện chữ
+> nghĩa.
+>
+> `N_DAY_DU` **không được gõ tay** — nó do `co_mau_cho_luc()` tính, và có
+> test bắt hai bên phải khớp. Muốn biết giá trị đúng thì **đọc mã**, đừng
+> đọc con số trong tài liệu này.
 >
 > **Hàng rào quy trình:** `tests/test_hang_rao_quy_trinh.py` giữ một SỔ
 > ĐĂNG KÝ điều kiện an toàn. Thêm một hàm `dieu_kien_*` mà không khai →
