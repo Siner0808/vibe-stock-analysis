@@ -789,6 +789,32 @@ vào đúng 2 ô (`trend 65 · mom 65 · vol 100` và `… vol 93,8`), vì cổn
 chỉ mở ở góc đó. Chi tiết và số liệu:
 `docs/ket-qua-bo-nho-rieng-20260821.md`.
 
+## Backtest khớp lệnh ở T+2, đường chạy thật khớp ở T+1 (04/09/2026)
+
+Chỗ lệch thứ hai giữa hai đường, và lần này **không cố ý**.
+
+```
+run_session : fill_pending -> evaluate_open -> consider_entry
+              ^^^^^^^^^^^^ chay TRUOC khi lenh moi ton tai
+=> lenh sinh o phien t khop o phien KE TIEP DUOC GHE
+
+walkforward._mo_phong(stride=2)  ->  phien t+1 khong bao gio duoc ghe
+```
+
+Đo trên sổ thật: **43/43 lệnh mô phỏng đúng T+2**, không lệch một cái;
+**4/4 lệnh tiến-về-trước đúng T+1**. `stride` sinh ra để thưa hoá điểm
+quyết định (mẫu chồng lấn), nhưng nó còn quyết định phiên nào dùng để
+KHỚP — tác dụng phụ không ai chọn. `optimize_vn100_18m.py` đã ghi nửa
+phía THOÁT của chuyện này từ trước; phía VÀO thì chưa.
+
+**Chưa đo** việc này đổi kết quả bao nhiêu. Muốn biết phải chạy lại
+walk-forward với `stride=1` — tức đổi mọi con số, nên để người quyết, và
+nêu tiêu chí đọc TRƯỚC khi chạy. Nếu số **đẹp lên** thì đó là hướng đáng
+ngờ theo quy tắc số 1: vào muộn một phiên đáng lẽ làm kết quả xấu đi.
+
+Dụng cụ: `do_tre_khop.py` (đếm bằng lịch phiên, năm trạng thái, phân
+biệt trễ ĐỒNG ĐỀU với trễ RẢI RÁC). Chi tiết: `docs/STATE.md`, BƯỚC 21.
+
 ## Hook chặn bịa số liệu — chạy tự động
 
 `.claude/settings.json` đăng ký `tools/chan_bia_so_lieu.py` làm PostToolUse

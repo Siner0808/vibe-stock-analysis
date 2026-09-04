@@ -29,6 +29,7 @@ from pha_wyckoff import doc_pha
 from data_quality import now_vn, price_multiplier
 from data_collectors import VNStockCollectorAgent
 import mau_bang_gia as _mbg
+import do_tre_khop as _dtk
 
 # ── Animated Brand Logo Generator ─────────────────────────────────
 def get_animated_logo_html(size=44, uid="sb"):
@@ -1253,10 +1254,16 @@ with t_pos:
             curr_p = latest_close_fmt if t.symbol == symbol else None
             pnl_pct = (None if not ent_p or curr_p is None
                        else (curr_p - ent_p) / ent_p * 100.0)
+            # Ngày tín hiệu đứng CẠNH ngày vào, không thay cho nó. Thiếu
+            # cột tín hiệu thì một lệnh khớp muộn 5 phiên trông hệt một
+            # lệnh khớp đúng T+1 — xem `do_tre_khop.py`.
+            _tre = _dtk.do_mot_lenh(t)
             open_rows.append({
                 "Mã CK": t.symbol,
                 "Trạng thái": t.status,
+                "Ngày tín hiệu": _tre["signal_date"] or "—",
                 "Ngày vào": t.entry_date or "—",
+                "Trễ": _tre["nhan"],
                 "Giá vào": _so(ent_p, "{:,.0f}"),
                 "Giá HT": _so(curr_p, "{:,.0f}"),
                 "PnL %": _so(pnl_pct, "{:+.2f}%"),
