@@ -6636,3 +6636,63 @@ lượt mỗi phiên nên nó thấy MỌI phiên, tức stride=1. Nhưng phép 
 không đủ lực để nói tập ấy cho kết quả khác tập kia — và cỡ mẫu cần thì
 đã ghi ở `paper_metrics.co_mau_cho_luc()`.
 
+
+---
+
+## PHỤ LỤC BƯỚC 25–26 — BẰNG CHỨNG THÔ ĐÃ LƯU, VÀ MỘT PHÉP KIỂM BẤT BIẾN 2 NGOÀI DỰ KIẾN
+
+### Bốn file bằng chứng đã bị xoá một lần
+
+Ba worktree dựng cho BƯỚC 25 và 26 bị `git worktree remove --force` ngay
+sau khi đọc xong số, và chúng mang theo bốn file `.db` là dữ liệu gốc:
+hai lượt nền (`79a8d32`, `d777480`) và hai lượt tắt siết stop.
+
+Con số đã nằm trong `docs/STATE.md` nên kết luận không mất. Thứ mất là
+**bằng chứng ở mức từng lệnh** — thứ duy nhất cho phép người sau kiểm lại
+mà không phải tin lời người viết.
+
+Đã dựng lại cả bốn, lần này ghi bằng **đường dẫn tuyệt đối** vào thư mục
+bền chứ không nằm trong worktree.
+
+### Và việc dựng lại hoá ra là một phép kiểm bất biến 2
+
+Không định làm, nhưng nó là phép kiểm mạnh nhất trong cả ngày: **cùng mã,
+cùng dữ liệu, hai lượt chạy cách nhau vài giờ, trong hai worktree khác
+nhau.**
+
+| lượt | lệnh | alpha lần 1 | alpha lần 2 |
+|---|---|---|---|
+| `79a8d32` OOS s2@62 | 376 | −0,872440254 | −0,872440254 |
+| `d777480` OOS s2@62 | 376 | −0,932440254 | −0,932440254 |
+| notrail s2@62 | 308 | −0,284870918 | −0,284870918 |
+| notrail s1@62 | 380 | −0,867879490 | −0,867879490 |
+
+**4/4 khớp tới chín chữ số.** Mô phỏng là tất định.
+
+Điều này siết chặt kết luận BƯỚC 25 theo cách mà chính BƯỚC 25 không làm
+được: chênh lệch so với `CLAUDE.md` **chắc chắn** là mã trôi, vì nếu có
+bất kỳ ngẫu nhiên nào trong đường mô phỏng thì bốn lượt chạy lại này đã
+lệch. Trước đó đó mới là suy luận; nay là phép đo.
+
+### Nơi lưu
+
+```
+C:\Users\cuong\.gemini\antigravity\scratch\vibe_bang_chung\stride_20260904\
+    wf/        18 file .db   thi nghiem chinh (BUOC 23-24)
+    nen/        2 file .db   truy tai lap (BUOC 25)
+    notrail/    2 file .db   tach co che (BUOC 26)
+    BAN-KE.md                ban ke day du
+```
+
+**Cố ý nằm NGOÀI repo.** `.gitignore` chặn mọi `*.db`, nên một bản kê được
+commit mà trỏ tới file không được commit chính là cái bẫy
+`tests/test_chi_dan_chay_duoc.py` sinh ra để bắt. Bản kê nằm cùng chỗ với
+dữ liệu nó mô tả.
+
+Chỉ có trên máy phát triển, không sao lưu tự động.
+
+### Bài học
+
+**Đừng để dữ liệu đo nằm trong thư mục sẽ bị dọn.** Một worktree là thư
+mục sẽ bị dọn theo định nghĩa.
+
