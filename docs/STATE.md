@@ -6145,3 +6145,251 @@ Cùng họ với con số 10 phút phải vứt hôm 03/09: một phép đo cho 
 trông hợp lý ở mọi trường hợp và sai ở tất cả. Lần này nó tự lộ vì "sớm
 nhất" lớn hơn "muộn nhất"; lần trước thì không có dấu hiệu nào.
 
+
+---
+
+## BƯỚC 23 — TIÊU CHÍ ĐỌC THÍ NGHIỆM STRIDE, KHAI TRƯỚC KHI CHẠY (04/09/2026)
+
+**Commit này KHÔNG chứa số liệu.** Nó chỉ chứa tiêu chí. Lịch sử git vì
+thế chứng minh được tiêu chí có trước dữ liệu — đó là toàn bộ mục đích của
+việc tách nó thành một commit riêng.
+
+### Câu hỏi
+
+BƯỚC 21 tìm ra: đường mô phỏng khớp lệnh ở **T+2**, đường chạy thật khớp ở
+**T+1**, vì `walkforward._mo_phong(stride=2)` không bao giờ ghé phiên t+1
+còn `run_session` gọi `fill_pending` trước `consider_entry`.
+
+Câu hỏi: **mọi con số walk-forward của dự án có phụ thuộc vào núm vặn ấy
+không?**
+
+### Thiết kế
+
+Hai lượt `walkforward.chay()`, khác **duy nhất** `stride`, chạy trên **cùng
+một ảnh chụp dữ liệu hôm nay**. Không so với con số cũ trong `CLAUDE.md`:
+những con số ấy đo trên một ảnh chụp khác, nên so chéo là trộn thêm một
+biến nữa.
+
+```
+arm A : stride = 2   (hien hanh)
+arm B : stride = 1
+cung : symbols, min_history=60, che_do_hoc='co_san', DAI_NGUONG, du lieu
+```
+
+### GIỚI HẠN, nêu TRƯỚC — đây là hiệu ứng GỘP
+
+`stride` đổi **hai** thứ cùng lúc:
+
+1. **tập điểm quyết định** — stride=2 chỉ chấm phiên chẵn, nên nó không
+   bao giờ thấy tín hiệu sinh ở phiên lẻ;
+2. **phiên khớp lệnh** — thứ BƯỚC 21 tìm ra.
+
+Chênh lệch đo được là hiệu ứng của **cả hai**. Thí nghiệm này KHÔNG tách
+được riêng phần độ trễ khớp. Muốn tách thì phải sửa mô phỏng để quyết ở
+stride=2 nhưng khớp ở t+1 — thay đổi lớn hơn nhiều, và không làm ở đây.
+
+Hệ quả thứ hai phải nhớ khi đọc: stride=1 cho **gấp đôi** điểm quyết định,
+nên gấp đôi lệnh, nên KTC hẹp lại khoảng √2 lần. **Một KTC chuyển từ
+"chứa 0" sang "loại 0" có thể chỉ vì cỡ mẫu, không vì alpha đổi.** Vì thế
+tiêu chí chính bên dưới đặt trên ĐỘ LỚN CHÊNH LỆCH, không đặt trên việc
+KTC có loại 0 hay không.
+
+### Tiêu chí chính
+
+```
+Dai luong : alpha khop tung lenh, vung OOS  (bat bien 6)
+Delta     : alpha(stride=1) - alpha(stride=2), don vi diem phan tram / lenh
+h         : NUA be rong KTC 95% cua alpha(stride=2), do trong chinh lan nay
+
+  |Delta| <= h/2   ->  BEN. Num van khong dich ket qua qua nua do bat
+                       dinh cua chinh phep do.
+  |Delta| >  h     ->  PHU THUOC NUM VAN. Moi con so walk-forward tu nay
+                       phai doc kem stride, va bang trong CLAUDE.md phai
+                       ghi ro no do o stride nao.
+  h/2 < |Delta| <= h  ->  CHUA KET LUAN DUOC.
+
+SAN: arm nao co duoi 113 lenh OOS (paper_metrics.N_TOI_THIEU) thi
+     CHUA KET LUAN DUOC, bat ke Delta bang bao nhieu.
+```
+
+Ba trạng thái, cùng quy ước với `lich_giao_dich.chan_doan` và
+`vnstock_goi.kiem_goi`.
+
+### Kiểm chiều — và sửa một câu viết lỏng ở BƯỚC 21
+
+BƯỚC 21 viết: *"vào muộn một phiên đáng lẽ làm kết quả xấu đi… nếu số đẹp
+lên thì đó là hướng đáng ngờ."* Hai vế ấy mâu thuẫn nhau, sửa lại cho
+đúng ở đây.
+
+Lập luận cơ chế "vào muộn thì mua đắt hơn" chỉ đứng được **nếu tín hiệu có
+sức dự báo**. Dự án đã đo và **không** tìm thấy sức dự báo nào (rho ≈ 0,
+alpha chứa 0 trước chi phí). Nên dự đoán đúng là:
+
+> **Chênh lệch kỳ vọng ≈ 0**, vì không có lợi thế đo được nào để thời điểm
+> vào lệnh bắt lấy.
+
+Từ đó:
+
+- `|Delta|` nhỏ, hướng nào cũng được — **bình thường**, đúng như dự đoán.
+- `Delta > 0` (stride=1 đẹp hơn) VÀ `|Delta| > h` — **đáng ngờ**. Không có
+  lợi thế đo được nào trả cho khoản chênh đó, nên giả định đầu tiên là
+  **có lỗi**, không phải có phát hiện. Phải truy trước khi ghi thành kết
+  quả.
+- `Delta < 0` VÀ `|Delta| > h` — cũng phải giải thích, nhưng đây là chiều
+  an toàn.
+
+### Biến gây nhiễu thứ ba, phải kiểm khi có số
+
+`chay()` chọn ngưỡng trên IS rồi mới chạy OOS. Nếu **hai arm chọn hai
+ngưỡng khác nhau**, phép so OOS trộn thêm biến ngưỡng. Khi đó phải chạy
+thêm một lượt OOS ở ngưỡng của arm kia mới so được. Ghi lại ngưỡng mỗi arm
+chọn, kể cả khi chúng trùng nhau.
+
+### Ràng buộc vận hành
+
+File `.db` tạm ghi vào thư mục scratch ngoài repo, KHÔNG dùng tiền tố mặc
+định `wf_` ở gốc — gốc repo đang có 26 file `.db` là dữ liệu đo của người
+dùng, và `_mo_phong()` mở đầu bằng `os.remove(db)`.
+
+
+---
+
+## BƯỚC 24 — KẾT QUẢ THÍ NGHIỆM STRIDE (04/09/2026)
+
+Tiêu chí đọc nằm ở BƯỚC 23, commit `548bac4`, **không chứa số liệu**. Mục
+này là commit sau.
+
+### Bảng 2×2 — alpha khớp từng lệnh, vùng OOS
+
+Biến nhiễu thứ ba đã khai trước ĐÃ NỔ: hai arm chọn hai ngưỡng khác nhau
+trên IS (stride=2 chọn **62**, stride=1 chọn **58**). Nên phải chạy chéo,
+và bảng dưới là 2×2 đầy đủ chứ không phải hai ô.
+
+| | ngưỡng 58 | ngưỡng 62 |
+|---|---|---|
+| **stride=2** | −0,756 · n=505 · [−1,415; −0,063] | −0,676 · n=379 · [−1,470; **+0,211**] |
+| **stride=1** | −1,324 · n=704 · [−1,845; −0,772] | −1,238 · n=523 · [−1,877; −0,566] |
+
+Hiệu ứng stride ở ngưỡng KHỚP CẶP:
+
+```
+nguong 58 : Delta = -0,5674
+nguong 62 : Delta = -0,5625
+                    ^^^^^^^ hai uoc luong doc lap, lech nhau 0,0049 pp
+```
+
+### PHÁN QUYẾT: CHƯA KẾT LUẬN ĐƯỢC
+
+```
+h    = 0,8404   (nua be rong KTC alpha stride=2 tai nguong no chon)
+h/2  = 0,4202
+|Delta| = 0,5649  ->  0,4202 < 0,5649 <= 0,8404
+```
+
+Rơi đúng dải giữa của tiêu chí đã khai. **Giữ nguyên phán quyết đó.** Bản
+năng lúc này là chỉ ra rằng hai ước lượng độc lập khớp nhau tới 0,005 pp
+nên "rõ ràng là thật" — nhưng lập luận ấy KHÔNG có trong tiêu chí viết
+trước, và nâng cấp phán quyết bằng lý lẽ nghĩ ra sau khi nhìn số là đúng
+bất biến 7 đổi hướng.
+
+### Kiểm chiều — chiều AN TOÀN
+
+`Delta < 0`: stride=1, tức phiên bản **trung thực hơn với đường chạy
+thật** (`run_daily` quét ít nhất một lượt mỗi phiên), cho kết quả **xấu
+hơn**. Đây là chiều không đáng ngờ theo quy tắc số 1. Nếu ngược lại thì
+giả định đầu tiên đã phải là có lỗi.
+
+### Quan sát NGOÀI tiêu chí — ghi rõ là hậu nghiệm
+
+Bốn thứ dưới đây **không** nằm trong tiêu chí khai trước. Chúng là quan
+sát, không phải phán quyết, và không được dùng để nâng cấp mục trên.
+
+**1. Bảng IS lệch nhau tới mức ĐỔI DẤU.** Đây là so khớp cặp từng ngưỡng
+nên không dính biến ngưỡng:
+
+| ngưỡng | IS stride=2 | IS stride=1 | Δ |
+|---|---|---|---|
+| 45 | −0,056 | −0,365 | −0,31 |
+| 48 | **+0,056** | −0,370 | −0,43 |
+| 50 | **+0,121** | −0,337 | −0,46 |
+| 52 | **+0,149** | −0,294 | −0,44 |
+| 55 | **+0,387** | −0,118 | −0,51 |
+| 58 | **+0,488** | −0,108 | −0,60 |
+| 62 | **+0,851** | −0,148 | −1,00 |
+
+7/7 ngưỡng xấu hơn, 6/7 đổi dấu, và khoảng cách **nở ra theo ngưỡng**.
+
+**2. Sự DỨT KHOÁT của phép chọn ngưỡng là thứ phụ thuộc stride.** Ở
+stride=2 kỳ vọng IS tăng đơn điệu (−0,056 → +0,851), nên 62 trông thắng
+áp đảo. Ở stride=1 nó gần như phẳng (−0,37 → −0,11) và 58 nhỉnh hơn 62
+đúng 0,04 pp — tức phép chọn gần như bốc thăm.
+
+Nói cho công bằng: **ngưỡng nào được chọn thì OOS gần như không đổi.** Cả
+hai stride đều cho 62 nhỉnh hơn 58 ở OOS (0,08 pp). Thứ phụ thuộc stride
+là *vẻ dứt khoát* của phép chọn, không phải *kết quả* của nó.
+
+**3. Cơ chế: giả thuyết đầu BỊ BÁC, giả thuyết hai chưa được chứng minh.**
+
+Giả thuyết đầu: stride=2 bỏ qua nửa số nến nên bỏ sót lệnh chạm cắt lỗ.
+**Bác bằng dữ liệu**: tỷ lệ đóng bằng STOP_LOSS gần như y hệt (71,8% vs
+69,9%).
+
+Giả thuyết hai: bộ máy siết stop (`trail_sl = close × 0,93` và dời stop
+về hoà vốn ở +5%) chỉ chạy ở phiên ĐƯỢC GHÉ, nên ở stride=1 nó chạy gấp
+đôi số lần và stop bám sát hơn, cắt cả lệnh lẽ ra hồi lại.
+
+```
+                stride=2    stride=1
+nam giu trung vi   14 ngay    10 ngay
+ty le thang        26,1%      20,2%
+lai TB            +11,25%    +10,72%
+lo  TB             -4,03%     -3,71%
+```
+
+Cỡ lãi và cỡ lỗ gần như không đổi; thứ đổi là **thoát sớm hơn, thắng ít
+hơn** — tương hợp với giả thuyết hai. Nhưng tương hợp không phải chứng
+minh. Muốn chứng minh phải chạy lại cả hai arm với trailing stop TẮT, và
+đó là một thí nghiệm khác.
+
+**4. Nền stride=2 hôm nay KHÔNG tái lập con số trong `CLAUDE.md`.**
+
+```
+CLAUDE.md (24/08) : 385 lenh · alpha -0,927% · KTC [-1,689; -0,076]  LOAI 0
+do lai (04/09)    : 379 lenh · alpha -0,676% · KTC [-1,470; +0,211]  CHUA 0
+```
+
+Không phải do bộ nhớ (44 mẫu, không đổi từ 21/08), không phải do cấu hình
+(`MO_PHONG_TRUOT_GIA=True`, 1 tỷ, trần 100%, `CHOT_LOI_CUNG=False` — khớp
+hết), không phải do vùng OOS (33 mã, 25.219 phiên — trùng khít).
+
+Hai ước lượng điểm cách nhau 0,25 pp và nằm trong KTC của nhau, nên chúng
+KHÔNG mâu thuẫn về độ lớn. Thứ lật là **phán quyết ý nghĩa thống kê** — và
+nó lật được vì cận trên của KTC cũ là **−0,076**, cách số 0 đúng 0,076 pp.
+
+Nghĩa là câu *"Đây là kết quả có ý nghĩa thống kê ĐẦU TIÊN của dự án"*
+trong `CLAUDE.md` đứng trên biên 0,076 pp. **Chưa sửa câu đó** — nó cần
+một phép truy riêng để biết vì sao con số đổi, chứ không phải một nhát sửa
+nhân tiện.
+
+### KHÔNG làm gì trong commit này
+
+Không đổi `stride`. Không đổi `BUY_THRESHOLD`. Không sửa bảng số trong
+`CLAUDE.md`. Cả ba đều là quyết định của người, và phán quyết chính của
+thí nghiệm này là **chưa kết luận được** — chưa đủ để đổi bất cứ thứ gì.
+
+### Việc treo
+
+1. **Truy vì sao nền stride=2 đổi giữa 24/08 và 04/09.** Đây là bất biến 2
+   (tái lập). Nghi trước tiên: các commit đụng vào đường chấm điểm giữa
+   hai mốc đó.
+2. **Thí nghiệm tắt trailing stop** để tách cơ chế ở quan sát 3.
+3. Nếu muốn nâng phán quyết chính khỏi "chưa kết luận được": cần cỡ mẫu
+   OOS lớn hơn, và tiêu chí cho lần đó phải khai TRƯỚC như lần này.
+
+### Chi phí
+
+stride=2: 38,5 phút · stride=1: 69,4 phút · hai lượt chéo: 5,3 phút.
+Script hậu xử lý gọi `build_benchmark()` thiếu một tham số và nổ SAU khi
+cả hai lượt đã xong — dữ liệu cứu được từ file `.db` còn lại, nhưng đó là
+lỗi lẽ ra phải chết ở giây thứ 5 chứ không phải phút thứ 38.
+
