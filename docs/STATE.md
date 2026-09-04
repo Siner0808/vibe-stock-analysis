@@ -6696,3 +6696,105 @@ Chỉ có trên máy phát triển, không sao lưu tự động.
 **Đừng để dữ liệu đo nằm trong thư mục sẽ bị dọn.** Một worktree là thư
 mục sẽ bị dọn theo định nghĩa.
 
+
+---
+
+## BƯỚC 27 — SÁU CHỖ TÀI LIỆU LỆCH NHAU, VÀ MỘT GÁC ĐỂ KHÔNG LẶP LẠI (04/09/2026)
+
+Nạp bốn tài liệu (`CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` ·
+`MO-XE-KIEN-TRUC.md` · `docs/STATE.md`, tổng 425 KB) vào Gemini Notebook và
+hỏi đúng một câu: **tìm chỗ chúng mâu thuẫn nhau**.
+
+Câu hỏi phải nói rõ dự án **cố ý** giữ số cũ kèm ghi chú "đã đo lại, xem
+BƯỚC N", và những chỗ ĐÃ ĐÁNH DẤU thì KHÔNG tính. Không có vế đó nó sẽ báo
+hàng chục mâu thuẫn giả.
+
+Nó trả về 5 chỗ. **Cả 5 đều có thật** — đã đối chiếu từng cái vào file, không
+chép lại lời nó. Đọc tiếp thì ra chỗ thứ 6 mà nó bỏ sót.
+
+### Sáu chỗ
+
+| # | Chỗ | Sai thế nào |
+|---|---|---|
+| 1 | `CLAUDE.md` "Trạng thái đo được" | 4 gạch đầu dòng về "số nấc" đo trên **cửa sổ ngắn**; `MO-XE` đo lại 31/08 cho `momentum` 17 nấc chứ không phải hằng số |
+| 2 | `CLAUDE.md` "Nối trượt giá vào" | vẫn khẳng định alpha −0,927% KTC loại 0 — BƯỚC 25 đã bác |
+| 3 | `CLAUDE.md` "Cổng C5" | `N_DAY_DU` 596 · `MUC_BAT_LOI` −0,927% — **mã ghi 451 và −0,920** |
+| 4 | `NGUYEN-TAC` mở đầu | "**bốn** lần cho ra số đẹp vô nghĩa"; `CLAUDE.md` ghi **5 lần** |
+| 5 | `CLAUDE.md` bảng luật hook | dừng ở R5; `chan_bia_so_lieu.py` có **R6** đang chạy |
+| 6 | `CLAUDE.md` "CỔNG MỞ LỆNH ĐÃ BẬT" | nêu điều kiện dừng **BẢN 1** (≥60 lệnh, đo KỲ VỌNG) mà không đánh dấu |
+
+Chỗ 6 nặng nhất: **cùng một file chứa hai điều kiện dừng khác nhau, cả hai
+tự giới thiệu là hiện hành.** Và một ghi chú ngày 03/09 còn *củng cố* bản
+cũ — ghi chú ấy đúng về việc "đếm loại ĐÃ ĐÓNG", nhưng nó vô tình xác nhận
+một quy tắc đã chết từ 29/08.
+
+Chỗ 3 và 6 là **tài liệu lệch với MÃ**, không phải tài liệu lệch tài liệu.
+Gemini chỉ thấy vế thứ hai; con số thật (451 / −0,920 / 113) chỉ lòi ra khi
+đọc `paper_metrics.py`.
+
+### Đã vá cả sáu — ĐÁNH DẤU TẠI CHỖ, không xoá số cũ
+
+Trừ chỗ 4 (một con số đếm, sửa thẳng và kể ra lần thứ năm) và chỗ 5 (thêm
+một hàng vào bảng), bốn chỗ còn lại nhận một khối cảnh báo nêu: số cũ là
+gì, số mới là gì, đo khi nào, và vì sao nó trôi.
+
+### Gác mới: `tests/test_tai_lieu_khop_hang_so.py`
+
+Vá sáu chỗ là sửa triệu chứng. Đường đi thì vẫn mở: **không gác nào đối
+chiếu con số trong tài liệu với hằng số trong mã** — đó là lý do chỗ 3 và 6
+sống được năm ngày sau khi `7644b8e` neo lại hằng số.
+
+Hợp đồng của gác, và nó cố ý KHÔNG mạnh hơn thế:
+
+> Với mỗi hằng số của cổng C5 (`N_DAY_DU`, `N_TOI_THIEU`, `MUC_BAT_LOI`),
+> giá trị HIỆN TẠI phải xuất hiện ở **ít nhất một chỗ có gọi tên hằng số**,
+> trong bán kính 400 ký tự.
+
+Ba quyết định trong hợp đồng ấy:
+
+1. **Không cấm số cũ có mặt.** Dự án cố ý giữ chúng kèm ghi chú; một gác
+   cấm điều đó sẽ ép người ta xoá lịch sử đo lường.
+2. **"Kề tên" chứ không phải "có mặt đâu đó".** Câu hỏi yếu hơn đã được
+   thử: đột biến trả bảng `N_DAY_DU` về 596 **vẫn xanh**, vì số 451 còn
+   nằm trong một khối mã ở mục khác của cùng file 60 KB.
+3. **Không đòi MỌI chỗ đều đúng.** Điều đó mâu thuẫn với quyết định 1.
+
+Hệ quả phải nêu ra: tài liệu nói về cùng một hằng số ở hai chỗ mà chỉ một
+chỗ được cập nhật thì gác **vẫn xanh**. Đã ghi thẳng vào docstring của
+module — một gác giả vờ mạnh hơn thực tế còn tệ hơn không có gác.
+
+### Gác vừa viết bắt ngay một lỗi của chính người viết
+
+Bản vá chỗ 6 viết ngưỡng thành số trần `n < 113`. Gác đỏ ngay: `CLAUDE.md`
+**không nhắc tên `N_TOI_THIEU` lần nào**, nên không có chỗ nào để neo con
+số vào. Đã sửa bản vá để gọi tên cả hai hằng số.
+
+### Đột biến: 8/10 đỏ
+
+Đỏ: đổi `N_DAY_DU` trong mã · đổi `MUC_BAT_LOI` trong mã · gỡ dấu "BẢN 1"
+khỏi `CLAUDE.md` · hạ `SAN_KY_TU` xuống 0 · nới `BAN_KINH` ra cả file ·
+`_co_gia_tri_ke_ten` luôn trả True · `_cach_viet` dùng dấu chấm thay dấu
+phẩy · rút `HANG_SO` còn một tên.
+
+Hai sống sót **đúng bằng giới hạn đã khai** ở trên (một chỗ khác trong tài
+liệu vẫn nêu đúng), nên chúng là đánh đổi có chủ đích chứ không phải lỗ.
+
+`_co_gia_tri_ke_ten` → `return True` **sống sót ở lượt đục đầu tiên** vì
+test tự-kiểm đi VÒNG QUA hàm dò thay vì đi QUA nó. Lần thứ ba trong một
+ngày mắc đúng kiểu ấy (`_cho_gop` ở BƯỚC 21, và chính đây). Đã sửa để mọi
+phép tự-kiểm gọi thẳng hàm dò.
+
+### Đánh giá công cụ — cả mặt được lẫn mặt không
+
+**Được:** đọc chéo 425 KB và bắt 5 chỗ lệch, trong đó 3 chỗ chưa ai biết.
+Đọc kỹ từng dòng bốn file này bằng tay là việc sẽ làm ẩu.
+
+**Không:** nó chỉ đọc VĂN BẢN. Chỗ 3 và 6 phải mở `paper_metrics.py` mới
+thấy hết mức độ; phát hiện `stride` ở BƯỚC 21 nằm ngoài tầm nó hoàn toàn —
+thứ đó cần dựng worktree và chạy lại.
+
+**Và một câu của nó đã bị bỏ qua có chủ đích:** nó chào mời viết "một đoạn
+Python quét AST các tệp tài liệu để cảnh báo sớm mâu thuẫn số liệu". AST
+không phân tích được Markdown. Nghe hợp lý, sai kỹ thuật — đúng loại đã sai
+ba lần trong ngày hôm nay.
+

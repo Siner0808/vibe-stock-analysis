@@ -4,10 +4,12 @@
 > `AGENTS.md` do vnstock tự đồng bộ nên sẽ bị ghi đè — các quy tắc dưới đây
 > nằm ở file này.
 
-Dự án này đã **bốn** lần cho ra những con số rất đẹp mà sau đó hoá ra vô
+Dự án này đã **năm** lần cho ra những con số rất đẹp mà sau đó hoá ra vô
 nghĩa: +22,42% từ backtest có nhìn trộm, +14,88% "OOS" trên vùng đã tối ưu,
-+14,24% là cực đại của 20 lần thử trên cùng dữ liệu, và **+636,11% từ một sổ
-lệnh dùng đòn bẩy 2,2 lần** (xem dưới). Không lần nào có ai cố ý gian lận —
++14,24% là cực đại của 20 lần thử trên cùng dữ liệu, **+636,11% từ một sổ
+lệnh dùng đòn bẩy 2,2 lần** (xem dưới), và lần thứ năm là **chính giao diện
+công bố +636,11% suốt nhiều ngày sau khi con số ấy đã bị bác**.
+Không lần nào có ai cố ý gian lận —
 mỗi lần đều là một lỗi kỹ thuật nhỏ, âm thầm, và luôn nghiêng về phía làm
 kết quả đẹp lên.
 
