@@ -19,6 +19,7 @@ from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
 from data_quality import now_vn
 import market_filter
+import do_tre_khop
 
 DB_PATH = "paper_trades.db"
 
@@ -615,14 +616,27 @@ def execute_daily_scan():
 
 """
     if open_trades:
-        report_md += "| Mã CK | Trạng Thái | Ngày Vào | Giá Vào (VNĐ) | Cắt Lỗ (SL) | Chốt Lời (TP) | Tỷ Trọng Vốn |\n"
-        report_md += "| :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n"
+        # Ngày tín hiệu và ngày khớp là HAI cột. Gộp chúng lại
+        # (`entry_date or signal_date`) là che đúng độ trễ mà cột "Trễ"
+        # bên cạnh sinh ra để hiện — xem `do_tre_khop.py`.
+        report_md += ("| Mã CK | Trạng Thái | Ngày Tín Hiệu | Ngày Khớp | Trễ "
+                      "| Giá Vào (VNĐ) | Cắt Lỗ (SL) | Chốt Lời (TP) "
+                      "| Tỷ Trọng Vốn |\n")
+        report_md += ("| :---: | :---: | :---: | :---: | :---: | :---: "
+                      "| :---: | :---: | :---: |\n")
         for t in open_trades:
             sl_str = f"{t.stop_loss:,.0f} VNĐ" if t.stop_loss else "—"
             tp_str = f"{t.take_profit:,.0f} VNĐ" if t.take_profit else "—"
             entry_p = f"{t.entry_price:,.0f} VNĐ" if t.entry_price else "Chờ khớp phiên tới"
             size_pct = f"{t.size_pct:.0f}%"
-            report_md += f"| **{t.symbol}** | `{t.status}` | {t.entry_date or t.signal_date} | {entry_p} | {sl_str} | {tp_str} | {size_pct} |\n"
+            _d = do_tre_khop.do_mot_lenh(t)
+            report_md += (f"| **{t.symbol}** | `{t.status}` "
+                          f"| {_d['signal_date'] or '—'} "
+                          f"| {_d['entry_date'] or '—'} | {_d['nhan']} "
+                          f"| {entry_p} | {sl_str} | {tp_str} | {size_pct} |\n")
+        report_md += f"\n_{do_tre_khop.CHU_GIAI}_\n"
+        for _d in do_tre_khop.dong_bao_cao(do_tre_khop.tom_tat(open_trades)):
+            report_md += f"\n{_d}\n"
     else:
         report_md += "ℹ️ **Hiện tại không có lệnh nào đang mở.** Tất cả vị thế đã được chốt lời / cắt lỗ an toàn.\n"
 

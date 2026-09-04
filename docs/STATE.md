@@ -5893,3 +5893,157 @@ ngày mai `chuong-bao-quet` không có lượt `schedule` nào thì **chưa** đ
 tính vào cỡ mẫu ở trên; nó là hiệu ứng của việc đổi, không phải của lịch
 mới.
 
+
+---
+
+## BƯỚC 21 — DỰNG DỤNG CỤ ĐO ĐỘ TRỄ KHỚP LỆNH, VÀ NÓ TÌM RA MỘT THỨ KHÁC (04/09/2026)
+
+Việc treo từ BƯỚC 17 đã đóng. `do_tre_khop.py` đếm phiên giữa
+`signal_date` và `entry_date` bằng **lịch phiên công bố**, không bằng ngày
+lịch, và ba nơi hiển thị đã tách hai cột bị gộp.
+
+### Phát hiện, và nó không phải thứ đi tìm
+
+Chạy lần đầu trên sổ THẬT (Google Sheets, 117 lệnh, chỉ đọc):
+
+```
+DUNG_HAN      4      <- bon lenh tien-ve-truoc, T+1
+TRE          43      <- TAT CA deu dung T+2, khong lech mot cai
+CHUA_KHOP     0
+NGOAI_LICH   70      <- tin hieu truoc 2026, lich chua phu
+MAU_THUAN     0
+```
+
+43 lệnh trải từ 05/01 tới 30/06, và **không lệch một cái nào**. Nhịp cron
+rơi ngẫu nhiên không thể cho ra hằng số. Nguyên nhân đọc ra từ mã, rồi
+**đo lại để chắc**:
+
+```
+run_session()   : fill_pending()  ->  evaluate_open()  ->  consider_entry()
+                  ^^^^^^^^^^^^ chay TRUOC khi lenh moi ton tai
+=> lenh sinh o phien t khop o phien KE TIEP DUOC GHE
+
+walkforward._mo_phong(stride=2)   : range(min_history, len(df), 2)
+=> phien t+1 KHONG BAO GIO duoc ghe  ->  khop o t+2
+```
+
+Mọi script seed đều `STRIDE = 2` (`optimize_20loops_custom71_18m.py`,
+`optimize_custom_71stocks_18m.py`, `optimize_vn100_18m.py`).
+
+**Chứng minh bằng phép chạy, không bằng suy luận:**
+`test_CO_CHE_sinh_ra_T2_la_buoc_nhay_chu_khong_phai_thu_tu_trong_phien`
+dựng một lệnh PENDING rồi gọi `fill_pending` theo hai tập phiên khác nhau
+— ghé từng phiên ra **T+1**, ghé cách phiên ra **T+2**. Cùng một mã, khác
+duy nhất tập phiên được mô phỏng.
+
+### Vì sao điều này đáng ghi
+
+`stride` sinh ra để **thưa hoá điểm quyết định** — mẫu chồng lấn thì lợi
+nhuận các ngày gần nhau tương quan (`backtest/engine.py`, đầu file). Đó là
+một lựa chọn thống kê hợp lệ.
+
+Nhưng cùng một núm vặn ấy còn quyết định **phiên nào được dùng để khớp
+lệnh**, và điều đó thì không ai chọn. Một tham số, hai tác dụng, một trong
+hai là tác dụng phụ.
+
+`optimize_vn100_18m.py` đã bắt được **một nửa** chuyện này từ trước:
+
+> *"stride=3 nghĩa là chỉ kiểm tra vị thế 3 phiên một lần, giá có thể
+> xuyên sâu qua cắt lỗ rồi mới bị phát hiện."*
+
+Đó là phía THOÁT. Phía VÀO chưa ai nhắc, và nó chính là bất biến 1.
+
+### Hai đường KHÁC NHAU một phiên
+
+| | phiên khớp | đo được |
+|---|---|---|
+| đường mô phỏng (mọi số walk-forward) | **T+2** | 43/43 lệnh |
+| đường chạy thật (`run_daily`) | **T+1** | 4/4 lệnh |
+
+Đây đúng là thứ BƯỚC 17 gọi là vấn đề **khả năng so sánh** — nhưng biến
+gây lệch hoá ra không phải độ tin cậy cron như đã đoán. Nó nằm trong chính
+mã mô phỏng.
+
+### CHƯA đo được: việc này làm số đẹp lên hay xấu đi
+
+Nói cho đúng phạm vi. Đã chứng minh: hai đường lệch nhau một phiên, và vì
+sao. **Chưa** chứng minh: lệch ấy đổi kết quả bao nhiêu. Muốn biết thì
+phải chạy lại walk-forward với `stride=1` và so — mà đó là đổi mọi con số
+của dự án, nên **không tự làm**.
+
+Suy đoán về chiều (ghi ra để sau này đối chiếu, KHÔNG phải kết luận): với
+một chiến lược mua theo đà, vào muộn một phiên là mua đắt hơn khi tín hiệu
+đúng, và không đổi gì khi tín hiệu là nhiễu — tức nghiêng về phía làm kết
+quả **xấu đi**. Nếu đo lại mà số **đẹp lên**, đó là hướng đáng ngờ theo
+quy tắc số 1, không phải hướng đáng mừng.
+
+### Ba quyết định KHAI TRƯỚC, viết lúc có 4 lệnh và 0 kết quả đã đóng
+
+1. **KHÔNG đổi cách khớp.** `fill_pending` giữ nguyên. Khớp muộn không sai
+   về mặt mô phỏng, và sửa cơ chế khớp là đổi con số mà không có phép đo
+   nào bảo phải đổi.
+2. **KHÔNG lưu độ trễ thành cột.** Nó là hàm của hai cột đã có; một giá
+   trị suy ra được mà đem lưu thì sẽ có ngày lệch khỏi nguồn của nó.
+3. **KHÔNG lọc lệnh trễ ra khỏi phép đo.** Khoá bởi
+   `test_phep_do_KHONG_duoc_loc_lenh_tre`. Nguyên nhân trễ độc lập với mã
+   cổ phiếu nên loại chúng không sửa được thiên lệch nào — nó chỉ làm cỡ
+   mẫu nhỏ đi ở đúng dự án mà cỡ mẫu là ràng buộc chặt nhất.
+
+### Dụng cụ tự bác lời giải thích của chính nó
+
+Bản đầu của `dong_bao_cao()` khẳng định thẳng: *"Nguyên nhân KHÔNG nằm ở
+chiến lược: … một ngày cron GitHub rơi hết nhịp là một phiên trượt."*
+
+Số liệu thật bác sạch câu đó ngay lần chạy đầu tiên — 43/43 đúng T+2 thì
+không thể là nhịp rơi ngẫu nhiên. Câu ấy được viết vì hôm 03/09 vừa đo
+xong độ trễ cron, nên cron là thứ đang có sẵn trong đầu.
+
+Đã thay bằng một phép **phân biệt** thay vì một lời **khẳng định**:
+
+```
+tre_dong_deu is True   -> hang so  -> di xem walkforward stride
+tre_dong_deu is False  -> rai rac  -> hop voi nhip quet roi
+tre_dong_deu is None   -> duoi 3 lenh, CHUA phan biet duoc
+```
+
+Ba trạng thái, và trạng thái thứ ba bắt buộc: với 1–2 lệnh thì mọi tập đều
+"đồng đều" một cách tầm thường.
+
+**Bài học:** một dụng cụ đo được phép nói *cái gì đang xảy ra*; nó chỉ được
+nói *vì sao* khi có phép phân biệt đứng sau. Lời giải thích tiện tay là
+chỗ dễ sai nhất trong cả dụng cụ, vì nó nghe hợp lý và không ai kiểm.
+
+### Gác
+
+`tests/test_do_tre_khop.py`, 35 test. **Đột biến 25/25 đỏ** trong phạm vi
+file, gồm: nới ngưỡng T+1→T+2, gộp từng trạng thái "chưa biết" vào
+"đúng hạn", trả cột gộp về ở cả ba nơi (cả dạng `or` lẫn dạng ba ngôi),
+gỡ khối cảnh báo khỏi `report()`, rút danh sách file quét xuống còn một,
+ghim cứng mức trễ, và `compute()` lặng lẽ lọc bỏ lệnh trễ.
+
+Đột biến thứ 26 — sửa `fill_pending` thành `session_date < signal_date`,
+tức cho khớp ngay trong phiên tín hiệu — **sống sót trong file này** nhưng
+**đỏ trên toàn bộ bộ test**: `tests/test_paper_trading.py::
+test_tin_hieu_hom_nay_khong_khop_trong_hom_nay` đã canh chỗ đó từ trước.
+Ghi lại để không ai đi thêm một gác trùng.
+
+### Máy dò AST phải TỰ CHỨNG MINH nó dò được
+
+Đột biến biến `_cho_gop()` thành `return []` **sống sót** ở lượt đục đầu
+tiên. Lý do giống hệt đột biến số 10 hôm 03/09: mã thật hiện không vi
+phạm, nên một máy dò HỎNG trả về đúng cùng câu trả lời với một máy dò TỐT.
+
+Đã trám bằng 8 test cho máy dò ăn 5 mẫu **đã biết là xấu** (thuộc tính ·
+khoá dict · ba ngôi · đảo thứ tự · lồng trong f-string) và 3 mẫu **đã biết
+là tốt** (`or '—'`, hai cột riêng, `or 'Chờ mở cửa'`). Cùng cách
+`tools/kiem_cu_phap_311.py` tự kiểm mình trước khi kiểm repo.
+
+Đây là lần thứ **năm** trong hai ngày một cổng xanh hoá ra không kiểm gì.
+
+### Việc treo, KHÔNG tự làm
+
+Chạy lại walk-forward với `stride=1` rồi so từng con số với bảng hiện có.
+Đây là đổi mô phỏng, nên phải là quyết định của người — và phải nêu tiêu
+chí đọc kết quả TRƯỚC khi chạy, vì "số đổi bao nhiêu thì coi là đáng kể"
+mà quyết sau khi nhìn là bất biến 7 đổi hướng.
+

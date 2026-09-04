@@ -20,6 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
 
+import do_tre_khop
 from paper_trading import (BROKER_FEE_PCT, EXCHANGE_FEE_PCT, SELL_TAX_PCT,
                            ExitReason, Trade)
 
@@ -610,19 +611,32 @@ def report(trades: list[Trade],
     add(f"Tỷ lệ thắng: {perf.win_rate:.1%}")
 
     # Bổ sung danh sách chi tiết các vị thế ĐANG MỞ / CHỜ KHỚP
+    #
+    # HAI CỘT NGÀY, KHÔNG PHẢI MỘT. Bản cũ in `entry_date or signal_date`
+    # dưới một nhãn "NGÀY VÀO" duy nhất: lệnh còn chờ thì hiện ngày TÍN
+    # HIỆU như thể đó là ngày vào, và lệnh khớp muộn trông hệt lệnh khớp
+    # đúng hạn. Đúng khoảng cách bị che ấy là thứ `docs/STATE.md` BƯỚC 17
+    # gọi là "dữ liệu đã có mà chưa ai hỏi".
     active_trades = [t for t in trades if t.status in ("OPEN", "PENDING")]
     if active_trades:
         add("")
-        add("─" * 64)
+        add("─" * 89)
         add("📌 DANH SÁCH LỆNH ĐANG MỞ & CHỜ KHỚP (ACTIVE POSITIONS):")
-        add("─" * 64)
-        add(f"{'MÃ':<6} | {'TRẠNG THÁI':<9} | {'NGÀY VÀO':<10} | {'GIÁ VÀO (VNĐ)':<13} | {'STOP LOSS':<10} | {'VỐN':<5}")
-        add("─" * 64)
+        add("─" * 89)
+        add(f"{'MÃ':<6} | {'TRẠNG THÁI':<9} | {'TÍN HIỆU':<10} | "
+            f"{'KHỚP':<10} | {'TRỄ':<4} | {'GIÁ VÀO (VNĐ)':<13} | "
+            f"{'STOP LOSS':<10} | {'VỐN':<5}")
+        add("─" * 89)
         for t in active_trades:
             entry_p = f"{t.entry_price:,.0f}" if t.entry_price else "Chờ mở cửa"
             sl_p = f"{t.stop_loss:,.0f}" if t.stop_loss else "N/A"
-            add(f"{t.symbol:<6} | {t.status:<9} | {str(t.entry_date or t.signal_date):<10} | {entry_p:<13} | {sl_p:<10} | {t.size_pct:.0f}%")
-        add("─" * 64)
+            _d = do_tre_khop.do_mot_lenh(t)
+            add(f"{t.symbol:<6} | {t.status:<9} | "
+                f"{_d['signal_date'] or '—':<10} | "
+                f"{_d['entry_date'] or '—':<10} | {_d['nhan']:<4} | "
+                f"{entry_p:<13} | {sl_p:<10} | {t.size_pct:.0f}%")
+        add("─" * 89)
+        add(do_tre_khop.CHU_GIAI)
     add(f"Lãi TB    : {perf.avg_win:+.2f}%   |  Lỗ TB: {perf.avg_loss:+.2f}%")
     add(f"Kỳ vọng   : {perf.expectancy:+.2f}% mỗi lệnh (đã trừ "
         f"{ROUND_TRIP_COST_PCT:.2f}% phí)")
@@ -656,6 +670,14 @@ def report(trades: list[Trade],
         add("   Đó là dấu vết của MỘT lượt mô phỏng, không phải nhiều phiên")
         add("   quét tiến về phía trước. Kỳ vọng, KTC và alpha ở trên vẫn")
         add("   đúng như phép tính, nhưng chúng nói về lượt mô phỏng ấy.")
+    _tre = do_tre_khop.tom_tat(trades)
+    _dong_tre = do_tre_khop.dong_bao_cao(_tre)
+    if _dong_tre:
+        add("")
+        add("ĐỘ TRỄ KHỚP LỆNH — đếm bằng LỊCH PHIÊN, không bằng ngày lịch")
+        for _d in _dong_tre:
+            add(f"   {_d}")
+
     _dk = dieu_kien_dong_lai(trades, benchmark)
     add("")
     add(f"Cổng C5 (mở vị thế mới): {_dk['ly_do']}")
