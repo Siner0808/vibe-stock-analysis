@@ -6047,3 +6047,101 @@ Chạy lại walk-forward với `stride=1` rồi so từng con số với bảng
 chí đọc kết quả TRƯỚC khi chạy, vì "số đổi bao nhiêu thì coi là đáng kể"
 mà quyết sau khi nhìn là bất biến 7 đổi hướng.
 
+
+---
+
+## BƯỚC 22 — MẤT NHỊP VÀ TRỄ NHỊP LÀ MỘT HIỆN TƯỢNG, KHÔNG PHẢI HAI (04/09/2026)
+
+Soát ba việc buổi sáng. Hai việc đầu bình thường; việc thứ ba lôi ra một
+thứ đáng ghi.
+
+### Bốn vị thế — không có gì bất thường
+
+| mã | trạng thái | tín hiệu | khớp | trễ | giá vào | phiên đã giữ |
+|---|---|---|---|---|---|---|
+| HUT | OPEN | 2026-08-28 | 2026-09-03 | T+1 | 13.250 | 1 |
+| NAF | OPEN | 2026-08-28 | 2026-09-03 | T+1 | 48.500 | 1 |
+| STB | OPEN | 2026-08-28 | 2026-09-03 | T+1 | 75.300 | 1 |
+| TCB | OPEN | 2026-08-28 | 2026-09-03 | T+1 | 33.150 | 1 |
+
+**Cố ý không đọc lãi/lỗ.** n = 4, giữ 1 phiên; mọi con số từ đó đều là
+nhiễu. Nguồn dữ liệu lành: cache VN-INDEX ở 03/09, `chan_doan` trả `OK`,
+cổng C1 bật.
+
+### Nhịp quét: 7 phiên liên tiếp ở mức 1–2, không còn là một ngày xui
+
+```
+ngay         phien   thanh cong /12
+2026-08-17   co               8   67%
+2026-08-18   co               5   42%
+2026-08-19   co               4   33%
+2026-08-20   co               6   50%
+2026-08-21   co               6   50%
+2026-08-24   co               6   50%
+2026-08-25   co               6   50%
+2026-08-26   co               6   50%
+2026-08-27   co               1    8%   <- tut tu day
+2026-08-28   co               2   17%
+2026-09-03   co               2   17%
+```
+
+### Phát hiện: đây KHÔNG phải hai vấn đề
+
+Trước nay ghi thành hai ô riêng — "nhịp quét tụt còn 1–2/ngày" và "ba
+chuông trễ trung vị 4–4,7 giờ". So phân bố **giờ nổ thực tế** thì chúng là
+một:
+
+```
+                     gio no trong ngay        phan bo
+TRUOC 27/08 (n=52)   09:50 -> 16:32           09h:2 10h:9 11h:6 12h:9
+                                              13h:9 14h:7 15h:9 16h:1
+TU   27/08 (n= 5)    00:16 -> 21:12           14h:1 17h:1 19h:1 21h:1 00h:1
+```
+
+Khung khai báo là 09:00 → 15:30. Trước 27/08 mọi lượt rơi **trong hoặc
+ngay sau** khung ấy — trễ 0–60 phút. Từ 27/08 chỉ **1/5** lượt còn nổ
+trong khung; bốn lượt còn lại nổ lúc 17h, 19h, 21h và 00h.
+
+**Và không có lượt `cancelled` nào.** Tổng số lượt mỗi ngày bằng đúng số
+lượt thành công, nên nhịp không bị `concurrency` của workflow huỷ
+(`cancel-in-progress: false`) — chúng bị **bỏ trước khi có lượt chạy nào
+được tạo**.
+
+Một cơ chế giải thích cả hai: hàng đợi cron của repo này chậm hẳn đi từ
+27/08. Nhịp trễ quá lâu thì bị bỏ thay vì xếp hàng, nên **trễ nhiều hơn
+kéo theo mất nhiều hơn**. Không cần hai nguyên nhân.
+
+**Chưa chứng minh.** n = 5 sau mốc — rất mỏng, và đây là quan sát tương
+hợp, không phải phép đo có đối chứng.
+
+### Hệ quả cho tiêu chí đã khai ở BƯỚC 20 — KHÔNG sửa tiêu chí
+
+Nếu nguyên nhân là hàng đợi ở mức repo/tài khoản chứ không phải mốc phút
+nghẽn, thì việc dời ba chuông khỏi `:00`/`:30` **sẽ không có tác dụng** —
+và tiêu chí khai ngày 03/09 sẽ nói đúng điều đó khi tới 17/09.
+
+Ghi rõ ở đây để lần sau không ai đọc nhầm: quan sát hôm nay **làm giả
+thuyết ban đầu yếu đi**, nhưng tiêu chí phán xử **giữ nguyên**. Sửa ngưỡng
+sau khi đã thấy dữ liệu nghiêng về một phía là đúng thứ bất biến 7 cấm,
+kể cả khi sửa theo hướng nghiêm khắc hơn.
+
+### Chuông báo quét mất trắng ngày 03/09
+
+`chuong-bao-quet` **không có lượt nào** ngày 03/09 — không phải nổ muộn,
+mà là không nổ. Lượt gần nhất trước đó là 02/09 20:07, lượt sau đó chưa
+có (nhịp mới 09:23 UTC hôm nay còn chưa tới).
+
+Chuông soát **ba** ngày làm việc gần nhất đúng vì biết nhịp sẽ rơi, nên
+một nhịp mất chưa phải lỗ hổng. Nhưng biên an toàn được thiết kế cho tỷ lệ
+rơi của tháng Tám; ở tỷ lệ hiện nay nó mỏng hơn thiết kế.
+
+### Một lỗi trong chính phép đo này
+
+Bản đầu của script in "sớm nhất 19:38, muộn nhất 17:36" — vô lý, vì
+`min()`/`max()` trên `datetime` so **cả ngày** chứ không so giờ trong
+ngày. Phải lấy `t.time()` mới ra khoảng giờ.
+
+Cùng họ với con số 10 phút phải vứt hôm 03/09: một phép đo cho ra kết quả
+trông hợp lý ở mọi trường hợp và sai ở tất cả. Lần này nó tự lộ vì "sớm
+nhất" lớn hơn "muộn nhất"; lần trước thì không có dấu hiệu nào.
+
