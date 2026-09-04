@@ -6393,3 +6393,246 @@ Script hậu xử lý gọi `build_benchmark()` thiếu một tham số và nổ
 cả hai lượt đã xong — dữ liệu cứu được từ file `.db` còn lại, nhưng đó là
 lỗi lẽ ra phải chết ở giây thứ 5 chứ không phải phút thứ 38.
 
+
+---
+
+## BƯỚC 25 — VÌ SAO NỀN KHÔNG TÁI LẬP: KHÔNG PHẢI LỖI, LÀ BẢNG SỐ BỊ BỎ QUÊN (04/09/2026)
+
+Việc treo số 1 của BƯỚC 24. Câu hỏi: `CLAUDE.md` ghi alpha OOS **−0,927%**
+với KTC **loại 0**, đo lại hôm nay ra **−0,676%** với KTC **chứa 0**.
+
+### Phép thử quyết định, chạy TRƯỚC khi bisect
+
+`backtest/cache/` bị gitignore nên nó KHÔNG đổi khi checkout mã cũ. Dựng
+worktree ở commit nền rồi chạy **mã cũ trên dữ liệu hôm nay**: ra số cũ
+thì nguyên nhân là MÃ, ra số mới thì nguyên nhân là DỮ LIỆU.
+
+Một phép thử, hai khả năng, không cần đoán trước.
+
+### Kết quả — tách được từng phần
+
+| commit | ngày | lệnh | alpha | KTC | vốn TB | thắng | kỳ vọng |
+|---|---|---|---|---|---|---|---|
+| `79a8d32` | 28/08 | 376 | −0,872 | [−1,687; −0,048] | 138,66% | 26,33% | −0,233 |
+| `d777480` | 31/08 | 376 | **−0,932** | [−1,747; −0,108] | 138,66% | 26,33% | −0,293 |
+| `HEAD` | 04/09 | 379 | −0,676 | [−1,470; **+0,211**] | **48,47%** | 26,12% | −0,042 |
+
+**Nguyên nhân là MÃ.** Cùng cache, cùng bộ nhớ 44 mẫu, cùng
+`docs/moc_du_lieu_sach.json` (không đổi), cùng vùng OOS 33 mã / 25.219
+phiên.
+
+### Hai thay đổi, cả hai đều CÓ CHỦ ĐÍCH và đã ghi
+
+**1. Phí Sở giao dịch** (`10e613c`, 31/08). Giữa `79a8d32` và `d777480`:
+tập lệnh y hệt, tỷ lệ thắng y hệt, vốn cam kết y hệt — chỉ kỳ vọng và
+alpha dịch đúng **−0,060**. Đó chính xác là `0,0003 × 2 chiều × 100`.
+Khớp tới ba chữ số ở cả hai đại lượng:
+
+```
+-0,2333 - 0,060 = -0,2933   (ky vong)
+-0,8724 - 0,060 = -0,9324   (alpha)
+```
+
+**2. Cỡ vị thế** (`fac319b`, 31/08). `account_risk_pct` từ `1.0` gõ tay
+thành suy ra từ `SO_VI_THE_MUC_TIEU = 15`, và biên kẹp **5–33,3% →
+3,3–13,3%**. Cỡ nhỏ hơn đổi trượt giá vì `vong_doi_lenh` mô hình trần
+thanh khoản theo cỡ lệnh.
+
+Đo trực tiếp trên hai tập lệnh: 372 lệnh có mặt ở cả hai, **207 trong số
+đó có giá vào/ra hoặc ngày khác nhau** — 56%. Không phải vài lệnh lệch.
+
+### Điều quan trọng nhất: con số −0,927 được đo ở ĐÒN BẨY 1,39 LẦN
+
+`von_tb = 138,66%`, `von_dinh = 523,8%`. Bất biến 7b nói thẳng: vượt 100%
+thì **chia tỷ trọng cho đúng bội số rồi đo lại**. Con số 524% ấy còn được
+chính `CLAUDE.md` liệt kê trong dãy "145% / 524% / 1372%" như một danh mục
+máy chưa bao giờ thực sự nắm.
+
+Nên `fac319b` không làm hỏng gì — nó **sửa đúng thứ bất biến 7b bắt phải
+sửa**, kéo vốn cam kết từ 138,66% xuống 48,47%.
+
+### Vì sao không ai thấy: phép đo lại nhìn CHẾ ĐỘ KHÁC
+
+Commit `fac319b` CÓ đo lại alpha, và ghi hẳn vào `docs/STATE.md`:
+`−0,927% → −1,99%`. Nhưng con số −1,99% ấy là của chế độ **`theo_ngay`
+(danh mục)**, chế độ vừa được thêm trong cùng commit.
+
+Chế độ **mặc định theo-mã** — tức đúng chế độ mà bảng trong `CLAUDE.md`
+mô tả — **không được đo lại**. Ở đó cùng thay đổi ấy đưa alpha từ −0,932
+lên −0,676 và làm KTC chứa 0.
+
+Một commit đo lại đúng thứ nó đổi, ở một chế độ, rồi để bảng số của chế độ
+kia nằm im. Bảng ấy nằm im từ 31/08 tới nay.
+
+### Vậy KHÔNG phải vi phạm bất biến 2
+
+Không có chuyện cùng mã cùng dữ liệu ra hai kết quả. Mọi lượt chạy đều tái
+lập được. Thứ hỏng là **một bảng số trong tài liệu mô tả một cấu hình
+không còn tồn tại**, và nó tự giới thiệu là hiện hành.
+
+Đây là hình dạng đã gặp: `MO-XE-KIEN-TRUC.md` từng ghi "trend là công tắc
+3 nấc" — đúng lúc nó ra đời, sai với cấu hình đang chạy.
+
+### Hệ quả phải nói thẳng
+
+Câu *"Đây là kết quả có ý nghĩa thống kê ĐẦU TIÊN của dự án, và nó âm"*
+trong `CLAUDE.md`:
+
+- **đúng** với mã ngày 31/08, ở cấu hình đòn bẩy 1,39 lần;
+- **không còn đúng** với mã hôm nay ở cấu hình vốn 48,47%.
+
+Dự án hiện **không có** kết quả nào loại được số 0.
+
+### Kiểm chiều — số ĐẸP LÊN, và đây là chỗ phải cẩn thận nhất
+
+Alpha đi từ −0,932 lên −0,676. Theo quy tắc số 1, giả định đầu tiên phải
+là có lỗi. Lời giải thích — cỡ vị thế nhỏ hơn thì trượt giá ít hơn vì
+trần thanh khoản ít bị chạm — nghe hợp lý, và **lời giải thích nghe hợp
+lý là thứ đã sai một lần hôm nay rồi** (BƯỚC 24, quan sát 3).
+
+Nên ghi ra ranh giới: đã chứng minh là hai thay đổi ấy gây ra chênh lệch,
+và tách được phần của phí Sở tới ba chữ số. **Chưa** chứng minh cỡ vị thế
+nhỏ hơn cho fill tốt hơn qua đúng cơ chế trần thanh khoản — đó vẫn là suy
+luận từ đọc mã.
+
+### Một chỗ KHÔNG khớp, ghi lại chứ không lấp
+
+`CLAUDE.md` ghi **385 lệnh**; `d777480` chạy hôm nay ra **376**. Alpha và
+kỳ vọng khớp tới ba chữ số (−0,932 vs −0,927; −0,293 vs −0,291) nhưng số
+lệnh lệch 9. Nếu 9 lệnh thật sự khác thì kỳ vọng đã phải dịch nhiều hơn
+thế. Chưa truy tiếp. Ghi ra để lần sau ai đọc còn biết là có chỗ hở.
+
+### KHÔNG sửa bảng số trong commit này
+
+Bảng trong `CLAUDE.md` cần một lượt đo đầy đủ ở cấu hình hiện hành — cả
+`theo_ngay` lẫn theo-mã, cả IS lẫn OOS — chứ không phải chép con số OOS
+đơn lẻ của hôm nay đè lên. Và đó là quyết định của người.
+
+
+---
+
+## BƯỚC 26 — KHOẢNG CÁCH STRIDE KHÔNG CÓ CƠ CHẾ: BA GIẢ THUYẾT, BA LẦN BỊ BÁC (04/09/2026)
+
+Việc treo số 2 của BƯỚC 24. Kết quả: **không tìm ra cơ chế nào, và đó là
+câu trả lời chứ không phải thất bại.**
+
+### Giả thuyết 1 — stride=2 bỏ sót lệnh chạm cắt lỗ. BỊ BÁC.
+
+`evaluate_open` chỉ đọc `bar["low"]`/`bar["high"]` của phiên nó được gọi,
+nên phiên bị bỏ qua không được soi. Nghe rất thuyết phục.
+
+Dữ liệu: tỷ lệ đóng bằng `STOP_LOSS` là **71,8%** (stride=2) so với
+**69,9%** (stride=1). Không có dấu vết của việc bỏ sót.
+
+### Giả thuyết 2 — nhịp siết stop. BỊ BÁC bằng thí nghiệm.
+
+Trailing (`close × 0,93`) và dời-về-hoà-vốn chỉ chạy ở phiên ĐƯỢC GHÉ, nên
+ở stride=1 chúng chạy gấp đôi số lần và stop bám sát hơn. Ủng hộ bởi: nắm
+giữ trung vị 14 → 10 ngày, thắng 26,1% → 20,2%, cỡ lãi/lỗ gần như không
+đổi.
+
+Tiêu chí khai TRƯỚC khi chạy (trong hội thoại, **không** trong commit —
+bằng chứng yếu hơn BƯỚC 23, ghi rõ ra đây):
+
+```
+gap trailing BAT = -0,5625  (da do)
+  |gap_tat| < 0,281  -> siet stop giai thich phan lon
+  |gap_tat| > 0,45   -> KHONG phai co che
+  0,281 - 0,45       -> mot phan
+```
+
+Chạy lại cả hai stride trên cây đã **tắt sạch** cả trailing lẫn
+dời-về-hoà-vốn:
+
+| | lệnh | alpha | vốn TB | thắng |
+|---|---|---|---|---|
+| stride=2, siết stop TẮT | 308 | −0,285 | 60,0% | 23,1% |
+| stride=1, siết stop TẮT | 380 | −0,868 | 68,7% | 19,7% |
+
+```
+gap trailing TAT = -0,5830   ->  |0,583| > 0,45  ->  KHONG PHAI CO CHE
+```
+
+Khoảng cách sống sót nguyên vẹn, thậm chí nhích lên. Siết stop đổi **mức
+tuyệt đối** rất nhiều (alpha stride=2 từ −0,676 lên −0,285) nhưng không
+đổi **khoảng cách** giữa hai stride.
+
+### Giả thuyết 3 — độ trễ khớp lệnh. BỊ BÁC, và nó chạy NGƯỢC chiều.
+
+Đây là phát hiện gốc ở BƯỚC 21, nên đáng ngờ nhất là chính nó. Đo giá vào
+trên 207 tín hiệu cả hai arm cùng nhận:
+
+```
+gia vao stride=2 so voi stride=1 : TB +0,574%   trung vi +0,161%
+                                   cao hon 105 · thap hon 89 · bang 13
+207/207 lenh co NGAY KHOP khac nhau
+```
+
+stride=2 mua **đắt hơn**. Độ trễ khớp là **bất lợi** cho nó — mà nó lại
+thắng. Nên độ trễ khớp không những không giải thích được khoảng cách, nó
+còn làm khoảng cách cần giải thích **lớn hơn**: thứ gì đó phải bù xong
+0,57% rồi mới thắng tiếp.
+
+### Thứ THẬT SỰ tạo ra khoảng cách: hai arm giao dịch hai TẬP khác nhau
+
+379 lệnh (stride=2) và 523 lệnh (stride=1 ở cùng ngưỡng 62), nhưng chỉ
+**207** dùng chung.
+
+| nhóm | n | kỳ vọng | thắng |
+|---|---|---|---|
+| stride=1, tín hiệu chung | 207 | −0,293% | 22,2% |
+| stride=1, tín hiệu riêng | 316 | −0,771% | 23,4% |
+| stride=2, tín hiệu chung | 207 | −0,691% | 24,2% |
+| **stride=2, tín hiệu riêng** | **172** | **+0,739%** | 28,5% |
+
+Toàn bộ lợi thế của stride=2 nằm ở 172 lệnh riêng của nó. Trên tập chung
+thì **stride=1 tốt hơn** — đúng chiều mà giá vào rẻ hơn 0,57% dự đoán.
+
+### Phép so cặp — phép đo mạnh nhất, và nó nói KHÔNG PHÂN BIỆT ĐƯỢC
+
+Trên 207 tín hiệu khớp cặp:
+
+```
+chenh lech TB (stride=1 - stride=2) : +0,398 diem phan tram
+KTC 95% (bootstrap 10.000, seed 12345) : [-0,319 ; +1,098]   CHUA 0
+stride=1 tot hon o 96/207 cap = 46,4%
+```
+
+Gần đúng tung đồng xu.
+
+### Kết luận
+
+**Khoảng cách stride không phải một cơ chế, nó là hiệu ứng THÀNH PHẦN.**
+Hai arm nhận hai tập tín hiệu chỉ chồng nhau một phần, và tập nào rơi vào
+arm nào thì do tính chẵn lẻ của `range(min_history, len(df), stride)` —
+một thứ không liên quan gì tới thị trường.
+
+Và không mảnh nào của nó tách được khỏi nhiễu: tập chung cho KTC chứa 0;
+172 lệnh riêng của stride=2 ở +0,739% với n=172 và σ ≈ 7%/lệnh thì cách 0
+chừng 1,4 lần sai số chuẩn.
+
+Điều này **củng cố** phán quyết đã khai trước ở BƯỚC 23–24 —
+*chưa kết luận được* — thay vì lật nó.
+
+### Ba lần đoán sai trong một ngày, ghi lại vì đó mới là bài học
+
+Cả ba giả thuyết đều nghe hợp lý, đều dựa trên việc đọc mã đúng, và đều
+sai. Giả thuyết 3 còn tệ hơn: nó chạy **ngược** chiều tôi tưởng.
+
+Điểm chung của cả ba: chúng là **lời giải thích nghĩ ra trước khi đo**.
+`do_tre_khop.dong_bao_cao()` sáng nay cũng mắc đúng lỗi đó — khẳng định
+nguyên nhân là cron, bị số liệu bác trong vài phút, và phải thay bằng một
+phép PHÂN BIỆT ba trạng thái.
+
+Quy tắc rút ra, cùng họ với "gác phải đọc AST": **một dụng cụ được phép
+nói CÁI GÌ đang xảy ra; nó chỉ được nói VÌ SAO khi có phép phân biệt đứng
+sau.** Áp cho cả người viết lẫn mã.
+
+### Việc treo — KHÔNG tự làm
+
+Nếu muốn biết stride nào đúng hơn thì câu hỏi không còn là "cơ chế nào",
+mà là **"tập tín hiệu nào là tập thật"**. Đường chạy thật quét ít nhất một
+lượt mỗi phiên nên nó thấy MỌI phiên, tức stride=1. Nhưng phép đo hôm nay
+không đủ lực để nói tập ấy cho kết quả khác tập kia — và cỡ mẫu cần thì
+đã ghi ở `paper_metrics.co_mau_cho_luc()`.
+
