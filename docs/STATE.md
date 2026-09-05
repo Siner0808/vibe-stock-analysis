@@ -6983,3 +6983,67 @@ byte. Bản đã commit cứu được. Đường an toàn là đọc/ghi **byte
 - **h = 63** cần 3,73× cỡ mẫu hữu hiệu; chỉ có đường mở rộng rổ theo một quy
   tắc cơ học khai trước (bất biến 7).
 
+
+---
+
+## KHAI TRƯỚC — CƠ CHẾ RƠI NHỊP, ĐỌC NGÀY 12/09/2026 (viết 05/09/2026)
+
+Viết khi trong tay có đúng hai con số của BƯỚC 28: 14 ngày-chuông rơi 0, và
+7 ngày `quet-so-lenh` đúng 2/12. **Chưa có một dòng dữ liệu nào của tuần
+07–11/09** — hôm nay thứ Bảy, tuần đó chưa bắt đầu.
+
+### Giả thuyết
+
+Một cơ chế giải thích cả hai con số cùng lúc: **GitHub bỏ một nhịp khi nhịp
+trước của CÙNG workflow còn chưa được tạo.** Trễ càng dài thì càng nhiều
+nhịp chồng lên nhau:
+
+- `quet-so-lenh` có 12 nhịp cách nhau 30 phút. Trễ ~4 giờ thì gần như nhịp
+  nào cũng gặp nhịp trước còn treo → sống sót 1–2. Đo được: **2**.
+- Ba chuông có 1 nhịp/ngày, cách nhau 24 giờ. Trễ 4 giờ không bao giờ chồng
+  → không rơi. Đo được: **0/14**.
+
+Nó KHỚP với số đã có. **Khớp không phải là kiểm** — đó đúng là chỗ ba giả
+thuyết cơ chế ngày 04/09 đã chết, cả ba đều khớp dữ liệu trước khi bị bác.
+
+### Tiêu chí, viết TRƯỚC khi có dữ liệu
+
+```
+A = trung vi TRE cua chuong-bao-quet, cac luot schedule, 07 -> 11/09
+B = trung vi SO LUOT schedule cua quet-so-lenh moi ngay lam viec, cung khoang
+
+A <= 120 phut  VA  B >= 5   ->  UNG HO      hai dai luong di cung nhau
+A <= 120 phut  VA  B <= 3   ->  BAC BO      tre giam ma nhip khong hoi
+A >  120 phut  VA  B >= 5   ->  BAC BO      nhip hoi ma tre khong giam
+A >  120 phut  VA  B <= 3   ->  TUONG HOP, chua phan biet duoc
+B = 4                       ->  CHUA KET LUAN DUOC
+```
+
+Hai ô **BÁC BỎ** mới là thứ làm khai báo này có giá trị. Chỉ có ô "ủng hộ"
+và ô "tương hợp" thì đây là một lời tiên tri không thể sai, tức không phải
+phép kiểm.
+
+Ngưỡng 120 phút lấy đúng từ tiêu chí BƯỚC 20 để hai phép đọc dùng chung một
+mốc, không phải chọn mới.
+
+### Dự đoán thứ hai, về chuông
+
+07–11/09 có 5 ngày làm việc × 3 chuông = **15 ngày-chuông**. Dự đoán:
+**rơi 0**, TRỪ ngày nào có commit sửa chính file `.yml` của chuông đó.
+
+Một chuông rơi vào ngày **không** có commit sửa file của nó thì lời giải
+thích "sửa file thì nhịp đang treo bị bỏ" ở BƯỚC 28 yếu đi, và con số 0/14
+phải đọc lại — nó sẽ là 0/14 nhờ may chứ không nhờ cơ chế.
+
+### Giới hạn phải nêu trước
+
+Không có nhóm chứng. Tải của GitHub đổi theo tuần, và không có workflow nào
+chạy song song ở cấu hình khác để so. Kết quả dương vì thế là **gợi ý**,
+không phải quan hệ nhân quả — cùng câu đã ghi cho BƯỚC 20 và cho ô h = 63.
+
+### Điều KHÔNG được làm sau khi thấy số
+
+Đổi ngưỡng 120 phút, đổi mốc 5/3, hay nới khoảng 07–11/09. Tuần đó có ngày
+nghỉ hay sự cố GitHub thì **ghi ra và giữ nguyên cỡ mẫu đã khai**, không mở
+rộng cho đủ. Đó là bất biến 7 đổi hướng.
+
