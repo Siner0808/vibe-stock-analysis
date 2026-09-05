@@ -148,9 +148,32 @@ def nhan_tre(trang_thai: str, so_phien: int | None) -> str:
 
 
 def do_mot_lenh(t) -> dict:
-    """{id, symbol, signal_date, entry_date, trang_thai, so_phien, nhan}"""
-    tt, n = trang_thai_khop(
-        getattr(t, "signal_date", None), getattr(t, "entry_date", None))
+    """{id, symbol, signal_date, entry_date, trang_thai, so_phien, nhan}
+
+    NHẬN BẢN GHI LỆNH — đối tượng có hai trường ngày dưới dạng THUỘC
+    TÍNH, tức `Trade`. KHÔNG nhận `dict` hay `sqlite3.Row`.
+
+    Vì sao phải NỔ chứ không đọc rỗng: `getattr` trên một `dict` trả
+    `None` cho cả hai trường, `trang_thai_khop(None, None)` ra
+    `CHUA_KHOP` — đúng trạng thái duy nhất trong năm trạng thái có
+    nghĩa là *bình thường, đang chờ khớp*. Đưa sai kiểu vào thì cả sổ
+    117 lệnh báo "chưa khớp cái nào" mà không một dấu hiệu nào sai.
+
+    Đã xảy ra 05/09/2026, trong chính script đọc sổ thật, một ngày sau
+    khi dụng cụ này ra đời. Ba trạng thái "chưa biết" được tách bạch ở
+    `trang_thai_khop` đúng để người đọc biết phải đi sửa cái gì — một
+    lỗi KIỂU rơi vào ô "không có gì phải sửa" là hỏng đúng chỗ ấy.
+    """
+    thieu = [ten for ten in ("signal_date", "entry_date")
+             if not hasattr(t, ten)]
+    if thieu:
+        raise TypeError(
+            f"do_mot_lenh() cần bản ghi lệnh có thuộc tính "
+            f"{', '.join(thieu)} — nhận được {type(t).__name__}. "
+            f"`dict` và `sqlite3.Row` đọc bằng [] chứ không bằng thuộc "
+            f"tính; lấy `Trade` bằng PaperTradingJournal.all_trades().")
+
+    tt, n = trang_thai_khop(t.signal_date, t.entry_date)
     return {
         "id": getattr(t, "id", None),
         "symbol": getattr(t, "symbol", None),

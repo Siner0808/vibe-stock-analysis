@@ -11,9 +11,14 @@
 # sửa cron gần nhất khi một workflow theo lịch thất bại — đó là đường
 # thông báo, không cần dựng thêm gì.
 #
-# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub, thứ đã đo được
-# là rơi mất khoảng một nửa số nhịp. Rơi một nhịp thì nhịp hôm sau vẫn
-# bắt được — điều kiện dừng không tự biến mất, nó chỉ có thể đạt thêm.
+# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub. Rơi một nhịp
+# thì nhịp hôm sau vẫn bắt được — điều kiện dừng không tự biến mất, nó
+# chỉ có thể đạt thêm.
+#
+# ĐO LẠI 05/09/2026: bản trước ghi "rơi mất khoảng một nửa số nhịp".
+# Con số ấy là của `quet-so-lenh` (12 nhịp/ngày), không phải của chuông
+# (1 nhịp/ngày). Đo trên 14 ngày-chuông: rơi 0 lần, lần rơi duy nhất là
+# 03/09 đúng ngày sửa file. Cận trên 95% ~21%. docs/STATE.md BƯỚC 28.
 
 name: Chuông cổng C5
 

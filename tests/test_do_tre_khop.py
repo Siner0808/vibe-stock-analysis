@@ -470,6 +470,115 @@ def test_phep_do_KHONG_duoc_loc_lenh_tre():
             == len(pm.lenh_tien_ve_truoc(tre)) == 1)
 
 
+# ---------------------------------------------------------------------
+# SAI KIỂU KHÔNG ĐƯỢC RƠI VÀO Ô "BÌNH THƯỜNG"   (thêm 05/09/2026)
+#
+# `do_mot_lenh` đọc bằng `getattr`. Một `dict` trả `None` cho cả hai
+# trường ngày, và `trang_thai_khop(None, None)` ra `CHUA_KHOP` — trạng
+# thái duy nhất trong năm trạng thái nghĩa là *bình thường, đang chờ*.
+#
+# Nên đưa sai kiểu vào thì sổ 117 lệnh báo "chưa khớp cái nào", không
+# ngoại lệ, không cảnh báo, không dấu hiệu nào sai. Đã xảy ra thật ngày
+# 05/09/2026 — một ngày sau khi dụng cụ ra đời — trong script đọc sổ.
+#
+# Cả ba trạng thái "chưa biết" được tách bạch đúng để người đọc biết đi
+# sửa cái gì. Một lỗi KIỂU rơi vào ô "không có gì phải sửa" phá đúng
+# tính chất ấy, nên nó phải NỔ.
+# ---------------------------------------------------------------------
+
+
+def test_do_mot_lenh_TU_CHOI_dict_thay_vi_bao_CHUA_KHOP():
+    """Đây là chính lỗi đã mắc, dựng lại nguyên hình."""
+    d = {"id": 1, "symbol": "NAF", "signal_date": "2026-08-28",
+         "entry_date": "2026-09-03"}
+    with pytest.raises(TypeError) as e:
+        dtk.do_mot_lenh(d)
+    assert "signal_date" in str(e.value), (
+        "thông báo phải nói RÕ thiếu trường nào")
+
+    # Tên kiểu phải là thứ KHÔNG THỂ có sẵn trong câu gợi ý tĩnh. Bản
+    # đầu của test này khẳng định `"dict" in str(e.value)` và một đột
+    # biến xoá hẳn `type(t).__name__` vẫn XANH — vì chữ "dict" còn nằm
+    # trong câu hướng dẫn ngay sau đó. Đúng cái bẫy `in` mà CLAUDE.md
+    # ghi ở mục "Gác phải đọc AST, không đọc `in`", lần này ở chính test.
+    class KieuLa_QwZx:
+        pass
+    with pytest.raises(TypeError) as e2:
+        dtk.do_mot_lenh(KieuLa_QwZx())
+    assert "KieuLa_QwZx" in str(e2.value), (
+        "thông báo không nêu TÊN KIỂU thật sự nhận được — người đọc "
+        "không biết mình vừa đưa cái gì vào")
+
+    # Và nói ra vì sao im lặng lại nguy hiểm: đường cũ ra đúng cái ô
+    # "bình thường". Nếu ai đó gỡ gác, đây là thứ họ quay về.
+    assert dtk.trang_thai_khop(None, None)[0] == dtk.CHUA_KHOP
+
+
+def test_do_mot_lenh_TU_CHOI_sqlite_Row():
+    """`sheets_store.pull()` để lại `row_factory = sqlite3.Row`.
+
+    Nên `Row` là thứ TIỆN TAY nhất để đưa vào, và nó đọc bằng `[]`.
+    """
+    import sqlite3
+    db = sqlite3.connect(":memory:")
+    db.row_factory = sqlite3.Row
+    db.execute("CREATE TABLE t (signal_date TEXT, entry_date TEXT)")
+    db.execute("INSERT INTO t VALUES ('2026-08-28', '2026-09-03')")
+    row = db.execute("SELECT * FROM t").fetchone()
+    assert row["signal_date"] == "2026-08-28"      # đọc được bằng []
+    with pytest.raises(TypeError):
+        dtk.do_mot_lenh(row)
+
+
+def test_tom_tat_KHONG_dem_117_lenh_thanh_CHUA_KHOP():
+    """Gác phải giữ được qua `tom_tat`, không chỉ ở hàm lẻ.
+
+    `tom_tat` là chỗ con số đi vào báo cáo. Nó nuốt lỗi thì phép đo lẻ
+    có nổ cũng vô ích.
+    """
+    ds = [{"signal_date": "2026-08-28", "entry_date": "2026-09-03"}] * 117
+    with pytest.raises(TypeError):
+        dtk.tom_tat(ds)
+
+
+def test_CHUA_KHOP_that_VAN_dung_duoc():
+    """Chiều ngược lại — gác không được nuốt trường hợp hợp lệ.
+
+    Một lệnh `PENDING` thật CÓ thuộc tính `entry_date`, giá trị `None`.
+    Đó đúng là `CHUA_KHOP`, và nó phải đi qua bình thường. Không có
+    test này thì đột biến "nổ với mọi input" sống sót.
+    """
+    t = _lenh(9, "AAA", "2026-08-28", None, trang_thai="PENDING", gia=None)
+    d = dtk.do_mot_lenh(t)
+    assert d["trang_thai"] == dtk.CHUA_KHOP
+    assert d["so_phien"] is None
+    assert dtk.tom_tat([t])["dem"][dtk.CHUA_KHOP] == 1
+
+
+def test_MAY_DO_tu_chung_minh_no_phan_BIET_duoc_hai_ben():
+    """5 mẫu đã biết là XẤU, 2 mẫu đã biết là TỐT — qua cùng một cửa.
+
+    Không có vế "tốt" thì `raise TypeError` vô điều kiện là xanh; không
+    có vế "xấu" thì `thieu = []` là xanh. Đúng cái đột biến đã sống sót
+    ba lần ngày 04/09/2026.
+    """
+    class ChiCoTinHieu:
+        signal_date = "2026-08-28"
+
+    xau = [{}, {"signal_date": "x"}, [], "2026-08-28", ChiCoTinHieu()]
+    for m in xau:
+        with pytest.raises(TypeError):
+            dtk.do_mot_lenh(m)
+
+    class DuHaiTruong:
+        signal_date = "2026-08-28"
+        entry_date = "2026-09-03"
+
+    tot = [_lenh(1, "AAA", "2026-08-28", "2026-09-03"), DuHaiTruong()]
+    for m in tot:
+        assert dtk.do_mot_lenh(m)["trang_thai"] == dtk.DUNG_HAN
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     print("Chạy bằng: pytest tests/test_do_tre_khop.py -q")
