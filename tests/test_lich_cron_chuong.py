@@ -106,6 +106,114 @@ def test_CHEO_chuong_nguon_dung_nhac_dung_gio_hai_chuong_kia():
     assert (c5_p, c5_g) == _cron("canh-cong-c5.yml")
 
 
+# ---------------------------------------------------------------------
+# CLAUDE.md CŨNG PHẢI THEO KỊP CRON        (thêm 05/09/2026)
+#
+# Bốn test trên canh chú thích BÊN TRONG các file `.yml`. Không cái nào
+# nhìn ra ngoài — nên khi `57dad6a` dời cron ngày 03/09, câu trong
+# `CLAUDE.md` "chạy 09:00 UTC (16:00 ICT)" ở lại nguyên vẹn và **cả bảy
+# test vẫn xanh**. Nó sống hai ngày.
+#
+# Cùng hình dạng với `tests/test_tai_lieu_khop_hang_so.py` (04/09): tài
+# liệu lệch MÃ nguy hiểm hơn tài liệu lệch tài liệu, vì đọc chéo tài
+# liệu thì thấy, còn cái này chỉ lộ khi mở mã ra so.
+#
+# HỢP ĐỒNG, và giới hạn của nó: đòi giờ HIỆN HÀNH có mặt ở CHỖ nhắc tên
+# workflow, trong bán kính `BAN_KINH_CLAUDE` ký tự. KHÔNG đòi "mọi chỗ
+# đều đúng" — dự án cố ý giữ giờ cũ kèm ghi chú (đoạn ⚠️ ngay dưới câu
+# ấy nêu lại `09:00`), và một gác cấm điều đó sẽ ép xoá lịch sử đo.
+# ---------------------------------------------------------------------
+
+TAI_LIEU = GOC / "CLAUDE.md"
+
+#: Bao nhiêu ký tự quanh tên workflow thì còn tính là "nói về nó".
+#: Hỏi "giờ đúng có xuất hiện đâu đó trong file 60 KB không" là câu hỏi
+#: quá yếu — phải hỏi KỀ TÊN.
+BAN_KINH_CLAUDE = 400
+
+#: Hai dạng giờ PHẢI cùng được kiểm. Bỏ một dạng là vô hiệu hoá nửa gác
+#: mà không sửa một dòng logic nào — và vì tài liệu hiện ĐÚNG cả hai
+#: dạng, đột biến ấy trả về đúng cùng đáp án với bản lành. Nó đã sống
+#: sót một lượt đục ngày 05/09/2026 trước khi có dòng ghim này.
+DANG_GIO_PHAI_KIEM = ("UTC", "ICT")
+
+
+def _co_gio_ke_ten(src: str, ten: str, gio: str) -> bool:
+    """Có chỗ nào nhắc `ten` mà `gio` nằm trong bán kính không."""
+    i = src.find(ten)
+    while i != -1:
+        if gio in src[max(0, i - BAN_KINH_CLAUDE): i + BAN_KINH_CLAUDE]:
+            return True
+        i = src.find(ten, i + 1)
+    return False
+
+
+def _gio_ict(ten: str) -> tuple[str, str]:
+    """(chuỗi UTC, chuỗi ICT) suy TỪ CRON, không gõ tay."""
+    phut, gio = _cron(ten)
+    return f"{gio:02d}:{phut:02d} UTC", f"{(gio + 7) % 24:02d}:{phut:02d} ICT"
+
+
+def test_CLAUDE_md_ghi_dung_gio_chuong_bao_quet():
+    """Dời cron mà quên `CLAUDE.md` → đỏ. Đúng lỗi đã sống 03→05/09."""
+    src = TAI_LIEU.read_text(encoding="utf-8")
+    assert len(src) >= 20_000, (
+        f"CLAUDE.md chỉ đọc được {len(src)} ký tự — gác này đang canh một "
+        f"file rỗng hoặc đọc hụt")
+    ten = "chuong-bao-quet.yml"
+    assert ten in src, (
+        f"CLAUDE.md không nhắc `{ten}` lần nào — nếu cố ý bỏ thì sửa cả "
+        f"test này, có lý do")
+    utc, ict = _gio_ict(ten)
+    kiem = {dang: (gio, _co_gio_ke_ten(src, ten, gio))
+            for gio, dang in zip((utc, ict), DANG_GIO_PHAI_KIEM)}
+    assert set(kiem) == set(DANG_GIO_PHAI_KIEM), (
+        f"gác chỉ kiểm {sorted(kiem)} thay vì "
+        f"{sorted(DANG_GIO_PHAI_KIEM)} — nửa gác đã bị bỏ")
+    for dang, (gio, co) in kiem.items():
+        assert co, (
+            f"cron của {ten} là {utc} ({ict}) nhưng CLAUDE.md không viết "
+            f"'{gio}' ({dang}) ở chỗ nào nhắc tên workflow (bán kính "
+            f"{BAN_KINH_CLAUDE} ký tự). Dời cron thì phải sửa CLAUDE.md — "
+            f"và theo quy ước dự án thì ĐÁNH DẤU tại chỗ, đừng xoá giờ cũ.")
+
+
+def test_MAY_DO_CLAUDE_md_tu_chung_minh_no_bat_duoc():
+    """Mã thật đang KHỚP, nên máy dò hỏng trả cùng đáp án với máy dò tốt.
+
+    Đúng đột biến đã sống sót 03/09, 04/09 và 05/09. Cách duy nhất tách
+    hai trường hợp là bắt nó chạy trên dữ liệu đã biết là sai.
+    """
+    src = TAI_LIEU.read_text(encoding="utf-8")
+    ten = "chuong-bao-quet.yml"
+
+    assert not _co_gio_ke_ten(src, ten, "04:44 UTC"), (
+        "máy dò báo có một giờ bịa nằm kề tên workflow — nó đang trả True "
+        "cho mọi thứ, tức không kiểm gì cả")
+    assert not _co_gio_ke_ten(src, "workflow-khong-ton-tai.yml", "09:23 UTC"), (
+        "máy dò tìm thấy một tên workflow không tồn tại trong tài liệu")
+
+    utc, _ = _gio_ict(ten)
+    assert _co_gio_ke_ten(src, ten, utc), (
+        "máy dò không thấy cả trường hợp ĐANG ĐÚNG — nó đang hỏng")
+
+    # Bán kính phải THẬT SỰ chặn: giờ đúng có mặt trong file nhưng ở xa
+    # tên workflow thì KHÔNG được tính. Không có vế này thì đột biến nới
+    # bán kính lên vô hạn sống sót.
+    xa = "x" * (BAN_KINH_CLAUDE * 3)
+    assert not _co_gio_ke_ten(f"{ten}{xa}{utc}", ten, utc), (
+        f"bán kính không có tác dụng — {utc} cách tên workflow "
+        f"{len(xa)} ký tự mà vẫn được tính là kề")
+
+
+def test_BAN_KINH_va_DANG_GIO_khong_duoc_thu_hep_am_tham():
+    """Hai cách vô hiệu hoá gác này mà không sửa một dòng logic nào."""
+    assert BAN_KINH_CLAUDE == 400
+    assert DANG_GIO_PHAI_KIEM == ("UTC", "ICT"), (
+        "bỏ bớt dạng giờ phải kiểm — sửa CÓ CHỦ ĐÍCH kèm lý do, chứ "
+        "đừng rút gọn cho test xanh")
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     print("Chạy bằng: pytest tests/test_lich_cron_chuong.py -q")

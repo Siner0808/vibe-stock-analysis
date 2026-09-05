@@ -7047,3 +7047,119 @@ không phải quan hệ nhân quả — cùng câu đã ghi cho BƯỚC 20 và c
 nghỉ hay sự cố GitHub thì **ghi ra và giữ nguyên cỡ mẫu đã khai**, không mở
 rộng cho đủ. Đó là bất biến 7 đổi hướng.
 
+
+---
+
+## BƯỚC 29 — LƯỢT SOÁT NOTEBOOK THỨ HAI: 2 THẬT · 1 SAI · 1 NÓ KHÔNG THỂ THẤY (05/09/2026)
+
+Notebook nay là công cụ thường trực, không phải một lần thử. Lượt này chạy
+ngay sau khi BƯỚC 28 vào `main`, tức đúng lúc tài liệu vừa đổi nhiều nhất.
+
+### Ba phát hiện, đối chiếu từng cái vào file
+
+| | phát hiện | phán quyết |
+|---|---|---|
+| 1 | `CLAUDE.md` vẫn dùng lập luận "chuông **cũng bị** rơi nhịp" | **THẬT** |
+| 2 | bộ đếm tiến-về-trước / số vị thế mở đã lạc hậu | **THẬT**, sai địa chỉ |
+| 3 | `do_tre_khop` "luôn trả `CHUA_KHOP`" nên số BƯỚC 21 sai | **SAI** |
+
+**Phát hiện 1 là chỗ tôi vừa vá bốn lần và vẫn sót lần thứ năm.** Sáng nay
+tôi sửa câu "rơi mất khoảng một nửa số nhịp" ở ba file `.yml` và ở gạch đầu
+dòng trong `CLAUDE.md` — nhưng mục *"Đã có chuông (21/08/2026)"* của cùng
+file ấy chống đỡ cửa sổ ba ngày bằng đúng tiền đề đã bị bác, và nó nằm cách
+chỗ tôi vá 40 dòng.
+
+**Phát hiện 2 đúng việc, sai chỗ.** Nó trỏ vào `docs/STATE.md` BƯỚC 22 —
+nhưng BƯỚC 22 là **một mục nhật ký có ngày tháng**, viết sáng 04/09 khi HUT
+còn mở. Một mục nhật ký ghi đúng trạng thái tại thời điểm của nó thì không
+phải mâu thuẫn, và nếu đi sửa nó thì mới là làm hỏng sổ. Chỗ THẬT SỰ hỏng
+nằm ở `CLAUDE.md`, nơi hai câu tự giới thiệu là trạng thái HIỆN HÀNH:
+
+```
+"Bang chung tien-ve-truoc da dong van la 0"   -> nay la 1
+"Nay la 4 vi the OPEN"                        -> nay la 3
+```
+
+Bài học về cách đọc kết quả của nó: **nó phân biệt được "hai câu chỏi nhau",
+nhưng không phân biệt được "nhật ký có ngày" với "tài liệu nói về hiện
+tại".** Phải tự làm phép phân biệt ấy trước khi vá.
+
+**Phát hiện 3 là báo giả, và kiểu báo giả đáng ghi.** Nó đọc mô tả lỗi kiểu
+của `do_mot_lenh` rồi suy rộng thành "hàm luôn trả `CHUA_KHOP` cho mọi
+lệnh", nên kết luận bảng số BƯỚC 21 sai. Không đúng: lỗi chỉ nổ khi đưa
+**sai kiểu**; BƯỚC 21 chạy bằng `Trade` và bảng ấy **tái lập nguyên vẹn
+sáng nay** (4 · 43 · 0 · 70 · 0). Suy rộng từ một mô tả lỗi sang "mọi kết
+quả trước đó đều sai" là cám dỗ rất dễ nghe xuôi.
+
+Nó còn nêu `docs/STATE.md` BƯỚC 5 ("Actions rơi mất khoảng một nửa số
+nhịp"). Kiểm: **không phải mâu thuẫn** — câu ấy có phạm vi rõ ở ngay trong
+nó (*"trong phiên"*, *"lượt sau đóng cửa"*), tức đang nói về `quet-so-lenh`,
+đúng workflow mà con số 50% thuộc về. Không vá.
+
+### Thứ nó KHÔNG THỂ thấy, và đó mới là chỗ nặng nhất
+
+Mở đúng đoạn nó trỏ tới thì thấy dòng ngay trên:
+
+```
+CLAUDE.md : "chay 09:00 UTC (16:00 ICT) moi ngay lam viec"
+cron that : '23 9 * * 1-5'   ->  09:23 UTC (16:23 ICT), tu 57dad6a (03/09)
+```
+
+**Tài liệu lệch MÃ.** Notebook chỉ đọc văn bản nên không bao giờ bắt được
+loại này — nó bắt tài liệu lệch tài liệu. Cùng ranh giới đã ghi hôm 04/09,
+và lần này ranh giới ấy nằm ngay cạnh một phát hiện thật.
+
+Con số cũ sống hai ngày vì `tests/test_lich_cron_chuong.py` — bộ gác dựng
+riêng cho việc dời cron, 14 test, đột biến 7/7 đỏ — **chỉ đối chiếu chú
+thích BÊN TRONG mỗi `.yml` với cron của chính file đó.** Không test nào
+nhìn ra ngoài. Dời cron xong, cả 14 test vẫn xanh.
+
+### Gác mới
+
+`test_CLAUDE_md_ghi_dung_gio_chuong_bao_quet`: giờ hiện hành, **suy từ
+cron** chứ không gõ tay, phải có mặt kề tên workflow trong `CLAUDE.md`. Kèm
+`test_MAY_DO_CLAUDE_md_tu_chung_minh_no_bat_duoc` cho máy dò ăn một giờ bịa,
+một tên workflow không tồn tại, một trường hợp đang đúng, và một chuỗi dựng
+sẵn để chứng minh **bán kính thật sự chặn**.
+
+Đột biến: lượt đầu **6/7**, sống sót cái "bỏ kiểm giờ ICT" — bỏ nửa gác mà
+không sửa dòng logic nào, và vì tài liệu hiện đúng cả hai dạng giờ nên bản
+hỏng trả đúng cùng đáp án với bản lành. Đã trám bằng `DANG_GIO_PHAI_KIEM`
+ghim cứng, cùng cách `HANG_SO` được ghim ở
+`tests/test_tai_lieu_khop_hang_so.py`. Nay **7/7 đỏ**, gồm cả đột biến đổi
+cron mà không đụng `CLAUDE.md` — đúng lỗi đã xảy ra.
+
+Hợp đồng và giới hạn nêu thẳng: đòi giờ hiện hành có mặt ở **ít nhất một**
+chỗ nhắc tên workflow, trong 400 ký tự. KHÔNG đòi mọi chỗ đều đúng — dự án
+cố ý giữ giờ cũ kèm ghi chú, và ghi chú tôi vừa thêm nhắc lại `09:00`.
+
+### Vì sao lượt này vẫn đáng làm
+
+Hai phát hiện thật trên ba, cộng một phát hiện thứ tư mà nó chỉ đường tới
+chứ không tự thấy. Không có nó thì cả bốn chỗ đều còn nguyên, vì tôi vừa
+đọc `CLAUDE.md` sáng nay và không thấy chỗ nào trong bốn chỗ đó.
+
+**Nhưng tỷ lệ đúng của nó không phải 100%, và lần này thấp hơn lần đầu**
+(lần đầu 5/5). Quy tắc giữ nguyên: *không chép lại phát hiện nào khi chưa
+mở file ra đối chiếu.*
+
+### Ba vướng mắc kỹ thuật, ghi để lần sau không mò lại
+
+1. **Không nạp lại nguồn bằng máy được.** NotebookLM không có
+   `input[type=file]` trong DOM; nút "Tải tệp lên" mở hộp thoại hệ điều
+   hành. Bốn nguồn `.md` trong sổ vẫn là bản **trước** khi vá hôm 04/09.
+   Đường vòng đã dùng: dán phần thêm hôm nay làm nguồn thứ năm dạng "văn
+   bản đã sao chép", và **khai thẳng trong câu hỏi sáu chỗ đã vá** để nó
+   khỏi báo lại. Muốn nạp lại thật thì người phải kéo-thả file vào.
+2. **`textarea` đầu tiên của trang là ô "Tìm nguồn mới trên web", không
+   phải ô chat.** Gõ nhầm vào đó rồi Enter sẽ đi TÌM NGUỒN và nhảy sang
+   một sổ khác. Phải lọc theo `placeholder`.
+3. **Gõ tiếng Việt có dấu vào ô chat bị nát thành ký tự loạn.** Viết câu
+   hỏi bằng tiếng Việt KHÔNG DẤU; nó vẫn trả lời có dấu bình thường.
+
+### Không xoá nguồn cũ — có chủ đích
+
+Hộp thoại xoá nguồn ghi "xoá vĩnh viễn, không khôi phục được", và sổ có ghi
+chú với trích dẫn trỏ vào các nguồn ấy. Đã huỷ thao tác. Sổ nay có 5 nguồn;
+dọn hay không là việc của người.
+
