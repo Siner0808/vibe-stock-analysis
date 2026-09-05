@@ -11,9 +11,15 @@
 # repo — không mở sổ lệnh, không cần credential Google Sheets. Nhờ thế nó
 # vẫn kêu được đúng vào lúc những thứ kia hỏng.
 #
-# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub, thứ đã đo được
-# là rơi khoảng một nửa số nhịp. Rơi một nhịp không giấu được gì lâu:
-# nguồn đứng thì độ trễ chỉ tăng, nên nhịp hôm sau vẫn bắt được.
+# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub. Rơi một nhịp
+# không giấu được gì lâu: nguồn đứng thì độ trễ chỉ tăng, nên nhịp hôm
+# sau vẫn bắt được.
+#
+# ĐO LẠI 05/09/2026: bản trước ghi "rơi khoảng một nửa số nhịp" — đó là
+# tỷ lệ của `quet-so-lenh` (12 nhịp/ngày), mượn nhầm sang chuông (1
+# nhịp/ngày). Đo trên 14 ngày-chuông: rơi 0 lần; lần rơi duy nhất là
+# 03/09, cũng là ngày chuông này chạy lịch lần đầu VÀ là ngày file bị
+# sửa — hai lý do chồng nhau, không tách được. docs/STATE.md BƯỚC 28.
 
 name: Chuông nguồn đứng
 

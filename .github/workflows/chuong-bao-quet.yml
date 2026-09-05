@@ -4,8 +4,19 @@
 # Trước đó máy cục bộ vô tình làm lưới dự phòng. Giờ một ngày mà mọi lượt
 # quét đều hỏng thì sổ lệnh không cập nhật và KHÔNG AI BIẾT.
 #
-# GIỚI HẠN PHẢI BIẾT. Chuông này chạy bằng chính cron GitHub — thứ đã đo
-# được là rơi mất khoảng một nửa số nhịp. Chuông không kêu thì im lặng.
+# GIỚI HẠN PHẢI BIẾT. Chuông này chạy bằng chính cron GitHub, và chuông
+# không kêu thì im lặng — nên phải biết nó rơi nhịp bao nhiêu.
+#
+# ĐO LẠI 05/09/2026 — CON SỐ CŨ Ở ĐÂY SAI, VÀ SAI VÌ MƯỢN.
+# Bản trước viết "rơi mất khoảng một nửa số nhịp". 50% là tỷ lệ của
+# `quet-so-lenh`, workflow có 12 nhịp/ngày. Chuông có ĐÚNG MỘT nhịp một
+# ngày, và trên 14 ngày-chuông (ba chuông cộng lại) nó rơi 0 lần. Lần
+# rơi duy nhất là 03/09 — đúng ngày file workflow này bị sửa, và cả ba
+# chuông cùng rơi đúng ngày đó. Cận trên 95% theo quy tắc ba: ~21%,
+# không phải 0 mà cũng không phải 50%.
+#
+# Cửa sổ BA ngày bên dưới VẪN ĐÚNG; chỉ lý do là khác, và biên an toàn
+# rộng hơn chỗ từng nghĩ. Chi tiết: docs/STATE.md BƯỚC 28.
 # Vì thế nó soát BA ngày làm việc gần nhất chứ không chỉ hôm nay: một
 # nhịp chuông rơi thì nhịp hôm sau vẫn bắt được ngày đó. Cửa sổ im lặng
 # thu từ "một nhịp" xuống "ba nhịp liên tiếp", không xuống 0.

@@ -705,6 +705,15 @@ Ba hệ quả, cái thứ ba quan trọng nhất:
 
 1. **Mất khoảng một nửa số nhịp.** GitHub gộp nhịp trễ: nhịp sau tới khi
    nhịp trước chưa chạy thì nhịp trước bị bỏ.
+
+   > ⚠️ **ĐO LẠI 05/09/2026 — "một nửa" chỉ đúng tới 26/08.** Từ 27/08
+   > `quet-so-lenh` rơi **83%**: đúng **2/12 nhịp mỗi ngày, bảy ngày làm
+   > việc liên tiếp không lệch một cái**. Một hằng số như thế không phải
+   > rơi ngẫu nhiên.
+   >
+   > Và con số này **chỉ nói về `quet-so-lenh`**. Ba chuông có 1
+   > nhịp/ngày và rơi **0/14 ngày-chuông** — mượn 50% sang cho chúng là
+   > lỗi phạm trù, đã sửa trong ba file workflow. `docs/STATE.md` BƯỚC 28.
 2. **Việc né giờ nghỉ trưa không còn hiệu lực.** Cron cố tình bỏ trống
    giờ 05 UTC (11:30–13:00 ICT), nhưng nhịp 04:30 bị trễ đã rơi vào
    05:03, 05:04, 05:25 và 05:56 UTC — tức 12:03 → 12:56 giờ VN.

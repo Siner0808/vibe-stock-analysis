@@ -6798,3 +6798,188 @@ Python quét AST các tệp tài liệu để cảnh báo sớm mâu thuẫn s�
 không phân tích được Markdown. Nghe hợp lý, sai kỹ thuật — đúng loại đã sai
 ba lần trong ngày hôm nay.
 
+
+---
+
+## BƯỚC 28 — BA CHUÔNG CHƯA HỀ RƠI NHỊP, VÀ "MỘT NỬA" LÀ SỐ ĐI MƯỢN (05/09/2026)
+
+Ba việc kiểm treo từ chiều 04/09 — chuông · vị thế · nhịp quét — nay đóng
+hết. Hôm nay thứ Bảy, cron `* * 1-5` không nổ, nên dữ liệu dừng ở 04/09 và
+không có gì để chờ thêm trong ngày.
+
+### Dụng cụ tự kiểm TRƯỚC khi đọc số mới
+
+Phép đo mới chạy lại **chính khoảng đã đo ở BƯỚC 19**:
+
+| | BƯỚC 19 (03/09) | đo lại 05/09 |
+|---|---|---|
+| `chuong-bao-quet`, lịch cũ | 247 ph · n = 9 | **247,4 ph · n = 9** |
+| `canh-cong-c5`, lịch cũ | 282 ph · n = 3 | **282,8 ph · n = 3** |
+
+Khớp tới chữ số. Không tái lập được thì mọi con số mới bên dưới vô nghĩa —
+và quan trọng hơn, sẽ không tách được "lịch sử đổi" khỏi "tôi tính sai".
+
+Bản chụp 327 lượt chạy nằm ngoài repo:
+`vibe_bang_chung/cron_20260905/runs_20260905.json`. **GitHub xoá lịch sử
+lượt chạy sau 90 ngày** — đây là bằng chứng có hạn dùng, nên phải chụp chứ
+không phải định hỏi lại API sau.
+
+### Lịch mới: n = 1. KHÔNG đọc kết luận.
+
+| chuông | nhịp mới (UTC) | nổ 04/09 | trễ |
+|---|---|---|---|
+| `chuong-bao-quet` | 09:23 | 13:34:55Z | **251,9 ph** |
+| `canh-cong-c5` | 09:43 | 13:46:28Z | **243,5 ph** |
+| `chuong-nguon-dung` | 10:17 | 14:23:07Z | **246,1 ph** |
+
+Nền là 247,4 phút. Một điểm, và nó nằm ngay cạnh nền.
+
+**Tiêu chí BƯỚC 20 giữ nguyên: trung vị trên ~10 ngày làm việc, đọc ngày
+17/09.** Con số hôm nay ghi ra để sau này không ai nói nó được chọn sau khi
+đã nhìn, KHÔNG phải để kết luận sớm.
+
+Rủi ro chuyển tiếp khai ở BƯỚC 20 **không xảy ra**: 04/09 có đủ ba lượt
+`schedule`, nên 04/09 **được tính** vào cỡ mẫu.
+
+### Ba chuông cùng rơi đúng MỘT ngày, và đó là ngày sửa file
+
+| chuông | ngày T2–T6 kể từ khi tạo | nổ | rơi |
+|---|---|---|---|
+| `chuong-bao-quet` | 10 | 9 | **1 — 03/09** |
+| `canh-cong-c5` | 5 | 4 | **1 — 03/09** |
+| `chuong-nguon-dung` | 2 | 1 | **1 — 03/09** |
+
+Ba workflow độc lập, ba nhịp khác nhau, cả ba rơi đúng cùng một ngày và
+không ngày nào khác. `57dad6a` đổi cron của cả ba lúc **03/09 10:24 UTC** —
+SAU khi cả ba khung (09:00 · 09:30 · 10:00 UTC) đã tới hạn.
+
+Tương hợp với: sửa file workflow trên nhánh mặc định thì nhịp đang treo bị
+bỏ. **Chưa chứng minh.** Và `chuong-nguon-dung` có lý do thứ hai chồng lên —
+03/09 cũng là ngày chạy theo lịch đầu tiên của nó — nên hàng ấy không tách
+được hai nguyên nhân.
+
+Bỏ 03/09 ra: **14 ngày-chuông, rơi 0.**
+
+### "Rơi mất khoảng một nửa số nhịp" là con số ĐI MƯỢN
+
+Ba file chuông đều mang câu ấy trong khối `GIỚI HẠN PHẢI BIẾT`, và nó là thứ
+chống đỡ cho quyết định soát **ba** ngày thay vì một. Sai hai lần.
+
+**Sai phạm trù.** 50% là tỷ lệ của `quet-so-lenh`, workflow có **12
+nhịp/ngày**. Chuông có **1 nhịp/ngày**. Nếu chuông thật sự rơi 50% thì xác
+suất 14/14 ngày đều nổ là `0,5^14` = **0,006%**. Số liệu bác thẳng con số ấy
+ở phạm vi chuông.
+
+**Sai cả với chủ cũ của nó.** Với chính `quet-so-lenh`, 50% chỉ đúng tới
+26/08; từ 27/08 là **83%** (bảng dưới).
+
+Cận trên 95% theo quy tắc ba cho 0/14: **~21%**. Không phải 0 — mười bốn
+ngày không đủ để nói "không bao giờ", và ghi 0% ở đây sẽ là đúng thứ lỗi vừa
+sửa, chỉ đổi chiều.
+
+**Kết luận sống, lý do chết.** Cửa sổ ba ngày vẫn đúng; biên an toàn của nó
+rộng hơn chỗ từng nghĩ. Cùng hình dạng với `MO-XE-KIEN-TRUC.md`: bảng số
+sai, kết luận không đổi. Đã vá tại chỗ ở ba file `.yml` và `CLAUDE.md`.
+
+### Nhịp quét: bước nhảy 27/08, và nó là một HẰNG SỐ
+
+```
+ngay (UTC)         luot/12
+14/08                  5
+17/08                  8
+18/08 -> 26/08         6     bay ngay lien tiep, khong lech mot cai
+------------------ 27/08 ------------------
+27/08 -> 04/09         2     bay ngay lam viec lien tiep, khong lech mot cai
+```
+
+Trước 27/08: rơi **49%** (n = 9 ngày). Từ 27/08: rơi **83%** (n = 7 ngày).
+
+Đúng hình dạng lập luận đã dùng ở BƯỚC 21 cho 43/43 lệnh T+2: **nhịp rơi
+ngẫu nhiên không cho ra một hằng số.** Sáu rồi hai, không bao giờ năm hay ba.
+
+#### Vì sao bảng này KHÁC bảng BƯỚC 22 — hai phép đếm, hai câu hỏi
+
+| | BƯỚC 22 | BƯỚC 28 |
+|---|---|---|
+| đếm gì | `conclusion == "success"` | mọi lượt `schedule` được TẠO |
+| gom theo ngày | giờ VN | giờ UTC |
+| 18/08 · 19/08 | 5 · 4 | 6 · 6 |
+| 27/08 | 1 | 2 |
+
+Cả hai đều đúng, cho hai câu hỏi khác nhau. `chuong_bao_quet.py` phải đếm
+`success` vì nó hỏi *"ngày này có được quét không"*; đo rơi nhịp cron phải
+đếm mọi lượt được TẠO vì nó hỏi *"GitHub có tạo lượt chạy không"*. 18/08 mất
+một lượt vì `failure`, 19/08 mất thêm một lượt `queued` vĩnh viễn — hai kiểu
+hỏng đã ghi ở `CLAUDE.md`, không phải rơi nhịp.
+
+27/08 lệch vì **múi giờ**: lượt 17:16Z là 00:16 giờ VN ngày 28/08. Gom theo
+giờ VN còn đẩy một lượt sang **thứ Bảy 29/08**, ngày cron không hề có nhịp.
+Nhịp khai bằng UTC nên đếm bằng UTC.
+
+Ghi ra để lần sau không ai đọc hai bảng này thành một mâu thuẫn.
+
+### Bốn vị thế còn ba — và bộ đếm rời khỏi 0
+
+HUT đóng **04/09**, `SIGNAL_REVERSED`, **−3,40%**, giữ đúng một phiên.
+
+| mã | tín hiệu | khớp | trễ | giá vào | vốn |
+|---|---|---|---|---|---|
+| NAF | 2026-08-28 | 2026-09-03 | T+1 | 48.500 | 25,0% |
+| STB | 2026-08-28 | 2026-09-03 | T+1 | 75.300 | 21,8% |
+| TCB | 2026-08-28 | 2026-09-03 | T+1 | 33.150 | 17,6% |
+
+**Cố ý không đọc lãi/lỗ của ba vị thế còn mở**, và cố ý không rút gì từ một
+lệnh đã đóng. Nguồn dữ liệu lành: sổ trên Google Sheets 117 lệnh, kéo về
+đọc chứ không đẩy.
+
+Nhãn **T+1** cho một khoảng sáu ngày lịch đã được KIỂM chứ không tin sẵn:
+`co_phien` trả `False` cho 31/08, 01/09 và 02/09 (Quốc khánh và ngày cầu),
+nên `so_phien_giua` của cặp ngày ấy bằng 1. Bảng lịch sai ở ba ngày đó thì
+nhãn sai theo, và không phép đo nào khác trong dự án bắt được.
+
+Điều đáng ghi: **bằng chứng tiến-về-trước ĐÃ ĐÓNG rời khỏi 0 lần đầu tiên**
+— nay là **1**. `N_TOI_THIEU` = 113. Con số 1 không nói gì về chiến lược; nó
+chỉ nói bộ đếm đã bắt đầu chạy, sau tám ngày đứng ở 0.
+
+### Dụng cụ hôm qua có một đường im lặng — đã đóng
+
+`do_mot_lenh` đọc bằng `getattr`. Đưa vào một `dict` thì cả hai trường ngày
+ra `None`, và `trang_thai_khop(None, None)` trả **`CHUA_KHOP`** — trạng thái
+duy nhất trong năm trạng thái có nghĩa là *bình thường, đang chờ khớp*.
+
+Sổ 117 lệnh đọc ra "chưa khớp cái nào". Không ngoại lệ, không cảnh báo,
+không một dấu hiệu nào sai. Mắc thật sáng nay, **một ngày sau khi dụng cụ ra
+đời**, trong chính script đọc sổ.
+
+Chỗ mỉa mai nằm đúng trọng tâm: BƯỚC 21 tách ba trạng thái "chưa biết" ra
+làm ba đúng để người đọc biết phải đi sửa cái gì. Một lỗi KIỂU rơi vào ô
+"không có gì phải sửa" phá đúng tính chất ấy.
+
+Nay `do_mot_lenh` **nổ** `TypeError` khi thiếu thuộc tính, và thông báo nêu
+tên kiểu nhận được. Năm test mới, đột biến **7/7 đỏ** — gồm đột biến "nổ với
+mọi input" (bắt bởi vế mẫu TỐT) và đột biến xoá tên kiểu khỏi thông báo.
+
+Đột biến xoá tên kiểu ban đầu **sống sót**: test khẳng định chữ `dict` có
+mặt trong thông báo, mà chữ ấy còn nằm trong câu gợi ý tĩnh ngay sau đó
+trong cùng thông báo. Đúng cái bẫy `in` mà `CLAUDE.md` ghi ở mục *"Gác phải
+đọc AST, không đọc `in`"* — lần này nằm trong TEST chứ không trong gác. Đã
+thay bằng một lớp tên `KieuLa_QwZx`, thứ không thể có sẵn trong văn bản.
+
+Một bẫy công cụ đáng ghi kèm: script đục đột biến hoàn nguyên bằng
+`Path.write_text(..., newline=<giá trị không hợp lệ>)`. Hàm ấy **mở file ở
+chế độ ghi — tức xoá sạch — rồi mới báo lỗi**, nên `do_tre_khop.py` còn 0
+byte. Bản đã commit cứu được. Đường an toàn là đọc/ghi **byte**, và khẳng
+định bản hoàn nguyên khớp bản gốc từng byte; script nay làm cả hai.
+
+### Việc treo
+
+- **Mốc 17/09** cho tiêu chí BƯỚC 20 — giữ nguyên, đừng đọc sớm.
+- **Bảng số mục "CHI PHÍ THỰC THI" trong `CLAUDE.md`** vẫn cần một lượt đo
+  đầy đủ ở cấu hình hiện hành (cả `theo_ngay` lẫn theo-mã, IS và OOS). Đã
+  đánh dấu là lạc hậu từ 04/09; chép một con số OOS đơn lẻ đè lên là đúng
+  cái lỗi BƯỚC 25 tìm ra.
+- **Chênh 385 vs 376 lệnh** giữa `CLAUDE.md` và lượt chạy `d777480` — chưa
+  truy.
+- **h = 63** cần 3,73× cỡ mẫu hữu hiệu; chỉ có đường mở rộng rổ theo một quy
+  tắc cơ học khai trước (bất biến 7).
+
