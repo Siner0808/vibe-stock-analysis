@@ -1,4 +1,6 @@
-"""Gác: mọi `module.tên` mà `CLAUDE.md` trỏ tới phải TỒN TẠI trong mã.
+"""Gác: mọi `module.tên` tài liệu trỏ tới phải TỒN TẠI trong mã.
+
+Canh `CLAUDE.md` và `docs/HANDOFF.md` — xem `CAC_TAI_LIEU`.
 
 Ngày 05/09/2026 một lượt soát bằng máy tìm ra **hai con trỏ chết** sống
 trong tài liệu không biết bao lâu:
@@ -40,7 +42,15 @@ from pathlib import Path
 import pytest
 
 GOC = Path(__file__).resolve().parent.parent
-TAI_LIEU = GOC / "CLAUDE.md"
+
+#: Các tài liệu bị canh. `docs/HANDOFF.md` vào đây ngày 05/09/2026 vì nó
+#: đứng ĐẦU thứ tự ưu tiên (`HANDOFF` → `STATE` → `CLAUDE.md`) mà lại là
+#: file cũ nhất — bản trước sống 16 ngày với mọi khẳng định sự kiện đã
+#: sai, gồm cả câu bảo người đọc dừng lại nếu số test khác 218.
+#:
+#: `docs/STATE.md` CỐ Ý không nằm ở đây: nó là nhật ký, nên một cái tên
+#: đúng-tại-thời-điểm-viết trong một mục có ngày tháng không phải lỗi.
+CAC_TAI_LIEU = ("CLAUDE.md", "docs/HANDOFF.md")
 
 #: Thư mục có mã nguồn được coi là "module của dự án".
 THU_MUC = ("", "tools", "backtest")
@@ -48,7 +58,7 @@ THU_MUC = ("", "tools", "backtest")
 #: Số ký tự tối thiểu của tài liệu. Một file đọc hụt làm mọi phép kiểm
 #: bên dưới thành vô nghĩa mà vẫn XANH — cùng lý do có `SAN_KY_TU` ở
 #: `tests/test_tai_lieu_khop_hang_so.py`.
-SAN_KY_TU = 20_000
+SAN_KY_TU = {"CLAUDE.md": 20_000, "docs/HANDOFF.md": 5_000}
 
 #: `module.tên` — module viết thường (theo PEP 8), tên là định danh.
 #: Cố ý KHÔNG bắt `Class.thuộc_tính`: thuộc tính dataclass và thuộc tính
@@ -107,11 +117,13 @@ def _cac_module() -> dict[str, set[str]]:
     return ra
 
 
-def _doc() -> str:
-    src = TAI_LIEU.read_text(encoding="utf-8")
-    assert len(src) >= SAN_KY_TU, (
-        f"{TAI_LIEU.name} chỉ đọc được {len(src)} ký tự (sàn {SAN_KY_TU}) "
-        f"— gác này đang canh một file rỗng hoặc đọc hụt")
+def _doc(ten: str = "CLAUDE.md") -> str:
+    p = GOC / ten
+    src = p.read_text(encoding="utf-8")
+    san = SAN_KY_TU[ten]
+    assert len(src) >= san, (
+        f"{ten} chỉ đọc được {len(src)} ký tự (sàn {san}) — gác này đang "
+        f"canh một file rỗng hoặc đọc hụt")
     return src
 
 
@@ -138,20 +150,29 @@ def _con_tro_chet(src: str, mods: dict[str, set[str]]) -> list[str]:
             if t not in mods[m]]
 
 
-def test_moi_ten_CLAUDE_md_tro_toi_deu_ton_tai():
+@pytest.mark.parametrize("ten", CAC_TAI_LIEU)
+def test_moi_ten_tai_lieu_tro_toi_deu_ton_tai(ten):
     """Đổi tên hàm/hằng mà quên tài liệu → đỏ."""
     mods = _cac_module()
-    src = _doc()
+    src = _doc(ten)
     assert _cap_can_kiem(src, mods), (
-        "không trích được cặp `module.tên` nào từ CLAUDE.md — biểu thức "
-        "trích đã hỏng, và một gác không trích được gì thì luôn xanh")
+        f"không trích được cặp `module.tên` nào từ {ten} — biểu thức "
+        f"trích đã hỏng, và một gác không trích được gì thì luôn xanh")
 
     chet = _con_tro_chet(src, mods)
     assert not chet, (
-        "CLAUDE.md trỏ tới những tên KHÔNG TỒN TẠI trong mã: "
+        f"{ten} trỏ tới những tên KHÔNG TỒN TẠI trong mã: "
         + ", ".join(sorted(chet))
         + ". Sửa tài liệu cho khớp mã, hoặc — nếu cố ý trỏ ra ngoài repo "
           "— thêm vào MIEN_TRU KÈM LÝ DO.")
+
+
+def test_DANH_SACH_tai_lieu_khong_duoc_thu_hep_am_tham():
+    """Rút danh sách xuống một file là bỏ gác cho file kia."""
+    assert CAC_TAI_LIEU == ("CLAUDE.md", "docs/HANDOFF.md"), (
+        "bỏ bớt tài liệu bị canh — sửa CÓ CHỦ ĐÍCH kèm lý do. "
+        "`docs/HANDOFF.md` đứng ĐẦU thứ tự ưu tiên nên là file nguy hiểm "
+        "nhất khi cũ.")
 
 
 def test_MAY_DO_tu_chung_minh_no_bat_duoc():
@@ -203,7 +224,10 @@ def test_MIEN_TRU_khong_duoc_phinh_am_tham():
                         ("vnai", "setup_agent_environment")}, (
         "danh sách miễn trừ đã đổi — mỗi cặp phải kèm lý do vì sao nó cố "
         "ý trỏ ra ngoài mã dự án")
-    assert SAN_KY_TU == 20_000
+    assert SAN_KY_TU == {"CLAUDE.md": 20_000, "docs/HANDOFF.md": 5_000}
+    assert set(SAN_KY_TU) == set(CAC_TAI_LIEU), (
+        "mỗi tài liệu bị canh phải có sàn ký tự riêng — thiếu một cái "
+        "thì `_doc` nổ KeyError chứ không phải đỏ có thông báo")
 
 
 if __name__ == "__main__":
