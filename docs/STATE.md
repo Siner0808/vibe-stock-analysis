@@ -7163,3 +7163,99 @@ Hộp thoại xoá nguồn ghi "xoá vĩnh viễn, không khôi phục được"
 chú với trích dẫn trỏ vào các nguồn ấy. Đã huỷ thao tác. Sổ nay có 5 nguồn;
 dọn hay không là việc của người.
 
+
+---
+
+## BƯỚC 30 — SOÁT BẰNG MÁY MỌI ĐỊA CHỈ `CLAUDE.md` TRỎ TỚI (05/09/2026)
+
+Hôm nay là lần thứ **ba** tài liệu lệch mã mà không gác nào bắt: hằng số
+cổng C5 (BƯỚC 27), giờ cron ba chuông (BƯỚC 29), và giờ là đây. Ba lần thì
+không còn là xui — nên thay vì vá tiếp một chỗ, đem máy soát cả file.
+
+### Hai phép soát, hai kết quả khác nhau
+
+**Tên file: sạch.** `CLAUDE.md` nhắc **63** tên file; 5 cái không có trong
+repo, và cả 5 đều được chính tài liệu giải thích ngay tại chỗ — `auth_state.json`
+và `user.json` nằm ở `~/.vnstock/`, `tradingview_mcp.py` đã bị xoá khi dọn
+mã chết, `vnstock_3.2.8_schema_migration_reference.csv` cố ý không đưa vào
+repo, `walkforward_vn100.py` đã đổi đuôi thành `.broken`. Không có con trỏ
+chết nào.
+
+**Tên hàm và hằng số: hai con trỏ chết.**
+
+```
+CLAUDE.md ghi                     ma that
+--------------------------------  ---------------------------------
+`sheets_store._COLS`              sheets_store.TRADE_COLS
+`fundamental_agent._doc()`        fundamental_agent.doc_chi_so()
+```
+
+Cả hai **đúng nội dung, sai địa chỉ**. `created_at` thật sự nằm trong bảng
+cột (phần tử cuối của `TRADE_COLS`). Cơ chế chấm-nhầm-thước-ngân-hàng thật
+sự tồn tại, và chỗ quyết định đọc ra được:
+
+```python
+# fundamental_agent.py:254
+la_ngan_hang = "net_interest_margin_nim" in ten or "net_margin" not in ten
+```
+
+Chỉ cần khoá NIM **có mặt** — kể cả mang giá trị `0.0` — là mã phi ngân
+hàng bị xếp sang nhóm ngân hàng. Đúng như tài liệu mô tả; chỉ cái tên hàm
+là dẫn người đọc tới hư không.
+
+Loại hỏng này không đổi con số nào. Nó đốt thời gian của người đọc, và tệ
+hơn: `grep` không ra thì người ta dễ kết luận "chức năng ấy không còn" rồi
+đi viết lại thứ đang chạy.
+
+### Gác mới, và một quy ước NGƯỢC với quy ước giữ-số-cũ
+
+`tests/test_tai_lieu_khop_ten_ma.py`: mọi `` `module.tên` `` trong
+`CLAUDE.md` mà `module` là module thật của dự án thì `tên` phải được định
+nghĩa ở cấp module (đọc bằng **AST**, không bằng `in`).
+
+Gác này được phép **nghiêm khắc hơn** hai gác tài liệu đã có, và lý do
+đáng ghi:
+
+| gác | canh gì | có phải nới không |
+|---|---|---|
+| `test_tai_lieu_khop_hang_so.py` | **giá trị** hằng số | có — số cũ có lịch sử |
+| `test_lich_cron_chuong.py` | **giờ** cron | có — giờ cũ có lịch sử |
+| `test_tai_lieu_khop_ten_ma.py` | **sự tồn tại** của một tên | **không** |
+
+Một con số cũ là một phép đo đã từng đúng; giữ lại có giá trị. Một địa chỉ
+sai thì chưa bao giờ đúng, và giữ lại chỉ có hại.
+
+**Hệ quả phải biết khi vá:** một cái tên đã chết **không được viết dạng
+`module.tên` trong dấu nháy ngược**, kể cả khi đang nói "tên này sai". Máy
+quét không phân biệt được *nhắc lại* với *trỏ tới*. Chính tôi vấp ngay:
+bản vá đầu ghi ghi chú *"tên `sheets_store._COLS` không tồn tại"* và máy
+quét vẫn báo đỏ đúng hai cặp cũ. Cách viết đúng là nêu tên trần — `_COLS`,
+`_doc()` — không kèm tên module.
+
+### Máy dò lại suýt tự do vòng qua chính nó
+
+Bản đầu của `test_MAY_DO_tu_chung_minh_no_bat_duoc` gọi hàm **TRÍCH**
+(`_cap_can_kiem`) rồi tự so danh sách, còn phép **PHÁN** thì nằm thẳng
+trong thân test chính. Đột biến `chet = []` vì thế sẽ sống sót.
+
+Bắt được trước khi đục, và đã tách `_con_tro_chet()` ra thành hàm riêng để
+cả hai test đi qua đúng một cửa. Đây là lần thứ **tư** trong hai ngày cùng
+một hình dạng lỗi — nay nó đủ quen để nhận ra trước khi đột biến chứng
+minh, chứ không phải sau.
+
+Đột biến **7/7 đỏ**, gồm: đưa con trỏ chết trở lại `CLAUDE.md`, hàm phán
+trả rỗng, hàm trích trả rỗng, bỏ bộ lọc đuôi file, nhét cặp hỏng vào
+`MIEN_TRU`, hạ sàn ký tự về 0, và **đổi tên hằng trong MÃ mà không đụng
+tài liệu** — đúng chiều lỗi mà gác sinh ra để bắt.
+
+### Ranh giới của lượt soát này
+
+Chỉ soát `CLAUDE.md`, chỉ soát `` `module.tên` `` với module viết thường.
+**Cố ý không** soát `Lớp.thuộc_tính`: thuộc tính dataclass và thuộc tính
+gán trong `__init__` không nằm ở cấp module, nên một gác nửa vời trên
+chúng sẽ đỏ giả — và một gác đỏ giả thì sẽ bị người ta tắt.
+
+`docs/STATE.md` chưa được soát. Nó là nhật ký, nên một tên đúng-tại-thời-
+điểm-viết nằm trong mục có ngày tháng không phải lỗi — cùng phép phân biệt
+mà BƯỚC 29 phải làm bằng tay khi Notebook trỏ nhầm vào BƯỚC 22.
+
