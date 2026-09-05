@@ -41,6 +41,8 @@ sống sót đúng vì lý do đó — đã thử, đã ghi lại, và đó là 
 Thứ nó bắt chắc chắn: **đổi hằng số trong mã mà không đụng tài liệu.**
 Đó là đúng lỗi đã xảy ra ngày 01/09 và sống tới 04/09.
 """
+import ast
+import re
 import sys
 from pathlib import Path
 
@@ -49,7 +51,7 @@ import pytest
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
 
-import paper_metrics as pm  # noqa: E402
+import paper_metrics as pm    # noqa: E402
 
 TAI_LIEU = GOC / "CLAUDE.md"
 
@@ -192,6 +194,143 @@ def test_cach_viet_hieu_dung_dau_phay_thap_phan():
     assert "0,920" in _cach_viet("x", -0.92)
     assert _cach_viet("x", 451) == ["451"]
     assert _cach_viet("x", 451.0) == ["451"]
+
+
+# ---------------------------------------------------------------------
+# GIÁ TRỊ CŨ ĐƯỢC PHÉP Ở LẠI — NHƯNG PHẢI CÓ DẤU   (thêm 05/09/2026)
+#
+# Gác ở trên đòi giá trị HIỆN TẠI có mặt ở ÍT NHẤT MỘT chỗ. Nó cố ý
+# không đòi mọi chỗ đều đúng, vì dự án giữ số cũ có chủ đích.
+#
+# Nhưng "được giữ" không có nghĩa là "được để trần". Ngày 05/09/2026
+# `CHO_PHEP_MO_LENH_MOI` được nêu HAI lần trong CLAUDE.md:
+#
+#     mục "CỔNG MỞ LỆNH ĐÃ BẬT (24/08)"   ->  = True
+#     mục "Cổng C5 — đọc trước khi sửa"   ->  = False
+#     mã thật                             ->  False, từ 29/08/2026
+#
+# Chỗ đầu KHÔNG có dấu nào cho biết nó đã hết đúng, và nó nằm ngay dưới
+# một tiêu đề nói cổng đang BẬT. Người đọc dừng ở khối mã ấy sẽ tin sai
+# về đúng công tắc quyết định agent có mở lệnh mới hay không.
+#
+# Cùng hình dạng với hai điều kiện dừng bản 1/bản 2 tìm ra 04/09. Khác ở
+# chỗ lần này quy ước của dự án ĐÃ đủ để bắt — chỉ là chưa ai viết nó
+# thành gác: **giá trị cũ thì phải đánh dấu.**
+# ---------------------------------------------------------------------
+
+#: Cờ an toàn quyết định agent có mở lệnh mới hay không.
+CO_AN_TOAN = "CHO_PHEP_MO_LENH_MOI"
+
+#: Bao nhiêu ký tự SAU một giá trị cũ thì dấu hiệu còn tính là của nó.
+BAN_KINH_DAU = 700
+
+#: Cách dự án đánh dấu một giá trị đã hết đúng. Lấy từ chính các ghi chú
+#: đang có trong CLAUDE.md, không bịa thêm dạng mới.
+DAU_HIEU_HET_DUNG = ("🔴", "⚠️", "HẾT ĐÚNG", "ĐÃ BỊ THAY",
+                     "KHÔNG CÒN ĐÚNG", "ĐO LẠI")
+
+
+def _gia_tri_co_trong_tai_lieu(src: str, ten: str) -> list[tuple[int, str]]:
+    """[(vị trí, giá trị)] của mọi `ten = True/False` trong tài liệu."""
+    return [(m.start(), m.group(1))
+            for m in re.finditer(rf"{ten}\s*=\s*(True|False)", src)]
+
+
+def _cho_cu_khong_dau(src: str, ten: str, dung: str) -> list[int]:
+    """Vị trí những chỗ ghi giá trị KHÁC mã mà KHÔNG có dấu đi kèm."""
+    ra = []
+    for vi_tri, gia_tri in _gia_tri_co_trong_tai_lieu(src, ten):
+        if gia_tri == dung:
+            continue
+        sau = src[vi_tri: vi_tri + BAN_KINH_DAU]
+        if not any(d in sau for d in DAU_HIEU_HET_DUNG):
+            ra.append(vi_tri)
+    return ra
+
+
+def _gia_tri_trong_ma(ten: str) -> str:
+    """Giá trị của `ten` ĐỌC TỪ NGUỒN `paper_trading.py`, bằng AST.
+
+    KHÔNG được đọc `getattr(paper_trading, ten)`. Vài file test gán
+    `pt.CHO_PHEP_MO_LENH_MOI = True` ở mức module, và giá trị ấy rò sang
+    mọi test chạy sau — nên đọc lúc chạy cho ra một phép kiểm phụ thuộc
+    THỨ TỰ CHẠY.
+
+    Bản đầu của gác này đọc lúc chạy thật: **xanh khi chạy một mình, đỏ
+    trong bộ đầy đủ** (05/09/2026). May là đỏ — chiều ngược lại sẽ là
+    một gác không bao giờ kêu. Cùng cách `tests/test_c5_noi_that.py::
+    test_cong_C5_dang_DONG_trong_ma_nguon` đã giải từ trước.
+    """
+    cay = ast.parse((GOC / "paper_trading.py").read_text(encoding="utf-8"))
+    gan = [n for n in ast.walk(cay)
+           if isinstance(n, ast.Assign)
+           and any(isinstance(t, ast.Name) and t.id == ten
+                   for t in n.targets)]
+    assert len(gan) == 1, f"gán `{ten}` {len(gan)} lần trong mã, phải đúng 1"
+    assert isinstance(gan[0].value, ast.Constant), ast.dump(gan[0].value)
+    return str(gan[0].value.value)
+
+
+def test_gac_KHONG_phu_thuoc_gia_tri_luc_chay(monkeypatch):
+    """Đổi cờ lúc chạy KHÔNG được làm đổi thứ gác đọc được."""
+    import paper_trading as _pt
+    that = _gia_tri_trong_ma(CO_AN_TOAN)
+    monkeypatch.setattr(_pt, CO_AN_TOAN, not getattr(_pt, CO_AN_TOAN))
+    assert _gia_tri_trong_ma(CO_AN_TOAN) == that, (
+        "gác đang đọc giá trị lúc chạy — nó sẽ đỏ hay xanh tuỳ file test "
+        "nào chạy trước, tức là vô nghĩa")
+
+
+def test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau():
+    """Giữ giá trị cũ thì được; để nó trần thì không."""
+    src = _doc()
+    dung = _gia_tri_trong_ma(CO_AN_TOAN)
+    assert _gia_tri_co_trong_tai_lieu(src, CO_AN_TOAN), (
+        f"CLAUDE.md không nêu `{CO_AN_TOAN}` lần nào — nếu cố ý bỏ thì "
+        f"sửa test này KÈM LÝ DO")
+
+    tran = _cho_cu_khong_dau(src, CO_AN_TOAN, dung)
+    assert not tran, (
+        f"CLAUDE.md ghi `{CO_AN_TOAN}` với giá trị KHÁC mã (mã: {dung}) "
+        f"ở {len(tran)} chỗ mà không có dấu hiệu nào cho biết nó đã hết "
+        f"đúng — vị trí ký tự {tran}. Dự án giữ giá trị cũ có chủ đích, "
+        f"nhưng phải ĐÁNH DẤU: một trong {list(DAU_HIEU_HET_DUNG)} trong "
+        f"vòng {BAN_KINH_DAU} ký tự sau đó. Đây là cờ quyết định agent "
+        f"có mở lệnh mới hay không.")
+
+
+def test_MAY_DO_DANH_DAU_tu_chung_minh_no_bat_duoc():
+    """5 mẫu đã biết là XẤU, 3 mẫu đã biết là TỐT, qua cùng một cửa."""
+    T = "CO_X"
+
+    xau = [
+        f"`{T} = True`",
+        f"{T}=True và không có gì thêm",
+        f"{T} = True\n" + "x" * (BAN_KINH_DAU * 2) + "🔴 quá xa",
+        f"🔴 dấu đặt TRƯỚC nên không tính\n{T} = True",
+        f"{T} = True ghi chú bình thường, không nói gì về hết đúng",
+    ]
+    for m in xau:
+        assert _cho_cu_khong_dau(m, T, "False"), (
+            f"máy dò bỏ sót một chỗ ĐÃ BIẾT là trần: {m[:60]!r}")
+
+    tot = [
+        f"{T} = False",
+        f"{T} = True\n🔴 đã hết đúng từ 29/08",
+        f"{T} = True\n> ⚠️ ĐO LẠI: nay là False",
+    ]
+    for m in tot:
+        assert not _cho_cu_khong_dau(m, T, "False"), (
+            f"máy dò báo trần cho một mẫu ĐÚNG: {m[:60]!r}")
+
+
+def test_BAN_KINH_DAU_va_DAU_HIEU_khong_duoc_noi_am_tham():
+    """Nới bán kính hay để lọt dấu hiệu rỗng là vô hiệu hoá gác."""
+    assert BAN_KINH_DAU == 700
+    assert DAU_HIEU_HET_DUNG == ("🔴", "⚠️", "HẾT ĐÚNG", "ĐÃ BỊ THAY",
+                                 "KHÔNG CÒN ĐÚNG", "ĐO LẠI")
+    assert "" not in DAU_HIEU_HET_DUNG, (
+        "một dấu hiệu RỖNG khớp mọi chỗ — gác sẽ luôn xanh")
 
 
 if __name__ == "__main__":

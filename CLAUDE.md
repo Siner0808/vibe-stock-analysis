@@ -474,6 +474,20 @@ paper_trading.TRAN_VON_CAM_KET_PCT = 100.0
 paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
 ```
 
+> 🔴 **DÒNG ĐẦU CỦA KHỐI TRÊN ĐÃ HẾT ĐÚNG TỪ 29/08/2026: cờ nay là
+> `False`.** Cổng ĐANG ĐÓNG, đóng bằng tay — xem mục "Cổng C5 — đọc
+> trước khi sửa" ở cuối file, và `paper_trading.py` là nguồn sự thật.
+>
+> Giữ khối cũ vì phần còn lại của mục này (lý do bật, số học cỡ mẫu,
+> trần vốn) vẫn đúng và vẫn cần đọc. Nhưng **tiêu đề mục nói cổng BẬT
+> còn thực tế nó ĐÓNG**, nên không đánh dấu ở đây thì người đọc dừng
+> lại ở khối mã và tin sai về đúng công tắc nguy hiểm nhất dự án.
+>
+> Tìm ra 05/09/2026, cùng hình dạng với hai điều kiện dừng bản 1/bản 2
+> tìm ra hôm 04/09: **hai chỗ nói về cùng một thứ, một chỗ không có
+> dấu.** Nay có gác — `tests/test_tai_lieu_khop_hang_so.py::
+> test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`.
+
 **Lý do bật KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha vẫn chứa số
 0. Lý do là: **cấu hình chạy trực tiếp chưa bao giờ được đo**, và nó chỉ đo
 được tiến về phía trước — đúng mâu thuẫn cốt lõi ghi ở đầu file này. Giữ
