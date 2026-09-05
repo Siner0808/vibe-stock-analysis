@@ -470,6 +470,19 @@ ghi tích luỹ (xem mục trên) nên bằng chứng tiến-về-trước đang
 > đã khớp và đang **MỞ**. Bằng chứng tiến-về-trước **đã đóng** vẫn là
 > **0**, và điều kiện dừng ở trên đếm đúng loại đã đóng — nên không con
 > số nào trong mục này đổi. Đây là chỗ dễ đọc nhầm nhất của cả tài liệu.
+>
+> 🔴 **CON SỐ 0 Ở TRÊN ĐÃ HẾT ĐÚNG (05/09/2026): NAY LÀ 1.** HUT đóng
+> ngày 04/09 — `SIGNAL_REVERSED`, −3,40%, giữ đúng một phiên. Còn 3 vị
+> thế mở (NAF · STB · TCB).
+>
+> Đây là kết quả tiến-về-trước **đã đóng** đầu tiên trong lịch sử dự án.
+> Nó KHÔNG nói gì về chiến lược: `N_TOI_THIEU` = 113, nên n = 1 nằm sâu
+> trong vùng "chưa đủ để kết luận" của `dieu_kien_dong_lai()`. Thứ đổi
+> là bộ đếm đã bắt đầu chạy, sau tám ngày đứng ở 0.
+>
+> **Đừng đọc lãi/lỗ của nó.** Một lệnh lỗ 3,40% không phải bằng chứng
+> về gì cả, và cũng không được dùng để nới hay siết bất kỳ ngưỡng nào —
+> đó là bất biến 7 đổi hướng. `docs/STATE.md` BƯỚC 28.
 
 Số học: cần 1.050 lệnh để kỳ vọng loại được số 0 (~23 năm ở nhịp 45
 lệnh/năm), alpha cần 22.601 lệnh. "Chờ thêm dữ liệu rồi quyết" không phải
@@ -733,11 +746,27 @@ Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lư
 ngày đó không được quét.
 
 **Đã có chuông (21/08/2026):** `.github/workflows/chuong-bao-quet.yml`
-chạy 09:00 UTC (16:00 ICT) mỗi ngày làm việc, soát **ba** ngày làm việc
-gần nhất và để lượt chạy đỏ nếu ngày nào không có lượt quét thành công
-nào. Soát ba ngày vì chính chuông cũng chạy bằng cron GitHub và cũng bị
-rơi nhịp — một nhịp chuông rơi thì nhịp hôm sau vẫn bắt được. Cửa sổ im
-lặng thu từ một nhịp xuống ba nhịp liên tiếp, không xuống 0.
+chạy **09:23 UTC (16:23 ICT)** mỗi ngày làm việc, soát **ba** ngày làm
+việc gần nhất và để lượt chạy đỏ nếu ngày nào không có lượt quét thành
+công nào. Soát ba ngày vì chính chuông cũng chạy bằng cron GitHub và
+cũng có thể rơi nhịp — một nhịp chuông rơi thì nhịp hôm sau vẫn bắt
+được. Cửa sổ im lặng thu từ một nhịp xuống ba nhịp liên tiếp, không
+xuống 0.
+
+> ⚠️ **HAI CHỖ ĐÃ SỬA Ở ĐOẠN TRÊN (05/09/2026).**
+>
+> **Giờ.** Bản trước ghi `09:00 UTC (16:00 ICT)`. Cron thật là `23 9`
+> từ `57dad6a` (03/09) — xem BƯỚC 20. Con số cũ sống hai ngày vì
+> `tests/test_lich_cron_chuong.py` chỉ đối chiếu chú thích **bên trong**
+> file `.yml` với cron của chính nó; không gác nào nhìn `CLAUDE.md`.
+> Nay có: `test_CLAUDE_md_ghi_dung_gio_chuong_bao_quet`.
+>
+> **Lý do soát ba ngày.** Bản trước viết chuông "**cũng bị** rơi nhịp",
+> mượn tỷ lệ ~50% của `quet-so-lenh` (12 nhịp/ngày) sang cho chuông (1
+> nhịp/ngày). Đo 05/09 trên **14 ngày-chuông: rơi 0**; lần rơi duy nhất
+> là 03/09, đúng ngày sửa file. Cận trên 95% ~21% nên **không** được
+> viết là 0. Cửa sổ ba ngày vẫn đúng, biên an toàn rộng hơn chỗ từng
+> nghĩ. `docs/STATE.md` BƯỚC 28.
 
 ### Ba kiểu hỏng của một lượt Actions — chỉ kiểu đầu là ồn ào
 
@@ -995,6 +1024,10 @@ Hai hàng rào mới đáng biết:
 > **✅ CẢ BỐN ĐÃ KHỚP 03/09/2026** — giá mở cửa phiên đầu mở lại, đúng
 > T+1 theo lịch giao dịch (`so_phien_giua('2026-08-28','2026-09-03') = 1`;
 > đếm bằng ngày làm việc sẽ ra 4). Nay là 4 vị thế **OPEN**.
+>
+> 🔴 **CÒN 3 (05/09/2026).** HUT đóng 04/09, `SIGNAL_REVERSED`, −3,40%,
+> giữ một phiên. NAF · STB · TCB vẫn mở. Xem thêm ô "ĐÃ ĐÓNG" ở mục
+> "CỔNG MỞ LỆNH ĐÃ BẬT" phía trên: bộ đếm kết quả đã đóng nay là 1.
 >
 > Và điều đoạn trên khẳng định nay đã được **kiểm sống**: cổng C5 vẫn
 > `False` tại thời điểm khớp. Xem `docs/STATE.md`, BƯỚC 18.
