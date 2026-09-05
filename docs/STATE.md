@@ -7259,3 +7259,95 @@ chúng sẽ đỏ giả — và một gác đỏ giả thì sẽ bị người t
 điểm-viết nằm trong mục có ngày tháng không phải lỗi — cùng phép phân biệt
 mà BƯỚC 29 phải làm bằng tay khi Notebook trỏ nhầm vào BƯỚC 22.
 
+
+---
+
+## BƯỚC 31 — CỜ CỔNG C5 ĐƯỢC NÊU HAI LẦN, HAI GIÁ TRỊ, MỘT CHỖ KHÔNG DẤU (05/09/2026)
+
+Đọc lại `CLAUDE.md` sau BƯỚC 30 thì thấy:
+
+```
+muc "CONG MO LENH DA BAT (24/08)"  ->  CHO_PHEP_MO_LENH_MOI = True
+muc "Cong C5 -- doc truoc khi sua" ->  CHO_PHEP_MO_LENH_MOI = False
+ma that (paper_trading.py:208)     ->  False, tu 29/08/2026
+```
+
+Chỗ đầu **không có dấu nào** cho biết nó đã hết đúng, và nó nằm ngay dưới
+một tiêu đề khẳng định cổng đang BẬT. Người đọc dừng ở khối mã ấy sẽ tin
+sai về **đúng công tắc quyết định agent có mở lệnh mới hay không**.
+
+Cùng hình dạng với hai điều kiện dừng bản 1/bản 2 tìm ra hôm 04/09. Khác ở
+mức độ: lần này là chính cái cổng, không phải điều kiện đóng nó.
+
+### Vì sao gác cũ KHÔNG bắt được, và đó không phải sơ sót
+
+`test_tai_lieu_khop_hang_so.py` có hợp đồng: *giá trị hiện tại phải xuất
+hiện ở **ít nhất một** chỗ có gọi tên hằng số.* Ở đây `False` **có** xuất
+hiện — ở mục Cổng C5. Nên gác xanh, đúng như hợp đồng của nó.
+
+Hợp đồng ấy được viết có chủ đích ngày 04/09: đòi "mọi chỗ đều đúng" sẽ
+mâu thuẫn với quy ước dự án cố ý giữ số cũ để đối chiếu.
+
+Nhưng giữa hai thái cực đó có một luật thứ ba, và nó chính là quy ước dự án
+vẫn làm bằng tay suốt: **giá trị cũ được ở lại, nhưng phải ĐÁNH DẤU.** Luật
+ấy chưa bao giờ được viết thành mã.
+
+### Gác mới
+
+`test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`: mọi chỗ trong `CLAUDE.md`
+ghi `CHO_PHEP_MO_LENH_MOI = <giá trị>` mà giá trị **khác mã** thì phải có
+một trong các dấu hiệu — 🔴 · ⚠️ · "HẾT ĐÚNG" · "ĐÃ BỊ THAY" · "KHÔNG CÒN
+ĐÚNG" · "ĐO LẠI" — trong **700 ký tự sau đó**.
+
+Bộ dấu hiệu lấy từ **chính các ghi chú đang có** trong `CLAUDE.md`, không
+bịa thêm dạng mới; và "sau đó" chứ không phải "quanh đó", vì một dấu đặt
+TRƯỚC thì không đánh dấu được cái nằm sau nó.
+
+Kèm `test_MAY_DO_DANH_DAU_tu_chung_minh_no_bat_duoc`: 5 mẫu đã biết là xấu
+(không dấu · dấu quá xa · dấu đặt trước · ghi chú vô thưởng vô phạt) và 3
+mẫu đã biết là tốt, tất cả đi qua cùng một cửa.
+
+Đột biến **7/7 đỏ**, gồm gỡ dấu khỏi `CLAUDE.md`, bỏ bán kính để quét cả
+file, thêm một dấu hiệu **rỗng** (khớp mọi chỗ), và **đổi cờ trong mã mà
+không đụng tài liệu**.
+
+### Bốn lớp lỗi tài liệu, bốn luật khác nhau — ghi để khỏi trộn
+
+Một ngày đủ để thấy chúng không thay thế nhau được:
+
+| lớp | luật | gác |
+|---|---|---|
+| tên không tồn tại | phải tồn tại, không có ngoại lệ | `test_tai_lieu_khop_ten_ma.py` |
+| giá trị hiện tại vắng mặt | phải có ở ≥1 chỗ kề tên | `test_tai_lieu_khop_hang_so.py` |
+| giá trị cũ để trần | được ở lại, nhưng phải có dấu | *(mục này)* |
+| giờ cron lệch mã | suy từ cron, phải kề tên workflow | `test_lich_cron_chuong.py` |
+
+Lượt soát bằng máy ở BƯỚC 30 **không** bắt được lỗi hôm nay: nó kiểm sự
+tồn tại của TÊN, không kiểm GIÁ TRỊ. Notebook cũng không, vì nó là tài liệu
+lệch mã. Cái tìm ra nó là đọc — nhưng chỉ vì ba lượt trước đã dạy phải nhìn
+vào đâu.
+
+### Gác này suýt là một phép kiểm phụ thuộc THỨ TỰ CHẠY
+
+Bản đầu đọc `getattr(paper_trading, "CHO_PHEP_MO_LENH_MOI")` — tức giá trị
+**lúc chạy**. Nó **xanh khi chạy một mình, ĐỎ trong bộ đầy đủ**: bảy file
+test gán `pt.CHO_PHEP_MO_LENH_MOI = True` ở mức module, và giá trị ấy rò
+sang mọi test chạy sau.
+
+May là nó đỏ. Chiều ngược lại — mã đóng, test nào đó gán `False` — sẽ cho
+một gác **không bao giờ kêu**, và tôi sẽ ghi vào đây rằng nó 7/7 đỏ.
+
+Đã sửa: đọc từ NGUỒN bằng AST. Dự án đã giải đúng bài này từ trước ở
+`tests/test_c5_noi_that.py::test_cong_C5_dang_DONG_trong_ma_nguon`, kèm
+docstring nói thẳng lý do — tôi chỉ việc đọc và làm theo, mà đã không đọc.
+
+Thêm `test_gac_KHONG_phu_thuoc_gia_tri_luc_chay`: đổi cờ lúc chạy rồi đòi
+thứ gác đọc được KHÔNG đổi. Không có test ấy thì lần sau ai đó sửa lại về
+`getattr` sẽ không thấy gì.
+
+### Chưa làm, và vì sao
+
+Chưa tổng quát hoá luật "giá trị cũ phải có dấu" cho MỌI hằng số. Mỗi hằng
+số có một dạng viết riêng (số nguyên, thập phân dấu phẩy, phần trăm, chuỗi
+ngày), nên một máy quét chung sẽ hoặc bỏ sót hoặc đỏ giả — và một gác đỏ
+giả thì sẽ bị tắt. Ở đây chỉ khoá **cờ an toàn**, thứ đắt nhất khi hiểu sai.
