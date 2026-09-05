@@ -7351,3 +7351,91 @@ Chưa tổng quát hoá luật "giá trị cũ phải có dấu" cho MỌI hằn
 số có một dạng viết riêng (số nguyên, thập phân dấu phẩy, phần trăm, chuỗi
 ngày), nên một máy quét chung sẽ hoặc bỏ sót hoặc đỏ giả — và một gác đỏ
 giả thì sẽ bị tắt. Ở đây chỉ khoá **cờ an toàn**, thứ đắt nhất khi hiểu sai.
+
+
+---
+
+## BƯỚC 32 — FILE ĐƯỢC ĐỌC ĐẦU TIÊN LÀ FILE CŨ NHẤT (05/09/2026)
+
+`CLAUDE.md` mở đầu bằng *"BẮT ĐẦU Ở ĐÂY: đọc `docs/HANDOFF.md` trước
+tiên"*, và đặt thứ tự ưu tiên `HANDOFF` → `STATE` → `CLAUDE.md`.
+
+`docs/HANDOFF.md` sửa lần cuối **20/08/2026**. Mười sáu ngày.
+
+Tức là: **file có thẩm quyền cao nhất, được đọc đầu tiên, là file cũ
+nhất trong dự án.** Một câu lạc hậu ở đó đè lên cả hai file kia.
+
+### Mọi khẳng định sự kiện trong nó đều đã sai
+
+| Bản 19/08 ghi | Kiểm 05/09 |
+|---|---|
+| `pytest` kỳ vọng **218 passed**, khác thì **dừng lại** | 813 |
+| nhánh `sua-chua/phase-0`, **chưa merge** | merged từ lâu |
+| `kiem-dinh.yml` **chưa vào repo** | có trong `.github/workflows/` |
+| `walkforward_vn100.py` **vẫn còn trong repo** | đã đổi đuôi `.broken` (20/08) |
+| hai module trượt giá là **mồ côi** | đã nối vào đường khớp (24/08) |
+| `sl_pattern_memory.json` có **6.327 mẫu** | 44 mục |
+| `_phase0_snapshot.tar.gz` cần dọn ra ngoài | đã dọn |
+| **14 ngày không mở được lệnh** vì cache VN-INDEX đóng băng | đã sửa |
+| sổ: 113 lệnh · 1 mở · `+14,24%` | 117 lệnh · 3 mở; `+14,24%` là một trong năm số đã bị bác |
+| **năm ô C1–C5 đang chặn** | cả năm đã có câu trả lời |
+
+Mười hàng, không hàng nào còn đúng. Từng khẳng định đã kiểm bằng máy,
+không đọc suông.
+
+**Hàng đầu là hàng nguy hiểm nhất.** File tự nhận là "ba lệnh chạy trước
+khi làm bất cứ gì", và lệnh đầu tiên bảo: *nếu số test khác 218 thì dừng
+lại, báo ngay.* Một phiên mới làm đúng theo file sẽ dừng ở dòng đầu.
+
+### Nguyên nhân, và nó khác các lớp lỗi hôm nay
+
+Bốn lớp lỗi vá sáng nay đều là **tài liệu lệch mã**. Cái này khác: nó là
+**tài liệu lệch thực tế thao tác** — trạng thái nhánh, file đã dọn, câu
+hỏi đã trả lời. Không máy quét nào bắt được phần lớn trong đó.
+
+Nhưng nguyên nhân gốc thì đọc ra được: **file ghim con số.** "218
+passed", "6.327 mẫu", "113 lệnh" — mọi con số ấy đúng vào ngày viết và
+sai từ ngày hôm sau.
+
+Bản viết lại đảo nguyên tắc: **ghi CÁCH LẤY con số, đừng ghi con số.** Chỗ
+nào buộc phải có số thì đó là **quyết định**, không phải phép đo — cổng
+C5 đang đóng, mốc 12/09, mốc 17/09 — và quyết định thì hiếm khi đổi.
+
+Bảng "hỏi bằng gì" thay cho bảng "con số là bao nhiêu":
+
+```
+cong mo lenh dang mo hay dong  ->  dong gan CHO_PHEP_MO_LENH_MOI trong ma
+so lenh that co gi             ->  keo tu Google Sheets, KHONG doc .db o may
+bo loc VN-INDEX co that su bat ->  market_filter.status()
+goi vnstock dang o hang nao    ->  vnstock_goi.kiem_goi()
+```
+
+### Gác
+
+`tests/test_tai_lieu_khop_ten_ma.py` nay canh **cả hai** file —
+`CAC_TAI_LIEU = ("CLAUDE.md", "docs/HANDOFF.md")`. Sàn ký tự tách theo
+từng file, vì `HANDOFF.md` ngắn hơn `CLAUDE.md` gần ba lần và một sàn
+chung sẽ hoặc đỏ giả hoặc vô dụng.
+
+`docs/STATE.md` **cố ý không** bị canh: nó là nhật ký, nên một cái tên
+đúng-tại-thời-điểm-viết nằm trong một mục có ngày tháng không phải lỗi —
+đúng phép phân biệt mà BƯỚC 29 phải làm bằng tay khi Notebook trỏ nhầm
+vào BƯỚC 22.
+
+Đột biến **9/9 đỏ**, thêm hai cái mới: đưa một con trỏ chết vào
+`HANDOFF.md`, và **rút `HANDOFF.md` khỏi danh sách canh** — cách vô hiệu
+hoá nửa bộ gác mà không sửa một dòng logic nào.
+
+### Thứ này tìm ra bằng gì
+
+Bằng đọc — nhưng chỉ vì bốn lượt soát trước trong ngày đã dạy phải nhìn
+vào đâu. Notebook không thấy (nó chỉ có bốn file `.md`, không có
+`HANDOFF.md`, và dù có cũng không biết `kiem-dinh.yml` đã vào repo hay
+chưa). Lượt soát tên bằng máy không thấy (nó kiểm tên, không kiểm sự
+thật thao tác). Gác giá trị không thấy (không con số nào trong
+`HANDOFF.md` là hằng số của mã).
+
+Bài học: **một file càng đứng đầu thứ tự ưu tiên thì càng phải có ngày
+sửa gần nhất.** Nếu không, quy tắc ưu tiên biến nó từ tấm bản đồ thành
+tấm biển chỉ sai đường.
+
