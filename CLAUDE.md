@@ -362,7 +362,20 @@ không chỉ thay đổi cách gọi. Đo ngày 23/08/2026 (chi tiết trong
 Ba hàng cuối đều hỏng ÂM THẦM. Lệch 100 lần làm mọi mã đọc ra "ROE thấp";
 KBS mất chỉ tiêu buộc phải đổi nguồn sang VCI (tức đổi NGUỒN SỐ LIỆU, thuộc
 `NGUYEN-TAC-DO-LUONG.md`); và `RT_BANK_NIM = 0.0` làm
-`fundamental_agent._doc()` chấm FPT bằng thước ngân hàng.
+`fundamental_agent.doc_chi_so()` chấm FPT bằng thước ngân hàng. Chỗ quyết
+định là `la_ngan_hang = "net_interest_margin_nim" in ten or "net_margin"
+not in ten` (`fundamental_agent.py:254`): chỉ cần khoá NIM **có mặt** —
+kể cả với giá trị `0.0` — là mã phi ngân hàng bị xếp sang nhóm ngân hàng.
+
+> Bản trước trỏ tới một hàm `_doc()` **chưa bao giờ tồn tại** trong
+> module này. Tìm ra 05/09/2026 bằng một lượt soát máy.
+>
+> Gác mới: `tests/test_tai_lieu_khop_ten_ma.py`. Hợp đồng của nó buộc
+> một quy ước KHÁC với quy ước giữ-số-cũ ở chỗ khác trong file này —
+> **một cái tên đã chết thì không được viết dạng `module.tên` trong dấu
+> nháy ngược**, vì máy quét không phân biệt được "nhắc lại tên cũ" với
+> "trỏ tới tên cũ". Viết trần cái tên, như `_doc()` ở trên. Số có lịch
+> sử đáng giữ; một địa chỉ sai thì không.
 
 **Tài liệu `vnstock_3.2.8_schema_migration_reference.csv` sai ở phần `ratio`:**
 33/60 mã không khớp thư viện 3.2.8 thật. Ba tiền tố bị đổi tên —
@@ -404,8 +417,9 @@ user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
 Đo 23/08/2026: cả **113 lệnh** trong `paper_trades.db` có `created_at` nằm
 trong **258 giây** ngày 07/08/2026, trong khi `signal_date` của chúng trải
 2024-01-05 → 2026-06-26 (**903 ngày**). Không dòng nào ghi sau đó.
-`created_at` có trong `sheets_store._COLS` nên lần khôi phục sau sự cố
-12/08 giữ nguyên dấu thời gian gốc.
+`created_at` có trong `sheets_store.TRADE_COLS` (bản trước ghi `_COLS`,
+một tên không tồn tại; sửa 05/09/2026) nên lần khôi phục sau sự cố 12/08
+giữ nguyên dấu thời gian gốc.
 
 Sổ ấy chưa bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước.
 Bảng `decisions` thì ngược lại — vẫn chạy thật, 5.071 quyết định riêng
