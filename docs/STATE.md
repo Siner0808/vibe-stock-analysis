@@ -7941,3 +7941,67 @@ local/CI khác — `Path.exists()` trên file gitignore, phân biệt hoa thư�
 của tên file, `os.sep`. Ba dạng ấy đã cắn ít nhất một lần mỗi dạng và hiện
 chỉ có ghi chép, không có gác. Ghi ra đây thay vì im.
 
+
+---
+
+## BƯỚC 37 — ĐO RỒI QUYẾT ĐỊNH **KHÔNG** DỰNG GÁC (07/09/2026)
+
+BƯỚC 36 để lại một việc: lớp lệch tài liệu thứ năm — trỏ tới một **tiêu
+đề mục** không tồn tại (`CLAUDE.md` từng có `(xem mục CRLF)`). Bốn gác
+hiện có đều không thấy, vì chúng kiểm `module.tên`, giá trị hằng số, giờ
+cron, và chỗ rẽ nhánh.
+
+Đo trước khi dựng.
+
+### Bề mặt thật nhỏ hơn nhiều so với cảm giác
+
+```
+tong so tieu de trong 5 file .md      : 587
+so lan xuat hien chu "muc"            : 106
+tro dan dang TEN MUC, hai file DUOC CANH:
+    CLAUDE.md        8 tro dan   ->  0 chet
+    docs/HANDOFF.md  1 tro dan   ->  0 chet
+```
+
+**Chín trỏ dẫn, không cái nào chết** sau khi sửa `mục CRLF`.
+
+### Và phép quét lỏng cho thấy vì sao gác này sẽ kêu oan
+
+Quét rộng ra cả năm file, một biểu thức đủ lỏng để bắt được dạng không
+đóng nháy, cho **11 "nghi ngờ"** — và gần như toàn bộ là báo nhầm do
+biểu thức nuốt sang chữ kế tiếp:
+
+```
+'7 da tuyen bo vo hieu'      <- thuc ra la "muc 7", so muc
+'8 cam'                      <- "muc 8"
+'4 noi'                      <- "muc 4"
+'23/08/2026 o tren'          <- tro toi mot muc CO NGAY trong nhat ky
+```
+
+**10 trên 11 nằm ở `docs/STATE.md`** — file nhật ký, và nó **cố ý không**
+bị canh bởi các gác tài liệu khác, đúng vì lý do này: một trỏ dẫn đúng
+tại thời điểm viết, nằm trong một mục có ngày tháng, không phải lỗi.
+
+### Quyết định
+
+**Không dựng.** BƯỚC 31 đã ghi thành luật: *một gác hay kêu oan thì sớm
+muộn bị tắt, mà gác bị tắt thì bằng không có.* Ở đây tỷ lệ báo nhầm sẽ
+cao ngay từ ngày đầu, còn bề mặt thật là chín trỏ dẫn — nhỏ hơn cả số
+mẫu tự chứng minh mà gác ấy sẽ cần.
+
+Ghi ra để lần sau khỏi dựng lại: đây **không phải** việc bị bỏ quên, đây
+là việc đã đo và đã từ chối, kèm số.
+
+Điều kiện xem lại: nếu số trỏ dẫn dạng tên mục trong hai file được canh
+vượt vài chục, hoặc nếu có thêm một trỏ dẫn chết thứ hai.
+
+### Kèm: một lỗi tài liệu do chính lượt ghi BƯỚC 36 gây ra
+
+Chèn mục "Lỗi 12" vào `references/loi-da-mac.md` đẩy đoạn *"Bốn cái đầu
+là cùng một lỗi"* lạc vào giữa mục khác, và câu *"Ba cái còn lại"* thành
+mơ hồ khi bảng đã có 12 dòng với 8 dấu tích. Đã sửa cả hai.
+
+Nhỏ, nhưng đúng hình dạng của cả tuần: **một lượt sửa tài liệu tự sinh ra
+một chỗ lệch mới.** Lần này bắt được ngay vì đọc lại phần vừa ghi — thao
+tác duy nhất không có gác nào thay thế được.
+
