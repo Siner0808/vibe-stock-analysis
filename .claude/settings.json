@@ -43,6 +43,18 @@
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_mo_phien.py\"",
+            "timeout": 10,
+            "statusMessage": "Nhắc quy trình và mốc ngày đang chặn..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

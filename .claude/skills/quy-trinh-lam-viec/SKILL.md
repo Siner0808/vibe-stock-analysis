@@ -35,8 +35,12 @@ ls <repo>/.claude/skills/            # quy trinh nao dang co san
 Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 
 > Ngày 07/09/2026 tôi làm việc nửa buổi rồi mới biết dự án có skill quy
-> trình — hệ thống tự hiện nó ra giữa chừng. `ls .claude/skills/` là hai
-> giây.
+> trình — hệ thống tự hiện nó ra giữa chừng.
+>
+> **Đã thành cơ chế:** `tools/cua_mo_phien.py` chạy như hook `SessionStart`
+> và in ngay lời nhắc này cùng các mốc ngày đang chặn. Viết "Bước 0: đi
+> tìm skill" vào chính skill là một vòng tròn — phải đọc skill mới biết
+> phải đi tìm skill.
 
 ---
 
@@ -163,6 +167,7 @@ nó**, cả bốn viết quy ước bằng giọng "đã xảy ra".
 
 | Cửa | Khi nào | Làm gì |
 |---|---|---|
+| `tools/cua_mo_phien.py` | **SessionStart** | nhắc gọi skill + liệt kê mốc ngày đang chặn |
 | `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
 | `tools/cua_bash_an_toan.py` | Pre · Bash | chặn hình dạng lệnh đã cắn thật |
 | `tools/chan_bia_so_lieu.py` | Post · Write/Edit | quét mẫu bịa số liệu |

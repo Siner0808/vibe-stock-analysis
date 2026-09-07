@@ -24,6 +24,7 @@ sys.path.insert(0, str(GOC / "tools"))
 
 import cua_bash_an_toan as cb  # noqa: E402
 import cua_ghi_an_toan as cg  # noqa: E402
+import cua_mo_phien as mp  # noqa: E402,F401
 import va_an_toan as va  # noqa: E402
 
 # KHONG ghim ".venv/Scripts/python.exe": duong Windows, runner CI la
@@ -309,6 +310,84 @@ def test_hook_ghi_tra_2_khi_file_RONG(tmp_path):
 
 # ───────────────── hai cửa mới phải thật sự ĐƯỢC NỐI ─────────────────
 
+# ───────────────────────── cua_mo_phien ─────────────────────────
+
+def test_ban_tin_mo_phien_NEU_TEN_SKILL_doc_tu_dia():
+    """Gõ tay tên skill vào lời nhắc là tạo thêm một chỗ lệch nữa."""
+    import cua_mo_phien as mp
+
+    ten = mp.ten_skill()
+    assert ten == ["quy-trinh-lam-viec"], ten
+    assert "quy-trinh-lam-viec" in mp.ban_tin()
+    print(f"PASS  lời nhắc đọc tên skill từ đĩa: {ten}")
+
+
+def test_moc_ngay_LOC_THEO_hom_nay():
+    """PHÉP PHÁN. Mốc đã tới hạn thì không còn chặn, mốc tương lai thì có.
+
+    Truyền `hom_nay` cố định nên phép kiểm này không mục ruỗng theo thời
+    gian — nó vẫn đúng vào năm 2030.
+    """
+    import datetime as dt
+
+    import cua_mo_phien as mp
+
+    truoc = mp.moc_ngay_con_chan(dt.date(2026, 9, 7))
+    assert [n for n, _ in truoc] == [dt.date(2026, 9, 12),
+                                     dt.date(2026, 9, 17)], truoc
+
+    giua = mp.moc_ngay_con_chan(dt.date(2026, 9, 13))
+    assert [n for n, _ in giua] == [dt.date(2026, 9, 17)], giua
+
+    sau = mp.moc_ngay_con_chan(dt.date(2026, 12, 31))
+    assert sau == [], f"mốc đã qua vẫn còn báo chặn: {sau}"
+    print("PASS  lọc đúng theo ngày: 2 -> 1 -> 0")
+
+
+def test_cua_mo_phien_KHONG_BAO_GIO_hong_phien(tmp_path, monkeypatch):
+    """Một hook mở phiên mà làm hỏng phiên thì tệ hơn không có.
+
+    Chỉ vào một thư mục rỗng: không có HANDOFF, không có skill. Phải vẫn
+    thoát 0 và vẫn in ra được thứ gì đó.
+    """
+    import cua_mo_phien as mp
+
+    monkeypatch.setattr(mp, "HANDOFF", tmp_path / "khong-co.md")
+    monkeypatch.setattr(mp, "THU_MUC_SKILL", tmp_path / "khong-co")
+    assert mp.moc_ngay_con_chan() == []
+    assert mp.ten_skill() == []
+    assert "không thấy skill" in mp.ban_tin()
+    assert mp.main() == 0
+    print("PASS  thiếu hết mọi thứ vẫn thoát 0 và vẫn nói ra là thiếu")
+
+
+def test_mo_phien_NUOT_LOI_du_ban_tin_no(monkeypatch, capsys):
+    """Lớp chặn lỗi phải tự chứng minh được, không chỉ tồn tại.
+
+    Đục thử 07/09/2026: gỡ `try/except` quanh `print(ban_tin())` mà bộ
+    test vẫn XANH, vì ở đường chạy bình thường không có gì nổ. Cùng bẫy
+    với `va_an_toan.kiem_hoan_tra` — lưới an toàn không được kiểm bằng
+    đường chạy êm.
+
+    Ép `ban_tin` nổ, rồi đòi `main()` vẫn trả 0. Một hook mở phiên làm
+    hỏng phiên thì tệ hơn không có hook.
+    """
+    def _no():
+        raise RuntimeError("giả vờ hỏng")
+
+    monkeypatch.setattr(mp, "ban_tin", _no)
+    assert mp.main() == 0, "ban_tin() nổ mà main() không nuốt -> hỏng phiên"
+    print("PASS  ban_tin() nổ, main() vẫn trả 0")
+
+
+def test_hook_mo_phien_thoat_0_khi_chay_that():
+    kq = subprocess.run([PY, str(GOC / "tools" / "cua_mo_phien.py")],
+                        capture_output=True, text=True, encoding="utf-8")
+    assert kq.returncode == 0, kq.stderr[-300:]
+    assert "quy-trinh-lam-viec" in (kq.stdout or "")
+    print("PASS  chạy thật: thoát 0, có nhắc skill")
+
+
 def test_hai_cua_moi_duoc_DANG_KY_dung_matcher():
     """Hook tồn tại mà không nối vào đâu thì bằng không có.
 
@@ -343,7 +422,17 @@ def test_hai_cua_moi_duoc_DANG_KY_dung_matcher():
 
     assert _tim("PreToolUse", "cua_ghi_an_toan.py") is None, (
         "cửa ghi phải là PostToolUse — nó soi file SAU khi ghi")
-    print("PASS  cửa Bash nối PreToolUse/Bash · cửa ghi nối PostToolUse/Write|Edit")
+
+    # Cửa mở phiên: SỰ KIỆN mới là thứ quyết định. Đăng ký nó ở PreToolUse
+    # thì nó chạy trước MỌI thao tác — nhiễu tới mức bị tắt ngay.
+    assert _tim("SessionStart", "cua_mo_phien.py") is not None, (
+        "cửa mở phiên chưa đăng ký ở SessionStart — nó sẽ không bao giờ "
+        "chạy, và lỗi số 10 (không biết dự án có skill) lặp lại")
+    for sk in ("PreToolUse", "PostToolUse", "Stop"):
+        assert _tim(sk, "cua_mo_phien.py") is None, (
+            f"cửa mở phiên bị đăng ký nhầm ở {sk}")
+
+    print("PASS  Bash→PreToolUse · ghi→PostToolUse · mở phiên→SessionStart")
 
 
 if __name__ == "__main__":
