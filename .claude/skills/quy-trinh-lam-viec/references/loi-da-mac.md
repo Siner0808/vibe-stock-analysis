@@ -23,9 +23,25 @@ là lỗi sẽ tái diễn.
 | 9 | không tìm lời giải sẵn có (lần 2/3 ngày) | đọc lại | ⚠️ một phần | Bước 1 |
 | 10 | không biết dự án có skill tới giữa buổi | hệ thống tự hiện | ✅ | Bước 0 (`ls .claude/skills/`) |
 | 11 | dùng `-s` rồi tưởng lỗi mã hoá là lỗi sống | tự kiểm | ✅ | `cong-thuc-chay.md` |
+| 12 | ghim `.venv/Scripts/python.exe` — đường Windows, CI là Linux | **CI**, sau 4 cổng xanh | ✅ | `test_script_chay_duoc_tren_windows` |
 
-**Bảy trên mười một máy chặn được.** Ba cái còn lại là kỷ luật đọc và
+**Tám trên mười hai máy chặn được.** Ba cái còn lại là kỷ luật đọc và
 kỷ luật số — chúng thành Quy tắc số 2, Bước 1 và Bước 4.
+
+### Lỗi 12 đáng sợ nhất trong bảng, vì bốn cổng đều XANH
+
+Nó chỉ lộ ra ở CI. Bốn cổng chạy trên máy Windows, và cả bốn không thể
+thấy một đường dẫn Windows là sai — ở đây nó **đúng**.
+
+Cùng lớp bất đối xứng đã cắn hai lần trước (31/08/2026), và bài học nằm
+sẵn trong docstring của `tests/test_hang_rao_tu_dong.py`: *"Trên Linux CI
+nó phải trông vào `sys.executable`"*. Tôi không đọc — **lỗi số 9, lần thứ
+tư trong ngày**.
+
+Trớ trêu hơn: cùng buổi đó tôi viết `tools/kiem_test_chay_rieng.py` dùng
+`sys.executable` ĐÚNG, rồi viết `tools/va_an_toan.py` dùng đường ghim cứng
+SAI. Cùng một người, cùng một giờ, hai lựa chọn ngược nhau — đó là lý do
+luật phải nằm trong MÁY chứ không nằm trong đầu.
 
 Bốn cái đầu là **cùng một lỗi**: tự chế cách xử lý xuống dòng. Đó là lý
 do `tools/va_an_toan.py` tồn tại.

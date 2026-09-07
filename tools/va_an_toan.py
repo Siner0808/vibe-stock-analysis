@@ -45,7 +45,11 @@ import subprocess
 import sys
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
-PY_VENV = GOC / ".venv" / "Scripts" / "python.exe"
+# `sys.executable` chu KHONG phai duong dan .venv ghim cung: cai sau la
+# duong Windows, va runner CI la Linux. Dung lop loi ma
+# `tests/test_hang_rao_tu_dong.py` da ghi tu 31/08/2026 — xanh tai may,
+# do tren CI. Mac lai 07/09/2026.
+PY_HIEN_TAI = sys.executable
 
 
 class NeoMoHo(Exception):
@@ -130,7 +134,7 @@ def dot_bien(duong, cu: str, moi: str, lenh: list[str],
 
     try:
         ghi(duong, s.replace(cu, moi, 1))
-        kq = subprocess.run([str(PY_VENV)] + lenh, cwd=str(GOC),
+        kq = subprocess.run([PY_HIEN_TAI] + lenh, cwd=str(GOC),
                             capture_output=True, text=True,
                             encoding="utf-8", errors="replace")
         that_bai = kq.returncode != 0

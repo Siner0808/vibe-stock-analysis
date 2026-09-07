@@ -26,7 +26,9 @@ import cua_bash_an_toan as cb  # noqa: E402
 import cua_ghi_an_toan as cg  # noqa: E402
 import va_an_toan as va  # noqa: E402
 
-PY = str(GOC / ".venv" / "Scripts" / "python.exe")
+# KHONG ghim ".venv/Scripts/python.exe": duong Windows, runner CI la
+# Linux. Xem tools/va_an_toan.py.
+PY = sys.executable
 
 
 # ─────────────────────────── va_an_toan ───────────────────────────

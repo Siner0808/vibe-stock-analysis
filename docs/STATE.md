@@ -7858,3 +7858,86 @@ Hai quy tắc đứng đầu:
 Quy tắc 2 là quy tắc mới, và nó đến từ lỗi số 6 — thứ duy nhất trong 11
 lỗi mà không phép đo nào bắt được, chỉ có thói quen bắt được.
 
+
+---
+
+## BƯỚC 36 — BỐN CỔNG XANH, CI ĐỎ (07/09/2026)
+
+BƯỚC 35 đóng lại với bốn cổng xanh ở máy. CI đỏ ngay bước đầu.
+
+```
+FAILED tests/test_cua_quy_trinh.py::test_hook_ghi_tra_2_khi_file_RONG
+FAILED tests/test_cua_quy_trinh.py::test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG
+FAILED tests/test_cua_quy_trinh.py::test_dot_bien_bao_XANH_khi_lenh_thanh_cong
+FAILED tests/test_cua_quy_trinh.py::test_dot_bien_HOAN_TRA_du_lenh_no
+  FileNotFoundError: /home/runner/work/...
+```
+
+Nguyên nhân một dòng: `tools/va_an_toan.py` và `tests/test_cua_quy_trinh.py`
+ghim `.venv/Scripts/python.exe` để chạy tiến trình con. **Đó là đường
+Windows. Runner là Linux.**
+
+### Vì sao bốn cổng không thể thấy
+
+Cả bốn chạy trên máy Windows, nơi đường dẫn ấy **đúng**. Không cổng nào
+sai; chúng chỉ không có thẩm quyền về câu hỏi này. Đây là thứ chỉ CI trả
+lời được, và đó chính là lý do CI tồn tại.
+
+Ghi rõ để không rút sai bài học: **không phải "cổng vô dụng", mà là "cổng
+đo cái nó đo được".** Bất đối xứng local/CI là một trục riêng, và
+`CLAUDE.md` đã có hẳn một mục về nó — về BCTC và hạn mức, không về đường
+dẫn trình thông dịch.
+
+### Cùng lớp lỗi, lần thứ ba — và bài học đã nằm sẵn trong repo
+
+```
+31/08  kiem_cu_phap_311.DUONG_DOAN thieu sys.executable
+31/08  test_skill_quy_trinh kiem exists() -- may co, CI khong
+07/09  va_an_toan + test_cua_quy_trinh ghim duong .venv
+```
+
+Docstring của `tests/test_hang_rao_tu_dong.py` viết từ 31/08: *"Trên Linux
+CI nó phải trông vào `sys.executable`."* Tôi không đọc. Đó là **lỗi số 9
+trong bảng rà, lần thứ tư trong cùng một ngày.**
+
+Trớ trêu hơn cả: cùng buổi đó tôi viết `tools/kiem_test_chay_rieng.py`
+dùng `sys.executable` **đúng**, rồi viết `tools/va_an_toan.py` dùng đường
+ghim cứng **sai**. Cùng một người, cách nhau một giờ, hai lựa chọn ngược
+nhau.
+
+> Đó là lập luận mạnh nhất cho cả BƯỚC 35: **một luật nằm trong đầu thì
+> không phải luật.** Tôi biết luật này, đã viết nó ra, đã áp dụng đúng ở
+> một file — và vẫn sai ở file kế tiếp.
+
+### Gác mới
+
+Thêm vào `tests/test_script_chay_duoc_tren_windows.py` — đúng nhà, vì file
+ấy đã là gác toàn repo cho *"chạy được ở nơi khác"*, chỉ khác chiều.
+
+Luật: **không lời gọi `subprocess` nào được lấy trình thông dịch từ một
+đường `.venv` ghim cứng.** Chỉ soi **đối số đầu tiên**, tức chỗ thật sự
+quyết định chạy bằng gì.
+
+Ranh giới ấy là cả điểm của gác: `tests/test_cua_quy_trinh.py` **có** chuỗi
+`.venv` thật — trong danh sách lệnh mẫu để thử cửa Bash — và `.venv` còn
+nằm trong ba danh sách "thư mục bỏ qua". Một gác quét chuỗi sẽ kêu oan bốn
+chỗ ngay ngày đầu, rồi bị tắt (BƯỚC 31). Gác này lần theo AST: chuỗi thẳng,
+biến mức module, biến dựng bằng phép nối đường dẫn, và `[PY] + lenh`.
+
+Tự chứng minh: 5 mẫu xấu / 4 mẫu tốt, mẫu tốt thứ hai chính là ca `.venv`
+hợp lệ kể trên.
+
+### Đột biến 6/6 đỏ
+
+Hai phát đầu **dựng lại nguyên văn lỗi CI**: trả `.venv` vào
+`va_an_toan.py`, rồi vào `test_cua_quy_trinh.py` — gác đỏ cả hai lần. Bốn
+phát còn lại: phép phán trả rỗng · bỏ `Popen` khỏi danh sách · bỏ lần theo
+biến mức module · không bóc danh sách nên chỉ soi cả `list`.
+
+### Còn một thứ gác này KHÔNG bắt được
+
+Nó bắt đường dẫn trình thông dịch. Nó **không** bắt mọi dạng bất đối xứng
+local/CI khác — `Path.exists()` trên file gitignore, phân biệt hoa thường
+của tên file, `os.sep`. Ba dạng ấy đã cắn ít nhất một lần mỗi dạng và hiện
+chỉ có ghi chép, không có gác. Ghi ra đây thay vì im.
+
