@@ -24,7 +24,7 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 
 ---
 
-## 1. BA LỆNH ĐẦU TIÊN
+## 1. BỐN LỆNH ĐẦU TIÊN
 
 ```bash
 pytest tests/ -q
@@ -37,6 +37,11 @@ python tools/kiem_cu_phap_311.py
 
 python tools/chan_bia_so_lieu.py --quet-repo
 # Kỳ vọng: 0 CHẶN. Số cảnh báo thì đổi, không phải tiêu chí.
+
+python tools/kiem_test_chay_rieng.py
+# MỌI file test phải xanh khi chạy MỘT MÌNH. ~200s, tuần tự (song song
+# cho đỏ giả). Mã thoát 2 = CHƯA KIỂM ĐƯỢC, không phải sạch.
+# CI cũng chạy; chạy tay khi vừa sửa hoặc thêm test.
 ```
 
 **Trước khi sửa bất cứ thứ gì liên quan tới KẾT QUẢ, đọc hai file:**

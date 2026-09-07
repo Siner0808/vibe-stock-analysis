@@ -303,6 +303,22 @@ Gác: `tests/test_gac_khong_phu_thuoc_thu_tu.py`. Tập tên bị rò **suy ra**
 từ chính `tests/`, không gõ tay, nên thêm chỗ rò mới thì luật tự nới theo.
 Chi tiết: `docs/STATE.md` BƯỚC 33.
 
+#### Và một hình dạng thứ ba mà AST KHÔNG bắt được
+
+Cùng ngày, đo bằng cách chạy thật: `tests/test_trade_review.py` xanh trong
+bộ đầy đủ, **đỏ cả 7 test khi chạy một mình**. Nó không rẽ nhánh theo cờ
+nào cả — tên cờ không xuất hiện trong file ấy lần nào. Nó gọi
+`consider_entry()`, và hàm đó đọc cờ ở `paper_trading.py:625`. Không phép
+phân tích tĩnh hợp lý nào bắt được mà không đi theo luồng gọi xuyên module.
+
+Cổng: `tools/kiem_test_chay_rieng.py`, chạy trong `kiem-dinh.yml`. **Mỗi
+file test phải xanh khi chạy một mình.** Ba trạng thái như
+`kiem_cu_phap_311.py`, và mã thoát 2 (chưa kiểm được) trên CI là LỖI.
+
+Đo 07/09/2026: cả bộ xuôi **820 passed**, cả bộ NGƯỢC thứ tự file cũng
+**820 passed** — không phụ thuộc thứ tự ở mức kết cục. Chạy riêng: 1 file
+đỏ, nay đã sửa. `docs/STATE.md` BƯỚC 34.
+
 ### Hook KHÔNG thấy gì đi qua Bash — và quy ước của dự án đi đúng đường đó
 
 `PostToolUse` khớp `Write|Edit`. Nhưng quy ước "vá lớn thì viết một file
@@ -891,6 +907,7 @@ pytest tests/test_post_mortem.py          # khoá tính tái lập của chấm 
 python tools/chan_bia_so_lieu.py --quet-repo       # quét mẫu bịa số toàn repo
 python tools/chan_bia_so_lieu.py --quet-thay-doi  # chỉ file đã đổi (hook Stop)
 python tools/kiem_cu_phap_311.py                  # NAY CI CŨNG CHẠY — xem dưới
+python tools/kiem_test_chay_rieng.py              # mỗi file test phải xanh MỘT MÌNH
 ```
 
 ### Máy chạy 3.13, CI chạy 3.11 — khoảng cách đó ẩn được lỗi

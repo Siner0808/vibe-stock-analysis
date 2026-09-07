@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 import market_filter
+import paper_trading as pt
 import trade_review as tr
 from paper_trading import PaperTradingJournal, Status
 
@@ -52,10 +53,38 @@ def make_result(score: int = 75, sl: float = 66_000.0,
 
 
 def _one_closed_trade():
-    """Dựng một lệnh đã đóng trong sổ, giá quy về VNĐ như runner vẫn làm."""
+    """Dựng một lệnh đã đóng trong sổ, giá quy về VNĐ như runner vẫn làm.
+
+    Cờ C5 được BẬT TẠI CHỖ, có hoàn tra. `consider_entry()` đọc
+    `paper_trading.CHO_PHEP_MO_LENH_MOI` lúc chạy (`paper_trading.py:625`)
+    và cờ ấy đang ĐÓNG trong mã nguồn, nên không bật thì không có lệnh nào
+    được mở và cả 7 test dưới đây mất đối tượng để kiểm.
+
+    Đo 07/09/2026: chạy `pytest tests/test_trade_review.py` một mình thì cả
+    7 đỏ; chạy trong bộ đầy đủ thì xanh — vì ba file test khác gán cờ ấy ở
+    MỨC MODULE và pytest nạp mọi module lúc collect. Tức bảy test này đang
+    xanh nhờ một thứ **không liên quan gì tới biểu đồ xem lại**, và ngày ai
+    đó dọn ba chỗ rò kia — việc đúng đắn — chúng sẽ đỏ với một nguyên nhân
+    trông không dính dáng.
+
+    Ghim tại chỗ + `finally` chứ không gán ở mức module: gán mức module là
+    thêm một chỗ rò nữa, đúng thứ vừa gây ra chuyện này. Cùng lối với
+    `test_thi_hanh_dieu_kien_dung.py`. Xem `docs/STATE.md` BƯỚC 34.
+    """
     df = df_nghin_dong()
     j = PaperTradingJournal(":memory:")
-    j.consider_entry("FPT", df["time"].iloc[80], make_result())
+    co_cu = pt.CHO_PHEP_MO_LENH_MOI
+    try:
+        pt.CHO_PHEP_MO_LENH_MOI = True
+        j.consider_entry("FPT", df["time"].iloc[80], make_result())
+    finally:
+        pt.CHO_PHEP_MO_LENH_MOI = co_cu
+
+    assert j.all_trades(), (
+        "consider_entry() không mở được lệnh nào, nên cả 7 test dưới đây "
+        "không có gì để kiểm. Trước 07/09/2026 lỗi ở đây hiện ra thành "
+        "IndexError ở dòng cuối hàm — trỏ nhầm chỗ.")
+
     j.fill_pending("FPT", df["time"].iloc[81], float(df["open"].iloc[81]) * 1000)
     # Đóng lệnh bằng CẮT LỖ. Trước đây helper này đẩy high lên 90.000 để
     # chạm take_profit 82.000 — chốt lời cứng đã bị gỡ có chủ ý (Fat-Tail,
