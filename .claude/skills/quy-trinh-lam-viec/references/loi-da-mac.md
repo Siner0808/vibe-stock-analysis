@@ -25,8 +25,12 @@ là lỗi sẽ tái diễn.
 | 11 | dùng `-s` rồi tưởng lỗi mã hoá là lỗi sống | tự kiểm | ✅ | `cong-thuc-chay.md` |
 | 12 | ghim `.venv/Scripts/python.exe` — đường Windows, CI là Linux | **CI**, sau 4 cổng xanh | ✅ | `test_script_chay_duoc_tren_windows` |
 
-**Tám trên mười hai máy chặn được.** Ba cái còn lại là kỷ luật đọc và
-kỷ luật số — chúng thành Quy tắc số 2, Bước 1 và Bước 4.
+**Tám trên mười hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
+tác mà là một LUẬT SAI (mục dưới). Ba cái còn lại — 6, 8, 9 — là kỷ luật
+đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1 và Bước 4.
+
+Bốn cái đầu là **cùng một lỗi**: tự chế cách xử lý xuống dòng. Đó là lý
+do `tools/va_an_toan.py` tồn tại.
 
 ### Lỗi 12 đáng sợ nhất trong bảng, vì bốn cổng đều XANH
 
@@ -42,9 +46,6 @@ Trớ trêu hơn: cùng buổi đó tôi viết `tools/kiem_test_chay_rieng.py` 
 `sys.executable` ĐÚNG, rồi viết `tools/va_an_toan.py` dùng đường ghim cứng
 SAI. Cùng một người, cùng một giờ, hai lựa chọn ngược nhau — đó là lý do
 luật phải nằm trong MÁY chứ không nằm trong đầu.
-
-Bốn cái đầu là **cùng một lỗi**: tự chế cách xử lý xuống dòng. Đó là lý
-do `tools/va_an_toan.py` tồn tại.
 
 ### Lỗi số 4 hoá ra là một LUẬT SAI, không phải một thao tác sai
 
