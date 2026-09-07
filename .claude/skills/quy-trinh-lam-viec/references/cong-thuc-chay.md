@@ -34,13 +34,23 @@ không đọc được gì cho tới lúc nó xong — và rồi sẽ ngồi h�
 
 ---
 
-## Chờ: KHÔNG poll
+## Chờ: KHÔNG poll — và cũng KHÔNG kết luận sớm
 
 Chạy nền thì hệ thống **tự báo** khi xong. Hỏi lại giữa chừng chỉ tốn
 lượt gọi và nhận về màn hình trống (xem trên).
 
 Nếu thật sự cần thấy tiến độ giữa chừng: đọc file log, và nhớ Python
 **đệm stdout khi ghi vào file** — muốn thấy ngay thì `python -u`.
+
+> **Một lượt quét bị đẩy sang chạy nền là một phép đo CHƯA XONG.**
+>
+> Ngày 07/09/2026: chạy một lượt grep **hẹp** trên một file và một lượt
+> **rộng** toàn repo cho cùng câu hỏi. Lượt rộng quá 120 giây nên chạy
+> nền. Tôi trả lời bằng lượt hẹp; lượt rộng xong sau và **nói ngược
+> lại** — kết luận đã phát ra là sai.
+>
+> Đợi nó, hoặc nói rõ: *"trong phạm vi đã quét"*. Đừng phát biểu như
+> thể đã quét hết.
 
 ---
 

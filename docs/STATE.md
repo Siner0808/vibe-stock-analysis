@@ -8090,3 +8090,78 @@ không có `tests/`. Gác đường dẫn đỏ ngay. Trước đó nó cũng đ
 Hai lần đều là lỗi thật, đều nhỏ, và đều thuộc loại **sẽ không ai phát
 hiện bằng mắt**.
 
+
+---
+
+## BƯỚC 39 — TÔI ĐỌC TÀI LIỆU CỦA CHÍNH MÌNH RỒI KẾT LUẬN SAI (07/09/2026)
+
+Người dùng hỏi giải thích mục "CHI PHÍ THỰC THI". Tôi đọc mục ấy, đọc
+`truot_gia.py`, rồi khẳng định: **dự án không mô hình hoá phí giao dịch.**
+
+Sai. `paper_trading.py` có đủ ba hằng số, và chúng được dùng thật:
+
+```
+BROKER_FEE_PCT   = 0,0015    0,15% moi chieu
+EXCHANGE_FEE_PCT = 0,0003    0,03% moi chieu
+SELL_TAX_PCT     = 0,0010    0,1% tren gia tri ban
+-> paper_metrics.ROUND_TRIP_COST_PCT = 0,46%  mot vong
+-> Trade.net_return_pct() tru thang ra
+```
+
+### Hai nguyên nhân, và cả hai đều đáng ghi
+
+**Một — lỗi thao tác (lỗi 13).** Tôi chạy hai lượt quét cùng câu hỏi: một
+lượt HẸP trên `truot_gia.py`, một lượt RỘNG toàn repo. Lượt rộng quá 120
+giây nên bị đẩy sang chạy nền. **Tôi trả lời bằng lượt hẹp trong khi lượt
+rộng còn đang chạy.** Nó xong sau đó và nói ngược lại.
+
+Đáng chú ý: sai theo chiều làm kết quả trông **TỆ HƠN** thực tế. Quy tắc
+số 1 nói lỗi đo lường gần như luôn nghiêng chiều ngược — nên chiều này
+hiếm, và vì hiếm nên không có phản xạ nào cảnh báo.
+
+**Hai — lỗi tài liệu, và nó là lỗi nặng hơn.** Mục "CHI PHÍ THỰC THI"
+dài hơn năm mươi dòng và **không nhắc tầng phí lần nào**. Một người đọc
+mục có tiêu đề "chi phí" rồi kết luận "đây là toàn bộ chi phí" thì không
+sai — tài liệu mời họ kết luận như thế.
+
+Tức đây không phải "tôi đọc ẩu". Đây là **một mục tài liệu tự nhận là nói
+về chi phí mà bỏ mất một nửa chi phí.**
+
+### Đã sửa
+
+`CLAUDE.md` nay mở mục ấy bằng bảng **hai tầng**: tầng phí (luôn bật,
+không công tắc) và tầng thực thi (có công tắc `MO_PHONG_TRUOT_GIA`). Kèm
+lệnh đọc `ROUND_TRIP_COST_PCT` từ mã thay vì tin con số trong tài liệu.
+
+Và nói rõ hệ quả cho bảng số: **cả hai dòng TẮT/BẬT đều đã trừ tầng
+một**, nên −0,43 điểm phần trăm mỗi lệnh là phần **cộng thêm**. Ma sát
+tổng mỗi vòng vào-ra khoảng 0,46% + 0,43% ≈ **0,89%** — đây là phép cộng
+hai con số đã đo, không phải một phép đo mới.
+
+### Gác
+
+`ROUND_TRIP_COST_PCT` vào `HANG_SO` của
+`tests/test_tai_lieu_khop_hang_so.py`. Cố ý **không** canh ba hằng số
+thành phần: `_cach_viet` sinh biến thể `"0,00"` cho những giá trị nhỏ như
+`0,0015`, mà `"0,00"` khớp gần như mọi thứ — một gác luôn xanh. Canh con
+số **dẫn xuất** `0,46` thì đặc trưng, và nó cũng là con số người đọc cần.
+
+Đột biến 3/4 đỏ, gồm phát dựng lại đúng lỗi: đổi `0,46` trong tài liệu.
+
+### Phát sống sót, và vì sao KHÔNG chữa
+
+Phát thứ tư — vô hiệu hoá chính phép ghim bộ `HANG_SO` — sống sót. Nó xoá
+**cái lưới**, mà một cái lưới chỉ bắt được bằng một cái lưới khác. Vòng
+lùi ấy vô hạn.
+
+Điểm dừng đúng không phải "thêm một tầng lưới nữa", mà là: **lưới phải
+được một đột biến nào đó làm nổ.** Phát số 2 (rút
+`ROUND_TRIP_COST_PCT` khỏi `HANG_SO`) làm đúng việc đó — nó đỏ, tức lưới
+sống. Xoá lưới thì không phân biệt được với xoá gác, và đó là chuyện của
+người review, không phải của máy.
+
+Ghi ra vì ba ngày qua tôi đã chữa đúng hình dạng này ba lần
+(`kiem_hoan_tra`, `try/except` mở phiên, sàn chống vacuity) và mỗi lần
+đều chữa được. Lần này thì không, **và biết vì sao** — đó là khác biệt
+giữa một giới hạn đã hiểu và một lỗ chưa thấy.
+

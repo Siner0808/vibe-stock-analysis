@@ -76,10 +76,24 @@ def _cach_viet(ten: str, gia_tri) -> list[str]:
     return [f"{v:.{n}f}".replace(".", ",") for n in (2, 3, 4)]
 
 
-#: Hằng số điều khiển CỔNG C5 — thứ quyết định khi nào dừng mở lệnh mới.
-#: Đây là lý do bộ gác này tồn tại: một con số sai ở đây không phải lỗi
-#: chữ nghĩa, nó là một quy tắc an toàn sai.
-HANG_SO = ("N_DAY_DU", "N_TOI_THIEU", "MUC_BAT_LOI")
+#: Hằng số mà một con số sai trong tài liệu KHÔNG phải lỗi chữ nghĩa.
+#:
+#: Nhóm 1 — CỔNG C5: quyết định khi nào dừng mở lệnh mới. Sai ở đây là
+#: một quy tắc an toàn sai. Đây là lý do bộ gác này ra đời.
+#:
+#: Nhóm 2 — MA SÁT (thêm 07/09/2026): `ROUND_TRIP_COST_PCT` là tổng phí
+#: và thuế một vòng mua-bán, và `Trade.net_return_pct()` trừ thẳng nó ra.
+#: Thêm vào đây vì ngày 07/09 mục "CHI PHÍ THỰC THI" của `CLAUDE.md`
+#: không nhắc tầng phí lần nào, và một người đọc — chính tác giả gác này
+#: — kết luận dự án KHÔNG mô hình hoá phí. Nay tài liệu có nói, nên phải
+#: có gác giữ nó khớp mã.
+#:
+#: CỐ Ý không canh ba hằng số thành phần (`BROKER_FEE_PCT` 0,0015 …):
+#: `_cach_viet` sinh biến thể `"0,00"` cho những giá trị nhỏ như thế, và
+#: `"0,00"` khớp gần như mọi thứ — một gác luôn xanh. Canh con số DẪN
+#: XUẤT `0,46` thì đặc trưng, và nó cũng là con số người đọc cần.
+HANG_SO = ("N_DAY_DU", "N_TOI_THIEU", "MUC_BAT_LOI",
+           "ROUND_TRIP_COST_PCT")
 
 
 def _doc() -> str:
@@ -136,9 +150,10 @@ def test_HANG_SO_va_SAN_KY_TU_khong_duoc_thu_hep_am_tham():
     `SAN_KY_TU` xuống 0 thì gác chấp nhận đọc một file rỗng. Cùng hình
     dạng với `SAN_SO_FILE = 0` sống sót đột biến ngày 03/09/2026.
     """
-    assert set(HANG_SO) == {"N_DAY_DU", "N_TOI_THIEU", "MUC_BAT_LOI"}, (
-        "bộ hằng số của cổng C5 đã đổi — sửa danh sách này CÓ CHỦ ĐÍCH, "
-        "kèm lý do, chứ đừng rút gọn cho test xanh")
+    assert set(HANG_SO) == {"N_DAY_DU", "N_TOI_THIEU", "MUC_BAT_LOI",
+                            "ROUND_TRIP_COST_PCT"}, (
+        "bộ hằng số được canh đã đổi — sửa danh sách này CÓ CHỦ ĐÍCH, kèm "
+        "lý do, chứ đừng rút gọn cho test xanh")
     assert SAN_KY_TU == 20_000
     assert BAN_KINH == 400
 
