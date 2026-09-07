@@ -19,7 +19,10 @@ on:
 jobs:
   kiem-dinh:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 20 -> 30 ngày 07/09/2026: bước "chạy một mình" tốn ~200s ở máy local
+    # (65 tiến trình pytest tuần tự — song song cho đỏ giả), và runner chậm
+    # hơn. Không phải nới vì bước nào đang chạm trần.
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v7
@@ -75,6 +78,33 @@ jobs:
           ma=$?
           if [ "$ma" -eq 2 ]; then
             echo "::error::kiem_cu_phap_311 trả 2 (chưa kiểm được) — trên CI đó là lỗi, runner này là 3.11"
+            exit 1
+          fi
+          exit $ma
+
+      - name: Mỗi file test phải xanh khi CHẠY MỘT MÌNH
+        # Bước "Bộ test" ở trên chạy cả 65 file trong MỘT tiến trình, nên
+        # trạng thái rò từ file này sang file khác. Một file xanh ở đó vẫn
+        # có thể đỏ khi đứng riêng — nghĩa là nó đang kiểm thứ nó nói CỘNG
+        # một điều kiện không ai khai và không ai giữ.
+        #
+        # Đo 07/09/2026: `test_trade_review.py` xanh trong bộ, ĐỎ một mình
+        # cả 7 test, vì `consider_entry()` chỉ mở lệnh khi cờ C5 bật — và
+        # cờ ấy do ba file test KHÁC gán ở mức module. Bảy test về biểu đồ
+        # xem lại đang xanh nhờ một thứ không liên quan gì tới biểu đồ.
+        #
+        # Gác AST `tests/test_gac_khong_phu_thuoc_thu_tu.py` KHÔNG bắt được
+        # ca đó: tên cờ không xuất hiện trong file ấy lần nào. Chỉ CHẠY
+        # THẬT mới thấy. Hai bước bổ sung nhau, không thay nhau.
+        #
+        # Mã thoát 2 = "chưa kiểm được", và trên CI đó là LỖI, cùng lý do
+        # như bước cú pháp 3.11 ở trên.
+        run: |
+          set +e
+          python tools/kiem_test_chay_rieng.py --im
+          ma=$?
+          if [ "$ma" -eq 2 ]; then
+            echo "::error::kiem_test_chay_rieng trả 2 (chưa kiểm được) — trên CI đó là lỗi"
             exit 1
           fi
           exit $ma

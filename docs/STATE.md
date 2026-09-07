@@ -7581,3 +7581,152 @@ làm đúng bài `try/finally`. Dọn nhóm B là việc sạch sẽ, không ph�
 sửa lỗi — và mỗi lần đụng vào một file test đang xanh là một lần có thể
 làm hỏng nó. Để lại, có ghi.
 
+
+---
+
+## BƯỚC 34 — HỎI BỘ TEST BẰNG CÁCH CHẠY, KHÔNG BẰNG CÁCH ĐỌC (07/09/2026)
+
+BƯỚC 33 trả lời câu "bộ test có phụ thuộc thứ tự không" bằng **AST tĩnh**.
+Câu trả lời tĩnh không phải câu trả lời. Chiều nay đo thật.
+
+### Ba phép đo
+
+```
+1. chay TUNG file mot minh   (65 file, tuan tu)
+2. ca bo, NGUOC thu tu file
+3. ca bo, thu tu binh thuong          <- moc so sanh cung phien
+```
+
+Kết quả:
+
+| Phép đo | Kết quả |
+|---|---|
+| cả bộ, xuôi | **820 passed** · 134s |
+| cả bộ, ngược | **820 passed** · 144s |
+| từng file một mình | **1 file ĐỎ** |
+
+Xuôi và ngược cho **cùng một con số**. Không có phụ thuộc thứ tự ở mức kết
+cục — điều đáng biết, và nó không hiển nhiên trước khi đo.
+
+File đỏ: `tests/test_trade_review.py`, **cả 7 test**, `IndexError`.
+
+### Cái này AST không thể thấy
+
+```python
+def _one_closed_trade():
+    j.consider_entry("FPT", ...)          # paper_trading.py:625 doc co C5
+    ...
+    return df, j, j.all_trades(Status.CLOSED)[0]     # IndexError o day
+```
+
+Cổng C5 đóng trong mã nguồn → `consider_entry` không mở lệnh → không có
+lệnh nào để đóng → danh sách rỗng → `IndexError`. Trong bộ đầy đủ thì ba
+file khác đã bật cờ ở mức module, nên lệnh mở được và cả 7 xanh.
+
+**Tên cờ không xuất hiện một lần nào trong `test_trade_review.py`.** Máy
+quét AST của BƯỚC 33 tìm chỗ *rẽ nhánh theo* cờ; ở đây không có chỗ nào rẽ
+nhánh cả — chỉ có một lời gọi hàm, và hàm ấy đọc cờ ở tận đâu. Không có
+phép phân tích tĩnh hợp lý nào bắt được mà không đi theo luồng gọi xuyên
+module.
+
+Chỉ CHẠY THẬT mới thấy.
+
+### Ba hình dạng, ba ngày, cùng một gốc
+
+| ngày | hình dạng | một mình | trong bộ | bắt bằng |
+|---|---|---|---|---|
+| 05/09 | gác ĐỌC cờ lúc chạy | xanh | **đỏ** | tình cờ |
+| 07/09 | gác RẼ NHÁNH theo cờ | SKIP | khẳng định sai | AST |
+| 07/09 | test ÂM THẦM PHỤ THUỘC cờ | **đỏ** | xanh | chạy thật |
+
+Hàng thứ ba là hàng khó chịu nhất: bảy test về **biểu đồ xem lại quyết
+định** đang xanh nhờ một thứ không liên quan gì tới biểu đồ. Và ngày ai đó
+dọn ba chỗ rò kia — việc đúng đắn — chúng đỏ với một `IndexError` trỏ vào
+dòng cuối của một hàm phụ trợ, cách nguyên nhân thật ba tầng gọi.
+
+Docstring của chính hàm ấy đã ghi lại **một lần trước** cả 7 test cùng đỏ
+vì một lý do cấu trúc khác (gỡ chốt lời cứng). Hàm phụ trợ đó dựng cảnh
+qua ba lời gọi vào mã thật, nên nó vỡ mỗi khi mã thật đổi hành vi — và
+luôn vỡ ở dòng cuối, nơi không nói gì về nguyên nhân.
+
+### Đã sửa
+
+Ghim cờ **tại chỗ, có `finally`** — không gán ở mức module, vì gán mức
+module là thêm một chỗ rò nữa, đúng thứ vừa gây ra chuyện này. Cùng lối
+với `test_thi_hanh_dieu_kien_dung.py`.
+
+Thêm một `assert` ngay sau lời gọi, để lần sau lỗi ở đây tự nói ra tên
+mình thay vì hiện thành `IndexError` ở dòng cuối.
+
+Kiểm: một mình **7 passed**; đi cùng file rò **46 passed**; tập tên bị rò
+KHÔNG đổi (vẫn đúng ba chỗ cũ).
+
+### Công cụ — `tools/kiem_test_chay_rieng.py`
+
+Phép đo hôm nay thành cổng thường trực, vào `kiem-dinh.yml`. Cùng hình
+dạng ba trạng thái như `kiem_cu_phap_311.py`:
+
+```
+0 = moi file xanh khi chay rieng
+1 = co file do khi chay rieng
+2 = CHUA KIEM DUOC          <- tren CI la LOI, khong phai bo qua
+```
+
+Trạng thái thứ ba bắt buộc, và ở đây nó gần hơn bình thường: `bay.md` mục
+4 nói *một kết quả "dụng cụ hỏng" phải được đối chiếu đúng như một kết quả
+"tìm thấy tín hiệu"* — công cụ này in ra một dấu tích màu xanh, tức là nó
+sinh ra **kết quả sạch**, và kết quả sạch cũng đẹp theo cách riêng của nó.
+
+`tu_kiem()` chạy trước mọi thứ: dựng một file chắc chắn XANH và một file
+chắc chắn ĐỎ trong thư mục tạm, cho cả hai đi qua đúng `chay_mot_file()`.
+Hỏng một trong hai chiều → mã thoát 2.
+
+Chạy tuần tự, **không song song**: vài test ghi thư mục tạm vào gốc repo.
+Đo được 200s cho 65 file ở máy local; `timeout-minutes` của CI nới 20 → 30
+để có biên, không phải vì bước nào đang chạm trần.
+
+### Đột biến — 7/7 đỏ
+
+Phát đầu là phát đáng kể, và nó **không hỏi bộ test, nó hỏi công cụ**:
+gỡ đúng dòng vừa sửa trong `test_trade_review.py` rồi chạy
+`kiem_test_chay_rieng.py` trên **một** file đó → trả 1.
+
+Sáu phát còn lại đo bằng `tests/test_kiem_test_chay_rieng.py`: phán xử bỏ
+qua danh sách hỏng (`if hong:` → `if False:`) · `tu_kiem` bỏ vế "file xanh
+bị báo đỏ" · bỏ vế **"file đỏ bị báo xanh"** · `chay_mot_file()` luôn trả
+xanh · bỏ cảnh "không thấy file nào" · đổi thư mục mặc định sang chỗ không
+tồn tại.
+
+Vế "file đỏ bị báo xanh" là vế nguy hiểm: mất nó thì một công cụ mù vẫn in
+dấu tích. Hai vế của `tu_kiem` phải đục riêng, vì một vế đủ để test xanh.
+
+### Đọc đúng con số 200s — tôi ước sai gấp bốn lần trước khi tính
+
+Định viết "phần chạy test thật chỉ khoảng 40s, còn lại là khởi động tiến
+trình". Tính từ dữ liệu đã lưu thì:
+
+```
+tong thoi gian pytest TU BAO, 65 luot rieng : 167,7s
+tong wall-clock cua 65 luot rieng           : 212,1s
+ca bo trong MOT tien trinh                  : 133,9s
+```
+
+Khởi động tiến trình chỉ chiếm **44s** (≈0,7s mỗi lượt). Phần đắt là 34
+giây pytest **tự báo** thêm — collect lại, import lại, dựng lại fixture 65
+lần. Ước ban đầu sai gấp hơn bốn lần, và nó sai theo chiều làm công cụ mới
+trông rẻ hơn thực tế.
+
+Một file chiếm 40% tổng số:
+
+```
+test_chan_bia_so_lieu.py    67,3s
+test_no_fabricated_data.py  18,1s
+test_backtest.py            17,5s
+test_dieu_kien_dung_alpha.py 14,5s
+```
+
+**Chưa truy** vì sao `test_chan_bia_so_lieu.py` tốn 67s — nó là gác quét
+mẫu bịa số, và có thể đang quét cả repo nhiều lần. Ghi ra đây để khỏi quên;
+không đụng hôm nay, vì đụng vào một gác đang xanh là việc riêng, phải có
+phép đo riêng.
+
