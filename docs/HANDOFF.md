@@ -73,11 +73,11 @@ python tools/chan_bia_so_lieu.py --quet-repo
 
 ---
 
-## 3. BỐN RÀNG BUỘC KHI LÀM VIỆC
+## 3. NĂM RÀNG BUỘC KHI LÀM VIỆC
 
 Ba cái đầu rút ra từ lỗi thật hồi tháng Tám, và **cả ba đều nghiêng cùng
 một hướng: làm hệ thống trông đỡ hỏng hơn thực tế.** Cái thứ tư thêm ngày
-05/09/2026.
+05/09/2026, cái thứ năm ngày 07/09/2026.
 
 1. **Truy vấn ngày phải dùng `substr(signal_date,1,10)`, không so chuỗi.**
    Bảng quyết định có hai định dạng thời gian. Một lượt kiểm chứng mất
@@ -96,6 +96,17 @@ một hướng: làm hệ thống trông đỡ hỏng hơn thực tế.** Cái t
    gác vừa viết xong, vừa xanh, và không kiểm gì cả. Bốn lần đầu phải để
    đột biến chứng minh; lần thứ năm ẩn sau THỨ TỰ CHẠY TEST và chỉ lộ ra
    vì tình cờ đỏ đúng chiều. Xem `docs/STATE.md` BƯỚC 29–31.
+
+5. **Sửa xong một hình dạng lỗi thì phải QUÉT xem nó còn ở đâu nữa —
+   trước khi ghi là đã xong.** Sửa một chỗ là sửa một chỗ, không phải sửa
+   một lớp. Ngày 05/09 lỗi "gác đọc cờ lúc chạy" được vá tại chỗ đang
+   viết rồi dừng; ngày 07/09 một lượt quét AST tìm ra nó **đã nằm sẵn**
+   ở `test_tran_von_cam_ket.py`. Xem `docs/STATE.md` BƯỚC 33.
+
+   Kèm theo, và đây là vế hay bị bỏ: **tìm xem repo đã giải chưa trước
+   khi tự viết lời giải.** Cả hai lần — cờ C5 ngày 05/09 và chỗ này —
+   lời giải nằm sẵn trong `tests/test_c5_noi_that.py` kèm docstring nói
+   rõ lý do.
 
 ### Và một quy tắc về cách tìm
 

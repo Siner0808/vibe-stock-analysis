@@ -274,6 +274,35 @@ assert v.right.id == "SO_VI_THE_MUC_TIEU"
 Và hệ quả thứ hai: **viết đột biến TRƯỚC khi tin một gác mới.** Ba lần trên
 đều là gác vừa viết xong, vừa xanh, và vừa vô dụng.
 
+### Gác không được RẼ NHÁNH theo giá trị LÚC CHẠY của một cờ
+
+Ba file test bật cờ `CHO_PHEP_MO_LENH_MOI` ở mức module, và pytest nạp mọi
+module lúc collect. Nên giá trị lúc chạy của cờ ấy do **thứ tự collect**
+quyết định, chứ không do mã nguồn.
+
+Đo 07/09/2026 trên `test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT` — cùng một
+test, khác mỗi danh sách file truyền cho pytest:
+
+```
+pytest tests/test_tran_von_cam_ket.py -k cong_MO
+    -> SKIP  cong dang dong
+
+pytest tests/test_paper_trading.py tests/test_tran_von_cam_ket.py -k cong_MO
+    -> PASS  cong MO · tran 100% · nguong 62      <- cong that dang DONG
+```
+
+File thứ hai không góp một test nào, nó chỉ **được nạp**.
+
+**Luật: rẽ nhánh thì đọc NGUỒN bằng AST; khẳng định thì đọc lúc chạy.** Hai
+việc khác nhau — `assert` trên giá trị lúc chạy là chính phép kiểm (xem
+`tests/test_thi_hanh_dieu_kien_dung.py`, nó chứng minh cờ thật sự đổi), còn
+`if not <cờ>: return` là cái cổng quyết định **có kiểm hay không**. Cấm cả
+hai sẽ giết mất phép kiểm thứ nhất.
+
+Gác: `tests/test_gac_khong_phu_thuoc_thu_tu.py`. Tập tên bị rò **suy ra**
+từ chính `tests/`, không gõ tay, nên thêm chỗ rò mới thì luật tự nới theo.
+Chi tiết: `docs/STATE.md` BƯỚC 33.
+
 ### Hook KHÔNG thấy gì đi qua Bash — và quy ước của dự án đi đúng đường đó
 
 `PostToolUse` khớp `Write|Edit`. Nhưng quy ước "vá lớn thì viết một file
