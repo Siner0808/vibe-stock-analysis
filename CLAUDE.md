@@ -694,6 +694,38 @@ paper_trading.MO_PHONG_TRUOT_GIA = True
 paper_trading.VON_DANH_MUC_VND = 1_000_000_000
 ```
 
+> ### Ma sát có HAI TẦNG — đừng nhầm tầng này với tầng kia
+>
+> Mục này chỉ nói về **tầng hai**. Tầng một có từ trước và **luôn bật**,
+> không có công tắc:
+>
+> | tầng | gồm gì | ở đâu | công tắc |
+> |---|---|---|---|
+> | 1 · phí & thuế | môi giới · phí Sở · thuế bán | `paper_trading.py` | không có, luôn bật |
+> | 2 · chi phí thực thi | bước giá · tác động thị trường · lô chẵn · vòng đời lệnh | `truot_gia.py` + `vong_doi_lenh.py` | `MO_PHONG_TRUOT_GIA` |
+>
+> Tầng một cộng lại là `paper_metrics.ROUND_TRIP_COST_PCT` = **0,46%** một
+> vòng mua-bán, và `Trade.net_return_pct()` trừ thẳng nó ra — docstring
+> gọi đó là *"con số duy nhất đáng tin"*. Muốn giá trị hiện hành thì đọc
+> mã, đừng đọc con số ở đây:
+>
+> ```bash
+> ./.venv/Scripts/python.exe -c "import paper_metrics as m; print(m.ROUND_TRIP_COST_PCT)"
+> ```
+>
+> **Hệ quả cho bảng số bên dưới:** cả hai dòng TẮT/BẬT đều ĐÃ trừ tầng
+> một. Con số −0,43 điểm phần trăm mỗi lệnh là phần **cộng thêm** của
+> tầng hai.
+>
+> Và tầng một vẫn **lạc quan**: `BROKER_FEE_PCT` lấy cận DƯỚI của dải bán
+> lẻ thật (0,15–0,35% mỗi chiều), nên công ty đắt hơn có thể lên tới
+> 0,76% một vòng. Chú thích trong `paper_trading.py` nói rõ điều đó.
+>
+> Ghi mục này ra vì ngày 07/09/2026 chính tôi đọc mục "CHI PHÍ THỰC THI"
+> rồi kết luận **dự án không mô hình hoá phí** — sai, và sai theo chiều
+> làm con số trông tệ hơn thực tế. Mục này không nhắc tầng một lần nào,
+> nên hiểu nhầm ấy là lỗi của tài liệu trước, không phải của người đọc.
+
 `truot_gia.py` + `vong_doi_lenh.py` từng là hai module mồ côi: 29 test,
 không file nào ngoài test của chính chúng import. Nay `fill_pending` đi qua
 `vong_doi_lenh` (lô chẵn · biên độ ±7% · trần thanh khoản mỗi nến · khớp

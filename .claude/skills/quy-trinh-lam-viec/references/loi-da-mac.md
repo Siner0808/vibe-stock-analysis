@@ -24,10 +24,27 @@ là lỗi sẽ tái diễn.
 | 10 | không biết dự án có skill tới giữa buổi | hệ thống tự hiện | ✅ | `tools/cua_mo_phien.py` (SessionStart) |
 | 11 | dùng `-s` rồi tưởng lỗi mã hoá là lỗi sống | tự kiểm | ✅ | `cong-thuc-chay.md` |
 | 12 | ghim `.venv/Scripts/python.exe` — đường Windows, CI là Linux | **CI**, sau 4 cổng xanh | ✅ | `test_script_chay_duoc_tren_windows` |
+| 13 | kết luận từ lượt quét HẸP trong khi lượt quét RỘNG còn đang chạy | lượt rộng xong sau, nói ngược lại | ⚠️ một phần | `cong-thuc-chay.md` |
 
-**Tám trên mười hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
-tác mà là một LUẬT SAI (mục dưới). Ba cái còn lại — 6, 8, 9 — là kỷ luật
-đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1 và Bước 4.
+**Tám trên mười ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
+tác mà là một LUẬT SAI (mục dưới). Bốn cái còn lại — 6, 8, 9, 13 — là
+kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4 và
+`cong-thuc-chay.md`.
+
+### Lỗi 13 — trả lời trước khi phép đo xong
+
+Chạy hai lượt quét cùng câu hỏi: một lượt **hẹp** trên một file, một
+lượt **rộng** toàn repo. Lượt rộng quá 120 giây nên bị đẩy sang chạy
+nền. Tôi trả lời bằng lượt hẹp — và lượt rộng xong sau đó, **nói ngược
+lại**.
+
+Cụ thể: kết luận *"dự án không mô hình hoá phí giao dịch"* trong khi
+`paper_trading.py` có đủ ba hằng số phí và `Trade.net_return_pct()`
+trừ thẳng chúng ra. Sai theo chiều làm kết quả trông **tệ hơn** thực
+tế — hiếm, vì quy tắc số 1 nói lỗi đo lường thường nghiêng chiều ngược.
+
+Luật: **một lượt quét bị đẩy sang chạy nền là một phép đo CHƯA XONG.**
+Đợi nó, hoặc nói rõ kết luận này chỉ đúng trong phạm vi đã quét.
 
 Bốn cái đầu là **cùng một lỗi**: tự chế cách xử lý xuống dòng. Đó là lý
 do `tools/va_an_toan.py` tồn tại.
