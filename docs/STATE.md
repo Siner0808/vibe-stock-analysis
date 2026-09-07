@@ -8005,3 +8005,88 @@ Nhỏ, nhưng đúng hình dạng của cả tuần: **một lượt sửa tài 
 một chỗ lệch mới.** Lần này bắt được ngay vì đọc lại phần vừa ghi — thao
 tác duy nhất không có gác nào thay thế được.
 
+
+---
+
+## BƯỚC 38 — BỊT HAI LỖ CÒN LẠI CỦA SKILL (07/09/2026)
+
+Người dùng hỏi *"skill đã làm xong chưa"*. Trả lời trung thực là **chưa**:
+ba trên bảy yêu cầu mới đạt một phần. Hai trong ba bịt được bằng máy.
+
+### Lỗ 1 — skill không tự nạp, và lời nhắc nằm trong một vòng tròn
+
+Bước 0 của skill viết *"`ls .claude/skills/` là hai giây"*. Nhưng phải
+**đọc skill mới biết** phải đi tìm skill. Đó là một vòng tròn, không phải
+một cơ chế.
+
+Bằng chứng nặng hơn: **skill mới chưa từng được gọi lần nào.** Tôi gọi
+bản cũ đúng một lần, TRƯỚC khi đổi tên. Từ đó tới giờ tôi làm theo nội
+dung nó vì tôi vừa tự viết nó — không phải vì nó được nạp.
+
+`tools/cua_mo_phien.py`, hook `SessionStart`. In lời nhắc gọi skill và
+liệt kê **mốc ngày đang chặn**, cả hai **suy ra chứ không gõ**:
+
+```
+ten skill  <- glob .claude/skills/*/SKILL.md
+moc ngay   <- muc "Cho toi ngay" trong docs/HANDOFF.md, loc theo hom nay
+```
+
+Gõ tay vào đó là tạo thêm đúng một chỗ lệch nữa — thứ cả tuần này đi vá.
+
+Nguyên tắc cứng: **KHÔNG BAO GIỜ CHẶN.** Luôn thoát 0, nuốt mọi lỗi. Một
+hook mở phiên làm hỏng phiên thì tệ hơn không có.
+
+### Lỗ 2 — bảng lỗi trỏ tới gác bằng TÊN TRẦN, và tên trần thì lọt
+
+`references/loi-da-mac.md` ghi cột "đã chặn bằng" dưới dạng tên module
+viết trần (không đuôi `.py`) và tên luật kebab của cửa Bash. Gác tài liệu
+cũ chỉ bắt dạng có đuôi hoặc `tests/x.py::ham` — nên **5 tên module + 2
+tên luật đang lọt**. Đổi tên một gác là cột ấy trỏ vào hư không, im lặng.
+
+Hai phép kiểm mới trong `tests/test_skill_quy_trinh.py`. Tên luật chỉ soi
+token kebab **cùng dòng** với tên module cửa Bash — một chữ kebab ở chỗ
+khác không phải tên luật, và gác kêu oan thì bị tắt (BƯỚC 31).
+
+### Lỗ 3 — KHÔNG bịt được, nói thẳng
+
+"Skill phải được cập nhật mỗi lần có lỗi mới" không mechanize được: *"có
+lỗi mới"* không đo được. Bước 6 vẫn là kỷ luật. Thứ làm được là bịt chỗ
+**mục ruỗng** của bảng, tức lỗ 2 — đã làm.
+
+### Đột biến — 12 phát, và **năm phát sống sót ở lượt đầu**
+
+Tỷ lệ tệ nhất trong ngày. Nhưng đọc kỹ thì hai trong năm là **đột biến
+tôi viết sai**, không phải gác hỏng:
+
+```
+`pytest-qua-ong-DA-DOI-TEN`   -> co chu HOA nen khong khop dang kebab
+`return [] or [...]`          -> [] or X == X, tuc khong duc gi ca
+```
+
+Ghi lại vì nó là một bài học riêng: **một đột biến sống sót có hai cách
+đọc, và phải phân biệt trước khi kết luận** — gác không bắt được, hay
+phép đục không đục gì. Lần này là cả hai, mỗi thứ một nửa.
+
+Ba phát còn lại là lỗ thật, **cả ba cùng một hình dạng**:
+
+> Một gác kiểm *"không có vi phạm nào"* thì **không phân biệt được với
+> một gác kiểm gì cả**, khi hiện chưa có vi phạm nào.
+
+Đó là lý do phải có phần **tự chứng minh bằng mẫu đã biết là xấu**, đi
+qua đúng hàm phán. Đã tách `_ten_module_test_chet()`,
+`_ten_luat_chet()`, `_tat_ca_token_skill()` và thêm 4 mẫu xấu / 6 mẫu
+tốt. Sau đó **12/12 đỏ**.
+
+Cùng hình dạng ấy còn xuất hiện ở lớp `try/except` của cửa mở phiên: gỡ
+nó đi thì đường chạy êm không đổi gì. Chỉ giết được bằng phép kiểm **hành
+vi** — ép `ban_tin()` nổ rồi đòi `main()` vẫn trả 0.
+
+### Gác bắt tác giả lần thứ ba trong ngày
+
+Viết Bước 6 xong, tôi ghi `` `test_skill_quy_trinh.py` `` — tên file trần,
+không có `tests/`. Gác đường dẫn đỏ ngay. Trước đó nó cũng đỏ vì
+`tools/cua_mo_phien.py` chưa được `git add`.
+
+Hai lần đều là lỗi thật, đều nhỏ, và đều thuộc loại **sẽ không ai phát
+hiện bằng mắt**.
+

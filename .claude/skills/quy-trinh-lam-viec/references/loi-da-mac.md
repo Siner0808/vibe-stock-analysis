@@ -21,7 +21,7 @@ là lỗi sẽ tái diễn.
 | 7 | `pytest \| tail` chạy nền → ≥10 lượt hỏi "xong chưa" | tự nhận ra muộn | ✅ | `cua_bash_an_toan` `pytest-qua-ong` |
 | 8 | sửa `CLAUDE.md` khi pytest đang chạy | trí nhớ | ⚠️ một phần | Bước 4, dòng cuối |
 | 9 | không tìm lời giải sẵn có (lần 2/3 ngày) | đọc lại | ⚠️ một phần | Bước 1 |
-| 10 | không biết dự án có skill tới giữa buổi | hệ thống tự hiện | ✅ | Bước 0 (`ls .claude/skills/`) |
+| 10 | không biết dự án có skill tới giữa buổi | hệ thống tự hiện | ✅ | `tools/cua_mo_phien.py` (SessionStart) |
 | 11 | dùng `-s` rồi tưởng lỗi mã hoá là lỗi sống | tự kiểm | ✅ | `cong-thuc-chay.md` |
 | 12 | ghim `.venv/Scripts/python.exe` — đường Windows, CI là Linux | **CI**, sau 4 cổng xanh | ✅ | `test_script_chay_duoc_tren_windows` |
 
@@ -83,3 +83,6 @@ true`, không `.gitattributes`. Quy ước xuống dòng của bản trên đĩa
 4. Luật mới phải khai nguồn: **ngày sự cố**, hoặc dấu `CHƯA CÓ SỰ CỐ`
    kèm tên file quy ước.
 5. Đục thử luật mới. Chưa đục thì chưa tin.
+6. **Tên gác nhắc trong bảng này bị canh** — `tests/test_skill_quy_trinh.py`
+   bắt tên module test viết trần và tên luật của cửa Bash phải có thật.
+   Đổi tên một gác mà quên bảng thì đỏ, không im.
