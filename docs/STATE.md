@@ -7439,3 +7439,145 @@ Bài học: **một file càng đứng đầu thứ tự ưu tiên thì càng ph
 sửa gần nhất.** Nếu không, quy tắc ưu tiên biến nó từ tấm bản đồ thành
 tấm biển chỉ sai đường.
 
+
+---
+
+## BƯỚC 33 — LỖI CỦA BƯỚC 31 ĐÃ NẰM SẴN Ở MỘT CHỖ KHÁC (07/09/2026)
+
+BƯỚC 31 ghi lại một gác vừa viết đọc cờ an toàn **lúc chạy**, xanh khi
+chạy một mình và đỏ trong bộ đầy đủ. Hôm ấy tôi sửa đúng cái gác mình
+đang viết rồi dừng lại. Việc chưa làm là **hỏi xem hình dạng ấy còn ở
+đâu nữa**.
+
+Sáng nay soát cả `tests/` bằng AST. Có.
+
+### Phép soát
+
+Ba mức, phân biệt rõ vì chúng KHÔNG cùng mức nguy hiểm:
+
+```
+A. gan `<mod>.<TEN> = ...` o MUC MODULE   -> khong bao gio hoan tra
+B. gan trong ham, khong try/finally       -> ro tu luc test do chay
+C. monkeypatch.setattr                    -> AN TOAN, pytest hoan tra
+```
+
+Kết quả trên 64 file: **A = 3** (đúng ba file đã biết, tất cả gán
+`CHO_PHEP_MO_LENH_MOI = True`), **B = 24**, **C = 8 file**.
+
+Rồi bắt chéo: chỗ nào **đọc** một tên thuộc nhóm A mà **chính file đó
+không gán**? Đúng **một**:
+
+```
+tests/test_tran_von_cam_ket.py:301
+    test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT
+        if not pt.CHO_PHEP_MO_LENH_MOI:
+            print("SKIP  cong dang dong")
+            return
+```
+
+### Đo, không suy luận
+
+Cùng một test, khác mỗi danh sách file truyền cho pytest:
+
+| Lệnh | Nhánh chạy |
+|---|---|
+| `pytest tests/test_tran_von_cam_ket.py -k cong_MO` | **SKIP** |
+| `pytest tests/test_paper_trading.py tests/test_tran_von_cam_ket.py -k cong_MO` | **`PASS  cổng MỞ · trần 100% · ngưỡng 62`** |
+
+File thứ hai không góp một test nào — nó chỉ **được nạp**. pytest nạp mọi
+module lúc collect, nên dòng gán ở mức module chạy trước mọi test.
+
+**Cổng C5 thật đang ĐÓNG.** Nhánh thứ hai in ra một câu khẳng định ngược
+với mã nguồn, và xanh.
+
+### Vì sao đây là lỗi, dù hôm nay nó vô hại
+
+Ba dòng gán kia làm cờ luôn `True` trong bộ đầy đủ, nên gác luôn chạy
+phần khẳng định — tình cờ **nhiều** việc hơn nó định làm, không phải ít.
+Không có kết luận nào của dự án sai vì chuyện này.
+
+Cái sai nằm ở chỗ khác: **điều kiện kích hoạt của một gác do file test
+khác quyết định, không do thứ nó canh.** Dọn ba dòng gán ấy đi — một
+việc đúng đắn, chúng là rò rỉ — thì gác lặng lẽ ngủ. Và ngày ai đó mở
+cổng trong mã nguồn, nếu lúc đó có một file gán `False` ở mức module thì
+gác bỏ qua **đúng lúc phải kêu**.
+
+Đó là chiều mà BƯỚC 31 gọi là chiều xấu, và hôm ấy chỉ nhờ may mà không
+gặp.
+
+### Điều khó chịu nhất
+
+`tests/test_c5_noi_that.py::test_cong_C5_dang_DONG_trong_ma_nguon` đã
+giải xong việc này **từ trước**, và docstring của nó nói thẳng:
+
+> *Vài file test gán `paper_trading.CHO_PHEP_MO_LENH_MOI = True` ở mức
+> module — rò sang mọi test chạy sau. Đọc giá trị lúc chạy ở đây sẽ cho
+> một phép kiểm phụ thuộc thứ tự chạy, tức là vô nghĩa.*
+
+Lần thứ hai trong ba ngày lời giải nằm sẵn trong repo, kèm lý do viết
+rõ, và tôi không đọc. Chép lời giải ra một chỗ mới thì rẻ; **đọc trước
+khi viết** mới là thứ chưa làm được.
+
+### Đã sửa
+
+`_co_C5_trong_ma_nguon()` đọc `paper_trading.py` bằng AST. Sau khi sửa,
+hai lệnh ở bảng trên cho **cùng một nhánh** — và là nhánh khớp mã nguồn.
+
+### Gác mới — `tests/test_gac_khong_phu_thuoc_thu_tu.py`
+
+Sửa một chỗ thì lần sau lại mọc chỗ khác. Luật:
+
+> Tập "tên bị rò" **suy ra**, không gõ tay: mọi tên `<module>.<TÊN>` bị
+> gán ở mức module trong bất kỳ `tests/*.py` nào. Rò rồi thì **cấm rẽ
+> nhánh** theo nó (`if`, biểu thức ba ngôi). **Không cấm khẳng định** —
+> `assert pt.CHO_PHEP_MO_LENH_MOI is False` là chính phép kiểm, không
+> phải cái cổng quyết định có kiểm hay không.
+
+Ranh giới ấy quan trọng: `test_thi_hanh_dieu_kien_dung.py` khẳng định
+trên giá trị lúc chạy **có chủ đích** — nó chứng minh cờ thật sự đổi khi
+điều kiện đạt. Một luật cấm cả hai sẽ giết mất phép kiểm đó.
+
+Tập ấy hôm nay có đúng một phần tử. **Không** neo con số: dọn hết chỗ rò
+là việc đúng, và một gác đỏ khi người ta sửa đúng thì sẽ bị tắt.
+
+Nói luôn giới hạn thay vì giấu: gán ra biến trung gian rồi rẽ theo biến
+đó thì máy này không thấy. Nó bắt hình dạng trực tiếp — hình dạng đã xảy
+ra thật hai lần.
+
+### Đột biến — 7/7 đỏ, và một cái không phải đột biến
+
+Cái đầu tiên là cái đáng kể: **dựng lại nguyên văn dòng cũ** trong
+`test_tran_von_cam_ket.py` → gác mới đỏ. Đó là câu hỏi duy nhất thật sự
+đáng hỏi về một gác: *nó có bắt được đúng thứ nó sinh ra để bắt không.*
+
+Sáu cái còn lại: phép phán trả rỗng · bỏ nhánh biểu thức ba ngôi · phép
+phán kêu oan mọi thứ · bộ trích mất phân biệt mức-module/trong-hàm ·
+`_la_hang_so()` luôn True · **glob sai đuôi file**.
+
+Cái cuối là lỗ tự tìm thấy khi viết: nếu máy quét không nhìn thấy file
+nào thì cả hai phép kiểm đều xanh vì không có gì để soi. Đã bịt bằng
+`test_may_quet_thuc_su_NHIN_THAY_file` — chặn số 0, và bắt máy quét phải
+thấy **chính nó**. Không neo số lượng file: bộ test lớn dần mỗi ngày, và
+neo số là đúng lỗi bản `HANDOFF.md` 19/08 mắc phải.
+
+Và một phép **không** phải đột biến vào gác: đổi cờ trong `paper_trading.py`
+`False → True` rồi chạy lại → gác rẽ sang nhánh khẳng định. Đó là chứng
+minh nó **đi theo nguồn**, không phải nó luôn bỏ qua.
+
+### Một thứ KHÔNG phải lỗi, ghi để khỏi đuổi lại
+
+Chạy `pytest -s` file đó một mình thì nhánh SKIP nổ `UnicodeEncodeError`
+(cp1258). Không phải lỗi sống: bộ test không dùng `-s`, pytest bắt
+stdout và bắt được unicode. Là phiền toái khi gỡ rối bằng tay, và nó
+đúng cho gần như mọi file test trong dự án vì tất cả đều in tiếng Việt.
+Không đổi gì hôm nay.
+
+### Còn lại, chưa làm
+
+Nhóm B (24 chỗ gán trong hàm) chưa dọn. Bốn chỗ gán `True` mà không hoàn
+tra — nhưng vì ba file nhóm A đã đặt `True` ở mức module rồi nên chúng
+không đổi trạng thái hiệu dụng nào. `test_thi_hanh_dieu_kien_dung.py`
+làm đúng bài `try/finally`. Dọn nhóm B là việc sạch sẽ, không phải việc
+sửa lỗi — và mỗi lần đụng vào một file test đang xanh là một lần có thể
+làm hỏng nó. Để lại, có ghi.
+

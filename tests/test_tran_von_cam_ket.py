@@ -290,6 +290,41 @@ def test_dong_so_sach_khong_nem_khi_chua_co_gia_vao(so_lenh):
     print("PASS  PENDING không entry_price -> xoá, không nổ")
 
 
+def _co_C5_trong_ma_nguon() -> bool:
+    """Giá trị `CHO_PHEP_MO_LENH_MOI` ĐỌC TỪ NGUỒN `paper_trading.py`.
+
+    **Không** đọc `pt.CHO_PHEP_MO_LENH_MOI`. Ba file test gán cờ đó ở mức
+    MODULE (`test_google_sheets_sync`, `test_paper_trading`,
+    `test_sheets_store`) và pytest nạp mọi module lúc collect, nên giá trị
+    lúc chạy do THỨ TỰ COLLECT quyết định chứ không do mã nguồn.
+
+    Đo 07/09/2026, cùng một test, khác mỗi danh sách file truyền vào:
+
+        pytest tests/test_tran_von_cam_ket.py -k cong_MO
+            -> re nhanh SKIP  (cong DONG, dung voi ma nguon)
+
+        pytest tests/test_paper_trading.py tests/test_tran_von_cam_ket.py
+               -k cong_MO
+            -> "PASS  cong MO · tran 100% ..."   trong khi cong dang DONG
+
+    `test_c5_noi_that.py::test_cong_C5_dang_DONG_trong_ma_nguon` đã giải
+    xong việc này từ trước và docstring của nó nói thẳng lý do; file này
+    không đọc nó nên lặp lại đúng lỗi ấy.
+    """
+    import ast
+    import os
+
+    goc = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    cay = ast.parse(open(os.path.join(goc, "paper_trading.py"),
+                         encoding="utf-8").read())
+    gan = [n for n in ast.walk(cay) if isinstance(n, ast.Assign)
+           and any(isinstance(t, ast.Name) and t.id == "CHO_PHEP_MO_LENH_MOI"
+                   for t in n.targets)]
+    assert len(gan) == 1, f"gán CHO_PHEP_MO_LENH_MOI {len(gan)} lần"
+    assert isinstance(gan[0].value, ast.Constant), ast.dump(gan[0].value)
+    return bool(gan[0].value.value)
+
+
 def test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT():
     """Cổng C5 mở thì trần vốn và điều kiện đóng lại phải tồn tại.
 
@@ -297,8 +332,10 @@ def test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT():
     chế sinh ra +636,11% (sổ thật từng chạm 208% vốn cam kết). Mở cổng mà
     không có điều kiện đóng lại nêu trước thì ngày phải đóng, điều kiện sẽ
     được chế ra sau khi đã nhìn số.
+
+    Điều kiện rẽ nhánh đọc từ NGUỒN — xem `_co_C5_trong_ma_nguon`.
     """
-    if not pt.CHO_PHEP_MO_LENH_MOI:
+    if not _co_C5_trong_ma_nguon():
         print("SKIP  cổng đang đóng")
         return
     import paper_metrics as pm
