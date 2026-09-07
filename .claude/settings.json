@@ -9,6 +9,12 @@
             "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/chan_bia_so_lieu.py\"",
             "timeout": 20,
             "statusMessage": "Quét mẫu bịa số liệu..."
+          },
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_ghi_an_toan.py\"",
+            "timeout": 10,
+            "statusMessage": "Kiểm file vừa ghi có rỗng không..."
           }
         ]
       }
@@ -22,6 +28,17 @@
             "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_doc_bat_buoc.py\"",
             "timeout": 15,
             "statusMessage": "Kiểm tài liệu bắt buộc..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_bash_an_toan.py\"",
+            "timeout": 10,
+            "statusMessage": "Kiểm hình dạng lệnh shell..."
           }
         ]
       }

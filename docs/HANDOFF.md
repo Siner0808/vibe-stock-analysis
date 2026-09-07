@@ -48,6 +48,15 @@ python tools/kiem_test_chay_rieng.py
 `NGUYEN-TAC-DO-LUONG.md` (8 bất biến) và `MO-XE-KIEN-TRUC.md`. Có hook
 `PreToolUse` chặn nếu chưa đọc.
 
+> **Quy trình đầy đủ nằm ở skill `quy-trinh-lam-viec`** — gọi nó ngay khi
+> bắt đầu bất cứ việc gì trong repo này, TRƯỚC khi đọc hay sửa file đầu
+> tiên. Nó có: cách vá file (một đường duy nhất), vòng lặp đột biến, bốn
+> cổng gác đúng thứ tự, công thức chạy-và-chờ, và bảng **lỗi đã mắc** kèm
+> cột "máy chặn được chưa".
+>
+> Nó thay skill `quy-trinh-do-luong` cũ (07/09/2026) — hai skill cùng tự
+> nhận là quy trình hiện hành thì đúng lỗi mà dự án này gặp liên tục.
+
 ---
 
 ## 2. HỆ THỐNG ĐANG Ở TRẠNG THÁI NÀO

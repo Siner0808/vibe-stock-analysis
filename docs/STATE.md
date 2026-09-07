@@ -7730,3 +7730,214 @@ mẫu bịa số, và có thể đang quét cả repo nhiều lần. Ghi ra đâ
 không đụng hôm nay, vì đụng vào một gác đang xanh là việc riêng, phải có
 phép đo riêng.
 
+
+---
+
+## BƯỚC 35 — RÀ CHÍNH QUY TRÌNH, VÀ MỘT LUẬT CỦA DỰ ÁN BỊ BÁC (07/09/2026)
+
+Người dùng nhận xét: mỗi bước tôi làm đều phát hiện lỗi, tự sửa, rồi bước
+sau lại đúng hình dạng ấy. Đề nghị rà lại quy trình và dựng một skill.
+
+Rà bằng **bằng chứng trong phiên**, không bằng trí nhớ.
+
+### Đếm được 11 lỗi trong MỘT phiên
+
+| # | Lỗi | Bắt bởi | Máy chặn? |
+|---|---|---|---|
+| 1 | neo vá dùng `\n` trên file CRLF (×3) | chính script | ✅ |
+| 2 | neo vá dùng `\r\n` trên file LF | chính script | ✅ |
+| 3 | tiếng Việt trong `b"..."` → SyntaxError | Python | ✅ |
+| 4 | file mới ghi LF trong repo "CRLF" (×2) | trí nhớ | — |
+| 5 | hai heredoc một lệnh → áp nửa số thay đổi | tình cờ | ✅ |
+| 6 | ước 40s, thật 167,7s | tình cờ đi tính | ⚠️ |
+| 7 | `pytest \| tail` chạy nền → ≥10 lượt hỏi "xong chưa" | muộn | ✅ |
+| 8 | sửa `CLAUDE.md` khi pytest đang chạy | trí nhớ | ⚠️ |
+| 9 | không tìm lời giải sẵn có (lần 2 trong 3 ngày) | đọc lại | ⚠️ |
+| 10 | không biết dự án có skill tới giữa buổi | hệ thống tự hiện | ✅ |
+| 11 | dùng `-s` rồi tưởng lỗi mã hoá là lỗi sống | tự kiểm | ✅ |
+
+**Bảy trên mười một máy chặn được.** Và cột "bắt bởi" quan trọng ngang
+cột "lỗi": ba cái bắt được **bằng tình cờ** là ba cái sẽ tái diễn.
+
+### Bốn lỗi đầu là MỘT lỗi, và nó là một LUẬT SAI
+
+`CLAUDE.md` và skill cũ ghi *"repo dùng CRLF, phải giữ CRLF"*. Đo:
+
+```
+trong INDEX (thu that duoc commit) : 412/412 file text la LF thuan
+trong working copy                 : 370 CRLF · 41 LF · 1 tron lan
+core.autocrlf = true, khong .gitattributes
+```
+
+Git quy đổi cả hai chiều. **Quy ước xuống dòng của bản trên đĩa không ảnh
+hưởng tới thứ được commit.**
+
+Luật ấy không chỉ thừa — nó **đẻ ra** lỗi 1, 2, 3, 4, vì nó đẩy người ta
+sang thao tác byte để "giữ cho đúng". Tôi tuân theo nó cẩn thận suốt cả
+ngày và mất 5 lượt vì nó.
+
+> **Một luật sai gây ra nhiều lỗi hơn là không có luật.** Đây là lần đầu
+> dự án bác một luật QUY TRÌNH của chính nó bằng phép đo; bốn ngày trước
+> mới chỉ bác các luật về SỐ.
+
+Và file trộn lẫn duy nhất — `ui_prototype.html`, 913 LF + 1 CRLF — dạy
+luôn điều thứ hai: một gác "cấm trộn lẫn xuống dòng" sẽ ĐỎ ngay ngày đầu
+vì một chuyện không phải lỗi. **Nên không dựng gác đó.** BƯỚC 31 đã ghi:
+gác hay kêu oan thì bị tắt, mà gác bị tắt thì bằng không có.
+
+### Lớp lệch tài liệu thứ NĂM, tìm ra khi đang sửa
+
+`CLAUDE.md` có `(xem mục CRLF)` — trỏ tới một **tiêu đề mục không tồn
+tại**. Bốn gác hiện có đều không thấy: chúng kiểm `module.tên`, kiểm giá
+trị hằng số, kiểm giờ cron, kiểm chỗ rẽ nhánh. Không cái nào kiểm **trỏ
+dẫn tới MỤC**.
+
+Đã sửa chỗ đó bằng tay. **Chưa dựng gác** — ghi ra đây để khỏi quên; nó
+là việc riêng, và hôm nay đã dựng đủ thứ mới rồi.
+
+### Ba công cụ mới
+
+`tools/va_an_toan.py` — **đường vá duy nhất**. Đọc/ghi chế độ văn bản,
+neo viết bằng `\n` khớp trên mọi file, neo phải khớp **đúng một lần**
+hoặc nổ, ghi qua file tạm rồi đổi tên. Kèm `dot_bien()` luôn hoàn tra
+trong `finally` và kiểm lại **từng byte**. Xoá sạch lỗi 1–4.
+
+`tools/cua_bash_an_toan.py` — `PreToolUse` trên `Bash`. Tám luật, và
+**mỗi luật phải khai nguồn**: ngày sự cố tra được, hoặc dấu `CHƯA CÓ SỰ
+CỐ` kèm tên file quy ước.
+
+`tools/cua_ghi_an_toan.py` — `PostToolUse`. File còn **0 byte** sau lượt
+ghi thì chặn. Hẹp có chủ đích: điều kiện này không bao giờ đúng ở một
+lượt sửa mã lành mạnh, nên nó không kêu oan, nên nó không bị tắt.
+
+### Gác bắt được chính tác giả của nó, ở lượt chạy đầu tiên
+
+`test_moi_luat_deu_khai_NGUON` chạy lần đầu → **ĐỎ**, chỉ ra 4/8 luật
+tôi vừa viết: `sed-i-file-repo`, `python-he-thong`, `push-thang-main`,
+`xoa-nhieu-nhanh`. Cả bốn viết bằng giọng "đã xảy ra" trong khi chúng chỉ
+là **quy ước**.
+
+Không cái nào sai như một luật. Cái sai là **giọng văn** — chúng mượn
+thẩm quyền của bằng chứng mà không có bằng chứng. Đã tách hai nguồn ra và
+bắt khai rõ.
+
+### Đột biến — 12 phát, 12 đúng kỳ vọng
+
+11 phải đỏ và đỏ; 1 **cố ý phải sống** (đổi tên một luật mà không đổi
+hành vi — nếu phát này đỏ thì gác đang khoá tên thay vì khoá hành vi).
+
+**Hai phát SỐNG SÓT ở lượt đầu**, và cả hai đều là bẫy đã có tên trong
+`bay.md`:
+
+1. gỡ phép kiểm hoàn tra từng byte → xanh, vì test bên ngoài chỉ khẳng
+   định "file đã trở về", không hỏi "lưới có nổ khi lệch không". Đúng bẫy
+   *tự chứng minh đi qua hàm TRÍCH thay vì hàm PHÁN* — **lần thứ ba trong
+   bốn ngày**. Sửa: tách `kiem_hoan_tra()` ra, test gọi thẳng.
+2. gỡ **lời gọi** `kiem_hoan_tra` khỏi `dot_bien` → vẫn xanh, vì ở đường
+   chạy bình thường việc hoàn tra luôn thành công. Đúng bẫy `bay.md` mục
+   1: *"hàm X có tồn tại" khác "nhánh Y có gọi X"*. Sửa: kiểm CHỖ NỐI
+   bằng AST, và kiểm cả việc nó nằm **trong `finally`**.
+
+Phát thứ hai đáng nói: tôi vừa đọc `bay.md` mục 1 trong cùng phiên này,
+rồi mắc đúng nó.
+
+### Skill
+
+`quy-trinh-do-luong` → **`quy-trinh-lam-viec`**, một nơi duy nhất. Hai
+skill cùng tự nhận là quy trình hiện hành thì đúng lỗi dự án gặp liên
+tục. `references/bay.md` chuyển sang; thêm `loi-da-mac.md` (bảng trên,
+kèm cột "máy chặn được chưa") và `cong-thuc-chay.md`.
+
+Hai quy tắc đứng đầu:
+
+1. **Nếu một thay đổi làm con số đẹp lên đáng kể, giả định đầu tiên là CÓ
+   LỖI.** (cũ)
+2. **Không có lệnh thì không có số.** Mọi con số viết ra phải tính TRONG
+   PHIÊN, kèm lệnh tái lập được. Ước lượng thì phải gọi là ước lượng.
+
+Quy tắc 2 là quy tắc mới, và nó đến từ lỗi số 6 — thứ duy nhất trong 11
+lỗi mà không phép đo nào bắt được, chỉ có thói quen bắt được.
+
+
+---
+
+## BƯỚC 36 — BỐN CỔNG XANH, CI ĐỎ (07/09/2026)
+
+BƯỚC 35 đóng lại với bốn cổng xanh ở máy. CI đỏ ngay bước đầu.
+
+```
+FAILED tests/test_cua_quy_trinh.py::test_hook_ghi_tra_2_khi_file_RONG
+FAILED tests/test_cua_quy_trinh.py::test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG
+FAILED tests/test_cua_quy_trinh.py::test_dot_bien_bao_XANH_khi_lenh_thanh_cong
+FAILED tests/test_cua_quy_trinh.py::test_dot_bien_HOAN_TRA_du_lenh_no
+  FileNotFoundError: /home/runner/work/...
+```
+
+Nguyên nhân một dòng: `tools/va_an_toan.py` và `tests/test_cua_quy_trinh.py`
+ghim `.venv/Scripts/python.exe` để chạy tiến trình con. **Đó là đường
+Windows. Runner là Linux.**
+
+### Vì sao bốn cổng không thể thấy
+
+Cả bốn chạy trên máy Windows, nơi đường dẫn ấy **đúng**. Không cổng nào
+sai; chúng chỉ không có thẩm quyền về câu hỏi này. Đây là thứ chỉ CI trả
+lời được, và đó chính là lý do CI tồn tại.
+
+Ghi rõ để không rút sai bài học: **không phải "cổng vô dụng", mà là "cổng
+đo cái nó đo được".** Bất đối xứng local/CI là một trục riêng, và
+`CLAUDE.md` đã có hẳn một mục về nó — về BCTC và hạn mức, không về đường
+dẫn trình thông dịch.
+
+### Cùng lớp lỗi, lần thứ ba — và bài học đã nằm sẵn trong repo
+
+```
+31/08  kiem_cu_phap_311.DUONG_DOAN thieu sys.executable
+31/08  test_skill_quy_trinh kiem exists() -- may co, CI khong
+07/09  va_an_toan + test_cua_quy_trinh ghim duong .venv
+```
+
+Docstring của `tests/test_hang_rao_tu_dong.py` viết từ 31/08: *"Trên Linux
+CI nó phải trông vào `sys.executable`."* Tôi không đọc. Đó là **lỗi số 9
+trong bảng rà, lần thứ tư trong cùng một ngày.**
+
+Trớ trêu hơn cả: cùng buổi đó tôi viết `tools/kiem_test_chay_rieng.py`
+dùng `sys.executable` **đúng**, rồi viết `tools/va_an_toan.py` dùng đường
+ghim cứng **sai**. Cùng một người, cách nhau một giờ, hai lựa chọn ngược
+nhau.
+
+> Đó là lập luận mạnh nhất cho cả BƯỚC 35: **một luật nằm trong đầu thì
+> không phải luật.** Tôi biết luật này, đã viết nó ra, đã áp dụng đúng ở
+> một file — và vẫn sai ở file kế tiếp.
+
+### Gác mới
+
+Thêm vào `tests/test_script_chay_duoc_tren_windows.py` — đúng nhà, vì file
+ấy đã là gác toàn repo cho *"chạy được ở nơi khác"*, chỉ khác chiều.
+
+Luật: **không lời gọi `subprocess` nào được lấy trình thông dịch từ một
+đường `.venv` ghim cứng.** Chỉ soi **đối số đầu tiên**, tức chỗ thật sự
+quyết định chạy bằng gì.
+
+Ranh giới ấy là cả điểm của gác: `tests/test_cua_quy_trinh.py` **có** chuỗi
+`.venv` thật — trong danh sách lệnh mẫu để thử cửa Bash — và `.venv` còn
+nằm trong ba danh sách "thư mục bỏ qua". Một gác quét chuỗi sẽ kêu oan bốn
+chỗ ngay ngày đầu, rồi bị tắt (BƯỚC 31). Gác này lần theo AST: chuỗi thẳng,
+biến mức module, biến dựng bằng phép nối đường dẫn, và `[PY] + lenh`.
+
+Tự chứng minh: 5 mẫu xấu / 4 mẫu tốt, mẫu tốt thứ hai chính là ca `.venv`
+hợp lệ kể trên.
+
+### Đột biến 6/6 đỏ
+
+Hai phát đầu **dựng lại nguyên văn lỗi CI**: trả `.venv` vào
+`va_an_toan.py`, rồi vào `test_cua_quy_trinh.py` — gác đỏ cả hai lần. Bốn
+phát còn lại: phép phán trả rỗng · bỏ `Popen` khỏi danh sách · bỏ lần theo
+biến mức module · không bóc danh sách nên chỉ soi cả `list`.
+
+### Còn một thứ gác này KHÔNG bắt được
+
+Nó bắt đường dẫn trình thông dịch. Nó **không** bắt mọi dạng bất đối xứng
+local/CI khác — `Path.exists()` trên file gitignore, phân biệt hoa thường
+của tên file, `os.sep`. Ba dạng ấy đã cắn ít nhất một lần mỗi dạng và hiện
+chỉ có ghi chép, không có gác. Ghi ra đây thay vì im.
+
