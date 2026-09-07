@@ -319,11 +319,43 @@ file test phải xanh khi chạy một mình.** Ba trạng thái như
 **820 passed** — không phụ thuộc thứ tự ở mức kết cục. Chạy riêng: 1 file
 đỏ, nay đã sửa. `docs/STATE.md` BƯỚC 34.
 
+### Vá file: chế độ VĂN BẢN. Luật "giữ CRLF" đã bị BÁC (07/09/2026)
+
+Bản trước của file này và của skill ghi *"repo dùng CRLF, phải giữ CRLF"*.
+Đo:
+
+```
+trong INDEX (thu that duoc commit) : 412/412 file text la LF thuan
+trong working copy                 : 370 CRLF · 41 LF · 1 tron lan
+core.autocrlf = true, khong .gitattributes
+```
+
+Git quy đổi cả hai chiều. **Quy ước xuống dòng của bản trên đĩa không ảnh
+hưởng tới thứ được commit.**
+
+Luật cũ không chỉ thừa — nó là nguyên nhân của **4 lỗi trong một phiên**,
+vì nó đẩy người ta sang viết neo vá theo BYTE: neo `\n` trên file CRLF,
+neo `\r\n` trên file LF, tiếng Việt trong `b"..."` (`SyntaxError`).
+
+Đường đúng, và là đường duy nhất: **`tools/va_an_toan.py`**. Đọc/ghi ở
+chế độ văn bản, neo viết bằng `\n` và khớp trên mọi file, neo phải khớp
+**đúng một lần** hoặc nổ, ghi qua file tạm rồi đổi tên (một lỗi giữa
+chừng không để lại file rỗng — xem `cua_ghi_an_toan.py`).
+
+`docs/STATE.md` BƯỚC 35.
+
 ### Hook KHÔNG thấy gì đi qua Bash — và quy ước của dự án đi đúng đường đó
 
 `PostToolUse` khớp `Write|Edit`. Nhưng quy ước "vá lớn thì viết một file
-`.py` rồi chạy nó" (xem mục CRLF) đi qua **Bash**. Quy ước tự vô hiệu hoá
-cái gác của chính nó.
+`.py` rồi chạy nó" (mục ngay trên) đi qua **Bash**. Quy ước tự vô hiệu
+hoá cái gác của chính nó.
+
+> **Đã đóng một nửa (07/09/2026):** `cua_bash_an_toan.py` là `PreToolUse`
+> trên `Bash`, chặn những hình dạng lệnh đã cắn thật — hai heredoc một
+> lệnh, heredoc ghi đè file nguồn, `sed -i`, `pytest | tail`, `python` hệ
+> thống, đẩy thẳng `main`, xoá `.db`. Nó **không** thay được ba cửa kia:
+> mọi thao tác file qua shell vẫn lọt `chan_bia_so_lieu` và
+> `cua_doc_bat_buoc`.
 
 Đo ngày 31/08/2026: một phiên sửa 6 file mà hook không chạy lần nào.
 `--quet-repo` có được gọi, nhưng vì người nhớ ra chứ không vì máy bắt.
