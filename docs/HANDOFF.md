@@ -45,8 +45,15 @@ python tools/kiem_test_chay_rieng.py
 ```
 
 **Trước khi sửa bất cứ thứ gì liên quan tới KẾT QUẢ, đọc hai file:**
-`NGUYEN-TAC-DO-LUONG.md` (8 bất biến) và `MO-XE-KIEN-TRUC.md`. Có hook
-`PreToolUse` chặn nếu chưa đọc.
+`NGUYEN-TAC-DO-LUONG.md` (8 bất biến) và `MO-XE-KIEN-TRUC.md`.
+
+> 🔴 **Bản trước ghi *"có hook `PreToolUse` chặn nếu chưa đọc"* — CHƯA
+> ĐÚNG (08/09/2026).** Cửa ấy có tồn tại, nhưng cửa của repo chỉ được
+> nạp khi **phiên được mở ở chính thư mục repo**, và điều đó chưa xảy
+> ra lần nào. Kiểm trong một lệnh: `python --version` — bị chặn thì
+> cửa sống, in ra số hiệu Python thì cửa chết và việc đọc hai file
+> trên là **kỷ luật của người**, không phải ràng buộc của máy.
+> `docs/STATE.md` BƯỚC 40.
 
 > **Quy trình đầy đủ nằm ở skill `quy-trinh-lam-viec`** — gọi nó ngay khi
 > bắt đầu bất cứ việc gì trong repo này, TRƯỚC khi đọc hay sửa file đầu

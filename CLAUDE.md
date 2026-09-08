@@ -364,6 +364,21 @@ hoá cái gác của chính nó.
 chỉ file git báo đã đổi, 0,5 giây thay vì 24. Cửa sổ im lặng thu từ "tới
 lúc push" xuống "tới lúc dừng phiên". CI vẫn quét toàn repo.
 
+> 🔴 **HAI CHỮ "ĐÃ ĐÓNG" Ở TRÊN, VÀ "ĐÃ ĐÓNG MỘT NỬA" Ở KHỐI TRƯỚC,
+> ĐỀU CHƯA ĐÚNG (08/09/2026).** Cả hai cửa ấy đăng ký trong
+> `.claude/settings.json` **của repo**, mà file đó chỉ được nạp khi
+> phiên được mở ở chính thư mục repo. Tính tới 08/09/2026 chưa phiên
+> nào mở ở đó, nên **chưa cửa nào trong hai cửa ấy chạy lần nào** —
+> lỗ hổng chúng nhận là đã bịt vẫn đang mở.
+>
+> Ngoại lệ duy nhất: bản `PostToolUse` của `chan_bia_so_lieu.py` cũng
+> được đăng ký ở `~/.claude/settings.json` bằng đường dẫn tuyệt đối,
+> và **cửa đó thì chạy thật** — ghi một file `.py` vào repo lúc 08:51
+> ngày 08/09/2026 sinh ra một file mốc `chan_bia_*.moc` mới đúng lúc
+> đó. Tuyến toàn cục hoạt động; tuyến repo thì chưa bao giờ.
+>
+> Kiểm trong một lệnh: `python --version`. `docs/STATE.md` BƯỚC 40.
+
 Khoá bởi `tests/test_hang_rao_tu_dong.py`, và test đó kiểm CẢ MATCHER —
 xem bảng trên.
 
@@ -1087,11 +1102,21 @@ Hook từng tìm ra chính lỗi nó sinh ra để chặn — `getattr(t,
 'position_size_pct', 30)` ở `app.py` và `run_daily.py`. **Đã sửa xong**, cả
 hai file nay dùng `t.size_pct` thật.
 
-**Hai giới hạn của hook, phải biết:** nó là `PostToolUse` nên chạy *sau* khi
-ghi (chuông báo cháy, không phải cửa chống cháy), và matcher chỉ bắt
-`Write|Edit` của Claude Code — sửa từ IDE, Antigravity, tay người,
-`git checkout`, `git merge` đều không kích hoạt. Vì thế có
-`--quet-repo` để CI quét toàn bộ; xem `.github/workflows/kiem-dinh.yml`.
+**Ba giới hạn của hook, phải biết.** Hai cái đầu là thiết kế; cái thứ ba
+quyết định hai cái đầu có nghĩa hay không.
+
+1. Nó là `PostToolUse` nên chạy *sau* khi ghi — chuông báo cháy, không
+   phải cửa chống cháy.
+2. Matcher chỉ bắt `Write|Edit` của Claude Code. Sửa từ IDE,
+   Antigravity, tay người, `git checkout`, `git merge` đều không kích
+   hoạt. Vì thế có `--quet-repo` để CI quét toàn bộ; xem
+   `.github/workflows/kiem-dinh.yml`.
+3. **Hook đăng ký trong `.claude/settings.json` của repo chỉ chạy khi
+   phiên được mở ở chính thư mục repo** — `cd` hay `change_directory`
+   giữa phiên đều không nạp (đo 08/09/2026, hai lượt độc lập). Hook
+   đăng ký ở `~/.claude/settings.json` bằng đường dẫn tuyệt đối thì
+   chạy bất kể phiên mở ở đâu. Cửa này hiện có **cả hai** bản, nên nó
+   là cửa duy nhất của dự án từng thật sự chạy.
 
 ## Kiểm tra định kỳ những chỗ hỏng âm thầm
 
