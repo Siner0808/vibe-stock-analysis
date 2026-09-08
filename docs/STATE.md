@@ -8165,3 +8165,105 @@ Ghi ra vì ba ngày qua tôi đã chữa đúng hình dạng này ba lần
 đều chữa được. Lần này thì không, **và biết vì sao** — đó là khác biệt
 giữa một giới hạn đã hiểu và một lỗ chưa thấy.
 
+---
+
+## BƯỚC 40 — SÁU CỬA DỰNG HÔM QUA CHƯA BAO GIỜ CHẠY (08/09/2026)
+
+Bàn giao cuối ngày 07/09 viết: *"Mở phiên mới trong repo này. Nếu cửa
+`SessionStart` chạy, dòng đầu tiên bạn thấy là khung ở trên. Không thấy →
+cửa không hoạt động, và đó là bằng chứng phủ định thật, đáng giá hơn mọi
+test tôi viết hôm nay."*
+
+Không thấy. Và bằng chứng phủ định đúng là thứ đáng giá nhất hôm nay.
+
+### Cửa không hỏng. Phiên mở sai chỗ.
+
+Claude Code chỉ nạp `<repo>/.claude/settings.json` khi **thư mục dự án
+của phiên** là repo. Mọi phiên của dự án này đều mở ở `C:\Users\cuong`.
+
+Bốn phép đo:
+
+| Đo gì | Lệnh | Kết quả |
+|---|---|---|
+| phiên nào từng mở ở repo | `ls ~/.claude/projects/` | chỉ `C--Users-cuong` và `C--Users-cuong-vn-stock-toolkit` — **không có repo** |
+| cửa đọc tài liệu từng chạy chưa | `ls $TEMP/vibe_da_doc_*.json` | 3 file, tên `phien-A`, `test-da-doc`, `test-doc-mot` — **fixture của bộ test**, không id phiên thật |
+| cửa Bash sống không | `python --version` | **chạy được**, trả `Python 3.11.15` |
+| luật có khớp không (chống kết luận sai) | `cua_bash_an_toan.kiem("python --version")` | `['python-he-thong']` — luật khớp, lệnh vẫn chạy |
+
+`main()` của cửa Bash trả mã **2** và in ra `stderr`. Nếu nó có chạy thì
+không thể im lặng. Đây là phủ định chắc, không phải suy đoán.
+
+Lặp lại phép thử thứ ba **sau** `cd` vào repo, rồi lần nữa **sau**
+`change_directory` sang repo: cả hai lần vẫn chạy được. Kết luận:
+**đổi thư mục giữa phiên không nạp hook của dự án.** Chỉ mở phiên ở repo
+mới nạp.
+
+### Hệ quả: một dòng trong tài liệu hôm qua là SAI
+
+`references/loi-da-mac.md` ghi lỗi 10 ("không biết dự án có skill tới
+giữa buổi") là **đã chặn được** bằng `tools/cua_mo_phien.py`. Sai. Hôm
+qua tôi đọc `NGUYEN-TAC-DO-LUONG.md` vì tôi nhớ, không vì bị chặn. Bảng
+đã sửa: lỗi 10 chuyển sang ❌, và thêm lỗi 14.
+
+Đây là lần thứ hai trong hai ngày một dòng tài liệu của chính dự án bị
+chính dự án bác bỏ (lần trước: luật CRLF, BƯỚC 35). Cả hai lần thứ bị bác
+đều là **một khẳng định về cơ chế**, không phải một con số.
+
+### Nhưng tuyến toàn cục thì SỐNG — và suýt kết luận ngược
+
+`~/.claude/settings.json` đã có sẵn một cửa của repo với đường dẫn tuyệt
+đối:
+
+```
+PostToolUse  Write|Edit  ->  python "C:/.../vibe_preview/tools/chan_bia_so_lieu.py"
+```
+
+Ghi một file `.py` thăm dò vào gốc repo lúc 08:51 → một file mốc
+`chan_bia_*.moc` mới xuất hiện đúng lúc đó (74 mốc cũ trải từ 01/09 tới
+07/09). **Cửa đăng ký toàn cục chạy bất kể phiên mở ở đâu.**
+
+Suýt kết luận ngược. Phát ghi đầu tiên của tôi là một file `.md` **ngoài**
+repo và **không** sinh mốc. Đọc `main()` mới thấy nó thoát trước khi ghi
+mốc nếu file ngoài phạm vi, và `trong_pham_vi()` còn đòi đuôi `.py`. Nếu
+không đọc mã, "không có mốc" đã bị đọc thành "cửa toàn cục cũng chết" —
+**một kết luận sai rút ra từ một quan sát đúng.** Cùng họ với lỗi 13.
+
+### Đã làm
+
+Dựng `~/.claude/rules/ecc/common/vibe-preview.md` — thư mục này nạp vào
+**mọi** phiên bất kể mở ở đâu. Nội dung: đường dẫn repo, luật "mở phiên ở
+repo", phép kiểm một lệnh, và **danh sách việc phải tự làm thay khi cửa
+chết**. Nó cắt được vòng tròn "phải đọc skill mới biết đi tìm skill" —
+thứ mà `cua_mo_phien.py` lẽ ra làm nhưng không chạy được.
+
+`SKILL.md`: bảng cửa thêm cột **Đăng ký ở**, và mục ấy đổi tên thành
+"KIỂM TRƯỚC KHI TIN" với phép kiểm `python --version` đặt lên đầu.
+
+### CỐ Ý KHÔNG dựng gác, và vì sao
+
+Một test canh sự tồn tại của file rules toàn cục sẽ phải trỏ tới
+`C:\Users\cuong\.claude\...` — đường dẫn Windows, ngoài repo. Trên CI
+Linux nó đỏ ngay. **Đó đúng là hình dạng của lỗi 12** (ghim
+`.venv/Scripts/python.exe`, bốn cổng xanh, CI đỏ). Không dựng.
+
+Cũng vì thế lỗi 14 chỉ được chấm ⚠️ **một phần**: phép kiểm
+`python --version` không thể tự chạy từ trong repo — nếu cửa chết thì
+chẳng có gì chạy để phát hiện điều đó.
+
+### Còn treo — cần người quyết
+
+Bốn trong sáu cửa có thể chuyển lên `~/.claude/settings.json` ngay hôm
+nay mà không gây đỏ giả ở dự án khác, vì mỗi cửa tự lọc phạm vi:
+
+| Cửa | Đưa lên toàn cục được? | Vì sao |
+|---|---|---|
+| `chan_bia_so_lieu.py` (Post) | đã ở đó, **đã chứng minh chạy** | `trong_pham_vi()`: chỉ `.py` trong repo |
+| `chan_bia_so_lieu.py --quet-thay-doi` (Stop) | được | cùng phạm vi |
+| `cua_ghi_an_toan.py` (Post) | được | chỉ canh file 0 byte — đúng ở mọi dự án |
+| `cua_doc_bat_buoc.py` (Pre) | được | lọc theo tên file của dự án; ngoài repo `relative_to` nổ → tha |
+| `cua_bash_an_toan.py` (Pre) | **KHÔNG**, chưa | 8 luật không kiểm phạm vi. `python-he-thong` và `sed-i-file-repo` sẽ chặn mọi dự án khác |
+| `cua_mo_phien.py` (SessionStart) | **KHÔNG**, chưa | sẽ in banner vibe_preview ở mọi phiên, kể cả `vn-stock-toolkit` |
+
+Hai cửa cuối cần một phép kiểm phạm vi trước. Tín hiệu khả dĩ là trường
+`cwd` trong payload của hook — **chưa đo được nó chứa gì**, và theo Quy
+tắc số 2 thì chưa đo thì chưa được ghi là giải pháp.
