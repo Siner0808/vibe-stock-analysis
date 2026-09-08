@@ -518,15 +518,28 @@ def main() -> int:
     return 0
 
 
-def file_da_doi() -> list:
-    """File `.py` mà git báo là đã sửa hoặc chưa theo dõi.
+def file_da_doi():
+    """File `.py` mà git báo là đã sửa hoặc chưa theo dõi. BA trạng thái.
 
     Dùng git chứ không dùng dấu thời gian: dấu thời gian đổi khi `git
     checkout` chạy, và khi đó ta quét lại cả rổ file không ai sửa.
 
-    Không có git (bản tải zip, thư mục tạm) thì trả rỗng — người gọi phải
-    coi rỗng là "KHÔNG BIẾT", không phải "sạch". `quet_thay_doi()` lùi về
-    quét toàn repo trong trường hợp đó.
+    | Trả về | Nghĩa |
+    |---|---|
+    | `None`  | **chưa hỏi được git** — không có git, hết giờ, mã thoát khác 0 |
+    | `[]`    | git trả lời, và **không file `.py` nào đổi** |
+    | `[...]` | những file đã đổi |
+
+    Bản trước gộp hai dòng đầu thành `[]`, và `quet_thay_doi()` lùi về
+    quét toàn repo cho cả hai. Vô hại khi cửa `Stop` chỉ chạy trong repo;
+    thành có hại ngày 08/09/2026, khi cửa ấy được đăng ký ở
+    `~/.claude/settings.json` và chạy ở MỌI dự án: cây sạch là trạng thái
+    bình thường lúc cuối phiên, nên mỗi lần dừng phiên đều nổ một lượt
+    quét toàn repo kèm 30 dòng cảnh báo về một dự án người dùng không
+    làm việc cùng. Gác kêu sói thì bị tắt.
+
+    Cùng lối ba trạng thái của `tools/kiem_cu_phap_311.py` và
+    `tools/kiem_test_chay_rieng.py`: **"chưa kiểm được" không phải "sạch".**
     """
     import subprocess
 
@@ -538,9 +551,9 @@ def file_da_doi() -> list:
                                text=True, encoding="utf-8", errors="replace",
                                timeout=10)
         except Exception:
-            return []
+            return None               # chưa hỏi được git
         if r.returncode != 0:
-            return []
+            return None               # chưa hỏi được git
         for d in (r.stdout or "").splitlines():
             d = d.strip()
             if d.endswith(".py"):
@@ -561,10 +574,13 @@ def quet_thay_doi() -> int:
     lúc push" xuống "tới lúc dừng phiên".
     """
     ds = file_da_doi()
-    if not ds:
-        # Rỗng có HAI nghĩa: không đổi gì, hoặc không hỏi được git. Không
-        # phân biệt được thì quét cả repo — chậm nhưng không bỏ sót.
+    if ds is None:
+        # CHƯA HỎI ĐƯỢC git. Không biết thì không được nói sạch — quét
+        # cả repo, chậm nhưng không bỏ sót.
         return quet_repo()
+    if not ds:
+        # git trả lời, và không file .py nào đổi. Không có gì để quét.
+        return 0
     return _quet(ds, f"{len(ds)} file đã đổi")
 
 

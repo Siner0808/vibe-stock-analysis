@@ -24,6 +24,7 @@ BA LỖ HỔNG ĐÃ ĐÓNG NGÀY 31/08/2026 — file này canh để chúng khô
 """
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
@@ -133,6 +134,100 @@ def test_quet_thay_doi_LUI_VE_quet_repo_khi_khong_hoi_duoc_git():
         "sẽ được đọc là 'sạch'")
     assert callable(c.file_da_doi)
     print("PASS  không hỏi được git -> lùi về quét cả repo")
+
+
+def test_khong_hoi_duoc_git_thi_file_da_doi_tra_None():
+    """Chạy THẬT trên một thư mục không phải repo git.
+
+    Đi qua đúng `subprocess` thật, không thay thế gì — nên nó canh chính
+    thân hàm, chỗ mà test ngay dưới (thay `file_da_doi` bằng hàm giả)
+    không với tới được.
+    """
+    import chan_bia_so_lieu as c
+
+    that = c.GOC_DU_AN
+    try:
+        c.GOC_DU_AN = Path(tempfile.mkdtemp(prefix="khong-git-"))
+        ket = c.file_da_doi()
+        assert ket is None, (
+            "git chay o thu muc khong phai repo -> CHUA HOI DUOC, phai la "
+            f"None chu khong phai {ket!r} (rong se bi doc thanh sach)")
+    finally:
+        c.GOC_DU_AN = that
+    print("PASS  khong hoi duoc git -> None, khong phai []")
+
+
+def test_subprocess_no_thi_file_da_doi_cung_tra_None():
+    """Nhánh `except Exception` — git không cài, hết giờ, cwd không tồn tại.
+
+    Khác nhánh `returncode != 0` mà test ngay trên chạm tới. Một phát đột
+    biến ngày 08/09/2026 sống sót đúng vì hai nhánh ấy bị coi là một.
+    """
+    import chan_bia_so_lieu as c
+
+    that = c.GOC_DU_AN
+    try:
+        c.GOC_DU_AN = Path(tempfile.gettempdir()) / "khong-he-ton-tai-abc123"
+        assert not c.GOC_DU_AN.exists()
+        ket = c.file_da_doi()
+        assert ket is None, (
+            "cwd khong ton tai -> subprocess no -> CHUA HOI DUOC, phai la "
+            f"None chu khong phai {ket!r}")
+    finally:
+        c.GOC_DU_AN = that
+    print("PASS  subprocess no -> None")
+
+
+def test_RONG_khac_CHUA_HOI_DUOC_git():
+    """`[]` (git nói: không đổi gì) KHÔNG được đọc thành `None` (chưa hỏi được).
+
+    Bản trước gộp hai thứ ấy vào một `[]`, và `quet_thay_doi()` lùi về quét
+    TOÀN REPO cho cả hai. Vô hại suốt thời gian cửa `Stop` chỉ chạy trong
+    repo. Ngày 08/09/2026 cửa ấy được đăng ký ở `~/.claude/settings.json`
+    nên chạy ở MỌI dự án — mà **cây sạch là trạng thái bình thường lúc cuối
+    phiên**, nên mỗi lần dừng phiên đều nổ một lượt quét toàn repo kèm 30
+    dòng cảnh báo về một dự án người dùng không hề mở. Gác kêu sói thì bị tắt.
+
+    Kiểm HÀNH VI, không kiểm cấu trúc. Test ngay trên chỉ hỏi
+    `quet_thay_doi` có GỌI `quet_repo` không — và câu trả lời vẫn là "có"
+    cả trước lẫn sau khi lỗi này ra đời, nên nó không thể bắt được.
+    """
+    import chan_bia_so_lieu as c
+
+    dau_vet = []
+
+    def gia_quet_repo():
+        dau_vet.append("REPO")
+        return 0
+
+    def gia_quet(ds, nhan):
+        dau_vet.append(("FILE", tuple(str(p) for p in ds)))
+        return 0
+
+    that = (c.quet_repo, c._quet, c.file_da_doi)
+    try:
+        c.quet_repo, c._quet = gia_quet_repo, gia_quet
+
+        c.file_da_doi = lambda: None
+        assert c.quet_thay_doi() == 0
+        assert dau_vet == ["REPO"], (
+            f"None = chua hoi duoc git -> phai quet ca repo, nhung: {dau_vet}")
+
+        dau_vet.clear()
+        c.file_da_doi = lambda: []
+        assert c.quet_thay_doi() == 0
+        assert dau_vet == [], (
+            "[] = git DA tra loi va khong file .py nao doi -> khong duoc "
+            f"quet gi ca, nhung: {dau_vet}")
+
+        dau_vet.clear()
+        c.file_da_doi = lambda: [GOC / "paper_metrics.py"]
+        assert c.quet_thay_doi() == 0
+        assert len(dau_vet) == 1 and dau_vet[0][0] == "FILE", (
+            f"danh sach co file -> phai quet dung nhung file do: {dau_vet}")
+    finally:
+        c.quet_repo, c._quet, c.file_da_doi = that
+    print("PASS  None -> quet repo · [] -> khong quet gi · [x] -> quet x")
 
 
 if __name__ == "__main__":
