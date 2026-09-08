@@ -27,9 +27,48 @@ dòng bàn giao, không từ một lượt chạy.
 phát ra như phép đo của mình — và nó lặp lại **trong cùng ngày** tôi viết
 lỗi 16 vào skill.
 
-**Hệ quả cho quyết định:** chi phí thật của các lượt đo dưới đây chưa biết.
-Lượt đầu tiên phải **đo và ghi thời gian chạy thật của chính nó**, và con
-số ấy mới được dùng để lập kế hoạch cho các lượt sau.
+### Con số THẬT, đo ngày 08/09/2026
+
+Chạy `walkforward.py` ở **cấu hình mặc định** (`che_do_hoc=co_san`, theo mã,
+`stride=2`, `min_history=60`), toàn bộ output vào một log ngoài repo:
+
+```
+bat dau : 16:49:11
+ket thuc: 17:35:17
+ma thoat: 0
+       -> 46 phut 06 giay  (2.766 giay)
+```
+
+Lượt chạy trọn vẹn, không phải chết giữa chừng: log 42 dòng, **0 Traceback**,
+0 error, có đủ tiêu đề `WALK-FORWARD`, mục in-sample và mục ngoài mẫu.
+
+**Cả hai con số trước đó đều sai, theo hai hướng ngược nhau:**
+
+| Con số | Ở đâu | Thực tế |
+|---|---|---|
+| ~2,5 giờ | không ở đâu cả — một dòng bàn giao | **cao gấp ~3,3 lần** |
+| 8,1–27,7 phút | `walkforward.py:167` | đo ở chế độ `tat`; mặc định là `co_san` nên **thấp hơn thực tế** |
+
+Chế độ `tat` cho `dat_lai_engine(enabled=False)`, mà nhánh xoá cache chỉ chạy
+khi `may.enabled` — nên `tat` **không** xoá cache, còn `co_san` thì có, và
+còn phải tra bộ nhớ hậu nghiệm mỗi phiên. Con số 27,7 phút chưa bao giờ là
+cận trên của cấu hình mặc định.
+
+**Ba giới hạn của con số 46 phút — đọc kèm, đừng tách rời:**
+
+1. **Máy này, hôm nay, đang tải nặng.** Cùng buổi, hai lượt cổng gác chạy
+   chậm gấp đôi lượt sáng (358s so với 149s). 46 phút là số trong điều kiện
+   ấy, không phải hằng số.
+2. **Một trong bốn lượt của ĐO 1.** Ba lượt kia (`--theo-ngay`, và hai lượt
+   tắt trượt giá) **chưa đo**. Chế độ theo ngày duyệt lịch khác hẳn — không
+   có lý do gì để tin chúng bằng nhau.
+3. **Không suy ra được cho `stride=1`.** Gấp đôi điểm quyết định có thể gấp
+   đôi thời gian hoặc hơn. Đó là một phép đo khác.
+
+**Alpha của lượt này CHƯA ĐỌC.** Log nằm nguyên trong scratchpad
+(`wf_mac_dinh.log`) và chỉ được mở sau khi tiêu chí ở dưới được chốt — đọc
+trước thì mọi tiêu chí khai sau đó đều vô giá trị, và đó đúng là thứ bất
+biến 7 cấm.
 
 ---
 
