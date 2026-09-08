@@ -37,10 +37,15 @@ Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 > Ngày 07/09/2026 tôi làm việc nửa buổi rồi mới biết dự án có skill quy
 > trình — hệ thống tự hiện nó ra giữa chừng.
 >
-> **Đã thành cơ chế:** `tools/cua_mo_phien.py` chạy như hook `SessionStart`
-> và in ngay lời nhắc này cùng các mốc ngày đang chặn. Viết "Bước 0: đi
-> tìm skill" vào chính skill là một vòng tròn — phải đọc skill mới biết
-> phải đi tìm skill.
+> **Tưởng đã thành cơ chế, nhưng chưa.** `tools/cua_mo_phien.py` được
+> đăng ký làm hook `SessionStart` ngày 07/09/2026 — và tới 08/09/2026 đo
+> ra là **nó chưa bao giờ chạy**, cùng năm cửa còn lại. Xem
+> `references/loi-da-mac.md` lỗi 14.
+>
+> Viết "Bước 0: đi tìm skill" vào chính skill là một vòng tròn — phải đọc
+> skill mới biết phải đi tìm skill. Vòng tròn ấy hiện được cắt ở
+> `~/.claude/rules/ecc/common/vibe-preview.md`, file nạp vào **mọi** phiên
+> bất kể mở ở đâu.
 
 ---
 
@@ -163,16 +168,30 @@ nó**, cả bốn viết quy ước bằng giọng "đã xảy ra".
 
 ---
 
-## Cửa tự động đang chạy (xem `.claude/settings.json`)
+## Cửa tự động — KIỂM TRƯỚC KHI TIN
 
-| Cửa | Khi nào | Làm gì |
-|---|---|---|
-| `tools/cua_mo_phien.py` | **SessionStart** | nhắc gọi skill + liệt kê mốc ngày đang chặn |
-| `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
-| `tools/cua_bash_an_toan.py` | Pre · Bash | chặn hình dạng lệnh đã cắn thật |
-| `tools/chan_bia_so_lieu.py` | Post · Write/Edit | quét mẫu bịa số liệu |
-| `tools/cua_ghi_an_toan.py` | Post · Write/Edit | file còn 0 byte sau lượt ghi |
-| `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | soát lại file đã đổi |
+**Chạy `python --version` trước tiên.** Luật `python-he-thong` chặn đúng
+hình dạng đó và trả mã 2 kèm thông báo. Bị chặn → cửa sống. In ra số hiệu
+Python → **sáu cửa đang chết**, và mọi dòng trong bảng dưới là mô tả một
+thứ không xảy ra.
+
+Cửa của repo (`.claude/settings.json`) chỉ được nạp khi **phiên được mở ở
+chính thư mục repo**. `cd` hay `change_directory` giữa phiên đều không
+nạp — đo 08/09/2026, hai lượt độc lập. Cửa đăng ký ở
+`~/.claude/settings.json` bằng **đường dẫn tuyệt đối** thì chạy bất kể
+phiên mở ở đâu; hiện chỉ `tools/chan_bia_so_lieu.py` nằm ở đó.
+
+| Cửa | Khi nào | Đăng ký ở | Làm gì |
+|---|---|---|---|
+| `tools/cua_mo_phien.py` | **SessionStart** | repo | nhắc gọi skill + liệt kê mốc ngày đang chặn |
+| `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | repo | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
+| `tools/cua_bash_an_toan.py` | Pre · Bash | repo | chặn hình dạng lệnh đã cắn thật |
+| `tools/chan_bia_so_lieu.py` | Post · Write/Edit | repo **+ toàn cục** | quét mẫu bịa số liệu |
+| `tools/cua_ghi_an_toan.py` | Post · Write/Edit | repo | file còn 0 byte sau lượt ghi |
+| `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | repo | soát lại file đã đổi |
+
+Cột **Đăng ký ở** là cột quan trọng nhất: "repo" nghĩa là *chỉ chạy khi
+phiên mở ở repo*, và tính tới 08/09/2026 điều đó chưa xảy ra lần nào.
 
 **Hook chỉ có hiệu lực từ PHIÊN SAU.** Thêm hook giữa phiên thì phiên đó
 vẫn chạy như cũ. Và **hook không thấy gì đi qua Bash trừ cửa Bash** —
