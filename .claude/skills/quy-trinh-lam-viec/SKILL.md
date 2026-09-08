@@ -148,6 +148,25 @@ Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`
 
 Vài test ghi thư mục tạm vào gốc repo → chạy song song cho **đỏ giả**.
 
+> **Sửa `SKILL.md` hay `references/` thì chạy MỘT file này TRƯỚC:**
+>
+> ```bash
+> ./.venv/Scripts/python.exe -m pytest tests/test_skill_quy_trinh.py -q
+> ```
+>
+> **11 giây**, và nó bắt đúng thứ hay sai nhất: **tên file viết TRẦN,
+> thiếu tiền tố thư mục** — git không biết cái tên ấy nên nó là một lời
+> hứa về thành phần không có. Ngày 08/09/2026 tôi trả giá **ba lượt cổng
+> đầy đủ, mỗi lượt ~9 phút** cho đúng lỗi ấy, ba lần trong một ngày.
+>
+> **KHÔNG viết tên file trần ra đây làm ví dụ** — lượt thứ ba đỏ đúng vì
+> ghi chú cảnh báo lỗi ấy tự chứa nó.
+>
+> **Và ĐỪNG nối phép kiểm này bằng `| tail`.** Mã thoát của một ống là mã
+> thoát của lệnh CUỐI, tức `tail`, tức luôn 0 — `&&` sau đó đi tiếp dù
+> pytest đỏ. Luật `pytest-qua-ong` của cửa Bash sinh ra vì `tail` ĐỆM
+> output; đây là mặt thứ hai của nó, và mặt này im lặng hơn.
+
 Mã thoát **2** của cổng 2 và 4 nghĩa là *chưa kiểm được*, **không** phải
 sạch.
 
@@ -163,8 +182,40 @@ Cách chạy và chờ: `references/cong-thuc-chay.md`. Tóm tắt ba dòng:
 
 ## Bước 5 — Giao
 
-- **KHÔNG đẩy thẳng `main`.** Nhánh → push → **nói rõ người dùng phải tự
-  mở và merge PR** (`gh` không cài trên máy này).
+- **KHÔNG đẩy thẳng `main`** — nhưng KHÔNG phải vì `main` bị khoá.
+  Đo 08/09/2026: `gh api repos/.../branches/main/protection` trả **404
+  "Branch not protected"**. Lý do thật nằm ở chỗ khác:
+  `.github/workflows/kiem-dinh.yml` chạy trên **cả `push` lẫn
+  `pull_request`**, nên đẩy
+  thẳng thì CI chạy SAU khi mã đã nằm trên `main` — một cái cổng chạy
+  sau cánh cửa. Đi qua PR thì nó chạy TRƯỚC.
+
+- **Tự merge được, và từ 08/09/2026 thì tự merge** — người dùng đã
+  quyết. Nhưng chỉ khi **đủ cả ba**:
+
+  1. Bốn cổng ở Bước 4 xanh tại máy.
+  2. **MỌI** check của PR là `pass`. Không `pending`, không `fail`.
+  3. Không còn câu hỏi nào đang chờ người dùng quyết.
+
+  ```bash
+  gh pr checks <so>          # doc HET, dung doc dong dau
+  gh pr merge <so> --merge --delete-branch
+  gh pr view <so> --json state,mergeCommit
+  ```
+
+  > **Cái bẫy của điều 2.** `kiem-dinh` hiện **HAI dòng** cho mỗi PR —
+  > một từ `push`, một từ `pull_request`. Ngày 08/09/2026 dòng đầu đã
+  > `pass` trong khi dòng sau còn `pending`. Đọc một dòng rồi merge là
+  > merge khi CI chưa xong.
+
+- **Merge xong phải KIỂM, không tin mã thoát:** `pr view` cho
+  `state=MERGED` và mã băm hợp nhất, rồi `git pull` + `git branch -a`
+  + tìm nội dung vừa thêm trong `main`.
+
+- **Hai lý do CŨ của luật này đều đã bị BÁC**, đừng chép lại chúng:
+  *"`gh` không cài trên máy này"* (nay có, 2.100.0, đã đăng nhập) và
+  *"`main` có branch protection"* (404). `references/loi-da-mac.md`
+  lỗi 17.
 - Commit body **ASCII**, không `Co-Authored-By`.
 - Ghi vào `docs/STATE.md` cả **kết quả lẫn giả thuyết đã bị bác**, và cả
   **ước lượng đã sai**. Giả thuyết sai nghe hợp lý là thứ đáng giữ nhất.

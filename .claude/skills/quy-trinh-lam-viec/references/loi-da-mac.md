@@ -28,11 +28,89 @@ là lỗi sẽ tái diễn.
 | 14 | **sáu cửa chưa bao giờ chạy** — phiên luôn mở ngoài repo | phép thử ở phiên sau | ⚠️ một phần | `~/.claude/rules/ecc/common/vibe-preview.md` |
 | 15 | bật một cửa lên TOÀN CỤC mà chưa thử nó ngoài repo | **đục thử** ngay sau khi bật | ✅ | `test_hang_rao_tu_dong` (3 test hành vi) |
 | 16 | chép một kết luận từ ghi chú rồi phát ra như phép đo của mình | **người dùng hỏi lại**, sau 3 ngày | ⚠️ một phần | Bước 1, điều 2 |
+| 17 | luật đúng nhưng CẢ HAI lý do của nó chưa ai đo — 4 PR phải quay lại chờ người | **người dùng hỏi lại**, cùng ngày | ⚠️ một phần | Bước 1, điều 2 (lần 2 trong ngày) |
+| 18 | dựng phép kiểm nhanh rồi nối bằng `\| tail` — mã thoát của ống là của `tail`, luôn 0 | cổng đầy đủ, lượt thứ ba | ✅ | `cua_bash_an_toan` `pytest-qua-ong` — **luật CÓ SẴN, cửa đang chết (lỗi 14)** |
+| 19 | backtick trong `python -c "…"` — bash nuốt khối mã trước khi Python thấy | đọc lại file | ✅ | `cua_bash_an_toan` `backtick-trong-python-c` (luật mới) |
 
-**Chín trên mười sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
+**Mười một trên mười chín máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
 tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
+
+### Lỗi 19 — backtick đi qua shell trước khi tới Python
+
+Vá tài liệu bằng `python -c "…"`, và trong chuỗi có một khối mã
+markdown mở bằng ba dấu backtick. Bash **nội suy** chúng trước khi
+Python nhìn thấy chuỗi, nên khối mã bị thay bằng kết quả chạy lệnh —
+tức rỗng. File nhận về một khoảng trắng ở đúng chỗ đáng ra có ví dụ.
+
+```
+/usr/bin/bash: line 2: $'bashn\n pytest': command not found
+/usr/bin/bash: line 2: bon: No such file or directory
+```
+
+Hai dòng ấy là tất cả cảnh báo nhận được, và chúng lẫn giữa output
+bình thường. `thay()` vẫn báo thành công vì neo khớp đúng một lần —
+**nó không có cách nào biết nội dung thay vào đã bị rút ruột.**
+
+Cùng gốc với luật `heredoc-ghi-file-repo` (04–05/09/2026): shell nội
+suy `$` và backtick trước khi nội dung tới đĩa. Khác lối vào, nên luật
+cũ không bắt được — nay có luật riêng `backtick-trong-python-c`.
+
+**Cách đúng, và nó nằm sẵn trong Bước 2:** vá lớn thì viết một file
+`.py` rồi chạy nó. Tool Write ghi file, không qua shell, nên backtick
+an toàn. Tôi biết luật ấy và vẫn dùng `python -c` vì nó *nhanh hơn* —
+rồi mất thêm hai lượt để sửa.
+
+### Lỗi 18 — một phép kiểm bị nuốt mã thoát KHÔNG phải phép kiểm
+
+Sau khi trả giá hai lượt cổng ~9 phút cho cùng một lỗi tên file trần, tôi
+dựng một phép kiểm nhanh 11 giây chạy trước. Rồi viết nó thế này:
+
+```bash
+pytest tests/test_skill_quy_trinh.py -q | tail -2 && <bon cong>
+```
+
+**Mã thoát của một ống là mã thoát của lệnh CUỐI** — tức `tail`, tức luôn
+0. Nên `&&` đi tiếp dù pytest đỏ, và phép kiểm vừa dựng ra không chặn được
+gì. Tôi mất lượt cổng thứ BA cho cùng cái lỗi.
+
+Cùng họ với bài học lớn nhất của dự án: **một gác không thể đỏ thì không
+phải gác.** Ở đây gác đỏ thật — nhưng không ai nghe được tiếng nó.
+
+> **Cửa Bash ĐÃ CÓ luật cho đúng lệnh này.** Đo 08/09/2026:
+> `cua_bash_an_toan.kiem()` trên chính chuỗi lệnh ấy trả
+> `[pytest-qua-ong]`. Luật viết từ 07/09, khớp chính xác, và **không thể
+> nổ** vì phiên này mở ngoài repo.
+>
+> **Lỗi 14 trực tiếp gây ra lỗi 18, trong cùng một ngày.** Đó là cái giá
+> cụ thể của việc sáu cửa chưa bao giờ chạy — không phải rủi ro trừu
+> tượng, mà là ba lượt cổng và gần nửa giờ.
+
+Luật `pytest-qua-ong` sinh ra vì `tail` **đệm output**. Đây là mặt thứ
+hai, chưa ai ghi: `tail` **nuốt mã thoát**. Mặt này im lặng hơn.
+
+### Lỗi 17 — luật ĐÚNG, lý do SAI
+
+Luật *"người dùng tự mở và merge PR"* nêu hai lý do: *"`gh` không cài
+trên máy này"* và *"`main` có branch protection"*. Ngày 08/09/2026 cả
+hai đều bị bác — `gh` đã cài, và `gh api .../branches/main/protection`
+trả **404 "Branch not protected"**.
+
+Nhưng vế *"không đẩy thẳng `main`"* vẫn ĐÚNG, vì một lý do chưa ai viết:
+`.github/workflows/kiem-dinh.yml` chạy trên **cả `push` lẫn
+`pull_request`**, nên đẩy thẳng
+thì CI chạy SAU khi mã đã vào `main` — cổng đặt sau cánh cửa.
+
+**Một luật đúng với lý do sai vẫn sẽ bị bác.** Hôm nay ba lần, cùng hình
+dạng: luật CRLF (lỗi 4), câu "hook đang cưỡng chế" (lỗi 14), và cái này.
+
+Giá phải trả tính được: bốn PR trong ngày đều dừng chờ người dùng, ba lượt
+đầu tôi còn soạn sẵn toàn văn nội dung PR để họ dán tay. Toàn bộ phần đó là
+công vô ích do một câu chưa ai đo.
+
+Cùng thuốc với lỗi 16 — **Bước 1, điều 2** — và đây là lần thứ hai áp nó
+trong một ngày. `docs/STATE.md` BƯỚC 43.
 
 ### Lỗi 16 — lỗi nằm ở lúc NÉN phép đo thành một câu
 

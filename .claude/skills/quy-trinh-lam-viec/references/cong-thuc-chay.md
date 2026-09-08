@@ -32,6 +32,11 @@ không đọc được gì cho tới lúc nó xong — và rồi sẽ ngồi h�
 
 `tools/cua_bash_an_toan.py` chặn `pytest … | tail`.
 
+**Và có lý do THỨ HAI, im lặng hơn (08/09/2026):** mã thoát của một ống là
+mã thoát của lệnh **cuối**, tức `tail`, tức **luôn 0**. Nên
+`pytest … | tail && <viec tiep>` chạy tiếp dù pytest đỏ. Một phép kiểm bị
+nuốt mã thoát không phải phép kiểm. Xem `loi-da-mac.md` lỗi 18.
+
 ---
 
 ## Chờ: KHÔNG poll — và cũng KHÔNG kết luận sớm

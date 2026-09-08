@@ -100,6 +100,17 @@ LUAT = [
         "nhánh.",
     ),
     (
+        "backtick-trong-python-c",
+        re.compile(r'\bpython[^\s]*\s+-c\s+"[^"]*`'),
+        "Dấu ` bên trong `python -c \"...\"`. Bash nội suy nó TRƯỚC khi "
+        "Python thấy chuỗi, nên một khối mã markdown bị thay bằng KẾT QUẢ "
+        "chạy lệnh — thường là rỗng, và im lặng.\n"
+        "  Đã xảy ra 08/09/2026 — một khối mã ba dòng biến mất khỏi "
+        "`references/loi-da-mac.md`; chỉ lộ ra khi đọc lại file.\n"
+        "  Cách đúng: viết một file .py rồi chạy nó, hoặc dùng nháy ĐƠN "
+        "(bash không nội suy trong nháy đơn).",
+    ),
+    (
         "xoa-db-goc-repo",
         re.compile(r"\brm\b[^\n]*\s\S*\.db\b"),
         "Xoá file `.db`. Đó là DỮ LIỆU ĐO của người dùng, và một lần mất "

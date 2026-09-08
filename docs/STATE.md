@@ -8494,3 +8494,92 @@ do chính lượt này tạo ra, đã sửa bằng "Đổi tên nguồn" về đ
 
 Bộ nhớ `feedback-dung-notebooklm-lien-tuc.md` đã sửa hai chỗ: đường nạp lại,
 và quy tắc xoá nguồn.
+
+---
+
+## BƯỚC 43 — LUẬT ĐÚNG, LÝ DO SAI: `main` CHƯA BAO GIỜ ĐƯỢC BẢO VỆ (08/09/2026)
+
+Người dùng hỏi: *"bạn merge luôn được không, đã kết nối với `gh` rồi mà."*
+
+Trước khi bấm, đo hai thứ. Cả hai đều lật một câu trong tài liệu.
+
+### Đo thứ nhất — `main` không hề bị khoá
+
+```
+gh api repos/Siner0808/vibe-stock-analysis/branches/main/protection
+-> 404  {"message":"Branch not protected"}
+```
+
+Tài liệu nói *"nhánh này có branch protection"* ở hai chỗ. **Sai.** Và câu
+kia — *"`gh` không cài trên máy này"* — cũng vừa hết đúng trong cùng ngày.
+
+Nên luật **"người dùng tự merge PR" không còn lý do nào được viết ra.** Cả
+hai lý do cơ học của nó đều đã chết.
+
+### Nhưng luật "không đẩy thẳng `main`" thì VẪN ĐÚNG — vì một lý do khác
+
+```yaml
+# .github/workflows/kiem-dinh.yml
+on:
+  push:
+  pull_request:
+```
+
+CI chạy trên **cả hai** sự kiện. Đẩy thẳng lên `main` thì `kiem-dinh` vẫn
+chạy — nhưng chạy **SAU** khi mã đã nằm trên `main`. Một cái cổng đặt sau
+cánh cửa. Đi qua PR thì nó chạy **TRƯỚC**.
+
+Đó là lý do thật, và nó đo được. Hai lý do cũ thì không ai đo.
+
+> **Một luật đúng với lý do sai vẫn sẽ bị bác.** Hôm nay ba lần: luật CRLF
+> (BƯỚC 35), câu "hook đang cưỡng chế" (BƯỚC 40), và bây giờ là branch
+> protection. Cả ba đều cùng hình dạng — **lý do viết ra không phải lý do
+> thật** — và cả ba chỉ vỡ khi có người đi đo.
+
+### Đo thứ hai — CI của PR có HAI dòng, và dòng sau còn chạy
+
+```
+gh pr checks 71
+kiem-dinh   pass      6m5s    .../101975813672
+kiem-dinh   pending   0       .../101976081396
+```
+
+Hai lượt vì workflow bắt cả `push` lẫn `pull_request`. Đọc dòng đầu rồi
+merge là **merge khi CI chưa xong**. Chờ tới khi cả hai `pass` (6m5s và
+6m27s) mới merge.
+
+### Luật mới, người dùng quyết: agent TỰ MERGE
+
+Không phải "bỏ luật" mà là "đổi luật, kèm điều kiện đo được":
+
+| Điều kiện | Đo bằng |
+|---|---|
+| Bốn cổng Bước 4 xanh tại máy | log của chính lượt chạy |
+| **MỌI** check của PR `pass` — không `pending`, không `fail` | `gh pr checks <số>`, đọc **hết** |
+| Không còn câu hỏi chờ người dùng | — |
+
+Merge xong phải kiểm, không tin mã thoát: `gh pr merge` ngày 08/09/2026 trả
+về **rỗng hoàn toàn**, không một dòng nào. Phải hỏi lại mới biết nó chạy:
+
+```
+gh pr view 71 --json state,mergeCommit
+-> PR #71 . MERGED . 07:41:13Z . commit 44d69af
+```
+
+### Ba chỗ tài liệu đã sửa
+
+| Nơi | Câu cũ |
+|---|---|
+| `SKILL.md` Bước 5 | *"`gh` không cài trên máy này"* |
+| `docs/HANDOFF.md` mục 7 | *"nhánh, rồi PR, người merge"* |
+| `~/.claude/rules/ecc/common/vibe-preview.md` mục 4 | *"có branch protection, `gh` không cài"* |
+
+Cả ba nay ghi lý do đo được (CI chạy trước hay sau merge) thay cho hai lý do
+đã bị bác, kèm ba điều kiện tự merge và cái bẫy hai dòng `kiem-dinh`.
+
+### Cái giá của luật sai, tính được
+
+Bốn PR hôm nay (#68 · #69 · #70 · #71) mỗi cái đều dừng lại chờ người dùng
+mở và merge. Ba lượt đầu tôi còn soạn sẵn tiêu đề và toàn văn nội dung PR để
+người dùng dán tay — vì tin rằng `gh` không có. Toàn bộ phần đó là công vô
+ích do một câu chưa ai đo.
