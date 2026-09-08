@@ -49,7 +49,9 @@ Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 
 ---
 
-## Bước 1 — Trước khi viết bất cứ gì mới: TÌM XEM ĐÃ CÓ CHƯA
+## Bước 1 — Trước khi viết, và trước khi nói KHÔNG LÀM ĐƯỢC
+
+**Điều 1 — tìm xem đã có lời giải chưa.**
 
 ```bash
 grep -rn "<khai niem>" tests/ tools/ --include=*.py | head -20
@@ -59,6 +61,20 @@ grep -rn "<khai niem>" tests/ tools/ --include=*.py | head -20
 `tests/test_c5_noi_that.py`, kèm docstring nói thẳng lý do, và tôi vẫn
 tự viết lại từ đầu. Chép lời giải ra chỗ mới thì rẻ; đọc trước khi viết
 mới là thứ khó.
+
+**Điều 2 — một câu "không làm được" chép từ ghi chú thì phải ĐO LẠI,
+hoặc nói rõ nó chưa được kiểm trong phiên này.**
+
+Và khi viết ra một câu như thế, **nêu ĐƯỜNG đã thử, đừng nêu MỤC TIÊU**:
+
+| Viết thế này | Không viết thế này |
+|---|---|
+| "`file_upload` không dùng được vì trang không có ô nhập file" | "không nạp được nguồn" |
+| "cửa Bash không chạy vì phiên mở ngoài repo" | "hook của dự án hỏng" |
+
+Câu bên trái đúng mãi mãi. Câu bên phải sai ngay khi có đường thứ hai —
+và ngày 08/09/2026 nó sống **ba ngày** trước khi người dùng hỏi lại.
+`references/loi-da-mac.md` lỗi 16.
 
 ---
 

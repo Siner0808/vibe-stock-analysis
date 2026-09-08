@@ -8390,3 +8390,107 @@ hook — **chưa đo được nó chứa gì**, nên chưa được ghi là gi�
 Bốn cửa vừa bật **chỉ có hiệu lực từ phiên sau**. Phép kiểm vẫn là
 `python --version` cho cửa Bash; cho bốn cửa này thì dấu vết là file mốc
 `chan_bia_*.moc` và `vibe_da_doc_<id-phien>.json` mang **id phiên thật**.
+
+---
+
+## BƯỚC 42 — MỘT KẾT LUẬN CHÉP LẠI, SỐNG BA NGÀY, VỠ KHI NGƯỜI DÙNG HỎI (08/09/2026)
+
+Cuối buổi tôi liệt kê việc còn treo và viết: *"nạp lại bốn nguồn `.md` vào
+Notebook — cái đó tôi không làm được, NotebookLM không có ô `input[type=file]`
+để tôi điều khiển."*
+
+Người dùng hỏi lại: *"việc nạp nguồn vào NotebookLM trước đó bạn đã làm được
+và làm rất tốt, sao nay không làm được?"*
+
+Kiểm ngay thì thấy: **làm được.** Và nó không phải một lỗi đo — phép đo đúng.
+
+### Ghi chú gốc ĐÚNG PHẦN ĐO, SAI PHẦN KẾT LUẬN
+
+Bộ nhớ ngày 05/09 ghi: *"NotebookLM không có `input[type=file]` trong DOM;
+nút Tải tệp lên mở hộp thoại hệ điều hành."*
+
+Đo lại 08/09, hộp thoại thêm nguồn đã mở (`?addSource=true`):
+
+```
+input[type=file] ke ca shadow DOM sau 5 lop : 0
+input[type=file] trong iframe cung origin   : 0
+moi <input> tren trang: text, checkbox x6, text
+file_upload(tabId, paths)  ->  "expected string, received undefined (path: ref)"
+```
+
+Cả hai vế đều đúng, kể cả vế `file_upload` đòi `ref` **lúc chạy** dù lược đồ
+khai chỉ `tabId` bắt buộc. Không có gì để trách phép đo.
+
+Nhưng **kết luận rộng hơn phép đo**: *"đường `file_upload` bị chặn"* biến
+thành *"không nạp được bằng máy"*. Hai câu ấy chỉ bằng nhau nếu upload là
+đường duy nhất — và nó không phải. Ngay trong cùng hộp thoại có nút **"Trang
+web"**, và repo này **công khai**:
+
+```
+https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/<file>
+curl -o /dev/null -w %{http_code}  ->  200  cho ca bon file
+```
+
+Ô nhập là **textarea**, và chính nó ghi *"Để thêm nhiều URL, hãy phân tách
+bằng dấu cách hoặc dòng mới"* — nạp cả bốn trong một lượt. NotebookLM nuốt
+`.md` thô bình thường, tiếng Việt còn nguyên dấu.
+
+### Vì sao nó sống được ba ngày
+
+Vì tôi **chép lại** nó, không **đo lại** nó. Trong bàn giao nó xuất hiện dưới
+dạng một dòng gọn — *"NotebookLM không có `input[type=file]` tôi điều khiển
+được"* — mất hẳn phần "đây là kết luận về MỘT đường, không phải về mọi
+đường". Đến lượt tôi thì nó đã là một sự thật hiển nhiên.
+
+**Lỗi không nằm ở phép đo. Lỗi nằm ở lúc nén phép đo thành một câu.**
+
+### Đã kiểm, không phải suy: nội dung vào thật
+
+Không dừng ở "tên có trong danh sách" — mỗi nguồn kiểm bằng một chuỗi **chỉ
+có ở bản hiện hành**:
+
+| Nguồn | Bằng chứng | Độ dài |
+|---|---|---|
+| `STATE.md` | **BƯỚC 41** (viết cùng sáng) · 157 lần `BƯỚC <số>` | 355.318 |
+| `CLAUDE.md` | có "Ba giới hạn", **không** có "Hai giới hạn" | 78.330 |
+| `NGUYEN-TAC-DO-LUONG.md` | "Tám bất biến" · `test_cham_diem_khong_doi_khi_chay_lai` | — |
+| `MO-XE-KIEN-TRUC.md` | 573 · "Tầng *n*" · agent | 26.308 |
+
+Phép kiểm `CLAUDE.md` là **hai chiều** — chuỗi mới có mặt VÀ chuỗi cũ vắng
+mặt. Chỉ kiểm chiều "có" thì một bản cũ lẫn vào vẫn qua.
+
+### Và một quyết định thuộc về người dùng
+
+Nạp mới mà giữ nguồn cũ **tệ hơn hiện trạng**: sổ này sinh ra để soát mâu
+thuẫn tài liệu, cho nó hai phiên bản của cùng một file là bảo đảm nó báo hàng
+loạt mâu thuẫn giả *trông rất thật*. Nhưng xoá là vĩnh viễn.
+
+Người dùng chọn xoá bốn nguồn cũ. Thứ tự thi hành: **nạp mới trước, xoá cũ
+sau** — đường URL hỏng mà đã xoá trước thì sổ trắng.
+
+Xoá thêm nguồn dán tay `PHẦN THÊM NGÀY 05/09/2026 — bản mới nhất, ưu tiên…`
+theo yêu cầu riêng. Cái tên ấy là một **mệnh lệnh gửi cho sổ**, và sau khi có
+nguồn 08/09 thì nó kéo mọi câu trả lời về bản cũ.
+
+### Ba cái bẫy thao tác, ghi ra vì mò lại rất tốn
+
+1. **`find` đọc cây trợ năng, và cây ấy đánh số không theo thứ tự nhìn
+   thấy.** Hai lần `find "nút Trang web"` trả về con chip trong ô *"Tìm nguồn
+   mới trên web"* của trang chính. Một lần bấm theo ref đoán được đã **đóng
+   hộp thoại**. Cách chắc: `read_page` lấy `ref` của chính dialog, hoặc chụp
+   ảnh rồi bấm theo toạ độ.
+2. **Dialog cũ còn sót trong DOM.** Có lúc đếm được **ba** container dialog,
+   hai cái cùng nội dung "Xoá CLAUDE.md?". Bấm theo toạ độ rơi vào lớp vô
+   hình. Phải lọc `offsetParent !== null` và **khẳng định đúng một** phần tử
+   trước khi bấm.
+3. **`Escape` huỷ hộp thoại xác nhận.** Một lượt xoá thất bại chỉ vì tôi bấm
+   `Escape` để dọn menu ngay sau khi xác nhận.
+
+### Còn lại
+
+Bốn nguồn URL mặc định mang nhãn là URL đầy đủ, nên cả bốn hiện thành
+`https://raw.githubuserconte…` **không phân biệt được**. Đó là khiếm khuyết
+do chính lượt này tạo ra, đã sửa bằng "Đổi tên nguồn" về đúng tên file.
+
+Bộ nhớ `feedback-dung-notebooklm-lien-tuc.md` đã sửa hai chỗ: đường nạp lại,
+và quy tắc xoá nguồn.
