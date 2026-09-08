@@ -27,11 +27,39 @@ là lỗi sẽ tái diễn.
 | 13 | kết luận từ lượt quét HẸP trong khi lượt quét RỘNG còn đang chạy | lượt rộng xong sau, nói ngược lại | ⚠️ một phần | `cong-thuc-chay.md` |
 | 14 | **sáu cửa chưa bao giờ chạy** — phiên luôn mở ngoài repo | phép thử ở phiên sau | ⚠️ một phần | `~/.claude/rules/ecc/common/vibe-preview.md` |
 | 15 | bật một cửa lên TOÀN CỤC mà chưa thử nó ngoài repo | **đục thử** ngay sau khi bật | ✅ | `test_hang_rao_tu_dong` (3 test hành vi) |
+| 16 | chép một kết luận từ ghi chú rồi phát ra như phép đo của mình | **người dùng hỏi lại**, sau 3 ngày | ⚠️ một phần | Bước 1, điều 2 |
 
-**Chín trên mười lăm máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
+**Chín trên mười sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
 tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
+
+### Lỗi 16 — lỗi nằm ở lúc NÉN phép đo thành một câu
+
+Bàn giao ghi: *"không nạp lại nguồn vào NotebookLM bằng máy được, nó
+không có `input[type=file]`."* Tôi chép lại và phát ra như sự thật đã
+kiểm. Người dùng hỏi *"trước đó bạn làm được, sao nay không?"* — và làm
+được thật.
+
+**Phép đo gốc ĐÚNG**, đo lại 08/09 vẫn đúng: 0 `input[type=file]` kể cả
+shadow DOM 5 lớp và iframe cùng origin; `file_upload` đòi `ref` lúc chạy
+dù lược đồ khai không bắt buộc. Không có gì để trách phép đo.
+
+**Kết luận thì rộng hơn phép đo.** *"Đường upload bị chặn"* thành *"không
+nạp được"* — hai câu chỉ bằng nhau nếu upload là đường DUY NHẤT. Nó không
+phải: cùng hộp thoại có nút "Trang web", và repo công khai nên nạp thẳng
+`raw.githubusercontent.com` được, cả bốn file trong một lượt.
+
+**Luật: một câu "không làm được" phải nêu ĐƯỜNG đã thử, không nêu MỤC
+TIÊU.** "file_upload không dùng được vì không có ô nhập file" thì đúng
+mãi mãi; "không nạp được" thì sai ngay khi có đường thứ hai.
+
+Vì sao chỉ ⚠️ một phần: máy không đọc được văn xuôi để phân biệt hai câu
+ấy. Chỗ chặn được là **kỷ luật viết** — nén một phép đo thành một dòng
+bàn giao là lúc dễ mất phạm vi nhất, và dòng ấy sẽ sống lâu hơn trí nhớ
+của người viết ra nó.
+
+`docs/STATE.md` BƯỚC 42.
 
 ### Lỗi 15 — sự mơ hồ TIỀM ẨN thành lỗi SỐNG khi bối cảnh chạy đổi
 
