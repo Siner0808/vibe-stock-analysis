@@ -179,19 +179,26 @@ Cửa của repo (`.claude/settings.json`) chỉ được nạp khi **phiên đ�
 chính thư mục repo**. `cd` hay `change_directory` giữa phiên đều không
 nạp — đo 08/09/2026, hai lượt độc lập. Cửa đăng ký ở
 `~/.claude/settings.json` bằng **đường dẫn tuyệt đối** thì chạy bất kể
-phiên mở ở đâu; hiện chỉ `tools/chan_bia_so_lieu.py` nằm ở đó.
+phiên mở ở đâu. Từ 08/09/2026 có **bốn** cửa nằm ở đó (xem cột dưới).
 
 | Cửa | Khi nào | Đăng ký ở | Làm gì |
 |---|---|---|---|
 | `tools/cua_mo_phien.py` | **SessionStart** | repo | nhắc gọi skill + liệt kê mốc ngày đang chặn |
-| `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | repo | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
+| `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | repo **+ toàn cục** | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
 | `tools/cua_bash_an_toan.py` | Pre · Bash | repo | chặn hình dạng lệnh đã cắn thật |
 | `tools/chan_bia_so_lieu.py` | Post · Write/Edit | repo **+ toàn cục** | quét mẫu bịa số liệu |
-| `tools/cua_ghi_an_toan.py` | Post · Write/Edit | repo | file còn 0 byte sau lượt ghi |
-| `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | repo | soát lại file đã đổi |
+| `tools/cua_ghi_an_toan.py` | Post · Write/Edit | repo **+ toàn cục** | file còn 0 byte sau lượt ghi |
+| `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | repo **+ toàn cục** | soát lại file đã đổi |
 
 Cột **Đăng ký ở** là cột quan trọng nhất: "repo" nghĩa là *chỉ chạy khi
-phiên mở ở repo*, và tính tới 08/09/2026 điều đó chưa xảy ra lần nào.
+phiên mở ở repo*, và tính tới 08/09/2026 điều đó chưa xảy ra lần nào —
+tức hai cửa còn mang mỗi nhãn "repo" (`cua_mo_phien`, `cua_bash_an_toan`)
+vẫn đang chết.
+
+Bốn cửa "toàn cục" bật ngày 08/09/2026. Đục thử ngay lúc bật đã lôi ra
+một lỗi sống — xem `references/loi-da-mac.md` lỗi 15: **một công cụ đúng
+trong repo có thể sai ngay khi được gọi từ nơi khác.** Thêm cửa nào lên
+toàn cục thì phải bơm payload giả vào nó từ một cwd ngoài repo TRƯỚC.
 
 **Hook chỉ có hiệu lực từ PHIÊN SAU.** Thêm hook giữa phiên thì phiên đó
 vẫn chạy như cũ. Và **hook không thấy gì đi qua Bash trừ cửa Bash** —

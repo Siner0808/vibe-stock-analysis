@@ -26,11 +26,32 @@ là lỗi sẽ tái diễn.
 | 12 | ghim `.venv/Scripts/python.exe` — đường Windows, CI là Linux | **CI**, sau 4 cổng xanh | ✅ | `test_script_chay_duoc_tren_windows` |
 | 13 | kết luận từ lượt quét HẸP trong khi lượt quét RỘNG còn đang chạy | lượt rộng xong sau, nói ngược lại | ⚠️ một phần | `cong-thuc-chay.md` |
 | 14 | **sáu cửa chưa bao giờ chạy** — phiên luôn mở ngoài repo | phép thử ở phiên sau | ⚠️ một phần | `~/.claude/rules/ecc/common/vibe-preview.md` |
+| 15 | bật một cửa lên TOÀN CỤC mà chưa thử nó ngoài repo | **đục thử** ngay sau khi bật | ✅ | `test_hang_rao_tu_dong` (3 test hành vi) |
 
-**Tám trên mười bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
+**Chín trên mười lăm máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
 tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
+
+### Lỗi 15 — sự mơ hồ TIỀM ẨN thành lỗi SỐNG khi bối cảnh chạy đổi
+
+Chuyển cửa `Stop` lên `~/.claude/settings.json` để nó chạy ở mọi phiên.
+Đục thử ngay sau khi bật: từ cwd ngoài repo, nó **quét toàn repo và in 30
+dòng cảnh báo**. Ở cuối mỗi phiên của mọi dự án khác.
+
+Nguyên nhân không phải cwd — `file_da_doi()` đã chạy git với
+`cwd=GOC_DU_AN` từ đầu. Nó trả `[]` cho **hai** nghĩa: *không hỏi được
+git* và *git nói không có gì đổi*. Lựa chọn ấy đúng khi cửa chỉ chạy
+trong repo; sai từ giây nó chạy ở nơi khác. **Mã không đổi một dòng —
+thứ đổi là nơi nó được gọi.**
+
+Sửa bằng ba trạng thái (`None` / `[]` / `[...]`), đúng lối sẵn có của
+`tools/kiem_cu_phap_311.py` và `tools/kiem_test_chay_rieng.py`.
+
+Và tôi đã **nói ra chẩn đoán sai trước khi đo** — báo là do cwd. Cùng họ
+với lỗi 13, chỉ khác khoảng cách: một lượt gọi thay vì một lượt quét nền.
+
+`docs/STATE.md` BƯỚC 41.
 
 ### Lỗi 14 — cái máy dựng để chặn lỗi 10 cần đúng điều kiện mà lỗi 10 phá vỡ
 

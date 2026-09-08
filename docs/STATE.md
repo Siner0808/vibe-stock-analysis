@@ -8267,3 +8267,126 @@ nay mà không gây đỏ giả ở dự án khác, vì mỗi cửa tự lọc p
 Hai cửa cuối cần một phép kiểm phạm vi trước. Tín hiệu khả dĩ là trường
 `cwd` trong payload của hook — **chưa đo được nó chứa gì**, và theo Quy
 tắc số 2 thì chưa đo thì chưa được ghi là giải pháp.
+
+---
+
+## BƯỚC 41 — BẬT BỐN CỬA LÊN TOÀN CỤC, VÀ TỰ TẠO RA MỘT LỖI SỐNG (08/09/2026)
+
+Người dùng duyệt việc chuyển bốn cửa sang `~/.claude/settings.json` — nơi
+duy nhất chạy được bất kể phiên mở ở đâu (BƯỚC 40).
+
+| Cửa | Sự kiện · matcher |
+|---|---|
+| `tools/cua_doc_bat_buoc.py` | Pre · `Read\|Write\|Edit\|NotebookEdit` |
+| `tools/chan_bia_so_lieu.py` | Post · `Write\|Edit` *(đã có từ trước)* |
+| `tools/cua_ghi_an_toan.py` | Post · `Write\|Edit` |
+| `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop |
+
+Sao lưu `settings.json.bak-20260908-101035`. Script vá chạy được nhiều lần
+(đã có thì bỏ qua) và **kiểm lại mọi khoá không phải `hooks` còn nguyên**
+trước khi ghi.
+
+### Đục thử bắt được một lỗi tôi vừa tạo ra
+
+Bốn cửa này từ nay chạy ở **mọi dự án**, nên câu hỏi bắt buộc là: chúng cư
+xử ra sao khi `cwd` không phải repo. Bơm payload giả vào cả bốn, từ
+`C:\Users\cuong`:
+
+```
+1 cua_doc_bat_buoc   file ngoai repo   -> im, ma thoat 0
+2 cua_ghi_an_toan    file ngoai repo   -> im, ma thoat 0
+3 chan_bia_so_lieu   file ngoai repo   -> im, ma thoat 0
+4 --quet-thay-doi                      -> QUET TOAN REPO + in 30 canh bao
+```
+
+Cửa thứ tư sẽ đổ 30 dòng cảnh báo về vibe_preview vào **cuối mỗi phiên của
+mọi dự án khác**. Đó đúng là hình dạng "gác kêu sói thì bị tắt".
+
+### Chẩn đoán đầu tiên của tôi SAI, và tôi đã nói nó ra trước khi đo
+
+Tôi báo: *"rơi về quét toàn repo vì cwd nằm ngoài repo"*. Đọc mã thì
+`file_da_doi()` **đã** chạy git với `cwd=GOC_DU_AN` từ đầu — cwd không liên
+quan gì. Cùng họ với lỗi 13: phát biểu trước khi phép đo xong. Lần này
+khoảng cách chỉ là một lượt gọi, nhưng hình dạng thì y hệt.
+
+Đo thật:
+
+```
+git -C <repo> diff --name-only HEAD      -> rong, ma thoat 0
+git -C <repo> ls-files --others          -> rong, ma thoat 0
+```
+
+Git **trả lời được**, và câu trả lời là "không có gì đổi". Nguyên nhân thật
+nằm ở chỗ khác hẳn.
+
+### Nguyên nhân: một giá trị mang HAI nghĩa
+
+`file_da_doi()` trả `[]` cho cả hai tình huống — *không hỏi được git* và
+*git nói không có gì đổi*. Docstring cũ nói thẳng điều đó và chọn cách xử
+lý an toàn: không phân biệt được thì quét cả repo.
+
+Lựa chọn ấy **đúng** suốt thời gian cửa `Stop` chỉ chạy trong repo, nơi
+"cây sạch" nghĩa là chẳng có gì để soát và một lượt quét thừa chỉ tốn 24
+giây. Nó **sai** kể từ giây cửa ấy chạy ở dự án khác.
+
+> **Sự mơ hồ tiềm ẩn của một công cụ trở thành lỗi sống khi BỐI CẢNH CHẠY
+> của nó đổi.** Mã không đổi một dòng nào; thứ đổi là nơi nó được gọi.
+
+Và cây sạch là trạng thái **bình thường** lúc cuối phiên — nên đây không
+phải trường hợp hiếm, nó là trường hợp mặc định.
+
+### Sửa: ba trạng thái, đúng lối sẵn có của dự án
+
+```
+None    chua hoi duoc git  -> quet ca repo (khong biet thi khong duoc noi sach)
+[]      git da tra loi, khong file .py nao doi -> khong quet gi, ma thoat 0
+[...]   quet dung nhung file do
+```
+
+Cùng lối ba trạng thái của `tools/kiem_cu_phap_311.py`,
+`tools/kiem_test_chay_rieng.py` và `vnstock_goi.kiem_goi()`. Lối ấy có sẵn
+trong dự án từ lâu; công cụ này chỉ là chỗ chưa được áp.
+
+Đục lại sau khi sửa: `1 file đã đổi · 0 CHẶN · 0 cảnh báo`.
+
+### Đột biến 4/4 đỏ — nhưng lượt đầu 3/4
+
+| # | Đục | Lượt 1 | Lượt 2 |
+|---|---|---|---|
+| 1 | `if ds is None:` → `if not ds:` (dựng lại nguyên văn lỗi) | ĐỎ | ĐỎ |
+| 2 | nhánh `[]` quay về `return quet_repo()` | ĐỎ | ĐỎ |
+| 3 | `except Exception: return []` thay vì `None` | **SỐNG** | ĐỎ |
+| 4 | `returncode != 0: return []` thay vì `None` | ĐỎ | ĐỎ |
+
+Phát 3 sống vì lý do thật, không phải vì đột biến rỗng: test đầu của tôi
+trỏ `GOC_DU_AN` vào một thư mục **không phải repo git**, ở đó `git` chạy
+được và trả mã 128 — tức nó chạm nhánh `returncode != 0`, không chạm nhánh
+`except`. Hai nhánh bị coi là một.
+
+Thêm test thứ ba trỏ `GOC_DU_AN` vào một thư mục **không tồn tại**:
+`subprocess` nổ, đi đúng nhánh `except`. Phát 3 đỏ.
+
+Ba test mới trong `tests/test_hang_rao_tu_dong.py`, và cả ba đều kiểm
+**HÀNH VI**:
+
+- `test_khong_hoi_duoc_git_thi_file_da_doi_tra_None` — chạy `subprocess`
+  thật trên thư mục không phải git.
+- `test_subprocess_no_thi_file_da_doi_cung_tra_None` — nhánh `except`.
+- `test_RONG_khac_CHUA_HOI_DUOC_git` — thay `file_da_doi` bằng hàm giả,
+  đếm xem `quet_repo` có bị gọi không.
+
+Test cũ `test_khong_hoi_duoc_git_...` (đọc AST, hỏi *"`quet_thay_doi` có
+GỌI `quet_repo` không"*) **không thể** bắt lỗi này: câu trả lời là "có" cả
+trước lẫn sau khi lỗi ra đời. Lại đúng bài học *"gác đọc cấu trúc không
+thay được gác đọc hành vi"*.
+
+### Còn lại
+
+Hai cửa `tools/cua_bash_an_toan.py` và `tools/cua_mo_phien.py` vẫn **chưa**
+lên toàn cục: tám luật của cửa Bash không kiểm phạm vi, và banner mở phiên
+sẽ hiện ở mọi dự án. Tín hiệu để giới hạn là trường `cwd` trong payload
+hook — **chưa đo được nó chứa gì**, nên chưa được ghi là giải pháp.
+
+Bốn cửa vừa bật **chỉ có hiệu lực từ phiên sau**. Phép kiểm vẫn là
+`python --version` cho cửa Bash; cho bốn cửa này thì dấu vết là file mốc
+`chan_bia_*.moc` và `vibe_da_doc_<id-phien>.json` mang **id phiên thật**.
