@@ -217,4 +217,12 @@ dụng.
 
 Bước "đục thử" cũng vậy, và nó mới là bước hay bị bỏ. Xem ràng buộc 4.
 
-**Không push thẳng lên `main`** — nhánh, rồi PR, người merge.
+**Không push thẳng lên `main`** — nhánh, rồi PR. Lý do KHÔNG phải
+branch protection (`main` không hề được bảo vệ — đo 08/09/2026): mà vì
+`.github/workflows/kiem-dinh.yml` chạy cả trên `push`, nên đẩy thẳng thì
+CI chạy **sau**
+khi mã đã vào `main`.
+
+Merge thì agent tự làm được từ 08/09/2026, với ba điều kiện ở
+`SKILL.md` Bước 5 — quan trọng nhất: **mọi** check `pass`, vì mỗi PR có
+hai dòng `kiem-dinh` và dòng thứ hai hay còn `pending`.

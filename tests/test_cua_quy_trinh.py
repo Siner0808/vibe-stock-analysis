@@ -174,6 +174,8 @@ XAU = [
     ("push thang main", "git push origin main"),
     ("xoa hai nhanh", "git push origin --delete a b"),
     ("xoa .db", "rm paper_trades.db"),
+    ("backtick trong python -c",
+     './.venv/Scripts/python.exe -c "s = ```bash"'),
 ]
 
 TOT = [
@@ -186,11 +188,14 @@ TOT = [
     ("git log binh thuong", "git log --oneline -5"),
     ("doc file .db, khong xoa", "ls -la paper_trades.db"),
     ("main la ten thu muc, khong phai nhanh", "git push origin tinh/main-menu"),
+    # nhay DON: bash khong noi suy backtick -> an toan, phai duoc tha
+    ("backtick trong nhay don",
+     "./.venv/Scripts/python.exe -c 'x = `'"),
 ]
 
 
 def test_MAY_DO_bash_tu_chung_minh_no_bat_duoc():
-    """8 mẫu đã biết là xấu, 9 mẫu đã biết là tốt, cùng một cửa."""
+    """9 mẫu đã biết là xấu, 10 mẫu đã biết là tốt, cùng một cửa."""
     for ten, lenh in XAU:
         assert cb.kiem(lenh), f"BỎ SÓT mẫu xấu: {ten}\n  {lenh!r}"
     for ten, lenh in TOT:
