@@ -254,6 +254,7 @@ Vì thế:
 | 09/09/2026 | **ĐO 2 — chốt lựa chọn 3** | người dùng | tách độ trễ khớp khỏi `stride`, có test, rồi mới đo |
 | 09/09/2026 | xác nhận hai phép đo bị hoãn **vì con số "2,5 giờ"** | người dùng | số thật 46 phút → xếp lại lịch chạy |
 | 09/09/2026 | **ĐO 1 — bốn lượt ĐÃ CHẠY**, 08:59 → 11:36 | — | tiêu chí vào `main` lúc 08:30, trước lượt đầu 29 phút. Kết cục A và B — xem mục dưới |
+| 09/09/2026 | **ĐO 2 — ký điều khoản bổ sung**, cả ba mục | người dùng | phép tách · ba điều kiện cài đặt · ghim ngưỡng tay 62/50. Chưa viết dòng mã nào |
 
 ---
 
@@ -325,9 +326,17 @@ không kiểm nhãn. Ba đột biến, 3/3 đỏ.
 
 ## ĐO 2 — điều khoản bổ sung, khai TRƯỚC dòng mã đầu tiên
 
-> **CHƯA KÝ.** Mục này phải được người dùng chốt trước khi viết tham số
-> mới. Viết mã trước rồi mới khai tiêu chí thì tiêu chí đã bị hình dạng
-> của mã định hướng.
+> ✍️ **ĐÃ KÝ 09/09/2026 — cả ba mục, không sửa một điều kiện nào.**
+>
+> | Mục | Người dùng chốt |
+> |---|---|
+> | Phép tách | **Ký** — ghé mọi phiên để KHỚP, giữ lưới `stride` cho CHẤM và QUYẾT ĐỊNH |
+> | Ba điều kiện cài đặt | **Ký cả ba** — kể cả điều kiện 1: mặc định phải ra số y hệt, sai thì DỪNG |
+> | Ngưỡng | **Ký** — ghim tay 62 / 50, không để luật tự chọn |
+>
+> Chữ ký nằm trong git **trước** dòng mã đầu tiên của ĐO 2. Đó là toàn bộ
+> điểm của mục này: sau khi thấy số, mọi thay đổi ở đây đều để lại dấu
+> trong `git log`.
 
 ### Vì sao cần thêm điều khoản
 
