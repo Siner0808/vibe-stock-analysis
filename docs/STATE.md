@@ -6483,6 +6483,14 @@ trong `CLAUDE.md`:
 
 Dự án hiện **không có** kết quả nào loại được số 0.
 
+> 🔴 **CÂU NGAY TRÊN HẾT ĐÚNG TỪ 09/09/2026.** Bốn lượt của ĐO 1 cho một
+> dòng loại được số 0: chế độ **theo ngày**, trượt giá BẬT, ngưỡng 50,
+> **508 lệnh · alpha −0,94% · KTC [−1,57 ; −0,28]**, ở vốn TB 53% và
+> đỉnh **đúng 100%** — không có lỗi đòn bẩy. Xem BƯỚC 44.
+>
+> Giữ câu cũ vì phần phân tích bên dưới nó (kiểm chiều số đẹp lên) vẫn
+> đúng và vẫn cần đọc.
+
 ### Kiểm chiều — số ĐẸP LÊN, và đây là chỗ phải cẩn thận nhất
 
 Alpha đi từ −0,932 lên −0,676. Theo quy tắc số 1, giả định đầu tiên phải
@@ -8583,3 +8591,132 @@ Bốn PR hôm nay (#68 · #69 · #70 · #71) mỗi cái đều dừng lại ch�
 mở và merge. Ba lượt đầu tôi còn soạn sẵn tiêu đề và toàn văn nội dung PR để
 người dùng dán tay — vì tin rằng `gh` không có. Toàn bộ phần đó là công vô
 ích do một câu chưa ai đo.
+
+---
+
+## BƯỚC 44 — PHÉP ĐO ĐẦU TIÊN CÓ HỢP ĐỒNG KÝ TRƯỚC (09/09/2026)
+
+Bốn lượt walk-forward của ĐO 1, chạy 08:59:12 → 11:36:56, tổng **157,7
+phút**, cả bốn mã thoát 0.
+
+Điều khác mọi lần đo trước của dự án không nằm ở con số. Nó nằm ở **thứ
+tự**:
+
+```
+08:30:48   docs/TIEU-CHI-DOC-TRUOC.md vao main   (PR #73, 984f990)
+08:40      ba chu ky cua nguoi dung               (PR #74)
+08:59:12   luot 1/4 bat dau
+11:36:56   luot 4/4 xong
+```
+
+Bảng ba kết cục — hành động cam kết cho từng chiều của kết quả — nằm trong
+git **29 phút trước** khi lượt chạy đầu tiên bắt đầu. Đây là lần đầu bất
+biến 7 được **thi hành** thay vì được nhắc: quy tắc đọc không sửa được sau
+khi thấy số mà không để lại dấu trong `git log`.
+
+### Bảng
+
+| # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | alpha | KTC 95% | kết cục | vốn TB · đỉnh | phút |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 379 | −0,04% | −0,68% | [−1,47 ; +0,21] | B | 48% · 180% | 36,1 |
+| 2 | BẬT | theo ngày | 50 | **508** | −0,62% | **−0,94%** | **[−1,57 ; −0,28]** | **A** | 53% · **100%** | 32,9 |
+| 3 | TẮT | theo mã | 62 | 376 | +0,69% | −0,03% | [−0,86 ; +0,87] | B | 49% · 173% | 33,9 |
+| 4 | TẮT | theo ngày | 50 | 497 | +0,24% | −0,03% | [−0,71 ; +0,72] | B | 53% · 100% | 54,9 |
+
+Cả bốn: 71 mã IS · 33 mã OOS · bộ nhớ 44 mẫu, học thêm 0 · 0 lệnh bị bỏ
+khi ghép rổ chuẩn · `stride=2` · `min_history=60` · `che_do_hoc=co_san`.
+
+### Kết quả có ý nghĩa thống kê thứ HAI của dự án — và lần này sạch
+
+Dòng 2 loại được số 0. Kết quả có ý nghĩa đầu tiên (−0,927%, KTC
+[−1,689 ; −0,076], BƯỚC 25) bị bác vì đo ở **vốn cam kết trung bình
+138,66%** — đòn bẩy 1,39 lần, đúng thứ bất biến 7b cấm. Dòng 2 đo ở vốn
+TB **53%**, đỉnh **đúng 100%**, tức trần vốn CÓ chặn.
+
+Hai con số gần bằng nhau là **trùng hợp về độ lớn**: cũ là theo-mã ngưỡng
+62, mới là theo-ngày ngưỡng 50. Không được đọc như hai lần đo cùng một
+thứ. Điều đúng là: kết luận mà con số cũ chỉ tới nay có một chỗ dựa mà
+chính nó không cung cấp được.
+
+### Chi phí thực thi LÀ toàn bộ phần alpha âm
+
+```
+theo ma    −0,03%  →  −0,68%     0,65 diem phan tram moi lenh
+theo ngay  −0,03%  →  −0,94%     0,91 diem phan tram moi lenh
+```
+
+Tắt chi phí thực thi thì alpha về −0,03% ở **cả hai** chế độ, KTC gần như
+đối xứng quanh 0 — không phân biệt được với cầm đều cả rổ. Bật lên thì
+thua. `CLAUDE.md` ước 0,43 điểm; đó là số TRONG mẫu, và ngoài mẫu nó lớn
+hơn **50–110%**. Chưa ai đi tìm vì sao — ba khả năng chưa loại được ghi ở
+`CLAUDE.md` mục CHI PHÍ THỰC THI.
+
+### Hai thứ khiến bảng này tự chứng minh được
+
+**Tái lập (bất biến 2), miễn phí.** Log 46 phút ngày 08/09 chạy đúng cấu
+hình lượt 1 và được cố ý để chưa đọc cho tới khi tiêu chí được ký. Đặt
+cạnh nhau: 379 lệnh · −0,68% · [−1,47 ; +0,21] · 48%/180% — **trùng từng
+chữ số**. Hai ngày, hai tiến trình.
+
+**Dụng cụ có tác dụng thật.** Nếu lượt 1 ≡ lượt 3 thì cờ
+`MO_PHONG_TRUOT_GIA` không vào tới đâu và cả bảng vô nghĩa. Chúng khác
+nhau, và 2 ≠ 4.
+
+### CHỖ BẢNG NÀY KHÔNG ĐỌC ĐƯỢC — và nó là bài học chính
+
+Ngưỡng **do chính lượt chạy chọn trên IS**, và nó ra 62 cho theo-mã, 50
+cho theo-ngày. Nên:
+
+| so | khác nhau ở | đọc được? |
+|---|---|---|
+| 1 vs 3 · 2 vs 4 | đúng một thứ: công tắc | ✅ |
+| 1 vs 2 · 3 vs 4 | **cả chế độ LẪN ngưỡng** | ❌ |
+
+Đây đúng hình dạng của vấn đề `stride` trong ĐO 2 (BƯỚC 21): một tham số
+kéo theo một tham số khác, khác biệt quan sát được không chia được cho hai
+vế. Lần này nó xuất hiện qua **luật chọn ngưỡng** — chỗ không ai lường
+trước, vì luật ấy được nêu trước và trông như đã ghim mọi thứ.
+
+**Bài học: "được chọn tự động theo luật đã khai trước" KHÔNG đồng nghĩa
+với "được ghim".** Một phép so 2×2 chỉ là 2×2 khi mọi thứ ngoài trục đang
+xét đứng yên, và một luật chọn tham số là một cái trục nữa.
+
+### Một trường hợp đồng bắt báo cáo mà dụng cụ chưa bao giờ in
+
+Điều khoản "Phải báo cáo KÈM" đòi `alpha_so_lenh`. `walkforward.main()`
+chưa bao giờ in nó. Trường ấy có trong dict từ đầu, và
+`test_mo_phong_bao_alpha_va_trang_thai_bo_nho` đã khoá việc nó CÓ MẶT —
+nhưng không gì bắt nó đi ra tới người đọc. Phải chạy hết 157,7 phút mới
+lộ.
+
+**Một trường nằm trong kết quả mà không đi ra tới người đọc thì với người
+đọc nó không tồn tại.** Phải khoá cả hai đầu.
+
+Đã vá: `walkforward.dong_bao_cao_oos()` là hàm thuần trả về danh sách
+dòng; `alpha_so_lenh` và `alpha_bo_qua` in **luôn luôn**, kể cả bằng 0
+("bỏ 0 lệnh" là thông tin; một dòng vắng mặt làm người đọc không phân
+biệt được "bằng 0" với "không ai đo"). Gác mới
+`test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` kiểm **GIÁ TRỊ**
+chứ không kiểm nhãn — nhãn còn nguyên mà in nhầm trường thì phép kiểm nhãn
+vẫn xanh, đúng hình dạng "test kiểm lại chính nó" đã cắn ba lần ngày
+31/08. Ba đột biến (xoá dòng in · in nhầm trường · bọc lại điều kiện):
+**3/3 đỏ**.
+
+### Hành động, theo đúng cam kết trước khi thấy số
+
+Kết cục A và B cam kết cùng một việc:
+
+- ✅ Cổng C5 **giữ đóng** — đang đóng, không đổi gì
+- ✅ Thay bảng số trong `CLAUDE.md`
+- ✅ **Không đổi một tham số nào**
+- ✅ Ngừng dò ngưỡng
+
+Bốn phép kiểm bắt buộc chỉ áp cho kết cục C, nhưng cả bốn đều thoả:
+`von_tb` 48–53% ≤ 100% · chạy lại ra số y hệt · 0 lệnh bị bỏ · 33 mã OOS.
+
+### Thời gian chạy không phải hằng số
+
+Cùng cấu hình lượt 1: **46,1 phút** (08/09) và **36,1 phút** (09/09) —
+lệch 27% theo tải máy. Hôm 08/09 con số "~2,5 giờ" bị bác và thay bằng
+"46 phút đo được"; hôm nay chính con số mới ấy suýt đóng vai hằng số y như
+con số cũ. Mọi ước lượng thời gian phải nói ra nó là một **khoảng**.

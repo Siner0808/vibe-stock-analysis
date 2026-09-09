@@ -451,6 +451,64 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
             "so_ma_is": len(vung_is), "so_ma_oos": len(vung_oos)}
 
 
+def dong_bao_cao_oos(o: dict) -> list[str]:
+    """Dựng các dòng báo cáo vùng OOS. Trả về danh sách dòng, không in.
+
+    VÌ SAO TÁCH RA KHỎI `main()`
+    ────────────────────────────
+    `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 1 có một điều khoản tên là
+    "Phải báo cáo KÈM, không được tách rời": mỗi dòng kết quả phải đi
+    cùng `so_lenh` · `von_tb` · `von_dinh` · `alpha_so_lenh` ·
+    `alpha_bo_qua` · `so_ma_is` · `so_ma_oos` · thời gian chạy thật.
+
+    Ngày 09/09/2026 bốn lượt của ĐO 1 chạy xong mới lộ ra rằng
+    `alpha_so_lenh` **chưa bao giờ được in**. Trường ấy có trong kết quả
+    của `_mo_phong` từ đầu, và `tests/test_walkforward.py` đã khoá việc
+    nó CÓ MẶT trong dict — nhưng không gì bắt nó phải đi ra tới người
+    đọc. Một yêu cầu nằm trong tài liệu mà không có phép kiểm thì chỉ là
+    gợi ý; đó là câu lặp đi lặp lại của dự án này.
+
+    Tách thành hàm thuần để phép kiểm ấy chạy được bằng máy trên một dict
+    dựng sẵn, không cần một lượt walk-forward 35 phút.
+
+    `alpha_so_lenh` và `alpha_bo_qua` in **luôn luôn**, kể cả bằng 0.
+    "Bỏ 0 lệnh" là thông tin — nó nói alpha tính trên trọn tập lệnh; còn
+    một dòng vắng mặt thì người đọc không phân biệt được "bằng 0" với
+    "không ai đo".
+    """
+    d = [
+        "── ĐO TRÊN OUT-OF-SAMPLE ──────────────────────────────────────",
+        f"  số lệnh          : {o['so_lenh']}",
+        f"  kỳ vọng mỗi lệnh : {o['ky_vong']:+.2f}%",
+        f"  win rate         : {o['win_rate']:.1f}%",
+        f"  lợi nhuận cộng dồn: {o['net_pct']:+.2f}%",
+    ]
+    if o.get("alpha") is not None:
+        d.append(f"  alpha khớp từng lệnh: {o['alpha']:+.2f}%/lệnh"
+                 f"   KTC 95% [{o['alpha_ktc'][0]:+.2f} ;"
+                 f" {o['alpha_ktc'][1]:+.2f}]")
+        d.append(f"    → {o['alpha_ket_luan']}")
+    else:
+        d.append(f"  alpha khớp từng lệnh: chưa đo được"
+                 f"   ({o.get('alpha_ket_luan')})")
+    d.append(f"  alpha dựng được trên: {o['alpha_so_lenh']} lệnh"
+             f"   · bỏ vì không ghép được cặp ngày: {o['alpha_bo_qua']}")
+    if o.get("alpha_bo_qua"):
+        d.append(f"    ⚠️ {o['alpha_bo_qua']} lệnh bị bỏ — alpha ở trên nói "
+                 f"về TẬP CON, không nói về cả tập lệnh")
+    d.append(f"  bộ nhớ học: đầu {o['mau_dau']} mẫu, học thêm "
+             f"{o['mau_hoc_them']}   (chế độ {o['che_do_hoc']})")
+    d.append(f"  vốn triển khai   : {o['von_tb']:.0f}% trung bình"
+             f" · {o['von_dinh']:.0f}% đỉnh")
+    if o["von_dinh"] > 100:
+        d += [
+            "  ⚠️  Vốn đỉnh vượt 100% — con số cộng dồn ở trên là lợi nhuận",
+            "     của một tài khoản VAY ĐƯỢC (bất biến 7b). Chia tỷ trọng",
+            "     cho đúng bội số rồi đo lại trước khi kết luận.",
+        ]
+    return d
+
+
 def main() -> int:
     import argparse
     import sys
@@ -508,29 +566,8 @@ def main() -> int:
         print("⛔ Không có vùng OOS đủ lớn để đo.")
         return 1
 
-    print("── ĐO TRÊN OUT-OF-SAMPLE ──────────────────────────────────────")
-    print(f"  số lệnh          : {o['so_lenh']}")
-    print(f"  kỳ vọng mỗi lệnh : {o['ky_vong']:+.2f}%")
-    print(f"  win rate         : {o['win_rate']:.1f}%")
-    print(f"  lợi nhuận cộng dồn: {o['net_pct']:+.2f}%")
-    if o.get("alpha") is not None:
-        print(f"  alpha khớp từng lệnh: {o['alpha']:+.2f}%/lệnh"
-              f"   KTC 95% [{o['alpha_ktc'][0]:+.2f} ; {o['alpha_ktc'][1]:+.2f}]")
-        print(f"    → {o['alpha_ket_luan']}")
-    else:
-        print(f"  alpha khớp từng lệnh: chưa đo được"
-              f"   ({o.get('alpha_ket_luan')})")
-    if o.get("alpha_bo_qua"):
-        print(f"    ⚠️ bỏ {o['alpha_bo_qua']} lệnh vì không dựng được cặp "
-              f"ngày trong rổ chuẩn")
-    print(f"  bộ nhớ học: đầu {o['mau_dau']} mẫu, học thêm "
-          f"{o['mau_hoc_them']}   (chế độ {o['che_do_hoc']})")
-    print(f"  vốn triển khai   : {o['von_tb']:.0f}% trung bình"
-          f" · {o['von_dinh']:.0f}% đỉnh")
-    if o["von_dinh"] > 100:
-        print("  ⚠️  Vốn đỉnh vượt 100% — con số cộng dồn ở trên là lợi nhuận")
-        print("     của một tài khoản VAY ĐƯỢC (bất biến 7b). Chia tỷ trọng")
-        print("     cho đúng bội số rồi đo lại trước khi kết luận.")
+    for dong in dong_bao_cao_oos(o):
+        print(dong)
     print()
     print("Con số dùng được là con số OOS ở trên, KHÔNG phải dòng nào trong")
     print("dải IS. Dải IS chỉ để chọn tham số.")

@@ -101,6 +101,11 @@ biến 7b bắt phải chia ra rồi đo lại.
 [−1,470; +0,211] — CHỨA 0.** Nên hiện dự án **không có kết quả nào loại
 được số 0**, và bảng trong tài liệu vẫn là bảng cũ.
 
+> ✅ **ĐÃ CHẠY 09/09/2026 — xem "Kết quả" ở cuối file.** Hai câu trên mô
+> tả tình trạng **trước** lượt đo, và được giữ nguyên có chủ đích: đó là
+> tiền đề mà hợp đồng này được ký, nên sửa nó đi là xoá mất bối cảnh của
+> chữ ký. Câu *"không có kết quả nào loại được số 0"* nay đã hết đúng.
+
 ### Chạy gì
 
 Bốn lượt: hai công tắc × hai chế độ mô phỏng.
@@ -248,3 +253,70 @@ Vì thế:
 | 09/09/2026 | **ĐO 1 — ký nguyên bảng ba kết cục + bốn phép kiểm** | người dùng | không sửa ngưỡng nào |
 | 09/09/2026 | **ĐO 2 — chốt lựa chọn 3** | người dùng | tách độ trễ khớp khỏi `stride`, có test, rồi mới đo |
 | 09/09/2026 | xác nhận hai phép đo bị hoãn **vì con số "2,5 giờ"** | người dùng | số thật 46 phút → xếp lại lịch chạy |
+| 09/09/2026 | **ĐO 1 — bốn lượt ĐÃ CHẠY**, 08:59 → 11:36 | — | tiêu chí vào `main` lúc 08:30, trước lượt đầu 29 phút. Kết cục A và B — xem mục dưới |
+
+---
+
+## Kết quả ĐO 1 — chạy 09/09/2026, đọc theo bảng đã ký
+
+**Trình tự, ghi ra để kiểm được:** tiêu chí vào `main` lúc **08:30:48**
+(PR #73, `984f990`); ba chữ ký ở PR #74; lượt chạy đầu tiên bắt đầu
+**08:59:12**; lượt cuối xong **11:36:56**. Không dòng nào của bảng ba kết
+cục bị sửa sau 08:30 — `git log docs/TIEU-CHI-DOC-TRUOC.md` là bằng chứng.
+
+| # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | alpha | KTC 95% | kết cục | vốn TB · đỉnh | phút |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 379 | −0,68% | [−1,47 ; +0,21] | **B** | 48% · 180% | 36,1 |
+| 2 | BẬT | theo ngày | 50 | **508** | **−0,94%** | **[−1,57 ; −0,28]** | **A** | 53% · **100%** | 32,9 |
+| 3 | TẮT | theo mã | 62 | 376 | −0,03% | [−0,86 ; +0,87] | B | 49% · 173% | 33,9 |
+| 4 | TẮT | theo ngày | 50 | 497 | −0,03% | [−0,71 ; +0,72] | B | 53% · 100% | 54,9 |
+
+Cả bốn: 71 mã IS · 33 mã OOS · bộ nhớ 44 mẫu, học thêm 0 · **0 lệnh bị bỏ
+khi ghép rổ chuẩn** · cả bốn mã thoát 0 · log 46–49 dòng, 0 Traceback.
+
+### Hành động, theo đúng cam kết
+
+Kết cục A và B cam kết **cùng một việc**, nên không có gì phải cân nhắc:
+
+- ✅ **Cổng C5 giữ đóng.** Nó đang đóng; không đổi gì.
+- ✅ **Thay bảng số trong `CLAUDE.md`** — mục "CHI PHÍ THỰC THI ĐÃ BẬT".
+- ✅ **Không đổi một tham số nào.**
+- ✅ **Ngừng dò ngưỡng** (điều khoản riêng của kết cục A).
+
+Bốn phép kiểm bắt buộc chỉ áp cho kết cục C, nhưng **cả bốn đều thoả**:
+`von_tb` 48–53% ≤ 100% · chạy lại ra số y hệt · 0 lệnh bị bỏ · 33 mã OOS.
+
+### Phép kiểm số 2 đã chạy MIỄN PHÍ, và nó xanh
+
+Log 46 phút ngày 08/09 chạy đúng cấu hình lượt 1. Đặt cạnh nhau: **379
+lệnh · −0,68% · [−1,47 ; +0,21] · 48%/180%** — trùng từng chữ số, hai
+ngày, hai tiến trình độc lập. Bất biến 2 giữ.
+
+### Dụng cụ tự chứng minh nó hoạt động
+
+Nếu lượt 1 và lượt 3 cho alpha y hệt nhau thì cờ `MO_PHONG_TRUOT_GIA`
+không có tác dụng và cả bảng vô nghĩa. Chúng khác nhau (−0,68 so với
+−0,03), và lượt 2 khác lượt 4 (−0,94 so với −0,03).
+
+### MỘT CHỖ BẢNG NÀY KHÔNG ĐỌC ĐƯỢC
+
+Ngưỡng do chính lượt chạy chọn trên IS, ra **62 cho theo-mã, 50 cho
+theo-ngày**. Nên **1 vs 2** và **3 vs 4** khác nhau ở *cả* chế độ *lẫn*
+ngưỡng — không quy được cho vế nào. Chỉ **1 vs 3** và **2 vs 4** đọc được.
+
+Đây đúng hình dạng của vấn đề `stride` trong ĐO 2, xuất hiện lại ở một
+chỗ không ai lường trước: **luật chọn ngưỡng**. Bài học chung: một phép so
+2×2 chỉ là 2×2 khi mọi thứ ngoài trục đang xét được ghim, và "được chọn tự
+động theo luật đã nêu trước" **không** đồng nghĩa với "được ghim".
+
+### Điều dụng cụ KHÔNG báo cáo được, và đã vá
+
+Điều khoản "Phải báo cáo KÈM" đòi `alpha_so_lenh`. `walkforward.main()`
+**chưa bao giờ in trường đó** — nó có trong dict từ đầu, và
+`tests/test_walkforward.py` đã khoá việc nó CÓ MẶT, nhưng không gì bắt nó
+đi ra tới người đọc. Phải chạy hết 157,7 phút mới lộ.
+
+Đã vá cùng ngày: `walkforward.dong_bao_cao_oos()` tách thành hàm thuần,
+`alpha_so_lenh` và `alpha_bo_qua` in **luôn luôn** kể cả bằng 0, và
+`test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` kiểm GIÁ TRỊ chứ
+không kiểm nhãn. Ba đột biến, 3/3 đỏ.

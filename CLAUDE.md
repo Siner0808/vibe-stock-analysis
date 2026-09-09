@@ -746,39 +746,91 @@ không file nào ngoài test của chính chúng import. Nay `fill_pending` đi 
 `vong_doi_lenh` (lô chẵn · biên độ ±7% · trần thanh khoản mỗi nến · khớp
 một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 
-**Giá phải trả, đo bằng hai lượt walk-forward trên cùng dữ liệu:**
+**Giá phải trả — BỐN lượt walk-forward, đo 09/09/2026.** Tiêu chí đọc được
+khai, ký và **commit TRƯỚC lượt chạy đầu tiên**: `docs/TIEU-CHI-DOC-TRUOC.md`
+vào `main` lúc 08:30, lượt 1 bắt đầu 08:59. Đó là lần đầu dự án chạy một
+phép đo mà quy tắc đọc không thể sửa sau khi thấy số.
 
-| | lệnh | kỳ vọng | alpha | KTC 95% |
-|---|---|---|---|---|
-| TẮT (mọi số trước 24/08) | 390 | +0,614% | −0,011% | [−0,766 ; +0,832] chứa 0 |
-| **BẬT** (từ nay) | 385 | **−0,291%** | **−0,927%** | **[−1,689 ; −0,076] LOẠI 0** |
+| # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh | phút |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 379 | −0,04% | −0,68% | [−1,47 ; +0,21] chứa 0 | 48% · 180% | 36,1 |
+| 2 | BẬT | **theo ngày** | 50 | **508** | −0,62% | **−0,94%** | **[−1,57 ; −0,28] LOẠI 0** | 53% · **100%** | 32,9 |
+| 3 | TẮT | theo mã | 62 | 376 | +0,69% | −0,03% | [−0,86 ; +0,87] chứa 0 | 49% · 173% | 33,9 |
+| 4 | TẮT | theo ngày | 50 | 497 | +0,24% | −0,03% | [−0,71 ; +0,72] chứa 0 | 53% · 100% | 54,9 |
 
-> **Đây là kết quả có ý nghĩa thống kê ĐẦU TIÊN của dự án, và nó âm.** Với
-> chi phí thực thi thực tế, chiến lược thua rổ chuẩn 0,927% mỗi lệnh trên
-> vùng chứng minh được là chưa thể đã bị nhìn.
+Cả bốn lượt: 71 mã có vùng IS · **33 mã có vùng OOS** · bộ nhớ 44 mẫu, học
+thêm 0 · **0 lệnh bị bỏ khi ghép rổ chuẩn** · `stride=2` · `min_history=60`
+· `che_do_hoc=co_san`. Dụng cụ: `tools/do1_chi_phi_thuc_thi.py`, mỗi lượt
+một tiến trình riêng.
+
+> ### CHỈ HAI phép so trong bảng này đọc được
 >
-> ⚠️ **KHÔNG CÒN ĐÚNG VỚI MÃ HIỆN HÀNH (đo lại 04/09/2026).** Cùng cấu
-> hình, cùng dữ liệu, chạy trên HEAD: **379 lệnh · alpha −0,676% · KTC
-> [−1,470 ; +0,211] — CHỨA 0.**
+> Ngưỡng **do chính lượt chạy chọn trên IS**, và nó ra **62 cho theo-mã,
+> 50 cho theo-ngày**. Nên:
 >
-> Con số −0,927% đo trên mã ngày 31/08, ở **vốn cam kết trung bình
-> 138,66%** — tức đòn bẩy 1,39 lần, đúng thứ bất biến 7b bắt phải chia ra
-> rồi đo lại. `fac319b` (31/08) sửa đúng việc đó: cỡ vị thế 5–33,3% →
-> 3,3–13,3%, vốn về 48,47%. Commit ấy CÓ đo lại alpha, nhưng ở chế độ
-> `theo_ngay`; chế độ mặc định theo-mã — đúng chế độ bảng này mô tả —
-> không ai đo lại.
+> | so | khác nhau ở | đọc được? |
+> |---|---|---|
+> | **1 vs 3** · **2 vs 4** | đúng một thứ: công tắc | ✅ |
+> | 1 vs 2 · 3 vs 4 | **cả chế độ LẪN ngưỡng** | ❌ không quy được cho vế nào |
 >
-> **Dự án hiện KHÔNG có kết quả nào loại được số 0.** Cả bảng số trong
-> mục này cần một lượt đo đầy đủ ở cấu hình hiện hành. Chi tiết và bằng
-> chứng thô: `docs/STATE.md`, BƯỚC 25.
+> Đúng hình dạng của vấn đề `stride` ở mục "Backtest khớp lệnh ở T+2":
+> một tham số kéo theo một tham số khác, và khác biệt quan sát được không
+> chia được cho hai vế. Ở đây nó xuất hiện qua **luật chọn ngưỡng**, chỗ
+> không ai lường trước.
+
+**Chi phí thực thi LÀ toàn bộ phần alpha âm.** Tắt nó đi thì alpha về
+−0,03% ở **cả hai** chế độ, KTC gần như đối xứng quanh 0:
+
+```
+theo mã    −0,03%  →  −0,68%     0,65 điểm phần trăm mỗi lệnh
+theo ngày  −0,03%  →  −0,94%     0,91 điểm phần trăm mỗi lệnh
+```
+
+Không có chi phí thực thi, chiến lược **không phân biệt được với cầm đều
+cả rổ**. Có chi phí, nó thua. Cách đọc: rổ chuẩn mua một lần rồi giữ, trả
+chi phí **hai lần**; chiến lược quay vòng 500 lệnh, trả **1.000 lần**.
+
+> **DÒNG 2 LÀ DÒNG ĐÁNG TIN NHẤT**, theo ba luật của chính dự án:
 >
-> Cách đọc: rổ chuẩn mua một lần rồi giữ, trả chi phí **hai lần**. Chiến
-> lược quay vòng 385 lệnh, trả **770 lần**. Lợi thế vốn đã không phân biệt
-> được với 0; cộng chi phí quay vòng vào thì phần âm lộ ra.
+> 1. **Nhiều lệnh nhất** (508) — bất biến 7: *"dòng đáng tin nhất là dòng
+>    có nhiều lệnh nhất, không phải dòng lãi cao nhất"*.
+> 2. **Chế độ duy nhất có danh mục thật.** Vốn đỉnh đúng 100% nghĩa là
+>    trần vốn **có chặn**. Hai dòng theo-mã cho 173–180% — xem mục "Trần
+>    vốn cam kết" dưới đây: đó là *"một danh mục máy chưa bao giờ thực sự
+>    nắm"*.
+> 3. **Dòng duy nhất loại được số 0.**
+>
+> **Đây là kết quả có ý nghĩa thống kê thứ HAI của dự án, và lần này
+> KHÔNG có lỗi đòn bẩy.** Kết quả thứ nhất — −0,927%, KTC
+> [−1,689 ; −0,076] đo 28/08 trên mã ngày 31/08 — bị bác vì đo ở **vốn
+> cam kết trung bình 138,66%**, tức đòn bẩy 1,39 lần (bất biến 7b).
+> Dòng 2 đo ở vốn TB 53%, đỉnh 100%. Kết luận mà con số cũ chỉ tới nay
+> có chỗ dựa mà **chính nó không cung cấp được**.
+>
+> Hai con số gần bằng nhau là **trùng hợp về độ lớn, không phải xác
+> nhận**: cũ là theo-mã ngưỡng 62, mới là theo-ngày ngưỡng 50. Đừng đọc
+> chúng như hai lần đo cùng một thứ.
+
+**Tái lập được (bất biến 2).** Lượt 1 trùng **từng chữ số** với một lượt
+chạy độc lập ngày 08/09/2026 ở đúng cấu hình ấy: 379 lệnh · −0,68% ·
+[−1,47 ; +0,21] · 48%/180%. Hai ngày, hai tiến trình, cùng số.
+
+**Thời gian chạy không phải hằng số.** Cùng cấu hình lượt 1: 46,1 phút
+(08/09) và 36,1 phút (09/09) — lệch 27% theo tải máy. Mọi ước lượng thời
+gian phải nói ra nó là một khoảng.
 
 In-sample: **−0,43 điểm phần trăm mỗi lệnh, gần như bằng nhau ở cả bảy
 ngưỡng** (45 → 62). Ổn định như vậy là dấu hiệu mô hình đúng — chi phí thực
 thi là chi phí MỖI LỆNH, không co giãn theo độ chọn lọc.
+
+> ⚠️ **Con số 0,43 ấy đo TRONG MẪU. Ngoài mẫu, đo 09/09/2026, nó là
+> 0,65–0,91** (bảng bốn lượt ở trên, phép so 1↔3 và 2↔4). Lớn hơn
+> **50–110%**.
+>
+> Chưa ai đi tìm vì sao. Ba khả năng chưa loại được: vùng OOS có thanh
+> khoản mỏng hơn vùng IS; tập lệnh khác nhau nên trung vị giá vào khác;
+> hoặc con số 0,43 đo ở một bản mã cũ hơn. **Đừng dùng 0,43 để trừ hao
+> cho số ngoài mẫu** cho tới khi có người đo.
 
 **Kết luận KHÔNG phụ thuộc giả định vốn 1 tỷ.** Ở giá vào trung vị 16.100đ,
 từ 100 triệu tới 1 tỷ chi phí y hệt nhau (0,311% một chiều): tác động thị
@@ -788,7 +840,8 @@ lên tác động mới cộng thêm một bước.
 
 **MỌI con số trong tài liệu này đo TRƯỚC 24/08/2026 đều không có chi phí
 thực thi** — kỳ vọng sổ +0,79%, alpha +0,090%, mọi bảng walk-forward. Trừ
-hao ~0,43 điểm phần trăm mỗi lệnh khi đọc chúng.
+hao **0,65–0,91 điểm phần trăm mỗi lệnh** khi đọc chúng (đo ngoài mẫu
+09/09/2026; bản trước ghi ~0,43, đó là số TRONG mẫu).
 
 **`volume` KHÔNG được nhân `price_multiplier`.** `run_session` nhân mọi giá
 trị trong `bar` để quy nghìn đồng về VNĐ; nhân nhầm khối lượng thì tỷ trọng

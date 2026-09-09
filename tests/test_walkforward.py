@@ -137,3 +137,49 @@ def test_mo_phong_bao_alpha_va_trang_thai_bo_nho():
         for f in (db, bo_nho):
             if os.path.exists(f):
                 os.remove(f)
+
+
+def test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao():
+    """Điều khoản "Phải báo cáo KÈM" của `docs/TIEU-CHI-DOC-TRUOC.md`.
+
+    VÌ SAO TEST NÀY TỒN TẠI, và vì sao nó KHÁC
+    `test_mo_phong_bao_alpha_va_trang_thai_bo_nho` ở trên:
+
+    Test kia khoá các trường CÓ MẶT trong dict `_mo_phong` trả về. Ngày
+    09/09/2026 nó vẫn xanh trong khi `alpha_so_lenh` **chưa bao giờ được
+    in ra**. Bốn lượt của ĐO 1 chạy hết 157,7 phút rồi mới lộ ra rằng con
+    số hợp đồng bắt báo cáo không có trong log.
+
+    Một trường nằm trong dict mà không đi ra tới người đọc thì với người
+    đọc nó không tồn tại. Nên phải khoá cả hai đầu: có trong kết quả, VÀ
+    có trong báo cáo.
+
+    Test kiểm GIÁ TRỊ chứ không kiểm nhãn. Nhãn còn nguyên mà in nhầm
+    trường khác thì phép kiểm nhãn vẫn xanh — đúng hình dạng "test kiểm
+    lại chính nó" đã cắn dự án ba lần ngày 31/08/2026.
+    """
+    o = {"so_lenh": 4111, "ky_vong": 1.11, "win_rate": 22.2, "net_pct": 3.33,
+         "alpha": -0.44, "alpha_ktc": (-1.55, 0.66),
+         "alpha_ket_luan": "khong khac chuan",
+         "alpha_so_lenh": 3907, "alpha_bo_qua": 204,
+         "mau_dau": 88, "mau_hoc_them": 0, "che_do_hoc": "co_san",
+         "von_tb": 51.0, "von_dinh": 137.0}
+    bao = "\n".join(wf.dong_bao_cao_oos(o))
+
+    for nhan, gia_tri in (("so_lenh", "4111"), ("alpha_so_lenh", "3907"),
+                          ("alpha_bo_qua", "204"), ("von_tb", "51%"),
+                          ("von_dinh", "137%"), ("mau_dau", "88")):
+        assert gia_tri in bao, (
+            f"{nhan} = {gia_tri} không có trong báo cáo OOS. Hợp đồng "
+            f"docs/TIEU-CHI-DOC-TRUOC.md bắt báo cáo KÈM trường này.")
+
+    assert "137%" in bao and "vượt 100%" in bao, (
+        "vốn đỉnh 137% mà không có cảnh báo đòn bẩy trá hình (bất biến 7b)")
+
+    o0 = dict(o, alpha_bo_qua=0, von_dinh=99.0)
+    bao0 = "\n".join(wf.dong_bao_cao_oos(o0))
+    assert "cặp ngày: 0" in bao0, (
+        "bỏ 0 lệnh vẫn phải in ra. Dòng vắng mặt làm người đọc không "
+        "phân biệt được 'bằng 0' với 'không ai đo'.")
+    assert "vượt 100%" not in bao0, "vốn đỉnh 99% mà vẫn cảnh báo đòn bẩy"
+    print("PASS  báo cáo OOS in đủ mọi trường hợp đồng bắt báo cáo")

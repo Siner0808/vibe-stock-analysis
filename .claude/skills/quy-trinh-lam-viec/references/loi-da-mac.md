@@ -31,11 +31,51 @@ là lỗi sẽ tái diễn.
 | 17 | luật đúng nhưng CẢ HAI lý do của nó chưa ai đo — 4 PR phải quay lại chờ người | **người dùng hỏi lại**, cùng ngày | ⚠️ một phần | Bước 1, điều 2 (lần 2 trong ngày) |
 | 18 | dựng phép kiểm nhanh rồi nối bằng `\| tail` — mã thoát của ống là của `tail`, luôn 0 | cổng đầy đủ, lượt thứ ba | ✅ | `cua_bash_an_toan` `pytest-qua-ong` — **luật CÓ SẴN, cửa đang chết (lỗi 14)** |
 | 19 | backtick trong `python -c "…"` — bash nuốt khối mã trước khi Python thấy | đọc lại file | ✅ | `cua_bash_an_toan` `backtick-trong-python-c` (luật mới) |
+| 20 | một trường CÓ trong kết quả mà **không ai in ra** — test khoá nó có mặt trong dict vẫn xanh | chạy hết 157,7 phút rồi đọc log | ✅ | `tests/test_walkforward.py::test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` (luật mới) |
+| 21 | tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa | đọc bảng sau khi đã chạy xong | ❌ | — |
 
-**Mười một trên mười chín máy chặn được.** Lỗi 4 hoá ra không phải lỗi thao
-tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
+**Mười hai trên hai mươi mốt máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
+
+### Lỗi 21 — một luật chọn tham số cũng là một cái trục
+
+`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 1 dựng một bảng 2×2: hai công tắc
+`MO_PHONG_TRUOT_GIA` nhân hai chế độ mô phỏng, `stride` và `min_history`
+ghim nguyên mặc định. Trông như đã ghim hết.
+
+Chạy xong mới thấy **ngưỡng mua không được ghim** — nó do chính lượt chạy
+chọn trên in-sample theo luật đã khai trước (≥30 lệnh, rồi kỳ vọng cao
+nhất). Luật ấy ra **62 cho chế độ theo mã, 50 cho chế độ theo ngày**. Nên
+hai dòng khác chế độ cũng khác ngưỡng, và một nửa số phép so trong bảng
+không quy được cho vế nào.
+
+**"Được chọn tự động theo luật khai trước" KHÔNG đồng nghĩa với "được
+ghim".** Một luật chọn tham số là một cái trục nữa, và nó ẩn kỹ hơn một
+tham số gõ tay vì nó *trông* như kỷ luật.
+
+Cùng hình dạng với vấn đề `stride` ở ĐO 2 — nơi một tham số kéo theo hai
+hệ quả — nhưng ở đây nó không nằm trong mã, nó nằm trong **quy trình**.
+Trước khi chạy một phép so, liệt kê mọi thứ đổi giữa hai nhánh, kể cả thứ
+do máy tự chọn.
+
+### Lỗi 20 — một trường trong dict mà không ai in ra
+
+`docs/TIEU-CHI-DOC-TRUOC.md` bắt báo cáo kèm `alpha_so_lenh`.
+`walkforward.py` có trường ấy trong kết quả từ đầu, và
+`tests/test_walkforward.py` đã có một test khoá việc nó **CÓ MẶT trong
+dict**. Test xanh. Trường vẫn không bao giờ được in.
+
+Phải chạy hết bốn lượt — 157,7 phút — rồi đọc log mới thấy thiếu.
+
+**Một trường nằm trong kết quả mà không đi ra tới người đọc thì với người
+đọc nó không tồn tại.** Khoá một đầu là chưa đủ: phải khoá cả "có trong
+kết quả" lẫn "có trong báo cáo".
+
+Và gác cho đầu thứ hai phải kiểm **giá trị**, không kiểm nhãn — nhãn còn
+nguyên mà in nhầm trường thì phép kiểm nhãn vẫn xanh. Đó đúng là hình
+dạng "test kiểm lại chính nó" đã cắn ba lần ngày 31/08/2026.
 
 ### Lỗi 19 — backtick đi qua shell trước khi tới Python
 
