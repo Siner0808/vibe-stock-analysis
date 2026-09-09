@@ -1122,10 +1122,29 @@ quyết định (mẫu chồng lấn), nhưng nó còn quyết định phiên n�
 KHỚP — tác dụng phụ không ai chọn. `optimize_vn100_18m.py` đã ghi nửa
 phía THOÁT của chuyện này từ trước; phía VÀO thì chưa.
 
-**Chưa đo** việc này đổi kết quả bao nhiêu. Muốn biết phải chạy lại
-walk-forward với `stride=1` — tức đổi mọi con số, nên để người quyết, và
-nêu tiêu chí đọc TRƯỚC khi chạy. Nếu số **đẹp lên** thì đó là hướng đáng
-ngờ theo quy tắc số 1: vào muộn một phiên đáng lẽ làm kết quả xấu đi.
+**Chưa đo** việc này đổi kết quả bao nhiêu.
+
+> ⚠️ **ĐỪNG chạy `--stride 1` để trả lời câu đó (chốt 09/09/2026).** Nó
+> đổi **cùng lúc hai thứ**: số điểm quyết định gấp đôi (tập lệnh khác
+> hẳn, không phải cùng tập lệnh với giá vào khác) VÀ độ trễ khớp T+2 →
+> T+1. Một khác biệt quan sát được sẽ không quy được cho vế nào.
+>
+> **Đường đúng: `--do-tre-khop 1`.** `walkforward.diem_ghe()` tách hai
+> thứ ấy — ghé thêm phiên để **KHỚP**, không ghé thêm để **CHẤM** hay
+> **RA QUYẾT ĐỊNH**. Làm được vì `fill_pending` không gọi `_analyze`,
+> tức phần rẻ; `stride` sinh ra để thưa hoá phần đắt và đã thưa hoá luôn
+> phần rẻ như một tác dụng phụ.
+>
+> Ba điều kiện của phép cài đặt, đã ký và khoá bởi
+> `tests/test_do_tre_khop.py`: mặc định cho lịch y hệt hôm nay · tập
+> phiên CHẤM không đổi · tập phiên QUYẾT ĐỊNH không đổi.
+>
+> Tiêu chí đọc khai trước: `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 2. Ngưỡng
+> phải **ghim tay** 62/50 — để luật tự chọn là thêm một trục, và nó đã
+> làm hỏng một nửa bảng ĐO 1.
+
+Nếu số **đẹp lên** thì đó là hướng đáng ngờ theo quy tắc số 1: vào muộn
+một phiên đáng lẽ làm kết quả xấu đi.
 
 Dụng cụ: `do_tre_khop.py` (đếm bằng lịch phiên, năm trạng thái, phân
 biệt trễ ĐỒNG ĐỀU với trễ RẢI RÁC). Chi tiết: `docs/STATE.md`, BƯỚC 21.

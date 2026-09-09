@@ -34,11 +34,60 @@ là lỗi sẽ tái diễn.
 | 20 | một trường CÓ trong kết quả mà **không ai in ra** — test khoá nó có mặt trong dict vẫn xanh | chạy hết 157,7 phút rồi đọc log | ✅ | `tests/test_walkforward.py::test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` (luật mới) |
 | 21 | tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa | đọc bảng sau khi đã chạy xong | ❌ | — |
 | 22 | kết luận "cửa chết" từ một phép thử dùng thao tác **HỎNG** — cửa chạy TRƯỚC thao tác nên không bao giờ được gọi | tự đo lại sau khi thêm nhật ký, **cùng ngày, sau 2 lần báo sai** | ⚠️ một phần | `tools/cua_doc_bat_buoc.py` ghi nhật ký mỗi lần chạy · `tests/test_cua_doc_bat_buoc.py` (4 test mới) |
+| 23 | `cat > <file>` **đè mất một file test 40 phép kiểm đã có** — không kiểm file tồn tại chưa | đếm test: 834 thay vì 874. **Bốn cổng đều XANH** | ✅ | `cua_bash_an_toan` `heredoc-ghi-file-repo` — **luật CÓ SẴN, cửa đang chết (lỗi 14)**, y hệt lỗi 18 |
 
-**Mười hai trên hai mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+**Mười ba trên hai mươi ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
+
+### Lỗi 23 — đè mất 40 phép kiểm, và BỐN CỔNG ĐỀU XANH
+
+Ngày 09/09/2026, viết test cho ĐO 2:
+
+```bash
+cat > tests/test_do_tre_khop.py <<'PYEOF'
+```
+
+File ấy **đã tồn tại** với 40 phép kiểm — bộ gác của `do_tre_khop.py`, công
+cụ đo độ trễ khớp lệnh. Tôi không kiểm nó có sẵn hay chưa. Cả 40 biến mất.
+
+**Luật máy chặn việc này ĐÃ CÓ SẴN, và nó khớp chính xác.** Chạy
+`cua_bash_an_toan.kiem()` trên đúng lệnh đó:
+
+```
+[('heredoc-ghi-file-repo', 'Ghi đè file nguồn bằng heredoc... Cách đúng:
+  dùng tool Write/Edit, hoặc `tools/va_an_toan.thay()`.')]
+```
+
+Cửa không nổ vì `tools/cua_bash_an_toan.py` chỉ đăng ký ở
+`.claude/settings.json` **của repo** — tuyến chưa bao giờ chạy. Đây là **lần
+thứ hai** lỗi 14 sinh ra một lỗi thật qua một luật đã tồn tại, sau lỗi 18.
+
+#### Chỗ đáng sợ hơn: KHÔNG cổng nào bắt được
+
+| cổng | vì sao mù |
+|---|---|
+| `pytest tests/` | 834 test **passed** — ít test hơn vẫn là xanh |
+| `chan_bia --quet-repo` | quét mẫu bịa số, không đếm test |
+| `kiem_cu_phap_311` | file vẫn nạp được bằng 3.11 |
+| `kiem_test_chay_rieng` | file vẫn xanh khi chạy một mình |
+
+Và CI cũng vậy — nó chạy đúng bốn cổng ấy.
+
+**Thứ duy nhất bắt được là một con số:** 834, trong khi tôi vừa thêm 9 test
+vào một bộ 865. Nếu tôi không nhìn tổng số, PR đã merge với 40 phép kiểm bị
+xoá lặng lẽ, và mọi cổng vẫn xanh.
+
+#### Hai câu rút ra
+
+1. **`cat > file` là một thao tác PHÁ HUỶ.** Dùng tool Write/Edit — chúng
+   từ chối ghi đè một file chưa đọc. Muốn dùng shell thì kiểm tồn tại
+   trước, và đó chính là thứ luật `heredoc-ghi-file-repo` cưỡng chế.
+2. **Bốn cổng không đo được thứ bị MẤT.** Chúng kiểm những gì có mặt: mã
+   nạp được, test xanh, không mẫu bịa số. Không cổng nào so với lần trước,
+   nên mọi kiểu xoá — test, gác, một nhánh trong hàm — đều đi qua im lặng.
+   Đó là một lỗ hổng của bộ cổng, không phải của lần này.
 
 ### Lỗi 22 — một phép thử dùng thao tác HỎNG không kiểm được cái gì cả
 

@@ -173,9 +173,69 @@ def _dung_bo_nho(che_do: str, duong_bo_nho: str | None):
     return may
 
 
-def lich_theo_ngay(du_lieu: dict, min_history: int,
-                   stride: int) -> list[tuple[str, str, int]]:
-    """Lịch chạy gộp mọi mã, xếp theo NGÀY. Trả [(ngày, mã, chỉ số hàng)].
+def diem_ghe(n: int, min_history: int, stride: int,
+             do_tre_khop: int | None = None) -> list[tuple[int, bool]]:
+    """Các phiên được ghé trong MỘT mã. Trả `[(chỉ số hàng, chỉ-khớp)]`.
+
+    VÌ SAO CÓ HÀM NÀY — ĐO 2, hợp đồng ký 09/09/2026
+    ─────────────────────────────────────────────────
+    `run_session` làm ba việc: **KHỚP** lệnh chờ · **CHẤM** vị thế đang mở
+    · **RA QUYẾT ĐỊNH** mở lệnh mới. Chỉ hai việc sau gọi `_analyze`, và
+    đó là toàn bộ chi phí của một phiên.
+
+    `stride` sinh ra để thưa hoá phần ĐẮT — mẫu chồng lấn. Nhưng nó thưa
+    hoá luôn phần RẺ, nên lệnh sinh ở phiên `t` khớp ở phiên **được ghé kế
+    tiếp**, tức `t + stride`. Đo trên sổ thật: 43/43 lệnh mô phỏng đúng
+    T+2, còn đường chạy thật khớp T+1. Độ trễ khớp bị dính vào `stride`
+    như một tác dụng phụ không ai chọn.
+
+    Hàm này tách hai thứ đó: ghé thêm phiên để KHỚP, **không** ghé thêm để
+    chấm hay để quyết định.
+
+    ```
+    hom nay  (stride=2)   ghe: t, t+2, t+4 ...   ca ba viec cung luc
+    do_tre=1              ghe: t, t+1, t+2 ...   KHOP moi phien
+                          cham/quyet dinh van chi o t, t+2, t+4 ...
+    ```
+
+    BA ĐIỀU KIỆN ĐÃ KÝ, khoá bởi `tests/test_do_tre_khop.py`:
+
+    1. `do_tre_khop=None` cho lịch **y hệt hôm nay** — không thêm phiên
+       nào. Hỏng điều kiện này thì DỪNG: một mặc định làm đổi số cũ nghĩa
+       là phép tách đã kéo theo thứ khác.
+    2. tập phiên được CHẤM không đổi, với MỌI `do_tre_khop`.
+    3. tập phiên RA QUYẾT ĐỊNH không đổi, như trên.
+
+    `None` được hiểu là **bằng `stride`** — đó đúng là cấu hình hôm nay,
+    viết tường minh ra thay vì để nó là một sự trùng hợp ngầm.
+
+    HỆ QUẢ CƠ HỌC, nêu trước khi chạy: lệnh vào ở `t+1` thay vì `t+2`
+    trong khi lưới chấm đứng yên, nên khoảng từ lúc vào tới lần chấm đầu
+    tiên co từ 2 phiên xuống 1. Đó là hệ quả xuôi dòng của chính biến đang
+    đo, không phải một biến độc lập được đổi cùng lúc.
+    """
+    k = stride if do_tre_khop is None else int(do_tre_khop)
+    if k < 1:
+        raise ValueError(
+            f"do_tre_khop phải >= 1, nhận {do_tre_khop!r}. Độ trễ 0 nghĩa là "
+            f"khớp ngay trong phiên tín hiệu — đó là nhìn trộm tương lai "
+            f"(bất biến 1), không phải một cấu hình.")
+
+    luoi = list(range(min_history, n, stride))
+    tap_luoi = set(luoi)
+    chi_khop = {t + k for t in luoi if t + k < n} - tap_luoi
+    return sorted([(t, False) for t in luoi] + [(t, True) for t in chi_khop])
+
+
+def lich_theo_ngay(du_lieu: dict, min_history: int, stride: int,
+                   do_tre_khop: int | None = None
+                   ) -> list[tuple[str, str, int, bool]]:
+    """Lịch chạy gộp mọi mã, xếp theo NGÀY.
+
+    Trả `[(ngày, mã, chỉ số hàng, chỉ-khớp)]`. Phần tử thứ tư do
+    `diem_ghe()` quyết định — xem docstring ở đó. Với `do_tre_khop=None`
+    (mặc định) nó **luôn** là `False`, tức lịch y hệt trước khi ĐO 2 tồn
+    tại.
 
     BẤT BIẾN: hàm này chỉ đổi THỨ TỰ, không đổi TẬP phiên được chấm. Đổi
     tập phiên là đổi dữ liệu đầu vào chứ không phải đổi cách chạy, và hai
@@ -188,12 +248,14 @@ def lich_theo_ngay(du_lieu: dict, min_history: int,
     vốn chạm đúng ngày đó.
     """
     return sorted(
-        (str(df["time"].iloc[t])[:10], sym, t)
+        (str(df["time"].iloc[t])[:10], sym, t, chi_khop)
         for sym, df in du_lieu.items()
-        for t in range(min_history, len(df), stride))
+        for t, chi_khop in diem_ghe(len(df), min_history, stride,
+                                    do_tre_khop))
 
 
-def _chay_mot_phien(so, sym: str, df, t: int, nguong: float) -> None:
+def _chay_mot_phien(so, sym: str, df, t: int, nguong: float,
+                    chi_khop: bool = False) -> None:
     """Chấm một phiên cho một mã. Tách ra để hai chế độ dùng CHUNG một bản.
 
     Hai bản sao của lời gọi này là chỗ hai chế độ trôi ra khỏi nhau, và
@@ -214,7 +276,7 @@ def _chay_mot_phien(so, sym: str, df, t: int, nguong: float) -> None:
                  "low": float(hang["low"]),
                  "close": float(hang["close"]),
                  "volume": float(hang.get("volume") or 0.0)},
-                str(hang["time"]), buy_threshold=nguong)
+                str(hang["time"]), buy_threshold=nguong, chi_khop=chi_khop)
 
 
 def _dong_so_cuoi(so, sym: str, df) -> None:
@@ -236,7 +298,8 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
               stride: int = 2, min_history: int = 60,
               che_do_hoc: str | None = None,
               duong_bo_nho: str | None = None,
-              theo_ngay: bool = False) -> dict:
+              theo_ngay: bool = False,
+              do_tre_khop: int | None = None) -> dict:
     """Chạy một lượt trên `du_lieu` với `nguong`, trả về chỉ số đo được.
 
     `du_lieu` là {mã: DataFrame} ĐÃ CẮT sẵn về đúng vùng cần chạy — hàm này
@@ -283,8 +346,9 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
                 # Gộp mọi mã rồi chạy theo thứ tự NGÀY. Chỉ ở chế độ này
                 # danh mục mới tồn tại: nhiều mã cùng mở vị thế một lúc,
                 # nên `TRAN_VON_CAM_KET_PCT` mới có gì để chặn.
-                for _, sym, t in lich_theo_ngay(du_lieu, min_history, stride):
-                    _chay_mot_phien(so, sym, du_lieu[sym], t, nguong)
+                for _, sym, t, ck in lich_theo_ngay(du_lieu, min_history,
+                                                    stride, do_tre_khop):
+                    _chay_mot_phien(so, sym, du_lieu[sym], t, nguong, ck)
                 # Đóng sổ SAU toàn bộ vòng, không phải giữa chừng: ở đây
                 # "hết dữ liệu của một mã" không còn nghĩa là "tới lượt mã
                 # sau" nữa.
@@ -292,8 +356,9 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
                     _dong_so_cuoi(so, sym, df)
             else:
                 for sym, df in sorted(du_lieu.items()):
-                    for t in range(min_history, len(df), stride):
-                        _chay_mot_phien(so, sym, df, t, nguong)
+                    for t, ck in diem_ghe(len(df), min_history, stride,
+                                          do_tre_khop):
+                        _chay_mot_phien(so, sym, df, t, nguong, ck)
                     # Hết dữ liệu của mã này -> đóng sổ sách cho nó TRƯỚC
                     # khi sang mã sau. Vòng lặp chạy theo mã, nên lệnh còn
                     # mở ở đây sẽ nằm lại suốt phần còn lại của lượt chạy
@@ -361,7 +426,8 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 
 def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None,
          stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_",
-         che_do_hoc: str = "co_san", theo_ngay: bool = False) -> dict:
+         che_do_hoc: str = "co_san", theo_ngay: bool = False,
+         do_tre_khop: int | None = None) -> dict:
     """Walk-forward đầy đủ. Trả về {is: [...], nguong_chon, oos: {...}}.
 
     `che_do_hoc` — xem `_dung_bo_nho()`. Mặc định `co_san` (21/08/2026): đo
@@ -424,7 +490,7 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
             r = _mo_phong(vung_is, ng, f"{tien_to_db}is_{ng:g}.db",
                           stride, min_history, che_do_hoc,
                           f"{tien_to_db}bo_nho_is_{ng:g}.json",
-                          theo_ngay=theo_ngay)
+                          theo_ngay=theo_ngay, do_tre_khop=do_tre_khop)
             r.pop("_lenh", None)
             ket_qua_is.append(r)
 
@@ -434,7 +500,7 @@ def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None
             oos = _mo_phong(vung_oos, chon, f"{tien_to_db}oos.db",
                             stride, min_history, che_do_hoc,
                             f"{tien_to_db}bo_nho_oos.json",
-                            theo_ngay=theo_ngay)
+                            theo_ngay=theo_ngay, do_tre_khop=do_tre_khop)
     finally:
         os.environ.pop("POST_MORTEM_ENABLED", None)
         if cu is not None:
@@ -530,6 +596,12 @@ def main() -> int:
                          "tat: khong co bo nho -- phep do khong dua vao "
                          "hang rao chong nhin trom nao | "
                          "tich_luy: bat dau rong, lon dan trong luot nay")
+    ap.add_argument("--do-tre-khop", type=int, default=None,
+                    dest="do_tre_khop",
+                    help="so phien tu tin hieu toi khi khop. Mac dinh None "
+                         "= bang stride, tuc DUNG cau hinh hom nay. Dat 1 de "
+                         "khop T+1 nhu duong chay that. Xem "
+                         "docs/TIEU-CHI-DOC-TRUOC.md muc DO 2.")
     ap.add_argument("--theo-ngay", action="store_true", dest="theo_ngay",
                     help="chay theo NGAY thay vi theo MA. Chi che do nay moi "
                          "co danh muc that, nen TRAN_VON_CAM_KET_PCT moi co "
@@ -538,7 +610,8 @@ def main() -> int:
 
     ma = a.symbols.split(",") if a.symbols else None
     kq = chay(symbols=ma, stride=a.stride, min_history=a.min_history,
-              che_do_hoc=a.che_do_hoc, theo_ngay=a.theo_ngay)
+              che_do_hoc=a.che_do_hoc, theo_ngay=a.theo_ngay,
+              do_tre_khop=a.do_tre_khop)
 
     print("=" * 72)
     print("WALK-FORWARD — chọn trên IS, đo trên OOS, hai vùng KHÔNG giao nhau")
