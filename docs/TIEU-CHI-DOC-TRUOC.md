@@ -320,3 +320,109 @@ chỗ không ai lường trước: **luật chọn ngưỡng**. Bài học chung
 `alpha_so_lenh` và `alpha_bo_qua` in **luôn luôn** kể cả bằng 0, và
 `test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` kiểm GIÁ TRỊ chứ
 không kiểm nhãn. Ba đột biến, 3/3 đỏ.
+
+---
+
+## ĐO 2 — điều khoản bổ sung, khai TRƯỚC dòng mã đầu tiên
+
+> **CHƯA KÝ.** Mục này phải được người dùng chốt trước khi viết tham số
+> mới. Viết mã trước rồi mới khai tiêu chí thì tiêu chí đã bị hình dạng
+> của mã định hướng.
+
+### Vì sao cần thêm điều khoản
+
+Người dùng đã chốt **hướng 3** ngày 09/09/2026: tách độ trễ khớp khỏi
+`stride` bằng một tham số riêng. Nhưng bản cài đặt hiển nhiên nhất của
+hướng 3 **tái tạo lại đúng vấn đề của hướng 2**, chỉ ở một tầng sâu hơn:
+cho mô phỏng ghé thêm phiên để khớp sớm hơn thì `evaluate_open` cũng chạy
+thêm, tức độ mịn phát hiện chạm stop-loss đổi theo. Lại hai thứ đổi cùng
+lúc.
+
+Và ĐO 1 vừa cho thấy hình dạng ấy không hiếm: **lỗi 21** — một luật chọn
+tham số cũng là một cái trục, và nó ẩn kỹ hơn một tham số gõ tay.
+
+### Đọc mã: `run_session` làm BỐN việc, chỉ hai việc là đắt
+
+`paper_runner.run_session`, theo đúng thứ tự:
+
+| # | việc | gọi gì | cần `_analyze`? |
+|---|---|---|---|
+| 1 | **KHỚP** lệnh chờ và lệnh đóng | `fill_pending` · `fill_closing` | **không** |
+| 2 | **CHẤM** và đóng vị thế đang mở | `_analyze` + `evaluate_open` | có |
+| 3 | **RA QUYẾT ĐỊNH** mở lệnh mới | `_analyze` + `consider_entry` | có |
+| 4 | trả `final_score` cho báo cáo | — | — |
+
+`_analyze` kéo cả chuỗi agent — đó là toàn bộ chi phí của một phiên.
+**`stride` sinh ra để thưa hoá phần ĐẮT.** Nhưng nó đang thưa hoá luôn
+phần RẺ, và đó đúng là chỗ độ trễ khớp bị dính vào nó.
+
+### Phép tách đề xuất
+
+Ghé **mọi** phiên để KHỚP; ghé **các phiên cách nhau `stride`** để CHẤM và
+RA QUYẾT ĐỊNH.
+
+```
+hom nay   (stride=2)   ghe: t, t+2, t+4 ...   ca ba viec, cung luc
+de xuat                ghe: t, t+1, t+2 ...   KHOP moi phien
+                       ghe: t, t+2, t+4 ...   CHAM + QUYET DINH nhu cu
+```
+
+**Lưới chấm KHÔNG đổi.** Đúng những phiên đang được `evaluate_open` soi
+hôm nay thì vẫn được soi, không hơn không kém. Phiên `t+1` vẫn **không**
+được chấm — nên một cây thủng stop-loss ở `t+1` vẫn vô hình, y như hôm
+nay. Đó là chủ đích: giữ nguyên mọi thứ trừ đúng một biến.
+
+**Tập điểm quyết định KHÔNG đổi.** `consider_entry` vẫn chỉ chạy trên lưới
+`stride`, nên tập tín hiệu là **cùng một tập** — khác hẳn hướng 2, nơi số
+điểm quyết định gấp đôi và tập lệnh khác hẳn.
+
+Chi phí máy tăng ít: phiên ghé-thêm không gọi `_analyze`.
+
+### Một hệ quả cơ học PHẢI nêu trước, và nó KHÔNG phải biến thứ hai
+
+Lệnh sinh ở `t` nay khớp ở `t+1` thay vì `t+2`. Lưới chấm đứng yên, nên
+khoảng từ **lúc vào** tới **lần chấm đầu tiên** co từ 2 phiên xuống 1.
+
+Đó là **hệ quả xuôi dòng của chính biến đang đo** (vào sớm hơn một phiên),
+không phải một biến độc lập được thay đổi cùng lúc. Ghi ra vì nếu không
+ghi, nó sẽ được phát hiện sau khi thấy số và khi ấy không phân biệt được
+với một lời biện minh.
+
+### Ba điều kiện của phép CÀI ĐẶT — kiểm trước khi tin con số
+
+Phép đo chỉ đọc được nếu cả ba đúng, và cả ba phải được chứng minh bằng
+test **trước** khi chạy lượt nào:
+
+1. **Tham số mới ở giá trị mặc định cho ra kết quả Y HỆT hôm nay.** Không
+   phải "gần bằng" — y hệt, từng chữ số, trên cùng dữ liệu. Đây là điều
+   kiện mạnh nhất và là thứ duy nhất chứng minh được rằng phép tách không
+   kéo theo gì khác.
+2. **Tập phiên được CHẤM không đổi** giữa hai cấu hình. Kiểm bằng cách
+   đếm, không bằng cách đọc mã.
+3. **Tập phiên RA QUYẾT ĐỊNH không đổi** giữa hai cấu hình. Như trên.
+
+Điều kiện 1 hỏng thì **dừng**, không chạy lượt nào. Một tham số mặc định
+làm đổi số cũ nghĩa là phép tách đã kéo theo một thứ khác, và khi đó ĐO 2
+đo hai thứ y như hướng 2.
+
+### Đại lượng chính, và hướng dự kiến — khai trước
+
+**`alpha` cùng `alpha_ktc` trên OOS**, so giữa hai cấu hình chỉ khác độ
+trễ khớp. Bốn lượt như ĐO 1 (hai chế độ × hai độ trễ), và **ngưỡng phải
+được ghim bằng tay ở giá trị ĐO 1 đã chọn** — 62 cho theo mã, 50 cho theo
+ngày. Đó là bài học lỗi 21: để luật tự chọn ngưỡng là thêm một trục.
+
+`CLAUDE.md` đã nêu *"vào muộn một phiên đáng lẽ làm kết quả xấu đi"*, nên
+T+2 → T+1 **được dự kiến làm alpha ĐẸP LÊN**.
+
+| Kết cục | Đọc thế nào |
+|---|---|
+| alpha đẹp lên, mức đẹp lên **nhỏ hơn** bề rộng KTC | phù hợp dự kiến, không có gì bất thường |
+| alpha **xấu đi** | ngược dự kiến → sai ở hướng suy luận, hoặc ở phép cài đặt. Đi tìm TRƯỚC khi tin. |
+| alpha đẹp lên **hơn một nửa bề rộng KTC** | quy tắc số 1: giả định đầu tiên là **có lỗi**. Kiểm bốn thứ ở ĐO 1 trước khi ghi vào tài liệu. |
+
+### Nếu không tách sạch được ba việc
+
+Thì câu trả lời là **"hướng 3 không khả thi"**, và ĐO 2 dừng ở đó. Không
+lặng lẽ tụt về hướng 2 — một con số không diễn giải được, đặt cạnh một
+bảng vừa mới đo lại, là đúng cách dự án này đã năm lần tự lừa mình.
