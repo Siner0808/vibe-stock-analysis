@@ -70,6 +70,21 @@ cận trên của cấu hình mặc định.
 trước thì mọi tiêu chí khai sau đó đều vô giá trị, và đó đúng là thứ bất
 biến 7 cấm.
 
+### Giá phải trả của con số bịa — đo được ngày 09/09/2026
+
+Hỏi thẳng người dùng: *"Có phải bạn hoãn hai phép đo vì tin mỗi lượt tốn
+~2,5 giờ không?"* Trả lời: **đúng, hoãn vì tưởng tốn nửa buổi.**
+
+Nên lỗi 16 lần này không dừng ở một câu sai trong tài liệu. Nó **đổi một
+quyết định**, và giữ hai phép đo nằm im. Đây là lần đầu dự án đo được cái
+giá của một con số không ai chạy — không phải "một dòng cần sửa", mà **một
+việc không được làm**.
+
+Ghi ra vì nó đổi cách đọc mọi ước lượng khác trong tài liệu này: một con số
+sai theo hướng làm việc gì đó trông đắt hơn thực tế cũng nguy hiểm như một
+con số làm kết quả đẹp lên — chỉ khác là nó không để lại dấu vết nào trong
+một lượt chạy, vì lượt chạy ấy không bao giờ xảy ra.
+
 ---
 
 ## ĐO 1 — Bảng "CHI PHÍ THỰC THI" ở cấu hình hiện hành
@@ -119,6 +134,13 @@ chọn trên IS. Không phải `ky_vong`, không phải `net_pct`, không phải
 
 Kết cục C là chỗ file này tồn tại. Dự án đã **năm lần** cho ra số đẹp rồi
 hoá ra vô nghĩa, và cả năm lần đều nghiêng về phía đẹp lên.
+
+> ✍️ **ĐÃ KÝ 09/09/2026 — người dùng chốt NGUYÊN bảng ba kết cục và bốn
+> phép kiểm, không sửa một ngưỡng nào.**
+>
+> Từ mốc này bảng trên là **ràng buộc**, không phải đề xuất. Nhìn thấy số
+> rồi mới đổi nó là đúng thứ bất biến 7 cấm — và vì bảng đã nằm trong một
+> commit trước lượt chạy, việc đổi ấy để lại dấu trong `git log`.
 
 ### Bốn phép kiểm bắt buộc khi gặp kết cục C
 
@@ -191,7 +213,15 @@ nhiễu, không phải chi tiết kỹ thuật.
 không diễn giải được — và một con số không diễn giải được, đặt cạnh một
 bảng đang lạc hậu, là đúng cách dự án này đã năm lần tự lừa mình.
 
-### Nếu chọn 3 — tiêu chí đọc, khai trước
+> ✍️ **ĐÃ CHỐT 09/09/2026 — lựa chọn 3.**
+>
+> Tách độ trễ khớp khỏi `stride` bằng một tham số riêng, có test, rồi mới
+> đo. Thứ tự bắt buộc, và nó là lý do mục dưới nằm ở đây chứ không nằm sau:
+> **tiêu chí đọc được khai TRƯỚC khi tham số kia được viết ra một dòng
+> nào.** Viết mã trước rồi mới khai tiêu chí thì tiêu chí đã bị hình dạng
+> của mã định hướng, kể cả khi chưa ai chạy lượt nào.
+
+### Tiêu chí đọc của lựa chọn 3 — khai trước khi viết tham số
 
 Đại lượng chính vẫn là **alpha OOS cùng KTC**, so giữa hai cấu hình chỉ
 khác độ trễ khớp.
@@ -215,3 +245,6 @@ Vì thế:
 | Ngày | Mục | Người chốt | Ghi chú |
 |---|---|---|---|
 | 08/09/2026 | soạn lần đầu, chưa chạy lượt nào | — | chờ chốt ĐO 1 và lựa chọn 1/2/3 của ĐO 2 |
+| 09/09/2026 | **ĐO 1 — ký nguyên bảng ba kết cục + bốn phép kiểm** | người dùng | không sửa ngưỡng nào |
+| 09/09/2026 | **ĐO 2 — chốt lựa chọn 3** | người dùng | tách độ trễ khớp khỏi `stride`, có test, rồi mới đo |
+| 09/09/2026 | xác nhận hai phép đo bị hoãn **vì con số "2,5 giờ"** | người dùng | số thật 46 phút → xếp lại lịch chạy |
