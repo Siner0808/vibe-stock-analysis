@@ -8720,3 +8720,76 @@ Cùng cấu hình lượt 1: **46,1 phút** (08/09) và **36,1 phút** (09/09) �
 lệch 27% theo tải máy. Hôm 08/09 con số "~2,5 giờ" bị bác và thay bằng
 "46 phút đo được"; hôm nay chính con số mới ấy suýt đóng vai hằng số y như
 con số cũ. Mọi ước lượng thời gian phải nói ra nó là một **khoảng**.
+
+---
+
+## BƯỚC 45 — CỬA VẪN LUÔN CHẠY; THỨ HỎNG LÀ PHÉP THỬ (09/09/2026)
+
+Sáng 09/09 tôi báo cáo hai lần, và nói với người dùng cả hai lần, rằng
+`tools/cua_doc_bat_buoc.py` không cưỡng chế được. Cả hai lần đều sai.
+
+### Hai bằng chứng, cả hai đều không đứng được
+
+**Thứ nhất — file dấu vết.** `vibe_da_doc_<phiên>.json` trong TEMP có mặt,
+và tôi đọc nó như bằng chứng cửa đã chạy. Nhưng file ấy do `_ghi_da_doc()`
+tạo, và một lượt chạy **tay** kịch bản với id phiên thật sinh ra file y
+hệt. Hôm 08/09 tôi có chạy tay ba lần. Bằng chứng không phân biệt được
+hai khả năng.
+
+**Thứ hai — phép thử trực tiếp.** Gọi `Edit` lên một file được bảo vệ,
+trong một phiên chưa đọc hai tài liệu → **không bị chặn**. Chạy tay cùng
+payload đó thì exit 2, chặn đúng. Tôi kết luận: logic đúng, đăng ký đúng,
+dây nối hỏng.
+
+Phép thử ấy dùng một `old_string` **không tồn tại trong file**. Thao tác
+hỏng ở khâu kiểm tra, và một hook chạy TRƯỚC thao tác thì không bao giờ
+được gọi.
+
+### Đo lại bằng thao tác HỢP LỆ
+
+Sau khi thêm nhật ký chạy, `vibe_cua_doc_chay.log` trong TEMP:
+
+```
+13:22:46  CHAN                walkforward.py · thieu: 2 tai lieu   <- chay tay
+13:23:46  GHI-da-doc          NGUYEN-TAC-DO-LUONG.md               <- Read that
+13:24:09  CHO-QUA-da-doc-du   walkforward.py                       <- Edit HOP LE
+```
+
+Cửa nổ trên cả `Read` lẫn `Edit`. Nó cho qua vì phiên ấy **đã đọc đủ** hai
+tài liệu — đúng thiết kế. Phiên chỉ bị compact chứ không phải phiên mới
+nên `session_id` không đổi và dấu vết còn nguyên.
+
+**Tuyến toàn cục hoạt động. Tuyến repo thì vẫn chưa bao giờ chạy** —
+`python --version` ở phiên mở ngoài repo vẫn in ra số hiệu, kể cả sau khi
+`cd` vào repo. BƯỚC 40 và 41 không bị bác ở phần đó.
+
+### Thứ thật sự hỏng, và đã sửa
+
+Không phải logic. Là việc **không quan sát được logic ấy có chạy hay
+không**. Cửa nhường đường ở năm nhánh khác nhau và không nhánh nào để lại
+dấu vết. Từ bên ngoài, ba khả năng trông giống hệt nhau: không chạy · chạy
+rồi nhường đường · chạy rồi mã thoát bị bỏ qua.
+
+`quyet_dinh()` tách thành hàm thuần trả `(mã thoát, nhãn, chi tiết)`;
+`main()` ghi một dòng nhật ký **mỗi lần được gọi**, kể cả nhánh không đọc
+nổi stdin. Bảy nhánh, bảy nhãn riêng.
+
+Bốn test mới. Ba đột biến — và **một trong ba sống sót**: xoá lời gọi ghi
+nhật ký ở **đường chính** mà cả bộ test vẫn xanh. Test nhánh-nhường-đường
+chỉ đi qua đường stdin hỏng, nên nó khoá đúng một dòng `ghi_nhat_ky` và
+để hở dòng kia — đúng cái dòng ghi lại mọi lần chạy bình thường.
+
+Tức là gác cho việc quan sát lại có một chỗ không quan sát được. Thêm
+`test_duong_CHINH_cung_ghi_nhat_ky_moi_lan_chay`, đục lại: **3/3 đỏ**.
+
+### Ba câu rút ra
+
+1. **Phép thử một cái cửa phải dùng thao tác HỢP LỆ.** Thao tác hỏng dừng
+   ở một tầng trước cửa.
+2. **"Không thấy nó chặn" ≠ "nó không chặn".** Luôn còn khả năng thứ ba:
+   nó chưa bao giờ được hỏi.
+3. **Một cửa không ghi lại việc mình đã chạy thì không phân biệt được với
+   cửa chết** — và chính điều đó làm một phép thử sai kéo dài được cả
+   buổi sáng.
+
+Bảng lỗi: **22 dòng, 12 máy chặn được** (lỗi 22).

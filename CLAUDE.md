@@ -1168,8 +1168,27 @@ quyết định hai cái đầu có nghĩa hay không.
    phiên được mở ở chính thư mục repo** — `cd` hay `change_directory`
    giữa phiên đều không nạp (đo 08/09/2026, hai lượt độc lập). Hook
    đăng ký ở `~/.claude/settings.json` bằng đường dẫn tuyệt đối thì
-   chạy bất kể phiên mở ở đâu. Cửa này hiện có **cả hai** bản, nên nó
-   là cửa duy nhất của dự án từng thật sự chạy.
+   chạy bất kể phiên mở ở đâu. Cửa này hiện có **cả hai** bản.
+
+> **Đo lại 09/09/2026 — tuyến toàn cục chạy, và nay CHỨNG MINH được.**
+> Bốn cửa đăng ký ở `~/.claude/settings.json` bằng đường dẫn tuyệt đối.
+> `tools/cua_doc_bat_buoc.py` nay ghi một dòng nhật ký **mỗi lần được
+> gọi**, kể cả khi nó nhường đường — đọc `vibe_cua_doc_chay.log` trong
+> TEMP. Đo trực tiếp:
+>
+> ```
+> 13:23:46  GHI-da-doc          NGUYEN-TAC-DO-LUONG.md   <- Read
+> 13:24:09  CHO-QUA-da-doc-du   walkforward.py           <- Edit hop le
+> ```
+>
+> **Phép thử phải dùng một thao tác HỢP LỆ.** Cùng ngày, hai phép thử
+> `Edit` với `old_string` không tồn tại đều "không bị chặn" và dẫn tới
+> kết luận sai rằng cửa chết. Thao tác hỏng ở khâu kiểm tra thì hook
+> chạy-trước-thao-tác không bao giờ được gọi — phép thử ấy không đo cái
+> nó tưởng nó đo.
+>
+> Tuyến **repo** thì vẫn chưa bao giờ chạy: `python --version` ở phiên
+> mở ngoài repo vẫn in ra số hiệu, kể cả sau khi `cd` vào repo.
 
 ## Kiểm tra định kỳ những chỗ hỏng âm thầm
 
