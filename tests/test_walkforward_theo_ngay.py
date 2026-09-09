@@ -76,8 +76,13 @@ def test_doi_che_do_KHONG_doi_TAP_phien():
     phép so giữa chúng không còn nói lên điều gì.
     """
     du_lieu = _bo_du_lieu()
-    theo_ngay = {(sym, t) for _, sym, t in
-                 wf.lich_theo_ngay(du_lieu, MIN_HIST, STRIDE)}
+    # Chỉ lấy phiên được CHẤM. Từ 09/09/2026 lịch còn mang phiên ghé
+    # CHỈ-ĐỂ-KHỚP (ĐO 2, `walkforward.diem_ghe()`), và những phiên ấy
+    # không phải điểm chấm — gộp chúng vào đây sẽ làm bất biến này báo
+    # lệch ngay khi `do_tre_khop` được bật, dù không có gì sai.
+    theo_ngay = {(sym, t) for _, sym, t, chi_khop in
+                 wf.lich_theo_ngay(du_lieu, MIN_HIST, STRIDE)
+                 if not chi_khop}
     theo_ma = _tap_phien_theo_ma(du_lieu)
     assert theo_ngay == theo_ma, (
         f"lệch {len(theo_ngay ^ theo_ma)} phiên giữa hai chế độ")
@@ -106,13 +111,13 @@ def test_che_do_theo_ngay_THAT_SU_xen_ke_cac_ma():
     """
     lich = wf.lich_theo_ngay(_bo_du_lieu(), MIN_HIST, STRIDE)
     theo_ngay: dict = {}
-    for ngay, sym, _ in lich:
+    for ngay, sym, _, _chi_khop in lich:
         theo_ngay.setdefault(ngay, set()).add(sym)
     nhieu_ma = [n for n, s in theo_ngay.items() if len(s) > 1]
     assert nhieu_ma, "không ngày nào có quá một mã — các mã không hề xen kẽ"
 
     # Và thứ tự thật phải khác vòng theo mã, nếu không đây là no-op.
-    tu_lich = [(sym, t) for _, sym, t in lich]
+    tu_lich = [(sym, t) for _, sym, t, _ck in lich]
     tuan_tu = [(sym, t) for sym in sorted(_bo_du_lieu())
                for t in range(MIN_HIST, 12, STRIDE)]
     assert tu_lich != tuan_tu, "thứ tự y hệt vòng theo mã"

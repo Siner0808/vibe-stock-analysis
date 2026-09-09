@@ -207,7 +207,8 @@ def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE",
 def run_session(journal: PaperTradingJournal, symbol: str,
                 history: pd.DataFrame, bar: dict, session_date: str,
                 exchange: str = "HOSE",
-                buy_threshold: float | None = None) -> dict:
+                buy_threshold: float | None = None,
+                chi_khop: bool = False) -> dict:
     """Xử lý MỘT phiên cho MỘT mã. `history` chỉ chứa dữ liệu tới hết phiên này.
 
     ĐƠN VỊ: mọi giá đưa vào sổ đều quy về VNĐ.
@@ -239,6 +240,18 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     stats["filled_in"] = journal.fill_pending(symbol, session_date,
                                               bar["open"], _nen)
     stats["filled_out"] = journal.fill_closing(symbol, session_date, bar["open"])
+
+    if chi_khop:
+        # Phiên ghé CHỈ để KHỚP — không chấm, không quyết định, không gọi
+        # `_analyze`. Đây là toàn bộ nội dung của ĐO 2: `stride` sinh ra để
+        # thưa hoá phần đắt (chuỗi agent), nhưng nó thưa hoá luôn phần rẻ
+        # nên độ trễ khớp bị dính vào nó. Xem `walkforward.diem_ghe()` và
+        # `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 2.
+        #
+        # `final_score` để None chứ KHÔNG để 50 hay 0: phiên này không chấm
+        # điểm, và một con số ở đây sẽ đi vào báo cáo như thể có ai đã chấm.
+        stats["final_score"] = None
+        return stats
 
     result = None
     if journal.open_position(symbol) is not None:
