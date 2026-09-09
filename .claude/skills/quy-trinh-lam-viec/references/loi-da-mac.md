@@ -33,11 +33,41 @@ là lỗi sẽ tái diễn.
 | 19 | backtick trong `python -c "…"` — bash nuốt khối mã trước khi Python thấy | đọc lại file | ✅ | `cua_bash_an_toan` `backtick-trong-python-c` (luật mới) |
 | 20 | một trường CÓ trong kết quả mà **không ai in ra** — test khoá nó có mặt trong dict vẫn xanh | chạy hết 157,7 phút rồi đọc log | ✅ | `tests/test_walkforward.py::test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` (luật mới) |
 | 21 | tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa | đọc bảng sau khi đã chạy xong | ❌ | — |
+| 22 | kết luận "cửa chết" từ một phép thử dùng thao tác **HỎNG** — cửa chạy TRƯỚC thao tác nên không bao giờ được gọi | tự đo lại sau khi thêm nhật ký, **cùng ngày, sau 2 lần báo sai** | ⚠️ một phần | `tools/cua_doc_bat_buoc.py` ghi nhật ký mỗi lần chạy · `tests/test_cua_doc_bat_buoc.py` (4 test mới) |
 
-**Mười hai trên hai mươi mốt máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+**Mười hai trên hai mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
+
+### Lỗi 22 — một phép thử dùng thao tác HỎNG không kiểm được cái gì cả
+
+Ngày 09/09/2026 tôi kết luận **hai lần**, và nói với người dùng cả hai
+lần, rằng `tools/cua_doc_bat_buoc.py` không cưỡng chế được. Bằng chứng:
+gọi `Edit` lên một file được bảo vệ, và nó **không bị chặn**.
+
+Cả hai lần phép thử ấy dùng một `old_string` **không tồn tại trong file**.
+Thao tác hỏng ở khâu kiểm tra, và một hook chạy TRƯỚC thao tác thì không
+bao giờ được gọi. Phép thử không đo cái nó tưởng nó đo — nó đo rằng một
+`Edit` hỏng thì hỏng.
+
+Làm lại bằng một `Edit` **hợp lệ**: cửa nổ, ghi `CHO-QUA-da-doc-du`, cho
+qua vì phiên ấy đã đọc đủ hai tài liệu. **Cửa vẫn luôn hoạt động.**
+
+Ba thứ rút ra, và cái thứ ba mới là cái đắt:
+
+1. **Phép thử một cái cửa phải dùng thao tác HỢP LỆ.** Thao tác hỏng dừng
+   ở một tầng trước cửa.
+2. **"Không thấy nó chặn" ≠ "nó không chặn".** Còn một khả năng thứ ba
+   luôn có mặt: nó chưa bao giờ được hỏi.
+3. **Cửa im lặng ở nhánh nhường đường là thứ làm phép thử sai kéo dài
+   được.** Ba khả năng — không chạy · chạy rồi nhường đường · chạy rồi mã
+   thoát bị bỏ qua — trông giống hệt nhau từ bên ngoài. Nay cửa ghi một
+   dòng **mỗi lần được gọi**, kể cả khi nhường đường, nên câu hỏi "cửa có
+   chạy không" thành một phép đọc file.
+
+Cùng họ với lỗi 15 và 20: thứ hỏng không phải logic, mà là **việc không
+quan sát được logic ấy có chạy hay không**.
 
 ### Lỗi 21 — một luật chọn tham số cũng là một cái trục
 

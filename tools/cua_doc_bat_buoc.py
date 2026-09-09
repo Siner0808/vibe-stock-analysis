@@ -52,6 +52,7 @@ BA GIỚI HẠN, PHẢI BIẾT
 import json
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
@@ -106,6 +107,89 @@ def _ghi_da_doc(phien: str, ten: str) -> None:
         pass
 
 
+#: Nhật ký "cửa này đã chạy". Nằm ở TEMP, một dòng mỗi lần được gọi.
+TEN_NHAT_KY = "vibe_cua_doc_chay.log"
+
+
+def duong_dan_nhat_ky() -> Path:
+    return Path(tempfile.gettempdir()) / TEN_NHAT_KY
+
+
+def ghi_nhat_ky(nhan: str, chi_tiet: str = "") -> None:
+    """Ghi MỘT dòng vào nhật ký chạy. Không bao giờ ném.
+
+    VÌ SAO CẦN — cả một buổi sáng 09/09/2026 để trả lời một câu hỏi
+    đáng lẽ là một phép đọc file
+    ────────────────────────────────────────────────────────────────
+    Sáng hôm ấy tôi kết luận **hai lần** rằng cửa này không cưỡng chế
+    được, dựa trên hai thứ, và cả hai đều không đứng được:
+
+    1. File dấu vết `vibe_da_doc_<phiên>.json` trong TEMP. Nó do
+       `_ghi_da_doc()` tạo — mà một lượt chạy TAY kịch bản này với id
+       phiên thật sinh ra file **y hệt**. Không phân biệt được "cửa nổ"
+       với "tôi gõ tay".
+    2. Một phép thử: `Edit` lên file được bảo vệ → không bị chặn. Nhưng
+       phép thử ấy dùng `old_string` **không tồn tại trong file**. Thao
+       tác hỏng ở khâu kiểm tra và hook không bao giờ được gọi.
+
+       **Một thao tác HỎNG không kiểm được một cái cửa chạy TRƯỚC thao
+       tác.** Phép thử không đo cái nó tưởng nó đo.
+
+    Làm lại bằng một `Edit` HỢP LỆ, có nhật ký này: cửa nổ, ghi
+    `CHO-QUA-da-doc-du` — nó cho qua vì phiên ấy **đã đọc đủ** hai tài
+    liệu, đúng thiết kế. Cửa vẫn luôn hoạt động.
+
+    Cái làm mất cả buổi sáng không phải cửa hỏng, mà là cửa **im lặng ở
+    mọi nhánh nhường đường**. Ba khả năng — không chạy · chạy rồi nhường
+    đường · chạy rồi mã thoát bị bỏ qua — trông giống hệt nhau từ bên
+    ngoài.
+
+    **Một cửa không ghi lại việc mình đã chạy thì không phân biệt được
+    với cửa chết.** Nhật ký này biến câu hỏi ấy thành một phép đọc file.
+
+    Ghi ở MỌI nhánh, kể cả nhánh nhường đường, và kể cả khi không đọc nổi
+    stdin. Nhánh im lặng chính là nhánh cần nhìn thấy nhất.
+    """
+    try:
+        with open(duong_dan_nhat_ky(), "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S}\t{nhan}\t"
+                    f"{chi_tiet}\n")
+    except Exception:
+        pass                          # nhật ký hỏng KHÔNG được làm kẹt cửa
+
+
+def quyet_dinh(d: dict) -> tuple[int, str, str]:
+    """Quyết định từ payload hook. Trả `(mã thoát, nhãn, chi tiết)`.
+
+    Tách khỏi `main()` để kiểm được bằng máy: `main()` đọc stdin và in ra
+    stderr, còn hàm này chỉ nhận một dict và trả một bộ ba. Nhãn là thứ đi
+    vào nhật ký, nên nó phải nói ra **nhánh nào đã chạy**, không chỉ nói
+    chặn hay không.
+    """
+    phien = str(d.get("session_id") or "khong-ro")
+    tool = str(d.get("tool_name") or "")
+    tho = (d.get("tool_input") or {}).get("file_path")
+    if not tho:
+        return 0, "BO-QUA-khong-co-file_path", tool
+
+    p = Path(str(tho))
+    if tool == "Read":
+        if p.name in TAI_LIEU_BAT_BUOC:
+            _ghi_da_doc(phien, p.name)
+            return 0, "GHI-da-doc", p.name
+        return 0, "BO-QUA-doc-file-khac", p.name
+
+    if tool not in ("Write", "Edit", "NotebookEdit"):
+        return 0, "BO-QUA-tool-khac", tool
+    if not _anh_huong_ket_qua(p):
+        return 0, "BO-QUA-file-khong-anh-huong-ket-qua", p.name
+
+    thieu = [t for t in TAI_LIEU_BAT_BUOC if t not in _da_doc(phien)]
+    if not thieu:
+        return 0, "CHO-QUA-da-doc-du", p.name
+    return 2, "CHAN", f"{p.name} · thiếu: {','.join(thieu)}"
+
+
 def main() -> int:
     for luong in (sys.stdout, sys.stderr):
         try:
@@ -116,29 +200,17 @@ def main() -> int:
     try:
         d = json.load(sys.stdin)
     except Exception:
+        ghi_nhat_ky("HONG-khong-doc-duoc-stdin")
         return 0                      # hỏng thì nhường đường
 
-    phien = str(d.get("session_id") or "khong-ro")
-    tool = str(d.get("tool_name") or "")
-    tho = (d.get("tool_input") or {}).get("file_path")
-    if not tho:
+    ma, nhan, chi_tiet = quyet_dinh(d)
+    ghi_nhat_ky(nhan, chi_tiet)
+    if ma == 0:
         return 0
 
-    p = Path(str(tho))
-    if tool == "Read":
-        if p.name in TAI_LIEU_BAT_BUOC:
-            _ghi_da_doc(phien, p.name)
-        return 0
-
-    if tool not in ("Write", "Edit", "NotebookEdit"):
-        return 0
-    if not _anh_huong_ket_qua(p):
-        return 0
-
-    thieu = [t for t in TAI_LIEU_BAT_BUOC if t not in _da_doc(phien)]
-    if not thieu:
-        return 0
-
+    p = Path(str((d.get("tool_input") or {}).get("file_path")))
+    thieu = [t for t in TAI_LIEU_BAT_BUOC
+             if t not in _da_doc(str(d.get("session_id") or "khong-ro"))]
     print(
         f"CHẶN: chưa đọc tài liệu bắt buộc trong phiên này.\n"
         f"\n"
