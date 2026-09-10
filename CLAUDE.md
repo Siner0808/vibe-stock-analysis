@@ -763,6 +763,10 @@ khai, ký và **commit TRƯỚC lượt chạy đầu tiên**: `docs/TIEU-CHI-DO
 vào `main` lúc 08:30, lượt 1 bắt đầu 08:59. Đó là lần đầu dự án chạy một
 phép đo mà quy tắc đọc không thể sửa sau khi thấy số.
 
+> 🔴 **BẢNG DƯỚI ĐÂY LÀ ĐO 1 (09/09), ĐO Ở MẶC ĐỊNH T+2 — ĐÃ BỊ THAY.**
+> Bảng hiện hành là ĐO 3, ngay dưới. Giữ bảng cũ để đối chiếu, KHÔNG phải
+> để trích dẫn.
+
 | # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh | phút |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | BẬT | theo mã | 62 | 379 | −0,04% | −0,68% | [−1,47 ; +0,21] chứa 0 | 48% · 180% | 36,1 |
@@ -770,14 +774,46 @@ phép đo mà quy tắc đọc không thể sửa sau khi thấy số.
 | 3 | TẮT | theo mã | 62 | 376 | +0,69% | −0,03% | [−0,86 ; +0,87] chứa 0 | 49% · 173% | 33,9 |
 | 4 | TẮT | theo ngày | 50 | 497 | +0,24% | −0,03% | [−0,71 ; +0,72] chứa 0 | 53% · 100% | 54,9 |
 
+### BẢNG HIỆN HÀNH — ĐO 3, chạy 10/09/2026 ở mặc định T+1
+
+Tiêu chí đọc vào `main` lúc **14:34**, lượt 1 bắt đầu **14:39** — năm phút
+sau, và **trước khi đổi một dòng mã nào**. Bốn lượt, **134,1 phút**, cả bốn
+mã thoát 0.
+
+| # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh | phút |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 398 | +0,31% | −0,55% | [−1,38 ; +0,37] chứa 0 | 51% · 191% | 34,9 |
+| 2 | BẬT | **theo ngày** | **45** | **612** | −0,53% | **−0,90%** | **[−1,46 ; −0,32] LOẠI 0** | 57% · **100%** | 36,3 |
+| 3 | TẮT | theo mã | 62 | 399 | +0,91% | **+0,08%** | [−0,77 ; +0,95] chứa 0 | 51% · 191% | 33,5 |
+| 4 | TẮT | theo ngày | **45** | 582 | +0,19% | −0,24% | [−0,83 ; +0,41] chứa 0 | 58% · 100% | 29,5 |
+
 Cả bốn lượt: 71 mã có vùng IS · **33 mã có vùng OOS** · bộ nhớ 44 mẫu, học
 thêm 0 · **0 lệnh bị bỏ khi ghép rổ chuẩn** · `stride=2` · `min_history=60`
-· `che_do_hoc=co_san`. Dụng cụ: `tools/do1_chi_phi_thuc_thi.py`, mỗi lượt
-một tiến trình riêng.
+· `che_do_hoc=co_san` · **`do_tre_khop=1` (T+1, mặc định mới)**. Dụng cụ:
+`tools/do1_chi_phi_thuc_thi.py`, mỗi lượt một tiến trình riêng.
 
-> ### CHỈ HAI phép so trong bảng này đọc được
+> ### PHÉP KIỂM DỤNG CỤ — một dòng qua, một dòng KHÔNG SO ĐƯỢC
 >
-> Ngưỡng **do chính lượt chạy chọn trên IS**, và nó ra **62 cho theo-mã,
+> Khai trước khi chạy: nếu vòng dò IS chọn lại 62/50 thì hai dòng
+> trượt-giá-BẬT phải ra lại đúng số ĐO 2 ở T+1.
+>
+> | chế độ | ĐO 1 chọn | ĐO 3 chọn | đọc thế nào |
+> |---|---|---|---|
+> | theo mã | 62 | **62** | ✅ dòng 1 ra **398 · −0,55% · [−1,38 ; +0,37]** — **đúng từng chữ số** số ĐO 2. Dụng cụ sạch. |
+> | theo ngày | 50 | **45** | ❌ **không so được** với ĐO 2 (546 lệnh, ngưỡng ghim 50). Không ép so. |
+>
+> **Việc ngưỡng đổi TỰ NÓ là phát hiện của ĐO 3, và nó lớn hơn alpha.**
+> Đổi độ trễ khớp — một thứ đáng lẽ chỉ chạm lúc VÀO lệnh — đã làm luật
+> chọn ngưỡng nhảy từ 50 xuống 45 ở chế độ theo ngày. Đúng hình dạng
+> **lỗi 21**: một luật chọn tham số là một cái trục, và nó động đậy theo
+> những thay đổi trông như không liên quan.
+>
+> Hệ quả khi đọc: **chỉ so 1↔3 và 2↔4** (cùng ngưỡng, khác mỗi công tắc).
+> So 1↔2 hay 3↔4 là so cả chế độ lẫn ngưỡng, y như ĐO 1.
+
+> ### CHỈ HAI phép so đọc được — VIẾT CHO ĐO 1, vẫn đúng cho ĐO 3
+>
+> Ngưỡng ĐO 1 **do chính lượt chạy chọn trên IS**, và nó ra **62 cho theo-mã,
 > 50 cho theo-ngày**. Nên:
 >
 > | so | khác nhau ở | đọc được? |
@@ -790,13 +826,19 @@ một tiến trình riêng.
 > chia được cho hai vế. Ở đây nó xuất hiện qua **luật chọn ngưỡng**, chỗ
 > không ai lường trước.
 
-**Chi phí thực thi LÀ toàn bộ phần alpha âm.** Tắt nó đi thì alpha về
-−0,03% ở **cả hai** chế độ, KTC gần như đối xứng quanh 0:
+**Chi phí thực thi LÀ toàn bộ phần alpha âm.** Đo lại ở ĐO 3
+(10/09/2026, mặc định T+1), so 1↔3 và 2↔4 — cùng ngưỡng, khác mỗi công tắc:
 
 ```
-theo mã    −0,03%  →  −0,68%     0,65 điểm phần trăm mỗi lệnh
-theo ngày  −0,03%  →  −0,94%     0,91 điểm phần trăm mỗi lệnh
+theo ma   (nguong 62)   +0,08%  ->  -0,55%     0,63 diem moi lenh
+theo ngay (nguong 45)   -0,24%  ->  -0,90%     0,66 diem moi lenh
 ```
+
+Tắt chi phí đi thì **cả bốn** dòng có KTC chứa 0 — kể cả dòng theo mã ra
+alpha **dương** +0,08%, vì KTC [−0,77 ; +0,95] không loại được số 0.
+Chiến lược **không phân biệt được với cầm đều cả rổ**. Bật chi phí, nó thua.
+
+> Số ĐO 1 tương ứng là 0,65 và 0,91 — ghi lại để đối chiếu, đừng trích.
 
 Không có chi phí thực thi, chiến lược **không phân biệt được với cầm đều
 cả rổ**. Có chi phí, nó thua. Cách đọc: rổ chuẩn mua một lần rồi giữ, trả
@@ -804,8 +846,9 @@ chi phí **hai lần**; chiến lược quay vòng 500 lệnh, trả **1.000 l�
 
 > **DÒNG 2 LÀ DÒNG ĐÁNG TIN NHẤT**, theo ba luật của chính dự án:
 >
-> 1. **Nhiều lệnh nhất** (508) — bất biến 7: *"dòng đáng tin nhất là dòng
->    có nhiều lệnh nhất, không phải dòng lãi cao nhất"*.
+> 1. **Nhiều lệnh nhất** — 508 ở ĐO 1, **612 ở ĐO 3**. Bất biến 7:
+>    *"dòng đáng tin nhất là dòng có nhiều lệnh nhất, không phải dòng lãi
+>    cao nhất"*.
 > 2. **Chế độ duy nhất có danh mục thật.** Vốn đỉnh đúng 100% nghĩa là
 >    trần vốn **có chặn**. Hai dòng theo-mã cho 173–180% — xem mục "Trần
 >    vốn cam kết" dưới đây: đó là *"một danh mục máy chưa bao giờ thực sự
@@ -822,6 +865,10 @@ chi phí **hai lần**; chiến lược quay vòng 500 lệnh, trả **1.000 l�
 > Hai con số gần bằng nhau là **trùng hợp về độ lớn, không phải xác
 > nhận**: cũ là theo-mã ngưỡng 62, mới là theo-ngày ngưỡng 50. Đừng đọc
 > chúng như hai lần đo cùng một thứ.
+>
+> **ĐO 3 giữ nguyên kết luận này ở mặc định T+1:** alpha −0,90%, KTC
+> [−1,46 ; −0,32], **612 lệnh**, vốn đỉnh đúng 100%. Ba lần đo độc lập —
+> 28/08, ĐO 1, ĐO 3 — đều cho dòng theo-ngày loại được số 0.
 
 **Tái lập được (bất biến 2).** Lượt 1 trùng **từng chữ số** với một lượt
 chạy độc lập ngày 08/09/2026 ở đúng cấu hình ấy: 379 lệnh · −0,68% ·
@@ -835,14 +882,38 @@ In-sample: **−0,43 điểm phần trăm mỗi lệnh, gần như bằng nhau �
 ngưỡng** (45 → 62). Ổn định như vậy là dấu hiệu mô hình đúng — chi phí thực
 thi là chi phí MỖI LỆNH, không co giãn theo độ chọn lọc.
 
-> ⚠️ **Con số 0,43 ấy đo TRONG MẪU. Ngoài mẫu, đo 09/09/2026, nó là
-> 0,65–0,91** (bảng bốn lượt ở trên, phép so 1↔3 và 2↔4). Lớn hơn
-> **50–110%**.
+> ⚠️ **CON SỐ 0,43 KHÔNG TÁI LẬP Ở BẢN MÃ HIỆN HÀNH — đo lại 10/09/2026.**
 >
-> Chưa ai đi tìm vì sao. Ba khả năng chưa loại được: vùng OOS có thanh
-> khoản mỏng hơn vùng IS; tập lệnh khác nhau nên trung vị giá vào khác;
-> hoặc con số 0,43 đo ở một bản mã cũ hơn. **Đừng dùng 0,43 để trừ hao
-> cho số ngoài mẫu** cho tới khi có người đo.
+> ĐO 3 chạy lại cả bảy ngưỡng trong mẫu, cùng mã, cùng `do_tre_khop=1`:
+>
+> ```
+> nguong   TAT    BAT   chenh
+> 45      0.45   0.11   0.34
+> 48      0.48   0.15   0.33
+> 50      0.46   0.11   0.35
+> 52      0.51   0.16   0.35
+> 55      0.72   0.34   0.38
+> 58      0.75   0.38   0.37
+> 62      1.07   0.68   0.39
+> ```
+>
+> **Trong mẫu là 0,33–0,39, không phải 0,43.** Con số 0,43 đo ở một bản mã
+> cũ hơn và/hoặc ở T+2; nó **không phải** con số hiện hành.
+>
+> **Nhưng khoảng cách IS/OOS là THẬT, và nay đo được sạch.** Ở cùng lượt
+> chạy, cùng bản mã, cùng `do_tre_khop=1`, cùng ngưỡng 62:
+>
+> ```
+> trong mau (nguong 62)  : 0,39 diem moi lenh
+> ngoai mau (1 vs 3)     : 0,63 diem moi lenh     lon hon ~62%
+> ```
+>
+> Giả thuyết *"0,43 đo ở bản mã cũ"* **bị loại như lời giải thích cho
+> khoảng cách ấy** — cả hai con số mới đến từ cùng một lượt. Còn **hai**
+> khả năng: vùng OOS thanh khoản mỏng hơn; tập lệnh khác nên trung vị giá
+> vào khác. Chưa ai đo.
+>
+> **Trừ hao 0,63 khi đọc số ngoài mẫu**, không phải 0,43.
 
 **Kết luận KHÔNG phụ thuộc giả định vốn 1 tỷ.** Ở giá vào trung vị 16.100đ,
 từ 100 triệu tới 1 tỷ chi phí y hệt nhau (0,311% một chiều): tác động thị
@@ -852,8 +923,9 @@ lên tác động mới cộng thêm một bước.
 
 **MỌI con số trong tài liệu này đo TRƯỚC 24/08/2026 đều không có chi phí
 thực thi** — kỳ vọng sổ +0,79%, alpha +0,090%, mọi bảng walk-forward. Trừ
-hao **0,65–0,91 điểm phần trăm mỗi lệnh** khi đọc chúng (đo ngoài mẫu
-09/09/2026; bản trước ghi ~0,43, đó là số TRONG mẫu).
+hao **0,63–0,66 điểm phần trăm mỗi lệnh** khi đọc chúng (đo ngoài mẫu
+10/09/2026 ở ĐO 3; ĐO 1 cho 0,65–0,91; con số ~0,43 là số TRONG mẫu và
+không tái lập ở bản mã hiện hành).
 
 **`volume` KHÔNG được nhân `price_multiplier`.** `run_session` nhân mọi giá
 trị trong `bar` để quy nghìn đồng về VNĐ; nhân nhầm khối lượng thì tỷ trọng
@@ -1166,9 +1238,14 @@ Hai lượt đối chứng (`do_tre_khop=None`) ra lại **đúng từng chữ s
 > vẫn quy được về một vế. Nhưng nó KHÔNG phải phép so cùng-tập-lệnh-khác-
 > giá-vào. Cơ chế đo được: `docs/STATE.md` BƯỚC 46.
 
-**Mặc định CHƯA đổi, và việc đổi ĐÃ ĐƯỢC CHỐT 10/09/2026: đổi cùng lần
-đo lại đầy đủ tiếp theo, không đổi rời.** `do_tre_khop=None` hiện vẫn cho
-T+2.
+**MẶC ĐỊNH ĐÃ ĐỔI (10/09/2026): `_mo_phong`, `chay` và cờ CLI nay mặc
+định `do_tre_khop=1`, tức T+1 — khớp đường chạy thật.** Đổi cùng PR với
+bảng số mới, đúng chốt của người dùng.
+
+Hai hàm THUẦN `diem_ghe()` và `lich_theo_ngay()` **không đụng**: `None` ở đó
+là ký hiệu ngữ nghĩa *"bằng `stride`"*, không phải chính sách. Hai điều kiện
+người dùng ký 09/09 kiểm đúng ký hiệu ấy và **vẫn xanh** — đó là bằng chứng
+phép đổi chỉ chạm chính sách.
 
 Lý do không đổi ngay: giữa lúc đổi mặc định và lúc chạy lại bảng số sẽ có
 một quãng **tài liệu ghi một đằng, chạy ra một nẻo**. Dự án đã trả giá cho

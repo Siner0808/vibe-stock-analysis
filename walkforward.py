@@ -299,7 +299,7 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
               che_do_hoc: str | None = None,
               duong_bo_nho: str | None = None,
               theo_ngay: bool = False,
-              do_tre_khop: int | None = None) -> dict:
+              do_tre_khop: int | None = 1) -> dict:
     """Chạy một lượt trên `du_lieu` với `nguong`, trả về chỉ số đo được.
 
     `du_lieu` là {mã: DataFrame} ĐÃ CẮT sẵn về đúng vùng cần chạy — hàm này
@@ -427,7 +427,7 @@ def _mo_phong(du_lieu: dict, nguong: float, db: str,
 def chay(symbols: list[str] | None = None, dai_nguong: list[float] | None = None,
          stride: int = 2, min_history: int = 60, tien_to_db: str = "wf_",
          che_do_hoc: str = "co_san", theo_ngay: bool = False,
-         do_tre_khop: int | None = None) -> dict:
+         do_tre_khop: int | None = 1) -> dict:
     """Walk-forward đầy đủ. Trả về {is: [...], nguong_chon, oos: {...}}.
 
     `che_do_hoc` — xem `_dung_bo_nho()`. Mặc định `co_san` (21/08/2026): đo
@@ -596,12 +596,13 @@ def main() -> int:
                          "tat: khong co bo nho -- phep do khong dua vao "
                          "hang rao chong nhin trom nao | "
                          "tich_luy: bat dau rong, lon dan trong luot nay")
-    ap.add_argument("--do-tre-khop", type=int, default=None,
+    ap.add_argument("--do-tre-khop", type=int, default=1,
                     dest="do_tre_khop",
-                    help="so phien tu tin hieu toi khi khop. Mac dinh None "
-                         "= bang stride, tuc DUNG cau hinh hom nay. Dat 1 de "
-                         "khop T+1 nhu duong chay that. Xem "
-                         "docs/TIEU-CHI-DOC-TRUOC.md muc DO 2.")
+                    help="so phien tu tin hieu toi khi khop. Mac dinh 1 "
+                         "= T+1, KHOP DUONG CHAY THAT (doi 10/09/2026, xem "
+                         "docs/STATE.md BUOC 50). Dat bang stride de lay lai "
+                         "cau hinh truoc do. Xem docs/TIEU-CHI-DOC-TRUOC.md "
+                         "muc DO 2 va DO 3.")
     ap.add_argument("--theo-ngay", action="store_true", dest="theo_ngay",
                     help="chay theo NGAY thay vi theo MA. Chi che do nay moi "
                          "co danh muc that, nen TRAN_VON_CAM_KET_PCT moi co "

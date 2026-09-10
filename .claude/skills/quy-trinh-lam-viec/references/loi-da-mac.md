@@ -44,7 +44,9 @@ là lỗi sẽ tái diễn.
 
 | 27 | **chép** một hook sang nơi đăng ký thứ hai mà không hỏi điều gì xảy ra khi **cả hai** nơi cùng nạp — hai ngày sau đo ra: mỗi hook chạy **HAI LẦN**, nhân đôi chính cái nhật ký đang dùng làm bằng chứng | phiên `claude -p` chạy với cwd đặt ở repo | ✅ | `tests/test_cua_song.py::test_settings_CUA_REPO_khong_duoc_dang_ky_hook_nao`; bản khai tách sang `docs/cua-du-an.json` |
 
-**Mười sáu trên hai mươi bảy máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 28 | khẳng định *"PR này chưa chạm mã nguồn"* mà **không chạy `git diff --stat`** — nhánh tạo chồng lên nhánh khác nên mang theo commit lạ | cổng thứ năm: 916 so với 918 | ✅ | `tools/kiem_so_test_khong_giam.py` — số test là dấu vân tay của NỘI DUNG nhánh |
+
+**Mười bảy trên hai mươi tám máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -505,3 +507,23 @@ Bản vá 08/09 đúng về mục tiêu và bỏ sót một hệ quả. Cùng h�
 (một luật chọn tham số cũng là một trục) và lỗi 24 (một câu đúng bị đọc rộng
 hơn phạm vi): ở cả ba, thứ gây hại không phải điều được làm sai, mà là điều
 không được hỏi.
+
+
+### Lỗi 28 — khẳng định về một diff mà không đọc diff
+
+PR #85 khai *"chưa kéo một mã nào, chưa chạm mã nguồn"*. Nhánh có **hai**
+commit: tiêu chí ĐO 4, và thay đổi mặc định của ĐO 3. Tôi tạo nhánh ĐO 4
+chồng lên nhánh ĐO 3 thay vì từ `main`, rồi viết câu ấy mà không chạy
+`git diff --stat`.
+
+Thứ tôi khẳng định nằm cách **một lệnh**.
+
+**Cổng thứ năm bắt được**, lần thứ hai trong ngày — và lần này ở một công
+dụng không ai thiết kế: **số test là dấu vân tay của NỘI DUNG nhánh**, nên
+một nhánh mang thêm mã sẽ lộ ra dù thân PR nói gì.
+
+**Quy tắc rút ra: mọi câu về phạm vi một PR phải đọc từ `git diff`, không
+đọc từ trí nhớ về việc mình vừa làm gì.**
+
+Cùng họ với lỗi 24 và 25: điều gây hại không phải việc làm sai, mà là việc
+không được hỏi — ở đây là một câu hỏi rẻ tới mức không ai nghĩ phải hỏi.
