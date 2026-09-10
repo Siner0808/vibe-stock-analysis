@@ -257,6 +257,7 @@ Vì thế:
 | 09/09/2026 | **ĐO 2 — ký điều khoản bổ sung**, cả ba mục | người dùng | phép tách · ba điều kiện cài đặt · ghim ngưỡng tay 62/50. Chưa viết dòng mã nào |
 | 10/09/2026 | **ĐO 2 — bốn lượt ĐÃ ĐỌC**, kết cục 1 cả hai phép so | — | hai lượt đối chứng tái lập đúng từng chữ số. Lộ ra lỗi 24 |
 | 10/09/2026 | **chốt đổi mặc định `do_tre_khop` sang 1** | người dùng | nhưng gộp vào lần đo lại đầy đủ tiếp theo, KHÔNG đổi rời |
+| 10/09/2026 | **ĐO 3 — khai tiêu chí**, trước khi đổi dòng mã nào | — | bảng CHI PHÍ THỰC THI ở mặc định T+1. Phép kiểm dụng cụ: nếu IS chọn lại 62/50 thì hai dòng trượt-giá-BẬT phải ra lại đúng số ĐO 2 |
 
 ---
 
@@ -469,3 +470,99 @@ tập lệnh xáo 15% (theo mã) / 27% (theo ngày). Cơ chế đã đo và quy 
 **Rút cho lần khai trước sau:** mọi câu *"X không đổi"* trong tiêu chí phải
 kèm **lệnh kiểm X**. Ba điều kiện của ĐO 2 đều có test; câu về tập lệnh
 thì không, nên nó không sai — nó chỉ chưa bao giờ được hỏi.
+
+
+---
+
+## ĐO 3 — bảng CHI PHÍ THỰC THI ở cấu hình hiện hành, mặc định T+1
+
+> **Khai ngày 10/09/2026, TRƯỚC khi đổi một dòng mã nào và trước lượt chạy
+> đầu tiên.** Đây là lần thứ ba dự án làm đúng thứ tự ấy.
+
+### Vì sao chạy
+
+Ba việc treo gộp làm một, theo đúng chốt của người dùng ngày 10/09:
+
+1. **Đổi mặc định `do_tre_khop` sang 1.** Đường chạy thật khớp T+1; backtest
+   mặc định vẫn T+2. Đã chốt: đổi, nhưng **không đổi rời** — mặc định mới và
+   bảng số mới phải ra đời trong CÙNG một PR, để không tồn tại quãng tài
+   liệu ghi một đằng chạy ra một nẻo.
+2. **Bảng "CHI PHÍ THỰC THI" trong `CLAUDE.md` đang bị đánh dấu lạc hậu.**
+3. **Hai chỗ chưa truy** — đọc kèm, xem mục dưới.
+
+### Đúng MỘT biến đổi, và nó KHÔNG phải `diem_ghe`
+
+`diem_ghe(n, min_history, stride, do_tre_khop=None)` giữ nguyên: `None` ở đó
+là **ký hiệu ngữ nghĩa** *"bằng `stride`"*, không phải một chính sách. Hai
+điều kiện người dùng đã ký ngày 09/09 —
+`test_DIEU_KIEN_1_mac_dinh_cho_lich_Y_HET_hom_nay` và `1b` — kiểm đúng ký
+hiệu ấy, nên chúng **phải vẫn xanh sau thay đổi**. Xanh là điều kiện để tin
+rằng phép đổi chỉ chạm chính sách.
+
+Thứ đổi là mặc định ở **bên gọi**: `_mo_phong`, `chay`, và cờ CLI —
+`None` → `1`. Kèm một phép kiểm mới khoá mặc định ấy, để nó không trôi lại.
+
+Không đổi gì khác: `stride=2` · `min_history=60` · `che_do_hoc=co_san` ·
+**cache giá KHÔNG kéo dài** (xem mục cuối).
+
+### Đại lượng chính
+
+**alpha khớp từng lệnh + KTC 95% trên OOS**, bốn dòng như ĐO 1: hai công
+tắc trượt giá × hai chế độ mô phỏng, mỗi lượt tự chọn ngưỡng trên IS.
+
+### Phép kiểm dụng cụ — MIỄN PHÍ, và phải đọc TRƯỚC alpha
+
+ĐO 2 đã đo T+1 ở ngưỡng **ghim tay** 62/50. Nên:
+
+| nếu vòng dò IS chọn | thì | đọc thế nào |
+|---|---|---|
+| **62 (theo mã) và 50 (theo ngày)** | hai dòng trượt-giá-BẬT phải ra lại **đúng từng chữ số** số ĐO 2 T+1: theo mã **398 lệnh · −0,55% · [−1,38 ; +0,37]**; theo ngày **546 lệnh · −0,82% · [−1,47 ; −0,15]** | lệch → **bảng KHÔNG đọc được**, đi tìm lỗi trước |
+| ngưỡng **khác** 62/50 | hai dòng ấy **không so được** với ĐO 2 | ghi ra, **đừng ép so**. Và bản thân việc ngưỡng đổi là thông tin: luật chọn ngưỡng nhạy với độ trễ khớp — một trục nữa, đúng hình dạng lỗi 21 |
+
+### Ba kết cục, khai trước
+
+| kết cục | đọc thế nào |
+|---|---|
+| Bảng mới ≈ ĐO 1 dịch đi **+0,12 → +0,13** điểm (mức ĐO 2 đã đo) | phù hợp dự kiến — thay bảng trong `CLAUDE.md` |
+| alpha đẹp lên **hơn nửa bề rộng KTC** | **quy tắc số 1**: giả định đầu tiên là CÓ LỖI. Kiểm trước khi ghi. |
+| alpha **đổi DẤU** — dương và loại được số 0 | quy tắc số 1 ở mức mạnh nhất. **KHÔNG ghi vào tài liệu**, không công bố, đi tìm lỗi. Dự án đã năm lần cho ra số đẹp hoá ra vô nghĩa; một cú lật dấu sau khi đổi đúng một mặc định là ứng viên thứ sáu, không phải một phát hiện. |
+
+**Vì sao dự kiến KHÔNG đổi dấu:** ĐO 1 đo được alpha **không có** chi phí
+thực thi là **−0,03%**, KTC gần đối xứng quanh 0. Vào sớm một phiên không
+tạo ra lợi thế, nó chỉ bớt trả chi phí — nên trần trên của phép đổi này là
+"tiến về 0", không phải "vượt lên trên".
+
+### Hai việc CHƯA TRUY, đọc kèm trong cùng lượt
+
+**1. Khoảng cách 0,43 (trong mẫu) so với 0,65–0,91 (ngoài mẫu).** Ba giả
+thuyết chưa loại được: OOS thanh khoản mỏng hơn · tập lệnh khác nên trung
+vị giá vào khác · **con số 0,43 đo ở một bản mã cũ hơn**.
+
+Lượt này sinh ra một con số IS **mới, ở bản mã hiện hành**. So nó với 0,43:
+
+- ra **≈0,43** → giả thuyết thứ ba **bị loại**, còn hai.
+- ra **khác đáng kể** → giả thuyết thứ ba được củng cố, và con số 0,43 trong
+  `CLAUDE.md` phải bị đánh dấu là đo ở bản cũ.
+
+**2. Chênh 385 so với 376 lệnh** giữa bảng `CLAUDE.md` và lượt chạy lại
+04/09, trong khi alpha và kỳ vọng khớp tới 3 chữ số. Ghi lại số lệnh IS/OOS
+của lượt này để có mốc thứ ba.
+
+### Cache giá KHÔNG được kéo dài trong lượt này
+
+`extend_history.py --check` ngày 10/09: rổ bắt đầu **2021-10**, nhiều phiên
+nhất 1.217 (DIG). Và một phép hỏi thẳng vnstock cùng ngày cho thấy **nguồn
+CÓ dữ liệu từ 2017-08** (FPT, 2.271 nến) — tức cache thiếu, kéo được.
+
+**Nhưng không kéo trong lượt này.** Kéo cache đổi DỮ LIỆU mà mọi backtest
+chạy trên đó, nên bảng mới sẽ khác ĐO 1 vì **hai** lý do cùng lúc và không
+quy được cho vế nào. Đó đúng là thứ lỗi 21 và hướng 2 của ĐO 2 đã dạy.
+
+Việc kéo cache là một phép đo RIÊNG, cần tiêu chí riêng, và phải chạy SAU.
+
+### Dụng cụ
+
+`tools/do1_chi_phi_thuc_thi.py`, mỗi lượt một tiến trình riêng. Thời gian:
+ĐO 1 mất **157,7 phút** cho bốn lượt; lượt này **ước lượng cùng bậc**, và
+thời gian chạy đã đo được là không phải hằng số (46,1 so với 36,1 phút cho
+cùng cấu hình ở hai ngày khác nhau).
