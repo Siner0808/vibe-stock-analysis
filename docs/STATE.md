@@ -9276,3 +9276,121 @@ thái "cả hai cùng có hiệu lực" — và trạng thái ấy chưa bao gi�
 Bản vá 08/09 đúng về mục tiêu (làm cửa sống) và bỏ sót một hệ quả.
 
 Bảng lỗi: **27 dòng, 16 máy chặn được**.
+
+
+---
+
+## BƯỚC 50 — ĐO 3: PHÁT HIỆN KHÔNG NẰM Ở ALPHA (10/09/2026)
+
+Bốn lượt, **134,1 phút**, cả bốn mã thoát 0. Tiêu chí đọc vào `main` lúc
+**14:34**, lượt 1 bắt đầu **14:39** — năm phút sau, và **trước khi đổi một
+dòng mã nào**. Lần thứ ba dự án làm đúng thứ tự ấy.
+
+### Bảng
+
+| # | trượt giá | chế độ | ngưỡng IS | lệnh | kỳ vọng | alpha | KTC 95% | vốn |
+|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 398 | +0,31% | −0,55% | [−1,38 ; +0,37] | 51% · 191% |
+| 2 | BẬT | theo ngày | **45** | **612** | −0,53% | **−0,90%** | **[−1,46 ; −0,32]** | 57% · **100%** |
+| 3 | TẮT | theo mã | 62 | 399 | +0,91% | **+0,08%** | [−0,77 ; +0,95] | 51% · 191% |
+| 4 | TẮT | theo ngày | **45** | 582 | +0,19% | −0,24% | [−0,83 ; +0,41] | 58% · 100% |
+
+### Phép kiểm dụng cụ — một dòng qua, một dòng không so được
+
+Khai trước: nếu IS chọn lại 62/50 thì hai dòng trượt-giá-BẬT phải ra lại
+đúng số ĐO 2 ở T+1.
+
+- **theo mã: IS chọn 62** → dòng 1 ra **398 · −0,55% · [−1,38 ; +0,37]**,
+  **đúng từng chữ số** số ĐO 2. Dụng cụ sạch.
+- **theo ngày: IS chọn 45**, không phải 50 → dòng 2 **không so được** với
+  ĐO 2. Không ép so.
+
+### Phát hiện thật của ĐO 3, và nó lớn hơn alpha
+
+**Đổi độ trễ khớp đã đổi luôn ngưỡng mà luật IS chọn** — 50 xuống 45 ở chế
+độ theo ngày. Một thay đổi đáng lẽ chỉ chạm lúc VÀO lệnh lại dịch cả tham
+số được chọn.
+
+Đúng hình dạng **lỗi 21**: một luật chọn tham số là một cái trục, và nó
+động đậy theo những thay đổi trông như không liên quan. Lỗi 21 tìm ra ở ĐO
+1 khi luật chọn ra 62 và 50 cho hai chế độ; ĐO 3 cho thấy nó còn nhạy với
+một trục thứ ba nữa.
+
+**Alpha thì gần như không đổi.** Dòng đáng tin nhất — theo ngày, nhiều lệnh
+nhất (612), vốn đỉnh đúng 100% — vẫn **loại được số 0**: −0,90%,
+[−1,46 ; −0,32]. Ba lần đo độc lập (28/08 · ĐO 1 · ĐO 3) đều cho dòng ấy
+cùng kết luận.
+
+### Một câu "chưa truy" ĐÃ ĐÓNG
+
+Khoảng cách 0,43 (trong mẫu) so với 0,65–0,91 (ngoài mẫu) treo từ 09/09 với
+ba giả thuyết. ĐO 3 chạy lại cả bảy ngưỡng trong mẫu ở bản mã hiện hành:
+
+```
+nguong   TAT    BAT   chenh
+45      0.45   0.11   0.34
+48      0.48   0.15   0.33
+50      0.46   0.11   0.35
+52      0.51   0.16   0.35
+55      0.72   0.34   0.38
+58      0.75   0.38   0.37
+62      1.07   0.68   0.39
+```
+
+**Trong mẫu là 0,33–0,39, không phải 0,43** — con số cũ không tái lập ở bản
+mã hiện hành.
+
+Và khoảng cách IS/OOS nay đo được **sạch**, cùng lượt chạy, cùng ngưỡng 62:
+**0,39 trong mẫu so với 0,63 ngoài mẫu**, lớn hơn ~62%. Giả thuyết *"0,43
+đo ở bản mã cũ"* **bị loại như lời giải thích cho khoảng cách ấy** — cả hai
+con số mới đến từ cùng một lượt. Còn **hai** khả năng chưa ai đo.
+
+### Mặc định đã đổi, và cách đổi mới là chỗ đáng học
+
+`_mo_phong`, `chay`, cờ CLI: `do_tre_khop` mặc định `None` → **`1`**.
+
+Hai hàm THUẦN `diem_ghe()` và `lich_theo_ngay()` **không đụng**. `None` ở đó
+là **ký hiệu ngữ nghĩa** *"bằng `stride`"*, không phải một chính sách. Hai
+điều kiện người dùng ký 09/09 kiểm đúng ký hiệu ấy, nên chúng **vẫn xanh** —
+và cái xanh ấy là bằng chứng phép đổi chỉ chạm chính sách, không chạm nghĩa.
+
+> **Phân biệt ký hiệu với chính sách.** Cùng một `None` mặc định, hai vai
+> khác hẳn. Đổi nhầm vai thì hai phép kiểm đã ký sẽ đỏ, và người ta sẽ sửa
+> phép kiểm cho hết đỏ — tức sửa đúng cái đang bảo vệ mình.
+
+### Luật `pytest-qua-ong` — siết phạm vi, không nới mức độ
+
+Đếm trong ngày: **5 chặn NHẦM / 3 chặn ĐÚNG**. Cán cân lật.
+
+Nguyên nhân: `[^|]*` cho phép cả `>` lẫn `;` nằm giữa `pytest` và dấu ống,
+nên `pytest ... > log; grep ... | head` bị khớp dù cái ống không hề gắn vào
+pytest. Nay đòi ống **thuộc cùng một lệnh**: `[^|;&\n>]*`.
+
+Đục thử: ba hình dạng chặn-đúng **giữ nguyên**, hai hình dạng chặn-nhầm
+**hết**. Còn lọt một, và biết trước: **văn bản** nhắc tới hình dạng ấy —
+trong `echo`, trong thân heredoc của commit, trong `--body` của PR. Sửa được
+bằng cách bóc thân heredoc trước khi so, nhưng đó là việc riêng; ghi ra để
+lần sau ai bị cắn thì biết đây là giới hạn đã biết.
+
+**Không nới mức độ.** Cùng buổi đó luật này chặn đúng ba lần, trong đó một
+lần cứu một khối mã khỏi bị bash nội suy xoá mất — y hệt sự cố sinh ra nó.
+
+### Lỗi 28 — khẳng định về một diff mà không đọc diff
+
+PR #85 khai *"chưa kéo một mã nào, chưa chạm mã nguồn"*. Nhánh có **hai**
+commit: tiêu chí ĐO 4, và **thay đổi mặc định của ĐO 3**. Tôi tạo nhánh ĐO 4
+chồng lên nhánh ĐO 3 thay vì từ `main`, rồi viết câu ấy mà không chạy
+`git diff --stat`.
+
+**Cổng thứ năm bắt được** — 916 so với 918 — lần thứ hai trong ngày, và lần
+này nó bắt một **PR khai sai chính nó**, không phải test bị mất. Đó là công
+dụng không ai thiết kế: số test là dấu vân tay của NỘI DUNG nhánh, nên một
+nhánh mang thêm mã sẽ lộ ra dù thân PR nói gì.
+
+Và cái bẫy suýt sập khi đi sửa: phản xạ là `git checkout` sang nhánh sạch —
+nhưng ĐO 3 đang ở lượt 3/4, mỗi lượt là một tiến trình riêng **nạp lại
+`walkforward.py` từ đĩa**. Đổi nhánh lúc ấy trả file về T+2, lượt 4 chạy
+khác ba lượt đầu, và bảng hỏng **âm thầm**. Đã đóng #85 bằng thao tác
+GitHub, không đụng cây làm việc.
+
+Bảng lỗi: **28 dòng, 17 máy chặn được**.
