@@ -405,7 +405,9 @@ def test_hai_cua_moi_duoc_DANG_KY_dung_matcher():
     import json
     import re
 
-    d = json.loads((GOC / ".claude" / "settings.json").read_text(
+    # Bản KHAI, không phải nơi đăng ký — xem `docs/STATE.md` BƯỚC 49.
+    # Giữ hook ở cả hai nơi làm chúng chạy HAI LẦN khi phiên mở ở repo.
+    d = json.loads((GOC / "docs" / "cua-du-an.json").read_text(
         encoding="utf-8"))
 
     def _tim(su_kien: str, ten_file: str):

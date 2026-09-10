@@ -1,71 +1,22 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/chan_bia_so_lieu.py\"",
-            "timeout": 20,
-            "statusMessage": "Quét mẫu bịa số liệu..."
-          },
-          {
-            "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_ghi_an_toan.py\"",
-            "timeout": 10,
-            "statusMessage": "Kiểm file vừa ghi có rỗng không..."
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Read|Write|Edit|NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_doc_bat_buoc.py\"",
-            "timeout": 15,
-            "statusMessage": "Kiểm tài liệu bắt buộc..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_bash_an_toan.py\"",
-            "timeout": 10,
-            "statusMessage": "Kiểm hình dạng lệnh shell..."
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_mo_phien.py\"",
-            "timeout": 10,
-            "statusMessage": "Nhắc quy trình và mốc ngày đang chặn..."
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/chan_bia_so_lieu.py\" --quet-thay-doi",
-            "timeout": 60,
-            "statusMessage": "Soát lại file đã đổi..."
-          }
-        ]
-      }
-    ]
-  }
+  "_ghi_chu": [
+    "KHONG dang ky hook o day. Co chu y, tu 10/09/2026.",
+    "",
+    "File nay chi duoc nap khi thu muc du an cua phien LA repo. Do truc tiep",
+    "ngay 10/09/2026 bang mot phien `claude -p` chay voi cwd dat o repo: no CO",
+    "nap that -- va khi do CA HAI file settings cung nap, nen moi hook chay HAI",
+    "LAN. Bang chung: hai ban ghi hook_success rieng biet cho SessionStart trong",
+    "transcript, phan biet duoc bang statusMessage cua tung file.",
+    "",
+    "Chay doi lam nhan doi nhat ky cua_doc_bat_buoc, ma nhat ky ay dang duoc",
+    "dung lam bang chung 'cua co song khong'. Vi ca sau hook da co ban o",
+    "~/.claude/settings.json bang duong dan tuyet doi, ban trong repo khong mang",
+    "lai chuc nang nao va chi mang mot moi nguy.",
+    "",
+    "Ban KHAI sau hook du an muon co nay nam o docs/cua-du-an.json.",
+    "Noi DANG KY that la ~/.claude/settings.json.",
+    "Kiem trang thai: ./.venv/Scripts/python.exe tools/kiem_cua_song.py",
+    "",
+    "docs/STATE.md BUOC 49."
+  ]
 }

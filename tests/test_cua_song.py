@@ -2,12 +2,18 @@
 
 Nguyên nhân chính xác tìm ra 10/09/2026: hai hook (`cua_bash_an_toan.py`,
 `cua_mo_phien.py`) chỉ được khai trong `<repo>/.claude/settings.json`, mà
-file ấy chỉ nạp khi thư mục dự án LÀ repo — điều chưa xảy ra lần nào. Bốn
-hook còn lại đã được chép sang `~/.claude/settings.json` bằng đường dẫn
-tuyệt đối hôm 08/09 và chạy bình thường suốt từ đó.
+file ấy chỉ nạp khi thư mục dự án LÀ repo. Bốn hook còn lại đã được chép
+sang `~/.claude/settings.json` bằng đường dẫn tuyệt đối hôm 08/09 và chạy
+bình thường suốt từ đó.
 
-Phép kiểm ĐẦU TIÊN dựng lại đúng cấu hình ấy — 6 hook repo, 4 hook toàn
+Phép kiểm ĐẦU TIÊN dựng lại đúng cấu hình ấy — 6 hook khai, 4 hook toàn
 cục — theo Bước 3 của skill.
+
+CÙNG NGÀY, TIỀN ĐỀ ẤY ĐƯỢC KIỂM TRỰC TIẾP LẦN ĐẦU. Một phiên `claude -p`
+chạy với cwd đặt ở repo cho thấy settings của repo **có** nạp, và khi đó
+**cả hai** file cùng nạp nên mỗi hook chạy **hai lần**. Vì thế hook đã
+được gỡ khỏi settings của repo; phần khai chuyển sang `docs/cua-du-an.json`.
+Xem `test_settings_CUA_REPO_khong_duoc_dang_ky_hook_nao`.
 """
 import ast
 import sys
@@ -40,7 +46,7 @@ def _gop(*ds: dict) -> dict:
 
 
 def _repo_sau_hook() -> dict:
-    """Đúng sáu hook mà settings của repo khai, tới 10/09/2026."""
+    """Đúng sáu hook dự án khai, tới 10/09/2026."""
     return _gop(
         _hook("PostToolUse", "Write|Edit",
               f'python "{DUONG_REPO}/tools/chan_bia_so_lieu.py"',
@@ -219,11 +225,35 @@ def test_trang_thai_cua_KHONG_BAO_GIO_nem():
 
 # ══ 5. File settings THẬT của repo phải đọc được ══════════════════════
 
-def test_settings_cua_repo_doc_duoc_va_CO_hook():
-    d = ks._doc(ks.SETTINGS_REPO)
-    assert d is not None, "khong doc duoc .claude/settings.json cua repo"
-    assert ks.doc_hook(d), "settings cua repo khong khai hook nao"
-    print(f"PASS  settings repo khai {len(ks.doc_hook(d))} hook")
+def test_ban_khai_doc_duoc_va_CO_hook():
+    d = ks._doc(ks.KHAI_BAO_DU_AN)
+    assert d is not None, "khong doc duoc docs/cua-du-an.json"
+    assert ks.doc_hook(d), "ban khai khong co hook nao"
+    print(f"PASS  ban khai co {len(ks.doc_hook(d))} hook")
+
+
+def test_settings_CUA_REPO_khong_duoc_dang_ky_hook_nao():
+    """Chốt chặn cho phát hiện 10/09/2026.
+
+    `<repo>/.claude/settings.json` CO nap khi thu muc du an la repo — do
+    truc tiep bang mot phien `claude -p` chay voi cwd dat o repo. Khi do
+    CA HAI file settings cung nap va **moi hook chay HAI LAN**: hai ban
+    ghi `hook_success` rieng cho `SessionStart`, phan biet duoc bang
+    `statusMessage`.
+
+    Chay doi lam nhan doi nhat ky `cua_doc_bat_buoc`, ma nhat ky ay dang
+    duoc dung lam bang chung "cua co song khong". Vi ca sau hook da co ban
+    toan cuc, ban trong repo khong mang lai chuc nang nao va chi mang mot
+    moi nguy.
+
+    Phep kiem nay do luong LAI mot lan nua neu ai do dat hook vao day.
+    """
+    d = ks._doc(GOC / ".claude" / "settings.json")
+    assert d is not None, "khong doc duoc .claude/settings.json"
+    assert not ks.doc_hook(d), (
+        "settings cua repo lai dang ky hook — mo phien o repo se chay DOI. "
+        "Khai o docs/cua-du-an.json, dang ky o ~/.claude/settings.json.")
+    print("PASS  settings repo khong dang ky hook nao")
 
 
 if __name__ == "__main__":

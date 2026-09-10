@@ -42,7 +42,9 @@ là lỗi sẽ tái diễn.
 
 | 26 | dựng một báo cáo BA trạng thái mà trạng thái *"chưa kiểm được"* **đánh mất tiền tố nhận dạng của chính nó**, nên dòng trạng thái biến mất khỏi bản tin — im đúng chỗ nó sinh ra để lên tiếng | CI đỏ trong khi **năm cổng tại máy đều xanh** (runner không có `~/.claude/settings.json`) | ✅ | `tests/test_cua_song.py::test_dong_CUA_van_CO_MAT_khi_KHONG_doc_duoc_settings` — mô phỏng môi trường CI, không phụ thuộc vào nó |
 
-**Mười lăm trên hai mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 27 | **chép** một hook sang nơi đăng ký thứ hai mà không hỏi điều gì xảy ra khi **cả hai** nơi cùng nạp — hai ngày sau đo ra: mỗi hook chạy **HAI LẦN**, nhân đôi chính cái nhật ký đang dùng làm bằng chứng | phiên `claude -p` chạy với cwd đặt ở repo | ✅ | `tests/test_cua_song.py::test_settings_CUA_REPO_khong_duoc_dang_ky_hook_nao`; bản khai tách sang `docs/cua-du-an.json` |
+
+**Mười sáu trên hai mươi bảy máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -476,3 +478,30 @@ tín hiệu là mã thoát, ở đây là một dòng chữ, và dòng chữ th�
 **Sửa ở NGUỒN, không sửa ở test.** Và phép kiểm mới **mô phỏng** môi trường
 CI thay vì phụ thuộc vào nó — một test chỉ đỏ trên runner là một test không
 ai chạy được lúc đang viết.
+
+
+### Lỗi 27 — chép một đăng ký là tạo ra một trạng thái mới
+
+Ngày 08/09/2026 bốn hook được chép từ `<repo>/.claude/settings.json` sang
+`~/.claude/settings.json` để chúng chạy bất kể phiên mở ở đâu. Bản repo để
+nguyên. Ngày 10/09 tôi chép thêm hai hook nữa theo đúng cách đó.
+
+Không ai hỏi: **điều gì xảy ra khi cả hai nơi cùng nạp?**
+
+Đo ngày 10/09: mở phiên ở repo thì **cả hai file cùng nạp và mỗi hook chạy
+HAI LẦN**. Hai bản ghi `hook_success` riêng cho `SessionStart`, phân biệt
+được bằng `statusMessage` của từng file.
+
+Cái đắt không phải thời gian chạy. Nó **nhân đôi nhật ký
+`cua_doc_bat_buoc`**, mà cùng sáng hôm ấy tôi dùng số dòng nhật ký làm bằng
+chứng "bốn cửa đang sống". Phép đếm ấy sẽ sai gấp đôi ở đúng những phiên mở
+tại repo — tức đúng những phiên người ta mở ra để đi kiểm cửa.
+
+**Quy tắc rút ra: chép một đăng ký sang nơi thứ hai không phải là "thêm một
+đường dự phòng", nó là tạo ra một trạng thái mới — "cả hai cùng có hiệu
+lực" — và trạng thái ấy phải được đo trước khi tin.**
+
+Bản vá 08/09 đúng về mục tiêu và bỏ sót một hệ quả. Cùng họ với lỗi 21
+(một luật chọn tham số cũng là một trục) và lỗi 24 (một câu đúng bị đọc rộng
+hơn phạm vi): ở cả ba, thứ gây hại không phải điều được làm sai, mà là điều
+không được hỏi.
