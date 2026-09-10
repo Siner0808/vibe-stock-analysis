@@ -22,6 +22,7 @@ Phép so đầu-cuối thì đã có sẵn, không tốn gì thêm: lượt 1 c�
 hình mặc định phải ra lại 379 lệnh · alpha −0,68% · KTC [−1,47 ; +0,21],
 con số đã tái lập hai lần trong hai ngày.
 """
+import ast
 import sys
 from pathlib import Path
 
@@ -29,6 +30,59 @@ GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
 
 import walkforward as wf
+
+
+def _mac_dinh(ten_ham: str, ten_tham_so: str):
+    """Giá trị mặc định của một tham số, đọc bằng AST từ nguồn.
+
+    Đọc NGUỒN chứ không đọc chữ ký lúc chạy: một mặc định bị vá ở chỗ
+    khác trong phiên vẫn qua được phép đọc lúc chạy.
+    """
+    cay = ast.parse((GOC / "walkforward.py").read_text(encoding="utf-8"))
+    h = [n for n in ast.walk(cay)
+         if isinstance(n, ast.FunctionDef) and n.name == ten_ham][0]
+    ten = [a.arg for a in h.args.args]
+    vt = ten.index(ten_tham_so)
+    lech = len(ten) - len(h.args.defaults)
+    return h.args.defaults[vt - lech]
+
+
+def test_MAC_DINH_o_ben_GOI_la_T_CONG_1():
+    """`_mo_phong` và `chay` mặc định khớp T+1 — ĐỔI ngày 10/09/2026.
+
+    Đường chạy thật khớp T+1; backtest mặc định từng khớp T+2 như một tác
+    dụng phụ của `stride` mà không ai chọn. ĐO 2 đo được cái giá của việc
+    ấy: alpha lệch **+0,12 → +0,13 điểm**, nhỏ hơn một phần sáu bề rộng
+    KTC. Người dùng chốt đổi mặc định, và chốt luôn rằng nó phải đi CÙNG
+    một lượt đo lại đầy đủ (`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 3).
+
+    Phép kiểm này tồn tại vì một mặc định trôi ngược lại sẽ **không làm
+    test nào đỏ** — nó chỉ âm thầm đổi mọi con số walk-forward về sau.
+    """
+    for ten in ("_mo_phong", "chay"):
+        m = _mac_dinh(ten, "do_tre_khop")
+        assert isinstance(m, ast.Constant) and m.value == 1, (
+            f"{ten}: do_tre_khop mặc định {ast.dump(m)} — phải là 1 (T+1)")
+    print("PASS  _mo_phong và chay mặc định T+1")
+
+
+def test_HAI_HAM_THUAN_van_giu_ky_hieu_None():
+    """`diem_ghe` và `lich_theo_ngay` mặc định vẫn `None`, CÓ CHỦ Ý.
+
+    `None` ở hai hàm ấy là **ký hiệu ngữ nghĩa** — *"bằng `stride`"* —
+    không phải một chính sách. Hai điều kiện người dùng ký ngày 09/09
+    (`test_DIEU_KIEN_1...` và `1b`) kiểm đúng ký hiệu đó.
+
+    Nên khi đổi chính sách sang T+1 ngày 10/09, chỗ đổi là bên GỌI, không
+    phải hai hàm này. Đổi ký hiệu ở đây sẽ làm hai điều kiện đã ký mất ý
+    nghĩa mà vẫn xanh — chúng sẽ kiểm một câu khác với câu đã ký.
+    """
+    for ten in ("diem_ghe", "lich_theo_ngay"):
+        m = _mac_dinh(ten, "do_tre_khop")
+        assert isinstance(m, ast.Constant) and m.value is None, (
+            f"{ten}: ký hiệu None đã bị đổi — hai điều kiện đã ký nay "
+            f"kiểm một câu khác với câu được ký")
+    print("PASS  hai hàm thuần giữ nguyên ký hiệu None")
 
 
 def _luoi(n: int, min_history: int, stride: int) -> list:

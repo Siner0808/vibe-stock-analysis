@@ -71,7 +71,21 @@ LUAT = [
     ),
     (
         "pytest-qua-ong",
-        re.compile(r"\bpytest\b[^|]*\|\s*(?:tail|head)\b"),
+        # `[^|]*` cu cho phep CA `>` lan `;` nam giua, nen
+        # `pytest ... > log; grep ... | head` bi khop du cai ong khong
+        # he gan vao pytest. Ngay 10/09/2026 luat nay chan NHAM 5 lan va
+        # chan DUNG 3 lan — can can lat, nen siet lai pham vi thay vi
+        # noi muc do. Nay doi ong phai THUOC CUNG mot lenh voi pytest:
+        # khong `>` (da chuyen huong thi ong khong o tren stdout cua no)
+        # va khong dau ngan lenh `;` `&` hay xuong dong.
+        #
+        # CON LOT, va biet truoc: VAN BAN nhac toi hinh dang ay —
+        # trong `echo`, trong than heredoc cua mot commit, trong
+        # `--body` cua mot PR — van bi khop. Sua duoc bang cach boc
+        # than heredoc va chuoi nhay ra truoc khi so, nhung do la
+        # viec RIENG. Ghi ra de lan sau ai bi can thi biet day la
+        # gioi han DA BIET, khong phai bat ngo.
+        re.compile(r"\bpytest\b[^|;&\n>]*\|\s*(?:tail|head)\b"),
         "`pytest ... | tail` — `tail` đệm toàn bộ output tới khi ống đóng. "
         "Với một lượt chạy nền thì bạn không đọc được gì cho tới lúc nó "
         "xong, và sẽ ngồi hỏi 'xong chưa'. Đếm được ít nhất 10 lượt như "
