@@ -34,7 +34,7 @@ là lỗi sẽ tái diễn.
 | 20 | một trường CÓ trong kết quả mà **không ai in ra** — test khoá nó có mặt trong dict vẫn xanh | chạy hết 157,7 phút rồi đọc log | ✅ | `tests/test_walkforward.py::test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` (luật mới) |
 | 21 | tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa | đọc bảng sau khi đã chạy xong | ❌ | — |
 | 22 | kết luận "cửa chết" từ một phép thử dùng thao tác **HỎNG** — cửa chạy TRƯỚC thao tác nên không bao giờ được gọi | tự đo lại sau khi thêm nhật ký, **cùng ngày, sau 2 lần báo sai** | ⚠️ một phần | `tools/cua_doc_bat_buoc.py` ghi nhật ký mỗi lần chạy · `tests/test_cua_doc_bat_buoc.py` (4 test mới) |
-| 23 | `cat > <file>` **đè mất một file test 40 phép kiểm đã có** — không kiểm file tồn tại chưa | đếm test: 834 thay vì 874. **Bốn cổng đều XANH** | ✅ | `cua_bash_an_toan` `heredoc-ghi-file-repo` — **luật CÓ SẴN, cửa đang chết (lỗi 14)**, y hệt lỗi 18 |
+| 23 | `cat > <file>` **đè mất một file test 40 phép kiểm đã có** — không kiểm file tồn tại chưa | đếm test: 834 thay vì 874. **Bốn cổng đều XANH** | ✅ | `cua_bash_an_toan` `heredoc-ghi-file-repo` (luật CÓ SẴN, cửa đang chết — lỗi 14) **+ từ 10/09/2026 `tools/kiem_so_test_khong_giam.py`, chạy trên CI nên KHÔNG phụ thuộc hook** |
 
 | 24 | một câu ĐÚNG trong hợp đồng đã ký (*tập TÍN HIỆU* không đổi) được đọc thành một câu khác (*tập LỆNH* không đổi) — không điều kiện nào hỏi tập lệnh, nên nó không bao giờ được đo | tự đi đếm sau khi bảng đã đọc xong | ⚠️ một phần | chưa có luật; quy ước mới ở `docs/TIEU-CHI-DOC-TRUOC.md`: mọi câu *"X không đổi"* phải kèm lệnh kiểm X |
 

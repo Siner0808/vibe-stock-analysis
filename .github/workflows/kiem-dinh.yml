@@ -116,3 +116,28 @@ jobs:
         # ai đã sửa file bằng công cụ gì.
         # Thoát 1 khi có mẫu mức CHẶN; cảnh báo không làm đỏ.
         run: python tools/chan_bia_so_lieu.py --quet-repo
+
+      - name: Số test không được giảm âm thầm
+        # Bốn bước trên đo thứ ĐANG CÓ: test còn lại xanh không, cú pháp
+        # nạp được không, có mẫu bịa số không, file chạy riêng có xanh
+        # không. KHÔNG bước nào so với thứ ĐÃ TỪNG CÓ.
+        #
+        # Ngày 09/09/2026 một lệnh `cat > tests/...` đè mất 40 phép kiểm
+        # đã có. Cả bốn cổng đều XANH. Thứ duy nhất bắt được là một con
+        # số đọc bằng mắt: 834 thay vì 874. Bước này là cổng đầu tiên của
+        # dự án đo thứ BỊ MẤT.
+        #
+        # Nó KHÔNG cấm giảm — dọn dẹp hợp lệ có làm giảm. Nó buộc khai lý
+        # do vào docs/moc_so_test.json, đúng cơ chế `# bia-ok:`.
+        #
+        # Mã thoát 2 = "chưa kiểm được", và trên CI đó là LỖI, cùng lý do
+        # như bước cú pháp 3.11 và bước chạy riêng ở trên.
+        run: |
+          set +e
+          python tools/kiem_so_test_khong_giam.py
+          ma=$?
+          if [ "$ma" -eq 2 ]; then
+            echo "::error::kiem_so_test_khong_giam trả 2 (chưa kiểm được) — trên CI đó là lỗi"
+            exit 1
+          fi
+          exit $ma
