@@ -1122,9 +1122,43 @@ quyết định (mẫu chồng lấn), nhưng nó còn quyết định phiên n�
 KHỚP — tác dụng phụ không ai chọn. `optimize_vn100_18m.py` đã ghi nửa
 phía THOÁT của chuyện này từ trước; phía VÀO thì chưa.
 
-**Chưa đo** việc này đổi kết quả bao nhiêu.
+**ĐÃ ĐO 09/09/2026, đọc 10/09/2026 — câu trả lời: gần như không đổi gì.**
+Bốn lượt `--do-tre-khop`, ngưỡng **ghim tay** 62/50, tiêu chí đọc ký trước
+dòng mã đầu tiên (`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 2). Dụng cụ:
+`tools/do2_do_tre_khop.py`, mỗi lượt một tiến trình riêng, 7,6 phút cả bốn.
 
-> ⚠️ **ĐỪNG chạy `--stride 1` để trả lời câu đó (chốt 09/09/2026).** Nó
+| chế độ | ngưỡng | T+2 (hôm nay) | T+1 | Δ alpha | nửa bề rộng KTC |
+|---|---|---|---|---|---|
+| theo mã | 62 | −0,68% · 379 lệnh | −0,55% · 398 lệnh | **+0,13** | 0,840 |
+| theo ngày | 50 | −0,94% · 508 lệnh | **−0,82%** · 546 lệnh | **+0,12** | 0,645 |
+
+Cả hai rơi vào **kết cục 1** của bảng đã ký: alpha đẹp lên đúng hướng dự
+kiến, mức đẹp lên nhỏ hơn **một phần sáu** bề rộng KTC. Khớp T+2 trong
+backtest **không phải** thứ làm chiến lược trông tệ.
+
+**Kết luận có ý nghĩa thống kê SỐNG SÓT qua phép sửa.** Theo ngày ở T+1:
+alpha −0,82%, KTC [−1,47 ; −0,15] — vẫn loại được số 0, trên 546 lệnh, ở
+vốn đỉnh đúng 100%.
+
+Hai lượt đối chứng (`do_tre_khop=None`) ra lại **đúng từng chữ số** con số
+ĐO 1: lần tái lập thứ tư của dòng theo-mã, thứ hai của dòng theo-ngày.
+
+> ⚠️ **Tập LỆNH xáo 15% (theo mã) và 27% (theo ngày)** — điều khoản đã ký
+> không lường trước. Câu *"tập tín hiệu là cùng một tập"* ĐÚNG (điểm chấm
+> tại mỗi phiên quyết định y hệt), nhưng nó bị đọc thành *"tập lệnh không
+> đổi"*, mà `consider_entry` còn hai chốt nữa đọc **trạng thái sổ**:
+> `open_position(symbol)` và trần vốn. Khớp sớm một phiên → thoát sớm một
+> phiên → mã rảnh sớm, vốn giải phóng sớm.
+>
+> Hệ quả xuôi dòng của đúng một biến, không phải biến thứ hai — phép so
+> vẫn quy được về một vế. Nhưng nó KHÔNG phải phép so cùng-tập-lệnh-khác-
+> giá-vào. Cơ chế đo được: `docs/STATE.md` BƯỚC 46.
+
+**Mặc định KHÔNG đổi.** `do_tre_khop=None` vẫn là T+2, y như trước ĐO 2.
+Đổi mặc định là đổi âm thầm mọi con số walk-forward đã công bố; cần người
+quyết, không phải hệ quả tự động của một phép đo.
+
+> ⚠️ **ĐỪNG chạy `--stride 1` để đo độ trễ khớp (chốt 09/09/2026).** Nó
 > đổi **cùng lúc hai thứ**: số điểm quyết định gấp đôi (tập lệnh khác
 > hẳn, không phải cùng tập lệnh với giá vào khác) VÀ độ trễ khớp T+2 →
 > T+1. Một khác biệt quan sát được sẽ không quy được cho vế nào.

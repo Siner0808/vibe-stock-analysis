@@ -8793,3 +8793,119 @@ Tức là gác cho việc quan sát lại có một chỗ không quan sát đư�
    buổi sáng.
 
 Bảng lỗi: **22 dòng, 12 máy chặn được** (lỗi 22).
+
+
+---
+
+## BƯỚC 46 — ĐO 2: KHỚP T+2 KHÔNG PHẢI THỨ LÀM CHIẾN LƯỢC TRÔNG TỆ (10/09/2026)
+
+Câu hỏi treo từ 04/09/2026: backtest khớp lệnh ở **T+2**, đường chạy thật
+khớp ở **T+1**, và *"chưa đo việc này đổi kết quả bao nhiêu"*. Nay đã đo.
+
+**Không chạy `--stride 1`** — nó đổi cùng lúc hai thứ (số điểm quyết định
+gấp đôi VÀ độ trễ khớp). Chạy `--do-tre-khop 1`, tham số tách riêng dựng
+ngày 09/09, khoá bởi `tests/test_do2_lich_ghe.py` (9 test, 8/8 đột biến đỏ).
+
+### Đọc theo đúng thứ tự đã cam kết
+
+Bốn lượt chạy 09/09 lúc 17:16–17:23, đọc sáng 10/09. Thứ tự bắt buộc:
+thời gian chạy → bốn mã thoát → **hai lượt đối chứng** → mới tới T+1.
+
+| lượt | chế độ | ngưỡng | do_tre_khop | lệnh | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh | phút |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | theo mã | 62 | — (T+2) | 379 | −0,04% | −0,68% | [−1,47 ; +0,21] chứa 0 | 48% · 180% | 1,7 |
+| 2 | theo mã | 62 | **1 (T+1)** | 398 | +0,31% | −0,55% | [−1,38 ; +0,37] chứa 0 | 51% · 191% | 1,9 |
+| 3 | theo ngày | 50 | — (T+2) | 508 | −0,62% | −0,94% | [−1,57 ; −0,28] LOẠI 0 | 53% · **100%** | 2,0 |
+| 4 | theo ngày | 50 | **1 (T+1)** | 546 | −0,39% | **−0,82%** | **[−1,47 ; −0,15] LOẠI 0** | 55% · **100%** | 2,0 |
+
+**7,6 phút cả bốn, so với 157,7 phút của ĐO 1.** Gấp 20 lần không phải dấu
+hiệu hỏng: ghim ngưỡng bằng tay bỏ luôn vòng dò 7 ngưỡng trên IS, nên mỗi
+lượt còn MỘT mô phỏng thay vì tám. Và hai lượt đối chứng ra lại **đúng
+từng chữ số** con số ĐO 1 — đó mới là bằng chứng, không phải lập luận.
+
+### Kết quả
+
+| phép so | Δ alpha | nửa bề rộng KTC | kết cục đã ký |
+|---|---|---|---|
+| 1 → 2 · theo mã | **+0,13** | 0,840 | **1** — phù hợp dự kiến |
+| 3 → 4 · theo ngày | **+0,12** | 0,645 | **1** — phù hợp dự kiến |
+
+Alpha đẹp lên đúng hướng đã khai trước (vào sớm một phiên thì đáng lẽ đẹp
+lên), và mức đẹp lên **nhỏ hơn một phần sáu** bề rộng KTC. Không chạm quy
+tắc số 1.
+
+**Hai điều đáng giữ:**
+
+1. **Khớp T+2 không phải nguyên nhân.** Sửa nó đi thì alpha chỉ nhích
+   +0,12–0,13 điểm, trong khi chi phí thực thi đáng 0,65–0,91 điểm (ĐO 1).
+   Sai lệch mô hình này nhỏ hơn một bậc so với thứ đã tìm ra.
+2. **Kết luận có ý nghĩa thống kê SỐNG SÓT.** Dòng đáng tin nhất — theo
+   ngày, nhiều lệnh nhất, vốn đỉnh đúng 100% — vẫn loại được số 0 sau khi
+   sửa: alpha −0,82%, KTC [−1,47 ; −0,15], 546 lệnh.
+
+**Kỳ vọng đẹp lên NHIỀU HƠN alpha, và đó đúng là điều bất biến 6 sinh ra
+để tách.** Theo mã: kỳ vọng +0,35 điểm nhưng alpha chỉ +0,13. Vào sớm một
+phiên nghĩa là nắm giữ lâu hơn một phiên, tức mua thêm **beta**, không
+phải kỹ năng. Ai đọc dòng "lợi nhuận cộng dồn +0,79% → +8,42%" mà bỏ qua
+alpha sẽ kết luận ngược hoàn toàn.
+
+### Thứ hợp đồng đã ký KHÔNG lường trước: tập LỆNH xáo tới 27%
+
+Điều khoản viết *"tập tín hiệu là cùng một tập"*, đặt cạnh câu chê hướng 2
+là *"tập lệnh khác hẳn"*. Câu đầu ĐÚNG. Nhưng phép đối chiếu ấy mời người
+đọc hiểu rằng tập LỆNH cũng đứng yên, và nó không đứng yên:
+
+| chế độ | lệnh chung | mất | thêm | xáo |
+|---|---|---|---|---|
+| theo mã | 359 | 20 | 39 | 15% |
+| theo ngày | 373 | 136 | 174 | **27%** |
+
+Trong số lệnh CHUNG, **359/359 và 373/373 đổi `entry_date`** — đúng như
+thiết kế. Cái không ai khai trước là 59 và 310 lệnh đổi danh tính.
+
+**Cơ chế đo được, không suy đoán.** `consider_entry` có ba chốt.
+
+Chốt đầu — điểm < ngưỡng — **đứng yên, và điều đó đã được ĐO chứ không
+được lập luận**: trên **732 lệnh chung của cả hai cặp, `entry_score` lệch
+0**. Cửa sổ phân tích `df.iloc[:t+1]` không phụ thuộc lúc khớp, nên điểm
+tại mỗi phiên quyết định y hệt. Đây là khẳng định gánh cả cách đọc — nếu
+nó sai thì bảng không quy được về một vế nào.
+
+Hai chốt sau đọc **trạng thái sổ**, mà trạng thái sổ phụ thuộc lúc khớp:
+
+```
+open_position(symbol) is not None   ->  giai thich 90% so lenh MAT
+                                        va 92% so lenh THEM  (theo ma)
+tran von cam ket                    ->  chot DUY NHAT rang buoc cheo cac ma
+                                        theo ngay: chot dau chi con 45%/57%
+```
+
+Theo mã chốt trần vốn gần như không bao giờ nổ (một vị thế tại một thời
+điểm), nên gần 100% phần xáo quy về chốt chiếm mã. Theo ngày thì trần vốn
+**có chặn thật** — vốn đỉnh đúng 100% — nên nó ràng buộc chéo mọi mã và
+làm phần xáo gấp đôi. Con số 45%/57% so với 90%/92% là dấu vân tay của
+đúng cơ chế ấy.
+
+**Đây là hệ quả xuôi dòng của đúng MỘT biến, không phải biến thứ hai.**
+Khớp sớm một phiên → thoát sớm một phiên → mã rảnh sớm, vốn giải phóng
+sớm. Phép so vẫn quy được về một vế, nên bảng vẫn đọc được. Nhưng nó
+KHÔNG phải phép so cùng-tập-lệnh-khác-giá-vào, và ghi ra bây giờ để không
+ai phát hiện nó SAU khi đã thấy số rồi dùng làm lời biện minh.
+
+Thành **lỗi 24** trong bảng lỗi.
+
+### Mặc định KHÔNG đổi — và đó là câu hỏi để lại cho người dùng
+
+`do_tre_khop=None` vẫn cho T+2. Đổi mặc định thì backtest trung thực hơn
+với đường chạy thật, nhưng mọi con số walk-forward đã công bố dịch đi một
+chút và mất so sánh với ĐO 1. Đổi mặc định âm thầm là đúng thứ
+`test_mac_dinh_la_THEO_MA` sinh ra để chặn ở một trục khác. **Người dùng
+quyết.**
+
+### Một con số nhỏ đã tra xong
+
+`do2_3.db` có 509 dòng trong khi báo cáo ghi 508 lệnh (và 547 / 546 ở lượt
+4). Không phải lỗi: một vị thế còn ở trạng thái `CLOSING` lúc hết dữ liệu,
+không vào phép tính alpha.
+
+Bảng lỗi: **24 dòng, 13 máy chặn được** (lỗi 24).

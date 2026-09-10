@@ -170,9 +170,18 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   đầy đủ ở cấu hình hiện hành, cả hai chế độ mô phỏng, cả trong lẫn ngoài
   mẫu. Đã đánh dấu là lạc hậu; **chưa** sửa số, vì chép một con số đơn lẻ
   đè lên là đúng cái lỗi `docs/STATE.md` BƯỚC 25 tìm ra.
-- **Chạy lại walk-forward với `stride=1`.** Backtest khớp lệnh ở T+2 còn
-  đường chạy thật khớp ở T+1, và chưa ai đo việc đó đổi kết quả bao
-  nhiêu. Phải nêu tiêu chí đọc TRƯỚC khi chạy.
+- ~~**Chạy lại walk-forward với `stride=1`.**~~ **XONG 10/09/2026, và
+  KHÔNG bằng `stride=1`** — bằng `--do-tre-khop 1`, vì `stride=1` đổi cùng
+  lúc hai thứ. Δ alpha +0,13 / +0,12 điểm, cả hai nhỏ hơn một phần sáu bề
+  rộng KTC. `docs/STATE.md` BƯỚC 46.
+- **Có đổi mặc định `do_tre_khop` sang 1 không?** Đường chạy thật khớp
+  T+1, backtest mặc định vẫn T+2. Đổi thì backtest trung thực hơn với
+  đường thật; đổi thì mọi con số đã công bố dịch đi một chút và mất so
+  sánh với ĐO 1. **Cần người quyết** — đây là mặc định, không phải cờ.
+- **Có dựng cổng "số test không được giảm" không?** Bốn cổng hiện tại
+  không đo được thứ bị MẤT: ngày 09/09 một lệnh `cat >` đè mất 40 phép
+  kiểm và cả bốn cổng vẫn XANH. Cần cửa thoát kèm lý do (như `# bia-ok:`)
+  vì refactor hợp lệ có làm giảm số test.
 
 **Chưa truy:** chênh lệch số lệnh giữa bảng trong `CLAUDE.md` và lượt
 chạy lại ngày 04/09 (385 so với 376), trong khi alpha và kỳ vọng khớp tới

@@ -435,3 +435,35 @@ T+2 → T+1 **được dự kiến làm alpha ĐẸP LÊN**.
 Thì câu trả lời là **"hướng 3 không khả thi"**, và ĐO 2 dừng ở đó. Không
 lặng lẽ tụt về hướng 2 — một con số không diễn giải được, đặt cạnh một
 bảng vừa mới đo lại, là đúng cách dự án này đã năm lần tự lừa mình.
+
+
+---
+
+## Kết quả ĐO 2 — chạy 09/09/2026, đọc 10/09/2026 theo bảng đã ký
+
+Thứ tự đọc đã cam kết và đã theo: thời gian chạy → bốn mã thoát → hai lượt
+đối chứng → mới tới T+1.
+
+**Phép kiểm dụng cụ ĐẠT.** Hai lượt đối chứng (`do_tre_khop=None`) ra lại
+đúng từng chữ số con số ĐO 1: theo mã 379 · −0,68% · [−1,47 ; +0,21] ·
+48%/180%; theo ngày 508 · −0,94% · [−1,57 ; −0,28] · 53%/100%.
+
+| phép so | alpha T+2 → T+1 | Δ | nửa bề rộng KTC | **kết cục** |
+|---|---|---|---|---|
+| theo mã 62 | −0,68% → −0,55% | **+0,13** | 0,840 | **1** |
+| theo ngày 50 | −0,94% → **−0,82%** | **+0,12** | 0,645 | **1** |
+
+Cả hai là **kết cục 1**: đẹp lên đúng hướng dự kiến, mức đẹp lên nhỏ hơn
+một phần sáu bề rộng KTC. Không có gì bất thường, không chạm quy tắc số 1.
+
+Dòng theo ngày ở T+1 vẫn **loại được số 0**: KTC [−1,47 ; −0,15], 546
+lệnh, vốn đỉnh đúng 100%.
+
+**Một điều khoản của chính mục này hoá ra thiếu.** Câu *"tập tín hiệu là
+cùng một tập"* đúng, nhưng không có điều kiện nào nói về tập **LỆNH**, và
+tập lệnh xáo 15% (theo mã) / 27% (theo ngày). Cơ chế đã đo và quy được về
+đúng một biến — `docs/STATE.md` BƯỚC 46, và lỗi 24.
+
+**Rút cho lần khai trước sau:** mọi câu *"X không đổi"* trong tiêu chí phải
+kèm **lệnh kiểm X**. Ba điều kiện của ĐO 2 đều có test; câu về tập lệnh
+thì không, nên nó không sai — nó chỉ chưa bao giờ được hỏi.
