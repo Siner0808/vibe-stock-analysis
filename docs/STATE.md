@@ -9121,6 +9121,28 @@ tham số (`--quet-thay-doi` lẫn với bản không tham số) · "chưa kiể
 thành 0 · gỡ dòng trạng thái khỏi bản tin · và để lỗi lọt ra làm hỏng lượt
 mở phiên.
 
+### Giá phải trả: HAI dương tính giả trong cùng buổi
+
+Cửa Bash quét **nguyên chuỗi lệnh**, nên nó khớp cả những chỗ hình dạng
+nguy hiểm chỉ *xuất hiện* chứ không *xảy ra*:
+
+| lệnh | luật khớp | vì sao là dương tính giả |
+|---|---|---|
+| `pytest ... -q > log 2>&1; grep ... \| head` | `pytest-qua-ong` | pytest đã ghi ra FILE; cái ống nằm trên `grep` |
+| `git commit -F -` với thân mô tả ba lệnh vừa bị chặn | cả **ba** luật | thân thông điệp *nói về* hình dạng ấy, không *chạy* nó |
+
+Cái thứ hai buồn cười theo kiểu đáng ghi: **commit mô tả các lần cửa nổ
+thì bị chính cửa ấy chặn.**
+
+**Không nới luật.** Cả hai lần đều có đường đi vòng rẻ hơn việc làm luật
+tinh vi hơn: tách lệnh, và ghi thông điệp ra file rồi `git commit -F <file>`.
+Một luật an toàn nghiêng về phía chặn nhầm là nghiêng đúng chiều — chiều
+kia là lỗi 23, nơi luật đúng nằm im và 40 phép kiểm biến mất.
+
+Ghi ra vì hai lượt này là **dữ liệu về giá**, và ai đó sẽ muốn nới luật
+sau khi bị cắn lần thứ năm. Lúc ấy con số cần có sẵn: hai lần chặn nhầm
+đổi lấy ba lần chặn đúng, trong cùng mười phút.
+
 ### Ba tài liệu đã sửa
 
 `SKILL.md`, `CLAUDE.md`, và `~/.claude/rules/ecc/common/vibe-preview.md` —
