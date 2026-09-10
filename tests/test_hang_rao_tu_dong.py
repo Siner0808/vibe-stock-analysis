@@ -30,7 +30,13 @@ from pathlib import Path
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC / "tools"))
 
-SETTINGS = GOC / ".claude" / "settings.json"
+#: Từ 10/09/2026 sáu hook KHÔNG còn đăng ký trong settings của
+#: repo — giữ cả hai nơi làm mỗi hook chạy HAI LẦN khi phiên mở ở repo
+#: (đo trực tiếp, `docs/STATE.md` BƯỚC 49). Nơi đăng ký thật là
+#: `~/.claude/settings.json`, mà CI không thấy. Thứ CI kiểm được, và vẫn
+#: đáng kiểm, là BẢN KHAI: đúng hook, đúng sự kiện, đúng matcher.
+#: Việc "đã đăng ký thật chưa" do `tools/kiem_cua_song.py` trả lời.
+SETTINGS = GOC / "docs" / "cua-du-an.json"
 KIEM_DINH = GOC / ".github" / "workflows" / "kiem-dinh.yml"
 
 

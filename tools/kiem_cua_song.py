@@ -30,10 +30,27 @@ CÁCH DÙNG
     ./.venv/Scripts/python.exe tools/kiem_cua_song.py
     ./.venv/Scripts/python.exe tools/kiem_cua_song.py --mot-dong
 
-Mã thoát:  0 = mọi hook khai trong repo đều có bản toàn cục
-           1 = có hook CHƯA đăng ký toàn cục → nó chỉ chạy nếu phiên mở
-               ở chính thư mục repo, điều chưa từng xảy ra
+Mã thoát:  0 = mọi hook trong bản khai đều có bản toàn cục
+           1 = có hook CHƯA đăng ký toàn cục → nó KHÔNG chạy ở đâu cả
            2 = CHƯA KIỂM ĐƯỢC (không đọc được một trong hai file)
+
+TIỀN ĐỀ NAY ĐÃ ĐƯỢC KIỂM TRỰC TIẾP (10/09/2026)
+───────────────────────────────────────────────
+Câu *"settings của repo chỉ nạp khi thư mục dự án là repo"* trước đó được
+suy NGƯỢC: hook không chạy, `~/.claude/projects/` không có thư mục repo,
+nên người ta gán quan hệ nhân quả. Chưa ai từng mở phiên ở đó rồi nhìn.
+
+Đo bằng một phiên `claude -p` chạy với cwd đặt ở repo. Kết quả:
+
+  • `~/.claude/projects/` sinh thư mục thứ ba mã hoá đường dẫn repo.
+  • Settings của repo **CÓ** nạp — tiền đề đúng.
+  • Và **CẢ HAI** file cùng nạp, nên mỗi hook chạy **HAI LẦN**: hai bản
+    ghi `hook_success` riêng cho `SessionStart`, phân biệt được bằng
+    `statusMessage` của từng file.
+
+Vì thế hook đã được **gỡ khỏi** `<repo>/.claude/settings.json`; phần khai
+chuyển sang `docs/cua-du-an.json` để công cụ này còn cái để so. Trên một
+máy mới nó sẽ báo 0/6 — đúng thông điệp cần có.
 
 Trạng thái thứ ba bắt buộc, cùng lý do như ba cổng cùng loại: một công cụ
 không chạy được mà trả 0 thì chính nó là cổng xanh giả.
@@ -45,7 +62,12 @@ import re
 import sys
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
-SETTINGS_REPO = GOC / ".claude" / "settings.json"
+#: BAN KHAI — sau cua du an muon co. Claude Code KHONG doc file nay.
+#: Truoc 10/09/2026 cho nay tro toi `<repo>/.claude/settings.json`, va do
+#: la mot dang ky THAT: mo phien o repo thi file ay nap, ca hai file cung
+#: nap, va moi hook chay HAI LAN. Xem `docs/cua-du-an.json`.
+KHAI_BAO_DU_AN = GOC / "docs" / "cua-du-an.json"
+#: Noi DANG KY that. Duong dan tuyet doi, nen chay bat ke phien mo o dau.
 SETTINGS_TOAN_CUC = pathlib.Path.home() / ".claude" / "settings.json"
 
 #: Lệnh hook trông như: python "<đường dẫn nào đó>/tools/x.py" [--co]
@@ -82,11 +104,12 @@ def doc_hook(d: dict) -> set[tuple[str, str, str]]:
 def so_sanh(repo: dict | None,
             toan_cuc: dict | None) -> tuple[int, list[tuple[str, str, str]],
                                             int]:
-    """Hàm THUẦN. Trả (mã thoát, danh sách hook THIẾU, tổng hook của repo).
+    """Hàm THUẦN. Trả (mã thoát, danh sách hook THIẾU, tổng hook đã khai).
 
-    "Thiếu" = khai trong settings của repo mà KHÔNG có bản tương ứng ở
-    settings toàn cục. Một hook như thế chỉ chạy khi phiên được mở ở
-    chính thư mục repo — điều chưa từng xảy ra lần nào.
+    "Thiếu" = có trong BẢN KHAI của dự án mà KHÔNG có bản tương ứng ở
+    settings toàn cục. Vì bản khai không phải nơi đăng ký, một hook như
+    thế **không chạy ở đâu cả** — khác với trước 10/09/2026, khi nó còn
+    chạy được nếu phiên mở ở chính thư mục repo.
     """
     if repo is None or toan_cuc is None:
         return 2, [], 0
@@ -104,7 +127,8 @@ def _doc(duong: pathlib.Path) -> dict | None:
 
 
 def bao_cao(mot_dong: bool = False) -> tuple[int, str]:
-    ma, thieu, tong = so_sanh(_doc(SETTINGS_REPO), _doc(SETTINGS_TOAN_CUC))
+    ma, thieu, tong = so_sanh(_doc(KHAI_BAO_DU_AN),
+                              _doc(SETTINGS_TOAN_CUC))
     if ma == 2:
         # Tien to `CUA:` giu NGUYEN o ca ba trang thai. Mot dong bien mat
         # khoi ban tin la dung che do hong dong nay sinh ra de chan: doc
@@ -113,7 +137,7 @@ def bao_cao(mot_dong: bool = False) -> tuple[int, str]:
         # ~/.claude/settings.json thi ban tin mat han dong trang thai.
         if mot_dong:
             return 2, "CUA: chua kiem duoc (khong doc duoc settings.json)"
-        return 2, "CHUA KIEM DUOC — khong doc duoc mot trong hai settings.json"
+        return 2, "CHUA KIEM DUOC — khong doc duoc ban khai hoac settings toan cuc"
     song = tong - len(thieu)
     if mot_dong:
         if thieu:
@@ -121,8 +145,8 @@ def bao_cao(mot_dong: bool = False) -> tuple[int, str]:
             return ma, f"CUA: {song}/{tong} song · CHUA dang ky toan cuc: {ten}"
         return ma, f"CUA: {song}/{tong} song"
 
-    d = [f"Hook khai trong settings CUA REPO : {tong}",
-         f"Trong so do co ban TOAN CUC       : {song}"]
+    d = [f"Hook trong BAN KHAI cua du an : {tong}",
+         f"Trong so do co ban TOAN CUC   : {song}"]
     if not thieu:
         d.append("")
         d.append("OK — moi hook deu co ban toan cuc bang duong dan tuyet doi,")
@@ -133,10 +157,11 @@ def bao_cao(mot_dong: bool = False) -> tuple[int, str]:
     for su_kien, matcher, van_tay in thieu:
         d.append(f"   {su_kien:<13} matcher={matcher or '-':<24} {van_tay}")
     d.append("")
-    d.append("Nhung hook nay CHI chay khi phien duoc mo o chinh thu muc repo.")
-    d.append("Tinh toi 10/09/2026 dieu do CHUA XAY RA lan nao — kiem bang")
-    d.append("`ls ~/.claude/projects/`. Chep chung sang ~/.claude/settings.json")
-    d.append("bang duong dan TUYET DOI thi chung chay bat ke phien mo o dau.")
+    d.append("Nhung hook nay KHONG chay o dau ca: ban khai chi la ban khai.")
+    d.append("Chep chung sang ~/.claude/settings.json bang duong dan TUYET DOI")
+    d.append("thi chung chay bat ke phien mo o dau. Truoc do, bom payload gia")
+    d.append("vao tung cong cu TU MOT CWD NGOAI REPO — mot cong cu dung trong")
+    d.append("repo co the sai khi goi tu noi khac (loi 15).")
     return ma, "\n".join(d)
 
 

@@ -1203,9 +1203,15 @@ biệt trễ ĐỒNG ĐỀU với trễ RẢI RÁC). Chi tiết: `docs/STATE.md`
 
 ## Hook chặn bịa số liệu — chạy tự động
 
-`.claude/settings.json` đăng ký `tools/chan_bia_so_lieu.py` làm PostToolUse
-hook: sau mỗi Write/Edit, file được phân tích bằng AST và **chặn** nếu thấy
-mẫu đã làm hỏng dự án này.
+`~/.claude/settings.json` đăng ký `tools/chan_bia_so_lieu.py` làm
+PostToolUse hook: sau mỗi Write/Edit, file được phân tích bằng AST và
+**chặn** nếu thấy mẫu đã làm hỏng dự án này.
+
+> **Nơi đăng ký đổi ngày 10/09/2026.** Trước đó hook này khai ở CẢ
+> `<repo>/.claude/settings.json` LẪN `~/.claude/settings.json`. Đo trực
+> tiếp bằng một phiên `claude -p` chạy với cwd đặt ở repo: cả hai file
+> cùng nạp và **mỗi hook chạy HAI LẦN**. Bản trong repo nay đã gỡ; phần
+> khai nằm ở `docs/cua-du-an.json`. `docs/STATE.md` BƯỚC 49.
 
 | Luật | Mức | Mẫu |
 |---|---|---|
@@ -1239,7 +1245,11 @@ quyết định hai cái đầu có nghĩa hay không.
    phiên được mở ở chính thư mục repo** — `cd` hay `change_directory`
    giữa phiên đều không nạp (đo 08/09/2026, hai lượt độc lập). Hook
    đăng ký ở `~/.claude/settings.json` bằng đường dẫn tuyệt đối thì
-   chạy bất kể phiên mở ở đâu. Cửa này hiện có **cả hai** bản.
+   chạy bất kể phiên mở ở đâu.
+
+   Từ **10/09/2026** cửa này — và cả năm cửa còn lại — chỉ còn **một**
+   bản, ở toàn cục. Giữ cả hai bản làm hook chạy **hai lần** khi phiên
+   mở ở repo; đo trực tiếp, xem `docs/STATE.md` BƯỚC 49.
 
 > **Đo lại 09/09/2026 — tuyến toàn cục chạy, và nay CHỨNG MINH được.**
 > Bốn cửa đăng ký ở `~/.claude/settings.json` bằng đường dẫn tuyệt đối.

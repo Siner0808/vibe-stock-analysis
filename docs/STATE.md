@@ -9179,3 +9179,100 @@ file nạp vào **mọi** phiên bất kể mở ở đâu, và cũng là nơi c
 viết rõ nhất. Cả ba nay trỏ sang `tools/kiem_cua_song.py`.
 
 Bảng lỗi: **25 dòng, 14 máy chặn được**.
+
+
+---
+
+## BƯỚC 49 — MỘT TIỀN ĐỀ CHƯA AI ĐO, VÀ NÓ ĐÚNG THEO KIỂU TỐN KÉM (10/09/2026)
+
+BƯỚC 48 dựng `tools/kiem_cua_song.py` trên một câu chưa ai kiểm trực tiếp:
+*"settings của repo chỉ nạp khi thư mục dự án là repo"*. Câu ấy được suy
+**ngược** — hook không chạy, `~/.claude/projects/` không có thư mục repo,
+nên người ta gán quan hệ nhân quả. Chưa ai từng mở phiên ở đó rồi nhìn.
+
+Sau một buổi mất ba ngày vì đúng hình dạng ấy, để nguyên nó là lặp lại lỗi
+ở một tầng cao hơn: lần này tiền đề chưa đo đã được đóng vào **một công cụ,
+một docstring, và ba tài liệu**.
+
+### Cách đo, sau khi đường hiển nhiên bị chặn
+
+Không mở được phiên mới trong ứng dụng — đó là thao tác của người dùng.
+Đường thứ hai: chạy **`claude` như tiến trình con** với cwd đặt ở repo.
+
+CLI có ở `~/.local/bin/claude.exe` (2.1.222), nhưng nó dừng ở
+`Failed to authenticate: OAuth session expired` — kho đăng nhập của CLI
+khác kho của phiên ứng dụng.
+
+**Phép thử hỏng vẫn trả về dữ liệu.** Nó hỏng ở khâu xác thực, tức SAU khi
+phiên đã đăng ký thư mục dự án và ghi transcript:
+
+```
+~/.claude/projects/C--Users-cuong--gemini-antigravity-scratch-vibe-preview/
+    57f520bd-....jsonl        30 KB, 13 dong
+```
+
+Nhật ký `cua_doc_bat_buoc` **không đổi** (487 dòng) vì không có lệnh gọi
+tool nào. Nhưng transcript có `SessionStart`.
+
+### Kết quả
+
+Hai bản ghi `attachment` riêng biệt, cùng `hookEvent = SessionStart`, cùng
+`type = hook_success`, khác nhau ở nhãn:
+
+```
+"Nhac quy trinh + moc chan theo ngay (vibe_preview)..."  <- ~/.claude/settings.json
+"Nhac quy trinh va moc ngay dang chan..."                <- <repo>/.claude/settings.json
+```
+
+Hai điều được đo, cả hai lần đầu tiên trong dự án:
+
+1. **Settings của repo CÓ nạp** khi thư mục dự án là repo — tiền đề đúng.
+2. **Cả hai file cùng nạp, nên mỗi hook chạy HAI LẦN.**
+
+> **Đếm chuỗi không phải đếm lần chạy.** Grep thô cho *bốn* lần xuất hiện
+> chuỗi `CUA: 6/6 song`; tách theo bản ghi JSONL thì là **hai** bản ghi,
+> mỗi bản chứa chuỗi ấy hai lần (một ở `stdout`, một ở `content`). Suýt
+> báo sai gấp đôi — cùng họ với lỗi 25, đọc một phép đếm rộng hơn thứ nó
+> đếm.
+
+### Vì sao chạy đôi là vấn đề, dù không nguy hiểm
+
+Nó **nhân đôi nhật ký `cua_doc_bat_buoc`** — mà chính sáng nay tôi dùng số
+dòng nhật ký làm bằng chứng "bốn cửa đang sống". Một chẩn đoán dựa vào phép
+đếm ấy sẽ sai gấp đôi ở đúng những phiên mở tại repo, tức đúng những phiên
+người ta mở ra để *đi kiểm cửa*.
+
+Cộng thêm: `chan_bia_so_lieu` quét hai lần mỗi Write/Edit, `Stop` soát hai
+lần, bản tin hiện hai lần.
+
+### Sửa
+
+Sáu hook đã có bản toàn cục bằng đường dẫn tuyệt đối, nên bản trong repo
+**không mang lại chức năng nào và chỉ mang một mối nguy**. Gỡ nó.
+
+Nhưng gỡ thẳng thì `kiem_cua_song.py` mất cái để so. Nên tách hai vai:
+
+| file | vai | ai đọc |
+|---|---|---|
+| `docs/cua-du-an.json` | **bản khai** — sáu cửa dự án muốn có | `tools/kiem_cua_song.py` |
+| `~/.claude/settings.json` | **nơi đăng ký thật** | Claude Code |
+| `<repo>/.claude/settings.json` | không khai hook nào, chỉ còn ghi chú | Claude Code (khi mở ở repo) |
+
+Trên một máy mới, công cụ báo **0/6** — đúng thông điệp cần có, thay vì im
+lặng chạy đôi.
+
+**Chốt chặn:** `tests/test_cua_song.py::
+test_settings_CUA_REPO_khong_duoc_dang_ky_hook_nao` đỏ ngay nếu ai đó đặt
+lại hook vào đó. Đột biến 1/1 đỏ.
+
+### Lỗi 27, và nó là lỗi của chính bản sửa hôm qua
+
+Ngày 08/09 bốn hook được **chép** lên toàn cục, để nguyên bản repo. Không ai
+hỏi: *điều gì xảy ra khi cả hai nơi cùng nạp?* Câu hỏi ấy nằm im hai ngày,
+và hôm nay tôi còn chép thêm hai hook nữa theo đúng cách đó.
+
+**Chép một đăng ký sang nơi thứ hai là tạo ra một trạng thái mới — trạng
+thái "cả hai cùng có hiệu lực" — và trạng thái ấy chưa bao giờ được đo.**
+Bản vá 08/09 đúng về mục tiêu (làm cửa sống) và bỏ sót một hệ quả.
+
+Bảng lỗi: **27 dòng, 16 máy chặn được**.
