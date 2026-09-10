@@ -76,15 +76,33 @@ def moc_ngay_con_chan(hom_nay: dt.date | None = None) -> list[tuple[dt.date, str
     return sorted(ra)
 
 
+def trang_thai_cua() -> str:
+    """Một dòng: bao nhiêu cửa đang thật sự chạy được.
+
+    Có mặt vì tới 10/09/2026 không ai ĐỌC được trạng thái này — phải suy
+    ra từ `python --version`, một phép thử chỉ đi qua ĐÚNG MỘT trong sáu
+    cửa. Ba ngày liền câu "sáu cửa chết" được chép lại trong khi bốn cửa
+    vẫn đang chạy. Xem `tools/kiem_cua_song.py`.
+    """
+    try:
+        from kiem_cua_song import bao_cao
+        return bao_cao(mot_dong=True)[1]
+    except Exception:
+        return "CUA: chua kiem duoc (tools/kiem_cua_song.py)"
+
+
 def ban_tin(hom_nay: dt.date | None = None) -> str:
     hom_nay = hom_nay or dt.date.today()
     d = ["┌─ vibe_preview ─────────────────────────────────────────────"]
     for t in ten_skill():
         d.append(f"│ QUY TRÌNH BẮT BUỘC — gọi skill `{t}` TRƯỚC khi đọc")
         d.append("│ hay sửa file đầu tiên. Nó có: cách vá file (một đường")
-        d.append("│ duy nhất), vòng lặp đột biến, bốn cổng gác đúng thứ tự.")
+        d.append("│ duy nhất), vòng lặp đột biến, năm cổng gác đúng thứ tự.")
     if not ten_skill():
         d.append("│ ⚠️  không thấy skill quy trình nào trong .claude/skills/")
+
+    d.append("│")
+    d.append(f"│ {trang_thai_cua()}")
 
     chan = moc_ngay_con_chan(hom_nay)
     if chan:

@@ -260,10 +260,32 @@ nó**, cả bốn viết quy ước bằng giọng "đã xảy ra".
 
 ## Cửa tự động — KIỂM TRƯỚC KHI TIN
 
-**Chạy `python --version` trước tiên.** Luật `python-he-thong` chặn đúng
-hình dạng đó và trả mã 2 kèm thông báo. Bị chặn → cửa sống. In ra số hiệu
-Python → **sáu cửa đang chết**, và mọi dòng trong bảng dưới là mô tả một
-thứ không xảy ra.
+**Chạy cái này trước tiên** — nó ĐỌC trạng thái, không bắt bạn suy ra:
+
+```bash
+./.venv/Scripts/python.exe tools/kiem_cua_song.py
+```
+
+Nó so hook khai trong `.claude/settings.json` của repo với bản ở
+`~/.claude/settings.json`, và gọi tên từng cửa chưa được chép. Mã thoát
+0 đủ · 1 thiếu · 2 chưa kiểm được. Bản tin mở phiên cũng in một dòng
+`CUA: n/m song`.
+
+> ### `python --version` KHÔNG phải phép thử của sáu cửa — lỗi 25
+>
+> Bản trước của mục này viết: *"Bị chặn → cửa sống. In ra số hiệu Python
+> → sáu cửa đang chết."* **Vế sau sai**, và nó sống ba ngày.
+>
+> Lệnh ấy đi qua đúng **MỘT** hook: `cua_bash_an_toan`, `PreToolUse`
+> matcher `Bash`. Nó không nói được gì về bốn cửa `Read/Write/Edit` và
+> `Stop`. Ngày 10/09/2026 tôi chép lại câu ấy ba lần trong một buổi,
+> trong khi bốn cửa kia đang chạy và có nhật ký chứng minh — đo bằng
+> một lượt Read: đúng một dòng mới, đúng giây ấy.
+>
+> **Một phép thử đo MỘT cửa không phải phán quyết về SÁU.** Cùng họ với
+> lỗi 22, nhưng khó thấy hơn: ở lỗi 22 phép thử hỏng nên không đo gì; ở
+> đây phép thử CHẠY, cho kết quả ĐÚNG, rồi bị đọc rộng hơn phạm vi nó
+> có.
 
 Cửa của repo (`.claude/settings.json`) chỉ được nạp khi **phiên được mở ở
 chính thư mục repo**. `cd` hay `change_directory` giữa phiên đều không

@@ -9024,3 +9024,107 @@ và nó đúng/sai"* — không phải *"theo NotebookLM thì X"*.
 
 Bảng lỗi: **24 dòng, 13 máy chặn được**. Lỗi 23 nay có cửa chặn **không
 phụ thuộc hook đã chết** — cổng thứ năm chạy trên CI.
+
+
+---
+
+## BƯỚC 48 — "CỬA CHẾT" LÀ MỘT CHẨN ĐOÁN SAI. HAI CỬA CHƯA ĐƯỢC ĐĂNG KÝ (10/09/2026)
+
+Ba ngày liền tài liệu và tôi nói *"sáu cửa đang chết"*. Hôm nay đi tìm
+nguyên nhân thật, và câu ấy sai — sai theo một kiểu đáng ghi lại hơn cả
+cái hỏng nó mô tả.
+
+### Đo được gì
+
+| # | dữ kiện | đo bằng |
+|---|---|---|
+| 1 | Thư mục dự án của mọi phiên là `C:\Users\cuong`, **chưa bao giờ** là repo | `~/.claude/projects/` chỉ có `C--Users-cuong` và `C--Users-cuong-vn-stock-toolkit` |
+| 2 | `HOME` **cũng** là `C:\Users\cuong` | nên `~/.claude/settings.json` và `<project>/.claude/settings.json` là **cùng một file** |
+| 3 | Settings của repo khai **6** hook; settings toàn cục có **4** | đọc thẳng hai file |
+| 4 | Bốn cửa toàn cục **đang chạy ngay lúc này** | thử sống: một lượt Read lúc 09:14:29 → đúng **một** dòng mới trong nhật ký, đúng giây ấy |
+| 5 | Hai hook thiếu: `cua_bash_an_toan.py` · `cua_mo_phien.py` | chỉ có trong settings của repo |
+
+**Nguyên nhân chính xác: hai hook chưa bao giờ được chép lên toàn cục.**
+Không phải "cửa chết". Bốn cửa sống suốt từ 08/09.
+
+### Lỗi diễn giải, và nó nặng hơn cái hỏng
+
+Tài liệu dạy: chạy `python --version`, in ra số hiệu Python → *"sáu cửa
+đang chết"*. Lệnh ấy đi qua đúng **MỘT** hook — `PreToolUse` matcher
+`Bash`, tức `cua_bash_an_toan`, một trong hai cửa chưa đăng ký. Nó không
+nói được gì về bốn cửa `Read/Write/Edit` và `Stop`.
+
+Hôm nay tôi chép lại câu ấy **ba lần trong một buổi** trong khi bốn cửa
+đang chạy và có nhật ký chứng minh.
+
+> **Một phép thử đo MỘT cửa không phải phán quyết về SÁU.**
+>
+> Cùng họ với lỗi 22 (*"không thấy nó chặn" ≠ "nó không chặn"*) nhưng khó
+> thấy hơn. Ở lỗi 22 phép thử **hỏng** nên không đo được gì. Ở đây phép
+> thử **chạy, và cho kết quả đúng** — rồi bị đọc rộng hơn phạm vi nó có.
+> Một câu đúng về một cửa, dùng làm câu về sáu cửa.
+
+Thành **lỗi 25**.
+
+### Sửa
+
+Trước khi chép, bơm payload giả vào cả hai công cụ **từ cwd ngoài repo** —
+luật rút ra từ lỗi 15: một công cụ đúng trong repo có thể sai khi gọi từ
+nơi khác. Cả hai neo đường dẫn vào `__file__`, không vào cwd, nên chạy
+đúng: cửa Bash chặn `python --version` với mã 2 và nhường đường
+`git status`; cửa mở phiên in đúng bản tin và mốc chặn.
+
+Rồi chép cả hai sang `~/.claude/settings.json` bằng đường dẫn tuyệt đối.
+
+**Hook có hiệu lực NGAY, không cần phiên sau.** Tài liệu cũ ghi *"hook chỉ
+có hiệu lực từ phiên sau"* — điều đó đúng khi thêm hook vào một thư mục
+chưa có settings lúc phiên bắt đầu. Ở đây file đã tồn tại từ đầu phiên nên
+bộ theo dõi nạp lại ngay. Bằng chứng: lệnh **kế tiếp** của tôi bị chặn.
+
+### Cửa vừa bật đã cắn hai lệnh thật trong năm phút
+
+```
+python - <<'PY' ...        -> CHAN  [python-he-thong]
+pytest ... -q | tail -6    -> CHAN  [pytest-qua-ong]
+```
+
+Tôi đã gõ **cả hai hình dạng ấy suốt cả buổi** và chưa lần nào bị chặn.
+Hai luật này có từ 07/09, khai nguồn đàng hoàng, và tới hôm nay mới nổ lần
+đầu. Đó là **lần thứ ba** một luật đã tồn tại không chặn được gì vì cửa
+chưa chạy (lỗi 18, lỗi 23, và đây).
+
+### Thứ khiến lỗi này không lặp lại
+
+Không phải bản vá — bản vá chỉ sửa hôm nay. Thứ làm nó lặp lại là **không
+ai ĐỌC được trạng thái cửa**, phải suy ra từ một phép thử hẹp hơn kết luận.
+
+`tools/kiem_cua_song.py` so hook khai trong settings của repo với bản toàn
+cục và **gọi tên từng cửa chưa được chép**. Ba trạng thái: 0 đủ · 1 thiếu ·
+2 chưa kiểm được. Nó so bằng **(sự kiện, matcher, tên công cụ + tham số)**,
+không so nguyên chuỗi — hai file dùng hai kiểu đường dẫn
+(`${CLAUDE_PROJECT_DIR:-.}` và tuyệt đối) nên so nguyên chuỗi thì mọi cửa
+đều báo thiếu, và một cái chuông kêu suốt vô dụng ngang một cái chuông im.
+
+`cua_mo_phien.py` gọi nó, nên **mọi phiên từ nay mở ra là thấy một dòng**:
+
+```
+│ CUA: 6/6 song
+```
+
+Thiếu thì nó gọi tên: `CUA: 4/6 song · CHUA dang ky toan cuc:
+cua_bash_an_toan.py, cua_mo_phien.py`.
+
+**Đột biến 8/8 đỏ**, phát đầu dựng lại đúng cấu hình 6-repo/4-toàn-cục và
+đòi công cụ chỉ ra **đúng hai cửa, gọi đúng tên**. Bảy phát còn lại: thiếu
+mà báo sạch · so nguyên chuỗi · bỏ matcher khỏi danh tính · bỏ sự kiện · bỏ
+tham số (`--quet-thay-doi` lẫn với bản không tham số) · "chưa kiểm được"
+thành 0 · gỡ dòng trạng thái khỏi bản tin · và để lỗi lọt ra làm hỏng lượt
+mở phiên.
+
+### Ba tài liệu đã sửa
+
+`SKILL.md`, `CLAUDE.md`, và `~/.claude/rules/ecc/common/vibe-preview.md` —
+file nạp vào **mọi** phiên bất kể mở ở đâu, và cũng là nơi câu suy sai được
+viết rõ nhất. Cả ba nay trỏ sang `tools/kiem_cua_song.py`.
+
+Bảng lỗi: **25 dòng, 14 máy chặn được**.
