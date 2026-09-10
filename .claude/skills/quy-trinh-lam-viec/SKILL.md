@@ -137,14 +137,37 @@ Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`
 
 ---
 
-## Bước 4 — Bốn cổng gác, ĐÚNG THỨ TỰ, KHÔNG song song
+## Bước 4 — Năm cổng gác, ĐÚNG THỨ TỰ, KHÔNG song song
 
 ```bash
 ./.venv/Scripts/python.exe -m pytest tests/ -q > /tmp/kq.log 2>&1
 ./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py
 ./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo
 ./.venv/Scripts/python.exe tools/kiem_test_chay_rieng.py --im
+./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py
 ```
+
+> **Cổng thứ năm thêm ngày 10/09/2026, và nó khác bốn cổng kia về
+> LOẠI.** Bốn cổng đầu đo thứ **đang có**: test còn lại xanh không, cú
+> pháp nạp được không, có mẫu bịa số không, file chạy riêng có xanh
+> không. **Không cổng nào so với thứ ĐÃ TỪNG CÓ.**
+>
+> Ngày 09/09/2026 một lệnh `cat >` đè mất 40 phép kiểm đã có. Cả bốn
+> cổng đều XANH. Thứ duy nhất bắt được là một con số đọc bằng mắt: 834
+> thay vì 874. Cổng thứ năm là cổng đầu tiên của dự án đo thứ **BỊ MẤT**.
+>
+> Nó **không cấm giảm** — gộp hai test trùng là dọn dẹp hợp lệ. Nó buộc
+> khai lý do, đúng cơ chế `# bia-ok:`:
+>
+> ```bash
+> ./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat
+> ./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do "<vi sao>"
+> ```
+>
+> **Thêm test cũng phải cập nhật mốc.** Không phải khắt khe thừa: mốc
+> trôi tụt lại phía sau thì lỗ hổng đúng bằng khoảng cách đó, và nó lớn
+> dần mà không ai thấy. Lý do khai vào `docs/moc_so_test.json` và nằm
+> trong diff.
 
 Vài test ghi thư mục tạm vào gốc repo → chạy song song cho **đỏ giả**.
 
@@ -270,6 +293,39 @@ toàn cục thì phải bơm payload giả vào nó từ một cwd ngoài repo T
 **Hook chỉ có hiệu lực từ PHIÊN SAU.** Thêm hook giữa phiên thì phiên đó
 vẫn chạy như cũ. Và **hook không thấy gì đi qua Bash trừ cửa Bash** —
 mọi thao tác file qua shell đều lọt ba cửa còn lại.
+
+---
+
+## Luồng thông tin thứ hai — NotebookLM
+
+Người dùng chốt ngày 10/09/2026: **dùng NotebookLM thường xuyên, nhưng
+không dựa hoàn toàn vào nó.** Giá trị của nó nằm ở chỗ nó là một luồng
+**độc lập** — nó đọc tài liệu mà không mang theo giả định của phiên làm
+việc này.
+
+**Dùng nó khi nào**
+
+- Trước một phép đo lớn: nhờ nó soát tiêu chí đã khai xem có mâu thuẫn
+  với tài liệu cũ không.
+- Sau khi viết một kết luận: nhờ nó tìm chỗ trong tài liệu **nói ngược**
+  lại kết luận ấy.
+- Khi một tài liệu dài đã bị vá nhiều lần và không rõ chỗ nào còn đúng.
+
+**Giới hạn phải nhớ — và nó lớn**
+
+1. **Nó chỉ thấy TÀI LIỆU, không thấy MÃ.** Loại lỗi nặng nhất của dự án
+   này là *tài liệu lệch mã* — `N_DAY_DU` ghi 596 trong khi mã là 451,
+   cờ C5 ghi `True` trong khi mã là `False`. NotebookLM **không bắt được
+   một cái nào trong số đó**, vì cả hai vế nó đọc đều là tài liệu.
+2. **Mọi phát hiện của nó phải tự kiểm lại**, bằng `grep` hoặc bằng cách
+   đọc mã. Nó chỉ ra CHỖ đáng nhìn; nó không phán được cái gì đúng.
+3. **Nó không thay được Quy tắc số 2.** Một con số do nó nhắc lại vẫn là
+   con số chưa có lệnh đứng sau.
+
+**Cách nói đúng về nó trong báo cáo:** *"NotebookLM chỉ ra chỗ X, tôi
+kiểm lại bằng <lệnh> và nó đúng/sai"* — chứ không phải *"theo
+NotebookLM thì X"*. Vế sau là mượn thẩm quyền của một công cụ không có
+thẩm quyền đó.
 
 ---
 

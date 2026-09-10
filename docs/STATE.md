@@ -8909,3 +8909,118 @@ quyết.**
 không vào phép tính alpha.
 
 Bảng lỗi: **24 dòng, 13 máy chặn được** (lỗi 24).
+
+
+---
+
+## BƯỚC 47 — CỔNG ĐẦU TIÊN ĐO THỨ BỊ MẤT (10/09/2026)
+
+Người dùng giao năm việc. Ba việc là dọn dẹp, hai việc đổi cách dự án tự
+canh chính nó.
+
+### Cổng thứ năm — `tools/kiem_so_test_khong_giam.py`
+
+Bốn cổng cũ đều đo thứ **đang có**: test còn lại xanh không, cú pháp nạp
+được không, có mẫu bịa số không, mỗi file chạy riêng có xanh không.
+**Không cổng nào so với thứ ĐÃ TỪNG CÓ.**
+
+Đó là lý do ngày 09/09/2026 một lệnh `cat >` đè mất 40 phép kiểm và cả
+bốn cổng vẫn XANH — kể cả trên CI, nơi không ai nhớ hôm qua có bao nhiêu
+test. Thứ duy nhất bắt được là một con số đọc bằng mắt: **834 thay vì
+874**.
+
+Cổng mới giữ một con số trong `docs/moc_so_test.json` và đòi **khớp chính
+xác**.
+
+> **Vì sao khớp chính xác chứ không phải `>=`.** Nếu chỉ đòi thực tế
+> không nhỏ hơn mốc thì mốc trôi tụt lại phía sau: thêm 26 test mà quên
+> cập nhật, rồi xoá mất 26 test — cổng vẫn xanh. Lỗ hổng đúng bằng khoảng
+> cách giữa mốc và thực tế, và nó lớn dần mà không ai thấy.
+>
+> Đòi khớp chính xác nghĩa là mỗi lần số test đổi thì một file nhỏ đổi
+> theo, và **con số di chuyển hiện ra trong diff**. Đó là cả mục đích.
+
+Nó **không cấm giảm** — gộp hai file test trùng là dọn dẹp hợp lệ. Nó
+buộc khai lý do vào chính file mốc, đúng cơ chế `# bia-ok:` của
+`chan_bia_so_lieu.py`: *mục đích không phải cấm, mà là buộc nói ra vì sao*.
+
+Ba trạng thái như hai cổng cùng loại: 0 khớp · 1 lệch · **2 chưa kiểm
+được**. Trạng thái thứ ba bắt buộc — một công cụ không chạy được mà trả 0
+thì chính nó là cổng xanh giả.
+
+**Đột biến 10/10 đỏ**, phát đầu tiên dựng lại nguyên văn sự cố (834 so
+với mốc 874). Bảy phát còn lại đục vào từng chốt: giảm-cho-qua,
+tăng-cho-qua, hai nhánh "chưa kiểm được" thành 0, cửa thoát nhận lý do
+toàn khoảng trắng, bỏ hẳn hàng rào lý do, regex mất dạng số ít
+(`1 test collected`), và **gỡ cổng khỏi CI** — phát cuối chính là hình
+dạng lỗi 14: một cổng dựng xong mà không ai gọi thì không phải cổng.
+
+### Một cổng cũ bắt được lỗi thật ngay trong lượt này
+
+`tests/test_skill_quy_trinh.py` đỏ khi tôi vừa sửa `SKILL.md`: skill trỏ
+tới `docs/moc_so_test.json`, mà file ấy chưa `git add`. Đúng thứ nó sinh
+ra để bắt — *một lời hứa về thành phần git không biết*. Mất 8 giây thay
+vì một lượt CI.
+
+### Dọn kho `.db` ở gốc repo
+
+0,63 GB, 40 file, không file nào từng được commit (đều gitignore). Người
+dùng chốt xoá, giới hạn ở *"file không dùng đến hoặc đã cũ"*.
+
+Luật chọn: **file nào được trích dẫn trong tài liệu hay mã nguồn thì
+giữ**, cộng bốn file `do2_*.db` là bằng chứng của lỗi 24 — một phát hiện
+mới hôm qua, chưa ai kiểm độc lập.
+
+```
+GIU  9 file · 105 MB     XOA 31 file · 0,52 GB
+```
+
+Bản kê lập **trước** lượt xoá: `docs/kho-db-goc-repo.md`, ghi tên, dung
+lượng, ngày, số lệnh và số quyết định của **từng** file, đọc thẳng bằng
+SQLite. Byte đi rồi thì con số vẫn còn dấu.
+
+> **Và bản kê ấy trả lại một thứ không ai đi tìm.** `wf_oos.db` (ĐO 1,
+> 09/09 lúc 16:56) và `do2_1.db` (ĐO 2 lượt đối chứng, 09/09 lúc 17:17)
+> có **379 lệnh và 8.936 quyết định — y hệt nhau**. Hai tiến trình riêng,
+> hai dụng cụ riêng, cách nhau 20 phút.
+>
+> Bất biến 2 tới nay luôn được kiểm ở tầng **con số báo cáo**. Đây là lần
+> đầu nó khớp ở tầng **bản ghi thô** — cùng số dòng trong cả hai bảng.
+
+### Bảy nhánh cũ trên GitHub
+
+Xoá hết, `main` là nhánh duy nhất còn lại. Trước khi xoá đã kiểm từng
+nhánh bằng `git rev-list <nhanh> ^main`: sáu nhánh có **0** commit chưa
+vào `main`. Nhánh thứ bảy — `do-luong/khai-tieu-chi-truoc` — có **1**
+commit lạ, `7ceebe4` *"ghi ba chu ky vao hop dong khai truoc"*.
+
+Lý do: người dùng merge PR #73 lúc **08:30:48** ngày 09/09; commit ấy đẩy
+lên nhánh lúc **08:40:21**, sau khi cửa đã đóng. Nó vào `main` sau bằng
+đường cherry-pick, dưới một mã băm khác. Kiểm bằng diff nội dung: từ bản
+của commit đó sang bản trên `main` là **+219 dòng, 0 dòng xoá** — `main`
+chứa trọn nó. Không mất gì.
+
+> Đáng giữ lại vì hình dạng: **một nhánh "chưa merge" không có nghĩa là
+> công việc bị mất, và một nhánh "đã merge" không có nghĩa là mọi commit
+> trên nó đã vào.** Phép kiểm đúng là so NỘI DUNG, không so mã băm.
+
+### `do_tre_khop` — chốt đổi, nhưng đổi cùng lúc với bảng số
+
+Người dùng chốt: đổi mặc định sang T+1, **gộp vào lần đo lại đầy đủ tiếp
+theo**, không đổi rời. Lý do: giữa lúc đổi mặc định và lúc chạy lại bảng
+sẽ có một quãng **tài liệu ghi một đằng, chạy ra một nẻo** — đúng hình
+dạng đã cắn dự án nhiều lần (`N_DAY_DU` 596/451, cờ C5 `True`/`False`).
+
+### NotebookLM — luồng thông tin thứ hai
+
+Người dùng nhắc lại: dùng thường xuyên, **không dựa hoàn toàn**. Đã ghi
+thành một mục trong `SKILL.md`, kèm giới hạn lớn nhất của nó: **nó chỉ
+thấy TÀI LIỆU, không thấy MÃ**. Loại lỗi nặng nhất của dự án là tài liệu
+lệch mã, và với loại đó NotebookLM mù hoàn toàn vì cả hai vế nó đọc đều
+là tài liệu.
+
+Quy ước cách nói: *"NotebookLM chỉ ra chỗ X, tôi kiểm lại bằng &lt;lệnh&gt;
+và nó đúng/sai"* — không phải *"theo NotebookLM thì X"*.
+
+Bảng lỗi: **24 dòng, 13 máy chặn được**. Lỗi 23 nay có cửa chặn **không
+phụ thuộc hook đã chết** — cổng thứ năm chạy trên CI.

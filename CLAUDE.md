@@ -1154,9 +1154,15 @@ Hai lượt đối chứng (`do_tre_khop=None`) ra lại **đúng từng chữ s
 > vẫn quy được về một vế. Nhưng nó KHÔNG phải phép so cùng-tập-lệnh-khác-
 > giá-vào. Cơ chế đo được: `docs/STATE.md` BƯỚC 46.
 
-**Mặc định KHÔNG đổi.** `do_tre_khop=None` vẫn là T+2, y như trước ĐO 2.
-Đổi mặc định là đổi âm thầm mọi con số walk-forward đã công bố; cần người
-quyết, không phải hệ quả tự động của một phép đo.
+**Mặc định CHƯA đổi, và việc đổi ĐÃ ĐƯỢC CHỐT 10/09/2026: đổi cùng lần
+đo lại đầy đủ tiếp theo, không đổi rời.** `do_tre_khop=None` hiện vẫn cho
+T+2.
+
+Lý do không đổi ngay: giữa lúc đổi mặc định và lúc chạy lại bảng số sẽ có
+một quãng **tài liệu ghi một đằng, chạy ra một nẻo**. Dự án đã trả giá cho
+đúng hình dạng đó nhiều lần — `N_DAY_DU` ghi 596 khi mã là 451, cờ C5 ghi
+`True` khi mã là `False`. Đổi mặc định và thay bảng số trong cùng một PR
+thì cái quãng ấy không tồn tại.
 
 > ⚠️ **ĐỪNG chạy `--stride 1` để đo độ trễ khớp (chốt 09/09/2026).** Nó
 > đổi **cùng lúc hai thứ**: số điểm quyết định gấp đôi (tập lệnh khác
