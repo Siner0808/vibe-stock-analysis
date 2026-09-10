@@ -36,7 +36,9 @@ là lỗi sẽ tái diễn.
 | 22 | kết luận "cửa chết" từ một phép thử dùng thao tác **HỎNG** — cửa chạy TRƯỚC thao tác nên không bao giờ được gọi | tự đo lại sau khi thêm nhật ký, **cùng ngày, sau 2 lần báo sai** | ⚠️ một phần | `tools/cua_doc_bat_buoc.py` ghi nhật ký mỗi lần chạy · `tests/test_cua_doc_bat_buoc.py` (4 test mới) |
 | 23 | `cat > <file>` **đè mất một file test 40 phép kiểm đã có** — không kiểm file tồn tại chưa | đếm test: 834 thay vì 874. **Bốn cổng đều XANH** | ✅ | `cua_bash_an_toan` `heredoc-ghi-file-repo` — **luật CÓ SẴN, cửa đang chết (lỗi 14)**, y hệt lỗi 18 |
 
-**Mười ba trên hai mươi ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 24 | một câu ĐÚNG trong hợp đồng đã ký (*tập TÍN HIỆU* không đổi) được đọc thành một câu khác (*tập LỆNH* không đổi) — không điều kiện nào hỏi tập lệnh, nên nó không bao giờ được đo | tự đi đếm sau khi bảng đã đọc xong | ⚠️ một phần | chưa có luật; quy ước mới ở `docs/TIEU-CHI-DOC-TRUOC.md`: mọi câu *"X không đổi"* phải kèm lệnh kiểm X |
+
+**Mười ba trên hai mươi bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -386,3 +388,32 @@ true`, không `.gitattributes`. Quy ước xuống dòng của bản trên đĩa
 6. **Tên gác nhắc trong bảng này bị canh** — `tests/test_skill_quy_trinh.py`
    bắt tên module test viết trần và tên luật của cửa Bash phải có thật.
    Đổi tên một gác mà quên bảng thì đỏ, không im.
+
+
+### Lỗi 24 — một câu đúng, đọc thành một câu khác
+
+Hợp đồng ĐO 2 viết, và viết đúng:
+
+> **Tập điểm quyết định KHÔNG đổi.** `consider_entry` vẫn chỉ chạy trên
+> lưới `stride`, nên tập tín hiệu là **cùng một tập** — khác hẳn hướng 2,
+> nơi số điểm quyết định gấp đôi và **tập lệnh khác hẳn**.
+
+Hai danh từ khác nhau trong một câu, và vế sau đem *tập lệnh* ra chê hướng
+2. Người đọc — kể cả người viết — rời câu ấy với ấn tượng rằng ở hướng 3
+tập lệnh cũng đứng yên.
+
+Đo sau khi chạy: **xáo 15% ở theo mã, 27% ở theo ngày.** Tín hiệu thì đúng
+là cùng một tập; thứ đổi là tín hiệu nào được **nhận**, vì hai chốt sau của
+`consider_entry` đọc trạng thái sổ chứ không đọc điểm.
+
+Ba điều kiện đã ký đều có test và đều xanh. Không điều kiện nào sai. Cái
+thiếu là **không có điều kiện nào hỏi về tập lệnh** — và một câu khẳng định
+không kèm phép kiểm thì không phân biệt được với một câu chưa ai hỏi.
+
+**Quy ước rút ra:** trong tiêu chí khai trước, mọi câu *"X không đổi"* phải
+kèm lệnh kiểm X. Nếu không kiểm được thì viết là *chưa kiểm*, đừng viết là
+*không đổi*.
+
+Cùng hình dạng với lỗi 21 ở một tầng khác: ở lỗi 21 một trục ẩn sau một
+LUẬT trông như kỷ luật; ở đây một đại lượng ẩn sau một CÂU trông như đã
+được bảo đảm.
