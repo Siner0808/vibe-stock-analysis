@@ -9121,6 +9121,35 @@ tham số (`--quet-thay-doi` lẫn với bản không tham số) · "chưa kiể
 thành 0 · gỡ dòng trạng thái khỏi bản tin · và để lỗi lọt ra làm hỏng lượt
 mở phiên.
 
+### CI bắt được thứ năm cổng tại máy bỏ lọt — lỗi 26
+
+PR #82 đỏ cả hai dòng `kiem-dinh` trong khi **năm cổng tại máy đều xanh**.
+
+Nguyên nhân: runner CI **không có** `~/.claude/settings.json`. Ở đó
+`bao_cao()` rơi vào trạng thái 2 và trả một thông điệp **không mang tiền
+tố `CUA:`**, nên `ban_tin()` mất hẳn dòng trạng thái.
+
+**Đó đúng là chế độ hỏng mà dòng ấy sinh ra để chặn.** Cả BƯỚC này viết về
+một chuyện: người đọc không phân biệt được *"không cửa nào thiếu"* với
+*"không ai hỏi"*. Rồi tôi dựng một công cụ ba trạng thái mà **trạng thái
+"tôi không biết" tự đánh mất cái nhãn của nó** — im đúng chỗ cần lên tiếng.
+
+Sửa ở NGUỒN, không sửa ở test: tiền tố `CUA:` giữ nguyên ở cả ba trạng
+thái. `CUA: 6/6 song` · `CUA: 4/6 song · CHUA dang ky toan cuc: …` ·
+`CUA: chua kiem duoc (khong doc duoc settings.json)`.
+
+Và phép kiểm mới **mô phỏng** môi trường CI (vá `_doc` trả `None`) thay vì
+phụ thuộc vào nó — chạy ở máy nào cũng cho cùng kết quả. Đột biến 9/9 đỏ,
+phát thứ chín đục đúng cái tiền tố ấy.
+
+> **Bài học chung, và nó rộng hơn cái cửa này: trạng thái "chưa biết" phải
+> tự xưng tên.** Một báo cáo ba trạng thái mà trạng thái thứ ba im lặng thì
+> chỉ còn hai — và cái thứ ba bị đọc thành "không có gì để nói".
+
+Cùng họ với bất đối xứng local/CI đã ghi trong `CLAUDE.md`, nhưng ở một
+trục mới: không phải hạng gói vnstock, mà là **file cấu hình của người
+dùng không tồn tại trên runner**.
+
 ### Giá phải trả: HAI dương tính giả trong cùng buổi
 
 Cửa Bash quét **nguyên chuỗi lệnh**, nên nó khớp cả những chỗ hình dạng

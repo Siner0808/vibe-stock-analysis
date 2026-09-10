@@ -106,6 +106,13 @@ def _doc(duong: pathlib.Path) -> dict | None:
 def bao_cao(mot_dong: bool = False) -> tuple[int, str]:
     ma, thieu, tong = so_sanh(_doc(SETTINGS_REPO), _doc(SETTINGS_TOAN_CUC))
     if ma == 2:
+        # Tien to `CUA:` giu NGUYEN o ca ba trang thai. Mot dong bien mat
+        # khoi ban tin la dung che do hong dong nay sinh ra de chan: doc
+        # gia khong phan biet duoc "khong co cua nao thieu" voi "khong ai
+        # hoi". CI bat duoc ngay 10/09/2026 — may khong co
+        # ~/.claude/settings.json thi ban tin mat han dong trang thai.
+        if mot_dong:
+            return 2, "CUA: chua kiem duoc (khong doc duoc settings.json)"
         return 2, "CHUA KIEM DUOC — khong doc duoc mot trong hai settings.json"
     song = tong - len(thieu)
     if mot_dong:

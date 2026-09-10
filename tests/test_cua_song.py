@@ -177,6 +177,34 @@ def test_ban_tin_CO_dong_trang_thai_cua():
     assert "CUA:" in cua_mo_phien.ban_tin(), "ban tin thieu dong trang thai"
 
 
+def test_dong_CUA_van_CO_MAT_khi_KHONG_doc_duoc_settings():
+    """Máy KHÔNG có `~/.claude/settings.json` — đúng cấu hình của runner CI.
+
+    Bản đầu trả một thông điệp không mang tiền tố `CUA:`, nên bản tin mở
+    phiên **mất hẳn dòng trạng thái**. Đó đúng là chế độ hỏng dòng ấy sinh
+    ra để chặn: người đọc không phân biệt được "không cửa nào thiếu" với
+    "không ai hỏi".
+
+    CI bắt được ngày 10/09/2026 khi năm cổng tại máy đều xanh. Phép kiểm
+    này MÔ PHỎNG môi trường đó thay vì phụ thuộc vào nó — chạy ở máy nào
+    cũng cho cùng kết quả.
+    """
+    sys.path.insert(0, str(GOC / "tools"))
+    import cua_mo_phien
+    that = ks._doc
+    try:
+        ks._doc = lambda _p: None
+        ma, mot_dong = ks.bao_cao(mot_dong=True)
+        assert ma == 2
+        assert mot_dong.startswith("CUA:"), (
+            f"mat tien to CUA: khi chua kiem duoc -> {mot_dong!r}")
+        assert "CUA:" in cua_mo_phien.ban_tin(), (
+            "ban tin mat dong trang thai tren may khong co settings toan cuc")
+    finally:
+        ks._doc = that
+    print("PASS  dong CUA: co mat o ca ba trang thai")
+
+
 def test_trang_thai_cua_KHONG_BAO_GIO_nem():
     """Mở phiên hỏng vì một dòng trang trí là cái giá không đáng trả."""
     sys.path.insert(0, str(GOC / "tools"))
