@@ -258,6 +258,7 @@ Vì thế:
 | 10/09/2026 | **ĐO 2 — bốn lượt ĐÃ ĐỌC**, kết cục 1 cả hai phép so | — | hai lượt đối chứng tái lập đúng từng chữ số. Lộ ra lỗi 24 |
 | 10/09/2026 | **chốt đổi mặc định `do_tre_khop` sang 1** | người dùng | nhưng gộp vào lần đo lại đầy đủ tiếp theo, KHÔNG đổi rời |
 | 10/09/2026 | **ĐO 3 — khai tiêu chí**, trước khi đổi dòng mã nào | — | bảng CHI PHÍ THỰC THI ở mặc định T+1. Phép kiểm dụng cụ: nếu IS chọn lại 62/50 thì hai dòng trượt-giá-BẬT phải ra lại đúng số ĐO 2 |
+| 10/09/2026 | **ĐO 4 — khai tiêu chí**, trước khi kéo một mã nào | — | kéo cache về 2018. Dữ liệu mới đổ TRỌN vào vùng OOS. Thiên lệch sống sót khai trước làm nghi phạm số một nếu alpha đẹp lên |
 
 ---
 
@@ -566,3 +567,138 @@ Việc kéo cache là một phép đo RIÊNG, cần tiêu chí riêng, và phả
 ĐO 1 mất **157,7 phút** cho bốn lượt; lượt này **ước lượng cùng bậc**, và
 thời gian chạy đã đo được là không phải hằng số (46,1 so với 36,1 phút cho
 cùng cấu hình ở hai ngày khác nhau).
+
+
+---
+
+## ĐO 4 — kéo cache giá về 2018
+
+> **Khai ngày 10/09/2026, TRƯỚC khi kéo một mã nào.** Phép đo này đổi
+> **dữ liệu** mà mọi con số walk-forward đã công bố được tính trên đó, nên
+> tiêu chí của nó nặng hơn ĐO 3 chứ không nhẹ hơn.
+
+### Điều kiện tiên quyết — ĐÃ ĐO, và nó thoả
+
+`CLAUDE.md` ghi điều kiện xem lại agent cơ bản: *"cache giá lùi được về
+2018 (19 kỳ → ~30)"*. Câu ấy viết **23/08/2026** và nằm im 18 ngày mà không
+ai hỏi nó có thoả được không. Đo 10/09/2026:
+
+```
+extend_history.py --check : ro bat dau 2021-10 · nhieu phien nhat 1.217 (DIG)
+hoi thang vnstock (FPT)   : 2.271 nen · som nhat 2017-08-07
+```
+
+**Nguồn CÓ dữ liệu 2018. Cache thiếu, không phải nguồn không có.**
+
+### Điều bất ngờ, và nó đổi hẳn giá trị của phép đo
+
+```python
+truoc = ngay < str(moc)[:10]
+return df[truoc], df[~truoc]      # (OOS, IS)
+```
+
+**Mọi phiên TRƯỚC mốc là OOS.** Đây là bất biến 8 — vùng kiểm định nằm ở
+QUÁ KHỨ, vì hàng trăm vòng tối ưu đã chạy trên cache kéo tới hôm nay nên
+giai đoạn gần nhất là giai đoạn đã bị nhìn nhiều nhất.
+
+Hệ quả: dữ liệu kéo về **đổ TRỌN vào vùng ngoài mẫu**. Và nó chưa thể đã
+bị nhìn theo nghĩa mạnh nhất — nó **không nằm trong cache** khi các vòng
+tối ưu ấy chạy.
+
+Hiện OOS là **25.219/80.939 phiên = 31,2%**, trên **33/71 mã** có vùng OOS
+đủ dài. Kéo thêm ~3,5 năm là phần tăng cỡ mẫu ngoài mẫu **lớn nhất còn
+lại** — mà cỡ mẫu chính là ràng buộc siết nhất của dự án: alpha cần
+**22.601 lệnh** để loại được số 0, OOS hiện có ~500.
+
+Đây là lý do thật để chạy ĐO 4, và nó lớn hơn lý do ban đầu (mở khoá BCTC).
+
+### Đúng MỘT biến đổi
+
+Kéo cache. Không đổi mã, không đổi ngưỡng, không đổi `stride`,
+`min_history`, `che_do_hoc`, không đổi mặc định nào.
+
+`docs/moc_du_lieu_sach.json` **KHÔNG được sửa**. Mốc là ảnh chụp *"dữ liệu
+nào đã tồn tại khi các vòng tối ưu chạy"* — sửa nó là sửa định nghĩa của
+vùng kiểm định sau khi đã biết mình muốn gì.
+
+### BỐN phép kiểm dụng cụ, theo THỨ TỰ BẮT BUỘC
+
+**Không đọc bất kỳ con số nào cho tới khi cả bốn qua.**
+
+**1. Sao lưu trước khi kéo.** `backtest/cache/` **đã gitignore** nên không
+có lưới an toàn nào từ git. Chép nguyên thư mục ra ngoài repo trước khi
+chạy. Không sao lưu thì không kéo.
+
+**2. Vùng CHỒNG LẤN phải giống HỆT từng dòng.** Đây là rủi ro kỹ thuật số
+một: một số nguồn trả hệ số điều chỉnh giá KHÁC nhau khi đổi khoảng ngày
+yêu cầu. Nếu các dòng 2021-10 → nay đổi sau khi kéo, thì **mọi con số cũ
+mất tính tái lập VÀ dữ liệu mới bị nhiễm** cùng lúc.
+
+So từng dòng, từng mã, vùng chồng lấn, trước và sau. **Lệch một dòng nào
+là DỪNG** — không phải "sai số nhỏ", mà là dừng.
+
+**3. Kéo phải THUẦN CỘNG THÊM ở phía trái.** Số dòng của vùng chồng lấn
+không đổi; chỉ có dòng mới xuất hiện trước mốc cũ.
+
+**4. Chạy lại ĐO 3 trên cache đã kéo, LỌC về đúng khoảng cũ** → phải ra
+lại **đúng từng chữ số** bảng ĐO 3. Đây là phép kiểm đầu-cuối; ba phép trên
+kiểm dữ liệu, phép này kiểm cả đường ống.
+
+### Đại lượng chính
+
+| # | đại lượng | đọc thế nào |
+|---|---|---|
+| 1 | **số kỳ BCTC dùng được** (nay 19) | đếm lại, **đừng giả định** ra ~30. Không tăng tới ≥28 thì điều kiện xem lại KHÔNG thoả — dừng, đừng đo IC. |
+| 2 | **số mã có vùng OOS** (nay 33/71) và **số phiên OOS** (nay 25.219) | tăng bao nhiêu |
+| 3 | **alpha khớp từng lệnh + KTC** trên OOS mở rộng | xem ba kết cục dưới |
+| 4 | **IC các chỉ số cơ bản sau Bonferroni** | chỉ đọc khi đại lượng 1 thoả |
+
+### Thiên lệch sống sót — phân tích thẳng, khai TRƯỚC
+
+Rổ là **ảnh chụp hôm nay**. Kéo về 2018 nghĩa là đo giai đoạn 2018–2021 của
+những mã **hôm nay còn trong rổ**, tức những mã đã thắng. Mã đã huỷ niêm
+yết hay rớt khỏi rổ không có mặt. `NGUYEN-TAC-DO-LUONG.md` đã ghi:
+*"chưa xử lý — mọi kết quả vẫn lạc quan hơn thực tế"*. Kéo càng xa, thiên
+lệch càng lớn.
+
+**Nhưng nó KHÔNG tác động đều lên mọi đại lượng, và chỗ khác nhau mới là
+chỗ đáng đọc:**
+
+| đại lượng | thiên lệch tác động thế nào |
+|---|---|
+| kỳ vọng mỗi lệnh · lợi nhuận cộng dồn · win rate | **đẹp lên trực tiếp.** Đừng đọc chúng như bằng chứng về gì cả. |
+| **alpha khớp từng lệnh** | rổ chuẩn **LÀ chính rổ ấy** — mỗi lệnh so với cầm đều cả rổ trong đúng khoảng nó nắm. Thiên lệch nâng **cả hai vế**, nên nó **phần lớn triệt tiêu ở bậc nhất**. |
+
+**Phần không triệt tiêu, và chưa ai đo:** chiến lược chỉ ở trong thị trường
+một phần thời gian, còn rổ chuẩn thì nắm suốt khoảng so sánh. Nếu thiên
+lệch nâng lợi nhuận **đều theo thời gian**, vế nắm-suốt hưởng nhiều hơn và
+alpha **xấu đi**, không đẹp lên. Nếu nó dồn vào vài cú bứt phá mà chiến
+lược tình cờ bắt được, alpha đẹp lên.
+
+**Không đoán chiều.** Ghi ra ở đây để khi thấy số thì đã có sẵn hai lời
+giải thích cạnh tranh, thay vì chọn lời giải thích hợp ý sau khi nhìn.
+
+### Ba kết cục, khai trước
+
+| kết cục | đọc thế nào |
+|---|---|
+| alpha **xấu đi hoặc đứng yên**, KTC hẹp lại vì nhiều lệnh hơn | phù hợp dự kiến. Đây là kết cục **đáng tin nhất**: cỡ mẫu tăng mà kết luận không đổi thì kết luận mạnh lên. |
+| alpha **đẹp lên nhưng vẫn chứa 0** | cỡ mẫu tăng, kết luận vẫn là "không phân biệt được với rổ chuẩn". Ghi, đừng mừng. |
+| alpha **đẹp lên và LOẠI được số 0 theo chiều dương** | **quy tắc số 1 ở mức mạnh nhất.** KHÔNG ghi vào tài liệu, KHÔNG công bố. Đây sẽ là con số đẹp thứ sáu của dự án, và bốn con số trước đều có một cơ chế giải thích được — ở đây cơ chế ấy **đã có tên trước khi chạy**: thiên lệch sống sót trên một rổ ảnh-chụp-hôm-nay kéo về 2018. Phải loại nó trước, bằng một rổ có mã đã rớt, hoặc không kết luận. |
+
+### Việc KHÔNG được làm trong lượt này
+
+- **Không sửa `docs/moc_du_lieu_sach.json`.**
+- **Không đổi ngưỡng, tham số, hay mặc định nào** — ĐO 3 vừa ghim chúng.
+- **Không kéo một phần rổ rồi so với phần chưa kéo.** Hai nửa rổ khác
+  khoảng dữ liệu thì không so được, và cái lệch sẽ bị đọc thành tín hiệu.
+- **Không chạy khi ĐO 3 chưa đọc xong.** Kéo cache trước khi có bảng ĐO 3
+  làm bảng ấy khác ĐO 1 vì hai lý do cùng lúc.
+
+### Ước lượng thời gian — nói rõ là ƯỚC LƯỢNG
+
+**Chưa đo.** Chưa ai chạy `extend_history.py` kéo 71 mã về 2018 nên không
+có con số. Việc đầu tiên của lượt chạy là kéo **một mã** và bấm giờ, rồi
+mới nhân lên — và nói ra rằng phép nhân ấy là ước lượng.
+
+Hạn mức đã biết: 300 req/phút ở hạng silver tại máy, 60 ở gói miễn phí.
