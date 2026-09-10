@@ -377,7 +377,19 @@ lúc push" xuống "tới lúc dừng phiên". CI vẫn quét toàn repo.
 > ngày 08/09/2026 sinh ra một file mốc `chan_bia_*.moc` mới đúng lúc
 > đó. Tuyến toàn cục hoạt động; tuyến repo thì chưa bao giờ.
 >
-> Kiểm trong một lệnh: `python --version`. `docs/STATE.md` BƯỚC 40.
+> **Kiểm bằng `tools/kiem_cua_song.py`, KHÔNG bằng `python --version`.**
+> Lệnh ấy đi qua đúng MỘT hook (`cua_bash_an_toan`, matcher `Bash`) nên
+> nó không nói được gì về năm cửa còn lại — xem lỗi 25. Công cụ kia so
+> hook khai trong settings của repo với bản ở `~/.claude/settings.json`
+> và gọi tên từng cửa chưa được chép.
+>
+> **Nguyên nhân gốc đã tìm ra và đã sửa (10/09/2026).** Không phải "cửa
+> chết": thư mục dự án của mọi phiên là `C:\Users\cuong`, chưa bao giờ
+> là repo, nên settings của repo chưa bao giờ được nạp. Ngày 08/09 bốn
+> hook được chép sang settings toàn cục bằng đường dẫn tuyệt đối và chạy
+> từ đó; **hai hook không được chép** — `cua_bash_an_toan.py` và
+> `cua_mo_phien.py` — và đó là lý do duy nhất chúng chưa từng chạy. Nay
+> cả sáu đều có bản toàn cục. `docs/STATE.md` BƯỚC 40 và **BƯỚC 48**.
 
 Khoá bởi `tests/test_hang_rao_tu_dong.py`, và test đó kiểm CẢ MATCHER —
 xem bảng trên.

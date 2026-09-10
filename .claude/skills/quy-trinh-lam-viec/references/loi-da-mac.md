@@ -38,7 +38,11 @@ là lỗi sẽ tái diễn.
 
 | 24 | một câu ĐÚNG trong hợp đồng đã ký (*tập TÍN HIỆU* không đổi) được đọc thành một câu khác (*tập LỆNH* không đổi) — không điều kiện nào hỏi tập lệnh, nên nó không bao giờ được đo | tự đi đếm sau khi bảng đã đọc xong | ⚠️ một phần | chưa có luật; quy ước mới ở `docs/TIEU-CHI-DOC-TRUOC.md`: mọi câu *"X không đổi"* phải kèm lệnh kiểm X |
 
-**Mười ba trên hai mươi bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 25 | một phép thử đo ĐÚNG MỘT cửa (`python --version` chỉ đi qua hook matcher `Bash`) được đọc thành phán quyết về **cả sáu** — câu "sáu cửa chết" chép lại ba ngày, trong khi bốn cửa vẫn chạy và có nhật ký | tự đo lại: một lượt Read sinh đúng **một** dòng nhật ký, đúng giây ấy | ✅ | `tools/kiem_cua_song.py` + dòng `CUA: n/m song` trong bản tin mở phiên |
+
+| 26 | dựng một báo cáo BA trạng thái mà trạng thái *"chưa kiểm được"* **đánh mất tiền tố nhận dạng của chính nó**, nên dòng trạng thái biến mất khỏi bản tin — im đúng chỗ nó sinh ra để lên tiếng | CI đỏ trong khi **năm cổng tại máy đều xanh** (runner không có `~/.claude/settings.json`) | ✅ | `tests/test_cua_song.py::test_dong_CUA_van_CO_MAT_khi_KHONG_doc_duoc_settings` — mô phỏng môi trường CI, không phụ thuộc vào nó |
+
+**Mười lăm trên hai mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -417,3 +421,58 @@ kèm lệnh kiểm X. Nếu không kiểm được thì viết là *chưa kiểm
 Cùng hình dạng với lỗi 21 ở một tầng khác: ở lỗi 21 một trục ẩn sau một
 LUẬT trông như kỷ luật; ở đây một đại lượng ẩn sau một CÂU trông như đã
 được bảo đảm.
+
+
+### Lỗi 25 — một phép thử hẹp, một kết luận rộng
+
+Tài liệu dạy, và dạy ở **ba** chỗ cùng lúc:
+
+> Chạy `python --version`. Bị chặn → sáu cửa đang sống. In ra số hiệu
+> Python → **sáu cửa đang chết**.
+
+Vế sau sai. Lệnh ấy đi qua đúng **một** hook: `PreToolUse` matcher `Bash`.
+Bốn cửa `Read/Write/Edit` và `Stop` không nằm trên đường đi của nó.
+
+Đo ngày 10/09/2026: bốn cửa ấy **đang chạy**, và chứng minh được bằng một
+lượt Read — đúng một dòng mới trong nhật ký, đúng giây ấy. Cùng buổi đó
+tôi nói "cửa chết" **ba lần**.
+
+Nguyên nhân thật hẹp hơn nhiều: ngày 08/09 bốn hook được chép lên
+`~/.claude/settings.json` bằng đường dẫn tuyệt đối; **hai hook thì
+không** — và `python --version` tình cờ thử đúng một trong hai.
+
+**Khác lỗi 22 ở đâu.** Lỗi 22: phép thử **hỏng**, nên không đo được gì.
+Lỗi 25: phép thử **chạy và đúng**, nhưng phạm vi kết luận rộng hơn phạm vi
+phép đo. Cái thứ hai khó thấy hơn vì không có gì trông sai cả.
+
+**Quy ước rút ra:** trước khi viết một câu về N thành phần, hỏi phép thử
+này chạm vào mấy thành phần. Chạm một thì viết về một.
+
+Máy chặn được: `tools/kiem_cua_song.py` đọc trạng thái **từng** cửa, và
+cửa mở phiên in nó ra mỗi lần khởi động, nên không ai còn phải suy.
+
+
+### Lỗi 26 — trạng thái "chưa biết" phải tự xưng tên
+
+Cả BƯỚC 48 viết về một chuyện: không ai **đọc** được trạng thái cửa, nên
+ai cũng phải **suy**. Bản sửa là một công cụ ba trạng thái in ra một dòng
+`CUA: n/m song`.
+
+Rồi trạng thái thứ ba của chính công cụ ấy trả một thông điệp không mang
+tiền tố `CUA:` — nên trên máy không có `~/.claude/settings.json`, bản tin
+**mất hẳn dòng trạng thái**. Đúng cái im lặng vừa đi sửa.
+
+Năm cổng tại máy xanh hết. CI đỏ, vì runner không có file cấu hình của
+người dùng — một trục bất đối xứng local/CI chưa từng ghi trong dự án.
+
+**Bài học rộng hơn cái cửa này:** một báo cáo ba trạng thái mà trạng thái
+thứ ba im lặng thì thực tế chỉ còn hai, và cái thứ ba bị đọc thành *"không
+có gì để nói"*. Trạng thái *"tôi không biết"* phải ồn ngang hai trạng thái
+kia — nó là thông tin, không phải sự vắng mặt của thông tin.
+
+Cùng gốc với luật *mã thoát 2 = chưa kiểm được* của bốn công cụ cổng: ở đó
+tín hiệu là mã thoát, ở đây là một dòng chữ, và dòng chữ thì dễ quên hơn.
+
+**Sửa ở NGUỒN, không sửa ở test.** Và phép kiểm mới **mô phỏng** môi trường
+CI thay vì phụ thuộc vào nó — một test chỉ đỏ trên runner là một test không
+ai chạy được lúc đang viết.
