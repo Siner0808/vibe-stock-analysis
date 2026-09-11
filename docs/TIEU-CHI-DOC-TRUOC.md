@@ -702,3 +702,176 @@ có con số. Việc đầu tiên của lượt chạy là kéo **một mã** v�
 mới nhân lên — và nói ra rằng phép nhân ấy là ước lượng.
 
 Hạn mức đã biết: 300 req/phút ở hạng silver tại máy, 60 ở gói miễn phí.
+
+
+---
+
+## ĐO 4 — BẢN BỔ SUNG, khai 11/09/2026 TRƯỚC lượt chạy
+
+> Bản ký 10/09 vẫn đứng. Mục này **sửa hai phép kiểm dụng cụ** và nói rõ
+> vì sao. Không mục nào ở đây được viết sau khi nhìn một con số kết quả —
+> những con số có mặt dưới đây đều là phép đo về **dữ liệu**, chạy xong
+> trước khi bất kỳ lượt walk-forward nào bắt đầu.
+
+### Vì sao phải sửa: phép kiểm 2 KHÔNG THỂ ĐỎ
+
+Bản ký viết: *"so từng dòng vùng chồng lấn, TRƯỚC và SAU khi kéo; lệch
+một dòng là DỪNG"*.
+
+Nhưng `backtest/data.extend_history()` hợp nhất bằng
+
+```python
+merged.drop_duplicates(subset="time", keep="first")
+```
+
+với cache đứng **trước** trong `concat` — tức **dòng cũ luôn thắng**. So
+trước-với-sau thì hai bên **luôn bằng nhau**, bất kể nguồn trả về gì.
+Phép kiểm ấy không có đầu vào nào làm nó đỏ.
+
+Rủi ro nó sinh ra để bắt thì **có thật**. Đo thẳng bản fetch thô ngày
+11/09/2026, trước khi hợp nhất:
+
+| mã | chồng lấn | dòng `close` lệch | tỷ lệ fetch/cache |
+|---|---|---|---|
+| VNM | 1.217 | **1.172** | TB 1,0024 · min **0,9887** |
+| VCB | 1.160 | 381 | TB 1,0012 · min **0,9882** |
+| FPT | 1.217 | 834 | TB 1,0002 · min 0,9958 |
+| ANV | 1.201 | 82 | TB 0,9993 · min 0,9943 |
+
+Lệch có **cấu trúc theo năm**, không phải nhiễu, và không phải làm tròn —
+giả thuyết ấy đã bị loại: cả hai bên đều 2 chữ số, và làm tròn bản fetch
+về 1 chữ số làm lệch **nhiều hơn**. Biên độ tới **−1,2%**, đúng cỡ một
+lần điều chỉnh cổ tức.
+
+**Đây là lỗi 31**, và nó lớn hơn một phép kiểm hỏng: bốn phép kiểm đã ký
+chứa một **mâu thuẫn nội tại** mà chỉ phép đo mới lộ ra —
+
+> không thể cùng lúc có *"vùng chồng lấn không đổi"* (phép kiểm 2–3) và
+> *"một hệ số điều chỉnh đồng nhất trên cả chuỗi"*.
+
+Giữ dòng cũ thì có vết sẹo ở chỗ nối. Lấy dòng mới thì mọi số đã công bố
+mất tính tái lập.
+
+### Người dùng chốt 11/09/2026: tách làm hai cache
+
+```
+backtest/cache/        nguyen ven, dong bang — BAN NEO tai lap cho
+                       moi so DO 1 / DO 2 / DO 3 da cong bo
+backtest/cache_2018/   keo tron khoang trong MOT luot -> toan chuoi
+                       MOT he so dieu chinh, khong co cho noi
+```
+
+Bản sao đã kiểm băm của cache neo nằm ngoài repo:
+`.gemini/antigravity/scratch/vibe_cache_goc_20260911` (125 file, băm gộp
+khớp với bản trong repo tại thời điểm chép).
+
+Cơ chế trỏ: biến môi trường `VIBE_CACHE_DIR`, đọc lúc import — vì
+`tools/do1_chi_phi_thuc_thi.py` chạy mỗi lượt trong một **tiến trình
+riêng**, mà biến toàn cục không đi theo sang tiến trình con.
+
+**Không đặt biến thì đường dẫn y hệt trước, tới từng ký tự.** Đó là một
+mệnh đề, nên nó có phép kiểm đứng sau:
+`tests/test_cache_tro_duoc.py`, 5 phép kiểm, đục thử 5/5 đỏ. Trong đó
+một phép kiểm cố ý chạy ở **tiến trình con** — reload trong tiến trình
+cha sẽ xanh trong khi tiến trình con vẫn đọc cache cũ, và đó đúng là cái
+bẫy phép kiểm này phải tránh.
+
+### Phép kiểm dụng cụ — BẢN ĐANG DÙNG
+
+Phép kiểm 1 (sao lưu) **giữ nguyên** và đã làm xong.
+
+**2. (THAY) Cache mới phải PHỦ TRỌN cache cũ về mặt NGÀY.** Không được
+mất một mã nào, không được mất một phiên nào ở phía phải. Đây là phép
+kiểm CÓ THỂ ĐỎ — khác bản cũ.
+
+> Đã chạy: **0 mã thiếu · 0 phiên mất** trên 125/125 mã.
+
+**3. (THAY) Không hợp nhất, nên không có vùng chồng lấn để so.** Thay
+vào đó đòi **tính đồng nhất của NGUỒN**: mọi mã phải được trả lời bởi
+cùng một nguồn, vì hai nguồn là hai hệ số.
+
+> Đã chạy: **123 mã `kbs`, 2 mã `vci` — HT1 và TCH.** Không đạt tuyệt
+> đối. Hai mã ấy được **khai ra ở đây trước khi chạy**, và mọi kết luận
+> phải chịu được việc bỏ chúng ra.
+
+**4. (THAY) Không thể đòi "ra lại đúng từng chữ số" bảng ĐO 3.** Giá
+vùng trong mẫu cũng đổi, nên phép kiểm ấy mất nghĩa. Thay bằng:
+
+> Chạy lại **trọn vẹn** ĐO 3 trên cache mới, cùng mã, cùng tham số, cùng
+> dụng cụ. Kết quả là một bảng ĐO 3 **thứ hai**, đọc như một phép đo độc
+> lập trên nền dữ liệu rộng hơn — **không** phải một phép tái lập.
+
+### Dự đoán phải nói TRƯỚC: ngưỡng có thể đổi
+
+Giá vùng **trong mẫu** cũng đổi (tới 1,2%), mà ngưỡng do luật IS chọn
+trên chính vùng ấy. Nên **luật có thể chọn ra một số khác 62/45**.
+
+ĐO 3 đã cho thấy đúng chuyện này: đổi độ trễ khớp làm ngưỡng theo-ngày
+nhảy 50 → 45. Đó là **lỗi 21**, và đây là trục thứ tư nó xuất hiện.
+
+**Cách đọc, khai trước:**
+
+| ngưỡng ĐO 4 chọn | đọc thế nào |
+|---|---|
+| **trùng** 62/45 | so được với ĐO 3 theo từng dòng. Khác biệt quy về đúng một vế: dữ liệu. |
+| **khác** 62/45 | dòng đó **KHÔNG so được** với ĐO 3. Ghi ra, **không ép so** — y như dòng theo-ngày của ĐO 3. |
+
+### Hai điều KHAI TRƯỚC vì chúng làm kết quả kém sạch
+
+1. **Nguồn không đồng nhất:** HT1 và TCH trả lời bởi `vci`, 123 mã còn
+   lại bởi `kbs`. 2/125.
+2. **Trần 8 năm có thật, kể cả ở hạng silver.** `kiem_goi()` trả
+   `KHỚP · silver · 300 req/phút · còn hạn 22/11/2026`, vậy mà 112/125 mã
+   bắt đầu đúng **2018-09-13** — đúng 8 năm tính ngược từ ngày kéo.
+   *"Về 2018"* đạt **2018-09**, không phải 2018-01. Và cửa sổ ấy **lùi
+   dần mỗi ngày**, nên lượt kéo sau sẽ không ra lại đúng khoảng này.
+
+### Nến ĐANG DỞ — hai chỗ, cả hai đã xử lý trước lượt chạy
+
+**Trong cache MỚI:** lượt kéo chạy lúc 10:14 giờ VN, thị trường đóng cửa
+15:00, nên dòng 2026-09-11 là nến nội phiên. **Đã bỏ 123 dòng**, thuần
+trừ đi. Dòng cuối nay là 2026-09-10.
+
+Căn cứ là **lịch**, không phải tỷ lệ khối lượng: phiên chưa đóng thì nến
+chưa xong. Tỷ lệ khối lượng (trung vị 30%) chỉ là bằng chứng phụ.
+
+**Trong cache CŨ:** 72 file kết thúc bằng nến dở của phiên 2026-09-03 —
+trung vị **16%** khối lượng, không file nào bình thường.
+
+```
+ma    cache CU        cache MOI       gap
+FPT      806.100      4.098.200      5,08 lan
+VNM      531.500      3.947.400      7,43 lan
+VCB    1.311.300      8.465.900      6,46 lan
+LPB      172.800      3.233.600     18,71 lan
+```
+
+**Cache cũ KHÔNG được sửa.** Sửa nó là phá mất chính thứ khiến nó có giá
+trị — vai trò bản neo tái lập. Lỗi ấy đã tự khỏi ở cache mới, nơi phiên
+2026-09-03 được kéo từ một phiên đã đóng.
+
+> Hệ quả phải nhớ khi đọc bảng ĐO 3 cũ: nó được tính với 72 mã mang một
+> nến cuối thiếu khối lượng, nằm ở rìa phải, tức vùng TRONG mẫu. Ảnh
+> hưởng nhỏ nhưng **khác 0**, và chưa ai đo nó lớn bao nhiêu.
+
+### Ước lượng thời gian — và nói rõ nó là ƯỚC LƯỢNG
+
+ĐO 3 chạy **134,1 phút** trên cache cũ. Cách suy ra con số mới:
+
+```
+vung IS  : KHONG doi (cung khoang ngay) -> vong do 7 nguong khong doi
+vung OOS : 25.219 -> 147.464 phien (gap ~5,8 lan), nhung OOS chi chay
+           MOT luot con IS chay BAY luot
+=> phan viec tang khoang 29%  ->  170-180 phut
+```
+
+**Đây là ước lượng từ một mô hình, không phải phép đo.** Và ĐO 1 đã cho
+thấy cùng một cấu hình chạy lệch **27%** theo tải máy (46,1 so với 36,1
+phút), nên con số thật phải được bấm giờ, không được suy.
+
+### Ba kết cục — GIỮ NGUYÊN bản ký 10/09
+
+Không sửa một chữ. Đặc biệt vế thứ ba: alpha đẹp lên **và** loại được số
+0 theo chiều dương thì **KHÔNG ghi vào tài liệu, KHÔNG công bố** — thiên
+lệch sống sót đã có tên từ trước khi chạy, và kéo càng xa thì nó càng
+lớn. Kéo về 2018 là kéo xa nhất từ trước tới nay.
