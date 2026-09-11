@@ -166,10 +166,19 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 **Cần người quyết:**
 
-- **Bảng số mục "CHI PHÍ THỰC THI" trong `CLAUDE.md`** cần một lượt đo
-  đầy đủ ở cấu hình hiện hành, cả hai chế độ mô phỏng, cả trong lẫn ngoài
-  mẫu. Đã đánh dấu là lạc hậu; **chưa** sửa số, vì chép một con số đơn lẻ
-  đè lên là đúng cái lỗi `docs/STATE.md` BƯỚC 25 tìm ra.
+- ~~**Bảng số mục "CHI PHÍ THỰC THI" trong `CLAUDE.md`** cần một lượt đo
+  đầy đủ ở cấu hình hiện hành.~~ **XONG** — ĐO 3 (10/09) cho cấu hình mặc
+  định, ĐO 4 (11/09) cho cỡ mẫu rộng hơn. Hai bảng, hai câu hỏi, cùng kết
+  luận. `docs/STATE.md` BƯỚC 50 và **BƯỚC 52**.
+- **Cache BCTC bảng `ratio` chỉ có 2–4 kỳ mỗi mã** (58/72 mã đúng 4),
+  trong khi `balance`/`income` có 34. `fundamental_agent` đọc bảng
+  `ratio`. Điều kiện xem lại agent cơ bản vì thế **vẫn không thoả** dù
+  cache giá đã lùi về 2018 — ràng buộc đã ĐỔI CHỖ. Chưa ai truy vì sao
+  bảng ấy thiếu: `fetch_fundamentals.py` hỏng, hay nguồn cắt. Gác:
+  `tests/test_cache_bctc_du_ky.py`.
+- **Hai mã HT1 và TCH trong `backtest/cache_2018/` đến từ nguồn `vci`**,
+  123 mã còn lại từ `kbs` — hai hệ số điều chỉnh khác nhau. Khai trước
+  khi chạy ĐO 4, chưa xử lý.
 - ~~**Chạy lại walk-forward với `stride=1`.**~~ **XONG 10/09/2026, và
   KHÔNG bằng `stride=1`** — bằng `--do-tre-khop 1`, vì `stride=1` đổi cùng
   lúc hai thứ. Δ alpha +0,13 / +0,12 điểm, cả hai nhỏ hơn một phần sáu bề
@@ -185,9 +194,19 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   cho khớp chủ đích mới, chạy lại bảng bốn lượt, thay bảng trong
   `CLAUDE.md` trong CÙNG một PR.
 
-**Chưa truy:** chênh lệch số lệnh giữa bảng trong `CLAUDE.md` và lượt
-chạy lại ngày 04/09 (385 so với 376), trong khi alpha và kỳ vọng khớp tới
-3 chữ số.
+**Chưa truy:**
+
+- chênh lệch số lệnh giữa bảng trong `CLAUDE.md` và lượt chạy lại ngày
+  04/09 (385 so với 376), trong khi alpha và kỳ vọng khớp tới 3 chữ số.
+- **khoảng cách chi phí thực thi IS/OOS** — còn hai giả thuyết chưa ai
+  đo. ĐO 4 thêm một dữ kiện: vùng OOS rộng gấp ba mà chi phí dòng
+  theo-ngày **giảm** 0,66 → 0,48, tức không nghiêng về giả thuyết *"OOS
+  thanh khoản mỏng hơn"*. Quan sát, **không phải** phép đo thiết kế cho
+  câu hỏi ấy, nên chưa loại được gì.
+- **`backtest/cache/` có 72 file mang một nến cuối DỞ** (phiên
+  2026-09-03, trung vị 16% khối lượng). Cố ý KHÔNG sửa: cache ấy là bản
+  neo tái lập của ĐO 1/2/3. Ảnh hưởng lên bảng ĐO 3 nhỏ nhưng **khác 0**,
+  và chưa ai đo nó lớn bao nhiêu. Cache mới không có lỗi này.
 
 ---
 

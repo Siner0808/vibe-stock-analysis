@@ -104,8 +104,12 @@ Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròn
 > phải bằng chứng.
 >
 > **Phép đo ĐÃ CHẠY (23/08/2026) — và nó nói ĐỪNG bật.** Cache BCTC nay là
-> 71 mã × 34 kỳ (hạng silver), nhưng cache GIÁ chỉ lùi tới 2021-10 nên còn
-> **19 kỳ dùng được**. Kết quả trên 1.267 quan sát:
+> 71 mã × 34 kỳ **ở bảng `balance` và `income`** (hạng silver), nhưng cache
+> GIÁ chỉ lùi tới 2021-10 nên còn **19 kỳ dùng được**.
+>
+> *(Cụm "ở bảng `balance` và `income`" thêm 11/09/2026. Bản trước không nói
+> bảng nào, và bảng `ratio` — thứ `fundamental_agent` thật sự đọc — chỉ có
+> **2–4 kỳ mỗi mã**. Xem ô đỏ ngay dưới.)* Kết quả trên 1.267 quan sát:
 >
 > | | IC TB | sau Bonferroni (5 chỉ số) |
 > |---|---|---|
@@ -124,6 +128,24 @@ Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròn
 > Điều kiện xem lại: cache giá lùi được về 2018 (19 kỳ → ~30), hoặc rổ có
 > thêm mã đã huỷ niêm yết. KHÔNG phải chạy lại với tham số khác cho tới khi
 > ra số đẹp. Chi tiết và 12 ô lưới: `docs/STATE.md`, mục 23/08/2026.
+>
+> 🔴 **VẾ ĐẦU CỦA ĐIỀU KIỆN ẤY ĐÃ ĐẠT 11/09/2026, VÀ ĐIỀU KIỆN VẪN
+> KHÔNG THOẢ.** Cache giá nay lùi tới **2018-09-13**. Nhưng đếm lại thì
+> ràng buộc **đã đổi chỗ**:
+>
+> | bảng | số kỳ | có giá phủ |
+> |---|---|---|
+> | **`ratio`** — bảng agent cơ bản ĐỌC | 15 (mỗi mã chỉ **2–4**) | **13** |
+> | `balance` | 34 | 32 |
+> | `income` | 34 | 32 |
+>
+> Câu *"71 mã × 34 kỳ"* ở trên đúng cho `balance`/`income` và **sai cho
+> `ratio`** — mà `ratio` mới là bảng `fundamental_agent` đọc. **58/72 mã
+> chỉ có 4 kỳ** trong bảng ấy.
+>
+> Cùng hình dạng `N_DAY_DU` 596/451: một câu đúng về **thứ này** được đọc
+> thành đúng về **thứ kia**. Trọng số vẫn phải để 0, và lý do nay là một
+> lý do KHÁC với lý do ghi ngày 23/08. `docs/STATE.md` BƯỚC 52.
 
 Lưu ý phạm vi: các agent "chết" ở trên là chết **trong backtest/paper
 trading** vì không có lịch sử TradingView và tin tức. Trên app chạy trực tiếp
@@ -405,7 +427,8 @@ chứ không **chạy** nó, nên không lần nào có test đỏ.
 ## Hạng gói vnstock — thứ đã mua khác thứ đang chạy
 
 Ngày 22/08/2026: tài khoản Silver (hạn 22/11/2026), app chạy như gói miễn
-phí. **BCTC bị cắt còn 8/34 kỳ, hạn mức 60 thay vì 300 req/phút.** Không lỗi,
+phí. **BCTC bị cắt còn 8/34 kỳ ở `balance` và `income`, hạn mức 60 thay vì
+300 req/phút.** Không lỗi,
 không cảnh báo.
 
 Gốc ở `vnai/beam/auth.py`: `_detect_tier()` gọi `_check_vnii_tier()`, package
@@ -491,7 +514,7 @@ ngân hàng và tài sản. Tệp đó thuộc khu vực thành viên — **khô
 
 | Nơi | Hạng | BCTC | Hạn mức | OHLCV |
 |---|---|---|---|---|
-| Máy local | silver | không giới hạn (đo được 34 kỳ) | 300/phút | 784 phiên / 1095 ngày |
+| Máy local | silver | không giới hạn (`balance`/`income` đo được 34 kỳ; `ratio` chỉ 2–4) | 300/phút | 784 phiên / 1095 ngày |
 | GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút | **784 phiên — y hệt** |
 
 Cột OHLCV đo ngày 31/08/2026 trên cả hai nơi. Bất đối xứng CHỈ nằm ở BCTC
@@ -786,6 +809,59 @@ mã thoát 0.
 | 2 | BẬT | **theo ngày** | **45** | **612** | −0,53% | **−0,90%** | **[−1,46 ; −0,32] LOẠI 0** | 57% · **100%** | 36,3 |
 | 3 | TẮT | theo mã | 62 | 399 | +0,91% | **+0,08%** | [−0,77 ; +0,95] chứa 0 | 51% · 191% | 33,5 |
 | 4 | TẮT | theo ngày | **45** | 582 | +0,19% | −0,24% | [−0,83 ; +0,41] chứa 0 | 58% · 100% | 29,5 |
+
+### BẢNG THỨ HAI — ĐO 4, cỡ mẫu rộng hơn (11/09/2026)
+
+> **KHÔNG thay bảng ĐO 3.** Hai bảng trả lời hai câu hỏi khác nhau:
+> ĐO 3 đo **cấu hình mặc định**; ĐO 4 đo trên một cache kéo về 2018-09,
+> chỉ dùng khi đặt `VIBE_CACHE_DIR`, và mang **thiên lệch sống sót lớn
+> hơn**. Kết luận của hai bảng giống nhau.
+
+Tiêu chí bổ sung vào `main` lúc **10:35:37**, lượt 1 bắt đầu **10:35:42**.
+Bốn lượt, **184,4 phút**, cả bốn mã thoát 0. Ngưỡng IS chọn lại **đúng
+62/45**, nên **cả bốn dòng so được** với ĐO 3.
+
+| # | trượt giá | chế độ | ngưỡng | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh |
+|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 1.499 | +1,92% | −0,27% | [−0,80 ; +0,28] chứa 0 | 89% · **422%** |
+| 2 | BẬT | **theo ngày** | 45 | **1.070** | +0,71% | **−0,81%** | **[−1,35 ; −0,24] LOẠI 0** | 48% · **100%** |
+| 3 | TẮT | theo mã | 62 | 1.522 | +2,56% | **+0,40%** | [−0,13 ; +0,94] chứa 0 | 91% · **424%** |
+| 4 | TẮT | theo ngày | 45 | 1.061 | +1,20% | −0,33% | [−0,87 ; +0,23] chứa 0 | 49% · 100% |
+
+Vùng ngoài mẫu: **33 → 68 mã**, **25.219 → 78.239 phiên**.
+
+**Dòng 2 giữ nguyên kết luận trên cỡ mẫu lớn hơn 75%:** alpha −0,81%,
+KTC [−1,35 ; −0,24], bề rộng hẹp lại từ 1,14 xuống 1,11. Alpha dịch
+**+0,09 điểm**, nhỏ hơn một phần mười hai bề rộng KTC. Lần đo độc lập
+**thứ tư** cho dòng ấy.
+
+> **Thiên lệch sống sót hiện ra đúng chỗ đã khai trước.** Kỳ vọng mỗi
+> lệnh nhảy hơn **một điểm rưỡi** (+0,31% → +1,92% ở dòng 1), trong khi
+> alpha đứng yên trong phạm vi một phần mười hai KTC. Rổ chuẩn LÀ chính
+> rổ ấy, nên thiên lệch nâng cả hai vế và triệt tiêu ở bậc nhất — đúng
+> như `docs/TIEU-CHI-DOC-TRUOC.md` viết **trước khi chạy**.
+>
+> Đó là lý do bất biến 6 chọn alpha làm thước quyết định: nó là đại
+> lượng duy nhất trong bảng không bị thiên lệch này thổi.
+
+> 🔴 **HAI DÒNG THEO-MÃ NAY CÒN XA DANH MỤC THẬT HƠN TRƯỚC.** Vốn đỉnh
+> 422–424% (ĐO 3: 191%), vì số mã có vùng OOS tăng gấp đôi nên lệnh chồng
+> lấn theo lịch nhiều hơn. Lợi nhuận cộng dồn của chúng — **+446,93%** và
+> **+940,59%** — dựng lại đúng hình dạng con số **+636,11%** đã lừa dự án
+> này ngày 12/08/2026, lần đó ở đòn bẩy 2,2 lần. Khác một chỗ: hàng rào
+> `avg_capital_deployed_pct` nay **tự kêu** trong chính bản báo cáo.
+
+Chi phí thực thi đo lại trên ĐO 4 (so 1↔3 và 2↔4):
+
+```
+theo ma   (nguong 62)   +0,40%  ->  -0,27%     0,67 diem moi lenh
+theo ngay (nguong 45)   -0,33%  ->  -0,81%     0,48 diem moi lenh
+```
+
+ĐO 3 cho 0,63 và 0,66. Dòng theo-ngày tụt xuống **0,48** trên một vùng
+OOS rộng gấp ba — một dữ kiện cho câu hỏi treo *"vùng OOS thanh khoản
+mỏng hơn"*, nhưng **không phải phép đo thiết kế cho câu hỏi đó**, nên nó
+chưa loại được giả thuyết nào.
 
 Cả bốn lượt: 71 mã có vùng IS · **33 mã có vùng OOS** · bộ nhớ 44 mẫu, học
 thêm 0 · **0 lệnh bị bỏ khi ghép rổ chuẩn** · `stride=2` · `min_history=60`

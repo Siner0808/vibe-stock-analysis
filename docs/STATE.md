@@ -9501,3 +9501,188 @@ cũ kèm dấu đã-bác, đúng quy ước `docs/HANDOFF.md` mục 4.
 > cái bẫy quen thuộc, lần này bị bắt tại chỗ.
 
 Bảng lỗi: **32 dòng, 20 máy chặn được.**
+
+
+---
+
+## BƯỚC 52 — ĐO 4: CỠ MẪU GẤP 2,5 LẦN, KẾT LUẬN KHÔNG ĐỔI (11/09/2026)
+
+Tiêu chí bổ sung vào `main` lúc **10:35:37**, lượt 1 bắt đầu **10:35:42** —
+**năm giây sau**. Bốn lượt, **184,4 phút**, cả bốn mã thoát 0. Lần thứ tư
+dự án làm đúng thứ tự ấy.
+
+Ước lượng trước khi chạy là 170–180 phút; thật là 184,4 — lệch +3%. Mô
+hình ước lượng (IS không đổi, OOS gấp 5,8 lần nhưng chỉ chạy một lượt
+trong khi IS chạy bảy) đứng vững.
+
+### Cache mới
+
+```
+125/125 ma keo trong 2,2 phut · bo cot 1 kieu duy nhat
+phu tron cache cu : 0 ma thieu · 0 phien mat
+them phia TRAI    : 122.245 phien  (trung vi 823 phien/ma)
+nguon             : 123 kbs · 2 vci (HT1, TCH) — khai truoc, khong dong nhat
+tran 8 nam        : 112/125 ma bat dau dung 2018-09-13
+```
+
+`backtest/cache/` **không bị đụng**, và bản sao đã kiểm băm nằm ở
+`.gemini/antigravity/scratch/vibe_cache_goc_20260911`.
+
+### Vùng ngoài mẫu
+
+| | cache cũ | cache mới |
+|---|---|---|
+| mã có vùng OOS | 33 | **68** |
+| phiên OOS | 25.219 | **78.239** |
+
+Con số cột trái tái lập **đúng từng chữ số** số đã công bố — phép đo tự
+kiểm được trước khi dùng.
+
+### PHÉP KIỂM DỤNG CỤ — QUA CẢ HAI DÒNG
+
+Khai trước: nếu luật IS chọn lại 62/45 thì bốn dòng so được với ĐO 3.
+
+| chế độ | ĐO 3 chọn | ĐO 4 chọn | |
+|---|---|---|---|
+| theo mã | 62 | **62** | ✅ so được |
+| theo ngày | 45 | **45** | ✅ so được |
+
+Khác ĐO 3, nơi ngưỡng theo-ngày nhảy 50 → 45 và làm hỏng một nửa bảng.
+Lần này **cả bốn dòng đọc được**.
+
+### Bảng
+
+| # | trượt giá | chế độ | ngưỡng | lệnh OOS | kỳ vọng | alpha | KTC 95% | vốn TB · đỉnh | phút |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 1.499 | +1,92% | −0,27% | [−0,80 ; +0,28] chứa 0 | 89% · **422%** | 36,3 |
+| 2 | BẬT | **theo ngày** | 45 | **1.070** | +0,71% | **−0,81%** | **[−1,35 ; −0,24] LOẠI 0** | 48% · **100%** | 49,4 |
+| 3 | TẮT | theo mã | 62 | 1.522 | +2,56% | **+0,40%** | [−0,13 ; +0,94] chứa 0 | 91% · **424%** | 60,0 |
+| 4 | TẮT | theo ngày | 45 | 1.061 | +1,20% | −0,33% | [−0,87 ; +0,23] chứa 0 | 49% · 100% | 38,7 |
+
+So với ĐO 3, cùng ngưỡng, cùng dụng cụ:
+
+| # | lệnh ĐO 3 → ĐO 4 | alpha ĐO 3 → ĐO 4 |
+|---|---|---|
+| 1 | 398 → **1.499** | −0,55% → −0,27% |
+| 2 | 612 → **1.070** | −0,90% → **−0,81%** |
+| 3 | 399 → **1.522** | +0,08% → +0,40% |
+| 4 | 582 → **1.061** | −0,24% → −0,33% |
+
+### KẾT CỤC 1 — đúng cái kết cục được khai là ĐÁNG TIN NHẤT
+
+Dòng 2 là dòng đáng tin nhất theo ba luật của chính dự án: nhiều lệnh
+nhất trong chế độ có danh mục thật, chế độ duy nhất vốn đỉnh đúng 100%,
+và dòng duy nhất loại được số 0.
+
+```
+DO 3 : alpha -0,90%  KTC [-1,46 ; -0,32]  be rong 1,14   612 lenh
+DO 4 : alpha -0,81%  KTC [-1,35 ; -0,24]  be rong 1,11 1.070 lenh
+```
+
+Alpha dịch **+0,09 điểm** — nhỏ hơn một phần mười hai bề rộng KTC. Cỡ mẫu
+tăng 75%, khoảng tin cậy hẹp lại, **kết luận không đổi**.
+
+Tiêu chí đã ký gọi đây là kết cục *"đáng tin nhất: cỡ mẫu tăng mà kết
+luận không đổi thì kết luận mạnh lên"*.
+
+**Đây là lần đo độc lập thứ TƯ** cho dòng theo-ngày — 28/08, ĐO 1, ĐO 3,
+ĐO 4 — và cả bốn loại được số 0 theo chiều âm.
+
+### THIÊN LỆCH SỐNG SÓT HIỆN RA ĐÚNG CHỖ ĐÃ KHAI
+
+Tiêu chí ký 10/09 viết, **trước khi có số**:
+
+> kỳ vọng mỗi lệnh · lợi nhuận cộng dồn · win rate → **đẹp lên trực
+> tiếp**, đừng đọc như bằng chứng.
+> alpha khớp từng lệnh → rổ chuẩn **LÀ chính rổ ấy**, thiên lệch nâng
+> **cả hai vế** nên **phần lớn triệt tiêu ở bậc nhất**.
+
+Đo được:
+
+| | ĐO 3 | ĐO 4 | dịch |
+|---|---|---|---|
+| kỳ vọng dòng 1 | +0,31% | **+1,92%** | +1,61 |
+| kỳ vọng dòng 3 | +0,91% | **+2,56%** | +1,65 |
+| **alpha dòng 2** | −0,90% | −0,81% | **+0,09** |
+| **alpha dòng 4** | −0,24% | −0,33% | **−0,09** |
+
+Kỳ vọng nhảy hơn một điểm rưỡi; alpha đứng yên trong phạm vi một phần
+mười hai KTC. **Dự đoán viết trước khi chạy, đúng cả chiều lẫn độ lớn.**
+
+Đó cũng là lời nhắc vì sao bất biến 6 chọn alpha làm thước quyết định:
+nó là đại lượng DUY NHẤT trong bảng không bị thiên lệch này thổi.
+
+### HAI DÒNG ĐÒN BẨY DỰNG LẠI ĐÚNG HÌNH DẠNG +636,11%
+
+```
+luot 3  von dinh 424%  ->  loi nhuan cong don +940,59%
+luot 1  von dinh 422%  ->  +446,93%
+luot 2  von dinh 100%  ->   +45,98%
+luot 4  von dinh 100%  ->   +97,51%
+```
+
+Con số thứ tư từng lừa dự án này — **+636,11% ở đòn bẩy 2,2 lần** — nay
+xuất hiện lại ở hình dạng y hệt, lần này 4,2 lần. Khác ở một chỗ: hàng
+rào `avg_capital_deployed_pct` **tự kêu** trong chính bản báo cáo.
+
+Vốn đỉnh đi từ 191% (ĐO 3) lên 424% vì số mã có vùng OOS tăng 33 → 68,
+nên các lệnh chồng lấn nhau theo lịch nhiều hơn. **Hai dòng theo-mã nay
+còn xa danh mục thật hơn trước.**
+
+### Chi phí thực thi, đo lại
+
+So 1↔3 và 2↔4 — cùng ngưỡng, khác mỗi công tắc:
+
+```
+theo ma   (nguong 62)   +0,40%  ->  -0,27%     0,67 diem moi lenh
+theo ngay (nguong 45)   -0,33%  ->  -0,81%     0,48 diem moi lenh
+```
+
+ĐO 3 cho 0,63 và 0,66. Dòng theo-mã gần như không đổi; **dòng theo-ngày
+tụt từ 0,66 xuống 0,48**.
+
+Đó là một dữ kiện mới cho câu hỏi treo từ 10/09 — khoảng cách chi phí
+IS/OOS còn **hai** giả thuyết chưa ai đo, và một trong hai là *"vùng OOS
+thanh khoản mỏng hơn"*. Vùng OOS nay rộng gấp ba và chi phí **giảm**,
+tức nó không nghiêng về phía giả thuyết ấy. **Chưa đủ để loại** — đây là
+quan sát, không phải phép đo thiết kế cho câu hỏi đó.
+
+### ĐẠI LƯỢNG 1 KHÔNG THOẢ — và ràng buộc đã ĐỔI CHỖ
+
+Tiêu chí: *"số kỳ BCTC dùng được (nay 19) — đếm lại, đừng giả định ra
+~30. Không tăng tới ≥28 thì điều kiện xem lại KHÔNG thoả — dừng, đừng đo
+IC."*
+
+Đếm được:
+
+| bảng | số kỳ | có giá phủ |
+|---|---|---|
+| **`ratio`** — bảng `fundamental_agent` ĐỌC | 15 (mỗi mã chỉ 2–4) | **13** |
+| `balance` | 34 | 32 |
+| `income` | 34 | 32 |
+
+**Điều kiện KHÔNG thoả. Dừng, không đo IC** — đúng như đã ký.
+
+Nhưng chỗ đáng học là **ràng buộc đã đổi chỗ**. `CLAUDE.md` ghi *"cache
+BCTC nay là 71 mã × 34 kỳ… nhưng cache GIÁ chỉ lùi tới 2021-10 nên còn 19
+kỳ dùng được"*. Câu ấy đúng cho `balance`/`income`, **sai cho `ratio`** —
+mà `ratio` mới là bảng agent đọc.
+
+Nay giá đã đủ, và ràng buộc mới lộ ra: **58/72 mã chỉ có 4 kỳ trong bảng
+`ratio`**. ĐO 4 không sửa được lỗ hổng đó, và nó chưa từng được ghi.
+
+Cùng hình dạng `N_DAY_DU` 596/451: một câu đúng về **thứ này** được đọc
+thành đúng về **thứ kia**.
+
+### Bảng nào là bảng hiện hành
+
+**Cả hai, cho hai câu hỏi khác nhau.**
+
+- **ĐO 3** đo **cấu hình mặc định** — thứ chạy khi không đặt biến môi
+  trường nào. Giữ nguyên, không đánh dấu lạc hậu.
+- **ĐO 4** đo **cỡ mẫu rộng hơn**, trên một cache phải trỏ tới mới dùng,
+  và mang **thiên lệch sống sót lớn hơn** vì kéo xa hơn.
+
+Kết luận của hai bảng **giống nhau**, nên không có mâu thuẫn để giải.
+
+Bảng lỗi: **34 dòng, 22 máy chặn được.**

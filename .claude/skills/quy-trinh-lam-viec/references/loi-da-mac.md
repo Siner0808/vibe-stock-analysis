@@ -52,7 +52,10 @@ là lỗi sẽ tái diễn.
 
 | 32 | quy một đường dẫn về quy ước của HĐH **này** rồi hỏi `pathlib` của HĐH **kia** — `C:/Users/…` trên Linux không có `/` đầu nên bị đọc là TƯƠNG ĐỐI, và cửa chặn nhầm đúng cái mẫu nó vừa được sửa để tha | **CI đỏ ở lượt đầu, năm cổng tại máy đều xanh** | ✅ | `test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh` — cấp cả bốn quy ước đường dẫn, không phụ thuộc nơi chạy |
 
-**Hai mươi trên ba mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 33 | một con số về "34 kỳ BCTC" **không nói nó nói về BẢNG NÀO** — đúng cho `balance`/`income`, sai cho `ratio` là bảng agent thật sự đọc (2–4 kỳ) | đếm lại khi điều kiện xem lại tưởng đã thoả, sau 19 ngày | ✅ | `tests/test_cache_bctc_du_ky.py` — mọi chỗ nhắc "34 kỳ" phải nói rõ bảng trong CÙNG mệnh đề |
+| 34 | gác mới chỉ chạy trên dữ liệu SẠCH, nên **mọi đột biến NỚI LỎNG nó đều sống sót** — nới một phép kiểm ra thì nó vẫn xanh trên đầu vào sạch | đục thử: 3/6 sống, cả ba đều là phép nới | ✅ | tách phép phán thành hàm thuần rồi thử bằng CẢ đầu vào phải-qua LẪN phải-chặn |
+
+**Hai mươi hai trên ba mươi tư máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -622,3 +625,57 @@ hai quy ước, đừng chờ tình cờ chạy ở nơi kia.
 
 Cùng họ với lỗi 15: *một công cụ đúng trong repo có thể sai khi được gọi
 từ nơi khác.* Ở đây "nơi khác" là một hệ điều hành khác.
+
+
+### Lỗi 33 — một con số không nói nó nói về cái gì
+
+`CLAUDE.md` ghi ngày 23/08/2026: *"Cache BCTC nay là 71 mã × 34 kỳ"*, và
+đặt điều kiện xem lại agent cơ bản là *"cache giá lùi được về 2018"*.
+
+Ngày 11/09/2026 vế giá **đạt**. Điều kiện vẫn không thoả, vì đếm lại:
+
+```
+ratio    15 ky khac nhau · MOI MA chi 2-4   <- fundamental_agent DOC bang nay
+balance  34 ky
+income   34 ky
+```
+
+Câu *"34 kỳ"* đúng cho hai bảng và **sai cho bảng thứ ba** — bảng duy
+nhất được đọc. Nó sống 19 ngày.
+
+**Ràng buộc đã ĐỔI CHỖ mà không ai thấy:** trước là cache giá, nay là
+cache `ratio`. Một điều kiện viết theo ràng buộc cũ sẽ báo "đã thoả" ở
+đúng lúc nó không thoả.
+
+Cùng hình dạng `N_DAY_DU` 596/451 và cờ C5 `True`/`False`: **một câu đúng
+về thứ này được đọc thành đúng về thứ kia.** Lần này thứ bị nhầm là một
+cái BẢNG, không phải một hằng số.
+
+**Quy tắc rút ra: một con số về dữ liệu phải nói ra nó đếm CÁI GÌ, trong
+cùng mệnh đề.** "34 kỳ" là vô nghĩa; "34 kỳ ở bảng `balance`" thì kiểm
+được.
+
+### Lỗi 34 — gác chỉ thấy dữ liệu sạch thì mọi phép NỚI đều sống
+
+Đục thử gác của lỗi 33: **3 trên 6 đột biến sống sót**, và cả ba cùng một
+loại — chúng **nới lỏng** gác (cửa sổ tìm từ 60 lên 400 ký tự, bội số so
+sánh từ 2 xuống 1, bỏ hẳn phép so).
+
+Lý do hiển nhiên sau khi thấy: gác chỉ chạy trên `CLAUDE.md` **thật**, tức
+trên đầu vào đã sạch. Nới một phép kiểm ra thì nó vẫn xanh trên dữ liệu
+sạch. Chỉ một đầu vào **phải bị chặn** mới giết được chúng.
+
+Dự án đã viết luật này rồi, ở `tests/test_cua_quy_trinh.py`:
+
+> **HAI CHIỀU, LUÔN LUÔN.** Một cửa chặn mọi thứ cũng vô dụng y như một
+> cửa không chặn gì — nên mỗi phép kiểm có cả mẫu XẤU lẫn mẫu TỐT.
+
+Luật ấy viết cho cửa Bash, và **không được áp cho gác tài liệu**. Cách
+sửa: tách phép phán thành **hàm thuần**, rồi thử nó bằng cả hai chiều —
+không phải chỉ chạy nó lên file thật.
+
+Sau khi sửa: **7/7 đột biến đỏ**.
+
+**Quy tắc rút ra: một gác chỉ được thử trên đầu vào thật là một gác chưa
+được thử.** Đầu vào thật hôm nay sạch; nó không nói gì về việc gác có
+chặn được cái bẩn hay không.
