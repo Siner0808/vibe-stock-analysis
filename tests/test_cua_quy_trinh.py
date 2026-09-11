@@ -165,44 +165,253 @@ def test_dot_bien_bao_XANH_khi_lenh_thanh_cong(tmp_path):
 
 # ──────────────────────── cua_bash_an_toan ────────────────────────
 
+# (mo ta, lenh, TEN LUAT phai bat duoc no)
+#
+# Cot thu ba them 11/09/2026, va no khong phai trang tri. Ban truoc chi
+# hoi "co chan khong", nen mot mau van XANH khi bi chan boi NHAM LUAT.
+# Duc thu loi ra dung the: mau `hai-heredoc` (`python - <<'A'...`) van bi
+# chan sau khi luat hai-heredoc da hoa mu, vi luat `python-he-thong` bat
+# duoc chu `python` o dau dong. Test xanh vi mot ly do khac han.
+#
+# Cung hinh dang loi 20: kiem mot truong CO MAT thay vi kiem HANH VI.
 XAU = [
-    ("hai heredoc", "python - <<'A'\nx\nA\npython - <<'B'\ny\nB\n"),
-    ("heredoc ghi de file .py", "cat > tools/x.py <<'EOF'\nx\nEOF\n"),
-    ("sed -i", "sed -i 's/a/b/' CLAUDE.md"),
-    ("pytest qua ong tail", "./.venv/Scripts/python.exe -m pytest tests/ -q | tail -5"),
-    ("python he thong", "python tools/kiem_cu_phap_311.py"),
-    ("push thang main", "git push origin main"),
-    ("xoa hai nhanh", "git push origin --delete a b"),
-    ("xoa .db", "rm paper_trades.db"),
+    ("hai heredoc", "bash - <<'A'\nx\nA\nbash - <<'B'\ny\nB\n",
+     "hai-heredoc"),
+    ("heredoc ghi de file .py", "cat > tools/x.py <<'EOF'\nx\nEOF\n",
+     "heredoc-ghi-file-repo"),
+    ("sed -i", "sed -i 's/a/b/' CLAUDE.md", "sed-i-file-repo"),
+    ("pytest qua ong tail",
+     "./.venv/Scripts/python.exe -m pytest tests/ -q | tail -5",
+     "pytest-qua-ong"),
+    ("python he thong", "python tools/kiem_cu_phap_311.py", "python-he-thong"),
+    ("push thang main", "git push origin main", "push-thang-main"),
+    ("xoa .db", "rm paper_trades.db", "xoa-db-goc-repo"),
     ("backtick trong python -c",
-     './.venv/Scripts/python.exe -c "s = ```bash"'),
+     './.venv/Scripts/python.exe -c "s = ```bash"',
+     "backtick-trong-python-c"),
+    # Duong dan TUYET DOI nhung nam TRONG repo — van la ghi de file nguon.
+    ("heredoc ghi de file repo bang duong tuyet doi",
+     f"cat > {GOC.as_posix()}/tools/x.py <<'EOF'\nx\nEOF\n",
+     "heredoc-ghi-file-repo"),
+    # Hai heredoc o HAI LENH CON khac nhau van la cung mot loi.
+    ("hai heredoc qua mot dau ngan",
+     "bash - <<'A'\nx\nA\n&& bash - <<'B'\ny\nB\n",
+     "hai-heredoc"),
 ]
 
+# Moi dong duoi day la mot lan CHAN NHAM da do duoc, hoac mot loi khai da
+# bi BAC bang phep do. Chung khong phai gia dinh — xem BUOC 51.
 TOT = [
     ("mot heredoc", "./.venv/Scripts/python.exe - <<'EOF'\nprint(1)\nEOF\n"),
     ("pytest ghi ra log", "./.venv/Scripts/python.exe -m pytest tests/ -q > kq.log 2>&1"),
     ("venv python", "./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py"),
     ("python -c ngan", "python -c \"print(1)\""),
     ("push len nhanh", "git push -u origin tinh/viec-moi"),
-    ("xoa mot nhanh", "git push origin --delete tinh/viec-cu"),
     ("git log binh thuong", "git log --oneline -5"),
     ("doc file .db, khong xoa", "ls -la paper_trades.db"),
     ("main la ten thu muc, khong phai nhanh", "git push origin tinh/main-menu"),
     # nhay DON: bash khong noi suy backtick -> an toan, phai duoc tha
     ("backtick trong nhay don",
      "./.venv/Scripts/python.exe -c 'x = `'"),
+
+    # ── nam hinh dang CHAN NHAM, do duoc 10–11/09/2026 ──────────────
+    # 11/09: heredoc ghi ra scratchpad trong TEMP. Luat ten la
+    # `...-file-repo` nhung bieu thuc chua bao gio nhin duong dan.
+    ("heredoc ghi file NGOAI repo",
+     "cat > /c/Users/x/AppData/Local/Temp/y.py <<'EOF'\nprint(1)\nEOF\n"),
+    # `main` nam o mot LENH CON khac, khong phai dich cua git push.
+    ("push nhanh roi grep chu main o lenh sau",
+     "git push -u origin gac/viec && git branch -a | grep main"),
+    ("push nhanh roi echo chu main",
+     "git push -u origin gac/viec; echo 'xong, chua dung main'"),
+    # Van ban NHAC TOI hinh dang xau — gioi han da biet cua ban 10/09,
+    # nay dong lai bang cach boc noi dung chuoi nhay.
+    ("van ban nhac toi pytest qua ong",
+     "git commit -m 'dung pytest tests/ -q | tail -5 nua'"),
+    ("van ban nhac toi rm .db",
+     "gh pr create --body 'dung chay rm paper_trades.db'"),
+    # Loi khai cua luat `xoa-nhieu-nhanh` — DO LAI 11/09/2026 tren hai
+    # nhanh nem di: chay tron lot, ma thoat 0, xoa duoc ca hai.
+    ("xoa hai nhanh trong mot lenh — loi khai da bi BAC",
+     "git push origin --delete tam-thu-a tam-thu-b"),
+
+    # Lan chan NHAM thu CHIN, 11/09/2026, va no xay ra trong chinh luot
+    # sua tam lan kia: mot commit message NHAC TOI `<<'EOF'` trong than
+    # heredoc cua no. Mot dau `<<` trong THAN la VAN BAN, khong phai dau
+    # mo thu hai. Nguyen van lenh da bi chan:
+    ("commit message nhac toi mot heredoc khac",
+     "git commit -q -F - <<'MSGEOF'\n"
+     "sua: phep kiem duong dan\n\n"
+     "  cat > /c/Users/x/Temp/y.py <<'EOF'\n\n"
+     "het\nMSGEOF"),
 ]
 
 
 def test_MAY_DO_bash_tu_chung_minh_no_bat_duoc():
-    """9 mẫu đã biết là xấu, 10 mẫu đã biết là tốt, cùng một cửa."""
-    for ten, lenh in XAU:
-        assert cb.kiem(lenh), f"BỎ SÓT mẫu xấu: {ten}\n  {lenh!r}"
+    """Mẫu xấu phải bị chặn **bởi ĐÚNG luật**, mẫu tốt phải được tha.
+
+    Vế "đúng luật" thêm 11/09/2026 sau khi đục thử cho thấy một mẫu vẫn
+    xanh trong khi luật đang thử đã hoá mù — nó bị một luật KHÁC chặn.
+    """
+    for ten, lenh, mong_doi in XAU:
+        bat = [t for t, _ in cb.kiem(lenh)]
+        assert mong_doi in bat, (
+            f"BỎ SÓT mẫu xấu: {ten}\n  {lenh!r}\n"
+            f"  chờ luật {mong_doi!r}, thực tế bắt bởi {bat}")
     for ten, lenh in TOT:
         assert not cb.kiem(lenh), (
             f"KÊU OAN mẫu tốt: {ten}\n  {lenh!r}\n  -> {cb.kiem(lenh)}")
-    print(f"PASS  cửa Bash bắt {len(XAU)}/{len(XAU)} xấu, "
+    print(f"PASS  cửa Bash bắt {len(XAU)}/{len(XAU)} xấu ĐÚNG LUẬT, "
           f"tha {len(TOT)}/{len(TOT)} tốt")
+
+
+def test_BOC_chuoi_nhay_va_than_heredoc_roi_TACH_lenh_con():
+    """Phép phán phải đọc CẤU TRÚC lệnh, không đọc sự xuất hiện của chữ.
+
+    Ba luật của cửa này từng quét cả chuỗi lệnh bằng `[^\\n]*`, nên một
+    chữ nằm trong `--body` của PR hay trong đối số của một lệnh KHÁC vẫn
+    bị đọc như đối số của `git push`. Đếm được **8 lần chặn nhầm / 3 lần
+    chặn đúng** trong hai ngày 10–11/09/2026.
+
+    Đây là phép kiểm đi qua đúng cái hàm đang phán, không qua hàm gọi nó.
+    """
+    # noi dung trong nhay bi BOC, dau nhay o lai de con thay cau truc
+    ra = cb.boc_va_tach("echo 'git push origin main'")
+    assert len(ra) == 1
+    assert "main" not in ra[0], f"noi dung nhay don chua bi boc: {ra[0]!r}"
+
+    ra = cb.boc_va_tach('gh pr create --body "rm paper_trades.db"')
+    assert "paper_trades" not in ra[0], f"nhay kep chua bi boc: {ra[0]!r}"
+
+    # than heredoc bi BOC — ke ca dang KHONG trich dan
+    ra = cb.boc_va_tach("cat <<EOF\ngit push origin main\nEOF\necho xong")
+    assert not any("main" in c for c in ra), f"than heredoc con sot: {ra}"
+
+    # tach o dau ngan lenh — BA dang, va phai kiem RIENG tung dang.
+    #
+    # Duc thu 11/09/2026 cho thay vi sao: mot ca `&&` KHONG phan biet duoc
+    # nhanh `&&` voi ky tu `&` le, nen dot bien go han nhanh `&&` VAN SONG.
+    # `||` thi khong co duong vong nao — `|` co y khong phai dau ngan.
+    ra = cb.boc_va_tach("git push -u origin gac/x && git branch -a | grep main")
+    assert len(ra) == 2, f"`&&` phai tach lam 2: {ra}"
+    assert "main" not in ra[0]
+
+    ra = cb.boc_va_tach("git push -u origin gac/x || git branch -a | grep main")
+    assert len(ra) == 2, f"`||` phai tach lam 2: {ra}"
+    assert "main" not in ra[0]
+
+    # `;` phai la thu DUY NHAT cuu ca nay — chu `main` de TRAN, khong nam
+    # trong nhay, nen phep boc khong giup gi.
+    ra = cb.boc_va_tach("git push -u origin gac/x; git branch -a | grep main")
+    assert len(ra) == 2, f"`;` phai tach lam 2: {ra}"
+    assert "main" not in ra[0]
+    assert not cb.kiem("git push -u origin gac/x; git branch -a | grep main")
+
+    # ...NHUNG KHONG tach o dau ong: `pytest ... | tail` la MOT hinh dang,
+    # tach no ra la giet mat luat pytest-qua-ong.
+    ra = cb.boc_va_tach("pytest tests/ -q | tail -5")
+    assert len(ra) == 1, f"khong duoc tach o dau ong: {ra}"
+
+    # dau ngan NAM TRONG nhay thi khong phai dau ngan
+    ra = cb.boc_va_tach("echo 'a && b'")
+    assert len(ra) == 1, f"`&&` trong nhay bi doc thanh dau ngan: {ra}"
+
+    print("PASS  boc_va_tach: bóc nháy · bóc heredoc · tách lệnh con · "
+          "giữ ống · `&&` trong nháy không phải dấu ngăn")
+
+
+def test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh():
+    """Phép kiểm đường dẫn không được phụ thuộc vào HĐH đang chạy nó.
+
+    Bản đầu (11/09/2026) quy `/c/Users/…` của Git Bash về `C:/Users/…`
+    rồi hỏi `pathlib.Path.is_absolute()`. Trên Windows đúng. Trên Linux
+    `C:/Users/…` **không** có dấu `/` đầu nên bị đọc là TƯƠNG ĐỐI, rơi
+    vào nhánh "coi như trong repo", và cửa chặn nhầm đúng cái mẫu nó vừa
+    được sửa để tha.
+
+    **Năm cổng tại máy đều xanh; CI đỏ ở lượt đầu tiên.** Cùng hình dạng
+    với lỗi 26, và cùng cách vá: MÔ PHỎNG môi trường kia, đừng phụ thuộc
+    vào việc tình cờ chạy ở đó.
+
+    Nên phép kiểm này cấp cho hàm cả bốn quy ước đường dẫn, bất kể test
+    đang chạy ở đâu.
+    """
+    NGOAI = [
+        "/c/Users/x/AppData/Local/Temp/y.py",   # Git Bash
+        "C:/Users/x/AppData/Local/Temp/y.py",   # Windows, gach xuoi
+        "C:\\Users\\x\\AppData\\Local\\y.py",   # Windows, gach nguoc
+        "/tmp/y.py",                            # POSIX
+        "/home/runner/work/khac/khac/y.py",     # runner Linux
+    ]
+    for d in NGOAI:
+        assert not cb._duong_trong_repo(d), f"{d!r} bị coi là TRONG repo"
+
+    TRONG = [
+        "tools/x.py",                     # tuong doi -> coi nhu trong repo
+        "./docs/STATE.md",
+        GOC.as_posix() + "/tools/x.py",   # tuyet doi, dung theo HDH nay
+        str(GOC) + "/tools/x.py",
+    ]
+    for d in TRONG:
+        assert cb._duong_trong_repo(d), f"{d!r} bị coi là NGOÀI repo"
+
+    print(f"PASS  _duong_trong_repo: {len(NGOAI)} đường ngoài · "
+          f"{len(TRONG)} đường trong, không phụ thuộc HĐH")
+
+
+def test_KHONG_luat_nao_con_giu_LY_DO_DA_BI_BAC():
+    """Lỗi 17 sống ngay trong thông báo của chính cửa.
+
+    `push-thang-main` từng nêu hai lý do, và **cả hai đã bị đo là sai**:
+
+      • "nhánh này có branch protection" — `gh api .../branches/main/
+        protection` trả 404 "Branch not protected", đo 08/09/2026
+      • "`gh` không cài trên máy này" — có, 2.100.0, đã đăng nhập
+
+    Một cửa nêu lý do sai vẫn chặn đúng, nên không ai phát hiện. Nhưng
+    người đọc thông báo ấy sẽ mang lý do sai đi chỗ khác — đúng cách lỗi
+    17 lan ra.
+
+    Gác dạng VĂN BẢN là hợp lệ ở đây: `vi_sao` thật sự là văn bản, không
+    có cấu trúc nào để đọc bằng AST.
+
+    KHÔNG cấm NHẮC TỚI cụm đã bị bác — cấm KHẲNG ĐỊNH nó. Hai việc khác
+    nhau, và `docs/HANDOFF.md` mục 4 đã chọn giữa chúng từ 05/09/2026:
+    *"giá trị cũ để trần được ở lại, NHƯNG PHẢI ĐÁNH DẤU"*. Một thông báo
+    nói thẳng "lý do này đã bị đo và bác" dạy được nhiều hơn một thông
+    báo im lặng xoá nó đi — người đọc sau sẽ không dựng lại nó lần nữa.
+
+    Nên phép kiểm là: cụm bị bác xuất hiện thì trong cùng thông báo phải
+    có dấu **BÁC**, đúng quy ước viết hoa dùng khắp `CLAUDE.md`.
+
+    Bản ĐẦU của chính phép kiểm này cấm tuyệt đối, và nó đỏ ngay trên
+    thông báo đã sửa ĐÚNG — phép kiểm sai so với chủ đích của nó, không
+    phải mã sai. Ghi lại vì đây là cái bẫy hay gặp: sửa mã cho hết đỏ thì
+    sẽ xoá mất đúng phần đáng giữ.
+    """
+    DA_BAC = [
+        ("branch protection", "đo 08/09/2026: API trả 404 Branch not protected"),
+        ("gh` không cài", "đo 08/09/2026: gh 2.100.0, đã đăng nhập"),
+        ("gh không cài", "đo 08/09/2026: gh 2.100.0, đã đăng nhập"),
+    ]
+    hong = [(ten, cum, vi)
+            for ten, _, vi_sao in cb.LUAT
+            for cum, vi in DA_BAC
+            if cum in vi_sao and "BÁC" not in vi_sao]
+    assert not hong, (
+        "luật KHẲNG ĐỊNH một lý do đã bị bác (nhắc tới thì được, nhưng "
+        "phải kèm dấu `BÁC`):\n"
+        + "\n".join(f"  [{t}] giữ {c!r} — {v}" for t, c, v in hong))
+
+    # Chieu con lai: co luat nao THAT SU con nhac toi khong? Neu khong,
+    # phep kiem nay dang canh mot cho trong va se im lang mai mai.
+    co_nhac = [ten for ten, _, vi_sao in cb.LUAT
+               if any(cum in vi_sao for cum, _ in DA_BAC)]
+    assert co_nhac, (
+        "không luật nào nhắc tới lý do đã bị bác nữa — phép kiểm này "
+        "không còn canh gì. Xoá nó, hoặc nói rõ vì sao giữ.")
+    print(f"PASS  {len(cb.LUAT)} luật · {len(co_nhac)} luật nhắc lý do đã "
+          f"bác, tất cả đều đánh dấu BÁC")
 
 
 def test_cua_thoat_phai_CO_LY_DO():
@@ -262,13 +471,25 @@ def test_moi_luat_deu_khai_NGUON():
         f"quy ước. Đừng viết quy ước bằng giọng sự cố.")
 
     quy_uoc = [ten for ten, _, vi_sao in cb.LUAT if "CHƯA CÓ SỰ CỐ" in vi_sao]
+    # "môi trường" ĐÃ BỊ GỠ khỏi danh sách được chấp nhận (11/09/2026).
+    #
+    # Nó từng là một cửa thoát: luật `xoa-nhieu-nhanh` khai nguồn là
+    # *"quan sát về môi trường: lệnh dạng này bị chặn ở đây"* — không
+    # ngày, không lệnh, không ai tra được. Đo lại 11/09/2026 trên hai
+    # nhánh ném đi: `git push origin --delete a b` chạy **trót lọt, mã
+    # thoát 0**, xoá được cả hai. Lời khai SAI, và luật đã bị gỡ.
+    #
+    # Một câu về môi trường là một PHÉP ĐO, không phải một quy ước. Nó
+    # phải có ngày để tra lại — đúng Bước 1 điều 2 của skill. Quy ước thì
+    # phải nằm trong một file đọc được.
     khong_chi_file = [
         ten for ten, _, vi_sao in cb.LUAT
         if "CHƯA CÓ SỰ CỐ" in vi_sao
-        and not re.search(r"(CLAUDE\.md|HANDOFF\.md|NGUYEN-TAC|môi trường)",
-                          vi_sao)]
+        and not re.search(r"(CLAUDE\.md|HANDOFF\.md|NGUYEN-TAC)", vi_sao)]
     assert not khong_chi_file, (
-        f"luật quy ước không chỉ ra quy ước nằm ở đâu: {khong_chi_file}")
+        f"luật quy ước không chỉ ra quy ước nằm ở đâu: {khong_chi_file}\n"
+        f"Một câu về 'môi trường' KHÔNG còn được tính — nó là phép đo, "
+        f"nên phải kèm ngày và lệnh tra lại được.")
 
     assert all(len(vi_sao) > 60 for _, _, vi_sao in cb.LUAT), (
         "có luật giải thích quá ngắn để hành động theo")
