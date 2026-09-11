@@ -69,12 +69,14 @@ là lỗi sẽ tái diễn.
 
 | 32 | quy một đường dẫn về quy ước của HĐH **này** rồi hỏi `pathlib` của HĐH **kia** — `C:/Users/…` trên Linux không có `/` đầu nên bị đọc là TƯƠNG ĐỐI, và cửa chặn nhầm đúng cái mẫu nó vừa được sửa để tha | **CI đỏ ở lượt đầu, năm cổng tại máy đều xanh** | ✅ | `test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh` — cấp cả bốn quy ước đường dẫn, không phụ thuộc nơi chạy |
 
-| 33 | một con số về "34 kỳ BCTC" **không nói nó nói về BẢNG NÀO** — đúng cho `balance`/`income`, sai cho `ratio` là bảng agent thật sự đọc (2–4 kỳ) | đếm lại khi điều kiện xem lại tưởng đã thoả, sau 16 ngày | ✅ | `tests/test_cache_bctc_du_ky.py` — mọi chỗ nhắc "34 kỳ" phải nói rõ bảng trong CÙNG mệnh đề |
+| 33 | một con số về "34 kỳ BCTC" **không nói nó nói về BẢNG NÀO** — `balance`/`income` có 34 kỳ, `ratio` chỉ 2–4, và câu chữ không phân biệt (vế *"ratio là bảng agent đọc"* ở bản đầu **đã bị bác** — xem lỗi 36) | đếm lại khi điều kiện xem lại tưởng đã thoả, sau 16 ngày | ✅ | `tests/test_cache_bctc_du_ky.py` — mọi chỗ nhắc "34 kỳ" phải nói rõ bảng trong CÙNG mệnh đề |
 | 34 | gác mới chỉ chạy trên dữ liệu SẠCH, nên **mọi đột biến NỚI LỎNG nó đều sống sót** — nới một phép kiểm ra thì nó vẫn xanh trên đầu vào sạch | đục thử: 3/6 sống, cả ba đều là phép nới | ✅ | tách phép phán thành hàm thuần rồi thử bằng CẢ đầu vào phải-qua LẪN phải-chặn |
 
 | 35 | dòng tự khai ở cuối bảng này được **cộng dồn** mỗi lần thêm một lỗi thay vì **đếm lại** — lệch +1 suốt ba ngày, qua hơn mười commit | `tools/doc_bang_loi.py` ngay lượt chạy đầu tiên | ✅ | chính công cụ ấy: nó đọc số viết bằng chữ tiếng Việt rồi đối chiếu với số đếm được, mã thoát 1 khi lệch |
 
-**Hai mươi hai trên ba mươi lăm máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 36 | suy một ĐƯỜNG ĐỌC từ chỗ trùng TÊN BẢNG mà không đọc `source=` và `period=` — ba đường cùng nhắc `ratio` hoá ra khác nguồn, khác độ mịn, khác cả chỗ lấy; kết luận sai đã lên `main` | tự truy tiếp cùng ngày, khi đi đo việc treo | ✅ | `tests/test_cache_bctc_du_ky.py` đọc bằng **AST** rằng phép đo IC không đọc `ratio`, và hai đường kia dùng hai nguồn khác nhau |
+
+**Hai mươi ba trên ba mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -737,3 +739,39 @@ SỰ XUẤT HIỆN của ký tự `|` thay vì vai trò NGĂN CỘT của nó.
 **Quy tắc rút ra: một con số tổng phải do LỆNH sinh ra, không do người
 cộng dồn.** Nếu buộc phải viết nó ra bằng chữ thì phải có phép kiểm đọc
 lại chữ ấy.
+
+
+### Lỗi 36 — suy một đường đọc từ chỗ trùng tên
+
+Sáng 11/09/2026 tôi thấy hai chỗ cùng nhắc bảng `ratio`:
+
+```
+backtest/fundamentals/*_ratio.csv     chi 2-4 ky moi ma
+fundamental_agent.py                  docstring: "doc bang ratio"
+```
+
+và kết luận: *"`ratio` là bảng agent thật sự đọc, nên điều kiện xem lại
+agent cơ bản không thoả — dừng, đừng đo IC."* Kết luận ấy **lên `main`**.
+
+Đọc tiếp hai dòng nữa thì thấy ba đường khác hẳn nhau:
+
+| đường | nguồn | độ mịn | lấy ở đâu |
+|---|---|---|---|
+| cache `*_ratio.csv` | VCI | quý | đĩa — **không ai đọc** |
+| `fundamental_agent` | **KBS** | **năm** | gọi mạng lúc chạy |
+| phép đo IC | — | quý | **chỉ** `_income` + `_balance` |
+
+Chữ `ratio` xuất hiện **0 lần** trong `experiment_fundamentals.py`.
+
+**Hệ quả thật:** đếm bằng chính dụng cụ định nghĩa đại lượng ấy thì số kỳ
+dùng được là **31**, không phải 4 — **điều kiện ĐÃ THOẢ**, và tôi đã dừng
+sai lý do. Chạy tiếp thì ra một kết quả đáng giá: chỉ số duy nhất từng có
+tín hiệu thô (`leverage`) **mất** tín hiệu khi cỡ mẫu tăng 65%.
+
+**Quy tắc rút ra: trùng TÊN không phải cùng ĐƯỜNG.** Một khẳng định về
+"mã X đọc dữ liệu Y" phải đi theo lời gọi — đọc `source=`, `period=`,
+đường dẫn — chứ không suy từ chỗ hai nơi cùng dùng một chữ.
+
+Cùng họ lỗi 30 và 35, và cả ba cùng một hình dạng: **đọc sự xuất hiện của
+một chữ thay vì vai trò của nó.** Lỗi 30 ở dấu `|` trong lệnh shell, lỗi
+35 ở dấu `|` trong bảng markdown, lỗi 36 ở tên một bảng dữ liệu.

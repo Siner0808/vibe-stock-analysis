@@ -9686,3 +9686,145 @@ thành đúng về **thứ kia**.
 Kết luận của hai bảng **giống nhau**, nên không có mâu thuẫn để giải.
 
 Bảng lỗi: **34 dòng, 22 máy chặn được.**
+
+
+---
+
+## BƯỚC 53 — BA VIỆC TREO, VÀ MỘT KẾT LUẬN CỦA CHÍNH TÔI BỊ BÁC (11/09/2026)
+
+### Việc 1 — bảng `ratio` chỉ 2–4 kỳ: NGUỒN cắt, không phải công cụ hỏng
+
+`fetch_fundamentals.fetch_symbol()` gọi cả ba bảng bằng **cùng một**
+`Finance(source="VCI", period="quarter")`, không hậu xử lý. Hỏi thẳng
+nguồn, ba mã:
+
+```
+          NGUON      TREN DIA
+ratio      4 ky       4 ky
+income    34 ky      34 ky
+balance   34 ky      34 ky
+```
+
+Cache khớp đúng thứ nguồn cho. **Công cụ không hỏng.** VCI chỉ phục vụ 4
+quý cho bảng `ratio`.
+
+### VÀ ĐÂY LÀ CHỖ TÔI SAI — kết luận sáng nay bị bác
+
+Sáng 11/09 tôi ghi (lỗi 33, đã lên `main`):
+
+> *"`ratio` mới là bảng `fundamental_agent` thật sự đọc, nên điều kiện
+> xem lại agent cơ bản KHÔNG thoả — dừng, đừng đo IC."*
+
+**Nửa sau SAI.** Ba đường trùng tên bảng nhưng khác hẳn nhau:
+
+| đường | nguồn | độ mịn | lấy ở đâu |
+|---|---|---|---|
+| `backtest/fundamentals/*_ratio.csv` | VCI | quý | đĩa — **không ai đọc** |
+| `fundamental_agent` | **KBS** | **năm** | gọi mạng lúc chạy |
+| `experiment_fundamentals` (phép đo IC) | — | quý | **chỉ** `_income` + `_balance` |
+
+Chữ `ratio` xuất hiện **0 lần** trong `experiment_fundamentals.py`.
+
+Tôi thấy cùng chữ `ratio` ở hai chỗ rồi suy đường này ra đường kia, mà
+không đọc `source=` và `period=`. Đó là **lỗi 36**.
+
+### Hệ quả: ĐIỀU KIỆN ĐÃ THOẢ, và tôi đã dừng sai lý do
+
+Đại lượng 1 phải đếm bằng chính dụng cụ định nghĩa nó. Chạy
+`experiment_fundamentals.py` trên hai cache:
+
+```
+cache CU   (gia tu 2021-10)  ->  19 ky · 1.267 quan sat
+cache MOI  (gia tu 2018-09)  ->  31 ky · 2.099 quan sat
+```
+
+Lượt trên cache cũ ra **đúng 19 kỳ và đúng 1.267 quan sát** — trùng từng
+chữ số con số `CLAUDE.md` ghi ngày 23/08. Dụng cụ sạch.
+
+**31 ≥ 28 → điều kiện xem lại THOẢ.** Theo tiêu chí ĐO 4 đã ký, đại
+lượng 4 nay đọc được.
+
+### Đại lượng 4 — IC sau khi cỡ mẫu tăng 65%
+
+| chỉ số | IC cũ (19 kỳ) | KTC cũ | IC mới (31 kỳ) | KTC mới |
+|---|---|---|---|---|
+| roe | +0,027 | [−0,114 ; +0,167] | +0,034 | [−0,055 ; +0,124] |
+| roa | −0,040 | [−0,159 ; +0,079] | −0,018 | [−0,092 ; +0,056] |
+| **leverage** | **+0,100** | **[+0,013 ; +0,188] LOẠI 0** | **+0,068** | **[−0,001 ; +0,138] chứa 0** |
+| growth_profit | −0,077 | [−0,199 ; +0,045] | +0,020 | [−0,072 ; +0,111] |
+| earnings_yield | +0,025 | [−0,063 ; +0,112] | +0,039 | [−0,021 ; +0,099] |
+
+**Chỉ số duy nhất từng có tín hiệu thô đã MẤT tín hiệu khi cỡ mẫu tăng.**
+`leverage` đi từ loại-được-0 sang chứa-0. Và `growth_profit` **đổi dấu**
+(−0,077 → +0,020) — đúng thứ nhiễu làm.
+
+Lực phát hiện: 31% → **52%**. Công cụ tự ghi *"Số kỳ đã đủ để phép đo có
+nghĩa"*.
+
+**Kết luận không đổi và mạnh hơn: trọng số agent cơ bản vẫn phải để 0.**
+Nay lý do là *đã đo trên cỡ mẫu đủ, và không chỉ số nào phân biệt được
+với 0* — khác hẳn lý do ghi 23/08 (*mẫu quá nhỏ để nói gì*).
+
+Đây là số **xấu đi** cho giả thuyết, tức chiều an toàn của quy tắc 1.
+
+### Việc 2 — HT1 và TCH đến từ `vci`: một lần hỏng TẠM THỜI
+
+Hỏi lại `kbs` cho cả hai: **trả đủ 1.995 phiên**, y hệt `vci`. Không phải
+`kbs` thiếu dữ liệu — lượt kéo 11/09 gặp một lần hỏng im lặng.
+
+Nhưng hai nguồn **không cho cùng giá**:
+
+```
+TCH  1988/1995 dong lech · ty le vci/kbs TB 0,9971
+HT1   116/1995 dong lech · TB 0,99998
+FPT  1499/1995 dong lech · TB 0,99966
+```
+
+Đối chiếu với thứ đang nằm trong cache: `cache_2018 vs vci` lệch **0**
+dòng ở HT1 và TCH, `cache_2018 vs kbs` lệch **0** dòng ở FPT. Đúng như
+sổ tay lượt kéo ghi.
+
+Phần lớn là một hệ số gần đều nên **triệt tiêu trong lợi nhuận**, nhưng
+không đều tuyệt đối. **Bảng ĐO 4 vì thế có 2/71 mã trên một hệ số khác.**
+
+**KHÔNG kéo lại.** Sửa cache bây giờ là làm bảng ĐO 4 không tái lập được
+từ chính cache nó chạy trên — đổi một sai số nhỏ đã biết lấy một sai số
+lớn chưa biết.
+
+Thứ được sửa là **gốc**: `fetch_one` nay ghim được nguồn
+(`nguon="kbs"`). Mặc định không đổi. Lượt kéo sau ghim nguồn thì rổ đồng
+nhất **theo cấu tạo**, không theo may mắn.
+
+> Cùng họ lỗi 30: thứ gây hại không phải việc rơi nguồn, mà việc rơi
+> nguồn **không được hỏi**.
+
+### Việc 3 — 72 nến dở: đo được, và nó KHÔNG chạm vùng ngoài mẫu
+
+So `close` phiên 2026-09-03 giữa hai cache, trên đúng 72 mã có nó là
+dòng cuối:
+
+```
+|lech close|  trung vi 0,721%  ·  TB 1,060%  ·  lon nhat 5,760%
+              45/72 ma lech > 0,5%   ·   32/72 lech > 1,0%
+khoi luong    cache cu bat duoc trung vi 17,1% phien
+```
+
+Sai số ấy **cùng bậc với alpha đang đo** (0,3–0,9%/lệnh), nên không được
+gọi là nhỏ. Nhưng phạm vi của nó hẹp, và chỗ hẹp mới là câu trả lời:
+
+**Phiên 2026-09-03 nằm SAU mọi mốc trong `moc_du_lieu_sach.json`** (mốc
+muộn nhất 2026-02-06). Mà `chia_vung` trả mọi phiên **trước** mốc là
+OOS. Nên nến dở nằm trọn trong vùng **TRONG MẪU**, và **không thể chạm
+một con số alpha ngoài mẫu nào**.
+
+Nó chỉ có thể làm lệch **ngưỡng mà luật IS chọn**. Và đúng chỗ đó có sẵn
+một phép đo: **ĐO 4 chạy trên cache KHÔNG có nến dở và chọn lại đúng
+62/45** — y hệt ĐO 3 chạy trên cache CÓ nến dở.
+
+> Hai lượt, hai cache khác nhau ở đúng chỗ này, cùng một ngưỡng. Đó là
+> bằng chứng trực tiếp rằng khuyết tật ấy **không đổi tham số được
+> chọn** — không phải một lập luận, mà một phép so đã chạy.
+
+Cache cũ vì thế **giữ nguyên**, đúng vai trò bản neo tái lập.
+
+Bảng lỗi: **36 dòng, 23 máy chặn được.**
