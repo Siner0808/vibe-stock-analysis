@@ -50,7 +50,9 @@ là lỗi sẽ tái diễn.
 | 30 | ba luật của cửa khớp **sự xuất hiện** của một chữ thay vì **vai trò** của nó; một luật tên là `…-file-repo` mà biểu thức **chưa bao giờ nhìn đường dẫn** | đếm được 8 chặn NHẦM / 3 chặn ĐÚNG trong hai ngày | ✅ | `cua_bash_an_toan.boc_va_tach()` + `DIEU_KIEN_THEM` + bảng TỐT/XẤU hai chiều |
 | 31 | một phép kiểm đã ký **không thể đỏ**: nó so cache TRƯỚC với SAU khi kéo, mà phép hợp nhất giữ dòng cũ nên hai bên luôn bằng nhau | đo thẳng bản fetch thô trước khi hợp nhất | ⚠️ một phần | quy ước mới: mọi tiêu chí phải nói ra **đầu vào nào làm nó đỏ** |
 
-**Mười chín trên ba mươi mốt máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 32 | quy một đường dẫn về quy ước của HĐH **này** rồi hỏi `pathlib` của HĐH **kia** — `C:/Users/…` trên Linux không có `/` đầu nên bị đọc là TƯƠNG ĐỐI, và cửa chặn nhầm đúng cái mẫu nó vừa được sửa để tha | **CI đỏ ở lượt đầu, năm cổng tại máy đều xanh** | ✅ | `test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh` — cấp cả bốn quy ước đường dẫn, không phụ thuộc nơi chạy |
+
+**Hai mươi trên ba mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -596,3 +598,27 @@ xong thì hỏi ngược: "cái gì phải xảy ra để dòng này chặn tôi
 lời được thì nó là trang trí.
 
 Cùng họ với lỗi 24: một câu đúng về mặt chữ, đặt sai chỗ nó cần đứng.
+
+
+### Lỗi 32 — hỏi sai hệ điều hành về một đường dẫn
+
+Vá cho lỗi 30 cần biết *"đường dẫn này có trong repo không"*. Bản đầu quy
+`/c/Users/…` của Git Bash về `C:/Users/…` rồi hỏi
+`pathlib.Path.is_absolute()`.
+
+Trên Windows: đúng. Trên Linux: `C:/Users/…` **không** có dấu `/` đầu nên
+`PosixPath` đọc nó là TƯƠNG ĐỐI, rơi vào nhánh *"tương đối thì coi như
+trong repo"*, và cửa **chặn nhầm đúng cái mẫu nó vừa được sửa để tha**.
+
+**Năm cổng tại máy đều xanh. CI đỏ ở lượt đầu tiên.**
+
+Đó là công dụng của CI mà không phép kiểm local nào thay được: nó chạy ở
+một HĐH khác. Cùng hình dạng với lỗi 26 — chỗ đó là `~/.claude/
+settings.json` không tồn tại trên runner; chỗ này là quy ước đường dẫn.
+
+**Quy tắc rút ra: một phép kiểm về đường dẫn phải so bằng CHUỖI đã chuẩn
+hoá, đừng mượn ngữ nghĩa của HĐH đang chạy.** Và test phải MÔ PHỎNG cả
+hai quy ước, đừng chờ tình cờ chạy ở nơi kia.
+
+Cùng họ với lỗi 15: *một công cụ đúng trong repo có thể sai khi được gọi
+từ nơi khác.* Ở đây "nơi khác" là một hệ điều hành khác.

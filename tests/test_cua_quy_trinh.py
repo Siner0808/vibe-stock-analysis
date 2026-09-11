@@ -165,19 +165,38 @@ def test_dot_bien_bao_XANH_khi_lenh_thanh_cong(tmp_path):
 
 # ──────────────────────── cua_bash_an_toan ────────────────────────
 
+# (mo ta, lenh, TEN LUAT phai bat duoc no)
+#
+# Cot thu ba them 11/09/2026, va no khong phai trang tri. Ban truoc chi
+# hoi "co chan khong", nen mot mau van XANH khi bi chan boi NHAM LUAT.
+# Duc thu loi ra dung the: mau `hai-heredoc` (`python - <<'A'...`) van bi
+# chan sau khi luat hai-heredoc da hoa mu, vi luat `python-he-thong` bat
+# duoc chu `python` o dau dong. Test xanh vi mot ly do khac han.
+#
+# Cung hinh dang loi 20: kiem mot truong CO MAT thay vi kiem HANH VI.
 XAU = [
-    ("hai heredoc", "python - <<'A'\nx\nA\npython - <<'B'\ny\nB\n"),
-    ("heredoc ghi de file .py", "cat > tools/x.py <<'EOF'\nx\nEOF\n"),
-    ("sed -i", "sed -i 's/a/b/' CLAUDE.md"),
-    ("pytest qua ong tail", "./.venv/Scripts/python.exe -m pytest tests/ -q | tail -5"),
-    ("python he thong", "python tools/kiem_cu_phap_311.py"),
-    ("push thang main", "git push origin main"),
-    ("xoa .db", "rm paper_trades.db"),
+    ("hai heredoc", "bash - <<'A'\nx\nA\nbash - <<'B'\ny\nB\n",
+     "hai-heredoc"),
+    ("heredoc ghi de file .py", "cat > tools/x.py <<'EOF'\nx\nEOF\n",
+     "heredoc-ghi-file-repo"),
+    ("sed -i", "sed -i 's/a/b/' CLAUDE.md", "sed-i-file-repo"),
+    ("pytest qua ong tail",
+     "./.venv/Scripts/python.exe -m pytest tests/ -q | tail -5",
+     "pytest-qua-ong"),
+    ("python he thong", "python tools/kiem_cu_phap_311.py", "python-he-thong"),
+    ("push thang main", "git push origin main", "push-thang-main"),
+    ("xoa .db", "rm paper_trades.db", "xoa-db-goc-repo"),
     ("backtick trong python -c",
-     './.venv/Scripts/python.exe -c "s = ```bash"'),
+     './.venv/Scripts/python.exe -c "s = ```bash"',
+     "backtick-trong-python-c"),
     # Duong dan TUYET DOI nhung nam TRONG repo — van la ghi de file nguon.
     ("heredoc ghi de file repo bang duong tuyet doi",
-     f"cat > {GOC.as_posix()}/tools/x.py <<'EOF'\nx\nEOF\n"),
+     f"cat > {GOC.as_posix()}/tools/x.py <<'EOF'\nx\nEOF\n",
+     "heredoc-ghi-file-repo"),
+    # Hai heredoc o HAI LENH CON khac nhau van la cung mot loi.
+    ("hai heredoc qua mot dau ngan",
+     "bash - <<'A'\nx\nA\n&& bash - <<'B'\ny\nB\n",
+     "hai-heredoc"),
 ]
 
 # Moi dong duoi day la mot lan CHAN NHAM da do duoc, hoac mot loi khai da
@@ -215,17 +234,34 @@ TOT = [
     # nhanh nem di: chay tron lot, ma thoat 0, xoa duoc ca hai.
     ("xoa hai nhanh trong mot lenh — loi khai da bi BAC",
      "git push origin --delete tam-thu-a tam-thu-b"),
+
+    # Lan chan NHAM thu CHIN, 11/09/2026, va no xay ra trong chinh luot
+    # sua tam lan kia: mot commit message NHAC TOI `<<'EOF'` trong than
+    # heredoc cua no. Mot dau `<<` trong THAN la VAN BAN, khong phai dau
+    # mo thu hai. Nguyen van lenh da bi chan:
+    ("commit message nhac toi mot heredoc khac",
+     "git commit -q -F - <<'MSGEOF'\n"
+     "sua: phep kiem duong dan\n\n"
+     "  cat > /c/Users/x/Temp/y.py <<'EOF'\n\n"
+     "het\nMSGEOF"),
 ]
 
 
 def test_MAY_DO_bash_tu_chung_minh_no_bat_duoc():
-    """9 mẫu đã biết là xấu, 10 mẫu đã biết là tốt, cùng một cửa."""
-    for ten, lenh in XAU:
-        assert cb.kiem(lenh), f"BỎ SÓT mẫu xấu: {ten}\n  {lenh!r}"
+    """Mẫu xấu phải bị chặn **bởi ĐÚNG luật**, mẫu tốt phải được tha.
+
+    Vế "đúng luật" thêm 11/09/2026 sau khi đục thử cho thấy một mẫu vẫn
+    xanh trong khi luật đang thử đã hoá mù — nó bị một luật KHÁC chặn.
+    """
+    for ten, lenh, mong_doi in XAU:
+        bat = [t for t, _ in cb.kiem(lenh)]
+        assert mong_doi in bat, (
+            f"BỎ SÓT mẫu xấu: {ten}\n  {lenh!r}\n"
+            f"  chờ luật {mong_doi!r}, thực tế bắt bởi {bat}")
     for ten, lenh in TOT:
         assert not cb.kiem(lenh), (
             f"KÊU OAN mẫu tốt: {ten}\n  {lenh!r}\n  -> {cb.kiem(lenh)}")
-    print(f"PASS  cửa Bash bắt {len(XAU)}/{len(XAU)} xấu, "
+    print(f"PASS  cửa Bash bắt {len(XAU)}/{len(XAU)} xấu ĐÚNG LUẬT, "
           f"tha {len(TOT)}/{len(TOT)} tốt")
 
 
@@ -282,6 +318,45 @@ def test_BOC_chuoi_nhay_va_than_heredoc_roi_TACH_lenh_con():
 
     print("PASS  boc_va_tach: bóc nháy · bóc heredoc · tách lệnh con · "
           "giữ ống · `&&` trong nháy không phải dấu ngăn")
+
+
+def test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh():
+    """Phép kiểm đường dẫn không được phụ thuộc vào HĐH đang chạy nó.
+
+    Bản đầu (11/09/2026) quy `/c/Users/…` của Git Bash về `C:/Users/…`
+    rồi hỏi `pathlib.Path.is_absolute()`. Trên Windows đúng. Trên Linux
+    `C:/Users/…` **không** có dấu `/` đầu nên bị đọc là TƯƠNG ĐỐI, rơi
+    vào nhánh "coi như trong repo", và cửa chặn nhầm đúng cái mẫu nó vừa
+    được sửa để tha.
+
+    **Năm cổng tại máy đều xanh; CI đỏ ở lượt đầu tiên.** Cùng hình dạng
+    với lỗi 26, và cùng cách vá: MÔ PHỎNG môi trường kia, đừng phụ thuộc
+    vào việc tình cờ chạy ở đó.
+
+    Nên phép kiểm này cấp cho hàm cả bốn quy ước đường dẫn, bất kể test
+    đang chạy ở đâu.
+    """
+    NGOAI = [
+        "/c/Users/x/AppData/Local/Temp/y.py",   # Git Bash
+        "C:/Users/x/AppData/Local/Temp/y.py",   # Windows, gach xuoi
+        "C:\\Users\\x\\AppData\\Local\\y.py",   # Windows, gach nguoc
+        "/tmp/y.py",                            # POSIX
+        "/home/runner/work/khac/khac/y.py",     # runner Linux
+    ]
+    for d in NGOAI:
+        assert not cb._duong_trong_repo(d), f"{d!r} bị coi là TRONG repo"
+
+    TRONG = [
+        "tools/x.py",                     # tuong doi -> coi nhu trong repo
+        "./docs/STATE.md",
+        GOC.as_posix() + "/tools/x.py",   # tuyet doi, dung theo HDH nay
+        str(GOC) + "/tools/x.py",
+    ]
+    for d in TRONG:
+        assert cb._duong_trong_repo(d), f"{d!r} bị coi là NGOÀI repo"
+
+    print(f"PASS  _duong_trong_repo: {len(NGOAI)} đường ngoài · "
+          f"{len(TRONG)} đường trong, không phụ thuộc HĐH")
 
 
 def test_KHONG_luat_nao_con_giu_LY_DO_DA_BI_BAC():

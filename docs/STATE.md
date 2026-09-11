@@ -9500,4 +9500,4 @@ cũ kèm dấu đã-bác, đúng quy ước `docs/HANDOFF.md` mục 4.
 > nó. Nếu lúc đó sửa mã cho hết đỏ thì sẽ xoá mất đúng phần đáng giữ —
 > cái bẫy quen thuộc, lần này bị bắt tại chỗ.
 
-Bảng lỗi: **31 dòng, 19 máy chặn được.**
+Bảng lỗi: **32 dòng, 20 máy chặn được.**

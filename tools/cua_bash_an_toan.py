@@ -51,6 +51,21 @@ def _nuot_than_heredoc(lenh: str, i: int, cho: list[str]) -> int:
     return i
 
 
+def boc(lenh: str) -> str:
+    """Như `boc_va_tach()` nhưng KHÔNG tách — trả lại một chuỗi.
+
+    Dùng cho luật cần nhìn **trọn** câu lệnh mà vẫn phải mù với dữ liệu:
+    `hai-heredoc` (hai dấu mở ở hai lệnh con vẫn là cùng một lỗi) và
+    `heredoc-ghi-file-repo` (dấu `<<` và đích `>` cách nhau qua một dòng
+    mới, tức qua một dấu ngăn).
+
+    **Dấu MỞ heredoc được giữ lại; chỉ THÂN bị bóc.** Phân biệt ấy là cả
+    vấn đề: dấu mở là CẤU TRÚC, thân là DỮ LIỆU. Bản đầu 11/09/2026 bóc
+    cả hai, và `hai-heredoc` hoá mù với chính ca nó sinh ra để bắt.
+    """
+    return "\n".join(_quet(lenh, tach=False))
+
+
 def boc_va_tach(lenh: str) -> list[str]:
     """Bóc NỘI DUNG chuỗi nháy và THÂN heredoc, rồi tách thành lệnh con.
 
@@ -78,6 +93,15 @@ def boc_va_tach(lenh: str) -> list[str]:
     `kiem_cu_phap_311.doan_nhung()`, vốn chỉ nhận dạng CÓ trích dẫn vì
     nó đi KIỂM phần thân; ở đây ta đi VỨT phần thân, nên dạng nào cũng
     phải vứt.
+    """
+    return _quet(lenh, tach=True)
+
+
+def _quet(lenh: str, tach: bool) -> list[str]:
+    """Máy quét dùng chung cho `boc()` và `boc_va_tach()`.
+
+    `tach=False` thì dấu ngăn lệnh KHÔNG chốt đoạn — chúng ở lại như ký
+    tự thường, nên chuỗi trả về vẫn là một câu lệnh liền mạch.
     """
     ra: list[str] = []
     hien: list[str] = []
@@ -112,7 +136,10 @@ def boc_va_tach(lenh: str) -> list[str]:
             continue
 
         if c == "\n" and cho:
-            chot()
+            if tach:
+                chot()
+            else:
+                hien.append(" ")
             i = _nuot_than_heredoc(lenh, i + 1, cho)
             continue
 
@@ -130,16 +157,23 @@ def boc_va_tach(lenh: str) -> list[str]:
                 k += len(m.group(0))
                 if q and k < n and lenh[k] == q:
                     k += 1
-            hien.append(" " * (k - i))
+            # GIU dau mo — no la CAU TRUC. Chi THAN bi boc, o nhanh tren.
+            hien.append(lenh[i:k])
             i = k
             continue
 
         if lenh.startswith(_NGAN_DOI, i):
-            chot()
+            if tach:
+                chot()
+            else:
+                hien.append("  ")
             i += 2
             continue
         if c in _NGAN_DON:
-            chot()
+            if tach:
+                chot()
+            else:
+                hien.append(" ")
             i += 1
             continue
 
@@ -150,28 +184,40 @@ def boc_va_tach(lenh: str) -> list[str]:
     return ra
 
 
+def _chuan_duong(duong: str) -> str:
+    """Về một dạng chuỗi duy nhất: gạch chéo xuôi, `/c/…` -> `c:/…`."""
+    d = duong.strip().strip("'\"").replace("\\", "/")
+    m = re.match(r"^/([A-Za-z])/(.*)$", d)          # Git Bash -> Windows
+    if m:
+        d = f"{m.group(1)}:/{m.group(2)}"
+    return d.rstrip("/")
+
+
 def _duong_trong_repo(duong: str) -> bool:
     """Đường dẫn này có nằm TRONG repo không?
 
-    Git Bash trả đường tuyệt đối dạng `/c/Users/...`; `pathlib` trên
-    Windows đọc nó là TƯƠNG ĐỐI (không có ổ đĩa) nên sẽ kết luận ngược.
-    Quy nó về `C:/Users/...` trước khi hỏi.
+    So bằng CHUỖI, **không** hỏi `pathlib` của hệ điều hành đang chạy.
+
+    Bản đầu (11/09/2026) hỏi `pathlib`, và CI bắt được ngay trong lượt
+    đầu tiên: nó quy `/c/Users/…` của Git Bash về `C:/Users/…` rồi hỏi
+    `Path.is_absolute()`. Trên Windows đúng; trên Linux thì `C:/Users/…`
+    **không** có dấu `/` đầu nên bị đọc là TƯƠNG ĐỐI, rơi vào nhánh
+    "coi như trong repo", và cửa chặn nhầm đúng cái mẫu nó vừa được sửa
+    để tha. Năm cổng tại máy đều xanh.
+
+    Bài học: **đừng quy một đường dẫn về quy ước của HĐH này rồi hỏi HĐH
+    kia.** Phép kiểm phải độc lập với nơi nó chạy — cùng lý do
+    `tests/test_cua_song.py` MÔ PHỎNG môi trường CI thay vì phụ thuộc nó.
 
     Đường TƯƠNG ĐỐI thì coi như trong repo — lệnh chạy với cwd ở repo là
     trường hợp thường, và là trường hợp nguy hiểm.
     """
-    duong = duong.strip("'\"")
-    m = re.match(r"^/([A-Za-z])/(.*)$", duong)
-    if m:
-        duong = f"{m.group(1).upper()}:/{m.group(2)}"
-    p = pathlib.Path(duong)
-    if not (p.is_absolute() or duong.startswith("/")):
+    d = _chuan_duong(duong)
+    tuyet_doi = d.startswith("/") or re.match(r"^[A-Za-z]:/", d)
+    if not tuyet_doi:
         return True
-    try:
-        p.resolve().relative_to(GOC)
-        return True
-    except (ValueError, OSError):
-        return False
+    goc = _chuan_duong(str(GOC))
+    return (d + "/").lower().startswith((goc + "/").lower())
 
 # (tên, biểu thức, lời giải thích + cách làm đúng)
 #
@@ -287,18 +333,27 @@ LUAT = [
 # của `chan_bia_so_lieu.py`. Rỗng thì không tính.
 RE_THOAT = re.compile(r"#\s*cua-ok:\s*\S+")
 
-# Ba luật này phải đọc chuỗi lệnh THÔ, không đọc bản đã bóc — và mỗi
-# luật có một lý do riêng, không luật nào là ngoại lệ cho tiện:
+# BA PHẠM VI, và mỗi luật khai nó đọc bản nào. Không luật nào là ngoại
+# lệ "cho tiện" — mỗi lựa chọn dưới đây có một lý do đọc được.
 #
-#   hai-heredoc             hai dấu mở heredoc nằm ở hai lệnh con khác
-#                           nhau vẫn là cùng một lỗi; tách ra là mù.
+#   mặc định   bản đã BÓC, TÁCH thành lệnh con
+#   DOC_BOC    bản đã BÓC, KHÔNG tách — cần nhìn trọn câu lệnh
+#   DOC_THO    bản THÔ — nội dung nháy chính là chủ đề của luật
+#
+#   hai-heredoc             hai dấu mở ở hai lệnh con khác nhau vẫn là
+#                           cùng một lỗi, nên không tách. Nhưng phải BÓC:
+#                           một dấu `<<` nằm TRONG thân heredoc là VĂN
+#                           BẢN, không phải dấu mở thứ hai.
 #   heredoc-ghi-file-repo   dấu mở `<<` và đích `>` cách nhau qua một
 #                           dòng mới, tức qua một dấu ngăn.
 #   backtick-trong-python-c backtick NẰM TRONG nháy kép chính là chủ đề
 #                           của luật. Bóc nội dung nháy là xoá mất nó.
-DOC_THO = frozenset({
-    "hai-heredoc", "heredoc-ghi-file-repo", "backtick-trong-python-c",
-})
+#
+# Hai luật đầu từng nằm ở DOC_THO, và ngày 11/09/2026 `hai-heredoc` chặn
+# nhầm một lệnh `git commit -F -` có thân heredoc *nhắc tới* `<<'EOF'`.
+# Lần chặn nhầm thứ CHÍN, và nó xảy ra trong chính lượt sửa tám lần kia.
+DOC_BOC = frozenset({"hai-heredoc", "heredoc-ghi-file-repo"})
+DOC_THO = frozenset({"backtick-trong-python-c"})
 
 # Luật chỉ phán khi ĐIỀU KIỆN THÊM cũng đúng. Khác với biểu thức: biểu
 # thức nhận ra HÌNH DẠNG, điều kiện thêm trả lời một câu hỏi biểu thức
@@ -327,7 +382,12 @@ def kiem(lenh: str) -> list[tuple[str, str]]:
     con = boc_va_tach(lenh)
     pham: list[tuple[str, str]] = []
     for ten, bt, vi_sao in LUAT:
-        doi = [lenh] if ten in DOC_THO else con
+        if ten in DOC_THO:
+            doi = [lenh]
+        elif ten in DOC_BOC:
+            doi = [boc(lenh)]
+        else:
+            doi = con
         for doan in doi:
             m = bt.search(doan)
             if not m:
