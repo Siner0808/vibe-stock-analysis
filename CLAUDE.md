@@ -129,9 +129,31 @@ Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròn
 > thêm mã đã huỷ niêm yết. KHÔNG phải chạy lại với tham số khác cho tới khi
 > ra số đẹp. Chi tiết và 12 ô lưới: `docs/STATE.md`, mục 23/08/2026.
 >
-> 🔴 **VẾ ĐẦU CỦA ĐIỀU KIỆN ẤY ĐÃ ĐẠT 11/09/2026, VÀ ĐIỀU KIỆN VẪN
-> KHÔNG THOẢ.** Cache giá nay lùi tới **2018-09-13**. Nhưng đếm lại thì
-> ràng buộc **đã đổi chỗ**:
+> ✅ **ĐIỀU KIỆN ĐÃ THOẢ VÀ ĐÃ ĐO XONG (11/09/2026) — kết luận KHÔNG
+> đổi, và mạnh hơn.** Cache giá lùi tới **2018-09-13** đưa số kỳ dùng
+> được từ **19 lên 31** (ngưỡng 28), cỡ mẫu 1.267 → **2.099 quan sát**,
+> lực phát hiện 31% → **52%**.
+>
+> | chỉ số | IC 19 kỳ | IC 31 kỳ |
+> |---|---|---|
+> | **`leverage`** | **+0,100 [+0,013 ; +0,188] LOẠI 0** | **+0,068 [−0,001 ; +0,138] chứa 0** |
+> | `roe` · `roa` | +0,027 · −0,040 | +0,034 · −0,018, đều chứa 0 |
+> | `growth_profit` | −0,077 | **+0,020 — ĐỔI DẤU** |
+> | `earnings_yield` | +0,025 | +0,039, chứa 0 |
+>
+> **Chỉ số duy nhất từng có tín hiệu thô đã MẤT nó khi cỡ mẫu tăng.**
+> Trọng số vẫn để 0, nhưng lý do nay KHÁC: *đã đo trên cỡ mẫu đủ, và
+> không chỉ số nào phân biệt được với 0* — chứ không còn là *mẫu quá nhỏ
+> để nói gì*. `docs/STATE.md` BƯỚC 53.
+>
+> 🔴 **Một ô đỏ viết sáng 11/09 ở đúng chỗ này đã BỊ BÁC cùng ngày.** Nó
+> ghi *"điều kiện vẫn KHÔNG thoả vì bảng `ratio` chỉ có 2–4 kỳ"*. Sai:
+> phép đo IC **không đọc** bảng `ratio` (chữ ấy xuất hiện 0 lần trong
+> `experiment_fundamentals.py`), và `fundamental_agent` đọc `ratio` từ
+> **KBS/năm qua mạng**, không từ cache VCI/quý. Ba đường trùng tên bảng
+> mà khác nguồn. Lỗi 36.
+>
+> Ghi chú về bảng `ratio` vẫn đúng và vẫn đáng đọc:
 >
 > | bảng | số kỳ | có giá phủ |
 > |---|---|---|

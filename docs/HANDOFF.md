@@ -170,15 +170,17 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   đầy đủ ở cấu hình hiện hành.~~ **XONG** — ĐO 3 (10/09) cho cấu hình mặc
   định, ĐO 4 (11/09) cho cỡ mẫu rộng hơn. Hai bảng, hai câu hỏi, cùng kết
   luận. `docs/STATE.md` BƯỚC 50 và **BƯỚC 52**.
-- **Cache BCTC bảng `ratio` chỉ có 2–4 kỳ mỗi mã** (58/72 mã đúng 4),
-  trong khi `balance`/`income` có 34. `fundamental_agent` đọc bảng
-  `ratio`. Điều kiện xem lại agent cơ bản vì thế **vẫn không thoả** dù
-  cache giá đã lùi về 2018 — ràng buộc đã ĐỔI CHỖ. Chưa ai truy vì sao
-  bảng ấy thiếu: `fetch_fundamentals.py` hỏng, hay nguồn cắt. Gác:
-  `tests/test_cache_bctc_du_ky.py`.
-- **Hai mã HT1 và TCH trong `backtest/cache_2018/` đến từ nguồn `vci`**,
-  123 mã còn lại từ `kbs` — hai hệ số điều chỉnh khác nhau. Khai trước
-  khi chạy ĐO 4, chưa xử lý.
+- ~~**Cache BCTC bảng `ratio` chỉ có 2–4 kỳ**~~ **ĐÃ TRUY 11/09/2026:**
+  NGUỒN cắt (VCI chỉ phục vụ 4 quý cho bảng ấy), công cụ không hỏng. Và
+  **không ai đọc bảng đó** — phép đo IC dùng `_income`+`_balance`, còn
+  `fundamental_agent` gọi KBS/năm qua mạng. Điều kiện xem lại agent cơ
+  bản **ĐÃ THOẢ** (19 → 31 kỳ) và **đã đo xong**: không chỉ số nào phân
+  biệt được với 0, `leverage` mất tín hiệu khi cỡ mẫu tăng. BƯỚC 53.
+- ~~**HT1 và TCH đến từ `vci`**~~ **ĐÃ TRUY:** `kbs` trả đủ dữ liệu cho
+  cả hai — lượt kéo gặp một lần hỏng tạm thời. Giá hai nguồn KHÁC nhau
+  (TCH: 1988/1995 dòng, tỷ lệ TB 0,9971), nên bảng ĐO 4 có **2/71 mã
+  trên hệ số khác**. KHÔNG kéo lại — sửa cache là làm ĐO 4 không tái lập
+  được. Gốc đã sửa: `fetch_one(nguon=...)` ghim được nguồn.
 - ~~**Chạy lại walk-forward với `stride=1`.**~~ **XONG 10/09/2026, và
   KHÔNG bằng `stride=1`** — bằng `--do-tre-khop 1`, vì `stride=1` đổi cùng
   lúc hai thứ. Δ alpha +0,13 / +0,12 điểm, cả hai nhỏ hơn một phần sáu bề
@@ -203,10 +205,13 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   theo-ngày **giảm** 0,66 → 0,48, tức không nghiêng về giả thuyết *"OOS
   thanh khoản mỏng hơn"*. Quan sát, **không phải** phép đo thiết kế cho
   câu hỏi ấy, nên chưa loại được gì.
-- **`backtest/cache/` có 72 file mang một nến cuối DỞ** (phiên
-  2026-09-03, trung vị 16% khối lượng). Cố ý KHÔNG sửa: cache ấy là bản
-  neo tái lập của ĐO 1/2/3. Ảnh hưởng lên bảng ĐO 3 nhỏ nhưng **khác 0**,
-  và chưa ai đo nó lớn bao nhiêu. Cache mới không có lỗi này.
+- ~~**72 file mang một nến cuối DỞ**~~ **ĐÃ ĐO 11/09/2026:** sai số
+  `close` trung vị **0,721%**, lớn nhất 5,76% — cùng bậc với alpha, nên
+  không nhỏ. Nhưng phiên ấy nằm **SAU mọi mốc**, tức trọn trong vùng
+  TRONG MẪU, nên **không chạm được một con số alpha ngoài mẫu nào**. Nó
+  chỉ có thể dịch ngưỡng IS — mà ĐO 4 chạy trên cache KHÔNG có nến dở
+  **chọn lại đúng 62/45**, y hệt ĐO 3. Phép so đã chạy, không phải lập
+  luận. Cache cũ giữ nguyên. BƯỚC 53.
 
 ---
 

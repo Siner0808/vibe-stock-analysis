@@ -55,8 +55,37 @@ def cache_path(symbol: str) -> Path:
     return CACHE_DIR / f"{symbol.upper()}.csv"
 
 
-def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4) -> pd.DataFrame | None:
-    """Tải OHLCV từ vnstock. Trả None nếu không lấy được (KHÔNG sinh dữ liệu giả)."""
+NGUON_MAC_DINH = ("kbs", "tcbs", "vci", "dnse")
+
+
+def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4,
+              nguon: str | tuple[str, ...] | None = None) -> pd.DataFrame | None:
+    """Tải OHLCV từ vnstock. Trả None nếu không lấy được (KHÔNG sinh dữ liệu giả).
+
+    `nguon` GHIM nguồn. Mặc định `None` giữ nguyên hành vi cũ: thử lần
+    lượt `kbs → tcbs → vci → dnse`, lấy cái đầu tiên có dữ liệu.
+
+    VÌ SAO CẦN GHIM ĐƯỢC (đo 11/09/2026)
+    ────────────────────────────────────
+    Cách rơi-sang-nguồn-khác **không ghi lại nguồn nào đã trả lời**, mà
+    hai nguồn là **hai hệ số điều chỉnh**. Lượt kéo `backtest/cache_2018/`
+    ngày 11/09 có 123 mã từ `kbs` và **2 mã từ `vci`** (HT1, TCH) —
+    không vì `kbs` thiếu dữ liệu, mà vì một lần hỏng tạm thời. Hỏi lại
+    sau đó: `kbs` trả đủ 1.995 phiên cho cả hai.
+
+    Giá hai nguồn KHÔNG bằng nhau. Đo trên chính ba mã ấy:
+
+        TCH  1988/1995 dòng lệch · tỷ lệ vci/kbs TB 0,9971
+        HT1   116/1995 dòng lệch · TB 0,99998
+        FPT  1499/1995 dòng lệch · TB 0,99966
+
+    Phần lớn là một hệ số gần đều nên **triệt tiêu trong lợi nhuận**,
+    nhưng nó không đều tuyệt đối. Một rổ trộn hai nguồn là một rổ trộn
+    hai hệ số, và **không ai biết** vì hàm này im lặng.
+
+    Cùng họ với lỗi 30: thứ gây hại không phải việc rơi nguồn, mà việc
+    rơi nguồn KHÔNG ĐƯỢC HỎI.
+    """
     from vnstock import Quote
 
     # Nạp API key từ cấu hình NGOÀI mã nguồn (biến môi trường hoặc
@@ -67,7 +96,14 @@ def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4) -> pd.DataF
     except Exception:
         pass
 
-    for src in ("kbs", "tcbs", "vci", "dnse"):
+    if nguon is None:
+        danh_sach = NGUON_MAC_DINH
+    elif isinstance(nguon, str):
+        danh_sach = (nguon,)
+    else:
+        danh_sach = tuple(nguon)
+
+    for src in danh_sach:
         try:
             df = Quote(symbol=symbol, source=src).history(start=start, end=end)
             if df is not None and not df.empty:

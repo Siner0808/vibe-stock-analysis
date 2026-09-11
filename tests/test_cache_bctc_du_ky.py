@@ -1,34 +1,29 @@
-"""Cache BCTC — số kỳ phải khai theo ĐÚNG BẢNG, không khai gộp.
+"""Ba bảng BCTC, ba đường đọc KHÁC NHAU — đừng suy đường này ra đường kia.
 
-VÌ SAO CÓ FILE NÀY
-──────────────────
-`CLAUDE.md` ghi từ 23/08/2026: *"Cache BCTC nay là 71 mã × 34 kỳ (hạng
-silver), nhưng cache GIÁ chỉ lùi tới 2021-10 nên còn 19 kỳ dùng được"*, và
-đặt điều kiện xem lại agent cơ bản là *"cache giá lùi được về 2018"*.
+VÌ SAO CÓ FILE NÀY, VÀ VÌ SAO NÓ ĐÃ BỊ VIẾT LẠI
+───────────────────────────────────────────────
+Bản đầu (11/09/2026, sáng) khẳng định: *"bảng `ratio` chỉ có 2–4 kỳ, mà
+`ratio` mới là bảng `fundamental_agent` thật sự đọc, nên điều kiện xem
+lại agent cơ bản KHÔNG thoả."*
 
-Ngày 11/09/2026 vế ấy **đạt** — giá lùi tới 2018-09-13. Điều kiện vẫn
-**không thoả**, vì đếm lại thì ràng buộc đã đổi chỗ:
+**Nửa sau của câu ấy SAI**, và nó đã bị đẩy lên `main`. Đo lại cùng ngày:
 
-    ratio    15 ky khac nhau · MOI MA chi 2-4 ky   <- agent DOC bang nay
-    balance  34 ky
-    income   34 ky
+    backtest/fundamentals/*_ratio.csv   <- Finance(source="VCI", period="quarter")
+    fundamental_agent                   <- Finance(source="KBS", period="year"), GỌI MẠNG
+    experiment_fundamentals (phép đo IC) <- CHỈ đọc _income.csv + _balance.csv
 
-Câu *"34 kỳ"* đúng cho `balance`/`income` và **sai cho `ratio`**. Nó sống
-19 ngày vì không gác nào đối chiếu con số ấy với **bảng cụ thể** mà
-`fundamental_agent` đọc.
+Chữ `ratio` xuất hiện **0 lần** trong `experiment_fundamentals.py`. Ba
+đường trùng **tên bảng** nhưng khác **nguồn**, khác **độ mịn**, và khác
+cả chỗ lấy. Tôi suy đường này ra đường kia vì thấy cùng chữ `ratio` —
+đúng lỗi 36.
 
-Cùng hình dạng `N_DAY_DU` 596/451 và cờ C5 `True`/`False`: một câu đúng
-về **thứ này** được đọc thành đúng về **thứ kia**.
+Hệ quả thật, đo bằng chính dụng cụ định nghĩa nó: cache giá lùi về
+2018-09 đưa số kỳ dùng được từ **19 lên 31**, tức **điều kiện xem lại ĐÃ
+THOẢ** (ngưỡng 28). Tôi đã dừng sai lý do.
 
-HAI CHIỀU, LUÔN LUÔN
-────────────────────
-Bản đầu của file này chỉ chạy phép phán trên `CLAUDE.md` thật — tức chỉ
-trên đầu vào SẠCH. Đục thử lôi ra ngay: mọi đột biến **nới lỏng** gác đều
-SỐNG, vì nới một phép kiểm ra thì nó vẫn xanh trên dữ liệu sạch.
-
-Nên phần phán được tách thành hàm thuần, và mỗi hàm được thử bằng CẢ đầu
-vào phải-qua LẪN đầu vào phải-chặn.
+File này nay khoá những gì ĐÃ ĐO ĐƯỢC, không khoá một suy luận.
 """
+import ast
 import re
 import sys
 from pathlib import Path
@@ -41,137 +36,108 @@ sys.path.insert(0, str(GOC))
 KHO = GOC / "backtest" / "fundamentals"
 RE_KY = re.compile(r"^\d{4}-Q[1-4]$")
 
-# Tên bảng phải nằm trong CÙNG MỆNH ĐỀ, không phải "đâu đó gần".
-#
-# Bản đầu cho 400 ký tự, và đục thử lôi ra ngay: trả câu 23/08 về dạng
-# không nói bảng nào thì gác VẪN XANH, vì một ghi chú cách đó vài dòng có
-# nhắc chữ `ratio`. Phép kiểm khi ấy đo "có chữ ấy ở gần không", không đo
-# "con số này có được giải thích không".
-#
-# Đo trên bản ngày 11/09/2026: mọi chỗ khai ĐÚNG đều có tên bảng trong
-# vòng **30 ký tự**. Lấy 60 là rộng gấp đôi chỗ cần, vẫn chặt hơn một
-# đoạn văn.
-CUA_SO = 60
 
-# `ratio` 4 kỳ so với `balance` 34 — chênh 8,5 lần. Đòi gấp đôi là một
-# ngưỡng rộng rãi, chỉ để bắt lúc hai bảng thật sự xích lại gần nhau.
-BOI = 2
+def _chuoi_trong(duong: Path) -> set[str]:
+    """Mọi hằng chuỗi trong một file .py, đọc bằng AST.
+
+    AST chứ không `in`: chữ `ratio` nằm trong chú thích của
+    `experiment_fundamentals.py` cả chục lần, mà chú thích không đọc
+    file nào. `CLAUDE.md` 22/08/2026: *gác phải đọc AST, không đọc `in`*.
+    """
+    cay = ast.parse(duong.read_text(encoding="utf-8"))
+    return {n.value for n in ast.walk(cay)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str)}
 
 
-def cho_qua_tai_lieu(src: str) -> list[str]:
-    """PHÉP PHÁN. Trả các chỗ nhắc '34 kỳ' mà KHÔNG nói rõ bảng nào."""
-    thieu = []
-    for m in re.finditer(r"34\s*kỳ", src):
-        quanh = src[max(0, m.start() - CUA_SO):m.end() + CUA_SO]
-        if not re.search(r"`?(ratio|balance|income)`?", quanh):
-            thieu.append(src[max(0, m.start() - 60):m.end() + 60])
-    return thieu
+def test_PHEP_DO_IC_khong_doc_bang_ratio():
+    """Khoá đúng cái tôi đã suy sai.
+
+    `experiment_fundamentals.py` dựng đặc trưng từ `_income.csv` và
+    `_balance.csv`. Nó KHÔNG đọc `_ratio.csv`. Số kỳ dùng được của phép
+    đo IC vì thế do hai bảng ấy quyết định — chúng có 34 kỳ, không phải
+    2–4 như `ratio`.
+    """
+    f = GOC / "experiment_fundamentals.py"
+    chuoi = _chuoi_trong(f)
+    doc_ratio = [s for s in chuoi if "_ratio" in s or s == "ratio"]
+    assert not doc_ratio, (
+        f"`experiment_fundamentals.py` nay CÓ nhắc tới bảng ratio trong một "
+        f"hằng chuỗi: {doc_ratio}\nNếu nó thật sự đọc bảng ấy thì số kỳ dùng "
+        f"được đổi hẳn — đọc lại `docs/STATE.md` BƯỚC 53 trước khi sửa phép "
+        f"kiểm này.")
+    assert any("_income" in s for s in chuoi), "phải đọc _income.csv"
+    assert any("_balance" in s for s in chuoi), "phải đọc _balance.csv"
+    print("PASS  phép đo IC đọc income+balance, KHÔNG đọc ratio")
 
 
-def hai_bang_con_chenh_xa(ratio: dict[str, int],
-                          balance: dict[str, int]) -> bool:
-    """PHÉP PHÁN. `ratio` còn ít kỳ hơn `balance` nhiều lần không?"""
-    chung = sorted(set(ratio) & set(balance))
-    if not chung:
-        return False
-    tv_r = sorted(ratio[m] for m in chung)[len(chung) // 2]
-    tv_b = sorted(balance[m] for m in chung)[len(chung) // 2]
-    return tv_r * BOI < tv_b
+def test_AGENT_CO_BAN_va_CACHE_dung_hai_NGUON_khac_nhau():
+    """Hai đường cùng tên bảng `ratio` mà khác nguồn và khác độ mịn.
+
+    Trùng tên là chỗ suy sai. Khoá lại để lần sau không ai suy nữa.
+    """
+    agent = _chuoi_trong(GOC / "fundamental_agent.py")
+    fetch = _chuoi_trong(GOC / "fetch_fundamentals.py")
+
+    assert "KBS" in agent and "year" in agent, (
+        f"`fundamental_agent` phải đọc KBS/year — nay thấy nguồn khác. "
+        f"Nếu đổi thật thì nó bắt đầu dùng chung đường với cache, và "
+        f"`docs/STATE.md` BƯỚC 53 phải được đọc lại.")
+    assert "VCI" in fetch and "quarter" in fetch, (
+        "`fetch_fundamentals` phải tải VCI/quarter — nay thấy khác.")
+    print("PASS  agent đọc KBS/year · cache tải VCI/quarter — hai đường khác nhau")
 
 
-def _so_ky(bang: str) -> dict[str, int]:
-    """{mã: số kỳ} cho một bảng. Rỗng nếu kho chưa có."""
-    import pandas as pd
-    ra = {}
-    for f in sorted(KHO.glob(f"*_{bang}.csv")):
-        try:
-            cols = pd.read_csv(f, nrows=0).columns
-        except Exception:
-            continue
-        ra[f.stem.rsplit("_", 1)[0]] = sum(1 for c in cols if RE_KY.match(c))
-    return ra
+def test_CACHE_ratio_it_ky_la_do_NGUON_cat_chu_khong_phai_cong_cu_hong():
+    """Đo 11/09/2026: hỏi thẳng nguồn, `ratio` trả 4 kỳ còn hai bảng kia 34.
 
-
-# ─────────────── phép phán tự chứng minh, HAI CHIỀU ───────────────
-
-def test_MAY_DO_phep_phan_tai_lieu_bat_duoc_ca_hai_chieu():
-    """Không có phép thử này thì mọi đột biến NỚI LỎNG đều sống sót."""
-    XAU = [
-        ("nguyên văn câu 23/08",
-         "Cache BCTC nay là 71 mã × 34 kỳ (hạng silver), nhưng cache GIÁ "
-         "chỉ lùi tới 2021-10 nên còn 19 kỳ dùng được."),
-        ("tên bảng ở XA, ngoài mệnh đề",
-         "Cache BCTC nay là 71 mã × 34 kỳ (hạng silver)." + " x" * 60 +
-         " Bảng `ratio` thì khác."),
-        ("bảng bất đối xứng không nói bảng",
-         "| Máy local | silver | không giới hạn (đo được 34 kỳ) | 300/phút |"),
-    ]
-    TOT = [
-        ("nói rõ ngay sau con số",
-         "Cache BCTC nay là 71 mã × 34 kỳ **ở bảng `balance` và `income`**."),
-        ("nói rõ ngay trước con số",
-         "Bảng `balance` và `income` đo được 34 kỳ."),
-        ("không nhắc con số thì không phán",
-         "Bảng nào cũng có ít kỳ hơn mong đợi."),
-    ]
-    for ten, src in XAU:
-        assert cho_qua_tai_lieu(src), f"BỎ SÓT: {ten}\n  {src[:90]!r}"
-    for ten, src in TOT:
-        assert not cho_qua_tai_lieu(src), f"KÊU OAN: {ten}\n  {src[:90]!r}"
-    print(f"PASS  phép phán tài liệu: chặn {len(XAU)}/{len(XAU)} xấu, "
-          f"tha {len(TOT)}/{len(TOT)} tốt")
-
-
-def test_MAY_DO_phep_phan_so_ky_bat_duoc_ca_hai_chieu():
-    """Cùng lý do: một phép so chỉ chạy trên dữ liệu thật là phép so mù."""
-    # con chenh xa -> True
-    assert hai_bang_con_chenh_xa({"A": 4, "B": 4}, {"A": 34, "B": 34})
-    assert hai_bang_con_chenh_xa({"A": 2, "B": 4, "C": 3}, {"A": 34, "B": 33, "C": 34})
-    # da xich lai gan -> False, va do la luc tai lieu phai doc lai
-    assert not hai_bang_con_chenh_xa({"A": 17, "B": 18}, {"A": 34, "B": 34})
-    assert not hai_bang_con_chenh_xa({"A": 34, "B": 34}, {"A": 34, "B": 34})
-    assert not hai_bang_con_chenh_xa({}, {})
-    print("PASS  phép phán số kỳ: bắt được cả 'còn chênh xa' lẫn 'đã gần'")
-
-
-# ───────────────────── áp lên dữ liệu THẬT ─────────────────────
-
-def test_bang_RATIO_va_BALANCE_khong_duoc_gop_lam_mot():
-    """Hai bảng có số kỳ khác hẳn nhau — đó là SỰ THẬT, không phải lỗi.
-
-    Ngày nào hai bên xích lại gần nhau thì câu chuyện đổi, và tài liệu
-    phải được đọc lại — nên test đỏ khi ấy là đúng việc nó phải làm.
+    Đây là phép kiểm trên ĐĨA, không gọi mạng. Nó khoá điều đã đo: cache
+    khớp đúng thứ nguồn cho, nên `fetch_fundamentals.py` không hỏng.
     """
     if not KHO.is_dir():
         pytest.skip("chưa có cache BCTC trên máy này (CI không tải)")
-    r, b = _so_ky("ratio"), _so_ky("balance")
+
+    def so_ky(bang: str) -> list[int]:
+        import pandas as pd
+        ra = []
+        for f in sorted(KHO.glob(f"*_{bang}.csv")):
+            try:
+                ra.append(sum(1 for c in pd.read_csv(f, nrows=0).columns
+                              if RE_KY.match(c)))
+            except Exception:
+                pass
+        return ra
+
+    r, b = so_ky("ratio"), so_ky("balance")
     if not r or not b:
         pytest.skip("cache BCTC rỗng")
-    assert hai_bang_con_chenh_xa(r, b), (
-        "`ratio` và `balance` nay KHÔNG còn chênh nhau quá "
-        f"{BOI} lần theo trung vị.\n"
-        "Đó có thể là tin tốt (cache `ratio` đã đầy hơn), nhưng khi đó ghi "
-        "chú trong CLAUDE.md về điều kiện xem lại agent cơ bản đã LẠC HẬU. "
-        "Đọc `docs/STATE.md` BƯỚC 52 rồi cập nhật nó trước khi đụng vào "
-        "phép kiểm này.")
-    chung = sorted(set(r) & set(b))
-    tv_r = sorted(r[m] for m in chung)[len(chung) // 2]
-    tv_b = sorted(b[m] for m in chung)[len(chung) // 2]
-    print(f"PASS  `ratio` trung vị {tv_r} kỳ · `balance` trung vị {tv_b} kỳ "
-          f"trên {len(chung)} mã")
+    tv_r = sorted(r)[len(r) // 2]
+    tv_b = sorted(b)[len(b) // 2]
+    assert tv_r * 2 < tv_b, (
+        f"`ratio` trung vị {tv_r} kỳ, `balance` trung vị {tv_b} — hai bảng "
+        f"nay KHÔNG còn chênh nhau quá hai lần.\nNguồn có thể đã mở rộng "
+        f"`ratio`. Đọc `docs/STATE.md` BƯỚC 53 rồi cập nhật ghi chú trước "
+        f"khi đụng phép kiểm này.")
+    print(f"PASS  `ratio` trung vị {tv_r} kỳ · `balance` {tv_b} kỳ — "
+          f"nguồn cắt, không phải công cụ hỏng")
 
 
 def test_CLAUDE_md_khong_duoc_noi_34_ky_ma_KHONG_NOI_BANG_NAO():
-    """Con số kỳ BCTC phải đi kèm tên bảng. Đây là gác TÀI LIỆU.
+    """Con số kỳ BCTC phải đi kèm tên bảng — phần ĐÚNG của lỗi 33.
 
-    Gác dạng văn bản hợp lệ ở đây: `CLAUDE.md` là văn bản, và điều cần
-    khoá là **một con số có nói rõ nó nói về cái gì hay không**.
+    Nửa sai của lỗi 33 là hệ quả tôi suy ra; nửa đúng là chính con số:
+    *"34 kỳ"* không nói nó đếm bảng nào, nên nó bị đọc thành bảng khác.
+    Phần ấy giữ nguyên.
     """
-    thieu = cho_qua_tai_lieu((GOC / "CLAUDE.md").read_text(encoding="utf-8"))
+    src = (GOC / "CLAUDE.md").read_text(encoding="utf-8")
+    # Ten bang phai nam trong CUNG MENH DE. Do 11/09/2026: moi cho khai
+    # dung deu co ten bang trong vong 30 ky tu. Lay 60 la rong gap doi.
+    CUA_SO = 60
+    thieu = [src[max(0, m.start() - 60):m.end() + 60]
+             for m in re.finditer(r"34\s*kỳ", src)
+             if not re.search(r"`?(ratio|balance|income)`?",
+                              src[max(0, m.start() - CUA_SO):m.end() + CUA_SO])]
     assert not thieu, (
         "CLAUDE.md nhắc '34 kỳ' mà không nói rõ BẢNG NÀO trong cùng mệnh "
         "đề:\n" + "\n".join(f"  …{t}…" for t in thieu) +
-        "\n`ratio` có 2–4 kỳ mỗi mã, `balance`/`income` có 34. Một con số "
-        "không nói rõ nó nói về bảng nào sẽ bị đọc thành bảng kia — đúng "
-        "hình dạng N_DAY_DU 596/451.")
+        "\n`ratio` có 2–4 kỳ mỗi mã, `balance`/`income` có 34.")
     print("PASS  mọi chỗ nhắc '34 kỳ' đều nói rõ bảng nào")
