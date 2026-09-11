@@ -46,7 +46,11 @@ là lỗi sẽ tái diễn.
 
 | 28 | khẳng định *"PR này chưa chạm mã nguồn"* mà **không chạy `git diff --stat`** — nhánh tạo chồng lên nhánh khác nên mang theo commit lạ | cổng thứ năm: 916 so với 918 | ✅ | `tools/kiem_so_test_khong_giam.py` — số test là dấu vân tay của NỘI DUNG nhánh |
 
-**Mười bảy trên hai mươi tám máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 29 | một luật của cửa khai nguồn là *"quan sát về môi trường"* — không ngày, không lệnh — và lời khai ấy **sai**: lệnh nó cấm chạy trót lọt, mã thoát 0 | tự đo lại trên hai nhánh ném đi, sau 4 ngày | ✅ | `test_moi_luat_deu_khai_NGUON` gỡ cụm "môi trường" khỏi danh sách nguồn hợp lệ — câu về môi trường là PHÉP ĐO, phải có ngày |
+| 30 | ba luật của cửa khớp **sự xuất hiện** của một chữ thay vì **vai trò** của nó; một luật tên là `…-file-repo` mà biểu thức **chưa bao giờ nhìn đường dẫn** | đếm được 8 chặn NHẦM / 3 chặn ĐÚNG trong hai ngày | ✅ | `cua_bash_an_toan.boc_va_tach()` + `DIEU_KIEN_THEM` + bảng TỐT/XẤU hai chiều |
+| 31 | một phép kiểm đã ký **không thể đỏ**: nó so cache TRƯỚC với SAU khi kéo, mà phép hợp nhất giữ dòng cũ nên hai bên luôn bằng nhau | đo thẳng bản fetch thô trước khi hợp nhất | ⚠️ một phần | quy ước mới: mọi tiêu chí phải nói ra **đầu vào nào làm nó đỏ** |
+
+**Mười chín trên ba mươi mốt máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -527,3 +531,68 @@ một nhánh mang thêm mã sẽ lộ ra dù thân PR nói gì.
 
 Cùng họ với lỗi 24 và 25: điều gây hại không phải việc làm sai, mà là việc
 không được hỏi — ở đây là một câu hỏi rẻ tới mức không ai nghĩ phải hỏi.
+
+
+### Lỗi 29 — một luật sống bằng lời khai chưa ai đo
+
+`cua_bash_an_toan` có một luật cấm xoá nhiều nhánh trong một lệnh — tên
+nó viết trần ở đây là xoa-nhieu-nhanh, **không** đặt trong nháy ngược,
+vì nó đã bị gỡ và một cái tên đã chết thì không được viết như một địa chỉ
+còn sống (`docs/HANDOFF.md` mục 4). Luật ấy khai nguồn là *"quan sát về
+môi trường: lệnh dạng này bị chặn ở đây"*. Không ngày, không lệnh, không
+tra lại được.
+
+Đo 11/09/2026 trên hai nhánh ném đi: `git push origin --delete a b` chạy
+**trót lọt, mã thoát 0**, xoá được cả hai.
+
+Luật bị **gỡ**, không phải sửa. Một luật không có nguồn hợp lệ thì không
+có gì để sửa.
+
+**Chỗ để lọt, và đó mới là phần đáng vá:** `test_moi_luat_deu_khai_NGUON`
+chấp nhận cụm *"môi trường"* ngang hàng với một file quy ước. Nhưng quy
+ước thì nằm trong file đọc được, còn **một câu về môi trường là một phép
+đo** — nó phải có ngày. Cụm ấy đã bị gỡ khỏi danh sách.
+
+Cùng họ với lỗi 17, và lần này ở trong chính công cụ dựng ra để chặn lỗi.
+
+### Lỗi 30 — cửa đọc SỰ XUẤT HIỆN, không đọc VAI TRÒ
+
+`CLAUDE.md` ghi từ 22/08/2026: *"Gác phải đọc AST, không đọc `in`"* — viết
+cho test Python, **chưa bao giờ áp cho cửa Bash**.
+
+Đếm hai ngày 10–11/09/2026: **8 chặn NHẦM / 3 chặn ĐÚNG**. Ba hình dạng:
+
+- `git push -u origin nhanh && git branch -a | grep main`
+  → `main` là đối số của `grep`, không phải đích của `git push`
+- `gh pr create --body "... rm paper_trades.db ..."`
+  → văn bản MÔ TẢ một lệnh xấu, không phải lệnh xấu
+- `cat > /c/Users/…/Temp/x.py <<'EOF'`
+  → ghi ra TEMP; luật tên `heredoc-ghi-file-repo` mà **biểu thức chưa
+  bao giờ nhìn đường dẫn**
+
+Cái thứ ba đáng đọc kỹ nhất: **tên luật mô tả đúng thứ nó phải làm, và
+mã thì không làm thứ đó** — suốt từ ngày nó ra đời. Không ai đọc lại tên
+để đối chiếu với biểu thức.
+
+**Quy tắc rút ra: tên một luật là một lời hứa. Đọc lại nó và hỏi biểu
+thức có giữ lời không.**
+
+### Lỗi 31 — một phép kiểm đã ký KHÔNG THỂ ĐỎ
+
+Tiêu chí ĐO 4, phép kiểm 2: *"so từng dòng vùng chồng lấn, TRƯỚC và SAU
+khi kéo; lệch một dòng là DỪNG"*.
+
+Nhưng `backtest/data.extend_history()` hợp nhất bằng
+`drop_duplicates(subset="time", keep="first")` với cache đứng **trước** —
+dòng cũ luôn thắng. So trước-với-sau thì **luôn bằng nhau**, bất kể nguồn
+trả về gì. Phép kiểm không thể đỏ.
+
+Rủi ro nó sinh ra để bắt thì có thật: đo thẳng bản fetch thô ngày
+11/09/2026, hệ số điều chỉnh của nguồn đã đổi tới **−1,2%** so với cache
+trên 1.172/1.217 phiên của VNM.
+
+**Quy tắc rút ra: một tiêu chí phải nói ra ĐẦU VÀO NÀO LÀM NÓ ĐỎ.** Viết
+xong thì hỏi ngược: "cái gì phải xảy ra để dòng này chặn tôi?" Không trả
+lời được thì nó là trang trí.
+
+Cùng họ với lỗi 24: một câu đúng về mặt chữ, đặt sai chỗ nó cần đứng.

@@ -9394,3 +9394,110 @@ khác ba lượt đầu, và bảng hỏng **âm thầm**. Đã đóng #85 bằn
 GitHub, không đụng cây làm việc.
 
 Bảng lỗi: **28 dòng, 17 máy chặn được**.
+
+
+---
+
+## BƯỚC 51 — CỬA ĐỌC SỰ XUẤT HIỆN, KHÔNG ĐỌC CẤU TRÚC (11/09/2026)
+
+`CLAUDE.md` ghi từ **22/08/2026**: *"Gác phải đọc AST, không đọc `in`"*.
+Câu ấy viết cho test Python, và **chưa bao giờ được áp cho chính cửa
+Bash** — nơi mỗi luật là một biểu thức chính quy quét cả chuỗi lệnh.
+
+### Cán cân đã lật
+
+Đếm hai ngày 10–11/09/2026: **8 lần chặn NHẦM / 3 lần chặn ĐÚNG**.
+
+| luật | chặn nhầm vì | hình dạng thật |
+|---|---|---|
+| `pytest-qua-ong` | `[^\|]*` cho cả `>` lẫn `;` nằm giữa | đã siết 10/09 |
+| `push-thang-main` | `[^\n]*` vượt qua `&&` và `\|` | `main` là đối số của `grep` ở lệnh SAU |
+| `heredoc-ghi-file-repo` | biểu thức **chưa bao giờ nhìn đường dẫn** | ghi ra `AppData/Local/Temp`, không phải repo |
+
+Cả ba cùng một gốc: chúng khớp **sự xuất hiện** của một chữ, không khớp
+**vai trò** của nó trong câu lệnh.
+
+### Đường sửa: `boc_va_tach()`
+
+Shell không có AST sẵn dùng, nên đây là mức tương đương gần nhất — biết
+trạng thái nháy, biết thân heredoc, biết dấu ngăn lệnh:
+
+```
+noi dung trong nhay        -> boc thanh khoang trang
+than heredoc (ca hai dang) -> boc
+tach o  ;  &  &&  ||  \n
+KHONG tach o  |
+```
+
+Dòng cuối là một **quyết định**, không phải sơ sót: `pytest … | tail` là
+một hình dạng cần nhìn trọn vẹn. Tách ở dấu ống là giết mất luật canh nó.
+
+Bóc thân heredoc ở **cả hai** dạng, có và không trích dẫn — khác
+`kiem_cu_phap_311.doan_nhung()`, vốn chỉ nhận dạng CÓ trích dẫn. Lý do
+ngược nhau: bên kia đi KIỂM phần thân nên phải lấy đúng thứ chạy thật;
+bên này đi VỨT phần thân nên dạng nào cũng phải vứt.
+
+Ba luật **không** đọc bản đã bóc, và mỗi luật có lý do riêng:
+
+| luật | vì sao đọc bản THÔ |
+|---|---|
+| `hai-heredoc` | hai dấu mở ở hai lệnh con khác nhau vẫn là cùng một lỗi |
+| `heredoc-ghi-file-repo` | dấu `<<` và đích `>` cách nhau qua một dòng mới |
+| `backtick-trong-python-c` | backtick NẰM TRONG nháy kép chính là chủ đề |
+
+### Đục thử: 7/9 chết ở lượt đầu, và hai phát sống sót đều chỉ vào TEST
+
+Hai phát sống: *"không tách ở `&&`"* và *"không tách ở `;`"*.
+
+- Gỡ nhánh `&&` mà cửa vẫn đúng, vì ký tự `&` lẻ đã nằm trong tập dấu
+  ngăn đơn — hai đường làm cùng một việc, nên phép kiểm không phân biệt
+  được. Thêm một ca `||` là phân biệt được ngay: `|` cố ý KHÔNG phải dấu
+  ngăn nên `||` không có đường vòng nào.
+- Ca `;` của bản đầu để chữ `main` **trong nháy**, nên phép bóc đã cứu
+  nó trước khi `;` kịp có vai trò. Viết lại với chữ để trần.
+
+Cả hai đều là lỗ hổng của **phép kiểm**, không phải của mã. Đó đúng là
+thứ đục thử sinh ra để tìm. Sau khi sửa: **9/9 chết**.
+
+### Luật `xoa-nhieu-nhanh` bị GỠ — lời khai của nó sai
+
+Nó khai nguồn là *"quan sát về môi trường: lệnh dạng này bị chặn ở đây"*.
+Không ngày, không lệnh, không ai tra lại được.
+
+Đo 11/09/2026 trên hai nhánh ném đi (`tam-thu-a`, `tam-thu-b`, tạo từ
+`main` rồi xoá ngay):
+
+```
+git push origin --delete tam-thu-a tam-thu-b
+ - [deleted]  tam-thu-a
+ - [deleted]  tam-thu-b
+ma thoat: 0
+```
+
+Chạy trót lọt. **Luật không có nguồn hợp lệ nào nên nó bị gỡ**, không
+phải sửa biểu thức.
+
+Và chỗ để lọt được vá: `test_moi_luat_deu_khai_NGUON` từng chấp nhận cụm
+*"môi trường"* như một nguồn hợp lệ, ngang với một file quy ước. Nhưng
+một câu về môi trường là một **phép đo**, nên nó phải có ngày. Cụm ấy đã
+bị gỡ khỏi danh sách được chấp nhận.
+
+### Lỗi 17 sống trong thông báo của chính cửa
+
+`push-thang-main` nêu hai lý do, **cả hai đã bị đo và bác ngày
+08/09/2026**: `main` không có branch protection (API trả 404), và `gh` có
+cài (2.100.0). Chúng sống trong thông báo ấy thêm ba ngày.
+
+Một cửa nêu lý do sai vẫn **chặn đúng**, nên không phép kiểm nào đỏ. Thứ
+hỏng là người đọc thông báo rồi mang lý do sai đi chỗ khác.
+
+Nay thông báo nói lý do thật — `kiem-dinh.yml` chạy trên cả `push`, nên
+đẩy thẳng thì CI chạy SAU khi mã đã vào `main` — và **giữ lại** hai lý do
+cũ kèm dấu đã-bác, đúng quy ước `docs/HANDOFF.md` mục 4.
+
+> **Bản ĐẦU của phép kiểm mới cấm tuyệt đối cụm bị bác, và nó đỏ ngay
+> trên thông báo đã sửa ĐÚNG.** Phép kiểm sai so với chủ đích của chính
+> nó. Nếu lúc đó sửa mã cho hết đỏ thì sẽ xoá mất đúng phần đáng giữ —
+> cái bẫy quen thuộc, lần này bị bắt tại chỗ.
+
+Bảng lỗi: **31 dòng, 19 máy chặn được.**
