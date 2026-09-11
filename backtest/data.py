@@ -5,6 +5,7 @@ Backtest phải tất định — cùng dữ liệu vào, cùng kết quả ra.
 """
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 
@@ -16,7 +17,26 @@ import pandas as pd
 # 20/08/2026: 69% rổ bị BLOCK vì STALE mà không có đường nào làm mới.
 from data_quality import STALE_WARN_DAYS
 
-CACHE_DIR = Path(__file__).parent / "cache"
+_CACHE_MAC_DINH = Path(__file__).parent / "cache"
+
+# Trỏ cache sang chỗ khác bằng BIẾN MÔI TRƯỜNG, đọc lúc import.
+#
+# VÌ SAO CẦN, và vì sao là biến môi trường chứ không phải tham số:
+# `tools/do1_chi_phi_thuc_thi.py` chạy mỗi lượt trong MỘT TIẾN TRÌNH
+# RIÊNG. Gán một biến toàn cục ở tiến trình cha không đi theo sang con;
+# biến môi trường thì có.
+#
+# Thêm 11/09/2026 cho ĐO 4. Người dùng chốt: kéo cache về 2018 vào một
+# thư mục RIÊNG, giữ `backtest/cache/` nguyên vẹn làm bản neo tái lập
+# cho mọi số ĐO 1/2/3 đã công bố. Lý do không hợp nhất vào cache cũ:
+# nguồn đã đổi hệ số điều chỉnh (đo được tới −1,2% trên 1.172/1.217
+# phiên của VNM), nên hợp nhất sẽ để vùng phải mang hệ số cũ và vùng
+# trái mang hệ số hôm nay — một VẾT SẸO ở chỗ nối. Xem lỗi 31.
+#
+# KHÔNG đặt biến thì đường dẫn y hệt trước, tới từng ký tự — khoá bởi
+# `tests/test_cache_tro_duoc.py`. Đây là thay đổi DỤNG CỤ, không phải
+# thay đổi số liệu.
+CACHE_DIR = Path(os.environ.get("VIBE_CACHE_DIR", "") or _CACHE_MAC_DINH)
 
 # Ảnh chụp rổ VN30 (cập nhật 08/2026). Rổ VN30 được HOSE cơ cấu định kỳ,
 # nên đây là danh sách tham chiếu — dùng --symbols để chỉ định rổ khác.

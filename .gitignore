@@ -19,6 +19,10 @@ __pycache__/
 
 # Backtest: cache du lieu va ket qua chay
 backtest/cache/
+# Cache tro bang VIBE_CACHE_DIR — DO 4 dung backtest/cache_2018/.
+# Mau `cache*` de mot cache moi khong bao gio lot vao commit vi ai do
+# quen them dong. Cung ly do "khong commit trang thai chay".
+backtest/cache*/
 backtest/results/
 
 # Cache nen noi phien — tai lai duoc tu nguon, khong phai ma nguon.
