@@ -1,0 +1,196 @@
+{
+  "_ghi_chu": "Phân lớp và TUỔI THỌ của từng lỗi trong bảng `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`. Tách khỏi bảng có chủ đích: bảng là thứ NGƯỜI đọc, file này là thứ MÁY đọc. Sửa 34 dòng markdown là đúng loại thao tác đã sinh ra lỗi 1-3.",
+  "_vi_sao_can": "Bảng lỗi hỏi 'máy chặn được không' và KHÔNG hỏi hai điều quyết định: lỗi thuộc LỚP nào, và nó SỐNG BAO LÂU trước khi bị bắt. Thiếu hai cột ấy thì mỗi lần muốn biết quy trình có khoẻ lên không, phải dựng lại phân tích từ đầu — đúng lỗi 'không có lệnh thì không có số', lần này áp lên chính bảng lỗi.",
+  "_doc_bang": "./.venv/Scripts/python.exe tools/doc_bang_loi.py",
+  "_do_luc": "2026-09-11",
+  "_lop": {
+    "thao-tac": "Lỗi THAO TÁC: neo vá sai, hai heredoc một lệnh, ghi đè file, sửa file khi lượt chạy đang bay. Lớp sinh ra skill này.",
+    "cua-chet": "Luật ĐÃ CÓ và khớp chính xác, nhưng cửa chưa được đăng ký nên không chạy. Lỗi hạ tầng, không phải lỗi suy nghĩ.",
+    "gac-hong": "Chính cái GÁC vừa dựng bị hỏng: canh sai chỗ, mù với ca của nó, hoặc không thể đỏ. Lớp này tỷ lệ với tốc độ XÂY.",
+    "chua-do": "Một khẳng định phát ra mà chưa có lệnh nào đứng sau, hoặc một phép đo bị đọc rộng hơn phạm vi nó có.",
+    "ky-luat": "Kỷ luật đọc và kỷ luật số: không tìm lời giải sẵn có, ước lượng không gọi tên là ước lượng."
+  },
+  "_nguon_tuoi": {
+    "git": "đo bằng git — ngày commit sinh ra lỗi so với ngày phát hiện",
+    "bang": "đọc từ chính dòng bảng, nơi nó đã ghi sẵn khoảng thời gian",
+    "suy-tu-bang": "suy từ cột 'bắt bởi' của bảng (vd 'CI đỏ', 'đục thử ngay') — KHÔNG phải phép đo, chỉ là đọc lại thứ đã ghi",
+    "chua-do": "chưa ai đo, và không được đoán"
+  },
+  "loi": {
+    "1": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "2": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "3": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "4": {
+      "lop": "chua-do",
+      "song_ngay": null,
+      "nguon": "chua-do"
+    },
+    "5": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "6": {
+      "lop": "ky-luat",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "7": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "8": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "9": {
+      "lop": "ky-luat",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "10": {
+      "lop": "cua-chet",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "11": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "12": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "13": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "14": {
+      "lop": "cua-chet",
+      "song_ngay": 1,
+      "nguon": "bang"
+    },
+    "15": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "bang"
+    },
+    "16": {
+      "lop": "chua-do",
+      "song_ngay": 3,
+      "nguon": "bang"
+    },
+    "17": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "bang"
+    },
+    "18": {
+      "lop": "cua-chet",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "19": {
+      "lop": "thao-tac",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "20": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "21": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "22": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "bang"
+    },
+    "23": {
+      "lop": "cua-chet",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "24": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "25": {
+      "lop": "chua-do",
+      "song_ngay": 3,
+      "nguon": "bang"
+    },
+    "26": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "27": {
+      "lop": "chua-do",
+      "song_ngay": 2,
+      "nguon": "bang"
+    },
+    "28": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "suy-tu-bang"
+    },
+    "29": {
+      "lop": "chua-do",
+      "song_ngay": 4,
+      "nguon": "git"
+    },
+    "30": {
+      "lop": "gac-hong",
+      "song_ngay": 4,
+      "nguon": "git"
+    },
+    "31": {
+      "lop": "gac-hong",
+      "song_ngay": 1,
+      "nguon": "git"
+    },
+    "32": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "git"
+    },
+    "33": {
+      "lop": "chua-do",
+      "song_ngay": 16,
+      "nguon": "git"
+    },
+    "34": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "git"
+    },
+    "35": {
+      "lop": "chua-do",
+      "song_ngay": 3,
+      "nguon": "git"
+    }
+  }
+}

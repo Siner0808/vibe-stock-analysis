@@ -6,6 +6,23 @@
 Cột "bắt bởi" quan trọng ngang cột "lỗi": lỗi bắt được **bằng tình cờ**
 là lỗi sẽ tái diễn.
 
+> **Đọc bảng này thành SỐ:**
+>
+> ```bash
+> ./.venv/Scripts/python.exe tools/doc_bang_loi.py
+> ```
+>
+> Bảng không có cột **lớp** và cột **tuổi thọ** — chúng nằm ở
+> `docs/loi-phan-lop.json`, tách ra vì sửa 34 dòng markdown là đúng loại
+> thao tác đã sinh ra lỗi 1–3. Công cụ ghép hai bên rồi in ra: lớp nào
+> còn sinh lỗi mới, một lỗi sống bao lâu trước khi bị bắt, và con số nào
+> có lệnh đứng sau.
+>
+> **Số lỗi mỗi ngày KHÔNG phải thước** — nó tăng khi ta đào kỹ hơn. Đo
+> 11/09/2026: bốn trên sáu lỗi tìm ra hôm ấy đã nằm sẵn từ 1 tới 16 ngày
+> trước. Hai thước thật là **lớp nào đã im** và **tuổi thọ có ngắn lại
+> không**.
+
 ---
 
 ## Rà phiên 07/09/2026 — 11 lỗi trong một phiên
@@ -52,10 +69,12 @@ là lỗi sẽ tái diễn.
 
 | 32 | quy một đường dẫn về quy ước của HĐH **này** rồi hỏi `pathlib` của HĐH **kia** — `C:/Users/…` trên Linux không có `/` đầu nên bị đọc là TƯƠNG ĐỐI, và cửa chặn nhầm đúng cái mẫu nó vừa được sửa để tha | **CI đỏ ở lượt đầu, năm cổng tại máy đều xanh** | ✅ | `test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh` — cấp cả bốn quy ước đường dẫn, không phụ thuộc nơi chạy |
 
-| 33 | một con số về "34 kỳ BCTC" **không nói nó nói về BẢNG NÀO** — đúng cho `balance`/`income`, sai cho `ratio` là bảng agent thật sự đọc (2–4 kỳ) | đếm lại khi điều kiện xem lại tưởng đã thoả, sau 19 ngày | ✅ | `tests/test_cache_bctc_du_ky.py` — mọi chỗ nhắc "34 kỳ" phải nói rõ bảng trong CÙNG mệnh đề |
+| 33 | một con số về "34 kỳ BCTC" **không nói nó nói về BẢNG NÀO** — đúng cho `balance`/`income`, sai cho `ratio` là bảng agent thật sự đọc (2–4 kỳ) | đếm lại khi điều kiện xem lại tưởng đã thoả, sau 16 ngày | ✅ | `tests/test_cache_bctc_du_ky.py` — mọi chỗ nhắc "34 kỳ" phải nói rõ bảng trong CÙNG mệnh đề |
 | 34 | gác mới chỉ chạy trên dữ liệu SẠCH, nên **mọi đột biến NỚI LỎNG nó đều sống sót** — nới một phép kiểm ra thì nó vẫn xanh trên đầu vào sạch | đục thử: 3/6 sống, cả ba đều là phép nới | ✅ | tách phép phán thành hàm thuần rồi thử bằng CẢ đầu vào phải-qua LẪN phải-chặn |
 
-**Hai mươi hai trên ba mươi tư máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 35 | dòng tự khai ở cuối bảng này được **cộng dồn** mỗi lần thêm một lỗi thay vì **đếm lại** — lệch +1 suốt ba ngày, qua hơn mười commit | `tools/doc_bang_loi.py` ngay lượt chạy đầu tiên | ✅ | chính công cụ ấy: nó đọc số viết bằng chữ tiếng Việt rồi đối chiếu với số đếm được, mã thoát 1 khi lệch |
+
+**Hai mươi hai trên ba mươi lăm máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -641,7 +660,12 @@ income   34 ky
 ```
 
 Câu *"34 kỳ"* đúng cho hai bảng và **sai cho bảng thứ ba** — bảng duy
-nhất được đọc. Nó sống 19 ngày.
+nhất được đọc. Nó sống **16 ngày**.
+
+> Bản đầu của dòng này ghi *"19 ngày"*, lấy từ ngày PHÉP ĐO chạy
+> (23/08). Câu chữ vào `CLAUDE.md` ngày **26/08** (`ec9be2f`), nên tuổi
+> thọ của LỖI là 16. Sửa 11/09/2026, khi cột tuổi thọ buộc phải nêu ra
+> ngày sinh của nó — một con số bắt được một con số.
 
 **Ràng buộc đã ĐỔI CHỖ mà không ai thấy:** trước là cache giá, nay là
 cache `ratio`. Một điều kiện viết theo ràng buộc cũ sẽ báo "đã thoả" ở
@@ -679,3 +703,37 @@ Sau khi sửa: **7/7 đột biến đỏ**.
 **Quy tắc rút ra: một gác chỉ được thử trên đầu vào thật là một gác chưa
 được thử.** Đầu vào thật hôm nay sạch; nó không nói gì về việc gác có
 chặn được cái bẩn hay không.
+
+
+### Lỗi 35 — con số tổng của chính bảng lỗi đã trôi ba ngày
+
+Cuối bảng có một câu dạng *"Hai mươi mốt trên ba mươi tư máy chặn được."*
+Viết bằng **chữ**, nên không máy nào từng đối chiếu nó với bảng.
+
+`tools/doc_bang_loi.py` đếm ngay lượt chạy đầu tiên: bảng khai **22**,
+đếm được **21**. Dựng lại từng bản trong git:
+
+```
+d019f9f  07/09  "Tam tren muoi ba"            that  8/13   dung
+910dcf7  08/09  "Tam tren muoi bon"           that  7/14   LECH tu day
+40820cf  08/09  "Chin tren muoi lam"          that  8/15
+5615f09  08/09  "Muoi mot tren muoi chin"     that 10/19
+955fc6b  10/09  "Muoi ba tren hai muoi bon"   that 12/24
+HEAD     11/09  "Hai muoi hai tren ba muoi tu" that 21/34
+```
+
+Lệch **đúng +1 suốt ba ngày**, vì con số được **cộng dồn** mỗi lần thêm
+một dòng thay vì **đếm lại**. Một lần cộng sai rồi mọi lần sau kế thừa.
+
+Đúng lớp `chua-do`, và ở chỗ trớ trêu nhất: **bảng đếm lỗi tự nó chứa một
+con số chưa ai đếm.**
+
+Còn một tầng nữa đáng ghi. Lượt chạy đầu của công cụ ra **19/34**, không
+phải 21 — vì nó tách cột bằng `split("|")`, mà hai dòng của bảng viết
+`` `pytest \| tail` `` với dấu ống **đã thoát**. Tách thô cắt nhầm giữa ô
+mô tả, đẩy mọi cột sau sang một bậc. Đó là **lỗi 30 ở một chỗ mới**: đọc
+SỰ XUẤT HIỆN của ký tự `|` thay vì vai trò NGĂN CỘT của nó.
+
+**Quy tắc rút ra: một con số tổng phải do LỆNH sinh ra, không do người
+cộng dồn.** Nếu buộc phải viết nó ra bằng chữ thì phải có phép kiểm đọc
+lại chữ ấy.
