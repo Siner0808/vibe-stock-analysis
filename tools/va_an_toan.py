@@ -145,6 +145,37 @@ def dot_bien(duong, cu: str, moi: str, lenh: list[str],
     return that_bai if mong_doi == "DO" else not that_bai
 
 
+def dot_bien_bo(duong, phat: list[tuple[str, str, str]],
+                lenh: list[str], *, in_ra: bool = True) -> list[str]:
+    """Chạy một BỘ đột biến. Trả danh sách phát SỐNG SÓT — rỗng là đủ đỏ.
+
+    Vì sao tồn tại, và vì sao nó trả SỐNG chứ không trả GIẾT:
+
+    `dot_bien` trả `True` khi đột biến **bị giết**. Ngày 12/09/2026 tôi
+    đọc ngược đúng quy ước ấy trong một script gọi nó, và nó in ra
+    **"0/10 đỏ"** cho một bộ thật ra **10/10 đỏ**. Không ngoại lệ, không
+    cảnh báo — một gác tốt báo cáo thành một gác vô dụng.
+
+    Hàm này trả **danh sách phát sống sót** vì giá trị rỗng là giá trị
+    LÀNH: `if song:` đọc xuôi, và một kết quả khác rỗng luôn nghĩa là có
+    việc phải làm. Đọc ngược một danh sách khó hơn đọc ngược một `bool`.
+
+    `phat` là các bộ ba `(tên, neo_cũ, neo_mới)`.
+    """
+    song: list[str] = []
+    for ten, cu, moi in phat:
+        da_giet = dot_bien(duong, cu, moi, lenh, mo_ta=ten)
+        if not da_giet:
+            song.append(ten)
+        if in_ra:
+            print(f"  {'DO  ' if da_giet else 'SONG'}  {ten}")
+    if in_ra:
+        print(f"\n{len(phat) - len(song)}/{len(phat)} do")
+        if song:
+            print("SONG SOT: " + ", ".join(song))
+    return song
+
+
 def kiem_hoan_tra(duong, goc: bytes) -> None:
     """Nổ nếu file không trở về ĐÚNG TỪNG BYTE như trước khi đục.
 
