@@ -169,3 +169,30 @@ def test_JSON_phan_lop_doc_duoc_va_co_GIAI_THICH_tung_lop():
         assert len(mo_ta) > 15, f"nguồn {ten!r} giải thích quá ngắn"
     print(f"PASS  {len(pl['_lop'])} lớp · {len(pl['_nguon_tuoi'])} nguồn, "
           f"mỗi cái đều có giải thích")
+
+
+def test_CONG_CU_khong_duoc_thoat_0_khi_NGUON_ngoai_tu_vung(monkeypatch,
+                                                            capsys):
+    """Nói "xong" trên dữ liệu không nhất quán là một cổng xanh GIẢ.
+
+    Ngày 12/09/2026 một giá trị `nguon` ngoài từ vựng làm công cụ nổ
+    `KeyError` giữa chừng bảng. Sửa xong thì nó in cảnh báo — nhưng vẫn
+    thoát 0, tức vẫn nói "xong". Gác này khoá cả hai vế: **báo ra tên giá
+    trị lạ** và **mã thoát khác 0**.
+
+    Dùng `monkeypatch` chứ KHÔNG ghi vào file thật: một test ghi đè file
+    repo giữa lượt chạy là đúng hình dạng đã từng xoá mất `do_tre_khop.py`.
+    """
+    that = dbl.doc_phan_lop()
+    ban_la = json.loads(json.dumps(that))
+    mot_loi = next(iter(ban_la["loi"]))
+    ban_la["loi"][mot_loi]["nguon"] = "tu-nghi-ra-tai-cho"
+    monkeypatch.setattr(dbl, "doc_phan_lop", lambda *a, **k: ban_la)
+
+    ma = dbl.main()
+    ra = capsys.readouterr().out
+
+    assert ma != 0, "cong cu thoat 0 tren du lieu khong nhat quan"
+    assert "tu-nghi-ra-tai-cho" in ra, (
+        "cong cu khong goi TEN gia tri la — nguoi doc khong biet sua o dau")
+    print(f"PASS  nguon ngoai tu vung -> ma thoat {ma}, va co goi ten no")

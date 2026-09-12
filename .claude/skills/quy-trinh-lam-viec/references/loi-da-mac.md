@@ -77,7 +77,7 @@ là lỗi sẽ tái diễn.
 | 36 | suy một ĐƯỜNG ĐỌC từ chỗ trùng TÊN BẢNG mà không đọc `source=` và `period=` — ba đường cùng nhắc `ratio` hoá ra khác nguồn, khác độ mịn, khác cả chỗ lấy; kết luận sai đã lên `main` | tự truy tiếp cùng ngày, khi đi đo việc treo | ✅ | `tests/test_cache_bctc_du_ky.py` đọc bằng **AST** rằng phép đo IC không đọc `ratio`, và hai đường kia dùng hai nguồn khác nhau |
 
 | 37 | đọc **ngược quy ước trả về** của `dot_bien` (True = đột biến BỊ GIẾT) trong script gọi nó — báo *"0/10 đỏ"* cho một bộ thật ra **10/10 đỏ**, tức một gác tốt báo cáo thành gác vô dụng | chính con số 0/10 vô lý, cùng phiên | ✅ | `va_an_toan.dot_bien_bo()` giữ quy ước ở MỘT chỗ và trả **danh sách phát sống sót** — rỗng là lành, nên đọc ngược một danh sách khó hơn đọc ngược một `bool` |
-| 38 | viết một phép kiểm dạng `assert "tên" not in <mã nguồn>` rồi **chính docstring giải thích vì sao không đọc tên ấy** làm nó đỏ — đúng cái bẫy `in` mà `CLAUDE.md` đã ghi thành mục riêng | lượt chạy đầu tiên của chính test ấy | ⚠️ một phần | đọc bằng **AST** và bỏ docstring ra (`_chuoi_khong_phai_docstring`); tài liệu hoá cái bẫy KHÔNG ngăn được việc mắc lại nó |
+| 38 | viết một phép kiểm dạng `assert "tên" not in <mã nguồn>` rồi **chính docstring giải thích vì sao không đọc tên ấy** làm nó đỏ — đúng cái bẫy `in` mà `CLAUDE.md` đã ghi thành mục riêng | lượt chạy đầu tiên của chính test ấy | ✅ | `tests/test_gac_van_ban_phai_khai.py` (12/09/2026) chặn đúng hình dạng này trên toàn `tests/`: một khẳng định *mã nguồn chứa định danh* phải kèm `# van-ban-ok: <lý do>`. Mẫu dựng tay trong gác ấy chính là nguyên văn lỗi này |
 
 | 39 | ký một phép đo có **nhóm chứng** mà không kiểm nhóm chứng có tồn tại không — ĐO 5b khai xong mới lộ ra nhóm chứng **rỗng theo cấu tạo**: 53 file chưa bị chạm đều nằm NGOÀI rổ đo | chính dụng cụ tự dừng ở lượt chạy đầu | ⚠️ một phần | dụng cụ trả mã thoát 2 và nói *"một nhóm rỗng → KHÔNG đọc được"*; nhưng phép đếm cỡ nhóm phải chạy **trước khi ký**, và chưa có gác nào bắt điều đó |
 | 40 | nêu một **"chỗ không khớp"** bằng trực giác số học thay vì bằng phép tính — *"9 lệnh khác thì kỳ vọng đã phải dịch nhiều hơn thế"* sai, 9/385 chỉ mang trọng số 2,3%; nó điều hướng tám ngày | bấm máy khi đi đo chính nó | ⚠️ một phần | quy tắc 2 áp cho **lập luận** chứ không riêng kết quả: một câu về độ lớn cũng là một con số, và cũng cần một lệnh |
@@ -85,7 +85,9 @@ là lỗi sẽ tái diễn.
 | 41 | chạy một phép đo **88,8 phút** mà sổ đã có câu trả lời — ĐO 5 dựng lại BƯỚC 25 (04/09), bằng đúng phương pháp worktree BƯỚC 25 đã mô tả; và chính phiên 04/09 vừa đo ra 376/376 vừa viết câu hỏi *"vì sao 385 ≠ 376"* vào `HANDOFF` | NotebookLM, một câu hỏi | ⚠️ một phần | `docs/soat-notebooklm.json` + `tests/test_soat_notebooklm.py` buộc khai một lượt soát chéo cho mỗi phép đo; soát chéo là thứ tìm ra nó |
 | 42 | bỏ qua một **chỉ dẫn thường trực** ghi ở BA nơi (`SKILL.md`, rules toàn cục, bộ nhớ phiên) suốt bốn phép đo liên tiếp — người dùng phải nhắc **hai lần** | người dùng | ✅ | gác trên: một chỉ dẫn không có cơ chế thì nó chỉ là một lời nhắc, và lời nhắc thì trôi |
 
-**Hai mươi lăm trên bốn mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 43 | một **bảng kết cục đã ký KHÔNG phủ kín** không gian đầu vào, và mã đọc nó có một nhánh `else` **dồn im lặng** cả vùng hở vào một ô — 1.250/10.201 điểm lưới của ĐO 6 | tự rà lại dụng cụ của chính mình sau khi đã công bố | ✅ | `tools/do6_tach_chi_phi.py` trả trạng thái thứ năm `NGOAI_BANG`; `tests/test_do6_tach_chi_phi.py` rà **toàn lưới** và bắt mọi ô chỉ được nhận điểm mà mô tả của nó phủ |
+
+**Hai mươi bảy trên bốn mươi ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -964,3 +966,48 @@ không ép phải soát; nó ép phải **khai** đã soát hay chưa. Cùng cơ
 
 Và nó **không** bắt được việc soát hời hợt. Nó chỉ làm việc bỏ sót không im
 lặng được nữa. Đó là đúng thứ đã hỏng, không hơn.
+
+
+### Lỗi 43 — một bảng bốn ô không phủ kín, và nhánh `else` bịa nghĩa cho chỗ hở
+
+Sáng 12/09/2026 tôi ký bảng đọc của ĐO 6 với **bốn** kết cục:
+
+```
+1  TAC DONG >= 50%  VA  BUOC GIA < 25%
+2  BUOC GIA >= 50%  VA  TAC DONG < 25%
+3  ca hai >= 25%
+4  ca hai < 25%
+```
+
+Rồi viết dụng cụ đọc nó bằng `if / elif / elif / else`. Chiều cùng ngày, rà
+lưới 101×101:
+
+```
+1.250 / 10.201 diem KHONG ung voi mo ta nao
+vung: mot ve nam trong [25%, 50%), ve kia duoi 25%
+ca 1.250 diem bi nhanh `else` don vao KET CUC 4
+```
+
+Kết cục 4 nói *"cả hai vế đều < 25%"*. Một điểm như (30%, 10%) **không**
+thoả câu đó, mà vẫn được đọc thành kết cục 4.
+
+**Kết luận đã công bố không bị ảnh hưởng** — điểm thật (74,6% · 45,6%) rơi
+vào ô 3 và khớp đúng mô tả ô 3. Nhưng đó là **may**, không phải thiết kế.
+
+**Khác lỗi 31, và khác ở chỗ quan trọng.** Lỗi 31 là một ô *không thể đạt
+tới* — phép kiểm mất khả năng phân biệt. Ở đây cả bốn ô **đều** đạt tới
+được; thứ hỏng là bảng không **phủ kín**, và mã lặng lẽ lấp chỗ hở bằng một
+ô có sẵn. Một cái là lỗ hổng ở đầu ra, một cái là lỗ hổng ở đầu vào.
+
+**Cách sửa KHÔNG phải nới ngưỡng** — tiêu chí cấm thẳng điều đó sau khi thấy
+số. Cách sửa là thêm một trạng thái thứ năm `NGOAI_BANG`, cùng lý do
+`tools/kiem_cu_phap_311.py` phải có mã thoát 2 *"chưa kiểm được"* và
+`vnstock_goi.kiem_goi()` phải có `CHƯA KIỂM ĐƯỢC`:
+
+> **"Không biết" là một câu trả lời, và nó không được giả dạng một câu trả
+> lời khác.**
+
+**Quy tắc rút ra: một bảng n ô phải được rà trên TOÀN không gian đầu vào,
+không chỉ ở n điểm đại diện.** Thử một điểm cho mỗi ô chứng minh ô ấy đạt
+tới được — nó **không** chứng minh n ô cộng lại phủ kín. Hai việc khác
+nhau, và tôi đã làm việc thứ nhất rồi tưởng đã làm cả hai.
