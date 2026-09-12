@@ -350,6 +350,9 @@ def test_skill_NHAC_ranh_gioi_khong_dat_lenh_that():
     """Ranh giới nặng nhất của dự án. Skill mà bỏ nó thì skill sai."""
     src = SKILL.read_text(encoding="utf-8")
     assert "Không đặt lệnh thật" in src, "skill không nhắc ranh giới đặt lệnh"
+    # Ca 6 lan chu `main` va 3 lan `PR` deu nam trong khoi "Buoc 5 — Giao",
+    # nen go khoi ay ra thi phep kiem nay DO. Duc thu 12/09/2026: 1/1 do.
+    # van-ban-ok: SKILL.md la markdown, va suc phan biet DA DUOC DO
     assert "main" in src and "PR" in src, "skill không nhắc luật nhánh/PR"
     print("PASS  skill giữ ranh giới đặt lệnh và luật nhánh")
 

@@ -10379,3 +10379,109 @@ lặng được nữa — và đó là đúng thứ đã hỏng hôm nay, không
 Và nhắc lại giới hạn lớn nhất, nay ghi thẳng trong sổ: **công cụ ấy chỉ
 thấy TÀI LIỆU, không thấy MÃ.** Loại lỗi nặng nhất của dự án — tài liệu
 lệch mã (`N_DAY_DU` 596/451, cờ C5) — nó chưa bắt được cái nào.
+
+
+---
+
+## BƯỚC 58 — ĐỊNH DỰNG MỘT GÁC, ĐẾM TRƯỚC, RỒI DỰNG MỘT GÁC KHÁC HẲN (12/09/2026)
+
+Thước cuối ngày chỉ ra lớp `chua-do` là lớp lớn nhất (15 lỗi) và chưa có
+gác. Bốn lỗi của nó — **30, 35, 36, 38** — cùng một hình dạng: *đọc sự xuất
+hiện của một chữ thay vì vai trò của nó*.
+
+`CLAUDE.md` có hẳn mục **"Gác phải đọc AST, không đọc `in`"**, nhưng không
+gác nào ngăn một phép kiểm dạng `in` **mới** ra đời. Lỗi 38 sáng nay chính
+là thế — mắc trong cùng phiên đã đọc mục ấy.
+
+### Đếm trước khi ký — và phép đếm bác ngay kế hoạch đầu
+
+Áp thẳng bài học **lỗi 39** (*một thiết kế có nhóm phải đếm cỡ nhóm trước
+khi ký*):
+
+```
+407 cho  `<chuoi> in <ten>`  tren 59 file       <- qua dong
+  7 cho  `<DINH DANH> in <bien doc tu .read_text()>`  tren 6 file
+```
+
+Bốn trăm lẻ bảy là con số giết chết kế hoạch ban đầu. Phần lớn hợp lệ —
+kiểm một thông báo lỗi có chứa chữ nào đó **là** đúng việc dùng văn bản.
+
+Thu về đúng hình dạng nguy hiểm thì còn **bảy**.
+
+### Đọc cả bảy — và bốn trong số đó KHÔNG phải lỗi
+
+| chỗ | phán quyết |
+|---|---|
+| `test_chi_dan_chay_duoc.py` | **hợp lệ** — kiểm một chuỗi *thông báo lỗi*; docstring đã nói rõ vì sao |
+| `test_kiem_so_test.py` | **hợp lệ** — YAML, AST của Python không đọc được |
+| `test_tai_lieu_khop_ten_ma.py` | **hợp lệ** — quy ước *"tên đã chết không được viết dạng `module.tên`"* |
+| `test_do_tre_khop.py` | **chim hoàng yến** — khẳng định gác canh đúng file; phép kiểm chính ở ngay dưới |
+| `test_skill_quy_trinh.py` | **nghi ngờ** → đo, xem dưới |
+| `test_soat_notebooklm.py` | **thừa** — của chính tôi, viết sáng nay |
+
+### Một nghi ngờ của tôi bị BÁC bằng đột biến
+
+`assert "main" in src` trên một file markdown 10KB trông đúng hình dạng
+**lỗi 31** — một tiêu chí không thể đỏ. Đục vào **đối tượng bị canh**: gỡ
+hẳn khối *"Bước 5 — Giao"* khỏi `SKILL.md`.
+
+**Phát chết.** Cả 6 lần chữ `main` và 3 lần `PR` đều nằm trong đúng khối
+ấy, nên phép kiểm có sức phân biệt thật. Nghi ngờ sai, và nó được đo chứ
+không được khẳng định.
+
+### Nhưng gác vẫn trả giá được — vì hình dạng ấy đã cắn BA lần
+
+```
+22/08/2026  "chi_so_moi_nhat" in src   hai gac, ca hai van xanh sau khi
+                                       loi goi bi xoa han
+12/09/2026  "conclusion" not in ma     loi 38
+```
+
+Bảy chỗ, bốn trong đó đã có lý do sẵn trong docstring. Cái giá là bảy dòng
+chú thích; cái được là chặn đúng hình dạng đã cắn ba lần. **Gác không cấm —
+nó buộc nói ra**, đúng cơ chế `# bia-ok:` và `khong_soat_vi`.
+
+```
+tests/test_gac_van_ban_phai_khai.py   6 phep kiem
+# van-ban-ok: <ly do>                 tren CHINH dong do hoac dong lien ke
+```
+
+Lời khai phải dài ≥ 20 ký tự và không được là `"ok"` / `"yaml"` / `"hợp
+lệ"`. Cửa sổ chỉ **một dòng** phía trên có chủ đích: cho khai ở bất cứ đâu
+trong hàm thì một lời khai cũ sẽ âm thầm che một phép kiểm mới.
+
+### Đục thử 9/10 — và phát sống sót là một bài học đã có tên
+
+Phát *"bỏ ngưỡng dài tối thiểu"* (`DAI_TOI_THIEU = 20 → 0`) **sống sót**.
+
+Vì phép phán nằm thẳng trong test và đọc hằng số từ chính module, nên đục
+hằng số ấy làm mù **cả hai vế**. Đúng hình dạng **lỗi 34** (*gác chỉ chạy
+trên đầu vào sạch thì mọi phép nới đều lọt*) và mục *"Test KIỂM LẠI CHÍNH
+NÓ"* của `CLAUDE.md`.
+
+Sửa đúng cách đã ghi: tách `ly_do_hop_le()` thành **hàm thuần**, thử bằng
+mẫu dựng tay ở **cả hai chiều** — 2 mẫu phải-qua, 10 mẫu phải-chặn — và neo
+ngưỡng bằng một **số viết thẳng** thay vì đọc lại hằng số.
+
+**10/10 đỏ** sau khi sửa.
+
+> Vòng lặp đột biến tự nó bắt được lỗi này **trước khi giao**. Đó là lần
+> thứ n nó trả đúng cái giá của mình, và là lý do Bước 3 nói *"lặp cho tới
+> khi MỌI đột biến đều đỏ"* chứ không phải *"chạy một lượt"*.
+
+### Điều gác này KHÔNG làm được
+
+Nó không phán được lời khai có **đúng** không — chỉ bắt lời khai phải **tồn
+tại và cụ thể**. Một chú thích dài hai mươi ký tự nghe hợp lý vẫn lọt.
+
+Và phạm vi hẹp có chủ đích: nó chỉ thấy `<định danh> in <biến đọc từ
+.read_text()>`. Một phép kiểm văn bản viết theo hình dạng khác — so trên
+một lời gọi hàm, hay trên một thuộc tính — thì nó không thấy. Mở rộng ra là
+quay lại con số 407.
+
+### Kết quả cho lớp `chua-do`
+
+Lớp ấy vẫn **chưa** có gác chung, và bản chất nó có lẽ không có: *"đọc sự
+xuất hiện thay vì vai trò"* là một hình dạng tư duy, không phải một hình
+dạng cú pháp. Thứ dựng được là gác cho **từng hiện thân cụ thể** của nó, và
+đây là hiện thân thứ nhất.

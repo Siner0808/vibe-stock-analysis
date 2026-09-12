@@ -129,6 +129,8 @@ def test_thong_bao_C1_van_tro_dung_cong_cu():
     thì hợp lệ — xem CLAUDE.md, "Gác phải đọc AST, không đọc `in`".
     """
     src = (GOC / "market_filter.py").read_text(encoding="utf-8")
+    # AST khong noi duoc gi ve noi dung mot chuoi hang.
+    # van-ban-ok: kiem chinh CHUOI THONG BAO LOI ma nguoi dung doc
     assert "extend_history.py" in src, (
         "thông báo C1 không còn chỉ tới công cụ nào")
     assert (GOC / "extend_history.py").exists()

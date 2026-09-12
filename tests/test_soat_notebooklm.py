@@ -121,9 +121,9 @@ def test_SO_nay_phai_ghi_GIOI_HAN_cua_cong_cu():
     Loại lỗi nặng nhất của dự án — tài liệu lệch MÃ — nó không bắt được cái
     nào. Sổ này phải tự mang câu ấy, vì người đọc sổ có thể không đọc skill.
     """
-    van = SO.read_text(encoding="utf-8")
-    assert "_gioi_han_cua_cong_cu" in van, "so thieu muc gioi han"
-    gh = _so()["_gioi_han_cua_cong_cu"]
+    so = _so()
+    assert "_gioi_han_cua_cong_cu" in so, "so thieu muc gioi han"
+    gh = so["_gioi_han_cua_cong_cu"]
     assert "TÀI LIỆU" in gh and "MÃ" in gh, (
         "muc gioi han phai noi ro no chi thay TAI LIEU, khong thay MA")
     print("PASS  so tu mang gioi han cua cong cu")
