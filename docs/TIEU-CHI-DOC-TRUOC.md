@@ -875,3 +875,107 @@ Không sửa một chữ. Đặc biệt vế thứ ba: alpha đẹp lên **và**
 0 theo chiều dương thì **KHÔNG ghi vào tài liệu, KHÔNG công bố** — thiên
 lệch sống sót đã có tên từ trước khi chạy, và kéo càng xa thì nó càng
 lớn. Kéo về 2018 là kéo xa nhất từ trước tới nay.
+
+
+---
+
+## ĐO 5 — chênh 385/376: MÃ hay CACHE? (khai 12/09/2026, trước lượt chạy)
+
+### Câu hỏi, treo từ 04/09/2026
+
+`CLAUDE.md` bản 28/08 ghi **385 lệnh** OOS; lượt chạy ngày 04/09 ở commit
+`d777480` ra **376**. Alpha (−0,927 so −0,932) và kỳ vọng (−0,291 so −0,293)
+khớp tới **ba chữ số**.
+
+Đó mới là chỗ lạ: nếu chín lệnh thật sự khác nhau thì kỳ vọng đã phải dịch
+nhiều hơn thế. Một trong hai con số đang nói về thứ khác với thứ nó nhận.
+
+### Ba cơ chế ĐÃ BỊ LOẠI trước khi chạy (12/09, đọc `git log`, không chạy gì)
+
+| cơ chế | phán quyết |
+|---|---|
+| `dong_so_sach` xoá lệnh `PENDING` mồ côi | **BÁC** — có từ `25523f5`/`0cce9a5` (26/08), trước **cả hai** lượt |
+| `bo_qua`: lệnh không ghép được cặp ngày rổ chuẩn | **BÁC** — đếm từ `d0ea188` (20/08), trước cả hai lượt |
+| số lệnh và alpha đếm trên hai dân số khác nhau | **BÁC** — `alpha_so_lenh` không hề được in cho tới `feb760d` (09/09, lỗi 20), nên nó áp cho **CẢ HAI** con số như nhau |
+
+Loại ba cơ chế bằng cách đọc lịch sử là rẻ. Phần còn lại thì không.
+
+### Hai lượt, đúng MỘT biến đổi
+
+| lượt | mã nguồn | vì sao chọn commit này |
+|---|---|---|
+| **A** | `79a8d32` (28/08 10:57) | chính commit công bố con số **385** |
+| **B** | `d777480` (31/08 14:56) | chính commit lượt 04/09 chạy, ra **376** |
+
+Mọi thứ khác giữ **y hệt** giữa hai lượt:
+
+- cùng `backtest/cache/` hôm nay — 125 file, 2021-10-14 → 2026-09-03
+- cùng `sl_pattern_memory.json` (chép vào cả hai worktree)
+- cùng máy, cùng `.venv`, chạy **tuần tự**, mỗi lượt một tiến trình riêng
+- `docs/moc_du_lieu_sach.json` — **đã kiểm bằng `diff`: giống hệt** ở hai commit
+- mặc định cả hai: `stride=2` · `min_history=60` · `che_do_hoc=co_san` ·
+  chế độ **theo mã** · `MO_PHONG_TRUOT_GIA = True` (kiểm bằng `--help` cho
+  ba cái đầu và `git show <commit>:paper_trading.py` cho cái cuối)
+
+### Đại lượng chính
+
+**Số lệnh OOS** ở chế độ theo-mã.
+
+Kèm theo, và bắt buộc: **tập lệnh** (mã · ngày vào · ngày ra) đọc thẳng từ
+`wf_oos.db` mà mỗi lượt để lại — để **diff**, chứ không chỉ đếm. Một con số
+bằng nhau do hai tập khác nhau bù trừ là thứ phép đếm không thấy.
+
+### Phép kiểm dụng cụ — ĐỌC TRƯỚC SỐ LỆNH
+
+**Ngưỡng KHÔNG ghim được** ở cả hai commit: không commit nào có cờ
+`--nguong`, luật tự chọn trên IS. Nên trước khi đọc bất cứ con số nào:
+
+```
+hai luot chon CUNG mot nguong   ->  phep so DOC DUOC
+hai luot chon KHAC nguong       ->  KHONG EP SO. Bao ra va dung.
+```
+
+Khác ngưỡng thì khác biệt quan sát được gồm **cả ngưỡng lẫn mã**, không quy
+được cho vế nào — đúng **lỗi 21**, thứ đã làm hỏng một nửa bảng ĐO 1.
+
+### Ba kết cục, khai TRƯỚC
+
+```
+A == B            ->  MA KHONG PHAI NGUYEN NHAN.
+                      Ket luan la "khong phai ma", KHONG phai "la cache".
+
+|A - B| == 9      ->  MA LA NGUYEN NHAN, va diff hai tap lenh goi ten
+                      dung chin lenh ay. Doc co che tu chinh chin lenh do.
+
+khac 0 va khac 9  ->  MA gop MOT PHAN. Phan con lai CHUA QUY DUOC.
+                      Ghi thang nhu vay, khong lap bang mot lap luan.
+```
+
+### Giới hạn phải nêu TRƯỚC, và nó lớn
+
+**Cache ngày 28/08 KHÔNG còn tồn tại.** `backtest/cache/` nằm trong
+`.gitignore` và chưa bản nào được lưu lại. Nên vế "cache" **không đo trực
+tiếp được** trong bất kỳ thiết kế nào — nó chỉ được loại bằng **suy luận**.
+
+Hệ quả phải giữ: kết cục `A == B` cho phép nói *"không phải mã"*, và
+**không** cho phép nói *"vậy là cache"*. Vế sau khi đó vẫn chưa có bằng
+chứng, và phải được ghi là chưa có.
+
+Một suy luận hỗ trợ, ghi **trước** để không bịa ra sau khi thấy số:
+`chia_vung` trả `df[ngày < mốc]` làm OOS, nên dữ liệu thêm ở **rìa phải**
+(28/08 → 03/09) không đổi một phiên OOS nào. Cache chỉ đổi được OOS nếu nó
+được kéo **lùi về quá khứ** — mà đầu trái hôm nay là **2021-10-14**, đúng
+con số tài liệu ghi từ 23/08/2026.
+
+### Điều KHÔNG được làm sau khi thấy số
+
+Đổi ba kết cục · đổi cấu hình rồi chạy lại cho tới khi ra 9 · bỏ phép kiểm
+ngưỡng · hay dựng một cơ chế mới vừa khít con số vừa thấy rồi gọi nó là kết
+luận. Ba cơ chế ở bảng trên bị loại **trước** khi chạy, đúng để chuyện đó
+không xảy ra.
+
+### Ước lượng thời gian — nói rõ nó là ƯỚC LƯỢNG
+
+ĐO 1 lượt 1, cùng `stride`, cùng rổ: **36,1 phút**. Cùng cấu hình ấy chạy
+hôm 08/09: **46,1 phút** — lệch 27% theo tải máy. Hai lượt ước **70–95
+phút**. Đây là ước lượng, không phải phép đo.
