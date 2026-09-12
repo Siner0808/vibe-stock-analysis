@@ -211,11 +211,14 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   bình thường — *"alpha khớp nên 9 lệnh không thật"* chưa bao giờ đứng
   vững. Không còn dị thường nào cần giải thích. Vế cache **không đo
   được**: lượt kéo 03/09 đã ghi lại đúng toàn bộ rổ 71 mã. BƯỚC 55.
-- **khoảng cách chi phí thực thi IS/OOS** — còn hai giả thuyết chưa ai
-  đo. ĐO 4 thêm một dữ kiện: vùng OOS rộng gấp ba mà chi phí dòng
-  theo-ngày **giảm** 0,66 → 0,48, tức không nghiêng về giả thuyết *"OOS
-  thanh khoản mỏng hơn"*. Quan sát, **không phải** phép đo thiết kế cho
-  câu hỏi ấy, nên chưa loại được gì.
+- ~~**khoảng cách chi phí thực thi IS/OOS** — hai giả thuyết chưa ai
+  đo~~ **ĐÃ ĐO 12/09/2026 (ĐO 6): CẢ HAI ĐỀU ĐÚNG.** Chúng chưa bao giờ
+  là đối thủ. Nến ngoài mẫu mỏng **2,5 lần** (7,32 → 2,93 triệu CP) VÀ
+  giá vào thấp hơn **35%** (24.750đ → 16.000đ), mà giá thấp còn làm lệnh
+  nhiều cổ phiếu hơn 1,54 lần — ba đường cộng dồn, tỷ trọng khối lượng
+  tăng 3,1 lần. Phán quyết theo bảng đã ký là **kết cục 3 (chưa tách
+  được)**, và lý do nó không tách được chính là *cả hai cơ chế cùng
+  chạy*. BƯỚC 56.
 - ~~**72 file mang một nến cuối DỞ**~~ **ĐÃ ĐO 11/09/2026:** sai số
   `close` trung vị **0,721%**, lớn nhất 5,76% — cùng bậc với alpha, nên
   không nhỏ. Nhưng phiên ấy nằm **SAU mọi mốc**, tức trọn trong vùng
