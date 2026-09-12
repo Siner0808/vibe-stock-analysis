@@ -82,7 +82,10 @@ là lỗi sẽ tái diễn.
 | 39 | ký một phép đo có **nhóm chứng** mà không kiểm nhóm chứng có tồn tại không — ĐO 5b khai xong mới lộ ra nhóm chứng **rỗng theo cấu tạo**: 53 file chưa bị chạm đều nằm NGOÀI rổ đo | chính dụng cụ tự dừng ở lượt chạy đầu | ⚠️ một phần | dụng cụ trả mã thoát 2 và nói *"một nhóm rỗng → KHÔNG đọc được"*; nhưng phép đếm cỡ nhóm phải chạy **trước khi ký**, và chưa có gác nào bắt điều đó |
 | 40 | nêu một **"chỗ không khớp"** bằng trực giác số học thay vì bằng phép tính — *"9 lệnh khác thì kỳ vọng đã phải dịch nhiều hơn thế"* sai, 9/385 chỉ mang trọng số 2,3%; nó điều hướng tám ngày | bấm máy khi đi đo chính nó | ⚠️ một phần | quy tắc 2 áp cho **lập luận** chứ không riêng kết quả: một câu về độ lớn cũng là một con số, và cũng cần một lệnh |
 
-**Hai mươi tư trên bốn mươi máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 41 | chạy một phép đo **88,8 phút** mà sổ đã có câu trả lời — ĐO 5 dựng lại BƯỚC 25 (04/09), bằng đúng phương pháp worktree BƯỚC 25 đã mô tả; và chính phiên 04/09 vừa đo ra 376/376 vừa viết câu hỏi *"vì sao 385 ≠ 376"* vào `HANDOFF` | NotebookLM, một câu hỏi | ⚠️ một phần | `docs/soat-notebooklm.json` + `tests/test_soat_notebooklm.py` buộc khai một lượt soát chéo cho mỗi phép đo; soát chéo là thứ tìm ra nó |
+| 42 | bỏ qua một **chỉ dẫn thường trực** ghi ở BA nơi (`SKILL.md`, rules toàn cục, bộ nhớ phiên) suốt bốn phép đo liên tiếp — người dùng phải nhắc **hai lần** | người dùng | ✅ | gác trên: một chỉ dẫn không có cơ chế thì nó chỉ là một lời nhắc, và lời nhắc thì trôi |
+
+**Hai mươi lăm trên bốn mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -904,3 +907,60 @@ cần một lệnh. Một câu như vậy không có lệnh đứng sau thì kh�
 
 Cùng họ lỗi 6 (ước 40s, thật 167,7s): chỗ nguy hiểm không phải con số bịa,
 mà là **con số không ai nghĩ là con số**.
+
+
+### Lỗi 41 — đo lại một thứ sổ đã đo, bằng đúng phương pháp sổ đã ghi
+
+Ngày 12/09/2026, ĐO 5 chạy hai lượt walk-forward — **88,8 phút** — để trả
+lời: *chênh lệch 385 so với 376 lệnh ngoài mẫu là do MÃ hay do CACHE?*
+
+Kết quả: `79a8d32` và `d777480` trên cùng cache hôm nay đều cho **376**.
+
+`docs/STATE.md` BƯỚC 25, viết **04/09/2026**, đã có đúng bảng ấy:
+
+```
+79a8d32  28/08  376 lenh
+d777480  31/08  376 lenh
+```
+
+Và đã mô tả đúng phương pháp tôi tưởng là của mình:
+
+> *"`backtest/cache/` bị gitignore nên nó KHÔNG đổi khi checkout mã cũ.
+> Dựng worktree ở commit nền rồi chạy mã cũ trên dữ liệu hôm nay."*
+
+**Chỗ mỉa mai nằm sâu hơn.** Việc treo trong `HANDOFF` ghi *"lượt chạy lại
+ngày 04/09 (385 so với 376)"* — con số 376 ấy **chính là** con số BƯỚC 25.
+Phiên ngày 04/09 vừa đo ra nó, vừa viết câu hỏi về nó vào sổ bàn giao, mà
+không thấy bảng của chính mình đã loại vế mã.
+
+Cùng họ **lỗi 9**: *không tìm lời giải sẵn có trước khi tự viết lời giải.*
+Khác ở cái giá — lần trước là vài phút gõ lại, lần này là 88,8 phút máy và
+hai lượt CI.
+
+**Quy tắc rút ra: trước một phép đo TỐN KÉM, tra sổ bằng một luồng ĐỘC LẬP,
+không bằng trí nhớ của chính mình.** `grep` chỉ tìm được thứ mình đã biết
+tên; ở đây cái tên đúng là "BƯỚC 25", và tôi không biết mình cần nó.
+
+### Lỗi 42 — một chỉ dẫn thường trực ghi ở ba nơi vẫn trôi
+
+Ngày 10/09/2026 người dùng chốt: dùng NotebookLM thường xuyên như một luồng
+độc lập. Chỉ dẫn ấy được ghi vào **ba** nơi: mục riêng trong `SKILL.md`,
+thư mục rules toàn cục, và bộ nhớ phiên.
+
+Nó trôi qua **bốn** phép đo liên tiếp — ĐO 1, 2, 3, 4 — rồi qua cả ĐO 5 và
+ĐO 6 của ngày 12/09. Người dùng phải nhắc **lần thứ hai**, kèm câu *"vấn đề
+này tôi đã note 2 lần"*, mới được làm.
+
+Cùng ngày, **một câu hỏi duy nhất** gửi công cụ ấy lôi ra lỗi 41.
+
+**Quy tắc rút ra, và nó là quy tắc về CƠ CHẾ chứ không về ý chí: một chỉ
+dẫn thường trực không có gác thì nó chỉ là một lời nhắc, và lời nhắc thì
+trôi.** Ghi ở ba nơi thay vì một nơi không đổi điều đó — nó chỉ làm việc bỏ
+sót trông khó tin hơn khi nhìn lại.
+
+Gác: `docs/soat-notebooklm.json` + `tests/test_soat_notebooklm.py`. Nó
+không ép phải soát; nó ép phải **khai** đã soát hay chưa. Cùng cơ chế
+`# bia-ok:` — mục đích không phải cấm, mà là buộc nói ra.
+
+Và nó **không** bắt được việc soát hời hợt. Nó chỉ làm việc bỏ sót không im
+lặng được nữa. Đó là đúng thứ đã hỏng, không hơn.

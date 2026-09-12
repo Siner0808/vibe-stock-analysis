@@ -1,0 +1,66 @@
+{
+  "_ghi_chu": "Sổ đăng ký lượt soát chéo bằng NotebookLM. Mỗi phép đo có tiêu chí ký trước phải có một dòng ở đây — hoặc một lời khai vì sao KHÔNG soát. Mục đích không phải cấm, mà là buộc nói ra: cùng cơ chế với `# bia-ok:`.",
+  "_vi_sao_can": "Ngày 12/09/2026 người dùng phải nhắc LẦN THỨ HAI rằng công cụ này không được dùng. Cùng ngày, một câu hỏi duy nhất gửi NotebookLM lôi ra rằng ĐO 5 là bản TRÙNG của `docs/STATE.md` BƯỚC 25 (04/09/2026) — 88,8 phút máy để dựng lại một kết quả đã nằm trong sổ tám ngày. Một chỉ dẫn thường trực không có cơ chế thì nó chỉ là một lời nhắc, và lời nhắc thì trôi.",
+  "_gioi_han_cua_cong_cu": "Nó chỉ thấy TÀI LIỆU, không thấy MÃ. Loại lỗi nặng nhất của dự án là tài-liệu-lệch-mã (`N_DAY_DU` 596/451, cờ C5), và nó không bắt được một cái nào. Mọi phát hiện phải tự kiểm lại bằng lệnh, và cột `tu_kiem` ở dưới là chỗ ghi lệnh ấy.",
+  "_cach_viet_mot_dong": {
+    "ngay": "ngày soát, YYYY-MM-DD",
+    "nguon": "các file đang là nguồn của sổ tay lúc soát",
+    "cau_hoi": "câu đã hỏi, tóm tắt",
+    "phat_hien": "danh sách; mỗi mục có `noi_dung` và `tu_kiem` — `tu_kiem` phải là một LỆNH đã chạy, không phải một lời khẳng định",
+    "khong_soat_vi": "dùng THAY cho `phat_hien` khi cố ý không soát; phải nêu lý do cụ thể"
+  },
+
+  "soat": {
+    "ĐO 1": { "khong_soat_vi": "chạy 09/09/2026, trước khi người dùng chốt dùng NotebookLM thường xuyên (10/09/2026)" },
+    "ĐO 2": { "khong_soat_vi": "chạy 09/09/2026, trước mốc chốt 10/09/2026" },
+    "ĐO 3": { "khong_soat_vi": "chạy 10/09/2026, cùng ngày chốt; chưa có sổ đăng ký này" },
+    "ĐO 4": { "khong_soat_vi": "chạy 11/09/2026 — BỎ SÓT, không có lý do chính đáng. Ghi thẳng là bỏ sót thay vì bịa một lý do." },
+
+    "ĐO 5": {
+      "ngay": "2026-09-12",
+      "nguon": ["CLAUDE.md", "MO-XE-KIEN-TRUC.md", "NGUYEN-TAC-DO-LUONG.md", "STATE.md"],
+      "_luu_y_nguon": "Bốn nguồn là bản ~05/09, KHÔNG có BƯỚC 53-56. Đó là vai trò đúng cho chúng ở lượt này: làm NỀN đối chiếu cho kết luận mới.",
+      "cau_hoi": "Tìm trong các nguồn chỗ NÓI NGƯỢC lại ba kết luận ngày 12/09, trích dẫn nguyên văn kèm tên file.",
+      "phat_hien": [
+        {
+          "noi_dung": "CÓ MÂU THUẪN: STATE.md BƯỚC 25 (04/09/2026) đã chạy ĐÚNG phép đo của ĐO 5 — `79a8d32` và `d777480` trên cache hôm đó — và cả hai ra 376 lệnh. ĐO 5 là một bản TRÙNG.",
+          "tu_kiem": "grep -n 'Nguyên nhân là MÃ' docs/STATE.md && sed -n '/^## BƯỚC 25/,/^## BƯỚC 26/p' docs/STATE.md",
+          "phan_quyet": "THẬT. Bảng BƯỚC 25 ghi rõ 376/376, và mô tả đúng phương pháp worktree mà ĐO 5 tưởng là mới.",
+          "he_qua": "Lỗi 41. 88,8 phút máy cho một kết quả đã có."
+        },
+        {
+          "noi_dung": "Câu 'Nguyên nhân là MÃ' của BƯỚC 25 nói ngược kết luận ĐO 5.",
+          "tu_kiem": "Đọc ngữ cảnh BƯỚC 25 quanh dòng 6420 và hai mục con '1. Phí Sở giao dịch' / '2. Cỡ vị thế'.",
+          "phan_quyet": "SAI — lỗi phạm trù của công cụ. Câu ấy nói về chênh lệch ALPHA (−0,927 so −0,676), không nói về chênh lệch SỐ LỆNH (385 so 376). Hai câu hỏi khác nhau, và BƯỚC 25 chỉ trả lời câu thứ nhất."
+        },
+        {
+          "noi_dung": "KHÔNG CÓ MÂU THUẪN với kết luận về khoảng cách chi phí IS/OOS.",
+          "tu_kiem": "grep -n 'thanh khoản' docs/STATE.md CLAUDE.md",
+          "phan_quyet": "THẬT. Nguồn chỉ ghi mức trượt giá −0,43%/lệnh trong mẫu, không nói gì về thanh khoản hai vùng."
+        },
+        {
+          "noi_dung": "KHÔNG CÓ MÂU THUẪN về bộ lọc VN-INDEX; con số 55% trong nguồn là 'NẮM GIỮ 55%' của tầng phán quyết, một thứ khác.",
+          "tu_kiem": "grep -n 'NẮM GIỮ  55%' MO-XE-KIEN-TRUC.md",
+          "phan_quyet": "THẬT, và đây là lần công cụ tự phân biệt được hai con số trùng giá trị khác phạm trù — đúng thứ lỗi 36 đã cắn."
+        }
+      ]
+    },
+
+    "ĐO 5b": {
+      "khong_soat_vi": "cùng lượt soát với ĐO 5 — cùng câu hỏi, cùng bốn nguồn. Không tách được thành một lượt riêng vì nó là nhánh con của ĐO 5."
+    },
+
+    "ĐO 6": {
+      "ngay": "2026-09-12",
+      "nguon": ["CLAUDE.md", "MO-XE-KIEN-TRUC.md", "NGUYEN-TAC-DO-LUONG.md", "STATE.md"],
+      "cau_hoi": "Có chỗ nào nói ngược kết luận 'vùng OOS thanh khoản mỏng hơn 2,5 lần VÀ giá vào trung vị thấp hơn 35%' không?",
+      "phat_hien": [
+        {
+          "noi_dung": "KHÔNG CÓ MÂU THUẪN. Không nguồn nào phân tích hai thông số ấy.",
+          "tu_kiem": "grep -n 'thanh khoản mỏng\\|giá vào trung vị' docs/STATE.md CLAUDE.md MO-XE-KIEN-TRUC.md NGUYEN-TAC-DO-LUONG.md",
+          "phan_quyet": "THẬT — nhưng đọc đúng thân phận: 'không nguồn nào nói ngược' KHÔNG phải 'nguồn xác nhận'. Vắng mặt không phải ủng hộ."
+        }
+      ]
+    }
+  }
+}

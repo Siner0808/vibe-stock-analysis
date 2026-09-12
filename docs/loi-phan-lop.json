@@ -216,6 +216,16 @@
       "lop": "chua-do",
       "song_ngay": 8,
       "nguon": "git"
+    },
+    "41": {
+      "lop": "ky-luat",
+      "song_ngay": 8,
+      "nguon": "git"
+    },
+    "42": {
+      "lop": "ky-luat",
+      "song_ngay": 2,
+      "nguon": "git"
     }
   }
 }
