@@ -203,8 +203,14 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 **Chưa truy:**
 
-- chênh lệch số lệnh giữa bảng trong `CLAUDE.md` và lượt chạy lại ngày
-  04/09 (385 so với 376), trong khi alpha và kỳ vọng khớp tới 3 chữ số.
+- ~~chênh lệch số lệnh 385 so với 376~~ **ĐÃ TRUY 12/09/2026 (ĐO 5):**
+  **mã bị LOẠI bằng phép đo** — commit 28/08 và commit 31/08 chạy trên
+  cùng cache hôm nay cho **tập lệnh giống hệt từng dòng**, 376/376, cùng
+  ngưỡng 62. Và **tiền đề của câu hỏi bị bác bằng số học**: 9/385 mang
+  trọng số 2,3%, nên 9 lệnh chênh có kỳ vọng TB −0,207% là hoàn toàn
+  bình thường — *"alpha khớp nên 9 lệnh không thật"* chưa bao giờ đứng
+  vững. Không còn dị thường nào cần giải thích. Vế cache **không đo
+  được**: lượt kéo 03/09 đã ghi lại đúng toàn bộ rổ 71 mã. BƯỚC 55.
 - **khoảng cách chi phí thực thi IS/OOS** — còn hai giả thuyết chưa ai
   đo. ĐO 4 thêm một dữ kiện: vùng OOS rộng gấp ba mà chi phí dòng
   theo-ngày **giảm** 0,66 → 0,48, tức không nghiêng về giả thuyết *"OOS
