@@ -10154,6 +10154,11 @@ BUOC GIA : +0,1790 diem  ->  giai thich 74,6%
 TAC DONG : +0,1094 diem  ->  giai thich 45,6%
 ```
 
+> **Lệnh tái lập:** `./.venv/Scripts/python.exe tools/do6_tach_chi_phi.py`
+> — chép vào repo ngày 12/09/2026 (BƯỚC 59) và **tái lập đúng từng chữ
+> số** bảng trên. Bản chạy lần đầu nằm ở thư mục tạm, nên những con số
+> này từng không có lệnh nào trong repo đứng sau — trái quy tắc số 2.
+
 ### Phán quyết: **KẾT CỤC 3 — chưa tách được**
 
 Cả hai vế đều góp ≥ 25%. Bảng đã ký nói thẳng: *"không được chọn vế to
@@ -10485,3 +10490,128 @@ Lớp ấy vẫn **chưa** có gác chung, và bản chất nó có lẽ không 
 xuất hiện thay vì vai trò"* là một hình dạng tư duy, không phải một hình
 dạng cú pháp. Thứ dựng được là gác cho **từng hiện thân cụ thể** của nó, và
 đây là hiện thân thứ nhất.
+
+
+---
+
+## BƯỚC 59 — RÀ LẠI DỤNG CỤ CỦA CHÍNH MÌNH, VÀ BẢNG BỐN Ô HOÁ RA HỞ (12/09/2026)
+
+Sau BƯỚC 58, thước còn chỉ **17/42 dòng bảng lỗi chưa được máy chặn**. Chỗ
+đáng rà trước tiên hoá ra không nằm trong danh sách ấy — nó nằm ở **dụng cụ
+đọc ĐO 6 của chính tôi**, viết vài giờ trước.
+
+Nó có hai khuyết tật, và cả hai là hình dạng dự án đã đặt tên:
+
+1. Nó nằm ở thư mục tạm, nên những con số đã vào BƯỚC 56 **không có lệnh
+   nào trong repo đứng sau** — trái quy tắc số 2.
+2. Bốn kết cục của nó **chưa bao giờ được chứng minh là đạt tới được** —
+   đúng hình dạng lỗi 31.
+
+### Rà thì lỗi 31 KHÔNG có, nhưng một lỗi khác thì có
+
+```
+DAT TOI DUOC : ca bon ket cuc      ->  khong phai loi 31
+KHONG KHOP   : 1.250 / 10.201 diem luoi khong ung voi MO TA nao
+               vung "mot ve trong [25%,50%), ve kia < 25%"
+               ca 1.250 diem bi nhanh `else` don IM LANG vao ket cuc 4
+```
+
+Kết cục 4 nói *"cả hai vế đều < 25%"*. Một điểm như (30% · 10%) **không**
+thoả câu đó, mà vẫn được đọc thành kết cục 4.
+
+**Kết luận BƯỚC 56 không đổi** — điểm thật (74,6% · 45,6%) rơi vào ô 3 và
+khớp đúng mô tả ô 3. Nhưng đó là **may**, không phải thiết kế.
+
+### Khác lỗi 31, và khác ở chỗ đáng phân biệt
+
+| | lỗi 31 | lỗi 43 |
+|---|---|---|
+| hỏng ở đâu | một ô **không thể đạt tới** | bảng **không phủ kín** đầu vào |
+| hệ quả | phép kiểm mất khả năng phân biệt | mã **bịa nghĩa** cho chỗ bảng không nói |
+| phát hiện bằng | thử một điểm cho mỗi ô | rà **toàn** không gian |
+
+**Thử một điểm cho mỗi ô chứng minh ô ấy đạt tới được — nó KHÔNG chứng minh
+n ô cộng lại phủ kín.** Tôi đã làm việc thứ nhất rồi tưởng đã làm cả hai.
+
+### Sửa: KHÔNG nới ngưỡng, thêm một trạng thái
+
+Tiêu chí ĐO 6 cấm thẳng việc đổi mốc 50%/25% sau khi thấy số. Nên đường
+đúng là trạng thái thứ năm **`NGOAI_BANG`** — cùng lý do
+`kiem_cu_phap_311.py` phải có mã thoát 2 *"chưa kiểm được"*:
+
+> **"Không biết" là một câu trả lời, và nó không được giả dạng một câu trả
+> lời khác.**
+
+```
+tools/do6_tach_chi_phi.py        nam trong repo, tai lap DUNG TUNG CHU SO
+tests/test_do6_tach_chi_phi.py   6 phep kiem, ra TOAN LUOI 101x101
+duc thu                          9/9 do tren HAI cua
+```
+
+Phát đục đầu tiên dựng lại **nguyên văn** khuyết tật: trả nhánh `else` về
+chỗ cũ để nó dồn im lặng vùng hở vào kết cục 4. Nó chết.
+
+Phát thứ chín — đưa lại `getattr(r, "ndim", 1)` — **sống sót** bộ test, và
+đó là đúng: nó do một cửa **khác** canh. Chạy riêng
+`tools/chan_bia_so_lieu.py --quet-repo` trên cùng phép đục: **đỏ**. Ghi ra
+vì một phát sống sót không phải lúc nào cũng là lỗ hổng — đôi khi nó chỉ
+nằm ngoài phạm vi của gác đang thử.
+
+> Cửa `chan_bia_so_lieu` chặn phép ghi file này **ngay lượt đầu**, đúng mẫu
+> R1. Tôi sửa cho đúng nguồn (`isinstance(r, pd.DataFrame)`) thay vì xin
+> `# bia-ok:` — cùng mẫu đã dùng sáng nay khi cửa Bash chặn `rm -f wf_*.db`:
+> **tìm đường không cần ngoại lệ trước khi với tay lấy ngoại lệ.**
+
+### Lỗi 38 nay ĐÃ được máy chặn
+
+Gác dựng ở BƯỚC 58 (`tests/test_gac_van_ban_phai_khai.py`) chặn đúng hình
+dạng lỗi 38, và mẫu dựng tay trong nó **chính là nguyên văn** lỗi ấy. Dòng
+38 nâng từ ⚠️ lên ✅.
+
+Bảng lỗi: **43 dòng, 27 máy chặn được** (trước đó 42 dòng, 25).
+
+### Một chỗ nhỏ đáng ghi về chính chú thích
+
+Chú thích ASCII tôi viết cho phép sửa trên đọc là *"Hoi thang KIEU, dung
+`getattr(...)`"* — **`dung` không dấu đọc được cả "dùng" lẫn "đừng"**, tức
+ngược hẳn nghĩa. Đã viết lại. Dự án viết commit body bằng ASCII nên hình
+dạng này còn gặp lại; chỗ nào mà dấu quyết định nghĩa thì phải chọn từ khác.
+
+### Và một cổng xanh GIẢ trong dụng cụ viết hôm qua
+
+Khi thêm dòng phân lớp cho lỗi 43 tôi gõ một giá trị `nguon` ngoài từ vựng.
+`tools/doc_bang_loi.py` **nổ `KeyError` giữa chừng bảng** — in được nửa báo
+cáo rồi vỡ.
+
+Gác `tests/test_bang_loi_do_duoc.py` **có** bắt (chứng minh bằng một phép
+đục: đỏ). Nhưng người chạy tay chỉ thấy một traceback, không biết giá trị
+nào sai. Hai chỗ phải sửa, và chỉ chỗ thứ hai là đáng kể:
+
+1. Gọi **tên** giá trị lạ thay vì nổ.
+2. **Mã thoát khác 0.** Bản sửa đầu của tôi in cảnh báo rồi vẫn thoát `0` —
+   tức vẫn nói *"xong"* trên dữ liệu không nhất quán. Đó đúng hình dạng
+   `CLAUDE.md` gọi là **cổng xanh giả**: *"một công cụ kiểm tra không chạy
+   được cũng là cổng xanh giả"*.
+
+Đục thử 3 phát, **2 chết**. Phát thứ ba — gỡ dòng tổng cuối báo cáo — sống
+sót, và **đó là đúng**: tên giá trị lạ vẫn được in ở dòng theo hàng, nên
+hợp đồng *"công cụ phải gọi tên nó"* không bị phá. Chứng minh bằng cách
+chạy thật: **2 dòng độc lập** cùng chứa tên ấy. Một đột biến không phá được
+hợp đồng thì không phải lỗ hổng — nó là một đột biến **không hợp lệ**, cùng
+loại đã gặp sáng 11/09.
+
+### Một chỗ nhỏ đáng ghi về chính chú thích
+
+Chú thích ASCII tôi viết lúc sửa mẫu R1 đọc là *"Hoi thang KIEU, dung
+`getattr(...)`"* — **`dung` không dấu đọc được cả "dùng" lẫn "đừng"**, tức
+ngược hẳn nghĩa. Đã viết lại. Dự án viết commit body bằng ASCII nên hình
+dạng này còn gặp lại: **chỗ nào mà dấu quyết định nghĩa thì phải chọn từ
+khác.**
+
+Và hai lần trong cùng lượt làm việc này tôi mắc lại lỗi **thoát-qua-nhiều-
+lớp**: một `
+` viết trong heredoc bash thành xuống dòng thật và làm vỡ một
+f-string; một neo `
+` trong `python -c` không khớp. Cả hai đúng lý do
+`SKILL.md` chỉ cho **một đường vá duy nhất** — viết một file `.py` rồi chạy
+nó. Cửa Bash cũng chặn đúng một lệnh hai heredoc ở giữa lượt.

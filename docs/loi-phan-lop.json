@@ -226,6 +226,11 @@
       "lop": "ky-luat",
       "song_ngay": 2,
       "nguon": "git"
+    },
+    "43": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "git"
     }
   }
 }

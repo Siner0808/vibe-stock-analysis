@@ -246,13 +246,27 @@ def main() -> int:
     print()
 
     # ── nguồn của con số ───────────────────────────────────────
+    ma_thoat_la = 0
     print("NGUỒN của tuổi thọ — con số nào có lệnh đứng sau")
     print("─" * 64)
     theo_nguon: dict[str, int] = {}
     for v in loi.values():
         theo_nguon[v["nguon"]] = theo_nguon.get(v["nguon"], 0) + 1
+    la = sorted(set(theo_nguon) - set(pl["_nguon_tuoi"]))
     for ng in sorted(theo_nguon, key=lambda k: -theo_nguon[k]):
-        print(f"  {ng:14s} {theo_nguon[ng]:3d}   {pl['_nguon_tuoi'][ng]}")
+        # Mot gia tri ngoai tu vung tung lam ham nay no KeyError giua chung
+        # bang (12/09/2026). Gac `test_bang_loi_do_duoc` VAN bat duoc, nhung
+        # nguoi chay dung cu chi thay mot traceback. Noi ra ten no.
+        mo_ta = pl["_nguon_tuoi"].get(ng, "⚠️ NGOAI TU VUNG `_nguon_tuoi`")
+        print(f"  {ng:14s} {theo_nguon[ng]:3d}   {mo_ta}")
+    if la:
+        print()
+        print(f"  ⚠️ {len(la)} nguồn NGOÀI từ vựng: {', '.join(la)}")
+        print("     Thêm vào `_nguon_tuoi`, hoặc sửa dòng phân lớp.")
+        # Thoát 0 ở đây là một cổng xanh GIẢ: dữ liệu không nhất quán
+        # mà công cụ vẫn nói "xong". Gác `test_bang_loi_do_duoc` có bắt,
+        # nhưng người chạy tay thì chỉ thấy một dòng cảnh báo trôi qua.
+        ma_thoat_la = 1
     print()
 
     # ── máy chặn được ──────────────────────────────────────────
@@ -268,7 +282,9 @@ def main() -> int:
     print()
     print("Số lỗi mỗi ngày KHÔNG phải thước — nó tăng khi ta đào kỹ hơn.")
     print("Hai thước thật: lớp nào đã im, và tuổi thọ có ngắn lại không.")
-    return ma
+    # Một nguồn ngoài từ vựng cũng là dữ liệu không nhất quán, và công cụ
+    # KHÔNG được nói "xong" trên nó — đó đúng là hình dạng cổng xanh giả.
+    return ma or ma_thoat_la
 
 
 if __name__ == "__main__":
