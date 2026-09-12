@@ -79,7 +79,10 @@ là lỗi sẽ tái diễn.
 | 37 | đọc **ngược quy ước trả về** của `dot_bien` (True = đột biến BỊ GIẾT) trong script gọi nó — báo *"0/10 đỏ"* cho một bộ thật ra **10/10 đỏ**, tức một gác tốt báo cáo thành gác vô dụng | chính con số 0/10 vô lý, cùng phiên | ✅ | `va_an_toan.dot_bien_bo()` giữ quy ước ở MỘT chỗ và trả **danh sách phát sống sót** — rỗng là lành, nên đọc ngược một danh sách khó hơn đọc ngược một `bool` |
 | 38 | viết một phép kiểm dạng `assert "tên" not in <mã nguồn>` rồi **chính docstring giải thích vì sao không đọc tên ấy** làm nó đỏ — đúng cái bẫy `in` mà `CLAUDE.md` đã ghi thành mục riêng | lượt chạy đầu tiên của chính test ấy | ⚠️ một phần | đọc bằng **AST** và bỏ docstring ra (`_chuoi_khong_phai_docstring`); tài liệu hoá cái bẫy KHÔNG ngăn được việc mắc lại nó |
 
-**Hai mươi tư trên ba mươi tám máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 39 | ký một phép đo có **nhóm chứng** mà không kiểm nhóm chứng có tồn tại không — ĐO 5b khai xong mới lộ ra nhóm chứng **rỗng theo cấu tạo**: 53 file chưa bị chạm đều nằm NGOÀI rổ đo | chính dụng cụ tự dừng ở lượt chạy đầu | ⚠️ một phần | dụng cụ trả mã thoát 2 và nói *"một nhóm rỗng → KHÔNG đọc được"*; nhưng phép đếm cỡ nhóm phải chạy **trước khi ký**, và chưa có gác nào bắt điều đó |
+| 40 | nêu một **"chỗ không khớp"** bằng trực giác số học thay vì bằng phép tính — *"9 lệnh khác thì kỳ vọng đã phải dịch nhiều hơn thế"* sai, 9/385 chỉ mang trọng số 2,3%; nó điều hướng tám ngày | bấm máy khi đi đo chính nó | ⚠️ một phần | quy tắc 2 áp cho **lập luận** chứ không riêng kết quả: một câu về độ lớn cũng là một con số, và cũng cần một lệnh |
+
+**Hai mươi tư trên bốn mươi máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -841,3 +844,63 @@ không phải cơ chế chặn**. Thứ chặn được là bắt phép kiểm �
 
 Chưa chặn toàn cục: không có gác nào bắt được một `assert "x" not in <văn
 bản>` mới viết ra trong `tests/`. Đó là lý do dòng 38 mang dấu ⚠️.
+
+
+### Lỗi 39 — ký một phép đo mà chưa đếm nhóm chứng
+
+ĐO 5b (12/09/2026) dựng trên một thí nghiệm tự nhiên: `backtest/cache/` mang
+hai thế hệ file, **53 file kéo 06–08/08** làm nhóm chứng và **72 file kéo
+03/09** làm nhóm thử. Tiêu chí được viết đầy đủ, ký, qua năm cổng, vào
+`main`.
+
+Chạy xong mới lộ: **nhóm chứng rỗng.** Không phải ít mã — **không mã nào.**
+
+```
+nhom 08/08:  53 file  ->   0 file nam trong ro do (khong ma nao co moc)
+nhom 03/09:  71 file  ->  71/71 nam trong ro
+```
+
+Lượt kéo 03/09 ghi lại đúng toàn bộ rổ đo, nên 53 file kia đều là mã **ngoài
+rổ** — không mốc, không vùng OOS, không so được gì.
+
+Một truy vấn duy nhất trước khi ký sẽ bắt được: *đếm xem mỗi nhóm còn bao
+nhiêu mã sau khi lọc*. Tôi đã đếm **file**, và không đếm **mã dùng được**.
+
+**Quy tắc rút ra: một thiết kế có nhóm chứng phải ĐẾM cỡ hai nhóm trước khi
+ký, không phải sau khi chạy.** Cùng họ lỗi 31 — ở đó một ô không thể đỏ, ở
+đây một nhóm không thể có mẫu; cả hai làm phép đo mất khả năng phân biệt
+trước khi nó bắt đầu.
+
+Phần làm đúng: tiêu chí đã tách sẵn *"phép đo không chạy được"* khỏi *"phép
+đo chạy và không thấy gì"*, nên kết quả rỗng không bị đọc thành kết quả âm.
+
+### Lỗi 40 — một "chỗ không khớp" nêu bằng trực giác, không bằng phép tính
+
+Ngày 04/09/2026 tôi ghi vào `docs/STATE.md`:
+
+> *"`CLAUDE.md` ghi 385 lệnh; `d777480` chạy hôm nay ra 376. Alpha và kỳ
+> vọng khớp tới ba chữ số nhưng số lệnh lệch 9. **Nếu 9 lệnh thật sự khác
+> thì kỳ vọng đã phải dịch nhiều hơn thế.** Chưa truy tiếp."*
+
+Câu in đậm là một khẳng định **định lượng**. Nó chưa bao giờ được tính. Nó
+sống **tám ngày** và điều hướng cả một phép đo.
+
+Bấm máy, 10 giây:
+
+```
+385 x -0,291 = -112,035        376 x -0,293 = -110,168
+9 lenh chenh -> tong -1,867 -> TB -0,207%
+```
+
+Chín lệnh ấy lãi trung bình **−0,207%** so với **−0,293%** của toàn mẫu.
+Bình thường. Và kể cả nếu chúng lãi trung bình **+5%**, kỳ vọng cũng chỉ
+dịch **0,124 điểm** — vẫn "khớp tới hai chữ số". Chín trên 385 mang trọng
+số 2,3%; ràng buộc ấy lỏng, chưa bao giờ chặt.
+
+**Quy tắc rút ra: quy tắc số 2 áp cho LẬP LUẬN, không riêng cho KẾT QUẢ.**
+*"Đã phải dịch nhiều hơn thế"* là một câu về độ lớn, tức một con số, tức
+cần một lệnh. Một câu như vậy không có lệnh đứng sau thì không được dùng
+để mở — hay để đóng — một câu hỏi.
+
+Cùng họ lỗi 6 (ước 40s, thật 167,7s): chỗ nguy hiểm không phải con số bịa,
+mà là **con số không ai nghĩ là con số**.

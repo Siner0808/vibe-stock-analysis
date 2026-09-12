@@ -9965,3 +9965,144 @@ cơ chế chặn nó**.
 
 **17/09/2026** — tiêu chí BƯỚC 20 về việc dời cron ba chuông, khai 03/09.
 Nền 247 phút. Đừng đọc sớm.
+
+
+---
+
+## BƯỚC 55 — ĐO 5: MÃ BỊ LOẠI, VÀ TIỀN ĐỀ CỦA CÂU HỎI CŨNG BỊ LOẠI (12/09/2026)
+
+Việc treo từ **04/09/2026**, tám ngày: `CLAUDE.md` bản 28/08 ghi **385**
+lệnh OOS, lượt chạy 04/09 ở `d777480` ra **376**, trong khi alpha và kỳ
+vọng khớp tới ba chữ số.
+
+Tiêu chí vào `main` lúc **09:17:52**; lượt A bắt đầu **09:17:56** — bốn
+giây sau. Hai lượt, **88,8 phút**, cả hai mã thoát 0. Ước lượng đã khai là
+70–95 phút.
+
+### Kết quả — ô thứ nhất của bảng đã ký
+
+```
+[1] PHEP KIEM DUNG CU   luot A nguong 62 · luot B nguong 62  -> DOC DUOC
+[2] SO LENH OOS         A = 376 · B = 376 · A - B = 0
+[3] DIFF TAP LENH       chi o A: 0 · chi o B: 0 · chung: 376
+[4] KET CUC             A == B -> MA KHONG PHAI NGUYEN NHAN
+```
+
+Không phải "gần bằng nhau": **tập lệnh giống hệt từng dòng**, 376 lệnh
+chung, 0 lệnh riêng ở mỗi bên. Mã ngày 28/08 và mã ngày 31/08, chạy trên
+cùng cache hôm nay, cho ra **cùng một tập lệnh**.
+
+Và lượt A — mã của ngày công bố 385 — chạy trên cache hôm nay ra **376**,
+đúng con số của lượt 04/09.
+
+### Rồi tiền đề của chính câu hỏi bị bác — bằng số học, 10 giây
+
+Ghi chú 04/09 viết: *"Nếu 9 lệnh thật sự khác thì kỳ vọng đã phải dịch
+nhiều hơn thế."* Đó là một khẳng định **định lượng**, và chưa ai bấm máy.
+
+```
+385 lenh x -0,291%  ->  tong -112,035
+376 lenh x -0,293%  ->  tong -110,168
+ 9 lenh chenh       ->  tong   -1,867  ->  TB -0,207%
+```
+
+Chín lệnh chênh có kỳ vọng trung bình **−0,207%**, so với **−0,293%** của
+toàn mẫu. **Hoàn toàn bình thường.** Không có gì phải giải thích.
+
+Chiều ngược lại cho thấy ràng buộc ấy lỏng tới mức nào:
+
+| 9 lệnh ấy TB | kỳ vọng 385 lệnh | dịch so với −0,293 |
+|---|---|---|
+| −2,0% | −0,333% | −0,040 |
+| 0,0% | −0,286% | +0,007 |
+| +2,0% | −0,239% | +0,054 |
+| **+5,0%** | −0,169% | **+0,124** |
+
+Chín trên 385 mang trọng số 2,3%. Kể cả khi chín lệnh ấy lãi trung bình
+**5%** — một giá trị vô lý — kỳ vọng vẫn chỉ dịch 0,124 điểm, tức vẫn
+"khớp tới hai chữ số".
+
+**"Alpha khớp ba chữ số" chưa bao giờ là bằng chứng rằng chín lệnh ấy
+không có thật.** Cái gọi là "chỗ không khớp" được nêu ra bằng trực giác số
+học, và trực giác ấy sai. Đó là **lỗi 40**.
+
+### ĐO 5b — KHÔNG CHẠY ĐƯỢC, và chỗ không chạy được là một phát hiện
+
+Thiết kế: so nhóm file kéo **06–08/08** (nhóm chứng, chưa bị lượt 03/09
+chạm) với nhóm kéo **03/09**, lấy `backtest/cache_2018/` làm thước chung.
+
+Nhóm chứng **rỗng**. Truy vì sao:
+
+```
+nhom 08/08:  53 file  ->   0 file nam trong ro do (khong ma nao co moc)
+nhom 03/09:  71 file  ->  71/71 nam trong ro · 33 co vung OOS
+```
+
+**Lượt kéo 03/09 ghi lại ĐÚNG TOÀN BỘ rổ đo 71 mã**, cộng `VNINDEX.csv`.
+Năm mươi ba file còn lại đều nằm **ngoài** rổ, nên không mã nào có mốc và
+không mã nào có vùng OOS.
+
+Nhóm chứng vì thế không tồn tại **theo cấu tạo**, không theo may rủi —
+thiết kế này không bao giờ chạy được. Đó là cách đọc *"phép đo không chạy
+được"*, khác hẳn *"phép đo chạy và không thấy gì"*. Tiêu chí ĐO 5b bắt tách
+đôi hai chuyện ấy, và phép tách đó có ích ngay lượt đầu.
+
+Một quan sát đọc được nhưng **không phải** đại lượng đã khai: trên 33 mã có
+OOS, `cache/` (kéo 03/09) và `cache_2018/` (kéo 11/09) khớp trung vị
+**0,000000** ở 32/33 mã; riêng `OIL` lệch 0,0144. Hai lượt kéo cách nhau
+tám ngày cho **cùng** giá lịch sử. Không có nhóm chứng nên nó không nói được
+gì về bước 08/08 → 03/09.
+
+### Vế VNINDEX — có sức chứa, không có bằng chứng
+
+`consider_entry` gọi `is_vni_bullish(signal_date)`, và hàm ấy **cho qua**
+khi thiếu dữ liệu:
+
+```python
+sub = vni_df[vni_df["time"] <= signal_date]
+if sub.empty:
+    return True
+```
+
+`VNINDEX.csv` cũng bị ghi lại ngày 03/09 lúc 09:45, và `15f5794` cùng ngày
+ghi rằng trước đó `extend_history.py` **không hề kéo VN-INDEX**.
+
+Đếm trên bảng `decisions` của chính lượt vừa chạy:
+
+```
+8.935 quyet dinh OOS
+4.941 bi chan boi "VN-INDEX nam duoi MA50"   (55%)
+  309 trong so do co diem >= 62              <- chi con VN-INDEX chan
+      trai 2022-04-12 -> 2025-01-22
+```
+
+Cơ chế **thừa sức** sinh ra chênh chín lệnh. Nhưng để ra **đúng chín**,
+VNINDEX phải bắt đầu đúng **2022-04-19**, và chín lệnh ấy dồn trong sáu
+ngày — một đòi hỏi hẹp và tuỳ tiện. Không có bằng chứng, và không kiểm được:
+bản VNINDEX trước 03/09 đã bị ghi đè.
+
+### Kết luận — việc treo ĐÓNG, và nó đóng ở chỗ khác chỗ đã nghĩ
+
+| vế | phán quyết |
+|---|---|
+| **mã nguồn** | **BỊ LOẠI bằng phép đo** — hai commit, cùng cache, tập lệnh giống hệt |
+| **tiền đề "alpha khớp nên 9 lệnh không thật"** | **BỊ BÁC bằng số học** — 9/385 mang trọng số 2,3% |
+| lượt kéo 03/09 đổi giá lịch sử | **chưa loại được**, và **không đo được** — bản cũ đã bị ghi đè có chủ đích |
+| lượt kéo 03/09 đổi VNINDEX | **chưa loại được** — có sức chứa (309 tín hiệu), không có bằng chứng |
+
+**Thứ được đóng không phải "tìm ra nguyên nhân", mà là "không còn dị
+thường nào cần giải thích".** 385 và 376 khác nhau vì đầu vào khác nhau —
+cache của rổ đo bị ghi lại toàn bộ ngày 03/09 — và chênh chín lệnh với kỳ
+vọng trung bình −0,207% là chuyện bình thường, không phải nghịch lý.
+
+Việc treo ấy sống tám ngày vì một phép tính chưa ai bấm.
+
+### Giới hạn, nhắc lại vì nó đã khai trước
+
+Phép đo này **không** chứng minh cache là nguyên nhân. Nó loại vế mã, và
+chỉ tên vế còn lại. Nội dung cache 28/08 đã bị ghi đè — theo một quyết
+định, không phải sơ sót — nên vế ấy không đo được bằng bất kỳ thiết kế nào.
+
+### Còn lại một mốc
+
+**17/09/2026** — tiêu chí BƯỚC 20 về việc dời cron ba chuông. Đừng đọc sớm.
