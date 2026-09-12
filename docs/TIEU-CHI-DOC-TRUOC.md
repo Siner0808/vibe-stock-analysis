@@ -89,6 +89,9 @@ một lượt chạy, vì lượt chạy ấy không bao giờ xảy ra.
 
 ## ĐO 1 — Bảng "CHI PHÍ THỰC THI" ở cấu hình hiện hành
 
+> **Dụng cụ đọc:** `tools/do1_chi_phi_thuc_thi.py` — mỗi lượt một tiến
+> trình riêng, chạy tuần tự.
+
 ### Vì sao cần
 
 `CLAUDE.md` mục CHI PHÍ THỰC THI có một bảng số đã được đánh dấu **lạc
@@ -180,6 +183,9 @@ không phải dòng alpha cao nhất (bất biến 7).
 ---
 
 ## ĐO 2 — `stride=1`: câu hỏi hiện tại KHÔNG trả lời được
+
+> **Dụng cụ đọc:** `tools/do2_do_tre_khop.py` — bốn lượt, ngưỡng ghim
+> tay 62/50.
 
 ### Vì sao nó được nêu ra
 
@@ -329,6 +335,9 @@ không kiểm nhãn. Ba đột biến, 3/3 đỏ.
 ---
 
 ## ĐO 2 — điều khoản bổ sung, khai TRƯỚC dòng mã đầu tiên
+
+> **Dụng cụ đọc:** `tools/do2_do_tre_khop.py`, cùng dụng cụ với mục
+> ĐO 2 ở trên.
 
 > ✍️ **ĐÃ KÝ 09/09/2026 — cả ba mục, không sửa một điều kiện nào.**
 >
@@ -572,6 +581,9 @@ cùng cấu hình ở hai ngày khác nhau).
 ---
 
 ## ĐO 4 — kéo cache giá về 2018
+
+> **Dụng cụ đọc:** `tools/do1_chi_phi_thuc_thi.py`, chạy với biến môi
+> trường `VIBE_CACHE_DIR` trỏ vào cache 2018.
 
 > **Khai ngày 10/09/2026, TRƯỚC khi kéo một mã nào.** Phép đo này đổi
 > **dữ liệu** mà mọi con số walk-forward đã công bố được tính trên đó, nên
@@ -881,6 +893,15 @@ lớn. Kéo về 2018 là kéo xa nhất từ trước tới nay.
 
 ## ĐO 5 — chênh 385/376: MÃ hay CACHE? (khai 12/09/2026, trước lượt chạy)
 
+> **Không có dụng cụ vì:** bản đọc chạy một lần rồi nằm lại ở thư mục
+> tạm, và hai worktree chứa `wf_oos.db` đã bị gỡ ngay sau lượt chạy —
+> nên **con số của mục này không tái lập được** nếu không chạy lại cả
+> 88,8 phút. Ghi ra thay vì để người sau tưởng có lệnh.
+>
+> Việc ấy ít hại hơn vẻ ngoài của nó: **ĐO 5 là bản trùng** của
+> `docs/STATE.md` BƯỚC 25 (04/09/2026), nơi cùng phép so đã chạy và
+> cùng cho 376/376. Xem BƯỚC 57.
+
 ### Câu hỏi, treo từ 04/09/2026
 
 `CLAUDE.md` bản 28/08 ghi **385 lệnh** OOS; lượt chạy ngày 04/09 ở commit
@@ -1021,6 +1042,11 @@ phút**. Đây là ước lượng, không phải phép đo.
 
 ## ĐO 5b — một lượt kéo có GHI LẠI hàng lịch sử không? (khai 12/09/2026)
 
+> **Không có dụng cụ vì:** phép đo này **không chạy được** — nhóm chứng
+> rỗng theo cấu tạo (53 file chưa bị lượt 03/09 chạm đều nằm NGOÀI rổ
+> đo 71 mã). Một dụng cụ cho một thiết kế không chạy được là dụng cụ
+> cho một phép đo không tồn tại. Xem BƯỚC 55 và lỗi 39.
+
 > **Khai lúc lượt A của ĐO 5 đang chạy, TRƯỚC khi thấy một con số nào của
 > A hay B.** Viết sớm có chủ đích: nếu chờ tới lúc biết `A == B` rồi mới
 > khai thì bảng đọc này ra đời sau khi đã biết mình cần nó nói gì.
@@ -1107,6 +1133,9 @@ Hai chuyện khác nhau.
 ---
 
 ## ĐO 6 — khoảng cách chi phí thực thi IS/OOS: THANH KHOẢN hay GIÁ VÀO?
+
+> **Dụng cụ đọc:** `tools/do6_tach_chi_phi.py` — chép vào repo ngày
+> 12/09/2026 (BƯỚC 59) sau khi phát hiện bản đầu nằm ở thư mục tạm.
 
 *(khai 12/09/2026, trước lượt chạy đầu tiên)*
 

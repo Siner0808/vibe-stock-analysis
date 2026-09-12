@@ -10615,3 +10615,90 @@ f-string; một neo `
 ` trong `python -c` không khớp. Cả hai đúng lý do
 `SKILL.md` chỉ cho **một đường vá duy nhất** — viết một file `.py` rồi chạy
 nó. Cửa Bash cũng chặn đúng một lệnh hai heredoc ở giữa lượt.
+
+
+---
+
+## BƯỚC 60 — HAI PHÉP ĐO KHÔNG TÁI LẬP ĐƯỢC, VÀ KHÔNG AI GHI ĐIỀU ĐÓ (12/09/2026)
+
+BƯỚC 59 bắt được dụng cụ đọc ĐO 6 nằm ngoài repo — **bằng tình cờ**, khi đi
+rà việc khác. Một khuyết tật chỉ bị bắt bằng tình cờ là một khuyết tật sẽ
+tái diễn, nên câu hỏi tiếp theo là: **việc này rộng đến đâu?**
+
+### Đếm trước, đúng bài học lỗi 39
+
+```
+2 / 9  muc DO trong docs/TIEU-CHI-DOC-TRUOC.md neu ten mot dung cu trong repo
+```
+
+Bảy mục còn lại chia làm hai loại, và chỉ loại thứ hai là khuyết tật thật:
+
+| | |
+|---|---|
+| **ĐO 1 · 2 · 2 · 4** | **có** dụng cụ thật, chỉ là tên nó nằm ở `CLAUDE.md` chứ không cạnh tiêu chí — người đọc tiêu chí không thấy |
+| **ĐO 5 · 5b** | **không có** dụng cụ trong repo |
+
+### Điều chưa ai ghi: hai phép đo không tái lập được
+
+Bản đọc của ĐO 5 chạy một lần rồi nằm lại ở thư mục tạm, và **hai worktree
+chứa `wf_oos.db` đã bị gỡ ngay sau lượt chạy**. Nên con số của ĐO 5 không
+tái lập được nếu không chạy lại cả **88,8 phút**.
+
+Chuyện ấy trước hôm nay **không được ghi ở đâu cả**. BƯỚC 55 trình bày
+376/376 như một phép đo — nó là một phép đo thật — nhưng không ai đọc được
+rằng nó đã trở thành một phép đo **chỉ đọc**.
+
+> Việc ấy ít hại hơn vẻ ngoài của nó, và lý do thì đã biết: **ĐO 5 là bản
+> trùng** của BƯỚC 25, nơi cùng phép so đã chạy và cùng cho 376/376.
+> Nhưng "ít hại vì tình cờ trùng" không phải một biện hộ.
+
+ĐO 5b thì khác hẳn: nó **không chạy được** (nhóm chứng rỗng theo cấu tạo).
+Một dụng cụ cho một thiết kế không chạy được là dụng cụ cho một phép đo
+không tồn tại — đó là lý do chính đáng, và nay nó được ghi ra.
+
+### Gác
+
+```
+tests/test_phep_do_neu_dung_cu.py   7 phep kiem
+```
+
+Mỗi mục `## ĐO n` phải nêu **một đường `.py` GIT BIẾT**, hoặc một dòng
+`**Không có dụng cụ vì:** <lý do>` dài ≥ 30 ký tự và không chung chung.
+Không ép phải có dụng cụ — ép phải **nói ra**, đúng cơ chế `# bia-ok:`,
+`khong_soat_vi` và `# van-ban-ok:`.
+
+Bảy mục đã khai. Hai trong số đó khai là **không có**, kèm lý do thật.
+
+### Đục thử 9/11 — và hai phát sống sót nói hai chuyện khác nhau
+
+**Phát 1 — `DAI_TOI_THIEU = 30 → 0` sống sót.** Phép phán đọc hằng số từ
+chính module nên đục nó làm mù cả hai vế.
+
+Đó là **đúng lỗi tôi vừa sửa chưa tới một giờ trước**, ở gác của BƯỚC 58,
+theo đúng cách đã ghi. Rồi viết gác tiếp theo và mắc lại y nguyên.
+
+> **Sửa một hiện thân không chuyển thành sửa hiện thân sau.** Cùng bài học
+> lỗi 38 (*tài liệu hoá một cái bẫy không ngăn được việc mắc lại nó*),
+> nhưng gắt hơn: ở đây không phải tài liệu — là **chính tay tôi vừa sửa
+> nó**, và nó vẫn tái diễn ở đoạn mã kế tiếp.
+>
+> Không thêm một dòng bảng lỗi cho lần này, và nói rõ vì sao: nó bị **vòng
+> lặp đột biến bắt trước khi giao**, tức cơ chế đã làm đúng việc của nó.
+> Bảng lỗi đếm thứ thoát ra được, không đếm thứ quy trình chặn lại — chính
+> header của bảng nói *"số lỗi mỗi ngày KHÔNG phải thước"*.
+
+**Phát 2 — nới `tools/...` thành đường bất kỳ cũng sống sót.** Nhưng rà lại
+thì phát này **không hợp lệ**, và nó lôi ra một ràng buộc tuỳ tiện của
+chính tôi: `walkforward.py` ở **gốc** repo cũng là một lệnh đọc hợp lệ — nó
+chính là thứ sinh ra hai DB của ĐO 6. Hạn chế ở `tools/` không bảo vệ gì;
+việc phán đã do **git biết hay không** làm cả.
+
+Đã bỏ hạn chế ấy, và thêm một vế phải-qua cho một đường nằm ở **gốc** repo.
+Sau khi sửa: **4/4 đỏ** trên bộ đục lại.
+
+### Điều gác này KHÔNG làm được
+
+Nó không kiểm dụng cụ được nêu có **thật sự sinh ra** những con số trong
+mục đó không. Một đường dẫn đúng cú pháp, git biết, nhưng trỏ nhầm file vẫn
+lọt. Nó chỉ đóng đúng một lỗ: **một phép đo đã ký mà không ai nói được nó
+được đọc bằng lệnh nào.**
