@@ -951,21 +951,57 @@ khac 0 va khac 9  ->  MA gop MOT PHAN. Phan con lai CHUA QUY DUOC.
                       Ghi thang nhu vay, khong lap bang mot lap luan.
 ```
 
-### Giới hạn phải nêu TRƯỚC, và nó lớn
+### CACHE ĐÃ ĐỔI TRONG CỬA SỔ — đo được, không phải phỏng đoán
 
-**Cache ngày 28/08 KHÔNG còn tồn tại.** `backtest/cache/` nằm trong
-`.gitignore` và chưa bản nào được lưu lại. Nên vế "cache" **không đo trực
-tiếp được** trong bất kỳ thiết kế nào — nó chỉ được loại bằng **suy luận**.
+Bản đầu của mục này viết *"cache 28/08 không còn tồn tại vì chưa bản nào
+được lưu lại"*, nghe như một sơ sót. **Sai, và người dùng sửa lại ngay:**
+nội dung ấy bị **ghi đè có chủ đích** bởi một lượt kéo đã quyết.
 
-Hệ quả phải giữ: kết cục `A == B` cho phép nói *"không phải mã"*, và
-**không** cho phép nói *"vậy là cache"*. Vế sau khi đó vẫn chưa có bằng
-chứng, và phải được ghi là chưa có.
+Dấu vết trên đĩa, đọc bằng `ls -l --time-style` chứ không nhớ:
+
+```
+mtime backtest/cache/*.csv      2 file   2026-08-06
+                               51 file   2026-08-08
+                               72 file   2026-09-03  09:40-09:41
+backtest/cache/VNINDEX.csv               2026-09-03  09:45
+```
+
+**Đúng 72 file** — chính 72 mã mang nến dở phiên 2026-09-03 đã truy ngày
+11/09 (BƯỚC 53). Lượt kéo ấy nằm **giữa** hai lượt 385 (28/08) và 376
+(04/09).
+
+Nên vế "cache" không còn là một khả năng mơ hồ. Nó là **một sự kiện có
+ngày, có giờ, có số file, và có một quyết định đứng sau**.
+
+### Một đầu vào thứ BA, phát hiện khi soát thiết kế
+
+`consider_entry` gọi **`is_vni_bullish(signal_date)`** (`paper_trading.py`,
+có ở CẢ HAI commit). Backtest vì thế đọc `backtest/cache/VNINDEX.csv` —
+file cũng bị ghi lại ngày 03/09, lúc 09:45.
+
+Và `15f5794` (03/09) ghi thẳng rằng trước đó **VNINDEX đứng ở 20/08** và
+`status()` báo *trễ 7 phiên · cổng TẮT*. Tức bộ lọc thị trường có thể đã ở
+hai trạng thái khác nhau giữa hai lượt.
+
+Thiết kế hai worktree **khống chế được** đầu vào này — cả A lẫn B đều đọc
+`VNINDEX.csv` hôm nay. Đó chính là điều làm phép so cô lập được MÃ. Nhưng
+nó cũng nghĩa là phép so này **không tái dựng** trạng thái VNINDEX của
+28/08, và điều đó phải được nhớ khi đọc kết quả.
+
+### Hệ quả cho ba kết cục — siết lại, khai TRƯỚC
+
+Kết cục `A == B` nay đọc được **mạnh hơn** bản đầu: mã không phải nguyên
+nhân, và thứ còn lại trong cửa sổ là **lượt kéo 03/09** (72 file giá +
+VNINDEX). Vẫn **không** được gọi đó là bằng chứng — phép đo này không chạm
+tới nội dung cache cũ, thứ đã bị ghi đè. Nó là **giả thuyết còn lại duy
+nhất được nêu tên**, khác hẳn *"chắc là cache"*.
 
 Một suy luận hỗ trợ, ghi **trước** để không bịa ra sau khi thấy số:
 `chia_vung` trả `df[ngày < mốc]` làm OOS, nên dữ liệu thêm ở **rìa phải**
-(28/08 → 03/09) không đổi một phiên OOS nào. Cache chỉ đổi được OOS nếu nó
-được kéo **lùi về quá khứ** — mà đầu trái hôm nay là **2021-10-14**, đúng
-con số tài liệu ghi từ 23/08/2026.
+không đổi một phiên OOS nào. Lượt kéo 03/09 chỉ chạm được OOS nếu nó **ghi
+lại cả hàng lịch sử** (hệ số điều chỉnh đổi — đúng thứ ĐO 4 đo được giữa
+hai nguồn, tới −1,2%), chứ không phải chỉ nối thêm vào đuôi. **Chưa ai đo
+điều đó**, và nó không đo được sau khi bản cũ đã bị ghi đè.
 
 ### Điều KHÔNG được làm sau khi thấy số
 
