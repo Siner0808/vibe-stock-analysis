@@ -1520,6 +1520,24 @@ Hai hàng rào mới đáng biết:
 > giữ một phiên. NAF · STB · TCB vẫn mở. Xem thêm ô "ĐÃ ĐÓNG" ở mục
 > "CỔNG MỞ LỆNH ĐÃ BẬT" phía trên: bộ đếm kết quả đã đóng nay là 1.
 >
+> 🔴 **HAI CON SỐ NGAY TRÊN ĐÃ TRÔI — đo lại 12/09/2026: CÒN 2, BỘ ĐẾM
+> LÀ 2.** TCB đóng **2026-09-11**, `SIGNAL_REVERSED`. Còn **NAF · STB**
+> mở.
+>
+> **Đừng đọc con số ở đây — chạy lệnh:**
+>
+> ```bash
+> ./.venv/Scripts/python.exe tools/doc_so_that.py
+> ```
+>
+> Số về SỔ **không gác được bằng test**: sổ nằm trên mạng và tự đổi khi
+> thị trường chạy, không có hằng số nào trong mã để đối chiếu. Nên mọi
+> con số về sổ viết ra đây sẽ trôi — chỉ khác là trôi nhanh hay chậm.
+> `docs/STATE.md` BƯỚC 61.
+>
+> Và vẫn đúng bất biến 7 đổi hướng: **2 trên `N_TOI_THIEU` = 113**.
+> Không đọc lãi/lỗ của chúng, không dùng chúng để nới hay siết gì.
+>
 > Và điều đoạn trên khẳng định nay đã được **kiểm sống**: cổng C5 vẫn
 > `False` tại thời điểm khớp. Xem `docs/STATE.md`, BƯỚC 18.
 >
