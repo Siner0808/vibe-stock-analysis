@@ -148,6 +148,8 @@ def test_CI_that_su_goi_cong_nay():
     """Một cổng không ai gọi thì không phải cổng. Lỗi 14 của dự án là
     đúng hình dạng đó: sáu cửa dựng xong, không cửa nào từng chạy."""
     yml = (GOC / ".github/workflows/kiem-dinh.yml").read_text(encoding="utf-8")
+    # Van ban o day LA van ban that.
+    # van-ban-ok: kiem-dinh.yml la YAML — AST cua Python khong doc duoc no
     assert "kiem_so_test_khong_giam.py" in yml, (
         "kiem-dinh.yml khong goi cong so test")
     print("PASS  kiem-dinh.yml co goi cong nay")

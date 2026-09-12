@@ -407,6 +407,8 @@ def test_KHONG_noi_nao_gop_lai_hai_cot_ngay():
         f = GOC / ten
         assert f.exists(), f"{ten} biến mất — gác này đang canh chỗ trống"
         src = f.read_text(encoding="utf-8")
+        # Phep kiem chinh nam ngay duoi va doc bang AST.
+        # van-ban-ok: chim hoang yen — chi khang dinh gac canh DUNG FILE
         assert "entry_date" in src, (
             f"{ten} không còn nhắc entry_date; nếu bảng vị thế đã dời đi "
             f"thì sửa NOI_HIEN_THI, đừng để gác canh nhầm file")

@@ -214,6 +214,8 @@ def test_HAI_CON_TRO_CHET_cua_05_09_khong_duoc_quay_lai():
     assert "doc_chi_so" in mods["fundamental_agent"]
 
     src = _doc()
+    # Chinh van ban la thu can kiem, khong phai loi goi.
+    # van-ban-ok: quy uoc du an — TEN DA CHET khong duoc co mat trong tai lieu
     assert "sheets_store._COLS" not in src
     assert "fundamental_agent._doc(" not in src
 
