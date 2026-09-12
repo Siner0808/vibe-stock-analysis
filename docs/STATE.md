@@ -9988,9 +9988,17 @@ giây sau. Hai lượt, **88,8 phút**, cả hai mã thoát 0. Ước lượng �
 [4] KET CUC             A == B -> MA KHONG PHAI NGUYEN NHAN
 ```
 
-Không phải "gần bằng nhau": **tập lệnh giống hệt từng dòng**, 376 lệnh
-chung, 0 lệnh riêng ở mỗi bên. Mã ngày 28/08 và mã ngày 31/08, chạy trên
-cùng cache hôm nay, cho ra **cùng một tập lệnh**.
+Không phải "gần bằng nhau": **376 lệnh chung, 0 lệnh riêng ở mỗi bên.**
+Mã ngày 28/08 và mã ngày 31/08, chạy trên cùng cache hôm nay, chọn ra
+**cùng một tập lệnh**.
+
+> 🔴 **CÂU NÀY TỪNG VIẾT LÀ "giống hệt TỪNG DÒNG" — nói quá, sửa cùng
+> ngày (BƯỚC 57).** Dụng cụ so **hai cột**: `(mã, ngày tín hiệu)`. Nó
+> KHÔNG so giá vào, giá ra hay ngày khớp. Chính nó in ra đúng phạm vi ấy
+> — *"DIFF TAP LENH (ma, ngay tin hieu)"* — còn câu văn xuôi thì rộng
+> hơn thứ đã đo. Khẳng định vẫn đứng, nhưng chỗ dựa là BƯỚC 25
+> (04/09/2026), nơi đo độc lập rằng cặp commit ấy cho *"tập lệnh y hệt,
+> tỷ lệ thắng y hệt, vốn cam kết y hệt"* — **không** phải lượt chạy này.
 
 Và lượt A — mã của ngày công bố 385 — chạy trên cache hôm nay ra **376**,
 đúng con số của lượt 04/09.
@@ -10247,3 +10255,127 @@ trắng.
 
 **17/09/2026** — tiêu chí BƯỚC 20 về việc dời cron ba chuông, nền 247 phút.
 Sau ĐO 6, đó là **việc treo duy nhất còn lại** của dự án.
+
+
+---
+
+## BƯỚC 57 — MỘT CÂU HỎI GỬI NOTEBOOKLM BÁC CẢ MỘT PHÉP ĐO 88,8 PHÚT (12/09/2026)
+
+Người dùng nhắc **lần thứ hai** rằng NotebookLM không được dùng. Lần này
+kèm một câu: *"vấn đề này tôi đã note 2 lần."*
+
+Lời nhắc ấy đúng, và giá của nó đo được ngay trong ngày.
+
+### Một câu hỏi, và nó bác chính phép đo lớn nhất của buổi sáng
+
+Hỏi sổ tay `Vietnamese Stock Analysis System Architect` (4 nguồn, bản
+~05/09): *"tìm trong các nguồn chỗ NÓI NGƯỢC lại ba kết luận ngày 12/09."*
+
+Nó trả về, kèm trích dẫn nguyên văn và tên file:
+
+> `STATE.md`, mục **BƯỚC 25 — VÌ SAO NỀN KHÔNG TÁI LẬP** (04/09/2026):
+>
+> | commit | ngày | lệnh |
+> |---|---|---|
+> | `79a8d32` | 28/08 | **376** |
+> | `d777480` | 31/08 | **376** |
+
+**Tự kiểm lại bằng lệnh**, đúng giới hạn của công cụ:
+
+```bash
+grep -n "Nguyên nhân là MÃ" docs/STATE.md
+sed -n '/^## BƯỚC 25/,/^## BƯỚC 26/p' docs/STATE.md
+```
+
+Phán quyết: **THẬT.** Và nặng hơn thế — BƯỚC 25 mô tả đúng phương pháp mà
+ĐO 5 tưởng là của mình:
+
+> *"`backtest/cache/` bị gitignore nên nó KHÔNG đổi khi checkout mã cũ.
+> Dựng worktree ở commit nền rồi chạy **mã cũ trên dữ liệu hôm nay**."*
+
+**ĐO 5 là một bản trùng.** Tám mươi tám phút máy để dựng lại một kết quả
+đã nằm trong sổ **tám ngày**, bằng đúng phương pháp sổ đã ghi.
+
+### Chỗ mỉa mai: câu hỏi và câu trả lời ra đời cùng ngày, cùng file
+
+Việc treo trong `docs/HANDOFF.md` ghi *"chênh lệch số lệnh giữa bảng trong
+`CLAUDE.md` và lượt chạy lại **ngày 04/09** (385 so với 376)"*.
+
+Con số 376 ấy **chính là** con số của BƯỚC 25. Nên phiên ngày 04/09 vừa đo
+ra 376 cho cả hai commit cũ, vừa viết câu hỏi *"vì sao 385 ≠ 376"* vào sổ
+bàn giao — mà không thấy bảng của chính mình đã loại vế mã.
+
+Đó là **lỗi 41**, và nó cùng họ lỗi 9: *không tìm lời giải sẵn có trước khi
+tự viết lời giải.* Skill có hẳn Bước 1 Điều 1 cho việc ấy. Lần này cái giá
+không phải vài phút gõ lại — mà là 88,8 phút máy và hai lượt CI.
+
+### Công cụ cũng SAI một chỗ, và chỗ sai ấy đáng ghi
+
+Nó đọc câu **"Nguyên nhân là MÃ"** của BƯỚC 25 thành một lời bác bỏ kết
+luận ĐO 5. Kiểm lại ngữ cảnh: câu ấy nói về chênh lệch **ALPHA**
+(−0,927 so −0,676), không nói về chênh lệch **SỐ LỆNH** (385 so 376). Hai
+câu hỏi khác nhau; BƯỚC 25 chỉ trả lời câu thứ nhất.
+
+**Phán quyết: SAI — lỗi phạm trù.** Đúng thứ `SKILL.md` cảnh báo: *"nó chỉ
+ra CHỖ đáng nhìn; nó không phán được cái gì đúng."* Chỗ nó chỉ thì đúng,
+lời nó phán thì sai, và cả hai nằm trong cùng một câu trả lời.
+
+Ngược lại, ở câu hỏi thứ ba nó **tự phân biệt được** hai con số 55% trùng
+giá trị khác phạm trù — bộ lọc VN-INDEX so với *"NẮM GIỮ 55%"* của tầng
+phán quyết. Đúng loại lẫn mà lỗi 36 đã cắn.
+
+### ĐO 5 vẫn thêm được ba thứ — nhưng không phải thứ nó tự nhận
+
+| thứ | mới không |
+|---|---|
+| mã không phải nguyên nhân (376/376) | **TRÙNG** — BƯỚC 25 đã có |
+| phương pháp worktree | **TRÙNG** — BƯỚC 25 đã mô tả |
+| tiền đề *"alpha khớp nên 9 lệnh không thật"* sai về số học | **MỚI** — và đây mới là thứ đóng được việc treo |
+| mtime: 72 file + `VNINDEX.csv` bị ghi lại 03/09 | **MỚI** |
+| 309 tín hiệu điểm ≥ 62 bị bộ lọc VN-INDEX chặn | **MỚI** |
+
+Nói cho đúng: **ĐO 5 không vô giá trị, nhưng tiêu đề của nó thì trùng.**
+Ba thứ mới ở trên lẽ ra đạt được mà không cần một lượt walk-forward nào.
+
+### Một chỗ BƯỚC 55 nói quá, sửa cùng ngày
+
+BƯỚC 55 viết *"tập lệnh giống hệt **từng dòng**"*. Dụng cụ so **hai cột**
+— `(mã, ngày tín hiệu)` — và tự in ra đúng phạm vi ấy. Câu văn xuôi rộng
+hơn thứ đã đo.
+
+Khẳng định vẫn đứng, nhưng chỗ dựa là BƯỚC 25 đo độc lập (*"tập lệnh y
+hệt, tỷ lệ thắng y hệt, vốn cam kết y hệt"*), **không** phải lượt chạy sáng
+nay. Đã đánh dấu tại chỗ.
+
+### Cơ chế: một chỉ dẫn thường trực không có gác thì chỉ là một lời nhắc
+
+Chỉ dẫn dùng NotebookLM nằm ở **ba** nơi — `SKILL.md`, thư mục rules toàn
+cục, và bộ nhớ phiên. Nó vẫn trôi qua bốn phép đo liên tiếp (ĐO 1 → ĐO 4),
+và phải người dùng nhắc **hai lần** mới được làm. Đó là **lỗi 42**.
+
+Nên nay có sổ và có gác:
+
+```
+docs/soat-notebooklm.json      moi phep do mot dong
+tests/test_soat_notebooklm.py  6 phep kiem · duc thu 10/10 do
+```
+
+Gác **không ép phải soát** — nó ép phải **khai** đã soát hay chưa, và lý do
+không soát phải cụ thể (≥ 25 ký tự, từ chối "khong can"). Cùng đúng cơ chế
+`# bia-ok:`: *mục đích không phải cấm, mà là buộc nói ra.*
+
+Phát đục quan trọng nhất dựng lại đúng lỗi thật: **thêm `## ĐO 7` vào bản
+khai tiêu chí mà không thêm dòng soát → gác đỏ.**
+
+Bốn phép đo cũ đã được khai thẳng trong sổ, gồm một dòng ghi **"ĐO 4 —
+BỎ SÓT, không có lý do chính đáng"** thay vì bịa một lý do nghe được.
+
+### Điều gác này KHÔNG làm được
+
+Nó không bắt được việc soát **hời hợt**. Một dòng khai đủ trường vẫn có thể
+đến từ một câu hỏi vô thưởng vô phạt. Nó chỉ làm việc **bỏ sót** không im
+lặng được nữa — và đó là đúng thứ đã hỏng hôm nay, không hơn.
+
+Và nhắc lại giới hạn lớn nhất, nay ghi thẳng trong sổ: **công cụ ấy chỉ
+thấy TÀI LIỆU, không thấy MÃ.** Loại lỗi nặng nhất của dự án — tài liệu
+lệch mã (`N_DAY_DU` 596/451, cờ C5) — nó chưa bắt được cái nào.
