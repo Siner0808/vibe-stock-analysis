@@ -159,8 +159,13 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
-- **12/09/2026** — tiêu chí về cơ chế rơi nhịp cron, khai trước ngày
-  05/09 khi chưa có dữ liệu tuần đó.
+- ~~**12/09/2026** — tiêu chí về cơ chế rơi nhịp cron~~ **ĐÃ ĐỌC ĐÚNG
+  HẠN 12/09/2026:** A = 258,05 phút · B = 2 lượt/ngày → **ô thứ tư,
+  TƯƠNG HỢP, chưa phân biệt được**. Không đại lượng nào động đậy so với
+  BƯỚC 20/28, nên không có thông tin phân biệt. Dự đoán thứ hai ĐÚNG:
+  ba chuông **rơi 0/15 ngày-chuông**, và không commit nào chạm file
+  chuông trong tuần ấy nên số 0 ấy sạch. Lệnh đọc:
+  `tools/do_roi_nhip.py`. BƯỚC 54.
 - **17/09/2026** — tiêu chí về việc dời cron ba chuông, khai trước ngày
   03/09. Nền 247 phút.
 

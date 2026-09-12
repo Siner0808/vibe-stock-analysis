@@ -7055,6 +7055,10 @@ không phải quan hệ nhân quả — cùng câu đã ghi cho BƯỚC 20 và c
 nghỉ hay sự cố GitHub thì **ghi ra và giữ nguyên cỡ mẫu đã khai**, không mở
 rộng cho đủ. Đó là bất biến 7 đổi hướng.
 
+> **ĐÃ ĐỌC ĐÚNG HẠN 12/09/2026 — kết quả ở BƯỚC 54.** Ba ngưỡng và cửa
+> sổ ngày giữ nguyên; không con số nào trong mục này bị sửa sau khi thấy
+> số. `tools/do_roi_nhip.py` là lệnh đọc.
+
 
 ---
 
@@ -9828,3 +9832,136 @@ một phép đo: **ĐO 4 chạy trên cache KHÔNG có nến dở và chọn l�
 Cache cũ vì thế **giữ nguyên**, đúng vai trò bản neo tái lập.
 
 Bảng lỗi: **36 dòng, 23 máy chặn được.**
+
+
+---
+
+## BƯỚC 54 — ĐỌC MỐC 12/09: Ô THỨ TƯ, KHÔNG PHÂN BIỆT ĐƯỢC (12/09/2026)
+
+Tiêu chí ký ngày **05/09/2026**, khi tuần 07–11/09 chưa bắt đầu. Đọc hôm
+nay, đúng ngày đã hẹn, **không sửa một ngưỡng nào**.
+
+### Lệnh đọc
+
+```bash
+./.venv/Scripts/python.exe tools/do_roi_nhip.py
+```
+
+Dụng cụ mới, viết TRƯỚC khi nhìn phán quyết: nó hỏi `gh` lấy mốc **TẠO** của
+mọi lượt `schedule`, quy từng mốc về **khe đã hẹn gần nhất phía trước**, rồi
+xếp cặp (A, B) vào đúng một ô của bảng đã ký.
+
+### Hai đại lượng
+
+```
+chuong-bao-quet.yml   5/5 luot  —  khong ngay nao roi nhip
+  07/09  15:05:56Z   tre  342,93 phut
+  08/09  13:41:03Z   tre  258,05 phut
+  09/09  13:46:08Z   tre  263,13 phut
+  10/09  13:39:44Z   tre  256,73 phut
+  11/09  13:38:01Z   tre  255,02 phut
+
+quet-so-lenh.yml      10 luot / 60 nhip  —  2/12 moi ngay, ca nam ngay
+
+A = 258,05 phut        B = 2 luot/ngay
+```
+
+### Phán quyết: **TƯƠNG HỢP — chưa phân biệt được**
+
+`A > 120` và `B <= 3` rơi vào **ô thứ tư** của bảng đã ký. Giả thuyết
+*"GitHub bỏ một nhịp khi nhịp trước của cùng workflow chưa được tạo"* **không
+được ủng hộ và cũng không bị bác**.
+
+Lý do nằm ở cơ chế của chính bảng: ô ủng hộ đòi **hai đại lượng đi cùng
+nhau** — trễ giảm VÀ nhịp hồi. Tuần này **không đại lượng nào động đậy**.
+Trễ vẫn ~4,3 giờ (BƯỚC 20 đo 4–4,7 giờ), nhịp vẫn đúng 2/12 (BƯỚC 28 đo
+đúng 2/12 cho bảy ngày làm việc 27/08–04/09).
+
+**Đó là một kết quả, không phải một lượt đo hỏng.** Tiêu chí ký trước nói
+thẳng cửa này tồn tại, và nói trước rằng nó không kết luận được. Ghi "tương
+hợp nên chắc là đúng" ở đây là đúng thứ bảng ấy dựng ra để chặn.
+
+> Điều bảng này KHÔNG đo được, và nó lớn: **không có nhóm chứng.** Muốn
+> phân biệt thì phải có một tuần mà trễ thật sự giảm — thứ không ai điều
+> khiển được. Đây là giới hạn đã khai trước, không phải phát hiện mới.
+
+### Hằng số 2/12 nay dài 12 ngày làm việc, không phải 7
+
+```
+27/08 -> 04/09   2/12   bay ngay lam viec       (BUOC 28)
+07/09 -> 11/09   2/12   nam ngay lam viec       (BUOC 54)
+```
+
+**Mười hai ngày làm việc liên tiếp, không lệch một cái.** Lập luận của BƯỚC
+28 mạnh thêm đúng một bậc: nhịp rơi ngẫu nhiên không cho ra hằng số. Nhưng
+nó vẫn chỉ nói *có cơ chế*, không nói *cơ chế nào* — và đó chính là câu hỏi
+ô thứ tư không trả lời được.
+
+### Dự đoán thứ hai: đúng, và KHÔNG có yếu tố nhiễu
+
+Khai trước: 15 ngày-chuông, dự đoán **rơi 0**, trừ ngày nào có commit sửa
+chính file `.yml` của chuông ấy.
+
+```
+chuong-bao-quet.yml    5/5 no
+canh-cong-c5.yml       5/5 no
+chuong-nguon-dung.yml  5/5 no
+TONG: roi 0/15 ngay-chuong
+```
+
+Và không cần tới vế trừ: `git log` cho hai commit chạm
+`.github/workflows/` trong tuần ấy (`1ebedc5` 07/09, `955fc6b` 10/09), **cả
+hai chỉ sửa `kiem-dinh.yml`** — không file chuông nào. Nên 0/15 là 0 sạch,
+không phải 0 nhờ miễn trừ.
+
+Cộng với 0/14 của BƯỚC 28: **0/29 ngày-chuông**. Cận trên 95% theo quy tắc
+ba tụt từ ~21% xuống **~10%**. Vẫn không được viết là 0.
+
+### Một quan sát KHÔNG nằm trong tiêu chí — nêu đúng thân phận của nó
+
+Hai lượt sống sót mỗi ngày rơi vào hai khung rất hẹp:
+
+```
+07/09  07:11:11Z   11:28:41Z
+08/09  07:06:34Z   10:30:59Z
+09/09  07:14:07Z   10:42:08Z
+10/09  07:10:30Z   10:31:03Z
+11/09  07:09:35Z   10:32:13Z
+```
+
+Khối nhịp sáng (02:00–04:30 UTC, 6 khe) **không sinh lượt nào**; cả hai lượt
+đều ở nửa sau ngày. Nhìn thì gợi ý một cơ chế theo khối.
+
+**Nhưng nó không đọc được, và lý do ấy đáng ghi hơn chính quan sát.** Với 12
+khe cách nhau 30 phút và trễ tính bằng giờ, **việc quy một lượt về khe nào là
+không định danh được**: lượt 10:32 có thể là khe 08:30 trễ 2 giờ, hoặc khe
+02:00 trễ 8,5 giờ. Không dữ liệu nào trong tay phân biệt được hai cách đọc.
+
+Đó đúng là lý do tiêu chí ký 05/09 dùng **chuông** (1 nhịp/ngày, quy được)
+cho đại lượng A và chỉ **đếm** cho đại lượng B. Thiết kế ấy đứng vững.
+
+### Dụng cụ: 10 phát đục, 10 đỏ — sau khi sửa một lỗi ĐỌC NGƯỢC
+
+`tests/test_do_roi_nhip.py`, 9 phép kiểm. Phát đục đầu tiên dựng lại nguyên
+văn **lỗi 31**: làm `quyet_dinh()` trả `TUONG_HOP` cho mọi đầu vào — tức
+biến tiêu chí thành thứ không thể đỏ. Nó chết.
+
+Hai phát quan trọng nhất là hai ô **BÁC BỎ**: nếu chúng không đạt tới được
+thì bảng đã ký là một lời tiên tri, không phải phép kiểm.
+
+Lượt đục đầu tiên báo **0/10 đỏ**. Sai — thật ra 10/10. Tôi đọc ngược quy
+ước trả về của `dot_bien` (`True` = đột biến **bị giết**). Lỗi 37, và nó
+báo động GIẢ nên rơi vào chiều an toàn. Đã đóng bằng
+`va_an_toan.dot_bien_bo()`: giữ quy ước ở một chỗ, trả **danh sách phát sống
+sót** thay vì một `bool` — rỗng là lành.
+
+Một lỗi thứ hai cùng phiên: phép kiểm `assert "conclusion" not in <mã>` đỏ
+vì **docstring giải thích vì sao không đọc chữ ấy** chứa đúng chữ ấy. Đúng
+cái bẫy `in` mà `CLAUDE.md` có hẳn một mục riêng, và tôi đã đọc mục ấy trong
+cùng phiên. Lỗi 38 — bằng chứng rằng **tài liệu hoá một cái bẫy không phải
+cơ chế chặn nó**.
+
+### Còn lại một mốc
+
+**17/09/2026** — tiêu chí BƯỚC 20 về việc dời cron ba chuông, khai 03/09.
+Nền 247 phút. Đừng đọc sớm.

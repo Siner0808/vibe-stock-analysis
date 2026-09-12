@@ -76,7 +76,10 @@ là lỗi sẽ tái diễn.
 
 | 36 | suy một ĐƯỜNG ĐỌC từ chỗ trùng TÊN BẢNG mà không đọc `source=` và `period=` — ba đường cùng nhắc `ratio` hoá ra khác nguồn, khác độ mịn, khác cả chỗ lấy; kết luận sai đã lên `main` | tự truy tiếp cùng ngày, khi đi đo việc treo | ✅ | `tests/test_cache_bctc_du_ky.py` đọc bằng **AST** rằng phép đo IC không đọc `ratio`, và hai đường kia dùng hai nguồn khác nhau |
 
-**Hai mươi ba trên ba mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 37 | đọc **ngược quy ước trả về** của `dot_bien` (True = đột biến BỊ GIẾT) trong script gọi nó — báo *"0/10 đỏ"* cho một bộ thật ra **10/10 đỏ**, tức một gác tốt báo cáo thành gác vô dụng | chính con số 0/10 vô lý, cùng phiên | ✅ | `va_an_toan.dot_bien_bo()` giữ quy ước ở MỘT chỗ và trả **danh sách phát sống sót** — rỗng là lành, nên đọc ngược một danh sách khó hơn đọc ngược một `bool` |
+| 38 | viết một phép kiểm dạng `assert "tên" not in <mã nguồn>` rồi **chính docstring giải thích vì sao không đọc tên ấy** làm nó đỏ — đúng cái bẫy `in` mà `CLAUDE.md` đã ghi thành mục riêng | lượt chạy đầu tiên của chính test ấy | ⚠️ một phần | đọc bằng **AST** và bỏ docstring ra (`_chuoi_khong_phai_docstring`); tài liệu hoá cái bẫy KHÔNG ngăn được việc mắc lại nó |
+
+**Hai mươi tư trên ba mươi tám máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -775,3 +778,66 @@ tín hiệu thô (`leverage`) **mất** tín hiệu khi cỡ mẫu tăng 65%.
 Cùng họ lỗi 30 và 35, và cả ba cùng một hình dạng: **đọc sự xuất hiện của
 một chữ thay vì vai trò của nó.** Lỗi 30 ở dấu `|` trong lệnh shell, lỗi
 35 ở dấu `|` trong bảng markdown, lỗi 36 ở tên một bảng dữ liệu.
+
+
+### Lỗi 37 — đọc ngược quy ước trả về của chính dụng cụ đục thử
+
+Ngày 12/09/2026, đục thử một gác mới bằng mười phát. Script in ra:
+
+```
+0/10 do
+SONG SOT: tieu chi KHONG THE DO, hai o bac bo tron lam mot, ... (ca 10)
+```
+
+Đọc đúng thì phải dừng lại: một bộ mười phát mà **không phát nào** bị bắt,
+trong khi bộ test vừa viết có hẳn một phép kiểm cho từng phát, là chuyện gần
+như không thể. Con số vô lý ấy là thứ cứu lượt này.
+
+Nguyên nhân nằm ở một dòng:
+
+```python
+ket = dot_bien(F, cu, moi, BO)
+if ket:                 # <- doc la "song sot"
+    song.append(ten)
+```
+
+`dot_bien` trả `True` khi đột biến **bị giết**. Docstring của nó nói rõ
+(*"Trả True khi kết quả đúng `mong_doi` ("DO" = lệnh phải thất bại)"*) và
+tôi đã không đọc. Thật ra **10/10 đỏ**.
+
+**Chiều của lỗi mới là chỗ đáng ghi.** Nó báo động GIẢ, tức chiều an toàn —
+tôi đi tìm một lỗ hổng không có. Cùng một dòng đọc ngược ở chiều kia sẽ in
+"10/10 đỏ" cho một bộ **0/10** và không ai biết. Lần này may.
+
+Cùng họ với bẫy `pytest ... | tail` (lỗi 26): **đọc một giá trị trạng thái
+theo quy ước mình tưởng, thay vì quy ước nó khai.** Ở đó là mã thoát của ống,
+ở đây là `bool` của hàm.
+
+**Máy chặn được:** `va_an_toan.dot_bien_bo()` nay chạy cả bộ và trả **danh
+sách phát sống sót**. Rỗng là lành. Không còn chỗ cho người gọi tự dịch một
+`bool`, và một danh sách khác rỗng thì không đọc thành "ổn" được.
+
+### Lỗi 38 — tài liệu hoá một cái bẫy không ngăn được việc mắc lại nó
+
+Cùng phiên, cùng file. Tôi viết một phép kiểm khoá đúng bài học BƯỚC 28:
+
+```python
+ma = duong.read_text(encoding="utf-8")
+assert "conclusion" not in ma, "dung cu dang loc theo ket cuc"
+```
+
+Nó đỏ ngay lượt chạy đầu — vì **docstring của chính dụng cụ** giải thích
+*vì sao nó không lọc theo kết cục*, và câu giải thích ấy chứa đúng chữ đó.
+
+`CLAUDE.md` có hẳn một mục tên **"Gác phải đọc AST, không đọc `in`"**, mở
+đầu bằng hai gác mắc đúng lỗi này ngày 22/08/2026. Tôi đã đọc mục ấy trong
+cùng phiên, ở bước đọc tài liệu bắt buộc.
+
+**Điều rút ra không phải "phải cẩn thận hơn".** Là: một cái bẫy được tài
+liệu hoá rõ ràng, đọc trong cùng phiên, vẫn bị mắc lại — nên **tài liệu
+không phải cơ chế chặn**. Thứ chặn được là bắt phép kiểm đi qua AST, và
+`_chuoi_khong_phai_docstring()` trong `tests/test_do_roi_nhip.py` làm việc
+đó: gom mọi chuỗi hằng TRỪ docstring.
+
+Chưa chặn toàn cục: không có gác nào bắt được một `assert "x" not in <văn
+bản>` mới viết ra trong `tests/`. Đó là lý do dòng 38 mang dấu ⚠️.
