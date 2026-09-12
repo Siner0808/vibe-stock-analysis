@@ -10106,3 +10106,144 @@ chỉ tên vế còn lại. Nội dung cache 28/08 đã bị ghi đè — theo m
 ### Còn lại một mốc
 
 **17/09/2026** — tiêu chí BƯỚC 20 về việc dời cron ba chuông. Đừng đọc sớm.
+
+
+---
+
+## BƯỚC 56 — ĐO 6: CẢ HAI GIẢ THUYẾT ĐỀU ĐÚNG, VÀ CHÚNG CỘNG DỒN (12/09/2026)
+
+Việc treo cuối cùng không bị chặn theo ngày. ĐO 3 (10/09) đo được khoảng
+cách chi phí thực thi **0,39 trong mẫu so với 0,63 ngoài mẫu**, lớn hơn 62%,
+và để lại **hai** giả thuyết chưa ai đo.
+
+Tiêu chí vào `main` lúc **11:45:29**; lượt chạy bắt đầu **11:45:45** — mười
+sáu giây sau.
+
+### Phép kiểm dụng cụ — đọc trước mọi con số khác
+
+```
+-> Nguong chon tren IS: 62  (luat neu truoc: >=30 lenh, roi ky vong cao nhat)
+```
+
+Luật chọn lại **62**, nên `wf_is_62.db` và `wf_oos.db` đến từ cùng một lượt,
+cùng ngưỡng, cùng chế độ. Phép so đọc được.
+
+### Bảng tách khoản
+
+```
+                        TRONG MAU (62)      NGOAI MAU
+so lenh                       869               398
+BUOC GIA  hai chieu        0,3821 %          0,5610 %
+TAC DONG  hai chieu        0,1265 %          0,2359 %
+ty trong KL/nen           0,000349          0,001093
+gia vao trung vi          24.750 d          16.000 d
+```
+
+So với khoảng cách phải giải thích là **0,24 điểm mỗi lệnh**:
+
+```
+BUOC GIA : +0,1790 diem  ->  giai thich 74,6%
+TAC DONG : +0,1094 diem  ->  giai thich 45,6%
+```
+
+### Phán quyết: **KẾT CỤC 3 — chưa tách được**
+
+Cả hai vế đều góp ≥ 25%. Bảng đã ký nói thẳng: *"không được chọn vế to
+hơn."* Nên **bước giá KHÔNG được gọi là lời giải**, dù nó lớn hơn.
+
+Tổng hai vế ra 120%, tức mô hình **giải thích thừa**. Đúng như giới hạn 2 đã
+khai: `truot_gia()` được gọi lại trên một giá **đã trượt**, và trung vị không
+cộng tuyến tính. Hai con số phần trăm ấy đọc được về **độ lớn**, không đọc
+được như một bảng ngân sách.
+
+### Nhưng hai cơ chế thì đo được — và cả hai đều THẬT
+
+Hai giả thuyết không phải hai cách nói về một sự thật. Kiểm bằng tương quan
+hạng **trong từng vùng**:
+
+```
+TRONG MAU : rho(gia vao, ty trong KL) = -0,133   p = 8,3e-05
+NGOAI MAU : rho(gia vao, ty trong KL) = +0,035   p = 0,49
+```
+
+Ngoài mẫu **không có quan hệ nào**. Giả thuyết *"cổ phiếu rẻ thì thanh khoản
+mỏng, nên đây chỉ là một sự thật đội hai tên"* — của chính tôi, nêu ra khi
+nhìn bảng trên — **bị bác**.
+
+Tách tiếp tỷ trọng khối lượng ra hai thừa số:
+
+```
+khoi luong NEN   trung vi   7.315.759 CP  ->  2.927.000 CP   ty le 0,400
+khoi luong LENH  trung vi       2.442 CP  ->      3.761 CP   ty le 1,540
+                                          du doan ty trong 3,85 · do duoc 3,13
+```
+
+**Vùng ngoài mẫu thật sự mỏng hơn: nến chỉ còn 40% khối lượng, tức mỏng 2,5
+lần.** Và lệnh thì **to hơn 1,54 lần** — không phải vì ai đặt to hơn, mà vì
+cùng một `size_pct` chia cho một giá thấp hơn 35% thì ra nhiều cổ phiếu hơn.
+
+Hai thứ ấy **nhân với nhau**, và đó là lý do tỷ trọng khối lượng tăng 3,1
+lần.
+
+### Kết luận — việc treo đóng, và câu trả lời là "cả hai"
+
+| giả thuyết | phán quyết |
+|---|---|
+| **1 — vùng OOS thanh khoản mỏng hơn** | **ĐÚNG.** Nến mỏng hơn **2,5 lần** (7,32 triệu → 2,93 triệu CP) |
+| **2 — tập lệnh khác nên giá vào khác** | **ĐÚNG.** Giá vào trung vị **24.750đ → 16.000đ**, thấp hơn 35% |
+
+Hai giả thuyết ấy chưa bao giờ là đối thủ. Chúng là **hai khác biệt độc lập**
+giữa hai vùng, cùng đẩy chi phí lên, và còn **cộng dồn qua một đường thứ
+ba**: giá thấp làm lệnh nhiều cổ phiếu hơn, gặp đúng lúc nến mỏng hơn.
+
+Khoảng cách 62% vì thế không cần một lời giải; nó cần **hai**, và cả hai đều
+đo được.
+
+> **Vì sao phép đo không tách được hai vế dù cả hai đều đo được.** Tiêu chí
+> đòi một vế ≥ 50% và vế kia < 25%. Điều đó chỉ xảy ra khi **một** cơ chế
+> hoạt động. Ở đây cả hai cùng hoạt động, nên không cấu hình ngưỡng nào tách
+> được chúng — và đó là câu trả lời, không phải một phép đo hỏng.
+
+### Giới hạn, nhắc lại vì đã khai trước
+
+**Không có nhóm chứng.** Vùng OOS khác vùng IS về thời gian (2018–2025 so
+với 2022–2026), về rổ mã (**33 mã** so với 69), và về thiên lệch sống sót.
+Việc nến mỏng hơn có thể là hiệu ứng **thời gian**, hiệu ứng **rổ**, hoặc cả
+hai — thiết kế này **không tách** được. Kết quả là gợi ý về cơ chế, không
+phải quan hệ nhân quả.
+
+Và phép tách chỉ phủ **trượt giá**. Lô chẵn và vòng đời lệnh nằm ở
+`vong_doi_lenh.py`, ngoài bảng tách khoản này.
+
+### Ước lượng thời gian SAI — ghi ra vì quy tắc bắt ghi
+
+Khai trước: **30–50 phút**, dựa trên ĐO 3 lượt 1 (34,9 phút) và lượt A của
+ĐO 5 sáng nay (34,6 phút).
+
+Thực tế: **59,9 phút** (11:45:45 → 12:45:37). Sai **20% vượt cận trên**, và
+sai theo chiều làm việc mình vừa làm trông rẻ hơn — đúng chiều `CLAUDE.md`
+đã cảnh báo khi ghi *"thời gian chạy không phải hằng số, lệch 27% theo tải
+máy"*. Hai lượt tôi lấy làm nền đều chạy khi máy rảnh hơn.
+
+### Một cửa kêu, và đường đúng là đường KHÔNG cần ngoại lệ
+
+Trước lượt chạy tôi gõ `rm -f wf_*.db` để lượt mới có sổ trắng. Cửa Bash
+chặn, luật `xoa-db-goc-repo`.
+
+Luật ấy khớp theo **đuôi file**, không theo **vai trò**: `wf_*.db` là sổ nháp
+walkforward tái sinh mỗi lượt, không phải dữ liệu người dùng. Về hình dạng,
+đây cùng họ lỗi 30 — đọc sự xuất hiện của một chữ thay vì vai trò của nó.
+
+**Cố ý KHÔNG nới luật.** Cửa có sẵn lối thoát `# cua-ok:` và tôi **không
+dùng**: dời tám file sang scratchpad là một đường không cần ngoại lệ nào, và
+nó chặt hơn cả hai lựa chọn kia — dữ liệu còn nguyên, lượt mới vẫn có sổ
+trắng.
+
+> **Mẫu đáng giữ: khi một cửa kêu, tìm đường không cần ngoại lệ TRƯỚC khi
+> với tay lấy ngoại lệ.** Cái giá của một lần chặn nhầm ở đây là vài giây.
+> Cái giá của một lần lọt là sự cố 12/08/2026.
+
+### Còn lại một mốc
+
+**17/09/2026** — tiêu chí BƯỚC 20 về việc dời cron ba chuông, nền 247 phút.
+Sau ĐO 6, đó là **việc treo duy nhất còn lại** của dự án.
