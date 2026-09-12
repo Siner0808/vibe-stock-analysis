@@ -1102,3 +1102,139 @@ trộn nguồn vào phép so.
 vào cách đọc 1 vì cả hai đều "không thấy hiệu ứng thời điểm". Cách đọc 1 nói
 *phép đo chạy và không thấy gì*; cách đọc 3 nói *phép đo không chạy được*.
 Hai chuyện khác nhau.
+
+
+---
+
+## ĐO 6 — khoảng cách chi phí thực thi IS/OOS: THANH KHOẢN hay GIÁ VÀO?
+
+*(khai 12/09/2026, trước lượt chạy đầu tiên)*
+
+### Việc treo cuối cùng không bị chặn theo ngày
+
+ĐO 3 (10/09) đo sạch, cùng lượt chạy, cùng ngưỡng 62:
+
+```
+trong mau (nguong 62)  : 0,39 diem moi lenh
+ngoai mau (1 vs 3)     : 0,63 diem moi lenh     lon hon ~62%
+```
+
+Giả thuyết *"0,43 đo ở bản mã cũ"* đã bị loại — cả hai con số đến từ cùng
+một lượt. Còn **hai** khả năng, và chưa ai đo:
+
+1. **vùng OOS thanh khoản mỏng hơn** → tác động thị trường lớn hơn
+2. **tập lệnh khác nên trung vị giá vào khác** → bước giá 50đ chiếm tỷ lệ
+   phần trăm lớn hơn
+
+### Vì sao hai giả thuyết ấy TÁCH ĐƯỢC
+
+`truot_gia.truot_gia()` **đã trả sẵn bảng tách khoản** — không phải một con
+số trần trụi:
+
+```python
+"phan_chenh_lech": min(tick, thuc_te)   # BUOC GIA   -> gia thuyet 2
+"phan_tac_dong":   bien_do * sqrt(ty_trong)  # TAC DONG -> gia thuyet 1
+"ty_trong_kl":     khoi_luong_lenh / khoi_luong_nen
+```
+
+Hai giả thuyết ứng với **hai trường khác nhau của cùng một hàm**. Không cần
+dựng mô hình mới; chỉ cần gọi hàm ấy trên hai dân số lệnh và đọc hai cột.
+
+### Một lượt chạy, hai vùng, KHÁC ĐÚNG MỘT THỨ
+
+`walkforward.py` ở `HEAD`, mặc định (theo mã · `stride=2` · `min_history=60`
+· `che_do_hoc=co_san` · `do_tre_khop=1`), trên `backtest/cache/` — tức đúng
+cấu hình ĐO 3.
+
+Một lượt sinh ra cả hai dân số cần so:
+
+```
+wf_is_62.db   lenh TRONG MAU  o nguong 62
+wf_oos.db     lenh NGOAI MAU  o nguong luat tu chon
+```
+
+Cùng mã, cùng cache, cùng bộ nhớ, cùng tiến trình. **Khác đúng một thứ:
+vùng.**
+
+### PHÉP KIỂM DỤNG CỤ — đọc TRƯỚC mọi con số khác
+
+```
+luat chon lai nguong 62  ->  IS(62) va OOS(62) so duoc. Doc tiep.
+luat chon nguong KHAC    ->  KHONG EP SO. Bao ra va dung.
+```
+
+Khác ngưỡng thì hai dân số khác nhau ở **cả vùng lẫn độ chọn lọc** — đúng
+lỗi 21, thứ đã làm hỏng một nửa bảng ĐO 1.
+
+### Đại lượng
+
+Với **mỗi lệnh** ở mỗi vùng, gọi `truot_gia()` hai lần — chiều **MUA** trên
+nến vào, chiều **BÁN** trên nến ra — rồi đọc:
+
+| đại lượng | đơn vị | vế nó nói về |
+|---|---|---|
+| `buoc_gia / gia × 100` | % | **giả thuyết 2** — giá vào thấp thì bước giá nặng hơn |
+| `phan_tac_dong / gia × 100` | % | **giả thuyết 1** — thanh khoản mỏng thì tác động lớn hơn |
+| `ty_trong_kl` | tỷ lệ | **giả thuyết 1**, đo thẳng |
+| giá vào | đồng | trung vị, để đọc vế 2 bằng mắt |
+
+Đọc **trung vị** mỗi vùng, và cả hai chiều cộng lại (một lệnh trả chi phí
+hai lần).
+
+### Bốn kết cục, khai TRƯỚC
+
+Khoảng cách phải giải thích là **0,24 điểm mỗi lệnh** (0,63 − 0,39).
+
+```
+1. TAC DONG (OOS - IS) x2 giai thich >= 50% cua 0,24
+   va BUOC GIA giai thich < 25%              ->  GIA THUYET 1 (thanh khoan)
+
+2. BUOC GIA (OOS - IS) x2 giai thich >= 50%
+   va TAC DONG giai thich < 25%              ->  GIA THUYET 2 (gia vao)
+
+3. ca hai deu >= 25%                         ->  CHUA TACH DUOC. Noi thang,
+                                                 khong chon ve to hon.
+
+4. ca hai deu < 25%                          ->  chenh 0,24 den tu CHO KHAC:
+                                                 lo chan, khop mot phan, vong
+                                                 doi lenh — ba thu nam o
+                                                 `vong_doi_lenh.py`, KHONG o
+                                                 `truot_gia.py`. Do la mot
+                                                 PHAT HIEN, khong phai that bai.
+```
+
+### Giới hạn phải nêu TRƯỚC
+
+**Phép tách này chỉ phủ trượt giá, không phủ toàn bộ chi phí thực thi.**
+`CLAUDE.md` liệt kê tầng hai gồm **bốn** thứ: bước giá · tác động thị trường
+· lô chẵn · vòng đời lệnh. Hai thứ đầu nằm trong `truot_gia.py` và tách được
+ở đây; hai thứ sau nằm trong `vong_doi_lenh.py` và **không** nằm trong bảng
+tách khoản này.
+
+Vì thế kết cục 4 là một khả năng thật, và nó phải đọc được thành *"chi phí
+nằm ở hai thành phần kia"* chứ không thành *"phép đo hỏng"*.
+
+Thứ hai: lệnh trong sổ đã khớp ở giá **đã trượt** (mặc định `HEAD` bật trượt
+giá). Gọi lại `truot_gia()` trên `entry_price` là tính trượt **của một giá đã
+trượt** — lệch một bước ở tầng hai. Chấp nhận được vì đại lượng đọc là **tỷ
+lệ giữa hai vùng**, không phải mức tuyệt đối; nhưng nó là lý do **không**
+được lấy con số ở đây đem so thẳng với 0,39 hay 0,63.
+
+Thứ ba: **không có nhóm chứng.** Hai vùng khác nhau về thời gian, về rổ mã có
+mặt, và về thiên lệch sống sót. Kết quả là **gợi ý về cơ chế**, không phải
+quan hệ nhân quả — cùng câu đã ghi cho ĐO 4 và cho ô h = 63.
+
+*(Bài học ĐO 5b, hôm nay: một thiết kế có nhóm phải ĐẾM cỡ nhóm trước khi ký.
+Ở đây đã đếm — ĐO 3 cho **399 lệnh OOS** và vòng dò IS ở ngưỡng 62 cho hàng
+trăm lệnh. Cả hai nhóm đều không rỗng.)*
+
+### Điều KHÔNG được làm sau khi thấy số
+
+Đổi bốn kết cục · đổi mốc 50%/25% · bỏ phép kiểm ngưỡng · hay chọn vế lớn
+hơn khi rơi vào kết cục 3.
+
+### Ước lượng thời gian — nói rõ nó là ƯỚC LƯỢNG
+
+ĐO 3 lượt 1 (cùng cấu hình): **34,9 phút**. Lượt A của ĐO 5 sáng nay, cùng
+cache, cùng `stride`: **34,6 phút**. Ước **30–50 phút** cho một lượt. Phần
+tách khoản chạy sau, tính bằng giây.
