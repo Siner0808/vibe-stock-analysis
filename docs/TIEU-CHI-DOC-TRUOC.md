@@ -1015,3 +1015,90 @@ không xảy ra.
 ĐO 1 lượt 1, cùng `stride`, cùng rổ: **36,1 phút**. Cùng cấu hình ấy chạy
 hôm 08/09: **46,1 phút** — lệch 27% theo tải máy. Hai lượt ước **70–95
 phút**. Đây là ước lượng, không phải phép đo.
+
+
+---
+
+## ĐO 5b — một lượt kéo có GHI LẠI hàng lịch sử không? (khai 12/09/2026)
+
+> **Khai lúc lượt A của ĐO 5 đang chạy, TRƯỚC khi thấy một con số nào của
+> A hay B.** Viết sớm có chủ đích: nếu chờ tới lúc biết `A == B` rồi mới
+> khai thì bảng đọc này ra đời sau khi đã biết mình cần nó nói gì.
+
+### Câu hỏi, và vì sao nó quyết định cách đọc ĐO 5
+
+`chia_vung` trả `df[ngày < mốc]` làm OOS. Nên một lượt kéo **chỉ nối thêm
+vào đuôi** thì không thể đổi một phiên OOS nào. Nó chỉ chạm được OOS nếu nó
+**ghi lại cả hàng lịch sử** — mà điều đó xảy ra được: hệ số điều chỉnh của
+nguồn có thể đổi, và ĐO 4 đã đo chênh tới **−1,2%** giữa hai nguồn.
+
+Chưa ai đo việc này. Nó không đo được trên cache 28/08 (đã bị ghi đè), nhưng
+**đo được trên một thí nghiệm tự nhiên còn nguyên trên đĩa.**
+
+### Thí nghiệm tự nhiên — hai nhóm, có nhóm chứng
+
+`backtest/cache/` mang hai thế hệ, phân biệt bằng `mtime`:
+
+```
+53 file   keo 06-08/08/2026     <- NHOM CHUNG: chua bi luot 03/09 cham
+72 file   keo 03/09/2026 09:40  <- NHOM THU
+```
+
+`backtest/cache_2018/` là một lượt kéo **thứ ba**, ngày 11/09, và nó phủ
+cùng khoảng thời gian. Nó đóng vai **thước chung** cho cả hai nhóm.
+
+### Đại lượng
+
+Với mỗi mã có mặt ở **cả hai** thư mục và có vùng OOS không rỗng: so `close`
+trên các ngày chung **nằm trước mốc của chính mã đó** (tức trong vùng OOS).
+
+```
+ty le      = cache_2018.close / cache.close
+dai luong  = trung vi |ty le - 1| cua ma do
+```
+
+Rồi gộp theo nhóm và đọc **trung vị của trung vị**, kèm số mã mỗi nhóm.
+
+### Bốn cách đọc, khai TRƯỚC
+
+```
+1. CA HAI nhom ~ 0        ->  luot keo KHONG ghi lai hang lich su khac di.
+   (trung vi < 0,001)         Luot 03/09 khong doi duoc gia OOS. Ve "cache
+                              doi gia OOS" bi LOAI. Ve "cache doi qua
+                              VNINDEX" van con nguyen.
+
+2. nhom 08/08 LECH RO,    ->  he so dieu chinh DOI theo thoi diem keo, va
+   nhom 03/09 ~ 0             ban 03/09 khop ban 11/09. Luot keo CO ghi lai
+                              lich su -> luot 03/09 DOI DUOC gia OOS cua 72
+                              ma. Cache la co che SONG.
+
+3. HAI nhom lech NHU NHAU ->  khac biet den tu NGUON chu khong tu thoi
+                              diem. Phep so KHONG doc duoc ve thoi diem keo.
+                              Noi thang, khong ep.
+
+4. nhom 03/09 lech ma     ->  NGUOC du kien. Phai truy, khong duoc lap.
+   nhom 08/08 khong
+```
+
+### Giới hạn phải nêu TRƯỚC, và nó thật
+
+**Không lượt kéo nào trước 11/09 ghi lại NGUỒN đã trả lời.** Đó đúng là lỗ
+hổng `fetch_one(nguon=...)` vá ngày 11/09 (BƯỚC 53). Nên với một mã bất kỳ,
+tôi **không kiểm được** lượt 08/08 hay 03/09 lấy từ `kbs` hay đã rơi xuống
+`tcbs`/`vci`.
+
+Hệ quả: một mã lệch có thể lệch vì **nguồn**, không vì **thời điểm**. Gộp
+nhiều mã làm nhẹ chuyện đó nhưng **không khử được nó**. Vì thế cách đọc số
+3 tồn tại, và vì thế kết quả dương ở đây là **gợi ý**, không phải quan hệ
+nhân quả.
+
+Loại trừ khai trước: **HT1 và TCH** — đã đo ngày 11/09 rằng `cache_2018` lấy
+hai mã ấy từ `vci` trong khi 123 mã còn lại từ `kbs`. Giữ chúng lại là cố ý
+trộn nguồn vào phép so.
+
+### Điều KHÔNG được làm sau khi thấy số
+
+Đổi bốn cách đọc · đổi ngưỡng 0,001 · bỏ nhóm chứng · hay gộp cách đọc 3
+vào cách đọc 1 vì cả hai đều "không thấy hiệu ứng thời điểm". Cách đọc 1 nói
+*phép đo chạy và không thấy gì*; cách đọc 3 nói *phép đo không chạy được*.
+Hai chuyện khác nhau.
