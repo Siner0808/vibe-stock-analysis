@@ -10702,3 +10702,93 @@ Nó không kiểm dụng cụ được nêu có **thật sự sinh ra** những 
 mục đó không. Một đường dẫn đúng cú pháp, git biết, nhưng trỏ nhầm file vẫn
 lọt. Nó chỉ đóng đúng một lỗ: **một phép đo đã ký mà không ai nói được nó
 được đọc bằng lệnh nào.**
+
+
+---
+
+## BƯỚC 61 — MỘT BẢNG BẢO "HỎI BẰNG …" MÀ KHÔNG CÓ LỆNH NÀO (12/09/2026)
+
+Sau ba gác quy trình liên tiếp, đổi loại việc: đi kiểm một con số về **thực
+tế** thay vì về quy trình.
+
+`CLAUDE.md` ghi *"CÒN 3 (05/09/2026) — NAF · STB · TCB vẫn mở"* và *"bộ đếm
+kết quả đã đóng nay là 1"*. Hôm nay là **12/09** — một tuần sau.
+
+### Đọc sổ thật
+
+```
+117 lenh · 17.133 quyet dinh
+TRANG THAI: CLOSED 115 · OPEN 2
+
+VI THE CHUA DONG
+  NAF  OPEN  tin hieu 2026-08-28  khop 2026-09-03
+  STB  OPEN  tin hieu 2026-08-28  khop 2026-09-03
+
+TIEN-VE-TRUOC (tin hieu >= 2026-08-28): 4 · DA DONG 2
+  HUT  ra 2026-09-04  SIGNAL_REVERSED
+  TCB  ra 2026-09-11  SIGNAL_REVERSED
+```
+
+**TCB đóng ngày 2026-09-11**, `SIGNAL_REVERSED`. Nên cả hai con số đều đã
+trôi: **3 → 2 vị thế mở**, và **bộ đếm 1 → 2**.
+
+Đây vẫn là **2 trên `N_TOI_THIEU` = 113**, tức nằm sâu trong vùng *chưa đủ
+để kết luận* của `paper_metrics.dieu_kien_dong_lai()`. Không đọc lãi/lỗ của
+chúng, và không dùng chúng để nới hay siết gì — bất biến 7 đổi hướng.
+
+### Vì sao không gác nào thấy, và vì sao sẽ không bao giờ có
+
+`tests/test_tai_lieu_khop_hang_so.py` đối chiếu tài liệu với **hằng số
+trong mã**. Nhưng sổ nằm **trên mạng** và tự đổi khi thị trường chạy —
+không có hằng số nào để đối chiếu.
+
+> **Số về SỔ không gác được bằng một phép kiểm tĩnh.** Mọi con số về sổ
+> viết vào tài liệu đều sẽ trôi; chỉ khác là trôi nhanh hay chậm. Phòng thủ
+> duy nhất là **một lệnh đọc nó**, chạy đều.
+
+Và đúng chỗ ấy có một lỗ hổng cũ: bảng *"muốn biết … hỏi bằng …"* của
+`CLAUDE.md` ghi dòng **"sổ lệnh thật có gì → kéo từ Google Sheets"**. Đó là
+một **cách làm**, không phải một **lệnh**. Nên không ai chạy nó.
+
+### `tools/doc_so_that.py` — và nó CHỨNG MINH được là chỉ đọc
+
+Trước khi dựng, tra xem đã có chưa (bài học **lỗi 41**): có sẵn
+`google_sheets_sync.keo_so_co_thu_lai()` kéo vào một DB **tạm**, đúng đường
+`tools/canh_cong_c5.py` đã dùng. Dùng lại, không tự chế đường mới.
+
+```
+tests/test_doc_so_that.py   5 phep kiem · duc thu 6/6 do
+```
+
+Ranh giới được **chứng minh** chứ không được hứa: đọc bằng AST rằng dụng cụ
+không gọi một hàm ghi nào (`push`, `write_all`, `pull`, `record_trade`…),
+và DB nó tạo ra nằm trong `tempfile.gettempdir()`. Sự cố 12/08/2026 xoá
+96/113 lệnh thật bắt đầu từ đúng một đường ghi không ai để ý.
+
+### Lỗi 38 mắc lần thứ BA và thứ TƯ — trong cùng một file test
+
+Bản đầu của một phép kiểm quét chuỗi tìm `paper_trades`:
+
+```
+lan 3:  do vi DOCSTRING cua dung cu giai thich *vi sao KHONG doc so o may*
+lan 4:  do vi mot BANNER in ra man hinh noi dung cau ay
+```
+
+Cả hai lần **đỏ oan**, và cả hai đúng hình dạng lỗi 38 — thứ tôi đã dựng
+hẳn một gác cho nó sáng nay (BƯỚC 58).
+
+**Nhắc một cái tên KHÁC với mở nó.** Bỏ hẳn cách quét chuỗi; kiểm **cơ
+chế** thay vì kiểm chữ — dụng cụ phải gọi `tempfile.gettempdir()` và phải
+đi qua `keo_so_co_thu_lai`. Hai điều ấy là thứ thật sự giữ sổ an toàn.
+
+> Gác dựng ở BƯỚC 58 **không** bắt được hai lần này: nó canh hình dạng
+> `<định danh> in <biến đọc từ .read_text()>`, còn đây là `"x" in c` trong
+> một phép duyệt danh sách chuỗi. Đúng giới hạn đã khai trước — *"mở rộng
+> ra là quay lại con số 407"*. Một gác hẹp thì hẹp thật, và nói ra được nó
+> hẹp ở đâu vẫn tốt hơn một gác rộng không ai chịu nổi.
+
+### Điều dụng cụ này KHÔNG làm
+
+Nó **không đẩy**, không sửa gì, và không nói gì về chiến lược. Nó chỉ trả
+lời đúng một câu mà bảng trong `CLAUDE.md` đã hỏi từ lâu mà không có lệnh
+nào trả lời: *sổ lệnh thật đang có gì.*

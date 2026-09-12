@@ -73,7 +73,7 @@ python tools/kiem_test_chay_rieng.py
 | Muốn biết | Hỏi bằng |
 |---|---|
 | cổng mở lệnh đang mở hay đóng | `paper_trading.py`, dòng gán `CHO_PHEP_MO_LENH_MOI` |
-| sổ lệnh thật có gì | kéo từ Google Sheets — **KHÔNG** đọc `paper_trades.db` ở máy |
+| sổ lệnh thật có gì | `tools/doc_so_that.py` — kéo từ Google Sheets vào một DB **tạm**; **KHÔNG** đọc `paper_trades.db` ở máy |
 | bộ lọc VN-INDEX có thật sự bật | `market_filter.status()` |
 | gói vnstock đang chạy ở hạng nào | `vnstock_goi.kiem_goi()` |
 | điều kiện dừng đang ở đâu | `paper_metrics.dieu_kien_dong_lai()` |
