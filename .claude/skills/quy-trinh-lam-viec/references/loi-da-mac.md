@@ -77,7 +77,7 @@ là lỗi sẽ tái diễn.
 | 36 | suy một ĐƯỜNG ĐỌC từ chỗ trùng TÊN BẢNG mà không đọc `source=` và `period=` — ba đường cùng nhắc `ratio` hoá ra khác nguồn, khác độ mịn, khác cả chỗ lấy; kết luận sai đã lên `main` | tự truy tiếp cùng ngày, khi đi đo việc treo | ✅ | `tests/test_cache_bctc_du_ky.py` đọc bằng **AST** rằng phép đo IC không đọc `ratio`, và hai đường kia dùng hai nguồn khác nhau |
 
 | 37 | đọc **ngược quy ước trả về** của `dot_bien` (True = đột biến BỊ GIẾT) trong script gọi nó — báo *"0/10 đỏ"* cho một bộ thật ra **10/10 đỏ**, tức một gác tốt báo cáo thành gác vô dụng | chính con số 0/10 vô lý, cùng phiên | ✅ | `va_an_toan.dot_bien_bo()` giữ quy ước ở MỘT chỗ và trả **danh sách phát sống sót** — rỗng là lành, nên đọc ngược một danh sách khó hơn đọc ngược một `bool` |
-| 38 | viết một phép kiểm dạng `assert "tên" not in <mã nguồn>` rồi **chính docstring giải thích vì sao không đọc tên ấy** làm nó đỏ — đúng cái bẫy `in` mà `CLAUDE.md` đã ghi thành mục riêng | lượt chạy đầu tiên của chính test ấy | ✅ | `tests/test_gac_van_ban_phai_khai.py` (12/09/2026) chặn đúng hình dạng này trên toàn `tests/`: một khẳng định *mã nguồn chứa định danh* phải kèm `# van-ban-ok: <lý do>`. Mẫu dựng tay trong gác ấy chính là nguyên văn lỗi này |
+| 38 | viết một phép kiểm dạng `assert "tên" not in <mã nguồn>` rồi **chính docstring giải thích vì sao không đọc tên ấy** làm nó đỏ — đúng cái bẫy `in` mà `CLAUDE.md` đã ghi thành mục riêng | lượt chạy đầu tiên của chính test ấy | ✅ **một hình dạng** | `tests/test_gac_van_ban_phai_khai.py` (12/09/2026) chặn **đúng một hình dạng cú pháp**: `<định danh> in <biến gán từ .read_text()>`, phải kèm `# van-ban-ok: <lý do>`. Mẫu dựng tay trong gác ấy chính là nguyên văn lỗi này. **Lớp thì CHƯA đóng** — cùng ngày, hai hiện thân khác lọt qua (`"x" in c` trong một phép duyệt danh sách chuỗi), xem lỗi 44 |
 
 | 39 | ký một phép đo có **nhóm chứng** mà không kiểm nhóm chứng có tồn tại không — ĐO 5b khai xong mới lộ ra nhóm chứng **rỗng theo cấu tạo**: 53 file chưa bị chạm đều nằm NGOÀI rổ đo | chính dụng cụ tự dừng ở lượt chạy đầu | ⚠️ một phần | dụng cụ trả mã thoát 2 và nói *"một nhóm rỗng → KHÔNG đọc được"*; nhưng phép đếm cỡ nhóm phải chạy **trước khi ký**, và chưa có gác nào bắt điều đó |
 | 40 | nêu một **"chỗ không khớp"** bằng trực giác số học thay vì bằng phép tính — *"9 lệnh khác thì kỳ vọng đã phải dịch nhiều hơn thế"* sai, 9/385 chỉ mang trọng số 2,3%; nó điều hướng tám ngày | bấm máy khi đi đo chính nó | ⚠️ một phần | quy tắc 2 áp cho **lập luận** chứ không riêng kết quả: một câu về độ lớn cũng là một con số, và cũng cần một lệnh |
@@ -87,7 +87,9 @@ là lỗi sẽ tái diễn.
 
 | 43 | một **bảng kết cục đã ký KHÔNG phủ kín** không gian đầu vào, và mã đọc nó có một nhánh `else` **dồn im lặng** cả vùng hở vào một ô — 1.250/10.201 điểm lưới của ĐO 6 | tự rà lại dụng cụ của chính mình sau khi đã công bố | ✅ | `tools/do6_tach_chi_phi.py` trả trạng thái thứ năm `NGOAI_BANG`; `tests/test_do6_tach_chi_phi.py` rà **toàn lưới** và bắt mọi ô chỉ được nhận điểm mà mô tả của nó phủ |
 
-**Hai mươi bảy trên bốn mươi ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 44 | mắc **lỗi 38 thêm hai lần nữa trong cùng ngày**, ở hai hình dạng gác vừa dựng KHÔNG thấy — một lần vì docstring của dụng cụ, một lần vì banner in ra màn hình, cả hai cùng nói *"KHÔNG đọc `paper_trades.db`"* | chính phép kiểm ấy đỏ oan, hai lượt liền | ⚠️ một phần | bỏ hẳn lối quét chuỗi, kiểm **cơ chế**: dụng cụ phải gọi `tempfile.gettempdir()` và đi qua `keo_so_co_thu_lai`. Lớp *đọc sự xuất hiện thay vì vai trò* vẫn CHƯA có gác chung, và có lẽ không có |
+
+**Hai mươi bảy trên bốn mươi bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -1011,3 +1013,41 @@ số. Cách sửa là thêm một trạng thái thứ năm `NGOAI_BANG`, cùng l
 không chỉ ở n điểm đại diện.** Thử một điểm cho mỗi ô chứng minh ô ấy đạt
 tới được — nó **không** chứng minh n ô cộng lại phủ kín. Hai việc khác
 nhau, và tôi đã làm việc thứ nhất rồi tưởng đã làm cả hai.
+
+
+### Lỗi 44 — một dấu ✅ hứa nhiều hơn thứ nó giao
+
+Sáng 12/09/2026 tôi dựng `tests/test_gac_van_ban_phai_khai.py` và nâng dòng
+38 từ ⚠️ lên **✅**. Chiều cùng ngày, viết `tests/test_doc_so_that.py`, tôi
+mắc lại **hai lần nữa**:
+
+```
+lan 3:  assert "paper_trades" not in <moi chuoi hang cua file>
+        -> DO OAN vi DOCSTRING giai thich *vi sao KHONG doc so o may*
+
+lan 4:  cung phep kiem, sau khi da bo docstring ra
+        -> DO OAN vi mot BANNER in ra man hinh noi dung cau ay
+```
+
+Gác vừa dựng **không thấy cả hai**. Nó canh đúng một hình dạng cú pháp —
+`<định danh> in <biến gán từ .read_text()>` — còn đây là `"x" in c` trong
+một phép duyệt danh sách chuỗi. Giới hạn ấy **đã được khai trước** khi dựng
+gác (*"mở rộng ra là quay lại con số 407"*), nên gác không sai; **cái sai là
+dấu ✅ tôi đặt cho dòng 38**, vì nó đọc thành *"lớp này đã đóng"*.
+
+**Hai điều rút ra, và điều thứ hai quan trọng hơn:**
+
+1. **Nhắc một cái tên KHÁC với làm điều đó.** Cả bốn lần đều là một phép
+   kiểm hỏi *"văn bản có chứa chữ X không"* trong khi điều cần biết là
+   *"mã có LÀM việc X không"*. Đường đúng là kiểm **cơ chế**: dụng cụ phải
+   gọi `tempfile.gettempdir()` và đi qua `keo_so_co_thu_lai`.
+
+2. **Một dấu ✅ phải nói rõ nó chặn được CÁI GÌ.** Dòng 38 nay ghi
+   *"✅ một hình dạng"* kèm tên hình dạng ấy. Một ô ✅ không nêu phạm vi là
+   một lời hứa rộng hơn cái gác, và nó làm người đọc sau thôi cảnh giác ở
+   đúng chỗ vẫn còn hở.
+
+Lớp *đọc sự xuất hiện của một chữ thay vì vai trò của nó* — lỗi 30, 35, 36,
+38, 44 — vẫn **chưa có gác chung**, và có lẽ không có: nó là một hình dạng
+**tư duy**, không phải một hình dạng **cú pháp**. Thứ dựng được là gác cho
+từng hiện thân, và đếm cho đúng còn bao nhiêu hiện thân chưa có gác.
