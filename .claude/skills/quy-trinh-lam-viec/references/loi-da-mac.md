@@ -106,7 +106,10 @@ là lỗi sẽ tái diễn.
 
 | 54 | **phép nới sáng nay bắt nhầm ngay chiều nay, và bắt nhầm ở chính TÊN của nó**: sau khi lớp phủ định của `pytest-qua-ong` được nới ra để span qua `2>&1`, một lệnh `--thu-luat pytest-qua-ong … 2>&1 \| tail` bị chặn — chữ `pytest` nằm trong một **định danh có gạch nối**, không phải một lệnh pytest | **chính cửa**, khi tôi gõ lệnh dùng dụng cụ vừa dựng | ✅ | `\bpytest\b(?!-)`. `\b` đã chặn `pytest_cache` (gạch dưới là ký tự từ) nhưng không chặn gạch nối. Đo bằng **nhật ký cửa** — quần thể thật, không phải proxy |
 
-**Ba mươi lăm trên năm mươi bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 55 | **một test LÀM BẨN quần thể đo**: `tests/test_cua_quy_trinh.py` chạy cửa Bash như tiến trình con với payload `git push origin main`, không cách ly TEMP — nên mỗi lượt `pytest` toàn bộ lại ghi một dòng XẤU vào nhật ký thật. Đo được **11 dòng**, không dòng nào do người gõ. Cùng hình dạng lỗi 49 ở **chiều ngược lại**: không phải đo sai quần thể, mà là làm bẩn quần thể | đọc bản in của nhật ký và thấy 11 lượt chặn tôi không hề nhớ | ✅ | phép kiểm AST trong `tests/test_nhat_ky_cua_bash.py`: mọi `subprocess.run` nhắc tới cửa Bash phải truyền `env=`. Đọc bằng AST vì tên file ấy nằm đầy trong chú thích (lỗi 38) |
+| 56 | **để escape xuyên qua heredoc làm hỏng file — BỐN LẦN trong một ngày**. `\n` viết trong thân heredoc thành xuống dòng thật, cắt đôi một chuỗi Python. Skill cấm điều này bằng một câu (*"vá lớn thì viết một file `.py` rồi chạy, không bao giờ qua escape lồng trong heredoc"*) và tôi vẫn quay lại đường ấy mỗi khi phép vá **trông nhỏ** | chính Python: `SyntaxError: unterminated f-string` | ⚠️ | chưa có. Ứng viên: chặn `python - <<'X'` khi thân có escape trong chuỗi VÀ script ghi vào file repo — nhưng **chưa đo bắt nhầm**, và nay đã có nhật ký cửa để đo |
+
+**Ba mươi sáu trên năm mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.

@@ -163,6 +163,19 @@ def test_dot_bien_bao_XANH_khi_lenh_thanh_cong(tmp_path):
     print("PASS  lệnh thoát 0 -> đột biến SỐNG SÓT, báo đúng")
 
 
+def _moi_truong_rieng(thu_muc) -> dict:
+    """Môi trường có TEMP trỏ sang thư mục riêng của test.
+
+    Cửa Bash ghi nhật ký vào TEMP từ 14/09/2026, và nhật ký ấy là QUẦN
+    THỂ để đo tỷ lệ bắt nhầm khi nới một luật. Một test bơm payload XẤU
+    vào đó làm lệch đúng phép đo ấy.
+    """
+    import os
+
+    return dict(os.environ, TMP=str(thu_muc), TEMP=str(thu_muc),
+                TMPDIR=str(thu_muc))
+
+
 # ──────────────────────── cua_bash_an_toan ────────────────────────
 
 # (mo ta, lenh, TEN LUAT phai bat duoc no)
@@ -470,15 +483,23 @@ def test_cua_thoat_phai_CO_LY_DO():
     print("PASS  `# cua-ok:` phải kèm lý do")
 
 
-def test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG():
+def test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG(tmp_path):
     """Chạy hook thật qua stdin — hàm `kiem()` đúng chưa đủ, hook phải nối."""
     import json
 
     def _chay(d):
+        # CACH LY TEMP. Tu 14/09/2026 cua ghi nhat ky vao TEMP, va nhat
+        # ky ay la QUAN THE de do ty le bat nham khi noi mot luat. Mot
+        # test bom payload XAU vao do lam lech dung phep do ay — cung
+        # hinh dang loi 49, lan nay o chieu nguoc lai: khong phai do sai
+        # quan the, ma la LAM BAN quan the.
+        #
+        # Do duoc: 11 dong `git push origin main` trong nhat ky, khong
+        # dong nao do nguoi go.
         return subprocess.run(
             [PY, str(GOC / "tools" / "cua_bash_an_toan.py")],
             input=json.dumps(d), capture_output=True, text=True,
-            encoding="utf-8").returncode
+            encoding="utf-8", env=_moi_truong_rieng(tmp_path)).returncode
 
     assert _chay({"tool_name": "Bash",
                   "tool_input": {"command": "git push origin main"}}) == 2
@@ -491,7 +512,7 @@ def test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG():
     assert subprocess.run(
         [PY, str(GOC / "tools" / "cua_bash_an_toan.py")],
         input="khong-phai-json", capture_output=True, text=True,
-        encoding="utf-8").returncode == 0
+        encoding="utf-8", env=_moi_truong_rieng(tmp_path)).returncode == 0
     print("PASS  hook nối đúng: chặn 2 · cho qua 0 · hỏng thì nhường đường")
 
 
