@@ -47,7 +47,7 @@ là lỗi sẽ tái diễn.
 | 16 | chép một kết luận từ ghi chú rồi phát ra như phép đo của mình | **người dùng hỏi lại**, sau 3 ngày | ⚠️ một phần | Bước 1, điều 2 |
 | 17 | luật đúng nhưng CẢ HAI lý do của nó chưa ai đo — 4 PR phải quay lại chờ người | **người dùng hỏi lại**, cùng ngày | ⚠️ một phần | Bước 1, điều 2 (lần 2 trong ngày) |
 | 18 | dựng phép kiểm nhanh rồi nối bằng `\| tail` — mã thoát của ống là của `tail`, luôn 0 | cổng đầy đủ, lượt thứ ba | ✅ | `cua_bash_an_toan` `pytest-qua-ong` — **luật CÓ SẴN, cửa đang chết (lỗi 14)** |
-| 19 | backtick trong `python -c "…"` — bash nuốt khối mã trước khi Python thấy | đọc lại file | ✅ | `cua_bash_an_toan` `backtick-trong-python-c` (luật mới) |
+| 19 | backtick trong `python -c "…"` — bash nuốt khối mã trước khi Python thấy | đọc lại file | ✅ | `cua_bash_an_toan` `backtick-trong-nhay-kep`. **Tên cũ backtick-trong-python-c, phạm vi cũ chỉ `python -c` — nới 14/09/2026 sau khi cùng cơ chế cắn lần thứ hai, xem lỗi 48** |
 | 20 | một trường CÓ trong kết quả mà **không ai in ra** — test khoá nó có mặt trong dict vẫn xanh | chạy hết 157,7 phút rồi đọc log | ✅ | `tests/test_walkforward.py::test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao` (luật mới) |
 | 21 | tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa | đọc bảng sau khi đã chạy xong | ❌ | — |
 | 22 | kết luận "cửa chết" từ một phép thử dùng thao tác **HỎNG** — cửa chạy TRƯỚC thao tác nên không bao giờ được gọi | tự đo lại sau khi thêm nhật ký, **cùng ngày, sau 2 lần báo sai** | ⚠️ một phần | `tools/cua_doc_bat_buoc.py` ghi nhật ký mỗi lần chạy · `tests/test_cua_doc_bat_buoc.py` (4 test mới) |
@@ -94,7 +94,11 @@ là lỗi sẽ tái diễn.
 
 | 47 | **trích con số của chính mình rộng hơn thứ nó chứng minh**: dòng *"bắt CÙNG PHIÊN 31/45"* được tôi dùng trong báo cáo cuối ngày như một thước sức khoẻ quy trình — trong khi **15/31** dòng ấy có nguồn `suy-tu-bang`, mà chính từ vựng của file khai nó *"KHÔNG phải phép đo"* | đi soát chính cái thước, sau khi đã trích nó ba ngày | ✅ **nguồn đã bị gỡ** | `tools/doc_bang_loi.py` thôi in một con số gộp; `tach_cung_phien()` tách CÓ-bằng-chứng khỏi GIẢ-ĐỊNH, danh sách lấy từ `docs/loi-phan-lop.json` khoá `_khong_phai_bang_chung`. **Không** chặn được việc trích sai một con số khác — nó chỉ gỡ mất con số gây hiểu nhầm |
 
-**Ba mươi trên bốn mươi bảy máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 48 | **một luật khai phạm vi HẸP HƠN cơ chế nó canh**: luật backtick-trong-python-c chỉ canh `python -c`, trong khi bash nội suy backtick trong nháy kép của **mọi** lệnh. Cùng cơ chế cắn lần thứ hai ở `--ly-do "…`nguoi-thay`…"` của một công cụ khác hẳn | chính bash: `nguoi-thay: command not found` | ✅ | luật nới thành `backtick-trong-nhay-kep`, mẫu `"[^"]*` + backtick. Đo trước khi nới: **0/69** dòng lệnh trong tài liệu repo bị bắt nhầm |
+
+| 49 | **đo đúng phép, sai QUẦN THỂ**: trước khi nới luật backtick tôi đo tỷ lệ bắt nhầm trên **69 dòng lệnh trong tài liệu** và ra 0, rồi đọc con số ấy thành *"nới là an toàn"*. Quần thể đáng đo là **hình dạng tôi thật sự gõ**, mà hình dạng gõ nhiều nhất cả ngày là Python trong heredoc — và luật vừa nới chặn ngay lệnh kế tiếp | chính cái luật vừa nới, ở lệnh kế tiếp | ✅ **một hình dạng** | phạm vi thứ tư `DOC_GIU_NHAY` + `boc_than_heredoc()`: bóc thân heredoc, giữ nội dung nháy. Ba mẫu bắt-nhầm đo được nay nằm trong `TOT` của `tests/test_cua_quy_trinh.py`. **Không** đóng được lớp *chọn sai quần thể* — đó là một hình dạng suy nghĩ |
+
+**Ba mươi hai trên bốn mươi chín máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -234,7 +238,8 @@ bình thường. `thay()` vẫn báo thành công vì neo khớp đúng một l�
 
 Cùng gốc với luật `heredoc-ghi-file-repo` (04–05/09/2026): shell nội
 suy `$` và backtick trước khi nội dung tới đĩa. Khác lối vào, nên luật
-cũ không bắt được — nay có luật riêng `backtick-trong-python-c`.
+cũ không bắt được — nay có luật riêng `backtick-trong-nhay-kep`
+(tên cũ `backtick-trong-python-c`; phạm vi nới ngày 14/09/2026).
 
 **Cách đúng, và nó nằm sẵn trong Bước 2:** vá lớn thì viết một file
 `.py` rồi chạy nó. Tool Write ghi file, không qua shell, nên backtick
@@ -1214,3 +1219,89 @@ hành động không bao giờ được commit, nên **git không có gì để 
 Với lớp ấy, "tuổi thọ" gần như không định nghĩa được, chứ không phải chưa
 đo. Đó là câu hỏi để mở, và nó **không** được dùng để sửa con số của ĐO 7
 sau khi đã thấy kết quả.
+
+
+### Lỗi 48 — một cái gác hẹp hơn cơ chế nó canh
+
+Ngày 08/09/2026 backtick trong `python -c "…"` nuốt mất một khối mã ba
+dòng. Luật dựng ra cùng ngày tên **backtick-trong-python-c**, và nó canh
+đúng chừng ấy: `\bpython[^\s]*\s+-c\s+"[^"]*` + backtick.
+
+Ngày **14/09/2026**, cùng cơ chế cắn lần thứ hai, ở một chỗ chẳng liên
+quan gì tới `python -c`:
+
+```
+tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do "... `nguoi-thay` ..."
+   -> bash: nguoi-thay: command not found
+```
+
+**Cơ chế thì tổng quát, cái tên thì hẹp.** Bash nội suy backtick trong
+nháy kép của **mọi** lệnh; `python -c` chỉ là chỗ nó cắn lần đầu.
+
+**Đếm trước khi nới** (bài học lỗi 39), dùng chính
+`tools/soat_lenh_tai_lieu.py` dựng hôm nay:
+
+```
+69 dong lenh trong tai lieu repo · 0 dong dinh luat RONG
+nam hinh dang hop le hay dung   · 0 bi bat nham
+   ke ca ban dung nhay DON, tuc dung cach sua
+```
+
+Nới xong: `backtick-trong-nhay-kep`, mẫu `"[^"]*` + backtick.
+
+> **Đây là mặt ngược của lỗi 44.** Lỗi 44 là một dấu ✅ **hứa rộng hơn**
+> thứ cái gác giao. Lỗi 48 là một cái gác **canh hẹp hơn** cơ chế nó
+> mang tên. Cùng một chỗ hở — *phạm vi khai không khớp phạm vi thật* —
+> nhìn từ hai phía.
+>
+> Và cả hai đều chỉ lộ ra khi có người **đi đo lại phạm vi**, chứ không
+> lộ ra khi đọc lời khai. Lời khai nào cũng tự nhất quán.
+
+**Điều nới này KHÔNG làm.** Nó không đụng tới bảy luật còn lại. Câu hỏi
+*"còn luật nào khác đang khai hẹp hơn cơ chế của nó?"* — **chưa đo**, và
+không được đoán.
+
+
+### Lỗi 49 — đo đúng phép, sai quần thể
+
+Trước khi nới luật backtick tôi làm đúng bài học lỗi 39: **đếm trước**.
+
+```
+69 dong lenh trong tai lieu repo · 0 dong dinh luat rong
+nam hinh dang hop le hay dung    · 0 bi bat nham
+```
+
+Rồi đọc con số ấy thành *"nới là an toàn"*, và nới.
+
+**Lệnh kế tiếp của tôi bị chặn.** Nó là một đoạn Python chạy bằng
+`<<'PYEOF'`, bên trong có chuỗi `"[^"]*` + backtick. Mà thân heredoc **có
+trích dẫn** thì bash **không nội suy** — nên đó là bắt nhầm.
+
+**Phép đo không sai. Quần thể sai.** Tôi đo trên *dòng lệnh viết trong
+tài liệu*, rồi kết luận về *lệnh tôi sẽ gõ*. Hai tập ấy khác nhau, và
+khác đúng ở chỗ quan trọng nhất: tài liệu gần như không có heredoc, còn
+cách tôi làm việc cả ngày thì **toàn heredoc**.
+
+Đó là cùng họ với lỗi 25 (*một phép thử đo MỘT cửa bị đọc thành phán
+quyết về SÁU*), lỗi 44 và lỗi 47 — **một phép đo bị đọc rộng hơn phạm vi
+nó có**. Lớp này nay có **sáu** dòng: 25, 35, 36, 44, 47, 49.
+
+**Sửa:** phạm vi thứ tư `DOC_GIU_NHAY` + `boc_than_heredoc()` — bóc thân
+heredoc, **giữ** nội dung nháy. Ba mẫu bắt-nhầm đo được (nháy đơn · nháy
+đơn sau một cặp nháy kép đã đóng · thân heredoc có trích dẫn) nay nằm
+trong danh sách `TOT` của `tests/test_cua_quy_trinh.py`.
+
+Và vòng đục thử lôi ra một bắt nhầm **thứ tư** chưa ai gặp: trong nháy
+kép, `\`` là một backtick **văn bản** — bash chỉ cho `\` giữ nghĩa đặc
+biệt trước `$ \` `" \\` và xuống dòng. Mã cũ giữ nguyên cặp thoát ấy nên
+luật bắt đúng cái bash không làm. Nay trung hoà ký tự đã thoát ở **cả
+hai** phạm vi.
+
+> **Câu hỏi đúng trước khi nới một cái gác không phải *"nó bắt nhầm bao
+> nhiêu?"* mà là *"tôi đang đếm trên tập nào, và tập ấy có phải tập sẽ
+> đi qua cái gác này không?"***
+>
+> Gác mới chặn đúng **một hình dạng**: backtick nội suy được nằm trong
+> một cặp nháy kép, ngoài thân heredoc. Nó **không** đóng được lớp *chọn
+> sai quần thể khi đo* — đó là một hình dạng suy nghĩ, không phải một
+> hình dạng cú pháp.
