@@ -11953,3 +11953,122 @@ Cả hai lần, cái cứu tôi không phải sự cẩn thận. Lần đầu l�
 đã biết trước**; lần sau là **thói quen in ra dữ liệu thô bên dưới con
 số**. Nếu lượt hai chỉ in `0`, tôi đã kết luận *"quần thể rỗng, không đo
 được"* — nghe rất hợp lý, và sai.
+
+
+---
+
+## BƯỚC 72 — BÊN BÍ MẬT CÓ GÁC, BÊN SỔ LỆNH THÌ CHƯA BAO GIỜ (14/09/2026)
+
+Lượt đọc lại sau BƯỚC 71 đi qua bốn khẳng định *"đã dọn xong"* mà không
+lệnh nào từng kiểm. Cả bốn **đúng**:
+
+```
+.db bi git theo doi          : 0
+backtest/cache* trong index  : 0
+file khop "secret" bi theo doi: 1  -> .streamlit/secrets.toml.example
+   than khoa trong do        : 7 ky tu  (mau, khong phai khoa that)
+.gitignore co phu            : *.db · sl_pattern_memory.json ·
+                               .streamlit/secrets* · backtest/cache*/
+```
+
+Sổ lệnh thật cũng không trôi: **2 mở (NAF · STB)**, bộ đếm tiến-về-trước
+vẫn **2**, cờ C5 vẫn `False`. Con số ghi 12/09 trong `CLAUDE.md` còn đúng.
+
+### Chỗ đáng hỏi không phải câu trả lời, mà là ai đang canh nó
+
+Hỏi tiếp: cái gì giữ bốn con số 0 ấy ở mức 0?
+
+| | gác | từ ngày |
+|---|---|---|
+| bí mật trong `.streamlit/` | `tests/test_bi_mat_bi_che.py` | 03/09/2026 |
+| **sổ lệnh, cache, bộ nhớ** | **không có** | — |
+
+Ba hàng rào dựng sau sự cố 12/08/2026 đều nằm ở tầng **ứng dụng**:
+`PaperTradingJournal.__init__` mặc định từ chối, `guard_not_real_ledger()`,
+`avg_capital_deployed_pct` kêu khi đòn bẩy ẩn. **Không cái nào canh cái
+INDEX** — mà index mới là nơi sự cố ấy đi qua.
+
+Và `.gitignore` không bảo vệ một file **đã** được theo dõi. Chính nó ghi
+lại lý do: *"Trước đây chỉ chặn `paper_custom*.db` nên `paper_trades.db`
+lọt qua"*. Một luật đúng vào ngày nó ra đời, sai vào ngày có một cái tên
+khác.
+
+Bên bí mật đã học đúng bài đó ngày 03/09. Bên sổ lệnh — thứ đã mất 96/113
+lệnh thật — thì chưa ai chép sang.
+
+### Gác mới: `tests/test_trang_thai_chay_khong_bi_commit.py`
+
+**Hai câu hỏi khác nhau, hỏi cả hai.** Đây là chỗ dễ gộp nhầm:
+
+| câu | lệnh | trả lời |
+|---|---|---|
+| index hôm nay có sạch không | `git ls-files` | *hôm nay có gì lọt* |
+| luật che ngày mai còn sống không | `git check-ignore --no-index` | *ngày mai có lọt được không* |
+
+Câu 1 một mình thì xanh suốt cho tới đúng cái commit làm hỏng. Câu 2 một
+mình thì mù với file đã lọt từ trước.
+
+Hỏi **git**, không đọc lại `.gitignore` rồi tự diễn giải — dựng lại luật
+của git trong test là kiểm công thức của test.
+
+### Đục thử: 5 phát, và phát thứ năm sống sót lần đầu
+
+Phát đầu tiên dựng lại **nguyên văn** lỗi lịch sử, đúng điều bắt buộc số 2
+của Bước 3:
+
+```
+1. .gitignore:  *.db  ->  paper_custom*.db      DO   <- loi THAT 12/08
+2. backtest/cache*/   ->  backtest/cache/       DO   <- cache_2018 lot ra
+3. sl_pattern_memory.json bi chu thich hoa      DO
+4. may do hoi sai cho (ls-files mau khong co)   DO
+5. bo --no-index khoi bi_che()                  SONG SOT
+```
+
+**Phát 5 sống sót, và nó là một câu trả lời chứ không phải "gần đạt".**
+Lý do đúng một: trên repo này chưa file nào lọt vào index, nên hai câu
+hỏi đang cho cùng một đáp án. Tức hôm nay cờ `--no-index` **chưa canh
+được gì** — và chỗ nó canh chỉ xuất hiện đúng lúc gác cần nói thật nhất.
+
+Cách sửa: dựng một repo git riêng trong thư mục tạm, `git add -f` một file
+đã bị che, rồi hỏi cả hai dạng. Có cờ → git trả lời về LUẬT (bị che);
+không cờ → git bỏ qua file đang được theo dõi và trả "không bị che".
+
+### Và lần sửa đầu tiên của phát 5 KHÔNG giết được nó
+
+Bản đầu của phép kiểm ấy tự gọi `git` trong thân test. Chạy lại: **vẫn
+sống sót.** Vì phép đục nhắm vào `bi_che()`, còn test thì không đi qua
+`bi_che()`.
+
+Đó đúng là điều bắt buộc số 1 của Bước 3 — *"phép đục phải đi qua đúng HÀM
+ĐANG PHÁN, không qua hàm trích"* — và tôi vi phạm nó ngay trong lượt sửa
+một phát sống sót. Mở `bi_che(duong_dan, thu_muc=GOC)` cho test trỏ sang
+repo thử, rồi phát 5 mới đỏ.
+
+> Một cái gác xanh và một phép đục sống sót trông giống hệt nhau từ phía
+> bản in: cả hai đều là *"test qua"*. Thứ phân biệt chúng là **biết mình
+> đang hỏi hàm nào**.
+
+Cuối cùng: **5/5 đỏ**, `.gitignore` hoàn trả từng byte.
+
+### Vì sao gác này được dựng, trong khi hai gác hôm nay bị từ chối
+
+Hôm nay tôi từ chối hai ứng viên gác (BƯỚC 70, 71) và dựng đúng cái này.
+Khác biệt không phải mức quan trọng, mà là **thứ tự**:
+
+| | đo trước hay sau | kết cục |
+|---|---|---|
+| gác câu-song-đôi (BƯỚC 70) | đo trước → **1 ca** | không dựng |
+| gác heredoc (BƯỚC 71) | đo trước → **cơ chế bị bác** | rút hẳn |
+| gác index (bước này) | đo trước → cơ chế chạy, lỗ có thật, 0 bắt nhầm | **dựng** |
+
+Cả ba đều bắt đầu bằng một lệnh, không bằng một ý hay. Hai cái đầu chết ở
+lệnh ấy.
+
+### Không thêm dòng bảng lỗi — có chủ đích
+
+Bốn khẳng định kiểm hôm nay đều **đúng**. Không ai sai; chúng chỉ chưa
+từng có lệnh đứng sau. Thêm một dòng lỗi cho một câu đúng sẽ làm loãng
+chính cái bảng — mà giá trị của bảng nằm ở chỗ mỗi dòng là một lần thật
+sự trả giá.
+
+Số test: **1031 → 1044**, mốc đã cập nhật kèm lý do.
