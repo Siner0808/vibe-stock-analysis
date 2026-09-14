@@ -11714,3 +11714,135 @@ chính bộ test gây ra (lỗi 55).
 > Một con số trong trí nhớ và một con số có lệnh đứng sau khác nhau ở chỗ:
 > cái thứ hai **cãi lại được**. Tôi viết "6 lần", nhật ký nói "13", và
 > chênh lệch ấy là một khuyết tật chứ không phải một lỗi đếm.
+
+
+---
+
+## BƯỚC 70 — PHÉP SỬA ĐÃ ĐƯỢC VIẾT, VÀO ĐÚNG FILE SAI (14/09/2026)
+
+Hôm nay tôi không dựng gì. Bước 0 của skill bảo đọc `docs/HANDOFF.md`
+trước tiên, và lượt đọc ấy — thứ tôi vẫn làm như một thủ tục — lôi ra hai
+khẳng định đã hết hạn trong đúng cái file mà chính nó cảnh báo là nguy
+hiểm khi cũ.
+
+### (a) Câu tổng kết trạng thái, mục 2
+
+`docs/HANDOFF.md` viết, từ 05/09:
+
+> **Trạng thái đo lường, một câu:** dự án hiện **không có kết quả nào loại
+> được số 0**.
+
+Cùng câu ấy nằm ở `docs/STATE.md` BƯỚC 25 — và ở đó nó **đã được đánh dấu
+🔴 từ 09/09/2026** (`feb760d6`), ngay hôm ĐO 1 cho một dòng loại được số 0.
+
+**Phép sửa đã được viết. Nó chỉ được viết vào file thấp hơn một bậc.**
+
+Thứ tự ưu tiên của chính dự án là `HANDOFF` → `STATE` → `CLAUDE.md`, *"hai
+file mâu thuẫn thì file mới hơn đúng"*. Nên người đọc **làm đúng luật** sẽ
+dừng ở câu sai và không bao giờ tới chỗ đã sửa. Luật ưu tiên không cứu
+được người đọc ở đây — nó dẫn họ đi sai đường.
+
+Và `HANDOFF` đã tự nói trước điều này, ở ngay đầu file:
+
+> ⚠️ Chính quy tắc ưu tiên đó là lý do file này nguy hiểm khi cũ. Nó đứng
+> đầu thứ tự, nên một câu lạc hậu ở đây đè lên hai file kia.
+
+Một file dự đoán đúng cách nó sẽ hỏng, rồi hỏng đúng như thế, trong chín
+ngày.
+
+### Chiều của cái sai — lần này nó giấu một kết quả XẤU
+
+Gần như mọi lỗi đo lường của dự án này nghiêng về phía làm số **đẹp lên**;
+đó là câu mở đầu của `NGUYEN-TAC-DO-LUONG.md`. Lần này ngược lại, và vẫn
+hại:
+
+```
+cau o HANDOFF  : "khong co ket qua nao loai duoc so 0"
+do duoc        : DO 1 · DO 3 · DO 4, che do theo ngay, truot gia BAT
+                 alpha quanh -0,8 den -0,9% · KTC tron duoi 0
+                 von dinh DUNG 100% -- khong co loi don bay 7b
+```
+
+Câu cũ làm trạng thái nghe như *chưa kết luận được gì*, trong khi phép đo
+**đã kết luận** — và kết luận ngược phía chiến lược. Một dự án "chưa biết"
+thì cứ chạy tiếp; một dự án "đã đo được bất lợi" thì phải quyết. Giấu một
+kết quả xấu mua đúng cái quyền được không quyết.
+
+### (b) Một việc treo sống lâu hơn việc của nó 5 giờ 42 phút
+
+Mục 5, danh sách **cần người quyết**, còn một dòng chưa gạch: *"Đổi mặc
+định `do_tre_khop` sang 1 — gộp vào lần đo lại đầy đủ tiếp theo"*, kèm một
+danh sách bốn việc cụ thể *"khi tới lúc"*.
+
+Cả bốn đã xong. Đo bằng git, không đoán:
+
+```
+955fc6b  10/09 08:59  viet dong "can nguoi quyet" vao HANDOFF
+1d4a43c  10/09 14:41  doi mac dinh do_tre_khop sang 1 (+ test)
+c7d335b  10/09 17:22  DO 3 -- thay bang so, CUNG MOT PR (#86)
+```
+
+Và trạng thái sống, đọc bằng lệnh chứ không bằng tài liệu:
+
+```
+chay          -> 1
+_mo_phong     -> 1
+--do-tre-khop -> default 1
+```
+
+Dòng ấy sống hơn việc của nó **5 giờ 42 phút** ngay trong ngày nó ra đời,
+rồi đứng thêm **bốn ngày**. Điều kiện người dùng nêu — *"đổi mặc định và
+thay bảng số trong CÙNG một PR"* — đã được tôn trọng đúng từng chữ; chỉ có
+cái danh sách là không ai quay lại.
+
+### Có nên dựng một cái gác không — ĐO TRƯỚC, QUYẾT SAU
+
+Cuối phiên hôm qua tôi viết: *"nên dừng phần dựng gác lại"*, vì lớp
+`gac-hong` đi từ 11 lên 18 trong một ngày. Nên lần này tôi không hỏi *"dựng
+thế nào"*, tôi hỏi **lớp này có bao nhiêu ca**.
+
+Hình dạng thì máy đọc được: *một câu bị đánh dấu HẾT ĐÚNG ở file này, còn
+nằm TRẦN ở file kia*. Viết một lượt quét, chạy trên 10 tài liệu:
+
+```
+53 dong mang 🔴/⚠️/❌
+16 khoi co cau doc duoc ngay tren
+ 1 ca
+```
+
+**Một ca.** Vậy đây là một lần dọn, không phải một cái gác. Ba dòng ✅ gần
+nhất của bảng lỗi đều là gác ghim cứng **từng lời khai một**
+(`test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`,
+`test_khong_con_dieu_kien_dung_BAN_1_ma_khong_danh_dau`) — thêm một cái
+nữa cho một ca duy nhất là xây nhanh hơn tốc độ đọc lại, đúng thứ tôi vừa
+tự cảnh báo.
+
+### Và lượt quét đầu tiên của tôi ra 0 ca — nó SAI
+
+Bản 1 so **từng dòng một**. Tài liệu ngắt dòng ở cột ~76, nên câu ở
+`HANDOFF` nằm vắt qua hai dòng và dấu `**` đặt khác chỗ ở hai bên. Nó mù
+với đúng cái ca tôi đã biết trước khi viết nó.
+
+> Nếu tôi đi thẳng vào dựng gác, bộ test của cái gác ấy gần như chắc chắn
+> sẽ dùng một ca dựng tay — và nó sẽ xanh, trong khi cơ chế mù với mọi ca
+> thật. Đó là lỗi 51 lần nữa. Thứ cứu tôi ở đây không phải cẩn thận, mà là
+> **có một ca thật đã biết trước để bắt chính lượt quét phải đi qua**.
+
+Bản 2 gộp cả file thành một chuỗi chuẩn hoá rồi mới tìm, và ra 1 ca.
+
+### Ba việc đã làm
+
+1. Mục 2: thay câu tổng kết bằng trạng thái đo được, **giữ câu cũ kèm
+   dấu** — đúng quy ước bốn lớp lỗi tài liệu của chính mục 4.
+2. Mục 5: gạch mục treo, ghi ba mã băm và một lệnh đọc trạng thái sống.
+   **Giữ lại phần LÝ DO của người dùng** — lý do không hết hạn, chỉ có
+   trạng thái mới hết hạn.
+3. Bảng lỗi: dòng 57, lớp `chua-do`, sống **5 ngày**, nguồn `git`.
+
+### Điều đáng nói nhất
+
+Hôm qua tôi tổng kết rằng nhật ký cửa cãi lại được trí nhớ. Hôm nay là vế
+thứ hai của cùng một chuyện: **một phép sửa được viết ra không có nghĩa là
+nó tới được người đọc.** Nó còn phải nằm ở chỗ người đọc thật sự dừng lại
+— và ở dự án này, chỗ ấy được định nghĩa bằng một luật ưu tiên viết sẵn,
+không phải bằng chỗ tôi thấy tiện tay ghi.

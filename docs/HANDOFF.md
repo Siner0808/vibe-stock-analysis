@@ -114,8 +114,26 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 3. **Ngưỡng của điều kiện dừng được SUY RA, không gõ tay.** Muốn biết giá
    trị thì đọc mã, đừng đọc con số trong tài liệu — kể cả tài liệu này.
 
-**Trạng thái đo lường, một câu:** dự án hiện **không có kết quả nào loại
-được số 0**. Chi tiết ở `docs/STATE.md` BƯỚC 25.
+**Trạng thái đo lường, một câu:** dự án **CÓ một kết quả loại được số
+0, và nó ÂM.** Chế độ theo ngày, trượt giá BẬT — alpha quanh **−0,8 tới
+−0,9%**, KTC nằm trọn dưới 0, ở vốn đỉnh **đúng 100%**. Ba lượt độc lập
+cho cùng kết luận: ĐO 1 (09/09) · ĐO 3 (10/09) · ĐO 4 (11/09).
+`docs/STATE.md` BƯỚC 44 · 50 · 52. Con số hiện hành thì đọc bảng ĐO 3
+trong `CLAUDE.md`, đừng đọc ở đây.
+
+> 🔴 **CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026 VÀ VẪN ĐỨNG TỚI 14/09.** Nó
+> ghi *"dự án hiện không có kết quả nào loại được số 0"* — viết
+> 05/09 (`d1b100a3`), và đúng vào ngày ấy.
+>
+> **Phép sửa ĐÃ ĐƯỢC VIẾT — nhưng viết vào file THẤP HƠN.** Cùng câu ấy
+> nằm ở `docs/STATE.md` BƯỚC 25, và ở đó nó được đánh dấu 🔴 ngay hôm
+> **09/09** (`feb760d6`). File này thì không. Mà thứ tự ưu tiên của
+> chính dự án là `HANDOFF` → `STATE` → `CLAUDE.md`, nên người đọc
+> **đúng luật** dừng lại ở câu sai và không bao giờ tới chỗ đã sửa.
+>
+> Chiều của cái sai đáng chú ý: nó giấu một kết quả **XẤU**. Nó làm
+> trạng thái dự án nghe như *chưa kết luận được gì*, trong khi phép đo
+> đã kết luận — và kết luận ngược phía chiến lược. Lỗi 57.
 
 ---
 
@@ -215,16 +233,22 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   KHÔNG bằng `stride=1`** — bằng `--do-tre-khop 1`, vì `stride=1` đổi cùng
   lúc hai thứ. Δ alpha +0,13 / +0,12 điểm, cả hai nhỏ hơn một phần sáu bề
   rộng KTC. `docs/STATE.md` BƯỚC 46.
-- **Đổi mặc định `do_tre_khop` sang 1 — ĐÃ CHỐT 10/09/2026: đổi, nhưng
-  KHÔNG đổi rời.** Gộp vào **lần đo lại đầy đủ tiếp theo**, để mặc định
-  mới và bảng số mới ra đời cùng một lúc. Lý do người dùng nêu: đổi bây
-  giờ thì có một quãng tài liệu ghi một đằng, chạy ra một nẻo — đúng hình
-  dạng lệch đã cắn dự án này nhiều lần (`N_DAY_DU` 596/451, cờ C5).
+- ~~**Đổi mặc định `do_tre_khop` sang 1**~~ **XONG 10/09/2026 — và xong
+  CÙNG NGÀY dòng này được viết ra đây.** Mặc định đổi ở `1d4a43c`
+  (14:41), bảng số thay ở `c7d335b` (17:22), **cùng một PR (#86)** —
+  đúng chốt của người dùng. Dòng *"cần người quyết"* này viết lúc
+  **08:59** cùng ngày (`955fc6b`), tức nó sống hơn việc của nó **5 giờ
+  42 phút**, rồi ở lại thêm **bốn ngày**. Đọc trạng thái, đừng tin dòng
+  này:
 
-  Việc cụ thể khi tới lúc: đổi mặc định trong `walkforward.py`, sửa
-  `tests/test_do2_lich_ghe.py::test_DIEU_KIEN_1_mac_dinh_cho_lich_Y_HET_hom_nay`
-  cho khớp chủ đích mới, chạy lại bảng bốn lượt, thay bảng trong
-  `CLAUDE.md` trong CÙNG một PR.
+  ```bash
+  ./.venv/Scripts/python.exe -c "import walkforward as w, inspect; print(inspect.signature(w.chay).parameters['do_tre_khop'].default)"
+  ```
+
+  Chốt của người dùng thì **giữ lại, vì nó là LÝ DO và lý do không hết
+  hạn**: đổi mặc định và thay bảng số phải ra đời cùng một lúc, để không
+  có quãng tài liệu ghi một đằng chạy ra một nẻo — đúng hình dạng lệch
+  đã cắn dự án này nhiều lần (`N_DAY_DU` 596/451, cờ C5).
 
 **Chưa truy:**
 
