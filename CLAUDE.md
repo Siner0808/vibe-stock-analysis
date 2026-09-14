@@ -1228,6 +1228,7 @@ streamlit run app.py                      # chạy app
 ./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-thay-doi  # chỉ file đã đổi (hook Stop)
 ./.venv/Scripts/python.exe -m pytest tests/test_post_mortem.py        # khoá tính tái lập chấm điểm
 ./.venv/Scripts/python.exe tools/soat_lenh_tai_lieu.py          # lệnh trong tài liệu có chạy được
+./.venv/Scripts/python.exe tools/soat_nhat_ky_cua.py            # cửa Bash đã chặn gì, và thử một luật ứng viên
 ```
 
 ### Máy chạy 3.13, CI chạy 3.11 — khoảng cách đó ẩn được lỗi

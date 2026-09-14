@@ -28,6 +28,8 @@ import json
 import pathlib
 import re
 import sys
+import tempfile
+from datetime import datetime
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
 
@@ -358,7 +360,12 @@ LUAT = [
         # tach ca ay, va viec tach da do `boc_va_tach()` lam tu 11/09.
         # Ve `>` o lai sau khi ly do cua no da mat, va no lam luat MU
         # voi `pytest ... 2>&1 | tail` — hinh dang pho bien nhat.
-        re.compile(r"\bpytest\b[^|\n]*\|\s*(?:tail|head)\b"),
+        # `(?!-)`: `\b` da chan `pytest_cache` (gach duoi la ky tu tu),
+        # nhung KHONG chan `pytest-qua-ong` — chinh TEN cua luat nay. Sau
+        # khi lop phu dinh duoc noi ra sang `2>&1` (14/09/2026), mot lenh
+        # nhu `--thu-luat pytest-qua-ong ... 2>&1 | tail` bi chan NHAM.
+        # Do la bat nham THAT, do duoc tren nhat ky cua, cung ngay.
+        re.compile(r"\bpytest\b(?!-)[^|\n]*\|\s*(?:tail|head)\b"),
         "`pytest ... | tail` — `tail` đệm toàn bộ output tới khi ống đóng. "
         "Với một lượt chạy nền thì bạn không đọc được gì cho tới lúc nó "
         "xong, và sẽ ngồi hỏi 'xong chưa'. Đếm được ít nhất 10 lượt như "
@@ -512,6 +519,54 @@ def kiem(lenh: str) -> list[tuple[str, str]]:
     return pham
 
 
+#: Nhật ký nằm trong TEMP, NGOÀI repo — nó không bao giờ được commit.
+#: Nội dung là đúng thứ đã gõ vào Bash, nên nó có thể chứa bất cứ gì người
+#: gõ đưa vào. Đó là lý do nó ở TEMP và chỉ ở TEMP.
+TEN_NHAT_KY = "vibe_cua_bash_chay.log"
+
+
+def duong_nhat_ky() -> pathlib.Path:
+    return pathlib.Path(tempfile.gettempdir()) / TEN_NHAT_KY
+
+
+def ghi_nhat_ky(lenh: str, pham: list, thoat: bool) -> None:
+    """Ghi MỘT dòng JSON cho mỗi lượt cửa được gọi.
+
+    VÌ SAO CÓ HÀM NÀY
+    ─────────────────
+    `cua_doc_bat_buoc.py` ghi nhật ký từ 09/09/2026, và nhờ đó câu *"cửa
+    ấy có chạy không"* trả lời được bằng một lượt đọc file. Cửa Bash thì
+    **không ghi gì**, nên hai câu dưới đây tới 14/09/2026 vẫn chỉ đoán
+    được:
+
+      • cửa này đã chặn bao nhiêu lần, và chặn cái gì
+      • nới một luật ra thì nó bắt NHẦM bao nhiêu
+
+    Câu thứ hai cắn thật trong ngày ấy. Lỗi 49: tôi đo tỷ lệ bắt nhầm
+    trên **69 dòng lệnh trong tài liệu** rồi đọc thành *"nới là an
+    toàn"* — sai QUẦN THỂ, và luật vừa nới chặn ngay lệnh kế tiếp. Rồi
+    BƯỚC 65 nới ba luật nữa, vẫn phải đo trên proxy vì không có gì khác.
+
+    Nhật ký này biến quần thể ấy thành **quần thể thật**:
+    `tools/soat_nhat_ky_cua.py` chạy một mẫu ỨNG VIÊN lên đúng những
+    lệnh đã gõ, và nói ra nó sẽ bắt thêm/bắt nhầm những gì.
+
+    **Ghi hỏng thì NHƯỜNG ĐƯỜNG.** Một cửa an toàn không được chết vì
+    cái nhật ký của nó — nhật ký là thứ phụ, phép phán mới là việc chính.
+    """
+    try:
+        ban_ghi = {
+            "luc": datetime.now().isoformat(timespec="seconds"),
+            "phan": "THOAT" if thoat else ("CHAN" if pham else "CHO-QUA"),
+            "luat": [t for t, _ in pham],
+            "lenh": lenh,
+        }
+        with open(duong_nhat_ky(), "a", encoding="utf-8") as f:
+            f.write(json.dumps(ban_ghi, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 def main() -> int:
     for luong in (sys.stdout, sys.stderr):
         try:
@@ -530,7 +585,12 @@ def main() -> int:
     if not lenh:
         return 0
 
+    # Ghi o CA BA nga. Chi ghi nga CHAN thi nhat ky chi co mau xau,
+    # va cau hoi 'noi luat co bat NHAM khong' van khong tra loi duoc —
+    # dung cai lo da sinh ra loi 49.
+    thoat = bool(RE_THOAT.search(lenh))
     pham = kiem(lenh)
+    ghi_nhat_ky(lenh, pham, thoat)
     if not pham:
         return 0
 

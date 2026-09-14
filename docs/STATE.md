@@ -11540,3 +11540,97 @@ tach loi_cua_khai() thanh HAM THUAN, thu bang mau dung tay HAI CHIEU
 ```
 duc lai ca bo: 8/8 do       0 phat song sot
 ```
+
+
+---
+
+## BƯỚC 68 — NHẬT KÝ CHO CỬA BASH, VÀ LẦN DÙNG ĐẦU TIÊN NÓ BẮT ĐƯỢC TÔI (14/09/2026)
+
+BƯỚC 65 ghi một việc **chưa làm**, và ghi cả lý do nó quan trọng:
+
+> Cửa Bash **không ghi nhật ký**. Nên câu *"nới luật này có bắt nhầm
+> không?"* hiện **không trả lời bằng phép đo trên quần thể thật được** —
+> chỉ đo được trên proxy. Đó chính là lỗ hổng của lỗi 49 ở dạng cấu trúc.
+
+Làm nó.
+
+### Tra trùng trước — và nó CỨU một hướng khác khỏi lãng phí
+
+Áp đúng luật của cái gác vừa dựng ở BƯỚC 67. Ba hướng đang cân nhắc, tra
+cả ba:
+
+| hướng | tra ra gì |
+|---|---|
+| thiên lệch sống sót | **ĐÃ ĐÓNG** — `docs/STATE.md:1678`: *"`Reference` không cung cấp thành phần chỉ số theo lịch sử. Thiên lệch sống sót vẫn không xử lý được bằng nguồn này."* |
+| `tv_recommendation` không tái lập | còn mở, nhưng n=1 và đã ghi *"hiện vô hại vì bonus không đổi quyết định mã nào"* |
+| nhật ký cửa Bash | `docs/STATE.md:11289` ghi **chưa làm** |
+
+**Nếu không tra, tôi đã thiết kế một phép đo đâm thẳng vào bức tường mà
+dự án đã đo ra từ trước.** Gác BƯỚC 67 mới dựng xong vài giờ, và đây là
+lần đầu nó trả về một thứ có giá.
+
+### Ghi ở CẢ BA ngả — chỗ quyết định, và nó không hiển nhiên
+
+```json
+{"luc": "...", "phan": "CHO-QUA", "luat": [], "lenh": "git status --short"}
+{"luc": "...", "phan": "CHAN", "luat": ["sed-i-file-repo"], "lenh": "..."}
+{"luc": "...", "phan": "THOAT", "luat": [], "lenh": "... # cua-ok: ..."}
+```
+
+Chỉ ghi ngả `CHAN` thì nhật ký chỉ có **mẫu xấu**, và câu *"nới ra thì bắt
+NHẦM cái gì"* vẫn không trả lời được — tức vẫn để nguyên đúng cái lỗ đã
+sinh ra lỗi 49. Phát đục đầu tiên dựng lại nguyên văn cái nới ấy.
+
+Và **ghi hỏng thì nhường đường**: một cửa an toàn chết vì cái nhật ký của
+nó là một cửa tệ hơn cửa không có nhật ký.
+
+### Lần dùng ĐẦU TIÊN, nó bắt được tôi
+
+Lệnh tôi gõ để thử chính dụng cụ vừa dựng:
+
+```
+tools/soat_nhat_ky_cua.py --thu-luat pytest-qua-ong ... 2>&1 | tail -12
+                                     ^^^^^^                        ^^^^
+```
+
+**Bị chặn.** Chữ `pytest` nằm trong một **định danh có gạch nối** — tên
+của chính cái luật — rồi một cái ống ở cuối. `\b` chặn được
+`pytest_cache` (gạch dưới là ký tự từ) nhưng **không** chặn gạch nối, và
+phép nới sáng nay (bỏ `>` `&` khỏi lớp phủ định, BƯỚC 65) làm mẫu span
+được qua `2>&1`.
+
+Một phép nới **sáng nay** bắt nhầm **chiều nay**, ở chính tên của nó. Lỗi
+54.
+
+### Và đây là chỗ nhật ký chứng minh nó đáng có
+
+Thử mẫu ứng viên trên **quần thể thật**, không phải proxy:
+
+```
+tools/soat_nhat_ky_cua.py --thu-luat pytest-qua-ong --mau '\bpytest\b(?!-)...'
+
+   BAT THEM : 0
+   BO SOT   : 1     <- dung cai bat nham, va chi cai do
+```
+
+Trước hôm nay câu ấy chỉ trả lời được bằng hình dạng **tự nghĩ ra**. Nay
+nó trả lời bằng **những lệnh đã thật sự gõ**.
+
+> Phép thử đi qua `kiem()` chứ không dựng lại phép phán — nên nó dùng
+> đúng phạm vi đọc mà luật ấy khai (`DOC_THO` · `DOC_GIU_NHAY` ·
+> `DOC_BOC`). Dựng lại là đúng bẫy *"test KIỂM LẠI CHÍNH NÓ"*.
+
+### Giới hạn, khai thẳng
+
+**Nhật ký bắt đầu từ 14/09/2026.** Mọi lệnh gõ trước đó không có ở đây và
+không dựng lại được. Nên hôm nay nó gần như rỗng; giá trị là **từ mai trở
+đi**. Dụng cụ nói ra điều đó ngay trong bản in, để không ai đọc một con số
+nhỏ thành *"luật này hiếm khi chặn"*.
+
+Và nó nằm trong TEMP, **ngoài repo** — nội dung là đúng thứ đã gõ vào
+Bash, nên nó không bao giờ được commit. Có phép kiểm khoá điều đó.
+
+```
+tests/test_nhat_ky_cua_bash.py   8 phep kiem
+duc thu  10/10 do        0 phat song sot
+```
