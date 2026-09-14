@@ -214,6 +214,29 @@ def quyet_dinh(chan: int, tong: int,
                f"  Sửa dòng khai ở cuối bảng. Đừng cộng dồn — ĐẾM LẠI.")
 
 
+def cheo_lop_may_chan(bang: dict, loi: dict) -> list[tuple[str, int, int]]:
+    """[(lớp, số ĐÃ chặn, số CHƯA)], sắp theo tổng giảm dần. Hàm THUẦN.
+
+    Cột "máy chặn?" và cột LỚP đều có từ lâu, và chưa lần nào được bắt
+    chéo. Con số gộp `36/58` nói dự án che được bao nhiêu; nó KHÔNG nói
+    **máy với tới đâu ở từng lớp** — mà đó mới là câu quyết định nên
+    dựng gác tiếp theo ở đâu.
+
+    Đo lần đầu 14/09/2026 và nó chỉ sang chỗ khác chỗ mọi người nhìn:
+    `chua-do` là lớp LỚN nhất nhưng đã che 52%; lớp máy không với tới
+    là `ky-luat` — **1/6**.
+    """
+    dem: dict[str, list[int]] = {}
+    for so, v in bang.items():
+        lop = loi.get(so, {}).get("lop")
+        if lop is None:
+            continue
+        o = dem.setdefault(lop, [0, 0])
+        o[0 if v["may_chan"].startswith("✅") else 1] += 1
+    return sorted(((l, c, k) for l, (c, k) in dem.items()),
+                  key=lambda t: (-(t[1] + t[2]), t[0]))
+
+
 def _vach(n: int, tran: int = 28) -> str:
     return "█" * min(n, tran)
 
@@ -314,6 +337,19 @@ def main() -> int:
         print(f"  ✅ {loi_nhan}")
     else:
         print(f"  {'❌' if ma == 1 else '⚠'} {loi_nhan}", file=sys.stderr)
+
+    # ── máy với tới đâu, theo LỚP ──────────────────────────────
+    print()
+    print("MÁY VỚI TỚI ĐÂU — lớp × máy chặn được")
+    print("─" * 64)
+    for lop, c, k in cheo_lop_may_chan(bang, loi):
+        ty = c / (c + k)
+        print(f"  {lop:12s} {c:3d}/{c + k:<3d} "
+              f"{_vach(round(ty * 20), 20):20s} {ty:4.0%}")
+    print()
+    print("  Đây là độ che ĐÃ KHAI, không phải độ che ĐO ĐƯỢC: cột ✅ nói")
+    print("  *có một cái gác*, không nói gác ấy BẮT ĐƯỢC. Lỗi 44 và 47")
+    print("  đều là một dấu ✅ hứa rộng hơn thứ nó giao.")
 
     print()
     print("Số lỗi mỗi ngày KHÔNG phải thước — nó tăng khi ta đào kỹ hơn.")

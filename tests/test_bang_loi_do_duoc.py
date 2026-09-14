@@ -298,3 +298,78 @@ def test_DUNG_CU_in_HAI_ve_chu_khong_in_mot_con_so_gop(capsys):
     assert int(gd.group(1)) == len(gia_dinh_that)
     print(f"PASS  in {len(co_bc_that)} co bang chung · "
           f"{len(gia_dinh_that)} gia dinh, khong gop")
+
+
+def test_CHEO_LOP_khong_lam_ROI_dong_nao_va_khop_so_GOP():
+    """Một bảng chéo đánh rơi vài dòng vẫn in ra rất thuyết phục.
+
+    Hai ràng buộc, và cái thứ hai mới là cái khó phá: tổng các ô phải
+    bằng số dòng bảng, VÀ cột "đã chặn" phải cộng lại đúng bằng con số
+    gộp `36/58` mà công cụ đã in ở trên. Hai đường đếm độc lập cho cùng
+    một con số.
+    """
+    bang = dbl.doc_bang()
+    loi = dbl.doc_phan_lop()["loi"]
+    cheo = dbl.cheo_lop_may_chan(bang, loi)
+
+    assert sum(c + k for _, c, k in cheo) == len(bang), (
+        "bang cheo danh roi dong — tong cac o khac so dong bang")
+    gop = sum(1 for v in bang.values() if v["may_chan"].startswith("✅"))
+    assert sum(c for _, c, _ in cheo) == gop, (
+        f"cot 'da chan' cong lai {sum(c for _, c, _ in cheo)}, "
+        f"con so gop noi {gop} — hai duong dem khong khop")
+    print(f"PASS  {len(cheo)} lop · {gop}/{len(bang)} khop ca hai duong dem")
+
+
+def test_CHEO_LOP_doi_COT_MAY_CHAN_thi_ket_qua_PHAI_doi():
+    """Hai chiều, trên đầu vào dựng tay — bài học lỗi 34.
+
+    Một hàm trả về cùng một thứ bất kể đầu vào vẫn "chạy được" và vẫn
+    khớp mọi phép kiểm trên dữ liệu thật. Nên thử cả bảng TOÀN ✅ lẫn
+    bảng TOÀN ⚠️, và pin luôn THỨ TỰ: lớp đông đứng trước.
+    """
+    loi = {"1": {"lop": "A"}, "2": {"lop": "B"}, "3": {"lop": "A"}}
+
+    def bang(*dau):
+        return {s: {"mo_ta": "", "may_chan": d}
+                for s, d in zip(("1", "2", "3"), dau)}
+
+    ra = dbl.cheo_lop_may_chan(bang("✅ co", "✅ co", "⚠️ chua"), loi)
+    assert ra == [("A", 1, 1), ("B", 1, 0)], (
+        f"{ra} — sai so dem, hoac sai THU TU (lop dong phai dung truoc)")
+
+    het = dbl.cheo_lop_may_chan(bang("⚠️", "⚠️", "⚠️"), loi)
+    assert het == [("A", 0, 2), ("B", 0, 1)], (
+        f"{het} — bang TOAN ⚠️ ma van dem ra o 'da chan'")
+
+    day = dbl.cheo_lop_may_chan(bang("✅", "✅", "✅"), loi)
+    assert day == [("A", 2, 0), ("B", 1, 0)]
+
+    # Dong khong co phan lop thi BO QUA, khong no va khong dem lien.
+    thieu = dbl.cheo_lop_may_chan(bang("✅", "✅", "⚠️"), {"1": {"lop": "A"}})
+    assert thieu == [("A", 1, 0)]
+    print("PASS  cheo doi theo cot may_chan, giu thu tu, bo qua dong thieu lop")
+
+
+def test_DUNG_CU_IN_bang_cheo_va_so_IN_RA_khop_HAM(capsys):
+    """Hàm đúng mà bản in sai thì người đọc vẫn tin số sai.
+
+    Đọc số ra khỏi chính bản in rồi đối chiếu với hàm — đi qua đúng
+    đường mà người dùng thật sự nhìn.
+    """
+    import re
+    capsys.readouterr()
+    assert dbl.main() == 0
+    ra = capsys.readouterr().out
+    assert "MÁY VỚI TỚI ĐÂU" in ra, "ban in khong con bang cheo"
+
+    in_ra = {m.group(1): (int(m.group(2)), int(m.group(3)))
+             for m in re.finditer(r"^\s{2}([a-z-]+)\s+(\d+)/(\d+)\s", ra, re.M)}
+    ham = {l: (c, c + k) for l, c, k in
+           dbl.cheo_lop_may_chan(dbl.doc_bang(), dbl.doc_phan_lop()["loi"])}
+    assert in_ra == ham, f"ban in {in_ra} khac ham {ham}"
+
+    assert "ĐÃ KHAI" in ra, (
+        "mat cau canh bao rang day la do che DA KHAI chu khong phai DO DUOC "
+        "— loi 44 va 47 deu la mot dau ✅ hua rong hon thu no giao")
+    print(f"PASS  ban in khop ham tren {len(ham)} lop, va con giu canh bao")

@@ -12072,3 +12072,105 @@ chính cái bảng — mà giá trị của bảng nằm ở chỗ mỗi dòng l
 sự trả giá.
 
 Số test: **1031 → 1044**, mốc đã cập nhật kèm lý do.
+
+
+---
+
+## BƯỚC 73 — MÁY VỚI TỚI ĐÂU: MỘT BẢNG CHÉO CHƯA AI TÍNH (14/09/2026)
+
+Bảng lỗi có cột **LỚP** và cột **MÁY CHẶN?** từ lâu. Chưa lần nào chúng
+được bắt chéo. Con số gộp `36/58` nói dự án che được bao nhiêu; nó **không**
+nói máy với tới đâu ở từng lớp — mà đó mới là câu quyết định nên dựng gác
+tiếp theo ở đâu.
+
+### Câu hỏi đến từ một câu nói hớ của chính tôi
+
+Trong hai bản tổng kết hôm nay tôi viết *"lớp `chua-do` vẫn chưa có gác
+chung"* — đúng. Nhưng khi paraphrase lại ở lượt sau, tôi rút thành *"không
+gác được"*, và chữ **chung** rụng mất. Đó là hai câu khác nhau.
+
+`docs/STATE.md` BƯỚC 58 cũng mang đúng cặp ấy: một câu để trần (*"lớp
+`chua-do` … chưa có gác"*, dòng 10391) và một câu chính xác ba mục sau
+(*"vẫn chưa có gác **chung**, và bản chất nó có lẽ không có"*). Câu sau
+đúng. Câu trước, đọc một mình, thì sai — vì ngay hôm 12/09 lớp ấy đã có
+bảy gác riêng.
+
+### Đo
+
+```
+LOP           chan  chua  tong   ty le
+chua-do         11    11    22    50%
+gac-hong        14     4    18    78%
+thao-tac         8     1     9    89%
+ky-luat          1     5     6    17%
+cua-chet         2     2     4    50%
+TONG            36    23    59    61%
+```
+
+> Bảng ngay trên, ở bản nháp đầu, **tôi gõ tay** — và sai hai ô:
+> `chua-do` ghi 21 (thật là 22, vì chính dòng 59 rơi vào lớp ấy) và
+> `ky-luat` ghi `1/7 · 14%` (thật là `1/6 · 17%`). Bắt được trước khi
+> commit, bằng cách đọc bản in của công cụ thay vì đọc lại bản nháp.
+>
+> Ghi lại vì nó xảy ra **trong chính mục nói về một cột số lạc hậu**.
+> *Suy ra, đừng gõ* — luật ở Bước 2 của skill — áp cho cả bảng trong
+> tài liệu, không riêng ngưỡng trong mã. Bảng này nay sinh từ
+> `cheo_lop_may_chan()`.
+
+Nay in ra bằng lệnh, mỗi lượt chạy `tools/doc_bang_loi.py`:
+`cheo_lop_may_chan()`, hàm THUẦN, 6/6 đột biến đỏ.
+
+### Cái gradient đọc được
+
+Xếp theo độ che: `thao-tac` 89% → `gac-hong` 78% → `chua-do` 50% →
+`cua-chet` 50% → `ky-luat` 17%.
+
+> **Càng là chuyện tôi ĐÃ LÀM thì máy càng bắt được; càng là chuyện tôi
+> KHÔNG LÀM thì càng không.**
+
+`thao-tac` để lại một file hỏng. `gac-hong` để lại một gác xanh sai. Cả hai
+đều là **vật chứng** — có thứ để soi. `ky-luat` thì ngược lại: không tra
+lời giải sẵn có, không gọi một ước lượng là ước lượng, quay lại heredoc vì
+phép vá *trông nhỏ*. Những cái đó là **chỗ trống**, và một chỗ trống thì
+không có hình dạng để kiểm.
+
+Lớp mọi người đang nhìn (`chua-do`, lớn nhất) hoá ra đã che quá nửa. Lớp
+máy thật sự không với tới là lớp nhỏ thứ hai — và nó chính là lớp đã sinh
+ra lỗi 56 **bốn lần trong một ngày**.
+
+### Và bảng chéo bắt được một khuyết tật trong chính đầu vào của nó
+
+Trước khi công bố con số `ky-luat 1/6`, tôi đi đọc sáu dòng ấy. Dòng 53
+vẫn ghi `❌` và gọi `test_do_phai_khai_da_tra.py` là **ứng viên gác** —
+trong khi gác ấy đã dựng **hôm qua**, chính từ dòng 53 và dòng 41. Chuỗi
+`do_phai_khai_da_tra` xuất hiện **0 lần** trong cả bảng.
+
+Cùng hình dạng **lỗi 46** — cổng thứ năm ra đời, bốn tài liệu vẫn nói
+*bốn* — lần này ở chính cái bảng đếm gác. Lỗi 59.
+
+**Kết luận sống sót**, và đó là điều phải nói rõ: dòng 53 đi từ `❌` sang
+`⚠️ một phần`, không sang `✅`, vì gác ấy **không biết lời khai có đúng
+không** — nó chặn đúng một thứ: một phép đo đã ký mà không ai nói được đã
+tra hay chưa. Nên `ky-luat` vẫn `1/6`.
+
+> Nó sống sót **vì may**, không vì có gì canh. Nếu dòng 53 lẽ ra phải là
+> `✅` thì con số đã là 2/6 và câu chuyện đã khác.
+
+Cùng chuyện `doc_bang_loi.py` từng làm ở lượt chạy đầu tiên của nó: bắt
+**lỗi 35**, dòng tự khai cuối bảng lệch +1 suốt ba ngày. Một dụng cụ mới
+đọc dữ liệu cũ thì lượt đọc đầu tiên gần như luôn ra một khuyết tật — và
+đó là lý do đáng viết dụng cụ, chứ không phải một tác dụng phụ.
+
+### Một cảnh báo in kèm, cố ý
+
+Bản in nói rõ: **đây là độ che ĐÃ KHAI, không phải độ che ĐO ĐƯỢC.** Cột
+`✅` nói *có một cái gác*, không nói gác ấy **bắt được**. Bảng này đã ghi
+hai lần một dấu `✅` hứa rộng hơn thứ nó giao — lỗi 44 và 47.
+
+### Việc để lại, chưa dựng
+
+Ứng viên gác cho lỗi 59: mọi tên gác trong `tests/` phải xuất hiện ở ít
+nhất một dòng bảng, hoặc khai lý do vắng mặt. **Chưa đo bắt nhầm** — và
+lần này quần thể có thật để đo: 87 file test. Không dựng hôm nay; hôm nay
+đã đủ ba lượt quyết định dựa trên một phép đo, và lượt thứ tư nên bắt đầu
+bằng phép đo ấy chứ không bằng đà.
