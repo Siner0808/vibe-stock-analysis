@@ -151,6 +151,41 @@ def doc_dong_khai(duong: pathlib.Path = BANG) -> tuple[int, int] | None:
     return None if a is None or b is None else (a, b)
 
 
+def tach_cung_phien(loi: dict, khong_bang_chung) -> tuple:
+    """Tách nhóm "bắt cùng phiên" thành CÓ bằng chứng và GIẢ ĐỊNH.
+
+    Trả `(co_bang_chung, gia_dinh, qua_ngay, chua_do)`. Hàm THUẦN.
+
+    VÌ SAO TÁCH — ĐO 7, 14/09/2026
+    ──────────────────────────────
+    Dòng tiêu đề cũ in một con số gộp: *"bắt CÙNG PHIÊN 31/45"*. Tôi đã
+    trích nó trong báo cáo cuối ngày nhiều hôm liền như một thước cho sức
+    khoẻ quy trình. Đo lại theo luật khai trước: **15 trong 31 dòng ấy có
+    nguồn `nguoi-thay`** — tình cờ, trí nhớ, đọc lại — tức số 0 ở đó là
+    một GIẢ ĐỊNH, không phải một phép đọc.
+
+    Một cơ chế nổ chứng minh lỗi không sống quá lượt chạy kế tiếp. Một
+    người tình cờ thấy thì không chứng minh gì về tuổi thọ: lỗi có thể đã
+    nằm đó nhiều ngày, và cái ngày ta thấy nó chỉ là ngày ta tình cờ nhìn
+    đúng chỗ. Gộp hai thứ ấy làm quy trình trông khoẻ hơn thực tế — đúng
+    chiều Quy tắc số 1.
+
+    `khong_bang_chung` truyền vào từ `docs/loi-phan-lop.json`, KHÔNG ghim
+    trong mã: một cái tên chỉ được nằm ở một chỗ.
+    """
+    kbc = set(khong_bang_chung)
+    do_duoc = {s: v["song_ngay"] for s, v in loi.items()
+               if v.get("song_ngay") is not None}
+    chua = [s for s, v in loi.items() if v.get("song_ngay") is None]
+    cung_phien = [s for s, n in do_duoc.items() if n == 0]
+    gia_dinh = sorted((s for s in cung_phien if loi[s]["nguon"] in kbc),
+                      key=int)
+    co_bc = sorted((s for s in cung_phien if loi[s]["nguon"] not in kbc),
+                   key=int)
+    qua_ngay = {s: n for s, n in do_duoc.items() if n > 0}
+    return co_bc, gia_dinh, qua_ngay, chua
+
+
 def doi_chieu(bang: dict, phan_lop: dict) -> tuple[list[str], list[str]]:
     """(số hiệu thiếu phân lớp, số hiệu phân lớp thừa). Hàm THUẦN."""
     co = set(phan_lop.get("loi", {}))
@@ -229,14 +264,15 @@ def main() -> int:
     # ── TUỔI THỌ ───────────────────────────────────────────────
     print("TUỔI THỌ — một lỗi sống bao lâu trước khi bị bắt")
     print("─" * 64)
+    co_bc, gia_dinh, qua_ngay, chua = tach_cung_phien(
+        loi, pl.get("_khong_phai_bang_chung", []))
     do_duoc = {s: v["song_ngay"] for s, v in loi.items()
                if v.get("song_ngay") is not None}
-    chua = [s for s, v in loi.items() if v.get("song_ngay") is None]
-    cung_phien = [s for s, n in do_duoc.items() if n == 0]
-    qua_ngay = {s: n for s, n in do_duoc.items() if n > 0}
 
-    print(f"  bắt CÙNG PHIÊN        : {len(cung_phien):3d}/{len(do_duoc)}")
-    print(f"  sống qua ≥1 ngày      : {len(qua_ngay):3d}")
+    print(f"  bắt cùng phiên · CÓ bằng chứng thời điểm : {len(co_bc):3d}/{len(do_duoc)}")
+    print(f"  bắt cùng phiên · GIẢ ĐỊNH (`nguoi-thay`) : {len(gia_dinh):3d}"
+          f"  ← KHÔNG phải phép đo, xem ĐO 7")
+    print(f"  sống qua ≥1 ngày                         : {len(qua_ngay):3d}")
     if qua_ngay:
         lau = sorted(qua_ngay.items(), key=lambda kv: -kv[1])
         print(f"  lâu nhất              : "

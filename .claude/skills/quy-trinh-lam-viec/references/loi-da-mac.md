@@ -92,7 +92,9 @@ là lỗi sẽ tái diễn.
 | 45 | **tài liệu của dự án dạy những lệnh mà chính cửa gác Bash của dự án chặn** — 30 dòng, 13 trong số đó là chỉ dẫn sống. Nặng nhất: luật `python-he-thong` tự khai nguồn là *"chép từ `docs/HANDOFF.md` mục 1"*, mà mục ấy vi phạm đúng luật đó **ba lần** | đem chính `kiem()` của cửa Bash chạy lên các khối lệnh trong tài liệu | ✅ | `tools/soat_lenh_tai_lieu.py` + `tests/test_lenh_trong_tai_lieu.py` — gọi thẳng `cua_bash_an_toan.kiem()`, không chép luật sang, nên luật đổi thì phép soát đổi theo |
 | 46 | cổng thứ **năm** ra đời 10/09/2026 và bốn ngày sau tài liệu vẫn nói **bốn** — ở bốn chỗ, trong đó có *điều kiện tự merge* của chính `SKILL.md` Bước 5. Tên `kiem_so_test_khong_giam` xuất hiện **0 lần** trong bốn tài liệu chỉ dẫn | NotebookLM trả lời *"có bốn cổng"* — nó đọc đúng tài liệu, và **câu trả lời sai của nó chính là phát hiện** | ✅ | `tests/test_bo_cong_khop_CI.py` suy danh sách cổng từ `.github/workflows/kiem-dinh.yml` — thứ thật sự chạy — rồi bắt mọi khối lệnh đặt tên ≥2 cổng phải đặt tên đủ |
 
-**Hai mươi chín trên bốn mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 47 | **trích con số của chính mình rộng hơn thứ nó chứng minh**: dòng *"bắt CÙNG PHIÊN 31/45"* được tôi dùng trong báo cáo cuối ngày như một thước sức khoẻ quy trình — trong khi **15/31** dòng ấy có nguồn `suy-tu-bang`, mà chính từ vựng của file khai nó *"KHÔNG phải phép đo"* | đi soát chính cái thước, sau khi đã trích nó ba ngày | ✅ **nguồn đã bị gỡ** | `tools/doc_bang_loi.py` thôi in một con số gộp; `tach_cung_phien()` tách CÓ-bằng-chứng khỏi GIẢ-ĐỊNH, danh sách lấy từ `docs/loi-phan-lop.json` khoá `_khong_phai_bang_chung`. **Không** chặn được việc trích sai một con số khác — nó chỉ gỡ mất con số gây hiểu nhầm |
+
+**Ba mươi trên bốn mươi bảy máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -1158,3 +1160,57 @@ Nó chặn đúng một hình dạng: **khối lệnh liệt kê thiếu cổng.
 
 **Đục thử 7/7 đỏ**, phát đầu tiên dựng lại nguyên văn khối
 `cong-thuc-chay.md` đã lệch suốt bốn ngày.
+
+
+### Lỗi 47 — trích con số của chính mình rộng hơn thứ nó chứng minh
+
+Ngày 11/09/2026 tôi dựng `tools/doc_bang_loi.py` để bảng lỗi **đọc được
+thành số**, đúng tinh thần *"không có lệnh thì không có số"*. Nó in:
+
+```
+bat CUNG PHIEN : 31/45
+```
+
+Và tôi trích con số ấy trong báo cáo cuối ngày, **ba ngày liền**, như một
+thước cho sức khoẻ quy trình.
+
+Nhưng `docs/loi-phan-lop.json` — file tôi tự viết — ghi rằng **23** trong
+số đó mang `nguon = "suy-tu-bang"`, và chính từ vựng của file định nghĩa:
+
+> *"suy từ cột 'bắt bởi' của bảng — **KHÔNG phải phép đo**, chỉ là đọc lại
+> thứ đã ghi"*.
+
+Sự trung thực **có sẵn ở tầng từ vựng**. Thứ thiếu là: **dòng tiêu đề gộp
+hai loại bằng chứng lại thành một con số duy nhất**, và con số duy nhất ấy
+mới là thứ được trích.
+
+Đo lại theo luật khai trước (`docs/TIEU-CHI-DOC-TRUOC.md` ĐO 7, ký lúc
+09:15:05 trước khi tính):
+
+```
+A co-che      =  8   may chay: CI, cong gac, test, script, dung cu tu dung
+B nguoi-thay  = 15   nguoi thay: tinh co, tri nho, doc lai, tu di dem
+C do lai duoc bang git = 1   (loi 23)
+
+"bat CUNG PHIEN 31/45"  =  16 co bang chung ve thoi diem
+                           15 la GIA DINH   -- 48% cua con so da trich
+```
+
+**Vì sao hai thứ ấy khác nhau.** Một cơ chế nổ chứng minh lỗi không sống
+quá lượt chạy kế tiếp. Một người tình cờ thấy **không chứng minh gì về
+tuổi thọ**: lỗi có thể đã nằm đó nhiều ngày, và cái ngày ta thấy nó chỉ là
+ngày ta tình cờ nhìn đúng chỗ. Gộp lại thì quy trình trông khoẻ hơn thực
+tế — đúng chiều **Quy tắc số 1**.
+
+**Điều gác mới KHÔNG làm, nói rõ để khỏi lặp lỗi 44.** Nó gỡ mất con số
+gây hiểu nhầm; nó **không** ngăn được việc trích sai một con số khác. Lớp
+*đọc một phép đo rộng hơn phạm vi nó có* — lỗi 25, 35, 36, 44, 47 — vẫn
+chưa có gác chung.
+
+**Và một giới hạn CẤU TRÚC, không phải thiếu sót sổ sách.** 5 trong 15
+dòng `nguoi-thay` thuộc lớp `thao-tac` — chúng là **hành động** (`cat >`
+đè file, sửa file khi pytest đang chạy, backtick trong `python -c`). Một
+hành động không bao giờ được commit, nên **git không có gì để định ngày**.
+Với lớp ấy, "tuổi thọ" gần như không định nghĩa được, chứ không phải chưa
+đo. Đó là câu hỏi để mở, và nó **không** được dùng để sửa con số của ĐO 7
+sau khi đã thấy kết quả.
