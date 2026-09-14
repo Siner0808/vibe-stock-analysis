@@ -24,40 +24,65 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 
 ---
 
-## 1. BỐN LỆNH ĐẦU TIÊN
+## 1. NĂM LỆNH ĐẦU TIÊN
 
 ```bash
-pytest tests/ -q
+./.venv/Scripts/python.exe -m pytest tests/ -q
 # So với lượt chạy gần nhất trên main, ĐỪNG so với một con số ghi sẵn.
 # Đỏ ở đâu thì dừng ở đó. Bộ test này lớn dần mỗi ngày.
 
-python tools/kiem_cu_phap_311.py
+./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py
 # CHẠY SAU pytest, không song song. Máy dùng 3.13, CI dùng 3.11 --
 # cú pháp 3.12 nạp được ở máy rồi làm CI đỏ ngay bước đầu.
 
-python tools/chan_bia_so_lieu.py --quet-repo
+./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo
 # Kỳ vọng: 0 CHẶN. Số cảnh báo thì đổi, không phải tiêu chí.
 
-python tools/kiem_test_chay_rieng.py
+./.venv/Scripts/python.exe tools/kiem_test_chay_rieng.py
 # MỌI file test phải xanh khi chạy MỘT MÌNH. ~200s, tuần tự (song song
 # cho đỏ giả). Mã thoát 2 = CHƯA KIỂM ĐƯỢC, không phải sạch.
 # CI cũng chạy; chạy tay khi vừa sửa hoặc thêm test.
+
+./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py
+# Cổng THỨ NĂM, thêm 10/09/2026. Bốn cổng trên đo thứ ĐANG CÓ; cổng này
+# là cổng đầu tiên đo thứ BỊ MẤT. Nó không cấm giảm, nó buộc khai lý do:
+# `--cap-nhat --ly-do "<vì sao>"`. THÊM test cũng phải cập nhật mốc.
 ```
+
+> 🔴 **Mục này ghi *"BỐN LỆNH"* và bốn dòng `python …` cho tới
+> 14/09/2026.** Cả hai đều sai, và cái thứ hai sai theo kiểu buồn cười
+> nhất: luật `python-he-thong` của `tools/cua_bash_an_toan.py` **khai
+> nguồn của nó chính là mục này**, rồi mục này vi phạm nó ba lần. Nay có
+> `tools/soat_lenh_tai_lieu.py` chạy chính `kiem()` của cửa Bash lên mọi
+> khối lệnh trong tài liệu. `docs/STATE.md` BƯỚC 62.
 
 **Trước khi sửa bất cứ thứ gì liên quan tới KẾT QUẢ, đọc hai file:**
 `NGUYEN-TAC-DO-LUONG.md` (8 bất biến) và `MO-XE-KIEN-TRUC.md`.
 
-> 🔴 **Bản trước ghi *"có hook `PreToolUse` chặn nếu chưa đọc"* — CHƯA
-> ĐÚNG (08/09/2026).** Cửa ấy có tồn tại, nhưng cửa của repo chỉ được
-> nạp khi **phiên được mở ở chính thư mục repo**, và điều đó chưa xảy
-> ra lần nào. Kiểm trong một lệnh: `python --version` — bị chặn thì
-> cửa sống, in ra số hiệu Python thì cửa chết và việc đọc hai file
-> trên là **kỷ luật của người**, không phải ràng buộc của máy.
-> `docs/STATE.md` BƯỚC 40.
+> 🔴 **CẢ KHỐI CẢNH BÁO CŨ Ở ĐÂY ĐÃ BỊ BÁC — đo lại 10/09/2026, và
+> nó vẫn nằm đây tới 14/09.** Bản 08/09 viết *"cửa chưa chạy lần nào"*
+> và dạy một phép thử: *"chạy `python --version`; in ra số hiệu Python
+> thì cửa chết"*.
+>
+> **Hai vế, hai cái sai khác nhau.** Cửa nay đăng ký ở
+> `~/.claude/settings.json` bằng đường dẫn tuyệt đối nên **chạy bất kể
+> phiên mở ở đâu** — sáu trên sáu. Còn phép thử kia đi qua **đúng MỘT**
+> hook (`cua_bash_an_toan`, matcher `Bash`); nó không nói được gì về
+> năm cửa `Read/Write/Edit` và `Stop`. Đó là **lỗi 25** — một phép thử
+> đo một cửa bị đọc thành phán quyết về sáu.
+>
+> **Đọc trạng thái, đừng suy ra nó:**
+>
+> ```bash
+> ./.venv/Scripts/python.exe tools/kiem_cua_song.py
+> ```
+>
+> Mã thoát 0 đủ · 1 thiếu · 2 chưa kiểm được. Bản tin mở phiên cũng in
+> một dòng `CUA: n/m song`. `docs/STATE.md` BƯỚC 40 · 48 · **62**.
 
 > **Quy trình đầy đủ nằm ở skill `quy-trinh-lam-viec`** — gọi nó ngay khi
 > bắt đầu bất cứ việc gì trong repo này, TRƯỚC khi đọc hay sửa file đầu
-> tiên. Nó có: cách vá file (một đường duy nhất), vòng lặp đột biến, bốn
+> tiên. Nó có: cách vá file (một đường duy nhất), vòng lặp đột biến, **năm**
 > cổng gác đúng thứ tự, công thức chạy-và-chờ, và bảng **lỗi đã mắc** kèm
 > cột "máy chặn được chưa".
 >

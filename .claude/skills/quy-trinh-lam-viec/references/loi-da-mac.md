@@ -89,7 +89,10 @@ là lỗi sẽ tái diễn.
 
 | 44 | mắc **lỗi 38 thêm hai lần nữa trong cùng ngày**, ở hai hình dạng gác vừa dựng KHÔNG thấy — một lần vì docstring của dụng cụ, một lần vì banner in ra màn hình, cả hai cùng nói *"KHÔNG đọc `paper_trades.db`"* | chính phép kiểm ấy đỏ oan, hai lượt liền | ⚠️ một phần | bỏ hẳn lối quét chuỗi, kiểm **cơ chế**: dụng cụ phải gọi `tempfile.gettempdir()` và đi qua `keo_so_co_thu_lai`. Lớp *đọc sự xuất hiện thay vì vai trò* vẫn CHƯA có gác chung, và có lẽ không có |
 
-**Hai mươi bảy trên bốn mươi bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 45 | **tài liệu của dự án dạy những lệnh mà chính cửa gác Bash của dự án chặn** — 30 dòng, 13 trong số đó là chỉ dẫn sống. Nặng nhất: luật `python-he-thong` tự khai nguồn là *"chép từ `docs/HANDOFF.md` mục 1"*, mà mục ấy vi phạm đúng luật đó **ba lần** | đem chính `kiem()` của cửa Bash chạy lên các khối lệnh trong tài liệu | ✅ | `tools/soat_lenh_tai_lieu.py` + `tests/test_lenh_trong_tai_lieu.py` — gọi thẳng `cua_bash_an_toan.kiem()`, không chép luật sang, nên luật đổi thì phép soát đổi theo |
+| 46 | cổng thứ **năm** ra đời 10/09/2026 và bốn ngày sau tài liệu vẫn nói **bốn** — ở bốn chỗ, trong đó có *điều kiện tự merge* của chính `SKILL.md` Bước 5. Tên `kiem_so_test_khong_giam` xuất hiện **0 lần** trong bốn tài liệu chỉ dẫn | NotebookLM trả lời *"có bốn cổng"* — nó đọc đúng tài liệu, và **câu trả lời sai của nó chính là phát hiện** | ✅ | `tests/test_bo_cong_khop_CI.py` suy danh sách cổng từ `.github/workflows/kiem-dinh.yml` — thứ thật sự chạy — rồi bắt mọi khối lệnh đặt tên ≥2 cổng phải đặt tên đủ |
+
+**Hai mươi chín trên bốn mươi sáu máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -99,6 +102,7 @@ là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bư
 Ngày 09/09/2026, viết test cho ĐO 2:
 
 ```bash
+# lenh-xau-ok: nguyên văn lệnh đã xoá 40 phép kiểm ngày 09/09/2026
 cat > tests/test_do_tre_khop.py <<'PYEOF'
 ```
 
@@ -126,7 +130,8 @@ thứ hai** lỗi 14 sinh ra một lỗi thật qua một luật đã tồn tạ
 | `kiem_cu_phap_311` | file vẫn nạp được bằng 3.11 |
 | `kiem_test_chay_rieng` | file vẫn xanh khi chạy một mình |
 
-Và CI cũng vậy — nó chạy đúng bốn cổng ấy.
+Và CI cũng vậy — nó chạy đúng bốn cổng ấy. *(Đúng vào 09/09/2026. Từ
+10/09 CI chạy **năm** — cổng thứ năm sinh ra chính từ sự cố này.)*
 
 **Thứ duy nhất bắt được là một con số:** 834, trong khi tôi vừa thêm 9 test
 vào một bộ 865. Nếu tôi không nhìn tổng số, PR đã merge với 40 phép kiểm bị
@@ -240,6 +245,7 @@ Sau khi trả giá hai lượt cổng ~9 phút cho cùng một lỗi tên file t
 dựng một phép kiểm nhanh 11 giây chạy trước. Rồi viết nó thế này:
 
 ```bash
+# lenh-xau-ok: nguyên văn phép kiểm hỏng vì ống — nó LÀ nội dung lỗi này
 pytest tests/test_skill_quy_trinh.py -q | tail -2 && <bon cong>
 ```
 
@@ -1051,3 +1057,104 @@ Lớp *đọc sự xuất hiện của một chữ thay vì vai trò của nó* 
 38, 44 — vẫn **chưa có gác chung**, và có lẽ không có: nó là một hình dạng
 **tư duy**, không phải một hình dạng **cú pháp**. Thứ dựng được là gác cho
 từng hiện thân, và đếm cho đúng còn bao nhiêu hiện thân chưa có gác.
+
+
+### Lỗi 45 — cái gác dẫn một tài liệu làm nguồn, tài liệu ấy làm ngược lại
+
+`tools/cua_bash_an_toan.py` có luật `python-he-thong`. Lời khai nguồn của
+nó, đọc ra bằng `kiem()`:
+
+```
+`python` he thong khong co numpy/pandas cua du an.
+CHUA CO SU CO ghi ngay - QUY UOC, chep tu `docs/HANDOFF.md` muc 1.
+Cach dung: `./.venv/Scripts/python.exe`.
+```
+
+Mục ấy tên là **"BỐN LỆNH ĐẦU TIÊN"**, và ba trong bốn lệnh của nó bắt đầu
+bằng `python` trần. Cửa gác chặn cả ba.
+
+**Đếm trước khi dựng gì** (bài học lỗi 39) — 31 file `.md` git biết:
+
+```
+30 dong lenh trong tai lieu bi chinh cua Bash chan
+   14  docs/STATE.md          so nhat ky chi-them — ban ghi lich su
+    3  loi-da-mac + cong-thuc-chay   phan vi du CO Y
+   13  CHI DAN SONG             <- cai phai sua
+```
+
+Mười ba dòng ấy nằm ở `docs/HANDOFF.md` (3) · `CLAUDE.md` (7) ·
+`README.md` (1) · `backtest/README.md` (2).
+
+**Vì sao không gác nào thấy.** Cửa Bash canh lệnh **được gõ**. Không có gì
+canh lệnh **được viết ra để người khác gõ**. Hai thứ ấy là cùng một tập
+lệnh, đi qua hai con đường khác nhau, và chỉ một con đường có gác.
+
+**Gác kiểm CƠ CHẾ.** `tools/soat_lenh_tai_lieu.py` gọi thẳng
+`cua_bash_an_toan.kiem()` lên từng dòng trích từ khối ```` ```bash ````.
+Không chép danh sách luật sang — chép là để hai bên trôi ra khỏi nhau, và
+khi đó gác thành một bản sao lạc hậu của chính cửa nó soi.
+
+Cửa thoát giống hệt `# bia-ok:` — **không cấm, buộc nói ra**:
+
+```
+# lenh-xau-ok: <ly do>
+```
+
+Ba dòng trong repo dùng nó, cả ba là **nguyên văn lệnh đã gây lỗi thật**.
+Sửa chúng cho hợp luật hôm nay là xoá mất bằng chứng.
+
+`docs/STATE.md` được miễn ở **mức file**, khai ra trong
+`docs/tai-lieu-nhat-ky.json` kèm lý do — sổ chỉ-thêm, mọi dòng lệnh trong
+đó là bản ghi của lệnh ĐÃ CHẠY ngày ấy.
+
+**Đục thử 12/12 đỏ, và phát thứ nhất lôi ra mã chết của chính tôi.** Bản
+đầu của `ly_do_hop_le()` có một tập từ chung chung (`ok`, `co y`, `vi du`
+…) bên cạnh phép đo độ dài. Phần tử dài nhất trong tập là **9 ký tự**,
+ngưỡng độ dài là **24**, và phép đo độ dài chạy **trước** — nên nhánh ấy
+không bao giờ quyết định được gì. Đổi nó thành `return True` mà cả bộ test
+vẫn xanh. Đã gỡ; độ dài là phép đo duy nhất, đúng như ba cửa thoát cùng họ.
+
+### Lỗi 46 — NotebookLM trả lời SAI, và câu trả lời sai ấy là phát hiện
+
+Hỏi nó hai câu về bốn tài liệu của dự án. Câu (a) nó trả đúng và xác nhận
+lỗi 25: *"`python --version` chỉ đo được 1 cửa trong sáu"*. Câu (b):
+
+> "Quy trình gác tự động có **4 cổng**."
+
+**Sai so với thực tế** — CI chạy năm, đọc thẳng ra từ
+`.github/workflows/kiem-dinh.yml`.
+Nhưng **đúng so với tài liệu nó đọc**, và đó mới là điều đáng ghi: cổng
+thứ năm ra đời 10/09/2026, tới 14/09 đếm được
+
+```
+ten `kiem_so_test_khong_giam` trong tai lieu chi dan:
+  CLAUDE.md   0 · HANDOFF.md  0 · README.md  0 · cong-thuc-chay.md  0
+  SKILL.md    3    <- duy nhat
+```
+
+và **bốn** chỗ vẫn viết *"bốn cổng"*, trong đó có **điều kiện tự merge** ở
+`SKILL.md` Bước 5 — tức một agent đọc đúng quy trình sẽ merge sau khi chạy
+bốn cổng, trong khi luật là năm.
+
+> Đây đúng là thứ skill nói NotebookLM dùng để làm: *"khi một tài liệu dài
+> đã bị vá nhiều lần và không rõ chỗ nào còn đúng"*. Và nó cũng đúng là
+> giới hạn đã khai: **nó chỉ thấy TÀI LIỆU, không thấy MÃ**. Phát hiện đến
+> từ chỗ hai vế lệch nhau, không từ thẩm quyền của nó — mọi con số ở trên
+> đều đếm lại bằng lệnh trước khi viết ra đây.
+
+**Gác lấy nguồn sự thật từ thứ THẬT SỰ CHẠY.**
+`tests/test_bo_cong_khop_CI.py` suy danh sách cổng từ
+`.github/workflows/kiem-dinh.yml`, rồi bắt mọi khối lệnh trong tài liệu đã
+đặt tên **từ hai cổng trở lên** phải đặt tên **đủ**.
+
+Ngưỡng hai là giới hạn **khai trước**: một khối nhắc *một* cổng là đang
+nói về cổng ấy, không phải đang liệt kê bộ cổng. Nới xuống một sẽ bắt nhầm
+mọi câu nhắc tên, và một gác bắt nhầm thì dạy người ta tắt nó đi.
+
+**Điều gác này KHÔNG làm:** nó không đọc văn xuôi. Câu *"bốn cổng"* viết
+bằng chữ vẫn lọt — nay đã sửa bằng tay ở cả bốn chỗ, nhưng lớp ấy chưa
+đóng. Cùng họ với lỗi 44: **một dấu ✅ phải nói rõ nó chặn được CÁI GÌ.**
+Nó chặn đúng một hình dạng: **khối lệnh liệt kê thiếu cổng.**
+
+**Đục thử 7/7 đỏ**, phát đầu tiên dựng lại nguyên văn khối
+`cong-thuc-chay.md` đã lệch suốt bốn ngày.

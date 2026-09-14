@@ -1,0 +1,7 @@
+{
+  "_vi_sao": "tools/soat_lenh_tai_lieu.py soat moi dong lenh trong tai lieu bang chinh cua gac Bash cua du an. Mot so file KHONG phai chi dan ma la SO NHAT KY: moi dong lenh trong do la ban ghi cua lenh DA CHAY vao ngay ay. Sua chung lai la sua lich su. Nen chung duoc mien o muc FILE, va phai khai ra day kem ly do - khong file nao duoc mien am tham.",
+  "_luat": "Moi gia tri phai la mot ly do dai >= 24 ky tu va khong chung chung. Them mot dong o day la mot QUYET DINH, va no nam trong diff.",
+  "nhat_ky": {
+    "docs/STATE.md": "So nhat ky chi-THEM cua du an: moi muc la ban ghi cua mot ngay da qua, ke ca lenh da go ngay ay. docs/HANDOFF.md ghi ro `chi THEM, khong sua muc cu`. Sua lenh trong do cho hop luat hom nay la viet lai lich su do luong."
+  }
+}

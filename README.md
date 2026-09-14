@@ -108,9 +108,9 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # rồi điền
 ```
 
 ```bash
-pytest tests/ -q          # 719 test, không cần mạng
-streamlit run app.py      # giao diện
-python run_daily.py       # một lượt quét + cập nhật sổ lệnh
+./.venv/Scripts/python.exe -m pytest tests/ -q    # toàn bộ test, không cần mạng
+streamlit run app.py                          # giao diện
+./.venv/Scripts/python.exe run_daily.py           # một lượt quét + cập nhật sổ
 ```
 
 Không cấu hình `secrets.toml` thì phần kho ngoài tắt sạch, app vẫn chạy.
