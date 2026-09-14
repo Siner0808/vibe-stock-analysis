@@ -12174,3 +12174,112 @@ nhất một dòng bảng, hoặc khai lý do vắng mặt. **Chưa đo bắt nh
 lần này quần thể có thật để đo: 87 file test. Không dựng hôm nay; hôm nay
 đã đủ ba lượt quyết định dựa trên một phép đo, và lượt thứ tư nên bắt đầu
 bằng phép đo ấy chứ không bằng đà.
+
+
+---
+
+## BƯỚC 74 — CÂU HỎI CỦA NGƯỜI DÙNG CÓ MỘT ĐÁY THỨ HAI (14/09/2026)
+
+Người dùng hỏi: *"hôm nay bạn dùng NotebookLM đúng 1 lần, tại sao ít vậy?"*
+
+Con số đúng. `docs/soat-notebooklm.json` chỉ ghi một lượt hôm nay — ĐO 8 —
+trong khi phiên này chạy **bảy** phép đo khác.
+
+### Hai nguyên nhân tôi biết, và một tôi không biết
+
+**1. Cơ chế buộc quá hẹp.** `tests/test_soat_notebooklm.py` chỉ bám tiêu đề
+`## ĐO n` trong `docs/TIEU-CHI-DOC-TRUOC.md`. Việc hôm nay mang nhãn
+`BƯỚC`, nên không có gì hỏi tôi. Gác chạy đúng; phạm vi nó canh mới là chỗ
+hở.
+
+**2. Lỗi của tôi.** Hai trong bốn phát hiện hôm nay là *tài liệu mâu thuẫn
+tài liệu* — lỗi 57 (`HANDOFF` vs `STATE`) và lỗi 59 (bảng lỗi vs BƯỚC 67).
+Đó là sân mạnh nhất của công cụ; hôm qua lỗi 46 tìm ra chính bằng nó. Tôi
+đọc tay thay vì hỏi.
+
+Nói cho công bằng: con số đúng **không phải 7**. *"File `.db` có trong index
+không"*, *"escape có sống sót qua heredoc không"*, *"mặc định `do_tre_khop`
+bằng mấy"* — nó không trả lời được, vì nó thấy tài liệu chứ không thấy mã và
+không thấy git. Con số đúng là **2-3**, và tôi làm 1.
+
+### 3. Và cái tôi không biết cho tới khi mở sổ tay ra
+
+Câu hỏi đầu tiên tôi gửi không phải câu soát chéo, mà là câu **đo tầm nhìn
+của công cụ**: *"STATE.md trong sổ tay chứa tới BƯỚC số mấy?"*
+
+```
+so tay tra loi : "hien chi chua toi BUOC 41"
+                 BUOC 41 (08/09) · BUOC 40 (08/09) · BUOC 39 (07/09)
+                 BUOC 70, 71, 72, 73: KHONG THAY
+
+do lai bang lenh:
+   BUOC hien co    : 72 muc (cao nhat 73)
+   KHONG thay      : 32 muc
+   ky tu bi mu     : 147.821 / 497.902  =  30%
+```
+
+**Sáu ngày.** Ba lượt soát chéo đã ghi vào sổ — ĐO 5, ĐO 6, ĐO 8 — đều chạy
+trên một nguồn thiếu 30%.
+
+Chúng **không sai**: câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25, nằm
+trong phần thấy được. Nhưng chúng **không thể** phát hiện một phép đo trùng
+với BƯỚC 42-69 — mà đó đúng là việc chúng sinh ra để làm. Lỗi 41 (88,8 phút
+dựng lại BƯỚC 25) là lý do cả cơ chế này tồn tại.
+
+> Bản khai `_gioi_han_cua_cong_cu` ghi **một** giới hạn: *"chỉ thấy TÀI
+> LIỆU, không thấy MÃ"*. Đúng, và chưa đủ. Giới hạn thứ hai — **nguồn là
+> một bản chụp, và bản chụp cũ đi trong im lặng** — chưa ai đo. Gác
+> `test_SO_nay_phai_ghi_GIOI_HAN_cua_cong_cu` vẫn xanh, vì nó đòi khai
+> *một* giới hạn chứ không đòi khai *đủ*. Lỗi 60.
+
+### Đã sửa
+
+Người dùng chốt cập nhật cả bốn nguồn. Repo này **công khai**, nên thay vì
+tải tay một bản chụp mới — sẽ lại cũ đi — tôi thêm **URL thô của nhánh
+`main`** cho cả năm tài liệu, kèm `docs/HANDOFF.md` vốn chưa bao giờ có
+trong sổ tay, dù nó đứng ĐẦU thứ tự ưu tiên và chính nó vừa sinh ra lỗi 57.
+
+Bốn bản chụp cũ được **bỏ chọn**, không xoá — xoá dữ liệu trong tài khoản
+người dùng không phải việc tôi tự làm, và bỏ chọn cho cùng tác dụng với mọi
+câu hỏi, lại bật lại được.
+
+Kiểm ngay sau đó, và đây là phép thử quan trọng nhất của cả việc này:
+
+```
+hoi : "muc BUOC lon nhat trong TAT CA cac nguon la bao nhieu?"
+dap : "## BUOC 73 — MAY VOI TOI DAU: MOT BANG CHEO CHUA AI TINH (14/09/2026)"
+      nguon: raw.githubusercontent.com/.../main/docs/STATE.md
+```
+
+### Rồi mới chạy lượt soát thật
+
+| | sổ tay nói | kiểm bằng lệnh |
+|---|---|---|
+| **BƯỚC 70** | mâu thuẫn: có nguồn còn ghi *"gộp vào lần đo lại đầy đủ tiếp theo, KHÔNG đổi rời"* | **BẮT NHẦM** |
+| BƯỚC 71 · 72 · 73 | KHÔNG TÌM THẤY | — |
+
+Cái bắt nhầm đáng đọc. Dòng nó chỉ ra nằm ở `docs/TIEU-CHI-DOC-TRUOC.md`
+dòng 269, trong bảng **`## Ghi chép`** — một **sổ ghi quyết định có cột
+Ngày**. Dòng ấy ghi đúng điều người dùng chốt *sáng* 10/09, và dòng ngay
+dưới nó, **cùng ngày**, ghi ĐO 3 — chính lần đo mà việc ấy được gộp vào.
+
+> Nó khớp CHỮ mà không hỏi dòng chữ ấy đóng VAI TRÒ gì: *sổ ghi* hay *bảng
+> trạng thái*. Đúng hình dạng dự án đã đặt tên ở lỗi 30/35/36/38 — **đọc sự
+> xuất hiện thay vì vai trò** — lần này do công cụ ngoài mắc, không phải
+> tôi. Và đó là lý do mỗi `phat_hien` trong sổ phải mang một cột `tu_kiem`
+> là một LỆNH: hai lệnh đủ để phân định.
+
+Bốn kết luận của BƯỚC 70-73 **đứng nguyên** sau một lượt soát độc lập. Đây
+là lần đầu chúng được kiểm bằng một luồng không mang giả định của phiên
+này.
+
+### Còn hở, và nói thẳng là còn hở
+
+Phần gốc **chưa đóng**: không gì buộc đo ĐỘ TƯƠI của nguồn trước mỗi lượt
+soát. Luật viết ra rồi — *hỏi sổ tay mục BƯỚC lớn nhất nó đọc được, đối
+chiếu với `grep -c '^## BƯỚC' docs/STATE.md`* — nhưng một luật thì trôi, và
+lỗi 42 đã nói đúng câu đó: *"một chỉ dẫn không có cơ chế thì nó chỉ là một
+lời nhắc"*.
+
+Và cơ chế hiện tại vẫn chỉ bám `## ĐO n`. Hai chỗ ấy là ứng viên gác, chưa
+dựng.

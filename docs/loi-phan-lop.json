@@ -312,6 +312,11 @@
       "lop": "chua-do",
       "song_ngay": 0,
       "nguon": "co-che"
+    },
+    "60": {
+      "lop": "chua-do",
+      "song_ngay": 6,
+      "nguon": "nguoi-thay"
     }
   },
   "_khong_phai_bang_chung": [
