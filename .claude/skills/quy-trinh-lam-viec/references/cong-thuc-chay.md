@@ -23,6 +23,7 @@ nổ `UnicodeEncodeError` (cp1258 trên máy này).
 ./.venv/Scripts/python.exe -m pytest tests/ -q > /tmp/kq.log 2>&1
 
 # SAI
+# lenh-xau-ok: mẫu phản ví dụ, nguyên văn hình dạng mục này dạy tránh
 ./.venv/Scripts/python.exe -m pytest tests/ -q | tail -5
 ```
 
@@ -85,14 +86,21 @@ Lỡ rồi thì chạy lại đúng những file đọc file vừa sửa:
 
 ---
 
-## Bốn cổng, tuần tự, không song song
+## Năm cổng, tuần tự, không song song
 
 ```bash
 ./.venv/Scripts/python.exe -m pytest tests/ -q > /tmp/g1.log 2>&1
 ./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py
 ./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo
 ./.venv/Scripts/python.exe tools/kiem_test_chay_rieng.py --im > /tmp/g4.log 2>&1
+./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py
 ```
+
+> 🔴 **Tiêu đề mục này ghi *"Bốn cổng"* cho tới 14/09/2026**, bốn ngày
+> sau khi cổng thứ năm ra đời. Đúng hình dạng lệch mà dự án đã trả giá
+> nhiều lần — `N_DAY_DU` 596/451, cờ C5. Nay có
+> `tests/test_bo_cong_khop_CI.py` bắt danh sách cổng trong tài liệu phải
+> khớp danh sách CI thật sự chạy.
 
 Vài test ghi thư mục tạm vào **gốc repo**, nên hai tiến trình pytest cùng
 lúc cho **đỏ giả**. Đây là ràng buộc thật, không phải sở thích.

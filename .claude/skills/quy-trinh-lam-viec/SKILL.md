@@ -171,6 +171,17 @@ Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`
 
 Vài test ghi thư mục tạm vào gốc repo → chạy song song cho **đỏ giả**.
 
+> **Số cổng là một con số ĐẾM THỨ CÓ THẬT, nên nó trôi.** Cổng thứ
+> năm ra đời 10/09/2026; tới 14/09 vẫn còn **bốn** chỗ viết *"bốn
+> cổng"* — kể cả điều kiện tự merge ngay ở Bước 5 dưới đây — và tên
+> `kiem_so_test_khong_giam` xuất hiện **0 lần** trong `CLAUDE.md`,
+> `docs/HANDOFF.md`, `README.md` và `references/cong-thuc-chay.md`.
+>
+> Nay `tests/test_bo_cong_khop_CI.py` suy danh sách cổng từ
+> `.github/workflows/kiem-dinh.yml` — thứ **thật sự chạy** — rồi bắt
+> mọi khối lệnh trong tài liệu đã đặt tên từ hai cổng trở lên phải
+> đặt tên đủ. `docs/STATE.md` BƯỚC 62.
+
 > **Sửa `SKILL.md` hay `references/` thì chạy MỘT file này TRƯỚC:**
 >
 > ```bash
@@ -216,7 +227,7 @@ Cách chạy và chờ: `references/cong-thuc-chay.md`. Tóm tắt ba dòng:
 - **Tự merge được, và từ 08/09/2026 thì tự merge** — người dùng đã
   quyết. Nhưng chỉ khi **đủ cả ba**:
 
-  1. Bốn cổng ở Bước 4 xanh tại máy.
+  1. **Năm** cổng ở Bước 4 xanh tại máy.
   2. **MỌI** check của PR là `pass`. Không `pending`, không `fail`.
   3. Không còn câu hỏi nào đang chờ người dùng quyết.
 

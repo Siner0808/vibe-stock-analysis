@@ -10792,3 +10792,170 @@ chế** thay vì kiểm chữ — dụng cụ phải gọi `tempfile.gettempdir(
 Nó **không đẩy**, không sửa gì, và không nói gì về chiến lược. Nó chỉ trả
 lời đúng một câu mà bảng trong `CLAUDE.md` đã hỏi từ lâu mà không có lệnh
 nào trả lời: *sổ lệnh thật đang có gì.*
+
+
+---
+
+## BƯỚC 62 — TÀI LIỆU DẠY NHỮNG LỆNH CHÍNH CỬA GÁC CỦA DỰ ÁN CHẶN (14/09/2026)
+
+Mở ngày bằng năm cổng: **987 passed · 0 CHẶN · cả năm mã thoát 0**, cây 0
+dòng, `main` ở `0ea115d`, cửa 6/6. Rồi đi soát một chỗ đáng ngờ: chính
+`docs/HANDOFF.md` cảnh báo rằng nó **đứng đầu thứ tự ưu tiên** nên một câu
+lạc hậu ở đó đè lên hai file kia. Câu ấy tự nó có còn đúng không?
+
+### Cái gác dẫn một tài liệu làm nguồn, và tài liệu ấy làm ngược lại
+
+`tools/cua_bash_an_toan.py`, luật `python-he-thong`, đọc ra bằng `kiem()`:
+
+```
+`python` he thong khong co numpy/pandas cua du an.
+CHUA CO SU CO ghi ngay - QUY UOC, chep tu `docs/HANDOFF.md` muc 1.
+```
+
+Mục ấy tên **"BỐN LỆNH ĐẦU TIÊN"**, và **ba trên bốn** lệnh của nó mở đầu
+bằng `python` trần. Cửa chặn cả ba. Kiểm bằng cách gọi thẳng `kiem()`:
+
+```
+[('python-he-thong', ...)]  <- python tools/kiem_cu_phap_311.py
+[]                          <- pytest tests/ -q
+[('python-he-thong', ...)]  <- python tools/chan_bia_so_lieu.py --quet-repo
+[('python-he-thong', ...)]  <- python tools/kiem_test_chay_rieng.py
+```
+
+**Đếm cả lớp trước khi dựng gì** (bài học lỗi 39) — 31 file `.md` git biết:
+
+```
+30 dong lenh trong tai lieu bi chinh cua Bash chan
+   14  docs/STATE.md              so nhat ky chi-them, ban ghi lich su
+    3  loi-da-mac + cong-thuc-chay  phan vi du CO Y
+   13  CHI DAN SONG      HANDOFF 3 · CLAUDE 7 · README 1 · backtest/README 2
+```
+
+**Vì sao không gác nào thấy.** Cửa Bash canh lệnh **được gõ**. Không có gì
+canh lệnh **được viết ra để người khác gõ**. Cùng một tập lệnh, hai con
+đường, một con đường có gác.
+
+### Cổng thứ năm ra đời 10/09, bốn ngày sau tài liệu vẫn nói bốn
+
+Phát hiện thứ hai đến từ NotebookLM, và nó đến bằng một **câu trả lời
+sai**. Hỏi bốn nguồn của sổ tay hai câu:
+
+| | nó trả lời | thực tế |
+|---|---|---|
+| (a) `python --version` đo được mấy cửa | **1 trong 6** — cửa gác Bash | ✅ đúng, xác nhận lỗi 25 |
+| (b) quy trình gác có mấy cổng | **4** | ❌ CI chạy **5** |
+
+Câu (b) sai so với thực tế nhưng **đúng so với tài liệu nó đọc** — và đó
+là phát hiện. Đếm lại bằng lệnh:
+
+```
+CI chay:  pytest · kiem_cu_phap_311 · chan_bia_so_lieu
+          kiem_test_chay_rieng · kiem_so_test_khong_giam        = 5
+
+ten `kiem_so_test_khong_giam` trong tai lieu chi dan:
+  CLAUDE.md 0 · HANDOFF.md 0 · README.md 0 · cong-thuc-chay.md 0
+  SKILL.md  3      <- duy nhat
+```
+
+Và **bốn** chỗ còn viết *"bốn cổng"*, trong đó nặng nhất là **điều kiện tự
+merge** ở `SKILL.md` Bước 5: *"Bốn cổng ở Bước 4 xanh tại máy"*. Một agent
+đọc đúng quy trình sẽ merge sau bốn cổng, trong khi luật là năm.
+
+> Đây đúng là việc skill giao cho NotebookLM — *"khi một tài liệu dài đã
+> bị vá nhiều lần và không rõ chỗ nào còn đúng"* — và cũng đúng giới hạn
+> đã khai: **nó chỉ thấy TÀI LIỆU, không thấy MÃ**. Mọi con số trên đều
+> đếm lại bằng lệnh trước khi viết ra đây.
+
+### Hai gác, cùng một nguyên tắc: hỏi CƠ CHẾ, đừng hỏi CHỮ
+
+```
+tools/soat_lenh_tai_lieu.py  + tests/test_lenh_trong_tai_lieu.py   9 phep kiem
+                               tests/test_bo_cong_khop_CI.py       6 phep kiem
+duc thu  12/12 do   ·   7/7 do        0 phat song sot
+```
+
+Gác A **gọi thẳng `cua_bash_an_toan.kiem()`** — không chép danh sách luật
+sang. Chép là để hai bên trôi ra khỏi nhau, và khi đó gác thành bản sao
+lạc hậu của chính cửa nó soi.
+
+Gác B lấy nguồn sự thật từ `.github/workflows/kiem-dinh.yml` — **thứ thật
+sự chạy trên mỗi PR** — rồi bắt mọi khối lệnh đã đặt tên từ hai cổng trở
+lên phải đặt tên đủ.
+
+Cửa thoát của cả hai giống hệt `# bia-ok:`: **không cấm, buộc nói ra.**
+`# lenh-xau-ok:` và `# cong-thieu-ok:`, lý do ≥ 24 ký tự. Ba dòng trong
+repo dùng dấu thứ nhất, cả ba là **nguyên văn lệnh đã gây lỗi thật** —
+sửa chúng cho hợp luật hôm nay là xoá mất bằng chứng. `docs/STATE.md`
+được miễn ở mức file, khai trong `docs/tai-lieu-nhat-ky.json` kèm lý do.
+
+### Đục thử lôi ra mã chết của chính tôi
+
+Ba phát sống sót ở lượt đầu, và phát thứ nhất là một lỗi tôi vừa viết:
+
+```
+SONG  ly do chung chung van hop le
+SONG  so nhat ky khai khong can ly do
+SONG  mien TAT CA cac file
+```
+
+**Phát 1.** `ly_do_hop_le()` có một tập từ chung chung (`ok`, `co y`,
+`vi du`…) bên cạnh phép đo độ dài. Phần tử **dài nhất 9 ký tự**, ngưỡng
+độ dài **24**, và phép đo độ dài chạy **trước** — nhánh ấy không bao giờ
+quyết định được gì. Đổi thành `return True` mà cả bộ test vẫn xanh.
+
+Đã gỡ, không phải sửa. Độ dài là phép đo duy nhất, đúng như ba cửa thoát
+cùng họ: `# van-ban-ok:` (20), `khong_soat_vi` (25), *"Không có dụng cụ
+vì:"* (30). **Một luật nói ra được thì hơn hai luật mà một cái không chạy.**
+
+**Phát 3** dạy một điều khác và quan trọng hơn: sau khi tài liệu đã sạch,
+một lỗi làm công cụ bỏ qua **mọi** file cũng cho ra 0 vi phạm. Hai trạng
+thái ấy không phân biệt được nếu chỉ đếm vi phạm. Nên `soat_nhieu()` nay
+trả luôn **danh sách file đã soát** — cùng lý do `dot_bien_bo` trả phát
+sống sót thay vì đếm phát chết.
+
+### Điều hai gác này KHÔNG làm
+
+Chúng **không đọc văn xuôi**. Câu *"bốn cổng"* viết bằng chữ vẫn lọt; bốn
+chỗ hôm nay sửa bằng tay, và lớp ấy **chưa đóng**. Gác B chặn đúng một
+hình dạng: **khối lệnh liệt kê thiếu cổng.** Gác A chặn đúng một hình
+dạng: **dòng lệnh trong khối ```bash mà `kiem()` phán là xấu.**
+
+Cùng bài học lỗi 44 — một dấu ✅ phải nói rõ nó chặn được CÁI GÌ.
+
+### Cổng bảng lỗi bắt được một chỗ tôi bỏ sót
+
+Lượt cổng đầu tiên sau khi viết xong: **3 failed**, cả ba cùng một gốc.
+
+```
+CHAN: 2 loi trong bang chua co phan lop: ['45', '46']
+```
+
+Thêm hai dòng vào bảng lỗi mà quên khai lớp trong `docs/loi-phan-lop.json`.
+Phép kiểm thứ ba đỏ theo kiểu đáng chú ý hơn: nó bơm một giá trị `nguon`
+lạ rồi đòi công cụ **gọi tên** giá trị ấy — nhưng công cụ đã thoát sớm vì
+lỗi phân lớp, nên không in gì. Một phép kiểm về vế sau bị vế trước che.
+
+Không thêm dòng bảng lỗi cho việc này, và nói rõ vì sao: **quy trình chặn
+được nó trước khi giao**. Bảng đếm thứ thoát ra được, không đếm thứ bị
+chặn lại — chính header của bảng ghi *"số lỗi mỗi ngày KHÔNG phải thước"*.
+
+Tuổi thọ đo bằng git, không đoán:
+
+```
+loi 45  luat `python-he-thong` 2c88dfe 07/09 · muc HANDOFF 1ebedc5 07/09
+        -> bat 14/09        7 ngay      lop gac-hong
+loi 46  cong thu nam        955fc6b 10/09
+        -> bat 14/09        4 ngay      lop chua-do
+```
+
+Lỗi 45 vào nhóm **sống lâu thứ tư** của cả bảng: #33 16d · #40 8d ·
+#41 8d · **#45 7d**.
+
+### Ba chỗ khác sửa nhân thể, cùng một lớp
+
+- `docs/HANDOFF.md` còn dạy phép thử **đã bị bác**: *"chạy `python
+  --version`; in ra số hiệu Python thì cửa chết"*. Đó là **lỗi 25**, sửa ở
+  `SKILL.md` và rules toàn cục từ 10/09 — nhưng HANDOFF thì không, và nó
+  đứng **đầu** thứ tự ưu tiên. Nay trỏ sang `tools/kiem_cua_song.py`.
+- `README.md` ghi *"719 test"*. Hôm nay là **987**.
+- `backtest/README.md` dùng `python3` — không tồn tại đường ấy trên máy này.

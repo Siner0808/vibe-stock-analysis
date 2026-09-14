@@ -8,10 +8,10 @@ Trước khi có câu trả lời, mọi việc tinh chỉnh trọng số/ngư�
 
 ```bash
 # Bước 1 — tải dữ liệu (cần mạng, chạy một lần, ~2 phút cho VN30)
-python3 backtest/run.py fetch --start 2024-01-01 --end 2026-08-01
+./.venv/Scripts/python.exe backtest/run.py fetch --start 2024-01-01 --end 2026-08-01
 
 # Bước 2 — chạy backtest (offline, tất định, lặp lại được)
-python3 backtest/run.py test --stride 5
+./.venv/Scripts/python.exe backtest/run.py test --stride 5
 ```
 
 Kết quả ghi vào `backtest/results/`: `observations.csv` (chi tiết từng quan sát)

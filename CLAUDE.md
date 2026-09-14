@@ -1211,17 +1211,23 @@ chế versioning, và việc app không ghi được vào đó lại đúng vớ
 ## Lệnh hay dùng
 
 ```bash
-streamlit run app.py              # chạy app
-python run_daily.py               # quét VN100, cập nhật sổ lệnh
-python paper_runner.py            # chạy paper trading
-python extend_history.py --check  # kiểm tra độ phủ dữ liệu
+streamlit run app.py                      # chạy app
+./.venv/Scripts/python.exe run_daily.py               # quét VN100, cập nhật sổ
+./.venv/Scripts/python.exe paper_runner.py            # chạy paper trading
+./.venv/Scripts/python.exe extend_history.py --check  # kiểm tra độ phủ dữ liệu
+./.venv/Scripts/python.exe tools/doc_so_that.py       # sổ lệnh THẬT đang có gì
 
-pytest tests/ -q                          # toàn bộ test
-pytest tests/test_post_mortem.py          # khoá tính tái lập của chấm điểm
-python tools/chan_bia_so_lieu.py --quet-repo       # quét mẫu bịa số toàn repo
-python tools/chan_bia_so_lieu.py --quet-thay-doi  # chỉ file đã đổi (hook Stop)
-python tools/kiem_cu_phap_311.py                  # NAY CI CŨNG CHẠY — xem dưới
-python tools/kiem_test_chay_rieng.py              # mỗi file test phải xanh MỘT MÌNH
+# NĂM CỔNG, tuần tự, KHÔNG song song. Thứ tự này không phải sở thích:
+# vài test ghi thư mục tạm vào gốc repo nên chạy song song cho ĐỎ GIẢ.
+./.venv/Scripts/python.exe -m pytest tests/ -q                  # cổng 1
+./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py            # cổng 2 — CI cũng chạy
+./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo      # cổng 3
+./.venv/Scripts/python.exe tools/kiem_test_chay_rieng.py --im         # cổng 4 — xanh MỘT MÌNH
+./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py           # cổng 5 — thứ BỊ MẤT
+
+./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-thay-doi  # chỉ file đã đổi (hook Stop)
+./.venv/Scripts/python.exe -m pytest tests/test_post_mortem.py        # khoá tính tái lập chấm điểm
+./.venv/Scripts/python.exe tools/soat_lenh_tai_lieu.py          # lệnh trong tài liệu có chạy được
 ```
 
 ### Máy chạy 3.13, CI chạy 3.11 — khoảng cách đó ẩn được lỗi
