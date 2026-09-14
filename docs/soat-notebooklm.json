@@ -1,7 +1,7 @@
 {
   "_ghi_chu": "Sổ đăng ký lượt soát chéo bằng NotebookLM. Mỗi phép đo có tiêu chí ký trước phải có một dòng ở đây — hoặc một lời khai vì sao KHÔNG soát. Mục đích không phải cấm, mà là buộc nói ra: cùng cơ chế với `# bia-ok:`.",
   "_vi_sao_can": "Ngày 12/09/2026 người dùng phải nhắc LẦN THỨ HAI rằng công cụ này không được dùng. Cùng ngày, một câu hỏi duy nhất gửi NotebookLM lôi ra rằng ĐO 5 là bản TRÙNG của `docs/STATE.md` BƯỚC 25 (04/09/2026) — 88,8 phút máy để dựng lại một kết quả đã nằm trong sổ tám ngày. Một chỉ dẫn thường trực không có cơ chế thì nó chỉ là một lời nhắc, và lời nhắc thì trôi.",
-  "_gioi_han_cua_cong_cu": "Nó chỉ thấy TÀI LIỆU, không thấy MÃ. Loại lỗi nặng nhất của dự án là tài-liệu-lệch-mã (`N_DAY_DU` 596/451, cờ C5), và nó không bắt được một cái nào. Mọi phát hiện phải tự kiểm lại bằng lệnh, và cột `tu_kiem` ở dưới là chỗ ghi lệnh ấy.",
+  "_gioi_han_cua_cong_cu": "HAI giới hạn, và giới hạn thứ hai chỉ đo được ngày 14/09/2026. (1) Nó chỉ thấy TÀI LIỆU, không thấy MÃ. Loại lỗi nặng nhất của dự án là tài-liệu-lệch-mã (`N_DAY_DU` 596/451, cờ C5), và nó không bắt được một cái nào. Mọi phát hiện phải tự kiểm lại bằng lệnh — cột `tu_kiem`. (2) NGUỒN CỦA NÓ LÀ MỘT BẢN CHỤP, và bản chụp thì cũ đi trong im lặng — xem `_gioi_han_NGUON_LA_BAN_CHUP`.",
   "_cach_viet_mot_dong": {
     "ngay": "ngày soát, YYYY-MM-DD",
     "nguon": "các file đang là nguồn của sổ tay lúc soát",
@@ -105,6 +105,26 @@
           "phan_quyet": "SAI — con so -0,676% co that nhung bi GAN SAI NHAN. Khong dong nao trong nam dong chua no noi ve tran von; ca nam thuoc muc so sanh stride / do lai 04/09."
         }
       ]
+    },
+    "BƯỚC 70-73": {
+      "ngay": "2026-09-14",
+      "nguon": [
+        "https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/docs/STATE.md",
+        "https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/CLAUDE.md",
+        "https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/docs/HANDOFF.md",
+        "https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/NGUYEN-TAC-DO-LUONG.md",
+        "https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/MO-XE-KIEN-TRUC.md"
+      ],
+      "_luu_y_nguon": "Lượt đầu tiên chạy trên nguồn URL `main` thay vì bản chụp tải tay. Bốn bản chụp cũ được BỎ CHỌN, không xoá.",
+      "cau_hoi": "Với mỗi BƯỚC 70/71/72/73, có chỗ nào trong các nguồn NÓI NGƯỢC LẠI kết luận của nó không? BƯỚC 71, 72, 73: sổ tay trả lời KHÔNG TÌM THẤY. BƯỚC 70: nêu một mâu thuẫn.",
+      "phat_hien": [
+        {
+          "noi_dung": "BƯỚC 70 kết luận việc đổi mặc định `do_tre_khop` ĐÃ XONG 10/09 trong PR #86, nhưng có nguồn còn ghi *'gộp vào lần đo lại đầy đủ tiếp theo, KHÔNG đổi rời'*",
+          "tu_kiem": "grep -rn 'gộp vào' --include=*.md . | grep -i 'đo lại'  ->  docs/TIEU-CHI-DOC-TRUOC.md:269 ; rồi sed -n '258,275p' docs/TIEU-CHI-DOC-TRUOC.md để đọc tiêu đề bảng chứa nó",
+          "phan_quyet": "SAI — BẮT NHẦM. Dòng ấy nằm trong bảng `## Ghi chép`, một SỔ GHI QUYẾT ĐỊNH có cột Ngày: nó ghi đúng điều người dùng chốt sáng 10/09, và dòng ngay dưới cùng ngày ghi ĐO 3 — chính lần đo mà việc ấy được gộp vào. Không phải bảng trạng thái. Đúng hình dạng 'đọc sự xuất hiện thay vì vai trò' mà dự án đã đặt tên. Bốn kết luận của BƯỚC 70-73 đứng nguyên."
+        }
+      ]
     }
-  }
+  },
+  "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`."
 }

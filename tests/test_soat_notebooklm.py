@@ -129,6 +129,33 @@ def test_SO_nay_phai_ghi_GIOI_HAN_cua_cong_cu():
     print("PASS  so tu mang gioi han cua cong cu")
 
 
+def test_SO_nay_phai_ghi_CA_gioi_han_NGUON_LA_BAN_CHUP():
+    """Khai MỘT giới hạn không phải khai ĐỦ — lỗi 60.
+
+    Tới 14/09/2026 sổ khai đúng một giới hạn (*"chỉ thấy TÀI LIỆU"*) và
+    gác trên vẫn xanh — trong khi nguồn `STATE.md` của sổ tay dừng ở
+    **BƯỚC 41** còn repo đã tới **73**: 32 mục, 30% số ký tự, nằm ngoài
+    tầm nhìn suốt **sáu ngày**. Ba lượt soát đã ghi vào sổ đều chạy trên
+    bản thiếu ấy.
+
+    Một bản chụp cũ đi trong im lặng, và im lặng thì không gác nào nghe
+    được. Nên lời khai phải mang theo **CÁCH ĐO** độ tươi, không chỉ nêu
+    rằng giới hạn ấy tồn tại — cùng cơ chế `# bia-ok:`: không cấm, buộc
+    nói ra.
+    """
+    so = _so()
+    assert "_gioi_han_NGUON_LA_BAN_CHUP" in so, (
+        "so thieu muc `_gioi_han_NGUON_LA_BAN_CHUP` — xem loi 60")
+    gh = so["_gioi_han_NGUON_LA_BAN_CHUP"]
+    assert "bản chụp" in gh.lower(), (
+        "muc nay phai noi ro NGUON LA BAN CHUP")
+    assert "BƯỚC" in gh and "grep" in gh, (
+        "loi khai phai kem CACH DO do tuoi (hoi so tay muc BUOC lon nhat, "
+        "doi chieu bang `grep -c`) — neu ra rang gioi han ton tai thi "
+        "khong ai do duoc no")
+    print("PASS  so khai ca gioi han thu hai, kem cach do")
+
+
 def test_DOC_TEN_PHEP_DO_bang_TIEU_DE_chu_khong_bang_chu_xuat_hien():
     """Chữ "ĐO 5" nằm đầy trong văn xuôi; chỉ tiêu đề `## ĐO 5 —` mới tính.
 
