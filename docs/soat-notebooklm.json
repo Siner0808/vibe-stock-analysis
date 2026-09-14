@@ -78,6 +78,33 @@
     },
     "ĐO 7": {
       "khong_soat_vi": "Doi tuong cua DO 7 la `tools/doc_bang_loi.py` (sinh 11/09/2026) va `docs/loi-phan-lop.json`. KHONG file nao trong hai file ay la nguon cua so tay — bon nguon cua no la CLAUDE.md, MO-XE-KIEN-TRUC.md, NGUYEN-TAC-DO-LUONG.md, STATE.md, va ban dang nap la ~09/09, tuc TRUOC ca ngay con so '31/45' ra doi. NotebookLM khong the thay thu dang duoc do o day; hoi no se la muon tham quyen no khong co. Lan nay no DA duoc dung, nhung cho BUOC 62 chu khong cho DO 7 — va cau tra loi cua no o do la mot cau tra loi SAI, ghi o loi 46."
+    },
+    "ĐO 8": {
+      "ngay": "2026-09-14",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md"
+      ],
+      "cau_hoi": "Co nguon nao khang dinh phep cong don lenh chong lan LUON cho con so LON HON su that khong? Va co nguon nao noi mot tai khoan gioi han 100% von se phai BO QUA bot lenh khong?",
+      "phat_hien": [
+        {
+          "noi_dung": "CO — consider_entry bo lenh khi cham tran 100%, va BUOC 8 ghi 606/820 lenh doi von tai khoan KHONG CO. Day la PRIOR ART cua DO 8 ma toi khong biet.",
+          "tu_kiem": "grep -n '606' docs/STATE.md  -> dong 4360 va 4848, BUOC 8 (31/08/2026). Doc tiep 4340-4352: BUOC 8 so 'theo ma' vs 'theo ngay', tuc doi TAP LENH (820 -> 214). DO 8 giu nguyen tap lenh. KHONG trung.",
+          "phan_quyet": "THẬT — va no la PRIOR ART cua chinh DO 8 ma toi khong biet. Kiem tiep thi DO 8 KHONG trung BUOC 8: BUOC 8 doi TAP LENH (820 -> 214), DO 8 giu nguyen tap lenh va chi doi cach mo hinh hoa tai khoan."
+        },
+        {
+          "noi_dung": "KHONG nguon nao khang dinh 'luon lon hon' — dung nhu so hoc tinh tay da bac truoc do.",
+          "tu_kiem": "grep -rn 'luon lon hon' cac nguon -> rong; va chinh NGUYEN-TAC-DO-LUONG.md chi noi nguyen tac chung 'loi do luong gan nhu khong bao gio lam ket qua xau di'.",
+          "phan_quyet": "THẬT — va no khop voi phep tinh tay da bac ky vong cua chinh ban khai TRUOC khi chay (commit 6d2c45f)."
+        },
+        {
+          "noi_dung": "SAI — no dan con so -0,676% nhu bang chung cho 'dua von ve <=100% thi alpha dep len'. Con so co that nhung GAN SAI NHAN: no la chuyen stride ngay 04/09.",
+          "tu_kiem": "grep -rn '0,676' docs/STATE.md -> dong 6270, 6358, 6402, 6418, 6462 — deu thuoc muc so sanh stride=2 / do lai 04/09, khong dong nao noi ve tran von.",
+          "phan_quyet": "SAI — con so -0,676% co that nhung bi GAN SAI NHAN. Khong dong nao trong nam dong chua no noi ve tran von; ca nam thuoc muc so sanh stride / do lai 04/09."
+        }
+      ]
     }
   }
 }

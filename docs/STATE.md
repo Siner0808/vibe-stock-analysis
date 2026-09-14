@@ -11297,3 +11297,156 @@ thể thật được** — chỉ đo được trên proxy.
 tests/test_cua_quy_trinh.py   +4 mau PHAI CHAN · +2 mau PHAI QUA · +1 phep kiem
 duc thu  8/8 do        0 phat song sot
 ```
+
+
+---
+
+## BƯỚC 66 — ĐO 8: SỐ HỌC CỦA TA ĐÚNG, NHƯNG NÓ TRẢ LỜI MỘT CÂU HỎI KHÁC (14/09/2026)
+
+Người dùng đưa ba repo và hỏi chúng có giúp gì không. Sau một lượt đọc mã
+(không đọc README), hướng duy nhất đáng làm là dùng `vectorbt` làm **đối
+chứng cho số học đường vốn** — thứ dự án đã năm lần cho ra số đẹp vô nghĩa.
+
+Tiêu chí ký `207da19` lúc **11:11:03**, sửa `6d2c45f`, **trước** một dòng
+mã đo nào.
+
+### Ranh giới giấy phép — quyết trước, đo được
+
+```
+vectorbt: Apache-2.0 with Commons Clause  (GitHub tra NOASSERTION)
+cai vao .venv chinh -> pandas 2.3.3 -> 3.0.5 · numpy 2.2.6 -> 2.5.3
+```
+
+Một bước nhảy major của pandas đổi số của cả dự án. Nên nó sống trong một
+venv **riêng, ngoài cây repo**, gọi qua tiến trình con. Đo lại sau khi cài:
+`.venv` chính vẫn **numpy 2.2.6 · pandas 2.3.3** — vỏ cách ly làm đúng việc.
+
+### Phép kiểm dụng cụ — dự đoán ĐÓNG KÍN, không chỉ "hai số khác nhau"
+
+```
+CA 1  khong chong lan · 100% moi lenh
+      A = B = +3,55912%                       lech 1,07e-14
+CA 2a chong lan hoan toan · 50% moi lenh
+      A - B = -0,13022  ·  so hang cheo tinh TAY = -0,13022
+      khop toi 4,83e-15
+```
+
+Ca 2a là phép kiểm mạnh nhất: khoảng cách **đúng bằng** `Σw_i w_j r_i r_j`,
+không thừa không thiếu. Nghĩa là vectorbt được cấu hình đúng, và cái tách
+hai cài đặt là **chính xác** số hạng chéo — không phải một sai lệch mơ hồ.
+
+### Ca 2b tách được hai phần của méo mó
+
+```
+A = +15,00344%   B = +9,54000%   cach 5,46344 diem
+so hang cheo  +0,68259      CAP VON  +4,78085   (88% khoang cach)
+```
+
+`B = +9,54%` chính là lãi ròng của **một** lệnh ở 100% vốn — đúng như một
+két tiền thật chỉ cấp nổi 100%, dù có ba lệnh giống hệt nhau xin vốn.
+
+### Ca 3 — sổ thật, và nó KHÔNG đọc được theo bảng đã ký
+
+```
+115 lenh da dong
+A = +12,55610%   B = +20,35597%   cach -7,79986 diem
+von cam ket TB 29,8% · dinh 208,3%
+```
+
+**A NHỎ HƠN B.** Bảng ký có hai ô cùng khớp — ô 2 (*khoảng cách là đòn bẩy
+trá hình*) và ô 4 (*bất ngờ, PHẢI TRUY, không được nhận*). Dụng cụ in ô 2
+vì nó kiểm ô 2 trước rồi `elif`.
+
+> **Thứ tự viết quyết định cách đọc, không phải điều khoản quyết định.**
+> Lỗi 52. Nay `doc_ket_cuc()` in MỌI ô khớp, nói ra khi có xung đột, và
+> theo ô **thận trọng hơn** — ô không cho phép kết luận.
+
+### Phép thử phân biệt mà ô 4 đòi
+
+Cùng tập lệnh, cùng lãi/lỗ, **chỉ hạ tỷ trọng** cho đỉnh cam kết về đúng
+100%:
+
+```
+CA 3b  ty trong x0,4801
+       A = +6,18055%   B = +6,46584%   cach -0,28530 diem
+```
+
+Và kiểm luôn phản bác hiển nhiên — *"hạ tỷ trọng thì cả hai vế cùng nhỏ
+đi, nên ngưỡng tuyệt đối dễ đạt hơn"*:
+
+```
+CA 3   |A-B| = 7,79987  ·  nen 16,456  ->  tuong doi 47,4%
+CA 3b  |A-B| = 0,28529  ·  nen  6,323  ->  tuong doi  4,5%
+                                   thu nho 10,5 lan
+```
+
+**Kết luận: khoảng cách đến từ CẤP VỐN, không phải bất đồng số học.**
+
+### Hai điều rút ra, và điều thứ hai làm tôi phải sửa một câu đã ký
+
+**1. Số học của `compute()` ĐÚNG — lần đầu được kiểm bằng mã không phải
+của mình.** Khi cam kết ≤ 100%, nó khớp một cài đặt độc lập tới `1e-14`
+trên ca dựng tay và tới 4,5% tương đối trên 115 lệnh thật.
+
+**2. Phần CẤP VỐN KHÔNG phải lúc nào cũng thổi A lên.** Bản khai
+`6d2c45f` của tôi viết *"bậc nhất, **luôn** thổi lên"*. Ca 3 bác nó: một
+tài khoản bị chặn ở 100% **bỏ bớt lệnh**, và nếu những lệnh bị bỏ là lệnh
+**lỗ** thì nó ra kết quả TỐT HƠN.
+
+> Nên bất biến 7b phải đọc thế này: *cộng dồn lệnh chồng lấn mô tả một tài
+> khoản chưa từng tồn tại* — **không** phải *nó luôn cho số đẹp hơn*. Hướng
+> của sai lệch phụ thuộc lệnh nào bị chen ra, và **điều đó không biết
+> trước được**.
+
+### Điều phép đo này KHÔNG nói — và nó quan trọng
+
+**`B` không phải sự thật khi vốn bị chặn.** Lệnh nào được cấp vốn phụ thuộc
+thứ tự ưu tiên, mà thứ tự ấy **tuỳ tiện** (vectorbt điền theo thứ tự cột).
+Nên `B` là **một** tài khoản khả dĩ, không phải **cái** tài khoản. Chỉ khi
+cam kết ≤ 100% thì `B` mới là một đáp số duy nhất — và đúng ở đó nó khớp
+với ta.
+
+### NotebookLM: một chỉ đúng, một gán sai nhân
+
+| nó nói | kiểm bằng lệnh |
+|---|---|
+| `consider_entry` bỏ lệnh khi chạm trần; **606/820 lệnh** (BƯỚC 8) | ✅ có thật, `STATE.md:4360` |
+| *"đưa vốn về ≤100% thì alpha −0,927 → −0,676"* | ❌ **−0,676 có thật nhưng là chuyện `stride` ngày 04/09**, không liên quan trần vốn |
+
+Lần thứ ba trong ngày nó cho một câu trả lời **nghe hợp lý và sai**. Và
+lần thứ hai câu trả lời ấy **vẫn có ích** — vì cái đúng trong đó là thứ
+tôi không biết.
+
+### Lỗi 53 — không tra trước, và thoát VÌ MAY
+
+BƯỚC 8 (31/08/2026) đã định lượng méo mó đòn bẩy: *"lần đầu đo được bằng
+PHẢN CHỨNG thay vì chỉ cảnh báo"*, `606/820 lệnh đòi vốn tài khoản không
+có`. Tôi thiết kế ĐO 8 mà **không tra nó** — đúng lỗi 41, lần thứ hai.
+
+Kiểm xem có trùng không (việc lẽ ra phải làm TRƯỚC):
+
+| | BƯỚC 8 | ĐO 8 |
+|---|---|---|
+| đổi cái gì | **thứ tự vòng lặp** — theo mã ↔ theo ngày | **cách mô hình hoá tài khoản** |
+| tập lệnh | ĐỔI: 820 → 214 | **GIỮ NGUYÊN** 115 |
+| câu hỏi | *chiến lược sẽ làm gì nếu tôn trọng trần* | *số học của ta có đúng không* |
+
+**Không trùng.** Nhưng nó thoát vì may, không vì đã tra.
+
+Ứng viên gác, cùng lối `khong_soat_vi`: mỗi mục `## ĐO n` phải khai **đã
+tra BƯỚC nào**. Chưa dựng hôm nay.
+
+### Hai chỗ nữa đáng ghi
+
+**Vỏ cách ly mở một lỗ và tôi phải tự vá.** Đặt vế đối chứng ở
+`tools/doi_chung/` cho nó thoát khỏi `tests/test_requirements.py` — gác ấy
+quét `glob("*.py")` **không đệ quy**. `tests/test_doi_chung_ngoai_venv.py`
+đóng lại: mọi `.py` nằm sâu trong `tools/` phải được **khai kèm lý do**,
+không file nào của repo được import chúng, và thiếu venv đối chứng phải
+cho **mã thoát 2**, không phải "sạch".
+
+**Vế đối chứng phải nổ to.** `ve_vectorbt.py` trả `{"loi": ...}` và mã
+thoát 2 khi hỏng, không bao giờ trả một con số. Một vế đối chứng hỏng
+trong im lặng biến phép so thành **phép tự xác nhận** — và nó đã hỏng thật
+hai lần trong lượt dựng (plotly 6 đụng `scattermapbox`; `size_type` truyền
+dạng bảng float cho `KeyError: 5.0`).

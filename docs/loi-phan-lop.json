@@ -272,6 +272,16 @@
       "lop": "gac-hong",
       "song_ngay": null,
       "nguon": "chua-do"
+    },
+    "52": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "git"
+    },
+    "53": {
+      "lop": "ky-luat",
+      "song_ngay": 0,
+      "nguon": "git"
     }
   },
   "_khong_phai_bang_chung": [
