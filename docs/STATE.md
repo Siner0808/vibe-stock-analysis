@@ -11846,3 +11846,110 @@ thứ hai của cùng một chuyện: **một phép sửa được viết ra kh�
 nó tới được người đọc.** Nó còn phải nằm ở chỗ người đọc thật sự dừng lại
 — và ở dự án này, chỗ ấy được định nghĩa bằng một luật ưu tiên viết sẵn,
 không phải bằng chỗ tôi thấy tiện tay ghi.
+
+
+---
+
+## BƯỚC 71 — ỨNG VIÊN GÁC BỊ BÁC BẰNG HAI LỆNH (14/09/2026)
+
+Việc treo còn lại của lỗi 56: *ứng viên gác đã ghi, chưa dựng* — chặn
+`python - <<'X'` khi thân có escape trong chuỗi VÀ script ghi vào file
+repo. Dòng 56 của bảng lỗi khai kèm: *"chưa đo bắt nhầm, và nay đã có
+nhật ký cửa để đo"*.
+
+Tôi định làm đúng thứ tự đã học: đo bắt nhầm trước, dựng sau. Nhưng câu
+hỏi đứng TRƯỚC tỷ lệ bắt nhầm là **quần thể có bao nhiêu ca**, và hỏi câu
+đó làm sập cả ba tầng của ứng viên.
+
+### (a) Quần thể — nhật ký bắt đầu SAU sự việc
+
+```
+luot dau tien : 2026-09-14T12:40:33
+luot cuoi     : 2026-09-14T14:14:46
+tong          : 87
+
+heredoc dua vao python : 5
+   CO trich dan        : 5
+   KHONG trich dan     : 0
+   ca HONG cua loi 56  : 0   <- khong ca nao co mat
+```
+
+Bốn ca lỗi 56 xảy ra rải trong ngày, ít nhất một phần **trước 12:40**.
+Nhật ký không thể chứa thứ có trước nó.
+
+Và một giới hạn sâu hơn, không sửa được bằng cách chờ thêm dữ liệu:
+**nhật ký ghi PHÁN QUYẾT của cửa, không ghi KẾT CỤC của lệnh.** Với phần
+lớn luật thì đọc văn bản lệnh là đủ để biết một lượt cho-qua có đúng
+không. Với luật này thì không: *"escape có sống sót tới Python không"* là
+một kết cục, không phải một tính chất của văn bản.
+
+### (b) Điều kiện thứ hai đòi trạng thái LÚC CHẠY
+
+Ứng viên có hai vế, và vế *"ghi vào file repo"* không đọc được từ văn bản.
+Hai trong năm ca thật, cạnh nhau trong cùng nhật ký:
+
+```
+ca 4 : d = cb.duong_nhat_ky() ... d.write_text(...)   -> TEMP,  HOP LE
+ca 3 : thay(str(GOC / "tests/test_cua_quy_trinh.py")) -> REPO
+```
+
+Cửa chỉ thấy chữ. `cb.duong_nhat_ky()` là một lời gọi hàm; đích của nó
+nằm ở giá trị trả về, không nằm trong lệnh. Cùng lớp với `git push` trần
+trong bảng chín dòng chưa đóng ở BƯỚC 65 — *"cửa chỉ thấy văn bản lệnh;
+biết đang ở nhánh nào là trạng thái LÚC CHẠY"*.
+
+### (c) Cơ chế bị BÁC — và giả thuyết bị bác là giả thuyết TỐT NHẤT
+
+Bỏ vế thứ hai đi thì còn một luật hẹp hơn, đọc được hoàn toàn từ văn bản:
+**chặn heredoc python KHÔNG trích dẫn**. Nó có tiền lệ ngay trong repo —
+`tools/kiem_cu_phap_311.py::doan_nhung()` bỏ qua đúng dạng ấy, và docstring
+của nó nói rõ lý do: *"dạng không trích dẫn để shell nội suy `$…` và dấu
+chéo ngược TRƯỚC khi python nhìn thấy"*.
+
+Hai lượt, khác nhau **đúng một** thứ là dấu trích dẫn, cùng một thân in
+một chuỗi có dấu chéo ngược trước chữ `n`:
+
+```
+A.  ./.venv/Scripts/python.exe - <<'X'     ->  mot / hai   (hai dong)
+B.  ./.venv/Scripts/python.exe - <<X       ->  mot / hai   (hai dong)
+```
+
+**Giống hệt nhau.** Escape sống sót qua cả hai. Bash chỉ ăn dấu chéo ngược
+khi nó đứng trước `$`, dấu huyền, chính nó, hoặc xuống dòng — một dấu chéo
+ngược trước chữ `n` thì không đụng tới.
+
+Nên dạng heredoc **không phải** cơ chế của lỗi 56, và một cái gác canh chỗ
+ấy là `gac-hong` viết sẵn — canh sai chỗ, xanh mãi mãi.
+
+### Và lời khai của một dụng cụ đang chạy thì rộng hơn cơ chế
+
+Docstring trên nói *"nội suy `$…` VÀ DẤU CHÉO NGƯỢC"*. Vế sau vừa bị bác.
+**Hành vi của hàm vẫn đúng** — bỏ qua heredoc không trích dẫn là quyết
+định đúng, vì nội suy `$…` một mình đã đủ là lý do. Chỉ lời khai là rộng
+hơn thứ nó có, đúng hình dạng lỗi 45 và 48. Đã thu về.
+
+### Kết luận: RÚT ứng viên, không phải hoãn nó
+
+Đây là khác biệt đáng ghi. *"Chưa dựng"* là một món nợ; *"không dựng"* là
+một quyết định. Ứng viên này chuyển sang vế thứ hai, vì cơ chế nó canh
+không tồn tại.
+
+Muốn quay lại thì phải bắt đầu từ chỗ chưa ai làm: **dựng lại được nguyên
+văn một ca lỗi 56.** Đó cũng đúng là điều bắt buộc số 2 ở Bước 3 của
+skill — *"phát đầu tiên phải là: dựng lại nguyên văn lỗi thật"* — và hôm
+nay là lần đầu tôi dùng nó để **không** dựng một cái gác.
+
+### Ba lượt quét của tôi, hai lượt SAI
+
+Ghi lại vì tỷ lệ này mới là thứ đáng lo:
+
+| lượt quét | hỏng thế nào | thứ cứu |
+|---|---|---|
+| câu song đôi, bản 1 | so TỪNG DÒNG, mà tài liệu ngắt ở cột ~76 | có một ca thật đã biết trước |
+| quần thể heredoc, bản 1 | đòi `-` liền `<<`, mà thực tế có `> log 2>&1` chen giữa | **in ra từng dòng thay vì chỉ in con số** |
+| — | ra 0 ca trong khi 2 ca nằm ngay trong bản in | |
+
+Cả hai lần, cái cứu tôi không phải sự cẩn thận. Lần đầu là **một ca thật
+đã biết trước**; lần sau là **thói quen in ra dữ liệu thô bên dưới con
+số**. Nếu lượt hai chỉ in `0`, tôi đã kết luận *"quần thể rỗng, không đo
+được"* — nghe rất hợp lý, và sai.

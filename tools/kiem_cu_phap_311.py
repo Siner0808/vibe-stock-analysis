@@ -166,9 +166,19 @@ def doan_nhung(goc: pathlib.Path) -> list:
     """[(nhãn, mã nguồn)] cho mọi đoạn python nhúng trong .github/workflows.
 
     CHỈ nhận heredoc có trích dẫn (`<<'X'`). Dạng không trích dẫn để shell
-    nội suy `$…` và dấu chéo ngược TRƯỚC khi python nhìn thấy, nên thứ nằm
-    trên đĩa không phải thứ chạy thật — kiểm nó là kiểm nhầm, mà một phép
-    kiểm nhầm còn tệ hơn không kiểm.
+    nội suy `$…` và thay lệnh trong dấu huyền TRƯỚC khi python nhìn thấy,
+    nên thứ nằm trên đĩa không phải thứ chạy thật — kiểm nó là kiểm nhầm,
+    mà một phép kiểm nhầm còn tệ hơn không kiểm.
+
+    Bản trước ghi *"nội suy `$…` VÀ DẤU CHÉO NGƯỢC"*, và vế sau RỘNG HƠN
+    cơ chế. Đo 14/09/2026 bằng hai lượt khác nhau ĐÚNG dấu trích dẫn, cùng
+    một thân in một chuỗi có dấu chéo ngược trước chữ `n`: **cả hai in ra
+    HAI DÒNG**, tức escape ấy sống sót qua heredoc không trích dẫn. Bash
+    chỉ ăn dấu chéo ngược khi nó đứng trước `$`, dấu huyền, chính nó, hoặc
+    xuống dòng.
+
+    Hành vi của hàm KHÔNG đổi — nội suy `$…` một mình đã đủ là lý do. Chỉ
+    lời khai được thu về. Lỗi 58.
     """
     ra = []
     thu_muc = goc / ".github" / "workflows"
