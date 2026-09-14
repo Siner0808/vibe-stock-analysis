@@ -1,8 +1,8 @@
 {
-  "_ghi_chu": "Phân lớp và TUỔI THỌ của từng lỗi trong bảng `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`. Tách khỏi bảng có chủ đích: bảng là thứ NGƯỜI đọc, file này là thứ MÁY đọc. Sửa 34 dòng markdown là đúng loại thao tác đã sinh ra lỗi 1-3.",
+  "_ghi_chu": "Phân lớp và TUỔI THỌ của từng lỗi trong bảng `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`. Tách khỏi bảng có chủ đích: bảng là thứ NGƯỜI đọc, file này là thứ MÁY đọc. Sửa 34 dòng markdown là đúng loại thao tác đã sinh ra lỗi 1-3. | 14/09/2026 (DO 7): tach `suy-tu-bang` thanh `co-che` (8 dong) va `nguoi-thay` (15 dong). Ly do: ca hai deu cho song_ngay=0 nhung chung khong noi cung mot dieu, va dong tieu de cua dung cu gop chung lai thanh mot con so duy nhat da duoc trich nhieu ngay nhu mot phep do.",
   "_vi_sao_can": "Bảng lỗi hỏi 'máy chặn được không' và KHÔNG hỏi hai điều quyết định: lỗi thuộc LỚP nào, và nó SỐNG BAO LÂU trước khi bị bắt. Thiếu hai cột ấy thì mỗi lần muốn biết quy trình có khoẻ lên không, phải dựng lại phân tích từ đầu — đúng lỗi 'không có lệnh thì không có số', lần này áp lên chính bảng lỗi.",
   "_doc_bang": "./.venv/Scripts/python.exe tools/doc_bang_loi.py",
-  "_do_luc": "2026-09-11",
+  "_do_luc": "2026-09-14",
   "_lop": {
     "thao-tac": "Lỗi THAO TÁC: neo vá sai, hai heredoc một lệnh, ghi đè file, sửa file khi lượt chạy đang bay. Lớp sinh ra skill này.",
     "cua-chet": "Luật ĐÃ CÓ và khớp chính xác, nhưng cửa chưa được đăng ký nên không chạy. Lỗi hạ tầng, không phải lỗi suy nghĩ.",
@@ -13,24 +13,25 @@
   "_nguon_tuoi": {
     "git": "đo bằng git — ngày commit sinh ra lỗi so với ngày phát hiện",
     "bang": "đọc từ chính dòng bảng, nơi nó đã ghi sẵn khoảng thời gian",
-    "suy-tu-bang": "suy từ cột 'bắt bởi' của bảng (vd 'CI đỏ', 'đục thử ngay') — KHÔNG phải phép đo, chỉ là đọc lại thứ đã ghi",
-    "chua-do": "chưa ai đo, và không được đoán"
+    "chua-do": "chưa ai đo, và không được đoán",
+    "co-che": "mot CO CHE no: test, CI, cong gac, duc thu, script, dung cu tu dung. May chay o mot thoi diem xac dinh, nen song_ngay=0 la mot phep DOC. Van khong phai phep do bang git - chi la doc cot 'bat boi' cua bang.",
+    "nguoi-thay": "mot NGUOI thay: tinh co, tri nho, doc lai, tu di dem, he thong tu hien, mot luot chay SAU noi nguoc lai. KHONG rang buoc thoi diem loi SINH RA, nen song_ngay=0 o day la mot GIA DINH, khong phai bang chung. Giu lai con so cu de khoi mat thong tin, nhung KHONG duoc dem vao thuoc."
   },
   "loi": {
     "1": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "2": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "3": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "4": {
       "lop": "chua-do",
@@ -40,47 +41,47 @@
     "5": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "6": {
       "lop": "ky-luat",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "7": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "8": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "9": {
       "lop": "ky-luat",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "10": {
       "lop": "cua-chet",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "11": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "12": {
       "lop": "gac-hong",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "13": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "14": {
       "lop": "cua-chet",
@@ -105,22 +106,22 @@
     "18": {
       "lop": "cua-chet",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "19": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "20": {
       "lop": "gac-hong",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "21": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "22": {
       "lop": "gac-hong",
@@ -130,12 +131,12 @@
     "23": {
       "lop": "cua-chet",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "git"
     },
     "24": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "25": {
       "lop": "chua-do",
@@ -145,7 +146,7 @@
     "26": {
       "lop": "gac-hong",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "27": {
       "lop": "chua-do",
@@ -155,7 +156,7 @@
     "28": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "29": {
       "lop": "chua-do",
@@ -200,17 +201,17 @@
     "37": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "nguoi-thay"
     },
     "38": {
       "lop": "thao-tac",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "39": {
       "lop": "gac-hong",
       "song_ngay": 0,
-      "nguon": "suy-tu-bang"
+      "nguon": "co-che"
     },
     "40": {
       "lop": "chua-do",
@@ -246,6 +247,15 @@
       "lop": "chua-do",
       "song_ngay": 4,
       "nguon": "git"
+    },
+    "47": {
+      "lop": "chua-do",
+      "song_ngay": 3,
+      "nguon": "git"
     }
-  }
+  },
+  "_khong_phai_bang_chung": [
+    "nguoi-thay"
+  ],
+  "_vi_sao_khong_phai_bang_chung": "Nhung gia tri `_nguon_tuoi` co mat o day KHONG rang buoc thoi diem loi SINH RA, nen so `song_ngay` di kem chung la mot GIA DINH. Dung cu doc danh sach nay chu khong ghim ten trong ma - de mot ten chi nam o MOT cho. Them mot gia tri vao day la mot QUYET DINH, va no nam trong diff."
 }

@@ -196,3 +196,105 @@ def test_CONG_CU_khong_duoc_thoat_0_khi_NGUON_ngoai_tu_vung(monkeypatch,
     assert "tu-nghi-ra-tai-cho" in ra, (
         "cong cu khong goi TEN gia tri la — nguoi doc khong biet sua o dau")
     print(f"PASS  nguon ngoai tu vung -> ma thoat {ma}, va co goi ten no")
+
+
+# ═══════════ ĐO 7 — "bắt cùng phiên" là phép đo hay giả định ═══════════
+#
+# Dòng tiêu đề cũ in MỘT con số: "bắt CÙNG PHIÊN 31/45". Đo lại theo luật
+# khai trước (docs/TIEU-CHI-DOC-TRUOC.md ĐO 7): 15/31 dòng ấy có nguồn
+# `nguoi-thay` — tình cờ, trí nhớ, đọc lại — nên số 0 ở đó là GIẢ ĐỊNH.
+# Con số gộp ấy đã được trích nhiều ngày như một phép đo.
+
+import ast  # noqa: E402
+
+
+def test_TACH_CUNG_PHIEN_khong_dem_GIA_DINH_la_bang_chung():
+    """Phép kiểm chính, và nó dựng lại NGUYÊN VĂN cái đã gộp.
+
+    Trước ĐO 7 cả năm dòng dưới đây đếm chung thành "cùng phiên 5".
+    """
+    # Khoa la SO HIEU loi dang chuoi — dung hop dong cua bang. Ham sap
+    # theo `int` de #9 dung truoc #10; mot mau dung tay bang chu cai se
+    # thu mot thu khac voi thu dang chay.
+    loi = {"1": {"song_ngay": 0, "nguon": "git"},
+           "2": {"song_ngay": 0, "nguon": "co-che"},
+           "3": {"song_ngay": 0, "nguon": "bang"},
+           "9": {"song_ngay": 0, "nguon": "nguoi-thay"},
+           "10": {"song_ngay": 0, "nguon": "nguoi-thay"},
+           "11": {"song_ngay": 3, "nguon": "git"},
+           "12": {"song_ngay": None, "nguon": "chua-do"}}
+
+    co_bc, gia_dinh, qua_ngay, chua = dbl.tach_cung_phien(loi, ["nguoi-thay"])
+
+    assert co_bc == ["1", "2", "3"]
+    assert gia_dinh == ["9", "10"], "nguoi-thay phai roi vao GIA DINH, va sap theo SO"
+    assert set(qua_ngay) == {"11"}
+    assert chua == ["12"]
+
+    # va neu KHONG ai khai gi la khong-bang-chung thi tat ca deu duoc dem —
+    # dung hanh vi cu, giu lai de thay ro cai da doi.
+    co_bc2, gia_dinh2, _, _ = dbl.tach_cung_phien(loi, [])
+    assert len(co_bc2) == 5 and gia_dinh2 == []
+
+
+def test_DANH_SACH_khong_bang_chung_nam_trong_DU_LIEU_chu_khong_trong_MA():
+    """Một cái tên chỉ được nằm ở MỘT chỗ.
+
+    Ghim `"nguoi-thay"` trong mã thì mã và `docs/loi-phan-lop.json` là hai
+    bản sao, và bản sao thì trôi ra khỏi nhau — đúng hình dạng `N_DAY_DU`
+    596/451. Đọc bằng AST vì docstring của hàm có nhắc cái tên ấy (lỗi 38).
+    """
+    cay = ast.parse((GOC / "tools" / "doc_bang_loi.py")
+                    .read_text(encoding="utf-8"))
+    chuoi = {n.value for n in ast.walk(cay)
+             if isinstance(n, ast.Constant) and isinstance(n.value, str)
+             and "\n" not in n.value and len(n.value) < 40}
+    assert "nguoi-thay" not in chuoi, (
+        "ten `nguoi-thay` bi ghim trong ma. No phai den tu "
+        "docs/loi-phan-lop.json khoa `_khong_phai_bang_chung`.")
+    assert "_khong_phai_bang_chung" in chuoi, \
+        "cong cu phai DOC danh sach ay tu JSON"
+
+
+def test_JSON_khai_khong_bang_chung_va_moi_ten_deu_CO_THAT():
+    """Khai một giá trị không có trong từ vựng là khai vào chỗ trống."""
+    pl = dbl.doc_phan_lop()
+    kbc = pl.get("_khong_phai_bang_chung")
+    assert isinstance(kbc, list) and kbc, \
+        "thieu khoa `_khong_phai_bang_chung` trong docs/loi-phan-lop.json"
+    la = sorted(set(kbc) - set(pl["_nguon_tuoi"]))
+    assert not la, f"khai gia tri ngoai tu vung `_nguon_tuoi`: {la}"
+    assert pl.get("_vi_sao_khong_phai_bang_chung"), \
+        "phai noi VI SAO — mot danh sach khong co ly do la mot danh sach troi"
+
+
+def test_DUNG_CU_in_HAI_ve_chu_khong_in_mot_con_so_gop(capsys):
+    """Chạy thật và đọc số ra khỏi bản in — kiểm HÀNH VI, không kiểm chữ.
+
+    Bơm một bản `loi` toàn `nguoi-thay`: nếu công cụ còn gộp, vế "có bằng
+    chứng" sẽ bằng tổng; đúng thì nó phải bằng 0.
+    """
+    import re
+    that = dbl.doc_phan_lop()
+    ban = json.loads(json.dumps(that))
+    for v in ban["loi"].values():
+        v["song_ngay"], v["nguon"] = 0, "nguoi-thay"
+
+    co_bc, gia_dinh, _, _ = dbl.tach_cung_phien(
+        ban["loi"], ban["_khong_phai_bang_chung"])
+    assert co_bc == [], "toan `nguoi-thay` ma van co dong nao 'co bang chung'"
+    assert len(gia_dinh) == len(ban["loi"])
+
+    ra = capsys.readouterr()      # xoa bo dem truoc khi chay that
+    ma = dbl.main()
+    ra = capsys.readouterr().out
+    assert ma == 0
+    so = re.search(r"CÓ bằng chứng thời điểm\s*:\s*(\d+)/(\d+)", ra)
+    gd = re.search(r"GIẢ ĐỊNH.*?:\s*(\d+)", ra)
+    assert so and gd, "ban in khong con hai ve tach bach"
+    co_bc_that, gia_dinh_that, _, _ = dbl.tach_cung_phien(
+        that["loi"], that["_khong_phai_bang_chung"])
+    assert int(so.group(1)) == len(co_bc_that)
+    assert int(gd.group(1)) == len(gia_dinh_that)
+    print(f"PASS  in {len(co_bc_that)} co bang chung · "
+          f"{len(gia_dinh_that)} gia dinh, khong gop")

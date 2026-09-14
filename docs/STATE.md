@@ -10959,3 +10959,118 @@ Lỗi 45 vào nhóm **sống lâu thứ tư** của cả bảng: #33 16d · #40 
   đứng **đầu** thứ tự ưu tiên. Nay trỏ sang `tools/kiem_cua_song.py`.
 - `README.md` ghi *"719 test"*. Hôm nay là **987**.
 - `backtest/README.md` dùng `python3` — không tồn tại đường ấy trên máy này.
+
+
+---
+
+## BƯỚC 63 — ĐO 7: GẦN MỘT NỬA THƯỚC LÀ GIẢ ĐỊNH (14/09/2026)
+
+Sau BƯỚC 62, đi kiểm một con số **của chính mình**. `tools/doc_bang_loi.py`
+in một dòng tiêu đề:
+
+```
+bat CUNG PHIEN : 31/45
+```
+
+Tôi đã trích nó trong báo cáo cuối ngày **ba ngày liền** như một thước cho
+sức khoẻ quy trình. Câu hỏi: nó là một phép đo hay một giả định?
+
+### Khai tiêu chí TRƯỚC, và khai cả giới hạn của bản khai
+
+`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 7, commit `784f9ab` lúc **09:15:05**,
+trước khi tính bất kỳ con số tổng nào. Bản khai tự ghi một giới hạn thật:
+
+> **Tôi đã đọc 23 cụm từ trong cột "bắt bởi" TRƯỚC khi viết bản khai
+> này.** Nên đây **không** phải một lượt khai mù.
+
+Ghi ra để người đọc sau trừ hao đúng mức, thay vì tưởng đây là một lượt
+tiền đăng ký như ĐO 1–6.
+
+### Luật phân loại, và kết quả
+
+| xếp vào | khi cột "bắt bởi" nói tới | vì sao |
+|---|---|---|
+| **`co-che`** | test · CI · cổng · đục thử · script · công cụ tự dừng | máy chạy ở thời điểm xác định → 0 là một phép ĐỌC |
+| **`nguoi-thay`** | tình cờ · trí nhớ · đọc lại · tự đi đếm · hệ thống tự hiện | không ràng buộc thời điểm lỗi SINH RA → 0 là GIẢ ĐỊNH |
+
+```
+A co-che      =  8
+B nguoi-thay  = 15      -> KET CUC 3 cua bang da ky  (B > 5)
+C do lai duoc bang git = 1
+```
+
+**Kết cục 3** đọc thế nào, theo đúng chữ đã ký: *"thước cũ không dùng
+trích dẫn được như đang trích. Dòng tiêu đề phải tự tách hai vế, và tôi
+phải ghi một dòng lỗi cho việc đã trích nó nhiều ngày."*
+
+```
+"bat CUNG PHIEN 31/45"  =  16 co bang chung ve thoi diem
+                           15 la GIA DINH   -- 48% cua con so da trich
+```
+
+Dòng tiêu đề nay:
+
+```
+bat cung phien · CO bang chung thoi diem :  17/45
+bat cung phien · GIA DINH (nguoi-thay)   :  14  <- KHONG phai phep do
+song qua >=1 ngay                        :  14
+CHUA DO                                  :   1
+```
+
+(17 và 14 thay vì 16 và 15 vì lỗi 23 **đo lại được bằng git**, xem dưới.)
+
+### Một dòng đo lại được, và phương pháp thì dùng lại được
+
+Lỗi 23 — `cat >` đè mất một file test 40 phép kiểm ngày 09/09. Git:
+
+```
+3051f7d 04/09   23 def test_
+cb1db58 05/09   28 def test_      (pytest dem 40: co parametrize)
+f812252 12/09   28 def test_
+```
+
+**Trạng thái hỏng chưa bao giờ vào lịch sử đã commit** — không lần nào số
+phép kiểm tụt. Ngày 09/09 có commit, nên lỗi sống **ngắn hơn một vòng
+commit**. Đó là một **cận trên đo được**, không phải một giả định.
+
+> Nhân đây sửa một chỗ tôi vừa tính nhầm: `grep -c "^def test_"` cho 28,
+> và tôi suýt báo rằng bảng lỗi ghi sai con số 40.
+> `pytest --collect-only` đếm **đúng 40** — phép đếm của tôi mới sai, vì
+> nó không thấy `parametrize`. Không có phát hiện nào ở đó.
+
+### Vì sao 14 dòng còn lại KHÔNG đo được — giới hạn CẤU TRÚC
+
+```
+15 dong `nguoi-thay` thuoc lop:
+   thao-tac 5 · chua-do 4 · cua-chet 3 · ky-luat 2 · gac-hong 1
+```
+
+Năm dòng `thao-tac` là **hành động** — `cat >` đè file, sửa file khi
+pytest đang bay, backtick trong `python -c`. **Một hành động không bao giờ
+được commit, nên git không có gì để định ngày.** Với lớp ấy "tuổi thọ" gần
+như không định nghĩa được, chứ không phải chưa đo.
+
+Đó là một câu hỏi để mở. Nó **không** được dùng để sửa con số của ĐO 7 sau
+khi đã thấy kết quả — bản khai cấm đúng điều đó.
+
+### Gác
+
+```
+tests/test_bang_loi_do_duoc.py   9 -> 13 phep kiem
+duc thu  10/10 do       0 phat song sot
+```
+
+Phát đục đầu tiên dựng lại **nguyên văn hành vi cũ**: bỏ danh sách
+`_khong_phai_bang_chung` đi thì mọi dòng 0 lại đếm chung thành một con số.
+
+Và một cái tên chỉ được nằm ở **một chỗ**: `"nguoi-thay"` **không** ghim
+trong mã, nó đến từ `docs/loi-phan-lop.json` khoá
+`_khong_phai_bang_chung`. Một phép kiểm AST khoá điều đó — đọc bằng AST vì
+docstring của chính hàm có nhắc cái tên ấy (lỗi 38).
+
+### Điều gác này KHÔNG làm
+
+Nó **gỡ mất** con số gây hiểu nhầm. Nó **không** ngăn được việc trích sai
+một con số khác. Lớp *đọc một phép đo rộng hơn phạm vi nó có* — lỗi 25,
+35, 36, 44, 47 — vẫn chưa có gác chung, và đó là lớp đông thứ nhì của
+bảng.
