@@ -1430,11 +1430,49 @@ trước:
 | ca | tập lệnh | đáp số đúng, tính tay |
 |---|---|---|
 | **1** | hai lệnh **KHÔNG** chồng lấn, mỗi lệnh `size_pct=100` | cộng dồn tuần tự LÀ đúng → A phải bằng B |
-| **2** | hai lệnh **CHỒNG LẤN HOÀN TOÀN**, mỗi lệnh `size_pct=50` | một tài khoản thật chỉ nhân MỘT lần cho cả hai; A phải LỚN HƠN B |
+| **2a** | hai lệnh **CHỒNG LẤN HOÀN TOÀN**, mỗi lệnh `size_pct=50`, `+10%` và `−5%` | `A = 102,375` · `B = 102,500` → **A < B** |
+| **2b** | **BA** lệnh chồng lấn, mỗi lệnh `size_pct=50` → cam kết **150%** | tài khoản thật **không cấp vốn nổi** lệnh thứ ba |
 
 **Nếu ca 1 không cho A = B trong dung sai `1e-6` tương đối thì tôi đã cấu
 hình vectorbt SAI, và không con số nào khác đọc được.** Dừng, sửa cấu hình,
 chạy lại — **không** đọc ca 3.
+
+### SỬA MỘT KỲ VỌNG ĐÃ KHAI — số học tính tay bác nó, TRƯỚC khi chạy
+
+Bản khai đầu (commit `207da19`, 11:11:03) viết cho ca 2: *"A phải LỚN HƠN
+B"*. **Sai**, và cái bác nó không phải một lượt chạy — là số học tính tay:
+
+```
+Pi(1 + w_i r_i) = 1 + Sigma w_i r_i + Sigma_{i<j} w_i w_j r_i r_j
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                      SO HANG CHEO
+```
+
+Cộng dồn tuần tự cho **tích**, tài khoản thật cho **tổng có trọng số**.
+Khoảng cách chính là số hạng chéo, và **dấu của nó đi cả hai chiều**: hai
+lệnh cùng lãi thì tích lớn hơn tổng, một lãi một lỗ thì tích NHỎ hơn.
+
+```
+ca 2a  +10% va -5%  : 1,05 x 0,975 = 1,023750  <  0,5x1,10 + 0,5x0,95 = 1,0250
+hai lenh cung +10%  : 1,05 x 1,05  = 1,102500  >  0,5x1,10 + 0,5x1,10 = 1,1000
+```
+
+**Hệ quả cho cách đọc, và nó lớn hơn phép sửa:** *"cộng dồn lệnh chồng lấn
+là đòn bẩy trá hình"* (bất biến 7b) **không** có nghĩa là cộng dồn luôn
+thổi số lên. Méo mó có **HAI phần**, và chúng khác hẳn nhau:
+
+| phần | là gì | bậc |
+|---|---|---|
+| **số hạng chéo** | tích thay vì tổng với lệnh ĐỒNG THỜI | bậc hai, dấu đi hai chiều |
+| **cấp vốn** | vốn cam kết vượt 100% — tài khoản thật KHÔNG cấp nổi | bậc nhất, **luôn** thổi lên |
+
+Ca 2b thêm vào đúng để tách hai phần ấy. Phần **cấp vốn** mới là thứ đã
+tạo ra `+636,11%` ngày 12/08/2026 ở đòn bẩy 2,2 lần.
+
+> Ghi lại phép sửa này thay vì lặng lẽ sửa: một kỳ vọng đã ký mà bị bác
+> **trước khi chạy**, bởi số học chứ không bởi số liệu, là thứ đáng giữ
+> nhất trong một bản khai. Nó cũng là bằng chứng bản khai được đọc lại
+> chứ không chỉ được viết ra.
 
 ### Ba ca, và ca 3 mới là ca có ý nghĩa
 
@@ -1446,9 +1484,9 @@ Ca 3 chạy trên **sổ lệnh thật** đã đóng băng thành file để tá
 | # | điều kiện | đọc thế nào |
 |---|---|---|
 | 1 | `\|A − B\| ≤ 0,5` điểm **VÀ** `D ≤ 100%` | số học hai bên khớp; tập lệnh này không có đòn bẩy trá hình. Không đổi gì. |
-| 2 | `A − B > 0,5` điểm **VÀ** `D > 100%` | **khoảng cách LÀ đòn bẩy trá hình, và nay đo được** thay vì chỉ được cảnh báo. Ghi con số vào tài liệu; KHÔNG sửa `compute()` trong cùng PR. |
-| 3 | `A − B > 0,5` điểm **NHƯNG** `D ≤ 100%` | **mâu thuẫn** — một trong hai cài đặt sai. Giả định đầu tiên là **của TA** (quy tắc số 1). Truy tới nơi, không đọc tiếp. |
-| 4 | `B − A > 0,5` điểm | bất ngờ theo chiều an toàn. **Vẫn phải truy** — một con số đẹp lên bất ngờ là tín hiệu lỗi, kể cả khi nó làm ta trông tệ hơn. |
+| 2 | `\|A − B\| > 0,5` điểm **VÀ** `D > 100%` | **khoảng cách LÀ đòn bẩy trá hình, và nay đo được** thay vì chỉ được cảnh báo. Ghi con số vào tài liệu; KHÔNG sửa `compute()` trong cùng PR. |
+| 3 | `\|A − B\| > 0,5` điểm **NHƯNG** `D ≤ 100%` | chỉ còn **số hạng chéo** giải thích được. Nếu độ lớn không khớp số hạng chéo tính tay thì một trong hai cài đặt sai, và giả định đầu tiên là **của TA** (quy tắc số 1). |
+| 4 | `B > A` trên tập lệnh có `D > 100%` | bất ngờ: phần cấp vốn lẽ ra **luôn** thổi A lên. **Phải truy**, không được nhận. |
 
 ### Giới hạn phải nêu TRƯỚC, và chúng thật
 
