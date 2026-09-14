@@ -11634,3 +11634,83 @@ Bash, nên nó không bao giờ được commit. Có phép kiểm khoá điều 
 tests/test_nhat_ky_cua_bash.py   8 phep kiem
 duc thu  10/10 do        0 phat song sot
 ```
+
+
+---
+
+## BƯỚC 69 — NHẬT KÝ VỪA DỰNG BẮT ĐƯỢC MỘT LỖI CỦA CHÍNH NÓ (14/09/2026)
+
+Sau khi BƯỚC 68 vào `main`, tôi viết một câu tổng kết: *"cửa Bash bắt tôi
+6 lần hôm nay"*. Con số ấy đến từ **trí nhớ**. Nay có lệnh đo được, nên
+dùng lệnh:
+
+```
+36 luot cua duoc goi · CHO-QUA 21 · CHAN 13 · THOAT 2
+
+CHAN theo luat:
+   push-thang-main   11
+   pytest-qua-ong     1
+   sed-i-file-repo    1
+```
+
+**Mười một lượt chặn vì `push-thang-main`** — và tôi chưa từng gõ
+`git push origin main` lần nào trong ngày.
+
+### Chúng đến từ bộ test
+
+`tests/test_cua_quy_trinh.py::test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG`
+chạy cửa như **tiến trình con** với payload mẫu, và không cách ly TEMP.
+Mỗi lượt `pytest tests/` — tôi chạy sáu lượt trong ngày — lại ghi thêm một
+dòng.
+
+> **Quần thể bị nhiễm ngay từ ngày đầu, và nhiễm toàn mẫu XẤU** — tức làm
+> lệch đúng cái tỷ lệ bắt-nhầm mà nhật ký sinh ra để đo.
+>
+> Cùng hình dạng **lỗi 49**, ở chiều ngược lại: lần ấy tôi **đo sai quần
+> thể**; lần này tôi **làm bẩn quần thể**. Lỗi 55.
+
+### Ba việc, theo thứ tự
+
+1. **Cách ly TEMP** cho hai lời gọi tiến trình con trong test ấy.
+2. **Gác để không tái diễn** — phép kiểm AST: mọi `subprocess.run` nhắc
+   tới cửa Bash trong `tests/` phải truyền `env=`. Đọc bằng AST vì tên
+   file ấy nằm đầy trong chú thích của chính các file test (lỗi 38).
+3. **Dọn 11 dòng đã nhiễm**, giữ nguyên 33 dòng thật:
+
+```
+truoc 44 dong · bo 11 (payload cua test) · giu 33
+```
+
+Chọn **lọc** thay vì xoá cả file: 21 dòng `CHO-QUA` là lệnh thật đã gõ, và
+chúng là phần có giá nhất của quần thể — mẫu TỐT mới là thứ đo được bắt
+nhầm.
+
+### Và một dòng lỗi về chính tôi
+
+Trong lúc dựng cái gác ở mục 2, tôi **lại** để `\n` xuyên qua heredoc làm
+hỏng file — `SyntaxError: unterminated f-string`. Đó là **lần thứ tư trong
+một ngày**.
+
+Skill cấm điều này bằng một câu, ở Bước 2, viết từ 07/09/2026:
+
+> *"vá lớn thì viết một file `.py` rồi chạy, không bao giờ qua escape lồng
+> trong heredoc"*
+
+Và tôi vẫn quay lại đường ấy **mỗi khi phép vá trông nhỏ**. Lỗi 56, lớp
+`ky-luat`. Bốn lần đều bị Python bắt ngay, nên không lần nào thoát ra —
+nhưng bốn lần trong một ngày cho cùng một luật đã viết ra bảy ngày trước
+là một hình dạng, không phải một lần sảy tay.
+
+Ứng viên gác đã ghi, **chưa dựng**: chặn `python - <<'X'` khi thân có
+escape trong chuỗi VÀ script ghi vào file repo. Chưa đo bắt nhầm — và nay
+đã có nhật ký cửa để đo, đúng thứ hôm qua chưa có.
+
+### Điều đáng nói nhất
+
+Nhật ký dựng lúc chiều, và **lần đầu được đọc nghiêm túc nó bắt được hai
+thứ**: một bắt nhầm của luật `pytest-qua-ong` (lỗi 54) và một chỗ nhiễm do
+chính bộ test gây ra (lỗi 55).
+
+> Một con số trong trí nhớ và một con số có lệnh đứng sau khác nhau ở chỗ:
+> cái thứ hai **cãi lại được**. Tôi viết "6 lần", nhật ký nói "13", và
+> chênh lệch ấy là một khuyết tật chứ không phải một lỗi đếm.

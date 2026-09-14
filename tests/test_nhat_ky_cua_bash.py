@@ -122,6 +122,48 @@ def test_NHAT_KY_nam_trong_THU_MUC_TAM_khong_trong_repo():
     print(f"PASS  nhat ky nam trong TEMP, ngoai repo")
 
 
+def test_MOI_TEST_chay_CUA_nhu_tien_trinh_con_deu_CACH_LY_TEMP():
+    """Một test bơm payload XẤU vào nhật ký thật làm lệch chính phép đo
+    mà nhật ký sinh ra để phục vụ.
+
+    Đo được 14/09/2026, ngay lượt dùng đầu tiên: **11 dòng
+    `git push origin main`** trong nhật ký, và KHÔNG dòng nào do người
+    gõ — chúng đến từ `tests/test_cua_quy_trinh.py` chạy cửa như tiến
+    trình con, mỗi lượt `pytest` toàn bộ lại thêm một dòng.
+
+    Cùng hình dạng lỗi 49, ở chiều ngược lại: không phải đo sai quần
+    thể, mà là **làm bẩn** quần thể.
+
+    Đọc bằng AST, không bằng `in`: chữ `cua_bash_an_toan.py` nằm đầy
+    trong chú thích của chính các file test (lỗi 38).
+    """
+    thieu = []
+    for f in sorted((GOC / "tests").glob("*.py")):
+        try:
+            cay = ast.parse(f.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        for n in ast.walk(cay):
+            if not (isinstance(n, ast.Call)
+                    and isinstance(n.func, ast.Attribute)
+                    and n.func.attr == "run"):
+                continue
+            # Lenh chay co nhac toi cua Bash khong?
+            chuoi = [c.value for c in ast.walk(n)
+                     if isinstance(c, ast.Constant)
+                     and isinstance(c.value, str)]
+            if not any("cua_bash_an_toan" in s for s in chuoi):
+                continue
+            if not any(k.arg == "env" for k in n.keywords):
+                thieu.append(f"{f.name}:{n.lineno}")
+    assert not thieu, (
+        f"test chay cua Bash nhu tien trinh con MA KHONG cach ly TEMP: "
+        f"{thieu}\n"
+        f"No se ghi payload mau vao nhat ky THAT, lam lech ty le bat "
+        f"nham. Truyen `env=` co TMP/TEMP/TMPDIR tro sang tmp_path.")
+    print("PASS  moi test chay cua nhu tien trinh con deu cach ly TEMP")
+
+
 # ───────────────────────── dụng cụ đọc ─────────────────────────
 
 def test_THU_MAU_di_qua_kiem__khong_dung_lai_phep_phan():
