@@ -240,6 +240,11 @@ TOT = [
     # Do 14/09/2026: NOI luat pytest ra MOI ong se bat nham hai ca
     # duoi day, nen luat chi noi toi `tail|head`. Giu chung o day de
     # phep noi ay khong lang le xay ra sau nay.
+    # BAT NHAM do duoc tren NHAT KY CUA ngay 14/09/2026, ngay sau khi
+    # lop phu dinh duoc noi ra sang `2>&1`. Xem loi 54.
+    ("ten luat `pytest-qua-ong` la mot DINH DANH, khong phai lenh pytest",
+     "./.venv/Scripts/python.exe tools/soat_nhat_ky_cua.py "
+     "--thu-luat pytest-qua-ong 2>&1 | tail -12"),
     ("pytest --collect-only qua ong wc — ma thoat khong quan trong",
      "./.venv/Scripts/python.exe -m pytest --collect-only -q | wc -l"),
     ("ong THUOC mot lenh KHAC, sau dau `;`",

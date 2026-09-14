@@ -104,7 +104,9 @@ là lỗi sẽ tái diễn.
 | 52 | **bảng kết cục đã ký CHỒNG ĐIỀU KIỆN**: ô 2 (`\|A−B\| > ngưỡng` và `D > 100%`) và ô 4 (`B > A` khi `D > 100%`) cùng khớp, và dụng cụ đọc theo `elif` — tức **thứ tự viết** quyết định cách đọc. Nó in ra một kết luận ở đúng tình huống bảng bảo *đừng nhận một kết luận* | đọc lại bảng đã ký sau khi thấy dụng cụ in một ô | ✅ | `doc_ket_cuc()` in **MỌI** ô khớp, nói ra khi có xung đột, và theo ô **thận trọng hơn** |
 | 53 | **thiết kế một phép đo mà không tra xem dự án ĐÃ ĐO chưa** — đúng lỗi 41, lần thứ hai. `docs/STATE.md` BƯỚC 8 đã định lượng méo mó đòn bẩy từ 31/08/2026 (606/820 lệnh đòi vốn tài khoản không có), và tôi không biết cho tới khi NotebookLM chỉ ra | NotebookLM, **sau** khi phép đo đã chạy xong | ❌ | ĐO 8 hoá ra **KHÔNG trùng** BƯỚC 8 — nhưng nó thoát **vì may**, không vì đã tra. Ứng viên gác: mỗi mục `## ĐO n` phải khai *đã tra BƯỚC nào*, cùng lối `khong_soat_vi` |
 
-**Ba mươi bốn trên năm mươi ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 54 | **phép nới sáng nay bắt nhầm ngay chiều nay, và bắt nhầm ở chính TÊN của nó**: sau khi lớp phủ định của `pytest-qua-ong` được nới ra để span qua `2>&1`, một lệnh `--thu-luat pytest-qua-ong … 2>&1 \| tail` bị chặn — chữ `pytest` nằm trong một **định danh có gạch nối**, không phải một lệnh pytest | **chính cửa**, khi tôi gõ lệnh dùng dụng cụ vừa dựng | ✅ | `\bpytest\b(?!-)`. `\b` đã chặn `pytest_cache` (gạch dưới là ký tự từ) nhưng không chặn gạch nối. Đo bằng **nhật ký cửa** — quần thể thật, không phải proxy |
+
+**Ba mươi lăm trên năm mươi bốn máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
