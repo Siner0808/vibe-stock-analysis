@@ -201,6 +201,17 @@ XAU = [
     ("heredoc ghi de file repo bang duong tuyet doi",
      f"cat > {GOC.as_posix()}/tools/x.py <<'EOF'\nx\nEOF\n",
      "heredoc-ghi-file-repo"),
+    # BON HINH DANG do duoc ngay 14/09/2026 la LOT, khi ra soat ca 8
+    # luat xem luat nao canh HEP HON co che no neu. Xem BUOC 65.
+    ("pytest qua ong SAU khi da co 2>&1 — hinh dang pho bien nhat",
+     "./.venv/Scripts/python.exe -m pytest tests/ -q 2>&1 | tail -20",
+     "pytest-qua-ong"),
+    ("sed dang DAI --in-place, cung cong cu cung co che",
+     "sed --in-place 's/a/b/' CLAUDE.md", "sed-i-file-repo"),
+    ("python3.11 — van la python he thong",
+     "python3.11 tools/kiem_cu_phap_311.py", "python-he-thong"),
+    ("py launcher cua Windows",
+     "py -3.11 tools/kiem_cu_phap_311.py", "python-he-thong"),
     # Hai heredoc o HAI LENH CON khac nhau van la cung mot loi.
     ("hai heredoc qua mot dau ngan",
      "bash - <<'A'\nx\nA\n&& bash - <<'B'\ny\nB\n",
@@ -226,6 +237,14 @@ TOT = [
      "RONG = re.compile(r\"[^x]*`\")\n"
      "print(\"gia tri `a` o day\")\n"
      "PYEOF\n"),
+    # Do 14/09/2026: NOI luat pytest ra MOI ong se bat nham hai ca
+    # duoi day, nen luat chi noi toi `tail|head`. Giu chung o day de
+    # phep noi ay khong lang le xay ra sau nay.
+    ("pytest --collect-only qua ong wc — ma thoat khong quan trong",
+     "./.venv/Scripts/python.exe -m pytest --collect-only -q | wc -l"),
+    ("ong THUOC mot lenh KHAC, sau dau `;`",
+     "./.venv/Scripts/python.exe -m pytest tests/ -q > log 2>&1; "
+     "grep FAIL log | head -3"),
     ("mot heredoc", "./.venv/Scripts/python.exe - <<'EOF'\nprint(1)\nEOF\n"),
     ("pytest ghi ra log", "./.venv/Scripts/python.exe -m pytest tests/ -q > kq.log 2>&1"),
     ("venv python", "./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py"),
@@ -690,3 +709,33 @@ def test_hai_cua_moi_duoc_DANG_KY_dung_matcher():
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     print("Chạy bằng: pytest tests/test_cua_quy_trinh.py -q")
+
+
+def test_DAU_VA_cua_CHUYEN_HUONG_khong_phai_dau_ngan_lenh():
+    """`&` trong `2>&1` KHÔNG tách lệnh — nếu tách, năm luật hoá mù.
+
+    Máy tách là nền dùng chung. Tới 14/09/2026 nó cắt
+
+        pytest ... -q 2>&1 | tail -20
+    thành
+        'pytest ... -q 2>'   và   '1 | tail -20'
+
+    Cái ống rơi sang đoạn không còn chữ `pytest` nào, nên
+    `pytest-qua-ong` mù với chính hình dạng phổ biến nhất của thứ nó
+    sinh ra để bắt — và tôi gõ đúng hình dạng ấy nhiều lần trong một
+    ngày mà không lần nào bị chặn.
+    """
+    mot_doan = [
+        "./.venv/Scripts/python.exe -m pytest tests/ -q 2>&1 | tail -20",
+        "./.venv/Scripts/python.exe x.py &> out.txt",
+        "./.venv/Scripts/python.exe x.py >&2",
+    ]
+    for l in mot_doan:
+        assert len(cb.boc_va_tach(l)) == 1, (
+            f"`&` cua chuyen huong bi coi la dau ngan lenh:\n"
+            f"  {l!r}\n  -> {cb.boc_va_tach(l)}")
+
+    # Nhung `&` THAT SU la dau ngan thi van phai tach.
+    assert len(cb.boc_va_tach("cmd1 & cmd2")) == 2
+    assert len(cb.boc_va_tach("a; b")) == 2
+    print("PASS  `&` cua chuyen huong khong tach, `&` chay nen thi co")

@@ -98,7 +98,10 @@ là lỗi sẽ tái diễn.
 
 | 49 | **đo đúng phép, sai QUẦN THỂ**: trước khi nới luật backtick tôi đo tỷ lệ bắt nhầm trên **69 dòng lệnh trong tài liệu** và ra 0, rồi đọc con số ấy thành *"nới là an toàn"*. Quần thể đáng đo là **hình dạng tôi thật sự gõ**, mà hình dạng gõ nhiều nhất cả ngày là Python trong heredoc — và luật vừa nới chặn ngay lệnh kế tiếp | chính cái luật vừa nới, ở lệnh kế tiếp | ✅ **một hình dạng** | phạm vi thứ tư `DOC_GIU_NHAY` + `boc_than_heredoc()`: bóc thân heredoc, giữ nội dung nháy. Ba mẫu bắt-nhầm đo được nay nằm trong `TOT` của `tests/test_cua_quy_trinh.py`. **Không** đóng được lớp *chọn sai quần thể* — đó là một hình dạng suy nghĩ |
 
-**Ba mươi hai trên bốn mươi chín máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 50 | **máy tách coi dấu `&` của một CHUYỂN HƯỚNG là dấu ngăn lệnh**: `pytest … 2>&1 \| tail` bị cắt thành `pytest … 2>` và `1 \| tail`, nên cái ống rơi sang đoạn không còn chữ `pytest` nào. Luật `pytest-qua-ong` **mù với hình dạng phổ biến nhất** của thứ nó sinh ra để bắt — tôi gõ đúng hình dạng ấy nhiều lần trong một ngày mà không lần nào bị chặn | rà soát cả 8 luật bằng hình dạng dựng tay | ✅ | `_la_chuyen_huong()`: `&` chỉ là dấu ngăn khi nó không thuộc `2>&1` · `>&2` · `<&0` · `&>f`. Máy tách là nền dùng chung của **năm** luật |
+| 51 | **rà soát cả 8 luật: 13/14 hình dạng LỌT.** Ba luật khai hẹp hơn cơ chế chúng nêu — `sed -i` bỏ sót dạng dài `--in-place`, `python-he-thong` bỏ sót `python3.11` và `py`, `pytest-qua-ong` bỏ sót mọi lệnh có `2>&1`. Lỗi 48 trông như vấn đề của **một** luật; đếm cả tám thì nó là vấn đề của **hệ** | đo, sau khi lỗi 48 để ngỏ đúng câu hỏi này | ⚠️ **4/13** | nới ba luật, mỗi phép nới đo bắt nhầm trước trên 20 lệnh `TOT` + 69 dòng lệnh tài liệu, cả ba ra **0**. Còn **9 hình dạng chưa đóng**, kể tên trong `docs/STATE.md` BƯỚC 65 |
+
+**Ba mươi ba trên năm mươi mốt máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -1305,3 +1308,79 @@ hai** phạm vi.
 > một cặp nháy kép, ngoài thân heredoc. Nó **không** đóng được lớp *chọn
 > sai quần thể khi đo* — đó là một hình dạng suy nghĩ, không phải một
 > hình dạng cú pháp.
+
+
+### Lỗi 50 — máy tách cắt nhầm chỗ, và năm luật hoá mù theo
+
+Cửa Bash không đọc lệnh thô. Từ 11/09/2026 nó đi qua `boc_va_tach()` —
+bóc nội dung nháy, bóc thân heredoc, rồi **tách theo dấu ngăn lệnh**. Đó
+là mức tương đương gần nhất với AST mà shell cho phép, và nó đã sửa được
+cán cân 8 chặn nhầm / 3 chặn đúng.
+
+Nhưng danh sách dấu ngăn là
+
+```python
+_NGAN_DON = ";&\n"
+```
+
+và trong bash, `&` là dấu ngăn **trừ khi** nó thuộc một chuyển hướng:
+`2>&1`, `>&2`, `<&0`, `&>file`. Máy tách không biết phân biệt ấy, nên:
+
+```
+pytest ... -q 2>&1 | tail -20
+   ->  'pytest ... -q 2>'   va   '1 | tail -20'
+```
+
+**Cái ống rơi sang đoạn không còn chữ `pytest` nào.** Luật
+`pytest-qua-ong` vì thế mù với hình dạng phổ biến nhất của thứ nó sinh ra
+để bắt — và tôi gõ đúng hình dạng ấy **nhiều lần trong một ngày** mà không
+lần nào bị chặn.
+
+Sửa: `_la_chuyen_huong()`. Ngay sau khi nới, luật **chặn chính lệnh kế
+tiếp của tôi** — `pytest … 2>&1 | tail -10`. Một cái gác cắn tác giả của
+nó ở lượt đầu tiên là một cái gác có thật.
+
+> Đây là chỗ hở nguy hiểm nhất trong ba ngày: nó không nằm ở một luật,
+> nó nằm ở **cái nền năm luật cùng đứng lên**. Và nó ra đời trong đúng
+> lượt sửa làm cửa Bash tốt hơn hẳn — một phép cải thiện mang theo một
+> khuyết tật mới, ở tầng dưới.
+
+### Lỗi 51 — đếm cả tám luật, và con số thì không dễ chịu
+
+Lỗi 48 để ngỏ đúng một câu: *"còn luật nào khác đang khai hẹp hơn cơ chế
+của nó?"* — kèm dòng *"CHƯA ĐO, và không được đoán"*. Đi đo.
+
+Tiêu chí một lỗ hổng, khai **trước** khi chạy: một hình dạng **(a)** kích
+hoạt đúng cơ chế mà chính luật tự nêu trong lời khai, và **(b)** không bị
+bắt.
+
+```
+13 / 14  hinh dang LOT
+6 / 7    luat con lai co lo hong   (chi `hai-heredoc` giu duoc)
+```
+
+**Lỗi 48 trông như vấn đề của MỘT luật. Đếm cả tám thì nó là vấn đề của
+HỆ.** Đó là toàn bộ giá trị của việc đi đếm, và nó lặp lại bài học lỗi 39
+ở một tầng khác: *thử một điểm cho mỗi ô chứng minh ô ấy đạt tới được; nó
+không chứng minh n ô cộng lại phủ kín.*
+
+Ba luật nới được, mỗi phép nới **đo bắt nhầm trước** trên hai quần thể
+proxy — 20 lệnh `TOT` (chặn nhầm đã đo được trong quá khứ) và 69 dòng lệnh
+trong tài liệu — cả ba ra **0**.
+
+**Chín hình dạng CHƯA đóng**, và mỗi cái có một lý do đọc được — không
+phải "để sau":
+
+| hình dạng | vì sao chưa đóng |
+|---|---|
+| ghi đè file nguồn **không** qua heredoc (`> f.py`, `cp`, `mv`) | cần một luật MỚI, không phải nới `heredoc-ghi-file-repo`; tên luật ấy khai đúng phạm vi nó có |
+| heredoc ghi đè file đuôi ngoài danh sách (`.txt`, `.cfg`) | nới danh sách đuôi là dễ, nhưng chưa đo bắt nhầm — và `requirements.txt` thì viết bằng heredoc là hợp lệ |
+| `perl -i` | công cụ khác, cơ chế giống. Cần luật mới, không phải nới `sed-i` |
+| `pytest … \| grep` | **đo rồi, và CỐ Ý không nới**: nới ra mọi ống thì bắt nhầm `pytest --collect-only \| wc -l` và một `$(…)` có ống bên trong. Hai mẫu ấy nay nằm trong `TOT` để phép nới đó không lặng lẽ xảy ra sau này |
+| `git push` trần khi đang đứng trên `main` · `git push origin HEAD` | **không đóng được bằng luật chuỗi.** Cửa chỉ thấy văn bản lệnh; biết đang ở nhánh nào là trạng thái LÚC CHẠY |
+| `mv x.db /tmp` | **cố ý không chặn**: ngày 12/09 tôi đã *chuyển* file `.db` sang scratchpad thay vì xoá, và đó là hành vi ĐÚNG. Chặn nó là chặn đúng cách đi vòng an toàn |
+| `> x.db` (cắt đứt bằng chuyển hướng) | cùng họ với ô đầu bảng — một luật "ghi đè file dữ liệu" chưa tồn tại |
+
+> **Một bảng chín dòng chưa đóng, mỗi dòng có lý do, đáng tin hơn một
+> con số "đã đóng hết".** Ba ngày qua đã có hai lần một dấu ✅ hứa rộng
+> hơn thứ nó giao (lỗi 44, 47).
