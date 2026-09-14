@@ -1267,3 +1267,96 @@ hơn khi rơi vào kết cục 3.
 ĐO 3 lượt 1 (cùng cấu hình): **34,9 phút**. Lượt A của ĐO 5 sáng nay, cùng
 cache, cùng `stride`: **34,6 phút**. Ước **30–50 phút** cho một lượt. Phần
 tách khoản chạy sau, tính bằng giây.
+
+
+---
+
+## ĐO 7 — "bắt CÙNG PHIÊN" là phép đo hay là giả định? (khai 14/09/2026)
+
+**Dụng cụ đọc:** `tools/doc_bang_loi.py`
+
+### Câu hỏi
+
+`tools/doc_bang_loi.py` in một dòng tiêu đề:
+
+```
+bat CUNG PHIEN : 31/45
+```
+
+Tôi đã **trích con số ấy trong báo cáo cuối ngày nhiều hôm liền** như một
+thước cho sức khoẻ quy trình. Nhưng `docs/loi-phan-lop.json` ghi rằng
+**23** trong số đó có `nguon = "suy-tu-bang"`, mà chính từ vựng của file
+ấy định nghĩa `suy-tu-bang` là
+
+> *"suy từ cột 'bắt bởi' của bảng — **KHÔNG phải phép đo**, chỉ là đọc lại
+> thứ đã ghi"*.
+
+Câu hỏi: **trong 23 dòng ấy, bao nhiêu dòng có một CƠ CHẾ nổ, và bao nhiêu
+dòng chỉ là một NGƯỜI tình cờ thấy?** Hai thứ đó cho ra cùng một con số 0,
+nhưng chúng không nói cùng một điều.
+
+### Vì sao câu hỏi này quan trọng
+
+Một cơ chế nổ (`CI đỏ`, `lượt chạy đầu tiên của chính test ấy`) **chứng
+minh** lỗi không sống quá lượt chạy kế tiếp. Một người tình cờ thấy
+(`tình cờ`, `trí nhớ`, `đọc lại`) **không chứng minh gì về tuổi thọ** —
+lỗi có thể đã nằm đó nhiều ngày, và cái ngày ta nhìn thấy nó chỉ là ngày
+ta tình cờ nhìn đúng chỗ.
+
+Gán `song_ngay = 0` cho vế sau là **giả định**, và giả định ấy nghiêng về
+phía làm quy trình trông khoẻ hơn thực tế — đúng chiều **Quy tắc số 1**.
+
+### GIỚI HẠN CỦA CHÍNH BẢN KHAI NÀY — nêu trước, và nó thật
+
+**Tôi đã đọc 23 cụm từ trong cột "bắt bởi" TRƯỚC khi viết bản khai này.**
+Nên đây **không** phải một lượt khai mù. Tôi chưa tính bất kỳ con số tổng
+nào, và luật phân loại dưới đây viết ra trước khi tính — nhưng nó được
+viết bởi một người đã thấy dữ liệu thô. Ghi ra để người đọc sau trừ hao
+đúng mức, thay vì tưởng đây là một lượt tiền đăng ký như ĐO 1–6.
+
+### Luật phân loại, khai TRƯỚC khi tính
+
+Mỗi dòng đang mang `nguon = "suy-tu-bang"` được đọc lại theo cột *"bắt
+bởi"* của chính nó, và **chỉ theo cột ấy**:
+
+| xếp vào | khi cột "bắt bởi" nói tới | vì sao |
+|---|---|---|
+| **`co-che`** | một lượt chạy MÁY: test, CI, cổng, đục thử, script, lượt đếm tự động, một công cụ tự dừng | máy chạy ở thời điểm xác định → 0 là một phép ĐỌC |
+| **`nguoi-thay`** | một người: tình cờ, trí nhớ, đọc lại, tự đi đếm, hệ thống tự hiện ra, một lượt chạy SAU nói ngược lại | không ràng buộc thời điểm lỗi SINH RA → 0 là một GIẢ ĐỊNH |
+
+Biên giới, khai trước để khỏi lách sau:
+
+- *"CI đỏ"* → **`co-che`**, kể cả khi CI chạy ở ngày hôm sau: CI là một
+  cơ chế chạy đều, khoảng cách tối đa là một lượt đẩy.
+- *"lượt rộng xong sau, nói ngược lại"* → **`nguoi-thay`**: lượt chạy sau
+  là một lượt đo MỚI, nó không nói gì về lúc lỗi ra đời.
+- *"hệ thống tự hiện"* → **`nguoi-thay`**: cái hiện ra là công cụ, không
+  phải lỗi; việc nối hai thứ vẫn do người làm.
+- Mơ hồ, không xếp dứt khoát được → **`nguoi-thay`**. Chiều an toàn là
+  chiều làm quy trình trông XẤU hơn, không phải đẹp hơn.
+
+### Đại lượng
+
+```
+A = so dong xep vao `co-che`
+B = so dong xep vao `nguoi-thay`          A + B = 23
+C = trong B, bao nhieu dong DO LAI DUOC bang git
+```
+
+### Bốn kết cục, khai TRƯỚC
+
+| # | điều kiện | đọc thế nào |
+|---|---|---|
+| 1 | **B = 0** | thước cũ đứng vững; "31/45" là một phép đọc, không phải giả định. Không đổi gì. |
+| 2 | **0 < B ≤ 5** | thước hơi rộng hơn bằng chứng. Tách từ vựng, KHÔNG sửa con số nào cho tới khi đo được. |
+| 3 | **B > 5** | **thước cũ không dùng trích dẫn được như đang trích.** Dòng tiêu đề phải tự tách hai vế, và tôi phải ghi một dòng lỗi cho việc đã trích nó nhiều ngày. |
+| 4 | **A = 0** | toàn bộ 23 dòng là giả định — đọc lại toàn bộ cách phân lớp, đừng vá. |
+
+### Điều KHÔNG được làm sau khi thấy số
+
+- **Không** sửa `song_ngay` của một dòng `nguoi-thay` thành một con số
+  đoán. Không đo được thì để `chua-do` — *"Không biết" là một câu trả
+  lời, và nó không được giả dạng một câu trả lời khác.*
+- **Không** dời biên giới `co-che` / `nguoi-thay` sau khi thấy A và B.
+- **Không** đọc kết quả này thành *"quy trình tệ hơn ta tưởng"*. Nó chỉ
+  nói **bằng chứng mỏng hơn ta tưởng**. Hai câu ấy khác nhau.
