@@ -89,6 +89,8 @@ một lượt chạy, vì lượt chạy ấy không bao giờ xảy ra.
 
 ## ĐO 1 — Bảng "CHI PHÍ THỰC THI" ở cấu hình hiện hành
 
+**Đã tra trùng:** (bổ sung 14/09/2026) tra 65 tiêu đề `docs/STATE.md` — **không mục nào** đo lại bảng chi phí trước 09/09/2026. Bảng cũ đến từ 24/08 và chưa bao giờ qua tiền đăng ký, nên không có phép đo nào để trùng. ĐO 1 chính là **BƯỚC 44**, phép đo đầu tiên có hợp đồng ký trước.
+
 > **Dụng cụ đọc:** `tools/do1_chi_phi_thuc_thi.py` — mỗi lượt một tiến
 > trình riêng, chạy tuần tự.
 
@@ -183,6 +185,8 @@ không phải dòng alpha cao nhất (bất biến 7).
 ---
 
 ## ĐO 2 — `stride=1`: câu hỏi hiện tại KHÔNG trả lời được
+
+**Đã tra trùng:** (bổ sung 14/09/2026) **BƯỚC 17 · 21 · 23 · 24 · 26** đều đã chạm độ trễ khớp và `stride`. KHÔNG trùng, và lý do chính là nội dung mục này: thí nghiệm `stride` (BƯỚC 23–24) đổi **cùng lúc hai thứ**, nên nó không tách được độ trễ khớp ra. Đó là vì sao ĐO 2 tồn tại.
 
 > **Dụng cụ đọc:** `tools/do2_do_tre_khop.py` — bốn lượt, ngưỡng ghim
 > tay 62/50.
@@ -336,6 +340,8 @@ không kiểm nhãn. Ba đột biến, 3/3 đỏ.
 
 ## ĐO 2 — điều khoản bổ sung, khai TRƯỚC dòng mã đầu tiên
 
+**Đã tra trùng:** (bổ sung 14/09/2026) cùng mạch với mục ĐO 2 ở trên — **BƯỚC 21 · 23 · 24**. Điều khoản bổ sung không mở câu hỏi mới, nó siết cách đọc của đúng phép đo ấy, nên không có chỗ trùng mới.
+
 > **Dụng cụ đọc:** `tools/do2_do_tre_khop.py`, cùng dụng cụ với mục
 > ĐO 2 ở trên.
 
@@ -486,6 +492,8 @@ thì không, nên nó không sai — nó chỉ chưa bao giờ được hỏi.
 
 ## ĐO 3 — bảng CHI PHÍ THỰC THI ở cấu hình hiện hành, mặc định T+1
 
+**Đã tra trùng:** (bổ sung 14/09/2026) **BƯỚC 44** (ĐO 1) đo đúng bốn dòng ấy. KHÔNG trùng vì mặc định đã đổi sang T+1 sau **BƯỚC 46**, nên bảng ĐO 1 không còn mô tả cấu hình đang chạy — và chính ĐO 3 chứng minh điều đó khi ngưỡng theo-ngày nhảy 50 → 45.
+
 > **Khai ngày 10/09/2026, TRƯỚC khi đổi một dòng mã nào và trước lượt chạy
 > đầu tiên.** Đây là lần thứ ba dự án làm đúng thứ tự ấy.
 
@@ -581,6 +589,8 @@ cùng cấu hình ở hai ngày khác nhau).
 ---
 
 ## ĐO 4 — kéo cache giá về 2018
+
+**Đã tra trùng:** (bổ sung 14/09/2026) **BƯỚC 50** (ĐO 3) đo cùng bốn dòng trên cache mặc định. KHÔNG trùng vì ĐO 4 đổi đúng **một** thứ — cache kéo về 2018, tức cỡ mẫu — và giữ nguyên mọi tham số khác.
 
 > **Dụng cụ đọc:** `tools/do1_chi_phi_thuc_thi.py`, chạy với biến môi
 > trường `VIBE_CACHE_DIR` trỏ vào cache 2018.
@@ -719,6 +729,8 @@ Hạn mức đã biết: 300 req/phút ở hạng silver tại máy, 60 ở gói
 ---
 
 ## ĐO 4 — BẢN BỔ SUNG, khai 11/09/2026 TRƯỚC lượt chạy
+
+**Đã tra trùng:** (bổ sung 14/09/2026) cùng mạch với mục ĐO 4 ở trên — **BƯỚC 50 · BƯỚC 52**. Bản bổ sung chỉ thêm điều khoản đọc cho đúng phép đo ấy, không mở câu hỏi mới.
 
 > Bản ký 10/09 vẫn đứng. Mục này **sửa hai phép kiểm dụng cụ** và nói rõ
 > vì sao. Không mục nào ở đây được viết sau khi nhìn một con số kết quả —
@@ -893,6 +905,8 @@ lớn. Kéo về 2018 là kéo xa nhất từ trước tới nay.
 
 ## ĐO 5 — chênh 385/376: MÃ hay CACHE? (khai 12/09/2026, trước lượt chạy)
 
+**Không khai được là đã tra vì:** lượt làm ngày 12/09 **KHÔNG tra**, và nó hoá ra **TRÙNG BƯỚC 25** — cùng phép so, cùng kết quả 376/376, cùng phương pháp worktree. Mất 88,8 phút. Đó là lỗi 41. Ghi nguyên trạng thay vì khai bù một lời khai chưa từng tồn tại.
+
 > **Không có dụng cụ vì:** bản đọc chạy một lần rồi nằm lại ở thư mục
 > tạm, và hai worktree chứa `wf_oos.db` đã bị gỡ ngay sau lượt chạy —
 > nên **con số của mục này không tái lập được** nếu không chạy lại cả
@@ -1042,6 +1056,8 @@ phút**. Đây là ước lượng, không phải phép đo.
 
 ## ĐO 5b — một lượt kéo có GHI LẠI hàng lịch sử không? (khai 12/09/2026)
 
+**Đã tra trùng:** (bổ sung 14/09/2026) nhánh con của ĐO 5, xem **BƯỚC 55**. Nó **không chạy được** (nhóm chứng rỗng theo cấu tạo), nên không có phép đo nào để trùng — và đó cũng là lý do nó không có dụng cụ.
+
 > **Không có dụng cụ vì:** phép đo này **không chạy được** — nhóm chứng
 > rỗng theo cấu tạo (53 file chưa bị lượt 03/09 chạm đều nằm NGOÀI rổ
 > đo 71 mã). Một dụng cụ cho một thiết kế không chạy được là dụng cụ
@@ -1133,6 +1149,8 @@ Hai chuyện khác nhau.
 ---
 
 ## ĐO 6 — khoảng cách chi phí thực thi IS/OOS: THANH KHOẢN hay GIÁ VÀO?
+
+**Đã tra trùng:** (bổ sung 14/09/2026) khoảng cách IS/OOS được **nêu** ở **BƯỚC 50** và nhắc lại ở **BƯỚC 52**, nhưng không mục nào **đo** nó — cả hai đều ghi thẳng *"chưa ai đo"*. ĐO 6 là lần đầu.
 
 > **Dụng cụ đọc:** `tools/do6_tach_chi_phi.py` — chép vào repo ngày
 > 12/09/2026 (BƯỚC 59) sau khi phát hiện bản đầu nằm ở thư mục tạm.
@@ -1273,6 +1291,8 @@ tách khoản chạy sau, tính bằng giây.
 
 ## ĐO 7 — "bắt CÙNG PHIÊN" là phép đo hay là giả định? (khai 14/09/2026)
 
+**Đã tra trùng:** (bổ sung 14/09/2026) dụng cụ đọc bảng lỗi ra đời 11/09/2026 và được rà lại ở **BƯỚC 59**. Không mục nào hỏi lại con số *"bắt CÙNG PHIÊN"* có phải một phép đo không — nó được in ra và được trích, thế thôi. ĐO 7 là lần đầu.
+
 **Dụng cụ đọc:** `tools/doc_bang_loi.py`
 
 ### Câu hỏi
@@ -1365,6 +1385,8 @@ C = trong B, bao nhieu dong DO LAI DUOC bang git
 ---
 
 ## ĐO 8 — số học đường vốn: cài đặt của ta so với một cài đặt ĐỘC LẬP (khai 14/09/2026)
+
+**Đã tra trùng:** (bổ sung 14/09/2026, tức SAU khi phép đo đã chạy — lỗi 53) **BƯỚC 8** đã định lượng méo mó đòn bẩy từ 31/08/2026 (606/820 lệnh đòi vốn tài khoản không có). KHÔNG trùng: BƯỚC 8 đổi **tập lệnh** (820 → 214) bằng cách đổi thứ tự vòng lặp; ĐO 8 **giữ nguyên** tập lệnh và chỉ đổi cách mô hình hoá tài khoản.
 
 **Dụng cụ đọc:** `tools/do8_doi_chung_duong_von.py`
 

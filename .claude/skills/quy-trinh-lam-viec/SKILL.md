@@ -57,6 +57,17 @@ Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 grep -rn "<khai niem>" tests/ tools/ --include=*.py | head -20
 ```
 
+> **Với một PHÉP ĐO thì điều này nay có gác** (14/09/2026). Mỗi mục
+> `## ĐO n` trong `docs/TIEU-CHI-DOC-TRUOC.md` phải mang một trong hai
+> dòng — `**Đã tra trùng:** BƯỚC n — …` hoặc
+> `**Không khai được là đã tra vì:** …` — và mọi số hiệu BƯỚC được khai
+> phải CÓ THẬT trong `docs/STATE.md`.
+>
+> Gác: `tests/test_do_phai_khai_da_tra.py`. Nó **không** biết lời khai
+> có đúng không; nó chặn đúng một thứ — **một phép đo đã ký mà không ai
+> nói được đã tra trùng hay chưa**. Hai lỗi sinh ra nó: lỗi 41 (ĐO 5
+> trùng BƯỚC 25, mất 88,8 phút) và lỗi 53 (ĐO 8 bỏ qua BƯỚC 8).
+
 **Hai lần trong ba ngày** (05/09 và 07/09) lời giải nằm sẵn trong
 `tests/test_c5_noi_that.py`, kèm docstring nói thẳng lý do, và tôi vẫn
 tự viết lại từ đầu. Chép lời giải ra chỗ mới thì rẻ; đọc trước khi viết
