@@ -11183,3 +11183,117 @@ lỗi: quy trình chặn được nó trước khi giao.
 
 Không đụng bảy luật còn lại. Câu hỏi *"còn luật nào khác đang khai hẹp hơn
 cơ chế của nó?"* — **chưa đo**, và không được đoán.
+
+
+---
+
+## BƯỚC 65 — ĐẾM CẢ TÁM LUẬT, VÀ MÁY TÁCH CẮT NHẦM CHỖ (14/09/2026)
+
+BƯỚC 64 kết thúc bằng một câu để ngỏ, kèm dòng *"CHƯA ĐO, và không được
+đoán"*:
+
+> *"Còn luật nào khác đang khai hẹp hơn cơ chế của nó?"*
+
+Đi đo. Tiêu chí một lỗ hổng, khai **trước** khi chạy: một hình dạng
+**(a)** kích hoạt đúng cơ chế mà chính luật tự nêu trong lời khai, và
+**(b)** không bị bắt.
+
+### Kết quả, và nó không dễ chịu
+
+```
+13 / 14  hinh dang LOT
+6 / 7    luat con lai co lo hong    (chi `hai-heredoc` giu duoc)
+```
+
+**Lỗi 48 trông như vấn đề của MỘT luật. Đếm cả tám thì nó là vấn đề của
+HỆ.** Đó là toàn bộ giá trị của việc đi đếm, và nó lặp lại bài học lỗi 39
+ở một tầng khác: *thử một điểm cho mỗi ô chứng minh ô ấy đạt tới được; nó
+KHÔNG chứng minh n ô cộng lại phủ kín.*
+
+### Chỗ hở nguy hiểm nhất không nằm ở luật nào — nó nằm ở MÁY TÁCH
+
+Cửa Bash không đọc lệnh thô. Từ 11/09/2026 nó đi qua `boc_va_tach()`, và
+phép ấy đã sửa được cán cân 8 chặn nhầm / 3 chặn đúng. Nhưng:
+
+```python
+_NGAN_DON = ";&\n"
+```
+
+Trong bash, `&` là dấu ngăn lệnh **trừ khi** nó thuộc một chuyển hướng:
+`2>&1`, `>&2`, `<&0`, `&>file`. Máy tách không biết phân biệt ấy:
+
+```
+pytest ... -q 2>&1 | tail -20
+   ->  'pytest ... -q 2>'   va   '1 | tail -20'
+```
+
+**Cái ống rơi sang đoạn không còn chữ `pytest` nào.** Nên
+`pytest-qua-ong` mù với hình dạng phổ biến nhất của thứ nó sinh ra để
+bắt — và tôi gõ đúng hình dạng ấy **nhiều lần trong một ngày** mà không
+lần nào bị chặn.
+
+Máy tách là nền dùng chung của **năm** luật. Một phép cải thiện lớn
+(11/09) mang theo một khuyết tật mới ở tầng dưới nó, và khuyết tật ấy im
+lặng suốt ba ngày.
+
+Sửa: `_la_chuyen_huong()`. **Ngay sau khi nới, luật chặn chính lệnh kế
+tiếp của tôi** — `pytest … 2>&1 | tail -10`. Một cái gác cắn tác giả của
+nó ở lượt đầu tiên là một cái gác có thật.
+
+### Ba luật nới được, mỗi phép nới ĐO TRƯỚC
+
+Bài học lỗi 49 — *đo đúng phép, sai quần thể* — áp ngay ở đây. Quần thể
+proxy tốt nhất hiện có là **hai**, và cả hai đều là dữ liệu thật:
+
+| quần thể | là gì |
+|---|---|
+| 20 lệnh `TOT` | những lần **chặn nhầm đã đo được** trong quá khứ |
+| 69 dòng lệnh tài liệu | mọi khối ```bash git biết |
+
+```
+pytest-qua-ong   bo `;` `&` `>` khoi lop phu dinh   0 bat nham
+sed-i-file-repo  them dang dai `--in-place`         0 bat nham
+python-he-thong  them `python3.11` va `py`          0 bat nham
+```
+
+Và một phép nới **đo rồi, cố ý KHÔNG làm**: nới `pytest-qua-ong` ra mọi
+ống sẽ bắt thêm `| grep` (mất mã thoát thật) nhưng cũng bắt nhầm
+`pytest --collect-only -q | wc -l` và một `$(…)` có ống bên trong. Hai
+mẫu ấy nay nằm trong `TOT` để phép nới đó **không lặng lẽ xảy ra sau
+này**.
+
+### Chín hình dạng CHƯA đóng — mỗi cái một lý do đọc được
+
+```
+13 lot -> 9 lot
+```
+
+Chi tiết trong bảng lỗi, dòng 51. Ba nhóm:
+
+1. **Cần một luật MỚI, không phải nới luật cũ** — ghi đè file nguồn không
+   qua heredoc (`> f.py`, `cp`, `mv`), `perl -i`, `> x.db`. Tên các luật
+   hiện có khai đúng phạm vi chúng có; nới chúng là làm tên nói dối.
+2. **Không đóng được bằng luật chuỗi** — `git push` trần khi đang đứng
+   trên `main`. Cửa chỉ thấy văn bản lệnh; biết đang ở nhánh nào là
+   trạng thái LÚC CHẠY.
+3. **Cố ý không chặn** — `mv x.db /tmp`: ngày 12/09 tôi đã *chuyển* file
+   `.db` sang scratchpad thay vì xoá, và đó là hành vi ĐÚNG. Chặn nó là
+   chặn đúng cách đi vòng an toàn.
+
+> **Một bảng chín dòng chưa đóng, mỗi dòng có lý do, đáng tin hơn một con
+> số "đã đóng hết".** Ba ngày qua đã có hai lần một dấu ✅ hứa rộng hơn
+> thứ nó giao — lỗi 44 và lỗi 47.
+
+### Điều CHƯA làm được, và nó là giới hạn cấu trúc
+
+Cửa Bash **không ghi nhật ký**. `cua_doc_bat_buoc` có
+(`vibe_cua_doc_chay.log` trong TEMP), cửa Bash thì không. Nên câu *"nới
+luật này có bắt nhầm không?"* hiện **không trả lời bằng phép đo trên quần
+thể thật được** — chỉ đo được trên proxy.
+
+Đó chính là lỗ hổng của lỗi 49 ở dạng cấu trúc. Ghi ra đây, **chưa làm**.
+
+```
+tests/test_cua_quy_trinh.py   +4 mau PHAI CHAN · +2 mau PHAI QUA · +1 phep kiem
+duc thu  8/8 do        0 phat song sot
+```

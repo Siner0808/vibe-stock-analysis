@@ -37,6 +37,35 @@ _NGAN_DOI = ("&&", "||")
 _NGAN_DON = ";&\n"
 
 
+def _la_chuyen_huong(lenh: str, i: int) -> bool:
+    """Dấu `&` ở vị trí `i` có thuộc một dấu CHUYỂN HƯỚNG không?
+
+    `&` là dấu ngăn lệnh trong bash — **trừ khi** nó là một phần của
+    `2>&1`, `>&2`, `<&0` hay `&>file`. Máy tách không biết phân biệt ấy
+    cho tới 14/09/2026, nên nó cắt
+
+        pytest ... -q 2>&1 | tail -20
+    thành
+        'pytest ... -q 2>'   và   '1 | tail -20'
+
+    Cái ống rơi sang đoạn thứ hai, nơi không còn chữ `pytest` nào — nên
+    `pytest-qua-ong` **mù với chính hình dạng phổ biến nhất** của thứ nó
+    sinh ra để bắt. Tôi gõ đúng hình dạng ấy nhiều lần trong ngày và
+    không lần nào bị chặn.
+
+    Máy tách là nền dùng chung của **năm** luật, nên chỗ sai này không
+    phải của riêng một luật.
+    """
+    if lenh[i] != "&":
+        return False
+    if i + 1 < len(lenh) and lenh[i + 1] == ">":       # `&>` hoac `&>>`
+        return True
+    j = i - 1
+    while j >= 0 and lenh[j] in " \t":
+        j -= 1
+    return j >= 0 and lenh[j] in "><"                  # `2>&1`, `>&2`, `<&0`
+
+
 def _nuot_than_heredoc(lenh: str, i: int, cho: list[str]) -> int:
     """Nhảy qua thân của mọi heredoc đang chờ. Trả vị trí sau thân cuối."""
     while cho:
@@ -205,7 +234,7 @@ def _quet(lenh: str, tach: bool, giu_nhay: bool = False) -> list[str]:
                 hien.append("  ")
             i += 2
             continue
-        if c in _NGAN_DON:
+        if c in _NGAN_DON and not _la_chuyen_huong(lenh, i):
             if tach:
                 chot()
             else:
@@ -289,12 +318,17 @@ LUAT = [
     ),
     (
         "sed-i-file-repo",
-        re.compile(r"\bsed\s+(?:-\w+\s+)*-i\b"),
+        # `--in-place` la dang DAI cua `-i`, cung co che. Ban cu
+        # `-\w+` khong khop `--in-place` vi `\w` khong an dau `-`.
+        re.compile(r"\bsed\s+(?:-[-\w]+\s+)*(?:-i\b|--in-place\b)"),
         "`sed -i` trên file repo. CHƯA CÓ SỰ CỐ nào ghi ngày trong repo — "
         "đây là QUY ƯỚC, chép từ `CLAUDE.md` (\"vá lớn thì viết một file "
         ".py rồi chạy\"). Rủi ro thật: bản mingw xử lý ký tự không phải "
         "ASCII không chắc chắn, mà tài liệu và test ở đây toàn tiếng Việt "
         "có dấu.\n"
+        "  Nới 14/09/2026: bản cũ bỏ sót dạng dài `--in-place`, cùng công "
+        "cụ và cùng cơ chế. `perl -i` thì KHÔNG nới — đó là công cụ "
+        "khác, và không có luật nào cho nó; xem BƯỚC 65.\n"
         "  Cách đúng: `tools/va_an_toan.thay()` (chế độ văn bản, neo phải "
         "khớp đúng một lần).",
     ),
@@ -317,18 +351,36 @@ LUAT = [
         # Viec RIENG ay chinh la `boc_va_tach()` o dau file. Luat nay nay
         # doc ban DA BOC, nen van ban nhac toi hinh dang xau khong con bi
         # khop. Bieu thuc ben duoi KHONG doi — cai doi la thu no doc.
-        re.compile(r"\bpytest\b[^|;&\n>]*\|\s*(?:tail|head)\b"),
+        # 14/09/2026 — lop phu dinh siet lai con dung mot ky tu.
+        # `;` va `&` o do la THUA: may tach da cat dau ngan THAT roi.
+        # `>` la ve them ngay 10/09 de tranh khop
+        # `pytest ... > log; grep ... | head`, nhung dau `;` moi la thu
+        # tach ca ay, va viec tach da do `boc_va_tach()` lam tu 11/09.
+        # Ve `>` o lai sau khi ly do cua no da mat, va no lam luat MU
+        # voi `pytest ... 2>&1 | tail` — hinh dang pho bien nhat.
+        re.compile(r"\bpytest\b[^|\n]*\|\s*(?:tail|head)\b"),
         "`pytest ... | tail` — `tail` đệm toàn bộ output tới khi ống đóng. "
         "Với một lượt chạy nền thì bạn không đọc được gì cho tới lúc nó "
         "xong, và sẽ ngồi hỏi 'xong chưa'. Đếm được ít nhất 10 lượt như "
         "vậy ngày 07/09/2026.\n"
+        "  Mặt thứ HAI, im lặng hơn: mã thoát của một ống là mã thoát của "
+        "lệnh CUỐI, tức `tail`, tức luôn 0 — nên `&&` sau đó đi tiếp dù "
+        "pytest đỏ.\n"
+        "  Nới 14/09/2026: bản cũ mù với `pytest … 2>&1 | tail` vì lớp "
+        "phủ định loại cả `>` lẫn `&`, mà `2>&1` có cả hai. Đo trước khi "
+        "nới: 0 bắt nhầm trên 20 lệnh `TOT` và 69 dòng lệnh tài liệu.\n"
         "  Cách đúng: `... -q > /tmp/kq.log 2>&1` rồi đọc file log.",
     ),
     (
         "python-he-thong",
-        re.compile(r"(?:^|[;&|]\s*)(?:python|python3)\s+(?!-c\b)"),
+        # 14/09/2026: them `python3.11`, `python3.13` va `py` (bo
+        # phong cua Windows). Ca ba deu la python HE THONG, cung co che.
+        re.compile(r"(?:^|[;&|]\s*)(?:python3?(?:\.\d+)?|py)\s+(?!-c\b)"),
         "`python` hệ thống không có numpy/pandas của dự án. CHƯA CÓ SỰ CỐ "
         "ghi ngày — QUY ƯỚC, chép từ `docs/HANDOFF.md` mục 1.\n"
+        "  Nới 14/09/2026: bản cũ bỏ sót `python3.11` và `py` — cùng là "
+        "python hệ thống. Đo trước khi nới: 0 bắt nhầm trên 20 lệnh "
+        "`TOT` và 69 dòng lệnh tài liệu.\n"
         "  Cách đúng: `./.venv/Scripts/python.exe`.",
     ),
     (
