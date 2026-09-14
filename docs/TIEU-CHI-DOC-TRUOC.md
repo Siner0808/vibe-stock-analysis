@@ -1360,3 +1360,156 @@ C = trong B, bao nhieu dong DO LAI DUOC bang git
 - **Không** dời biên giới `co-che` / `nguoi-thay` sau khi thấy A và B.
 - **Không** đọc kết quả này thành *"quy trình tệ hơn ta tưởng"*. Nó chỉ
   nói **bằng chứng mỏng hơn ta tưởng**. Hai câu ấy khác nhau.
+
+
+---
+
+## ĐO 8 — số học đường vốn: cài đặt của ta so với một cài đặt ĐỘC LẬP (khai 14/09/2026)
+
+**Dụng cụ đọc:** `tools/do8_doi_chung_duong_von.py`
+
+### Câu hỏi
+
+`paper_metrics.compute()` dựng đường vốn bằng **cộng dồn tuần tự theo ngày
+đóng**:
+
+```python
+equity = 100.0
+for t in closed sorted by exit_date:
+    equity *= 1 + (net_return_pct / 100) * (size_pct / 100)
+```
+
+Hai lệnh **chồng lấn theo thời gian** vẫn được nhân nối tiếp — tức vốn của
+lệnh sau hưởng lãi của lệnh trước, điều chưa từng xảy ra. Bất biến 7b gọi
+đó là **đòn bẩy trá hình**, và dự án hiện chỉ **cảnh báo** bằng
+`avg_capital_deployed_pct`, chưa bao giờ **định lượng** khoảng cách.
+
+Câu hỏi: **một tài khoản tiền mặt THẬT, vốn cố định, không vay, chạy trên
+ĐÚNG tập lệnh ấy, cho lợi nhuận bao nhiêu?**
+
+### Vì sao cần một cài đặt độc lập
+
+Dự án đã **năm lần** cho ra số đẹp vô nghĩa, và ít nhất hai lần nằm ở đúng
+tầng này: `+636,11%` (đòn bẩy 2,2 lần) và đường vốn dựng theo `id` thay vì
+theo thời gian (23,0% so với 30,7%). Một phép kiểm do **chính tác giả** viết
+lại không bắt được lỗi của chính tác giả — đó là bài học lỗi 34 và của cả
+mục *"Test KIỂM LẠI CHÍNH NÓ"* trong `CLAUDE.md`.
+
+Nên vế đối chứng phải là **mã của người khác**: `vectorbt`, một thư viện
+backtest vector hoá, 9.083 sao, mô hình danh mục có ràng buộc tiền mặt thật
+(`cash_sharing`, `SizeType.TargetPercent`).
+
+### RANH GIỚI GIẤY PHÉP — quyết trước, không bàn sau
+
+`vectorbt` dùng **Apache-2.0 with Commons Clause** — GitHub trả
+`NOASSERTION` vì nó KHÔNG phải giấy phép nguồn mở OSI. Repo này **công
+khai**. Nên:
+
+- **KHÔNG** đưa vào `requirements.txt`. CI và Streamlit Cloud không bao giờ
+  cài nó — cùng lựa chọn đã áp cho bốn gói vnstock.
+- **KHÔNG** cài vào `.venv` chính. Đo thử 14/09/2026: cài vào đó sẽ nâng
+  **pandas 2.3.3 → 3.0.5** và **numpy 2.2.6 → 2.5.3**. Một bước nhảy major
+  của pandas đổi số của cả dự án — đúng địa hạt quy tắc số 1.
+- Nó sống trong **một venv RIÊNG**, và dụng cụ gọi nó qua tiến trình con,
+  trao đổi bằng file. Không mã nào của repo `import vectorbt` ở mức module.
+
+### Đại lượng
+
+```
+A = total_net_pct cua paper_metrics.compute()      (cong don tuan tu)
+B = loi nhuan cuoi ky cua MOT tai khoan tien mat that, von co dinh,
+    khong vay, chay tren DUNG tap lenh ay          (vectorbt)
+C = avg_capital_deployed_pct        D = peak_capital_deployed_pct
+```
+
+### PHÉP KIỂM DỤNG CỤ — đọc TRƯỚC mọi con số khác
+
+Hai ca dựng tay, **đáp số tính được bằng tay**, nên không vế nào được tin
+trước:
+
+| ca | tập lệnh | đáp số đúng, tính tay |
+|---|---|---|
+| **1** | hai lệnh **KHÔNG** chồng lấn, mỗi lệnh `size_pct=100` | cộng dồn tuần tự LÀ đúng → A phải bằng B |
+| **2a** | hai lệnh **CHỒNG LẤN HOÀN TOÀN**, mỗi lệnh `size_pct=50`, `+10%` và `−5%` | `A = 102,375` · `B = 102,500` → **A < B** |
+| **2b** | **BA** lệnh chồng lấn, mỗi lệnh `size_pct=50` → cam kết **150%** | tài khoản thật **không cấp vốn nổi** lệnh thứ ba |
+
+**Nếu ca 1 không cho A = B trong dung sai `1e-6` tương đối thì tôi đã cấu
+hình vectorbt SAI, và không con số nào khác đọc được.** Dừng, sửa cấu hình,
+chạy lại — **không** đọc ca 3.
+
+### SỬA MỘT KỲ VỌNG ĐÃ KHAI — số học tính tay bác nó, TRƯỚC khi chạy
+
+Bản khai đầu (commit `207da19`, 11:11:03) viết cho ca 2: *"A phải LỚN HƠN
+B"*. **Sai**, và cái bác nó không phải một lượt chạy — là số học tính tay:
+
+```
+Pi(1 + w_i r_i) = 1 + Sigma w_i r_i + Sigma_{i<j} w_i w_j r_i r_j
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                      SO HANG CHEO
+```
+
+Cộng dồn tuần tự cho **tích**, tài khoản thật cho **tổng có trọng số**.
+Khoảng cách chính là số hạng chéo, và **dấu của nó đi cả hai chiều**: hai
+lệnh cùng lãi thì tích lớn hơn tổng, một lãi một lỗ thì tích NHỎ hơn.
+
+```
+ca 2a  +10% va -5%  : 1,05 x 0,975 = 1,023750  <  0,5x1,10 + 0,5x0,95 = 1,0250
+hai lenh cung +10%  : 1,05 x 1,05  = 1,102500  >  0,5x1,10 + 0,5x1,10 = 1,1000
+```
+
+**Hệ quả cho cách đọc, và nó lớn hơn phép sửa:** *"cộng dồn lệnh chồng lấn
+là đòn bẩy trá hình"* (bất biến 7b) **không** có nghĩa là cộng dồn luôn
+thổi số lên. Méo mó có **HAI phần**, và chúng khác hẳn nhau:
+
+| phần | là gì | bậc |
+|---|---|---|
+| **số hạng chéo** | tích thay vì tổng với lệnh ĐỒNG THỜI | bậc hai, dấu đi hai chiều |
+| **cấp vốn** | vốn cam kết vượt 100% — tài khoản thật KHÔNG cấp nổi | bậc nhất, **luôn** thổi lên |
+
+Ca 2b thêm vào đúng để tách hai phần ấy. Phần **cấp vốn** mới là thứ đã
+tạo ra `+636,11%` ngày 12/08/2026 ở đòn bẩy 2,2 lần.
+
+> Ghi lại phép sửa này thay vì lặng lẽ sửa: một kỳ vọng đã ký mà bị bác
+> **trước khi chạy**, bởi số học chứ không bởi số liệu, là thứ đáng giữ
+> nhất trong một bản khai. Nó cũng là bằng chứng bản khai được đọc lại
+> chứ không chỉ được viết ra.
+
+### Ba ca, và ca 3 mới là ca có ý nghĩa
+
+Ca 3 chạy trên **sổ lệnh thật** đã đóng băng thành file để tái lập được
+(bài học BƯỚC 60: một phép đo chỉ chạy được một lần là một phép đo chỉ-đọc).
+
+### Bốn kết cục, khai TRƯỚC
+
+| # | điều kiện | đọc thế nào |
+|---|---|---|
+| 1 | `\|A − B\| ≤ 0,5` điểm **VÀ** `D ≤ 100%` | số học hai bên khớp; tập lệnh này không có đòn bẩy trá hình. Không đổi gì. |
+| 2 | `\|A − B\| > 0,5` điểm **VÀ** `D > 100%` | **khoảng cách LÀ đòn bẩy trá hình, và nay đo được** thay vì chỉ được cảnh báo. Ghi con số vào tài liệu; KHÔNG sửa `compute()` trong cùng PR. |
+| 3 | `\|A − B\| > 0,5` điểm **NHƯNG** `D ≤ 100%` | chỉ còn **số hạng chéo** giải thích được. Nếu độ lớn không khớp số hạng chéo tính tay thì một trong hai cài đặt sai, và giả định đầu tiên là **của TA** (quy tắc số 1). |
+| 4 | `B > A` trên tập lệnh có `D > 100%` | bất ngờ: phần cấp vốn lẽ ra **luôn** thổi A lên. **Phải truy**, không được nhận. |
+
+### Giới hạn phải nêu TRƯỚC, và chúng thật
+
+1. **Phép đo này KHÔNG nói gì về chiến lược.** Nó chỉ hỏi: *hai cài đặt có
+   cùng số học không*. Alpha, kỳ vọng, ngưỡng — không đại lượng nào trong
+   ĐO 8 chạm tới.
+2. **Chi phí TẮT ở CẢ HAI VẾ.** Mô hình trượt giá của vectorbt là **phần
+   trăm của giá** (`enums.py`: *"Slippage in percentage of Order.price"*),
+   trong khi chi phí của ta do **bước giá 50đ** quyết định — hai thứ khác
+   hẳn. Bật lên là so hai mô hình chi phí, không phải so số học.
+3. **Không so được về khớp lệnh.** vectorbt không có biên độ ±7%, không có
+   trần thanh khoản mỗi nến, không có vòng đời lệnh. Nên tập lệnh phải
+   được **truyền vào** cả hai vế y hệt, không bên nào tự sinh lệnh.
+4. **Một mình vectorbt không phải trọng tài.** Ở ca 1 và 2, trọng tài là
+   **số học tính bằng tay**. vectorbt chỉ là vế thứ ba để ca 3 đọc được.
+
+### Điều KHÔNG được làm sau khi thấy số
+
+- **Không** sửa `paper_metrics.compute()` trong cùng PR với phép đo. Đo và
+  sửa trong một lượt thì không ai đọc được cái nào có trước.
+- **Không** đọc kết cục 2 thành *"mọi con số cũ của dự án đều sai"*. Bất
+  biến 7b đã nói điều đó từ đầu; ĐO 8 chỉ thay một cảnh báo định tính bằng
+  một con số.
+- **Không** đổi dung sai `0,5` điểm sau khi thấy `A − B`.
+- **Không** bỏ ca 1 nếu nó đỏ. Ca 1 đỏ nghĩa là dụng cụ sai, và mọi con số
+  sau đó vô nghĩa.

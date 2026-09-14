@@ -101,7 +101,10 @@ là lỗi sẽ tái diễn.
 | 50 | **máy tách coi dấu `&` của một CHUYỂN HƯỚNG là dấu ngăn lệnh**: `pytest … 2>&1 \| tail` bị cắt thành `pytest … 2>` và `1 \| tail`, nên cái ống rơi sang đoạn không còn chữ `pytest` nào. Luật `pytest-qua-ong` **mù với hình dạng phổ biến nhất** của thứ nó sinh ra để bắt — tôi gõ đúng hình dạng ấy nhiều lần trong một ngày mà không lần nào bị chặn | rà soát cả 8 luật bằng hình dạng dựng tay | ✅ | `_la_chuyen_huong()`: `&` chỉ là dấu ngăn khi nó không thuộc `2>&1` · `>&2` · `<&0` · `&>f`. Máy tách là nền dùng chung của **năm** luật |
 | 51 | **rà soát cả 8 luật: 13/14 hình dạng LỌT.** Ba luật khai hẹp hơn cơ chế chúng nêu — `sed -i` bỏ sót dạng dài `--in-place`, `python-he-thong` bỏ sót `python3.11` và `py`, `pytest-qua-ong` bỏ sót mọi lệnh có `2>&1`. Lỗi 48 trông như vấn đề của **một** luật; đếm cả tám thì nó là vấn đề của **hệ** | đo, sau khi lỗi 48 để ngỏ đúng câu hỏi này | ⚠️ **4/13** | nới ba luật, mỗi phép nới đo bắt nhầm trước trên 20 lệnh `TOT` + 69 dòng lệnh tài liệu, cả ba ra **0**. Còn **9 hình dạng chưa đóng**, kể tên trong `docs/STATE.md` BƯỚC 65 |
 
-**Ba mươi ba trên năm mươi mốt máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+| 52 | **bảng kết cục đã ký CHỒNG ĐIỀU KIỆN**: ô 2 (`\|A−B\| > ngưỡng` và `D > 100%`) và ô 4 (`B > A` khi `D > 100%`) cùng khớp, và dụng cụ đọc theo `elif` — tức **thứ tự viết** quyết định cách đọc. Nó in ra một kết luận ở đúng tình huống bảng bảo *đừng nhận một kết luận* | đọc lại bảng đã ký sau khi thấy dụng cụ in một ô | ✅ | `doc_ket_cuc()` in **MỌI** ô khớp, nói ra khi có xung đột, và theo ô **thận trọng hơn** |
+| 53 | **thiết kế một phép đo mà không tra xem dự án ĐÃ ĐO chưa** — đúng lỗi 41, lần thứ hai. `docs/STATE.md` BƯỚC 8 đã định lượng méo mó đòn bẩy từ 31/08/2026 (606/820 lệnh đòi vốn tài khoản không có), và tôi không biết cho tới khi NotebookLM chỉ ra | NotebookLM, **sau** khi phép đo đã chạy xong | ❌ | ĐO 8 hoá ra **KHÔNG trùng** BƯỚC 8 — nhưng nó thoát **vì may**, không vì đã tra. Ứng viên gác: mỗi mục `## ĐO n` phải khai *đã tra BƯỚC nào*, cùng lối `khong_soat_vi` |
+
+**Ba mươi bốn trên năm mươi ba máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
