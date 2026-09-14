@@ -11450,3 +11450,93 @@ thoát 2 khi hỏng, không bao giờ trả một con số. Một vế đối ch
 trong im lặng biến phép so thành **phép tự xác nhận** — và nó đã hỏng thật
 hai lần trong lượt dựng (plotly 6 đụng `scattermapbox`; `size_type` truyền
 dạng bảng float cho `KeyError: 5.0`).
+
+
+---
+
+## BƯỚC 67 — GÁC CHO CÂU HỎI "ĐÃ ĐO CHƯA" (14/09/2026)
+
+BƯỚC 66 để ngỏ một ứng viên gác. Dựng luôn.
+
+Hai lần dự án thiết kế một phép đo mà không tra xem **nó đã được đo chưa**,
+và **cả hai lần thứ tìm ra chỗ trùng đều là NotebookLM, sau khi việc đã
+xong**:
+
+```
+loi 41  12/09  DO 5 la ban TRUNG cua BUOC 25 — 88,8 phut lang phi
+loi 53  14/09  DO 8 bo qua BUOC 8 — thoat, nhung thoat VI MAY
+```
+
+### Chỗ quyết định: kiểm VAI TRÒ, không kiểm sự xuất hiện
+
+Đếm trước khi dựng: **5/11 mục ĐO có nhắc một số `BƯỚC`**. Nghe như đã đủ
+để làm gác. Nhưng **ĐO 8 nằm trong năm mục ấy** — nó nhắc `BƯỚC 60` ở phần
+giới hạn, và vẫn là mục đã bỏ qua `BƯỚC 8`.
+
+> **Một gác chấp nhận "thân mục có nhắc chữ BƯỚC nào đó" sẽ cho lọt đúng
+> ca nó sinh ra để bắt.** Cùng bài học lỗi 30/35/36/38/44.
+
+Nên gác đòi một **dòng khai riêng**, và phát đục đầu tiên dựng lại nguyên
+văn cái nới ấy — nó đỏ.
+
+### Tra trùng THẬT cho cả 11 mục, không khai bù
+
+```
+10 / 11  muc khai DA TRA
+ 1 / 11  khong khai duoc  ->  DO 5
+```
+
+ĐO 5 là mục duy nhất không khai được, và lý do ghi nguyên trạng: *"lượt làm
+ngày 12/09 KHÔNG tra, và nó hoá ra TRÙNG BƯỚC 25"*. Ghi sự thật thay vì
+khai bù một lời khai chưa từng tồn tại.
+
+Con số `10/11` là một **thước đếm được**, không phải một phép chặn — cửa
+thoát mà không đếm được thì nó thành chỗ trốn.
+
+### Phương pháp tra tự bộc lộ giới hạn — và giới hạn ấy ĐO ĐƯỢC
+
+Tra bằng từ khoá trên **tiêu đề** 65 BƯỚC:
+
+```
+DO 8  -> tim thay BUOC 8   (dung cho toi da bo sot)
+DO 5  -> KHONG tim thay BUOC 25
+```
+
+Tiêu đề BƯỚC 25 là *"VÌ SAO NỀN KHÔNG TÁI LẬP: KHÔNG PHẢI LỖI, LÀ BẢNG SỐ
+BỊ BỎ QUÊN"* — **không một chữ nào về 385/376**. Chỗ trùng ấy chỉ tìm được
+bằng cách đọc THÂN mục.
+
+> Nên gác này **không** hứa rằng một lời khai chứng minh không trùng. Nó
+> chặn đúng một thứ: **một phép đo đã ký mà không ai nói được đã tra hay
+> chưa.** Nói ra phạm vi ấy là bài học lỗi 44.
+
+### Vòng đục thử đòi lại bốn thứ, và một trong đó là MÃ CHẾT LẦN HAI
+
+Lượt đục đầu: **4/8 đỏ**. Bốn phát sống sót nói bốn chuyện:
+
+| phát sống | nó chỉ ra gì |
+|---|---|
+| bỏ phép kiểm "khai `đã tra` phải nêu BƯỚC" | phép phán chỉ chạy trên **file thật**, mà file thật không có mục nào hỏng — lỗi 34 |
+| bỏ phép kiểm "BƯỚC phải có thật" | cùng lý do |
+| bỏ tập từ chung chung | **tập ấy là MÃ CHẾT**: phần tử dài nhất 10 ký tự, ngưỡng 30, phép đo độ dài chạy TRƯỚC |
+| đổi `DAI_TOI_THIEU` | hằng số ấy **không ai đọc** — nó thành đồ trang trí |
+
+**Mã chết lần thứ hai trong một ngày, cùng hình dạng.** Sáng nay vòng đục
+thử của `tools/soat_lenh_tai_lieu.py` lôi ra đúng khuyết tật ấy (phần tử
+dài nhất 9 ký tự, ngưỡng 24) và tôi đã gỡ. Chiều chép lại y nguyên.
+
+Không thêm dòng bảng lỗi: vòng đục bắt được nó **trước khi giao**, cả hai
+lần. Nhưng ghi ra đây, vì hai lần trong một ngày là một hình dạng, không
+phải một lần sảy tay.
+
+Sửa cả bốn:
+
+```
+go han tap tu chung chung — nguong 30 ky tu tu no da buoc phai cu the
+ghim DAI_TOI_THIEU bang literal o HAI cho khac nhau
+tach loi_cua_khai() thanh HAM THUAN, thu bang mau dung tay HAI CHIEU
+```
+
+```
+duc lai ca bo: 8/8 do       0 phat song sot
+```
