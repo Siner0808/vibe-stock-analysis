@@ -188,7 +188,15 @@ XAU = [
     ("xoa .db", "rm paper_trades.db", "xoa-db-goc-repo"),
     ("backtick trong python -c",
      './.venv/Scripts/python.exe -c "s = ```bash"',
-     "backtick-trong-python-c"),
+     "backtick-trong-nhay-kep"),
+    # Hien than THU HAI cua cung co che, cat that ngay 14/09/2026 o mot
+    # cong cu khac han. Luat cu (chi canh `python -c`) KHONG bat duoc.
+    ("backtick trong doi so cua mot lenh khac",
+     './.venv/Scripts/python.exe tools/x.py --ly-do "dung `nguoi-thay` day"',
+     "backtick-trong-nhay-kep"),
+    ("backtick trong -m cua git commit",
+     'git commit -m "sua `foo` thanh `bar`"',
+     "backtick-trong-nhay-kep"),
     # Duong dan TUYET DOI nhung nam TRONG repo — van la ghi de file nguon.
     ("heredoc ghi de file repo bang duong tuyet doi",
      f"cat > {GOC.as_posix()}/tools/x.py <<'EOF'\nx\nEOF\n",
@@ -202,6 +210,22 @@ XAU = [
 # Moi dong duoi day la mot lan CHAN NHAM da do duoc, hoac mot loi khai da
 # bi BAC bang phep do. Chung khong phai gia dinh — xem BUOC 51.
 TOT = [
+    # Ba dong duoi day la BAT NHAM do duoc ngay 14/09/2026, ngay luot dau
+    # tien sau khi noi luat backtick. Chung la ly do co pham vi thu tu
+    # `DOC_GIU_NHAY` va mau doi mot CAP nhay dong lai.
+    ("nhay DON — dung cach sua, phai con dung duoc",
+     "./.venv/Scripts/python.exe tools/x.py --ly-do 'dung `a` day'"),
+    ("backtick trong nhay DON, sau mot cap nhay KEP da dong",
+     "git commit -m \"ok\" --author 'a`b'"),
+    # Trong nhay kep, bash chi cho `\\` giu nghia dac biet truoc $ ` \" \\
+    # va xuong dong. Nen `\\`` la mot backtick VAN BAN, khong noi suy gi.
+    ("backtick DA THOAT trong nhay kep — bash khong noi suy",
+     "echo \"gia tri \\`a\\` o day\""),
+    ("than heredoc CO trich dan: bash KHONG noi suy nen backtick vo hai",
+     "./.venv/Scripts/python.exe - <<'PYEOF'\n"
+     "RONG = re.compile(r\"[^x]*`\")\n"
+     "print(\"gia tri `a` o day\")\n"
+     "PYEOF\n"),
     ("mot heredoc", "./.venv/Scripts/python.exe - <<'EOF'\nprint(1)\nEOF\n"),
     ("pytest ghi ra log", "./.venv/Scripts/python.exe -m pytest tests/ -q > kq.log 2>&1"),
     ("venv python", "./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py"),

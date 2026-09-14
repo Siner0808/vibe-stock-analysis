@@ -11074,3 +11074,112 @@ Nó **gỡ mất** con số gây hiểu nhầm. Nó **không** ngăn được vi
 một con số khác. Lớp *đọc một phép đo rộng hơn phạm vi nó có* — lỗi 25,
 35, 36, 44, 47 — vẫn chưa có gác chung, và đó là lớp đông thứ nhì của
 bảng.
+
+
+---
+
+## BƯỚC 64 — MỘT GÁC HẸP HƠN CƠ CHẾ NÓ CANH, VÀ MỘT PHÉP ĐO SAI QUẦN THỂ (14/09/2026)
+
+Việc thứ ba trong ngày, và nó bắt đầu từ một lỗi tôi **tự gây ra** lúc ghi
+mốc số test của BƯỚC 63:
+
+```
+tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do "... `nguoi-thay` ..."
+   -> bash: nguoi-thay: command not found
+```
+
+Đó là **cùng cơ chế** đã nuốt mất một khối mã ba dòng ngày 08/09/2026 —
+bash nội suy backtick trong nháy kép. Luật dựng ra hôm ấy tên
+**backtick-trong-python-c**, và nó canh đúng chừng ấy.
+
+### Cái tên hẹp hơn cơ chế
+
+```
+\bpython[^\s]*\s+-c\s+"[^"]*`      <- luat cu
+```
+
+Bash nội suy trong nháy kép của **mọi** lệnh; `python -c` chỉ là chỗ nó
+cắn lần đầu. Sáu ngày sau nó cắn ở `--ly-do` của một công cụ khác hẳn.
+
+> Đây là **mặt ngược của lỗi 44**. Lỗi 44 là một dấu ✅ **hứa rộng hơn**
+> thứ cái gác giao. Lỗi 48 là một cái gác **canh hẹp hơn** cơ chế nó mang
+> tên. Cùng một chỗ hở — *phạm vi khai không khớp phạm vi thật* — nhìn từ
+> hai phía. Và cả hai chỉ lộ ra khi có người **đi đo lại phạm vi**: lời
+> khai nào cũng tự nhất quán.
+
+### Đếm trước khi nới — và đếm sai quần thể
+
+```
+69 dong lenh trong tai lieu repo · 0 dong dinh luat rong
+```
+
+Rồi đọc thành *"nới là an toàn"*, và nới. **Lệnh kế tiếp của tôi bị
+chặn**: một đoạn Python chạy bằng `<<'PYEOF'` có chuỗi `"[^"]*` + backtick
+bên trong.
+
+Thân heredoc **có trích dẫn** thì bash **không nội suy** — nên đó là bắt
+nhầm. Phép đo không sai; **quần thể sai**. Tôi đo trên *dòng lệnh viết
+trong tài liệu* rồi kết luận về *lệnh tôi sẽ gõ*, mà tài liệu gần như
+không có heredoc còn cách tôi làm việc cả ngày thì toàn heredoc.
+
+Lỗi 49, và nó là dòng thứ **sáu** của lớp *một phép đo bị đọc rộng hơn
+phạm vi nó có* — cùng họ lỗi 25, 35, 36, 44, 47.
+
+### Phạm vi thứ tư
+
+Hai phạm vi cũ đều không cho đúng thứ luật này cần:
+
+| phạm vi | vấn đề với luật backtick |
+|---|---|
+| bản THÔ | giữ cả **thân heredoc** — mà thân có trích dẫn thì vô hại |
+| `boc()` | bóc cả **nội dung nháy** — mà nội dung nháy CHÍNH LÀ chủ đề |
+
+Nên có `DOC_GIU_NHAY` + `boc_than_heredoc()`: bóc thân heredoc, giữ nội
+dung nháy. `_quet()` nhận thêm cờ `giu_nhay`.
+
+**Giới hạn khai thẳng:** hàm bóc thân heredoc ở **cả hai dạng**, có và
+không trích dẫn. Một thân **không** trích dẫn thì bash CÓ nội suy, nên
+backtick ở đó vẫn nguy hiểm và luật sẽ không thấy. Cùng lựa chọn
+`kiem_cu_phap_311.doan_nhung()` đã khai từ 22/08/2026.
+
+### Mẫu cũng phải chặt hơn
+
+Mẫu đầu `"[^"]*` + backtick khớp **từ dấu nháy ĐÓNG** của một cặp trước
+đó, nên `git commit -m "ok" --author 'a`b'` bị bắt nhầm dù backtick nằm
+trong nháy **đơn**. Nay đòi một **cặp đóng lại**: `"[^"]*` + backtick +
+`[^"]*"`.
+
+### Đục thử lôi ra bắt nhầm thứ TƯ
+
+```
+SONG  giu_nhay bo qua dau thoat, nuot mat mot ky tu
+```
+
+Không phép kiểm nào chạm nhánh xử lý ký tự thoát. Mà trong nháy kép,
+`\`` là một backtick **văn bản** — bash chỉ cho `\` giữ nghĩa đặc biệt
+trước `$ \` `" \\` và xuống dòng. Mã giữ nguyên cặp ấy nên luật bắt đúng
+cái bash **không** làm. Nay trung hoà ký tự đã thoát ở cả hai phạm vi.
+
+```
+tests/test_cua_quy_trinh.py   +3 mau PHAI CHAN · +4 mau PHAI QUA
+duc thu  8/8 do        0 phat song sot
+```
+
+### Và một chỗ đổi tên suýt làm luật vô hiệu
+
+Đổi tên `backtick-trong-python-c` → `backtick-trong-nhay-kep`, tôi sửa
+phần **chú thích** mô tả `DOC_THO` nhưng quên chính dòng
+
+```python
+DOC_THO = frozenset({"backtick-trong-python-c"})
+```
+
+Nếu phép kiểm không bắt, luật sẽ đọc bản đã bóc — nơi nội dung nháy đã bị
+xoá — và **im lặng thành vô hiệu ngay ở lượt vừa nới nó**.
+`test_MAY_DO_bash_tu_chung_minh_no_bat_duoc` đỏ ngay. Không thêm dòng bảng
+lỗi: quy trình chặn được nó trước khi giao.
+
+### Điều KHÔNG làm
+
+Không đụng bảy luật còn lại. Câu hỏi *"còn luật nào khác đang khai hẹp hơn
+cơ chế của nó?"* — **chưa đo**, và không được đoán.

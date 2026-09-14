@@ -66,6 +66,34 @@ def boc(lenh: str) -> str:
     return "\n".join(_quet(lenh, tach=False))
 
 
+def boc_than_heredoc(lenh: str) -> str:
+    """Bóc THÂN heredoc, GIỮ nguyên nội dung chuỗi nháy.
+
+    PHẠM VI THỨ TƯ, thêm 14/09/2026, và nó có vì hai phạm vi kia đều
+    KHÔNG cho đúng thứ `backtick-trong-nhay-kep` cần:
+
+      • `boc()` bóc cả nội dung nháy — mà nội dung nháy CHÍNH LÀ chủ đề
+        của luật ấy. Bóc đi là xoá mất thứ đang đi tìm.
+      • bản THÔ giữ nguyên mọi thứ, kể cả **thân heredoc**. Mà một thân
+        heredoc CÓ TRÍCH DẪN (`<<'EOF'`) thì bash **không nội suy**, nên
+        backtick nằm trong đó vô hại.
+
+    Lượt nới luật ngày 14/09/2026 dùng bản THÔ, và nó chặn ngay một lệnh
+    hợp lệ của chính tôi: một đoạn Python trong `<<'PYEOF'` có chuỗi
+    `\'"[^"]*`\'`. Đó là **bắt nhầm**, và nó lộ ra rằng phép đo trước khi
+    nới đã đo sai QUẦN THỂ — 69 dòng lệnh trong tài liệu, chứ không phải
+    những hình dạng thật sự được gõ, mà hình dạng gõ nhiều nhất là
+    heredoc chạy Python.
+
+    GIỚI HẠN, khai thẳng: hàm này bóc thân heredoc ở **cả hai dạng**, có
+    và không trích dẫn. Một thân heredoc KHÔNG trích dẫn thì bash CÓ nội
+    suy, nên backtick ở đó vẫn nguy hiểm và luật sẽ **không** thấy. Đó là
+    cùng lựa chọn `kiem_cu_phap_311.doan_nhung()` đã khai từ 22/08/2026 —
+    dạng không trích dẫn thì thứ trên đĩa không phải thứ chạy thật.
+    """
+    return "\n".join(_quet(lenh, tach=False, giu_nhay=True))
+
+
 def boc_va_tach(lenh: str) -> list[str]:
     """Bóc NỘI DUNG chuỗi nháy và THÂN heredoc, rồi tách thành lệnh con.
 
@@ -97,11 +125,14 @@ def boc_va_tach(lenh: str) -> list[str]:
     return _quet(lenh, tach=True)
 
 
-def _quet(lenh: str, tach: bool) -> list[str]:
-    """Máy quét dùng chung cho `boc()` và `boc_va_tach()`.
+def _quet(lenh: str, tach: bool, giu_nhay: bool = False) -> list[str]:
+    """Máy quét dùng chung cho ba hàm bóc.
 
     `tach=False` thì dấu ngăn lệnh KHÔNG chốt đoạn — chúng ở lại như ký
     tự thường, nên chuỗi trả về vẫn là một câu lệnh liền mạch.
+
+    `giu_nhay=True` thì nội dung chuỗi nháy được GIỮ nguyên thay vì thay
+    bằng dấu cách. Dùng cho luật mà nội dung nháy chính là chủ đề.
     """
     ra: list[str] = []
     hien: list[str] = []
@@ -120,10 +151,15 @@ def _quet(lenh: str, tach: bool) -> list[str]:
 
         if nhay is not None:
             if c == "\\" and nhay == '"' and i + 1 < n:
+                # Ky tu DA THOAT khong bao gio la mot dau noi suy: trong
+                # nhay kep, bash chi cho `\` giu nghia dac biet truoc
+                # $ ` " \ va xuong dong — nen `\`` la mot backtick VAN
+                # BAN. Trung hoa no o CA hai pham vi, ke ca `giu_nhay`:
+                # giu lai la bat nham dung cai bash khong lam.
                 hien.append("  ")
                 i += 2
                 continue
-            hien.append(c if c == nhay else " ")
+            hien.append(c if (giu_nhay or c == nhay) else " ")
             if c == nhay:
                 nhay = None
             i += 1
@@ -310,15 +346,27 @@ LUAT = [
         "trong chính thông báo này tới 11/09/2026.",
     ),
     (
-        "backtick-trong-python-c",
-        re.compile(r'\bpython[^\s]*\s+-c\s+"[^"]*`'),
-        "Dấu ` bên trong `python -c \"...\"`. Bash nội suy nó TRƯỚC khi "
-        "Python thấy chuỗi, nên một khối mã markdown bị thay bằng KẾT QUẢ "
-        "chạy lệnh — thường là rỗng, và im lặng.\n"
-        "  Đã xảy ra 08/09/2026 — một khối mã ba dòng biến mất khỏi "
-        "`references/loi-da-mac.md`; chỉ lộ ra khi đọc lại file.\n"
-        "  Cách đúng: viết một file .py rồi chạy nó, hoặc dùng nháy ĐƠN "
-        "(bash không nội suy trong nháy đơn).",
+        "backtick-trong-nhay-kep",
+        # Doi mot CAP nhay dong lai: `"..."` co backtick o giua. Mau
+        # long hon (`"[^"]*` + backtick) khop ca tu dau nhay DONG cua mot
+        # cap truoc do, nen `git commit -m "ok" --author \'a`b\'` bi bat
+        # nham du backtick nam trong nhay DON.
+        re.compile(r'"[^"]*`[^"]*"'),
+        "Dấu ` bên trong một chuỗi NHÁY KÉP. Bash nội suy nó TRƯỚC khi "
+        "lệnh nhận được chuỗi, nên phần trong backtick bị thay bằng KẾT "
+        "QUẢ chạy nó như một lệnh — thường là rỗng, và im lặng.\n"
+        "  Đã xảy ra HAI LẦN, ở hai chỗ khác nhau:\n"
+        "    08/09/2026 — `python -c \"…`…\"`: một khối mã ba dòng biến "
+        "mất khỏi `references/loi-da-mac.md`, chỉ lộ ra khi đọc lại file.\n"
+        "    14/09/2026 — `--ly-do \"…`nguoi-thay`…\"` của một công cụ "
+        "khác hẳn: bash báo `nguoi-thay: command not found` và lý do khai "
+        "vào mốc số test bị nuốt mất một khúc.\n"
+        "  Luật cũ tên `backtick-trong-python-c` và chỉ canh `python -c`, "
+        "tức HẸP HƠN cơ chế nó canh — bash nội suy trong nháy kép của MỌI "
+        "lệnh. Nới ngày 14/09/2026; đo trước khi nới: 69 dòng lệnh trong "
+        "tài liệu repo, **0 dòng** dính luật rộng.\n"
+        "  Cách đúng: dùng nháy ĐƠN (bash không nội suy trong nháy đơn), "
+        "hoặc viết một file rồi truyền qua `-F`/`--body-file`.",
     ),
     (
         "xoa-db-goc-repo",
@@ -346,14 +394,24 @@ RE_THOAT = re.compile(r"#\s*cua-ok:\s*\S+")
 #                           BẢN, không phải dấu mở thứ hai.
 #   heredoc-ghi-file-repo   dấu mở `<<` và đích `>` cách nhau qua một
 #                           dòng mới, tức qua một dấu ngăn.
-#   backtick-trong-python-c backtick NẰM TRONG nháy kép chính là chủ đề
-#                           của luật. Bóc nội dung nháy là xoá mất nó.
+#   DOC_GIU_NHAY bản đã bóc THÂN heredoc, GIỮ nội dung nháy
+#
+#   backtick-trong-nhay-kep backtick NẰM TRONG nháy kép chính là chủ đề
+#                           của luật, nên không bóc nội dung nháy.
+#                           Nhưng thân heredoc CÓ trích dẫn thì bash
+#                           không nội suy, nên phải bóc — nếu không,
+#                           mọi đoạn Python chạy bằng heredoc đều bị
+#                           chặn nhầm. Đo được 14/09/2026, ngay lượt
+#                           đầu tiên sau khi nới luật.
 #
 # Hai luật đầu từng nằm ở DOC_THO, và ngày 11/09/2026 `hai-heredoc` chặn
 # nhầm một lệnh `git commit -F -` có thân heredoc *nhắc tới* `<<'EOF'`.
 # Lần chặn nhầm thứ CHÍN, và nó xảy ra trong chính lượt sửa tám lần kia.
 DOC_BOC = frozenset({"hai-heredoc", "heredoc-ghi-file-repo"})
-DOC_THO = frozenset({"backtick-trong-python-c"})
+DOC_THO = frozenset()
+
+# Bóc THÂN heredoc nhưng GIỮ nội dung nháy — xem `boc_than_heredoc()`.
+DOC_GIU_NHAY = frozenset({"backtick-trong-nhay-kep"})
 
 # Luật chỉ phán khi ĐIỀU KIỆN THÊM cũng đúng. Khác với biểu thức: biểu
 # thức nhận ra HÌNH DẠNG, điều kiện thêm trả lời một câu hỏi biểu thức
@@ -384,6 +442,8 @@ def kiem(lenh: str) -> list[tuple[str, str]]:
     for ten, bt, vi_sao in LUAT:
         if ten in DOC_THO:
             doi = [lenh]
+        elif ten in DOC_GIU_NHAY:
+            doi = [boc_than_heredoc(lenh)]
         elif ten in DOC_BOC:
             doi = [boc(lenh)]
         else:
