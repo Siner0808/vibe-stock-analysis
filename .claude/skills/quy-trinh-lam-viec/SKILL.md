@@ -158,6 +158,15 @@ Bốn điều bắt buộc, cả bốn từ sự cố thật:
    - **Bắt máy đo đi qua một ca THẬT đã biết trước.** Biết trước câu ở
      `HANDOFF` có tồn tại là thứ duy nhất chứng minh được lượt quét ra
      `0 ca` là hỏng, chứ không phải sạch.
+   - **Trước khi tin một kết quả ÂM, hỏi: mẫu này CÓ KHẢ NĂNG cho kết
+     quả DƯƠNG không?** (thêm 15/09/2026, lỗi 66). Đo lượt C của ĐO 9
+     thấy vốn đỉnh **99,9** với bụi float 1e-14, tôi kết luận *"bụi bị
+     loại"* rồi suy ra hai lượt kia vượt trần thật. Vô hiệu: 99,9
+     không bao giờ chạm phép thử `> 100.0`, nên mẫu ấy **không thể**
+     cho kết quả dương dù sự thật là gì. Một kết quả âm từ một mẫu nằm
+     ngoài vùng phép thử phân biệt được thì nói về **mẫu**, không nói
+     về **giả thuyết**. Lượt D chạm đúng 100 và lật ngược nó trong hai
+     phút — lại là điều bắt buộc ngay ở trên cứu.
 
 Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`.
 

@@ -12682,3 +12682,128 @@ Giữa chừng tôi lại để `\n` xuyên qua heredoc làm hỏng `tests/test_
 điều skill cấm ở Bước 2. Lần thứ năm. Python bắt ngay nên không thoát ra —
 nhưng nó xảy ra **cùng ngày** tôi thêm điều bắt buộc thứ tư vào chính Bước 3
 của skill ấy.
+
+
+---
+
+## BƯỚC 79 — ĐO 9: FIBONACCI VÀO ĐƯỜNG SINH LỆNH, VÀ MỘT CÁI TRẦN BỊ VU OAN (15/09/2026)
+
+Tiêu chí đọc vào `main` lúc **11:04:29**; lượt A bắt đầu **11:04:41** — mười
+hai giây sau, và trước khi có một dòng mã nào của phép đo. Bốn lượt tuần tự,
+**179,2 phút**, cả bốn mã thoát 0.
+
+### Bảng bốn lượt
+
+| lượt | SL | mức TP | `CHOT_LOI_CUNG` | n | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh |
+|---|---|---|---|---|---|---|---|---|
+| **A** | ATR | +20% | TẮT | 612 | −0,53% | **−0,90%** | [−1,46 ; −0,32] | 57% · 100% |
+| **B** | **Fibo** | +20% | TẮT | 631 | −0,31% | −0,68% | [−1,27 ; −0,06] | 56% · 100% |
+| **C** | ATR | +20% | **BẬT** | 685 | −0,69% | −1,05% | [−1,50 ; −0,59] | 55% · 99,9% |
+| **D** | **Fibo** | **Fibo** | **BẬT** | 792 | −1,15% | −1,40% | [−1,83 ; −0,97] | 55% · 100% |
+
+Cả bốn **thua chuẩn có ý nghĩa**. Fibonacci không sửa điều đó, và chưa bao
+giờ hứa sẽ sửa.
+
+### Phép kiểm dụng cụ ĐẠT — và lượt A tái lập lần thứ NĂM
+
+Lượt C phải dựng lại hình dạng đã biết của `CHOT_LOI_CUNG=True`:
+
+```
+phuong sai  51,76 -> 36,91   = -28,7%     (hinh dang da biet: -24%)
+alpha C nam trong KTC cua A   OK
+alpha A nam trong KTC cua C   OK
+```
+
+Và lượt A ra lại **đúng từng chữ số** dòng 2 của bảng ĐO 3 trong
+`CLAUDE.md` — 612 lệnh · −0,53% · −0,90% · [−1,46 ; −0,32] · 57%/100%.
+Lần tái lập độc lập **thứ năm** của dòng theo-ngày.
+
+### Ba phép so đọc được
+
+| phép so | Δalpha | so với ½ KTC gốc | xáo tập lệnh | kết cục |
+|---|---|---|---|---|
+| **A↔B** — SL Fibonacci | **+0,22** | 39% ngưỡng | +3,1% | **kết cục 1** |
+| **C↔D** — mức TP Fibonacci | −0,35 | 77% ngưỡng | **+15,6%** | kết cục 1 **+ 4** |
+| A↔C — công tắc | −0,15 | 26% ngưỡng | +11,9% | không đổi |
+
+**Kết cục 1 là kết cục đã khai TRƯỚC là dự kiến**, nên bảng đã ký buộc giữ
+`DUNG_MUC_FIBONACCI = TẮT`: *"không phân biệt được" không phải lý do để đổi
+một thứ đang chạy.*
+
+C↔D xáo tập lệnh **+15,6%** nên nó KHÔNG phải phép so cùng-tập-lệnh (kết cục
+4). Chiều của nó là **xấu đi**, và cơ chế khớp: TP Fibonacci `sàn + 1,272 ×
+biên` gần hơn +20% cứng → đóng sớm hơn → nhiều lệnh hơn → kỳ vọng tệ hơn.
+Không đủ để kết luận, đủ để **không** đưa TP Fibonacci vào.
+
+Một chi tiết ngược chiều đáng ghi: **KTC của B RỘNG hơn A** (1,21 vs 1,14).
+SL Fibonacci không thu hẹp nhiễu, nó nới ra chút ít.
+
+### NGUỒN MỨC — lời khai trước đứng vững
+
+B và D in ra **giống hệt từng chữ số**: `29.731 / 72.990 / 90.895`, tức
+**15,4%** trên 193.616 lượt chấm. Hai tiến trình độc lập, cùng con số → phép
+tính mức Fibonacci tất định và không lệ thuộc công tắc TP.
+
+Khai trước khi chạy là **~14%**, suy từ rổ cache (80/125 mã có cấu trúc,
+62/80 vượt ngân sách rủi ro). Đo được 15,4%.
+
+### LỖI 65 — cái trần bị vu oan bởi chính bản báo cáo của nó
+
+Ba trong bốn lượt in cảnh báo **"Vốn đỉnh vượt 100% — tài khoản VAY ĐƯỢC"**.
+Đọc đúng chữ của tiêu chí đã ký thì chốt chặn ấy **dừng cả phép đo**, kể cả
+lượt đối chứng.
+
+Đo thẳng vào `wf_oos.db` của lượt D (792 lệnh, ngày đỉnh 2023-05-17):
+
+```
+DINH CHINH XAC   100.0000 %        <- tran giu DUNG toi chu so cuoi
+dinh bang float  100.0000000000001
+bui              1e-13
+`> 100.0`        True              -> keu DON BAY AN
+```
+
+`_capital_deployment` cộng `+size` rồi `-size` theo từng mốc ngày; mọi
+`size_pct` là bội số của 0,1 điểm, mà 0,1 không biểu diễn chính xác được
+bằng nhị phân. **`consider_entry` chưa cho vượt một xu nào** — `dang_cam_ket
++ size > TRAN` chặn đúng.
+
+Và **ba** nơi cùng tự viết phép so ấy: `walkforward.py:569`, `app.py:1611`,
+`paper_metrics.Performance.is_leveraged`. Nghĩa là cảnh báo `🔴 ĐÒN BẨY ẨN`
+đang hiện **trên app của người dùng** mỗi khi danh mục chạm đúng trần.
+
+Nửa thứ hai của cùng lỗi: cả ba in con số bằng `:.0f`, nên **99,9 · 100,0 ·
+100,4 ra cùng chuỗi "100%"**. Người đọc thấy một cảnh báo bên cạnh một con
+số trông như đúng trần và không kiểm được gì — đúng lý do lỗi này sống lâu.
+
+### Sửa: một nơi phán, mọi nơi gọi
+
+`paper_metrics.vuot_tran_von(pct, tran)` + `DUNG_SAI_VON_PCT = 1e-6`. Hai
+biên của ngưỡng đều **đo được**, không ước lượng: bụi đo được 1e-13 (nhỏ hơn
+10 triệu lần), bước yết của `size_pct` là 0,1 điểm (lớn hơn 100.000 lần).
+
+Gác: `tests/test_tran_von_khong_bao_nham.py`, **9/9 đột biến đỏ ngay lượt
+đầu**, gồm cả phát dựng lại nguyên văn lỗi 65 và phát trả `:.0f` về chỗ cũ.
+
+> **Fixture KHÔNG dựng được từ 18 vị thế thật, và chính test bắt được điều
+> đó.** Bụi ở lượt D là dư tích luỹ của **297 lệnh** đã vào trước mốc ấy;
+> cộng riêng 18 vị thế ra **99,99999999999999**, tức DƯỚI trần. Dấu của bụi
+> đổi theo cả lịch sử phép cộng. Khẳng định *"nếu bụi biến mất thì test này
+> không đo gì, và nó phải ĐỎ"* nổ ngay lượt chạy đầu — nếu không viết nó,
+> tôi đã có một test xanh chẳng canh gì. Ca tối thiểu tái lập được cơ chế là
+> **5 lệnh**, dò bằng máy.
+
+### LỖI 66 — kết luận "không có bụi" từ một mẫu không thể có bụi
+
+Lúc 13:30 tôi đo lượt C, thấy đỉnh **99,9** với bụi 1e-14, rồi viết: *"bụi
+float bị loại, suy ra A và B vượt 100% thật."*
+
+Suy luận ấy **vô hiệu**: đỉnh 99,9 không bao giờ chạm ngưỡng `> 100.0`, nên
+phép thử ấy **không thể** cho kết quả dương dù sự thật là gì. Tôi rút một
+kết luận phủ định từ một mẫu không có khả năng phủ định nó.
+
+Cùng họ với năm máy đo của lỗi 61, khác một chỗ: ở đó cái hẹp là **công cụ**;
+ở đây cái hẹp là **lập luận**, và công cụ thì hoàn toàn đúng.
+
+Thứ cứu được là đúng thói quen đã thành luật hôm qua: **bắt máy đo đi qua
+một ca THẬT đã biết trước**. Lượt D chạm đúng 100 — và nó lật ngược kết luận
+trong hai phút.

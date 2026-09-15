@@ -22,13 +22,51 @@ from datetime import date, datetime
 
 import do_tre_khop
 from paper_trading import (BROKER_FEE_PCT, EXCHANGE_FEE_PCT, SELL_TAX_PCT,
-                           ExitReason, Trade)
+                           TRAN_VON_CAM_KET_PCT, ExitReason, Trade)
 
 #: PHẢI khớp từng số hạng với `Trade.net_return_pct()`. Hai công thức song
 #: song là chỗ trôi ra khỏi nhau âm thầm — cùng cơ chế đã làm `run_daily`
 #: cầm `50.0` trong khi `paper_trading` cầm `62`.
 ROUND_TRIP_COST_PCT = ((BROKER_FEE_PCT + EXCHANGE_FEE_PCT) * 2
                        + SELL_TAX_PCT) * 100
+
+#: Dung sai khi so vốn cam kết với TRẦN. Đây KHÔNG phải "cho vượt
+#: một chút" — trần vẫn là trần. Nó là NHIỄU CỘNG DỒN của phép cộng
+#: float, và nếu không trừ nó ra thì phép so báo động ở đúng chỗ
+#: trần vừa giữ hoàn hảo.
+#:
+#: `_capital_deployment` cộng `+size` rồi `-size` theo từng mốc ngày.
+#: Mọi `size_pct` đều là bội số của 0,1 điểm, mà 0,1 không biểu diễn
+#: chính xác được bằng nhị phân.
+#:
+#: ĐO THẬT — ĐO 9 lượt D, ngày đỉnh 2023-05-17, 18 vị thế:
+#:     tổng Decimal  100,0000                (trần giữ ĐÚNG)
+#:     tổng float    100,0000000000001       (bụi 1e-13)
+#:     `> 100.0`     True  -> kêu ĐÒN BẨY ẨN nhầm
+#: Cùng 18 vị thế ấy cộng theo thứ tự NGÀY VÀO lại ra
+#: 99,99999999999999 — dấu của bụi đổi theo thứ tự phép cộng, nên
+#: không sửa được bằng cách đổi thứ tự.
+#:
+#: Hai biên của ngưỡng này đều ĐO ĐƯỢC, không ước lượng:
+#:   trên  bước yết của `size_pct` là 0,1 điểm, nên vị thế THẬT nhỏ
+#:         nhất còn lớn hơn ngưỡng này 100.000 lần
+#:   dưới  bụi đo được 1e-13, nhỏ hơn ngưỡng này 10 triệu lần
+DUNG_SAI_VON_PCT = 1e-6
+
+
+def vuot_tran_von(pct: float | None,
+                  tran: float = TRAN_VON_CAM_KET_PCT) -> bool:
+    """Vốn cam kết `pct`% có THẬT SỰ vượt trần không?
+
+    Một nơi phán, mọi nơi gọi. Trước 15/09/2026 có **ba** chỗ tự
+    viết `> 100.0` — `walkforward.dong_bao_cao_oos`, `app.py` tab
+    Sổ lệnh, và `Performance.is_leveraged` — và cả ba cùng báo nhầm
+    trên cùng một bộ dữ liệu. Xem `DUNG_SAI_VON_PCT`.
+
+    `None` trả False: chưa đo được thì chưa kết luận được, KHÔNG
+    phải "không vượt".
+    """
+    return pct is not None and pct > tran + DUNG_SAI_VON_PCT
 
 
 @dataclass
@@ -49,7 +87,7 @@ class Performance:
 
     @property
     def is_leveraged(self) -> bool:
-        return self.avg_capital_deployed_pct > 100.0
+        return vuot_tran_von(self.avg_capital_deployed_pct)
 
     def summary(self) -> str:
         s = (f"{self.n_trades} lệnh · thắng {self.win_rate:.0%} · "
@@ -644,7 +682,7 @@ def report(trades: list[Trade],
     add(f"Lợi nhuận cộng dồn: {perf.total_net_pct:+.2f}%")
     add(f"Sụt giảm tối đa   : {perf.max_drawdown_pct:.1f}%")
     add(f"Vốn triển khai    : {perf.avg_capital_deployed_pct:.0f}% trung bình "
-        f"| {perf.peak_capital_deployed_pct:.0f}% đỉnh điểm")
+        f"| {perf.peak_capital_deployed_pct:.2f}% đỉnh điểm")
 
     if perf.is_leveraged:
         don_bay = perf.avg_capital_deployed_pct / 100
