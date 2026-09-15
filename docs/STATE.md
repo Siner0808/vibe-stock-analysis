@@ -12582,3 +12582,103 @@ Chỗ bất biến 2 **vẫn** bị vi phạm: `master_agent.run_full_analysis()
 đường phân tích một mã trên app, thứ **người** đọc rồi tự quyết. Gác cố ý
 không đụng tới, vì đó là đường không sinh lệnh. Ghi ra để không ai tưởng
 việc này đã đóng hẳn.
+
+
+---
+
+## BƯỚC 78 — FIBONACCI, VÀ MỘT Ô GIAO DIỆN SỐNG 28 NGÀY (15/09/2026)
+
+Người dùng gửi một ảnh chụp: ô **"Vùng giá mua đề xuất — 22.050 VNĐ"**, kèm
+yêu cầu dùng Fibonacci để xác định vùng mua/bán, SL và TP.
+
+### Truy con số trước khi thiết kế gì
+
+`app.py` in `latest_close_fmt` — **giá đóng cửa phiên gần nhất**, không qua
+một phép tính nào. Nhãn hứa một *vùng* và một *đề xuất*; giá trị là dữ liệu
+thô.
+
+Sinh **18/08/2026**, sống **28 ngày**. Dài nhất bảng lỗi.
+
+> Và chỗ trớ trêu: ngày **21/08**, ba ngày sau khi ô này ra đời, dự án gỡ
+> **hai ô khác** — `Pha C — Wyckoff Spring` và `Fundamental Agent · BCTC Q2`
+> — vì đúng lý do *"hứa một thành phần không tồn tại"*. Lượt dọn ấy sửa hai
+> ca và **không quét cả lớp**, đúng thứ `docs/HANDOFF.md` ràng buộc 5 cấm.
+
+Kèm ba chỗ khác đọc ra cùng lượt: `entry_range` ±0,5% có tồn tại nhưng app
+không hiện; TP1 là **+20% cứng**; và `take_profit_pct` là chuỗi *"Không giới
+hạn"* trong khi `take_profit_price` là một con số +20% — hai ô nói ngược
+nhau.
+
+### Điều phải nói trước khi làm
+
+Fibonacci tính từ **chính chuỗi giá** sáu agent đang dùng. `MO-XE-KIEN-TRUC.md`:
+rho ≈ 0, và *"thêm tầng vào một hệ có rho ≈ 0 thì không cải thiện được gì —
+nguyên nhân gốc là thiếu dữ liệu độc lập"*. Nên module này **không hứa thêm
+lợi thế dự báo**, và không được dùng để hứa.
+
+Nhưng ba trong bốn thứ được hỏi — vùng mua, SL, TP — **không phải câu hỏi dự
+báo**. Chúng là *đặt chỗ sau khi đã quyết mua*. Ở đó Fibonacci thay một hằng
+số bằng một mức suy từ cấu trúc giá của chính mã đó: tất định, tái lập được,
+và **đặc thù cho mã**.
+
+Người dùng chốt: **chỉ hiển thị**, không vào đường sinh lệnh. Nên không cần
+ĐO ký trước.
+
+### `muc_fibonacci.doc_muc()` — ba ràng buộc cấu trúc
+
+1. **Không tự dò đỉnh–đáy.** Uỷ thác cho `pha_wyckoff.doc_pha()`, hàm thuần
+   đã có test và đột biến canh. Viết bộ dò thứ hai là tạo ra hai định nghĩa
+   "nền giá" rồi để chúng trôi khỏi nhau.
+2. **Thiếu bằng chứng thì KHÔNG bịa vùng** — trả lời từ chối kèm **lý do
+   gốc** của Wyckoff, không phải một câu chung.
+3. **Đơn vị đi vào bằng đơn vị đi ra**, và **không làm tròn ở tầng tính**.
+
+### Hai khuyết tật của chính tôi, do test bắt trước khi chạy
+
+**Một mâu thuẫn thiết kế thật.** Bản nháp đầu kẹp SL vào biên 4–6,5% rồi
+tính từ điểm giữa vùng mua. Một phép kiểm tham số bắt ngay: với nền rộng,
+SL rơi **vào giữa vùng mua** — tức mua ở đáy vùng là đã dưới cắt lỗ.
+
+*"SL dưới cấu trúc"* và *"rủi ro ≤ 6,5%"* **không thể cùng đúng trên một nền
+rộng**. Lời giải không phải kẹp cho ra số, mà là **nói ra**: cờ
+`vua_ngan_sach=False`, mức vẫn hiện, kèm cảnh báo.
+
+**Làm tròn ở tầng tính.** Nguồn vnstock trả nghìn đồng (FPT = 71,2); làm
+tròn về 0 chữ số ngay trong phép tính là phá gần 1%. Hai phép kiểm bắt: đơn
+vị không nhân đúng 1.000, và `sl_pct` lệch khỏi chính công thức của nó. Làm
+tròn chuyển sang tầng hiển.
+
+### Chạy trên rổ THẬT — và con số này mới đáng đọc
+
+```
+125 ma cache  ·  80 dung duoc muc (64%)  ·  45 chua du bang chung
+trong 80 ma do:  62 KHONG vua ngan sach rui ro  (78%)
+
+ACB  san 21.650  tran 23.850  vung 22.490-22.750  SL 21.650   4,8%   VUA
+ASM  san  5.530  tran  6.280  vung  5.816- 5.905  SL  5.530   6,4%   VUA
+CMG  san 22.200  tran 28.900  vung 24.759-25.550  SL 22.200  13,1%   KHONG
+BVH  san 57.200  tran 72.500  vung 63.045-64.850  SL 57.200  11,8%   KHONG
+```
+
+> **Fibonacci-với-stop-dưới-cấu-trúc không vừa ngân sách rủi ro của hệ thống
+> này cho gần bốn phần năm số mã.** Nền Wyckoff trên rổ VN thường rộng
+> 10–13% từ đỉnh vùng mua xuống sàn, trong khi biên đang dùng là 4–6,5%.
+
+Đó không phải lỗi của module — đó là một sự thật về rổ, và nó chỉ hiện ra
+vì module **nói ra** thay vì kẹp. Quy tắc số 1 không áp ở đây: không có con
+số nào đẹp lên.
+
+### Ranh giới, in thẳng trên app
+
+Dưới khối mức có một dòng nói rõ: các mức này **chỉ để đọc**; sổ lệnh vẫn
+dùng SL theo ATR, nhánh chốt lời cứng vẫn TẮT, và Fibonacci **không thêm
+thông tin dự báo**. Một ô giao diện không được hứa nhiều hơn cơ chế đứng sau
+nó — đó đúng là lỗi vừa mất 28 ngày.
+
+### Lỗi 56 lần thứ năm
+
+Giữa chừng tôi lại để `\n` xuyên qua heredoc làm hỏng `tests/test_muc_fibonacci.py`
+(`SyntaxError: unexpected character after line continuation character`), đúng
+điều skill cấm ở Bước 2. Lần thứ năm. Python bắt ngay nên không thoát ra —
+nhưng nó xảy ra **cùng ngày** tôi thêm điều bắt buộc thứ tư vào chính Bước 3
+của skill ấy.

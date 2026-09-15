@@ -206,6 +206,34 @@ Tỷ lệ "chưa đủ bằng chứng" cao (20/40 mã VN100) là **đúng kỷ l
 phương pháp**. Đừng nới ngưỡng cho ra nhãn đẹp hơn — đó đúng là cách cái
 nhãn cũ ra đời.
 
+### `muc_fibonacci.doc_muc(df, he_so_gia)` — CHỈ ĐỂ HIỆN
+
+Hàm thuần. Uỷ thác biên vùng cho `pha_wyckoff.doc_pha()` — **không tự
+dò đỉnh–đáy**, vì hai bộ dò sẽ trôi khỏi nhau. Thiếu bằng chứng cấu
+trúc thì trả về lời từ chối **kèm lý do gốc**, không trả vùng trung tính.
+
+Vùng mua = thoái lui 0,5–0,618 đo từ trần; TP = mở rộng 1,272 / 1,618
+đo từ sàn; SL đặt dưới sàn nhưng không chặt hơn 4% tính từ **đỉnh** vùng
+mua (ca xấu nhất).
+
+> **Nó KHÔNG vào đường sinh lệnh.** Sổ lệnh vẫn dùng SL theo ATR, và
+> nhánh chốt lời cứng vẫn TẮT. Fibonacci tính từ chính chuỗi giá các
+> agent đã dùng, nên theo `MO-XE-KIEN-TRUC.md` nó **không thêm thông
+> tin dự báo** — nó chỉ thay một hằng số bằng một mức suy từ cấu trúc.
+
+**Đo trên rổ cache 15/09/2026, và con số này mới là thứ đáng đọc:**
+
+```
+125 ma  ·  80 dung duoc muc (64%)  ·  45 chua du bang chung
+trong 80 ma do:  62 KHONG vua ngan sach rui ro  (78%)
+```
+
+Đặt cắt lỗ **dưới cấu trúc** theo đúng sách thì rủi ro mỗi lệnh rơi vào
+**8–13%** cho gần bốn phần năm số mã — vượt xa biên **4–6,5%** mà
+`analysis_agents.py` đang kẹp SL theo ATR vào. Module **nói ra** điều đó
+(`vua_ngan_sach=False`) thay vì kẹp cho ra một con số đẹp. `docs/STATE.md`
+BƯỚC 78.
+
 ### `fundamental_agent.FundamentalAgent`
 
 Đọc bảng `ratio` theo năm từ vnstock/KBS. Bốn cái bẫy đã ghi ở đầu file đó;

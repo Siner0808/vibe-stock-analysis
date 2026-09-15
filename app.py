@@ -1281,12 +1281,29 @@ with t_pos:
     st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
     
     # Kế hoạch vào lệnh cho mã đang xem
+    #
+    # `muc_fibonacci.doc_muc` là HÀM THUẦN và uỷ thác biên vùng cho
+    # `pha_wyckoff.doc_pha` — không tự dò đỉnh–đáy, không gọi mạng. Thiếu
+    # bằng chứng thì nó trả về một lời từ chối kèm lý do, không trả về vùng
+    # trung tính.
+    import muc_fibonacci
+    fib = muc_fibonacci.doc_muc(df, mult)
+
     st.markdown(f"##### 🎯 Kế hoạch vào lệnh đề xuất cho mã [{symbol}]")
     if score >= buy_threshold and dyn_rec != "THEO DÕI":
         plan_table = pd.DataFrame([{
             "Mã CK": symbol,
             "Khuyến nghị": dyn_rec,
-            "Vùng giá mua đề xuất": f"{latest_close_fmt:,.0f} VNĐ",
+            # TRƯỚC 15/09/2026 ô này in `latest_close_fmt` — tức GIÁ ĐÓNG CỬA
+            # phiên gần nhất, in nguyên. Nhãn hứa một *vùng* và một *đề
+            # xuất*; giá trị là dữ liệu thô. Cùng lớp với hai ô đã bị gỡ
+            # ngày 21/08/2026 vì "hứa một thành phần không tồn tại".
+            #
+            # Nay là một vùng THẬT, suy từ nền giá — hoặc một dấu gạch kèm
+            # lý do, khi cấu trúc chưa đủ bằng chứng.
+            "Vùng giá mua (Fibonacci 0,5–0,618)": (
+                f"{fib.vung_mua[0]:,.0f} – {fib.vung_mua[1]:,.0f} VNĐ"
+                if fib.ket_luan_duoc else "— chưa đủ bằng chứng cấu trúc"),
             "Cắt lỗ (SL)": f"{sl_txt} VNĐ ({sl_pct_txt})",
             "Chốt lời (TP)": f"{tp_txt} VNĐ ({tp_pct_txt})",
             "Tỷ trọng vốn": _so(
@@ -1295,6 +1312,36 @@ with t_pos:
             "Trạng thái": "SẴN SÀNG GIẢI NGÂN"
         }])
         st.dataframe(plan_table, use_container_width=True, hide_index=True)
+
+        # ── Mức Fibonacci, và RANH GIỚI của nó ──────────────────────
+        st.markdown("###### 📐 Mức Fibonacci — suy từ nền giá Wyckoff")
+        if not fib.ket_luan_duoc:
+            st.info(f"Chưa dựng được mức Fibonacci — {fib.ly_do}")
+        else:
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Vùng mua · 0,5–0,618",
+                      f"{fib.vung_mua[0]:,.0f} – {fib.vung_mua[1]:,.0f}",
+                      fib.vi_tri_gia)
+            c2.metric("Cắt lỗ · dưới nền", f"{fib.sl:,.0f}",
+                      f"-{fib.sl_pct}% (từ đỉnh vùng)", delta_color="inverse")
+            c3.metric("Mục tiêu · 1,272 / 1,618",
+                      f"{fib.tp1:,.0f} / {fib.tp2:,.0f}")
+            st.caption(fib.nhan)
+            if not fib.vua_ngan_sach:
+                st.warning(
+                    f"⚠️ Nền quá rộng: đặt cắt lỗ dưới cấu trúc thì rủi ro mỗi "
+                    f"lệnh là **{fib.sl_pct}%**, vượt biên {muc_fibonacci.SL_RONG_NHAT * 100:.1f}% "
+                    f"mà hệ thống đang dùng. Setup này KHÔNG vừa ngân sách rủi ro — "
+                    f"hoặc chờ nền hẹp lại, hoặc giảm tỷ trọng tương ứng.")
+
+        # Ranh giới, nói thẳng: ô này KHÔNG điều khiển sổ lệnh.
+        st.caption(
+            "Các mức trên **chỉ để đọc**. Sổ lệnh giấy không dùng chúng: cắt lỗ "
+            "trong sổ tính theo ATR (hàng “Cắt lỗ (SL)” ở bảng trên), và nhánh "
+            "chốt lời cứng đang TẮT. Fibonacci tính từ chính chuỗi giá mà các "
+            "agent đã dùng, nên nó **không thêm thông tin dự báo** — xem "
+            "`MO-XE-KIEN-TRUC.md`."
+        )
     else:
         st.warning(f"⚠️ Mã **{symbol}** hiện có Điểm AI **{score:.1f}/100** (thấp hơn ngưỡng mua **{buy_threshold:.1f} pts**). Hệ thống khuyến nghị tiếp tục **THEO DÕI** và chưa kích hoạt mở vị thế mua.")
 
