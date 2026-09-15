@@ -12283,3 +12283,121 @@ lời nhắc"*.
 
 Và cơ chế hiện tại vẫn chỉ bám `## ĐO n`. Hai chỗ ấy là ứng viên gác, chưa
 dựng.
+
+
+---
+
+## BƯỚC 75 — NĂM MÁY ĐO, MỖI CÁI HẸP HƠN THỨ NÓ ĐO (15/09/2026)
+
+Hôm qua tôi hoãn ứng viên gác của lỗi 59 với đúng một câu: *"lượt thứ tư
+nên bắt đầu bằng phép đo ấy chứ không bằng đà"*. Hôm nay bắt đầu bằng phép
+đo, và phép đo giết ứng viên — rồi giết luôn cả bản thay thế đầu tiên.
+
+### Ứng viên lỗi 59 bị RÚT
+
+Bản viết vội hôm qua: *"mọi tên gác trong `tests/` phải xuất hiện ở ít nhất
+một dòng bảng"*. Nó sai theo hai chiều cùng lúc: bắt nhầm hàng loạt (phần
+lớn trong 87 file test sinh ra để PHỦ, không vì đã có lỗi), **và** không
+bắt được chính lỗi 59 (ở đó gác CÓ tồn tại, chỉ là dòng 53 không nhắc tên).
+
+Bản hẹp hơn, và nó đi đúng hướng của lỗi 59: *một file test khai "lỗi N"
+thì dòng N phải nhắc tên file ấy*. Đo:
+
+```
+87 file test · 10 file KHAI mot so hieu loi · 20 lien ket
+   KHOP                 4
+   HO  (ung vien se do) 16
+   tro toi dong KHONG CO 0
+```
+
+**16/20 bắt nhầm.** Lý do đọc được ngay trong danh sách: `test_do_phai_khai_da_tra.py`
+nhắc lỗi 30·35·36·38 vì nó **áp bài học** của chúng, không phải vì nó **sinh
+ra từ** chúng. Một docstring nhắc *"lỗi N"* ở hai vai trò khác nhau, và máy
+dò của tôi không tách được.
+
+> Tức nó mắc đúng cái lỗi nó đang đi tìm — **đọc sự xuất hiện thay vì vai
+> trò**, lỗi 30/35/36/38.
+
+### Và bản thay thế thứ hai cũng hẹp — lần thứ năm trong hai ngày
+
+Luật thứ hai nhắm vào thứ bảng lỗi **tự khai là đã hỏng hai lần** (lỗi 44,
+47): *một dấu ✅ phải TRỎ TỚI một thứ có thật.* Nó không hỏi *"gác ấy bắt
+được không"* — câu đó không đọc được từ văn bản. Nó hỏi câu yếu hơn nhiều
+và trả lời được: **nó có địa chỉ không.**
+
+Lượt đo đầu: **15/33 dòng ✅ không có địa chỉ.** Nhìn danh sách thì hỏng ngay:
+
+```
+dong  1 | `va_an_toan.thay()`                      <- module.ham, co that
+dong 12 | `test_script_chay_duoc_tren_windows`     <- thieu duoi .py
+dong 29 | `test_moi_luat_deu_khai_NGUON`           <- ten mot HAM
+```
+
+Máy dò chỉ nhận **đường dẫn đầy đủ**. Nới cho nhận cả tên module và mọi
+`def`/`class` trong repo:
+
+```
+33 dong ✅  ·  CO dia chi 30  ·  KHONG 3
+   dong 34  khong tro dau ca
+   dong 35  "chinh cong cu ay"
+   dong 42  "gac tren"
+```
+
+**3/33**, và hai trong ba trỏ gián tiếp vào ô liền kề — người đọc theo
+được. Cả ba đã viết lại địa chỉ tường minh trong cùng PR, nên luật này ra
+đời với **0/33 bắt nhầm đo được**, chứ không phải 0 vì chưa ai nhìn.
+
+### Năm lần, và không lần nào sự cẩn thận cứu tôi
+
+| | máy đo | hỏng thế nào | nó in ra | thứ cứu |
+|---|---|---|---|---|
+| a | quét câu song đôi | so TỪNG DÒNG, tài liệu ngắt cột ~76 | `0 ca` | một ca thật biết trước |
+| b | quét quần thể heredoc | đòi `-` liền `<<`, thực tế có `> log 2>&1` chen giữa | `0 ca` | **bản in dữ liệu thô** |
+| c | đục thử gác index | không đi qua `bi_che()` | `sống sót` | bộ đột biến chạy lần hai |
+| d | quét liên kết test↔bảng | không tách *sinh ra từ* khỏi *áp bài học* | `16/20` | **bản in từng ca** |
+| e | quét địa chỉ dấu ✅ | chỉ nhận đường dẫn đầy đủ | `15/33` | **bản in từng ca** |
+
+Cùng hình dạng lỗi 30/35/36/38 và 48 — nhưng ở **MÁY ĐO**, không ở GÁC. Và
+đó mới là chỗ nguy: **một gác sai thì ĐỎ; một máy đo sai thì chỉ in ra một
+con số**, và con số ấy trông y hệt một con số đúng.
+
+Bốn trong năm lần, thứ cứu tôi là **in dữ liệu thô ngay dưới con số**. Nếu
+lượt (b) chỉ in `0`, tôi đã kết luận *"quần thể rỗng, không đo được"* — hợp
+lý, và sai.
+
+### Ba việc đã làm
+
+1. **Điều bắt buộc thứ tư** ở `SKILL.md` Bước 3: máy đo cũng phải bị nghi
+   ngờ như gác; in dữ liệu thô dưới mọi con số; bắt nó đi qua một ca thật
+   đã biết trước khi tin nó.
+2. **Ba dấu ✅ được cấp địa chỉ** — dòng 34, 35, 42.
+3. **Gác mới** `tests/test_dau_tick_phai_co_dia_chi.py`: mỗi dấu ✅ phải
+   trỏ tới một đường dẫn, module, hay `def`/`class` có thật. Nó **không**
+   biết gác được trỏ tới có bắt được không — ba câu ấy vẫn chưa ai đóng.
+   Nó chỉ làm một việc: **một lời hứa không có địa chỉ thì không im lặng
+   được nữa.**
+
+### Và bộ đột biến của chính tôi cũng hỏng ở lượt đầu
+
+Năm phát, hai sống sót. Một sống sót đúng nghĩa: hạ `DAI_TOI_THIEU` từ 6
+xuống 1 mà gác vẫn xanh, vì ba ví dụ phủ định tôi chọn không chứa tên ngắn
+nào — sàn ký tự chưa được canh thật. Thêm một câu `assert "thay" not in dc`
+là đủ: `thay` dài 4 ký tự và khớp luôn cụm *"thay vì"* trong văn xuôi.
+
+Phát còn lại thì **không phải gác hỏng, mà là phép đục hỏng**: tôi đục thẳng
+vào câu `assert len(dc) > 500`. Sửa một câu assert thì nó không bao giờ tự
+đỏ được. Phép đục đúng là làm **NGUỒN** rỗng — `git ls-files` trỏ vào một
+mẫu không có gì — rồi đòi câu assert ấy đỏ.
+
+> Đó là lỗi 61 lần thứ sáu, ở một tầng nữa: không phải máy đo hẹp hơn thứ
+> nó đo, mà **phép đục hẹp hơn thứ nó đục**. Cùng cách phát hiện: đọc bản
+> in của từng phát thay vì đọc con số tổng.
+
+### Điều không làm được, và nói rõ là không
+
+Lỗi 61 **không gác được**. Một máy đo mới thì theo định nghĩa chưa có quần
+thể nào để đo độ mù của nó — nếu có, ta đã không cần viết nó. Thứ thay thế
+là hai thói quen ở mục 1, và thói quen thì trôi; lỗi 42 đã nói đúng câu đó.
+
+Ghi ra đây để lần sau không ai đi tìm một cái gác cho nó rồi tưởng mình
+quên dựng.
