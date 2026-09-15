@@ -102,6 +102,25 @@ BUY_THRESHOLD = 62          # khớp ngưỡng MUA của MasterConsensusAgent
 #: điều đó, không phải quy ước.
 CHOT_LOI_CUNG = False
 
+#: Dùng SL/TP suy từ cấu trúc giá (`muc_fibonacci`) thay cho SL theo ATR
+#: và TP +20% cứng. **Mặc định TẮT — dựng ra để ĐO, không phải để bật.**
+#:
+#: Tiêu chí đọc ký trước: `docs/TIEU-CHI-DOC-TRUOC.md` mục **ĐO 9**.
+#:
+#: Ba điều đã khai TRƯỚC khi chạy, đừng đọc số mà quên chúng:
+#:
+#:   1. Fibonacci chỉ áp được cho ~14% rổ. Đo 15/09 trên cache: 80/125 mã
+#:      dựng được mức, và 62/80 trong số đó KHÔNG vừa ngân sách rủi ro
+#:      4-6,5%. Hai ca ấy đều rơi về ATR như cũ.
+#:   2. Đổi SL là đổi luôn CỠ VỊ THẾ — `size = rủi ro / khoảng cách SL`.
+#:      SL rộng hơn cho cỡ nhỏ hơn, vốn cam kết thấp hơn, và tập lệnh xáo.
+#:   3. Một Δalpha LỚN ở cỡ mẫu này là dấu hiệu LỖI, không phải dấu hiệu
+#:      tốt — quy tắc số 1, và bảng kết cục đã ký gọi đó là kết cục 3.
+#:
+#: Đọc cờ này qua THUỘC TÍNH MODULE (`paper_trading.DUNG_MUC_FIBONACCI`),
+#: đừng `from ... import` — bản sao không thấy lượt gán của dụng cụ đo.
+DUNG_MUC_FIBONACCI = False
+
 # ── Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG ──────────────────────────────────────
 # Mặc định TẮT: hệ thống vẫn quét, vẫn chấm điểm, vẫn ghi quyết định, vẫn
 # theo dõi và đóng các vị thế đang mở — nhưng KHÔNG mở vị thế mới.
