@@ -54,8 +54,21 @@ Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 **Điều 1 — tìm xem đã có lời giải chưa.**
 
 ```bash
+./.venv/Scripts/python.exe tools/ho_so.py <ten file>
 grep -rn "<khai niem>" tests/ tools/ --include=*.py | head -20
 ```
+
+> `tools/ho_so.py` gom bốn nguồn ĐÃ ĐO về một file — test nào import nó,
+> BƯỚC nào trong `docs/STATE.md` nhắc nó, ĐO nào khai nó, dòng bảng lỗi nào
+> lấy nó làm chỗ hỏng. **Nó không tóm tắt gì cả**: mọi dòng in ra là một địa
+> chỉ `grep` lại được. Cửa `tools/cua_ho_so.py` tự chạy nó mỗi lần mở một
+> file đủ dày (đo 15/09/2026: 23 trên 52 file `.py` ở gốc repo).
+
+**Điều 1b — một ĐẶC TẢ KỸ THUẬT thì đọc nguyên văn, không đọc qua tầng
+nén** (thêm 15/09/2026, lỗi 67). Một bản tóm tắt do mô hình đọc hộ dùng được
+để biết CHỖ ĐÁNG NHÌN, không dùng được để KẾT LUẬN. Ngày ấy một bản nén
+khẳng định `PreToolUse` không bơm được ngữ cảnh, và cả một vòng thiết kế
+xoay theo nó trước khi trang đặc tả — đọc thẳng — nói ngược lại.
 
 > **Với một PHÉP ĐO thì điều này nay có gác** (14/09/2026). Mỗi mục
 > `## ĐO n` trong `docs/TIEU-CHI-DOC-TRUOC.md` phải mang một trong hai

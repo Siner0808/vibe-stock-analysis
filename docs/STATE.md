@@ -12807,3 +12807,144 @@ Cùng họ với năm máy đo của lỗi 61, khác một chỗ: ở đó cái 
 Thứ cứu được là đúng thói quen đã thành luật hôm qua: **bắt máy đo đi qua
 một ca THẬT đã biết trước**. Lượt D chạm đúng 100 — và nó lật ngược kết luận
 trong hai phút.
+
+
+---
+
+## BƯỚC 80 — MỔ claude-mem ĐỂ LẤY CƠ CHẾ, VÀ NĂM VÒNG GỌT (15/09/2026)
+
+Người dùng đưa `github.com/thedotmack/claude-mem` (93.903 sao, Apache-2.0)
+và chốt: **không cài, mổ nó để dựng cửa cho dự án này.** Rồi chốt tiếp
+*"loop vài vòng"*, và *"nếu đã có biến hãy thêm 1 vòng nữa"*.
+
+Năm vòng. **Ba vòng cắt bớt thiết kế, một vòng cắt NHẦM, một vòng nối lại.**
+
+### Cơ chế bê được, đọc từ `src/cli/handlers/file-context.ts` (292 dòng)
+
+| cơ chế | bê? |
+|---|---|
+| bơm chứ không chặn (`permissionDecision: "allow"`) | có |
+| chấm độ cụ thể: +2 nếu file bị SỬA · +2 nếu lượt ấy chạm ≤3 file · +1 nếu ≤8 | có, số học thuần |
+| khử trùng theo phiên, chặn bơm lại | có |
+| bỏ file dưới 1.500 byte | có |
+| bỏ khi file MỚI HƠN lời khai | **lật ngược** |
+| nén quan sát bằng LLM + Chroma + provider xa | không |
+
+Cổng "file mới hơn lời khai" là chỗ đáng tiền nhất và phải dùng **ngược**:
+với một công cụ trí nhớ, lời khai già hơn file thì giấu đi; với dự án này,
+**lời khai già hơn thứ nó mô tả CHÍNH LÀ con bọ** — lỗi 57 · 60 · 63 · 64 ·
+65 đều đúng hình dạng ấy.
+
+### Năm vòng
+
+| vòng | ai tìm | kết quả |
+|---|---|---|
+| 1 | tự soát | cắt 4: địa chỉ không kiểm được như đã khai · hạt quá thô cho `docs/STATE.md` 12k dòng · chi phí mỗi lượt Read · con số đọc rộng |
+| 2 | NotebookLM | **BƯỚC 37** — lớp kiểm địa chỉ **đã đo và đã từ chối** |
+| 3 | đo | 33 địa chỉ dạng `file:dòng`, **0 chết** → bỏ hẳn phần kiểm địa chỉ |
+| 4 | **bản tóm tắt** | *"PreToolUse không bơm được"* → **SAI** |
+| 5 | đặc tả nguyên văn | bơm được · trường `if` · trần 10k · nhiều hook cùng bơm đều tới |
+
+### LỖI 67 — vòng 4 tin một bản nén thay vì đọc đặc tả
+
+`WebFetch` trả về một bản tóm tắt do mô hình nhỏ đọc hộ trang đặc tả hook,
+khẳng định *"`additionalContext` và `updatedInput` KHÔNG được hỗ trợ cho
+`PreToolUse`"*. Tôi xoay cả thiết kế sang `UserPromptSubmit` theo câu ấy.
+
+Đọc nguyên văn trang đặc tả bằng trình duyệt:
+
+> *"Where the reminder appears depends on the event: … **PreToolUse,
+> PostToolUse, PostToolUseFailure, and PostToolBatch: next to the tool
+> result**."*
+>
+> *"Each field the event supports is honored, including `permissionDecision`,
+> **`additionalContext`**, `updatedInput`, and `systemMessage`."*
+
+Bản tóm tắt **bịa**. Và nó bịa trong lúc tôi đang thiết kế đúng một công cụ
+có mục đích duy nhất là chặn việc tin bản nén thay vì đọc nguồn.
+
+### Ba điều đặc tả cho thêm, một trong số đó gỡ chỗ tắc
+
+```
+tran 10.000 ky tu cho additionalContext   -> ho so phai NGAN
+nhieu hook cung tra additionalContext     -> Claude nhan TAT CA
+truong `if` dung cu phap LUAT QUYEN       -> LOC TRUOC KHI SINH TIEN TRINH
+```
+
+### Đo quần thể — và nó sửa trọng tâm thiết kế
+
+Bản đầu tôi báo cáo *"60% dòng bảng lỗi lặp file, lớp `chua-do` 52%"*. **Đọc
+rộng gấp đôi.** Bảng lỗi có 5 cột, cột "cách chặn" chứa tên **GÁC** chứ
+không phải chỗ hỏng. Tách cột:
+
+```
+dong CO ten file o CHO HONG : 15/66
+dong LAP file o CHO HONG    :  8/15 = 53%   ->  8/66 = 12% ca bang
+lop chua-do                 :  6/27 = 22%   (ban cu bao 52%)
+```
+
+Sáu dòng là bề mặt rất mỏng — đúng ngưỡng BƯỚC 37 từ chối. Nên đo tiếp ba
+nguồn kia, và **chúng mới là sức nặng**:
+
+```
+52 file .py o goc repo · 23 file co >= 3 tham chieu · trung vi 2 · 13 file co 0
+paper_trading.py 26 (18 test + 6 BUOC + 2 DO) · walkforward.py 18 · paper_metrics.py 18
+```
+
+**Kết luận đổi trọng tâm: bảng lỗi là nguồn PHỤ, test và BƯỚC là nguồn
+chính.** Đó là kết quả đo, không phải dự đoán.
+
+### Dựng: một công cụ, một cửa, KHÔNG skill thứ hai
+
+```
+tools/ho_so.py       tra cuu THUAN, goi duoc bang tay, 218 ms mot luot
+tools/cua_ho_so.py   PreToolUse Read|Edit -> additionalContext, allow
+SKILL.md Buoc 1      dieu 1 dung ho_so.py; them dieu 1b
+```
+
+Không tách skill riêng: Bước 1 điều 1 **đã là** *"tìm xem đã có lời giải
+chưa"*; `tools/ho_so.py` là bản cơ giới hoá đúng bước ấy. Tách ra là hai chỗ
+dạy một việc — đúng lớp lỗi dự án đang có tên.
+
+### Phép thử bơm payload giả từ NGOÀI repo bắt hai lỗi thật
+
+Đúng như lỗi 15 dự báo:
+
+1. **`UnicodeEncodeError`** — thiếu `sys.stdout.reconfigure`. Lần thứ **tư**
+   của dự án, và là lý do `tests/test_script_chay_duoc_tren_windows.py` tồn
+   tại.
+2. **Dấu vết "đã bơm" ghi TRƯỚC khi in.** Lượt in nổ nhưng dấu đã ghi, nên
+   suất bơm của file ấy bị đốt im lặng cho cả phiên. `quyet_dinh()` nay
+   THUẦN; việc ghi dấu chuyển sang `main()` sau khi in xong.
+
+### Đục thử 10/10 đỏ — nhưng chỉ ở lượt thứ HAI
+
+Lượt đầu **hai phát sống sót**, và cả hai là lỗ thật trong gác của tôi:
+
+| phát sống | vì sao |
+|---|---|
+| `TRAN_KY_TU` lên 10 triệu | test so với **chính hằng số của module**, nới hằng số là nới luôn phép kiểm — mẫu *"test kiểm lại chính nó"* |
+| `allow` thành `deny` | file dấu vết của lượt chạy TRƯỚC còn trong TEMP nên cửa im, nhánh kiểm `permissionDecision` **không chạy lần nào** |
+
+Cái thứ hai đáng nhớ hơn: một test có thể ngừng kiểm mà vẫn xanh, chỉ vì
+trạng thái tạm sót lại giữa hai lượt chạy. Nay test tự xoá dấu vết **và**
+đếm số lần thật sự kiểm, đỏ nếu con số ấy bằng 0.
+
+### Cửa thứ BẢY
+
+`docs/cua-du-an.json` khai, `~/.claude/settings.json` đăng ký thật.
+`tools/kiem_cua_song.py` báo **7/7**. Sáu cửa cũ được đối chiếu lại theo tên
+sau khi ghi, và có bản sao lưu trước khi động vào.
+
+### Còn treo, không đoán
+
+Đặc tả ghi *"If you define the same handler in more than one settings file,
+it runs once"*. BƯỚC 49 (đo 10/09) ghi ngược: khai ở cả hai file thì mỗi hook
+chạy **HAI LẦN**, và đó là lý do dự án gỡ sạch hook khỏi
+`.claude/settings.json` của repo. Một trong hai câu đã cũ. **Chưa truy.**
+
+Và một phát hiện ngoài lề nhưng lớn: sổ tay NotebookLM đang bật **9 trên 9
+nguồn** — bốn bản chụp 04/09 **và** năm URL `main` cùng lúc. PR #117 khai là
+đã bỏ chọn bản cũ; trạng thái thật nói ngược lại. Đã bỏ chọn, còn 5 nguồn.
+Mọi câu trả lời của nó từ 14/09 tới 15/09 đều trộn ảnh chụp mười ngày trước
+với `main` hôm nay — kể cả hai lượt soát của lỗi 62.
