@@ -200,8 +200,59 @@ def _analyze(symbol: str, history: pd.DataFrame, exchange: str = "HOSE",
         packet.source_notes.append("[Local] Đã tự tính RSI, MACD, BB, MAs... từ OHLCV lịch sử")
 
     res = MasterConsensusAgent().run(packet)
+
+    # ── ĐO 9 — SL/TP suy từ cấu trúc, SAU công tắc ─────────────────
+    # Đọc cờ qua THUỘC TÍNH module: `from ... import` giữ một bản sao và
+    # không thấy lượt gán của dụng cụ đo.
+    import paper_trading as _pt
+    if getattr(_pt, "DUNG_MUC_FIBONACCI", False):
+        _ap_muc_fibonacci(res, packet.ohlcv_df)
+
     _ANALYZE_CACHE[cache_key] = res
     return res
+
+
+#: Đếm cho dụng cụ ĐO 9 — bao nhiêu lệnh thật sự dùng mức Fibonacci, bao
+#: nhiêu rơi về ATR. Không có con số này thì không đọc được alpha: khai
+#: trước là chỉ ~14% rổ áp được, và phải KIỂM điều đó chứ không tin nó.
+DEM_MUC = {"fibonacci": 0, "ve_atr_thieu_cau_truc": 0, "ve_atr_qua_rui_ro": 0}
+
+
+def _ap_muc_fibonacci(res: dict, df) -> None:
+    """Thay SL/TP bằng mức Fibonacci — CHỈ khi hai điều kiện đã ký đều đạt.
+
+    Hai ca rơi về ATR như cũ, chốt TRƯỚC khi chạy (`docs/TIEU-CHI-DOC-TRUOC.md`
+    mục ĐO 9):
+
+      1. `ket_luan_duoc = False` — không đủ bằng chứng cấu trúc
+      2. `vua_ngan_sach = False` — rủi ro vượt biên 4–6,5%
+
+    KHÔNG bỏ lệnh ở cả hai ca: bỏ lệnh đổi TẬP LỆNH, và khi đó khác biệt
+    quan sát được không quy được cho vế nào (lỗi 21).
+
+    ĐƠN VỊ: `rec` giữ giá VNĐ (`analysis_agents` đã nhân `price_multiplier`),
+    còn `df` là bảng thô theo nghìn đồng. Phải nhân đúng hệ số ấy, nếu không
+    SL sẽ nhỏ hơn giá 1.000 lần và `low <= stop_loss` **không bao giờ đúng** —
+    đúng cái bẫy ghi ở `NGUYEN-TAC-DO-LUONG.md`.
+    """
+    import muc_fibonacci
+    from data_quality import price_multiplier
+
+    rec = (res.get("analyses", {}).get("risk", {}).get("recommendations"))
+    if not rec or df is None or len(df) == 0:
+        return
+
+    fib = muc_fibonacci.doc_muc(df, price_multiplier(df))
+    if not fib.ket_luan_duoc:
+        DEM_MUC["ve_atr_thieu_cau_truc"] += 1
+        return
+    if not fib.vua_ngan_sach:
+        DEM_MUC["ve_atr_qua_rui_ro"] += 1
+        return
+
+    rec["stop_loss_price"] = fib.sl
+    rec["take_profit_price"] = fib.tp1
+    DEM_MUC["fibonacci"] += 1
 
 
 def run_session(journal: PaperTradingJournal, symbol: str,

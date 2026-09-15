@@ -143,6 +143,9 @@
           "phan_quyet": "SAI — BO LOT. Hai mau thuan THAT ton tai va deu KHONG nam trong khoi danh dau: (1) CLAUDE.md:1012 ghi 'Chưa ai đo' trong khi HANDOFF gach muc ay tu 12/09 (DO 6, BUOC 56); (2) NGUYEN-TAC:116 ghi 'moi ket qua van lac quan hon thuc te' trong khi DO 4 (11/09) do duoc alpha KHONG bi thien lech thoi. Chi dan 'bo qua khoi danh dau' bi ap qua rong: no doi mot bai toan bat nham thanh mot bai toan bo lot."
         }
       ]
+    },
+    "ĐO 9": {
+      "khong_soat_vi": "Doi tuong cua DO 9 la DUONG GOI trong MA — paper_runner._analyze, consider_entry, muc_fibonacci.doc_muc — chu khong phai tai lieu. So tay chi thay TAI LIEU, khong thay MA (gioi han thu nhat da khai o `_gioi_han_cua_cong_cu`). Phep tra trung da lam bang AST + grep tren chinh ma nguon, la duong duy nhat tra loi duoc cau hoi nay. Them mot ly do do duoc: do 15/09, cong cu ra 0 phat hien that tren 4 luot neu o lop tai-lieu-mau-thuan-tai-lieu (loi 62)."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`.",

@@ -1535,3 +1535,120 @@ Ca 3 chạy trên **sổ lệnh thật** đã đóng băng thành file để tá
 - **Không** đổi dung sai `0,5` điểm sau khi thấy `A − B`.
 - **Không** bỏ ca 1 nếu nó đỏ. Ca 1 đỏ nghĩa là dụng cụ sai, và mọi con số
   sau đó vô nghĩa.
+
+
+---
+
+## ĐO 9 — Fibonacci vào ĐƯỜNG SINH LỆNH: có đổi alpha không? (khai 15/09/2026)
+
+**Đã tra trùng:** **BƯỚC 78** (15/09/2026) dựng `muc_fibonacci` nhưng **chỉ
+để hiện** — chưa lượt đo nào đưa nó vào đường sinh lệnh. **BƯỚC 8** đo méo
+mó đòn bẩy, không liên quan. Công tắc `CHOT_LOI_CUNG` đã được đo một lần
+(`CLAUDE.md` mục *"Chốt lời cứng đã bị gỡ"*: phương sai −24%, alpha không
+đổi) — ĐO 9 **dùng lại** kết quả ấy làm **phép kiểm dụng cụ**, không đo lại
+nó như một phát hiện mới.
+
+**Dụng cụ đọc:** `tools/do9_fibonacci_duong_lenh.py`
+
+### Câu hỏi
+
+`muc_fibonacci.doc_muc()` cho SL và TP **suy từ cấu trúc giá**. Đường sinh
+lệnh hiện dùng SL theo ATR (kẹp 4–6,5%) và TP **+20% cứng** — một hằng số
+không liên quan tới mã nào cả.
+
+Câu hỏi: **thay chúng bằng mức Fibonacci có đổi alpha khớp từng lệnh
+không?**
+
+### Điều đã biết TRƯỚC khi chạy, và nó làm hiệu ứng nhỏ lại
+
+Đo 15/09 trên rổ cache (BƯỚC 78): **80/125 mã** dựng được mức, và trong 80
+mã đó **62 mã KHÔNG vừa ngân sách rủi ro 4–6,5%**. Theo hai quyết định cài
+đặt dưới đây, Fibonacci chỉ áp được cho **≈18/125 mã ≈ 14% rổ**.
+
+> **Khai trước:** hiệu ứng sẽ NHỎ vì mẫu áp dụng nhỏ. Một Δalpha lớn ở cỡ
+> mẫu này là dấu hiệu LỖI, không phải dấu hiệu tốt — xem kết cục 3.
+
+### HAI quyết định cài đặt, chốt TRƯỚC khi chạy
+
+Chọn sau khi thấy số là bất biến 7 đổi hướng. Nên chốt ở đây:
+
+1. **`ket_luan_duoc = False`** (không đủ bằng chứng cấu trúc) → **dùng ATR
+   như cũ**. KHÔNG bỏ lệnh. Bỏ lệnh sẽ đổi **tập lệnh**, và khi đó khác
+   biệt quan sát được không quy được cho vế nào — đúng lỗi 21.
+2. **`vua_ngan_sach = False`** (rủi ro > 6,5%) → **dùng ATR như cũ**. Ngân
+   sách rủi ro là ràng buộc đã chọn của hệ thống; nới nó là đổi hai thứ
+   cùng lúc.
+
+### HỆ QUẢ XUÔI DÒNG, khai trước vì nó KHÔNG hiển nhiên
+
+`consider_entry` tính cỡ vị thế bằng **rủi ro chia khoảng cách SL**:
+
+```python
+sl_pct_dist = (entry_price - stop_loss) / entry_price
+size        = account_risk_pct / sl_pct_dist
+```
+
+Nên **đổi SL là đổi luôn CỠ VỊ THẾ**. SL Fibonacci rộng hơn → cỡ nhỏ
+hơn → vốn cam kết thấp hơn → trần vốn ít chạm hơn → **tập lệnh xáo**.
+
+> Đây là hệ quả xuôi dòng của **đúng một biến** (SL), không phải một
+> biến thứ hai — nên phép so A↔B vẫn quy được về một vế. Nhưng nó
+> **không** phải phép so cùng-tập-lệnh-khác-SL, và bản báo cáo phải
+> nói ra điều đó. Đúng bài học ĐO 2, nơi câu *"tập tín hiệu không
+> đổi"* bị đọc thành *"tập lệnh không đổi"* và tập lệnh xáo 15–27%.
+
+**Phải đo và ghi:** cỡ vị thế trung bình, vốn cam kết trung bình/đỉnh,
+và tỷ lệ xáo tập lệnh — ở CẢ BỐN lượt. Thiếu ba con số đó thì không
+đọc alpha.
+
+### Bốn lượt, chế độ THEO NGÀY, trượt giá BẬT
+
+Chế độ theo ngày vì đó là **dòng duy nhất có danh mục thật** (vốn đỉnh đúng
+100%) và là dòng đáng tin nhất theo bất biến 7.
+
+| lượt | SL | mức TP | `CHOT_LOI_CUNG` | vai trò |
+|---|---|---|---|---|
+| **A** | ATR | +20% | TẮT | **đối chứng** = hiện hành |
+| **B** | **Fibonacci** | +20% | TẮT | chỉ đổi **SL** |
+| **C** | ATR | +20% | **BẬT** | chỉ đổi **công tắc** — PHÉP KIỂM DỤNG CỤ |
+| **D** | **Fibonacci** | **Fibonacci** | **BẬT** | đổi cả ba |
+
+**Chỉ ba phép so đọc được:** A↔B (SL) · A↔C (công tắc) · C↔D (mức TP, với
+công tắc đã bật). So A↔D là so ba thứ cùng lúc — **không đọc**.
+
+### PHÉP KIỂM DỤNG CỤ — chạy trước, và nó có quyền dừng cả phép đo
+
+Lượt C phải tái lập hình dạng đã biết của `CHOT_LOI_CUNG=True`: **phương sai
+giảm đáng kể, alpha KHÔNG đổi trong phạm vi KTC**. Nếu C cho alpha nhảy vọt
+hoặc phương sai không giảm → **dụng cụ bẩn, dừng, không đọc B và D**.
+
+### Hai chốt chặn TRƯỚC khi đọc bất kỳ con số nào
+
+- **Vốn đỉnh phải = 100%** ở cả bốn lượt. Vượt → bất biến 7b, số cộng dồn
+  là của một tài khoản vay được. Không đọc.
+- **Số lệnh OOS không được rơi quá 30%** so với lượt A. Rơi nhiều → tập
+  lệnh đã khác hẳn, không còn là phép so.
+
+### Bảng kết cục — ký TRƯỚC, đọc alpha của A↔B
+
+| # | điều kiện | đọc thế nào |
+|---|---|---|
+| **1** | \|Δalpha\| < ½ bề rộng KTC của A | **Không phân biệt được.** Fibonacci SL không đổi gì ở cỡ mẫu này. **Đây là kết cục DỰ KIẾN** — rho ≈ 0, và chỉ ~14% lệnh đổi SL. |
+| **2** | Δalpha < 0, vượt ½ bề rộng | Fibonacci SL **làm xấu đi**. Kết luận: đừng đưa vào. |
+| **3** | Δalpha > 0, vượt ½ bề rộng | **NGHI NGỜ TRƯỚC — quy tắc số 1.** Chỉ ~14% lệnh đổi SL mà alpha nhảy vượt nửa KTC là dấu hiệu LỖI. Phải truy nguyên nhân TRƯỚC khi ghi là kết quả. |
+| **4** | tập lệnh xáo > 10% | Vẫn đọc alpha, **nhưng phải ghi rõ**: đây KHÔNG phải phép so cùng-tập-lệnh. Hệ quả xuôi dòng của một biến — đúng như ĐO 2 (xáo 15%/27%). |
+
+### Điều KHÔNG được làm sau khi thấy số
+
+- Không nới biên 4–6,5% cho Fibonacci "vừa" hơn.
+- Không đổi hai mức 0,5/0,618 hay 1,272/1,618 rồi chạy lại.
+- Không đổi chế độ hay ngưỡng để tìm một ô đẹp hơn.
+
+Cả ba đều là **bất biến 7**: quét N cấu hình rồi lấy cái đẹp nhất là đo độ
+may của phép tìm kiếm.
+
+### Mặc định sau phép đo
+
+Công tắc `DUNG_MUC_FIBONACCI` mặc định **TẮT**, và **chỉ đổi mặc định nếu
+kết cục là 2 hoặc 3-đã-truy-xong**. Kết cục 1 → giữ TẮT, vì "không phân biệt
+được" không phải lý do để đổi một thứ đang chạy.
