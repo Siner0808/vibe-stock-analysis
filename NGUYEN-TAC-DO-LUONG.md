@@ -113,7 +113,15 @@ lỗi ở mục 7.
 | Độ phủ dữ liệu | Nửa rổ chỉ có dữ liệu năm gần nhất → kết quả nói về năm đó, không phải cả giai đoạn | `python extend_history.py --check` |
 | `download()` | Bỏ qua mọi mã đã có cache → mã tải lần đầu với 13 tháng sẽ mãi mãi 13 tháng | dùng `extend_history()` thay vì `download()` |
 | Đơn vị giá | vnstock trả nghìn đồng, agent trả VNĐ → `low <= stop_loss` luôn đúng | `data_quality.price_multiplier()` |
-| Thiên lệch sống sót | Rổ là ảnh chụp hiện tại; mã đã rớt khỏi rổ không có mặt | chưa xử lý — mọi kết quả vẫn lạc quan hơn thực tế |
+| Thiên lệch sống sót | Rổ là ảnh chụp hiện tại; mã đã rớt khỏi rổ không có mặt | **không xử lý được** bằng nguồn hiện có (`Reference` không cung cấp thành phần chỉ số theo lịch sử — `docs/STATE.md` BƯỚC 17). Nó thổi **kỳ vọng**, KHÔNG thổi **alpha** — xem ô dưới |
+
+> 🔴 **Ô "Cách phát hiện" của dòng thiên lệch sống sót từng ghi *"mọi kết quả vẫn lạc quan hơn thực tế"*. Vế "mọi" ĐÃ BỊ BÁC ngày 11/09/2026 (ĐO 4).**
+>
+> Đo được: cache rộng hơn làm **kỳ vọng mỗi lệnh nhảy hơn một điểm rưỡi** (+0,31% → +1,92%), trong khi **alpha đứng yên trong phạm vi một phần mười hai bề rộng KTC**. Lý do: rổ chuẩn LÀ chính rổ ấy, nên thiên lệch nâng **cả hai vế** và triệt tiêu ở bậc nhất.
+>
+> Đó chính là lý do **bất biến 6** chọn alpha làm thước quyết định: nó là đại lượng duy nhất trong bảng không bị thiên lệch này thổi. Một câu "mọi kết quả đều lạc quan" ngay trong tài liệu dạy điều đó là câu tự mâu thuẫn — và nó đứng **bốn ngày**.
+>
+> Vế *chưa xử lý* thì vẫn đúng, và nay nói rõ hơn: **không xử lý được**, chứ không phải chưa ai làm.
 
 ---
 
