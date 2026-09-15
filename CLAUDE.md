@@ -1009,7 +1009,21 @@ thi là chi phí MỖI LỆNH, không co giãn theo độ chọn lọc.
 > Giả thuyết *"0,43 đo ở bản mã cũ"* **bị loại như lời giải thích cho
 > khoảng cách ấy** — cả hai con số mới đến từ cùng một lượt. Còn **hai**
 > khả năng: vùng OOS thanh khoản mỏng hơn; tập lệnh khác nên trung vị giá
-> vào khác. Chưa ai đo.
+> vào khác.
+> 
+> 🔴 **HAI CHỮ "CHƯA AI ĐO" Ở ĐÂY ĐÃ HẾT ĐÚNG TỪ 12/09/2026 — ĐO 6 ĐO
+> CẢ HAI, VÀ CẢ HAI ĐỀU ĐÚNG.** Chúng chưa bao giờ là đối thủ: nến ngoài
+> mẫu mỏng **2,5 lần** (7,32 → 2,93 triệu CP) VÀ giá vào thấp hơn **35%**
+> (24.750đ → 16.000đ), mà giá thấp còn làm mỗi lệnh nhiều cổ phiếu hơn
+> **1,54 lần** — ba đường cộng dồn, tỷ trọng khối lượng tăng **3,1 lần**.
+> Phán quyết theo bảng đã ký là **kết cục 3 (chưa tách được)**, và lý do
+> không tách được chính là *cả hai cơ chế cùng chạy*. `docs/STATE.md`
+> BƯỚC 56.
+> 
+> Câu cũ sống **ba ngày** ở đây trong khi `docs/HANDOFF.md` đã gạch mục
+> ấy từ 12/09. Cùng hình dạng lỗi 57, và lần này ngược chiều: nó làm dự
+> án trông **chưa biết** trong khi đã biết — tức mời người ta đo lại, đúng
+> cái giá 88,8 phút của lỗi 41.
 >
 > **Trừ hao 0,63 khi đọc số ngoài mẫu**, không phải 0,43.
 

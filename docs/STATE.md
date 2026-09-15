@@ -12401,3 +12401,103 @@ là hai thói quen ở mục 1, và thói quen thì trôi; lỗi 42 đã nói đ
 
 Ghi ra đây để lần sau không ai đi tìm một cái gác cho nó rồi tưởng mình
 quên dựng.
+
+
+---
+
+## BƯỚC 76 — ĐO CÁI CÔNG CỤ, KHÔNG CHỈ ĐO BẰNG NÓ (15/09/2026)
+
+Hôm qua người dùng hỏi vì sao dùng NotebookLM có một lần. Tôi trả lời ba
+tầng, và tầng thứ hai là *"hai trong bốn phát hiện hôm nay là **sân mạnh
+nhất** của công cụ"*. Câu ấy đã **commit** vào BƯỚC 74.
+
+Nó dựa trên đúng **một** ca thành công — lỗi 46, nơi câu trả lời SAI của nó
+chính là phát hiện. Một ca, và tôi gọi đó là *sân mạnh nhất*.
+
+### Hôm nay đo, và con số không ủng hộ
+
+Trước hết tôi tự tìm bằng tay, mười phút, hai mâu thuẫn THẬT:
+
+```
+CLAUDE.md:1012            "Chua ai do"   <- HANDOFF gach muc ay tu 12/09
+                                            (DO 6, BUOC 56: DO CA HAI,
+                                             CA HAI DEU DUNG)
+NGUYEN-TAC-DO-LUONG:116   "moi ket qua van lac quan hon thuc te"
+                                         <- DO 4 (11/09) do duoc ALPHA
+                                            KHONG bi thien lech thoi
+```
+
+Rồi hỏi sổ tay đúng lớp ấy, với nguồn `main` đã tươi từ hôm qua và bốn bản
+chụp cũ đã bỏ chọn:
+
+| lượt | nguồn | chỉ dẫn | nêu | thật |
+|---|---|---|---|---|
+| 14/09 | bản chụp cũ, thiếu 30% | không có | 2 | **0** |
+| 15/09 | `main` tươi, 5 nguồn | *bỏ qua khối đánh dấu* | 0 | **0** |
+
+**0 phát hiện thật trên 4 lượt nêu.** Và hai mâu thuẫn thật thì nó bỏ lọt
+cả hai, dù cả hai **không** nằm trong khối đánh dấu nào.
+
+### Giới hạn thứ ba, và nó là một xung đột CẤU TRÚC
+
+Lý lẽ nó đưa khi kết luận *"không có mâu thuẫn nào"*:
+
+> *"Mọi phát biểu cũ/lệch trước đây giữa các file này đều đã nằm trong các
+> khối đính chính mang dấu 🔴 hoặc ⚠️."*
+
+Nó **áp quá rộng** đúng cái chỉ dẫn tôi đưa. Nhưng gốc sâu hơn chỉ dẫn:
+
+> Quy ước của dự án là **giữ câu cũ kèm dấu** (`docs/HANDOFF.md` mục 4).
+> Công cụ **không phân biệt** được một câu đã nghỉ trong khối 🔴 với một
+> câu đang sống. Nên **mỗi phép sửa làm đúng quy ước lại tạo thêm một mồi
+> bắt nhầm cho lượt soát sau.**
+
+Không bảo nó bỏ qua khối đánh dấu → 2/2 bắt nhầm. Bảo nó bỏ qua → 0/2 bỏ
+lọt. Tôi đổi một bài toán **bắt nhầm** thành một bài toán **bỏ lọt**, và
+bài toán thứ hai im lặng hơn.
+
+Luật ghi vào sổ: **mỗi \"mâu thuẫn\" nó nêu phải kiểm bằng một lệnh trước** —
+`grep -n` rồi đọc bối cảnh, xem câu ấy có nằm trong khối đánh dấu không.
+Hai lệnh là đủ phân định, và đã đủ cả hai lần.
+
+### KHÔNG rút công cụ
+
+n vẫn nhỏ: hai mâu thuẫn, hai cách hỏi. Và lỗi 46 là ca ngược — nó tìm ra
+một thứ tôi không thấy. Thứ bị bác là **lời khai của tôi về nó**, không phải
+bản thân nó. Lỗi 62.
+
+> Cùng hình dạng lỗi 60, cách đúng một ngày: lần ấy bản khai giới hạn của
+> công cụ chỉ ghi giới hạn ĐÃ BIẾT; lần này bản khai **sức mạnh** của nó
+> dựa trên một ca duy nhất. Khai điểm yếu thiếu và khai điểm mạnh thừa là
+> hai mặt của cùng một việc: **nói về một công cụ mà không đo nó.**
+
+### Hai câu đã sửa
+
+**`CLAUDE.md:1012`** — *"Chưa ai đo"* sống **ba ngày** sau khi `HANDOFF`
+gạch mục ấy. Lỗi 57 lần thứ ba, và lần này **ngược chiều**: nó làm dự án
+trông *chưa biết* trong khi đã biết — tức mời người ta đo lại, đúng cái giá
+88,8 phút của lỗi 41.
+
+**`NGUYEN-TAC-DO-LUONG.md:116`** — nặng hơn, vì đây là một trong **hai file
+bắt buộc đọc**. Ô ấy ghi *"chưa xử lý — **mọi** kết quả vẫn lạc quan hơn
+thực tế"*. Vế *"mọi"* bị ĐO 4 bác từ 11/09:
+
+```
+cache rong hon  ->  ky vong moi lenh  +0,31%  ->  +1,92%   (nhay 1,5 diem)
+                    alpha             dung yen trong 1/12 be rong KTC
+```
+
+Rổ chuẩn LÀ chính rổ ấy, nên thiên lệch nâng **cả hai vế** và triệt tiêu ở
+bậc nhất. **Đó chính là lý do bất biến 6 chọn alpha làm thước quyết định** —
+và câu *"mọi kết quả đều lạc quan"* nằm ngay trong tài liệu dạy điều đó.
+Một câu tự mâu thuẫn với bất biến của chính nó, đứng **bốn ngày**.
+
+Vế *chưa xử lý* thì vẫn đúng, và nay nói rõ hơn: **không xử lý được** bằng
+nguồn hiện có (BƯỚC 17), chứ không phải chưa ai làm.
+
+### Không thêm assertion thứ ba vào gác khai-giới-hạn
+
+Sổ nay có ba giới hạn; gác đòi khai hai. Thêm một assertion nữa cho giới
+hạn thứ ba là đúng hình dạng đã ghi ở dòng 59 — **mỗi lời khai một test** —
+và tôi không có phép đo nào nói nó cần. Giới hạn thứ ba vừa viết hôm nay;
+nếu nó rơi rụng thì lúc ấy mới có một ca để đo.
