@@ -86,3 +86,48 @@ tiến trình riêng, hai dụng cụ riêng, cách nhau 20 phút.
 Bất biến 2 (*"chấm cùng một gói dữ liệu hai lần phải ra cùng một điểm"*)
 tới nay luôn được kiểm ở tầng **con số báo cáo**. Đây là lần đầu nó khớp
 ở tầng **bản ghi thô** — cùng số dòng trong cả hai bảng.
+
+
+---
+
+## LƯỢT DỌN 15/09/2026 — 8 file, 204 MB
+
+Sản phẩm của **ĐO 9** (`tools/do9_fibonacci_duong_lenh.py`), bốn lượt
+walk-forward chạy 11:04:41 → 14:03:53. Người dùng chốt xoá 15/09/2026.
+
+Đếm bằng SQLite ngay trước lượt xoá, không gõ tay:
+
+| file | MB | lệnh | quyết định |
+|---|---:|---:|---:|
+| `wf_is_45.db` | 28 | 1248 | 20614 |
+| `wf_is_48.db` | 28 | 1261 | 20709 |
+| `wf_is_50.db` | 28 | 1259 | 20763 |
+| `wf_is_52.db` | 27 | 1239 | 20830 |
+| `wf_is_55.db` | 27 | 1110 | 20974 |
+| `wf_is_58.db` | 27 | 1072 | 21403 |
+| `wf_is_62.db` | 27 | 911 | 22069 |
+| `wf_oos.db` | 12 | 792 | 8625 |
+
+### Ba điều phải nói ra, vì chúng quyết định việc xoá là an toàn
+
+**1. Tám file này CHỈ CÒN của lượt D.** Tên file không mang tên lượt, nên
+mỗi lượt ghi đè lượt trước. Bản trên đĩa lúc dọn là bản của lượt cuối —
+`wf_is_45.db` có **1248 lệnh**, đúng dòng ngưỡng 45 trong dải IS của lượt
+D; `wf_oos.db` có **792 lệnh**, đúng số lệnh OOS của D. Ba lượt A · B · C
+đã không còn tồn tại trên đĩa **từ trước khi ai định dọn**.
+
+**2. Mọi con số rút ra từ chúng đã nằm trong tài liệu, và có lệnh tái
+lập.** `docs/STATE.md` BƯỚC 79 giữ cả bốn lượt; `./.venv/Scripts/python.exe
+tools/do9_fibonacci_duong_lenh.py --luot D` dựng lại file này.
+
+**3. Bằng chứng của lỗi 65 KHÔNG nằm ở đây nữa.** Mười tám vị thế mở ngày
+2023-05-17 — thứ chứng minh trần giữ đúng 100,0000 — đã được chép nguyên
+văn vào `tests/test_tran_von_khong_bao_nham.py` làm hằng số `CA_THAT`, kèm
+tổng Decimal và bụi float đo được. Một fixture trong test bền hơn một file
+`.db` bị lượt chạy sau ghi đè.
+
+> **Cùng bảy cái tên `wf_is_*.db` này đã bị xoá một lần rồi, ngày
+> 10/09/2026** — xem mục ĐÃ XOÁ ở trên, cột ngày `2026-09-09`. Chúng quay
+> lại vì mỗi lượt walk-forward lại sinh ra chúng. Đó là lý do chúng thuộc
+> nhóm dọn được: không phải "dữ liệu cũ", mà là **sản phẩm phụ tái sinh
+> được**.
