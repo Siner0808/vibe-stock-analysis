@@ -542,6 +542,8 @@ def dong_bao_cao_oos(o: dict) -> list[str]:
     một dòng vắng mặt thì người đọc không phân biệt được "bằng 0" với
     "không ai đo".
     """
+    from paper_metrics import vuot_tran_von
+
     d = [
         "── ĐO TRÊN OUT-OF-SAMPLE ──────────────────────────────────────",
         f"  số lệnh          : {o['so_lenh']}",
@@ -565,8 +567,8 @@ def dong_bao_cao_oos(o: dict) -> list[str]:
     d.append(f"  bộ nhớ học: đầu {o['mau_dau']} mẫu, học thêm "
              f"{o['mau_hoc_them']}   (chế độ {o['che_do_hoc']})")
     d.append(f"  vốn triển khai   : {o['von_tb']:.0f}% trung bình"
-             f" · {o['von_dinh']:.0f}% đỉnh")
-    if o["von_dinh"] > 100:
+             f" · {o['von_dinh']:.2f}% đỉnh")
+    if vuot_tran_von(o["von_dinh"]):
         d += [
             "  ⚠️  Vốn đỉnh vượt 100% — con số cộng dồn ở trên là lợi nhuận",
             "     của một tài khoản VAY ĐƯỢC (bất biến 7b). Chia tỷ trọng",

@@ -1608,10 +1608,11 @@ with t_acct:
         if _sig and not _sig["significant"]:
             st.warning(f"⚠️ {_sig['verdict']} — kỳ vọng {_p.expectancy:+.2f}% "
                        f"trên {_p.n_trades} lệnh chưa loại được số 0.")
-        if _p.peak_capital_deployed_pct > 100.0:
+        from paper_metrics import vuot_tran_von as _vuot_tran
+        if _vuot_tran(_p.peak_capital_deployed_pct):
             st.error(
                 f"🔴 ĐÒN BẨY ẨN: vốn cam kết cùng lúc chạm "
-                f"{_p.peak_capital_deployed_pct:.0f}% (trung bình "
+                f"{_p.peak_capital_deployed_pct:.2f}% (trung bình "
                 f"{_p.avg_capital_deployed_pct:.0f}%). Lợi nhuận cộng dồn ở "
                 f"trên là của một tài khoản vay được, không phải tài khoản "
                 f"thật — xem NGUYEN-TAC-DO-LUONG.md, bất biến 7b.")

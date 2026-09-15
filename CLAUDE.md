@@ -216,8 +216,16 @@ Vùng mua = thoái lui 0,5–0,618 đo từ trần; TP = mở rộng 1,272 / 1,6
 đo từ sàn; SL đặt dưới sàn nhưng không chặt hơn 4% tính từ **đỉnh** vùng
 mua (ca xấu nhất).
 
-> **Nó KHÔNG vào đường sinh lệnh.** Sổ lệnh vẫn dùng SL theo ATR, và
-> nhánh chốt lời cứng vẫn TẮT. Fibonacci tính từ chính chuỗi giá các
+> **Nó KHÔNG vào đường sinh lệnh — và từ 15/09/2026 đó là một kết
+> luận ĐÃ ĐO, không còn là một mặc định chưa thử.** Công tắc
+> `paper_trading.DUNG_MUC_FIBONACCI` tồn tại để đo, mặc định TẮT.
+> ĐO 9 chạy bốn lượt walk-forward: SL Fibonacci cho Δalpha **+0,22**
+> trên nửa bề rộng KTC **0,57** — **kết cục 1, không phân biệt
+> được**, đúng kết cục đã khai trước là dự kiến. Mức TP Fibonacci
+> (C↔D) đi chiều **xấu đi** và xáo tập lệnh 15,6%. Áp được **15,4%**
+> lượt chấm, khớp lời khai trước ~14%. `docs/STATE.md` BƯỚC 79.
+>
+> Sổ lệnh vẫn dùng SL theo ATR, và nhánh chốt lời cứng vẫn TẮT. Fibonacci tính từ chính chuỗi giá các
 > agent đã dùng, nên theo `MO-XE-KIEN-TRUC.md` nó **không thêm thông
 > tin dự báo** — nó chỉ thay một hằng số bằng một mức suy từ cấu trúc.
 

@@ -168,12 +168,12 @@ def test_bao_cao_OOS_in_DU_moi_truong_hop_dong_BAT_bao_cao():
 
     for nhan, gia_tri in (("so_lenh", "4111"), ("alpha_so_lenh", "3907"),
                           ("alpha_bo_qua", "204"), ("von_tb", "51%"),
-                          ("von_dinh", "137%"), ("mau_dau", "88")):
+                          ("von_dinh", "137.00%"), ("mau_dau", "88")):
         assert gia_tri in bao, (
             f"{nhan} = {gia_tri} không có trong báo cáo OOS. Hợp đồng "
             f"docs/TIEU-CHI-DOC-TRUOC.md bắt báo cáo KÈM trường này.")
 
-    assert "137%" in bao and "vượt 100%" in bao, (
+    assert "137.00%" in bao and "vượt 100%" in bao, (
         "vốn đỉnh 137% mà không có cảnh báo đòn bẩy trá hình (bất biến 7b)")
 
     o0 = dict(o, alpha_bo_qua=0, von_dinh=99.0)

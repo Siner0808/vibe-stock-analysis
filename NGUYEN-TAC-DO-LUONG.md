@@ -95,6 +95,28 @@ lợi nhuận của một tài khoản vay được, không phải tài khoản 
 Luôn đọc `Performance.avg_capital_deployed_pct` kèm `total_net_pct`. Vượt
 100% thì chia tỷ trọng cho đúng bội số rồi đo lại.
 
+> ⚠️ **BẤT BIẾN NÀY ĐÚNG; PHÉP SO THI HÀNH NÓ THÌ BÁO NHẦM, tới
+> 15/09/2026 mới đo ra (lỗi 65).** `_capital_deployment` cộng
+> `+size`/`-size` theo mốc ngày. Mọi `size_pct` là bội số 0,1 điểm,
+> mà 0,1 không biểu diễn chính xác được bằng nhị phân — nên một danh
+> mục chạm **đúng** trần cho ra `100.0000000000001`, và ba nơi dùng
+> `> 100.0` tuyệt đối đều kêu đòn bẩy.
+>
+> Đo trên lượt D của ĐO 9 (792 lệnh, đỉnh 2023-05-17): tổng Decimal
+> **100,0000** — `consider_entry` giữ trần tới chữ số cuối — tổng
+> float `100.0000000000001`, bụi **1e-13**.
+>
+> Nay mọi phép so đi qua **`paper_metrics.vuot_tran_von()`**, dung
+> sai `1e-6` với hai biên ĐO ĐƯỢC: bụi 1e-13 và bước yết 0,1 điểm.
+> Vốn đỉnh in **hai số lẻ**, vì ở `.0f` thì 99,9 · 100,0 · 100,4 ra
+> cùng một chuỗi và người đọc không kiểm được phán quyết bằng chính
+> con số bên cạnh. Khoá bởi
+> `tests/test_tran_von_khong_bao_nham.py`.
+>
+> **Đừng đọc điều này thành "đòn bẩy ẩn là báo động giả".** Các con
+> số 224% · 1.160% · 422% trong tài liệu này là THẬT và bất biến 7b
+> vẫn đứng. Thứ được sửa là ranh giới ở đúng 100, nơi bụi float sống.
+
 ### 8. Vùng kiểm định nằm ở QUÁ KHỨ
 Trực giác nói tối ưu trên quá khứ, kiểm định trên hiện tại. Ở đây ngược lại:
 hàng trăm vòng loop đã chạy trên toàn bộ cache kéo tới hôm nay, nên giai đoạn
@@ -158,7 +180,8 @@ không có alpha khớp từng lệnh (mục 6). Đo trên 18 tháng gần nhấ
 
 Ba việc đã làm sau sự cố: `guard_not_real_ledger()` chặn script tối ưu ghi
 vào sổ thật; `Performance.avg_capital_deployed_pct` bắt đòn bẩy ẩn; app và
-`paper_metrics.report()` cảnh báo khi vốn vượt 100%.
+`paper_metrics.report()` cảnh báo khi vốn vượt 100% — phép so ấy đi qua
+`vuot_tran_von()` từ 15/09/2026, xem ô ở bất biến 7b.
 
 Bài học riêng của lần này: **báo cáo nằm ngoài repo thì nằm ngoài mọi bất
 biến.** Thư mục `brain/` không được git theo dõi, không ai review, và là nơi
