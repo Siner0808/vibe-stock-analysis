@@ -64,6 +64,17 @@
             "statusMessage": "Kiểm hình dạng lệnh shell..."
           }
         ]
+      },
+      {
+        "matcher": "Read|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/tools/cua_ho_so.py\"",
+            "timeout": 15,
+            "statusMessage": "Tra hồ sơ file..."
+          }
+        ]
       }
     ],
     "SessionStart": [
