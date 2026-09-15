@@ -12501,3 +12501,84 @@ Sổ nay có ba giới hạn; gác đòi khai hai. Thêm một assertion nữa c
 hạn thứ ba là đúng hình dạng đã ghi ở dòng 59 — **mỗi lời khai một test** —
 và tôi không có phép đo nào nói nó cần. Giới hạn thứ ba vừa viết hôm nay;
 nếu nó rơi rụng thì lúc ấy mới có một ca để đo.
+
+
+---
+
+## BƯỚC 77 — LÝ DO YẾU Ở CHỖ CÓ SẴN LÝ DO MẠNH (15/09/2026)
+
+Sau tám PR liên tiếp về bộ máy quy trình, tôi đi tìm một việc **thuộc về
+chính dự án**. Thứ còn treo đúng nghĩa: `tv_recommendation` vi phạm **bất
+biến 2**, đo trên **n = 1**, từ 29/08.
+
+Phát hiện gốc (BƯỚC 8): hai lượt cách nhau chưa tới một giờ, thị trường
+ĐÃ ĐÓNG, MSR đổi `STRONG_BUY` → `NEUTRAL`, điểm B **75 → 67**. Tám điểm,
+trên thang 0–100 có ngưỡng mua **62**.
+
+Kèm một câu kết: *"hiện vô hại vì bonus không đổi quyết định mã nào"*.
+
+### Tôi định đo tính tái lập. Tra đường gọi trước đã.
+
+Đúng gác của lỗi 41/53 — *tra xem dự án đã đo chưa trước khi thiết kế một
+phép đo*. Lần này nó không tìm ra một bản trùng, nó tìm ra **một lý do
+mạnh hơn hẳn cái đang ghi**:
+
+```
+paper_runner._analyze   tv_recommendation="NEUTRAL"   ghim cung  (:185)
+backtest/engine.py      tv_recommendation="NEUTRAL"   ghim cung  (:86)
+collect_and_handoff()   chi goi tu master_agent.run_full_analysis
+```
+
+`paper_runner` **có** khởi tạo `DataOrchestrator` ở dòng 197 — ngay dưới
+dòng ghim `NEUTRAL`, nên thoạt nhìn tưởng nó ghi đè. Đọc nguyên văn: nó chỉ
+gọi `_compute_local_indicators(packet.ohlcv_df)`, một hàm thuần trên
+dataframe, **không chạm mạng**.
+
+> Nên `tv_bonus` bằng **0** cho mọi lệnh trong sổ, mọi backtest, mọi
+> walk-forward. Không phải *"tình cờ chưa đổi quyết định nào"* — mà
+> **không thể**.
+
+### Khác biệt giữa hai lý do không phải chuyện chữ nghĩa
+
+| lời khai | kiểu | hệ quả cho người đọc sau |
+|---|---|---|
+| *"bonus không đổi quyết định mã nào"* | thực nghiệm, n=1 | phải canh chừng, và **nên đi đo tính tái lập** |
+| *"đường giao dịch không đọc TradingView"* | cấu trúc, đọc bằng AST | không cần đo; cần **giữ** cho nó đúng |
+
+Lý do yếu mời người sau chạy một phép đo **không thể đổi con số nào** —
+đúng cái giá 88,8 phút của lỗi 41, ở dạng nhẹ hơn. Nó sống **17 ngày**, dài
+nhất bảng lỗi tới nay. Lỗi 63.
+
+### Một lát mỏng, và nói rõ nó mỏng
+
+Vì đã ở đây rồi, đo luôn hiện tượng gốc ở thang **giây** — phiên đang mở
+(09:13), nên thang giờ sẽ lẫn biến động thật với không-tái-lập:
+
+```
+6 ma · 3 luot cach nhau 4-8 giay
+FPT BUY/BUY/BUY · ACB SELL×3 · HPG STRONG_SELL×3
+SSI STRONG_SELL×3 · VNM STRONG_SELL×3 · STB BUY×3
+-> 0/6 doi gia tri
+```
+
+Nó **không bác** phát hiện gốc: khác thang thời gian, khác trạng thái thị
+trường. Nó chỉ thêm một điều — đây **không phải nhiễu theo từng lượt gọi**,
+mà là thứ đổi theo nhịp riêng của TradingView. n = 6 mã, 15 giây, và gọi
+đúng là n nhỏ.
+
+### Gác: canh một thay đổi TƯƠNG LAI, không canh một lỗi hôm nay
+
+`tests/test_duong_giao_dich_khong_doc_tradingview.py` bắt **0 ca hôm nay**
+— đúng như gác INDEX ở BƯỚC 72. Thứ nó canh là một thay đổi nghe rất hợp
+lý: *"dùng TradingView thật trong lượt quét đi, dữ liệu tốt hơn mà"*.
+
+Thay đổi ấy sẽ **không** làm test nào đỏ, **không** làm số xấu đi ngay, và
+sẽ lặng lẽ đưa một đại lượng không tái lập vào đúng chỗ sinh ra lệnh: cùng
+một phiên, chấm hai lần, hai tập lệnh khác nhau, cả hai đều trông hợp lệ.
+
+Đục thử **5/5 đỏ**, và phát đầu tiên dựng lại nguyên văn mối nguy ấy.
+
+Chỗ bất biến 2 **vẫn** bị vi phạm: `master_agent.run_full_analysis()` —
+đường phân tích một mã trên app, thứ **người** đọc rồi tự quyết. Gác cố ý
+không đụng tới, vì đó là đường không sinh lệnh. Ghi ra để không ai tưởng
+việc này đã đóng hẳn.

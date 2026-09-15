@@ -1662,6 +1662,32 @@ nó. Chi tiết: `docs/STATE.md`, mục **"BƯỚC 6"**.
 **Chưa đo:** `tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` →
 `NEUTRAL` trong chưa tới một giờ khi thị trường đã đóng (bất biến 2).
 
+> **PHẠM VI, đo 15/09/2026 — và nó mạnh hơn lời khai cũ.** Bản 29/08 ghi
+> *"hiện vô hại vì bonus không đổi quyết định mã nào"*: một câu **thực
+> nghiệm, n=1**, đúng hôm ấy và có thể sai ngày mai. Sự thật là **cấu
+> trúc**: đường giao dịch KHÔNG THỂ chạm tới TradingView thật.
+> 
+> ```
+> paper_runner._analyze   tv_recommendation="NEUTRAL"   ghim cung
+> backtest/engine.py      tv_recommendation="NEUTRAL"   ghim cung
+> collect_and_handoff()   chi goi tu master_agent.run_full_analysis
+> ```
+> 
+> `paper_runner` CÓ khởi tạo `DataOrchestrator`, nhưng chỉ để gọi
+> `_compute_local_indicators` — hàm thuần trên dataframe, không chạm
+> mạng. Nên `tv_bonus` bằng **0** cho mọi lệnh trong sổ, mọi backtest,
+> mọi walk-forward. Khoá bởi
+> `tests/test_duong_giao_dich_khong_doc_tradingview.py`.
+> 
+> Chỗ nó VẪN vi phạm bất biến 2: `master_agent.run_full_analysis()` —
+> đường phân tích một mã trên app, thứ **người** đọc rồi tự quyết. Gác
+> cố ý không đụng tới đường ấy.
+> 
+> Một lát mỏng cùng ngày (6 mã, 3 lượt cách nhau 4–8 giây, phiên ĐANG
+> MỞ): **0/6 đổi giá trị**. Nó KHÔNG bác phát hiện gốc — khác thang
+> thời gian, khác trạng thái thị trường — chỉ nói thêm một điều: đây
+> **không phải nhiễu theo từng lượt gọi**.
+
 **Hạn — CHƯA qua. Đoạn dưới đây từng ghi ngược, sửa 01/09/2026.**
 
 Bản trước viết: *"Bốn lệnh chờ khớp sáng 31/08/2026, nên điều kiện 2 của
