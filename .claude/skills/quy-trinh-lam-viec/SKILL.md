@@ -136,13 +136,28 @@ dot_bien("paper_metrics.py", "z=2,30", "z=1,00",
 "gần đạt" — nó là câu trả lời: gác chưa canh chỗ đó. Sửa gác rồi chạy
 lại cả bộ đột biến, đừng chỉ chạy lại phát vừa hỏng.
 
-Ba điều bắt buộc, cả ba từ sự cố thật:
+Bốn điều bắt buộc, cả bốn từ sự cố thật:
 
 1. **Phép đục phải đi qua đúng HÀM ĐANG PHÁN**, không qua hàm trích.
 2. **Phát đầu tiên phải là: dựng lại nguyên văn lỗi thật.** Đó là câu hỏi
    duy nhất đáng hỏi — *gác có bắt được đúng thứ nó sinh ra để bắt không.*
 3. **Gác một phép SUY RA thì kiểm HÌNH DẠNG biểu thức bằng AST**, không
    kiểm giá trị nó cho ra.
+4. **MÁY ĐO cũng phải bị nghi ngờ như GÁC** — và nó nguy hiểm hơn, vì một
+   gác sai thì ĐỎ, còn một máy đo sai thì chỉ **in ra một con số**.
+
+   Ngày 14–15/09/2026, **năm** máy đo liên tiếp hẹp hơn thứ chúng đo, và
+   cả năm đều cho một con số nghe hợp lý: `0 ca`, `0 ca`, `sống sót`,
+   `16/20`, `15/33`. Lỗi 61.
+
+   Hai thói quen đã cứu cả năm lần, và không lần nào là sự cẩn thận:
+
+   - **In DỮ LIỆU THÔ ngay dưới con số.** Nếu lượt quét heredoc chỉ in
+     `0`, tôi đã kết luận *"quần thể rỗng, không đo được"* — nghe rất
+     hợp lý, và sai: hai ca nằm ngay trong bản in bên dưới.
+   - **Bắt máy đo đi qua một ca THẬT đã biết trước.** Biết trước câu ở
+     `HANDOFF` có tồn tại là thứ duy nhất chứng minh được lượt quét ra
+     `0 ca` là hỏng, chứ không phải sạch.
 
 Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`.
 
