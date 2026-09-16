@@ -13589,3 +13589,49 @@ không đi qua tay tôi.
 
 `vnstock` 4.0.8 cũng để nguyên: không ai hỏi, và nó là lớp bọc công khai
 mà mọi con số hiện hành đã đo trên 4.0.7.
+
+---
+
+## BƯỚC 88 — LÀM TƯƠI SỔ TAY: 73 → 87, VÀ CÁCH LÀM (16/09/2026)
+
+BƯỚC 87 đo được rằng xoá bốn bản chụp **không** làm nguồn tươi lên: năm URL
+còn lại tự chúng cũng là ảnh chụp, và menu nguồn URL **không có nút làm
+mới**. Người dùng chốt: thêm lại.
+
+### Trình tự, và vì sao theo thứ tự ấy
+
+```
+1. doc lai va GHI chinh xac nam URL        (tu cay tro nang, khong go tay)
+2. MO hop "Them nguon" de KIEM duong khoi phuc  <- TRUOC khi xoa gi
+3. xoa ca nam
+4. dan ca nam trong MOT luot
+5. do lai so hieu BUOC lon nhat
+```
+
+Bước 2 là bước đáng giữ: **kiểm đường khôi phục trước khi phá thứ đang có**.
+Hộp thêm nguồn ghi rõ *"Để thêm nhiều URL, hãy phân tách bằng dấu cách hoặc
+dòng mới"* — biết điều đó trước khi xoá thì lượt xoá không còn là canh bạc.
+
+Thêm trước rồi xoá sau thì an toàn hơn về mặt mất mát, nhưng sinh bản trùng
+— đúng cái vừa dọn xong ở BƯỚC 87. Giới hạn sổ tay là **300 nguồn**, nên
+chỗ chứa chưa bao giờ là ràng buộc.
+
+### Kết quả, đo bằng cùng một câu hỏi trước và sau
+
+```
+truoc : 87 ... khong, la 73    (nguon raw .../docs/STATE.md)
+sau   : 87                     (cung nguon)
+repo  : 87
+```
+
+Hai câu trả lời nằm cạnh nhau trong cùng khung chat của sổ tay, nên phép so
+này đọc lại được bất cứ lúc nào mà không cần tin bản ghi ở đây.
+
+**Sổ tay nay đúng bằng repo.** Đây là lần đầu tiên kể từ khi dự án dùng nó
+mà câu *"nó có thấy thứ tôi vừa viết không"* có câu trả lời là CÓ.
+
+### Thứ phải nhớ: nó sẽ CŨ lại
+
+Nguồn URL là ảnh chụp, không phải liên kết sống. Mỗi BƯỚC mới viết ra là sổ
+tay lại lệch thêm một mục. Nên **đo độ tươi vẫn là việc bắt buộc mỗi lượt
+soát** — điều đã ghi ở `SKILL.md`, nay kèm cả cách sửa khi nó lệch.

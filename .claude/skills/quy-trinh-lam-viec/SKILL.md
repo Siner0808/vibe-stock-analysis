@@ -475,6 +475,24 @@ Ngày 14/09 con số ấy là 41 so với 73.
 được bỏ chọn, còn 5 nguồn; ngày 16/09 cả 9 được tích lại. Một câu *"đã bỏ
 chọn"* vì thế mô tả một trạng thái tạm, không phải một phép sửa.
 
+**CÁCH LÀM TƯƠI, khi độ tươi đo ra là lệch** (dựng 16/09/2026, BƯỚC 88).
+Nguồn URL là **ảnh chụp**, không phải liên kết sống, và menu của nó chỉ có
+`Xoá nguồn` · `Đổi tên nguồn` — **không có nút làm mới**. Nên:
+
+```
+1. doc va GHI chinh xac cac URL dang co  (tu cay tro nang, khong go tay)
+2. MO hop "Them nguon" de KIEM duong khoi phuc  <- TRUOC khi xoa gi
+3. xoa het
+4. dan lai ca cum trong MOT luot  (ngan cach bang DAU CACH)
+5. do lai so hieu BUOC lon nhat
+```
+
+Bước 2 là bước đáng giữ: **kiểm đường khôi phục trước khi phá thứ đang
+có**. Thêm-trước-xoá-sau an toàn hơn về mất mát nhưng sinh bản trùng, đúng
+thứ vừa dọn. Giới hạn sổ là 300 nguồn nên chỗ chứa không phải ràng buộc.
+
+Đo 16/09/2026: **73 → 87**, đúng bằng repo.
+
 ### Nhịp soát lại quy trình — 2 ngày (người dùng chốt 16/09/2026)
 
 Người dùng đề xuất nhịp cho việc *"update skill và hook"*. Đo trước khi
