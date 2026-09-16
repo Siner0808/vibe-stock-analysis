@@ -190,8 +190,16 @@ def dong_ho_so(hs: HoSo, tran: int = TRAN_KY_TU) -> list[str]:
     """
     if not hs.dang_ke:
         return []
-    d = [f"HỒ SƠ {hs.ten} — dự án đã nói gì về file này "
-         f"({hs.so_tham_chieu} tham chiếu)"]
+    # HAI con số, cố ý KHÔNG cộng làm một: `so_tham_chieu` đếm ba nguồn
+    # chính, bảng lỗi là nguồn phụ (8/66 dòng, đo 15/09/2026). Nhưng đầu
+    # đề phải khai ĐỦ thứ nó đứng trên — bản trước in `(0 tham chiếu)`
+    # ngay trên ba dòng bảng lỗi của `HANDOFF.md`, và một số 0 như thế
+    # mời người đọc bỏ qua cả khối. Lỗi 68, lôi ra bởi chính lượt bơm
+    # thật đầu tiên của cửa (16/09/2026).
+    dem = f"{hs.so_tham_chieu} tham chiếu"
+    if hs.loi_cho_hong:
+        dem += f" · {len(hs.loi_cho_hong)} dòng bảng lỗi"
+    d = [f"HỒ SƠ {hs.ten} — dự án đã nói gì về file này ({dem})"]
 
     if hs.loi_cho_hong:
         d.append("  BẢNG LỖI · file này TỪNG LÀ CHỖ HỎNG:")
@@ -218,10 +226,20 @@ def dong_ho_so(hs: HoSo, tran: int = TRAN_KY_TU) -> list[str]:
 
 
 def ten_dang_bom(toi_thieu: int = TOI_THIEU_THAM_CHIEU) -> list[str]:
-    """Các file đủ dày để đáng bơm — dùng sinh danh sách lọc của cửa.
+    """Các file `.py` ở gốc repo đủ dày để đáng bơm.
 
     SUY RA, ĐỪNG GÕ. Gõ tay 23 cái tên thì danh sách trôi khỏi repo ngay
     lần thêm file tiếp theo.
+
+    **CỬA KHÔNG GỌI HÀM NÀY** (đo 16/09/2026). `cua_ho_so.quyet_dinh()`
+    hỏi thẳng `dong_ho_so()` cho từng file, nên quần thể thật của cửa
+    rộng hơn quần thể ở đây: nó bơm cả `.md`, mà hàm này chỉ duyệt
+    `*.py`. Bản trước ghi *"dùng sinh danh sách lọc của cửa"* — một lời
+    hứa về đường nối chưa tồn tại, đúng lớp lỗi tài liệu thứ nhất ở
+    `docs/HANDOFF.md` mục 4.
+
+    Hàm này là MÁY ĐO, và là nguồn dự kiến cho trường `if` của hook nếu
+    có ngày cần cắt chi phí sinh tiến trình mỗi lượt Read.
     """
     tn, bn, dn = test_nhap(), buoc_nhac_ten(), do_nhac_ten()
     bl = bang_loi()

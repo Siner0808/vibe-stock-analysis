@@ -12948,3 +12948,134 @@ nguồn** — bốn bản chụp 04/09 **và** năm URL `main` cùng lúc. PR #1
 đã bỏ chọn bản cũ; trạng thái thật nói ngược lại. Đã bỏ chọn, còn 5 nguồn.
 Mọi câu trả lời của nó từ 14/09 tới 15/09 đều trộn ảnh chụp mười ngày trước
 với `main` hôm nay — kể cả hai lượt soát của lỗi 62.
+
+---
+
+## BƯỚC 81 — CỬA THỨ BẢY BƠM THẬT, VÀ NÓ TỰ LÔI RA LỖI 68 (16/09/2026)
+
+Cửa `tools/cua_ho_so.py` lên toàn cục chiều 15/09, nên phiên đầu tiên nó
+có hiệu lực là phiên sáng nay. **Nó bơm ở đúng lượt Read đầu tiên.**
+
+```
+2026-09-16 08:06:17  BOM                HANDOFF.md (6 dong)
+2026-09-16 08:08:27  IM-chua-du-ho-so   ho_so.py
+```
+
+Hai dòng ấy nói hai điều khác nhau, và dòng thứ hai đáng giá không kém:
+cửa **im đúng chỗ phải im**. `ho_so.py` mới một ngày tuổi, có 2 tham
+chiếu, dưới ngưỡng `TOI_THIEU_THAM_CHIEU = 3` — nên nó không bơm. Nhật ký
+phân biệt được *"cửa không chạy"* với *"cửa chạy mà im"*, và đây là lần
+đầu tiên khoảng phân biệt ấy được dùng thật.
+
+**MỘT dòng nhật ký, không phải hai.** Ghi lại vì nó là dữ kiện cho BƯỚC 82.
+
+### Lỗi 68 — đầu đề khai `0` đứng ngay trên ba phát hiện
+
+Khối được bơm vào ngữ cảnh sáng nay, nguyên văn:
+
+```
+HỒ SƠ HANDOFF.md — dự án đã nói gì về file này (0 tham chiếu)
+  BẢNG LỖI · file này TỪNG LÀ CHỖ HỎNG:
+      lỗi 45 [gac-hong] · lỗi 57 [chua-do] · lỗi 64 [chua-do]
+```
+
+`so_tham_chieu` **cố ý** không đếm bảng lỗi — đó là kết quả đo 15/09 (bảng
+lỗi là nguồn phụ, 8/66 dòng). Con số `0` vì thế đúng về thứ nó đếm. Nhưng
+nó được in ra đứng trên ba phát hiện có thật, và một người đọc lướt sẽ
+dừng ở chữ `0`. Cùng hình dạng lỗi 57 thu nhỏ: **một con số đúng về thứ
+này bị đọc thành phán quyết về thứ kia.**
+
+Sửa: đầu đề khai cả hai, vẫn không cộng chúng làm một.
+
+```
+HỒ SƠ HANDOFF.md — dự án đã nói gì về file này (0 tham chiếu · 3 dòng bảng lỗi)
+```
+
+Đục thử **3/3 đỏ**, phát đầu dựng lại nguyên văn bản cũ (`if False`), phát
+hai đếm nhầm sang cột GÁC — đúng lỗi đọc rộng của lỗi 65 — phát ba khai
+hằng số thay vì đếm. Gác đọc **con số trong ngoặc**, không đọc chữ, nên
+đổi cách diễn đạt không làm nó đỏ oan.
+
+> **Máy đo của chính lượt đục thử cũng sai một nhịp.** Bản đầu của
+> `duc_thu.py` đọc ngược giá trị trả về của `va_an_toan.dot_bien` —
+> hàm ấy trả `True` khi kết quả **đúng kỳ vọng "ĐỎ"** — nên nó in ra
+> *"SỐNG SÓT 3/3"* trong khi cả ba đều đỏ. Nếu tin bản in ấy thì tôi đã
+> đi sửa một cái gác không hỏng. Đọc hợp đồng của hàm là thứ cắt được,
+> và nó nằm sẵn trong docstring. SKILL Bước 3 điều 4.
+
+### Chỗ thứ hai, cùng một họ: một lời hứa về đường nối chưa tồn tại
+
+Docstring của `ten_dang_bom()` ghi *"dùng sinh danh sách lọc của cửa"*.
+Cửa **không gọi hàm ấy**: `cua_ho_so.quyet_dinh()` hỏi thẳng
+`dong_ho_so()` cho từng file. Hệ quả đo được ngay sáng nay — cửa bơm cho
+`HANDOFF.md`, một file `.md`, trong khi `ten_dang_bom()` chỉ duyệt `*.py`
+nên không bao giờ liệt kê nổi nó. Quần thể thật của cửa rộng hơn quần thể
+của hàm tự nhận là bộ lọc cho nó.
+
+Đã sửa docstring. Hàm ở lại nguyên vẹn — nó là máy đo, và vẫn là nguồn dự
+kiến cho trường `if` của hook nếu có ngày cần cắt chi phí sinh tiến trình.
+
+---
+
+## BƯỚC 82 — "CHẠY MỘT LẦN" vs "CHẠY HAI LẦN": KHÔNG PHẢI MÂU THUẪN (16/09/2026)
+
+Từ 15/09 bản bàn giao mang một mục treo: đặc tả hook viết *"If you define
+the same handler in more than one settings file, it runs once"*, còn
+BƯỚC 49 (đo 10/09) ghi **mỗi hook chạy HAI LẦN**. Hai câu ấy được chép
+lại như một mâu thuẫn chưa ai truy.
+
+**Bằng chứng gốc còn nguyên trên đĩa** — phiên `claude -p` ngày 10/09 vẫn
+nằm ở `.claude/projects/C--Users-cuong--gemini-antigravity-scratch-vibe-preview/57f520bd-….jsonl`,
+13 dòng. Dòng 3 và 4 là hai bản ghi `hook_success`:
+
+```
+cung toolUseID  4772bf98-b7c7-4235-b4de-2c4db94a3f25
+cung timestamp  2026-09-10T04:06:26.492Z
+cung stdout     (tung ky tu)
+exitCode 0 / 0  ·  durationMs 335 va 334
+```
+
+Hai tiến trình thật, không phải một bản ghi bị chép đôi. **Nhưng hai bản
+khai sinh ra chúng KHÁC nhau ở cả ba trường** — đọc lại từ git
+(`2988cc8`, bản ngay trước lượt gỡ) và từ `~/.claude/settings.json`:
+
+| trường | bản trong repo (đã gỡ) | bản toàn cục |
+|---|---|---|
+| `command` | `python "${CLAUDE_PROJECT_DIR:-.}/tools/cua_mo_phien.py"` | `python "C:/Users/…/tools/cua_mo_phien.py"` |
+| `timeout` | 10 | 15 |
+| `statusMessage` | Nhắc quy trình và mốc ngày đang chặn... | Nhắc quy trình + mốc chặn theo ngày (vibe_preview)... |
+
+**Nên BƯỚC 49 chưa bao giờ thử "cùng một handler".** Nó đo hai định nghĩa
+khác nhau cùng trỏ tới một file `.py`, và hai định nghĩa khác nhau thì
+chạy hai lần là điều dễ hiểu. Mâu thuẫn nằm ở cách tôi đọc chữ *"same
+handler"* — hiểu thành *"cùng một script"* thay vì *"cùng một lời khai"*.
+Cả hai câu đều đúng và chưa bao giờ đụng nhau.
+
+Đáng chú ý: chính SKILL.md đã ghi *"phân biệt được bằng `statusMessage`
+của từng file"* từ 10/09. Dữ kiện lật ngược mâu thuẫn nằm sẵn trong câu
+khai ra nó, suốt sáu ngày.
+
+### Vế còn lại: CHƯA ĐO ĐƯỢC, và đó là kết cục đã khai trước
+
+Câu hỏi thật sự chưa ai trả lời: *hai file settings khai một bản GIỐNG
+HỆT TỪNG BYTE thì nó chạy một lần hay hai lần?* Tiêu chí ba kết cục được
+khai **trước** khi chạy (`scratchpad/do10_khu_trung_hook.py`), gồm cả ca
+dương đã biết — phiên 10/09 cho **2** bản ghi — để phép đo này có khả
+năng cho kết quả dương, đúng điều bắt buộc sinh ra từ lỗi 66.
+
+Bản khai giống hệt đã dựng xong và đối chiếu lại từ đĩa. Phép đo dừng ở
+bước mở phiên:
+
+```
+$ claude -p "tra loi dung mot tu: xong"
+Failed to authenticate: OAuth session expired and could not be refreshed
+```
+
+**Kết cục 3 — chưa đo được.** Không kết luận gì từ đó; một phép thử không
+chạy được thì không phải một kết quả âm. Repo đã trả về nguyên trạng ngay
+trong cùng phiên, `kiem_cua_song.py` xác nhận 7/7.
+
+**Cấu hình KHÔNG đổi theo kết cục nào** — điều này cũng đã khai trước.
+Bảy cửa vẫn chỉ đăng ký ở một nơi, vì lý do gỡ bản trong repo không phải
+*"nó chạy đôi"* mà là *"nó không mang lại chức năng nào"*. Phép đo còn
+thiếu chỉ đổi lời giải thích.
