@@ -1444,6 +1444,14 @@ PostToolUse hook: sau mỗi Write/Edit, file được phân tích bằng AST và
 > tiếp bằng một phiên `claude -p` chạy với cwd đặt ở repo: cả hai file
 > cùng nạp và **mỗi hook chạy HAI LẦN**. Bản trong repo nay đã gỡ; phần
 > khai nằm ở `docs/cua-du-an.json`. `docs/STATE.md` BƯỚC 49.
+>
+> **Đừng đọc câu trên thành "đặc tả nói sai".** Hai bản khai ngày ấy KHÁC
+> nhau ở cả ba trường — `command` (`${CLAUDE_PROJECT_DIR}` so với đường
+> dẫn tuyệt đối), `timeout` (10 so với 15), `statusMessage` (hai câu khác
+> hẳn). Đo lại 16/09/2026 từ chính bản ghi `hook_success` còn trên đĩa và
+> từ `git show`. Nên phép đo ấy **không phải** ca *"cùng một handler khai
+> ở hai file"* mà đặc tả nói là chạy một lần — ca ấy tới nay vẫn chưa đo
+> được. `docs/STATE.md` BƯỚC 82.
 
 | Luật | Mức | Mẫu |
 |---|---|---|

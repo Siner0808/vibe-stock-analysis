@@ -12,6 +12,7 @@ Ba bất biến lớn nhất:
 """
 import ast
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -234,6 +235,38 @@ def test_DANH_SACH_LOC_duoc_SUY_RA_chu_khong_GO_TAY():
         f"danh sách lọc {len(ten)} file — 15/09/2026 đo được 23/52. "
         f"Ngoài dải này thì ngưỡng hoặc phép tra đã trôi.")
     print(f"PASS  danh sách lọc suy ra được: {len(ten)} file")
+
+
+def test_DAU_DE_khong_duoc_khai_0_khi_ben_duoi_van_co_dong():
+    """Ca THẬT, lôi ra từ lượt bơm thật ĐẦU TIÊN của cửa (16/09/2026).
+
+    `HANDOFF.md` bơm ra `(0 tham chiếu)` rồi liệt kê **ba** dòng bảng lỗi
+    ngay bên dưới. `so_tham_chieu` cố ý không đếm bảng lỗi — đó là kết
+    quả đo, bảng lỗi là nguồn phụ 8/66 dòng — nhưng một đầu đề khai `0`
+    đứng ngay trên ba phát hiện thì mời người đọc bỏ qua cả khối.
+
+    Cùng hình dạng với lỗi 57 thu nhỏ: một con số ĐÚNG về thứ này được
+    đọc thành phán quyết về thứ kia.
+
+    Gác đọc con số trong ngoặc của đầu đề, KHÔNG đọc chữ — để một lần
+    đổi cách diễn đạt không làm nó đỏ oan, và để nó vẫn đỏ nếu con số
+    quay về 0.
+    """
+    hs = ho_so.doc_ho_so("HANDOFF.md")
+    assert hs.so_tham_chieu == 0 and len(hs.loi_cho_hong) >= 3, (
+        f"ca thật đã trôi: {hs.so_tham_chieu} tham chiếu · "
+        f"{len(hs.loi_cho_hong)} dòng bảng lỗi. Test này cần đúng ca "
+        f"KHÔNG tham chiếu mà CÓ bảng lỗi; ca khác thì nó không đo gì.")
+
+    dong = ho_so.dong_ho_so(hs)
+    assert dong, "hồ sơ rỗng — mất luôn ca đang đo"
+    m = re.search(r"\(([^)]*)\)\s*$", dong[0])
+    assert m, f"đầu đề mất phần đếm: {dong[0]!r}"
+    so = [int(x) for x in re.findall(r"\d+", m.group(1))]
+    assert so and max(so) >= len(hs.loi_cho_hong), (
+        f"đầu đề khai ({m.group(1)}) trong khi ngay bên dưới liệt kê "
+        f"{len(hs.loi_cho_hong)} dòng bảng lỗi")
+    print(f"PASS  đầu đề khai đủ: ({m.group(1)})")
 
 
 if __name__ == "__main__":

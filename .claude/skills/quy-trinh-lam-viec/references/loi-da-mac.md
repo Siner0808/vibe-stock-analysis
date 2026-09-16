@@ -125,7 +125,7 @@ là lỗi sẽ tái diễn.
 
 | 64 | **một ô giao diện hứa một VÙNG rồi in ra một ĐIỂM — và điểm ấy là dữ liệu thô.** `app.py` ghi *"Vùng giá mua đề xuất"* rồi in `latest_close_fmt`, tức **giá đóng cửa phiên gần nhất**, không qua một phép tính nào. Sinh **18/08/2026**, sống **28 ngày** — dài nhất bảng này. Chỗ trớ trêu: ngày **21/08**, ba ngày sau khi nó ra đời, dự án gỡ **hai ô khác** (`Pha C — Wyckoff Spring`, `Fundamental Agent · BCTC Q2`) vì đúng lý do *"hứa một thành phần không tồn tại"* — lượt dọn ấy sửa hai ca và **không quét cả lớp**, đúng thứ `docs/HANDOFF.md` ràng buộc 5 cấm | **người dùng gửi ảnh chụp màn hình** | ⚠️ một phần | ô ấy nay lấy số từ `muc_fibonacci.doc_muc()` — một vùng thật, hoặc một dấu gạch kèm lý do. `tests/test_muc_fibonacci.py::test_O_VUNG_MUA_tren_APP_khong_duoc_quay_ve_GIA_DONG_CUA` chặn đúng ca này quay lại, và **chỉ ca này**: câu *"nhãn nào hứa quá"* nói chung không đọc được từ văn bản. Lớp vẫn hở |
 
-**Ba mươi tám trên sáu mươi bảy máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+**Ba mươi chín trên sáu mươi tám máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -1411,6 +1411,7 @@ phải "để sau":
 
 | 67 | **tin một bản TÓM TẮT của đặc tả thay vì đọc đặc tả — trong lúc đang thiết kế đúng công cụ để chặn việc đó.** `WebFetch` trả về bản nén do mô hình nhỏ đọc hộ trang đặc tả hook, khẳng định *"additionalContext KHÔNG được hỗ trợ cho PreToolUse"*. Tôi xoay cả một vòng thiết kế sang `UserPromptSubmit` theo câu ấy. Đọc nguyên văn bằng trình duyệt thì đặc tả liệt kê **PreToolUse** ngay trong danh sách các sự kiện nhận `additionalContext` (*"next to the tool result"*). Bản tóm tắt bịa. Ca thứ BA trong một ngày của họ đọc-rộng — cùng họ lỗi 61 và 66 | vòng soát thứ năm, do người dùng yêu cầu *"nếu đã có biến hãy thêm 1 vòng nữa"* | ⚠️ | không gác được bằng test — đây là lỗi đọc. Luật rút ra, đã vào `SKILL.md` Bước 1 điều 1b: **một đặc tả kỹ thuật thì đọc nguyên văn, không đọc qua tầng nén.** Bản nén dùng được để biết CHỖ ĐÁNG NHÌN, không dùng được để KẾT LUẬN |
 
+| 68 | **`tools/ho_so.py` in `(0 tham chiếu)` ngay trên ba dòng bảng lỗi có thật.** `so_tham_chieu` cố ý chỉ đếm ba nguồn chính — bảng lỗi là nguồn phụ, 8/66 dòng — nên con số `0` đúng về thứ nó đếm. Nhưng nó đứng đầu khối bơm vào ngữ cảnh, trên ba phát hiện, nên nó mời người đọc bỏ qua cả khối. Cùng hình dạng lỗi 57 thu nhỏ. Kèm theo, docstring `ten_dang_bom()` hứa *"dùng sinh danh sách lọc của cửa"* trong khi cửa không gọi nó | **chính lượt bơm THẬT đầu tiên của cửa**, 08:06 ngày 16/09/2026 | ✅ | `tests/test_ho_so.py::test_DAU_DE_khong_duoc_khai_0_khi_ben_duoi_van_co_dong` — đọc CON SỐ trong ngoặc của đầu đề, không đọc chữ; đục thử 3/3 đỏ |
 > **Một bảng chín dòng chưa đóng, mỗi dòng có lý do, đáng tin hơn một
 > con số "đã đóng hết".** Ba ngày qua đã có hai lần một dấu ✅ hứa rộng
 > hơn thứ nó giao (lỗi 44, 47).

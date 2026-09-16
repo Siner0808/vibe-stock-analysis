@@ -371,6 +371,14 @@ bằng đường dẫn tuyệt đối.** Nên chúng chạy bất kể phiên m�
 > nên mỗi hook chạy HAI LẦN** — hai bản ghi `hook_success` riêng cho
 > `SessionStart`, phân biệt được bằng `statusMessage` của từng file.
 >
+> **Và chính vế "phân biệt được bằng `statusMessage`" là chỗ gỡ một mâu
+> thuẫn sống sáu ngày.** Đặc tả hook viết *"cùng một handler khai ở nhiều
+> file settings thì chạy MỘT lần"*; câu trên nói HAI. Đo lại 16/09/2026:
+> hai bản khai ấy khác nhau ở cả ba trường (`command`, `timeout`,
+> `statusMessage`), nên chúng chưa bao giờ là *"cùng một handler"*. Hai
+> câu đều đúng. Ca giống hệt từng byte thì **chưa đo được** — `claude -p`
+> trên máy này hết hạn OAuth. `docs/STATE.md` BƯỚC 82.
+>
 > Chạy đôi làm **nhân đôi nhật ký `cua_doc_bat_buoc`**, mà nhật ký ấy đang
 > được dùng làm bằng chứng "cửa có sống không". Vì cả sáu đã có bản toàn
 > cục, bản trong repo không mang lại chức năng nào và chỉ mang một mối
