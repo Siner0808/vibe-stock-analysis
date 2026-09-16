@@ -386,6 +386,76 @@ def test_LUAN_DIEM_RR_chi_phat_ra_khi_CO_SO():
     print("PASS  luận điểm Risk:Reward im khi không có số")
 
 
+#: Từ chỉ một PHÁN QUYẾT, cố ý ngắn. Danh sách dài hơn (`an toàn`,
+#: `rõ ràng`, `không thể`) bắt nhầm những câu mô tả hợp lệ — đo 16/09/2026
+#: trên tám file agent: danh sách rộng cho 2 chỗ, danh sách này cho 1.
+TU_PHAN_QUYET = ("hoàn toàn", "chấp nhận", "chắc chắn", "tuyệt đối",
+                 "bảo đảm", "đảm bảo")
+
+
+def _quet_phan_quyet_gan_so(src: str) -> list[tuple[int, str]]:
+    """f-string vừa CÓ ô thay số vừa CÓ một từ phán quyết.
+
+    Đọc AST, không đọc `in`: một từ phán quyết nằm trong chú thích ngay
+    trên dòng thì không phải thứ người dùng đọc được.
+    """
+    ra = []
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.JoinedStr):
+            continue
+        co_so = any(isinstance(v, ast.FormattedValue) for v in node.values)
+        van = "".join(v.value for v in node.values
+                      if isinstance(v, ast.Constant))
+        if co_so and any(q in van.lower() for q in TU_PHAN_QUYET):
+            ra.append((node.lineno, van.strip()))
+    return ra
+
+
+def test_MAY_QUET_PHAN_QUYET_bat_duoc_hinh_dang_da_biet():
+    """PHÉP KIỂM DỤNG CỤ, và nó phải sống lâu hơn lần gỡ.
+
+    Gác dưới khẳng định *"không còn chỗ nào"* — một kết quả ÂM. Sau khi
+    cụm ấy bị gỡ thì quần thể thật rỗng, nên lượt quét không tự chứng minh
+    được nó thấy được gì. Hai mẫu dựng tay giữ câu trả lời ấy đo được.
+    """
+    co = _quet_phan_quyet_gan_so(
+        'x = f"Tỷ lệ Risk:Reward = {rr:.2f}:1 — hoàn toàn có thể chấp nhận."\n')
+    assert co, "máy quét KHÔNG thấy hình dạng đã biết — nó hỏng"
+
+    # Mot cau phan quyet KHONG kem so thi khong phai thu dang gac: no la
+    # loi le, khong phai mot ket luan rut ra tu mot dai luong.
+    khong = _quet_phan_quyet_gan_so('y = "hoàn toàn có thể chấp nhận"\n')
+    assert not khong, f"bắt nhầm một chuỗi không có số: {khong}"
+    print("PASS  máy quét thấy đúng hình dạng, không bắt nhầm lời lẽ")
+
+
+def test_TANG_TRANH_LUAN_khong_gan_PHAN_QUYET_cung_vao_mot_con_so():
+    """Người dùng chốt 16/09/2026: gỡ cụm *"— hoàn toàn có thể chấp nhận"*.
+
+    Nó đứng cuối một câu Bull vừa in ra tỷ lệ Risk:Reward, và nó **không
+    phụ thuộc con số** — mọi giá trị đều được tuyên là chấp nhận được.
+    Bất biến 5 của `NGUYEN-TAC-DO-LUONG.md` nói ngược lại: *"R:R cao làm σ
+    tăng, tức càng cần NHIỀU mẫu hơn"* — một tỷ lệ đẹp không chứng minh
+    được điều gì về lợi thế, nên càng không chứng minh được sự chấp nhận.
+
+    PHẠM VI chỉ `debate_agents.py`, và đó là một lựa chọn ĐO ĐƯỢC. Quét
+    tám file agent ngày 16/09 ra hai chỗ; chỗ thứ hai là khối system prompt
+    của LLM trong `chatbot_agent.py` — một đoạn mô tả vai, không phải một
+    kết luận rút ra từ một đại lượng. Gộp nó vào đây là bắt nhầm.
+    """
+    con = _quet_phan_quyet_gan_so(
+        (GOC / "debate_agents.py").read_text(encoding="utf-8"))
+    assert not con, (
+        "tầng tranh luận gắn phán quyết cứng vào một con số:\n"
+        + "\n".join(f"  dòng {d}: {v[:120]}" for d, v in con))
+
+    # Va kiem bang CHAY, khong chi bang doc nguon.
+    cau = _bull_phan_bac(_khuyen_nghi())
+    dinh = [q for q in TU_PHAN_QUYET if q in cau.lower()]
+    assert not dinh, f"câu Bull chạy ra vẫn mang {dinh}: {cau!r}"
+    print("PASS  tầng tranh luận nêu tỷ lệ, không tuyên nó chấp nhận được")
+
+
 if __name__ == "__main__":
     import tempfile
     for ten, ham in sorted(globals().items()):

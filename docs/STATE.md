@@ -13311,3 +13311,58 @@ chính hai cái kẹp của mã, nên câu ấy chưa bao giờ đứng cạnh m
 Nhưng nó vẫn là một phán quyết gắn cứng cạnh một con số nay đã thật, và
 bất biến 5 nói thẳng rằng R:R không chứng minh được điều đó. **Đang chờ
 người quyết** — sửa là một dòng.
+
+---
+
+## BƯỚC 85 — NGƯỜI DÙNG CHỐT: GỠ PHÁN QUYẾT KHỎI MỘT CON SỐ (16/09/2026)
+
+BƯỚC 84 để ngỏ đúng một ô và ghi *"đang chờ người quyết"*. Người dùng trả
+lời: **gỡ đi**.
+
+```
+truoc :  Ty le Risk:Reward = 3.57:1 — hoan toan co the chap nhan.
+sau   :  Ty le Risk:Reward = 3.57:1.
+```
+
+Cụm ấy **không phụ thuộc con số**: mọi giá trị đều được tuyên là chấp nhận
+được. Bất biến 5 của `NGUYEN-TAC-DO-LUONG.md` nói ngược lại — *"R:R cao làm
+σ tăng, tức càng cần NHIỀU mẫu hơn"*. Một tỷ lệ đẹp không chứng minh được
+lợi thế, nên càng không chứng minh được sự chấp nhận.
+
+### Quét cả lớp trước khi sửa một chỗ
+
+`docs/HANDOFF.md` ràng buộc 5. Máy quét AST tìm mọi f-string **vừa có ô
+thay số vừa có một từ phán quyết**, trên tám file agent:
+
+```
+debate_agents.py:94   Ty le Risk:Reward = :1 — hoan toan co the chap nhan.
+chatbot_agent.py:129  <khoi system prompt cua LLM>
+```
+
+Chỗ thứ hai là **mô tả vai cho mô hình**, không phải một kết luận rút ra từ
+một đại lượng — gộp nó vào là bắt nhầm. Nên phạm vi gác ghim ở
+`debate_agents.py`, và lý do ghim nằm trong docstring của chính gác ấy chứ
+không nằm trong đầu ai.
+
+Tức **cả tầng tranh luận có đúng MỘT chỗ mang hình dạng này**. Sửa một chỗ
+ở đây thật sự là sửa cả lớp — một câu chỉ nói được sau khi đã quét.
+
+### Danh sách từ phán quyết cố ý NGẮN
+
+Bản rộng (`an toàn`, `rõ ràng`, `không thể`) cho **2 chỗ** trên tám file;
+bản đang dùng cho **1**. Chênh lệch ấy toàn là bắt nhầm những câu mô tả hợp
+lệ. Một gác bắt nhầm sẽ bị nới, và một luật đã bị nới một lần thì lần sau dễ
+nới nữa — `docs/STATE.md` BƯỚC 65 đã trả giá cho đúng vòng đó.
+
+### Sinh từ commit ĐẦU TIÊN — 44 ngày
+
+`440f65f`, 03/08/2026, cùng commit với lỗi 71 và cùng câu văn. Hai lỗi khác
+nhau nằm trong một dòng: ba con số bịa (71) và một phán quyết gắn cứng (72).
+Lỗi 72.
+
+### Đục thử 10/10 đỏ, năm file
+
+Ba phát mới: trả lại nguyên văn cụm ấy · đổi sang **một từ phán quyết khác**
+(*"chắc chắn có lãi"*) để gác không được là phép so một chuỗi · làm mù chính
+máy quét bằng cách đổi loại nút AST. Cả bảy phát của BƯỚC 84 chạy lại, vẫn
+đỏ đủ.

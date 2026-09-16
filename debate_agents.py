@@ -93,7 +93,7 @@ class BullAdvocateAgent:
                     arguments.append(
                         f"🔄 Phản bác Bear: Rủi ro đã được định lượng và kiểm soát! "
                         f"Stop-loss chỉ -{sl}%, trong khi tiềm năng upside +{tp}%. "
-                        f"Tỷ lệ Risk:Reward = {rr:.2f}:1 — hoàn toàn có thể chấp nhận."
+                        f"Tỷ lệ Risk:Reward = {rr:.2f}:1."
                     )
                     impact += 1.5
             if "giảm" in bear_stmts.lower() or "downtrend" in bear_stmts.lower():
