@@ -485,9 +485,19 @@ class RiskManagementAgent:
             "stop_loss_price": round(stop_loss_price, 0),
             "stop_loss_pct": round(sl_fraction * 100, 1),
             "take_profit_price": round(take_profit_price, 0),
-            "take_profit_pct": "Không giới hạn",
+            # SUY RA tu chinh phan so da dung de tinh gia ngay tren, khong go
+            # tay. Hai khoa nay tung mang cau chu -- "Khong gioi han" va "Vo
+            # cuc" -- trong khi NAM noi tieu thu in chung kem hau to phan
+            # tram, nen chung ra thanh "+Khong gioi han%". Nang nhat la
+            # debate_agents.py:84: no dung mot luan diem Risk:Reward dat mot
+            # rui ro DA DINH LUONG canh mot loi nhuan KHONG GIOI HAN, trong
+            # khi gia di kem la dung +20,0%. Loi 69, do 16/09/2026 bang cach
+            # CHAY duong that chu khong doc ma.
+            # Y "gong song" van con nguyen: nhan "TP2 Trailing" o
+            # master_agent.py va khoa risk_reward_ratio ngay duoi.
+            "take_profit_pct": round(tp1_fraction * 100, 1),
             "tp2_price": round(tp2_price, 0),
-            "tp2_pct": "Vô cực",
+            "tp2_pct": round(tp2_fraction * 100, 1),
             "break_even_pct": 5.0,
             "suggested_position_size_pct": position_pct,
             "risk_reward_ratio": "Fat-Tail (Trailing Stop 7% từ đỉnh)"

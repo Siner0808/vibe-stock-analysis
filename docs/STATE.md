@@ -13079,3 +13079,105 @@ trong cùng phiên, `kiem_cua_song.py` xác nhận 7/7.
 Bảy cửa vẫn chỉ đăng ký ở một nơi, vì lý do gỡ bản trong repo không phải
 *"nó chạy đôi"* mà là *"nó không mang lại chức năng nào"*. Phép đo còn
 thiếu chỉ đổi lời giải thích.
+
+---
+
+## BƯỚC 83 — MỘT NHÃN HỨA LỢI NHUẬN VÔ HẠN, GIÁ ĐI KÈM LÀ +20% (16/09/2026)
+
+Bắt đầu từ một câu trong bản bàn giao: *"ba chỗ lệch UI chưa sửa"*. Tra
+`tools/ho_so.py analysis_agents.py` trước khi động vào — và câu trả lời tự
+nó là phát hiện đầu tiên:
+
+```
+analysis_agents.py: chưa có hồ sơ (0 tham chiếu, cần >=3)
+```
+
+**Không test nào import nó, không BƯỚC nào nhắc nó, không dòng bảng lỗi nào
+chạm nó.** File dày nhất repo có 27 tham chiếu; file tính cắt lỗ và chốt lời
+hiện ra cho NGƯỜI đọc rồi tự quyết định thì có 0.
+
+### Đo bằng CHẠY, không bằng đọc
+
+`docs/HANDOFF.md` ràng buộc 3. Chạy `RiskManagementAgent().analyze()` trên
+một chuỗi giá tất định rồi in ra đúng như năm nơi tiêu thụ:
+
+```
+chatbot_agent.py:202   TP1: 10,299 VND (+Không giới hạn%)
+master_agent.py:291    TP1=10,299 VND (+Không giới hạn%)
+master_agent.py:287    TP2 Trailing=11,157 VND (+Vô cực%)
+debate_agents.py:84    Stop-loss chi -4.0%, tiem nang upside +Không giới hạn%.
+```
+
+Mà giá đi kèm là **đúng +20,0% và +30,0%**, suy được từ chính
+`take_profit_price / entry_price`.
+
+Dòng cuối là dòng nặng. Tầng tranh luận dựng một luận điểm Risk:Reward đặt
+một rủi ro **đã định lượng** (−4,0%) cạnh một lợi nhuận **không giới hạn**,
+rồi kết luận *"hoàn toàn có thể chấp nhận"*. Đó không phải lỗi hiển thị —
+đó là một lập luận được xây trên một vế không có thật, đặt trước mặt người
+sắp ra quyết định.
+
+### Tuổi thọ: 37 ngày, dài nhất bảng
+
+```
+025507c  2026-08-10  feat: ... implement trailing stop     <- chuoi vao day
+440f65f  2026-08-03  Initial commit                        <- noi in +{tp}% da co
+```
+
+**Nơi tiêu thụ chờ một con số từ commit đầu tiên; bảy ngày sau nơi sản xuất
+đổi sang câu chữ.** Không ai nhìn lại. 10/08 → 16/09 là **37 ngày**, vượt
+lỗi 65 (33 ngày).
+
+### Quét cả lớp, không chỉ hai ca
+
+`docs/HANDOFF.md` ràng buộc 5. Máy quét AST tìm mọi khoá `*_pct` / `*_ratio`
+mang giá trị chuỗi, trên **175 file**:
+
+```
+analysis_agents.py:488  take_profit_pct   = 'Không giới hạn'
+analysis_agents.py:490  tp2_pct           = 'Vô cực'
+analysis_agents.py:493  risk_reward_ratio = 'Fat-Tail (Trailing Stop 7% từ đỉnh)'
+```
+
+Ba chỗ, cùng một file, không có chỗ thứ tư ở đâu khác.
+
+> **MÁY QUÉT ẤY HỎNG Ở LƯỢT ĐẦU, VÀ PHÉP KIỂM DỤNG CỤ BẮT ĐƯỢC.** Nó in
+> `Quét 0 file .py` rồi `0 chỗ` — nghe y hệt *"repo sạch"*. Nguyên nhân:
+> danh sách bỏ qua có `scratch`, mà **chính repo nằm dưới một thư mục tên
+> `scratch`** (`.gemini/antigravity/scratch/vibe_preview`), nên lọc theo
+> đường TUYỆT ĐỐI thì nó tự loại hết. Lọc tương đối với gốc repo thì ra 175.
+>
+> Đây là lần thứ SÁU trong ba ngày một máy đo hẹp hơn thứ nó đo (lỗi 61 kể
+> năm lần đầu). Thứ cứu cả sáu lần đều là một điều: **bắt máy đo đi qua một
+> ca THẬT đã biết trước.** Ở đây ca ấy là hai khoá đã nhìn tận mắt; máy quét
+> tự thoát mã 2 khi không thấy chúng.
+
+### Sửa, và một khoá CỐ Ý không sửa
+
+Hai khoá `*_pct` nay **suy ra** từ chính hai phân số đã dùng để tính giá —
+`round(tp1_fraction * 100, 1)` — nên chúng không thể trôi khỏi giá nữa. Ý
+"gồng sóng" vẫn còn nguyên ở nhãn `TP2 Trailing` và ở `risk_reward_ratio`.
+
+```
+chatbot:202 -> TP1: 10,299 VND (+20.0%)
+master:287  -> TP2 Trailing=11,157 VND (+30.0%)
+debate:84   -> Stop-loss chi -4.0%, tiem nang upside +20.0%.
+```
+
+**`risk_reward_ratio` để nguyên, và đây là một ngoại lệ ĐƯỢC KHAI chứ không
+phải một lớp bị quét hụt.** Không nơi nào in nó kèm `%` — nó hiện nguyên câu
+*"Fat-Tail (Trailing Stop 7% từ đỉnh)"*, và câu ấy đọc được. Sửa nó đòi chốt
+*"tỷ lệ tính tới mục tiêu nào"*: tới TP1 thì RR ≈ 3–5:1, tới trailing thì
+không định nghĩa được. Đó là một quyết định về điều app NÓI với người dùng,
+nên nó thuộc về người dùng. **Đang chờ người quyết.**
+
+### Gác
+
+`tests/test_khuyen_nghi_rui_ro.py`, 3 test, đục thử **4/4 đỏ** — gồm một phát
+đục vào chính máy quét để phép kiểm dụng cụ không thành một dòng chữ trấn an.
+
+Gác thứ ba đối chiếu **hai đầu ra độc lập của cùng một lượt chạy** — giá và
+phần trăm — chứ không dựng lại công thức của mã. Nên nó không rơi vào bẫy
+*"test kiểm lại chính nó"* mà `CLAUDE.md` ghi đã mắc ba lần trong một ngày.
+
+Và `analysis_agents.py` nay có hồ sơ: cửa thứ bảy sẽ bơm nó ở lượt Read sau.
