@@ -13366,3 +13366,122 @@ Ba phát mới: trả lại nguyên văn cụm ấy · đổi sang **một từ 
 (*"chắc chắn có lãi"*) để gác không được là phép so một chuỗi · làm mù chính
 máy quét bằng cách đổi loại nút AST. Cả bảy phát của BƯỚC 84 chạy lại, vẫn
 đỏ đủ.
+
+---
+
+## BƯỚC 86 — MỘT CÁI GÁC KHÔNG YẾU, NÓ NGẮM QUẦN THỂ KHÁC (16/09/2026)
+
+Người dùng hỏi vì sao cả phiên 16/09 trôi qua mà NotebookLM không được dùng
+lần nào, và nêu ba giả thuyết: skill lỗi thời · hook chưa đủ mạnh · lý do
+khác. Đi đo cả ba.
+
+### Đo, chứ không đoán
+
+```
+NotebookLM trong SKILL.md   : dong 404 — SAU Buoc 6
+Buoc 0 "khong duoc bo"      : khong nhac mot lan nao
+bay cua                     : 0 cua lien quan
+   (hai luot grep khop "otebook" la NotebookEdit, ten mot tool)
+gac tests/test_soat_notebooklm.py : CO, tu 12/09
+   quan the no canh          : `## ĐO n` trong TIEU-CHI-DOC-TRUOC.md
+   hom 16/09 sinh ra         : 0 ĐO va 5 BƯỚC
+tren ca so                  : 10 tren 84 BUOC co soat cheo
+```
+
+**Không phải skill lỗi thời** — nội dung mục ấy chính xác. Chỗ hỏng là **vị
+trí**: nó là thứ duy nhất trong skill không nằm trong một Bước có số, và
+tôi thi hành các Bước có số.
+
+**Và cái gác không yếu — nó im lặng ĐÚNG theo phạm vi của chính nó.** Một
+gác không bao giờ đỏ có thể là gác hỏng, cũng có thể là gác ngắm chỗ khác;
+hai thứ ấy trông y hệt nhau từ bên ngoài, và chỉ đếm quần thể mới phân biệt
+được. Lỗi 73.
+
+Chi tiết đáng giữ: lượt `grep` đầu tiên khớp `"otebook"` trong hai file cửa
+và suýt làm tôi báo *"có cửa nhắc tới nó"*. Mở ra xem thì cả hai là
+`NotebookEdit` — tên một tool của Claude Code. Một chữ khớp không phải một
+lời khai.
+
+### Dựng cả hai đường, người dùng chốt "làm cả hai"
+
+```
+A  quan the cua gac doi tu ĐO sang BƯỚC, moc `_moc_buoc` = 81
+   -> do khi thieu, VA do khi ly do rong/chung chung (ba gac cu tu ap)
+B  ban tin mo phien in so muc con no, suy tu dia
+   -> bat duoc luc MO PHIEN, khi con quyen chon, thay vi luc chay test
+```
+
+Mốc đặt ở **81** — BƯỚC đầu tiên của chính ngày 16/09 — chứ không ở 86. Đặt
+sau hôm nay là để lần trượt ấy nằm ngoài máy. Mọi BƯỚC trước 81 không bị
+đòi: khai bù 80 mục là dựng một lời khai chưa từng tồn tại, đúng thứ ĐO 5
+đã từ chối làm.
+
+### Nhịp 2 ngày — nhận, nhưng phép đo đổi cái đích
+
+Người dùng đề xuất *"update skill và hook định kỳ 2 ngày một lần"*. Đo
+trước khi nhận:
+
+```
+SKILL.md + bang loi CO SUA 9 tren 14 ngay gan nhat
+```
+
+Việc **cập nhật** đã chạy theo sự kiện ở Bước 6. Đặt nhịp 2 ngày lên đó là
+đặt một nhịp **thấp hơn** nhịp đang có. Nửa chưa bao giờ có cơ chế là **soát
+lại thứ ĐÃ CÓ** — và riêng ngày 16/09 hai câu cũ bị bắt gặp do **tình cờ**.
+
+`tools/soat_loi_khai_cu.py` biến lượt soát thành một danh sách: mọi **lời
+khai phủ định có nêu tên** còn sống trong bảy tài liệu. Quét thô ra **187
+dòng** — không ai soát 187 dòng mỗi hai ngày, và một công cụ không dùng nổi
+thì bị bỏ qua, đúng cái vòng nó sinh ra để cắt. Ba phép siết (bỏ dòng bảng ·
+bỏ dòng đã mang dấu · phải nêu tên một thành phần) đưa về **15**.
+
+**Lượt soát đầu tiên chạy ngay hôm nay**, hai dòng đáng ngờ nhất:
+
+| dòng | phán quyết |
+|---|---|
+| `CLAUDE.md:1706` *"Chưa đo — `tv_recommendation` không tái lập"* | **vẫn đúng**; khối 15/09 đo PHẠM VI chứ không đo tính tái lập, và chính nó ghi *"KHÔNG bác phát hiện gốc"* |
+| `CLAUDE.md:1740` *"Chúng chưa bao giờ khớp"* | **đúng theo 01/09, thiếu dấu** — cả bốn khớp 03/09. Đã thêm ô ⚠️ |
+
+Một lượt soát kết luận *"vẫn đúng"* là kết quả hợp lệ và phải ghi được, nếu
+không sổ chỉ chứa tin xấu và người đọc tưởng mọi lượt soát đều tìm ra lỗi.
+
+### Và lượt soát chéo THẬT — máy đòi BƯỚC 82, tôi trả
+
+Sau khi dựng xong, gác chỉ thẳng vào một mục chưa khai: **BƯỚC 82**. Đó là
+mục đáng soát nhất — một mâu thuẫn tài liệu-với-tài liệu, sở trường của công
+cụ ấy. Không khai bù; đi hỏi thật.
+
+**Ba phát hiện, và hai cái phụ đáng giá hơn câu trả lời chính:**
+
+1. **Không tài liệu nào nói ngược kết luận BƯỚC 82.** Mục *"chỗ nói ngược
+   lại"* của câu trả lời chỉ nêu được giả định TRƯỚC 10/09 rằng settings của
+   repo không được nạp — một mệnh đề khác, đã bị chính BƯỚC 49 thay. Tự kiểm
+   bằng `grep`: mọi câu *"chạy một lần"* như một lời khai về đặc tả đều do
+   chính lượt viết BƯỚC 82 hôm nay sinh ra.
+
+2. **ĐỘ TƯƠI: sổ tay thấy tới BƯỚC 73, repo ở 85 — lệch 12 BƯỚC.** Nó không
+   thấy chính phép đo mình được nhờ soát. Ngày 14/09 con số ấy là 41 so với
+   73; nguồn URL **có** được làm mới, nhưng trễ. Phải đo lại mỗi lượt.
+
+3. **Phép BỎ CHỌN nguồn không sống qua phiên.** Ngày 15/09 bốn bản chụp cũ
+   được bỏ chọn, còn 5 nguồn; hôm nay cả **9** được tích lại. Nên câu *"đã
+   bỏ chọn"* ở BƯỚC 80 mô tả một trạng thái **tạm**, không phải một phép
+   sửa. Cách sửa thật là xoá hẳn bốn nguồn chụp — dữ liệu trong sổ tay của
+   người dùng, nên chỉ nêu ra, không tự làm.
+
+### Đục thử: hai phát SỐNG SÓT, và chúng dạy đúng bài học của hôm nay
+
+Lượt đầu, hai đột biến vào hook sống sót một gác viết **riêng để bắt chúng**
+(`test_HOOK_va_TEST_doc_cung_mot_quan_the`). Lý do: lúc ấy mọi mục đã khai
+xong, nên gác đang so **hai tập RỖNG** — nó xanh với bản đúng và xanh với
+bản hỏng như nhau.
+
+**Lỗi 66 lần thứ ba trong một ngày, và lần này nằm trong chính cái gác chống
+trôi.** Phép sửa không phải viết gác tốt hơn mà là **bỏ bản cài đặt thứ
+hai**: phép lọc nay là một hàm thuần ở `tools/soat_loi_khai_cu.buoc_chua_khai`,
+hook và test cùng gọi. Một luật, một chỗ.
+
+```
+6/6 DO  ·  bon file  ·  gom mot phat nang `_moc_buoc` len 9999
+                        (gac thanh RONG ma van xanh — no do)
+```
