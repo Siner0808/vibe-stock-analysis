@@ -80,14 +80,22 @@ class BullAdvocateAgent:
             bear_stmts = " ".join([a.statement for a in bear_prev])
             if "rủi ro" in bear_stmts.lower() or "risk" in bear_stmts.lower():
                 rec = risk.get("recommendations", {})
-                sl = rec.get("stop_loss_pct", 7)
-                tp = rec.get("take_profit_pct", 17)
-                arguments.append(
-                    f"🔄 Phản bác Bear: Rủi ro đã được định lượng và kiểm soát! "
-                    f"Stop-loss chỉ -{sl}%, trong khi tiềm năng upside +{tp}%. "
-                    f"Tỷ lệ Risk:Reward = {rec.get('risk_reward_ratio', '2.5:1')} — hoàn toàn có thể chấp nhận."
-                )
-                impact += 1.5
+                sl = rec.get("stop_loss_pct")
+                tp = rec.get("take_profit_pct")
+                rr = rec.get("risk_reward_ratio")
+                # Ba con so nay hoac co ca ba, hoac khong co gi de tranh
+                # luan. Ban truoc dat san 7 / 17 / "2.5:1": ba con so bia,
+                # in ra NGUYEN VAN khi khoi khuyen nghi vang mat -- tuc mot
+                # luan diem dinh luong duoc phat ra voi so khong ai do.
+                # Mau `.get(khoa, <so>)` la luat R4 cua chan_bia_so_lieu.
+                if all(isinstance(x, (int, float)) and not isinstance(x, bool)
+                       for x in (sl, tp, rr)):
+                    arguments.append(
+                        f"🔄 Phản bác Bear: Rủi ro đã được định lượng và kiểm soát! "
+                        f"Stop-loss chỉ -{sl}%, trong khi tiềm năng upside +{tp}%. "
+                        f"Tỷ lệ Risk:Reward = {rr:.2f}:1."
+                    )
+                    impact += 1.5
             if "giảm" in bear_stmts.lower() or "downtrend" in bear_stmts.lower():
                 sharpe = (risk.get("metrics", {}) or {}).get("sharpe_ratio") or 0.0
                 arguments.append(
