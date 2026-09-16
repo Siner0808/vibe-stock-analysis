@@ -595,6 +595,15 @@ user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
 
 `vnai.setup_agent_environment()` chính là thứ ghi đè `AGENTS.md` ở gốc dự án.
 
+> **Từ `vnai` 2.6.0 có công tắc tắt việc ấy** (nâng 16/09/2026).
+> `vnai.beam.agents` thêm `disable_agent_setup()` · `enable_agent_setup()`
+> · `agent_status()` · `remove_agent_files()`, và `vnai` thêm
+> `disable_telemetry()` · `telemetry_status()`. **Chưa bật cái nào** —
+> ghi ra đây để lần sau không phải đi tìm. Hai file quyết định DỮ LIỆU
+> (`beam/fundamental.py` giữ `PERIOD_LIMITS`, `beam/auth.py` giữ
+> `_detect_tier`) **giống hệt từng byte** giữa 2.5.9 và 2.6.0, và dòng
+> `kiem_goi()` trước/sau cũng giống hệt. `docs/STATE.md` BƯỚC 87.
+
 ---
 
 ## Sổ lệnh giấy KHÔNG phải bản ghi tích luỹ — kiểm trước khi trích số
