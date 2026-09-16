@@ -13485,3 +13485,107 @@ hook và test cùng gọi. Một luật, một chỗ.
 6/6 DO  ·  bon file  ·  gom mot phat nang `_moc_buoc` len 9999
                         (gac thanh RONG ma van xanh — no do)
 ```
+
+---
+
+## BƯỚC 87 — XOÁ NGUỒN CŨ KHÔNG LÀM NGUỒN TƯƠI, VÀ MỘT CÂU CỦA TÔI BỊ BÁC (16/09/2026)
+
+Ba việc người dùng chốt, và **hai trong ba đổi kết luận sau khi đo**.
+
+### 1. Sổ tay — xoá xong, nhưng việc chưa xong
+
+Bốn bản chụp đã xoá vĩnh viễn (`CLAUDE.md` · `MO-XE-KIEN-TRUC.md` ·
+`NGUYEN-TAC-DO-LUONG.md` · `STATE.md`). Còn 5 nguồn, tất cả là URL `main`.
+
+Rồi **đo lại thay vì tin là xong**:
+
+```
+BUOC lon nhat so tay thay : 73    (nguon: raw .../docs/STATE.md)
+repo dang o               : 86
+```
+
+**Vẫn nguyên 73.** Xoá bốn bản chụp bỏ được chuyện *trộn hai đời tài liệu*
+— thứ BƯỚC 80 lo — nhưng **không làm nguồn tươi lên**: năm URL còn lại tự
+chúng cũng là ảnh chụp, đóng băng từ lúc thêm vào. Và menu của một nguồn
+URL chỉ có `Xoá nguồn` · `Đổi tên nguồn` — **không có nút làm mới**.
+
+Nên đường duy nhất để sổ tay thấy BƯỚC 74 trở đi là **xoá rồi thêm lại cả
+năm URL**. Chưa làm: nó vượt khỏi câu người dùng giao, và là dữ liệu trong
+sổ tay của họ.
+
+### 2. Lỗi 74 — một câu về CẢ RỔ rút ra từ MỘT mức giá tôi tự nghĩ ra
+
+Sáng nay tôi báo `entry_range` là *"cùng họ với lỗi 64 — hứa một VÙNG, in
+ra một ĐIỂM"*, kèm con số *"±1,6 bước giá"*. Con số ấy tính ở **16.000đ**,
+một mức giá tôi lấy từ ví dụ trong đầu, không lấy từ rổ.
+
+Đo trên cache thật, 125 mã:
+
+```
+gia cuoi trung vi    : 22.450 d
+be rong entry_range  : trung vi 5,23 BUOC GIA   (min 1,81 · max 29,11)
+<= 2 buoc gia        : 1/125  (1%)
+<= 4 buoc gia        : 43/125 (34%)
+```
+
+**Nó là một vùng thật.** Câu của tôi sai, và sai theo cách quen thuộc: một
+tham số tự chọn thay cho một quần thể. `entry_range` giữ nguyên, không sửa
+gì — đây là một lượt điều tra kết luận **không có lỗi**, và kết luận ấy
+cũng phải ghi được.
+
+### 3. `vnai` 2.6.0 — nâng, sau khi đo đúng chỗ đáng lo
+
+Tải bánh xe về so, **không cài để so**. 10 file `.py` đổi, nhưng:
+
+```
+vnai/beam/fundamental.py  (PERIOD_LIMITS)   GIONG HET tung byte
+vnai/beam/auth.py         (_detect_tier)    GIONG HET tung byte
+```
+
+Đúng hai chỗ `CLAUDE.md` khai là nguy hiểm thì không đổi. Phần lớn
+`quota.py` là dọn cú pháp; hai thay đổi thật là telemetry báo đúng số hiệu
+thay vì `'1.0.0'` ghim cứng, và hạn mức **dự phòng** khi `get_limits()`
+hỏng tụt `28.800 → 5.000` lượt/ngày — vẫn xa trên mức dự án dùng.
+
+Ràng buộc hai chiều đều thoả: `vnstock 4.0.7` và `vnstock_data 3.2.8` cùng
+đòi `vnai>=2.5.7`, một **sàn** không có trần. `requirements.txt` cũng ghi
+`vnai>=2.5.7` nên **không phải sửa** — và không nên sửa, vì dòng ấy khai
+"mức tối thiểu tài liệu Vibe Onboarding yêu cầu", không khai bản đang chạy.
+2.6.0 thêm một phụ thuộc mới `pandas>=1.5.0`; máy đang có 2.3.3.
+
+**Thứ đáng nâng không phải "có bản mới".** `agents.py` thêm 10 hàm công
+khai, gồm `disable_agent_setup()` và `remove_agent_files()`; `__init__.py`
+thêm `disable_telemetry()`. `CLAUDE.md` ghi *"`vnai.setup_agent_environment()`
+chính là thứ ghi đè `AGENTS.md` ở gốc dự án"* — 2.6.0 là bản đầu tiên cho
+tắt hẳn việc ấy.
+
+**Trước/sau, dòng `kiem_goi()` giống hệt từng ký tự:**
+
+```
+KHOP · silver/silver · den 2026-11-22 · han muc 300/phut
+goi_thieu=('vnstock_pipeline',)
+```
+
+Và phép nâng tự chứng minh trong chính lượt chạy test: cảnh báo pytest
+**2 → 1**, cái mất đi đúng là dòng *"Vnai 2.6.0 is available"*.
+
+### Thứ CỐ Ý không nâng
+
+Bản tin của thư viện lộ ra **ba** bản mới, không phải một:
+
+```
+vnstock       4.0.7 -> 4.0.8
+vnai          2.5.9 -> 2.6.0     <- da nang
+vnstock_data  3.2.8 -> 3.3.0     <- KHONG dung
+```
+
+`vnstock_data` là thư viện `CLAUDE.md` ghi rõ **đổi con số chứ không chỉ
+đổi cách gọi** — ROE của FPT 2025 ra `23.59` ở đường này và `0.2359` ở
+đường kia, nhãn vẫn ghi `%`. Nâng nó là **đổi NGUỒN SỐ LIỆU**, thuộc
+`NGUYEN-TAC-DO-LUONG.md`, nên nó cần một phép đo riêng có tiêu chí ký
+trước. Thêm nữa, trình cài của nó đòi **khoá truy cập**, và trang hướng
+dẫn có sẵn một mẫu dán khoá vào trợ lý AI — không làm, khoá của người dùng
+không đi qua tay tôi.
+
+`vnstock` 4.0.8 cũng để nguyên: không ai hỏi, và nó là lớp bọc công khai
+mà mọi con số hiện hành đã đo trên 4.0.7.
