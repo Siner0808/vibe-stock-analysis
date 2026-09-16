@@ -290,7 +290,7 @@ class MasterConsensusAgent:
                 f"SL={rec['stop_loss_price']:,.0f} VNĐ (-{rec['stop_loss_pct']}%) | "
                 f"TP1={rec['take_profit_price']:,.0f} VNĐ (+{rec['take_profit_pct']}%)"
                 f"{tp2_str} | "
-                f"RR={rec['risk_reward_ratio']} | "
+                f"RR={rec['risk_reward_ratio']:.2f}:1 | "
                 f"Vốn tối đa (sau Harness): {safety['safe_position_size']}%"
             )
         # Vi phạm quy tắc an toàn phải hiển thị cho người dùng, không im lặng

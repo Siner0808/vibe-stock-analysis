@@ -473,17 +473,39 @@ class RiskManagementAgent:
         result["signals"] = signals
         result["signals"].append("⚡ Quy tắc Break-Even: Dời SL về 0% khi lãi đạt +5%")
         result["signals"].append("🚀 Quy tắc Pyramiding: Nhồi mua bổ sung khi lãi đạt +5%")
+        # Cau nay truoc 16/09/2026 nam trong o `risk_reward_ratio` duoi dang
+        # "Fat-Tail (Trailing Stop 7% tu dinh)". No mang mot thong tin THAT --
+        # paper_trading.py dat `trail_sl = close_p * 0.93` va chi nang len --
+        # nen khi o ay thanh mot ty le thi cau nay phai co cho khac de dung,
+        # canh hai luat chinh sach da o day.
+        # Va no duoc viet lai cho dung ma: 7% tinh tu GIA DONG CUA, khong
+        # phai tu `high`. Nhan cu noi "tu dinh", tuc chat hon thuc te.
+        result["signals"].append(
+            "🔻 Trailing Stop 7%: SL bám theo giá ĐÓNG CỬA cao nhất, chỉ nâng")
         result["metrics"] = {
             "volatility_annual": round(vol_annual, 2),
             "max_drawdown": round(max_dd, 2),
             "sharpe_ratio": round(sharpe, 2),
             "atr_pct": round(sl_fraction * 50, 2),
         }
+        # BA con so phan tram tinh MOT LAN roi dung lai, vi RR phai bang
+        # dung thuong cua hai trong so chung. Tinh RR tu `tp1_fraction /
+        # sl_fraction` thi voi sl_fraction = 0,0473 no ra 4,23 trong khi
+        # nguoi doc nhin thay 20,0 va 4,7 roi chia nham duoc 4,26. Mot chenh
+        # lech nho ma khong ai giai thich noi, va dung loai lech ma loi 69
+        # sinh ra tu do.
+        sl_pct = round(sl_fraction * 100, 1)
+        tp1_pct = round(tp1_fraction * 100, 1)
+        tp2_pct = round(tp2_fraction * 100, 1)
+        # KHONG tru chi phi vong (paper_metrics.ROUND_TRIP_COST_PCT = 0,46%)
+        # o day, cung vi ly do tren: mot RR da tru chi phi khong con bang
+        # thuong cua hai so nam ngay canh no. Chi phi duoc noi o cho khac.
+        rr = round(tp1_pct / sl_pct, 2) if sl_pct else 0.0
         result["recommendations"] = {
             "entry_price": round(last_close_vnd, 0),
             "entry_range": f"{round(last_close_vnd * 0.995, 0):,.0f} - {round(last_close_vnd * 1.005, 0):,.0f}",
             "stop_loss_price": round(stop_loss_price, 0),
-            "stop_loss_pct": round(sl_fraction * 100, 1),
+            "stop_loss_pct": sl_pct,
             "take_profit_price": round(take_profit_price, 0),
             # SUY RA tu chinh phan so da dung de tinh gia ngay tren, khong go
             # tay. Hai khoa nay tung mang cau chu -- "Khong gioi han" va "Vo
@@ -495,11 +517,22 @@ class RiskManagementAgent:
             # CHAY duong that chu khong doc ma.
             # Y "gong song" van con nguyen: nhan "TP2 Trailing" o
             # master_agent.py va khoa risk_reward_ratio ngay duoi.
-            "take_profit_pct": round(tp1_fraction * 100, 1),
+            "take_profit_pct": tp1_pct,
             "tp2_price": round(tp2_price, 0),
-            "tp2_pct": round(tp2_fraction * 100, 1),
+            "tp2_pct": tp2_pct,
             "break_even_pct": 5.0,
             "suggested_position_size_pct": position_pct,
-            "risk_reward_ratio": "Fat-Tail (Trailing Stop 7% từ đỉnh)"
+            # Phan thuong do TOI TP1 (+20%), rui ro do toi stop-loss.
+            # TP1 KHONG phai mot loi thoat cua may: `evaluate_open` chi so
+            # `high >= tp` khi CHOT_LOI_CUNG, ma co ay la False tu khi chot
+            # loi cung bi go. Day la muc tieu cho NGUOI doc roi tu quyet
+            # dinh -- dung duong `run_full_analysis`, khong phai duong sinh
+            # lenh. Do 16/09/2026: duong sinh lenh chi doc ba khoa GIA tu
+            # khoi nay, khoa bang tests/test_khuyen_nghi_rui_ro.py.
+            #
+            # Va bat bien 5 cua NGUYEN-TAC-DO-LUONG.md van dung: "R:R cao
+            # lam sigma tang, tuc cang can NHIEU mau hon". Mot ty le dep
+            # KHONG phai bang chung ve loi the.
+            "risk_reward_ratio": rr
         }
         return result

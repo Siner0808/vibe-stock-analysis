@@ -13181,3 +13181,133 @@ phần trăm — chứ không dựng lại công thức của mã. Nên nó khô
 *"test kiểm lại chính nó"* mà `CLAUDE.md` ghi đã mắc ba lần trong một ngày.
 
 Và `analysis_agents.py` nay có hồ sơ: cửa thứ bảy sẽ bơm nó ở lượt Read sau.
+
+---
+
+## BƯỚC 84 — `risk_reward_ratio` THÀNH SỐ, VÀ BỐN CÁI BẪY TRÊN ĐƯỜNG (16/09/2026)
+
+Người dùng chốt ô để ngỏ ở BƯỚC 83: *"đổi sang số tính tới TP1"*, kèm
+*"việc này khá khó khăn đấy hãy làm kỹ"*. Chỗ khó không nằm ở phép chia.
+
+### Bẫy 1 — khối này CÓ nằm trên đường sinh lệnh
+
+Câu dễ giả định nhất là *"`analysis_agents` chỉ để hiển thị"*. Sai:
+`paper_trading.consider_entry` đọc thẳng
+`result["analyses"]["risk"]["recommendations"]`.
+
+Đo bằng AST thay vì đọc mắt — **đúng ba khoá, cả ba là GIÁ**:
+
+```
+dong  637  .get  stop_loss_price      dong  658  []    entry_price
+dong  637  .get  take_profit_price    dong  659  []    stop_loss_price
+                                      dong  693  []    stop_loss_price
+                                      dong  693  []    take_profit_price
+```
+
+Không khoá `*_pct` nào, không `risk_reward_ratio`. **Nên lượt sửa lỗi 69
+hôm qua và lượt sửa hôm nay đều không thể chạm kết quả giao dịch** — và
+câu ấy nay có gác: thêm một khoá hiển thị vào đường sinh lệnh thì đỏ ngay
+lúc thêm (`test_DUONG_GIAO_DICH_chi_doc_BA_khoa_GIA_tu_khoi_khuyen_nghi`,
+đục thử xác nhận).
+
+### Bẫy 2 — TP1 không phải một lối thoát của máy
+
+```python
+elif CHOT_LOI_CUNG and high >= tp:      # CHOT_LOI_CUNG = False
+```
+
+Chốt lời cứng đã bị gỡ. Máy **không bao giờ** thoát ở +20%. Nên vế phần
+thưởng của tỷ lệ này là **mục tiêu cho NGƯỜI đọc rồi tự quyết định**, trên
+đường `run_full_analysis`, chứ không mô tả một hành vi của máy. Điều đó
+được ghi ngay cạnh ô ấy trong mã, không để người sau phải đoán lại.
+
+Và bất biến 5 vẫn đứng: *"R:R cao làm σ tăng, tức càng cần NHIỀU mẫu
+hơn"*. Một tỷ lệ đẹp không phải bằng chứng về lợi thế.
+
+### Bẫy 3 — chia hai phân số gốc hay chia hai con số hiện ra
+
+Đây là chỗ một người cẩn thận rất dễ chọn sai, vì lựa chọn "đúng về toán"
+lại là lựa chọn sai về tài liệu.
+
+```
+sl_fraction 0,0556  ->  0,20 / 0,0556        = 3,60      (chia phan so goc)
+hien ra +20,0% / -5,6%  ->  20,0 / 5,6       = 3,57      (chia so hien ra)
+```
+
+Người đọc nhìn thấy `+20,0%` và `−5,6%` nằm cạnh `RR=3,60:1` sẽ chia nhẩm
+ra 3,57 và không giải thích được chênh lệch. **Đó đúng loại lệch mà lỗi 69
+sinh ra từ đó** — một con số đúng về thứ này đứng cạnh một con số đúng về
+thứ kia. Chọn **chia hai con số hiện ra**, để bộ ba tự kiểm được bằng mắt.
+
+Cùng lý do, **KHÔNG trừ chi phí vòng** (`ROUND_TRIP_COST_PCT` = 0,46%).
+Một RR đã trừ chi phí là con số thật hơn, nhưng nó sẽ không còn bằng
+thương của hai số nằm ngay cạnh nó, và khi ấy nó tạo ra đúng cái lệch vừa
+đi vá. Chi phí được nói ở chỗ khác.
+
+### Bẫy 4 — mẫu thử mặc định KHÔNG phân biệt được hai thiết kế
+
+`sigma` 0,015 cho biến động năm 22%, nên `sl_fraction` bị kẹp xuống đúng
+**sàn 4,0%** — và 20,0/4,0 = 5,0 dù tính bằng cách nào. Một phép kiểm chạy
+trên mẫu ấy xanh với **cả hai** thiết kế.
+
+Đúng cái bẫy lỗi 66, và lần này bắt được trước khi nó thành kết luận. Dò
+16/09: **54 tổ hợp (sigma, seed) phân biệt được**; gác dùng `sigma` 0,028
+(`sl_pct` 5,6 → 3,57 so với 3,60) và **tự khẳng định** rằng hai thiết kế
+cho hai số khác nhau trên mẫu ấy trước khi phán gì.
+
+### Hai thứ tìm ra dọc đường
+
+**Lỗi 70 — nhãn nói chặt hơn mã.** Ô cũ ghi *"Trailing Stop 7% từ ĐỈNH"*.
+Mã là `trail_sl = close_p * 0.93` — 7% dưới giá **đóng cửa**, không phải
+dưới `high`. Đóng cửa ≤ đỉnh, nên stop thật **lỏng hơn** nhãn. Cả hai sinh
+ra trong **cùng một commit** `025507c` (10/08/2026): người viết gõ
+`close_p` và mô tả là "đỉnh" ở cùng một lượt. Sống **37 ngày**.
+
+Chính sách trailing không bị đánh rơi khi ô ấy thành số — nó chuyển sang
+`signals`, cạnh Break-Even và Pyramiding, và được viết lại cho đúng mã.
+
+**Lỗi 71 — ba con số bịa trong một câu tự nhận là "đã ĐỊNH LƯỢNG".**
+`debate_agents` dùng `rec.get("stop_loss_pct", 7)`, `…("take_profit_pct",
+17)` và `…("risk_reward_ratio", "2.5:1")`. Khi khối khuyến nghị vắng mặt,
+Bull vẫn phát ra:
+
+```
+Rui ro da duoc DINH LUONG va kiem soat! Stop-loss chi -7%, trong khi
+tiem nang upside +17%. Ty le Risk:Reward = 2.5:1 - hoan toan co the
+chap nhan.
+```
+
+Ba con số không ai đo, trong một câu quảng cáo chính sự định lượng của nó.
+Đúng luật **R4** của `chan_bia_so_lieu`. Sinh từ `440f65f` — **commit đầu
+tiên của dự án**, 03/08/2026 — nên nó sống **44 ngày**, dài nhất bảng, vượt
+lỗi 69.
+
+Nay không có số thì không có luận điểm. Đo được ở cổng 3: cảnh báo bịa số
+**30 → 28**, đúng bằng hai mẫu `.get(khoá, <số>)` vừa gỡ (số thứ ba là
+chuỗi nên R4 không đếm).
+
+### Đục thử 7/7 đỏ, bốn file
+
+```
+analysis_agents.py  RR ve cau chu · chia phan so goc · dao nguoc ty le ·
+                    danh roi chinh sach trailing
+master_agent.py     in RR tran khong hau to ':1'
+paper_trading.py    duong sinh lenh doc them mot khoa HIEN THI
+debate_agents.py    tra lai ba con so bia 7 / 17 / 2.5
+```
+
+Phát thứ sáu là phát đáng giá nhất: nó không thử lượt sửa này, nó thử cái
+**gác an toàn** sinh ra để bảo vệ mọi lượt sửa sau.
+
+### Thứ CỐ Ý không làm, và nó cần người quyết
+
+Câu của Bull kết thúc bằng *"— hoàn toàn có thể chấp nhận"*, và cụm ấy
+**không phụ thuộc con số**. Tôi để nguyên, vì hai lý do đọc được: đây là
+lời của phía Bull trong một tầng tranh luận **cố ý một chiều**, và tầng ấy
+bị vứt khỏi điểm (`post_debate_score = pre_debate_score`,
+`MO-XE-KIEN-TRUC.md` tầng 4). Ngoài ra RR bị kẹp trong [3,08 ; 5,00] bởi
+chính hai cái kẹp của mã, nên câu ấy chưa bao giờ đứng cạnh một tỷ lệ xấu.
+
+Nhưng nó vẫn là một phán quyết gắn cứng cạnh một con số nay đã thật, và
+bất biến 5 nói thẳng rằng R:R không chứng minh được điều đó. **Đang chờ
+người quyết** — sửa là một dòng.
