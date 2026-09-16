@@ -1740,6 +1740,14 @@ trên Google Sheets ngày 01/09/2026: bốn lệnh NAF · STB · TCB · HUT vẫ
 `PENDING`, `entry_date` và `entry_price` đều là `None`. Chúng chưa bao giờ
 khớp.
 
+> ⚠️ **Câu "chưa bao giờ khớp" ĐÚNG VÀO 01/09 và chỉ vào ngày ấy.** Cả bốn
+> khớp **03/09/2026** ở giá mở cửa phiên đầu mở lại — chính file này ghi
+> điều đó ở mục *"Cổng C5 — đọc trước khi sửa"*. Giữ nguyên câu trên vì nó
+> là bản ghi của một lượt đọc sổ thật; thêm dấu này vì một câu có ngày mà
+> không có dấu thì bị đọc thành câu hiện tại, đúng hình dạng đã cắn dự án
+> ở `N_DAY_DU` 596/451 và ở cờ C5. Tìm ra bởi lượt **soát định kỳ đầu
+> tiên**, 16/09/2026 — `tools/soat_loi_khai_cu.py`.
+
 Nên: **kết quả tiến-về-trước đã đóng = 0, và điều kiện 2 vẫn thoả.** Mọi
 quy tắc dừng viết sau mốc này vẫn phải ghi rõ nó được viết khi trong tay
 có bao nhiêu kết quả — yêu cầu đó không đổi, chỉ có con số là 0 chứ không

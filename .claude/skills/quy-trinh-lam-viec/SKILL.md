@@ -34,6 +34,30 @@ ls <repo>/.claude/skills/            # quy trinh nao dang co san
 
 Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 
+**Và đọc hai dòng còn lại của bản tin mở phiên, nếu chúng hiện ra:**
+
+| dòng | nghĩa là | làm gì |
+|---|---|---|
+| `SOÁT CHÉO còn nợ n` | có BƯỚC chưa khai đã soát chéo hay chưa | soát, rồi khai vào `docs/soat-notebooklm.json` |
+| `SOÁT QUY TRÌNH: n ngày trước` | quá nhịp 2 ngày | `tools/soat_loi_khai_cu.py` cho danh sách việc |
+
+> **Hai dòng này thêm ngày 16/09/2026, và lý do thì đáng đọc.** Hôm ấy
+> người dùng hỏi vì sao cả một phiên trôi qua không dùng NotebookLM lần
+> nào — **lần nhắc thứ ba**. Đo ra ba việc:
+>
+> 1. Mục NotebookLM của skill này nằm ở **cuối file, sau Bước 6** — thứ
+>    duy nhất không nằm trong một Bước có số. Tôi thi hành các Bước có số.
+> 2. Gác `tests/test_soat_notebooklm.py` **có thật** từ 12/09, nhưng nó
+>    canh `## ĐO n`. Hôm ấy sinh **0 ĐO và 5 BƯỚC**, nên nó im lặng đúng
+>    theo phạm vi của chính nó. **Cái gác không yếu — nó ngắm quần thể
+>    khác với quần thể công việc thật.**
+> 3. Bảy cửa không cửa nào liên quan. Hai lượt `grep` khớp chữ "otebook"
+>    là `NotebookEdit`, một tên tool của Claude Code.
+>
+> Nay quần thể của gác là **BƯỚC từ mốc `_moc_buoc` trở đi**, và bản tin
+> nói ra lúc MỞ PHIÊN — chỗ còn quyền chọn — thay vì chỉ đỏ lúc chạy test,
+> khi việc đã xong.
+
 > Ngày 07/09/2026 tôi làm việc nửa buổi rồi mới biết dự án có skill quy
 > trình — hệ thống tự hiện nó ra giữa chừng.
 >
@@ -431,6 +455,50 @@ việc này.
 kiểm lại bằng <lệnh> và nó đúng/sai"* — chứ không phải *"theo
 NotebookLM thì X"*. Vế sau là mượn thẩm quyền của một công cụ không có
 thẩm quyền đó.
+
+### CƠ CHẾ, không phải lời nhắc (16/09/2026)
+
+```
+docs/soat-notebooklm.json   moi DO va moi BUOC tu `_moc_buoc` phai khai
+                            `phat_hien` XOR `khong_soat_vi`
+tools/cua_mo_phien.py       ban tin mo phien in so muc con no
+tests/test_soat_notebooklm  do khi thieu, va khi ly do rong/chung chung
+```
+
+**ĐO ĐỘ TƯƠI TRƯỚC KHI HỎI, mỗi lượt, không nhớ từ lượt trước.** Hỏi sổ
+tay *"số hiệu BƯỚC lớn nhất xuất hiện trong các nguồn"* rồi đối chiếu
+`grep -c '^## BƯỚC' docs/STATE.md`. Đo 16/09/2026: sổ tay **73**, repo
+**85** — lệch 12 BƯỚC, tức nó không thấy chính phép đo mình định nhờ soát.
+Ngày 14/09 con số ấy là 41 so với 73.
+
+**Và phép BỎ CHỌN nguồn không sống qua phiên.** Ngày 15/09 bốn bản chụp cũ
+được bỏ chọn, còn 5 nguồn; ngày 16/09 cả 9 được tích lại. Một câu *"đã bỏ
+chọn"* vì thế mô tả một trạng thái tạm, không phải một phép sửa.
+
+### Nhịp soát lại quy trình — 2 ngày (người dùng chốt 16/09/2026)
+
+Người dùng đề xuất nhịp cho việc *"update skill và hook"*. Đo trước khi
+nhận, và phép đo **đổi cái đích**:
+
+```
+SKILL.md + bang loi CO SUA 9 tren 14 ngay gan nhat
+```
+
+Việc **cập nhật** đã chạy theo sự kiện ở Bước 6 — mỗi lỗi mới là một dòng
+mới. Đặt nhịp 2 ngày lên đó là đặt một nhịp **thấp hơn** nhịp đang có.
+
+Nửa chưa bao giờ có cơ chế là **soát lại thứ ĐÃ CÓ**. Riêng ngày 16/09 hai
+câu cũ bị bắt gặp do **tình cờ**: *"cửa Bash không ghi nhật ký … chưa làm"*
+(nhật ký đã có từ 14/09) và mâu thuẫn BƯỚC 49 sống sáu ngày.
+
+```bash
+./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py
+```
+
+Nó in mọi **lời khai phủ định có nêu tên** còn sống trong bảy tài liệu —
+15 dòng, siết từ 187 bằng ba phép lọc có lý do. Ghi kết quả vào
+`docs/soat-dinh-ky.json`; một lượt soát kết luận *"vẫn đúng"* là kết quả
+hợp lệ và phải ghi được, nếu không sổ chỉ chứa tin xấu.
 
 ---
 

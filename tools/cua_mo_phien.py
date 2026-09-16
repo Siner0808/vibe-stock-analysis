@@ -24,13 +24,28 @@ NGUYÊN TẮC THIẾT KẾ
 3. **Ngắn.** Nhắc nhiều thì thành nhiễu, mà nhiễu thì bị bỏ qua.
 """
 import datetime as dt
+import json
 import pathlib
 import re
 import sys
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
 HANDOFF = GOC / "docs" / "HANDOFF.md"
+STATE = GOC / "docs" / "STATE.md"
+SO_SOAT = GOC / "docs" / "soat-notebooklm.json"
+SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 THU_MUC_SKILL = GOC / ".claude" / "skills"
+
+#: Nhịp soát lại quy trình, người dùng chốt 16/09/2026. KHÔNG phải nhịp
+#: *cập nhật*: việc ấy đã chạy theo sự kiện ở Bước 6, và đo được là SKILL
+#: cùng bảng lỗi có sửa **9 trên 14 ngày** gần nhất — đặt nhịp 2 ngày lên
+#: đó là đặt một nhịp THẤP HƠN nhịp đang có.
+#:
+#: Nhịp này nhắm nửa chưa bao giờ có cơ chế: **soát lại thứ ĐÃ CÓ**. Riêng
+#: ngày 16/09 hai câu cũ bị bắt gặp do TÌNH CỜ — *"cửa Bash không ghi nhật
+#: ký"* (nhật ký đã có từ 14/09) và mâu thuẫn BƯỚC 49 sống sáu ngày với dữ
+#: kiện lật ngược nó nằm ngay trong câu khai ra nó.
+NHIP_SOAT_NGAY = 2
 
 RE_NGAY = re.compile(r"\*\*(\d{2})/(\d{2})/(\d{4})\*\*")
 
@@ -91,6 +106,45 @@ def trang_thai_cua() -> str:
         return "CUA: chua kiem duoc (tools/kiem_cua_song.py)"
 
 
+def buoc_chua_khai_soat() -> list[str]:
+    """`## BƯỚC n` từ mốc trở đi mà chưa có dòng khai trong sổ soát chéo.
+
+    SUY RA TỪ ĐĨA — nguyên tắc 2 ở đầu file. Mốc đọc từ `_moc_buoc` trong
+    chính sổ, đúng con số `tests/test_soat_notebooklm.py` dùng; gõ lại ở
+    đây là tạo chỗ lệch thứ hai.
+
+    Có mặt vì ngày 16/09/2026 người dùng phải nhắc **lần thứ ba** rằng
+    NotebookLM không được dùng. Gác ở bộ test bắt được điều đó — nhưng nó
+    chỉ đỏ lúc CHẠY TEST, tức sau khi việc đã làm xong. Dòng này nói ra
+    lúc MỞ PHIÊN, khi còn quyền chọn.
+    """
+    try:
+        sys.path.insert(0, str(GOC / "tools"))
+        from soat_loi_khai_cu import buoc_chua_khai
+
+        so = json.loads(SO_SOAT.read_text(encoding="utf-8"))
+        return buoc_chua_khai(STATE.read_text(encoding="utf-8"),
+                              so["soat"], int(so["_moc_buoc"]))
+    except Exception:
+        return []
+
+
+def ngay_tu_lan_soat_quy_trinh(hom_nay: dt.date | None = None) -> int | None:
+    """Số ngày kể từ lượt soát lại quy trình gần nhất; `None` nếu chưa đọc được.
+
+    `None` và `0` là hai chuyện khác nhau — sổ hỏng thì im, đừng báo "vừa
+    soát hôm nay". Cùng lý do `kiem_cu_phap_311.py` có mã thoát 2.
+    """
+    try:
+        ds = json.loads(SO_DINH_KY.read_text(encoding="utf-8"))["lan_soat"]
+        if not ds:
+            return None
+        moi = max(dt.date.fromisoformat(x["ngay"]) for x in ds)
+        return ((hom_nay or dt.date.today()) - moi).days
+    except Exception:
+        return None
+
+
 def ban_tin(hom_nay: dt.date | None = None) -> str:
     hom_nay = hom_nay or dt.date.today()
     d = ["┌─ vibe_preview ─────────────────────────────────────────────"]
@@ -103,6 +157,20 @@ def ban_tin(hom_nay: dt.date | None = None) -> str:
 
     d.append("│")
     d.append(f"│ {trang_thai_cua()}")
+
+    thieu = buoc_chua_khai_soat()
+    tre = ngay_tu_lan_soat_quy_trinh(hom_nay)
+    if thieu or (tre is not None and tre >= NHIP_SOAT_NGAY):
+        d.append("│")
+    if thieu:
+        them = " …" if len(thieu) > 4 else ""
+        d.append(f"│ SOÁT CHÉO còn nợ {len(thieu)}: "
+                 f"{' · '.join(thieu[:4])}{them}")
+        d.append("│   khai vào docs/soat-notebooklm.json — phát hiện, hoặc lý do")
+    if tre is not None and tre >= NHIP_SOAT_NGAY:
+        d.append(f"│ SOÁT QUY TRÌNH: lần gần nhất {tre} ngày trước "
+                 f"(nhịp {NHIP_SOAT_NGAY} ngày)")
+        d.append("│   danh sách việc: tools/soat_loi_khai_cu.py")
 
     chan = moc_ngay_con_chan(hom_nay)
     if chan:

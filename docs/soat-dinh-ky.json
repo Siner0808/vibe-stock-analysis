@@ -1,0 +1,23 @@
+{
+  "_ghi_chu": "Sổ của lượt SOÁT LẠI QUY TRÌNH. Nhịp 2 ngày, người dùng chốt 16/09/2026. Danh sách việc sinh bằng tools/soat_loi_khai_cu.py; bản tin mở phiên đọc sổ này để in số ngày kể từ lượt gần nhất.",
+  "_vi_sao_KHONG_phai_nhip_CAP_NHAT": "Người dùng đề xuất nhịp 2 ngày cho việc 'update skill và hook'. Đo trước khi nhận: SKILL.md và bảng lỗi CÓ SỬA 9 trên 14 ngày gần nhất (git log --since 2026-09-02). Việc cập nhật đã chạy theo SỰ KIỆN ở SKILL.md Bước 6 — mỗi lỗi mới là một dòng mới — nên một nhịp 2 ngày đặt lên đó là một nhịp THẤP HƠN nhịp đang có, không thêm gì. Nửa chưa bao giờ có cơ chế là SOÁT LẠI THỨ ĐÃ CÓ, và sổ này nhắm nửa ấy.",
+  "_gioi_han": "Công cụ sinh danh sách chỉ thấy lời khai phủ định CÓ NÊU TÊN trong bảy tài liệu sống, và cố ý bỏ docs/STATE.md (nhật ký chỉ-thêm, lời khai cũ ở đó là sử liệu chứ không phải thứ cần sửa). Nó KHÔNG thấy mâu thuẫn giữa hai tài liệu, và cũng không thấy tài liệu lệch MÃ. Ba loại ấy vẫn phải bắt bằng đường khác.",
+  "lan_soat": [
+    {
+      "ngay": "2026-09-16",
+      "pham_vi": "Lượt đầu tiên. tools/soat_loi_khai_cu.py ra 15 lời khai phủ định còn sống trên 7 tài liệu (quét thô 187 dòng, ba phép siết đưa về 15). Mở hai dòng đáng ngờ nhất.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md:1706 '**Chưa đo:** tv_recommendation KHÔNG tái lập' — nghi là đã cũ, vì ngay dưới nó có một khối đo ngày 15/09/2026.",
+          "tu_kiem": "sed -n '1700,1712p' CLAUDE.md",
+          "phan_quyet": "SAI — lời khai vẫn ĐÚNG. Khối 15/09 đo PHẠM VI (đường giao dịch có chạm TradingView thật không) và một lát mỏng 6 mã, không đo tính tái lập; chính nó ghi 'Nó KHÔNG bác phát hiện gốc'. Không sửa gì."
+        },
+        {
+          "noi_dung": "CLAUDE.md:1740 'Chúng chưa bao giờ khớp' về bốn lệnh NAF · STB · TCB · HUT — đọc như câu hiện tại.",
+          "tu_kiem": "grep -n 'CẢ BỐN ĐÃ KHỚP' CLAUDE.md",
+          "phan_quyet": "THẬT — câu đúng vào 01/09/2026 và chỉ ngày ấy; cả bốn khớp 03/09, và chính file này ghi điều đó ở mục Cổng C5. Đã thêm ô ⚠️ theo quy ước giữ-số-cũ, giữ nguyên câu gốc vì nó là bản ghi một lượt đọc sổ thật."
+        }
+      ]
+    }
+  ]
+}
