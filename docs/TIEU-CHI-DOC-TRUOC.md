@@ -1778,3 +1778,82 @@ trong thư mục scratch) — **cùng kết quả**.
 ### Điều bảng đã ký KHÔNG hỏi, và hoá ra là câu hỏi lớn hơn
 
 Xem `docs/STATE.md` BƯỚC 94.
+
+---
+
+## ĐO 11 — `streamlit` 1.60.0 → 1.64.0: bản CI đang phục vụ người dùng có chạy được ở máy này không? (khai 17/09/2026)
+
+**Dụng cụ đọc:** `tools/do11_nang_streamlit.py` — chạy hai lượt, `truoc`
+(trước khi nâng) rồi `sau` (sau khi nâng).
+
+**Đã tra trùng:** **BƯỚC 94** (17/09/2026) là chỗ vế lệch này được đo ra,
+và nó cố ý **không** sửa trong cùng PR — *"nó là một phép nâng khác và cần
+bảng đọc riêng"*. Đây là bảng đọc ấy. Không BƯỚC nào khác trong
+`docs/STATE.md` chạm tới `streamlit` như một đại lượng.
+
+**Một lượt quét thăm dò ĐÃ CHẠY TRƯỚC KHI KÝ, và đây là chỗ khai nó.** Nó
+đếm **quần thể**: 185 file `.py` quét, **24** tên `st.*` được gọi, **0**
+tên thiếu ở 1.60.0. Nó **không** phải lượt `truoc`, và nó không đọc được
+gì về 1.64.0 — phán quyết của bảng này là một phép **SO giữa hai lượt**,
+mà lượt thứ hai chưa tồn tại lúc ký. Khai ra vì lỗi 79 vừa dạy đúng bài
+ấy: một dữ kiện không ai hỏi thì không ai biết.
+
+### Vì sao câu hỏi này KHÁC câu hỏi của ĐO 10
+
+ĐO 10 hỏi *thư viện có đổi CON SỐ không*. `streamlit` **không nằm trên
+đường dữ liệu** — nó không kéo giá, không chấm điểm, không sinh lệnh. Nên
+câu hỏi ở đây là câu khác: **bản mà CI và Streamlit Cloud đang chạy có
+chạy được ở máy này không.**
+
+Chiều của phép nâng cũng ngược. Ở ĐO 10 máy local đuổi theo PyPI; ở đây
+máy local đuổi theo **bản đang phục vụ người dùng**. `requirements.txt`
+khai `streamlit` **không có sàn** — trần trụi một dòng, không cả `>=` —
+nên Cloud lấy bản mới nhất ở mỗi lượt deploy.
+
+### Bốn đại lượng, và mỗi cái đọc được ở mức nào
+
+| | đại lượng | đọc được gì |
+|---|---|---|
+| **A** | tập tên `st.*` repo gọi, suy bằng AST | tên nào **biến mất** |
+| **B** | mọi từ khoá tại mọi lời gọi `st.X(kw=…)`, so với `inspect.signature` | chữ ký nào **siết lại** |
+| **C** | ba module `import streamlit` nạp trong tiến trình riêng | nạp có **nổ** không |
+| **D** | `streamlit run app.py` headless → `/_stcore/health` | máy chủ có **dựng được** không |
+
+**GIỚI HẠN NÊU TRƯỚC, và nó quyết định cách đọc cả bảng.** Không ô nào
+trong bốn ô đọc được thứ người dùng thật sự nhìn — **trang đã dựng**. D
+chỉ chứng minh máy chủ trả lời; nó không chứng minh một widget nào vẽ
+đúng. Bốn ô này bắt **loại hỏng ồn ào** (tên mất · chữ ký siết · import
+nổ · máy chủ chết) và **không** bắt **loại hỏng im lặng** (một widget đổi
+cách hiển thị, một khoảng cách lệch đi). Vế im lặng ấy ĐO 11 **không đọc
+được** — nói ra ở đây thay vì để người đọc tự suy ra sau.
+
+A và B **suy từ AST, không gõ tay**: thêm một `st.*` mới vào app thì quần
+thể tự rộng ra theo. B là ô sắc hơn A, vì cách một thư viện giao diện phế
+truất thường là **giữ tên, bỏ tham số**.
+
+### BẢNG ĐỌC — ký trước, không sửa sau khi thấy số
+
+```
+A  mot ten BIEN MAT                        ->  KHONG NANG
+B  mot tu khoa bi CHOI THEM                ->  KHONG NANG
+C  mot module dang nap duoc ma NAP NO      ->  KHONG NANG
+D  may chu dang dung duoc ma KHONG DUNG    ->  KHONG NANG
+   bon o GIONG hoac TOT LEN                ->  NANG DUOC, neu 5 cong xanh
+   khong chay duoc mot luot nao            ->  CHUA KET LUAN DUOC, khong nang
+```
+
+**Ba ô, không phải hai** — cùng quy ước với `vnstock_goi.kiem_goi` và ĐO
+10. Ô thứ ba bắt buộc: một lượt không chạy nổi mà bị đọc thành *"không đổi
+gì"* là đúng lỗi 66.
+
+**Ô `KHÔNG NÂNG` là thứ làm bảng này thành phép kiểm.** Chỉ có ô "nâng
+được" thì đây là một lời tiên tri không thể sai.
+
+### Và nếu phán quyết LÀ `KHÔNG NÂNG` thì phải làm gì
+
+Khi ấy vế lệch **ở lại**, và đó **không** phải trạng thái an toàn: nó
+nghĩa là mọi cổng xanh đang xanh trên một bản mà máy này chưa bao giờ
+chạy. Việc phải làm khi đó là **ghim sàn `streamlit` trong
+`requirements.txt`** để CI thôi trôi, rồi khai lý do — chứ không phải im
+lặng để nguyên. Khai điều này TRƯỚC, vì một nhánh không có việc đi kèm là
+một nhánh sẽ bị bỏ qua.
