@@ -13635,3 +13635,168 @@ mà câu *"nó có thấy thứ tôi vừa viết không"* có câu trả lời 
 Nguồn URL là ảnh chụp, không phải liên kết sống. Mỗi BƯỚC mới viết ra là sổ
 tay lại lệch thêm một mục. Nên **đo độ tươi vẫn là việc bắt buộc mỗi lượt
 soát** — điều đã ghi ở `SKILL.md`, nay kèm cả cách sửa khi nó lệch.
+
+---
+
+## BƯỚC 89 — MỐC 17/09: DỜI CRON KHÔNG CÓ TÁC DỤNG, VÀ MỘT PHÉP CHẶN ĐỂ ĐỌC SỚM (17/09/2026)
+
+Tiêu chí ký ngày **03/09/2026** (BƯỚC 20), tới hạn hôm nay. Đọc đúng hạn,
+không sớm một ngày nào.
+
+### Phán quyết: **DỜI KHÔNG CÓ TÁC DỤNG**
+
+```
+NEN   (lich cu `0 9`, do 03/09, n = 9)   : 247,00 phut
+TRUNG VI (lich moi `23 9`, n = 9)        : 263,13 phut
+CHENH                                     : +16,13 phut
+```
+
+Ngưỡng đã ký là **> 120 phút → dời KHÔNG có tác dụng**. Con số ra **gấp
+hơn hai lần** ngưỡng ấy, và nó còn đi **sai chiều**: trễ TĂNG chứ không
+giảm.
+
+| ngày | mốc TẠO (UTC) | trễ (phút) |
+|---|---|---|
+| 04/09 | 13:34:55 | 251,92 |
+| 07/09 | 15:05:56 | 342,93 |
+| 08/09 | 13:41:03 | 258,05 |
+| 09/09 | 13:46:08 | 263,13 |
+| 10/09 | 13:39:44 | 256,73 |
+| 11/09 | 13:38:01 | 255,02 |
+| 14/09 | 15:55:13 | 392,22 |
+| 15/09 | 14:21:32 | 298,53 |
+| 16/09 | 14:13:53 | 290,88 |
+
+**Không ngày làm việc nào rơi nhịp.** 12–13/09 là thứ Bảy và Chủ nhật.
+
+### Con số mới KHÔNG bước ra khỏi dải cũ
+
+BƯỚC 19 đo trên **lịch cũ** rằng ba chuông ở khung 09:00–10:00 UTC trễ
+**trung vị 4–4,7 giờ**, tức 240–282 phút. Nền 247 nằm trong dải ấy
+(4,12 h). Trung vị mới **263,13 phút = 4,39 giờ** — cũng nằm trong dải ấy.
+
+Dời phút trong giờ không đẩy con số ra khỏi chỗ nó đang đứng. Giả thuyết
+*"độ trễ do phút trong giờ"* bị **bác**. Còn lại hai khả năng BƯỚC 20 đã
+nêu trước và phép đo này không tách được: tải chung của GitHub ở khung giờ
+ấy, và cách GitHub xếp hàng cron cho repo này nói chung.
+
+**Giới hạn đã nêu TRƯỚC khi chạy vẫn đứng:** không có nhóm chứng chạy song
+song ở lịch cũ, tải GitHub đổi theo tuần. Nên kết quả này là **bác một giả
+thuyết**, không phải chỉ ra nguyên nhân.
+
+### KHÔNG dời lại. Lý do là một điều kiện, không phải sự lười
+
+`tests/test_lich_cron_chuong.py` khoá điều kiện *"không nhịp nào được dời
+SỚM hơn bản cũ"*, và lý do của nó vẫn nguyên giá trị: `chuong_bao_quet`
+đưa **chính ngày hôm nay** vào cửa sổ soát, nên chạy trước lượt quét cuối
+là tự chế báo động giả. Lịch `23 9 · 43 9 · 17 10` vô hại — nó chỉ không
+có ích. Gỡ một thứ vô hại để lấy lại một mốc `:00` thì chẳng được gì.
+
+Và điều BƯỚC 19 ghi vẫn đúng: **ba chuông là phép soát theo NGÀY.** Nổ
+muộn bốn tiếng rưỡi vẫn nổ trong ngày.
+
+### Mẫu chưa đầy — và điều đó ĐỌC ĐƯỢC, không phải bỏ qua
+
+Tiêu chí ký *"tới hết 17/09/2026 (n ≈ 10)"*. Nhịp nổ lúc 09:23 UTC, tức
+**16:23 giờ VN**; phiên này mở lúc 08:07 sáng. Nên trong tay có **9** ngày,
+không phải 10.
+
+Ba đường, và đường thứ ba là đường đúng:
+
+```
+doan ngay thu muoi          -> bia
+cho toi chieu roi moi doc   -> bo phi ca buoi, va van phai doc
+CHAN HAI DAU                -> do duoc NGAY BAY GIO
+```
+
+Cho ngày còn thiếu nhận giá trị **nhỏ nhất có thể** (0 phút — GitHub không
+tạo lượt chạy trước khe) rồi **lớn nhất có thể**:
+
+```
+can duoi : 260,59 phut  ->  DOI KHONG CO TAC DUNG
+can tren : 277,01 phut  ->  DOI KHONG CO TAC DUNG
+```
+
+Hai cận cùng một ô, nên **con số chưa đo không mang thông tin phán xử**.
+Một phán quyết chỉ đọc được khi nó không phụ thuộc thứ chưa đo — và ở đây
+điều ấy tự nó đo được, chứ không phải một câu trấn an.
+
+> `tools/do20_doi_cron.py::doc_duoc_chua()` trả ra đúng phép chặn đó, và
+> trạng thái *"CHƯA đọc được"* **đạt tới được**: mẫu `[50,0]` thiếu một
+> ngày cho cận dưới 25,0 (dời CÓ tác dụng) và cận trên 745,0 (dời KHÔNG
+> có tác dụng) — hai ô khác nhau, nên nó nói CHƯA. Không có ô ấy thì phép
+> chặn là trang trí, đúng lỗi 31.
+
+### Dụng cụ, và một luật được giữ
+
+`tools/do20_doi_cron.py` **nhập** phép đo trễ từ `tools/do_roi_nhip.py`
+thay vì chép lại: `tre_phut` · `khe_gan_nhat_truoc` · `khe_da_hen` ·
+`ngay_lam_viec` · `NHIP`. Đó là bài học lỗi 73 hôm qua — bản cài đặt thứ
+hai trôi ra khỏi bản thứ nhất, và không ai thấy. `tests/
+test_do20_doi_cron.py::test_PHEP_DO_TRE_phai_NHAP_chu_khong_duoc_DINH_NGHIA_LAI`
+đọc **AST** để khoá điều đó; một bản chép nằm trong chú thích thì phép
+kiểm `in` không phân biệt được.
+
+**Máy đo đi qua một CA THẬT đã biết trước** (Bước 3 điều 4 của skill).
+BƯỚC 54 đã ghi `A = 258,05 phút` cho cửa sổ 07→11/09, đo bằng **dụng cụ
+khác, ngày khác**. Dụng cụ mới chạy lại cửa sổ ấy ra **đúng 258,05**. Nếu
+nó lệch thì mọi phép so sau đó là so hai thang — và không con số nào tự
+nói ra điều ấy.
+
+**CHƯA TỚI GIỜ ≠ RƠI NHỊP.** Hai thứ giống hệt nhau trong dữ liệu (ngày
+không có lượt nào) và ngược nhau về nghĩa. Gộp chúng lại làm **hai** cái
+sai cùng lúc: cỡ mẫu trông đầy hơn thực tế, và số nhịp rơi bị thổi lên.
+Hai cái sai ngược chiều nhau nên không cái nào tự lộ ra.
+
+**Đột biến 13/13 đỏ**, gồm phát đầu tiên *trung vị → trung bình* — hai
+phép cùng tên gọi "đo độ trễ", khác con số, và không cái nào kêu.
+
+### NotebookLM — lượt soát chéo ĐẦU TIÊN thật sự làm được việc
+
+Đo độ tươi trước khi hỏi, đúng luật, và **không nhớ từ lượt trước**:
+
+```
+so tay thay : BUOC 87        (nguon raw .../docs/STATE.md)
+repo dang o : BUOC 88
+lech        : 1 muc — dung bang muc viet SAU luot lam tuoi hom qua
+```
+
+Lần đầu tiên kể từ khi dự án dùng sổ tay, **mọi thứ nó cần soát đều nằm
+trong tầm nó.**
+
+Hỏi thẳng: *có chỗ nào trong tài liệu NÓI NGƯỢC lại kết luận "dời cron
+không làm giảm trễ" không — một câu khẳng định việc dời đã có tác dụng,
+một con số nền khác 247, hay một ngưỡng khác 60/120?*
+
+Trả lời: **KHÔNG CÓ.**
+
+**Và một kết quả ÂM thì phải hỏi tiếp: mẫu này CÓ KHẢ NĂNG cho kết quả
+DƯƠNG không?** (lỗi 66). Nên chạy một **đối chứng dương** — hỏi về một cặp
+mâu thuẫn đã biết chắc là có thật:
+
+```
+hoi : co cho nao ghi "tre dien hinh 5 -> 90 phut", va co cho nao noi
+      nguoc lai con so ay?
+ra  : CO CA HAI, kem trich dan nguyen van va ten file
+```
+
+Tự kiểm lại bằng `grep`, đúng luật *"mọi phát hiện của nó phải tự kiểm
+lại"*:
+
+```
+CLAUDE.md:1155      Tre dien hinh  : 5 -> 90 phut
+CLAUDE.md:1158    ⚠️ Con so "5 -> 90 phut" chi dung cho khung 02:00-08:30 UTC
+docs/STATE.md:887   (cung cap cau ay)
+docs/STATE.md:891
+```
+
+Cả hai trích dẫn **đúng nguyên văn, đúng tên file**. Nên câu *"KHÔNG CÓ"*
+ở trên là một kết quả âm ĐỌC ĐƯỢC, không phải một cái gác im lặng. Và
+`grep -rni "dời.*giảm.*trễ"` trên bảy tài liệu sống cũng ra rỗng — hai
+đường độc lập cùng một câu trả lời.
+
+> **Sổ tay đã đổi tên.** `notebooklm.google.com` nay chuyển hướng sang
+> `notebook.google.com`, thương hiệu hiện trên trang là **Gemini
+> Notebook**. Không tài liệu nào trong repo ghim địa chỉ cũ (`grep` ra 0
+> dòng), nên không có gì phải sửa — ghi ra để lần sau không ai tưởng mình
+> vào nhầm chỗ.

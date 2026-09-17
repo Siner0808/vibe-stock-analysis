@@ -209,8 +209,16 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   ba chuông **rơi 0/15 ngày-chuông**, và không commit nào chạm file
   chuông trong tuần ấy nên số 0 ấy sạch. Lệnh đọc:
   `tools/do_roi_nhip.py`. BƯỚC 54.
-- **17/09/2026** — tiêu chí về việc dời cron ba chuông, khai trước ngày
-  03/09. Nền 247 phút.
+- ~~**17/09/2026** — tiêu chí về việc dời cron ba chuông~~ **ĐÃ ĐỌC ĐÚNG
+  HẠN 17/09/2026: DỜI KHÔNG CÓ TÁC DỤNG.** Trung vị trễ **263,13 phút** so
+  với nền **247**, tức tăng +16,13 — trong khi ngưỡng đã ký là *dưới 60 thì
+  có tác dụng, trên 120 thì không*. Con số mới **không bước ra khỏi dải
+  4–4,7 giờ** BƯỚC 19 đo trên lịch cũ, nên giả thuyết *"trễ do phút trong
+  giờ"* bị bác. **KHÔNG dời lại** — lịch hiện tại vô hại, chỉ là không có
+  ích, và điều kiện *"không nhịp nào sớm hơn bản cũ"* vẫn có lý do của nó.
+  Đọc lúc n = 9/10 và chứng minh được ngày thứ mười không lật được phán
+  quyết (cận 260,59–277,01, cùng một ô). Lệnh đọc:
+  `tools/do20_doi_cron.py`. BƯỚC 89.
 
 **Cần người quyết:**
 
