@@ -13926,3 +13926,54 @@ Và một gác còn đúng với mã **chưa viết**:
 đầu vào từ **chữ ký thật** của bốn hàm chỉ mục qua `inspect.signature`.
 Thêm nguồn thứ năm mà quên vân tay thì nó đỏ — chứ không phải chờ tới lúc
 ai đó đọc một địa chỉ đã chết.
+
+### Chính lượt đục thử ấy sinh ra lỗi 76
+
+Phát thứ mười hai — *"đệm nằm trong cây repo"* — đổi `duong_dan_dem()`
+thành `GOC / TEN_DEM`. Đột biến **chết đúng như phải chết**. Nhưng lượt
+pytest chạy DƯỚI đột biến ấy đã **ghi thật** một file đệm 32 KB vào gốc
+repo, và `git add -A` ngay sau đó quét nó vào commit.
+
+```
+9 files changed   <- mot trong chin la vibe_ho_so_chi_muc.json
+```
+
+Ba cái gác đứng nhìn, mỗi cái vì một lý do đọc được:
+
+| gác | vì sao im |
+|---|---|
+| `kiem_hoan_tra` trong `dot_bien` | canh **file bị vá**, và file ấy trở về nguyên byte thật |
+| `test_DEM_KHONG_duoc_nam_trong_CAY_REPO` | kiểm **đường dẫn trong mã**, và mã đã được hoàn trả trước khi test chạy |
+| `.gitignore` | chưa có dòng nào cho một file vừa mới tồn tại hôm nay |
+
+**Cái gác của phép đệm canh đúng thứ nó khai — chỉ là thứ nó khai không
+phủ được đường mà rác đi ra.** Cùng gia đình lỗi 73, ở một tầng khác: gác
+không yếu, nó ngắm một quần thể khác.
+
+### Phép sửa: `dot_bien` nay canh HAI thứ
+
+```python
+truoc = _muc_goc_repo()          # TRUOC luot chay
+...
+finally:
+    p.write_bytes(goc)           # hoan tra
+    kiem_hoan_tra(p, goc)        # ... va chung minh
+    kiem_khong_de_rac(truoc, ten)  # goc repo co moc them muc nao khong
+```
+
+`RacSauDotBien` **gọi tên** các mục mới và **không tự xoá** — `CLAUDE.md`
+cấm xoá file ở gốc repo mà chưa hỏi, và một công cụ tự dọn thì lần sau sẽ
+dọn nhầm.
+
+Đo trước khi bật, để biết nó có báo động giả không: một lượt
+`pytest tests/ -q` đầy đủ làm gốc repo **thêm 0, mất 0** (112 mục trước và
+sau). Nên phép so này không có nền nhiễu.
+
+**Và nó cắn tác giả ở lượt đầu tiên:** chạy lại đúng bộ đột biến vừa xong,
+phát thứ mười hai nổ ngay với tên file 32 KB kia trong thông báo.
+
+Gác: `tests/test_bo_dot_bien.py`, thêm 4 phép kiểm. Đột biến **6/6 đỏ** —
+sau khi **một phát bị thiết kế sai phải viết lại**: bản đầu dời phép chụp
+xuống sau `ghi()` nhưng vẫn TRƯỚC `subprocess.run`, tức vẫn chụp đúng lúc,
+nên nó sống sót một cách vô nghĩa. Phát đúng là chụp **sau lượt chạy** —
+khi ấy rác đã nằm sẵn trong ảnh chụp và phép trừ ra rỗng.

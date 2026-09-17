@@ -56,6 +56,27 @@ class NeoMoHo(Exception):
     """Neo khớp 0 lần hoặc nhiều hơn số lần đã khai — DỪNG, không đoán."""
 
 
+class RacSauDotBien(Exception):
+    """Một lượt đục thử để lại file MỚI ở gốc repo.
+
+    VÌ SAO CÓ NGOẠI LỆ NÀY (17/09/2026, lỗi 76). `dot_bien` hoàn trả file
+    nó VÁ, từng byte, và có `kiem_hoan_tra()` chứng minh. Nhưng một đột
+    biến có thể làm mã chạy GHI RA CHỖ KHÁC — và hôm ấy đúng thế: phát
+    *"đệm nằm trong cây repo"* đổi `duong_dan_dem()` thành `GOC / TEN_DEM`,
+    lượt pytest chạy dưới đột biến ấy ghi một file đệm 32 KB vào gốc repo,
+    và `git add -A` ngay sau đó quét nó vào commit.
+
+    Cái gác của chính phép đệm — *"đệm không được nằm trong cây repo"* —
+    kiểm ĐƯỜNG DẪN trong mã, nên nó xanh. Nó không biết gì về một file đã
+    nằm sẵn trên đĩa.
+
+    Nên phép hoàn trả nay canh **hai thứ**: file bị vá trở về nguyên byte,
+    VÀ gốc repo không mọc thêm mục nào. Đo 17/09/2026: một lượt
+    `pytest tests/ -q` đầy đủ không thêm và không mất mục nào ở gốc
+    (112 mục trước và sau), nên phép so này không có báo động giả.
+    """
+
+
 def _quy_uoc(b: bytes) -> str:
     """Quy ước xuống dòng ĐANG CÓ của file: 'crlf', 'lf' hoặc 'tron'."""
     crlf = b.count(b"\r\n")
@@ -132,6 +153,7 @@ def dot_bien(duong, cu: str, moi: str, lenh: list[str],
         raise NeoMoHo(f"{duong}: neo khớp {s.count(cu)} lần, phải đúng 1 "
                       f"({ten})")
 
+    truoc = _muc_goc_repo()
     try:
         ghi(duong, s.replace(cu, moi, 1))
         kq = subprocess.run([PY_HIEN_TAI] + lenh, cwd=str(GOC),
@@ -141,6 +163,7 @@ def dot_bien(duong, cu: str, moi: str, lenh: list[str],
     finally:
         p.write_bytes(goc)
         kiem_hoan_tra(p, goc)
+        kiem_khong_de_rac(truoc, ten)
 
     return that_bai if mong_doi == "DO" else not that_bai
 
@@ -174,6 +197,31 @@ def dot_bien_bo(duong, phat: list[tuple[str, str, str]],
         if song:
             print("SONG SOT: " + ", ".join(song))
     return song
+
+
+def _muc_goc_repo() -> set[str]:
+    """Tên các mục ở GỐC repo. Rẻ — một lượt `iterdir`, 112 mục (17/09)."""
+    try:
+        return {q.name for q in GOC.iterdir()}
+    except OSError:
+        return set()
+
+
+def kiem_khong_de_rac(truoc: set[str], ten: str) -> None:
+    """Nổ nếu lượt đục thử làm gốc repo MỌC THÊM mục nào.
+
+    KHÔNG tự xoá. `CLAUDE.md` cấm xoá file ở gốc repo mà chưa hỏi, và một
+    công cụ tự dọn thì lần sau sẽ dọn đúng thứ đáng giữ. Nó chỉ gọi tên.
+
+    Tách thành hàm riêng có chủ đích, cùng lý do với `kiem_hoan_tra`: để
+    trong `finally` thì đột biến `if False:` sống sót mà không ai thấy.
+    """
+    moi = _muc_goc_repo() - truoc
+    if moi:
+        raise RacSauDotBien(
+            f"đột biến `{ten}` để lại {len(moi)} mục MỚI ở gốc repo: "
+            f"{sorted(moi)}. Xoá tay rồi chạy lại — `git add -A` sẽ quét "
+            f"chúng vào commit (lỗi 76).")
 
 
 def kiem_hoan_tra(duong, goc: bytes) -> None:

@@ -173,6 +173,17 @@ dot_bien("paper_metrics.py", "z=2,30", "z=1,00",
 "gần đạt" — nó là câu trả lời: gác chưa canh chỗ đó. Sửa gác rồi chạy
 lại cả bộ đột biến, đừng chỉ chạy lại phát vừa hỏng.
 
+> **Một phát sống sót cũng có thể là phát ĐƯỢC THIẾT KẾ SAI.** Trước khi
+> đi sửa gác, hỏi: đột biến này có THẬT SỰ đổi hành vi ở chỗ đang canh
+> không? Ngày 17/09/2026 một phát dời phép chụp xuống sau `ghi()` nhưng
+> vẫn trước lượt chạy — tức vẫn chụp đúng lúc — nên nó sống sót một cách
+> vô nghĩa, và suýt làm một cái gác đang đúng bị đem ra sửa.
+
+> **Và lượt đục thử không được để lại RÁC.** `dot_bien` hoàn trả file nó
+> VÁ, nhưng đột biến có thể làm mã chạy GHI RA CHỖ KHÁC — lỗi 76. Nay
+> `va_an_toan.kiem_khong_de_rac()` nổ và gọi tên mọi mục mới ở gốc repo.
+> Nếu nó nổ: **xoá tay rồi thiết kế lại phát ấy**, đừng tắt gác.
+
 Bốn điều bắt buộc, cả bốn từ sự cố thật:
 
 1. **Phép đục phải đi qua đúng HÀM ĐANG PHÁN**, không qua hàm trích.
