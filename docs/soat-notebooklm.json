@@ -307,6 +307,17 @@
         "HANDOFF.md"
       ],
       "khong_soat_vi": "Đại lượng của ĐO 11 là bề mặt API của một thư viện giao diện đọc bằng AST + inspect, và một máy chủ HTTP dựng thật rồi hỏi /_stcore/health. Sổ tay chỉ thấy TÀI LIỆU — nó không chạy được lệnh nào, không dựng được máy chủ nào, và không nguồn nào của nó nói về chữ ký hàm của streamlit. VẾ TÀI LIỆU thì đã tự kiểm bằng đường khác: chữ 'streamlit' như một ĐẠI LƯỢNG chỉ xuất hiện ở BƯỚC 94 và ở bảng bất đối xứng của CLAUDE.md, tìm bằng grep, và cả hai đều do chính phiên hôm nay viết."
+    },
+    "BƯỚC 95": {
+      "ngay": "2026-09-17",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md"
+      ],
+      "khong_soat_vi": "Hai phần của BƯỚC này nằm ngoài tầm một công cụ chỉ đọc TÀI LIỆU. Phần ĐO 11 là bề mặt API của một thư viện đọc bằng AST + inspect và một máy chủ HTTP dựng thật. Phần lỗi 80 là phép so hai danh sách `pip freeze` — một ở máy, một đọc từ nhật ký CI trên GitHub. Sổ tay không chạy được lệnh nào và không đọc được nhật ký nào. VẾ TÀI LIỆU của lỗi 80 thì ĐÃ TỰ KIỂM bằng đường khác: câu 'còn một vế lệch' nằm ở đúng HAI chỗ, tìm bằng grep, và tuổi thọ 3 giờ 8 phút đo bằng `git log -S` ra commit e7d9cf3 lúc 10:47:18 cùng ngày. Cả hai chỗ đều do chính phiên hôm nay viết, nên một quần thể hai dòng thì hỏi sổ tay không thêm được gì."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát.",

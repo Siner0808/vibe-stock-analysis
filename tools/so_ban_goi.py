@@ -10,26 +10,33 @@ chủ ý"*, và nó kết bằng một câu khai ĐỦ:
 Câu ấy **thiếu một vế**, và vế thiếu là vế đổi thường xuyên nhất:
 **SỐ HIỆU BẢN THƯ VIỆN**.
 
-`requirements.txt` khai bằng **SÀN** (`vnstock>=4.0.6`, `vnai>=2.5.7`), nên
-mỗi lượt CI `pip install` lấy bản **MỚI NHẤT trên PyPI**. Máy local thì cài
-một lần rồi đứng yên. Hai nơi trôi ra khỏi nhau mà không ai thấy — vì chưa
-có lệnh nào hỏi.
+`requirements.txt` khai bằng **SÀN** (`vnstock>=4.0.6`, `vnai>=2.5.7`) —
+và `streamlit` thì không có cả sàn. Nên mỗi lượt CI `pip install` lấy bản
+**MỚI NHẤT trên PyPI**, còn máy local cài một lần rồi đứng yên.
 
-Đo ngày 17/09/2026, và nó đảo ngược cách đọc hai phép nâng gần nhất:
+VÀ BẢN ĐẦU CỦA CHÍNH FILE NÀY MẮC LẠI ĐÚNG HÌNH DẠNG ẤY (lỗi 80)
+────────────────────────────────────────────────────────────────
+Bản 17/09 sáng khai một hằng số `CONG_KHAI` gồm **bảy tên gõ tay**, rồi
+chỉ so bảy tên ấy. Chiều 17/09 đo lại trên **toàn bộ** quần thể:
 
-```
-luot CI 2026-09-16T01:26:10Z   vnstock-4.0.8   vnai-2.6.0
-may local cung luc             vnstock 4.0.7   vnai 2.5.9
-PR #130 "nang vnai 2.6.0" merge  2026-09-16T07:55:03Z
-```
+    92 goi co o CA HAI noi   ->   LECH 32
+    bay ten go tay bat duoc  ->   1   (streamlit)
+    lot qua                  ->   31  (co urllib3 1.26.20 / 2.8.0,
+                                       plotly 6.9.0 / 7.1.0)
 
-CI đã chạy `vnai` 2.6.0 **trước sáu tiếng rưỡi**. Và `vnstock` 4.0.8 phát
-hành 15/09, nên **mọi cổng xanh từ hôm ấy đều xanh trên 4.0.8** — trong khi
-`docs/STATE.md` BƯỚC 87 viết *"mọi con số hiện hành đã đo trên 4.0.7"* như
-một lý do để chưa nâng.
+Con số *"còn đúng một vế lệch"* mà `docs/STATE.md` BƯỚC 94 viết là một
+câu về **cửa sổ của dụng cụ**, bị đọc thành một câu về **thế giới**. Cùng
+họ với lỗi 73: cái gác không yếu, nó ngắm một quần thể khác quần thể thật.
 
-Câu ấy đúng về **các lượt ĐO**, và sai về **các lượt CỔNG**. Nên phép nâng
-local chưa bao giờ là *"đi trước"* — nó là **đuổi theo thứ cổng đã chạy**.
+QUẦN THỂ SUY RA · MỨC ĐỘ GÕ TAY — HAI VIỆC KHÁC NHAU
+─────────────────────────────────────────────────────
+Phép sửa **không** phải gõ thêm tên. Quần thể nay là **giao của hai bên
+đọc được**, nên thêm một gói vào `requirements.txt` thì nó tự vào tầm.
+
+Hai danh sách dưới đây vẫn gõ tay, và đó là chủ ý: chúng quyết định
+**cái gì ồn ào**, không quyết định **cái gì được nhìn thấy**. Mọi lệch
+đều in ra đủ tên và đủ hai số hiệu. Trộn hai việc ấy chính là lỗi 80;
+nén một danh sách thành một con số tổng chính là lỗi 78.
 
 CÁI NÀY KHÔNG PHẢI MỘT CỔNG
 ───────────────────────────
@@ -47,10 +54,18 @@ from pathlib import Path
 GOC = Path(__file__).resolve().parent.parent
 sys.stdout.reconfigure(encoding="utf-8")
 
-#: Chỉ các gói CÔNG KHAI. Bốn gói tài trợ không có trên PyPI công khai và
-#: CI không cài chúng — xem `requirements.txt`.
-CONG_KHAI = ("vnstock", "vnai", "vnstock_ezchart", "pandas", "numpy",
-             "streamlit", "tradingview-ta")
+#: Gõ tay, và chỉ quyết định MỨC ĐỘ. Gói trên đường dữ liệu: lệch ở đây
+#: nghĩa là cổng đang chấm bằng một bộ số khác bộ số các phép ĐO đã chạy.
+HANG_SO = ("vnstock", "vnai", "vnstock_ezchart", "pandas", "numpy",
+           "tradingview-ta")
+
+#: Gõ tay, và chỉ quyết định MỨC ĐỘ. Gói dựng thứ người dùng NHÌN THẤY —
+#: Streamlit Cloud cài cùng đường với CI, nên bản của CI là bản phục vụ.
+HANG_GIAO_DIEN = ("streamlit", "plotly", "altair", "matplotlib")
+
+SO = "QUYET DINH SO"
+GIAO_DIEN = "NGUOI DUNG THAY"
+KHAC = "con lai"
 
 RE_GOI = re.compile(r"\b([a-zA-Z][\w.\-]*)-(\d+\.\d+[\w.]*)\b")
 
@@ -58,24 +73,34 @@ KHOP = "KHOP"
 LECH = "LECH"
 CHUA_KIEM = "CHUA KIEM DUOC"
 
-#: Nhãn cho một gói không xuất hiện trong nhật ký CI. KHÔNG được coi là
-#: "khớp": không thấy khác với thấy-và-giống.
-KHONG_THAY = "không thấy trong nhật ký"
+
+def _chuan(ten: str) -> str:
+    """Quy tên gói về MỘT dạng — PEP 503, cộng dấu chấm."""
+    return re.sub(r"[-_.]+", "_", ten).lower()
+
+
+_HANG_SO = frozenset(_chuan(g) for g in HANG_SO)
+_HANG_GIAO_DIEN = frozenset(_chuan(g) for g in HANG_GIAO_DIEN)
+
+
+def hang_cua(ten: str) -> str:
+    c = _chuan(ten)
+    if c in _HANG_SO:
+        return SO
+    if c in _HANG_GIAO_DIEN:
+        return GIAO_DIEN
+    return KHAC
 
 
 def ban_local() -> dict[str, str]:
+    """MỌI gói đang cài ở máy này — quần thể suy ra, không gõ tay."""
     import importlib.metadata as md
-    ra = {}
-    for g in CONG_KHAI:
-        try:
-            ra[g] = md.version(g)
-        except Exception:                      # bia-ok: goi khong co thi khai VANG
-            ra[g] = "VẮNG"
+    ra: dict[str, str] = {}
+    for d in md.distributions():
+        ten = d.metadata["Name"]
+        if ten:
+            ra[_chuan(ten)] = d.version
     return ra
-
-
-def _chuan(ten: str) -> str:
-    return ten.replace("-", "_").lower()
 
 
 def luot_ci_gan_nhat() -> tuple[str, str] | None:
@@ -93,6 +118,18 @@ def luot_ci_gan_nhat() -> tuple[str, str] | None:
     return str(d["databaseId"]), d["createdAt"]
 
 
+def doc_nhat_ky(van: str) -> dict[str, str]:
+    """MỌI gói trên dòng `Successfully installed` — tách ra để đục thử được."""
+    thay: dict[str, str] = {}
+    for dong in van.splitlines():
+        if "Successfully installed" not in dong:
+            continue
+        phan = dong.split("Successfully installed", 1)[1]
+        for ten, ban in RE_GOI.findall(phan):
+            thay[_chuan(ten)] = ban
+    return thay
+
+
 def ban_ci(luot_id: str) -> dict[str, str] | None:
     """Bản CI THẬT SỰ cài, đọc từ dòng `Successfully installed` của nhật ký.
 
@@ -106,36 +143,50 @@ def ban_ci(luot_id: str) -> dict[str, str] | None:
                         errors="replace", cwd=str(GOC))
     if ra.returncode != 0:
         return None
-    thay: dict[str, str] = {}
-    for dong in ra.stdout.splitlines():
-        if "Successfully installed" not in dong:
-            continue
-        for ten, ban in RE_GOI.findall(dong):
-            c = _chuan(ten)
-            if c in {_chuan(g) for g in CONG_KHAI}:
-                thay[c] = ban
-    return thay or None
+    return doc_nhat_ky(ra.stdout) or None
 
 
 def so_sanh(loc: dict[str, str],
-              ci: dict[str, str] | None) -> tuple[str, list[tuple]]:
+            ci: dict[str, str] | None) -> tuple[str, list[tuple[str, str, str, str]]]:
     """PHÉP PHÁN, tách riêng để đục thử được KHÔNG CẦN MẠNG.
+
+    Quần thể là **giao** của hai bên: một gói chỉ có ở một nơi thì không
+    so được, và *không thấy* khác *thấy và khác*.
 
     BA trạng thái, không phải hai — cùng quy ước với `vnstock_goi.kiem_goi`
     và `lich_giao_dich.chan_doan`. Ô thứ ba bắt buộc: không đọc được nhật
     ký CI mà im lặng thì câu ấy bị đọc thành *"hai nơi giống nhau"*, và đó
-    đúng là kết luận sai đã sống hai ngày (lỗi 79).
+    đúng là kết luận sai đã sống mười bảy ngày (lỗi 79).
+
+    Mỗi dòng lệch mang **hạng** của nó. Hạng KHÔNG lọc dòng nào ra khỏi
+    danh sách — nó chỉ nói dòng ấy có chạm chỗ quyết định không (lỗi 80).
     """
     if not ci:
         return CHUA_KIEM, []
     lech = []
-    for g in CONG_KHAI:
-        ban = ci.get(_chuan(g))
-        if ban is None:
-            continue                      # không thấy — không phán
-        if loc.get(g) != ban:
-            lech.append((g, loc.get(g), ban))
+    for g in sorted(set(loc) & set(ci)):
+        if loc[g] != ci[g]:
+            lech.append((g, loc[g], ci[g], hang_cua(g)))
     return (LECH if lech else KHOP), lech
+
+
+def cham_cho_quyet_dinh(lech: list[tuple[str, str, str, str]]) -> bool:
+    """Câu hỏi THỨ HAI, hỏi sau khi đã biết có lệch hay không.
+
+    Trộn nó vào câu hỏi thứ nhất là cách bản đầu của file này để lọt 31
+    gói: một dòng không thuộc hạng nào đã bị loại khỏi cả phép đếm.
+    """
+    return any(h in (SO, GIAO_DIEN) for _, _, _, h in lech)
+
+
+def _in_nhom(lech: list[tuple[str, str, str, str]], hang: str) -> None:
+    nhom = [d for d in lech if d[3] == hang]
+    print(f"\n  {hang}  ({len(nhom)})")
+    if not nhom:
+        print("      (khong co)")
+        return
+    for g, a, b, _ in nhom:
+        print(f"      {g:<26} máy {a:<12} CI {b}")
 
 
 def main() -> int:
@@ -144,9 +195,7 @@ def main() -> int:
     a = ap.parse_args()
 
     loc = ban_local()
-    print("MÁY NÀY")
-    for g, v in loc.items():
-        print(f"  {g:18s} {v}")
+    print(f"MÁY NÀY — {len(loc)} gói đang cài")
 
     if a.luot:
         luot_id, luc = a.luot, "(chỉ định tay)"
@@ -164,23 +213,31 @@ def main() -> int:
         print(f"\nCHƯA KIỂM ĐƯỢC: không đọc được nhật ký lượt {luot_id}.")
         return 2
 
-    ma, lech = so_sanh(loc, ci)
-    ten_lech = {g for g, _, _ in lech}
-    print(f"\nCI — lượt {luot_id} ({luc})")
-    for g in CONG_KHAI:
-        ban = ci.get(_chuan(g), KHONG_THAY)
-        print(f"  {g:18s} {ban}" + ("   <-- LỆCH" if g in ten_lech else ""))
+    print(f"CI — lượt {luot_id} ({luc}) — {len(ci)} gói lượt ấy cài")
+    chi_ci = sorted(set(ci) - set(loc))
+    print(f"\nso được {len(set(loc) & set(ci))} gói (giao của hai bên)"
+          f"  ·  chỉ ở CI: {len(chi_ci)}  ·  chỉ ở máy: {len(set(loc) - set(ci))}")
+    if chi_ci:
+        print(f"      chỉ ở CI: {' '.join(chi_ci)}")
 
-    print()
-    if ma == LECH:
-        print(f"LỆCH {len(lech)} gói:")
-        for g, a_, b_ in lech:
-            print(f"  {g}: máy {a_} · CI {b_}")
-        print("\nĐây KHÔNG phải lỗi — `requirements.txt` khai bằng SÀN nên "
-              "CI luôn lấy bản mới nhất.\nNhưng nó nghĩa là các CỔNG đang "
-              "chạy trên một bản khác bản các phép ĐO đã chạy.")
+    ma, lech = so_sanh(loc, ci)
+    if ma == KHOP:
+        print("\nKHỚP — hai nơi cùng bản trên mọi gói so được.")
+        return 0
+
+    print(f"\nLỆCH {len(lech)} / {len(set(loc) & set(ci))} gói")
+    for hang in (SO, GIAO_DIEN, KHAC):
+        _in_nhom(lech, hang)
+
+    print("\nĐây KHÔNG phải lỗi — `requirements.txt` khai bằng SÀN (và "
+          "`streamlit` không có\ncả sàn), nên CI luôn lấy bản mới nhất. "
+          "Nó nghĩa là các CỔNG đang chạy trên\nmột bộ bản khác bộ bản các "
+          "phép ĐO đã chạy.")
+    if cham_cho_quyet_dinh(lech):
+        print("\nCÓ chạm chỗ quyết định.")
         return 1
-    print("KHỚP — máy này và lượt CI ấy cùng bản trên mọi gói công khai.")
+    print("\nKHÔNG chạm chỗ quyết định — lệch nằm ngoài đường dữ liệu và "
+          "ngoài thứ người dùng nhìn thấy.")
     return 0
 
 

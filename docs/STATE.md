@@ -14374,6 +14374,10 @@ số hiện hành đã đo trên 4.0.7"* như một lý do để chưa nâng.
 
 ### Và vẫn còn một vế lệch, đo được ngay hôm nay
 
+> 🔴 **CÂU TIÊU ĐỀ NÀY SAI, VÀ NÓ SAI NGAY LÚC VIẾT — lỗi 80, sống 3 giờ
+> 8 phút.** Không phải một vế: **32 trên 92 gói so được**. Dụng cụ chỉ
+> nhìn bảy tên gõ tay nên nó chỉ kể được một. Xem BƯỚC 95.
+
 ```
 streamlit   may 1.60.0   ·   CI 1.64.0
 ```
@@ -14401,3 +14405,100 @@ tách khỏi phần đọc mạng (`so_sanh()`), nên đục thử được khô
 
 **Đục thử 9/9 đỏ**, gồm phát đầu tiên dựng lại đúng ca thật: *không đọc
 được CI thì báo KHỚP*.
+
+---
+
+## BƯỚC 95 — NÂNG `streamlit` 1.64.0, VÀ MỘT DỤNG CỤ ĐẾM TRÊN CỬA SỔ CỦA CHÍNH NÓ (17/09/2026)
+
+### ĐO 11 — phán quyết **NÂNG ĐƯỢC**
+
+Tiêu chí ký vào nhánh lúc **13:50:14**, lượt chụp `truoc` bắt đầu
+**13:50:18**. Bảng đầy đủ ở `docs/TIEU-CHI-DOC-TRUOC.md`. Tóm tắt:
+
+```
+A  27 ten st.*  ->  27 co / 0 thieu, ca hai luot
+B  19 cap (ten, tu khoa) so voi inspect.signature  ->  19 nhan / 0 choi
+C  3 module import streamlit  ->  3/3 nap duoc
+D  /_stcore/health  ->  'ok' ca hai luot, 0 traceback
+```
+
+Phép nâng chạm **hai** gói: `streamlit` 1.60.0 → 1.64.0, và `websockets`
+17.0.1 → **16.1.1** — một phép **HẠ**, vì 1.64 ghim `websockets<17`. Bản
+16.1.1 đúng bằng bản CI, nên phép hạ ấy thu hẹp bất đối xứng.
+
+### Rồi phép đo lôi ra một thứ lớn hơn thứ nó hỏi — lần thứ hai trong một ngày
+
+`pip freeze` trước/sau chỉ khác hai dòng, nhưng để đọc được hai dòng ấy
+phải so **toàn bộ** hai danh sách. Và lượt so toàn bộ ấy trả lời một câu
+không ai hỏi:
+
+```
+92 goi co o CA HAI noi (may <-> luot CI 35180072169)   ->  LECH 32
+bay ten `CONG_KHAI` cua so_ban_goi.py nhin            ->  bat duoc 1
+lot qua                                                ->  31
+```
+
+Hai vế to nhất lọt qua đều là khoảng cách bản **CHÍNH**:
+
+```
+urllib3   may 1.26.20   CI 2.8.0
+plotly    may 6.9.0     CI 7.1.0     <- thu ve moi bieu do nguoi dung nhin
+```
+
+Câu *"hôm nay vẫn còn một vế lệch"* trong BƯỚC 94 và trong `CLAUDE.md` là
+một câu về **cửa sổ của dụng cụ**, bị đọc thành một câu về **thế giới**.
+**Lỗi 80**, và nó sống **3 giờ 8 phút** — từ commit `e7d9cf3` lúc 10:47:18
+tới lượt đo lại lúc 13:55.
+
+> **Cùng họ với lỗi 73, không cùng họ với lỗi 79.** Ở lỗi 79 cái gác
+> **không tồn tại** — chưa lệnh nào hỏi. Ở đây gác **có**, chạy đúng, báo
+> đúng những gì nó nhìn — và **nó ngắm một quần thể khác quần thể thật**.
+>
+> Chỗ cay nhất: nó mắc **ngay trong dụng cụ dựng ra sáng cùng ngày để
+> chữa lỗi 79**. Một dụng cụ sinh ra để nói *"đừng suy, hãy đọc"* mà bản
+> thân nó chỉ đọc bảy dòng người ta gõ sẵn.
+
+### Phép sửa: QUẦN THỂ SUY RA · MỨC ĐỘ GÕ TAY
+
+Không phải gõ thêm tên — gõ thêm tên là làm lại đúng cái sai, chỉ chậm
+hơn. `so_ban_goi.so_sanh()` nay lấy quần thể là **giao của hai bên đọc
+được**, nên thêm một gói vào `requirements.txt` thì nó tự vào tầm.
+
+Hai danh sách còn gõ tay — `HANG_SO` và `HANG_GIAO_DIEN` — **chỉ quyết
+định mức độ**:
+
+| hạng | gồm | lệch ở đây nghĩa là |
+|---|---|---|
+| `QUYET DINH SO` | `vnstock` `vnai` `vnstock_ezchart` `pandas` `numpy` `tradingview-ta` | cổng đang chấm bằng một bộ số khác bộ số các phép ĐO |
+| `NGUOI DUNG THAY` | `streamlit` `plotly` `altair` `matplotlib` | bản phục vụ người dùng khác bản đã kiểm |
+| `con lai` | mọi gói còn lại | in ra đủ, không làm đỏ |
+
+**Mọi dòng lệch đều in ra đủ tên và đủ hai số hiệu, không hạng nào bị
+giấu.** Đó là chỗ tách bạch hai việc mà bản đầu trộn vào nhau — và nén
+danh sách thành một con số tổng chính là lỗi 78, vừa sửa sáng nay.
+
+Hai câu hỏi cũng tách: `so_sanh()` trả lời *"có lệch không"* trên ba trạng
+thái; `cham_cho_quyet_dinh()` trả lời *"lệch có chạm chỗ quyết định
+không"*. Mã thoát đi theo câu thứ hai, nên một dụng cụ báo `LỆCH 30` không
+thành một ngọn đèn đỏ vĩnh viễn.
+
+### Đo được hôm nay, sau khi nâng
+
+```
+QUYET DINH SO     0 lech      <- ca duong du lieu khop
+NGUOI DUNG THAY   3 lech      altair · matplotlib · plotly
+con lai          27 lech
+```
+
+**Đường dữ liệu khớp hoàn toàn** — đó là kết quả tốt và nó đo được, chứ
+không còn phải suy. Vế đáng làm tiếp là **`plotly` 6.9.0 → 7.1.0**: một
+khoảng cách bản CHÍNH, ở đúng thứ vẽ biểu đồ. Nó cần bảng đọc riêng, cùng
+lý do BƯỚC 94 không nâng `streamlit` trong PR của nó.
+
+### Vì sao KHÔNG ghim `requirements.txt` hôm nay
+
+Nhánh `KHÔNG NÂNG` của bảng đã ký nói: ghim sàn để CI thôi trôi. Phán
+quyết là `NÂNG ĐƯỢC`, nên nhánh ấy không kích hoạt. Và ghim toàn bộ là một
+quyết định khác hẳn — nó đổi **cơ chế** bất đối xứng mà `CLAUDE.md` mô tả
+là *"VĨNH VIỄN, và là chủ ý"*, nên nó thuộc về người dùng chứ không thuộc
+về một phép nâng gói.

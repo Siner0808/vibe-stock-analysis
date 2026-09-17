@@ -1857,3 +1857,65 @@ chạy. Việc phải làm khi đó là **ghim sàn `streamlit` trong
 `requirements.txt`** để CI thôi trôi, rồi khai lý do — chứ không phải im
 lặng để nguyên. Khai điều này TRƯỚC, vì một nhánh không có việc đi kèm là
 một nhánh sẽ bị bỏ qua.
+
+---
+
+## Kết quả ĐO 11 — chạy 17/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do11_nang_streamlit.py`
+
+Tiêu chí vào nhánh lúc **13:50:14** (commit `f6284c1`), lượt chụp `truoc`
+bắt đầu **13:50:18** — bốn giây sau, và **trước khi đổi một gói nào**.
+
+| | 1.60.0 | 1.64.0 | |
+|---|---|---|---|
+| **A** 27 tên `st.*` | 27 có · 0 thiếu | 27 có · 0 thiếu | không tên nào mất |
+| **B** 19 cặp (tên, từ khoá) | 19 nhận · 0 chối | 19 nhận · 0 chối | không chữ ký nào siết |
+| **C** 3 module nạp | 3/3 | 3/3 | |
+| **D** `/_stcore/health` | `ok` sau 3,5s | `ok` sau 1,1s | 0 traceback cả hai |
+
+```
+PHAN QUYET: NANG DUOC
+```
+
+**Phép nâng chạm ĐÚNG HAI gói, và gói thứ hai đi XUỐNG.** `pip freeze`
+trước/sau khác hai dòng:
+
+```
+streamlit   1.60.0  ->  1.64.0     nang
+websockets  17.0.1  ->  16.1.1     HA, vi streamlit 1.64 ghim `<17`
+```
+
+`websockets` 16.1.1 đúng bằng bản CI đang chạy, nên phép hạ ấy **thu hẹp**
+bất đối xứng chứ không mở rộng.
+
+### Một dòng cảnh báo của `pip` mà bảng đã ký KHÔNG có ô cho nó
+
+```
+pyppeteer 2.0.0 requires websockets<11.0, but you have websockets 16.1.1
+```
+
+Đọc thẳng chứ không đoán, ba lượt, và kết luận đi **ngược** vẻ ngoài của nó:
+
+- `pyppeteer` do `requests-html` kéo về; `requests-html` có
+  `Required-by:` **rỗng** — không gói nào cần nó.
+- Không file nào trong repo nạp `requests_html`; và trong toàn bộ
+  `site-packages`, không gói nào nạp nó ngoài chính nó.
+- Nhật ký CI: **0 lần** xuất hiện `pyppeteer` hay `requests-html`. CI chưa
+  bao giờ có hai gói ấy.
+- Và ràng buộc là `<11.0`, trong khi máy **đã** ở `17.0.1` **trước** phép
+  nâng. Xung đột ấy **có sẵn**; phép nâng không tạo ra nó, chỉ làm `pip`
+  nói ra.
+
+Nên nó không vào bảng đọc, và cũng không bị bỏ qua: nó là **hai gói mồ côi
+chỉ có ở máy này**.
+
+### Giới hạn của ĐO 11, nhắc lại sau khi có số
+
+Bốn ô không ô nào nhìn **trang đã dựng**. D chứng minh máy chủ trả lời
+`ok`; nó không chứng minh một widget nào vẽ đúng. Điều đó đã khai **trước**
+khi chạy, và nó vẫn đúng sau khi chạy.
+
+### Điều bảng đã ký KHÔNG hỏi, và hoá ra lớn hơn
+
+Xem `docs/STATE.md` BƯỚC 95.
