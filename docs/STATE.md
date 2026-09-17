@@ -14768,3 +14768,92 @@ Nó là người dùng thật đầu tiên của `DOC_THO`: mọi bản đã bó
 ```
 
 Cả hai chạy trong phiên này, không phải trong test.
+
+---
+
+## BƯỚC 99 — HỎI SỔ TAY BẰNG TIẾNG ANH, ĐÒI TRẢ LỜI TIẾNG VIỆT (17/09/2026)
+
+**Người dùng chốt.** Mọi câu gửi sổ tay viết bằng tiếng Anh, và mỗi câu
+mang theo một dòng đòi nó trả lời bằng tiếng Việt.
+
+**Lý do người dùng CHƯA NÊU, và tôi không suy hộ.** Ghi ra đúng như vậy:
+một lý do bịa còn tệ hơn không có lý do, vì lần sau người ta sẽ cãi với
+cái lý do bịa thay vì hỏi lại người dùng.
+
+### Ba thứ quy ước này KHÔNG chạm
+
+- **Báo cáo cho người dùng vẫn tiếng Việt.** Nó chạm đúng một đoạn đường:
+  *tôi ↔ sổ tay*.
+- **Ghi chép trong `docs/soat-notebooklm.json` vẫn tiếng Việt** —
+  `phat_hien`, `phan_quyet`, `khong_soat_vi` là ghi chép của dự án, không
+  phải câu gửi đi.
+- **Trích dẫn nguyên văn tài liệu vẫn giữ tiếng Việt.** Đây là vế quyết
+  định hình dạng cái gác bên dưới.
+
+### Gác: chỉ khoá được NỬA, và nói ra nửa kia
+
+Ý đầu tiên là bắt câu hỏi **sạch dấu tiếng Việt**. Bỏ, vì nó sai:
+
+> Tài liệu dự án viết tiếng Việt, nên một câu hỏi đàng hoàng **phải dẫn
+> lại chúng**. Cấm dấu tiếng Việt là đẩy người hỏi sang *kể lại* thay vì
+> *dẫn lại* — mà một bản kể lại là một tầng nén, đúng thứ **lỗi 67** cấm.
+
+Nên gác chỉ kiểm một thứ, và nó kiểm được chắc chắn: câu hỏi **có mang
+dòng đòi trả lời tiếng Việt** không.
+
+```
+tests/test_soat_notebooklm.py::test_CAU_HOI_tu_MOC_NGON_NGU_phai_DOI_TRA_LOI_TIENG_VIET
+moc doc tu `_moc_ngon_ngu` trong chinh so
+```
+
+**Nửa còn lại — *"phần không trích dẫn có thật sự là tiếng Anh không"* —
+là KỶ LUẬT, không phải cơ chế.** Đừng đọc một lượt xanh thành *"câu hỏi đã
+viết bằng tiếng Anh"*. Nói ra ở đây vì một gác không khai giới hạn thì
+được đọc rộng hơn thứ nó giao — đúng **lỗi 25**.
+
+### Mốc đặt ở NGÀY SAU ngày chốt, và đó là chủ ý
+
+`_moc_ngon_ngu = "2026-09-18"`. Các mục ngày 17/09 đã hỏi xong **trước**
+khi có quyết định; sửa lời khai của chúng cho hợp gác mới là **viết lại
+lịch sử**.
+
+Hệ quả phải nói ra: **quần thể của gác hôm nay là RỖNG.** Một lượt xanh
+trên quần thể rỗng không chứng minh gì — đúng bài lỗi 58(a). Nên gác được
+**đục thử** thay vì tin:
+
+```
+lui `_moc_ngon_ngu` ve 2026-09-01  ->  DO   (cau hoi tieng Viet cu lot vao tam)
+doi ten `_moc_ngon_ngu`            ->  DO   (mat moc thi khong duoc im lang)
+2/2 do
+```
+
+### Lượt đầu tiên chạy theo quy ước — và nó đóng một mục CHƯA KIỂM ĐƯỢC
+
+BƯỚC 97 để lại một mục `CHƯA KIỂM ĐƯỢC`: câu hỏi *"liệt kê các chỗ hai tài
+liệu nói khác nhau mà chưa có dấu"* đã gửi, sổ tay đã trả lời, và tôi
+không đọc được câu trả lời. Hôm nay hỏi lại bằng tiếng Anh ở một tab mới,
+và đọc được.
+
+**Câu trả lời: không tìm thấy chỗ nào.**
+
+Một câu âm chỉ đọc được khi có **đối chứng dương**, nên lượt thứ hai hỏi
+ngược lại: *liệt kê 5 mâu thuẫn ĐÃ có dấu*. **Đối chứng ĐẠT** — sổ tay
+trích nguyên văn cả hai vế và định vị đúng dấu:
+
+| | hai vế | dấu |
+|---|---|---|
+| `AGENTS.md` có bị ghi đè không | `NGUYEN-TAC-DO-LUONG.md` *"sẽ bị ghi đè"* ↔ bảng `CLAUDE.md` *"KHÔNG bị ghi"* | ⚠️ *"CÂU TRÊN NÊU MỘT TRÊN BỐN ĐÍCH"* |
+| có kết quả nào loại được số 0 chưa | `docs/HANDOFF.md` câu cũ *"không có kết quả nào loại được số 0"* | 🔴 *"CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026"* |
+
+Tự kiểm lại bằng `grep`, không tin sẵn: `CLAUDE.md` dòng **42** đúng là
+dòng bảng; `docs/HANDOFF.md` dòng **125** đúng là câu cũ và dòng **124**
+ngay trên là ô 🔴. Trích dẫn khớp từng chữ.
+
+> **Phạm vi của câu âm, nhắc lại sau khi có nó:** sổ tay chỉ thấy **TÀI
+> LIỆU**. Nó không nói gì về loại lỗi nặng nhất của dự án —
+> *tài-liệu-lệch-MÃ*, thứ đã cắn ở `N_DAY_DU` 596/451 và ở cờ C5.
+
+### Quy ước chạy đúng ngay lượt đầu
+
+Hai lượt hỏi bằng tiếng Anh, hai lượt trả lời bằng tiếng Việt, không lượt
+nào phải nhắc lại yêu cầu ngôn ngữ.

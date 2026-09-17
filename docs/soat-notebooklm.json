@@ -5,7 +5,7 @@
   "_cach_viet_mot_dong": {
     "ngay": "ngày soát, YYYY-MM-DD",
     "nguon": "các file đang là nguồn của sổ tay lúc soát",
-    "cau_hoi": "câu đã hỏi, tóm tắt",
+    "cau_hoi": "từ `_moc_ngon_ngu` trở đi: NGUYÊN VĂN câu đã gửi, viết bằng tiếng Anh và có mang dòng đòi trả lời tiếng Việt. Trước mốc ấy: bản tóm tắt tiếng Việt.",
     "phat_hien": "danh sách; mỗi mục có `noi_dung` và `tu_kiem` — `tu_kiem` phải là một LỆNH đã chạy, không phải một lời khẳng định",
     "khong_soat_vi": "dùng THAY cho `phat_hien` khi cố ý không soát; phải nêu lý do cụ thể"
   },
@@ -372,7 +372,8 @@
         {
           "noi_dung": "CHƯA ĐỌC ĐƯỢC: câu hỏi thứ hai — liệt kê các chỗ hai tài liệu nói khác nhau về cùng một đại lượng mà CHƯA có dấu cảnh báo — đã gửi và sổ tay đã trả lời, nhưng câu trả lời không đọc được.",
           "tu_kiem": "Trang kẹt ở một mức thu phóng nên ảnh chụp không đọc được; lối đọc bằng JavaScript bị chặn. Không có lệnh nào chạy được cho mục này.",
-          "phan_quyet": "CHƯA KIỂM ĐƯỢC — không phải 'không có phát hiện'. Việc còn lại: mở sổ tay đọc câu trả lời ấy ở phiên sau."
+          "phan_quyet": "CHƯA KIỂM ĐƯỢC — không phải 'không có phát hiện'. Việc còn lại: mở sổ tay đọc câu trả lời ấy ở phiên sau.",
+          "_da_dong_o": "BƯỚC 99 — hỏi lại bằng tiếng Anh ở một tab mới và ĐỌC ĐƯỢC câu trả lời. Giữ nguyên phán quyết cũ vì nó đúng vào lúc viết."
         }
       ]
     },
@@ -386,10 +387,42 @@
         "HANDOFF.md"
       ],
       "khong_soat_vi": "Đại lượng của BƯỚC này là hành vi của chính đường Bash → heredoc → Python trên máy này, đo bằng hai lượt chạy thật và đọc `repr()` cùng `len()`. Sổ tay chỉ thấy TÀI LIỆU — nó không gõ được một lệnh nào. VẾ TÀI LIỆU thì ĐÃ TỰ KIỂM bằng đường khác và đó là phần quan trọng nhất của BƯỚC: bảng lỗi dòng 56 trỏ sang dòng 58, dòng 58 khai ứng viên BỊ RÚT kèm lý do, và cả hai đều được đọc TRƯỚC khi dựng luật mới. Đúng thứ lỗi 41 dạy."
+    },
+    "BƯỚC 99": {
+      "ngay": "2026-09-17",
+      "_luu_y_ngon_ngu": "Lượt ĐẦU TIÊN chạy theo quy ước ngôn ngữ người dùng chốt 17/09/2026: hỏi bằng tiếng Anh, đòi trả lời bằng tiếng Việt. Mục này ngày 17/09 nên nằm TRƯỚC `_moc_ngon_ngu` (2026-09-18) và gác chưa soi tới — nó theo quy ước vì quy ước, không vì bị ép.",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md"
+      ],
+      "cau_hoi": "List up to 5 places where two DIFFERENT source documents state CONFLICTING things about the SAME quantity or the SAME mechanism, and where that place does NOT already carry a warning marker (no warning emoji, no \"BỊ BÁC\", no \"ĐÃ ĐỔI\", no \"HẾT ĐÚNG\"). For each one: quote both sentences verbatim and name the file each came from. If you find none, say clearly that you found none. Answer in Vietnamese.  ||  POSITIVE CONTROL: Now do the opposite: list 5 contradictions between two different source files that DO already carry a warning marker. For each one, quote both conflicting sentences verbatim, name both files, and quote the exact marker text that flags it. Answer in Vietnamese.",
+      "phat_hien": [
+        {
+          "noi_dung": "ĐỐI CHỨNG DƯƠNG ĐẠT. Sổ tay liệt kê được mâu thuẫn THẬT kèm đúng dấu cảnh báo, trích nguyên văn cả hai vế. Ví dụ 1: NGUYEN-TAC-DO-LUONG.md nói AGENTS.md 'sẽ bị ghi đè' trong khi bảng ở CLAUDE.md nói '<repo>/AGENTS.md KHÔNG bị ghi', và dấu là ô ⚠️ 'CÂU TRÊN NÊU MỘT TRÊN BỐN ĐÍCH'. Ví dụ 2: docs/HANDOFF.md giữ câu cũ 'dự án hiện không có kết quả nào loại được số 0', dấu là ô 🔴 'CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026'.",
+          "tu_kiem": "grep -c 'do vnstock tự đồng bộ' NGUYEN-TAC-DO-LUONG.md CLAUDE.md  &&  grep -n 'KHÔNG bị ghi' CLAUDE.md  &&  grep -rn 'không có kết quả nào loại được số 0' docs/HANDOFF.md  &&  grep -n 'HẾT ĐÚNG' docs/HANDOFF.md",
+          "phan_quyet": "THẬT, cả hai ví dụ. 1 lần mỗi file cho vế AGENTS.md; CLAUDE.md dòng 42 đúng là dòng bảng; HANDOFF.md dòng 125 đúng là câu cũ và dòng 124 ngay trên là dấu 🔴. Sổ tay trích nguyên văn và định vị dấu đúng chỗ.",
+          "he_qua": "Câu trả lời ÂM ở mục dưới vì thế ĐỌC ĐƯỢC: công cụ phân biệt được 'có mâu thuẫn' với 'mâu thuẫn đã có dấu', chứ không phải chỉ đơn giản là không tìm thấy gì."
+        },
+        {
+          "noi_dung": "KHÔNG TÌM THẤY chỗ nào hai tài liệu nói khác nhau về cùng một đại lượng hoặc cùng một cơ chế mà CHƯA có dấu cảnh báo. Sổ tay nói mọi chỗ lệch giữa năm nguồn đều đã mang 🔴, ⚠️, hoặc một trong các cụm 'BỊ BÁC' / 'ĐÃ ĐỔI' / 'HẾT ĐÚNG' / 'ĐÃ BỊ THAY'.",
+          "tu_kiem": "Đối chứng dương ở mục trên là phép kiểm cho chính câu âm này — cùng công cụ, cùng năm nguồn, cùng lượt. Không có lệnh nào chứng minh được một sự VẮNG MẶT trên toàn bộ năm tài liệu.",
+          "phan_quyet": "THẬT trong phạm vi công cụ đọc được, và phạm vi ấy hẹp: sổ tay chỉ thấy TÀI LIỆU, nên nó không nói gì về loại lỗi nặng nhất của dự án là tài-liệu-lệch-MÃ. Đây là bằng chứng của sự vắng mặt, không phải sự vắng mặt của bằng chứng — nhưng chỉ trên một lát cắt."
+        },
+        {
+          "noi_dung": "QUY ƯỚC NGÔN NGỮ CHẠY ĐÚNG ngay lượt đầu: câu hỏi gửi bằng tiếng Anh, câu trả lời về bằng tiếng Việt, cả hai lượt.",
+          "tu_kiem": "Đọc thẳng nội dung trả lời trong trang: 'Không tìm thấy trường hợp nào...' và 'Dưới đây là 5 mâu thuẫn giữa hai tệp nguồn khác nhau...'.",
+          "phan_quyet": "THẬT. Không lượt nào phải nhắc lại yêu cầu ngôn ngữ."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát.",
   "_gioi_han_QUY_UOC_DANH_DAU": "Giới hạn THỨ BA, đo 15/09/2026. Quy ước của dự án là GIU cau cu KEM DAU (`docs/HANDOFF.md` muc 4: 'gia tri cu de tran — duoc o lai, nhung phai danh dau'). Cong cu KHONG phan biet duoc mot cau da nghi nam trong khoi 🔴 voi mot cau dang song. Hau qua do duoc: 2/2 lan no neu 'mau thuan' deu la trich dan trong khoi danh dau. Nhung BAO no bo qua khoi danh dau thi no AP QUA RONG va ket luan 'khong co mau thuan nao' — bo lot ca hai mau thuan THAT tim duoc bang tay cung ngay. LUAT TU NAY: moi 'mau thuan' no neu phai kiem bang mot lenh truoc — `grep -n '<cau>' <file>` roi doc boi canh, xem cau ay co nam trong khoi danh dau khong. Hai lenh la du phan dinh.",
   "_moc_buoc": 81,
-  "_vi_sao_co_moc_buoc": "Gác này ra đời 12/09/2026 và chỉ canh `## ĐO n`. Ngày 16/09/2026 người dùng hỏi vì sao cả một phiên trôi qua không dùng NotebookLM lần nào — lần nhắc THỨ BA. Đo ra: hôm ấy sinh 0 ĐO và 5 BƯỚC, nên gác im lặng ĐÚNG theo phạm vi của chính nó. Cái gác không yếu; nó ngắm một quần thể khác với quần thể công việc thật. Mốc 81 là BƯỚC đầu tiên của 16/09 — đặt ở 86 thì lần trượt ấy nằm ngoài máy. Mọi BƯỚC trước 81 KHÔNG bị đòi: khai bù 80 mục là dựng một lời khai chưa từng tồn tại, đúng thứ ĐO 5 đã từ chối làm. Con số này đọc từ ĐÂY, không gõ lại ở test hay ở hook — một ngưỡng gõ tay hai chỗ sẽ trôi khỏi nhau."
+  "_vi_sao_co_moc_buoc": "Gác này ra đời 12/09/2026 và chỉ canh `## ĐO n`. Ngày 16/09/2026 người dùng hỏi vì sao cả một phiên trôi qua không dùng NotebookLM lần nào — lần nhắc THỨ BA. Đo ra: hôm ấy sinh 0 ĐO và 5 BƯỚC, nên gác im lặng ĐÚNG theo phạm vi của chính nó. Cái gác không yếu; nó ngắm một quần thể khác với quần thể công việc thật. Mốc 81 là BƯỚC đầu tiên của 16/09 — đặt ở 86 thì lần trượt ấy nằm ngoài máy. Mọi BƯỚC trước 81 KHÔNG bị đòi: khai bù 80 mục là dựng một lời khai chưa từng tồn tại, đúng thứ ĐO 5 đã từ chối làm. Con số này đọc từ ĐÂY, không gõ lại ở test hay ở hook — một ngưỡng gõ tay hai chỗ sẽ trôi khỏi nhau.",
+  "_moc_ngon_ngu": "2026-09-18",
+  "_vi_sao_co_moc_ngon_ngu": "Người dùng chốt 17/09/2026: hỏi sổ tay bằng TIẾNG ANH, và đòi nó trả lời bằng TIẾNG VIỆT. Mốc đặt ở 2026-09-18 chứ không phải ngày chốt, vì các mục ngày 17/09 đã hỏi xong TRƯỚC khi có quyết định — sửa lời khai của chúng cho hợp gác mới là viết lại lịch sử. Từ mốc này `cau_hoi` ghi NGUYÊN VĂN câu đã gửi, không còn là bản tóm tắt. Gác chỉ kiểm câu hỏi CÓ MANG dòng đòi trả lời tiếng Việt; nó KHÔNG kiểm được phần còn lại có phải tiếng Anh không, vì một câu hỏi hợp lệ có quyền trích nguyên văn tài liệu tiếng Việt."
 }
