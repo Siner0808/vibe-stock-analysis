@@ -29,6 +29,58 @@ tiên phải là có lỗi.**
 `AGENTS.md` do vnstock tự đồng bộ nên **sẽ bị ghi đè** — đừng đặt luật dự án
 ở đó. Luật nằm ở `NGUYEN-TAC-DO-LUONG.md` và file này.
 
+> ⚠️ **CÂU TRÊN NÊU MỘT TRÊN BỐN ĐÍCH, VÀ LÀ ĐÍCH DUY NHẤT KHÔNG BỊ GHI
+> (đo 17/09/2026).** Giữ nguyên câu vì kết luận của nó — *đừng đặt luật dự
+> án ở đó* — vẫn đúng. Nhưng địa chỉ thì sai, và một cảnh báo sai địa chỉ
+> làm người đọc tin là mình đã được cảnh báo.
+>
+> `vnai.beam.agents.AGENT_TARGET_ORDER` khai **bốn** đích, cả bốn đang
+> `enabled: true`:
+>
+> | đích | đường dẫn | đo 17/09 |
+> |---|---|---|
+> | `project` | `<repo>/AGENTS.md` | **KHÔNG bị ghi** |
+> | `antigravity` | `~/.gemini/GEMINI.md` | **bị ghi lại** |
+> | `claude` | `~/.claude/CLAUDE.md` | **bị ghi lại** |
+> | `codex` | `~/.codex/AGENTS.md` | **bị ghi lại** |
+>
+> **Kích hoạt là `import vnstock_data`, KHÔNG phải `import vnstock`.** Đo
+> bằng cách chụp mtime + băm nội dung trước và sau một tiến trình chỉ
+> import:
+>
+> ```
+> import vnstock        ->  khong file nao doi
+> import vnstock_data   ->  ba file TOAN CUC doi, moi luot mot noi dung khac
+> ```
+>
+> Nội dung khác mỗi lượt vì dòng `<!-- signature_key: … -->` **nhảy sang
+> một vị trí khác** trong khối; cỡ file giữ nguyên.
+>
+> **Vì sao `AGENTS.md` của repo thoát: nó CŨ.** Chạy thật ba ca trong thư
+> mục tạm (`VNSTOCK_DISABLE_GLOBAL_AGENT=1`, nên ba file thật không bị
+> chạm — đã kiểm bằng băm trước/sau):
+>
+> ```
+> file chi co noi dung nguoi dung  ->  vnai NOI them khoi cua no
+> file co khoi hien hanh           ->  don khoi, NOI LAI o CUOI
+> file mang dau moc DOI CU         ->  BO QUA hoan toan  (87 -> 87 ky tu)
+> ```
+>
+> `AGENTS.md` của repo mở đầu bằng `# Vnstock Vibe Onboarding` — một dấu
+> mốc đời cũ — và **không** có câu kết `(End of Bootstrap…)`, nên vnai xếp
+> nó vào *"phiên bản cũ"* và bỏ qua. mtime của nó đứng yên từ commit đầu
+> tiên **03/08/2026**. **Cập nhật file ấy là gỡ mất chính cái khiên đó.**
+> Khoá bởi `tests/test_dich_ghi_de_cua_vnai.py`.
+>
+> **Điều an ủi, và nó cũng đo được:** nội dung NGOÀI khối vnai **sống
+> sót** — khối bị dọn rồi nối lại ở cuối, phần còn lại được giữ và đẩy lên
+> trên. Nên viết luật vào `~/.claude/CLAUDE.md` là được, miễn là viết
+> **ngoài** khối `<!-- vnai-bootstrap … (End of Bootstrap…)`.
+>
+> `vnai` 2.6.0 có `disable_agent_setup()` để tắt hẳn. **Chưa bật** — nó ghi
+> vào `~/.vnstock/config/agent.json`, tức môi trường toàn cục của người
+> dùng, nên đó là quyết định của họ. `docs/STATE.md` BƯỚC 91.
+
 ---
 
 ## Sự cố 12/08/2026 — đã xử lý xong, giữ lại để không lặp lại
@@ -594,6 +646,11 @@ Dùng thì import bên trong hàm, bọc `try/except`, có đường lui. Hai g�
 user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
 
 `vnai.setup_agent_environment()` chính là thứ ghi đè `AGENTS.md` ở gốc dự án.
+
+> ⚠️ **Câu trên cũng nêu MỘT trên BỐN đích** — và đo 17/09/2026 thì
+> `<repo>/AGENTS.md` là đích **không** bị ghi. Ba đích thật sự bị ghi là
+> `~/.claude/CLAUDE.md` · `~/.gemini/GEMINI.md` · `~/.codex/AGENTS.md`.
+> Bảng đầy đủ ở mục đầu file này; `docs/STATE.md` BƯỚC 91.
 
 > **Từ `vnai` 2.6.0 có công tắc tắt việc ấy** (nâng 16/09/2026).
 > `vnai.beam.agents` thêm `disable_agent_setup()` · `enable_agent_setup()`

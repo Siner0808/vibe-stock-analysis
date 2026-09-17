@@ -3,6 +3,13 @@
 > Dành cho mọi agent (Antigravity, Claude, Cursor…) và cho chính bạn sau này.
 > `AGENTS.md` do vnstock tự đồng bộ nên sẽ bị ghi đè — các quy tắc dưới đây
 > nằm ở file này.
+>
+> ⚠️ **Câu trên nêu MỘT trên BỐN đích, và là đích duy nhất KHÔNG bị ghi**
+> (đo 17/09/2026). Ba đích thật sự bị ghi là **toàn cục**:
+> `~/.claude/CLAUDE.md` · `~/.gemini/GEMINI.md` · `~/.codex/AGENTS.md`, và
+> kích hoạt là `import vnstock_data` chứ không phải `import vnstock`. Kết
+> luận của câu vẫn đúng, chỉ địa chỉ là sai. Bảng đầy đủ: `CLAUDE.md`, mục
+> đầu. `docs/STATE.md` BƯỚC 91.
 
 Dự án này đã **năm** lần cho ra những con số rất đẹp mà sau đó hoá ra vô
 nghĩa: +22,42% từ backtest có nhìn trộm, +14,88% "OOS" trên vùng đã tối ưu,

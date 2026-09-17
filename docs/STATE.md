@@ -13977,3 +13977,119 @@ sau khi **một phát bị thiết kế sai phải viết lại**: bản đầu 
 xuống sau `ghi()` nhưng vẫn TRƯỚC `subprocess.run`, tức vẫn chụp đúng lúc,
 nên nó sống sót một cách vô nghĩa. Phát đúng là chụp **sau lượt chạy** —
 khi ấy rác đã nằm sẵn trong ảnh chụp và phép trừ ra rỗng.
+
+---
+
+## BƯỚC 91 — MỘT CẢNH BÁO ĐÚNG VỀ NGUY CƠ, SAI ĐỊA CHỈ, VÀ NÓ CHỈ ĐÚNG CÁI ĐÍCH AN TOÀN (17/09/2026)
+
+Việc treo từ hôm qua: *"`disable_agent_setup()` đã có trong `vnai` 2.6.0,
+chưa bật"*. Đi đo trước khi quyết có bật hay không — và phép đo lôi ra một
+thứ khác hẳn.
+
+### Câu đang có, và nó nêu MỘT trên BỐN
+
+`CLAUDE.md` và `NGUYEN-TAC-DO-LUONG.md` cùng ghi:
+
+> *"`AGENTS.md` do vnstock tự đồng bộ nên sẽ bị ghi đè — đừng đặt luật dự
+> án ở đó."*
+
+`vnai.beam.agents.AGENT_TARGET_ORDER` khai **bốn** đích, cả bốn đang
+`enabled: true`:
+
+| đích | đường dẫn | đo 17/09 |
+|---|---|---|
+| `project` | `<repo>/AGENTS.md` | **KHÔNG bị ghi** |
+| `antigravity` | `~/.gemini/GEMINI.md` | bị ghi lại |
+| `claude` | `~/.claude/CLAUDE.md` | bị ghi lại |
+| `codex` | `~/.codex/AGENTS.md` | bị ghi lại |
+
+**Ba đích thật sự bị ghi đều là file TOÀN CỤC của người dùng**, và một
+trong ba là `~/.claude/CLAUDE.md` — bộ nhớ nạp vào **mọi phiên của mọi dự
+án**. Tài liệu chưa bao giờ nói ra điều đó.
+
+### Kích hoạt là `import vnstock_data`, không phải `import vnstock`
+
+Chụp mtime và băm nội dung trước/sau một tiến trình chỉ import:
+
+```
+import vnstock        ->  khong file nao doi
+import vnstock_data   ->  ba file toan cuc doi
+```
+
+Và nó đổi **mỗi lượt**, không phải một lần. Diff hai bản liên tiếp:
+
+```
+-  ## 3. UNIFIED UI CRASH COURSE (For Sponsor Tier)
+-
+-  <!-- signature_key: TRC-API-ANON -->
++  <!-- signature_key: TRC-API-ANON -->
++
++  ## 3. UNIFIED UI CRASH COURSE (For Sponsor Tier)
+```
+
+Cùng nội dung, cùng cỡ file (5.228 ký tự), **85 byte lệch** — dòng chữ ký
+nhảy sang một vị trí khác trong khối. Đó là dấu chìm của nhà cung cấp; ghi
+ra để không ai đi tìm "vì sao file tự đổi".
+
+### Vì sao `AGENTS.md` của repo thoát: **nó CŨ**
+
+Đọc mã thì thấy `setup_agent_environment` có một nhánh *"phiên bản cũ"*.
+Nhưng `CLAUDE.md` mục *"Gác phải đọc AST"* có luật riêng: **claim về HÀNH
+VI phải chứng minh bằng CHẠY**. Nên chạy thật ba ca trong thư mục tạm, với
+`VNSTOCK_DISABLE_GLOBAL_AGENT=1` để `resolve_agent_targets()` chỉ trả
+`["project"]`:
+
+```
+A. file chi co noi dung nguoi dung  ->  vnai NOI them khoi   46 -> 5275
+B. file co khoi hien hanh           ->  don khoi, NOI LAI o CUOI
+C. file mang dau moc DOI CU         ->  BO QUA hoan toan     87 -> 87
+```
+
+**Phép cách ly tự kiểm:** băm ba file toàn cục trước và sau cả ba ca —
+không file nào đổi. Không có phép kiểm ấy thì ba ca trên là ba lượt ghi
+vào máy người dùng.
+
+`AGENTS.md` của repo mở đầu bằng `# Vnstock Vibe Onboarding` — một dấu mốc
+**đời cũ** — và **không** có câu kết `(End of Bootstrap…)`, nên nó không
+tạo thành một KHỐI hợp lệ. vnai xếp nó vào *"phiên bản cũ"* và bỏ qua.
+mtime của nó đứng yên từ commit đầu tiên **03/08/2026**, 45 ngày.
+
+> **Nó an toàn KHÔNG phải vì ai bảo vệ nó. Nó an toàn vì nó cũ.** Ai "cập
+> nhật" file ấy cho mới là gỡ mất chính cái khiên đó — và không có gì
+> trong repo nói ra điều ấy cho tới hôm nay.
+
+### Điều an ủi, và nó cũng đo được
+
+Ca A và B cho thấy nội dung **NGOÀI** khối vnai **sống sót**: khối bị dọn
+rồi nối lại ở **cuối**, phần còn lại được giữ và đẩy lên trên. Nên viết
+luật vào `~/.claude/CLAUDE.md` là được — miễn là viết ngoài khối
+`<!-- vnai-bootstrap … (End of Bootstrap…)`.
+
+Điều đó cũng giải thích vì sao `~/.claude/rules/ecc/common/vibe-preview.md`
+— file cắt vòng tròn "phải đọc skill mới biết đi tìm skill" — chưa bao giờ
+bị chạm: nó **không nằm trong danh sách đích**.
+
+### `disable_agent_setup()`: đo xong, KHÔNG bật
+
+Nó ghi vào `~/.vnstock/config/agent.json`, tức **môi trường toàn cục của
+người dùng**, không phải repo. Và tắt nó đi thì bộ định tuyến skill vnstock
+trong `~/.claude/CLAUDE.md` ngừng được cập nhật — người dùng đang dùng thứ
+ấy. Ranh giới của dự án là *người quyết, agent chuẩn bị*. Đã chuẩn bị:
+lệnh, phạm vi, hệ quả. Chưa bật.
+
+### Gác
+
+`tests/test_dich_ghi_de_cua_vnai.py`, 6 phép kiểm. Danh sách đích **suy ra
+từ `vnai`**, không gõ lại; có đường lùi về bản ĐÃ ĐO khi không đọc được
+`vnai`, và đường lùi ấy **tự nó có gác** — xem dưới. Đục thử **10/10 đỏ**,
+sau khi siết **hai** chỗ:
+
+1. **Phép so trên CẢ FILE không nói được gì về CHỖ đang cần nói.** Bản đầu
+   hỏi *"chuỗi `~/.claude/CLAUDE.md` có xuất hiện đâu đó trong `CLAUDE.md`
+   không"* — mà chuỗi ấy xuất hiện cả chục lần ở mục hook, nên đột biến
+   xoá đúng ô trong bảng vẫn **sống sót**. Nay đòi tên đích và đường dẫn
+   nằm **cùng một dòng**.
+2. **Một nhánh `except` không đục thử tới được là một nhánh chưa có gác.**
+   Đột biến *"đường lùi trả rỗng"* sống sót vì trên máy này `vnai` import
+   được, nên nhánh ấy không bao giờ chạy. Tách `_lui_ve_ban_da_do()` ra
+   thành hàm riêng — cùng lý do với `kiem_hoan_tra` — rồi gọi thẳng nó.
