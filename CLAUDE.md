@@ -1543,6 +1543,20 @@ không phải cấm, mà là buộc nói ra vì sao con số này không phải 
 
 Miễn trừ: `tests/`, `scratch/`, `.venv/`, và mọi file ngoài gốc dự án.
 
+> ⚠️ **Một cảnh báo không ai đọc là một cảnh báo không tồn tại**
+> (17/09/2026, lỗi 78). Hook in đủ từng dòng, đúng số dòng, mỗi lượt chạy
+> cổng 3 — rồi kết bằng **một con số tổng** (`0 CHẶN · 28 cảnh báo`), và
+> `docs/HANDOFF.md` mục 1 dặn *"số cảnh báo thì đổi, không phải tiêu
+> chí"*. Câu ấy đúng như một luật chung, nhưng nó dạy người đọc lướt qua
+> đúng chỗ máy đang chỉ tay: **18 trên 28** cảnh báo nằm ở một file duy
+> nhất — `chatbot_agent.py` — và ba trong số đó là con số **lệch khỏi
+> chính máy**, đi thẳng vào ngữ cảnh nạp cho Gemini.
+>
+> Phép sửa KHÔNG phải đếm cảnh báo. Với file nào đã dọn sạch, cảnh báo
+> thành **bức tường** bằng một phép kiểm riêng —
+> `tests/test_chatbot_khong_bia_va_khong_chet.py`. Đo 17/09: file ấy
+> 18 → 0, cả repo 28 → 10. `docs/STATE.md` BƯỚC 93.
+
 Hook từng tìm ra chính lỗi nó sinh ra để chặn — `getattr(t,
 'position_size_pct', 30)` ở `app.py` và `run_daily.py`. **Đã sửa xong**, cả
 hai file nay dùng `t.size_pct` thật.
