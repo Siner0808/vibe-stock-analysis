@@ -434,6 +434,56 @@ LUAT = [
         "sổ lệnh đã xảy ra rồi (12/08/2026: 96/113 lệnh thật biến mất).\n"
         "  Phải hỏi người dùng trước.",
     ),
+    # ── Ba luật dưới đây đóng NHÓM 1 của chín hình dạng còn để ngỏ ở
+    #    `docs/STATE.md` BƯỚC 65. Ghi chú ở đó nói thẳng vì sao chúng
+    #    phải là luật MỚI chứ không phải nới luật cũ: *"tên các luật hiện
+    #    có khai đúng phạm vi chúng có; nới chúng là làm tên nói dối."*
+    (
+        "ghi-de-file-nguon",
+        re.compile(r"(?<![>\d])>\s*(?!/dev/null)"
+                   r"(\S+\.(?:py|md|ya?ml|json|toml))\b"),
+        "Cắt cụt một file NGUỒN bằng `>`, KHÔNG qua heredoc. `>` mở file "
+        "ở chế độ ghi đè, nên nội dung cũ mất TRƯỚC khi lệnh bên trái "
+        "chạy xong — một lệnh sinh ra rỗng vẫn để lại một file rỗng.\n"
+        "  Đo được là LỌT ngày 14/09/2026 khi rà cả tám luật (BƯỚC 65). "
+        "Cùng cơ chế với sự cố 09/09/2026, khi một `cat >` xoá mất 40 "
+        "phép kiểm đang có trong khi cả bốn cổng đều XANH — nhưng dạng "
+        "heredoc của nó đã có luật riêng, còn dạng này thì chưa.\n"
+        "  Đo trước khi bật, 17/09/2026: 23 mẫu `TOT` và 73 dòng lệnh "
+        "tài liệu, **0 bắt nhầm** sau khi loại dạng heredoc.\n"
+        "  `>>` (nối thêm) KHÔNG khớp — nó không cắt cụt. Ghi ra ngoài "
+        "repo cũng không khớp.\n"
+        "  Cách đúng: tool Write/Edit, hoặc `tools/va_an_toan.ghi()`.",
+    ),
+    (
+        "ghi-de-db",
+        re.compile(r"(?<![>\d])>\s*(\S+\.db)\b"),
+        "Cắt cụt một file `.db` bằng `>`. Luật `xoa-db-goc-repo` chỉ canh "
+        "`rm`, nên đường này đi lọt — đo được ngày 14/09/2026, BƯỚC 65.\n"
+        "  Hậu quả giống hệt `rm`: sổ lệnh là DỮ LIỆU ĐO của người dùng, "
+        "và một lần mất đã xảy ra (12/08/2026: 96/113 lệnh thật biến "
+        "mất).\n"
+        "  Đo trước khi bật, 17/09/2026: 0 bắt nhầm trên 23 mẫu `TOT` và "
+        "73 dòng lệnh tài liệu. `mv x.db /tmp/` vẫn được tha — CỐ Ý, đó "
+        "là cách đi vòng an toàn đã dùng ngày 12/09/2026.\n"
+        "  Phải hỏi người dùng trước.",
+    ),
+    (
+        "va-tai-cho-khac-sed",
+        re.compile(r"\b(?:perl|ruby)\s+(?:-\w+\s+)*-\w*i\w*\b"
+                   r"|\bawk\s+[^\n]*-i\s+inplace\b"),
+        "Vá TẠI CHỖ bằng một công cụ khác `sed` — `perl -i`, `ruby -i`, "
+        "`awk -i inplace`. Cùng cơ chế với `sed-i-file-repo`, và chính "
+        "lời khai của luật ấy nói vì sao nó KHÔNG được nới ra: *\"`perl "
+        "-i` thì KHÔNG nới — đó là công cụ khác\"*. Nới một luật ra ngoài "
+        "tên của nó là làm tên nói dối.\n"
+        "  Rủi ro thật giống `sed -i`: xử lý ký tự không phải ASCII "
+        "không chắc chắn, mà tài liệu và test ở đây toàn tiếng Việt có "
+        "dấu. Đo được là LỌT ngày 14/09/2026, BƯỚC 65.\n"
+        "  Đo trước khi bật, 17/09/2026: 0 bắt nhầm trên 23 mẫu `TOT` và "
+        "73 dòng lệnh tài liệu. `perl -pe` (không `-i`) vẫn được tha.\n"
+        "  Cách đúng: `tools/va_an_toan.thay()`.",
+    ),
 ]
 
 # Cho phép thoát cửa khi có chủ đích, kèm LÝ DO — cùng lối `# bia-ok:`
@@ -480,6 +530,17 @@ DIEU_KIEN_THEM = {
     # bao giờ nhìn đường dẫn. Ngày 11/09/2026 nó chặn một lệnh ghi ra
     # `AppData/Local/Temp` — lần chặn nhầm thứ tư của cùng hình dạng.
     "heredoc-ghi-file-repo": lambda lenh, m: _duong_trong_repo(m.group(1)),
+
+    # Hai luật `ghi-de-*` dùng CHUNG `_duong_trong_repo` với luật trên —
+    # một bản cài đặt, ba nơi gọi. Và cả hai nhường dạng HEREDOC cho
+    # `heredoc-ghi-file-repo`: đo 17/09/2026, không có điều kiện ấy thì
+    # chúng bắt nhầm đúng hai ca — mẫu `TOT` *"heredoc ghi file NGOÀI
+    # repo"* và một dòng lệnh trong `loi-da-mac.md`. Hai luật cùng phán
+    # một hình dạng là hai thông báo và hai chỗ để trôi ra khỏi nhau.
+    "ghi-de-file-nguon": lambda lenh, m: (_duong_trong_repo(m.group(1))
+                                          and "<<" not in lenh),
+    "ghi-de-db": lambda lenh, m: (_duong_trong_repo(m.group(1))
+                                  and "<<" not in lenh),
 }
 
 

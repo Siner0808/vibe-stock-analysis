@@ -14093,3 +14093,91 @@ sau khi siết **hai** chỗ:
    Đột biến *"đường lùi trả rỗng"* sống sót vì trên máy này `vnai` import
    được, nên nhánh ấy không bao giờ chạy. Tách `_lui_ve_ban_da_do()` ra
    thành hàm riêng — cùng lý do với `kiem_hoan_tra` — rồi gọi thẳng nó.
+
+---
+
+## BƯỚC 92 — BA LUẬT MỚI CHO CỬA BASH, VÀ MỘT TÍNH CHẤT ĐANG CÓ ĐƯỢC KHAI THÀNH LUẬT (17/09/2026)
+
+BƯỚC 65 để ngỏ **chín hình dạng**, chia ba nhóm. Nhóm 1 — *"cần một luật
+MỚI, không phải nới luật cũ"* — đóng hôm nay.
+
+### Ba luật, và vì sao chúng phải MỚI
+
+| luật | bắt gì | vì sao không nới luật cũ |
+|---|---|---|
+| `ghi-de-file-nguon` | `> <file>.py\|md\|yml\|json\|toml` ngoài heredoc | `heredoc-ghi-file-repo` khai đúng phạm vi nó có; nới ra là làm tên nói dối |
+| `ghi-de-db` | `> <file>.db` | `xoa-db-goc-repo` chỉ canh `rm` |
+| `va-tai-cho-khac-sed` | `perl -i` · `ruby -i` · `awk -i inplace` | chính lời khai của `sed-i-file-repo` nói *"`perl -i` thì KHÔNG nới — đó là công cụ khác"* |
+
+### ĐO TRƯỚC KHI BẬT, trên hai quần thể thật
+
+Đúng hai quần thể BƯỚC 65 đã dùng, và cả hai đều là dữ liệu thật chứ không
+phải mẫu bịa:
+
+```
+23 mau `TOT`          nhung lan CHAN NHAM DA DO DUOC trong qua khu
+73 dong lenh tai lieu moi khoi ```bash trong repo
+```
+
+```
+bat nham tren TOT      : 0
+bat nham tren TAI LIEU : 0
+bat dung 7/7 hinh dang xau · tha 9/9 hinh dang an toan
+```
+
+**Lượt đo đầu KHÔNG ra 0.** `ghi-de-file-nguon` bắt nhầm đúng hai ca, và cả
+hai là dạng **heredoc**:
+
+```
+TOT      "heredoc ghi file NGOAI repo"   cat > /c/.../Temp/y.py <<'EOF'
+tai lieu loi-da-mac.md:139              cat > tests/test_do_tre_khop.py <<'PYEOF'
+```
+
+Dạng ấy đã có luật riêng. Nên hai luật `ghi-de-*` **nhường** dạng heredoc
+cho `heredoc-ghi-file-repo`, và cả hai dùng chung `_duong_trong_repo` với
+nó — một bản cài đặt, ba nơi gọi.
+
+### Một tính chất ĐANG CÓ, nay thành luật
+
+Đột biến *"gỡ phép nhường dạng heredoc"* **sống sót** ở lượt đầu. Lý do
+đáng ghi: phép kiểm cũ hỏi *"có bị luật ĐÚNG chặn không"*, và câu ấy vẫn
+đúng khi **hai** luật cùng chặn. Thứ nó không hỏi là *"có luật nào KHÁC
+chặn cùng lúc không"*.
+
+Đo trước khi khai thành luật: **0 trên 23** mẫu xấu bị nhiều hơn một luật
+phán. Nên `test_MOI_HINH_DANG_XAU_thuoc_ve_DUNG_MOT_LUAT` khoá một tính
+chất **đang có**, không phải một mong muốn.
+
+Vì sao nó đáng khoá: một hình dạng bị hai luật phán thì người bị chặn nhận
+**hai thông báo và hai cách sửa**, rồi tự chọn tin cái nào. Và hai lời khai
+ấy sẽ trôi ra khỏi nhau — đúng hình dạng lỗi 73.
+
+### Một phát đột biến bị thiết kế sai, lần thứ hai trong ngày
+
+Phát *"luật mới mất ngày trong lời khai"* cũng sống sót, và lần này gác
+không sai: nó gỡ **một** trong **hai** ngày, mà
+`test_moi_luat_deu_khai_NGUON` đòi **có ít nhất một** ngày. Đột biến không
+đổi hành vi ở chỗ đang canh. Viết lại cho gỡ **hết** ngày thì nó đỏ.
+
+Đây là lần thứ hai hôm nay — xem BƯỚC 90 — và là lý do câu ấy vừa được
+thêm vào `SKILL.md` Bước 3 sáng nay. Nó tự chứng minh trong cùng ngày.
+
+**Đục thử 10/10 đỏ**, gồm phát đầu tiên dựng lại đúng ca thật: một `>` cắt
+cụt file nguồn.
+
+### Còn lại gì của chín hình dạng
+
+```
+DONG hom nay : `> <file nguon>` · `> *.db` · perl/ruby -i · awk -i inplace
+CON DE NGO   : `cp` / `mv` co dich la mot file nguon
+               `git push` tran khi dang dung tren `main`
+               `mv x.db /tmp`  <- CO Y khong chan
+```
+
+`cp`/`mv` chưa đóng vì một biểu thức chuỗi **không biết đích có tồn tại
+không**, và `mv x.db /tmp/` là đường đi vòng an toàn đã dùng ngày
+12/09/2026 — chặn nó là chặn đúng cách làm đúng. `git push` trần thì cần
+trạng thái LÚC CHẠY, không phải văn bản lệnh.
+
+**Một bảng còn để ngỏ, mỗi dòng có lý do, vẫn đáng tin hơn một con số "đã
+đóng hết".**
