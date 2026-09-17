@@ -391,12 +391,17 @@
     "75": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "co-che"
+      "nguon": "nguoi-thay"
     },
     "76": {
       "lop": "chua-do",
       "song_ngay": 0,
-      "nguon": "co-che"
+      "nguon": "nguoi-thay"
+    },
+    "77": {
+      "lop": "chua-do",
+      "song_ngay": 38,
+      "nguon": "git"
     }
   },
   "_khong_phai_bang_chung": [
