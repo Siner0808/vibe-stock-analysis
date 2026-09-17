@@ -187,7 +187,11 @@ Bốn điều bắt buộc, cả bốn từ sự cố thật:
    cả năm đều cho một con số nghe hợp lý: `0 ca`, `0 ca`, `sống sót`,
    `16/20`, `15/33`. Lỗi 61.
 
-   Hai thói quen đã cứu cả năm lần, và không lần nào là sự cẩn thận:
+   Những thói quen đã cứu cả năm lần, và không lần nào là sự cẩn thận.
+   **Không đếm chúng ở đây** — bản trước ghi *"Hai thói quen"* rồi
+   đứng trên BA gạch đầu dòng, và nay là bốn. Cùng hình dạng với
+   *"bốn cổng"* và *"chín luật"*: một con số đếm thứ có thật thì nó
+   trôi, nên đừng ghim nó cạnh thứ nó đếm.
 
    - **In DỮ LIỆU THÔ ngay dưới con số.** Nếu lượt quét heredoc chỉ in
      `0`, tôi đã kết luận *"quần thể rỗng, không đo được"* — nghe rất
@@ -204,6 +208,16 @@ Bốn điều bắt buộc, cả bốn từ sự cố thật:
      ngoài vùng phép thử phân biệt được thì nói về **mẫu**, không nói
      về **giả thuyết**. Lượt D chạm đúng 100 và lật ngược nó trong hai
      phút — lại là điều bắt buộc ngay ở trên cứu.
+   - **Hỏi phép đo có đi qua một BẢN GHI NHỚ nào không** (thêm
+     17/09/2026, lỗi 75). Đo giá của cửa `cua_ho_so` bằng năm lượt bơm
+     payload `Read` giả cho trung vị **110 ms**, và suýt thành kết luận
+     *"cửa rẻ"*. Cả năm payload mang **cùng một `session_id`**, nên bốn
+     lượt sau rơi vào nhánh im lặng *"đã bơm file này trong phiên này"*.
+     Đo lại, mỗi lượt một phiên khác: **410 ms**. Máy đo không hẹp — nó
+     đo đúng thứ nó chạm, chỉ là thứ nó chạm không phải thứ nó khai.
+     Nên: đổi **khoá** của mọi bản ghi nhớ giữa các lượt — phiên, tiến
+     trình, file đệm, khoá `@cache`. Và dữ liệu thô lại là thứ cứu:
+     `395 · 112 · 110 · 108 · 107` không đọc xuôi được.
 
 Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`.
 
