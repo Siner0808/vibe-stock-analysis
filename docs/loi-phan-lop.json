@@ -296,7 +296,8 @@
     "56": {
       "lop": "ky-luat",
       "song_ngay": 0,
-      "nguon": "git"
+      "nguon": "git",
+      "may_chan": true
     },
     "57": {
       "lop": "chua-do",

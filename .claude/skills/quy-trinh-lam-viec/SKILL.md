@@ -507,14 +507,32 @@ Nguồn URL là **ảnh chụp**, không phải liên kết sống, và menu c�
 ```
 1. doc va GHI chinh xac cac URL dang co  (tu cay tro nang, khong go tay)
 2. MO hop "Them nguon" de KIEM duong khoi phuc  <- TRUOC khi xoa gi
-3. xoa het
-4. dan lai ca cum trong MOT luot  (ngan cach bang DAU CACH)
+3. DAN LAI ca cum trong MOT luot  (ngan cach bang DAU CACH)   <- THEM truoc
+4. XOA cac ban CU                                              <- XOA sau
 5. do lai so hieu BUOC lon nhat
 ```
 
 Bước 2 là bước đáng giữ: **kiểm đường khôi phục trước khi phá thứ đang
-có**. Thêm-trước-xoá-sau an toàn hơn về mất mát nhưng sinh bản trùng, đúng
-thứ vừa dọn. Giới hạn sổ là 300 nguồn nên chỗ chứa không phải ràng buộc.
+có**. Giới hạn sổ là 300 nguồn nên chỗ chứa không phải ràng buộc.
+
+> **Bước 3 và 4 ĐỔI CHỖ ngày 17/09/2026, và lý do là một phép đo.** Bản
+> 16/09 xoá trước, thêm sau, vì thêm-trước sinh bản trùng. Nhưng xoá-trước
+> có một cửa sổ trong đó **sổ của người dùng rỗng**, và bản trùng thì gỡ
+> được còn sổ rỗng thì không. Nên đảo lại.
+>
+> **Và bản trùng KHÔNG chỉ là chuyện gọn gàng — đo được nó làm sổ trả lời
+> SAI.** Ở trạng thái 10 nguồn (mỗi file hai bản, một cũ một mới), câu hỏi
+> độ tươi ra **BƯỚC 95**; xoá đúng một bản `docs/STATE.md` cũ thì cùng
+> câu hỏi ấy ra **BƯỚC 96**, đúng bằng repo. Một bản chụp cũ nằm cạnh
+> bản mới
+> **kéo câu trả lời về phía nó**. Nên bước 4 là bắt buộc, không phải dọn
+> dẹp.
+>
+> **Đo 17/09/2026: 87 → 96**, đúng bằng repo.
+>
+> ⚠️ **`raw.githubusercontent.com` có CDN.** Một bản chụp lấy ngay sau khi
+> merge có thể chậm một commit. Đó là lý do phải **đo lại** ở bước 5 chứ
+> không tin là xong.
 
 Đo 16/09/2026: **73 → 87**, đúng bằng repo.
 

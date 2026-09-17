@@ -199,14 +199,23 @@ def test_LY_DO_KHONG_SOAT_khong_duoc_rong_va_khong_duoc_chung_chung():
     print("PASS  moi ly do khong-soat deu cu the")
 
 
+#: BA ô, không phải hai — cùng quy ước với `vnstock_goi.kiem_goi`,
+#: `lich_giao_dich.chan_doan` và mọi máy đo nâng gói.
+#:
+#: Ô thứ ba thêm 17/09/2026. Bản trước chỉ nhận THẬT/SAI, nên một lượt soát
+#: ĐÃ HỎI mà không đọc được câu trả lời **không có chỗ để ghi** — và cách
+#: duy nhất còn lại là bịa một phán quyết hoặc im lặng. Đúng lỗi 66 trong
+#: một hình dạng mới: gộp *"chưa kiểm được"* vào *"không có gì"*.
+HOP_LE = ("THẬT", "SAI", "CHƯA KIỂM ĐƯỢC")
+
+
 def test_MOI_PHAT_HIEN_phai_kem_LENH_tu_kiem_va_mot_PHAN_QUYET():
     """Giới hạn của công cụ: nó chỉ ra CHỖ đáng nhìn, nó không phán được.
 
     `SKILL.md`: *"Mọi phát hiện của nó phải tự kiểm lại, bằng `grep` hoặc
     bằng cách đọc mã."* Nên mỗi phát hiện phải mang theo một LỆNH đã chạy và
-    một phán quyết THẬT/SAI — không được để trống một bên.
+    một phán quyết — không được để trống một bên.
     """
-    HOP_LE = {"THẬT", "SAI"}
     for ten, d in _so()["soat"].items():
         for i, pd in enumerate(d.get("phat_hien", [])):
             dau = f"{ten}[{i}]"
@@ -217,9 +226,29 @@ def test_MOI_PHAT_HIEN_phai_kem_LENH_tu_kiem_va_mot_PHAN_QUYET():
             pq = pd.get("phan_quyet", "").strip()
             assert pq, f"{dau}: thieu `phan_quyet`"
             assert any(pq.upper().startswith(k) for k in HOP_LE), (
-                f"{dau}: `phan_quyet` phai mo dau bang THAT hoac SAI, "
-                f"nhan {pq[:40]!r}")
+                f"{dau}: `phan_quyet` phai mo dau bang mot trong "
+                f"{HOP_LE}, nhan {pq[:40]!r}")
     print("PASS  moi phat hien deu co lenh tu kiem va phan quyet")
+
+
+def test_O_THU_BA_khong_duoc_thanh_CUA_THOAT():
+    """`CHƯA KIỂM ĐƯỢC` cho MỘT phát hiện là trung thực; cho TẤT CẢ thì không.
+
+    Một lượt soát mà mọi phát hiện đều *"chưa kiểm được"* là một lượt
+    `khong_soat_vi` mặc áo khác — và nó lách đúng cái gác đòi nêu lý do cụ
+    thể. Ô thứ ba sinh ra để khỏi phải bịa, không phải để khỏi phải soát.
+    """
+    for ten, d in _so()["soat"].items():
+        ds = d.get("phat_hien") or []
+        if not ds:
+            continue
+        chua = [p for p in ds
+                if p.get("phan_quyet", "").strip().upper()
+                .startswith("CHƯA KIỂM ĐƯỢC")]
+        assert len(chua) < len(ds), (
+            f"{ten}: {len(chua)}/{len(ds)} phat hien deu CHUA KIEM DUOC — "
+            f"day la mot luot `khong_soat_vi` mac ao khac")
+    print("PASS  o thu ba khong thanh cua thoat")
 
 
 def test_SO_nay_phai_ghi_GIOI_HAN_cua_cong_cu():
