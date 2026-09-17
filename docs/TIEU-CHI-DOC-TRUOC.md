@@ -2012,3 +2012,67 @@ trước. Nếu nó xảy ra thì **đừng nâng**, và việc phải làm là 
 `plotly<7` trong `requirements.txt`** — vì khi ấy bản đang phục vụ người
 dùng là bản vẽ sai, và im lặng để nguyên nghĩa là để nó tiếp tục sai.
 Khai điều này TRƯỚC, cùng lý do đã khai ở ĐO 11.
+
+---
+
+## Kết quả ĐO 12 — chạy 17/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do12_nang_plotly.py`
+
+Tiêu chí vào nhánh lúc **14:18:50** (commit `dd422b2`), lượt chụp `truoc`
+cùng giây đó, và **trước khi đổi một gói nào**.
+
+| | 6.9.0 | 7.1.0 | |
+|---|---|---|---|
+| **A** 5 tên (`Figure` `Candlestick` `Scatter` `Bar` `make_subplots`) | 5 có · 0 thiếu | 5 có · 0 thiếu | |
+| **B** 28 cặp (tên, từ khoá) | 28 nhận · 0 chối | 28 nhận · 0 chối | |
+| **C** `trade_review` nạp | 1/1 | 1/1 | |
+| **D1** dữ liệu 3 trace | `a92d5f6b…` | `a92d5f6b…` | **giống hệt** |
+| **D2** 4 hình · 3 chú thích | `24b3bd2f…` | `24b3bd2f…` | **giống hệt** |
+| **E** phần còn lại của layout | `cf068641…` | `edc5d910…` | **ĐỔI** — không chặn |
+
+```
+PHAN QUYET: NANG DUOC
+```
+
+Phép nâng chạm **đúng một gói**: `pip freeze` trước/sau khác một dòng.
+
+### Ô E đổi CÁI GÌ — đào tới từng lá
+
+Khoá đổi duy nhất là `template`. Đào xuống lá:
+
+```
+template 6.9.0 : 343 la      7.1.0 : 339 la
+chi o 6.9.0    : 4 la        chi o 7.1.0 : 0
+cung khoa khac gia tri : 0
+```
+
+Bốn lá mất, và cả bốn cùng một chỗ:
+
+```
+data.scattermapbox[0].marker.colorbar.outlinewidth
+data.scattermapbox[0].marker.colorbar.ticks
+data.scattermapbox[0].type
+layout.mapbox.style
+```
+
+`plotly` 7 gỡ họ `mapbox`. Dự án **không dùng biểu đồ bản đồ** — bề mặt
+đếm bằng AST chỉ có `Figure` · `Candlestick` · `Scatter` · `Bar` ·
+`make_subplots`.
+
+Và **mọi khoá dự án TỰ ĐẶT đều giống hệt**, đọc từng cái:
+
+```
+plot_bgcolor  paper_bgcolor  height  margin  xaxis  legend  hovermode
+-> GIONG ca bay
+```
+
+### Dụng cụ phải sửa giữa chừng, và bảng đọc thì KHÔNG
+
+Lượt so đầu tiên in ra đúng một dòng: *"E đổi"*. Ảnh chụp chỉ giữ **băm**,
+nên nó nói được **rằng** có đổi mà không nói được **đổi cái gì** — đúng
+hình dạng lỗi 78, lần này bắt được ngay ở lượt dùng đầu tiên.
+
+Dụng cụ nay chụp thêm nội dung và in ra khoá nào đổi. **Bảng đọc không
+đổi một chữ** — đây là thêm chi tiết vào bản in, không phải thêm hay bớt
+một tiêu chí. Hai lượt chụp đã chạy lại từ đầu ở cả hai bản.

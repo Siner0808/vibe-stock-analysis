@@ -248,6 +248,26 @@ def _bam(o) -> str:
 
 DU_LIEU_TRACE = ("x", "y", "open", "high", "low", "close", "text")
 
+#: Cắt bản in cho một giá trị lồng sâu (`template` dài hàng chục nghìn ký
+#: tự). Cắt thì vẫn CHỈ ĐƯỢC CHỖ; không in gì thì không.
+DAI_TOI_DA = 110
+
+
+def khac_khoa(a: dict, b: dict) -> list[str]:
+    """Các khoá tầng một khác nhau, in được. Rỗng nghĩa là giống hệt."""
+    ra = []
+    for k in sorted(set(a) | set(b)):
+        x, y = a.get(k), b.get(k)
+        if x == y:
+            continue
+        ra.append(f"{k}: {_cat(x)} -> {_cat(y)}")
+    return ra
+
+
+def _cat(v) -> str:
+    s = repr(v)
+    return s if len(s) <= DAI_TOI_DA else s[:DAI_TOI_DA] + "…"
+
 
 def do_figure() -> dict:
     """D — dựng biểu đồ THẬT rồi tách DỮ LIỆU khỏi TRANG TRÍ."""
@@ -274,6 +294,16 @@ def do_figure() -> dict:
         "D1": _bam(trace),
         "D2": _bam(hinh),
         "E": _bam(lay),
+        # Băm nói RẰNG có đổi; ba trường dưới nói ĐỔI CÁI GÌ. Một cảnh
+        # báo không chỉ được ra chỗ nào là một cảnh báo không ai dùng
+        # được — lỗi 78.
+        "D1_tom": [{"loai": t["loai"], "ten": t["ten"],
+                    "so_diem": len(t.get("x", ())),
+                    "dau": (t.get("x", ("",))[:1] or [""])[0],
+                    "cuoi": (t.get("x", ("",))[-1:] or [""])[0]}
+                   for t in trace],
+        "D2_tom": {"shapes": hinh["shapes"], "annotations": hinh["annotations"]},
+        "E_noi_dung": lay,
     }
 
 
@@ -312,12 +342,21 @@ def phan_xu(truoc: dict | None, sau: dict | None) -> tuple[str, list[str], list[
             xau.append(f"C: {m} nạp nổ")
     if truoc["D"]["D1"] != sau["D"]["D1"]:
         xau.append("D1: DỮ LIỆU của trace đổi")
+        for x, y in zip(truoc["D"].get("D1_tom") or [],
+                        sau["D"].get("D1_tom") or []):
+            if x != y:
+                xau.append(f"    {x} -> {y}")
     if truoc["D"]["D2"] != sau["D"]["D2"]:
         xau.append("D2: HÌNH và CHÚ THÍCH đổi")
+        xau += [f"    {d}" for d in khac_khoa(
+            truoc["D"].get("D2_tom") or {}, sau["D"].get("D2_tom") or {})]
 
     ghi_chu: list[str] = []
     if truoc["D"]["E"] != sau["D"]["E"]:
         ghi_chu.append("E: phần còn lại của layout đổi — ĐỌC, không chặn")
+        ghi_chu += [f"    {d}" for d in khac_khoa(
+            truoc["D"].get("E_noi_dung") or {},
+            sau["D"].get("E_noi_dung") or {})]
 
     if xau:
         return KHONG_NANG, xau, ghi_chu

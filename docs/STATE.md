@@ -14502,3 +14502,113 @@ quyết là `NÂNG ĐƯỢC`, nên nhánh ấy không kích hoạt. Và ghim to�
 quyết định khác hẳn — nó đổi **cơ chế** bất đối xứng mà `CLAUDE.md` mô tả
 là *"VĨNH VIỄN, và là chủ ý"*, nên nó thuộc về người dùng chứ không thuộc
 về một phép nâng gói.
+
+---
+
+## BƯỚC 96 — NÂNG `plotly` 7.1.0, VÀ GÁC ĐẦU TIÊN CHO CHÍNH CÁC MÁY ĐO (17/09/2026)
+
+### ĐO 12 — phán quyết **NÂNG ĐƯỢC**
+
+Bản **CHÍNH** 6 → 7, ở đúng thư viện vẽ mọi biểu đồ người dùng nhìn. Bảng
+đầy đủ ở `docs/TIEU-CHI-DOC-TRUOC.md`. Điều đáng đọc nhất:
+
+```
+D1 du lieu 3 trace         a92d5f6b...  ->  a92d5f6b...   GIONG HET
+D2 4 hinh + 3 chu thich    24b3bd2f...  ->  24b3bd2f...   GIONG HET
+E  con lai cua layout      cf068641...  ->  edc5d910...   DOI
+```
+
+`E` đổi đúng **4 lá**, cả bốn thuộc `scattermapbox` / `mapbox` — họ mà
+`plotly` 7 gỡ, và là loại biểu đồ dự án **không dùng**. Mọi khoá dự án tự
+đặt (`plot_bgcolor` · `paper_bgcolor` · `height` · `margin` · `xaxis` ·
+`legend` · `hovermode`) **giống hệt cả bảy**.
+
+> **Ô E không có quyền phán, và đó là điểm thiết kế, không phải sơ hở.**
+> Một phép nâng bản CHÍNH gần như chắc chắn đổi vài mặc định trình bày.
+> Một bảng đọc chặn ở đó đã tự định sẵn câu trả lời `KHÔNG NÂNG` — một
+> lời tiên tri không thể sai, và vô dụng y như vậy.
+>
+> Nhưng **D2 thì CÓ quyền phán**, vì nó không phải trang trí: đường cắt
+> lỗ là một `add_hline` nằm trong `layout.shapes`, và nó mang một con số
+> người đọc hành động theo. Xếp nó chung với màu nền là đúng cái lỗi
+> `TP1 chỉ-để-hiện` (lỗi 78), sửa sáng cùng ngày.
+>
+> Cả hai chiều đều **đục thử được**, và cả hai đều đỏ: phát *"E chặn"* và
+> phát *"ghi chú của E không chỉ được chỗ nào"*.
+
+### Dụng cụ phải sửa giữa chừng, và bảng đọc thì KHÔNG
+
+Lượt so đầu tiên in ra đúng một dòng — *"E đổi"* — rồi hết. Ảnh chụp chỉ
+giữ **băm**, nên nó nói được **rằng** có đổi mà không nói được **đổi cái
+gì**. Đó là lỗi 78 trong một hình dạng mới, và lần này nó bị bắt **ở lượt
+dùng đầu tiên** thay vì sau 42 ngày.
+
+Dụng cụ nay chụp thêm nội dung và in ra khoá nào đổi, cắt ở 110 ký tự để
+một bảng mẫu dài không nuốt cả bản in. **Bảng đọc không đổi một chữ.** Hai
+lượt chụp chạy lại từ đầu ở cả hai bản để phép so không trộn hai đời dụng
+cụ.
+
+### Gác đầu tiên cho chính các máy đo
+
+`SKILL.md` Bước 3 điều 4 nói thẳng: *"MÁY ĐO cũng phải bị nghi ngờ như
+GÁC — và nó nguy hiểm hơn, vì một gác sai thì ĐỎ, còn một máy đo sai thì
+chỉ IN RA MỘT CON SỐ."* Luật ấy vào `SKILL.md` ngày **15/09/2026**
+(`96cfb50`).
+
+Đo quần thể, suy ra chứ không gõ tay:
+
+```
+12 may do trong tools/do*.py
+truoc hom nay : 7 co test nhac toi
+sau BUOC nay  : 10
+con lai 2     : do2_do_tre_khop · do9_fibonacci_duong_lenh
+                ca hai KHONG CO ham phan nao de duc
+```
+
+Ba máy đo nâng gói — ĐO 10, ĐO 11, ĐO 12 — đều ra đời **hôm nay** và đều
+mang một `phan_xu()` **thuần**, tức đúng phần quyết định *"nâng được hay
+không"*, và không cái nào có một dòng test.
+`tests/test_may_do_nang_goi.py` phủ cả ba.
+
+**Quần thể của gác ấy cũng suy ra** — bài học lỗi 80 áp ngay tại chỗ:
+`test_MOI_may_do_nang_goi_deu_duoc_phu` tự tìm `tools/do*_nang_*.py` rồi
+đối chiếu với tập đã phủ. Thêm ĐO 13 mà quên test thì nó đỏ, không ai phải
+nhớ.
+
+**Đục thử 14/14 đỏ**, gồm phát dựng lại đúng ca thật của ĐO 12 (ô E chặn).
+
+### Một phát ĐỘT BIẾN SỐNG SÓT, và nó chỉ đúng chỗ
+
+Lượt đục đầu tiên: **12/13**, sống sót phát *"ĐO 10 — ô B chết"*.
+
+Nguyên nhân không phải gác yếu mà là **phép kiểm đổi ba biến cùng lúc**:
+hàm dựng ảnh chụp dùng chung một danh sách `cot` cho cả ba ô A, B, C, nên
+khi ô B bị đục thì **ô A bắt hộ**. Một phép kiểm như thế không nói được gì
+về ô nào.
+
+Sửa: tách `cot_b` và `cot_c` để đổi **riêng** từng ô, rồi chạy lại **cả
+bộ** — không chỉ chạy lại phát vừa hỏng. Thêm luôn một phát cho ô C, nay
+đã tách được. **14/14 đỏ.**
+
+### Vì sao KHÔNG mở một dòng mới trong bảng lỗi
+
+Ba máy đo không có gác là một khoảng trống **có thật**, và nó do chính
+phiên hôm nay tạo ra rồi đóng lại trong cùng phiên. Khác lỗi 80 ở đúng một
+chỗ, và chỗ ấy quyết định: **lỗi 80 đã viết một câu SAI vào ba tài liệu**
+và câu ấy đọc được bởi người khác. Khoảng trống này chưa in ra một con số
+sai nào.
+
+Ghi ở đây, không ghi vào bảng — và ghi kèm lý do để ai không đồng ý thì
+mở được dòng ấy ra.
+
+### Sau ba phép nâng hôm nay
+
+```
+QUYET DINH SO     0 lech      vnstock vnai vnstock_ezchart pandas numpy tradingview-ta
+NGUOI DUNG THAY   2 lech      altair 6.2.2/6.3.0 · matplotlib 3.11.1/3.11.2
+con lai          27 lech
+```
+
+Hai vế giao diện còn lại đều là khoảng cách bản **PHỤ**, khác hẳn `plotly`
+6 → 7. Chúng không cần một phép nâng gấp, nhưng chúng **đọc được** bằng
+`tools/so_ban_goi.py` và không còn ẩn sau một danh sách gõ tay.

@@ -696,6 +696,18 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 >
 > **`streamlit` đã hết lệch** (ĐO 11, 17/09/2026): máy nay 1.64.0, đúng
 > bản CI và bản Streamlit Cloud đang phục vụ.
+>
+> **`plotly` cũng đã hết lệch** (ĐO 12, cùng ngày): máy nay 7.1.0. Đây là
+> phép nâng bản **CHÍNH** duy nhất trong ba phép nâng hôm nay, và nó đo
+> được rằng **dữ liệu biểu đồ không đổi một ô**: `build_figure()` trên
+> cùng một bảng giá cho băm trace và băm hình/chú thích **giống hệt**.
+> Phần đổi duy nhất là `layout.template`, và nó đổi đúng **4 lá**, cả bốn
+> thuộc `scattermapbox` / `mapbox` — loại biểu đồ dự án **không dùng**.
+> `docs/STATE.md` BƯỚC 96.
+>
+> **Còn lệch (đo 17/09, sau ba phép nâng):** `altair` · `matplotlib` ở
+> hạng giao diện, và 27 gói ở hạng còn lại. Hạng `QUYET DINH SO` khớp
+> **hoàn toàn**.
 
 Cả hai nơi kia chạy `pip install -r requirements.txt`, mà bốn gói này không
 cài được từ đó. **Khai báo chúng trong `requirements.txt` làm CI và cloud
