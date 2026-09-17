@@ -469,6 +469,27 @@ LUAT = [
         "  Phải hỏi người dùng trước.",
     ),
     (
+        "heredoc-python-co-escape",
+        re.compile(r"\bpython[\w.\-]*(?:\.exe)?\b[^\n|;&]*?"
+                   r"<<-?\s*(['\"]?)([A-Za-z_]\w*)\1"),
+        "Một đoạn Python chạy bằng HEREDOC, và thân nó có DẤU CHÉO "
+        "NHÂN ĐÔI. Hai dấu chéo bị thu về một trên đường đi, nên một "
+        "chuỗi bạn viết để chứa `\\n` lại tới Python thành một dấu xuống "
+        "dòng THẬT — file sinh ra hoặc nổ `SyntaxError`, hoặc tệ hơn, "
+        "chạy được với nội dung sai.\n"
+        "  CƠ CHẾ ĐÃ ĐO 17/09/2026, không suy: một dấu chéo ĐƠN sống sót "
+        "ĐÚNG (`'a\\nb'` -> len 3), hai dấu chéo thì KHÔNG "
+        "(`'a\\\\nb'` -> len 3, đáng lẽ 4). Trích dẫn của heredoc không "
+        "liên quan — giả thuyết ấy đã bị bác ở lỗi 58.\n"
+        "  Lỗi 56, lớp `ky-luat`. BỐN lần ngày 16/09/2026 và lần thứ NĂM "
+        "ngày 17/09/2026, cho cùng một luật đã viết ở `SKILL.md` Bước 2 "
+        "từ 07/09/2026.\n"
+        "  Luật CỐ Ý hẹp: nó KHÔNG chặn mọi heredoc Python, và KHÔNG chặn "
+        "dấu chéo đơn. Đo trước khi bật: 0 bắt nhầm trên 32 mẫu TỐT và "
+        "534 khối lệnh trong tài liệu repo.\n"
+        "  Cách đúng: viết một file .py bằng tool Write rồi chạy nó.",
+    ),
+    (
         "va-tai-cho-khac-sed",
         re.compile(r"\b(?:perl|ruby)\s+(?:-\w+\s+)*-\w*i\w*\b"
                    r"|\bawk\s+[^\n]*-i\s+inplace\b"),
@@ -517,7 +538,10 @@ RE_THOAT = re.compile(r"#\s*cua-ok:\s*\S+")
 # nhầm một lệnh `git commit -F -` có thân heredoc *nhắc tới* `<<'EOF'`.
 # Lần chặn nhầm thứ CHÍN, và nó xảy ra trong chính lượt sửa tám lần kia.
 DOC_BOC = frozenset({"hai-heredoc", "heredoc-ghi-file-repo"})
-DOC_THO = frozenset()
+# `heredoc-python-co-escape` là người dùng THẬT đầu tiên của tập này
+# (17/09/2026): nó phải nhìn THÂN heredoc, mà mọi bản đã bóc đều xoá
+# đúng phần ấy đi.
+DOC_THO = frozenset({"heredoc-python-co-escape"})
 
 # Bóc THÂN heredoc nhưng GIỮ nội dung nháy — xem `boc_than_heredoc()`.
 DOC_GIU_NHAY = frozenset({"backtick-trong-nhay-kep"})
@@ -541,7 +565,39 @@ DIEU_KIEN_THEM = {
                                           and "<<" not in lenh),
     "ghi-de-db": lambda lenh, m: (_duong_trong_repo(m.group(1))
                                   and "<<" not in lenh),
+
+    # Biểu thức chỉ nhận ra DẤU MỞ của một heredoc nạp Python. Câu hỏi
+    # nó không hỏi được là *"thân có escape không"* — và chỉ khi CÓ thì
+    # đường này mới hỏng. Một luật chặn MỌI heredoc Python sẽ bắt nhầm
+    # hai mẫu `TOT` mà chính dự án đã khai là tốt; đo 17/09/2026.
+    "heredoc-python-co-escape": lambda lenh, m: _than_co_escape(lenh, m),
 }
+
+
+#: CƠ CHẾ, đo 17/09/2026 chứ không suy: một dấu chéo ĐƠN sống sót
+#: đúng qua đường heredoc, hai dấu chéo thì **bị thu về một**.
+#:
+#:     'a\\nb'   -> Python nhan  'a\\nb'   len 3   (dung)
+#:     'a\\\\nb'  -> Python nhan  'a\\nb'   len 3   (SAI: phai la len 4)
+#:
+#: Nên thứ đáng chặn KHÔNG phải `\\n` — nó chạy đúng — mà là `\\\\`, thứ
+#: im lặng đổi nghĩa. Bản đầu của luật này ngắm `\\[ntr]`, tức rộng hơn
+#: cơ chế và mô tả sai nó.
+RE_ESCAPE_THAN = re.compile(r"\\\\")
+
+
+def _than_co_escape(lenh: str, m) -> bool:
+    """Thân của heredoc vừa khớp có chứa một escape kiểu `\n` không?
+
+    Cắt đúng tới dấu KẾT của chính heredoc ấy — không cắt thì một lệnh
+    thứ hai phía sau sẽ bị tính vào thân, và luật hoá rộng hơn cơ chế
+    nó canh.
+    """
+    than = lenh[m.end():]
+    ket = "\n" + m.group(2)
+    if ket in than:
+        than = than[:than.index(ket)]
+    return bool(RE_ESCAPE_THAN.search(than))
 
 
 def kiem(lenh: str) -> list[tuple[str, str]]:

@@ -193,6 +193,9 @@ XAU = [
     ("heredoc ghi de file .py", "cat > tools/x.py <<'EOF'\nx\nEOF\n",
      "heredoc-ghi-file-repo"),
     ("sed -i", "sed -i 's/a/b/' CLAUDE.md", "sed-i-file-repo"),
+    ("heredoc nap Python, than co DAU CHEO NHAN DOI (loi 56, lan 5)",
+     "./.venv/Scripts/python.exe - <<'PY'\nmoi = 'a\\\\n> b'\nPY\n",
+     "heredoc-python-co-escape"),
     ("pytest qua ong tail",
      "./.venv/Scripts/python.exe -m pytest tests/ -q | tail -5",
      "pytest-qua-ong"),
@@ -252,6 +255,16 @@ XAU = [
 # Moi dong duoi day la mot lan CHAN NHAM da do duoc, hoac mot loi khai da
 # bi BAC bang phep do. Chung khong phai gia dinh — xem BUOC 51.
 TOT = [
+    # Luat `heredoc-python-co-escape` CO Y hep. Hai dong duoi day la
+    # ranh gioi cua no, do 17/09/2026 truoc khi bat.
+    ("heredoc nap Python nhung than KHONG co escape",
+     "./.venv/Scripts/python.exe - <<'PY'\nprint(1)\nPY\n"),
+    ("heredoc co dau cheo NHAN DOI nhung KHONG nap Python",
+     "cat <<'EOF' > /tmp/x\na\\\\nb\nEOF\n"),
+    # Dau cheo DON song sot DUNG qua duong heredoc — do 17/09/2026.
+    # Chan no la chan mot thu khong hong.
+    ("heredoc nap Python, than co DAU CHEO DON",
+     "./.venv/Scripts/python.exe - <<'PY'\ns = 'a\\nb'\nprint(s)\nPY\n"),
     # Ba dong duoi day la BAT NHAM do duoc ngay 14/09/2026, ngay luot dau
     # tien sau khi noi luat backtick. Chung la ly do co pham vi thu tu
     # `DOC_GIU_NHAY` va mau doi mot CAP nhay dong lai.

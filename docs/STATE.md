@@ -14612,3 +14612,159 @@ con lai          27 lech
 Hai vế giao diện còn lại đều là khoảng cách bản **PHỤ**, khác hẳn `plotly`
 6 → 7. Chúng không cần một phép nâng gấp, nhưng chúng **đọc được** bằng
 `tools/so_ban_goi.py` và không còn ẩn sau một danh sách gõ tay.
+
+---
+
+## BƯỚC 97 — LÀM TƯƠI SỔ TAY, VÀ MỘT BẢN TRÙNG LÀM NÓ TRẢ LỜI THIẾU MỘT BƯỚC (17/09/2026)
+
+Sổ tay đứng ở **BƯỚC 87** trong khi repo đã ở **96** — lệch **9**. Một
+luồng soát chéo lệch 9 BƯỚC thì không thấy chính thứ nó được nhờ soát.
+
+### Thủ tục làm tươi: hai bước ĐỔI CHỖ, và lý do là một phép đo
+
+`SKILL.md` bản 16/09 ghi **xoá hết rồi dán lại**, vì dán-trước sinh bản
+trùng. Hôm nay đảo lại — **dán trước, xoá sau** — vì một lẽ:
+
+> Bản trùng thì **gỡ được**. Sổ rỗng thì **không**.
+
+Xoá-trước có một cửa sổ trong đó sổ của người dùng không còn nguồn nào.
+Cửa sổ ấy nhỏ, nhưng thứ nằm trong nó là dữ liệu của người khác.
+
+### Và bản trùng KHÔNG chỉ là chuyện gọn gàng — đo được nó làm sổ trả lời SAI
+
+Đây là phần đáng giữ nhất của BƯỚC này, và nó tình cờ đo được:
+
+```
+10 nguon (moi file HAI ban: mot cu, mot moi)
+    "so hieu BUOC lon nhat trong docs/STATE.md?"   ->  95
+
+xoa dung MOT ban STATE.md CU  ->  9 nguon
+    cung cau hoi ay                                ->  96   = repo
+```
+
+**Một bản chụp cũ nằm cạnh bản mới kéo câu trả lời về phía nó.** Không sai
+hẳn — sai **một BƯỚC**, tức đúng cỡ khó thấy nhất. Nên bước xoá bản cũ là
+**bắt buộc**, không phải dọn dẹp cho đẹp.
+
+Kết quả sau khi dọn: **5 nguồn, sổ tay đọc BƯỚC 96, đúng bằng repo.**
+
+### `raw.githubusercontent` có CDN — một chi tiết phải nhớ
+
+Lượt chụp đầu tiên lấy ngay sau khi PR #139 merge, và nó ra **95** chứ
+không phải 96. Một phần là bản trùng (ở trên), nhưng phần kia là **CDN**:
+`raw.githubusercontent.com` phục vụ bản đệm, nên *"làm tươi"* có thể chậm
+một commit. Đó là lý do bước cuối phải **đo lại**, không được tin là xong.
+
+### Rồi dùng nó đúng việc — kèm ĐỐI CHỨNG DƯƠNG
+
+Một câu trả lời **âm** chỉ có nghĩa nếu công cụ chứng minh được nó có thể
+trả lời **dương** trên cùng quần thể. Nên câu hỏi gồm hai phần, phần đầu
+là một cặp mâu thuẫn **đã biết là có thật**:
+
+```
+(1) DOI CHUNG  N_DAY_DU xuat hien o dau, gia tri co khac nhau khong?
+(2) Co cau nao noi NGUOC lai ba khang dinh cua BUOC 95-96 khong?
+```
+
+**Đối chứng ĐẠT.** Sổ tay tìm đúng cặp **596 ↔ 451**, chỉ đúng ba file, và
+nói đúng cả nguyên nhân (`MUC_BAT_LOI` −0,927% so với −0,920%).
+
+Tự kiểm lại bằng lệnh, không tin sẵn:
+
+```bash
+grep -c "N_DAY_DU" CLAUDE.md docs/STATE.md docs/HANDOFF.md \
+        MO-XE-KIEN-TRUC.md NGUYEN-TAC-DO-LUONG.md
+./.venv/Scripts/python.exe -c "import paper_metrics as m; print(m.N_DAY_DU)"
+```
+
+```
+CLAUDE.md 8  ·  STATE.md 19  ·  HANDOFF.md 1  ·  hai file kia 0
+ma that: N_DAY_DU = 451
+```
+
+Khớp: sổ tay nêu đúng ba file có, và **không** nêu hai file không có.
+
+**Phần (2): không tìm thấy câu nào nói ngược**, với cả ba khẳng định — vế
+thứ ba của bất đối xứng, đường dữ liệu local/CI nay khớp, và dự án không
+dùng biểu đồ bản đồ. Vì đối chứng đã đạt, câu âm ấy **đọc được**.
+
+### Một câu hỏi thứ hai KHÔNG đọc được, và ghi lại đúng như vậy
+
+Câu hỏi sau đó — *"liệt kê các chỗ hai tài liệu nói khác nhau về cùng một
+đại lượng mà CHƯA có dấu cảnh báo"* — đã gửi và sổ tay **đã trả lời**,
+nhưng tôi **không đọc được câu trả lời**: trang kẹt ở một mức thu phóng
+làm ảnh chụp vô dụng, và lối đọc bằng JavaScript bị chặn.
+
+Ghi ra đây thay vì bỏ qua. Một câu hỏi đã gửi mà không đọc được kết quả
+**không phải** một lượt soát không có phát hiện — hai thứ ấy khác nhau,
+đúng như ô thứ ba của mọi phép phán trong dự án này. Việc còn lại: mở sổ
+tay đọc câu trả lời ấy ở phiên sau.
+
+---
+
+## BƯỚC 98 — LỖI 56 LÊN MÁY, SAU KHI ĐO RA CƠ CHẾ THẬT CỦA NÓ (17/09/2026)
+
+Lỗi 56 — *để escape xuyên qua heredoc làm hỏng file* — hôm nay tái diễn
+**lần thứ năm**, giữa lúc đang dựng một cái gác khác. Bốn lần trước đều
+ngày 16/09.
+
+### Ứng viên cũ đã bị RÚT, và dòng 58 đặt điều kiện để dựng lại
+
+Bảng lỗi dòng 58 không viết *"chưa dựng"* mà viết **"không dựng"**, kèm
+một câu đáng giá:
+
+> *"một cái gác canh một cơ chế đã bị bác là `gac-hong` viết sẵn. Muốn
+> dựng lại thì phải bắt đầu từ việc dựng lại được nguyên văn một ca lỗi
+> 56 — thứ chưa ai làm."*
+
+Giả thuyết bị bác ở đó là *"heredoc KHÔNG trích dẫn thì shell ăn mất
+escape"*. Hôm nay có một ca thật để dựng lại, nên điều kiện ấy thoả được.
+
+### Cơ chế, ĐO CHỨ KHÔNG SUY
+
+```
+./.venv/Scripts/python.exe - <<'PY'
+mot = 'a\nb'
+hai = 'a\\nb'
+print('mot  ->', repr(mot), len(mot))
+print('hai  ->', repr(hai), len(hai))
+PY
+```
+
+```
+mot  -> 'a\nb' 3
+hai  -> 'a\nb' 3      <- SAI: phai la 'a\\nb' len 4
+```
+
+**Một dấu chéo đơn sống sót ĐÚNG. Hai dấu chéo bị thu về một.** Cả hai
+lượt đều dùng heredoc CÓ trích dẫn, nên giả thuyết trích-dẫn vẫn bị bác —
+lần này bằng một phép đo chỉ ra cơ chế khác hẳn.
+
+Đó đúng là ca hôm nay: tôi viết `\\n` để một dấu `\n` tới được file
+sinh ra, và thứ tới nơi là một **dấu xuống dòng thật**, cắt đôi một chuỗi
+Python.
+
+### Luật 12 của cửa Bash — và nó KHÁC ứng viên đã rút
+
+| | ứng viên rút 14/09 | luật dựng 17/09 |
+|---|---|---|
+| canh cái gì | escape trong chuỗi **VÀ** script ghi vào file repo | **dấu chéo nhân đôi** trong thân heredoc nạp Python |
+| cơ chế | *"heredoc không trích dẫn thì shell ăn escape"* — **đã bị bác** | `\\` bị thu về `\` — **đo được, tái lập được** |
+| đòi trạng thái lúc chạy | có (*"ghi vào file repo"*) | **không** — chỉ đọc văn bản lệnh |
+| bắt nhầm | chưa đo được, quần thể rỗng | **0** trên 32 mẫu TỐT và 534 khối lệnh tài liệu |
+
+Luật **cố ý hẹp**. Nó **không** chặn mọi heredoc Python — dự án đã khai
+hai lệnh như thế là TỐT — và **không** chặn dấu chéo đơn, thứ vừa đo được
+là chạy đúng.
+
+Nó là người dùng thật đầu tiên của `DOC_THO`: mọi bản đã bóc đều xoá mất
+đúng phần nó cần nhìn, tức **thân** heredoc.
+
+### Phép thử duy nhất đáng tin: gõ lệnh thật
+
+```
+./.venv/Scripts/python.exe - <<'PY'      than co `\n`   -> CHAN
+./.venv/Scripts/python.exe - <<'PY'      than khong co   -> chay, in 21
+```
+
+Cả hai chạy trong phiên này, không phải trong test.
