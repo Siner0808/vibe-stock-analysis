@@ -14181,3 +14181,130 @@ trạng thái LÚC CHẠY, không phải văn bản lệnh.
 
 **Một bảng còn để ngỏ, mỗi dòng có lý do, vẫn đáng tin hơn một con số "đã
 đóng hết".**
+
+---
+
+## BƯỚC 93 — MỘT KHỐI MÃ CHẾT HỨA MỘT CƠ CHẾ KHÔNG TỒN TẠI (17/09/2026)
+
+Đi tìm việc treo *"TP1 là mục tiêu chỉ-để-hiện"* thì gặp một thứ khác hẳn.
+
+### Ba thứ, và thứ đầu tiên làm hai thứ kia vô hại — cho tới lúc nó không
+
+**Một. `_fallback_answer` có ba nhánh trên giấy, và nhánh QUẢN TRỊ RỦI RO
+nằm SAU một `return` trong cùng khối `if`.**
+
+```
+AST : 11 dong tren 37 dong cua ham la MA CHET  (dong 195-205)
+ten : `risk_recs` va `entry_str` chua bao gio duoc gan o dau
+chay: "cat lo o dau" · "chot loi o dau" · "quan tri rui ro the nao"
+      -> ca ba roi xuong nhanh tra loi CHUNG
+git : commit DAU TIEN 7300949 (06/08/2026) DA co dung ba dong chet ay
+      -> 42 ngay, va no chua bao gio chay mot lan nao
+```
+
+Con số 42 ngày **đo bằng git**, không phải ước lượng:
+
+```bash
+git log --reverse -S "Chốt 50% vốn" -- chatbot_agent.py
+git show 7300949:chatbot_agent.py   # roi doc bang AST
+```
+
+Nếu nó tới được thì nó **nổ** — `NameError`. Nên khối ấy vừa không chạy,
+vừa không chạy được.
+
+**Hai. File này mang 18 trên 28 cảnh báo `chan_bia_so_lieu` của cả repo**
+— nhiều hơn mọi file khác cộng lại. Mỗi cảnh báo là một `.get(khoa, <số>)`:
+
+```
+breakdown.get('trend_score', 50)          x6, va o CA HAI cho
+risk_recs.get('stop_loss_pct', 5.0)
+risk_recs.get('take_profit_pct', 10.0)    <- may that la +20%
+risk_recs.get('tp2_pct', 20.0)            <- may that la +30%
+risk_recs.get('suggested_position_size_pct', 15.0)
+result.get('final_score', 50)
+```
+
+Ba con số ấy không chỉ bịa — chúng **lệch khỏi chính máy**. Và `50` là
+điểm **trung tính**: in nó khi thiếu là phát ra một phán quyết *"không
+nghiêng về đâu"* mà không phép đo nào đứng sau.
+
+Chỗ nặng nhất là **ngữ cảnh nạp cho Gemini**: con số bịa đi vào một mô
+hình, được diễn giải tiếp, rồi tới người đọc — **bịa được rửa qua một tầng
+nữa.**
+
+**Ba. Khối chết ấy hứa một cơ chế không tồn tại:**
+
+```
+"Take-Profit TP1 (Chot 50% von)"
+"Trailing Stop (Gong 50% con lai)"
+```
+
+Không đường nào trong dự án có **thoát một phần**. `evaluate_open` đóng
+trọn vị thế hoặc không đóng. Cùng lớp với hai ô bị gỡ khỏi giao diện ngày
+21/08/2026 — `Pha C — Wyckoff Spring` và `Fundamental Agent · BCTC Q2`.
+
+### Cái gác ĐÃ KÊU ĐÚNG CHỖ NÀY suốt nhiều tuần
+
+`chan_bia_so_lieu` in đủ 18 dòng, mỗi dòng đúng số dòng, mỗi lượt chạy
+cổng 3. Không ai đọc, vì bản tin kết bằng **một con số tổng**:
+
+```
+Quet xong: 0 CHAN · 28 canh bao
+```
+
+Và `docs/HANDOFF.md` mục 1 còn dặn thẳng: *"Số cảnh báo thì đổi, không
+phải tiêu chí."* Câu ấy **đúng như một luật chung** — số cảnh báo lên
+xuống theo số dòng mã. Nhưng nó cũng dạy người đọc lướt qua đúng chỗ máy
+đang chỉ tay.
+
+> **Một cảnh báo không ai đọc là một cảnh báo không tồn tại.** Khác với
+> lỗi 73 ở chỗ: ở đó cái gác ngắm nhầm quần thể; ở đây cái gác ngắm đúng,
+> nói đúng, và **bản tin của nó nén phát hiện thành một con số**.
+
+Nên với RIÊNG file này, cảnh báo nay là một **bức tường**:
+`test_chatbot_agent_KHONG_CON_mot_canh_bao_BIA_SO_nao`. Đo: **18 → 0**, và
+cả repo **28 → 10**.
+
+### Phép sửa, và nó trả lời luôn việc treo gốc
+
+Khối rủi ro nay **chạy được**, đọc **giá trị thật**, và nói ra điều
+`analysis_agents.py` đã ghi trong chú thích từ hôm qua — nhưng chú thích
+thì người dùng không đọc, câu trả lời thì có:
+
+```
+TP1 va TP2 la MUC THAM CHIEU cho nguoi doc, KHONG phai loi thoat cua may.
+`evaluate_open()` chi so `high` voi TP khi `CHOT_LOI_CUNG`, va co ay
+la False. Ba loi thoat may that su dung: STOP_LOSS (ATR + trailing 7%
+bam gia DONG CUA cao nhat) · SIGNAL_REVERSED · HET_DU_LIEU.
+```
+
+Thiếu dữ liệu thì **nói là thiếu**, không thành một con số — đúng phép sửa
+đã dùng cho lỗi 71 ở `debate_agents.py` hôm qua.
+
+### Gác, và một luật TOÀN REPO
+
+`tests/test_chatbot_khong_bia_va_khong_chet.py`, 11 phép kiểm, đột biến
+**10/10 đỏ**. Phát đầu tiên dựng lại nguyên văn ca thật: một khối nằm sau
+`return`.
+
+Phép kiểm đáng giữ nhất là phép kiểm **toàn repo**:
+`test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET`. Một câu lệnh sau
+`return` **không đỏ ở đâu cả** — nó nạp được, cú pháp đúng, mọi test đi
+qua nhánh khác vẫn xanh. Thứ duy nhất nhìn thấy nó là AST. Đo sau khi sửa:
+**0 trên hơn 100 file**, nên đây là một tính chất ĐANG CÓ.
+
+### Ba lần vấp trong chính lượt sửa, và cả ba đều cũ
+
+1. **`TU_KHOA_RUI_RO` chưa được định nghĩa.** Phép thử đầu gọi thẳng
+   `_tra_loi_rui_ro`, nên nó không đi qua nhánh điều kiện — đúng cái
+   `NameError` vừa sửa, ở một chỗ mới. `CLAUDE.md`: *claim về HÀNH VI phải
+   chứng minh bằng CHẠY* — và phải chạy **đúng đường người dùng đi**.
+2. **Máy đo quét 0 file.** `any(x in p.parts for x in BO_QUA)` với
+   `BO_QUA` chứa `"scratch"`: repo này **nằm trong** một thư mục tên
+   `scratch`. Đúng lỗi đã mắc ngày 16/09, mắc lại hôm nay — và cả hai lần
+   thứ bắt được nó là phép **tự kiểm** `assert quet > 100` nằm trong chính
+   phép kiểm.
+3. **Một phép kiểm đỏ trên đầu ra ĐÚNG.** `"0 VNĐ" in "66,000 VNĐ"` là
+   `True`. Và lời văn phủ định *"bản trước ghi «Chốt 50% vốn»"* làm chính
+   nó chứa câu bị cấm. Người đọc không cần biết một khối mã chết từng viết
+   gì — đã gỡ khỏi câu trả lời, giữ ở đây.

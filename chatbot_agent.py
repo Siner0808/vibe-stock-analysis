@@ -36,6 +36,16 @@ def load_system_api_key() -> str | None:
             or os.environ.get("GOOGLE_API_KEY")
             or None)
 
+#: Câu hỏi rơi vào nhánh QUẢN TRỊ RỦI RO của `_fallback_answer`.
+#: Có dấu và không dấu, vì người dùng gõ cả hai.
+TU_KHOA_RUI_RO = (
+    "cắt lỗ", "cat lo", "stop-loss", "stop loss", "stoploss",
+    "chốt lời", "chot loi", "take-profit", "take profit", "tp1", "tp2",
+    "rủi ro", "rui ro", "risk", "vào lệnh", "vao lenh", "entry",
+    "tỷ trọng", "ty trong", "position",
+)
+
+
 class StockChatbotAgent:
     """
     Agent Trợ lý AI Chatbot thông minh dùng Gemini API:
@@ -118,12 +128,17 @@ class StockChatbotAgent:
 
         symbol = result.get("symbol", "Cổ phiếu")
         exchange = result.get("exchange", "HOSE")
-        score = result.get("final_score", 50)
+        # `final_score` KHÔNG có mặc định 50: thiếu điểm mà in 50 là in ra
+        # đúng giá trị trung tính, tức một phán quyết "không nghiêng về
+        # đâu" mà không phép đo nào đứng sau. Lỗi 78.
+        score = result.get("final_score")
+        score = "chưa đo được" if score is None else score
         rec = result.get("recommendation", "NẮM GIỮ")
         breakdown = result.get("score_breakdown", {})
         reasons = result.get("key_reasons", [])
         debate = result.get("debate", {})
         analyses = result.get("analyses", {})
+        _rr = (analyses.get("risk") or {}).get("recommendations") or {}
 
         # Tạo System Context phong phú nạp toàn bộ kết quả phân tích 5 Tầng
         system_context = f"""
@@ -134,19 +149,26 @@ DỮ LIỆU PHÂN TÍCH MULTI-AGENT 5 TẦNG MỚI NHẤT:
 - Điểm tổng hợp đồng thuận: {score}/100
 - Khuyến nghị hành động chính thức: {rec}
 - Các lý do cốt lõi từ Master Agent: {json.dumps(reasons, ensure_ascii=False)}
-- Điểm chi tiết 6 Agent:
-  + Trend (Xu hướng): {breakdown.get('trend_score', 50)}/100
-  + Momentum (Động lượng): {breakdown.get('momentum_score', 50)}/100
-  + Volume (Khối lượng): {breakdown.get('volume_score', 50)}/100
-  + Support & Resistance (Kháng cự/Hỗ trợ): {breakdown.get('sr_score', 50)}/100
-  + Risk (Rủi ro): {breakdown.get('risk_score', 50)}/100
-  + News (Sentiment tin tức): {breakdown.get('news_score', 50)}/100
+- Điểm chi tiết 6 Agent (`chưa đo được` nghĩa là KHÔNG có dữ liệu — đừng
+  đoán thay, và đừng coi nó là điểm trung tính):
+  + Trend (Xu hướng): {self._so(breakdown, 'trend_score')}/100
+  + Momentum (Động lượng): {self._so(breakdown, 'momentum_score')}/100
+  + Volume (Khối lượng): {self._so(breakdown, 'volume_score')}/100
+  + Support & Resistance (Kháng cự/Hỗ trợ): {self._so(breakdown, 'sr_score')}/100
+  + Risk (Rủi ro): {self._so(breakdown, 'risk_score')}/100
+  + News (Sentiment tin tức): {self._so(breakdown, 'news_score')}/100
 
 DỮ LIỆU DEBATE COUNCIL & SAFETY HARNESS:
 - Kết quả Tranh luận Khẩn cấp: Bull Score ({debate.get('bull_score', 0)}), Bear Score ({debate.get('bear_score', 0)}), Tóm tắt: "{debate.get('verdict_summary', '')}"
 - Rủi ro lớn nhất: {json.dumps(debate.get('key_risks', []), ensure_ascii=False)}
 - Cơ hội lớn nhất: {json.dumps(debate.get('key_opportunities', []), ensure_ascii=False)}
-- Dữ liệu Quản trị rủi ro ATR: Entry price ({analyses.get('risk', {}).get('recommendations', {}).get('entry_price', 'N/A')}), Stop-loss price ({analyses.get('risk', {}).get('recommendations', {}).get('stop_loss_price', 'N/A')}), Take-profit price ({analyses.get('risk', {}).get('recommendations', {}).get('take_profit_price', 'N/A')}), Position Sizing ({analyses.get('risk', {}).get('recommendations', {}).get('suggested_position_size_pct', 15)}%).
+- Dữ liệu Quản trị rủi ro ATR: Entry price ({self._so(_rr, 'entry_price')}), Stop-loss price ({self._so(_rr, 'stop_loss_price')}), Take-profit price ({self._so(_rr, 'take_profit_price')}), Position Sizing ({self._so(_rr, 'suggested_position_size_pct')}%).
+- LƯU Ý BẮT BUỘC khi nói về TP: **TP1 và TP2 là MỨC THAM CHIẾU cho người
+  đọc, KHÔNG phải lối thoát của máy** — `paper_trading.evaluate_open()`
+  chỉ so `high` với TP khi cờ `CHOT_LOI_CUNG`, và cờ ấy là `False`. Máy
+  thoát bằng STOP_LOSS (ATR + trailing 7% bám giá ĐÓNG CỬA cao nhất),
+  SIGNAL_REVERSED, hoặc HET_DU_LIEU. Dự án KHÔNG có cơ chế thoát một
+  phần, nên đừng mô tả chuyện "chốt 50% vốn".
 
 NHIỆM VỤ CỦA BẠN:
 1. Trả lời câu hỏi của nhà đầu tư một cách sắc bén, súc tích (khoảng 300 - 450 từ), khách quan và khoa học dựa trên dữ liệu 5 Tầng trên.
@@ -173,7 +195,102 @@ NHIỆM VỤ CỦA BẠN:
         # Fallback engine nếu hoàn toàn không có Key
         return self._fallback_answer(user_prompt, symbol, exchange, score, rec, breakdown, reasons, analyses)
 
+    @staticmethod
+    def _so(nguon: dict, khoa: str, dinh_dang: str = "{}") -> str:
+        """Giá trị THẬT, hoặc chữ `chưa đo được`. KHÔNG bao giờ một con số.
+
+        VÌ SAO (17/09/2026, lỗi 78). File này từng mang **18** cảnh báo
+        `chan_bia_so_lieu` — nhiều hơn mọi file khác cộng lại — và mỗi cảnh
+        báo là một `.get(khoa, <số>)`. Thiếu dữ liệu thì người đọc nhận
+        `Trend 50/100`, `SL -5.0%`, `TP +10.0%`: những con số nghe đúng,
+        đứng đúng chỗ một phép đo, và không phép đo nào đứng sau.
+
+        Nặng hơn: ba con số bịa ấy **lệch khỏi chính máy** — TP1 của
+        `analysis_agents` là **+20%** chứ không phải 10, TP2 là **+30%**
+        chứ không phải 20.
+
+        Cùng lớp lỗi 71, đã gỡ ở `debate_agents.py` ngày 16/09/2026. Phép
+        sửa giống hệt: **thiếu thì NÓI LÀ THIẾU.**
+        """
+        v = (nguon or {}).get(khoa)
+        if v is None or isinstance(v, bool):
+            return "chưa đo được"
+        try:
+            return dinh_dang.format(v)
+        except (ValueError, TypeError):
+            return str(v)
+
+    def _tra_loi_rui_ro(self, symbol: str, risk_recs: dict) -> str:
+        """Khối quản trị rủi ro — NAY CHẠY ĐƯỢC.
+
+        Từ khi file này ra đời tới 17/09/2026 khối này nằm **sau một
+        `return`** trong cùng nhánh `if`, nên nó **chưa bao giờ chạy**; và
+        nếu chạy thì nổ, vì `risk_recs` lẫn `entry_str` chưa bao giờ được
+        gán. Đo bằng AST: 11 dòng trên 37 dòng của hàm là mã chết. Đo bằng
+        cách CHẠY: bốn câu hỏi rủi ro đều rơi xuống nhánh trả lời chung.
+        """
+        d = risk_recs or {}
+        if not d:
+            return (
+                f"🛡️ **[Multi-Agent Internal Engine] Quản trị rủi ro cho "
+                f"[{symbol}]:**\n\n"
+                f"Chưa có dữ liệu khuyến nghị rủi ro cho mã này — hãy chạy "
+                f"**🚀 Phân tích Multi-Agent** trước.\n")
+
+        def muc(bieu_tuong, nhan, khoa_gia, khoa_pct=None, dau=""):
+            """Một dòng, hoặc chữ `chưa đo được` — KHÔNG bao giờ nửa nọ nửa kia.
+
+            Bản đầu nối chuỗi thẳng và cho ra `-chưa đo được%`: một câu
+            vừa khai là thiếu vừa mang dấu và đơn vị của một phép đo.
+            """
+            gia = d.get(khoa_gia)
+            if gia is None:
+                return f"{bieu_tuong} **{nhan}:** chưa đo được"
+            ra = f"{bieu_tuong} **{nhan}:** `{gia:,.0f} VNĐ`"
+            if khoa_pct:
+                pct = d.get(khoa_pct)
+                ra += (f" (`{dau}{pct}%`)" if pct is not None
+                       else " (phần trăm: chưa đo được)")
+            return ra
+
+        dong = [
+            muc("🎯", "Giá vào lệnh", "entry_price")
+            + f" (vùng mua: `{self._so(d, 'entry_range')}`)",
+            muc("🛑", "Stop-loss (theo ATR)", "stop_loss_price",
+                "stop_loss_pct", "-"),
+            muc("🎯", "TP1 (mức tham chiếu)", "take_profit_price",
+                "take_profit_pct", "+"),
+        ]
+        # TP2 chỉ xuất hiện khi CÓ. Đánh số dựng từ danh sách nên nó không
+        # nhảy cóc — bản đầu in `3.` rồi `5.` khi thiếu TP2.
+        if d.get("tp2_price") is not None:
+            dong.append(muc("🚀", "TP2 (mức tham chiếu thứ hai)", "tp2_price",
+                            "tp2_pct", "+"))
+        dong.append(
+            f"💰 **Tỷ trọng gợi ý:** tối đa "
+            f"**`{self._so(d, 'suggested_position_size_pct')}%`** danh mục")
+        than = "\n".join(f"{i}. {x}." for i, x in enumerate(dong, 1))
+        return f"""
+🛡️ **[Multi-Agent Internal Engine] Quản trị rủi ro cho [{symbol}]:**
+
+{than}
+
+> ⚠️ **TP1 và TP2 là MỨC THAM CHIẾU cho người đọc, KHÔNG phải lối thoát
+> của máy.** `paper_trading.evaluate_open()` chỉ so `high` với TP khi
+> `CHOT_LOI_CUNG`, và cờ ấy là `False`. Ba lối thoát máy thật sự dùng:
+> **STOP_LOSS** (ATR, cộng trailing 7% bám giá **ĐÓNG CỬA** cao nhất, chỉ
+> nâng không hạ) · **SIGNAL_REVERSED** · **HET_DU_LIEU**.
+>
+> Và dự án **không có cơ chế thoát MỘT PHẦN nào**: `evaluate_open` đóng
+> trọn vị thế hoặc không đóng.
+"""
+
     def _fallback_answer(self, user_prompt, symbol, exchange, score, rec, breakdown, reasons, analyses):
+        """Trả lời khi không gọi được Gemini.
+
+        BA nhánh, và nhánh thứ hai mới có từ 17/09/2026 — trước đó nó nằm
+        sau một `return` nên không bao giờ chạy (lỗi 78).
+        """
         prompt_lower = user_prompt.lower()
         reasons_str = "\n".join([f"• {r}" for r in reasons])
 
@@ -188,21 +305,13 @@ NHIỆM VỤ CỦA BẠN:
 {reasons_str}
 
 **Điểm chi tiết từng Agent:**
-- 📈 Trend: `{breakdown.get('trend_score', 50)}/100` | ⚡ Momentum: `{breakdown.get('momentum_score', 50)}/100`
-- 📊 Volume: `{breakdown.get('volume_score', 50)}/100` | 📍 S&R: `{breakdown.get('sr_score', 50)}/100`
-- 🛡️ Risk: `{breakdown.get('risk_score', 50)}/100` | 📰 News: `{breakdown.get('news_score', 50)}/100`
+- 📈 Trend: `{self._so(breakdown, 'trend_score')}/100` | ⚡ Momentum: `{self._so(breakdown, 'momentum_score')}/100`
+- 📊 Volume: `{self._so(breakdown, 'volume_score')}/100` | 📍 S&R: `{self._so(breakdown, 'sr_score')}/100`
+- 🛡️ Risk: `{self._so(breakdown, 'risk_score')}/100` | 📰 News: `{self._so(breakdown, 'news_score')}/100`
 """
-            tp2_p = risk_recs.get("tp2_price") or 0
-            tp2_str = f"| TP2 (Gồng lãi): `{tp2_p:,.0f} VNĐ` (`+{risk_recs.get('tp2_pct', 20.0)}%`)" if tp2_p else ""
-            return f"""
-🛡️ **[Multi-Agent Internal Engine] Quản trị Rủi ro & Chốt lời 2 Tầng cho [{symbol}]:**
-
-1. 🎯 **Giá vào lệnh (Entry Price):** {entry_str} (Vùng mua: `{risk_recs.get('entry_range', 'N/A')} VNĐ`).
-2. 🛑 **Hard Stop-Loss (Cắt lỗ ATR):** `{risk_recs.get('stop_loss_price', 0):,.0f} VNĐ` (`-{risk_recs.get('stop_loss_pct', 5.0)}%`).
-3. 🎯 **Take-Profit TP1 (Chốt 50% vốn):** `{risk_recs.get('take_profit_price', 0):,.0f} VNĐ` (`+{risk_recs.get('take_profit_pct', 10.0)}%`).
-4. 🚀 **Trailing Stop (Gồng 50% còn lại):** {tp2_str} (Nâng SL hòa vốn khi qua TP1).
-5. 💰 **Tỷ lệ Đi vốn an toàn:** Max **`{risk_recs.get('suggested_position_size_pct', 15.0)}%`** danh mục.
-"""
+        if any(w in prompt_lower for w in TU_KHOA_RUI_RO):
+            return self._tra_loi_rui_ro(
+                symbol, (analyses.get("risk") or {}).get("recommendations"))
         else:
             return f"""
 🤖 **[Multi-Agent Internal Engine] Trợ lý AI cho mã [{symbol}]:**
