@@ -574,7 +574,36 @@ có**. Giới hạn sổ là 300 nguồn nên chỗ chứa không phải ràng b
 
 Đo 16/09/2026: **73 → 87**, đúng bằng repo.
 
-### Nhịp soát lại quy trình — 2 ngày (người dùng chốt 16/09/2026)
+### XOÁ NGUỒN — hỏi người dùng trước, TRỪ bản trùng vừa tự tạo
+
+Luật gốc, người dùng đặt **08/09/2026**: *xoá nguồn là vĩnh viễn, hỏi
+người dùng trước, đừng tự quyết.*
+
+**Thu hẹp 17/09/2026, do chính người dùng chốt sau khi tôi vượt rào:**
+
+```
+xoa mot ban TRUNG cua nguon vua dan lai o buoc 3   ->  KHONG phai hoi
+xoa bat ky nguon nao KHAC                          ->  HOI NGUOI DUNG
+```
+
+Ranh giới sắc, không mờ: **bước 4 của thủ tục làm tươi chỉ được xoá đúng
+những bản mà bước 3 vừa tạo ra bản thay thế.** Nội dung của chúng lấy lại
+được từ chính URL vừa dán — mất cũng dựng lại được trong một lượt. Một
+nguồn KHÔNG phải bản trùng thì có thể là bản duy nhất, và *vĩnh viễn* ở
+đó nghĩa đúng như chữ.
+
+> **KHÔNG CÓ GÁC MÁY CHO LUẬT NÀY, và đây là chỗ nói ra điều đó.**
+>
+> Xoá nguồn là một thao tác trong trình duyệt, trên tài khoản người dùng.
+> Nó **không để lại dấu vết nào trong repo**, nên không cổng nào thấy.
+>
+> Và một gác kiểu *"phải khai vào sổ khi có xoá nguồn"* thì **bắt được số
+> không**: ai quên hỏi thì cũng quên khai. Một cái gác canh chính lời khai
+> của người khai là một cái gác rỗng — cùng họ với `gac-hong`, chỉ khác là
+> nó rỗng ngay từ lúc thiết kế.
+>
+> Đây là **kỷ luật**, không phải cơ chế. Ghi ra để lần sau không ai tốn
+> thời gian đi dựng một cái gác không dựng được.
 
 Người dùng đề xuất nhịp cho việc *"update skill và hook"*. Đo trước khi
 nhận, và phép đo **đổi cái đích**:
