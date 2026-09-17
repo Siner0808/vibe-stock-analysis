@@ -11,21 +11,23 @@ Thiếu một vế, và vế thiếu là vế đổi **thường xuyên nhất**
 viện. `requirements.txt` khai bằng **SÀN**, nên CI luôn lấy bản mới nhất
 còn máy local cài một lần rồi đứng yên.
 
-Đo bằng cách đọc thẳng nhật ký CI: lượt `2026-09-16T01:26:10Z` đã chạy
-`vnai-2.6.0` **sáu tiếng rưỡi trước** khi PR #130 nâng vnai ở máy local.
-Và `vnstock` 4.0.8 phát hành 15/09, nên mọi cổng xanh từ hôm ấy đều xanh
-trên 4.0.8 — trong khi `docs/STATE.md` BƯỚC 87 viết *"mọi con số hiện hành
-đã đo trên 4.0.7"*.
+VÀ MỘT TẦNG THỨ HAI, CÙNG NGÀY (lỗi 80)
+───────────────────────────────────────
+Dụng cụ dựng ra để chữa lỗi 79 **mắc lại đúng hình dạng ấy**: nó khai một
+hằng số bảy tên gõ tay rồi chỉ so bảy tên. Đo lại trên toàn bộ quần thể
+chiều 17/09:
 
-Câu ấy đúng về các lượt **ĐO**, sai về các lượt **CỔNG**.
+    92 goi co o CA HAI noi  ->  LECH 32
+    bay ten go tay bat duoc ->  1
+    lot qua                 ->  31   (urllib3 1.26.20 / 2.8.0,
+                                      plotly 6.9.0 / 7.1.0, ...)
 
-HAI PHÉP KIỂM, HAI LOẠI
-───────────────────────
-1. **Tài liệu** phải nêu vế thứ ba, và phải nêu LỆNH đọc trạng thái. Một
-   bảng khai ĐỦ mà thiếu một vế thì tệ hơn một bảng không khai gì.
+Nên file này khoá **ba** thứ, không phải hai:
+
+1. **Tài liệu** phải nêu vế thứ ba, và phải nêu LỆNH đọc trạng thái.
 2. **Phép phán** `so_ban_goi.so_sanh()` phải đạt tới được **cả ba** ô.
-   Nó không chạy được trên CI (cần `gh`), nên phần phán tách khỏi phần
-   đọc mạng — đúng lối `cua_bash_an_toan.kiem()`.
+3. **Quần thể phải SUY RA**, và hạng chỉ được quyết định MỨC ĐỘ — một
+   dòng ngoài mọi hạng vẫn phải có mặt trong danh sách lệch.
 """
 import sys
 from pathlib import Path
@@ -69,6 +71,23 @@ def test_CAU_CHI_NAM_O_BCTC_VA_HAN_MUC_phai_mang_DAU():
         "khi thieu ve ban thu vien")
 
 
+def test_CAU_CON_MOT_VE_LECH_phai_mang_DAU():
+    """Lỗi 80: *"còn một vế lệch"* là câu về CỬA SỔ DỤNG CỤ, không về thế giới.
+
+    Nó đúng với bảy tên dụng cụ nhìn, và sai với 92 gói so được. Một câu
+    đếm mà không có dấu thì bị đọc là câu về thế giới — đúng hình dạng
+    `N_DAY_DU` 596/451.
+    """
+    khoi = _khoi_bat_doi_xung()
+    i = khoi.find("một vế lệch")
+    if i == -1:
+        return                      # câu đã gỡ hẳn — không còn gì để đánh dấu
+    quanh = khoi[i:i + 900]
+    assert "lỗi 80" in quanh or "LỖI 80" in quanh, (
+        "cau 'con mot ve lech' con de TRAN — no dem tren bay ten go tay, "
+        "khong phai tren 92 goi so duoc")
+
+
 def test_MUC_BAT_DOI_XUNG_phai_neu_LENH_doc_trang_thai():
     """*Đọc trạng thái, đừng suy ra nó* — lỗi 25, và luật ấy cần một lệnh."""
     khoi = _khoi_bat_doi_xung()
@@ -95,23 +114,18 @@ def test_REQUIREMENTS_van_khai_bang_SAN_chu_khong_phai_GHIM():
 
 
 # ══ 2. Phép phán phải đạt tới CẢ BA ô ══════════════════════════════════
-LOC = {g: "1.0.0" for g in sb.CONG_KHAI}
-
-
 def test_BA_O_cua_phep_phan_deu_DAT_TOI_DUOC():
     """Ô thứ ba bắt buộc: im lặng ở đó bị đọc thành *"hai nơi giống nhau"*."""
-    ma, lech = sb.so_sanh(LOC, dict.fromkeys(
-        (sb._chuan(g) for g in sb.CONG_KHAI), "1.0.0"))
+    loc = {"vnstock": "1.0.0", "pandas": "1.0.0"}
+    ma, lech = sb.so_sanh(loc, dict(loc))
     assert ma == sb.KHOP and not lech
 
-    ci = dict.fromkeys((sb._chuan(g) for g in sb.CONG_KHAI), "1.0.0")
-    ci[sb._chuan("vnstock")] = "9.9.9"
-    ma, lech = sb.so_sanh(LOC, ci)
+    ma, lech = sb.so_sanh(loc, {"vnstock": "9.9.9", "pandas": "1.0.0"})
     assert ma == sb.LECH
-    assert lech == [("vnstock", "1.0.0", "9.9.9")], lech
+    assert lech == [("vnstock", "1.0.0", "9.9.9", sb.SO)], lech
 
     for rong in (None, {}):
-        ma, lech = sb.so_sanh(LOC, rong)
+        ma, lech = sb.so_sanh(loc, rong)
         assert ma == sb.CHUA_KIEM, f"{rong!r} phai ra CHUA KIEM DUOC"
         assert not lech
     print("PASS  ba o deu dat toi duoc")
@@ -123,7 +137,8 @@ def test_GOI_KHONG_THAY_trong_nhat_ky_thi_KHONG_duoc_phan_la_LECH():
     Nhật ký CI chỉ in các gói lượt ấy THẬT SỰ cài; một gói đã có sẵn trong
     ảnh máy chạy sẽ không xuất hiện.
     """
-    ma, lech = sb.so_sanh(LOC, {sb._chuan("vnstock"): "1.0.0"})
+    ma, lech = sb.so_sanh({"vnstock": "1.0.0", "chi_o_may": "2.0.0"},
+                          {"vnstock": "1.0.0"})
     assert ma == sb.KHOP, f"{ma} — goi vang mat bi doc thanh lech"
     assert not lech
 
@@ -131,8 +146,9 @@ def test_GOI_KHONG_THAY_trong_nhat_ky_thi_KHONG_duoc_phan_la_LECH():
 def test_DAU_GACH_NGANG_trong_ten_goi_duoc_quy_ve_MOT_dang():
     """`tradingview-ta` trong `pip freeze`, `tradingview_ta` trong nhật ký."""
     assert sb._chuan("tradingview-ta") == sb._chuan("tradingview_ta")
-    ma, _ = sb.so_sanh({"tradingview-ta": "3.3.0"},
-                       {"tradingview_ta": "3.3.0"})
+    assert sb._chuan("zope.interface") == sb._chuan("zope-interface")
+    ma, _ = sb.so_sanh({sb._chuan("tradingview-ta"): "3.3.0"},
+                       {sb._chuan("tradingview_ta"): "3.3.0"})
     assert ma == sb.KHOP
 
 
@@ -141,8 +157,70 @@ def test_MAU_DOC_NHAT_KY_bat_dung_dong_pip_that():
     dong = ("kiem-dinh\tCài thư viện\t2026-09-16T01:27:00Z Successfully "
             "installed numpy-2.2.6 pandas-2.3.3 streamlit-1.64.0 "
             "vnai-2.6.0 vnstock-4.0.8 vnstock_ezchart-1.0.2 zipp-4.1.0")
-    thay = dict(sb.RE_GOI.findall(dong))
+    thay = sb.doc_nhat_ky(dong)
     for ten, ban in (("vnstock", "4.0.8"), ("vnai", "2.6.0"),
                      ("streamlit", "1.64.0"), ("pandas", "2.3.3")):
-        assert thay.get(ten) == ban, f"{ten}: doc ra {thay.get(ten)!r}"
+        assert thay.get(sb._chuan(ten)) == ban, f"{ten}: doc ra {thay.get(ten)!r}"
+    assert thay.get("zipp") == "4.1.0", (
+        "`zipp` bi bo qua — quan the dang bi loc bang mot danh sach go tay")
     print("PASS  mau doc dung dong `Successfully installed` that cua CI")
+
+
+# ══ 3. Quần thể SUY RA, hạng chỉ quyết định MỨC ĐỘ (lỗi 80) ════════════
+_GO_TAY = frozenset(sb._chuan(g) for g in sb.HANG_SO + sb.HANG_GIAO_DIEN)
+
+
+def test_QUAN_THE_la_GIAO_cua_hai_ben_chu_khong_phai_DANH_SACH_GO_TAY():
+    """Phát đục dựng lại ĐÚNG ca thật: một gói ngoài mọi hạng vẫn phải lệch.
+
+    Bản đầu lọc theo bảy tên gõ tay, nên `urllib3` 1.26.20 so với 2.8.0 —
+    một khoảng cách bản CHÍNH — không bao giờ tới được danh sách.
+    """
+    ten = "urllib3"
+    assert sb._chuan(ten) not in _GO_TAY, (
+        "chon lai mot ten NGOAI moi hang, khong thi phep kiem nay mu")
+    ma, lech = sb.so_sanh({ten: "1.26.20"}, {ten: "2.8.0"})
+    assert ma == sb.LECH, f"{ma} — goi ngoai hang bi loc khoi quan the"
+    assert lech == [(ten, "1.26.20", "2.8.0", sb.KHAC)], lech
+    print("PASS  quan the suy ra — goi ngoai moi hang van toi duoc danh sach")
+
+
+def test_DUNG_LAI_CA_THAT_ngay_17_09_ba_goi_ba_hang():
+    """Ba dòng thật của lượt CI 35180072169, mỗi dòng một hạng."""
+    loc = {"pandas": "2.3.3", "plotly": "6.9.0", "urllib3": "1.26.20"}
+    ci = {"pandas": "2.3.3", "plotly": "7.1.0", "urllib3": "2.8.0"}
+    ma, lech = sb.so_sanh(loc, ci)
+    assert ma == sb.LECH
+    assert {g for g, _, _, _ in lech} == {"plotly", "urllib3"}, lech
+    hang = {g: h for g, _, _, h in lech}
+    assert hang["plotly"] == sb.GIAO_DIEN
+    assert hang["urllib3"] == sb.KHAC
+    assert sb.cham_cho_quyet_dinh(lech) is True
+
+
+def test_HANG_chi_quyet_dinh_MUC_DO_chu_khong_LOC_dong_nao():
+    """Hai câu hỏi tách bạch: *có lệch không* và *lệch có chạm chỗ quyết định*."""
+    chi_khac = [("urllib3", "1.26.20", "2.8.0", sb.KHAC)]
+    assert sb.cham_cho_quyet_dinh(chi_khac) is False, (
+        "mot dong ngoai hang lam ma thoat do — hang dang LOC chu khong "
+        "chi bao muc do")
+    for h in (sb.SO, sb.GIAO_DIEN):
+        assert sb.cham_cho_quyet_dinh([("x", "1", "2", h)]) is True
+    assert sb.cham_cho_quyet_dinh([]) is False
+
+
+def test_MOI_HANG_deu_GAN_DUOC_cho_mot_ten_that():
+    """Ba hạng đều đạt tới được — một hạng không ai rơi vào là hạng chết."""
+    assert sb.hang_cua("vnstock") == sb.SO
+    assert sb.hang_cua("streamlit") == sb.GIAO_DIEN
+    assert sb.hang_cua("urllib3") == sb.KHAC
+    assert sb.hang_cua("tradingview_ta") == sb.SO, "chuan hoa ten bi bo qua"
+
+
+def test_BAN_LOCAL_doc_MOI_goi_chu_khong_phai_mot_danh_sach():
+    """Quần thể ở phía máy cũng phải suy ra — đây là nửa còn lại của lỗi 80."""
+    loc = sb.ban_local()
+    assert len(loc) > 50, (
+        f"chi doc duoc {len(loc)} goi — `ban_local` dang bi mot danh sach "
+        f"go tay bop lai")
+    assert "pytest" in loc, "goi khong nam trong hang nao van phai co mat"

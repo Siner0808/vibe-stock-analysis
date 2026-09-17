@@ -660,13 +660,42 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 > · CI **1.64.0**. Streamlit Cloud cũng cài từ `requirements.txt`, nên bản
 > đang phục vụ người dùng là bản của CI, không phải bản đang chạy ở đây.
 >
+> 🔴 **CÂU "MỘT VẾ LỆCH" NGAY TRÊN ĐẾM TRÊN CỬA SỔ CỦA DỤNG CỤ,
+> KHÔNG TRÊN THẾ GIỚI — lỗi 80, sống 3 giờ 8 phút.** Bản đầu của
+> `so_ban_goi.py` khai một hằng số **bảy tên gõ tay** rồi chỉ so bảy tên
+> ấy. Đo lại chiều cùng ngày trên **toàn bộ** quần thể (lượt CI
+> `35180072169`):
+>
+> ```
+> 92 goi co o CA HAI noi   ->  LECH 32
+> bay ten dung cu nhin     ->  bat duoc 1   (streamlit)
+> lot qua                  ->  31
+> ```
+>
+> Hai vế to nhất lọt qua đều là khoảng cách bản **CHÍNH**: `urllib3` máy
+> **1.26.20** · CI **2.8.0**, và `plotly` máy **6.9.0** · CI **7.1.0** —
+> mà `plotly` là thứ vẽ mọi biểu đồ người dùng nhìn.
+>
+> Cùng họ với **lỗi 73**: cái gác không yếu, nó **ngắm một quần thể khác
+> quần thể thật**. Và nó mắc ngay trong dụng cụ dựng ra để chữa lỗi 79.
+>
+> **Phép sửa không phải gõ thêm tên.** Quần thể nay là **giao của hai bên
+> đọc được**, nên thêm một gói vào `requirements.txt` thì nó tự vào tầm.
+> Hai danh sách còn gõ tay chỉ quyết định **mức độ ồn ào**, không quyết
+> định **cái gì được nhìn thấy**.
+>
 > **Đọc trạng thái, đừng suy ra nó:**
 >
 > ```bash
 > ./.venv/Scripts/python.exe tools/so_ban_goi.py
 > ```
 >
-> Mã thoát 0 khớp · 1 lệch · 2 chưa kiểm được. `docs/STATE.md` BƯỚC 94.
+> Nó in **đủ tên và đủ hai số hiệu** của từng gói lệch, chia ba hạng, và
+> không bao giờ nén thành một con số tổng (lỗi 78). Mã thoát 0 không chạm
+> chỗ quyết định · 1 có chạm · 2 chưa kiểm được. `docs/STATE.md` BƯỚC 95.
+>
+> **`streamlit` đã hết lệch** (ĐO 11, 17/09/2026): máy nay 1.64.0, đúng
+> bản CI và bản Streamlit Cloud đang phục vụ.
 
 Cả hai nơi kia chạy `pip install -r requirements.txt`, mà bốn gói này không
 cài được từ đó. **Khai báo chúng trong `requirements.txt` làm CI và cloud
