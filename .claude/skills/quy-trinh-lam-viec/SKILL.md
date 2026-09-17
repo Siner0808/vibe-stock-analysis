@@ -481,6 +481,44 @@ kiểm lại bằng <lệnh> và nó đúng/sai"* — chứ không phải *"theo
 NotebookLM thì X"*. Vế sau là mượn thẩm quyền của một công cụ không có
 thẩm quyền đó.
 
+### NGÔN NGỮ — hỏi bằng TIẾNG ANH, đòi trả lời bằng TIẾNG VIỆT
+
+**Người dùng chốt 17/09/2026.** Mọi câu gửi sổ tay viết bằng **tiếng
+Anh**, và mỗi câu phải mang theo một dòng đòi nó trả lời bằng **tiếng
+Việt**:
+
+```
+Answer in Vietnamese.
+```
+
+**Lý do người dùng CHƯA NÊU, và tôi không suy hộ.** Ghi ra đúng như vậy:
+một lý do bịa còn tệ hơn không có lý do, vì lần sau người ta sẽ cãi với
+cái lý do bịa thay vì hỏi lại người dùng.
+
+**Ba thứ KHÔNG đổi:**
+
+- **Báo cáo cho người dùng vẫn tiếng Việt.** Quy ước này chạm đúng một
+  đoạn đường: *tôi ↔ sổ tay*. Không chạm đoạn *tôi ↔ người dùng*.
+- **`phat_hien`, `phan_quyet`, `khong_soat_vi` vẫn tiếng Việt** — chúng
+  là ghi chép của dự án, không phải câu gửi đi.
+- **Trích dẫn nguyên văn tài liệu thì giữ tiếng Việt.** Tài liệu dự án
+  viết tiếng Việt, nên một câu hỏi đàng hoàng thường phải dẫn lại chúng.
+  Bắt câu hỏi sạch dấu tiếng Việt sẽ đẩy người hỏi sang *kể lại* thay vì
+  *dẫn lại* — và một bản kể lại là một tầng nén, đúng thứ lỗi 67 cấm.
+
+**`cau_hoi` trong `docs/soat-notebooklm.json` từ mốc này ghi NGUYÊN VĂN
+câu đã gửi**, không còn là bản tóm tắt tiếng Việt.
+
+Gác: `tests/test_soat_notebooklm.py::test_CAU_HOI_tu_MOC_NGON_NGU_phai_DOI_TRA_LOI_TIENG_VIET`,
+mốc đọc từ `_moc_ngon_ngu` trong chính sổ.
+
+> **Giới hạn của gác, khai thẳng:** nó chỉ kiểm rằng câu hỏi **có mang
+> dòng đòi trả lời tiếng Việt**. Nó **không** kiểm được phần còn lại có
+> thật sự là tiếng Anh không — vì như đã nói ở trên, một câu hỏi hợp lệ
+> có quyền chứa tiếng Việt trong phần trích dẫn. Nửa ấy là kỷ luật, không
+> phải cơ chế; đừng đọc một lượt xanh thành *"câu hỏi đã viết bằng tiếng
+> Anh"*.
+
 ### CƠ CHẾ, không phải lời nhắc (16/09/2026)
 
 ```

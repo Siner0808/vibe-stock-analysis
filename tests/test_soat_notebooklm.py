@@ -231,6 +231,40 @@ def test_MOI_PHAT_HIEN_phai_kem_LENH_tu_kiem_va_mot_PHAN_QUYET():
     print("PASS  moi phat hien deu co lenh tu kiem va phan quyet")
 
 
+#: Dòng bắt buộc trong mọi câu gửi sổ tay, từ `_moc_ngon_ngu` trở đi.
+#: Người dùng chốt 17/09/2026: hỏi bằng tiếng Anh, đòi trả lời tiếng Việt.
+DOI_TRA_LOI_VIET = "answer in vietnamese"
+
+
+def test_CAU_HOI_tu_MOC_NGON_NGU_phai_DOI_TRA_LOI_TIENG_VIET():
+    """Câu gửi sổ tay phải NÓI RA nó muốn câu trả lời bằng tiếng gì.
+
+    GIỚI HẠN, khai thẳng: gác này chỉ kiểm câu hỏi **có mang** dòng ấy.
+    Nó **không** kiểm được phần còn lại có thật sự là tiếng Anh không —
+    một câu hỏi hợp lệ có quyền trích nguyên văn tài liệu tiếng Việt, và
+    bắt nó sạch dấu sẽ đẩy người hỏi sang *kể lại* thay vì *dẫn lại*.
+    Nửa ấy là kỷ luật, không phải cơ chế.
+
+    Mốc đặt ở ngày SAU ngày chốt: các mục 17/09 đã hỏi xong trước khi có
+    quyết định, và sửa lời khai của chúng cho hợp gác mới là viết lại
+    lịch sử.
+    """
+    so = _so()
+    moc = so.get("_moc_ngon_ngu")
+    assert moc, "so thieu `_moc_ngon_ngu` — gac nay khong biet ap tu dau"
+    thieu = []
+    for ten, d in so["soat"].items():
+        if not isinstance(d, dict) or d.get("ngay", "") < moc:
+            continue
+        ch = d.get("cau_hoi")
+        if ch and DOI_TRA_LOI_VIET not in ch.lower():
+            thieu.append(ten)
+    assert not thieu, (
+        f"tu moc {moc}, cau hoi phai mang dong doi tra loi tieng Viet "
+        f"({DOI_TRA_LOI_VIET!r}) — thieu o: {thieu}")
+    print(f"PASS  moi cau hoi tu {moc} deu doi tra loi tieng Viet")
+
+
 def test_O_THU_BA_khong_duoc_thanh_CUA_THOAT():
     """`CHƯA KIỂM ĐƯỢC` cho MỘT phát hiện là trung thực; cho TẤT CẢ thì không.
 
