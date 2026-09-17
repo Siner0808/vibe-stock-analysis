@@ -1657,6 +1657,9 @@ kết cục là 2 hoặc 3-đã-truy-xong**. Kết cục 1 → giữ TẮT, vì 
 
 ## ĐO 10 — `vnstock` 4.0.7 → 4.0.8: thư viện có đổi CON SỐ không? (khai 17/09/2026)
 
+**Dụng cụ đọc:** `tools/do10_nang_vnstock.py` — chạy hai lượt,
+`truoc` (trước khi nâng) rồi `sau` (sau khi nâng).
+
 **Đã tra trùng:** **BƯỚC 87** (16/09/2026) quyết định **không** nâng
 `vnstock` 4.0.8 — nhưng lý do ở đó là *"không ai hỏi"*, và nó **không đo
 gì** về 4.0.8. Không BƯỚC nào khác chạm tới bản này. Phép đo `vnai` 2.6.0
@@ -1743,3 +1746,35 @@ mới có làm đổi những con số dự án đang đứng trên không.* Ba 
 lại; tác dụng của chúng chỉ lộ ra khi nguồn chặn, tức **ngoài tầm** một
 lượt kéo bình thường. Ghi ra để sau này không ai đọc kết quả này rộng hơn
 nó có.
+
+---
+
+## Kết quả ĐO 10 — chạy 17/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do10_nang_vnstock.py`
+
+Tiêu chí vào nhánh lúc **10:26:56**, lượt chụp `truoc` bắt đầu **10:27:01**
+— năm giây sau, và **trước khi đổi một gói nào**.
+
+| | 4.0.7 | 4.0.8 | |
+|---|---|---|---|
+| **A** FPT · VCB · SSI | 65 dòng · 6 cột | 65 dòng · 6 cột | **băm SHA-256 giống hệt cả ba** |
+| **B** bảng giá | 82 cột | 82 cột | tập cột y nguyên |
+| **C** `ratio()` × 3 | 54 kỳ · 19 cột | 54 kỳ · 19 cột | y nguyên |
+| **D** `kiem_goi()` | `KHỚP · silver/silver` | giống hệt | |
+
+```
+PHAN QUYET: NANG DUOC
+```
+
+**Phép nâng chỉ chạm đúng một gói.** `pip freeze` trước/sau khác **một
+dòng** — dòng `vnstock`. Cài bằng `--no-deps` vì hai sàn phụ thuộc mới
+(`vnai>=2.6.0`, `vnstock_ezchart>=1.0.2`) **đã thoả từ trước**, nên không
+có gói nào bị kéo theo.
+
+Chạy lại phép so trên bản tải thẳng từ PyPI (chứ không phải bánh xe tạm
+trong thư mục scratch) — **cùng kết quả**.
+
+### Điều bảng đã ký KHÔNG hỏi, và hoá ra là câu hỏi lớn hơn
+
+Xem `docs/STATE.md` BƯỚC 94.
