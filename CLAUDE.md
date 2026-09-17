@@ -631,6 +631,43 @@ Cột OHLCV đo ngày 31/08/2026 trên cả hai nơi. Bất đối xứng CHỈ 
 và hạn mức; lịch sử giá thì không — điều này quan trọng vì lịch sử giá là
 thứ ngưỡng mua được hiệu chuẩn trên đó.
 
+> ⚠️ **CHỮ "CHỈ" Ở CÂU TRÊN THIẾU MỘT VẾ, và vế thiếu là vế đổi thường
+> xuyên nhất: SỐ HIỆU BẢN THƯ VIỆN** (đo 17/09/2026, lỗi 79).
+>
+> `requirements.txt` khai bằng **SÀN** (`vnstock>=4.0.6`, `vnai>=2.5.7`),
+> nên mỗi lượt CI `pip install` lấy bản **MỚI NHẤT trên PyPI**. Máy local
+> cài một lần rồi đứng yên. Hai nơi trôi ra khỏi nhau **âm thầm**, vì tới
+> hôm nay chưa có lệnh nào hỏi.
+>
+> Đọc thẳng nhật ký CI, không suy:
+>
+> ```
+> luot CI 2026-09-16T01:26:10Z   vnstock-4.0.8   vnai-2.6.0
+> may local cung luc             vnstock 4.0.7   vnai 2.5.9
+> PR #130 "nang vnai 2.6.0" merge  2026-09-16T07:55:03Z
+> ```
+>
+> **CI đã chạy `vnai` 2.6.0 trước sáu tiếng rưỡi.** Và `vnstock` 4.0.8
+> phát hành **15/09**, nên mọi cổng xanh từ hôm ấy đều xanh **trên 4.0.8**
+> — trong khi `docs/STATE.md` BƯỚC 87 viết *"mọi con số hiện hành đã đo
+> trên 4.0.7"* như một lý do để chưa nâng.
+>
+> Câu ấy đúng về các lượt **ĐO**, và sai về các lượt **CỔNG**. Nên hai
+> phép nâng local vừa rồi chưa bao giờ là *"đi trước"* — chúng là **đuổi
+> theo thứ cổng đã chạy**.
+>
+> **Hôm nay vẫn còn một vế lệch**, đo cùng lệnh: `streamlit` máy **1.60.0**
+> · CI **1.64.0**. Streamlit Cloud cũng cài từ `requirements.txt`, nên bản
+> đang phục vụ người dùng là bản của CI, không phải bản đang chạy ở đây.
+>
+> **Đọc trạng thái, đừng suy ra nó:**
+>
+> ```bash
+> ./.venv/Scripts/python.exe tools/so_ban_goi.py
+> ```
+>
+> Mã thoát 0 khớp · 1 lệch · 2 chưa kiểm được. `docs/STATE.md` BƯỚC 94.
+
 Cả hai nơi kia chạy `pip install -r requirements.txt`, mà bốn gói này không
 cài được từ đó. **Khai báo chúng trong `requirements.txt` làm CI và cloud
 hỏng ngay ở bước cài** — hỏng toàn bộ, kể cả phần không đụng dữ liệu tài trợ.

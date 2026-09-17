@@ -14308,3 +14308,96 @@ qua nhánh khác vẫn xanh. Thứ duy nhất nhìn thấy nó là AST. Đo sau 
    `True`. Và lời văn phủ định *"bản trước ghi «Chốt 50% vốn»"* làm chính
    nó chứa câu bị cấm. Người đọc không cần biết một khối mã chết từng viết
    gì — đã gỡ khỏi câu trả lời, giữ ở đây.
+
+---
+
+## BƯỚC 94 — NÂNG `vnstock` 4.0.8, VÀ MỘT BẢNG KHAI "CHỈ" THIẾU ĐÚNG VẾ ĐỔI NHIỀU NHẤT (17/09/2026)
+
+Người dùng chốt: *làm nốt việc `vnstock` 4.0.8.*
+
+### ĐO 10 — phán quyết **NÂNG ĐƯỢC**
+
+Tiêu chí ký vào nhánh lúc **10:26:56**, lượt chụp `truoc` bắt đầu
+**10:27:01**. Bảng đầy đủ ở `docs/TIEU-CHI-DOC-TRUOC.md`. Tóm tắt:
+
+```
+A  OHLCV 65 dong x 3 ma, khoang DA DONG  ->  bam SHA-256 GIONG HET ca ba
+B  bang gia 82 cot                        ->  tap cot y nguyen
+C  ratio() 54 ky x 19 cot x 3 ma          ->  y nguyen
+D  kiem_goi()                             ->  giong het tung ky tu
+```
+
+**Vì sao bản này không đóng được bằng phép so mã nguồn.** `vnai` 2.6.0 hôm
+qua đóng nhanh vì hai file quyết định dữ liệu giống hệt từng byte. Ở đây
+thì **mọi** file trên đường dữ liệu đổi — `api/quote.py`,
+`explorer/{vci,kbs}/*`, và `core/utils/parser.py` co lại **16%**. Nên phải
+kéo dữ liệu thật, cùng tham số, hai lượt.
+
+Hai thứ **đọc được** mà không cần kéo, và chúng thu hẹp câu hỏi:
+
+- **Chữ ký công khai khớp hoàn toàn** — đọc AST trên ba file repo gọi:
+  không tên nào mất, không chữ ký nào đổi. `__init__` xuất **thêm 8** tên,
+  **mất 0**; tám tên ấy là công tắc agent (`disable_agent`, `agent_status`,
+  `remove_agent_files`…) — tức 4.0.8 đưa công tắc của `vnai` 2.6.0 lên
+  tầng `vnstock`, đúng thứ BƯỚC 91 vừa đi tìm.
+- **Bề mặt repo dùng, đếm bằng `git ls-files` rồi grep:** chỉ ba lối công
+  khai. **Không** file nào chạm bốn module bị gỡ.
+
+### Rồi phép đo lôi ra một thứ lớn hơn thứ nó hỏi
+
+`CLAUDE.md` có bảng *"Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý"*,
+kết bằng một câu khai **ĐỦ**:
+
+> *"Bất đối xứng **CHỈ** nằm ở BCTC và hạn mức; lịch sử giá thì không."*
+
+Câu ấy thiếu một vế, và vế thiếu là vế đổi **thường xuyên nhất**: **số
+hiệu bản thư viện**.
+
+`requirements.txt` khai bằng **SÀN**. Nên mỗi lượt CI `pip install` lấy bản
+**mới nhất trên PyPI**; máy local cài một lần rồi đứng yên. Đọc thẳng nhật
+ký CI, không suy:
+
+```
+luot CI 2026-09-16T01:26:10Z   vnstock-4.0.8   vnai-2.6.0
+may local cung luc             vnstock 4.0.7   vnai 2.5.9
+PR #130 "nang vnai 2.6.0" merge  2026-09-16T07:55:03Z
+vnstock 4.0.8 phat hanh PyPI     2026-09-15
+```
+
+**CI đã chạy `vnai` 2.6.0 trước sáu tiếng rưỡi.** Và mọi cổng xanh từ
+15/09 đều xanh **trên `vnstock` 4.0.8** — trong khi BƯỚC 87 viết *"mọi con
+số hiện hành đã đo trên 4.0.7"* như một lý do để chưa nâng.
+
+> **Câu ấy đúng về các lượt ĐO, và sai về các lượt CỔNG.** Hai phép nâng
+> local vừa rồi chưa bao giờ là *"đi trước"* — chúng là **đuổi theo thứ
+> cổng đã chạy**. Lỗi 79, sống **17 ngày**.
+
+### Và vẫn còn một vế lệch, đo được ngay hôm nay
+
+```
+streamlit   may 1.60.0   ·   CI 1.64.0
+```
+
+Streamlit Cloud cũng cài từ `requirements.txt`, nên **bản đang phục vụ
+người dùng là bản của CI**, không phải bản đang chạy ở đây. Không sửa hôm
+nay — nó là một phép nâng khác, và nó cần bảng đọc riêng.
+
+### Đọc trạng thái, đừng suy ra nó
+
+```bash
+./.venv/Scripts/python.exe tools/so_ban_goi.py
+```
+
+Đọc `pip freeze` ở máy, đọc dòng `Successfully installed` của nhật ký CI,
+rồi so. **Ba trạng thái** — khớp · lệch · chưa kiểm được; mã thoát 0/1/2.
+
+Ô thứ ba bắt buộc, và lý do là chính lỗi này: một lượt không đọc được nhật
+ký mà **im lặng** sẽ bị đọc thành *"hai nơi giống nhau"* — đúng kết luận
+sai vừa sống mười bảy ngày.
+
+**Nó KHÔNG phải một cổng.** Cần mạng và cần `gh` đã đăng nhập, nên nó
+không chạy trên CI — cùng hạng với `tools/doc_so_that.py`. Phần **phán**
+tách khỏi phần đọc mạng (`so_sanh()`), nên đục thử được không cần mạng.
+
+**Đục thử 9/9 đỏ**, gồm phát đầu tiên dựng lại đúng ca thật: *không đọc
+được CI thì báo KHỚP*.
