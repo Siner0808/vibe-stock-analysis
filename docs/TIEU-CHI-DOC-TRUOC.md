@@ -1919,3 +1919,160 @@ khi chạy, và nó vẫn đúng sau khi chạy.
 ### Điều bảng đã ký KHÔNG hỏi, và hoá ra lớn hơn
 
 Xem `docs/STATE.md` BƯỚC 95.
+
+---
+
+## ĐO 12 — `plotly` 6.9.0 → 7.1.0: biểu đồ có nói chuyện khác đi không? (khai 17/09/2026)
+
+**Dụng cụ đọc:** `tools/do12_nang_plotly.py` — chạy hai lượt, `truoc`
+(trước khi nâng) rồi `sau` (sau khi nâng).
+
+**Đã tra trùng:** **BƯỚC 95** (17/09/2026) là chỗ vế lệch này được đo ra,
+và nó nêu đích danh *"vế đáng làm tiếp"*. Không BƯỚC nào khác trong
+`docs/STATE.md` chạm tới `plotly` như một đại lượng.
+
+### Vì sao bản này KHÁC hai phép nâng trước, và khác theo chiều nguy hơn
+
+`vnstock` 4.0.8 và `streamlit` 1.64.0 là **bản phụ**. Đây là **bản
+CHÍNH** — 6 → 7 — và nó ở đúng thư viện vẽ mọi biểu đồ người dùng nhìn.
+Streamlit Cloud cài từ `requirements.txt` nên **người dùng đang xem biểu
+đồ do 7.1.0 vẽ**, trong khi mọi lượt kiểm ở máy này chạy trên 6.9.0.
+
+Bề mặt repo dùng thì nhỏ, và đã đếm bằng AST: `go.Figure` · `go.Candlestick`
+· `go.Scatter` · `go.Bar` · `make_subplots`, ở hai file (`app.py`,
+`trade_review.py`).
+
+### DỮ LIỆU và TRANG TRÍ là hai câu hỏi khác nhau
+
+Một phép nâng bản CHÍNH gần như **chắc chắn** đổi vài mặc định trình bày.
+Nếu bảng đọc chỉ hỏi *"đặc tả figure có giống hệt không"* thì nó đã tự
+định sẵn câu trả lời `KHÔNG NÂNG` — một lời tiên tri không thể sai theo
+chiều ngược lại, và cũng vô dụng y như vậy.
+
+Nên bảng này tách ba, và chỉ hai phần đầu có quyền phán:
+
+| | đo gì | quyền phán |
+|---|---|---|
+| **D1** | **dữ liệu từng trace** — loại trace, và các mảng `x`/`y`/`open`/`high`/`low`/`close`/`text` | **CÓ** |
+| **D2** | **hình và chú thích trong layout** — đường cắt lỗ · chốt lời, vạch ngày tín hiệu, dải *"agent chưa biết vùng này"* | **CÓ** |
+| **E** | phần còn lại của layout — template, màu nền, lề, chiều cao, legend | **KHÔNG** — ghi ra để đọc |
+
+D2 **có** quyền phán vì nó không phải trang trí: đường cắt lỗ mang một
+con số người đọc hành động theo. Xếp nó vào trang trí là đúng cái lỗi
+`TP1 chỉ-để-hiện` vừa sửa sáng nay.
+
+### Bốn đại lượng
+
+| | đại lượng | đọc được gì |
+|---|---|---|
+| **A** | tập tên `go.*` + `make_subplots` repo gọi, suy bằng AST | tên nào **biến mất** |
+| **B** | mọi từ khoá tại mọi lời gọi, so với `inspect.signature` | chữ ký nào **siết lại** |
+| **C** | `trade_review` nạp trong tiến trình riêng | nạp có **nổ** không |
+| **D** | `trade_review.build_figure()` trên một bảng giá **cố định** | biểu đồ có nói chuyện khác đi không |
+
+**D là ô sắc nhất, và đây là lý do nó dựng được.** `build_figure()` là
+hàm **thuần**: nhận một `DataFrame` và một lệnh, trả một `go.Figure`,
+không chạm mạng và không đọc file trạng thái. Nó là biểu đồ **hoàn
+chỉnh** duy nhất của dự án dựng được mà không cần một lượt Streamlit
+chạy — và nó là mã đang giao, không phải mã dựng riêng để đo.
+
+Bảng giá đầu vào **sinh bằng công thức đóng**, không dùng ngẫu nhiên và
+không đọc cache: cùng một đầu vào ở cả hai lượt là điều kiện để phép so
+quy được về một vế.
+
+**GIỚI HẠN NÊU TRƯỚC.** Không ô nào nhìn **biểu đồ đã vẽ ra trong trình
+duyệt**. D so **đặc tả** figure — thứ plotly gửi sang trình duyệt — chứ
+không so các điểm ảnh. Một thay đổi nằm hoàn toàn trong phần JavaScript
+của plotly, không chạm đặc tả, thì ĐO 12 **không đọc được**. Vế ấy nói ra
+ở đây thay vì để người đọc tự suy.
+
+Và `app.py` có một biểu đồ thứ hai (`make_subplots` + `go.Candlestick` +
+`go.Bar`) nằm **trong thân script Streamlit**, nên nó không gọi rời được.
+ĐO 12 **không** đo biểu đồ ấy; nó chỉ đo rằng các tên và từ khoá biểu đồ
+ấy dùng vẫn còn sống (ô A và B). Dựng lại biểu đồ ấy trong dụng cụ đo sẽ
+là *test kiểm lại chính nó* — lỗi đã mắc ba lần ngày 31/08/2026.
+
+### BẢNG ĐỌC — ký trước, không sửa sau khi thấy số
+
+```
+A  mot ten BIEN MAT                        ->  KHONG NANG
+B  mot tu khoa bi CHOI THEM                ->  KHONG NANG
+C  trade_review dang nap duoc ma NAP NO    ->  KHONG NANG
+D1 bam DU LIEU cua trace DOI               ->  KHONG NANG
+D2 bam HINH + CHU THICH DOI                ->  KHONG NANG
+E  bam phan con lai cua layout DOI         ->  GHI RA, khong tu no quyet dinh
+   A B C D1 D2 giong het                   ->  NANG DUOC, neu 5 cong xanh
+   khong dung duoc figure o mot luot nao    ->  CHUA KET LUAN DUOC, khong nang
+```
+
+**Ba ô, không phải hai** — cùng quy ước với ĐO 10 và ĐO 11.
+
+**Ô `KHÔNG NÂNG` ở đây có xác suất thật sự xảy ra**, khác hai phép nâng
+trước. Nếu nó xảy ra thì **đừng nâng**, và việc phải làm là **ghim
+`plotly<7` trong `requirements.txt`** — vì khi ấy bản đang phục vụ người
+dùng là bản vẽ sai, và im lặng để nguyên nghĩa là để nó tiếp tục sai.
+Khai điều này TRƯỚC, cùng lý do đã khai ở ĐO 11.
+
+---
+
+## Kết quả ĐO 12 — chạy 17/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do12_nang_plotly.py`
+
+Tiêu chí vào nhánh lúc **14:18:50** (commit `dd422b2`), lượt chụp `truoc`
+cùng giây đó, và **trước khi đổi một gói nào**.
+
+| | 6.9.0 | 7.1.0 | |
+|---|---|---|---|
+| **A** 5 tên (`Figure` `Candlestick` `Scatter` `Bar` `make_subplots`) | 5 có · 0 thiếu | 5 có · 0 thiếu | |
+| **B** 28 cặp (tên, từ khoá) | 28 nhận · 0 chối | 28 nhận · 0 chối | |
+| **C** `trade_review` nạp | 1/1 | 1/1 | |
+| **D1** dữ liệu 3 trace | `a92d5f6b…` | `a92d5f6b…` | **giống hệt** |
+| **D2** 4 hình · 3 chú thích | `24b3bd2f…` | `24b3bd2f…` | **giống hệt** |
+| **E** phần còn lại của layout | `cf068641…` | `edc5d910…` | **ĐỔI** — không chặn |
+
+```
+PHAN QUYET: NANG DUOC
+```
+
+Phép nâng chạm **đúng một gói**: `pip freeze` trước/sau khác một dòng.
+
+### Ô E đổi CÁI GÌ — đào tới từng lá
+
+Khoá đổi duy nhất là `template`. Đào xuống lá:
+
+```
+template 6.9.0 : 343 la      7.1.0 : 339 la
+chi o 6.9.0    : 4 la        chi o 7.1.0 : 0
+cung khoa khac gia tri : 0
+```
+
+Bốn lá mất, và cả bốn cùng một chỗ:
+
+```
+data.scattermapbox[0].marker.colorbar.outlinewidth
+data.scattermapbox[0].marker.colorbar.ticks
+data.scattermapbox[0].type
+layout.mapbox.style
+```
+
+`plotly` 7 gỡ họ `mapbox`. Dự án **không dùng biểu đồ bản đồ** — bề mặt
+đếm bằng AST chỉ có `Figure` · `Candlestick` · `Scatter` · `Bar` ·
+`make_subplots`.
+
+Và **mọi khoá dự án TỰ ĐẶT đều giống hệt**, đọc từng cái:
+
+```
+plot_bgcolor  paper_bgcolor  height  margin  xaxis  legend  hovermode
+-> GIONG ca bay
+```
+
+### Dụng cụ phải sửa giữa chừng, và bảng đọc thì KHÔNG
+
+Lượt so đầu tiên in ra đúng một dòng: *"E đổi"*. Ảnh chụp chỉ giữ **băm**,
+nên nó nói được **rằng** có đổi mà không nói được **đổi cái gì** — đúng
+hình dạng lỗi 78, lần này bắt được ngay ở lượt dùng đầu tiên.
+
+Dụng cụ nay chụp thêm nội dung và in ra khoá nào đổi. **Bảng đọc không
+đổi một chữ** — đây là thêm chi tiết vào bản in, không phải thêm hay bớt
+một tiêu chí. Hai lượt chụp đã chạy lại từ đầu ở cả hai bản.
