@@ -1159,6 +1159,15 @@ Trễ điển hình               : 5 → 90 phút
 > ở đó nó cũng không đo được (03/09/2026).** Ba chuông chạy ở khung
 > 09:00–10:00 UTC trễ **trung vị 4–4,7 GIỜ**. Xem `docs/STATE.md`,
 > BƯỚC 19.
+>
+> **Và việc DỜI ba nhịp lệch khỏi `:00`/`:30` KHÔNG sửa được điều đó —
+> đo 17/09/2026 theo tiêu chí ký trước ngày 03/09.** Trung vị trễ của
+> `chuong-bao-quet` trên lịch mới `23 9` là **263,13 phút** (n = 9, 0
+> ngày rơi nhịp), so với nền **247 phút** trên lịch cũ `0 9`: tăng
+> +16,13, và vẫn nằm trong đúng dải 4–4,7 giờ ở trên. Ngưỡng đã ký là
+> *≤ 60 phút mới gọi là có tác dụng*. Lịch **giữ nguyên** — nó vô hại,
+> chỉ là không có ích. Lệnh đọc: `tools/do20_doi_cron.py`.
+> `docs/STATE.md` BƯỚC 89.
 
 Ba hệ quả, cái thứ ba quan trọng nhất:
 
