@@ -1652,3 +1652,94 @@ may của phép tìm kiếm.
 Công tắc `DUNG_MUC_FIBONACCI` mặc định **TẮT**, và **chỉ đổi mặc định nếu
 kết cục là 2 hoặc 3-đã-truy-xong**. Kết cục 1 → giữ TẮT, vì "không phân biệt
 được" không phải lý do để đổi một thứ đang chạy.
+
+---
+
+## ĐO 10 — `vnstock` 4.0.7 → 4.0.8: thư viện có đổi CON SỐ không? (khai 17/09/2026)
+
+**Đã tra trùng:** **BƯỚC 87** (16/09/2026) quyết định **không** nâng
+`vnstock` 4.0.8 — nhưng lý do ở đó là *"không ai hỏi"*, và nó **không đo
+gì** về 4.0.8. Không BƯỚC nào khác chạm tới bản này. Phép đo `vnai` 2.6.0
+cùng ngày là **thư viện khác**, và nó dừng ở phép so mã nguồn vì hai file
+quyết định dữ liệu giống hệt từng byte — ở đây thì **không**.
+
+**Người dùng hỏi ngày 17/09/2026.** Đó là thứ đổi, không phải dữ kiện nào.
+
+### Vì sao bản này KHÔNG đọc được bằng phép so mã nguồn
+
+`vnai` 2.6.0 đóng lại nhanh vì hai file quyết định dữ liệu — `PERIOD_LIMITS`
+và `_detect_tier` — **giống hệt từng byte**. Tải bánh xe 4.0.8 về so
+(KHÔNG cài), kết quả khác hẳn:
+
+```
+4.0.7 : 130 file .py      4.0.8 : 129 file .py
+THEM  : core/utils/{block_detect,circuit,retry}.py
+MAT   : core/base/{__init__,provider,registry}.py · core/utils/proxy_manager.py
+DOI   : 52 file
+```
+
+**Mọi file trên đường dữ liệu đều đổi**, không sót cái nào:
+
+```
+api/quote.py · api/financial.py · api/trading.py · api/listing.py
+explorer/vci/{quote,financial,listing,trading,company}.py
+explorer/kbs/{quote,financial,listing,trading,company}.py
+core/utils/parser.py   46.301 -> 39.097 byte   (-16%)
+```
+
+Nên câu hỏi *"nó có đổi số không"* **không trả lời được bằng cách đọc mã**.
+Phải kéo dữ liệu thật, cùng tham số, trước và sau.
+
+**Ràng buộc phụ thuộc đã kiểm:** 4.0.8 đòi `vnai>=2.6.0` (máy có 2.6.0, nâng
+hôm qua) và `vnstock_ezchart>=1.0.2` (máy có 1.0.2). Cả hai **đã thoả** —
+phép nâng này không kéo theo gói nào khác.
+
+**Bề mặt repo dùng, đã đếm:** chỉ ba lối công khai — `from vnstock import
+Quote, Trading, Finance`, `from vnstock.api.quote import Quote`,
+`from vnstock.api.financial import Finance`. **Không** file nào chạm bốn
+module bị gỡ. Nên phép nâng không làm hỏng lối gọi; câu hỏi duy nhất còn
+lại là **con số**.
+
+### Bốn đại lượng, và vì sao mỗi cái đọc được ở mức nào
+
+| | đại lượng | đọc được gì |
+|---|---|---|
+| **A** | `Quote(ma, source).history(start, end, "1D")` trên khoảng ĐÃ ĐÓNG | **từng ô** — dữ liệu đã đóng thì bất biến |
+| **B** | `Trading(source="vci").price_board([...])` | **chỉ TẬP CỘT** |
+| **C** | `Finance(ma, source).ratio()` | **số kỳ + tập cột** |
+| **D** | `vnstock_goi.kiem_goi()` | nguyên dòng |
+
+**Giới hạn nêu trước, và nó quyết định cách đọc từng ô.** A đo trên khoảng
+**đã đóng** (2024-01-02 → 2024-03-29) nên nó **phải** bất biến: nếu nó đổi
+thì đó là thư viện đổi, **không phải thị trường đổi**. B thì ngược lại —
+bảng giá đổi theo từng phiên, nên so giá trị ở đó là so hai thời điểm khác
+nhau; chỉ **tập cột** mới là lời hứa của thư viện. C nằm giữa: số kỳ và tập
+cột là hợp đồng, còn giá trị thì nguồn có thể điều chỉnh hồi tố.
+
+Ba mã: **FPT · VCB · SSI** — hai sàn, ba ngành, và cả ba nằm trong rổ dự án
+đang dùng.
+
+### BẢNG ĐỌC — ký trước, không sửa sau khi thấy số
+
+```
+A khac DU MOT O                         ->  KHONG NANG
+B hoac C doi TAP COT                    ->  KHONG NANG
+A giong het + B,C tap cot giong + D giong ->  NANG DUOC, neu 5 cong xanh
+khong keo duoc du lieu (mang, han muc)  ->  CHUA KET LUAN DUOC, khong nang
+```
+
+**Ba ô, không phải hai** — cùng quy ước với `lich_giao_dich.chan_doan` và
+`vnstock_goi.kiem_goi`. Ô thứ ba bắt buộc: một lượt kéo hỏng mà bị đọc
+thành *"không đổi gì"* là đúng lỗi 66.
+
+**Ô `KHÔNG NÂNG` là ô làm bảng này thành phép kiểm.** Chỉ có ô "nâng được"
+thì đây là một lời tiên tri không thể sai.
+
+### Điều KHÔNG hứa
+
+Phép đo này **không** nói 4.0.8 tốt hay xấu. Nó trả lời đúng một câu: *bản
+mới có làm đổi những con số dự án đang đứng trên không.* Ba module mới —
+`circuit.py`, `retry.py`, `block_detect.py` — là cơ chế chống chặn và thử
+lại; tác dụng của chúng chỉ lộ ra khi nguồn chặn, tức **ngoài tầm** một
+lượt kéo bình thường. Ghi ra để sau này không ai đọc kết quả này rộng hơn
+nó có.
