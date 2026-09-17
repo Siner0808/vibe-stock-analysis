@@ -229,6 +229,24 @@ XAU = [
     ("hai heredoc qua mot dau ngan",
      "bash - <<'A'\nx\nA\n&& bash - <<'B'\ny\nB\n",
      "hai-heredoc"),
+
+    # ── NHOM 1 cua chin hinh dang con de ngo o BUOC 65, dong 17/09/2026.
+    #    Ca bay deu do duoc la LOT ngay 14/09/2026, truoc khi co luat.
+    ("ghi de file .py bang mot lenh KHONG phai heredoc",
+     "echo 'x = 1' > tools/moi.py", "ghi-de-file-nguon"),
+    ("ghi de file .md tu dau ra cua mot lenh khac",
+     "./.venv/Scripts/python.exe tools/sinh.py > docs/STATE.md",
+     "ghi-de-file-nguon"),
+    ("ghi de mot workflow yml",
+     "printf 'on: push' > .github/workflows/x.yml", "ghi-de-file-nguon"),
+    # `xoa-db-goc-repo` chi canh `rm`, nen duong nay di lot.
+    ("cat cut mot file .db bang `>`",
+     "sqlite3 x .dump > paper_trades.db", "ghi-de-db"),
+    ("perl -i — cung co che voi sed -i, khac cong cu",
+     "perl -i -pe 's/a/b/' CLAUDE.md", "va-tai-cho-khac-sed"),
+    ("perl -i.bak — dang co duoi sao luu",
+     "perl -i.bak -pe 's/a/b/' CLAUDE.md", "va-tai-cho-khac-sed"),
+    ("ruby -i", "ruby -i -pe 'x' CLAUDE.md", "va-tai-cho-khac-sed"),
 ]
 
 # Moi dong duoi day la mot lan CHAN NHAM da do duoc, hoac mot loi khai da
@@ -305,6 +323,30 @@ TOT = [
      "sua: phep kiem duong dan\n\n"
      "  cat > /c/Users/x/Temp/y.py <<'EOF'\n\n"
      "het\nMSGEOF"),
+
+    # ── Do 17/09/2026, TRUOC khi bat ba luat moi: day la nhung hinh dang
+    #    ma mot ban rong hon se bat nham. Ca chin deu la thao tac THAT
+    #    dung hang ngay trong repo nay.
+    ("ghi log — `>` vao file .log, khong phai file nguon",
+     "./.venv/Scripts/python.exe -m pytest tests/ -q > /tmp/kq.log 2>&1"),
+    ("ghi /dev/null", "cat x > /dev/null"),
+    # `>>` NOI THEM, khong cat cut. Hai dau khac nhau, hai co che khac nhau.
+    ("NOI THEM vao mot file .md", "echo 'them' >> docs/ghi-chu.md"),
+    # Dang heredoc da co luat RIENG (`heredoc-ghi-file-repo`), va luat ay
+    # tha duong NGOAI repo. Hai luat cung phan mot hinh dang la hai thong
+    # bao va hai cho de troi ra khoi nhau.
+    ("ghi file .py NGOAI repo, khong qua heredoc",
+     "echo x > /c/Users/x/AppData/Local/Temp/y.py"),
+    ("perl KHONG co -i — khong va tai cho",
+     "perl -pe 's/a/b/' CLAUDE.md"),
+    # Do mot ban sao so lenh ra TEMP de soi la thao tac AN TOAN, va la
+    # duong di vong da dung ngay 12/09/2026. Luat `ghi-de-db` chi phan
+    # khi dich nam TRONG repo.
+    ("ghi mot file .db RA NGOAI repo",
+     "sqlite3 paper_trades.db .dump > "
+     "/c/Users/x/AppData/Local/Temp/ban-sao.db"),
+    ("van ban NHAC toi mot lenh ghi de",
+     "git commit -m 'dung chay echo x > tools/a.py nua'"),
 ]
 
 
@@ -324,6 +366,36 @@ def test_MAY_DO_bash_tu_chung_minh_no_bat_duoc():
             f"KÊU OAN mẫu tốt: {ten}\n  {lenh!r}\n  -> {cb.kiem(lenh)}")
     print(f"PASS  cửa Bash bắt {len(XAU)}/{len(XAU)} xấu ĐÚNG LUẬT, "
           f"tha {len(TOT)}/{len(TOT)} tốt")
+
+
+def test_MOI_HINH_DANG_XAU_thuoc_ve_DUNG_MOT_LUAT():
+    """Một hình dạng, một luật. Hai luật cùng phán là hai chỗ để trôi.
+
+    VÌ SAO CÓ PHÉP KIỂM NÀY (17/09/2026). Luật `ghi-de-file-nguon` cố ý
+    **nhường** dạng heredoc cho `heredoc-ghi-file-repo` — hai cơ chế
+    giống nhau nhưng cách sửa khác nhau, và hai thông báo cho một hình
+    dạng thì người đọc phải tự chọn tin cái nào. Đột biến gỡ phép nhường
+    ấy **sống sót** ở lượt đầu: mọi mẫu vẫn bị chặn *bởi ít nhất* luật
+    đã khai, nên không phép kiểm nào đỏ.
+
+    Thứ phép kiểm cũ hỏi là *"có bị luật ĐÚNG chặn không"*. Thứ nó KHÔNG
+    hỏi là *"có bị luật nào KHÁC chặn cùng lúc không"*.
+
+    Đo 17/09/2026 trước khi khai thành luật: **0 trên 23** mẫu xấu bị
+    nhiều hơn một luật phán. Nên đây là một tính chất ĐANG CÓ, không
+    phải một mong muốn.
+    """
+    nhieu = []
+    for ten, lenh, mong_doi in XAU:
+        bat = sorted({t for t, _ in cb.kiem(lenh)})
+        if len(bat) != 1:
+            nhieu.append(f"{ten}: đợi [{mong_doi}], bị {bat} phán")
+    assert not nhieu, (
+        "có hình dạng bị NHIỀU luật cùng phán:\n  "
+        + "\n  ".join(nhieu)
+        + "\nMột hình dạng phải thuộc về đúng một luật — nếu không, "
+          "người bị chặn nhận hai thông báo và hai cách sửa.")
+    print(f"PASS  {len(XAU)} hình dạng xấu, mỗi cái đúng MỘT luật")
 
 
 def test_BOC_chuoi_nhay_va_than_heredoc_roi_TACH_lenh_con():
