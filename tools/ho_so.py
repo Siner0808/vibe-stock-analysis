@@ -33,9 +33,12 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
+import os
 import re
 import sys
+import tempfile
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -56,6 +59,16 @@ TRAN_KY_TU = 10_000
 #: Ngưỡng để một file được coi là "có hồ sơ đáng bơm". Đo 15/09/2026:
 #: 23/52 file ở gốc repo đạt, trung vị của cả rổ là 2.
 TOI_THIEU_THAM_CHIEU = 3
+
+#: Đệm nằm ở THƯ MỤC TẠM, không nằm trong repo — `CLAUDE.md` mục "Ranh giới
+#: không vượt qua": *không commit trạng thái chạy*. Một file đệm trong cây
+#: repo sẽ vào diff, vào PR, và trôi khỏi máy khác.
+TEN_DEM = "vibe_ho_so_chi_muc.json"
+
+#: Số hiệu lược đồ của đệm. Đổi hình dạng bốn chỉ mục mà quên đổi số này
+#: thì một bản đệm cũ sẽ được nạp vào một bản mã mới — đúng lớp lỗi "hai
+#: đời dữ liệu trộn nhau". Vân tay chỉ canh ĐẦU VÀO; số này canh MÃ.
+LUOC_DO_DEM = 1
 
 
 @dataclass
@@ -165,17 +178,121 @@ def bang_loi(duong_dan: Path = BANG_LOI,
     return {k: {a: sorted(set(b)) for a, b in v.items()} for k, v in ra.items()}
 
 
+# ── đệm ─────────────────────────────────────────────────────────────────
+
+def duong_dan_dem() -> Path:
+    return Path(tempfile.gettempdir()) / TEN_DEM
+
+
+def _dau_vao_chi_muc() -> list[Path]:
+    """MỌI file bốn chỉ mục đọc. Thiếu một cái là đệm ôi mà không ai biết.
+
+    Danh sách test SUY RA từ đĩa chứ không gõ: thêm một file test mới là
+    thêm một mục vào vân tay, nên đệm tự hỏng đúng lúc cần hỏng.
+    """
+    return sorted(THU_MUC_TEST.glob("test_*.py")) + [
+        STATE, TIEU_CHI, BANG_LOI, PHAN_LOP]
+
+
+def van_tay() -> str:
+    """Dấu vân tay của mọi đầu vào — tên · mtime · cỡ, cộng số hiệu lược đồ.
+
+    VÌ SAO KHÔNG BĂM NỘI DUNG. Băm 94 file test cộng `STATE.md` là đọc
+    đúng lượng byte mà việc dựng chỉ mục đang đọc, tức đệm không tiết
+    kiệm gì. `stat()` đọc siêu dữ liệu, rẻ hơn hai bậc.
+
+    VÌ SAO CÓ CẢ CỠ FILE, khi đã có `mtime_ns`. Trên vài hệ tệp `mtime`
+    có thể trùng cho hai lượt ghi rất sát nhau; cỡ file bắt được phần lớn
+    những ca ấy. Hai dấu hiệu rẻ vẫn rẻ hơn một phép băm.
+
+    VÌ SAO CÓ CẢ ĐƯỜNG DẪN ĐẦY ĐỦ VÀ `GOC`. Đệm nằm ở thư mục tạm CHUNG
+    của máy, nên hai bản sao repo — hay một `git worktree` — dùng chung
+    một file đệm. Không có `GOC` trong vân tay thì bản sao thứ hai có thể
+    nhận chỉ mục của bản thứ nhất.
+
+    Một file VẮNG cũng phải đổi vân tay — xoá `loi-phan-lop.json` làm bảng
+    lỗi mất cột lớp, và đó là một chỉ mục khác.
+    """
+    m = hashlib.sha256()
+    m.update(f"luoc_do={LUOC_DO_DEM}\0goc={GOC}\0".encode())
+    for p in _dau_vao_chi_muc():
+        try:
+            st = p.stat()
+            m.update(f"{p}\0{st.st_mtime_ns}\0{st.st_size}\0".encode())
+        except OSError:
+            m.update(f"{p}\0VANG\0".encode())
+    return m.hexdigest()
+
+
+def _dung_chi_muc() -> dict:
+    """Bốn chỉ mục, dựng từ đầu. Đây là NGUỒN SỰ THẬT; đệm chỉ chép lại."""
+    return {
+        "test": test_nhap(),
+        "buoc": buoc_nhac_ten(),
+        "do": do_nhac_ten(),
+        "loi": bang_loi(),
+    }
+
+
+def _chuan_hoa(d: dict) -> dict:
+    """JSON không có tuple. Trả bảng lỗi về đúng hình dạng `_dung_chi_muc`.
+
+    Không có bước này thì đệm ĐỌC RA một thứ khác thứ nó GHI VÀO — và
+    khác ở chỗ im lặng nhất: `[68, "chua-do"]` so với `(68, "chua-do")`.
+    """
+    d["loi"] = {ten: {khoa: [tuple(x) for x in ds]
+                      for khoa, ds in v.items()}
+                for ten, v in d.get("loi", {}).items()}
+    return d
+
+
+def chi_muc(dung_dem: bool = True) -> dict:
+    """Bốn chỉ mục, lấy từ đệm nếu vân tay khớp.
+
+    KHÔNG BAO GIỜ NỔ VÌ ĐỆM. Mọi lỗi đọc/ghi đều rơi xuống đường dựng lại
+    — cùng nguyên tắc với `cua_ho_so.py`: một cái đệm làm hỏng lượt Read
+    thì tệ hơn không có đệm.
+
+    Đo 17/09/2026 trước khi có nó: một lượt hồ sơ đầu tiên cho mỗi file
+    tốn **410 ms** (trung vị, 6 file), trong đó **237 ms** là `test_nhap`
+    nạp AST của 94 file test — một chỉ mục TOÀN REPO, không phụ thuộc file
+    đang hỏi, mà vẫn dựng lại từ đầu mỗi lượt.
+    """
+    if not dung_dem:
+        return _dung_chi_muc()
+    vt = van_tay()
+    p = duong_dan_dem()
+    try:
+        d = json.loads(p.read_text(encoding="utf-8"))
+        if d.get("van_tay") == vt:
+            return _chuan_hoa(d["chi_muc"])
+    except Exception:
+        pass
+
+    ci = _dung_chi_muc()
+    try:
+        tam = p.with_suffix(f".{os.getpid()}.tam")
+        tam.write_text(json.dumps({"van_tay": vt, "chi_muc": ci},
+                                  ensure_ascii=False),
+                       encoding="utf-8")
+        os.replace(tam, p)
+    except Exception:
+        pass
+    return ci
+
+
 # ── gom lại ─────────────────────────────────────────────────────────────
 
-def doc_ho_so(ten_file: str) -> HoSo:
+def doc_ho_so(ten_file: str, dung_dem: bool = True) -> HoSo:
     """Hồ sơ của MỘT file. Nhận đường dẫn bất kỳ, quy về tên cơ sở."""
     ten = Path(ten_file).name
-    bl = bang_loi().get(ten, {"cho_hong": [], "gac": []})
+    ci = chi_muc(dung_dem)
+    bl = ci["loi"].get(ten, {"cho_hong": [], "gac": []})
     return HoSo(
         ten=ten,
-        test=test_nhap().get(ten, []),
-        buoc=buoc_nhac_ten().get(ten, []),
-        do=do_nhac_ten().get(ten, []),
+        test=ci["test"].get(ten, []),
+        buoc=ci["buoc"].get(ten, []),
+        do=ci["do"].get(ten, []),
         loi_cho_hong=[(s, l) for s, l in bl.get("cho_hong", [])],
         loi_gac=[(s, l) for s, l in bl.get("gac", [])],
     )
@@ -241,8 +358,8 @@ def ten_dang_bom(toi_thieu: int = TOI_THIEU_THAM_CHIEU) -> list[str]:
     Hàm này là MÁY ĐO, và là nguồn dự kiến cho trường `if` của hook nếu
     có ngày cần cắt chi phí sinh tiến trình mỗi lượt Read.
     """
-    tn, bn, dn = test_nhap(), buoc_nhac_ten(), do_nhac_ten()
-    bl = bang_loi()
+    ci = chi_muc()
+    tn, bn, dn, bl = ci["test"], ci["buoc"], ci["do"], ci["loi"]
     ra = []
     for p in sorted(GOC.glob("*.py")):
         n = (len(tn.get(p.name, [])) + len(bn.get(p.name, []))
@@ -261,6 +378,8 @@ def main() -> int:
     ap.add_argument("file", nargs="?", help="tên file cần tra hồ sơ")
     ap.add_argument("--danh-sach", action="store_true", dest="danh_sach",
                     help="in các file đủ dày để đáng bơm")
+    ap.add_argument("--khong-dem", action="store_true", dest="khong_dem",
+                    help="bỏ qua đệm, dựng lại bốn chỉ mục từ đầu")
     a = ap.parse_args()
 
     if a.danh_sach:
@@ -274,7 +393,7 @@ def main() -> int:
     if not a.file:
         ap.error("cần một tên file, hoặc --danh-sach")
 
-    hs = doc_ho_so(a.file)
+    hs = doc_ho_so(a.file, dung_dem=not a.khong_dem)
     dong = dong_ho_so(hs)
     if not dong:
         print(f"{hs.ten}: chưa có hồ sơ "

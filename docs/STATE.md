@@ -13800,3 +13800,180 @@ Cả hai trích dẫn **đúng nguyên văn, đúng tên file**. Nên câu *"KH�
 > Notebook**. Không tài liệu nào trong repo ghim địa chỉ cũ (`grep` ra 0
 > dòng), nên không có gì phải sửa — ghi ra để lần sau không ai tưởng mình
 > vào nhầm chỗ.
+
+---
+
+## BƯỚC 90 — ĐỆM CHỈ MỤC HỒ SƠ: 410 → 145 ms, VÀ MỘT PHÉP ĐO SUÝT ĐỌC NHẦM (17/09/2026)
+
+Cửa `cua_ho_so` bơm hồ sơ vào **mọi** lượt Read một file đủ dày. Cái giá
+ấy nằm thẳng trên đường người dùng đang chờ, nên nó đáng đo.
+
+### Phép đo đầu tiên suýt kết luận "cửa rẻ"
+
+```
+E. CUA THAT — bom mot payload Read gia
+   tho: 395, 112, 110, 108, 107
+   trung vi: 110 ms
+```
+
+**Trung vị 110 ms. Và nó sai.** Dữ liệu thô ngay dưới con số nói ra lý
+do: lượt đầu 395, bốn lượt sau quanh 110. Payload dùng **cùng một
+`session_id`**, nên bốn lượt sau rơi vào nhánh im lặng thứ ba của cửa —
+*"đã bơm file này trong phiên này"*. Chỉ lượt đầu làm việc thật.
+
+**Phép đo lặp lại đúng bốn lần cái BẢN GHI NHỚ của thứ nó định đo.**
+Lỗi 75, cùng họ lỗi 61 nhưng ở dạng khó thấy hơn: máy đo không hẹp, nó
+đo đúng thứ nó chạm — chỉ là thứ nó chạm không phải thứ nó khai.
+
+Điều cứu nó là điều bắt buộc số 4 ở `SKILL.md` Bước 3: **in dữ liệu thô
+ngay dưới con số**. Một trung vị 110 ms không có năm con số bên cạnh thì
+đọc xuôi hoàn toàn.
+
+### Đo lại cho đúng: mỗi lượt một phiên khác, một file khác
+
+```
+paper_trading.py    434 ms      analysis_agents.py  419 ms
+walkforward.py      406 ms      master_agent.py     413 ms
+paper_metrics.py    407 ms      run_daily.py        390 ms
+                                     trung vi  410 ms
+```
+
+Một phiên chạm sáu file như thế trả **2,4 giây**.
+
+> ⚠️ **Con số `352 ms` trong bàn giao hôm qua KHÔNG tái lập.** Đo lại
+> hôm nay ở cùng đường: **410 ms** trung vị. Bản tách cũ ghi *"79 ms khởi
+> động, ~260 ms tra cứu"* — cộng lại 339, trong khi cả tiến trình là 418.
+> Phần thiếu là chi phí nạp module của chính `ho_so.py`. Ghi ra để không
+> ai cộng lại hai số cũ rồi tưởng đã giải thích hết.
+
+### Chỗ tốn nằm ở một chỉ mục KHÔNG phụ thuộc câu hỏi
+
+Tách trong tiến trình:
+
+```
+test_nhap     (94 file test, AST)   236,6 ms     <- 91%
+buoc_nhac_ten (docs/STATE.md)        15,1 ms
+bang_loi      (loi-da-mac.md)         2,9 ms
+do_nhac_ten   (TIEU-CHI)              1,8 ms
+                       doc_ho_so()  258,6 ms
+```
+
+`test_nhap()` nạp AST của **94 file test** để dựng một chỉ mục **toàn
+repo**. Nó không phụ thuộc file đang hỏi chút nào — mà vẫn dựng lại từ
+đầu mỗi lượt, vì mỗi lượt là một tiến trình mới.
+
+### Đệm, và điều nguy hiểm của nó
+
+Một cái đệm là **bản sao thứ hai của sự thật**, và dự án này có cả một
+bảng lỗi về bản sao thứ hai — `N_DAY_DU` 596/451, cờ C5, lỗi 73. Đệm hồ
+sơ nguy hiểm hơn cả ba, vì `ho_so.py` tự khai *"mọi dòng nó in ra là một
+địa chỉ có thật"*. **Một bản đệm ôi in ra địa chỉ KHÔNG còn thật, mà vẫn
+đúng giọng.**
+
+Nên khoá đệm là một **dấu vân tay của mọi đầu vào**:
+
+```
+sha256( luoc_do · GOC · [duong dan · mtime_ns · co file] x 98 dau vao )
+```
+
+Bốn quyết định, mỗi cái một lý do đo được:
+
+| quyết định | vì sao |
+|---|---|
+| `stat()` chứ không băm nội dung | băm 94 file test là đọc đúng lượng byte mà việc dựng chỉ mục đang đọc — đệm sẽ không tiết kiệm gì |
+| có **cả cỡ file** dù đã có `mtime_ns` | hai lượt ghi rất sát nhau có thể trùng `mtime`; cỡ file bắt phần lớn ca ấy |
+| có **`GOC`** trong vân tay | đệm nằm ở thư mục tạm CHUNG của máy, hai bản sao repo sẽ dùng chung một file |
+| có **`LUOC_DO_DEM`** | vân tay canh ĐẦU VÀO; số này canh MÃ — đổi hình dạng chỉ mục mà quên nó là nạp bản đệm đời cũ vào bản mã mới |
+
+Danh sách đầu vào **suy ra từ đĩa** (`THU_MUC_TEST.glob`), không gõ: thêm
+một file test là thêm một mục vào vân tay, nên đệm tự hỏng đúng lúc cần
+hỏng.
+
+Và đệm **không bao giờ nổ**: mọi lỗi đọc/ghi rơi xuống đường dựng lại,
+cùng nguyên tắc với `cua_ho_so.py`. Một cái đệm làm hỏng lượt Read thì tệ
+hơn không có đệm.
+
+### Kết quả
+
+```
+                    khong dem   co dem
+mot luot ho_so.py     408 ms    146 ms
+cua that (payload)    410 ms    145 ms       tiet kiem 265 ms moi file
+```
+
+Sàn là **85 ms** — chi phí khởi động trình thông dịch, không cắt được từ
+đây. 145 ms đã sát sàn ấy.
+
+**Đồng nhất: 0 lệch trên 94 tên** — mọi `.py` ở gốc repo, mọi `.md` ở gốc,
+mọi `tools/*.py`, mọi `docs/*.md`. Quần thể ấy mang **hơn 100 tham
+chiếu**, và phép so tự kiểm điều đó: một quần thể rỗng thì mọi đệm đều
+"đúng".
+
+### Gác, và hai phát đột biến đáng kể nhất
+
+`tests/test_ho_so_dem.py`, 15 phép kiểm. Đột biến **12/12 đỏ**. Hai phát
+đáng nói:
+
+- **`dung_dem=False` vẫn đọc đệm.** Nếu đường thoát không thoát thì phép
+  so "đệm đúng bằng bản dựng-từ-đầu" đang so đệm với **chính nó**, và nó
+  sẽ xanh mãi mãi. Bắt được bằng một đệm **đầu độc** có vân tay ĐÚNG.
+- **Bỏ cỡ file khỏi vân tay.** Đột biến này chỉ chết trước một ca dựng
+  đúng: ghi lại file dài hơn rồi **ép `mtime` về giá trị cũ**. Không có
+  ca ấy thì dòng `st.st_size` là trang trí.
+
+Và một gác còn đúng với mã **chưa viết**:
+`test_MOI_DAU_VAO_cua_bon_chi_muc_deu_nam_trong_VAN_TAY` suy danh sách
+đầu vào từ **chữ ký thật** của bốn hàm chỉ mục qua `inspect.signature`.
+Thêm nguồn thứ năm mà quên vân tay thì nó đỏ — chứ không phải chờ tới lúc
+ai đó đọc một địa chỉ đã chết.
+
+### Chính lượt đục thử ấy sinh ra lỗi 76
+
+Phát thứ mười hai — *"đệm nằm trong cây repo"* — đổi `duong_dan_dem()`
+thành `GOC / TEN_DEM`. Đột biến **chết đúng như phải chết**. Nhưng lượt
+pytest chạy DƯỚI đột biến ấy đã **ghi thật** một file đệm 32 KB vào gốc
+repo, và `git add -A` ngay sau đó quét nó vào commit.
+
+```
+9 files changed   <- mot trong chin la vibe_ho_so_chi_muc.json
+```
+
+Ba cái gác đứng nhìn, mỗi cái vì một lý do đọc được:
+
+| gác | vì sao im |
+|---|---|
+| `kiem_hoan_tra` trong `dot_bien` | canh **file bị vá**, và file ấy trở về nguyên byte thật |
+| `test_DEM_KHONG_duoc_nam_trong_CAY_REPO` | kiểm **đường dẫn trong mã**, và mã đã được hoàn trả trước khi test chạy |
+| `.gitignore` | chưa có dòng nào cho một file vừa mới tồn tại hôm nay |
+
+**Cái gác của phép đệm canh đúng thứ nó khai — chỉ là thứ nó khai không
+phủ được đường mà rác đi ra.** Cùng gia đình lỗi 73, ở một tầng khác: gác
+không yếu, nó ngắm một quần thể khác.
+
+### Phép sửa: `dot_bien` nay canh HAI thứ
+
+```python
+truoc = _muc_goc_repo()          # TRUOC luot chay
+...
+finally:
+    p.write_bytes(goc)           # hoan tra
+    kiem_hoan_tra(p, goc)        # ... va chung minh
+    kiem_khong_de_rac(truoc, ten)  # goc repo co moc them muc nao khong
+```
+
+`RacSauDotBien` **gọi tên** các mục mới và **không tự xoá** — `CLAUDE.md`
+cấm xoá file ở gốc repo mà chưa hỏi, và một công cụ tự dọn thì lần sau sẽ
+dọn nhầm.
+
+Đo trước khi bật, để biết nó có báo động giả không: một lượt
+`pytest tests/ -q` đầy đủ làm gốc repo **thêm 0, mất 0** (112 mục trước và
+sau). Nên phép so này không có nền nhiễu.
+
+**Và nó cắn tác giả ở lượt đầu tiên:** chạy lại đúng bộ đột biến vừa xong,
+phát thứ mười hai nổ ngay với tên file 32 KB kia trong thông báo.
+
+Gác: `tests/test_bo_dot_bien.py`, thêm 4 phép kiểm. Đột biến **6/6 đỏ** —
+sau khi **một phát bị thiết kế sai phải viết lại**: bản đầu dời phép chụp
+xuống sau `ghi()` nhưng vẫn TRƯỚC `subprocess.run`, tức vẫn chụp đúng lúc,
+nên nó sống sót một cách vô nghĩa. Phát đúng là chụp **sau lượt chạy** —
+khi ấy rác đã nằm sẵn trong ảnh chụp và phép trừ ra rỗng.

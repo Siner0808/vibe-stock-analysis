@@ -38,6 +38,13 @@ reports/
 # in-sample. Bản sạch cuối cùng nằm ở commit e9c5113.
 *.db
 
+# Đệm chỉ mục hồ sơ (tools/ho_so.py). Nó SỐNG ở thư mục tạm của máy và
+# không được sinh ra ở đây — dòng này là hàng rào THỨ HAI, cho ngày ai đó
+# đổi `duong_dan_dem()`. Ngày 17/09/2026 một lượt đục thử đổi đúng hàm ấy,
+# lượt chạy dưới đột biến ghi 32 KB vào gốc repo, và `git add -A` quét nó
+# vào commit. Lỗi 76.
+vibe_ho_so_chi_muc.json
+
 # Bộ nhớ mẫu hình cắt lỗ — trạng thái chạy, phình ra sau mỗi lần chạy.
 # Commit nó vào git là để một file 2 MB quyết định điểm số của agent.
 sl_pattern_memory.json
