@@ -15083,6 +15083,53 @@ chạy trên **quần thể thật**, không trên đồ giả — không có n�
 xanh trong khi sổ không có lấy một khoá `dong` nào, tức cơ chế không có
 người dùng. Một cơ chế không ai dùng thì không có cách nào biết nó hỏng.
 
+### Cùng cái hổng ấy hiện ra LẦN THỨ HAI, trong chính commit này
+
+Đo lại ngay sau khi commit: **16 → 18 lời khai**, và cả hai dòng mới **là
+thân của hai ô dấu ⚠️ tôi vừa viết hôm nay**.
+
+```
++ > tuc git chua bao gio theo doi no. Nhung `brain/` cung khong con o goc
++ > va nguoi dung chua duoc hoi ve chung. `docs/STATE.md` BUOC 103. ...
+```
+
+Một ô dấu trải nhiều dòng thì **chỉ dòng đầu mang ký hiệu**, nên các dòng
+sau lọt vào danh sách như lời khai mới. Nghĩa là: **viết một ô dấu đúng quy
+ước thì danh sách dài ra.** Bằng chứng rằng việc đã làm lại biến thành việc
+phải làm.
+
+### Phép sửa hiển nhiên — ĐÃ ĐO, VÀ ĐÃ BỎ
+
+Ứng viên: lọc theo **KHỐI TRÍCH DẪN** (dãy dòng liền nhau mở đầu bằng `>`)
+thay vì theo dòng — khối nào chứa một dấu thì cả khối coi như đã đánh dấu.
+
+Đo trước khi bật, in ra **từng dòng** sẽ bị giấu chứ không đếm:
+
+```
+CLAUDE.md:709   "> cho quyet dinh - 1 co cham - 2 chua kiem duoc"
+CLAUDE.md:758   "> va nguoi dung chua duoc hoi ve chung"
+NGUYEN-TAC-DO-LUONG.md:199  "> tuc git chua bao gio theo doi no..."
+```
+
+Hai dòng 709 và 199 đúng là **thân của ô dấu** — giấu chúng là đúng. Nhưng
+dòng **758 là một lời khai THẬT**: *"người dùng chưa được hỏi về"* hai hàm
+telemetry, một câu sẽ sai ngay ngày tôi hỏi họ. Nó chỉ tình cờ nằm trong
+một ô dấu.
+
+**Nên phép sửa bị bỏ.** Nó đổi một cái hổng ỒN ÀO và vô hại — danh sách
+dài thêm hai dòng, nhìn thấy được — lấy một cái hổng **IM LẶNG**: giấu một
+lời khai còn sống. Chiều thứ hai là chiều nguy hiểm, và toàn bộ thiết kế ở
+trên chọn đứng về phía *hiện thừa* chứ không *giấu thiếu*.
+
+Cùng đường với luật heredoc rộng bị bỏ ngày 17/09: **đo một ứng viên rồi
+bỏ nó là một kết quả**, không phải một việc dở dang. Ghi lại kèm con số để
+lần sau không ai đo lại.
+
+**Cái giá phải trả, nói thẳng:** mỗi ô dấu viết ra sẽ thêm 1–2 dòng vào
+danh sách. Con số `chưa ai mở` vì thế là **cận trên**, không phải con số
+đúng — và nó chỉ dùng được khi đọc kèm cột nguồn, chứ không dùng làm
+thước tiến độ trơ trọi.
+
 
 ---
 
