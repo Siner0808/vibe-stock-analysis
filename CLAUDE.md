@@ -733,6 +733,12 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 > CÓ nhập, chạy trên `urllib3`. Đúng hình dạng lỗi 80, lần này ở câu
 > báo cáo chứ không ở dụng cụ.
 >
+> ✅ **`urllib3` ĐÃ HẾT LỆCH (ĐO 13, 18/09/2026): máy nay 2.8.0.** Dữ
+> liệu OHLCV **không đổi một ô** — băm CSV ba mã giống hệt từng chữ, ô đối
+> chứng D0 đạt ở cả hai chân. Nhánh *ghim `urllib3<2`* đã khai trước
+> **không được dùng**. Còn **`pyarrow` 24.0.0 → 25.0.1** là vế lệch bản
+> CHÍNH cuối cùng, chưa đo. `docs/STATE.md` BƯỚC 106.
+>
 > **Và hạng đang trỏ nhầm chỗ.** Đếm bằng AST: **3 trên 10** tên ở hai
 > hạng ồn ào mà repo **không nhập lần nào** — `vnstock_ezchart`,
 > `altair`, `matplotlib`. App vẽ toàn bộ bằng `plotly`; `st.line_chart`

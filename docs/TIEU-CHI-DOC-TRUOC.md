@@ -2192,3 +2192,63 @@ rộng hơn thứ nó giao:
 5. **`pyarrow` 24 → 25 không nằm trong ĐO này.** Nó là vế lệch bản CHÍNH
    thứ hai và cần một bảng riêng; gộp hai phép nâng vào một lượt là đúng
    cái lỗi `--stride 1` đã bị cấm ngày 09/09.
+
+---
+
+## Kết quả ĐO 13 — chạy 18/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do13_nang_urllib3.py`
+
+Tiêu chí vào nhánh lúc **10:45:00** (commit `2eb86f2`), lượt chụp `truoc`
+lúc **10:45:06** — sáu giây sau, và **trước khi đổi một gói nào**.
+
+| | 1.26.20 | 2.8.0 | |
+|---|---|---|---|
+| **A** `import requests` trong tiến trình riêng | nạp · requests 2.34.2 | nạp · requests 2.34.2 | |
+| **B** 2 hàm · 5 từ khoá | 5 nhận · **0 chối** | 5 nhận · **0 chối** | |
+| **C** `send_request` | 7 tham số | 7 tham số | |
+| **D0** đối chứng hai lượt cùng bản | **đạt** | **đạt** | |
+| **D1** VCB · FPT · HPG, 65 dòng mỗi mã | `dd46716e94e6d682` · `43ea00780eb70566` · `7e6455b6fbd23535` | **giống hệt cả ba** | ✅ |
+| **E** giây mỗi lượt kéo | 4,22 / 0,79 | 2,83 / 0,81 | ghi ra |
+
+**PHÁN QUYẾT: `NÂNG ĐƯỢC`** — A, B, C, D1 giống hệt; D0 đạt ở cả hai chân.
+
+### D0 là thứ làm D1 đọc được
+
+Không có nó, ba băm giống nhau cũng chỉ là ba băm giống nhau — không ai
+biết endpoint có tất định hay không. D0 chạy **trước** mọi phép so chéo
+bản, và nó đạt ở **cả hai** chân, nên phép so quy được về một vế: bản
+urllib3.
+
+### E không có quyền phán, và số liệu cho thấy vì sao
+
+Lượt kéo đầu 4,22s → 2,83s, lượt thứ hai 0,79s → 0,81s. Chênh lệch giữa
+lượt một và lượt hai **trong cùng một chân** (4,22 so với 0,79) lớn hơn
+hẳn chênh lệch giữa hai chân — tức đại lượng này bị chi phối bởi thứ
+khác (gộp kết nối, cache tầng dưới), không bởi bản thư viện. Cho nó quyền
+phán là tự định sẵn `KHÔNG NÂNG`.
+
+### Một dòng `ERROR` trong lượt cài — đọc, không lướt
+
+```
+pyppeteer 2.0.0 requires urllib3<2.0.0, but you have urllib3 2.8.0
+```
+
+**Bất động, ba đường xác nhận độc lập:**
+
+```
+1. pyppeteer KHONG TON TAI tren CI      (92 goi, khong co no)
+2. repo khong nhap pyppeteer            (cot suy ra cua so_ban_goi.py)
+3. CI chay DUNG to hop nay va van xanh  (urllib3 2.8.0 + requests 2.34.2)
+```
+
+Cùng hình dạng xung đột `websockets` đã đọc ngày 17/09, thêm một vế mới:
+vế **CI vắng mặt**. `pyppeteer` tới từ `requests-html`, và cả hai nằm
+trong nhóm **39 gói chỉ có ở máy này**.
+
+### Vế đã khai trước mà KHÔNG xảy ra, ghi ra để lần sau khỏi lo
+
+Bảng ký trước nói: nếu D1 đổi thì phải ghim `urllib3<2` trong
+`requirements.txt` để kéo **sản xuất** về bản đã đo. Nhánh ấy **không
+được dùng** — D1 giống hệt, nên `requirements.txt` giữ nguyên, và
+`urllib3` vẫn là phụ thuộc gián tiếp không ghim.

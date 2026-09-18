@@ -15475,3 +15475,108 @@ gói thì phải nêu tên có trong `requirements.txt`.**
 `urllib3` 1.26.20 → 2.8.0 là khoảng cách bản CHÍNH và **chưa ai đo**.
 `requests` — gói repo CÓ nhập — chạy trên nó. Nâng là một phép ĐO, không
 phải một lượt cài, và nó cần một bảng tiêu chí ký trước.
+
+
+---
+
+## BƯỚC 106 — ĐO 13: `urllib3` 1.26.20 → 2.8.0, dữ liệu KHÔNG đổi một ô (18/09/2026)
+
+Vế lệch bản CHÍNH cuối cùng ở hạng `con lai`, được gọi tên ở BƯỚC 105 và
+ghi thẳng *"chưa ai đo"*. Người dùng giao: mở ĐO 13.
+
+### Tiêu chí ký TRƯỚC, và khoảng cách đo được
+
+```
+tieu chi vao nhanh  10:45:00  (commit 2eb86f2)
+luot `truoc`        10:45:06  <- sau SAU GIAY, truoc khi doi mot goi nao
+```
+
+### Chiều của phép nâng này NGƯỢC với ba phép trước
+
+`requirements.txt` không ghim `urllib3` — nó là phụ thuộc gián tiếp của
+`requests` — nên **CI và Streamlit Cloud đều đã ở 2.8.0**, và máy local
+1.26.20 là kẻ duy nhất còn ở 1.x. Người dùng **đang** chạy trên 2.x.
+
+Nên ô `KHÔNG NÂNG` ở đây có nghĩa nặng hơn ĐO 12: nó không phải *"đừng
+nâng máy"* mà là *"mọi con số đo ở máy này đo trên một tầng HTTP khác
+tầng đang phục vụ"*, và việc phải làm là ghim `urllib3<2` để kéo **sản
+xuất** về bản đã đo. Khai trước khi thấy số.
+
+### Kết quả
+
+```
+A  import requests      nap  ·  nap
+B  2 ham 5 tu khoa      5 nhan 0 choi  ·  5 nhan 0 choi
+C  send_request         7 tham so  ·  7 tham so
+D0 doi chung            DAT  ·  DAT
+D1 VCB FPT HPG          dd46716e… 43ea0078… 7e6455b6…  ->  GIONG HET CA BA
+E  giay moi luot        4,22/0,79  ·  2,83/0,81        ghi ra, khong phan
+```
+
+**PHÁN QUYẾT: `NÂNG ĐƯỢC`.** Nhánh ghim `urllib3<2` **không được dùng**.
+
+### Ô D0 là thứ ĐO 13 có mà ba máy đo trước không có
+
+ĐO 11 và ĐO 12 so hai thứ dựng từ đầu vào **sinh bằng công thức đóng**,
+nên hai lượt chắc chắn cùng đầu vào. ĐO 13 phải **gọi mạng**, và endpoint
+có thể trả khác nhau vì lý do chẳng liên quan tới urllib3 — dự án đã gặp
+đúng chuyện ấy (HT1 · TCH, một lượt kéo hỏng tạm thời).
+
+D0 kéo hai lượt trên **cùng một bản**. Hai lượt ấy khác nhau thì D1 nói về
+endpoint chứ không nói về thư viện. Đó là lý do phát đục thử **đầu tiên**
+dựng lại đúng việc gộp `D0 không đạt` vào `KHÔNG NÂNG` — biến một thứ
+**chưa đo được** thành một phán quyết dứt khoát, đúng lỗi 66.
+
+### Dụng cụ DÙNG LẠI phép băm của ĐO 10
+
+`do10_nang_vnstock._bam_bang()` đã băm trên CSV chứ không trên `repr`
+(thứ cắt bớt khi bảng dài). Viết một phép băm thứ hai là dựng hai thước
+cho cùng một đại lượng, và chúng sẽ trôi ra khỏi nhau — `SKILL.md` Bước 2.
+
+### Đục thử: 8/8 đỏ
+
+```
+DO  1 gop D0-khong-dat vao KHONG NANG (o de sai nhat)
+DO  2 bo han doi chung D0
+DO  3 khong so bam DU LIEU cheo ban
+DO  4 nen ten ma lech thanh mot cau chung (loi 78)
+DO  5 bo qua tu khoa bi CHOI
+DO  6 khong kiem chu ky send_request
+DO  7 import NO van cho qua
+DO  8 khoang do truot sang vung CHUA DONG
+```
+
+Phát 8 đáng nói: nếu khoảng đo trượt sang vùng **chưa đóng** thì hai lượt
+kéo khác nhau vì **thị trường**, không vì urllib3 — và D0 sẽ đỏ mãi mãi.
+Phép kiểm neo `CUOI` phải cách hôm nay trên 180 ngày.
+
+### Một dòng `ERROR` trong lượt cài — đọc, không lướt
+
+```
+pyppeteer 2.0.0 requires urllib3<2.0.0, but you have urllib3 2.8.0
+```
+
+Bất động, và lần này có **ba** đường xác nhận độc lập: `pyppeteer`
+**không tồn tại trên CI** · repo không nhập nó (đo bằng chính cột suy ra
+dựng cùng ngày ở BƯỚC 105) · CI chạy **đúng tổ hợp này** và vẫn xanh.
+Cùng hình dạng xung đột `websockets` đọc ngày 17/09, thêm vế CI-vắng-mặt.
+
+### Một lượt đỏ chập chờn, ghi ra chứ không giấu
+
+Lượt cổng 1 đầu tiên có `tests/test_kiem_test_chay_rieng.py::
+test_main_tra_1_khi_co_file_DO` đỏ vì `PermissionError` trong
+`shutil.rmtree` — dọn thư mục tạm trên Windows khi một handle còn mở.
+Chạy riêng **3 lượt liên tiếp: 3 xanh**.
+
+**Nói cho đúng: đó là 1 đỏ trên 4 lượt, không phải "đã chứng minh là chập
+chờn".** Bốn lượt quá ít để nói tỷ lệ. Ghi ra đây để lần sau gặp lại thì
+đã có một điểm dữ liệu, thay vì lại đi từ đầu.
+
+### Còn lại sau ĐO 13
+
+```
+LECH 26 / 92 goi   (truoc DO 13: 27)
+  QUYET DINH SO    0
+  NGUOI DUNG THAY  0
+  con lai          26  —  con DUNG MOT khoang cach ban CHINH: pyarrow 24 -> 25
+```
