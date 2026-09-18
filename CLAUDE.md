@@ -722,6 +722,24 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 > **Còn lệch (đo 17/09, sau ba phép nâng):** `altair` · `matplotlib` ở
 > hạng giao diện, và 27 gói ở hạng còn lại. Hạng `QUYET DINH SO` khớp
 > **hoàn toàn**.
+>
+> ✅ **HAI VẾ ẤY ĐÃ HẾT LỆCH (18/09/2026):** `altair` 6.3.0 ·
+> `matplotlib` 3.11.2. **Cả hai hạng ồn ào nay về 0**, mã thoát 1 → 0.
+>
+> 🔴 **NHƯNG CÂU "ĐỀU BẢN PHỤ" TRONG BÁO CÁO HÔM ẤY SAI PHẠM VI — lỗi
+> 83.** Nó đúng về hai hạng ồn ào và sai về toàn cảnh: hạng `con lai`
+> chứa **hai khoảng cách bản CHÍNH** — `urllib3` máy **1.26.20** · CI
+> **2.8.0**, và `pyarrow` **24.0.0** · **25.0.1**. `requests`, gói repo
+> CÓ nhập, chạy trên `urllib3`. Đúng hình dạng lỗi 80, lần này ở câu
+> báo cáo chứ không ở dụng cụ.
+>
+> **Và hạng đang trỏ nhầm chỗ.** Đếm bằng AST: **3 trên 10** tên ở hai
+> hạng ồn ào mà repo **không nhập lần nào** — `vnstock_ezchart`,
+> `altair`, `matplotlib`. App vẽ toàn bộ bằng `plotly`; `st.line_chart`
+> và `st.pyplot` xuất hiện **0 lần**. Công cụ nay in thêm một cột
+> **suy ra** (`repo KHONG nhap`) cạnh hạng gõ tay — nó **nói**, nó không
+> **phán**, vì suy hạng từ đó là dựng một cửa sổ hẹp hơn thứ nó đo.
+> `docs/STATE.md` BƯỚC 105.
 
 Cả hai nơi kia chạy `pip install -r requirements.txt`, mà bốn gói này không
 cài được từ đó. **Khai báo chúng trong `requirements.txt` làm CI và cloud
@@ -755,7 +773,16 @@ user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
 > `disable_agent_setup()` (người dùng chốt tắt cả bốn đích) và
 > `remove_agent_files("legacy")` (dọn 7 file đời cũ). Hai hàm telemetry —
 > `disable_telemetry()` · `telemetry_status()` — thì **vẫn chưa động**,
-> và người dùng chưa được hỏi về chúng. `docs/STATE.md` BƯỚC 103. Hai file quyết định DỮ LIỆU
+> và người dùng chưa được hỏi về chúng. `docs/STATE.md` BƯỚC 103.
+>
+> 🔴 **VẾ TELEMETRY CŨNG HẾT ĐÚNG TRONG CÙNG NGÀY (18/09/2026): đã TẮT**,
+> người dùng chốt. `enabled=False`, `privacy_level=minimal`, và
+> `~/.vnstock/config/privacy.json` ghi `{"level": "minimal"}` nên nó
+> **bền qua tiến trình mới** — đo bằng một tiến trình thứ hai, vì tiến
+> trình gọi hàm không phân biệt được *đã ghi đĩa* với *chỉ đổi trong bộ
+> nhớ*. Cái tên gây hiểu nhầm: hàm ấy đặt **mức riêng tư**, và
+> `telemetry_enabled()` trả `False` khi mức là `minimal` — chặn cả
+> `relay._send_data` lẫn `relay.dispatch`. `docs/STATE.md` BƯỚC 104. Hai file quyết định DỮ LIỆU
 > (`beam/fundamental.py` giữ `PERIOD_LIMITS`, `beam/auth.py` giữ
 > `_detect_tier`) **giống hệt từng byte** giữa 2.5.9 và 2.6.0, và dòng
 > `kiem_goi()` trước/sau cũng giống hệt. `docs/STATE.md` BƯỚC 87.

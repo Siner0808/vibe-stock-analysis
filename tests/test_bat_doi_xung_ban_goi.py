@@ -224,3 +224,112 @@ def test_BAN_LOCAL_doc_MOI_goi_chu_khong_phai_mot_danh_sach():
         f"chi doc duoc {len(loc)} goi — `ban_local` dang bi mot danh sach "
         f"go tay bop lai")
     assert "pytest" in loc, "goi khong nam trong hang nao van phai co mat"
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# CỘT SUY RA: "repo có NHẬP gói này không" — thêm 18/09/2026
+#
+# Hạng quyết định *"lệch này có quan trọng không"*, và hạng đến từ hai
+# tuple GÕ TAY. Đo 18/09: **3 trên 10** tên ở hạng ồn ào mà repo không nhập
+# lần nào — `vnstock_ezchart`, `altair`, `matplotlib`. App vẽ toàn bộ bằng
+# plotly; 0 lời gọi `st.line_chart` hay `st.pyplot`.
+#
+# Cột này KHÔNG đổi hạng. Suy hạng từ "repo có nhập không" là dựng một cửa
+# sổ HẸP HƠN thứ nó đo — một gói repo không nhập vẫn chạm người dùng được
+# qua thư viện khác. Đó là lỗi 80 đảo chiều.
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_GOI_REPO_NHAP_doc_bang_AST_chu_khong_bang_CHU():
+    """Ca thật, không phải đồ giả: `tools/so_ban_goi.py` CHỨA chữ "altair".
+
+    Hằng số `HANG_GIAO_DIEN` mang đúng chuỗi ấy, nên một lượt quét theo VĂN
+    BẢN sẽ đếm `altair` là "repo có dùng" — và cột này thành vô nghĩa đúng
+    ở chỗ nó sinh ra để soi. `CLAUDE.md`, mục *"Dọn code chết"*: *"Dùng
+    AST, đừng dùng grep."*
+    """
+    van = (GOC / "tools" / "so_ban_goi.py").read_text(encoding="utf-8")
+    # van-ban-ok: TIEN DE cua phep kiem chu khong phai ket luan — phai chung minh chu ay CO trong file thi cau sau moi co nghia
+    assert "altair" in van, "ca thu nay dua tren viec chu 'altair' CO trong file"
+    # van-ban-ok: cung mot tien de, cho ten goi thu hai trong hang gõ tay
+    assert "matplotlib" in van
+    nhap = sb.goi_repo_nhap()
+    assert "altair" not in nhap, "doc bang CHU roi — chu 'altair' chi la hang so"
+    assert "matplotlib" not in nhap
+    print("PASS  chu co trong file ma KHONG bi dem la nhap")
+
+
+def test_GOI_REPO_NHAP_van_thay_goi_THAT_SU_duoc_nhap():
+    """Đối chứng DƯƠNG. Không có nó, một hàm trả rỗng cũng qua phép kiểm trên."""
+    nhap = sb.goi_repo_nhap()
+    for g in ("pandas", "streamlit", "plotly"):
+        assert g in nhap, f"{g} duoc nhap that ma khong thay -> phep do MU"
+    print(f"PASS  doi chung duong dat — {len(nhap)} goi")
+
+
+def test_GOI_REPO_NHAP_quet_ca_THU_MUC_CON_chu_khong_chi_GOC():
+    """Ba gói ở phép kiểm trên đều được nhập từ file Ở GỐC repo, nên một
+    lượt quét KHÔNG đệ quy vẫn qua được chúng — đục thử đã chứng minh: phát
+    `rglob` -> `glob` **sống sót**.
+
+    Đo ra ca phân biệt được: `pytest` là một trong HAI gói duy nhất chỉ
+    được nhập từ thư mục con (`tests/`). Nó không bao giờ rời repo này.
+    """
+    assert "pytest" in sb.goi_repo_nhap(), (
+        "khong thay `pytest` — luot quet dang bo qua thu muc con")
+    print("PASS  quet toi ca tests/")
+
+
+def test_HANG_ON_MA_KHONG_NHAP_goi_dung_ten():
+    """HÀM THUẦN trên tập `nhap`, nên đục thử được mà không chạm đĩa."""
+    gia = frozenset({sb._chuan(t) for t in sb.HANG_SO} |
+                    {sb._chuan(t) for t in sb.HANG_GIAO_DIEN})
+    assert sb.hang_on_ma_khong_nhap(gia) == [], "nhap DU ma van keu"
+    thieu = gia - {sb._chuan("altair")}
+    assert sb.hang_on_ma_khong_nhap(thieu) == [("altair", sb.GIAO_DIEN)]
+    assert sb.hang_on_ma_khong_nhap(frozenset()) != [], "nhap RONG ma im lang"
+    print("PASS  goi dung ten, va khong keu khi du")
+
+
+def test_COT_SUY_RA_KHONG_duoc_doi_HANG_cua_bat_ky_goi_nao():
+    """Ranh giới của cả thiết kế: cột này NÓI, nó không PHÁN.
+
+    Nếu một ngày ai đó nối `goi_repo_nhap()` vào `hang_cua()`, phép kiểm
+    này đỏ — và nó phải đỏ, vì khi ấy một gói như `altair` sẽ tụt xuống
+    "con lai" và **im lặng** thay vì được nhìn thấy.
+    """
+    import ast
+    nguon = (GOC / "tools" / "so_ban_goi.py").read_text(encoding="utf-8")
+    cay = ast.parse(nguon)
+    ham = next(n for n in ast.walk(cay)
+               if isinstance(n, ast.FunctionDef) and n.name == "hang_cua")
+    goi = {n.func.id for n in ast.walk(ham)
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "goi_repo_nhap" not in goi, (
+        "hang_cua() dang doc cot SUY RA — hang phai giu nguyen la GO TAY")
+    assert sb.hang_cua("altair") == sb.GIAO_DIEN, (
+        "altair phai VAN o hang on ao du repo khong nhap")
+    print("PASS  cot suy ra khong dong vao hang")
+
+
+def test_BAN_DO_MODULE_GOI_suy_tu_METADATA_chu_khong_go_tay():
+    """Bảng phải SUY từ metadata đang cài, không gõ.
+
+    LỜI KHAI ĐƯỢC SUY RA, KHÔNG NÊU TÊN GÓI NÀO — lỗi 84, 18/09/2026.
+    Bản đầu neo vào `ban_do.get("yaml") == "pyyaml"`. `pyyaml` CÓ ở máy
+    này và **KHÔNG** có trên CI, nên năm cổng xanh tại máy rồi CI đỏ ngay:
+    `assert None == 'pyyaml'`. Tôi gõ tay một tên gói vào đúng phép kiểm
+    dựng ra để chứng minh *"đừng gõ tay"*.
+
+    Thứ cần khẳng định không phải MỘT cặp cụ thể, mà là **bảng có phân
+    biệt được module với gói**. Đếm số cặp khác nhau kiểm được điều ấy mà
+    không nêu tên nào — nên nó đúng ở mọi môi trường, và nó vẫn giết đột
+    biến "gõ tay một dict nhỏ" (mọi cặp gõ tay đều có module trùng gói).
+    """
+    ban_do = sb.ban_do_module_goi()
+    assert len(ban_do) > 50, f"ban do qua nho ({len(ban_do)}) — co go tay khong?"
+    khac = {m: g for m, g in ban_do.items() if sb._chuan(m) != g}
+    assert khac, (
+        "khong cap nao co ten module KHAC ten goi — bang nay hoac go tay, "
+        "hoac dang lay ten goi lam ten module")
+    print(f"PASS  ban do {len(ban_do)} module · {len(khac)} cap module != goi")
