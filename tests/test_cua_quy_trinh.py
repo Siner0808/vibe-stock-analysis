@@ -925,13 +925,34 @@ def test_NGUONG_la_mot_QUYET_DINH_khong_duoc_noi_am_tham():
 
 
 def test_DUNG_LAI_CA_THAT_loi_86_ban_tin_PHAI_keu():
-    """Ca thật, đọc từ chính sổ: bỏ mục cuối đi là đúng trạng thái lúc lỗi
-    86 xảy ra. Đây là phép kiểm duy nhất ở đây chạy trên quần thể THẬT."""
+    """Ca thật, đọc từ chính sổ: CẮT SỔ SAU `BƯỚC 106` là đúng trạng thái
+    lúc lỗi 86 xảy ra — đó là mục cuối cùng của sổ sáng 18/09/2026. Đây là
+    phép kiểm duy nhất ở đây chạy trên quần thể THẬT.
+
+    BẢN ĐẦU NEO VÀO VỊ TRÍ, VÀ NÓ SỐNG ĐƯỢC MỘT MỤC — lỗi 87, 18/09/2026.
+    Nó cắt bằng *"bỏ mục cuối"*, một câu đúng vào đúng ngày viết. Mục kế
+    tiếp vào sổ (BƯỚC 108) thì "bỏ mục cuối" để lại **BƯỚC 107** — một mục
+    HỎI THẬT — nên chuỗi tụt từ 6 xuống 0 và phép kiểm đỏ trong khi không
+    có gì hỏng. **Một mốc LỊCH SỬ phải neo vào TÊN của mục lịch sử ấy,
+    không vào vị trí tương đối trong một sổ còn dài ra.**
+
+    Vế đáng giữ của bản đầu thì giữ nguyên: nó chạy trên quần thể THẬT chứ
+    không trên đồ giả — và chính vì thế nó hỏng **ồn ào** ngay lượt chạy
+    kế tiếp, thay vì âm thầm xanh.
+    """
     import json
     so = json.loads((GOC / "docs" / "soat-notebooklm.json")
                     .read_text(encoding="utf-8"))["soat"]
-    ten = [k for k, v in so.items() if isinstance(v, dict)]
-    luc_hong = {k: v for k, v in so.items() if k != ten[-1]}
+    MOC_LUC_HONG = "BƯỚC 106"
+    assert MOC_LUC_HONG in so, (
+        f"{MOC_LUC_HONG} khong con trong so — moc lich su bi doi ten?")
+    luc_hong = {}
+    for k, v in so.items():
+        if not isinstance(v, dict):
+            continue
+        luc_hong[k] = v
+        if k == MOC_LUC_HONG:
+            break
     c = mp.chuoi_khong_soat(luc_hong)
     assert len(c) >= mp.NGUONG_CHUOI_BO_SOAT, (
         f"chuoi luc loi 86 xay ra chi {len(c)} — ban tin se IM dung luc "

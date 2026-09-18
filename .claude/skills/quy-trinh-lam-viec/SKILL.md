@@ -19,6 +19,57 @@ liệu, báo cáo hay commit phải được tính TRONG PHIÊN NÀY, kèm lện
 ghi "≈40s" cho một thứ đo được là **167,7s** — sai hơn bốn lần, và sai
 theo chiều làm việc mình vừa làm trông rẻ hơn thực tế.
 
+**Quy tắc số 3 — MỖI BƯỚC đều phải đi qua sổ tay.** Người dùng chốt
+18/09/2026. Từ **BƯỚC 108**, ô thoát `khong_soat_vi` **không còn được
+nhận** cho một BƯỚC: mỗi mục trong `docs/soat-notebooklm.json` phải mang
+`cau_hoi` nguyên văn, một `o_thoat` là **chuỗi con của chính câu ấy**, và
+một kết quả — `phat_hien` khác rỗng, hoặc `khong_tim_thay_gi: true`. Gác:
+`tests/test_soat_notebooklm.py::test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT`,
+mốc đọc từ `_moc_bat_buoc_hoi` trong chính sổ.
+
+> **Vì sao luật này nằm Ở ĐÂY, không nằm ở mục NotebookLM cuối file.** Mục
+> ấy có từ 10/09/2026 và bị bỏ qua đủ để người dùng phải nhắc **bốn lần**.
+> Đo 16/09/2026: nó là thứ duy nhất trong file này **không nằm trong một
+> Bước có số** — và tôi thi hành các Bước có số. Quy tắc 1 và 2 đứng ở đây
+> thì được thi hành; nên luật này đứng cạnh chúng.
+>
+> **Đo quần thể TRƯỚC khi siết, 18/09/2026**, từ mốc cũ `_moc_buoc` = 81:
+>
+> ```
+> 27 BUOC bi doi khai  ->   8 HOI THAT  ·  19 bo qua       70% bo qua
+> ca so                ->  13 HOI THAT  ·  30 bo qua  / 43 muc
+> ```
+>
+> 70% không phải một lượt trượt — nó là **tỷ lệ nền**. Lỗi 86 là sáu lượt
+> liên tiếp và gác BƯỚC 107 kéo chuỗi ấy về 0; nhưng chuỗi bằng 0 ở tỷ lệ
+> nền 70% chỉ nghĩa là các lượt bỏ qua **xen kẽ** đủ để không thành chuỗi.
+>
+> **Một BƯỚC mà bằng chứng là MÃ vẫn hỏi được — và đây đúng là chỗ 19 lượt
+> kia đã trượt.** Từng lý do một đều đúng, vì công cụ ấy thật sự chỉ thấy
+> TÀI LIỆU. Chỗ trượt nằm ở **câu hỏi**:
+>
+> ```
+> hoi SAI : "tai lieu cua anh noi gi ve MA cua toi?"   -> no khong thay, dung
+> hoi DUNG: "co cho nao NOI NGUOC lai ket luan toi sap viet khong?"
+> ```
+>
+> Mọi BƯỚC đều kết thúc bằng một kết luận **viết vào tài liệu**, nên câu
+> hỏi thứ hai luôn có đích. Trả lời *"không tìm thấy câu nào nói ngược"*
+> là một **kết quả hợp lệ** — khai `khong_tim_thay_gi: true`, đừng khai là
+> không soát.
+>
+> **Không hỏi được thì đó là việc phải BÁO, không phải việc ghi vào ô
+> thoát.** Ô ấy ra đời để khỏi phải BỊA; nó đã thành chỗ để khỏi phải HỎI.
+>
+> **Phạm vi là BƯỚC, không phải ĐO** — mọi ĐO đều kết thúc bằng một BƯỚC
+> trong `docs/STATE.md`, và gác một quần thể thì hai quần thể không trôi
+> khỏi nhau được.
+>
+> **Giới hạn của gác, khai thẳng:** nó đọc được *có hỏi hay không*, nó
+> **không** đọc được *hỏi có tử tế không*. Bảng lỗi 86 nói trước điều đó —
+> *"một gác đếm chỉ dạy người ta xen một câu hỏi lấy lệ"*. Thứ đứng ở chỗ
+> ấy là ba đòi hỏi về **chất** của câu hỏi, không phải về số lượng.
+
 ---
 
 ## Bước 0 — Mở phiên (30 giây, không được bỏ)
@@ -518,6 +569,13 @@ việc này.
 >
 > Vế này mạnh hơn luật cũ *"phải tự kiểm lại mọi phát hiện"*: nó nói **cách
 > hỏi**, không chỉ nói cách đọc. Cả hai đều phải giữ.
+>
+> **TINH CHỈNH BƯỚC 108, cùng ngày: `0 dòng khớp` CHƯA đủ để kết tội bịa.**
+> Một câu hỏi CÓ lối thoát vẫn cho trích dẫn `grep` ra 0 dòng — vì sổ tay
+> **lột dấu nhấn Markdown**. Nó dẫn `"Không: nó chỉ đọc VĂN BẢN."`; câu
+> thật ở `docs/STATE.md` dòng 6800 là `**Không:** nó chỉ đọc VĂN BẢN.`
+> **Luật đủ: grep lại một chuỗi con đặc trưng, bỏ dấu nhấn, TRƯỚC khi kết
+> luận.** Hai lệnh là đủ phân định — đúng liều đã dùng cho quy ước 🔴.
 
 **Dùng nó khi nào**
 
@@ -586,8 +644,10 @@ mốc đọc từ `_moc_ngon_ngu` trong chính sổ.
 ```
 docs/soat-notebooklm.json   moi DO va moi BUOC tu `_moc_buoc` phai khai
                             `phat_hien` XOR `khong_soat_vi`
-tools/cua_mo_phien.py       ban tin mo phien in so muc con no
-tests/test_soat_notebooklm  do khi thieu, va khi ly do rong/chung chung
+                            tu `_moc_bat_buoc_hoi`: o thoat KHONG con  <- quy tac 3
+tools/cua_mo_phien.py       ban tin mo phien in so muc con no, VA goi ten moc
+tests/test_soat_notebooklm  do khi thieu, khi ly do rong/chung chung,
+                            va khi mot BUOC tu moc ay con khai `khong_soat_vi`
 ```
 
 **ĐO ĐỘ TƯƠI TRƯỚC KHI HỎI, mỗi lượt, không nhớ từ lượt trước.** Hỏi sổ

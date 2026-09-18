@@ -141,6 +141,25 @@ def buoc_chua_khai_soat() -> list[str]:
         return []
 
 
+def moc_bat_buoc_hoi() -> int | None:
+    """Mốc BƯỚC từ đó ô thoát `khong_soat_vi` KHÔNG còn được nhận.
+
+    Người dùng chốt 18/09/2026: **mỗi BƯỚC đều phải đi qua sổ tay**. Con số
+    đọc từ `_moc_bat_buoc_hoi` trong chính sổ — đúng con số
+    `tests/test_soat_notebooklm.py` dùng. Gõ lại nó ở đây là tạo chỗ lệch
+    thứ hai, và dự án đã trả giá cho đúng hình dạng đó (`N_DAY_DU` 596/451).
+
+    `None` khi chưa đọc được: im lặng, đừng đoán một con số. Cùng lý do
+    `ngay_tu_lan_soat_quy_trinh()` phân biệt `None` với `0`.
+    """
+    try:
+        so = json.loads(SO_SOAT.read_text(encoding="utf-8"))
+        m = so.get("_moc_bat_buoc_hoi")
+        return int(m) if isinstance(m, int) and not isinstance(m, bool) else None
+    except Exception:
+        return None
+
+
 def chuoi_khong_soat(so: dict | None = None) -> list[str]:
     """Dãy mục CUỐI SỔ liên tiếp nhau đều khai `khong_soat_vi`. HÀM THUẦN.
 
@@ -232,7 +251,12 @@ def ban_tin(hom_nay: dt.date | None = None) -> str:
         them = " …" if len(thieu) > 4 else ""
         d.append(f"│ SOÁT CHÉO còn nợ {len(thieu)}: "
                  f"{' · '.join(thieu[:4])}{them}")
-        d.append("│   khai vào docs/soat-notebooklm.json — phát hiện, hoặc lý do")
+        m = moc_bat_buoc_hoi()
+        if m is None:
+            d.append("│   khai vào docs/soat-notebooklm.json — phát hiện, hoặc lý do")
+        else:
+            d.append("│   khai vào docs/soat-notebooklm.json — PHÁT HIỆN, không")
+            d.append(f"│   phải lý do: từ BƯỚC {m} mỗi BƯỚC phải HỎI (quy tắc 3).")
     if tre is not None and tre >= NHIP_SOAT_NGAY:
         d.append(f"│ SOÁT QUY TRÌNH: lần gần nhất {tre} ngày trước "
                  f"(nhịp {NHIP_SOAT_NGAY} ngày)")
