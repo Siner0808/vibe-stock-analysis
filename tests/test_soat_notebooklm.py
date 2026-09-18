@@ -443,3 +443,168 @@ def test_DOC_TEN_BUOC_bang_TIEU_DE_va_TON_TRONG_MOC():
     # Va moc that su chan: ha moc xuong thi muc 79 phai hien ra.
     assert "BƯỚC 79" in ten_buoc(mau, moc=1), "moc khong thuc su loc gi"
     print("PASS  doc BUOC bang tieu de, va moc thuc su chan")
+#: ─────────────────────────────────────────────────────────────────────
+#: MỖI BƯỚC ĐỀU PHẢI ĐI QUA SỔ TAY — người dùng chốt 18/09/2026
+#:
+#: Ô thoát `khong_soat_vi` ra đời để khỏi phải BỊA; ngày 18/09 nó đã thành
+#: chỗ để khỏi phải HỎI — sáu lượt liên tiếp, lỗi 86. Mốc đọc từ
+#: `_moc_bat_buoc_hoi` trong chính sổ, KHÔNG gõ ở đây: `tools/cua_mo_phien.py`
+#: đọc đúng con số ấy, và một ngưỡng gõ tay hai chỗ sẽ trôi khỏi nhau.
+
+
+def _moc_bat_buoc() -> int:
+    so = _so()
+    m = so.get("_moc_bat_buoc_hoi")
+    assert isinstance(m, int), (
+        "so thieu `_moc_bat_buoc_hoi` — gac nay khong biet ap tu dau")
+    return m
+
+
+def buoc_tu_moc_bat_buoc() -> list[str]:
+    """`## BƯỚC n` trong STATE.md có n >= `_moc_bat_buoc_hoi`. SUY RA từ đĩa."""
+    return ten_buoc(STATE.read_text(encoding="utf-8"), _moc_bat_buoc())
+
+
+def test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT():
+    """Một BƯỚC khai `khong_soat_vi` từ mốc này trở đi → ĐỎ.
+
+    Đây là phép đục đầu tiên dựng lại NGUYÊN VĂN lỗi 86: hôm ấy sáu mục
+    liên tiếp khai ô thoát, mỗi lượt một lý do thật sự khác nhau và thật sự
+    cụ thể — nên mọi gác so CHỮ đều im. Thứ máy đọc được là **ô thoát có
+    được dùng hay không**, và từ mốc này câu trả lời phải là không.
+
+    Đo trước khi siết, từ mốc cũ 81: **8 hỏi thật / 19 bỏ qua trên 27
+    BƯỚC**. Không phải một lượt trượt — là tỷ lệ nền 70%.
+
+    PHẢI khai đủ BA thứ: `cau_hoi` nguyên văn, và MỘT trong hai kết quả.
+    `phat_hien: []` KHÔNG phải kết quả — nó không phân biệt được *đã hỏi
+    và không thấy gì* với *chưa hỏi*, mà phân biệt ấy là toàn bộ việc của
+    gác này. Muốn khai "đã hỏi, không thấy gì" thì dùng
+    `khong_tim_thay_gi: true`, cùng quy ước với `docs/soat-dinh-ky.json`.
+    """
+    so = _so()
+    moc = _moc_bat_buoc()
+    loi = []
+    for ten in buoc_tu_moc_bat_buoc():
+        d = so["soat"].get(ten)
+        if not isinstance(d, dict):
+            loi.append(f"{ten}: khong co dong khai nao")
+            continue
+        if "khong_soat_vi" in d:
+            loi.append(f"{ten}: con khai `khong_soat_vi` — tu BUOC {moc} "
+                       f"o thoat nay KHONG con duoc nhan")
+            continue
+        if not (d.get("cau_hoi") or "").strip():
+            loi.append(f"{ten}: thieu `cau_hoi` nguyen van")
+        co_pd = bool(d.get("phat_hien"))
+        co_kh = d.get("khong_tim_thay_gi") is True
+        if not (co_pd or co_kh):
+            loi.append(f"{ten}: khong khai KET QUA — `phat_hien` khac rong, "
+                       f"hoac `khong_tim_thay_gi: true`")
+        if co_pd and co_kh:
+            loi.append(f"{ten}: khai CA HAI the ket qua")
+    assert not loi, (
+        "MOI BUOC deu phai di qua so tay (nguoi dung chot 18/09/2026):\n  "
+        + "\n  ".join(loi))
+    print(f"PASS  moi BUOC tu {moc} deu HOI THAT, khong con o thoat")
+
+
+def test_CAU_HOI_tu_MOC_BAT_BUOC_phai_mang_MOT_LOI_THOAT():
+    """Thiếu lối thoát thì sổ tay **bịa thay vì từ chối** — BƯỚC 107.
+
+    Gác này KHÔNG gõ sẵn một câu lối thoát mẫu. Gõ sẵn thì nó thành khẩu
+    hiệu dán vào, và một khẩu hiệu dán vào thì đo được sự có mặt của chữ
+    chứ không đo được sự có mặt của lối thoát. Nó đòi mục **tự khai**
+    `o_thoat`, rồi kiểm rằng chuỗi ấy THẬT SỰ là một phần của câu đã gửi —
+    suy ra từ chính dữ liệu, đúng luật *"suy ra, đừng gõ"*.
+    """
+    so = _so()
+    for ten in buoc_tu_moc_bat_buoc():
+        d = so["soat"].get(ten) or {}
+        if "khong_soat_vi" in d:
+            continue                  # phep kiem tren da goi ten muc nay roi
+        ot = (d.get("o_thoat") or "").strip()
+        assert len(ot) >= 20, (
+            f"{ten}: thieu `o_thoat` hoac qua ngan ({len(ot)}) — xem BUOC 107")
+        ch = d.get("cau_hoi") or ""
+        assert ot in ch, (
+            f"{ten}: `o_thoat` KHONG nam trong `cau_hoi` — mot loi thoat "
+            f"khai ma khong gui di thi khong phai loi thoat")
+    print("PASS  moi cau hoi tu moc bat buoc deu mang mot loi thoat that")
+
+
+def test_MOC_BAT_BUOC_khong_duoc_NANG_cho_toi_khi_gac_thanh_RONG():
+    """Nâng mốc là nới luôn phép kiểm — cùng lỗ hổng với `_moc_buoc`.
+
+    Đặt `_moc_bat_buoc_hoi` = 9999 thì không BƯỚC nào bị đòi và cả hai gác
+    trên vẫn xanh: một cái gác im lặng hoàn hảo. So với HẬU QUẢ, không so
+    với một con số ghim — con số thì trôi, hậu quả thì không.
+    """
+    moc = _moc_bat_buoc()
+    bi_doi = buoc_tu_moc_bat_buoc()
+    assert bi_doi, (
+        f"`_moc_bat_buoc_hoi` = {moc} khong doi BUOC nao ca — gac nay dang "
+        f"canh mot quan the RONG. Ha moc xuong, dung nang len cho toi khi "
+        f"no im.")
+    print(f"PASS  moc bat buoc {moc} doi {len(bi_doi)} BUOC, khong rong")
+
+
+def test_SO_phai_mang_MOC_BAT_BUOC_kem_LY_DO_va_CON_SO():
+    """Một quyết định siết luật phải mang theo phép đo đã đứng sau nó.
+
+    Cùng hợp đồng với `test_SO_DINH_KY_phai_khai_vi_sao_KHONG_phai_nhip_CAP_NHAT`:
+    lời khai phải mang CON SỐ đã đo, không chỉ mang lập luận. Ở đây con số
+    là tỷ lệ bỏ qua trên quần thể cũ — thứ làm cho việc siết có nghĩa.
+    """
+    vs = _so().get("_vi_sao_co_moc_bat_buoc_hoi", "")
+    assert len(vs) >= 150, "moc bat buoc khong kem ly do doc duoc"
+    assert "19/27" in vs, (
+        "loi khai phai mang CON SO da do (8 hoi that / 19 bo qua tren 27 "
+        "BUOC tu moc 81), khong chi mang lap luan")
+    assert "BƯỚC" in vs and "ĐO" in vs, (
+        "loi khai phai noi ro PHAM VI la BUOC chu khong phai DO")
+    print("PASS  moc bat buoc kem ly do va con so")
+
+
+def _ham_hook(ten: str) -> ast.FunctionDef:
+    src = (GOC / "tools" / "cua_mo_phien.py").read_text(encoding="utf-8")
+    return next(n for n in ast.walk(ast.parse(src))
+                if isinstance(n, ast.FunctionDef) and n.name == ten)
+
+
+def test_HOOK_doc_MOC_BAT_BUOC_tu_SO_chu_KHONG_go_con_so():
+    """Bản tin mở phiên phải ĐỌC mốc từ sổ, không gõ lại nó.
+
+    Hai chỗ cùng giữ một ngưỡng thì chúng sẽ trôi khỏi nhau — dự án đã trả
+    giá cho đúng hình dạng đó ở `N_DAY_DU` 596/451 và ở cờ C5. Đọc AST chứ
+    không đọc `in`: con số 108 có thể nằm trong chú thích.
+    """
+    ham = _ham_hook("moc_bat_buoc_hoi")
+    doc_file = {n.func.attr for n in ast.walk(ham)
+                if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+    assert "read_text" in doc_file or "loads" in doc_file, (
+        "moc_bat_buoc_hoi() khong doc so — no dang lay moc tu dau?")
+    go_tay = [n.value for n in ast.walk(ham)
+              if isinstance(n, ast.Constant) and isinstance(n.value, int)
+              and not isinstance(n.value, bool) and n.value >= 100]
+    assert not go_tay, (
+        f"moc_bat_buoc_hoi() go SAN mot con so moc: {go_tay} — moc phai doc "
+        f"tu `_moc_bat_buoc_hoi` trong so")
+    print("PASS  hook doc moc tu so, khong go con so")
+
+
+def test_BAN_TIN_phai_NOI_RA_moc_bat_buoc():
+    """Luật chỉ có tác dụng ở chỗ còn quyền chọn: lúc MỞ PHIÊN.
+
+    Ngày 16/09/2026 đo được rằng một gác chỉ đỏ lúc chạy test thì nó đỏ
+    SAU khi việc đã làm xong. Dòng nợ soát chéo vì thế phải nói ra rằng ô
+    thoát đã đóng — nếu không, người đọc bản tin vẫn tưởng mình còn hai
+    lựa chọn như cũ.
+    """
+    ham = _ham_hook("ban_tin")
+    goi = {n.func.id for n in ast.walk(ham)
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "moc_bat_buoc_hoi" in goi, (
+        "ban_tin() khong goi moc_bat_buoc_hoi() — ban tin mo phien van moi "
+        "nguoi khai `khong_soat_vi` nhu cu")
+    print("PASS  ban tin mo phien noi ra moc bat buoc")

@@ -15672,3 +15672,158 @@ nhau). Đo hôm nay: **độ tươi vẫn ĐÚNG** (BƯỚC 106 · dòng 84 đ�
 `main`), khác với phép đo 17/09 khi bản trùng kéo câu trả lời lùi một BƯỚC.
 Nên chưa xoá; ghi ra đây để lượt làm tươi sau xử lý, và kèm cách kiểm:
 hỏi lại số hiệu BƯỚC cao nhất rồi đối chiếu `main`.
+
+---
+
+## BƯỚC 108 — MỖI BƯỚC ĐỀU PHẢI ĐI QUA SỔ TAY: ĐÓNG Ô THOÁT (18/09/2026)
+
+Người dùng chốt, ngay sau BƯỚC 107: *"GHI NHỚ VÀO SKILL LÀ MỖI BƯỚC THỰC
+HIỆN ĐỀU PHẢI SỬ DỤNG NOTEBOOK"*.
+
+### Đo quần thể TRƯỚC khi siết
+
+```
+tu moc cu `_moc_buoc` = 81 :  27 BUOC bi doi khai
+                               8 HOI THAT  ·  19 bo qua        70% bo qua
+ca so                      :  13 HOI THAT  ·  30 bo qua  / 43 muc
+chuoi bo soat cuoi so      :  0   (gac BUOC 107 da lam viec cua no)
+```
+
+Lệnh: `docs/soat-notebooklm.json` đọc bằng `json`, đếm khoá `khong_soat_vi`
+so với khoá `phat_hien`; danh sách từng BƯỚC in kèm 60 ký tự đầu của lý do.
+
+**70% không phải một lượt trượt — nó là tỷ lệ nền.** Lỗi 86 là sáu lượt
+liên tiếp, và gác BƯỚC 107 kéo chuỗi ấy về 0; nhưng một chuỗi bằng 0 với
+tỷ lệ nền 70% chỉ nghĩa là các lượt bỏ qua **xen kẽ** đủ để không thành
+chuỗi. Người dùng đóng thẳng cái ô.
+
+### Luật, và PHẠM VI của nó
+
+Từ **BƯỚC 108**, một mục BƯỚC trong `docs/soat-notebooklm.json` phải mang:
+
+| khoá | đòi gì |
+|---|---|
+| `cau_hoi` | NGUYÊN VĂN câu đã gửi, mang dòng đòi trả lời tiếng Việt |
+| `o_thoat` | lối thoát tường minh, và phải là **chuỗi con** của chính `cau_hoi` |
+| kết quả | `phat_hien` khác rỗng, **hoặc** `khong_tim_thay_gi: true` |
+
+`khong_soat_vi` **không còn được nhận**. `phat_hien: []` cũng không —
+một danh sách rỗng không phân biệt được *đã hỏi và không thấy gì* với
+*chưa hỏi*, mà phân biệt ấy là toàn bộ việc của gác.
+
+**Mốc đặt ở 108, không phải 81.** Cùng lý do `_moc_ngon_ngu` đặt ở ngày
+SAU ngày chốt: 19 mục kia là bản ghi của việc đã xảy ra; sửa chúng cho hợp
+gác mới là viết lại lịch sử.
+
+**Phạm vi là BƯỚC, không phải ĐO.** Mọi ĐO đều kết thúc bằng một BƯỚC
+trong file này, và BƯỚC mới là chỗ kết luận được viết ra. Gác một quần thể
+giữ cho hai quần thể không trôi khỏi nhau — bài học lỗi 73 và lỗi 80.
+
+### Chỗ 19 lượt bỏ qua đã trượt — và nó KHÔNG phải sự lười
+
+Đọc lại 19 lý do: *bằng chứng nằm ngoài repo* · *bằng chứng là MÃ* · *đại
+lượng là hành vi của chính đường Bash*. **Từng câu một đều đúng**, và
+chúng đúng vì công cụ ấy thật sự chỉ thấy TÀI LIỆU — giới hạn đã khai ở
+**17 vị trí trong 4 file**, hôm nay đếm lại bằng chính sổ tay.
+
+Chỗ trượt nằm ở **câu hỏi**, không ở công cụ:
+
+```
+hoi SAI : "tai lieu cua anh noi gi ve MA cua toi?"   -> no khong thay, dung
+hoi DUNG: "co cho nao NOI NGUOC lai ket luan toi sap viet khong?"
+```
+
+Mọi BƯỚC đều kết thúc bằng một kết luận **viết vào tài liệu**, nên câu hỏi
+thứ hai luôn có đích — kể cả khi bằng chứng của BƯỚC ấy là mã, là một gói
+trong `.venv`, hay là một quyết định của người dùng. Chính BƯỚC này là ca
+thử: bằng chứng của nó là một quyết định của người dùng cộng một phép đếm
+trên JSON, tức **không có một chữ nào trong quần thể của sổ tay** — và câu
+hỏi vẫn chạy, vẫn ra ba phát hiện.
+
+### Lượt hỏi của chính BƯỚC này
+
+Độ tươi đo trước khi hỏi: sổ tay tự khai *"BƯỚC lớn nhất … là BƯỚC 106"*,
+repo ở **107** — lệch 1, giải thích được (BƯỚC 107 vào `main` sau lượt nạp
+nguồn gần nhất), và không vế nào của câu hỏi dựa vào BƯỚC 107.
+
+1. **Không nguồn nào nói ngược lại luật mới.** Sổ tay trả đúng ô thoát đã
+   đòi. Tự kiểm: `grep -rn "khong_soat_vi" --include=*.md .` → **17 dòng**;
+   lọc tiếp *"vĩnh viễn|luôn được|không bao giờ bỏ"* → **0 dòng**. Mọi chỗ
+   mô tả ô thoát ấy như cơ chế **buộc nói ra**, cùng họ `# bia-ok:` — mà
+   một cơ chế buộc nói ra thì siết được mà không tự mâu thuẫn.
+2. **17 vị trí khai giới hạn của công cụ, và luật mới không bác cái nào.**
+   Ba trích dẫn kiểm bằng `grep -c`, mỗi câu **1 dòng khớp**: *"Nó không
+   thay được Quy tắc số 2"* · *"nó bắt tài liệu lệch tài liệu"* · *"Giới
+   hạn sổ là 300 nguồn"*.
+3. **Trích dẫn "nguyên văn" của sổ tay BỎ DẤU NHẤN MARKDOWN.** Nó dẫn
+   `"Không: nó chỉ đọc VĂN BẢN."` — `grep -c` ra **0**. Câu thật ở dòng
+   **6800** của chính file này là `**Không:** nó chỉ đọc VĂN BẢN.`, tức
+   đúng nội dung, mất hai cặp sao.
+
+   > **Đây là một tinh chỉnh của luật viết HÔM QUA, không phải bác nó.**
+   > BƯỚC 107 kết luận *"0 dòng khớp ⇒ bịa"* trên hai ca thiếu lối thoát.
+   > Hôm nay, với lối thoát, 0 dòng khớp lại là **Markdown bị lột**. Luật
+   > đủ: **grep lại một chuỗi con đặc trưng, bỏ dấu nhấn, TRƯỚC khi kết
+   > tội bịa.** Hai lệnh là đủ phân định — đúng liều đã dùng cho quy ước
+   > đánh dấu 🔴 hồi 15/09.
+
+### Cơ chế
+
+```
+docs/soat-notebooklm.json   `_moc_bat_buoc_hoi` = 108, kem ly do va CON SO
+tests/test_soat_notebooklm  6 phep kiem moi
+tools/cua_mo_phien.py       moc_bat_buoc_hoi() — HAM THUAN, doc TU SO
+SKILL.md                    QUY TAC SO 3, dat canh quy tac 1 va 2
+```
+
+**Vì sao luật nằm ở đầu `SKILL.md` chứ không ở mục NotebookLM cuối file.**
+Mục ấy có từ 10/09/2026 và bị bỏ qua đủ để người dùng phải nhắc **bốn
+lần**. Đo 16/09 (BƯỚC 81): nó là thứ duy nhất trong skill **không nằm
+trong một Bước có số**. Quy tắc 1 và 2 đứng ở đầu thì được thi hành —
+nên luật này đứng cạnh chúng.
+
+### Giới hạn của gác, khai thẳng
+
+Nó đọc được *có hỏi hay không*; nó **không** đọc được *hỏi có tử tế
+không*. Bảng lỗi 86 đã nói trước: *"một gác đếm chỉ dạy người ta xen một
+câu hỏi lấy lệ"*. Thứ đứng ở chỗ ấy là ba đòi hỏi về **chất**: `cau_hoi`
+nguyên văn · `o_thoat` phải là chuỗi con của chính câu ấy · mỗi
+`phat_hien` kèm một LỆNH đã chạy. Cả ba đều đo được; *"hỏi tử tế"* thì
+không, và nói thẳng ra vẫn hơn là giả vờ đã đóng.
+
+### Đục thử
+
+**Mười phát, cả mười đỏ.** Tám phát vào gác mới; phát đầu dựng lại
+**nguyên văn** lỗi 86: BƯỚC 108 khai `khong_soat_vi` kèm một lý do dài,
+cụ thể, đúng sự thật. Hai phát cuối vào chính phép sửa lỗi 87 — quay lại
+lối cắt theo VỊ TRÍ, và dời mốc lịch sử lệch đúng MỘT mục.
+
+### LỖI 87 — gác dựng chiều qua mục ruỗng sau đúng MỘT mục
+
+Lượt cổng đầy đủ đỏ **5 phép kiểm**, và một trong số đó là
+`tests/test_cua_quy_trinh.py::test_DUNG_LAI_CA_THAT_loi_86_ban_tin_PHAI_keu`
+— chính cái gác dựng vài giờ trước để canh lỗi 86.
+
+Nó dựng lại trạng thái lịch sử bằng cách **bỏ mục cuối** của sổ, và gọi
+đó là *"đúng trạng thái lúc lỗi 86 xảy ra"*. Câu ấy đúng vào đúng ngày
+viết. BƯỚC 108 vào sổ thì *"bỏ mục cuối"* để lại **BƯỚC 107** — một mục
+HỎI THẬT — nên chuỗi tụt từ **6 xuống 0**:
+
+```
+truoc : ... BUOC 105 · DO 13 · BUOC 106 · BUOC 107          bo cuoi -> chuoi 6
+sau   : ... BUOC 106 · BUOC 107 · BUOC 108                  bo cuoi -> chuoi 0
+```
+
+**Một mốc LỊCH SỬ phải neo vào TÊN của mục lịch sử ấy**, không vào vị trí
+tương đối trong một sổ còn dài ra. Nay nó cắt sổ **sau `BƯỚC 106`** — mục
+cuối cùng của sổ sáng 18/09 — và mốc ấy không trôi.
+
+**Vế đáng giữ của bản cũ thì giữ nguyên, và nó mới là chỗ đáng đọc:** phép
+kiểm chạy trên **quần thể THẬT** chứ không trên đồ giả. Chính vì thế nó
+hỏng **ồn ào** ở lượt cổng kế tiếp thay vì âm thầm xanh. Một bản dựng tay
+sẽ không bao giờ đỏ — và cũng sẽ không bao giờ nói được gì về sổ thật.
+
+Bốn phép kiểm đỏ còn lại đều là **một** nguyên nhân: đổi ô *"máy chặn?"*
+của dòng 86 từ ❌ sang ✅ làm dòng tự khai cuối bảng lệch khỏi số đếm
+được. `tools/doc_bang_loi.py` in ra **54/87** sau khi thêm dòng 87, và
+con số ấy được **chép từ dụng cụ**, không cộng dồn bằng tay — lỗi 35.
