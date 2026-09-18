@@ -518,6 +518,35 @@
         "HANDOFF.md"
       ],
       "khong_soat_vi": "BƯỚC 106 là bản ghi của ĐO 13 trong nhật ký, cùng bằng chứng và cùng giới hạn: chứng cứ là MÃ và MẠNG (chữ ký requests, chữ ký send_request, băm CSV một lượt kéo OHLCV thật), mà sổ tay không nạp file .py nào. Và mọi câu tài liệu nó chạm tới — \"urllib3 chưa ai đo\" ở docs/HANDOFF.md và BƯỚC 105 — đều viết ngày 18/09, tức SAU bản chụp nguồn 17/09 của sổ tay. Xem lời khai ở mục ĐO 13 cùng sổ này."
+    },
+    "BƯỚC 107": {
+      "ngay": "2026-09-18",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "cau_hoi": "POSITIVE CONTROL for sources added today. Look ONLY in references/loi-da-mac.md. Its error table has rows that begin with a pipe then a number. What is the HIGHEST such row number? State the number, then quote the first 30 characters of that row exactly. If that file is NOT among your sources, say exactly that and do not guess. Answer in Vietnamese.",
+      "_vi_sao_hoi_the_nay": "Cau nay VUA la doi chung duong cho 4 nguon moi nap, VUA la mot bien trong phep do ve CACH HOI: no mang mot LOI THOAT tuong minh, trong khi hai cau truoc do khong mang. Ba cau tach duoc dung mot bien.",
+      "phat_hien": [
+        {
+          "noi_dung": "SO TAY BIA \"trich nguyen van\" khi cau hoi KHONG mang loi thoat. Hoi tieu de BUOC 106 (file CO trong nguon) -> bia mot tieu de khac han. Hoi tieu de DO 13 (file KHONG co trong nguon) -> bia CA trich dan LAN ten file, va so hieu 13 thi dung vi no suy duoc tu STATE.md.",
+          "tu_kiem": "grep -n \"^## BƯỚC 106\" docs/STATE.md · grep -n \"^## ĐO 13\" docs/TIEU-CHI-DOC-TRUOC.md · grep -c cho ca hai chuoi so tay trich",
+          "phan_quyet": "THẬT — 0 dong khop cho ca hai trich dan. Tieu de that: \"## BƯỚC 106 — ĐO 13: urllib3 1.26.20 -> 2.8.0, du lieu KHONG doi mot o\" va \"## ĐO 13 — urllib3 1.26.20 -> 2.8.0: du lieu ve co doi mot o nao khong?\". CON SO DUNG BOC TRONG BANG CHUNG BIA la hinh dang kho thay nhat."
+        },
+        {
+          "noi_dung": "DOI CHUNG DUONG cho 4 nguon moi: cau thu ba mang loi thoat, hoi ve references/loi-da-mac.md — file vua nap ~20 phut truoc.",
+          "tu_kiem": "git show origin/main:.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md | grep -oE \"^\\| [0-9]+ \\|\" | sort -n | tail -1  ·  awk substr 30 ky tu",
+          "phan_quyet": "THẬT — so tay tra 84, dung bang so cua main (dong 85 chi co tren nhanh chua merge), va 30 ky tu dau khop tung chu: \"| 84 | **một phép kiểm ne\". Bon nguon moi SONG THAT, va so tay doc main hien hanh chu khong phai ban chup cu."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát.",

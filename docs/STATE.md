@@ -15580,3 +15580,95 @@ LECH 26 / 92 goi   (truoc DO 13: 27)
   NGUOI DUNG THAY  0
   con lai          26  —  con DUNG MOT khoang cach ban CHINH: pyarrow 24 -> 25
 ```
+
+
+---
+
+## BƯỚC 107 — SỔ TAY: ĐÓNG ĐIỂM MÙ THAY VÌ VIỆN DẪN NÓ, VÀ MỘT PHÉP ĐO VỀ CÁCH HỎI (18/09/2026)
+
+Người dùng hỏi thẳng: *"bạn vẫn mắc lỗi không sử dụng NoteBook?"* — **lần
+nhắc thứ tư**. Đếm trước khi trả lời:
+
+```
+muc khai HOM NAY (18/09) : 7
+    BUOC 101   HOI THAT
+    BUOC 102   khong_soat_vi
+    BUOC 103   khong_soat_vi
+    BUOC 104   khong_soat_vi
+    BUOC 105   khong_soat_vi
+    DO 13      khong_soat_vi
+    BUOC 106   khong_soat_vi
+lien tiep tinh tu cuoi so : 6
+toan so                   : 30 khong_soat_vi / 42 muc
+```
+
+### Chỗ hỏng không phải "quên dùng" — nó tinh hơn thế
+
+Sáng nay BƯỚC 102 **đo ra** điểm mù: *công cụ soát định kỳ quét BẢY tài
+liệu · sổ tay nạp NĂM nguồn · giao nhau đúng BA*. Phát hiện ấy **đúng**.
+
+Rồi nó thành một **câu thần chú**. Sáu lượt sau đều viện dẫn nó, mỗi lượt
+một biến thể nghe rất hợp lý: *bằng chứng nằm ngoài repo* · *bằng chứng là
+MÃ* · *bản chụp cũ hơn lời khai*. **Một ô thoát đòi lý do cụ thể vẫn là ô
+thoát, nếu lý do cụ thể có sẵn mọi lần.**
+
+Và phép sửa nằm ngay trong chính phép đo: **nạp thêm tài liệu còn thiếu**.
+Thêm nguồn là cộng vào, đảo lại được, và luật thu hẹp 17/09 chỉ quản việc
+**XOÁ**. Tôi đã nghĩ tới sáng nay và hoãn. Lỗi 86.
+
+### Đã đóng: 5 → 15 nguồn
+
+```
+them 4 tai lieu quy trinh : SKILL.md · loi-da-mac.md · bay.md · cong-thuc-chay.md
+lam tuoi 5 nguon cu       : CLAUDE.md · HANDOFF.md · STATE.md · MO-XE · NGUYEN-TAC
+them 1 file lo ra khi hoi : docs/TIEU-CHI-DOC-TRUOC.md
+                            (noi MOI bang tieu chi da ky nam o do)
+
+giao voi quan the soat dinh ky :  3/7  ->  7/7
+```
+
+### PHÉP ĐO VỀ CÁCH HỎI — và nó đổi cách đọc mọi câu trả lời
+
+Ba câu hỏi trong cùng một phiên, và chúng tách được một biến:
+
+| câu hỏi | file có trong nguồn? | câu hỏi có LỐI THOÁT *"nếu không có thì nói"*? | kết quả |
+|---|---|---|---|
+| tiêu đề BƯỚC 106 | `STATE.md` **có** | **không** | **BỊA tiêu đề** |
+| tiêu đề ĐO 13 | `TIEU-CHI` **KHÔNG có** | **không** | **BỊA cả trích dẫn LẪN tên file** |
+| dòng cao nhất bảng lỗi | `loi-da-mac.md` **có** | **có** | **chính xác từng chữ** |
+
+Hai câu đầu, đối chiếu bằng `grep`: **0 dòng khớp**.
+
+```
+so tay trich : "## BUOC 106 — NANG urllib3 2.8.0, VA O DOI CHUNG KHONG CO..."
+that su la   : "## BƯỚC 106 — ĐO 13: `urllib3` 1.26.20 → 2.8.0, du lieu KHONG doi mot o"
+```
+
+Câu thứ hai nặng hơn: nó **trích một file không nằm trong nguồn**, và số
+hiệu `13` thì đúng — vì nó suy được từ `STATE.md`. **Con số đúng bọc trong
+bằng chứng bịa** là hình dạng khó thấy nhất.
+
+Câu thứ ba mang một mệnh đề thoát — *"nếu file ấy không nằm trong nguồn,
+hãy nói thẳng và đừng đoán"* — và nó trả lời **đúng từng chữ**: dòng cao
+nhất trên `main` là **84** (dòng 85 chỉ có trên nhánh chưa merge), 30 ký tự
+đầu khớp y.
+
+**Quy tắc rút ra: mọi câu gửi sổ tay phải mang một LỐI THOÁT tường minh.**
+Thiếu nó, sổ tay **bịa thay vì từ chối**. Đây là vế mạnh hơn hẳn lời khai
+cũ *"phải tự kiểm lại mọi phát hiện"* — nó nói **cách hỏi** chứ không chỉ
+nói cách đọc.
+
+### Đối chứng dương cho 4 nguồn mới
+
+Câu thứ ba cũng chính là đối chứng: `references/loi-da-mac.md` mới nạp
+được ~20 phút, và sổ tay đọc **đúng** nội dung `main` hiện hành. Nếu không
+có nó, lời khai *"đã nạp 15 nguồn"* chỉ là một con số trên màn hình.
+
+### Vế CHƯA đóng, nói ra chứ không giấu
+
+Năm nguồn cũ **vẫn còn** dưới dạng bản trùng — 15 nguồn gồm 5 cặp trùng
+URL. Không phân biệt được bằng mắt (tên hiện dạng URL cắt cụt, giống hệt
+nhau). Đo hôm nay: **độ tươi vẫn ĐÚNG** (BƯỚC 106 · dòng 84 đều là số của
+`main`), khác với phép đo 17/09 khi bản trùng kéo câu trả lời lùi một BƯỚC.
+Nên chưa xoá; ghi ra đây để lượt làm tươi sau xử lý, và kèm cách kiểm:
+hỏi lại số hiệu BƯỚC cao nhất rồi đối chiếu `main`.
