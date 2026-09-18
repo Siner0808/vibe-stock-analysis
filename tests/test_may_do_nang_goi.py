@@ -31,8 +31,10 @@ sys.path.insert(0, str(GOC / "tools"))
 import do10_nang_vnstock as d10  # noqa: E402
 import do11_nang_streamlit as d11  # noqa: E402
 import do12_nang_plotly as d12  # noqa: E402
+import do13_nang_urllib3 as d13  # noqa: E402
 
-DA_PHU = {"do10_nang_vnstock", "do11_nang_streamlit", "do12_nang_plotly"}
+DA_PHU = {"do10_nang_vnstock", "do11_nang_streamlit", "do12_nang_plotly",
+          "do13_nang_urllib3"}
 
 
 # ══ quần thể ═══════════════════════════════════════════════════════════
@@ -45,7 +47,7 @@ def test_MOI_may_do_nang_goi_deu_duoc_phu():
         f"da phu nhung khong con tren dia: {sorted(DA_PHU - thay)}")
 
 
-@pytest.mark.parametrize("mo_dun", (d10, d11, d12))
+@pytest.mark.parametrize("mo_dun", (d10, d11, d12, d13))
 def test_MOI_may_do_deu_co_phan_xu_va_BA_MA_khac_nhau(mo_dun):
     """Ba ô phải là ba chuỗi khác nhau — trùng nhau là gộp mất một ô."""
     assert callable(mo_dun.phan_xu)
@@ -186,3 +188,87 @@ def test_DO12_bang_gia_CO_DINH_phai_tai_lap_duoc():
     b = d12.bang_gia_co_dinh()
     assert a.equals(b), "bang gia dau vao khong tai lap duoc"
     assert len(a) == d12.SO_PHIEN
+
+# ══ ĐO 13 — urllib3 ════════════════════════════════════════════════════
+#
+# Ô D0 là thứ ĐO 13 có mà ba máy đo trước không có: nó phải GỌI MẠNG, nên
+# endpoint có thể trả khác nhau vì lý do chẳng liên quan tới urllib3. D0
+# kéo hai lượt trên CÙNG một bản; hai lượt ấy khác nhau thì D1 nói về
+# endpoint chứ không nói về thư viện.
+
+
+def _anh13(*, urllib3="1.26.20", nap=True, choi=None, tham_so=None,
+           D0=True, bam="aaa"):
+    """Một ảnh ĐO 13 dựng tay. Mỗi ô đổi được RIÊNG, nên đục thử được
+    từng ô mà không kéo theo ô khác — đúng phép sửa của ĐO 10 ô B."""
+    return {
+        "A": {"nap": nap, "urllib3": urllib3, "requests": "2.34.2"},
+        "B": {"get": {"co_ham": True, "nhan": ["params", "timeout"],
+                      "choi": choi or []},
+              "post": {"co_ham": True, "nhan": ["headers", "json", "timeout"],
+                       "choi": []}},
+        "C": {"co": True, "tham_so": tham_so or ["a", "b"]},
+        "D": {"luot1": {m: {"bam": bam} for m in d13.MA},
+              "luot2": {m: {"bam": bam} for m in d13.MA},
+              "D0_dat": D0, "giay_luot1": 1.0, "giay_luot2": 1.0},
+    }
+
+
+def test_DO13_hai_anh_giong_het_thi_NANG_DUOC():
+    ma, ly_do = d13.phan_xu(_anh13(), _anh13(urllib3="2.8.0"))
+    assert ma == d13.NANG_DUOC, (ma, ly_do)
+
+
+def test_DO13_bam_DU_LIEU_doi_thi_KHONG_NANG():
+    """Ô quyết định. Nó phải nêu tên mã lệch, không chỉ kêu chung chung."""
+    ma, ly_do = d13.phan_xu(_anh13(bam="aaa"),
+                            _anh13(urllib3="2.8.0", bam="bbb"))
+    assert ma == d13.KHONG_NANG, (ma, ly_do)
+    assert any("D1" in d for d in ly_do), ly_do
+    assert any(m in " ".join(ly_do) for m in d13.MA), (
+        "khong neu ten ma nao lech — mot con so tong lai (loi 78)")
+
+
+def test_DO13_D0_KHONG_DAT_thi_CHUA_KET_LUAN_chu_khong_phai_KHONG_NANG():
+    """Chỗ dễ sai nhất của cả bảng: endpoint không tất định KHÔNG phải một
+    phán quyết về urllib3. Gộp hai ô ấy là đúng lỗi 66."""
+    ma, ly_do = d13.phan_xu(_anh13(D0=False),
+                            _anh13(urllib3="2.8.0", D0=False))
+    assert ma == d13.CHUA_KET_LUAN, (ma, ly_do)
+    assert any("D0" in d for d in ly_do), ly_do
+
+
+def test_DO13_D0_hong_o_MOT_luot_thoi_cung_du_de_CHUA_KET_LUAN():
+    ma, _ = d13.phan_xu(_anh13(), _anh13(urllib3="2.8.0", D0=False))
+    assert ma == d13.CHUA_KET_LUAN, ma
+
+
+def test_DO13_import_NO_thi_CHUA_KET_LUAN():
+    ma, ly_do = d13.phan_xu(_anh13(), _anh13(urllib3="2.8.0", nap=False))
+    assert ma == d13.CHUA_KET_LUAN, (ma, ly_do)
+
+
+def test_DO13_tu_khoa_bi_CHOI_thi_KHONG_NANG():
+    ma, ly_do = d13.phan_xu(_anh13(),
+                            _anh13(urllib3="2.8.0", choi=["timeout"]))
+    assert ma == d13.KHONG_NANG, (ma, ly_do)
+    assert any("timeout" in d for d in ly_do), ly_do
+
+
+def test_DO13_chu_ky_send_request_DOI_thi_KHONG_NANG():
+    """`send_request` là nút thắt MỌI dòng OHLCV đi qua."""
+    ma, ly_do = d13.phan_xu(_anh13(tham_so=["a", "b"]),
+                            _anh13(urllib3="2.8.0", tham_so=["a"]))
+    assert ma == d13.KHONG_NANG, (ma, ly_do)
+    assert any("send_request" in d for d in ly_do), ly_do
+
+
+def test_DO13_khoang_do_phai_la_khoang_DA_DONG():
+    """Khoảng chưa đóng thì hai lượt kéo khác nhau vì THỊ TRƯỜNG, không vì
+    urllib3 — và khi ấy D0 sẽ đỏ mãi. Neo bằng một mốc quá khứ xa."""
+    import datetime as dt
+    cuoi = dt.date.fromisoformat(d13.CUOI)
+    assert cuoi < dt.date.today() - dt.timedelta(days=180), (
+        f"CUOI = {d13.CUOI} qua gan hom nay — khoang chua chac da dong")
+    assert dt.date.fromisoformat(d13.DAU) < cuoi
+
