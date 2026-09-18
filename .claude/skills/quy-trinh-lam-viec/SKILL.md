@@ -457,6 +457,68 @@ không dựa hoàn toàn vào nó.** Giá trị của nó nằm ở chỗ nó l�
 **độc lập** — nó đọc tài liệu mà không mang theo giả định của phiên làm
 việc này.
 
+> ### 🔴 MỘT Ô THOÁT ĐÒI LÝ DO CỤ THỂ VẪN LÀ Ô THOÁT — lỗi 86, 18/09/2026
+>
+> Sáng 18/09 một phép đo lôi ra rằng quần thể sổ tay hẹp hơn quần thể công
+> việc: *công cụ soát định kỳ quét BẢY tài liệu · sổ tay nạp NĂM nguồn ·
+> giao nhau đúng BA*. Phát hiện ấy **đúng**.
+>
+> Rồi nó thành một **câu thần chú**. **Sáu mục liên tiếp** khai
+> `khong_soat_vi` viện dẫn nó, mỗi lượt một biến thể nghe rất hợp lý —
+> *bằng chứng nằm ngoài repo* · *bằng chứng là MÃ* · *bản chụp cũ hơn lời
+> khai*. Đếm ra: hôm ấy **1 hỏi thật / 6 bỏ qua**, toàn sổ **30/43**.
+> Người dùng phải hỏi thẳng, **lần nhắc thứ tư**.
+>
+> **BA LUẬT, và cái thứ ba là cái khó nhất:**
+>
+> 1. **Một lời khai *"quần thể không chứa câu trả lời"* phải ĐO LẠI, không
+>    được chép.** Quần thể đổi khi nạp thêm nguồn, và nạp thêm nguồn là
+>    việc **cộng vào, đảo lại được** — luật xoá nguồn chỉ quản việc XOÁ.
+> 2. **Thấy quần thể thiếu thì ĐÓNG nó, đừng viện dẫn nó.** Phép sửa nằm
+>    ngay trong chính phép đo; hôm ấy tôi nghĩ ra nó buổi sáng rồi hoãn.
+> 3. **Chuỗi bỏ qua là một đại lượng — nó có trong bản tin mở phiên.**
+>    `tools/cua_mo_phien.chuoi_khong_soat()` đếm số mục CUỐI SỔ liên tiếp
+>    đều khai `khong_soat_vi`; từ **3** trở lên bản tin nói ra và gọi tên
+>    chúng. Nó **không chặn** — nó làm một hình dạng vô hình thành nhìn
+>    thấy được, đúng chỗ còn quyền chọn.
+>
+> **GÁC HIỂN NHIÊN HƠN ĐÃ ĐO VÀ BỎ — đừng dựng lại nó.** Ý đầu tiên là
+> *cấm lặp lý do*. Đo 435 cặp trong sổ:
+>
+> ```
+> sau muc cua loi 86, giua CHUNG voi nhau : trung binh 0,131
+> moi cap CON LAI trong so                : trung binh 0,099
+> cap giong nhau nhat ca so               : 0,653  (hai muc KHONG lien quan)
+> khong cap nao dat 0,70
+> ```
+>
+> Sáu lời khai ấy giống nhau **còn ít hơn** mức trung bình. Chúng không bị
+> chép — mỗi lượt là một lý do thật sự khác, và **chính điều đó làm chúng
+> vô hình**. Một gác so chữ sẽ im lặng đúng lúc cần kêu. Thứ lặp lại là
+> **sự kiện được viện dẫn**, không phải chữ, và máy không đọc được điều đó.
+
+> ### ⚠️ CÁCH HỎI QUYẾT ĐỊNH NÓ BỊA HAY KHÔNG — BƯỚC 107, 18/09/2026
+>
+> Ba câu hỏi trong một phiên tách được đúng một biến:
+>
+> | file có trong nguồn? | câu hỏi có LỐI THOÁT? | kết quả |
+> |---|---|---|
+> | **có** | **không** | **BỊA tiêu đề** |
+> | **KHÔNG** | **không** | **BỊA cả trích dẫn LẪN tên file** |
+> | **có** | **có** | **chính xác từng chữ** |
+>
+> Hai câu đầu đối chiếu bằng `grep`: **0 dòng khớp**. Câu thứ hai nặng hơn
+> — nó **trích một file không nằm trong nguồn**, mà **số hiệu thì đúng** vì
+> suy được từ một file khác. *Con số đúng bọc trong bằng chứng bịa* là hình
+> dạng khó thấy nhất.
+>
+> **LUẬT: mọi câu gửi sổ tay phải mang một LỐI THOÁT tường minh** — ví dụ
+> *"If that file is NOT among your sources, say exactly that and do not
+> guess."* Thiếu nó, **sổ tay bịa thay vì từ chối**.
+>
+> Vế này mạnh hơn luật cũ *"phải tự kiểm lại mọi phát hiện"*: nó nói **cách
+> hỏi**, không chỉ nói cách đọc. Cả hai đều phải giữ.
+
 **Dùng nó khi nào**
 
 - Trước một phép đo lớn: nhờ nó soát tiêu chí đã khai xem có mâu thuẫn
