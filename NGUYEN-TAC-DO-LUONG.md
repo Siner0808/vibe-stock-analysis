@@ -194,6 +194,21 @@ Bài học riêng của lần này: **báo cáo nằm ngoài repo thì nằm ngo
 biến.** Thư mục `brain/` không được git theo dõi, không ai review, và là nơi
 con số được diễn giải thành kết luận.
 
+> ⚠️ **Thư mục ấy NAY KHÔNG CÒN — soát định kỳ 18/09/2026.** Vế phủ định
+> vẫn đúng và còn đúng mạnh hơn: `git log --all -- brain` trả về **rỗng**,
+> tức git chưa bao giờ theo dõi nó. Nhưng `brain/` cũng không còn ở gốc
+> repo, và bản báo cáo `20loop_custom71_18m_optimization_report.md` mà
+> đoạn trên dẫn thì không tìm thấy ở đâu.
+>
+> Giữ nguyên hai câu vì chúng là **sử liệu** của sự cố 12/08/2026. Thêm dấu
+> vì một câu ở thì hiện tại về một thư mục đã mất thì mời người đọc đi tìm
+> nó — đúng hình dạng đã cắn dự án ở `N_DAY_DU` 596/451 và ở cờ C5.
+>
+> **Bài học thì KHÔNG hết hạn**, và đó mới là thứ đáng giữ: nơi con số
+> được diễn giải thành kết luận phải nằm trong tầm của các bất biến. Hôm
+> nay nơi ấy là `docs/STATE.md` và `docs/TIEU-CHI-DOC-TRUOC.md`, cả hai
+> đều được git theo dõi và đi qua PR.
+
 ## Kết quả ngoài mẫu gần nhất (07/08/2026)
 
 Rổ 50 mã, tối ưu trên tín hiệu từ 2025-07-17, kiểm định trên tín hiệu trước đó:

@@ -219,9 +219,30 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   Đọc lúc n = 9/10 và chứng minh được ngày thứ mười không lật được phán
   quyết (cận 260,59–277,01, cùng một ô). Lệnh đọc:
   `tools/do20_doi_cron.py`. BƯỚC 89.
+  **Đã đọc lại ở n = 10 ngày 18/09/2026:** trung vị **277,01 phút**, chênh
+  nền **+30,01**, 0 ngày rơi nhịp — **bằng đúng cận trên đã ký**, không dư
+  một phần trăm phút. Phán quyết giữ nguyên. BƯỚC 101.
 
 **Cần người quyết:**
 
+- **`vnstock_data` 3.2.8 KHÔNG import được nữa** (đo 18/09/2026). Không
+  phải *"chưa nâng"* — **import là nổ**:
+
+  ```bash
+  ./.venv/Scripts/python.exe -c "import vnstock_data"
+  ```
+
+  ```
+  ImportError: cannot import name 'ProxyConfig'
+               from 'vnstock.core.utils.client'
+  ```
+
+  Vỡ từ lượt nâng `vnstock` 4.0.8 (ĐO 10, 17/09). **Repo không hề gì** —
+  luật cấm `import vnstock_data` ở mức module và mọi chỗ dùng đều bọc
+  `try/except`, nên 1.202 test vẫn xanh. Nhưng nó đổi hạng việc nâng lên
+  3.3.0 từ *nên làm* thành *phải làm*, và bản 3.3.0 **đổi CON SỐ** (ROE
+  23,59 so với 0,2359) nên phải đo lại. Trình cài đòi **khoá của người
+  dùng**, và khoá không đi qua tay agent. `docs/STATE.md` BƯỚC 103.
 - ~~**Bảng số mục "CHI PHÍ THỰC THI" trong `CLAUDE.md`** cần một lượt đo
   đầy đủ ở cấu hình hiện hành.~~ **XONG** — ĐO 3 (10/09) cho cấu hình mặc
   định, ĐO 4 (11/09) cho cỡ mẫu rộng hơn. Hai bảng, hai câu hỏi, cùng kết

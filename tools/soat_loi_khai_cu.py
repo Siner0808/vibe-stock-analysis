@@ -46,15 +46,53 @@ NÓ KHÔNG PHÁN — nó chỉ ra CHỖ ĐÁNG NHÌN
 ───────────────────────────────────────
 Giống hệt lời khai về NotebookLM trong `SKILL.md`. Mỗi dòng in ra là một
 địa chỉ để mở ra xem, không phải một kết luận rằng câu ấy đã sai.
+
+NÓ TỪNG BẢO NGƯỜI TA GHI VÀO MỘT CHỖ NÓ KHÔNG ĐỌC (sửa 18/09/2026)
+──────────────────────────────────────────────────────────────────
+Bản đầu kết bằng *"ghi kết quả lượt soát vào `docs/soat-dinh-ky.json`"* rồi
+**không bao giờ đọc file ấy**. Một ống một chiều: nó đòi một bản ghi mà
+chính nó không dùng được.
+
+Đo trước khi sửa — dựng lại cây tài liệu của hai commit trong thư mục tạm
+rồi gọi chính `loi_khai_con_song`, nên phép đo không đi qua bản sao nào của
+logic này:
+
+    16/09 (441b2d4)   15 loi khai
+    18/09 (4861040)   16 loi khai
+    ra khoi danh sach : 0 dong
+    ca HAI dong luot 16/09 da phan xu : van con nguyen trong danh sach
+
+Lượt soát 16/09 phán xử hai dòng và đánh dấu một dòng **đúng quy ước dự
+án** — giữ nguyên câu gốc, thêm ô ⚠️ NGAY DƯỚI. `DA_CO_DAU` đọc TỪNG DÒNG
+nên nó không thấy ô dấu ở dòng kế. Phạm vi của phép lọc hẹp hơn đơn vị của
+quy ước: cùng họ lỗi 73 và lỗi 80.
+
+Hệ quả thật, không phải lý thuyết: danh sách chỉ mọc dài, một lượt soát
+không để lại dấu vết nào trong chính bản in, nên lượt sau mở lại đúng những
+dòng lượt trước vừa mở — và phần đuôi chưa ai động tới thì mãi không ai
+động tới.
+
+**Phép sửa KHÔNG phải xoá dòng đã soát.** Một câu phán *"THẬT, vẫn đúng"*
+hôm nay vẫn cũ được ngày mai; xoá nó khỏi danh sách là dựng đúng cái im
+lặng mà nhịp soát sinh ra để phá. Nó **xếp** và **ghi chú**: chưa ai mở thì
+lên trước, đã soát thì xuống dưới kèm NGÀY và PHÁN QUYẾT.
+
+Khớp bằng **nguyên văn dòng** (`dong` trong sổ), không bằng số dòng — số
+dòng trôi mỗi lần tài liệu dài ra, và hai mục ngày 16/09 đã trôi 1706→1873
+và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa
+ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói
+về nó nữa.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
+SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 
 TAI_LIEU = [
     ".claude/skills/quy-trinh-lam-viec/SKILL.md",
@@ -125,6 +163,50 @@ def loi_khai_con_song(goc: Path = GOC) -> list[tuple[str, int, str]]:
     return ra
 
 
+def da_soat(so: dict) -> dict[str, tuple[str, str]]:
+    """{nguyên-văn-dòng: (ngày, phán quyết)} — HÀM THUẦN, nhận sổ đã nạp.
+
+    Khoá là **nguyên văn dòng**, không phải số dòng. Phát hiện nào chưa khai
+    `dong` thì không vào bảng — và đó là chiều hỏng AN TOÀN: dòng ấy hiện ra
+    như chưa ai mở, tức lượt sau mở lại nó. Chiều hỏng nguy hiểm là ngược
+    lại — đánh dấu "đã soát" cho một dòng chưa ai soát — và khoá nguyên văn
+    không tạo ra được chiều ấy.
+
+    Lượt gần nhất thắng: cùng một dòng soát hai lần thì ngày sau đè ngày
+    trước.
+    """
+    bang: dict[str, tuple[str, str]] = {}
+    for luot in sorted(so.get("lan_soat", []), key=lambda x: x.get("ngay", "")):
+        for pd in luot.get("phat_hien", []):
+            d = (pd.get("dong") or "").strip()
+            if d:
+                bang[d] = (luot.get("ngay", ""), pd.get("phan_quyet", ""))
+    return bang
+
+
+def xep(ra, bang) -> list[tuple[str, int, str, tuple[str, str] | None]]:
+    """CHƯA AI MỞ lên trước, giữ nguyên thứ tự file/dòng trong mỗi nhóm.
+
+    KHÔNG bỏ dòng nào. Một câu phán "THẬT, vẫn đúng" hôm nay vẫn cũ được
+    ngày mai — xoá nó khỏi danh sách là dựng lại đúng cái im lặng mà nhịp
+    soát sinh ra để phá.
+    """
+    kem = [(f, i, nd, bang.get(nd.strip())) for f, i, nd in ra]
+    return ([x for x in kem if x[3] is None]
+            + [x for x in kem if x[3] is not None])
+
+
+def so_tro_vao_hu_khong(bang, ra) -> list[str]:
+    """Dòng trong SỔ không còn khớp lời khai sống nào.
+
+    Hai nguyên nhân, và công cụ KHÔNG phân biệt được — nên nó chỉ ra chỗ,
+    không phán: câu đã được sửa (tốt, việc đã xong), hoặc `dong` ghi sai
+    ngay từ đầu (lời khai ấy chưa bao giờ trỏ vào đâu).
+    """
+    song = {nd.strip() for _, _, nd in ra}
+    return sorted(d for d in bang if d not in song)
+
+
 def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -136,21 +218,47 @@ def main() -> int:
     a = ap.parse_args()
 
     ra = loi_khai_con_song()
+    try:
+        so = json.loads(SO_DINH_KY.read_text(encoding="utf-8"))
+    except Exception:
+        so = {}
+    bang = da_soat(so)
+    kem = xep(ra, bang)
+    chua = [x for x in kem if x[3] is None]
+
     if not a.im:
         print("LỜI KHAI PHỦ ĐỊNH CÒN SỐNG — mở ra xem, đừng tin sẵn\n"
               + "=" * 64)
+        nhom_cu = None
         f_cu = None
-        for f, dong, noi_dung in ra:
+        for f, dong, noi_dung, dau in kem:
+            nhom = dau is None
+            if nhom != nhom_cu:
+                print("\n--- CHƯA AI MỞ ---" if nhom
+                      else "\n--- ĐÃ SOÁT (mở lại được, không phải đã xong) ---")
+                nhom_cu, f_cu = nhom, None
             if f != f_cu:
                 print(f"\n{f}")
                 f_cu = f
             print(f"  {dong:5}  {noi_dung[:150]}")
+            if dau:
+                print(f"         ↳ soát {dau[0]} — {dau[1][:110]}")
         print("\n" + "=" * 64)
-    print(f"{len(ra)} lời khai · {len(TAI_LIEU)} tài liệu")
+
+    print(f"{len(ra)} lời khai · {len(TAI_LIEU)} tài liệu"
+          f" · chưa ai mở: {len(chua)}")
+
     if not a.im:
+        lac = so_tro_vao_hu_khong(bang, ra)
+        if lac:
+            print(f"\n{len(lac)} dòng trong sổ không còn khớp lời khai nào — "
+                  "câu đã sửa, hoặc `dong` ghi sai:")
+            for d in lac:
+                print(f"   {d[:100]}")
         print("\nMỗi dòng là một ĐỊA CHỈ để kiểm lại, không phải một phán "
               "quyết rằng nó đã sai.\nGhi kết quả lượt soát vào "
-              "docs/soat-dinh-ky.json.")
+              "docs/soat-dinh-ky.json — kèm `dong` là NGUYÊN VĂN dòng, "
+              "để lượt sau\nthấy được nó đã được mở.")
     return 0
 
 
