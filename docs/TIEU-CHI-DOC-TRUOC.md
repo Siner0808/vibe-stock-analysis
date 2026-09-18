@@ -2076,3 +2076,119 @@ hình dạng lỗi 78, lần này bắt được ngay ở lượt dùng đầu t
 Dụng cụ nay chụp thêm nội dung và in ra khoá nào đổi. **Bảng đọc không
 đổi một chữ** — đây là thêm chi tiết vào bản in, không phải thêm hay bớt
 một tiêu chí. Hai lượt chụp đã chạy lại từ đầu ở cả hai bản.
+
+---
+
+## ĐO 13 — `urllib3` 1.26.20 → 2.8.0: dữ liệu về có đổi một ô nào không? (khai 18/09/2026)
+
+**Dụng cụ đọc:** `tools/do13_nang_urllib3.py` — chạy hai lượt, `truoc`
+(trước khi nâng) rồi `sau` (sau khi nâng).
+
+**Đã tra trùng:** **BƯỚC 105** (18/09/2026) là chỗ vế lệch này được gọi
+tên, và nó ghi thẳng *"chưa ai đo"*. Bảy chỗ khác trong `CLAUDE.md`,
+`docs/HANDOFF.md` và `docs/STATE.md` đều chỉ **nhắc** khoảng cách ấy, không
+chỗ nào đo. ĐO 10 có kéo OHLCV nhưng đo `vnstock`, không đo tầng HTTP dưới
+nó — nên dụng cụ ĐO 13 **dùng lại** `do10_nang_vnstock._bam_bang()` thay
+vì viết một phép băm thứ hai.
+
+### CHIỀU CỦA PHÉP NÂNG NÀY NGƯỢC VỚI BA PHÉP TRƯỚC — đọc kỹ chỗ này
+
+ĐO 10 · 11 · 12 đều là *"máy này đang tụt lại, đuổi theo bản CI đã chạy"*.
+ĐO 13 cũng vậy về hình thức, nhưng hệ quả của ô `KHÔNG NÂNG` thì khác hẳn:
+
+```
+requirements.txt KHONG ghim urllib3 (no la phu thuoc gian tiep cua requests)
+  -> CI          cai ban moi nhat  =  2.8.0
+  -> Streamlit Cloud cung duong ay =  2.8.0
+  -> may local                     =  1.26.20   <- ke duy nhat o 1.x
+```
+
+**Người dùng đang chạy trên 2.x rồi.** Nên nếu dữ liệu ĐỔI, kết luận
+không phải *"đừng nâng máy local"* — nó là **mọi con số đo ở máy này đều
+đo trên một tầng HTTP khác tầng đang phục vụ**, và việc phải làm là ghim
+`urllib3<2` trong `requirements.txt` để kéo **sản xuất** về đúng bản đã đo.
+Đó là một hành động nặng hơn ĐO 12, và nó được khai ở đây TRƯỚC khi thấy
+số.
+
+### Bề mặt, ĐO chứ không đoán
+
+```
+requests 2.34.2   khai `urllib3<3,>=1.26`   -> CA HAI ban nam trong dai
+repo goi requests: DUNG HAI cho
+    vnstock_goi.py     requests.get (params, timeout)
+    chatbot_agent.py   requests.post (headers, json, timeout)
+duong DU LIEU that:
+    vnstock/core/utils/client.py::send_request  -> requests.get / requests.post
+vnstock/vnai dung API urllib3 truc tiep:  KHONG
+    (`block_detect.py` co nhac ten, nhung trong DOCSTRING, va co y KHONG
+     dung ham cua urllib3)
+```
+
+Nên urllib3 **có** trên đường dữ liệu: mọi dòng OHLCV dự án chấm đều đi
+qua `requests` → urllib3. Nhưng bề mặt repo chạm tới nó thì **rất mỏng** —
+không `Retry`, không `HTTPAdapter`, không `verify=False`, không `proxies`.
+
+### ĐỐI CHỨNG quyết định ô D có ĐỌC ĐƯỢC hay không
+
+Đây là chỗ khác ĐO 12 về bản chất: ĐO 12 so hai `go.Figure` dựng từ một
+bảng giá **sinh bằng công thức đóng**, nên hai lượt chắc chắn cùng đầu
+vào. ĐO 13 phải **gọi mạng**, và một endpoint có thể trả khác nhau vì lý
+do chẳng liên quan gì tới urllib3 — dự án đã gặp đúng chuyện ấy một lần
+(HT1 · TCH, một lượt kéo hỏng tạm thời).
+
+Nên **D0 chạy TRƯỚC D1, trên CÙNG MỘT bản urllib3**: kéo hai lượt cùng
+khoảng, cùng mã. Hai lượt ấy khác nhau thì endpoint không tất định, và khi
+đó D1 **không nói được gì về urllib3** — nó nói về endpoint. Bỏ D0 đi thì
+một khác biệt ngẫu nhiên sẽ bị đọc thành một phán quyết về thư viện.
+
+### Năm đại lượng
+
+| | đại lượng | quyền phán |
+|---|---|---|
+| **A** | `import requests` trong tiến trình riêng, và `urllib3.__version__` nó thật sự nạp | **CÓ** |
+| **B** | hai cặp (hàm, từ khoá) repo gọi, so với `inspect.signature` của `requests` | **CÓ** |
+| **C** | `vnstock…client.send_request` — chữ ký còn nhận đúng tham số cũ | **CÓ** |
+| **D0** | *đối chứng*: hai lượt kéo CÙNG bản, cùng khoảng đã đóng | quyết định D1 có đọc được |
+| **D1** | băm CSV của OHLCV một khoảng **đã đóng**, so hai bản urllib3 | **CÓ**, nếu D0 đạt |
+| **E** | thời gian mỗi lượt kéo | **KHÔNG** — ghi ra để đọc |
+
+**E không có quyền phán**, và lý do đáng nói: urllib3 2.x đổi cách gộp kết
+nối, nên thời gian gần như chắc chắn khác. Cho nó quyền phán là tự định
+sẵn `KHÔNG NÂNG` — đúng cái bẫy ĐO 12 đã gọi tên ở ô E của nó.
+
+### BẢNG ĐỌC — ký trước, không sửa sau khi thấy số
+
+```
+A  import NO o mot ban                     ->  KHONG NANG
+B  mot tu khoa bi CHOI                     ->  KHONG NANG
+C  send_request DOI chu ky                 ->  KHONG NANG
+D0 hai luot CUNG BAN khac nhau             ->  CHUA KET LUAN DUOC, khong nang
+D1 bam DU LIEU doi (khi D0 dat)            ->  KHONG NANG, va ghim urllib3<2
+E  thoi gian doi                           ->  GHI RA, khong tu no quyet dinh
+   A B C D1 giong het va D0 dat            ->  NANG DUOC, neu 5 cong xanh
+   khong goi duoc mang o mot luot nao      ->  CHUA KET LUAN DUOC, khong nang
+```
+
+**Ba ô, không phải hai** — cùng quy ước ĐO 10 · 11 · 12.
+
+### GIỚI HẠN NÊU TRƯỚC — và ở phép đo này chúng LỚN
+
+Nói ra đây thay vì để người đọc tự suy, vì một lượt xanh rất dễ bị đọc
+rộng hơn thứ nó giao:
+
+1. **Phép đo chạm ĐÚNG MỘT endpoint, MỘT khoảng, trên một đường mạng
+   lành.** Nó **không** đo: TLS/SSL, chứng chỉ, `Retry`, chuyển hướng,
+   proxy, gộp kết nối khi tải nặng, hay hành vi lúc endpoint trả lỗi.
+2. **Và đó đúng là vùng urllib3 2.x đổi nhiều nhất.** Tức ĐO 13 đo phần
+   dự án **dùng**, không đo phần thư viện **đổi**. Một lượt xanh nói
+   *"đường dữ liệu bình thường cho cùng byte"*, nó **không** nói
+   *"2.x an toàn"*.
+3. **Cổng CI đã chạy 2.8.0 nhiều ngày và đều xanh — điều đó nói ít hơn
+   vẻ ngoài.** Gần như mọi phép kiểm của dự án chạy **offline**; chúng
+   chứng minh đường *nạp* sống, không chứng minh đường *dữ liệu*.
+4. **Đường POST của `chatbot_agent.py` KHÔNG được đo** — nó cần khoá
+   Gemini, và khoá không đi qua tay agent. Ô B vẫn kiểm chữ ký của lời
+   gọi ấy, nhưng không ai gọi nó thật trong phép đo này.
+5. **`pyarrow` 24 → 25 không nằm trong ĐO này.** Nó là vế lệch bản CHÍNH
+   thứ hai và cần một bảng riêng; gộp hai phép nâng vào một lượt là đúng
+   cái lỗi `--stride 1` đã bị cấm ngày 09/09.
