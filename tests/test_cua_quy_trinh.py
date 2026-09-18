@@ -850,3 +850,90 @@ def test_DAU_VA_cua_CHUYEN_HUONG_khong_phai_dau_ngan_lenh():
     assert len(cb.boc_va_tach("cmd1 & cmd2")) == 2
     assert len(cb.boc_va_tach("a; b")) == 2
     print("PASS  `&` cua chuyen huong khong tach, `&` chay nen thi co")
+
+
+# ══ CHUỖI `khong_soat_vi` — lỗi 86 ═════════════════════════════════════
+#
+# Bản tin mở phiên phải NÓI RA khi nhiều lượt liên tiếp đều bỏ soát chéo.
+# Nó không chặn gì; nó chỉ làm một hình dạng vô hình thành nhìn thấy được.
+#
+# Gác hiển nhiên hơn — *cấm lặp lý do* — đã được ĐO và BÁC (18/09/2026):
+# sáu lời khai của lỗi 86 giống nhau trung bình **0,131**, còn THẤP HƠN
+# mức trung bình của mọi cặp khác trong sổ (0,099 nền, cao nhất 0,653 ở
+# một cặp KHÔNG liên quan). Chúng không bị chép — mỗi lượt một lý do thật
+# sự khác, và chính điều đó làm chúng vô hình. Đừng dựng lại gác ấy.
+
+
+def _so_gia(*the):
+    """Sổ dựng tay: `the` là dãy 'k' (khong_soat_vi) hoặc 'p' (phat_hien)."""
+    return {f"M{i}": ({"khong_soat_vi": f"ly do rieng so {i}"} if t == "k"
+                      else {"phat_hien": [{"noi_dung": "x"}]})
+            for i, t in enumerate(the)}
+
+
+def test_CHUOI_dem_tu_CUOI_SO_va_dut_o_mot_luot_HOI_THAT():
+    assert mp.chuoi_khong_soat(_so_gia("k", "k", "k")) == ["M0", "M1", "M2"]
+    assert mp.chuoi_khong_soat(_so_gia("k", "k", "p")) == [], (
+        "mot luot HOI THAT o CUOI phai cat chuoi ve 0")
+    assert mp.chuoi_khong_soat(_so_gia("p", "k", "k")) == ["M1", "M2"], (
+        "chi dem tu CUOI tro len, khong dem ca so")
+    assert mp.chuoi_khong_soat({}) == []
+
+
+def test_CHUOI_dem_theo_THU_TU_GHI_chu_khong_theo_NGAY():
+    """Nhiều mục cùng một ngày; thứ tự GHI mới là thứ tự người ta đi qua."""
+    so = {"A": {"khong_soat_vi": "x", "ngay": "2026-09-18"},
+          "B": {"phat_hien": [{"noi_dung": "y"}], "ngay": "2026-09-01"},
+          "C": {"khong_soat_vi": "z", "ngay": "2026-09-18"}}
+    assert mp.chuoi_khong_soat(so) == ["C"], (
+        "sap theo ngay se gop A va C lai — phai theo thu tu ghi")
+
+
+def test_CHUOI_bo_qua_khoa_KHONG_phai_muc(     ):
+    """Sổ có khoá `_ghi_chu`, `_moc_buoc`… là chuỗi, không phải mục."""
+    so = {"M0": {"khong_soat_vi": "x"}, "_ghi_chu": "day khong phai muc",
+          "M1": {"khong_soat_vi": "y"}}
+    assert mp.chuoi_khong_soat(so) == ["M0", "M1"]
+
+
+def test_BAN_TIN_KEU_khi_chuoi_dat_nguong_va_IM_khi_chua(monkeypatch):
+    """Cả hai chiều. Một gác chỉ thấy đầu vào sạch thì không giết được
+    đột biến nới lỏng."""
+    monkeypatch.setattr(mp, "chuoi_khong_soat",
+                        lambda *a, **k: ["M1", "M2", "M3"])
+    assert "LIÊN TIẾP" in mp.ban_tin(), "dat nguong ma ban tin IM"
+    monkeypatch.setattr(mp, "chuoi_khong_soat", lambda *a, **k: ["M1", "M2"])
+    assert "LIÊN TIẾP" not in mp.ban_tin(), "duoi nguong ma van keu"
+
+
+def test_BAN_TIN_neu_TEN_muc_chu_khong_chi_dem():
+    """Một con số trơ trọi là thứ lỗi 78 đã cấm — phải gọi tên."""
+    import unittest.mock as m
+    with m.patch.object(mp, "chuoi_khong_soat",
+                        lambda *a, **k: ["BƯỚC 104", "ĐO 13", "BƯỚC 106"]):
+        t = mp.ban_tin()
+    assert "BƯỚC 106" in t and "ĐO 13" in t, t
+
+
+def test_NGUONG_la_mot_QUYET_DINH_khong_duoc_noi_am_tham():
+    """Neo bằng số viết THẲNG — đọc lại hằng số thì đột biến vào hằng số
+    làm mù cả hai vế, đúng phát đã sống sót ở `kiem_so_test`."""
+    assert mp.NGUONG_CHUOI_BO_SOAT <= 3, (
+        f"nguong = {mp.NGUONG_CHUOI_BO_SOAT}, noi rong hon 3 thi chuoi sau "
+        f"muc cua loi 86 van lot qua o nhung lan dau")
+    assert mp.NGUONG_CHUOI_BO_SOAT >= 2, "duoi 2 thi moi luot bo soat deu keu"
+
+
+def test_DUNG_LAI_CA_THAT_loi_86_ban_tin_PHAI_keu():
+    """Ca thật, đọc từ chính sổ: bỏ mục cuối đi là đúng trạng thái lúc lỗi
+    86 xảy ra. Đây là phép kiểm duy nhất ở đây chạy trên quần thể THẬT."""
+    import json
+    so = json.loads((GOC / "docs" / "soat-notebooklm.json")
+                    .read_text(encoding="utf-8"))["soat"]
+    ten = [k for k, v in so.items() if isinstance(v, dict)]
+    luc_hong = {k: v for k, v in so.items() if k != ten[-1]}
+    c = mp.chuoi_khong_soat(luc_hong)
+    assert len(c) >= mp.NGUONG_CHUOI_BO_SOAT, (
+        f"chuoi luc loi 86 xay ra chi {len(c)} — ban tin se IM dung luc "
+        f"can keu: {c}")
+    assert "BƯỚC 106" in c, c

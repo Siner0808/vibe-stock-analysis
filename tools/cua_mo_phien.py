@@ -47,6 +47,18 @@ THU_MUC_SKILL = GOC / ".claude" / "skills"
 #: kiện lật ngược nó nằm ngay trong câu khai ra nó.
 NHIP_SOAT_NGAY = 2
 
+#: Từ bao nhiêu lượt `khong_soat_vi` LIÊN TIẾP thì bản tin phải nói ra.
+#:
+#: Ba, và con số này KHÔNG phải một ngưỡng thống kê — tỷ lệ nền của sổ là
+#: 30/43 ≈ 70%, nên một chuỗi 3 xảy ra ~34% thời gian do ngẫu nhiên. Nó là
+#: một ngưỡng **chi phí**: báo nhầm tốn đúng một dòng chữ, còn bỏ sót thì
+#: tốn đúng cái đã xảy ra ngày 18/09/2026 — sáu lượt liên tiếp, và người
+#: dùng phải nhắc lần thứ tư.
+#:
+#: Dòng này KHÔNG chặn gì. Nó nói ra lúc MỞ PHIÊN, chỗ còn quyền chọn —
+#: đúng hình dạng đã cứu chính vấn đề này ngày 16/09.
+NGUONG_CHUOI_BO_SOAT = 3
+
 RE_NGAY = re.compile(r"\*\*(\d{2})/(\d{2})/(\d{4})\*\*")
 
 
@@ -129,6 +141,51 @@ def buoc_chua_khai_soat() -> list[str]:
         return []
 
 
+def chuoi_khong_soat(so: dict | None = None) -> list[str]:
+    """Dãy mục CUỐI SỔ liên tiếp nhau đều khai `khong_soat_vi`. HÀM THUẦN.
+
+    VÌ SAO ĐẾM CHUỖI, VÀ VÌ SAO KHÔNG SO CHỮ — lỗi 86, đo 18/09/2026
+    ─────────────────────────────────────────────────────────────────
+    Giả thuyết đầu tiên là *"các lý do viện dẫn cùng một sự kiện sẽ giống
+    nhau về CHỮ"*, nên gác nên cấm lặp lý do. **Đo trước khi dựng, và phép
+    đo BÁC nó:**
+
+        sau muc cua loi 86, giua CHUNG voi nhau : trung binh 0,131
+        moi cap CON LAI trong so                : trung binh 0,099
+        cap giong nhau nhat ca so               : 0,653  (BUOC 84 <-> 85)
+        khong cap nao trong 435 cap dat 0,70
+
+    Sáu lời khai ấy giống nhau **còn ít hơn** mức trung bình. Chúng không
+    bị chép — mỗi lượt là một lý do thật sự khác, thật sự cụ thể, và
+    **chính điều đó làm chúng vô hình**. Một gác so chữ sẽ im lặng đúng
+    lúc cần kêu.
+
+    Thứ lặp lại là **sự kiện được viện dẫn**, không phải chữ: *"bản chụp"*
+    ở 4/6, *"file .py"* ở 4/6, *"quần thể"* · *"lỗi 66"* ở 3/6. Máy không
+    đọc được điều đó.
+
+    Nên đại lượng duy nhất còn lại mà máy đọc được là **độ dài chuỗi**. Nó
+    không phán lý do đúng hay sai — nó chỉ làm cái hình dạng ấy **không
+    còn vô hình được nữa**.
+
+    Đếm theo THỨ TỰ GHI trong sổ, không theo ngày: nhiều mục cùng một
+    ngày, và thứ tự ghi mới là thứ tự người ta đi qua chúng.
+    """
+    try:
+        if so is None:
+            so = json.loads(SO_SOAT.read_text(encoding="utf-8"))["soat"]
+        ra: list[str] = []
+        for ten, d in reversed(list(so.items())):
+            if not isinstance(d, dict):
+                continue
+            if "khong_soat_vi" not in d:
+                break
+            ra.append(ten)
+        return list(reversed(ra))
+    except Exception:
+        return []
+
+
 def ngay_tu_lan_soat_quy_trinh(hom_nay: dt.date | None = None) -> int | None:
     """Số ngày kể từ lượt soát lại quy trình gần nhất; `None` nếu chưa đọc được.
 
@@ -160,8 +217,17 @@ def ban_tin(hom_nay: dt.date | None = None) -> str:
 
     thieu = buoc_chua_khai_soat()
     tre = ngay_tu_lan_soat_quy_trinh(hom_nay)
-    if thieu or (tre is not None and tre >= NHIP_SOAT_NGAY):
+    chuoi = chuoi_khong_soat()
+    if (thieu or (tre is not None and tre >= NHIP_SOAT_NGAY)
+            or len(chuoi) >= NGUONG_CHUOI_BO_SOAT):
         d.append("│")
+    if len(chuoi) >= NGUONG_CHUOI_BO_SOAT:
+        them = " …" if len(chuoi) > 3 else ""
+        d.append(f"│ ⚠️  {len(chuoi)} lượt LIÊN TIẾP khai `khong_soat_vi`: "
+                 f"{' · '.join(chuoi[-3:])}{them}")
+        d.append("│   Mỗi lý do có thể đúng mà chuỗi vẫn sai — lỗi 86.")
+        d.append("│   Đo lại quần thể sổ tay trước khi khai lượt thứ "
+                 f"{len(chuoi) + 1}.")
     if thieu:
         them = " …" if len(thieu) > 4 else ""
         d.append(f"│ SOÁT CHÉO còn nợ {len(thieu)}: "
