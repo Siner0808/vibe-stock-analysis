@@ -235,9 +235,27 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   **ĐÃ ĐO 18/09/2026 (ĐO 13): NÂNG ĐƯỢC.** Máy nay 2.8.0. Dữ liệu OHLCV
   **không đổi một ô** — băm CSV ba mã giống hệt từng chữ, và ô đối chứng
   D0 đạt ở cả hai chân nên phép so quy được về một vế. `docs/STATE.md`
-  BƯỚC 106. **Còn `pyarrow` 24.0.0 → 25.0.1**, vế lệch bản CHÍNH cuối
-  cùng, cần một bảng tiêu chí RIÊNG — gộp hai phép nâng vào một lượt là
-  đúng cái lỗi `--stride 1` đã bị cấm.
+  BƯỚC 106.
+- ~~**`pyarrow` 24.0.0 → 25.0.1** — vế lệch bản CHÍNH cuối cùng~~
+  **NGƯỜI DÙNG CHỐT BỎ QUA (18/09/2026).** Lý do đo được, không phải
+  cảm tính:
+
+  ```
+  repo nhap pyarrow          : KHONG  (AST, tools/so_ban_goi.goi_repo_nhap)
+  pyarrow la phu thuoc cua   : streamlit · vnstock_news
+  streamlit nhap no o        : 7 file, deu trong dataframe/ va elements/arrow.py
+  ```
+
+  Nên phần đáng lo — tuần tự hoá dataframe khi vẽ bảng — nằm **bên trong
+  Streamlit**, chỗ dự án không gọi rời được để đo. Một ĐO 14 dựng ra sẽ đo
+  được vế *"import có nổ không"* và **không** đo được vế đáng lo; câu trả
+  lời trung thực nhất của nó là *"không đo được phần quan trọng"*.
+  **Một bảng tiêu chí chỉ có ô không-đọc-được là diễn kịch** — cùng lý do
+  ĐO 13 không cần bảng cho `vnstock_data`.
+
+  Hệ quả phải nhớ: máy local ở 24.0.0, CI và Streamlit Cloud ở 25.0.1, và
+  **khoảng cách ấy CỐ Ý để lại**. `tools/so_ban_goi.py` vẫn in nó ở hạng
+  `con lai` mỗi lượt chạy — nó không im, chỉ là không ai định đóng.
 - *(đoạn cũ, giữ để đối chiếu)*
   Nó nằm ở hạng `con lai` nên công cụ không kêu, nhưng `requests` — gói
   repo **CÓ** nhập — chạy trên nó, và 1.x với 2.x khác hành vi. Nâng là
