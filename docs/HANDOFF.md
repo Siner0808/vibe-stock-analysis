@@ -225,7 +225,18 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 **Cần người quyết:**
 
-- **`vnstock_data` 3.2.8 KHÔNG import được nữa** (đo 18/09/2026). Không
+- ~~**`vnstock_data` 3.2.8 KHÔNG import được nữa**~~ **XONG 18/09/2026:**
+  nâng **3.3.0**, `vnstock_ta` khỏi theo (nó vỡ vì `import vnstock_data`,
+  một gốc hai symptom). **Không cần người dùng đưa gì** — khoá nằm sẵn ở
+  `~/.vnstock/api_key.json` và `vnii` tự đọc. Repo **không nhập
+  `vnstock_data` ở đâu cả**, nên không có con số nào đổi và không cần bảng
+  tiêu chí. `docs/STATE.md` BƯỚC 104.
+- **`urllib3` máy 1.26.20 · CI 2.8.0 — khoảng cách bản CHÍNH, CHƯA AI ĐO.**
+  Nó nằm ở hạng `con lai` nên công cụ không kêu, nhưng `requests` — gói
+  repo **CÓ** nhập — chạy trên nó, và 1.x với 2.x khác hành vi. Nâng là
+  một phép **ĐO**, cần tiêu chí ký trước; cùng hạng với `pyarrow`
+  24.0.0 → 25.0.1. `docs/STATE.md` BƯỚC 105.
+- *(đoạn cũ, giữ để đối chiếu)* Không
   phải *"chưa nâng"* — **import là nổ**:
 
   ```bash

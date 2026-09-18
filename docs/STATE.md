@@ -15222,3 +15222,228 @@ Việc nâng 3.3.0 vì thế đổi hạng: *nên làm* → **phải làm**. Nh�
 `import vnstock` sang `import vnstock_data` mà chưa đo"*), nên nó là một
 phép ĐO chứ không phải một lượt cài. Và trình cài đòi **khoá của người
 dùng** — khoá không đi qua tay agent.
+
+
+---
+
+## BƯỚC 104 — `vnstock_data` 3.3.0 VÀ TẮT TELEMETRY (18/09/2026)
+
+Hai việc người dùng giao, cả hai **không cần họ đưa gì**.
+
+### Khoá đã nằm sẵn trên máy — nó không đi qua tay agent
+
+Báo cáo hôm trước nói việc nâng *"đòi khoá của người dùng"*. Đúng một nửa:
+nó đòi khoá, nhưng khoá **đã ở `~/.vnstock/api_key.json`**, và
+`vnii.packages.PackageManager.get_api_key()` **tự đọc file ấy**. Agent
+không nhận, không in, không chép giá trị khoá ở bất cứ đâu.
+
+```
+auth_state.json   tier=silver · authenticated=True
+packages/list     accessible ['vnstock_ta','vnstock_data','vnstock_news']
+                  locked     ['vnstock_pipeline']
+```
+
+### Hai symptom, MỘT gốc
+
+```
+vnstock_data  HONG  ImportError: cannot import name 'ProxyConfig'
+vnstock_ta    HONG  cung loi — vi no `import vnstock_data` o dong dau
+```
+
+`vnstock_ta` **không hề nhắc `ProxyConfig`**; nó vỡ theo. Nên một phép sửa
+đóng cả hai. `grep -rn ProxyConfig .venv/.../vnstock/` trả **rỗng** — tên
+ấy đã biến mất khỏi `vnstock` 4.0.8, nên 3.2.8 không có đường sống.
+
+### Đường cài, và hai cái bẫy trên đường
+
+`vnii.install_package` nổ ngay: `Invalid wheel filename (wrong number of
+parts)`. Đúng cái bẫy `CLAUDE.md` ghi từ 22/08/2026 — *"tệp tải về mang
+tên `.whl` nhưng nội dung là sdist `.tar.gz`"*. Cái bẫy thứ hai là một lỗi
+của chính `vnii`: `download_package(output_dir=...)` đòi `Path`, truyền
+`str` thì nổ `TypeError: unsupported operand type(s) for /`.
+
+Đường đi được: tải bằng `PackageManager.download_package`, **đọc 4 byte
+đầu** thay vì tin phần mở rộng, lấy tên gốc từ header gzip, đặt lại tên,
+rồi `pip install`.
+
+```
+4 byte dau   1f8b0808        -> GZIP
+ten trong header gzip        -> 'vnstock_data-3.3.0.tar'   (gzip cat duoi .gz)
+tar doc duoc                 -> 218 muc, goc vnstock_data-3.3.0
+pip --dry-run                -> "Would install vnstock_data-3.3.0"  va KHONG gi khac
+```
+
+Lượt `--dry-run` là thứ đáng giữ: nó chứng minh **không gói nào khác đổi**
+trước khi chạm vào môi trường. `vnstock_data==3.3.0` đòi `vnstock>=4.0.8`,
+mà máy đang đúng 4.0.8.
+
+### Vì sao KHÔNG cần một bảng tiêu chí đọc trước
+
+Quy ước dự án buộc ký tiêu chí trước mọi phép nâng **chạm con số**. Phép
+nâng này không chạm được:
+
+```
+grep -rn vnstock_data --include=*.py .   (bo .venv, tests, tools)
+    -> RONG
+```
+
+Ba chỗ duy nhất nhắc tên ấy là `tests/test_requirements.py`,
+`tests/test_vnstock_goi.py`, `tests/test_dich_ghi_de_cua_vnai.py` — cả ba
+**thi hành luật cấm nhập**, không phải người dùng. Một bảng tiêu chí cho
+một gói repo không nhập là diễn kịch; bằng chứng đáng giữ là **lệnh chứng
+minh không dùng**, và nó nằm ngay trên.
+
+**Cảnh báo `CLAUDE.md` về ROE 23,59 / 0,2359 vẫn nguyên giá trị** — nó nói
+về việc ĐỔI MÃ sang `import vnstock_data`, việc chưa ai làm.
+
+### Phép thử thật cho công tắc agent, nay mới chạy được
+
+BƯỚC 103 phải dựng đối chứng dương thủ công vì `import vnstock_data` nổ.
+Nay nó chạy:
+
+```
+`import vnstock_data` ma thoat 0      <- CHAY TOI doan ghi
+0/4 dich bi ghi
+~/AGENTS.md  VANG -> VANG             <- dich `project` khong moc lai
+```
+
+### Telemetry — tắt, và bền qua tiến trình MỚI
+
+Đọc mã trước khi bấm, vì cái tên gây hiểu nhầm: `disable_telemetry()`
+không đặt một cờ "tắt", nó gọi `tracker.setup_privacy("minimal")`. Nhưng
+`telemetry_enabled()` trả **False** khi mức là `minimal`, và nó chặn **cả
+hai** chỗ:
+
+```
+relay._send_data   -> khong POST len hq.vnstocks.com/analytics
+relay.dispatch     -> tra False VA xoa sach bo dem
+```
+
+Nó ghi `~/.vnstock/config/privacy.json`, nên bền — khác hẳn biến môi
+trường `VNSTOCK_TELEMETRY`, thứ chỉ sống trong một tiến trình.
+
+Phép đo **đọc từ một tiến trình MỚI**, vì chỉ tiến trình thứ hai mới phân
+biệt được *"đã ghi đĩa"* với *"chỉ đổi trong bộ nhớ"*:
+
+```
+TRUOC  enabled=True   privacy_level=standard   privacy.json KHONG co
+SAU    enabled=False  privacy_level=minimal    privacy.json {"level":"minimal"}
+```
+
+Đảo lại: `vnai.enable_telemetry()`.
+
+### Còn hỏng, và CỐ Ý không sửa
+
+`vnstock_ezchart` vẫn nổ — `ModuleNotFoundError: No module named 'squarify'`,
+một phụ thuộc gói ấy dùng mà **không khai**. Sửa được bằng
+`pip install squarify`, nhưng repo **không nhập `vnstock_ezchart` lần nào**
+và `squarify` không có trong `requirements.txt`. Cài nó là tự tạo thêm một
+vế lệch local/CI để đổi lấy số không. Ghi ra đây, không cài.
+
+---
+
+## BƯỚC 105 — HAI VẾ LỆCH CUỐI, VÀ MỘT CÂU CỦA TÔI ĐỌC RỘNG HƠN PHẠM VI (18/09/2026)
+
+### Việc được giao, làm xong
+
+```
+altair      6.2.2 -> 6.3.0
+matplotlib  3.11.1 -> 3.11.2
+pip --dry-run: "Would install altair-6.3.0 matplotlib-3.11.2"  va khong gi khac
+
+so_ban_goi.py   LECH 29/92 -> 27/92
+                QUYET DINH SO   0
+                NGUOI DUNG THAY 0      <- ca hai hang on ao ve khong
+                ma thoat 1 -> 0
+```
+
+### Nhưng câu tôi báo cáo thì SAI PHẠM VI — lỗi 83
+
+Tôi viết *"hai vế lệch còn lại, đều bản phụ"*. Câu ấy đúng về **hai hạng
+ồn ào** và sai về **toàn cảnh**. Trong hạng `con lai` có hai khoảng cách
+bản **CHÍNH**:
+
+```
+urllib3   may 1.26.20  CI 2.8.0     <- `requests` (repo CO nhap) chay tren no
+pyarrow   may 24.0.0   CI 25.0.1
+```
+
+Đúng hình dạng **lỗi 80**, lần này ở chính câu báo cáo chứ không ở dụng cụ:
+một câu về **một hạng** được phát ra như một câu về **tất cả**. Dụng cụ
+in đủ ba hạng và không nén — nó làm đúng việc của nó; người đọc nó (tôi)
+mới là chỗ hỏng.
+
+### Và phép đo lôi ra thứ lớn hơn: HẠNG trỏ nhầm chỗ
+
+Hạng quyết định *"lệch này có quan trọng không"*, mà hạng đến từ **hai
+tuple gõ tay**. Đếm bằng AST xem repo thật sự nhập gì:
+
+| tên | hạng đang gán | repo nhập? |
+|---|---|---|
+| `vnstock_ezchart` | QUYET DINH SO | **0 file** |
+| `altair` | NGUOI DUNG THAY | **0 file** |
+| `matplotlib` | NGUOI DUNG THAY | **0 file** |
+| `vnstock` · `vnai` · `pandas` · `numpy` · `tradingview-ta` · `streamlit` · `plotly` | — | có |
+
+**3 trên 10.** App vẽ **toàn bộ bằng plotly** (`st.plotly_chart`); `grep`
+cho `st.line_chart|st.area_chart|st.bar_chart|st.pyplot` trả **rỗng**.
+`altair` là phụ thuộc của `streamlit`, `matplotlib` của
+`mplfinance`/`seaborn`/`vnstock_ezchart` — cả ba gián tiếp.
+
+Lỗi 80 đã khai giới hạn này: *"hai danh sách còn gõ tay chỉ quyết định mức
+độ ồn ào"*. Câu ấy vẫn đúng. Thứ mới là **giới hạn ấy có răng**: độ ồn
+đang chỉ vào ba gói dự án không chạm.
+
+### Phép sửa KHÔNG phải suy hạng ra tự động
+
+Suy hạng từ *"repo có nhập không"* là dựng một cửa sổ **HẸP HƠN** thứ nó
+đo — một gói repo không nhập vẫn chạm người dùng được qua thư viện khác.
+Đó là lỗi 80 **đảo chiều**, và nó im lặng: `altair` tụt xuống `con lai`
+thì không ai nhìn thấy nó nữa.
+
+Nên công cụ **thêm một cột**, không **đổi một hạng**:
+
+```
+altair   may 6.2.2  CI 6.3.0   <- repo KHONG nhap
+
+3 ten duoc GO vao hang on ao ma repo KHONG nhap lan nao (doc bang AST):
+      vnstock_ezchart   QUYET DINH SO
+      altair            NGUOI DUNG THAY
+      matplotlib        NGUOI DUNG THAY
+```
+
+Cùng đường với `so_tro_vao_hu_khong` ở BƯỚC 102: **thông tin, không phải
+cổng**. Và có một phép kiểm canh đúng ranh giới ấy —
+`test_COT_SUY_RA_KHONG_duoc_doi_HANG_cua_bat_ky_goi_nao` đọc AST của
+`hang_cua()` và đỏ nếu ai đó nối cột suy ra vào phép phán hạng.
+
+### Đọc bằng AST, và ca thử tốt nhất nằm sẵn trong repo
+
+`tools/so_ban_goi.py` **chứa chữ `altair`** — trong chính hằng số
+`HANG_GIAO_DIEN`. Nên một lượt quét theo **văn bản** sẽ đếm `altair` là
+"repo có dùng", và cột này thành vô nghĩa đúng ở chỗ nó sinh ra để soi.
+Phép kiểm dựng lại đúng ca ấy, không dùng đồ giả.
+
+### Đục thử — một phát SỐNG SÓT, và phép sửa là sửa GÁC
+
+```
+DO   1 doc bang CHU thay vi AST (ca that)
+DO   2 goi_repo_nhap tra RONG (phep do mu)
+DO   3 hang_on_ma_khong_nhap luon tra RONG
+DO   4 hang_on_ma_khong_nhap keu ca khi nhap DU
+DO   5 hang_cua doc cot SUY RA (pha ranh gioi)
+DO   6 ban_do_module_goi go tay
+SONG 7 chi quet goc repo, khong de quy        <- 6/7
+```
+
+Phát 7 sống vì `pandas`, `streamlit`, `plotly` đều được nhập từ file **ở
+gốc repo**, nên đối chứng dương vẫn xanh với `glob` thay `rglob`. Đo ra ca
+phân biệt được: `pytest` và `googleapis_common_protos` là **hai gói duy
+nhất** chỉ được nhập từ thư mục con. Thêm một phép kiểm dùng `pytest`, rồi
+chạy lại **cả bộ** chứ không chỉ phát vừa hỏng: **7/7 đỏ**.
+
+### Việc còn để ngỏ, nói thẳng
+
+`urllib3` 1.26.20 → 2.8.0 là khoảng cách bản CHÍNH và **chưa ai đo**.
+`requests` — gói repo CÓ nhập — chạy trên nó. Nâng là một phép ĐO, không
+phải một lượt cài, và nó cần một bảng tiêu chí ký trước.

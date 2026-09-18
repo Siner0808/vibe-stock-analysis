@@ -67,6 +67,11 @@ SO = "QUYET DINH SO"
 GIAO_DIEN = "NGUOI DUNG THAY"
 KHAC = "con lai"
 
+#: Nhãn cho cột SUY RA, in cạnh hạng gõ tay. Nó KHÔNG đổi hạng — xem
+#: `goi_repo_nhap`: suy hạng từ "repo có nhập không" là dựng một cửa sổ
+#: hẹp hơn thứ nó đo, đúng hình dạng lỗi 80 đảo chiều.
+KHONG_NHAP = "repo KHONG nhap"
+
 RE_GOI = re.compile(r"\b([a-zA-Z][\w.\-]*)-(\d+\.\d+[\w.]*)\b")
 
 KHOP = "KHOP"
@@ -90,6 +95,56 @@ def hang_cua(ten: str) -> str:
     if c in _HANG_GIAO_DIEN:
         return GIAO_DIEN
     return KHAC
+
+
+def ban_do_module_goi() -> dict[str, str]:
+    """{tên module nhập được: tên gói} — SUY từ metadata, không gõ tay.
+
+    `importlib.metadata.packages_distributions()` đọc chính các bản phân
+    phối đang cài, nên một gói đổi tên module thì bảng tự đi theo.
+    """
+    import importlib.metadata as md
+    ra: dict[str, str] = {}
+    for mod, ds in md.packages_distributions().items():
+        if ds:
+            ra[mod] = _chuan(ds[0])
+    return ra
+
+
+def goi_repo_nhap(goc: Path = GOC) -> frozenset[str]:
+    """Gói mà mã trong repo THẬT SỰ nhập — đọc bằng AST, KHÔNG bằng grep.
+
+    `CLAUDE.md`, mục *"Dọn code chết"*: *"Dùng AST, đừng dùng grep.
+    `"news" in src` khớp cả chữ trong chú thích. File càng nhiều chú thích
+    trung thực thì grep càng nói dối."* Ở đây vế ấy quan trọng gấp đôi —
+    chính file này mang tên `altair`, `matplotlib` trong hai hằng số, và
+    một lượt grep sẽ đếm chúng là "có dùng".
+
+    Quần thể: mọi `.py` dưới gốc repo trừ `.venv`. File nào không nạp được
+    bằng `ast.parse` thì BỎ QUA — cổng 2 lo việc ấy, và nuốt lỗi ở đây là
+    đúng chỗ: phép đo này không phải phép kiểm cú pháp.
+    """
+    import ast
+    ban_do = ban_do_module_goi()
+    ra: set[str] = set()
+    for p in goc.rglob("*.py"):
+        if ".venv" in p.parts:
+            continue
+        try:
+            cay = ast.parse(p.read_text(encoding="utf-8", errors="replace"))
+        except (SyntaxError, OSError):
+            continue
+        for nut in ast.walk(cay):
+            if isinstance(nut, ast.Import):
+                goc_ten = [a.name.split(".")[0] for a in nut.names]
+            elif isinstance(nut, ast.ImportFrom):
+                goc_ten = [nut.module.split(".")[0]] if nut.module else []
+            else:
+                continue
+            for t in goc_ten:
+                if t in ban_do:
+                    ra.add(ban_do[t])
+    return frozenset(ra)
 
 
 def ban_local() -> dict[str, str]:
@@ -179,14 +234,32 @@ def cham_cho_quyet_dinh(lech: list[tuple[str, str, str, str]]) -> bool:
     return any(h in (SO, GIAO_DIEN) for _, _, _, h in lech)
 
 
-def _in_nhom(lech: list[tuple[str, str, str, str]], hang: str) -> None:
+def _in_nhom(lech: list[tuple[str, str, str, str]], hang: str,
+             nhap: frozenset[str] = frozenset()) -> None:
     nhom = [d for d in lech if d[3] == hang]
     print(f"\n  {hang}  ({len(nhom)})")
     if not nhom:
         print("      (khong co)")
         return
     for g, a, b, _ in nhom:
-        print(f"      {g:<26} máy {a:<12} CI {b}")
+        dau = "" if _chuan(g) in nhap else f"   <- {KHONG_NHAP}"
+        print(f"      {g:<26} máy {a:<12} CI {b:<12}{dau}")
+
+
+def hang_on_ma_khong_nhap(nhap: frozenset[str]) -> list[tuple[str, str]]:
+    """(tên, hạng) của gói được GÕ vào hạng ồn ào mà repo không nhập.
+
+    HÀM THUẦN trên `nhap`. Nó **không** sửa hạng — nó chỉ gọi tên chỗ hai
+    nguồn không khớp, để người đọc phán. Xem `goi_repo_nhap`.
+    """
+    ra = []
+    for ten in HANG_SO:
+        if _chuan(ten) not in nhap:
+            ra.append((ten, SO))
+    for ten in HANG_GIAO_DIEN:
+        if _chuan(ten) not in nhap:
+            ra.append((ten, GIAO_DIEN))
+    return ra
 
 
 def main() -> int:
@@ -225,14 +298,25 @@ def main() -> int:
         print("\nKHỚP — hai nơi cùng bản trên mọi gói so được.")
         return 0
 
+    nhap = goi_repo_nhap()
     print(f"\nLỆCH {len(lech)} / {len(set(loc) & set(ci))} gói")
     for hang in (SO, GIAO_DIEN, KHAC):
-        _in_nhom(lech, hang)
+        _in_nhom(lech, hang, nhap)
 
     print("\nĐây KHÔNG phải lỗi — `requirements.txt` khai bằng SÀN (và "
           "`streamlit` không có\ncả sàn), nên CI luôn lấy bản mới nhất. "
           "Nó nghĩa là các CỔNG đang chạy trên\nmột bộ bản khác bộ bản các "
           "phép ĐO đã chạy.")
+    lac = hang_on_ma_khong_nhap(nhap)
+    if lac:
+        print(f"\n{len(lac)} tên được GÕ vào hạng ồn ào mà repo KHÔNG nhập "
+              "lần nào (đọc bằng AST):")
+        for ten, hang in lac:
+            print(f"      {ten:<26} {hang}")
+        print("   Hạng là hai tuple gõ tay; cột này SUY RA. Nó không đổi "
+              "hạng —\n   một gói repo không nhập vẫn có thể chạm người "
+              "dùng qua thư viện khác.")
+
     if cham_cho_quyet_dinh(lech):
         print("\nCÓ chạm chỗ quyết định.")
         return 1
