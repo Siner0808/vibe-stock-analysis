@@ -14926,3 +14926,252 @@ từ 08/09/2026, trong khi `SKILL.md` bản 16/09 viết ngược. Hôm nay tôi
 
 Không sai kết quả, nhưng là một vòng thừa: **đọc file bộ nhớ, đừng chỉ
 đọc mục lục của nó.** Đã ghi vào chính file ấy.
+
+
+---
+
+## BƯỚC 101 — MỐC CRON ĐỌC LẠI Ở n = 10: CẬN ĐÃ KÝ CHẠM ĐÚNG BIÊN (18/09/2026)
+
+BƯỚC 89 đọc mốc 17/09 lúc mẫu mới có **9 trên 10** ngày, và làm một việc
+mà tiêu chí không bắt buộc: chứng minh ngày thứ mười **không lật được**
+phán quyết, bằng cách đặt ngày còn thiếu vào cả hai cực.
+
+```
+n = 9   trung vi 263,13   can [260,59 ; 277,01]   ca hai roi vao CUNG MOT O
+```
+
+Hôm nay mẫu đủ. Lệnh: `tools/do20_doi_cron.py`.
+
+```
+2026-09-17 14:19:31Z   tre 296,52 phut     <- ngay thu muoi
+n = 10  ·  0 ngay roi nhip  ·  10 ngay lam viec trong cua so
+
+NEN (lich cu `0 9`)   : 247,00 phut
+TRUNG VI (lich moi)   : 277,01 phut
+CHENH                 : +30,01 phut
+
+PHAN QUYET: DOI KHONG CO TAC DUNG
+```
+
+### Con số rơi đúng biên trên, không dư một phần trăm phút
+
+Cận trên công bố ở n = 9 là **277,01**. Trung vị thật ở n = 10 là
+**277,01**. Ngày thứ mười trễ 296,52 phút — tức nằm ở nửa trên của mẫu,
+đúng cực làm trung vị dâng cao nhất — nên phép chặn trên bị **chạm kịch**.
+
+Đó không phải may. Với n = 9 và một ô còn trống, trung vị của 10 số chỉ có
+thể nằm giữa hai giá trị: đặt ô ấy ở −∞ cho cận dưới, ở +∞ cho cận trên.
+Ngày thứ mười rơi vào nửa trên nên kết quả BẰNG cận trên — bản khai trước
+đã tính đúng cả hai đầu, và thực tế chọn đầu này.
+
+**Điều đáng giữ là hình dạng của phép đọc sớm**, không phải con số: *một
+mẫu thiếu vẫn đọc được KHI phần thiếu không đổi được ô phán quyết.* Nó
+khác hẳn *"đọc tạm rồi đọc lại"* — đọc tạm thì kết luận treo, còn phép này
+kết luận dứt và hôm nay chỉ xác nhận.
+
+### Ba con số ở n = 9 GIỮ NGUYÊN, không sửa
+
+`tests/test_do20_doi_cron.py` khoá `263,13` · `260,59` · `277,01` như số
+đã công bố. Chúng là bản ghi của một lượt đọc ở mẫu 9 ngày và đúng ở đó;
+thay chúng bằng số n = 10 là viết lại lịch sử, và là xoá mất chính bằng
+chứng rằng cận đã ký giữ được.
+
+---
+
+## BƯỚC 102 — LƯỢT SOÁT ĐỊNH KỲ THỨ HAI, VÀ DANH SÁCH SOÁT KHÔNG CÓ TRÍ NHỚ (18/09/2026)
+
+Nhịp soát 2 ngày, người dùng chốt 16/09/2026. Đây là lượt **thứ hai** —
+lượt đầu tiên có một lượt trước để so, nên câu hỏi *"một lượt soát để lại
+gì"* lần đầu tiên trả lời được bằng số.
+
+### Câu trả lời: KHÔNG GÌ CẢ
+
+Phép đo dựng lại cây 7 tài liệu của hai commit trong thư mục tạm rồi gọi
+**chính** `loi_khai_con_song(goc)` — hàm thuần, nên phép đo không đi qua
+bản sao nào của logic:
+
+```
+16/09 (441b2d4)   15 loi khai
+18/09 (4861040)   16 loi khai
+RA KHOI DANH SACH : 0 dong
+ca HAI dong luot 16/09 da phan xu : van con nguyen
+```
+
+### Vì sao, và nó KHÔNG phải sự cẩu thả của lượt 16/09
+
+Lượt ấy làm **đúng quy ước dự án**: giữ nguyên câu gốc vì nó là bản ghi
+của một lượt đọc sổ thật, rồi thêm ô ⚠️ **NGAY DƯỚI**. Còn phép lọc
+`DA_CO_DAU` đọc **TỪNG DÒNG**.
+
+```
+dong 1907  `PENDING`, ... Chung chua bao gio khop.      <- khong co dau
+dong 1909  > ⚠️ **Cau "chua bao gio khop" DUNG VAO 01/09...**   <- dau o DAY
+```
+
+**Phạm vi của phép lọc hẹp hơn đơn vị của quy ước.** Cùng họ lỗi 73 và lỗi
+80: cái gác không yếu, nó **ngắm một quần thể khác quần thể thật**.
+
+Và cái hổng lớn hơn nằm ở chỗ khác: công cụ kết bằng câu *"ghi kết quả lượt
+soát vào `docs/soat-dinh-ky.json`"* rồi **không bao giờ đọc file ấy**. Một
+ống một chiều — nó đòi một bản ghi mà chính nó không dùng được.
+
+Hệ quả thật: danh sách chỉ mọc dài, nên lượt sau mở lại đúng những dòng
+lượt trước vừa mở, và **12 dòng chưa ai động tới thì mãi không ai động
+tới**.
+
+### Phép sửa KHÔNG phải xoá dòng đã soát
+
+Một câu phán *"THẬT, vẫn đúng"* hôm nay vẫn cũ được ngày mai. Xoá nó khỏi
+danh sách là dựng lại đúng cái im lặng mà nhịp soát sinh ra để phá.
+
+Công cụ nay **xếp** và **ghi chú**: chưa ai mở lên trước, đã soát xuống
+dưới kèm ngày và phán quyết, và in thêm một con số — `chưa ai mở: n`.
+
+```
+16 loi khai · 7 tai lieu · chua ai mo: 12
+```
+
+Khoá là **nguyên văn dòng**, không phải số dòng: hai mục lượt 16/09 đã
+trôi **1706→1873** và **1740→1907** chỉ trong hai ngày. Câu đổi chữ thì nó
+hiện lại như chưa ai mở — hành vi ĐÚNG, vì câu đã khác thì phán quyết cũ
+không còn nói về nó nữa.
+
+### Chiều hỏng nào an toàn, và gác canh chiều nào
+
+| hỏng thế nào | ra sao | gác |
+|---|---|---|
+| thiếu `dong`, hoặc `dong` ghi sai | dòng hiện như **chưa ai mở** → được mở lại | không cần — chiều an toàn |
+| `xep()` bỏ dòng đã soát | một lời khai **còn sống bị giấu** | ✅ đục thử phát 2 |
+| đánh dấu "đã soát" cho dòng chưa ai soát | phán quyết giả | khoá nguyên văn **không tạo ra được** chiều này |
+
+Gác **không** kiểm `dong` có trỏ vào một dòng đang sống hay không: một câu
+được sửa chữ sau lượt soát là việc ĐÚNG và thường xuyên, nên phép kiểm ấy
+sinh đỏ giả. Công cụ **nói ra** những `dong` không còn khớp — thông tin,
+không phải cổng.
+
+Nó cũng **không** kiểm phán quyết có trung thực không. Một gác canh chính
+lời khai của người khai là một gác rỗng — lỗi 81, và đó là kết luận chứ
+không phải sự lười.
+
+### Hai lời khai đã mở trong lượt này
+
+| lời khai | phán quyết |
+|---|---|
+| `NGUYEN-TAC-DO-LUONG.md` *"Thư mục `brain/` không được git theo dõi, không ai review"* | **THẬT về chữ, trỏ vào hư không.** `git log --all -- brain` rỗng — git chưa bao giờ theo dõi nó, nên vế phủ định đúng. Nhưng thư mục ấy **không còn tồn tại**, kể cả bản báo cáo `20loop_custom71_18m_optimization_report.md` mà dòng 170 dẫn. Giữ câu (sử liệu sự cố 12/08), thêm dấu |
+| `docs/HANDOFF.md` *"không ai đọc bảng đó"* (bảng `ratio` cache BCTC) | **THẬT — vẫn đúng**, kiểm lại bằng mã chứ không bằng trí nhớ. `experiment_fundamentals.py` chứa chữ `ratio` **0 lần**; `fundamental_agent.py:213` đọc `Finance(source="KBS", period="year").ratio(...)` — qua MẠNG, theo NĂM, không phải cache VCI theo quý |
+
+### Đục thử
+
+`tests/test_soat_dinh_ky_co_tri_nho.py`, 10 phép kiểm. Phát đầu tiên dựng
+lại **nguyên văn lỗi thật** — công cụ không đọc sổ:
+
+```
+DO   1 cong cu KHONG doc so (loi that)
+DO   2 xep BO dong da soat
+DO   3 xep dao thu tu hai nhom
+DO   4 da_soat nhan `dong` rong lam khoa
+DO   5 da_soat bo .strip()
+DO   6 luot CU de luot MOI
+DO   7 so_tro_vao_hu_khong keu ca dong con khop
+DO   8 xep bo qua bang tra
+
+8/8 do
+```
+
+Phép kiểm `test_HAI_DONG_luot_16_09_hien_ra_la_DA_SOAT_tren_repo_THAT`
+chạy trên **quần thể thật**, không trên đồ giả — không có nó thì cả bộ vẫn
+xanh trong khi sổ không có lấy một khoá `dong` nào, tức cơ chế không có
+người dùng. Một cơ chế không ai dùng thì không có cách nào biết nó hỏng.
+
+
+---
+
+## BƯỚC 103 — TẮT AGENT SETUP, VÀ MỘT PHÉP ĐO SUÝT BỊ ĐỌC NGƯỢC (18/09/2026)
+
+**Người dùng chốt:** tắt cả bốn đích, và dọn 7 file đời cũ.
+
+### Đã làm gì
+
+```
+disable_agent_setup()      ->  enabled=False · 0/4 dich bat
+~/.vnstock/config/agent.json  nay TON TAI
+
+remove_agent_files("legacy")
+    .cursorrules                      XOA HAN   2.580 ky tu
+    .windsurfrules                    XOA HAN   2.580
+    .clinerules                       XOA HAN   2.580
+    .clauderc                         XOA HAN   3.109
+    .github\copilot-instructions.md   XOA HAN   2.580
+    .gemini\config\AGENTS.md          XOA HAN   2.580
+    AGENTS.md                         CAT 5.227 ky tu, GIU file
+```
+
+Sáu file đầu **thuần khối vnai** — năm cái đầu băm giống hệt nhau từng
+byte — nên hàm xoá hẳn. Ba file toàn cục **không bị xoá**: công tắc là
+*đóng băng*, không phải *xoá*, và so với bản sao lưu chúng khác đúng **một
+dòng trống** ở chỗ dòng `signature_key` nhảy sang.
+
+Sao lưu cả 10 file TRƯỚC khi chạm gì. `remove_agent_files` xoá thật trong
+thư mục nhà người dùng, nên bản sao lưu là đường về duy nhất.
+
+### Phép đo đầu tiên KHÔNG ĐỌC ĐƯỢC, và suýt bị đọc là bằng chứng
+
+Để chứng minh công tắc giữ, lượt đầu chạy một tiến trình chỉ
+`import vnstock_data` — đúng phép kích hoạt đã đo ở BƯỚC 91 — rồi băm ba
+file trước/sau. Kết quả: **0/4 bị ghi**. Trông như bằng chứng.
+
+**Nó không phải.** Lượt import ấy **nổ**:
+
+```
+ImportError: cannot import name 'ProxyConfig'
+             from 'vnstock.core.utils.client'
+```
+
+nên nó **chưa bao giờ chạy tới đoạn ghi**. Một kết quả âm từ một mẫu
+không thể cho kết quả dương thì nói về **MẪU**, không nói về **GIẢ
+THUYẾT** — đúng lỗi 66, và lần này thứ cứu là mã thoát khác 0 in ngay
+cạnh con số.
+
+### Phép đo đọc được: ba lượt, ở giữa là ĐỐI CHỨNG DƯƠNG
+
+Gọi thẳng `setup_agent_environment()` thay vì mượn một lượt import:
+
+```
+LUOT 1  cong tac TAT  ->  tra False  ->  0/4 dich bi ghi
+LUOT 2  cong tac BAT  ->  tra True   ->  4/4 dich bi ghi     <- doi chung
+LUOT 3  cong tac TAT  ->  tra False  ->  0/4 dich bi ghi
+```
+
+Lượt 2 là thứ chứng minh **phép đo thấy được một lượt ghi thật**. Không có
+nó, hai lượt 0/4 kia không phân biệt được *"công tắc giữ"* với *"phép đo
+mù"* — đúng thói quen `SKILL.md` Bước 3: *bắt máy đo đi qua một ca THẬT đã
+biết trước*.
+
+Lượt 2 ghi lại khối vnai vào `~/AGENTS.md`, nên sau đó phải
+`remove_agent_files("home")` một lần nữa để về đúng trạng thái sau dọn —
+băm trở lại đúng giá trị cũ, `dd221735b307f995`.
+
+### Thứ CÒN LẠI, nói thẳng ra vì nó không nằm trong chữ "dọn 7 file"
+
+`C:\Users\cuong\AGENTS.md` **vẫn còn 6.594 byte**. Mở ra xem: đó không
+phải chữ của người dùng, mà là một bản dump vnai **đời cũ hơn**, mở đầu
+bằng YAML `name: vnstock-bootstrap · version 1.8.0`. Hai lớp vnai chồng
+lên nhau, và `find_bootstrap_span` chỉ nhận ra lớp mới. Xoá nốt là việc
+của người dùng, không phải của công cụ.
+
+### `vnstock_data` 3.2.8 nay là HỎNG, không phải CŨ
+
+Lỗi import ở trên không chỉ làm hỏng một phép đo — nó là trạng thái thật
+của gói. Vỡ từ lượt nâng `vnstock` 4.0.8 (ĐO 10, 17/09).
+
+**Repo không hề gì, và đó là do một luật cũ.** `tests/test_requirements.py`
+khoá hai điều: không file nào ở gốc `import vnstock_data` ở mức module, và
+mọi chỗ dùng đều phải bọc `try/except` có đường lui. Hai gác ấy sinh ra vì
+CI và Streamlit Cloud không cài được gói tài trợ — và hôm nay chúng đỡ luôn
+một ca chúng không được thiết kế cho. 1.202 test xanh.
+
+Việc nâng 3.3.0 vì thế đổi hạng: *nên làm* → **phải làm**. Nhưng bản ấy
+**đổi CON SỐ** (ROE 23,59 so với 0,2359, `CLAUDE.md` mục *"KHÔNG đổi
+`import vnstock` sang `import vnstock_data` mà chưa đo"*), nên nó là một
+phép ĐO chứ không phải một lượt cài. Và trình cài đòi **khoá của người
+dùng** — khoá không đi qua tay agent.

@@ -80,6 +80,20 @@ tiên phải là có lỗi.**
 > `vnai` 2.6.0 có `disable_agent_setup()` để tắt hẳn. **Chưa bật** — nó ghi
 > vào `~/.vnstock/config/agent.json`, tức môi trường toàn cục của người
 > dùng, nên đó là quyết định của họ. `docs/STATE.md` BƯỚC 91.
+>
+> 🔴 **HAI CHỮ "CHƯA BẬT" HẾT ĐÚNG TỪ 18/09/2026 — người dùng đã quyết:
+> TẮT CẢ BỐN.** Nay `enabled=False`, **0/4 đích bật**, và
+> `~/.vnstock/config/agent.json` đã tồn tại. Bảy file đời cũ cũng đã dọn:
+> sáu file bị xoá hẳn, `~/AGENTS.md` bị cắt 5.227 ký tự.
+>
+> **Ba file toàn cục KHÔNG bị xoá** — công tắc là *đóng băng*, không phải
+> *xoá*, và đảo lại bằng `enable_agent_setup()`.
+>
+> Công tắc đã được chứng minh là GIỮ, bằng ba lượt có **đối chứng dương**
+> ở giữa: tắt 0/4 · **BẬT 4/4** · tắt lại 0/4. Lượt đo đầu tiên —
+> `import vnstock_data` rồi băm ba file — cho *"0/4"* và **không đọc
+> được**, vì lượt import ấy nổ trước khi tới đoạn ghi. `docs/STATE.md`
+> BƯỚC 103.
 
 ---
 
@@ -734,7 +748,14 @@ user's local disk"*. Nạp lúc chạy bằng `vnai.load_skill("<slug>")`.
 > `vnai.beam.agents` thêm `disable_agent_setup()` · `enable_agent_setup()`
 > · `agent_status()` · `remove_agent_files()`, và `vnai` thêm
 > `disable_telemetry()` · `telemetry_status()`. **Chưa bật cái nào** —
-> ghi ra đây để lần sau không phải đi tìm. Hai file quyết định DỮ LIỆU
+> ghi ra đây để lần sau không phải đi tìm.
+>
+> 🔴 **CÂU "CHƯA BẬT CÁI NÀO" HẾT ĐÚNG TỪ 18/09/2026, và chỉ đúng một
+> NỬA từ trước đó.** Nay đã dùng hai trong bốn hàm agent:
+> `disable_agent_setup()` (người dùng chốt tắt cả bốn đích) và
+> `remove_agent_files("legacy")` (dọn 7 file đời cũ). Hai hàm telemetry —
+> `disable_telemetry()` · `telemetry_status()` — thì **vẫn chưa động**,
+> và người dùng chưa được hỏi về chúng. `docs/STATE.md` BƯỚC 103. Hai file quyết định DỮ LIỆU
 > (`beam/fundamental.py` giữ `PERIOD_LIMITS`, `beam/auth.py` giữ
 > `_detect_tier`) **giống hệt từng byte** giữa 2.5.9 và 2.6.0, và dòng
 > `kiem_goi()` trước/sau cũng giống hệt. `docs/STATE.md` BƯỚC 87.
@@ -1303,6 +1324,14 @@ Trễ điển hình               : 5 → 90 phút
 > *≤ 60 phút mới gọi là có tác dụng*. Lịch **giữ nguyên** — nó vô hại,
 > chỉ là không có ích. Lệnh đọc: `tools/do20_doi_cron.py`.
 > `docs/STATE.md` BƯỚC 89.
+>
+> **Đọc lại ở n = 10 ngày 18/09/2026 — phán quyết KHÔNG đổi, và cận đã ký
+> chạm đúng biên.** Trung vị **277,01 phút** (10 ngày, 0 ngày rơi nhịp),
+> chênh nền **+30,01**. Con số ấy bằng **đúng cận trên 277,01** mà BƯỚC 89
+> công bố ở n = 9 — không dư một phần trăm phút. Bản khai trước ấy nói
+> *ngày thứ mười không lật được phán quyết*; ngày thứ mười trễ 296,52 phút,
+> tức đẩy trung vị lên **kịch** biên trên, và ô phán quyết vẫn là ô cũ.
+> `docs/STATE.md` BƯỚC 101.
 
 Ba hệ quả, cái thứ ba quan trọng nhất:
 
@@ -1325,6 +1354,24 @@ Ba hệ quả, cái thứ ba quan trọng nhất:
    `concurrency` trong workflow chỉ ngăn Actions chồng Actions, nó không
    biết gì về máy local. Cái thật sự giữ an toàn là kéo-trước-khi-quét
    cộng chốt chặn trong `push()`, không phải khoảng lệch giờ.
+
+   > ⚠️ **Con số `±90 phút` ở dòng trên đã bị CHÍNH FILE NÀY bác, 42 dòng
+   > phía trên — và ở đây nó không có dấu.** Ô ⚠️ ngay dưới bảng *"Trễ điển
+   > hình : 5 → 90 phút"* viết rằng con số ấy chỉ đúng cho khung
+   > 02:00–08:30 UTC; ba chuông ở khung 09:00–10:00 UTC trễ **trung vị
+   > 4–4,7 giờ**, tức 247–282 phút. Sai số thật lớn hơn khoảng **ba lần**.
+   >
+   > **Kết luận thì KHÔNG đổi, và đó là chỗ đáng đọc.** Sai số lớn hơn chỉ
+   > làm câu *"hai nơi có thể chạy chồng bất cứ lúc nào"* đúng MẠNH HƠN —
+   > đây là một trong số ít chỗ trong tài liệu này mà một con số lạc hậu
+   > nghiêng về phía **an toàn**. Nhưng nó là **tiền đề** của lập luận, nên
+   > để trần thì người đọc sau tưởng ±90 là biên đã đo.
+   >
+   > Sổ tay NotebookLM tìm ra ngày 18/09/2026, ở lượt soát định kỳ thứ
+   > hai. Đáng ghi lại **cách** nó tìm ra: lượt `grep` của tôi hôm ấy tìm
+   > con số `263,13` và không bao giờ với tới cách viết `±90`. Câu hỏi gửi
+   > sổ tay cố ý đòi *"cả những con số viết bằng giờ hoặc bằng chữ"*, và
+   > đó chính là vế `grep` không làm được. `docs/STATE.md` BƯỚC 102.
 
 **Điều đang còn đúng: mỗi ngày đều có ít nhất một lượt quét sau giờ đóng
 cửa.** 4/4 ngày có lượt chạy trong 15:29 → 15:33 giờ VN (đóng cửa 15:00).

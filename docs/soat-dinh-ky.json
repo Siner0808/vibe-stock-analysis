@@ -10,14 +10,40 @@
         {
           "noi_dung": "CLAUDE.md:1706 '**Chưa đo:** tv_recommendation KHÔNG tái lập' — nghi là đã cũ, vì ngay dưới nó có một khối đo ngày 15/09/2026.",
           "tu_kiem": "sed -n '1700,1712p' CLAUDE.md",
-          "phan_quyet": "SAI — lời khai vẫn ĐÚNG. Khối 15/09 đo PHẠM VI (đường giao dịch có chạm TradingView thật không) và một lát mỏng 6 mã, không đo tính tái lập; chính nó ghi 'Nó KHÔNG bác phát hiện gốc'. Không sửa gì."
+          "phan_quyet": "SAI — lời khai vẫn ĐÚNG. Khối 15/09 đo PHẠM VI (đường giao dịch có chạm TradingView thật không) và một lát mỏng 6 mã, không đo tính tái lập; chính nó ghi 'Nó KHÔNG bác phát hiện gốc'. Không sửa gì.",
+          "dong": "**Chưa đo:** `tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` →"
         },
         {
           "noi_dung": "CLAUDE.md:1740 'Chúng chưa bao giờ khớp' về bốn lệnh NAF · STB · TCB · HUT — đọc như câu hiện tại.",
           "tu_kiem": "grep -n 'CẢ BỐN ĐÃ KHỚP' CLAUDE.md",
-          "phan_quyet": "THẬT — câu đúng vào 01/09/2026 và chỉ ngày ấy; cả bốn khớp 03/09, và chính file này ghi điều đó ở mục Cổng C5. Đã thêm ô ⚠️ theo quy ước giữ-số-cũ, giữ nguyên câu gốc vì nó là bản ghi một lượt đọc sổ thật."
+          "phan_quyet": "THẬT — câu đúng vào 01/09/2026 và chỉ ngày ấy; cả bốn khớp 03/09, và chính file này ghi điều đó ở mục Cổng C5. Đã thêm ô ⚠️ theo quy ước giữ-số-cũ, giữ nguyên câu gốc vì nó là bản ghi một lượt đọc sổ thật.",
+          "dong": "`PENDING`, `entry_date` và `entry_price` đều là `None`. Chúng chưa bao giờ"
+        }
+      ]
+    },
+    {
+      "ngay": "2026-09-18",
+      "pham_vi": "Lượt thứ hai. Danh sách ra 16 lời khai trên 7 tài liệu. Mở ba chỗ: hai lời khai trong danh sách, và CHÍNH CÁI DANH SÁCH — vì lượt này là lượt đầu tiên có một lượt trước để so, nên câu hỏi 'một lượt soát để lại gì' lần đầu tiên trả lời được bằng số.",
+      "phat_hien": [
+        {
+          "noi_dung": "CHÍNH CÔNG CỤ: `tools/soat_loi_khai_cu.py` kết bằng câu 'ghi kết quả lượt soát vào docs/soat-dinh-ky.json' rồi KHÔNG BAO GIỜ đọc file ấy — một ống một chiều. Nghi nó làm lượt soát không tích luỹ được.",
+          "tu_kiem": "Dựng lại cây 7 tài liệu của commit 441b2d4 (16/09) và 4861040 (18/09) trong thư mục tạm rồi gọi CHÍNH `loi_khai_con_song(goc)`, không qua bản sao logic nào.",
+          "phan_quyet": "THẬT — và đo được: 15 lời khai ngày 16/09, 16 ngày 18/09, RA KHỎI DANH SÁCH 0 DÒNG. Cả hai dòng lượt 16/09 đã phán xử vẫn còn nguyên. Lý do: lượt ấy đánh dấu ĐÚNG quy ước dự án — giữ câu gốc, thêm ô ⚠️ NGAY DƯỚI — trong khi phép lọc `DA_CO_DAU` đọc TỪNG DÒNG, nên nó không thấy ô dấu ở dòng kế. Phạm vi phép lọc hẹp hơn đơn vị của quy ước: cùng họ lỗi 73 và lỗi 80. Đã sửa: công cụ đọc sổ, xếp CHƯA AI MỞ lên trước, không xoá dòng nào."
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md: 'Thư mục `brain/` không được git theo dõi, không ai review' — viết ở thì hiện tại, nghi thư mục ấy không còn.",
+          "tu_kiem": "ls -la | grep -i brain  ·  git log --all -- brain  ·  find . -name '*20loop*' -not -path './.venv/*'",
+          "phan_quyet": "THẬT về chữ, nhưng trỏ vào hư không. Git CHƯA BAO GIỜ theo dõi `brain/` (git log rỗng) nên vế phủ định vẫn đúng — và thư mục ấy nay KHÔNG CÒN TỒN TẠI ở gốc repo, kể cả bản báo cáo `20loop_custom71_18m_optimization_report.md` mà dòng 170 dẫn. Một câu hiện tại về một thư mục đã mất mời người đọc đi tìm nó. Giữ nguyên câu vì nó là sử liệu của sự cố 12/08/2026; thêm dấu theo quy ước giữ-số-cũ.",
+          "dong": "biến.** Thư mục `brain/` không được git theo dõi, không ai review, và là nơi"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md: '**không ai đọc bảng đó**' về bảng `ratio` trong cache BCTC — một câu phủ định TOÀN XƯNG, loại câu sai ngay khi có người đọc thứ hai.",
+          "tu_kiem": "grep -c ratio experiment_fundamentals.py  ·  grep -n 'ratio\\|source=' fundamental_agent.py",
+          "phan_quyet": "THẬT — vẫn đúng, kiểm lại hôm nay bằng mã chứ không bằng trí nhớ. `experiment_fundamentals.py` (phép đo IC) chứa chữ 'ratio' ĐÚNG 0 LẦN. `fundamental_agent.py:213` đọc `Finance(source=\"KBS\", period=\"year\").ratio(...)` — qua MẠNG, theo NĂM, không phải bảng cache VCI theo quý. Hai đường trùng tên bảng mà khác nguồn, đúng như lời khai mô tả.",
+          "dong": "**không ai đọc bảng đó** — phép đo IC dùng `_income`+`_balance`, còn"
         }
       ]
     }
-  ]
+  ],
+  "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."
 }
