@@ -15442,6 +15442,34 @@ phân biệt được: `pytest` và `googleapis_common_protos` là **hai gói du
 nhất** chỉ được nhập từ thư mục con. Thêm một phép kiểm dùng `pytest`, rồi
 chạy lại **cả bộ** chứ không chỉ phát vừa hỏng: **7/7 đỏ**.
 
+### Cùng họ lỗi ấy hiện ra LẦN THỨ BA, bên trong chính commit này
+
+Phép kiểm mới `test_BAN_DO_MODULE_GOI_suy_tu_METADATA_chu_khong_go_tay`
+neo vào `ban_do.get("yaml") == "pyyaml"`. **Năm cổng xanh tại máy, CI đỏ
+ngay lượt đầu:**
+
+```
+assert None == 'pyyaml'
+```
+
+Đo lại trên 92 gói giao của hai nơi: `pyyaml` là tên **DUY NHẤT** trong
+file test ấy có ở máy mà **không có trên CI**.
+
+Tôi gõ tay một tên gói vào đúng phép kiểm dựng ra để chứng minh *"đừng gõ
+tay"*, trong đúng commit viết về lệch local/CI. **Lỗi 84.**
+
+Phép sửa là **suy ra lời khai thay vì gõ tên**: thứ cần khẳng định không
+phải MỘT cặp cụ thể mà là *bảng có phân biệt được module với gói*, nên đếm
+số cặp `module != gói`. Kiểm được mà không nêu tên nào, đúng ở mọi môi
+trường, và vẫn giết đột biến "gõ tay một dict nhỏ" — mọi cặp gõ tay đều có
+module trùng gói. Đục thử lại **cả bộ**: 7/7 đỏ.
+
+**Gác máy cho lớp này không dựng được tại chỗ**, và đó là kết luận: danh
+sách gói của CI chỉ đọc được **qua mạng** bằng `gh` (`tools/so_ban_goi.py`,
+hàm `ban_ci`), nên nó không thành cổng được — cùng lý do chính công cụ ấy
+không phải cổng. Thứ dựng được là một thói quen: **một phép kiểm nêu tên
+gói thì phải nêu tên có trong `requirements.txt`.**
+
 ### Việc còn để ngỏ, nói thẳng
 
 `urllib3` 1.26.20 → 2.8.0 là khoảng cách bản CHÍNH và **chưa ai đo**.

@@ -313,13 +313,23 @@ def test_COT_SUY_RA_KHONG_duoc_doi_HANG_cua_bat_ky_goi_nao():
 
 
 def test_BAN_DO_MODULE_GOI_suy_tu_METADATA_chu_khong_go_tay():
-    """Tên module khác tên gói ở nhiều chỗ (`pyyaml` -> `yaml`).
+    """Bảng phải SUY từ metadata đang cài, không gõ.
 
-    Bảng phải SUY từ metadata đang cài, không gõ — nếu không nó trôi ngay
-    lần đầu một gói đổi tên module.
+    LỜI KHAI ĐƯỢC SUY RA, KHÔNG NÊU TÊN GÓI NÀO — lỗi 84, 18/09/2026.
+    Bản đầu neo vào `ban_do.get("yaml") == "pyyaml"`. `pyyaml` CÓ ở máy
+    này và **KHÔNG** có trên CI, nên năm cổng xanh tại máy rồi CI đỏ ngay:
+    `assert None == 'pyyaml'`. Tôi gõ tay một tên gói vào đúng phép kiểm
+    dựng ra để chứng minh *"đừng gõ tay"*.
+
+    Thứ cần khẳng định không phải MỘT cặp cụ thể, mà là **bảng có phân
+    biệt được module với gói**. Đếm số cặp khác nhau kiểm được điều ấy mà
+    không nêu tên nào — nên nó đúng ở mọi môi trường, và nó vẫn giết đột
+    biến "gõ tay một dict nhỏ" (mọi cặp gõ tay đều có module trùng gói).
     """
     ban_do = sb.ban_do_module_goi()
     assert len(ban_do) > 50, f"ban do qua nho ({len(ban_do)}) — co go tay khong?"
-    assert ban_do.get("pandas") == "pandas"
-    assert ban_do.get("yaml") == "pyyaml", "ten module khac ten goi — phai suy ra"
-    print(f"PASS  ban do {len(ban_do)} module suy tu metadata")
+    khac = {m: g for m, g in ban_do.items() if sb._chuan(m) != g}
+    assert khac, (
+        "khong cap nao co ten module KHAC ten goi — bang nay hoac go tay, "
+        "hoac dang lay ten goi lam ten module")
+    print(f"PASS  ban do {len(ban_do)} module · {len(khac)} cap module != goi")
