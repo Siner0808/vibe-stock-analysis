@@ -619,9 +619,39 @@
           "phan_quyet": "THẬT — lỗi 88, cùng họ lỗi 61 (máy đo hẹp hơn thứ nó đo, và nó không nổ). Ca bịa duy nhất là tiêu đề BƯỚC 106, ĐÚNG câu sổ tay đã bịa hôm 18/09. Ô thoát hôm nay không cứu được vì nó phủ SAI CA: nó nói 'nếu file không có trong nguồn', trong khi file CÓ và thứ thiếu là DÒNG được hỏi."
         }
       ]
+    },
+    "BƯỚC 110": {
+      "ngay": "2026-09-21",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "ĐÂY LÀ BƯỚC LÀM TƯƠI, nên độ tươi được đo HAI LẦN. Trước: sổ tay khai BƯỚC lớn nhất là 106, repo ở 109 — lệch 3. Sau khi nạp lại 10 URL và xoá 15 bản cũ: sổ tay khai 109 và trích đúng từng chữ. Lệnh đối chiếu: tools/doi_chieu_trich_dan.py, mã thoát 0.",
+      "cau_hoi": "Answer in Vietnamese. Use ONLY my sources, and read them again -- do not reuse anything from earlier turns in this conversation. In docs/STATE.md, what is the HIGHEST numbered heading of the form \"## BUOC n\"? Give the number, then quote that heading line EXACTLY as it appears, character for character. If you cannot find such a heading line in the source, say exactly that and do not reconstruct or guess it.",
+      "o_thoat": "If you cannot find such a heading line in the source, say exactly that and do not reconstruct or guess it.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sau khi làm tươi, sổ tay trả BƯỚC 109 và trích dòng tiêu đề ĐÚNG TỪNG CHỮ: \"## BƯỚC 109 — SOÁT ĐỊNH KỲ LƯỢT 3, VÀ PHÉP TỰ KIỂM HỎNG Ở CHÍNH CHỖ NÓ PHÁN (21/09/2026)\". Trước đó cùng buổi nó khai 106 và BỊA tiêu đề.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"<dòng tiêu đề sổ tay trích>\" → KHỚP — STATE.md, mã thoát 0. Cùng dụng cụ chạy trên câu BỊA hôm sáng → LỆCH, khớp 15/94 ký tự đầu, mã thoát 1.",
+          "phan_quyet": "THẬT — nguồn nay tươi, và phép trích dẫn hết bịa ở đúng ca đã hỏng. 10 nguồn, 0 bản trùng, cả 10 lấy về hôm nay."
+        },
+        {
+          "noi_dung": "ĐỐI CHỨNG BÁC KẾT LUẬN BƯỚC 109. Hỏi lại NGUYÊN VĂN câu sáng nay — ô thoát phủ FILE, đúng cách viết mà BƯỚC 109 gọi là sai — trên nguồn đã tươi: sổ tay vẫn trả lời ĐÚNG 109 và trích đúng từng chữ. Vậy biến quyết định là NGUỒN, không phải Ô THOÁT.",
+          "tu_kiem": "lượt hỏi thứ ba trong cùng phiên, đổi đúng một biến (cách viết ô thoát), giữ nguyên nguồn; tools/doi_chieu_trich_dan.py trên câu trả lời → KHỚP — STATE.md",
+          "phan_quyet": "THẬT — và nó sửa lời khai của chính BƯỚC 109. Luật siết ô thoát vẫn giữ (nó đúng cho ca đo ngày 18/09: hỏi về một file KHÔNG có trong nguồn), nhưng với ca 'file CÓ, dòng thì bịa' thì phép sửa là LÀM TƯƠI NGUỒN. Cơ chế vì sao bản trùng gây ra bịa thì CHƯA đo được — làm tươi và bỏ trùng xảy ra cùng lúc, không tách được."
+        }
+      ]
     }
   },
-  "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát.",
+  "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
   "_gioi_han_QUY_UOC_DANH_DAU": "Giới hạn THỨ BA, đo 15/09/2026. Quy ước của dự án là GIU cau cu KEM DAU (`docs/HANDOFF.md` muc 4: 'gia tri cu de tran — duoc o lai, nhung phai danh dau'). Cong cu KHONG phan biet duoc mot cau da nghi nam trong khoi 🔴 voi mot cau dang song. Hau qua do duoc: 2/2 lan no neu 'mau thuan' deu la trich dan trong khoi danh dau. Nhung BAO no bo qua khoi danh dau thi no AP QUA RONG va ket luan 'khong co mau thuan nao' — bo lot ca hai mau thuan THAT tim duoc bang tay cung ngay. LUAT TU NAY: moi 'mau thuan' no neu phai kiem bang mot lenh truoc — `grep -n '<cau>' <file>` roi doc boi canh, xem cau ay co nam trong khoi danh dau khong. Hai lenh la du phan dinh.",
   "_moc_buoc": 81,
   "_vi_sao_co_moc_buoc": "Gác này ra đời 12/09/2026 và chỉ canh `## ĐO n`. Ngày 16/09/2026 người dùng hỏi vì sao cả một phiên trôi qua không dùng NotebookLM lần nào — lần nhắc THỨ BA. Đo ra: hôm ấy sinh 0 ĐO và 5 BƯỚC, nên gác im lặng ĐÚNG theo phạm vi của chính nó. Cái gác không yếu; nó ngắm một quần thể khác với quần thể công việc thật. Mốc 81 là BƯỚC đầu tiên của 16/09 — đặt ở 86 thì lần trượt ấy nằm ngoài máy. Mọi BƯỚC trước 81 KHÔNG bị đòi: khai bù 80 mục là dựng một lời khai chưa từng tồn tại, đúng thứ ĐO 5 đã từ chối làm. Con số này đọc từ ĐÂY, không gõ lại ở test hay ở hook — một ngưỡng gõ tay hai chỗ sẽ trôi khỏi nhau.",

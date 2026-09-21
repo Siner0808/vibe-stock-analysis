@@ -15956,3 +15956,99 @@ nạp gần nhất. Không vế nào của câu hỏi hôm nay dựa vào hai B�
 
 Tám phát, cả tám đỏ. Phát đầu dựng lại **nguyên văn** lỗi 88: bỏ lớp 3 ra
 khỏi `chuan_hoa()`, và một trích dẫn THẬT lập tức bị kết luận là bịa.
+
+---
+
+## BƯỚC 110 — LÀM TƯƠI NGUỒN SỔ TAY, VÀ MỘT ĐỐI CHỨNG BÁC KẾT LUẬN SÁNG NAY (21/09/2026)
+
+Việc treo từ 18/09: **5 cặp trùng URL** trong sổ tay, và nguồn dừng ở BƯỚC
+106 trong khi repo đã ở 109. Quy tắc số 3 buộc **mọi** BƯỚC đi qua sổ tay,
+nên một sổ tay lệch 3 BƯỚC là hỏng ở tầng hạ tầng.
+
+### Đếm TRƯỚC, bằng cây trợ năng chứ không bằng mắt
+
+```
+15 nguon  ·  10 URL khac nhau
+5 URL co HAI ban : CLAUDE.md · MO-XE · NGUYEN-TAC · HANDOFF · STATE.md
+5 URL co MOT ban : SKILL.md · bay.md · cong-thuc-chay.md · loi-da-mac.md
+                   · TIEU-CHI-DOC-TRUOC.md
+```
+
+Bản ghi 18/09 nói *"5 cặp trùng, không phân biệt được bằng mắt"*. Đọc
+`aria-label` của từng hàng thì **gọi được tên cả năm** — và năm cái ấy đúng
+là năm nguồn đời đầu (08/09). Nhãn hiển thị cắt cụt; thuộc tính thì không.
+
+### Cái gì thật sự cũ — đo bằng git, không đoán
+
+```bash
+git diff --name-only 6722fc4 HEAD     # 6722fc4 = luc nap nguon 18/09
+```
+
+Đúng **ba** tài liệu nguồn đổi kể từ lúc ấy: `docs/STATE.md` ·
+`SKILL.md` · `references/loi-da-mac.md`. **Bảy tài liệu còn lại giống hệt
+từng byte giữa hai bản**, nên với chúng, xoá bản nào cũng như nhau.
+
+Điều đó cắt việc làm hai nửa có độ rủi ro khác hẳn:
+
+| nhóm | cách làm | vì sao được phép |
+|---|---|---|
+| 7 file không đổi | xoá bớt còn 1 bản, bản nào cũng được | hai bản **bằng nhau**, chứng minh bằng `git diff` |
+| 3 file đã đổi | xoá **hết** rồi dán lại | không phân biệt được bản tươi, mà giữ nhầm bản cũ là đúng lỗi 17/09 |
+
+Thứ tự vẫn là **thêm trước, xoá sau** (luật 17/09): dán lại cả 10 URL
+trước (15 → 25), rồi mới xoá 15 bản cũ.
+
+### Kết quả
+
+```
+truoc :  15 nguon  ·  5 cap trung  ·  anh chup dung o BUOC 106
+sau   :  10 nguon  ·  0 trung      ·  ca 10 lay ve hom nay
+```
+
+### ĐỐI CHỨNG — và nó bác kết luận tôi viết sáng nay
+
+BƯỚC 109 kết luận rằng ô thoát *"phủ sai ca"* là chỗ hỏng, và siết luật
+theo hướng ấy. Hôm nay đo được **ba lượt, tách được hai biến**:
+
+| lượt | nguồn | ô thoát phủ | kết quả |
+|---|---|---|---|
+| sáng | 15, trùng, chụp ở 106 | **FILE** | **BỊA** tiêu đề BƯỚC 106 |
+| chiều | 10, tươi | **DÒNG** | đúng 109, khớp từng chữ |
+| chiều · **đối chứng** | 10, tươi | **FILE** (đúng câu cũ) | **đúng 109, khớp từng chữ** |
+
+**Lượt thứ ba là lượt đáng giá nhất.** Nó dùng lại **nguyên văn** câu hỏi
+sáng nay — ô thoát phủ FILE, đúng cách viết mà BƯỚC 109 gọi là sai — và
+sổ tay vẫn trả lời đúng. Vậy biến quyết định là **NGUỒN**, không phải
+**Ô THOÁT**.
+
+> 🔴 **Sửa lại lời khai BƯỚC 109.** Câu *"ô thoát phủ sai ca nên nó bịa"*
+> là một **giả thuyết chưa đối chứng**, và đối chứng đã bác nó. Luật siết
+> ô thoát thì **giữ** — nó vô hại và nó đúng cho ca đã đo ngày 18/09 (hỏi
+> về một file KHÔNG nằm trong nguồn). Nhưng với ca *"file CÓ trong nguồn,
+> dòng thì bịa"*, phép sửa là **làm tươi nguồn**.
+>
+> Đúng hình dạng dự án hay mắc: một phép sửa hợp lý được ký ngay sau khi
+> thấy triệu chứng, mà không ai đổi đúng một biến để hỏi nó có phải nguyên
+> nhân không. Ở đây phép đo rẻ — một câu hỏi.
+
+**Cơ chế thì CHƯA đo được.** Tiêu đề nó bịa không nằm trong bản mới, mà
+cũng không phải tiêu đề của bản cũ chép lại — nó là một câu **tổng hợp**.
+Việc bản trùng có gây ra điều đó hay không thì lượt này **không tách
+được**: làm tươi và bỏ trùng xảy ra cùng lúc. Ghi ra để không ai đọc
+tương quan thành cơ chế.
+
+### Hai thứ nhỏ đi kèm, cả hai đều đáng ghi
+
+**Trích dẫn cũ trong khung chat GÃY.** Sau khi xoá, các câu trả lời cũ còn
+nguyên nhưng số trích dẫn của chúng trỏ vào hư không —
+*"Không thể truy cập nguồn này"*. Lịch sử hội thoại **không** giữ được
+bằng chứng của chính nó qua một lượt làm tươi; muốn giữ thì phải chép nội
+dung ra ngoài (`docs/soat-notebooklm.json` đang làm đúng việc đó).
+
+**Suýt xoá nhầm nguồn — lỗi 89.** Hàm ánh xạ hàng → nút của tôi leo ba
+tầng DOM rồi `querySelector`, và nó bắt trúng nút *"Tuỳ chọn khác"* của
+**hàng đầu danh sách** thay vì hàng đang nhắm: tôi bấm xoá `CLAUDE.md`,
+hộp thoại hiện tên `references/bay.md`. Thứ chặn lại là **hộp thoại xác
+nhận tự nêu tên đích**. Nay phép xoá **bắt buộc** đọc tên trong hộp thoại
+và chỉ bấm `Xoá` khi nó khớp đuôi đường dẫn đang nhắm; không khớp thì bấm
+`Huỷ` và báo.
