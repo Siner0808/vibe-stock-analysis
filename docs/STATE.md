@@ -16052,3 +16052,127 @@ hộp thoại hiện tên `references/bay.md`. Thứ chặn lại là **hộp th
 nhận tự nêu tên đích**. Nay phép xoá **bắt buộc** đọc tên trong hộp thoại
 và chỉ bấm `Xoá` khi nó khớp đuôi đường dẫn đang nhắm; không khớp thì bấm
 `Huỷ` và báo.
+
+---
+
+## BƯỚC 111 — MỘT CON SỐ GÂY SỐC, VÀ LỜI KHAI ĐÃ NẰM SẴN Ở DÒNG 40 (21/09/2026)
+
+Sổ tay (BƯỚC 109) lôi ra **15 câu** thuộc lớp *"chưa ai ghi / không ai
+viết / chưa bao giờ được đo"*. Câu hỏi tự nhiên: `tools/soat_loi_khai_cu.py`
+có thấy lớp ấy không? Đo:
+
+```
+cong cu THAY  :  1/14
+LOT QUA       : 13/14
+```
+
+**Một con số như thế mời người ta đi dựng một lớp gác mới ngay.** Tôi
+suýt làm đúng vậy. Thứ chặn lại là **đếm cỡ nhóm trước khi ký** (lỗi 39):
+
+```
+mau rong  "chua/khong ai + dong tu"        ->  284 dong  <- quan lieu
+mau hep   "chua duoc GHI/VIET o dau"       ->   20 dong
+```
+
+284 là vùng không dựng gác được. Và khi siết xuống 20 rồi đọc chúng, chỗ
+hỏng lộ ra ở nơi khác hẳn:
+
+```
+12 trong 13 cau LOT QUA nam trong docs/STATE.md
+```
+
+Mà `docs/STATE.md` **CỐ Ý không nằm trong quần thể** — lý do viết sẵn ở
+**dòng 40** của chính công cụ: *"nó là nhật ký chỉ-thêm, lời khai trong
+một BƯỚC cũ mô tả ngày ấy và không phải thứ cần sửa"*.
+
+**Con số `1/14` không sai. Nó nói về một quần thể khác quần thể tôi
+tưởng.** Cùng họ lỗi 73 · 80 · 88 — và lần này lời khai đã có sẵn, chỉ là
+nó nằm trong docstring, chỗ chỉ ai mở mã ra mới đọc.
+
+### Hai thứ sửa được, và cả hai đều nhỏ
+
+**1. Một tên hàm `ten()` VẪN là một cái tên.** `CO_TEN` bản đầu
+(12/09/2026) là `` `[A-Za-z_][\w./:-]*` `` — không nhận dấu ngoặc. Nên
+`` `_doc()` `` **không** tính là tên, trong khi lời khai của chính phép
+lọc là *"lời khai phủ định CÓ NÊU TÊN"*, lý do kèm: *"có cái tên thì có
+chỗ để chạy `grep`"*. Đo trên đúng quần thể ấy:
+
+```
+truoc : 19 loi khai
+sau   : 21 loi khai      <- them 2, mot trong do la ca `_doc()`
+```
+
+Hai dòng không nhiều, nhưng ca `_doc()` chính là cái tên mà
+`tests/test_tai_lieu_khop_ten_ma.py` sinh ra để canh — nó bị bỏ sót **9
+ngày** bởi một cặp ngoặc.
+
+**2. Công cụ phải TỰ NÓI phạm vi của nó, trong bản in.** Một phạm vi nằm
+trong docstring là một phạm vi chỉ người mở mã mới đọc; người đọc **con
+số** thì không. Nay mỗi lượt chạy in thêm:
+
+```
+PHAM VI: 7 tai lieu, va `docs/STATE.md` CO Y KHONG nam trong do —
+         no la nhat ky chi-them, loi khai trong mot BUOC cu mo ta NGAY AY.
+         Mot con so o day KHONG noi gi ve loi khai nam trong STATE.md.
+```
+
+Đúng bài học **lỗi 78**: *một cảnh báo không ai đọc là một cảnh báo không
+tồn tại*. Khoá bởi `tests/test_soat_dinh_ky_co_tri_nho.py`, và phép kiểm
+ấy đối chiếu bản in với `TAI_LIEU` thật — thêm `docs/STATE.md` vào danh
+sách thì bản in thành một lời khai sai, và test đỏ.
+
+### LỖI 90 — gác đi tìm một chuỗi mà chính quần thể cũng chứa
+
+Bản đầu của phép kiểm phạm vi viết `assert "PHẠM VI" in ra` và
+`assert "STATE.md" in ra`. Đục thử để **sống hai phát**:
+
+```
+SONG  ban in KHONG con chu PHAM VI
+SONG  ban in khong GOI TEN thu no bo qua
+```
+
+Lý do: cả hai chuỗi ấy **cũng nằm trong chính quần thể công cụ quét** —
+`CLAUDE.md` có một mục tên *"PHẠM VI, đo 15/09/2026"*, và mọi dòng lời
+khai in ra đều có thể chứa `STATE.md`. Nên `in ra` xanh kể cả khi dòng
+khai đã bị gỡ hẳn.
+
+Đây là **lỗi 38 quay lại** sau chín ngày, trong một hình dạng mới: lần
+trước là `"conclusion" not in ma` với chữ ấy nằm trong chính docstring;
+lần này là một gác đọc bản in của một công cụ **quét văn bản**, nên mọi
+chuỗi đi tìm đều có sẵn một bản sao trong đầu vào.
+
+**Phép sửa: neo vào ĐẦU DÒNG rồi đọc đúng ba dòng kể từ đó**, thay vì tìm
+chữ trong cả bản in. Sau đó **6/6 đỏ**.
+
+### Đục thử
+
+```
+DO  1 CO_TEN bo lai dau ngoac (nguyen van lo hong)
+DO  2 CO_TEN nhan MOI THU (noi thanh vo dung)
+DO  3 ban in KHONG con chu PHAM VI
+DO  4 ban in khong GOI TEN thu no bo qua
+DO  5 TAI_LIEU them docs/STATE.md (ban in thanh loi khai SAI)
+DO  6 main() bo tham so, khong goi duoc tu test
+```
+
+Phát 6 đi kèm một phép sửa nhỏ đáng giữ: `main()` nay nhận `tham_so`, nên
+gọi được từ test. Bản cũ đọc thẳng `sys.argv`, mà dưới `pytest` thì
+`sys.argv` là tham số của pytest — công cụ nổ ngay khi bị đem ra kiểm.
+
+### Hai cổng bắt đúng dòng 90 vừa viết
+
+Lượt cổng đầy đủ đỏ **hai** phép kiểm, cả hai đều nhắm vào chính dòng bảng
+lỗi tôi vừa thêm:
+
+```
+test_dau_tick_phai_co_dia_chi  ->  dau ✅ cua dong 90 KHONG neu ten mot
+                                   thanh phan nao — mot loi hua, khong
+                                   phai co che  (loi 44 · 47)
+test_skill_quy_trinh           ->  "STATE.md" viet TRAN, git khong biet
+                                   cai ten ay  (phai la docs/STATE.md)
+```
+
+Cái thứ hai là **đúng lỗi mà `SKILL.md` Bước 4 dặn chạy một file 11 giây
+để tránh** — ngày 08/09/2026 nó lấy mất **ba lượt cổng đầy đủ, mỗi lượt
+~9 phút**. Hôm nay nó vẫn lọt qua tay tôi, và vẫn bị bắt; khác là bắt
+trong một lượt, không phải ba.
