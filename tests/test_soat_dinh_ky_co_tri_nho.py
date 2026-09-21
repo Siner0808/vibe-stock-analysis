@@ -46,6 +46,7 @@ SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 
 sys.path.insert(0, str(GOC / "tools"))
 
+import soat_loi_khai_cu as s  # noqa: E402
 from soat_loi_khai_cu import (  # noqa: E402
     da_soat, loi_khai_con_song, so_tro_vao_hu_khong, xep,
 )
@@ -166,3 +167,80 @@ def test_MOI_KHOA_DONG_trong_so_la_chuoi_khong_rong():
             dau = f"{luot['ngay']}[{i}]"
             assert isinstance(d, str) and d.strip(), f"{dau}: `dong` rong"
             assert d == d.strip(), f"{dau}: `dong` con khoang trang hai dau"
+#: ─────────────────────────────────────────────────────────────────────
+#: MỘT TÊN HÀM `ten()` VẪN LÀ MỘT CÁI TÊN — đo 21/09/2026
+#:
+#: Phép lọc tự khai là *"lời khai phủ định CÓ NÊU TÊN"*, lý do khai kèm:
+#: *"có cái tên thì có chỗ để chạy `grep`"*. Nhưng `CO_TEN` bản đầu không
+#: nhận dấu ngoặc, nên `` `_doc()` `` KHÔNG tính là tên — trong khi dự án
+#: viết tên hàm đúng kiểu ấy suốt.
+
+
+def test_TEN_HAM_co_ngoac_VAN_la_ten():
+    """Ca thật: `CLAUDE.md` dòng 621, và nó bị bỏ sót suốt 9 ngày.
+
+    Câu ở đó là *"Bản trước trỏ tới một hàm `_doc()` **chưa bao giờ tồn
+    tại** trong module này"* — một lời khai phủ định, có nêu tên, chưa
+    đánh dấu. Đúng thứ công cụ sinh ra để in. Nó không in, vì `()`.
+    """
+    assert s.CO_TEN.search("một hàm `_doc()` chưa bao giờ tồn tại")
+    assert s.CO_TEN.search("`vnstock_goi.kiem_goi()` phải có ba ô")
+    assert s.CO_TEN.search("`paper_metrics.py` chưa ai đọc")   # dạng cũ vẫn chạy
+    print("PASS  tên hàm có () vẫn là tên")
+
+
+def test_CO_TEN_khong_duoc_NHAN_MOI_THU():
+    """Chiều ngược lại. Nới một phép lọc là dễ; nới thành vô dụng cũng dễ.
+
+    Lời khai của phép lọc là *"có cái tên thì có chỗ chạy `grep`"* — nên
+    một câu KHÔNG có tên phải tiếp tục rơi ra ngoài, nếu không danh sách
+    quay lại con số 187 mà ba phép lọc sinh ra để siết.
+    """
+    assert not s.CO_TEN.search("chuyện ấy trước hôm nay không được ghi ở đâu")
+    assert not s.CO_TEN.search("`` rỗng thì không phải tên")
+    print("PASS  câu không có tên vẫn rơi ra ngoài")
+
+
+def test_CONG_CU_phai_TU_NOI_PHAM_VI_cua_no():
+    """Một phạm vi chỉ nằm trong docstring là một phạm vi không ai đọc.
+
+    Ngày 21/09/2026 tôi đo được *"công cụ chỉ thấy 1 trên 14 câu lớp
+    chưa-ai-ghi"* và suýt dựng cả một lớp gác mới trên con số ấy. Đọc lại
+    mã: **12 trong 13 câu lọt qua nằm trong `docs/STATE.md`, thứ công cụ
+    CỐ Ý không quét** — và lý do ấy đã viết sẵn ở dòng 40 của chính file.
+
+    Con số ấy không sai; nó chỉ nói về một quần thể khác quần thể tôi
+    tưởng. Cùng họ lỗi 73 · 80 · 88. Nên phạm vi phải đi theo BẢN IN, chỗ
+    người đọc con số đang nhìn — đúng bài học lỗi 78.
+    """
+    import io
+    import contextlib
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        s.main([])
+    dong = buf.getvalue().splitlines()
+
+    # NEO VÀO ĐẦU DÒNG, đừng tìm chữ trong cả bản in: hai chuỗi này CŨNG
+    # nằm trong chính quần thể công cụ quét (`CLAUDE.md` có một mục tên
+    # "PHẠM VI, đo 15/09/2026"), nên `in ra` xanh cả khi dòng khai đã bị
+    # gỡ. Đục thử 21/09/2026 để sống đúng hai phát vì lỗi ấy — lỗi 38.
+    dau = [i for i, d in enumerate(dong) if d.startswith("PHẠM VI:")]
+    assert len(dau) == 1, (
+        f"phai co DUNG MOT dong mo dau bang 'PHẠM VI:', dem duoc {len(dau)}")
+    khoi = "\n".join(dong[dau[0]:dau[0] + 3])
+    assert "STATE.md" in khoi, "dòng khai phạm vi không gọi tên thứ bị bỏ qua"
+    assert "nhật ký" in khoi, "dòng khai phạm vi không nói VÌ SAO bỏ qua"
+    print("PASS  công cụ tự nói phạm vi, và nói cả lý do")
+
+
+def test_PHAM_VI_in_ra_phai_KHOP_voi_ma():
+    """Lời khai *"không quét STATE.md"* phải đúng với `TAI_LIEU` thật.
+
+    Gác hình DẠNG, không gác chữ: nếu ai đó thêm `docs/STATE.md` vào danh
+    sách thì bản in thành một lời khai sai, và đó đúng là hình dạng
+    tài-liệu-lệch-mã mà dự án trả giá nhiều nhất.
+    """
+    assert not any("STATE.md" in t for t in s.TAI_LIEU), (
+        "TAI_LIEU nay CO STATE.md — ban in dang khai nguoc lai")
+    print(f"PASS  {len(s.TAI_LIEU)} tài liệu, không có STATE.md, khớp bản in")

@@ -649,6 +649,36 @@
           "phan_quyet": "THẬT — và nó sửa lời khai của chính BƯỚC 109. Luật siết ô thoát vẫn giữ (nó đúng cho ca đo ngày 18/09: hỏi về một file KHÔNG có trong nguồn), nhưng với ca 'file CÓ, dòng thì bịa' thì phép sửa là LÀM TƯƠI NGUỒN. Cơ chế vì sao bản trùng gây ra bịa thì CHƯA đo được — làm tươi và bỏ trùng xảy ra cùng lúc, không tách được."
         }
       ]
+    },
+    "BƯỚC 111": {
+      "ngay": "2026-09-21",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Đo ở BƯỚC 110 cùng phiên, sau lượt làm tươi: sổ tay khai BƯỚC lớn nhất là 109 và trích đúng từng chữ (tools/doi_chieu_trich_dan.py, mã thoát 0). BƯỚC 110 và 111 viết SAU lượt nạp ấy nên nằm ngoài tầm — và không vế nào của câu hỏi này dựa vào chúng.",
+      "cau_hoi": "Answer in Vietnamese. Use ONLY my sources. Find every place where a TOOL or a GUARD declares the POPULATION or SCOPE it covers -- sentences saying which files it scans, which files it deliberately skips, or how many items it looks at. Quote each one verbatim and name the file it comes from. I am most interested in the ones where that declared scope could now be narrower or wider than what the tool actually does. If you find no such sentence, say exactly that and do not guess.",
+      "o_thoat": "If you find no such sentence, say exactly that and do not guess.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay gom được BA lời khai phạm vi, và cả ba đều là lỗi ĐÃ GHI của dự án: (1) gác NotebookLM canh `## ĐO n` trong khi công việc sinh ra BƯỚC — lỗi 73; (2) docstring `ten_dang_bom()` tự nhận là bộ lọc của cửa `cua_ho_so` trong khi cửa không gọi nó, và nó chỉ duyệt *.py còn cửa bơm cả .md; (3) `tools/so_ban_goi.py` đếm trên bảy tên gõ tay rồi con số ấy được đọc thành một câu về thế giới — lỗi 80.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py trên cả ba trích dẫn → KHỚP (SKILL.md · STATE.md · loi-da-mac.md), 3/3, mã thoát 0",
+          "phan_quyet": "THẬT — ba trích dẫn có thật, nguyên văn. Và điều đáng đọc không phải từng cái: chúng cho thấy 'dụng cụ khai phạm vi lệch thực tế' là một LỚP đã cắn ít nhất BA lần, và BƯỚC 111 hôm nay là lần thứ tư — lần này phạm vi khai ĐÚNG, chỉ là nó nằm trong docstring nên người đọc con số không thấy."
+        },
+        {
+          "noi_dung": "Không lời khai phạm vi nào trong ba cái ấy còn SAI ở hiện tại — cả ba đã được sửa và đánh dấu. Sổ tay không tìm thấy một lời khai phạm vi nào đang lệch mà chưa ai biết.",
+          "tu_kiem": "đọc chính ba đoạn trích: mỗi đoạn đều kèm một câu 'Trích nguyên văn (sau khi điều chỉnh phạm vi)' hoặc '(sửa phạm vi)' — tức bản sửa đã nằm cạnh bản hỏng",
+          "phan_quyet": "THẬT — một kết quả ÂM, và nó đọc được vì mẫu CÓ khả năng cho kết quả dương: cùng câu hỏi ấy đã lôi ra ba ca dương (dù cả ba là ca lịch sử). Ghi ra theo đúng luật lỗi 66."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

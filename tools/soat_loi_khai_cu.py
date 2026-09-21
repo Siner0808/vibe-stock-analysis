@@ -108,7 +108,16 @@ PHU_DINH = re.compile(
     r"(chưa bao giờ|chưa ai|không ai|chưa có|chưa làm|chưa đo|chưa được"
     r"|chưa kiểm|không tồn tại|không ghi)", re.I)
 DA_CO_DAU = ("🔴", "⚠️", "ĐÃ BỊ BÁC", "đã bị thay", "ĐÃ ĐO", "ĐÃ TRUY", "~~")
-CO_TEN = re.compile(r"`[A-Za-z_][\w./:-]*`")
+#: Một cái tên trong dấu nháy ngược. `()` ở cuối được nhận, vì dự án
+#: viết tên hàm đúng kiểu ấy suốt — `kiem_goi()`, `_doc()`, `chay()`.
+#:
+#: Bản đầu (12/09/2026) bỏ sót `()`, và lời khai của chính phép lọc là
+#: *"lời khai phủ định CÓ NÊU TÊN"* — mà `_doc()` thì có nêu tên. Đo
+#: 21/09/2026 trên đúng quần thể này: sửa xong danh sách đi từ **19 lên
+#: 21 dòng**, tức lỗ hổng nhỏ nhưng có thật, và một trong hai dòng nó bỏ
+#: sót là ca `_doc()` — cái tên mà `tests/test_tai_lieu_khop_ten_ma.py`
+#: sinh ra để canh.
+CO_TEN = re.compile(r"`[A-Za-z_][\w./:-]*(\(\))?`")
 
 
 RE_BUOC = re.compile(r"^##\s+(BƯỚC\s+(\d+))\s*—")
@@ -207,7 +216,7 @@ def so_tro_vao_hu_khong(bang, ra) -> list[str]:
     return sorted(d for d in bang if d not in song)
 
 
-def main() -> int:
+def main(tham_so: list[str] | None = None) -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
@@ -215,7 +224,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--im", action="store_true",
                     help="chỉ in con số, dùng khi gọi từ công cụ khác")
-    a = ap.parse_args()
+    a = ap.parse_args(tham_so)   # None -> doc sys.argv; list -> goi duoc tu test
 
     ra = loi_khai_con_song()
     try:
@@ -247,6 +256,11 @@ def main() -> int:
 
     print(f"{len(ra)} lời khai · {len(TAI_LIEU)} tài liệu"
           f" · chưa ai mở: {len(chua)}")
+    if not a.im:
+        print(f"PHẠM VI: {len(TAI_LIEU)} tài liệu, và `docs/STATE.md` CỐ Ý "
+              "KHÔNG nằm trong đó —\n         nó là nhật ký chỉ-thêm, lời "
+              "khai trong một BƯỚC cũ mô tả NGÀY ẤY.\n         Một con số "
+              "ở đây KHÔNG nói gì về lời khai nằm trong STATE.md.")
 
     if not a.im:
         lac = so_tro_vao_hu_khong(bang, ra)
