@@ -15827,3 +15827,132 @@ Bốn phép kiểm đỏ còn lại đều là **một** nguyên nhân: đổi �
 của dòng 86 từ ❌ sang ✅ làm dòng tự khai cuối bảng lệch khỏi số đếm
 được. `tools/doc_bang_loi.py` in ra **54/87** sau khi thêm dòng 87, và
 con số ấy được **chép từ dụng cụ**, không cộng dồn bằng tay — lỗi 35.
+
+---
+
+## BƯỚC 109 — SOÁT ĐỊNH KỲ LƯỢT 3, VÀ PHÉP TỰ KIỂM HỎNG Ở CHÍNH CHỖ NÓ PHÁN (21/09/2026)
+
+Bản tin mở phiên: *"SOÁT QUY TRÌNH: lần gần nhất 3 ngày trước (nhịp 2
+ngày)"*. Công cụ in **19 lời khai phủ định còn sống**, trong đó **15 chưa
+ai mở**. Mở 5.
+
+### Hai lời khai cùng một hình dạng, và hình dạng ấy tự hết hạn
+
+```
+loi-da-mac.md loi 18 : "Day la mat thu hai, CHUA AI GHI: tail nuot ma thoat."
+loi-da-mac.md loi 17 : "van DUNG, vi mot ly do CHUA AI VIET: kiem-dinh.yml
+                        chay tren ca push lan pull_request"
+```
+
+Cả hai **SAI**, và cách chúng sai mới là điều đáng ghi:
+
+| lời khai | nay nằm ở đâu | lệnh soát |
+|---|---|---|
+| *"chưa ai ghi"* mặt thứ hai của `tail` | `references/cong-thuc-chay.md` — ghi **08/09/2026, cùng ngày** — và `SKILL.md` Bước 4 | `grep -rn "nuốt mã thoát"` → 3 dòng |
+| *"chưa ai viết"* lý do không đẩy thẳng | `SKILL.md` Bước 5 · `docs/HANDOFF.md` mục 7 | `grep -rln "chạy cả trên \`push\`"` → 3 file |
+
+**Một lời khai dạng *"chưa ai ghi X"* tự hết hạn ngay khi X được chép sang
+chỗ khác — và người chép chính là người đã viết nó.** Không cơ chế nào kêu:
+lời khai nằm ở file A, việc chép xảy ra ở file B, và không ai quay lại A.
+Lỗi 18 hết đúng **trong cùng ngày nó ra đời**.
+
+Đã đánh dấu ⚠️ cả hai, giữ nguyên câu — chúng là sử liệu của lúc hai lỗi
+ấy được viết.
+
+### Ba lời khai còn lại: THẬT, và một cái đáng đọc lại
+
+- **`pyarrow` vẫn là vế lệch bản CHÍNH duy nhất.** `tools/so_ban_goi.py`:
+  **26/92 gói lệch**, đọc từng dòng thì đúng một vế bản chính
+  (24.0.0/25.0.1); vế rộng nhất còn lại là `starlette` 1.3.1/1.6.0, bản
+  phụ. Hai hạng ồn ào vẫn 0.
+- **Mã thoát 2 trên CI là LỖI — khớp mã.** `.github/workflows/kiem-dinh.yml`
+  dòng **81** và **108**: mỗi dòng một `::error::` rồi `exit 1`, cho cả
+  cổng 2 lẫn cổng 4. Đây đúng loại lời khai sổ tay **không** kiểm được.
+- **Công tắc telemetry và agent GIỮ sau ba ngày.** Một tiến trình mới:
+  `telemetry_status()` → `enabled=False, privacy_level=minimal`;
+  `agent_status()` → **0/4** đích bật, `legacy_files_present` **rỗng**.
+  Bảy file đời cũ chưa mọc lại.
+
+### LỖI 88 — phép tự kiểm hẹp hơn thứ nó phán, và nó không nổ
+
+Quy tắc số 3 buộc BƯỚC này đi qua sổ tay. Câu hỏi hai phần, mỗi phần một
+lối thoát: *(1) độ tươi, (2) tìm MỌI câu khai "chưa ai ghi/đo/viết"*. Sổ
+tay trả về **15 trích dẫn**.
+
+Rồi tới phần tự kiểm — và đây là chỗ hỏng. **Ba lượt đối chiếu, ba con số
+khác hẳn nhau trên CÙNG một tập 15 câu:**
+
+```
+luot 1  grep TUNG DONG, giu nguyen dau nhan    ->   8 khop  ·  4 nghi BIA
+luot 2  bo dau nhan, noi lien dong             ->  11 khop  ·  3 nghi BIA
+luot 3  bo THEM dau trich dan `> ` dau dong    ->  14 khop  ·  1 BIA that
+```
+
+**Phép đối chiếu của lượt 1 sẽ vu cho sổ tay bịa 4 trên 15.** Ba lớp
+nhiễu, mỗi lớp một mình đủ làm một trích dẫn THẬT trả về 0 dòng:
+
+```
+lop 1  dau nhan Markdown   **dam**  `ma`  _nghieng_
+lop 2  NGAT DONG CUNG ~76 ky tu — mot cau dai nam tren 2-3 dong
+lop 3  dau TRICH DAN `> ` dau moi dong trong khoi blockquote
+```
+
+Lớp 1 đã đo được **hôm 18/09** (BƯỚC 108) và luật ký hôm ấy —
+*"grep lại một chuỗi con đặc trưng"* — chỉ chữa lớp ấy. Lớp 2 và 3 chỉ lộ
+ra khi có **một quần thể 15 câu để đếm**; với một câu duy nhất thì mọi con
+số đều nghe hợp lý.
+
+Đúng họ **lỗi 61**: máy đo hẹp hơn thứ nó đo, **và nó không nổ — nó chỉ in
+ra một con số**. Khác lỗi 61 ở một chỗ khiến nó nặng hơn: con số ấy là một
+**lời buộc tội**, và bên bị buộc tội không cãi được.
+
+### Thứ dựng được: `tools/doi_chieu_trich_dan.py`
+
+Một luật đọc-rồi-nhớ đã thua một lần rồi (18/09 ký luật, 21/09 vẫn sai).
+Nên lần này nó thành **dụng cụ**:
+
+```bash
+./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py "<trích dẫn>"
+```
+
+Ba ô, cùng quy ước năm cổng gác: **0** khớp · **1** lệch · **2** chưa kiểm
+được (trích quá ngắn, hoặc không đọc được tài liệu nào). Và khi lệch, nó
+nói ra **lệch TỪ ĐÂU**:
+
+```
+"## BUOC 106 — NANG urllib3 2.8.0, VA O DOI CHUNG..."
+  ->  LECH — khop 14/94 ky tu dau (o STATE.md), roi re khoi nguyen ban
+```
+
+14 ký tự ấy là `## BƯỚC 106 — `. Phân biệt được **bịa hẳn** với **trích
+đúng một đoạn rồi chế thêm** là thứ một phép so nhị phân không làm được.
+
+### Ca bịa duy nhất, và nó là ca CŨ
+
+Trích dẫn sai duy nhất trong 15 là **đúng tiêu đề BƯỚC 106 mà sổ tay đã
+bịa hôm 18/09**, nguyên văn không đổi. Nguyên bản:
+
+```
+that su : ## BƯỚC 106 — ĐO 13: `urllib3` 1.26.20 → 2.8.0, du lieu KHONG doi mot o
+so tay  : ## BƯỚC 106 — NANG urllib3 2.8.0, VA O DOI CHUNG KHONG CO TRONG BA LAN NANG TRUOC
+```
+
+**Và câu hỏi hôm nay CÓ lối thoát** — *"If docs/STATE.md is NOT among your
+sources, say exactly that and do not guess"*. Ô thoát ấy không cứu được,
+vì nó phủ **sai ca**: file CÓ trong nguồn, thứ không có là **dòng tiêu đề
+được hỏi**. Luật BƯỚC 107 vì thế phải chặt thêm một vòng:
+
+> **Ô thoát phải phủ đúng CÁI ĐANG HỎI, không phủ cái chứa nó.** Hỏi một
+> DÒNG thì lối thoát phải nói *"nếu không tìm thấy dòng ấy"*; nói *"nếu
+> không có file ấy"* là để ngỏ đúng chỗ nó sẽ chế.
+
+### Độ tươi — đo trước khi hỏi
+
+Sổ tay tự khai BƯỚC lớn nhất là **106**; repo ở **108**. Lệch **2 BƯỚC**,
+giải thích được: nguồn là ảnh chụp, và BƯỚC 107–108 vào `main` sau lượt
+nạp gần nhất. Không vế nào của câu hỏi hôm nay dựa vào hai BƯỚC ấy.
+
+### Đục thử
+
+Tám phát, cả tám đỏ. Phát đầu dựng lại **nguyên văn** lỗi 88: bỏ lớp 3 ra
+khỏi `chuan_hoa()`, và một trích dẫn THẬT lập tức bị kết luận là bịa.

@@ -574,8 +574,35 @@ việc này.
 > Một câu hỏi CÓ lối thoát vẫn cho trích dẫn `grep` ra 0 dòng — vì sổ tay
 > **lột dấu nhấn Markdown**. Nó dẫn `"Không: nó chỉ đọc VĂN BẢN."`; câu
 > thật ở `docs/STATE.md` dòng 6800 là `**Không:** nó chỉ đọc VĂN BẢN.`
-> **Luật đủ: grep lại một chuỗi con đặc trưng, bỏ dấu nhấn, TRƯỚC khi kết
-> luận.** Hai lệnh là đủ phân định — đúng liều đã dùng cho quy ước 🔴.
+>
+> 🔴 **VÀ CÂU "GREP LẠI MỘT CHUỖI CON" VẪN HẸP — lỗi 88, 21/09/2026.** Ba
+> lớp nhiễu, không phải một. Đối chiếu 15 trích dẫn trong một lượt:
+>
+> ```
+> grep TUNG DONG, giu dau nhan        ->   8 khop  ·  4 nghi BIA
+> bo dau nhan, noi lien dong          ->  11 khop  ·  3 nghi BIA
+> bo THEM dau trich dan `> `          ->  14 khop  ·  1 BIA that
+> ```
+>
+> Lớp 2 là **ngắt dòng cứng ~76 ký tự**, lớp 3 là **dấu `> ` của
+> blockquote**. Mỗi lớp một mình đủ làm một câu THẬT trả về 0 dòng — tức
+> phép tự kiểm của lượt đầu **vu oan 4 trên 15**.
+>
+> **ĐỪNG tự grep nữa — chạy dụng cụ:**
+>
+> ```bash
+> ./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py "<trích dẫn>"
+> ```
+>
+> Ba ô: **0** khớp · **1** lệch · **2** chưa kiểm được. Khi lệch nó nói
+> **lệch từ ký tự thứ mấy**, tức phân biệt *bịa hẳn* với *trích đúng một
+> đoạn rồi chế thêm*. `docs/STATE.md` BƯỚC 109.
+>
+> ⚠️ **VÀ Ô THOÁT PHẢI PHỦ ĐÚNG CÁI ĐANG HỎI, không phủ cái CHỨA nó.** Câu
+> hỏi 21/09 có lối thoát — *"If docs/STATE.md is NOT among your sources,
+> say exactly that and do not guess"* — và sổ tay vẫn bịa một dòng tiêu đề,
+> vì file **có** trong nguồn, thứ không có là **dòng** được hỏi. Hỏi một
+> DÒNG thì lối thoát phải nói *"nếu không tìm thấy dòng ấy"*.
 
 **Dùng nó khi nào**
 

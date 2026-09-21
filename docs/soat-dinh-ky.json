@@ -43,6 +43,42 @@
           "dong": "**không ai đọc bảng đó** — phép đo IC dùng `_income`+`_balance`, còn"
         }
       ]
+    },
+    {
+      "ngay": "2026-09-21",
+      "pham_vi": "Lượt 3, quá nhịp 1 ngày (lần gần nhất 18/09, nhịp 2 ngày). Công cụ in 19 lời khai phủ định còn sống trên 7 tài liệu, trong đó 15 CHƯA AI MỞ. Mở 5 — chọn theo hai tiêu chí: (a) lời khai có thể đã mục ruỗng vì chính dự án đã làm điều nó nói là chưa ai làm, (b) lời khai về TRẠNG THÁI NGOÀI REPO, thứ chỉ đo lại mới biết. Mỗi mục kiểm bằng một lệnh chạy được, không bằng trí nhớ.",
+      "phat_hien": [
+        {
+          "noi_dung": "references/loi-da-mac.md, lỗi 18: \"Đây là mặt thứ hai, chưa ai ghi: `tail` nuốt mã thoát.\" — hai chữ CHƯA AI GHI đã hết đúng, và hết đúng NGAY TRONG NGÀY viết ra chúng (08/09/2026).",
+          "dong": "hai, chưa ai ghi: `tail` **nuốt mã thoát**. Mặt này im lặng hơn.",
+          "tu_kiem": "grep -rn \"nuốt mã thoát\" --include=*.md . | grep -v .venv → 3 dòng (cong-thuc-chay.md:39, loi-da-mac.md:276, loi-da-mac.md:303) và SKILL.md:348 cho cách viết khác",
+          "phan_quyet": "SAI — mặt thứ hai ấy nay nằm ở references/cong-thuc-chay.md (ghi 08/09/2026, tức CÙNG NGÀY) và ở SKILL.md Bước 4. Đã đánh dấu ⚠️ ngay dưới câu, giữ nguyên câu vì nó là sử liệu."
+        },
+        {
+          "noi_dung": "references/loi-da-mac.md, lỗi 17: \"vẫn ĐÚNG, vì một lý do chưa ai viết: kiem-dinh.yml chạy trên cả push lẫn pull_request\" — cùng hình dạng, cùng cách hết hạn.",
+          "dong": "Nhưng vế *\"không đẩy thẳng `main`\"* vẫn ĐÚNG, vì một lý do chưa ai viết:",
+          "tu_kiem": "grep -rln \"chạy cả trên `push`\" --include=*.md . → 3 file (loi-da-mac.md, SKILL.md, docs/HANDOFF.md)",
+          "phan_quyet": "SAI — lý do ấy nay có ở SKILL.md Bước 5 và docs/HANDOFF.md mục 7. Đã đánh dấu ⚠️. HAI lời khai cùng dạng, cùng cách hết hạn, cùng không ai đánh dấu — xem docs/STATE.md BƯỚC 109."
+        },
+        {
+          "noi_dung": "CLAUDE.md: \"Hai hàm telemetry — disable_telemetry() · telemetry_status() — thì vẫn chưa động, và người dùng chưa được hỏi về chúng.\"",
+          "dong": "> và người dùng chưa được hỏi về chúng. `docs/STATE.md` BƯỚC 103.",
+          "tu_kiem": "một tiến trình MỚI: import vnai; vnai.telemetry_status() → {'enabled': False, 'privacy_level': 'minimal'}; agents.agent_status() → 0/4 đích bật, legacy_files_present = {}",
+          "phan_quyet": "SAI — đã hết đúng từ 18/09, và ô 🔴 ngay dưới đã nói điều đó, nên quy ước đánh dấu ở đây CÓ chạy. Giá trị của lượt mở này nằm chỗ khác: đo lại sau BA NGÀY và một lượt khởi động lại, công tắc vẫn GIỮ — cả telemetry lẫn agent, và 7 file đời cũ chưa mọc lại (legacy_files_present rỗng)."
+        },
+        {
+          "noi_dung": "CLAUDE.md: \"Còn pyarrow 24.0.0 → 25.0.1 là vế lệch bản CHÍNH cuối cùng, chưa đo.\"",
+          "dong": "> CHÍNH cuối cùng, chưa đo. `docs/STATE.md` BƯỚC 106.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/so_ban_goi.py → 26/92 gói lệch, đọc từng dòng: đúng MỘT vế bản CHÍNH là pyarrow 24.0.0/25.0.1; vế rộng nhất còn lại là starlette 1.3.1/1.6.0 (bản phụ)",
+          "phan_quyet": "THẬT — vẫn là vế lệch bản CHÍNH duy nhất, và vẫn chưa đo (người dùng chốt bỏ qua 18/09). Hai hạng ồn ào vẫn 0. Lượt CI đối chiếu là 18/09 vì từ đó tới nay không có push nào."
+        },
+        {
+          "noi_dung": "CLAUDE.md: \"Ba trạng thái như kiem_cu_phap_311.py, và mã thoát 2 (chưa kiểm được) trên CI là LỖI.\" — một lời khai về HÀNH VI CỦA MÁY, đúng loại mà sổ tay không bao giờ kiểm được.",
+          "dong": "`kiem_cu_phap_311.py`, và mã thoát 2 (chưa kiểm được) trên CI là LỖI.",
+          "tu_kiem": "grep -n \"exit 1\" .github/workflows/kiem-dinh.yml → dòng 81 và 108, mỗi dòng đứng sau một `::error::` nói rõ 'trả 2 (chưa kiểm được) — trên CI đó là lỗi'",
+          "phan_quyet": "THẬT — workflow biến mã 2 thành ::error:: rồi exit 1, cho CẢ cổng 2 lẫn cổng 4. Tài liệu khớp mã. Đây là loại lời khai sổ tay KHÔNG kiểm được (nó chỉ thấy tài liệu), nên nó phải được mở bằng lệnh."
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."

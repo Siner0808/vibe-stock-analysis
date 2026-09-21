@@ -125,7 +125,7 @@ là lỗi sẽ tái diễn.
 
 | 64 | **một ô giao diện hứa một VÙNG rồi in ra một ĐIỂM — và điểm ấy là dữ liệu thô.** `app.py` ghi *"Vùng giá mua đề xuất"* rồi in `latest_close_fmt`, tức **giá đóng cửa phiên gần nhất**, không qua một phép tính nào. Sinh **18/08/2026**, sống **28 ngày** — dài nhất bảng này. Chỗ trớ trêu: ngày **21/08**, ba ngày sau khi nó ra đời, dự án gỡ **hai ô khác** (`Pha C — Wyckoff Spring`, `Fundamental Agent · BCTC Q2`) vì đúng lý do *"hứa một thành phần không tồn tại"* — lượt dọn ấy sửa hai ca và **không quét cả lớp**, đúng thứ `docs/HANDOFF.md` ràng buộc 5 cấm | **người dùng gửi ảnh chụp màn hình** | ⚠️ một phần | ô ấy nay lấy số từ `muc_fibonacci.doc_muc()` — một vùng thật, hoặc một dấu gạch kèm lý do. `tests/test_muc_fibonacci.py::test_O_VUNG_MUA_tren_APP_khong_duoc_quay_ve_GIA_DONG_CUA` chặn đúng ca này quay lại, và **chỉ ca này**: câu *"nhãn nào hứa quá"* nói chung không đọc được từ văn bản. Lớp vẫn hở |
 
-**Năm mươi tư trên tám mươi bảy máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+**Năm mươi lăm trên tám mươi tám máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
@@ -302,6 +302,16 @@ phải gác.** Ở đây gác đỏ thật — nhưng không ai nghe được ti
 Luật `pytest-qua-ong` sinh ra vì `tail` **đệm output**. Đây là mặt thứ
 hai, chưa ai ghi: `tail` **nuốt mã thoát**. Mặt này im lặng hơn.
 
+> ⚠️ **HAI CHỮ "CHƯA AI GHI" HẾT ĐÚNG NGAY TRONG NGÀY VIẾT RA CHÚNG — soát
+> định kỳ lượt 3, 21/09/2026.** Mặt thứ hai ấy nay nằm ở
+> `references/cong-thuc-chay.md` (*"mã thoát của một ống là mã thoát của
+> lệnh CUỐI"*, ghi **08/09/2026**, tức cùng ngày) và ở `SKILL.md` Bước 4.
+> Lệnh soát: `grep -rn "nuốt mã thoát" --include=*.md .` → 3 dòng.
+>
+> Giữ nguyên câu vì nó là **sử liệu** của lúc lỗi 18 được viết. Nhưng một
+> lời khai dạng *"chưa ai ghi X"* **tự hết hạn ngay khi X được chép sang
+> chỗ khác**, và không gì kêu — `docs/STATE.md` BƯỚC 109.
+
 ### Lỗi 17 — luật ĐÚNG, lý do SAI
 
 Luật *"người dùng tự mở và merge PR"* nêu hai lý do: *"`gh` không cài
@@ -313,6 +323,14 @@ Nhưng vế *"không đẩy thẳng `main`"* vẫn ĐÚNG, vì một lý do chư
 `.github/workflows/kiem-dinh.yml` chạy trên **cả `push` lẫn
 `pull_request`**, nên đẩy thẳng
 thì CI chạy SAU khi mã đã vào `main` — cổng đặt sau cánh cửa.
+
+> ⚠️ **"CHƯA AI VIẾT" HẾT ĐÚNG — soát định kỳ lượt 3, 21/09/2026.** Lý do
+> ấy nay có trong `SKILL.md` Bước 5, trong `docs/HANDOFF.md` mục 7, và
+> trong chính dòng này. Lệnh soát:
+> `grep -rln "chạy cả trên \`push\`" --include=*.md .` → 3 file.
+>
+> Cùng hình dạng với ô ⚠️ ở lỗi 18 phía trên, và đó mới là điều đáng đọc:
+> **hai lời khai cùng dạng, cùng cách hết hạn, cùng không ai đánh dấu.**
 
 **Một luật đúng với lý do sai vẫn sẽ bị bác.** Hôm nay ba lần, cùng hình
 dạng: luật CRLF (lỗi 4), câu "hook đang cưỡng chế" (lỗi 14), và cái này.
@@ -1431,6 +1449,7 @@ phải "để sau":
 | 85 | **gác chặn một lệnh DÂY, tôi phát lại đúng KHÚC ĐUÔI — và một file cũ trùng tên làm chỗ hỏng im lặng.** Lệnh bị chặn là một dây: `cat > commit108.txt << 'TXT' … && git commit -F commit108.txt && git push && gh pr create`. Luật `backtick-trong-nhay-kep` chặn nó vì thân `gh pr create` mang dấu ` trong nháy kép, nên **KHÔNG khúc nào chạy** — kể cả khúc `cat >`. Tôi phát lại từ `git commit -F` trở đi, tin rằng file đã có. Nó **có thật** — nhưng là bản từ **14/09**, 4.084 byte, còn sót trong scratchpad vì tên đánh số tuần tự (`commit100.txt` … `commit108.txt`) trùng qua các phiên. `git commit -F` đọc nó **không một lời cảnh báo**, và commit mang thông điệp của một việc hoàn toàn khác (*"gac: dem ca TAM luat"*, PR #107) **đã lên remote** cùng một PR mở ra. Diff thì đúng; chỉ thông điệp sai — tức cái hỏng nằm ở chỗ `git status` và năm cổng đều không nhìn | chính dòng `git commit` in ra tiêu đề ngay sau khi chạy — **phép phát hiện đã MIỄN PHÍ sẵn**, việc còn thiếu là ĐỌC nó | ❌ | **không dựng được ở cổng, và đó là kết luận.** Gác Bash chỉ thấy VĂN BẢN của lệnh; nó không biết file nào được sinh ra trong phiên này và file nào sót lại từ phiên trước. Một luật kiểu *"cấm `git commit -F` lên file cũ hơn nhánh"* thì brittle và sinh đỏ giả. Thứ dựng được là hai thói quen: **(1) gác chặn một lệnh DÂY thì phát lại CẢ DÂY, đừng phát lại khúc đuôi** — không khúc nào đã chạy; **(2) đặt tên file thông điệp theo NGÀY + VIỆC** (`commit-20260918-pyarrow.txt`) chứ không đánh số tuần tự, vì số tuần tự trùng qua phiên. Đã sửa bằng `git commit --amend` + `push --force-with-lease` trên nhánh một-commit chưa merge |
 | 86 | **tôi ĐO ra một điểm mù của sổ tay, rồi dùng chính phép đo ấy làm lý do bỏ qua nó SÁU LẦN LIÊN TIẾP.** Sáng 18/09, BƯỚC 102 đo được quần thể sổ tay hẹp hơn quần thể công việc: *công cụ soát định kỳ quét BẢY tài liệu · sổ tay nạp NĂM nguồn · giao nhau đúng BA*. Đó là một phát hiện đúng. Nhưng sau đó nó thành một **câu thần chú**: BƯỚC 102 · 103 · 104 · 105 · ĐO 13 · BƯỚC 106 đều khai `khong_soat_vi`, mỗi lượt một lý do riêng nghe rất hợp lý — *bằng chứng nằm ngoài repo* · *bằng chứng là MÃ* · *bản chụp cũ hơn lời khai*. Đếm ra: **hôm nay 1 hỏi thật / 6 bỏ qua**, và toàn sổ **30 `khong_soat_vi` trên 42 mục**. Một ô thoát đòi lý do cụ thể vẫn là ô thoát, nếu lý do cụ thể có sẵn mọi lần. Và phép sửa nằm ngay trong chính phép đo: **nạp thêm tài liệu còn thiếu** — thêm nguồn là cộng vào, đảo lại được, và luật thu hẹp 17/09 chỉ quản việc XOÁ. Tôi đã nghĩ tới sáng nay và hoãn | **người dùng hỏi thẳng: "bạn vẫn mắc lỗi không sử dụng NoteBook?"** — lần nhắc thứ TƯ về cùng một việc | ✅ | 🔴 **Ô NÀY GHI ❌ SÁNG 18/09 VÀ ĐỔI CÙNG NGÀY — xem `docs/STATE.md` BƯỚC 108.** Người dùng chốt: *"mỗi bước thực hiện đều phải sử dụng NoteBook"*. Nên phép sửa không còn là ĐẾM — là **đóng thẳng ô thoát**: từ BƯỚC 108, một mục BƯỚC khai `khong_soat_vi` là ĐỎ (`tests/test_soat_notebooklm.py::test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT`), và mục ấy phải mang `cau_hoi` nguyên văn, một `o_thoat` là chuỗi con của chính câu ấy, cùng một kết quả. Vế còn ĐÚNG của lập luận cũ: gác mới vẫn **không** đọc được *hỏi có tử tế không* — thứ đứng ở chỗ ấy là ba đòi hỏi về CHẤT của câu hỏi. *(lập luận sáng 18/09, giữ để đối chiếu)* **không dựng được thành cổng.** Gác `tests/test_soat_notebooklm.py` đã chặn đúng thứ chặn được — *khai MỘT trong hai thẻ*, và `khong_soat_vi` phải dài ≥25 ký tự, không mơ hồ. Nó **không** đọc được *lý do này có thật là lý do không*; một gác đếm kiểu *"không quá n lần bỏ qua liên tiếp"* thì chỉ dạy người ta xen một câu hỏi lấy lệ. Thứ dựng được là **đóng cái điểm mù**: nạp 5 tài liệu còn thiếu (SKILL.md · references/loi-da-mac.md · references/bay.md · references/cong-thuc-chay.md · docs/TIEU-CHI-DOC-TRUOC.md), đưa sổ tay từ **5 lên 15 nguồn**, nên giao với quần thể soát định kỳ từ **3/7 lên 7/7**. Từ nay một lời khai *"quần thể không chứa câu trả lời"* phải đo lại chứ không chép |
 | 87 | **một phép kiểm dựng lại trạng thái LỊCH SỬ bằng cách BỎ MỤC CUỐI — nên nó hết đúng ngay khi có mục kế tiếp.** `tests/test_cua_quy_trinh.py::test_DUNG_LAI_CA_THAT_loi_86_ban_tin_PHAI_keu` dựng chiều 18/09/2026 đọc chính `docs/soat-notebooklm.json` rồi bỏ **mục cuối** đi, gọi đó là *"đúng trạng thái lúc lỗi 86 xảy ra"*. Câu ấy đúng vào đúng ngày viết. Mục kế tiếp — BƯỚC 108, vài giờ sau — vào sổ thì *"bỏ mục cuối"* để lại **BƯỚC 107**, một mục HỎI THẬT, nên chuỗi tụt từ **6 xuống 0** và phép kiểm đỏ trong khi **không có gì hỏng**. Tuổi thọ của lời khai ấy: **một mục** | cổng 1, lượt chạy đầu tiên của phiên kế tiếp | ❌ | **không dựng được thành cổng, và cái đã bắt được nó thì đáng giữ hơn một cổng.** Một luật kiểu *"cấm lập chỉ mục tương đối trong test"* sẽ chặn cả trăm chỗ hợp lệ (lỗi 39: đếm cỡ nhóm trước khi ký). Thứ bắt được nó là **phép kiểm chạy trên quần thể THẬT** — dữ liệu thật đổi, nên một lời khai hết hạn thì ĐỎ chứ không im. Đã sửa: neo mốc vào **TÊN** mục lịch sử (`BƯỚC 106`) rồi CẮT sổ sau nó, không neo vào vị trí trong một sổ còn dài ra |
+| 88 | **phép TỰ KIỂM của tôi hẹp hơn thứ nó phán — và nó không nổ, nó chỉ in ra một LỜI BUỘC TỘI.** Ngày 18/09 (BƯỚC 108) dự án ký luật *"`grep` ra 0 dòng CHƯA đủ để kết tội sổ tay bịa — grep lại một chuỗi con đặc trưng, bỏ dấu nhấn"*. Đúng chiều, và chỉ chữa **một** lớp nhiễu. Ngày 21/09 một lượt đối chiếu **15 trích dẫn** cho ba con số khác hẳn nhau trên cùng một tập: `grep` từng dòng → **8 khớp, 4 nghi bịa**; bỏ dấu nhấn + nối liền dòng → **11 khớp, 3 nghi bịa**; bỏ thêm dấu trích dẫn `> ` đầu dòng → **14 khớp, 1 bịa THẬT**. Ba lớp nhiễu — dấu nhấn Markdown · **ngắt dòng cứng ~76 ký tự** · dấu trích dẫn `> ` trong khối blockquote — mỗi lớp một mình đủ làm một câu THẬT trả về 0 dòng. Lớp 2 và 3 chỉ lộ ra khi có một **quần thể** để đếm; với một câu duy nhất thì mọi con số đều nghe hợp lý | chính lượt đối chiếu: bốn "ca bịa" trông không hợp lý nên đo lại, hai lượt nữa | ✅ | `tools/doi_chieu_trich_dan.py` — chuẩn hoá đủ ba lớp rồi so trên TOÀN VĂN, ba ô (0 khớp · 1 lệch · 2 chưa kiểm được), và khi lệch thì nói ra **lệch từ ký tự thứ mấy**, tức phân biệt được *bịa hẳn* với *trích đúng một đoạn rồi chế thêm*. Khoá bởi `tests/test_doi_chieu_trich_dan.py`; đục thử **8/8 đỏ**, phát đầu dựng lại nguyên văn lỗi này. Cùng họ **lỗi 61** (máy đo hẹp hơn thứ nó đo), nặng hơn ở một chỗ: con số nó in ra là một lời buộc tội, và bên bị buộc tội không cãi được |
 > **Một bảng chín dòng chưa đóng, mỗi dòng có lý do, đáng tin hơn một
 > con số "đã đóng hết".** Ba ngày qua đã có hai lần một dấu ✅ hứa rộng
 > hơn thứ nó giao (lỗi 44, 47).
