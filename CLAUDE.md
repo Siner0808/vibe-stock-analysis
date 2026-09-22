@@ -163,6 +163,18 @@ giá nên về lý thuyết không tạo được thông tin ngoài thứ đã c
 Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròng —
 `financial_collector.py` đã có sẵn đường lấy dữ liệu.
 
+> 🔴 **VẾ ĐỊA CHỈ CỦA CÂU TRÊN SAI VÀO ĐÚNG NGÀY NÓ ĐƯỢC VIẾT — đo
+> 22/09/2026, BƯỚC 114.** `financial_collector.py` có **ba** hàm công
+> khai — tổng quan · BCTC · khối ngoại — và **0 lần** nhắc bất cứ thứ gì
+> liên quan tới giao dịch nội bộ. Câu này vào file ngày 13/08/2026
+> (`97e9c96`) nên nó sống **40 ngày**.
+>
+> Kết luận *"ba nguồn ấy độc lập"* vẫn đúng. Thứ sai là địa chỉ, và nay
+> cả ba đã có trạng thái đo được: BCTC — BƯỚC 53, không tín hiệu; khối
+> ngoại — BƯỚC 113, có tín hiệu nhưng nhỏ hơn rào hoà vốn 2,66 lần; giao
+> dịch nội bộ — BƯỚC 114, `Company(nguon, ma).insider_trading()` của
+> `vnstock_data` 3.3.0 trả **0/71 mã**, đối chứng dương đạt 4/4.
+
 > **Đã đi được một bước theo hướng đó (22/08/2026):** `fundamental_agent.py`
 > đọc BCTC thật và hiện lên giao diện. Nhưng **trọng số của nó bằng 0**, nên
 > nó CHƯA thay đổi con số nào ở trên. Đọc mục "Agent Cơ Bản" bên dưới trước
