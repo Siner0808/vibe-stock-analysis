@@ -734,6 +734,66 @@
           "phan_quyet": "THẬT, và nó ĐỔI một câu tôi vừa viết. Ca 4 chỉ thẳng vào chỗ phép soi 3 của ĐO 14 chưa với tới: tôi đếm 2.316 giá trị khác nhau trên TOÀN chuỗi, đúng nghĩa mà \"6.327 mẫu\" từng đúng. Thứ giết bộ nhớ hậu nghiệm là biến thiên trong VÙNG QUYẾT ĐỊNH ĐI QUA — 113/113 lệnh rơi vào 2 ô. Nên phép đo IC sắp tới phải đếm biến thiên SAU khi ghép vào tập điểm quyết định. Câu ấy đã được viết thẳng vào BƯỚC 112."
         }
       ]
+    },
+    "ĐO 15": {
+      "ngay": "2026-09-22",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Nguồn nạp ở BƯỚC 110 (21/09). Mọi vế của câu hỏi này trỏ về BƯỚC 7, BƯỚC 9 và references/bay.md — đều viết trước 21/09 — nên bản chụp ấy phủ đúng thứ cần hỏi. Phần viết hôm nay (BƯỚC 112, ĐO 14, ĐO 15) nằm ngoài tầm và KHÔNG vế nào của câu hỏi dựa vào chúng.",
+      "cau_hoi": "I am about to measure rank correlation IN-SAMPLE on the 2021-10 to 2026-09 window, and read a result below a permutation noise floor as evidence of absence. Quote every passage that constrains or contradicts this reading: which horizons that noise floor was actually validated at, whether an in-sample upper bound is treated as a legitimate way to close a question, and any place where a threshold or calibration tool was itself found to be wrong. If the documents do not constrain this reading, say that plainly instead of constructing an objection. Answer in Vietnamese.",
+      "o_thoat": "If the documents do not constrain this reading, say that plainly instead of constructing an objection.",
+      "phat_hien": [
+        {
+          "noi_dung": "Vế NHỊP — ràng buộc trực tiếp và nó mạnh hơn tôi tưởng: \"h=5: phép đo hoạt động → kết quả null ở đó là bằng chứng vắng mặt thật\" và \"h=20: tiêm đúng rào mà máy vẫn im → kết quả 'dưới sàn nhiễu' ở h=20 KHÔNG đọc được\". ĐO 15 chọn h = 5 và 21, tức nhịp thứ hai nằm sát đúng chỗ tài liệu gọi là thiếu lực.",
+          "tu_kiem": "tiêu chí ĐO 15 đã khai TRƯỚC lượt hỏi rằng chứng cứ dương phải chạy trong chính lượt này và kết cục 4 (THIẾU LỰC) không được báo chung câu với kết cục 3 — nên phát hiện này XÁC NHẬN thiết kế, không sửa nó. Khoá bởi tests/test_experiment_khoi_ngoai.py::test_NULL_ma_CHUNG_CU_DUONG_IM_la_THIEU_LUC_chu_khong_phai_VANG_MAT",
+          "phan_quyet": "THẬT. Vế đáng giữ: h=21 nhiều khả năng rơi vào kết cục 4, và điều đó phải được nói TRƯỚC khi thấy số để không ai đọc một kết quả null ở đó thành bằng chứng vắng mặt."
+        },
+        {
+          "noi_dung": "Vế CẬN TRÊN — và đây là chỗ nó tìm ra một LỖ THẬT trong thiết kế của tôi. Tài liệu KHÔNG bác cách đọc in-sample; ngược lại nó coi đây là phương pháp chính thống: \"Cách gộp tuyến tính TỐI ƯU TRONG MẪU ... Đó là cận trên: không cách gộp nào tốt hơn tồn tại.\" Nhưng cận trên ấy dựng bằng CÁCH GỘP, còn ĐO 15 bản đầu chỉ đo IC TỪNG ĐẶC TRƯNG — mà một IC đơn lẻ dưới sàn nhiễu không cho phép nói 'không cách gộp nào tốt hơn tồn tại'. Hai khẳng định khác nhau, và chỉ khẳng định thứ hai mới đóng được câu hỏi.",
+          "tu_kiem": "đọc thẳng experiment_tran_dac_trung.khop_va_rho() và docstring của nó: 'Đây là CẬN TRÊN: không cách gộp tuyến tính nào cho rho cao hơn'",
+          "phan_quyet": "THẬT, và ĐÃ SỬA trong cùng phiên: mỗi nhịp nay in thêm một dòng CẬN TRÊN dùng chính E.khop_va_rho() với sàn nhiễu và trị số p riêng, và hàm phán quyết đọc nó. Đây là lượt sổ tay đầu tiên của dự án sửa một khiếm khuyết THIẾT KẾ trước khi phép đo chạy xong, thay vì tìm ra một câu tài liệu lệch."
+        },
+        {
+          "noi_dung": "Vế CÔNG CỤ HIỆU CHUẨN HỎNG: ba ca, và cơ chế của ca nặng nhất được nêu tên — phép hiệu chuẩn 01/09 \"dịch vòng đặc trưng rồi lại hoán vị nhãn\", làm độ dịch hiệu dụng bị quấn vòng, kéo sàn nhiễu lên và tự báo động giả 14–30,5% thay vì 5%.",
+          "tu_kiem": "đọc chính chung_cu_duong_kn() vừa viết: nó hoán vị NHÃN qua E.san_nhieu với đặc trưng tiêm GIỮ NGUYÊN — không có bước dịch vòng thứ hai trên đặc trưng, nên không dính hình dạng ấy",
+          "phan_quyet": "THẬT, và là một kết quả ÂM đọc được: phép chứng cứ dương của ĐO 15 không mắc lỗi đã ghi. Nhưng nó cũng nhắc đúng bài references/bay.md mục 4 — một kết quả 'dụng cụ hỏng' phải được đối chiếu y như một kết quả 'tìm thấy tín hiệu', vì nó cũng đẹp theo cách riêng."
+        }
+      ]
+    },
+    "BƯỚC 113": {
+      "ngay": "2026-09-22",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Cùng lượt hỏi với ĐO 15 — câu hỏi ấy soát TIÊU CHÍ trước khi chạy, và BƯỚC 113 là kết quả của chính phép đo ấy. Không tách làm hai lượt vì phát hiện của nó đã được thi hành TRƯỚC khi có số: dòng CẬN TRÊN thêm vào dụng cụ, không thêm vào diễn giải.",
+      "cau_hoi": "I am about to measure rank correlation IN-SAMPLE on the 2021-10 to 2026-09 window, and read a result below a permutation noise floor as evidence of absence. Quote every passage that constrains or contradicts this reading: which horizons that noise floor was actually validated at, whether an in-sample upper bound is treated as a legitimate way to close a question, and any place where a threshold or calibration tool was itself found to be wrong. If the documents do not constrain this reading, say that plainly instead of constructing an objection. Answer in Vietnamese.",
+      "o_thoat": "If the documents do not constrain this reading, say that plainly instead of constructing an objection.",
+      "phat_hien": [
+        {
+          "noi_dung": "Vế CẬN TRÊN của lượt hỏi ĐO 15 đã đổi kết quả của BƯỚC này, không chỉ đổi cách viết nó. Dòng `CAN TREN` thêm vào dụng cụ theo phát hiện ấy ra rho +0,0387 (p 0,0005) ở h=5 — VƯỢT sàn nhiễu, trong khi 4/5 IC đơn lẻ nằm trong sàn. Thiếu dòng ấy, BƯỚC 113 đã tuyên KẾT CỤC 3 (bằng chứng vắng mặt) ở h=5, và đó là một kết luận SAI.",
+          "tu_kiem": "chạy `experiment_khoi_ngoai.py --hoan-vi 2000 --chung-cu-duong`: h=5 cho `['kn_z_20', 'CAN TREN'] vuot san nhieu nhung DUOI rao hoa von`; bỏ `can_tren` khỏi hàm phán quyết là một trong tám phát đục thử, và nó ĐỎ",
+          "phan_quyet": "THẬT, và đây là lượt sổ tay có giá trị cao nhất tới nay: nó sửa một khiếm khuyết THIẾT KẾ trước khi phép đo chạy xong, thay vì tìm ra một câu tài liệu lệch sau khi việc đã xong. Vế nhịp của cùng lượt hỏi cũng đúng: h=21 rơi vào kết cục 4 y như tài liệu cảnh báo cho h=20."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

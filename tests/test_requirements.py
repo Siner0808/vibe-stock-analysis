@@ -75,14 +75,44 @@ def _import_ngoai() -> dict:
     return ket
 
 
+def _goi_tai_tro_o_muc_module() -> dict:
+    """{gói tài trợ: {file ở gốc import nó Ở MỨC MODULE}}.
+
+    Tách khỏi `_import_ngoai()` vì hai gác hỏi hai câu khác nhau: cái kia
+    hỏi *"file này import gì"*, cái này hỏi *"import ấy có nằm ở chỗ CI
+    chạm tới không"*. Gộp lại là lại một cửa sổ hẹp hơn thứ nó đo.
+    """
+    import pathlib
+
+    tai_tro = {g.replace("-", "_") for g in GOI_TAI_TRO}
+    ket: dict = {}
+    for f in sorted(pathlib.Path(GOC).glob("*.py")):
+        for m in _import_muc_module(f):
+            if m.replace("-", "_") in tai_tro:
+                ket.setdefault(m, set()).add(f.name)
+    return ket
+
+
 def test_requirements_phu_het_import_o_goc_du_an():
     khai_bao = _da_khai_bao()
     noi_bo = _module_noi_bo()
+    tai_tro = {g.replace("-", "_") for g in GOI_TAI_TRO}
+    o_muc_module = _goi_tai_tro_o_muc_module()
     thieu = {}
     for mod, files in _import_ngoai().items():
         if mod in sys.stdlib_module_names or mod in noi_bo:
             continue
         if TEN_GOI.get(mod, mod).lower() in khai_bao:
+            continue
+        # Goi tai tro KHONG duoc phep nam trong requirements.txt (khai o do
+        # la hong ca CI lan Streamlit Cloud ngay buoc cai --
+        # `test_goi_tai_tro_khong_nam_trong_requirements`). Nen mot file can
+        # chung chi con MOT duong hop le: import trong than ham, boc
+        # try/except, co duong lui -- dung khuon CLAUDE.md. Cho ay duoc mien
+        # o day, va bi cam o MUC MODULE boi
+        # `test_khong_import_goi_tai_tro_o_muc_module`, gac quet ca goc +
+        # tools/ + tests/. Hai gac la mot cap.
+        if mod.replace("-", "_") in tai_tro and mod not in o_muc_module:
             continue
         thieu[mod] = sorted(files)
 

@@ -16344,3 +16344,143 @@ băm. Giống hệt thì thu hẹp được khả năng chuỗi bị sửa lại
 phép đo dùng nó phải chụp dữ liệu tại thời điểm chứ không kéo lại về sau.
 **Không đọc sớm.**
 
+---
+
+## BƯỚC 113 — ĐO 15: KHỐI NGOẠI ĐO ĐƯỢC, NHƯNG NHỎ HƠN CHI PHÍ 2,7 LẦN (22/09/2026)
+
+**KẾT CỤC 2 ở h=5, KẾT CỤC 4 ở h=21.** Nguồn độc lập thứ hai của dự án có
+một tín hiệu **phân biệt được với 0** và **không tiêu được**.
+
+```
+h=5  (DOC DUOC)          IC        p        phan dinh
+  kn_ty_trong_5       -0,0080   0,3553   trong san nhieu
+  kn_ty_trong_20      +0,0037   0,7196   trong san nhieu
+  kn_ap_luc_5         -0,0028   0,7226   trong san nhieu
+  kn_z_20             +0,0245   0,0075   VUOT san nhieu
+  kn_cuong_do_20      -0,0027   0,5672   trong san nhieu   <- o doi chung
+  CAN TREN (gop TU)   +0,0387   0,0005   VUOT san nhieu
+  rao hoa von                    0,1031
+```
+
+**Cận trên 0,0387 so với rào hoà vốn 0,1031 — nhỏ hơn 2,66 lần.** Đó mới
+là con số đáng đọc: nó không nói *"không có gì"*, nó nói *"có, và không đủ
+trả phí"*.
+
+Lệnh đọc: `experiment_khoi_ngoai.py --hoan-vi 2000 --chung-cu-duong`.
+Dữ liệu: `fetch_khoi_ngoai.py` (71/71 mã, 0 hỏng). Tiêu chí ký trước:
+`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 15.
+
+### h=21 KHÔNG ĐỌC ĐƯỢC — và đó là chỗ dễ đọc sai nhất của BƯỚC này
+
+Ở h=21, `kn_z_20` cho IC **+0,0557**, vượt cả sàn nhiễu **lẫn** rào hoà
+vốn 0,0488; cận trên cho **+0,0851**. Nhìn riêng thì đó là kết cục 1.
+
+Nhưng chứng cứ dương ở nhịp ấy **không bắt nổi một tín hiệu tiêm ĐÚNG
+BẰNG RÀO** (p = 0,0200 > 0,01). Một phép đo không phân biệt được tín hiệu
+thật ở mức rào thì con số nó in ra không đọc được — **kể cả khi con số ấy
+đẹp, nhất là khi nó đẹp.**
+
+```
+h=5   khong tiem gi  p 0,9800  im   ·  dung bang rao  BAT  -> DOC DUOC
+h=21  khong tiem gi  im             ·  dung bang rao  KHONG -> THIEU LUC
+```
+
+Đây tái lập **độc lập** phát hiện BƯỚC 7 — ở đó cũng h=5 đọc được và h=20
+thiếu lực — trên một **tập đặc trưng khác hẳn**. Hai lượt đo khác nguồn,
+cùng một biên giới về lực.
+
+### PHÉP HIỆU CHUẨN HỎNG HAI LẦN TRƯỚC KHI ĐÚNG, VÀ CHÍNH NÓ TỰ TỐ
+
+Ô đối chứng *"không tiêm gì"* phải **im**. Nó không im, và đó là cách hai
+lỗi lộ ra:
+
+```
+ban 1  nen = NHIEU TRANG
+       -> san nhieu cua E.san_nhieu phu thuoc TU TUONG QUAN cua dac trung
+          (hoan vi NHAN, dac trung giu nguyen). Nhieu trang cho null HEP,
+          tuc hieu chuan mot phep do DE HON phep do that.
+ban 2  nen = chinh cot `kn_z_20` THAT
+       -> o "khong tiem gi" hoa ra la DO LAI CHINH kn_z_20. Phep hieu
+          chuan tu kiem thu no di kiem. Bang chung: h=21 o ay p = 0,0075
+          va KEU, trong khi no buoc phai im.
+ban 3  nen = `kn_z_20` DICH VONG trong tung ma
+       -> giu nguyen ven tu tuong quan, pha lien ket voi nhan. o "khong
+          tiem gi" cho p 0,9800 va im.
+```
+
+Bản 3 **không** phải cái bẫy `references/bay.md` mục 4: ở đó phép hiệu
+chuẩn dịch đặc trưng **rồi lại** hoán vị nhãn **trong cùng một vòng null**
+nên độ dịch hiệu dụng bị quấn; ở đây nền được dịch **một lần** để dựng ra,
+còn null vẫn dựng bằng hoán vị nhãn với nền giữ nguyên.
+
+**Thứ bắt được cả hai là chính ô đối chứng, không phải trực giác.** Nếu
+`chung_cu_duong_kn` chỉ có ba dòng *"nửa rào / đúng rào / 1,5× rào"* thì
+cả hai bản hỏng đều đã đi qua, và BƯỚC này đã công bố một kết cục 1 ở
+h=21.
+
+### SỔ TAY SỬA MỘT KHIẾM KHUYẾT THIẾT KẾ, KHÔNG PHẢI MỘT CÂU TÀI LIỆU
+
+Lượt hỏi trước khi chạy hỏi vào chỗ yếu nhất: *nhịp nào sàn nhiễu đã được
+đối chiếu, cận trên trong mẫu có phải cách đóng câu hỏi hợp lệ không, và
+có chỗ nào chính công cụ hiệu chuẩn bị phát hiện sai không.*
+
+Vế thứ hai lôi ra một lỗ thật. Tài liệu **không** bác cách đọc in-sample —
+ngược lại nó là phương pháp chính thống — nhưng cận trên ấy dựng bằng
+**cách gộp tuyến tính tối ưu**, còn ĐO 15 bản đầu chỉ đo **IC từng đặc
+trưng**. Một IC đơn lẻ dưới sàn nhiễu **không** cho phép nói *"không cách
+gộp nào tốt hơn tồn tại"*. Dòng `CAN TREN` được thêm ngay trong phiên, và
+nó **vượt sàn** ở cả hai nhịp — tức nếu thiếu nó, BƯỚC này đã suýt tuyên
+một kết cục 3 sai ở h=5.
+
+### HAI ĐIỀU BẮT BUỘC CỦA TIÊU CHÍ, CẢ HAI ĐẠT
+
+```
+dieu 1  bien thien SAU khi ghep : ~60.000 gia tri khac nhau tren 61.339
+                                  (so tay canh ca sl_pattern_memory: 6.327
+                                  mau ma chi 2 bo ba)
+dieu 2  do phu ghep             : 81.122 phien co gia, thieu khoi ngoai 0
+```
+
+Và **điều 3** — ô không hướng `kn_cuong_do_20` cho p = 0,5672, **không**
+vượt sàn. Nếu nó vượt thì thứ đo được nhiều khả năng là rò rỉ chứ không
+phải hướng của dòng tiền. Nó không vượt, nên vế ấy sạch.
+
+### ĐIỀU NÀY NGHĨA LÀ GÌ CHO CHIẾN LƯỢC
+
+`MO-XE-KIEN-TRUC.md` kết luận nguyên nhân gốc là **thiếu dữ liệu độc lập**.
+Sau hai phép đo thì câu ấy phải viết lại:
+
+```
+BCTC theo quy   BUOC 53   2.099 quan sat, 0/5 qua Bonferroni     -> null
+Khoi ngoai      BUOC 113  61.339 quan sat, CAN TREN +0,0387      -> co, nhung
+                          rao hoa von 0,1031                        nho hon 2,66 lan
+Giao dich noi bo          chua ai keo mot dong
+```
+
+Nguồn độc lập **có tồn tại và đo được**. Thứ chặn không còn là *"không có
+dữ liệu"* — nó là **chi phí thực thi**, đúng đại lượng BƯỚC 50/52 đã đo là
+chiếm trọn phần alpha âm. Một tín hiệu 0,0387 hoà vốn ở chi phí vòng
+**0,334%**; hiện hành là **0,89%** — `ROUND_TRIP_COST_PCT` 0,46 cộng trượt
+giá 0,43. Tỷ số 0,89/0,334 = **2,66**, khớp đúng 0,1031/0,0387 = 2,664, nên
+hai cách nói là một.
+
+> Con số 0,334 tính bằng `rao_hoa_von()` đảo ngược:
+> `0,0387 x sigma 4,186 x e_z_tren(0,05)`. Bản đầu của đoạn này ghi
+> **0,17%** — sai, và sai theo chiều làm khoảng cách trông xa hơn thực tế.
+> Bắt được bằng cách chạy chính hàm ấy thay vì nhẩm.
+
+**Không bật gì.** Kết cục 2 theo đúng bảng đã ký là *ghi lại, không làm
+tiếp*. Và cửa sổ này nằm trọn trong vùng đã bị nhìn nhiều nhất (bất biến
+8), nên con số 0,0387 là **cận trên trong mẫu**, không phải một ước lượng
+ngoài mẫu.
+
+### Việc còn treo, khai ra thay vì để lơ lửng
+
+- **h=21 chưa đo được.** Muốn đọc nhịp ấy thì phải nâng lực, không phải
+  chạy lại. Cách duy nhất đã biết: cỡ mẫu lớn hơn hoặc nhãn ít nhiễu hơn.
+- **Cận trên chỉ phủ CÁCH GỘP TUYẾN TÍNH** của đúng năm đặc trưng này. Một
+  đặc trưng khối ngoại khác — chẳng hạn bất đối xứng giữa mua và bán ở
+  đuôi phân phối — nằm ngoài tầm nó.
+- **Giao dịch nội bộ** vẫn chưa ai kéo một dòng. Đó là nguồn thứ ba trong
+  câu của `MO-XE-KIEN-TRUC.md`, và là nguồn duy nhất còn chưa chạm.
+
