@@ -135,6 +135,42 @@ trong `CLAUDE.md`, đừng đọc ở đây.
 > trạng thái dự án nghe như *chưa kết luận được gì*, trong khi phép đo
 > đã kết luận — và kết luận ngược phía chiến lược. Lỗi 57.
 
+
+**Trạng thái DỮ LIỆU, một câu — mới 22/09/2026:** ba nguồn độc lập mà dự
+án nêu tên từ tháng Tám **nay đã đo hết**, và không nguồn nào cho một lợi
+thế dùng được.
+
+| nguồn | ở đâu | kết quả |
+|---|---|---|
+| BCTC theo quý | BƯỚC 53 | 2.099 quan sát · **0/5** qua Bonferroni — có dữ liệu, không tín hiệu |
+| khối ngoại | BƯỚC 113 | 61.339 quan sát · cận trên **+0,0387** so với rào hoà vốn **0,1031** — **có** tín hiệu, nhỏ hơn phí **2,66 lần** |
+| giao dịch nội bộ | BƯỚC 114 | **0/71 mã** qua `Company(nguon, ma).insider_trading()` — không có dữ liệu qua đường này |
+
+**Hệ quả cho việc lập kế hoạch, và nó khác hẳn hệ quả cũ.** `CLAUDE.md` và
+`MO-XE-KIEN-TRUC.md` viết *"nguyên nhân gốc là thiếu dữ liệu độc lập"* khi
+chưa nguồn nào được đo; cả hai chỗ nay đã đánh dấu. Dữ liệu độc lập **có**
+và **đo được** — thứ chặn là **chi phí thực thi**: tín hiệu 0,0387 hoà vốn
+ở chi phí vòng **0,334%**, hiện hành **0,89%**.
+
+Nên cách đọc *"cứ thêm nguồn là sẽ có tín hiệu"* đã đóng. Hướng còn mở đi
+theo chiều ngược: **giảm số vòng quay**, không thêm agent — rổ chuẩn mua
+một lần trả phí hai lần, chiến lược quay 500 lệnh trả 1.000 lần.
+
+> **Hai giới hạn phải đọc kèm, đừng bỏ:**
+> - Cửa sổ 2021-10 → 2026-09 nằm trọn trong vùng **đã bị nhìn nhiều nhất**
+>   (bất biến 8), nên 0,0387 là cận trên **TRONG MẪU**, không phải ước
+>   lượng ngoài mẫu.
+> - Ở nhịp 21 phiên phép đo **không đủ lực** — chứng cứ dương không bắt
+>   nổi tín hiệu tiêm đúng bằng rào — nên con số ở nhịp ấy **không đọc
+>   được**, kể cả khi nó đẹp hơn.
+
+> 🔴 **Ô này thêm 22/09/2026, và lý do nó phải nằm Ở ĐÂY chứ không chỉ ở
+> `docs/STATE.md`:** sáng cùng ngày tôi viết BƯỚC 113 và 114 vào `STATE`,
+> đánh dấu `CLAUDE.md` và `MO-XE-KIEN-TRUC.md`, rồi **để nguyên file
+> này** — đúng hình dạng **lỗi 57** mà ô đỏ ngay trên mô tả: phép sửa
+> viết vào file THẤP HƠN trong khi `HANDOFF` đứng đầu thứ tự ưu tiên.
+> Người đọc **đúng luật** sẽ dừng ở đây và không bao giờ tới chỗ đã ghi.
+
 ---
 
 ## 3. NĂM RÀNG BUỘC KHI LÀM VIỆC
