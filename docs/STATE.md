@@ -16484,3 +16484,119 @@ ngoài mẫu.
 - **Giao dịch nội bộ** vẫn chưa ai kéo một dòng. Đó là nguồn thứ ba trong
   câu của `MO-XE-KIEN-TRUC.md`, và là nguồn duy nhất còn chưa chạm.
 
+---
+
+## BƯỚC 114 — GIAO DỊCH NỘI BỘ: ĐƯỜNG CÓ TÊN, KHÔNG CÓ DỮ LIỆU (22/09/2026)
+
+Nguồn độc lập **thứ ba** trong câu của `MO-XE-KIEN-TRUC.md` — *"báo cáo tài
+chính theo quý, giao dịch nội bộ, khối ngoại mua ròng"* — nay đã có trạng
+thái đo được. Nó là nguồn duy nhất chưa ai chạm tới trước hôm nay.
+
+```
+3/4 nguon  ->  NotImplementedError: does not support 'insider_trading'
+               (VCI · ASEAN · CAFEF noi thang la khong ho tro)
+KBS        ->  0/71 ma co du lieu · 0 ma hong · khong nem loi lan nao
+doi chung  ->  4/4 endpoint KHAC cua CUNG nguon, CUNG ma co du lieu that
+               officers 14 | shareholders 2 | news 47 | overview 1
+```
+
+Lệnh đọc: `tools/kiem_duong_noi_bo.py`.
+
+### CON SỐ 0 NÀY ĐỌC ĐƯỢC, VÀ ĐÓ LÀ CẢ Ý NGHĨA CỦA Ô ĐỐI CHỨNG
+
+Ba cách giải thích cho một bảng rỗng, và chúng **trông y hệt nhau**:
+
+```
+a) nguon THAT SU khong co du lieu nay
+b) duong bi KHOA o hang tai khoan
+c) duong HONG
+```
+
+Vế (b) không phải lo hão: `vnstock_pipeline` **đã từng** bị khoá ở hạng
+silver trong khi `license/verify` vẫn liệt kê nó. Nên phép dò gọi thêm bốn
+endpoint **khác** của **cùng một nguồn, cùng một mã** — và cả bốn trả dữ
+liệu thật. Nguồn sống, tài khoản có quyền, nên số 0 nói về **dữ liệu**,
+không nói về **quyền truy cập**.
+
+### LỜI KHAI NÊU ĐƯỜNG, KHÔNG NÊU MỤC TIÊU
+
+Câu đúng là: **`Company(nguon, ma).insider_trading()` của `vnstock_data`
+3.3.0 không trả dữ liệu cho bất kỳ mã nào trong rổ chuẩn, trên bất kỳ
+nguồn nào nó nhận.**
+
+Câu **sai** là *"không lấy được giao dịch nội bộ"*. Câu thứ hai sai ngay
+khi có đường thứ hai — đúng lỗi 16, và đúng hình dạng vừa cắn ở BƯỚC 112
+với `financial_collector.get_foreign_trading_history()`: một hàm khai
+*"nguồn không cung cấp"* trong khi một API khác **có** dữ liệu.
+
+Những đường **chưa thử**, ghi ra để lần sau khỏi tưởng là đã hết: công bố
+của HOSE/HNX, `vnstock_news`, và trang thông tin của chính doanh nghiệp.
+
+### SỔ TAY LÔI RA MỘT ĐƯỜNG TÔI CHƯA THỬ — VÀ NÓ CHƯA BAO GIỜ TỒN TẠI
+
+Lượt hỏi trước khi viết kết luận đòi *"mọi chỗ tài liệu nêu tên một đường,
+module, file hay endpoint cho giao dịch nội bộ — kể cả đường tôi có thể
+chưa thử"*. Sổ tay tìm ra **đúng một** module được nêu tên, ở **hai** chỗ:
+
+> "Hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròng —
+> `financial_collector.py` đã có sẵn đường lấy dữ liệu."
+> — `CLAUDE.md` và `MO-XE-KIEN-TRUC.md`
+
+Và nó nói thêm một vế đắt: **không tài liệu nào nêu một endpoint cụ thể.**
+
+Kiểm module ấy:
+
+```
+financial_collector.py — ba ham cong khai, het:
+    get_company_overview()
+    get_financial_statements()
+    get_foreign_trading_history()
+
+grep -cin "insider|noi bo|internal|officer|shareholder|ban lanh dao"  ->  0
+```
+
+**Không có đường nào cả, và chưa bao giờ có.** Câu ấy vào
+`MO-XE-KIEN-TRUC.md` ngày **10/08/2026** (`025507c`) và `CLAUDE.md` ngày
+**13/08/2026** (`97e9c96`) — tức nó sống **43** và **40 ngày**, và nó sai
+vào **đúng ngày nó được viết**, không phải trôi theo thời gian.
+
+Cùng lớp **lỗi 92** (hai tên cho một thứ, một tên không tồn tại) và cùng
+lớp cái vừa sửa ở BƯỚC 112 (`get_foreign_trading_history` khai *"nguồn
+không cung cấp"* trong khi một API khác có). Ba lần trong một ngày, cùng
+một hình dạng: **một câu chỉ đường mà không ai đi thử.**
+
+Đây cũng là lần thứ hai trong ngày sổ tay đổi **nội dung** của một BƯỚC
+chứ không chỉ đổi cách viết nó: thiếu lượt hỏi này, BƯỚC 114 đã kết luận
+đúng về `vnstock_data` và **bỏ sót** rằng chính tài liệu của dự án đang
+chỉ tới một module rỗng.
+
+### KHÔNG KÝ MỘT ĐO NÀO, VÀ ĐÓ LÀ CHỦ Ý
+
+Câu hỏi ở đây — *"đường này có trả dữ liệu không"* — được trả lời bằng
+chính lượt gọi. Dựng một bảng tiêu chí cho một câu hỏi đã có đáp án là
+**diễn kịch theo chiều ngược** với ô `pyarrow` trong `docs/HANDOFF.md` mục
+5: ở đó bảng gồm toàn ô không-đọc-được, ở đây bảng sẽ gồm toàn ô đã đọc
+xong. Cùng một lỗi, khác dấu.
+
+Phép dò vẫn có gác và vẫn bị đục thử — **6/6 đỏ**, phát đầu gỡ hẳn ô đối
+chứng. Một dụng cụ không ký tiêu chí vẫn là một dụng cụ.
+
+### BA NGUỒN ĐỘC LẬP, NAY CẢ BA ĐỀU CÓ TRẠNG THÁI ĐO ĐƯỢC
+
+```
+BCTC theo quy     BUOC 53    2.099 quan sat   0/5 qua Bonferroni
+                                              -> co du lieu, KHONG co tin hieu
+Khoi ngoai        BUOC 113  61.339 quan sat   CAN TREN +0,0387
+                                              -> co tin hieu, NHO HON phi 2,66 lan
+Giao dich noi bo  BUOC 114   0/71 ma          -> KHONG co du lieu qua duong nay
+```
+
+Câu *"hướng đúng: BCTC theo quý, giao dịch nội bộ, khối ngoại mua ròng"* ở
+`CLAUDE.md` và `MO-XE-KIEN-TRUC.md` viết khi **chưa nguồn nào được đo**.
+Nay cả ba đã đo, và không nguồn nào cho một lợi thế dùng được. Điều đó
+KHÔNG bác câu ấy — ba nguồn vẫn là ba nguồn độc lập thật — nhưng nó đóng
+lại cách đọc *"cứ thêm nguồn là sẽ có tín hiệu"*.
+
+**Chỗ tắc đã dịch**, và BƯỚC 113 nói rõ nó dịch đi đâu: không phải thiếu
+thông tin, mà là **chi phí thực thi** lớn hơn thông tin đo được.
+

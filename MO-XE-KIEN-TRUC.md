@@ -260,6 +260,19 @@ quý, giao dịch nội bộ, khối ngoại mua ròng là những nguồn độ
 > theo quý — `docs/STATE.md` BƯỚC 53, không chỉ số nào phân biệt được với
 > 0 trên 2.099 quan sát. Giao dịch nội bộ **vẫn chưa ai kéo một dòng**.
 > `docs/STATE.md` BƯỚC 112.
+>
+> 🔴 **VẾ GIAO DỊCH NỘI BỘ ĐÃ ĐO 22/09/2026 (BƯỚC 114): ĐƯỜNG CÓ TÊN,
+> KHÔNG CÓ DỮ LIỆU.** Ba trên bốn nguồn của `Company` nói thẳng
+> `does not support`; nguồn còn lại trả **0/71 mã**, trong khi bốn
+> endpoint khác của cùng nguồn cùng mã đều có dữ liệu thật. Lời khai
+> nêu ĐƯỜNG: `Company(nguon, ma).insider_trading()` của `vnstock_data`
+> 3.3.0 — **không** phải câu *"không lấy được giao dịch nội bộ"*.
+> Lệnh đọc: `tools/kiem_duong_noi_bo.py`.
+>
+> **Và vế `financial_collector.py` ngay trong câu gốc thì sai vào đúng
+> ngày nó được viết:** module ấy có **ba** hàm công khai — tổng quan ·
+> BCTC · khối ngoại — và **0 lần** nhắc giao dịch nội bộ. Câu vào file
+> ngày **10/08/2026** (`025507c`), tức sống **43 ngày**.
 
 > 🔴 **VẾ "THIẾU DỮ LIỆU" NAY ĐÃ ĐO ĐƯỢC, VÀ CHỖ TẮC KHÔNG NẰM Ở ĐÓ NỮA
 > (22/09/2026, ĐO 15).** Hai trong ba nguồn đã có số:
