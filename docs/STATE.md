@@ -16600,3 +16600,89 @@ lại cách đọc *"cứ thêm nguồn là sẽ có tín hiệu"*.
 **Chỗ tắc đã dịch**, và BƯỚC 113 nói rõ nó dịch đi đâu: không phải thiếu
 thông tin, mà là **chi phí thực thi** lớn hơn thông tin đo được.
 
+---
+
+## BƯỚC 115 — ĐO RỒI QUYẾT KHÔNG DỰNG GÁC (22/09/2026)
+
+Lỗi 95 có một hình dạng gọi tên được: **tài liệu nêu tên một module và
+khẳng định nó CÓ một năng lực, trong khi module ấy không có.** Câu hỏi tự
+nhiên là *"dựng gác được không"*. Câu hỏi ĐÁNG hỏi thì khác: **còn câu nào
+như thế đang nằm trong tài liệu không.**
+
+```
+mau RONG  442 cau co mot ten `*.py`
+mau HEP    14 cau kem mot dong tu khang dinh NANG LUC   (3,2%)
+```
+
+Lệnh đọc: `tools/dem_cau_chi_duong.py`.
+
+**Đọc hết 14 câu:** chỉ **2** đúng hình dạng lỗi 95, và cả hai là **cùng
+một câu** — `financial_collector.py` *"đã có sẵn đường lấy dữ liệu"*,
+trong `CLAUDE.md` và `MO-XE-KIEN-TRUC.md`, đã đánh dấu cùng ngày.
+
+**12 câu còn lại là nhiễu**, và nguồn nhiễu đọc được ngay:
+
+```
+"doc duoc" dung nghia KHAC  ("gac may cho lop nay khong dung duoc...
+                             danh sach goi cua CI chi doc duoc qua mang")
+khoi van ban dai cua docs/STATE.md bi phep cat cau cat nham
+```
+
+### HAI CON SỐ, VÀ CHÚNG NÓI CÙNG MỘT ĐIỀU
+
+```
+gac theo mau nay se bao nham   12/14 = 86%
+quan the THAT con lai           0
+```
+
+Một gác báo nhầm 86% trên một quần thể còn **0** ca là định nghĩa của
+quan liêu — đúng thứ **lỗi 39** dựng ra để chặn, và đúng thứ đã chặn tôi
+ở **BƯỚC 111** khi con số `1/14` mời dựng một lớp gác mới.
+
+**Nên dòng ❌ ở bảng lỗi 95 nay có một phép đo đứng sau, không chỉ một lập
+luận.** Đó là khác biệt đáng giữ: *"không dựng được"* và *"dựng được nhưng
+không đáng"* là hai câu khác nhau, và chỉ câu thứ hai mới kiểm lại được
+khi quần thể đổi.
+
+### SỔ TAY: DỰ ÁN ĐÃ CÓ TIỀN LỆ CHO ĐÚNG QUYẾT ĐỊNH NÀY
+
+Hỏi: *mọi chỗ một quyết định KHÔNG dựng gác về sau hoá ra sai, hoặc một
+gác bị bỏ qua rồi chính lỗi ấy quay lại.* Sổ tay **dùng đúng lối thoát**
+cho vế ấy:
+
+> "Trong toàn bộ các nguồn tài liệu, **KHÔNG CÓ BẤT KỲ TRƯỜNG HỢP NÀO**
+> ghi nhận việc một quyết định KHÔNG dựng gác … sau đó bị chứng minh là
+> sai lầm hay khiến chính lỗi đó quay trở lại."
+
+Và nó lôi ra **hai tiền lệ** đi cùng chiều, cả hai đã ghi từ trước:
+
+```
+BUOC 31   "gac hay keu oan thi bi tat, ma gac bi tat thi bang khong"
+loi 58    "Khong phai *chua dung* ma la *khong dung*: mot cai gac canh
+           mot co che da bi bac"
+```
+
+Đối chiếu cả hai bằng `tools/doi_chieu_trich_dan.py`: **2/2 KHỚP**.
+
+**Đó là lý do con số 86% đáng đọc.** Một gác báo nhầm 12 trên 14 lần sẽ bị
+tắt trong tuần đầu, và một gác bị tắt thì bằng không — nên xây nó không
+phải là *"cẩn thận hơn"*, nó là **đổi một lỗ hổng thấy được lấy một lỗ
+hổng không thấy được**.
+
+**Một vế phải khai, và nó là vế yếu:** *"chưa từng có ca nào quay lại"* là
+một kết quả ÂM đọc trên một quần thể nhỏ — dự án mới có 95 dòng lỗi, và
+không dòng nào ghi lại một quyết định KHÔNG-dựng bị bác. Nó **không**
+chứng minh quyết định hôm nay đúng; nó chỉ nói chưa có tiền lệ ngược.
+
+### ĐIỀU PHÉP ĐO NÀY **KHÔNG** NÓI
+
+Nó đếm trên **tám** tài liệu và một mẫu **chữ**. Một câu chỉ đường viết
+bằng cách khác — không nêu tên file trong nháy ngược, hoặc nêu bằng một
+động từ ngoài bảy động từ đã liệt — nằm ngoài tầm nó. Cùng giới hạn với
+mọi phép quét tĩnh: **nó chỉ bắt được thứ đã biết tên** (`docs/HANDOFF.md`
+mục 3).
+
+Và đó chính là cách lỗi 95 lọt: `grep` của tôi hôm ấy tìm chữ `insider`,
+mà câu kia không chứa chữ ấy. Thứ tìm ra nó là **sổ tay**, ở một câu hỏi
+cố ý đòi *"kể cả đường tôi chưa thử"*.
+
