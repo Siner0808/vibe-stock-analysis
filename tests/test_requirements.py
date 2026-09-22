@@ -150,6 +150,48 @@ def _import_cua_file(duong_dan) -> set:
     return ra
 
 
+def _goc():
+    import pathlib
+    return pathlib.Path(GOC)
+
+
+#: Thư mục mà gác cấm-import-mức-module soi. Rút ra khỏi thân hàm ngày
+#: 22/09/2026 để chính QUẦN THỂ trở thành thứ khoá được — một gác mở rộng
+#: quần thể mà không ai canh quần thể ấy thì nó thu lại được mà không đỏ,
+#: đúng hình dạng lỗi 73 · 80 · 90.
+THU_MUC_CAM_MUC_MODULE = (".", "tools", "tests")
+
+
+def tap_file_cam_muc_module() -> list:
+    """Mọi `.py` trong `THU_MUC_CAM_MUC_MODULE`, đã sắp xếp."""
+    goc_p = _goc()
+    ra: list = []
+    for tm in THU_MUC_CAM_MUC_MODULE:
+        ra += sorted((goc_p / tm).glob("*.py")) if tm != "." else sorted(goc_p.glob("*.py"))
+    return ra
+
+
+def _import_muc_module(duong_dan) -> set:
+    """Tên module cấp cao nhất mà một file import **Ở MỨC MODULE**.
+
+    Khác `_import_cua_file` đúng một chỗ, và chỗ ấy quyết định: nó duyệt
+    `cay.body` chứ không `ast.walk`, nên một import nằm trong thân hàm
+    KHÔNG tính. Đó là ranh giới thật của CI — `pip install` không có gói
+    tài trợ, nhưng một import trong hàm không bao giờ chạy trên runner.
+    """
+    try:
+        cay = ast.parse(duong_dan.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return set()
+    ra = set()
+    for nut in cay.body:
+        if isinstance(nut, ast.Import):
+            ra |= {a.name.split(".")[0] for a in nut.names}
+        elif isinstance(nut, ast.ImportFrom) and nut.level == 0 and nut.module:
+            ra.add(nut.module.split(".")[0])
+    return ra
+
+
 def _module_noi_bo_mo_rong() -> set:
     """Stem của mọi .py trong dự án: gốc + tests/ + tools/.
 
@@ -179,11 +221,23 @@ def test_requirements_phu_het_import_o_tests_va_tools():
     """
     khai_bao = _da_khai_bao() | NGOAI_LE_CI
     noi_bo = _module_noi_bo_mo_rong()
+    tai_tro = {g.replace("-", "_") for g in GOI_TAI_TRO}
     thieu: dict = {}
     for thu_muc in ("tests", "tools"):
         for f in sorted((GOC / thu_muc).glob("*.py")):
+            o_muc_module = _import_muc_module(f)
             for m in _import_cua_file(f):
                 if m in noi_bo or m in sys.stdlib_module_names:
+                    continue
+                # Goi tai tro KHONG duoc phep nam trong requirements.txt —
+                # khai o do la hong ca CI lan Streamlit Cloud ngay buoc cai
+                # (`test_goi_tai_tro_khong_nam_trong_requirements`). Nen mot
+                # dung cu can chung chi con MOT duong hop le: import trong
+                # than ham. Cho ay duoc mien o day, va bi cam o muc module
+                # boi `test_khong_import_goi_tai_tro_o_muc_module` — gac ay
+                # tu 22/09/2026 quet ca tools/ va tests/, dung de cai lo nay
+                # co day.
+                if m.replace("-", "_") in tai_tro and m not in o_muc_module:
                     continue
                 goi = TEN_GOI.get(m, m).lower()
                 if goi not in khai_bao:
@@ -215,20 +269,54 @@ def test_goi_tai_tro_khong_nam_trong_requirements():
     print("PASS  không gói tài trợ nào lọt vào requirements.txt")
 
 
+def test_QUAN_THE_cua_gac_cam_muc_module_phai_phu_CA_BA_thu_muc():
+    """Khoá chính cái quần thể, không chỉ khoá phán quyết của nó.
+
+    Ngoại lệ ở `test_requirements_phu_het_import_o_tests_va_tools` cho gói
+    tài trợ đi qua khi nó nằm TRONG HÀM. Thứ duy nhất giữ cho ngoại lệ ấy
+    không thành một cái lỗ là gác mức-module — và gác ấy chỉ đóng được lỗ
+    nếu nó thật sự nhìn `tools/` và `tests/`. Thu quần thể về `.` là mở lỗ
+    mà không một phép kiểm nào khác đỏ.
+    """
+    assert set(THU_MUC_CAM_MUC_MODULE) >= {".", "tools", "tests"}, (
+        f"quần thể bị thu lại: {THU_MUC_CAM_MUC_MODULE}. Ngoại lệ gói tài trợ "
+        f"ở gác phủ requirements dựa vào việc gác này nhìn CẢ tools/ và tests/.")
+
+    tap = tap_file_cam_muc_module()
+    ten = {p.name for p in tap}
+    goc_p = _goc()
+    for tm in ("tools", "tests"):
+        co_that = {p.name for p in (goc_p / tm).glob("*.py")}
+        assert co_that, f"{tm}/ không có file .py nào — mẫu rỗng, phép kiểm vô nghĩa"
+        thieu = co_that - ten
+        assert not thieu, f"{tm}/ có file ngoài tầm gác: {sorted(thieu)[:5]}"
+    print(f"PASS  quan the phu {len(tap)} file o {len(THU_MUC_CAM_MUC_MODULE)} thu muc")
+
+
 def test_khong_import_goi_tai_tro_o_muc_module():
-    """Mã ở gốc dự án không được `import vnstock_data` ở mức module.
+    """Không file nào được `import vnstock_data` ở mức module.
 
     Gốc dự án là đúng tập file mà GitHub Actions chạy. Một import ở mức
     module sẽ làm `run_daily.py` chết ngay dòng đầu trên runner — nơi
     không có gói tài trợ và sẽ không bao giờ có.
 
     Muốn dùng thì import BÊN TRONG hàm, bọc try/except, và có đường lui.
+
+    **Quần thể mở rộng sang `tools/` và `tests/` ngày 22/09/2026**, cùng
+    ngày `tools/do14_kha_thi_khoi_ngoai.py` trở thành file ĐẦU TIÊN của
+    repo chạm tới một gói tài trợ. Đếm trước khi sửa: cả ba thư mục có
+    **0** import ở mức module và **1** import trong hàm, nên phép mở rộng
+    này không đổi một phán quyết nào hôm nay — nó đóng trước cái lỗ mà
+    ngoại lệ vừa mở ở `test_requirements_phu_het_import_o_tests_va_tools`
+    sẽ để lại. Hai gác ấy nay là một cặp: cái kia miễn cho import TRONG
+    HÀM, cái này cấm ở MỨC MODULE.
     """
     import ast
-    import pathlib
 
     xau = []
-    for f in sorted(pathlib.Path(GOC).glob("*.py")):
+    goc_p = _goc()
+    tap = tap_file_cam_muc_module()
+    for f in tap:
         try:
             cay = ast.parse(f.read_text(encoding="utf-8"))
         except SyntaxError:
@@ -242,8 +330,9 @@ def test_khong_import_goi_tai_tro_o_muc_module():
             for t in ten:
                 if t.replace("-", "_") in {g.replace("-", "_")
                                            for g in GOI_TAI_TRO}:
-                    xau.append(f"{f.name}:{nut.lineno} -> {t}")
+                    xau.append(f"{f.relative_to(goc_p)}:{nut.lineno} -> {t}")
     assert not xau, (
         "import gói tài trợ ở mức module (CI không có chúng):\n  "
         + "\n  ".join(xau))
-    print("PASS  không file gốc nào import gói tài trợ ở mức module")
+    print(f"PASS  {len(tap)} file o goc + tools/ + tests/, khong file nao "
+          f"import goi tai tro o muc module")

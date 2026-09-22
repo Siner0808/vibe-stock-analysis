@@ -2252,3 +2252,118 @@ Bảng ký trước nói: nếu D1 đổi thì phải ghim `urllib3<2` trong
 `requirements.txt` để kéo **sản xuất** về bản đã đo. Nhánh ấy **không
 được dùng** — D1 giống hệt, nên `requirements.txt` giữ nguyên, và
 `urllib3` vẫn là phụ thuộc gián tiếp không ghim.
+
+---
+
+## ĐO 14 — dữ liệu khối ngoại có BACKTEST được không? (khai 22/09/2026)
+
+**Dụng cụ đọc:** `tools/do14_kha_thi_khoi_ngoai.py`
+
+**Đã tra trùng:** **BƯỚC 53** (11/09/2026) — lần **duy nhất** dự án kéo một
+nguồn ĐỘC LẬP về rồi đo IC. Kết quả ở đó: không chỉ số nào phân biệt được
+với 0 trên 2.099 quan sát, và `leverage` — chỉ số duy nhất từng có tín hiệu
+thô — **mất** nó khi cỡ mẫu tăng. Hai chỗ khác trong `docs/STATE.md` chỉ
+**nhắc tên** API khối ngoại, không chỗ nào kéo một dòng: dòng 1672 và dòng
+1856, cả hai thuộc mục ngày 22/08/2026 và cả hai đọc từ tài liệu nhà cung
+cấp. Chữ *"khối ngoại"* xuất hiện **0 lần** trong `docs/STATE.md`.
+
+### Hai tên trong cùng một tài liệu, và chỉ MỘT tên có thật
+
+Dò trước khi ký, không kéo một ô dữ liệu nào:
+
+```
+docs/STATE.md:1672   Market().equity(sym).foreign_flow(start, end)   -> CO THAT
+docs/STATE.md:1856   insights.flow.foreign()                         -> vnstock_data.insights KHONG TON TAI
+```
+
+Tên thứ hai viết trần ở đây **có chủ ý** — nó là một cái tên đã chết, và
+quy ước của dự án cấm viết nó trong dấu nháy ngược vì máy quét không phân
+biệt được *nhắc lại* với *trỏ tới*.
+
+Phép dò ấy là lý do bảng dưới đây không phải diễn kịch — đúng bài học của
+ô `pyarrow` trong `docs/HANDOFF.md` mục 5: **một bảng tiêu chí chỉ gồm ô
+không-đọc-được là diễn kịch.** Ở đây API có thật, và docstring của nó tự
+khai *"Historical or daily foreign buy/sell volume and value"*.
+
+### ĐO GÌ — và nói trước cái KHÔNG đo
+
+Đây là phép đo **TÍNH KHẢ THI**, không phải phép đo **TÍN HIỆU**. Mọi ô
+ĐẠT ở dưới đều **không** nói gì về việc khối ngoại có dự báo được lợi
+nhuận hay không. Viết ra đây trước, vì chiều đọc rộng hơn phạm vi là chiều
+đã cắn dự án này ở lỗi 73 · 80 · 88 · 90.
+
+### Ba ô, ngưỡng ký TRƯỚC khi thấy số
+
+| ô | câu hỏi | ĐẠT | KHÔNG ĐẠT |
+|---|---|---|---|
+| **A · ĐỘ SÂU** | chuỗi lùi được tới đâu (xin từ 2015-01-01, mã FPT) | ngày sớm nhất **≤ 2021-10-01** | > 2021-10-01 |
+| **B · ĐỘ PHỦ** | bao nhiêu mã của rổ chuẩn 71 mã có dữ liệu | **≥ 60/71** | < 60/71, và **< 36/71** là hỏng hẳn |
+| **C · ĐỌC ĐƯỢC** | bảng có cột ngày và cột ròng không | có cả hai, suy được đơn vị | thiếu một trong hai |
+
+Vì sao mốc ô A là **2021-10-01**: đó là chỗ cache giá mặc định bắt đầu.
+Chuỗi khối ngoại không phủ được vùng ấy thì không ghép được vào
+walk-forward hiện hành. Mốc **2018-09-13** (cache rộng của ĐO 4) là mức
+ĐẠT MẠNH, không phải điều kiện.
+
+### Bốn kết cục, và cách đọc từng cái
+
+```
+KET CUC 1   A dat  +  B dat     ->  dung duoc. Buoc sau la mot phep do IC
+                                    thiet ke theo dung khuon BUOC 53.
+KET CUC 2   A dat  +  B khong   ->  chi dung duoc cho mot nhom ma. KHONG
+                                    dung duoc lam agent cho ca ro.
+KET CUC 3   A khong             ->  KHONG backtest duoc. Khi ay khoi ngoai
+                                    roi vao dung o cua TradingView va tin
+                                    tuc: "phan co the co tin hieu thi khong
+                                    do duoc" — va cau ay thanh mot cau DA DO.
+KET CUC 4   API no / bi khoa    ->  CHUA KIEM DUOC. Ma thoat 2.
+```
+
+**Kết cục 4 KHÔNG được đọc thành kết cục 3.** Gói `vnstock_pipeline` đã
+từng bị khoá ở hạng silver trong khi `license/verify` vẫn liệt kê nó — một
+lần khoá hạng trông y hệt một nguồn không có dữ liệu, nếu không phân biệt.
+
+### ĐỐI CHỨNG DƯƠNG — điều kiện để một kết quả ÂM đọc được
+
+Một chuỗi NGẮN có hai cách giải thích ngược nhau: *nguồn chỉ phục vụ từng
+ấy ngày*, hoặc *tham số ngày của tôi bị bỏ qua*. Không tách được thì con số
+nói về **dụng cụ**, không nói về **nguồn** — đúng lỗi 66.
+
+Nên mỗi lượt chạy kéo thêm `ohlcv` qua **đúng cùng một đối tượng, đúng cùng
+khoảng ngày, đúng cùng tên tham số vừa dùng được**. OHLCV là ca đã biết
+trước là dương.
+
+```
+ohlcv DAI  +  foreign_flow NGAN   ->  noi ve NGUON, doc duoc
+ohlcv NGAN +  foreign_flow NGAN   ->  CHUA KIEM DUOC, ma thoat 2
+```
+
+### Ô D — point-in-time, CHƯA kiểm được trong một phiên
+
+Một chuỗi bị sửa lại về sau (restate) trông **y hệt** một chuỗi không bị
+sửa, nếu chỉ đọc một lần. Đây là vế nguy hiểm nhất: bảng chỉ số theo năm
+của `fundamental_agent` hỏng đúng kiểu ấy, và `CLAUDE.md` gọi rào chắn
+chống nhìn trộm ở đó là *"không phải công tắc hiệu năng"*.
+
+Nên lượt hôm nay chỉ **CHỤP**: băm SHA-256 cửa sổ cố định `2025-01-02` →
+`2025-06-30` của FPT, lưu CSV. Phép so nằm ở mốc ngày dưới đây.
+
+**Mốc đọc: 29/09/2026.** Kéo lại đúng cửa sổ ấy, so băm.
+
+```
+bam GIONG HET   ->  cua so nay KHONG bi sua lai trong 7 ngay. Chua chung
+                    minh duoc "khong bao gio sua", chi thu hep duoc.
+bam KHAC        ->  chuoi CO bi sua lai. Moi phep do dung no phai chup
+                    du lieu tai thoi diem, khong duoc keo lai ve sau.
+```
+
+Điều kiện đọc: chỉ đọc vào hoặc sau 29/09/2026, không đọc sớm.
+
+### Ba điều bắt buộc của lượt chạy
+
+1. **In dữ liệu thô ngay dưới con số** (lỗi 61) — năm dòng đầu của bảng,
+   nguyên văn, kèm tên cột.
+2. **Chạy hai lượt, phải ra cùng số** (bất biến 2).
+3. **Quy tắc số 1 áp dụng ngược ở đây.** Ô ĐẠT là chiều dễ chịu — nó mở ra
+   một hướng làm việc mới. Nên một ô ĐẠT phải kiểm bằng mắt trên dữ liệu
+   thô, không tin con số tổng.
