@@ -262,7 +262,25 @@ Bốn điều bắt buộc, cả bốn từ sự cố thật:
      `HANDOFF` có tồn tại là thứ duy nhất chứng minh được lượt quét ra
      `0 ca` là hỏng, chứ không phải sạch.
    - **Trước khi tin một kết quả ÂM, hỏi: mẫu này CÓ KHẢ NĂNG cho kết
-     quả DƯƠNG không?** (thêm 15/09/2026, lỗi 66). Đo lượt C của ĐO 9
+     quả DƯƠNG không?**
+
+   - **NỀN NHIỄU của một phép hiệu chuẩn phải cùng TÍNH CHẤT THỐNG KÊ với
+     thứ nó hiệu chuẩn, VÀ phải RỜI khỏi nhãn** (thêm 22/09/2026, lỗi 94).
+     Hai đòi hỏi ngược nhau, và bỏ vế nào cũng cho ra một phép đo tự khen
+     mình:
+
+     ```
+     nen NHIEU TRANG        -> null HEP hon that -> hieu chuan mot bai DE
+                               HON bai that roi tuyen bai that la doc duoc
+     nen la CHINH COT THAT  -> o "khong tiem gi" hoa ra la DO LAI cot ay
+                               -> phep hieu chuan tu kiem thu no di kiem
+     nen = cot that DICH VONG trong tung ma  -> DUNG ca hai ve
+     ```
+
+     Và **giữ đủ ô "không tiêm gì"**. Một phép hiệu chuẩn chỉ có các mức
+     *nửa rào / đúng rào / 1,5× rào* thì không bao giờ phát hiện được rằng
+     chính nó đang tự kêu trên hư không — ngày 22/09/2026 đúng ô ấy là thứ
+     duy nhất tố ra hai bản hỏng liên tiếp. (thêm 15/09/2026, lỗi 66). Đo lượt C của ĐO 9
      thấy vốn đỉnh **99,9** với bụi float 1e-14, tôi kết luận *"bụi bị
      loại"* rồi suy ra hai lượt kia vượt trần thật. Vô hiệu: 99,9
      không bao giờ chạm phép thử `> 100.0`, nên mẫu ấy **không thể**
