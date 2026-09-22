@@ -237,6 +237,111 @@ def o_D_bam(eq, ra: Path) -> dict:
             "tu": tu, "den": den}
 
 
+def so_khop_lich(ngay_a, ngay_b) -> tuple[int, int, int]:
+    """(chung, chỉ có ở A, chỉ có ở B) trên phần GIAO của hai khoảng.
+
+    HÀM THUẦN. Cắt về phần giao trước khi so, vì hai chuỗi dài khác nhau
+    thì phần thừa ở đầu không phải "thiếu" — nó nằm ngoài câu hỏi.
+    """
+    a, b = set(map(str, ngay_a)), set(map(str, ngay_b))
+    if not a or not b:
+        return 0, len(a), len(b)
+    tu, den = max(min(a), min(b)), min(max(a), max(b))
+    a = {x for x in a if tu <= x <= den}
+    b = {x for x in b if tu <= x <= den}
+    return len(a & b), len(a - b), len(b - a)
+
+
+def soi_ky(mkt, ma_a: str, ma_b: str) -> dict:
+    """Ba phép soi mà một CON SỐ TỔNG không nói được.
+
+    Tiêu chí ĐO 14 ký sẵn: *"một ô ĐẠT phải kiểm bằng mắt trên dữ liệu
+    thô, không tin con số tổng"* — vì mọi ô đạt là chiều dễ chịu, và đó
+    đúng là chiều quy tắc số 1 bảo phải nghi ngờ.
+
+    1. MÃ CÓ THẬT SỰ ĐỔI KẾT QUẢ KHÔNG. Một API bỏ qua tham số `symbol`
+       cho ra **71/71 mã có dữ liệu** y hệt một API phục vụ đủ cả rổ.
+    2. CHUỖI CÓ KHỚP LỊCH PHIÊN KHÔNG. Thiếu một phần các phiên thì phép
+       ghép vào giá tạo lỗ hổng IM LẶNG, không báo gì.
+    3. GIÁ TRỊ CÓ BIẾN THIÊN KHÔNG. Agent `news` là hằng số 50 suốt nhiều
+       tháng mà không ai thấy — một cột hằng số vẫn "có dữ liệu".
+    """
+    import hashlib
+
+    import pandas as pd
+
+    den = _hom_nay()
+    print(f"\n{'=' * 62}\nSOI KY — ba cau mot con so tong khong tra loi duoc\n{'=' * 62}")
+    ra: dict = {}
+
+    _, fa, _ = goi_thu(mkt.equity(ma_a).foreign_flow, XIN_TU, den)
+    _, fb, _ = goi_thu(mkt.equity(ma_b).foreign_flow, XIN_TU, den)
+    if not isinstance(fa, pd.DataFrame) or not isinstance(fb, pd.DataFrame):
+        print("  khong keo du hai ma -> CHUA KIEM DUOC")
+        return {"doc_duoc": False}
+
+    # --- 1. ma co doi ket qua khong
+    ba = hashlib.sha256(fa.to_csv(index=False).encode()).hexdigest()[:16]
+    bb = hashlib.sha256(fb.to_csv(index=False).encode()).hexdigest()[:16]
+    khac = ba != bb
+    print(f"\n  1. MA CO DOI KET QUA KHONG")
+    print(f"     {ma_a}: {len(fa)} dong · bam {ba}")
+    print(f"     {ma_b}: {len(fb)} dong · bam {bb}")
+    print(f"     -> {'KHAC NHAU, ma CO duoc doc' if khac else 'GIONG HET — API BO QUA tham so ma'}")
+    ra["ma_doi_ket_qua"] = khac
+
+    # --- 2. khop lich phien
+    ca = _cot_ngay(fa)
+    _, ga, _ = goi_thu(mkt.equity(ma_a).ohlcv, XIN_TU, den)
+    print(f"\n  2. KHOP LICH PHIEN ({ma_a}, tren phan GIAO cua hai khoang)")
+    if isinstance(ga, pd.DataFrame) and ca is not None and _cot_ngay(ga) is not None:
+        n_a = [str(x)[:10] for x in fa[ca]]
+        n_g = [str(x)[:10] for x in ga[_cot_ngay(ga)]]
+        chung, chi_kn, chi_gia = so_khop_lich(n_a, n_g)
+        tong = chung + chi_kn + chi_gia
+        print(f"     chung          : {chung}")
+        print(f"     chi co khoi ngoai: {chi_kn}")
+        print(f"     chi co gia       : {chi_gia}")
+        print(f"     -> phu {chung}/{chung + chi_gia} phien co gia"
+              f" ({100 * chung / max(1, chung + chi_gia):.1f}%)")
+        ra["khop_lich"] = {"chung": chung, "chi_khoi_ngoai": chi_kn,
+                           "chi_gia": chi_gia, "tong": tong}
+    else:
+        print("     khong doc duoc -> CHUA KIEM DUOC")
+
+    # --- 3. bien thien
+    print(f"\n  3. GIA TRI CO BIEN THIEN KHONG ({ma_a})")
+    for cot in ("net_val", "net_vol", "buy_val"):
+        if cot not in fa.columns:
+            continue
+        s = pd.to_numeric(fa[cot], errors="coerce")
+        nac = int(s.nunique())
+        print(f"     {cot:<9} {nac} gia tri khac nhau · {int((s == 0).sum())} so 0"
+              f" · {int(s.isna().sum())} rong · min {s.min():.3g} max {s.max():.3g}")
+        ra.setdefault("bien_thien", {})[cot] = nac
+    # --- 4. ty le so 0 co DUNG YEN theo thoi gian khong
+    print(f"\n  4. TY LE SO 0 THEO NAM ({ma_a})")
+    print("     Mot cot 'co bien thien' van co the doi BAN CHAT giua cac nam.")
+    print("     Neu ty le nay troi, moi dac trung dem theo thoi gian — 'bao nhieu")
+    print("     phien ke tu lan mua rong gan nhat' — se troi theo NO chu khong")
+    print("     theo thi truong.")
+    if ca is not None and "net_val" in fa.columns:
+        tam = pd.DataFrame({
+            "nam": pd.to_datetime(fa[ca], errors="coerce").dt.year,
+            "v": pd.to_numeric(fa["net_val"], errors="coerce"),
+        }).dropna(subset=["nam"])
+        bang = tam.groupby("nam").agg(dong=("v", "size"),
+                                      so_0=("v", lambda s: int((s == 0).sum())))
+        bang["ty_le_0"] = (100 * bang.so_0 / bang.dong).round(1)
+        for d in bang.to_string().splitlines():
+            print(f"     | {d}")
+        ra["ty_le_0_theo_nam"] = {int(k): float(v)
+                                  for k, v in bang["ty_le_0"].items()}
+
+    ra["doc_duoc"] = True
+    return ra
+
+
 def phan_dinh(a: dict, b: dict) -> tuple[int, str]:
     """Đọc theo ĐÚNG bảng đã ký, không nới.
 
@@ -256,8 +361,12 @@ def phan_dinh(a: dict, b: dict) -> tuple[int, str]:
     if not dat_a and doi_chung > MOC_PHU_CACHE_MAC_DINH:
         return 2, ("CHUA KIEM DUOC — doi chung CUNG ngan: khong tach duoc"
                    " 'nguon chi phuc vu tung ay ngay' voi 'tham so ngay bi bo qua'")
-    dat_b = b.get("co", 0) >= NGUONG_PHU_DAT
-    hong_b = b.get("co", 0) < NGUONG_PHU_HONG
+    co = b.get("co")
+    if co is None:
+        return 2, ("CHUA KIEM DUOC — o B bi BO QUA, chua do do phu."
+                   " Mot o bo qua KHONG duoc doc thanh mot o do duoc 0.")
+    dat_b = co >= NGUONG_PHU_DAT
+    hong_b = co < NGUONG_PHU_HONG
     if dat_a and dat_b:
         return 0, "KET CUC 1 — dung duoc: du sau VA du rong"
     if dat_a and not dat_b:
@@ -272,6 +381,10 @@ def main(tham_so: list[str] | None = None) -> int:
                     help="chi do N ma dau cua ro (0 = ca ro)")
     ap.add_argument("--bo-o-b", action="store_true", help="bo qua o B")
     ap.add_argument("--nghi", type=float, default=0.25, help="giay nghi giua hai loi goi")
+    ap.add_argument("--soi-ky", action="store_true",
+                    help="ba phep soi tren du lieu THO (xem soi_ky)")
+    ap.add_argument("--ma-doi-chung", default="VCB",
+                    help="ma thu hai dung cho phep soi 1")
     ap.add_argument("--ra", default="", help="noi ghi ket qua JSON")
     a = ap.parse_args(tham_so)
 
@@ -288,10 +401,11 @@ def main(tham_so: list[str] | None = None) -> int:
 
     ket_a = o_A_va_C(eq, in_du_lieu=True)
     ma_list = VN100_SYMBOLS[:a.so_ma] if a.so_ma else list(VN100_SYMBOLS)
-    ket_b = {"co": 0, "tong": 0, "thieu": []} if a.bo_o_b else o_B(mkt, ma_list, a.nghi)
+    ket_b = {"co": None, "tong": 0, "thieu": []} if a.bo_o_b else o_B(mkt, ma_list, a.nghi)
 
     thu_muc = Path(a.ra).parent if a.ra else GOC
     ket_d = o_D_bam(eq, thu_muc / "do14_cua_so_2025H1.csv") if ket_a.get("doc_duoc") else {}
+    ket_soi = soi_ky(mkt, MA_MOC, a.ma_doi_chung) if a.soi_ky else {}
 
     ma_thoat, cau = phan_dinh(ket_a, ket_b)
     print(f"\n{'=' * 62}\nPHAN DINH: {cau}\n{'=' * 62}")
@@ -302,7 +416,7 @@ def main(tham_so: list[str] | None = None) -> int:
 
     if a.ra:
         Path(a.ra).write_text(json.dumps(
-            {"o_A": ket_a, "o_B": ket_b, "o_D": ket_d,
+            {"o_A": ket_a, "o_B": ket_b, "o_D": ket_d, "soi_ky": ket_soi,
              "phan_dinh": cau, "ma_thoat": ma_thoat, "ngay": _hom_nay()},
             ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  ghi: {a.ra}")

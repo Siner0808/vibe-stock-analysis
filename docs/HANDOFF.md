@@ -202,6 +202,14 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
+- **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
+  chụp cửa sổ cố định `2025-01-02` → `2025-06-30` của FPT: **119 dòng**,
+  sha256 `bf5c67d2…f81332`. Kéo lại đúng cửa sổ ấy rồi so băm. Giống hệt
+  thì thu hẹp được khả năng chuỗi bị restate — **không** chứng minh được
+  *"không bao giờ sửa"*. Khác thì mọi phép đo dùng nó phải chụp dữ liệu
+  tại thời điểm, không kéo lại về sau. Lệnh đọc:
+  `tools/do14_kha_thi_khoi_ngoai.py`. `docs/STATE.md` BƯỚC 112.
+
 - ~~**12/09/2026** — tiêu chí về cơ chế rơi nhịp cron~~ **ĐÃ ĐỌC ĐÚNG
   HẠN 12/09/2026:** A = 258,05 phút · B = 2 lượt/ngày → **ô thứ tư,
   TƯƠNG HỢP, chưa phân biệt được**. Không đại lượng nào động đậy so với

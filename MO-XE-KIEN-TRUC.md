@@ -243,3 +243,20 @@ agent hiện tại đều tính từ cùng một chuỗi giá — về mặt lý
 thể tạo ra thông tin ngoài thứ đã có trong chuỗi đó. Báo cáo tài chính theo
 quý, giao dịch nội bộ, khối ngoại mua ròng là những nguồn độc lập và
 `financial_collector.py` đã có sẵn đường lấy dữ liệu.
+
+> ⚠️ **VẾ ĐỊA CHỈ Ở CÂU TRÊN TRỎ SAI CHỖ — đo 22/09/2026 (ĐO 14).**
+> Kết luận thì vẫn đứng, và nay có số đứng sau nó. Nhưng đường lấy dữ
+> liệu khối ngoại **không** nằm ở module ấy: hàm
+> `FinancialDataCollector.get_foreign_trading_history()` gọi
+> `vnstock.Trading(source="VCI").foreign_trade()` và trả `available=False`
+> — docstring của chính nó khai *"Nguồn VCI hiện không cung cấp dữ liệu
+> này qua vnstock"*, và **câu ấy chưa được đo lại hôm nay**.
+>
+> Đường CHẠY ĐƯỢC là một đường khác: `Market().equity(sym).foreign_flow()`
+> của `vnstock_data`. Đo được **2.923 phiên từ 2015-01-05**, **71/71 mã**
+> rổ chuẩn, **0 phiên có giá mà thiếu khối ngoại**.
+>
+> Hai nguồn thứ nhất trong câu trên thì đã đo và đi hướng ngược: BCTC
+> theo quý — `docs/STATE.md` BƯỚC 53, không chỉ số nào phân biệt được với
+> 0 trên 2.099 quan sát. Giao dịch nội bộ **vẫn chưa ai kéo một dòng**.
+> `docs/STATE.md` BƯỚC 112.
