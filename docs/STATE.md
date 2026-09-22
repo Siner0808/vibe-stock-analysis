@@ -16176,3 +16176,171 @@ Cái thứ hai là **đúng lỗi mà `SKILL.md` Bước 4 dặn chạy một fi
 để tránh** — ngày 08/09/2026 nó lấy mất **ba lượt cổng đầy đủ, mỗi lượt
 ~9 phút**. Hôm nay nó vẫn lọt qua tay tôi, và vẫn bị bắt; khác là bắt
 trong một lượt, không phải ba.
+
+---
+
+## BƯỚC 112 — ĐO 14: DỮ LIỆU KHỐI NGOẠI BACKTEST ĐƯỢC, VÀ MỘT DÒNG TÀI LIỆU ĐÃ KHẲNG ĐỊNH SẴN ĐIỀU ĐÓ (22/09/2026)
+
+**KẾT CỤC 1 — dùng được: đủ sâu VÀ đủ rộng.** Cả hai ô đạt, và đạt rộng
+hơn ngưỡng đã ký:
+
+```
+o A  som nhat 2015-01-05 · 2923 dong    moc ky truoc <= 2021-10-01
+o B  do phu   71/71 ma ro chuan         moc ky truoc >= 60/71
+o C  cot: time buy_vol buy_val sell_vol sell_val net_vol net_val
+o D  bam bf5c67d25c4447699391299c1f98659da077ed13a5aa814df70103ec84f81332
+```
+
+Lệnh đọc: `tools/do14_kha_thi_khoi_ngoai.py`. Tiêu chí:
+`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 14.
+
+### Tính bất biến ở đây do COMMIT ĐÃ ĐẨY giữ, không do `main` giữ
+
+Khác ĐO 13 một chỗ, và phải nói ra:
+
+```
+09:01:52  commit tieu chi, day len PR #152
+09:03:10  luot do 1 bat dau              <- 1 phut 18 giay sau
+09:07:25  luot do day du
+09:12:19  merge vao main                 <- SAU ca hai luot
+```
+
+ĐO 3 và ĐO 4 khai *"tiêu chí vào `main` lúc X, lượt 1 bắt đầu lúc Y"*.
+Ở đây tiêu chí mới ở trên một nhánh PR khi lượt đo chạy. Tính chất cần
+có — **tiêu chí không sửa được sau khi thấy số** — vẫn giữ, vì mọi phép
+sửa sau đó đều lộ trong lịch sử git và trong chính PR ấy; nhưng nó là
+một cơ chế KHÁC, yếu hơn một bậc, nên không được chép thành câu của ĐO 3.
+
+### ĐỐI CHỨNG DƯƠNG đạt theo chiều mạnh hơn dự kiến
+
+Bảng ký trước nói: `ohlcv` NGẮN cùng `foreign_flow` NGẮN thì **chưa kiểm
+được**, vì không tách được *nguồn chỉ có từng ấy* với *tham số ngày của
+tôi bị bỏ qua*. Đo ra:
+
+```
+foreign_flow  som nhat 2015-01-05   2923 dong
+ohlcv         som nhat 2016-09-21   2495 dong
+```
+
+Chuỗi khối ngoại lùi **xa hơn chính dữ liệu giá**, nên nhánh *"tham số bị
+bỏ qua"* không những bị loại — nó bị loại theo chiều ngược lại.
+
+### BỐN PHÉP SOI, vì mọi ô đều đẹp và đó là chiều quy tắc số 1 cấm tin
+
+Tiêu chí ký sẵn: *một ô ĐẠT phải kiểm bằng mắt trên dữ liệu thô, không
+tin con số tổng.* Câu nguy hiểm nhất là **71/71 có phải vì API bỏ qua mã
+không** — một API không đọc `symbol` cho ra đúng con số ấy.
+
+```
+1 MA CO DOI KET QUA KHONG
+    FPT 2923 dong bam b038a5e1ea4dc892
+    VCB 2923 dong bam 0c259e999319889c   -> KHAC NHAU, ma CO duoc doc
+2 KHOP LICH PHIEN (FPT, tren phan GIAO)
+    chung 2495 · chi co khoi ngoai 2 · chi co gia 0
+    -> 2495/2495 = 100% phien co gia deu co khoi ngoai
+3 BIEN THIEN (FPT)
+    net_val  2316 gia tri khac nhau · 599 so 0 · 0 rong
+    net_vol  1641 gia tri khac nhau · 605 so 0 · 0 rong
+```
+
+Phép soi 2 là phép đáng giữ nhất cho bước sau: **0 phiên có giá mà thiếu
+khối ngoại**, nên phép ghép hai chuỗi không tạo lỗ hổng im lặng.
+
+### PHÉP SOI 4 — một quan sát CHƯA GIẢI THÍCH ĐƯỢC, ghi ra nguyên trạng
+
+Cột "có biến thiên" vẫn có thể **đổi bản chất** giữa các năm:
+
+```
+nam    dong  so_0  ty_le_0
+2015    248    41    16,5%
+2016    251    61    24,3%
+2017    250    51    20,4%
+2018    250    66    26,4%
+2019    250    78    31,2%
+2020    252    91    36,1%
+2021    250    80    32,0%
+2022    249    68    27,3%
+2023    249    53    21,3%
+2024    250    10     4,0%
+2025    249     0     0,0%
+2026    175     0     0,0%
+```
+
+Tỷ lệ phiên `net_val == 0` **không dừng**: nó giảm dần rồi xuống **đúng
+0 suốt hai năm liền**. Hai cách đọc, và phiên này **không phân biệt được**:
+FPT nay thật sự có khối ngoại giao dịch mọi phiên, hoặc dữ liệu gần đây
+tới từ một đường khác không bao giờ phát ra số 0 chẵn.
+
+**Hệ quả phải nhớ khi dựng đặc trưng**, bất kể cách đọc nào đúng: mọi đặc
+trưng đếm theo thời gian — *"bao nhiêu phiên kể từ lần mua ròng gần nhất"*
+— sẽ trôi theo **chính cấu tạo dữ liệu**, không theo thị trường. Đó là một
+xu thế có sẵn trong dữ liệu, và nó trùng hướng với thời gian, tức trùng
+hướng với vùng ngoài mẫu.
+
+Lệnh đọc lại: `tools/do14_kha_thi_khoi_ngoai.py --bo-o-b --soi-ky`.
+
+### MỘT DÒNG TÀI LIỆU ĐÚNG, VÀ NÓ ĐÚNG MÀ KHÔNG CÓ QUYỀN ĐÚNG
+
+Lượt hỏi sổ tay trước khi chạy lôi ra một câu trong chính `docs/STATE.md`
+(dòng 1672, viết 22/08/2026), đối chiếu KHỚP bằng
+`tools/doi_chieu_trich_dan.py`:
+
+> "Đây là chuỗi KHÔNG suy ra từ giá, và có lịch sử nên backtest được."
+
+Hôm nay phép đo nói câu ấy **ĐÚNG**. Nhưng nó được viết từ một bản đọc
+tài liệu nhà cung cấp, **chưa lượt nào chạy**, và cùng dòng ấy còn khai
+một API **không tồn tại** — vnstock_data không có thuộc tính `insights`
+nào (lỗi 92). Một lời khai đúng sinh ra từ một quy trình sai vẫn là một
+quy trình sai; lần sau nó rơi vào mặt kia.
+
+### ĐIỀU NÀY KHÔNG NÓI GÌ VỀ TÍN HIỆU
+
+Khai lại, vì đây là chiều dễ đọc rộng nhất. ĐO 14 đo **TÍNH KHẢ THI**.
+Nó không nói khối ngoại dự báo được lợi nhuận. **BƯỚC 53** là tiền lệ
+gần nhất và nó đi hướng ngược: nguồn độc lập thứ nhất (BCTC) kéo được về
+đủ cỡ mẫu, và không chỉ số nào phân biệt được với 0 trên 2.099 quan sát —
+`leverage` còn **mất** tín hiệu thô khi cỡ mẫu tăng.
+
+Bước kế tiếp đáng làm là một phép đo IC dựng theo đúng khuôn BƯỚC 53,
+với tiêu chí ký trước. Nó **chưa được ký**, và không có gì trong BƯỚC này
+cho phép bỏ qua bước ký ấy.
+
+### LƯỢT HỎI SỔ TAY LÀM SẮC LẠI KẾT LUẬN — bốn ca DÀY MÀ VÔ DỤNG
+
+Hỏi: *mọi chỗ tài liệu ghi một nguồn hay một đặc trưng TRÔNG đầy đủ, dày,
+giàu — mà hoá ra không dùng đo được, và cụ thể cái gì làm nó vô dụng.* Sổ
+tay gom được **bốn**, và cả bốn đều là kết quả ĐÃ ĐO của dự án:
+
+```
+1 sau agent           giau nac, nhung deu tinh tu CUNG MOT chuoi gia
+                      -> rho gop toi uu 0,0115 < san nhieu 0,0446
+2 cache BCTC          71 ma x 31 ky, 2.099 quan sat, luc phat hien 52%
+                      -> 0/5 chi so qua Bonferroni; leverage MAT tin hieu
+                         tho khi co mau TANG
+3 bang `ratio`        "71 ma x 34 ky" dung cho balance/income, SAI cho
+                      ratio — 58/72 ma chi co 4 ky
+4 sl_pattern_memory   6.327 mau (ban ghi cu) -> that ra 44 mau, va 44 ay
+                      chi gom 2 BO BA khac nhau, phu 3,2% so quyet dinh
+```
+
+Đối chiếu ba trích dẫn bằng `tools/doi_chieu_trich_dan.py`: **3/3 KHỚP**.
+
+**Ca 4 là ca đắt nhất, và nó chỉ thẳng vào chỗ phép soi 3 hôm nay CHƯA
+với tới.** Tôi đếm `net_val` có **2.316 giá trị khác nhau** — trên **toàn
+bộ** 2.923 phiên của một mã. Bộ nhớ hậu nghiệm cũng "có 6.327 mẫu" theo
+đúng nghĩa ấy. Thứ làm nó vô dụng là số giá trị khác nhau **trong vùng mà
+quyết định thật sự đi qua**: 113/113 lệnh rơi vào đúng **2** ô.
+
+Nên phép đo IC sắp tới phải đếm biến thiên **sau khi ghép vào tập điểm
+quyết định**, không phải trên toàn chuỗi. Một chuỗi giàu trên lịch có thể
+sụp thành vài giá trị ở đúng những phiên sinh ra lệnh, và con số "2.316"
+sẽ không hề báo điều đó.
+
+### Mốc ngày: 29/09/2026 — point-in-time
+
+Cửa sổ cố định `2025-01-02` → `2025-06-30` của FPT đã chụp: **119 dòng**,
+sha256 `bf5c67d2…f81332`. Kéo lại đúng cửa sổ ấy vào hoặc sau 29/09 rồi so
+băm. Giống hệt thì thu hẹp được khả năng chuỗi bị sửa lại; khác thì mọi
+phép đo dùng nó phải chụp dữ liệu tại thời điểm chứ không kéo lại về sau.
+**Không đọc sớm.**
+

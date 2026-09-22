@@ -426,7 +426,11 @@ class FinancialDataCollector:
         như bản cũ.
         """
         empty = {"available": False,
-                 "note": "Nguồn dữ liệu hiện không cung cấp giao dịch khối ngoại.",
+                 "note": ("Đường VCI qua vnstock không trả giao dịch khối ngoại. "
+                          "Đường khác CÓ dữ liệu: vnstock_data "
+                          "Market().equity(ma).foreign_flow() — đo 22/09/2026, "
+                          "2.923 phiên từ 2015, 71/71 mã (docs/STATE.md BƯỚC 112). "
+                          "Hàm này chưa đổi sang đường ấy."),
                  "dates": [], "net_values_billion": [],
                  "buy_val_billion": [], "sell_val_billion": []}
         data = _cached(f"ft:{symbol}:{days}",

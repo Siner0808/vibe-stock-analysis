@@ -146,3 +146,42 @@ def test_COT_NGAY_suy_tu_BANG_chu_khong_ghim_mot_ten():
     assert d._cot_ngay(pd.DataFrame(columns=["time", "net"])) == "time"
     assert d._cot_ngay(pd.DataFrame(columns=["TradingDate", "x"])) == "TradingDate"
     assert d._cot_ngay(pd.DataFrame(columns=["a", "b"])) is None
+
+# ── `so_khop_lich`: hàm thuần, và phép CẮT VỀ PHẦN GIAO là cả ý nghĩa ──
+
+def test_HAI_CHUOI_GIONG_HET_thi_khong_ben_nao_thieu():
+    n = ["2024-01-02", "2024-01-03", "2024-01-04"]
+    assert d.so_khop_lich(n, n) == (3, 0, 0)
+
+
+def test_PHAN_THUA_O_DAU_khong_phai_la_THIEU():
+    """Đây là cả lý do hàm cắt về phần giao.
+
+    Chuỗi khối ngoại lùi tới 2015, chuỗi giá tới 2016. 2015 không phải
+    "giá bị thiếu" — nó nằm NGOÀI câu hỏi *hai chuỗi có khớp lịch không*.
+    Không cắt thì mọi phiên 2015 đếm thành lỗ hổng, và con số đó vu oan
+    cho chuỗi dài hơn.
+    """
+    kn = ["2015-01-05", "2016-09-21", "2016-09-22"]
+    gia = ["2016-09-21", "2016-09-22"]
+    chung, chi_kn, chi_gia = d.so_khop_lich(kn, gia)
+    assert (chung, chi_kn, chi_gia) == (2, 0, 0), (chung, chi_kn, chi_gia)
+
+
+def test_MOT_PHIEN_THIEU_O_GIUA_thi_PHAI_dem_duoc():
+    """Cắt về phần giao KHÔNG được che một lỗ hổng thật ở giữa."""
+    gia = ["2024-01-02", "2024-01-03", "2024-01-04"]
+    kn = ["2024-01-02", "2024-01-04"]
+    assert d.so_khop_lich(kn, gia) == (2, 0, 1)
+
+
+def test_MOT_BEN_RONG_thi_khong_duoc_bao_KHOP():
+    assert d.so_khop_lich([], ["2024-01-02"]) == (0, 0, 1)
+    assert d.so_khop_lich(["2024-01-02"], []) == (0, 1, 0)
+
+
+def test_NHAN_ca_ngay_dang_DOI_TUONG_chu_khong_chi_chuoi():
+    import datetime as dt
+    a = [dt.date(2024, 1, 2), dt.date(2024, 1, 3)]
+    b = ["2024-01-02", "2024-01-03"]
+    assert d.so_khop_lich(a, b) == (2, 0, 0)
