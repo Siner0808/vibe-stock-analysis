@@ -260,3 +260,28 @@ quý, giao dịch nội bộ, khối ngoại mua ròng là những nguồn độ
 > theo quý — `docs/STATE.md` BƯỚC 53, không chỉ số nào phân biệt được với
 > 0 trên 2.099 quan sát. Giao dịch nội bộ **vẫn chưa ai kéo một dòng**.
 > `docs/STATE.md` BƯỚC 112.
+
+> 🔴 **VẾ "THIẾU DỮ LIỆU" NAY ĐÃ ĐO ĐƯỢC, VÀ CHỖ TẮC KHÔNG NẰM Ở ĐÓ NỮA
+> (22/09/2026, ĐO 15).** Hai trong ba nguồn đã có số:
+>
+> ```
+> BCTC theo quy    BUOC 53    2.099 quan sat   0/5 qua Bonferroni  -> null
+> Khoi ngoai       BUOC 113  61.339 quan sat   CAN TREN +0,0387    -> CO
+>                            rao hoa von 0,1031                       tin hieu
+> Giao dich noi bo            chua ai keo mot dong
+> ```
+>
+> Khối ngoại **có** tín hiệu phân biệt được với 0 ở nhịp 5 phiên, và cận
+> trên của **mọi cách gộp tuyến tính** năm đặc trưng ấy là **0,0387** —
+> nhỏ hơn rào hoà vốn **2,66 lần**. Nên câu *"không thể tạo ra thông tin
+> ngoài chuỗi giá"* vẫn đúng cho sáu agent, nhưng câu *"nguyên nhân gốc là
+> thiếu dữ liệu độc lập"* thì **hết đúng**: dữ liệu độc lập có, đo được,
+> và thứ chặn nay là **chi phí thực thi** — đúng đại lượng BƯỚC 50 và 52
+> đã đo là chiếm trọn phần alpha âm.
+>
+> Hai giới hạn phải đọc kèm: cửa sổ nằm trong vùng đã bị nhìn nhiều nhất
+> (bất biến 8) nên 0,0387 là cận trên **trong mẫu**; và ở nhịp 21 phiên
+> phép đo **không đủ lực** — chứng cứ dương không bắt nổi tín hiệu tiêm
+> đúng bằng rào — nên con số ở nhịp ấy không đọc được. `docs/STATE.md`
+> BƯỚC 113.
+

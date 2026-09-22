@@ -2367,3 +2367,108 @@ bam KHAC        ->  chuoi CO bi sua lai. Moi phep do dung no phai chup
 3. **Quy tắc số 1 áp dụng ngược ở đây.** Ô ĐẠT là chiều dễ chịu — nó mở ra
    một hướng làm việc mới. Nên một ô ĐẠT phải kiểm bằng mắt trên dữ liệu
    thô, không tin con số tổng.
+
+---
+
+## ĐO 15 — khối ngoại có DỰ BÁO được lợi nhuận không? (khai 22/09/2026)
+
+**Dụng cụ đọc:** `experiment_khoi_ngoai.py` · dữ liệu:
+`fetch_khoi_ngoai.py`
+
+**Đã tra trùng:** **BƯỚC 53** (11/09/2026) — cùng câu hỏi, khác nguồn: IC
+của năm chỉ số BCTC, 2.099 quan sát, 0/5 qua Bonferroni. **BƯỚC 7**
+(31/08/2026) — cùng *quần thể* và cùng *bộ máy*: 69 mã, 63.389 phiên, cách
+gộp tuyến tính tối ưu trong mẫu cho rho **0,0115** ở h=5, dưới sàn nhiễu
+**0,0446**. **BƯỚC 9** (01/09/2026) — đối chiếu sàn nhiễu bằng đường thứ
+hai. **BƯỚC 112** (22/09/2026) — ĐO 14, nguồn dữ liệu này dùng được.
+Chưa BƯỚC nào đo IC của khối ngoại.
+
+### KHÔNG VIẾT LẠI BỘ MÁY — nhập lại nó
+
+`experiment_tran_dac_trung.py` đã có đủ, và cả năm thứ đều là thứ đắt để
+dựng lại: nhãn **vượt rổ** (bất biến 6), sàn nhiễu **hoán vị dịch vòng
+theo mã** (đã đối chiếu bằng đường thứ hai ở năm nhịp), **chứng cứ dương**
+tiêm tín hiệu biết trước, **rào hoà vốn** suy từ `ROUND_TRIP_COST_PCT`, và
+`MIN_HIST = 250`. ĐO 15 chỉ thay **tập đặc trưng**.
+
+Hai lần trong ba ngày (05/09 và 07/09) lời giải nằm sẵn trong repo và vẫn
+bị viết lại từ đầu — lỗi 41. Mục này khai trước rằng nó sẽ không lặp.
+
+### CÁI NÀY ĐO MỘT CẬN TRÊN, KHÔNG ĐO MỘT CHIẾN LƯỢC
+
+Cửa sổ dùng được là **2021-10-14 → 2026-09-03**, và theo **bất biến 8**
+đó là vùng **đã bị nhìn nhiều nhất**. Nên phép đo này mượn đúng khuôn
+BƯỚC 7: đo **trong mẫu**, cố ý, và đọc kết quả như một **cận trên**.
+
+```
+IC trong mau DUOI san nhieu  ->  cau hoi DONG LAI, va dong ma KHONG
+                                 tieu mot phien sach nao
+IC trong mau TREN san nhieu  ->  CHUA la tin hieu. No chi noi rang mot
+                                 phep do ngoai mau tren du lieu sach la
+                                 dang lam.
+```
+
+Vế thứ hai phải khai ở đây, trước khi thấy số: **một ô vượt sàn nhiễu
+KHÔNG cho phép bật bất cứ thứ gì.**
+
+### NĂM ĐẶC TRƯNG, KHAI TRƯỚC — thêm bớt sau khi thấy số là bất biến 7
+
+Tất cả đều **không thứ nguyên** và chỉ dùng dữ liệu tới hết phiên T:
+
+```
+kn_ty_trong_5    sum(net_vol,5)  / sum(volume,5)
+kn_ty_trong_20   sum(net_vol,20) / sum(volume,20)
+kn_ap_luc_5      (sum(buy_val,5)-sum(sell_val,5)) / (sum(buy_val,5)+sum(sell_val,5))
+kn_z_20          sum(net_val,20) chuan hoa trong-ma bang trung binh/do lech 250 phien
+kn_cuong_do_20   (sum(buy_val,20)+sum(sell_val,20)) / sum(close*volume,20)
+```
+
+`kn_cuong_do_20` **không có hướng** — nó đo mức tham gia, không đo mua hay
+bán. Giữ nó vì một đại lượng không hướng mà có IC khác 0 là dấu hiệu rò rỉ
+chứ không phải tín hiệu, tức nó làm việc của một ô đối chứng.
+
+**KHÔNG có đặc trưng nào ĐẾM THEO THỜI GIAN** — không *"bao nhiêu phiên kể
+từ lần mua ròng gần nhất"*. Lý do đo được hôm nay (BƯỚC 112): tỷ lệ phiên
+`net_val == 0` đi từ 16,5% (2015) xuống **đúng 0,0%** ở 2025–2026, nên mọi
+đặc trưng đếm sẽ trôi theo **cấu tạo dữ liệu**, và xu thế ấy trùng hướng
+với thời gian.
+
+**Năm đặc trưng ⇒ Bonferroni α = 0,05/5 = 0,01**, đúng như BƯỚC 53.
+
+### HAI NHỊP, VÀ CHÚNG KHÔNG ĐỌC GIỐNG NHAU
+
+`h = 5` và `h = 21`, cả hai nằm trong `NHIP_DA_DOI_CHIEU`. Nhưng theo
+BƯỚC 7, chỉ **h=5** có chứng cứ dương: ở h=20 phép đo không bắt được cả
+tín hiệu tiêm ở mức rào hoà vốn.
+
+```
+chung cu duong KEU o h    ->  ket qua null o h la BANG CHUNG VANG MAT
+chung cu duong IM o h     ->  ket qua null o h chi la THIEU LUC
+```
+
+Chứng cứ dương **phải chạy trong chính lượt này**, không chép kết quả
+31/08 sang — tập đặc trưng khác thì lực khác.
+
+### BỐN KẾT CỤC
+
+```
+KET CUC 1  >=1 dac trung vuot san nhieu (sau Bonferroni) VA vuot rao hoa
+           von  ->  dang mot phep do NGOAI MAU tren du lieu sach
+KET CUC 2  vuot san nhieu, DUOI rao hoa von  ->  phan biet duoc voi 0,
+           vo dung ve kinh te. Ghi lai, khong lam gi tiep
+KET CUC 3  khong dac trung nao vuot san nhieu, VA chung cu duong KEU
+           ->  BANG CHUNG VANG MAT o nhip ay. Cau hoi dong lai
+KET CUC 4  chung cu duong IM  ->  THIEU LUC, khong doc duoc. Khong duoc
+           bao cao chung mot cau voi ket cuc 3
+```
+
+### BA ĐIỀU BẮT BUỘC CỦA LƯỢT CHẠY
+
+1. **Đếm biến thiên SAU khi ghép**, không trên chuỗi thô (BƯỚC 112). Một
+   chuỗi giàu trên lịch có thể sụp thành vài giá trị ở đúng tập quan sát
+   được dùng — `sl_pattern_memory.json` trông 6.327 mẫu mà chỉ có 2 bộ ba.
+2. **In độ phủ ghép**: bao nhiêu phiên có giá mà thiếu khối ngoại. ĐO 14
+   đo FPT được 0; cả rổ thì chưa ai đo.
+3. **Quy tắc số 1.** Một IC vượt sàn nhiễu là chiều dễ chịu. Trước khi tin,
+   kiểm `kn_cuong_do_20` — ô không hướng. Nếu nó cũng vượt thì thứ đo được
+   nhiều khả năng là một dạng rò rỉ, không phải hướng của dòng tiền.
