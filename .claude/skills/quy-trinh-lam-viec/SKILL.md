@@ -399,6 +399,22 @@ Cách chạy và chờ: `references/cong-thuc-chay.md`. Tóm tắt ba dòng:
   *"`main` có branch protection"* (404). `references/loi-da-mac.md`
   lỗi 17.
 - Commit body **ASCII**, không `Co-Authored-By`.
+
+  > **KIỂM BẢN ĐÃ GHI, ĐỪNG KIỂM BẢN SẮP GHI** (lỗi 93, 22/09/2026).
+  >
+  > ```bash
+  > ./.venv/Scripts/python.exe -c "import subprocess as s; v=s.run(['git','log','-1','--format=%B'],capture_output=True,text=True,encoding='utf-8').stdout; d=[i for i,x in enumerate(v.splitlines(),1) if any(ord(c)>126 for c in x)]; print('dong ngoai ASCII:', d or 'khong')"
+  > ```
+  >
+  > Hai lý do, cả hai đã cắn trong một lượt giao:
+  >
+  > 1. **`grep` thành công khi TÌM THẤY**, tức mã thoát **0** đúng lúc ta
+  >    muốn dừng. Nối `&& git commit` sau một phép kiểm `grep` là để nó
+  >    chạy tiếp đúng khi có lỗi. Cùng cơ chế luật `pytest-qua-ong`.
+  > 2. Một lượt vá thông điệp có thể **không chạm được file** — đường dẫn
+  >    kiểu MSYS `/c/Users/...` truyền vào Python nổ `FileNotFoundError` —
+  >    rồi `--amend` đọc lại đúng bản cũ. Chỉ phép kiểm đọc **commit** mới
+  >    thấy; phép kiểm đọc **file** thì không.
 - Ghi vào `docs/STATE.md` cả **kết quả lẫn giả thuyết đã bị bác**, và cả
   **ước lượng đã sai**. Giả thuyết sai nghe hợp lý là thứ đáng giữ nhất.
 
