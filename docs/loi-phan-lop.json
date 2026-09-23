@@ -15,7 +15,8 @@
     "bang": "đọc từ chính dòng bảng, nơi nó đã ghi sẵn khoảng thời gian",
     "chua-do": "chưa ai đo, và không được đoán",
     "co-che": "mot CO CHE no: test, CI, cong gac, duc thu, script, dung cu tu dung. May chay o mot thoi diem xac dinh, nen song_ngay=0 la mot phep DOC. Van khong phai phep do bang git - chi la doc cot 'bat boi' cua bang.",
-    "nguoi-thay": "mot NGUOI thay: tinh co, tri nho, doc lai, tu di dem, he thong tu hien, mot luot chay SAU noi nguoc lai. KHONG rang buoc thoi diem loi SINH RA, nen song_ngay=0 o day la mot GIA DINH, khong phai bang chung. Giu lai con so cu de khoi mat thong tin, nhung KHONG duoc dem vao thuoc."
+    "nguoi-thay": "mot NGUOI thay: tinh co, tri nho, doc lai, tu di dem, he thong tu hien, mot luot chay SAU noi nguoc lai. KHONG rang buoc thoi diem loi SINH RA, nen song_ngay=0 o day la mot GIA DINH, khong phai bang chung. Giu lai con so cu de khoi mat thong tin, nhung KHONG duoc dem vao thuoc.",
+    "dau-thoi-gian": "do bang DAU THOI GIAN tren dia hoac trong tep cau hinh: mtime, install_time cua Secure Preferences, truong `modified` cua mot ban ghi. No LA bang chung — rang buoc duoc thoi diem SINH RA — nhung khong di qua git, nen tach khoi `git`. Them 23/09/2026 cho loi 98, noi tuoi 15 ngay do duoc bang hai dau thoi gian cach nhau 8 phut."
   },
   "loi": {
     "1": {
@@ -503,6 +504,11 @@
       "lop": "chua-do",
       "song_ngay": 0,
       "nguon": "co-che"
+    },
+    "98": {
+      "lop": "ky-luat",
+      "song_ngay": 15,
+      "nguon": "dau-thoi-gian"
     }
   },
   "_khong_phai_bang_chung": [
