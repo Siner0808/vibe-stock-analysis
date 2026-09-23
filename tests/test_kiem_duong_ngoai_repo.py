@@ -65,6 +65,27 @@ def test_DAU_tren_dong_KHONG_bien_mot_duong_CHET_thanh_SU_LIEU(tmp_path):
     assert ket["su_lieu"] == []
 
 
+def test_CUA_THOAT_trong_NHAY_NGUOC_la_MO_TA_chu_khong_phai_DUNG(tmp_path):
+    """Lần thứ BA công cụ tố chính nó, và cùng một họ với hai lần trước.
+
+    Dòng 96 của bảng lỗi — dòng ghi lại chính lỗi này — **mô tả** cú pháp
+    cửa thoát trong dấu nháy ngược. Bản trước đọc đoạn mô tả ấy thành một
+    cửa thoát đang **dùng**, và xếp một đường chết thành "sử liệu". Kết
+    quả tình cờ đúng, **lý do thì sai** — nên sai ở mọi ca khác.
+
+    Cùng hình dạng `SKILL.md` Bước 4: *"KHÔNG viết tên file trần ra đây
+    làm ví dụ"*.
+    """
+    goc = _cay(tmp_path,
+               "cach khai: `<!-- duong-da-chet: ly do -->` ke ben "
+               "`~/mat/mo-ta.md`\n"
+               "that su khai: `~/mat/that.md` "
+               "<!-- duong-da-chet: co that -->\n")
+    ket = K.phan_loai(K.thu_thap(goc), _nha(tmp_path, "con/song.md"))
+    assert {d for _, _, d in ket["chet"]} == {"~/mat/mo-ta.md"}
+    assert {d for _, _, d in ket["su_lieu"]} == {"~/mat/that.md"}
+
+
 def test_CUA_THOAT_RONG_khong_duoc_nhan(tmp_path):
     """`# bia-ok:` rỗng bị từ chối; cửa thoát ở đây theo đúng luật ấy.
 

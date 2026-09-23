@@ -67,6 +67,21 @@ chết thì phải NÓI RA, kèm lý do.
 Rỗng thì không được nhận. Mục đích không phải cấm giữ — mà là buộc nói ra
 vì sao cái tên này được phép trỏ vào hư không.
 
+LẦN THỨ BA NÓ TỐ CHÍNH NÓ, VÀ CÙNG MỘT HỌ
+─────────────────────────────────────────
+Dòng **96** của bảng lỗi — dòng ghi lại chính lỗi này — **mô tả** cú pháp
+cửa thoát trong dấu nháy ngược. Công cụ đọc đoạn mô tả ấy thành một cửa
+thoát đang **dùng**, và xếp một đường chết thành "sử liệu".
+
+Kết quả tình cờ ĐÚNG (đường ấy là sử liệu thật), nhưng **lý do thì sai** —
+đúng thứ dự án gọi tên nhiều lần: *một kết quả đúng vì lý do sai thì sai ở
+mọi ca khác*. Nên cửa thoát nay chỉ được nhận khi nằm **ngoài** đoạn mã
+inline.
+
+Ba lần, cùng một hình dạng: **một văn bản nói VỀ cơ chế bị đọc thành văn
+bản DÙNG cơ chế.** Cùng họ `SKILL.md` Bước 4 — *"KHÔNG viết tên file trần
+ra đây làm ví dụ"*.
+
 ĐỐI CHỨNG DƯƠNG NẰM TRONG CHÍNH NÓ
 ──────────────────────────────────
 Nếu **không đường nào** trong quần thể tồn tại thì thứ hỏng gần như chắc
@@ -95,6 +110,11 @@ DUONG = re.compile(r"~/[A-Za-z0-9._/@-]+")
 #: dấu nào để đoán — xem khối "BẢN ĐẦU ĐOÁN CÁI DẤU" ở đầu file: phép
 #: đoán ấy đo ra 0/3 đúng, và cả hai lần trượt đều trượt về phía im lặng.
 CUA_THOAT = re.compile(r"<!--\s*duong-da-chet:\s*(\S[^>]*?)\s*-->")
+
+#: Đoạn mã inline. Một cửa thoát nằm TRONG dấu nháy ngược là một cửa
+#: thoát đang được **mô tả**, không phải đang được **dùng** — xem khối
+#: "LẦN THỨ BA" ở đầu file.
+MA_INLINE = re.compile(r"`[^`]*`")
 
 
 def _bo_dau_cau(s: str) -> str:
@@ -136,7 +156,7 @@ def phan_loai(ban_ghi: list[tuple[str, int, str, str]],
         that = nha / duong[2:]
         if that.exists():
             ket["co"].append((ten, so_dong, duong))
-        elif CUA_THOAT.search(dong):
+        elif CUA_THOAT.search(MA_INLINE.sub("", dong)):
             ket["su_lieu"].append((ten, so_dong, duong))
         else:
             ket["chet"].append((ten, so_dong, duong))

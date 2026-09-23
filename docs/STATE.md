@@ -16771,7 +16771,12 @@ hành được đo luôn: `kiem_cua_song.py` xuất hiện ở **0/5** workflow.
 
 ---
 
-### MÁY ĐO TỰ TỐ MÌNH HAI LẦN, VÀ CẢ HAI ĐỀU DO IN DỮ LIỆU THÔ
+### MÁY ĐO TỰ TỐ MÌNH, VÀ MỖI LẦN ĐỀU DO IN DỮ LIỆU THÔ
+
+> Tiêu đề này ghi **"hai lần"** lúc viết, rồi có lần thứ ba trước khi
+> PR kịp merge. Con số bị gỡ ra — cùng lý do *"bốn cổng"* và *"chín
+> luật"*: **một con số đếm thứ có thật thì nó trôi, nên đừng ghim nó
+> cạnh thứ nó đếm.**
 
 **Lần một — phép đoán cái dấu: 0/3 đúng.** Bản đầu nhận mọi
 `🔴 ⚠️ ~~ "đã xoá"` ở **bất kỳ đâu trên dòng** là *"đã đánh dấu"*. Chạy
@@ -16794,7 +16799,17 @@ thích `~/AGENTS.md` đã mất, công cụ lập tức báo một con trỏ ch�
 chính ô ⚠️ ấy nhắc lại đường dẫn. Đúng bài học `SKILL.md` Bước 4 —
 *"KHÔNG viết tên file trần ra đây làm ví dụ"* — lần này ở một file khác.
 
-Cả hai lần, thứ tố ra là **dữ liệu thô in ngay dưới con số**. Bản in đầu
+**Lần ba — dòng bảng lỗi ghi về chính lỗi này bị đọc thành một cửa
+thoát.** Dòng **96** *mô tả* cú pháp `<!-- duong-da-chet: … -->` trong
+dấu nháy ngược; công cụ đọc đoạn mô tả ấy thành cửa thoát đang **dùng**,
+và xếp một đường chết thành sử liệu. Kết quả tình cờ **đúng** — đường ấy
+là sử liệu thật — nhưng **lý do sai**, nên nó sai ở mọi ca khác. Nay cửa
+thoát chỉ được nhận khi nằm **ngoài** đoạn mã inline.
+
+Ba lần, một hình dạng: **một văn bản nói VỀ cơ chế bị đọc thành văn bản
+DÙNG cơ chế.** Đó là `SKILL.md` Bước 4 nói bằng chữ khác.
+
+Cả ba lần, thứ tố ra là **dữ liệu thô in ngay dưới con số**. Bản in đầu
 tiên nếu chỉ có `1 chết · 2 sử liệu · 36 còn` thì nghe hoàn toàn hợp lý.
 
 ---
@@ -16810,7 +16825,7 @@ Phát còn lại đục vào `if tong == 0: return 2`. Nhưng `tong == 0` kéo t
 NO-OP**. Đúng câu `SKILL.md` Bước 3 dặn hỏi trước khi đi sửa gác: *đột
 biến này có THẬT SỰ đổi hành vi ở chỗ đang canh không?* Không. Nên thứ bị
 gỡ là **nhánh thừa**, không phải gác bị đem đi sửa. Bộ đục viết lại:
-**9/9 đỏ**.
+**10/10 đỏ** (phát thứ mười là phát của lần ba ở trên).
 
 ---
 
