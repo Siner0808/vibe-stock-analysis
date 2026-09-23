@@ -16686,3 +16686,152 @@ Và đó chính là cách lỗi 95 lọt: `grep` của tôi hôm ấy tìm chữ
 mà câu kia không chứa chữ ấy. Thứ tìm ra nó là **sổ tay**, ở một câu hỏi
 cố ý đòi *"kể cả đường tôi chưa thử"*.
 
+## BƯỚC 116 — SOÁT QUY TRÌNH LƯỢT 4: LỚP CHÍNH CÔNG CỤ SOÁT KHÔNG THẤY (23/09/2026)
+
+Nhịp 2 ngày, lần gần nhất 21/09. `tools/soat_loi_khai_cu.py` in **21 lời
+khai trên 7 tài liệu, 12 chưa ai mở**. Mở 5, chọn theo một tiêu chí:
+**lời khai NÊU TÊN một thành phần** — đúng hình dạng lỗi 95 hôm qua.
+
+```
+CLAUDE.md:1606   optimize_vn100_18m.py "da ghi nua phia THOAT"   THAT
+CLAUDE.md:633    _doc() "chua bao gio ton tai trong module nay"  THAT
+CLAUDE.md:981    PENDING "xoa vi chua bao gio khop"              THAT
+loi-da-mac:1064  hai cong cu phai co trang thai CHUA KIEM DUOC   THAT
+```
+
+5/5 THẬT. Một lượt soát ra toàn "vẫn đúng" là **kết quả hợp lệ** và phải
+ghi được, nếu không sổ chỉ chứa tin xấu.
+
+> **Một ca suýt bị đọc sai, và cách nó thoát thì đáng giữ.** Lời khai
+> `_doc()` *"chưa bao giờ tồn tại"* — mà `tests/test_tai_lieu_khop_ten_ma.py`
+> **có** một hàm tên `_doc`. Một lượt `grep` toàn repo sẽ "tìm thấy" nó và
+> kết tội lời khai. Thứ giữ cho lời khai đúng là ba chữ **"trong module
+> này"**: phạm vi hẹp là thứ CỨU nó, không phải thứ làm nó yếu.
+
+---
+
+### PHẦN ĐÁNG GIÁ KHÔNG NẰM TRONG DANH SÁCH
+
+Câu hỏi thứ hai khác hẳn bốn câu trên: **đọc chính lời khai phạm vi của
+công cụ, để tìm loại nó KHÔNG thấy.** Lời khai ấy là ba bức tường:
+
+```
+PHU DINH    ·   CO NEU TEN   ·   TRONG REPO
+```
+
+Một câu **KHẲNG ĐỊNH** nêu một **ĐƯỜNG DẪN NGOÀI repo** lọt cả ba. Và
+`tests/test_tai_lieu_khop_ten_ma.py` — gác *"tên trỏ tới thứ không tồn
+tại"* — cũng không phủ: `grep` cho `~`, `home`, `expanduser` trong file ấy
+ra **0**. Không công cụ nào của dự án nhìn được lớp này.
+
+**Đo, bằng `tools/kiem_duong_ngoai_repo.py` dựng trong lượt này:**
+
+```
+39 lan neu ten  ·  12 duong rieng biet  ·  3 CON TRO CHET
+```
+
+| chỗ | đường | hạng |
+|---|---|---|
+| `SKILL.md:122` | `~/.claude/rules/ecc/common/…` | **thì HIỆN TẠI** |
+| bảng lỗi dòng 14, ô *"máy chặn được"* | cùng đường ấy | chỉ chỗ sửa |
+| `CLAUDE.md:87` | `~/AGENTS.md` | bản ghi 18/09 |
+
+Hai cái đầu cùng một nguyên nhân: ngày **22/09** một lượt dọn gói ECC dời
+file sang `~/.claude/rules/` rồi xoá thư mục cũ. **Cơ chế còn nguyên — chỉ
+địa chỉ chết**, và đó là hình dạng khó thấy nhất: người đọc đi theo, không
+thấy file, rồi kết luận *cơ chế đã chết*. Mà `SKILL.md:122` là chỗ **duy
+nhất** giải thích vì sao vòng tròn *"phải đọc skill mới biết đi tìm skill"*
+bị cắt.
+
+Cái thứ ba khác hạng: câu *"`~/AGENTS.md` bị cắt 5.227 ký tự"* là **bản ghi
+của ngày 18/09** và vẫn đúng cho ngày ấy. **Mất lúc nào thì chưa đo được**,
+nên không suy — giữ câu, khai cửa thoát.
+
+---
+
+### VÌ SAO LÀ MỘT MÁY ĐỌC, KHÔNG PHẢI MỘT CỔNG
+
+Vế này tôi định lập luận bằng suy diễn cấu trúc: đường dẫn nằm ở thư mục
+nhà của **máy này**, CI chạy trên máy khác và khác hệ điều hành, nên một
+cổng canh chúng sẽ đỏ mọi lượt — và **gác bị tắt thì bằng không** (BƯỚC 31).
+
+**Sổ tay đổi hạng của lập luận ấy.** Hỏi *"có chỗ nào NÓI NGƯỢC không"*, nó
+dùng đúng lối thoát — *"không tìm thấy bất kỳ câu nào"* — rồi lôi ra một
+thứ tôi chưa biết: dự án **đã quyết** điều này rồi, ở chính dòng 14:
+
+> *"**cố ý KHÔNG** dựng test canh file rules toàn cục: nó nằm ngoài repo,
+> ở đường dẫn Windows, nên một test như thế sẽ đỏ trên CI Linux"*
+
+Đối chiếu bằng `tools/doi_chieu_trich_dan.py`: **KHỚP**. Và tiền lệ thi
+hành được đo luôn: `kiem_cua_song.py` xuất hiện ở **0/5** workflow.
+
+> **Trớ trêu đáng ghi:** dòng ghi *"cố ý không gác đường ngoài repo"* chính
+> là một trong ba con trỏ chết hôm nay. Lời khai đúng, địa chỉ trong lời
+> khai thì chết.
+
+---
+
+### MÁY ĐO TỰ TỐ MÌNH HAI LẦN, VÀ CẢ HAI ĐỀU DO IN DỮ LIỆU THÔ
+
+**Lần một — phép đoán cái dấu: 0/3 đúng.** Bản đầu nhận mọi
+`🔴 ⚠️ ~~ "đã xoá"` ở **bất kỳ đâu trên dòng** là *"đã đánh dấu"*. Chạy
+thật, cả hai ca nó xếp "sử liệu" đều xếp SAI:
+
+```
+bang loi dong 45   dau ⚠️ o do la GIA TRI mot o bang ("may chan duoc:
+                   mot phan") — khong noi gi ve duong dan
+CLAUDE.md:87       chu "bi xoa" noi ve SAU FILE KHAC; chinh duong dang
+                   xet duoc khai la "bi cat", tuc CON SONG
+```
+
+Hai cơ chế khác nhau, một gốc: **một dấu ở đâu đó trên dòng không phải
+một lời khai về thứ đang xét.** Và cả hai trượt về phía **im lặng**. Phép
+đoán bị gỡ hẳn, thay bằng **cửa thoát tường minh kèm lý do** —
+`<!-- duong-da-chet: … -->`, đúng cơ chế `# bia-ok:`.
+
+**Lần hai — ghi chú tự chứa cái nó cảnh báo.** Vừa viết xong ô ⚠️ giải
+thích `~/AGENTS.md` đã mất, công cụ lập tức báo một con trỏ chết **mới**:
+chính ô ⚠️ ấy nhắc lại đường dẫn. Đúng bài học `SKILL.md` Bước 4 —
+*"KHÔNG viết tên file trần ra đây làm ví dụ"* — lần này ở một file khác.
+
+Cả hai lần, thứ tố ra là **dữ liệu thô in ngay dưới con số**. Bản in đầu
+tiên nếu chỉ có `1 chết · 2 sử liệu · 36 còn` thì nghe hoàn toàn hợp lý.
+
+---
+
+### MỘT PHÁT ĐỘT BIẾN SỐNG SÓT, VÀ NÓ KHÔNG PHẢI LỖ HỔNG
+
+Lượt đục đầu báo **8/9 sống sót** — một con số quá xấu để tin ngay. Nghi
+máy đo trước: `va_an_toan.dot_bien` trả `True` khi lệnh **thất bại**, tức
+phát ấy đã **ĐỎ**. Bản đọc của tôi ngược. Đọc đúng chiều: **8/9 đỏ**.
+
+Phát còn lại đục vào `if tong == 0: return 2`. Nhưng `tong == 0` kéo theo
+`ket["co"]` rỗng, mà nhánh sau đã bắt đúng ca ấy — **đột biến là một
+NO-OP**. Đúng câu `SKILL.md` Bước 3 dặn hỏi trước khi đi sửa gác: *đột
+biến này có THẬT SỰ đổi hành vi ở chỗ đang canh không?* Không. Nên thứ bị
+gỡ là **nhánh thừa**, không phải gác bị đem đi sửa. Bộ đục viết lại:
+**9/9 đỏ**.
+
+---
+
+### ĐIỀU LƯỢT NÀY **KHÔNG** NÓI
+
+- Quần thể là **12 đường**, nhỏ. Ba con trỏ chết trên 12 là một tỷ lệ đo
+  trên một mẫu bé; đừng đọc thành *"cứ 4 đường thì 1 chết"*.
+- Công cụ chỉ thấy lối viết `~/…`. Một đường tuyệt đối kiểu
+  `C:\Users\…` hoặc `%USERPROFILE%` nằm ngoài tầm nó — **nó chỉ bắt
+  được thứ đã biết tên**, đúng giới hạn `docs/HANDOFF.md` mục 3.
+- Nó đọc **máy này**. Trên máy khác, kết quả đúng phải là **2 (CHƯA KIỂM
+  ĐƯỢC)**, và đó là lý do đối chứng dương nằm trong chính nó.
+- **Một loại quần thể thứ ba hé ra, chưa đo.** Cùng lượt này bắt
+  được `SKILL.md` Bước 5 ghi *"không `Co-Authored-By`"* trong khi
+  **80/100** commit không-merge từ 09/09 đều CÓ dòng ấy — quy ước đổi
+  từ **12/09**, câu khai sống thêm **11 ngày**. Đó là lời khai về
+  **THỰC HÀNH**, khác cả hai loại trên, và thông điệp commit không
+  nằm trong repo lúc năm cổng chạy nên không cổng nào đọc được. Bao
+  nhiêu câu như thế còn sống thì **chưa đếm**, và đừng đoán.
+- **Sổ tay còn hai bản chụp cũ** (`SKILL.md`, `cong-thuc-chay.md`). Lượt
+  làm tươi xoá được 8/10 rồi DỪNG: danh sách nguồn không phân biệt bản cũ
+  với bản mới bằng tên, và phép nhắm theo pixel đã một lần mở đúng hộp xác
+  nhận của một bản MỚI. *Neo mơ hồ thì dừng* — thà hai bản trùng còn hơn
+  mất một bản duy nhất.
