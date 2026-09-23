@@ -84,18 +84,29 @@ tiên phải là có lỗi.**
 > 🔴 **HAI CHỮ "CHƯA BẬT" HẾT ĐÚNG TỪ 18/09/2026 — người dùng đã quyết:
 > TẮT CẢ BỐN.** Nay `enabled=False`, **0/4 đích bật**, và
 > `~/.vnstock/config/agent.json` đã tồn tại. Bảy file đời cũ cũng đã dọn:
-> sáu file bị xoá hẳn, `~/AGENTS.md` bị cắt 5.227 ký tự. <!-- duong-da-chet: ban ghi ngay 18/09/2026; do lai 23/09/2026 thi file khong con o do, va MAT LUC NAO thi chua do duoc -->
+> sáu file bị xoá hẳn, `~/AGENTS.md` bị cắt 5.227 ký tự. <!-- duong-da-chet: ban ghi ngay 18/09/2026; file bi XOA cung ngay boi VIEC 1 cua PR #144 (a6180e5), do bang git log --grep -->
 >
 > ⚠️ **FILE ẤY KHÔNG CÒN TỒN TẠI — đo 23/09/2026.** Câu trên là
 > bản ghi của ngày 18/09 và vẫn đúng **cho ngày ấy**; hôm nay đường dẫn
 > ấy trỏ vào chỗ trống.
 >
-> **Mất lúc nào và do đâu thì CHƯA ĐO ĐƯỢC, nên đừng suy.** Lượt dọn
-> ECC ngày 22/09 khai đã chạm `~/.claude/` và `~/.claude/plugins/`,
-> **không** khai chạm file này. Giữ nguyên câu vì nó là sử liệu của
-> BƯỚC 103, và khai cửa thoát ngay trên dòng ấy thay vì xoá — đúng quy
-> ước `docs/HANDOFF.md` mục 4: *giá trị cũ để trần thì được ở lại,
-> nhưng phải đánh dấu*.
+> **Mất ngày 18/09/2026 — cùng ngày câu trên được viết.** VIỆC 1 của
+> PR #144 (`a6180e5`) ghi nguyên văn: *"C:\Users\cuong\AGENTS.md đã
+> xoá (6.594 byte, một bản dump vnai đời cũ hơn mà `remove_agent_files`
+> không nhận ra). Đã sao lưu trước."* Nên hai câu **không mâu thuẫn mà
+> nối tiếp**: BƯỚC 103 CẮT nó còn 5.227 ký tự, rồi cùng ngày một việc
+> người dùng giao XOÁ hẳn phần còn lại. Cùng commit ấy còn có phép thử
+> ghi `~/AGENTS.md VẮNG -> VẮNG`, tức nó đã vắng ngay hôm đó. <!-- duong-da-chet: trich nguyen van phep thu trong commit a6180e5 ngay 18/09/2026 -->
+>
+> 🔴 **BẢN TRƯỚC CỦA CHÍNH Ô NÀY GHI *"mất lúc nào thì CHƯA ĐO ĐƯỢC"*,
+> và nó sống 3 giờ.** Câu ấy sai không vì thiếu dữ liệu mà vì tôi **chưa
+> thử phép đo rẻ nhất** — `git log --all --grep='AGENTS.md'` trả về ngay
+> commit trên. Nó còn tự nêu một giả thuyết (*"lượt dọn ECC 22/09"*)
+> lẽ ra bị loại ngay nếu đã đo. **Lỗi 97.**
+>
+> Giữ nguyên câu gốc vì nó là sử liệu của BƯỚC 103, và khai cửa thoát
+> ngay trên dòng ấy thay vì xoá — đúng quy ước `docs/HANDOFF.md` mục 4:
+> *giá trị cũ để trần thì được ở lại, nhưng phải đánh dấu*.
 >
 > Lệnh đọc: `tools/kiem_duong_ngoai_repo.py`.
 >

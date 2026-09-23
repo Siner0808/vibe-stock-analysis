@@ -16744,8 +16744,22 @@ nhất** giải thích vì sao vòng tròn *"phải đọc skill mới biết đ
 bị cắt.
 
 Cái thứ ba khác hạng: câu *"`~/AGENTS.md` bị cắt 5.227 ký tự"* là **bản ghi
-của ngày 18/09** và vẫn đúng cho ngày ấy. **Mất lúc nào thì chưa đo được**,
-nên không suy — giữ câu, khai cửa thoát.
+của ngày 18/09** và vẫn đúng cho ngày ấy.
+
+> 🔴 **BƯỚC NÀY TỰ SỬA MÌNH SAU BA GIỜ.** Bản đầu viết *"mất lúc nào thì
+> CHƯA ĐO ĐƯỢC, nên không suy"* — và câu ấy sai. Nó đo được, bằng phép đo
+> rẻ nhất có thể: `git log --all --grep='AGENTS.md'` trả về **PR #144**
+> (`a6180e5`, 18/09), VIỆC 1: *"C:\Users\cuong\AGENTS.md đã xoá (6.594
+> byte…). Đã sao lưu trước."* Hai câu **nối tiếp** chứ không mâu thuẫn:
+> BƯỚC 103 cắt, rồi cùng ngày một việc người dùng giao xoá hẳn.
+>
+> Nó lọt vì lượt tìm của tôi quét dạng `~/AGENTS.md` trong **tài liệu**,
+> còn commit kia viết `C:\Users\cuong\AGENTS.md` và nằm trong **lịch sử
+> git** — hai quần thể khác nhau. Nhưng đó là lời giải thích, không phải
+> lời bào chữa: tôi **chưa thử** git trước khi tuyên bố không đo được.
+> **Lỗi 97**, và nó tìm ra bởi một phép đo làm cho việc KHÁC.
+
+Giữ câu gốc, khai cửa thoát.
 
 ---
 
