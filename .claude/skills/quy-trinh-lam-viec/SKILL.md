@@ -767,6 +767,32 @@ Nguồn URL là **ảnh chụp**, không phải liên kết sống, và menu c�
 Bước 2 là bước đáng giữ: **kiểm đường khôi phục trước khi phá thứ đang
 có**. Giới hạn sổ là 300 nguồn nên chỗ chứa không phải ràng buộc.
 
+> **BƯỚC 4 NHẮM THEO THAM CHIẾU, ĐỪNG NHẮM THEO PIXEL** (23/09/2026).
+> Hai bản của cùng một URL **không phân biệt được bằng tên** — danh sách
+> cắt tên ở khoảng 100 ký tự. Nhắm theo toạ độ thì một lượt xoá đã mở
+> đúng hộp xác nhận của một bản **MỚI**; hôm ấy thu phóng trang còn tự
+> nhảy giữa các lượt chụp và cửa sổ tự co lại, nên mọi toạ độ đều trôi.
+>
+> Cây trợ năng cho mỗi nguồn một tham chiếu riêng **và** một tham chiếu
+> cho nút `⋮` của nó. Chuỗi này thì xác định:
+>
+> ```
+> doc cay tro nang  ->  ref cua tung nguon + ref nut ...
+> bam ref nut ...   ->  tim "Xoa nguon" theo ten  ->  bam theo ref
+> DOC URL tren hop xac nhan  ->  Xoa neu la ban TRUNG, Huy neu khong
+> ```
+>
+> Hộp xác nhận in **URL đầy đủ**, nên nó là chỗ duy nhất đọc được danh
+> tính thật của nguồn trước khi xoá. Đo 23/09: bốn lượt mở, **hai lượt
+> huỷ** vì hộp nêu một bản **duy nhất** chứ không phải bản trùng.
+>
+> **Và xoá xong thì phải ĐO bản còn lại tươi hay cũ** — xoá một bản của
+> mỗi cặp không nói gì về bản sống sót. Cách rẻ: `git log` file ấy để
+> tìm một câu chỉ có ở bản mới, hỏi sổ tay câu ấy **kèm lối thoát**, rồi
+> đối chiếu bằng `tools/doi_chieu_trich_dan.py`. Nếu `git log` cho thấy
+> file **không đổi** trong khoảng giữa hai bản chụp thì khỏi đo: hai bản
+> giống hệt nhau.
+
 > **Bước 3 và 4 ĐỔI CHỖ ngày 17/09/2026, và lý do là một phép đo.** Bản
 > 16/09 xoá trước, thêm sau, vì thêm-trước sinh bản trùng. Nhưng xoá-trước
 > có một cửa sổ trong đó **sổ của người dùng rỗng**, và bản trùng thì gỡ

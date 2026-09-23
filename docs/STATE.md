@@ -16845,8 +16845,23 @@ gỡ là **nhánh thừa**, không phải gác bị đem đi sửa. Bộ đục 
   **THỰC HÀNH**, khác cả hai loại trên, và thông điệp commit không
   nằm trong repo lúc năm cổng chạy nên không cổng nào đọc được. Bao
   nhiêu câu như thế còn sống thì **chưa đếm**, và đừng đoán.
-- **Sổ tay còn hai bản chụp cũ** (`SKILL.md`, `cong-thuc-chay.md`). Lượt
-  làm tươi xoá được 8/10 rồi DỪNG: danh sách nguồn không phân biệt bản cũ
-  với bản mới bằng tên, và phép nhắm theo pixel đã một lần mở đúng hộp xác
-  nhận của một bản MỚI. *Neo mơ hồ thì dừng* — thà hai bản trùng còn hơn
-  mất một bản duy nhất.
+- ~~**Sổ tay còn hai bản chụp cũ** (`SKILL.md`, `cong-thuc-chay.md`).~~
+  **XONG chiều cùng ngày.** Lượt sáng dừng ở 8/10 vì phép nhắm theo
+  **pixel** không phân biệt được bản cũ với bản mới — hai bản cùng URL,
+  danh sách chỉ hiện tên bị cắt — và nó đã một lần mở đúng hộp xác nhận
+  của một bản **MỚI**. *Neo mơ hồ thì dừng* là quyết định đúng lúc ấy.
+
+  **Đường đi được là một cái NEO khác, không phải cẩn thận hơn.** Cây
+  trợ năng cho mỗi nguồn một **tham chiếu** riêng và một tham chiếu cho
+  nút `⋮` của nó, nên chuỗi *ref → "Xoá nguồn" → đọc URL trên hộp xác
+  nhận → Xoá/Huỷ* là **xác định**, không phụ thuộc thu phóng hay bố cục.
+  Đáng đọc vì hôm ấy thu phóng trang tự nhảy giữa các lượt chụp và cửa
+  sổ tự co lại — mọi phép nhắm theo toạ độ đều hỏng, mà phép nhắm theo
+  ref thì không hề hấn. **Bốn lượt mở, HAI lượt huỷ** vì hộp xác nhận nêu
+  `bay.md` và `loi-da-mac.md`, cả hai là bản **duy nhất**.
+
+  **Rồi ĐO bản còn lại, không đoán.** `SKILL.md` đổi lần cuối 22/09 nên
+  câu *"NỀN NHIỄU của một phép hiệu chuẩn…"* là mốc phân biệt; sổ tay
+  **trích được** nó, `doi_chieu_trich_dan.py` cho **KHỚP** → bản còn lại
+  là bản **tươi**. `cong-thuc-chay.md` thì **không cần đo**: `git log`
+  cho thấy nó đứng yên từ **14/09**, nên hai bản giống hệt nhau.
