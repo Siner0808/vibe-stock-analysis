@@ -176,6 +176,18 @@ mới là thứ khó.
 **Điều 2 — một câu "không làm được" chép từ ghi chú thì phải ĐO LẠI,
 hoặc nói rõ nó chưa được kiểm trong phiên này.**
 
+> **VÀ MỘT CÂU *"CHƯA ĐO ĐƯỢC"* TỰ VIẾT MỚI CŨNG VẬY** (23/09/2026,
+> lỗi 97). Điều 2 ở trên chỉ nói về câu **CHÉP** — nên nó im khi tôi
+> **tự viết** *"mất lúc nào thì chưa đo được"* về một file, rồi còn
+> nêu kèm một giả thuyết. `git log --all --grep=` trả lời trong một
+> dòng, và câu ấy sống **3 giờ** trong chính phiên sinh ra nó.
+>
+> **Trước khi viết *chưa đo được*, chạy phép đo rẻ nhất chạm tới nó.**
+> Với thứ dự án đã làm thì quần thể gần như luôn là **lịch sử git** —
+> `git log -S` cho mã, `git log --grep` cho việc đã làm. Một câu
+> *chưa đo được* là một **kết luận**, và kết luận thì cũng cần lệnh
+> đứng sau, đúng Quy tắc số 2.
+
 Và khi viết ra một câu như thế, **nêu ĐƯỜNG đã thử, đừng nêu MỤC TIÊU**:
 
 | Viết thế này | Không viết thế này |

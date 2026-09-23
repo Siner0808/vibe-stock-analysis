@@ -16744,8 +16744,22 @@ nhất** giải thích vì sao vòng tròn *"phải đọc skill mới biết đ
 bị cắt.
 
 Cái thứ ba khác hạng: câu *"`~/AGENTS.md` bị cắt 5.227 ký tự"* là **bản ghi
-của ngày 18/09** và vẫn đúng cho ngày ấy. **Mất lúc nào thì chưa đo được**,
-nên không suy — giữ câu, khai cửa thoát.
+của ngày 18/09** và vẫn đúng cho ngày ấy.
+
+> 🔴 **BƯỚC NÀY TỰ SỬA MÌNH SAU BA GIỜ.** Bản đầu viết *"mất lúc nào thì
+> CHƯA ĐO ĐƯỢC, nên không suy"* — và câu ấy sai. Nó đo được, bằng phép đo
+> rẻ nhất có thể: `git log --all --grep='AGENTS.md'` trả về **PR #144**
+> (`a6180e5`, 18/09), VIỆC 1: *"C:\Users\cuong\AGENTS.md đã xoá (6.594
+> byte…). Đã sao lưu trước."* Hai câu **nối tiếp** chứ không mâu thuẫn:
+> BƯỚC 103 cắt, rồi cùng ngày một việc người dùng giao xoá hẳn.
+>
+> Nó lọt vì lượt tìm của tôi quét dạng `~/AGENTS.md` trong **tài liệu**,
+> còn commit kia viết `C:\Users\cuong\AGENTS.md` và nằm trong **lịch sử
+> git** — hai quần thể khác nhau. Nhưng đó là lời giải thích, không phải
+> lời bào chữa: tôi **chưa thử** git trước khi tuyên bố không đo được.
+> **Lỗi 97**, và nó tìm ra bởi một phép đo làm cho việc KHÁC.
+
+Giữ câu gốc, khai cửa thoát.
 
 ---
 
@@ -16843,8 +16857,48 @@ gỡ là **nhánh thừa**, không phải gác bị đem đi sửa. Bộ đục 
   **80/100** commit không-merge từ 09/09 đều CÓ dòng ấy — quy ước đổi
   từ **12/09**, câu khai sống thêm **11 ngày**. Đó là lời khai về
   **THỰC HÀNH**, khác cả hai loại trên, và thông điệp commit không
-  nằm trong repo lúc năm cổng chạy nên không cổng nào đọc được. Bao
-  nhiêu câu như thế còn sống thì **chưa đếm**, và đừng đoán.
+  nằm trong repo lúc năm cổng chạy nên không cổng nào đọc được.
+
+  ✅ **ĐÃ ĐẾM cùng ngày — và phép đếm đổi cách đọc.** Quét thô bảy tài
+  liệu ra **103** dòng; siết về loại **kiểm được bằng máy** (chủ đề
+  commit · nhánh · PR · merge, bỏ dòng bảng và dòng đã mang dấu) còn
+  **21**. Đọc hết 21 thì hiện ra một ranh giới không lường trước:
+
+  ```
+  phan lon la LUAT     ("phai lam X")   -> mot MENH LENH khong muc
+                                            ruong duoc
+  mot nhum la KHANG DINH VE SU THAT     -> loai nay moi troi
+  ```
+
+  Và các khẳng định ấy **đo ra ĐÚNG**, trên quần thể rộng chứ không
+  phải vài ca:
+
+  ```
+  "moi PR co HAI dong kiem-dinh"   25/25 PR merge gan nhat: dung 2
+  "MOI check la pass"              0 PR merge voi check khong pass
+  "khong push thang main"          0 commit first-parent KHONG qua PR
+  ```
+
+  > **Dòng thứ ba cố ý ghi một số KHÔNG, không ghi tỷ lệ.** Bản đầu viết
+  > *"84/84 qua PR"* và con số ấy **trôi ngay trong phiên**: tại
+  > `3c90cc8` nó là **83**, tại `69d16c4` là **84**, và lượt đọc đầu của
+  > tôi lấy 84 ở thời điểm đáng lẽ phải là 83 — tức nó **không tái lập
+  > được**. Mẫu số là một bộ đếm tăng mỗi lần merge; chỉ **tử số bằng 0**
+  > mới là bất biến. Đo lại:
+  >
+  > ```bash
+  > git log --first-parent --since=2026-09-09 --format="%h %p" main
+  > ```
+  >
+  > Dòng nào có **một** cha là commit không-merge; hôm nay đúng một dòng
+  > như thế — `a6180e5`, squash của PR #144 — nên nó vẫn **đi qua PR**.
+
+  Nên **chưa có cơ sở dựng thêm gác nào** — đúng kết luận BƯỚC 115, và
+  lần này con số đứng sau là *0 ca thật trên một quần thể đã đọc hết*,
+  chứ không phải một lập luận. Cái **đã** trôi — `Co-Authored-By` — là
+  một **LUẬT bị thực hành bỏ lại**, không phải một khẳng định sai; nên
+  thứ bắt được nó phải so **luật với lịch sử git**, và đó là việc của
+  lượt soát, không phải của một cổng.
 - ~~**Sổ tay còn hai bản chụp cũ** (`SKILL.md`, `cong-thuc-chay.md`).~~
   **XONG chiều cùng ngày.** Lượt sáng dừng ở 8/10 vì phép nhắm theo
   **pixel** không phân biệt được bản cũ với bản mới — hai bản cùng URL,
