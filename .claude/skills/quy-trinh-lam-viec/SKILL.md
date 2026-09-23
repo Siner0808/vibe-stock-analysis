@@ -119,8 +119,20 @@ Rồi liệt kê **thứ đang bị chặn theo ngày** và không đọc sớm.
 >
 > Viết "Bước 0: đi tìm skill" vào chính skill là một vòng tròn — phải đọc
 > skill mới biết phải đi tìm skill. Vòng tròn ấy hiện được cắt ở
-> `~/.claude/rules/ecc/common/vibe-preview.md`, file nạp vào **mọi** phiên
-> bất kể mở ở đâu.
+> `~/.claude/rules/vibe-preview.md`, file nạp vào **mọi** phiên bất kể
+> mở ở đâu.
+>
+> ⚠️ **ĐƯỜNG DẪN ẤY ĐỔI NGÀY 22/09/2026, và câu này trỏ vào chỗ trống
+> tròn một ngày.** File vốn nằm ở `.../rules/ecc/common/` — chung thư
+> mục với gói ECC mà **không** phải nội dung ECC. Lượt gỡ ECC dời nó ra
+> `rules/` rồi xoá thư mục cũ.
+>
+> **Cơ chế không hỏng; chỉ địa chỉ hỏng** — và đó là hình dạng khó thấy
+> nhất, vì người đọc đi theo, không thấy file, rồi kết luận cơ chế đã
+> chết. Cùng họ với lỗi 95, khác một chiều: lỗi 95 sai ngay ngày viết,
+> câu này đúng ngày viết rồi **hỏng vì thế giới đổi dưới chân nó**.
+>
+> Lệnh đọc: `tools/kiem_duong_ngoai_repo.py`.
 
 ---
 
@@ -416,7 +428,26 @@ Cách chạy và chờ: `references/cong-thuc-chay.md`. Tóm tắt ba dòng:
   *"`gh` không cài trên máy này"* (nay có, 2.100.0, đã đăng nhập) và
   *"`main` có branch protection"* (404). `references/loi-da-mac.md`
   lỗi 17.
-- Commit body **ASCII**, không `Co-Authored-By`.
+- Commit body **ASCII**, và **CÓ** `Co-Authored-By`.
+
+  > 🔴 **VẾ THỨ HAI TỪNG GHI NGƯỢC, và nó sống 11 ngày.** Câu cũ là
+  > *"không `Co-Authored-By`"*. Đo 23/09/2026 ở lượt SOÁT QUY TRÌNH
+  > thứ tư, đếm trên chính lịch sử git:
+  >
+  > ```
+  > commit KHONG merge, tu 09/09  :  100
+  >     co dong Co-Authored-By    :   80
+  > commit cuoi cung KHONG co     :  11/09/2026
+  > ```
+  >
+  > Tức quy ước đã đổi từ **12/09/2026** và câu ở đây không đi theo. Đây
+  > là hình dạng quen: một lời khai về THỰC HÀNH thì mục ruỗng khi thực
+  > hành đổi, mà không cổng nào đọc được thông điệp commit — cùng lý do
+  > lỗi 81, 89 và 93 không gác được. Lệnh đo lại:
+  >
+  > ```bash
+  > git log --no-merges --format=%B | grep -c Co-Authored-By
+  > ```
 
   > **KIỂM BẢN ĐÃ GHI, ĐỪNG KIỂM BẢN SẮP GHI** (lỗi 93, 22/09/2026).
   >
@@ -805,6 +836,14 @@ câu cũ bị bắt gặp do **tình cờ**: *"cửa Bash không ghi nhật ký 
 ```bash
 ./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py
 ```
+
+**Và một lớp nó KHÔNG thấy, đo 23/09/2026.** Lời khai phạm vi của nó là ba bức tường — *phủ định · có nêu tên · trong repo* — nên một câu **khẳng định** nêu một **đường dẫn ngoài repo** lọt cả ba:
+
+```bash
+./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py
+```
+
+0 sạch · 1 có con trỏ chết · 2 chưa kiểm được. **Nó cố ý không phải một cổng** — đường dẫn nằm ở thư mục nhà của máy này, nên trên CI nó sẽ đỏ mọi lượt; xem bảng lỗi dòng 14, chỗ dự án đã quyết đúng điều ấy. Muốn giữ một đường đã chết thì khai `<!-- duong-da-chet: <lý do> -->` ngay trên dòng ấy; lý do rỗng không được nhận.
 
 Nó in mọi **lời khai phủ định có nêu tên** còn sống trong bảy tài liệu —
 15 dòng, siết từ 187 bằng ba phép lọc có lý do. Ghi kết quả vào

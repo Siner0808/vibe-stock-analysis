@@ -79,6 +79,48 @@
           "phan_quyet": "THẬT — workflow biến mã 2 thành ::error:: rồi exit 1, cho CẢ cổng 2 lẫn cổng 4. Tài liệu khớp mã. Đây là loại lời khai sổ tay KHÔNG kiểm được (nó chỉ thấy tài liệu), nên nó phải được mở bằng lệnh."
         }
       ]
+    },
+    {
+      "ngay": "2026-09-23",
+      "pham_vi": "Lượt 4, đúng nhịp (lần gần nhất 21/09). Công cụ in 21 lời khai trên 7 tài liệu, 12 CHƯA AI MỞ. Mở 5 theo một tiêu chí duy nhất: lời khai NÊU TÊN một thành phần — đúng hình dạng lỗi 95 hôm qua. Cả 5 ra THẬT. Rồi mở một câu hỏi khác hẳn, và đó mới là chỗ lượt này đáng giá: ĐỌC CHÍNH LỜI KHAI PHẠM VI của công cụ để tìm loại nó KHÔNG thấy.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md:1606 'optimize_vn100_18m.py đã ghi nửa phía THOÁT của chuyện này từ trước' — nghi là trỏ tới một file đã bị đổi đuôi .broken như walkforward_vn100.py.",
+          "tu_kiem": "ls optimize_vn100_18m.py; sed -n '36,48p' file ấy",
+          "phan_quyet": "THẬT — file còn, và nó ghi đúng nửa phía THOÁT: 'stride=3 nghĩa là chỉ kiểm tra vị thế 3 phiên một lần, giá có thể xuyên sâu qua cắt lỗ rồi mới bị phát hiện'.",
+          "dong": "KHỚP — tác dụng phụ không ai chọn. `optimize_vn100_18m.py` đã ghi nửa"
+        },
+        {
+          "noi_dung": "CLAUDE.md:633 'Bản trước trỏ tới một hàm _doc() chưa bao giờ tồn tại trong module này' — một lời khai phủ định tuyệt đối, kiểm được bằng lịch sử git.",
+          "tu_kiem": "git log --all -S'_doc(' --oneline -- fundamental_agent.py -> rỗng",
+          "phan_quyet": "THẬT. Và đáng ghi CÁCH nó suýt bị đọc sai: tests/test_tai_lieu_khop_ten_ma.py CÓ một hàm tên _doc, nên một lượt grep toàn repo sẽ 'tìm thấy' nó. Lời khai có ba chữ 'trong module này' và chính ba chữ ấy giữ nó đúng — phạm vi hẹp là thứ cứu, không phải thứ yếu.",
+          "dong": "> Bản trước trỏ tới một hàm `_doc()` **chưa bao giờ tồn tại** trong"
+        },
+        {
+          "noi_dung": "CLAUDE.md:981 'PENDING xoá vì chưa bao giờ khớp' — một khẳng định về HÀNH VI, mà ràng buộc 3 của HANDOFF đòi chứng minh bằng chính mã chứ không bằng docstring.",
+          "tu_kiem": "đọc thân dong_so_sach trong paper_trading.py",
+          "phan_quyet": "THẬT — thân hàm có DELETE FROM trades WHERE symbol=? AND status=? với Status.PENDING, tách hẳn khỏi câu UPDATE đóng lệnh OPEN. Docstring và mã nói cùng một điều.",
+          "dong": "(`HET_DU_LIEU`), PENDING **xoá** vì chưa bao giờ khớp."
+        },
+        {
+          "noi_dung": "loi-da-mac.md:1064 'kiem_cu_phap_311.py phải có mã thoát 2 chưa kiểm được và vnstock_goi.kiem_goi() phải có CHƯA KIỂM ĐƯỢC' — hai lời khai về trạng thái thứ ba.",
+          "tu_kiem": "grep mã thoát 2 trong kiem_cu_phap_311.py -> 4 nhánh; AST trên vnstock_goi.kiem_goi -> CÓ nhắc CHUA_KIEM_DUOC (đọc tên trong thân hàm, không đọc 'in')",
+          "phan_quyet": "THẬT cả hai. Kiểm bằng AST chứ không bằng `in` vì hằng số CHUA_KIEM_DUOC khai ở mức module — một lượt grep sẽ xanh kể cả khi hàm không bao giờ trả nó.",
+          "dong": "`tools/kiem_cu_phap_311.py` phải có mã thoát 2 *\"chưa kiểm được\"* và"
+        },
+        {
+          "noi_dung": "LỚP CÔNG CỤ KHÔNG THẤY. Lời khai phạm vi của chính soat_loi_khai_cu.py là ba bức tường: PHỦ ĐỊNH · CÓ NÊU TÊN · TRONG REPO. Một câu KHẲNG ĐỊNH nêu một ĐƯỜNG DẪN NGOÀI repo lọt cả ba.",
+          "tu_kiem": "tools/kiem_duong_ngoai_repo.py (dựng hôm nay) -> 39 lần nêu tên, 12 đường riêng biệt, 3 con trỏ chết. Và grep '~\\|home\\|expanduser' tests/test_tai_lieu_khop_ten_ma.py -> 0, tức gác tên-mã cũng không phủ lớp này.",
+          "phan_quyet": "THẬT, 3/12 đường trỏ vào chỗ trống. Nặng nhất là SKILL.md:122 — câu ở THÌ HIỆN TẠI, và là chỗ DUY NHẤT của skill giải thích vì sao vòng tròn 'phải đọc skill mới biết đi tìm skill' bị cắt. Đã sửa cả ba; xem docs/STATE.md BƯỚC 116 và bảng lỗi dòng 96.",
+          "dong": "(không nằm trong danh sách công cụ — đây là lớp công cụ KHÔNG thấy)"
+        },
+        {
+          "noi_dung": "SKILL.md Bước 5 ghi 'Commit body ASCII, không Co-Authored-By' — một lời khai về THỰC HÀNH, loại chưa lượt soát nào đụng tới.",
+          "tu_kiem": "git log --no-merges --since=2026-09-09 -> 100 commit, 80 CÓ dòng Co-Authored-By; commit cuối cùng KHÔNG có là 11/09/2026",
+          "phan_quyet": "SAI — quy ước đã đổi từ 12/09/2026 và câu ở đây không đi theo, tức nó sống 11 ngày. Đã đánh dấu 🔴 kèm con số và lệnh đo lại. Đáng ghi vì nó mở một loại quần thể MỚI: lời khai về thực hành thì mục ruỗng khi thực hành đổi, mà thông điệp commit không nằm trong repo lúc năm cổng chạy nên không cổng nào đọc được — cùng lý do lỗi 81, 89 và 93 không gác được.",
+          "dong": "- Commit body **ASCII**, không `Co-Authored-By`."
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."

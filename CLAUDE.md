@@ -84,7 +84,20 @@ tiên phải là có lỗi.**
 > 🔴 **HAI CHỮ "CHƯA BẬT" HẾT ĐÚNG TỪ 18/09/2026 — người dùng đã quyết:
 > TẮT CẢ BỐN.** Nay `enabled=False`, **0/4 đích bật**, và
 > `~/.vnstock/config/agent.json` đã tồn tại. Bảy file đời cũ cũng đã dọn:
-> sáu file bị xoá hẳn, `~/AGENTS.md` bị cắt 5.227 ký tự.
+> sáu file bị xoá hẳn, `~/AGENTS.md` bị cắt 5.227 ký tự. <!-- duong-da-chet: ban ghi ngay 18/09/2026; do lai 23/09/2026 thi file khong con o do, va MAT LUC NAO thi chua do duoc -->
+>
+> ⚠️ **FILE ẤY KHÔNG CÒN TỒN TẠI — đo 23/09/2026.** Câu trên là
+> bản ghi của ngày 18/09 và vẫn đúng **cho ngày ấy**; hôm nay đường dẫn
+> ấy trỏ vào chỗ trống.
+>
+> **Mất lúc nào và do đâu thì CHƯA ĐO ĐƯỢC, nên đừng suy.** Lượt dọn
+> ECC ngày 22/09 khai đã chạm `~/.claude/` và `~/.claude/plugins/`,
+> **không** khai chạm file này. Giữ nguyên câu vì nó là sử liệu của
+> BƯỚC 103, và khai cửa thoát ngay trên dòng ấy thay vì xoá — đúng quy
+> ước `docs/HANDOFF.md` mục 4: *giá trị cũ để trần thì được ở lại,
+> nhưng phải đánh dấu*.
+>
+> Lệnh đọc: `tools/kiem_duong_ngoai_repo.py`.
 >
 > **Ba file toàn cục KHÔNG bị xoá** — công tắc là *đóng băng*, không phải
 > *xoá*, và đảo lại bằng `enable_agent_setup()`.
