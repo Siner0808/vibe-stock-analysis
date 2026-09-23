@@ -216,9 +216,16 @@ Muốn tìm cái chưa biết thì phải chạy thật, không chỉ đọc mã
 
 ---
 
-## 4. BỐN LỚP LỖI TÀI LIỆU — bốn luật khác nhau
+## 4. CÁC LỚP LỖI TÀI LIỆU — mỗi lớp một luật khác
 
-Ngày 05/09/2026 vá xong bốn lớp; chúng không thay thế nhau được.
+Ngày 05/09/2026 vá xong bốn lớp đầu; chúng không thay thế nhau được.
+Lớp cuối thêm **23/09/2026** (BƯỚC 116), và nó khác ba chỗ: quần thể
+nằm **ngoài repo**, phép canh là một **máy đọc** chứ không phải một
+cổng, và cách đánh dấu **không dùng được** quy ước bên dưới.
+
+> **Tiêu đề mục này ghi "BỐN LỚP" cho tới 23/09.** Con số bị gỡ ra —
+> cùng lý do *"bốn cổng"* và *"chín luật"*: **một con số đếm thứ có
+> thật thì nó trôi, nên đừng ghim nó cạnh thứ nó đếm.**
 
 | Lớp | Luật | Gác |
 |---|---|---|
@@ -226,11 +233,34 @@ Ngày 05/09/2026 vá xong bốn lớp; chúng không thay thế nhau được.
 | giá trị hiện tại vắng mặt | phải có ở ≥1 chỗ kề tên | `tests/test_tai_lieu_khop_hang_so.py` |
 | giá trị cũ để trần | được ở lại, **nhưng phải đánh dấu** | cùng file trên |
 | giờ cron lệch mã | suy từ cron, phải kề tên workflow | `tests/test_lich_cron_chuong.py` |
+| **đường dẫn NGOÀI repo đã chết** | trỏ lại đúng chỗ, **hoặc** khai cửa thoát kèm lý do | `tools/kiem_duong_ngoai_repo.py` — **máy ĐỌC, cố ý không phải cổng** |
 
 **Quy ước đánh dấu:** một con SỐ cũ được giữ lại kèm ghi chú (🔴 / ⚠️ /
 "đã bị thay" / "đo lại ngày…") — đó là lịch sử đo lường, đừng xoá. Nhưng
 một cái TÊN đã chết thì **không** được viết dạng `` `module.tên` `` nữa,
 vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
+
+> ⚠️ **QUY ƯỚC TRÊN DÀNH CHO NGƯỜI ĐỌC, VÀ MỘT MÁY KHÔNG DÙNG ĐƯỢC NÓ**
+> — đo 23/09/2026. Bản đầu của `tools/kiem_duong_ngoai_repo.py` nhận mọi
+> dấu 🔴 ⚠️ `~~` "đã xoá" ở **bất kỳ đâu trên dòng** là *"đã đánh dấu"*.
+> Chạy thật thì **0/3** ca xếp đúng, và cả hai lần trượt đều trượt về
+> phía **im lặng**:
+>
+> ```
+> dau ⚠️ o do la GIA TRI mot o bang, khong noi gi ve duong dan
+> chu "bi xoa" noi ve SAU FILE KHAC tren cung dong
+> ```
+>
+> **Một dấu ở đâu đó trên dòng không phải một lời khai về thứ đang
+> xét.** Nên lớp thứ năm dùng **cửa thoát tường minh kèm lý do**, đúng
+> cơ chế `# bia-ok:` — rỗng thì không được nhận:
+>
+> ```
+> <!-- duong-da-chet: <ly do> -->
+> ```
+>
+> Và nó phải nằm **ngoài** đoạn mã inline: một dòng *mô tả* cú pháp ấy
+> trong dấu nháy ngược từng bị đọc thành một dòng *dùng* nó.
 
 ---
 
