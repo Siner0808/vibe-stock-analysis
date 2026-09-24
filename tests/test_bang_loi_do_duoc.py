@@ -51,6 +51,17 @@ def test_MAY_DO_doc_so_viet_bang_CHU_tieng_Viet():
     for chu, so in DUNG.items():
         assert dbl.so_tu_chu(chu) == so, f"{chu!r} phải ra {so}"
 
+    # Hang TRAM — bang cham dong 100 ngay 24/09/2026; ban 0-99 tra None o day
+    TRAM = {"một trăm": 100, "một trăm lẻ một": 101, "một trăm linh một": 101,
+            "một trăm lẻ chín": 109, "một trăm mười": 110, "một trăm mười lăm": 115,
+            "một trăm hai mươi mốt": 121, "hai trăm": 200, "chín trăm chín mươi chín": 999}
+    for chu, so in TRAM.items():
+        assert dbl.so_tu_chu(chu) == so, f"{chu!r} phải ra {so}"
+    for chu in ("trăm", "một trăm lẻ", "một trăm lẻ mười", "một trăm lẻ không",
+                "một trăm lẻ hai ba",
+                "không trăm", "một trăm bảy", "một trăm xyz", "trăm một"):
+        assert dbl.so_tu_chu(chu) is None, f"{chu!r} phải trả None"
+
     # KHONG doc duoc thi phai tra None, dung im lang tra mot so sai
     for chu in ("", "linh tinh", "mươi", "hai mươi bảy tám chín", "ba mươi xyz"):
         assert dbl.so_tu_chu(chu) is None, f"{chu!r} phải trả None"

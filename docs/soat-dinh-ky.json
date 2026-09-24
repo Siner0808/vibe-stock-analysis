@@ -121,6 +121,96 @@
           "dong": "- Commit body **ASCII**, không `Co-Authored-By`."
         }
       ]
+    },
+    {
+      "ngay": "2026-09-24",
+      "pham_vi": "Lượt 5, người dùng gọi sớm nửa ngày (nhịp 2 ngày, lượt 4 là 23/09 09:45). Công cụ in 22 lời khai, 9 CHƯA AI MỞ — mở cả 9. Rồi câu hỏi thứ hai: hôm nay có một lời khai phủ định CÓ NÊU TÊN đã sai hai ngày ('Repo không nhập vnstock_data', HANDOFF mục 5) mà công cụ không in. Lý do đo được: 'không nhập' không nằm trong `PHU_DINH`. Đo từng từ ứng viên cùng bộ lọc, thêm họ 'không nhập/gọi/dùng/chạm' (+5 dòng), bỏ 'không đọc/có/còn' (+23, phần lớn là luật). Đục 8/8 đỏ. Công cụ nay in 27, mở luôn 5 dòng mới: 4 THẬT, 1 SAI đã có dấu.",
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md Bước 4: 'Lý do khai vào docs/moc_so_test.json và nằm trong diff.'",
+          "tu_kiem": "grep -n 'ly_do\\|lich_su_giam' tools/kiem_so_test_khong_giam.py · keys cua docs/moc_so_test.json = ['so_test','cap_nhat_luc'] · git log -S 'lich_su_giam' -- docs/moc_so_test.json -> rong",
+          "phan_quyet": "THẬT về cơ chế — `cap_nhat()` ghi `lich_su_giam[].ly_do` khi số test GIẢM. Nhưng câu đứng ngay sau 'Thêm test cũng phải cập nhật mốc', dễ đọc thành lý do cho lượt THÊM — mà lượt thêm thì không ghi lý do nào. Và cơ chế CHƯA TỪNG chạy: mốc chưa bao giờ có `lich_su_giam`.",
+          "dong": "> dần mà không ai thấy. Lý do khai vào `docs/moc_so_test.json` và nằm"
+        },
+        {
+          "noi_dung": "SKILL.md: hai bản khai hook 'chưa bao giờ là cùng một handler' + 'Ca giống hệt từng byte thì chưa đo được — claude -p hết hạn OAuth'.",
+          "tu_kiem": "đọc BƯỚC 82; kiem_cua_song.py: hook nay chỉ đăng ký MỘT nơi (toàn cục) từ BƯỚC 49",
+          "phan_quyet": "THẬT về ngày ấy. Vế 'chưa đo được' KHÔNG đo lại ở lượt này, và nói lý do: đo nó phải chạy một phiên `claude -p` thật với hai settings khai trùng — tốn lượt của người dùng — trong khi từ BƯỚC 49 không còn hook nào khai hai nơi, nên câu trả lời không đổi được hành động nào.",
+          "dong": "> `statusMessage`), nên chúng chưa bao giờ là *\"cùng một handler\"*. Hai"
+        },
+        {
+          "noi_dung": "loi-da-mac lỗi 14/25: 'Cả hai lần phép thử ấy dùng một old_string không tồn tại trong file.'",
+          "tu_kiem": "đọc ngữ cảnh dòng 185-190; cùng sự kiện CLAUDE.md dòng 1797",
+          "phan_quyet": "THẬT — bản ghi sự kiện 09/09, và bài học của nó ('phép thử phải dùng một thao tác HỢP LỆ') vẫn đứng ở CLAUDE.md.",
+          "dong": "Cả hai lần phép thử ấy dùng một `old_string` **không tồn tại trong file**."
+        },
+        {
+          "noi_dung": "loi-da-mac: '`vnstock_goi.kiem_goi()` phải có `CHƯA KIỂM ĐƯỢC`'",
+          "tu_kiem": "AST vnstock_goi.py: hằng chuỗi trạng thái = ['CHƯA KIỂM ĐƯỢC','KHỚP','LỆCH']",
+          "phan_quyet": "THẬT.",
+          "dong": "`vnstock_goi.kiem_goi()` phải có `CHƯA KIỂM ĐƯỢC`:"
+        },
+        {
+          "noi_dung": "CLAUDE.md: kiem_goi() ba trạng thái KHỚP / LỆCH / CHƯA KIỂM ĐƯỢC.",
+          "tu_kiem": "cùng phép AST trên vnstock_goi.py",
+          "phan_quyet": "THẬT. ĐO 17 hôm nay còn đọc được dòng thật: `TrangThaiGoi(tinh_trang='KHỚP', hang_may_chu='silver', …)`.",
+          "dong": "`KHỚP` / `LỆCH` / `CHƯA KIỂM ĐƯỢC`. Trạng thái thứ ba bắt buộc — mất mạng mà"
+        },
+        {
+          "noi_dung": "CLAUDE.md: so_ban_goi.py 'Mã thoát 0 không chạm chỗ quyết định · 1 có chạm · 2 chưa kiểm được'.",
+          "tu_kiem": "grep return trong tools/so_ban_goi.py main(): 2 (dòng 281, 287) · 0 (299, 325) · 1 (322); chạy thật 24/09: 1 -> 0 (ĐO 17) rồi 0 -> 1 (BƯỚC 119)",
+          "phan_quyet": "THẬT về mã. Nhưng chữ 'chạm chỗ quyết định' nay phát ra cho `vnstock_ezchart` — gói repo KHÔNG nhập, chỉ gõ tay vào hạng ấy (BƯỚC 105). Công cụ có in kèm 'repo KHONG nhap', nên mã thoát 1 hôm nay là báo ĐÚNG về bản vá, và SAI nếu đọc thành 'số liệu có thể đổi'.",
+          "dong": "> chỗ quyết định · 1 có chạm · 2 chưa kiểm được. `docs/STATE.md` BƯỚC 95."
+        },
+        {
+          "noi_dung": "CLAUDE.md: 'hai phép thử Edit với old_string không tồn tại đều không bị chặn'.",
+          "tu_kiem": "cùng sự kiện loi-da-mac dòng 189",
+          "phan_quyet": "THẬT — bản ghi 09/09.",
+          "dong": "> `Edit` với `old_string` không tồn tại đều \"không bị chặn\" và dẫn tới"
+        },
+        {
+          "noi_dung": "HANDOFF mục 5: 'Chưa đo, chưa chặn. Người dùng quyết.' (trường `operation` của vnii 0.2.6).",
+          "tu_kiem": "câu viết chính ngày 24/09 (BƯỚC 118); người dùng chưa quyết",
+          "phan_quyet": "THẬT.",
+          "dong": "Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118."
+        },
+        {
+          "noi_dung": "NGUYEN-TAC: 'git chưa bao giờ theo dõi nó. Nhưng brain/ cũng không còn ở gốc'.",
+          "tu_kiem": "git log --all --oneline -- brain | wc -l -> 0 · ls brain -> không có",
+          "phan_quyet": "THẬT.",
+          "dong": "> tức git chưa bao giờ theo dõi nó. Nhưng `brain/` cũng không còn ở gốc"
+        },
+        {
+          "noi_dung": "CLAUDE.md: 'repo không nhập lần nào — vnstock_ezchart, altair, matplotlib' (lộ ra nhờ họ từ mới).",
+          "tu_kiem": "tools/so_ban_goi.goi_repo_nhap(): cả ba False",
+          "phan_quyet": "THẬT.",
+          "dong": "> hạng ồn ào mà repo **không nhập lần nào** — `vnstock_ezchart`,"
+        },
+        {
+          "noi_dung": "HANDOFF mục 5: 'Repo không nhập vnstock_data ở đâu cả' — CA THẬT sinh ra họ từ mới.",
+          "tu_kiem": "grep -rn 'import vnstock_data' --include=*.py . -> fetch_khoi_ngoai.py:78 (từ 22/09)",
+          "phan_quyet": "SAI — đã đánh dấu 🔴 ngay dòng dưới ở BƯỚC 118. Công cụ vẫn in nó vì `DA_CO_DAU` đọc TỪNG DÒNG — đúng giới hạn đã biết từ 18/09 (test_soat_dinh_ky_co_tri_nho.py, đoạn đầu); ghi vào sổ này là cách đúng để nó thôi hiện ra như chưa ai mở.",
+          "dong": "`~/.vnstock/api_key.json` và `vnii` tự đọc. Repo **không nhập"
+        },
+        {
+          "noi_dung": "CLAUDE.md: '`fill_pending` không gọi `_analyze`'.",
+          "tu_kiem": "AST paper_trading.py::fill_pending — tập lời gọi không có `_analyze`",
+          "phan_quyet": "THẬT (lời gọi TRỰC TIẾP; lời khai cũng chỉ nói đúng chừng ấy).",
+          "dong": "> **RA QUYẾT ĐỊNH**. Làm được vì `fill_pending` không gọi `_analyze`,"
+        },
+        {
+          "noi_dung": "CLAUDE.md: 'scattermapbox / mapbox — loại biểu đồ dự án không dùng'.",
+          "tu_kiem": "git grep -l -i mapbox -- '*.py' -> chỉ tests/test_soat_dinh_ky_co_tri_nho.py (chuỗi thử của chính lượt này)",
+          "phan_quyet": "THẬT.",
+          "dong": "> thuộc `scattermapbox` / `mapbox` — loại biểu đồ dự án **không dùng**."
+        },
+        {
+          "noi_dung": "CLAUDE.md: '`_compute_local_indicators` — hàm thuần trên dataframe, không chạm mạng'.",
+          "tu_kiem": "AST data_collectors.py::_compute_local_indicators — không lời gọi nào tên get/post/request/history/quote/fetch/download",
+          "phan_quyet": "THẬT.",
+          "dong": "> `_compute_local_indicators` — hàm thuần trên dataframe, không chạm"
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."

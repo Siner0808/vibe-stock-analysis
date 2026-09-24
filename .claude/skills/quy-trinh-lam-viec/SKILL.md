@@ -592,6 +592,21 @@ không dựa hoàn toàn vào nó.** Giá trị của nó nằm ở chỗ nó l�
 **độc lập** — nó đọc tài liệu mà không mang theo giả định của phiên làm
 việc này.
 
+> ### ⚠️ HAI HÌNH DẠNG HỎNG MỚI, 24/09/2026 — và câu âm cũng phải tự kiểm
+>
+> 1. **Thấy câu sai rồi XẾP NHẦM DẤU.** Hỏi về kết luận BƯỚC 118, sổ tay
+>    trả *"không tìm thấy"* và giải thích rằng mục ấy đã có gạch `~~`. Dấu
+>    ấy gạch vế TIÊU ĐỀ của mục; câu *"Repo không nhập `vnstock_data`"*
+>    nằm bên dưới thì để trần. **Một dấu ở cấp mục không phủ từng câu
+>    trong mục** — cả với sổ tay lẫn với người viết.
+> 2. **Trích đúng chữ, SAI TÊN FILE.** BƯỚC 119: 8/8 câu trích khớp, 2
+>    câu ghi `CLAUDE.md` mà thật ra ở `docs/STATE.md`. Đối chiếu bằng
+>    `tools/doi_chieu_trich_dan.py` — nó in cả tên file, đọc cả vế ấy.
+>
+> Cùng ngày còn hai lượt *"không tìm thấy"* về PHƯƠNG PHÁP bỏ sót tiền lệ
+> nằm ngay trong nguồn (BƯỚC 117). **Lối thoát chặn nó BỊA; nó không chặn
+> nó BỎ SÓT** — sau mọi câu âm, `grep` từ khoá tiếng Việt của chính dự án.
+
 > ### 🔴 MỘT Ô THOÁT ĐÒI LÝ DO CỤ THỂ VẪN LÀ Ô THOÁT — lỗi 86, 18/09/2026
 >
 > Sáng 18/09 một phép đo lôi ra rằng quần thể sổ tay hẹp hơn quần thể công
@@ -894,6 +909,14 @@ Nó in mọi **lời khai phủ định có nêu tên** còn sống trong bảy 
 15 dòng, siết từ 187 bằng ba phép lọc có lý do. Ghi kết quả vào
 `docs/soat-dinh-ky.json`; một lượt soát kết luận *"vẫn đúng"* là kết quả
 hợp lệ và phải ghi được, nếu không sổ chỉ chứa tin xấu.
+
+> 🔴 **Chữ "mọi" ở đoạn trên NÓI QUÁ — đo ở lượt soát 5 (24/09/2026).** Nó
+> in mọi lời khai phủ định **dùng một từ trong danh sách `PHU_DINH`**. Danh
+> sách ấy từng không có *"không nhập"*, nên câu *"Repo không nhập
+> `vnstock_data`"* sai hai ngày mà không hiện ra. Nay thêm họ *không nhập ·
+> gọi · dùng · chạm* (đo trước: +5 dòng); *không đọc · có · còn* cố ý để
+> ngoài (+23, phần lớn là luật). Con số **15** cũng đã trôi — **đọc bằng
+> lệnh**, đừng đọc ở đây. BƯỚC 120, lỗi 100.
 
 ---
 

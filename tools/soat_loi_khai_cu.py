@@ -104,9 +104,22 @@ TAI_LIEU = [
     "NGUYEN-TAC-DO-LUONG.md",
 ]
 
+#: Họ thứ hai — ``không nhập / gọi / dùng / chạm`` — thêm ở lượt soát 5
+#: (24/09/2026). Đó là lời khai về QUAN HỆ giữa các mảnh mã, loại mục nhanh
+#: nhất khi mã đổi, và danh sách cũ mù hẳn trước nó. Ca thật: `HANDOFF` mục 5
+#: ghi *"Repo **không nhập** `vnstock_data` ở đâu cả"* ngày 18/09; từ 22/09
+#: `fetch_khoi_ngoai.py` nhập nó, và câu ấy sống trần tới khi BƯỚC 118 tình cờ
+#: vấp phải. Đo trước khi thêm, cùng bộ lọc của công cụ:
+#:
+#:     khong nhap +2 · khong goi +1 · khong dung +1 · khong cham +1
+#:     khong doc +11 · khong co +9 · khong con +3     <- KHONG them
+#:
+#: Ba từ sau kéo vào chủ yếu LUẬT và văn xuôi (*"gác phải đọc AST, không đọc
+#: `in`"*), không phải khẳng định về mã — thêm chúng là quay lại con số 187.
 PHU_DINH = re.compile(
     r"(chưa bao giờ|chưa ai|không ai|chưa có|chưa làm|chưa đo|chưa được"
-    r"|chưa kiểm|không tồn tại|không ghi)", re.I)
+    r"|chưa kiểm|không tồn tại|không ghi"
+    r"|không nhập|không gọi|không dùng|không chạm)", re.I)
 DA_CO_DAU = ("🔴", "⚠️", "ĐÃ BỊ BÁC", "đã bị thay", "ĐÃ ĐO", "ĐÃ TRUY", "~~")
 #: Một cái tên trong dấu nháy ngược. `()` ở cuối được nhận, vì dự án
 #: viết tên hàm đúng kiểu ấy suốt — `kiem_goi()`, `_doc()`, `chay()`.

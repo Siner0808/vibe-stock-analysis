@@ -514,6 +514,16 @@
       "lop": "chua-do",
       "song_ngay": 24,
       "nguon": "git"
+    },
+    "100": {
+      "lop": "chua-do",
+      "song_ngay": 2,
+      "nguon": "git"
+    },
+    "101": {
+      "lop": "ky-luat",
+      "song_ngay": 0,
+      "nguon": "co-che"
     }
   },
   "_khong_phai_bang_chung": [
