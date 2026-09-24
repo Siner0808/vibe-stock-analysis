@@ -2887,3 +2887,67 @@ chỉ lộ ra vì phép thử được chạy trước khi cần.
 
 **Quy tắc số 1, áp ngược:** `NANG DUOC` là chiều dễ chịu. Nên ô E giống hệt
 phải đi kèm **dòng thô** in ngay dưới băm, không chỉ con số.
+
+
+---
+
+## Kết quả ĐO 17 — chạy 24/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do17_nang_goi_vnstock.py`
+
+Tiêu chí vào nhánh lúc **20:13:34** (`d52b10c`); lượt `truoc` bắt đầu
+**20:13:42** — tám giây sau, và **trước khi đổi một gói nào**.
+
+```
+chang          luc cai    nen -> sau                 phan quyet
+vnai 2.6.1     20:14:20   truoc    -> sau_vnai       NANG DUOC
+vnii 0.2.6     20:14:56   sau_vnai -> sau_vnii       NANG DUOC
+vnstock_data   20:15:37   sau_vnii -> sau_vnstock_data  NANG DUOC
+  3.3.1
+```
+
+Bốn ảnh chụp, **cùng từng ô**:
+
+| | cả bốn ảnh |
+|---|---|
+| **A** FPT · VCB · SSI | 65 dòng · 6 cột · băm `fa2626d0…` · `dd46716e…` · `5e18c48e…` |
+| **B** bảng giá | 82 cột |
+| **C** `ratio()` × 3 | **54 kỳ** · 19 cột — không mã nào bị cắt |
+| **D** `kiem_goi()` | `KHỚP` · silver/silver |
+| **E** HAH · GMD · VHC | 119 dòng · 7 cột · băm `2456b9db…` · `c1a870be…` · `b4b48386…`, **hai lượt mỗi ảnh** |
+| **F** | `import vnstock_data` mã thoát 0 · **0/4** đích bật · `minimal` · 0/3 đích toàn cục đổi |
+| nền | mỗi chặng freeze đổi **đúng một dòng**, của gói chặng ấy |
+
+Dòng thô của ô E, ảnh `truoc` và ảnh `sau_vnstock_data` — **giống từng ký
+tự** (Quy tắc 1 áp ngược):
+
+```
+HAH  2025-06-30,196300.0,13167630000.0,274825.0,18515295000.0,-78525.0,-5347665000.0
+GMD  2025-06-30,535505.0,30463030500.0,251800.0,14422710000.0,283705.0,16040320500.0
+VHC  2025-06-30,800.0,47960000.0,150309.0,9091525700.0,-149509.0,-9043565700.0
+```
+
+**Không có bộ nhớ đệm nào đứng giữa** — đã hỏi trước khi tin (`SKILL.md`
+Bước 3, lỗi 75). Mỗi ảnh là một **tiến trình riêng**; dưới `~/.vnstock`
+chỉ ba file trạng thái được ghi trong khung chạy (`auth_state.json` ·
+`usage_metrics.json` · `environment.json`), thư mục `.cache` rỗng, và
+`client.py` của cả `vnstock` lẫn `vnstock_data` không nhắc bộ đệm nào.
+
+### Hệ quả cho ô D ngày 29/09
+
+**Ô D đọc được trên `vnstock_data` 3.3.1.** Đường `goi_thu` → `foreign_flow`
+cho cùng byte ở cả bốn môi trường, trên ba mã ngoài rổ. Phần mở rộng 71 mã
+hẹn cùng ngày cũng vậy — cùng một lời gọi.
+
+### Kiểm thêm — KHÔNG nằm trong bảng ký, ghi để đọc
+
+```
+pip freeze ca phien           khac DUNG 3 dong: vnai · vnii · vnstock_data
+import vnstock_ta             ma thoat 0   (no nhap vnstock_data o dong dau)
+import vnstock_news           ma thoat 0
+import vnstock_ezchart        ma thoat 1   ModuleNotFoundError: squarify
+tools/so_ban_goi.py           ma thoat 1 -> 0 · QUYET DINH SO 1 -> 0 (vnai khop CI)
+```
+
+`vnstock_ezchart` hỏng **từ trước** (BƯỚC 104 cố ý không cài `squarify`), và
+repo không nhập nó.

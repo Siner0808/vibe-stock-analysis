@@ -288,6 +288,10 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   *"không bao giờ sửa"*. Khác thì mọi phép đo dùng nó phải chụp dữ liệu
   tại thời điểm, không kéo lại về sau. Lệnh đọc:
   `tools/do14_kha_thi_khoi_ngoai.py`. `docs/STATE.md` BƯỚC 112.
+  **Đọc được trên `vnstock_data` 3.3.1** (máy nâng 24/09): ĐO 17 ô E cho
+  đường `goi_thu` → `foreign_flow` **cùng byte** giữa 3.3.0 và 3.3.1, trên
+  ba mã ngoài rổ. Băm khác ngày 29/09 thì là NGUỒN, không phải thư viện.
+  `docs/STATE.md` BƯỚC 118.
 
 - ~~**12/09/2026** — tiêu chí về cơ chế rơi nhịp cron~~ **ĐÃ ĐỌC ĐÚNG
   HẠN 12/09/2026:** A = 258,05 phút · B = 2 lượt/ngày → **ô thứ tư,
@@ -318,6 +322,14 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   `~/.vnstock/api_key.json` và `vnii` tự đọc. Repo **không nhập
   `vnstock_data` ở đâu cả**, nên không có con số nào đổi và không cần bảng
   tiêu chí. `docs/STATE.md` BƯỚC 104.
+  🔴 **Vế "repo không nhập" HẾT ĐÚNG từ 22/09/2026 (ĐO 14):**
+  `fetch_khoi_ngoai.py` nhập nó. Nên lượt nâng **3.3.1** (24/09) đi qua
+  bảng ký trước — ĐO 17, cùng `vnai` 2.6.1 và `vnii` 0.2.6, ba chặng, cả ba
+  `NANG DUOC`. `docs/STATE.md` BƯỚC 118.
+- **`vnii` 0.2.6 gửi thêm tên hàm đang gọi** (trường `operation`) mỗi lần
+  kiểm giấy phép — docstring ghi *"used only for telemetry"*. Công tắc
+  `disable_telemetry()` bật 18/09 là của `vnai`, **không phủ** đường này.
+  Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118.
 - ~~**`urllib3` máy 1.26.20 · CI 2.8.0 — khoảng cách bản CHÍNH, CHƯA AI ĐO.**~~
   **ĐÃ ĐO 18/09/2026 (ĐO 13): NÂNG ĐƯỢC.** Máy nay 2.8.0. Dữ liệu OHLCV
   **không đổi một ô** — băm CSV ba mã giống hệt từng chữ, và ô đối chứng

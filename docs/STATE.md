@@ -17039,3 +17039,114 @@ dấu; câu thứ ba đóng ở đây. **n = 3** — không đủ để gọi đ
 - **Không còn quan sát chưa nhìn trên máy** cho năm đặc trưng này ở h=21 —
   đó là giá của phương án B, người dùng chọn khi đã được báo. Kéo giá trước
   2018 qua mạng là việc sau 29/09/2026, và phải hỏi.
+
+
+---
+
+## BƯỚC 118 — ĐO 17: BA GÓI VNSTOCK LÊN BẢN MỚI, MỘT GÓI MỘT CHẶNG, KHÔNG MỘT Ô NÀO ĐỔI (24/09/2026)
+
+Người dùng giao: *"cài đầy đủ các gói vnstock, lấy gói mới thay thế gói
+cũ"*. Tiêu chí: `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 17. Dụng cụ:
+`tools/do17_nang_goi_vnstock.py`.
+
+### "Đầy đủ" — hỏi máy chủ
+
+```
+vnai          2.6.0 -> 2.6.1    PyPI; CI da chay 2.6.1 tu 08:55 UTC cung ngay
+vnii          0.2.5 -> 0.2.6    /api/packages
+vnstock_data  3.3.0 -> 3.3.1    packages/list, accessible
+vnstock 4.0.8 · vnstock_ta 1.0.6 · vnstock_news 2.2.2 · vnstock_ezchart 1.0.2   da moi nhat
+vnstock_pipeline 2.3.2          KHOA — minTier golden
+```
+
+### Kết quả — ba chặng, cả ba `NANG DUOC`
+
+```
+truoc -> sau_vnai -> sau_vnii -> sau_vnstock_data
+A  3 ma OHLCV khoang da dong   bam giong het o ca bon anh
+B  bang gia                    82 cot o ca bon anh
+C  ratio() x 3                 54 ky · 19 cot o ca bon anh
+D  kiem_goi()                  KHOP silver/silver
+E  khoi ngoai HAH GMD VHC      119 dong, bam giong het, 2 luot moi anh
+F  cong tac nguoi dung         0/4 dich bat · minimal · 0/3 dich toan cuc doi
+```
+
+Máy nay: `vnai` **2.6.1** · `vnii` **0.2.6** · `vnstock_data` **3.3.1**.
+`tools/so_ban_goi.py` từ mã thoát **1 → 0**: hạng `QUYET DINH SO` hết lệch
+với CI.
+
+**Ô D ngày 29/09 đọc được trên bản mới** — đường khối ngoại cho cùng byte
+ở cả bốn môi trường.
+
+### Hai thứ tìm ra TRƯỚC khi cài, và cả hai đổi kế hoạch
+
+**1. Bản nháp đầu gộp ba gói vào một lượt.** Đọc lại tiêu chí ĐO 13 trước
+khi ký thì gặp chính điều 5 của nó: *"gộp hai phép nâng vào một lượt là
+đúng cái lỗi `--stride 1` đã bị cấm ngày 09/09"*. Luật ấy viết **sáu ngày
+trước**, và bản nháp vi phạm nó thẳng. Đổi sang ba chặng tuần tự, mỗi chặng
+freeze đổi đúng một dòng — nên nếu một ô lệch thì biết gói nào, và một gói
+hỏng không chặn hai gói kia. Không vào commit nào; ghi ra vì **luật đã có,
+và tôi vẫn đi đường khác** cho tới khi đọc lại.
+
+**2. `pip freeze` không phải đường lùi cho gói ngoài PyPI.** Hai dòng
+freeze của máy:
+
+```
+vnii @ https://vnstocks.com/files/vnii-0.2.5.tar.gz#sha256=218b...   -> HTTP 404
+vnstock_data @ file:///.../scratchpad/goi-tai-tro/vnstock_data-3.3.0.tar.gz
+```
+
+URL của `vnii` 0.2.5 **đã chết** — máy chủ chỉ phát bản mới nhất. Bánh xe
+còn trong bộ đệm pip, và đã chép ra trước khi cài. Tệp `vnstock_data` 3.3.0
+nằm trong thư mục **tạm** của phiên. Cả hai là đường lùi **thật** hôm nay,
+và cả hai đều **không bền**.
+
+### Vì sao lần này có bảng, khi BƯỚC 104 thì không
+
+BƯỚC 104 cài 3.3.0 không bảng vì repo **không nhập** `vnstock_data`. Câu ấy
+hết đúng từ **22/09** (ĐO 14): `fetch_khoi_ngoai.py`, `tools/do14_…`,
+`tools/kiem_duong_noi_bo.py` đều nhập nó. Và ngày 29/09 có một phép kiểm
+point-in-time **đã ký** kéo khối ngoại qua chính gói ấy — nên phép nâng này
+phải trả lời thêm câu *"ô D còn đọc được không"*, bằng ô E: mã **ngoài rổ**,
+cùng cửa sổ, cùng `goi_thu` của ĐO 14, cũ so với mới trong cùng buổi.
+`docs/HANDOFF.md` mục 5 còn giữ câu *"Repo không nhập `vnstock_data` ở đâu
+cả"* không dấu — nay đã đánh dấu.
+
+### Đọc mã trước — thứ đáng biết dù số không đổi
+
+- **`vnai` 2.6.1** đổi đúng **một** file: `beam/auth.py`. `_detect_tier`
+  thêm nhánh hỏi hạng từ `license/verify` khi `vnii` hỏng mà máy có khoá —
+  đúng chỗ sự cố 22/08. `beam/fundamental.py` (`PERIOD_LIMITS`) giống từng
+  byte.
+- **`vnii` 0.2.6**: `verify_license` gửi thêm trường **`operation`** — tên
+  hàm đang gọi, docstring ghi *"used only for telemetry"*. **Công tắc
+  `disable_telemetry()` người dùng bật 18/09 là của `vnai`, và nó không phủ
+  đường này.** Phép đo không chặn, không đo trường ấy — việc của người dùng
+  quyết (`docs/HANDOFF.md` mục 5).
+- **`vnstock_data` 3.3.1**: 8 file, gồm tầng HTTP và `price_board`; thân
+  `foreign_trade` của `explorer/vci` không nằm trong vùng đổi.
+
+### Sổ tay
+
+Làm tươi trước khi hỏi: 7 trên 10 nguồn đã cũ (`git diff --name-only
+7a774a2 origin/main`), nạp lại 7 URL rồi xoá 7 bản cũ — mỗi lần xoá chỉ bấm
+khi tiêu đề hộp thoại khớp **nguyên URL** đích; lần đầu tự huỷ vì đếm được
+hai nút *Xoá* của cùng một hộp thoại. Câu trả lời mở đầu bằng BƯỚC 117 và
+ĐO 16 — khớp repo.
+
+Câu hỏi về **thiết kế** (năm khẳng định): *"không tìm thấy câu nào nói
+ngược"*. Tự kiểm bằng `grep 'đọc sớm\|trước 29/09'` — câu gần nhất là ĐO 16
+*"Kéo lại khối ngoại trước 29/09/2026 là đọc sớm"*, nói về kéo LẠI rổ đã
+chụp, nên không áp cho ô E. Lời khai đứng được. Tiền lệ ĐO 13 điều 5 có
+trong nguồn và sổ tay không nêu — đúng theo khung câu hỏi, vì kế hoạch gửi
+đi đã ba chặng.
+
+### Điều BƯỚC này KHÔNG nói
+
+- E đo **ba mã ngoài rổ, một cửa sổ**. Cùng đường mã với ô D, nhưng không
+  chứng minh từng mã trong rổ ra cùng byte.
+- Không đo trường `operation` của `vnii`, không đo tầng HTTP khi nguồn
+  chặn hay lỗi — chỉ đường dữ liệu bình thường.
+- Không đổi mã repo sang `import vnstock_data`, không chạm
+  `requirements.txt`.
+- `vnstock_ezchart` vẫn hỏng vì thiếu `squarify` — từ trước, cố ý (BƯỚC 104).
