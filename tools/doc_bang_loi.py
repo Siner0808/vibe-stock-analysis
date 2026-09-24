@@ -111,12 +111,31 @@ _DON_VI = {
 
 
 def so_tu_chu(cum: str) -> int | None:
-    """Đổi số viết bằng chữ tiếng Việt (0–99) sang số. Trả None nếu không đọc được.
+    """Đổi số viết bằng chữ tiếng Việt (0–999) sang số. Trả None nếu không đọc được.
 
     Có `mốt`/`tư`/`lăm` vì tiếng Việt đổi dạng đơn vị sau hàng chục:
     hai mươi **mốt**, ba mươi **tư**, hai mươi **lăm**.
+
+    Hàng TRĂM thêm ngày 24/09/2026, khi bảng lỗi chạm dòng **100**: bản
+    0–99 trả `None` cho *"một trăm lẻ một"*, và gác dòng tự khai đỏ đúng
+    lúc con số tròn trăm — máy đo hẹp hơn thứ nó đo, lần này ở RANH GIỚI
+    CỠ. Sau `trăm`, đơn vị lẻ đi với `lẻ` hoặc `linh` (*một trăm lẻ một*);
+    từ mười trở lên thì đọc như số hai chữ số (*một trăm hai mươi mốt*).
     """
     t = cum.lower().split()
+    if "trăm" in t:
+        i = t.index("trăm")
+        if i != 1 or t[0] not in _DON_VI or _DON_VI[t[0]] == 0:
+            return None
+        tram, con = _DON_VI[t[0]] * 100, t[2:]
+        if not con:
+            return tram
+        if con[0] in ("lẻ", "linh"):
+            if len(con) != 2 or con[1] not in _DON_VI or _DON_VI[con[1]] == 0:
+                return None
+            return tram + _DON_VI[con[1]]
+        du = so_tu_chu(" ".join(con))
+        return None if du is None or du < 10 else tram + du
     if not t or len(t) > 3:
         return None
     if t[0] == "mười":                       # 10..19

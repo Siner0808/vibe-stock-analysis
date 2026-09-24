@@ -139,3 +139,14 @@ bước đầu).
 tách token. Phải chạy bằng một trình thông dịch 3.11 thật, và
 `tools/kiem_cu_phap_311.py` làm việc đó, kể cả với python nhúng trong
 heredoc của workflow YAML.
+
+
+---
+
+## Nâng hoặc cài một gói — ba bẫy, cả ba gặp trong MỘT ngày (24/09/2026)
+
+| Bẫy | Hỏng thế nào | Làm thế này |
+|---|---|---|
+| **Gộp phép nâng** | Một ô lệch không quy được cho gói nào, và một gói hỏng chặn cả nhóm. Luật đã có ở `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 13 điều 5 từ 18/09 — bản nháp ĐO 17 vẫn gộp ba gói, vì luật nằm trong phần giới hạn của MỘT mục tiêu chí | **Một gói một chặng**, mỗi chặng `pip freeze` đổi đúng một dòng, cài bằng `--no-deps` sau khi `--dry-run` cho thấy không thiếu gì. Mẫu: `tools/do17_nang_goi_vnstock.py` |
+| **`pip freeze` làm đường lùi** | Gói ngoài PyPI hiện thành `ten @ file:///…` (thư mục tạm) hoặc `ten @ https://…`. Đo 24/09: URL `vnii` 0.2.5 trong freeze trả **404** — máy chủ chỉ phát bản mới nhất | Dựng đường lùi **trước** khi cài và KIỂM nó: tải lại được, hoặc bánh xe còn trong bộ đệm pip (`pip cache list`), băm khớp dòng freeze |
+| **Thông báo *"No module named X"*** | Nó chỉ nêu module **đầu tiên** thiếu. `vnstock_ezchart`: sau `squarify` còn `wordcloud`, rồi bản phát hành thiếu cả gói con `static/` — ba lớp | Đọc **metadata** (`Requires-Dist`, extra nào) và **AST mọi import** của gói trước khi cài vá một cái tên. Cài xong thì chạy lại `import` — một lớp qua chưa phải là xong |

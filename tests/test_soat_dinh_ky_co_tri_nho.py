@@ -244,3 +244,27 @@ def test_PHAM_VI_in_ra_phai_KHOP_voi_ma():
     assert not any("STATE.md" in t for t in s.TAI_LIEU), (
         "TAI_LIEU nay CO STATE.md — ban in dang khai nguoc lai")
     print(f"PASS  {len(s.TAI_LIEU)} tài liệu, không có STATE.md, khớp bản in")
+
+
+def test_HO_KHONG_NHAP_GOI_DUNG_CHAM_la_loi_khai_phu_dinh():
+    """Ca THẬT, lượt soát 5 (24/09/2026): `docs/HANDOFF.md` mục 5, nguyên văn
+    như nó đứng ở `7a774a2` — trần, chưa dấu. Nó sai từ 22/09 (ĐO 14 nhập
+    `vnstock_data`), và công cụ không in nó vì *"không nhập"* nằm ngoài
+    danh sách phủ định. Phát đục đầu tiên phải dựng lại đúng ca ấy."""
+    that = ("  `~/.vnstock/api_key.json` và `vnii` tự đọc. Repo **không nhập")
+    assert s.PHU_DINH.search(that) and s.CO_TEN.search(that)
+    for cau in ("`fill_pending` không gọi `_analyze`",
+                "loại biểu đồ dự án **không dùng** `mapbox`",
+                "`_compute_local_indicators` — hàm thuần, không chạm mạng"):
+        assert s.PHU_DINH.search(cau), cau
+    print("PASS  ho khong nhap/goi/dung/cham duoc nhan la phu dinh")
+
+
+def test_HO_MOI_khong_duoc_NHAN_TU_DA_DO_LA_NHIEU():
+    """Chiều ngược lại, neo bằng phép đo lượt 5: ba từ này kéo vào 23 dòng,
+    phần lớn là luật và văn xuôi. Ai thêm chúng thì phải đo lại, không lặng lẽ."""
+    for cau in ("gác phải đọc AST, không đọc `in`",
+                "`paper_trading.py` không có, luôn bật",
+                "ô thoát `khong_soat_vi` không còn được nhận"):
+        assert not s.PHU_DINH.search(cau), cau
+    print("PASS  khong doc / khong co / khong con van nam ngoai")

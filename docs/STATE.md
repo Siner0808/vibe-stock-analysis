@@ -17258,3 +17258,123 @@ ghi `CLAUDE.md`, thật ra ở `STATE.md`.
 - Không kiểm từng loại biểu đồ của ezchart — ba loại, dữ liệu tổng hợp.
 - Không thêm `squarify` · `wordcloud` vào `requirements.txt`: repo không
   dùng ezchart, và CI · Streamlit Cloud không cần nó.
+
+
+---
+
+## BƯỚC 120 — SOÁT QUY TRÌNH LƯỢT 5: CÔNG CỤ MÙ TRƯỚC CHỮ "KHÔNG NHẬP" (24/09/2026)
+
+Người dùng hỏi *"bao lâu rồi chưa update SKILL · HOOK · HARNESS"*, rồi gọi
+lượt 5 sớm nửa ngày. Đo trước khi trả lời:
+
+```
+SKILL.md · references/          24/09 15:02   (ĐO 16)
+tools/cua_*.py  (HOOK)          18/09 15:16   6 ngay
+docs/cua-du-an.json             15/09         9 ngay
+.github/workflows/kiem-dinh.yml 10/09         14 ngay
+soat quy trinh                  23/09 09:45   luot 4
+```
+
+Hook và cổng đứng yên **không** phải là bị bỏ quên — lượt soát là chỗ
+quyết định chúng có phải đổi không, và lượt này kết luận: **không** (xem
+cuối BƯỚC).
+
+### Phần thường lệ: 9 lời khai chưa ai mở — mở cả 9
+
+`tools/soat_loi_khai_cu.py`: 22 lời khai, 7 tài liệu, **9 chưa ai mở**.
+Cả 9 kiểm bằng mã hoặc git, không bằng trí nhớ. **8 THẬT**, và 1 được ghi
+rõ là **không đo lại** kèm lý do: câu *"ca giống hệt từng byte thì chưa đo
+được"* (BƯỚC 82) phải chạy một phiên `claude -p` thật — tốn lượt của người
+dùng — trong khi từ BƯỚC 49 không còn hook nào khai hai nơi, nên câu trả
+lời không đổi được hành động nào.
+
+Một câu THẬT nhưng dễ đọc lệch: `SKILL.md` Bước 4 *"Lý do khai vào
+`docs/moc_so_test.json`"* đứng ngay sau *"Thêm test cũng phải cập nhật
+mốc"* — trong khi mã chỉ ghi lý do khi số test **giảm**
+(`lich_su_giam`), và cơ chế ấy **chưa từng chạy** (`git log -S` rỗng).
+
+### Phần đáng giá: một lời khai phủ định CÓ NÊU TÊN mà công cụ không in
+
+Hôm nay (BƯỚC 118) một câu đúng loại công cụ sinh ra để bắt đã sai **hai
+ngày** mà không ai thấy:
+
+```
+docs/HANDOFF.md muc 5 (18/09):  Repo **khong nhap `vnstock_data` o dau ca**
+sai tu 22/09:                   fetch_khoi_ngoai.py:78  import vnstock_data
+```
+
+Vì sao không in — đọc mã, không đoán: `PHU_DINH` chỉ có *"chưa bao giờ ·
+chưa ai · không ai · chưa có · chưa làm · chưa đo · chưa được · chưa kiểm ·
+không tồn tại · không ghi"*. **Không có "không nhập".** Cả họ lời khai về
+**quan hệ giữa các mảnh mã** — *X không nhập / không gọi / không dùng Y* —
+nằm ngoài tầm, và đó là loại mục nhanh nhất khi mã đổi.
+
+**Đo từng từ ứng viên, cùng bộ lọc của công cụ, trước khi thêm:**
+
+```
+khong nhap +2   khong goi +1   khong dung +1   khong cham +1   <- THEM
+khong doc +11   khong co  +9   khong con  +3                   <- KHONG
+```
+
+Ba từ sau kéo vào chủ yếu **luật** và văn xuôi (*"gác phải đọc AST, không
+đọc `in`"*) — thêm chúng là quay về con số 187 mà ba phép lọc sinh ra để
+siết. Hai gác mới khoá **cả hai chiều**, phát đầu dựng lại **nguyên văn**
+dòng `HANDOFF` ở `7a774a2`. Đục **8/8 đỏ**, gồm ba phát lén thêm từ nhiễu.
+
+Công cụ nay in **27**; mở luôn 5 dòng mới: **4 THẬT** (`fill_pending`
+không gọi `_analyze` · dự án không dùng `mapbox` · `_compute_local_indicators`
+không chạm mạng · repo không nhập `vnstock_ezchart`/`altair`/`matplotlib`),
+**1 SAI** — chính câu `HANDOFF`, đã có dấu 🔴 dòng dưới từ BƯỚC 118. **Chưa
+ai mở: 0.**
+
+### Bốn bài học của ngày 24/09 — vào đâu
+
+| bài học | vào | vì sao ở đó |
+|---|---|---|
+| gộp phép nâng (luật ĐO 13 điều 5 nằm trong MỘT mục tiêu chí) | `references/bay.md`, mục mới *"Nâng hoặc cài một gói"* | luật chung, không phải giới hạn của một phép đo |
+| `pip freeze` không làm đường lùi được cho gói ngoài PyPI | cùng mục | |
+| *"No module named X"* chỉ nêu module ĐẦU | cùng mục | |
+| sổ tay: xếp nhầm dấu cấp mục · sai tên file | `SKILL.md` mục sổ tay | đúng chỗ người hỏi đọc trước khi tin một câu âm |
+
+### Bảng lỗi chạm dòng 100 — và máy đếm của nó chỉ biết tới 99
+
+Bước 6 bắt mỗi lỗi mới một dòng: **lỗi 100** (câu `HANDOFF` sống 2 ngày,
+công cụ soát mù trước nó — `chua-do`) và **lỗi 101** (bản nháp ĐO 17 gộp ba
+gói dù luật ĐO 13 điều 5 đã có — `ky-luat`). Cả hai ⚠️ một phần, nên dòng
+tự khai thành *"Năm mươi chín trên **một trăm lẻ một**"*.
+
+Và dòng ấy **không đọc được**: `tools/doc_bang_loi.so_tu_chu` chỉ hiểu
+**0–99**, trả `None` cho *"một trăm lẻ một"* — gác dòng tự khai sẽ đỏ đúng
+lúc bảng tròn trăm. Máy đo hẹp hơn thứ nó đo, lần này ở **ranh giới cỡ**.
+Mở rộng lên 0–999 (*lẻ/linh* cho đơn vị lẻ sau `trăm`), gác hai chiều gồm 9
+dạng đúng và 9 dạng rác; đục **6/6 đỏ** — phát thứ sáu sống ở lượt đầu và
+chỉ ra một ca rác thiếu (*"một trăm lẻ hai ba"*), đã thêm.
+
+### Sổ tay — lần đầu trong trình duyệt của Claude Code, và nó bỏ sót
+
+Hỏi về **kết luận** của BƯỚC này: *"không tìm thấy câu nào nói ngược"*.
+Tự kiểm bằng `grep` ra **hai** câu trong chính nguồn của nó sẽ sai khi
+BƯỚC này viết ra — dòng tự khai *"Năm mươi chín trên chín mươi chín"*
+(câu hỏi nêu đích danh dạng ấy làm ví dụ) và `SKILL.md` *"Nó in **mọi**
+lời khai phủ định … 15 dòng"*. Câu đầu PR này sửa; câu sau đã đánh dấu 🔴.
+BƯỚC 117 từng nghiêng về *"hỏi về kết luận thì nó trả đúng"* trên n = 3 —
+hôm nay là ca ngược. Tự kiểm sau mọi câu âm vẫn là luật.
+
+### HOOK và HARNESS: không đổi — và đó là một kết luận có lệnh
+
+- Bản tin mở phiên tự đọc ngày lượt soát cuối từ `docs/soat-dinh-ky.json`,
+  nên nó tự về đúng nhịp — không phải sửa `tools/cua_mo_phien.py`.
+- Chỗ mù của hôm nay nằm ở **máy đọc** (`tools/soat_loi_khai_cu.py`),
+  không ở cửa hay cổng; phép sửa đã vào đúng chỗ ấy.
+- Một cổng cho lời khai *"không nhập"* thì đã có tiền lệ bác: BƯỚC 115 và
+  lượt 4 — **0 ca thật** trên quần thể đã đọc hết thì chưa có cơ sở dựng gác;
+  hôm nay là **1 ca**, và nó thuộc về máy đọc định kỳ, không phải một cổng
+  chạy mỗi commit.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Họ từ mới chỉ bắt lời khai viết **trên một dòng**. Câu `HANDOFF` lọt vào
+  được vì dòng có *"không nhập"* tình cờ cũng có tên trong nháy ngược
+  (`~/.vnstock/api_key.json`, `vnii`) — không phải vì công cụ nối dòng.
+- Công cụ vẫn chỉ đọc lời khai **phủ định**. *"`QUYET DINH SO` khớp hoàn
+  toàn"* — một khẳng định — nằm ngoài tầm nó; sổ tay bắt được ở BƯỚC 119.
