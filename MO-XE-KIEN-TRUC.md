@@ -297,4 +297,10 @@ quý, giao dịch nội bộ, khối ngoại mua ròng là những nguồn độ
 > phép đo **không đủ lực** — chứng cứ dương không bắt nổi tín hiệu tiêm
 > đúng bằng rào — nên con số ở nhịp ấy không đọc được. `docs/STATE.md`
 > BƯỚC 113.
+>
+> 🔴 **VẾ NHỊP 21 HẾT ĐÚNG TỪ 24/09/2026 (BƯỚC 117, ĐO 16).** "Không bắt
+> nổi" là **một** lượt rút; lặp 30 lần thì bắt 21/30 (lỗi 99). Đo lại
+> **ngoài mẫu**, đủ lực: `kn_z_20` cho IC **−0,0144** trên 51.771 quan sát
+> chưa nhìn — tín hiệu trong mẫu **không lặp lại**. Năm đặc trưng khối
+> ngoại này không cho một lợi thế dùng được ở cả h=5 lẫn h=21.
 

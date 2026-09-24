@@ -143,7 +143,7 @@ thế dùng được.
 | nguồn | ở đâu | kết quả |
 |---|---|---|
 | BCTC theo quý | BƯỚC 53 | 2.099 quan sát · **0/5** qua Bonferroni — có dữ liệu, không tín hiệu |
-| khối ngoại | BƯỚC 113 | 61.339 quan sát · cận trên **+0,0387** so với rào hoà vốn **0,1031** — **có** tín hiệu, nhỏ hơn phí **2,66 lần** |
+| khối ngoại | BƯỚC 113 · **117** | 61.339 quan sát · cận trên **+0,0387** so với rào hoà vốn **0,1031** — **có** tín hiệu, nhỏ hơn phí **2,66 lần**. Ở h=21 **KHÔNG lặp lại ngoài mẫu**: IC **−0,0144** trên 51.771 quan sát chưa nhìn, đủ lực |
 | giao dịch nội bộ | BƯỚC 114 | **0/71 mã** qua `Company(nguon, ma).insider_trading()` — không có dữ liệu qua đường này |
 
 **Hệ quả cho việc lập kế hoạch, và nó khác hẳn hệ quả cũ.** `CLAUDE.md` và
@@ -156,6 +156,12 @@ Nên cách đọc *"cứ thêm nguồn là sẽ có tín hiệu"* đã đóng. H
 theo chiều ngược: **giảm số vòng quay**, không thêm agent — rổ chuẩn mua
 một lần trả phí hai lần, chiến lược quay 500 lệnh trả 1.000 lần.
 
+**Hiện thân cụ thể đầu tiên của hướng ấy đã đo và KHÔNG đứng (24/09/2026,
+BƯỚC 117):** khối ngoại giữ 21 phiên. Tín hiệu trong mẫu của ĐO 15
+(`kn_z_20` +0,0557, trên rào) cho **−0,0144** trên dữ liệu chưa nhìn, ở
+lực 82%. Hướng *chung* chưa bị bác — nhưng nó không còn một ứng viên nào
+đã đo được đứng sau.
+
 > **Hai giới hạn phải đọc kèm, đừng bỏ:**
 > - Cửa sổ 2021-10 → 2026-09 nằm trọn trong vùng **đã bị nhìn nhiều nhất**
 >   (bất biến 8), nên 0,0387 là cận trên **TRONG MẪU**, không phải ước
@@ -163,6 +169,13 @@ một lần trả phí hai lần, chiến lược quay 500 lệnh trả 1.000 l�
 > - Ở nhịp 21 phiên phép đo **không đủ lực** — chứng cứ dương không bắt
 >   nổi tín hiệu tiêm đúng bằng rào — nên con số ở nhịp ấy **không đọc
 >   được**, kể cả khi nó đẹp hơn.
+>
+> 🔴 **VẾ THỨ HAI HẾT ĐÚNG TỪ 24/09/2026 (BƯỚC 117).** Chứng cứ dương của
+> ĐO 15 là **một** lượt rút — lặp 30 lần thì bắt **21/30** (lỗi 99), nên
+> *"không bắt nổi"* nói quá. Và nhịp 21 nay đã đo **ngoài mẫu**, đủ lực
+> (41/50): `kn_z_20` cho IC **−0,0144** trên 51.771 quan sát chưa nhìn —
+> **không lặp lại**. Kết cục 4 của ĐO 15 vẫn đứng như một bản ghi; câu
+> hỏi nhịp 21 thì đã đóng.
 
 > 🔴 **Ô này thêm 22/09/2026, và lý do nó phải nằm Ở ĐÂY chứ không chỉ ở
 > `docs/STATE.md`:** sáng cùng ngày tôi viết BƯỚC 113 và 114 vào `STATE`,
