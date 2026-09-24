@@ -289,6 +289,38 @@ def phan_dinh_lap_lai(ket: dict | None, rao: float | None,
                f" nhung trong bien nhieu {bien:.4f}. KHONG dong duoc")
 
 
+def ic_theo_khoa(kh_gop: dict, kh_do15: dict, kn: dict, h: int) -> dict:
+    """IC của `DU_BAO` trên BẢNG GỘP, tách theo khoá — CHẨN ĐOÁN SAU KHI ĐỌC.
+
+    Thêm 24/09/2026 SAU khi lượt chính ra kết cục 3. Không vào phán quyết
+    nào — phán quyết đã ký và đã đọc. Nó trả lời một câu về DỤNG CỤ:
+
+        phan DA NHIN, tinh lai tren bang GOP   phai ~ +0,0557 cua DO 15
+
+    Đường ống gộp (giá `cache_2018`, rổ chuẩn khác) mà không dựng lại được
+    IC trong mẫu trên chính phần đã nhìn thì một IC ngoài mẫu ≈ 0 nói về
+    đường ống, không nói về tín hiệu. Đây là "bắt máy đo đi qua một ca THẬT
+    đã biết trước" (`SKILL.md` Bước 3), làm cho một kết quả XẤU.
+
+    Kèm IC tập kiểm tách trước/sau `MOC_DO15` — MÔ TẢ, chọn sau khi thấy
+    số, nên không được dùng để kể chuyện "tín hiệu chỉ chết ở giai đoạn X".
+    """
+    _, _, _, k15 = K._bang_kn_khoa(kh_do15, kn, h)
+    Xg, yg, _, kg = K._bang_kn_khoa(kh_gop, kn, h)
+    da = ~tach_chua_nhin(k15, kg)
+    x = Xg[:, K.TEN_DAC_TRUNG.index(DU_BAO)]
+    ngay = np.array([k[1] for k in kg])
+    moi = ~da
+    truoc = moi & (ngay < MOC_DO15)
+    sau = moi & (ngay >= MOC_DO15)
+    ra = {}
+    for ten, m in (("da_nhin", da), ("chua_nhin_truoc_moc", truoc),
+                   ("chua_nhin_sau_moc", sau)):
+        ra[ten] = {"n": int(m.sum()),
+                   "ic": E.rho_hang(x[m], yg[m]) if m.sum() else None}
+    return ra
+
+
 def tai_lap_do15(so_hoan_vi: int = 20) -> int:
     """Tiền kiểm dụng cụ: ba con số ĐO 15 phải ra ĐÚNG trên `E.CACHE`.
 
@@ -380,12 +412,24 @@ def main(tham_so: list[str] | None = None) -> int:
     ap.add_argument("--alpha", type=float, default=ALPHA)
     ap.add_argument("--hat", type=int, default=HAT_GIONG_LUC)
     ap.add_argument("--nhip", type=int, default=NHIP)
+    ap.add_argument("--sau-khi-doc", action="store_true",
+                    help="chan doan SAU khi doc -- khong vao phan quyet")
     ap.add_argument("--hoan-vi", type=int, default=SO_HOAN_VI)
     ap.add_argument("--ra", default="")
     a = ap.parse_args(tham_so)
 
     if a.tai_lap_do15:
         return tai_lap_do15()
+    if a.sau_khi_doc:
+        ra = ic_theo_khoa(E.nap_gia(CACHE_GIA), E.nap_gia(),
+                          K.nap_khoi_ngoai(), NHIP)
+        print(f"CHAN DOAN SAU KHI DOC · {DU_BAO} · h = {NHIP} · bang gop")
+        for ten, v in ra.items():
+            ic = "-" if v["ic"] is None else f"{v['ic']:+.4f}"
+            print(f"  {ten:<22} {v['n']:>7,} quan sat   IC {ic}")
+        print(f"  (DO 15 trong mau ghi {DO15_H21['kn_z_20']:+.4f}"
+              f" -- tren bang CUA NO, ro chuan cua no)")
+        return 0
     if a.do_luc:
         return do_luc(a.cua_so_do15, a.mot_phia, a.r, a.alpha, a.hat, a.nhip)
 

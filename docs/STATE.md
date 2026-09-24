@@ -16919,3 +16919,123 @@ gỡ là **nhánh thừa**, không phải gác bị đem đi sửa. Bộ đục 
   **trích được** nó, `doi_chieu_trich_dan.py` cho **KHỚP** → bản còn lại
   là bản **tươi**. `cong-thuc-chay.md` thì **không cần đo**: `git log`
   cho thấy nó đứng yên từ **14/09**, nên hai bản giống hệt nhau.
+
+---
+
+## BƯỚC 117 — ĐO 16: TÍN HIỆU KHỐI NGOẠI Ở NHỊP 21 KHÔNG LẶP LẠI NGOÀI MẪU (24/09/2026)
+
+**KẾT CỤC 3 — KHÔNG LẶP LẠI. Nhịp 21 đóng.** Tiêu chí ký trước:
+`docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 16, vào `main` lúc **15:12:14** (PR
+#164, `28423c6`). Lượt chính chạy **15:12:28 → 15:19:48**, từ chính `main`
+ấy. Lệnh đọc: `experiment_khoi_ngoai_nhip_dai.py`.
+
+```
+kn_z_20, GIU NGUYEN tu DO 15, tren 51.771 quan sat CHUA NHIN (67 ma)
+  IC  -0,0144   p hai phia 0,4083   san |IC| > 0,0350   rao 0,0376
+  DO 15 trong mau cho +0,0557
+  luc: 'dung bang rao' 41/50 = 82% · 'khong co gi' 3/50   -> DOC DUOC
+```
+
+Phép đo **đủ lực**, nên đây là **bằng chứng vắng mặt**, không phải thiếu
+lực — và dấu còn ngược. Việc treo của BƯỚC 113 — *"h=21 chưa đo được. Muốn
+đọc nhịp ấy thì phải nâng lực"* — **đóng tại đây**.
+
+### Số phụ — không vào phán quyết
+
+```
+kn_ty_trong_5 +0,0045 · kn_ty_trong_20 -0,0109 · kn_ap_luc_5 +0,0038
+kn_cuong_do_20 +0,0083 · o doi chung p 0,4514
+cach gop KHOP tren tap huan luyen, ap nguyen len tap kiem:  rho -0,0063
+```
+
+Cách gộp mà ĐO 15 đo ra cận trên **+0,0851** trong mẫu cho **−0,0063** khi
+áp nguyên sang dữ liệu chưa nhìn. Đúng hình dạng mà khuôn *"cận trên trong
+mẫu"* của BƯỚC 7 cảnh báo: một cận trên vượt rào **chưa** là tín hiệu.
+
+### Máy đo đi qua một ca thật đã biết trước — làm cho một kết quả XẤU
+
+Số xấu đi là chiều an toàn theo Quy tắc 1. Nhưng một lỗi đường ống cũng
+đẩy một IC ngoài mẫu về 0, và khi ấy con số nói về đường ống chứ không về
+tín hiệu. Chẩn đoán **sau khi đọc**, không vào phán quyết:
+
+```bash
+./.venv/Scripts/python.exe experiment_khoi_ngoai_nhip_dai.py --sau-khi-doc
+```
+
+```
+da_nhin              60.261 quan sat   IC +0,0552   (DO 15 ghi +0,0557)
+chua_nhin_truoc_moc  32.007            IC -0,0192
+chua_nhin_sau_moc    19.790            IC -0,0145
+```
+
+**Đường ống gộp dựng lại được tín hiệu trong mẫu trên chính phần đã nhìn.**
+Chênh 0,0005 chưa truy nguồn — hai bảng dùng hai thư mục giá khác nhau —
+và nó nhỏ hơn một phần trăm khoảng cách giữa hai con số đáng so. Hai đoạn
+chưa nhìn **đều** âm; ghi như **mô tả**: cách chia ấy chọn sau khi thấy số,
+nên không được dùng để kể *"tín hiệu chỉ chết ở giai đoạn X"*.
+
+### Thiết kế đổi BA lần trước khi ký, cả ba về phía chặt hơn
+
+1. **Bỏ vế lặp lại h=5 trên đoạn sạch** — đi ngược khuôn hai chặng (BƯỚC
+   9): h=5 đã đóng về kinh tế ở ĐO 15, không tiêu phiên sạch để lặp lại.
+2. **Gộp trong mẫu (A) → lặp lại ngoài mẫu (B), người dùng chọn.** Đo lực
+   cho thấy cửa sổ gộp có 54% dữ liệu đã nhìn, nơi cận trên đã biết là vượt
+   rào — kết quả bị neo về phía kết cục 1, mà kết cục 1 không bật gì. Trong
+   khi phần **chưa nhìn** (51.797) gần bằng cỡ cửa sổ ĐO 15.
+3. **Một phía → hai phía.** Tiền lệ BƯỚC 13. Lực hai phía đo lại trên tập
+   đã bỏ BAF ra 41/50, nên lý do "để đủ lực" hết.
+
+### Phát hiện dụng cụ — lỗi 99
+
+Kết cục 4 của ĐO 15 ở h=21 dựa trên **MỘT lượt tiêm**. Lặp lại đúng phép
+tiêm ấy bằng dụng cụ trong repo:
+
+```
+cua so DO 15 · h=21 · luat DO 15 (hai phia, 0,01) · 30 luot   21/30
+cua so DO 15 · h=5  · luat DO 15                  · 30 luot   30/30
+cua so DO 15 · h=21 · hai phia 0,05               · 50 luot   45/50
+tap kiem     · h=21 · hai phia 0,05               · 50 luot   41/50
+tap kiem     · h=21 · mot phia 0,05               · 50 luot   42/50
+```
+
+Lệnh tái lập từng dòng nằm trong tiêu chí ĐO 16. Ở h=21 một lượt rút là một
+đồng xu 70/30; pha loãng bị bác (IC đo TB +0,0551 so với mức tiêm 0,0488).
+Hình dạng *một lượt tiêm* sinh ở BƯỚC 7 (`dbd2c8f`, 31/08) — **24 ngày**.
+**Kết cục 4 của ĐO 15 không bị lật**: 70% vẫn dưới 80%. Thứ nói quá là lý
+do — *"không bắt nổi"* — trong khi nó bắt được bảy trên mười lần.
+
+### Ước lượng đã sai — ghi lại, vì chúng nghe hợp lý
+
+- **Dự báo lực bằng độ lệch chuẩn null** cho z = 3,17 → p ≈ 0,0016 trên cửa
+  sổ ĐO 15 — **không tái lập** được p = 0,0200 đã ghi. Mô hình không sai: nó
+  dự báo xác suất bắt khoảng 72%, và đo ra 21/30. Thứ sai là đọc **một**
+  lượt rút như một tính chất. Chính phép tự kiểm hỏng ấy là thứ tìm ra lỗi 99.
+- **"Lực 86% nếu kiểm một phía"** — con số báo người dùng lúc chọn phương án
+  — xấp xỉ bằng p hai phía < 0,10 trên tập còn BAF. Đo đúng luật một phía
+  trên tập đã bỏ BAF: **42/50 = 84%**.
+- **"39/50 = 78% hai phía"** — script tạm, tập còn BAF (26 quan sát, quá
+  ngắn để dịch vòng). Trên tập đã bỏ BAF: **41/50**.
+
+### Sổ tay — ba câu hỏi, và chúng không đều nhau
+
+```
+1. thiet ke A          "khong tim thay"  -> BO SOT khuon hai chang (BUOC 9)
+2. thiet ke B          "khong tim thay"  -> BO SOT "hai phia, co y" (BUOC 13)
+3. ket luan buoc nay   tim ra 3 cau se thanh lac hau -> 3/3 KHOP
+```
+
+Hai lần đầu hỏi về **phương pháp** và bỏ sót tiền lệ nằm **trong** nguồn
+của nó — tự kiểm bằng `grep` bắt được cả hai, và cả hai **đổi thiết kế**.
+Lần thứ ba hỏi về **kết luận** và trả đúng ba câu: `docs/HANDOFF.md` mục 2,
+`MO-XE-KIEN-TRUC.md`, và việc treo của BƯỚC 113. Hai câu đầu nay đã đánh
+dấu; câu thứ ba đóng ở đây. **n = 3** — không đủ để gọi đó là quy luật.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Chỉ năm đặc trưng này**, chỉ `kn_z_20` dấu +, chỉ quan hệ hạng. Một đặc
+  trưng khối ngoại khác — bất đối xứng ở đuôi, chẳng hạn — chưa đo.
+- **"Giảm số vòng quay" như một hướng CHUNG chưa bị bác.** Thứ bị bác là
+  hiện thân cụ thể đầu tiên của nó: khối ngoại giữ 21 phiên.
+- **Không còn quan sát chưa nhìn trên máy** cho năm đặc trưng này ở h=21 —
+  đó là giá của phương án B, người dùng chọn khi đã được báo. Kéo giá trước
+  2018 qua mạng là việc sau 29/09/2026, và phải hỏi.

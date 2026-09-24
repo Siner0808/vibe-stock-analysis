@@ -155,6 +155,24 @@ def test_TAP_KIEM_la_bang_GOP_tru_bang_DO15_va_BO_ma_QUA_NGAN():
     assert set(t["chi_so"]) == {"M0", "M1"}
 
 
+def test_CHAN_DOAN_SAU_KHI_DOC_tach_DUNG_ba_phan_theo_KHOA():
+    """Phần 'đã nhìn' là đúng các khoá của bảng ĐO 15 nằm trong bảng gộp;
+    hai phần 'chưa nhìn' chia nhau phần còn lại, tách ở `MOC_DO15`. Đếm ở
+    đây bằng phép tập hợp trên khoá — một đường khác vòng lặp của hàm."""
+    kh, kn, _ = _ro(so_ma=3, n=700)
+    kh15 = {m: g.iloc[c:] for (m, g), c in zip(kh.items(), (150, 100, 400))}
+    ra = N.ic_theo_khoa(kh, kh15, kn, 5)
+    _, _, _, kg = K._bang_kn_khoa(kh, kn, 5)
+    _, _, _, k15 = K._bang_kn_khoa(kh15, kn, 5)
+    moi = set(kg) - set(k15)
+    assert ra["da_nhin"]["n"] == len(set(kg) & set(k15))
+    assert ra["chua_nhin_truoc_moc"]["n"] == sum(
+        1 for k in moi if k[1] < N.MOC_DO15)
+    assert ra["chua_nhin_sau_moc"]["n"] == sum(
+        1 for k in moi if k[1] >= N.MOC_DO15)
+    assert ra["chua_nhin_truoc_moc"]["n"] > 0 and ra["chua_nhin_sau_moc"]["n"] > 0
+
+
 # ── p MỘT PHÍA ────────────────────────────────────────────────────────
 
 
