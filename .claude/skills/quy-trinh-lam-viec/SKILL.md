@@ -322,6 +322,13 @@ Bốn điều bắt buộc, cả bốn từ sự cố thật:
      Nên: đổi **khoá** của mọi bản ghi nhớ giữa các lượt — phiên, tiến
      trình, file đệm, khoá `@cache`. Và dữ liệu thô lại là thứ cứu:
      `395 · 112 · 110 · 108 · 107` không đọc xuôi được.
+   - **Một phán quyết về LỰC phải là một TỶ LỆ, không phải một lượt
+     rút** (thêm 24/09/2026, lỗi 99). Chứng cứ dương của ĐO 15 tiêm
+     mỗi mức MỘT lần rồi phán *"thiếu lực"* ở h=21. Lặp lại chính
+     phép tiêm ấy 30 lần: **bắt 21/30**. Ở nhịp biên, một lượt rút là
+     một đồng xu 70/30 — và nó được viết ra như một tính chất của phép
+     đo. Thứ tố ra là một phép tính lực **không tái lập được** con số
+     đã ghi, tức lại là *bắt máy đo đi qua một ca THẬT đã biết trước*.
 
 Ba mẫu hay sống sót nhất, và bốn cái bẫy khác: `references/bay.md`.
 

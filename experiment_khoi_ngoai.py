@@ -137,8 +137,20 @@ def do_phu_ghep(kh: dict, kn: dict) -> dict:
 
 def _bang_kn(kh: dict, kn: dict, h: int):
     """Gộp mọi mã thành (X, y, chỉ số theo mã). Song song `E._bang`."""
+    X, y, chi_so, _ = _bang_kn_khoa(kh, kn, h)
+    return X, y, chi_so
+
+
+def _bang_kn_khoa(kh: dict, kn: dict, h: int):
+    """Như `_bang_kn`, thêm KHOÁ `(mã, ngày)` cho từng dòng.
+
+    Thêm 24/09/2026 cho ĐO 16: tập kiểm ngoài mẫu là bảng gộp TRỪ bảng
+    ĐO 15 theo khoá — không theo một mốc ngày, vì bảng ĐO 15 bắt đầu ở
+    mỗi mã một ngày khác. Một vòng lặp, hai lối ra: chép vòng lặp sang
+    file khác là để hai bản trôi khỏi nhau.
+    """
     nhan = E.nhan_vuot_ro(kh, h)
-    Xs, ys, mas = [], [], []
+    Xs, ys, mas, khoa = [], [], [], []
     for ma, g in kh.items():
         if ma not in kn:
             continue
@@ -150,13 +162,14 @@ def _bang_kn(kh: dict, kn: dict, h: int):
         Xs.append(dt.loc[ok, list(TEN_DAC_TRUNG)].to_numpy(float))
         ys.append(y[ok].to_numpy(float))
         mas.append(np.full(int(ok.sum()), ma))
+        khoa += [(ma, d) for d in dt.index[ok.to_numpy()]]
     if not Xs:
-        return None, None, None
+        return None, None, None, []
     X = np.vstack(Xs)
     y = np.concatenate(ys)
     ma_arr = np.concatenate(mas)
     chi_so = {m: np.flatnonzero(ma_arr == m) for m in np.unique(ma_arr)}
-    return X, y, chi_so
+    return X, y, chi_so, khoa
 
 
 def tri_so_p(ic: float, null: np.ndarray) -> float:
