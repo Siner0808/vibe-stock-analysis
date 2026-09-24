@@ -155,12 +155,16 @@ def dac_trung(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def nap_gia() -> dict:
-    """{mã: DataFrame} từ `backtest/cache/`, chỉ mã có trong sổ tay mốc sạch."""
+def nap_gia(thu_muc: Path = CACHE) -> dict:
+    """{mã: DataFrame} từ `backtest/cache/`, chỉ mã có trong sổ tay mốc sạch.
+
+    `thu_muc` thêm 24/09/2026 cho ĐO 16, để đọc `backtest/cache_2018/`.
+    Mặc định GIỮ NGUYÊN là `CACHE` — mọi phép đo cũ tái lập như trước.
+    """
     moc = json.loads(FILE_MOC.read_text(encoding="utf-8"))["moc_theo_ma"]
     kh = {}
     for ma in moc:
-        f = CACHE / f"{ma}.csv"
+        f = thu_muc / f"{ma}.csv"
         if not f.exists():
             continue
         df = pd.read_csv(f)

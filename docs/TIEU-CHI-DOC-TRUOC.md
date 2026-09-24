@@ -2472,3 +2472,199 @@ KET CUC 4  chung cu duong IM  ->  THIEU LUC, khong doc duoc. Khong duoc
 3. **Quy tắc số 1.** Một IC vượt sàn nhiễu là chiều dễ chịu. Trước khi tin,
    kiểm `kn_cuong_do_20` — ô không hướng. Nếu nó cũng vượt thì thứ đo được
    nhiều khả năng là một dạng rò rỉ, không phải hướng của dòng tiền.
+
+## ĐO 16 — nhịp 21 phiên: tín hiệu khối ngoại của ĐO 15 có LẶP LẠI ngoài mẫu? (khai 24/09/2026)
+
+**Dụng cụ đọc:** `experiment_khoi_ngoai_nhip_dai.py` · dữ liệu:
+`backtest/cache_2018/`, `backtest/cache/` và `backtest/cache_khoi_ngoai/`
+— **không chạm mạng**.
+
+**Đã tra trùng:** **BƯỚC 113** (22/09/2026) — ĐO 15, cùng năm đặc trưng,
+cùng bộ máy; h=21 ra kết cục 4. **BƯỚC 7** (31/08/2026) — nơi hình dạng
+*một lượt tiêm* sinh ra. **BƯỚC 9** (01/09/2026) — sàn nhiễu đã đối chiếu ở
+h=21, và tiền lệ hai chặng. **BƯỚC 13** (02/09/2026) — tiền lệ *"hai phía,
+cố ý, dù giả thuyết có hướng"*. **BƯỚC 55** (12/09/2026) — `cache_2018/`
+(kéo 11/09) khớp `cache/` trung vị 0 ở 32/33 mã. **BƯỚC 53** (11/09/2026)
+— 2/71 mã của `cache_2018/` lấy từ nguồn khác. Chưa BƯỚC nào đo khối ngoại
+trên `cache_2018/`.
+
+### MỘT CÂU HỎI
+
+ĐO 15 đo **trong mẫu** và thấy ở h=21 `kn_z_20` cho IC **+0,0557**, cao hơn
+rào hoà vốn 0,0488. **Dự báo ấy — giữ nguyên, không khớp lại — có đứng được
+trên dữ liệu mà năm đặc trưng khối ngoại chưa từng nhìn không?**
+
+### HAI TẬP, TÁCH THEO KHOÁ `(mã, ngày)`
+
+```
+tap HUAN LUYEN   bang DO 15, backtest/cache/                     da nhin
+tap KIEM         bang cache_2018 TRU bang DO 15, theo khoa       chua nhin
+```
+
+Tách theo **khoá**, không theo một mốc ngày: bảng ĐO 15 bắt đầu ở mỗi mã
+một ngày khác, nên một mốc chung sẽ hoặc bỏ sót phiên chưa nhìn, hoặc lẫn
+phiên đã nhìn. Mã có dưới **60** quan sát trong tập kiểm thì bỏ — mã quá
+ngắn thì sàn nhiễu để nguyên không dịch, và phép tiêm không dịch được nền.
+
+```bash
+./.venv/Scripts/python.exe experiment_khoi_ngoai_nhip_dai.py --do-luc
+```
+
+```
+bang DO 15   60.261 quan sat
+bang gop    112.058
+chua nhin    51.797
+TAP KIEM     51.771   67 ma   2019-10-10 -> 2026-08-06
+             bo BAF (26 quan sat kiem)
+             truoc 2021-10-14: 32.007 · sau: 19.764
+```
+
+Phần **sau** mốc 2021-10-14 là những phiên nằm ngoài bảng ĐO 15 dù ở trong
+khoảng lịch của nó. Vùng lịch ấy **đã bị các vòng tối ưu giá nhìn** (bất
+biến 8), nhưng những quan sát này **chưa bao giờ** được dùng để đo khối
+ngoại, và năm đặc trưng này chưa từng tồn tại lúc các vòng ấy chạy.
+
+**Không chạm mạng.** Kéo lại khối ngoại trước 29/09/2026 là đọc sớm phép
+kiểm point-in-time đã hẹn (`docs/HANDOFF.md` mục 5).
+
+### DỰ BÁO VÀ PHÉP KIỂM, KHAI TRƯỚC
+
+- **Dự báo:** `kn_z_20`, **dấu + đã khai**, lấy từ ĐO 15. Không tham số nào
+  được chọn trên tập kiểm.
+- **Thống kê:** IC hạng của `kn_z_20` với nhãn vượt rổ 21 phiên, trên tập
+  kiểm.
+- **Sàn nhiễu:** hoán vị dịch vòng trong từng mã (`E.san_nhieu`), **2.000**
+  vòng, hạt giống **20260924**.
+- **Rào:** `E.rao_hoa_von()` trên nhãn của **tập kiểm** — **0,0376**, không
+  mượn 0,0488 của ĐO 15.
+- **HAI PHÍA, α = 0,05.** Một IC có ý nghĩa mà **ngược** dấu đã khai là
+  *không lặp lại*.
+- **Số phụ, KHÔNG vào phán quyết:** IC của bốn đặc trưng còn lại; cách gộp
+  tuyến tính **khớp trên tập huấn luyện** rồi áp nguyên lên tập kiểm.
+
+### HAI PHÍA — và vì sao bản người dùng duyệt là MỘT phía
+
+Bản thiết kế người dùng chọn (phương án B, trong ba phương án) là **một
+phía**, kèm dòng *"lực 86% nếu kiểm một phía"*. Lý do lúc ấy: lực **hai**
+phía đo bằng một script tạm ra **39/50 = 78%**, dưới chuẩn 80%.
+
+Rồi hai việc xảy ra trước khi ký:
+
+1. **Sổ tay trả *"không tìm thấy câu nào nói ngược"*, và tự kiểm bằng `grep`
+   tìm ra BƯỚC 13:** *"Vẫn chọn hai phía vì dữ liệu này đã bị nhìn một lần,
+   đúng theo chiều đó. Một phía sau khi đã nhìn là thứ không cãi được với
+   người đọc hoài nghi"* — và gác của nó có một phát đục *"đổi sang một phía
+   'để đủ lực'"*. Lý do gốc không chuyển sang đây (tập kiểm chưa ai nhìn),
+   nhưng vế *"để đủ lực"* thì đúng là việc tôi vừa làm.
+2. **Đo lại bằng dụng cụ trong repo, trên tập đã bỏ BAF:** lực **hai phía
+   41/50 = 82%**. Con số 78% tính trên tập còn BAF — 26 quan sát, quá ngắn
+   để dịch vòng.
+
+Lý do duy nhất để chọn một phía hết, nên **thiết kế đổi về hai phía** —
+chiều **chặt hơn** phương án đã duyệt. Một phía chỉ còn là tuỳ chọn
+`--mot-phia`, để tái lập con số của bản đầu (42/50).
+
+### CHẶNG 2 KHI CHẶNG 1 CHƯA CHÍNH THỨC ĐẠT — khai thẳng
+
+Tiền lệ BƯỚC 9: *"chặng 2 chỉ chạy nếu ô chính ĐẠT"*. Chặng 1 ở đây là ĐO 15
+ở h=21, và nó **chưa đạt** — kết cục 4. ĐO 16 đi lệch tiền lệ ấy **có chủ
+đích**, vì một phát hiện của chính lượt chuẩn bị này:
+
+```
+lap lai CHINH phep tiem cua DO 15 (hai phia, Bonferroni 0,01), 30 luot
+h=21  khong co gi  bat  0/30   dung bang rao  bat 21/30   IC do TB +0,0551
+h=5   khong co gi  bat  0/30   dung bang rao  bat 30/30   IC do TB +0,1203
+```
+
+```bash
+./.venv/Scripts/python.exe experiment_khoi_ngoai_nhip_dai.py --do-luc --cua-so-do15 --r 30 --alpha 0.01 --hat 20260945
+./.venv/Scripts/python.exe experiment_khoi_ngoai_nhip_dai.py --do-luc --cua-so-do15 --r 30 --alpha 0.01 --hat 20260929 --nhip 5
+```
+
+Kết cục 4 của ĐO 15 dựa trên **MỘT lượt rút**, và ở h=21 một lượt rút là
+một đồng xu nghiêng 70/30 (**lỗi 99**). Pha loãng bị bác trong cùng lượt:
+IC đo được TB +0,0551, nhỉnh hơn mức tiêm 0,0488. Đo bằng 50 lượt, α =
+0,05 hai phía, cửa sổ ĐO 15 bắt **45/50 = 90%**:
+
+```bash
+./.venv/Scripts/python.exe experiment_khoi_ngoai_nhip_dai.py --do-luc --cua-so-do15
+```
+
+**Kết cục 4 của ĐO 15 KHÔNG bị lật.** Nó đã ký, và dưới luật của chính nó
+lực chỉ 70%. Thứ đổi là **lý do để không làm chặng 2**: lý do ấy dựa trên
+một phán quyết lực không đứng vững khi đo lại.
+
+### PHÁN QUYẾT "ĐỌC ĐƯỢC": NHIỀU LƯỢT
+
+`dung bang rao` bắt **≥ 80%** trong **50** lượt, **VÀ** `khong co gi` bắt
+**≤ ngưỡng nhị thức** (50 lượt, α = 0,05 → ≤ 5, suy bằng `nguong_im()`).
+Dưới **30 lượt** thì không được phán đọc được, dù tỷ lệ đẹp đến đâu.
+
+### LỰC, ĐO TRƯỚC KHI KÝ — không tính một IC thật nào
+
+`--do-luc` chỉ dùng tín hiệu **GIẢ** tiêm trên nền đã rời nhãn, và null của
+dự báo dựng bằng hoán vị phá liên kết. Cả hai không mang thông tin về tín
+hiệu.
+
+```
+TAP KIEM · rao 0,0376 (sigma nhan 11,476%) · 50 luot · 400 vong · HAI PHIA
+  khong co gi    bat  3/50       nguong im <= 5    -> im
+  dung bang rao  bat 41/50 = 82% IC do TB +0,0498  -> DU LUC
+  -> DOC DUOC
+```
+
+Phép tiêm dùng hạt giống riêng **20260925**, nên lượt chính sẽ ra **đúng
+41/50** — nó đo lại, không rút lại. 82% sát chuẩn 80%, và sai số chuẩn của
+một tỷ lệ trên 50 lượt là khoảng 5 điểm; ghi ra để không ai đọc nó như một
+biên rộng.
+
+### NĂM Ô KẾT CỤC
+
+```
+KET CUC 4   khong doc duoc  ->  ket qua KHONG doc duoc du no dep hay xau
+KET CUC 3   doc duoc, p >= 0,05  HOAC  co y nghia ma NGUOC dau  ->  KHONG
+            LAP LAI. Nhip 21 DONG
+KET CUC 2   doc duoc, p < 0,05, dung dau, IC + 1,96 x SD < rao  ->  LAP LAI
+            nhung DUOI RAO CHAC. Nhip 21 DONG ve kinh te
+KET CUC 2b  doc duoc, p < 0,05, dung dau, rao - 1,96 x SD <= IC <= rao  ->
+            LAP LAI, SAT RAO. KHONG dong duoc
+KET CUC 1   doc duoc, p < 0,05, dung dau, IC > rao  ->  LAP LAI VA VUOT RAO
+            NGOAI MAU
+```
+
+`SD` = độ lệch chuẩn null của **chính** dự báo trên tập kiểm.
+
+**Kết cục 2 VÔ NGHIỆM trên tập này, đo trước khi ký:** null của chính
+`kn_z_20` (400 vòng, ước lượng) có SD **0,0188**, và sàn hai phía là |IC| >
+**0,0354**. Kết cục 2 đòi IC < 0,0376 − 1,96 × 0,0188 = **+0,0007**, trong
+khi vượt sàn đòi IC > **+0,0354**. Không IC nào thoả cả hai. Và vì sàn
+0,0354 nằm sát rào 0,0376, ô 2b chỉ là một dải hẹp: trên thực tế kết quả
+rơi vào **3** (không lặp lại) hoặc **1** (vượt rào). Cùng hình dạng BƯỚC 13
+đã ghi: *"điều khoản rào hôm nay là chữ chết"*.
+
+### QUY TẮC 1, KHAI TRƯỚC — cho kết cục 1
+
+Kết cục 1 sẽ là **bằng chứng ngoài mẫu đầu tiên** của dự án cho một tín hiệu
+vượt rào — tức đúng chiều dễ chịu. Trước khi viết nó:
+
+- ô không hướng `kn_cuong_do_20` trên tập kiểm phải **không** vượt sàn
+  (hai phía, 0,05). Vượt thì thứ đo được nhiều khả năng là rò rỉ;
+- **tiền kiểm dụng cụ ĐÃ CHẠY:** `--tai-lap-do15` cho rào **0,0488** ·
+  `kn_z_20` **+0,0557** · cận trên **+0,0851** — khớp BƯỚC 113 từng chữ số;
+- **kết cục 1 KHÔNG bật gì.** IC vượt rào chưa phải một chiến lược: bước kế
+  tiếp là một phép đo walk-forward với giữ lệnh 21 phiên, có tiêu chí ký
+  riêng.
+
+### GIÁ PHẢI TRẢ
+
+Sau ĐO 16, **không còn quan sát nào trên máy chưa bị nhìn** với năm đặc
+trưng khối ngoại ở h=21. Người dùng chọn điều đó (phương án B) giữa ba
+phương án, khi đã được báo đoạn này chỉ tiêu được một lần.
+
+### MỖI KẾT CỤC DẪN TỚI ĐÂU
+
+**Không kết cục nào bật gì trong đường sinh lệnh.** Kết cục 3 hoặc 2 ghi vào
+`docs/HANDOFF.md` mục 2 như câu trả lời cho *"giữ lâu hơn có cứu được
+không"*: **không**, với năm đặc trưng này. Kết cục 2b: câu hỏi còn mở và
+không còn dữ liệu sạch trên máy. Kết cục 1: câu hỏi chuyển thành một phép
+đo chiến lược.
