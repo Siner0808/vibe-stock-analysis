@@ -32,9 +32,11 @@ import do10_nang_vnstock as d10  # noqa: E402
 import do11_nang_streamlit as d11  # noqa: E402
 import do12_nang_plotly as d12  # noqa: E402
 import do13_nang_urllib3 as d13  # noqa: E402
+import do14_kha_thi_khoi_ngoai as d14  # noqa: E402
+import do17_nang_goi_vnstock as d17  # noqa: E402
 
 DA_PHU = {"do10_nang_vnstock", "do11_nang_streamlit", "do12_nang_plotly",
-          "do13_nang_urllib3"}
+          "do13_nang_urllib3", "do17_nang_goi_vnstock"}
 
 
 # ══ quần thể ═══════════════════════════════════════════════════════════
@@ -47,7 +49,7 @@ def test_MOI_may_do_nang_goi_deu_duoc_phu():
         f"da phu nhung khong con tren dia: {sorted(DA_PHU - thay)}")
 
 
-@pytest.mark.parametrize("mo_dun", (d10, d11, d12, d13))
+@pytest.mark.parametrize("mo_dun", (d10, d11, d12, d13, d17))
 def test_MOI_may_do_deu_co_phan_xu_va_BA_MA_khac_nhau(mo_dun):
     """Ba ô phải là ba chuỗi khác nhau — trùng nhau là gộp mất một ô."""
     assert callable(mo_dun.phan_xu)
@@ -272,3 +274,239 @@ def test_DO13_khoang_do_phai_la_khoang_DA_DONG():
         f"CUOI = {d13.CUOI} qua gan hom nay — khoang chua chac da dong")
     assert dt.date.fromisoformat(d13.DAU) < cuoi
 
+
+# ══ ĐO 17 — vnai · vnii · vnstock_data, MỘT GÓI MỘT CHẶNG ══════════════
+#
+# Khác ĐO 10–13 ở ô E: ngày 29/09 có một phép kiểm point-in-time đã ký
+# (ĐO 14 ô D) kéo khối ngoại qua chính `vnstock_data`. Nâng gói mà đổi
+# cách XUẤT dữ liệu thì băm 29/09 khác vì THƯ VIỆN, không vì NGUỒN — nên
+# ô E có một phán quyết riêng, HOAN, không gộp vào KHONG NANG.
+#
+# Và khác bản nháp đầu của chính nó: ba gói, BA CHẶNG. ĐO 13 điều 5 cấm
+# gộp hai phép nâng vào một lượt — khác biệt không quy được cho gói nào.
+
+_CU = {"vnai": "vnai==2.6.0", "vnii": "vnii @ https://x/vnii-0.2.5.tar.gz",
+       "vnstock_data": "vnstock_data @ file:///x/vnstock_data-3.3.0.tar.gz"}
+_MOI = {"vnai": "vnai==2.6.1", "vnii": "vnii @ file:///x/vnii-0.2.6.tar.gz",
+        "vnstock_data": "vnstock_data @ file:///x/vnstock_data-3.3.1.tar.gz"}
+
+
+def _freeze(*da_nang: str) -> list[str]:
+    """Freeze với các gói trong `da_nang` ở bản mới, còn lại ở bản cũ."""
+    return ["pandas==3.0.0", "vnstock==4.0.8"] + [
+        (_MOI if g in da_nang else _CU)[g] for g in d17.GOI_NANG]
+
+
+def _f17(*, ma_thoat=0, bat=0, tong=4, rieng_tu="minimal", dich_doi=False):
+    bam = {"a": "1", "b": "2", "c": "3"}
+    return {"import_ma_thoat": ma_thoat, "bat": bat, "tong": tong,
+            "rieng_tu": rieng_tu, "bam_truoc": dict(bam),
+            "bam_sau": {**bam, "a": "9"} if dich_doi else dict(bam)}
+
+
+def _e17(bam=("x", "x"), hinh="start/end", dong=119, ma=("HAH", "GMD", "VHC"),
+         bam_rieng=None):
+    """`bam` là băm của TỪNG LƯỢT; `bam_rieng` đổi riêng một mã."""
+    luot = []
+    for b in bam:
+        l = {}
+        for m in ma:
+            bb = (bam_rieng or {}).get(m, b)
+            l[m] = {"hinh": hinh, "dong": dong, "cot": ["time"], "bam": bb, "tho": []}
+        luot.append(l)
+    return {"ma": list(ma), "da_thu": list(ma), "luot": luot}
+
+
+def _anh17(*, freeze=None, bam_a="aaa", cot_b=None, ky_c=54, cot_c=None,
+           goi="KHOP", F=None, E=None):
+    do10 = _anh10(bam=bam_a, goi=goi, cot_b=cot_b, cot_c=cot_c)
+    for m in d10.MA:
+        do10["C"][m]["dong"] = ky_c
+    return {"ban": {}, "freeze": freeze if freeze is not None else _freeze(),
+            "F": F if F is not None else _f17(), "do10": do10,
+            "E": E if E is not None else _e17()}
+
+
+def _xu17(truoc=None, chang="vnai", **sau):
+    """Chặng `chang` so với nền; `sau` mặc định là nền với ĐÚNG gói ấy nâng."""
+    sau.setdefault("freeze", _freeze(chang))
+    return d17.phan_xu(truoc or _anh17(), _anh17(**sau), chang)
+
+
+def test_DO17_BON_o_deu_dat_toi_duoc():
+    assert _xu17()[0] == d17.NANG_DUOC
+    assert _xu17(bam_a="bbb")[0] == d17.KHONG_NANG
+    assert _xu17(E=_e17(bam=("y", "y")))[0] == d17.HOAN
+    assert _xu17(E=_e17(dong=5))[0] == d17.CHUA_KET_LUAN
+
+
+def test_DO17_BON_ma_khac_nhau():
+    assert len({d17.NANG_DUOC, d17.KHONG_NANG, d17.CHUA_KET_LUAN, d17.HOAN}) == 4
+
+
+def test_DO17_BA_CHANG_theo_THU_TU_moi_chang_so_voi_chang_NGAY_TRUOC():
+    """vnai -> vnii -> vnstock_data. Thứ tự là phần của tiêu chí đã ký."""
+    assert d17.GOI_NANG == ("vnai", "vnii", "vnstock_data")
+    assert [d17.chang_truoc(g) for g in d17.GOI_NANG] == [
+        "truoc", "sau_vnai", "sau_vnii"]
+
+
+def test_DO17_moi_chang_NANG_DUOC_khi_freeze_doi_DUNG_goi_cua_no():
+    da = []
+    for g in d17.GOI_NANG:
+        nen = _anh17(freeze=_freeze(*da))
+        da.append(g)
+        ma, ly_do = d17.phan_xu(nen, _anh17(freeze=_freeze(*da)), g)
+        assert ma == d17.NANG_DUOC, (g, ma, ly_do)
+
+
+@pytest.mark.parametrize("chang,sau", [
+    ("vnai", ("vnai", "vnii")),              # GOP hai goi vao mot chang
+    ("vnai", ("vnai", "vnii", "vnstock_data")),   # ban nhap dau: ca ba mot luot
+    ("vnii", ("vnai",)),                     # nang NHAM goi so voi chang
+    ("vnai", ()),                            # chua nang gi
+    ("pandas", ()),                          # goi ngoai danh sach
+])
+def test_DO17_chang_doi_KHAC_dung_MOT_goi_cua_no_thi_CHUA_KET_LUAN(chang, sau):
+    """Đúng lỗi ĐO 13 điều 5 cấm: gộp phép nâng thì khác biệt không quy được."""
+    ma, ly_do = d17.phan_xu(_anh17(), _anh17(freeze=_freeze(*sau)), chang)
+    assert ma == d17.CHUA_KET_LUAN, (ma, ly_do)
+    assert any("freeze" in x for x in ly_do), ly_do
+
+
+def test_DO17_freeze_keo_theo_goi_LA_thi_CHUA_KET_LUAN():
+    keo_la = _freeze("vnai") + ["squarify==0.4.4"]
+    doi_la = [x.replace("pandas==3.0.0", "pandas==3.0.1") for x in _freeze("vnai")]
+    for fz in (keo_la, doi_la):
+        ma, ly_do = _xu17(freeze=fz)
+        assert ma == d17.CHUA_KET_LUAN, (ma, ly_do)
+
+
+def test_DO17_MOI_O_CON_SO_chan_duoc_RIENG():
+    """A, B, C (số kỳ VÀ tập cột), D — mỗi ô một mình phải chặn được.
+
+    Số kỳ của C là vế ĐO 10 không so. Ở đây nó là vế chính: `vnai` giữ
+    `PERIOD_LIMITS`, và hạng nhận sai thì BCTC bị cắt còn 8 kỳ mà không
+    lỗi, không cảnh báo — đúng sự cố 22/08/2026."""
+    assert _xu17(bam_a="x")[0] == d17.KHONG_NANG
+    assert _xu17(cot_b=("time",))[0] == d17.KHONG_NANG
+    assert _xu17(ky_c=8)[0] == d17.KHONG_NANG
+    assert _xu17(cot_c=("time",))[0] == d17.KHONG_NANG
+    assert _xu17(goi="LECH")[0] == d17.KHONG_NANG
+
+
+@pytest.mark.parametrize("f", [
+    _f17(bat=1), _f17(rieng_tu="standard"), _f17(ma_thoat=1),
+    _f17(dich_doi=True), _f17(tong=3), {"loi": "x"}])
+def test_DO17_F_SAU_hong_thi_KHONG_NANG(f):
+    """Hai công tắc người dùng tắt 18/09. Bản mới làm mất một cái là lùi."""
+    ma, ly_do = _xu17(F=f)
+    assert ma == d17.KHONG_NANG, (ma, ly_do)
+    assert any("F SAU" in x for x in ly_do), ly_do
+
+
+def test_DO17_nen_F_TRUOC_hong_thi_CHUA_KET_LUAN():
+    """Nền hỏng thì F sau đạt hay không đều không nói gì về bản mới."""
+    ma, _ = _xu17(truoc=_anh17(F=_f17(bat=4)))
+    assert ma == d17.CHUA_KET_LUAN
+
+
+def test_DO17_goi_doi_doc_ca_HAI_dang_dong_freeze():
+    assert d17.goi_doi(_freeze(), _freeze(*d17.GOI_NANG)) == set(d17.GOI_NANG)
+    assert d17.goi_doi(["A-B==1"], ["a_b==2"]) == {"a_b"}
+    assert d17.goi_doi(["x==1"], ["x==1"]) == set()
+
+
+@pytest.mark.parametrize("e_truoc,e_sau", [
+    (_e17(bam=("x", "z")), _e17()),                  # truoc tu khong khop
+    (_e17(), _e17(bam=("x", "z"))),                  # sau tu khong khop
+    (_e17(), _e17(bam_rieng={"GMD": "k"})),          # mot ma cu != moi
+    (_e17(), _e17(hinh="start_date/end_date")),      # doi hinh dang loi goi
+])
+def test_DO17_o_E_lech_thi_HOAN_chu_khong_phai_KHONG_NANG(e_truoc, e_sau):
+    """Ô E lệch KHÔNG nói bản mới làm hỏng số — nó nói ô D 29/09 không
+    còn đọc được trên bản mới. Hai câu khác nhau, hai hành động khác nhau."""
+    ma, ly_do = _xu17(truoc=_anh17(E=e_truoc), E=e_sau)
+    assert ma == d17.HOAN, (ma, ly_do)
+    assert any("E" in x for x in ly_do), ly_do
+
+
+@pytest.mark.parametrize("phia", ["truoc", "sau"])
+def test_DO17_mot_phia_TU_KHONG_KHOP_phai_NEU_TEN_phia_ay(phia):
+    """Hai lượt CÙNG bản cho hai bảng khác nhau nói về NGUỒN, không về thư
+    viện. Lý do phải gọi tên phía lệch — một lý do chung chung thì người đọc
+    quy nó cho phép nâng (lỗi 78)."""
+    lech = _e17(bam=("x", "z"))
+    e_truoc, e_sau = (lech, _e17()) if phia == "truoc" else (_e17(), lech)
+    ma, ly_do = _xu17(truoc=_anh17(E=e_truoc), E=e_sau)
+    assert ma == d17.HOAN, (ma, ly_do)
+    assert any(f"E {phia}" in x and "KHAC nhau" in x for x in ly_do), ly_do
+
+
+def test_DO17_HAI_phia_cung_lech_Y_HET_nhau_van_HOAN():
+    """Ca phép so cũ↔mới KHÔNG bắt được: hai tập vân tay bằng nhau vì cả
+    hai phía cùng nhảy giữa đúng hai bảng. Ô D so MỘT lượt với MỘT lượt,
+    nên một nguồn nhảy như thế làm ô D không đọc được — dù thư viện nào."""
+    lech = _e17(bam=("x", "z"))
+    ma, ly_do = _xu17(truoc=_anh17(E=lech), E=lech)
+    assert ma == d17.HOAN, (ma, ly_do)
+
+
+@pytest.mark.parametrize("e", [
+    _e17(dong=d17.DONG_TOI_THIEU - 1), _e17(ma=("HAH", "GMD")),
+    _e17(bam=("x",)), {"loi": "import"},
+    _e17(bam_rieng={"VHC": ""}),
+])
+def test_DO17_o_E_THIEU_thi_CHUA_KET_LUAN(e):
+    """Kéo hỏng mà đọc thành 'không đổi gì' là đúng lỗi 66."""
+    assert _xu17(E=e)[0] == d17.CHUA_KET_LUAN
+    assert _xu17(truoc=_anh17(E=e))[0] == d17.CHUA_KET_LUAN
+    # hai phia CUNG thieu mot kieu — phep so ma giua hai phia khong con bat ho
+    assert _xu17(truoc=_anh17(E=e), E=e)[0] == d17.CHUA_KET_LUAN
+
+
+def test_DO17_hai_luot_keo_KHAC_ma_thi_CHUA_KET_LUAN():
+    ma, _ = _xu17(E=_e17(ma=("HAH", "GMD", "REE")))
+    assert ma == d17.CHUA_KET_LUAN
+
+
+def test_DO17_A_D_keo_hong_thi_CHUA_KET_LUAN():
+    hong = _anh17(freeze=_freeze("vnai"))
+    hong["do10"]["A"][d10.MA[0]] = {"loi": "ConnectionError"}
+    assert d17.phan_xu(_anh17(), hong, "vnai")[0] == d17.CHUA_KET_LUAN
+
+
+def test_DO17_o_E_dung_CHUNG_loi_goi_va_CUA_SO_voi_o_D():
+    """Ô E chỉ bảo vệ được ô D nếu nó đi đúng đường ô D đi.
+
+    Cửa sổ của ô D là một phép gán cục bộ trong `o_D_bam` — đọc bằng AST,
+    không đọc bằng `in` (chú thích cũng chứa hai chuỗi ngày ấy)."""
+    import ast
+    assert d17.goi_thu is d14.goi_thu
+    cay = ast.parse((GOC / "tools" / "do14_kha_thi_khoi_ngoai.py").read_text(encoding="utf-8"))
+    ham = next(n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef) and n.name == "o_D_bam")
+    gan = next(n for n in ast.walk(ham) if isinstance(n, ast.Assign)
+               and isinstance(n.targets[0], ast.Tuple)
+               and [e.id for e in n.targets[0].elts] == ["tu", "den"])
+    assert (d17.TU, d17.DEN) == tuple(ast.literal_eval(gan.value))
+
+
+def test_DO17_ung_vien_E_NGOAI_ro_khoi_ngoai():
+    """Kéo một mã TRONG rổ trước 29/09 là đọc sớm phép kiểm đã hẹn."""
+    sys.path.insert(0, str(GOC))
+    from vn100_symbols import VN100_SYMBOLS
+    trung = set(d17.UNG_VIEN) & set(VN100_SYMBOLS)
+    assert not trung, f"ung vien E nam TRONG ro: {sorted(trung)}"
+    assert len(d17.UNG_VIEN) >= d17.SO_MA_E
+
+
+def test_DO17_khoang_E_la_khoang_DA_DONG():
+    import datetime as dt
+    assert dt.date.fromisoformat(d17.DEN) < dt.date.today() - dt.timedelta(days=180)
+
+
+def test_DO17_chang_mang_ten_goi_NGOAI_danh_sach_thi_CHUA_KET_LUAN():
+    """Kể cả khi freeze đổi đúng một dòng của chính gói ấy."""
+    doi_la = [x.replace("pandas==3.0.0", "pandas==3.0.1") for x in _freeze()]
+    ma, _ = d17.phan_xu(_anh17(), _anh17(freeze=doi_la), "pandas")
+    assert ma == d17.CHUA_KET_LUAN

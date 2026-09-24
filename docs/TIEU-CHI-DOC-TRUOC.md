@@ -2668,3 +2668,222 @@ phương án, khi đã được báo đoạn này chỉ tiêu được một l�
 không"*: **không**, với năm đặc trưng này. Kết cục 2b: câu hỏi còn mở và
 không còn dữ liệu sạch trên máy. Kết cục 1: câu hỏi chuyển thành một phép
 đo chiến lược.
+
+
+---
+
+## ĐO 17 — `vnai` 2.6.1 · `vnii` 0.2.6 · `vnstock_data` 3.3.1: con số có đổi không, và ô D ngày 29/09 còn đọc được không? (khai 24/09/2026)
+
+**Dụng cụ đọc:** `tools/do17_nang_goi_vnstock.py` — bốn lượt: `truoc`,
+rồi `sau vnai` · `sau vnii` · `sau vnstock_data`, mỗi lượt ngay sau khi
+nâng **đúng một** gói.
+
+**Đã tra trùng:** BƯỚC 87 · BƯỚC 104 · BƯỚC 103 · BƯỚC 112 · ĐO 10 · ĐO 13.
+**ĐO 13 điều 5** (*"gộp hai phép nâng vào một lượt là
+đúng cái lỗi `--stride 1`"* — bản nháp đầu của chính mục này đã vi phạm nó,
+xem dưới) · **BƯỚC 87** (`vnai` 2.6.0, đóng bằng phép so mã nguồn vì
+hai file quyết định dữ liệu giống hệt từng byte) · **ĐO 10** (`vnstock`
+4.0.8 — bốn đại lượng A–D; dụng cụ ĐO 17 **dùng lại**
+`do10_nang_vnstock.chup()` thay vì viết lại) · **BƯỚC 104** (`vnstock_data`
+3.3.0 cài **không** bảng tiêu chí, lý do bên dưới) · **BƯỚC 103** (hai công
+tắc của người dùng) · **BƯỚC 112** (ô D của ĐO 14, hẹn đọc 29/09).
+
+**Người dùng giao 24/09/2026:** *"cài đầy đủ các gói vnstock, lấy gói mới
+thay thế gói cũ"*.
+
+### "Đầy đủ" là gì — hỏi máy chủ, không đoán
+
+```
+./.venv/Scripts/python.exe -m pip index versions <goi>        # PyPI
+PackageManager(~/.vnstock).list_packages()                    # co xac thuc, vnii tu doc khoa
+GET https://vnstocks.com/api/packages                         # cong khai
+
+goi                may     moi nhat   nguon
+vnai               2.6.0   2.6.1      PyPI       <- CI da chay 2.6.1 (luot 2026-09-24T08:55:31Z)
+vnii               0.2.5   0.2.6      /api/packages
+vnstock_data       3.3.0   3.3.1      packages/list · accessible
+vnstock            4.0.8   4.0.8      PyPI       da moi nhat
+vnstock_ta         1.0.6   1.0.6      packages/list · da moi nhat
+vnstock_news       2.2.2   2.2.2      packages/list · da moi nhat
+vnstock_ezchart    1.0.2   1.0.2      PyPI       da moi nhat
+vnstock_pipeline   -       2.3.2      KHOA — minTier golden, tai khoan silver
+vnstock-installer  -       3.1.2      trinh cai GUI, khong phai thu vien — khong cai vao .venv
+```
+
+Nên phép nâng chạm **đúng ba gói**. Khoá không đi qua tay agent: `vnii` tự
+đọc `~/.vnstock/api_key.json`, và công cụ in đã lọc mọi trường có tên
+`key/token/url`.
+
+### BA CHẶNG, KHÔNG PHẢI MỘT LƯỢT — bản nháp đầu đã sai đúng chỗ này
+
+Bản nháp đầu của mục này nâng cả ba gói trong **một** lượt. Tự dò tiền lệ
+trước khi ký thì gặp ĐO 13 điều 5: *"gộp hai phép nâng vào một lượt là
+đúng cái lỗi `--stride 1` đã bị cấm ngày 09/09"* — một khác biệt quan sát
+được sẽ không quy được cho gói nào, và một ô `KHONG NANG` sẽ chặn cả ba
+trong khi có thể chỉ một gói gây ra.
+
+```
+truoc --nang vnai--> sau_vnai --nang vnii--> sau_vnii --nang vnstock_data--> sau_vnstock_data
+```
+
+- **Mỗi chặng so với chặng NGAY TRƯỚC**, và `pip freeze` phải đổi **đúng
+  một dòng** — dòng của gói chặng ấy. Cài bằng `pip install --no-deps
+  <tệp>` như ĐO 10; `--dry-run` cả ba đã cho thấy không phụ thuộc nào
+  thiếu (`vnstock_data` 3.3.1 đòi `vnai>=2.5.7` · `vnstock>=4.0.8`, cả hai
+  đã thoả **ở mọi chặng**).
+- **Thứ tự** `vnai → vnii → vnstock_data`: `vnai` đi đầu vì CI đã chạy nó
+  và nó giữ file quyết định hạng; `vnii` là nửa kia của đường hạng;
+  `vnstock_data` đi **cuối** vì ô E là rủi ro chính của nó — nếu nó ra
+  `HOAN` thì hai gói trước vẫn giữ được.
+- **Chặng nào không ra `NANG DUOC` thì lùi gói của chặng ấy và DỪNG.** Gói
+  của các chặng đã qua được giữ: chúng đã qua ô E, nên theo bắc cầu môi
+  trường còn lại cho ra đúng byte của nền.
+- Dụng cụ **từ chối** chạy một chặng khi chặng trước chưa ra `NANG DUOC`.
+
+### Đọc mã TRƯỚC — bánh xe tải về, KHÔNG cài
+
+```
+vnai          21 file .py   DOI 1   beam/auth.py            13.317 -> 15.670 byte
+                                    beam/fundamental.py (PERIOD_LIMITS)  GIONG HET
+vnii          13 file .py   DOI 2   auth.py · license.py
+vnstock_data 176 file .py   DOI 8   core/types.py · core/utils/{client,user_agent,
+                                    browser_profiles}.py · explorer/{vci,kbs,mbk}/trading.py
+                                    · explorer/vci/screener.py
+pip install --dry-run (ca ba tep)  ->  "Would install vnai-2.6.1 vnii-0.2.6
+                                        vnstock_data-3.3.1"  va KHONG gi khac
+```
+
+- **`vnai`** — `_detect_tier` thêm một nhánh: khi hỏi `vnii` hỏng mà máy
+  **có** khoá, nó hỏi hạng từ `license/verify` trước khi rơi xuống
+  `"free"`. Đúng chỗ sự cố 22/08/2026. Ở máy này `vnii` chạy nên nhánh ấy
+  không tới; trên CI không có khoá nên vẫn `"guest"`. Đọc mã nói *"chắc
+  không đổi"* — ô C và D mới là thứ **nói**.
+- **`vnii`** — `verify_license` nhận thêm `function_name`, chuẩn hoá rồi gửi
+  lên máy chủ trong trường `operation`; docstring ghi *"used only for
+  telemetry"*. **Công tắc `disable_telemetry()` người dùng bật 18/09 là của
+  `vnai`, và nó không phủ đường này** — lượt kiểm giấy phép đã gửi
+  `usage_count` và danh sách phiên bản từ trước, 0.2.6 gửi thêm tên hàm.
+  Phép đo này **không** chặn hay đo trường ấy; ghi ra để người dùng quyết.
+- **`vnstock_data`** — thân `foreign_trade` của `explorer/vci/trading.py`
+  **không** nằm trong vùng đổi; vùng đổi là `price_board` (thêm phép kiểm
+  độ phủ) và **tầng HTTP** (`kbs/trading.py` chuyển sang client riêng của
+  `vnstock_data`). Đường mà `Market().equity(ma).foreign_flow` rẽ vào thì
+  **không đọc được bằng mắt** — tên đích bị mã hoá thành `bytes([...])`. Nên
+  câu *"khối ngoại có đổi byte không"* phải trả lời bằng dữ liệu.
+
+### Vì sao lần này PHẢI có bảng — lý do của BƯỚC 104 đã HẾT ĐÚNG
+
+BƯỚC 104 cài 3.3.0 không bảng tiêu chí, lý do đo được hôm ấy: repo **không
+nhập** `vnstock_data`. Từ ĐO 14 (22/09/2026) thì có:
+
+```
+fetch_khoi_ngoai.py:78            import vnstock_data as vd
+tools/do14_kha_thi_khoi_ngoai.py  import vnstock_data as vd
+tools/kiem_duong_noi_bo.py        import vnstock_data as vd
+```
+
+### Ô D NGÀY 29/09 LÀ LÝ DO CHÍNH — và bảng ký của nó không có ô cho việc này
+
+ĐO 14 ô D chụp khối ngoại FPT `2025-01-02` → `2025-06-30` ngày 22/09 trên
+`vnstock_data` **3.3.0**, rồi hẹn **29/09** kéo lại và so băm. Bảng ký của
+nó có hai ô: *giống hệt → chuỗi không bị sửa* và *khác → chuỗi có bị sửa*.
+
+Nếu 3.3.1 đổi cách **xuất** dữ liệu — thứ tự cột, kiểu số, một dòng thừa —
+thì băm 29/09 khác vì **thư viện**, không vì **nguồn**, và nó sẽ bị đọc
+thành ô *"có bị sửa"*. Phần mở rộng 71 mã hẹn cùng ngày dính đúng rủi ro
+ấy. Nên phép nâng này hỏi **thêm** một câu mà ĐO 10–13 không phải hỏi.
+
+**Ô E không đọc sớm ô D, và đây là ba lý do có thể kiểm:**
+
+1. nó kéo **mã NGOÀI rổ khối ngoại** — không mã nào có trong bản chụp 22/09
+   (`test_DO17_ung_vien_E_NGOAI_ro_khoi_ngoai` khoá điều đó);
+2. nó chỉ so **bản cũ với bản mới trong cùng một buổi**, không so với bất
+   cứ thứ gì của ngày 22/09;
+3. nó đi **đúng đường ô D đi**: cùng `goi_thu` của ĐO 14 (kiểm bằng
+   `is`), cùng cửa sổ (đọc bằng AST từ `o_D_bam`), cùng phép băm
+   `to_csv(index=False)` → SHA-256.
+
+Ứng viên, theo thứ tự: `HAH GMD VHC REE DGC DGW`. Lượt `truoc` lấy **ba mã
+đầu tiên** kéo được ≥ **100** dòng (ô D của FPT được 119); lượt `sau` dùng
+lại **đúng ba mã ấy**. Chọn xong **trước** khi có bản mới, nên không chọn
+được theo kết quả.
+
+### Sáu ô, và một điều kiện nền
+
+| | đại lượng | quyền phán |
+|---|---|---|
+| **A** | `Quote.history` khoảng ĐÃ ĐÓNG `2024-01-02` → `2024-03-29`, FPT · VCB · SSI | **CÓ**, từng ô |
+| **B** | `Trading.price_board` | **CÓ**, chỉ tập cột |
+| **C** | `Finance.ratio()` năm | **CÓ**, **số kỳ** + tập cột |
+| **D** | `vnstock_goi.kiem_goi()` | **CÓ**, nguyên dòng |
+| **E** | khối ngoại ngoài rổ, cửa sổ ô D, **2 lượt mỗi bản** | **CÓ** — phán quyết riêng |
+| **F** | tiến trình MỚI: `agent_status()` · `telemetry_status()` · `import vnstock_data` · băm ba đích toàn cục | **CÓ** |
+| nền | `pip freeze` hai đầu chặng khác **đúng một dòng**, của gói chặng ấy | điều kiện đọc |
+
+**Số kỳ của C là vế ĐO 10 không so** (nó chỉ so tập cột). Ở đây nó là vế
+chính: `vnai` giữ `PERIOD_LIMITS`, và nhận sai hạng thì BCTC bị cắt còn 8
+kỳ mà không lỗi, không cảnh báo — đúng sự cố 22/08/2026.
+
+**F đọc bằng tiến trình MỚI** vì tiến trình gọi hàm không phân biệt được
+*đã ghi đĩa* với *chỉ đổi trong bộ nhớ* (BƯỚC 104). `0/4` chỉ đọc được khi
+`import vnstock_data` **mã thoát 0** — tức chạy tới đoạn ghi; lượt đầu của
+BƯỚC 103 cho `0/4` mà **không đọc được**, vì import nổ trước đoạn ấy.
+
+### BẢNG ĐỌC — ký trước, không sửa sau khi thấy số
+
+Áp cho **từng chặng**. "Lùi" là lùi **gói của chặng ấy** rồi **dừng**.
+
+```
+keo HONG o bat ky o nao · E thieu ma/luot/dong    ->  CHUA KET LUAN DUOC, lui, dung
+freeze doi KHAC dung MOT goi cua chang            ->  CHUA KET LUAN DUOC, lui, dung
+nen F cua chang TRUOC khong dat                   ->  CHUA KET LUAN DUOC, lui, dung
+F SAU khong dat                                   ->  KHONG NANG, lui, dung
+A khac mot o · B doi tap cot · C doi so ky
+  hoac tap cot · D doi                            ->  KHONG NANG, lui, dung
+E: mot phia, hai luot CUNG ban khac nhau          ->  HOAN
+E: ban cu != ban moi (bam, hoac hinh dang goi)    ->  HOAN
+con lai                                           ->  NANG DUOC, sang chang ke
+ca ba chang NANG DUOC                             ->  NANG DUOC, neu 5 cong xanh
+```
+
+**HOAN không phải KHONG NANG, và gộp hai ô ấy là sai.** E lệch **không**
+nói bản mới làm hỏng số — nó nói ô D 29/09 **không còn đọc được** trên bản
+mới. Hành động: lùi gói của chặng ấy, **dừng**, đọc ô D và phần mở rộng 71
+mã trên môi trường còn lại, rồi mới nâng tiếp. Môi trường còn lại cho ra
+đúng byte của nền — mỗi chặng đã qua đều đã qua ô E.
+
+**Ô `KHÔNG NÂNG` và ô `HOAN` là thứ làm bảng này thành phép kiểm.**
+
+### ĐƯỜNG LÙI — dựng và kiểm TRƯỚC khi cài
+
+`pip freeze` **không đủ** làm đường lùi cho gói ngoài PyPI: dòng
+`vnstock_data @ file:///…` trỏ vào một tệp, còn dòng `vnii @ https://…`
+trỏ vào một URL. Kiểm thẳng:
+
+```
+vnai-2.6.0-py3-none-any.whl     PyPI, tai lai duoc
+vnstock_data-3.3.0.tar.gz       sha256 65e03234… KHOP dong freeze
+vnii-0.2.5                      URL trong freeze  ->  HTTP 404
+                                banh xe trong bo dem pip  ->  CO, da chep ra
+```
+
+**URL gốc của `vnii` 0.2.5 đã chết** — đường lùi tưởng có mà không có, và
+chỉ lộ ra vì phép thử được chạy trước khi cần.
+
+### Điều KHÔNG hứa
+
+- E đo **ba mã ngoài rổ, một cửa sổ**. Nó cùng đường mã với ô D, nhưng
+  không chứng minh từng mã trong rổ ra cùng byte.
+- Chặng **sau** so với chặng **trước** nó, không so với nền. Một trôi rất
+  nhỏ mỗi chặng mà tổng lại thành lớn thì không có — mọi ô so **bằng
+  nhau tuyệt đối** (băm, tập cột, số kỳ), nên bằng nhau từng chặng là bằng
+  nhau với nền.
+- F **không** có đối chứng dương trong lượt này — BƯỚC 103 đã dựng một
+  (tắt · BẬT · tắt) và công tắc đã chứng minh là giữ.
+- Trường `operation` mới của `vnii` **không** được đo.
+- Phép đo **không** đổi mã repo sang `import vnstock_data` (bảng ROE
+  23,59 / 0,2359 trong `CLAUDE.md` vẫn nguyên), và **không** chạm
+  `requirements.txt` — ba gói này không có trên PyPI công khai, trừ `vnai`.
+
+**Quy tắc số 1, áp ngược:** `NANG DUOC` là chiều dễ chịu. Nên ô E giống hệt
+phải đi kèm **dòng thô** in ngay dưới băm, không chỉ con số.
