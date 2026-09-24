@@ -949,6 +949,68 @@
           "he_qua": "Lượt hỏi thứ ba trong ngày, và là lượt đầu tiên KHÔNG dùng lối thoát. Hai lượt trước hỏi về PHƯƠNG PHÁP và bỏ sót tiền lệ nằm trong nguồn; lượt này hỏi về KẾT LUẬN và trả đúng ba câu, 3/3 khớp. n = 3 — không đủ để gọi là quy luật."
         }
       ]
+    },
+    "ĐO 17": {
+      "ngay": "2026-09-24",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI TRƯỚC KHI HỎI. `git diff --name-only 7a774a2 origin/main -- <mười nguồn>` cho 7 file đổi (SKILL.md, loi-da-mac.md, CLAUDE.md, MO-XE-KIEN-TRUC.md, HANDOFF.md, STATE.md, TIEU-CHI-DOC-TRUOC.md). Nạp lại 7 URL (10 -> 17), rồi xoá 7 bản cũ (17 -> 10): sắp nguồn theo 'Gần đây' thì 7 bản vừa nạp đứng đầu đúng thứ tự dán, và mỗi lần xoá chỉ bấm khi tiêu đề hộp thoại khớp NGUYÊN URL đích. Lần xoá đầu tự HUỶ vì đếm được hai nút 'Xoá' (hai phần tử lồng của cùng một hộp thoại) — sửa phép đếm rồi mới xoá. Câu trả lời mở đầu bằng BƯỚC 117 và ĐO 16 — khớp repo.",
+      "_luot_hoi_truoc": "Không hỏi thiết kế đầu. Bản nháp đầu nâng cả ba gói trong MỘT lượt; tự đọc `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 13 điều 5 TRƯỚC khi soạn câu hỏi ('gộp hai phép nâng vào một lượt là đúng cái lỗi `--stride 1`') thì đổi sang BA CHẶNG. Câu hỏi ở `cau_hoi` gửi thiết kế ba chặng — tức thiết kế được ký.",
+      "cau_hoi": "First, state the highest-numbered heading that starts with '## BƯỚC' in docs/STATE.md and the highest-numbered heading that starts with '## ĐO' in docs/TIEU-CHI-DOC-TRUOC.md. Then: I am about to sign a new measurement 'ĐO 17' that upgrades three vnstock packages ONE PACKAGE PER STAGE, in this order: vnai 2.6.0 to 2.6.1, then vnii 0.2.5 to 0.2.6, then vnstock_data 3.3.0 to 3.3.1, each stage compared with the stage just before it, and all of it BEFORE 29/09/2026. It rests on five claims: (1) the reason BƯỚC 104 gave for installing vnstock_data 3.3.0 without a signed criteria table (that the repo does not import vnstock_data) stopped being true with ĐO 14, because fetch_khoi_ngoai.py now imports it; (2) pulling foreign-flow (khối ngoại) data before 29/09/2026 for symbols OUTSIDE the 71-symbol foreign-flow basket (HAH, GMD, VHC, REE, DGC, DGW) for the window 2025-01-02 to 2025-06-30, and comparing only old-library output with new-library output inside the same session, does NOT count as reading the ĐO 14 cell D point-in-time check early; (3) if a new package changes the bytes of that foreign-flow output, the right action is to roll that package back and read cell D on 29/09 on the old environment, not to read cell D on the new version; (4) the disable_telemetry() switch of vnai that the user turned on on 18/09/2026 does not cover the license-verification requests that vnii sends; (5) none of these packages may be added to requirements.txt, except vnai which is already there as a floor. Does any source contain a statement that CONTRADICTS any of these five claims, or a rule or precedent that FORBIDS any step of this plan — for example a rule that no foreign-flow data of any symbol may be pulled before 29/09/2026, a rule that the whole Python environment must stay frozen until 29/09/2026, or a rule about the order or grouping of package upgrades? For each one, quote the exact sentence and name the file and the heading it sits under. Note that this project deliberately keeps old statements next to a marker saying they were re-measured later (for example a red circle or 'HẾT ĐÚNG'); a statement that already carries such a marker is not a contradiction. If no source contains such a statement, say exactly that and do not guess. Answer in Vietnamese.",
+      "o_thoat": "If no source contains such a statement, say exactly that and do not guess.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay DÙNG lối thoát cho cả năm khẳng định: \"không tìm thấy câu nào nói ngược\" — không một trích dẫn nào.",
+          "tu_kiem": "grep -n 'đọc sớm\\|trước 29/09' *.md docs/*.md -> `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 16: \"Không chạm mạng. Kéo lại khối ngoại trước 29/09/2026 là đọc sớm phép kiểm point-in-time đã hẹn\"",
+          "phan_quyet": "THẬT — lời khai 'không nói ngược' đứng được. Câu ĐO 16 là câu GẦN vế (2) nhất, và nó nói về KÉO LẠI khối ngoại của rổ ĐÃ CHỤP ngày 22/09; ô E kéo mã NGOÀI rổ, chưa từng kéo, và không so với bất cứ thứ gì của 22/09. Mục ĐO 17 nay nói thẳng vì sao câu ấy không áp, thay vì để người đọc sau tự suy."
+        },
+        {
+          "noi_dung": "Tiền lệ về GỘP phép nâng: `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 13 điều 5 — \"gộp hai phép nâng vào một lượt là đúng cái lỗi `--stride 1` đã bị cấm ngày 09/09\".",
+          "tu_kiem": "Đọc bằng tool Read, `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 13, khối 'GIỚI HẠN NÊU TRƯỚC', điều 5.",
+          "phan_quyet": "THẬT — tiền lệ CÓ trong nguồn, và sổ tay không nêu nó. Đúng theo khung câu hỏi: câu hỏi chỉ đòi luật CẤM một bước của kế hoạch, và kế hoạch gửi đi đã ba chặng. Tiền lệ này được tìm bằng tự đọc TRƯỚC khi hỏi, và nó đổi thiết kế — cùng hình dạng hai lượt hỏi của ĐO 16: câu hỏi về PHƯƠNG PHÁP thì phải tự dò tiền lệ trước, không trông vào câu âm."
+        }
+      ]
+    },
+    "BƯỚC 118": {
+      "ngay": "2026-09-24",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Cùng phiên với mục ĐO 17, ngay sau lượt làm tươi: sổ tay ở BƯỚC 117 / ĐO 16, khớp `main`. BƯỚC 118 và mục đánh dấu mới ở `HANDOFF` nằm trên NHÁNH, chưa vào nguồn — nên câu hỏi đòi đúng thứ sẽ thành lạc hậu trên `main`.",
+      "cau_hoi": "I am about to write a new BƯỚC 118 into docs/STATE.md with this conclusion: on 24/09/2026 the local machine was upgraded, one package per stage, to vnai 2.6.1, vnii 0.2.6 and vnstock_data 3.3.1; in all four snapshots the closed-window OHLCV hashes, the price-board column set, the 54 ratio periods, the kiem_goi() line, the foreign-flow bytes and the two switches the user turned off on 18/09/2026 were identical; therefore (a) the ĐO 14 cell D check on 29/09/2026 can be read on vnstock_data 3.3.1; (b) the repo DOES import vnstock_data since ĐO 14 (fetch_khoi_ngoai.py); (c) the local machine no longer lags CI on vnai; and (d) vnii 0.2.6 now sends the name of the calling function to the vendor server on each license check, which the user's vnai disable_telemetry() switch does not cover, so it is not true that nothing is sent to the vendor. Is there ANY place in your sources that CONTRADICTS this conclusion, or that would become FALSE once it is written? For example: a statement giving vnai 2.6.0, vnii 0.2.5 or vnstock_data 3.3.0 as the CURRENT version on this machine; a statement that the repo does not import vnstock_data; a statement that telemetry or data sent to the vendor is fully switched off; a statement that cell D must be read on the same library version as the 22/09 snapshot; or a statement that the local machine and CI differ on vnai. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay DÙNG lối thoát: \"không tìm thấy câu nào nói ngược\", kèm ghi chú rằng các dòng về `vnstock_data` 3.3.0 và telemetry 18/09 trong `docs/HANDOFF.md`, `CLAUDE.md`, BƯỚC 104 \"đều là bản ghi sử liệu đã mang sẵn dấu mốc ngày tháng, dấu 🔴 hoặc gạch ngang ~~...~~\".",
+          "tu_kiem": "grep -n 'Repo \\*\\*không nhập' docs/HANDOFF.md -> mục 5 'Cần người quyết', dòng 318–319 trên `main` (322–323 trên nhánh, sau khi chèn ô ĐO 17 phía trên): \"Repo **không nhập `vnstock_data` ở đâu cả**, nên không có con số nào đổi và không cần bảng tiêu chí.\" · grep -rn 'import vnstock_data' --include=*.py . -> fetch_khoi_ngoai.py:78 (từ 22/09)",
+          "phan_quyet": "SAI — lời khai 'không nói ngược'. Câu HANDOFF ấy thành sai từ 22/09/2026 và trên `main` nó để TRẦN. Dấu ~~ của mục chỉ gạch vế tiêu đề ('`vnstock_data` 3.2.8 KHÔNG import được nữa'), không gạch vế 'repo không nhập'; sổ tay THẤY câu ấy rồi gộp nó vào dấu của vế khác. Đã đánh dấu 🔴 ngay dưới nó trong BƯỚC này.",
+          "he_qua": "Lượt thứ năm trong ngày có câu trả lời âm, và lần đầu cái bỏ sót là câu hỏi về KẾT LUẬN (ba lượt trước của BƯỚC 117 cho thấy kết luận thì trả đúng). Hình dạng mới: không phải KHÔNG THẤY, mà thấy rồi XẾP NHẦM dấu. Một dấu đánh ở cấp mục không phủ từng câu trong mục."
+        },
+        {
+          "noi_dung": "Vế (d) — không câu nào nói dữ liệu gửi nhà cung cấp đã tắt HOÀN TOÀN.",
+          "tu_kiem": "grep -n 'không gửi\\|không còn gửi\\|tắt hẳn telemetry' CLAUDE.md docs/HANDOFF.md docs/STATE.md MO-XE-KIEN-TRUC.md -> RỖNG. Câu gần nhất (CLAUDE.md, 'VẾ TELEMETRY CŨNG HẾT ĐÚNG') nói đúng phạm vi: `relay._send_data` và `relay.dispatch` của `vnai`.",
+          "phan_quyet": "THẬT — với vế này lời khai 'không nói ngược' đứng được."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
