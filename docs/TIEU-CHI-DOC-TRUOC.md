@@ -2951,3 +2951,8 @@ tools/so_ban_goi.py           ma thoat 1 -> 0 · QUYET DINH SO 1 -> 0 (vnai khop
 
 `vnstock_ezchart` hỏng **từ trước** (BƯỚC 104 cố ý không cài `squarify`), và
 repo không nhập nó.
+
+> 🔴 **Dòng `vnstock_ezchart` ở bảng trên thiếu một lớp, và đã sửa cùng ngày
+> (BƯỚC 119).** Thiếu `squarify` chỉ là module ĐẦU TIÊN thiếu; sau nó còn
+> `wordcloud`, rồi bản phát hành thiếu hẳn gói con `static/`. Máy nay chạy
+> bản vá `1.0.2+vibe1`, `import vnstock_ezchart` mã thoát 0.

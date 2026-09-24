@@ -330,6 +330,11 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   kiểm giấy phép — docstring ghi *"used only for telemetry"*. Công tắc
   `disable_telemetry()` bật 18/09 là của `vnai`, **không phủ** đường này.
   Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118.
+- **`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).** Bản
+  phát hành 1.0.2 của hãng thiếu gói con `static/` và khai hai phụ thuộc
+  bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. Hãng phát hành
+  bản sửa thì cài bản chính thức thay — tới lúc ấy `tools/so_ban_goi.py`
+  báo lệch ở hạng `QUYET DINH SO` là báo đúng. `docs/STATE.md` BƯỚC 119.
 - ~~**`urllib3` máy 1.26.20 · CI 2.8.0 — khoảng cách bản CHÍNH, CHƯA AI ĐO.**~~
   **ĐÃ ĐO 18/09/2026 (ĐO 13): NÂNG ĐƯỢC.** Máy nay 2.8.0. Dữ liệu OHLCV
   **không đổi một ô** — băm CSV ba mã giống hệt từng chữ, và ô đối chứng
