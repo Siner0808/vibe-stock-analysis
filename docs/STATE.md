@@ -17150,3 +17150,111 @@ trong nguồn và sổ tay không nêu — đúng theo khung câu hỏi, vì k�
 - Không đổi mã repo sang `import vnstock_data`, không chạm
   `requirements.txt`.
 - `vnstock_ezchart` vẫn hỏng vì thiếu `squarify` — từ trước, cố ý (BƯỚC 104).
+
+
+---
+
+## BƯỚC 119 — `vnstock_ezchart` HỎNG HAI LỚP, VÀ CẢ HAI LÀ LỖI ĐÓNG GÓI CỦA HÃNG (24/09/2026)
+
+Người dùng giao: *"vào vnstocks.com tìm thông tin của lỗi này và giải quyết
+nó"* — lỗi `ModuleNotFoundError: No module named 'squarify'` mà BƯỚC 104 cố ý
+để nguyên và ĐO 17 ghi lại.
+
+### Trang của hãng không có câu trả lời
+
+Tìm `squarify` và `ezchart` trên vnstocks.com, đọc *"Giải quyết lỗi thường
+gặp"*, *"Môi trường và thư viện phụ thuộc"*, *"Biểu diễn dữ liệu trực
+quan"*: **không trang nào nhắc** hai phụ thuộc ấy. Tệp thư viện phụ trợ hãng
+khuyên cài (`https://vnstocks.com/files/requirements.txt`) **cũng không có**
+`squarify` hay `wordcloud` — tức môi trường chuẩn của hãng nổ đúng lỗi này.
+
+### Lớp 1 — hai phụ thuộc khai là TUỲ CHỌN nhưng nhập VÔ ĐIỀU KIỆN
+
+```
+metadata:  squarify>=0.4.0; extra == "all"   wordcloud>=1.8.0; extra == "all"
+config.py dong 6-7:  import squarify · from wordcloud import WordCloud   (cap module)
+```
+
+Cài riêng `squarify` như BƯỚC 104 từng tính sẽ **không** sửa được — lỗi chỉ
+chuyển sang `wordcloud`. Thông báo lỗi chỉ nêu module **đầu tiên** thiếu; đọc
+AST mọi `import` của gói mới thấy cả hai. Sửa: `pip install
+"vnstock_ezchart[all]==1.0.2"` — `--dry-run` cho *"Would install
+squarify-0.4.5 wordcloud-1.9.6"* và không gì khác.
+
+### Lớp 2 — bản phát hành thiếu cả phần vẽ
+
+Qua lớp 1 thì: `No module named 'vnstock_ezchart.static'`.
+
+```
+PyPI 1.0.2 wheel · 1.0.2 sdist · 1.0.1 wheel · kho vnstocks.com/api/simple
+    -> 5 file cua goi, KHONG co static/ core/ interactive/ assets/fonts/
+GitHub vnstock-hq/vnstock_ezchart @ 23d5129
+    -> CO du; bon file .py + logo cua ban PyPI GIONG TUNG BYTE
+pyproject.toml:  packages = ["vnstock_ezchart"]        <- chi goi tang tren
+                 package-data = ["assets/*.png"]        <- bo mat phong chu
+```
+
+Dựng lại từ GitHub **nguyên trạng** vẫn ra đúng bản hỏng — lỗi nằm ở cấu
+hình đóng gói, không ở mã.
+
+### Bản vá tại máy — người dùng chọn, trong ba phương án
+
+Từ commit `23d5129`, đổi **ba dòng** của `pyproject.toml` và không đụng một
+dòng mã: `packages` gồm ba gói con, `package-data` gồm `assets/fonts/*.ttf`,
+số hiệu `1.0.2` → **`1.0.2+vibe1`**. Nhãn cố ý để lộ — máy phải nói được
+rằng nó đang chạy bản vá.
+
+```
+banh xe                  21 tep (PyPI: 10) · sha256 b1373c8a88c2405e
+pip freeze               doi DUNG mot dong: vnstock_ezchart
+pip check                khong xung dot moi
+import vnstock_ezchart   ma thoat 0          (truoc: 1)
+Chart.line / treemap / wordcloud   ve duoc, anh da mo ra xem, co logo
+vnstock.common.viz.HAS_VNSTOCK_EZCHART   True
+```
+
+### Vì sao không có bảng tiêu chí — và lệnh đứng sau câu ấy
+
+Cùng lập luận BƯỚC 104: phép cài không chạm được con số nào của dự án.
+
+- repo **không nhập** `vnstock_ezchart` (AST, `tools/so_ban_goi.py`, cột
+  `repo KHONG nhap`); `import vnstock` **không** nạp nó — chỉ
+  `vnstock.common.viz` nạp, trong `try/except`;
+- lệnh cấp module của gói, đọc bằng AST: chỉ hằng đường dẫn và một cảnh báo
+  deprecated ở `mplot.py`; **không** gói nào đăng ký accessor cho pandas;
+- vẫn đo: `tools/do10_nang_vnstock.py` trước/sau **hai lần** (sau lớp 1 và
+  sau lớp 2) — A giống hệt từng ô, B · C giữ tập cột, D giữ nguyên.
+
+### Hệ quả đo được
+
+- `tools/so_ban_goi.py` mã thoát **0 → 1**: hạng `QUYET DINH SO` báo
+  `vnstock_ezchart máy 1.0.2+vibe1 · CI 1.0.2`, kèm `repo KHONG nhap`. Đó là
+  báo **ĐÚNG** — máy chạy bản vá, CI chạy bản hỏng. Hết khi hãng phát hành
+  bản sửa và máy cài bản chính thức.
+- `vnstock_ta` nay nạp được phần vẽ của nó (nó nhập `vnstock_ezchart`); repo
+  không nhập `vnstock_ta`.
+- Câu ĐO 17 *"`vnstock_ezchart` vẫn hỏng vì thiếu `squarify`"* (BƯỚC 118)
+  đúng cho sáng nay và thiếu một lớp — đã đánh dấu ở `docs/TIEU-CHI-DOC-TRUOC.md`.
+
+### Việc còn lại, ngoài repo
+
+Báo lỗi đã soạn sẵn cho người dùng gửi hãng — **agent không gửi**. Khi hãng
+phát hành bản sửa: cài bản chính thức, bỏ `+vibe1`, `so_ban_goi.py` về 0.
+Bánh xe vá nằm trong thư mục tạm của phiên, không bền; công thức dựng lại
+là ba dòng trên.
+
+### Sổ tay — lần này nó tìm ra, và một chỗ nó ghi sai file
+
+Câu hỏi về **kết luận**, có lối thoát. Sổ tay **không** dùng lối thoát: nó
+trả tám câu, và `tools/doi_chieu_trich_dan.py` cho **8/8 khớp**. Hai câu
+`CLAUDE.md` về hạng `QUYET DINH SO` nằm trong tài liệu sống mà không dấu —
+đã đánh dấu 🔴. Ba câu BƯỚC 104 và câu BƯỚC 105 là nhật ký có ngày; câu
+*"Sửa được bằng `pip install squarify`"* đo được là **sai**, và BƯỚC này
+nói thẳng điều ấy. Hai câu trích đúng chữ nhưng **sai tên file** — sổ tay
+ghi `CLAUDE.md`, thật ra ở `STATE.md`.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không kiểm từng loại biểu đồ của ezchart — ba loại, dữ liệu tổng hợp.
+- Không thêm `squarify` · `wordcloud` vào `requirements.txt`: repo không
+  dùng ezchart, và CI · Streamlit Cloud không cần nó.

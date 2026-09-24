@@ -762,6 +762,15 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 > ✅ **HAI VẾ ẤY ĐÃ HẾT LỆCH (18/09/2026):** `altair` 6.3.0 ·
 > `matplotlib` 3.11.2. **Cả hai hạng ồn ào nay về 0**, mã thoát 1 → 0.
 >
+> 🔴 **"`QUYET DINH SO` khớp hoàn toàn" và "mã thoát 1 → 0" ở hai đoạn trên
+> là ảnh chụp 17–18/09, và chúng đã trôi HAI LẦN.** Lần một: CI lên `vnai`
+> 2.6.1 sáng 24/09 trong khi máy đứng ở 2.6.0 — tối cùng ngày ĐO 17 kéo máy
+> theo, mã thoát về 0 (BƯỚC 118). Lần hai, **cố ý**: máy chạy
+> `vnstock_ezchart` **`1.0.2+vibe1`** — bản vá tại máy vì bản phát hành của
+> hãng thiếu gói con `static/` — nên hạng này báo **một** lệch và mã thoát
+> là **1**. Đó là báo ĐÚNG, không phải việc phải sửa; repo không nhập gói ấy.
+> BƯỚC 119. **Đọc bằng lệnh `tools/so_ban_goi.py`, đừng đọc số ở đây.**
+>
 > 🔴 **NHƯNG CÂU "ĐỀU BẢN PHỤ" TRONG BÁO CÁO HÔM ẤY SAI PHẠM VI — lỗi
 > 83.** Nó đúng về hai hạng ồn ào và sai về toàn cảnh: hạng `con lai`
 > chứa **hai khoảng cách bản CHÍNH** — `urllib3` máy **1.26.20** · CI
