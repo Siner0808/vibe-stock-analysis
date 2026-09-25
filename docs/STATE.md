@@ -10732,6 +10732,12 @@ TIEN-VE-TRUOC (tin hieu >= 2026-08-28): 4 · DA DONG 2
 **TCB đóng ngày 2026-09-11**, `SIGNAL_REVERSED`. Nên cả hai con số đều đã
 trôi: **3 → 2 vị thế mở**, và **bộ đếm 1 → 2**.
 
+🔴 **"Bộ đếm" ở đây là số lệnh đã đóng, KHÔNG phải số lệnh điều kiện dừng
+đếm được** (audit 25/09/2026, BƯỚC 121). `paper_metrics.vs_benchmark` tra
+ngày thô 19 ký tự của sổ thật với khoá rổ chuẩn 10 ký tự, nên điều kiện
+dừng đếm **0**. Chạy chuông C5 trên sổ thật ngày 25/09 in *"mới 0/113 …
+3 lệnh BỊ BỎ vì không khớp cặp ngày"*.
+
 Đây vẫn là **2 trên `N_TOI_THIEU` = 113**, tức nằm sâu trong vùng *chưa đủ
 để kết luận* của `paper_metrics.dieu_kien_dong_lai()`. Không đọc lãi/lỗ của
 chúng, và không dùng chúng để nới hay siết gì — bất biến 7 đổi hướng.
@@ -16370,6 +16376,12 @@ Lệnh đọc: `experiment_khoi_ngoai.py --hoan-vi 2000 --chung-cu-duong`.
 Dữ liệu: `fetch_khoi_ngoai.py` (71/71 mã, 0 hỏng). Tiêu chí ký trước:
 `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 15.
 
+🔴 **"Ký trước" KHÔNG chứng minh được bằng git** (audit 25/09/2026, BƯỚC
+121). Mục ĐO 15 vào repo **cùng một commit** với kết quả, dụng cụ và BƯỚC
+này (`4c70b39`). ĐO 13, 14, 16 và 17 đều có commit tiêu chí riêng đi
+trước. Chiều kết luận của ĐO 15 là chiều an toàn (không bật gì), nhưng
+trong năm ĐO gần nhất nó là ca duy nhất không có bằng chứng tiền đăng ký.
+
 ### h=21 KHÔNG ĐỌC ĐƯỢC — và đó là chỗ dễ đọc sai nhất của BƯỚC này
 
 Ở h=21, `kn_z_20` cho IC **+0,0557**, vượt cả sàn nhiễu **lẫn** rào hoà
@@ -17378,3 +17390,146 @@ hôm nay là ca ngược. Tự kiểm sau mọi câu âm vẫn là luật.
   (`~/.vnstock/api_key.json`, `vnii`) — không phải vì công cụ nối dòng.
 - Công cụ vẫn chỉ đọc lời khai **phủ định**. *"`QUYET DINH SO` khớp hoàn
   toàn"* — một khẳng định — nằm ngoài tầm nó; sổ tay bắt được ở BƯỚC 119.
+
+## BƯỚC 121 — AUDIT TOÀN HỆ THỐNG: ĐƯỜNG TIẾN-VỀ-TRƯỚC HỎNG, VÀ MỌI SAI SỐ ĐỀU LỆCH VỀ PHÍA ĐẸP (25/09/2026)
+
+Người dùng giao tối 24/09: *"audit lại hệ thống dự án này, … không bỏ sót
+những vấn đề của dự án dù là nhỏ nhất, từ đó đưa ra đường hướng phát triển
+tiếp theo."* Buổi audit **chỉ đọc**: không sửa dòng mã nào. PR này chỉ ghi
+BƯỚC, đưa việc treo lên `HANDOFF` và đánh dấu 🔴 dưới năm câu mà nó làm
+thành sai. Báo cáo đầy đủ (198 phát hiện có bộ lọc) là một Artifact riêng
+tư của người dùng; repo công khai chỉ nhận bản tóm tắt này.
+
+### Thiết kế: "không bỏ sót" phải đo được, không hứa được
+
+- **Quần thể trước.** `git ls-files` → 512 file, chia cho 7 luồng, mỗi file
+  thuộc đúng một luồng (tổng 512/512). Mỗi luồng khai `đã soi X/Y` và kê
+  từng file chỉ soi một phần kèm lý do.
+- **Đo độ mù của công cụ soát sẵn có trước khi tin chúng.** Bằng CHẠY THẬT
+  trên ca đã biết đáp án, đi qua chính hàm phán của từng công cụ, không đọc
+  docstring.
+- **Sáu luồng subagent độc lập** (mã giao dịch · app & script · test ·
+  công cụ/hook/CI · tài liệu · STATE & lời hứa treo) và một luồng điều phối
+  (dữ liệu, môi trường, lịch sử git, bí mật, ngoài repo). Người dùng chọn
+  dùng subagent.
+- **Tự kiểm lại:** 19/19 phát hiện CAO bằng lệnh của chính phiên này, kể
+  cả đối chiếu sổ lệnh thật trên Google Sheets. Mẫu ngẫu nhiên 12 phát
+  hiện TRUNG (hạt giống 20260925): 11 đúng, 0 sai, 1 chưa kiểm được (cần
+  mạng).
+
+### Kết quả
+
+```
+file theo doi    512/512 chia luong
+phat hien        198  =  19 CAO · 89 TRUNG · 90 THAP
+tu kiem lai       46  (19 CAO + 11 mau TRUNG + 16 cua luong dieu phoi)
+pytest may / CI  1400 passed · 0 skipped  /  1400 passed · 0 skipped
+workflow          40/40 luot gan nhat success
+```
+
+**Ba phát hiện đổi cách đọc trạng thái dự án:**
+
+1. **Cả 3/3 lệnh tiến-về-trước đã đóng khớp lệnh thoát ở giá mở cửa của
+   CHÍNH phiên ra tín hiệu thoát.** CI quét 2 lượt mỗi phiên (khoảng 14:xx
+   và 17:xx–18:xx giờ VN) trên nến ngày đang dở. Lượt trưa `evaluate_open`
+   đặt CLOSING, rồi lượt tối cùng phiên `paper_trading.fill_closing` khớp
+   ngay, vì hàm ấy không có chốt ngày như `fill_pending`. Bằng chứng trên
+   bảng quyết định của sổ thật: HUT (04/09), TCB (11/09) và NAF (16/09)
+   đều VẮNG ở lượt trưa (còn OPEN) và có mặt ở lượt tối, với `exit_date`
+   bằng đúng ngày ấy. Đây là vi phạm bất biến 1 trên nguồn bằng chứng duy
+   nhất chưa bị tối ưu chạm vào.
+2. **Điều kiện dừng C5 đếm được 0 lệnh.** Chạy `tools/canh_cong_c5.py` trên
+   sổ thật: *"mới 0/113 lệnh tiến-về-trước có đối chiếu … 3 lệnh BỊ BỎ vì
+   không khớp cặp ngày trong rổ"*. `paper_metrics.ro_chuan_tu_chuoi_gia`
+   dựng khoá 10 ký tự, còn `paper_metrics.vs_benchmark` tra ngày thô 19 ký
+   tự. Chuông vẫn xanh mỗi ngày trên CI và in đúng dòng ấy: một cảnh báo
+   không ai đọc (cùng họ lỗi 78).
+3. **Mọi sai số đo tìm thấy đều lệch về phía ĐẸP.** Lệnh thoát qua
+   `fill_closing` không chịu trượt giá bán; gap xuống dưới SL vẫn ghi đúng
+   giá SL. Nên chi phí thực thi 0,63 điểm/lệnh của ĐO 3 là **cận dưới**, và
+   kết luận *"không có lợi thế sau chi phí"* đứng vững hơn chứ không yếu đi.
+
+**Hàng rào tự động có lỗ lớn hơn các lời khai về nó.** Đo bằng cách gọi
+thẳng hàm phán:
+- Cửa lệnh shell chỉ khớp tool `Bash`, nên một tool shell khác đi vòng mọi
+  luật. Tên đích trong dấu nháy lọt, và vài dạng heredoc lọt cả hai luật
+  heredoc.
+- `tools/cua_ho_so.py` trả `permissionDecision: "allow"`, mà đặc tả ghi
+  *"allow: skip the interactive permission prompt"*. Tức cửa này tự duyệt
+  Read/Edit thay người dùng trên đúng những file dày hồ sơ nhất.
+- Bản tin mở phiên **không** hiện mốc 29/09, vì biểu thức ngày đòi ngày
+  đứng riêng trong chữ đậm.
+- `tests/test_sheets_store.py` ghi nội dung hỏng vào `.streamlit/secrets.toml`
+  THẬT rồi trả lại trong `finally`. mtime của file ấy là 08:17 sáng nay,
+  đúng lúc bộ test chạy. File còn nguyên.
+- Ba script tên `*_test.py`/`test_*.py` ở gốc không có guard `__main__` và
+  `os.remove` hai `.db` bằng chứng. `pytest` trần ở gốc sẽ chạy chúng.
+
+**Bề mặt người dùng nhìn nói khác phép đo.** App tự đặt ngưỡng 50/60 và
+hiện "MUA THĂM DÒ"/"MUA 30%", không đọc khuyến nghị của master. Với dữ liệu
+mô phỏng, master trả điểm 50, nên app vẫn hiện "MUA THĂM DÒ". README công
+khai đặt lên đầu con số −0,927% đã bị bác vì đòn bẩy.
+
+**Việc treo không lên HANDOFF.** Quyết định *"nâng stop trên nến chưa
+đóng"* ghi "Cần người dùng" từ **20/08** (mục *"Còn treo sau 5A/5B"*),
+chưa từng vào
+`HANDOFF` mục 5. PR này đưa nó lên.
+
+### Độ mù của công cụ soát — đo bằng ca đã biết
+
+| công cụ | quần thể khai | mù với (đã chạy ca dựng tay) | ca sống hôm nay |
+|---|---|---|---|
+| `tools/soat_loi_khai_cu.py` | "lời khai phủ định có nêu tên" | 12/12 dạng ngoài `PHU_DINH`, dấu ở chỗ khác trên dòng, câu hai dòng; quần thể thiếu `MO-XE-KIEN-TRUC.md`, `README.md`, TIEU-CHI | +9 dòng ở TIEU-CHI |
+| `tools/kiem_duong_ngoai_repo.py` | "đường dẫn ngoài repo" | chỉ đọc dạng `~/`; 24 lần nêu dạng `C:\Users\…` | 0 con trỏ chết sống |
+| `tools/soat_lenh_tai_lieu.py` | mọi khối lệnh | khối trong blockquote, khối không nhãn | 4 dòng, cả 4 là sử liệu |
+| `tools/kiem_cua_song.py` | "cửa nào đang sống" | hook trỏ vào file không tồn tại vẫn "sống" | 7/7 đường tồn tại |
+| `tools/chan_bia_so_lieu.py` | mẫu bịa số R1–R8 | 10 dạng (`fillna(50)`, gán số trong `except`…) | 0 (máy quét qua đối chứng 5/5) |
+| cửa Bash | hình dạng lệnh đã cắn | xem trên; và **chặn nhầm 3 lần** trong phiên, cả 3 ghi ra NGOÀI repo | — |
+
+### Sổ tay
+
+- Đăng nhập Google trong trình duyệt của Claude Code **không** sống qua
+  phiên mới và **không** sống khi khung trình duyệt bị đóng (hai lần phải
+  đăng nhập lại hôm nay).
+- Sổ tay lệch 117 → 120 BƯỚC; làm tươi theo thủ tục (dán lại 10 URL, xoá
+  10 bản cũ theo tham chiếu, đọc URL trên hộp xác nhận), đo lại ra 120.
+- Câu hỏi RỘNG ("câu hiện tại nào bị câu khác nói ngược mà không có dấu")
+  → *"không tìm thấy cặp nào"*, và **sai**: grep ra một cặp ngay trong
+  `SKILL.md` (dòng về `tools/kiem_cua_song.py`). Câu hỏi về KẾT LUẬN của
+  BƯỚC này thì trả 4 câu nói ngược, cả 4 trích dẫn KHỚP qua
+  `tools/doi_chieu_trich_dan.py`. PR này đánh dấu cả 4 (và câu *"nhịp
+  trong phiên … không đổi kết quả"* trong `CLAUDE.md`).
+
+### Ước lượng đã sai
+
+- *"Sáu luồng song song chạy xong trong hạn mức phiên"*: **sai**. Chạm giới
+  hạn phiên HAI lần; sau lần thứ hai các luồng phải khép sổ trong ~20 lượt
+  công cụ. Cộng `subagent_tokens` trong 6 thông báo hoàn tất: 2.712.294.
+
+### Đường hướng đề xuất (chi tiết trong báo cáo)
+
+0. Trước 29/09: mở rộng phép kiểm point-in-time ĐO 14 sang 71 mã (đã hẹn),
+   và sửa bản tin mở phiên cho hiện lại mốc 29/09.
+1. Vá an toàn, không chạm số đo: test chạm `secrets.toml`, script
+   `*_test.py` ở gốc, lỗ của cửa Bash, `permissionDecision` của
+   `cua_ho_so`, số cửa/cổng ghim trong file luật toàn cục.
+2. Sửa đường tiến-về-trước (chốt ngày cho `fill_closing`, trượt giá bán,
+   SL gap, chuẩn hoá ngày), rồi **đo lại ĐO 3 qua tiêu chí ký trước ở
+   commit riêng**. Dự báo: chi phí tăng, alpha giảm.
+3. Cho app và README nói đúng phép đo.
+4. Giảm chi phí vận hành: tách phần sử liệu ra khỏi `CLAUDE.md` (124 KB nạp
+   mỗi phiên), một sổ quần thể chung cho mọi công cụ soát, ngừng thêm công
+   cụ mới.
+5. Hướng chiến lược: người dùng chọn giữa (A) công cụ hỗ trợ quyết định cho
+   chính họ, không phát khuyến nghị mua tự động (đề xuất), và (B) săn alpha
+   vòng quay thấp sau khi xong bước 2.
+
+### Điều BƯỚC này KHÔNG nói
+
+- 152/198 phát hiện dựa trên kiểm của chính luồng, chưa được người điều
+  phối chạy lại; mẫu 12 cho 11 đúng, không phải một phép kiểm toàn bộ.
+- App chưa được chạy và nhìn bằng trình duyệt. `STATE` BƯỚC 2–99 chỉ được
+  grep có hệ thống, không đọc nguyên văn.
+- Không sửa lỗi nào. Đánh dấu 🔴 chỉ nói câu cũ đã sai, chưa sửa mã.
+- 3 lệnh đã đóng mang giá thoát sai quy tắc, nhưng lãi/lỗ đúng theo quy
+  tắc của chúng **chưa tính lại**, và 3 trên 113 không đọc được gì.
