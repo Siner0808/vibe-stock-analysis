@@ -316,6 +316,23 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 **Cần người quyết:**
 
+- **Audit toàn hệ thống 25/09/2026 (BƯỚC 121): 19 phát hiện CAO chờ sửa
+  theo lộ trình.** Báo cáo đầy đủ là Artifact riêng tư của người dùng; repo
+  chỉ giữ bản tóm tắt ở `docs/STATE.md` BƯỚC 121. Hai việc nặng nhất chạm
+  đường tiến-về-trước: lệnh thoát khớp ngay trong phiên ra tín hiệu (3/3
+  lệnh đã đóng), và điều kiện dừng C5 đếm 0 lệnh. Sửa chúng làm đổi số đo
+  nên phải qua một ĐO có tiêu chí ký trước.
+- **Chọn hướng chiến lược** (BƯỚC 121, mục *Đường hướng*): (A) công cụ hỗ
+  trợ quyết định cho chính người dùng, không phát khuyến nghị mua tự động;
+  hay (B) tiếp tục săn alpha, chỉ thiết kế vòng quay thấp, sau khi sửa
+  đường tiến-về-trước.
+- **Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
+  đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
+  ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ
+  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.
+- **Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
+  ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit.
+
 - ~~**`vnstock_data` 3.2.8 KHÔNG import được nữa**~~ **XONG 18/09/2026:**
   nâng **3.3.0**, `vnstock_ta` khỏi theo (nó vỡ vì `import vnstock_data`,
   một gốc hai symptom). **Không cần người dùng đưa gì** — khoá nằm sẵn ở

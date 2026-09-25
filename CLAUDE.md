@@ -538,6 +538,12 @@ hoá cái gác của chính nó.
 > thống, đẩy thẳng `main`, xoá `.db`. Nó **không** thay được ba cửa kia:
 > mọi thao tác file qua shell vẫn lọt `chan_bia_so_lieu` và
 > `cua_doc_bat_buoc`.
+>
+> 🔴 **"CHẶN … XOÁ `.db`" NÓI QUÁ — audit 25/09/2026, `docs/STATE.md`
+> BƯỚC 121.** Cửa chặn dạng trần, nhưng chỉ khớp tool `Bash`, nên một tool
+> shell khác trong phiên đi vòng được mọi luật. Tên đích đặt trong dấu nháy
+> cũng lọt, và vài dạng heredoc ghi file đi qua cả hai luật heredoc. Đo
+> bằng cách gọi thẳng hàm phán của cửa.
 
 Đo ngày 31/08/2026: một phiên sửa 6 file mà hook không chạy lần nào.
 `--quet-repo` có được gọi, nhưng vì người nhớ ra chứ không vì máy bắt.
@@ -1082,6 +1088,14 @@ không file nào ngoài test của chính chúng import. Nay `fill_pending` đi 
 `vong_doi_lenh` (lô chẵn · biên độ ±7% · trần thanh khoản mỗi nến · khớp
 một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 
+> 🔴 **VẾ "KHI BÁN" CHỈ ĐÚNG MỘT NỬA — audit 25/09/2026, `docs/STATE.md`
+> BƯỚC 121.** Chỉ nhánh cắt lỗ trong `evaluate_open` đi qua mô hình trượt
+> giá. Lệnh thoát theo tín hiệu (`SIGNAL_REVERSED`, trần thời gian) đi qua
+> `paper_trading.fill_closing`, và hàm ấy ghi thẳng giá mở cửa, **không**
+> trừ trượt giá bán. Thêm nữa, gap xuống dưới SL vẫn ghi đúng giá SL. Cả
+> hai lệch về phía làm số đẹp, nên chi phí thực thi đo ở ĐO 3 là **cận
+> dưới**.
+
 **Giá phải trả — BỐN lượt walk-forward, đo 09/09/2026.** Tiêu chí đọc được
 khai, ký và **commit TRƯỚC lượt chạy đầu tiên**: `docs/TIEU-CHI-DOC-TRUOC.md`
 vào `main` lúc 08:30, lượt 1 bắt đầu 08:59. Đó là lần đầu dự án chạy một
@@ -1455,6 +1469,13 @@ Ba hệ quả, cái thứ ba quan trọng nhất:
 cửa.** 4/4 ngày có lượt chạy trong 15:29 → 15:33 giờ VN (đóng cửa 15:00).
 Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lượt quyết
 định — nhịp trong phiên chủ yếu để thấy sớm, không đổi kết quả.
+
+> 🔴 **"KHÔNG ĐỔI KẾT QUẢ" SAI — audit 25/09/2026, `docs/STATE.md` BƯỚC
+> 121.** Lượt quét trong phiên chấm trên nến ngày ĐANG DỞ, và có ghi vào
+> sổ. Nó đặt lệnh thoát (CLOSING) và nâng stop. Rồi lượt sau đóng cửa CÙNG
+> PHIÊN khớp lệnh thoát ấy ở giá mở cửa của chính phiên đó, vì
+> `paper_trading.fill_closing` không có chốt ngày. Đo trên sổ thật: cả 3/3
+> lệnh tiến-về-trước đã đóng (HUT, TCB, NAF) mang đúng hình dạng này.
 
 Đó là lý do tắt Task Scheduler chấp nhận được. Nhưng nó cũng nghĩa là
 **không còn lưới dự phòng**: một ngày mà mọi lượt Actions đều hỏng thì

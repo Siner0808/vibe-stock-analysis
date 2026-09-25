@@ -1072,6 +1072,51 @@
           "he_qua": "Lượt thứ bảy trong ngày có câu âm; lần này câu hỏi về KẾT LUẬN cũng bỏ sót — nên câu âm về kết luận KHÔNG phải an toàn hơn câu âm về phương pháp, như BƯỚC 117 từng nghiêng về (n = 3 lúc ấy). Tự kiểm bằng grep sau mọi câu âm vẫn là luật, không phải tuỳ chọn."
         }
       ]
+    },
+    "BƯỚC 121": {
+      "ngay": "2026-09-25",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Đo độ tươi trước khi hỏi: sổ tay thấy BƯỚC 117, repo 120. Làm tươi (dán lại 10 URL, xoá 10 bản cũ theo tham chiếu, đọc URL trên hộp xác nhận) → đo lại ra BƯỚC 120. Đăng nhập trong trình duyệt Claude Code không sống qua phiên mới hay khi đóng khung trình duyệt.",
+      "cau_hoi": "I am about to write BƯỚC 121 into docs/STATE.md, a whole-system audit, with these conclusions: (1) on the live paper-trading path the scan runs twice per trading session on the still-forming daily candle, and paper_trading.fill_closing has no date guard, so all three closed forward trades (HUT, TCB, NAF) were filled at the OPEN of the same session in which their SIGNAL_REVERSED exit signal was produced; (2) the C5 stop condition counts zero of those three trades, because vs_benchmark looks up raw 19-character dates while the benchmark keys are 10-character dates; (3) exits through fill_closing pay no sell-side slippage and a gap below the stop is recorded at the stop price, so the execution-cost figure of about 0.63 points per trade from ĐO 3 is a lower bound, not an estimate; (4) the shell guard hook only matches the Bash tool, so other shell tools and quoted file names bypass its rules; (5) the session-start banner does not show the 29/09/2026 scheduled read; (6) the ĐO 15 criteria entered git in the same commit as its results. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that intraday scans only show things earlier and do not change results; a statement that evaluate_open passes sell orders through the slippage model; a statement that the ĐO 15 criteria were signed before the run; a statement that the shell guard blocks deleting .db files; or a statement that the stop condition already counts forward trades. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "STATE BƯỚC 61: 'Nên cả hai con số đều đã trôi: 3 → 2 vị thế mở, và bộ đếm 1 → 2'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — STATE.md",
+          "phan_quyet": "THẬT một phần — câu đúng về SỐ LỆNH ĐÃ ĐÓNG, nhưng dễ đọc thành số lệnh điều kiện dừng đếm được, mà con số ấy là 0. Đã đánh dấu 🔴 ngay dưới."
+        },
+        {
+          "noi_dung": "CLAUDE.md: '`evaluate_open` đi qua `truot_gia` khi bán'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md; paper_trading.fill_closing ghi thẳng giá mở cửa",
+          "phan_quyet": "THẬT — chỉ nhánh cắt lỗ đi qua trượt giá; lệnh thoát theo tín hiệu thì không. Đã đánh dấu 🔴."
+        },
+        {
+          "noi_dung": "CLAUDE.md: cửa Bash 'chặn … xoá `.db`'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md; cua_bash_an_toan.kiem() trả [] cho dạng tên trong dấu nháy",
+          "phan_quyet": "THẬT một phần — chặn dạng trần, nói quá cho các dạng khác. Đã đánh dấu 🔴."
+        },
+        {
+          "noi_dung": "STATE BƯỚC 113: 'Tiêu chí ký trước: docs/TIEU-CHI-DOC-TRUOC.md mục ĐO 15'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — STATE.md; git log docs/TIEU-CHI-DOC-TRUOC.md: ĐO 15 chỉ có 4c70b39",
+          "phan_quyet": "THẬT — không có bằng chứng git về tiền đăng ký. Đã đánh dấu 🔴."
+        },
+        {
+          "noi_dung": "Câu hỏi RỘNG hỏi trước đó cùng ngày (câu hiện tại nào bị câu khác nói ngược mà không có dấu) được trả 'không tìm thấy cặp nào'.",
+          "tu_kiem": "grep: SKILL.md dòng ~512 nói tools/kiem_cua_song.py so `.claude/settings.json` của repo; SKILL.md dòng ~574 nói nó so docs/cua-du-an.json — cùng file, không dấu",
+          "phan_quyet": "SAI — câu âm ấy bỏ sót một cặp trong chính nguồn. Câu hỏi về KẾT LUẬN cụ thể (ở trên) mới cho kết quả dùng được."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
