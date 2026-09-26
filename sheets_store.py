@@ -42,6 +42,7 @@ Xem NGUYEN-TAC-DO-LUONG.md.
 """
 from __future__ import annotations
 
+import pathlib
 import sqlite3
 from typing import Any, Optional, Protocol
 
@@ -69,6 +70,8 @@ _FLOAT_COLS = {"entry_price", "exit_price", "stop_loss", "take_profit",
 # và vòng đẩy-kéo sẽ mất dữ liệu âm thầm ở nửa còn lại:
 #
 #   entry_date/exit_date/exit_reason  NULL khi lệnh chưa khớp/chưa đóng
+#                                     (từ BƯỚC 123 lệnh CLOSING mang sẵn
+#                                     exit_date = NGÀY TÍN HIỆU THOÁT)
 #   skip_reason và cột chữ khác       luôn được ghi, mặc định chuỗi rỗng
 #
 # Nhờ tách bạch, vòng đẩy-kéo không mất gì — khoá bởi
@@ -358,6 +361,14 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
 # ─────────────────────────────────────────────────────────────────────
 # Mở backend thật từ secrets
 # ─────────────────────────────────────────────────────────────────────
+# File cấu hình đọc khi chạy NGOÀI Streamlit (run_daily.py, cron). Là hằng
+# số MỨC MODULE để test trỏ được nó sang thư mục tạm. Bản trước dựng đường
+# ngay trong hàm, nên test duy nhất đo nhánh đọc-file phải GHI ĐÈ file bí
+# mật THẬT rồi khôi phục trong `finally` — một lượt bị giết giữa chừng là
+# mất credential thật. Audit 25/09/2026, `docs/STATE.md` BƯỚC 121, tests-01.
+DUONG_SECRETS = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+
+
 def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
     """Dựng backend Google từ st.secrets. Trả None nếu chưa cấu hình.
 
@@ -381,8 +392,7 @@ def open_from_secrets(secrets: Optional[dict] = None) -> Optional[GoogleSheet]:
         # Chạy ngoài Streamlit (run_daily.py, cron) thì không có st.secrets,
         # đọc thẳng file cấu hình.
         if secrets is None:
-            import pathlib
-            p = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+            p = DUONG_SECRETS
             if p.exists():
                 # File CÓ mặt thì mọi lỗi đọc nó đều là "cấu hình hỏng",
                 # không phải "chưa cấu hình". Bản cũ bọc `except Exception:

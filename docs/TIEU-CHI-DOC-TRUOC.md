@@ -2956,3 +2956,259 @@ repo không nhập nó.
 > (BƯỚC 119).** Thiếu `squarify` chỉ là module ĐẦU TIÊN thiếu; sau nó còn
 > `wordcloud`, rồi bản phát hành thiếu hẳn gói con `static/`. Máy nay chạy
 > bản vá `1.0.2+vibe1`, `import vnstock_ezchart` mã thoát 0.
+
+
+---
+
+## ĐO 18 — bảng CHI PHÍ THỰC THI sau khi sổ được làm trung thực (BƯỚC 123) (khai 26/09/2026)
+
+**Đã tra trùng:** **BƯỚC 50** (ĐO 3) đo đúng bốn dòng này trên cache mặc định, ở mã ngày 10/09/2026. KHÔNG trùng: BƯỚC 123 sửa đúng ba chỗ ĐO 3 đã đi qua mà không thấy — lệnh thoát theo tín hiệu bán không trượt giá, gap dưới SL ghi giá SL, và mẫu hậu nghiệm cùng ngày lọt vào khi ngày có hậu tố giờ. Audit (BƯỚC 121) kết luận con số ĐO 3 là **cận dưới**; ĐO này đo lại.
+
+> **Khai 26/09/2026, SAU khi mã BƯỚC 123 vào nhánh `p1/so-trung-thuc`
+> và TRƯỚC lượt chạy đầu tiên, ở một commit RIÊNG.** Người dùng duyệt đúng
+> thứ tự này trong kế hoạch 25/09: *"Đo lại chi phí thực thi (ĐO mới, tiêu
+> chí ký ở commit riêng). Dự báo: xấu hơn con số cũ."*
+>
+> **Khai thêm, vì nó xảy ra trước khi ký:** một lượt thử đường ống 2 mã
+> (AAA, VCB) chạy dưới rào để chắc walkforward không cần `vnstock`. Một dòng
+> alpha của nó lọt ra màn hình khi `grep` tìm dòng dụng cụ: **−0,74% trên 52
+> lệnh**. Đó không phải quần thể của ĐO này (2 mã so với 71), và nó không
+> dùng để chọn bất cứ thứ gì dưới đây.
+
+### Vì sao phải có HAI luồng
+
+Mã trên `main` đã đổi từ 10/09 ở những chỗ chạm walkforward (ví dụ phép so
+trần vốn, lỗi 65, 15/09). So thẳng bảng P1 với ĐO 3 thì phần chênh không quy
+được cho P1. Nên chạy **cùng ngày, cùng cache, cùng dụng cụ**:
+
+| luồng | mã | ở đâu |
+|---|---|---|
+| **ĐỐI CHỨNG** | commit `5c70fa4` — ngay trước P1 (P0 không chạm walkforward) | git worktree riêng |
+| **P1** | commit của chính mục này — mã BƯỚC 123 + tiêu chí | git worktree riêng |
+
+Chung cho cả hai: `tools/do1_chi_phi_thuc_thi.py`, bốn lượt (trượt giá BẬT/TẮT
+× theo mã/theo ngày), `VIBE_CACHE_DIR` trỏ vào `backtest/cache` của repo
+(125 file), `sl_pattern_memory.json` chép vào mỗi worktree, rào chặn nạp
+`vn*` (BƯỚC 122), mọi tham số mặc định: `stride=2` · `min_history=60` ·
+`che_do_hoc=co_san` · `do_tre_khop=1`. Hai luồng chạy SONG SONG nên **thời
+gian chạy không so được**; con số thì so được (bất biến 2).
+
+Worktree chứ không phải thư mục làm việc: mỗi lượt là một tiến trình con
+nạp lại mã lúc khởi động, nên sửa mã giữa chừng sẽ cho bốn lượt chạy bốn
+bản mã khác nhau.
+
+### Phép kiểm dụng cụ — đọc TRƯỚC alpha
+
+1. **Mỗi lượt của cả hai luồng** phải có mã thoát 0 và log ghi: **71** mã có
+   vùng IS · **33** mã có vùng OOS · bộ nhớ học **đầu 44 mẫu, học thêm 0**.
+   Thiếu `sl_pattern_memory.json` trong worktree thì walkforward LẶNG LẼ chạy
+   bộ nhớ rỗng — đúng chỗ phép kiểm này canh. Lệch bất kỳ → **bảng không đọc
+   được**.
+2. **Luồng ĐỐI CHỨNG so với ĐO 3.** Khớp từng chữ số (theo mã 62:
+   **398 · −0,55% · [−1,38 ; +0,37]**; theo ngày 45: **612 · −0,90% ·
+   [−1,46 ; −0,32]**; hai dòng TẮT: **399 · +0,08%** và **582 · −0,24%**)
+   → mã `main` không trôi từ 10/09. Không khớp → **đó là một phát hiện, không
+   phải lỗi của ĐO này**: bảng ĐO 3 không còn mô tả `main`, và luồng đối chứng
+   thành mốc mới. Phép so chính vẫn đọc được, vì nó là P1 so với đối chứng.
+3. **Ngưỡng IS.** Một dòng P1 chỉ so được với dòng đối chứng **cùng chế độ và
+   cùng ngưỡng**. Khác ngưỡng → dòng ấy không so được; ghi ra, đừng ép — và
+   việc ngưỡng đổi tự nó là thông tin (lỗi 21).
+
+### Đại lượng
+
+- **alpha khớp từng lệnh + KTC 95%** trên OOS, bốn dòng mỗi luồng.
+- **Chi phí thực thi** = alpha(TẮT) − alpha(BẬT), mỗi chế độ, mỗi luồng.
+- **Δ do P1** = alpha(P1) − alpha(đối chứng), từng dòng cùng ngưỡng.
+
+### Dự báo, khai trước
+
+- **Hai dòng BẬT: Δ < 0, và chi phí thực thi P1 LỚN HƠN đối chứng.** Hai cơ
+  chế cùng chiều: lệnh thoát qua CLOSING nay chịu trượt giá bán; gap dưới SL
+  thoát ở giá mở cửa. **Ước lượng** (chưa đo): ĐO 3 đo trượt giá một chiều
+  ~0,31% ở giá vào trung vị; nếu khoảng một nửa lệnh thoát qua CLOSING thì
+  chi phí tăng cỡ **+0,1 → +0,2** điểm mỗi lệnh.
+- **Hai dòng TẮT: Δ ≤ 0 hoặc rất nhỏ.** Chỉ gap-SL (cùng chiều xấu đi) và
+  việc bỏ mẫu hậu nghiệm cùng ngày (chiều không đoán trước, cỡ nhỏ) chạm tới.
+
+### Kết cục, khai trước
+
+| kết cục | đọc thế nào |
+|---|---|
+| **1.** Dòng BẬT Δ < 0 và chi phí P1 > đối chứng; dòng TẮT \|Δ\| nhỏ hơn nửa bề rộng KTC | phù hợp dự kiến. Bảng P1 thay bảng chi phí trong `CLAUDE.md`; ĐO 3 đánh dấu *"cận dưới, đã đo lại"* |
+| **2.** Bất kỳ dòng nào alpha P1 **đẹp hơn** đối chứng quá **nửa bề rộng KTC** | **quy tắc số 1**: giả định CÓ LỖI. Không ghi số vào tài liệu cho tới khi tìm ra |
+| **3.** Dòng BẬT Δ ≥ 0 (chi phí không tăng) | trái dự kiến. Trước khi đọc: đếm lệnh thoát qua CLOSING trong sổ OOS của P1 và so `exit_price` với giá mở cửa — kiểm nhánh trượt giá bán CÓ chạy trong walkforward |
+| **4.** Một lượt thoát ≠ 0, hoặc phép kiểm dụng cụ 1 hỏng | bảng **không đọc được**; sửa rồi chạy lại cả luồng |
+
+### Đọc kèm, không quyết định gì
+
+Số lệnh thoát `STOP_LOSS` có gap (giá mở cửa < SL) và số lệnh thoát qua
+CLOSING trong vùng OOS của luồng P1 — để quy Δ cho hai cơ chế. Đây là mô
+tả, không phải phép thử: nó không đổi kết cục ở bảng trên.
+
+
+---
+
+## ĐO 19 — `vnai` 2.6.2 · `vnstock` 4.0.9 sau cách ly PyPI: con số có đổi không, và `import vnstock` còn ghi gì không? (khai 26/09/2026)
+
+**Dụng cụ đọc:** `tools/do19_nang_vnstock_409.py` — ba lượt: `truoc`, rồi
+`sau vnai` · `sau vnstock`, mỗi lượt ngay sau khi nâng **đúng một** gói.
+
+**Đã tra trùng:** BƯỚC 122 · BƯỚC 118 · BƯỚC 104 · BƯỚC 103 · BƯỚC 91 ·
+BƯỚC 87 — **ĐO 17 là khuôn**: ô A–F và toàn bộ bảng đọc của nó được dùng lại
+nguyên vẹn (`do17_nang_goi_vnstock.phan_xu`, nay nhận `goi_nang`); **ĐO 13
+điều 5** cấm gộp hai phép nâng vào một lượt; **BƯỚC 91 · 103** là hai đích
+và hai công tắc mà ô F, G canh; **BƯỚC 122** là việc tạm ngừng mà phép đo này
+mở lại.
+
+**Người dùng quyết 26/09/2026**, sau khi admin vnstock báo *"lỗi đã fix"*:
+nâng máy **qua một ĐO**; CI và Streamlit Cloud cài **từ kho của hãng** — bước
+riêng, **sau** ĐO này, để CI không chạy trước máy (lỗi 79).
+
+### Tình hình lúc ký — đo trong phiên
+
+```
+PyPI simple API, 07:27 UTC     vnstock · vnai   status "quarantined", 0 file
+GitHub thinh-vu/vnstock        commit 06:52 UTC = 4.0.9, CHANGELOG muc Security
+vnstocks.com/api/simple        vnstock 4.0.8 · 4.0.9    vnai 2.6.2
+may                            vnai 2.6.1 · vnstock 4.0.8 · vnii 0.2.6 · vnstock_data 3.3.1
+```
+
+CHANGELOG 4.0.9 thừa nhận bản cũ ghi khối lệnh vào file luật **toàn cục** của
+trợ lý AI mỗi lần `import vnstock`, nội dung tải từ máy chủ lúc ghi, và gọi
+đó là *prompt injection*. Nay việc ghi là **opt-in**, nội dung đóng trong
+`vnai`, cần `vnai >= 2.6.2`.
+
+### Đọc mã TRƯỚC — bánh xe tải từ kho hãng, KHÔNG cài
+
+```
+vnai-2.6.2-py3-none-any.whl      62.345 byte   sha256 5b285215…3f093081
+vnstock-4.0.9-py3-none-any.whl  286.953 byte   sha256 b51358c5…cb996e64
+
+vnai     21 -> 22 file .py   DOI 5 · THEM 1
+         beam/agents.py · beam/auth.py · beam/config.py · flow/relay.py ·
+         scope/promo.py  +  beam/agent_bootstrap.py
+         beam/fundamental.py (PERIOD_LIMITS)                     GIONG HET
+vnstock  129 file .py        DOI 6 · THEM 0 · MAT 0
+         __init__.py · core/utils/{agents,auth,upgrade}.py ·
+         explorer/{kbs,vci}/__init__.py
+         moi file duong du lieu (api/*, explorer/*/quote|company|financial)  GIONG HET
+pip install --dry-run --no-index (ca hai tep)  ->  "Would install vnai-2.6.2 vnstock-4.0.9"
+```
+
+- **Bánh xe phát hành KHÔNG phải commit GitHub.** Commit 06:52 (`53f7edce`)
+  chạm **46** file, gồm `api/company.py` · `api/financial.py` · `api/quote.py`
+  · `core/utils/block_detect.py`;
+  bánh xe 4.0.9 chỉ khác 4.0.8 ở **6** file, và không file nào nằm trên đường
+  dữ liệu. Phép đo này đo **bánh xe**, thứ sẽ được cài.
+- **`vnai` · `beam/agents.py`** — `agent_setup_enabled()` đổi mặc định từ
+  *bật trừ khi tắt* sang *tắt trừ khi bật*. Móc lúc import
+  (`async_setup_agent_environment`) nay chỉ gọi `_notice_leftover_blocks_once`:
+  in một thông báo ra stderr, và **trả về sớm** khi cấu hình đã có khoá
+  `enabled` — cấu hình của máy này có từ 18/09 (BƯỚC 103). Đọc mã nói *"không
+  ghi"*; ô G mới là thứ **nói**.
+- **`vnai` · `beam/auth.py`** — khoá thôi đi trong thân gói đăng ký thiết bị,
+  chuyển sang header `Authorization`; `_detect_tier` **không đổi**.
+- **`vnai` · `flow/relay.py`** — khoá ingest của đường telemetry chuyển từ
+  base64 sang hằng số trần, **cùng giá trị**. Telemetry đã tắt 18/09
+  (BƯỚC 104); đường này **không** được đo.
+- **`vnstock` · `__init__.py`** — bỏ `setup_agent(async_mode=True)` ở cuối
+  file; thay bằng móc thông báo, **chỉ** gọi khi `vnai` có
+  `beam/agent_bootstrap` (tức ≥ 2.6.2). Vì thế thứ tự chặng là `vnai` trước.
+
+### HAI CHẶNG, KHÔNG PHẢI MỘT LƯỢT
+
+```
+truoc --nang vnai--> sau_vnai --nang vnstock--> sau_vnstock
+```
+
+- Mỗi chặng so với chặng **ngay trước**; `pip freeze` đổi **đúng một dòng**,
+  của gói chặng ấy. Cài bằng `pip install --no-deps <tệp>` từ đúng hai bánh
+  xe đã băm ở trên.
+- **`vnai` trước:** `vnstock` 4.0.8 vẫn gọi `setup_agent` lúc import, nên
+  chặng 1 đo luôn câu *"`vnai` 2.6.2 có làm đường cũ ngừng ghi không"*;
+  `vnstock` 4.0.9 với `vnai` 2.6.1 là tổ hợp chính hãng đã chặn bằng phép dò
+  tính năng, không ai định chạy.
+- Chặng nào không ra `NANG DUOC` thì **lùi gói của chặng ấy và DỪNG**.
+
+### Bảy ô và hai điều kiện đọc
+
+| | đại lượng | quyền phán |
+|---|---|---|
+| **A–E** | như ĐO 17 — `Quote.history` khoảng đã đóng · bảng giá · `ratio()` số kỳ + tập cột · `kiem_goi()` · khối ngoại **ngoài rổ**, cửa sổ ô D, 2 lượt mỗi bản | **CÓ**, như ĐO 17 |
+| **F** | như ĐO 17 — tiến trình mới `import vnstock_data`, 0/4 đích bật, `minimal`, 3 đích toàn cục đứng yên | **CÓ** |
+| **G** | tiến trình mới `import vnstock`: mã thoát 0 **và** 5 file đứng yên — 3 đích toàn cục · `AGENTS.md` của repo · `~/.vnstock/config/agent.json`. Chụp **trước** mọi ô khác | **CÓ** |
+| bản | bản đã cài bằng đúng bản đã ký (2.6.2 · 4.0.9) | điều kiện đọc |
+| nền | `pip freeze` hai đầu chặng khác **đúng một dòng**, của gói chặng ấy | điều kiện đọc |
+
+`~/.claude/CLAUDE.md` **vẫn còn** khối vnai lúc ký — người dùng chọn gỡ, lệnh
+gỡ bị hệ thống quyền chặn, chưa gỡ. G chỉ hỏi *có ai GHI không*; thông báo
+stderr của 4.0.9 về khối ấy được **in ra**, không phán.
+
+### BẢNG ĐỌC — ký trước, không sửa sau khi thấy số
+
+Áp cho **từng chặng**. "Lùi" là lùi **gói của chặng ấy** rồi **dừng**.
+
+```
+keo HONG o bat ky o nao · E thieu ma/luot/dong    ->  CHUA KET LUAN DUOC, lui, dung
+freeze doi KHAC dung MOT goi cua chang            ->  CHUA KET LUAN DUOC, lui, dung
+ban da cai KHAC ban da ky                         ->  CHUA KET LUAN DUOC, lui, dung
+nen F hoac nen G cua chang TRUOC khong dat        ->  CHUA KET LUAN DUOC, lui, dung
+F SAU hoac G SAU khong dat                        ->  KHONG NANG, lui, dung
+A khac mot o · B doi tap cot · C doi so ky
+  hoac tap cot · D doi                            ->  KHONG NANG, lui, dung
+E: mot phia, hai luot CUNG ban khac nhau          ->  HOAN
+E: ban cu != ban moi (bam, hoac hinh dang goi)    ->  HOAN
+con lai                                           ->  NANG DUOC, sang chang ke
+ca hai chang NANG DUOC                            ->  NANG DUOC, neu 5 cong xanh
+```
+
+**Ô `KHÔNG NÂNG` là thứ làm bảng này thành phép kiểm** — kể cả khi người
+dùng đã muốn nâng. Nó xảy ra thì báo người dùng, không tìm đường vòng.
+
+### ĐƯỜNG LÙI — dựng và kiểm TRƯỚC khi cài
+
+PyPI đang cách ly nên **không tải lại được** bản đang cài từ PyPI:
+
+```
+vnai-2.6.1-py3-none-any.whl     scratchpad/do17/moi  sha256 ee67d159…  KHOP dong freeze
+vnstock-4.0.8-py3-none-any.whl  kho hang             129/129 file .py GIONG HET ban dang cai
+```
+
+Bản `vnai` 2.6.1 nằm trong **thư mục tạm của phiên** — mất thư mục ấy thì mất
+đường lùi của `vnai` cho tới khi PyPI gỡ cách ly. Ghi ra để không ai tưởng
+có.
+
+### Điều KHÔNG hứa
+
+- **Không nói gì về độ tin cậy của kho hãng.** Hai bánh xe có băm ghi ở
+  trên; phép kiểm độc lập của PyPI thì **bị bỏ qua** cho lượt cài này —
+  người dùng đã quyết.
+- **Không** đo đường telemetry (`relay.py`), quảng cáo (`promo.py`), tải
+  skill, hay trường `operation` của `vnii` (ĐO 17 cũng không).
+- **Không** chạm `requirements.txt` hay workflow — đổi nguồn cài của CI và
+  Cloud là bước riêng, sau khi bảng này ra `NANG DUOC`.
+- Ô E đo **ba mã ngoài rổ, một cửa sổ**, như ĐO 17.
+
+**Quy tắc số 1, áp ngược:** `NANG DUOC` là chiều người dùng muốn. Nên ô E
+giống hệt phải đi kèm **dòng thô**, và ô G phải in **băm của từng file**, không
+chỉ chữ *"đứng yên"*.
+
+
+---
+
+## Kết quả ĐO 19 — chạy 26/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do19_nang_vnstock_409.py`
+
+Tiêu chí vào nhánh lúc **14:48:34** (`2c6db3f`); lượt `truoc` bắt đầu
+**14:48:46** — trước khi đổi một gói nào.
+
+```
+chang          luc cai    nen -> sau                phan quyet
+vnai 2.6.2     14:50:38   truoc    -> sau_vnai      NANG DUOC
+vnstock 4.0.9  14:52:09   sau_vnai -> sau_vnstock   NANG DUOC
+nam cong KHONG rao chan   1438 passed · moi file xanh rieng · 0 CHAN
+```
+
+**NÂNG ĐƯỢC.** Ô A–E giống từng băm với ảnh `truoc` **và với ĐO 17**; ô F,
+G đạt ở cả ba ảnh. Số liệu và dòng thô: `docs/STATE.md` BƯỚC 126.

@@ -40,12 +40,21 @@ TEN_GOI = {
 }
 
 
-def _da_khai_bao() -> set:
-    ten = set()
+def _dong_that() -> list[str]:
+    """Mọi dòng của requirements.txt sau khi bỏ chú thích và dòng trống."""
+    ra = []
     for dong in (GOC / "requirements.txt").read_text(encoding="utf-8").splitlines():
         dong = dong.split("#")[0].strip()
-        if not dong:
-            continue
+        if dong:
+            ra.append(dong)
+    return ra
+
+
+def _da_khai_bao() -> set:
+    ten = set()
+    for dong in _dong_that():
+        if dong.startswith("-"):
+            continue                  # dong tuy chon cua pip, khong phai ten goi
         for dau in (">=", "==", "<=", "~=", ">", "<", "["):
             dong = dong.split(dau)[0]
         ten.add(dong.strip().lower())
@@ -366,3 +375,38 @@ def test_khong_import_goi_tai_tro_o_muc_module():
         + "\n  ".join(xau))
     print(f"PASS  {len(tap)} file o goc + tools/ + tests/, khong file nao "
           f"import goi tai tro o muc module")
+
+
+# ══ KHO THỨ HAI — BƯỚC 127 (26/09/2026) ═════════════════════════════════
+#
+# PyPI cách ly `vnstock` và `vnai`; hai gói lấy từ kho riêng của hãng. Hai
+# gác dưới giữ đúng hai lời hứa của khối chú thích trong requirements.txt:
+# kho thứ hai chỉ THÊM vào PyPI, và hai gói từ kho ấy GHIM ĐÚNG bản máy đã đo.
+
+KHO_HANG = "https://vnstocks.com/api/simple"
+GOI_TU_KHO_HANG = ("vnstock", "vnai")
+
+
+def test_kho_thu_hai_la_DUNG_kho_hang_va_chi_THEM_vao_PyPI():
+    """`--index-url` thay hẳn PyPI; `--trusted-host` tắt kiểm TLS; một kho
+    `http://` thì ai đứng giữa cũng đổi được gói. Chỉ đúng MỘT dòng này."""
+    tuy_chon = [d for d in _dong_that() if d.startswith("-")]
+    assert tuy_chon == [f"--extra-index-url {KHO_HANG}"], tuy_chon
+
+
+def test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay():
+    """Sàn để kho nào có bản cao hơn quyết định CI chạy gì (lỗi 79). Ghim
+    bằng `==`, và bản ghim phải là bản đang chạy ở đây — trên CI là bản vừa
+    cài từ chính file này, ở máy là bản ĐO 19 đã đo."""
+    import importlib.metadata as md
+    import re
+    for g in GOI_TU_KHO_HANG:
+        dong = [d for d in _dong_that()
+                if re.split(r"[<>=!~\[ ;]", d)[0].strip().lower() == g]
+        assert len(dong) == 1, f"{g}: {dong}"
+        assert re.fullmatch(rf"{g}==[0-9][0-9.]*", dong[0]), (
+            f"{g} phai ghim bang `==`, khong phai {dong[0]!r}")
+        ghim = dong[0].split("==")[1]
+        assert md.version(g) == ghim, (
+            f"{g}: requirements ghim {ghim}, dang chay {md.version(g)} — may "
+            f"va CI se chay hai ban khac nhau (loi 79)")

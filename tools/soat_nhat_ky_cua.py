@@ -73,7 +73,15 @@ def doc_nhat_ky(duong: Path) -> list[dict]:
             hong += 1
     if hong:
         print(f"⚠️  {hong} dong hong, da bo qua", file=sys.stderr)
-    return ra
+    # Từ 25/09/2026 cửa ghi cả lượt PowerShell. Công cụ này THỬ LUẬT
+    # BASH trên lệnh đã gõ, nên lệnh PowerShell không thuộc quần thể của
+    # nó — đưa chúng vào là đo tỷ lệ bắt nhầm trên sai cú pháp. Bản ghi
+    # cũ không có trường `cong_cu` đều là Bash.
+    bash = [b for b in ra if b.get("cong_cu", "Bash") == "Bash"]
+    if len(bash) != len(ra):
+        print(f"({len(ra) - len(bash)} ban ghi PowerShell, bo qua)",
+              file=sys.stderr)
+    return bash
 
 
 def thu_mau(ten_luat: str, mau_moi: str, lenh: str) -> list[str]:

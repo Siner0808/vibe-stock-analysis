@@ -271,13 +271,19 @@ def vs_benchmark(trades: list[Trade],
     Đây là phép đo quyết định. Không có nó, một thị trường tăng sẽ khiến
     mọi hệ thống trông như thiên tài.
     """
+    # So bằng NGÀY 10 ký tự ở CẢ HAI phía. Bản cũ tra khoá thô: sổ thật ghi
+    # ngày 19 ký tự, `ro_chuan_tu_chuoi_gia` dựng khoá 10 ký tự, nên MỌI lệnh
+    # tiến-về-trước đã đóng rơi vào `bo_qua` và điều kiện dừng C5 đứng mãi
+    # ở "mới 0". Audit 25/09/2026, ma_giao_dich-05.
+    ro = {(_ngay(a), _ngay(b)): v
+          for (a, b), v in benchmark_return_by_period.items()}
     diffs = []
     bo_qua = 0
     for t in trades:
         if t.status != "CLOSED" or t.net_return_pct() is None:
             continue
-        key = (t.entry_date or "", t.exit_date or "")
-        bench = benchmark_return_by_period.get(key)
+        key = (_ngay(t.entry_date), _ngay(t.exit_date))
+        bench = ro.get(key)
         if bench is None:
             # Đếm, không nuốt. Một lệnh đã đóng mà không tìm được cặp ngày
             # trong rổ chuẩn là MẪU BỊ BỎ, không phải mẫu không tồn tại.

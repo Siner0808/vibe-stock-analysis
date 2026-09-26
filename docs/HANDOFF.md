@@ -105,9 +105,14 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 
 **Ba điều là QUYẾT ĐỊNH, không phải phép đo — chúng ổn định:**
 
-1. **Cổng mở lệnh mới đang ĐÓNG**, đóng bằng tay từ 29/08/2026. Khoá bởi
+1. **Cổng mở lệnh mới MỞ LẠI từ 26/09/2026** (`docs/STATE.md` BƯỚC 125),
+   sau thời gian đóng tay 29/08 → 26/09. Khoá bởi
    `tests/test_c5_noi_that.py`, và test ấy đọc từ NGUỒN chứ không đọc giá
-   trị lúc chạy. Mở lại là một hành vi có cân nhắc, phải sửa cả test.
+   trị lúc chạy. Đóng lại là một hành vi có cân nhắc: sửa cả test lẫn
+   `NGAY_DONG_CONG_C5`. **Cờ mở chưa sinh lệnh nào** — đường quét tự động
+   tạm ngừng cùng `vnstock` (mục 5).
+   *(Bản trước ghi "đang ĐÓNG, đóng bằng tay từ 29/08/2026" — đúng tới
+   BƯỚC 125. Sổ tay soát BƯỚC 125 KHÔNG chỉ ra câu này; `grep` bắt được.)*
 2. **Sổ lệnh THẬT nằm trên Google Sheets.** File `.db` ở máy đứng yên từ
    20/08/2026; đo trạng thái bằng nó là đo một bản sao chết. Đã sai đúng
    như vậy một lần ngày 28/08.
@@ -120,6 +125,12 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 cho cùng kết luận: ĐO 1 (09/09) · ĐO 3 (10/09) · ĐO 4 (11/09).
 `docs/STATE.md` BƯỚC 44 · 50 · 52. Con số hiện hành thì đọc bảng ĐO 3
 trong `CLAUDE.md`, đừng đọc ở đây.
+
+> 🔴 **ĐÃ ĐO LẠI TRÊN SỔ TRUNG THỰC — ĐO 18, 26/09/2026 (BƯỚC 124).** Bảng
+> hiện hành nay là bảng ĐO 18 trong `CLAUDE.md`. Dòng theo ngày trượt giá
+> BẬT ra **−1,48% [−2,05 ; −0,88]**; và **3 trên 4 dòng** loại được số 0,
+> kể cả dòng TẮT trượt giá theo ngày (−0,72%). Nghĩa là thua rổ không chỉ
+> vì chi phí thực thi.
 
 > 🔴 **CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026 VÀ VẪN ĐỨNG TỚI 14/09.** Nó
 > ghi *"dự án hiện không có kết quả nào loại được số 0"* — viết
@@ -279,6 +290,50 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+⛔ **TẠM NGỪNG `vnstock` / `vnai` từ 25/09/2026** — `docs/STATE.md`
+BƯỚC 122. PyPI đặt hai gói ở trạng thái *quarantined*. Người dùng chốt:
+không chạy app hay bất kỳ mã/test nào NHẬP hai gói; không cài, nâng, gỡ
+gói; ba workflow `quet-so-lenh` · `canh-cong-c5` · `chuong-nguon-dung`
+đang TẮT. Mở lại chỉ khi hãng giải thích VÀ người dùng cho phép — PyPI
+gỡ quarantine thôi chưa đủ. Trong lúc này CI của mọi PR đỏ ở bước cài
+gói, nên **không PR nào merge được**. Việc làm được: mã không chạm hai
+gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
+
+> 🟡 **ĐỔI 26/09/2026 — hai điều kiện mở lại đã có, PyPI thì CHƯA.** Hãng
+> phát hành `vnstock` 4.0.9 · `vnai` 2.6.2 trên kho riêng
+> (`vnstocks.com/api/simple`), CHANGELOG mục *Security* giải thích: bản cũ ghi
+> khối lệnh vào file luật toàn cục của trợ lý AI mỗi lần import. Người dùng
+> cho phép: **nâng máy qua ĐO 19** (`docs/TIEU-CHI-DOC-TRUOC.md`), rồi CI và
+> Streamlit Cloud **cài từ kho hãng** — bước riêng, sau ĐO 19. ✅ **Cả hai
+> đã làm:** ĐO 19 ra NÂNG ĐƯỢC ở cả hai chặng (BƯỚC 126); `requirements.txt`
+> thêm kho hãng và ghim đúng bản (BƯỚC 127). PyPI lúc 07:27
+> UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
+> phép riêng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
+
+> 🧭 **CUỐI NGÀY 26/09/2026 — đọc trước khi làm tiếp.**
+>
+> - **#171 ĐÃ MERGE vào `p0/harness-chat-che`** (`1a84379`, 17:03). Hai
+>   check `kiem-dinh` xanh trên `c6f1ecd`; năm cổng ở máy xanh — 1440
+>   passed — **chạy với `PYTHONUTF8=1`** (gạch thứ ba).
+> - **Chưa vào `main`:** #170 (nháp, `p0/…` → `audit/…`) rồi #169
+>   (`audit/…` → `main`). CI cũ của cả hai ĐỎ từ thời tạm ngừng (8–12 giây,
+>   chết ở bước cài gói). Commit ghi khối này đẩy lên `p0/…` nên CI của #170
+>   chạy lại; #169 cần một lượt chạy lại riêng. Qua được bước cài từ kho
+>   hãng hay không: **CHƯA đo** trên hai nhánh ấy. Bỏ nháp #170 là việc của
+>   người dùng.
+> - **Cổng 1 ở máy ĐỎ 2 test nếu shell thiếu `PYTHONUTF8=1`** (đo 26/09):
+>   `test_doi_chung_ngoai_venv.py::test_DUNG_CU_DAN_khong_chet_khi_THIEU_venv_doi_chung`
+>   và `test_nhat_ky_cua_bash.py::test_DUNG_CU_DOC_chay_duoc_va_THOAT_2_khi_luat_khong_co`.
+>   Tiến trình con in stderr bằng cp1252 (byte `0x97` = `—`), test đọc
+>   UTF-8 nên `stderr` thành `None`. CI (Linux) không gặp. Hai file ấy không
+>   nằm trong diff #171 — lỗi có từ trước, lộ ra theo môi trường shell.
+>   **Chưa sửa**; sửa đúng là cho dụng cụ `reconfigure` stderr sang UTF-8
+>   hoặc cho test truyền `encoding` — việc riêng, cần một BƯỚC.
+> - **Hai worktree ĐO 18 đã gỡ** (người dùng cho phép). 18 file dữ liệu
+>   (`wf_*.db` · `sl_pattern_memory.json`) **không xoá** — chuyển sang
+>   `C:\Users\cuong\.gemini\antigravity\scratch\luu_do18\`. Xoá hẳn thì hỏi
+>   người dùng.
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
@@ -292,6 +347,9 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   đường `goi_thu` → `foreign_flow` **cùng byte** giữa 3.3.0 và 3.3.1, trên
   ba mã ngoài rổ. Băm khác ngày 29/09 thì là NGUỒN, không phải thư viện.
   `docs/STATE.md` BƯỚC 118.
+  ⛔ **Phép đọc này cần `vnstock_data` — đang tạm ngừng** (khối trên).
+  Tới ngày mà chưa mở lại thì **HOÃN**, không kéo bằng đường khác: một
+  nguồn khác cho băm khác là đo NGUỒN, không đo việc restate.
 
 - ~~**12/09/2026** — tiêu chí về cơ chế rơi nhịp cron~~ **ĐÃ ĐỌC ĐÚNG
   HẠN 12/09/2026:** A = 258,05 phút · B = 2 lượt/ngày → **ô thứ tư,
@@ -322,14 +380,30 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   đường tiến-về-trước: lệnh thoát khớp ngay trong phiên ra tín hiệu (3/3
   lệnh đã đóng), và điều kiện dừng C5 đếm 0 lệnh. Sửa chúng làm đổi số đo
   nên phải qua một ĐO có tiêu chí ký trước.
-- **Chọn hướng chiến lược** (BƯỚC 121, mục *Đường hướng*): (A) công cụ hỗ
+  **14/19 đã vá** — BƯỚC 123 thêm bảy phát hiện của đường giao dịch ảo
+  (khớp lệnh thoát cùng phiên · trượt giá bán · gap dưới SL · ngày 19 ký
+  tự · hậu tố giờ · nâng stop trên nến dở · việc treo trailing stop).
+  **7/19 đã vá ở BƯỚC 122** (phần hàng rào: cửa lệnh shell canh cả
+  PowerShell · tên đích trong nháy · heredoc mọi thứ tự · `cua_ho_so` thôi
+  tự duyệt · bản tin mở phiên hiện mốc 29/09 · test không chạm
+  `secrets.toml` thật · `pytest.ini`) — **chưa merge**, vì đang tạm ngừng.
+- ~~**Chọn hướng chiến lược** (BƯỚC 121, mục *Đường hướng*): (A) công cụ hỗ
   trợ quyết định cho chính người dùng, không phát khuyến nghị mua tự động;
   hay (B) tiếp tục săn alpha, chỉ thiết kế vòng quay thấp, sau khi sửa
-  đường tiến-về-trước.
-- **Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
+  đường tiến-về-trước.~~ **ĐÃ CHỌN 25/09/2026 — và KHÔNG phải A:** người
+  dùng bác A vì nó bỏ mất lõi của ý tưởng. Hướng mới: agent tự giao dịch
+  ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
+  `docs/STATE.md` BƯỚC 122.
+  **Tiến độ:** P0 hàng rào — BƯỚC 122 · P1 sổ trung thực — BƯỚC 123 ·
+  ĐO 18 — BƯỚC 124 · mở lại cổng lệnh ảo — BƯỚC 125. **P1 xong, chưa
+  merge** (tạm ngừng). Việc kế: P2, nhật ký *"vì sao"*.
+- ~~**Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
   đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
   ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ
-  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.
+  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.~~
+  **ĐÃ QUYẾT 25/09, ĐÃ LÀM 26/09 (BƯỚC 123):** người dùng duyệt *"quét
+  trong phiên chỉ để cảnh báo, không ghi sổ"*; `run_daily` nay chỉ ghi
+  sổ trên nến đã đóng.
 - **Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
   ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit.
 

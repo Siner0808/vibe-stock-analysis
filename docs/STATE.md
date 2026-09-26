@@ -749,6 +749,12 @@ lập với rho = −0,019 của `MO-XE-KIEN-TRUC.md` và đi cùng hướng.
   `stop_loss` lại ở mỗi nhịp quét, tính trên nến **chưa đóng**. Mức stop
   cuối phụ thuộc giờ nào máy được bật. Hoặc chỉ ghi trailing stop ở ATC,
   hoặc chấp nhận và ghi rõ rằng sổ này không tái lập được. **Cần người dùng.**
+
+  > ✅ **ĐÃ QUYẾT 25/09/2026, ĐÃ LÀM 26/09/2026 — BƯỚC 123.** Việc treo
+  > này không lên `docs/HANDOFF.md` suốt 36 ngày (audit BƯỚC 121,
+  > state_loi_hua-09). Người dùng duyệt *"quét trong phiên chỉ để cảnh
+  > báo, không ghi sổ"*; `run_daily` nay chỉ ghi sổ trên nến đã đóng.
+
 - **5C** (cấm in "quán quân", mỗi vòng một tiến trình) và **5D** (dựng lại
   walk-forward — chặn bởi C4) chưa làm.
 - **Phase 6** giờ đã có số đo để quyết, nhưng ba phương án A/B/C vẫn cần
@@ -12836,6 +12842,11 @@ Năm vòng. **Ba vòng cắt bớt thiết kế, một vòng cắt NHẦM, một
 | bỏ khi file MỚI HƠN lời khai | **lật ngược** |
 | nén quan sát bằng LLM + Chroma + provider xa | không |
 
+> 🔴 **Dòng "bơm chứ không chặn (`permissionDecision: "allow"`)" SAI VỀ
+> NGHĨA, và nó sống tới audit 25/09/2026.** Đặc tả nói nguyên văn: `"allow"`
+> *skips the permission prompt* — tức cửa ấy TỰ DUYỆT, không phải trung
+> tính. Từ BƯỚC 122 `tools/cua_ho_so.py` chỉ trả `additionalContext`.
+
 Cổng "file mới hơn lời khai" là chỗ đáng tiền nhất và phải dùng **ngược**:
 với một công cụ trí nhớ, lời khai già hơn file thì giấu đi; với dự án này,
 **lời khai già hơn thứ nó mô tả CHÍNH LÀ con bọ** — lỗi 57 · 60 · 63 · 64 ·
@@ -12907,6 +12918,9 @@ tools/ho_so.py       tra cuu THUAN, goi duoc bang tay, 218 ms mot luot
 tools/cua_ho_so.py   PreToolUse Read|Edit -> additionalContext, allow
 SKILL.md Buoc 1      dieu 1 dung ho_so.py; them dieu 1b
 ```
+
+> 🔴 **Vế `allow` ở dòng thứ hai HẾT ĐÚNG TỪ BƯỚC 122** — cửa thôi trả
+> `permissionDecision`; xem ô đỏ ở bảng cơ chế ngay trên.
 
 Không tách skill riêng: Bước 1 điều 1 **đã là** *"tìm xem đã có lời giải
 chưa"*; `tools/ho_so.py` là bản cơ giới hoá đúng bước ấy. Tách ra là hai chỗ
@@ -17465,6 +17479,10 @@ thẳng hàm phán:
 - Ba script tên `*_test.py`/`test_*.py` ở gốc không có guard `__main__` và
   `os.remove` hai `.db` bằng chứng. `pytest` trần ở gốc sẽ chạy chúng.
 
+> ✅ **Năm lỗ ở danh sách trên đã vá ở BƯỚC 122**, trên nhánh
+> `p0/harness-chat-che` — **chưa vào `main`**: CI của mọi PR đỏ ở bước
+> cài gói suốt thời gian tạm ngừng `vnstock`.
+
 **Bề mặt người dùng nhìn nói khác phép đo.** App tự đặt ngưỡng 50/60 và
 hiện "MUA THĂM DÒ"/"MUA 30%", không đọc khuyến nghị của master. Với dữ liệu
 mô phỏng, master trả điểm 50, nên app vẫn hiện "MUA THĂM DÒ". README công
@@ -17533,3 +17551,682 @@ chưa từng vào
 - Không sửa lỗi nào. Đánh dấu 🔴 chỉ nói câu cũ đã sai, chưa sửa mã.
 - 3 lệnh đã đóng mang giá thoát sai quy tắc, nhưng lãi/lỗ đúng theo quy
   tắc của chúng **chưa tính lại**, và 3 trên 113 không đọc được gì.
+
+## BƯỚC 122 — QUYẾT ĐỊNH 25/09 VÀ P0 HÀNG RÀO: BẢY PHÁT HIỆN CAO ĐÃ VÁ, CHƯA MERGE ĐƯỢC VÌ ĐANG TẠM NGỪNG `vnstock` (25/09/2026)
+
+Hai việc trong một BƯỚC, vì việc thứ hai là bước đầu của việc thứ nhất:
+ghi lại các quyết định người dùng chốt tối 25/09, và làm phần P0 (hàng rào)
+của kế hoạch mới trong **chế độ hạn chế** do việc tạm ngừng `vnstock`.
+
+### Quyết định của người dùng (25/09/2026)
+
+**Hướng A của BƯỚC 121 bị bác.** Người dùng đọc kế hoạch *"công cụ hỗ trợ
+quyết định, không phát khuyến nghị mua tự động"* và nói: *"nó đã phá hỏng ý
+tưởng ban đầu của tôi. ý tưởng của tôi khi tạo app này là để AI Agent phân
+tích cổ phiếu và tự đi lệnh (tất nhiên là lệnh ảo) từ đó sau mỗi lệnh
+thắng/thua thì Agent sẽ học được gì và tự nâng cấp nó lên. Bên cạnh đó tôi
+nhìn vào sổ lệnh của Agent để tự học hỏi thêm."*
+
+Chỗ sai của tôi: tối ưu cho câu hỏi *"chiến lược có alpha không"* rồi suy
+ra *"bỏ máy tự giao dịch"*. Mục tiêu của dự án không đòi alpha dương; nó đòi
+một agent tự vận hành, học được, và minh bạch để người học theo. Kết quả đo
+*"không có lợi thế"* là thông tin cho agent học, không phải lý do tắt agent.
+Bảng lỗi, lỗi 103.
+
+Hướng mới, ba tầng, người dùng đã duyệt:
+
+1. **Giao dịch ảo trung thực.** Một lượt quét mỗi phiên sau đóng cửa; lệnh
+   thoát khớp phiên sau, có trượt giá bán; gap dưới SL khớp giá mở cửa;
+   ngày chuẩn hoá 10 ký tự; điều kiện dừng đếm được lệnh thật. Rồi **mở
+   lại cổng lệnh ảo**.
+2. **Nhật ký "vì sao"** trên một tab Google Sheets mới: lúc vào lệnh (điểm
+   từng agent, lý do, bối cảnh) và lúc đóng (kết quả theo R, so với rổ, hậu
+   kiểm máy, rồi hậu kiểm lời). Hậu kiểm lời dùng **Claude**; khoá API do
+   người dùng tự đặt, không đi qua tay agent.
+3. **Tự nâng cấp có kỷ luật, hai vòng.** Sàng lọc tối đa **5 ứng viên mỗi
+   tuần** trên dữ liệu đã nhìn, cả lô khai trong một commit trước khi chạy;
+   xác nhận tối đa **1 mỗi tháng** trên dữ liệu chưa nhìn, tiêu chí ký ở
+   commit riêng, ngưỡng hiệu chỉnh theo tổng số ứng viên đã sàng. Qua xác
+   nhận thì agent **tự lên phiên bản** và **báo người dùng ngay**. Vòng xác
+   nhận được **kiểm định định kỳ** bằng ứng viên giả (có lợi thế biết trước
+   thì phải bắt được, ngẫu nhiên thì phải bị loại), và **bộ quy tắc được cập
+   nhật khi quét phát hiện lỗi**. Người dùng: *"Skill Hook Workflow Harness
+   phải chặt chẽ"*.
+
+Kèm theo: bộ nhớ học cũ (44 mẫu lệnh thua) **chỉ giữ làm lịch sử**; việc ký
+tiêu chí mở rộng ĐO 14 sang 71 mã và việc gỡ khối vnai trong
+`~/.claude/CLAUDE.md` **dời tới sau khi xong kế hoạch**.
+
+### Tạm ngừng `vnstock` / `vnai`
+
+Tối 25/09 PyPI đặt `vnstock` và `vnai` ở trạng thái **quarantined** (PEP 792:
+*"The project is considered generally unsafe for use, e.g. due to
+malware"*). Đo lại lúc 21:23: vẫn `quarantined`, danh sách file rỗng. Hãng
+chưa có thông báo nào (trang chủ, blog, GitHub `thinh-vu/vnstock` — commit
+cuối 12/09).
+
+Người dùng chốt **tạm ngừng**: không chạy app hay bất kỳ mã nào nhập hai gói;
+không cài, nâng hay gỡ gói; tắt ba workflow `quet-so-lenh`, `canh-cong-c5`,
+`chuong-nguon-dung` (`disabled_manually`). PyPI gỡ quarantine thôi **chưa
+đủ** để mở lại — cần hãng giải thích và người dùng cho phép.
+
+Hệ quả trực tiếp: CI của **mọi** PR đỏ ở bước cài gói, nên PR #169 (BƯỚC 121)
+và PR của BƯỚC này **không merge được** cho tới khi tạm ngừng kết thúc.
+
+### Chế độ hạn chế — rào chặn lúc chạy, và giới hạn của nó
+
+Đo trước khi chạy bất kỳ Python nào trong `.venv`:
+
+```
+.pth trong site-packages   distutils-precedence · google nspkg   (khong goi vn*)
+sitecustomize / usercust.  khong co
+plugin pytest (pytest11)   chi anyio
+goi phu thuoc ho vn*       chi chinh ho vn* (vnstock, _data, _ta, _news, _ezchart)
+```
+
+Rào: một `sitecustomize.py` ngoài repo, nạp qua `PYTHONPATH`, cài một
+`meta_path` finder **từ chối tìm** chín tên gốc họ `vn*` — nên mã của hãng
+không bao giờ được thực thi, và mọi tiến trình con thừa kế môi trường cũng
+mang rào. Đối chứng: không rào thì `find_spec` thấy cả hai gói; có rào thì
+cả bốn tên thử bị chặn, kể cả trong tiến trình con. Quét tĩnh năm cửa cùng
+`ho_so`, `chan_bia_so_lieu`, `kiem_cua_song`: không cửa nào nhập `vn*`.
+
+`tests/test_post_mortem.py` từng **ghi đè** `PYTHONPATH` của tiến trình con,
+tức xoá môi trường người gọi truyền vào — và rơi mất rào. Nay nó **nối
+thêm**; chạy dưới rào: 8 passed, **0** lượt chạm `vn*`.
+
+**Cả bộ dưới rào**, lượt đầu (chưa gồm file trên): **1.397 passed · 2 failed
+· 1 skipped**, 28 lượt nhập bị chặn. Cả hai test đỏ do chính bản vá này (một
+mẫu trỏ tới file không có; mốc số test chưa cập nhật), đã sửa. Kết quả năm
+cổng cuối cùng: mô tả PR.
+
+**Giới hạn phải đọc kèm: *xanh dưới rào* yếu hơn *xanh*.** 28 lượt chặn đến
+từ năm chỗ — `vnstock_goi.py:136` (14), `vnstock_auth.py:54` (10),
+`tests/test_dich_ghi_de_cua_vnai.py:71` (2), `tests/test_no_fabricated_data.py`
+dòng 227 và 387 — và các test đi qua đó xanh bằng đường lui (có test in
+`SKIP` rồi `return`, và pytest tính là passed). Lượt năm cổng cuối (59 lượt
+chặn) lộ thêm **hai** chỗ chỉ thấy khi file chạy MỘT MÌNH —
+`tests/test_mau_bang_gia.py:264` và `tests/test_vnstock_goi.py:202` — vì trong
+cả bộ, một test chạy trước đã đặt bản giả vào `sys.modules`. Tổng: **bảy**
+chỗ xanh yếu. CI thì không chạy được.
+
+### P0 — bảy phát hiện CAO của BƯỚC 121 đã vá
+
+| phát hiện | sửa | gác | đục |
+|---|---|---|---|
+| tests-01 | `sheets_store.DUONG_SECRETS`; test dựng file trong thư mục tạm, cấm dựng kết nối thật | gác AST: không hàm test nào vừa nhắc đường `.streamlit` vừa gọi thao tác ghi | 3/3 |
+| ma_app_script-03 | `pytest.ini` · `testpaths = tests` | gác ĐỌC file, không chạy `pytest` trần — lượt đục bỏ `testpaths` sẽ chạy đúng hai script xoá `.db` | 3/3 |
+| tools_hook_ci-08 | `cua_ho_so` bỏ `permissionDecision` | cửa không được ra quyết định quyền nào, và phải vẫn bơm được ngữ cảnh | 4/4 |
+| tools_hook_ci-07 | `RE_NGAY` không đòi `**` đóng ngay sau ngày | HANDOFF giả trong `tmp_path` đủ ba kiểu viết · phép đo quần thể trên HANDOFF thật | 4/4 |
+| tools_hook_ci-02 | cửa Bash đọc ĐÍCH trong nháy (`_la_duong_dich`) | mẫu XẤU/TỐT | 8/8 cùng bộ |
+| tools_hook_ci-03 | heredoc mọi thứ tự + `tee`; `ghi-de-*` chỉ nhường khi luật heredoc THẬT SỰ khớp | mẫu XẤU/TỐT | ↑ |
+| tools_hook_ci-01 | matcher `Bash|PowerShell` ở cả bản khai lẫn `~/.claude/settings.json`; máy quét + sáu luật RIÊNG cho PowerShell | mẫu XẤU/TỐT · hook qua stdin · bản khai matcher | 11/11 |
+
+Đặc tả hook đọc **nguyên văn** (tải bản markdown, `grep`), không qua bản
+tóm tắt: *"`"allow"` skips the permission prompt"* — tức `cua_ho_so` đã tự
+duyệt mọi `Edit` lên file dày hồ sơ.
+
+Ba lượt đục có phát **sống sót ở lượt đầu**, cả ba là gác hụt chứ không phải
+phát đục thiết kế sai: bộ đọc ngày thiếu ca *"ngày giữa câu văn không phải
+mốc"*; ba lớp bóc của PowerShell thiếu ca văn bản chứa dấu `>` (luật xoá
+neo vào vị trí lệnh nên văn xuôi nhắc `Remove-Item` vô hại sẵn — chỗ các lớp
+bóc thật sự bảo vệ là dấu `>`). Thêm mẫu rồi đục lại: đỏ hết.
+
+**Đo trên quần thể THẬT, không trên mẫu tự dựng:**
+
+```
+cua Bash    nhat ky cua   2.605 lenh khac nhau   so voi HEAD:
+                                                 chan THEM 0 · THA 6
+            6 lenh duoc tha: 3 ten file pytest.ini doc thanh lenh pytest,
+                             3 lenh ghi ra scratchpad qua bien $S/$SP
+PowerShell  48 transcript    64 lenh khac nhau   23 co tu khoa nguy hiem
+                                                 chan 0
+```
+
+Mẫu PowerShell **có khả năng** cho kết quả dương: 23 lệnh chứa đúng những
+từ khoá luật nhắm tới — `Remove-Item` ở TEMP, `git rm --cached
+paper_trades.db`, `Rename-Item` của lượt khôi phục 12/08, một `git commit`
+có here-string nhắc *"ghi de paper_trades.db"* — và cả 23 đúng là phải tha.
+
+Hai lượt đo trung gian đáng ghi:
+
+- Lượt đầu trên nhật ký cửa cho **3 chặn thêm**, cùng hình dạng
+  `> "$D/p1.json"` với `$D` gán ngay trong lệnh, trỏ ra scratchpad. Bản cũ tha
+  chúng chỉ vì xoá trắng mọi thứ trong nháy — và cũng vì thế mà nó **chặn**
+  dạng không nháy `> $S/x.py` (chặn nhầm một lệnh thật hôm nay). Sửa đúng
+  gốc: cửa mở rộng biến được GÁN trong chính lệnh; biến không gán vẫn coi
+  như trong repo.
+- Một lượt so báo *"tha thêm 4"*, trong đó **1 là ảo**: bản cũ nạp từ
+  scratchpad mang `GOC` suy từ `__file__`, tức trỏ vào scratchpad. Máy đo
+  sửa rồi đo lại ra số ở khối trên. Bảng lỗi, lỗi 102.
+
+Thử sống trên phiên: tool PowerShell `Remove-Item -WhatIf …\khong_ton_tai.db`
+bị cửa chặn (`ps-xoa-db`); `Get-Date` đi qua. Bản tin mở phiên nay in
+`29/09/2026 (còn 4 ngày)`.
+
+### Lỗ đo được thêm, ngoài bảy phát hiện — đã vá cùng
+
+- `python - <<EOF > docs/x.json` và `cat <<EOF > x.db` lọt **cả hai** luật:
+  `ghi-de-*` nhường mọi lệnh có `<<`, còn luật heredoc chỉ nhận `cat`/`tee`
+  và không canh `.db`.
+- `echo x | tee app.py` cắt cụt file nguồn mà không cần dấu `>`.
+- Đường Windows trong nháy kép bị xoá trắng: máy quét coi `\U` là ký tự
+  thoát, trong khi bash chỉ thoát `$`, backtick, `"`, `\` và xuống dòng.
+- `git clean -X` xoá đúng những file bị gitignore, tức mọi `.db`. Thêm cả
+  `unlink`, `find … -delete` vào cùng luật.
+- Luật `pytest-qua-ong` đọc TÊN FILE `pytest.ini` thành lệnh pytest (dấu `.`
+  là ranh giới từ) — chặn nhầm thật hôm nay. `pytest.exe` vẫn bị bắt.
+
+Ngoài repo: `~/.claude/rules/vibe-preview.md` thôi ghim *"sáu cửa"*, sửa
+*"bốn cổng"* thành năm trong điều kiện tự merge, và thêm một dòng ranh giới
+về việc tạm ngừng — file ấy nạp vào mọi phiên.
+
+### Sổ tay
+
+- Độ tươi: sổ tay thấy BƯỚC 120, bằng `main`. Đăng nhập lại lần thứ ba
+  trong ngày.
+- Câu hỏi về KẾT LUẬN của BƯỚC này trả **5 câu nói ngược, 9 trích dẫn —
+  cả 9 KHỚP** qua `tools/doi_chieu_trich_dan.py`, nhưng **2 trích dẫn
+  mang sai tên file** (sổ tay nói `CLAUDE.md` / `loi-da-mac.md`, thật ra ở
+  `STATE.md`). Ba câu thật: đánh dấu 🔴 (bảng quét tự động · hai câu
+  `allow` ở BƯỚC 80) và sửa ô bảng cửa trong `SKILL.md`. Một câu thật
+  một phần: đánh dấu ⚠️ (bộ nhớ hậu nghiệm — đúng về mã, sai về ý định).
+  Một câu KHÔNG phải mâu thuẫn: `pytest.ini` làm câu *"pytest không hề
+  chạy nó"* đúng trở lại.
+- Lượt năm cổng đầu tiên **đỏ 7 test** ở `tests/test_bang_loi_do_duoc.py`:
+  tôi thêm lỗi 102–103 vào bảng mà chưa phân lớp ở `docs/loi-phan-lop.json`
+  và chưa đếm lại dòng tự khai — đúng hình dạng **lỗi 35**. Cổng bắt, không
+  phải người; sửa rồi chạy lại cả năm cổng.
+- Chuông báo quét **đỏ từ 25/09** (*"0 lượt quét thành công"*) vì cả hai
+  lượt quét hôm ấy đỏ ở bước cài gói — báo đúng, kéo dài suốt thời gian
+  tạm ngừng.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Năm cổng chạy được dưới rào, CI thì không.** Không PR nào merge được cho
+  tới khi tạm ngừng kết thúc; khi ấy phải chạy lại năm cổng **không** rào.
+- Mốc số test lên **1.408** (+8), khai lý do ở `docs/moc_so_test.json`.
+- 12 phát hiện CAO còn lại chưa động tới (P1: sổ trung thực).
+- Luật PowerShell đo trên 64 lệnh — một quần thể nhỏ. Nhật ký cửa từ nay ghi
+  trường `cong_cu`, và `tools/soat_nhat_ky_cua.py` chỉ thử luật Bash trên
+  lệnh Bash.
+- Mặt *mã thoát bị che* của `pytest | tail` **chưa được đo** trên
+  PowerShell; luật `ps-pytest-qua-ong` chỉ khai mặt đệm.
+
+## BƯỚC 123 — P1 SỔ TRUNG THỰC: BẢY PHÁT HIỆN CAO TRÊN ĐƯỜNG GIAO DỊCH ẢO ĐÃ VÁ, VÀ MỘT CHỖ NHÌN TRỘM THỨ TÁM (26/09/2026)
+
+Người dùng: *"ok làm tiếp đi"* — làm P1 của kế hoạch *"agent tự giao dịch
+ảo, học có kiểm soát"* trong cùng chế độ hạn chế của BƯỚC 122 (rào chặn nạp
+`vn*`, không merge được khi còn tạm ngừng). Nhánh `p1/so-trung-thuc` xếp
+chồng lên `p0/harness-chat-che`.
+
+Tầng 1 của kế hoạch là *"giao dịch ảo trung thực"*: agent chỉ học được từ
+sổ khi sổ ghi đúng thứ đã xảy ra. Audit (BƯỚC 121) đo được mọi sai số trên
+đường ấy đều lệch về phía **đẹp**.
+
+### Bảy phát hiện, sửa thế nào
+
+| phát hiện | lỗi | sửa |
+|---|---|---|
+| ma_giao_dich-01 | lệnh CLOSING đặt ở lượt trưa khớp ngay lượt tối CÙNG phiên, ở giá mở cửa có TRƯỚC tín hiệu | `evaluate_open` ghi **ngày tín hiệu thoát** vào `exit_date` của lệnh CLOSING; `fill_closing` chỉ khớp ở phiên **sau** ngày ấy |
+| ma_giao_dich-07 | lệnh thoát theo tín hiệu / trần thời gian bán **miễn phí** trượt giá | `fill_closing` nhận nến khớp và đi qua `_gia_ban_that`; `run_session` truyền nến |
+| ma_giao_dich-03 | gap xuống dưới SL vẫn ghi đúng giá SL | thoát ở `min(SL, giá mở cửa)` |
+| ma_giao_dich-05 | điều kiện dừng C5 đếm **0** lệnh vì ngày 19 ký tự | `vs_benchmark` và `build_benchmark` so NGÀY 10 ký tự ở **cả hai** phía |
+| ma_giao_dich-06 | hậu tố giờ `00:00:00`/`07:00:00` làm lệnh chờ khớp NGAY trong phiên tín hiệu | `run_session` chuẩn hoá ngày phiên ở cửa vào; ba phép so trong sổ cắt `[:10]` |
+| ma_giao_dich-02 | stop nâng theo giá tạm của nến dở rồi bị cắt bằng cái đáy có trước lúc nâng | `run_daily` **chỉ ghi sổ trên nến đã đóng** (dưới) |
+| state_loi_hua-09 | quyết định *"trailing trên nến chưa đóng"* treo từ **20/08** | đóng bằng chính quyết định người dùng đã duyệt 25/09: *"quét trong phiên chỉ để cảnh báo, không ghi sổ"* |
+
+**Chỗ thứ tám, tìm ra lúc sửa 06:** `post_mortem_learning.get_penalty_for_pattern`
+so `signal_date` của mẫu với `as_of` bằng **chuỗi**, và chú thích ngay dòng
+ấy ghi *"cùng ngày hoặc tương lai -> bỏ"*. Với `as_of = "…05 07:00:00"` và
+mẫu `"…05"`, phép so `>=` ra False — mẫu **cùng ngày lọt vào**. Walkforward
+truyền ngày có hậu tố cho 40/125 file cache, nên đây là một chỗ nhìn trộm
+trong mọi phép đo ở chế độ `co_san`. Nay `as_of` cắt `[:10]`.
+
+### "Chỉ ghi sổ trên nến đã đóng" — thiết kế
+
+`data_quality.nen_cuoi_dang_do(thoi_gian_nen_cuoi, bay_gio)` là hàm thuần:
+nến mang ngày hôm nay trước **15:30** giờ VN là nến dở; nến ngày trước luôn
+đóng; nến mang ngày tương lai thì không tin. **15:30 là QUY ƯỚC, chưa đo**
+thời điểm nguồn chốt nến (ATC hết 14:45, thoả thuận tới 15:00) — chọn chiều
+muộn, vì ghi trên nến dở là thứ audit bắt được còn chờ thêm nửa giờ thì
+không hại gì.
+
+`run_daily` gặp nến dở thì **bỏ nó và xử lý phiên đã đóng gần nhất**, với
+**một** thời điểm cho cả lượt. Làm vậy vì hai lý do:
+
+- **Lặp lại vô hại.** Phiên ấy đã xử lý thì lượt này không đổi gì — khớp
+  lệnh chờ đòi phiên sau ngày tín hiệu, `fill_closing` đòi phiên sau ngày
+  tín hiệu thoát, `evaluate_open` bỏ phiên vào, và nâng stop trên cùng một
+  nến cho cùng một mức.
+- **Bù được phiên lỡ.** Chỉ đơn giản bỏ qua mọi lượt trong phiên thì một
+  ngày mà lượt sau đóng cửa bị GitHub rơi nhịp sẽ không bao giờ được ghi.
+
+### Gác và đục
+
+`tests/test_so_trung_thuc.py`, 14 test — mỗi test dựng lại **nguyên văn** kịch
+bản audit dùng để chứng minh lỗi (`sim_phien.py`, `sim_ngay.py`). Thêm một ca
+vào `tests/test_post_mortem.py` (mẫu cùng ngày, `as_of` có hậu tố).
+
+**Đục 16/16 đỏ**, gồm mọi phát dựng lại nguyên văn một lỗi gốc, hai phát
+nửa-sửa (`vs_benchmark` chỉ chuẩn hoá khoá tra; `run_session` không truyền
+nến), và ba phát ở biên giờ chốt. Trước khi đục đã gỡ một dòng `[:10]` **thừa**
+trong `post_mortem_learning` — khi `as_of` đã 10 ký tự nó không đổi phán
+quyết nào, nên phát đục vào đó sẽ sống sót vô nghĩa.
+
+**Một test cũ KHOÁ CHẶT đúng cái lỗi:** `tests/test_paper_trading.py::
+test_vs_benchmark_bao_ro_so_lenh_bi_bo_vi_thieu_cap_ngay` dựng rổ có hậu tố
+giờ rồi **đòi** không lệnh nào khớp — tức đòi điều kiện dừng mù. Mục đích
+của nó (lệnh bị bỏ phải được ĐẾM và NÓI RA) thì đúng; nay nó dùng một cặp
+ngày thật sự vắng.
+
+### Sổ tay
+
+Độ tươi: BƯỚC 120, bằng `main`. Câu hỏi về KẾT LUẬN trả **3 câu nói ngược,
+4 trích dẫn — cả 4 KHỚP**, một trích dẫn mang sai tên file (sổ tay nói
+`HANDOFF.md`, thật ra ở `CLAUDE.md`). Việc treo trailing 20/08 chưa có dấu
+nào: đánh dấu ✅. Câu *"BỘ ĐẾM LÀ 2"* trong `CLAUDE.md` thiếu dấu mà câu
+anh em ở BƯỚC 61 đã có: thêm ⚠️. Câu *"không đổi kết quả"* đã có dấu
+trên nhánh.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Con số đo đổi, và chưa đo lại.** 03, 07 và chỗ thứ tám chạm walkforward.
+  Tiêu chí đo lại (ĐO 18) ký ở **commit riêng**, ngay sau BƯỚC này, trước
+  lượt chạy đầu tiên.
+- Sổ thật trên Google Sheets **không bị viết lại**: bản ghi cũ 19 ký tự vẫn
+  nằm đó, và các phép so cắt `[:10]` đọc được cả hai. Ba lệnh HUT · TCB · NAF
+  khớp sai quy tắc **chưa** được đánh dấu — việc ấy làm sau ĐO 18.
+- Cổng lệnh ảo **vẫn đóng**. Mở lại là việc riêng, sau khi sổ trung thực đã
+  được đo.
+- Chạy dưới rào: *"xanh dưới rào"* yếu hơn *"xanh"* ở bảy chỗ (BƯỚC 122).
+
+## BƯỚC 124 — ĐO 18: SỔ TRUNG THỰC LÀM MỌI DÒNG XẤU ĐI ~0,5 ĐIỂM, VÀ PHẦN LỚN LÀ GAP DƯỚI SL, KHÔNG PHẢI TRƯỢT GIÁ (26/09/2026)
+
+Đọc theo đúng tiêu chí đã ký ở commit `e7ae9a6` (`docs/TIEU-CHI-DOC-TRUOC.md`
+mục ĐO 18), ký TRƯỚC lượt chạy đầu tiên và đẩy lên GitHub trước khi chạy.
+
+Hai luồng song song, 09:21 → 13:02, mỗi luồng một worktree, cache mặc định
+(`VIBE_CACHE_DIR` → `backtest/cache`, 125 file), rào chặn nạp `vn*`:
+
+```
+luot                      doi chung    P1          (phut, chay SONG SONG)
+1 BAT theo ma               42,6      42,5
+2 BAT theo ngay             44,0      44,0
+3 TAT theo ma               83,3      83,0
+4 TAT theo ngay             51,1      50,7
+```
+
+Cả 8 lượt mã thoát 0; **0 lần** chạm rào `vn*`.
+
+### Phép kiểm dụng cụ — đọc trước alpha
+
+1. **8/8 lượt ĐẠT:** 71 mã có vùng IS · 33 mã có vùng OOS · bộ nhớ đầu 44
+   mẫu, học thêm 0 · **0** lệnh bị bỏ khi ghép rổ chuẩn.
+2. **Luồng ĐỐI CHỨNG khớp ĐO 3 tới từng chữ số, cả bốn dòng**
+   (398 · −0,55% · [−1,38 ; +0,37] … 582 · −0,24%). Mã `main` **không trôi**
+   ở phép đo này từ 10/09 — lần tái lập thứ năm của dòng theo-mã.
+3. Hai luồng chọn **cùng ngưỡng** IS (62 theo mã, 45 theo ngày): mọi dòng so
+   được.
+
+### Kết quả
+
+| # | trượt giá | chế độ | ngưỡng | lệnh | đối chứng | **P1** | Δ |
+|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 398 | −0,55% [−1,38 ; +0,37] | **−1,12% [−1,94 ; −0,21]** | −0,57 |
+| 2 | BẬT | theo ngày | 45 | 612 | −0,90% [−1,46 ; −0,32] | **−1,48% [−2,05 ; −0,88]** | −0,58 |
+| 3 | TẮT | theo mã | 62 | 399 | +0,08% [−0,77 ; +0,95] | −0,41% [−1,24 ; +0,48] | −0,49 |
+| 4 | TẮT | theo ngày | 45 | 582 | −0,24% [−0,83 ; +0,41] | **−0,72% [−1,33 ; −0,07]** | −0,48 |
+
+Chi phí thực thi (TẮT − BẬT): theo mã **0,63 → 0,71**, theo ngày
+**0,66 → 0,76** điểm mỗi lệnh.
+
+**Kết cục theo bảng đã ký: 1** — hai dòng BẬT xấu đi, chi phí tăng, và |Δ| hai
+dòng TẮT (0,49 · 0,48) nhỏ hơn nửa bề rộng KTC (0,86 · 0,62). Không dòng nào
+đẹp lên, nên quy tắc số 1 không bị gọi.
+
+### Dự báo đã khai — một vế ĐÚNG, một vế SAI
+
+- **Đúng:** dòng BẬT Δ < 0 và chi phí tăng. Mức tăng +0,08 · +0,10 nằm ở
+  **mép dưới** dải ước lượng +0,1 → +0,2.
+- **Sai:** dòng TẮT được khai là *"gần như đứng yên"*; chúng xấu đi 0,48–0,49
+  điểm — **gần bằng** dòng BẬT. Phần lớn Δ đến từ một cơ chế chạm CẢ HAI chế
+  độ, và tôi đã đánh giá thấp nó.
+
+### Quy Δ cho từng cơ chế (mục "đọc kèm" của tiêu chí)
+
+Sổ OOS của **lượt 4** (TẮT, theo ngày — Δ −0,48 mà không có trượt giá nào) còn
+nguyên trong mỗi worktree; ba lượt trước bị lượt sau ghi đè. So TỪNG LỆNH,
+ghép theo mã + ngày tín hiệu:
+
+```
+582 lenh moi ben, ghep du 582; cung gia vao, cung ngay va ly do thoat
+  467  giong het
+  115  STOP_LOSS, cung ngay, DOI GIA     tong -283,63 diem  ->  -0,487/lenh
+```
+
+- **Toàn bộ Δ của dòng TẮT là gap dưới SL** (ma_giao_dich-03): **115/387 =
+  30%** lệnh cắt lỗ thật ra đã bị gap qua mức SL lúc mở cửa, lỗ thêm trung
+  bình **2,47 điểm** mỗi lệnh ấy. Mẫu ngẫu nhiên 5/115 (hạt giống 20260926)
+  đối chiếu cache: cả 5 có giá mở cửa < SL và P1 thoát đúng ở giá mở cửa.
+- **Chỗ nhìn trộm cùng ngày ở bộ nhớ hậu nghiệm không đổi một lệnh nào**
+  (cùng 582 lệnh, cùng giá vào) — nó có thật nhưng không chạm quyết định nào
+  trong phép đo này.
+- Suy ra, không đo trực tiếp: ở hai dòng BẬT, Δ ≈ −0,49 (gap) + phần trượt
+  giá bán qua CLOSING ≈ −0,08 · −0,10 — đúng bằng mức chi phí tăng.
+
+### Điều này đổi cách đọc cả dự án
+
+- **Mọi con số walkforward trước 26/09/2026 mang giả định gap có lợi**, cỡ
+  **~0,5 điểm mỗi lệnh** ở cấu hình này — lớn hơn chính chi phí thực thi đã
+  bị bỏ sót ở đường CLOSING.
+- **Câu *"chi phí thực thi LÀ toàn bộ phần alpha âm"* hết đúng.** Tắt hẳn trượt
+  giá, dòng theo ngày vẫn **−0,72%, KTC loại được số 0**. Với sổ trung thực,
+  **3 trên 4 dòng loại được số 0**, cả ba đều âm.
+- Mục tiêu dự án không đòi alpha dương (BƯỚC 122): đây là thông tin cho agent
+  học, không phải lý do tắt agent. Nhưng nó là **mốc xuất phát trung thực** —
+  mọi phiên bản agent sau này phải so với nó, không so với ĐO 3.
+
+### Ba lệnh tiến-về-trước đã đóng: HUT · TCB · NAF
+
+Đánh dấu, **không sửa số**: cả ba khớp lệnh thoát ở giá mở cửa của **chính**
+phiên ra tín hiệu thoát (04/09 · 11/09 · 16/09), vì `fill_closing` từng không
+có chốt ngày. Giá đúng quy tắc là giá mở cửa phiên **sau**, có trượt giá bán.
+Lãi/lỗ đúng quy tắc **chưa tính lại**. Sổ thật trên Google Sheets giữ nguyên.
+
+### Sổ tay
+
+Độ tươi: BƯỚC 120 (= `main`). Câu hỏi về KẾT LUẬN trả **7 trích dẫn**: 6 là
+câu thật đã được đánh dấu trên nhánh trước khi hỏi (sổ tay đọc `main` nên
+không thấy dấu); 1 — *"cái tốn tiền là bước giá 50đ"* — **không** mâu
+thuẫn: nó so bước giá với tác động thị trường, hai phần bên trong trượt
+giá, còn gap dưới SL không phải chi phí thực thi.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Chỉ đo trên cache **mặc định** (2021-10 →). Cache 2018 của ĐO 4 chưa đo lại.
+- Phép quy Δ từng lệnh chỉ làm được cho **lượt 4**; ba lượt kia bị ghi đè sổ.
+  Phần trượt giá ở dòng BẬT là **suy ra** từ chênh lệch, không đếm từng lệnh.
+- Thời gian lượt 3 (83 phút, gần gấp đôi lượt 1–2) **chưa giải thích**. Hai
+  luồng cùng chậm như nhau nên không phải do P1; bảng số không phụ thuộc nó.
+- Cổng lệnh ảo **vẫn đóng**. Mở lại là việc riêng.
+
+## BƯỚC 125 — MỞ LẠI CỔNG LỆNH ẢO C5: VIỆC CUỐI CỦA P1, VÀ CỜ MỞ CHƯA SINH LỆNH NÀO (26/09/2026)
+
+Việc cuối của tầng 1 trong kế hoạch người dùng đã duyệt 25/09 (BƯỚC 122):
+*"Mở lại cổng lệnh ảo (sửa test khoá có chủ đích)"*, sau khi sổ đã được sửa
+cho trung thực (BƯỚC 123) và đo lại (ĐO 18, BƯỚC 124). Cổng đóng tay từ
+29/08/2026.
+
+### Ba điều kiện mở lại mà chính mã nguồn đã ghi từ 29/08
+
+Khối chú thích trên `paper_trading.CHO_PHEP_MO_LENH_MOI` viết *"MỞ LẠI KHI
+cả ba xong, không sớm hơn"*. Soát từng điều kiện với địa chỉ của nó:
+
+| điều kiện ghi 29/08 | đã xong ở đâu |
+|---|---|
+| điều kiện dừng đo bằng ALPHA, ngưỡng suy từ lực, định giá cả loại II | BƯỚC 3 (bản 2); và nó **đếm được lệnh thật** từ BƯỚC 123 — trước đó ngày 19 ký tự làm nó đếm 0 |
+| có nơi HÀNH ĐỘNG khi điều kiện đạt, có test chứng minh trạng thái đổi | `run_daily.thi_hanh_dieu_kien_dung` + chuông `tools/canh_cong_c5.py`, 29/08; khoá bởi `tests/test_thi_hanh_dieu_kien_dung.py` |
+| đo lệch điểm giữa gói vnstock miễn phí và gói tài trợ | BƯỚC 2 (gói không đổi quyết định nào); cửa sổ quét nay là `run_daily.NGAY_LICH_SU` ngày lịch, không còn 60 — BƯỚC 6 |
+
+Cộng hai điều kế hoạch 25/09 đòi thêm: sổ ghi đúng thứ đã xảy ra (BƯỚC 123)
+và một mốc xuất phát trung thực đã đo (BƯỚC 124).
+
+### Sửa gì
+
+- `paper_trading.CHO_PHEP_MO_LENH_MOI = True`, kèm khối *"MỞ LẠI 26/09/2026"*
+  nêu ba địa chỉ ở trên. Khối chú thích cũ giữ nguyên.
+- Mốc mới `paper_trading.NGAY_MO_LAI_CONG_C5 = "2026-09-26"`, cạnh
+  `NGAY_DONG_CONG_C5`.
+- `tests/test_c5_noi_that.py`: `test_cong_C5_dang_DONG_trong_ma_nguon` thành
+  `test_cong_C5_dang_MO_trong_ma_nguon` — **sửa có chủ đích**, đúng điều
+  docstring cũ đòi: *"Mở lại cổng thì phải sửa cả dòng này."* Ba file test
+  trỏ tới tên cũ đổi theo.
+- Gác mới `test_ngay_dong_mo_KHOP_voi_trang_thai_co`. Lý do: chuông
+  `kiem_ro_ri` đếm mọi quyết định vào lệnh **kể từ `NGAY_DONG_CONG_C5`**.
+  Một ngày cổng đóng lại mà quên dời mốc ấy thì mọi lệnh của thời gian mở bị
+  đếm thành "rò rỉ" — chuông kêu oan mỗi lượt. Câu *"Mo lai cong roi dong lan
+  nua thi phai cap nhat ngay nay"* nằm trong chú thích từ 31/08; nay là gác.
+  Gác rẽ nhánh theo cờ **đọc từ nguồn bằng AST**, đúng luật BƯỚC 33.
+- Ba chú thích test ghi cờ *"mặc định TẮT"* — nay là câu sai — viết lại. Các
+  phép gán ép bật ở mức module **giữ nguyên**: cổng còn đóng lại được.
+- `CLAUDE.md` (hai chỗ), `docs/HANDOFF.md` mục 2, `README.md`: đánh dấu.
+
+### Việc bật cờ làm SỐNG DẬY một gác cũ
+
+`tests/test_tran_von_cam_ket.py::test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT`
+rẽ nhánh theo cờ đọc từ nguồn, và suốt thời gian đóng nó chỉ in *"SKIP cổng
+đang đóng"*. Nay nó chạy thật: trần vốn ≤ 100%, có `dieu_kien_dong_lai`, và
+`run_daily` dùng đúng `BUY_THRESHOLD` của `paper_trading`. Chạy riêng nó dưới
+rào in: *"PASS cổng MỞ · trần 100% · ngưỡng 62 · có điều kiện đóng lại"*.
+
+### Lượt test đầu sau khi lật cờ — đỏ đúng hai chỗ đã đoán
+
+Cả bộ dưới rào, trước khi đánh dấu tài liệu: **2 đỏ · 1.420 xanh · 1 bỏ
+qua**, 570,6 giây. Hai chỗ đỏ đều là chỗ phải đỏ:
+
+- `tests/test_tai_lieu_khop_hang_so.py::test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`
+  — `CLAUDE.md` còn một dòng `CHO_PHEP_MO_LENH_MOI = False` không dấu, ở mục
+  *"Cổng C5 — đọc trước khi sửa"*. Gác của 05/09 bắt đúng thứ nó sinh ra để
+  bắt, lần này theo chiều ngược lại.
+- mốc số test: 1.422 → 1.423 (thêm một test).
+
+Không test nào khác phụ thuộc cờ đóng: mọi file dựng lệnh đều ép bật ở mức
+module hoặc bằng `monkeypatch`, và mọi phép rẽ nhánh theo cờ đọc từ nguồn.
+
+### Đục
+
+`tests/test_c5_noi_that.py`, **7/7 đỏ** — gồm phát dựng lại nguyên văn trạng
+thái cũ (cờ `False`, mốc đóng 29/08), hai phát ở biên ngày (mốc bằng nhau),
+xoá mốc, và cờ không còn là hằng số. Một **đối chứng dương**: đóng cổng
+**đúng cách** (cờ `False`, mốc đóng dời sang sau mốc mở) thì gác ngày
+**xanh** — bằng chứng nhánh `else` không đỏ vô điều kiện.
+
+### Sổ tay
+
+Độ tươi: BƯỚC 120, bằng `main`. Câu hỏi về KẾT LUẬN trả **2 câu sẽ thành
+sai, cả 2 ở `CLAUDE.md`, cả 2 KHỚP** qua `tools/doi_chieu_trich_dan.py`, và
+cả 2 đã nằm trong bản vá. Sổ tay khẳng định *"ngoài hai vị trí trên, không có
+câu nào khác"*. **Sai:** `grep` bắt thêm `docs/HANDOFF.md` mục 2 —
+*"Cổng mở lệnh mới đang ĐÓNG, đóng bằng tay từ 29/08/2026"* — nằm trong
+nguồn của nó, đúng loại câu câu hỏi nêu làm ví dụ. Cùng hình dạng 24/09:
+sổ tay bỏ sót một câu nằm ngay trong nguồn, nên câu *"không có gì khác"* của
+nó không bao giờ đủ một mình. `README.md` (không phải nguồn) cũng có câu ấy — đã
+đánh dấu.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Cờ mở chưa sinh lệnh nào, và chưa sinh được.** `main` vẫn `False` cho
+  tới khi merge; merge chờ hết tạm ngừng; quét tự động chờ người dùng bật
+  lại workflow.
+- **Một chỗ va giữa kế hoạch và lời người dùng — để người dùng quyết.** Kế
+  hoạch giữ điều kiện dừng (*"điều kiện dừng đếm được lệnh thật"*), và BƯỚC
+  này không đổi nó. Nhưng vế thứ ba của nó — đủ `N_DAY_DU` lệnh mà chưa chứng
+  minh được lợi thế thì ĐÓNG — là đúng thứ BƯỚC 122 ghi *"không phải lý do
+  tắt agent"*. ĐO 18 cho thấy trạng thái hiện tại là *"không có lợi thế"*.
+  Nên nếu lệnh tiến-về-trước giống ĐO 18, điều kiện ấy **sẽ** đóng cổng khi
+  đủ cỡ mẫu. Đây là suy luận từ mã, không phải số đo; khi nào thì chưa ước
+  lượng. Hướng có thể: ở tầng 3, điều kiện dừng đổi nghĩa thành *"lùi về
+  phiên bản trước"* thay cho *"ngừng đặt lệnh"*.
+- **Bảng `decisions` sẽ có dòng lặp.** Từ BƯỚC 123 mọi lượt quét trong ngày
+  xử lý lại cùng phiên đã đóng, và `record_decision` không khử trùng — nên
+  mỗi (mã, ngày tín hiệu) có thể có nhiều dòng giống nhau. Sổ **lệnh** không
+  bị lặp (`open_position` gồm cả PENDING và CLOSING). Suy từ mã, chưa đo trên
+  sổ. P2 đọc bảng này, nên phải khử trùng theo (mã, ngày tín hiệu).
+- Điều kiện dừng đếm cả ba lệnh HUT · TCB · NAF khớp sai quy tắc (BƯỚC 124).
+  Ba trên `N_TOI_THIEU` — không đổi phán quyết nào gần.
+- Bộ nhớ 44 mẫu vẫn chạy ở chế độ `tich_luy` trên đường thật; gỡ nó là việc
+  của tầng 3 (BƯỚC 122).
+- Chạy dưới rào: *"xanh dưới rào"* yếu hơn *"xanh"* ở bảy chỗ (BƯỚC 122).
+
+## BƯỚC 126 — ĐO 19: `vnai` 2.6.2 · `vnstock` 4.0.9 NÂNG ĐƯỢC — SỐ LIỆU GIỐNG TỪNG BYTE, `import vnstock` KHÔNG GHI FILE NÀO; HẾT TẠM NGỪNG Ở MÁY (26/09/2026)
+
+Chiều 26/09 người dùng báo: admin vnstock nói *"lỗi đã fix"*. Đo trong phiên
+trước khi làm gì:
+
+```
+PyPI simple API, 07:27 UTC     vnstock · vnai   "quarantined", 0 file
+GitHub thinh-vu/vnstock        commit 53f7edce 06:52 UTC = 4.0.9, CHANGELOG muc Security
+vnstocks.com/api/simple        chi phuc vu 4 ten: vnstock · vnstock-installer · vnai · vnii
+```
+
+Hai trong ba điều kiện mở lại của BƯỚC 122 đã có — **hãng giải thích**
+(CHANGELOG: bản cũ ghi khối lệnh vào file luật toàn cục của trợ lý AI, nội
+dung tải từ máy chủ, và hãng gọi đó là *prompt injection*), **người dùng cho
+phép**. Người dùng chốt ba việc: nâng máy **qua một ĐO**; CI và Streamlit
+Cloud **cài từ kho hãng**; **gỡ khối vnai** trong `~/.claude/CLAUDE.md`.
+
+### ĐO 19 — đọc theo bảng đã ký
+
+Tiêu chí vào nhánh `do19/nang-vnstock-409` lúc **14:48:34** (`2c6db3f`), đẩy
+lên GitHub; lượt `truoc` bắt đầu **14:48:46** — trước khi đổi một gói nào.
+
+```
+chang          luc cai    nen -> sau                phan quyet
+vnai 2.6.2     14:50:38   truoc    -> sau_vnai      NANG DUOC
+vnstock 4.0.9  14:52:09   sau_vnai -> sau_vnstock   NANG DUOC
+```
+
+Ba ảnh chụp, **cùng từng ô** — và **cùng từng băm với ĐO 17** (24/09):
+
+| | cả ba ảnh |
+|---|---|
+| **A** FPT · VCB · SSI | 65 dòng · 6 cột · băm `fa2626d0…` · `dd46716e…` · `5e18c48e…` |
+| **B** bảng giá | 82 cột |
+| **C** `ratio()` × 3 | **54 kỳ** · 19 cột |
+| **D** `kiem_goi()` | `KHỚP` · silver/silver |
+| **E** HAH · GMD · VHC | 119 dòng · 7 cột · băm `2456b9db…` · `c1a870be…` · `b4b48386…`, hai lượt mỗi ảnh |
+| **F** | `import vnstock_data` mã thoát 0 · **0/4** đích bật · `minimal` · 0/3 đích toàn cục đổi |
+| **G** | `import vnstock` mã thoát 0 · **5/5** file đứng yên (băm in từng file) |
+| bản · nền | 2.6.2 · 4.0.9 đúng bản ký; mỗi chặng freeze đổi đúng một dòng |
+
+Dòng thô ô E, ảnh `sau_vnstock` — giống từng ký tự ảnh `truoc` và ĐO 17:
+
+```
+HAH  2025-06-30,196300.0,13167630000.0,274825.0,18515295000.0,-78525.0,-5347665000.0
+GMD  2025-06-30,535505.0,30463030500.0,251800.0,14422710000.0,283705.0,16040320500.0
+VHC  2025-06-30,800.0,47960000.0,150309.0,9091525700.0,-149509.0,-9043565700.0
+```
+
+**Kiểm thêm — không nằm trong bảng ký:** thông báo *"khối cũ còn sót"* của
+`vnai` 2.6.2 **không** in ra, file đánh dấu `agent_leftover_notice_shown`
+**không** được tạo — đúng như đọc mã (cấu hình có khoá `enabled` từ 18/09);
+`pip check` không báo gì mới ngoài hai xung đột `pyppeteer` có từ trước.
+
+### Năm cổng — lần đầu KHÔNG còn rào chặn từ 25/09
+
+Bảng ký đòi *"NANG DUOC, nếu 5 cổng xanh"*. Chạy trên `vnstock` 4.0.9 thật,
+**không** `sitecustomize` chặn nạp:
+
+```
+1 pytest              1438 passed            597 s   (duoi rao: 1422 + 1 bo qua)
+2 cu phap 3.11        sach                     4 s
+3 chan bia            0 CHAN · 10 canh bao    79 s
+4 chay rieng          moi file xanh          764 s
+5 so test             1438, khop moc           5 s
+  soat lenh tai lieu · duong ngoai repo: ma thoat 0 · 0 luot cham rao
+```
+
+**Phán quyết cuối của ĐO 19: NÂNG ĐƯỢC.** Và nó xoá luôn điểm yếu *"xanh
+dưới rào"* của cả chồng nhánh P0–P1 (BƯỚC 122–125): bảy chỗ có đường lui nay
+chạy trên thư viện thật.
+
+### Hệ quả
+
+- **Ô D ngày 29/09 đọc được trên môi trường mới** — cùng đường, cùng byte.
+- **Hết tạm ngừng ở MÁY.** Ba workflow **vẫn TẮT**: bật lại là quyết định
+  riêng của người dùng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
+- **PyPI vẫn cách ly**, nên CI vẫn đỏ ở bước cài cho tới khi
+  `requirements.txt` thêm kho hãng — bước kế, BƯỚC 127.
+
+### Việc KHÔNG làm được — khối vnai trong `~/.claude/CLAUDE.md`
+
+Người dùng chọn gỡ ngay. File 84 dòng, **toàn bộ** là khối vnai (dòng 1 mở,
+dòng 84 kết). Lệnh sao lưu rồi làm rỗng file **bị hệ thống quyền của Claude
+Code chặn** (xếp loại *"xoá không đảo ngược được"*); không lách bằng đường
+khác. Việc ấy để người dùng làm. Ghi chú cho người làm: lệnh gỡ của chính
+hãng, `vnstock.remove_agent_files(...)`, **xoá hẳn** một file chỉ chứa khối,
+và nhóm `"all"` gồm cả đích `project` — chạy nó từ thư mục repo sẽ chạm
+`AGENTS.md` của repo.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đo đường telemetry, quảng cáo, tải skill (tiêu chí ĐO 19).
+- Lượt cài này **bỏ qua** phép kiểm độc lập của PyPI — người dùng đã quyết;
+  hai bánh xe có băm ghi trong tiêu chí.
+- Đường lùi `vnai` 2.6.1 nằm trong thư mục tạm của phiên.
+
+## BƯỚC 127 — CI VÀ STREAMLIT CLOUD CÀI `vnstock` · `vnai` TỪ KHO HÃNG, GHIM ĐÚNG BẢN ĐO 19 (26/09/2026)
+
+Người dùng hỏi *"sao merge fail hoài vậy?"*. Đo: mọi lượt CI từ 25/09 chết ở
+bước cài, *"No matching distribution found for vnstock>=4.0.6"* — PyPI cách
+ly. Và `main` có một **ruleset** (tạo 21/08/2026, không ai được đi vòng) đòi
+check `kiem-dinh` xanh, nên PR #169 bị `BLOCKED`. Người dùng chọn: CI và
+Streamlit Cloud **cài từ kho của hãng**.
+
+### Sửa gì
+
+`requirements.txt` — thứ cả GitHub Actions lẫn Streamlit Cloud cài — thêm
+**một** dòng tuỳ chọn và đổi hai dòng:
+
+```
+--extra-index-url https://vnstocks.com/api/simple
+vnstock==4.0.9        (truoc: vnstock>=4.0.6)
+vnai==2.6.2           (truoc: vnai>=2.5.7)
+```
+
+- **`--extra-index-url`, không `--index-url`:** kho hãng chỉ **thêm** vào
+  PyPI. Đo 26/09: kho ấy phục vụ đúng bốn tên — `vnstock`,
+  `vnstock-installer`, `vnai`, `vnii`.
+- **Ghim `==`, không sàn:** `pip` chọn bản cao nhất trên **cả hai** kho, nên
+  một sàn để kho nào có bản cao hơn quyết định CI chạy gì. Sàn cũng chính là
+  đường CI từng chạy trước máy (lỗi 79). Bản ghim là bản ĐO 19 đã đo.
+- Bốn gói tài trợ và `vnii` **vẫn ngoài** `requirements.txt`: CI và Cloud
+  vẫn chạy hạng free, `kiem_goi()` vẫn báo LỆCH trên cloud — báo đúng.
+
+**Kiểm bằng lệnh, không suy:** `pip install --dry-run --no-deps --report`
+trên đúng ba dòng ấy lấy `vnstock` 4.0.9 và `vnai` 2.6.2 từ
+`vnstocks.com/files/`, băm `b51358c5…` · `5b285215…` — **khớp** hai bánh xe
+ĐO 19 đã đo và đã cài.
+
+### Gác và đục
+
+`tests/test_requirements.py` thêm hai gác: kho thứ hai là **đúng một** dòng
+`--extra-index-url https://vnstocks.com/api/simple` (không `--index-url`,
+không `http://`, không `--trusted-host`); và hai gói **ghim `==`** bằng
+đúng bản đang chạy — trên CI là bản vừa cài từ chính file ấy, ở máy là bản
+ĐO 19. **Đục 8/8 đỏ.** `_da_khai_bao` nay bỏ qua dòng tuỳ chọn của pip.
+
+**Một gác cũ đỏ đúng lúc — và tôi đã bỏ sót nó khi tra trước.**
+`tests/test_bat_doi_xung_ban_goi.py::test_REQUIREMENTS_van_khai_bang_SAN_chu_khong_phai_GHIM`
+đỏ ở lượt năm cổng đầu, với đúng lời dặn trong docstring của nó: *"nếu một
+ngày nó thành `==` thì cả mục bất đối xứng phải viết lại"*. Lượt `grep` trước
+khi sửa tìm `4\.0\.6|2\.5\.7|vnstock>=|vnai>=` — không trúng, vì gác ấy kiểm
+`">=" in d`, không nêu con số nào. Sửa có chủ đích thành
+`test_REQUIREMENTS_GHIM_va_muc_bat_doi_xung_NOI_DUNG_co_che_ay`: đòi `==`
+**và** đòi mục bất đối xứng trong `CLAUDE.md` nói ra BƯỚC 127. Đục 2/2 đỏ.
+
+### Chưa đo được tới khi merge
+
+**Streamlit Cloud** chỉ triển khai từ `main`. Nó có đọc `--extra-index-url`
+trong `requirements.txt` hay không thì chỉ biết sau khi #169 vào `main` — tới
+lúc ấy mở app và đọc, đừng suy.
+
+### Một sai sót trong tài liệu, ghi lại chưa sửa
+
+Skill quy trình Bước 5, `references/loi-da-mac.md` và
+`~/.claude/rules/vibe-preview.md` viết *"`main` KHÔNG bị khoá — đo 08/09:
+404 'Branch not protected'"*. Phép đo ấy chỉ hỏi API khoá nhánh **cổ điển**.
+`gh api repos/…/rulesets` trả một ruleset `main` **active** tạo
+**21/08/2026** — trước cả ngày đo — với `required_status_checks: kiem-dinh`,
+`pull_request`, `non_fast_forward`, `deletion`, 0 người được đi vòng. Kết
+luận *"đẩy thẳng main là sai vì CI chạy sau cánh cửa"* vẫn đúng; lý do đo
+được thì thiếu một vế. Đã hỏi người dùng có ghi thành một dòng bảng lỗi
+không — chưa có trả lời.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Rủi ro nhầm gói giữa hai kho **hẹp, không bằng 0**: nếu sau này kho hãng
+  phục vụ một tên trùng gói PyPI, `pip` có thể lấy bản của kho hãng. Ghim
+  `==` chỉ che hai gói đã ghim.
+- Ba workflow vẫn TẮT.

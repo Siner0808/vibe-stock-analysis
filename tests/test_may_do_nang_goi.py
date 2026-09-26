@@ -34,9 +34,10 @@ import do12_nang_plotly as d12  # noqa: E402
 import do13_nang_urllib3 as d13  # noqa: E402
 import do14_kha_thi_khoi_ngoai as d14  # noqa: E402
 import do17_nang_goi_vnstock as d17  # noqa: E402
+import do19_nang_vnstock_409 as d19  # noqa: E402
 
 DA_PHU = {"do10_nang_vnstock", "do11_nang_streamlit", "do12_nang_plotly",
-          "do13_nang_urllib3", "do17_nang_goi_vnstock"}
+          "do13_nang_urllib3", "do17_nang_goi_vnstock", "do19_nang_vnstock_409"}
 
 
 # ══ quần thể ═══════════════════════════════════════════════════════════
@@ -49,7 +50,7 @@ def test_MOI_may_do_nang_goi_deu_duoc_phu():
         f"da phu nhung khong con tren dia: {sorted(DA_PHU - thay)}")
 
 
-@pytest.mark.parametrize("mo_dun", (d10, d11, d12, d13, d17))
+@pytest.mark.parametrize("mo_dun", (d10, d11, d12, d13, d17, d19))
 def test_MOI_may_do_deu_co_phan_xu_va_BA_MA_khac_nhau(mo_dun):
     """Ba ô phải là ba chuỗi khác nhau — trùng nhau là gộp mất một ô."""
     assert callable(mo_dun.phan_xu)
@@ -510,3 +511,122 @@ def test_DO17_chang_mang_ten_goi_NGOAI_danh_sach_thi_CHUA_KET_LUAN():
     doi_la = [x.replace("pandas==3.0.0", "pandas==3.0.1") for x in _freeze()]
     ma, _ = d17.phan_xu(_anh17(), _anh17(freeze=doi_la), "pandas")
     assert ma == d17.CHUA_KET_LUAN
+
+
+# ══ ĐO 19 — vnai 2.6.2 · vnstock 4.0.9, sau cách ly PyPI ═════════════════
+#
+# A–F là bảng ĐO 17, nguyên vẹn (`d17.phan_xu(..., goi_nang=...)`). ĐO 19 chỉ
+# thêm ô G — `import vnstock` trong một tiến trình mới có GHI gì không — và
+# phép kiểm bản đã cài đúng bản đã ký.
+
+_CU19 = {"vnai": "vnai @ file:///x/vnai-2.6.1-py3-none-any.whl", "vnstock": "vnstock==4.0.8"}
+_MOI19 = {"vnai": "vnai @ file:///x/vnai-2.6.2-py3-none-any.whl",
+          "vnstock": "vnstock @ file:///x/vnstock-4.0.9-py3-none-any.whl"}
+
+
+def _freeze19(*da_nang: str) -> list[str]:
+    return ["pandas==3.0.0", "vnii==0.2.6", "vnstock_data==3.3.1"] + [
+        (_MOI19 if g in da_nang else _CU19)[g] for g in d19.GOI_NANG]
+
+
+def _g19(*, ma_thoat=0, doi=None, thieu=False):
+    bam = {str(p): "h" for p in d19.dich_g()}
+    if thieu:
+        bam.popitem()
+    sau = dict(bam)
+    for k in (doi or ()):
+        sau[k] = "khac"
+    return {"import_ma_thoat": ma_thoat, "bam_truoc": bam, "bam_sau": sau,
+            "stderr_cuoi": ""}
+
+
+def _anh19(*da_nang, G=None, ban=None, **kw):
+    a = _anh17(freeze=_freeze19(*da_nang), **kw)
+    a["ban"] = ban if ban is not None else {
+        g: (d19.BAN_DICH[g] if g in da_nang else "cu") for g in d19.GOI_NANG}
+    a["G"] = G if G is not None else _g19()
+    return a
+
+
+def _xu19(chang="vnai", truoc=None, **sau):
+    da = d19.GOI_NANG[:d19.GOI_NANG.index(chang) + 1]
+    nen = truoc or _anh19(*da[:-1])
+    return d19.phan_xu(nen, _anh19(*da, **sau), chang)
+
+
+def test_DO19_HAI_CHANG_theo_THU_TU_vnai_TRUOC():
+    """vnstock 4.0.9 chỉ gọi móc import khi vnai đã là bản không ghi."""
+    assert d19.GOI_NANG == ("vnai", "vnstock")
+    assert [d19.chang_truoc(g) for g in d19.GOI_NANG] == ["truoc", "sau_vnai"]
+    assert d19.BAN_DICH == {"vnai": "2.6.2", "vnstock": "4.0.9"}
+
+
+def test_DO19_moi_chang_NANG_DUOC_khi_du_dieu_kien():
+    for g in d19.GOI_NANG:
+        ma, ly_do = _xu19(g)
+        assert ma == d19.NANG_DUOC, (g, ma, ly_do)
+
+
+def test_DO19_chang_vnstock_bi_d17_MAC_DINH_tu_choi_nhung_d19_nhan():
+    """Tham số `goi_nang` là thứ duy nhất cho `vnstock` làm một chặng."""
+    nen, sau = _anh19("vnai"), _anh19("vnai", "vnstock")
+    assert d17.phan_xu(nen, sau, "vnstock")[0] == d17.CHUA_KET_LUAN
+    assert d19.phan_xu(nen, sau, "vnstock")[0] == d19.NANG_DUOC
+
+
+@pytest.mark.parametrize("g", [
+    _g19(ma_thoat=1), _g19(doi=[str(d19.dich_g()[0])]),
+    _g19(doi=[str(d19.GOC / "AGENTS.md")]), _g19(thieu=True), {"loi": "x"}])
+def test_DO19_G_SAU_hong_thi_KHONG_NANG(g):
+    """Bản vá bảo mật mà vẫn ghi vào một file luật là không nâng."""
+    for chang in d19.GOI_NANG:
+        ma, ly_do = _xu19(chang, G=g)
+        assert ma == d19.KHONG_NANG, (chang, ma, ly_do)
+        assert any("G SAU" in x for x in ly_do), ly_do
+
+
+def test_DO19_keo_HONG_dung_TRUOC_G_SAU_nhu_bang_DO17():
+    """Bảng ký xếp *kéo hỏng* lên đầu: không đọc được thì chưa nói được gì,
+    kể cả khi ô G cũng hỏng. Đục ra ngày 26/09 — bỏ phép trả sớm thì ca này
+    thành KHONG NANG mà không test nào đỏ."""
+    ma, ly_do = _xu19("vnai", E=_e17(dong=5), G=_g19(ma_thoat=1))
+    assert ma == d19.CHUA_KET_LUAN, (ma, ly_do)
+
+
+def test_DO19_nen_G_TRUOC_hong_thi_CHUA_KET_LUAN():
+    ma, _ = _xu19("vnai", truoc=_anh19(G=_g19(ma_thoat=1)))
+    assert ma == d19.CHUA_KET_LUAN
+
+
+def test_DO19_ban_da_cai_KHAC_ban_da_ky_thi_CHUA_KET_LUAN():
+    """Freeze đổi đúng một dòng nhưng là một bản khác bản đã ký."""
+    ma, ly_do = _xu19("vnai", ban={"vnai": "2.6.3", "vnstock": "cu"})
+    assert ma == d19.CHUA_KET_LUAN, (ma, ly_do)
+
+
+def test_DO19_A_D_va_E_VAN_chan_duoc_qua_d19():
+    """Ô G đạt không được che các ô của ĐO 17."""
+    assert _xu19("vnstock", bam_a="x")[0] == d19.KHONG_NANG
+    assert _xu19("vnstock", ky_c=8)[0] == d19.KHONG_NANG
+    assert _xu19("vnstock", F=_f17(bat=1))[0] == d19.KHONG_NANG
+    assert _xu19("vnstock", E=_e17(bam=("y", "y")))[0] == d19.HOAN
+
+
+def test_DO19_G_canh_NAM_dich_gom_file_cua_phien_nay():
+    ten = {str(p) for p in d19.dich_g()}
+    assert len(ten) == 5
+    assert str(Path.home() / ".claude" / "CLAUDE.md") in ten
+    assert str(d19.GOC / "AGENTS.md") in ten
+
+
+def test_DO19_G_chup_TRUOC_moi_o_khac():
+    """Ô F chạy `import vnstock_data` — nếu nó chạy trước, G đo trên một đĩa đã
+    bị chạm. Kiểm HÌNH DẠNG bằng AST: lời gọi do_G() đứng trước d17.chup()."""
+    import ast
+    cay = ast.parse((GOC / "tools" / "do19_nang_vnstock_409.py").read_text(encoding="utf-8"))
+    ham = next(n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef) and n.name == "chup")
+    goi = [n for n in ast.walk(ham) if isinstance(n, ast.Call)]
+    ten = [(n.lineno, ast.unparse(n.func)) for n in goi]
+    dong_g = min(l for l, t in ten if t == "do_G")
+    dong_17 = min(l for l, t in ten if t == "d17.chup")
+    assert dong_g < dong_17, ten
