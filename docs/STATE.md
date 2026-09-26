@@ -17840,3 +17840,113 @@ trên nhánh.
 - Cổng lệnh ảo **vẫn đóng**. Mở lại là việc riêng, sau khi sổ trung thực đã
   được đo.
 - Chạy dưới rào: *"xanh dưới rào"* yếu hơn *"xanh"* ở bảy chỗ (BƯỚC 122).
+
+## BƯỚC 124 — ĐO 18: SỔ TRUNG THỰC LÀM MỌI DÒNG XẤU ĐI ~0,5 ĐIỂM, VÀ PHẦN LỚN LÀ GAP DƯỚI SL, KHÔNG PHẢI TRƯỢT GIÁ (26/09/2026)
+
+Đọc theo đúng tiêu chí đã ký ở commit `e7ae9a6` (`docs/TIEU-CHI-DOC-TRUOC.md`
+mục ĐO 18), ký TRƯỚC lượt chạy đầu tiên và đẩy lên GitHub trước khi chạy.
+
+Hai luồng song song, 09:21 → 13:02, mỗi luồng một worktree, cache mặc định
+(`VIBE_CACHE_DIR` → `backtest/cache`, 125 file), rào chặn nạp `vn*`:
+
+```
+luot                      doi chung    P1          (phut, chay SONG SONG)
+1 BAT theo ma               42,6      42,5
+2 BAT theo ngay             44,0      44,0
+3 TAT theo ma               83,3      83,0
+4 TAT theo ngay             51,1      50,7
+```
+
+Cả 8 lượt mã thoát 0; **0 lần** chạm rào `vn*`.
+
+### Phép kiểm dụng cụ — đọc trước alpha
+
+1. **8/8 lượt ĐẠT:** 71 mã có vùng IS · 33 mã có vùng OOS · bộ nhớ đầu 44
+   mẫu, học thêm 0 · **0** lệnh bị bỏ khi ghép rổ chuẩn.
+2. **Luồng ĐỐI CHỨNG khớp ĐO 3 tới từng chữ số, cả bốn dòng**
+   (398 · −0,55% · [−1,38 ; +0,37] … 582 · −0,24%). Mã `main` **không trôi**
+   ở phép đo này từ 10/09 — lần tái lập thứ năm của dòng theo-mã.
+3. Hai luồng chọn **cùng ngưỡng** IS (62 theo mã, 45 theo ngày): mọi dòng so
+   được.
+
+### Kết quả
+
+| # | trượt giá | chế độ | ngưỡng | lệnh | đối chứng | **P1** | Δ |
+|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 398 | −0,55% [−1,38 ; +0,37] | **−1,12% [−1,94 ; −0,21]** | −0,57 |
+| 2 | BẬT | theo ngày | 45 | 612 | −0,90% [−1,46 ; −0,32] | **−1,48% [−2,05 ; −0,88]** | −0,58 |
+| 3 | TẮT | theo mã | 62 | 399 | +0,08% [−0,77 ; +0,95] | −0,41% [−1,24 ; +0,48] | −0,49 |
+| 4 | TẮT | theo ngày | 45 | 582 | −0,24% [−0,83 ; +0,41] | **−0,72% [−1,33 ; −0,07]** | −0,48 |
+
+Chi phí thực thi (TẮT − BẬT): theo mã **0,63 → 0,71**, theo ngày
+**0,66 → 0,76** điểm mỗi lệnh.
+
+**Kết cục theo bảng đã ký: 1** — hai dòng BẬT xấu đi, chi phí tăng, và |Δ| hai
+dòng TẮT (0,49 · 0,48) nhỏ hơn nửa bề rộng KTC (0,86 · 0,62). Không dòng nào
+đẹp lên, nên quy tắc số 1 không bị gọi.
+
+### Dự báo đã khai — một vế ĐÚNG, một vế SAI
+
+- **Đúng:** dòng BẬT Δ < 0 và chi phí tăng. Mức tăng +0,08 · +0,10 nằm ở
+  **mép dưới** dải ước lượng +0,1 → +0,2.
+- **Sai:** dòng TẮT được khai là *"gần như đứng yên"*; chúng xấu đi 0,48–0,49
+  điểm — **gần bằng** dòng BẬT. Phần lớn Δ đến từ một cơ chế chạm CẢ HAI chế
+  độ, và tôi đã đánh giá thấp nó.
+
+### Quy Δ cho từng cơ chế (mục "đọc kèm" của tiêu chí)
+
+Sổ OOS của **lượt 4** (TẮT, theo ngày — Δ −0,48 mà không có trượt giá nào) còn
+nguyên trong mỗi worktree; ba lượt trước bị lượt sau ghi đè. So TỪNG LỆNH,
+ghép theo mã + ngày tín hiệu:
+
+```
+582 lenh moi ben, ghep du 582; cung gia vao, cung ngay va ly do thoat
+  467  giong het
+  115  STOP_LOSS, cung ngay, DOI GIA     tong -283,63 diem  ->  -0,487/lenh
+```
+
+- **Toàn bộ Δ của dòng TẮT là gap dưới SL** (ma_giao_dich-03): **115/387 =
+  30%** lệnh cắt lỗ thật ra đã bị gap qua mức SL lúc mở cửa, lỗ thêm trung
+  bình **2,47 điểm** mỗi lệnh ấy. Mẫu ngẫu nhiên 5/115 (hạt giống 20260926)
+  đối chiếu cache: cả 5 có giá mở cửa < SL và P1 thoát đúng ở giá mở cửa.
+- **Chỗ nhìn trộm cùng ngày ở bộ nhớ hậu nghiệm không đổi một lệnh nào**
+  (cùng 582 lệnh, cùng giá vào) — nó có thật nhưng không chạm quyết định nào
+  trong phép đo này.
+- Suy ra, không đo trực tiếp: ở hai dòng BẬT, Δ ≈ −0,49 (gap) + phần trượt
+  giá bán qua CLOSING ≈ −0,08 · −0,10 — đúng bằng mức chi phí tăng.
+
+### Điều này đổi cách đọc cả dự án
+
+- **Mọi con số walkforward trước 26/09/2026 mang giả định gap có lợi**, cỡ
+  **~0,5 điểm mỗi lệnh** ở cấu hình này — lớn hơn chính chi phí thực thi đã
+  bị bỏ sót ở đường CLOSING.
+- **Câu *"chi phí thực thi LÀ toàn bộ phần alpha âm"* hết đúng.** Tắt hẳn trượt
+  giá, dòng theo ngày vẫn **−0,72%, KTC loại được số 0**. Với sổ trung thực,
+  **3 trên 4 dòng loại được số 0**, cả ba đều âm.
+- Mục tiêu dự án không đòi alpha dương (BƯỚC 122): đây là thông tin cho agent
+  học, không phải lý do tắt agent. Nhưng nó là **mốc xuất phát trung thực** —
+  mọi phiên bản agent sau này phải so với nó, không so với ĐO 3.
+
+### Ba lệnh tiến-về-trước đã đóng: HUT · TCB · NAF
+
+Đánh dấu, **không sửa số**: cả ba khớp lệnh thoát ở giá mở cửa của **chính**
+phiên ra tín hiệu thoát (04/09 · 11/09 · 16/09), vì `fill_closing` từng không
+có chốt ngày. Giá đúng quy tắc là giá mở cửa phiên **sau**, có trượt giá bán.
+Lãi/lỗ đúng quy tắc **chưa tính lại**. Sổ thật trên Google Sheets giữ nguyên.
+
+### Sổ tay
+
+Độ tươi: BƯỚC 120 (= `main`). Câu hỏi về KẾT LUẬN trả **7 trích dẫn**: 6 là
+câu thật đã được đánh dấu trên nhánh trước khi hỏi (sổ tay đọc `main` nên
+không thấy dấu); 1 — *"cái tốn tiền là bước giá 50đ"* — **không** mâu
+thuẫn: nó so bước giá với tác động thị trường, hai phần bên trong trượt
+giá, còn gap dưới SL không phải chi phí thực thi.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Chỉ đo trên cache **mặc định** (2021-10 →). Cache 2018 của ĐO 4 chưa đo lại.
+- Phép quy Δ từng lệnh chỉ làm được cho **lượt 4**; ba lượt kia bị ghi đè sổ.
+  Phần trượt giá ở dòng BẬT là **suy ra** từ chênh lệch, không đếm từng lệnh.
+- Thời gian lượt 3 (83 phút, gần gấp đôi lượt 1–2) **chưa giải thích**. Hai
+  luồng cùng chậm như nhau nên không phải do P1; bảng số không phụ thuộc nó.
+- Cổng lệnh ảo **vẫn đóng**. Mở lại là việc riêng.

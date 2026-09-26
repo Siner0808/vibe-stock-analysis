@@ -47,6 +47,12 @@ Nến ngày không cho biết đỉnh hay đáy tới trước. SL và TP cùng 
 Dời stop về hoà vốn → **chỉ có hiệu lực từ phiên sau**, vì lệnh dời stop chỉ
 đặt được sau khi đã thấy giá chạm mốc.
 
+**Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA**, không ở SL (từ BƯỚC 123).
+Đo được ở ĐO 18: **30%** lệnh cắt lỗ (115/387) thật ra đã gap qua SL, và
+ghi chúng ở giá SL làm mọi dòng walkforward đẹp lên **~0,5 điểm mỗi
+lệnh** — lớn hơn cả phần trượt giá bán từng bị bỏ sót. Đúng quy luật ở
+đầu file: lỗi đo lường gần như không bao giờ làm kết quả xấu đi.
+
 ### 4. Đường vốn theo thời gian, không theo id
 Sổ trả lệnh theo thứ tự chèn (hết mã A rồi tới mã B). Dựng drawdown từ thứ tự
 đó cho ra một chuỗi chưa từng tồn tại. Đo được 23,0% so với 30,7% trên cùng

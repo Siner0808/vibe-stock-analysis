@@ -121,6 +121,12 @@ cho cùng kết luận: ĐO 1 (09/09) · ĐO 3 (10/09) · ĐO 4 (11/09).
 `docs/STATE.md` BƯỚC 44 · 50 · 52. Con số hiện hành thì đọc bảng ĐO 3
 trong `CLAUDE.md`, đừng đọc ở đây.
 
+> 🔴 **ĐÃ ĐO LẠI TRÊN SỔ TRUNG THỰC — ĐO 18, 26/09/2026 (BƯỚC 124).** Bảng
+> hiện hành nay là bảng ĐO 18 trong `CLAUDE.md`. Dòng theo ngày trượt giá
+> BẬT ra **−1,48% [−2,05 ; −0,88]**; và **3 trên 4 dòng** loại được số 0,
+> kể cả dòng TẮT trượt giá theo ngày (−0,72%). Nghĩa là thua rổ không chỉ
+> vì chi phí thực thi.
+
 > 🔴 **CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026 VÀ VẪN ĐỨNG TỚI 14/09.** Nó
 > ghi *"dự án hiện không có kết quả nào loại được số 0"* — viết
 > 05/09 (`d1b100a3`), và đúng vào ngày ấy.

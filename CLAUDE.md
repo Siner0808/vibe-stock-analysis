@@ -1122,7 +1122,29 @@ phép đo mà quy tắc đọc không thể sửa sau khi thấy số.
 | 3 | TẮT | theo mã | 62 | 376 | +0,69% | −0,03% | [−0,86 ; +0,87] chứa 0 | 49% · 173% | 33,9 |
 | 4 | TẮT | theo ngày | 50 | 497 | +0,24% | −0,03% | [−0,71 ; +0,72] chứa 0 | 53% · 100% | 54,9 |
 
-### BẢNG HIỆN HÀNH — ĐO 3, chạy 10/09/2026 ở mặc định T+1
+### BẢNG HIỆN HÀNH — ĐO 18, chạy 26/09/2026 sau khi sổ được làm trung thực
+
+Tiêu chí ký ở commit riêng `e7ae9a6`, đẩy lên GitHub trước lượt đầu. Hai
+luồng cùng ngày, cùng cache: **đối chứng** (mã ngay trước BƯỚC 123) ra lại
+ĐO 3 **tới từng chữ số**, nên mọi chênh lệch dưới đây là của BƯỚC 123.
+
+| # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh |
+|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 398 | −0,26% | **−1,12%** | **[−1,94 ; −0,21] LOẠI 0** | 51% · 191% |
+| 2 | BẬT | **theo ngày** | 45 | **612** | −1,10% | **−1,48%** | **[−2,05 ; −0,88] LOẠI 0** | 57% · **100%** |
+| 3 | TẮT | theo mã | 62 | 399 | +0,43% | −0,41% | [−1,24 ; +0,48] chứa 0 | 51% · 191% |
+| 4 | TẮT | theo ngày | 45 | 582 | −0,30% | **−0,72%** | **[−1,33 ; −0,07] LOẠI 0** | 58% · 100% |
+
+Chi phí thực thi (TẮT − BẬT): theo mã **0,71**, theo ngày **0,76** điểm mỗi
+lệnh. So với ĐO 3, mọi dòng xấu đi **~0,5 điểm**, và phần lớn KHÔNG phải
+trượt giá: so từng lệnh ở dòng 4, **115/387 lệnh cắt lỗ đã bị gap qua SL**
+lúc mở cửa — bản cũ ghi chúng ở đúng giá SL. `docs/STATE.md` BƯỚC 124.
+
+### BẢNG ĐO 3, chạy 10/09/2026 ở mặc định T+1 — CẬN DƯỚI, ĐÃ ĐO LẠI Ở ĐO 18
+
+> 🔴 **Tiêu đề cũ của mục này là *"BẢNG HIỆN HÀNH"*.** Bảng dưới đo trên
+> một sổ ghi gap dưới SL ở đúng giá SL và bán không trượt giá khi thoát
+> theo tín hiệu (audit BƯỚC 121). ĐO 18 đo lại: bảng ngay trên.
 
 Tiêu chí đọc vào `main` lúc **14:34**, lượt 1 bắt đầu **14:39** — năm phút
 sau, và **trước khi đổi một dòng mã nào**. Bốn lượt, **134,1 phút**, cả bốn
@@ -1239,11 +1261,18 @@ Tắt chi phí đi thì **cả bốn** dòng có KTC chứa 0 — kể cả dòn
 alpha **dương** +0,08%, vì KTC [−0,77 ; +0,95] không loại được số 0.
 Chiến lược **không phân biệt được với cầm đều cả rổ**. Bật chi phí, nó thua.
 
+> 🔴 **"CẢ BỐN DÒNG CHỨA 0 KHI TẮT CHI PHÍ" HẾT ĐÚNG — ĐO 18, 26/09/2026.**
+> Trên sổ trung thực, dòng TẮT theo ngày ra **−0,72% [−1,33 ; −0,07]**: bỏ
+> hẳn chi phí thực thi, chiến lược theo ngày VẪN thua rổ. Câu *"chi phí
+> thực thi LÀ toàn bộ phần alpha âm"* ở đầu mục này cũng hết đúng theo.
+
 > Số ĐO 1 tương ứng là 0,65 và 0,91 — ghi lại để đối chiếu, đừng trích.
 
 Không có chi phí thực thi, chiến lược **không phân biệt được với cầm đều
 cả rổ**. Có chi phí, nó thua. Cách đọc: rổ chuẩn mua một lần rồi giữ, trả
 chi phí **hai lần**; chiến lược quay vòng 500 lệnh, trả **1.000 lần**.
+
+> 🔴 Đoạn trên đo trên sổ cũ — xem ô đỏ ngay trên và bảng ĐO 18.
 
 > **DÒNG 2 LÀ DÒNG ĐÁNG TIN NHẤT**, theo ba luật của chính dự án:
 >
@@ -1329,6 +1358,10 @@ thi là chi phí MỖI LỆNH, không co giãn theo độ chọn lọc.
 > cái giá 88,8 phút của lỗi 41.
 >
 > **Trừ hao 0,63 khi đọc số ngoài mẫu**, không phải 0,43.
+>
+> 🔴 **Con số hiện hành là 0,71 (theo mã) · 0,76 (theo ngày) — ĐO 18.** Và
+> trừ hao chi phí thôi chưa đủ: mọi số walkforward trước 26/09/2026 còn
+> mang giả định gap có lợi, cỡ **~0,5 điểm mỗi lệnh** nữa.
 
 **Kết luận KHÔNG phụ thuộc giả định vốn 1 tỷ.** Ở giá vào trung vị 16.100đ,
 từ 100 triệu tới 1 tỷ chi phí y hệt nhau (0,311% một chiều): tác động thị
@@ -1341,6 +1374,9 @@ thực thi** — kỳ vọng sổ +0,79%, alpha +0,090%, mọi bảng walk-forwa
 hao **0,63–0,66 điểm phần trăm mỗi lệnh** khi đọc chúng (đo ngoài mẫu
 10/09/2026 ở ĐO 3; ĐO 1 cho 0,65–0,91; con số ~0,43 là số TRONG mẫu và
 không tái lập ở bản mã hiện hành).
+
+> 🔴 **Từ ĐO 18 (26/09/2026): trừ 0,71–0,76 cho chi phí thực thi, VÀ thêm
+> ~0,5 cho gap dưới SL** mà mọi bản mã trước BƯỚC 123 ghi ở giá SL.
 
 **`volume` KHÔNG được nhân `price_multiplier`.** `run_session` nhân mọi giá
 trị trong `bar` để quy nghìn đồng về VNĐ; nhân nhầm khối lượng thì tỷ trọng
