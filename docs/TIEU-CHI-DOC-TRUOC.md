@@ -2956,3 +2956,91 @@ repo không nhập nó.
 > (BƯỚC 119).** Thiếu `squarify` chỉ là module ĐẦU TIÊN thiếu; sau nó còn
 > `wordcloud`, rồi bản phát hành thiếu hẳn gói con `static/`. Máy nay chạy
 > bản vá `1.0.2+vibe1`, `import vnstock_ezchart` mã thoát 0.
+
+
+---
+
+## ĐO 18 — bảng CHI PHÍ THỰC THI sau khi sổ được làm trung thực (BƯỚC 123) (khai 26/09/2026)
+
+**Đã tra trùng:** **BƯỚC 50** (ĐO 3) đo đúng bốn dòng này trên cache mặc định, ở mã ngày 10/09/2026. KHÔNG trùng: BƯỚC 123 sửa đúng ba chỗ ĐO 3 đã đi qua mà không thấy — lệnh thoát theo tín hiệu bán không trượt giá, gap dưới SL ghi giá SL, và mẫu hậu nghiệm cùng ngày lọt vào khi ngày có hậu tố giờ. Audit (BƯỚC 121) kết luận con số ĐO 3 là **cận dưới**; ĐO này đo lại.
+
+> **Khai 26/09/2026, SAU khi mã BƯỚC 123 vào nhánh `p1/so-trung-thuc`
+> và TRƯỚC lượt chạy đầu tiên, ở một commit RIÊNG.** Người dùng duyệt đúng
+> thứ tự này trong kế hoạch 25/09: *"Đo lại chi phí thực thi (ĐO mới, tiêu
+> chí ký ở commit riêng). Dự báo: xấu hơn con số cũ."*
+>
+> **Khai thêm, vì nó xảy ra trước khi ký:** một lượt thử đường ống 2 mã
+> (AAA, VCB) chạy dưới rào để chắc walkforward không cần `vnstock`. Một dòng
+> alpha của nó lọt ra màn hình khi `grep` tìm dòng dụng cụ: **−0,74% trên 52
+> lệnh**. Đó không phải quần thể của ĐO này (2 mã so với 71), và nó không
+> dùng để chọn bất cứ thứ gì dưới đây.
+
+### Vì sao phải có HAI luồng
+
+Mã trên `main` đã đổi từ 10/09 ở những chỗ chạm walkforward (ví dụ phép so
+trần vốn, lỗi 65, 15/09). So thẳng bảng P1 với ĐO 3 thì phần chênh không quy
+được cho P1. Nên chạy **cùng ngày, cùng cache, cùng dụng cụ**:
+
+| luồng | mã | ở đâu |
+|---|---|---|
+| **ĐỐI CHỨNG** | commit `5c70fa4` — ngay trước P1 (P0 không chạm walkforward) | git worktree riêng |
+| **P1** | commit của chính mục này — mã BƯỚC 123 + tiêu chí | git worktree riêng |
+
+Chung cho cả hai: `tools/do1_chi_phi_thuc_thi.py`, bốn lượt (trượt giá BẬT/TẮT
+× theo mã/theo ngày), `VIBE_CACHE_DIR` trỏ vào `backtest/cache` của repo
+(125 file), `sl_pattern_memory.json` chép vào mỗi worktree, rào chặn nạp
+`vn*` (BƯỚC 122), mọi tham số mặc định: `stride=2` · `min_history=60` ·
+`che_do_hoc=co_san` · `do_tre_khop=1`. Hai luồng chạy SONG SONG nên **thời
+gian chạy không so được**; con số thì so được (bất biến 2).
+
+Worktree chứ không phải thư mục làm việc: mỗi lượt là một tiến trình con
+nạp lại mã lúc khởi động, nên sửa mã giữa chừng sẽ cho bốn lượt chạy bốn
+bản mã khác nhau.
+
+### Phép kiểm dụng cụ — đọc TRƯỚC alpha
+
+1. **Mỗi lượt của cả hai luồng** phải có mã thoát 0 và log ghi: **71** mã có
+   vùng IS · **33** mã có vùng OOS · bộ nhớ học **đầu 44 mẫu, học thêm 0**.
+   Thiếu `sl_pattern_memory.json` trong worktree thì walkforward LẶNG LẼ chạy
+   bộ nhớ rỗng — đúng chỗ phép kiểm này canh. Lệch bất kỳ → **bảng không đọc
+   được**.
+2. **Luồng ĐỐI CHỨNG so với ĐO 3.** Khớp từng chữ số (theo mã 62:
+   **398 · −0,55% · [−1,38 ; +0,37]**; theo ngày 45: **612 · −0,90% ·
+   [−1,46 ; −0,32]**; hai dòng TẮT: **399 · +0,08%** và **582 · −0,24%**)
+   → mã `main` không trôi từ 10/09. Không khớp → **đó là một phát hiện, không
+   phải lỗi của ĐO này**: bảng ĐO 3 không còn mô tả `main`, và luồng đối chứng
+   thành mốc mới. Phép so chính vẫn đọc được, vì nó là P1 so với đối chứng.
+3. **Ngưỡng IS.** Một dòng P1 chỉ so được với dòng đối chứng **cùng chế độ và
+   cùng ngưỡng**. Khác ngưỡng → dòng ấy không so được; ghi ra, đừng ép — và
+   việc ngưỡng đổi tự nó là thông tin (lỗi 21).
+
+### Đại lượng
+
+- **alpha khớp từng lệnh + KTC 95%** trên OOS, bốn dòng mỗi luồng.
+- **Chi phí thực thi** = alpha(TẮT) − alpha(BẬT), mỗi chế độ, mỗi luồng.
+- **Δ do P1** = alpha(P1) − alpha(đối chứng), từng dòng cùng ngưỡng.
+
+### Dự báo, khai trước
+
+- **Hai dòng BẬT: Δ < 0, và chi phí thực thi P1 LỚN HƠN đối chứng.** Hai cơ
+  chế cùng chiều: lệnh thoát qua CLOSING nay chịu trượt giá bán; gap dưới SL
+  thoát ở giá mở cửa. **Ước lượng** (chưa đo): ĐO 3 đo trượt giá một chiều
+  ~0,31% ở giá vào trung vị; nếu khoảng một nửa lệnh thoát qua CLOSING thì
+  chi phí tăng cỡ **+0,1 → +0,2** điểm mỗi lệnh.
+- **Hai dòng TẮT: Δ ≤ 0 hoặc rất nhỏ.** Chỉ gap-SL (cùng chiều xấu đi) và
+  việc bỏ mẫu hậu nghiệm cùng ngày (chiều không đoán trước, cỡ nhỏ) chạm tới.
+
+### Kết cục, khai trước
+
+| kết cục | đọc thế nào |
+|---|---|
+| **1.** Dòng BẬT Δ < 0 và chi phí P1 > đối chứng; dòng TẮT \|Δ\| nhỏ hơn nửa bề rộng KTC | phù hợp dự kiến. Bảng P1 thay bảng chi phí trong `CLAUDE.md`; ĐO 3 đánh dấu *"cận dưới, đã đo lại"* |
+| **2.** Bất kỳ dòng nào alpha P1 **đẹp hơn** đối chứng quá **nửa bề rộng KTC** | **quy tắc số 1**: giả định CÓ LỖI. Không ghi số vào tài liệu cho tới khi tìm ra |
+| **3.** Dòng BẬT Δ ≥ 0 (chi phí không tăng) | trái dự kiến. Trước khi đọc: đếm lệnh thoát qua CLOSING trong sổ OOS của P1 và so `exit_price` với giá mở cửa — kiểm nhánh trượt giá bán CÓ chạy trong walkforward |
+| **4.** Một lượt thoát ≠ 0, hoặc phép kiểm dụng cụ 1 hỏng | bảng **không đọc được**; sửa rồi chạy lại cả luồng |
+
+### Đọc kèm, không quyết định gì
+
+Số lệnh thoát `STOP_LOSS` có gap (giá mở cửa < SL) và số lệnh thoát qua
+CLOSING trong vùng OOS của luồng P1 — để quy Δ cho hai cơ chế. Đây là mô
+tả, không phải phép thử: nó không đổi kết cục ở bảng trên.
