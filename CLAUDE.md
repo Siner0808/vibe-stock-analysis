@@ -1101,6 +1101,10 @@ một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 > trừ trượt giá bán. Thêm nữa, gap xuống dưới SL vẫn ghi đúng giá SL. Cả
 > hai lệch về phía làm số đẹp, nên chi phí thực thi đo ở ĐO 3 là **cận
 > dưới**.
+>
+> ✅ **CẢ HAI ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, chưa vào `main`.**
+> `fill_closing` nay đi qua `_gia_ban_that`; gap dưới SL thoát ở giá mở
+> cửa. Con số ĐO 3 vẫn là cận dưới cho tới khi ĐO 18 đo lại.
 
 **Giá phải trả — BỐN lượt walk-forward, đo 09/09/2026.** Tiêu chí đọc được
 khai, ký và **commit TRƯỚC lượt chạy đầu tiên**: `docs/TIEU-CHI-DOC-TRUOC.md`
@@ -1490,6 +1494,12 @@ Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lư
 > PHIÊN khớp lệnh thoát ấy ở giá mở cửa của chính phiên đó, vì
 > `paper_trading.fill_closing` không có chốt ngày. Đo trên sổ thật: cả 3/3
 > lệnh tiến-về-trước đã đóng (HUT, TCB, NAF) mang đúng hình dạng này.
+>
+> ✅ **ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, chưa vào `main`.** `run_daily`
+> chỉ ghi sổ trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`): lượt
+> trong phiên bỏ nến dở và xử lý phiên đã đóng gần nhất. `fill_closing`
+> chỉ khớp ở phiên SAU ngày tín hiệu thoát. Câu *"nhịp trong phiên …
+> không đổi kết quả"* nay đúng — vì mã, không vì may.
 
 Đó là lý do tắt Task Scheduler chấp nhận được. Nhưng nó cũng nghĩa là
 **không còn lưới dự phòng**: một ngày mà mọi lượt Actions đều hỏng thì
@@ -1922,6 +1932,11 @@ Hai hàng rào mới đáng biết:
 > 🔴 **HAI CON SỐ NGAY TRÊN ĐÃ TRÔI — đo lại 12/09/2026: CÒN 2, BỘ ĐẾM
 > LÀ 2.** TCB đóng **2026-09-11**, `SIGNAL_REVERSED`. Còn **NAF · STB**
 > mở.
+>
+> ⚠️ **"BỘ ĐẾM" Ở ĐÂY LÀ SỐ LỆNH ĐÃ ĐÓNG, KHÔNG PHẢI SỐ LỆNH ĐIỀU KIỆN
+> DỪNG ĐẾM ĐƯỢC** — con số sau là **0** cho tới BƯỚC 123, vì sổ thật ghi
+> ngày 19 ký tự còn rổ chuẩn khoá 10 ký tự (audit BƯỚC 121,
+> ma_giao_dich-05). Cùng dấu với `docs/STATE.md` BƯỚC 61.
 >
 > **Đừng đọc con số ở đây — chạy lệnh:**
 >

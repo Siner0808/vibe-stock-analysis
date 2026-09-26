@@ -713,7 +713,11 @@ class PaperTradingJournal:
             (symbol, Status.PENDING)).fetchall()
         filled = 0
         for r in rows:
-            if session_date <= r["signal_date"]:
+            # So NGÀY (10 ký tự), không so chuỗi nguyên. Cùng một phiên,
+            # hai nguồn trả hậu tố giờ khác nhau (`00:00:00` / `07:00:00`),
+            # và `"…03 07:00:00" <= "…03 00:00:00"` là False -> lệnh chờ khớp
+            # NGAY trong phiên tín hiệu. Audit 25/09/2026, ma_giao_dich-06.
+            if session_date[:10] <= str(r["signal_date"] or "")[:10]:
                 continue                      # chưa tới phiên sau -> chưa khớp
 
             gia = float(open_price)
@@ -786,7 +790,7 @@ class PaperTradingJournal:
             (symbol, Status.OPEN)).fetchall()
 
         for r in rows:
-            if session_date <= (r["entry_date"] or ""):
+            if session_date[:10] <= str(r["entry_date"] or "")[:10]:
                 continue                      # không đóng ngay trong phiên vào
             low, high = float(bar["low"]), float(bar["high"])
             sl, tp = float(r["stop_loss"]), float(r["take_profit"])
@@ -800,7 +804,12 @@ class PaperTradingJournal:
             # LẤY SL (bất biến 3). Đổi sang hai `if` rời là để TP ghi đè
             # SL — đúng cái giả định có lợi bị cấm.
             if low <= sl:
-                reason, price = ExitReason.STOP_LOSS, sl
+                # Gap xuống DƯỚI SL: phiên MỞ CỬA đã dưới mức cắt lỗ, nên
+                # lệnh dừng chỉ khớp được ở giá mở cửa, không phải ở SL.
+                # Bản cũ luôn ghi đúng giá SL — giả định có lợi mà bất biến
+                # 3 cấm. Audit 25/09/2026, ma_giao_dich-03.
+                reason = ExitReason.STOP_LOSS
+                price = min(sl, float(bar["open"]))
             elif CHOT_LOI_CUNG and high >= tp:
                 reason, price = ExitReason.TAKE_PROFIT, tp
 
@@ -889,9 +898,13 @@ class PaperTradingJournal:
                 reason = ExitReason.MAX_HOLD
 
             if reason:
+                # `exit_date` của một lệnh CLOSING = NGÀY TÍN HIỆU THOÁT.
+                # `fill_closing` chỉ khớp ở phiên SAU ngày ấy, rồi ghi đè
+                # nó bằng ngày khớp thật. Audit 25/09/2026, ma_giao_dich-01.
                 self.db.execute(
-                    "UPDATE trades SET exit_reason=?, status=? WHERE id=?",
-                    (reason, Status.CLOSING, r["id"]))
+                    "UPDATE trades SET exit_reason=?, status=?, exit_date=?"
+                    " WHERE id=?",
+                    (reason, Status.CLOSING, session_date[:10], r["id"]))
                 closed.append({"id": r["id"], "symbol": symbol,
                                "reason": reason, "exit_price": None,
                                "pending": True})
@@ -900,17 +913,39 @@ class PaperTradingJournal:
         return closed
 
     def fill_closing(self, symbol: str, session_date: str,
-                     open_price: float) -> int:
-        """Khớp các lệnh CLOSING ở giá mở cửa phiên sau khi có tín hiệu ra."""
+                     open_price: float, nen: dict | None = None) -> int:
+        """Khớp các lệnh CLOSING ở giá mở cửa của phiên SAU phiên có tín hiệu ra.
+
+        Hai chốt, cả hai do audit 25/09/2026 tìm ra (`docs/STATE.md` BƯỚC 121):
+
+        • CHỐT NGÀY (ma_giao_dich-01). `evaluate_open` ghi ngày tín hiệu
+          thoát vào `exit_date` của lệnh CLOSING; phiên khớp phải ĐI SAU
+          ngày ấy. Không có chốt này thì trên đường chạy thật — nhiều lượt
+          quét cùng một phiên — lệnh đặt CLOSING ở lượt trưa bị khớp ngay
+          lượt tối CÙNG PHIÊN, ở giá mở cửa có TRƯỚC khi tín hiệu ra đời.
+          Cả 3/3 lệnh tiến-về-trước đã đóng mang đúng hình dạng ấy.
+        • TRƯỢT GIÁ BÁN (ma_giao_dich-07). `nen` là nến phiên khớp; bật
+          `MO_PHONG_TRUOT_GIA` thì giá bán đi qua `_gia_ban_that`, như
+          nhánh cắt lỗ. Bản cũ ghi thẳng giá mở cửa, nên mọi lệnh thoát
+          theo tín hiệu được bán MIỄN PHÍ trượt giá.
+
+        Lệnh CLOSING đời cũ không mang ngày tín hiệu (`exit_date` rỗng) thì
+        khớp như trước — không có dữ kiện nào để chặn nó.
+        """
         rows = self.db.execute(
-            "SELECT id, entry_date FROM trades WHERE symbol=? AND status=?",
+            "SELECT id, entry_date, exit_date, size_pct FROM trades"
+            " WHERE symbol=? AND status=?",
             (symbol, Status.CLOSING)).fetchall()
         filled = 0
         for r in rows:
+            ngay_tin_hieu = str(r["exit_date"] or "")[:10]
+            if ngay_tin_hieu and session_date[:10] <= ngay_tin_hieu:
+                continue                      # chưa tới phiên sau tín hiệu
+            gia = self._gia_ban_that(float(open_price), r["size_pct"], nen)
             self.db.execute(
                 "UPDATE trades SET exit_date=?, exit_price=?, status=?"
                 " WHERE id=?",
-                (session_date, float(open_price), Status.CLOSED, r["id"]))
+                (session_date[:10], gia, Status.CLOSED, r["id"]))
             filled += 1
         self.db.commit()
         return filled

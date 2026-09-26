@@ -70,6 +70,8 @@ _FLOAT_COLS = {"entry_price", "exit_price", "stop_loss", "take_profit",
 # và vòng đẩy-kéo sẽ mất dữ liệu âm thầm ở nửa còn lại:
 #
 #   entry_date/exit_date/exit_reason  NULL khi lệnh chưa khớp/chưa đóng
+#                                     (từ BƯỚC 123 lệnh CLOSING mang sẵn
+#                                     exit_date = NGÀY TÍN HIỆU THOÁT)
 #   skip_reason và cột chữ khác       luôn được ghi, mặc định chuỗi rỗng
 #
 # Nhờ tách bạch, vòng đẩy-kéo không mất gì — khoá bởi

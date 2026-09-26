@@ -334,6 +334,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   đường tiến-về-trước: lệnh thoát khớp ngay trong phiên ra tín hiệu (3/3
   lệnh đã đóng), và điều kiện dừng C5 đếm 0 lệnh. Sửa chúng làm đổi số đo
   nên phải qua một ĐO có tiêu chí ký trước.
+  **14/19 đã vá** — BƯỚC 123 thêm bảy phát hiện của đường giao dịch ảo
+  (khớp lệnh thoát cùng phiên · trượt giá bán · gap dưới SL · ngày 19 ký
+  tự · hậu tố giờ · nâng stop trên nến dở · việc treo trailing stop).
   **7/19 đã vá ở BƯỚC 122** (phần hàng rào: cửa lệnh shell canh cả
   PowerShell · tên đích trong nháy · heredoc mọi thứ tự · `cua_ho_so` thôi
   tự duyệt · bản tin mở phiên hiện mốc 29/09 · test không chạm
@@ -345,10 +348,13 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   dùng bác A vì nó bỏ mất lõi của ý tưởng. Hướng mới: agent tự giao dịch
   ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
   `docs/STATE.md` BƯỚC 122.
-- **Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
+- ~~**Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
   đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
   ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ
-  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.
+  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.~~
+  **ĐÃ QUYẾT 25/09, ĐÃ LÀM 26/09 (BƯỚC 123):** người dùng duyệt *"quét
+  trong phiên chỉ để cảnh báo, không ghi sổ"*; `run_daily` nay chỉ ghi
+  sổ trên nến đã đóng.
 - **Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
   ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit.
 

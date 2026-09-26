@@ -749,6 +749,12 @@ lập với rho = −0,019 của `MO-XE-KIEN-TRUC.md` và đi cùng hướng.
   `stop_loss` lại ở mỗi nhịp quét, tính trên nến **chưa đóng**. Mức stop
   cuối phụ thuộc giờ nào máy được bật. Hoặc chỉ ghi trailing stop ở ATC,
   hoặc chấp nhận và ghi rõ rằng sổ này không tái lập được. **Cần người dùng.**
+
+  > ✅ **ĐÃ QUYẾT 25/09/2026, ĐÃ LÀM 26/09/2026 — BƯỚC 123.** Việc treo
+  > này không lên `docs/HANDOFF.md` suốt 36 ngày (audit BƯỚC 121,
+  > state_loi_hua-09). Người dùng duyệt *"quét trong phiên chỉ để cảnh
+  > báo, không ghi sổ"*; `run_daily` nay chỉ ghi sổ trên nến đã đóng.
+
 - **5C** (cấm in "quán quân", mỗi vòng một tiến trình) và **5D** (dựng lại
   walk-forward — chặn bởi C4) chưa làm.
 - **Phase 6** giờ đã có số đo để quyết, nhưng ba phương án A/B/C vẫn cần
@@ -17746,3 +17752,91 @@ về việc tạm ngừng — file ấy nạp vào mọi phiên.
   lệnh Bash.
 - Mặt *mã thoát bị che* của `pytest | tail` **chưa được đo** trên
   PowerShell; luật `ps-pytest-qua-ong` chỉ khai mặt đệm.
+
+## BƯỚC 123 — P1 SỔ TRUNG THỰC: BẢY PHÁT HIỆN CAO TRÊN ĐƯỜNG GIAO DỊCH ẢO ĐÃ VÁ, VÀ MỘT CHỖ NHÌN TRỘM THỨ TÁM (26/09/2026)
+
+Người dùng: *"ok làm tiếp đi"* — làm P1 của kế hoạch *"agent tự giao dịch
+ảo, học có kiểm soát"* trong cùng chế độ hạn chế của BƯỚC 122 (rào chặn nạp
+`vn*`, không merge được khi còn tạm ngừng). Nhánh `p1/so-trung-thuc` xếp
+chồng lên `p0/harness-chat-che`.
+
+Tầng 1 của kế hoạch là *"giao dịch ảo trung thực"*: agent chỉ học được từ
+sổ khi sổ ghi đúng thứ đã xảy ra. Audit (BƯỚC 121) đo được mọi sai số trên
+đường ấy đều lệch về phía **đẹp**.
+
+### Bảy phát hiện, sửa thế nào
+
+| phát hiện | lỗi | sửa |
+|---|---|---|
+| ma_giao_dich-01 | lệnh CLOSING đặt ở lượt trưa khớp ngay lượt tối CÙNG phiên, ở giá mở cửa có TRƯỚC tín hiệu | `evaluate_open` ghi **ngày tín hiệu thoát** vào `exit_date` của lệnh CLOSING; `fill_closing` chỉ khớp ở phiên **sau** ngày ấy |
+| ma_giao_dich-07 | lệnh thoát theo tín hiệu / trần thời gian bán **miễn phí** trượt giá | `fill_closing` nhận nến khớp và đi qua `_gia_ban_that`; `run_session` truyền nến |
+| ma_giao_dich-03 | gap xuống dưới SL vẫn ghi đúng giá SL | thoát ở `min(SL, giá mở cửa)` |
+| ma_giao_dich-05 | điều kiện dừng C5 đếm **0** lệnh vì ngày 19 ký tự | `vs_benchmark` và `build_benchmark` so NGÀY 10 ký tự ở **cả hai** phía |
+| ma_giao_dich-06 | hậu tố giờ `00:00:00`/`07:00:00` làm lệnh chờ khớp NGAY trong phiên tín hiệu | `run_session` chuẩn hoá ngày phiên ở cửa vào; ba phép so trong sổ cắt `[:10]` |
+| ma_giao_dich-02 | stop nâng theo giá tạm của nến dở rồi bị cắt bằng cái đáy có trước lúc nâng | `run_daily` **chỉ ghi sổ trên nến đã đóng** (dưới) |
+| state_loi_hua-09 | quyết định *"trailing trên nến chưa đóng"* treo từ **20/08** | đóng bằng chính quyết định người dùng đã duyệt 25/09: *"quét trong phiên chỉ để cảnh báo, không ghi sổ"* |
+
+**Chỗ thứ tám, tìm ra lúc sửa 06:** `post_mortem_learning.get_penalty_for_pattern`
+so `signal_date` của mẫu với `as_of` bằng **chuỗi**, và chú thích ngay dòng
+ấy ghi *"cùng ngày hoặc tương lai -> bỏ"*. Với `as_of = "…05 07:00:00"` và
+mẫu `"…05"`, phép so `>=` ra False — mẫu **cùng ngày lọt vào**. Walkforward
+truyền ngày có hậu tố cho 40/125 file cache, nên đây là một chỗ nhìn trộm
+trong mọi phép đo ở chế độ `co_san`. Nay `as_of` cắt `[:10]`.
+
+### "Chỉ ghi sổ trên nến đã đóng" — thiết kế
+
+`data_quality.nen_cuoi_dang_do(thoi_gian_nen_cuoi, bay_gio)` là hàm thuần:
+nến mang ngày hôm nay trước **15:30** giờ VN là nến dở; nến ngày trước luôn
+đóng; nến mang ngày tương lai thì không tin. **15:30 là QUY ƯỚC, chưa đo**
+thời điểm nguồn chốt nến (ATC hết 14:45, thoả thuận tới 15:00) — chọn chiều
+muộn, vì ghi trên nến dở là thứ audit bắt được còn chờ thêm nửa giờ thì
+không hại gì.
+
+`run_daily` gặp nến dở thì **bỏ nó và xử lý phiên đã đóng gần nhất**, với
+**một** thời điểm cho cả lượt. Làm vậy vì hai lý do:
+
+- **Lặp lại vô hại.** Phiên ấy đã xử lý thì lượt này không đổi gì — khớp
+  lệnh chờ đòi phiên sau ngày tín hiệu, `fill_closing` đòi phiên sau ngày
+  tín hiệu thoát, `evaluate_open` bỏ phiên vào, và nâng stop trên cùng một
+  nến cho cùng một mức.
+- **Bù được phiên lỡ.** Chỉ đơn giản bỏ qua mọi lượt trong phiên thì một
+  ngày mà lượt sau đóng cửa bị GitHub rơi nhịp sẽ không bao giờ được ghi.
+
+### Gác và đục
+
+`tests/test_so_trung_thuc.py`, 14 test — mỗi test dựng lại **nguyên văn** kịch
+bản audit dùng để chứng minh lỗi (`sim_phien.py`, `sim_ngay.py`). Thêm một ca
+vào `tests/test_post_mortem.py` (mẫu cùng ngày, `as_of` có hậu tố).
+
+**Đục 16/16 đỏ**, gồm mọi phát dựng lại nguyên văn một lỗi gốc, hai phát
+nửa-sửa (`vs_benchmark` chỉ chuẩn hoá khoá tra; `run_session` không truyền
+nến), và ba phát ở biên giờ chốt. Trước khi đục đã gỡ một dòng `[:10]` **thừa**
+trong `post_mortem_learning` — khi `as_of` đã 10 ký tự nó không đổi phán
+quyết nào, nên phát đục vào đó sẽ sống sót vô nghĩa.
+
+**Một test cũ KHOÁ CHẶT đúng cái lỗi:** `tests/test_paper_trading.py::
+test_vs_benchmark_bao_ro_so_lenh_bi_bo_vi_thieu_cap_ngay` dựng rổ có hậu tố
+giờ rồi **đòi** không lệnh nào khớp — tức đòi điều kiện dừng mù. Mục đích
+của nó (lệnh bị bỏ phải được ĐẾM và NÓI RA) thì đúng; nay nó dùng một cặp
+ngày thật sự vắng.
+
+### Sổ tay
+
+Độ tươi: BƯỚC 120, bằng `main`. Câu hỏi về KẾT LUẬN trả **3 câu nói ngược,
+4 trích dẫn — cả 4 KHỚP**, một trích dẫn mang sai tên file (sổ tay nói
+`HANDOFF.md`, thật ra ở `CLAUDE.md`). Việc treo trailing 20/08 chưa có dấu
+nào: đánh dấu ✅. Câu *"BỘ ĐẾM LÀ 2"* trong `CLAUDE.md` thiếu dấu mà câu
+anh em ở BƯỚC 61 đã có: thêm ⚠️. Câu *"không đổi kết quả"* đã có dấu
+trên nhánh.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Con số đo đổi, và chưa đo lại.** 03, 07 và chỗ thứ tám chạm walkforward.
+  Tiêu chí đo lại (ĐO 18) ký ở **commit riêng**, ngay sau BƯỚC này, trước
+  lượt chạy đầu tiên.
+- Sổ thật trên Google Sheets **không bị viết lại**: bản ghi cũ 19 ký tự vẫn
+  nằm đó, và các phép so cắt `[:10]` đọc được cả hai. Ba lệnh HUT · TCB · NAF
+  khớp sai quy tắc **chưa** được đánh dấu — việc ấy làm sau ĐO 18.
+- Cổng lệnh ảo **vẫn đóng**. Mở lại là việc riêng, sau khi sổ trung thực đã
+  được đo.
+- Chạy dưới rào: *"xanh dưới rào"* yếu hơn *"xanh"* ở bảy chỗ (BƯỚC 122).

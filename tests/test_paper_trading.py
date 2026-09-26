@@ -421,11 +421,18 @@ def test_vs_benchmark_bao_ro_so_lenh_bi_bo_vi_thieu_cap_ngay():
 
     Hậu quả không phải là báo lỗi mà là một câu vô hại: "mới 0 lệnh có đối
     chiếu, chưa đủ" — đọc như thiếu dữ liệu, thật ra là lỗi định dạng.
+
+    TỪ BƯỚC 123 (26/09/2026) ca "hậu tố giờ" KHÔNG còn là lệnh bị bỏ:
+    `vs_benchmark` chuẩn hoá ngày ở CẢ HAI phía, nên khoá `…07:00:00` khớp
+    lệnh ngày sạch (khoá bởi `tests/test_so_trung_thuc.py`). Bản trước của
+    test này ĐÒI hai khoá ấy không khớp — tức khoá chặt đúng cái lỗi làm
+    điều kiện dừng C5 đếm 0 lệnh (audit, ma_giao_dich-05). Mục đích của nó
+    thì giữ nguyên: một cặp ngày THẬT SỰ VẮNG phải được ĐẾM và NÓI RA.
     """
     trades = _closed_trades([5.0] * 12)
 
-    # Rổ chuẩn dựng từ file cache CÓ hậu tố giờ: không khớp lệnh nào.
-    ro_hong = {("2026-01-02 07:00:00", "2026-02-02 07:00:00"): 3.0}
+    # Rổ chuẩn KHÔNG có cặp ngày của các lệnh này: bỏ cả 12 — và phải nói ra.
+    ro_hong = {("2025-01-02", "2025-02-02"): 3.0}
     r = pm.vs_benchmark(trades, ro_hong)
     assert r["n"] == 0
     assert r.get("bo_qua") == 12, (
@@ -440,7 +447,7 @@ def test_vs_benchmark_bao_ro_so_lenh_bi_bo_vi_thieu_cap_ngay():
     text = pm.report(trades, ro_hong)
     assert "12" in text and "bỏ" in text.lower(), (
         "báo cáo không nhắc tới số lệnh bị bỏ:" + chr(10) + text)
-    print("PASS  vs_benchmark nói ra 12/12 lệnh bị bỏ vì lệch định dạng ngày")
+    print("PASS  vs_benchmark nói ra 12/12 lệnh bị bỏ vì thiếu cặp ngày")
 
 
 def test_ro_chuan_chuan_hoa_ngay_o_CA_HAI_phia():
