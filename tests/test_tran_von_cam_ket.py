@@ -307,7 +307,7 @@ def _co_C5_trong_ma_nguon() -> bool:
                -k cong_MO
             -> "PASS  cong MO · tran 100% ..."   trong khi cong dang DONG
 
-    `test_c5_noi_that.py::test_cong_C5_dang_DONG_trong_ma_nguon` đã giải
+    `test_c5_noi_that.py::test_cong_C5_dang_MO_trong_ma_nguon` đã giải
     xong việc này từ trước và docstring của nó nói thẳng lý do; file này
     không đọc nó nên lặp lại đúng lỗi ấy.
     """

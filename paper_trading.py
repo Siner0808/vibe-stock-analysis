@@ -224,7 +224,24 @@ DUNG_MUC_FIBONACCI = False
 #   • đã đo lệch điểm giữa gói vnstock miễn phí (CI, Streamlit Cloud) và
 #     gói tài trợ (máy cá nhân). Chưa đo thì σ và nhịp lệnh dùng để hiệu
 #     chuẩn là số của một hệ thống khác.
-CHO_PHEP_MO_LENH_MOI = False
+#
+# ── MỞ LẠI 26/09/2026 — `docs/STATE.md` BƯỚC 125 ─────────────────────
+#
+# Người dùng chốt 25/09/2026 (BƯỚC 122): agent TỰ đặt lệnh ảo rồi học từ
+# sổ, nên "không có lợi thế" là thông tin cho agent học, không phải lý
+# do tắt agent. Ba điều kiện ở trên đều đã xong, mỗi cái có địa chỉ:
+#   • điều kiện dừng đo bằng alpha, ngưỡng suy từ lực — BƯỚC 3; và nó
+#     ĐẾM ĐƯỢC lệnh thật từ BƯỚC 123 (ngày 19 ký tự làm nó đếm 0);
+#   • nơi hành động: `run_daily.thi_hanh_dieu_kien_dung` và chuông
+#     `tools/canh_cong_c5.py`, cùng ngày 29/08/2026;
+#   • lệch giữa hai gói vnstock — BƯỚC 2; và đường quét nay đọc
+#     `run_daily.NGAY_LICH_SU` ngày lịch thay cho 60 — BƯỚC 6.
+# Thêm hai điều kế hoạch 25/09 đòi trước khi mở: sổ ghi đúng thứ đã xảy
+# ra (BƯỚC 123), và mốc xuất phát trung thực đã đo (ĐO 18, BƯỚC 124).
+#
+# Cờ này CHƯA SINH LỆNH NÀO lúc mở: đường chạy thật tạm ngừng cùng
+# `vnstock` (BƯỚC 122), và workflow quét chỉ bật lại khi người dùng cho.
+CHO_PHEP_MO_LENH_MOI = True
 
 #: Ngay cong C5 duoc dong lai bang tay — moc de DOI CHIEU, khong phai
 #: mot ghi chu. Khoi chu thich tren da noi ngay nay tu 29/08/2026, nhung
@@ -233,6 +250,13 @@ CHO_PHEP_MO_LENH_MOI = False
 #: han cau hoi "ma nguon khai gi": KE TU MOC NAY CO VI THE MOI NAO DUOC
 #: MO KHONG. Mo lai cong roi dong lan nua thi phai cap nhat ngay nay.
 NGAY_DONG_CONG_C5 = "2026-08-29"
+
+#: Ngay cong C5 duoc MO LAI lan gan nhat (BUOC 125). Cung vai voi mot
+#: moc de doi chieu: dong cong lan nua ma quen doi `NGAY_DONG_CONG_C5`
+#: thi `kiem_ro_ri` dem MOI lenh cua thoi gian mo thanh "ro ri". Co va
+#: hai moc phai ke cung mot cau chuyen -- khoa boi
+#: `tests/test_c5_noi_that.py::test_ngay_dong_mo_KHOP_voi_trang_thai_co`.
+NGAY_MO_LAI_CONG_C5 = "2026-09-26"
 
 #: Muc chat luong du lieu con DUNG DUOC de vao lenh.
 #:

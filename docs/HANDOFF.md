@@ -105,9 +105,14 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 
 **Ba điều là QUYẾT ĐỊNH, không phải phép đo — chúng ổn định:**
 
-1. **Cổng mở lệnh mới đang ĐÓNG**, đóng bằng tay từ 29/08/2026. Khoá bởi
+1. **Cổng mở lệnh mới MỞ LẠI từ 26/09/2026** (`docs/STATE.md` BƯỚC 125),
+   sau thời gian đóng tay 29/08 → 26/09. Khoá bởi
    `tests/test_c5_noi_that.py`, và test ấy đọc từ NGUỒN chứ không đọc giá
-   trị lúc chạy. Mở lại là một hành vi có cân nhắc, phải sửa cả test.
+   trị lúc chạy. Đóng lại là một hành vi có cân nhắc: sửa cả test lẫn
+   `NGAY_DONG_CONG_C5`. **Cờ mở chưa sinh lệnh nào** — đường quét tự động
+   tạm ngừng cùng `vnstock` (mục 5).
+   *(Bản trước ghi "đang ĐÓNG, đóng bằng tay từ 29/08/2026" — đúng tới
+   BƯỚC 125. Sổ tay soát BƯỚC 125 KHÔNG chỉ ra câu này; `grep` bắt được.)*
 2. **Sổ lệnh THẬT nằm trên Google Sheets.** File `.db` ở máy đứng yên từ
    20/08/2026; đo trạng thái bằng nó là đo một bản sao chết. Đã sai đúng
    như vậy một lần ngày 28/08.
@@ -354,6 +359,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   dùng bác A vì nó bỏ mất lõi của ý tưởng. Hướng mới: agent tự giao dịch
   ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
   `docs/STATE.md` BƯỚC 122.
+  **Tiến độ:** P0 hàng rào — BƯỚC 122 · P1 sổ trung thực — BƯỚC 123 ·
+  ĐO 18 — BƯỚC 124 · mở lại cổng lệnh ảo — BƯỚC 125. **P1 xong, chưa
+  merge** (tạm ngừng). Việc kế: P2, nhật ký *"vì sao"*.
 - ~~**Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
   đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
   ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ

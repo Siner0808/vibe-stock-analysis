@@ -22,7 +22,8 @@ import sheets_store as ss
 from paper_trading import PaperTradingJournal, Status
 
 # ─────────────────────────────────────────────────────────────────────
-# Ô C5 — paper_trading.CHO_PHEP_MO_LENH_MOI mặc định TẮT, nên
+# Ô C5 — paper_trading.CHO_PHEP_MO_LENH_MOI TẮT ĐƯỢC (đã tắt tay
+# 29/08→26/09/2026, và điều kiện dừng tắt được nó). Khi tắt thì
 # consider_entry() không mở vị thế nào. File này dựng dữ liệu mẫu BẰNG
 # consider_entry(), nên không bật công tắc thì mọi fixture ở đây trả về sổ
 # RỖNG và các test vẫn xanh — xanh vô nghĩa.

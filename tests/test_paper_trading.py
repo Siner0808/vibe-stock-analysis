@@ -37,10 +37,10 @@ market_filter.is_vni_bullish = lambda _signal_date: True
 # ─────────────────────────────────────────────────────────────────────
 # Ô C5 — NGƯỠNG MUA ĐỂ TRỐNG
 #
-# `paper_trading.CHO_PHEP_MO_LENH_MOI` mặc định TẮT: hệ thống chạy thật
-# không mở vị thế mới cho tới khi Phase 5D sinh ra một ngưỡng chọn bằng
-# walk-forward hợp lệ. File này kiểm thử chính logic vào lệnh, nên phải
-# bật công tắc — nếu không mọi test vào lệnh đều đo nhầm cái công tắc.
+# `paper_trading.CHO_PHEP_MO_LENH_MOI` từng mặc định TẮT (tới 24/08, rồi
+# 29/08→26/09/2026), và điều kiện dừng tắt được nó. File này kiểm thử
+# chính logic vào lệnh, nên phải ép bật — nếu không, ngày cổng đóng mọi
+# test vào lệnh đều đo nhầm cái công tắc.
 pt.CHO_PHEP_MO_LENH_MOI = True
 
 

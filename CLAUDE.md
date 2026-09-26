@@ -927,6 +927,12 @@ paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
 > tìm ra hôm 04/09: **hai chỗ nói về cùng một thứ, một chỗ không có
 > dấu.** Nay có gác — `tests/test_tai_lieu_khop_hang_so.py::
 > test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`.
+>
+> ✅ **DÒNG ẤY ĐÚNG LẠI TỪ 26/09/2026 — cổng MỞ LẠI, `docs/STATE.md`
+> BƯỚC 125, chưa vào `main`.** Người dùng chốt 25/09: agent tự đặt lệnh
+> ảo rồi học từ sổ. Ngưỡng 62 và trần vốn 100% giữ nguyên; điều kiện
+> dừng nay đếm được lệnh thật (BƯỚC 123). Cờ mở **chưa sinh lệnh nào**:
+> đường quét tự động đang tạm ngừng cùng `vnstock`.
 
 **Lý do bật KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha vẫn chứa số
 0. Lý do là: **cấu hình chạy trực tiếp chưa bao giờ được đo**, và nó chỉ đo
@@ -1945,6 +1951,13 @@ Hai hàng rào mới đáng biết:
 > `paper_trading.CHO_PHEP_MO_LENH_MOI = False`, đóng **bằng tay**, không
 > phải do điều kiện kích hoạt. Khoá bởi `tests/test_c5_noi_that.py` — mở
 > lại thì phải sửa cả test đó, có chủ đích.
+>
+> 🔴 **HẾT ĐÚNG TỪ 26/09/2026 — cổng MỞ LẠI (`docs/STATE.md` BƯỚC 125),
+> và test ấy đã được sửa có chủ đích:** nay là
+> `test_cong_C5_dang_MO_trong_ma_nguon`, kèm
+> `test_ngay_dong_mo_KHOP_voi_trang_thai_co` buộc cờ và hai mốc
+> `NGAY_DONG_CONG_C5` · `NGAY_MO_LAI_CONG_C5` kể cùng một câu chuyện.
+> Phần còn lại của ô này là bản ghi của thời gian đóng 29/08 → 26/09.
 >
 > **Sổ THẬT nằm trên Google Sheets, không phải `paper_trades.db` ở máy.**
 > File ở máy đứng yên từ 20/08/2026; đo trạng thái bằng nó là đo một bản

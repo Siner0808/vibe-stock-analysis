@@ -17950,3 +17950,111 @@ giá, còn gap dưới SL không phải chi phí thực thi.
 - Thời gian lượt 3 (83 phút, gần gấp đôi lượt 1–2) **chưa giải thích**. Hai
   luồng cùng chậm như nhau nên không phải do P1; bảng số không phụ thuộc nó.
 - Cổng lệnh ảo **vẫn đóng**. Mở lại là việc riêng.
+
+## BƯỚC 125 — MỞ LẠI CỔNG LỆNH ẢO C5: VIỆC CUỐI CỦA P1, VÀ CỜ MỞ CHƯA SINH LỆNH NÀO (26/09/2026)
+
+Việc cuối của tầng 1 trong kế hoạch người dùng đã duyệt 25/09 (BƯỚC 122):
+*"Mở lại cổng lệnh ảo (sửa test khoá có chủ đích)"*, sau khi sổ đã được sửa
+cho trung thực (BƯỚC 123) và đo lại (ĐO 18, BƯỚC 124). Cổng đóng tay từ
+29/08/2026.
+
+### Ba điều kiện mở lại mà chính mã nguồn đã ghi từ 29/08
+
+Khối chú thích trên `paper_trading.CHO_PHEP_MO_LENH_MOI` viết *"MỞ LẠI KHI
+cả ba xong, không sớm hơn"*. Soát từng điều kiện với địa chỉ của nó:
+
+| điều kiện ghi 29/08 | đã xong ở đâu |
+|---|---|
+| điều kiện dừng đo bằng ALPHA, ngưỡng suy từ lực, định giá cả loại II | BƯỚC 3 (bản 2); và nó **đếm được lệnh thật** từ BƯỚC 123 — trước đó ngày 19 ký tự làm nó đếm 0 |
+| có nơi HÀNH ĐỘNG khi điều kiện đạt, có test chứng minh trạng thái đổi | `run_daily.thi_hanh_dieu_kien_dung` + chuông `tools/canh_cong_c5.py`, 29/08; khoá bởi `tests/test_thi_hanh_dieu_kien_dung.py` |
+| đo lệch điểm giữa gói vnstock miễn phí và gói tài trợ | BƯỚC 2 (gói không đổi quyết định nào); cửa sổ quét nay là `run_daily.NGAY_LICH_SU` ngày lịch, không còn 60 — BƯỚC 6 |
+
+Cộng hai điều kế hoạch 25/09 đòi thêm: sổ ghi đúng thứ đã xảy ra (BƯỚC 123)
+và một mốc xuất phát trung thực đã đo (BƯỚC 124).
+
+### Sửa gì
+
+- `paper_trading.CHO_PHEP_MO_LENH_MOI = True`, kèm khối *"MỞ LẠI 26/09/2026"*
+  nêu ba địa chỉ ở trên. Khối chú thích cũ giữ nguyên.
+- Mốc mới `paper_trading.NGAY_MO_LAI_CONG_C5 = "2026-09-26"`, cạnh
+  `NGAY_DONG_CONG_C5`.
+- `tests/test_c5_noi_that.py`: `test_cong_C5_dang_DONG_trong_ma_nguon` thành
+  `test_cong_C5_dang_MO_trong_ma_nguon` — **sửa có chủ đích**, đúng điều
+  docstring cũ đòi: *"Mở lại cổng thì phải sửa cả dòng này."* Ba file test
+  trỏ tới tên cũ đổi theo.
+- Gác mới `test_ngay_dong_mo_KHOP_voi_trang_thai_co`. Lý do: chuông
+  `kiem_ro_ri` đếm mọi quyết định vào lệnh **kể từ `NGAY_DONG_CONG_C5`**.
+  Một ngày cổng đóng lại mà quên dời mốc ấy thì mọi lệnh của thời gian mở bị
+  đếm thành "rò rỉ" — chuông kêu oan mỗi lượt. Câu *"Mo lai cong roi dong lan
+  nua thi phai cap nhat ngay nay"* nằm trong chú thích từ 31/08; nay là gác.
+  Gác rẽ nhánh theo cờ **đọc từ nguồn bằng AST**, đúng luật BƯỚC 33.
+- Ba chú thích test ghi cờ *"mặc định TẮT"* — nay là câu sai — viết lại. Các
+  phép gán ép bật ở mức module **giữ nguyên**: cổng còn đóng lại được.
+- `CLAUDE.md` (hai chỗ), `docs/HANDOFF.md` mục 2, `README.md`: đánh dấu.
+
+### Việc bật cờ làm SỐNG DẬY một gác cũ
+
+`tests/test_tran_von_cam_ket.py::test_cong_MO_thi_ba_thu_bao_ve_phai_CO_MAT`
+rẽ nhánh theo cờ đọc từ nguồn, và suốt thời gian đóng nó chỉ in *"SKIP cổng
+đang đóng"*. Nay nó chạy thật: trần vốn ≤ 100%, có `dieu_kien_dong_lai`, và
+`run_daily` dùng đúng `BUY_THRESHOLD` của `paper_trading`. Chạy riêng nó dưới
+rào in: *"PASS cổng MỞ · trần 100% · ngưỡng 62 · có điều kiện đóng lại"*.
+
+### Lượt test đầu sau khi lật cờ — đỏ đúng hai chỗ đã đoán
+
+Cả bộ dưới rào, trước khi đánh dấu tài liệu: **2 đỏ · 1.420 xanh · 1 bỏ
+qua**, 570,6 giây. Hai chỗ đỏ đều là chỗ phải đỏ:
+
+- `tests/test_tai_lieu_khop_hang_so.py::test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`
+  — `CLAUDE.md` còn một dòng `CHO_PHEP_MO_LENH_MOI = False` không dấu, ở mục
+  *"Cổng C5 — đọc trước khi sửa"*. Gác của 05/09 bắt đúng thứ nó sinh ra để
+  bắt, lần này theo chiều ngược lại.
+- mốc số test: 1.422 → 1.423 (thêm một test).
+
+Không test nào khác phụ thuộc cờ đóng: mọi file dựng lệnh đều ép bật ở mức
+module hoặc bằng `monkeypatch`, và mọi phép rẽ nhánh theo cờ đọc từ nguồn.
+
+### Đục
+
+`tests/test_c5_noi_that.py`, **7/7 đỏ** — gồm phát dựng lại nguyên văn trạng
+thái cũ (cờ `False`, mốc đóng 29/08), hai phát ở biên ngày (mốc bằng nhau),
+xoá mốc, và cờ không còn là hằng số. Một **đối chứng dương**: đóng cổng
+**đúng cách** (cờ `False`, mốc đóng dời sang sau mốc mở) thì gác ngày
+**xanh** — bằng chứng nhánh `else` không đỏ vô điều kiện.
+
+### Sổ tay
+
+Độ tươi: BƯỚC 120, bằng `main`. Câu hỏi về KẾT LUẬN trả **2 câu sẽ thành
+sai, cả 2 ở `CLAUDE.md`, cả 2 KHỚP** qua `tools/doi_chieu_trich_dan.py`, và
+cả 2 đã nằm trong bản vá. Sổ tay khẳng định *"ngoài hai vị trí trên, không có
+câu nào khác"*. **Sai:** `grep` bắt thêm `docs/HANDOFF.md` mục 2 —
+*"Cổng mở lệnh mới đang ĐÓNG, đóng bằng tay từ 29/08/2026"* — nằm trong
+nguồn của nó, đúng loại câu câu hỏi nêu làm ví dụ. Cùng hình dạng 24/09:
+sổ tay bỏ sót một câu nằm ngay trong nguồn, nên câu *"không có gì khác"* của
+nó không bao giờ đủ một mình. `README.md` (không phải nguồn) cũng có câu ấy — đã
+đánh dấu.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Cờ mở chưa sinh lệnh nào, và chưa sinh được.** `main` vẫn `False` cho
+  tới khi merge; merge chờ hết tạm ngừng; quét tự động chờ người dùng bật
+  lại workflow.
+- **Một chỗ va giữa kế hoạch và lời người dùng — để người dùng quyết.** Kế
+  hoạch giữ điều kiện dừng (*"điều kiện dừng đếm được lệnh thật"*), và BƯỚC
+  này không đổi nó. Nhưng vế thứ ba của nó — đủ `N_DAY_DU` lệnh mà chưa chứng
+  minh được lợi thế thì ĐÓNG — là đúng thứ BƯỚC 122 ghi *"không phải lý do
+  tắt agent"*. ĐO 18 cho thấy trạng thái hiện tại là *"không có lợi thế"*.
+  Nên nếu lệnh tiến-về-trước giống ĐO 18, điều kiện ấy **sẽ** đóng cổng khi
+  đủ cỡ mẫu. Đây là suy luận từ mã, không phải số đo; khi nào thì chưa ước
+  lượng. Hướng có thể: ở tầng 3, điều kiện dừng đổi nghĩa thành *"lùi về
+  phiên bản trước"* thay cho *"ngừng đặt lệnh"*.
+- **Bảng `decisions` sẽ có dòng lặp.** Từ BƯỚC 123 mọi lượt quét trong ngày
+  xử lý lại cùng phiên đã đóng, và `record_decision` không khử trùng — nên
+  mỗi (mã, ngày tín hiệu) có thể có nhiều dòng giống nhau. Sổ **lệnh** không
+  bị lặp (`open_position` gồm cả PENDING và CLOSING). Suy từ mã, chưa đo trên
+  sổ. P2 đọc bảng này, nên phải khử trùng theo (mã, ngày tín hiệu).
+- Điều kiện dừng đếm cả ba lệnh HUT · TCB · NAF khớp sai quy tắc (BƯỚC 124).
+  Ba trên `N_TOI_THIEU` — không đổi phán quyết nào gần.
+- Bộ nhớ 44 mẫu vẫn chạy ở chế độ `tich_luy` trên đường thật; gỡ nó là việc
+  của tầng 3 (BƯỚC 122).
+- Chạy dưới rào: *"xanh dưới rào"* yếu hơn *"xanh"* ở bảy chỗ (BƯỚC 122).
