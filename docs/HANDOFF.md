@@ -299,6 +299,15 @@ gỡ quarantine thôi chưa đủ. Trong lúc này CI của mọi PR đỏ ở b
 gói, nên **không PR nào merge được**. Việc làm được: mã không chạm hai
 gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 
+> 🟡 **ĐỔI 26/09/2026 — hai điều kiện mở lại đã có, PyPI thì CHƯA.** Hãng
+> phát hành `vnstock` 4.0.9 · `vnai` 2.6.2 trên kho riêng
+> (`vnstocks.com/api/simple`), CHANGELOG mục *Security* giải thích: bản cũ ghi
+> khối lệnh vào file luật toàn cục của trợ lý AI mỗi lần import. Người dùng
+> cho phép: **nâng máy qua ĐO 19** (`docs/TIEU-CHI-DOC-TRUOC.md`), rồi CI và
+> Streamlit Cloud **cài từ kho hãng** — bước riêng, sau ĐO 19. PyPI lúc 07:27
+> UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
+> phép riêng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
