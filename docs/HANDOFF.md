@@ -304,7 +304,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > (`vnstocks.com/api/simple`), CHANGELOG mục *Security* giải thích: bản cũ ghi
 > khối lệnh vào file luật toàn cục của trợ lý AI mỗi lần import. Người dùng
 > cho phép: **nâng máy qua ĐO 19** (`docs/TIEU-CHI-DOC-TRUOC.md`), rồi CI và
-> Streamlit Cloud **cài từ kho hãng** — bước riêng, sau ĐO 19. PyPI lúc 07:27
+> Streamlit Cloud **cài từ kho hãng** — bước riêng, sau ĐO 19. ✅ **Cả hai
+> đã làm:** ĐO 19 ra NÂNG ĐƯỢC ở cả hai chặng (BƯỚC 126); `requirements.txt`
+> thêm kho hãng và ghim đúng bản (BƯỚC 127). PyPI lúc 07:27
 > UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
 > phép riêng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
 

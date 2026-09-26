@@ -18155,3 +18155,78 @@ và nhóm `"all"` gồm cả đích `project` — chạy nó từ thư mục rep
 - Lượt cài này **bỏ qua** phép kiểm độc lập của PyPI — người dùng đã quyết;
   hai bánh xe có băm ghi trong tiêu chí.
 - Đường lùi `vnai` 2.6.1 nằm trong thư mục tạm của phiên.
+
+## BƯỚC 127 — CI VÀ STREAMLIT CLOUD CÀI `vnstock` · `vnai` TỪ KHO HÃNG, GHIM ĐÚNG BẢN ĐO 19 (26/09/2026)
+
+Người dùng hỏi *"sao merge fail hoài vậy?"*. Đo: mọi lượt CI từ 25/09 chết ở
+bước cài, *"No matching distribution found for vnstock>=4.0.6"* — PyPI cách
+ly. Và `main` có một **ruleset** (tạo 21/08/2026, không ai được đi vòng) đòi
+check `kiem-dinh` xanh, nên PR #169 bị `BLOCKED`. Người dùng chọn: CI và
+Streamlit Cloud **cài từ kho của hãng**.
+
+### Sửa gì
+
+`requirements.txt` — thứ cả GitHub Actions lẫn Streamlit Cloud cài — thêm
+**một** dòng tuỳ chọn và đổi hai dòng:
+
+```
+--extra-index-url https://vnstocks.com/api/simple
+vnstock==4.0.9        (truoc: vnstock>=4.0.6)
+vnai==2.6.2           (truoc: vnai>=2.5.7)
+```
+
+- **`--extra-index-url`, không `--index-url`:** kho hãng chỉ **thêm** vào
+  PyPI. Đo 26/09: kho ấy phục vụ đúng bốn tên — `vnstock`,
+  `vnstock-installer`, `vnai`, `vnii`.
+- **Ghim `==`, không sàn:** `pip` chọn bản cao nhất trên **cả hai** kho, nên
+  một sàn để kho nào có bản cao hơn quyết định CI chạy gì. Sàn cũng chính là
+  đường CI từng chạy trước máy (lỗi 79). Bản ghim là bản ĐO 19 đã đo.
+- Bốn gói tài trợ và `vnii` **vẫn ngoài** `requirements.txt`: CI và Cloud
+  vẫn chạy hạng free, `kiem_goi()` vẫn báo LỆCH trên cloud — báo đúng.
+
+**Kiểm bằng lệnh, không suy:** `pip install --dry-run --no-deps --report`
+trên đúng ba dòng ấy lấy `vnstock` 4.0.9 và `vnai` 2.6.2 từ
+`vnstocks.com/files/`, băm `b51358c5…` · `5b285215…` — **khớp** hai bánh xe
+ĐO 19 đã đo và đã cài.
+
+### Gác và đục
+
+`tests/test_requirements.py` thêm hai gác: kho thứ hai là **đúng một** dòng
+`--extra-index-url https://vnstocks.com/api/simple` (không `--index-url`,
+không `http://`, không `--trusted-host`); và hai gói **ghim `==`** bằng
+đúng bản đang chạy — trên CI là bản vừa cài từ chính file ấy, ở máy là bản
+ĐO 19. **Đục 8/8 đỏ.** `_da_khai_bao` nay bỏ qua dòng tuỳ chọn của pip.
+
+**Một gác cũ đỏ đúng lúc — và tôi đã bỏ sót nó khi tra trước.**
+`tests/test_bat_doi_xung_ban_goi.py::test_REQUIREMENTS_van_khai_bang_SAN_chu_khong_phai_GHIM`
+đỏ ở lượt năm cổng đầu, với đúng lời dặn trong docstring của nó: *"nếu một
+ngày nó thành `==` thì cả mục bất đối xứng phải viết lại"*. Lượt `grep` trước
+khi sửa tìm `4\.0\.6|2\.5\.7|vnstock>=|vnai>=` — không trúng, vì gác ấy kiểm
+`">=" in d`, không nêu con số nào. Sửa có chủ đích thành
+`test_REQUIREMENTS_GHIM_va_muc_bat_doi_xung_NOI_DUNG_co_che_ay`: đòi `==`
+**và** đòi mục bất đối xứng trong `CLAUDE.md` nói ra BƯỚC 127. Đục 2/2 đỏ.
+
+### Chưa đo được tới khi merge
+
+**Streamlit Cloud** chỉ triển khai từ `main`. Nó có đọc `--extra-index-url`
+trong `requirements.txt` hay không thì chỉ biết sau khi #169 vào `main` — tới
+lúc ấy mở app và đọc, đừng suy.
+
+### Một sai sót trong tài liệu, ghi lại chưa sửa
+
+Skill quy trình Bước 5, `references/loi-da-mac.md` và
+`~/.claude/rules/vibe-preview.md` viết *"`main` KHÔNG bị khoá — đo 08/09:
+404 'Branch not protected'"*. Phép đo ấy chỉ hỏi API khoá nhánh **cổ điển**.
+`gh api repos/…/rulesets` trả một ruleset `main` **active** tạo
+**21/08/2026** — trước cả ngày đo — với `required_status_checks: kiem-dinh`,
+`pull_request`, `non_fast_forward`, `deletion`, 0 người được đi vòng. Kết
+luận *"đẩy thẳng main là sai vì CI chạy sau cánh cửa"* vẫn đúng; lý do đo
+được thì thiếu một vế. Đã hỏi người dùng có ghi thành một dòng bảng lỗi
+không — chưa có trả lời.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Rủi ro nhầm gói giữa hai kho **hẹp, không bằng 0**: nếu sau này kho hãng
+  phục vụ một tên trùng gói PyPI, `pip` có thể lấy bản của kho hãng. Ghim
+  `==` chỉ che hai gói đã ghim.
+- Ba workflow vẫn TẮT.
