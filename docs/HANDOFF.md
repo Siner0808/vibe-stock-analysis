@@ -105,9 +105,14 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 
 **Ba điều là QUYẾT ĐỊNH, không phải phép đo — chúng ổn định:**
 
-1. **Cổng mở lệnh mới đang ĐÓNG**, đóng bằng tay từ 29/08/2026. Khoá bởi
+1. **Cổng mở lệnh mới MỞ LẠI từ 26/09/2026** (`docs/STATE.md` BƯỚC 125),
+   sau thời gian đóng tay 29/08 → 26/09. Khoá bởi
    `tests/test_c5_noi_that.py`, và test ấy đọc từ NGUỒN chứ không đọc giá
-   trị lúc chạy. Mở lại là một hành vi có cân nhắc, phải sửa cả test.
+   trị lúc chạy. Đóng lại là một hành vi có cân nhắc: sửa cả test lẫn
+   `NGAY_DONG_CONG_C5`. **Cờ mở chưa sinh lệnh nào** — đường quét tự động
+   tạm ngừng cùng `vnstock` (mục 5).
+   *(Bản trước ghi "đang ĐÓNG, đóng bằng tay từ 29/08/2026" — đúng tới
+   BƯỚC 125. Sổ tay soát BƯỚC 125 KHÔNG chỉ ra câu này; `grep` bắt được.)*
 2. **Sổ lệnh THẬT nằm trên Google Sheets.** File `.db` ở máy đứng yên từ
    20/08/2026; đo trạng thái bằng nó là đo một bản sao chết. Đã sai đúng
    như vậy một lần ngày 28/08.
@@ -120,6 +125,12 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 cho cùng kết luận: ĐO 1 (09/09) · ĐO 3 (10/09) · ĐO 4 (11/09).
 `docs/STATE.md` BƯỚC 44 · 50 · 52. Con số hiện hành thì đọc bảng ĐO 3
 trong `CLAUDE.md`, đừng đọc ở đây.
+
+> 🔴 **ĐÃ ĐO LẠI TRÊN SỔ TRUNG THỰC — ĐO 18, 26/09/2026 (BƯỚC 124).** Bảng
+> hiện hành nay là bảng ĐO 18 trong `CLAUDE.md`. Dòng theo ngày trượt giá
+> BẬT ra **−1,48% [−2,05 ; −0,88]**; và **3 trên 4 dòng** loại được số 0,
+> kể cả dòng TẮT trượt giá theo ngày (−0,72%). Nghĩa là thua rổ không chỉ
+> vì chi phí thực thi.
 
 > 🔴 **CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026 VÀ VẪN ĐỨNG TỚI 14/09.** Nó
 > ghi *"dự án hiện không có kết quả nào loại được số 0"* — viết
@@ -288,6 +299,17 @@ gỡ quarantine thôi chưa đủ. Trong lúc này CI của mọi PR đỏ ở b
 gói, nên **không PR nào merge được**. Việc làm được: mã không chạm hai
 gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 
+> 🟡 **ĐỔI 26/09/2026 — hai điều kiện mở lại đã có, PyPI thì CHƯA.** Hãng
+> phát hành `vnstock` 4.0.9 · `vnai` 2.6.2 trên kho riêng
+> (`vnstocks.com/api/simple`), CHANGELOG mục *Security* giải thích: bản cũ ghi
+> khối lệnh vào file luật toàn cục của trợ lý AI mỗi lần import. Người dùng
+> cho phép: **nâng máy qua ĐO 19** (`docs/TIEU-CHI-DOC-TRUOC.md`), rồi CI và
+> Streamlit Cloud **cài từ kho hãng** — bước riêng, sau ĐO 19. ✅ **Cả hai
+> đã làm:** ĐO 19 ra NÂNG ĐƯỢC ở cả hai chặng (BƯỚC 126); `requirements.txt`
+> thêm kho hãng và ghim đúng bản (BƯỚC 127). PyPI lúc 07:27
+> UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
+> phép riêng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
@@ -334,6 +356,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   đường tiến-về-trước: lệnh thoát khớp ngay trong phiên ra tín hiệu (3/3
   lệnh đã đóng), và điều kiện dừng C5 đếm 0 lệnh. Sửa chúng làm đổi số đo
   nên phải qua một ĐO có tiêu chí ký trước.
+  **14/19 đã vá** — BƯỚC 123 thêm bảy phát hiện của đường giao dịch ảo
+  (khớp lệnh thoát cùng phiên · trượt giá bán · gap dưới SL · ngày 19 ký
+  tự · hậu tố giờ · nâng stop trên nến dở · việc treo trailing stop).
   **7/19 đã vá ở BƯỚC 122** (phần hàng rào: cửa lệnh shell canh cả
   PowerShell · tên đích trong nháy · heredoc mọi thứ tự · `cua_ho_so` thôi
   tự duyệt · bản tin mở phiên hiện mốc 29/09 · test không chạm
@@ -345,10 +370,16 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   dùng bác A vì nó bỏ mất lõi của ý tưởng. Hướng mới: agent tự giao dịch
   ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
   `docs/STATE.md` BƯỚC 122.
-- **Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
+  **Tiến độ:** P0 hàng rào — BƯỚC 122 · P1 sổ trung thực — BƯỚC 123 ·
+  ĐO 18 — BƯỚC 124 · mở lại cổng lệnh ảo — BƯỚC 125. **P1 xong, chưa
+  merge** (tạm ngừng). Việc kế: P2, nhật ký *"vì sao"*.
+- ~~**Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
   đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
   ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ
-  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.
+  quả: stop nâng giữa phiên rồi bị cắt bằng cái đáy có trước lúc nâng.~~
+  **ĐÃ QUYẾT 25/09, ĐÃ LÀM 26/09 (BƯỚC 123):** người dùng duyệt *"quét
+  trong phiên chỉ để cảnh báo, không ghi sổ"*; `run_daily` nay chỉ ghi
+  sổ trên nến đã đóng.
 - **Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
   ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit.
 

@@ -274,7 +274,7 @@ def _gia_tri_trong_ma(ten: str) -> str:
     Bản đầu của gác này đọc lúc chạy thật: **xanh khi chạy một mình, đỏ
     trong bộ đầy đủ** (05/09/2026). May là đỏ — chiều ngược lại sẽ là
     một gác không bao giờ kêu. Cùng cách `tests/test_c5_noi_that.py::
-    test_cong_C5_dang_DONG_trong_ma_nguon` đã giải từ trước.
+    test_cong_C5_dang_MO_trong_ma_nguon` đã giải từ trước.
     """
     cay = ast.parse((GOC / "paper_trading.py").read_text(encoding="utf-8"))
     gan = [n for n in ast.walk(cay)

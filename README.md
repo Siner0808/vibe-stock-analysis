@@ -160,11 +160,17 @@ Hai file đầu là bắt buộc, và có hook chặn ở `tools/cua_doc_bat_buo
 
 ## Trạng thái hiện tại
 
-**Cổng mở lệnh (C5) đang ĐÓNG**, đóng bằng tay, khoá bởi test.
+**Cổng mở lệnh (C5) MỞ LẠI từ 26/09/2026** (`docs/STATE.md` BƯỚC 125),
+khoá bởi test — nhưng đường quét tự động đang tạm ngừng cùng `vnstock`,
+nên chưa sinh lệnh mới nào. Bản trước ghi *"đang ĐÓNG"*, đúng từ
+29/08 tới 26/09/2026.
 
 Bằng chứng tiến-về-trước đã đóng: **0**. Sổ 117 lệnh trên kho ngoài chưa
 bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước — mọi con số
 lịch sử nói về *một lượt mô phỏng*, không phải kết quả tích luỹ.
+
+> 🔴 Con số **0** ở trên hết đúng từ 04/09/2026, khi lệnh tiến-về-trước
+> đầu tiên đóng. Đọc sổ bằng `tools/doc_so_that.py`, đừng đọc ở đây.
 
 Số học không dễ chịu: cần ~1.050 lệnh để kỳ vọng loại được số 0 (~23 năm ở
 nhịp 45 lệnh/năm); alpha cần 22.601 lệnh. *"Chờ thêm dữ liệu rồi quyết"*

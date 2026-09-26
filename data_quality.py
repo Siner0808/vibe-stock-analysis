@@ -44,6 +44,35 @@ def now_vn() -> datetime:
     return datetime.now(VN_TZ)
 
 
+#: Giờ VN từ đó nến NGÀY của phiên hôm nay được coi là ĐÃ ĐÓNG. ATC kết
+#: thúc 14:45, giao dịch thoả thuận tới 15:00; thêm 30 phút cho nguồn chốt
+#: nến. Đây là QUY ƯỚC, chưa đo được thời điểm nguồn chốt nến — chọn chiều
+#: muộn, vì ghi sổ trên nến dở là thứ audit 25/09/2026 bắt được, còn chờ
+#: thêm nửa giờ thì không hại gì. `docs/STATE.md` BƯỚC 123.
+GIO_NEN_DA_DONG = (15, 30)
+
+
+def nen_cuoi_dang_do(thoi_gian_nen_cuoi, bay_gio: datetime) -> bool:
+    """Nến cuối có phải nến NGÀY CHƯA ĐÓNG của phiên hôm nay không?
+
+    HÀM THUẦN: nhận `bay_gio` từ người gọi, không tự hỏi đồng hồ — một lượt
+    quét phải dùng CÙNG một thời điểm cho mọi mã.
+
+    Sổ chỉ được ghi trên nến đã đóng (người dùng duyệt 25/09/2026: "một
+    lượt quét mỗi phiên, sau giờ đóng cửa; quét trong phiên chỉ để cảnh
+    báo, không ghi sổ"). Trên nến dở, stop bị nâng theo giá tạm rồi bị
+    cắt bằng cái đáy có TRƯỚC lúc nâng, và tín hiệu thoát chấm trên một
+    cây nến chưa có. Audit 25/09/2026, ma_giao_dich-02 và state_loi_hua-09.
+    """
+    ngay_nen = str(thoi_gian_nen_cuoi)[:10]
+    hom_nay = bay_gio.date().isoformat()
+    if ngay_nen > hom_nay:
+        return True                  # nến "tương lai": không tin, không ghi
+    if ngay_nen < hom_nay:
+        return False
+    return (bay_gio.hour, bay_gio.minute) < GIO_NEN_DA_DONG
+
+
 def today_vn() -> datetime:
     return now_vn().replace(hour=0, minute=0, second=0, microsecond=0)
 

@@ -160,10 +160,13 @@ def _van_tay_e(e: dict, m: str) -> set[tuple]:
     return {(l[m].get("hinh"), l[m].get("bam")) for l in e["luot"]}
 
 
-def phan_xu(truoc: dict, sau: dict, goi: str) -> tuple[str, list[str]]:
+def phan_xu(truoc: dict, sau: dict, goi: str,
+            goi_nang: tuple = GOI_NANG) -> tuple[str, list[str]]:
     """Xếp hai ảnh chụp của MỘT chặng vào đúng MỘT ô của bảng ĐÃ KÝ.
 
-    `goi` là gói của chặng ấy. Trả (mã, lý do)."""
+    `goi` là gói của chặng ấy. `goi_nang` là danh sách chặng của phép đo
+    gọi hàm này — ĐO 19 (`tools/do19_nang_vnstock_409.py`) dùng lại toàn bộ
+    bảng ở đây với hai chặng của nó. Trả (mã, lý do)."""
     # 1. keo hong -> chua ket luan
     if d10._co_loi(truoc["do10"]) or d10._co_loi(sau["do10"]):
         return CHUA_KET_LUAN, ["o A-D co it nhat mot luot keo HONG — xem `loi`"]
@@ -176,7 +179,7 @@ def phan_xu(truoc: dict, sau: dict, goi: str) -> tuple[str, list[str]]:
 
     # 2. chang nay phai cham DUNG MOT goi — goi cua chang (ĐO 13 dieu 5)
     doi = goi_doi(truoc["freeze"], sau["freeze"])
-    if goi not in GOI_NANG or doi != {goi}:
+    if goi not in goi_nang or doi != {goi}:
         return CHUA_KET_LUAN, [f"freeze doi {sorted(doi)}, khong phai dung ['{goi}']"]
 
     # 3. nen F truoc phai dat, khong thi F sau khong doc duoc
