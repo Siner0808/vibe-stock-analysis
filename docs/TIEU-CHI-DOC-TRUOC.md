@@ -3192,3 +3192,23 @@ có.
 **Quy tắc số 1, áp ngược:** `NANG DUOC` là chiều người dùng muốn. Nên ô E
 giống hệt phải đi kèm **dòng thô**, và ô G phải in **băm của từng file**, không
 chỉ chữ *"đứng yên"*.
+
+
+---
+
+## Kết quả ĐO 19 — chạy 26/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do19_nang_vnstock_409.py`
+
+Tiêu chí vào nhánh lúc **14:48:34** (`2c6db3f`); lượt `truoc` bắt đầu
+**14:48:46** — trước khi đổi một gói nào.
+
+```
+chang          luc cai    nen -> sau                phan quyet
+vnai 2.6.2     14:50:38   truoc    -> sau_vnai      NANG DUOC
+vnstock 4.0.9  14:52:09   sau_vnai -> sau_vnstock   NANG DUOC
+nam cong KHONG rao chan   1438 passed · moi file xanh rieng · 0 CHAN
+```
+
+**NÂNG ĐƯỢC.** Ô A–E giống từng băm với ảnh `truoc` **và với ĐO 17**; ô F,
+G đạt ở cả ba ảnh. Số liệu và dòng thô: `docs/STATE.md` BƯỚC 126.
