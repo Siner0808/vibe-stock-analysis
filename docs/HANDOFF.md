@@ -310,6 +310,30 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
 > phép riêng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
 
+> 🧭 **CUỐI NGÀY 26/09/2026 — đọc trước khi làm tiếp.**
+>
+> - **#171 ĐÃ MERGE vào `p0/harness-chat-che`** (`1a84379`, 17:03). Hai
+>   check `kiem-dinh` xanh trên `c6f1ecd`; năm cổng ở máy xanh — 1440
+>   passed — **chạy với `PYTHONUTF8=1`** (gạch thứ ba).
+> - **Chưa vào `main`:** #170 (nháp, `p0/…` → `audit/…`) rồi #169
+>   (`audit/…` → `main`). CI cũ của cả hai ĐỎ từ thời tạm ngừng (8–12 giây,
+>   chết ở bước cài gói). Commit ghi khối này đẩy lên `p0/…` nên CI của #170
+>   chạy lại; #169 cần một lượt chạy lại riêng. Qua được bước cài từ kho
+>   hãng hay không: **CHƯA đo** trên hai nhánh ấy. Bỏ nháp #170 là việc của
+>   người dùng.
+> - **Cổng 1 ở máy ĐỎ 2 test nếu shell thiếu `PYTHONUTF8=1`** (đo 26/09):
+>   `test_doi_chung_ngoai_venv.py::test_DUNG_CU_DAN_khong_chet_khi_THIEU_venv_doi_chung`
+>   và `test_nhat_ky_cua_bash.py::test_DUNG_CU_DOC_chay_duoc_va_THOAT_2_khi_luat_khong_co`.
+>   Tiến trình con in stderr bằng cp1252 (byte `0x97` = `—`), test đọc
+>   UTF-8 nên `stderr` thành `None`. CI (Linux) không gặp. Hai file ấy không
+>   nằm trong diff #171 — lỗi có từ trước, lộ ra theo môi trường shell.
+>   **Chưa sửa**; sửa đúng là cho dụng cụ `reconfigure` stderr sang UTF-8
+>   hoặc cho test truyền `encoding` — việc riêng, cần một BƯỚC.
+> - **Hai worktree ĐO 18 đã gỡ** (người dùng cho phép). 18 file dữ liệu
+>   (`wf_*.db` · `sl_pattern_memory.json`) **không xoá** — chuyển sang
+>   `C:\Users\cuong\.gemini\antigravity\scratch\luu_do18\`. Xoá hẳn thì hỏi
+>   người dùng.
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
