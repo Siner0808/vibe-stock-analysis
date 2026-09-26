@@ -209,6 +209,20 @@ def test_DOC_NHAT_KY_bo_qua_dong_hong_va_DEM_no(tmp_path, capsys):
     print("PASS  dong hong bi bo qua VA duoc dem")
 
 
+def test_DOC_NHAT_KY_chi_lay_lenh_BASH(tmp_path, capsys):
+    """Từ 25/09/2026 cửa ghi cả lượt PowerShell. Công cụ này thử LUẬT
+    BASH, nên lệnh PowerShell trong quần thể là đo bắt nhầm trên sai cú
+    pháp. Bản ghi cũ không có trường `cong_cu` đều là Bash."""
+    f = tmp_path / "x.log"
+    f.write_text('{"phan":"CHO-QUA","lenh":"a","luat":[]}\n'
+                 '{"phan":"CHAN","lenh":"b","luat":[],"cong_cu":"Bash"}\n'
+                 '{"phan":"CHAN","lenh":"c","luat":[],"cong_cu":"PowerShell"}\n',
+                 encoding="utf-8")
+    assert [b["lenh"] for b in sn.doc_nhat_ky(f)] == ["a", "b"]
+    assert "1 ban ghi PowerShell" in capsys.readouterr().err
+    print("PASS  chi lenh Bash vao quan the thu luat Bash")
+
+
 def test_DUNG_CU_DOC_chay_duoc_va_THOAT_2_khi_luat_khong_co():
     """Tên luật không có phải là CHƯA KIỂM ĐƯỢC, không phải 'sach'."""
     r = subprocess.run([PY, str(DOC), "--thu-luat", "khong-ton-tai",

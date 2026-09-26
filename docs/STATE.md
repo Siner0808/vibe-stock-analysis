@@ -12836,6 +12836,11 @@ Năm vòng. **Ba vòng cắt bớt thiết kế, một vòng cắt NHẦM, một
 | bỏ khi file MỚI HƠN lời khai | **lật ngược** |
 | nén quan sát bằng LLM + Chroma + provider xa | không |
 
+> 🔴 **Dòng "bơm chứ không chặn (`permissionDecision: "allow"`)" SAI VỀ
+> NGHĨA, và nó sống tới audit 25/09/2026.** Đặc tả nói nguyên văn: `"allow"`
+> *skips the permission prompt* — tức cửa ấy TỰ DUYỆT, không phải trung
+> tính. Từ BƯỚC 122 `tools/cua_ho_so.py` chỉ trả `additionalContext`.
+
 Cổng "file mới hơn lời khai" là chỗ đáng tiền nhất và phải dùng **ngược**:
 với một công cụ trí nhớ, lời khai già hơn file thì giấu đi; với dự án này,
 **lời khai già hơn thứ nó mô tả CHÍNH LÀ con bọ** — lỗi 57 · 60 · 63 · 64 ·
@@ -12907,6 +12912,9 @@ tools/ho_so.py       tra cuu THUAN, goi duoc bang tay, 218 ms mot luot
 tools/cua_ho_so.py   PreToolUse Read|Edit -> additionalContext, allow
 SKILL.md Buoc 1      dieu 1 dung ho_so.py; them dieu 1b
 ```
+
+> 🔴 **Vế `allow` ở dòng thứ hai HẾT ĐÚNG TỪ BƯỚC 122** — cửa thôi trả
+> `permissionDecision`; xem ô đỏ ở bảng cơ chế ngay trên.
 
 Không tách skill riêng: Bước 1 điều 1 **đã là** *"tìm xem đã có lời giải
 chưa"*; `tools/ho_so.py` là bản cơ giới hoá đúng bước ấy. Tách ra là hai chỗ
@@ -17465,6 +17473,10 @@ thẳng hàm phán:
 - Ba script tên `*_test.py`/`test_*.py` ở gốc không có guard `__main__` và
   `os.remove` hai `.db` bằng chứng. `pytest` trần ở gốc sẽ chạy chúng.
 
+> ✅ **Năm lỗ ở danh sách trên đã vá ở BƯỚC 122**, trên nhánh
+> `p0/harness-chat-che` — **chưa vào `main`**: CI của mọi PR đỏ ở bước
+> cài gói suốt thời gian tạm ngừng `vnstock`.
+
 **Bề mặt người dùng nhìn nói khác phép đo.** App tự đặt ngưỡng 50/60 và
 hiện "MUA THĂM DÒ"/"MUA 30%", không đọc khuyến nghị của master. Với dữ liệu
 mô phỏng, master trả điểm 50, nên app vẫn hiện "MUA THĂM DÒ". README công
@@ -17533,3 +17545,204 @@ chưa từng vào
 - Không sửa lỗi nào. Đánh dấu 🔴 chỉ nói câu cũ đã sai, chưa sửa mã.
 - 3 lệnh đã đóng mang giá thoát sai quy tắc, nhưng lãi/lỗ đúng theo quy
   tắc của chúng **chưa tính lại**, và 3 trên 113 không đọc được gì.
+
+## BƯỚC 122 — QUYẾT ĐỊNH 25/09 VÀ P0 HÀNG RÀO: BẢY PHÁT HIỆN CAO ĐÃ VÁ, CHƯA MERGE ĐƯỢC VÌ ĐANG TẠM NGỪNG `vnstock` (25/09/2026)
+
+Hai việc trong một BƯỚC, vì việc thứ hai là bước đầu của việc thứ nhất:
+ghi lại các quyết định người dùng chốt tối 25/09, và làm phần P0 (hàng rào)
+của kế hoạch mới trong **chế độ hạn chế** do việc tạm ngừng `vnstock`.
+
+### Quyết định của người dùng (25/09/2026)
+
+**Hướng A của BƯỚC 121 bị bác.** Người dùng đọc kế hoạch *"công cụ hỗ trợ
+quyết định, không phát khuyến nghị mua tự động"* và nói: *"nó đã phá hỏng ý
+tưởng ban đầu của tôi. ý tưởng của tôi khi tạo app này là để AI Agent phân
+tích cổ phiếu và tự đi lệnh (tất nhiên là lệnh ảo) từ đó sau mỗi lệnh
+thắng/thua thì Agent sẽ học được gì và tự nâng cấp nó lên. Bên cạnh đó tôi
+nhìn vào sổ lệnh của Agent để tự học hỏi thêm."*
+
+Chỗ sai của tôi: tối ưu cho câu hỏi *"chiến lược có alpha không"* rồi suy
+ra *"bỏ máy tự giao dịch"*. Mục tiêu của dự án không đòi alpha dương; nó đòi
+một agent tự vận hành, học được, và minh bạch để người học theo. Kết quả đo
+*"không có lợi thế"* là thông tin cho agent học, không phải lý do tắt agent.
+Bảng lỗi, lỗi 103.
+
+Hướng mới, ba tầng, người dùng đã duyệt:
+
+1. **Giao dịch ảo trung thực.** Một lượt quét mỗi phiên sau đóng cửa; lệnh
+   thoát khớp phiên sau, có trượt giá bán; gap dưới SL khớp giá mở cửa;
+   ngày chuẩn hoá 10 ký tự; điều kiện dừng đếm được lệnh thật. Rồi **mở
+   lại cổng lệnh ảo**.
+2. **Nhật ký "vì sao"** trên một tab Google Sheets mới: lúc vào lệnh (điểm
+   từng agent, lý do, bối cảnh) và lúc đóng (kết quả theo R, so với rổ, hậu
+   kiểm máy, rồi hậu kiểm lời). Hậu kiểm lời dùng **Claude**; khoá API do
+   người dùng tự đặt, không đi qua tay agent.
+3. **Tự nâng cấp có kỷ luật, hai vòng.** Sàng lọc tối đa **5 ứng viên mỗi
+   tuần** trên dữ liệu đã nhìn, cả lô khai trong một commit trước khi chạy;
+   xác nhận tối đa **1 mỗi tháng** trên dữ liệu chưa nhìn, tiêu chí ký ở
+   commit riêng, ngưỡng hiệu chỉnh theo tổng số ứng viên đã sàng. Qua xác
+   nhận thì agent **tự lên phiên bản** và **báo người dùng ngay**. Vòng xác
+   nhận được **kiểm định định kỳ** bằng ứng viên giả (có lợi thế biết trước
+   thì phải bắt được, ngẫu nhiên thì phải bị loại), và **bộ quy tắc được cập
+   nhật khi quét phát hiện lỗi**. Người dùng: *"Skill Hook Workflow Harness
+   phải chặt chẽ"*.
+
+Kèm theo: bộ nhớ học cũ (44 mẫu lệnh thua) **chỉ giữ làm lịch sử**; việc ký
+tiêu chí mở rộng ĐO 14 sang 71 mã và việc gỡ khối vnai trong
+`~/.claude/CLAUDE.md` **dời tới sau khi xong kế hoạch**.
+
+### Tạm ngừng `vnstock` / `vnai`
+
+Tối 25/09 PyPI đặt `vnstock` và `vnai` ở trạng thái **quarantined** (PEP 792:
+*"The project is considered generally unsafe for use, e.g. due to
+malware"*). Đo lại lúc 21:23: vẫn `quarantined`, danh sách file rỗng. Hãng
+chưa có thông báo nào (trang chủ, blog, GitHub `thinh-vu/vnstock` — commit
+cuối 12/09).
+
+Người dùng chốt **tạm ngừng**: không chạy app hay bất kỳ mã nào nhập hai gói;
+không cài, nâng hay gỡ gói; tắt ba workflow `quet-so-lenh`, `canh-cong-c5`,
+`chuong-nguon-dung` (`disabled_manually`). PyPI gỡ quarantine thôi **chưa
+đủ** để mở lại — cần hãng giải thích và người dùng cho phép.
+
+Hệ quả trực tiếp: CI của **mọi** PR đỏ ở bước cài gói, nên PR #169 (BƯỚC 121)
+và PR của BƯỚC này **không merge được** cho tới khi tạm ngừng kết thúc.
+
+### Chế độ hạn chế — rào chặn lúc chạy, và giới hạn của nó
+
+Đo trước khi chạy bất kỳ Python nào trong `.venv`:
+
+```
+.pth trong site-packages   distutils-precedence · google nspkg   (khong goi vn*)
+sitecustomize / usercust.  khong co
+plugin pytest (pytest11)   chi anyio
+goi phu thuoc ho vn*       chi chinh ho vn* (vnstock, _data, _ta, _news, _ezchart)
+```
+
+Rào: một `sitecustomize.py` ngoài repo, nạp qua `PYTHONPATH`, cài một
+`meta_path` finder **từ chối tìm** chín tên gốc họ `vn*` — nên mã của hãng
+không bao giờ được thực thi, và mọi tiến trình con thừa kế môi trường cũng
+mang rào. Đối chứng: không rào thì `find_spec` thấy cả hai gói; có rào thì
+cả bốn tên thử bị chặn, kể cả trong tiến trình con. Quét tĩnh năm cửa cùng
+`ho_so`, `chan_bia_so_lieu`, `kiem_cua_song`: không cửa nào nhập `vn*`.
+
+`tests/test_post_mortem.py` từng **ghi đè** `PYTHONPATH` của tiến trình con,
+tức xoá môi trường người gọi truyền vào — và rơi mất rào. Nay nó **nối
+thêm**; chạy dưới rào: 8 passed, **0** lượt chạm `vn*`.
+
+**Cả bộ dưới rào**, lượt đầu (chưa gồm file trên): **1.397 passed · 2 failed
+· 1 skipped**, 28 lượt nhập bị chặn. Cả hai test đỏ do chính bản vá này (một
+mẫu trỏ tới file không có; mốc số test chưa cập nhật), đã sửa. Kết quả năm
+cổng cuối cùng: mô tả PR.
+
+**Giới hạn phải đọc kèm: *xanh dưới rào* yếu hơn *xanh*.** 28 lượt chặn đến
+từ năm chỗ — `vnstock_goi.py:136` (14), `vnstock_auth.py:54` (10),
+`tests/test_dich_ghi_de_cua_vnai.py:71` (2), `tests/test_no_fabricated_data.py`
+dòng 227 và 387 — và các test đi qua đó xanh bằng đường lui (có test in
+`SKIP` rồi `return`, và pytest tính là passed). Lượt năm cổng cuối (59 lượt
+chặn) lộ thêm **hai** chỗ chỉ thấy khi file chạy MỘT MÌNH —
+`tests/test_mau_bang_gia.py:264` và `tests/test_vnstock_goi.py:202` — vì trong
+cả bộ, một test chạy trước đã đặt bản giả vào `sys.modules`. Tổng: **bảy**
+chỗ xanh yếu. CI thì không chạy được.
+
+### P0 — bảy phát hiện CAO của BƯỚC 121 đã vá
+
+| phát hiện | sửa | gác | đục |
+|---|---|---|---|
+| tests-01 | `sheets_store.DUONG_SECRETS`; test dựng file trong thư mục tạm, cấm dựng kết nối thật | gác AST: không hàm test nào vừa nhắc đường `.streamlit` vừa gọi thao tác ghi | 3/3 |
+| ma_app_script-03 | `pytest.ini` · `testpaths = tests` | gác ĐỌC file, không chạy `pytest` trần — lượt đục bỏ `testpaths` sẽ chạy đúng hai script xoá `.db` | 3/3 |
+| tools_hook_ci-08 | `cua_ho_so` bỏ `permissionDecision` | cửa không được ra quyết định quyền nào, và phải vẫn bơm được ngữ cảnh | 4/4 |
+| tools_hook_ci-07 | `RE_NGAY` không đòi `**` đóng ngay sau ngày | HANDOFF giả trong `tmp_path` đủ ba kiểu viết · phép đo quần thể trên HANDOFF thật | 4/4 |
+| tools_hook_ci-02 | cửa Bash đọc ĐÍCH trong nháy (`_la_duong_dich`) | mẫu XẤU/TỐT | 8/8 cùng bộ |
+| tools_hook_ci-03 | heredoc mọi thứ tự + `tee`; `ghi-de-*` chỉ nhường khi luật heredoc THẬT SỰ khớp | mẫu XẤU/TỐT | ↑ |
+| tools_hook_ci-01 | matcher `Bash|PowerShell` ở cả bản khai lẫn `~/.claude/settings.json`; máy quét + sáu luật RIÊNG cho PowerShell | mẫu XẤU/TỐT · hook qua stdin · bản khai matcher | 11/11 |
+
+Đặc tả hook đọc **nguyên văn** (tải bản markdown, `grep`), không qua bản
+tóm tắt: *"`"allow"` skips the permission prompt"* — tức `cua_ho_so` đã tự
+duyệt mọi `Edit` lên file dày hồ sơ.
+
+Ba lượt đục có phát **sống sót ở lượt đầu**, cả ba là gác hụt chứ không phải
+phát đục thiết kế sai: bộ đọc ngày thiếu ca *"ngày giữa câu văn không phải
+mốc"*; ba lớp bóc của PowerShell thiếu ca văn bản chứa dấu `>` (luật xoá
+neo vào vị trí lệnh nên văn xuôi nhắc `Remove-Item` vô hại sẵn — chỗ các lớp
+bóc thật sự bảo vệ là dấu `>`). Thêm mẫu rồi đục lại: đỏ hết.
+
+**Đo trên quần thể THẬT, không trên mẫu tự dựng:**
+
+```
+cua Bash    nhat ky cua   2.605 lenh khac nhau   so voi HEAD:
+                                                 chan THEM 0 · THA 6
+            6 lenh duoc tha: 3 ten file pytest.ini doc thanh lenh pytest,
+                             3 lenh ghi ra scratchpad qua bien $S/$SP
+PowerShell  48 transcript    64 lenh khac nhau   23 co tu khoa nguy hiem
+                                                 chan 0
+```
+
+Mẫu PowerShell **có khả năng** cho kết quả dương: 23 lệnh chứa đúng những
+từ khoá luật nhắm tới — `Remove-Item` ở TEMP, `git rm --cached
+paper_trades.db`, `Rename-Item` của lượt khôi phục 12/08, một `git commit`
+có here-string nhắc *"ghi de paper_trades.db"* — và cả 23 đúng là phải tha.
+
+Hai lượt đo trung gian đáng ghi:
+
+- Lượt đầu trên nhật ký cửa cho **3 chặn thêm**, cùng hình dạng
+  `> "$D/p1.json"` với `$D` gán ngay trong lệnh, trỏ ra scratchpad. Bản cũ tha
+  chúng chỉ vì xoá trắng mọi thứ trong nháy — và cũng vì thế mà nó **chặn**
+  dạng không nháy `> $S/x.py` (chặn nhầm một lệnh thật hôm nay). Sửa đúng
+  gốc: cửa mở rộng biến được GÁN trong chính lệnh; biến không gán vẫn coi
+  như trong repo.
+- Một lượt so báo *"tha thêm 4"*, trong đó **1 là ảo**: bản cũ nạp từ
+  scratchpad mang `GOC` suy từ `__file__`, tức trỏ vào scratchpad. Máy đo
+  sửa rồi đo lại ra số ở khối trên. Bảng lỗi, lỗi 102.
+
+Thử sống trên phiên: tool PowerShell `Remove-Item -WhatIf …\khong_ton_tai.db`
+bị cửa chặn (`ps-xoa-db`); `Get-Date` đi qua. Bản tin mở phiên nay in
+`29/09/2026 (còn 4 ngày)`.
+
+### Lỗ đo được thêm, ngoài bảy phát hiện — đã vá cùng
+
+- `python - <<EOF > docs/x.json` và `cat <<EOF > x.db` lọt **cả hai** luật:
+  `ghi-de-*` nhường mọi lệnh có `<<`, còn luật heredoc chỉ nhận `cat`/`tee`
+  và không canh `.db`.
+- `echo x | tee app.py` cắt cụt file nguồn mà không cần dấu `>`.
+- Đường Windows trong nháy kép bị xoá trắng: máy quét coi `\U` là ký tự
+  thoát, trong khi bash chỉ thoát `$`, backtick, `"`, `\` và xuống dòng.
+- `git clean -X` xoá đúng những file bị gitignore, tức mọi `.db`. Thêm cả
+  `unlink`, `find … -delete` vào cùng luật.
+- Luật `pytest-qua-ong` đọc TÊN FILE `pytest.ini` thành lệnh pytest (dấu `.`
+  là ranh giới từ) — chặn nhầm thật hôm nay. `pytest.exe` vẫn bị bắt.
+
+Ngoài repo: `~/.claude/rules/vibe-preview.md` thôi ghim *"sáu cửa"*, sửa
+*"bốn cổng"* thành năm trong điều kiện tự merge, và thêm một dòng ranh giới
+về việc tạm ngừng — file ấy nạp vào mọi phiên.
+
+### Sổ tay
+
+- Độ tươi: sổ tay thấy BƯỚC 120, bằng `main`. Đăng nhập lại lần thứ ba
+  trong ngày.
+- Câu hỏi về KẾT LUẬN của BƯỚC này trả **5 câu nói ngược, 9 trích dẫn —
+  cả 9 KHỚP** qua `tools/doi_chieu_trich_dan.py`, nhưng **2 trích dẫn
+  mang sai tên file** (sổ tay nói `CLAUDE.md` / `loi-da-mac.md`, thật ra ở
+  `STATE.md`). Ba câu thật: đánh dấu 🔴 (bảng quét tự động · hai câu
+  `allow` ở BƯỚC 80) và sửa ô bảng cửa trong `SKILL.md`. Một câu thật
+  một phần: đánh dấu ⚠️ (bộ nhớ hậu nghiệm — đúng về mã, sai về ý định).
+  Một câu KHÔNG phải mâu thuẫn: `pytest.ini` làm câu *"pytest không hề
+  chạy nó"* đúng trở lại.
+- Lượt năm cổng đầu tiên **đỏ 7 test** ở `tests/test_bang_loi_do_duoc.py`:
+  tôi thêm lỗi 102–103 vào bảng mà chưa phân lớp ở `docs/loi-phan-lop.json`
+  và chưa đếm lại dòng tự khai — đúng hình dạng **lỗi 35**. Cổng bắt, không
+  phải người; sửa rồi chạy lại cả năm cổng.
+- Chuông báo quét **đỏ từ 25/09** (*"0 lượt quét thành công"*) vì cả hai
+  lượt quét hôm ấy đỏ ở bước cài gói — báo đúng, kéo dài suốt thời gian
+  tạm ngừng.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Năm cổng chạy được dưới rào, CI thì không.** Không PR nào merge được cho
+  tới khi tạm ngừng kết thúc; khi ấy phải chạy lại năm cổng **không** rào.
+- Mốc số test lên **1.408** (+8), khai lý do ở `docs/moc_so_test.json`.
+- 12 phát hiện CAO còn lại chưa động tới (P1: sổ trung thực).
+- Luật PowerShell đo trên 64 lệnh — một quần thể nhỏ. Nhật ký cửa từ nay ghi
+  trường `cong_cu`, và `tools/soat_nhat_ky_cua.py` chỉ thử luật Bash trên
+  lệnh Bash.
+- Mặt *mã thoát bị che* của `pytest | tail` **chưa được đo** trên
+  PowerShell; luật `ps-pytest-qua-ong` chỉ khai mặt đệm.

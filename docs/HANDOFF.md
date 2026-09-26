@@ -279,6 +279,15 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+⛔ **TẠM NGỪNG `vnstock` / `vnai` từ 25/09/2026** — `docs/STATE.md`
+BƯỚC 122. PyPI đặt hai gói ở trạng thái *quarantined*. Người dùng chốt:
+không chạy app hay bất kỳ mã/test nào NHẬP hai gói; không cài, nâng, gỡ
+gói; ba workflow `quet-so-lenh` · `canh-cong-c5` · `chuong-nguon-dung`
+đang TẮT. Mở lại chỉ khi hãng giải thích VÀ người dùng cho phép — PyPI
+gỡ quarantine thôi chưa đủ. Trong lúc này CI của mọi PR đỏ ở bước cài
+gói, nên **không PR nào merge được**. Việc làm được: mã không chạm hai
+gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
@@ -292,6 +301,9 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   đường `goi_thu` → `foreign_flow` **cùng byte** giữa 3.3.0 và 3.3.1, trên
   ba mã ngoài rổ. Băm khác ngày 29/09 thì là NGUỒN, không phải thư viện.
   `docs/STATE.md` BƯỚC 118.
+  ⛔ **Phép đọc này cần `vnstock_data` — đang tạm ngừng** (khối trên).
+  Tới ngày mà chưa mở lại thì **HOÃN**, không kéo bằng đường khác: một
+  nguồn khác cho băm khác là đo NGUỒN, không đo việc restate.
 
 - ~~**12/09/2026** — tiêu chí về cơ chế rơi nhịp cron~~ **ĐÃ ĐỌC ĐÚNG
   HẠN 12/09/2026:** A = 258,05 phút · B = 2 lượt/ngày → **ô thứ tư,
@@ -322,10 +334,17 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
   đường tiến-về-trước: lệnh thoát khớp ngay trong phiên ra tín hiệu (3/3
   lệnh đã đóng), và điều kiện dừng C5 đếm 0 lệnh. Sửa chúng làm đổi số đo
   nên phải qua một ĐO có tiêu chí ký trước.
-- **Chọn hướng chiến lược** (BƯỚC 121, mục *Đường hướng*): (A) công cụ hỗ
+  **7/19 đã vá ở BƯỚC 122** (phần hàng rào: cửa lệnh shell canh cả
+  PowerShell · tên đích trong nháy · heredoc mọi thứ tự · `cua_ho_so` thôi
+  tự duyệt · bản tin mở phiên hiện mốc 29/09 · test không chạm
+  `secrets.toml` thật · `pytest.ini`) — **chưa merge**, vì đang tạm ngừng.
+- ~~**Chọn hướng chiến lược** (BƯỚC 121, mục *Đường hướng*): (A) công cụ hỗ
   trợ quyết định cho chính người dùng, không phát khuyến nghị mua tự động;
   hay (B) tiếp tục săn alpha, chỉ thiết kế vòng quay thấp, sau khi sửa
-  đường tiến-về-trước.
+  đường tiến-về-trước.~~ **ĐÃ CHỌN 25/09/2026 — và KHÔNG phải A:** người
+  dùng bác A vì nó bỏ mất lõi của ý tưởng. Hướng mới: agent tự giao dịch
+  ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
+  `docs/STATE.md` BƯỚC 122.
 - **Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
   đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
   ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ

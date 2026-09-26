@@ -205,7 +205,11 @@ def test_tai_lap_qua_HAI_TIEN_TRINH_voi_post_mortem_BAT():
     def chay(thu_muc, bat):
         moi_truong = dict(os.environ)
         moi_truong["POST_MORTEM_ENABLED"] = "1" if bat else "0"
-        moi_truong["PYTHONPATH"] = str(goc)
+        # NỐI THÊM, không ghi đè (25/09/2026): ghi đè xoá mất PYTHONPATH mà
+        # người gọi truyền vào — và trong chế độ tạm ngừng vnstock, đó chính
+        # là rào chặn nạp gói (docs/STATE.md BƯỚC 122).
+        cu = os.environ.get("PYTHONPATH")
+        moi_truong["PYTHONPATH"] = os.pathsep.join([str(goc)] + ([cu] if cu else []))
         moi_truong["PYTHONIOENCODING"] = "utf-8"
         kq = subprocess.run(
             [sys.executable, str(kich_ban)], cwd=str(thu_muc),

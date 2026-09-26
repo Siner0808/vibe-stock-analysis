@@ -544,6 +544,12 @@ hoá cái gác của chính nó.
 > shell khác trong phiên đi vòng được mọi luật. Tên đích đặt trong dấu nháy
 > cũng lọt, và vài dạng heredoc ghi file đi qua cả hai luật heredoc. Đo
 > bằng cách gọi thẳng hàm phán của cửa.
+>
+> ✅ **BA LỖ Ở Ô ĐỎ TRÊN ĐÃ VÁ — `docs/STATE.md` BƯỚC 122, CHƯA vào
+> `main`** (CI đỏ ở bước cài gói suốt thời gian tạm ngừng `vnstock`).
+> Matcher nay là `Bash|PowerShell`, và PowerShell có máy quét cùng bộ
+> luật riêng; tên đích trong nháy được đọc; heredoc bị bắt ở mọi thứ tự
+> và qua `tee`. Đo trên nhật ký cửa thật: 0 lệnh bị chặn thêm.
 
 Đo ngày 31/08/2026: một phiên sửa 6 file mà hook không chạy lần nào.
 `--quet-repo` có được gọi, nhưng vì người nhớ ra chứ không vì máy bắt.
@@ -1393,6 +1399,14 @@ hiện trạng thái kho.
 | Task Scheduler (`VibeStock_QuetPhien`) | 09:10 → 15:10, mỗi 30 phút, T2–T6 | **Disabled** — chạy lần cuối 20/08 lúc 10:40 |
 | GitHub Actions (`quet-so-lenh.yml`) | `0,30 2-4` và `0,30 6-8` UTC, T2–T6 | đang chạy |
 
+> 🔴 **"ĐANG CHẠY" HẾT ĐÚNG TỪ 25/09/2026 — `docs/STATE.md` BƯỚC 122.**
+> PyPI đặt `vnstock` ở trạng thái *quarantined*; cả hai lượt quét ngày
+> 25/09 đỏ ở bước cài gói (*"No matching distribution found for
+> vnstock>=4.0.6"*), rồi người dùng chốt tạm ngừng và `quet-so-lenh`
+> (cùng `canh-cong-c5`, `chuong-nguon-dung`) thành `disabled_manually`.
+> `chuong-bao-quet` vẫn bật và **đỏ mỗi ngày làm việc** — 25/09: *"0 lượt
+> quét thành công"*. Đó là báo ĐÚNG, không phải việc phải sửa.
+
 Đo lại trên 35 nhịp (13→21/08/2026), thay cho con số "~1/7" ghi ngày
 14/08 — con số đó đo trên một ngày duy nhất và **sai**:
 
@@ -1629,6 +1643,13 @@ backtest (walkforward.chay)  ->  co_san   : dùng 44 mẫu, KHÔNG ghi thêm
 
 Lệch này là **quyết định, không phải sơ sót** (21/08/2026). Backtest đo một
 bộ nhớ đứng yên để phép đo tái lập được; sổ thật vẫn gom mẫu tiếp.
+
+> ⚠️ **QUYẾT ĐỊNH 25/09/2026 NÓI NGƯỢC VẾ "TÍCH LUỸ", VÀ MÃ CHƯA ĐỔI THEO
+> — `docs/STATE.md` BƯỚC 122.** Người dùng chốt: bộ nhớ 44 mẫu **chỉ giữ
+> làm lịch sử**; mọi thay đổi điểm từ nay phải đi qua hai vòng sàng lọc và
+> xác nhận. Mã `run_daily` vẫn ở chế độ `tich_luy` — gỡ nó là việc của
+> tầng tự nâng cấp, chưa làm — và đường chạy thật đang tạm ngừng. Câu trên
+> vẫn đúng về MÃ, không còn đúng về Ý ĐỊNH.
 
 Hệ quả phải biết khi đọc số: con số ngoài mẫu nói về cấu hình `co_san`,
 không nói về cấu hình đang chạy thật. Hôm nay khác biệt đó nhỏ — đo được
