@@ -701,6 +701,13 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 > cài một lần rồi đứng yên. Hai nơi trôi ra khỏi nhau **âm thầm**, vì tới
 > hôm nay chưa có lệnh nào hỏi.
 >
+> 🔴 **VẾ "SÀN" HẾT ĐÚNG TỪ 26/09/2026 (BƯỚC 127).** PyPI cách ly
+> `vnstock` và `vnai`; hai gói nay lấy từ **kho riêng của hãng**
+> (`--extra-index-url https://vnstocks.com/api/simple`) và **ghim đúng
+> bản** `vnstock==4.0.9` · `vnai==2.6.2` — bản ĐO 19 đã đo ở máy.
+> `tests/test_requirements.py` bắt bản ghim khớp bản đang chạy, nên với
+> hai gói này, máy và CI không còn trôi ra khỏi nhau âm thầm được.
+>
 > Đọc thẳng nhật ký CI, không suy:
 >
 > ```
