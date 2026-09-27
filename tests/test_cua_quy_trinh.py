@@ -571,7 +571,9 @@ def test_DUONG_TRONG_REPO_doc_giong_nhau_tren_MOI_he_dieu_hanh():
 def test_KHONG_luat_nao_con_giu_LY_DO_DA_BI_BAC():
     """Lỗi 17 sống ngay trong thông báo của chính cửa.
 
-    `push-thang-main` từng nêu hai lý do, và **cả hai đã bị đo là sai**:
+    `push-thang-main` từng nêu hai lý do, và **cả hai đã bị đo là sai**
+    (🔴 vế "branch protection" dưới đây BỊ BÁC SAI — BƯỚC 133: `main` CÓ khoá
+    bằng ruleset từ 21/08; phép đo 404 chỉ hỏi API cổ điển):
 
       • "nhánh này có branch protection" — `gh api .../branches/main/
         protection` trả 404 "Branch not protected", đo 08/09/2026
@@ -598,8 +600,10 @@ def test_KHONG_luat_nao_con_giu_LY_DO_DA_BI_BAC():
     phải mã sai. Ghi lại vì đây là cái bẫy hay gặp: sửa mã cho hết đỏ thì
     sẽ xoá mất đúng phần đáng giữ.
     """
+    # "branch protection" RỜI danh sách ngày 27/09/2026 (BƯỚC 133): lời bác
+    # ấy tự nó SAI — phép đo 08/09 chỉ hỏi API khoá cổ điển, trong khi ruleset
+    # `main` active từ 21/08. Giữ nó ở đây là bắt thông báo KHẲNG ĐỊNH điều sai.
     DA_BAC = [
-        ("branch protection", "đo 08/09/2026: API trả 404 Branch not protected"),
         ("gh` không cài", "đo 08/09/2026: gh 2.100.0, đã đăng nhập"),
         ("gh không cài", "đo 08/09/2026: gh 2.100.0, đã đăng nhập"),
     ]

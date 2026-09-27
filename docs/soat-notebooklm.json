@@ -1469,6 +1469,42 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "Sổ tay: 'không tìm thấy câu nào nói ngược'. Tự kiểm: grep -n -E 'get_vni_df|chi_so_moi_nhat' CLAUDE.md HANDOFF NGUYEN-TAC -> CLAUDE.md:406 tách HAI đường: topbar chi_so_moi_nhat (ưu tiên MẠNG) · bộ lọc get_vni_df (ưu tiên cache, tất định) — không nói ngược, nhưng buộc P2b nối nhật ký vào get_vni_df. NGUYEN-TAC bất biến 1 ủng hộ cắt tại phiên tín hiệu. Câu âm lần này ĐÚNG."
+    },
+    "BƯỚC 133": {
+      "ngay": "2026-09-27",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn nạp lại 27/09 từ main a19915a — bản chụp CHƯA có ô 🔴 của BƯỚC này, nên sổ tay trích lại đúng ba câu đang đánh dấu.",
+      "cau_hoi": "I am about to write BƯỚC 133 into docs/STATE.md: the claim that main is NOT protected, written on 08/09/2026 in SKILL.md step 5, docs/HANDOFF.md and references/loi-da-mac.md error 17 from a 404 on the classic branches/main/protection API, was false on the day it was written: a GitHub ruleset named main has been active since 21/08/2026 (last updated 21/08 10:33) requiring a pull request, requiring the kiem-dinh check in strict mode (branch up to date with main), forbidding force-push and deletion, with zero bypass actors; so a direct push to main is BLOCKED by GitHub and the reason that CI would run after the code lands is only the second reason; the three places are now marked with a red circle below the original sentence, and a new error row 106 records it. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that main has no protection or no ruleset, that anyone can bypass the check, that direct pushes to main are possible, that the required check has a different name than kiem-dinh, or that merging requires an approving review. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md, '## Bước 5 — Giao': 'KHÔNG đẩy thẳng main — nhưng KHÔNG phải vì main bị khoá … 404 \"Branch not protected\"'.",
+          "tu_kiem": "sed -n '419,426p' .claude/skills/quy-trinh-lam-viec/SKILL.md -> đúng nguyên văn; gh api repos/Siner0808/vibe-stock-analysis/rulesets -> ruleset main active từ 21/08.",
+          "phan_quyet": "THẬT. Đã đánh dấu 🔴 ngay dưới (BƯỚC 133)."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md: '`main` không hề được bảo vệ — đo 08/09/2026'. Sổ tay gán tiêu đề '## 5. VIỆC ĐANG TREO' — SAI vị trí.",
+          "tu_kiem": "grep -n 'không hề được bảo vệ' docs/HANDOFF.md -> dòng 634; awk tiêu đề '## ' gần nhất phía trên -> dòng 618 '## 7. CÁCH LÀM VIỆC ĐÃ DÙNG — nên giữ'.",
+          "phan_quyet": "THẬT về chữ, SAI về tiêu đề (mục 7, không phải mục 5) — đúng hình dạng BƯỚC 119. Đã đánh dấu 🔴."
+        },
+        {
+          "noi_dung": "references/loi-da-mac.md, '### Lỗi 17 — luật ĐÚNG, lý do SAI': 'cả hai đều bị bác — … 404 \"Branch not protected\"'.",
+          "tu_kiem": "sed -n '316,321p' .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md -> đúng nguyên văn.",
+          "phan_quyet": "THẬT. Đã đánh dấu 🔴 ngay dưới; lỗi 106."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
