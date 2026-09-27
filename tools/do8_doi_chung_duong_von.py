@@ -51,10 +51,11 @@ from pathlib import Path
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
 
-try:
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except Exception:
-    pass
+for _luong in (sys.stdout, sys.stderr):   # stderr: BƯỚC 129
+    try:
+        _luong.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 VE_DOI_CHUNG = GOC / "tools" / "doi_chung" / "ve_vectorbt.py"
 BIEN_MOI_TRUONG = "VIBE_VENV_DOI_CHUNG"

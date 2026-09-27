@@ -46,6 +46,23 @@ Mọi script có `__main__` và `print` phải gọi:
 sys.stdout.reconfigure(encoding="utf-8")
 ```
 
+> 🔴 **CHỈ STDOUT LÀ THIẾU — BƯỚC 129, 27/09/2026.** Script nào in ra
+> **stderr** (`print(..., file=sys.stderr)`, `sys.stderr.write`) thì đặt lại
+> cả hai luồng — đúng mẫu ba cửa `cua_*` đã dùng từ trước:
+>
+> ```python
+> for _luong in (sys.stdout, sys.stderr):
+>     try:
+>         _luong.reconfigure(encoding="utf-8", errors="replace")
+>     except Exception:
+>         pass
+> ```
+>
+> Sáu dụng cụ chỉ đặt lại stdout và in lời phán `CHUA KIEM DUOC — …` ra
+> stderr bằng cp1252; test đọc UTF-8 thấy `None`. Gác cũ nhận **bất kỳ**
+> lời gọi `.reconfigure` nào nên không thấy. Nay
+> `test_script_IN_RA_STDERR_phai_dat_lai_ma_hoa_CA_STDERR`.
+
 ### 4. Dụng cụ đi KIỂM cũng hỏng được — và hôm đó nó mới là cái hỏng
 
 Ngày 01/09/2026 tôi viết một phép hiệu chuẩn để kiểm sàn nhiễu hoán vị.

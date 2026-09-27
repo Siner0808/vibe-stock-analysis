@@ -261,10 +261,11 @@ def _vach(n: int, tran: int = 28) -> str:
 
 
 def main() -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
+    for _luong in (sys.stdout, sys.stderr):   # stderr: BƯỚC 129
+        try:
+            _luong.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
     if not BANG.exists() or not PHAN_LOP.exists():
         print("CHUA KIEM DUOC — thieu bang loi hoac file phan lop.",

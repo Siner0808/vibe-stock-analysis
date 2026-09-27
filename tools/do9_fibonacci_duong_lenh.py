@@ -31,10 +31,11 @@ from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
 
-try:
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except Exception:
-    pass
+for _luong in (sys.stdout, sys.stderr):   # stderr: BƯỚC 129
+    try:
+        _luong.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 #: {tên lượt: (dùng mức Fibonacci, chốt lời cứng)}
 LUOT = {

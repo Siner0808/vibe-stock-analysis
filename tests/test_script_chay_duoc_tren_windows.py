@@ -85,6 +85,104 @@ def test_gac_nay_nhin_thay_du_so_script():
     print(f"PASS  gác nhìn thấy {n} script")
 
 
+# ──────────────────────────────────────────────────────────────────────
+# STDERR — nửa mà gác trên không nhìn (BƯỚC 129, 27/09/2026)
+# ──────────────────────────────────────────────────────────────────────
+#
+# `_co_reconfigure` nhận BẤT KỲ lời gọi `.reconfigure` nào, nên một file
+# chỉ đặt lại stdout vẫn qua. Đo 26/09: sáu dụng cụ như thế in lời phán
+# "CHUA KIEM DUOC — …" ra STDERR bằng cp1252 (byte 0x97 = "—"); test đọc
+# UTF-8 thì `stderr` thành None và đỏ — nhưng CHỈ khi shell thiếu
+# `PYTHONUTF8=1`. CI Linux không bao giờ thấy. Hai dụng cụ trong số đó là
+# `do8_doi_chung_duong_von.py` và `soat_nhat_ky_cua.py`.
+#
+# Lời giải đã có sẵn trong repo — ba cửa `cua_*` viết
+# `for luong in (sys.stdout, sys.stderr): luong.reconfigure(...)` — nên gác
+# nhận CẢ dạng gọi thẳng lẫn dạng vòng lặp ấy.
+
+
+def _la_sys(n, ten: str) -> bool:
+    return (isinstance(n, ast.Attribute) and n.attr == ten
+            and isinstance(n.value, ast.Name) and n.value.id == "sys")
+
+
+def _luong_duoc_dat_lai(cay) -> set:
+    """Tập luồng (`stdout`/`stderr`) có lời gọi `.reconfigure` chạm tới."""
+    ra = set()
+    for n in ast.walk(cay):
+        if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                and n.func.attr == "reconfigure"):
+            for t in ("stdout", "stderr"):
+                if _la_sys(n.func.value, t):
+                    ra.add(t)
+        if (isinstance(n, ast.For) and isinstance(n.target, ast.Name)
+                and isinstance(n.iter, (ast.Tuple, ast.List))):
+            goi = any(isinstance(m, ast.Call)
+                      and isinstance(m.func, ast.Attribute)
+                      and m.func.attr == "reconfigure"
+                      and isinstance(m.func.value, ast.Name)
+                      and m.func.value.id == n.target.id
+                      for m in ast.walk(n))
+            if goi:
+                for e in n.iter.elts:
+                    for t in ("stdout", "stderr"):
+                        if _la_sys(e, t):
+                            ra.add(t)
+    return ra
+
+
+def _in_ra_stderr(cay) -> bool:
+    """`print(..., file=sys.stderr)` hoặc `sys.stderr.write(...)`."""
+    for n in ast.walk(cay):
+        if not isinstance(n, ast.Call):
+            continue
+        if (isinstance(n.func, ast.Name) and n.func.id == "print"
+                and any(k.arg == "file" and _la_sys(k.value, "stderr")
+                        for k in n.keywords)):
+            return True
+        if (isinstance(n.func, ast.Attribute) and n.func.attr == "write"
+                and _la_sys(n.func.value, "stderr")):
+            return True
+    return False
+
+
+def _cay(p):
+    return ast.parse(open(p, encoding="utf-8").read())
+
+
+def test_script_IN_RA_STDERR_phai_dat_lai_ma_hoa_CA_STDERR():
+    co_stderr = [p for p in _liet_ke() if _in_ra_stderr(_cay(p))]
+    assert len(co_stderr) >= 8, (   # đo được 11 ngày 27/09/2026
+        f"chỉ thấy {len(co_stderr)} script in ra stderr — bộ lọc hỏng")
+    thieu = [os.path.relpath(p, ROOT).replace("\\", "/")
+             for p in co_stderr
+             if "stderr" not in _luong_duoc_dat_lai(_cay(p))]
+    assert not thieu, (
+        "script in ra STDERR nhưng chỉ đặt lại mã hoá stdout — lời phán ra "
+        "stderr đi bằng cp1252, test đọc UTF-8 thấy None (BƯỚC 129). Dùng "
+        "`for luong in (sys.stdout, sys.stderr): luong.reconfigure(...)`: "
+        f"{thieu}")
+    print(f"PASS  {len(co_stderr)} script in ra stderr đều đặt lại stderr")
+
+
+def test_MAY_DO_luong_nhan_dung_BA_dang():
+    """Máy đo phải đi qua ca đã biết trước — cả ba hình dạng thật."""
+    thang = ast.parse("import sys\nsys.stderr.reconfigure(encoding='utf-8')")
+    vong = ast.parse(
+        "import sys\nfor luong in (sys.stdout, sys.stderr):\n"
+        "    luong.reconfigure(encoding='utf-8')")
+    chi_out = ast.parse("import sys\nsys.stdout.reconfigure(encoding='utf-8')")
+    vong_khong_goi = ast.parse(
+        "import sys\nfor luong in (sys.stdout, sys.stderr):\n    pass")
+    assert _luong_duoc_dat_lai(thang) == {"stderr"}
+    assert _luong_duoc_dat_lai(vong) == {"stdout", "stderr"}
+    assert _luong_duoc_dat_lai(chi_out) == {"stdout"}
+    assert _luong_duoc_dat_lai(vong_khong_goi) == set()
+    assert _in_ra_stderr(ast.parse("import sys\nprint('x', file=sys.stderr)"))
+    assert _in_ra_stderr(ast.parse("import sys\nsys.stderr.write('x')"))
+    assert not _in_ra_stderr(ast.parse("print('x')"))
+
+
 # ══════════════════════════════════════════════════════════════════════
 # Chiều NGƯỢC LẠI của cùng một bất đối xứng: máy Windows ↔ runner Linux
 # ══════════════════════════════════════════════════════════════════════
