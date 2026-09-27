@@ -22,7 +22,8 @@ import sheets_store as ss
 from paper_trading import PaperTradingJournal, Status
 
 # ─────────────────────────────────────────────────────────────────────
-# Ô C5 — paper_trading.CHO_PHEP_MO_LENH_MOI mặc định TẮT, nên
+# Ô C5 — paper_trading.CHO_PHEP_MO_LENH_MOI TẮT ĐƯỢC (đã tắt tay
+# 29/08→26/09/2026, và điều kiện dừng tắt được nó). Khi tắt thì
 # consider_entry() không mở vị thế nào. File này dựng dữ liệu mẫu BẰNG
 # consider_entry(), nên không bật công tắc thì mọi fixture ở đây trả về sổ
 # RỖNG và các test vẫn xanh — xanh vô nghĩa.
@@ -540,20 +541,28 @@ def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
     Cả hai đều không phân biệt được với "người dùng local chưa dựng Google
     Cloud", nên không ai biết kho ngoài đã tắt.
     """
-    import pathlib
     import sys
+    import tempfile
     import types
+    from pathlib import Path
 
-    goc = pathlib.Path(ss.__file__).parent
-    thu_muc = goc / ".streamlit"
-    da_co = thu_muc.exists()
-    thu_muc.mkdir(exist_ok=True)
-    f = thu_muc / "secrets.toml"
-    da_co_file = f.exists()
-    if da_co_file:
-        luu = f.read_text(encoding="utf-8")
-
+    # MỌI THỨ NẰM TRONG THƯ MỤC TẠM. Bản trước ghi nội dung hỏng vào
+    # `.streamlit/secrets.toml` THẬT rồi khôi phục trong `finally`: một lượt
+    # bị giết giữa chừng (timeout, Ctrl+C, máy tắt) là mất credential thật,
+    # và hai lượt pytest chạy chồng thì lượt sau "khôi phục" bằng chính RÁC
+    # lượt trước ghi. Audit 25/09/2026, `docs/STATE.md` BƯỚC 121, tests-01.
+    # Nay hàm đọc `ss.DUONG_SECRETS`, và test trỏ nó sang file tạm.
+    duong_that = ss.DUONG_SECRETS
+    dung_that = ss.GoogleSheet
     toml_that = sys.modules.get("toml")
+
+    def _cam_ket_noi(*a, **k):
+        # Tới được đây nghĩa là hàm đã đọc một cấu hình HỢP LỆ — tức KHÔNG
+        # đọc file tạm của test này. Nổ thay vì dựng kết nối thật: phép thử
+        # này phải chạy offline kể cả khi mã bị làm hỏng.
+        raise AssertionError(
+            "open_from_secrets() định dựng kết nối THẬT — nó không đọc file "
+            "tạm mà test trỏ tới qua ss.DUONG_SECRETS")
 
     # Ghim st.secrets rỗng — cùng liều thuốc test_no_fabricated_data.py dùng.
     # open_from_secrets() đọc st.secrets TRƯỚC khi đọc file, và streamlit
@@ -569,50 +578,111 @@ def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
     saved_st = sys.modules.get("streamlit")
     st_gia = types.ModuleType("streamlit")
     st_gia.secrets = {}
-    sys.modules["streamlit"] = st_gia
-    try:
-        f.write_text('GOOGLE_SHEET_KEY = "chua dong ngoac\n', encoding="utf-8")
-
-        # (a) toml có mặt nhưng file sai cú pháp
+    with tempfile.TemporaryDirectory() as tmp:
+        f = Path(tmp) / "secrets.toml"
+        ss.DUONG_SECRETS = f
+        ss.GoogleSheet = _cam_ket_noi
+        sys.modules["streamlit"] = st_gia
         try:
-            ss.open_from_secrets()
-        except ss.SheetError:
-            pass
-        else:
-            raise AssertionError(
-                "secrets.toml sai cú pháp bị nuốt thành 'chưa cấu hình'")
+            # (0) đối chứng: file VẮNG thì là "chưa cấu hình", trả None.
+            # Chứng minh hàm thật sự đọc đường test trỏ tới — trên máy có
+            # secrets.toml thật, một hàm bỏ qua DUONG_SECRETS sẽ tới
+            # `_cam_ket_noi` và nổ ở đây.
+            assert ss.open_from_secrets() is None, (
+                "file cấu hình vắng mà không ra 'chưa cấu hình'")
 
-        # (b) thiếu thư viện toml -- import nổ ModuleNotFoundError
-        hong = types.ModuleType("toml")
-        def _no(*a, **k):
-            raise ModuleNotFoundError("No module named 'toml'")
-        hong.load = _no
-        sys.modules["toml"] = hong
-        try:
-            ss.open_from_secrets()
-        except ss.SheetError:
-            pass
-        else:
-            raise AssertionError(
-                "thiếu thư viện toml bị nuốt thành 'chưa cấu hình'")
-    finally:
-        sys.modules.pop("streamlit", None)
-        if saved_st is not None:
-            sys.modules["streamlit"] = saved_st
-        if toml_that is not None:
-            sys.modules["toml"] = toml_that
-        else:
-            sys.modules.pop("toml", None)
-        if da_co_file:
-            f.write_text(luu, encoding="utf-8")
-        else:
-            f.unlink(missing_ok=True)
-            if not da_co:
-                try:
-                    thu_muc.rmdir()
-                except OSError:
-                    pass
+            f.write_text('GOOGLE_SHEET_KEY = "chua dong ngoac\n', encoding="utf-8")
+
+            # (a) toml có mặt nhưng file sai cú pháp
+            try:
+                ss.open_from_secrets()
+            except ss.SheetError:
+                pass
+            else:
+                raise AssertionError(
+                    "secrets.toml sai cú pháp bị nuốt thành 'chưa cấu hình'")
+
+            # (b) thiếu thư viện toml -- import nổ ModuleNotFoundError
+            hong = types.ModuleType("toml")
+            def _no(*a, **k):
+                raise ModuleNotFoundError("No module named 'toml'")
+            hong.load = _no
+            sys.modules["toml"] = hong
+            try:
+                ss.open_from_secrets()
+            except ss.SheetError:
+                pass
+            else:
+                raise AssertionError(
+                    "thiếu thư viện toml bị nuốt thành 'chưa cấu hình'")
+        finally:
+            ss.DUONG_SECRETS = duong_that
+            ss.GoogleSheet = dung_that
+            sys.modules.pop("streamlit", None)
+            if saved_st is not None:
+                sys.modules["streamlit"] = saved_st
+            if toml_that is not None:
+                sys.modules["toml"] = toml_that
+            else:
+                sys.modules.pop("toml", None)
     print("PASS  secrets.toml không đọc được -> nổ, không lẫn với chưa cấu hình")
+
+
+def test_khong_test_nao_GHI_vao_thu_muc_streamlit_THAT():
+    """Gác cho cả `tests/`: không hàm test nào vừa nhắc đường `.streamlit`
+    vừa gọi một thao tác GHI lên đĩa.
+
+    Sinh ra từ phát hiện tests-01 của audit 25/09/2026: một test ghi đè
+    `.streamlit/secrets.toml` THẬT, và nó xanh suốt nhiều tuần — vì chính
+    nó khôi phục file ở `finally`. Không cổng nào nhìn được chuyện ấy: file
+    cuối cùng vẫn đúng, chỉ có mtime đổi.
+
+    Đọc AST, không đọc `in`. Chỉ tính HẰNG SỐ ĐƯỜNG DẪN (`.streamlit` hoặc
+    `.streamlit/...`, không có khoảng trắng), nên docstring và chú thích
+    nhắc tới thư mục ấy không bị tính. `secrets.toml.example` là tài liệu,
+    không phải bí mật.
+    """
+    import ast
+    from pathlib import Path
+
+    # KHÔNG có `replace`/`copy`/`move`: trùng tên với `str.replace`,
+    # `dict.copy`... và chính hàm gác này gọi `str.replace`.
+    GHI = {"write_text", "write_bytes", "unlink", "rmdir", "mkdir", "touch",
+           "rename", "rmtree", "copyfile", "copytree"}
+    # Ghép từ mảnh để chính hàm này không chứa hằng đường dẫn nó đi tìm.
+    TEN = "." + "streamlit"
+
+    def _la_duong_streamlit(s: str) -> bool:
+        s = s.replace("\\", "/")
+        if any(c.isspace() for c in s) or "secrets.toml.example" in s:
+            return False
+        return s == TEN or s.startswith(TEN + "/") or ("/" + TEN) in s
+
+    vi_pham = []
+    for p in sorted(Path(__file__).parent.glob("*.py")):
+        cay = ast.parse(p.read_text(encoding="utf-8"))
+        for fn in ast.walk(cay):
+            if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            cham = any(isinstance(n, ast.Constant) and isinstance(n.value, str)
+                       and _la_duong_streamlit(n.value) for n in ast.walk(fn))
+            if not cham:
+                continue
+            for n in ast.walk(fn):
+                if not isinstance(n, ast.Call):
+                    continue
+                f = n.func
+                ten = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", "")
+                ghi = ten in GHI
+                if ten == "open" and len(n.args) >= 2 and isinstance(n.args[1], ast.Constant):
+                    ghi = any(c in str(n.args[1].value) for c in "wax+")
+                if ghi:
+                    vi_pham.append(f"{p.name}:{n.lineno} {fn.name}() gọi {ten}()")
+    assert not vi_pham, (
+        "Test chạm thư mục `.streamlit` THẬT bằng thao tác ghi — dựng file "
+        "trong thư mục tạm và trỏ `ss.DUONG_SECRETS` sang đó:\n  "
+        + "\n  ".join(vi_pham))
+    print("PASS  không test nào ghi vào .streamlit thật")
 
 
 if __name__ == "__main__":

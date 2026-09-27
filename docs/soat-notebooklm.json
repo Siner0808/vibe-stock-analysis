@@ -1117,6 +1117,246 @@
           "phan_quyet": "SAI — câu âm ấy bỏ sót một cặp trong chính nguồn. Câu hỏi về KẾT LUẬN cụ thể (ở trên) mới cho kết quả dùng được."
         }
       ]
+    },
+    "BƯỚC 122": {
+      "ngay": "2026-09-25",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Đo độ tươi trước khi hỏi: sổ tay thấy BƯỚC 120 — bằng main (BƯỚC 121 nằm trên nhánh chưa merge). Đăng nhập lại lần thứ ba trong ngày: phiên đăng nhập không sống qua compact/khung trình duyệt mới.",
+      "cau_hoi": "I am about to write BƯỚC 122 into docs/STATE.md with these conclusions: (1) the user rejected the plan to turn the app into a decision-support tool; the project goal is an AI agent that places VIRTUAL paper trades on its own, learns after every win or loss, upgrades itself, and keeps a trade journal the user learns from, and the paper-trading entry gate will be REOPENED once the ledger is made honest; (2) self-upgrade must pass two rounds (screening at most 5 candidates per week on already-seen data, confirmation at most 1 per month on unseen data with criteria signed in a separate commit), and the old 44-pattern post-mortem memory is kept as HISTORY ONLY; (3) vnstock and vnai are quarantined on PyPI, so all work that imports them is paused, the scheduled workflows quet-so-lenh, canh-cong-c5 and chuong-nguon-dung are DISABLED, and no PR can merge because CI cannot install requirements; (4) the shell guard hook now also matches the PowerShell tool, reads quoted target file names, catches heredoc writes in both orders and through tee, tools/cua_ho_so.py no longer returns permissionDecision allow, the session-start banner shows the 29/09/2026 read, the secrets test no longer writes the real .streamlit/secrets.toml, and a pytest.ini limits testpaths to tests. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the shell guard only matches Bash; that cua_ho_so returns allow; that the scan workflow on GitHub Actions is running; that the live path keeps accumulating post-mortem patterns; that the entry gate stays closed; or that bare pytest at the repo root does not run root scripts. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, bảng 'Quét tự động': '| GitHub Actions (quet-so-lenh.yml) | … | đang chạy |'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md; gh workflow list: disabled_manually; hai lượt quét 25/09 đỏ ở bước cài gói",
+          "phan_quyet": "THẬT — đã đánh dấu 🔴 ngay dưới bảng; chuông báo quét đỏ mỗi ngày là báo đúng."
+        },
+        {
+          "noi_dung": "CLAUDE.md, 'Bộ nhớ hậu nghiệm': 'đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm' và 'sổ thật vẫn gom mẫu tiếp.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP ×2 — CLAUDE.md",
+          "phan_quyet": "THẬT một phần — đúng về MÃ (chưa đổi, việc của tầng tự nâng cấp), sai về Ý ĐỊNH sau quyết định 25/09. Đã đánh dấu ⚠️."
+        },
+        {
+          "noi_dung": "CLAUDE.md: 'cua_bash_an_toan.py là PreToolUse trên Bash …'; SKILL.md: 'Lệnh ấy đi qua đúng MỘT hook: cua_bash_an_toan, PreToolUse matcher Bash.' và bảng cửa '| tools/cua_bash_an_toan.py | Pre · Bash | …'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP ×3 — CLAUDE.md, SKILL.md",
+          "phan_quyet": "THẬT cho ô bảng SKILL — đã sửa thành Bash|PowerShell. Câu CLAUDE.md đã có ô 🔴 (BƯỚC 121) + ✅ (BƯỚC 122) trên nhánh; sổ tay đọc bản main. Câu 'đúng MỘT hook' về python --version vẫn đúng với tool Bash."
+        },
+        {
+          "noi_dung": "'| bơm chứ không chặn (permissionDecision: \"allow\") | có |' và 'tools/cua_ho_so.py   PreToolUse Read|Edit -> additionalContext, allow' — sổ tay ghi file loi-da-mac.md",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP ×2 — nhưng ở STATE.md (BƯỚC 80), KHÔNG phải loi-da-mac.md: sổ tay ghi SAI tên file",
+          "phan_quyet": "THẬT — đã đánh dấu 🔴 dưới bảng cơ chế và dưới khối mã ở STATE BƯỚC 80."
+        },
+        {
+          "noi_dung": "'test_trailing_sim.py ở gốc repo | Có trong git nhưng nằm ngoài tests/, nên pytest không hề chạy nó.' — sổ tay ghi file CLAUDE.md",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — nhưng ở STATE.md, KHÔNG phải CLAUDE.md: sổ tay ghi SAI tên file",
+          "phan_quyet": "SAI — không mâu thuẫn: pytest.ini (BƯỚC 122) làm câu ấy đúng cả với `pytest` trần; trước đó nó chỉ đúng với `pytest tests/`. Không đánh dấu."
+        }
+      ]
+    },
+    "BƯỚC 123": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main. Đăng nhập lại lần thứ tư (khung trình duyệt đóng khi phiên nối lại).",
+      "cau_hoi": "I am about to write BƯỚC 123 into docs/STATE.md with these conclusions about the paper-trading ledger: (1) an exit order in CLOSING state now fills only on a session AFTER the session that produced the exit signal, and it pays sell-side slippage through the slippage model like stop-loss exits do; (2) when a session opens below the stop-loss, the exit is recorded at the opening price, not at the stop-loss price; (3) session dates are normalized to 10 characters, so the C5 stop condition now counts forward trades whose dates carry a time suffix; (4) run_daily writes the ledger only on CLOSED daily candles (after 15:30 Vietnam time), and an intraday scan processes the last closed session instead of the unfinished candle, which closes the decision about moving stops on unclosed candles that was pending since 20/08/2026; (5) a same-day post-mortem pattern could leak into scoring when the as_of date carried a time suffix, and that is now closed. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that exit signals fill at the next open with no slippage; that intraday scans write the ledger or only show things earlier; that stop-loss exits are recorded at the stop price; that the trailing-stop decision is still pending; or that the stop condition has counted forward trades correctly all along. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "STATE Phiên 2 (20/08), '### Còn treo sau 5A/5B': 'run_daily ghi stop_loss lại ở mỗi nhịp quét, tính trên nến chưa đóng … Cần người dùng.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — STATE.md",
+          "phan_quyet": "THẬT — việc treo chưa có dấu nào; đã đánh dấu ✅ ngay dưới (đã quyết 25/09, đã làm BƯỚC 123)."
+        },
+        {
+          "noi_dung": "CLAUDE.md, 'Quét tự động': 'nhịp trong phiên chủ yếu để thấy sớm, không đổi kết quả.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md",
+          "phan_quyet": "THẬT — nhưng trên nhánh câu ấy đã có ô 🔴 (BƯỚC 121) và ✅ (BƯỚC 123); sổ tay đọc bản main."
+        },
+        {
+          "noi_dung": "STATE BƯỚC 61: 'bộ đếm 1 → 2' và câu anh em '… CÒN 2, BỘ ĐẾM LÀ 2.' — sổ tay ghi file HANDOFF.md",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP ×2 — STATE.md và CLAUDE.md (KHÔNG phải HANDOFF.md: sổ tay ghi sai tên file)",
+          "phan_quyet": "THẬT một phần — 'bộ đếm' là số lệnh ĐÃ ĐÓNG, đúng; dễ đọc thành số lệnh điều kiện dừng đếm được, mà con số ấy là 0. STATE đã có 🔴 từ BƯỚC 121; CLAUDE.md nay thêm ⚠️."
+        }
+      ]
+    },
+    "ĐO 18": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main; mục ĐO 18 chưa có trong nguồn (hỏi TRƯỚC khi ký).",
+      "cau_hoi": "I am about to sign a new measurement 'ĐO 18' that re-runs the four-row execution-cost table of ĐO 3 (same tool, slippage ON/OFF times by-symbol/by-day) in TWO streams on the same day and the same default cache: a CONTROL stream at the code just before the paper-ledger fixes, and a stream WITH the fixes; the main comparison is fixes versus control, row by row. It rests on four claims: (1) ĐO 3 (10/09/2026) published: by-symbol, threshold 62, slippage ON: 398 trades, alpha -0.55%, CI [-1.38 ; +0.37]; by-day, threshold 45, slippage ON: 612 trades, alpha -0.90%, CI [-1.46 ; -0.32]; slippage OFF: 399 trades +0.08% (by-symbol) and 582 trades -0.24% (by-day); (2) every run must log 71 symbols with an in-sample zone, 33 with an out-of-sample zone, and a post-mortem memory of 44 patterns learning 0 more; (3) two rows are comparable only at the same mode AND the same threshold chosen in-sample; (4) no project rule forbids a same-day control stream used to separate code drift since 10/09 from the effect of the fixes. Is there ANY place in your sources that CONTRADICTS these claims: a different ĐO 3 number, a different count of in-sample or out-of-sample symbols or memory patterns, or a rule that this design violates (for example about signing criteria before the first run, or about changing more than one thing at once)? Quote each such sentence exactly and name the file and heading. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [],
+      "khong_tim_thay_gi": true,
+      "_tu_kiem_cau_am": "Câu 'không tìm thấy' được tự kiểm bằng grep, không tin suông: số ĐO 3 khớp STATE BƯỚC 50 (dòng bảng 612 · −0,90% · [−1,46 ; −0,32]) và bảng CLAUDE.md (398 · −0,55% · [−1,38 ; +0,37]); '71 mã có vùng IS · 33 mã có vùng OOS · bộ nhớ 44 mẫu' khớp CLAUDE.md; không luật nào về chạy SONG SONG cho lượt đo trong TIEU-CHI hay cong-thuc-chay (chỉ cho test); walkforward, paper_runner và dụng cụ đo không đọc file .pkl nào nên luồng P1 không dùng lại điểm cũ."
+    },
+    "BƯỚC 124": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main. Hỏi SAU khi đã đánh dấu trên nhánh, nên phần lớn câu tìm ra đã có dấu ở nhánh mà sổ tay (đọc main) không thấy.",
+      "cau_hoi": "I am about to write BƯỚC 124 into docs/STATE.md with the results of ĐO 18, a re-measurement of the four-row execution-cost table on the honest paper ledger: (1) every row got worse by about 0.5 point per trade; slippage ON by-day alpha is now -1.48% [-2.05 ; -0.88], slippage ON by-symbol -1.12% [-1.94 ; -0.21], slippage OFF by-day -0.72% [-1.33 ; -0.07], slippage OFF by-symbol -0.41% [-1.24 ; +0.48], so three of four rows exclude zero; (2) execution cost is now 0.71 (by-symbol) and 0.76 (by-day) points per trade, not 0.63 to 0.66; (3) most of the change is NOT slippage but gap-down stop-loss exits that the old code recorded at the stop price (115 of 387 stop-loss exits), so every walk-forward number before 26/09/2026 is optimistic by about 0.5 point per trade beyond execution cost; (4) therefore the statement that execution cost accounts for ALL of the negative alpha is no longer true; (5) the three closed forward trades HUT, TCB and NAF filled against the rule and are marked, numbers not rewritten. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that execution cost is the whole negative alpha or the only thing blocking the edge; that with costs switched off all four rows contain zero; that 0.63 is the deduction to apply; that the ĐO 3 table is the current table; or that the dominant cost is the price tick. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md: tiêu đề '### BẢNG HIỆN HÀNH — ĐO 3, chạy 10/09/2026 ở mặc định T+1'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → LỆCH (khớp 20/53 ký tự) vì nhánh ĐÃ đổi tiêu đề; git show origin/main:CLAUDE.md → có nguyên văn (1 dòng)",
+          "phan_quyet": "THẬT — đã đổi tiêu đề thành 'BẢNG ĐO 3 … CẬN DƯỚI, ĐÃ ĐO LẠI Ở ĐO 18' kèm 🔴, và chèn bảng ĐO 18 làm bảng hiện hành."
+        },
+        {
+          "noi_dung": "CLAUDE.md: '**Chi phí thực thi LÀ toàn bộ phần alpha âm.**' và 'Tắt chi phí đi thì **cả bốn** dòng có KTC chứa 0 …'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP ×2 — CLAUDE.md",
+          "phan_quyet": "THẬT — một ô 🔴 ngay dưới đoạn ấy gọi tên cả hai câu (dòng TẮT theo ngày −0,72% [−1,33 ; −0,07])."
+        },
+        {
+          "noi_dung": "CLAUDE.md: '**Trừ hao 0,63 khi đọc số ngoài mẫu**' và 'Trừ hao **0,63–0,66 điểm phần trăm mỗi lệnh**'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP ×2 — CLAUDE.md",
+          "phan_quyet": "THẬT — hai ô 🔴: 0,71 · 0,76 cho chi phí, CỘNG ~0,5 cho gap dưới SL."
+        },
+        {
+          "noi_dung": "CLAUDE.md: 'Cái tốn tiền là **bước giá 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md; đọc ngữ cảnh: câu so bước giá với TÁC ĐỘNG THỊ TRƯỜNG, hai thành phần BÊN TRONG trượt giá",
+          "phan_quyet": "SAI — không mâu thuẫn: gap dưới SL không phải chi phí thực thi; bên trong chi phí thực thi, bước giá vẫn là phần lớn. Không đánh dấu."
+        },
+        {
+          "noi_dung": "HANDOFF mục 2: 'dự án **CÓ một kết quả loại được số 0, và nó ÂM.** … alpha quanh **−0,8 tới −0,9%** …'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — HANDOFF.md",
+          "phan_quyet": "THẬT — ô 🔴 dưới đoạn ấy: −1,48% [−2,05 ; −0,88], 3/4 dòng loại được số 0."
+        }
+      ]
+    },
+    "BƯỚC 125": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main. Hỏi TRƯỚC khi đánh dấu tài liệu, sau khi đã lật cờ trên nhánh.",
+      "cau_hoi": "I am about to write BƯỚC 125 into docs/STATE.md: the virtual-order gate C5 (paper_trading.CHO_PHEP_MO_LENH_MOI) is reopened on 26/09/2026 after being closed by hand since 29/08/2026. Conclusions I will write: (1) the three reopening conditions written in the code comment on 29/08 are met: the stop condition measures alpha with thresholds derived from power (BƯỚC 3) and now counts real trades (BƯỚC 123); there is a place that acts (run_daily.thi_hanh_dieu_kien_dung and the C5 bell); and the free versus sponsor vnstock tier difference was measured (BƯỚC 2); (2) the user decided on 25/09 that 'no edge' is information for the agent to learn from, not a reason to switch the agent off; (3) the stop condition dieu_kien_dong_lai is kept unchanged and can still close the gate; (4) reopening creates no order yet because the live scan is paused together with vnstock; (5) the buy threshold 62 and the 100% committed-capital cap are unchanged. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the gate is currently closed, that it must stay closed until some other condition, that reopening requires something not listed above, that the stop condition must never switch the agent off, or that the lock test requires False. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, '## Cổng C5 — đọc trước khi sửa': 'TRẠNG THÁI 29/08/2026 — CỔNG ĐANG ĐÓNG. paper_trading.CHO_PHEP_MO_LENH_MOI = False, đóng bằng tay …'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md; cùng dòng là chỗ test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau đỏ ở lượt test đầu",
+          "phan_quyet": "THẬT — thêm ô 🔴 ngay dưới: cổng MỞ LẠI 26/09, test đã đổi tên, gác ngày mới."
+        },
+        {
+          "noi_dung": "CLAUDE.md, '## CỔNG MỞ LỆNH ĐÃ BẬT (24/08/2026)': '🔴 DÒNG ĐẦU CỦA KHỐI TRÊN ĐÃ HẾT ĐÚNG TỪ 29/08/2026: cờ nay là False. Cổng ĐANG ĐÓNG …'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py → KHỚP — CLAUDE.md",
+          "phan_quyet": "THẬT — thêm ô ✅ ngay dưới: dòng True ở khối mã đúng lại từ 26/09 (BƯỚC 125)."
+        }
+      ],
+      "_tu_kiem_cau_am": "Sổ tay khẳng định 'ngoài hai vị trí trên, không có câu nào khác'. grep 'đang ĐÓNG' trên các file .md (trừ STATE) bắt thêm docs/HANDOFF.md:108 'Cổng mở lệnh mới đang ĐÓNG, đóng bằng tay từ 29/08/2026' — HANDOFF LÀ nguồn của sổ tay, nên đây là một câu sổ tay BỎ SÓT; và README.md:163 (không phải nguồn). Cả hai đã sửa/đánh dấu. Vế 'không có gì khác' của câu trả lời là SAI."
+    },
+    "ĐO 19": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main. Khối tạm ngừng (BƯỚC 122) chỉ có trên nhánh, sổ tay không thấy.",
+      "cau_hoi": "I am about to sign ĐO 19 in docs/TIEU-CHI-DOC-TRUOC.md, before any number exists: upgrade vnai 2.6.1 to 2.6.2 and then vnstock 4.0.8 to 4.0.9 on the local machine, one package per stage, installing the two wheels from the vendor's own package index (vnstocks.com/api/simple) because PyPI has both projects quarantined; cells A to F and the whole reading table are reused unchanged from ĐO 17; a new cell G checks that a fresh process running 'import vnstock' exits 0 and changes none of five files (the three global assistant files, the repo AGENTS.md, and ~/.vnstock/config/agent.json); requirements.txt and CI are NOT touched in this step. Is there ANY place in your sources that CONTRADICTS signing these criteria or would become FALSE once they are written? For example: a rule that packages must never be installed from outside PyPI, that vnstock or vnai must stay at a pinned version, that the repo AGENTS.md must never be touched, that upgrades must be measured in a different way than ĐO 17, or that a package upgrade needs something this plan lacks. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ tay: 'không tìm thấy câu nào nói ngược'. grep 'không cài|chỉ cài|ghim|ngoài PyPI|kho riêng|extra-index' trên CLAUDE.md, HANDOFF, NGUYEN-TAC, MO-XE, SKILL.md, references/: bắt docs/HANDOFF.md:295 — khối ⛔ 'không cài, nâng, gỡ gói … Mở lại chỉ khi hãng giải thích VÀ người dùng cho phép'. Câu ấy CHỈ có trên nhánh (BƯỚC 122), không có trên main mà sổ tay đọc — nên câu trả lời âm của sổ tay đúng với nguồn của nó mà không đủ. Đã thêm ô 🟡 ngay dưới khối ấy trong cùng commit ký tiêu chí. references/bay.md:151 ('pip freeze làm đường lùi') KHỚP với cách dựng đường lùi của ĐO 19, không nói ngược."
+    },
+    "BƯỚC 126": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main.",
+      "cau_hoi": "I am about to write BƯỚC 126 into docs/STATE.md with the results of ĐO 19: (1) upgrading vnai 2.6.1 to 2.6.2 and then vnstock 4.0.8 to 4.0.9 gave NÂNG ĐƯỢC at both stages; OHLCV, price board columns, the number of periods of ratio() (54) and the tier check are identical, and the foreign-flow pulls for three symbols outside the basket are identical byte for byte, so the ĐO 14 cell D planned for 29/09 can still be read on the new versions; (2) a fresh process running 'import vnstock' changed none of five files, including ~/.claude/CLAUDE.md and the repo AGENTS.md; (3) the local pause on vnstock and vnai ends, because the vendor explained and the user allowed it; (4) PyPI still has both projects quarantined, so CI still fails at the install step until requirements.txt adds the vendor index; (5) the three disabled workflows stay disabled until the user allows them. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the machine runs vnstock 4.0.8 or vnai 2.6.1 as the current version, that importing vnstock writes into global assistant files, that ratio() is limited to 8 periods on this machine, that the 29/09 reading must use vnstock_data 3.3.0 or a specific vnstock version, or that requirements.txt only lists packages installable from public PyPI. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ tay: 'không tìm thấy câu nào nói ngược'. grep '4\\.0\\.8|2\\.6\\.1|máy (nay|đang)' trên CLAUDE.md, HANDOFF, NGUYEN-TAC, MO-XE: 13 dòng, mọi dòng là bản ghi CÓ NGÀY (lỗi 79 · ĐO 10–13 · ĐO 17), không dòng nào nêu 4.0.8/2.6.1 là bản hiện hành. Câu trả lời âm đứng được lần này."
+    },
+    "BƯỚC 127": {
+      "ngay": "2026-09-26",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Sổ tay thấy BƯỚC 120 — bằng main.",
+      "cau_hoi": "I am about to write BƯỚC 127 into docs/STATE.md: requirements.txt, which both GitHub Actions and Streamlit Cloud install from, gets one option line '--extra-index-url https://vnstocks.com/api/simple' (the vendor's own index, which on 26/09 serves only vnstock, vnstock-installer, vnai and vnii), and the two lines 'vnstock>=4.0.6' and 'vnai>=2.5.7' become exact pins 'vnstock==4.0.9' and 'vnai==2.6.2', the versions ĐO 19 measured on the local machine; the four sponsor packages (vnstock_data, vnstock_ta, vnstock_news, vnstock_pipeline) and vnii stay OUT of requirements.txt; a test requires the pins to equal the installed versions so CI and the machine cannot drift silently. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that requirements.txt must only list packages from public PyPI, that vnstock must be declared with a floor rather than a pin, that CI must get the newest PyPI version, that adding an index breaks CI or Streamlit Cloud, or that the local-versus-CI version gap is permanent and intended. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ tay: 'không tìm thấy câu nào nói ngược'. SAI: grep 'SÀN|4\\.0\\.6|2\\.5\\.7' bắt CLAUDE.md, mục 'Bất đối xứng local / CI', ô ⚠️ lỗi 79: '`requirements.txt` khai bằng **SÀN** (`vnstock>=4.0.6`, `vnai>=2.5.7`)' — câu hiện tại, nằm trong nguồn, và hết đúng đúng lúc BƯỚC 127 vào; thuộc đúng loại câu hỏi nêu làm ví dụ. Đã thêm ô 🔴 ngay dưới. Cùng câu trong docstring tools/so_ban_goi.py (không phải nguồn) đã sửa. Tiêu đề 'Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý' nói về HẠNG gói (silver/free), không về số hiệu bản — không nói ngược."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

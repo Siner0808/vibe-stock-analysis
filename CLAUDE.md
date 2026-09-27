@@ -544,6 +544,12 @@ hoá cái gác của chính nó.
 > shell khác trong phiên đi vòng được mọi luật. Tên đích đặt trong dấu nháy
 > cũng lọt, và vài dạng heredoc ghi file đi qua cả hai luật heredoc. Đo
 > bằng cách gọi thẳng hàm phán của cửa.
+>
+> ✅ **BA LỖ Ở Ô ĐỎ TRÊN ĐÃ VÁ — `docs/STATE.md` BƯỚC 122, CHƯA vào
+> `main`** (CI đỏ ở bước cài gói suốt thời gian tạm ngừng `vnstock`).
+> Matcher nay là `Bash|PowerShell`, và PowerShell có máy quét cùng bộ
+> luật riêng; tên đích trong nháy được đọc; heredoc bị bắt ở mọi thứ tự
+> và qua `tee`. Đo trên nhật ký cửa thật: 0 lệnh bị chặn thêm.
 
 Đo ngày 31/08/2026: một phiên sửa 6 file mà hook không chạy lần nào.
 `--quet-repo` có được gọi, nhưng vì người nhớ ra chứ không vì máy bắt.
@@ -694,6 +700,13 @@ thứ ngưỡng mua được hiệu chuẩn trên đó.
 > nên mỗi lượt CI `pip install` lấy bản **MỚI NHẤT trên PyPI**. Máy local
 > cài một lần rồi đứng yên. Hai nơi trôi ra khỏi nhau **âm thầm**, vì tới
 > hôm nay chưa có lệnh nào hỏi.
+>
+> 🔴 **VẾ "SÀN" HẾT ĐÚNG TỪ 26/09/2026 (BƯỚC 127).** PyPI cách ly
+> `vnstock` và `vnai`; hai gói nay lấy từ **kho riêng của hãng**
+> (`--extra-index-url https://vnstocks.com/api/simple`) và **ghim đúng
+> bản** `vnstock==4.0.9` · `vnai==2.6.2` — bản ĐO 19 đã đo ở máy.
+> `tests/test_requirements.py` bắt bản ghim khớp bản đang chạy, nên với
+> hai gói này, máy và CI không còn trôi ra khỏi nhau âm thầm được.
 >
 > Đọc thẳng nhật ký CI, không suy:
 >
@@ -921,6 +934,12 @@ paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
 > tìm ra hôm 04/09: **hai chỗ nói về cùng một thứ, một chỗ không có
 > dấu.** Nay có gác — `tests/test_tai_lieu_khop_hang_so.py::
 > test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`.
+>
+> ✅ **DÒNG ẤY ĐÚNG LẠI TỪ 26/09/2026 — cổng MỞ LẠI, `docs/STATE.md`
+> BƯỚC 125, chưa vào `main`.** Người dùng chốt 25/09: agent tự đặt lệnh
+> ảo rồi học từ sổ. Ngưỡng 62 và trần vốn 100% giữ nguyên; điều kiện
+> dừng nay đếm được lệnh thật (BƯỚC 123). Cờ mở **chưa sinh lệnh nào**:
+> đường quét tự động đang tạm ngừng cùng `vnstock`.
 
 **Lý do bật KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha vẫn chứa số
 0. Lý do là: **cấu hình chạy trực tiếp chưa bao giờ được đo**, và nó chỉ đo
@@ -1095,6 +1114,10 @@ một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 > trừ trượt giá bán. Thêm nữa, gap xuống dưới SL vẫn ghi đúng giá SL. Cả
 > hai lệch về phía làm số đẹp, nên chi phí thực thi đo ở ĐO 3 là **cận
 > dưới**.
+>
+> ✅ **CẢ HAI ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, chưa vào `main`.**
+> `fill_closing` nay đi qua `_gia_ban_that`; gap dưới SL thoát ở giá mở
+> cửa. Con số ĐO 3 vẫn là cận dưới cho tới khi ĐO 18 đo lại.
 
 **Giá phải trả — BỐN lượt walk-forward, đo 09/09/2026.** Tiêu chí đọc được
 khai, ký và **commit TRƯỚC lượt chạy đầu tiên**: `docs/TIEU-CHI-DOC-TRUOC.md`
@@ -1112,7 +1135,29 @@ phép đo mà quy tắc đọc không thể sửa sau khi thấy số.
 | 3 | TẮT | theo mã | 62 | 376 | +0,69% | −0,03% | [−0,86 ; +0,87] chứa 0 | 49% · 173% | 33,9 |
 | 4 | TẮT | theo ngày | 50 | 497 | +0,24% | −0,03% | [−0,71 ; +0,72] chứa 0 | 53% · 100% | 54,9 |
 
-### BẢNG HIỆN HÀNH — ĐO 3, chạy 10/09/2026 ở mặc định T+1
+### BẢNG HIỆN HÀNH — ĐO 18, chạy 26/09/2026 sau khi sổ được làm trung thực
+
+Tiêu chí ký ở commit riêng `e7ae9a6`, đẩy lên GitHub trước lượt đầu. Hai
+luồng cùng ngày, cùng cache: **đối chứng** (mã ngay trước BƯỚC 123) ra lại
+ĐO 3 **tới từng chữ số**, nên mọi chênh lệch dưới đây là của BƯỚC 123.
+
+| # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh |
+|---|---|---|---|---|---|---|---|---|
+| 1 | BẬT | theo mã | 62 | 398 | −0,26% | **−1,12%** | **[−1,94 ; −0,21] LOẠI 0** | 51% · 191% |
+| 2 | BẬT | **theo ngày** | 45 | **612** | −1,10% | **−1,48%** | **[−2,05 ; −0,88] LOẠI 0** | 57% · **100%** |
+| 3 | TẮT | theo mã | 62 | 399 | +0,43% | −0,41% | [−1,24 ; +0,48] chứa 0 | 51% · 191% |
+| 4 | TẮT | theo ngày | 45 | 582 | −0,30% | **−0,72%** | **[−1,33 ; −0,07] LOẠI 0** | 58% · 100% |
+
+Chi phí thực thi (TẮT − BẬT): theo mã **0,71**, theo ngày **0,76** điểm mỗi
+lệnh. So với ĐO 3, mọi dòng xấu đi **~0,5 điểm**, và phần lớn KHÔNG phải
+trượt giá: so từng lệnh ở dòng 4, **115/387 lệnh cắt lỗ đã bị gap qua SL**
+lúc mở cửa — bản cũ ghi chúng ở đúng giá SL. `docs/STATE.md` BƯỚC 124.
+
+### BẢNG ĐO 3, chạy 10/09/2026 ở mặc định T+1 — CẬN DƯỚI, ĐÃ ĐO LẠI Ở ĐO 18
+
+> 🔴 **Tiêu đề cũ của mục này là *"BẢNG HIỆN HÀNH"*.** Bảng dưới đo trên
+> một sổ ghi gap dưới SL ở đúng giá SL và bán không trượt giá khi thoát
+> theo tín hiệu (audit BƯỚC 121). ĐO 18 đo lại: bảng ngay trên.
 
 Tiêu chí đọc vào `main` lúc **14:34**, lượt 1 bắt đầu **14:39** — năm phút
 sau, và **trước khi đổi một dòng mã nào**. Bốn lượt, **134,1 phút**, cả bốn
@@ -1229,11 +1274,18 @@ Tắt chi phí đi thì **cả bốn** dòng có KTC chứa 0 — kể cả dòn
 alpha **dương** +0,08%, vì KTC [−0,77 ; +0,95] không loại được số 0.
 Chiến lược **không phân biệt được với cầm đều cả rổ**. Bật chi phí, nó thua.
 
+> 🔴 **"CẢ BỐN DÒNG CHỨA 0 KHI TẮT CHI PHÍ" HẾT ĐÚNG — ĐO 18, 26/09/2026.**
+> Trên sổ trung thực, dòng TẮT theo ngày ra **−0,72% [−1,33 ; −0,07]**: bỏ
+> hẳn chi phí thực thi, chiến lược theo ngày VẪN thua rổ. Câu *"chi phí
+> thực thi LÀ toàn bộ phần alpha âm"* ở đầu mục này cũng hết đúng theo.
+
 > Số ĐO 1 tương ứng là 0,65 và 0,91 — ghi lại để đối chiếu, đừng trích.
 
 Không có chi phí thực thi, chiến lược **không phân biệt được với cầm đều
 cả rổ**. Có chi phí, nó thua. Cách đọc: rổ chuẩn mua một lần rồi giữ, trả
 chi phí **hai lần**; chiến lược quay vòng 500 lệnh, trả **1.000 lần**.
+
+> 🔴 Đoạn trên đo trên sổ cũ — xem ô đỏ ngay trên và bảng ĐO 18.
 
 > **DÒNG 2 LÀ DÒNG ĐÁNG TIN NHẤT**, theo ba luật của chính dự án:
 >
@@ -1319,6 +1371,10 @@ thi là chi phí MỖI LỆNH, không co giãn theo độ chọn lọc.
 > cái giá 88,8 phút của lỗi 41.
 >
 > **Trừ hao 0,63 khi đọc số ngoài mẫu**, không phải 0,43.
+>
+> 🔴 **Con số hiện hành là 0,71 (theo mã) · 0,76 (theo ngày) — ĐO 18.** Và
+> trừ hao chi phí thôi chưa đủ: mọi số walkforward trước 26/09/2026 còn
+> mang giả định gap có lợi, cỡ **~0,5 điểm mỗi lệnh** nữa.
 
 **Kết luận KHÔNG phụ thuộc giả định vốn 1 tỷ.** Ở giá vào trung vị 16.100đ,
 từ 100 triệu tới 1 tỷ chi phí y hệt nhau (0,311% một chiều): tác động thị
@@ -1331,6 +1387,9 @@ thực thi** — kỳ vọng sổ +0,79%, alpha +0,090%, mọi bảng walk-forwa
 hao **0,63–0,66 điểm phần trăm mỗi lệnh** khi đọc chúng (đo ngoài mẫu
 10/09/2026 ở ĐO 3; ĐO 1 cho 0,65–0,91; con số ~0,43 là số TRONG mẫu và
 không tái lập ở bản mã hiện hành).
+
+> 🔴 **Từ ĐO 18 (26/09/2026): trừ 0,71–0,76 cho chi phí thực thi, VÀ thêm
+> ~0,5 cho gap dưới SL** mà mọi bản mã trước BƯỚC 123 ghi ở giá SL.
 
 **`volume` KHÔNG được nhân `price_multiplier`.** `run_session` nhân mọi giá
 trị trong `bar` để quy nghìn đồng về VNĐ; nhân nhầm khối lượng thì tỷ trọng
@@ -1392,6 +1451,14 @@ hiện trạng thái kho.
 |---|---|---|
 | Task Scheduler (`VibeStock_QuetPhien`) | 09:10 → 15:10, mỗi 30 phút, T2–T6 | **Disabled** — chạy lần cuối 20/08 lúc 10:40 |
 | GitHub Actions (`quet-so-lenh.yml`) | `0,30 2-4` và `0,30 6-8` UTC, T2–T6 | đang chạy |
+
+> 🔴 **"ĐANG CHẠY" HẾT ĐÚNG TỪ 25/09/2026 — `docs/STATE.md` BƯỚC 122.**
+> PyPI đặt `vnstock` ở trạng thái *quarantined*; cả hai lượt quét ngày
+> 25/09 đỏ ở bước cài gói (*"No matching distribution found for
+> vnstock>=4.0.6"*), rồi người dùng chốt tạm ngừng và `quet-so-lenh`
+> (cùng `canh-cong-c5`, `chuong-nguon-dung`) thành `disabled_manually`.
+> `chuong-bao-quet` vẫn bật và **đỏ mỗi ngày làm việc** — 25/09: *"0 lượt
+> quét thành công"*. Đó là báo ĐÚNG, không phải việc phải sửa.
 
 Đo lại trên 35 nhịp (13→21/08/2026), thay cho con số "~1/7" ghi ngày
 14/08 — con số đó đo trên một ngày duy nhất và **sai**:
@@ -1476,6 +1543,12 @@ Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lư
 > PHIÊN khớp lệnh thoát ấy ở giá mở cửa của chính phiên đó, vì
 > `paper_trading.fill_closing` không có chốt ngày. Đo trên sổ thật: cả 3/3
 > lệnh tiến-về-trước đã đóng (HUT, TCB, NAF) mang đúng hình dạng này.
+>
+> ✅ **ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, chưa vào `main`.** `run_daily`
+> chỉ ghi sổ trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`): lượt
+> trong phiên bỏ nến dở và xử lý phiên đã đóng gần nhất. `fill_closing`
+> chỉ khớp ở phiên SAU ngày tín hiệu thoát. Câu *"nhịp trong phiên …
+> không đổi kết quả"* nay đúng — vì mã, không vì may.
 
 Đó là lý do tắt Task Scheduler chấp nhận được. Nhưng nó cũng nghĩa là
 **không còn lưới dự phòng**: một ngày mà mọi lượt Actions đều hỏng thì
@@ -1629,6 +1702,13 @@ backtest (walkforward.chay)  ->  co_san   : dùng 44 mẫu, KHÔNG ghi thêm
 
 Lệch này là **quyết định, không phải sơ sót** (21/08/2026). Backtest đo một
 bộ nhớ đứng yên để phép đo tái lập được; sổ thật vẫn gom mẫu tiếp.
+
+> ⚠️ **QUYẾT ĐỊNH 25/09/2026 NÓI NGƯỢC VẾ "TÍCH LUỸ", VÀ MÃ CHƯA ĐỔI THEO
+> — `docs/STATE.md` BƯỚC 122.** Người dùng chốt: bộ nhớ 44 mẫu **chỉ giữ
+> làm lịch sử**; mọi thay đổi điểm từ nay phải đi qua hai vòng sàng lọc và
+> xác nhận. Mã `run_daily` vẫn ở chế độ `tich_luy` — gỡ nó là việc của
+> tầng tự nâng cấp, chưa làm — và đường chạy thật đang tạm ngừng. Câu trên
+> vẫn đúng về MÃ, không còn đúng về Ý ĐỊNH.
 
 Hệ quả phải biết khi đọc số: con số ngoài mẫu nói về cấu hình `co_san`,
 không nói về cấu hình đang chạy thật. Hôm nay khác biệt đó nhỏ — đo được
@@ -1879,6 +1959,13 @@ Hai hàng rào mới đáng biết:
 > phải do điều kiện kích hoạt. Khoá bởi `tests/test_c5_noi_that.py` — mở
 > lại thì phải sửa cả test đó, có chủ đích.
 >
+> 🔴 **HẾT ĐÚNG TỪ 26/09/2026 — cổng MỞ LẠI (`docs/STATE.md` BƯỚC 125),
+> và test ấy đã được sửa có chủ đích:** nay là
+> `test_cong_C5_dang_MO_trong_ma_nguon`, kèm
+> `test_ngay_dong_mo_KHOP_voi_trang_thai_co` buộc cờ và hai mốc
+> `NGAY_DONG_CONG_C5` · `NGAY_MO_LAI_CONG_C5` kể cùng một câu chuyện.
+> Phần còn lại của ô này là bản ghi của thời gian đóng 29/08 → 26/09.
+>
 > **Sổ THẬT nằm trên Google Sheets, không phải `paper_trades.db` ở máy.**
 > File ở máy đứng yên từ 20/08/2026; đo trạng thái bằng nó là đo một bản
 > sao chết, và ngày 28/08 đã sai đúng như vậy một lần.
@@ -1901,6 +1988,11 @@ Hai hàng rào mới đáng biết:
 > 🔴 **HAI CON SỐ NGAY TRÊN ĐÃ TRÔI — đo lại 12/09/2026: CÒN 2, BỘ ĐẾM
 > LÀ 2.** TCB đóng **2026-09-11**, `SIGNAL_REVERSED`. Còn **NAF · STB**
 > mở.
+>
+> ⚠️ **"BỘ ĐẾM" Ở ĐÂY LÀ SỐ LỆNH ĐÃ ĐÓNG, KHÔNG PHẢI SỐ LỆNH ĐIỀU KIỆN
+> DỪNG ĐẾM ĐƯỢC** — con số sau là **0** cho tới BƯỚC 123, vì sổ thật ghi
+> ngày 19 ký tự còn rổ chuẩn khoá 10 ký tự (audit BƯỚC 121,
+> ma_giao_dich-05). Cùng dấu với `docs/STATE.md` BƯỚC 61.
 >
 > **Đừng đọc con số ở đây — chạy lệnh:**
 >

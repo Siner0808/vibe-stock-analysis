@@ -270,7 +270,10 @@ class PostMortemLearningEngine:
         if not self.enabled or not self.sl_patterns or not as_of:
             return 0.0
 
-        as_of = str(as_of)
+        # NGÀY, 10 ký tự. `as_of` 19 ký tự (`"…05 07:00:00"`) làm mẫu mang
+        # `"…05"` so ra NHỎ HƠN, tức mẫu CÙNG NGÀY lọt qua hàng rào "cùng
+        # ngày hoặc tương lai -> bỏ". Cùng họ ma_giao_dich-06 (BƯỚC 123).
+        as_of = str(as_of)[:10]
         # Thiếu thành phần thì KHÔNG phạt. Bản cũ thay bằng 50, tức bịa ra
         # một toạ độ rồi so nó với bộ nhớ — dung sai ±5 nghĩa là con số bịa
         # ấy vẫn khớp được một mẫu nào đó và trừ 12 điểm thật.

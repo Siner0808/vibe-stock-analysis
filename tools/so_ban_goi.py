@@ -10,7 +10,8 @@ chủ ý"*, và nó kết bằng một câu khai ĐỦ:
 Câu ấy **thiếu một vế**, và vế thiếu là vế đổi thường xuyên nhất:
 **SỐ HIỆU BẢN THƯ VIỆN**.
 
-`requirements.txt` khai bằng **SÀN** (`vnstock>=4.0.6`, `vnai>=2.5.7`) —
+`requirements.txt` từng khai bằng **SÀN** (`vnstock>=4.0.6`, `vnai>=2.5.7`;
+từ BƯỚC 127 hai gói ấy ghim `==` và lấy từ kho hãng) —
 và `streamlit` thì không có cả sàn. Nên mỗi lượt CI `pip install` lấy bản
 **MỚI NHẤT trên PyPI**, còn máy local cài một lần rồi đứng yên.
 

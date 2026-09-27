@@ -222,6 +222,10 @@ XAU = [
     ("pytest qua ong SAU khi da co 2>&1 — hinh dang pho bien nhat",
      "./.venv/Scripts/python.exe -m pytest tests/ -q 2>&1 | tail -20",
      "pytest-qua-ong"),
+    # `pytest.exe` VAN la lenh pytest — phep noi 25/09/2026 cho `pytest.ini`
+    # khong duoc lam mu dang nay.
+    ("pytest.exe qua ong tail", ".venv/Scripts/pytest.exe tests/ -q | tail -5",
+     "pytest-qua-ong"),
     ("sed dang DAI --in-place, cung cong cu cung co che",
      "sed --in-place 's/a/b/' CLAUDE.md", "sed-i-file-repo"),
     ("python3.11 — van la python he thong",
@@ -250,6 +254,34 @@ XAU = [
     ("perl -i.bak — dang co duoi sao luu",
      "perl -i.bak -pe 's/a/b/' CLAUDE.md", "va-tai-cho-khac-sed"),
     ("ruby -i", "ruby -i -pe 'x' CLAUDE.md", "va-tai-cho-khac-sed"),
+
+    # ── 25/09/2026, audit BUOC 121 (tools_hook_ci-02/03). Moi dong duoi
+    #    day do duoc la LOT qua ban cu, goi thang `kiem()`: noi dung nhay
+    #    bi boc TRUOC khi so dich, luat heredoc doi `>` dung TRUOC `<<`,
+    #    va hai luat `ghi-de-*` nhuong MOI lenh co `<<`.
+    ("rm .db, ten dich trong nhay kep", 'rm "paper_trades.db"', "xoa-db-goc-repo"),
+    ("cat cut .db, dich trong nhay", ': > "paper_trades.db"', "ghi-de-db"),
+    ("ghi de .py, dich trong nhay", 'echo x > "app.py"', "ghi-de-file-nguon"),
+    ("heredoc: dau MO dung TRUOC dich",
+     "cat <<'EOF' > tools/x.py\nx\nEOF\n", "heredoc-ghi-file-repo"),
+    ("heredoc qua tee, khong co `>`",
+     "tee tools/x.py <<'EOF'\nx\nEOF\n", "heredoc-ghi-file-repo"),
+    ("heredoc Python ghi ra file repo: luat heredoc khong bat, ghi-de khong con nhuong",
+     "./.venv/Scripts/python.exe - <<'EOF' > docs/x.json\nprint(1)\nEOF\n",
+     "ghi-de-file-nguon"),
+    ("heredoc ra .db: luat heredoc khong canh .db, ghi-de-db tung nhuong no",
+     "cat <<'EOF' > paper_trades.db\nx\nEOF\n", "ghi-de-db"),
+    ("tee KHONG -a cat cut file nguon", "echo x | tee app.py", "ghi-de-file-nguon"),
+    # Cung co che XOA, khac cong cu. `git clean -X` xoa dung nhung file bi
+    # gitignore — tuc MOI .db o goc repo cung luc.
+    ("git clean -X", "git clean -fdX", "xoa-db-goc-repo"),
+    ("unlink .db", "unlink paper_trades.db", "xoa-db-goc-repo"),
+    ("find -delete .db", 'find . -name "*.db" -delete', "xoa-db-goc-repo"),
+    # Bien: gan NGAY TRONG lenh thi mo rong; KHONG gan thi coi nhu trong repo.
+    ("bien gan trong lenh tro VAO repo",
+     f'R="{GOC.as_posix()}"; rm "$R/paper_trades.db"', "xoa-db-goc-repo"),
+    ("bien KHONG gan: khong biet tro dau thi chon chieu an toan",
+     'echo x > "$KHONG_RO/app.py"', "ghi-de-file-nguon"),
 ]
 
 # Moi dong duoi day la mot lan CHAN NHAM da do duoc, hoac mot loi khai da
@@ -289,6 +321,9 @@ TOT = [
     ("ten luat `pytest-qua-ong` la mot DINH DANH, khong phai lenh pytest",
      "./.venv/Scripts/python.exe tools/soat_nhat_ky_cua.py "
      "--thu-luat pytest-qua-ong 2>&1 | tail -12"),
+    # BAT NHAM that 25/09/2026: TEN FILE `pytest.ini` bi doc thanh lenh.
+    ("ten file pytest.ini qua ong head, khong phai lenh pytest",
+     "ls pytest.ini setup.cfg tox.ini pyproject.toml 2>&1 | head -4"),
     ("pytest --collect-only qua ong wc — ma thoat khong quan trong",
      "./.venv/Scripts/python.exe -m pytest --collect-only -q | wc -l"),
     ("ong THUOC mot lenh KHAC, sau dau `;`",
@@ -360,6 +395,34 @@ TOT = [
      "/c/Users/x/AppData/Local/Temp/ban-sao.db"),
     ("van ban NHAC toi mot lenh ghi de",
      "git commit -m 'dung chay echo x > tools/a.py nua'"),
+
+    # ── 25/09/2026: cua nay doc DICH trong nhay. Moi mau duoi day la mot
+    #    hinh dang ma ban doc-nhay HONG se bat nham. Do tren nhat ky cua,
+    #    so voi HEAD (2.605 lenh khac nhau): 0 lenh bi chan THEM, 6 lenh
+    #    duoc THA — ca sau la bat nham cu (3 ten file `pytest.ini`, 3 lenh
+    #    ghi ra scratchpad qua bien). Luot do dau bao "4 duoc tha", trong
+    #    do 1 la AO: ban cu nap tu scratchpad mang `GOC` tro vao scratchpad.
+    ("chu `rm` la CHU CAN TIM, trong nhay", 'grep -c "rm" x.db'),
+    ("van xuoi trong -m nhac file nguon", 'git commit -m "sua docs/STATE.md"'),
+    # Van xuoi KET THUC bang ten file. Giu nhay cho no la bat nham ngay.
+    ("van xuoi trong -m ket thuc bang ten .db",
+     'git commit -m "xoa bang rm paper_trades.db"'),
+    ("van xuoi trong --body ket thuc bang ten .py",
+     'gh pr create --body "dung chay echo x > tools/a.py"'),
+    ("noi them, dich trong nhay", 'echo x >> "docs/ghi-chu.md"'),
+    ("tee -a noi them", "echo x | tee -a docs/ghi-chu.md"),
+    ("tee ra file .log", "./.venv/Scripts/python.exe -m pytest tests/ -q | tee kq.log"),
+    ("heredoc ra TEMP, dich trong nhay",
+     "cat <<'EOF' > \"/c/Users/x/AppData/Local/Temp/y.py\"\nx\nEOF\n"),
+    ("chu tee la DOI SO cua grep", "grep -n tee app.py"),
+    ("git clean KHONG -x: khong dung file bi gitignore", "git clean -fd"),
+    # Bien GAN NGAY TRONG lenh tro ra scratchpad. Luot do dau (truoc khi mo
+    # rong bien) cho 3 lenh that bi chan THEM dung hinh dang co nhay; dang
+    # khong nhay chan nham mot lenh that ngay 25/09/2026.
+    ("bien gan trong lenh tro ra TEMP, co nhay",
+     'D="/c/Users/x/AppData/Local/Temp"; printf x > "$D/p1.json"'),
+    ("bien gan trong lenh tro ra TEMP, khong nhay",
+     "S=/c/Users/x/AppData/Local/Temp; git show HEAD:a.py > $S/cu.py"),
 ]
 
 
@@ -601,6 +664,137 @@ def test_hook_bash_tra_2_khi_CHAN_va_0_khi_KHONG(tmp_path):
     print("PASS  hook nối đúng: chặn 2 · cho qua 0 · hỏng thì nhường đường")
 
 
+# ── PowerShell, 25/09/2026 (audit BUOC 121, tools_hook_ci-01). Cua dang ky
+#    matcher `Bash` tu ngay ra doi, nen MOI lenh qua tool PowerShell lot ca
+#    muoi hai luat, ke ca hai luat bao ve `.db`. Cu phap khac bash (dau `
+#    la ky tu THOAT, here-string, bi danh) nen co may quet va bo luat RIENG.
+#    Moi dong XAU duoi day do duoc la LOT truoc ngay ay.
+XAU_PS = [
+    ("Remove-Item .db", "Remove-Item paper_trades.db", "ps-xoa-db"),
+    ("Remove-Item -Path trong nhay", 'Remove-Item -Path "paper_trades.db" -Force', "ps-xoa-db"),
+    ("bi danh rm", "rm .\\paper_trades.db", "ps-xoa-db"),
+    ("ong vao Remove-Item", "Get-ChildItem *.db | Remove-Item", "ps-xoa-db"),
+    ("IO.File Delete", '[System.IO.File]::Delete("paper_trades.db")', "ps-xoa-db"),
+    ("git clean -X qua PowerShell", "git clean -fdX", "ps-xoa-db"),
+    ("cat cut .db bang >", "'' > paper_trades.db", "ps-ghi-de-db"),
+    ("Clear-Content .db", "Clear-Content paper_trades.db", "ps-ghi-de-db"),
+    ("Set-Content file nguon", 'Set-Content -Path app.py -Value "x"', "ps-ghi-de-file-nguon"),
+    ("Out-File khong -Append", "Get-Date | Out-File docs/STATE.md", "ps-ghi-de-file-nguon"),
+    ("> file nguon", "echo 1 > docs\\x.json", "ps-ghi-de-file-nguon"),
+    ("New-Item -Force de file co san", "New-Item tools/x.py -Force -Value x",
+     "ps-ghi-de-file-nguon"),
+    ("IO.File WriteAllText", '[IO.File]::WriteAllText("app.py", "x")', "ps-ghi-de-file-nguon"),
+    ("Tee-Object khong -Append", "Get-Date | Tee-Object -FilePath app.py",
+     "ps-ghi-de-file-nguon"),
+    ("python he thong", "python tools/kiem_cu_phap_311.py", "ps-python-he-thong"),
+    ("push thang main", "git push origin main", "ps-push-thang-main"),
+    ("pytest qua Select-Object -Last",
+     ".\\.venv\\Scripts\\python.exe -m pytest tests/ -q | Select-Object -Last 5",
+     "ps-pytest-qua-ong"),
+]
+
+# Quan the THAT do 25/09/2026: 64 lenh PowerShell khac nhau rut tu 48
+# transcript tren may nay, 23 lenh chua tu khoa nguy hiem — 0 bi chan.
+# Ba dong dau lay NGUYEN HINH DANG tu quan the ay.
+TOT_PS = [
+    ("git rm --cached chi go khoi git, KHONG xoa file",
+     "git rm --cached paper_trades.db"),
+    ("Rename-Item — di vong an toan, cung ranh gioi voi `mv` ben bash",
+     'Rename-Item "paper_trades.db" "paper_trades_ban_sao.db"'),
+    ("here-string NHAC toi lenh xau la DU LIEU",
+     "$m = @'\nRemove-Item paper_trades.db\n'@\ngit commit -m $m"),
+    ("doc .db", "Get-Content paper_trades.db -TotalCount 1"),
+    ("hoi .db ton tai khong", 'Test-Path "paper_trades.db"'),
+    ("Add-Content noi them", "Add-Content docs/ghi-chu.md 'x'"),
+    (">> noi them", "echo x >> docs/ghi-chu.md"),
+    ("Out-File -Append noi them", "Get-Date | Out-File -Append docs/ghi-chu.md"),
+    ("New-Item khong -Force khong de file co san", "New-Item tools/moi.py"),
+    ("ghi ra $env:TEMP", 'Set-Content "$env:TEMP\\x.py" "x"'),
+    ("Out-File ra file log", "Get-Date | Out-File kq.log"),
+    ("-Value la NOI DUNG, khong phai dich",
+     'Set-Content -Path kq.txt -Value "app.py"'),
+    ("python cua .venv", ".\\.venv\\Scripts\\python.exe tools/kiem_cu_phap_311.py"),
+    ("python -c", 'python -c "print(1)"'),
+    ("van xuoi trong -m nhac lenh xau",
+     'git commit -m "dung chay Remove-Item paper_trades.db"'),
+    ("chu thich nhac lenh xau", "git status  # Remove-Item paper_trades.db"),
+    # Ba dong duoi la cho ba lop boc (nhay · chu thich · here-string) THAT
+    # SU bao ve: luat xoa da neo vao VI TRI LENH nen van xuoi nhac
+    # `Remove-Item` vo hai san — nhung dau `>` trong van xuoi thi khong.
+    # Duc thu 25/09/2026: thieu ba dong nay, go ca ba lop boc van XANH.
+    ("van xuoi trong -m co dau >", 'git commit -m "dung chay echo x > app.py nua"'),
+    ("chu thich co dau >", "git status  # echo x > app.py"),
+    ("here-string co dau >", "$m = @'\necho x > app.py\n'@\ngit commit -m $m"),
+    # Dau ` la ky tu THOAT cua PowerShell. Luat backtick ben bash se bat
+    # nham dong nay neu PowerShell bi phan bang luat bash.
+    ("backtick trong nhay kep la THOAT, khong phai noi suy",
+     'Write-Output "gia tri `n xuong dong"'),
+    ("push len nhanh", "git push -u origin p0/harness"),
+    ("pytest ghi ra log", ".\\.venv\\Scripts\\python.exe -m pytest tests/ -q *> kq.log"),
+    ("Select-Object -First khong dem toan bo", "Get-ChildItem | Select-Object -First 5"),
+]
+
+
+def test_MAY_DO_powershell_tu_chung_minh_no_bat_duoc():
+    """Như bản Bash: mẫu xấu bị ĐÚNG MỘT luật chặn, mẫu tốt được tha.
+
+    Đi qua `kiem_ps()` — chính hàm `main()` gọi cho tool PowerShell —
+    không đi qua một phép phán dựng lại ở đây.
+    """
+    for ten, lenh, mong_doi in XAU_PS:
+        bat = sorted({t for t, _ in cb.kiem_ps(lenh)})
+        assert bat == [mong_doi], (
+            f"mẫu xấu PowerShell: {ten}\n  {lenh!r}\n"
+            f"  chờ đúng [{mong_doi!r}], thực tế {bat}")
+    for ten, lenh in TOT_PS:
+        assert not cb.kiem_ps(lenh), (
+            f"KÊU OAN mẫu tốt PowerShell: {ten}\n  {lenh!r}\n  -> {cb.kiem_ps(lenh)}")
+    print(f"PASS  cửa PowerShell bắt {len(XAU_PS)}/{len(XAU_PS)} xấu đúng một "
+          f"luật, tha {len(TOT_PS)}/{len(TOT_PS)} tốt")
+
+
+def test_hook_POWERSHELL_di_qua_cua_va_qua_LUAT_POWERSHELL(tmp_path):
+    """Nối thật qua stdin. Hai vế, và vế thứ hai là thứ hay bị quên:
+
+      • tool `PowerShell` PHẢI đi qua cửa — lỗ audit tools_hook_ci-01;
+      • và phải bị phán bằng luật PowerShell, KHÔNG phải luật bash —
+        `Remove-Item` không có chữ `rm`, và dấu ` là ký tự thoát.
+    """
+    import json
+
+    def _chay(ten_tool, lenh):
+        return subprocess.run(
+            [PY, str(GOC / "tools" / "cua_bash_an_toan.py")],
+            input=json.dumps({"tool_name": ten_tool, "tool_input": {"command": lenh}}),
+            capture_output=True, text=True, encoding="utf-8",
+            env=_moi_truong_rieng(tmp_path)).returncode
+
+    assert _chay("PowerShell", "Remove-Item paper_trades.db") == 2, (
+        "tool PowerShell xoá .db mà cửa không chặn")
+    assert _chay("PowerShell", "Get-Content paper_trades.db") == 0
+    # Cùng một lệnh, hai cú pháp: bash CHẶN (backtick nội suy), PowerShell
+    # THA (backtick là ký tự thoát). Phân biệt được hai đường phán.
+    lenh = 'echo "gia tri `a` o day"'
+    assert _chay("Bash", lenh) == 2
+    assert _chay("PowerShell", lenh) == 0, "PowerShell bị phán bằng luật bash"
+
+    nk = [json.loads(d) for d in (tmp_path / cb.TEN_NHAT_KY).read_text(
+        encoding="utf-8").splitlines() if d.strip()]
+    assert [b.get("cong_cu") for b in nk] == ["PowerShell", "PowerShell", "Bash",
+                                             "PowerShell"], nk
+    print("PASS  PowerShell đi qua cửa, qua đúng luật PowerShell, và nhật ký ghi tên tool")
+
+
+def test_moi_luat_POWERSHELL_deu_khai_NGUON():
+    """Cùng hợp đồng với `test_moi_luat_deu_khai_NGUON`, cho bộ luật riêng."""
+    import re
+    thieu = [ten for ten, _, vi_sao in cb.LUAT_PS
+             if not re.search(r"\d{2}/\d{2}/\d{4}", vi_sao)
+             and "CHƯA CÓ SỰ CỐ" not in vi_sao]
+    assert not thieu, f"luật PowerShell không khai nguồn: {thieu}"
+    print(f"PASS  {len(cb.LUAT_PS)} luật PowerShell đều khai nguồn")
+
+
 def test_moi_luat_deu_khai_NGUON():
     """Mỗi luật phải khai nó đến từ đâu. Hai nguồn, và chỉ hai.
 
@@ -702,26 +896,87 @@ def test_ban_tin_mo_phien_NEU_TEN_SKILL_doc_tu_dia():
     print(f"PASS  lời nhắc đọc tên skill từ đĩa: {ten}")
 
 
-def test_moc_ngay_LOC_THEO_hom_nay():
+def test_moc_ngay_LOC_THEO_hom_nay(tmp_path, monkeypatch):
     """PHÉP PHÁN. Mốc đã tới hạn thì không còn chặn, mốc tương lai thì có.
 
     Truyền `hom_nay` cố định nên phép kiểm này không mục ruỗng theo thời
     gian — nó vẫn đúng vào năm 2030.
+
+    Dựng HANDOFF GIẢ trong `tmp_path` (từ 25/09/2026). Bản trước đọc
+    HANDOFF THẬT, nên nó chỉ khoá được những kiểu viết đã có lúc viết
+    test — và nó KHOÁ SAI: mốc 29/09/2026 viết kiểu `**ngày — mô tả.**`
+    rơi khỏi bộ đọc mà test vẫn xanh (audit, BƯỚC 121, tools_hook_ci-07).
+    Tệp giả chứa ĐỦ ba kiểu viết đang có thật, cộng một mốc NGOÀI khối.
     """
     import datetime as dt
 
     import cua_mo_phien as mp
 
-    truoc = mp.moc_ngay_con_chan(dt.date(2026, 9, 7))
-    assert [n for n, _ in truoc] == [dt.date(2026, 9, 12),
-                                     dt.date(2026, 9, 17)], truoc
+    gia = tmp_path / "HANDOFF.md"
+    gia.write_text(
+        "## 5. Việc treo\n\n"
+        "**Chờ tới ngày, đừng đọc sớm:**\n\n"
+        "- **12/09/2026** — kiểu đậm đóng ngay sau ngày.\n\n"
+        "- **29/09/2026 — kiểu đậm kéo qua cả câu mô tả.** Thêm chữ\n"
+        "  ở dòng sau.\n\n"
+        "- ~~**05/09/2026** — kiểu đã gạch~~ **ĐÃ ĐỌC**\n\n"
+        # Ngày nằm GIỮA câu văn thì KHÔNG phải mốc — nếu không, mọi câu
+        # "đã đọc 17/09" trong khối đều thành một mốc chặn giả.
+        "- Ghi chú chung cho cả khối, KHÔNG phải mốc: lượt soát gần nhất "
+        "hẹn 20/10/2026.\n\n"
+        "**Cần người quyết:**\n\n"
+        "- **30/12/2026** — NGOÀI khối chờ, không được tính.\n",
+        encoding="utf-8")
+    monkeypatch.setattr(mp, "HANDOFF", gia)
 
-    giua = mp.moc_ngay_con_chan(dt.date(2026, 9, 13))
-    assert [n for n, _ in giua] == [dt.date(2026, 9, 17)], giua
+    truoc = mp.moc_ngay_con_chan(dt.date(2026, 9, 1))
+    assert [n for n, _ in truoc] == [dt.date(2026, 9, 5), dt.date(2026, 9, 12),
+                                     dt.date(2026, 9, 29)], truoc
+
+    giua = mp.moc_ngay_con_chan(dt.date(2026, 9, 25))
+    assert [n for n, _ in giua] == [dt.date(2026, 9, 29)], giua
+    mo_ta = giua[0][1]
+    assert mo_ta.startswith("kiểu đậm kéo qua"), mo_ta
+    assert "*" not in mo_ta and "~" not in mo_ta, f"mô tả còn dấu định dạng: {mo_ta!r}"
+
+    # BIÊN: đúng NGÀY của mốc thì đã tới hạn, không còn chặn.
+    dung_ngay = mp.moc_ngay_con_chan(dt.date(2026, 9, 29))
+    assert dung_ngay == [], f"đúng ngày tới hạn vẫn báo chặn: {dung_ngay}"
 
     sau = mp.moc_ngay_con_chan(dt.date(2026, 12, 31))
     assert sau == [], f"mốc đã qua vẫn còn báo chặn: {sau}"
-    print("PASS  lọc đúng theo ngày: 2 -> 1 -> 0")
+    print("PASS  lọc đúng theo ngày: 3 -> 1 -> 0, cả ba kiểu viết")
+
+
+def test_moc_ngay_DOC_DU_moi_gach_dau_dong_co_ngay_trong_HANDOFF_that():
+    """PHÉP ĐO QUẦN THỂ trên HANDOFF THẬT: mọi gạch đầu dòng trong khối
+    "Chờ tới ngày" mà mở đầu bằng một ngày thì bộ đọc phải đọc ra nó.
+
+    Không phụ thuộc hôm nay: hỏi với `hom_nay` = năm 2000, nên MỌI mốc đều
+    ở tương lai. Test phép phán ở trên chỉ khoá những kiểu viết NÓ biết;
+    test này bắt kiểu viết thứ tư ngay ngày nó xuất hiện. Tách khối bằng
+    đường RIÊNG (duyệt dòng), không mượn biểu thức của mã đang được kiểm.
+    """
+    import datetime as dt
+    import re
+
+    import cua_mo_phien as mp
+
+    dong = mp.HANDOFF.read_text(encoding="utf-8").splitlines()
+    dau = next(i for i, d in enumerate(dong) if d.startswith("**Chờ tới ngày"))
+    gach = []
+    for d in dong[dau + 1:]:
+        if d.startswith("**") or d.startswith("## "):
+            break
+        if d.startswith("- ") and re.search(r"\d{2}/\d{2}/\d{4}", d[:30]):
+            gach.append(d[:60])
+    assert gach, "khối Chờ tới ngày không có gạch đầu dòng nào mang ngày?"
+
+    doc_ra = mp.moc_ngay_con_chan(dt.date(2000, 1, 1))
+    assert len(doc_ra) == len(gach), (
+        f"HANDOFF có {len(gach)} mốc, bộ đọc chỉ ra {len(doc_ra)}:\n  "
+        + "\n  ".join(gach))
+    print(f"PASS  đọc đủ {len(gach)}/{len(gach)} mốc trong HANDOFF thật")
 
 
 def test_cua_mo_phien_KHONG_BAO_GIO_hong_phien(tmp_path, monkeypatch):
@@ -796,6 +1051,10 @@ def test_hai_cua_moi_duoc_DANG_KY_dung_matcher():
     assert m is not None, "cửa Bash chưa đăng ký ở PreToolUse"
     assert re.search(r"\bBash\b", m), (
         f"cửa Bash đăng ký với matcher {m!r} — nó sẽ không bao giờ chạy")
+    # Phiên trên máy này có HAI tool shell. Thiếu PowerShell thì mọi lệnh
+    # qua nó lọt cả bộ luật (audit 25/09/2026, BƯỚC 121, tools_hook_ci-01).
+    assert re.search(r"\bPowerShell\b", m), (
+        f"cửa lệnh shell đăng ký với matcher {m!r} — tool PowerShell lọt cửa")
 
     m = _tim("PostToolUse", "cua_ghi_an_toan.py")
     assert m is not None, "cửa ghi chưa đăng ký ở PostToolUse"

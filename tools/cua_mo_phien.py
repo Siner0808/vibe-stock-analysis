@@ -59,7 +59,12 @@ NHIP_SOAT_NGAY = 2
 #: đúng hình dạng đã cứu chính vấn đề này ngày 16/09.
 NGUONG_CHUOI_BO_SOAT = 3
 
-RE_NGAY = re.compile(r"\*\*(\d{2})/(\d{2})/(\d{4})\*\*")
+#: Ngày ĐẦU một đoạn đậm. KHÔNG đòi `**` đóng ngay sau ngày: HANDOFF viết
+#: cả hai kiểu — `**12/09/2026** — …` và `**29/09/2026 — mô tả.**` — và
+#: bản cũ (`…(\d{4})\*\*`) mù với kiểu thứ hai. Mốc 29/09/2026 vào HANDOFF
+#: ngày 22/09 theo đúng kiểu ấy, nên bản tin im với mốc còn sống DUY NHẤT
+#: suốt từ đó. Audit 25/09/2026, `docs/STATE.md` BƯỚC 121, tools_hook_ci-07.
+RE_NGAY = re.compile(r"\*\*(\d{2})/(\d{2})/(\d{4})\b")
 
 
 def ten_skill() -> list[str]:
@@ -98,7 +103,8 @@ def moc_ngay_con_chan(hom_nay: dt.date | None = None) -> list[tuple[dt.date, str
             continue
         if ngay <= hom_nay:
             continue                      # tới hạn rồi thì không còn chặn
-        mo_ta = re.sub(r"\s+", " ", dong.split("—", 1)[-1]).strip(" -.")
+        mo_ta = re.sub(r"\s+", " ", dong.split("—", 1)[-1])
+        mo_ta = mo_ta.replace("**", "").replace("~~", "").strip(" -.")
         ra.append((ngay, mo_ta[:70]))
     return sorted(ra)
 

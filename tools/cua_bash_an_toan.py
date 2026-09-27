@@ -1,6 +1,7 @@
 """Cửa chặn cho tool Bash — chặn đúng những hình dạng lệnh ĐÃ CẮN THẬT.
 
-Chạy như `PreToolUse` hook, matcher `Bash`. Đọc JSON từ stdin.
+Chạy như `PreToolUse` hook, matcher `Bash|PowerShell`. Đọc JSON từ stdin.
+PowerShell có máy quét và bộ luật RIÊNG từ 25/09/2026 — xem `kiem_ps()`.
 Mã thoát 2 = CHẶN, stderr trả lại cho agent.
 
 VÌ SAO CÓ FILE NÀY
@@ -156,7 +157,8 @@ def boc_va_tach(lenh: str) -> list[str]:
     return _quet(lenh, tach=True)
 
 
-def _quet(lenh: str, tach: bool, giu_nhay: bool = False) -> list[str]:
+def _quet(lenh: str, tach: bool, giu_nhay: bool = False,
+          giu_duong: bool = False) -> list[str]:
     """Máy quét dùng chung cho ba hàm bóc.
 
     `tach=False` thì dấu ngăn lệnh KHÔNG chốt đoạn — chúng ở lại như ký
@@ -164,12 +166,22 @@ def _quet(lenh: str, tach: bool, giu_nhay: bool = False) -> list[str]:
 
     `giu_nhay=True` thì nội dung chuỗi nháy được GIỮ nguyên thay vì thay
     bằng dấu cách. Dùng cho luật mà nội dung nháy chính là chủ đề.
+
+    `giu_duong=True` thì một chuỗi nháy được GIỮ khi và chỉ khi nó là
+    một ĐƯỜNG DẪN tới file đích (`_la_duong_dich`); văn xuôi vẫn bị bóc.
+    Thêm 25/09/2026: bóc MỌI nội dung nháy làm `rm "paper_trades.db"`,
+    `: > "x.db"` và `echo x > "app.py"` lọt cả ba luật về đích — một cặp
+    nháy là đủ vượt rào bảo vệ dữ liệu đo (audit, BƯỚC 121,
+    tools_hook_ci-02). Quyết định giữ/bóc chỉ đưa ra được khi chuỗi ĐÃ
+    ĐÓNG, nên nội dung thô được gom riêng trong lúc quét.
     """
     ra: list[str] = []
     hien: list[str] = []
     cho: list[str] = []
     i, n = 0, len(lenh)
     nhay: str | None = None
+    nhay_mo = 0                # vị trí trong `hien` ngay sau dấu nháy mở
+    tho: list[str] = []        # nội dung THÔ của chuỗi nháy đang mở
 
     def chot() -> None:
         s = "".join(hien).strip()
@@ -188,17 +200,27 @@ def _quet(lenh: str, tach: bool, giu_nhay: bool = False) -> list[str]:
                 # BAN. Trung hoa no o CA hai pham vi, ke ca `giu_nhay`:
                 # giu lai la bat nham dung cai bash khong lam.
                 hien.append("  ")
+                tho.append(lenh[i:i + 2])
                 i += 2
                 continue
-            hien.append(c if (giu_nhay or c == nhay) else " ")
             if c == nhay:
+                if giu_duong and not giu_nhay and _la_duong_dich("".join(tho)):
+                    del hien[nhay_mo:]
+                    hien.append("".join(tho))
+                hien.append(c)
                 nhay = None
+                i += 1
+                continue
+            hien.append(c if giu_nhay else " ")
+            tho.append(c)
             i += 1
             continue
 
         if c in "'\"":
             nhay = c
             hien.append(c)
+            nhay_mo = len(hien)
+            tho = []
             i += 1
             continue
 
@@ -251,13 +273,72 @@ def _quet(lenh: str, tach: bool, giu_nhay: bool = False) -> list[str]:
     return ra
 
 
+#: Đuôi của mọi file mà một luật về ĐÍCH ghi/xoá quan tâm.
+RE_DUOI_DICH = re.compile(r"\.(?:db|py|md|ya?ml|json|toml)$", re.I)
+
+
+def _la_duong_dich(s: str) -> bool:
+    """Nội dung một chuỗi nháy có phải ĐƯỜNG DẪN tới một file đích không?
+
+    Phải kết thúc bằng một đuôi đích, VÀ: hoặc là một mảnh liền (không
+    khoảng trắng), hoặc mảnh ĐẦU đã chứa dấu chéo (đường có khoảng trắng
+    như `"C:/My Docs/x.db"`). Văn xuôi — `-m "sửa docs/STATE.md"` — mở
+    đầu bằng một chữ thường, nên vẫn bị bóc như trước 25/09/2026, và mọi
+    mẫu TỐT về *văn bản nhắc tới lệnh xấu* vẫn được tha.
+    """
+    s = s.strip()
+    if not RE_DUOI_DICH.search(s):
+        return False
+    manh = s.split()
+    return len(manh) == 1 or "/" in manh[0] or "\\" in manh[0]
+
+
 def _chuan_duong(duong: str) -> str:
-    """Về một dạng chuỗi duy nhất: gạch chéo xuôi, `/c/…` -> `c:/…`."""
+    """Về một dạng chuỗi duy nhất: gạch chéo xuôi, `/c/…` -> `c:/…`.
+
+    Gộp dấu chéo lặp (25/09/2026): `"C:\\\\Users\\\\x.db"` trong nháy
+    kép là cùng một đường với `C:/Users/x.db`, và so chuỗi với gốc repo
+    trượt nếu còn `//`.
+    """
     d = duong.strip().strip("'\"").replace("\\", "/")
+    d = re.sub(r"(?<=.)/{2,}", "/", d)
     m = re.match(r"^/([A-Za-z])/(.*)$", d)          # Git Bash -> Windows
     if m:
         d = f"{m.group(1)}:/{m.group(2)}"
     return d.rstrip("/")
+
+
+#: Phép gán biến NGAY TRONG lệnh: `S="C:/…"; … > "$S/x.py"`. Chỉ bắt
+#: dạng `TÊN=giá_trị` đứng ở đầu một từ — `--format=%H` không khớp vì
+#: trước `f` là `-`, và `"x=1"` không khớp vì trước `x` là dấu nháy.
+RE_GAN_BIEN = re.compile(
+    r"(?:^|[\s;&|(])([A-Za-z_]\w*)=(\"[^\"\n]*\"|'[^'\n]*'|[^\s;&|()\"']+)")
+
+#: Biến đã gán của lệnh ĐANG được phán — `kiem()` đặt và dọn nó.
+_BIEN: dict[str, str] = {}
+
+
+def _gan_bien(lenh: str) -> dict[str, str]:
+    """{tên: giá trị} của mọi phép gán trong lệnh; gán sau đè gán trước."""
+    return {m.group(1): m.group(2).strip("'\"") for m in RE_GAN_BIEN.finditer(lenh)}
+
+
+def _mo_rong_bien(duong: str) -> str:
+    """`$TÊN/…` hoặc `${TÊN}/…` -> giá trị đã gán, MỘT tầng.
+
+    Thêm 25/09/2026. Trước đó một đường mở đầu bằng biến bị coi là
+    TƯƠNG ĐỐI, tức "trong repo", dù chính lệnh vừa gán biến ấy trỏ ra
+    scratchpad. Đo trên nhật ký cửa: 3/2.570 lệnh khác nhau bị bắt nhầm
+    đúng hình dạng này sau khi cửa bắt đầu đọc đích trong nháy, và dạng
+    không nháy `> $S/x.py` đã chặn nhầm một lệnh thật cùng ngày. Biến
+    KHÔNG gán trong lệnh thì giữ nguyên — không biết nó trỏ đâu thì chọn
+    chiều an toàn.
+    """
+    d = duong.strip().strip("'\"")
+    m = re.match(r"^\$\{?([A-Za-z_]\w*)\}?(.*)$", d, re.S)
+    if m and m.group(1) in _BIEN:
+        return _BIEN[m.group(1)] + m.group(2)
+    return d
 
 
 def _duong_trong_repo(duong: str) -> bool:
@@ -279,12 +360,33 @@ def _duong_trong_repo(duong: str) -> bool:
     Đường TƯƠNG ĐỐI thì coi như trong repo — lệnh chạy với cwd ở repo là
     trường hợp thường, và là trường hợp nguy hiểm.
     """
-    d = _chuan_duong(duong)
+    d = _chuan_duong(_mo_rong_bien(duong))
+    # Biến thư mục TẠM thì chắc chắn ngoài repo — cùng lý do ô "ghi ra
+    # TEMP" ở mẫu TỐT. Mọi biến khác vẫn coi như trong repo (không biết
+    # nó trỏ đâu thì chọn chiều an toàn).
+    if re.match(r"(?i)^\$(?:\{?(?:tmpdir|tmp|temp)\}?|env:(?:tmp|temp))(?:/|$)", d):
+        return False
     tuyet_doi = d.startswith("/") or re.match(r"^[A-Za-z]:/", d)
     if not tuyet_doi:
         return True
     goc = _chuan_duong(str(GOC))
     return (d + "/").lower().startswith((goc + "/").lower())
+
+#: ĐÍCH của một lệnh ghi: trong nháy kép, trong nháy đơn, hoặc một mảnh
+#: trần. Hai dạng có nháy chỉ còn thấy được ở bản quét `giu_duong`.
+def _mau_dich(duoi: str) -> str:
+    return (rf"(\"[^\"\n]*\.{duoi}\"|'[^'\n]*\.{duoi}'"
+            rf"|[^\s\"'|;&<>()]+\.{duoi})(?!\w)")
+
+
+_DICH_NGUON = _mau_dich(r"(?:py|md|ya?ml|json|toml)")
+_DICH_DB = _mau_dich(r"db")
+
+
+def _nhom(m) -> str:
+    """Nhóm bắt ĐẦU TIÊN khác rỗng — biểu thức có nhiều nhánh đích."""
+    return next((g for g in m.groups() if g), "")
+
 
 # (tên, biểu thức, lời giải thích + cách làm đúng)
 #
@@ -309,13 +411,22 @@ LUAT = [
     ),
     (
         "heredoc-ghi-file-repo",
-        re.compile(r"(?:cat|tee)\s[^|;&]*>\s*(\S+\.(?:py|md|ya?ml|json|toml))"
-                   r"[\s\S]*<<"),
+        # 25/09/2026: bản cũ `(?:cat|tee)\s[^|;&]*>\s*(…)[\s\S]*<<` đòi
+        # `>` ĐỨNG TRƯỚC `<<`, nên dạng phổ biến thứ hai
+        # `cat <<'EOF' > tools/x.py` lọt, và `tee tools/x.py <<'EOF'`
+        # (không có `>`) cũng lọt (audit, BƯỚC 121, tools_hook_ci-03).
+        # Nay biểu thức bắt NGƯỜI GHI + ĐÍCH ở mọi thứ tự; việc có heredoc
+        # hay không là điều kiện thêm.
+        re.compile(r"(?:\bcat\b[^|]*?(?<![>\d])>>?\s*|(?:^|[\s|(])tee\s+(?:-\S+\s+)*)"
+                   + _DICH_NGUON),
         "Ghi đè file nguồn bằng heredoc. Hai cái hại, và cái thứ hai nặng "
         "hơn: backtick cùng `$` bị shell nội suy trước khi nội dung tới "
         "đĩa (04–05/09/2026), và `cat >` ghi ĐÈ TRỌN file — một lệnh như "
         "vậy đã xoá mất 40 phép kiểm đang có ngày 09/09/2026, trong khi "
         "cả bốn cổng lúc đó đều XANH.\n"
+        "  Nới 25/09/2026: bản cũ chỉ bắt `cat > x.py <<EOF` — `>` phải "
+        "đứng TRƯỚC `<<`. `cat <<EOF > x.py` và `tee x.py <<EOF` đều lọt "
+        "(audit, BƯỚC 121). Đo trước khi nới: xem BƯỚC 122.\n"
         "  Cách đúng: dùng tool Write/Edit, hoặc `tools/va_an_toan.thay()`.",
     ),
     (
@@ -365,7 +476,11 @@ LUAT = [
         # khi lop phu dinh duoc noi ra sang `2>&1` (14/09/2026), mot lenh
         # nhu `--thu-luat pytest-qua-ong ... 2>&1 | tail` bi chan NHAM.
         # Do la bat nham THAT, do duoc tren nhat ky cua, cung ngay.
-        re.compile(r"\bpytest\b(?!-)[^|\n]*\|\s*(?:tail|head)\b"),
+        # 25/09/2026: `(?!-|\.(?!exe\b))` — TÊN FILE `pytest.ini` từng bị
+        # đọc thành lệnh pytest (dấu `.` là ranh giới từ), và luật chặn
+        # nhầm `ls pytest.ini setup.cfg … 2>&1 | head -4`. `pytest.exe` vẫn
+        # là lệnh pytest nên vẫn khớp.
+        re.compile(r"\bpytest\b(?!-|\.(?!exe\b))[^|\n]*\|\s*(?:tail|head)\b"),
         "`pytest ... | tail` — `tail` đệm toàn bộ output tới khi ống đóng. "
         "Với một lượt chạy nền thì bạn không đọc được gì cho tới lúc nó "
         "xong, và sẽ ngồi hỏi 'xong chưa'. Đếm được ít nhất 10 lượt như "
@@ -429,9 +544,18 @@ LUAT = [
     ),
     (
         "xoa-db-goc-repo",
-        re.compile(r"\brm\b[^\n]*\s\S*\.db\b"),
+        # 25/09/2026: thêm `unlink`, `find … -delete` và `git clean -x/-X`
+        # — cùng cơ chế XOÁ, khác công cụ. `git clean -X` xoá đúng những
+        # file bị gitignore, tức MỌI `.db` ở gốc repo cùng lúc.
+        re.compile(r"\b(?:rm|unlink)\b[^\n]*\s\S*\.db\b"
+                   r"|\bfind\b[^\n]*\.db\b[^\n]*\s-delete\b"
+                   r"|\bgit\s+clean\b[^\n]*\s-\w*[xX]"),
         "Xoá file `.db`. Đó là DỮ LIỆU ĐO của người dùng, và một lần mất "
         "sổ lệnh đã xảy ra rồi (12/08/2026: 96/113 lệnh thật biến mất).\n"
+        "  Nới 25/09/2026: tên đích trong dấu nháy (`rm \"x.db\"`) từng "
+        "lọt vì nội dung nháy bị bóc trước khi so (audit, BƯỚC 121); "
+        "thêm `unlink`, `find … -delete`, và `git clean -x/-X` — lệnh ấy "
+        "xoá đúng những file bị gitignore, tức mọi `.db`.\n"
         "  Phải hỏi người dùng trước.",
     ),
     # ── Ba luật dưới đây đóng NHÓM 1 của chín hình dạng còn để ngỏ ở
@@ -440,8 +564,11 @@ LUAT = [
     #    có khai đúng phạm vi chúng có; nới chúng là làm tên nói dối."*
     (
         "ghi-de-file-nguon",
-        re.compile(r"(?<![>\d])>\s*(?!/dev/null)"
-                   r"(\S+\.(?:py|md|ya?ml|json|toml))\b"),
+        # 25/09/2026: thêm `tee` KHÔNG `-a` — nó cũng cắt cụt đích, mà
+        # không cần dấu `>`. Và đích nay được đọc cả khi nằm trong nháy.
+        re.compile(r"(?:(?<![>\d])>(?!>)\s*(?!/dev/null)"
+                   r"|(?:^|\|)\s*tee\s+(?:(?!-a\b|--append\b)-\S+\s+)*)"
+                   + _DICH_NGUON),
         "Cắt cụt một file NGUỒN bằng `>`, KHÔNG qua heredoc. `>` mở file "
         "ở chế độ ghi đè, nên nội dung cũ mất TRƯỚC khi lệnh bên trái "
         "chạy xong — một lệnh sinh ra rỗng vẫn để lại một file rỗng.\n"
@@ -453,11 +580,16 @@ LUAT = [
         "tài liệu, **0 bắt nhầm** sau khi loại dạng heredoc.\n"
         "  `>>` (nối thêm) KHÔNG khớp — nó không cắt cụt. Ghi ra ngoài "
         "repo cũng không khớp.\n"
+        "  Nới 25/09/2026 (audit, BƯỚC 121): đích trong dấu nháy, `tee` "
+        "không `-a`, và dạng có heredoc mà luật heredoc KHÔNG bắt — ví dụ "
+        "`python - <<EOF > docs/x.json` — trước đó lọt cả hai luật.\n"
         "  Cách đúng: tool Write/Edit, hoặc `tools/va_an_toan.ghi()`.",
     ),
     (
         "ghi-de-db",
-        re.compile(r"(?<![>\d])>\s*(\S+\.db)\b"),
+        re.compile(r"(?:(?<![>\d])>(?!>)\s*"
+                   r"|(?:^|\|)\s*tee\s+(?:(?!-a\b|--append\b)-\S+\s+)*)"
+                   + _DICH_DB),
         "Cắt cụt một file `.db` bằng `>`. Luật `xoa-db-goc-repo` chỉ canh "
         "`rm`, nên đường này đi lọt — đo được ngày 14/09/2026, BƯỚC 65.\n"
         "  Hậu quả giống hệt `rm`: sổ lệnh là DỮ LIỆU ĐO của người dùng, "
@@ -466,6 +598,9 @@ LUAT = [
         "  Đo trước khi bật, 17/09/2026: 0 bắt nhầm trên 23 mẫu `TOT` và "
         "73 dòng lệnh tài liệu. `mv x.db /tmp/` vẫn được tha — CỐ Ý, đó "
         "là cách đi vòng an toàn đã dùng ngày 12/09/2026.\n"
+        "  Nới 25/09/2026 (audit, BƯỚC 121): đích trong dấu nháy, `tee` "
+        "không `-a`, và `cat <<EOF > x.db` — trước đó nhường cho luật "
+        "heredoc, mà luật ấy không canh `.db`.\n"
         "  Phải hỏi người dùng trước.",
     ),
     (
@@ -537,7 +672,14 @@ RE_THOAT = re.compile(r"#\s*cua-ok:\s*\S+")
 # Hai luật đầu từng nằm ở DOC_THO, và ngày 11/09/2026 `hai-heredoc` chặn
 # nhầm một lệnh `git commit -F -` có thân heredoc *nhắc tới* `<<'EOF'`.
 # Lần chặn nhầm thứ CHÍN, và nó xảy ra trong chính lượt sửa tám lần kia.
-DOC_BOC = frozenset({"hai-heredoc", "heredoc-ghi-file-repo"})
+DOC_BOC = frozenset({"hai-heredoc"})
+
+# Hai phạm vi mới, 25/09/2026 — như `DOC_BOC` / mặc định nhưng GIỮ chuỗi
+# nháy khi nó là một đường dẫn đích (`_la_duong_dich`). Chỉ các luật về
+# ĐÍCH ghi/xoá đọc chúng: với các luật ấy, tên file trong nháy chính là
+# thứ đang đi tìm (audit, BƯỚC 121, tools_hook_ci-02).
+DOC_BOC_DUONG = frozenset({"heredoc-ghi-file-repo"})
+DOC_DUONG = frozenset({"xoa-db-goc-repo", "ghi-de-file-nguon", "ghi-de-db"})
 # `heredoc-python-co-escape` là người dùng THẬT đầu tiên của tập này
 # (17/09/2026): nó phải nhìn THÂN heredoc, mà mọi bản đã bóc đều xoá
 # đúng phần ấy đi.
@@ -553,7 +695,8 @@ DIEU_KIEN_THEM = {
     # Tên luật nói "file-repo" từ ngày nó ra đời, nhưng biểu thức chưa
     # bao giờ nhìn đường dẫn. Ngày 11/09/2026 nó chặn một lệnh ghi ra
     # `AppData/Local/Temp` — lần chặn nhầm thứ tư của cùng hình dạng.
-    "heredoc-ghi-file-repo": lambda lenh, m: _duong_trong_repo(m.group(1)),
+    "heredoc-ghi-file-repo": lambda lenh, m: (_duong_trong_repo(_nhom(m))
+                                              and bool(re.search(r"<<(?!<)", lenh))),
 
     # Hai luật `ghi-de-*` dùng CHUNG `_duong_trong_repo` với luật trên —
     # một bản cài đặt, ba nơi gọi. Và cả hai nhường dạng HEREDOC cho
@@ -561,16 +704,26 @@ DIEU_KIEN_THEM = {
     # chúng bắt nhầm đúng hai ca — mẫu `TOT` *"heredoc ghi file NGOÀI
     # repo"* và một dòng lệnh trong `loi-da-mac.md`. Hai luật cùng phán
     # một hình dạng là hai thông báo và hai chỗ để trôi ra khỏi nhau.
-    "ghi-de-file-nguon": lambda lenh, m: (_duong_trong_repo(m.group(1))
-                                          and "<<" not in lenh),
-    "ghi-de-db": lambda lenh, m: (_duong_trong_repo(m.group(1))
-                                  and "<<" not in lenh),
+    #
+    # 25/09/2026: phép nhường ấy nay nằm ở `NHUONG` và chỉ áp khi luật
+    # heredoc THẬT SỰ khớp. Bản cũ nhường MỌI lệnh có `<<`, nên
+    # `python - <<EOF > docs/x.json` và `cat <<EOF > x.db` lọt cả hai
+    # luật (audit, BƯỚC 121, tools_hook_ci-03).
+    "ghi-de-file-nguon": lambda lenh, m: _duong_trong_repo(_nhom(m)),
+    "ghi-de-db": lambda lenh, m: _duong_trong_repo(_nhom(m)),
 
     # Biểu thức chỉ nhận ra DẤU MỞ của một heredoc nạp Python. Câu hỏi
     # nó không hỏi được là *"thân có escape không"* — và chỉ khi CÓ thì
     # đường này mới hỏng. Một luật chặn MỌI heredoc Python sẽ bắt nhầm
     # hai mẫu `TOT` mà chính dự án đã khai là tốt; đo 17/09/2026.
     "heredoc-python-co-escape": lambda lenh, m: _than_co_escape(lenh, m),
+}
+
+
+#: Luật -> luật mà nó NHƯỜNG khi luật kia đã phán cùng lệnh. Một hình dạng
+#: thuộc về đúng một luật — xem `test_MOI_HINH_DANG_XAU_thuoc_ve_DUNG_MOT_LUAT`.
+NHUONG = {
+    "ghi-de-file-nguon": "heredoc-ghi-file-repo",
 }
 
 
@@ -612,16 +765,33 @@ def kiem(lenh: str) -> list[tuple[str, str]]:
     """
     if RE_THOAT.search(lenh):
         return []
+    _BIEN.clear()
+    _BIEN.update(_gan_bien(lenh))
+    try:
+        return _kiem_luat(lenh)
+    finally:
+        _BIEN.clear()
 
+
+def _kiem_luat(lenh: str) -> list[tuple[str, str]]:
+    """Thân của `kiem()`, chạy khi `_BIEN` đã mang phép gán của lệnh."""
     con = boc_va_tach(lenh)
+    con_duong = _quet(lenh, tach=True, giu_duong=True)
+    boc_duong = "\n".join(_quet(lenh, tach=False, giu_duong=True))
     pham: list[tuple[str, str]] = []
     for ten, bt, vi_sao in LUAT:
+        if NHUONG.get(ten) in {t for t, _ in pham}:
+            continue
         if ten in DOC_THO:
             doi = [lenh]
         elif ten in DOC_GIU_NHAY:
             doi = [boc_than_heredoc(lenh)]
         elif ten in DOC_BOC:
             doi = [boc(lenh)]
+        elif ten in DOC_BOC_DUONG:
+            doi = [boc_duong]
+        elif ten in DOC_DUONG:
+            doi = con_duong
         else:
             doi = con
         for doan in doi:
@@ -636,6 +806,226 @@ def kiem(lenh: str) -> list[tuple[str, str]]:
     return pham
 
 
+# ─────────────────────────────────────────────────────────────────────
+# PowerShell — thêm 25/09/2026 (audit, `docs/STATE.md` BƯỚC 121,
+# tools_hook_ci-01).
+#
+# Phiên Claude Code trên máy này có HAI tool shell: `Bash` và `PowerShell`.
+# Cửa này đăng ký matcher `Bash` từ ngày ra đời, nên MỌI lệnh đi qua
+# PowerShell lọt cả mười hai luật — kể cả hai luật bảo vệ `.db` — trong khi
+# `kiem_cua_song` vẫn báo đủ cửa sống. Cú pháp khác bash ở đúng những chỗ
+# máy quét bash dựa vào: dấu ` là ký tự THOÁT, nháy đơn thoát bằng `''`,
+# có here-string `@' … '@`, và lệnh có bí danh (`rm`, `del`, `sc`, `ni`…).
+# Nên PowerShell có máy quét và bộ luật RIÊNG; mỗi luật khai nguồn của luật
+# bash anh em. Không luật nào ở đây nới rộng hơn cơ chế luật anh em canh.
+# ─────────────────────────────────────────────────────────────────────
+
+
+def _quet_ps(lenh: str) -> list[str]:
+    """Tách lệnh PowerShell thành CÂU; bóc chú thích, thân here-string, và
+    nội dung nháy — trừ nội dung là một đường dẫn đích (`_la_duong_dich`)."""
+    ra: list[str] = []
+    hien: list[str] = []
+    i, n = 0, len(lenh)
+
+    def chot() -> None:
+        s = "".join(hien).strip()
+        if s:
+            ra.append(s)
+        hien.clear()
+
+    while i < n:
+        c = lenh[i]
+        if c == "@" and i + 1 < n and lenh[i + 1] in "'\"":
+            # here-string: dấu ĐÓNG phải đứng đầu dòng. Thân là DỮ LIỆU.
+            j = lenh.find("\n" + lenh[i + 1] + "@", i + 2)
+            hien.append(" ")
+            i = n if j < 0 else j + 3
+            continue
+        if c in "'\"":
+            q, j, tho = c, i + 1, []
+            while j < n:
+                d = lenh[j]
+                if q == '"' and d == "`" and j + 1 < n:
+                    tho.append(lenh[j:j + 2])
+                    j += 2
+                    continue
+                if d == q:
+                    if j + 1 < n and lenh[j + 1] == q:      # '' hoặc "" = một dấu
+                        tho.append(q)
+                        j += 2
+                        continue
+                    break
+                tho.append(d)
+                j += 1
+            noi = "".join(tho)
+            hien.append(q + (noi if _la_duong_dich(noi) else " " * len(noi)) + q)
+            i = j + 1
+            continue
+        if lenh.startswith("<#", i):
+            j = lenh.find("#>", i + 2)
+            hien.append(" ")
+            i = n if j < 0 else j + 2
+            continue
+        if c == "#" and (i == 0 or lenh[i - 1] in " \t\n;"):
+            j = lenh.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        if c == "`" and i + 1 < n and lenh[i + 1] in "\r\n":   # nối dòng
+            hien.append(" ")
+            i += 2
+            continue
+        if lenh.startswith(("&&", "||"), i):
+            chot()
+            i += 2
+            continue
+        if c in ";\n":
+            chot()
+            i += 1
+            continue
+        hien.append(c)
+        i += 1
+    chot()
+    return ra
+
+
+_PS_DUOI_NGUON = re.compile(r"(?i)\.(?:py|md|ya?ml|json|toml)$")
+_PS_DUOI_DB = re.compile(r"(?i)\.db$")
+_PS_XOA = re.compile(r"(?i)(?:^|[|{(;])\s*&?\s*(?:remove-item|ri|rm|del|erase|rd|rmdir)(?=\s|$)")
+_PS_API = re.compile(r"(?i)\[(?:system\.)?io\.file\]::(\w+)\s*\(\s*"
+                     r"(\"[^\"]*\"|'[^']*'|[^,\s)]+)")
+_PS_GHI = re.compile(r"(?i)^\s*&?\s*(set-content|sc|clear-content|clc|out-file"
+                     r"|new-item|ni|tee-object|tee)(?=\s|$)")
+_PS_CHUYEN = re.compile(r"(?<![>\d])>(?!>)\s*(\"[^\"\n]*\"|'[^'\n]*'|[^\s\"'|;&<>()]+)")
+#: Tham số mang GIÁ TRỊ không phải đích — `-Value "app.py"` là nội dung,
+#: không phải file bị ghi. PowerShell nhận viết tắt tham số, nên so tiền tố.
+_PS_THAM_SO_GIA_TRI = ("-value", "-inputobject", "-encoding", "-itemtype",
+                       "-type", "-delimiter", "-stream")
+
+
+def _ps_bo_nhay(t: str) -> str:
+    return t.strip().strip("'\"")
+
+
+def _ps_dich_cat_cut(cau: str) -> list[str]:
+    """Mọi ĐÍCH mà câu này CẮT CỤT hoặc GHI ĐÈ. Nối thêm thì không tính:
+    `>>`, `Add-Content`, `-Append` — cùng ranh giới với `ghi-de-*` bên bash.
+    """
+    ra = [m.group(1) for m in _PS_CHUYEN.finditer(cau)]
+    for m in _PS_API.finditer(cau):
+        if m.group(1).lower().startswith(("writeall", "create")):
+            ra.append(m.group(2))
+    for phan in cau.split("|"):
+        m = _PS_GHI.match(phan)
+        if not m:
+            continue
+        lenh = m.group(1).lower()
+        manh = phan[m.end():].split()
+        thap = [t.lower() for t in manh]
+        if lenh in ("out-file", "tee-object", "tee") and any(
+                t.startswith("-a") for t in thap):
+            continue                          # -Append: nối thêm
+        if lenh in ("new-item", "ni") and not any(t.startswith("-f") for t in thap):
+            continue                          # thiếu -Force thì không đè file có sẵn
+        bo = False
+        for t, tl in zip(manh, thap):
+            if bo:
+                bo = False
+                continue
+            if len(tl) >= 2 and tl.startswith("-") and any(
+                    p.startswith(tl) for p in _PS_THAM_SO_GIA_TRI):
+                bo = True
+                continue
+            ra.append(t)
+    return [_ps_bo_nhay(t) for t in ra]
+
+
+def _ps_ghi_de(cau: str, duoi) -> bool:
+    return any(duoi.search(t) and _duong_trong_repo(t) for t in _ps_dich_cat_cut(cau))
+
+
+def _ps_xoa_db(cau: str) -> bool:
+    if _PS_XOA.search(cau) and re.search(r"(?i)\.db\b", cau):
+        return True
+    if any(m.group(1).lower() == "delete" and _PS_DUOI_DB.search(_ps_bo_nhay(m.group(2)))
+           for m in _PS_API.finditer(cau)):
+        return True
+    return bool(re.search(r"(?i)\bgit\s+clean\b.*\s-\w*x", cau))
+
+
+LUAT_PS = [
+    (
+        "ps-xoa-db",
+        _ps_xoa_db,
+        "Xoá file `.db` qua PowerShell (`Remove-Item`, `rm`, `del`, "
+        "`[IO.File]::Delete`, `git clean -x`). Đó là DỮ LIỆU ĐO của người "
+        "dùng, và một lần mất sổ lệnh đã xảy ra rồi (12/08/2026: 96/113 "
+        "lệnh thật biến mất). Anh em của `xoa-db-goc-repo`.\n"
+        "  Lọt tới 25/09/2026 vì cửa chỉ đăng ký matcher `Bash` (audit, "
+        "BƯỚC 121).\n"
+        "  Phải hỏi người dùng trước.",
+    ),
+    (
+        "ps-ghi-de-db",
+        lambda c: _ps_ghi_de(c, _PS_DUOI_DB),
+        "Cắt cụt một file `.db` trong repo qua PowerShell (`>`, "
+        "`Set-Content`, `Clear-Content`, `Out-File` không `-Append`, "
+        "`New-Item -Force`, `[IO.File]::WriteAll*`). Hậu quả giống xoá: "
+        "12/08/2026, 96/113 lệnh thật biến mất. Anh em của `ghi-de-db`.\n"
+        "  Phải hỏi người dùng trước.",
+    ),
+    (
+        "ps-ghi-de-file-nguon",
+        lambda c: _ps_ghi_de(c, _PS_DUOI_NGUON),
+        "Ghi ĐÈ một file NGUỒN trong repo qua PowerShell. Cùng cơ chế với "
+        "sự cố 09/09/2026, khi một `cat >` xoá mất 40 phép kiểm đang có "
+        "trong khi cả bốn cổng đều XANH. Anh em của `ghi-de-file-nguon`; "
+        "nối thêm (`>>`, `Add-Content`, `-Append`) KHÔNG khớp.\n"
+        "  Cách đúng: tool Write/Edit, hoặc `tools/va_an_toan.ghi()`.",
+    ),
+    (
+        "ps-python-he-thong",
+        lambda c: any(re.match(r"(?i)^\s*&?\s*(?:python3?(?:\.\d+)?|py)(?:\.exe)?"
+                               r"(?=\s|$)(?!\s+-c\b)", p) for p in c.split("|")),
+        "`python` hệ thống không có numpy/pandas của dự án. CHƯA CÓ SỰ CỐ "
+        "ghi ngày — QUY ƯỚC, chép từ `docs/HANDOFF.md` mục 1. Anh em của "
+        "`python-he-thong`.\n"
+        "  Cách đúng: `.\\.venv\\Scripts\\python.exe`.",
+    ),
+    (
+        "ps-push-thang-main",
+        lambda c: bool(re.search(r"(?i)\bgit\s+push\b.*\bmain\b(?![\w/-])", c)),
+        "Đẩy thẳng lên `main`. CHƯA CÓ SỰ CỐ ghi ngày — QUY ƯỚC, chép từ "
+        "`docs/HANDOFF.md` mục 7. Anh em của `push-thang-main`: "
+        "`.github/workflows/kiem-dinh.yml` chạy trên CẢ `push` lẫn "
+        "`pull_request`, nên đẩy thẳng thì CI chạy SAU khi mã đã nằm trên "
+        "`main`.\n"
+        "  Cách đúng: nhánh -> PR -> merge.",
+    ),
+    (
+        "ps-pytest-qua-ong",
+        lambda c: bool(re.search(r"(?i)\bpytest\b(?!-)[^|]*\|\s*(?:select-object|select)"
+                                 r"\b[^|]*\s-last\b", c)),
+        "`pytest … | Select-Object -Last` — `-Last` phải đợi hết đầu vào mới "
+        "biết dòng cuối, nên nó ĐỆM toàn bộ output tới khi pytest xong. Cùng "
+        "mặt đệm với `pytest-qua-ong` bên bash (07/09/2026: ít nhất 10 lượt "
+        "hỏi 'xong chưa'). Mặt mã thoát của bash CHƯA ĐƯỢC ĐO trên "
+        "PowerShell, nên luật này không khai nó.\n"
+        "  Cách đúng: `… -q *> kq.log` rồi đọc file log.",
+    ),
+]
+
+
+def kiem_ps(lenh: str) -> list[tuple[str, str]]:
+    """PHÉP PHÁN cho tool PowerShell. Cùng lối thoát `# cua-ok: <lý do>` —
+    `#` là chú thích trong PowerShell nên lệnh vẫn chạy nguyên vẹn."""
+    if RE_THOAT.search(lenh):
+        return []
+    cau = _quet_ps(lenh)
+    return [(ten, vi_sao) for ten, phan, vi_sao in LUAT_PS
+            if any(phan(c) for c in cau)]
+
+
 #: Nhật ký nằm trong TEMP, NGOÀI repo — nó không bao giờ được commit.
 #: Nội dung là đúng thứ đã gõ vào Bash, nên nó có thể chứa bất cứ gì người
 #: gõ đưa vào. Đó là lý do nó ở TEMP và chỉ ở TEMP.
@@ -646,7 +1036,8 @@ def duong_nhat_ky() -> pathlib.Path:
     return pathlib.Path(tempfile.gettempdir()) / TEN_NHAT_KY
 
 
-def ghi_nhat_ky(lenh: str, pham: list, thoat: bool) -> None:
+def ghi_nhat_ky(lenh: str, pham: list, thoat: bool,
+                cong_cu: str = "Bash") -> None:
     """Ghi MỘT dòng JSON cho mỗi lượt cửa được gọi.
 
     VÌ SAO CÓ HÀM NÀY
@@ -677,6 +1068,9 @@ def ghi_nhat_ky(lenh: str, pham: list, thoat: bool) -> None:
             "phan": "THOAT" if thoat else ("CHAN" if pham else "CHO-QUA"),
             "luat": [t for t, _ in pham],
             "lenh": lenh,
+            # Từ 25/09/2026: quần thể có HAI cú pháp. Công cụ thử luật
+            # Bash (`soat_nhat_ky_cua.py`) phải lọc theo trường này.
+            "cong_cu": cong_cu,
         }
         with open(duong_nhat_ky(), "a", encoding="utf-8") as f:
             f.write(json.dumps(ban_ghi, ensure_ascii=False) + "\n")
@@ -696,7 +1090,8 @@ def main() -> int:
     except Exception:
         return 0                          # hỏng thì nhường đường
 
-    if str(d.get("tool_name") or "") != "Bash":
+    cong_cu = str(d.get("tool_name") or "")
+    if cong_cu not in ("Bash", "PowerShell"):
         return 0
     lenh = str((d.get("tool_input") or {}).get("command") or "")
     if not lenh:
@@ -706,8 +1101,8 @@ def main() -> int:
     # va cau hoi 'noi luat co bat NHAM khong' van khong tra loi duoc —
     # dung cai lo da sinh ra loi 49.
     thoat = bool(RE_THOAT.search(lenh))
-    pham = kiem(lenh)
-    ghi_nhat_ky(lenh, pham, thoat)
+    pham = kiem_ps(lenh) if cong_cu == "PowerShell" else kiem(lenh)
+    ghi_nhat_ky(lenh, pham, thoat, cong_cu)
     if not pham:
         return 0
 

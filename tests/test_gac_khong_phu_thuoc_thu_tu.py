@@ -149,7 +149,7 @@ def test_khong_file_test_nao_re_nhanh_theo_co_bi_ro_ri():
         "gác rẽ nhánh theo giá trị LÚC CHẠY của một cờ mà file test khác "
         "gán đè — kết quả phụ thuộc thứ tự collect:\n  " + "\n  ".join(pham)
         + "\n\nĐọc từ NGUỒN bằng AST, như `tests/test_c5_noi_that.py::"
-          "test_cong_C5_dang_DONG_trong_ma_nguon`.")
+          "test_cong_C5_dang_MO_trong_ma_nguon`.")
     print(f"PASS  {len(_cac_file_test())} file test · "
           f"tập tên bị rò {sorted(ro_ri)} · 0 chỗ rẽ nhánh")
 
