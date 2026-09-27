@@ -18309,3 +18309,71 @@ cụm và `grep` một dòng bỏ sót.
   dùng một từ trong `PHU_DINH`.
 - Không kiểm Streamlit Cloud sau khi #169 vào `main` — việc treo ở HANDOFF.
 - Vế `PYTHONUTF8` (2 test đỏ khi shell thiếu biến ấy) vẫn chưa sửa.
+
+## BƯỚC 129 — SÁU DỤNG CỤ IN LỜI PHÁN RA STDERR BẰNG CP1252; GÁC WINDOWS CHỈ HỎI "CÓ ĐẶT LẠI MÃ HOÁ KHÔNG", KHÔNG HỎI LUỒNG NÀO (27/09/2026)
+
+### Triệu chứng, và nguyên nhân đo được
+
+Ngày 26/09 cổng 1 đỏ hai test ở máy:
+`test_doi_chung_ngoai_venv.py::test_DUNG_CU_DAN_khong_chet_khi_THIEU_venv_doi_chung`
+và `test_nhat_ky_cua_bash.py::test_DUNG_CU_DOC_chay_duoc_va_THOAT_2_khi_luat_khong_co`.
+Cả hai chạy một dụng cụ, đọc stderr bằng `encoding="utf-8"`, đòi thấy
+`CHUA KIEM DUOC`. Dụng cụ in `—` ra stderr bằng cp1252 (byte `0x97`), lớp đọc
+nổ `UnicodeDecodeError` trong luồng phụ, `stderr` thành `None`.
+
+Đo, cùng hai test, `env -u` từng biến:
+
+```
+dung cu CU  · khong bien nao               -> 2 failed
+dung cu CU  · PYTHONIOENCODING=utf-8       -> 2 passed
+dung cu MOI · khong bien nao               -> 2 passed
+```
+
+Nên đỏ 26/09 là vì phiên ấy **không theo** `export PYTHONIOENCODING=utf-8` của
+`references/cong-thuc-chay.md`. Công thức che lỗi; lỗi vẫn là của dụng cụ —
+một dụng cụ trả lời phán quyết đúng hay sai tuỳ biến môi trường của người
+gọi là một dụng cụ đo không tái lập.
+
+### Vì sao gác không thấy
+
+`tests/test_script_chay_duoc_tren_windows.py::_co_reconfigure` nhận **bất
+kỳ** lời gọi `.reconfigure` nào. Quét AST gốc repo + `tools/`: **11** file in ra
+stderr, **6** chỉ đặt lại stdout — `do8_doi_chung_duong_von`,
+`do9_fibonacci_duong_lenh`, `doc_bang_loi`, `doc_so_that`,
+`soat_lenh_tai_lieu`, `soat_nhat_ky_cua`. Năm file còn lại (ba cửa `cua_*`,
+…) đã dùng `for luong in (sys.stdout, sys.stderr): luong.reconfigure(...)` —
+lượt `grep` đầu tính nhầm chúng vào danh sách thiếu vì lời gọi đi qua biến
+vòng lặp. Lỗi 105.
+
+### Phép sửa
+
+Sáu dụng cụ chép đúng mẫu vòng của `cua_*`. Gác mới
+`test_script_IN_RA_STDERR_phai_dat_lai_ma_hoa_CA_STDERR` (AST: in ra stderr
+⇒ stderr trong tập luồng được đặt lại, nhận cả gọi thẳng lẫn vòng), sàn 8
+file (đo 11), và `test_MAY_DO_luong_nhan_dung_BA_dang` cho máy đo đi qua ca
+đã biết. Gác mới **đỏ trên mã cũ**, gọi đúng sáu tên, trước khi sửa dụng cụ.
+
+Đục (`dot_bien_bo`, chạy khi thiếu `PYTHONUTF8`):
+
+```
+soat_nhat_ky_cua chi stdout                       -> gac         DO
+soat_nhat_ky_cua chi stdout                       -> TEST THAT   DO
+do8: vong co stderr, than khong goi bien vong     -> gac         DO
+_in_ra_stderr luon False                          -> gac         DO   (san 8)
+_luong_duoc_dat_lai nhan moi reconfigure (lo cu)  -> gac         DO   (may do)
+```
+
+### Soát chéo
+
+Sổ tay tìm **một** câu: `references/bay.md` mục *"3. Công cụ kiểm tra không
+chạy được"* dặn chỉ `sys.stdout.reconfigure`. Mở file: đúng, dòng 43–47. Đã
+thêm ô 🔴 kèm mẫu hai luồng. Tự kiểm thêm: sổ tay bỏ sót lời dặn
+`PYTHONIOENCODING` ở `SKILL.md` Bước 4 và `cong-thuc-chay.md` — không nói
+ngược, nhưng chính nó là lời giải vì sao các phiên trước xanh (bảng trên).
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không nói bỏ được `PYTHONIOENCODING`: in tiếng Việt thẳng ra terminal vẫn
+  cần nó (`cong-thuc-chay.md`). BƯỚC này chỉ nói *phán quyết của cổng không
+  còn phụ thuộc biến ấy* với sáu dụng cụ đã sửa.
+- Gác chỉ quét gốc repo và `tools/` — cùng phạm vi gác cũ.

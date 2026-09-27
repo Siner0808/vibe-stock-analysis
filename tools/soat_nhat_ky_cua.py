@@ -51,10 +51,11 @@ GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
 
-try:
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except Exception:
-    pass
+for _luong in (sys.stdout, sys.stderr):   # stderr: BƯỚC 129
+    try:
+        _luong.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 import cua_bash_an_toan as cb  # noqa: E402
 

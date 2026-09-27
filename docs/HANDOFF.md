@@ -329,6 +329,10 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   nằm trong diff #171 — lỗi có từ trước, lộ ra theo môi trường shell.
 >   **Chưa sửa**; sửa đúng là cho dụng cụ `reconfigure` stderr sang UTF-8
 >   hoặc cho test truyền `encoding` — việc riêng, cần một BƯỚC.
+>   ✅ **ĐÃ SỬA 27/09 — BƯỚC 129.** Và câu *"lộ ra theo môi trường shell"*
+>   đo lại được: hôm ấy cổng chạy KHÔNG theo công thức
+>   `export PYTHONIOENCODING=utf-8` (`references/cong-thuc-chay.md`); dụng
+>   cụ cũ + biến ấy thì xanh. Nay dụng cụ xanh cả khi không có biến nào.
 > - **Hai worktree ĐO 18 đã gỡ** (người dùng cho phép). 18 file dữ liệu
 >   (`wf_*.db` · `sl_pattern_memory.json`) **không xoá** — chuyển sang
 >   `C:\Users\cuong\.gemini\antigravity\scratch\luu_do18\`. Xoá hẳn thì hỏi
@@ -347,7 +351,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   app và đọc, đừng suy"*. Nay tới lúc ấy.
 > - Lượt soát định kỳ 6 + BƯỚC 128 (gác sổ soát phạt việc soát xong) — PR
 >   riêng từ nhánh `soat/27-09-luot-6`.
-> - Vế `PYTHONUTF8` ở khối trên **vẫn chưa sửa**.
+> - Vế `PYTHONUTF8` ở khối trên: **đã sửa, BƯỚC 129** — sáu dụng cụ đặt lại
+>   cả stderr, gác AST mới canh.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
