@@ -53,6 +53,68 @@ KHOA_KHONG_XEP_HANG: dict[str, str] = {
 }
 
 
+#: Khoá của `boi_canh` — hợp đồng với cột JSON `boi_canh` (BƯỚC 132).
+KHOA_BOI_CANH: tuple[str, ...] = (
+    "diem_cuoi", "khuyen_nghi", "chat_luong_du_lieu", "nguong_mua",
+    "vni_close", "vni_ma50", "vni_pct_tren_ma50",
+    "bien_dong_nam_pct", "max_drawdown_pct", "sharpe", "atr_pct",
+    "kl_phien", "kl_tb20", "kl_so_tb20",
+)
+
+
+def vni_so_voi_ma50(vni_df, signal_date: str) -> dict:
+    """VN-INDEX TẠI `signal_date`: giá đóng, MA50, % trên MA50.
+
+    Cắt ĐÚNG biểu thức của `market_filter.is_vni_bullish` — `time <=
+    signal_date` — để bối cảnh ghi vào nhật ký là cùng một phiên mà cổng
+    mở lệnh đã nhìn (bất biến 1). Gác AST so hai biểu thức.
+    Thiếu dữ liệu thì trả None ở cả ba ô, không đoán.
+    """
+    rong = {"vni_close": None, "vni_ma50": None, "vni_pct_tren_ma50": None}
+    if vni_df is None or vni_df.empty:
+        return rong
+    sub = vni_df[vni_df["time"] <= signal_date]
+    if sub.empty:
+        return rong
+    latest = sub.iloc[-1]
+    close = float(latest["close"])
+    ma50 = latest.get("vni_ma50")
+    if ma50 is None or ma50 != ma50 or not ma50:          # thiếu hoặc NaN
+        return {"vni_close": close, "vni_ma50": None, "vni_pct_tren_ma50": None}
+    ma50 = float(ma50)
+    return {"vni_close": close, "vni_ma50": ma50,
+            "vni_pct_tren_ma50": (close - ma50) / ma50 * 100.0}
+
+
+def boi_canh_luc_tin_hieu(result: dict, signal_date: str, vni_df,
+                          nguong_mua: float) -> dict:
+    """Bối cảnh lúc CÓ TÍN HIỆU — đọc từ kết quả phân tích đã tính trên dữ liệu
+    tới hết phiên tín hiệu, cộng VN-INDEX cắt tại cùng phiên. Không tải thêm gì.
+
+    Người dùng chọn 27/09: bối cảnh GIÀU (có chỉ số thị trường). Thiếu ô nào
+    thì ô ấy None — không có số mặc định (bịa số là thứ dự án chặn).
+    """
+    an = (result or {}).get("analyses") or {}
+    rui_ro = (an.get("risk") or {}).get("metrics") or {}
+    kl = (an.get("volume") or {}).get("stats") or {}
+    bc = {
+        "diem_cuoi": (result or {}).get("final_score"),
+        "khuyen_nghi": (result or {}).get("recommendation"),
+        "chat_luong_du_lieu": (result or {}).get("data_quality"),
+        "nguong_mua": nguong_mua,
+        **vni_so_voi_ma50(vni_df, signal_date),
+        "bien_dong_nam_pct": rui_ro.get("volatility_annual"),
+        "max_drawdown_pct": rui_ro.get("max_drawdown"),
+        "sharpe": rui_ro.get("sharpe_ratio"),
+        "atr_pct": rui_ro.get("atr_pct"),
+        "kl_phien": kl.get("last_volume"),
+        "kl_tb20": kl.get("avg_vol_20"),
+        "kl_so_tb20": kl.get("vol_ratio_vs_ma20"),
+    }
+    assert tuple(bc) == KHOA_BOI_CANH
+    return bc
+
+
 def rui_ro_pct(gia_vao: Optional[float], sl_ban_dau: Optional[float]) -> Optional[float]:
     """Khoảng cách từ giá vào tới cắt lỗ ban đầu, % giá vào.
 

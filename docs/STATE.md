@@ -18499,3 +18499,55 @@ và MO-XE Tầng 2 ủng hộ hai quyết định.
   cổng VN-INDEX, chất lượng dữ liệu, ngưỡng lúc tín hiệu).
 - R dựa trên lợi nhuận RÒNG nên một lệnh hoà vốn giá vẫn ra R hơi âm (phí
   ~0,46% một vòng) — chủ ý, cùng lý do `net_return_pct` là con số đáng tin.
+
+## BƯỚC 132 — P2b-1 BỐI CẢNH LÚC TÍN HIỆU: GIÀU, NHƯNG CẮT ĐÚNG PHIÊN TÍN HIỆU (27/09/2026)
+
+Người dùng: *"còn Limit cứ làm tiếp đi"*. Trước khi chạm đường giao dịch, hỏi
+hai quyết định; người dùng chọn:
+
+| câu hỏi | chọn |
+|---|---|
+| nhật ký ghi ở đâu | **chỉ sổ lệnh THẬT** (`cho_phep_so_that=True`) — backtest/walkforward không ghi, nên không phép đo nào đổi |
+| bối cảnh lúc vào gồm gì | **giàu — thêm chỉ số thị trường** |
+
+### Bối cảnh giàu mà không nhìn trộm
+
+`nhat_ky_vi_sao.boi_canh_luc_tin_hieu(result, signal_date, vni_df,
+nguong_mua)` — 14 khoá `KHOA_BOI_CANH`:
+
+- điểm cuối · khuyến nghị · chất lượng dữ liệu · ngưỡng mua;
+- VN-INDEX: giá đóng · MA50 · % trên MA50 **tại phiên tín hiệu**;
+- agent rủi ro `metrics`: biến động năm · sụt giảm tối đa · Sharpe · ATR%;
+- agent khối lượng `stats`: khối lượng phiên · TB 20 phiên · tỷ lệ.
+
+Mọi thứ đọc từ `result` — đã tính trên dữ liệu tới hết phiên tín hiệu — và
+từ VN-INDEX cắt bằng **đúng biểu thức** của `market_filter.is_vni_bullish`
+(`vni_df[vni_df["time"] <= signal_date]`; gác AST so hai cây). Không tải gì.
+Thiếu ô nào thì ô ấy None; không có số mặc định.
+
+**Đường VN-INDEX khi nối dây (P2b-2):** `market_filter.get_vni_df()` — đường
+của bộ lọc, ưu tiên cache, tất định. KHÔNG dùng `chi_so_moi_nhat()`: đường ấy
+của thanh tiêu đề, ưu tiên MẠNG (`CLAUDE.md` mục *Ô VN-Index trên topbar*).
+
+### Gác và đục
+
+`tests/test_nhat_ky_boi_canh.py`, 9 test. Phép kiểm đầu: thêm hai phiên
+TƯƠNG LAI với giá vô lý (900 · 5.000, MA50 1 · 99.999) — bối cảnh **không
+đổi**. Đục 6/6 đỏ: bỏ phép cắt (nhìn trộm — nguyên văn lỗi) · `<` thay `<=`
+(lấy phiên trước tín hiệu) · % chia nhầm mẫu · số mặc định khi thiếu · bỏ chặn
+NaN · đổi thứ tự khoá.
+
+### Soát chéo
+
+Dựng và ghi bằng `tools/so_tay.py`. Sổ tay: *"không tìm thấy câu nào nói
+ngược"*. Tự kiểm bằng grep: `CLAUDE.md:406` tách hai đường VN-INDEX — không
+nói ngược, nhưng là lý do của đoạn *Đường VN-INDEX khi nối dây* ở trên.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Vẫn chưa có dòng nhật ký nào: `consider_entry` và `fill_pending` chưa gọi
+  module. Bối cảnh phải chụp ở `consider_entry` (chỉ ở đó có `result`) rồi
+  giữ tới lúc khớp — P2b-2 quyết cách giữ (cột mới hay bảng nhật ký mở dòng
+  từ lúc tín hiệu).
+- `atr_pct` của agent rủi ro là `sl_fraction * 50`, không phải ATR% thô — ghi
+  đúng tên khoá gốc để người đọc tra được.

@@ -381,6 +381,12 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   trong `fill_pending` (trước mọi lần nâng stop), dòng ĐÓNG khi lệnh
 >   đóng, bảng SQLite + tab Sheets mới theo `COT_NHAT_KY`. P2c (hậu kiểm
 >   lời bằng Claude) cần người dùng tự đặt khoá API.
+> - **BƯỚC 132 (P2b-1):** `boi_canh_luc_tin_hieu` — bối cảnh GIÀU (người
+>   dùng chọn): VN-INDEX so MA50 + số đo rủi ro + khối lượng, đọc từ kết
+>   quả phân tích và VN-INDEX cắt đúng biểu thức `is_vni_bullish`. Người
+>   dùng chọn: **chỉ sổ THẬT ghi nhật ký** (`cho_phep_so_that`), backtest
+>   không. Nối dây: gọi hàm này trong `consider_entry` (lúc có `result`),
+>   truyền `market_filter.get_vni_df()` — KHÔNG `chi_so_moi_nhat()`.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
