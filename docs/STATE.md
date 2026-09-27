@@ -18432,3 +18432,70 @@ ngược lại (không có ô nhập tệp).
 - Công cụ không lái trình duyệt — thao tác vẫn bằng tay theo tài liệu tham
   khảo. Nó chỉ đóng khuôn hai đầu: câu gửi đi và dòng ghi lại.
 - Nguồn của sổ tay CHƯA nạp lại: ba lượt hôm nay đều hỏi trên bản chụp cũ.
+
+## BƯỚC 131 — P2a NHẬT KÝ "VÌ SAO": MODULE THUẦN; CẮT LỖ BAN ĐẦU PHẢI GHI LÚC KHỚP VÌ SỔ LỆNH ĐÈ NÓ KHI NÂNG TRAILING (27/09/2026)
+
+Người dùng: *"làm tiếp đi"*. Tầng 2 của kế hoạch 25/09 (BƯỚC 122): nhật ký
+"vì sao" — lúc vào (điểm từng agent, lý do, bối cảnh) và lúc đóng (kết quả
+theo R, so với rổ, hậu kiểm máy, hậu kiểm lời). Chia ba phần:
+
+| phần | gồm | trạng thái |
+|---|---|---|
+| **P2a** | module thuần `nhat_ky_vi_sao.py` | **XONG ở BƯỚC này** |
+| P2b | nối vào `paper_trading` + bảng SQLite + tab Sheets | chưa — chạm đường giao dịch |
+| P2c | hậu kiểm LỜI bằng Claude | chưa — cần người dùng tự đặt khoá API |
+
+### Lỗ dữ liệu đo được trước khi viết
+
+`paper_trading.py:855` chạy `UPDATE trades SET stop_loss=? WHERE id=?` mỗi
+lần trailing nâng stop. `TRADE_COLS` không có cột cắt lỗ ban đầu. Nên sau khi
+lệnh đóng, sổ chỉ còn cắt lỗ **CUỐI** — và **R không tính được** từ sổ lệnh.
+Lúc `consider_entry` tạo lệnh, `stop_loss` = `stop_loss_price` của agent rủi
+ro; nó đứng yên tới khi lệnh khớp rồi bị nâng. Nên dòng VÀO ghi **lúc khớp**
+(`dong_vao_lenh` từ chối lệnh chưa khớp và lệnh đã qua trạng thái OPEN).
+
+### Ba quyết định
+
+1. **R = `Trade.net_return_pct()` / rủi ro ban đầu** (giá vào − cắt lỗ ban đầu,
+   % giá vào). Rủi ro ≤ 0 — giá khớp đã nằm dưới cắt lỗ — thì **không có R**
+   (None), và rủi ro giữ nguyên dấu âm để người đọc thấy.
+2. **Không có công thức phí thứ hai; so rổ đúng hình dạng `vs_benchmark`**
+   (bất biến 6): ròng − % đổi của rổ trên cùng cặp ngày. Gác AST: module gọi
+   `net_return_pct`, không chạm hằng số phí nào, không gọi `gross_return_pct`.
+3. **Hậu kiểm máy chỉ gắn nhãn MỘT lệnh**, tất định: THẮNG/THUA/HOÀ · vượt/thua
+   rổ (hoặc *"chưa có rổ"*) · thoát DƯỚI cắt lỗ ban đầu (bất biến 3) · thoát
+   bằng stop ĐÃ NÂNG · lỗ vượt 1R · agent cao/thấp nhất lúc vào. Loại
+   `news_score` (hằng số 50 — MO-XE Tầng 2) và `fundamental_score` (trọng số
+   0) khỏi xếp hạng. **Không đổi luật nào**: một lệnh không phải bằng chứng
+   (bất biến 5); học từ nhiều lệnh là tầng 3.
+
+`COT_NHAT_KY` — 20 cột, thứ tự LÀ hợp đồng với tab Sheets của P2b.
+
+### Gác và đục
+
+`tests/test_nhat_ky_vi_sao.py`, 18 test. Đục `nhat_ky_vi_sao.py`, 12 phát:
+lượt đầu **10/12**, hai phát sống sót chỉ đúng hai lỗ của bộ test —
+
+```
+nguong 1R -1 -> -2        SONG   ca kiem duy nhat co R = -2,09: lot ca hai nguong
+nhan HOA -> THANG         SONG   khong ca nao co loi nhuan rong dung bang 0
+```
+
+Thêm ca R ≈ −1,3 (gap nhẹ dưới SL, và một ca R ≈ −0,99 không được gắn nhãn)
+và ca lợi nhuận ròng 0. Chạy lại **cả bộ: 12/12 đỏ**. Phát đầu dựng lại
+nguyên văn lỗi module sinh ra để tránh: tính R trên `stop_loss` HIỆN TẠI.
+
+### Soát chéo
+
+Câu hỏi dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`, trên nguồn đã nạp
+lại 27/09. Sổ tay: *"không tìm thấy câu nào nói ngược"*. Tự kiểm bằng grep
+(lệnh trong sổ): không câu nào nói sổ lệnh đã lưu cắt lỗ ban đầu; bất biến 6
+và MO-XE Tầng 2 ủng hộ hai quyết định.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Chưa có dòng nhật ký nào tồn tại: module chưa được gọi từ đâu.
+- `boi_canh` là dict do người gọi đưa vào — P2b quyết định gồm gì (tối thiểu
+  cổng VN-INDEX, chất lượng dữ liệu, ngưỡng lúc tín hiệu).
+- R dựa trên lợi nhuận RÒNG nên một lệnh hoà vốn giá vẫn ra R hơi âm (phí
+  ~0,46% một vòng) — chủ ý, cùng lý do `net_return_pct` là con số đáng tin.
