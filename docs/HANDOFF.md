@@ -353,6 +353,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   riêng từ nhánh `soat/27-09-luot-6`.
 > - Vế `PYTHONUTF8` ở khối trên: **đã sửa, BƯỚC 129** — sáu dụng cụ đặt lại
 >   cả stderr, gác AST mới canh.
+> - **Soát chéo NotebookLM có công cụ (BƯỚC 130):** cách làm ở
+>   `.claude/skills/quy-trinh-lam-viec/references/soat-cheo-notebooklm.md`;
+>   dựng câu hỏi `tools/so_tay.py hoi`, ghi sổ `tools/so_tay.py ghi`. Không
+>   thêm skill thứ hai (gác `test_CHI_CO_MOT_skill_quy_trinh`), không hook,
+>   không workflow — lý do ở BƯỚC 130.
 
 **Chờ tới ngày, đừng đọc sớm:**
 

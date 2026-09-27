@@ -27,6 +27,10 @@ một kết quả — `phat_hien` khác rỗng, hoặc `khong_tim_thay_gi: true`
 `tests/test_soat_notebooklm.py::test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT`,
 mốc đọc từ `_moc_bat_buoc_hoi` trong chính sổ.
 
+**Cách làm từng thao tác** — mở sổ, dựng câu hỏi, gửi, đọc, tự kiểm, ghi
+sổ, nạp lại nguồn: `references/soat-cheo-notebooklm.md`. Dựng câu hỏi và
+ghi sổ bằng `tools/so_tay.py hoi` · `ghi`, không gõ tay (BƯỚC 130).
+
 > **Vì sao luật này nằm Ở ĐÂY, không nằm ở mục NotebookLM cuối file.** Mục
 > ấy có từ 10/09/2026 và bị bỏ qua đủ để người dùng phải nhắc **bốn lần**.
 > Đo 16/09/2026: nó là thứ duy nhất trong file này **không nằm trong một
@@ -591,6 +595,9 @@ Người dùng chốt ngày 10/09/2026: **dùng NotebookLM thường xuyên, nh�
 không dựa hoàn toàn vào nó.** Giá trị của nó nằm ở chỗ nó là một luồng
 **độc lập** — nó đọc tài liệu mà không mang theo giả định của phiên làm
 việc này.
+
+Thao tác trình duyệt và công cụ: `references/soat-cheo-notebooklm.md`.
+Mục này giữ LUẬT và LÝ DO; file kia giữ CÁCH LÀM — đừng chép qua lại.
 
 > ### ⚠️ HAI HÌNH DẠNG HỎNG MỚI, 24/09/2026 — và câu âm cũng phải tự kiểm
 >

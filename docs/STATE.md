@@ -18377,3 +18377,58 @@ ngược, nhưng chính nó là lời giải vì sao các phiên trước xanh (
   cần nó (`cong-thuc-chay.md`). BƯỚC này chỉ nói *phán quyết của cổng không
   còn phụ thuộc biến ấy* với sáu dụng cụ đã sửa.
 - Gác chỉ quét gốc repo và `tools/` — cùng phạm vi gác cũ.
+
+## BƯỚC 130 — SOÁT CHÉO NOTEBOOKLM CÓ CÔNG CỤ: DỰNG CÂU HỎI VÀ GHI SỔ BẰNG MÁY; CÁCH LÀM VÀO REPO, KHÔNG THÀNH SKILL THỨ HAI (27/09/2026)
+
+### Câu hỏi của người dùng, và quyết định
+
+Người dùng hỏi có nên viết skill, hook và workflow cho NotebookLM. Quyết định:
+
+| thứ | làm? | vì sao |
+|---|---|---|
+| skill | **CÓ — dạng tài liệu tham khảo của skill hiện có** | `tests/test_skill_quy_trinh.py::test_CHI_CO_MOT_skill_quy_trinh` cố ý giữ MỘT skill: hai skill cùng tự nhận là quy trình là lỗi kinh điển ở đây, và skill được nạp tự động |
+| hook | KHÔNG | luật "mỗi BƯỚC phải hỏi" đã có hai lớp: gác `test_soat_notebooklm` ở cổng 1 và dòng `SOÁT CHÉO còn nợ n` của bản tin mở phiên. Hook không lái được trình duyệt |
+| workflow | KHÔNG làm được | NotebookLM không có API; cần đăng nhập Google trong trình duyệt. Runner CI không có cả hai |
+
+### Thứ đã làm
+
+**`references/soat-cheo-notebooklm.md`** — CÁCH LÀM: mở sổ trong trình duyệt của
+Claude Code (không Chrome) · xử lý trang đăng nhập · dựng câu hỏi · chọn ô chat
+theo placeholder · đọc trả lời trong giới hạn 45 s và kiểm phần tử áp chót là
+đúng câu vừa gửi · tự kiểm hai chiều · ghi sổ · nạp lại nguồn bằng URL thô.
+Trước đây phần này chỉ nằm trong bộ nhớ của trợ lý, ngoài repo. `SKILL.md` giữ
+LUẬT và LÝ DO, thêm hai dòng trỏ — không chép qua lại.
+
+**`tools/so_tay.py`** — hai việc từng hỏng bằng tay:
+
+- `hoi`: câu hỏi MỘT DÒNG (Enter là gửi), hỏi về MỘT kết luận kèm ví dụ câu
+  nghi ngờ, lối thoát NGUYÊN VĂN, miễn trừ câu đã có dấu, đòi trả lời tiếng
+  Việt. Từ chối kết luận dưới 40 ký tự và câu không có ví dụ (câu hỏi rộng trả
+  *"không tìm thấy"* sai — 25/09).
+- `ghi`: kiểm các luật của `tests/test_soat_notebooklm.py` TRƯỚC khi chạm sổ,
+  thêm một luật gác sổ không đòi: câu ÂM phải kèm `_tu_kiem_cau_am`. Sai khuôn
+  thì từ chối và không chạm file; tệp mục không đọc được thì mã 2, không
+  traceback.
+
+**Phép kiểm mạnh nhất: khuôn dựng lại BYTE-CHO-BYTE câu hỏi thật của BƯỚC 129**,
+đọc từ sổ (`test_DUNG_LAI_NGUYEN_VAN_cau_hoi_THAT_cua_BUOC_129`). Lối thoát
+trong công cụ bằng đúng `o_thoat` của BƯỚC 127–129.
+
+Đục `tools/so_tay.py`, chạy KHÔNG có biến UTF-8 nào: **13/13 đỏ** — thiếu lối
+thoát · thiếu miễn trừ · không gộp một dòng · nhận hỏi rộng · nhận không ví dụ
+· `ghi` không kiểm trước · bỏ kiểm lối thoát · nhận xuống dòng · câu âm không
+tự kiểm · `HOP_LE` nhận "ĐÚNG" · ghi đè BƯỚC đã có · CLI chỉ đặt lại stdout ·
+tệp mục hỏng ra traceback.
+
+### Soát chéo — lượt đầu dùng chính công cụ
+
+Câu hỏi dựng bằng `so_tay.py hoi`, ghi bằng `so_tay.py ghi`. Sổ tay: *"không
+tìm thấy câu nào nói ngược"*. Tự kiểm bằng grep (lệnh trong sổ): không câu nào
+đòi Chrome, hai skill hay nạp nguồn bằng tệp; `loi-da-mac.md` lỗi 16 ghi
+ngược lại (không có ô nhập tệp).
+
+### Điều BƯỚC này KHÔNG nói
+
+- Công cụ không lái trình duyệt — thao tác vẫn bằng tay theo tài liệu tham
+  khảo. Nó chỉ đóng khuôn hai đầu: câu gửi đi và dòng ghi lại.
+- Nguồn của sổ tay CHƯA nạp lại: ba lượt hôm nay đều hỏi trên bản chụp cũ.
