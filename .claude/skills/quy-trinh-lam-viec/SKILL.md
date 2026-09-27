@@ -425,6 +425,16 @@ Cách chạy và chờ: `references/cong-thuc-chay.md`. Tóm tắt ba dòng:
   thẳng thì CI chạy SAU khi mã đã nằm trên `main` — một cái cổng chạy
   sau cánh cửa. Đi qua PR thì nó chạy TRƯỚC.
 
+  > 🔴 **VẾ "`main` KHÔNG bị khoá" SAI TỪ NGÀY VIẾT — BƯỚC 133,
+  > 27/09/2026.** Phép đo 08/09 chỉ hỏi API khoá nhánh CỔ ĐIỂN
+  > (`branches/main/protection`). `gh api
+  > repos/Siner0808/vibe-stock-analysis/rulesets` trả ruleset `main`
+  > **active từ 21/08/2026** — trước cả ngày đo; cập nhật cuối 21/08
+  > 10:33 — bắt PR, bắt check `kiem-dinh` xanh ở chế độ `strict` (nhánh
+  > phải cập nhật theo `main` trước khi merge), cấm force-push và xoá, 0
+  > người đi vòng. Nên đẩy thẳng `main` bị GitHub **CHẶN**; lý do *CI
+  > chạy sau cánh cửa* vẫn đúng, nhưng là lý do thứ hai. Lỗi 106.
+
 - **Tự merge được, và từ 08/09/2026 thì tự merge** — người dùng đã
   quyết. Nhưng chỉ khi **đủ cả ba**:
 
@@ -451,6 +461,8 @@ Cách chạy và chờ: `references/cong-thuc-chay.md`. Tóm tắt ba dòng:
   *"`gh` không cài trên máy này"* (nay có, 2.100.0, đã đăng nhập) và
   *"`main` có branch protection"* (404). `references/loi-da-mac.md`
   lỗi 17.
+  🔴 **Vế thứ hai bị bác SAI** — `main` CÓ khoá, bằng ruleset từ 21/08
+  (ô 🔴 ở đầu Bước này; lỗi 106).
 - Commit body **ASCII**, và **CÓ** `Co-Authored-By`.
 
   > 🔴 **VẾ THỨ HAI TỪNG GHI NGƯỢC, và nó sống 11 ngày.** Câu cũ là

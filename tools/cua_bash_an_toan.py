@@ -508,16 +508,16 @@ LUAT = [
     (
         "push-thang-main",
         re.compile(r"\bgit\s+push\b[^\n]*\bmain\b(?![\w/-])"),
-        "Đẩy thẳng lên `main`. CHƯA CÓ SỰ CỐ ghi ngày — QUY ƯỚC, chép từ "
-        "`docs/HANDOFF.md` mục 7: nhánh -> PR -> merge.\n"
-        "  LÝ DO THẬT: `.github/workflows/kiem-dinh.yml` chạy trên CẢ "
+        "Đẩy thẳng lên `main`. GitHub CHẶN việc này: ruleset `main` "
+        "(active từ 21/08/2026) bắt PR và bắt check `kiem-dinh` xanh ở chế "
+        "độ strict, 0 người đi vòng. Cách đúng: nhánh -> PR -> merge.\n"
+        "  Lý do thứ hai: `.github/workflows/kiem-dinh.yml` chạy trên CẢ "
         "`push` lẫn `pull_request`, nên đẩy thẳng thì CI chạy SAU khi mã "
-        "đã nằm trên `main` — một cái cổng đặt sau cánh cửa. Đi qua PR "
-        "thì nó chạy TRƯỚC.\n"
-        "  Hai lý do CŨ của luật này đều đã bị ĐO và BÁC ngày 08/09/2026: "
-        "`main` KHÔNG có branch protection (API trả 404 Branch not "
-        "protected), và `gh` CÓ cài (2.100.0, đã đăng nhập). Chúng sống "
-        "trong chính thông báo này tới 11/09/2026.",
+        "đã nằm trên `main` — một cái cổng đặt sau cánh cửa.\n"
+        "  Lý do cũ \"`gh` không cài\" đã bị ĐO và BÁC 08/09/2026 (gh "
+        "2.100.0, đã đăng nhập). Câu \"`main` KHÔNG bị khoá (API trả 404)\" "
+        "từng đứng ở đây 08/09 -> 27/09 là SAI: phép đo chỉ hỏi API khoá "
+        "nhánh cổ điển, không hỏi `/rulesets` (BƯỚC 133, lỗi 106).",
     ),
     (
         "backtick-trong-nhay-kep",
@@ -995,8 +995,8 @@ LUAT_PS = [
     (
         "ps-push-thang-main",
         lambda c: bool(re.search(r"(?i)\bgit\s+push\b.*\bmain\b(?![\w/-])", c)),
-        "Đẩy thẳng lên `main`. CHƯA CÓ SỰ CỐ ghi ngày — QUY ƯỚC, chép từ "
-        "`docs/HANDOFF.md` mục 7. Anh em của `push-thang-main`: "
+        "Đẩy thẳng lên `main` — GitHub CHẶN (ruleset `main` từ 21/08/2026, "
+        "BƯỚC 133). Anh em của `push-thang-main`; lý do thứ hai: "
         "`.github/workflows/kiem-dinh.yml` chạy trên CẢ `push` lẫn "
         "`pull_request`, nên đẩy thẳng thì CI chạy SAU khi mã đã nằm trên "
         "`main`.\n"

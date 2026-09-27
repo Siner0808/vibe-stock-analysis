@@ -636,6 +636,16 @@ branch protection (`main` không hề được bảo vệ — đo 08/09/2026): m
 CI chạy **sau**
 khi mã đã vào `main`.
 
+> 🔴 **VẾ "`main` KHÔNG bị khoá" SAI TỪ NGÀY VIẾT — BƯỚC 133, 27/09/2026.**
+> Phép đo 08/09 chỉ hỏi API khoá nhánh CỔ ĐIỂN
+> (`branches/main/protection`). `gh api
+> repos/Siner0808/vibe-stock-analysis/rulesets` trả ruleset `main`
+> **active từ 21/08/2026** — trước cả ngày đo; cập nhật cuối 21/08 10:33 —
+> bắt PR, bắt check `kiem-dinh` xanh ở chế độ `strict` (nhánh phải cập
+> nhật theo `main` trước khi merge), cấm force-push và xoá, 0 người đi
+> vòng. Nên đẩy thẳng `main` bị GitHub **CHẶN**; lý do *CI chạy sau cánh
+> cửa* vẫn đúng, nhưng là lý do thứ hai. Lỗi 106.
+
 Merge thì agent tự làm được từ 08/09/2026, với ba điều kiện ở
 `SKILL.md` Bước 5 — quan trọng nhất: **mọi** check `pass`, vì mỗi PR có
 hai dòng `kiem-dinh` và dòng thứ hai hay còn `pending`.

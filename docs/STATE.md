@@ -18551,3 +18551,72 @@ nói ngược, nhưng là lý do của đoạn *Đường VN-INDEX khi nối dâ
   từ lúc tín hiệu).
 - `atr_pct` của agent rủi ro là `sl_fraction * 50`, không phải ATR% thô — ghi
   đúng tên khoá gốc để người đọc tra được.
+
+## BƯỚC 133 — "`main` KHÔNG BỊ KHOÁ" SAI TỪ NGÀY VIẾT: RULESET ĐÃ CHẠY TỪ 21/08, PHÉP ĐO 08/09 CHỈ HỎI API CỔ ĐIỂN (27/09/2026)
+
+Người dùng hỏi luật `kiem-dinh` có gì lạc hậu và cập nhật lần cuối khi nào.
+
+### Luật trên GitHub — KHÔNG lạc hậu
+
+```
+gh api repos/Siner0808/vibe-stock-analysis/rulesets/21119951
+  name main · enforcement active · tao 2026-08-21 08:16 · cap nhat cuoi 2026-08-21 10:33
+  deletion · non_fast_forward
+  required_status_checks: kiem-dinh (integration 15368) · strict = true
+  pull_request: 0 nguoi duyet · merge/squash/rebase
+  bypass_actors: []
+```
+
+Tên check trùng job `kiem-dinh` trong `.github/workflows/kiem-dinh.yml`
+(chạy trên `push` và `pull_request`, Python 3.11, đủ năm cổng; sửa lần cuối
+10/09/2026, `955fc6b`, khi thêm cổng 5). `required_approving_review_count: 0`
+khớp quyết định cho agent tự merge (08/09).
+
+### Tài liệu — SAI từ ngày viết
+
+Ba chỗ viết *"`main` KHÔNG bị khoá"* từ phép đo 08/09 (`5615f09`):
+`gh api .../branches/main/protection` → 404. Phép đo ấy chỉ hỏi API khoá nhánh
+**cổ điển**; ruleset là API khác (`/rulesets`) và đã active từ **21/08** —
+trước cả ngày đo. Sống **18 ngày** tới khi BƯỚC 127 hỏi `/rulesets` (26/09).
+Lỗi 106, họ lỗi 80.
+
+| chỗ | nay |
+|---|---|
+| `SKILL.md` Bước 5 (hai câu) | ô 🔴 ngay dưới |
+| `docs/HANDOFF.md` mục 7 | ô 🔴 ngay dưới |
+| `references/loi-da-mac.md` lỗi 17 | ô 🔴 ngay dưới |
+
+Hệ quả cho luật *"không đẩy thẳng `main`"*: lý do mạnh nhất là **GitHub CHẶN**
+(ruleset bắt PR, 0 người đi vòng); *"CI chạy sau cánh cửa"* là lý do thứ hai.
+Chế độ `strict` — nhánh phải cập nhật theo `main` trước khi merge — trước nay
+không được ghi ở đâu.
+
+### Chỗ thứ TƯ — trong mã, lộ ra vì chính cửa chặn nhầm
+
+Lúc đẩy nhánh `tai-lieu/ruleset-main`, cửa `cua_bash_an_toan` chặn với luật
+`push-thang-main`: regex `\bgit\s+push\b[^\n]*\bmain\b(?![\w/-])` khớp cả tên
+nhánh KẾT THÚC bằng `-main` (chặn nhầm — đổi tên nhánh là đủ; regex chưa
+sửa, ghi lại cho lượt sau). Thông báo của nó khẳng định đúng câu sai:
+*"`main` KHÔNG có branch protection (API trả 404)"*. Nặng hơn:
+`tests/test_cua_quy_trinh.py::test_KHONG_luat_nao_con_giu_LY_DO_DA_BI_BAC`
+xếp `"branch protection"` vào danh sách lý do ĐÃ BỊ BÁC — tức gác đang ép
+thông báo giữ niềm tin sai.
+
+Sửa: thông báo `push-thang-main` và `ps-push-thang-main` nói GitHub CHẶN
+(ruleset) trước, CI-chạy-sau là lý do thứ hai; câu cũ được nhắc kèm dấu SAI.
+`"branch protection"` rời `DA_BAC`, docstring có ô 🔴. Vế `gh` không cài vẫn
+canh: đục bỏ chữ BÁC khỏi thông báo → gác đỏ (1/1).
+
+### Soát chéo
+
+Dựng và ghi bằng `tools/so_tay.py`. Sổ tay trích đúng ba câu đang đánh dấu và
+nói *"ngoài 3 vị trí trên, không có câu nào khác"* — khớp lượt grep
+`Branch not protected|không bị khoá|branch protection|ruleset`. Nó gán câu
+HANDOFF vào *"mục 5"*; thật ra là **mục 7** (dòng 634, tiêu đề ở dòng 618) —
+đúng chữ, sai vị trí, cùng hình dạng BƯỚC 119.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không máy nào canh loại lỗi này (dòng 106 là ❌): một lời khai VẮNG MẶT đo
+  bằng một API trong khi thứ ấy có hai đường khai báo.
+- Không thử đẩy thẳng `main` để "đo" việc bị chặn — đó chính là thao tác luật cấm.
