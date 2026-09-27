@@ -358,6 +358,23 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   dựng câu hỏi `tools/so_tay.py hoi`, ghi sổ `tools/so_tay.py ghi`. Không
 >   thêm skill thứ hai (gác `test_CHI_CO_MOT_skill_quy_trinh`), không hook,
 >   không workflow — lý do ở BƯỚC 130.
+>
+> **CUỐI NGÀY 27/09.** #173 (BƯỚC 128) · #174 (BƯỚC 129) · #175 (BƯỚC 130)
+> đã vào `main`, cả ba squash; năm cổng xanh trên từng cây, **không** đặt
+> biến UTF-8 nào từ BƯỚC 129.
+>
+> - **Sổ tay NotebookLM đã nạp lại 27/09** từ `main` `a19915a`: **11 nguồn**
+>   (10 cũ + `references/soat-cheo-notebooklm.md`), đổi tên gọn. 10 nguồn
+>   cũ — bản chụp dừng ở BƯỚC 120, kiểm bằng nội dung — đã XOÁ, người dùng
+>   cho phép. Hỏi lại sau khi nạp: sổ tay trích đúng tiêu đề BƯỚC 130.
+>   Nạp lại lần sau khi `main` đi xa: `references/soat-cheo-notebooklm.md`.
+> - **Chờ người dùng:** (1) địa chỉ app Streamlit Cloud — repo không lưu —
+>   để kiểm việc treo từ BƯỚC 127; (2) vế 3 điều kiện dừng của cổng lệnh ảo;
+>   (3) bật lại ba workflow — cổng lệnh ảo nay MỞ trên `main`, nên bật
+>   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; (4) xoá hẳn
+>   `scratch/luu_do18/` hay giữ.
+> - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới) và lượt soát định kỳ 7 (nhịp
+>   2 ngày từ lượt 6 ngày 27/09).
 
 **Chờ tới ngày, đừng đọc sớm:**
 
