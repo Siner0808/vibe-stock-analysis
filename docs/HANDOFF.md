@@ -375,6 +375,12 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `scratch/luu_do18/` hay giữ.
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09).
+> - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
+>   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
+>   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
+>   trong `fill_pending` (trước mọi lần nâng stop), dòng ĐÓNG khi lệnh
+>   đóng, bảng SQLite + tab Sheets mới theo `COT_NHAT_KY`. P2c (hậu kiểm
+>   lời bằng Claude) cần người dùng tự đặt khoá API.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
