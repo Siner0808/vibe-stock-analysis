@@ -18230,3 +18230,82 @@ không — chưa có trả lời.
   phục vụ một tên trùng gói PyPI, `pip` có thể lấy bản của kho hãng. Ghim
   `==` chỉ che hai gói đã ghim.
 - Ba workflow vẫn TẮT.
+
+## BƯỚC 128 — GÁC SỔ SOÁT PHẠT VIỆC SOÁT XONG: THAY PHÉP KIỂM TRẠNG THÁI BẰNG DÒNG CANH; LƯỢT SOÁT 6 MỞ HẾT, CẢ BA THẬT (27/09/2026)
+
+### Lượt soát định kỳ 6
+
+Quá nhịp một ngày (lượt 5 là 24/09). `tools/soat_loi_khai_cu.py` in **30 lời
+khai**, **3 chưa ai mở** — mở cả 3, cả 3 **THẬT**, không câu nào phải sửa:
+
+| lời khai | tự kiểm | phán quyết |
+|---|---|---|
+| `SKILL.md` ô 24/09: câu *"Repo không nhập `vnstock_data`"* để trần | `grep -n 'không nhập' docs/HANDOFF.md` → câu gốc dòng 413, dấu 🔴 dòng 416 | THẬT về ngày 24/09; hôm nay đã có dấu |
+| `SKILL.md`: họ *không nhập · gọi · dùng · chạm* đã thêm, *không đọc · có · còn* để ngoài | AST `PHU_DINH` | THẬT |
+| `HANDOFF`: `run_daily` chỉ ghi sổ trên nến đã đóng | `run_daily.py:438-441` bỏ nến cuối khi `nen_cuoi_dang_do(...)` | THẬT |
+
+Ghi vào `docs/soat-dinh-ky.json`, khoá `dong` lấy nguyên văn bằng số dòng đã
+kiểm, không gõ tay.
+
+### Rồi gác đỏ — vì việc đã xong
+
+```
+./.venv/Scripts/python.exe -m pytest tests/test_soat_dinh_ky_co_tri_nho.py -q
+FAILED ...::test_HAI_DONG_luot_16_09_hien_ra_la_DA_SOAT_tren_repo_THAT
+AssertionError: moi dong deu 'da soat' — danh sach mat het nghia tien do
+assert 30 < 30
+```
+
+Phép kiểm `len(da) < len(ra)` đòi **luôn còn ít nhất một dòng chưa ai mở**.
+Đó là trạng thái của NGƯỜI SOÁT, không phải tính chất của CÔNG CỤ. Thứ nó muốn
+canh — khoá khớp lỏng, đánh dấu cả dòng chưa ai soát — là thật; nhưng hàm
+khớp tra từ điển theo nguyên văn (`xep`: `bang.get(nd.strip())`), và phép kiểm
+chỉ nhìn thấy khớp lỏng khi quần thể **tình cờ** còn dòng chưa mở. Lỗi 104.
+
+### Phép sửa: một dòng CANH trên sổ thật
+
+Bỏ phép kiểm trạng thái. Đưa một dòng canh qua đúng `xep` trên sổ THẬT, đòi nó
+hiện CHƯA AI MỞ. Dòng canh là **một dòng đã soát thật nối hậu tố** — bản đầu
+dùng chữ lạ hoàn toàn và phát khớp CHUỖI CON sống sót trên test repo-thật,
+vì chữ lạ không chung tiền tố với khoá nào.
+
+Đục, `tools/va_an_toan.dot_bien_bo` trên `tools/soat_loi_khai_cu.py`:
+
+```
+                                   CHI test repo-that   CA file
+khop LONG (moi dong deu da soat)          DO              DO
+da_soat tra so RONG                       DO              DO
+khop CHUOI CON                            DO              DO
+```
+
+Bản canh bằng chữ lạ: 2/3 ở test repo-thật (chuỗi con SỐNG), 3/3 cả file.
+Phát đầu dựng lại nguyên văn lỗi gác sinh ra để bắt. Git status sau đục: chỉ
+hai file cố ý sửa.
+
+Chiều ngược: gác mới xanh ở **cả** sổ cũ (`git stash` sổ, 3 dòng chưa mở: 16
+passed) lẫn sổ mới (0 dòng chưa mở: 16 passed).
+
+### Soát chéo
+
+Sổ tay trả *"không tìm thấy câu nào nói ngược"*. Tự kiểm bằng grep (lệnh ở
+`docs/soat-notebooklm.json` mục BƯỚC 128): không câu nào đòi danh sách phải
+còn dở; lỗi 82 ghi *"không xoá dòng nào"* và *"khoá là NGUYÊN VĂN dòng"* —
+khớp. Câu âm lần này đúng.
+
+### Kèm: chuỗi PR vào `main`, sáu câu "chưa vào `main`" hết đúng
+
+#170 bỏ nháp (người dùng cho phép) → merge vào `audit/…` (`c310cd7`) → CI #169
+qua bước cài từ kho hãng, hai check xanh → #169 tự merge kiểu squash
+(`41bb329`). Năm cổng xanh trên tree `c0c6057` — cùng tree với `b5518a4`,
+`c310cd7` và `41bb329` (`git rev-parse <commit>^{tree}`). Bốn câu ở
+`CLAUDE.md` và hai ở `docs/HANDOFF.md` ghi *"chưa vào `main`"* / *"chưa
+merge"* cho BƯỚC 122–125 — nay ghi ngày vào `main`. Tìm bằng quét nhiều dòng
+(`(chưa|CHƯA)[\s>]*(vào|merge)`), vì ba trong sáu câu bị ngắt dòng ngay giữa
+cụm và `grep` một dòng bỏ sót.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không nói công cụ soát đủ: nó vẫn chỉ thấy lời khai phủ định CÓ NÊU TÊN
+  dùng một từ trong `PHU_DINH`.
+- Không kiểm Streamlit Cloud sau khi #169 vào `main` — việc treo ở HANDOFF.
+- Vế `PYTHONUTF8` (2 test đỏ khi shell thiếu biến ấy) vẫn chưa sửa.
