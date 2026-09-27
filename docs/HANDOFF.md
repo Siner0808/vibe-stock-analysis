@@ -308,19 +308,19 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > đã làm:** ĐO 19 ra NÂNG ĐƯỢC ở cả hai chặng (BƯỚC 126); `requirements.txt`
 > thêm kho hãng và ghim đúng bản (BƯỚC 127). PyPI lúc 07:27
 > UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
-> phép riêng, vì cổng lệnh ảo đã mở trên nhánh (BƯỚC 125).
+> phép riêng, vì cổng lệnh ảo đã mở (BƯỚC 125) — và từ 27/09 nó mở trên `main`.
 
 > 🧭 **CUỐI NGÀY 26/09/2026 — đọc trước khi làm tiếp.**
 >
 > - **#171 ĐÃ MERGE vào `p0/harness-chat-che`** (`1a84379`, 17:03). Hai
 >   check `kiem-dinh` xanh trên `c6f1ecd`; năm cổng ở máy xanh — 1440
 >   passed — **chạy với `PYTHONUTF8=1`** (gạch thứ ba).
-> - **Chưa vào `main`:** #170 (nháp, `p0/…` → `audit/…`) rồi #169
+> - ~~**Chưa vào `main`:** #170 (nháp, `p0/…` → `audit/…`) rồi #169
 >   (`audit/…` → `main`). CI cũ của cả hai ĐỎ từ thời tạm ngừng (8–12 giây,
 >   chết ở bước cài gói). Commit ghi khối này đẩy lên `p0/…` nên CI của #170
 >   chạy lại; #169 cần một lượt chạy lại riêng. Qua được bước cài từ kho
 >   hãng hay không: **CHƯA đo** trên hai nhánh ấy. Bỏ nháp #170 là việc của
->   người dùng.
+>   người dùng.~~ **XONG 27/09** — khối ngay dưới.
 > - **Cổng 1 ở máy ĐỎ 2 test nếu shell thiếu `PYTHONUTF8=1`** (đo 26/09):
 >   `test_doi_chung_ngoai_venv.py::test_DUNG_CU_DAN_khong_chet_khi_THIEU_venv_doi_chung`
 >   và `test_nhat_ky_cua_bash.py::test_DUNG_CU_DOC_chay_duoc_va_THOAT_2_khi_luat_khong_co`.
@@ -333,6 +333,21 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   (`wf_*.db` · `sl_pattern_memory.json`) **không xoá** — chuyển sang
 >   `C:\Users\cuong\.gemini\antigravity\scratch\luu_do18\`. Xoá hẳn thì hỏi
 >   người dùng.
+
+> 🧭 **27/09/2026 — CHUỖI PR ĐÃ VÀO `main`.**
+>
+> - Người dùng cho bỏ nháp #170; năm cổng xanh trên `b5518a4` (1440 passed,
+>   `PYTHONUTF8=1`) → #170 merge vào `audit/…` (`c310cd7`, cùng tree
+>   `c0c6057` với `b5518a4`) → CI #169 chạy lại, **qua được bước cài từ kho
+>   hãng**, hai check xanh → #169 **tự merge** (bật trên thanh PR, không phải
+>   agent bật) kiểu squash thành `41bb329` trên `main`. BƯỚC 121–127 nay ở
+>   `main`.
+> - **Streamlit Cloud chưa kiểm:** BƯỚC 127 ghi *"nó có đọc
+>   `--extra-index-url` hay không thì chỉ biết sau khi #169 vào `main` — mở
+>   app và đọc, đừng suy"*. Nay tới lúc ấy.
+> - Lượt soát định kỳ 6 + BƯỚC 128 (gác sổ soát phạt việc soát xong) — PR
+>   riêng từ nhánh `soat/27-09-luot-6`.
+> - Vế `PYTHONUTF8` ở khối trên **vẫn chưa sửa**.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
@@ -386,7 +401,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   **7/19 đã vá ở BƯỚC 122** (phần hàng rào: cửa lệnh shell canh cả
   PowerShell · tên đích trong nháy · heredoc mọi thứ tự · `cua_ho_so` thôi
   tự duyệt · bản tin mở phiên hiện mốc 29/09 · test không chạm
-  `secrets.toml` thật · `pytest.ini`) — **chưa merge**, vì đang tạm ngừng.
+  `secrets.toml` thật · `pytest.ini`) — **vào `main` 27/09/2026** qua #169
+  (trước đó treo vì tạm ngừng).
 - ~~**Chọn hướng chiến lược** (BƯỚC 121, mục *Đường hướng*): (A) công cụ hỗ
   trợ quyết định cho chính người dùng, không phát khuyến nghị mua tự động;
   hay (B) tiếp tục săn alpha, chỉ thiết kế vòng quay thấp, sau khi sửa
@@ -395,8 +411,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
   `docs/STATE.md` BƯỚC 122.
   **Tiến độ:** P0 hàng rào — BƯỚC 122 · P1 sổ trung thực — BƯỚC 123 ·
-  ĐO 18 — BƯỚC 124 · mở lại cổng lệnh ảo — BƯỚC 125. **P1 xong, chưa
-  merge** (tạm ngừng). Việc kế: P2, nhật ký *"vì sao"*.
+  ĐO 18 — BƯỚC 124 · mở lại cổng lệnh ảo — BƯỚC 125. **P1 xong, vào
+  `main` 27/09/2026** qua #169. Việc kế: P2, nhật ký *"vì sao"*.
 - ~~**Nâng stop trên nến chưa đóng — treo từ 20/08/2026, trước nay chưa lên
   đây.** `docs/STATE.md` mục *"Còn treo sau 5A/5B"*: chỉ ghi trailing stop
   ở ATC, hay chấp nhận rằng sổ không tái lập được. Audit 25/09 đo được hệ

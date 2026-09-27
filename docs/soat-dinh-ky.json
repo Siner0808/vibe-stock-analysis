@@ -211,6 +211,30 @@
           "dong": "> `_compute_local_indicators` — hàm thuần trên dataframe, không chạm"
         }
       ]
+    },
+    {
+      "ngay": "2026-09-27",
+      "pham_vi": "Lượt 6, quá hạn một ngày (nhịp 2 ngày, lượt 5 là 24/09). Công cụ in 30 lời khai, 3 CHƯA AI MỞ — mở cả 3, cả 3 THẬT. Không lời khai nào phải sửa. Chạy khi chờ CI của #169; tree đang soát là c0c6057 (= b5518a4 = c310cd7).",
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md mục NotebookLM, ô 24/09: câu 'Repo không nhập `vnstock_data`' nằm dưới mục có gạch `~~` thì 'để trần'.",
+          "tu_kiem": "grep -n 'không nhập' docs/HANDOFF.md -> dòng 413 là câu gốc; dòng 416 ngay dưới: '🔴 Vế \"repo không nhập\" HẾT ĐÚNG từ 22/09/2026 (ĐO 14)'.",
+          "phan_quyet": "THẬT về ngày 24/09 — ô ấy có ngày ở tiêu đề và kể một lượt hỏi sổ tay. Hôm nay câu gốc KHÔNG còn trần: dấu 🔴 đã đứng ngay dưới nó.",
+          "dong": ">    ấy gạch vế TIÊU ĐỀ của mục; câu *\"Repo không nhập `vnstock_data`\"*"
+        },
+        {
+          "noi_dung": "SKILL.md mục soát định kỳ: 'Nay thêm họ không nhập · gọi · dùng · chạm; không đọc · có · còn cố ý để ngoài'.",
+          "tu_kiem": "AST tools/soat_loi_khai_cu.py::PHU_DINH = re.compile('(chưa bao giờ|chưa ai|không ai|chưa có|chưa làm|chưa đo|chưa được|chưa kiểm|không tồn tại|không ghi|không nhập|không gọi|không dùng|không chạm)').",
+          "phan_quyet": "THẬT — đủ bốn từ được thêm, không có 'không đọc' · 'không có' · 'không còn'.",
+          "dong": "> `vnstock_data`\"* sai hai ngày mà không hiện ra. Nay thêm họ *không nhập ·"
+        },
+        {
+          "noi_dung": "HANDOFF mục 5: '`run_daily` nay chỉ ghi sổ trên nến đã đóng' (BƯỚC 123).",
+          "tu_kiem": "run_daily.py:438-441 — nếu nen_cuoi_dang_do(df['time'].iloc[-1], now_time) thì df = df.iloc[:-1]; now_time là MỘT mốc cho cả lượt. data_quality.py:55 là hàm thuần, nhận bay_gio từ người gọi.",
+          "phan_quyet": "THẬT về mã trên nhánh chuỗi PR (audit/… = c310cd7). Vào `main` cùng #169.",
+          "dong": "trong phiên chỉ để cảnh báo, không ghi sổ\"*; `run_daily` nay chỉ ghi"
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."

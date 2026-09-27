@@ -545,8 +545,9 @@ hoá cái gác của chính nó.
 > cũng lọt, và vài dạng heredoc ghi file đi qua cả hai luật heredoc. Đo
 > bằng cách gọi thẳng hàm phán của cửa.
 >
-> ✅ **BA LỖ Ở Ô ĐỎ TRÊN ĐÃ VÁ — `docs/STATE.md` BƯỚC 122, CHƯA vào
-> `main`** (CI đỏ ở bước cài gói suốt thời gian tạm ngừng `vnstock`).
+> ✅ **BA LỖ Ở Ô ĐỎ TRÊN ĐÃ VÁ — `docs/STATE.md` BƯỚC 122, vào
+> `main` 27/09/2026 qua #169** (trước đó CI đỏ ở bước cài gói suốt thời gian
+> tạm ngừng `vnstock`).
 > Matcher nay là `Bash|PowerShell`, và PowerShell có máy quét cùng bộ
 > luật riêng; tên đích trong nháy được đọc; heredoc bị bắt ở mọi thứ tự
 > và qua `tee`. Đo trên nhật ký cửa thật: 0 lệnh bị chặn thêm.
@@ -936,7 +937,7 @@ paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
 > test_gia_tri_CU_cua_co_C5_phai_duoc_danh_dau`.
 >
 > ✅ **DÒNG ẤY ĐÚNG LẠI TỪ 26/09/2026 — cổng MỞ LẠI, `docs/STATE.md`
-> BƯỚC 125, chưa vào `main`.** Người dùng chốt 25/09: agent tự đặt lệnh
+> BƯỚC 125, vào `main` 27/09/2026 qua #169.** Người dùng chốt 25/09: agent tự đặt lệnh
 > ảo rồi học từ sổ. Ngưỡng 62 và trần vốn 100% giữ nguyên; điều kiện
 > dừng nay đếm được lệnh thật (BƯỚC 123). Cờ mở **chưa sinh lệnh nào**:
 > đường quét tự động đang tạm ngừng cùng `vnstock`.
@@ -1115,7 +1116,7 @@ một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 > hai lệch về phía làm số đẹp, nên chi phí thực thi đo ở ĐO 3 là **cận
 > dưới**.
 >
-> ✅ **CẢ HAI ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, chưa vào `main`.**
+> ✅ **CẢ HAI ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, vào `main` 27/09/2026 qua #169.**
 > `fill_closing` nay đi qua `_gia_ban_that`; gap dưới SL thoát ở giá mở
 > cửa. Con số ĐO 3 vẫn là cận dưới cho tới khi ĐO 18 đo lại.
 
@@ -1544,7 +1545,7 @@ Vì `evaluate_open()` chấm trên nến NGÀY, lượt sau đóng cửa là lư
 > `paper_trading.fill_closing` không có chốt ngày. Đo trên sổ thật: cả 3/3
 > lệnh tiến-về-trước đã đóng (HUT, TCB, NAF) mang đúng hình dạng này.
 >
-> ✅ **ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, chưa vào `main`.** `run_daily`
+> ✅ **ĐÃ VÁ — `docs/STATE.md` BƯỚC 123, vào `main` 27/09/2026 qua #169.** `run_daily`
 > chỉ ghi sổ trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`): lượt
 > trong phiên bỏ nến dở và xử lý phiên đã đóng gần nhất. `fill_closing`
 > chỉ khớp ở phiên SAU ngày tín hiệu thoát. Câu *"nhịp trong phiên …

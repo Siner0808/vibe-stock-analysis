@@ -152,10 +152,26 @@ def test_HAI_DONG_luot_16_09_hien_ra_la_DA_SOAT_tren_repo_THAT():
     kem = xep(ra, bang)
     da = [x for x in kem if x[3] is not None]
     assert da, "khong dong song nao duoc danh dau — khoa `dong` khong khop gi"
-    assert len(da) < len(ra), (
-        "moi dong deu 'da soat' — danh sach mat het nghia tien do")
     for f, _, _, dau in da:
         assert dau[0] and dau[1], f"{f}: thieu ngay hoac phan quyet"
+
+    # SOÁT HẾT là trạng thái HỢP LỆ (BƯỚC 128). Bản trước đòi
+    # `len(da) < len(ra)` — tức luôn còn ít nhất một dòng chưa ai mở — và
+    # đỏ đúng ngày lượt soát 6 (27/09/2026) mở hết 30/30: gác phạt việc làm
+    # xong. Thứ nó muốn canh là KHOÁ KHỚP LỎNG (đánh dấu cả dòng chưa ai
+    # soát), và thứ ấy canh được mà không cần sổ còn dở: thêm một dòng
+    # CANH chắc chắn không có trong sổ, chạy qua đúng `xep` trên sổ THẬT,
+    # rồi đòi nó hiện CHƯA AI MỞ.
+    #
+    # Dòng canh là một dòng ĐÃ SOÁT THẬT nối thêm hậu tố — tức "câu đổi
+    # chữ". Một chữ lạ hoàn toàn thì phép khớp CHUỖI CON vẫn để nó trần và
+    # sống sót (đục BƯỚC 128); biến thể của dòng thật thì không.
+    canh = ("<dong-canh>", 0, da[0][2].rstrip() + " [canh BUOC 128]")
+    assert canh[2].strip() not in bang, "dong canh lot vao so — doi chu canh"
+    kem_canh = xep(ra + [canh], bang)
+    dau_canh = [x[3] for x in kem_canh if x[2] == canh[2]]
+    assert dau_canh == [None], (
+        f"khoa khop LONG: dong chua ai soat hien la da soat ({dau_canh})")
 
 
 def test_MOI_KHOA_DONG_trong_so_la_chuoi_khong_rong():
