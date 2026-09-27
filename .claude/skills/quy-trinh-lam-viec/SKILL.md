@@ -540,7 +540,7 @@ phiên mở ở đâu. Từ 08/09/2026 có **bốn** cửa nằm ở đó (xem c
 |---|---|---|---|
 | `tools/cua_mo_phien.py` | **SessionStart** | toàn cục | nhắc gọi skill · liệt kê mốc ngày đang chặn · in dòng `CUA: n/m song` |
 | `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | toàn cục | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
-| `tools/cua_bash_an_toan.py` | Pre · Bash | toàn cục | chặn hình dạng lệnh đã cắn thật |
+| `tools/cua_bash_an_toan.py` | Pre · Bash\|PowerShell (từ 25/09/2026, BƯỚC 122) | toàn cục | chặn hình dạng lệnh đã cắn thật |
 | `tools/chan_bia_so_lieu.py` | Post · Write/Edit | toàn cục | quét mẫu bịa số liệu |
 | `tools/cua_ghi_an_toan.py` | Post · Write/Edit | toàn cục | file còn 0 byte sau lượt ghi |
 | `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | toàn cục | soát lại file đã đổi |

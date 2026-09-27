@@ -270,6 +270,12 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     """
     from data_quality import price_multiplier
 
+    # NGÀY phiên, 10 ký tự. Đường chạy thật truyền `str(row["time"])` —
+    # 19 ký tự, hậu tố giờ đổi theo nguồn — và sổ lưu nguyên chuỗi ấy, nên
+    # mọi phép so ngày trong sổ và trong rổ chuẩn thành so CHUỖI THỜI GIAN.
+    # Audit 25/09/2026, ma_giao_dich-05 và -06.
+    session_date = str(session_date)[:10]
+
     mult = price_multiplier(history)
     # KHÔNG nhân hệ số vào `volume` — nó là số cổ phiếu, không phải giá.
     # Nhân nhầm thì tác động thị trường nhỏ đi 1.000 lần và trượt giá gần
@@ -290,7 +296,8 @@ def run_session(journal: PaperTradingJournal, symbol: str,
                 "tham_chieu": float(history["close"].iloc[-2]) * mult}
     stats["filled_in"] = journal.fill_pending(symbol, session_date,
                                               bar["open"], _nen)
-    stats["filled_out"] = journal.fill_closing(symbol, session_date, bar["open"])
+    stats["filled_out"] = journal.fill_closing(symbol, session_date,
+                                               bar["open"], _nen)
 
     if chi_khop:
         # Phiên ghé CHỈ để KHỚP — không chấm, không quyết định, không gọi
@@ -464,16 +471,18 @@ def build_benchmark(trades, dataset: dict) -> dict:
     """
     if not dataset:
         return {}
+    # Khoá NGÀY 10 ký tự ở CẢ HAI phía: 40/125 file cache mang hậu tố
+    # ` 07:00:00`, còn sổ từ BƯỚC 123 ghi ngày 10 ký tự.
     closes = {}
     for sym, df in dataset.items():
-        s = df.set_index(df["time"].astype(str))["close"].astype(float)
+        s = df.set_index(df["time"].astype(str).str[:10])["close"].astype(float)
         closes[sym] = s[~s.index.duplicated(keep="last")]
 
     bench: dict[tuple[str, str], float] = {}
     for t in trades:
         if t.status != "CLOSED" or not t.entry_date or not t.exit_date:
             continue
-        key = (t.entry_date, t.exit_date)
+        key = (str(t.entry_date)[:10], str(t.exit_date)[:10])
         if key in bench:
             continue
         rets = []

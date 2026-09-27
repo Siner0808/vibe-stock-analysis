@@ -17,7 +17,7 @@ from paper_metrics import (dieu_kien_dong_lai, report,
                            ro_chuan_tu_chuoi_gia)
 from paper_runner import run_session
 from data_collectors import VNStockCollectorAgent
-from data_quality import now_vn
+from data_quality import nen_cuoi_dang_do, now_vn
 import market_filter
 import do_tre_khop
 
@@ -393,6 +393,8 @@ def execute_daily_scan():
     # Cổng C5 đóng thì hai thứ đó như nhau; cổng mở rồi thì chúng khác hẳn.
     bo_qua = {}
     quet_duoc = 0
+    # Số mã mà nến cuối là nến ĐANG DỞ, đã bỏ để chỉ ghi sổ trên nến đóng.
+    bo_nen_do = 0
     _da_nap_lich = False
     # Số phiên nến THẬT SỰ nhận được cho từng mã đã chấm được điểm.
     phien_nhan = []
@@ -426,6 +428,17 @@ def execute_daily_scan():
                     _n = market_filter.ghi_nhan_lich_phien(df["time"])
                     _da_nap_lich = True
                     print(f"📅 Lịch phiên cho ô C1: {_n} phiên từ {sym}")
+                # CHỈ GHI SỔ TRÊN NẾN ĐÃ ĐÓNG (BƯỚC 123). Trong phiên, nến
+                # cuối là nến NGÀY ĐANG DỞ: bỏ nó và xử lý phiên ĐÃ ĐÓNG gần
+                # nhất. Phiên ấy đã xử lý thì lượt này không đổi gì (khớp,
+                # chấm, nâng stop đều cho cùng kết quả trên cùng nến); bị lỡ
+                # thì lượt này xử lý bù. `now_time` là MỘT thời điểm cho cả
+                # lượt — một lượt vắt qua giờ chốt không được xử lý nửa rổ
+                # bằng nến hôm nay, nửa kia bằng nến hôm qua.
+                if (df is not None and len(df)
+                        and nen_cuoi_dang_do(df["time"].iloc[-1], now_time)):
+                    df = df.iloc[:-1]
+                    bo_nen_do += 1
                 if df is None or df.empty or len(df) < 20:
                     n = 0 if df is None else len(df)
                     bo_qua["thiếu nến"] = bo_qua.get("thiếu nến", 0) + 1
@@ -535,6 +548,12 @@ def execute_daily_scan():
     # phiên này KHÔNG kết luận được gì về thị trường, chỉ kết luận được
     # rằng nguồn dữ liệu đang hỏng.
     _tong_ma = len(CUSTOM_WATCHLIST_SYMBOLS)
+    if bo_nen_do:
+        # Nói ra, không im: một lượt trong phiên ghi sổ trên phiên ĐÃ ĐÓNG
+        # gần nhất, tức thường là không đổi gì — người đọc log phải biết vì
+        # sao "0 lệnh" ở đây không có nghĩa là thị trường im.
+        print(f"🕒 {bo_nen_do}/{_tong_ma} mã có nến cuối ĐANG DỞ — đã bỏ, "
+              f"sổ chỉ ghi trên phiên đã đóng gần nhất")
     _canh_bao_nguon = canh_bao_nguon(quet_duoc, bo_qua, _tong_ma)
     if _canh_bao_nguon:
         print("")

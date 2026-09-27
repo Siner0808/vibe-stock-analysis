@@ -21,6 +21,7 @@ tới "DỪNG mở vị thế mới" sẽ làm phép kiểm bằng chuỗi kêu 
 phép kiểm hay kêu oan thì sớm muộn bị nới ra cho hết kêu.
 """
 import ast
+import datetime as dt
 import sys
 from pathlib import Path
 
@@ -112,27 +113,66 @@ def test_ham_duoc_goi_bang_thuoc_tinh_module():
     print("PASS  đọc cờ qua thuộc tính module, không qua bản sao lúc nạp")
 
 
-def test_cong_C5_dang_DONG_trong_ma_nguon():
-    """Đọc từ NGUỒN, không đọc giá trị lúc chạy.
+def _hang_trong_nguon(ten: str):
+    """Giá trị hằng `ten` ĐỌC TỪ NGUỒN `paper_trading.py`, bằng AST.
 
     Vài file test gán `paper_trading.CHO_PHEP_MO_LENH_MOI = True` ở mức
     module — rò sang mọi test chạy sau. Đọc giá trị lúc chạy ở đây sẽ cho
     một phép kiểm phụ thuộc thứ tự chạy, tức là vô nghĩa.
-
-    Mở lại cổng thì phải sửa cả dòng này. Đó là chủ đích: mở cổng là một
-    hành vi có cân nhắc, không phải một ký tự đổi lặng lẽ.
     """
     gan = [n for n in ast.walk(_cay("paper_trading.py"))
            if isinstance(n, ast.Assign)
-           and any(isinstance(t, ast.Name) and t.id == "CHO_PHEP_MO_LENH_MOI"
+           and any(isinstance(t, ast.Name) and t.id == ten
                    for t in n.targets)]
-    assert len(gan) == 1, f"gán CHO_PHEP_MO_LENH_MOI {len(gan)} lần"
+    assert len(gan) == 1, f"gán {ten} {len(gan)} lần"
     assert isinstance(gan[0].value, ast.Constant), ast.dump(gan[0].value)
-    assert gan[0].value.value is False, (
-        "Cổng C5 đang MỞ trong mã nguồn. Chỉ mở khi: điều kiện dừng đo "
-        "bằng alpha, CÓ nơi thi hành, và đã đo lệch điểm giữa hai gói "
-        "vnstock. Xem docs/STATE.md — GỐC RỄ CỦA CỔNG C5.")
-    print("PASS  ô C5 đóng trong mã nguồn")
+    return gan[0].value.value
+
+
+def test_cong_C5_dang_MO_trong_ma_nguon():
+    """Đọc từ NGUỒN, không đọc giá trị lúc chạy — xem `_hang_trong_nguon`.
+
+    Cổng đóng tay 29/08/2026 và MỞ LẠI 26/09/2026 (`docs/STATE.md`
+    BƯỚC 125), theo quyết định người dùng 25/09: agent tự đặt lệnh ảo
+    rồi học từ sổ. Test này từng tên `..._dang_DONG_...` và đòi `False`.
+
+    Đóng lại thì phải sửa cả dòng này VÀ `NGAY_DONG_CONG_C5`. Đó là chủ
+    đích: đổi cổng là một hành vi có cân nhắc, không phải một ký tự đổi
+    lặng lẽ.
+    """
+    co = _hang_trong_nguon("CHO_PHEP_MO_LENH_MOI")
+    assert co is True, (
+        "Cổng C5 đang ĐÓNG trong mã nguồn, trong khi quyết định hiện hành "
+        "là MỞ (docs/STATE.md BƯỚC 125). Đóng lại vì điều kiện dừng đạt "
+        "hay vì người dùng quyết thì sửa test này, kèm ngày đóng mới.")
+    print("PASS  ô C5 mở trong mã nguồn")
+
+
+def test_ngay_dong_mo_KHOP_voi_trang_thai_co():
+    """Cờ và hai mốc ngày phải kể cùng một câu chuyện.
+
+    `tools/canh_cong_c5.py::kiem_ro_ri` đếm mọi quyết định VÀO LỆNH kể từ
+    `NGAY_DONG_CONG_C5`. Đóng cổng lần nữa mà quên dời mốc ấy thì mọi
+    lệnh của thời gian mở — từ `NGAY_MO_LAI_CONG_C5` — bị đếm thành "rò
+    rỉ": chuông kêu oan mỗi lượt, và một chuông hay kêu oan thì sớm muộn
+    bị tắt. Mở cổng mà mốc mở nằm TRƯỚC mốc đóng thì hai ngày nói ngược
+    nhau.
+
+    Rẽ nhánh theo cờ ĐỌC TỪ NGUỒN, không theo giá trị lúc chạy — luật
+    của `tests/test_gac_khong_phu_thuoc_thu_tu.py`.
+    """
+    co = _hang_trong_nguon("CHO_PHEP_MO_LENH_MOI")
+    dong = dt.date.fromisoformat(_hang_trong_nguon("NGAY_DONG_CONG_C5"))
+    mo = dt.date.fromisoformat(_hang_trong_nguon("NGAY_MO_LAI_CONG_C5"))
+    if co:
+        assert mo > dong, (
+            f"cổng MỞ nhưng mốc mở {mo} không sau mốc đóng {dong}")
+    else:
+        assert dong > mo, (
+            f"cổng ĐÓNG nhưng NGAY_DONG_CONG_C5 = {dong} không sau lần mở "
+            f"gần nhất {mo} — chuông rò rỉ sẽ đếm cả thời gian mở. Dời "
+            f"NGAY_DONG_CONG_C5 về ngày đóng thật.")
+    print(f"PASS  cờ {co} · đóng {dong} · mở lại {mo}")
 
 
 if __name__ == "__main__":

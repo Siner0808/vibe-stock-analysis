@@ -67,7 +67,14 @@ def test_cung_ngay_cung_khong_duoc_tinh():
     try:
         seed(eng, "2026-05-20")
         assert eng.get_penalty_for_pattern(BD, as_of="2026-05-20") == 0.0
-        print("PASS  mẫu hình cùng ngày không được tính")
+        # Cùng NGÀY nhưng as_of mang hậu tố giờ (19 ký tự, đúng dạng đường
+        # chạy thật và 40/125 file cache truyền vào). So chuỗi nguyên thì
+        # "2026-05-20" < "2026-05-20 07:00:00" và mẫu cùng ngày LỌT hàng rào.
+        # BƯỚC 123, cùng họ audit ma_giao_dich-06.
+        assert eng.get_penalty_for_pattern(BD, as_of="2026-05-20 07:00:00") == 0.0, (
+            "mẫu CÙNG NGÀY lọt vì as_of mang hậu tố giờ")
+        assert eng.get_penalty_for_pattern(BD, as_of="2026-05-21 07:00:00") == PENALTY
+        print("PASS  mẫu hình cùng ngày không được tính, kể cả khi có hậu tố giờ")
     finally:
         os.path.exists(path) and os.remove(path)
 
@@ -205,7 +212,11 @@ def test_tai_lap_qua_HAI_TIEN_TRINH_voi_post_mortem_BAT():
     def chay(thu_muc, bat):
         moi_truong = dict(os.environ)
         moi_truong["POST_MORTEM_ENABLED"] = "1" if bat else "0"
-        moi_truong["PYTHONPATH"] = str(goc)
+        # NỐI THÊM, không ghi đè (25/09/2026): ghi đè xoá mất PYTHONPATH mà
+        # người gọi truyền vào — và trong chế độ tạm ngừng vnstock, đó chính
+        # là rào chặn nạp gói (docs/STATE.md BƯỚC 122).
+        cu = os.environ.get("PYTHONPATH")
+        moi_truong["PYTHONPATH"] = os.pathsep.join([str(goc)] + ([cu] if cu else []))
         moi_truong["PYTHONIOENCODING"] = "utf-8"
         kq = subprocess.run(
             [sys.executable, str(kich_ban)], cwd=str(thu_muc),

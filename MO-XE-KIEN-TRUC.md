@@ -292,6 +292,11 @@ quý, giao dịch nội bộ, khối ngoại mua ròng là những nguồn độ
 > và thứ chặn nay là **chi phí thực thi** — đúng đại lượng BƯỚC 50 và 52
 > đã đo là chiếm trọn phần alpha âm.
 >
+> 🔴 **VẾ "CHIẾM TRỌN" HẾT ĐÚNG — ĐO 18, 26/09/2026 (BƯỚC 124).** Trên sổ
+> trung thực (gap dưới SL khớp ở giá mở cửa), tắt hẳn chi phí thực thi thì
+> dòng theo ngày vẫn ra −0,72% [−1,33 ; −0,07]. Chi phí vẫn là một phần
+> lớn (0,71–0,76 điểm/lệnh), nhưng không phải toàn bộ.
+>
 > Hai giới hạn phải đọc kèm: cửa sổ nằm trong vùng đã bị nhìn nhiều nhất
 > (bất biến 8) nên 0,0387 là cận trên **trong mẫu**; và ở nhịp 21 phiên
 > phép đo **không đủ lực** — chứng cứ dương không bắt nổi tín hiệu tiêm

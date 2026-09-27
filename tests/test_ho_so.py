@@ -134,6 +134,11 @@ def _goi_cua(payload: dict) -> tuple[int, str]:
 def test_CUA_khong_bao_gio_chan_va_khong_bao_gio_thoat_khac_0():
     """Bất biến số một. Cửa chặn của dự án là `cua_doc_bat_buoc`; cửa này
     chỉ bơm. Một `deny` lọt ra đây là chặn một lượt Read hợp lệ của người.
+
+    Và một `allow` cũng hỏng, theo chiều ngược lại — nó TỰ DUYỆT, bỏ qua
+    lời hỏi quyền (audit 25/09/2026, BƯỚC 121, tools_hook_ci-08). Bản
+    trước của test này ĐÒI `allow`, tức khoá chặt đúng cái lỗ. Nay cửa
+    không được ra quyết định quyền nào, và phải vẫn bơm được ngữ cảnh.
     """
     _xoa_dau_vet("t-chan-1", "t-chan-2", "t-chan-3")
     payloads = [
@@ -149,8 +154,14 @@ def test_CUA_khong_bao_gio_chan_va_khong_bao_gio_thoat_khac_0():
         assert ma == 0, f"thoát {ma} với payload {p}"
         if ra.strip():
             d = json.loads(ra)
-            quyet = d["hookSpecificOutput"]["permissionDecision"]
-            assert quyet == "allow", f"cửa trả {quyet!r}"
+            ra_hss = d["hookSpecificOutput"]
+            assert "permissionDecision" not in ra_hss, (
+                f"cửa ra quyết định quyền {ra_hss['permissionDecision']!r} "
+                "— nó chỉ được bơm ngữ cảnh")
+            assert "decision" not in d, f"cửa trả `decision` cũ: {d['decision']!r}"
+            assert ra_hss.get("hookEventName") == "PreToolUse"
+            assert str(ra_hss.get("additionalContext") or "").strip(), (
+                "cửa in JSON mà không có additionalContext")
             so_lan_kiem += 1
     # Không có lần nào bơm thì chẳng có `permissionDecision` nào được
     # kiểm, và test này thành một vòng lặp rỗng nói "PASS".
@@ -158,7 +169,7 @@ def test_CUA_khong_bao_gio_chan_va_khong_bao_gio_thoat_khac_0():
         "không payload nào làm cửa bơm — phép kiểm permissionDecision "
         "không chạy lần nào. Dấu vết phiên còn sót?")
     print(f"PASS  {len(payloads)} payload, {so_lan_kiem} lần thật sự kiểm "
-          f"quyết định: mã thoát 0, không có deny")
+          f"quyết định: mã thoát 0, không ra quyết định quyền nào")
 
 
 def test_CUA_song_khi_stdin_HONG():

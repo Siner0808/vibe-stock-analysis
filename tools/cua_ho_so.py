@@ -2,11 +2,23 @@
 
 NÓ KHÔNG BAO GIỜ CHẶN
 ─────────────────────
-Trả `permissionDecision: "allow"` và mã thoát 0 trong mọi nhánh, kể cả
-khi hỏng. Cửa chặn của dự án là `tools/cua_doc_bat_buoc.py`; đặc tả ghi
+Chỉ trả `additionalContext`, KHÔNG trả `permissionDecision`, và mã thoát 0
+trong mọi nhánh, kể cả khi hỏng. Cửa chặn của dự án là
+`tools/cua_doc_bat_buoc.py`; đặc tả ghi
 *"When several hooks return additionalContext for the same event, Claude
 receives all of the values"* và các hook cùng sự kiện chạy song song, nên
 hai cửa này không giành nhau.
+
+VÌ SAO KHÔNG CÒN `"allow"` (audit 25/09/2026, BƯỚC 121, tools_hook_ci-08)
+──────────────────────────────────────────────────────────────────────
+Bản trước trả `permissionDecision: "allow"` với ý *"không chặn"*. Nhưng
+đặc tả nói nguyên văn: `"allow"` *skips the permission prompt*. Tức mọi
+`Edit` lên một file đủ dày hồ sơ — đúng những file ảnh hưởng số đo nhất —
+được TỰ DUYỆT, vượt chế độ hỏi quyền người dùng đã chọn. "Không chặn" và
+"tự duyệt" là hai thứ khác nhau; thứ cửa này muốn là KHÔNG CÓ QUYẾT ĐỊNH
+NÀO. Đặc tả: *"Exit code 0 with no output means the hook has no decision
+to report … staying silent doesn't approve it"*, và mẫu bơm ngữ cảnh
+chuẩn của nó chỉ gồm `hookEventName` + `additionalContext`.
 
 VÌ SAO Ở `PreToolUse` CHỨ KHÔNG Ở `UserPromptSubmit`
 ────────────────────────────────────────────────────
@@ -142,7 +154,7 @@ def main() -> int:
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
-            "permissionDecision": "allow",
+            # KHÔNG có `permissionDecision` — xem docstring đầu file.
             "additionalContext": van,
         }
     }, ensure_ascii=False))

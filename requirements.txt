@@ -1,4 +1,5 @@
-# Chỉ liệt kê thứ cài được từ PyPI CÔNG KHAI.
+# Liệt kê thứ cài được từ PyPI CÔNG KHAI — cộng HAI gói, `vnstock` và
+# `vnai`, lấy từ kho riêng của hãng (khối "KHO THỨ HAI" bên dưới).
 #
 # GitHub Actions và Streamlit Cloud đều chạy `pip install -r requirements.txt`.
 # Bốn gói tài trợ của vnstock — vnstock_data, vnstock_ta, vnstock_news,
@@ -17,10 +18,21 @@ streamlit
 pandas
 numpy
 plotly
-# vnstock>=4.0.6 và vnai>=2.5.7 là mức tối thiểu tài liệu Vibe Onboarding
-# của vnstock yêu cầu (đọc 22/08/2026).
-vnstock>=4.0.6
-vnai>=2.5.7
+# KHO THỨ HAI — từ 26/09/2026 (docs/STATE.md BƯỚC 127). PyPI cách ly
+# `vnstock` và `vnai` từ tối 25/09; hãng phát hành trên kho riêng, và
+# người dùng chốt cài từ đó. Đo 26/09: kho ấy chỉ phục vụ bốn tên —
+# vnstock, vnstock-installer, vnai, vnii.
+#
+# GHIM ĐÚNG BẢN, không khai sàn: pip chọn bản cao nhất trên CẢ HAI kho,
+# nên với một sàn thì kho nào có bản cao hơn quyết định CI chạy gì — và
+# sàn cũng là cách CI từng chạy trước máy (lỗi 79). Bản ghim là bản ĐO 19
+# đã đo ở máy; tests/test_requirements.py bắt hai bên khớp nhau.
+#
+# Bản cũ ở đây là `vnstock>=4.0.6` · `vnai>=2.5.7` — mức tối thiểu tài
+# liệu Vibe Onboarding của vnstock yêu cầu (đọc 22/08/2026).
+--extra-index-url https://vnstocks.com/api/simple
+vnstock==4.0.9
+vnai==2.6.2
 tradingview-ta
 feedparser
 beautifulsoup4

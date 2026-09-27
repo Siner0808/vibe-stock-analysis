@@ -96,10 +96,15 @@ def test_MUC_BAT_DOI_XUNG_phai_neu_LENH_doc_trang_thai():
     assert (GOC / "tools" / "so_ban_goi.py").exists()
 
 
-def test_REQUIREMENTS_van_khai_bang_SAN_chu_khong_phai_GHIM():
-    """Nếu một ngày nó thành `==` thì cả mục bất đối xứng phải viết lại.
+def test_REQUIREMENTS_GHIM_va_muc_bat_doi_xung_NOI_DUNG_co_che_ay():
+    """Từ BƯỚC 127 (26/09/2026) `vnstock` · `vnai` ghim `==`, lấy từ kho hãng.
 
-    Không đòi nó PHẢI là sàn — đó là quyết định. Đòi nó **khớp với thứ
+    Bản trước của phép kiểm này tên `..._van_khai_bang_SAN_chu_khong_phai_GHIM`
+    và mang đúng lời dặn: *"nếu một ngày nó thành `==` thì cả mục bất đối
+    xứng phải viết lại"*. Ngày ấy tới, và nó đỏ đúng lúc — ở lượt năm cổng
+    đầu tiên sau khi đổi `requirements.txt`.
+
+    Không đòi nó PHẢI là ghim — đó là quyết định. Đòi nó **khớp với thứ
     tài liệu đang mô tả**: cùng họ `N_DAY_DU` 596/451.
     """
     van = REQ.read_text(encoding="utf-8")
@@ -108,9 +113,13 @@ def test_REQUIREMENTS_van_khai_bang_SAN_chu_khong_phai_GHIM():
             and not d.strip().startswith("#")]
     assert dong, "khong tim thay dong vnstock/vnai trong requirements.txt"
     for d in dong:
-        assert ">=" in d, (
-            f"`{d}` khong con la SAN — muc bat doi xung o CLAUDE.md dang "
+        assert "==" in d, (
+            f"`{d}` khong con GHIM — muc bat doi xung o CLAUDE.md dang "
             f"mo ta mot co che khong con dung")
+    khoi = _khoi_bat_doi_xung()
+    assert "BƯỚC 127" in khoi and "ghim" in khoi.lower(), (
+        "requirements.txt da ghim ma muc bat doi xung khong noi — nguoi doc "
+        "van tin CI lay ban MOI NHAT")
 
 
 # ══ 2. Phép phán phải đạt tới CẢ BA ô ══════════════════════════════════
