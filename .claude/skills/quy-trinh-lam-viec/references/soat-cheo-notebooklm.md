@@ -100,18 +100,35 @@ nếu sai khuôn; gác `tests/test_soat_notebooklm.py` vẫn là cửa cuối.
 
 ## Nạp lại nguồn — khi sổ cũ hơn `main`
 
-Nguồn là bản chụp. Ghi `_do_tuoi` vào mục sổ khi không nạp lại. Nạp lại:
+Nguồn là bản chụp. Ghi `_do_tuoi` vào mục sổ khi không nạp lại. Nạp lại —
+**THÊM TRƯỚC, XOÁ SAU** (`SKILL.md`, mục *CÁCH LÀM TƯƠI*; lý do đo 17/09: xoá
+trước có một cửa sổ sổ rỗng, và bản trùng gỡ được còn sổ rỗng thì không):
 
 1. Tab **Nguồn** (giao diện hẹp chỉ có danh sách nguồn trong DOM khi tab ấy
    đang chọn — đọc ra 0 nguồn ở tab khác là MẪU hỏng, không phải sổ rỗng).
-2. Mỗi nguồn cũ: menu *"Tuỳ chọn khác"* → **Xoá nguồn**. Bấm bằng `.click()`
-   trong JS và lọc `offsetParent !== null` — dialog cũ còn sót trong DOM,
-   bấm theo toạ độ rơi vào lớp vô hình.
-3. **Thêm nguồn** → **Trang web** → ô `textarea` nhận nhiều URL, mỗi dòng
-   một URL (repo công khai):
-   `https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/<file>`
-4. **Đổi tên nguồn** thành tên file — mặc định nhãn là URL đầy đủ, mười
-   nguồn hiện giống hệt nhau.
+   Ghi lại nhãn của mọi nguồn đang có.
+2. **Thêm nguồn** → **Trang web** → ô `textarea` *"Nhập URL"* nhận nhiều URL,
+   mỗi dòng một URL (repo công khai), **ghim mã băm commit**, không `main`:
+   `https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/<mã băm đủ 40 ký tự>/<file>`
+   Đo trước bằng `curl -w '%{http_code} %{size_download}'` so với
+   `git show <mã băm>:<file> | wc -c` — 28/09: 11/11 trả 200, khớp từng byte.
+   Ghim băm tránh CDN chậm một commit sau merge, và làm bản mới khác bản cũ
+   ngay trên nhãn.
+3. **Xoá bản cũ** — chỉ những bản vừa có bản thay ở bước 2 (không phải hỏi;
+   xoá nguồn nào khác thì HỎI người dùng). Menu *"Tuỳ chọn khác"* → **Xoá
+   nguồn**; đọc **nhãn** trên hộp xác nhận (`Xoá <nhãn>?`) rồi mới bấm. Bấm
+   bằng `.click()` trong JS và lọc `offsetParent !== null` — dialog cũ còn sót
+   trong DOM, bấm theo toạ độ rơi vào lớp vô hình.
+4. **Đổi tên nguồn** thành `<file> @<7 ký tự băm>` — mặc định nhãn là URL
+   đầy đủ; giữ băm ngắn thì độ tươi đọc được ngay trên nhãn. Ô tên nhận giá
+   trị qua setter gốc + sự kiện `input`, rồi bấm **Lưu**.
+5. **Đo độ tươi**: hỏi số BƯỚC lớn nhất trong `docs/STATE.md` kèm lối thoát,
+   so với `git show <mã băm>:docs/STATE.md | grep '^## BƯỚC' | tail -1`.
+
+> 🔴 **Bản 27/09 (BƯỚC 130) của mục này ghi XOÁ trước, THÊM sau** — ngược thứ
+> tự `SKILL.md` đã chốt từ 17/09, và ngược cả luật xoá nguồn: xoá một nguồn
+> CHƯA có bản thay là việc phải hỏi người dùng. Hôm ấy người dùng đã cho phép
+> nên không có hậu quả; sửa ở BƯỚC 137 (28/09/2026).
 
 Không có `input[type=file]` (đo 08/09): "Tải tệp lên" mở hộp thoại hệ điều
 hành, không điều khiển được. Đường nạp là URL.

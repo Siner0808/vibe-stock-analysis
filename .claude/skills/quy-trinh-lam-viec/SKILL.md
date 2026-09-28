@@ -839,6 +839,12 @@ có**. Giới hạn sổ là 300 nguồn nên chỗ chứa không phải ràng b
 > tính thật của nguồn trước khi xoá. Đo 23/09: bốn lượt mở, **hai lượt
 > huỷ** vì hộp nêu một bản **duy nhất** chứ không phải bản trùng.
 >
+> 🔴 **"in URL đầy đủ" CHỈ ĐÚNG KHI NHÃN LÀ URL — đo 28/09/2026, BƯỚC 137.**
+> Hộp in **nhãn** của nguồn (`Xoá CLAUDE.md?`). Ngày 23/09 nhãn chưa đổi nên
+> nó là URL; sau khi đổi tên thì hộp không còn URL nào. Danh tính nay đọc
+> bằng NHÃN, nên nhãn phải mang mã băm (`<file> @<băm>`) và URL phải ghim
+> băm — cách làm ở `references/soat-cheo-notebooklm.md`.
+>
 > **Và xoá xong thì phải ĐO bản còn lại tươi hay cũ** — xoá một bản của
 > mỗi cặp không nói gì về bản sống sót. Cách rẻ: `git log` file ấy để
 > tìm một câu chỉ có ở bản mới, hỏi sổ tay câu ấy **kèm lối thoát**, rồi

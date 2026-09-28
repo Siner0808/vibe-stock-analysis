@@ -150,6 +150,32 @@ def test_QUAN_THE_tai_lieu_deu_CO_THAT():
     print(f"PASS  {len(d.TAI_LIEU)} tài liệu đều có thật")
 
 
+def test_QUAN_THE_doi_chieu_PHU_MOI_nguon_cua_so_tay():
+    """Dụng cụ đối chiếu trích dẫn của SỔ TAY phải đọc mọi nguồn sổ tay đọc.
+
+    `so_tay.NGUON_MAC_DINH` thêm `references/soat-cheo-notebooklm.md` ở BƯỚC
+    130; `TAI_LIEU` ở đây thì không. Ngày 28/09/2026 (BƯỚC 137) sổ tay trích
+    hai câu THẬT của file ấy, và dụng cụ báo cả hai là LỆCH — một phép tự kiểm
+    vu oan, đúng chiều lỗi 88. Hai danh sách gõ tay của cùng một quần thể thì
+    trôi khỏi nhau; gác này bắt chúng phải phủ nhau.
+    """
+    so_tay = pytest.importorskip("so_tay")
+    duong = [f.as_posix() for f in d.TAI_LIEU]
+    thieu = [n for n in so_tay.NGUON_MAC_DINH
+             if not any(p.endswith("/" + n) for p in duong)]
+    assert not thieu, f"nguon so tay ma dung cu doi chieu KHONG doc: {thieu}"
+
+
+def test_CAU_THAT_cua_nguon_thu_MUOI_MOT_phai_KHOP():
+    """Một câu CHỈ có ở nguồn thứ 11, ở mục luật bền (*Không làm*), lột dấu
+    nhấn. Hai câu sổ tay trích hôm ấy thì chính BƯỚC 137 viết lại — neo gác
+    vào chúng là neo vào thứ sắp biến mất."""
+    ma, loi = d.phan_dinh(
+        "Không mở Chrome, không dùng claude-in-chrome trừ khi người dùng nói "
+        "thẳng.", d.ban_da_chuan())
+    assert ma == 0 and "soat-cheo-notebooklm.md" in loi, loi
+
+
 @pytest.mark.parametrize("cau", [
     "một câu hoàn toàn bịa đặt không nằm trong tài liệu nào của dự án này",
     "the quick brown fox jumps over the lazy dog and keeps running",

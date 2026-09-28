@@ -1549,6 +1549,47 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -rn 'regex chưa|tên nhánh có chữ|đừng đặt tên nhánh|Sáu mươi mốt trên|chặn nhầm tên nhánh' *.md *.py *.json -> MỘT câu trong repo: docs/STATE.md BƯỚC 133 'regex chưa sửa, ghi lại cho lượt sau' — ngoài nguồn sổ tay, đã gắn 🔴 ĐÃ SỬA ngay trên dòng. Ngoài repo: bộ nhớ MEMORY.md 'đừng đặt tên nhánh có main' — sửa cùng handoff cuối ngày. Số 11 lượt chặn ở BƯỚC 69 là nhiễm từ test, đã dọn (lỗi 55) — không nói ngược con số 1 lượt thật."
+    },
+    "BƯỚC 137": {
+      "ngay": "2026-09-28",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn vừa nạp lại, ghim 60d6598a (BƯỚC 134); đo độ tươi: sổ tay trả BƯỚC 134 đúng tiêu đề.",
+      "cau_hoi": "I am about to write BƯỚC 137 into docs/STATE.md: the notebook sources are reloaded by ADDING the new copies first and deleting the old duplicates afterwards, the new source URLs are pinned to a full commit hash instead of main (11 of 11 returned HTTP 200 and matched the commit byte for byte), the delete confirmation dialog shows the source LABEL (for example 'Xoá CLAUDE.md?') and not the URL, so each label now carries a short hash such as 'STATE.md @60d6598', and after the reload the notebook reports BƯỚC 134 as the largest step. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: an instruction to delete the old sources BEFORE adding the new ones, a statement that the delete confirmation dialog prints the full URL, an instruction to load sources from the main branch URL, an instruction to rename sources to the bare file name. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, '## Nạp lại nguồn — khi sổ cũ hơn main': bước 2 'Mỗi nguồn cũ: menu \"Tuỳ chọn khác\" → Xoá nguồn', bước 3 mới 'Thêm nguồn' — xoá TRƯỚC, thêm SAU.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Mỗi nguồn cũ: menu \"Tuỳ chọn khác\" → Xoá nguồn.' -> lượt đầu LỆCH vì dụng cụ không đọc file ấy (lỗi 110); sau khi thêm: KHỚP — soat-cheo-notebooklm.md; grep -n dòng 107.",
+          "phan_quyet": "THẬT. Viết lại mục: thêm trước, xoá sau, kèm ô 🔴."
+        },
+        {
+          "noi_dung": "SKILL.md, '## Luồng thông tin thứ hai — NotebookLM': 'Hộp xác nhận in URL đầy đủ, nên nó là chỗ duy nhất đọc được danh tính thật của nguồn trước khi xoá.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Hộp xác nhận in URL đầy đủ, nên nó là chỗ duy nhất đọc được danh tính thật của nguồn trước khi xoá.' -> KHỚP — SKILL.md. Đo trên trình duyệt 28/09: hộp in 'Xoá CLAUDE.md?' (nhãn).",
+          "phan_quyet": "THẬT. Đúng có điều kiện (nhãn = URL); ô 🔴 ngay dưới."
+        },
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, cùng mục: URL 'https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/<file>'.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/<file>' -> KHỚP (STATE.md cũng chứa chuỗi ấy); grep -n 'main/<file>' trong file reference.",
+          "phan_quyet": "THẬT. Nay ghim mã băm đủ 40 ký tự."
+        },
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, cùng mục: '4. Đổi tên nguồn thành tên file — mặc định nhãn là URL đầy đủ, mười nguồn hiện giống hệt nhau.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Đổi tên nguồn thành tên file — mặc định nhãn là URL đầy đủ, mười nguồn hiện giống hệt nhau.' -> lượt đầu LỆCH (dụng cụ thiếu file), sau khi thêm: KHỚP — soat-cheo-notebooklm.md.",
+          "phan_quyet": "THẬT. Nay đổi tên thành '<file> @<7 ký tự băm>'."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
