@@ -1632,6 +1632,52 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -n '398\\|612\\|1,12\\|1,48\\|2,05\\|1,94' CLAUDE.md -> bang DO 18 dong 1 '398 ... −1,12% ... [−1,94 ; −0,21]' va dong 2 '612 ... −1,48% ... [−2,05 ; −0,88]', nguong 62 / 45, khop tung chu so; grep -n '71 mã có vùng IS' docs/STATE.md -> BƯỚC 124 '71 mã có vùng IS · 33 mã có vùng OOS · bộ nhớ đầu 44 mẫu, học thêm 0'; ket cuc DO 18 dung 'nửa bề rộng KTC' (docs/TIEU-CHI-DOC-TRUOC.md muc DO 18). Ve 'dong TAT khong qua _khop_that' la MA, so tay khong thay: doc truc tiep paper_trading.fill_pending, nhanh 'if MO_PHONG_TRUOT_GIA and nen'."
+    },
+    "BƯỚC 138": {
+      "ngay": "2026-09-28",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn @60d6598 (BƯỚC 134); danh sách chờ ngày 28/09 viết sau, ngoài nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 138 into docs/STATE.md: on 28/09/2026 the user allowed the three workflows quet-so-lenh, canh-cong-c5 and chuong-nguon-dung to be switched back on; they were enabled at about 07:15 UTC, and the first scan run (manual dispatch) succeeded in every step, opened six virtual PENDING orders from the 25/09 session and wrote six rows of the why-journal to the real Google Sheets tab nhat_ky, so the open entry gate has now produced orders and the journal has real rows. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the three workflows are still switched off, a statement that the open gate has not produced any order yet, a statement that the journal has no real row yet, a list of user decisions that still includes switching the workflows back on. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "docs/HANDOFF.md, '## 2. HỆ THỐNG ĐANG Ở TRẠNG THÁI NÀO': 'Cờ mở chưa sinh lệnh nào — đường quét tự động tạm ngừng cùng vnstock (mục 5).'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Cờ mở chưa sinh lệnh nào — đường quét tự động tạm ngừng cùng vnstock (mục 5).' -> KHỚP — HANDOFF.md",
+          "phan_quyet": "THẬT. Ô 🔴 ngay dưới."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md, '## 5. VIỆC ĐANG TREO': 'Ba workflow vẫn TẮT — bật lại cần người dùng cho phép riêng …'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Ba workflow vẫn TẮT — bật lại cần người dùng cho phép riêng, vì cổng lệnh ảo đã mở (BƯỚC 125) — và từ 27/09 nó mở trên main.' -> KHỚP — HANDOFF.md",
+          "phan_quyet": "THẬT. Ô 🔴 ngay dưới. (Phần giải thích của sổ tay ghi nhầm ngày '28/08' — không phải trích dẫn.)"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md, khối CUỐI NGÀY 27/09: '(3) bật lại ba workflow — cổng lệnh ảo nay MỞ trên main …'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py '(3) bật lại ba workflow — cổng lệnh ảo nay MỞ trên main, nên bật quet-so-lenh là bắt đầu sinh lệnh ảo thật' -> KHỚP — HANDOFF.md",
+          "phan_quyet": "THẬT. Gạch mục (3), ghi ✅ BƯỚC 138."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md, khối 28/09 BƯỚC 134: 'Chưa có dòng thật nào — ba workflow vẫn tắt.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Chưa có dòng thật nào — ba workflow vẫn tắt.' -> KHỚP — HANDOFF.md",
+          "phan_quyet": "THẬT. Ô 🔴 ngay dưới."
+        },
+        {
+          "noi_dung": "(grep, sổ tay BỎ SÓT) CLAUDE.md, mục CỔNG MỞ LỆNH ĐÃ BẬT: 'Cờ mở **chưa sinh lệnh nào**' — có trong nguồn @60d6598.",
+          "tu_kiem": "grep -n 'chưa sinh lệnh nào' docs/HANDOFF.md CLAUDE.md -> HANDOFF.md:112, CLAUDE.md:942",
+          "phan_quyet": "THẬT. Ô 🔴 ngay dưới — sổ tay không nêu câu này dù nó nằm trong nguồn."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
