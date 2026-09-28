@@ -3212,3 +3212,109 @@ nam cong KHONG rao chan   1438 passed · moi file xanh rieng · 0 CHAN
 
 **NÂNG ĐƯỢC.** Ô A–E giống từng băm với ảnh `truoc` **và với ĐO 17**; ô F,
 G đạt ở cả ba ảnh. Số liệu và dòng thô: `docs/STATE.md` BƯỚC 126.
+
+---
+
+## ĐO 20 — khớp lệnh VÀO: bỏ kiểm biên độ ±7% với giá MỞ CỬA đã khớp, và lệnh không khớp đóng ở HUY (BƯỚC 136) (khai 28/09/2026)
+
+**Đã tra trùng:** BƯỚC 124 (ĐO 18) — đo bốn dòng chi phí thực thi trên mã BƯỚC 123; hai dòng trượt-giá-BẬT của nó đi qua đúng phép kiểm ±7% mà mã này gỡ, nên số của chúng mang lỗi 1. BƯỚC 134 ghi việc này thành *việc tách ra*, chưa đo. KHÔNG trùng: chưa BƯỚC nào đo walkforward với biên kiểm giá mở khác ±7%.
+
+> **Khai 28/09/2026, SAU khi mã vào nhánh `p2b/bien-do-theo-san` và TRƯỚC
+> lượt chạy đầu tiên, ở một commit RIÊNG.** Người dùng chọn cả ba điều trong
+> cùng một câu trả lời: *bỏ kiểm biên độ với giá mở* (chỉ chặn khi lệch vượt
+> biên rộng nhất, 15%) · *đóng kèm lý do, không xoá* · *ký ĐO 20, sửa, chạy
+> đo*.
+>
+> **Khai thêm, vì chúng xảy ra trước khi ký:**
+>
+> - Đếm trên sổ OOS **lượt 4** của ĐO 18 (trượt giá TẮT, theo ngày — sổ duy
+>   nhất còn nguyên): **7/582** lệnh khớp ở phiên mở cửa lệch > 7% so với
+>   đóng cửa phiên trước — cả 7 là mã HNX, cả 7 là GAP GIẢM −7,1…−10%. Sổ IS
+>   của lượt ấy: 0–1 lệnh mỗi ngưỡng. **Lãi/lỗ của 7 lệnh ấy KHÔNG được đọc** —
+>   đó là nhìn trước kết quả của chính phép sửa này.
+> - Đếm trên cache (71 mã): **324** phiên mở cửa lệch > 7%, **6** phiên > 15%
+>   (OIL ×3, MSR ×1 — UPCoM lấy tham chiếu là giá bình quân, nên lệch > 15% so
+>   với ĐÓNG CỬA mà vẫn hợp lệ; MBB, SSI 10/08/2026 — sự kiện doanh nghiệp).
+> - Không một con số alpha nào của mã mới đã được nhìn.
+
+**Dụng cụ chạy:** `tools/do1_chi_phi_thuc_thi.py` · **dụng cụ đọc:** `tools/do20_ghep_tung_lenh.py`
+
+### Hai luồng, chỉ hai dòng trượt-giá-BẬT
+
+| luồng | mã | ở đâu |
+|---|---|---|
+| **ĐỐI CHỨNG** | `60d6598` — `main` sau BƯỚC 134, ngay trước mã này | một worktree riêng MỖI LƯỢT |
+| **ĐÃ SỬA** | commit của chính mục này | một worktree riêng MỖI LƯỢT |
+
+Chung: `tools/do1_chi_phi_thuc_thi.py --mot-luot 1` (BẬT · theo mã) và
+`--mot-luot 2` (BẬT · theo ngày); `VIBE_CACHE_DIR` trỏ vào `backtest/cache`
+của repo gốc (125 file, phiên cuối 2026-09-03); `sl_pattern_memory.json` chép
+vào mỗi worktree — sha256 `e8b44cf8…724013`, **giống từng byte** bản ĐO 18
+dùng; mọi tham số mặc định: `stride=2` · `min_history=60` · `che_do_hoc=co_san`
+· `do_tre_khop=1`. Bốn tiến trình chạy SONG SONG, mỗi tiến trình một worktree
+— hai lượt chung một worktree sẽ ghi đè `wf_*.db` của nhau (BƯỚC 124).
+Không rào chặn `vn*`: tạm ngừng `vnstock` đã hết từ 26/09, và ĐO 18 đo được
+walkforward chạm rào **0** lần.
+
+**Hai dòng trượt-giá-TẮT không chạy**: `fill_pending` chỉ gọi `_khop_that`
+khi `MO_PHONG_TRUOT_GIA` bật, nên mã này không chạm được chúng. Dòng 3–4 của
+ĐO 18 vẫn đứng.
+
+### Phép kiểm dụng cụ — đọc TRƯỚC alpha
+
+1. **Cả bốn lượt** mã thoát 0 và log ghi: **71** mã có vùng IS · **33** mã có
+   vùng OOS · bộ nhớ **đầu 44 mẫu, học thêm 0**. Lệch bất kỳ → dòng ấy
+   **không đọc được**.
+2. **ĐỐI CHỨNG so với dòng P1 của ĐO 18**, từng chữ số: theo mã 62 **398 ·
+   −1,12% · [−1,94 ; −0,21]**; theo ngày 45 **612 · −1,48% · [−2,05 ;
+   −0,88]**. Khớp → `main` không trôi ở phép đo này từ BƯỚC 123 (BƯỚC
+   124–134 khai là không chạm walkforward). Không khớp → **một phát hiện**,
+   không phải lỗi của ĐO này; luồng đối chứng thành mốc mới, và phép so
+   chính vẫn đọc được vì nó là ĐÃ SỬA so với ĐỐI CHỨNG cùng ngày.
+3. **Ngưỡng IS.** Một dòng chỉ so được khi hai luồng chọn **cùng ngưỡng**.
+   Khác → dòng ấy không so được; ghi ra, đừng ép — và việc ngưỡng đổi tự nó
+   là thông tin (lỗi 21).
+4. **Mọi dòng `HUY` trong sổ OOS của luồng ĐÃ SỬA** phải là lệnh chờ có phiên
+   khớp mở cửa lệch > 15% hoặc thiếu thanh khoản cho một lô. Một dòng `HUY`
+   ở phiên lệch ≤ 15% mà thanh khoản đủ → mã sai, bảng không đọc được.
+
+### Đại lượng
+
+- **alpha khớp từng lệnh + KTC 95%** trên OOS, số lệnh OOS — mỗi dòng, mỗi
+  luồng.
+- **Δ = alpha(ĐÃ SỬA) − alpha(ĐỐI CHỨNG)**, từng dòng cùng ngưỡng.
+- **Ghép từng lệnh** theo (mã, ngày tín hiệu):
+  `tools/do20_ghep_tung_lenh.py --doi-chung <wf_oos.db> --sua <wf_oos.db>
+  --cache <backtest/cache>` — giống hệt · cùng khoá khác giá · chỉ ở một bên
+  · danh sách `HUY`, kèm độ lệch mở cửa của từng lệnh.
+
+### Dự báo, khai trước
+
+- **Số lệnh OOS: ĐÃ SỬA ≥ ĐỐI CHỨNG ở cả hai dòng.** Lệnh chờ ở phiên mở cửa
+  lệch 7–15% nay khớp thay vì biến mất. Cỡ: **ước lượng** từ sổ lượt 4 —
+  khoảng **7** lệnh ở dòng theo ngày; dòng theo mã chưa có số nào để ước.
+- **Lệnh chỉ có ở bên ĐÃ SỬA phần lớn khớp ở phiên lệch > 7%**, phần còn lại
+  là dây chuyền (một vị thế mỗi mã, và ở dòng theo ngày còn trần vốn).
+- **|Δ| nhỏ hơn nửa bề rộng KTC** ở cả hai dòng. **Chiều: KHÔNG đoán.** Các
+  lệnh thêm vào gần như đều là mua ở phiên mở sàn của mã HNX — có thể là bắt
+  dao rơi, có thể là bật lại; không có cơ sở nào để khai chiều trước.
+- **Dòng `HUY`: ít**, gồm lệnh thiếu thanh khoản cho một lô (trước đây bị
+  xoá, nên chưa ai đếm) và tối đa vài lệnh ở 6 phiên lệch > 15%.
+
+### Kết cục, khai trước
+
+| kết cục | đọc thế nào |
+|---|---|
+| **1.** Cả hai dòng \|Δ\| ≤ nửa bề rộng KTC của đối chứng, bốn phép kiểm dụng cụ đạt | phép sửa không đổi kết luận. Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 18 làm bảng hiện hành trong `CLAUDE.md` (mã đã đổi); dòng TẮT giữ ĐO 18 |
+| **2.** Một dòng alpha ĐÃ SỬA **đẹp hơn** đối chứng quá nửa bề rộng KTC | **quy tắc số 1**: giả định CÓ LỖI. Không ghi số vào `CLAUDE.md` cho tới khi dụng cụ ghép quy được Δ cho từng lệnh cụ thể |
+| **3.** Một dòng **xấu hơn** quá nửa bề rộng KTC | chiều an toàn — nhưng vẫn quy Δ cho từng lệnh trước khi thay bảng, vì Δ lớn hơn dự báo nghĩa là dự báo sai ở đâu đó |
+| **4.** Một lượt thoát ≠ 0, phép kiểm dụng cụ 1 hoặc 4 hỏng, hoặc ngưỡng IS khác nhau | dòng ấy **không đọc được**; sửa rồi chạy lại cả luồng |
+
+Một dòng đổi trạng thái *"loại được 0"* ↔ *"chứa 0"* được **ghi ra**, không
+đổi kết cục: kết cục đo Δ, không đo ngưỡng ý nghĩa.
+
+### Đọc kèm, không quyết định gì
+
+Số lệnh chỉ-ở-bên-sửa có mở cửa lệch > 7%, chia theo sàn; số dòng `HUY` chia
+theo lý do (lệch > 15% · thanh khoản). Đây là mô tả để quy Δ, không phải phép
+thử.
