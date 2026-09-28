@@ -46,6 +46,28 @@ COT_NHAT_KY: tuple[str, ...] = (
     "ket_qua_R", "ro_chuan_pct", "alpha_pct", "hau_kiem_may", "hau_kiem_loi",
 )
 
+#: Kiểu của từng cột — MỘT chỗ. Bảng SQLite (`paper_trading`) và phép đổi ô
+#: Google Sheets (`sheets_store`) cùng suy từ đây; cột không nằm trong hai tập
+#: này là chữ. Gõ lại ở hai nơi thì hai nơi trôi khỏi nhau.
+COT_SO_NGUYEN: frozenset[str] = frozenset({"trade_id", "entry_score"})
+COT_SO_THUC: frozenset[str] = frozenset({
+    "entry_price", "stop_loss_ban_dau", "rui_ro_pct", "exit_price",
+    "loi_nhuan_rong_pct", "ket_qua_R", "ro_chuan_pct", "alpha_pct",
+})
+
+
+def _kieu_sql(c: str) -> str:
+    return "INTEGER" if c in COT_SO_NGUYEN else "REAL" if c in COT_SO_THUC else "TEXT"
+
+
+#: Bảng `nhat_ky` trong sổ SQLite (BƯỚC 134). Một dòng một lệnh: mở LÚC TÍN
+#: HIỆU (bối cảnh), điền nửa VÀO lúc khớp, nửa ĐÓNG sau khi đóng.
+DDL_NHAT_KY: str = (
+    "CREATE TABLE IF NOT EXISTS nhat_ky ("
+    + ", ".join(f"{c} {_kieu_sql(c)}" + (" PRIMARY KEY" if c == "trade_id" else "")
+                for c in COT_NHAT_KY)
+    + ")")
+
 #: Khoá điểm KHÔNG đem ra nói "agent cao/thấp nhất", mỗi khoá một lý do đo được.
 KHOA_KHONG_XEP_HANG: dict[str, str] = {
     "news_score": "hằng số 50 trên đường giao dịch (MO-XE-KIEN-TRUC.md, Tầng 2)",
@@ -183,8 +205,12 @@ def hau_kiem_may(*, sl_ban_dau: float, exit_price: float, exit_reason: str,
 
 
 def dong_vao_lenh(trade: Trade, components: Any, reasons: Any,
-                  boi_canh: dict) -> dict:
-    """Dòng nhật ký lúc VÀO. Gọi đúng lúc khớp — TRƯỚC mọi lần nâng stop."""
+                  boi_canh: Optional[dict]) -> dict:
+    """Dòng nhật ký lúc VÀO. Gọi đúng lúc khớp — TRƯỚC mọi lần nâng stop.
+
+    `boi_canh` None — lệnh chờ có từ trước khi có nhật ký, không ai chụp bối
+    cảnh lúc tín hiệu — thì ô ấy RỖNG, không phải chuỗi `"null"`.
+    """
     if trade.entry_price is None or not trade.entry_date:
         raise ValueError(f"lệnh {trade.id} chưa khớp — chưa có giá vào để ghi nhật ký")
     if trade.status not in (Status.OPEN,):
@@ -202,7 +228,8 @@ def dong_vao_lenh(trade: Trade, components: Any, reasons: Any,
         "entry_score": trade.entry_score,
         "diem_agent": json.dumps(_diem(components), ensure_ascii=False, sort_keys=True),
         "ly_do": ly_do,
-        "boi_canh": json.dumps(boi_canh, ensure_ascii=False, sort_keys=True),
+        "boi_canh": (None if boi_canh is None
+                     else json.dumps(boi_canh, ensure_ascii=False, sort_keys=True)),
     })
     return dong
 

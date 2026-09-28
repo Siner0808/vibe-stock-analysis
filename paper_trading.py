@@ -515,6 +515,12 @@ class PaperTradingJournal:
             );
             CREATE INDEX IF NOT EXISTS idx_trades_symbol ON trades(symbol, status);
         """)
+        # Nhật ký "vì sao" (BƯỚC 134). Người dùng chốt 27/09/2026: CHỈ sổ THẬT
+        # ghi — backtest/walkforward mở sổ không cờ, nên không phép đo nào đổi.
+        # Bảng thì sổ nào cũng có (rỗng), để đẩy/kéo Sheets khỏi phải rẽ nhánh.
+        from nhat_ky_vi_sao import DDL_NHAT_KY
+        self.ghi_nhat_ky = bool(cho_phep_so_that)
+        self.db.execute(DDL_NHAT_KY)
         self.db.commit()
 
     # ─────────────────── Ghi quyết định (kể cả không vào lệnh) ────────
@@ -577,6 +583,10 @@ class PaperTradingJournal:
             " status=? WHERE symbol=? AND status=?",
             (session_date, float(close_price), ExitReason.HET_DU_LIEU,
              Status.CLOSED, symbol, Status.OPEN)).rowcount
+        self.db.execute(
+            "DELETE FROM nhat_ky WHERE trade_id IN"
+            " (SELECT id FROM trades WHERE symbol=? AND status=?)",
+            (symbol, Status.PENDING))
         m = self.db.execute(
             "DELETE FROM trades WHERE symbol=? AND status=?",
             (symbol, Status.PENDING)).rowcount
@@ -719,6 +729,22 @@ class PaperTradingJournal:
              json.dumps(result.get("score_breakdown", {}), ensure_ascii=False),
              json.dumps(result.get("key_reasons", []), ensure_ascii=False),
              Status.PENDING, now_vn().timestamp()))
+        if self.ghi_nhat_ky:
+            # Mở dòng nhật ký NGAY LÚC TÍN HIỆU — chỉ ở đây có `result`. Lệnh
+            # chờ khớp đi qua Google Sheets (khớp ở lượt quét phiên sau, trên
+            # runner vừa kéo sổ về), nên bối cảnh phải nằm trong một DÒNG thì
+            # mới sống qua đêm. VN-INDEX qua `get_vni_df()` — đường của bộ lọc,
+            # cache, tất định — và cắt bằng CÙNG `signal_date` cổng vừa hỏi.
+            # KHÔNG `chi_so_moi_nhat()`: đường topbar, ưu tiên mạng (CLAUDE.md).
+            import market_filter
+            from nhat_ky_vi_sao import boi_canh_luc_tin_hieu
+            boi_canh = boi_canh_luc_tin_hieu(
+                result, signal_date, market_filter.get_vni_df(), threshold)
+            self.db.execute(
+                "INSERT INTO nhat_ky (trade_id, symbol, signal_date, boi_canh)"
+                " VALUES (?,?,?,?)",
+                (int(cur.lastrowid), symbol, str(signal_date)[:10],
+                 json.dumps(boi_canh, ensure_ascii=False, sort_keys=True)))
         self.db.commit()
         self.record_decision(symbol, signal_date, result, True)
         return int(cur.lastrowid)
@@ -754,6 +780,8 @@ class PaperTradingJournal:
                     # tồn tại — xoá chứ không mở rồi đóng ngay, vì một lệnh
                     # không khớp không phải một giao dịch lãi/lỗ 0%.
                     self.db.execute("DELETE FROM trades WHERE id=?", (r["id"],))
+                    self.db.execute("DELETE FROM nhat_ky WHERE trade_id=?",
+                                    (r["id"],))
                     continue
                 gia, size = kq
 
@@ -761,9 +789,71 @@ class PaperTradingJournal:
                 "UPDATE trades SET entry_date=?, entry_price=?, size_pct=?,"
                 " status=? WHERE id=?",
                 (session_date, gia, size, Status.OPEN, r["id"]))
+            if self.ghi_nhat_ky:
+                self._ghi_nua_vao(int(r["id"]))
             filled += 1
         self.db.commit()
         return filled
+
+    def _ghi_nua_vao(self, trade_id: int) -> None:
+        """Nửa VÀO của nhật ký — NGAY LÚC KHỚP, trước mọi lần nâng stop.
+
+        `evaluate_open` nâng `stop_loss` bằng UPDATE (trailing), nên từ phiên
+        sau sổ lệnh không còn cắt lỗ BAN ĐẦU; không có nó thì không có R
+        (`docs/STATE.md` BƯỚC 131). Lệnh chờ từ trước khi có nhật ký thì
+        không có dòng mở sẵn — bối cảnh để RỖNG, không đoán.
+        """
+        from nhat_ky_vi_sao import COT_NHAT_KY, dong_vao_lenh
+        r = self.db.execute("SELECT * FROM trades WHERE id=?",
+                            (trade_id,)).fetchone()
+        cu = self.db.execute("SELECT boi_canh FROM nhat_ky WHERE trade_id=?",
+                             (trade_id,)).fetchone()
+        boi_canh = json.loads(cu["boi_canh"]) if cu and cu["boi_canh"] else None
+        dong = dong_vao_lenh(self._to_trade(r), r["components"], r["reasons"],
+                             boi_canh)
+        self.db.execute(
+            f"INSERT OR REPLACE INTO nhat_ky ({', '.join(COT_NHAT_KY)})"
+            f" VALUES ({','.join('?' * len(COT_NHAT_KY))})",
+            [dong[c] for c in COT_NHAT_KY])
+
+    def hoan_tat_nhat_ky(self, gia_chuan: dict | None) -> int:
+        """Điền nửa ĐÓNG cho mọi lệnh ĐÃ ĐÓNG có nửa VÀO. Trả số dòng ĐÃ ĐỔI.
+
+        `gia_chuan` — {ngày: giá đóng VN-INDEX}. Rổ dựng bằng đúng
+        `paper_metrics.ro_chuan_tu_chuoi_gia`, như báo cáo phiên (bất biến 6).
+        Thiếu một đầu ngày thì rổ None — nhãn máy nói ra — và lượt sau thử
+        lại; dòng đã đủ thì không động.
+
+        Khác nửa VÀO, nửa ĐÓNG ghi SAU được mà không mất gì: nó chỉ đọc thứ
+        sổ lệnh không còn đổi khi lệnh đã CLOSED.
+        """
+        from nhat_ky_vi_sao import COT_NHAT_KY, dong_dong_lenh
+        from paper_metrics import ro_chuan_tu_chuoi_gia
+        rows = self.db.execute(
+            "SELECT n.* FROM nhat_ky n JOIN trades t ON t.id = n.trade_id"
+            " WHERE t.status=? AND n.entry_date IS NOT NULL"
+            " AND (n.exit_date IS NULL OR n.ro_chuan_pct IS NULL)"
+            " ORDER BY n.trade_id", (Status.CLOSED,)).fetchall()
+        doi = 0
+        for d in rows:
+            dong = {c: d[c] for c in COT_NHAT_KY}
+            t = self._to_trade(self.db.execute(
+                "SELECT * FROM trades WHERE id=?", (dong["trade_id"],)).fetchone())
+            ro = None
+            if gia_chuan:
+                ro = ro_chuan_tu_chuoi_gia([t], gia_chuan).get(
+                    (str(t.entry_date)[:10], str(t.exit_date)[:10]))
+            moi = dong_dong_lenh(dong, t, ro)
+            if moi == dong:
+                continue
+            cot = [c for c in COT_NHAT_KY if c != "trade_id"]
+            self.db.execute(
+                f"UPDATE nhat_ky SET {', '.join(c + '=?' for c in cot)}"
+                " WHERE trade_id=?",
+                [moi[c] for c in cot] + [dong["trade_id"]])
+            doi += 1
+        self.db.commit()
+        return doi
 
     def _khop_that(self, symbol: str, gia_mo: float, size_pct: float,
                    nen: dict):

@@ -179,7 +179,7 @@ def restore_journal_from_google_sheets(db_path: str = DB_PATH,
 # thời — thứ đáng thử lại.
 #
 # THỬ LẠI CÓ AN TOÀN KHÔNG. Có, và lý do nằm ở THỨ TỰ trong
-# sheets_store.pull(): hai lời gọi mạng read_rows() chạy TRƯỚC mọi lệnh
+# sheets_store.pull(): MỌI lời gọi mạng read_rows() chạy TRƯỚC mọi lệnh
 # DELETE, còn commit() nằm ở cuối cùng. Hỏng mạng thì chưa có gì bị xoá;
 # hỏng giữa vòng INSERT thì connection đóng lúc chưa commit nên SQLite
 # rollback. Đó là suy luận đọc từ mã, nên nó được KHOÁ bằng
