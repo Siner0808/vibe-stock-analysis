@@ -18847,3 +18847,114 @@ backend giả của nó, nên dòng này thành **108**, dòng tự khai **63/10
   cửa bóc nội dung trong nháy trước khi so. Ruleset GitHub vẫn chặn phía
   máy chủ (BƯỚC 133), nên lỗ này không mở đường vào `main`; không sửa ở đây.
 - Luật vẫn chỉ là lớp thứ hai — lớp thứ nhất là ruleset.
+
+---
+
+## BƯỚC 136 — KHỚP LỆNH VÀO: BIÊN ĐỘ ±7% CỦA HOSE ÁP CHO MÃ HNX/UPCoM, VÀ LỆNH KHÔNG KHỚP BỊ XOÁ LÀM SỔ CO LẠI; SỬA THEO LỰA CHỌN CỦA NGƯỜI DÙNG, ĐO BẰNG ĐO 20 (28/09/2026)
+
+Việc tách ra ở BƯỚC 134, mục *Việc tách ra*. Người dùng giao: đo trước —
+viết test đỏ cho lệnh HNX mở cửa +8% bị từ chối và cho chuỗi *co lại → đẩy
+bị từ chối → khớp trễ* — rồi quyết cách sửa, hỏi trước khi đổi hành vi đo.
+
+### Đo trước khi sửa
+
+**Mã nào thuộc sàn nào** — hai nguồn độc lập, cùng lệnh
+`Listing(source=…).symbols_by_exchange()`:
+
+```
+nguon   HNX                  UPCOM            HOSE
+vci     PVS HUT SHS MBS      OIL MSR ACV      64 ma con lai
+kbs     PVS HUT SHS MBS      OIL MSR ACV      64 ma con lai   <- khop tung ma
+```
+
+**Dấu vết trong cache** (71 mã, 81.436 phiên, bỏ phiên sau nghỉ > 4 ngày):
+**324** phiên MỞ CỬA lệch > 7% so với đóng cửa phiên trước — mỗi phiên như
+vậy một lệnh MUA bị `dat_lenh` từ chối.
+
+```
+ma HNX    mo cua lech >7%   tang  giam
+PVS             58             4    54
+HUT             52             1    51
+SHS             97             9    88
+MBS             60             3    57
+ma UPCoM        OIL 14 · MSR 12 · ACV 1
+ma HOSE   30 phien: 23 la LAM TRON 7,00–7,09% cua cache (tran/san that),
+          BSR ×2 · VTP ×3 (hoi con o UPCoM, bien dong kieu UPCoM toi 2024),
+          MBB · SSI 10/08/2026 (su kien doanh nghiep chua dieu chinh)
+```
+
+Ở mã HNX, **hơn 90% là GAP GIẢM** (mở sàn −8…−10%). Và BSR · VTP cho thấy
+một bảng sàn HIỆN HÀNH vẫn sai cho backtest trước 2024.
+
+**Sổ thật: lỗi CHƯA từng nổ.** Đọc thẳng hai tab `trades` · `decisions`
+của Google Sheet thật (kiểm tab tồn tại trước, đọc worksheet trực tiếp):
+**117** quyết định `acted=1`, **117** dòng `trades`, **0** quyết định mở lệnh
+mà không còn dòng lệnh. HUT (HNX) khớp bình thường 03/09.
+
+**Walkforward: có nổ.** Sổ OOS còn nguyên của ĐO 18 là lượt 4 — trượt giá
+TẮT, tức không ai kiểm biên độ — nên đếm được chính tập lệnh mà dòng BẬT sẽ
+xoá: **7/582** lệnh khớp ở phiên mở cửa lệch > 7%, cả 7 mã HNX, cả 7 gap
+giảm −7,1…−10%. Lãi/lỗ của 7 lệnh ấy cố ý KHÔNG đọc.
+
+### Test đỏ TRƯỚC khi sửa
+
+`tests/test_bien_do_theo_san.py`, viết dưới `xfail(strict=True,
+raises=AssertionError)` để cổng xanh trong lúc chờ quyết. `--runxfail`: 5/5
+đỏ đúng lý do —
+
+```
+PVS (HNX) mở cửa 32,400 = +8% ... Sổ ghi khop=0, còn 0 lệnh
+lượt 2026-09-04: push() từ chối — TỪ CHỐI ĐẨY: sổ local có 0 lệnh, sheet đang có 1.
+lượt 2026-09-07: lệnh tín hiệu 2026-09-03 sống lại từ Sheets và KHỚP TRỄ ở 2026-09-07, giá 31,050
+```
+
+Chuỗi lỗi 2 dựng bằng hai tác nhân — biên độ HNX và thanh khoản dưới một
+lô — vì lỗi 2 không cần lỗi 1. Và dấu `xfail` được chứng minh là không rỗng
+bằng hai phép sửa THÔ qua `dot_bien` (tự hoàn trả): biên 15% làm đúng 4 ca
+lật (ca thanh khoản vẫn XFAIL); `push(cho_phep_co_lai=True)` làm đúng 2 ca
+chuỗi lật (lỗi 1 vẫn XFAIL). 5/5 đúng kỳ vọng.
+
+### Người dùng quyết (28/09/2026)
+
+| câu hỏi | chọn |
+|---|---|
+| lỗi 1 | **bỏ kiểm biên độ với giá MỞ CỬA** — nó là giá sở đã khớp; chỉ chặn khi lệch vượt biên rộng nhất |
+| lỗi 2 | **đóng kèm lý do, không xoá** — trạng thái `HUY`, `LY_DO_TU_CHOI_LENH` |
+| phạm vi | **ký ĐO 20, sửa, chạy đo** |
+| tab `nhat_ky` rỗng trên sheet thật | **để yên** (mục *Một lần ghi ngoài ý muốn* dưới đây) |
+
+### Sửa
+
+- `vong_doi_lenh.dat_lenh(..., bien_do=BIEN_DO)`: biên là tham số của lệnh,
+  mặc định vẫn ±7% — đúng cho một lệnh giới hạn đặt ở giá tự chọn.
+- `paper_trading.BIEN_DO_KIEM_GIA_MO = max(EXCHANGE_LIMITS.values())` —
+  **suy ra** từ `data_quality`, không gõ 0,15. `_khop_that` truyền nó.
+- `Status.HUY`; `fill_pending` đóng lệnh không khớp ở `HUY` với
+  `exit_date` = phiên khớp, `exit_reason = LY_DO_TU_CHOI_LENH` (hằng số có
+  từ 28/08, `8c7efe5`, **chưa từng được dùng**), không giá. Dòng nhật ký
+  giữ nguyên. Mọi chỗ đọc sổ đều lọc DƯƠNG (`== CLOSED`, `in (OPEN,
+  PENDING, CLOSING)`), nên `HUY` tự rơi khỏi vốn cam kết, vị thế mở và
+  mọi phép đo — rà bằng `grep` toàn repo trước khi thêm.
+
+Hai test cũ khoá hành vi XOÁ, đổi có chủ đích, giữ số test:
+`test_noi_truot_gia.py::test_ngoai_bien_do_thi_KHONG_co_VI_THE_chi_co_dong_HUY`,
+`test_nhat_ky_noi_day.py::test_lenh_KHONG_KHOP_thanh_HUY_va_dong_nhat_ky_GIU_NGUYEN`.
+
+**Phần dư đã biết, khai thẳng:** UPCoM lấy tham chiếu là giá BÌNH QUÂN phiên
+trước; ở đây tham chiếu là giá đóng cửa — 4 phiên UPCoM trong cache lệch >
+15% so với đóng cửa mà vẫn hợp lệ, và vẫn bị chặn. Cột `exchange` vẫn ghi
+`HOSE` cho mọi mã (`run_daily` truyền cứng), và bước giá mã HNX 10–50 nghìn
+vẫn tính theo thang HOSE (50đ thay vì 100đ) — trượt giá mã HNX bị tính THẤP.
+Người dùng không chọn phương án bước giá theo sàn; tách thành việc riêng.
+
+### Gác và đục
+
+`tests/test_bien_do_theo_san.py` nay không còn dấu: 11 test (4 ca mở cửa đã
+khớp thật · chốt > 15% · AST bắt biên phải SUY RA và phải được TRUYỀN · chuỗi
+hai tác nhân · HUY có ngày và lý do · HUY không giữ chỗ mã, không ăn trần vốn
+— đi qua CHÍNH truy vấn của `consider_entry` · HUY không vào phép đo, cạnh
+một lệnh đã đóng thật).
+
+Đục 13 phát qua `dot_bien_bo`, **13/13 đỏ**, hai phát đầu dựng lại NGUYÊN
+VĂN hai lỗi thật. Bản đầu của phép kiểm trần vốn chỉ tự cộng lại tổng — sẽ
+để sống đột biến *"trần đếm cả HUY"*; viết lại trước khi đục.

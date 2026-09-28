@@ -396,6 +396,15 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > tạo ở lần `push()` kế tiếp. Chưa có dòng thật nào — ba workflow vẫn tắt.
 > Việc tách ra: sàn HOSE ±7% áp cho cả mã HNX/UPCoM lúc khớp (BƯỚC 134,
 > mục *Việc tách ra*).
+>
+> **28/09/2026 — BƯỚC 136: việc tách ra ở trên ĐÃ ĐO VÀ ĐÃ SỬA.** Rổ có 4 mã
+> HNX + 3 mã UPCoM (VCI = KBS). Sổ thật chưa từng dính (117/117 lệnh mở có
+> dòng); walkforward thì có (7/582 lệnh OOS của lượt 4 ĐO 18). Người dùng
+> chọn: giá MỞ CỬA không kiểm biên độ sàn — chỉ chặn khi lệch vượt biên rộng
+> nhất 15%; lệnh không khớp đóng ở `HUY` thay vì bị xoá, nên `trades` chỉ
+> thêm và `push()` không còn bị từ chối vì nó. Số walkforward đo lại ở ĐO 20.
+> Còn treo, việc riêng: cột `exchange` ghi `HOSE` cho mọi mã; bước giá mã
+> HNX tính theo thang HOSE.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
