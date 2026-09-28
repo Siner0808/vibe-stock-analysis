@@ -1108,6 +1108,14 @@ không file nào ngoài test của chính chúng import. Nay `fill_pending` đi 
 `vong_doi_lenh` (lô chẵn · biên độ ±7% · trần thanh khoản mỗi nến · khớp
 một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 
+> 🔴 **"BIÊN ĐỘ ±7%" HẾT ĐÚNG TỪ 28/09/2026 — `docs/STATE.md` BƯỚC 136.**
+> Nó áp cho MỌI mã, kể cả 4 mã HNX và 3 mã UPCoM của rổ, và lệnh bị từ
+> chối còn bị XOÁ — `trades` co lại, `push()` từ chối đẩy, lượt sau khớp
+> trễ. Nay giá mở cửa (giá sở đã khớp) chỉ bị chặn khi lệch vượt biên rộng
+> nhất, `paper_trading.BIEN_DO_KIEM_GIA_MO` (suy từ
+> `data_quality.EXCHANGE_LIMITS`), và lệnh không khớp đóng ở `HUY`. Hai dòng
+> trượt-giá-BẬT đo lại ở ĐO 20.
+
 > 🔴 **VẾ "KHI BÁN" CHỈ ĐÚNG MỘT NỬA — audit 25/09/2026, `docs/STATE.md`
 > BƯỚC 121.** Chỉ nhánh cắt lỗ trong `evaluate_open` đi qua mô hình trượt
 > giá. Lệnh thoát theo tín hiệu (`SIGNAL_REVERSED`, trần thời gian) đi qua

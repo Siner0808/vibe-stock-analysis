@@ -59,6 +59,7 @@ class Lenh:
     gia_muc_tieu: float
     gia_tham_chieu: float
     san: str = "HOSE"
+    bien_do: float = BIEN_DO
 
     trang_thai: str = MOI
     da_khop: int = 0
@@ -84,17 +85,22 @@ class Lenh:
 
     def gioi_han_gia(self) -> tuple[float, float]:
         """Trần và sàn theo biên độ quanh giá tham chiếu."""
-        return (self.gia_tham_chieu * (1 - BIEN_DO),
-                self.gia_tham_chieu * (1 + BIEN_DO))
+        return (self.gia_tham_chieu * (1 - self.bien_do),
+                self.gia_tham_chieu * (1 + self.bien_do))
 
 
 def dat_lenh(ma: str, huong: str, khoi_luong: int, gia_muc_tieu: float,
-             gia_tham_chieu: float, san: str = "HOSE") -> Lenh:
+             gia_tham_chieu: float, san: str = "HOSE",
+             bien_do: float = BIEN_DO) -> Lenh:
     """Kiểm tra rồi tạo lệnh. Lệnh không hợp lệ bị TỪ CHỐI ngay, kèm lý do.
 
     Từ chối ở đây thay vì ném ngoại lệ với hai lỗi cuối, vì "sàn từ chối
     lệnh" là một kết cục có thật của vòng đời, cần ghi vào sổ chứ không
     phải sự cố lập trình.
+
+    `bien_do` mặc định là ±7% của HOSE — đúng cho một lệnh GIỚI HẠN đặt ở
+    một giá tự chọn. Người gọi đặt lệnh ở một giá ĐÃ KHỚP THẬT (giá mở cửa
+    trong dữ liệu) thì truyền biên khác: xem `paper_trading._khop_that`.
     """
     if huong not in (MUA, BAN):
         raise LenhError(f"huong phải là {MUA!r} hoặc {BAN!r}, nhận {huong!r}")
@@ -104,7 +110,8 @@ def dat_lenh(ma: str, huong: str, khoi_luong: int, gia_muc_tieu: float,
     kl = khoi_luong_hop_le(khoi_luong)
     lenh = Lenh(ma=ma.upper(), huong=huong, khoi_luong=kl,
                 gia_muc_tieu=float(gia_muc_tieu),
-                gia_tham_chieu=float(gia_tham_chieu), san=san)
+                gia_tham_chieu=float(gia_tham_chieu), san=san,
+                bien_do=float(bien_do))
 
     if kl == 0:
         lenh.trang_thai = TU_CHOI
@@ -115,7 +122,7 @@ def dat_lenh(ma: str, huong: str, khoi_luong: int, gia_muc_tieu: float,
     san_gia, tran_gia = lenh.gioi_han_gia()
     if not (san_gia <= gia_muc_tieu <= tran_gia):
         lenh.trang_thai = TU_CHOI
-        lenh.ly_do = (f"giá {gia_muc_tieu:,.0f} ngoài biên độ ±{BIEN_DO:.0%} "
+        lenh.ly_do = (f"giá {gia_muc_tieu:,.0f} ngoài biên độ ±{lenh.bien_do:.0%} "
                       f"[{san_gia:,.0f} ; {tran_gia:,.0f}]")
     return lenh
 
