@@ -396,6 +396,26 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > tạo ở lần `push()` kế tiếp. Chưa có dòng thật nào — ba workflow vẫn tắt.
 > Việc tách ra: sàn HOSE ±7% áp cho cả mã HNX/UPCoM lúc khớp (BƯỚC 134,
 > mục *Việc tách ra*).
+>
+> **CUỐI NGÀY 28/09.** #180 (BƯỚC 134, `60d6598`) và #181 (BƯỚC 135,
+> `617eef1`) đã vào `main`; BƯỚC 137 lên PR riêng.
+>
+> - **#180 suýt vào `main` với một lỗi làm MỌI lượt quét kẹt**: `pull()` nổ
+>   trên Google Sheet thật (gspread trả `[[]]` cho tab rỗng; `read_rows` tạo
+>   tab khi đọc). Một phiên song song bắt được trước merge; đã sửa, lỗi 107.
+>   ⚠️ **Lượt đo ấy để lại một tab `nhat_ky` RỖNG trên Google Sheet thật** —
+>   bản đã sửa coi nó là rỗng và lần đẩy kế tiếp ghi tiêu đề vào. **Người
+>   dùng quyết** giữ hay xoá.
+> - **BƯỚC 135:** cửa `push-thang-main` hết chặn nhầm tên nhánh `…-main`.
+> - **BƯỚC 136 (phiên song song, chưa merge):** sàn ±7% cho HNX/UPCoM + lệnh
+>   không khớp đóng ở trạng thái huỷ thay vì xoá — có ĐO 20, người dùng duyệt.
+> - **BƯỚC 137:** sổ tay NotebookLM nạp lại, 11 nguồn ghim mã băm
+>   `60d6598a…`, nhãn `<file> @60d6598`; độ tươi BƯỚC 134. Cách nạp đúng
+>   (thêm trước, xoá sau) nay ở `references/soat-cheo-notebooklm.md`.
+> - **Chờ người dùng (không đổi từ 27/09):** URL Streamlit Cloud · vế 3 điều
+>   kiện dừng · bật ba workflow · `scratch/luu_do18/`. Thêm: tab `nhat_ky`
+>   rỗng ở trên.
+> - **Hạn 29/09:** ĐO 14 (khối dưới) và lượt soát định kỳ 7.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
