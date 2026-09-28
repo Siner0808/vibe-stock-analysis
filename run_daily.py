@@ -237,6 +237,20 @@ def trang_thai_c5(cho_phep: bool, nguong: float) -> tuple[str, str]:
             "CỔNG C5\".")
 
 
+def _gia_vnindex():
+    """{ngày: giá đóng VN-INDEX}, hoặc None khi không có chuỗi.
+
+    Đường của BỘ LỌC — `market_filter.get_vni_df()`, cache, tất định — không
+    phải đường topbar. Dùng chung cho rổ đối chiếu của báo cáo và cho nửa
+    ĐÓNG của nhật ký "vì sao", để hai nơi so với cùng một rổ.
+    """
+    import market_filter
+    df = market_filter.get_vni_df()
+    if df is None or len(df) == 0:
+        return None
+    return dict(zip(df["time"].astype(str), df["close"].astype(float)))
+
+
 def _ro_chuan_vnindex(trades):
     """Rổ đối chiếu VN-INDEX cho báo cáo phiên — bất biến 6.
 
@@ -253,12 +267,10 @@ def _ro_chuan_vnindex(trades):
     chắc chắn rơi vào nhóm này, và điều đó phải nhìn thấy được.
     """
     try:
-        import market_filter
-        df = market_filter.get_vni_df()
-        if df is None or len(df) == 0:
+        gia = _gia_vnindex()
+        if gia is None:
             print("⚠️  Không có chuỗi VN-INDEX — báo cáo phiên sẽ thiếu đối chiếu chuẩn.")
             return None
-        gia = dict(zip(df["time"].astype(str), df["close"].astype(float)))
         ro = ro_chuan_tu_chuoi_gia(trades, gia)
         if not ro:
             print("⚠️  Rổ đối chiếu VN-INDEX rỗng — không lệnh nào khớp cặp ngày.")
@@ -505,6 +517,19 @@ def execute_daily_scan():
         # khiến `tools/chuong_bao_quet.py` báo giả 'ngày này không có
         # lượt quét nào' và che mất đúng thứ chuông kia sinh ra để canh.
         print(f"::warning::{_dong_canh}")
+
+    # ── NHẬT KÝ "VÌ SAO": nửa ĐÓNG (BƯỚC 134) ───────────────────────
+    # TRƯỚC báo cáo và trước khi đẩy Sheets: điền sau khi đẩy thì tab nhật
+    # ký trên kho ngoài luôn chậm một lượt. Nửa VÀO đã ghi lúc khớp, trong
+    # `fill_pending`; ở đây chỉ còn phần đọc được SAU khi lệnh đóng.
+    try:
+        _gia_nk = _gia_vnindex()
+    except Exception as _e:
+        print(f"⚠️  Không đọc được VN-INDEX cho nhật ký: {type(_e).__name__}: {_e}")
+        _gia_nk = None
+    _nk_doi = journal.hoan_tat_nhat_ky(_gia_nk)
+    print(f"📓 Nhật ký 'vì sao': điền nửa ĐÓNG cho {_nk_doi} lệnh"
+          + ("" if _gia_nk else " — THIẾU chuỗi VN-INDEX, chưa so được với rổ"))
 
     trades = journal.all_trades()
     rep = report(trades, benchmark=_ro_chuan_vnindex(trades))

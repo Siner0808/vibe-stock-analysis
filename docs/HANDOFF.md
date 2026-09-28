@@ -381,12 +381,21 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   trong `fill_pending` (trước mọi lần nâng stop), dòng ĐÓNG khi lệnh
 >   đóng, bảng SQLite + tab Sheets mới theo `COT_NHAT_KY`. P2c (hậu kiểm
 >   lời bằng Claude) cần người dùng tự đặt khoá API.
+>   🔴 **"Chưa nối" HẾT ĐÚNG từ 28/09 — BƯỚC 134** (khối dưới).
 > - **BƯỚC 132 (P2b-1):** `boi_canh_luc_tin_hieu` — bối cảnh GIÀU (người
 >   dùng chọn): VN-INDEX so MA50 + số đo rủi ro + khối lượng, đọc từ kết
 >   quả phân tích và VN-INDEX cắt đúng biểu thức `is_vni_bullish`. Người
 >   dùng chọn: **chỉ sổ THẬT ghi nhật ký** (`cho_phep_so_that`), backtest
 >   không. Nối dây: gọi hàm này trong `consider_entry` (lúc có `result`),
 >   truyền `market_filter.get_vni_df()` — KHÔNG `chi_so_moi_nhat()`.
+>
+> **28/09/2026 — BƯỚC 134 (P2b-2): NHẬT KÝ ĐÃ NỐI vào sổ thật.** Dòng mở
+> lúc tín hiệu (`consider_entry`, bối cảnh), nửa VÀO lúc khớp
+> (`fill_pending`, cắt lỗ BAN ĐẦU), nửa ĐÓNG ở `run_daily` trước khi đẩy
+> (`hoan_tat_nhat_ky`, rổ VN-INDEX). Tab Google Sheets thứ ba `nhat_ky`,
+> tạo ở lần `push()` kế tiếp. Chưa có dòng thật nào — ba workflow vẫn tắt.
+> Việc tách ra: sàn HOSE ±7% áp cho cả mã HNX/UPCoM lúc khớp (BƯỚC 134,
+> mục *Việc tách ra*).
 
 **Chờ tới ngày, đừng đọc sớm:**
 

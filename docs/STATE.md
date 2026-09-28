@@ -18495,6 +18495,8 @@ và MO-XE Tầng 2 ủng hộ hai quyết định.
 ### Điều BƯỚC này KHÔNG nói
 
 - Chưa có dòng nhật ký nào tồn tại: module chưa được gọi từ đâu.
+  🔴 **HẾT ĐÚNG từ 28/09/2026 — BƯỚC 134** nối module vào `paper_trading`
+  (sổ thật): dòng mở lúc tín hiệu, nửa VÀO lúc khớp, nửa ĐÓNG ở `run_daily`.
 - `boi_canh` là dict do người gọi đưa vào — P2b quyết định gồm gì (tối thiểu
   cổng VN-INDEX, chất lượng dữ liệu, ngưỡng lúc tín hiệu).
 - R dựa trên lợi nhuận RÒNG nên một lệnh hoà vốn giá vẫn ra R hơi âm (phí
@@ -18549,6 +18551,8 @@ nói ngược, nhưng là lý do của đoạn *Đường VN-INDEX khi nối dâ
   module. Bối cảnh phải chụp ở `consider_entry` (chỉ ở đó có `result`) rồi
   giữ tới lúc khớp — P2b-2 quyết cách giữ (cột mới hay bảng nhật ký mở dòng
   từ lúc tín hiệu).
+  🔴 **HẾT ĐÚNG từ 28/09/2026 — BƯỚC 134:** cả hai đã gọi; chọn **bảng nhật
+  ký mở dòng từ lúc tín hiệu** (lý do ở BƯỚC 134).
 - `atr_pct` của agent rủi ro là `sl_fraction * 50`, không phải ATR% thô — ghi
   đúng tên khoá gốc để người đọc tra được.
 
@@ -18620,3 +18624,164 @@ HANDOFF vào *"mục 5"*; thật ra là **mục 7** (dòng 634, tiêu đề ở 
 - Không máy nào canh loại lỗi này (dòng 106 là ❌): một lời khai VẮNG MẶT đo
   bằng một API trong khi thứ ấy có hai đường khai báo.
 - Không thử đẩy thẳng `main` để "đo" việc bị chặn — đó chính là thao tác luật cấm.
+
+## BƯỚC 134 — P2b-2 NỐI NHẬT KÝ "VÌ SAO" VÀO SỔ THẬT: DÒNG MỞ LÚC TÍN HIỆU, NỬA VÀO LÚC KHỚP, NỬA ĐÓNG TRƯỚC KHI ĐẨY; TAB SHEETS THỨ BA (28/09/2026)
+
+Người dùng: *"bắt đầu ngày mới, hãy làm cho đến khi chạm Limit"*. Việc kế đã
+ghi ở BƯỚC 132: nối `nhat_ky_vi_sao` vào đường giao dịch.
+
+### Một câu hỏi thiết kế quyết định cả BƯỚC
+
+Bối cảnh chụp ở `consider_entry` (chỉ ở đó có `result`) phải sống tới lúc
+khớp. Trên đường thật hai việc ấy nằm ở **hai lượt quét, hai runner**: tín
+hiệu ở lượt hôm nay, khớp ở lượt phiên sau trên một runner sạch vừa kéo sổ
+từ Google Sheets. Nên thứ giữ bối cảnh phải **đi qua Sheets**:
+
+| cách | vì sao không / vì sao có |
+|---|---|
+| thêm cột vào `trades` | đổi `TRADE_COLS` → `pull()` NỔ trên sheet thật đang có 18 cột (bất biến 2 của `sheets_store`) |
+| giữ trong bộ nhớ / bảng tạm local | mất qua đêm — runner sau không có nó |
+| **bảng `nhat_ky`, dòng mở LÚC TÍN HIỆU, tab Sheets thứ ba** | **chọn** — một dòng một lệnh, điền dần |
+
+### Ba chỗ nối
+
+| chỗ | ghi gì | vì sao ở đó |
+|---|---|---|
+| `consider_entry` | mở dòng: `trade_id` · mã · ngày tín hiệu · `boi_canh` | chỉ ở đó có `result`; VN-INDEX qua `market_filter.get_vni_df()`, cắt bằng CÙNG `signal_date` cổng vừa hỏi |
+| `fill_pending` | nửa VÀO (`dong_vao_lenh`): giá vào, **cắt lỗ BAN ĐẦU**, rủi ro, điểm agent, lý do | ngay sau `UPDATE … OPEN`, TRƯỚC mọi lần `evaluate_open` nâng stop |
+| `hoan_tat_nhat_ky` ← `run_daily` | nửa ĐÓNG (`dong_dong_lenh`): ròng · R · rổ VN-INDEX · alpha · hậu kiểm máy | TRƯỚC báo cáo và trước `push()`; làm lại được — rổ tới muộn thì lượt sau điền |
+
+Nửa ĐÓNG ghi SAU được mà nửa VÀO thì không: nửa ĐÓNG chỉ đọc thứ sổ lệnh
+không còn đổi khi lệnh đã `CLOSED`; nửa VÀO đọc `stop_loss`, thứ bị trailing
+ghi đè từ phiên sau khớp.
+
+Rổ của nửa ĐÓNG dựng bằng đúng `paper_metrics.ro_chuan_tu_chuoi_gia` trên
+chuỗi `get_vni_df()` — `run_daily._gia_vnindex()` nay dùng chung cho rổ của
+báo cáo phiên và cho nhật ký, để hai nơi so với cùng một rổ.
+
+**Chỉ sổ thật ghi** (`self.ghi_nhat_ky = bool(cho_phep_so_that)`, người dùng
+chốt 27/09). Bảng thì sổ nào cũng có (rỗng) để đẩy/kéo Sheets khỏi rẽ nhánh.
+Lệnh không khớp bị xoá thì dòng nhật ký của nó cũng xoá (`fill_pending`,
+`dong_so_sach`). Lệnh chờ có từ trước khi có nhật ký thì nửa VÀO vẫn ghi,
+bối cảnh để **rỗng** (không phải chuỗi `"null"` — `dong_vao_lenh` nay nhận
+`None`).
+
+### Google Sheets — tab `nhat_ky`
+
+Soi gương toàn phần như `trades`, cùng **chốt co-lại** (local ít dòng hơn
+sheet thì từ chối đẩy), và chốt ấy đứng **trước mọi lần ghi** để một lần từ
+chối không để lại hai tab lệch nhau. `pull()` đọc **cả ba** tab trước lệnh
+`DELETE` đầu tiên — điều kiện thử lại an toàn của `keo_so_co_thu_lai`. Lược
+đồ suy từ `nhat_ky_vi_sao` (`COT_NHAT_KY`, `COT_SO_NGUYEN`, `COT_SO_THUC`,
+`DDL_NHAT_KY`): bảng SQLite và phép đổi ô Sheets không gõ lại cột nào.
+
+Hợp đồng trả về của `pull()` thêm khoá `nhat_ky`; năm phép so cũ trong
+`tests/test_keo_so_thu_lai.py` · `tests/test_sheets_store.py` sửa theo, và
+chú thích *"hai lời gọi mạng"* ở `google_sheets_sync.py` thành *"MỌI lời
+gọi"* — một con số đếm thứ có thật thì trôi.
+
+### Gác và đục
+
+`tests/test_nhat_ky_noi_day.py`, 17 test, viết TRƯỚC và chạy ra **16/16
+đỏ** trước khi sửa mã. Phép kiểm đứng đầu dựng lại nguyên văn thứ nhật ký
+sinh ra để giữ: trailing nâng stop từ 95 lên 100,44 rồi cắt — nhật ký vẫn
+ghi **95**, R tính trên 5%.
+
+Đục 18 phát qua `dot_bien_bo` (`paper_trading` 10 · `sheets_store` 6 ·
+`run_daily` 1 · `nhat_ky_vi_sao` 1). Lượt đầu **15/18**, ba phát sống sót
+đúng ba lỗ của bộ test:
+
+```
+hoan tat bo dieu kien nua VAO         SONG  khong ca nao co lenh DA DONG thieu nua VAO
+dem 'doi' ca dong khong doi           SONG  khong luot thu hai khi ro VAN thieu
+keo doc tab nhat ky SAU khi xoa       SONG  phep do SAU khi hong bi rollback che mat
+```
+
+Phát thứ ba đáng ghi: đo sổ **sau** khi `pull()` hỏng thì rollback trả sổ về
+như cũ dù `pull()` đã xoá trước rồi mới đọc. Phép sửa đo **thứ tự ngay lúc
+lời gọi mạng xảy ra** — cùng họ lỗi 61, máy đo hẹp hơn thứ nó khai. Thêm ba
+ca, chạy lại **cả bộ: 18/18 đỏ**.
+
+Năm cổng: lượt đầu cổng 1 · 4 · 5 đỏ chung một gốc — mốc số test 1491, đếm
+được 1508 (thêm 17). Cổng 2 · 3 xanh (`0 CHẶN · 10 cảnh báo`). Lượt hai, sau
+`kiem_so_test_khong_giam.py --cap-nhat`: **năm cổng xanh** — 1508 passed · 112
+file chạy riêng xanh · mốc khớp.
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`. Sổ tay: *"không tìm thấy câu
+nào nói ngược"*. **Câu âm ấy không phủ được chỗ đáng lo**: nguồn nạp 27/09
+từ `a19915a` dừng ở BƯỚC 130, còn mọi câu về nhật ký viết sau đó. Grep bắt
+**ba** câu sẽ sai khi BƯỚC này vào — `docs/HANDOFF.md` *"**Chưa nối** vào
+`paper_trading`"*, BƯỚC 131 *"Chưa có dòng nhật ký nào tồn tại"*, BƯỚC 132
+*"Vẫn chưa có dòng nhật ký nào"* — cả ba nay mang dấu 🔴.
+
+### Việc tách ra, KHÔNG làm ở BƯỚC này
+
+`_khop_that` gọi `vong_doi_lenh.dat_lenh` với sàn mặc định HOSE (±7%) cho
+mọi mã, kể cả mã HNX/UPCoM trong rổ (PVS · OIL…). Một phiên mở cửa +8% hợp
+lệ bị *"sàn từ chối"* → lệnh chờ bị XOÁ → nếu lượt ấy không có lệnh mới thì
+`push()` từ chối vì `trades` co lại, và lượt sau kéo lệnh chờ về rồi khớp
+**trễ một phiên**. Docstring của `push()` nói *"bảng trades chỉ có tăng"* —
+sai đúng ở ca này. **Chưa đo trên sổ thật**, đã tách thành việc riêng; nó
+đổi hành vi khớp nên chạm số đo.
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Chưa có dòng nhật ký THẬT nào**: ba workflow vẫn tắt, và tab `nhat_ky`
+  trên Google Sheet thật chỉ được tạo ở lần `push()` kế tiếp.
+- Không phép đo nào đổi: backtest/walkforward mở sổ không cờ — gác chứng minh
+  bằng một `get_vni_df` giả NỔ nếu bị gọi.
+- Vị thế đang mở từ trước (không có dòng nhật ký) không được ghi bù: cắt lỗ
+  ban đầu của chúng có thể đã bị nâng.
+- P2c (hậu kiểm LỜI) vẫn chờ khoá API của người dùng; cột `hau_kiem_loi` rỗng.
+
+### Lỗi tìm ra SAU khi mở PR #180 — bởi một phiên song song, trên sheet THẬT
+
+Phiên làm việc *sàn HNX/UPCoM* (tách ra ở trên) chạy `keo_so_co_thu_lai`
+của nhánh này vào một DB tạm, trên Google Sheet thật: **cả 3 lần**
+`SheetSchemaError: … tab 'nhat_ky' lệch … trên sheet: []`. Kiểm lại trong mã
+gspread 6.2.1 đang cài:
+
+```
+Worksheet.get : values = response.get("values", [[]])
+fill_gaps([])  -> [[]]
+```
+
+Tab rỗng trả **`[[]]`**, không phải `[]`; và `GoogleSheet._tab()` **TẠO** tab
+khi ĐỌC. Nên trên sheet đời trước BƯỚC này, lần kéo đầu tiên gặp `[[]]`,
+`if bang_nk:` đúng, và kiểm tiêu đề nổ. `push()` — thứ duy nhất ghi tiêu đề —
+đứng SAU `pull()` trong `run_daily`: bật `quet-so-lenh` là **mọi lượt quét kẹt
+vĩnh viễn** ở *"KÉO SỔ LỆNH THẤT BẠI"*.
+
+**Vì sao 17 test không thấy:** `InMemorySheet.read_rows` trả `[]` cho tab
+thiếu và không tự tạo tab. Backend giả **hẹp hơn** backend thật đúng ở chỗ
+quyết định — cùng họ lỗi 94 (nền giả phải cùng tính chất với thứ nó giả), lần
+này ở tầng lưu trữ. Lỗi 107.
+
+Sửa: `pull()` bỏ dòng rỗng của tab `nhat_ky` TRƯỚC khi kiểm tiêu đề — tab
+không có dòng nào là tab RỖNG, không phải lược đồ lệch; tab có dòng vẫn kiểm
+như cũ. Gác: `GspreadGia` trong `tests/test_nhat_ky_noi_day.py` giữ đúng hai
+đặc tính trên, hai ca (tab chưa có · tab rỗng như hôm ấy để lại); dựng lại
+nguyên văn lỗi, đỏ trước khi sửa; bỏ bộ lọc thì đỏ (1/1).
+
+**Hệ quả phụ, ghi để người dùng quyết:** lượt đọc ấy đã **tạo một tab
+`nhat_ky` rỗng** trên Google Sheet thật. `main` hiện tại không đọc tab ấy; bản
+đã sửa coi nó là rỗng và `push()` kế tiếp ghi tiêu đề vào. Không xoá.
+
+**Và nhánh GHI ẩn trong đường CHỈ ĐỌC** (phiên song song chỉ ra, cùng ngày).
+`GoogleSheet.read_rows` đi qua `_tab()`, mà `_tab()` gọi `add_worksheet` khi
+tab chưa có. Vô hại chừng nào `pull()` chỉ đọc hai tab luôn có sẵn; từ tab
+thứ ba, mọi đường chỉ đọc gọi `pull()` — `tools/doc_so_that.py` (docstring
+*"CHỈ ĐỌC"*, có gác AST), `keo_so_co_thu_lai`, `load_trades_from_google_sheets`
+— **tạo tab trên sheet thật**. Gác AST của `doc_so_that` không thấy được vì
+lần ghi nằm hai tầng dưới; chính lượt đo hôm ấy đã đi đúng đường này. Sửa:
+`read_rows` trả `[]` khi `WorksheetNotFound`, chỉ `write_all` / `append_rows`
+tạo tab. Chỉ bắt ĐÚNG ngoại lệ ấy: bắt mọi `Exception` thì lỗi mạng khi đọc
+`trades` thành *"tab rỗng"* và `pull()` xoá sổ local theo nó — phát đục ấy
+**sống sót** ở lượt đầu, thêm ca lỗi mạng thì đỏ. Đục 3/3 đỏ.
+
+**Cố ý KHÔNG nới cho `trades` · `decisions`:** hai tab ấy trên sheet thật luôn
+có tiêu đề; một lần đọc trả rỗng ở đó là bất thường, và nổ vẫn an toàn hơn
+kéo về một sổ rỗng. `InMemorySheet` cũng để nguyên — đổi nó chạm cả bộ test
+Sheets; `GspreadGia` đứng riêng cho đúng ca cần.

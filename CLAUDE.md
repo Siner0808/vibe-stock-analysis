@@ -1425,6 +1425,7 @@ xung đột trên sổ lệnh nghĩa là mất bằng chứng.
 |---|---|---|
 | `decisions` | chỉ thêm dòng có `seq` lớn hơn | bảng chỉ-thêm, 9.002 dòng, không ghi lại |
 | `trades` | soi gương toàn phần | lệnh đổi trạng thái và stop_loss được nâng |
+| `nhat_ky` | soi gương toàn phần, cùng chốt co-lại | nhật ký "vì sao": dòng mở lúc tín hiệu rồi điền dần — thêm 28/09/2026, `docs/STATE.md` BƯỚC 134 |
 
 Bốn bất biến, khoá bởi `tests/test_sheets_store.py` (14 test, chạy offline
 không cần mạng lẫn credential nhờ `InMemorySheet`):

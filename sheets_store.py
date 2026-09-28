@@ -25,6 +25,11 @@ hai chiều sinh xung đột, mà xung đột trên sổ lệnh nghĩa là mất
                  (PENDING → OPEN → CLOSING → CLOSED) và stop_loss được
                  nâng theo trailing, nên phải ghi đè cả bảng. Ghi đè toàn
                  phần cũng làm phép đẩy tự idempotent.
+    nhat_ky    → SOI GƯƠNG TOÀN PHẦN, cùng chốt co-lại với trades (BƯỚC
+                 134). Một dòng mở LÚC TÍN HIỆU rồi được điền dần — nửa
+                 VÀO lúc khớp, nửa ĐÓNG sau khi đóng — nên cũng phải ghi đè.
+                 Lệnh chờ khớp qua đêm trên một runner sạch: dòng không lên
+                 Sheets thì bối cảnh lúc tín hiệu mất.
 
 BẤT BIẾN CỦA MODULE NÀY
 ───────────────────────
@@ -46,6 +51,8 @@ import pathlib
 import sqlite3
 from typing import Any, Optional, Protocol
 
+from nhat_ky_vi_sao import COT_NHAT_KY, COT_SO_NGUYEN, COT_SO_THUC
+
 # ── Lược đồ: thứ tự cột ở đây LÀ hợp đồng với Google Sheet ───────────
 # Đổi thứ tự hoặc đổi tên cột là đổi lược đồ -> pull() sẽ nổ chứ không
 # âm thầm đọc sai cột, và đó là hành vi mong muốn.
@@ -61,9 +68,12 @@ DECISION_COLS: tuple[str, ...] = (
     "acted", "skip_reason", "components", "reasons", "data_quality",
 )
 
-_INT_COLS = {"id", "seq", "entry_score", "score", "acted"}
+#: Lược đồ tab nhật ký "vì sao" — suy từ `nhat_ky_vi_sao`, không gõ lại.
+NHAT_KY_COLS: tuple[str, ...] = COT_NHAT_KY
+
+_INT_COLS = {"id", "seq", "entry_score", "score", "acted"} | COT_SO_NGUYEN
 _FLOAT_COLS = {"entry_price", "exit_price", "stop_loss", "take_profit",
-               "size_pct", "created_at", "at"}
+               "size_pct", "created_at", "at"} | COT_SO_THUC
 
 # Ô rỗng trên sheet mang HAI nghĩa khác nhau tuỳ cột, nên phải khai báo rõ
 # cột nào được phép NULL. Không khai báo thì buộc phải chọn bừa một nghĩa,
@@ -77,9 +87,16 @@ _FLOAT_COLS = {"entry_price", "exit_price", "stop_loss", "take_profit",
 # Nhờ tách bạch, vòng đẩy-kéo không mất gì — khoá bởi
 # test_day_roi_keo_ve_ra_dung_so_cu và test_giu_nguyen_null_cot_chu.
 _NULLABLE_TEXT_COLS = {"entry_date", "exit_date", "exit_reason"}
+# Nhật ký: mọi cột chữ trừ hai cột có từ lúc mở dòng đều NULL được — dòng mở
+# lúc tín hiệu chưa có nửa VÀO, dòng chưa đóng chưa có nửa ĐÓNG. Ô rỗng ở đó
+# chưa bao giờ là chuỗi rỗng hợp lệ.
+_NULLABLE_TEXT_COLS |= ({c for c in NHAT_KY_COLS
+                         if c not in COT_SO_NGUYEN | COT_SO_THUC}
+                        - {"symbol", "signal_date"})
 
 TAB_TRADES = "trades"
 TAB_DECISIONS = "decisions"
+TAB_NHAT_KY = "nhat_ky"
 
 
 class SheetError(RuntimeError):
@@ -144,7 +161,20 @@ class GoogleSheet:
             return self._sh.add_worksheet(title=tab, rows=1000, cols=30)
 
     def read_rows(self, tab: str) -> list[list[str]]:
-        return self._tab(tab).get_all_values()
+        """ĐỌC không TẠO gì: tab chưa có thì trả `[]`.
+
+        Bản cũ đi qua `_tab()`, mà `_tab()` gọi `add_worksheet` khi tab chưa
+        có — một nhánh GHI ẩn trong mọi đường chỉ đọc (`tools/doc_so_that.py`,
+        `keo_so_co_thu_lai`). Vô hại khi `pull()` chỉ đọc hai tab luôn có sẵn;
+        từ tab thứ ba (BƯỚC 134) nó tạo tab trên sheet THẬT — đo 28/09/2026.
+        Chỉ bắt đúng `WorksheetNotFound`: lỗi mạng vẫn phải nổ.
+        """
+        import gspread
+        try:
+            ws = self._sh.worksheet(tab)
+        except gspread.exceptions.WorksheetNotFound:
+            return []
+        return ws.get_all_values()
 
     def write_all(self, tab: str, rows: list[list[str]]) -> None:
         """Ghi đè bảng bằng MỘT lệnh gọi duy nhất.
@@ -194,6 +224,26 @@ def _from_cell(col: str, cell: str) -> Any:
     if col in _INT_COLS or col in _FLOAT_COLS or col in _NULLABLE_TEXT_COLS:
         return None
     return ""
+
+
+def _co_bang(db: sqlite3.Connection, ten: str) -> bool:
+    return db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                      (ten,)).fetchone() is not None
+
+
+def _dong_nhat_ky(db: sqlite3.Connection) -> list:
+    """Dòng nhật ký của sổ local. Sổ dựng bằng connection thô, đời trước
+    BƯỚC 134, không có bảng — nó có 0 dòng, và chốt co-lại xử lý đúng ca ấy:
+    sheet đang có dòng thì từ chối đẩy."""
+    if not _co_bang(db, "nhat_ky"):
+        return []
+    return db.execute(f"SELECT {', '.join(NHAT_KY_COLS)} FROM nhat_ky"
+                      " ORDER BY trade_id").fetchall()
+
+
+def _dem_dong(rows: list[list[str]]) -> int:
+    """Bỏ header và các dòng trống đệm do write_all() để lại."""
+    return sum(1 for r in rows[1:] if r and any(c != "" for c in r))
 
 
 def _kiem_tra_header(tab: str, header: list[str], mong_doi: tuple[str, ...]) -> None:
@@ -247,6 +297,17 @@ def push(db: sqlite3.Connection, backend: SheetBackend,
             f"Nếu thật sự muốn thay bằng bản nhỏ hơn: push(..., "
             f"cho_phep_co_lai=True).")
 
+    # Chốt co-lại của nhật ký đứng TRƯỚC mọi lần ghi: từ chối giữa chừng,
+    # sau khi trades đã ghi, là để lại hai tab lệch nhau.
+    nk = _dong_nhat_ky(db)
+    so_nk_tren_sheet = _dem_dong(backend.read_rows(TAB_NHAT_KY))
+    if len(nk) < so_nk_tren_sheet and not cho_phep_co_lai:
+        raise SheetError(
+            f"TỪ CHỐI ĐẨY: nhật ký local có {len(nk)} dòng, sheet đang có "
+            f"{so_nk_tren_sheet}.\n"
+            f"Tab nhật ký ghi đè toàn phần, nên đẩy bản ít hơn là XOÁ MẤT "
+            f"{so_nk_tren_sheet - len(nk)} dòng — gọi pull() trước.")
+
     bang_trades = [list(TRADE_COLS)]
     bang_trades += [[_to_cell(c, r[c]) for c in TRADE_COLS] for r in rows]
     backend.write_all(TAB_TRADES, bang_trades)
@@ -297,8 +358,14 @@ def push(db: sqlite3.Connection, backend: SheetBackend,
             TAB_DECISIONS,
             [[_to_cell(c, r[c]) for c in DECISION_COLS] for r in moi])
 
+    # ── nhật ký: soi gương toàn phần ─────────────────────────────────
+    bang_nk = [list(NHAT_KY_COLS)]
+    bang_nk += [[_to_cell(c, r[c]) for c in NHAT_KY_COLS] for r in nk]
+    backend.write_all(TAB_NHAT_KY, bang_nk)
+
     return {"trades": len(rows), "decisions_moi": len(moi),
-            "decisions_da_co": seq_lon_nhat, "decisions_bo_sot": 0}
+            "decisions_da_co": seq_lon_nhat, "decisions_bo_sot": 0,
+            "nhat_ky": len(nk)}
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -316,18 +383,32 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
     """
     db.row_factory = sqlite3.Row
     dang_co = (db.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
-               + db.execute("SELECT COUNT(*) FROM decisions").fetchone()[0])
+               + db.execute("SELECT COUNT(*) FROM decisions").fetchone()[0]
+               + len(_dong_nhat_ky(db)))
     if dang_co and not allow_overwrite:
         raise SheetError(
             f"Sổ lệnh đích đang có {dang_co} bản ghi. pull() từ chối ghi đè.\n"
             f"Nếu thật sự muốn thay toàn bộ, gọi pull(..., allow_overwrite=True).")
 
+    # MỌI lời gọi mạng đứng TRƯỚC lệnh DELETE đầu tiên — điều kiện để
+    # `keo_so_co_thu_lai` thử lại an toàn (tests/test_keo_so_thu_lai.py).
     bang_trades = backend.read_rows(TAB_TRADES)
     bang_dec = backend.read_rows(TAB_DECISIONS)
+    # Bỏ dòng rỗng TRƯỚC khi kiểm tiêu đề: gspread trả `[[]]` cho một tab
+    # rỗng, và `GoogleSheet._tab()` TẠO tab khi ĐỌC. Trên sheet đời trước
+    # BƯỚC 134 lần kéo đầu tiên gặp đúng `[[]]` — bản đầu coi đó là tiêu đề
+    # lệch và nổ, mà `push()` (thứ duy nhất ghi tiêu đề) đứng SAU `pull()`
+    # trong `run_daily`, nên mọi lượt quét sẽ kẹt ở bước kéo. Đo 28/09/2026
+    # trên sheet thật. Một tab không có dòng nào là tab RỖNG, không phải
+    # lược đồ lệch; tab có dòng thì vẫn kiểm tiêu đề như cũ.
+    bang_nk = [r for r in backend.read_rows(TAB_NHAT_KY)
+               if r and any(c != "" for c in r)]
 
-    n_trades = n_dec = 0
+    n_trades = n_dec = n_nk = 0
     db.execute("DELETE FROM trades")
     db.execute("DELETE FROM decisions")
+    if _co_bang(db, "nhat_ky"):
+        db.execute("DELETE FROM nhat_ky")
 
     if bang_trades:
         _kiem_tra_header(TAB_TRADES, bang_trades[0], TRADE_COLS)
@@ -354,8 +435,20 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
                 [_from_cell(c, r[i]) for i, c in enumerate(DECISION_COLS)])
             n_dec += 1
 
+    if bang_nk:
+        _kiem_tra_header(TAB_NHAT_KY, bang_nk[0], NHAT_KY_COLS)
+        cho = ",".join("?" * len(NHAT_KY_COLS))
+        for r in bang_nk[1:]:
+            if not r or all(c == "" for c in r):
+                continue
+            r = list(r) + [""] * (len(NHAT_KY_COLS) - len(r))
+            db.execute(
+                f"INSERT INTO nhat_ky ({', '.join(NHAT_KY_COLS)}) VALUES ({cho})",
+                [_from_cell(c, r[i]) for i, c in enumerate(NHAT_KY_COLS)])
+            n_nk += 1
+
     db.commit()
-    return {"trades": n_trades, "decisions": n_dec}
+    return {"trades": n_trades, "decisions": n_dec, "nhat_ky": n_nk}
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -464,14 +557,10 @@ def trang_thai(backend: Optional[SheetBackend]) -> dict:
         return {"bat": False, "ghi_chu": "Chưa cấu hình GOOGLE_SHEET_KEY / "
                                          "gcp_service_account — sổ lệnh chỉ "
                                          "nằm trên ổ đĩa tạm"}
-    def _dem(rows: list[list[str]]) -> int:
-        # Bỏ header và các dòng trống đệm do write_all() để lại.
-        return sum(1 for r in rows[1:] if r and any(c != "" for c in r))
-
     try:
         return {"bat": True,
-                "trades": _dem(backend.read_rows(TAB_TRADES)),
-                "decisions": _dem(backend.read_rows(TAB_DECISIONS)),
+                "trades": _dem_dong(backend.read_rows(TAB_TRADES)),
+                "decisions": _dem_dong(backend.read_rows(TAB_DECISIONS)),
                 "ghi_chu": "Kho ngoài hoạt động"}
     except Exception as e:
         return {"bat": False, "ghi_chu": f"Kho ngoài LỖI: {type(e).__name__}: {e}"}
