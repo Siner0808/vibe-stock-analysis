@@ -507,7 +507,13 @@ LUAT = [
     ),
     (
         "push-thang-main",
-        re.compile(r"\bgit\s+push\b[^\n]*\bmain\b(?![\w/-])"),
+        # `main` phải đứng ĐẦU một tên — sau khoảng trắng, `:` `+` (refspec),
+        # dấu nháy, hoặc `refs/heads/`. Bản cũ `\bmain\b` khớp cả sau `-` và
+        # `/`, nên chặn nhầm nhánh `tai-lieu/ruleset-main` (27/09/2026) — lượt
+        # chặn DUY NHẤT của luật này trong nhật ký cửa tính tới 28/09/2026
+        # (3106 lệnh thật; đo bằng `tools/soat_nhat_ky_cua.py`). BƯỚC 135.
+        re.compile(r"\bgit\s+push\b[^\n]*"
+                   r"(?:(?<=[\s:+'\"])|(?<=refs/heads/))main(?![\w/-])"),
         "Đẩy thẳng lên `main`. GitHub CHẶN việc này: ruleset `main` "
         "(active từ 21/08/2026) bắt PR và bắt check `kiem-dinh` xanh ở chế "
         "độ strict, 0 người đi vòng. Cách đúng: nhánh -> PR -> merge.\n"
@@ -994,7 +1000,8 @@ LUAT_PS = [
     ),
     (
         "ps-push-thang-main",
-        lambda c: bool(re.search(r"(?i)\bgit\s+push\b.*\bmain\b(?![\w/-])", c)),
+        lambda c: bool(re.search(r"(?i)\bgit\s+push\b.*"
+                                 r"(?:(?<=[\s:+'\"])|(?<=refs/heads/))main(?![\w/-])", c)),
         "Đẩy thẳng lên `main` — GitHub CHẶN (ruleset `main` từ 21/08/2026, "
         "BƯỚC 133). Anh em của `push-thang-main`; lý do thứ hai: "
         "`.github/workflows/kiem-dinh.yml` chạy trên CẢ `push` lẫn "
