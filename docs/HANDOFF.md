@@ -111,6 +111,8 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
    trị lúc chạy. Đóng lại là một hành vi có cân nhắc: sửa cả test lẫn
    `NGAY_DONG_CONG_C5`. **Cờ mở chưa sinh lệnh nào** — đường quét tự động
    tạm ngừng cùng `vnstock` (mục 5).
+   🔴 **HẾT ĐÚNG từ 28/09/2026 — BƯỚC 138:** ba workflow bật lại, lượt quét đầu mở 6 lệnh
+   ảo chờ khớp (HHP · MSR · PVT · DCL · HDB · GEL, tín hiệu 25/09).
    *(Bản trước ghi "đang ĐÓNG, đóng bằng tay từ 29/08/2026" — đúng tới
    BƯỚC 125. Sổ tay soát BƯỚC 125 KHÔNG chỉ ra câu này; `grep` bắt được.)*
 2. **Sổ lệnh THẬT nằm trên Google Sheets.** File `.db` ở máy đứng yên từ
@@ -309,6 +311,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > thêm kho hãng và ghim đúng bản (BƯỚC 127). PyPI lúc 07:27
 > UTC vẫn *quarantined*. Ba workflow **vẫn TẮT** — bật lại cần người dùng cho
 > phép riêng, vì cổng lệnh ảo đã mở (BƯỚC 125) — và từ 27/09 nó mở trên `main`.
+> 🔴 **HẾT ĐÚNG từ 28/09/2026 — BƯỚC 138:** người dùng cho phép (*"Bật lại đi"*), bật ~07:15 UTC.
 
 > 🧭 **CUỐI NGÀY 26/09/2026 — đọc trước khi làm tiếp.**
 >
@@ -370,7 +373,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   Nạp lại lần sau khi `main` đi xa: `references/soat-cheo-notebooklm.md`.
 > - **Chờ người dùng:** (1) địa chỉ app Streamlit Cloud — repo không lưu —
 >   để kiểm việc treo từ BƯỚC 127; (2) vế 3 điều kiện dừng của cổng lệnh ảo;
->   (3) bật lại ba workflow — cổng lệnh ảo nay MỞ trên `main`, nên bật
+>   ~~(3) bật lại ba workflow~~ ✅ bật 28/09 (BƯỚC 138) — cổng lệnh ảo nay MỞ trên `main`, nên bật
 >   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; (4) xoá hẳn
 >   `scratch/luu_do18/` hay giữ.
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới) và lượt soát định kỳ 7 (nhịp
@@ -394,6 +397,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > (`fill_pending`, cắt lỗ BAN ĐẦU), nửa ĐÓNG ở `run_daily` trước khi đẩy
 > (`hoan_tat_nhat_ky`, rổ VN-INDEX). Tab Google Sheets thứ ba `nhat_ky`,
 > tạo ở lần `push()` kế tiếp. Chưa có dòng thật nào — ba workflow vẫn tắt.
+> 🔴 **HẾT ĐÚNG từ 28/09/2026 — BƯỚC 138:** 6 dòng thật trên tab `nhat_ky` (lệnh 118–123).
 > Việc tách ra: sàn HOSE ±7% áp cho cả mã HNX/UPCoM lúc khớp (BƯỚC 134,
 > mục *Việc tách ra*).
 >
@@ -423,7 +427,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `60d6598a…`, nhãn `<file> @60d6598`; độ tươi BƯỚC 134. Cách nạp đúng
 >   (thêm trước, xoá sau) nay ở `references/soat-cheo-notebooklm.md`.
 > - **Chờ người dùng (không đổi từ 27/09):** URL Streamlit Cloud · vế 3 điều
->   kiện dừng · bật ba workflow · `scratch/luu_do18/`. ~~Thêm: tab
+>   kiện dừng · ~~bật ba workflow~~ (✅ BƯỚC 138) · `scratch/luu_do18/`. ~~Thêm: tab
 >   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
 > - **Hạn 29/09:** ĐO 14 (khối dưới) và lượt soát định kỳ 7.
 

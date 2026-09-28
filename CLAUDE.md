@@ -941,6 +941,8 @@ paper_metrics.dieu_kien_dong_lai()           # neu TRUOC khi co du lieu
 > ảo rồi học từ sổ. Ngưỡng 62 và trần vốn 100% giữ nguyên; điều kiện
 > dừng nay đếm được lệnh thật (BƯỚC 123). Cờ mở **chưa sinh lệnh nào**:
 > đường quét tự động đang tạm ngừng cùng `vnstock`.
+> 🔴 **HẾT ĐÚNG từ 28/09/2026 — BƯỚC 138:** ba workflow bật lại; lượt quét đầu (28/09) mở
+> 6 lệnh ảo chờ khớp và 6 dòng nhật ký "vì sao" thật.
 
 **Lý do bật KHÔNG phải vì tìm thấy lợi thế.** Mọi phép đo alpha vẫn chứa số
 0. Lý do là: **cấu hình chạy trực tiếp chưa bao giờ được đo**, và nó chỉ đo

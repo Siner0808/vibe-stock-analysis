@@ -19086,3 +19086,57 @@ chỗ trước khi sửa (gọi tên file thiếu); đục 1/1 đỏ.
   repo — kỷ luật, không cơ chế (`SKILL.md`).
 - `so_tay.NGUON_MAC_DINH` và `TAI_LIEU` vẫn là HAI danh sách; gác mới chỉ
   bắt chiều *nguồn sổ tay ⊆ tài liệu đối chiếu*.
+
+## BƯỚC 138 — BẬT LẠI BA WORKFLOW; LƯỢT QUÉT ĐẦU TIÊN SINH 6 LỆNH ẢO VÀ 6 DÒNG NHẬT KÝ THẬT (28/09/2026)
+
+Người dùng: *"Bật lại đi, giữ lại cái googlesheets mới tạo"* — trả lời câu
+chờ từ 27/09. Vế sau (tab `nhat_ky` rỗng) đã ghi ở BƯỚC 136: để yên.
+
+### Kiểm trước khi bật
+
+| điều kiện | đo |
+|---|---|
+| cài gói được | cả ba chạy `pip install -r requirements.txt`, file có kho hãng (BƯỚC 127); bước cài của `kiem-dinh` xanh ba lượt hôm nay |
+| khoá Sheets | `gh secret list` → `STREAMLIT_SECRETS_TOML` có |
+| đường khớp lệnh | #183 (BƯỚC 136, sàn HNX/UPCoM) đã vào `main` TRƯỚC lượt quét đầu |
+| cổng mở lệnh ảo | `paper_trading.CHO_PHEP_MO_LENH_MOI` → `True` |
+
+`gh workflow enable` cho `quet-so-lenh` · `canh-cong-c5` · `chuong-nguon-dung`
+lúc ~07:15 UTC → cả ba `active`.
+
+### Lượt quét đầu tiên — chạy tay, `36392657512`
+
+Nhịp cron 07:30 UTC chưa nổ lúc 07:37, nên chạy tay một lượt (`workflow_dispatch`,
+nút có sẵn để kiểm). **Mọi bước `success`.** Đọc nhật ký chạy, không đọc màu:
+
+```
+Da keo so lenh tu kho ngoai: 117 lenh, 18389 quyet dinh
+Cong VN-INDEX: BAT · du lieu toi 2026-09-28 · tre 0 phien
+71/71 ma co nen cuoi DANG DO — da bo, so chi ghi tren phien da dong gan nhat
+6 lenh moi: HHP · MSR · PVT · DCL · HDB · GEL — PENDING, tin hieu 2026-09-25
+Nhat ky 'vi sao': dien nua DONG cho 0 lenh
+Da day so lenh ra Google Sheets: 123 lenh · them 70 quyet dinh moi
+Doi chieu so local voi kho ngoai: success
+```
+
+Đọc thẳng Google Sheet thật (kéo vào sổ `:memory:`, chỉ đọc — sau BƯỚC 134
+`read_rows` không tạo gì): tab `nhat_ky` có tiêu đề và **6 dòng** — lệnh
+118–123, `signal_date` 2026-09-25, nửa VÀO còn trống (chờ khớp). Bối cảnh
+lúc tín hiệu: VN-INDEX **1775,09** · MA50 **1774,20** — vừa nhỉnh trên MA50;
+điểm 62–73, ngưỡng 62.
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`, nguồn `@60d6598`. Sổ tay
+chỉ ra **4 câu** ở `docs/HANDOFF.md` — cả 4 KHỚP qua
+`tools/doi_chieu_trich_dan.py`. Grep bắt thêm **2**: `CLAUDE.md`
+*"Cờ mở chưa sinh lệnh nào"* (có trong nguồn — sổ tay BỎ SÓT) và danh sách chờ
+ngày 28/09 (viết sau `60d6598`, ngoài nguồn). Cả 6 mang dấu.
+
+### Điều BƯỚC này KHÔNG nói
+
+- 6 lệnh chờ không phải bằng chứng gì — n rất nhỏ so với `N_TOI_THIEU`;
+  không đọc lãi lỗ của chúng (bất biến 7 đổi hướng).
+- Chúng khớp ở giá mở cửa 28/09 khi một lượt quét SAU giờ đóng cửa xử lý nến
+  28/09 — tới lúc ấy nửa VÀO của nhật ký mới có.
+- Tắt lại: `gh workflow disable <tên>.yml`.
