@@ -18600,7 +18600,7 @@ không được ghi ở đâu.
 Lúc đẩy nhánh `tai-lieu/ruleset-main`, cửa `cua_bash_an_toan` chặn với luật
 `push-thang-main`: regex `\bgit\s+push\b[^\n]*\bmain\b(?![\w/-])` khớp cả tên
 nhánh KẾT THÚC bằng `-main` (chặn nhầm — đổi tên nhánh là đủ; regex chưa
-sửa, ghi lại cho lượt sau). Thông báo của nó khẳng định đúng câu sai:
+sửa, ghi lại cho lượt sau). 🔴 **ĐÃ SỬA 28/09/2026 — BƯỚC 135, lỗi 108.** Thông báo của nó khẳng định đúng câu sai:
 *"`main` KHÔNG có branch protection (API trả 404)"*. Nặng hơn:
 `tests/test_cua_quy_trinh.py::test_KHONG_luat_nao_con_giu_LY_DO_DA_BI_BAC`
 xếp `"branch protection"` vào danh sách lý do ĐÃ BỊ BÁC — tức gác đang ép
@@ -18785,3 +18785,65 @@ tạo tab. Chỉ bắt ĐÚNG ngoại lệ ấy: bắt mọi `Exception` thì l�
 có tiêu đề; một lần đọc trả rỗng ở đó là bất thường, và nổ vẫn an toàn hơn
 kéo về một sổ rỗng. `InMemorySheet` cũng để nguyên — đổi nó chạm cả bộ test
 Sheets; `GspreadGia` đứng riêng cho đúng ca cần.
+
+## BƯỚC 135 — CỬA `push-thang-main` NEO `main` BẰNG `\b`, NÊN KHỚP CẢ ĐUÔI TÊN NHÁNH: SỬA NỬA RANH GIỚI CÒN THIẾU (28/09/2026)
+
+Việc treo từ BƯỚC 133: lúc đẩy nhánh `tai-lieu/ruleset-main`, cửa chặn với
+luật `push-thang-main`. Người dùng: *"làm cho đến khi chạm Limit"*.
+
+### Đo trước khi sửa — trên quần thể THẬT
+
+```
+tools/soat_nhat_ky_cua.py
+  3094 luot cua · CHAN 35 · push-thang-main 1
+  luot ay: git push -q -u origin tai-lieu/ruleset-main   (27/09 16:59)
+```
+
+Lượt chặn **duy nhất** của luật này trong nhật ký cửa là lượt chặn nhầm —
+tỷ lệ bắt nhầm **1/1**. (STATE BƯỚC 69 từng đếm 11; cả 11 là nhiễm từ bộ
+test và đã dọn — lỗi 55.)
+
+### Gốc
+
+`\bgit\s+push\b[^\n]*\bmain\b(?![\w/-])`. Vế SAU của `main` có chặn
+`(?![\w/-])` từ ngày luật ra đời (07/09, `2c88dfe`) — nên `main-fix` và
+`tinh/main-menu` đi qua. Vế TRƯỚC chỉ có `\b`, mà `\b` đứng được sau `-` và
+`/`. **Nửa ranh giới.** Sống 20 ngày; lỗi 108.
+
+Mẫu mới: `main` phải đứng **ĐẦU một tên** — sau khoảng trắng, `:` `+`
+(refspec), dấu nháy, hoặc `refs/heads/`. Thử trên quần thể thật bằng
+`--thu-luat` với đúng mẫu đã giao, **3106 lệnh**: chặn thêm **0**, bỏ **1**
+— đúng lượt chặn nhầm. Anh em PowerShell `ps-push-thang-main` sửa cùng cách.
+
+### Gác và đục
+
+Viết trước, đỏ đúng chỗ ở cả hai máy đo (bash và PowerShell):
+
+| bảng | thêm |
+|---|---|
+| TỐT (bash) | `…/ruleset-main` · `fix/main` · `main-fix` |
+| XẤU (bash) | `HEAD:main` · `HEAD:refs/heads/main` · `+main` · `:main` · `--force … main` |
+| TỐT_PS / XẤU_PS | `…/ruleset-main` / `HEAD:main` |
+
+Năm dạng refspec **đã bị chặn** ở bản cũ (đo bằng `kiem()` trước khi sửa) —
+chúng ở đây để phép sửa phần TRƯỚC `main` không mở lỗ. Đục 7/7 đỏ: nguyên
+văn bản cũ (bash, PowerShell) · bỏ `:` (bash, PowerShell) · bỏ `+` · bỏ
+`refs/heads/` · bỏ khoảng trắng.
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`. Sổ tay: *"không tìm thấy câu
+nào nói ngược"* — nguồn dừng ở BƯỚC 130, nên câu *"regex chưa sửa"* (BƯỚC 133)
+nằm ngoài tầm nó. Grep bắt đúng câu ấy; nay mang dấu 🔴 ngay trên dòng. Ngoài
+repo, bộ nhớ ghi *"đừng đặt tên nhánh có main"* — sửa cùng handoff.
+
+Câu hỏi đã gửi nói *"error row 107"* và *"sixty-two of one hundred and seven"*:
+lúc ấy BƯỚC này đứng trước #180. #180 merge trước và lấy số 107 cho lỗi
+backend giả của nó, nên dòng này thành **108**, dòng tự khai **63/108**.
+
+### Điều BƯỚC này KHÔNG nói
+
+- `git push origin "main"` / `'main'` **vẫn lọt**, trước và sau phép sửa:
+  cửa bóc nội dung trong nháy trước khi so. Ruleset GitHub vẫn chặn phía
+  máy chủ (BƯỚC 133), nên lỗ này không mở đường vào `main`; không sửa ở đây.
+- Luật vẫn chỉ là lớp thứ hai — lớp thứ nhất là ruleset.

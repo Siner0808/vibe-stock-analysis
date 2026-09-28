@@ -201,6 +201,13 @@ XAU = [
      "pytest-qua-ong"),
     ("python he thong", "python tools/kiem_cu_phap_311.py", "python-he-thong"),
     ("push thang main", "git push origin main", "push-thang-main"),
+    # Moi dang refspec van la day thang `main`. Ban va 28/09/2026 (BUOC 135)
+    # sua phan TRUOC chu `main` — nam dong nay giu cho no khong mo lo.
+    ("push HEAD:main", "git push origin HEAD:main", "push-thang-main"),
+    ("push refspec day du", "git push origin HEAD:refs/heads/main", "push-thang-main"),
+    ("push ep +main", "git push origin +main", "push-thang-main"),
+    ("xoa main tren remote", "git push origin :main", "push-thang-main"),
+    ("push --force main", "git push --force origin main", "push-thang-main"),
     ("xoa .db", "rm paper_trades.db", "xoa-db-goc-repo"),
     ("backtick trong python -c",
      './.venv/Scripts/python.exe -c "s = ```bash"',
@@ -337,6 +344,11 @@ TOT = [
     ("git log binh thuong", "git log --oneline -5"),
     ("doc file .db, khong xoa", "ls -la paper_trades.db"),
     ("main la ten thu muc, khong phai nhanh", "git push origin tinh/main-menu"),
+    # 27/09/2026: chan NHAM THAT, luot duy nhat luat nay tung chan tren 3106
+    # lenh trong nhat ky cua. `\bmain` khop ca sau `-` va `/`. BUOC 135.
+    ("ten nhanh KET THUC bang -main", "git push -q -u origin tai-lieu/ruleset-main"),
+    ("ten nhanh KET THUC bang /main", "git push -u origin fix/main"),
+    ("ten nhanh BAT DAU bang main-", "git push origin main-fix"),
     # nhay DON: bash khong noi suy backtick -> an toan, phai duoc tha
     ("backtick trong nhay don",
      "./.venv/Scripts/python.exe -c 'x = `'"),
@@ -692,6 +704,7 @@ XAU_PS = [
      "ps-ghi-de-file-nguon"),
     ("python he thong", "python tools/kiem_cu_phap_311.py", "ps-python-he-thong"),
     ("push thang main", "git push origin main", "ps-push-thang-main"),
+    ("push HEAD:main", "git push origin HEAD:main", "ps-push-thang-main"),
     ("pytest qua Select-Object -Last",
      ".\\.venv\\Scripts\\python.exe -m pytest tests/ -q | Select-Object -Last 5",
      "ps-pytest-qua-ong"),
@@ -734,6 +747,7 @@ TOT_PS = [
     ("backtick trong nhay kep la THOAT, khong phai noi suy",
      'Write-Output "gia tri `n xuong dong"'),
     ("push len nhanh", "git push -u origin p0/harness"),
+    ("ten nhanh KET THUC bang -main", "git push -q -u origin tai-lieu/ruleset-main"),
     ("pytest ghi ra log", ".\\.venv\\Scripts\\python.exe -m pytest tests/ -q *> kq.log"),
     ("Select-Object -First khong dem toan bo", "Get-ChildItem | Select-Object -First 5"),
 ]
