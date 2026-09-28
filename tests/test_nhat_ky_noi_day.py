@@ -294,6 +294,73 @@ def test_KEO_doc_tab_nhat_ky_TRUOC_moi_lenh_xoa(moi_truong):
     assert (_anh(dich), len(dich.all_trades())) == truoc
 
 
+class GspreadGia(ss.InMemorySheet):
+    """Hai đặc tính của `GoogleSheet` + gspread 6.2.1 mà `InMemorySheet` thiếu:
+    ĐỌC một tab chưa có thì TẠO nó (`_tab` → `add_worksheet`), và tab rỗng trả
+    `[[]]` chứ không phải `[]` (`response.get("values", [[]])`, `fill_gaps`)."""
+
+    def read_rows(self, tab):
+        self.tabs.setdefault(tab, [])
+        return super().read_rows(tab) or [[]]
+
+
+@pytest.mark.parametrize("tab_nhat_ky", ["chua_co", "rong"])
+def test_KEO_tu_sheet_THAT_doi_truoc_BUOC_134_khong_no(moi_truong, tab_nhat_ky):
+    """Nguyên văn lỗi đo được 28/09/2026 trên Google Sheet thật (phiên song
+    song báo): `pull()` nổ `SheetSchemaError … trên sheet: []`, nên MỌI lượt
+    quét dừng ở bước kéo sổ — `push()`, thứ duy nhất ghi tiêu đề, đứng sau."""
+    j = _so_ba_trang_thai()
+    sheet = GspreadGia()
+    ss.push(j.db, sheet)
+    if tab_nhat_ky == "chua_co":
+        del sheet.tabs[ss.TAB_NHAT_KY]
+    else:
+        sheet.tabs[ss.TAB_NHAT_KY] = []                # lượt đọc hôm ấy đã TẠO tab rỗng
+    moi = PaperTradingJournal(":memory:")
+    bao_cao = ss.pull(moi.db, sheet)
+    assert bao_cao["nhat_ky"] == 0 and bao_cao["trades"] == 3
+    ss.push(moi.db, sheet)                             # đẩy lần đầu ghi tiêu đề
+    assert sheet.read_rows(ss.TAB_NHAT_KY) == [list(nk.COT_NHAT_KY)]
+
+
+def test_GoogleSheet_DOC_tab_chua_co_thi_KHONG_tao_tab():
+    """Đường CHỈ ĐỌC không được có nhánh GHI ẩn. `read_rows` từng đi qua
+    `_tab()`, mà `_tab()` gọi `add_worksheet` khi tab chưa có — nên từ khi
+    `pull()` đọc tab thứ ba, `tools/doc_so_that.py` ("CHỈ ĐỌC") tạo tab trên
+    sheet THẬT. Đúng lượt đo 28/09/2026 đã để lại tab `nhat_ky` rỗng."""
+    gspread = pytest.importorskip("gspread")
+
+    class BangTinhGia:
+        def __init__(self):
+            self.tab, self.tao = {"trades": [["id"]]}, []
+
+        def worksheet(self, ten):
+            if ten == "mang_dut":
+                raise ConnectionError("mạng đứt")
+            if ten not in self.tab:
+                raise gspread.exceptions.WorksheetNotFound(ten)
+            ws = type("Ws", (), {})()
+            ws.get_all_values = lambda: [list(r) for r in self.tab[ten]]
+            ws.update = lambda rows, _a: self.tab.__setitem__(ten, rows)
+            return ws
+
+        def add_worksheet(self, title, rows, cols):
+            self.tao.append(title)
+            self.tab[title] = []
+            return self.worksheet(title)
+
+    g = ss.GoogleSheet.__new__(ss.GoogleSheet)
+    g._sh = BangTinhGia()
+    assert g.read_rows("nhat_ky") == []
+    assert g._sh.tao == [], "ĐỌC đã TẠO tab trên sheet"
+    assert g.read_rows("trades") == [["id"]]
+    # Lỗi MẠNG không được thành "tab rỗng": `pull()` sẽ xoá sổ local theo nó.
+    with pytest.raises(ConnectionError):
+        g.read_rows("mang_dut")
+    g.write_all("nhat_ky", [["trade_id"]])            # GHI thì được tạo
+    assert g._sh.tao == ["nhat_ky"]
+
+
 def test_KEO_tu_choi_khi_so_dich_CHI_co_nhat_ky(moi_truong):
     j = _so_ba_trang_thai()
     sheet = ss.InMemorySheet()

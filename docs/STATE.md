@@ -18735,3 +18735,53 @@ sai đúng ở ca này. **Chưa đo trên sổ thật**, đã tách thành việ
 - Vị thế đang mở từ trước (không có dòng nhật ký) không được ghi bù: cắt lỗ
   ban đầu của chúng có thể đã bị nâng.
 - P2c (hậu kiểm LỜI) vẫn chờ khoá API của người dùng; cột `hau_kiem_loi` rỗng.
+
+### Lỗi tìm ra SAU khi mở PR #180 — bởi một phiên song song, trên sheet THẬT
+
+Phiên làm việc *sàn HNX/UPCoM* (tách ra ở trên) chạy `keo_so_co_thu_lai`
+của nhánh này vào một DB tạm, trên Google Sheet thật: **cả 3 lần**
+`SheetSchemaError: … tab 'nhat_ky' lệch … trên sheet: []`. Kiểm lại trong mã
+gspread 6.2.1 đang cài:
+
+```
+Worksheet.get : values = response.get("values", [[]])
+fill_gaps([])  -> [[]]
+```
+
+Tab rỗng trả **`[[]]`**, không phải `[]`; và `GoogleSheet._tab()` **TẠO** tab
+khi ĐỌC. Nên trên sheet đời trước BƯỚC này, lần kéo đầu tiên gặp `[[]]`,
+`if bang_nk:` đúng, và kiểm tiêu đề nổ. `push()` — thứ duy nhất ghi tiêu đề —
+đứng SAU `pull()` trong `run_daily`: bật `quet-so-lenh` là **mọi lượt quét kẹt
+vĩnh viễn** ở *"KÉO SỔ LỆNH THẤT BẠI"*.
+
+**Vì sao 17 test không thấy:** `InMemorySheet.read_rows` trả `[]` cho tab
+thiếu và không tự tạo tab. Backend giả **hẹp hơn** backend thật đúng ở chỗ
+quyết định — cùng họ lỗi 94 (nền giả phải cùng tính chất với thứ nó giả), lần
+này ở tầng lưu trữ. Lỗi 107.
+
+Sửa: `pull()` bỏ dòng rỗng của tab `nhat_ky` TRƯỚC khi kiểm tiêu đề — tab
+không có dòng nào là tab RỖNG, không phải lược đồ lệch; tab có dòng vẫn kiểm
+như cũ. Gác: `GspreadGia` trong `tests/test_nhat_ky_noi_day.py` giữ đúng hai
+đặc tính trên, hai ca (tab chưa có · tab rỗng như hôm ấy để lại); dựng lại
+nguyên văn lỗi, đỏ trước khi sửa; bỏ bộ lọc thì đỏ (1/1).
+
+**Hệ quả phụ, ghi để người dùng quyết:** lượt đọc ấy đã **tạo một tab
+`nhat_ky` rỗng** trên Google Sheet thật. `main` hiện tại không đọc tab ấy; bản
+đã sửa coi nó là rỗng và `push()` kế tiếp ghi tiêu đề vào. Không xoá.
+
+**Và nhánh GHI ẩn trong đường CHỈ ĐỌC** (phiên song song chỉ ra, cùng ngày).
+`GoogleSheet.read_rows` đi qua `_tab()`, mà `_tab()` gọi `add_worksheet` khi
+tab chưa có. Vô hại chừng nào `pull()` chỉ đọc hai tab luôn có sẵn; từ tab
+thứ ba, mọi đường chỉ đọc gọi `pull()` — `tools/doc_so_that.py` (docstring
+*"CHỈ ĐỌC"*, có gác AST), `keo_so_co_thu_lai`, `load_trades_from_google_sheets`
+— **tạo tab trên sheet thật**. Gác AST của `doc_so_that` không thấy được vì
+lần ghi nằm hai tầng dưới; chính lượt đo hôm ấy đã đi đúng đường này. Sửa:
+`read_rows` trả `[]` khi `WorksheetNotFound`, chỉ `write_all` / `append_rows`
+tạo tab. Chỉ bắt ĐÚNG ngoại lệ ấy: bắt mọi `Exception` thì lỗi mạng khi đọc
+`trades` thành *"tab rỗng"* và `pull()` xoá sổ local theo nó — phát đục ấy
+**sống sót** ở lượt đầu, thêm ca lỗi mạng thì đỏ. Đục 3/3 đỏ.
+
+**Cố ý KHÔNG nới cho `trades` · `decisions`:** hai tab ấy trên sheet thật luôn
+có tiêu đề; một lần đọc trả rỗng ở đó là bất thường, và nổ vẫn an toàn hơn
+kéo về một sổ rỗng. `InMemorySheet` cũng để nguyên — đổi nó chạm cả bộ test
+Sheets; `GspreadGia` đứng riêng cho đúng ca cần.

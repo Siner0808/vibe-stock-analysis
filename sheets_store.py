@@ -161,7 +161,20 @@ class GoogleSheet:
             return self._sh.add_worksheet(title=tab, rows=1000, cols=30)
 
     def read_rows(self, tab: str) -> list[list[str]]:
-        return self._tab(tab).get_all_values()
+        """ĐỌC không TẠO gì: tab chưa có thì trả `[]`.
+
+        Bản cũ đi qua `_tab()`, mà `_tab()` gọi `add_worksheet` khi tab chưa
+        có — một nhánh GHI ẩn trong mọi đường chỉ đọc (`tools/doc_so_that.py`,
+        `keo_so_co_thu_lai`). Vô hại khi `pull()` chỉ đọc hai tab luôn có sẵn;
+        từ tab thứ ba (BƯỚC 134) nó tạo tab trên sheet THẬT — đo 28/09/2026.
+        Chỉ bắt đúng `WorksheetNotFound`: lỗi mạng vẫn phải nổ.
+        """
+        import gspread
+        try:
+            ws = self._sh.worksheet(tab)
+        except gspread.exceptions.WorksheetNotFound:
+            return []
+        return ws.get_all_values()
 
     def write_all(self, tab: str, rows: list[list[str]]) -> None:
         """Ghi đè bảng bằng MỘT lệnh gọi duy nhất.
@@ -381,7 +394,15 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
     # `keo_so_co_thu_lai` thử lại an toàn (tests/test_keo_so_thu_lai.py).
     bang_trades = backend.read_rows(TAB_TRADES)
     bang_dec = backend.read_rows(TAB_DECISIONS)
-    bang_nk = backend.read_rows(TAB_NHAT_KY)
+    # Bỏ dòng rỗng TRƯỚC khi kiểm tiêu đề: gspread trả `[[]]` cho một tab
+    # rỗng, và `GoogleSheet._tab()` TẠO tab khi ĐỌC. Trên sheet đời trước
+    # BƯỚC 134 lần kéo đầu tiên gặp đúng `[[]]` — bản đầu coi đó là tiêu đề
+    # lệch và nổ, mà `push()` (thứ duy nhất ghi tiêu đề) đứng SAU `pull()`
+    # trong `run_daily`, nên mọi lượt quét sẽ kẹt ở bước kéo. Đo 28/09/2026
+    # trên sheet thật. Một tab không có dòng nào là tab RỖNG, không phải
+    # lược đồ lệch; tab có dòng thì vẫn kiểm tiêu đề như cũ.
+    bang_nk = [r for r in backend.read_rows(TAB_NHAT_KY)
+               if r and any(c != "" for c in r)]
 
     n_trades = n_dec = n_nk = 0
     db.execute("DELETE FROM trades")
