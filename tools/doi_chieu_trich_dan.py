@@ -43,6 +43,10 @@ SKILL = GOC / ".claude" / "skills" / "quy-trinh-lam-viec"
 
 #: Bảy tài liệu — cùng quần thể `tools/soat_loi_khai_cu.py` quét, cộng ba
 #: file skill. Suy từ đường dẫn, không gõ nội dung.
+#: Cộng file thứ mười một từ 28/09/2026 (BƯỚC 137): `soat-cheo-notebooklm.md`
+#: là nguồn sổ tay từ BƯỚC 130, và thiếu nó thì hai câu THẬT sổ tay trích ra
+#: bị báo LỆCH. Gác `test_QUAN_THE_doi_chieu_PHU_MOI_nguon_cua_so_tay` bắt
+#: danh sách này phủ `so_tay.NGUON_MAC_DINH`.
 TAI_LIEU = (
     GOC / "CLAUDE.md",
     GOC / "NGUYEN-TAC-DO-LUONG.md",
@@ -54,6 +58,7 @@ TAI_LIEU = (
     SKILL / "references" / "loi-da-mac.md",
     SKILL / "references" / "bay.md",
     SKILL / "references" / "cong-thuc-chay.md",
+    SKILL / "references" / "soat-cheo-notebooklm.md",
 )
 
 #: Số ký tự tối thiểu của một trích dẫn đáng đối chiếu. Dưới mức này thì

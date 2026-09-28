@@ -18958,3 +18958,63 @@ một lệnh đã đóng thật).
 Đục 13 phát qua `dot_bien_bo`, **13/13 đỏ**, hai phát đầu dựng lại NGUYÊN
 VĂN hai lỗi thật. Bản đầu của phép kiểm trần vốn chỉ tự cộng lại tổng — sẽ
 để sống đột biến *"trần đếm cả HUY"*; viết lại trước khi đục.
+
+---
+
+## BƯỚC 137 — NẠP LẠI NGUỒN SỔ TAY: THÊM TRƯỚC, XOÁ SAU, GHIM MÃ BĂM; HỘP XOÁ IN NHÃN CHỨ KHÔNG IN URL (28/09/2026)
+
+Lý do: hai lượt soát chéo hôm nay (BƯỚC 134, 135) đều ra *"không tìm thấy"*
+trên nguồn dừng ở BƯỚC 130, trong khi `grep` bắt được câu nằm ngoài nguồn —
+ba câu ở BƯỚC 134, một ở BƯỚC 135. Nguồn cũ làm câu âm của sổ tay vô nghĩa
+đúng ở chỗ cần nó nhất.
+
+### Đo
+
+```
+11 URL ghim 60d6598a…   : 11/11 HTTP 200, cỡ khớp `git show` từng byte
+so nguon                : 11 -> 22 (THEM truoc) -> 11 (xoa 11 ban cu nhan ngan)
+nhan                    : <file> @60d6598
+do tuoi                 : so tay tra BUOC 134, trich dung nguyen van tieu de
+                          git show 60d6598:docs/STATE.md -> BUOC 134
+```
+
+Thứ tự theo `SKILL.md` (*thêm trước, xoá sau*, chốt 17/09): mỗi bản cũ bị xoá
+đều vừa có bản thay, nên không phải hỏi người dùng.
+
+### Ba chỗ tài liệu/dụng cụ sai, đo được trong chính lượt nạp
+
+| chỗ | nói gì | đo được |
+|---|---|---|
+| `references/soat-cheo-notebooklm.md` (BƯỚC 130) | xoá nguồn cũ ở bước 2, thêm ở bước 3; URL `main/`; đổi tên thành tên file trần | ngược thứ tự `SKILL.md` và ngược luật xoá nguồn (xoá nguồn CHƯA có bản thay là việc phải hỏi) — viết lại, có ô 🔴 |
+| `SKILL.md` *"Hộp xác nhận in URL đầy đủ"* (23/09) | danh tính đọc ở hộp xoá | hộp in **NHÃN** (`Xoá CLAUDE.md?`); 23/09 nó in URL chỉ vì nhãn chưa đổi — ô 🔴 |
+| `tools/doi_chieu_trich_dan.TAI_LIEU` | 10 tài liệu | sổ tay có 11 nguồn từ BƯỚC 130; hai câu THẬT bị báo LỆCH — lỗi 110 |
+
+Ghim mã băm làm ba việc: tránh CDN chậm một commit sau merge; làm bản mới
+khác bản cũ ngay trên nhãn (hộp xoá chỉ in nhãn); và độ tươi đọc được ngay
+trên danh sách nguồn.
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`, trên nguồn vừa nạp. Sổ tay
+chỉ ra **4 chỗ** — đúng bốn chỗ BƯỚC này sửa: ba ở file reference (thứ tự,
+URL `main/`, tên file trần) và câu *"in URL đầy đủ"* ở `SKILL.md`. Tự kiểm
+bằng `tools/doi_chieu_trich_dan.py`: lượt đầu 2 KHỚP · 2 LỆCH, và hai câu
+LỆCH hoá ra nằm ở đúng file dụng cụ không đọc — thêm file thì cả 4 KHỚP.
+Lần đầu tiên hôm nay sổ tay tìm ra điều gì: vì lần đầu nguồn của nó chứa
+đúng thứ đang soát.
+
+### Gác và đục
+
+`tests/test_doi_chieu_trich_dan.py` +2: `TAI_LIEU` phải phủ
+`so_tay.NGUON_MAC_DINH`; và câu thật của nguồn thứ 11 phải KHỚP. Đỏ đúng
+chỗ trước khi sửa (gọi tên file thiếu); đục 1/1 đỏ.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Nguồn `@60d6598` không chứa BƯỚC 135–137: nguồn luôn chậm ít nhất một
+  BƯỚC so với BƯỚC đang soát. Nạp lại khi `main` đi xa — cách làm ở
+  `references/soat-cheo-notebooklm.md`.
+- Xoá nguồn là thao tác trên tài khoản người dùng, không để dấu vết trong
+  repo — kỷ luật, không cơ chế (`SKILL.md`).
+- `so_tay.NGUON_MAC_DINH` và `TAI_LIEU` vẫn là HAI danh sách; gác mới chỉ
+  bắt chiều *nguồn sổ tay ⊆ tài liệu đối chiếu*.
