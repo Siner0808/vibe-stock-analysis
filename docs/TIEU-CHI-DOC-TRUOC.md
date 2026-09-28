@@ -3318,3 +3318,30 @@ Một dòng đổi trạng thái *"loại được 0"* ↔ *"chứa 0"* được
 Số lệnh chỉ-ở-bên-sửa có mở cửa lệch > 7%, chia theo sàn; số dòng `HUY` chia
 theo lý do (lệch > 15% · thanh khoản). Đây là mô tả để quy Δ, không phải phép
 thử.
+
+---
+
+## Kết quả ĐO 20 — chạy 28/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ đọc:** `tools/do20_ghep_tung_lenh.py` · chạy: `tools/do1_chi_phi_thuc_thi.py`
+
+Tiêu chí ký ở `2eb9e3f`, đẩy lên GitHub TRƯỚC lượt đầu. Bốn lượt song song
+**13:12:46 → 13:47:44**, cả bốn mã thoát 0.
+
+**Bốn phép kiểm dụng cụ: ĐẠT.** (1) cả bốn: 71 mã IS · 33 mã OOS · 44 mẫu,
+học thêm 0. (2) ĐỐI CHỨNG ra lại dòng P1 của ĐO 18 **tới từng chữ số**. (3)
+hai luồng cùng ngưỡng 62 / 45. (4) đúng một dòng `HUY` (DHG, theo mã): mở cửa
+lệch −0,11%, khối lượng 800 cổ → trần khớp 80 < một lô — thanh khoản.
+
+```
+dong            luong       nguong  lenh OOS  ky vong   alpha    KTC 95%            von TB · dinh
+BAT theo ma     doi chung   62      398       -0,26%    -1,12%   [-1,94 ; -0,21]    51% · 191,30%
+BAT theo ma     da sua      62      398       -0,22%    -1,09%   [-1,91 ; -0,18]    51% · 191,30%
+BAT theo ngay   doi chung   45      612       -1,10%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+BAT theo ngay   da sua      45      612       -1,09%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+```
+
+**Kết cục 1.** Δ alpha **+0,03** (theo mã, nửa bề rộng KTC 0,865) và **0,00**
+(theo ngày, 0,585). Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 18
+làm bảng hiện hành; dòng TẮT giữ ĐO 18. Số liệu và phép ghép từng lệnh:
+`docs/STATE.md` BƯỚC 136.

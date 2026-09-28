@@ -18959,6 +18959,74 @@ một lệnh đã đóng thật).
 VĂN hai lỗi thật. Bản đầu của phép kiểm trần vốn chỉ tự cộng lại tổng — sẽ
 để sống đột biến *"trần đếm cả HUY"*; viết lại trước khi đục.
 
+### ĐO 20 — kết quả, đọc theo bảng đã ký
+
+Tiêu chí ở `2eb9e3f` (commit riêng, đẩy lên GitHub trước lượt đầu). Bốn lượt
+song song, mỗi lượt một worktree, **13:12:46 → 13:47:44**, cả bốn mã thoát 0.
+
+**Kiểm dụng cụ, đọc trước alpha — cả bốn ĐẠT:**
+
+1. cả bốn log: 71 mã IS · 33 mã OOS · bộ nhớ 44 mẫu, học thêm 0;
+2. ĐỐI CHỨNG (`60d6598`) ra lại dòng P1 của ĐO 18 **tới từng chữ số** — mã
+   `main` không trôi ở phép đo này từ BƯỚC 123, đúng như BƯỚC 124–134 khai;
+3. hai luồng chọn cùng ngưỡng: 62 theo mã, 45 theo ngày;
+4. luồng ĐÃ SỬA có đúng **một** dòng `HUY` — DHG, tín hiệu 2022-08-10, phiên
+   khớp 2022-08-11 mở cửa lệch **−0,11%**, khối lượng **800 cổ** → trần khớp
+   80 < một lô. Chặn vì thanh khoản, đúng lý do hợp lệ. Ở luồng đối chứng lệnh
+   ấy bị xoá không để lại dấu — đúng lỗi 2, lần này trong mô phỏng.
+
+```
+dong            luong       nguong  lenh OOS  ky vong   alpha    KTC 95%            von TB · dinh
+BAT theo ma     doi chung   62      398       -0,26%    -1,12%   [-1,94 ; -0,21]    51% · 191,30%
+BAT theo ma     da sua      62      398       -0,22%    -1,09%   [-1,91 ; -0,18]    51% · 191,30%
+BAT theo ngay   doi chung   45      612       -1,10%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+BAT theo ngay   da sua      45      612       -1,09%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+```
+
+**Kết cục 1: phép sửa không đổi kết luận.** Δ alpha **+0,03** (theo mã; nửa bề
+rộng KTC đối chứng 0,865) và **0,00** ở hai chữ số thập phân (theo ngày; 0,585).
+Cả hai dòng vẫn loại được số 0. Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng
+BẬT của ĐO 18 trong `CLAUDE.md`; dòng TẮT không chạm được, giữ ĐO 18. Chi phí
+thực thi (TẮT − BẬT) nay **0,68** theo mã · **0,76** theo ngày.
+
+**Ghép từng lệnh** (`tools/do20_ghep_tung_lenh.py`, khoá mã + ngày tín hiệu):
+
+```
+theo ma    giong het 397 · khac gia 0 · chi doi chung 1 · chi da sua 2 (1 HUY)
+           chi da sua co khop: HUT 2023-08-21 mo cua -7,09%  <- truc tiep
+           chi doi chung     : HUT tin hieu 2023-08-24        <- day chuyen
+theo ngay  giong het 576 · khac gia 0 · chi doi chung 36 · chi da sua 36
+           chi da sua co khop mo cua lech > 7%: 6/36
+           HUT -9,82% · MBS -9,97% · PVS -9,88% · SHS -10,00% -9,71% -9,88%
+```
+
+Sáu lệnh trực tiếp đều là mã HNX mua ở phiên mở SÀN, đúng hình dạng đếm được
+trên lượt 4 của ĐO 18 trước khi ký (ở đó là 7; một lệnh MBS −7,1% không vào
+tập của luồng BẬT).
+
+**Hai dự báo SAI, ghi lại:**
+
+- *"Số lệnh OOS: ĐÃ SỬA ≥ ĐỐI CHỨNG, khoảng 7 lệnh nhiều hơn ở dòng theo
+  ngày"* — **bằng nhau**, 398 = 398 và 612 = 612. Ước lượng ấy lấy số lệnh
+  trực tiếp của sổ lượt 4 rồi coi như lệnh CỘNG THÊM; thật ra mỗi lệnh khớp
+  thêm chiếm chỗ của mã và của trần vốn, và đẩy một lệnh khác ra.
+- *"Lệnh chỉ có ở bên ĐÃ SỬA phần lớn khớp ở phiên lệch > 7%"* — đúng ở dòng
+  theo mã (1/1), **sai ở dòng theo ngày: 6/36**. Ba mươi lệnh còn lại là dây
+  chuyền qua trần vốn 100%: chế độ theo ngày có danh mục thật, nên một vị thế
+  thêm vào lúc giữa 2023 đổi thứ tự lấp chỗ của nhiều phiên sau.
+
+Dự báo đứng: |Δ| nhỏ hơn nửa bề rộng KTC; `HUY` rất ít (1 và 0).
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không nói gì về sổ thật hôm nay: lỗi chưa từng nổ ở đó, và ba workflow vẫn tắt.
+- Không đo lại hai dòng TẮT — `_khop_that` không chạy khi trượt giá tắt.
+- Không sửa phần dư đã khai: 4 phiên UPCoM lệch > 15% vẫn bị chặn; cột
+  `exchange` và bước giá mã HNX vẫn theo HOSE.
+- 7 lệnh trực tiếp ở dòng theo ngày của ĐO 18 lượt 4: lãi/lỗ của chúng KHÔNG
+  được đọc trước khi ký; sau khi ký cũng không cần — kết cục đọc Δ alpha của cả
+  dòng, không đọc lệnh lẻ.
+
 ---
 
 ## BƯỚC 137 — NẠP LẠI NGUỒN SỔ TAY: THÊM TRƯỚC, XOÁ SAU, GHIM MÃ BĂM; HỘP XOÁ IN NHÃN CHỨ KHÔNG IN URL (28/09/2026)

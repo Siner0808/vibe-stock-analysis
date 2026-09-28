@@ -1162,6 +1162,20 @@ lệnh. So với ĐO 3, mọi dòng xấu đi **~0,5 điểm**, và phần lớn
 trượt giá: so từng lệnh ở dòng 4, **115/387 lệnh cắt lỗ đã bị gap qua SL**
 lúc mở cửa — bản cũ ghi chúng ở đúng giá SL. `docs/STATE.md` BƯỚC 124.
 
+> 🔴 **HAI DÒNG BẬT ĐO LẠI Ở ĐO 20 (28/09/2026), sau BƯỚC 136** — giá mở
+> cửa không còn bị kiểm bằng ±7% của HOSE (rổ có 4 mã HNX, 3 mã UPCoM), và
+> lệnh không khớp đóng ở `HUY` thay vì bị xoá. Đối chứng cùng ngày ra lại
+> dòng 1–2 trên **tới từng chữ số**; bản đã sửa, nay là bảng hiện hành:
+>
+> | # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh |
+> |---|---|---|---|---|---|---|---|---|
+> | 1 | BẬT | theo mã | 62 | 398 | −0,22% | **−1,09%** | **[−1,91 ; −0,18] LOẠI 0** | 51% · 191% |
+> | 2 | BẬT | **theo ngày** | 45 | **612** | −1,09% | **−1,48%** | **[−2,05 ; −0,88] LOẠI 0** | 57% · **100%** |
+>
+> Δ alpha **+0,03** và **0,00** — nhỏ hơn nửa bề rộng KTC, kết cục 1: phép
+> sửa không đổi kết luận. Dòng 3–4 không chạm được, giữ nguyên. Chi phí thực
+> thi nay **0,68** (theo mã) · **0,76** (theo ngày). `docs/STATE.md` BƯỚC 136.
+
 ### BẢNG ĐO 3, chạy 10/09/2026 ở mặc định T+1 — CẬN DƯỚI, ĐÃ ĐO LẠI Ở ĐO 18
 
 > 🔴 **Tiêu đề cũ của mục này là *"BẢNG HIỆN HÀNH"*.** Bảng dưới đo trên

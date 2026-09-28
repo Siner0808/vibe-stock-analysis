@@ -402,7 +402,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > dòng); walkforward thì có (7/582 lệnh OOS của lượt 4 ĐO 18). Người dùng
 > chọn: giá MỞ CỬA không kiểm biên độ sàn — chỉ chặn khi lệch vượt biên rộng
 > nhất 15%; lệnh không khớp đóng ở `HUY` thay vì bị xoá, nên `trades` chỉ
-> thêm và `push()` không còn bị từ chối vì nó. Số walkforward đo lại ở ĐO 20.
+> thêm và `push()` không còn bị từ chối vì nó. **ĐO 20: kết cục 1** — Δ alpha
+> +0,03 (theo mã) và 0,00 (theo ngày), nhỏ hơn nửa bề rộng KTC; đối chứng ra
+> lại ĐO 18 từng chữ số. Hai dòng BẬT trong `CLAUDE.md` nay là số ĐO 20.
 > Còn treo, việc riêng: cột `exchange` ghi `HOSE` cho mọi mã; bước giá mã
 > HNX tính theo thang HOSE.
 > **CUỐI NGÀY 28/09.** #180 (BƯỚC 134, `60d6598`) và #181 (BƯỚC 135,
