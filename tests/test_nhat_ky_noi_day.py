@@ -144,15 +144,20 @@ def test_nua_VAO_ghi_LUC_KHOP_va_giu_SL_BAN_DAU_sau_khi_trailing_NANG_stop(so_th
     assert json.loads(d["boi_canh"])["vni_close"] == GIA_VNI[TIN_HIEU]
 
 
-def test_lenh_KHONG_KHOP_bi_xoa_thi_dong_nhat_ky_cung_xoa(so_that, monkeypatch):
+def test_lenh_KHONG_KHOP_thanh_HUY_va_dong_nhat_ky_GIU_NGUYEN(so_that, monkeypatch):
+    """BƯỚC 136 đổi hành vi có chủ đích: lệnh không khớp được KHÔNG bị xoá
+    nữa (xoá làm `trades` và tab `nhat_ky` co lại, `push()` từ chối đẩy).
+    Dòng nhật ký giữ bối cảnh lúc tín hiệu; nửa VÀO để trống vì không có
+    lần khớp nào."""
     monkeypatch.setattr(pt, "MO_PHONG_TRUOT_GIA", True)
-    so_that.consider_entry("FPT", TIN_HIEU, _kq())
+    tid = so_that.consider_entry("FPT", TIN_HIEU, _kq())
     assert _so_dong_nk(so_that) == 1
-    # Mở cửa 100 trên tham chiếu 80: +25%, ngoài biên độ ±7% -> sàn từ chối.
+    # Mở cửa 100 trên tham chiếu 80: +25%, vượt biên rộng nhất -> chốt chặn.
     nen = {"high": 100.0, "low": 100.0, "volume": 1.0e9, "tham_chieu": 80.0}
     assert so_that.fill_pending("FPT", KHOP, 100.0, nen) == 0
-    assert so_that.all_trades() == []
-    assert _so_dong_nk(so_that) == 0, "lệnh không tồn tại thì nhật ký của nó cũng không"
+    assert [t.status for t in so_that.all_trades()] == [Status.HUY]
+    assert _so_dong_nk(so_that) == 1, "dòng nhật ký bị xoá theo lệnh HUY"
+    assert _dong_nk(so_that, tid)["entry_date"] is None
 
 
 def test_lenh_CHO_tu_truoc_khi_co_nhat_ky_van_ghi_nua_VAO_voi_boi_canh_RONG(so_that):

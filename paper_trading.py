@@ -41,7 +41,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from data_quality import now_vn
+from data_quality import EXCHANGE_LIMITS, now_vn
 
 DB_PATH = "paper_trades.db"
 
@@ -383,6 +383,21 @@ VON_DANH_MUC_VND = 1_000_000_000
 
 LY_DO_TU_CHOI_LENH = "sàn từ chối lệnh"
 
+#: Biên kiểm GIÁ MỞ CỬA lúc khớp lệnh VÀO — biên độ RỘNG NHẤT của mọi sàn,
+#: SUY RA từ `data_quality.EXCHANGE_LIMITS`, không gõ tay.
+#:
+#: Giá mở cửa trong dữ liệu là giá sở ĐÃ KHỚP, nên nó luôn nằm trong biên
+#: độ thật của sàn — kiểm nó bằng ±7% của HOSE chỉ sinh lệnh bị từ chối
+#: oan: 4 mã HNX + 3 mã UPCoM của rổ, 23 phiên làm tròn 7,00–7,09% ở mã
+#: HOSE trong cache, BSR/VTP hồi còn ở UPCoM. Vượt biên rộng nhất thì
+#: không sàn nào khớp được: đó là lỗi dữ liệu hoặc sự kiện doanh nghiệp
+#: chưa điều chỉnh giá (MBB · SSI 10/08/2026). `docs/STATE.md` BƯỚC 136.
+#:
+#: Phần dư đã biết: UPCoM lấy tham chiếu là giá BÌNH QUÂN phiên trước, còn
+#: ở đây tham chiếu là giá đóng cửa — 4 phiên UPCoM trong cache lệch > 15%
+#: so với đóng cửa mà vẫn hợp lệ, và vẫn bị chặn.
+BIEN_DO_KIEM_GIA_MO = max(EXCHANGE_LIMITS.values())
+
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
 
@@ -407,6 +422,11 @@ class Status:
     OPEN = "OPEN"
     CLOSING = "CLOSING"     # đã có tín hiệu ra, chờ giá mở cửa phiên sau
     CLOSED = "CLOSED"
+    # Lệnh chờ không khớp được (sàn/thanh khoản). GIỮ dòng chứ không xoá:
+    # xoá làm `trades` co lại, `sheets_store.push` từ chối đẩy, lượt sau kéo
+    # lệnh chờ về rồi khớp TRỄ một phiên (BƯỚC 136). Không phải CLOSED: nó
+    # chưa bao giờ là một giao dịch, nên không phép đo nào được đếm nó.
+    HUY = "HUY"
 
 
 class ExitReason:
@@ -776,12 +796,17 @@ class PaperTradingJournal:
             if MO_PHONG_TRUOT_GIA and nen:
                 kq = self._khop_that(symbol, gia, size, nen)
                 if kq is None:
-                    # Sàn từ chối hoặc không khớp nổi một lô. Lệnh này KHÔNG
-                    # tồn tại — xoá chứ không mở rồi đóng ngay, vì một lệnh
-                    # không khớp không phải một giao dịch lãi/lỗ 0%.
-                    self.db.execute("DELETE FROM trades WHERE id=?", (r["id"],))
-                    self.db.execute("DELETE FROM nhat_ky WHERE trade_id=?",
-                                    (r["id"],))
+                    # Sàn từ chối hoặc không khớp nổi một lô. Lệnh này không
+                    # phải một giao dịch lãi/lỗ 0% — nhưng cũng KHÔNG được
+                    # xoá: xoá làm `trades` co lại, `push()` từ chối đẩy, và
+                    # lượt sau kéo lệnh chờ từ Sheets về rồi khớp TRỄ một
+                    # phiên (BƯỚC 136). Đóng ở HUY, không giá vào; dòng nhật
+                    # ký giữ nguyên — bối cảnh lúc tín hiệu vẫn là dữ liệu.
+                    self.db.execute(
+                        "UPDATE trades SET status=?, exit_date=?, exit_reason=?"
+                        " WHERE id=?",
+                        (Status.HUY, session_date[:10], LY_DO_TU_CHOI_LENH,
+                         r["id"]))
                     continue
                 gia, size = kq
 
@@ -860,8 +885,11 @@ class PaperTradingJournal:
         """(giá bình quân, size_pct thực khớp) — hoặc None nếu không khớp.
 
         Đi qua `vong_doi_lenh` chứ không tự tính: module đó đã mô hình hoá
-        lô chẵn, biên độ ±7%, trần thanh khoản mỗi nến và khớp một phần,
-        kèm 29 test. Viết lại ở đây là dựng bản sao thứ hai sẽ trôi đi.
+        lô chẵn, biên độ, trần thanh khoản mỗi nến và khớp một phần, kèm 29
+        test. Viết lại ở đây là dựng bản sao thứ hai sẽ trôi đi.
+
+        Biên độ là `BIEN_DO_KIEM_GIA_MO`, KHÔNG phải ±7% mặc định: lệnh đặt ở
+        giá mở cửa đã khớp thật, nên phép kiểm ở đây chỉ còn là chốt dữ liệu.
         """
         from vong_doi_lenh import KHOP_DU, KHOP_MOT_PHAN, dat_lenh, khop_trong_nen
         from truot_gia import MUA
@@ -871,7 +899,8 @@ class PaperTradingJournal:
         so_cp = int(VON_DANH_MUC_VND * (size_pct / 100.0) / gia_mo)
         tham_chieu = float(nen.get("tham_chieu") or gia_mo)
         try:
-            lenh = dat_lenh(symbol, MUA, so_cp, gia_mo, tham_chieu)
+            lenh = dat_lenh(symbol, MUA, so_cp, gia_mo, tham_chieu,
+                            bien_do=BIEN_DO_KIEM_GIA_MO)
         except Exception:
             return None
         if lenh.trang_thai not in (KHOP_DU, KHOP_MOT_PHAN):

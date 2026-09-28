@@ -132,16 +132,21 @@ def test_thanh_khoan_can_thi_khop_MOT_PHAN_va_size_giam(so_lenh, monkeypatch):
     print(f"PASS  thanh khoản cạn -> size {CO_DAY_DU}% giảm còn {t.size_pct}%")
 
 
-def test_ngoai_bien_do_thi_KHONG_co_lenh(so_lenh, monkeypatch):
-    """Sàn từ chối lệnh ngoài ±7%. Không mở, và cũng không ghi lệnh 0%."""
-    nen = dict(NEN, tham_chieu=10_000.0)      # 20.000 vượt xa +7% của 10.000
+def test_ngoai_bien_do_thi_KHONG_co_VI_THE_chi_co_dong_HUY(so_lenh, monkeypatch):
+    """Mở cửa vượt biên RỘNG NHẤT của mọi sàn: không mở vị thế, không ghi
+    lệnh 0% — nhưng cũng KHÔNG xoá dòng (BƯỚC 136: xoá làm `trades` co lại,
+    `push()` từ chối đẩy, lượt sau khớp trễ). Dòng đóng ở HUY, không giá."""
+    nen = dict(NEN, tham_chieu=10_000.0)      # 20.000 = +100% của 10.000
     monkeypatch.setattr(pt, "MO_PHONG_TRUOT_GIA", True)
     so_lenh.consider_entry("FPT", "2026-03-02", _kq(), buy_threshold=50.0)
     so_lenh.fill_pending("FPT", "2026-03-03", 20_000.0, nen)
-    assert so_lenh.all_trades() == [], (
-        "lệnh bị sàn từ chối mà vẫn nằm trong sổ -> một giao dịch chưa bao "
-        "giờ xảy ra")
-    print("PASS  ngoài biên độ ±7% -> không có lệnh nào trong sổ")
+    lenh = so_lenh.all_trades()
+    assert [t.status for t in lenh] == [pt.Status.HUY], (
+        "lệnh bị sàn từ chối phải nằm lại ở HUY — không mở, không biến mất")
+    assert lenh[0].entry_price is None and lenh[0].exit_price is None, (
+        "một lệnh chưa bao giờ khớp không được mang giá -> giao dịch bịa")
+    assert lenh[0].exit_reason == pt.LY_DO_TU_CHOI_LENH
+    print("PASS  vượt biên rộng nhất -> không vị thế, một dòng HUY")
 
 
 def test_thieu_nen_thi_khop_nhu_cu(so_lenh, monkeypatch):

@@ -1108,6 +1108,14 @@ không file nào ngoài test của chính chúng import. Nay `fill_pending` đi 
 `vong_doi_lenh` (lô chẵn · biên độ ±7% · trần thanh khoản mỗi nến · khớp
 một phần) và `evaluate_open` đi qua `truot_gia` khi bán.
 
+> 🔴 **"BIÊN ĐỘ ±7%" HẾT ĐÚNG TỪ 28/09/2026 — `docs/STATE.md` BƯỚC 136.**
+> Nó áp cho MỌI mã, kể cả 4 mã HNX và 3 mã UPCoM của rổ, và lệnh bị từ
+> chối còn bị XOÁ — `trades` co lại, `push()` từ chối đẩy, lượt sau khớp
+> trễ. Nay giá mở cửa (giá sở đã khớp) chỉ bị chặn khi lệch vượt biên rộng
+> nhất, `paper_trading.BIEN_DO_KIEM_GIA_MO` (suy từ
+> `data_quality.EXCHANGE_LIMITS`), và lệnh không khớp đóng ở `HUY`. Hai dòng
+> trượt-giá-BẬT đo lại ở ĐO 20.
+
 > 🔴 **VẾ "KHI BÁN" CHỈ ĐÚNG MỘT NỬA — audit 25/09/2026, `docs/STATE.md`
 > BƯỚC 121.** Chỉ nhánh cắt lỗ trong `evaluate_open` đi qua mô hình trượt
 > giá. Lệnh thoát theo tín hiệu (`SIGNAL_REVERSED`, trần thời gian) đi qua
@@ -1153,6 +1161,20 @@ Chi phí thực thi (TẮT − BẬT): theo mã **0,71**, theo ngày **0,76** đ
 lệnh. So với ĐO 3, mọi dòng xấu đi **~0,5 điểm**, và phần lớn KHÔNG phải
 trượt giá: so từng lệnh ở dòng 4, **115/387 lệnh cắt lỗ đã bị gap qua SL**
 lúc mở cửa — bản cũ ghi chúng ở đúng giá SL. `docs/STATE.md` BƯỚC 124.
+
+> 🔴 **HAI DÒNG BẬT ĐO LẠI Ở ĐO 20 (28/09/2026), sau BƯỚC 136** — giá mở
+> cửa không còn bị kiểm bằng ±7% của HOSE (rổ có 4 mã HNX, 3 mã UPCoM), và
+> lệnh không khớp đóng ở `HUY` thay vì bị xoá. Đối chứng cùng ngày ra lại
+> dòng 1–2 trên **tới từng chữ số**; bản đã sửa, nay là bảng hiện hành:
+>
+> | # | trượt giá | chế độ | ngưỡng IS | lệnh OOS | kỳ vọng | **alpha** | **KTC 95%** | vốn TB · đỉnh |
+> |---|---|---|---|---|---|---|---|---|
+> | 1 | BẬT | theo mã | 62 | 398 | −0,22% | **−1,09%** | **[−1,91 ; −0,18] LOẠI 0** | 51% · 191% |
+> | 2 | BẬT | **theo ngày** | 45 | **612** | −1,09% | **−1,48%** | **[−2,05 ; −0,88] LOẠI 0** | 57% · **100%** |
+>
+> Δ alpha **+0,03** và **0,00** — nhỏ hơn nửa bề rộng KTC, kết cục 1: phép
+> sửa không đổi kết luận. Dòng 3–4 không chạm được, giữ nguyên. Chi phí thực
+> thi nay **0,68** (theo mã) · **0,76** (theo ngày). `docs/STATE.md` BƯỚC 136.
 
 ### BẢNG ĐO 3, chạy 10/09/2026 ở mặc định T+1 — CẬN DƯỚI, ĐÃ ĐO LẠI Ở ĐO 18
 

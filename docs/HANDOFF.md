@@ -397,6 +397,16 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > Việc tách ra: sàn HOSE ±7% áp cho cả mã HNX/UPCoM lúc khớp (BƯỚC 134,
 > mục *Việc tách ra*).
 >
+> **28/09/2026 — BƯỚC 136: việc tách ra ở trên ĐÃ ĐO VÀ ĐÃ SỬA.** Rổ có 4 mã
+> HNX + 3 mã UPCoM (VCI = KBS). Sổ thật chưa từng dính (117/117 lệnh mở có
+> dòng); walkforward thì có (7/582 lệnh OOS của lượt 4 ĐO 18). Người dùng
+> chọn: giá MỞ CỬA không kiểm biên độ sàn — chỉ chặn khi lệch vượt biên rộng
+> nhất 15%; lệnh không khớp đóng ở `HUY` thay vì bị xoá, nên `trades` chỉ
+> thêm và `push()` không còn bị từ chối vì nó. **ĐO 20: kết cục 1** — Δ alpha
+> +0,03 (theo mã) và 0,00 (theo ngày), nhỏ hơn nửa bề rộng KTC; đối chứng ra
+> lại ĐO 18 từng chữ số. Hai dòng BẬT trong `CLAUDE.md` nay là số ĐO 20.
+> Còn treo, việc riêng: cột `exchange` ghi `HOSE` cho mọi mã; bước giá mã
+> HNX tính theo thang HOSE.
 > **CUỐI NGÀY 28/09.** #180 (BƯỚC 134, `60d6598`) và #181 (BƯỚC 135,
 > `617eef1`) đã vào `main`; BƯỚC 137 lên PR riêng.
 >
@@ -404,8 +414,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   trên Google Sheet thật (gspread trả `[[]]` cho tab rỗng; `read_rows` tạo
 >   tab khi đọc). Một phiên song song bắt được trước merge; đã sửa, lỗi 107.
 >   ⚠️ **Lượt đo ấy để lại một tab `nhat_ky` RỖNG trên Google Sheet thật** —
->   bản đã sửa coi nó là rỗng và lần đẩy kế tiếp ghi tiêu đề vào. **Người
->   dùng quyết** giữ hay xoá.
+>   bản đã sửa coi nó là rỗng và lần đẩy kế tiếp ghi tiêu đề vào.
+>   ✅ **Người dùng đã quyết 28/09: ĐỂ YÊN** (BƯỚC 136).
 > - **BƯỚC 135:** cửa `push-thang-main` hết chặn nhầm tên nhánh `…-main`.
 > - **BƯỚC 136 (phiên song song, chưa merge):** sàn ±7% cho HNX/UPCoM + lệnh
 >   không khớp đóng ở trạng thái huỷ thay vì xoá — có ĐO 20, người dùng duyệt.
@@ -413,8 +423,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `60d6598a…`, nhãn `<file> @60d6598`; độ tươi BƯỚC 134. Cách nạp đúng
 >   (thêm trước, xoá sau) nay ở `references/soat-cheo-notebooklm.md`.
 > - **Chờ người dùng (không đổi từ 27/09):** URL Streamlit Cloud · vế 3 điều
->   kiện dừng · bật ba workflow · `scratch/luu_do18/`. Thêm: tab `nhat_ky`
->   rỗng ở trên.
+>   kiện dừng · bật ba workflow · `scratch/luu_do18/`. ~~Thêm: tab
+>   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
 > - **Hạn 29/09:** ĐO 14 (khối dưới) và lượt soát định kỳ 7.
 
 **Chờ tới ngày, đừng đọc sớm:**

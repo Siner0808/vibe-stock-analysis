@@ -270,6 +270,12 @@ def push(db: sqlite3.Connection, backend: SheetBackend,
     vào, không bao giờ bị xoá. Co lại nghĩa là sổ local không phải bản đầy
     đủ — và vì trades ghi đè toàn phần, đẩy tiếp là xoá sạch bằng chứng.
 
+    Câu "không bao giờ bị xoá" SAI tới BƯỚC 136 (28/09/2026) đúng ở một ca:
+    `fill_pending` XOÁ lệnh chờ không khớp được, nên một lượt không mở lệnh
+    mới bị từ chối đẩy và lượt sau khớp lệnh ấy TRỄ một phiên. Nay lệnh
+    ấy đóng ở `Status.HUY`. `dong_so_sach` vẫn xoá lệnh chờ — nhưng chỉ
+    chạy trong mô phỏng, trên sổ không bao giờ được đẩy.
+
     Đây không phải lo xa. Runner CI sạch không có paper_trades.db sẽ tạo
     một sổ RỖNG, và nếu quy trình quên bước kéo về trước thì cú đẩy đầu
     tiên xoá trắng toàn bộ lệnh thật trên sheet — đúng cơ chế đã làm mất
