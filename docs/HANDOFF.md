@@ -377,7 +377,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; (4) xoá hẳn
 >   `scratch/luu_do18/` hay giữ.
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
->   2 ngày từ lượt 6 ngày 27/09).
+>   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10.
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -423,13 +423,14 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **BƯỚC 135:** cửa `push-thang-main` hết chặn nhầm tên nhánh `…-main`.
 > - **BƯỚC 136 (phiên song song, chưa merge):** sàn ±7% cho HNX/UPCoM + lệnh
 >   không khớp đóng ở trạng thái huỷ thay vì xoá — có ĐO 20, người dùng duyệt.
+>   ✅ **Đã merge 28/09** — #183, `96f6d46`.
 > - **BƯỚC 137:** sổ tay NotebookLM nạp lại, 11 nguồn ghim mã băm
 >   `60d6598a…`, nhãn `<file> @60d6598`; độ tươi BƯỚC 134. Cách nạp đúng
 >   (thêm trước, xoá sau) nay ở `references/soat-cheo-notebooklm.md`.
 > - **Chờ người dùng (không đổi từ 27/09):** URL Streamlit Cloud · vế 3 điều
 >   kiện dừng · ~~bật ba workflow~~ (✅ BƯỚC 138) · `scratch/luu_do18/`. ~~Thêm: tab
 >   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
-> - **Hạn 29/09:** ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7.
+> - **Hạn 29/09:** ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (✅ BƯỚC 140).
 >
 > **29/09/2026 — BƯỚC 141 và BƯỚC 142.**
 >
@@ -491,6 +492,13 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 
 **Cần người quyết:**
 
+- **Bộ nhớ hậu nghiệm trên đường quét thật (29/09/2026, BƯỚC 140).**
+  Tài liệu viết đường thật *"dùng 44 mẫu"*; đo ra runner CI dùng **0 mẫu**
+  ở cả 71/71 lượt quét từ 21/08, vì `sl_pattern_memory.json` bị gitignore và
+  workflow không khôi phục nó. Nên chọn: (a) giữ như đang chạy — đường thật
+  không phạt, lệch với backtest; (b) cho workflow nạp 44 mẫu chỉ-đọc —
+  khớp backtest, và 3 lệnh đã mở (STB · TCB · DCL) lẽ ra bị chặn. Cả hai đổi
+  hoặc giữ hành vi giao dịch thật, nên là quyết định của người dùng.
 - **Audit toàn hệ thống 25/09/2026 (BƯỚC 121): 19 phát hiện CAO chờ sửa
   theo lộ trình.** Báo cáo đầy đủ là Artifact riêng tư của người dùng; repo
   chỉ giữ bản tóm tắt ở `docs/STATE.md` BƯỚC 121. Hai việc nặng nhất chạm

@@ -19206,6 +19206,156 @@ dấu 🔴. Lần thứ hai trong hai ngày sổ tay bỏ sót một câu có tr
 - Bản CSV 22/09 không còn trên đĩa — phép so dựa trên băm đã ghi ở BƯỚC 112;
   hai bản 29/09 lưu ở scratchpad phiên, ngoài repo.
 
+## BƯỚC 140 — SOÁT ĐỊNH KỲ 7: ĐƯỜNG QUÉT THẬT CHƯA BAO GIỜ DÙNG BỘ NHỚ HẬU NGHIỆM — 71/71 LƯỢT "0 MẪU"; NĂM CÂU "ĐANG TẠM NGỪNG" HẾT ĐÚNG SAU BƯỚC 138 (29/09/2026)
+
+Phiên song song giao lượt soát, trên nhánh `soat/29-09-luot-7` từ `main`
+`e9d7985`. Ràng buộc của lượt: **không chạm** `paper_trading.py`,
+`sheets_store.py`, `run_daily.py` và ba workflow — chúng đang chạy trên sổ
+thật. Nên lượt này chỉ ĐO và ĐÁNH DẤU; mọi phép sửa hành vi để người dùng
+quyết.
+
+### Công cụ, rồi phần công cụ không thấy
+
+`tools/soat_loi_khai_cu.py`: 31 lời khai · 7 tài liệu · **chưa ai mở 1** →
+sau lượt **0**. Dòng ấy (`docs/HANDOFF.md`, *"Chưa có dòng thật nào — ba
+workflow vẫn tắt"*) đã mang dấu 🔴 BƯỚC 138 ở dòng ngay dưới; công cụ vẫn in
+nó vì dấu nằm ở dòng khác.
+
+BƯỚC 138 bật lại ba workflow, nên mọi câu *"đang tạm ngừng"* viết trong
+25–27/09 đều thành ứng viên. Họ từ ấy không nằm trong danh sách phủ định của
+công cụ, nên soát bằng `grep` và đọc:
+
+| chỗ | câu | phán quyết |
+|---|---|---|
+| `docs/HANDOFF.md` mục 5 | BƯỚC 136 *"chưa merge"* | SAI từ 28/09 — #183, `96f6d46`. Thêm ✅ |
+| `docs/HANDOFF.md` ĐO 14 | *"cần `vnstock_data` — đang tạm ngừng"* | SAI từ 26/09 (BƯỚC 126) — để BƯỚC 139 của phiên song song đánh dấu cùng kết quả ĐO 14, khỏi hai nhánh vá một câu; nay có 🔴 BƯỚC 139. Sổ tay trả *"không tìm thấy"* cho câu hỏi BƯỚC 139 dù câu nằm trong nguồn `@60d6598` (dòng 413) — lượt soát này bắt được trước |
+| `CLAUDE.md` Quét tự động | ô 🔴 *"ĐANG CHẠY" HẾT ĐÚNG TỪ 25/09* | SAI từ 28/09 — `gh workflow list --all`: ba workflow `active`. Thêm ✅ |
+| `CLAUDE.md` Bộ nhớ hậu nghiệm | *"và đường chạy thật đang tạm ngừng"* | SAI từ 28/09 — nói trong ô 🔴 lỗi 112 |
+| `README.md` | *"đang tạm ngừng … chưa sinh lệnh mới nào"* · *"Sổ 117 lệnh … chưa bao giờ tích luỹ"* | SAI từ 28/09 và từ 28/08 — thêm 🔴, trỏ về `tools/doc_so_that.py` thay vì ghi số mới |
+
+Ba lời khai ĐÃ SOÁT mở lại vì BƯỚC 134–138 chạm đúng mã của chúng — cả ba
+THẬT: `dong_so_sach` vẫn `DELETE` lệnh PENDING (`paper_trading.py:611`; BƯỚC
+136 đổi `fill_pending`, không đổi hàm này); thân `fill_pending` gọi
+`_ghi_nua_vao` · `_khop_that`, không `_analyze` (AST); `run_daily` bỏ nến dở
+— lượt `36392657512` lúc 07:41Z in *"🕒 71/71 mã có nến cuối ĐANG DỞ — đã bỏ,
+sổ chỉ ghi trên phiên đã đóng gần nhất"*, lượt 15:46Z sau đóng cửa không in.
+
+### Phát hiện chính — lỗi 112
+
+`CLAUDE.md` mục *Bộ nhớ hậu nghiệm* (từ `9686572`, 21/08):
+
+```
+backtest (walkforward.chay)  ->  co_san   : dùng 44 mẫu, KHÔNG ghi thêm
+đường chạy thật (run_daily)  ->  tích luỹ : dùng 44 mẫu, CÓ ghi thêm
+```
+
+Vế hai đúng ở máy local, nơi `sl_pattern_memory.json` nằm sẵn. Đường thật
+thì chạy trên GitHub Actions từ 21/08 (Task Scheduler tắt 20/08), và ở đó:
+
+- `.gitignore:50` có `sl_pattern_memory.json`;
+- `.github/workflows/quet-so-lenh.yml` nhắc `sl_pattern` **0** lần; artifact
+  chỉ tải lên `daily_execution_log.txt` · `latest_daily_report.md` ·
+  `reports/`.
+
+Đọc thẳng dòng `run_daily.py:313` in ra (có từ `6ba1229`, 20/08) trong nhật
+ký **mọi** lượt `quet-so-lenh` thành công:
+
+```
+gh run list --repo Siner0808/vibe-stock-analysis --workflow quet-so-lenh.yml \
+   --status success --limit 200 --json databaseId,createdAt
+gh run view <id> --repo Siner0808/vibe-stock-analysis --log | grep -o "Post-mortem: .* mẫu"
+
+102 luot thanh cong  ·  tu 2026-08-21: 71  ·  truoc: 31
+tu moc   : {'BẬT · 0 mẫu': 71}
+truoc moc: {'KHONG_CO_DONG': 31}          <- dong in chua ra doi
+som nhat / muon nhat: 2026-08-21T03:07:39Z · 2026-09-28T15:46:10Z
+```
+
+**71/71.** Runner khởi động với bộ nhớ rỗng, và mẫu ghi thêm — nếu có — mất
+cùng runner. Đường thật **chưa bao giờ** dùng 44 mẫu, cũng chưa bao giờ gom
+thêm mẫu nào.
+
+**Hệ quả trên sổ thật** (đọc hai tab `decisions` · `trades` trực tiếp, chỉ
+đọc; luật khớp và mức phạt lấy từ chính `post_mortem_learning`:
+`MATCH_TOLERANCE` 5,0 · `PENALTY` −12,0; hàng rào thời gian đã kiểm — cả 44
+mẫu có `signal_date` ≤ 2026-06-22 và phiên học ≤ 2026-07-10, nên với
+`as_of=_phien` ở `master_agent.py:221` chúng đều hợp lệ cho mọi phiên từ
+13/08):
+
+```
+quyet dinh ghi tu 2026-08-13 (luot Actions dau con nhat ky): 9521 (tong 18523)
+khop mau (±5 ca ba toa do)       : 183
+khop VA du nguong 62             : 103   = 55 cap (ma, ngay tin hieu), 27 ma
+  ... ma phat -12 keo xuong duoi : 103
+  ... trong do DA MO LENH (acted=1):
+      2026-08-28 STB tin hieu 2026-08-28 diem 65  bo ba 65/65/100
+      2026-08-28 TCB tin hieu 2026-08-28 diem 63  bo ba 65/65/93.8
+      2026-09-28 DCL tin hieu 2026-09-25 diem 62  bo ba 60/65/93.8
+```
+
+**3 trên 11 lệnh tiến-về-trước** (sổ 29/09: 124 lệnh, 11 tiến-về-trước, 3
+đã đóng) tồn tại chỉ vì runner chạy không có bộ nhớ. 100 dòng còn lại không
+mở lệnh — vì sao thì lượt này không đo.
+
+Nên chỗ lệch mà mục ấy khai là *cố ý* không phải *44 đứng yên ↔ 44 tích
+luỹ* mà ***44 ↔ 0***: backtest (`co_san`) có mức phạt, đường thật không.
+
+**Việc cho người dùng quyết** (ghi ở `docs/HANDOFF.md` *Cần người quyết*):
+(a) giữ như đang chạy — đường thật không phạt, lệch backtest; (b) cho
+workflow nạp 44 mẫu chỉ-đọc — khớp `co_san`, và ba lệnh trên lẽ ra bị chặn.
+Quyết định 25/09 *"bộ nhớ 44 mẫu chỉ giữ làm lịch sử"* (BƯỚC 122) đọc được
+theo cả hai nghĩa, nên không suy từ nó. Cả hai hướng đều chạm workflow hoặc
+`run_daily`, tức ngoài phạm vi lượt này.
+
+Phân lớp: `chua-do`, 39 ngày (`9686572` 21/08 → 29/09), nguồn `git`. Máy
+chặn: ❌ — gác đúng tuỳ hướng người dùng chọn.
+
+### Hai lỗi của chính phép đo — cả hai theo chiều "sạch"
+
+1. **Dấu của mức phạt.** Bản đầu viết `s - phat < 62` trong khi `PENALTY`
+   là **−12**, tức cộng 12 điểm: ra **0** quyết định bị kéo xuống. Một số
+   0 trông như "vô hại". Đọc lại hằng số trong mã → `s + phat` → **103**.
+   Đúng hình dạng điều bắt buộc số 4 của Bước 3: máy đo sai không đỏ, nó in
+   một con số.
+2. **Một lượt tải nhật ký hỏng.** Lượt 18/09 (`35318486025`) đọc lần đầu ra
+   *"không có dòng"*; đọc lại ra *"BẬT · 0 mẫu"*. Nên phép đếm đọc lại (tối
+   đa 3 lần) mọi lượt từ 21/08 báo không có dòng, trước khi tin nó.
+
+### Sổ lệnh thật lúc soát
+
+`tools/doc_so_that.py` (chỉ đọc): 124 lệnh · 18.523 quyết định; CLOSED 116
+· OPEN 7 · PENDING 1; tiến-về-trước 11, đã đóng 3 (HUT · TCB · NAF). Sáu lệnh
+BƯỚC 138 đã khớp 28/09. Không đọc lãi lỗ của chúng (bất biến 7 đổi hướng).
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, gửi trong trình duyệt của phiên này (nguồn
+`@60d6598`). Sổ tay chỉ ra **3** câu ở `CLAUDE.md` — cả 3 KHỚP qua
+`tools/doi_chieu_trich_dan.py`:
+
+- *"đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm"* —
+  THẬT, chính là lỗi 112; đã có ô 🔴.
+- *"Backtest đo một bộ nhớ đứng yên …; sổ thật vẫn gom mẫu tiếp."* — THẬT;
+  ô 🔴 nay gọi thẳng vế ấy.
+- *"Câu trên vẫn đúng về MÃ, không còn đúng về Ý ĐỊNH."* — THẬT về MÃ (`run_daily`
+  vẫn chế độ `tich_luy`); cái sai nằm ở môi trường runner, và ô 🔴 ngay dưới
+  nói điều đó.
+
+Sổ tay kết *"ngoài các câu trên trong CLAUDE.md, không có câu nào khác"*.
+**Sai** — `grep -n "tich_luy" docs/STATE.md` bắt BƯỚC 125: *"Bộ nhớ 44 mẫu vẫn
+chạy ở chế độ `tich_luy` trên đường thật"*, nằm trong nguồn. Nhật ký chỉ-thêm
+nên không sửa; BƯỚC này là lời đính chính. Thêm một lần câu trả lời ÂM của
+sổ tay bỏ sót thứ nằm ngay trong nguồn — tiền lệ 24/09, BƯỚC 127, BƯỚC 138,
+và BƯỚC 139 cùng ngày (dòng ĐO 14 ở bảng trên).
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không nói mức phạt đúng hay có lợi. Ba lệnh là n rất nhỏ; ở backtest 44
+  mẫu gần như không đổi kết quả (`docs/ket-qua-bo-nho-rieng-20260821.md`).
+- Phép đếm 103 dùng bộ ba điểm ghi trong cột `components` của `decisions` và
+  luật khớp của `post_mortem_learning`; nó KHÔNG chạy lại `master_agent`.
+- Không sửa workflow hay `run_daily`.
+
 ## BƯỚC 141 — P2d HIỆN NHẬT KÝ "VÌ SAO" TRÊN APP: CHỈ ĐỌC HAI TAB SHEETS, TRẠNG THÁI TỪ SỔ LỆNH (29/09/2026)
 
 Người dùng chọn (câu hỏi sau BƯỚC 139): *"Hiện nhật ký trên app"*. Nhật ký đã

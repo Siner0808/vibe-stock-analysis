@@ -235,6 +235,66 @@
           "dong": "trong phiên chỉ để cảnh báo, không ghi sổ\"*; `run_daily` nay chỉ ghi"
         }
       ]
+    },
+    {
+      "ngay": "2026-09-29",
+      "pham_vi": "Lượt 7, đúng nhịp (lượt 6 là 27/09). Phiên song song giao, chạy trên nhánh soat/29-09-luot-7 từ main e9d7985. Công cụ in 31 lời khai, 1 CHƯA AI MỞ — mở, nó đã có dấu. Ngoài tầm công cụ: soát mọi câu nói ba workflow / đường quét 'đang tạm ngừng' (hết đúng từ 28/09, BƯỚC 138), và mở lời khai bộ nhớ hậu nghiệm của đường chạy thật — lời khai ấy SAI từ ngày viết (lỗi 112).",
+      "phat_hien": [
+        {
+          "noi_dung": "HANDOFF mục 5, BƯỚC 134: 'Chưa có dòng thật nào — ba workflow vẫn tắt.'",
+          "tu_kiem": "sed -n 399,400p docs/HANDOFF.md — dòng 400 ngay dưới là '🔴 HẾT ĐÚNG từ 28/09/2026 — BƯỚC 138: 6 dòng thật trên tab nhat_ky (lệnh 118–123)'.",
+          "phan_quyet": "SAI từ 28/09 — nhưng dấu 🔴 đã đứng ngay dòng dưới, nên quy ước đánh dấu CÓ chạy. Không sửa thêm. Công cụ vẫn in nó vì dấu nằm ở dòng KHÁC.",
+          "dong": "> tạo ở lần `push()` kế tiếp. Chưa có dòng thật nào — ba workflow vẫn tắt."
+        },
+        {
+          "noi_dung": "HANDOFF mục 5: 'BƯỚC 136 (phiên song song, chưa merge)'. Ngoài tầm công cụ — không có từ phủ định nào trong danh sách của nó.",
+          "tu_kiem": "gh pr list --state all: #183 'BUOC 136 / DO 20' MERGED 2026-09-28T07:00:59Z; git log: 96f6d46.",
+          "phan_quyet": "SAI từ 28/09 — đã thêm '✅ Đã merge 28/09 — #183, 96f6d46' ngay dưới."
+        },
+        {
+          "noi_dung": "HANDOFF mục ĐO 14: '⛔ Phép đọc này cần vnstock_data — đang tạm ngừng'.",
+          "tu_kiem": "docs/STATE.md BƯỚC 126 (26/09): 'HẾT TẠM NGỪNG Ở MÁY'. Sau khi merge main d12c9af: ô 🔴 BƯỚC 139 đứng ngay dưới câu ('\"đang tạm ngừng\" HẾT ĐÚNG từ 26/09/2026'). git show 60d6598:docs/HANDOFF.md | grep -n 'Phép đọc này cần' -> dòng 413 — câu CÓ trong nguồn sổ tay. Sổ tay vẫn trả 'không tìm thấy' cho câu hỏi BƯỚC 139 (docs/soat-notebooklm.json, khong_tim_thay_gi + _tu_kiem_cau_am của phiên song song).",
+          "phan_quyet": "SAI về vế 'đang tạm ngừng' từ 26/09 — nay đã đánh dấu trong BƯỚC 139. Lượt soát 7 bắt câu này TRƯỚC sổ tay: câu nằm trong nguồn @60d6598 mà câu trả lời BƯỚC 139 bỏ sót — thêm một lần câu trả lời ÂM của sổ tay sai."
+        },
+        {
+          "noi_dung": "CLAUDE.md mục Quét tự động: ô 🔴 '\"ĐANG CHẠY\" HẾT ĐÚNG TỪ 25/09' không có dấu đảo lại.",
+          "tu_kiem": "gh workflow list --all: 'Quét sổ lệnh' · 'Chuông cổng C5' · 'Chuông nguồn đứng' đều active; gh run list quet-so-lenh: 36392657512 (28/09 07:37Z) và 36446093488 (28/09 15:46Z) đều success.",
+          "phan_quyet": "SAI từ 28/09 — đã thêm ✅ 'CHẠY LẠI TỪ 28/09/2026 — BƯỚC 138' ngay dưới."
+        },
+        {
+          "noi_dung": "CLAUDE.md mục Bộ nhớ hậu nghiệm: 'đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm'. Ngoài tầm công cụ.",
+          "tu_kiem": "Đọc dòng 'Post-mortem: … · N mẫu' trong nhật ký MỌI lượt quet-so-lenh thành công (gh run view --log): 102 lượt; 71 lượt từ 21/08 — ngày dòng in ra đời — đều 'BẬT · 0 mẫu', 31 lượt trước đó không có dòng. Lượt 18/09 đọc lần đầu hỏng (tải nhật ký lỗi), đọc lại ra đúng. .github/workflows/quet-so-lenh.yml nhắc sl_pattern 0 lần; file bị gitignore. Trên sổ thật (chỉ đọc) từ 13/08: 9.521 quyết định, 183 khớp mẫu (dung sai ±5, luật của post_mortem_learning), 103 đủ ngưỡng 62 (55 cặp mã–ngày tín hiệu, 27 mã — bảng có dòng lặp) và mức phạt −12 kéo cả 103 xuống dưới; 3 lệnh đã mở: STB · TCB (tín hiệu 28/08), DCL (28/09).",
+          "phan_quyet": "SAI ở nơi đường thật chạy, từ ngày viết (9686572, 21/08) — 39 ngày. Lỗi 112. Đã đánh dấu 🔴; giữ hay nạp 44 mẫu là quyết định của người dùng (HANDOFF 'Cần người quyết')."
+        },
+        {
+          "noi_dung": "CLAUDE.md, ô ⚠️ quyết định 25/09 ngay trên: 'và đường chạy thật đang tạm ngừng'.",
+          "tu_kiem": "Như phát hiện ô 'ĐANG CHẠY' ở trên — ba workflow active, hai lượt quét 28/09 xanh.",
+          "phan_quyet": "SAI từ 28/09 — nói ra trong cùng ô 🔴 lỗi 112 ngay dưới."
+        },
+        {
+          "noi_dung": "README: 'đường quét tự động đang tạm ngừng cùng vnstock, nên chưa sinh lệnh mới nào' và 'Sổ 117 lệnh … chưa bao giờ tích luỹ'.",
+          "tu_kiem": "tools/doc_so_that.py (chỉ đọc, 29/09): 124 lệnh · 18.523 quyết định; CLOSED 116 · OPEN 7 · PENDING 1; tiến-về-trước 11, đã đóng 3.",
+          "phan_quyet": "SAI — vế đầu từ 28/09, vế sau từ 28/08. Đã đánh dấu 🔴 cả hai, trỏ về tools/doc_so_that.py thay vì ghi số mới."
+        },
+        {
+          "noi_dung": "CLAUDE.md mục Lệnh mồ côi: dong_so_sach 'PENDING xoá vì chưa bao giờ khớp' — có còn đúng sau BƯỚC 136 (lệnh không khớp nay đóng ở HUY)?",
+          "tu_kiem": "paper_trading.py:611 vẫn 'DELETE FROM trades WHERE symbol=? AND status=?' với Status.PENDING trong dong_so_sach. BƯỚC 136 đổi fill_pending, không đổi hàm này.",
+          "phan_quyet": "THẬT — hai đường cố ý khác nhau: backtest xoá lệnh mồ côi cuối mã, sổ thật đóng lệnh không khớp ở HUY.",
+          "dong": "(`HET_DU_LIEU`), PENDING **xoá** vì chưa bao giờ khớp."
+        },
+        {
+          "noi_dung": "CLAUDE.md mục T+1/T+2: 'fill_pending không gọi _analyze'.",
+          "tu_kiem": "AST thân fill_pending: gọi _ghi_nua_vao, _khop_that; không _analyze.",
+          "phan_quyet": "THẬT (lời gọi TRỰC TIẾP) — BƯỚC 134/136 thêm hai lời gọi, không thêm _analyze.",
+          "dong": "> **RA QUYẾT ĐỊNH**. Làm được vì `fill_pending` không gọi `_analyze`,"
+        },
+        {
+          "noi_dung": "HANDOFF: '`run_daily` nay chỉ ghi sổ trên nến đã đóng' — nay trên main và đường thật đã chạy.",
+          "tu_kiem": "run_daily.py:451 'nen_cuoi_dang_do(df[\"time\"].iloc[-1], now_time)' bỏ nến dở; nhật ký lượt 36392657512 lúc 07:41Z (14:41 giờ VN, trong phiên) in '🕒 71/71 mã có nến cuối ĐANG DỞ — đã bỏ, sổ chỉ ghi trên phiên đã đóng gần nhất'; lượt 15:46Z sau đóng cửa không in dòng ấy.",
+          "phan_quyet": "THẬT trên main, và nay đã thấy chạy trên đường thật.",
+          "dong": "trong phiên chỉ để cảnh báo, không ghi sổ\"*; `run_daily` nay chỉ ghi"
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."
