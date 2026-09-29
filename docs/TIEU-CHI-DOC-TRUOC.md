@@ -3459,3 +3459,39 @@ và không được chọn lại ô chuẩn sau khi thấy chúng.
   (trần vốn 100%), nên chỉ ước lượng bằng `co_mau_cho_luc`, không đo ở đây.
 - Mã có vị thế mở không có dòng quyết định — một vòng xác nhận chấm bóng trên
   tab `decisions` sẽ thiếu đúng những mã ấy. Ghi ra để thiết kế, không đo.
+
+---
+
+## Kết quả ĐO 21 — chạy 29/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ:** `tools/do21_luc_vong_xac_nhan.py` · tiêu chí ký ở `16b03da`, đẩy lên
+GitHub TRƯỚC lượt chạy · chạy **13:32:32 → 13:33:05 UTC**, mã thoát 0 · 69 mã.
+
+**Ba phép kiểm dụng cụ: ĐẠT.** (1) Đối chiếu null ở W = 252, tỷ lệ hoán vị mã /
+dịch vòng: **1,066 · 1,126 · 0,891 · 0,757** — cả bốn trong [0,75 ; 1,25], cặp
+cuối (`stoch_kd`, h = 21) **sát biên**: ở đó null hoán vị mã HẸP hơn 24%. (2) Ô
+*'không có gì'* ở K = 1 kêu nhiều nhất **3/30** (ngưỡng 4). (3) Mọi ô có từ
+1.471 điểm bắt đầu trở lên.
+
+```
+h = 21 · 1x rao hien hanh (0,0586) · K = 20 · so luot BAT / 30
+nen        W=21   W=63   W=126   W=252
+px_sma50     0      1       7      13      <- khong W nao dat 24/30
+stoch_kd    10     30      30      30
+
+cung cot px_sma50, W = 252, theo K:   K=1  23/30 · K=20  13/30 · K=260  6/30
+cung cot px_sma50, 2x rao, K = 20:    W=126 22/30 · W=252 28/30
+```
+
+**KẾT CỤC C** — đúng dự báo đã khai. Ở cột nền bất lợi (`px_sma50`), 252 phiên
+dữ liệu chưa nhìn bắt được một ứng viên đúng bằng rào hoà vốn **13/30** lần ở
+K = 20. Kết cục không đổi theo null: suy từ hai ngưỡng 95% đã in (giả định
+chuẩn), ngưỡng K = 20 là ≈ 0,089 (hoán vị mã) hoặc ≈ 0,079 (dịch vòng), còn IC
+đo được TB **0,057** — dưới cả hai.
+
+**Một chỗ dự báo lệch, khai thẳng:** dự báo ước rào hiện hành ~0,067 (rào ĐO 15
+0,0488 × 1,371); đo được **0,0586**, vì σ nhãn h = 21 trên toàn `cache_2018` là
+**10,10%**, còn cửa sổ ĐO 15 suy ngược từ rào của nó là ~8,84%. Rào thấp hơn thì
+phép tiêm nhẹ hơn — kết cục C vẫn đứng: ở 2× rào (0,1171, cao hơn cả 0,067) cột bền
+cũng chỉ đạt ở 252 phiên. Số liệu và cách đọc cho tầng 3:
+`docs/STATE.md` BƯỚC 142.
