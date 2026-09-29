@@ -148,6 +148,18 @@ def load_trades_from_google_sheets(backend: Any = None) -> list[Trade]:
         tam.db.close()
 
 
+def load_nhat_ky_from_google_sheets(backend: Any = None) -> Optional[list[dict]]:
+    """Nhật ký "vì sao" từ Sheets, CHỈ ĐỌC — đường app dùng (BƯỚC 141).
+
+    None nghĩa là kho ngoài CHƯA cấu hình; `[]` nghĩa là đã cấu hình mà nhật
+    ký chưa có dòng nào. Hai trạng thái ấy phải hiện khác nhau.
+    """
+    b = get_backend(backend)
+    if b is None:
+        return None
+    return _ss.doc_nhat_ky(b)
+
+
 def restore_journal_from_google_sheets(db_path: str = DB_PATH,
                                        allow_overwrite: bool = False,
                                        backend: Any = None) -> Optional[dict]:

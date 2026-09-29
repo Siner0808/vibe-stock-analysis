@@ -481,6 +481,55 @@ def _so(gia_tri, dinh_dang="{:,.2f}"):
     return "—" if gia_tri is None else dinh_dang.format(gia_tri)
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _doc_nhat_ky():
+    """Nhật ký "vì sao" từ Google Sheets — CHỈ ĐỌC (BƯỚC 141).
+
+    Đọc thẳng hai tab (`nhat_ky` + trạng thái của `trades`), không kéo cả bảng
+    quyết định. `None` = kho ngoài chưa cấu hình; `[]` = chưa có dòng nào.
+    Sổ `.db` ở máy đứng yên từ 20/08 nên KHÔNG phải nguồn của nhật ký.
+    """
+    import google_sheets_sync as _gss
+    return _gss.load_nhat_ky_from_google_sheets()
+
+
+def _bang_nhat_ky(dong_nk):
+    """Dòng nhật ký -> bảng hiện, qua `nhat_ky_vi_sao.dong_hien_thi`.
+
+    Không tính lại số nào: lãi ròng, R, alpha là số nhật ký ĐÃ GHI (gác AST
+    cấm phép tính trong hàm này). Ô thiếu hiện dấu gạch.
+    """
+    import nhat_ky_vi_sao as _nkv
+    hang = []
+    for d in dong_nk:
+        h = _nkv.dong_hien_thi(d, d.get("trang_thai_lenh"))
+        hang.append({
+            "Mã": h["Mã"], "Trạng thái": h["Trạng thái"],
+            "Tín hiệu": h["Tín hiệu"] or "—", "Vào": h["Vào"] or "—",
+            "Giá vào": _so(h["Giá vào"], "{:,.0f}"),
+            "Cắt lỗ ban đầu": _so(h["Cắt lỗ ban đầu"], "{:,.0f}"),
+            "Rủi ro": _so(h["Rủi ro %"], "{:.2f}%"),
+            "Điểm": _so(h["Điểm"], "{:.0f}"),
+            "VN-INDEX so MA50": _so(h["VN-INDEX so MA50 %"], "{:+.2f}%"),
+            "Ra": h["Ra"] or "—", "Lý do ra": h["Lý do ra"] or "—",
+            "Lãi ròng": _so(h["Lãi ròng %"], "{:+.2f}%"),
+            "R": _so(h["R"], "{:+.2f}R"),
+            "Alpha": _so(h["Alpha"], "{:+.2f}"),
+            "Hậu kiểm máy": h["Hậu kiểm máy"] or "—",
+        })
+    return pd.DataFrame(hang)
+
+
+def _mau_dau(o):
+    """Xanh = dương, đỏ = âm, theo DẤU của chuỗi đã định dạng; 0 và gạch để trơn."""
+    s = str(o)
+    if s.startswith("+") and s.strip("+0.,%R"):
+        return "color: #16a34a; font-weight: 600"
+    if s.startswith("-"):
+        return "color: #dc2626; font-weight: 600"
+    return ""
+
+
 def _tip(chuoi) -> str:
     """Chuỗi an toàn để nhét vào thuộc tính `title="..."`.
 
@@ -1352,6 +1401,70 @@ with t_hist:
                 f"không phải kết quả backtest.")
     else:
         st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}")
+
+    # ── NHẬT KÝ "VÌ SAO" (BƯỚC 141) ────────────────────────────────────
+    st.markdown("##### 📓 Nhật ký \"vì sao\" của lệnh ảo")
+    st.caption(
+        "Mỗi lệnh ảo một dòng: mở lúc có tín hiệu, điền phần VÀO lúc khớp, phần "
+        "ĐÓNG khi lệnh đóng. **R** tính trên cắt lỗ BAN ĐẦU; **Alpha** = lãi ròng "
+        "trừ % đổi của VN-INDEX trong cùng khoảng giữ lệnh. Đọc từ Google Sheets, "
+        "làm mới mỗi 5 phút.")
+    try:
+        _nk, _nk_loi = _doc_nhat_ky(), None
+    except Exception as _e:
+        _nk, _nk_loi = None, f"{type(_e).__name__}: {_e}"
+    if _nk_loi:
+        st.warning(f"⚠️ Chưa đọc được nhật ký — {_nk_loi}")
+    elif _nk is None:
+        st.info("Kho ngoài (Google Sheets) chưa cấu hình — nhật ký chỉ nằm trên kho ấy.")
+    elif not _nk:
+        st.info("Nhật ký chưa có dòng nào.")
+    else:
+        import nhat_ky_vi_sao as _nkv
+        st.dataframe(_bang_nhat_ky(_nk).style.map(
+                         _mau_dau, subset=["VN-INDEX so MA50", "Lãi ròng", "R", "Alpha"]),
+                     use_container_width=True, hide_index=True)
+        st.caption(f"{len(_nk)} lệnh. Một lệnh không phải bằng chứng — đọc R "
+                   f"và Alpha trên nhiều lệnh (bất biến 5).")
+        _chon = st.selectbox(
+            "Xem chi tiết một lệnh", options=list(range(len(_nk))),
+            format_func=lambda i: (f"#{_nk[i]['trade_id']} · {_nk[i]['symbol']}"
+                                   f" · tín hiệu {_nk[i]['signal_date']}"),
+            key="nhat_ky_chon")
+        _ct = _nkv.chi_tiet(_nk[_chon])
+        if not _nk[_chon].get("entry_date"):
+            st.caption("Lệnh này chưa khớp: điểm từng agent và lý do vào ghi lúc "
+                       "khớp; bối cảnh bên dưới chụp lúc có tín hiệu.")
+        _c1, _c2, _c3 = st.columns(3)
+        with _c1:
+            st.markdown("**Điểm từng agent lúc vào**")
+            if not _ct["diem_agent"]:
+                st.caption("—")
+            else:
+                st.dataframe(pd.DataFrame(
+                    [{"Agent": k.replace("_score", ""), "Điểm": _so(v, "{:.1f}")}
+                     for k, v in sorted(_ct["diem_agent"].items(), key=lambda kv: -kv[1])]),
+                    use_container_width=True, hide_index=True)
+        with _c2:
+            st.markdown("**Bối cảnh lúc tín hiệu**")
+            if _ct["boi_canh"]:
+                st.dataframe(pd.DataFrame(
+                    [{"Mục": _nkv.NHAN_BOI_CANH.get(k, k),
+                      "Giá trị": "—" if v is None else (
+                          _so(v, "{:,.2f}") if isinstance(v, (int, float)) else str(v))}
+                     for k, v in _ct["boi_canh"].items()]),
+                    use_container_width=True, hide_index=True)
+            else:
+                st.caption("Không chụp được bối cảnh lúc tín hiệu (lệnh chờ có từ trước nhật ký).")
+        with _c3:
+            st.markdown("**Lý do vào**")
+            for _ld in _ct["ly_do"] or ["—"]:
+                st.markdown(f"- {_ld}")
+            _hk = _nk[_chon].get("hau_kiem_may")
+            if _hk:
+                st.markdown("**Hậu kiểm máy**")
+                for _n in str(_hk).split(" | "):
+                    st.markdown(f"- {_n}")
 
 with t_rep:
     # BA THẺ NÀY TỪNG LÀ HAI CHUỖI VIẾT CỨNG (21/08/2026).
