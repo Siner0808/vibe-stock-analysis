@@ -1,0 +1,11 @@
+{
+  "_ghi_chu": "So dang ky ung vien cua tang 3 (BUOC 144). MOI ung vien da SANG deu phai co mot dong o day, ke ca ung vien rot sang: nguong xac nhan chia cho TONG so dong (cham_bong.nguong). Khai TRUOC khi chay vong sang, trong mot commit; khong sua, khong xoa dong da khai.",
+  "_khuon": {
+    "khai_ngay": "YYYY-MM-DD — ngay commit khai",
+    "mo_ta": "ung vien la gi, mot cau",
+    "ly_do": "vi sao khai: dong nhat ky / DO / BUOC nao goi y",
+    "qua_sang": "true/false — ket qua vong sang tren du lieu DA nhin",
+    "spec": {"loai": "trong_so", "trong_so": {"trend_score": 0.5, "volume_score": 0.5}}
+  },
+  "ung_vien": {}
+}

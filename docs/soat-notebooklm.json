@@ -1806,6 +1806,28 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -n '0,43|0,0488|san_nhieu|NHIP_DA_DOI_CHIEU' CLAUDE.md docs/HANDOFF.md SKILL.md NGUYEN-TAC MO-XE references/bay.md docs/TIEU-CHI-DOC-TRUOC.md -> mọi '0,43' của CLAUDE.md (dòng 1349–1413) đã mang dấu 'KHÔNG TÁI LẬP'; '0,0488' là rào của CỬA SỔ ĐO 15 với chi phí cũ (TIEU-CHI dòng 2498–2656), không phải rào hiện hành; không câu nào nói san_nhieu đã đối chiếu mọi độ dài cửa sổ. Lộ ra một chỗ lệch của CHÍNH dự báo ĐO 21: nó ước rào hiện hành ~0,067 (0,0488 × 1,371), đo được 0,0586 — sigma nhãn cache_2018 10,10% so với 8,84% ở cửa sổ ĐO 15; đã ghi vào kết quả."
+    },
+    "BƯỚC 144": {
+      "ngay": "2026-09-29",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn @60d6598 (BƯỚC 134); BƯỚC 135–144 ngoài nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 144 into docs/STATE.md: the self-upgrade layer will use public shadow scoring: every screened candidate, including those that fail screening, is registered in docs/ung-vien.json before the screening run, at most 5 per ISO week; a candidate is a declared weighting of the five pre-debate component scores (news_score excluded); it is compared PAIRED against the score actually recorded in the decisions ledger (not recomputed), on the same 21-session excess-return label, with one symbol permutation shared by both scores, at threshold 0.05 divided by the total number of screened candidates; and nothing is computed on real forward data before the first candidate is registered. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a sentence saying the post-mortem memory or recomputed components are the live baseline, a sentence allowing a candidate to be evaluated before it is declared, a sentence saying news_score carries signal or weight. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "grep -n -i 'news.*trọng số|trọng số.*news|\"news\": 0|news_score|chấm lại|tính lại điểm|trước khi khai|khai sau' CLAUDE.md MO-XE-KIEN-TRUC.md docs/HANDOFF.md NGUYEN-TAC SKILL.md -> 2 dòng, cả hai CÙNG CHIỀU với BƯỚC 144: CLAUDE.md 1986 (khoá 'news': 0.0 không ai đọc), MO-XE 233 (news_score hằng số 50, bỏ khỏi công thức). Không câu nào cho chấm một ứng viên trước khi khai, không câu nào coi bộ nhớ hậu kiểm hay điểm tính lại là bản đang chạy."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
