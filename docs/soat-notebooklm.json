@@ -1678,6 +1678,46 @@
           "phan_quyet": "THẬT. Ô 🔴 ngay dưới — sổ tay không nêu câu này dù nó nằm trong nguồn."
         }
       ]
+    },
+    "BƯỚC 140": {
+      "ngay": "2026-09-29",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "cau_hoi": "I am about to write BƯỚC 140 into docs/STATE.md: The live scan path (run_daily running on GitHub Actions) has never used the 44 post-mortem memory patterns: every successful quet-so-lenh run since 21/08/2026 printed 'Post-mortem: BẬT · 0 mẫu', because sl_pattern_memory.json is gitignored and the workflow never restores or saves it; so any sentence saying the live path uses or accumulates the 44 patterns, or that post-mortem penalties shape live orders, is wrong. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm, sổ thật vẫn gom mẫu tiếp, trừ 12 điểm thật. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, mục 'Bộ nhớ hậu nghiệm — hai nơi CỐ Ý lệch nhau': 'đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm'.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md. Đây chính là lời khai lỗi 112.",
+          "phan_quyet": "THẬT — đã có ô 🔴 lỗi 112 ngay dưới mục."
+        },
+        {
+          "noi_dung": "Cùng mục: 'Backtest đo một bộ nhớ đứng yên để phép đo tái lập được; sổ thật vẫn gom mẫu tiếp.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md (dòng 1733). Ô 🔴 bản đầu chỉ nói 'mẫu ghi thêm mất cùng runner', không gọi tên vế này.",
+          "phan_quyet": "THẬT — ô 🔴 nay gọi thẳng: vế 'sổ thật vẫn gom mẫu tiếp' cũng không xảy ra trên runner."
+        },
+        {
+          "noi_dung": "Ô ⚠️ quyết định 25/09 trong cùng mục: 'Câu trên vẫn đúng về MÃ, không còn đúng về Ý ĐỊNH.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md. run_daily vẫn ở chế độ tich_luy (đúng về mã); cái sai nằm ở môi trường runner không có file bộ nhớ.",
+          "phan_quyet": "THẬT về môi trường, SAI nếu đọc là mâu thuẫn về mã — câu ấy nói về mã, và mã đúng như nó nói. Ô 🔴 ngay dưới nói phần môi trường."
+        },
+        {
+          "noi_dung": "Sổ tay kết: 'Ngoài các câu trên trong CLAUDE.md, không có câu nào khác trong các nguồn nói ngược với kết luận của BƯỚC 140.'",
+          "tu_kiem": "grep -n 'tich_luy' docs/STATE.md -> dòng 18058, BƯỚC 125: 'Bộ nhớ 44 mẫu vẫn chạy ở chế độ `tich_luy` trên đường thật' — STATE.md là một trong 11 nguồn. grep trên 10 nguồn còn lại (tích luỹ, gom mẫu, học thêm, trừ 12, Post-mortem) chỉ ra câu backtest (co_san, 'học thêm 0') và bản ghi 24/08 về fail-closed — không mâu thuẫn.",
+          "phan_quyet": "SAI — sổ tay bỏ sót BƯỚC 125 nằm ngay trong nguồn. Nhật ký chỉ-thêm nên không sửa; BƯỚC 140 là lời đính chính."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

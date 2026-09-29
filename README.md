@@ -165,12 +165,17 @@ khoá bởi test — nhưng đường quét tự động đang tạm ngừng cù
 nên chưa sinh lệnh mới nào. Bản trước ghi *"đang ĐÓNG"*, đúng từ
 29/08 tới 26/09/2026.
 
+> 🔴 **"Đang tạm ngừng … chưa sinh lệnh mới nào" HẾT ĐÚNG từ 28/09/2026**
+> (`docs/STATE.md` BƯỚC 138): ba workflow bật lại và đã sinh lệnh ảo thật.
+
 Bằng chứng tiến-về-trước đã đóng: **0**. Sổ 117 lệnh trên kho ngoài chưa
 bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước — mọi con số
 lịch sử nói về *một lượt mô phỏng*, không phải kết quả tích luỹ.
 
 > 🔴 Con số **0** ở trên hết đúng từ 04/09/2026, khi lệnh tiến-về-trước
 > đầu tiên đóng. Đọc sổ bằng `tools/doc_so_that.py`, đừng đọc ở đây.
+> Vế *"sổ 117 lệnh … chưa bao giờ tích luỹ"* cũng hết đúng từ 28/08/2026,
+> khi bốn lệnh tiến-về-trước đầu tiên được ghi (soát định kỳ 7, BƯỚC 140).
 
 Số học không dễ chịu: cần ~1.050 lệnh để kỳ vọng loại được số 0 (~23 năm ở
 nhịp 45 lệnh/năm); alpha cần 22.601 lệnh. *"Chờ thêm dữ liệu rồi quyết"*
