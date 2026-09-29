@@ -3349,3 +3349,149 @@ BAT theo ngay   da sua      45      612       -1,09%    -1,48%   [-2,05 ; -0,88]
 (theo ngày, 0,585). Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 18
 làm bảng hiện hành; dòng TẮT giữ ĐO 18. Số liệu và phép ghép từng lệnh:
 `docs/STATE.md` BƯỚC 136.
+
+---
+
+## ĐO 21 — vòng XÁC NHẬN của tầng 3: bao nhiêu phiên dữ liệu chưa nhìn thì bắt được một ứng viên bằng rào hoà vốn? (khai 29/09/2026)
+
+**Đã tra trùng:** BƯỚC 113 · BƯỚC 117 — ĐO 15/16 đo lực bằng phép tiêm trên TOÀN cửa sổ nhiều năm (ĐO 16: 21/30 ở rào cũ, h=21, trên ~60 nghìn quan sát), không đo theo ĐỘ DÀI dữ liệu mới. BƯỚC 9 — null dịch vòng đã đối chiếu ở năm nhịp; nó không chạy được trên cửa sổ ngắn hơn 2(h+1) phiên. BƯỚC 3 — lực ở tầng LỆNH (`co_mau_cho_luc`), không ở tầng quyết định. BƯỚC 122 — tầng 3 mới chỉ là lời hứa *"xác nhận tối đa 1 mỗi tháng"*, chưa ai đo nó có lực không. KHÔNG trùng.
+
+> **Khai 29/09/2026, SAU khi dụng cụ vào nhánh `p3/do-luc-xac-nhan` và
+> TRƯỚC lượt chạy đầu tiên trên cache giá, ở một commit RIÊNG.** Người dùng
+> giao *"tiếp tục làm"*; tầng 3 là việc kế của kế hoạch 25/09 (BƯỚC 122), và
+> không thiết kế nó được khi chưa biết vòng xác nhận có lực không.
+>
+> **Khai thêm, vì chúng xảy ra trước khi ký — cả hai KHÔNG chạm lợi nhuận:**
+>
+> - **Nhịp dữ liệu tiến-về-trước**, đọc tab `decisions` của Google Sheet thật
+>   (chỉ đọc): 18.649 dòng; dòng ghi từ 10/08/2026 là 2.430 dòng, **34 phiên**,
+>   ~**70 mã mỗi phiên**, mỗi dòng mang đủ điểm từng agent. Mã đang CÓ vị thế
+>   không có dòng quyết định (28/09: 64 mã = 70 − 6 lệnh mở; 29/09: 63 = 70 − 7).
+> - **Chọn nền cho phép tiêm** bằng tự tương quan, trên cùng 2.430 dòng: ĐIỂM
+>   CUỐI thật +0,45 · +0,32 · −0,02 · −0,07 ở độ trễ 1 · 2 · 5 · 10.
+>   `px_sma50` +0,80 · +0,58 · 0,00 · −0,02 (bền hơn); `stoch_kd` +0,34 · −0,14
+>   · −0,25 · +0,21 (kém bền hơn). Điểm thật nằm giữa → đo cả hai, đọc ở cột
+>   BẤT LỢI.
+> - Dụng cụ chỉ mới chạy trên dữ liệu TỔNG HỢP (18 test, đục 16/16 đỏ). **Chưa
+>   một con số lực nào trên cache giá đã được nhìn.**
+
+**Dụng cụ:** `tools/do21_luc_vong_xac_nhan.py` · dữ liệu: `backtest/cache_2018/`
+qua `E.nap_gia` (69 mã qua sổ mốc sạch) — **không chạm mạng, không ghi file**.
+
+### MỘT CÂU HỎI
+
+Tầng 3 hứa xác nhận ứng viên trên dữ liệu CHƯA nhìn, tối đa một mỗi tháng, ngưỡng
+hiệu chỉnh theo tổng số ứng viên đã sàng. **Một ứng viên có lợi thế ĐÚNG BẰNG
+rào hoà vốn hiện hành cần bao nhiêu phiên dữ liệu chưa nhìn để vòng xác nhận
+bắt được nó với lực ≥ 80%, ở ngưỡng Bonferroni cho K = 20 ứng viên (trần sàng
+một tháng)?**
+
+### Lưới, cố định trước
+
+| trục | giá trị |
+|---|---|
+| nhịp `h` | 5 · **21** |
+| cửa sổ `W` (phiên chưa nhìn) | 21 · 63 · 126 · 252 |
+| tổng ứng viên đã sàng `K` → ngưỡng `0,05/K` hai phía | 1 · **20** · 260 |
+| nền của phép tiêm | `px_sma50` · `stoch_kd` |
+| mức tiêm, theo rào HIỆN HÀNH | 0 · 1× · 2× |
+
+Mỗi ô **30 lượt**; mỗi lượt một cửa sổ bắt đầu ngẫu nhiên (đủ ≥ 40 mã đầy đủ
+suốt cửa sổ) và **2.000 hoán vị mã**. Hạt giống `20260929`. p hai phía theo
+xấp xỉ chuẩn của null (vì 2.000 hoán vị không chạm ngưỡng 0,0002 của K = 260).
+
+**Rào hiện hành** = (`ROUND_TRIP_COST_PCT` + **0,76**) / (σ · E[z | top 5%]) —
+cùng công thức `E.rao_hoa_von`, chi phí thực thi lấy từ ĐO 20 dòng theo ngày
+thay cho 0,43 của 24/08; tỷ lệ với rào cũ là **1,371**. σ là độ lệch chuẩn nhãn
+trên TOÀN bảng của nhịp ấy, để rào không đổi theo từng cửa sổ.
+
+### Phép kiểm dụng cụ — đọc TRƯỚC mọi tỷ lệ bắt
+
+1. **Đối chiếu null** (`--doi-chieu`, chạy đầu mỗi lượt đầy đủ): ở W = 252,
+   ngưỡng 95% hai phía của null HOÁN VỊ MÃ so với null DỊCH VÒNG `E.san_nhieu`,
+   cùng cửa sổ, cùng nền — bốn cặp (hai nền × hai nhịp). **Mọi tỷ lệ trong
+   [0,75 ; 1,25].** Một cặp ra ngoài → **cả bảng không đọc được**.
+2. **Ô 'không có gì' ở K = 1 phải im**: kêu ≤ **4/30** (`D.nguong_im(30, 0,05)`).
+   Kêu nhiều hơn → ô (nền, h, W) ấy không đọc được ở mọi K — xấp xỉ chuẩn của
+   p không đứng ở đó.
+3. Mỗi (nền, h, W) phải có ít nhất một cửa sổ đủ 40 mã. Không có → ô ấy
+   không đọc được.
+
+### Đại lượng
+
+Tỷ lệ bắt ở 1× rào (và 2×) cho từng ô; **W nhỏ nhất** mà tỷ lệ ở 1× rào ≥ 80%.
+Kèm dữ liệu thô: IC TB · SD và toàn bộ 30 giá trị p mỗi ô.
+
+### Dự báo, khai trước — một ƯỚC LƯỢNG, không phải số đo
+
+**Kết cục C ở ô chuẩn.** Suy từ ĐO 16: 21/30 ở rào cũ (0,0488) trên ~60 nghìn
+quan sát, co giãn theo căn bậc hai cỡ mẫu → ở W = 252 (~17 nghìn quan sát) và
+rào hiện hành (~0,067), z ≈ 2,3 so với ngưỡng 3,02 của K = 20 — lực cỡ
+**20–30%**. Ở h = 5 khá hơn (rào lớn hơn vì σ nhỏ hơn, nhãn ít chồng lấn
+hơn), có thể đạt ở W = 126–252. Ở 2× rào, h = 21: đạt ở W = 252, có thể 126.
+
+### Kết cục, khai trước — ô chuẩn h = 21, K = 20, W nhỏ nhất lấy MAX qua hai nền
+
+| kết cục | điều kiện | đọc thế nào cho tầng 3 |
+|---|---|---|
+| **A** | W nhỏ nhất ≤ 21 | xác nhận mỗi tháng trên đúng một tháng dữ liệu mới là khả thi như BƯỚC 122 viết |
+| **B** | 21 < W nhỏ nhất ≤ 252 | vòng xác nhận phải **chấm bóng** ứng viên từ lúc khai và đọc trên cửa sổ **tích luỹ**; nhịp lên phiên bản thực tế ≈ một lần mỗi W phiên. *"≤ 1 mỗi tháng"* là TRẦN, không phải nhịp |
+| **C** | không W ≤ 252 nào đạt, ở ít nhất một nền | một năm dữ liệu chưa nhìn không xác nhận nổi một ứng viên bằng rào hoà vốn khi đã sàng 20 ứng viên; thiết kế BƯỚC 122 sẽ gần như **không bao giờ** nâng cấp. Đổi định nghĩa *"qua xác nhận"* hay đổi nhịp là việc **người dùng quyết**, không phải việc của ĐO này |
+| **không đọc** | phép kiểm dụng cụ 1 hỏng, hoặc một ô chuẩn hỏng phép kiểm 2 hay 3 | sửa dụng cụ, chạy lại **cả bảng**; không đọc tỷ lệ nào của lượt hỏng |
+
+Đọc ở cột nền **bất lợi cho kết luận**: nền nào cần nhiều phiên hơn thì kết
+luận theo nền ấy. `phan_dinh()` trong dụng cụ là phép đọc này, có test khoá.
+
+### Đọc kèm, không quyết định gì
+
+Các ô h = 5, K = 1 và K = 260, mức 2×. Chúng mô tả không gian thiết kế — ví dụ
+*"nếu chỉ khai MỘT ứng viên mỗi quý thì sao"* — nhưng **không đổi kết cục**,
+và không được chọn lại ô chuẩn sau khi thấy chúng.
+
+### Điều ĐO này KHÔNG đo
+
+- **Không một ứng viên THẬT nào.** Mọi ứng viên là ứng viên giả tiêm mức biết
+  trước.
+- **Phép so CẶP** ứng viên với bản đang chạy (ΔIC, hai điểm tương quan cao
+  với nhau) có phương sai khác — nhỏ hơn khi hai điểm gần nhau, nhưng hiệu ứng
+  cần có cũng nhỏ hơn. Chưa đo.
+- **Tầng LỆNH**: xác nhận bằng alpha từng lệnh tiến-về-trước. Lệnh sinh chậm
+  (trần vốn 100%), nên chỉ ước lượng bằng `co_mau_cho_luc`, không đo ở đây.
+- Mã có vị thế mở không có dòng quyết định — một vòng xác nhận chấm bóng trên
+  tab `decisions` sẽ thiếu đúng những mã ấy. Ghi ra để thiết kế, không đo.
+
+---
+
+## Kết quả ĐO 21 — chạy 29/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ:** `tools/do21_luc_vong_xac_nhan.py` · tiêu chí ký ở `16b03da`, đẩy lên
+GitHub TRƯỚC lượt chạy · chạy **13:32:32 → 13:33:05 UTC**, mã thoát 0 · 69 mã.
+
+**Ba phép kiểm dụng cụ: ĐẠT.** (1) Đối chiếu null ở W = 252, tỷ lệ hoán vị mã /
+dịch vòng: **1,066 · 1,126 · 0,891 · 0,757** — cả bốn trong [0,75 ; 1,25], cặp
+cuối (`stoch_kd`, h = 21) **sát biên**: ở đó null hoán vị mã HẸP hơn 24%. (2) Ô
+*'không có gì'* ở K = 1 kêu nhiều nhất **3/30** (ngưỡng 4). (3) Mọi ô có từ
+1.471 điểm bắt đầu trở lên.
+
+```
+h = 21 · 1x rao hien hanh (0,0586) · K = 20 · so luot BAT / 30
+nen        W=21   W=63   W=126   W=252
+px_sma50     0      1       7      13      <- khong W nao dat 24/30
+stoch_kd    10     30      30      30
+
+cung cot px_sma50, W = 252, theo K:   K=1  23/30 · K=20  13/30 · K=260  6/30
+cung cot px_sma50, 2x rao, K = 20:    W=126 22/30 · W=252 28/30
+```
+
+**KẾT CỤC C** — đúng dự báo đã khai. Ở cột nền bất lợi (`px_sma50`), 252 phiên
+dữ liệu chưa nhìn bắt được một ứng viên đúng bằng rào hoà vốn **13/30** lần ở
+K = 20. Kết cục không đổi theo null: suy từ hai ngưỡng 95% đã in (giả định
+chuẩn), ngưỡng K = 20 là ≈ 0,089 (hoán vị mã) hoặc ≈ 0,079 (dịch vòng), còn IC
+đo được TB **0,057** — dưới cả hai.
+
+**Một chỗ dự báo lệch, khai thẳng:** dự báo ước rào hiện hành ~0,067 (rào ĐO 15
+0,0488 × 1,371); đo được **0,0586**, vì σ nhãn h = 21 trên toàn `cache_2018` là
+**10,10%**, còn cửa sổ ĐO 15 suy ngược từ rào của nó là ~8,84%. Rào thấp hơn thì
+phép tiêm nhẹ hơn — kết cục C vẫn đứng: ở 2× rào (0,1171, cao hơn cả 0,067) cột bền
+cũng chỉ đạt ở 252 phiên. Số liệu và cách đọc cho tầng 3:
+`docs/STATE.md` BƯỚC 142.

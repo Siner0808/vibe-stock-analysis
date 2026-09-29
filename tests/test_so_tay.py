@@ -7,6 +7,7 @@ khuôn khác.
 """
 import importlib.util
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -148,6 +149,31 @@ def test_CLI_HOI_in_MOT_DONG_va_TU_CHOI_ra_stderr_doc_duoc_UTF8():
         capture_output=True, text=True, encoding="utf-8", cwd=str(GOC))
     assert hong.returncode == 1
     assert "TU CHOI" in (hong.stderr or "")
+
+
+def test_LENH_GUI_chon_O_CHAT_theo_nhan_KHONG_lay_textarea_dau_tien():
+    """Lỗi 113: `textarea` ĐẦU TIÊN của trang là ô *"Tìm nguồn mới trên web"*.
+    Ngày 29/09 câu hỏi BƯỚC 142 đi vào đó, bấm Gửi là đi tìm nguồn trên web."""
+    cau = st.dung_cau_hoi("BƯỚC 1", "k" * 60, ["câu có 'nháy đơn' và \"nháy kép\""])
+    js = st.lenh_gui(cau)
+    assert 'textarea[aria-label="Hộp truy vấn"]' in js
+    assert "querySelector('textarea')" not in js and 'querySelector("textarea")' not in js
+    assert json.dumps(cau, ensure_ascii=False) in js      # câu nhúng NGUYÊN VĂN
+    # nút Gửi còn khoá ngay sau `input` — đo 29/09 bấm lúc ấy không gửi gì:
+    # phải có một VÒNG CHỜ trên `disabled`, đứng TRƯỚC lệnh bấm
+    cho = re.search(r"for \([^)]*b\.disabled[^)]*\)\s*await", js)
+    assert cho and cho.start() < js.index("b.click()")
+
+
+def test_CLI_HOI_JS_in_lenh_gui_cua_DUNG_cau_hoi():
+    arg = ["--buoc", "BƯỚC 1", "--ket-luan", "k" * 60, "--vi-du", "một câu"]
+    chay = [sys.executable, str(GOC / "tools" / "so_tay.py"), "hoi"]
+    cau = subprocess.run(chay + arg, capture_output=True, text=True,
+                         encoding="utf-8", cwd=str(GOC)).stdout.strip()
+    js = subprocess.run(chay + arg + ["--js"], capture_output=True, text=True,
+                        encoding="utf-8", cwd=str(GOC))
+    assert js.returncode == 0, js.stderr
+    assert js.stdout.strip() == st.lenh_gui(cau)
 
 
 def test_CLI_GHI_tep_khong_doc_duoc_la_MA_2_khong_phai_traceback(tmp_path):

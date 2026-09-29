@@ -57,6 +57,11 @@ computer left_click ref · type <câu hỏi> · key Return      (browser_batch)
 `textarea` **đầu tiên** của trang là ô *"Tìm nguồn mới trên web"* — gõ nhầm
 rồi Enter sẽ đi tìm nguồn. Luôn chọn theo placeholder.
 
+Gửi bằng `javascript_tool` thì **đừng tự viết lệnh**: `tools/so_tay.py hoi … --js`
+in sẵn lệnh chọn ô theo nhãn `Hộp truy vấn`, chờ nút Gửi mở khoá rồi mới bấm
+(nút còn khoá ngay sau sự kiện `input`), và trả `o con 0 ky tu` khi đã gửi.
+Lỗi 113: một lệnh tự viết theo ghi chú nén đã gửi câu hỏi vào ô tìm nguồn.
+
 ## Chặng 4 — Đọc trả lời
 
 `javascript_tool` chết ở **45 giây**: mỗi lượt chờ ≤ 25 s, gọi lại nhiều lần.
