@@ -241,6 +241,39 @@ def _dong_nhat_ky(db: sqlite3.Connection) -> list:
                       " ORDER BY trade_id").fetchall()
 
 
+def _co_du_lieu(rows: list[list[str]]) -> list[list[str]]:
+    """Bỏ dòng rỗng — gspread trả `[[]]` cho tab rỗng (BƯỚC 134)."""
+    return [r for r in rows if r and any(c != "" for c in r)]
+
+
+def doc_nhat_ky(backend: SheetBackend) -> list[dict]:
+    """CHỈ ĐỌC tab nhật ký, kèm trạng thái lệnh đọc từ tab `trades` (BƯỚC 141).
+
+    Cho app HIỆN nhật ký mà không kéo cả bảng quyết định (hàng chục nghìn
+    dòng) mỗi lần mở trang, và không chạm sổ SQLite nào. Tab rỗng hay chưa
+    có thì `[]`; tiêu đề lệch thì NỔ như `pull()`. Dòng mới nhất đứng đầu.
+    """
+    nk = _co_du_lieu(backend.read_rows(TAB_NHAT_KY))
+    if not nk:
+        return []
+    _kiem_tra_header(TAB_NHAT_KY, nk[0], NHAT_KY_COLS)
+    tr = _co_du_lieu(backend.read_rows(TAB_TRADES))
+    trang_thai: dict[int, str] = {}
+    if tr:
+        _kiem_tra_header(TAB_TRADES, tr[0], TRADE_COLS)
+        i_id, i_st = TRADE_COLS.index("id"), TRADE_COLS.index("status")
+        for r in tr[1:]:
+            r = list(r) + [""] * (len(TRADE_COLS) - len(r))
+            trang_thai[int(r[i_id])] = r[i_st]
+    ra = []
+    for r in nk[1:]:
+        r = list(r) + [""] * (len(NHAT_KY_COLS) - len(r))
+        d = {c: _from_cell(c, r[i]) for i, c in enumerate(NHAT_KY_COLS)}
+        d["trang_thai_lenh"] = trang_thai.get(d["trade_id"])
+        ra.append(d)
+    return sorted(ra, key=lambda d: d["trade_id"], reverse=True)
+
+
 def _dem_dong(rows: list[list[str]]) -> int:
     """Bỏ header và các dòng trống đệm do write_all() để lại."""
     return sum(1 for r in rows[1:] if r and any(c != "" for c in r))
@@ -407,8 +440,7 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
     # trong `run_daily`, nên mọi lượt quét sẽ kẹt ở bước kéo. Đo 28/09/2026
     # trên sheet thật. Một tab không có dòng nào là tab RỖNG, không phải
     # lược đồ lệch; tab có dòng thì vẫn kiểm tiêu đề như cũ.
-    bang_nk = [r for r in backend.read_rows(TAB_NHAT_KY)
-               if r and any(c != "" for c in r)]
+    bang_nk = _co_du_lieu(backend.read_rows(TAB_NHAT_KY))
 
     n_trades = n_dec = n_nk = 0
     db.execute("DELETE FROM trades")

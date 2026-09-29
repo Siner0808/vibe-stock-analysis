@@ -19205,3 +19205,72 @@ dấu 🔴. Lần thứ hai trong hai ngày sổ tay bỏ sót một câu có tr
 - Không bật việc gì: ĐO 15/16 đã đóng câu hỏi tín hiệu khối ngoại ở h=21.
 - Bản CSV 22/09 không còn trên đĩa — phép so dựa trên băm đã ghi ở BƯỚC 112;
   hai bản 29/09 lưu ở scratchpad phiên, ngoài repo.
+
+## BƯỚC 141 — P2d HIỆN NHẬT KÝ "VÌ SAO" TRÊN APP: CHỈ ĐỌC HAI TAB SHEETS, TRẠNG THÁI TỪ SỔ LỆNH (29/09/2026)
+
+Người dùng chọn (câu hỏi sau BƯỚC 139): *"Hiện nhật ký trên app"*. Nhật ký đã
+có dòng thật từ 28/09 (BƯỚC 138), nhưng chỉ đọc được trong Google Sheets; tab
+*Lịch sử giao dịch* của app chỉ có một dòng đếm lệnh của sổ `.db` đứng yên từ
+20/08.
+
+### Ba chỗ nối
+
+| chỗ | làm gì |
+|---|---|
+| `sheets_store.doc_nhat_ky` | CHỈ ĐỌC hai tab — `nhat_ky` và cột `status` của `trades` — không kéo bảng quyết định (18.500+ dòng) mỗi lần mở trang; tab rỗng `[]`, tiêu đề lệch thì NỔ |
+| `google_sheets_sync.load_nhat_ky_from_google_sheets` | `None` = kho ngoài chưa cấu hình · `[]` = chưa có dòng — hai trạng thái hiện khác nhau |
+| `nhat_ky_vi_sao.dong_hien_thi` · `chi_tiet` | hàm thuần: dòng nhật ký → dòng hiện; không tính lại số nào, ô thiếu là None |
+
+App (`app.py`): `_doc_nhat_ky` (đệm 5 phút) · `_bang_nhat_ky` · bảng tô xanh/đỏ
+theo dấu cho *VN-INDEX so MA50 · Lãi ròng · R · Alpha*, và phần *Xem chi tiết
+một lệnh*: điểm từng agent lúc vào · bối cảnh lúc tín hiệu · lý do vào · hậu
+kiểm máy.
+
+**Trạng thái đọc từ SỔ LỆNH, không suy từ ô trống của nhật ký:** nửa ĐÓNG chỉ
+điền ở lượt `hoan_tat_nhat_ky` kế tiếp, nên trong khoảng giữa một lệnh ĐÃ ĐÓNG
+có nửa ĐÓNG rỗng — suy từ ô trống sẽ gọi nó là *"đang mở"*.
+
+### Kiểm trên app thật (Streamlit ở máy, Sheet thật, chỉ đọc)
+
+Bảng hiện **7 lệnh**: BSR chờ khớp (tín hiệu 28/09) · HHP · MSR · PVT · DCL ·
+HDB · GEL đang mở (tín hiệu 25/09, khớp 28/09), đủ giá vào, cắt lỗ ban đầu,
+rủi ro 4,5–7,5 %, điểm 62–73, VN-INDEX so MA50 +0,05 % (25/09) · +0,64 % (28/09).
+Cột lãi · R · alpha là gạch: chưa lệnh nào đóng. Chi tiết HHP: trend 100 ·
+volume 75 · momentum 65 · news 50 · risk 40 · sr 6,2; sáu dòng lý do.
+
+Hai chỗ chỉ thấy khi nhìn màn hình, cả hai đã sửa kèm test: bối cảnh hiện theo
+**chữ cái** (JSON lưu `sort_keys`) thay vì `KHOA_BOI_CANH`; và lệnh chờ khớp hiện
+một bảng *"empty"* thay vì nói vì sao trống. Một chỗ nữa: Streamlit chạy lại
+`app.py` khi sửa nhưng KHÔNG nạp lại module đã nhập — sửa `nhat_ky_vi_sao.py`
+phải khởi động lại máy chủ mới thấy.
+
+### Gác và đục
+
+`tests/test_nhat_ky_hien_thi.py`, 18 test, viết trước (17/17 đỏ). Phép kiểm
+đứng đầu: FPT đã đóng nhưng CHƯA hoàn tất nửa ĐÓNG → phải hiện *"Đã đóng"*.
+Gác AST: `_bang_nhat_ky` không có phép tính (`- / *`), `_doc_nhat_ky` không gọi
+`pull`/`push`/`restore`. Đục 13 phát, **13/13 đỏ** — gồm nguyên văn lỗi (trạng
+thái suy từ ô trống). Lượt đầu 12/13: phát *"app đọc qua pull"* sống sót vì nó
+**thiết kế sai** — chèn một tham chiếu tên, không phải một lời gọi; làm lại
+thành lời gọi thật thì đỏ (`SKILL.md` Bước 3).
+
+Cổng 1 lượt đầu ĐỎ ở một gác toàn repo có sẵn:
+`test_KHONG_con_khoa_pct_nao_mang_CHUOI_trong_repo` cấm khoá `*_pct` mang chuỗi trong
+dict literal — và bảng nhãn `NHAN_BOI_CANH` có ba khoá như thế. Gác đọc HÌNH DẠNG
+nên không phân biệt bảng nhãn với dữ liệu; sửa bằng cách viết bảng nhãn thành
+cặp rồi dựng dict, kèm chú thích — không nới gác.
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`, nguồn `@60d6598`. Sổ tay:
+*"không tìm thấy câu nào nói ngược"*. Tự kiểm bằng grep (hai lần trước sổ tay bỏ
+sót): hai dòng `CLAUDE.md` nói về *tab Sổ lệnh* (nút đẩy tay, cảnh báo lô ghi) —
+tab khác, không nói ngược.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đổi hành vi giao dịch hay số đo nào — chỉ thêm một đường ĐỌC.
+- Chưa kiểm trên Streamlit Cloud (địa chỉ app vẫn chờ người dùng). Trên cloud
+  app đọc `st.secrets`, cùng đường `open_from_secrets`.
+- Sổ `.db` ở máy vẫn là nguồn của dòng đếm *"112 lệnh đã đóng"* cũ — không
+  đụng tới ở BƯỚC này.

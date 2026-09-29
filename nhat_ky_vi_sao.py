@@ -84,6 +84,80 @@ KHOA_BOI_CANH: tuple[str, ...] = (
 )
 
 
+#: Nhãn hiện của trạng thái SỔ LỆNH — suy từ `Status`, gác bắt đủ.
+NHAN_TRANG_THAI: dict[str, str] = {
+    Status.PENDING: "Chờ khớp", Status.OPEN: "Đang mở", Status.CLOSING: "Chờ thoát",
+    Status.CLOSED: "Đã đóng", Status.HUY: "Huỷ (không khớp)",
+}
+
+#: Nhãn tiếng Việt của từng khoá bối cảnh — gác bắt phủ đủ `KHOA_BOI_CANH`.
+#: Viết thành CẶP rồi dựng dict, không viết dict literal: gác toàn repo
+#: `test_KHONG_con_khoa_pct_nao_mang_CHUOI_trong_repo` cấm khoá `*_pct` mang
+#: chuỗi trong dict literal (khoá phần trăm phải là SỐ) — đây là bảng NHÃN,
+#: không phải dữ liệu, và gác đọc hình dạng nên không phân biệt được.
+NHAN_BOI_CANH: dict[str, str] = dict((
+    ("diem_cuoi", "Điểm cuối"), ("khuyen_nghi", "Khuyến nghị"),
+    ("chat_luong_du_lieu", "Chất lượng dữ liệu"), ("nguong_mua", "Ngưỡng mua"),
+    ("vni_close", "VN-INDEX đóng cửa"), ("vni_ma50", "VN-INDEX MA50"),
+    ("vni_pct_tren_ma50", "VN-INDEX so MA50 (%)"),
+    ("bien_dong_nam_pct", "Biến động năm (%)"), ("max_drawdown_pct", "Sụt giảm tối đa (%)"),
+    ("sharpe", "Sharpe"), ("atr_pct", "atr_pct (agent rủi ro)"),
+    ("kl_phien", "Khối lượng phiên"), ("kl_tb20", "Khối lượng TB 20 phiên"),
+    ("kl_so_tb20", "Khối lượng / TB 20"),
+))
+
+
+def _json(o: Any, rong):
+    if o is None or (isinstance(o, str) and not o.strip()):
+        return rong
+    return json.loads(o) if isinstance(o, str) else o
+
+
+def dong_hien_thi(dong: dict, trang_thai_lenh: Optional[str]) -> dict:
+    """Một dòng nhật ký -> một dòng để HIỆN (BƯỚC 141). HÀM THUẦN.
+
+    Không tính lại số nào: lãi ròng, R, alpha là số nhật ký ĐÃ GHI. Ô thiếu
+    thì None — người gọi hiện dấu gạch, không có số mặc định.
+
+    TRẠNG THÁI đọc từ SỔ LỆNH (`trades.status`), không suy từ ô trống của
+    nhật ký: nửa ĐÓNG chỉ điền ở lượt `hoan_tat_nhat_ky` kế tiếp, nên trong
+    khoảng giữa một lệnh ĐÃ ĐÓNG có nửa ĐÓNG rỗng.
+    """
+    bc = _json(dong.get("boi_canh"), {})
+    return {
+        "Mã": dong.get("symbol"),
+        "Trạng thái": NHAN_TRANG_THAI.get(trang_thai_lenh, "?"),
+        "Tín hiệu": dong.get("signal_date"),
+        "Vào": dong.get("entry_date"),
+        "Giá vào": dong.get("entry_price"),
+        "Cắt lỗ ban đầu": dong.get("stop_loss_ban_dau"),
+        "Rủi ro %": dong.get("rui_ro_pct"),
+        "Điểm": dong.get("entry_score"),
+        "VN-INDEX so MA50 %": bc.get("vni_pct_tren_ma50"),
+        "Ra": dong.get("exit_date"),
+        "Lý do ra": dong.get("exit_reason"),
+        "Lãi ròng %": dong.get("loi_nhuan_rong_pct"),
+        "R": dong.get("ket_qua_R"),
+        "Alpha": dong.get("alpha_pct"),
+        "Hậu kiểm máy": dong.get("hau_kiem_may"),
+    }
+
+
+def chi_tiet(dong: dict) -> dict:
+    """Ba ô JSON của một dòng, đã giải — để xem riêng từng lệnh.
+
+    Bối cảnh xếp theo `KHOA_BOI_CANH` (điểm → VN-INDEX → rủi ro → khối
+    lượng): JSON lưu với `sort_keys`, đọc ra theo chữ cái thì `atr_pct`
+    đứng đầu. Khoá lạ (nếu có) nối cuối, không bỏ.
+    """
+    bc = _json(dong.get("boi_canh"), {})
+    xep = {k: bc[k] for k in KHOA_BOI_CANH if k in bc}
+    xep.update({k: v for k, v in bc.items() if k not in xep})
+    return {"diem_agent": _json(dong.get("diem_agent"), {}),
+            "ly_do": _json(dong.get("ly_do"), []),
+            "boi_canh": xep}
+
+
 def vni_so_voi_ma50(vni_df, signal_date: str) -> dict:
     """VN-INDEX TẠI `signal_date`: giá đóng, MA50, % trên MA50.
 
