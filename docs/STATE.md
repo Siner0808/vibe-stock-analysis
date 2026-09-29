@@ -19576,5 +19576,34 @@ tay bỏ sót thứ nằm ngay trong nguồn.
 - Không nói phía RA lệch bao nhiêu — không dựng lại được.
 - Sổ thật chỉ có 2 lệnh HNX/UPCoM; con số 20–25% là của walk-forward, không
   phải của sổ thật.
-- **Chưa đổi một dòng mã sản xuất.** `truot_gia.py`, `paper_trading.py`,
-  `run_daily.py` còn nguyên.
+- ~~**Chưa đổi một dòng mã sản xuất.**~~ **ĐÃ SỬA cùng ngày, sau khi người dùng chọn
+  (qua phiên song song): phương án A · chạy ĐO 22 · làm cùng phần `collect`.** Xem
+  mục *Phép sửa* ngay dưới; các mục trên là bản ghi của lúc đo trước.
+
+### Phép sửa — phương án A (29/09/2026)
+
+- `san_giao_dich.py` (mới): bảng chụp **71 mã** có ngày và nguồn, `chuan_hoa_nhan`
+  (`HSX→HOSE`, nhãn lạ → `None`), `san_cua(ma)` (ngoài bảng: HOSE như hành vi cũ),
+  `tra_san(ma)` (ngoài bảng: `None`). Bảng sinh từ `Listing`, không gõ tay.
+- `paper_trading._khop_that` truyền `san=san_cua(symbol)` cho `dat_lenh`;
+  `_gia_ban_that` nhận `symbol` và truyền `san_cua(symbol)` cho `truot_gia` — cả
+  hai nơi gọi (cắt lỗ, thoát theo tín hiệu). **Tra theo MÃ, không đọc cột
+  `exchange`**, nên hai dòng cũ #117 · #119 (cột ghi `HOSE`) được định giá đúng mà
+  KHÔNG phải sửa dữ liệu trên Google Sheets — người dùng không chọn sửa tay.
+- `truot_gia.buoc_gia`: nhãn sàn lạ **nổ** `ValueError`, không rơi về HOSE.
+- `run_daily`: `collect(exchange=san_cua(sym))` và `run_session(…, san_cua(sym), …)`.
+  **Phần này CHỈ đổi cảnh báo, không đổi quyết định** — người dùng không cần hỏi,
+  và có gác: `PRICE_JUMP` là `WARN` (ngưỡng `biên độ × 1,5`: HOSE 10,5% · HNX 15% ·
+  UPCoM 22,5%); `MUC_CHAT_LUONG_DUNG_DUOC` = {OK, WARN} nên cả hai đều mở lệnh; đổi
+  `exchange` chỉ đổi đúng mã `PRICE_JUMP` trong `validate_ohlcv`. Việc duy nhất đổi
+  là nhãn `data_quality` ghi vào bảng `decisions` của mã HNX/UPCoM (`WARN`→`OK`).
+- `tools/kiem_san_giao_dich.py`: so bảng với `Listing` ở hai nguồn, nói ra từng mã
+  lệch; mã thoát 2 khi mất mạng. Chạy 29/09: **KHỚP**.
+- Không tra mạng trong lượt quét hay backtest (bất biến 2).
+
+**Gác:** `tests/test_san_giao_dich.py` (35 test: bảng phủ ĐÚNG rổ · ba bảng sàn một
+ bộ tên · đường dây đọc bằng AST · đổi sàn chỉ đổi `PRICE_JUMP` · công cụ so lại) và
+ bảy test `xfail` của `test_buoc_gia_theo_san.py` nay XPASS → gỡ dấu. **Đục 20 phát
+ qua `dot_bien_bo`: 19/20 đỏ lượt đầu, phát sống sót là `main` chưa có test *mã không
+ xác định được sàn thì thoát 1* — thêm test, đục lại: 20/20 đỏ.** Hai phát dựng lại
+ NGUYÊN VĂN lỗi thật (`run_daily` ghim `"HOSE"`; `truot_gia` không nhận sàn).

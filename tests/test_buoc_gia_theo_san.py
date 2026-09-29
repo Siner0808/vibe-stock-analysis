@@ -12,10 +12,11 @@ làm tròn theo lưới HOSE — 50đ ở 10–50 nghìn, 10đ dưới 10 nghìn
 không thể tồn tại trên sàn thật (HUT vào 13.250đ trên sổ thật), và trượt giá
 bị tính THẤP: chiều làm số đẹp lên.
 
-Các phép kiểm ở đây được viết TRƯỚC khi sửa, dưới `xfail(strict=True)`, và
-KHÔNG đổi hành vi: phép sửa làm chúng XPASS, strict làm đỏ, và dấu được gỡ.
-Ba phép kiểm không mang dấu là phép GHIM — chúng xanh cả trước lẫn sau, và
-canh việc phép sửa áp thang HNX cho MỌI mã.
+Các phép kiểm ở đây được viết TRƯỚC khi sửa, dưới `xfail(strict=True)`, và đã
+chạy ra đỏ đúng lý do: PVS vào 30.050đ, HUT 9.060đ, cắt lỗ 28.450đ, thoát theo
+tín hiệu 30.950đ, `run_daily` ghim `"HOSE"`. Phép sửa làm chúng XPASS, strict
+làm đỏ, và dấu đã được gỡ. Ba phép kiểm GHIM xanh cả trước lẫn sau, và canh
+việc phép sửa áp thang HNX cho MỌI mã.
 """
 import ast
 from pathlib import Path
@@ -115,10 +116,7 @@ def test_GHIM_ma_HOSE_van_khop_o_luoi_50d_khong_bi_ep_sang_100d(moi_truong):
 # PHÍA VÀO — giá vào của mã HNX/UPCoM phải nằm trên lưới 100đ
 # ─────────────────────────────────────────────────────────────────────
 
-_DO = "BƯỚC 143 — sàn thật chưa được truyền vào bước giá"
 
-
-@pytest.mark.xfail(strict=True, reason=_DO)
 @pytest.mark.parametrize("ma, san, gia_mo", [
     ("PVS", "HNX", 30_000.0),       # 10–50 nghìn: HOSE 50đ -> đúng 100đ
     ("HUT", "HNX", 9_000.0),        # dưới 10 nghìn: HOSE 10đ -> đúng 100đ
@@ -144,7 +142,6 @@ def _mo_vi_the(so, ma, san):
     return so.all_trades()[0]
 
 
-@pytest.mark.xfail(strict=True, reason=_DO)
 def test_gia_RA_cat_lo_cua_ma_HNX_phai_chia_het_100(moi_truong):
     so = PaperTradingJournal(":memory:")
     lenh = _mo_vi_the(so, "PVS", "HNX")
@@ -160,7 +157,6 @@ def test_gia_RA_cat_lo_cua_ma_HNX_phai_chia_het_100(moi_truong):
         f"lưới 100đ của sàn thật.")
 
 
-@pytest.mark.xfail(strict=True, reason=_DO)
 def test_gia_RA_theo_tin_hieu_cua_ma_UPCOM_phai_chia_het_100(moi_truong):
     so = PaperTradingJournal(":memory:")
     lenh = _mo_vi_the(so, "MSR", "UPCOM")
@@ -187,7 +183,6 @@ def _lan_goi(ten_ham: str):
             and getattr(n.func, "id", getattr(n.func, "attr", None)) == ten_ham]
 
 
-@pytest.mark.xfail(strict=True, reason=_DO)
 def test_run_daily_khong_ghim_HOSE_khi_goi_run_session():
     lan = _lan_goi("run_session")
     assert lan, "tiền đề gãy: run_daily không còn gọi run_session"

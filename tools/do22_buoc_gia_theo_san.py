@@ -42,14 +42,9 @@ for _luong in (sys.stdout, sys.stderr):
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
 
+from san_giao_dich import chuan_hoa_nhan as chuan_hoa_san  # noqa: E402  một nơi duy nhất
+
 VON_VND = 1_000_000_000          # như paper_trading.VON_DANH_MUC_VND
-CHUAN_NHAN = {"HSX": "HOSE", "HOSE": "HOSE", "HNX": "HNX", "UPCOM": "UPCOM"}
-
-
-def chuan_hoa_san(nhan: object) -> str | None:
-    """Nhãn sàn của một nguồn -> HOSE | HNX | UPCOM; nhãn lạ (DELISTED, BOND,
-    XHNF, NAN) trả None — KHÔNG rơi về HOSE, để mã ấy hiện ra là chưa biết."""
-    return CHUAN_NHAN.get(str(nhan).strip().upper())
 
 
 def san_theo_nguon() -> dict[str, dict[str, str | None]]:

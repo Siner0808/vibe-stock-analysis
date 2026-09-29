@@ -68,8 +68,15 @@ LO_CHAN = 100          # lô chẵn HOSE
 
 
 def buoc_gia(gia: float, san: str = "HOSE") -> int:
-    """Bước giá áp dụng cho một mức giá."""
-    bang = BUOC_GIA.get(san.upper(), BUOC_GIA["HOSE"])
+    """Bước giá áp dụng cho một mức giá.
+
+    Nhãn sàn lạ thì NỔ, không rơi về HOSE: bản cũ `.get(san, HOSE)` làm một
+    nhãn nguồn như `HSX` hay một mã đã huỷ niêm yết lặng lẽ nhận thang HOSE
+    (BƯỚC 143).
+    """
+    if san.upper() not in BUOC_GIA:
+        raise ValueError(f"sàn {san!r} không có trong BUOC_GIA {sorted(BUOC_GIA)}")
+    bang = BUOC_GIA[san.upper()]
     for nguong, buoc in bang:
         if gia < nguong:
             return buoc
