@@ -1485,6 +1485,9 @@ hiện trạng thái kho.
 > (cùng `canh-cong-c5`, `chuong-nguon-dung`) thành `disabled_manually`.
 > `chuong-bao-quet` vẫn bật và **đỏ mỗi ngày làm việc** — 25/09: *"0 lượt
 > quét thành công"*. Đó là báo ĐÚNG, không phải việc phải sửa.
+>
+> ✅ **CHẠY LẠI TỪ 28/09/2026 — `docs/STATE.md` BƯỚC 138:** người dùng cho
+> phép, ba workflow `active`; lượt quét đầu (`36392657512`) xanh.
 
 Đo lại trên 35 nhịp (13→21/08/2026), thay cho con số "~1/7" ghi ngày
 14/08 — con số đó đo trên một ngày duy nhất và **sai**:
@@ -1735,6 +1738,22 @@ bộ nhớ đứng yên để phép đo tái lập được; sổ thật vẫn g
 > xác nhận. Mã `run_daily` vẫn ở chế độ `tich_luy` — gỡ nó là việc của
 > tầng tự nâng cấp, chưa làm — và đường chạy thật đang tạm ngừng. Câu trên
 > vẫn đúng về MÃ, không còn đúng về Ý ĐỊNH.
+
+> 🔴 **VẾ "đường chạy thật: dùng 44 mẫu, CÓ ghi thêm" CHƯA BAO GIỜ ĐÚNG Ở
+> NƠI NÓ CHẠY — đo 29/09/2026, `docs/STATE.md` BƯỚC 140, lỗi 112.** Đường
+> quét thật chạy trên GitHub Actions. `sl_pattern_memory.json` bị gitignore,
+> và `quet-so-lenh.yml` không khôi phục cũng không lưu nó, nên runner khởi
+> động với bộ nhớ RỖNG: **71/71** lượt quét thành công từ 21/08 (ngày dòng in
+> ra đời) đều ghi *"Post-mortem: BẬT · 0 mẫu"*, và mẫu ghi thêm mất cùng
+> runner — vế *"sổ thật vẫn gom mẫu tiếp"* ở trên cũng không xảy ra ở đó.
+> Hệ quả trên sổ thật: từ 13/08, **103** dòng quyết định đủ ngưỡng (55 cặp
+> mã–ngày tín hiệu, bảng có dòng lặp) rơi vào hai ô của bộ nhớ, và mức phạt
+> −12 lẽ ra kéo cả 103 xuống dưới ngưỡng —
+> trong đó **3** lệnh đã mở (STB · TCB 28/08, DCL 28/09). Nên chỗ lệch mục
+> này khai không phải *44 đứng yên ↔ 44 tích luỹ* mà *44 ↔ 0*: backtest
+> (`co_san`) có mức phạt, đường thật thì không. Dùng 44 mẫu ở đường thật hay không là **quyết định của người dùng,
+> chưa có**. Vế *"đường chạy thật đang tạm ngừng"* ở ô trên hết đúng từ
+> 28/09 (BƯỚC 138).
 
 Hệ quả phải biết khi đọc số: con số ngoài mẫu nói về cấu hình `co_san`,
 không nói về cấu hình đang chạy thật. Hôm nay khác biệt đó nhỏ — đo được

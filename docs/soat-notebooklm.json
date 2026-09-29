@@ -1701,6 +1701,46 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "Sổ tay BỎ SÓT một câu có trong nguồn: git show 60d6598:docs/HANDOFF.md | grep -n 'đang tạm ngừng\\*\\* (khối trên)' -> dòng 413 '⛔ Phép đọc này cần vnstock_data — đang tạm ngừng (khối trên). Tới ngày mà chưa mở lại thì HOÃN' — đúng ví dụ thứ nhất của câu hỏi. Phiên song song (soát định kỳ 7) bắt được trước; đã gắn 🔴 ngay dưới. grep 'HOÃN|phải đọc trên|không bao giờ sửa' HANDOFF TIEU-CHI CLAUDE.md -> không câu nào khác."
     },
+    "BƯỚC 140": {
+      "ngay": "2026-09-29",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "cau_hoi": "I am about to write BƯỚC 140 into docs/STATE.md: The live scan path (run_daily running on GitHub Actions) has never used the 44 post-mortem memory patterns: every successful quet-so-lenh run since 21/08/2026 printed 'Post-mortem: BẬT · 0 mẫu', because sl_pattern_memory.json is gitignored and the workflow never restores or saves it; so any sentence saying the live path uses or accumulates the 44 patterns, or that post-mortem penalties shape live orders, is wrong. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm, sổ thật vẫn gom mẫu tiếp, trừ 12 điểm thật. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, mục 'Bộ nhớ hậu nghiệm — hai nơi CỐ Ý lệch nhau': 'đường chạy thật (run_daily) -> tích luỹ : dùng 44 mẫu, CÓ ghi thêm'.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md. Đây chính là lời khai lỗi 112.",
+          "phan_quyet": "THẬT — đã có ô 🔴 lỗi 112 ngay dưới mục."
+        },
+        {
+          "noi_dung": "Cùng mục: 'Backtest đo một bộ nhớ đứng yên để phép đo tái lập được; sổ thật vẫn gom mẫu tiếp.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md (dòng 1733). Ô 🔴 bản đầu chỉ nói 'mẫu ghi thêm mất cùng runner', không gọi tên vế này.",
+          "phan_quyet": "THẬT — ô 🔴 nay gọi thẳng: vế 'sổ thật vẫn gom mẫu tiếp' cũng không xảy ra trên runner."
+        },
+        {
+          "noi_dung": "Ô ⚠️ quyết định 25/09 trong cùng mục: 'Câu trên vẫn đúng về MÃ, không còn đúng về Ý ĐỊNH.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md. run_daily vẫn ở chế độ tich_luy (đúng về mã); cái sai nằm ở môi trường runner không có file bộ nhớ.",
+          "phan_quyet": "THẬT về môi trường, SAI nếu đọc là mâu thuẫn về mã — câu ấy nói về mã, và mã đúng như nó nói. Ô 🔴 ngay dưới nói phần môi trường."
+        },
+        {
+          "noi_dung": "Sổ tay kết: 'Ngoài các câu trên trong CLAUDE.md, không có câu nào khác trong các nguồn nói ngược với kết luận của BƯỚC 140.'",
+          "tu_kiem": "grep -n 'tich_luy' docs/STATE.md -> dòng 18058, BƯỚC 125: 'Bộ nhớ 44 mẫu vẫn chạy ở chế độ `tich_luy` trên đường thật' — STATE.md là một trong 11 nguồn. grep trên 10 nguồn còn lại (tích luỹ, gom mẫu, học thêm, trừ 12, Post-mortem) chỉ ra câu backtest (co_san, 'học thêm 0') và bản ghi 24/08 về fail-closed — không mâu thuẫn.",
+          "phan_quyet": "SAI — sổ tay bỏ sót BƯỚC 125 nằm ngay trong nguồn. Nhật ký chỉ-thêm nên không sửa; BƯỚC 140 là lời đính chính."
+        }
+      ]
+    },
     "BƯỚC 141": {
       "ngay": "2026-09-29",
       "nguon": [
