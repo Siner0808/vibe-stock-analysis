@@ -376,7 +376,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   ~~(3) bật lại ba workflow~~ ✅ bật 28/09 (BƯỚC 138) — cổng lệnh ảo nay MỞ trên `main`, nên bật
 >   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; (4) xoá hẳn
 >   `scratch/luu_do18/` hay giữ.
-> - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới) và lượt soát định kỳ 7 (nhịp
+> - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09).
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
@@ -429,11 +429,15 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **Chờ người dùng (không đổi từ 27/09):** URL Streamlit Cloud · vế 3 điều
 >   kiện dừng · ~~bật ba workflow~~ (✅ BƯỚC 138) · `scratch/luu_do18/`. ~~Thêm: tab
 >   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
-> - **Hạn 29/09:** ĐO 14 (khối dưới) và lượt soát định kỳ 7.
+> - **Hạn 29/09:** ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
-- **29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.** ĐO 14 đã
+- ~~**29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.**~~ **ĐÃ ĐỌC
+  ĐÚNG HẠN 29/09/2026 — BĂM GIỐNG HỆT** (119 dòng, `bf5c67d2…f81332`, hai
+  lượt trùng nhau; không có bộ đệm đĩa). Cửa sổ ấy không bị sửa lại trong 7
+  ngày — thu hẹp được, không chứng minh *"không bao giờ sửa"*. BƯỚC 139.
+  *(Bản ghi hẹn gốc, giữ nguyên:)* ĐO 14 đã
   chụp cửa sổ cố định `2025-01-02` → `2025-06-30` của FPT: **119 dòng**,
   sha256 `bf5c67d2…f81332`. Kéo lại đúng cửa sổ ấy rồi so băm. Giống hệt
   thì thu hẹp được khả năng chuỗi bị restate — **không** chứng minh được
@@ -447,6 +451,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   ⛔ **Phép đọc này cần `vnstock_data` — đang tạm ngừng** (khối trên).
   Tới ngày mà chưa mở lại thì **HOÃN**, không kéo bằng đường khác: một
   nguồn khác cho băm khác là đo NGUỒN, không đo việc restate.
+  🔴 **"đang tạm ngừng" HẾT ĐÚNG từ 26/09/2026** (BƯỚC 126) — máy chạy
+  `vnstock_data` 3.3.1 · `vnai` 2.6.2; phép đọc đã chạy đúng hạn, cùng
+  đường `goi_thu` → `foreign_flow` (BƯỚC 139).
 
 - ~~**12/09/2026** — tiêu chí về cơ chế rơi nhịp cron~~ **ĐÃ ĐỌC ĐÚNG
   HẠN 12/09/2026:** A = 258,05 phút · B = 2 lượt/ngày → **ô thứ tư,

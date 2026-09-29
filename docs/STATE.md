@@ -19140,3 +19140,68 @@ ngày 28/09 (viết sau `60d6598`, ngoài nguồn). Cả 6 mang dấu.
 - Chúng khớp ở giá mở cửa 28/09 khi một lượt quét SAU giờ đóng cửa xử lý nến
   28/09 — tới lúc ấy nửa VÀO của nhật ký mới có.
 - Tắt lại: `gh workflow disable <tên>.yml`.
+
+## BƯỚC 139 — ĐỌC ĐO 14 Ô D ĐÚNG HẠN: CỬA SỔ KHỐI NGOẠI FPT KHÔNG BỊ SỬA LẠI SAU 7 NGÀY (29/09/2026)
+
+Phép đọc hẹn từ BƯỚC 112 (22/09): kéo lại cửa sổ cố định `2025-01-02` →
+`2025-06-30` của FPT rồi so SHA-256 với bản chụp hôm ấy. Tiêu chí:
+`docs/TIEU-CHI-DOC-TRUOC.md` ĐO 14, ô D — ký trước khi thấy số.
+
+### Đo
+
+Đi qua ĐÚNG hàm dụng cụ dùng — `do14_kha_thi_khoi_ngoai.goi_thu(eq.foreign_flow,
+tu, den)` với `eq = vnstock_data.Market().equity("FPT")` — hai lượt, không chạy
+lại ô A/B (71 mã, và dụng cụ ghi CSV vào gốc repo):
+
+```
+vnstock 4.0.9 · vnai 2.6.2 · vnstock_data 3.3.1 · vnii 0.2.6
+luot 1: hinh dang start/end · 119 dong · sha256 bf5c67d25c4447699391299c1f98659da077ed13a5aa814df70103ec84f81332
+luot 2: hinh dang start/end · 119 dong · sha256 bf5c67d25c4447699391299c1f98659da077ed13a5aa814df70103ec84f81332
+22/09 : bf5c67d25c4447699391299c1f98659da077ed13a5aa814df70103ec84f81332 (119 dong)
+GIONG HET 22/09: True
+```
+
+Dữ liệu thô (quy tắc lỗi 61): cột `time buy_vol buy_val sell_vol sell_val
+net_vol net_val`; dòng đầu `2025-06-30 · 1219903 · … · net_val 1,761e9`,
+dòng cuối `2025-01-02 · 349600 · … · net_val −2,220e11`.
+
+### Phán quyết theo bảng đã ký
+
+**BĂM GIỐNG HỆT** → cửa sổ này **không bị sửa lại trong 7 ngày**. Theo đúng lời
+khai trước: *chưa chứng minh được "không bao giờ sửa", chỉ thu hẹp được.*
+
+### Quy tắc 1 áp ngược — nghi máy đo trước
+
+Kết quả là chiều dễ chịu (mở đường cho việc kéo lại dữ liệu về sau), nên hỏi:
+phép so có đi qua một BẢN GHI NHỚ không (lỗi 75)? Nếu có, "giống hệt" đo bộ
+đệm chứ không đo nguồn.
+
+```
+ma vnstock_data   : 0 file khop lru_cache|requests_cache|diskcache|cache_dir|pickle
+~/.vnstock/.cache : 0 file
+~/.vnstock/data   : chi usage_metrics.json · relay_config.json
+```
+
+Không có bộ đệm dữ liệu trên máy; hai lượt đi qua mạng. Bộ đệm phía máy chủ
+của hãng (nếu có) là một phần của NGUỒN — đúng thứ phép đo hỏi.
+
+Ba file luật AI toàn cục chụp trước/sau `import vnstock_data`: **không đổi**
+(`~/.claude/CLAUDE.md` vắng; hai file kia cùng băm `fefc6af5c739`).
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`, nguồn `@60d6598`. Sổ tay: *"không
+tìm thấy câu nào nói ngược"* — **và nó bỏ sót một câu nằm ngay trong nguồn**:
+`docs/HANDOFF.md` *"⛔ Phép đọc này cần `vnstock_data` — đang tạm ngừng … Tới ngày
+mà chưa mở lại thì HOÃN"* (dòng 413 của bản `60d6598`), đúng ví dụ thứ nhất của
+câu hỏi. Phiên song song đang làm soát định kỳ 7 bắt được nó trước; nay mang
+dấu 🔴. Lần thứ hai trong hai ngày sổ tay bỏ sót một câu có trong nguồn (BƯỚC 138:
+`CLAUDE.md` *"chưa sinh lệnh nào"*) — câu âm của nó chưa bao giờ là kết luận.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Một mã, một cửa sổ, 7 ngày. Không nói gì về 70 mã còn lại — phần mở rộng
+  71 mã người dùng đã dời tới sau kế hoạch agent tự học (bộ nhớ 25/09).
+- Không bật việc gì: ĐO 15/16 đã đóng câu hỏi tín hiệu khối ngoại ở h=21.
+- Bản CSV 22/09 không còn trên đĩa — phép so dựa trên băm đã ghi ở BƯỚC 112;
+  hai bản 29/09 lưu ở scratchpad phiên, ngoài repo.
