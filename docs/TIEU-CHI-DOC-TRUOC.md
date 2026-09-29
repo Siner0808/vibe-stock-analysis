@@ -2359,6 +2359,10 @@ bam KHAC        ->  chuoi CO bi sua lai. Moi phep do dung no phai chup
 
 Điều kiện đọc: chỉ đọc vào hoặc sau 29/09/2026, không đọc sớm.
 
+> ✅ **ĐÃ ĐỌC ĐÚNG HẠN 29/09/2026 — ô thứ nhất: BĂM GIỐNG HỆT.** 119 dòng,
+> `bf5c67d25c44…df70103ec84f81332`, hai lượt trong ngày trùng nhau, cùng
+> hình dạng lời gọi `start/end`. `docs/STATE.md` BƯỚC 139.
+
 ### Ba điều bắt buộc của lượt chạy
 
 1. **In dữ liệu thô ngay dưới con số** (lỗi 61) — năm dòng đầu của bảng,

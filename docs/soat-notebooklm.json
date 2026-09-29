@@ -1679,6 +1679,28 @@
         }
       ]
     },
+    "BƯỚC 139": {
+      "ngay": "2026-09-29",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn @60d6598 (BƯỚC 134); câu bị bỏ sót nằm TRONG nguồn (HANDOFF dòng 413 của bản ấy).",
+      "cau_hoi": "I am about to write BƯỚC 139 into docs/STATE.md: the ĐO 14 cell D point-in-time check was read on its due date 29/09/2026: pulling the fixed FPT foreign-flow window 2025-01-02 to 2025-06-30 again through the same goi_thu and foreign_flow call gave 119 rows and exactly the same SHA-256 as the 22/09 snapshot, twice in a row, with no local response cache on the machine, so the window was not restated within seven days, which narrows but does not prove that the series is never restated, and the read was done on vnstock_data 3.3.1 because the vnstock pause ended on 26/09. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the cell D read must be postponed because vnstock_data is paused, a statement that the 29/09 read must use vnstock_data 3.3.0 or another specific version, a statement that an identical hash proves the series is never restated, a statement that the read must first extend the check to all 71 symbols. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ tay BỎ SÓT một câu có trong nguồn: git show 60d6598:docs/HANDOFF.md | grep -n 'đang tạm ngừng\\*\\* (khối trên)' -> dòng 413 '⛔ Phép đọc này cần vnstock_data — đang tạm ngừng (khối trên). Tới ngày mà chưa mở lại thì HOÃN' — đúng ví dụ thứ nhất của câu hỏi. Phiên song song (soát định kỳ 7) bắt được trước; đã gắn 🔴 ngay dưới. grep 'HOÃN|phải đọc trên|không bao giờ sửa' HANDOFF TIEU-CHI CLAUDE.md -> không câu nào khác."
+    },
     "BƯỚC 140": {
       "ngay": "2026-09-29",
       "nguon": [

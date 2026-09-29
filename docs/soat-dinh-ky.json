@@ -253,8 +253,8 @@
         },
         {
           "noi_dung": "HANDOFF mục ĐO 14: '⛔ Phép đọc này cần vnstock_data — đang tạm ngừng'.",
-          "tu_kiem": "docs/STATE.md BƯỚC 126 (26/09): 'HẾT TẠM NGỪNG Ở MÁY'. Phiên song song đọc ĐO 14 hôm nay trong BƯỚC 139 của nó.",
-          "phan_quyet": "SAI về vế 'đang tạm ngừng' từ 26/09. Để phiên song song đánh dấu trong BƯỚC 139, cùng lúc ghi kết quả ĐO 14 — hai nhánh cùng vá một câu là xung đột chắc chắn."
+          "tu_kiem": "docs/STATE.md BƯỚC 126 (26/09): 'HẾT TẠM NGỪNG Ở MÁY'. Sau khi merge main d12c9af: ô 🔴 BƯỚC 139 đứng ngay dưới câu ('\"đang tạm ngừng\" HẾT ĐÚNG từ 26/09/2026'). git show 60d6598:docs/HANDOFF.md | grep -n 'Phép đọc này cần' -> dòng 413 — câu CÓ trong nguồn sổ tay. Sổ tay vẫn trả 'không tìm thấy' cho câu hỏi BƯỚC 139 (docs/soat-notebooklm.json, khong_tim_thay_gi + _tu_kiem_cau_am của phiên song song).",
+          "phan_quyet": "SAI về vế 'đang tạm ngừng' từ 26/09 — nay đã đánh dấu trong BƯỚC 139. Lượt soát 7 bắt câu này TRƯỚC sổ tay: câu nằm trong nguồn @60d6598 mà câu trả lời BƯỚC 139 bỏ sót — thêm một lần câu trả lời ÂM của sổ tay sai."
         },
         {
           "noi_dung": "CLAUDE.md mục Quét tự động: ô 🔴 '\"ĐANG CHẠY\" HẾT ĐÚNG TỪ 25/09' không có dấu đảo lại.",
