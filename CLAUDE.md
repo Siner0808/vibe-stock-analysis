@@ -1407,6 +1407,14 @@ trường quá nhỏ để đẩy qua bước giá kế tiếp. Cái tốn tiề
 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình. Chỉ từ 5 tỷ trở
 lên tác động mới cộng thêm một bước.
 
+> ⚠️ **"BƯỚC GIÁ 50đ" Ở TRÊN CHỈ ĐÚNG CHO MÃ HOSE Ở DẢI 10–50 NGHÌN — đo
+> 29/09/2026, `docs/STATE.md` BƯỚC 143.** Bước giá HNX và UPCoM là **100đ ở
+> mọi mức giá**; mô hình trượt giá áp thang HOSE cho MỌI mã, kể cả 4 mã HNX
+> (PVS · HUT · SHS · MBS) và 3 mã UPCoM (OIL · MSR · ACV). Sổ OOS ĐO 20: 81/399
+> (lượt 1) và 154/612 (lượt 2) lệnh là mã HNX/UPCoM, hầu hết vào dưới 50 nghìn
+> — nên giá vào/ra của chúng nằm trên lưới sai và trượt giá bị tính **thấp**.
+> Chưa sửa: chờ người dùng chọn phương án (`docs/HANDOFF.md` *Cần người quyết*).
+
 **MỌI con số trong tài liệu này đo TRƯỚC 24/08/2026 đều không có chi phí
 thực thi** — kỳ vọng sổ +0,79%, alpha +0,090%, mọi bảng walk-forward. Trừ
 hao **0,63–0,66 điểm phần trăm mỗi lệnh** khi đọc chúng (đo ngoài mẫu

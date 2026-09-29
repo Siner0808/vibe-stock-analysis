@@ -28,6 +28,10 @@ biên độ ±7%, khớp một phần):
 | tắt chi phí | 390 | +0,614% | −0,011% | [−0,766 ; +0,832] **chứa 0** |
 | **bật chi phí** | 385 | **−0,291%** | **−0,927%** | **[−1,689 ; −0,076] LOẠI 0** |
 
+> ⚠️ *"bước giá 50đ"* và *"biên độ ±7%"* ở trên chỉ đúng cho mã HOSE. Bước giá
+> HNX/UPCoM là 100đ mọi mức giá và biên độ sàn khác nhau; biên độ đã sửa ở
+> BƯỚC 136, bước giá đã đo ở BƯỚC 143 (chưa sửa). Bảng hiện hành: `CLAUDE.md`.
+
 Cách đọc: rổ đối chiếu mua một lần rồi giữ, trả chi phí **hai** lần. Chiến
 lược quay vòng 385 lệnh, trả **770** lần. Lợi thế vốn đã không phân biệt
 được với 0; cộng chi phí quay vòng vào thì phần âm lộ ra.

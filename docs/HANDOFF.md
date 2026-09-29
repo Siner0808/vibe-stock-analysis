@@ -411,6 +411,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > lại ĐO 18 từng chữ số. Hai dòng BẬT trong `CLAUDE.md` nay là số ĐO 20.
 > Còn treo, việc riêng: cột `exchange` ghi `HOSE` cho mọi mã; bước giá mã
 > HNX tính theo thang HOSE.
+> ✅ **Đã ĐO ở BƯỚC 143 (29/09/2026); CHƯA sửa** — chờ người dùng chọn phương án.
 > **CUỐI NGÀY 28/09.** #180 (BƯỚC 134, `60d6598`) và #181 (BƯỚC 135,
 > `617eef1`) đã vào `main`; BƯỚC 137 lên PR riêng.
 >
@@ -486,6 +487,13 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   không phạt, lệch với backtest; (b) cho workflow nạp 44 mẫu chỉ-đọc —
   khớp backtest, và 3 lệnh đã mở (STB · TCB · DCL) lẽ ra bị chặn. Cả hai đổi
   hoặc giữ hành vi giao dịch thật, nên là quyết định của người dùng.
+- **Bước giá theo sàn (29/09/2026, BƯỚC 143).** Mã HNX/UPCoM (4 + 3 mã) đang
+  bị tính bước giá theo thang HOSE: 81/399 và 154/612 lệnh OOS ĐO 20 bị
+  chạm, giá vào lệch +0,19–0,21% (phía VÀO đo được; phía RA không). Đã có 7
+  test đỏ dưới `xfail(strict)`; chưa đổi mã. Chọn: (A, khuyên) sàn theo MÃ từ
+  một snapshot 71 mã có ngày + nguồn · (C) sàn theo cột `exchange`, phải sửa
+  tay 2 dòng cũ trên Sheets · đổi cả ngưỡng cảnh báo `PRICE_JUMP` hay không ·
+  có chạy ĐO 22 không. Mọi hướng đổi số đo nên là quyết định của người dùng.
 - **Audit toàn hệ thống 25/09/2026 (BƯỚC 121): 19 phát hiện CAO chờ sửa
   theo lộ trình.** Báo cáo đầy đủ là Artifact riêng tư của người dùng; repo
   chỉ giữ bản tóm tắt ở `docs/STATE.md` BƯỚC 121. Hai việc nặng nhất chạm
