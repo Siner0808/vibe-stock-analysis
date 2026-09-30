@@ -91,8 +91,9 @@ NEN = ("px_sma50", "stoch_kd")
 #: Mức tiêm, tính theo RÀO HIỆN HÀNH. 0 là ô 'không có gì' — nó phải im.
 HE_SO_TIEM = (0.0, 1.0, 2.0)
 
-#: Chi phí thực thi hiện hành, điểm % mỗi lệnh: ĐO 20, dòng 2 (theo ngày).
-#: Không phải hằng số của mô hình — là kết quả đo, nên ghi nguồn.
+#: Chi phí thực thi hiện hành LÚC ĐO 21, điểm % mỗi lệnh: ĐO 20, dòng 2 (theo ngày).
+#: Không phải hằng số của mô hình — là kết quả đo, nên ghi nguồn. ĐO 22 (30/09/2026)
+#: nay đo 0,96; ĐO 21 đã ký và chạy với 0,76 nên hằng số KHÔNG đổi theo.
 CHI_PHI_THUC_THI_HIEN_HANH = 0.76
 
 #: Số lượt mỗi ô, và số hoán vị mỗi lượt.
