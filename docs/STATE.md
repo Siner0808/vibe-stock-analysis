@@ -19607,3 +19607,51 @@ tay bỏ sót thứ nằm ngay trong nguồn.
  qua `dot_bien_bo`: 19/20 đỏ lượt đầu, phát sống sót là `main` chưa có test *mã không
  xác định được sàn thì thoát 1* — thêm test, đục lại: 20/20 đỏ.** Hai phát dựng lại
  NGUYÊN VĂN lỗi thật (`run_daily` ghim `"HOSE"`; `truot_gia` không nhận sàn).
+
+### ĐO 22 — kết quả (30/09/2026), đọc theo bảng đã ký
+
+Tiêu chí ở `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 22, ký ở `3b63df6` và đẩy lên GitHub
+**07:09Z**; lượt đầu bắt đầu 07:09:50Z. Luồng ĐỐI CHỨNG `71d9327` (mã sản xuất =
+`main` `79b2ad3`), ĐÃ SỬA `ab385dd`. Bốn worktree riêng, `VIBE_CACHE_DIR` → 125 file
+cache (phiên cuối 2026-09-03), `sl_pattern_memory.json` sha256 `e8b44cf8…` giống bản
+ĐO 18/20. Bốn lượt **07:09:50Z → 08:23:45Z**, mã thoát 0. Sổ OOS giữ ở
+`scratch/luu_do22/` (4 file `wf_oos.db`).
+
+**Sáu phép kiểm dụng cụ ĐẠT** (chi tiết ở tiêu chí): 71 IS · 33 OOS · 44 mẫu · học thêm
+0; đối chứng ra lại ĐO 20 **từng chữ số**; cùng ngưỡng 62 / 45; P4 **80/80** và
+**153/153** giá vào chia hết 100 (đối chứng 43/81 và 71/154); P5 0 lệnh HOSE lệch;
+P6 0 lệnh vào thấp hơn.
+
+```
+dong            luong       nguong  lenh OOS  ky vong   alpha    KTC 95%            von TB · dinh
+BAT theo ma     doi chung   62      398       -0,22%    -1,09%   [-1,91 ; -0,18]    51% · 191,30%
+BAT theo ma     da sua      62      397       -0,29%    -1,16%   [-2,00 ; -0,25]    51% · 191,30%
+BAT theo ngay   doi chung   45      612       -1,09%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+BAT theo ngay   da sua      45      619       -1,29%    -1,68%   [-2,24 ; -1,08]    56% · 100,00%
+```
+
+**Kết cục 1.** Δ alpha **−0,07** và **−0,20**, tức 8% và 34% nửa bề rộng KTC của
+đối chứng (0,865 và 0,585). Cùng chiều dự báo (chi phí chỉ tăng). Theo mã khớp dự báo
+(−0,08); theo ngày gấp ~1,8 lần dự báo (−0,11) nhưng còn xa ngưỡng kết cục 3
+(−0,585). Chênh giá vào trung bình +23,5đ · +25,7đ, đúng khoảng +20…+30đ khai trước,
+và trùng số dựng lại ở đo trước (+23,8đ · +26,3đ) — dụng cụ đo trước đo đúng cái phép
+sửa làm. Chi phí thực thi (TẮT − BẬT): **0,75** (theo mã) · **0,96** (theo ngày).
+
+**Đọc kèm:** theo mã 343 giống hệt · 55 khác (đều HNX/UPCoM) · 1 chỉ ở đối chứng
+(MBS 2023-08-16; nguyên nhân chưa quy từng lệnh); theo ngày 449
+giống hệt · 104 khác · 59 chỉ ở đối chứng · 66 chỉ ở bản sửa, trong đó có cả mã
+HOSE (AAA · BSR · DCM · FRT …). **Giả thuyết, chưa đo:** trần vốn nối các mã nên một
+lệnh HNX/UPCoM đổi giá vào/ra kéo theo lệnh khác; dự báo −0,11 chỉ tính phần giá
+vào, phía RA giả định đối xứng, và không tính dây chuyền. Quy Δ từng lệnh chưa làm.
+
+**Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 20 làm bảng hiện hành**; dòng
+TẮT (ĐO 18) không chạm được nên giữ. `CLAUDE.md` chưa được sửa ở nhánh này — phiên
+giám sát đang viết lại file (BƯỚC 145) và nhận bảng mới qua tin nhắn.
+
+### Điều BƯỚC này KHÔNG nói (bổ sung sau ĐO 22)
+
+- Phía RA vẫn không đo riêng; con số Δ theo ngày gộp cả hai phía và cả dây chuyền.
+- `data_quality` của mã HNX/UPCoM trong bảng `decisions` (`WARN` → `OK`) đổi trên
+  đường quét thật, không tham gia ĐO 22 (walkforward không đọc `run_daily`).
+- Chưa có lệnh HNX/UPCoM mới nào trên sổ thật kể từ sau sửa; MSR #119 (đang mở) sẽ
+  được định giá ra theo lưới 100đ.

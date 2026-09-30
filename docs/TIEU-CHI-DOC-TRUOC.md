@@ -3468,3 +3468,46 @@ không khớp ĐO 20) không phải kết cục 4 — nó được xử lý như
 Số lệnh HNX/UPCoM mỗi luồng và chia theo sàn; chênh giá vào theo dải giá (dưới
 10 nghìn · 10–50 nghìn · từ 50 nghìn); số lệnh chỉ-ở-một-bên và lý do. Đây là mô
 tả để quy Δ, không phải phép thử.
+
+---
+
+## Kết quả ĐO 22 — chạy 30/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ chạy:** `tools/do1_chi_phi_thuc_thi.py` · **dụng cụ đọc:** `tools/do20_ghep_tung_lenh.py` · `tools/do22_doc_ket_qua.py`
+
+Tiêu chí ký ở `3b63df6`, đẩy lên GitHub lúc **07:09Z**, TRƯỚC lượt đầu (07:09:50Z).
+Bốn lượt song song **07:09:50Z → 08:23:45Z** (~74 phút), cả bốn mã thoát 0. Luồng
+ĐỐI CHỨNG `71d9327` (mã sản xuất = `main`), luồng ĐÃ SỬA `ab385dd`.
+
+**Sáu phép kiểm dụng cụ: ĐẠT.** (1) cả bốn: 71 mã IS · 33 mã OOS · 44 mẫu, học
+thêm 0. (2) ĐỐI CHỨNG ra lại hai dòng BẬT của ĐO 20 **tới từng chữ số**: 398 ·
+−1,09% · [−1,91 ; −0,18] và 612 · −1,48% · [−2,05 ; −0,88]. (3) hai luồng cùng
+ngưỡng 62 / 45. (4) **P4**: giá vào HNX/UPCoM chia hết 100 — ĐÃ SỬA **80/80** và
+**153/153**; đối chứng 43/81 và 71/154 (đúng số đo trước). (5) **P5** (theo mã):
+lệnh HOSE khác giữa hai luồng: **0**. (6) **P6**: giá vào ĐÃ SỬA thấp hơn đối chứng
+ở **0** trên 80 và 141 lệnh HNX/UPCoM chung khoá cùng ngày vào.
+
+```
+dong            luong       nguong  lenh OOS  ky vong   alpha    KTC 95%            von TB · dinh
+BAT theo ma     doi chung   62      398       -0,22%    -1,09%   [-1,91 ; -0,18]    51% · 191,30%
+BAT theo ma     da sua      62      397       -0,29%    -1,16%   [-2,00 ; -0,25]    51% · 191,30%
+BAT theo ngay   doi chung   45      612       -1,09%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+BAT theo ngay   da sua      45      619       -1,29%    -1,68%   [-2,24 ; -1,08]    56% · 100,00%
+```
+
+**Kết cục 1.** Δ alpha **−0,07** (theo mã, nửa bề rộng KTC 0,865 — **8%**) và
+**−0,20** (theo ngày, 0,585 — **34%**). Cả hai ≤ 0, cả hai trong nửa bề rộng.
+Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 20 làm bảng hiện hành; dòng
+TẮT giữ ĐO 18. Chi phí thực thi (TẮT − BẬT, cùng cách tính các bảng trước): theo mã
+**0,75** · theo ngày **0,96** điểm mỗi lệnh (ĐO 20: 0,68 · 0,76).
+
+**Đối chiếu với dự báo khai trước:** Δ ≤ 0 ở cả hai dòng — **đúng**. Cỡ: dự báo
+−0,08 và −0,11; đo được **−0,07** (khớp) và **−0,20** (~1,8 lần dự báo, vẫn xa
+kết cục 3 là −0,585). Chênh giá vào trung bình dự báo +20…+30đ — đo được **+23,5đ**
+và **+25,7đ**. Số lệnh HOSE theo mã giống hệt (P5) — đúng.
+
+**Đọc kèm:** theo mã 343 lệnh giống hệt · 55 cùng khoá khác (đều mã HNX/UPCoM) · 1
+chỉ ở đối chứng (MBS 2023-08-16); theo ngày 449 giống hệt · 104 khác · 59 chỉ ở đối
+chứng · 66 chỉ ở bản sửa (trong đó có cả mã HOSE; trần vốn nối các mã — nguyên nhân chưa quy từng lệnh).
+Chênh giá vào theo dải: dưới 10 nghìn +44,6đ / +41,2đ · 10–50 nghìn +22,0đ / +25,2đ ·
+từ 50 nghìn 0. Số liệu và phép ghép: `docs/STATE.md` BƯỚC 143.

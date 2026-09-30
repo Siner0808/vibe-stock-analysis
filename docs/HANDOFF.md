@@ -412,7 +412,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > Còn treo, việc riêng: cột `exchange` ghi `HOSE` cho mọi mã; bước giá mã
 > HNX tính theo thang HOSE.
 > ✅ **Đã ĐO và ĐÃ SỬA ở BƯỚC 143 (29/09/2026)** — người dùng chọn phương án A;
-> ĐO 22 đo lại hai dòng bật chi phí (tiêu chí ký trước lượt đầu).
+> ĐO 22 (30/09) đo lại hai dòng bật chi phí: **kết cục 1** — Δ alpha −0,07 (theo mã) ·
+> −0,20 (theo ngày), trong nửa bề rộng KTC; hai dòng BẬT mới: 397 lệnh −1,16% ·
+> 619 lệnh −1,68% (`docs/STATE.md` BƯỚC 143). `CLAUDE.md` chưa cập nhật bảng.
 > **CUỐI NGÀY 28/09.** #180 (BƯỚC 134, `60d6598`) và #181 (BƯỚC 135,
 > `617eef1`) đã vào `main`; BƯỚC 137 lên PR riêng.
 >
