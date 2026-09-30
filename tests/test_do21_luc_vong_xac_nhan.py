@@ -132,10 +132,15 @@ def test_rao_HIEN_HANH_dung_chi_phi_MOI_khong_dung_0_43():
     assert T.CHI_PHI_THUC_THI_HIEN_HANH > E.TRUOT_GIA_DPT
 
 
-def test_chi_phi_hien_hanh_KHOP_so_DO_20_trong_CLAUDE_md():
-    """Hằng số chép từ một phép đo — gác để nó không trôi khỏi nguồn."""
-    s = (GOC / "CLAUDE.md").read_text(encoding="utf-8")
-    assert "**0,76** (theo ngày)" in s
+def test_chi_phi_hien_hanh_KHOP_so_DO_20_trong_nhat_ky_BUOC_136():
+    """Hằng số chép từ một phép đo — gác để nó không trôi khỏi nguồn.
+
+    Nguồn là dòng nhật ký chỉ-thêm của BƯỚC 136 (ĐO 20), KHÔNG phải bảng "hiện
+    hành" trong CLAUDE.md: bảng ấy đổi theo từng ĐO (ĐO 22 nay ghi 0,96), còn ĐO 21
+    đã ký và chạy với 0,76 nên hằng số không được đổi theo nó.
+    """
+    s = (GOC / "docs" / "STATE.md").read_text(encoding="utf-8")
+    assert "**0,76** theo ngày" in s
     assert T.CHI_PHI_THUC_THI_HIEN_HANH == 0.76
 
 

@@ -19574,6 +19574,236 @@ kiện `input`. Nay `tools/so_tay.py hoi … --js` in sẵn lệnh gửi đúng;
   vòng xác nhận nào — chờ người dùng chọn hướng.
 - Nhịp 16,6 lệnh/tháng đo trên sổ walkforward (ngưỡng 45, `stride=2`), chưa
   trên sổ thật — sổ thật mới chạy lại 2 phiên.
+## BƯỚC 143 — BƯỚC GIÁ CỦA MÃ HNX/UPCoM TÍNH THEO THANG HOSE, VÀ CỘT `exchange` GHI HOSE CHO MỌI MÃ: ĐO TRƯỚC, CHƯA SỬA (29/09/2026)
+
+Phần dư đã khai ở BƯỚC 136. Phiên song song giao: đo trước, viết test đỏ,
+kiểm nguồn sàn, **không đổi hành vi đo** trước khi người dùng chọn phương án.
+Số hiệu: BƯỚC 143, ĐO 22 (nếu cần ĐO), lỗi 114 — phiên song song giữ 142 · 21
+· số lẻ.
+
+### Đo trước
+
+Dụng cụ: `tools/do22_buoc_gia_theo_san.py` (chỉ đọc). Lệnh:
+
+```
+./.venv/Scripts/python.exe tools/do22_buoc_gia_theo_san.py \
+    --oos ../luu_do20/wt_do20_s1/wf_oos.db --oos ../luu_do20/wt_do20_s2/wf_oos.db \
+    --cache ../vibe_preview/backtest/cache
+```
+
+**[1] Sàn thật.** `Listing(source=…).symbols_by_exchange()` ở hai nguồn, so
+từng mã của rổ 71 mã SAU KHI chuẩn hoá nhãn:
+
+```
+vci  nhan: HSX 757 · HNX 313 · UPCOM 818 · DELISTED 1685 · BOND 98
+kbs  nhan: HOSE 757 · HNX 397 · UPCOM 818 · XHNF 14 · NAN 1492
+ro 71 ma:  HOSE 64 · HNX 4 (PVS HUT SHS MBS) · UPCOM 3 (OIL MSR ACV)
+lech giua hai nguon sau chuan hoa: khong · ma khong co nhan hop le: khong
+```
+
+Hai cái bẫy nhãn, đều thật: VCI ghi **`HSX`**, KBS ghi `HOSE` — so thẳng chuỗi
+cho *64 mã lệch*; và cả hai nguồn còn nhãn `DELISTED` / `XHNF` / `NAN` — một
+bảng tra rơi về HOSE khi gặp nhãn lạ sẽ im lặng xếp mã đã huỷ niêm yết vào
+HOSE. `truot_gia.buoc_gia` hiện đúng như thế: `BUOC_GIA.get(san.upper(),
+BUOC_GIA["HOSE"])`.
+
+**[2] Số lệnh bị chạm** (sổ OOS ĐO 20, bản đã sửa BƯỚC 136, trượt giá BẬT):
+
+| lượt | lệnh | HNX/UPCoM | vào < 10k | vào 10–50k | vào ≥ 50k | trung vị giá vào |
+|---|---|---|---|---|---|---|
+| 1 theo mã | 399 | **81 (20,3%)** | 13 | 60 | 8 | 17.000đ |
+| 2 theo ngày | 612 | **154 (25,2%)** | 29 | 110 | 15 | 15.450đ |
+
+Dải ≥ 50k không bị chạm (thang HOSE cũng 100đ ở đó). **~90%** lệnh HNX/UPCoM
+nằm ở dải bị chạm.
+
+**[3] Giá không thể tồn tại.** Giá vào chia hết cho 100 (điều bắt buộc trên
+HNX/UPCoM) ở lệnh vào < 50k: **35/73** (lượt 1) và **56/139** (lượt 2). Đối
+chứng dương — mã HOSE ≥ 50k, thang HOSE cũng 100đ: **52/52** và **50/50**. Sổ
+thật: HUT (#117) vào **13.250đ**.
+
+**[4] Dựng lại giá vào** bằng hàm thuần `truot_gia.truot_gia` ở hai thang, trên
+nến đã lưu (cache nghìn đồng ×1000, vốn 1 tỷ, lô 100). Đối chứng bắt buộc:
+thang HOSE phải tái lập giá vào đã ghi — **81/81 và 154/154** tái lập đúng,
+không loại lệnh nào.
+
+| | lệnh đổi giá vào | TB | trung vị | max | dải < 10k | dải 10–50k | dải ≥ 50k |
+|---|---|---|---|---|---|---|---|
+| lượt 1 | 38/81 (47%) | **+23,8đ** (+0,190%) | 0đ | +90đ | +0,508% (n=15) | +0,134% (n=58) | 0 (n=8) |
+| lượt 2 | 83/154 (54%) | **+26,3đ** (+0,214%) | +20đ | +90đ | +0,511% (n=30) | +0,161% (n=109) | 0 (n=15) |
+
+Chỉ phía **VÀO**. Phía RA không dựng lại được (giá gốc trước trượt không lưu
+trong sổ), nên **không có con số đo cho phía RA** — chỉ có hai test đỏ (dưới).
+
+**Sổ thật** (Google Sheets, chỉ đọc): 125 lệnh, cột `exchange` = `HOSE` ở **cả
+125**. HNX/UPCoM chỉ **2/125** — HUT #117 (đã đóng, vào 13.250đ, ra 12.800đ
+`SIGNAL_REVERSED`) và MSR #119 (**đang mở**, vào 54.100đ, ≥ 50k nên giá vào
+không đổi; **giá RA của nó sẽ đổi** nếu sửa). Sổ thật gần như không dính; phép
+đo chạy walk-forward là nơi lỗi nằm.
+
+### Ước lượng độ lớn — NHÃN LÀ ƯỚC LƯỢNG
+
+Giả định phía RA đối xứng phía VÀO (làm tròn XUỐNG một bước lớn hơn cũng cỡ
+ấy): mỗi lệnh HNX/UPCoM đắt thêm ~2 × 0,19–0,21% ≈ **0,38–0,43%**. Nhân tỷ lệ
+lệnh: **~0,08** (lượt 1) và **~0,11** (lượt 2) điểm phần trăm mỗi lệnh toàn
+danh mục. Nửa bề rộng KTC ĐO 20: **0,865** (dòng 1) và **0,585** (dòng 2) —
+tức Δ dự kiến chỉ **~9%** và **~18%** nửa bề rộng, cùng hướng **xấu đi**
+(chiều an toàn, Quy tắc 1). Dự kiến **kết cục 1** như ĐO 20, chưa phải kết
+quả: tập lệnh còn xáo theo bậc hai (thoát sớm/muộn đổi vốn rảnh).
+
+### Gác viết trước — `tests/test_buoc_gia_theo_san.py`
+
+10 test: **7 đỏ dưới `xfail(strict=True)`**, 3 ghim xanh. Chạy với
+`--runxfail` cả 7 đỏ đúng lý do: PVS vào **30.050đ** (HNX: 30.100đ), HUT vào
+**9.060đ** (HNX: 9.100đ), MSR/OIL tương tự, PVS cắt lỗ **28.450đ** (HNX: 28.400đ),
+MSR thoát theo tín hiệu **30.950đ**, và `run_daily` ghim cứng `"HOSE"`. Ba test
+ghim canh phép sửa sai kiểu *áp thang HNX cho MỌI mã*: bảng bước giá đã có
+(HNX/UPCOM 100đ mọi mức, HOSE 10/50/100), và PDR (HOSE) vẫn vào 30.050đ.
+
+### Phương án — chờ người dùng chọn
+
+Nguồn sự thật cho **A** và **C**: một snapshot có ngày và nguồn trong repo,
+đủ **71 mã** (kể cả 64 mã HOSE — để "mã không có trong bảng" không bao giờ
+rơi im lặng về HOSE), chuẩn hoá nhãn `HSX→HOSE`, và một công cụ so lại với
+`Listing` ở hai nguồn (mã thoát 2 khi mất mạng). **Không tra mạng trong lượt
+quét hay backtest** — bất biến 2 cần phép đo tất định.
+
+- **A (khuyên) — sàn theo MÃ.** `san_giao_dich.san_cua(ma)`; `_khop_that` và
+  `_gia_ban_that` lấy sàn theo mã, không đọc cột. Hai dòng cũ (#117, #119) mang
+  `exchange=HOSE` vẫn được định giá đúng mà **không phải sửa dữ liệu của người
+  dùng**. `run_daily` truyền `san_cua(sym)` nên cột ghi đúng cho lệnh mới.
+- **C — sàn theo CỘT `exchange` của lệnh.** Giản dị hơn về đường đi, nhưng hai
+  dòng cũ phải được sửa tay trên Google Sheets trước — dữ liệu của người dùng,
+  nên hỏi.
+- **B — tra `Listing` lúc quét: BỊ LOẠI.** Mạng nằm trong đường quyết định, hai
+  nguồn khác nhãn, và backtest không còn tái lập.
+
+Điểm rẽ nhánh nhỏ đi kèm: `run_daily` còn ghim `"HOSE"` ở
+`collector.collect(..., exchange="HOSE")` (dòng 420) — nó chỉ chọn ngưỡng
+`PRICE_JUMP` của `data_quality` (0,07 / 0,10 / 0,15), tức đổi mức CẢNH BÁO chứ
+không đổi số đo. Làm cùng hay tách: người dùng chọn.
+
+**ĐO 22** (nếu người dùng duyệt sửa): hai lượt BẬT (theo mã · theo ngày),
+đối chứng `main` so với bản sửa, cùng ngày cùng cache, ghép từng lệnh bằng
+`tools/do20_ghep_tung_lenh.py` — đúng khuôn ĐO 20. Tiêu chí ký ở commit riêng,
+đẩy lên GitHub TRƯỚC lượt đầu. Kết cục dự kiến khai trước: **1** (|Δ alpha| <
+nửa bề rộng KTC, hướng xấu đi) · **2** (xấu đi vượt nửa bề rộng) · **3** (alpha
+ĐẸP LÊN → nghi có lỗi, Quy tắc 1). Dòng TẮT không chạm được, giữ nguyên.
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, gửi trong khung trình duyệt của app (tab
+riêng — tab `seed` đang phục vụ phiên xem của phiên song song). Sổ tay trả
+*"không tìm thấy câu nào nói ngược"*. **Sai** — vế âm bỏ sót, và lần này grep
+bắt được ngay trong 11 nguồn:
+
+| chỗ | câu | phán quyết |
+|---|---|---|
+| `CLAUDE.md` mục *Chi phí thực thi* | *"Cái tốn tiền là **bước giá 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình."* (`tools/doi_chieu_trich_dan.py`: KHỚP) | đúng cho HOSE ở dải 10–50k, nói như sự thật của cả lưới. Đã thêm ô ⚠️ phạm vi. Lượt soát BƯỚC 120 từng phán câu này *"không mâu thuẫn"* — đúng cho đề tài của lượt ấy (gap dưới SL), không cho đề tài này |
+| `README.md` | *"bật chi phí thực thi thật (bước giá 50đ, lô chẵn, biên độ ±7%"* | như trên, kèm biên độ (đã sửa ở BƯỚC 136). Đã thêm ô ⚠️ |
+| `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 6 · ĐO 7 | *"bước giá 50đ chiếm tỷ lệ …"* · *"chi phí của ta do bước giá 50đ quyết định"* | tiêu chí ký trước, chỉ-thêm — không sửa; ĐO 22 nếu chạy sẽ là chỗ đọc lại |
+| `docs/STATE.md` (nhật ký cũ) | các câu *"bước giá 50đ"* | nhật ký chỉ-thêm; BƯỚC này là lời đính chính |
+
+Đây là lần thứ **ba** trong hai ngày (BƯỚC 139, 140, 143) câu trả lời ÂM của sổ
+tay bỏ sót thứ nằm ngay trong nguồn.
+
+### Hai lỗi của chính phép đo
+
+1. **Nhãn sàn.** Bản đầu so `vci == kbs` bằng chuỗi thô và in *"lệch giữa hai
+   nguồn: 64 mã"*. Sai: `HSX` và `HOSE` là một sàn. Chuẩn hoá nhãn rồi so lại
+   → 0 lệch. Một máy đo báo lệch ở mọi nơi cũng không đo được gì.
+2. **Một dòng in vô nghĩa.** Bản scratch của phép dựng lại in *"giá vào ĐÚNG
+   luôn chia hết 100: True"* từ một biểu thức mà tôi tự viết ra là hằng số
+   (`[...][:0] or [0.0]`) — luôn đúng bất kể dữ liệu. Không dùng, và không có
+   trong dụng cụ đưa vào repo. Cùng họ với điều bắt buộc số 4 của `SKILL.md`
+   Bước 3: một dòng in `True` không phải bằng chứng.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không nói bản sửa làm alpha đổi bao nhiêu — chỉ ước lượng có nhãn, ĐO 22 chưa
+  chạy.
+- Không nói phía RA lệch bao nhiêu — không dựng lại được.
+- Sổ thật chỉ có 2 lệnh HNX/UPCoM; con số 20–25% là của walk-forward, không
+  phải của sổ thật.
+- ~~**Chưa đổi một dòng mã sản xuất.**~~ **ĐÃ SỬA cùng ngày, sau khi người dùng chọn
+  (qua phiên song song): phương án A · chạy ĐO 22 · làm cùng phần `collect`.** Xem
+  mục *Phép sửa* ngay dưới; các mục trên là bản ghi của lúc đo trước.
+
+### Phép sửa — phương án A (29/09/2026)
+
+- `san_giao_dich.py` (mới): bảng chụp **71 mã** có ngày và nguồn, `chuan_hoa_nhan`
+  (`HSX→HOSE`, nhãn lạ → `None`), `san_cua(ma)` (ngoài bảng: HOSE như hành vi cũ),
+  `tra_san(ma)` (ngoài bảng: `None`). Bảng sinh từ `Listing`, không gõ tay.
+- `paper_trading._khop_that` truyền `san=san_cua(symbol)` cho `dat_lenh`;
+  `_gia_ban_that` nhận `symbol` và truyền `san_cua(symbol)` cho `truot_gia` — cả
+  hai nơi gọi (cắt lỗ, thoát theo tín hiệu). **Tra theo MÃ, không đọc cột
+  `exchange`**, nên hai dòng cũ #117 · #119 (cột ghi `HOSE`) được định giá đúng mà
+  KHÔNG phải sửa dữ liệu trên Google Sheets — người dùng không chọn sửa tay.
+- `truot_gia.buoc_gia`: nhãn sàn lạ **nổ** `ValueError`, không rơi về HOSE.
+- `run_daily`: `collect(exchange=san_cua(sym))` và `run_session(…, san_cua(sym), …)`.
+  **Phần này CHỈ đổi cảnh báo, không đổi quyết định** — người dùng không cần hỏi,
+  và có gác: `PRICE_JUMP` là `WARN` (ngưỡng `biên độ × 1,5`: HOSE 10,5% · HNX 15% ·
+  UPCoM 22,5%); `MUC_CHAT_LUONG_DUNG_DUOC` = {OK, WARN} nên cả hai đều mở lệnh; đổi
+  `exchange` chỉ đổi đúng mã `PRICE_JUMP` trong `validate_ohlcv`. Việc duy nhất đổi
+  là nhãn `data_quality` ghi vào bảng `decisions` của mã HNX/UPCoM (`WARN`→`OK`).
+- `tools/kiem_san_giao_dich.py`: so bảng với `Listing` ở hai nguồn, nói ra từng mã
+  lệch; mã thoát 2 khi mất mạng. Chạy 29/09: **KHỚP**.
+- Không tra mạng trong lượt quét hay backtest (bất biến 2).
+
+**Gác:** `tests/test_san_giao_dich.py` (35 test: bảng phủ ĐÚNG rổ · ba bảng sàn một
+ bộ tên · đường dây đọc bằng AST · đổi sàn chỉ đổi `PRICE_JUMP` · công cụ so lại) và
+ bảy test `xfail` của `test_buoc_gia_theo_san.py` nay XPASS → gỡ dấu. **Đục 20 phát
+ qua `dot_bien_bo`: 19/20 đỏ lượt đầu, phát sống sót là `main` chưa có test *mã không
+ xác định được sàn thì thoát 1* — thêm test, đục lại: 20/20 đỏ.** Hai phát dựng lại
+ NGUYÊN VĂN lỗi thật (`run_daily` ghim `"HOSE"`; `truot_gia` không nhận sàn).
+
+### ĐO 22 — kết quả (30/09/2026), đọc theo bảng đã ký
+
+Tiêu chí ở `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 22, ký ở `3b63df6` và đẩy lên GitHub
+**07:09Z**; lượt đầu bắt đầu 07:09:50Z. Luồng ĐỐI CHỨNG `71d9327` (mã sản xuất =
+`main` `79b2ad3`), ĐÃ SỬA `ab385dd`. Bốn worktree riêng, `VIBE_CACHE_DIR` → 125 file
+cache (phiên cuối 2026-09-03), `sl_pattern_memory.json` sha256 `e8b44cf8…` giống bản
+ĐO 18/20. Bốn lượt **07:09:50Z → 08:23:45Z**, mã thoát 0. Sổ OOS giữ ở
+`scratch/luu_do22/` (4 file `wf_oos.db`).
+
+**Sáu phép kiểm dụng cụ ĐẠT** (chi tiết ở tiêu chí): 71 IS · 33 OOS · 44 mẫu · học thêm
+0; đối chứng ra lại ĐO 20 **từng chữ số**; cùng ngưỡng 62 / 45; P4 **80/80** và
+**153/153** giá vào chia hết 100 (đối chứng 43/81 và 71/154); P5 0 lệnh HOSE lệch;
+P6 0 lệnh vào thấp hơn.
+
+```
+dong            luong       nguong  lenh OOS  ky vong   alpha    KTC 95%            von TB · dinh
+BAT theo ma     doi chung   62      398       -0,22%    -1,09%   [-1,91 ; -0,18]    51% · 191,30%
+BAT theo ma     da sua      62      397       -0,29%    -1,16%   [-2,00 ; -0,25]    51% · 191,30%
+BAT theo ngay   doi chung   45      612       -1,09%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+BAT theo ngay   da sua      45      619       -1,29%    -1,68%   [-2,24 ; -1,08]    56% · 100,00%
+```
+
+**Kết cục 1.** Δ alpha **−0,07** và **−0,20**, tức 8% và 34% nửa bề rộng KTC của
+đối chứng (0,865 và 0,585). Cùng chiều dự báo (chi phí chỉ tăng). Theo mã khớp dự báo
+(−0,08); theo ngày gấp ~1,8 lần dự báo (−0,11) nhưng còn xa ngưỡng kết cục 3
+(−0,585). Chênh giá vào trung bình +23,5đ · +25,7đ, đúng khoảng +20…+30đ khai trước,
+và trùng số dựng lại ở đo trước (+23,8đ · +26,3đ) — dụng cụ đo trước đo đúng cái phép
+sửa làm. Chi phí thực thi (TẮT − BẬT): **0,75** (theo mã) · **0,96** (theo ngày).
+
+**Đọc kèm:** theo mã 343 giống hệt · 55 khác (đều HNX/UPCoM) · 1 chỉ ở đối chứng
+(MBS 2023-08-16; nguyên nhân chưa quy từng lệnh); theo ngày 449
+giống hệt · 104 khác · 59 chỉ ở đối chứng · 66 chỉ ở bản sửa, trong đó có cả mã
+HOSE (AAA · BSR · DCM · FRT …). **Giả thuyết, chưa đo:** trần vốn nối các mã nên một
+lệnh HNX/UPCoM đổi giá vào/ra kéo theo lệnh khác; dự báo −0,11 chỉ tính phần giá
+vào, phía RA giả định đối xứng, và không tính dây chuyền. Quy Δ từng lệnh chưa làm.
+
+**Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 20 làm bảng hiện hành**; dòng
+TẮT (ĐO 18) không chạm được nên giữ. `CLAUDE.md` chưa được sửa ở nhánh này — phiên
+giám sát đang viết lại file (BƯỚC 145) và nhận bảng mới qua tin nhắn.
+
+### Điều BƯỚC này KHÔNG nói (bổ sung sau ĐO 22)
+
+- Phía RA vẫn không đo riêng; con số Δ theo ngày gộp cả hai phía và cả dây chuyền.
+- `data_quality` của mã HNX/UPCoM trong bảng `decisions` (`WARN` → `OK`) đổi trên
+  đường quét thật, không tham gia ĐO 22 (walkforward không đọc `run_daily`).
+- Chưa có lệnh HNX/UPCoM mới nào trên sổ thật kể từ sau sửa; MSR #119 (đang mở) sẽ
+  được định giá ra theo lưới 100đ.
 
 ## BƯỚC 144 — P3a CHẤM BÓNG: NGƯỜI DÙNG CHỌN "CHẤM BÓNG CÔNG KHAI"; SỔ ĐĂNG KÝ ỨNG VIÊN VÀ PHÉP SO CẶP, CHƯA CHẠM DỮ LIỆU THẬT (29/09/2026)
 
