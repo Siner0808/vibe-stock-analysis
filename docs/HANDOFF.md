@@ -9,7 +9,8 @@ Ba tài liệu, ba vai:
 |---|---|---|
 | `docs/HANDOFF.md` (file này) | *bắt đầu từ đâu* — đọc hết trong 5 phút | phải cập nhật mỗi khi trạng thái đổi |
 | `docs/STATE.md` | *nhật ký từng bước* — đo được gì, cái gì chưa kiểm được | chỉ THÊM, không sửa mục cũ |
-| `CLAUDE.md` | *kiến trúc và luật chơi* | ít đổi nhất |
+| `CLAUDE.md` | *luật hiện hành* — chỉ luật, gọn (BƯỚC 145) | ít đổi nhất; một BƯỚC KHÔNG sửa nó trừ khi đổi một LUẬT |
+| `docs/lich-su/` | bản NGUYÊN VĂN `CLAUDE.md` · `SKILL.md` trước khi rút gọn; **không tự nạp** | không sửa |
 
 Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CLAUDE.md`.
 

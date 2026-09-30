@@ -188,3 +188,22 @@ def test_CAU_KHONG_CO_THAT_thi_phai_LECH(cau):
     """
     assert d.phan_dinh(cau)[0] == 1
     print("PASS  câu không có thật thì LỆCH")
+
+
+# ── BƯỚC 145: bản NGUYÊN VĂN trước khi rút gọn phải còn nằm trong quần thể ──
+
+def test_QUAN_THE_phu_ca_hai_ban_LUU_TRU():
+    """Hai câu dưới CHỈ còn ở bản lưu (đã rút khỏi `CLAUDE.md` / `SKILL.md`).
+
+    Thiếu bản lưu trong `TAI_LIEU` thì trích dẫn từ lịch sử bị báo LỆCH — và
+    đó đúng là lỗi 73/80: gác không yếu, nó ngắm quần thể hẹp hơn quần thể thật.
+    Kiểm cả hai chiều: câu KHÔNG còn ở bản sống, VÀ được tìm ra ở bản lưu.
+    """
+    ban = d.ban_da_chuan()
+    ca_claude = "tác dụng phụ không ai chọn"
+    ca_skill = ("Cái gác không yếu — nó ngắm quần thể khác với quần thể công "
+                "việc thật")
+    assert d.tim(ca_claude, ban) == ["CLAUDE-md-2026-09-30.md"]
+    assert d.tim(ca_skill, ban) == ["SKILL-md-2026-09-30.md"]
+    assert d.phan_dinh(ca_claude, ban)[0] == 0
+    assert d.phan_dinh(ca_skill, ban)[0] == 0

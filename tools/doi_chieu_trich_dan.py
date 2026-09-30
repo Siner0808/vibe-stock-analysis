@@ -59,6 +59,11 @@ TAI_LIEU = (
     SKILL / "references" / "bay.md",
     SKILL / "references" / "cong-thuc-chay.md",
     SKILL / "references" / "soat-cheo-notebooklm.md",
+    # BƯỚC 145: bản NGUYÊN VĂN của CLAUDE.md / SKILL.md trước khi rút gọn.
+    # Trích dẫn từ lịch sử vẫn phải đối chiếu được — thiếu hai file này thì
+    # câu THẬT của sổ tay trích từ bản cũ bị báo LỆCH.
+    GOC / "docs" / "lich-su" / "CLAUDE-md-2026-09-30.md",
+    GOC / "docs" / "lich-su" / "SKILL-md-2026-09-30.md",
 )
 
 #: Số ký tự tối thiểu của một trích dẫn đáng đối chiếu. Dưới mức này thì
