@@ -1785,6 +1785,28 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -n -i 'mỗi tháng|tự lên phiên bản|tự nâng cấp|hằng tháng|21 phiên.*đủ|13 tháng|mọi mã mỗi phiên' CLAUDE.md docs/HANDOFF.md SKILL.md NGUYEN-TAC MO-XE docs/STATE.md -> ba chỗ đáng xem, KHÔNG chỗ nào nói ngược: STATE BƯỚC 122 mục 3 'xác nhận tối đa 1 mỗi tháng … tự lên phiên bản' (một TRẦN của kế hoạch, vẫn đúng chữ); CLAUDE.md 'alpha cần 13 tháng' (điều kiện DỪNG, nhịp 2,17 lệnh/phiên ở vốn 139% — BƯỚC 142 mục 3 nêu rõ); HANDOFF 'tự lên phiên bản và báo người dùng' (mô tả kế hoạch)."
     },
+    "BƯỚC 143": {
+      "ngay": "2026-09-29",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn @60d6598 (BƯỚC 134); các câu bị bỏ sót đều nằm TRONG nguồn (CLAUDE.md, README.md, docs/TIEU-CHI-DOC-TRUOC.md).",
+      "cau_hoi": "I am about to write BƯỚC 143 into docs/STATE.md: The paper-trading fill and slippage model applies the HOSE tick-size table (10 dong below 10,000, 50 dong from 10,000 to 50,000, 100 dong above) to every symbol, including the 4 HNX and 3 UPCoM symbols of the basket whose real tick is 100 dong at every price, and the ledger 'exchange' column reads HOSE on all 125 rows; so walk-forward cost figures understate the cost of those symbols, and any sentence saying tick size or the exchange column is handled per exchange is wrong. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: Cái tốn tiền là bước giá 50đ — sự thật của lưới giá, không phải lựa chọn mô hình, bật chi phí thực thi thật (bước giá 50đ, lô chẵn, cột exchange ghi HOSE cho mọi mã. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ tay trả 'không tìm thấy câu nào nói ngược' — SAI, bỏ sót thứ nằm trong nguồn. grep -n 'bước giá 50' trên 11 nguồn: CLAUDE.md:1406-1407 'Cái tốn tiền là bước giá 50đ — sự thật của lưới giá, không phải lựa chọn mô hình' (tools/doi_chieu_trich_dan.py: KHỚP — CLAUDE.md · STATE.md); README.md:23 'bật chi phí thực thi thật (bước giá 50đ, lô chẵn, biên độ ±7%'; docs/TIEU-CHI-DOC-TRUOC.md:1173 và :1520; git show 60d6598:docs/STATE.md dòng 2994 và 5698. Phán quyết: câu CLAUDE.md và README đúng cho HOSE ở dải 10-50k nhưng nói như sự thật của cả lưới giá — đã thêm ô cảnh báo phạm vi; câu TIEU-CHI và STATE là nhật ký/tiêu chí chỉ-thêm — không sửa. Lượt soát BƯỚC 120 từng phán câu CLAUDE.md là 'không mâu thuẫn' (đúng cho đề tài của lượt ấy, gap dưới SL), không cho đề tài này."
+    },
     "ĐO 21": {
       "ngay": "2026-09-29",
       "nguon": [
@@ -1806,6 +1828,42 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -n '0,43|0,0488|san_nhieu|NHIP_DA_DOI_CHIEU' CLAUDE.md docs/HANDOFF.md SKILL.md NGUYEN-TAC MO-XE references/bay.md docs/TIEU-CHI-DOC-TRUOC.md -> mọi '0,43' của CLAUDE.md (dòng 1349–1413) đã mang dấu 'KHÔNG TÁI LẬP'; '0,0488' là rào của CỬA SỔ ĐO 15 với chi phí cũ (TIEU-CHI dòng 2498–2656), không phải rào hiện hành; không câu nào nói san_nhieu đã đối chiếu mọi độ dài cửa sổ. Lộ ra một chỗ lệch của CHÍNH dự báo ĐO 21: nó ước rào hiện hành ~0,067 (0,0488 × 1,371), đo được 0,0586 — sigma nhãn cache_2018 10,10% so với 8,84% ở cửa sổ ĐO 15; đã ghi vào kết quả."
+    },
+    "ĐO 22": {
+      "ngay": "2026-09-30",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn @60d6598 (BƯỚC 134), viết TRƯỚC ĐO 20 (28/09 13:47) nên không thấy ô 🔴 ĐO 20 trong CLAUDE.md; câu về 'bước giá 50đ' nằm TRONG nguồn.",
+      "cau_hoi": "I am about to write ĐO 22 into docs/STATE.md: The pre-signed criteria of ĐO 22 say: the control run (production code identical to main) must reproduce, digit for digit, the slippage-ON rows of the current cost table (by-symbol threshold 62: 398 trades, alpha -1.09%, CI [-1.91 ; -0.18]; by-day threshold 45: 612 trades, alpha -1.48%, CI [-2.05 ; -0.88]); the fix, which gives HNX and UPCoM symbols the 100 dong tick instead of the HOSE tick table, can only raise costs, so the predicted change in alpha is zero or negative (estimated -0.08 and -0.11 points, about 9% and 18% of the CI half-width); a positive change is treated as a suspected bug under rule number 1; and the four runs are launched in parallel on the same day with the same price cache. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: BẢNG HIỆN HÀNH — ĐO 18, Cái tốn tiền là bước giá 50đ, bước giá 50đ, lô chẵn. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, mục 'BẢNG HIỆN HÀNH — ĐO 18': dòng 1 '| 1 | BẬT | theo mã | 62 | 398 | −0,26% | −1,12% | [−1,94 ; −0,21] LOẠI 0 |' — sổ tay nói nó mâu thuẫn với dòng đối chứng −1,09% [−1,91 ; −0,18] mà ĐO 22 khai.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py '| 1 | BẬT | theo mã | 62 | 398 | −0,26% | **−1,12%** | **[−1,94 ; −0,21] LOẠI 0** | 51% · 191% |' -> KHỚP — CLAUDE.md; grep -n 'HAI DÒNG BẬT ĐO LẠI Ở ĐO 20' CLAUDE.md -> dòng 1167.",
+          "phan_quyet": "THẬT về nguồn sổ tay, KHÔNG phải mâu thuẫn của repo hiện hành: ô 🔴 ĐO 20 (dòng 1167) đã thay hai dòng BẬT bằng −1,09% và −1,48% — chính là số ĐO 22 khai làm đối chứng. Sổ tay đọc bản @60d6598 viết trước ĐO 20 nên không thấy dấu."
+        },
+        {
+          "noi_dung": "CLAUDE.md, mục CHI PHÍ THỰC THI: 'Cái tốn tiền là **bước giá 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Cái tốn tiền là **bước giá 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình.' -> KHỚP — CLAUDE.md · STATE.md; grep -n 'BƯỚC GIÁ 50đ' CLAUDE.md -> ô ⚠️ dòng 1410.",
+          "phan_quyet": "THẬT — đúng cho HOSE ở dải 10–50 nghìn, không cho HNX/UPCoM; đã có ô ⚠️ phạm vi ngay dưới (BƯỚC 143). Câu này cũng là phát hiện của lượt soát BƯỚC 143."
+        },
+        {
+          "noi_dung": "(grep, sổ tay BỎ SÓT) README.md dòng 22–30: bảng 'bật chi phí thực thi thật (bước giá 50đ, lô chẵn, biên độ ±7%…)' với −0,927% [−1,689 ; −0,076] — số cũ hơn cả ĐO 3.",
+          "tu_kiem": "grep -n '0,927' README.md -> dòng 28; sed -n 30,33p README.md -> ô ⚠️ 'Bảng hiện hành: CLAUDE.md' (thêm ở BƯỚC 143).",
+          "phan_quyet": "THẬT — số lịch sử, đã có dấu trỏ về bảng hiện hành; không sửa số."
+        }
+      ]
     },
     "BƯỚC 144": {
       "ngay": "2026-09-29",

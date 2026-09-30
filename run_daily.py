@@ -16,6 +16,7 @@ from paper_trading import BUY_THRESHOLD, PaperTradingJournal
 from paper_metrics import (dieu_kien_dong_lai, report,
                            ro_chuan_tu_chuoi_gia)
 from paper_runner import run_session
+from san_giao_dich import san_cua
 from data_collectors import VNStockCollectorAgent
 from data_quality import nen_cuoi_dang_do, now_vn
 import market_filter
@@ -417,7 +418,8 @@ def execute_daily_scan():
         retry = 0
         while retry < 3:
             try:
-                res = collector.collect(sym, start_date, end_date, exchange="HOSE")
+                res = collector.collect(sym, start_date, end_date,
+                                        exchange=san_cua(sym))
                 if res.get("status") != "OK":
                     note = str(res.get("note", ""))
                     if "Rate limit" in note or "GIỚI HẠN API" in note:
@@ -466,7 +468,8 @@ def execute_daily_scan():
                     # Khối lượng cho mô hình trượt giá. KHÔNG nhân hệ số giá.
                     "volume": float(row["volume"]) if "volume" in row else 0.0,
                 }
-                s = run_session(journal, sym, df, bar, str(row["time"]), "HOSE", BUY_THRESHOLD)
+                s = run_session(journal, sym, df, bar, str(row["time"]),
+                                san_cua(sym), BUY_THRESHOLD)
                 quet_duoc += 1
                 phien_nhan.append(len(df))
                 opened_count += s["opened"]

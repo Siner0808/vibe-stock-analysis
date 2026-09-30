@@ -167,23 +167,24 @@ Sở + thuế bán, `paper_metrics.ROUND_TRIP_COST_PCT` = 0,46% một vòng mua�
 vòng đời lệnh), công tắc `paper_trading.MO_PHONG_TRUOT_GIA` = True,
 `VON_DANH_MUC_VND` = 1 tỷ. `volume` KHÔNG được nhân `price_multiplier`.
 Bước giá 50đ là sự thật của lưới giá HOSE ở dải 10–50 nghìn; HNX/UPCoM là
-100đ ở mọi mức và mô hình từng áp nhầm thang HOSE cho 7 mã; BƯỚC 143
-(nhánh `p2/buoc-gia-theo-san`, chưa vào `main` lúc viết dòng này) sửa việc đó
-— nhánh nào merge SAU thì cập nhật câu này theo trạng thái thật.
+100đ ở mọi mức. Mô hình từng áp nhầm thang HOSE cho 7 mã (4 HNX, 3 UPCoM);
+đã sửa ở BƯỚC 143 — `san_giao_dich.py` (bảng chụp 71 mã, tra sàn theo MÃ),
+`tools/kiem_san_giao_dich.py` so lại với `Listing` hai nguồn.
 
-**Bảng hiện hành** — ĐO 18 (26/09/2026, sổ đã làm trung thực) và ĐO 20
-(28/09/2026) cho hai dòng BẬT. Alpha là thước quyết định (bất biến 6):
+**Bảng hiện hành** — ĐO 18 (26/09/2026, sổ đã làm trung thực) cho hai dòng
+TẮT; ĐO 22 (30/09/2026, sau BƯỚC 143 sửa bước giá HNX/UPCoM) cho hai dòng BẬT.
+Alpha là thước quyết định (bất biến 6):
 
 | trượt giá | chế độ | ngưỡng IS | lệnh OOS | alpha | KTC 95% | vốn TB · đỉnh |
 |---|---|---|---|---|---|---|
-| BẬT | theo mã | 62 | 398 | −1,09% | [−1,91 ; −0,18] LOẠI 0 | 51% · 191% |
-| BẬT | **theo ngày** | 45 | **612** | **−1,48%** | [−2,05 ; −0,88] LOẠI 0 | 57% · **100%** |
+| BẬT | theo mã | 62 | 397 | −1,16% | [−2,00 ; −0,25] LOẠI 0 | 51% · 191% |
+| BẬT | **theo ngày** | 45 | **619** | **−1,68%** | [−2,24 ; −1,08] LOẠI 0 | 56% · **100%** |
 | TẮT | theo mã | 62 | 399 | −0,41% | [−1,24 ; +0,48] chứa 0 | 51% · 191% |
 | TẮT | theo ngày | 45 | 582 | −0,72% | [−1,33 ; −0,07] LOẠI 0 | 58% · 100% |
 
-- Chi phí thực thi (TẮT − BẬT) nay **0,68** (theo mã) · **0,76** (theo ngày)
+- Chi phí thực thi (TẮT − BẬT) nay **0,75** (theo mã) · **0,96** (theo ngày)
   điểm mỗi lệnh; cộng thêm ~0,5 điểm/lệnh vì bản mã trước BƯỚC 123 ghi gap
-  dưới SL ở đúng giá SL (115/387 lệnh cắt lỗ bị gap). **Trừ hao 0,71–0,76 +
+  dưới SL ở đúng giá SL (115/387 lệnh cắt lỗ bị gap). **Trừ hao 0,75–0,96 +
   ~0,5 khi đọc mọi số đo trước 26/09/2026.**
 - **Dòng theo ngày là dòng đáng tin nhất:** nhiều lệnh nhất, chế độ duy nhất
   có danh mục thật (vốn đỉnh đúng 100% = trần vốn CÓ chặn), và loại được
