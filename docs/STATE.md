@@ -19645,3 +19645,100 @@ dòng, cả hai cùng chiều — `CLAUDE.md` (khoá `"news": 0.0` không ai đ�
 - Không có ứng viên nào; không đổi cách chấm điểm, hành vi giao dịch hay số đo
   nào.
 - Không đo lực của phép so CẶP — ĐO 21 đo một điểm đơn lẻ.
+
+## BƯỚC 145 — TỐI ƯU TOKEN: NGỮ CẢNH × SỐ LƯỢT GỌI, KHÔNG PHẢI "CODE SINH RA NHIỀU"; CLAUDE.md 108K → 22,6K KÝ TỰ, SKILL.md 44,7K → 17K (30/09/2026)
+
+Người dùng hỏi (30/09): vì sao chạm hạn mức 5 giờ rất nhanh, và code sinh ra có
+rút gọn được mà không giảm tính chất không. Phiên GIÁM SÁT riêng đo hai phiên dự
+án, người dùng duyệt tám mục (a)–(h) qua phiên chính, rồi làm.
+
+### Đo (transcript `.jsonl`, GỘP THEO `message.id`)
+
+```
+./.venv/Scripts/python.exe tools/do_token_phien.py <phien>.jsonl
+./.venv/Scripts/python.exe tools/do_token_phien.py --tai-lieu
+```
+
+| phiên | lượt API | ngữ cảnh xử lý | đọc lại cache | ghi cache | output | trung vị ngữ cảnh/lượt |
+|---|---|---|---|---|---|---|
+| chính (từ 26/09) | 954 | 454,4M | 448,3M (98,7%) | 6,13M | 0,82M | 468k |
+| song song (từ 28/09) | 517 | 243,9M | 240,3M (98,5%) | 3,56M | 0,55M | 460k |
+
+**Thứ đốt hạn mức là KÍCH THƯỚC NGỮ CẢNH × SỐ LƯỢT GỌI**: mỗi lượt gọi công cụ
+gửi lại ~465k token. Output chưa tới 1%. Cả hai phiên bị "ghi lại cả cache"
+(lượt ghi >200k) 6 và 4 lần, mỗi lần 0,24–0,86M, tập trung quanh sáng và sau
+giờ nghỉ trưa (cache hết hạn khi phiên nghỉ dài).
+
+**Lỗi máy đo đã bắt ngay lượt đầu:** mỗi câu trả lời ghi NHIỀU dòng cùng
+`message.id` và cùng `usage`; cộng theo dòng ra 1.244 và 2.232 lượt — số thật là
+517 và 954. Gác `tests/test_do_token_phien.py` mở đầu bằng đúng ca này.
+
+### Nguồn phình, ước theo 3,0 ký tự/token
+
+3,0 hiệu chuẩn hai lần từ mục "Memory files" của `get_usage` (116.978 ký tự →
+39.004 token; 15.666 → 5.223) — **là ƯỚC LƯỢNG**, máy không có bộ đếm chính thức.
+
+| nguồn | trước | sau (ký tự) |
+|---|---|---|
+| `CLAUDE.md` | 108.444 (~36k token/bản) | 22.625 (~7,5k) |
+| `SKILL.md` | 44.678 (~15k/lần gọi) | 16.963 (~5,7k) |
+
+Từ lần compact cuối, `CLAUDE.md` nằm trong ngữ cảnh 2 bản (phiên chính) và 3 bản
+(phiên song song) — ~72k và ~108k token, 11% và 17% cửa sổ. Thời điểm gắn khớp lúc
+checkout/merge và lúc phiên khởi động lại; **cơ chế CHƯA chứng minh**. Từ 26/09
+có 6/17 commit sửa `CLAUDE.md`, trong khi file tự gọi là "ít đổi nhất".
+
+### Giả thuyết đã BÁC: "code sinh ra nhiều nên tốn token"
+
+- Kết quả `Read` trong ngữ cảnh chỉ 1,5–47k ký tự; phần lớn ngữ cảnh là tài liệu
+  nạp tự động và lịch sử hội thoại. Đầu vào của các lệnh gọi công cụ (script viết thẳng,
+  `Write`, heredoc) chiếm 187–233k ký tự — **đáng chú ý hơn**: chúng ở lại và bị gửi lại.
+- Docstring chiếm 22% ký tự `.py` (582k/2,55M) nhưng mã chỉ tốn khi bị đọc, và
+  dài là phong cách chủ ý (ghi lý do, sự cố).
+- Quét AST (bỏ docstring, chuẩn hoá tên hàm, ≥3 câu lệnh, ≥2 file): **3 cặp** hàm
+  trùng y hệt, đều trong `tools/do*` dùng một lần hoặc fixture test. `_hang_giua`
+  ở `cham_bong.py` chỉ trùng 3 dòng với `tools/do21_luc_vong_xac_nhan.py`; gộp là
+  rủi ro làm ĐO 21 không tái lập. **Không rút gọn mã.**
+
+### Việc đã làm
+
+- `CLAUDE.md` viết lại chỉ còn luật hiện hành; `docs/lich-su/` giữ bản nguyên
+  văn CHÉP TỪNG BYTE (`cmp`) của `CLAUDE.md` và `SKILL.md`, cộng `README.md`. Luật
+  mới: một BƯỚC không sửa `CLAUDE.md`/`SKILL.md` trừ khi đổi một LUẬT.
+- **Gác:** trần `CLAUDE.md` 26.000 · `SKILL.md` 18.000 ký tự (pin, không nâng ngầm).
+  Chạm trần = chuyển lịch sử sang `docs/lich-su/`.
+- **Quần thể:** `doi_chieu_trich_dan.TAI_LIEU` và `soat_loi_khai_cu.TAI_LIEU` thêm hai
+  bản lưu. Không đưa vào `dem_cau_chi_duong` (dụng cụ đo một lần, không phải gác).
+  Không đổi `so_tay.NGUON_MAC_DINH` — sổ tay chưa nạp hai bản lưu; thêm sau khi nạp.
+- **Test đọc nội dung `CLAUDE.md`:** không phải sửa test nào; viết `CLAUDE.md` mới
+  cho khớp bảy gác (hằng số C5, giờ chuông, bốn đích vnai, bảng bất đối xứng, `34
+  kỳ` kèm tên bảng, `0,76 (theo ngày)`, tên `module.tên`).
+
+### Đục
+
+- Máy đo: lượt đầu 8/10 đỏ, **2 phát sống sót** (trung vị ↔ trung bình; dòng sau đè
+  dòng trước) do test thiết kế thiếu; thêm hai test rồi bộ chốt 6/6 đỏ, gồm hai phát ấy.
+- Quần thể: bỏ một trong hai bản lưu khỏi `doi_chieu`/`soat` sống sót 3/4 lượt đầu
+  → thêm `test_QUAN_THE_phu_ca_hai_ban_LUU_TRU` và `test_QUAN_THE_soat_phu_ca_hai_ban_LUU_TRU`,
+  4/4 đỏ. Phình `CLAUDE.md` +4.000 và `SKILL.md` +2.000 ký tự: cả hai đỏ.
+- Bảy gác đọc `CLAUDE.md` giữ nguyên nên không có gì mới để đục ngoài chính nội dung.
+
+### Soát chéo
+
+`tools/so_tay.py hoi … --js`, nguồn `@60d6598` (bản TRƯỚC khi rút gọn — đúng thứ
+cần hỏi). Sổ tay: *"không tìm thấy câu nào nói ngược"*. Tự kiểm: hai `grep` (xem
+`docs/soat-notebooklm.json`), không có con trỏ sống nào trỏ vào mục đã bỏ. **Ghi
+nhận, chưa sửa:** `tools/doc_so_that.py` trỏ vào mục `CLAUDE.md` "HỆ THỐNG ĐANG Ở
+TRẠNG THÁI NÀO" — mục ấy vắng CẢ ở bản lưu, tức con trỏ chết từ trước BƯỚC này.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đo hạn mức tính thế nào trên gói Pro (không công bố); tỷ trọng "đọc lại
+  cache / ghi cache / output" trong hạn mức là chưa biết. Hiệu quả tiết kiệm chỉ
+  được tính bằng token ngữ cảnh.
+- Không đổi hành vi giao dịch, số đo hay ngưỡng nào.
+- Chưa nạp hai bản lưu vào sổ tay; nguồn sổ tay còn `CLAUDE.md`/`SKILL.md` bản cũ
+  cho tới khi làm tươi sau merge.
+- Đòn bẩy lớn hơn nằm ở thói quen phiên, không ở tài liệu: giữ ngữ cảnh dưới ~250k
+  (compact/phiên mới mỗi BƯỚC), compact trước khi nghỉ >1 giờ, gộp lệnh, tắt plugin
+  không dùng (~16–19k token MCP + ~10k token skill mỗi lượt). Người dùng làm.
