@@ -20157,3 +20157,46 @@ Không đổi hành vi giao dịch, điểm, ngưỡng hay số đo nào. Không
 — cổng 3 vẫn tỷ lệ theo số file (xem mục trên). Không chứng minh chín máy quét là *tất cả*
 máy quét sẽ có: sổ đăng ký chỉ canh gốc, `tools/` và `tests/`; thư mục con khác (`backtest/`,
 `docs/`) không có lượt duyệt đệ quy nào hôm nay nhưng không có gác.
+
+---
+
+## BƯỚC 148 — P3b-2: TAB "🧪 CHẤM BÓNG" CÔNG KHAI SỔ ỨNG VIÊN, CHỈ ĐỌC (30/09/2026)
+
+**Làm gì.** App có tab thứ bảy, *"🧪 Chấm bóng"*. Nó đọc `docs/ung-vien.json`
+(file trong repo, nên Streamlit Cloud cũng có) và hiện:
+
+- đầu bảng: K = TỔNG số ứng viên đã sàng, ngưỡng xác nhận 0,05/K (K = 0 → 0,05), số
+  khai trong tuần ISO hiện tại trên trần 5;
+- mỗi ứng viên một dòng, **kể cả rớt sàng** — ngưỡng chia cho tổng, giấu ứng viên
+  rớt là giấu mẫu số. Trạng thái: `ROT SANG` · `CHUA CHAM` (qua sàng nhưng chưa có
+  kết quả xác nhận) · hoặc `cham_bong.trang_thai` khi bên gọi đưa kết quả vào.
+
+Hai hàm thuần mới trong `cham_bong.py`: `tom_tat_so` và `bang_cong_khai`. Cả hai gọi
+`kiem_so_ung_vien` trước — sổ sai khuôn thì app báo lỗi, không hiện nửa vời.
+
+**Cố ý KHÔNG làm.** App không đọc tab `decisions`, không gọi `so_cap`,
+`ma_tran_cap`, `doc_quyet_dinh` hay `diem_ung_vien`: tính IC trên dữ liệu
+tiến-về-trước trước khi có ứng viên là tiêu mất phần "chưa nhìn" (BƯỚC 144). Nối kết
+quả xác nhận vào bảng là việc của P3c, khi có ứng viên qua sàng.
+
+**Kiểm trên app thật** (máy chủ preview, sổ rỗng): tab hiện K = 0, ngưỡng 0.0500,
+khai trong tuần 0/5, thông báo "chưa có ứng viên"; 0 ngoại lệ Streamlit trên trang.
+
+**Gác và đục.** `tests/test_bang_cham_bong.py`, 6 test; gác app đọc AST — gọi đủ ba
+hàm đọc sổ, không gọi hàm tính nào. Đục **10/10 đỏ**. Lượt đầu 9/10: phát *"ngưỡng
+chia số QUA sàng"* sống sót vì test dùng p = 0,03 — lớn hơn cả 0,05/2 lẫn 0,05/3 nên
+không phân biệt được hai phép chia. Sửa: p = 0,02, nằm giữa hai ngưỡng.
+
+**Soát chéo.** Nguồn `@60d6598` (chờ phiên giám sát làm tươi). Sổ tay: *"không tìm
+thấy câu nào nói ngược"*. Tự kiểm bằng `grep` (`rớt sàng`, `0,05/K`, `sáu tab`): bốn
+dòng, cả bốn cùng chiều — `docs/STATE.md` BƯỚC 144 (ba dòng) và
+`docs/TIEU-CHI-DOC-TRUOC.md` ĐO 21 — đều viết sau mốc nguồn.
+
+**Việc kế — P3c, và một chỗ vướng phải gỡ trước.** `docs/ung-vien.json` ghi *"Khai
+TRƯỚC khi chạy vòng sàng … không sửa dòng đã khai"*, nhưng `qua_sang` là trường BẮT
+BUỘC kiểu true/false — tức kết quả của chính vòng sàng. Hai luật ấy không cùng thoả
+được trong một commit khai. P3c phải chọn khuôn (ví dụ commit khai với `qua_sang:
+null` được nhận, rồi commit sàng điền nó) và sửa `kiem_so_ung_vien` theo, có test.
+
+**Điều BƯỚC này KHÔNG nói.** Không có ứng viên nào; không đổi cách chấm điểm, hành
+vi giao dịch hay số đo nào.
