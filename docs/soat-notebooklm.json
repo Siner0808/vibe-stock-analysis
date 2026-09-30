@@ -1633,6 +1633,42 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -n '398\\|612\\|1,12\\|1,48\\|2,05\\|1,94' CLAUDE.md -> bang DO 18 dong 1 '398 ... −1,12% ... [−1,94 ; −0,21]' va dong 2 '612 ... −1,48% ... [−2,05 ; −0,88]', nguong 62 / 45, khop tung chu so; grep -n '71 mã có vùng IS' docs/STATE.md -> BƯỚC 124 '71 mã có vùng IS · 33 mã có vùng OOS · bộ nhớ đầu 44 mẫu, học thêm 0'; ket cuc DO 18 dung 'nửa bề rộng KTC' (docs/TIEU-CHI-DOC-TRUOC.md muc DO 18). Ve 'dong TAT khong qua _khop_that' la MA, so tay khong thay: doc truc tiep paper_trading.fill_pending, nhanh 'if MO_PHONG_TRUOT_GIA and nen'."
     },
+    "ĐO 22": {
+      "ngay": "2026-09-30",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Nguồn @60d6598 (BƯỚC 134), viết TRƯỚC ĐO 20 (28/09 13:47) nên không thấy ô 🔴 ĐO 20 trong CLAUDE.md; câu về 'bước giá 50đ' nằm TRONG nguồn.",
+      "cau_hoi": "I am about to write ĐO 22 into docs/STATE.md: The pre-signed criteria of ĐO 22 say: the control run (production code identical to main) must reproduce, digit for digit, the slippage-ON rows of the current cost table (by-symbol threshold 62: 398 trades, alpha -1.09%, CI [-1.91 ; -0.18]; by-day threshold 45: 612 trades, alpha -1.48%, CI [-2.05 ; -0.88]); the fix, which gives HNX and UPCoM symbols the 100 dong tick instead of the HOSE tick table, can only raise costs, so the predicted change in alpha is zero or negative (estimated -0.08 and -0.11 points, about 9% and 18% of the CI half-width); a positive change is treated as a suspected bug under rule number 1; and the four runs are launched in parallel on the same day with the same price cache. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: BẢNG HIỆN HÀNH — ĐO 18, Cái tốn tiền là bước giá 50đ, bước giá 50đ, lô chẵn. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, mục 'BẢNG HIỆN HÀNH — ĐO 18': dòng 1 '| 1 | BẬT | theo mã | 62 | 398 | −0,26% | −1,12% | [−1,94 ; −0,21] LOẠI 0 |' — sổ tay nói nó mâu thuẫn với dòng đối chứng −1,09% [−1,91 ; −0,18] mà ĐO 22 khai.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py '| 1 | BẬT | theo mã | 62 | 398 | −0,26% | **−1,12%** | **[−1,94 ; −0,21] LOẠI 0** | 51% · 191% |' -> KHỚP — CLAUDE.md; grep -n 'HAI DÒNG BẬT ĐO LẠI Ở ĐO 20' CLAUDE.md -> dòng 1167.",
+          "phan_quyet": "THẬT về nguồn sổ tay, KHÔNG phải mâu thuẫn của repo hiện hành: ô 🔴 ĐO 20 (dòng 1167) đã thay hai dòng BẬT bằng −1,09% và −1,48% — chính là số ĐO 22 khai làm đối chứng. Sổ tay đọc bản @60d6598 viết trước ĐO 20 nên không thấy dấu."
+        },
+        {
+          "noi_dung": "CLAUDE.md, mục CHI PHÍ THỰC THI: 'Cái tốn tiền là **bước giá 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Cái tốn tiền là **bước giá 50đ** — sự thật của lưới giá, không phải lựa chọn mô hình.' -> KHỚP — CLAUDE.md · STATE.md; grep -n 'BƯỚC GIÁ 50đ' CLAUDE.md -> ô ⚠️ dòng 1410.",
+          "phan_quyet": "THẬT — đúng cho HOSE ở dải 10–50 nghìn, không cho HNX/UPCoM; đã có ô ⚠️ phạm vi ngay dưới (BƯỚC 143). Câu này cũng là phát hiện của lượt soát BƯỚC 143."
+        },
+        {
+          "noi_dung": "(grep, sổ tay BỎ SÓT) README.md dòng 22–30: bảng 'bật chi phí thực thi thật (bước giá 50đ, lô chẵn, biên độ ±7%…)' với −0,927% [−1,689 ; −0,076] — số cũ hơn cả ĐO 3.",
+          "tu_kiem": "grep -n '0,927' README.md -> dòng 28; sed -n 30,33p README.md -> ô ⚠️ 'Bảng hiện hành: CLAUDE.md' (thêm ở BƯỚC 143).",
+          "phan_quyet": "THẬT — số lịch sử, đã có dấu trỏ về bảng hiện hành; không sửa số."
+        }
+      ]
+    },
     "BƯỚC 138": {
       "ngay": "2026-09-28",
       "nguon": [
