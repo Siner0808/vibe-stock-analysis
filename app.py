@@ -1278,7 +1278,7 @@ with col_debate:
 # 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
 num_open_positions = len(real_open_trades)
-t_pos, t_hist, t_rep, t_fund, t_pipe, t_acct = st.tabs([
+t_pos, t_hist, t_rep, t_fund, t_pipe, t_acct, t_bong = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
     f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
     # Đổi tên 21/08/2026: ba thẻ bên trong không còn là ba phiên trong ngày.
@@ -1288,7 +1288,8 @@ t_pos, t_hist, t_rep, t_fund, t_pipe, t_acct = st.tabs([
     "📊 Hôm nay",
     "📑 Cơ bản",
     "🛠️ Pipeline v2",
-    "💰 Tài khoản Giả lập"
+    "💰 Tài khoản Giả lập",
+    "🧪 Chấm bóng",
 ])
 
 with t_pos:
@@ -1731,6 +1732,38 @@ with t_acct:
                 f"thật — xem NGUYEN-TAC-DO-LUONG.md, bất biến 7b.")
         st.caption("Nguồn: paper_trades.db qua paper_metrics.compute(). "
                    "Sổ lệnh giấy — không phải giao dịch thật.")
+
+with t_bong:
+    # BƯỚC 148 (P3b-2). CHỈ ĐỌC sổ đăng ký trong repo — không đọc tab
+    # `decisions`, không tính IC nào: tính trên dữ liệu tiến-về-trước trước khi
+    # có ứng viên là tiêu mất phần "chưa nhìn" mà vòng xác nhận cần (BƯỚC 144).
+    st.markdown("##### 🧪 Chấm bóng công khai — sổ ứng viên")
+    st.caption(
+        "Mỗi ứng viên là một cách chấm điểm khác, chạy song song với bản đang chạy "
+        "trên những phiên đến SAU ngày nó được khai, và chỉ lên phiên bản khi qua "
+        "ngưỡng 0,05/K — K là TỔNG số ứng viên đã sàng, kể cả rớt sàng. Việc lên "
+        "phiên bản sẽ HIẾM (ĐO 21). Nguồn: `docs/ung-vien.json`.")
+    try:
+        import cham_bong as _cb
+        _so_uv = _cb.doc_so_ung_vien()
+        _tt_uv = _cb.tom_tat_so(_so_uv, now_vn().date().isoformat())
+        _bang_uv, _uv_loi = _cb.bang_cong_khai(_so_uv), None
+    except Exception as _e:
+        _uv_loi = f"{type(_e).__name__}: {_e}"
+    if _uv_loi:
+        st.warning(f"⚠️ Sổ ứng viên sai khuôn — {_uv_loi}")
+    else:
+        _m1, _m2, _m3 = st.columns(3)
+        _m1.metric("Đã sàng (K)", _tt_uv["K"])
+        _m2.metric("Ngưỡng xác nhận", f"{_tt_uv['nguong']:.4f}")
+        _m3.metric("Khai trong tuần", f"{_tt_uv['tuan_nay']}/{_tt_uv['tran_tuan']}")
+        if _bang_uv.empty:
+            st.info("Chưa có ứng viên nào được khai. Ứng viên đầu tiên đến từ vòng "
+                    "sàng trên dữ liệu ĐÃ nhìn (P3c).")
+        else:
+            st.dataframe(_bang_uv, use_container_width=True, hide_index=True)
+            st.caption("CHUA CHAM: kết quả xác nhận chưa nối vào app. ROT SANG vẫn "
+                       "hiện, vì ngưỡng chia cho tổng.")
 
 # ── 8. FOOTER BAR ──────────────────────────────────────────────────
 st.markdown(f"""
