@@ -19794,3 +19794,136 @@ seeded (< 10/08) và ứng viên đầu tiên.
 
 **Điều BƯỚC này KHÔNG nói.** Không đọc hay đo gì trên sổ thật; không đổi hành vi
 giao dịch, điểm, hay số đo nào.
+
+## BƯỚC 147 — MÁY QUÉT TOÀN REPO BỎ QUA WORKTREE LỒNG; CỔNG 2 CHIA LÔ DÒNG LỆNH (30/09/2026)
+
+**Vấn đề (người dùng gặp 30/09).** Ứng dụng Claude desktop tạo worktree cho mỗi
+phiên ở `<repo>/.claude/worktrees/<tên>/` — NẰM TRONG thư mục repo (đọc bằng
+`git worktree list`: `…/vibe_preview/.claude/worktrees/angry-keller-8c2bd9`). Khi
+nó tồn tại, chạy năm cổng từ bản checkout chính cho bốn cổng đỏ giả. git không
+thấy thư mục ấy — `git check-ignore -v` trả `.git/info/exclude:7:.claude/worktrees/` —
+nên mọi phép dựa trên `git ls-files` vẫn đúng; `Path.rglob` thì không hỏi git.
+
+### Đo TRƯỚC khi sửa
+
+Tái hiện ở một bản checkout phụ (`vibe_wt_wt_long`, `main` `57b0164`) với một
+worktree lồng thật dựng bằng `git worktree add .claude/worktrees/_thu` — cùng
+hình dạng với thứ của ứng dụng, không đụng bản chính của người dùng.
+
+| cổng | trước sửa, có `_thu` |
+|---|---|
+| 2 `kiem_cu_phap_311` | thoát 2 — `FileNotFoundError: [WinError 206] The filename or extension is too long` |
+| 3 `--quet-repo` | 5 CHẶN, **cả năm** trong `.claude/worktrees/_thu/tests/` (R7 ×2 ở `test_chan_bia_so_lieu.py`, R1 ở `test_dai_ket_qua.py:113`, R8 ×2 ở `test_may_do_nang_goi.py:99` và `test_paper_trading.py:47`) |
+| 1 · 4 | `tests/test_chan_bia_so_lieu.py`: 1 failed, 36 passed trong **527,74 s** (cổng 4 cắt ở 300 s) |
+
+**Số file quét:** 458 với `_thu` (229 + 229), 229 không có. `rglob` duyệt cả `.venv`
+(10.993 file) mà chỉ mất 1,0–1,1 s — nên chi phí không nằm ở bước duyệt.
+`chan_bia_so_lieu.quet_repo`: phần repo thật ~119 s, phần bản sao lồng ~114 s (một
+lượt đo, lệch theo tải máy). Test ấy gọi `quet_repo` hai lần, nên 527 s.
+
+**Giả thuyết đã BÁC:** *"`rglob` chậm vì đi vào `.venv`"* — 1 s; và *"worktree lồng chỉ
+làm chậm"* — nó làm cổng 3 ĐỎ với nội dung đúng, vì file test trong bản sao mang
+đường tương đối `.claude/worktrees/…/tests/…`, không trùng luật miễn trừ `tests`.
+
+### WinError 206 có tới mà KHÔNG cần worktree lồng không? — CÓ
+
+`kiem_cu_phap_311` gọi trình thông dịch 3.11 MỘT lần với mọi đường tuyệt đối trên
+dòng lệnh; Windows cắt dòng lệnh ở 32.767 ký tự (`CreateProcess`). Đo bằng
+`subprocess.list2cmdline`: **229 file → 20.106 ký tự (61% trần)**, 458 file (bản chính
+có worktree lồng, đường dài hơn) → 47.102. Số file `.py` đã tracked trên `main`, lấy
+bằng `git ls-tree -r --name-only <mã> | grep -c '\.py$'` ở commit cuối trước mỗi
+ngày: **46 (10/08) · 77 (20/08) · 117 (31/08) · 146 (10/09) · 195 (20/09) · 229 (30/09)**.
+Tức repo đủ lớn để chạm trần một mình. *Ước lượng* (tuyến tính từ +34 file/10 ngày
+gần nhất, không phải phép đo): còn khoảng 144 file ≈ **6 tuần**, sớm hơn nếu thư mục
+chứa repo có đường dài hơn (mỗi 10 ký tự đường thêm ~2.300 ký tự). Linux (CI) có trần
+~2 MB nên chỉ máy Windows gặp. Test tích hợp dựng lại NGUYÊN VĂN điều kiện — dòng lệnh
+vượt 32.767 ký tự — và trên mã cũ nổ đúng `WinError 206`.
+
+### Sửa
+
+- `tools/duyet_repo.py`: `duyet_repo.duyet(goc, mau)` = `goc.rglob(mau)` trừ (1) mọi thứ
+  dưới `.claude/worktrees/` — kể cả khi đã mất `.git`, vì gỡ worktree trên Windows hay
+  để lại thư mục — và (2) mọi thư mục CON của gốc có mục `.git` (tệp `gitdir:` của
+  worktree hay thư mục của bản clone lồng). Gốc không xét: gốc nào cũng có `.git`.
+  Bộ nhớ `{thư mục: có .git}` chỉ sống trong MỘT lượt duyệt (lỗi 75).
+- **Chín máy quét chuyển sang `duyet`:** `chan_bia_so_lieu.quet_repo` (cổng 3),
+  `kiem_cu_phap_311.cac_file` (cổng 2), `so_ban_goi.goi_repo_nhap`, `be_mat` của
+  `do11_nang_streamlit` và `do12_nang_plotly`, và bốn test:
+  `test_chatbot_khong_bia_va_khong_chet` · `test_chi_dan_chay_duoc` ·
+  `test_doi_chung_ngoai_venv` · `test_khuyen_nghi_rui_ro`. Đây đúng là chín chỗ
+  `grep 'rglob|os.walk|glob('` cho ra — không chỗ nào khác duyệt đệ quy.
+- `kiem_cu_phap_311.chia_lo` + `TRAN_KY_TU_MOI_LO` = 16.000: mỗi lần gọi tiến trình con
+  chỉ nhận một lô. Một đường dài hơn trần vẫn có lô riêng (nổ thành tiếng, không lặng
+  lẽ biến mất).
+- Không dùng `git ls-files` thay cho `duyet`: cổng chạy TRƯỚC commit, file mới chưa
+  `git add` sẽ vô hình với chính cổng. Đây là lý lẽ thiết kế, không phải phép đo.
+
+### Gác — hai file test, 18 test
+
+`tests/test_duyet_repo.py` (12): hàm phán trên cây giả (luật 1 không cần `.git`; `.git`
+là tệp; `.git` là thư mục; gốc có `.git` không bị loại; phần còn lại của `.claude/`
+vẫn được quét; `worktrees_cu` không bị loại nhầm) · một `git worktree add` THẬT ở hai vị
+trí · hai cổng (2 và 3) chạy đúng hàm của chúng trên cây có worktree lồng, kèm đối chứng
+DƯƠNG (cùng dòng xấu ở file thường phải bị bắt) · **sổ đăng ký AST**: mọi lượt duyệt đệ
+quy (`rglob`, `os.walk`, `glob(recursive=True)`, `glob("**…")`) trong gốc, `tools/` và
+`tests/` phải qua `duyet` hoặc khai miễn trừ kèm lý do; nó tự tìm ra đúng chín máy quét ở
+trên (hai phép tìm độc lập khớp nhau) và có hai phép kiểm CHÍNH NÓ (bắt được bốn hình dạng
+đã khai, không bắt `glob` một tầng; thấy ít nhất chín lời gọi `duyet` trên cây thật).
+`tests/test_kiem_cu_phap_chia_lo.py` (6): giữ thứ tự · không mất · không lặp · không lô
+nào vượt trần, kể cả đường có dấu cách; file dài hơn trần có lô riêng; trần mặc định giữ
+cả dòng lệnh dưới 32.767 kể cả khi trình thông dịch ở đường 260 ký tự; và một ca vượt
+trần thật với file hỏng đặt CUỐI danh sách.
+
+### Đục
+
+- `duyet_repo`: lượt 1 **10/11**. Phát sống sót: *".git chỉ là thư mục"* trên nhánh
+  `_nho is None` — nhánh ấy KHÔNG AI ĐI QUA (`duyet` luôn truyền bộ nhớ). Không thêm
+  test cho đường chết: gộp hai nhánh làm một (xoá đường thừa), rồi lượt 2 **9/9 đỏ**,
+  kể cả phát *"chỉ là thư mục"* (bị `git worktree add` thật giết) và phát bỏ bộ nhớ.
+- Cổng 2: **8/8** — phát đầu dựng lại nguyên văn lỗi thật (một lần gọi cho cả danh sách).
+- Cổng 3: **1/1** (nguyên văn: `quet_repo` quay về `rglob`).
+- Chín máy quét quay về `rglob` hoặc `glob("**")`: **9/9** đỏ ở sổ đăng ký.
+- Ba phát làm mù sổ đăng ký: **3/3** đỏ. Một phát thiết kế sai (mở rộng miễn trừ ra cả
+  file, không đổi hành vi trên mã hiện tại) đã bỏ trước khi chạy.
+
+### Soát chéo
+
+Nguồn sổ tay `@60d6598` — **lệch 12 BƯỚC** (sổ tay thấy BƯỚC 134 cao nhất, repo ở
+146; đo bằng câu hỏi riêng rồi `Grep '^## BƯỚC 14[4-7]'`), và còn `SKILL.md` bản TRƯỚC
+khi rút gọn. Sổ tay: *"không tìm thấy câu nào nói ngược"*. **Tự kiểm bằng `Grep` tìm ra
+hai thứ:** (1) `tools/so_ban_goi.py` ghi *"Quần thể: mọi `.py` dưới gốc repo trừ `.venv`"*
+— thành SAI, đã vá; (2) `tools/chan_bia_so_lieu.py`, hàm `quet_thay_doi`: *"quét cả repo
+mất 24 giây"* — lệch số đo (41–119 s), có từ trước, nằm trong hàm mà BƯỚC 149 đang sửa
+nên **ghi nhận, không vá**. Lời khai ở `CLAUDE.md` (*"CI quét toàn repo"*) vẫn đúng.
+
+### Ghi nhận, KHÔNG sửa ở đây
+
+- **`chan_bia_so_lieu.kiem_tra` dựng lại `thu_thap_truong(GOC_DU_AN)` cho MỖI file** —
+  0,158 s/lần, **74%** của 0,214 s/file (đo 20 file đầu); toàn lượt ước ~50 s cho 233
+  file. Một bộ nhớ theo lượt quét sẽ giảm cổng 3 khoảng 4 lần. Thuộc phiên BƯỚC 149.
+- **Hook PostToolUse phán từng file theo gốc CỦA NÓ**, không theo worktree chứa file —
+  đo bằng ba payload giả từ `cwd` ngoài repo: cùng một file test, ở bản chính thì lọt, ở
+  `.claude/worktrees/…` thì bị CHẶN giả (R1), ở worktree ngoài repo thì im lặng (không
+  quét). Việc riêng, BƯỚC 149 + lỗi 116.
+- `.claude/worktrees/` không tự dọn: worktree ứng dụng tạo vẫn ở đó sau phiên.
+
+### Năm cổng SAU sửa — worktree lồng `_thu` VẪN CÒN, chạy tuần tự trên cây cuối
+
+| cổng | kết quả |
+|---|---|
+| 1 | **1627 passed, 1 skipped** trong 272,57 s |
+| 2 | thoát 0 — 233 file `.py` + 3 đoạn nhúng, 2 s (trước sửa: thoát 2, `WinError 206`) |
+| 3 | **0 CHẶN** · 10 cảnh báo, 42 s (trước sửa: 5 CHẶN) |
+| 4 | 121 file, 415 s, mọi file xanh khi chạy một mình; không file nào vượt 300 s |
+| 5 | 1628 test, khớp mốc — mốc 1606 → 1610 (BƯỚC 146 vào `main`) → 1628 (+18 test của bước này) |
+
+Đây là hai lượt chạy: lượt đầu (trước khi cập nhật mốc) đỏ đúng MỘT thứ ở cổng 1, 4 và
+5 — mốc số test — và xanh ở cổng 2, 3. Cổng 3 dao động 41–86 s giữa các lượt (tải máy);
+đọc nó là một khoảng.
+
+### Điều BƯỚC này KHÔNG nói
+
+Không đổi hành vi giao dịch, điểm, ngưỡng hay số đo nào. Không nói *"mọi cổng nay nhanh"*
+— cổng 3 vẫn tỷ lệ theo số file (xem mục trên). Không chứng minh chín máy quét là *tất cả*
+máy quét sẽ có: sổ đăng ký chỉ canh gốc, `tools/` và `tests/`; thư mục con khác (`backtest/`,
+`docs/`) không có lượt duyệt đệ quy nào hôm nay nhưng không có gác.
