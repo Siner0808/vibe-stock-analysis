@@ -323,6 +323,15 @@ def run_session(journal: PaperTradingJournal, symbol: str,
         if journal.consider_entry(symbol, session_date, result, exchange,
                                   buy_threshold) is not None:
             stats["opened"] = 1
+    elif journal.ghi_nhat_ky:
+        # Mã ĐANG GIỮ cũng có một dòng quyết định (BƯỚC 146). Không có dòng
+        # này thì bảng `decisions` thiếu đúng những mã điểm cao nhất — mã
+        # đang giữ — và phép chấm bóng (`cham_bong.py`) đo IC trên một lát
+        # cắt đã bị cổng mua lọc. CHỈ sổ thật: walkforward cũng đi qua
+        # hàm này, trên sổ không cờ, nên không phép đo nào đổi.
+        import paper_trading as pt
+        journal.record_decision(symbol, session_date, result, False,
+                                pt.LY_DO_DANG_GIU)
 
     # Điểm THẬT của phiên này. Bên dựng báo cáo cần nó; trước đây nó được
     # tính ở đây rồi vứt đi, nên báo cáo phải bịa một hằng số thay thế.

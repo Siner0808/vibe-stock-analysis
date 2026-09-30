@@ -3367,6 +3367,8 @@ làm bảng hiện hành; dòng TẮT giữ ĐO 18. Số liệu và phép ghép 
 >   (chỉ đọc): 18.649 dòng; dòng ghi từ 10/08/2026 là 2.430 dòng, **34 phiên**,
 >   ~**70 mã mỗi phiên**, mỗi dòng mang đủ điểm từng agent. Mã đang CÓ vị thế
 >   không có dòng quyết định (28/09: 64 mã = 70 − 6 lệnh mở; 29/09: 63 = 70 − 7).
+>   🔴 Hết đúng từ BƯỚC 146 (30/09/2026) cho các phiên sau mốc ấy: sổ thật nay
+>   ghi cả mã đang giữ. Dòng trước mốc vẫn thiếu.
 > - **Chọn nền cho phép tiêm** bằng tự tương quan, trên cùng 2.430 dòng: ĐIỂM
 >   CUỐI thật +0,45 · +0,32 · −0,02 · −0,07 ở độ trễ 1 · 2 · 5 · 10.
 >   `px_sma50` +0,80 · +0,58 · 0,00 · −0,02 (bền hơn); `stoch_kd` +0,34 · −0,14
@@ -3459,6 +3461,8 @@ và không được chọn lại ô chuẩn sau khi thấy chúng.
   (trần vốn 100%), nên chỉ ước lượng bằng `co_mau_cho_luc`, không đo ở đây.
 - Mã có vị thế mở không có dòng quyết định — một vòng xác nhận chấm bóng trên
   tab `decisions` sẽ thiếu đúng những mã ấy. Ghi ra để thiết kế, không đo.
+  🔴 Đã sửa ở BƯỚC 146 (30/09/2026) cho các phiên từ mốc ấy; dòng trước mốc
+  vẫn thiếu.
 
 ---
 
