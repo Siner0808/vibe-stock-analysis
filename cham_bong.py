@@ -207,3 +207,49 @@ def kiem_so_ung_vien(so: dict) -> None:
         tuan[(y, w)] = tuan.get((y, w), 0) + 1
         if tuan[(y, w)] > TRAN_SANG_MOI_TUAN:
             raise ValueError(f"qua {TRAN_SANG_MOI_TUAN} ung vien trong tuan {y}-W{w}")
+
+
+# ── bảng công khai (P3b-2, BƯỚC 148) ─────────────────────────────────────
+
+COT_BANG = ("Ứng viên", "Khai ngày", "Mô tả", "Trọng số", "Lý do", "Sàng",
+            "Trạng thái")
+
+
+def tom_tat_so(so: dict, hom_nay: str) -> dict:
+    """Đầu bảng: K, ngưỡng hiện hành, số đã khai trong tuần ISO của `hom_nay`."""
+    kiem_so_ung_vien(so)
+    uv = list(so["ung_vien"].values())
+    tuan = datetime.date.fromisoformat(hom_nay).isocalendar()[:2]
+    return {"K": so_da_sang(so), "nguong": nguong(so),
+            "qua_sang": sum(1 for d in uv if d["qua_sang"]),
+            "tuan_nay": sum(1 for d in uv if datetime.date.fromisoformat(
+                d["khai_ngay"]).isocalendar()[:2] == tuan),
+            "tran_tuan": TRAN_SANG_MOI_TUAN}
+
+
+def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
+    """Sổ ứng viên → bảng hiện. KHÔNG tính gì trên dữ liệu thật.
+
+    MỌI ứng viên đều hiện, kể cả rớt sàng — ngưỡng chia cho TỔNG (quy ước 4),
+    giấu ứng viên rớt là giấu mẫu số. `ket` = {mã: (kết quả `so_cap`, số phiên,
+    số mã)} do bên gọi đưa vào; thiếu thì ứng viên qua sàng ghi `CHUA CHAM` —
+    không suy trạng thái từ chỗ không có số.
+    """
+    kiem_so_ung_vien(so)
+    ket = ket or {}
+    a = nguong(so)
+    hang = []
+    for ma, d in sorted(so["ung_vien"].items(),
+                        key=lambda kv: (kv[1]["khai_ngay"], kv[0])):
+        if not d["qua_sang"]:
+            tt = "ROT SANG"
+        elif ma in ket:
+            tt = trang_thai(ket[ma][0], a, ket[ma][1], ket[ma][2])
+        else:
+            tt = "CHUA CHAM"
+        ts = " · ".join(f"{k.removesuffix('_score')} {float(w):.2f}" for k, w in
+                        sorted(d["spec"]["trong_so"].items(), key=lambda kv: -float(kv[1])))
+        hang.append(dict(zip(COT_BANG, (ma, d["khai_ngay"], d["mo_ta"], ts,
+                                        d["ly_do"], "qua" if d["qua_sang"] else "rot",
+                                        tt))))
+    return pd.DataFrame(hang, columns=list(COT_BANG))
