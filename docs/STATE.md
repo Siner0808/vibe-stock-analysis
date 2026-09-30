@@ -19569,3 +19569,79 @@ kiện `input`. Nay `tools/so_tay.py hoi … --js` in sẵn lệnh gửi đúng;
   vòng xác nhận nào — chờ người dùng chọn hướng.
 - Nhịp 16,6 lệnh/tháng đo trên sổ walkforward (ngưỡng 45, `stride=2`), chưa
   trên sổ thật — sổ thật mới chạy lại 2 phiên.
+
+## BƯỚC 144 — P3a CHẤM BÓNG: NGƯỜI DÙNG CHỌN "CHẤM BÓNG CÔNG KHAI"; SỔ ĐĂNG KÝ ỨNG VIÊN VÀ PHÉP SO CẶP, CHƯA CHẠM DỮ LIỆU THẬT (29/09/2026)
+
+**Người dùng chọn 29/09/2026**, sau khi đọc ĐO 21 (BƯỚC 142): tầng 3 đi hướng
+*"chấm bóng công khai"* — ứng viên chạy SONG SONG với bản đang chạy trên dữ
+liệu chưa nhìn, có bảng theo dõi từng ứng viên trên app, và chỉ lên phiên bản
+khi qua ngưỡng thống kê. Người dùng biết trước cái giá: lên phiên bản HIẾM, có
+thể không lần nào trong năm đầu. Hai hướng bị bỏ: *"chặt, rất ít ứng viên, không
+bảng theo dõi"* và *"không thua là đủ"* (nâng thường hơn nhưng không chứng minh
+được là tốt hơn).
+
+### Ba lớp, BƯỚC này dựng hai lớp đầu dưới dạng module thuần
+
+| lớp | gì | trạng thái |
+|---|---|---|
+| sổ đăng ký | `docs/ung-vien.json`: mỗi ứng viên ĐÃ SÀNG một dòng — kể cả rớt sàng — khai TRƯỚC khi chạy vòng sàng, ≤ 5 mỗi tuần ISO | **XONG** — sổ rỗng |
+| chấm bóng | `cham_bong.py`: bảng bóng từ tab `decisions` → so CẶP ứng viên với bản đang chạy → trạng thái | **XONG** — module thuần |
+| bảng theo dõi | app hiện từng ứng viên: số phiên đã chấm · Δ · ngưỡng · trạng thái | chưa — P3b |
+
+### Bốn quy ước, mỗi quy ước chặn một cách vòng xác nhận tự khen mình
+
+1. **Bản đang chạy là ĐIỂM ĐÃ GHI** (`score` của sổ quyết định), không tính lại
+   từ thành phần: điểm ghi đã qua trọng số động, harness, bộ nhớ hậu kiểm — tính
+   lại là so ứng viên với một bản chưa từng chạy.
+2. **Mỗi (mã, phiên) một lần**, giữ dòng ghi sau cùng (theo `at`, rồi `seq`); ngày
+   cắt 10 ký tự. Sổ có dòng lặp (BƯỚC 125); dòng thiếu thành phần hay JSON hỏng
+   bị BỎ và ĐẾM, không điền mặc định.
+3. **So CẶP trên cùng nhãn**: Δ = IC(ứng viên) − IC(bản đang chạy), nhãn là
+   `E.nhan_vuot_ro` ở nhịp 21 (ô chuẩn ĐO 21). Null hoán vị MÃ (BƯỚC 142) áp
+   **CÙNG** một phép hoán vị cho cả hai điểm — hai phép riêng sẽ cộng hai phương sai
+   thay vì trừ phần chung.
+4. **Ngưỡng 0,05 / K, K = TỔNG số ứng viên đã sàng**, kể cả rớt sàng — sàng là chỗ
+   đã nhìn nhiều lần (bất biến 7). Trạng thái: `CHUA DU DU LIEU` (dưới 21 phiên có
+   nhãn hoặc dưới 40 mã đầy đủ) · `DANG CHAM` · `QUA` · `THUA`.
+
+Ứng viên chỉ được KHAI BÁO — `{"loai": "trong_so", "trong_so": {...}}` trên năm
+số hạng của điểm trước tranh luận, trọng số không âm, tổng bằng 1 — không nhận mã
+tuỳ ý. `news_score` bị loại (MO-XE Tầng 2: chỉ để hiện).
+
+### Chưa chạy trên dữ liệu thật — cố ý
+
+Tính một IC nào trên các phiên tiến-về-trước TRƯỚC khi có ứng viên được khai là
+tiêu chính dữ liệu *chưa nhìn* mà vòng xác nhận cần: thấy một thành phần đi tốt
+rồi mới khai ứng viên dựa vào nó là vòng sàng chạy trên tập kiểm. Nên BƯỚC này chỉ
+chạy trên dữ liệu tổng hợp. Lượt chạy đầu tiên trên sổ thật phải đi SAU lượt khai
+ứng viên đầu tiên (P3c).
+
+### Gác và đục
+
+`tests/test_cham_bong.py`, 23 test, dữ liệu tổng hợp. Đục **15/15 đỏ** — phát đầu:
+nguyên văn *"bản đang chạy tính lại từ thành phần"*. Lượt đầu 13/15: hai phát
+sống sót vì **test thiết kế thiếu** — rng giả trả MỘT hoán vị cho mọi lần gọi nên
+không phân biệt được *"cùng π cho hai điểm"* với *"hai π riêng"*; và không ca nào
+có Δ âm nên p một phía lọt. Sửa: rng giả trả hoán vị khác từ lần gọi thứ hai; thêm
+ứng viên TỆ hơn hẳn phải bị phát hiện (để thành `THUA`).
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, gửi bằng `--js` (lỗi 113), ghi bằng `ghi`, nguồn
+`@60d6598`. Sổ tay: *"không tìm thấy câu nào nói ngược"*. Tự kiểm bằng `grep`: hai
+dòng, cả hai cùng chiều — `CLAUDE.md` (khoá `"news": 0.0` không ai đọc) và
+`MO-XE-KIEN-TRUC.md` (`news_score` hằng số 50, bỏ khỏi công thức).
+
+### Việc kế
+
+- **P3b** — nối dây: app hiện bảng theo dõi; mã đang giữ vị thế phải có dòng
+  quyết định (hôm nay KHÔNG có — BƯỚC 142), không thì bảng bóng thiếu đúng những
+  mã agent đang nắm.
+- **P3c** — vòng sàng và ứng viên đầu tiên: khai lô trong một commit, sàng trên dữ
+  liệu đã nhìn, ghi cả ứng viên rớt sàng.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không có ứng viên nào; không đổi cách chấm điểm, hành vi giao dịch hay số đo
+  nào.
+- Không đo lực của phép so CẶP — ĐO 21 đo một điểm đơn lẻ.

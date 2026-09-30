@@ -442,6 +442,10 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   63 phiên nếu kém bền. *"Xác nhận ≤ 1 mỗi tháng"* là một trần không bao giờ
 >   chạm. **Cần người dùng chọn hướng** — (a) chặt, hiếm nâng cấp · (b) *"không
 >   thua"* thay cho *"hơn"* · (c) ít ứng viên + (a) — TRƯỚC khi dựng vòng nào.
+>   ✅ **Người dùng chọn 29/09: "chấm bóng công khai"** — BƯỚC 144 dựng sổ đăng
+>   ký ứng viên (`docs/ung-vien.json`) và phép so cặp (`cham_bong.py`), CHƯA chạy
+>   trên dữ liệu thật. Việc kế: P3b bảng theo dõi trên app + dòng quyết định cho
+>   mã đang giữ; P3c vòng sàng + ứng viên đầu tiên.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 
