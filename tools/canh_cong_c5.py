@@ -93,9 +93,10 @@ def kiem_ro_ri(quyet_dinh, cong_dang_mo: bool,
     trả lời được từ DỮ LIỆU: kể từ lúc đóng, có vị thế mới nào được mở
     không. Đó là khác biệt giữa "đã khai là chặn" và "đã chặn".
 
-    Vì sao `acted = 1` là dấu hiệu đúng: `record_decision` chỉ được gọi từ
-    `consider_entry`, và `acted = True` chỉ ở nhánh mở vị thế mới
-    (`paper_trading.py:612`). `fill_pending` KHÔNG ghi quyết định — nên
+    Vì sao `acted = 1` là dấu hiệu đúng: `acted = True` chỉ ở nhánh mở vị
+    thế mới của `consider_entry`. Nơi gọi thứ hai, `paper_runner.run_session`
+    cho mã đang giữ (BƯỚC 146), luôn ghi `acted = False`.
+    `fill_pending` KHÔNG ghi quyết định — nên
     bốn lệnh chờ khớp sau khi đóng cổng không làm chuông này kêu, đúng
     như thiết kế: **đóng cổng không huỷ lệnh chờ**.
 

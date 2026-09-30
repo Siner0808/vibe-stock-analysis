@@ -298,6 +298,11 @@ TRAN_VON_CAM_KET_PCT = 100.0
 LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng đòn bẩy "
                   "(bất biến 7b)")
 
+#: Lý do của dòng quyết định cho mã ĐANG GIỮ. Hai chỗ ghi nó —
+#: `consider_entry` và `paper_runner.run_session` (BƯỚC 146) — nên nó là
+#: một hằng: bảng chấm bóng lọc theo đúng chuỗi này.
+LY_DO_DANG_GIU = "đã có vị thế đang mở"
+
 #: Số vị thế MỤC TIÊU nắm đồng thời. ĐÂY LÀ QUYẾT ĐỊNH ĐO LƯỜNG, KHÔNG PHẢI
 #: QUYẾT ĐỊNH LỢI NHUẬN — đọc kỹ trước khi vặn.
 #:
@@ -684,7 +689,7 @@ class PaperTradingJournal:
         elif score < threshold:
             skip = f"điểm {score} dưới ngưỡng {threshold:g}"
         elif self.open_position(symbol) is not None:
-            skip = "đã có vị thế đang mở"
+            skip = LY_DO_DANG_GIU
         else:
             risk = (result.get("analyses", {}).get("risk", {})
                     .get("recommendations", {}))

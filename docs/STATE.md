@@ -3940,6 +3940,11 @@ lúc khớp sẽ không làm chuông kêu oan. Một phép kiểm AST khoá đú
 chất đó lại, để ngày nào `fill_pending` đổi thì test đỏ TRƯỚC khi chuông
 kêu oan trên sổ thật.
 
+> 🔴 **Vế *"`record_decision` chỉ được gọi từ `consider_entry`"* HẾT ĐÚNG
+> từ BƯỚC 146 (30/09/2026):** `run_session` ghi thêm một dòng cho mã đang
+> giữ, trên sổ thật. Kết luận vẫn đúng — dòng ấy luôn `acted = 0`, nên
+> `acted = 1` vẫn chỉ sinh ở nhánh mở lệnh của `consider_entry`.
+
 > Bản gốc viết "bốn lệnh chờ khớp sáng nay". SAI — đo 02/09/2026 cả bốn
 > vẫn `PENDING`. Tính chất được khoá thì không đổi; chỉ là nó **chưa từng
 > được thử trên sổ thật lần nào**, và đó chính là lý do phải khoá bằng
@@ -19637,6 +19642,7 @@ dòng, cả hai cùng chiều — `CLAUDE.md` (khoá `"news": 0.0` không ai đ�
 - **P3b** — nối dây: app hiện bảng theo dõi; mã đang giữ vị thế phải có dòng
   quyết định (hôm nay KHÔNG có — BƯỚC 142), không thì bảng bóng thiếu đúng những
   mã agent đang nắm.
+  ✅ **Vế dòng quyết định: xong ở BƯỚC 146** (30/09/2026).
 - **P3c** — vòng sàng và ứng viên đầu tiên: khai lô trong một commit, sàng trên dữ
   liệu đã nhìn, ghi cả ứng viên rớt sàng.
 
@@ -19742,3 +19748,49 @@ TRẠNG THÁI NÀO" — mục ấy vắng CẢ ở bản lưu, tức con trỏ c
 - Đòn bẩy lớn hơn nằm ở thói quen phiên, không ở tài liệu: giữ ngữ cảnh dưới ~250k
   (compact/phiên mới mỗi BƯỚC), compact trước khi nghỉ >1 giờ, gộp lệnh, tắt plugin
   không dùng (~16–19k token MCP + ~10k token skill mỗi lượt). Người dùng làm.
+
+---
+
+## BƯỚC 146 — P3b-1: MÃ ĐANG GIỮ CÓ DÒNG QUYẾT ĐỊNH, CHỈ TRÊN SỔ THẬT (30/09/2026)
+
+**Vì sao.** `run_session` chỉ gọi `consider_entry` khi mã không có vị thế (OPEN ·
+PENDING · CLOSING), và chỉ `consider_entry` ghi `decisions`. Nên mỗi phiên tab
+`decisions` thiếu đúng những mã điểm cao nhất — ĐO 21 đếm 28/09: 64 = 70 − 6,
+29/09: 63 = 70 − 7. Chấm bóng (`cham_bong.py`, BƯỚC 144) đo IC trên lát cắt ấy là
+đo trên một rổ đã bị cổng mua lọc.
+
+**Sửa.** Một nhánh `elif journal.ghi_nhat_ky:` sau khối `consider_entry`: mã còn
+vị thế sau `evaluate_open` thì ghi một dòng `acted = 0`, lý do
+`paper_trading.LY_DO_DANG_GIU` — hằng mới, `consider_entry` dùng chung (trước là
+chuỗi gõ tay). Điểm là điểm `_analyze` vừa chấm để xét thoát, không chấm lại.
+
+Ba điều giữ cùng lúc, khoá bởi `tests/test_quyet_dinh_ma_dang_giu.py` (4 test):
+
+1. sổ thật: đúng MỘT dòng, `acted = 0`, và `cham_bong.doc_quyet_dinh` đọc được;
+2. sổ không cờ (walkforward · backtest · mọi ĐO): 0 dòng mới — không số đo nào đổi;
+3. vị thế đóng ngay trong phiên: chỉ dòng của `consider_entry`, không ghi đôi.
+
+`acted = 1` vẫn chỉ sinh ở nhánh mở lệnh, nên `tools/canh_cong_c5.py` (hàm
+`kiem_ro_ri`) vẫn đúng; docstring của nó và câu cùng ý ở BƯỚC 5 đã đánh dấu.
+
+**Đục 7/7 đỏ.** Phát đầu dựng lại nguyên trạng: nhánh mới thành `elif False`.
+Sáu phát kia: ghi cả sổ không cờ · `if` thay `elif` (ghi đôi) · `acted = 1` · gõ
+lại chuỗi lý do ở nơi gọi · `consider_entry` gõ lại chuỗi · ghi `result` rỗng.
+
+**Hệ quả khi đọc sổ.** Từ lượt quét đầu sau khi merge, số dòng mỗi phiên tăng
+đúng bằng số vị thế đang giữ, và báo cáo phiên của `run_daily` có thêm nhóm lý do
+*"đã có vị thế đang mở"*. Mọi dòng TRƯỚC mốc — cả dòng seeded lẫn dòng tiến-về-trước
+10/08 → 30/09 — vẫn thiếu mã đang giữ; phép chấm bóng nào dùng chúng phải khai
+điều đó.
+
+**Soát chéo.** Nguồn `@60d6598`, cũ hơn `main` (nạp lại sau BƯỚC 145, vì bước ấy
+viết lại `CLAUDE.md` và `SKILL.md`). Sổ tay: *"không tìm thấy câu nào nói ngược"*.
+Tự kiểm bằng `grep` bắt BA câu: `docs/STATE.md` BƯỚC 5 (*"`record_decision` chỉ
+được gọi từ `consider_entry`"* — có trong nguồn, sổ tay BỎ SÓT) và hai câu ĐO 21
+ở `docs/TIEU-CHI-DOC-TRUOC.md` (viết 29/09, sau mốc nguồn). Cả ba đã đánh dấu.
+
+**Việc kế.** P3b-2: bảng theo dõi ứng viên trên app. P3c: vòng sàng trên dòng
+seeded (< 10/08) và ứng viên đầu tiên.
+
+**Điều BƯỚC này KHÔNG nói.** Không đọc hay đo gì trên sổ thật; không đổi hành vi
+giao dịch, điểm, hay số đo nào.
