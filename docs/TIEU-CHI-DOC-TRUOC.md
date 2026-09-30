@@ -3499,3 +3499,162 @@ chuẩn), ngưỡng K = 20 là ≈ 0,089 (hoán vị mã) hoặc ≈ 0,079 (dị
 phép tiêm nhẹ hơn — kết cục C vẫn đứng: ở 2× rào (0,1171, cao hơn cả 0,067) cột bền
 cũng chỉ đạt ở 252 phiên. Số liệu và cách đọc cho tầng 3:
 `docs/STATE.md` BƯỚC 142.
+## ĐO 22 — bước giá theo SÀN THẬT: mã HNX/UPCoM nhận thang 100đ thay vì thang HOSE (BƯỚC 143) (khai 29/09/2026)
+
+**Đã tra trùng:** BƯỚC 143 (chính mục này — đo trước: 81/399 và 154/612 lệnh OOS của ĐO 20 là mã HNX/UPCoM, dựng lại giá vào ở hai thang) · BƯỚC 136 (ĐO 20 — nguồn của hai dòng đối chứng, và là nơi phần dư này được khai thành việc tách ra) · BƯỚC 124 (ĐO 18). KHÔNG trùng: chưa BƯỚC nào đo walkforward với bước giá khác thang HOSE cho mã HNX/UPCoM (`grep` `docs/STATE.md`: bước giá theo sàn chỉ xuất hiện ở BƯỚC 136 như phần dư và BƯỚC 143).
+
+> **Khai 29/09/2026, SAU khi mã vào nhánh `p2/buoc-gia-theo-san` (`ab385dd`) và
+> TRƯỚC lượt chạy đầu tiên, ở một commit RIÊNG.** Người dùng chọn, qua phiên
+> song song: **phương án A** (bảng sàn trong repo, tra theo mã) · **chạy ĐO 22**
+> · **làm cùng phần `collect`** của `run_daily` (chỉ đổi cảnh báo).
+>
+> **Khai thêm, vì chúng xảy ra trước khi ký:**
+>
+> - Đo trước ở BƯỚC 143 dựng lại **giá vào** của 81 + 154 lệnh HNX/UPCoM bằng
+>   hàm thuần ở hai thang; thang HOSE tái lập đúng **235/235** giá đã ghi. Chênh
+>   giá vào trung bình **+23,8đ** (lượt 1, 47% lệnh đổi) và **+26,3đ** (lượt 2,
+>   54% lệnh đổi); dải dưới 10.000đ +0,51%, dải 10–50 nghìn +0,13–0,16%, dải từ
+>   50 nghìn **0**.
+> - **Không một con số alpha của mã mới đã được nhìn.** Đã nhìn: sổ OOS ĐO 20
+>   (mã cũ) chia theo sàn — đó là quần thể của phép đo trước, không phải kết quả
+>   của phép sửa này.
+> - Phía RA **không** dựng lại được (giá gốc trước trượt không lưu); mọi con số
+>   về phía RA dưới đây là **ước lượng**.
+
+**Dụng cụ chạy:** `tools/do1_chi_phi_thuc_thi.py` · **dụng cụ đọc:** `tools/do20_ghep_tung_lenh.py` (ghép từng lệnh) và `tools/do22_doc_ket_qua.py` (ba phép kiểm cơ học P4–P6 và chênh giá vào)
+
+### Hai luồng, chỉ hai dòng trượt-giá-BẬT
+
+| luồng | mã | ở đâu |
+|---|---|---|
+| **ĐỐI CHỨNG** | `71d9327` — mã sản xuất **giống hệt** `main` `79b2ad3`; chỉ thêm tài liệu, một công cụ đo và 7 test `xfail` | một worktree riêng MỖI LƯỢT |
+| **ĐÃ SỬA** | `ab385dd` | một worktree riêng MỖI LƯỢT |
+
+Chung: `tools/do1_chi_phi_thuc_thi.py --mot-luot 1` (BẬT · theo mã) và
+`--mot-luot 2` (BẬT · theo ngày); `VIBE_CACHE_DIR` trỏ vào `backtest/cache`
+của repo gốc (125 file, phiên cuối 2026-09-03); `sl_pattern_memory.json` chép
+vào mỗi worktree — sha256 `e8b44cf8…` (kiểm lúc chạy, **giống từng byte** bản
+ĐO 18 và ĐO 20 dùng); mọi tham số mặc định: `stride=2` · `min_history=60` ·
+`che_do_hoc=co_san` · `do_tre_khop=1`. Bốn tiến trình chạy SONG SONG, mỗi tiến
+trình một worktree (hai lượt chung một worktree ghi đè `wf_*.db` của nhau —
+BƯỚC 124). `walkforward` không đọc `run_daily`, nên phần `collect` không tham
+gia phép đo.
+
+**Hai dòng trượt-giá-TẮT không chạy**: `_gia_ban_that` và `_khop_that` chỉ chạy
+khi `MO_PHONG_TRUOT_GIA` bật (`fill_pending` gọi `_khop_that` có điều kiện đó),
+nên mã này không chạm được chúng. Dòng 3–4 của ĐO 18 vẫn đứng.
+
+### Phép kiểm dụng cụ — đọc TRƯỚC alpha
+
+1. **Cả bốn lượt** mã thoát 0 và log ghi: **71** mã có vùng IS · **33** mã có
+   vùng OOS · bộ nhớ **đầu 44 mẫu, học thêm 0**. Lệch bất kỳ → dòng ấy
+   **không đọc được**.
+2. **ĐỐI CHỨNG so với dòng BẬT của bảng ĐO 20 (bản đã sửa)**, từng chữ số: theo
+   mã 62 **398 · −1,09% · [−1,91 ; −0,18]**; theo ngày 45 **612 · −1,48% ·
+   [−2,05 ; −0,88]**. Khớp → `main` không trôi ở phép đo này từ ĐO 20. Không
+   khớp → **một phát hiện**, không phải lỗi của ĐO này; luồng đối chứng thành
+   mốc mới, và phép so chính vẫn đọc được vì nó là ĐÃ SỬA so với ĐỐI CHỨNG cùng
+   ngày.
+3. **Ngưỡng IS.** Một dòng chỉ so được khi hai luồng chọn **cùng ngưỡng**.
+   Khác → dòng ấy không so được; ghi ra, đừng ép — và việc ngưỡng đổi tự nó là
+   thông tin (lỗi 21).
+4. **P4 — giá VÀO của mọi lệnh HNX/UPCoM ở luồng ĐÃ SỬA chia hết cho 100**
+   (`tools/do22_doc_ket_qua.py`). Một lệnh không chia hết → mã sai. **Đối
+   chứng dương của phép kiểm này:** ở luồng ĐỐI CHỨNG cùng phép đếm KHÔNG được
+   đạt 100% (đo trước: 43/81 và 71/154); nếu đối chứng cũng đạt 100% thì phép
+   kiểm không phân biệt được gì.
+5. **P5 — chỉ dòng theo mã: mọi lệnh của mã HOSE giống hệt từng lệnh giữa hai
+   luồng** (cùng khoá, cùng giá vào · ra · lý do · trạng thái). Ở chế độ theo mã
+   mỗi mã chạy độc lập và bước giá HOSE không đổi; một lệnh HOSE khác đi nghĩa là
+   có dây chuyền không lường trước → dòng ấy không đọc được cho tới khi giải
+   thích. Không áp cho dòng theo ngày (trần vốn nối các mã).
+6. **P6 — giá VÀO ĐÃ SỬA ≥ giá vào ĐỐI CHỨNG ở mọi lệnh HNX/UPCoM cùng khoá (mã,
+   ngày tín hiệu) và cùng ngày vào.** Lưới 100đ thô hơn lưới 50đ và 10đ; mua làm
+   tròn LÊN thì không thể thấp hơn. Một lệnh thấp hơn → mã sai.
+
+### Đại lượng
+
+- **alpha khớp từng lệnh + KTC 95%** trên OOS, số lệnh OOS — mỗi dòng, mỗi
+  luồng.
+- **Δ = alpha(ĐÃ SỬA) − alpha(ĐỐI CHỨNG)**, từng dòng cùng ngưỡng.
+- **Ghép từng lệnh** theo (mã, ngày tín hiệu):
+  `tools/do20_ghep_tung_lenh.py --doi-chung <wf_oos.db> --sua <wf_oos.db>
+  --cache <backtest/cache>`; và `tools/do22_doc_ket_qua.py --doi-chung … --sua …
+  --che-do ma|ngay` cho P4–P6 cùng chênh giá vào.
+
+### Dự báo, khai trước
+
+- **Δ alpha ≤ 0 ở cả hai dòng** — chi phí của mã HNX/UPCoM chỉ có thể tăng. Cỡ:
+  **ước lượng** **−0,08** (theo mã) và **−0,11** (theo ngày), tức ~**9%** và
+  ~**18%** nửa bề rộng KTC của ĐỐI CHỨNG (**0,865** và **0,585**). Nguồn của ước
+  lượng: chênh giá vào đo được (+0,19% và +0,21% giá vào) nhân 2 (giả định phía
+  RA đối xứng phía VÀO, **chưa đo**) nhân tỷ lệ lệnh HNX/UPCoM (20,3% và 25,2%).
+- **Chênh giá vào trung bình** của lệnh HNX/UPCoM chung khoá cùng ngày vào:
+  **+20 … +30đ** ở cả hai lượt. Đây là phép kiểm định lượng máy đo trước: cái
+  dựng lại (+23,8đ · +26,3đ) phải là cái phép sửa thực sự làm.
+- **Số lệnh HNX/UPCoM** mỗi luồng gần nhau (không đoán chiều): giá vào đổi thì
+  điểm break-even và trailing stop đổi theo, nên vài lệnh có thể thoát sớm hay
+  muộn hơn và nhường chỗ cho lệnh khác. Số lệnh **HOSE** ở dòng theo mã: **giống
+  hệt** (P5).
+
+### Kết cục, khai trước
+
+| kết cục | đọc thế nào |
+|---|---|
+| **1.** Cả hai dòng −nửa bề rộng KTC ≤ Δ ≤ 0, sáu phép kiểm dụng cụ đạt | phép sửa không đổi kết luận, chỉ thêm chi phí đúng chiều. Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 20 làm bảng hiện hành trong `CLAUDE.md`; dòng TẮT giữ ĐO 18 |
+| **2.** Một dòng Δ > 0 (alpha ĐẸP LÊN, dù nhỏ) | ngược dự báo và ngược cơ chế (chi phí chỉ tăng). **Quy tắc số 1**: giả định CÓ LỖI. Quy Δ cho từng lệnh bằng `do20_ghep_tung_lenh.py` trước khi thay bảng; nếu Δ > nửa bề rộng KTC thì không ghi số vào `CLAUDE.md` cho tới khi quy được |
+| **3.** Một dòng Δ < −nửa bề rộng KTC | chiều an toàn — nhưng lớn hơn dự báo **hơn 5 lần**: dự báo sai ở đâu đó. Quy Δ từng lệnh trước khi thay bảng |
+| **4.** Một lượt thoát ≠ 0, phép kiểm dụng cụ 1 · 4 · 5 · 6 hỏng, hoặc ngưỡng IS khác nhau | dòng ấy **không đọc được**; sửa rồi chạy lại cả luồng |
+
+Một dòng đổi trạng thái *"loại được 0"* ↔ *"chứa 0"* được **ghi ra**, không
+đổi kết cục: kết cục đo Δ, không đo ngưỡng ý nghĩa. Phép kiểm 2 hỏng (đối chứng
+không khớp ĐO 20) không phải kết cục 4 — nó được xử lý như đã ghi ở phép kiểm 2.
+
+### Đọc kèm, không quyết định gì
+
+Số lệnh HNX/UPCoM mỗi luồng và chia theo sàn; chênh giá vào theo dải giá (dưới
+10 nghìn · 10–50 nghìn · từ 50 nghìn); số lệnh chỉ-ở-một-bên và lý do. Đây là mô
+tả để quy Δ, không phải phép thử.
+
+---
+
+## Kết quả ĐO 22 — chạy 30/09/2026, đọc theo bảng đã ký
+
+**Dụng cụ chạy:** `tools/do1_chi_phi_thuc_thi.py` · **dụng cụ đọc:** `tools/do20_ghep_tung_lenh.py` · `tools/do22_doc_ket_qua.py`
+
+Tiêu chí ký ở `3b63df6`, đẩy lên GitHub lúc **07:09Z**, TRƯỚC lượt đầu (07:09:50Z).
+Bốn lượt song song **07:09:50Z → 08:23:45Z** (~74 phút), cả bốn mã thoát 0. Luồng
+ĐỐI CHỨNG `71d9327` (mã sản xuất = `main`), luồng ĐÃ SỬA `ab385dd`.
+
+**Sáu phép kiểm dụng cụ: ĐẠT.** (1) cả bốn: 71 mã IS · 33 mã OOS · 44 mẫu, học
+thêm 0. (2) ĐỐI CHỨNG ra lại hai dòng BẬT của ĐO 20 **tới từng chữ số**: 398 ·
+−1,09% · [−1,91 ; −0,18] và 612 · −1,48% · [−2,05 ; −0,88]. (3) hai luồng cùng
+ngưỡng 62 / 45. (4) **P4**: giá vào HNX/UPCoM chia hết 100 — ĐÃ SỬA **80/80** và
+**153/153**; đối chứng 43/81 và 71/154 (đúng số đo trước). (5) **P5** (theo mã):
+lệnh HOSE khác giữa hai luồng: **0**. (6) **P6**: giá vào ĐÃ SỬA thấp hơn đối chứng
+ở **0** trên 80 và 141 lệnh HNX/UPCoM chung khoá cùng ngày vào.
+
+```
+dong            luong       nguong  lenh OOS  ky vong   alpha    KTC 95%            von TB · dinh
+BAT theo ma     doi chung   62      398       -0,22%    -1,09%   [-1,91 ; -0,18]    51% · 191,30%
+BAT theo ma     da sua      62      397       -0,29%    -1,16%   [-2,00 ; -0,25]    51% · 191,30%
+BAT theo ngay   doi chung   45      612       -1,09%    -1,48%   [-2,05 ; -0,88]    57% · 100,00%
+BAT theo ngay   da sua      45      619       -1,29%    -1,68%   [-2,24 ; -1,08]    56% · 100,00%
+```
+
+**Kết cục 1.** Δ alpha **−0,07** (theo mã, nửa bề rộng KTC 0,865 — **8%**) và
+**−0,20** (theo ngày, 0,585 — **34%**). Cả hai ≤ 0, cả hai trong nửa bề rộng.
+Hai dòng BẬT của luồng ĐÃ SỬA thay hai dòng BẬT của ĐO 20 làm bảng hiện hành; dòng
+TẮT giữ ĐO 18. Chi phí thực thi (TẮT − BẬT, cùng cách tính các bảng trước): theo mã
+**0,75** · theo ngày **0,96** điểm mỗi lệnh (ĐO 20: 0,68 · 0,76).
+
+**Đối chiếu với dự báo khai trước:** Δ ≤ 0 ở cả hai dòng — **đúng**. Cỡ: dự báo
+−0,08 và −0,11; đo được **−0,07** (khớp) và **−0,20** (~1,8 lần dự báo, vẫn xa
+kết cục 3 là −0,585). Chênh giá vào trung bình dự báo +20…+30đ — đo được **+23,5đ**
+và **+25,7đ**. Số lệnh HOSE theo mã giống hệt (P5) — đúng.
+
+**Đọc kèm:** theo mã 343 lệnh giống hệt · 55 cùng khoá khác (đều mã HNX/UPCoM) · 1
+chỉ ở đối chứng (MBS 2023-08-16); theo ngày 449 giống hệt · 104 khác · 59 chỉ ở đối
+chứng · 66 chỉ ở bản sửa (trong đó có cả mã HOSE; trần vốn nối các mã — nguyên nhân chưa quy từng lệnh).
+Chênh giá vào theo dải: dưới 10 nghìn +44,6đ / +41,2đ · 10–50 nghìn +22,0đ / +25,2đ ·
+từ 50 nghìn 0. Số liệu và phép ghép: `docs/STATE.md` BƯỚC 143.

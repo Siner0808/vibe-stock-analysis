@@ -618,8 +618,13 @@ class PaperTradingJournal:
         self.db.commit()
         return n + m
 
-    def _gia_ban_that(self, gia: float, size_pct, bar: dict) -> float:
+    def _gia_ban_that(self, gia: float, size_pct, bar: dict,
+                      symbol: str) -> float:
         """Giá bán sau trượt. Trả nguyên giá khi công tắc tắt hoặc thiếu nến.
+
+        `symbol` quyết định BƯỚC GIÁ: HNX và UPCoM là 100đ mọi mức, HOSE 10/50/100đ
+        (`san_giao_dich.san_cua`, BƯỚC 143). Tra theo MÃ chứ không đọc cột
+        `exchange` của lệnh, vì cột ấy ghi `HOSE` cho cả 125 dòng cũ.
 
         Bán KHÔNG đi qua `vong_doi_lenh`: một vị thế đang mở phải thoát
         được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. Cái đo được ở
@@ -630,6 +635,7 @@ class PaperTradingJournal:
         if not bar or not bar.get("volume"):
             return float(gia)
         try:
+            from san_giao_dich import san_cua
             from truot_gia import BAN, khoi_luong_hop_le, truot_gia
             g = float(gia)
             if g <= 0:
@@ -638,7 +644,8 @@ class PaperTradingJournal:
                 int(VON_DANH_MUC_VND * (float(size_pct or 0.0) / 100.0) / g))
             if so_cp <= 0:
                 return float(gia)
-            return float(truot_gia(g, BAN, bar, so_cp)["gia_khop"])
+            return float(truot_gia(g, BAN, bar, so_cp,
+                                   san_cua(symbol))["gia_khop"])
         except Exception:
             # Không nuốt im lặng: trả nguyên giá và để cảnh báo nổi lên ở
             # test. Nhưng cũng không để một lỗi mô hình làm sập phiên quét.
@@ -896,6 +903,7 @@ class PaperTradingJournal:
         Biên độ là `BIEN_DO_KIEM_GIA_MO`, KHÔNG phải ±7% mặc định: lệnh đặt ở
         giá mở cửa đã khớp thật, nên phép kiểm ở đây chỉ còn là chốt dữ liệu.
         """
+        from san_giao_dich import san_cua
         from vong_doi_lenh import KHOP_DU, KHOP_MOT_PHAN, dat_lenh, khop_trong_nen
         from truot_gia import MUA
 
@@ -905,7 +913,7 @@ class PaperTradingJournal:
         tham_chieu = float(nen.get("tham_chieu") or gia_mo)
         try:
             lenh = dat_lenh(symbol, MUA, so_cp, gia_mo, tham_chieu,
-                            bien_do=BIEN_DO_KIEM_GIA_MO)
+                            san=san_cua(symbol), bien_do=BIEN_DO_KIEM_GIA_MO)
         except Exception:
             return None
         if lenh.trang_thai not in (KHOP_DU, KHOP_MOT_PHAN):
@@ -1024,7 +1032,8 @@ class PaperTradingJournal:
                     except Exception:
                         pass
 
-                price = self._gia_ban_that(price, r["size_pct"], bar)
+                price = self._gia_ban_that(price, r["size_pct"], bar,
+                                           symbol)
                 self.db.execute(
                     "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
                     " status=? WHERE id=?",
@@ -1089,7 +1098,8 @@ class PaperTradingJournal:
             ngay_tin_hieu = str(r["exit_date"] or "")[:10]
             if ngay_tin_hieu and session_date[:10] <= ngay_tin_hieu:
                 continue                      # chưa tới phiên sau tín hiệu
-            gia = self._gia_ban_that(float(open_price), r["size_pct"], nen)
+            gia = self._gia_ban_that(float(open_price), r["size_pct"], nen,
+                                     symbol)
             self.db.execute(
                 "UPDATE trades SET exit_date=?, exit_price=?, status=?"
                 " WHERE id=?",
