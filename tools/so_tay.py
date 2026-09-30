@@ -82,6 +82,36 @@ def dung_cau_hoi(buoc: str, ket_luan: str, vi_du: list[str]) -> str:
     return cau
 
 
+#: Ô chat chọn theo NHÃN. `textarea` ĐẦU TIÊN của trang là ô "Tìm nguồn mới
+#: trên web" — lỗi 113: ngày 29/09 câu hỏi BƯỚC 142 đi vào đó.
+O_CHAT = 'textarea[aria-label="Hộp truy vấn"]'
+
+
+def lenh_gui(cau: str) -> str:
+    """Lệnh JS (cho `javascript_tool`) gửi `cau` vào ô chat của sổ tay.
+
+    Nhúng câu bằng `json.dumps` nên nháy đơn, nháy kép, tiếng Việt đi nguyên
+    văn. Nút Gửi còn khoá ngay sau sự kiện `input` (đo 29/09: bấm lúc ấy
+    không gửi gì), nên chờ tới khi nó mở rồi mới bấm, và trả lại độ dài ô
+    sau khi bấm — 0 nghĩa là đã gửi.
+    """
+    return (
+        f"let kq = 'KHONG THAY O CHAT'; const ta = document.querySelector('{O_CHAT}');"
+        " if (ta) {"
+        " Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')"
+        f".set.call(ta, {json.dumps(cau, ensure_ascii=False)});"
+        " ta.dispatchEvent(new Event('input', {bubbles: true}));"
+        " let el = ta, b = null;"
+        " while (el && !b) { el = el.parentElement;"
+        " b = el && el.querySelector('button[aria-label=\"Gửi\"]'); }"
+        " for (let i = 0; i < 20 && b && b.disabled; i++)"
+        " await new Promise(r => setTimeout(r, 250));"
+        " kq = 'NUT GUI VAN KHOA';"
+        " if (b && !b.disabled) { b.click();"
+        " await new Promise(r => setTimeout(r, 500));"
+        " kq = 'DA BAM GUI · o con ' + ta.value.length + ' ky tu'; } } kq")
+
+
 def kiem_muc(muc: dict) -> None:
     """Ném `TuChoi` nếu mục sai khuôn. Không đọc, không ghi file."""
     buoc = str(muc.get("buoc", ""))
@@ -147,9 +177,12 @@ def main(argv: list[str]) -> int:
         ap.add_argument("--buoc", required=True)
         ap.add_argument("--ket-luan", required=True)
         ap.add_argument("--vi-du", action="append", default=[])
+        ap.add_argument("--js", action="store_true",
+                        help="in LENH JS gui cau hoi vao o chat (loi 113)")
         a = ap.parse_args(argv[1:])
         try:
-            print(dung_cau_hoi(a.buoc, a.ket_luan, a.vi_du))
+            cau = dung_cau_hoi(a.buoc, a.ket_luan, a.vi_du)
+            print(lenh_gui(cau) if a.js else cau)
         except TuChoi as e:
             print(f"TU CHOI: {e}", file=sys.stderr)
             return 1

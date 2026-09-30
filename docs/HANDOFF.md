@@ -9,7 +9,8 @@ Ba tài liệu, ba vai:
 |---|---|---|
 | `docs/HANDOFF.md` (file này) | *bắt đầu từ đâu* — đọc hết trong 5 phút | phải cập nhật mỗi khi trạng thái đổi |
 | `docs/STATE.md` | *nhật ký từng bước* — đo được gì, cái gì chưa kiểm được | chỉ THÊM, không sửa mục cũ |
-| `CLAUDE.md` | *kiến trúc và luật chơi* | ít đổi nhất |
+| `CLAUDE.md` | *luật hiện hành* — chỉ luật, gọn (BƯỚC 145) | ít đổi nhất; một BƯỚC KHÔNG sửa nó trừ khi đổi một LUẬT |
+| `docs/lich-su/` | bản NGUYÊN VĂN `CLAUDE.md` · `SKILL.md` trước khi rút gọn; **không tự nạp** | không sửa |
 
 Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CLAUDE.md`.
 
@@ -435,6 +436,23 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   kiện dừng · ~~bật ba workflow~~ (✅ BƯỚC 138) · `scratch/luu_do18/`. ~~Thêm: tab
 >   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
 > - **Hạn 29/09:** ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (✅ BƯỚC 140).
+>
+> **29/09/2026 — BƯỚC 141 và BƯỚC 142.**
+>
+> - **BƯỚC 141 (#187):** tab *Lịch sử giao dịch* của app hiện nhật ký "vì sao"
+>   — CHỈ ĐỌC hai tab Sheets, trạng thái lấy từ sổ lệnh.
+> - **BƯỚC 142 (ĐO 21): tầng 3 bắt đầu bằng một phép đo, và nó ra kết cục C.**
+>   Ở nhịp giữ lệnh (21 phiên), một ứng viên đúng bằng rào hoà vốn cần hơn một
+>   năm dữ liệu chưa nhìn để xác nhận nếu điểm của nó bền (13/30 ở 252 phiên),
+>   63 phiên nếu kém bền. *"Xác nhận ≤ 1 mỗi tháng"* là một trần không bao giờ
+>   chạm. **Cần người dùng chọn hướng** — (a) chặt, hiếm nâng cấp · (b) *"không
+>   thua"* thay cho *"hơn"* · (c) ít ứng viên + (a) — TRƯỚC khi dựng vòng nào.
+>   ✅ **Người dùng chọn 29/09: "chấm bóng công khai"** — BƯỚC 144 dựng sổ đăng
+>   ký ứng viên (`docs/ung-vien.json`) và phép so cặp (`cham_bong.py`), CHƯA chạy
+>   trên dữ liệu thật. Việc kế: P3b bảng theo dõi trên app + dòng quyết định cho
+>   mã đang giữ; P3c vòng sàng + ứng viên đầu tiên.
+> - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
+>   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 
 **Chờ tới ngày, đừng đọc sớm:**
 

@@ -284,3 +284,19 @@ def test_HO_MOI_khong_duoc_NHAN_TU_DA_DO_LA_NHIEU():
                 "ô thoát `khong_soat_vi` không còn được nhận"):
         assert not s.PHU_DINH.search(cau), cau
     print("PASS  khong doc / khong co / khong con van nam ngoai")
+
+
+# ── BƯỚC 145: bản NGUYÊN VĂN trước khi rút gọn vẫn được soát ────────────────
+
+def test_QUAN_THE_soat_phu_ca_hai_ban_LUU_TRU():
+    """Sổ `soat-dinh-ky.json` khoá theo NGUYÊN VĂN dòng, nên các mục đã soát ở
+    `CLAUDE.md` cũ chỉ còn khớp nếu bản lưu nằm trong quần thể — nếu không
+    chúng "trỏ vào hư không" và một lời khai phủ định vừa bị chuyển đi thì
+    biến mất khỏi mắt máy quét mà không ai sửa nó."""
+    for ten in ("docs/lich-su/CLAUDE-md-2026-09-30.md",
+                "docs/lich-su/SKILL-md-2026-09-30.md"):
+        assert ten in s.TAI_LIEU, ten
+    co = {f for f, _, _ in s.loi_khai_con_song()}
+    assert "docs/lich-su/CLAUDE-md-2026-09-30.md" in co, (
+        "bản lưu nằm trong TAI_LIEU nhưng không cho ra dòng nào — máy quét "
+        "đang đọc hụt")

@@ -102,6 +102,11 @@ TAI_LIEU = [
     "CLAUDE.md",
     "docs/HANDOFF.md",
     "NGUYEN-TAC-DO-LUONG.md",
+    # BƯỚC 145: hai bản NGUYÊN VĂN trước khi rút gọn. Lời khai phủ định trong
+    # chúng đã có dấu (nguyên văn), và sổ `soat-dinh-ky.json` khoá theo nguyên
+    # văn dòng nên các mục đã soát vẫn khớp thay vì trỏ vào hư không.
+    "docs/lich-su/CLAUDE-md-2026-09-30.md",
+    "docs/lich-su/SKILL-md-2026-09-30.md",
 ]
 
 #: Họ thứ hai — ``không nhập / gọi / dùng / chạm`` — thêm ở lượt soát 5

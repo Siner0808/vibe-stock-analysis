@@ -19425,6 +19425,150 @@ tab khác, không nói ngược.
 - Sổ `.db` ở máy vẫn là nguồn của dòng đếm *"112 lệnh đã đóng"* cũ — không
   đụng tới ở BƯỚC này.
 
+## BƯỚC 142 — TẦNG 3 BẮT ĐẦU BẰNG MỘT PHÉP ĐO: VÒNG XÁC NHẬN "MỖI THÁNG" KHÔNG CÓ LỰC Ở NHỊP GIỮ LỆNH — ĐO 21, KẾT CỤC C (29/09/2026)
+
+Người dùng: *"tiếp tục làm đi"*. P2 xong trừ P2c (chờ khoá API). Việc kế của kế
+hoạch 25/09 (BƯỚC 122) là **tầng 3 — tự nâng cấp hai vòng**: sàng ≤ 5 ứng viên
+mỗi tuần trên dữ liệu đã nhìn, xác nhận ≤ 1 mỗi tháng trên dữ liệu CHƯA nhìn,
+ngưỡng hiệu chỉnh theo tổng số ứng viên đã sàng. Trước khi dựng vòng nào, đo
+xem vòng xác nhận **có lực không** — dựng một vòng không có lực là dựng một thứ
+không bao giờ nâng cấp mà trông như đang làm việc.
+
+### Dữ liệu chưa nhìn sinh nhanh cỡ nào — đọc tab `decisions` thật
+
+Chỉ đọc, 29/09/2026: **18.649** dòng. Dòng ghi từ 10/08/2026 (tiến-về-trước):
+**2.430** dòng, **34** phiên, ~**70 mã mỗi phiên**, mỗi dòng mang đủ điểm từng
+agent — tức mỗi tháng thêm ~1.470 cặp (mã, phiên) chấm bằng mã đang chạy.
+Hai điều cho thiết kế:
+
+- **Mã đang có vị thế KHÔNG có dòng quyết định** (`consider_entry` bỏ qua mã có
+  lệnh mở): 28/09 có 64 mã = 70 − 6 lệnh mở; 29/09 có 63 = 70 − 7. Một vòng xác
+  nhận chấm bóng trên bảng này sẽ thiếu đúng những mã agent đang nắm.
+- Mỗi (mã, phiên) có thể có hai dòng (28/09: 127 dòng / 64 mã) — đã biết từ
+  BƯỚC 125, phải khử trùng theo (mã, ngày tín hiệu).
+
+### ĐO 21 — một câu hỏi, ký trước
+
+*Một ứng viên có lợi thế ĐÚNG BẰNG rào hoà vốn hiện hành cần bao nhiêu phiên dữ
+liệu chưa nhìn để vòng xác nhận bắt được nó với lực ≥ 80%, ở ngưỡng Bonferroni
+cho K = 20 ứng viên?* Ứng viên đều là ứng viên GIẢ — tiêm một mức tương quan biết
+trước với nhãn, như ĐO 15/16. Không một ứng viên thật nào được đo.
+
+Bộ máy nhập lại từ ĐO 15/16 (`experiment_tran_dac_trung`: nhãn vượt rổ, IC hạng,
+rào hoà vốn, null dịch vòng; `experiment_khoi_ngoai_nhip_dai`: ngưỡng im nhị
+thức, 30 lượt tối thiểu). Hai thứ mới, cả hai có lý do đo được:
+
+1. **Null HOÁN VỊ MÃ.** Null dịch vòng cần mỗi mã > 2(h+1) phiên, nên cửa sổ 21
+   phiên ở h = 21 không dịch được gì. Hoán vị mã gán nguyên chuỗi nhãn của mã
+   này cho mã khác — giữ mọi tự tương quan, phá liên kết điểm–nhãn. Chưa ai kiểm
+   nên ĐO này đối chiếu nó với null dịch vòng ở W = 252 (tiền lệ BƯỚC 9).
+2. **Rào HIỆN HÀNH.** `E.rao_hoa_von` còn dùng trượt giá 0,43 của 24/08; chi phí
+   thực thi hiện hành là 0,76 (ĐO 20, dòng theo ngày). Rào mới = 1,371 lần rào cũ.
+
+**Nền của phép tiêm chọn bằng tự tương quan, không chạm lợi nhuận** (lỗi 94:
+nền phải cùng tính chất thống kê VÀ rời nhãn). ACF ở độ trễ 1 · 2 · 5 · 10, trên
+cùng 2.430 dòng:
+
+```
+DIEM CUOI that   +0,45  +0,32  -0,02  -0,07
+px_sma50         +0,80  +0,58   0,00  -0,02    ben hon
+stoch_kd         +0,34  -0,14  -0,25  +0,21    kem ben hon
+```
+
+Điểm thật nằm giữa → đo cả hai nền, đọc kết luận ở nền BẤT LỢI.
+
+### Kết quả — kết cục C, đúng dự báo đã khai
+
+Tiêu chí `16b03da`, đẩy lên GitHub trước lượt chạy. Phép kiểm dụng cụ đạt:
+tỷ lệ hai null **1,066 · 1,126 · 0,891 · 0,757** (biên [0,75 ; 1,25] — cặp cuối
+**sát biên**); ô *'không có gì'* kêu nhiều nhất 3/30 (ngưỡng 4).
+
+```
+h = 21 · 1x rao hien hanh (0,0586) · K = 20 · so luot BAT / 30
+nen        W=21   W=63   W=126   W=252
+px_sma50     0      1       7      13      <- khong W nao dat 24/30
+stoch_kd    10     30      30      30
+
+cung cot px_sma50, W = 252, theo K:   K=1  23/30 · K=20  13/30 · K=260  6/30
+cung cot px_sma50, 2x rao, K = 20:    W=126 22/30 · W=252 28/30
+```
+
+Ô chuẩn h = 21, K = 20: nền `px_sma50` không W ≤ 252 nào đạt 24/30 → **C**.
+Kết cục không đổi theo null: ngưỡng K = 20 suy từ hai ngưỡng 95% đã in là ≈ 0,089
+(hoán vị mã) hoặc ≈ 0,079 (dịch vòng), IC đo được TB 0,057 — dưới cả hai.
+
+**Chỗ sát biên nói gì.** Ở `stoch_kd`, h = 21, null hoán vị mã HẸP hơn null dịch
+vòng 24% — nên các con số 30/30 ở cột ấy **đẹp hơn thật**. Kết cục không đọc ở
+cột ấy; ở cột `px_sma50` null hoán vị mã lại RỘNG hơn 13%, tức chiều thận trọng.
+
+Ba dự báo đã khai: C ở ô chuẩn — **đúng**; h = 5 đạt ở W = 126–252 — **sai theo
+chiều tốt**, đạt ở 63 (`px_sma50`) và 21 (`stoch_kd`); 2× rào h = 21 đạt ở 252,
+có thể 126 — **đúng**: 28/30 ở 252, 22/30 ở 126.
+
+### Đọc cho thiết kế tầng 3 — ĐO này KHÔNG quyết, người dùng quyết
+
+1. **"Xác nhận ≤ 1 mỗi tháng" là một TRẦN không bao giờ chạm.** Ở nhịp giữ lệnh
+   (h = 21), một ứng viên bằng rào hoà vốn có điểm bền như `px_sma50` cần hơn
+   một năm dữ liệu mới; kém bền như `stoch_kd` thì 63 phiên. **Nhịp nâng cấp là
+   tính chất của TỪNG ứng viên, không phải của vòng** — không thiết kế nào hứa
+   được một nhịp chung.
+2. **Khai ít ứng viên là đòn bẩy thật, nhưng không đủ.** Cột bền, W = 252:
+   K = 1 **23/30** · K = 20 **13/30** · K = 260 **6/30**.
+3. **Xác nhận bằng alpha TỪNG LỆNH còn xa hơn.** `co_mau_cho_luc`: Δ alpha 1,22
+   điểm (bằng chi phí vòng 0,46 + 0,76) cần **256** lệnh; 1,0 điểm cần **381**.
+   Nhịp lệnh khi trần vốn 100% CÓ chặn, đo trên sổ OOS lượt 4 của ĐO 18 (theo
+   ngày, `scratch/luu_do18/wt_do18_p1/wf_oos.db`, chỉ đọc): **582 lệnh trong 35
+   tháng = 16,6 lệnh/tháng** (trung vị 19 ở 27 tháng có lệnh). Nên 256 lệnh ≈
+   **15 tháng**, 381 ≈ 23 tháng — và sổ thật chạy ngưỡng 62, cao hơn ngưỡng 45 của
+   sổ ấy, tức thưa lệnh hơn.
+   Con số *"alpha cần 13 tháng"* của `CLAUDE.md` (mục Cổng C5) dựng trên nhịp
+   2,17 lệnh/phiên ở vốn TB 139% — chính BƯỚC 3 khai nó lạc quan; nó nói về
+   điều kiện DỪNG, không về vòng xác nhận.
+4. **Điều đã chắc:** nhịp ngắn (h = 5) có lực hơn hẳn — nhưng rào hoà vốn ở h = 5
+   là **0,126**, cao gấp đôi, vì quay vòng nhanh thì trả phí nhiều lần hơn.
+
+Ba hướng để người dùng chọn (câu hỏi ở báo cáo phiên 29/09):
+**(a)** giữ xác nhận thống kê chặt, chấm bóng ứng viên từ lúc khai và đọc trên
+cửa sổ tích luỹ — nâng cấp HIẾM, có thể không lần nào trong năm đầu;
+**(b)** đổi nghĩa *"qua xác nhận"* thành *"không thua bản đang chạy"* sau khi qua
+sàng — agent nâng cấp thường hơn, nhưng mỗi lần nâng KHÔNG chứng minh được là tốt
+hơn; **(c)** ít ứng viên hơn hẳn (vài ứng viên mỗi quý) cộng (a).
+
+### Gác và đục
+
+`tests/test_do21_luc_vong_xac_nhan.py`, 18 test, chạy trên dữ liệu tổng hợp —
+không chạm cache giá, vì phép đo thật chỉ được chạy sau khi ký. Ba thứ khoá:
+hoán vị ĐỒNG NHẤT cho lại đúng IC thật và mỗi giá trị null là IC của `Y[:, p]`;
+nền rời nhãn (hoán vị không điểm cố định); phán quyết đọc ở cột bất lợi và không
+phán khi máy đo hỏng. Đục **16/16 đỏ**, gồm nguyên văn lỗi 94 (nền là chính cột
+của mã, không hoán vị) và lỗi 99 (phán lực dưới 30 lượt).
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, ghi bằng `ghi`, nguồn `@60d6598`. Sổ tay:
+*"không tìm thấy câu nào nói ngược"*. Tự kiểm bằng `grep`: ba chỗ đáng xem, không
+chỗ nào nói ngược — BƯỚC 122 mục 3 (*"xác nhận tối đa 1 mỗi tháng"* là TRẦN của
+kế hoạch, vẫn đúng chữ); `CLAUDE.md` *"alpha cần 13 tháng"* (điều kiện DỪNG, mục 3
+ở trên); `docs/HANDOFF.md` mô tả kế hoạch.
+
+### Một lỗi của chính BƯỚC này — lỗi 113
+
+Câu hỏi soát chéo lần đầu đi vào ô *"Tìm nguồn mới trên web"* của sổ tay, không vào
+ô chat: tôi viết lệnh gửi theo ghi chú NÉN trong bộ nhớ (*"setter + nút Gửi"*), mà
+`references/soat-cheo-notebooklm.md` Chặng 3 đã ghi đúng cái bẫy ấy. Không nguồn nào
+bị thêm (vẫn 11). Lần nhắm đúng ô cũng không gửi — nút Gửi còn khoá ngay sau sự
+kiện `input`. Nay `tools/so_tay.py hoi … --js` in sẵn lệnh gửi đúng; hai test, đục
+4/4 đỏ.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đo một ứng viên thật nào, và không đo phép so CẶP ứng viên với bản đang
+  chạy (ΔIC của hai điểm tương quan cao — phương sai nhỏ hơn, hiệu ứng cũng nhỏ
+  hơn).
+- Không đổi hành vi giao dịch, không đổi số đo cũ nào. Không dựng vòng sàng hay
+  vòng xác nhận nào — chờ người dùng chọn hướng.
+- Nhịp 16,6 lệnh/tháng đo trên sổ walkforward (ngưỡng 45, `stride=2`), chưa
+  trên sổ thật — sổ thật mới chạy lại 2 phiên.
 ## BƯỚC 143 — BƯỚC GIÁ CỦA MÃ HNX/UPCoM TÍNH THEO THANG HOSE, VÀ CỘT `exchange` GHI HOSE CHO MỌI MÃ: ĐO TRƯỚC, CHƯA SỬA (29/09/2026)
 
 Phần dư đã khai ở BƯỚC 136. Phiên song song giao: đo trước, viết test đỏ,
@@ -19655,3 +19799,176 @@ giám sát đang viết lại file (BƯỚC 145) và nhận bảng mới qua tin
   đường quét thật, không tham gia ĐO 22 (walkforward không đọc `run_daily`).
 - Chưa có lệnh HNX/UPCoM mới nào trên sổ thật kể từ sau sửa; MSR #119 (đang mở) sẽ
   được định giá ra theo lưới 100đ.
+
+## BƯỚC 144 — P3a CHẤM BÓNG: NGƯỜI DÙNG CHỌN "CHẤM BÓNG CÔNG KHAI"; SỔ ĐĂNG KÝ ỨNG VIÊN VÀ PHÉP SO CẶP, CHƯA CHẠM DỮ LIỆU THẬT (29/09/2026)
+
+**Người dùng chọn 29/09/2026**, sau khi đọc ĐO 21 (BƯỚC 142): tầng 3 đi hướng
+*"chấm bóng công khai"* — ứng viên chạy SONG SONG với bản đang chạy trên dữ
+liệu chưa nhìn, có bảng theo dõi từng ứng viên trên app, và chỉ lên phiên bản
+khi qua ngưỡng thống kê. Người dùng biết trước cái giá: lên phiên bản HIẾM, có
+thể không lần nào trong năm đầu. Hai hướng bị bỏ: *"chặt, rất ít ứng viên, không
+bảng theo dõi"* và *"không thua là đủ"* (nâng thường hơn nhưng không chứng minh
+được là tốt hơn).
+
+### Ba lớp, BƯỚC này dựng hai lớp đầu dưới dạng module thuần
+
+| lớp | gì | trạng thái |
+|---|---|---|
+| sổ đăng ký | `docs/ung-vien.json`: mỗi ứng viên ĐÃ SÀNG một dòng — kể cả rớt sàng — khai TRƯỚC khi chạy vòng sàng, ≤ 5 mỗi tuần ISO | **XONG** — sổ rỗng |
+| chấm bóng | `cham_bong.py`: bảng bóng từ tab `decisions` → so CẶP ứng viên với bản đang chạy → trạng thái | **XONG** — module thuần |
+| bảng theo dõi | app hiện từng ứng viên: số phiên đã chấm · Δ · ngưỡng · trạng thái | chưa — P3b |
+
+### Bốn quy ước, mỗi quy ước chặn một cách vòng xác nhận tự khen mình
+
+1. **Bản đang chạy là ĐIỂM ĐÃ GHI** (`score` của sổ quyết định), không tính lại
+   từ thành phần: điểm ghi đã qua trọng số động, harness, bộ nhớ hậu kiểm — tính
+   lại là so ứng viên với một bản chưa từng chạy.
+2. **Mỗi (mã, phiên) một lần**, giữ dòng ghi sau cùng (theo `at`, rồi `seq`); ngày
+   cắt 10 ký tự. Sổ có dòng lặp (BƯỚC 125); dòng thiếu thành phần hay JSON hỏng
+   bị BỎ và ĐẾM, không điền mặc định.
+3. **So CẶP trên cùng nhãn**: Δ = IC(ứng viên) − IC(bản đang chạy), nhãn là
+   `E.nhan_vuot_ro` ở nhịp 21 (ô chuẩn ĐO 21). Null hoán vị MÃ (BƯỚC 142) áp
+   **CÙNG** một phép hoán vị cho cả hai điểm — hai phép riêng sẽ cộng hai phương sai
+   thay vì trừ phần chung.
+4. **Ngưỡng 0,05 / K, K = TỔNG số ứng viên đã sàng**, kể cả rớt sàng — sàng là chỗ
+   đã nhìn nhiều lần (bất biến 7). Trạng thái: `CHUA DU DU LIEU` (dưới 21 phiên có
+   nhãn hoặc dưới 40 mã đầy đủ) · `DANG CHAM` · `QUA` · `THUA`.
+
+Ứng viên chỉ được KHAI BÁO — `{"loai": "trong_so", "trong_so": {...}}` trên năm
+số hạng của điểm trước tranh luận, trọng số không âm, tổng bằng 1 — không nhận mã
+tuỳ ý. `news_score` bị loại (MO-XE Tầng 2: chỉ để hiện).
+
+### Chưa chạy trên dữ liệu thật — cố ý
+
+Tính một IC nào trên các phiên tiến-về-trước TRƯỚC khi có ứng viên được khai là
+tiêu chính dữ liệu *chưa nhìn* mà vòng xác nhận cần: thấy một thành phần đi tốt
+rồi mới khai ứng viên dựa vào nó là vòng sàng chạy trên tập kiểm. Nên BƯỚC này chỉ
+chạy trên dữ liệu tổng hợp. Lượt chạy đầu tiên trên sổ thật phải đi SAU lượt khai
+ứng viên đầu tiên (P3c).
+
+### Gác và đục
+
+`tests/test_cham_bong.py`, 23 test, dữ liệu tổng hợp. Đục **15/15 đỏ** — phát đầu:
+nguyên văn *"bản đang chạy tính lại từ thành phần"*. Lượt đầu 13/15: hai phát
+sống sót vì **test thiết kế thiếu** — rng giả trả MỘT hoán vị cho mọi lần gọi nên
+không phân biệt được *"cùng π cho hai điểm"* với *"hai π riêng"*; và không ca nào
+có Δ âm nên p một phía lọt. Sửa: rng giả trả hoán vị khác từ lần gọi thứ hai; thêm
+ứng viên TỆ hơn hẳn phải bị phát hiện (để thành `THUA`).
+
+### Soát chéo
+
+Dựng bằng `tools/so_tay.py hoi`, gửi bằng `--js` (lỗi 113), ghi bằng `ghi`, nguồn
+`@60d6598`. Sổ tay: *"không tìm thấy câu nào nói ngược"*. Tự kiểm bằng `grep`: hai
+dòng, cả hai cùng chiều — `CLAUDE.md` (khoá `"news": 0.0` không ai đọc) và
+`MO-XE-KIEN-TRUC.md` (`news_score` hằng số 50, bỏ khỏi công thức).
+
+### Việc kế
+
+- **P3b** — nối dây: app hiện bảng theo dõi; mã đang giữ vị thế phải có dòng
+  quyết định (hôm nay KHÔNG có — BƯỚC 142), không thì bảng bóng thiếu đúng những
+  mã agent đang nắm.
+- **P3c** — vòng sàng và ứng viên đầu tiên: khai lô trong một commit, sàng trên dữ
+  liệu đã nhìn, ghi cả ứng viên rớt sàng.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không có ứng viên nào; không đổi cách chấm điểm, hành vi giao dịch hay số đo
+  nào.
+- Không đo lực của phép so CẶP — ĐO 21 đo một điểm đơn lẻ.
+
+## BƯỚC 145 — TỐI ƯU TOKEN: NGỮ CẢNH × SỐ LƯỢT GỌI, KHÔNG PHẢI "CODE SINH RA NHIỀU"; CLAUDE.md 108K → 22,6K KÝ TỰ, SKILL.md 44,7K → 17K (30/09/2026)
+
+Người dùng hỏi (30/09): vì sao chạm hạn mức 5 giờ rất nhanh, và code sinh ra có
+rút gọn được mà không giảm tính chất không. Phiên GIÁM SÁT riêng đo hai phiên dự
+án, người dùng duyệt tám mục (a)–(h) qua phiên chính, rồi làm.
+
+### Đo (transcript `.jsonl`, GỘP THEO `message.id`)
+
+```
+./.venv/Scripts/python.exe tools/do_token_phien.py <phien>.jsonl
+./.venv/Scripts/python.exe tools/do_token_phien.py --tai-lieu
+```
+
+| phiên | lượt API | ngữ cảnh xử lý | đọc lại cache | ghi cache | output | trung vị ngữ cảnh/lượt |
+|---|---|---|---|---|---|---|
+| chính (từ 26/09) | 954 | 454,4M | 448,3M (98,7%) | 6,13M | 0,82M | 468k |
+| song song (từ 28/09) | 517 | 243,9M | 240,3M (98,5%) | 3,56M | 0,55M | 460k |
+
+**Thứ đốt hạn mức là KÍCH THƯỚC NGỮ CẢNH × SỐ LƯỢT GỌI**: mỗi lượt gọi công cụ
+gửi lại ~465k token. Output chưa tới 1%. Cả hai phiên bị "ghi lại cả cache"
+(lượt ghi >200k) 6 và 4 lần, mỗi lần 0,24–0,86M, tập trung quanh sáng và sau
+giờ nghỉ trưa (cache hết hạn khi phiên nghỉ dài).
+
+**Lỗi máy đo đã bắt ngay lượt đầu:** mỗi câu trả lời ghi NHIỀU dòng cùng
+`message.id` và cùng `usage`; cộng theo dòng ra 1.244 và 2.232 lượt — số thật là
+517 và 954. Gác `tests/test_do_token_phien.py` mở đầu bằng đúng ca này.
+
+### Nguồn phình, ước theo 3,0 ký tự/token
+
+3,0 hiệu chuẩn hai lần từ mục "Memory files" của `get_usage` (116.978 ký tự →
+39.004 token; 15.666 → 5.223) — **là ƯỚC LƯỢNG**, máy không có bộ đếm chính thức.
+
+| nguồn | trước | sau (ký tự) |
+|---|---|---|
+| `CLAUDE.md` | 108.444 (~36k token/bản) | 22.625 (~7,5k) |
+| `SKILL.md` | 44.678 (~15k/lần gọi) | 16.963 (~5,7k) |
+
+Từ lần compact cuối, `CLAUDE.md` nằm trong ngữ cảnh 2 bản (phiên chính) và 3 bản
+(phiên song song) — ~72k và ~108k token, 11% và 17% cửa sổ. Thời điểm gắn khớp lúc
+checkout/merge và lúc phiên khởi động lại; **cơ chế CHƯA chứng minh**. Từ 26/09
+có 6/17 commit sửa `CLAUDE.md`, trong khi file tự gọi là "ít đổi nhất".
+
+### Giả thuyết đã BÁC: "code sinh ra nhiều nên tốn token"
+
+- Kết quả `Read` trong ngữ cảnh chỉ 1,5–47k ký tự; phần lớn ngữ cảnh là tài liệu
+  nạp tự động và lịch sử hội thoại. Đầu vào của các lệnh gọi công cụ (script viết thẳng,
+  `Write`, heredoc) chiếm 187–233k ký tự — **đáng chú ý hơn**: chúng ở lại và bị gửi lại.
+- Docstring chiếm 22% ký tự `.py` (582k/2,55M) nhưng mã chỉ tốn khi bị đọc, và
+  dài là phong cách chủ ý (ghi lý do, sự cố).
+- Quét AST (bỏ docstring, chuẩn hoá tên hàm, ≥3 câu lệnh, ≥2 file): **3 cặp** hàm
+  trùng y hệt, đều trong `tools/do*` dùng một lần hoặc fixture test. `_hang_giua`
+  ở `cham_bong.py` chỉ trùng 3 dòng với `tools/do21_luc_vong_xac_nhan.py`; gộp là
+  rủi ro làm ĐO 21 không tái lập. **Không rút gọn mã.**
+
+### Việc đã làm
+
+- `CLAUDE.md` viết lại chỉ còn luật hiện hành; `docs/lich-su/` giữ bản nguyên
+  văn CHÉP TỪNG BYTE (`cmp`) của `CLAUDE.md` và `SKILL.md`, cộng `README.md`. Luật
+  mới: một BƯỚC không sửa `CLAUDE.md`/`SKILL.md` trừ khi đổi một LUẬT.
+- **Gác:** trần `CLAUDE.md` 26.000 · `SKILL.md` 18.000 ký tự (pin, không nâng ngầm).
+  Chạm trần = chuyển lịch sử sang `docs/lich-su/`.
+- **Quần thể:** `doi_chieu_trich_dan.TAI_LIEU` và `soat_loi_khai_cu.TAI_LIEU` thêm hai
+  bản lưu. Không đưa vào `dem_cau_chi_duong` (dụng cụ đo một lần, không phải gác).
+  Không đổi `so_tay.NGUON_MAC_DINH` — sổ tay chưa nạp hai bản lưu; thêm sau khi nạp.
+- **Test đọc nội dung `CLAUDE.md`:** không phải sửa test nào; viết `CLAUDE.md` mới
+  cho khớp bảy gác (hằng số C5, giờ chuông, bốn đích vnai, bảng bất đối xứng, `34
+  kỳ` kèm tên bảng, `0,76 (theo ngày)`, tên `module.tên`).
+
+### Đục
+
+- Máy đo: lượt đầu 8/10 đỏ, **2 phát sống sót** (trung vị ↔ trung bình; dòng sau đè
+  dòng trước) do test thiết kế thiếu; thêm hai test rồi bộ chốt 6/6 đỏ, gồm hai phát ấy.
+- Quần thể: bỏ một trong hai bản lưu khỏi `doi_chieu`/`soat` sống sót 3/4 lượt đầu
+  → thêm `test_QUAN_THE_phu_ca_hai_ban_LUU_TRU` và `test_QUAN_THE_soat_phu_ca_hai_ban_LUU_TRU`,
+  4/4 đỏ. Phình `CLAUDE.md` +4.000 và `SKILL.md` +2.000 ký tự: cả hai đỏ.
+- Bảy gác đọc `CLAUDE.md` giữ nguyên nên không có gì mới để đục ngoài chính nội dung.
+
+### Soát chéo
+
+`tools/so_tay.py hoi … --js`, nguồn `@60d6598` (bản TRƯỚC khi rút gọn — đúng thứ
+cần hỏi). Sổ tay: *"không tìm thấy câu nào nói ngược"*. Tự kiểm: hai `grep` (xem
+`docs/soat-notebooklm.json`), không có con trỏ sống nào trỏ vào mục đã bỏ. **Ghi
+nhận, chưa sửa:** `tools/doc_so_that.py` trỏ vào mục `CLAUDE.md` "HỆ THỐNG ĐANG Ở
+TRẠNG THÁI NÀO" — mục ấy vắng CẢ ở bản lưu, tức con trỏ chết từ trước BƯỚC này.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đo hạn mức tính thế nào trên gói Pro (không công bố); tỷ trọng "đọc lại
+  cache / ghi cache / output" trong hạn mức là chưa biết. Hiệu quả tiết kiệm chỉ
+  được tính bằng token ngữ cảnh.
+- Không đổi hành vi giao dịch, số đo hay ngưỡng nào.
+- Chưa nạp hai bản lưu vào sổ tay; nguồn sổ tay còn `CLAUDE.md`/`SKILL.md` bản cũ
+  cho tới khi làm tươi sau merge.
+- Đòn bẩy lớn hơn nằm ở thói quen phiên, không ở tài liệu: giữ ngữ cảnh dưới ~250k
+  (compact/phiên mới mỗi BƯỚC), compact trước khi nghỉ >1 giờ, gộp lệnh, tắt plugin
+  không dùng (~16–19k token MCP + ~10k token skill mỗi lượt). Người dùng làm.
