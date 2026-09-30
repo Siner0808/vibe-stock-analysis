@@ -44,6 +44,9 @@ import tempfile
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from duyet_repo import duyet  # noqa: E402  — bỏ qua worktree lồng, BƯỚC 147
+
 # Hook được đăng ký ở HAI nơi: ~/.claude/settings.json (bảo vệ mọi phiên
 # trên máy này, kể cả khi mở Claude Code từ thư mục khác) và .claude/
 # settings.json trong repo (đi theo dự án cho người khác). Khi cwd đúng là
@@ -592,8 +595,12 @@ def quet_repo() -> int:
     `git checkout` hay `git merge` đều không kích hoạt. 15 commit UI gần
     nhất đi vào repo theo đúng đường đó. Chế độ này để CI chạy: cửa chống
     cháy, không phải chuông báo cháy.
+
+    Duyệt qua `duyet_repo.duyet`: worktree lồng ở `.claude/worktrees/` là
+    một bản sao KHÁC của repo, và quét nó cho 5 CHẶN giả ngày 30/09/2026
+    (test trong bản sao bị chấm như mã thường). BƯỚC 147.
     """
-    return _quet(sorted(GOC_DU_AN.rglob("*.py")), "toàn repo")
+    return _quet(sorted(duyet(GOC_DU_AN, "*.py")), "toàn repo")
 
 
 def _quet(duong_dans, nhan: str) -> int:

@@ -37,7 +37,9 @@ import pandas as pd
 
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
+sys.path.insert(0, str(GOC / "tools"))
 
+import duyet_repo  # noqa: E402
 from analysis_agents import RiskManagementAgent  # noqa: E402
 from data_collectors import MarketDataPacket  # noqa: E402
 
@@ -89,7 +91,7 @@ def _quet_pct_chuoi(goc: Path) -> list[tuple[str, int, str, str]]:
     Đọc AST, không đọc `in` — `CLAUDE.md` mục *"Gác phải đọc AST"*.
     """
     ra = []
-    for p in sorted(goc.rglob("*.py")):
+    for p in sorted(duyet_repo.duyet(goc, "*.py")):
         # TƯƠNG ĐỐI với `goc`, không tuyệt đối. Repo thật nằm dưới một thư
         # mục tên `scratch`, mà `scratch` có trong BO_QUA — lọc theo đường
         # tuyệt đối thì lượt quét tự loại hết và in ra `0 chỗ`, nghe y hệt

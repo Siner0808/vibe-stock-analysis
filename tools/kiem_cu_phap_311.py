@@ -50,6 +50,9 @@ import sys
 import tempfile
 import textwrap
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from duyet_repo import duyet  # noqa: E402  — bỏ qua worktree lồng, BƯỚC 147
+
 # Đoạn này PHẢI hỏng trên 3.11. Nạp được nghĩa là trình thông dịch không
 # phải 3.11, và mọi kết luận sau đó vô nghĩa.
 MOI_3_12 = "x = 1\nprint(f\"v {'A'\n  if x else 'B'}\")\n"
@@ -127,28 +130,58 @@ def tim_311() -> str | None:
     return None
 
 
+#: Trần ký tự cho phần DANH SÁCH FILE của một lần gọi tiến trình con.
+#: Windows cắt cả dòng lệnh ở 32.767 ký tự (`CreateProcess`); vượt là
+#: `WinError 206` và cổng thoát 2. Đo 30/09/2026: 229 file đã chiếm 20.106
+#: ký tự (61%), 458 file (có worktree lồng) 47.102. Nửa trần chừa chỗ cho
+#: đường dẫn trình thông dịch và `_KICH`. BƯỚC 147.
+TRAN_KY_TU_MOI_LO = 16_000
+
+
+def chia_lo(duong_dan: list, tran: int = TRAN_KY_TU_MOI_LO) -> list:
+    """Chia danh sách thành các lô mà `list2cmdline(lô)` không vượt `tran`.
+
+    Giữ thứ tự, không bỏ file nào: một đường dài hơn `tran` đứng riêng một
+    lô (để tiến trình con nổ thành tiếng, không lặng lẽ biến mất).
+    `len + 3` là cận trên của `list2cmdline` cho đường không chứa `"`: hai
+    dấu nháy khi có dấu cách, một dấu cách ngăn.
+    """
+    lo, dang, dai = [], [], 0
+    for d in duong_dan:
+        n = len(str(d)) + 3
+        if dang and dai + n > tran:
+            lo.append(dang)
+            dang, dai = [], 0
+        dang.append(d)
+        dai += n
+    if dang:
+        lo.append(dang)
+    return lo
+
+
 def kiem_bang_311(py: str, duong_dan: list) -> list:
     """Biên dịch từng file bằng `py`. Trả [(đường dẫn, dòng, lý do)].
 
-    MỘT lần gọi tiến trình con cho cả danh sách, không phải một lần mỗi
-    file. Ném RuntimeError khi tiến trình con thoát khác 0 — khi đó "không
-    có dòng lỗi nào" KHÔNG được đọc thành "sạch".
+    MỘT lần gọi tiến trình con cho mỗi LÔ (`chia_lo`), không phải một lần
+    mỗi file — và không phải một lần cho cả repo: dòng lệnh ấy vượt trần
+    của Windows (BƯỚC 147). Ném RuntimeError khi tiến trình con thoát khác
+    0 — khi đó "không có dòng lỗi nào" KHÔNG được đọc thành "sạch".
     """
     if not duong_dan:
         raise RuntimeError("danh sách rỗng — không có gì để kiểm")
-    r = subprocess.run([py, "-c", _KICH] + [str(d) for d in duong_dan],
-                       capture_output=True, text=True, timeout=300,
-                       encoding="utf-8", errors="replace")
-    if r.returncode != 0:
-        raise RuntimeError(
-            f"tiến trình con thoát {r.returncode}. stderr:\n"
-            f"{(r.stderr or '').strip()[:800]}")
-
     ra = []
-    for dong in (r.stdout or "").splitlines():
-        phan = dong.split("|", 2)
-        if len(phan) == 3:
-            ra.append((phan[0], phan[1], phan[2]))
+    for lo in chia_lo([str(d) for d in duong_dan]):
+        r = subprocess.run([py, "-c", _KICH] + lo,
+                           capture_output=True, text=True, timeout=300,
+                           encoding="utf-8", errors="replace")
+        if r.returncode != 0:
+            raise RuntimeError(
+                f"tiến trình con thoát {r.returncode}. stderr:\n"
+                f"{(r.stderr or '').strip()[:800]}")
+        for dong in (r.stdout or "").splitlines():
+            phan = dong.split("|", 2)
+            if len(phan) == 3:
+                ra.append((phan[0], phan[1], phan[2]))
     return ra
 
 
@@ -156,9 +189,10 @@ def cac_file(goc: pathlib.Path) -> list:
     """Mọi .py trong repo, trừ các thư mục ở BO_QUA.
 
     Lọc theo đường dẫn TƯƠNG ĐỐI so với gốc repo. Lọc theo đường tuyệt đối
-    thì "scratch" khớp với mọi file của repo này.
+    thì "scratch" khớp với mọi file của repo này. Worktree lồng ở
+    `.claude/worktrees/` bị loại bởi `duyet` (BƯỚC 147).
     """
-    return [f for f in sorted(goc.rglob("*.py"))
+    return [f for f in sorted(duyet(goc, "*.py"))
             if not BO_QUA & set(f.relative_to(goc).parts)]
 
 
