@@ -214,20 +214,22 @@ def test_RONG_khac_CHUA_HOI_DUOC_git():
     try:
         c.quet_repo, c._quet = gia_quet_repo, gia_quet
 
-        c.file_da_doi = lambda: None
+        # BƯỚC 149: quet_thay_doi() truyền gốc worktree của phiên vào
+        # file_da_doi(goc), nên hàm giả phải nhận đối số đó.
+        c.file_da_doi = lambda *_a, **_k: None
         assert c.quet_thay_doi() == 0
         assert dau_vet == ["REPO"], (
             f"None = chua hoi duoc git -> phai quet ca repo, nhung: {dau_vet}")
 
         dau_vet.clear()
-        c.file_da_doi = lambda: []
+        c.file_da_doi = lambda *_a, **_k: []
         assert c.quet_thay_doi() == 0
         assert dau_vet == [], (
             "[] = git DA tra loi va khong file .py nao doi -> khong duoc "
             f"quet gi ca, nhung: {dau_vet}")
 
         dau_vet.clear()
-        c.file_da_doi = lambda: [GOC / "paper_metrics.py"]
+        c.file_da_doi = lambda *_a, **_k: [GOC / "paper_metrics.py"]
         assert c.quet_thay_doi() == 0
         assert len(dau_vet) == 1 and dau_vet[0][0] == "FILE", (
             f"danh sach co file -> phai quet dung nhung file do: {dau_vet}")

@@ -19794,3 +19794,121 @@ seeded (< 10/08) và ứng viên đầu tiên.
 
 **Điều BƯỚC này KHÔNG nói.** Không đọc hay đo gì trên sổ thật; không đổi hành vi
 giao dịch, điểm, hay số đo nào.
+
+---
+
+## BƯỚC 149 — HOOK CHẶN BỊA SỐ LIỆU PHÁN FILE THEO GỐC WORKTREE CỦA CHÍNH NÓ: CHẶN NHẦM Ở WORKTREE LỒNG, MÙ Ở WORKTREE NGOÀI, CỬA STOP MÙ Ở CẢ HAI (30/09/2026)
+
+Phát hiện lúc làm BƯỚC 147 (quét toàn repo bỏ qua `.claude/worktrees/`): hook
+PostToolUse `tools/chan_bia_so_lieu.py` đăng ký ở `~/.claude/settings.json` bằng
+đường dẫn TUYỆT ĐỐI của bản checkout chính, nên `GOC_DU_AN` luôn là bản checkout
+chính và mọi file được phán theo đường tương đối so với nó. Người dùng giao: đo,
+sửa `trong_pham_vi`/`kiem_tra` phán theo gốc worktree của chính file, và chốt với
+người dùng có quét worktree NGOÀI repo không. **Người dùng chọn 30/09: quét mọi
+worktree của CÙNG repo** (repo khác vẫn bỏ qua).
+
+### Đo trước khi sửa
+
+Bơm payload giả từ cwd `C:\Users\cuong` (lỗi 15), qua tiến trình hook thật. Hai
+lượt trên máy thật (worktree lồng `.claude/worktrees/hook-do-thu`, worktree ngoài
+`vibe_wt_hook_wt`, bản checkout chính), cả hai bằng script tạm ngoài repo; dạng
+tái lập được nằm trong repo:
+`./.venv/Scripts/python.exe -m pytest tests/test_hook_bia_theo_goc_worktree.py -q`.
+
+| ca | trước | sau |
+|---|---|---|
+| test ở bản checkout chính | cho qua | cho qua |
+| test ở worktree LỒNG | **CHẶN** (R1 nhầm, dòng 113) | cho qua |
+| test ở worktree NGOÀI | im (đúng do tình cờ) | cho qua |
+| mã bịa ở bản checkout chính · worktree LỒNG | CHẶN · CHẶN | CHẶN · CHẶN |
+| mã bịa ở worktree NGOÀI | **im — bỏ sót** | CHẶN |
+| mã bịa ở repo LẠ | im | im |
+| cửa Stop, file bịa chưa commit ở main · LỒNG · NGOÀI | thấy · **không** · **không** | thấy · thấy · thấy |
+
+Ca quyết định là hàng thứ năm: hai ca im lặng ở worktree ngoài trông giống nhau
+(test → im là đúng, mã bịa → im là mù). Muốn tách phải đổi file thử từ test sang
+mã bịa thật; ca `vibe_wt_p3b` ban đầu trỏ vào file **không tồn tại** nên im vì
+`exists()` chứ không vì phạm vi.
+
+### Việc đã làm
+
+- `goc_cua_thu_muc` / `goc_cua_file`: gốc = tổ tiên gần nhất có `.git` (THƯ MỤC ở
+  bản checkout chính, TỆP ở worktree); nhận nếu `git rev-parse --git-common-dir`
+  trùng của hook. Bản checkout chính đi đường nóng, không tốn lần gọi git nào —
+  nên git vắng mặt thì bản checkout chính vẫn được quét, còn worktree im như cũ.
+- `kiem_tra` / `trong_pham_vi` / `_quet` phán và in đường dẫn theo gốc của file;
+  lược đồ R2 lấy từ gốc ấy (worktree đang thêm một dataclass thì R2 thấy nó).
+  `MIEN_TRU` tính theo đường tương đối so với gốc — **không** theo tổ tiên: worktree
+  ngoài nằm dưới `scratch/` (đúng như thật) và phán theo đường tuyệt đối thì cả
+  worktree bị miễn.
+- Cửa Stop: `goc_phien()` = worktree chứa cwd của tiến trình, nếu cùng repo; không
+  thì bản checkout chính (hành vi cũ). `file_da_doi(goc=None)` nhận gốc, mặc định
+  vẫn `GOC_DU_AN` để các test cũ gán `GOC_DU_AN` lúc chạy còn đúng.
+- `tests/test_hook_bia_theo_goc_worktree.py`: 31 test, repo tạm với
+  `git worktree add` THẬT (lồng và ngoài), một repo lạ, một thư mục không git;
+  ống bơm chạy BẢN SAO hook đặt trong repo tạm từ cwd ngoài mọi repo.
+- `tests/test_hang_rao_tu_dong.py`: ba hàm giả `lambda: …` của
+  `test_RONG_khac_CHUA_HOI_DUOC_git` đổi sang `lambda *_a, **_k: …` vì
+  `quet_thay_doi` nay truyền gốc vào `file_da_doi`; nội dung phép kiểm không đổi.
+
+### Chi phí — và một hồi quy do chính tôi gây ra
+
+Bản đầu `resolve()` hai lần và đi `stat` lên tổ tiên cho MỌI file; 30 test mới
+xanh nhưng ba file test chạy **154 s**, và không gác nào canh điều đó. Gốc: `--quet-repo`
+hỏi từng file của cả cây. Sửa: nhớ theo thư mục (`_goc_cua_thu_muc`), tính đường
+tương đối từ thư mục đã resolve. Đo lại, cùng cây, cùng `GOC_DU_AN`:
+
+```
+trong_pham_vi trên 11.224 file   cũ 0,53 s · vá 1,07 s   cùng 231 file trong phạm vi
+quet_repo() nguyên cái           cũ 49,6 s · vá 49,1 s   cùng kết quả: 0 CHẶN · 10 cảnh báo
+ba file test                     154 s (bản đầu) -> 125 s
+sửa một .py ở dự án KHÁC         trung vị 121 ms -> 180 ms   (+59 ms, 7 lượt; ngưỡng đặt trước 150 ms)
+```
+
+Dòng cuối là chi phí thật của thiết kế: hook đăng ký toàn cục, nên mỗi lần sửa một
+file `.py` ở dự án khác tốn hai lần gọi `git rev-parse` mới có kết luận "repo lạ".
+Máy đo lần đầu của dòng trên **vô nghĩa** — `rglob` từ `.` cho đường tương đối, bản
+cũ loại tất cả sớm ("trong phạm vi 0"); bắt được vì hai bản lệch nhau 0 so với 231,
+rồi đo lại với gốc tuyệt đối. Gác mới của phần này:
+`test_cung_mot_thu_muc_chi_di_len_tim_git_MOT_lan`.
+
+### Đục
+
+`dot_bien_bo` trên `tools/chan_bia_so_lieu.py`, 23 phát, chạy lại cả bộ sau mỗi
+lần đổi mã: **23/23 đỏ**. Phát đầu dựng lại nguyên văn lỗi (gốc = `GOC_DU_AN` cho mọi
+file). Lượt đầu 17/18: **một phát sống sót** — bỏ kiểm `returncode` của
+`git rev-parse` — vì git thật khi lỗi in ra stderr nên stdout rỗng và hai nhánh
+trùng nhau. Hỏi trước khi sửa gác: phát ấy không đổi hành vi ở đường thật; nhưng
+`test_hang_rao_tu_dong` từng để một phát sống sót đúng vì hai nhánh ấy bị coi là
+một, nên canh bằng `subprocess.run` giả (mã 128 mà vẫn in một đường hợp lệ). Bốn
+phát thêm cho các nhánh chống chết (`except` của git · của duyệt thư mục · của
+`cwd`) và bỏ `resolve()`; một phát cho bộ nhớ đệm.
+
+Cổng 5: mốc số test cập nhật, thêm 31 test.
+
+### Soát chéo
+
+Nguồn `@60d6598`, cũ hơn `main` (không đo lại độ tươi). Sổ tay: *"không tìm thấy
+câu nào nói ngược"*. Tự kiểm bằng `grep` (lệnh và kết quả ở `docs/soat-notebooklm.json`):
+không lời khai nào nói phạm vi hook là *"chỉ bản checkout chính"*. Bốn dòng nhắc
+`--quet-thay-doi` chỉ liệt kê lệnh. Hai bản ghi sử liệu mô tả mã CŨ và không sửa:
+`docs/STATE.md` BƯỚC 41 (*"`file_da_doi()` đã chạy git với `cwd=GOC_DU_AN`"*) và
+`.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md` (cùng chẩn đoán 08/09).
+
+### Điều BƯỚC này KHÔNG nói
+
+- **Chưa đo hook Stop của phiên THẬT nhận cwd nào.** Hai CLI (`~/.local/bin` và bản
+  đi kèm app) đều báo *OAuth session expired*, và tôi không đăng nhập thay người
+  dùng; `docs/STATE.md` BƯỚC 41 vẫn ghi *"chưa đo được nó chứa gì"*. `goc_phien()`
+  dựa vào cwd của tiến trình; nếu sai thì cửa Stop lùi về bản checkout chính như
+  trước — không tệ hơn cũ, nhưng cũng không đỡ hơn. **Bản vá chưa có hiệu lực ở phiên
+  nào** cho tới khi bản checkout chính (nơi hook trỏ tới) được `git pull`.
+- Cửa Stop khi phiên mở ở chỗ KHÔNG phải worktree của repo (cwd ngoài repo) vẫn
+  quét bản checkout chính: thay đổi qua Bash ở worktree khi ấy không thấy.
+- Một bản clone RIÊNG của cùng remote là repo khác (không chung `--git-common-dir`)
+  và vẫn bị bỏ qua.
+- Không đổi luật R1–R8, ngưỡng hay `MIEN_TRU`; không đổi hành vi giao dịch hay số đo.
+  Việc loại worktree lồng khỏi `--quet-repo` (nhân đôi kết quả) là BƯỚC 147.
+
+**Việc kế.** Sau merge và `git pull` bản checkout chính: ở một phiên mở trong
+worktree, để một file bịa chưa commit rồi dừng phiên — đo xem Stop có thấy không.

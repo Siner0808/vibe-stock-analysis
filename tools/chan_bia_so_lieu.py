@@ -37,6 +37,7 @@ from __future__ import annotations
 import ast
 import re
 import difflib
+import functools
 import hashlib
 import json
 import sys
@@ -55,6 +56,9 @@ from pathlib import Path
 # báo lại ngay, nên không bao giờ nuốt mất một lỗi thật.
 CUA_SO_TRUNG = 5.0
 
+# Bản checkout CHÍNH — hook đăng ký bằng đường dẫn tuyệt đối tới nó. ĐỪNG dùng
+# nó làm gốc để phán một file: file ở worktree khác sẽ bị chấm sai (chặn nhầm
+# test, hoặc im lặng). Dùng `goc_cua_file` — BƯỚC 149.
 GOC_DU_AN = Path(__file__).resolve().parent.parent
 
 # Thư mục được miễn: test và scratch dựng dữ liệu giả là đúng việc của chúng.
@@ -394,6 +398,107 @@ def co_cua_thoat(dong_ma: list[str], dong: int) -> bool:
     return False
 
 
+def _dau_git(thu_muc: Path) -> Path | None:
+    """Tổ tiên gần nhất (kể cả chính nó) có mục `.git` — THƯ MỤC ở bản checkout
+    chính, TỆP ở worktree."""
+    for d in (thu_muc, *thu_muc.parents):
+        if (d / ".git").exists():
+            return d
+    return None
+
+
+@functools.lru_cache(maxsize=None)
+def _thu_muc_git_chung(goc: Path) -> Path | None:
+    """Thư mục `.git` DÙNG CHUNG của mọi worktree cùng một repo; None nếu chưa
+    hỏi được (không có git, hết giờ, không phải repo).
+
+    Hai worktree cùng repo cho CÙNG một đường dẫn. Hai bản clone riêng của cùng
+    một remote thì khác nhau — chúng không chung kho đối tượng, và coi là repo
+    khác là đúng.
+    """
+    import subprocess
+
+    try:
+        r = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=goc,
+                           capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=10)
+    except Exception:
+        return None
+    ra = (r.stdout or "").strip()
+    if r.returncode != 0 or not ra:
+        return None
+    chung = Path(ra)
+    if not chung.is_absolute():          # bản checkout chính in `.git` tương đối
+        chung = goc / chung
+    return chung.resolve()
+
+
+@functools.lru_cache(maxsize=None)
+def _goc_cua_thu_muc(thu_muc: Path) -> tuple[Path, Path] | None:
+    """(gốc worktree, thư mục ĐÃ resolve) của một thư mục; None nếu ngoài repo.
+
+    Nhớ theo thư mục. `--quet-repo` hỏi từng file của cả cây, và `.venv` một
+    mình có hàng chục nghìn file trong vài nghìn thư mục — không nhớ thì mỗi
+    file tốn hai `resolve()` cùng một chuỗi `stat` lên tổ tiên. Một tiến trình
+    hook sống vài trăm mili giây và `GOC_DU_AN` là hằng trong đó, nên bộ nhớ
+    không bao giờ cũ; test đổi `GOC_DU_AN` thì gọi `xoa_bo_nho_goc()`.
+    """
+    try:
+        that = thu_muc.resolve()
+        goc = _dau_git(that)
+    except OSError:
+        return None
+    if goc is None:
+        return None
+    if goc == GOC_DU_AN:
+        return goc, that                 # đường nóng: không tốn một lần gọi git
+    chung = _thu_muc_git_chung(goc)
+    if chung is not None and chung == _thu_muc_git_chung(GOC_DU_AN):
+        return goc, that
+    return None
+
+
+def xoa_bo_nho_goc() -> None:
+    """Xoá hai bộ nhớ đệm — chỉ test cần: nó đổi `GOC_DU_AN` và dựng lại đĩa."""
+    _thu_muc_git_chung.cache_clear()
+    _goc_cua_thu_muc.cache_clear()
+
+
+def goc_cua_thu_muc(thu_muc: Path) -> Path | None:
+    """Gốc worktree chứa `thu_muc`, NẾU nó thuộc CÙNG repo với hook này.
+
+    Vì sao không dùng `GOC_DU_AN` để phán mọi file (đo 30/09/2026, BƯỚC 149):
+    hook đăng ký bằng đường dẫn tuyệt đối tới bản checkout chính, nên với file
+    ở worktree khác thì
+      - worktree LỒNG (`.claude/worktrees/<tên>/tests/x.py`): đường tương đối
+        không bắt đầu bằng `tests/` -> test bị chấm như mã thường, CHẶN NHẦM;
+      - worktree NGOÀI repo (nơi mọi phiên song song làm việc): `relative_to`
+        nổ -> "ngoài dự án" -> hook IM LẶNG, mã bịa lọt.
+
+    None = ngoài mọi worktree của repo này: repo khác, không có git, hoặc chưa
+    hỏi được git (không suy ra được thì im như trước, không đoán).
+    """
+    ket = _goc_cua_thu_muc(thu_muc)
+    return ket[0] if ket else None
+
+
+def goc_cua_file(duong_dan: Path) -> Path | None:
+    return goc_cua_thu_muc(duong_dan.parent)
+
+
+def _goc_va_tuong_doi(duong_dan: Path) -> tuple[Path, str]:
+    """(gốc worktree của file, đường dẫn tương đối so với gốc ấy).
+
+    Nổ `ValueError` khi file ngoài mọi worktree của repo — cùng loại lỗi mà
+    `relative_to` từng ném, nên người gọi cũ không phải đổi gì.
+    """
+    ket = _goc_cua_thu_muc(duong_dan.parent)
+    if ket is None:
+        raise ValueError(f"{duong_dan} nằm ngoài mọi worktree của repo này")
+    goc, thu_muc = ket
+    return goc, (thu_muc.relative_to(goc) / duong_dan.name).as_posix()
+
+
 def kiem_tra(duong_dan: Path) -> list[PhatHien]:
     ma = duong_dan.read_text(encoding="utf-8")
     try:
@@ -401,10 +506,10 @@ def kiem_tra(duong_dan: Path) -> list[PhatHien]:
     except SyntaxError:
         return []                        # file đang dở; Python sẽ tự báo
 
-    tuong_doi = duong_dan.relative_to(GOC_DU_AN).as_posix()
+    goc, tuong_doi = _goc_va_tuong_doi(duong_dan)
     la_test = tuong_doi.startswith("tests/")
 
-    bo_do = BoDo(thu_thap_truong(GOC_DU_AN), la_test)
+    bo_do = BoDo(thu_thap_truong(goc), la_test)
     bo_do.visit(cay)
 
     dong_ma = ma.splitlines()
@@ -435,9 +540,9 @@ def trong_pham_vi(duong_dan: Path) -> bool:
     if duong_dan.suffix != ".py" or not duong_dan.exists():
         return False
     try:
-        tuong_doi = duong_dan.relative_to(GOC_DU_AN).as_posix()
+        _, tuong_doi = _goc_va_tuong_doi(duong_dan)
     except ValueError:
-        return False                     # ngoài dự án
+        return False                     # ngoài mọi worktree của repo này
     return not any(tuong_doi.startswith(m) or f"/{m}/" in f"/{tuong_doi}"
                    for m in MIEN_TRU if m != "tests")
 
@@ -518,7 +623,7 @@ def main() -> int:
     return 0
 
 
-def file_da_doi():
+def file_da_doi(goc: Path | None = None):
     """File `.py` mà git báo là đã sửa hoặc chưa theo dõi. BA trạng thái.
 
     Dùng git chứ không dùng dấu thời gian: dấu thời gian đổi khi `git
@@ -540,14 +645,20 @@ def file_da_doi():
 
     Cùng lối ba trạng thái của `tools/kiem_cu_phap_311.py` và
     `tools/kiem_test_chay_rieng.py`: **"chưa kiểm được" không phải "sạch".**
+
+    `goc` là worktree cần hỏi git (mặc định: bản checkout chính). Git chạy ở
+    bản checkout chính thì không thấy thay đổi nào ở worktree của phiên — đo
+    30/09/2026: file bịa chưa commit ở worktree lồng lẫn ngoài, cửa Stop đều
+    im. BƯỚC 149.
     """
     import subprocess
 
+    goc = goc or GOC_DU_AN
     ra: set = set()
     for lenh in (["git", "diff", "--name-only", "HEAD"],
                  ["git", "ls-files", "--others", "--exclude-standard"]):
         try:
-            r = subprocess.run(lenh, cwd=GOC_DU_AN, capture_output=True,
+            r = subprocess.run(lenh, cwd=goc, capture_output=True,
                                text=True, encoding="utf-8", errors="replace",
                                timeout=10)
         except Exception:
@@ -557,8 +668,20 @@ def file_da_doi():
         for d in (r.stdout or "").splitlines():
             d = d.strip()
             if d.endswith(".py"):
-                ra.add(GOC_DU_AN / d)
+                ra.add(goc / d)
     return sorted(p for p in ra if p.exists())
+
+
+def goc_phien() -> Path:
+    """Gốc worktree của PHIÊN — thư mục hiện hành, nếu nó nằm trong một worktree
+    của repo này. Không thì bản checkout chính, đúng hành vi trước BƯỚC 149:
+    cửa Stop đăng ký toàn cục nên cũng chạy khi phiên mở ở chỗ khác, và khi đó
+    không có cơ sở nào để chọn một worktree.
+    """
+    try:
+        return goc_cua_thu_muc(Path.cwd()) or GOC_DU_AN
+    except OSError:
+        return GOC_DU_AN
 
 
 def quet_thay_doi() -> int:
@@ -573,7 +696,7 @@ def quet_thay_doi() -> int:
     CI vẫn quét toàn repo khi push. Chế độ này thu cửa sổ im lặng từ "tới
     lúc push" xuống "tới lúc dừng phiên".
     """
-    ds = file_da_doi()
+    ds = file_da_doi(goc_phien())
     if ds is None:
         # CHƯA HỎI ĐƯỢC git. Không biết thì không được nói sạch — quét
         # cả repo, chậm nhưng không bỏ sót.
@@ -616,7 +739,7 @@ def _quet(duong_dans, nhan: str) -> int:
             continue
         for p in sorted(phat_hien, key=lambda x: x.dong):
             muc = "CHẶN" if p.chan else "CẢNH BÁO"
-            ten = duong_dan.relative_to(GOC_DU_AN).as_posix()
+            ten = _goc_va_tuong_doi(duong_dan)[1]
             print(f"  [{p.ma}/{muc}] {ten}:{p.dong} — {p.thong_diep}")
             if p.goi_y:
                 print(f"      → {p.goi_y}")
