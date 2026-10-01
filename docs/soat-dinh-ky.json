@@ -295,6 +295,100 @@
           "dong": "trong phiên chỉ để cảnh báo, không ghi sổ\"*; `run_daily` nay chỉ ghi"
         }
       ]
+    },
+    {
+      "ngay": "2026-10-01",
+      "pham_vi": "Lượt 8, đúng nhịp (lượt 7 là 29/09). Leader giao; nhánh soat/dinh-ky-luot-8 từ main 0022cca, worktree ngoài repo. Công cụ in 37 lời khai · 9 tài liệu (lần đầu gồm hai bản lưu docs/lich-su/), 6 CHƯA AI MỞ — cả 6 là câu viết lại ở BƯỚC 145, mở cả 6, cả 6 THẬT. Lệnh thứ hai lần đầu có dấu vết từ lượt 4: 6 con trỏ chết (một đường), sau lượt 0. Ngoài tầm công cụ: soát HANDOFF · CLAUDE.md · SKILL.md theo BƯỚC 141–150 (ĐO 22, viết lại BƯỚC 145, nạp sổ tay BƯỚC 150).",
+      "duong_ngoai_repo": {
+        "chet": 6,
+        "su_lieu": 4,
+        "con": 42,
+        "ma_thoat": 1,
+        "sau_luot": {
+          "chet": 0,
+          "su_lieu": 10,
+          "con": 42,
+          "ma_thoat": 0
+        }
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md Bước 1 điều 2: ví dụ '\"`file_upload` không dùng được vì trang không có ô nhập file\" đúng mãi'.",
+          "tu_kiem": "docs/STATE.md BƯỚC 42 (dòng ~8441): 0 input[type=file] kể cả shadow DOM 5 lớp và iframe cùng origin; file_upload(tabId, paths) -> 'expected string, received undefined (path: ref)'. references/loi-da-mac.md:362-373 cùng nội dung.",
+          "phan_quyet": "THẬT về ngày đo 08/09 — câu là ví dụ HÌNH DẠNG một lời khai nêu đường, không phải lời khai về trang NotebookLM hôm nay; trang chưa đo lại ở lượt này.",
+          "dong": "TIÊU**: \"`file_upload` không dùng được vì trang không có ô nhập file\" đúng"
+        },
+        {
+          "noi_dung": "SKILL.md mục Nhịp soát: 'quét theo họ từ PHU_DINH — không nhập · gọi · dùng · chạm nằm trong đó, không đọc · có · còn cố ý ngoài'.",
+          "tu_kiem": "AST tools/soat_loi_khai_cu.py::PHU_DINH = re.compile('(chưa bao giờ|chưa ai|không ai|chưa có|chưa làm|chưa đo|chưa được|chưa kiểm|không tồn tại|không ghi|không nhập|không gọi|không dùng|không chạm)', re.I).",
+          "phan_quyet": "THẬT — đủ bốn từ, không có 'không đọc' · 'không có' · 'không còn'. Câu viết lại ở BƯỚC 145 nên hiện như chưa ai mở.",
+          "dong": "(quét theo họ từ `PHU_DINH` — *không nhập · gọi · dùng · chạm* nằm trong đó,"
+        },
+        {
+          "noi_dung": "CLAUDE.md Bộ nhớ hậu nghiệm: 'Backtest dùng 44 mẫu đứng yên (co_san, không ghi thêm); run_daily ở mã là tich_luy'.",
+          "tu_kiem": "walkforward.py:429 che_do_hoc mặc định 'co_san', :595 CLI cùng mặc định; :372-375 chỉ 'tich_luy' mới ghi. paper_trading.py:1010 record_sl_trade, :1031 save_memory trên đường sổ thật. Không file .py nào khác đổi từ lượt 7 ngoài BƯỚC 147-150.",
+          "phan_quyet": "THẬT về MÃ; câu kế tiếp trong CLAUDE.md nói vế môi trường (Actions 71/71 '0 mẫu', lỗi 112).",
+          "dong": "Backtest dùng 44 mẫu đứng yên (`co_san`, không ghi thêm); `run_daily` ở mã"
+        },
+        {
+          "noi_dung": "CLAUDE.md Dữ liệu và gói: kiem_goi có ba trạng thái, mất mạng không được trả 'khớp'; không bao giờ ép hạng trong mã.",
+          "tu_kiem": "vnstock_goi.py:54-56 ba hằng KHOP/LECH/CHUA_KIEM_DUOC; :204-207 lỗi gọi máy chủ -> _chiu() -> CHUA_KIEM_DUOC. git grep '_cached_tier\\s*=' -- '*.py' chỉ ra tests/test_vnstock_goi.py (chuỗi CẤM trong gác), 0 chỗ trong mã.",
+          "phan_quyet": "THẬT.",
+          "dong": "`KHỚP` / `LỆCH` / `CHƯA KIỂM ĐƯỢC` (mất mạng không được trả \"khớp\"). **Không"
+        },
+        {
+          "noi_dung": "CLAUDE.md Luật làm việc: test_tai_lieu_khop_ten_ma bắt `module.tên` trỏ vào chỗ không tồn tại.",
+          "tu_kiem": "tests/test_tai_lieu_khop_ten_ma.py:67 RE_CAP bắt `module.tên` trong nháy ngược; :154 test_moi_ten_tai_lieu_tro_toi_deu_ton_tai; :53 quần thể CLAUDE.md + docs/HANDOFF.md.",
+          "phan_quyet": "THẬT.",
+          "dong": "`module.tên` trỏ vào chỗ không tồn tại (đã chết thì viết trần tên, không viết"
+        },
+        {
+          "noi_dung": "CLAUDE.md Dọn code chết: test_trong_so_that_su_duoc_dung · test_dau_hieu_tranh_luan khoá trọng số và dấu Bull(+)/Bear(−)/Devil(−).",
+          "tu_kiem": "Cả hai file có; tests/test_dau_hieu_tranh_luan.py:69 test_bull_khong_bao_gio_am, :84 test_bear_khong_bao_gio_duong, :98 test_devil_khong_bao_gio_duong; tests/test_trong_so_that_su_duoc_dung.py:85 test_khong_nhan_khoa_khong_ton_tai.",
+          "phan_quyet": "THẬT.",
+          "dong": "hiểm hơn code không ai chạy (`tests/test_trong_so_that_su_duoc_dung.py`,"
+        },
+        {
+          "noi_dung": "Lệnh thứ hai của nhịp (tools/kiem_duong_ngoai_repo.py): 6 con trỏ chết, cùng một đường ~/.claude/CLAUDE.md — CLAUDE.md:47 · NGUYEN-TAC-DO-LUONG.md:9 · references/loi-da-mac.md:1451 và 3 lần trong docs/lich-su/CLAUDE-md-2026-09-30.md. Ngoài tầm lệnh đầu.",
+          "tu_kiem": "ls ~/.claude/CLAUDE.md -> No such file; ~/.gemini/GEMINI.md và ~/.codex/AGENTS.md còn. docs/STATE.md BƯỚC 139 (29/09) đã ghi '~/.claude/CLAUDE.md vắng'; BƯỚC 126 kể file 84 dòng toàn khối vnai, người dùng tự gỡ.",
+          "phan_quyet": "THẬT về sự thật (ba câu nói về ĐÍCH ghi của vnai, không về file đang có) — giữ, kèm cửa thoát ở cuối chính dòng. Ba lần trong bản lưu không sửa được -> lỗi 118, công cụ nay xếp bản lưu là sử liệu. Sau lượt: 0 chết · 10 sử liệu · 42 còn, mã thoát 0."
+        },
+        {
+          "noi_dung": "Sổ này: lượt 5 (24/09), 6 (27/09), 7 (29/09) không có dấu vết lệnh thứ hai của nhịp; lần cuối nhắc kiem_duong_ngoai_repo là lượt 4 (23/09), ngày dựng nó.",
+          "tu_kiem": "grep -n kiem_duong_ngoai_repo docs/soat-dinh-ky.json -> chỉ dòng 113 (lượt 23/09); docs/STATE.md BƯỚC 140 nhắc nó 0 lần.",
+          "phan_quyet": "SAI về quy trình — lỗi 117. Ở lượt 7 file đã vắng nên lệnh thứ hai lẽ ra đã gọi tên ba con trỏ ở tài liệu sống. Nay có ô duong_ngoai_repo và gác test_MOI_LUOT_tu_luot_8_ghi_ket_qua_LENH_THU_HAI."
+        },
+        {
+          "noi_dung": "HANDOFF mục 2: 'Bảng hiện hành nay là bảng ĐO 18 trong CLAUDE.md. Dòng theo ngày trượt giá BẬT ra −1,48% [−2,05 ; −0,88]'. Ngoài tầm công cụ.",
+          "tu_kiem": "CLAUDE.md mục Chi phí thực thi: hai dòng BẬT là ĐO 22 (619 lệnh −1,68% [−2,24 ; −1,08]); docs/TIEU-CHI-DOC-TRUOC.md:3642 cùng số. HANDOFF đứng đầu thứ tự ưu tiên.",
+          "phan_quyet": "SAI từ 30/09 (ĐO 22) — đã thêm 🔴 ngay dưới, trích số ĐO 22 từ tài liệu, không đo lại."
+        },
+        {
+          "noi_dung": "HANDOFF mục 5: 'Hai dòng BẬT trong CLAUDE.md nay là số ĐO 20' và 'CLAUDE.md chưa cập nhật bảng'.",
+          "tu_kiem": "CLAUDE.md (BƯỚC 145, 187233c) ghi 'ĐO 22 (30/09/2026 …) cho hai dòng BẬT'.",
+          "phan_quyet": "SAI từ 30/09 — đã thêm 🔴 BƯỚC 145 ngay dưới."
+        },
+        {
+          "noi_dung": "HANDOFF mục 2: '`CLAUDE.md` và `MO-XE-KIEN-TRUC.md` viết \"nguyên nhân gốc là thiếu dữ liệu độc lập\" …; cả hai chỗ nay đã đánh dấu'.",
+          "tu_kiem": "grep 'thiếu dữ liệu độc lập' CLAUDE.md -> dòng 69, KHÔNG dấu; MO-XE-KIEN-TRUC.md:277-291 có 🔴. Bản lưu docs/lich-su/CLAUDE-md-2026-09-30.md:184 cũng không dấu ở câu ấy (ô 🔴 dưới nó nói vế địa chỉ).",
+          "phan_quyet": "SAI về CLAUDE.md từ 30/09 (BƯỚC 145 viết lại không mang dấu). Nội dung thì đứng nếu đọc kèm bảng ba nguồn ngay sau ('không nguồn nào cứu được'). Thêm ⚠️ ở HANDOFF; không sửa CLAUDE.md (luật BƯỚC 145)."
+        },
+        {
+          "noi_dung": "SKILL.md: 'Nguồn của sổ tay gồm cả docs/lich-su/*.md (từ BƯỚC 145)'. Ngoài tầm công cụ.",
+          "tu_kiem": "docs/STATE.md BƯỚC 145: 'Không đổi so_tay.NGUON_MAC_DINH — sổ tay chưa nạp hai bản lưu; thêm sau khi nạp'. git log -S lich-su -- tools/so_tay.py -> a51784d (BƯỚC 150, 01/10).",
+          "phan_quyet": "SAI ở số BƯỚC — câu sai về sự thật 30/09 -> 01/10, nay đúng. Đổi thành 'từ BƯỚC 150' (cùng độ dài)."
+        },
+        {
+          "noi_dung": "SKILL.md: cửa thoát `duong-da-chet` đặt 'ngay trên dòng ấy'.",
+          "tu_kiem": "tools/kiem_duong_ngoai_repo.py::phan_loai tìm CUA_THOAT trong CHÍNH dòng nêu đường; mọi cửa thoát đang dùng (bản lưu CLAUDE-md :87, :99) nằm cuối chính dòng.",
+          "phan_quyet": "SAI nếu đọc là 'dòng phía trên' (câu MƠ HỒ) — 'trên dòng' đọc được cả hai nghĩa, đặt thế thì công cụ vẫn báo chết (hỏng về chiều ỒN, không im). Viết lại 'ở CUỐI chính dòng ấy'."
+        },
+        {
+          "noi_dung": "Công cụ in '2 dòng trong sổ không còn khớp lời khai nào', liệt kê hai giá trị `dong` của lượt 23/09.",
+          "tu_kiem": "Đọc sổ bằng Python: một là câu SKILL.md cũ về Co-Authored-By (đã sửa ở lượt 5 — đúng hành vi); một là '(không nằm trong danh sách công cụ — đây là lớp công cụ KHÔNG thấy)' — một GHI CHÚ đặt vào ô `dong`, in ra trông y như nhãn của công cụ.",
+          "phan_quyet": "THẬT — hai dòng ấy không còn khớp; vô hại, hỏng về chiều an toàn. Lượt này đọc nhầm nó là nhãn ở lần đầu. Không sửa sổ (bản ghi lịch sử)."
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."

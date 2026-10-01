@@ -311,7 +311,7 @@ theo pixel, và đọc **nhãn** trên hộp xác nhận. Cách làm chi tiết 
 của đúng nguồn vừa dán lại ở bước THÊM. Không có gác máy cho luật này (thao
 tác trình duyệt không để dấu vết trong repo); đây là kỷ luật, không phải cơ chế.
 
-**Nguồn của sổ tay gồm cả `docs/lich-su/*.md`** (từ BƯỚC 145) — quần thể
+**Nguồn của sổ tay gồm cả `docs/lich-su/*.md`** (từ BƯỚC 150) — quần thể
 `tools/doi_chieu_trich_dan.py` phủ chúng, để trích dẫn từ bản nguyên văn cũ
 vẫn đối chiếu được.
 
@@ -330,8 +330,10 @@ Cái đầu in mọi **lời khai phủ định có nêu tên** còn sống tron
 *không đọc · có · còn* cố ý ngoài; đọc con số bằng lệnh, đừng ghim). Ghi kết
 quả vào `docs/soat-dinh-ky.json`; *"vẫn đúng"* là kết quả hợp lệ. Cái thứ hai
 bắt con trỏ ngoài repo đã chết; nó **cố ý không phải một cổng** (đường nằm ở
-thư mục nhà của máy này nên trên CI sẽ đỏ mọi lượt). Giữ một đường đã chết:
-`<!-- duong-da-chet: <lý do> -->` ngay trên dòng ấy.
+thư mục nhà của máy này nên trên CI sẽ đỏ mọi lượt) — nhưng kết quả của nó
+vẫn vào sổ, ô `duong_ngoai_repo` (lỗi 117: ba lượt bỏ trống). Giữ một đường
+đã chết: `<!-- duong-da-chet: <lý do> -->` ở CUỐI chính dòng ấy; dòng trong
+`docs/lich-su/` tự là sử liệu.
 
 ---
 

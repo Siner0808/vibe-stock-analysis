@@ -183,6 +183,32 @@ def test_MOI_KHOA_DONG_trong_so_la_chuoi_khong_rong():
             dau = f"{luot['ngay']}[{i}]"
             assert isinstance(d, str) and d.strip(), f"{dau}: `dong` rong"
             assert d == d.strip(), f"{dau}: `dong` con khoang trang hai dau"
+
+
+#: Lỗi 117 (lượt soát 8, 01/10/2026): nhịp soát có HAI lệnh (`SKILL.md` mục
+#: *Nhịp soát định kỳ*) nhưng lượt 5–7 chỉ để dấu vết của lệnh đầu. Lệnh thứ
+#: hai, `tools/kiem_duong_ngoai_repo.py`, đã có 3 con trỏ chết ở lượt 7 mà
+#: không lượt nào ghi. Gác đòi DẤU VẾT, không đòi số 0: đường nằm ở thư mục
+#: nhà nên CI không đo lại được (lỗi 14), và một con số chết > 0 là kết quả
+#: hợp lệ khi lượt ấy giữ nó lại.
+TU_NGAY_DUONG_NGOAI = "2026-10-01"
+
+
+def test_MOI_LUOT_tu_luot_8_ghi_ket_qua_LENH_THU_HAI():
+    moi = [l for l in _so()["lan_soat"] if l["ngay"] >= TU_NGAY_DUONG_NGOAI]
+    assert moi, "khong luot nao tu moc - phep thu rong"
+    for luot in moi:
+        d = luot.get("duong_ngoai_repo")
+        dau = luot["ngay"]
+        assert isinstance(d, dict), (
+            f"{dau}: thieu `duong_ngoai_repo` - ket qua cua "
+            "tools/kiem_duong_ngoai_repo.py")
+        for k in ("chet", "su_lieu", "con", "ma_thoat"):
+            assert isinstance(d.get(k), int) and d[k] >= 0, f"{dau}: `{k}`"
+        assert d["ma_thoat"] in (0, 1, 2), f"{dau}: ma thoat {d['ma_thoat']}"
+        if d["ma_thoat"] != 2:
+            assert (d["ma_thoat"] == 1) == (d["chet"] > 0), (
+                f"{dau}: ma thoat {d['ma_thoat']} khong khop {d['chet']} chet")
 #: ─────────────────────────────────────────────────────────────────────
 #: MỘT TÊN HÀM `ten()` VẪN LÀ MỘT CÁI TÊN — đo 21/09/2026
 #:
