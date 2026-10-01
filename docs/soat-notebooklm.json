@@ -1975,6 +1975,30 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "Sổ tay: 'không tìm thấy câu nào nói ngược'. grep -n -i 'sáu tab\\|6 tab\\|sáu thẻ\\|rớt sàng\\|0,05 */ *K\\|0,05/K\\|chia cho.*qua sàng' trên CLAUDE.md, HANDOFF, STATE, MO-XE, NGUYEN-TAC, TIEU-CHI, SKILL + references: 4 dòng, cả 4 CÙNG CHIỀU — docs/STATE.md BƯỚC 144 dòng 19592, 19608 ('Ngưỡng 0,05 / K, K = TỔNG số ứng viên đã sàng, kể cả rớt sàng'), 19647; docs/TIEU-CHI-DOC-TRUOC.md dòng 3397 (ĐO 21). Cả bốn viết sau mốc nguồn @60d6598, nên sổ tay không thể thấy; không câu nào nói số tab của app."
     },
+    "BƯỚC 150": {
+      "ngay": "2026-10-01",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md"
+      ],
+      "_do_tuoi": "Nguồn @89fe760 (BƯỚC 148), 13 nguồn gồm hai bản lưu docs/lich-su/; nạp lại 01/10/2026 (13/13 URL trả 200 và khớp từng byte với git show). Đo độ tươi bằng một câu hỏi phủ định (không thấy BƯỚC 149 hay số cao hơn trong STATE.md) — yếu hơn một phép đo dương, đã xem nhãn 13 nguồn trên giao diện.",
+      "cau_hoi": "I am about to write BƯỚC 150 into docs/STATE.md: BƯỚC 150 ranks context sources by token-turns (characters divided by 3, multiplied by the number of API calls remaining after the item enters the context) over two real project sessions; after BƯỚC 145 shortened CLAUDE.md and SKILL.md, no single source controlled by the repository (hook output, test or gate output, the HANDOFF read, a tool result) exceeds about 2 percent of the total, so BƯỚC 150 changes no repository document except adding the --xep-hang mode to tools/do_token_phien.py; the remaining large costs are the skill and tool listings from the user's plugins and the habit of keeping the context large. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a sentence that says a specific hook output, the SessionStart banner, the HANDOFF.md read, or a gate output must be shortened or is the main cost; or a sentence that says the plugin and tool listings are controlled by the repository. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "grep -n -i -E 'token|ngữ cảnh' CLAUDE.md docs/HANDOFF.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md SKILL.md references/bay.md references/cong-thuc-chay.md references/soat-cheo-notebooklm.md -> 2 dòng: CLAUDE.md 7 (nói nạp file này tốn ở mọi lượt — cùng chiều) và bay.md 156 (nói 'tách token' của bộ tách từ vựng, khác nghĩa). grep -n -i -E 'banner|bản tin|plugin|connector' CLAUDE.md HANDOFF.md SKILL.md -> 4 dòng, đều nói bản tin mở phiên IN ra gì; không dòng nào bảo nó phải rút ngắn hay là chi phí chính, không dòng nào nói danh sách plugin/công cụ do repo quản."
+    },
     "BƯỚC 149": {
       "ngay": "2026-09-30",
       "nguon": [
