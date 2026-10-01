@@ -52,6 +52,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from duyet_repo import duyet  # noqa: E402  — bỏ qua worktree lồng, BƯỚC 147
+
 GOC = Path(__file__).resolve().parent.parent
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -121,14 +124,15 @@ def goi_repo_nhap(goc: Path = GOC) -> frozenset[str]:
     chính file này mang tên `altair`, `matplotlib` trong hai hằng số, và
     một lượt grep sẽ đếm chúng là "có dùng".
 
-    Quần thể: mọi `.py` dưới gốc repo trừ `.venv`. File nào không nạp được
+    Quần thể: mọi `.py` dưới gốc repo trừ `.venv` và trừ worktree lồng
+    (`duyet_repo.duyet`, BƯỚC 147). File nào không nạp được
     bằng `ast.parse` thì BỎ QUA — cổng 2 lo việc ấy, và nuốt lỗi ở đây là
     đúng chỗ: phép đo này không phải phép kiểm cú pháp.
     """
     import ast
     ban_do = ban_do_module_goi()
     ra: set[str] = set()
-    for p in goc.rglob("*.py"):
+    for p in duyet(goc, "*.py"):
         if ".venv" in p.parts:
             continue
         try:

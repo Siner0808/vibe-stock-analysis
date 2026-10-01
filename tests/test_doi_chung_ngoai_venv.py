@@ -26,6 +26,9 @@ from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
+sys.path.insert(0, str(GOC / "tools"))
+
+import duyet_repo  # noqa: E402
 
 DAI_TOI_THIEU = 60
 
@@ -111,7 +114,7 @@ def test_KHONG_file_nao_cua_repo_IMPORT_ma_ngoai_venv():
     """
     ten_mo_dun = {Path(k).stem for k in NGOAI_VENV}
     pham = []
-    for f in sorted(GOC.rglob("*.py")):
+    for f in sorted(duyet_repo.duyet(GOC, "*.py")):
         if any(p in f.parts for p in (".venv", "__pycache__", "scratch")):
             continue
         if f.relative_to(GOC).as_posix() in NGOAI_VENV:
