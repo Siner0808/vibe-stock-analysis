@@ -25,9 +25,10 @@ Ba điều phải biết khi đọc số:
    của ``get_usage`` (116.978 ký tự ra 39.004 token; 15.666 ký tự ra 5.223).
    Không có bộ đếm token chính thức trên máy này.
 """
+import bisect
 import json
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import median
 
@@ -38,6 +39,15 @@ NGUONG_GHI_LAI = 200_000
 
 #: Ký tự trên mỗi token của văn bản dự án (tiếng Việt lẫn mã). ƯỚC LƯỢNG.
 KY_TU_MOI_TOKEN = 3.0
+
+#: Một khối ảnh trong ``tool_result`` quy đổi sang chừng này ký tự. ƯỚC LƯỢNG:
+#: ảnh không đếm theo độ dài base64 mà theo kích thước ảnh.
+KY_TU_MOI_ANH = 1500
+
+#: Loại đính kèm KHÔNG vào ngữ cảnh của mô hình. Suy ra, chưa có tài liệu
+#: chính thức: cộng ``prompt_snapshot`` vào thì phần "Messages" ước ra 353k
+#: token, vượt 316k mà ``get_usage`` báo; bỏ nó thì ra 287k, gần hơn nhiều.
+LOAI_TRU = frozenset({"att:prompt_snapshot"})
 
 #: Tài liệu nạp tự động vào ngữ cảnh (tương đối theo gốc repo, hoặc ``~/``).
 TAI_LIEU_NAP = (
@@ -101,6 +111,81 @@ def uoc_token(so_ky_tu: int) -> int:
     return round(so_ky_tu / KY_TU_MOI_TOKEN)
 
 
+def _do_dai_ket_qua(noi_dung) -> int:
+    if isinstance(noi_dung, str):
+        return len(noi_dung)
+    if not isinstance(noi_dung, list):
+        return 0
+    return sum(len(x.get("text", "")) if x.get("type") == "text" else KY_TU_MOI_ANH
+               for x in noi_dung if isinstance(x, dict))
+
+
+def _muc_cua_dong(o: dict, ten_cong_cu: dict) -> list[tuple[str, int]]:
+    """[(nhãn nguồn, số ký tự)] mà MỘT dòng transcript đưa vào ngữ cảnh."""
+    ra: list[tuple[str, int]] = []
+    kieu = o.get("type")
+    if kieu == "attachment":
+        a = o.get("attachment") or {}
+        ra.append(("att:" + str(a.get("type")), len(json.dumps(a, ensure_ascii=False))))
+        return ra
+    m = o.get("message")
+    c = m.get("content") if isinstance(m, dict) else None
+    if isinstance(c, str):
+        ra.append((f"{kieu}:text", len(c)))
+    elif isinstance(c, list):
+        for b in c:
+            if not isinstance(b, dict):
+                continue
+            loai = b.get("type")
+            if loai == "tool_use":
+                ten_cong_cu[b.get("id")] = b.get("name", "?")
+                ra.append(("tool_use_input", len(json.dumps(b.get("input"), ensure_ascii=False))))
+            elif loai == "tool_result":
+                ten = ten_cong_cu.get(b.get("tool_use_id"), "?")
+                if ten.startswith("mcp__"):
+                    ten = ten.split("__")[-1]
+                ra.append(("result:" + ten, _do_dai_ket_qua(b.get("content"))))
+            elif loai == "text":
+                ra.append((f"{kieu}:text", len(b.get("text", ""))))
+    return ra
+
+
+def xep_hang(dong: list[str]) -> dict:
+    """Xếp hạng nguồn ngữ cảnh theo **token-lượt** = ký tự/3 × số lượt API còn lại.
+
+    Một thứ nhỏ nhưng vào sớm tốn hơn một thứ lớn vào muộn, vì nó bị gửi lại ở
+    MỌI lượt gọi sau đó. Reset ở mỗi lần compact: nội dung trước đó không còn
+    trong ngữ cảnh. Hàm thuần. ``tong`` là ước lượng (3,0 ký tự/token).
+    """
+    hang = [json.loads(d) for d in dong if d.strip().startswith("{")]
+    moc = [i for i, o in enumerate(hang)
+           if o.get("isCompactSummary")
+           or (o.get("type") == "system" and o.get("subtype") == "compact_boundary")]
+    gioi = [0] + moc + [len(hang)]
+    chi_phi: Counter = Counter()
+    luot = 0
+    for dau, cuoi in zip(gioi, gioi[1:]):
+        doan = hang[dau:cuoi]
+        da_thay: set = set()
+        vi_tri: list[int] = []
+        for i, o in enumerate(doan):
+            m = o.get("message")
+            if isinstance(m, dict) and m.get("usage"):
+                khoa = m.get("id") or o.get("uuid") or f"dong{i}"
+                if khoa not in da_thay:
+                    da_thay.add(khoa)
+                    vi_tri.append(i)
+        n = len(vi_tri)
+        luot += n
+        ten_cong_cu: dict = {}
+        for i, o in enumerate(doan):
+            con_lai = n - bisect.bisect_right(vi_tri, i)
+            for nhan, so_ky_tu in _muc_cua_dong(o, ten_cong_cu):
+                if con_lai > 0 and nhan not in LOAI_TRU:
+                    chi_phi[nhan] += so_ky_tu / KY_TU_MOI_TOKEN * con_lai
+    return {"luot": luot, "tong": sum(chi_phi.values()), "theo_nguon": dict(chi_phi)}
+
+
 def kich_co_tai_lieu() -> list[tuple[str, int | None]]:
     """[(tên, số ký tự)] — ``None`` nếu file không có."""
     ra: list[tuple[str, int | None]] = []
@@ -127,7 +212,22 @@ def _in_phien(duong: Path) -> None:
               f"  {v['ghi_cache']:>10,} ghi cache")
 
 
+def _in_xep_hang(duong: list[Path]) -> None:
+    r: dict = {"luot": 0, "tong": 0.0, "theo_nguon": Counter()}
+    for p in duong:             # MỖI file một lượt: đoạn compact không được nối qua file
+        x = xep_hang(p.read_text(encoding="utf-8").splitlines())
+        r["luot"] += x["luot"]
+        r["tong"] += x["tong"]
+        r["theo_nguon"].update(x["theo_nguon"])
+    print(f"{r['luot']:,} lượt API · {r['tong'] / 1e6:,.1f}M token-lượt nội dung (ước)")
+    for nhan, v in sorted(r["theo_nguon"].items(), key=lambda x: -x[1])[:16]:
+        print(f"  {nhan:36s} {v / 1e6:8.1f}M  {v * 100 / r['tong']:5.1f}%")
+
+
 def main(tham_so: list[str]) -> int:
+    if tham_so[:1] == ["--xep-hang"] and len(tham_so) > 1:
+        _in_xep_hang([Path(t) for t in tham_so[1:]])
+        return 0
     if tham_so == ["--tai-lieu"]:
         for ten, n in kich_co_tai_lieu():
             print(f"{ten:60s} " + ("THIẾU" if n is None

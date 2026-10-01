@@ -137,3 +137,88 @@ def test_ban_luu_ton_tai_va_khong_rong():
         p = GOC / "docs" / "lich-su" / ten
         assert p.exists(), f"mất bản lưu {ten}"
         assert len(p.read_text(encoding="utf-8")) >= toi_thieu
+
+
+# ── 5. xếp hạng token-lượt (BƯỚC 150) ───────────────────────────────────
+
+def _goi(id_):
+    """Một lượt gọi API (dòng assistant có usage)."""
+    return [json.dumps({"type": "assistant", "message": {
+        "id": id_, "usage": {"input_tokens": 1, "output_tokens": 1}}})]
+
+
+def _att(loai, n_ky_tu):
+    return [json.dumps({"type": "attachment", "attachment": {
+        "type": loai, "noi_dung": "x" * n_ky_tu}})]
+
+
+def _chi_phi(r, nhan):
+    return r["theo_nguon"].get(nhan, 0)
+
+
+def test_chi_phi_la_ky_tu_chia_3_nhan_so_luot_CON_LAI():
+    """Một mục vào trước 3 lượt: cùng một mục, gấp 3 lần cái vào trước 1 lượt."""
+    dong = _att("a", 300) + _goi("m1") + _goi("m2") + _goi("m3")
+    r = D.xep_hang(dong)
+    dai = len(json.dumps({"type": "a", "noi_dung": "x" * 300}, ensure_ascii=False))
+    assert r["luot"] == 3
+    assert _chi_phi(r, "att:a") == dai / D.KY_TU_MOI_TOKEN * 3
+
+
+def test_vao_SOM_dat_hon_vao_MUON_cung_kich_co():
+    dong = (_att("aaa", 600) + _goi("m1") + _att("bbb", 600) + _goi("m2") + _goi("m3"))
+    r = D.xep_hang(dong)
+    assert _chi_phi(r, "att:aaa") == 3 * _chi_phi(r, "att:bbb") / 2
+
+
+def test_muc_vao_SAU_luot_cuoi_khong_ton_gi():
+    r = D.xep_hang(_goi("m1") + _att("tre", 900))
+    assert _chi_phi(r, "att:tre") == 0
+
+
+def test_compact_RESET_noi_dung_truoc_do_khong_con_bi_tinh():
+    """Mục trước ranh giới compact chỉ trả cho các lượt TRƯỚC ranh giới."""
+    ranh = [json.dumps({"type": "system", "subtype": "compact_boundary"})]
+    dong = _att("cu", 600) + _goi("m1") + ranh + _goi("m2") + _goi("m3")
+    r = D.xep_hang(dong)
+    dai = len(json.dumps({"type": "cu", "noi_dung": "x" * 600}, ensure_ascii=False))
+    assert _chi_phi(r, "att:cu") == dai / D.KY_TU_MOI_TOKEN * 1    # chỉ m1
+    assert r["luot"] == 3
+
+
+def test_nhieu_dong_cung_message_id_la_MOT_luot():
+    dong = _att("a", 300) + _goi("m1") + _goi("m1") + _goi("m1")
+    assert D.xep_hang(dong)["luot"] == 1
+
+
+def test_prompt_snapshot_bi_loai():
+    assert "att:prompt_snapshot" in D.LOAI_TRU
+    r = D.xep_hang(_att("prompt_snapshot", 90_000) + _goi("m1"))
+    assert "att:prompt_snapshot" not in r["theo_nguon"] and r["tong"] == 0
+
+
+def test_ket_qua_cong_cu_mang_TEN_cong_cu_cua_no():
+    dong = [
+        json.dumps({"type": "assistant", "message": {"id": "m0", "usage": {"input_tokens": 1}, "content": [
+            {"type": "tool_use", "id": "t1", "name": "Bash", "input": {"command": "ls"}},
+            {"type": "tool_use", "id": "t2", "name": "mcp__Claude_Browser__computer", "input": {}}]}}),
+        json.dumps({"type": "user", "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "t1", "content": "a" * 300},
+            {"type": "tool_result", "tool_use_id": "t2", "content": [
+                {"type": "text", "text": "b" * 30}, {"type": "image", "source": {}}]}]}}),
+    ] + _goi("m1")
+    r = D.xep_hang(dong)
+    assert _chi_phi(r, "result:Bash") == 300 / D.KY_TU_MOI_TOKEN
+    assert _chi_phi(r, "result:computer") == (30 + D.KY_TU_MOI_ANH) / D.KY_TU_MOI_TOKEN
+
+
+def test_dau_vao_tool_use_tren_CUNG_dong_voi_luot_goi_khong_tinh_chinh_no():
+    """Dòng assistant vừa là lượt gọi vừa mang tool_use: ngữ cảnh của lượt ấy
+    chưa chứa đầu vào của nó, nên chỉ trả cho các lượt SAU."""
+    dong = [json.dumps({"type": "assistant", "message": {
+        "id": "m1", "usage": {"input_tokens": 1}, "content": [
+            {"type": "tool_use", "id": "t1", "name": "Bash",
+             "input": {"command": "x" * 300}}]}})] + _goi("m2") + _goi("m3")
+    r = D.xep_hang(dong)
+    dai = len(json.dumps({"command": "x" * 300}, ensure_ascii=False))
+    assert _chi_phi(r, "tool_use_input") == dai / D.KY_TU_MOI_TOKEN * 2

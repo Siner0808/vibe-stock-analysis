@@ -46,12 +46,14 @@ MIEN_TRU_DA_DANH_DAU = ("A dated record that already carries a later marker "
                         "contradiction.")
 #: Tiền tố phán quyết mà `tests/test_soat_notebooklm.py::HOP_LE` nhận.
 HOP_LE = ("THẬT", "SAI", "CHƯA KIỂM ĐƯỢC")
-#: Mười một nguồn của sổ tay — nạp lại 27/09/2026 từ `main` `a19915a`.
+#: Mười ba nguồn của sổ tay — nạp lại 01/10/2026 từ `main` `89fe760` (BƯỚC 150):
+#: thêm hai bản lưu NGUYÊN VĂN `CLAUDE.md` / `SKILL.md` trước khi rút gọn (BƯỚC 145).
 NGUON_MAC_DINH = [
     "CLAUDE.md", "MO-XE-KIEN-TRUC.md", "NGUYEN-TAC-DO-LUONG.md", "STATE.md",
     "HANDOFF.md", "SKILL.md", "references/loi-da-mac.md", "references/bay.md",
     "references/cong-thuc-chay.md", "docs/TIEU-CHI-DOC-TRUOC.md",
     "references/soat-cheo-notebooklm.md",
+    "lich-su/CLAUDE-md-2026-09-30.md", "lich-su/SKILL-md-2026-09-30.md",
 ]
 
 

@@ -20200,3 +20200,84 @@ null` được nhận, rồi commit sàng điền nó) và sửa `kiem_so_ung_vi
 
 **Điều BƯỚC này KHÔNG nói.** Không có ứng viên nào; không đổi cách chấm điểm, hành
 vi giao dịch hay số đo nào.
+
+## BƯỚC 150 — XẾP HẠNG NGỮ CẢNH THEO TOKEN-LƯỢT: SAU BƯỚC 145 KHÔNG CÒN MỘT NGUỒN DO REPO QUẢN NÀO VƯỢT ~2%; THÊM `--xep-hang` VÀO DỤNG CỤ ĐO (01/10/2026)
+
+Leader giao (30/09, người dùng: "token tốn hơn thường ngày, tối ưu code"): đo cái gì
+làm phình ngữ cảnh mỗi lượt, chỉ sửa chỗ đo được là có lợi.
+
+### Đo
+
+```
+./.venv/Scripts/python.exe tools/do_token_phien.py --xep-hang <phien>.jsonl [...]
+```
+
+**Token-lượt** = ký tự/3 × số lượt API còn lại sau khi mục ấy vào ngữ cảnh, reset ở
+mỗi lần compact. Một mục nhỏ nhưng vào sớm tốn hơn một mục lớn vào muộn, vì bị gửi lại
+ở MỌI lượt sau. Hai phiên dự án thật (1.725 lượt, 518,7M token-lượt nội dung, ƯỚC):
+
+| nguồn | % | ghi chú |
+|---|---|---|
+| `att:nested_memory` (bản `CLAUDE.md` gắn vào) | 38,6 | trước BƯỚC 145 |
+| `tool_use_input` (lệnh/script agent gõ) | 14,4 | thói quen của agent |
+| kết quả `Bash` + `PowerShell` | 13,6 | rải trên hàng trăm lệnh, xem dưới |
+| kết quả `Read` | 8,2 | `HANDOFF.md` 1,6 · `paper_trading.py` ~1 |
+| danh sách skill + công cụ hoãn + hướng dẫn MCP + `instructions` | 12,7 | MÔI TRƯỜNG, không phải repo |
+| `user:text` | 2,1 | gồm tin nhắn giữa các phiên |
+| `att:hook_success` | 0,5 | cửa tự động + bản tin mở phiên |
+
+Trong 13,6% của `Bash`: `grep` 4,4 (289 lệnh) · `sed -n` 3,3 (84) · `git` 1,2 · `gh` 0,6 ·
+`pytest` 0,4 · mỗi `tools/*` không quá 0,4. Hai loại đầu là agent ĐỌC file qua shell, không
+phải một công cụ của repo in quá nhiều.
+
+**`att:prompt_snapshot` bị loại** (`LOAI_TRU`). Suy ra, chưa có tài liệu chính thức: cộng nó
+vào thì "Messages" của phiên chính ước 353k token, vượt 316k mà `get_usage` báo; bỏ nó thì ra
+287k. Nếu suy sai, mọi phần trăm trên hạ ~20%, thứ tự giữ nguyên.
+
+### Dự đoán sau BƯỚC 145 — CHƯA đo lại
+
+`CLAUDE.md` dài còn ~21% bản cũ, nên `nested_memory` ước về ~8% (tiết kiệm ~30 điểm phần
+trăm token-lượt nội dung); kết quả `Read` do gọi skill (hai tệp `tool-results/*.txt` 48k
+ký tự chứa nguyên `SKILL.md` cũ) cũng nhỏ đi. Đây là phép nhân tỉ lệ cỡ file, không phải
+số đo; đo lại bằng chính lệnh trên khi có phiên mới sau 30/09, và đọc con số mới.
+
+### Giả thuyết đã BÁC
+
+- "Output của hook/bản tin mở phiên đáng kể": `att:hook_success` 0,5%; mỗi lần tiêm `HỒ SƠ`
+  ~400 ký tự (74 lần trong hai phiên).
+- "Output của cổng/test là thủ phạm": `pytest` 0,4%; agent đã ghi ra log thay vì in.
+- "Đọc `HANDOFF.md` là chi phí chính": 1,6% — lớn nhất trong nhóm `Read`, và vẫn nhỏ.
+- "Mã sinh ra nhiều" đã bác ở BƯỚC 145; lần này không có công cụ nào của repo vượt 0,4%.
+
+### Việc đã làm — chỉ MỘT thay đổi mã
+
+- `tools/do_token_phien.py`: thêm `xep_hang()` (hàm thuần) và cờ `--xep-hang`; 8 test mới
+  (`tests/test_do_token_phien.py`, tổng 22). Đục **11/11 đỏ**, gồm ca dòng vừa là lượt gọi
+  vừa mang `tool_use` (`bisect_left` vs `bisect_right`) mà bộ test đầu không phân biệt được.
+- `tools/so_tay.py`: `NGUON_MAC_DINH` thêm hai bản lưu `docs/lich-su/` (sổ tay nay có 13
+  nguồn ghim `@89fe760`, nạp 01/10/2026; 13/13 URL trả 200 và khớp từng byte với `git show`).
+- **Không sửa tài liệu nào.** Không thu gọn `HANDOFF.md` (1,6% không đáng rủi ro cho tài liệu
+  đứng đầu thứ tự ưu tiên và có 15 test canh).
+
+### Còn lại — việc của NGƯỜI DÙNG, không phải của mã
+
+1. **Môi trường ~12,7%:** danh sách skill + công cụ hoãn + MCP của các plugin không dùng cho
+   dự án này (small-business, marketing, shopify, tradingview…). Tắt chúng là giảm cố định
+   ngữ cảnh mỗi lượt; mức giảm chính xác chưa đo.
+2. **Giữ ngữ cảnh nhỏ:** `/compact` hoặc mở phiên mới sau mỗi BƯỚC; compact trước khi nghỉ
+   quá ~1 giờ (cache hết hạn → ghi lại cả ngữ cảnh).
+3. **Tin nhắn giữa các phiên** và script dài viết thẳng vào lệnh gọi đều ở lại trong ngữ cảnh
+   (`tool_use_input` 14,4% + `user:text` 2,1%): viết script dùng lại vào `tools/`.
+
+### Soát chéo
+
+Nguồn nạp lại `@89fe760` (13 nguồn, thêm hai bản lưu). Sổ tay: *"không tìm thấy câu nào nói
+ngược"*, hai lượt (một phép đo độ tươi, một cho kết luận BƯỚC này). Tự kiểm bằng `grep`
+(`docs/soat-notebooklm.json`): không câu nào bảo bản tin/hook/`HANDOFF.md` phải rút ngắn.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đo hạn mức gói Pro tính thế nào; token-lượt là trọng số TƯƠNG ĐỐI, không phải hạn mức.
+- Chỉ HAI phiên, từ 26/09 tới 30/09; phiên khác (kể cả phiên leader) chưa được xếp hạng.
+- Quy đổi ảnh 1.500 ký tự/ảnh là ƯỚC LƯỢNG (`KY_TU_MOI_ANH`); 20 khối ảnh trong hai phiên.
+- Không đổi hành vi giao dịch hay số đo nào.
