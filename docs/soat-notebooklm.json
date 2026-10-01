@@ -1999,6 +1999,54 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "grep -n -i -E 'token|ngữ cảnh' CLAUDE.md docs/HANDOFF.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md SKILL.md references/bay.md references/cong-thuc-chay.md references/soat-cheo-notebooklm.md -> 2 dòng: CLAUDE.md 7 (nói nạp file này tốn ở mọi lượt — cùng chiều) và bay.md 156 (nói 'tách token' của bộ tách từ vựng, khác nghĩa). grep -n -i -E 'banner|bản tin|plugin|connector' CLAUDE.md HANDOFF.md SKILL.md -> 4 dòng, đều nói bản tin mở phiên IN ra gì; không dòng nào bảo nó phải rút ngắn hay là chi phí chính, không dòng nào nói danh sách plugin/công cụ do repo quản."
     },
+    "BƯỚC 151": {
+      "ngay": "2026-10-01",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md"
+      ],
+      "_do_tuoi": "Nguồn @89fe760 (13 nguồn). Hỏi độ tươi trước, cùng phiên 01/10/2026: sổ tay trả '## BƯỚC 148 — P3b-2: TAB \"🧪 CHẤM BÓNG\" …' — khớp bản ghim. main 0022cca có thêm BƯỚC 150; git diff --stat 89fe760 0022cca: chỉ STATE.md trong số các nguồn đổi, nên HANDOFF · CLAUDE.md · SKILL.md mà câu hỏi nhắm vào là bản hiện hành. Không nạp lại.",
+      "cau_hoi": "I am about to write BƯỚC 151 into docs/STATE.md: periodic audit round 8 concludes that (1) every sentence in docs/HANDOFF.md that calls the DO 18 table the current table, gives the slippage-ON by-day row as -1,48%, or says CLAUDE.md has not updated the table is now outdated, because CLAUDE.md now carries the two slippage-ON rows of DO 22 (by-day -1,68%); (2) the notebook sources started including docs/lich-su/*.md at BUOC 150, not BUOC 145. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the DO 18 table in CLAUDE.md is the current table, or that CLAUDE.md has not yet updated the table after DO 22, or that the two slippage-ON rows in CLAUDE.md are the DO 20 numbers, or that the notebook already read docs/lich-su at BUOC 145. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md, '## Luồng thông tin thứ hai — NotebookLM': 'Nguồn của sổ tay gồm cả docs/lich-su/*.md (từ BƯỚC 145)'.",
+          "tu_kiem": "git show 89fe760:.claude/skills/quy-trinh-lam-viec/SKILL.md | grep -n '(từ BƯỚC 145)' -> dòng 314. tools/doi_chieu_trich_dan.py báo LỆCH ở ký tự 51 vì cây làm việc ĐÃ sửa 145 -> 150 trong lượt này.",
+          "phan_quyet": "THẬT — đúng phát hiện của lượt soát; đã sửa thành 'từ BƯỚC 150'."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md mục 5: 'Hai dòng BẬT trong CLAUDE.md nay là số ĐO 20.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py -> KHỚP — HANDOFF.md. CLAUDE.md:174-175 ghi ĐO 22 cho hai dòng BẬT.",
+          "phan_quyet": "THẬT — hết đúng từ 30/09; lượt này thêm 🔴 BƯỚC 145 ngay dưới."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md mục 5: '`CLAUDE.md` chưa cập nhật bảng.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py -> KHỚP — HANDOFF.md.",
+          "phan_quyet": "THẬT — cùng chỗ với phát hiện trên, cùng ô 🔴."
+        },
+        {
+          "noi_dung": "CLAUDE.md: '**Bảng hiện hành** — ĐO 18 (26/09/2026, sổ đã làm trung thực) cho hai dòng' — sổ tay đọc là bảng hiện hành là ĐO 18.",
+          "tu_kiem": "grep -n -A2 '^\\*\\*Bảng hiện hành\\*\\*' CLAUDE.md -> 174-175: '... cho hai dòng' / 'TẮT; ĐO 22 (30/09/2026, sau BƯỚC 143 ...) cho hai dòng BẬT.' doi_chieu_trich_dan KHỚP phần trích.",
+          "phan_quyet": "SAI — sổ tay cắt câu ở chỗ ngắt dòng cứng; câu đủ nói ĐO 18 cho hai dòng TẮT, ĐO 22 cho hai dòng BẬT. Không sửa."
+        },
+        {
+          "noi_dung": "BỎ SÓT: sổ tay không nêu docs/HANDOFF.md mục 2 '> hiện hành nay là bảng ĐO 18 trong `CLAUDE.md`. Dòng theo ngày trượt giá BẬT ra −1,48%' — đúng ví dụ thứ nhất của câu hỏi.",
+          "tu_kiem": "git show 89fe760:docs/HANDOFF.md | grep -n 'hiện hành nay là bảng ĐO 18' -> dòng 133 (câu bắt đầu ở 132, ngắt dòng). Câu NẰM trong nguồn.",
+          "phan_quyet": "THẬT là bỏ sót — grep của lượt soát bắt nó trước; đã thêm 🔴 ĐO 22 ngay dưới. Thêm một lần sổ tay lọt câu có trong nguồn (tiền lệ BƯỚC 138 · 139 · 140)."
+        }
+      ]
+    },
     "BƯỚC 149": {
       "ngay": "2026-09-30",
       "nguon": [

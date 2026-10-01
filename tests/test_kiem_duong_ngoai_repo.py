@@ -159,6 +159,38 @@ def test_QUAN_THE_dung_chung_chu_KHONG_go_lai(tmp_path):
     assert K.TAI_LIEU is S.TAI_LIEU
 
 
+def test_BAN_LUU_la_SU_LIEU_theo_TEN_FILE_chu_khong_theo_CHU_tren_dong(tmp_path):
+    """Lỗi 118 (lượt soát 8, 01/10/2026): BƯỚC 145 thêm hai bản lưu vào
+    `TAI_LIEU` dùng chung, nên công cụ này đọc cả chúng — và bản lưu KHÔNG
+    được sửa, tức không mang nổi cửa thoát. Ba lần nêu `~/.claude/CLAUDE.md`
+    trong bản lưu thành ba con trỏ chết không bao giờ gỡ được.
+
+    Phán theo TÊN FILE: một dòng ở tài liệu SỐNG nhắc chữ `docs/lich-su/`
+    vẫn phải ra chết.
+    """
+    ban_luu = "docs/lich-su/CLAUDE-md-2026-09-30.md"
+    assert ban_luu in K.TAI_LIEU and ban_luu.startswith(K.BAN_LUU)
+    goc = _cay(tmp_path, "> đích `~/mat/a.md` bị ghi.\n", ten=ban_luu)
+    # tài liệu SỐNG cũng nằm dưới `docs/` — bắt phép so tiền tố quá rộng
+    _cay(tmp_path, "| `~/mat/a.md` | bản cũ ở `docs/lich-su/` |\n",
+         ten="docs/HANDOFF.md")
+    ket = K.phan_loai(K.thu_thap(goc), _nha(tmp_path, "con/song.md"))
+    assert ket["su_lieu"] == [(ban_luu, 1, "~/mat/a.md")]
+    assert ket["chet"] == [("docs/HANDOFF.md", 1, "~/mat/a.md")]
+
+
+def test_BAN_LUU_THAT_khong_bao_gio_ra_CHET(tmp_path):
+    """Trên repo THẬT, nhà RỖNG (mọi đường đều vắng): không bản ghi nào của
+    bản lưu được rơi vào `chet`. Đối chứng dương: bản lưu PHẢI có đường để
+    xét, kẻo phép thử xanh vì quần thể rỗng.
+    """
+    ket = K.phan_loai(K.thu_thap(GOC), _nha(tmp_path))
+    cua_ban_luu = [r for o in ket.values() for r in o
+                   if r[0].startswith(K.BAN_LUU)]
+    assert cua_ban_luu, "ban luu khong con duong ~/ nao - phep thu rong"
+    assert not [r for r in ket["chet"] if r[0].startswith(K.BAN_LUU)]
+
+
 def test_CONG_CU_NAY_CO_Y_KHONG_nam_trong_CI():
     """Một cổng luôn đỏ là một cổng bị tắt, và gác bị tắt thì bằng không.
 

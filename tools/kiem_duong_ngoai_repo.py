@@ -116,6 +116,13 @@ CUA_THOAT = re.compile(r"<!--\s*duong-da-chet:\s*(\S[^>]*?)\s*-->")
 #: "LẦN THỨ BA" ở đầu file.
 MA_INLINE = re.compile(r"`[^`]*`")
 
+#: Thư mục BẢN LƯU nguyên văn (BƯỚC 145). `TAI_LIEU` dùng chung nên công cụ
+#: này đọc cả nó — nhưng bản lưu **không được sửa** (`docs/HANDOFF.md` bảng
+#: đầu), tức không mang nổi cửa thoát. Đường chết trong đó là SỬ LIỆU theo
+#: định nghĩa; xếp nó vào `chet` là một cổng không bao giờ xanh được (lỗi 118,
+#: lượt soát 8: ba lần nêu `~/.claude/CLAUDE.md` trong bản lưu).
+BAN_LUU = "docs/lich-su/"
+
 
 def _bo_dau_cau(s: str) -> str:
     """Cắt dấu câu dính ở đuôi. `/` giữ lại — nó phân biệt thư mục."""
@@ -149,14 +156,15 @@ def phan_loai(ban_ghi: list[tuple[str, int, str, str]],
 
     `su_lieu` là đường không còn nhưng dòng nêu nó mang **cửa thoát tường
     minh kèm lý do** — quy ước `docs/HANDOFF.md` mục 4 cho phép giữ, và
-    giữ thì phải nói ra.
+    giữ thì phải nói ra — hoặc dòng nằm trong một BẢN LƯU (`BAN_LUU`).
     """
     ket: dict[str, list] = {"co": [], "su_lieu": [], "chet": []}
     for ten, so_dong, duong, dong in ban_ghi:
         that = nha / duong[2:]
         if that.exists():
             ket["co"].append((ten, so_dong, duong))
-        elif CUA_THOAT.search(MA_INLINE.sub("", dong)):
+        elif (ten.startswith(BAN_LUU)
+              or CUA_THOAT.search(MA_INLINE.sub("", dong))):
             ket["su_lieu"].append((ten, so_dong, duong))
         else:
             ket["chet"].append((ten, so_dong, duong))

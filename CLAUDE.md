@@ -44,7 +44,7 @@ nhưng từ 18/09/2026 người dùng đã **TẮT cả bốn** (`enabled=False`
 |---|---|---|
 | `project` | `<repo>/AGENTS.md` | vnai BỎ QUA vì file mang dấu mốc đời cũ |
 | `antigravity` | `~/.gemini/GEMINI.md` | bị ghi khi còn bật |
-| `claude` | `~/.claude/CLAUDE.md` | bị ghi khi còn bật |
+| `claude` | `~/.claude/CLAUDE.md` | bị ghi khi còn bật <!-- duong-da-chet: DICH ghi cua vnai, khong phai file dang co; file chi chua khoi vnai, nguoi dung go sau BUOC 126, vang tu BUOC 139 (29/09) --> |
 | `codex` | `~/.codex/AGENTS.md` | bị ghi khi còn bật |
 
 `AGENTS.md` của repo an toàn **vì nó CŨ** (mở đầu `# Vnstock Vibe Onboarding`,
