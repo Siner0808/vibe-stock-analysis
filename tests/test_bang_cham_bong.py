@@ -72,6 +72,22 @@ def test_TOM_TAT_dem_K_la_TONG_va_tuan_ISO_cua_hom_nay():
     print(f"PASS  tom tat: {t}")
 
 
+def test_CHUA_SANG_hien_rieng_va_KHONG_dem_vao_qua_sang():
+    """BƯỚC 153: `qua_sang: null` = khai rồi, vòng sàng chưa chạy. Không phải
+    rớt sàng, không phải chờ chấm — và có `ket` cũng không được chấm nó."""
+    so = copy.deepcopy(SO)
+    so["ung_vien"]["D"] = _uv("2026-10-07", None)
+    b = cb.bang_cong_khai(so, ket={"D": (KET_QUA, 60, 55)})
+    dong = b.set_index("Ứng viên")
+    assert (dong.loc["D", "Sàng"], dong.loc["D", "Trạng thái"]) == ("chua", "CHUA SANG")
+    assert dict(zip(b["Ứng viên"], b["Sàng"])) == {"C": "qua", "A": "rot", "B": "qua",
+                                                    "D": "chua"}
+    t = cb.tom_tat_so(so, "2026-10-07")
+    assert (t["K"], t["qua_sang"], t["tuan_nay"]) == (4, 2, 3), t
+    assert t["nguong"] == pytest.approx(cb.ALPHA / 4)
+    print(f"PASS  chua sang: {dict(dong.loc['D'])}; tom tat {t}")
+
+
 def test_SO_SAI_KHUON_thi_NO_khong_hien_nua_voi():
     hong = copy.deepcopy(SO)
     hong["ung_vien"]["A"]["spec"]["trong_so"] = {"news_score": 1.0}

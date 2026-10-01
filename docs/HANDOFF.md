@@ -463,6 +463,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   trên dữ liệu thật. P3b xong: dòng quyết định cho mã đang giữ (BƯỚC 146) và
 >   tab app "🧪 Chấm bóng" công khai sổ ứng viên (BƯỚC 148). Việc kế: P3c vòng
 >   sàng + ứng viên đầu tiên.
+>   ✅ **P3c-1 xong (BƯỚC 153):** khai với `qua_sang: null`, commit sàng điền
+>   true/false một lần; K đếm cả dòng chưa sàng. Cổng `tests/test_tien_dang_ky_git.py`
+>   đọc lịch sử git (đỏ ở repo nông; CI `fetch-depth: 0`). **PR khai ứng viên phải
+>   merge `--merge`, không squash** (squash đổi ngày commit → luật (e) đỏ trên
+>   `main`). Việc kế: P3c-2 vòng sàng, P3c-3 ứng viên đầu tiên.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 

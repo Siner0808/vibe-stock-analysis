@@ -199,6 +199,24 @@ def test_TRAN_5_ung_vien_MOI_TUAN():
     cb.kiem_so_ung_vien(so)
 
 
+def test_so_ung_vien_NHAN_qua_sang_NULL_va_TU_CHOI_kieu_khac():
+    """BƯỚC 153: commit khai mang `qua_sang: null` — trước đó kiem_so_ung_vien
+    đòi true/false, tức đòi kết quả của chính vòng sàng ngay lúc khai."""
+    for q in (None, True, False):
+        cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-05", q)}})
+    for q in (1, 0, "true", "null"):
+        with pytest.raises(ValueError, match="qua_sang"):
+            cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-05", q)}})
+
+
+def test_K_dem_CA_dong_CHUA_SANG():
+    """K = mọi dòng đã khai, kể cả chưa sàng — chiều chặt hơn (BƯỚC 153)."""
+    so = {"ung_vien": {"UV-001": _uv("2026-10-05", True), "UV-002": _uv("2026-10-05", None),
+                       "UV-003": _uv("2026-10-05", None)}}
+    assert cb.so_da_sang(so) == 3
+    assert cb.nguong(so) == pytest.approx(0.05 / 3)
+
+
 def test_so_ung_vien_TU_CHOI_spec_sai_va_thieu_truong():
     so = {"ung_vien": {"UV-001": _uv("2026-10-05")}}
     so["ung_vien"]["UV-001"]["spec"] = {"loai": "trong_so", "trong_so": {"news_score": 1.0}}
