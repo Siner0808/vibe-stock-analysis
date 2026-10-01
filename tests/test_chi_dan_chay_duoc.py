@@ -23,7 +23,9 @@ from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
+sys.path.insert(0, str(GOC / "tools"))
 
+import duyet_repo  # noqa: E402
 import extend_history as eh  # noqa: E402
 
 BO_QUA = {".venv", "scratch", "__pycache__", ".git", "node_modules",
@@ -51,7 +53,7 @@ def _quet() -> tuple[list[str], int]:
     """
     loi, so_file = [], 0
     for duoi in ("*.py", "*.md", "*.yml", "*.yaml", "*.toml"):
-        for f in GOC.rglob(duoi):
+        for f in duyet_repo.duyet(GOC, duoi):
             if any(p in BO_QUA for p in f.relative_to(GOC).parts):
                 continue
             try:

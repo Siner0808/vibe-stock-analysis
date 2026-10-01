@@ -49,6 +49,8 @@ from pathlib import Path
 
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from duyet_repo import duyet  # noqa: E402  — bỏ qua worktree lồng, BƯỚC 147
 sys.stdout.reconfigure(encoding="utf-8")
 
 #: Ký trong `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 11.
@@ -111,7 +113,7 @@ def be_mat(goc: Path = GOC) -> tuple[dict[str, list[str]], dict[str, list[str]],
     ten: dict[str, set[str]] = {}
     khoa: dict[str, set[str]] = {}
     quet = 0
-    for p in sorted(goc.rglob("*.py")):
+    for p in sorted(duyet(goc, "*.py")):
         if not _trong_repo(p):
             continue
         quet += 1

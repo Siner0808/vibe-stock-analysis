@@ -34,6 +34,7 @@ sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
 
 import chan_bia_so_lieu as cb  # noqa: E402
+import duyet_repo  # noqa: E402
 import chatbot_agent as ca  # noqa: E402
 
 NGUON = GOC / "chatbot_agent.py"
@@ -98,7 +99,7 @@ def test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET():
     """
     xau = []
     quet = 0
-    for p in sorted(GOC.rglob("*.py")):
+    for p in sorted(duyet_repo.duyet(GOC, "*.py")):
         if any(x in p.relative_to(GOC).parts for x in BO_QUA):
             continue
         quet += 1

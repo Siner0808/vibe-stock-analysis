@@ -1931,6 +1931,28 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "Sổ tay: 'không tìm thấy câu nào nói ngược'. grep -n 'record_decision\\|chỉ được gọi từ\\|không có dòng quyết định' trên CLAUDE.md, HANDOFF, STATE, MO-XE, NGUYEN-TAC, TIEU-CHI, SKILL + references bắt BA câu: docs/STATE.md BƯỚC 5 '`acted = 1` là dấu hiệu đúng vì `record_decision` chỉ được gọi từ `consider_entry`' — STATE LÀ nguồn, nên sổ tay BỎ SÓT; và docs/TIEU-CHI-DOC-TRUOC.md ĐO 21 hai câu 'Mã đang CÓ vị thế không có dòng quyết định' (viết 29/09, sau mốc nguồn @60d6598). Cả ba đã đánh dấu 🔴. Vế 'không có gì' của câu trả lời là SAI."
     },
+    "BƯỚC 147": {
+      "ngay": "2026-09-30",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md"
+      ],
+      "_do_tuoi": "Đo 30/09/2026 bằng câu hỏi riêng: sổ tay chỉ thấy STATE.md @60d6598 (BƯỚC 134 cao nhất) và SKILL.md @60d6598 (bản TRƯỚC khi rút gọn ở BƯỚC 145); repo ở BƯỚC 146 (`Grep '^## BƯỚC 14[4-7]' docs/STATE.md`). Lệch 12 BƯỚC; không nạp lại vì việc làm tươi là của phiên giám sát token (BƯỚC 145 ghi 'chưa nạp hai bản lưu').",
+      "cau_hoi": "I am about to write BƯỚC 147 into docs/STATE.md: every repo-wide scanner (tools/chan_bia_so_lieu.py --quet-repo, tools/kiem_cu_phap_311.py, tools/so_ban_goi.py and the scanner tests) must skip .claude/worktrees/ and any subdirectory that contains a .git entry, because the Claude desktop app creates session worktrees INSIDE the repo and rglob does not ask git; and tools/kiem_cu_phap_311.py must split its file list into batches because a single command line with every absolute path hits the Windows 32,767-character limit (WinError 206), which the growing repo reaches even without a nested worktree. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that a scanner's population must be every .py file under the repo root, or that kiem_cu_phap_311 must call the 3.11 interpreter exactly once for all files, or that worktrees must be placed inside the repo, or that --quet-repo or gate 4 runs fast enough that duplicated files cannot matter. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Grep (nhiều họ từ khoá: 'MỘT lần gọi|một lần gọi tiến trình|mọi .py dưới|Mọi .py trong repo|quét cả repo mất|worktree' trên tools/ tests/ docs/ .claude/skills; và 'rglob|WinError|dòng lệnh|toàn repo' trên CLAUDE.md, HANDOFF.md, hai file gốc, references/) -> sổ tay ÂM nhưng grep tìm ra HAI thứ: (1) tools/so_ban_goi.py:127 'Quần thể: mọi `.py` dưới gốc repo trừ `.venv`' thành SAI sau BƯỚC này — đã vá; (2) tools/chan_bia_so_lieu.py:568 'quét cả repo mất 24 giây' lệch số đo (41–119 s) — có từ trước, nằm trong quet_thay_doi mà phiên BƯỚC 149 đang sửa nên ghi nhận, không vá. Các câu còn lại (CLAUDE.md:349 'CI quét toàn repo') vẫn đúng."
+    },
     "BƯỚC 148": {
       "ngay": "2026-09-30",
       "nguon": [
