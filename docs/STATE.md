@@ -20504,3 +20504,85 @@ không lời khai nào nói phạm vi hook là *"chỉ bản checkout chính"*. 
 
 **Việc kế.** Sau merge và `git pull` bản checkout chính: ở một phiên mở trong
 worktree, để một file bịa chưa commit rồi dừng phiên — đo xem Stop có thấy không.
+
+## BƯỚC 153 — P3c-1: SỔ ỨNG VIÊN NHẬN `qua_sang: null` LÚC KHAI; CỔNG TIỀN ĐĂNG KÝ ĐỌC LỊCH SỬ GIT, ĐỎ Ở REPO NÔNG (01/10/2026)
+
+**Gỡ chỗ vướng BƯỚC 148.** `docs/ung-vien.json` bảo *khai TRƯỚC vòng sàng, không sửa
+dòng đã khai*, nhưng `cham_bong.kiem_so_ung_vien` bắt `qua_sang` là true/false — kết
+quả của chính vòng sàng. Hai luật không cùng thoả (lỗi 119).
+
+**Khuôn mới.** `qua_sang` là `null` (khai rồi, chưa sàng) hoặc true/false;
+`kiem_so_ung_vien` nhận `None`, từ chối mọi kiểu khác (`1`, `0`, `"true"`). Bảng công
+khai: `null` → cột Sàng `chua`, Trạng thái `CHUA SANG` — kể cả khi bên gọi đưa kết quả
+vào. `tom_tat_so["qua_sang"]` chỉ đếm `True`. **K (`so_da_sang`) giữ đếm MỌI dòng đã
+khai, kể cả chưa sàng** — chiều chặt hơn, cố ý không đổi. App đổi nhãn `Đã sàng (K)` →
+`Đã khai (K)`. `_ghi_chu`/`_khuon` của sổ viết lại theo khuôn.
+
+**Cổng tiền đăng ký: `tests/test_tien_dang_ky_git.py`.** Hàm phán THUẦN
+`cham_bong.vi_pham_tien_dang_ky(con, cha, ngay_commit)` so một phiên bản sổ với MỌI
+phiên bản cha của nó; bên duyệt git (trong file test) đọc cả repo bằng bốn lời gọi
+(`rev-parse --is-shallow-repository`, `log --format=%H %cI %P HEAD`, `cat-file
+--batch-check`, `cat-file --batch`) và phán mọi commit mà file khác ít nhất một cha.
+Năm luật: (a) commit đầu có ứng viên mang `qua_sang: null`; (b) `khai_ngay`/`mo_ta`/
+`ly_do`/`spec` không đổi (`TRUONG_BAT_BIEN` suy từ `TRUONG_UNG_VIEN`, không gõ lại);
+(c) `qua_sang` chỉ null → true/false một lần; (d) không dòng nào bị xoá, kể cả xoá cả
+file; (e) `khai_ngay` = ngày commit khai theo giờ VN.
+
+Hai chọn lựa thiết kế, kèm lý do:
+- **Đi theo CẠNH cha → con, không theo một dãy thẳng `git log`.** Commit gộp có hai
+  cha; một phép gộp `-s ours` xoá được dòng chỉ có ở cha thứ hai, và một dãy thẳng
+  theo cha đầu không thấy (test `test_GOP_lam_MAT_dong_chi_co_o_CHA_THU_HAI_thi_DO`).
+  Dòng có ở MỘT cha là dòng đã khai, không phải dòng mới của commit gộp.
+- **Ngày COMMITTER (`%cI`), không phải ngày tác giả.** Rebase/amend đẩy ngày committer
+  về sau (chiều chặt); ngày tác giả giữ ngày cũ qua rebase (chiều lỏng). Có test ngày
+  tác giả lùi một ngày → đỏ.
+
+**CI — chọn CẢ HAI:** `.github/workflows/kiem-dinh.yml` đặt `fetch-depth: 0` cho
+`actions/checkout`, VÀ bên duyệt git nổ `RuntimeError` khi repo nông (mặc định
+`fetch-depth: 1` cho một commit không cha: mọi dòng hiện tại trông như vừa khai, sổ
+rỗng thì xanh mà chưa đọc gì). Ai gỡ `fetch-depth: 0` thì cổng ĐỎ chứ không xanh im.
+Thử bằng một bản `git clone --depth 1` thật trong `tmp_path`.
+
+**Đo trên repo thật** (`./.venv/Scripts/python.exe -m pytest
+tests/test_tien_dang_ky_git.py -q -s -k THAT`): 2 commit được phán, 0 vi phạm. Dữ liệu
+thô: `1aadda5` (BƯỚC 144, tạo sổ — test ĐÒI máy đi qua commit này, nên một máy đọc
+sai đường file không xanh được) và `cdedaf3` (commit gộp, một cha chưa có file).
+
+**Gác và đục.** +28 test (mốc 1739 → 1767): 25 ở file mới, 2 ở
+`tests/test_cham_bong.py` (nhận null, từ chối kiểu khác; K đếm dòng chưa sàng), 1 ở
+`tests/test_bang_cham_bong.py` (`CHUA SANG`, không đếm vào `qua_sang`). Đục **26/26
+đỏ ngay lượt đầu** — 20 phát trên `cham_bong.py`, 6 trên bên duyệt git. Phát đầu dựng
+lại nguyên văn lỗi thật (`kiem_so_ung_vien` đòi bool). Có phát *"sai đường file"* (máy
+mù, không thấy phiên bản nào) để chứng test repo thật không xanh suông.
+
+**Soát chéo.** Nguồn `@89fe760` (13 nguồn, đều đang chọn; `docs/STATE.md` của nguồn
+dừng ở BƯỚC 148, `main` ở `05a7dd3`). Sổ tay: *"không tìm thấy câu nào nói ngược"*.
+**Tự kiểm bằng `grep` ra SAI một phần:** `docs/STATE.md` BƯỚC 144 (quy ước 4) và
+BƯỚC 148 (đầu bảng) viết *"K = TỔNG số ứng viên đã sàng"*. Đúng lúc viết — khuôn cũ
+buộc mọi dòng mang true/false nên *đã khai* = *đã sàng* — và hẹp hơn từ BƯỚC này: K
+nay đếm cả dòng chưa sàng. STATE chỉ thêm, nên câu thay thế nằm ở đây; docstring
+`cham_bong` (quy ước 4) và chú thích app đã sửa. Các dòng ĐO 21 (`docs/STATE.md`
+BƯỚC 122/142, `docs/TIEU-CHI-DOC-TRUOC.md`, `tools/do21_luc_vong_xac_nhan.py`) nói về
+K của MÔ HÌNH lực — K đếm nhiều hơn là chiều chặt, không nói ngược.
+
+**Hệ quả cho P3c-2 — đọc TRƯỚC khi khai ứng viên đầu tiên.**
+- PR khai phải merge bằng `gh pr merge --merge` (giữ commit nhánh và ngày của nó).
+  **Squash** tạo trên `main` một commit mới mang ngày merge: khác ngày khai thì luật
+  (e) ĐỎ trên `main`. Rebase nhánh khai sang ngày khác cũng vậy — sửa `khai_ngay`
+  trong chính commit ấy.
+- Commit sàng chỉ được đổi `qua_sang`; mọi chỉnh `mo_ta`/`ly_do`/`spec` sau khi khai
+  là một ứng viên MỚI (và K tăng).
+
+**Điều BƯỚC này KHÔNG nói.**
+- Ngày commit do đồng hồ máy commit đặt. Cổng bắt sự KHÔNG KHỚP giữa sổ và lịch sử,
+  không chứng ngày ấy là thật; nhân chứng độc lập (giờ GitHub nhận push) chưa được đọc.
+- Chưa có ứng viên nào; không đọc tab `decisions`, không tính IC, không đổi cách chấm
+  điểm, hành vi giao dịch hay số đo nào.
+- CI với `fetch-depth: 0` chỉ được chứng khi PR này chạy CI (đọc kết quả, đừng suy).
+- Nhãn app mới (`Đã khai (K)`, chú thích `CHUA SANG`) **chưa xem trên app chạy thật**:
+  cấu hình preview của phiên này chạy `app.py` của bản checkout chính, còn thêm một
+  cấu hình trỏ vào worktree thì bị từ chối quyền. Đổi đúng ba chuỗi; các hàm app gọi
+  (`tom_tat_so`, `bang_cong_khai`) có test.
+
+**Việc kế.** P3c-2: vòng sàng trên dữ liệu ĐÃ nhìn; P3c-3: ứng viên đầu tiên (khai
+`null` → sàng → điền).

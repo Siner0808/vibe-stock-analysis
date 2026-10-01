@@ -17,8 +17,14 @@ BỐN QUY ƯỚC, mỗi quy ước chặn một cách vòng xác nhận tự khe
    lượt quét trong ngày xử lý lại cùng phiên đã đóng (BƯỚC 125).
 3. **So CẶP trên cùng nhãn**: Δ = IC(ứng viên) − IC(bản đang chạy); null hoán
    vị MÃ (BƯỚC 142) áp CÙNG một phép hoán vị cho cả hai điểm.
-4. **Ngưỡng 0,05 / K, K = TỔNG số ứng viên đã sàng** — kể cả ứng viên rớt
-   sàng, vì sàng là chỗ đã nhìn nhiều lần (bất biến 7).
+4. **Ngưỡng 0,05 / K, K = TỔNG số ứng viên đã KHAI** — kể cả ứng viên rớt
+   sàng, vì sàng là chỗ đã nhìn nhiều lần (bất biến 7), và kể cả ứng viên
+   chưa sàng (`qua_sang: null`) — chiều chặt hơn, đừng đổi (BƯỚC 153).
+
+TIỀN ĐĂNG KÝ (P3c-1, BƯỚC 153): một ứng viên được khai TRƯỚC vòng sàng, trong
+một commit, với `qua_sang: null`; commit sàng điền nó thành true/false đúng một
+lần. `vi_pham_tien_dang_ky` phán một phiên bản sổ so với các phiên bản cha của
+nó; bên đi qua lịch sử git là `tests/test_tien_dang_ky_git.py`.
 
 Nhãn: `experiment_tran_dac_trung.nhan_vuot_ro` — log lợi nhuận `NHIP` phiên
 VƯỢT rổ đều, vào ở phiên T+1 (bất biến 1, bất biến 6). Không dựng nhãn thứ hai.
@@ -170,6 +176,7 @@ def ma_tran_cap(bang: pd.DataFrame, spec: dict, nhan: pd.DataFrame):
 # ── ngưỡng, trạng thái, sổ đăng ký ───────────────────────────────────────
 
 def so_da_sang(so: dict) -> int:
+    """K: MỌI dòng đã khai, kể cả rớt sàng và chưa sàng (quy ước 4)."""
     return len(so.get("ung_vien", {}))
 
 
@@ -201,8 +208,8 @@ def kiem_so_ung_vien(so: dict) -> None:
         if thieu:
             raise ValueError(f"{ma}: thieu {thieu}")
         kiem_spec(d["spec"])
-        if not isinstance(d["qua_sang"], bool):
-            raise ValueError(f"{ma}: qua_sang phai la true/false")
+        if d["qua_sang"] is not None and not isinstance(d["qua_sang"], bool):
+            raise ValueError(f"{ma}: qua_sang phai la null (chua sang) hoac true/false")
         y, w, _ = datetime.date.fromisoformat(d["khai_ngay"]).isocalendar()
         tuan[(y, w)] = tuan.get((y, w), 0) + 1
         if tuan[(y, w)] > TRAN_SANG_MOI_TUAN:
@@ -213,6 +220,8 @@ def kiem_so_ung_vien(so: dict) -> None:
 
 COT_BANG = ("Ứng viên", "Khai ngày", "Mô tả", "Trọng số", "Lý do", "Sàng",
             "Trạng thái")
+#: Cột "Sàng" theo `qua_sang`: null = khai rồi, vòng sàng chưa chạy.
+SANG = {None: "chua", True: "qua", False: "rot"}
 
 
 def tom_tat_so(so: dict, hom_nay: str) -> dict:
@@ -221,7 +230,7 @@ def tom_tat_so(so: dict, hom_nay: str) -> dict:
     uv = list(so["ung_vien"].values())
     tuan = datetime.date.fromisoformat(hom_nay).isocalendar()[:2]
     return {"K": so_da_sang(so), "nguong": nguong(so),
-            "qua_sang": sum(1 for d in uv if d["qua_sang"]),
+            "qua_sang": sum(1 for d in uv if d["qua_sang"] is True),
             "tuan_nay": sum(1 for d in uv if datetime.date.fromisoformat(
                 d["khai_ngay"]).isocalendar()[:2] == tuan),
             "tran_tuan": TRAN_SANG_MOI_TUAN}
@@ -230,10 +239,11 @@ def tom_tat_so(so: dict, hom_nay: str) -> dict:
 def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
     """Sổ ứng viên → bảng hiện. KHÔNG tính gì trên dữ liệu thật.
 
-    MỌI ứng viên đều hiện, kể cả rớt sàng — ngưỡng chia cho TỔNG (quy ước 4),
-    giấu ứng viên rớt là giấu mẫu số. `ket` = {mã: (kết quả `so_cap`, số phiên,
-    số mã)} do bên gọi đưa vào; thiếu thì ứng viên qua sàng ghi `CHUA CHAM` —
-    không suy trạng thái từ chỗ không có số.
+    MỌI ứng viên đều hiện, kể cả rớt sàng và chưa sàng — ngưỡng chia cho TỔNG
+    (quy ước 4), giấu ứng viên rớt là giấu mẫu số. `ket` = {mã: (kết quả
+    `so_cap`, số phiên, số mã)} do bên gọi đưa vào; thiếu thì ứng viên qua sàng
+    ghi `CHUA CHAM` — không suy trạng thái từ chỗ không có số. Chưa sàng
+    (`qua_sang: null`) thì `CHUA SANG`, kể cả khi `ket` có nó.
     """
     kiem_so_ung_vien(so)
     ket = ket or {}
@@ -241,7 +251,9 @@ def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
     hang = []
     for ma, d in sorted(so["ung_vien"].items(),
                         key=lambda kv: (kv[1]["khai_ngay"], kv[0])):
-        if not d["qua_sang"]:
+        if d["qua_sang"] is None:
+            tt = "CHUA SANG"
+        elif not d["qua_sang"]:
             tt = "ROT SANG"
         elif ma in ket:
             tt = trang_thai(ket[ma][0], a, ket[ma][1], ket[ma][2])
@@ -250,6 +262,67 @@ def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
         ts = " · ".join(f"{k.removesuffix('_score')} {float(w):.2f}" for k, w in
                         sorted(d["spec"]["trong_so"].items(), key=lambda kv: -float(kv[1])))
         hang.append(dict(zip(COT_BANG, (ma, d["khai_ngay"], d["mo_ta"], ts,
-                                        d["ly_do"], "qua" if d["qua_sang"] else "rot",
-                                        tt))))
+                                        d["ly_do"], SANG[d["qua_sang"]], tt))))
     return pd.DataFrame(hang, columns=list(COT_BANG))
+
+
+# ── tiền đăng ký: một phiên bản sổ so với các phiên bản CHA (P3c-1, BƯỚC 153) ──
+
+#: Giờ VN (UTC+7, không giờ mùa hè) — luật (e) so ngày theo múi này.
+GIO_VN = datetime.timezone(datetime.timedelta(hours=7))
+#: Trường KHÔNG được đổi sau commit khai. `qua_sang` là trường duy nhất điền
+#: sau — suy ra từ khuôn, đừng gõ lại danh sách.
+TRUONG_BAT_BIEN = tuple(t for t in TRUONG_UNG_VIEN if t != "qua_sang")
+_THIEU = object()
+
+
+def ngay_vn(thoi_diem: str) -> str:
+    """Thời điểm ISO 8601 CÓ múi giờ (`git log --format=%cI`) → ngày giờ VN."""
+    return datetime.datetime.fromisoformat(thoi_diem).astimezone(GIO_VN).date().isoformat()
+
+
+def vi_pham_tien_dang_ky(con: dict, cha: list[dict], ngay_commit: str) -> list[str]:
+    """Phán một phiên bản sổ (`con`) so với MỌI phiên bản cha của nó trong git.
+
+    `cha` rỗng = commit tạo file; commit gộp có hai cha — dòng có ở MỘT cha là
+    dòng đã khai. `ngay_commit` = ngày commit `con` theo giờ VN. Trả các vi
+    phạm; rỗng là sạch.
+
+      (a) dòng MỚI (không cha nào có) phải mang `qua_sang: null`;
+      (e) và `khai_ngay` = ngày commit khai — khai lùi ngày là nhận dữ liệu đã
+          nhìn làm "chưa nhìn";
+      (d) không dòng nào của một cha bị xoá — xoá là giấu mẫu số K;
+      (b) `TRUONG_BAT_BIEN` không đổi;
+      (c) `qua_sang` chỉ đi null → true/false, không bao giờ từ true/false
+          sang giá trị khác — tức đổi đúng MỘT lần.
+    """
+    uv = con.get("ung_vien") if isinstance(con, dict) else None
+    if not isinstance(uv, dict):
+        return ["khong doc duoc khoa ung_vien"]
+    uv_cha = [c["ung_vien"] for c in cha
+              if isinstance(c, dict) and isinstance(c.get("ung_vien"), dict)]
+    loi = []
+    for ma, d in uv.items():
+        if any(ma in u for u in uv_cha):
+            continue
+        if d.get("qua_sang", _THIEU) is not None:
+            loi.append(f"{ma}: commit khai phai mang qua_sang null (a)")
+        if d.get("khai_ngay") != ngay_commit:
+            loi.append(f"{ma}: khai_ngay {d.get('khai_ngay')} khac ngay commit khai "
+                       f"{ngay_commit} gio VN (e)")
+    for u in uv_cha:
+        for ma, p in u.items():
+            if ma not in uv:
+                loi.append(f"{ma}: dong da khai bi xoa (d)")
+                continue
+            d = uv[ma]
+            doi = [t for t in TRUONG_BAT_BIEN if d.get(t, _THIEU) != p.get(t, _THIEU)]
+            if doi:
+                loi.append(f"{ma}: sua truong da khai {doi} (b)")
+            q_p, q_c = p.get("qua_sang", _THIEU), d.get("qua_sang", _THIEU)
+            hop_le = ((q_c is None or isinstance(q_c, bool)) if q_p is None
+                      else isinstance(q_p, bool) and q_c is q_p)
+            if not hop_le:
+                loi.append(f"{ma}: qua_sang {q_p!r} -> {q_c!r}; chi duoc null -> "
+                           f"true/false mot lan (c)")
+    return loi

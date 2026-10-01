@@ -26,6 +26,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        # fetch-depth: 0 (BƯỚC 153): `tests/test_tien_dang_ky_git.py` duyệt MỌI
+        # phiên bản `docs/ung-vien.json` trong lịch sử. Mặc định (1) cho đúng
+        # một commit không cha — cổng ấy mù. Gỡ dòng này thì test ĐỎ (nó đòi
+        # repo không nông), không xanh im.
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v7
         with:

@@ -1741,7 +1741,8 @@ with t_bong:
     st.caption(
         "Mỗi ứng viên là một cách chấm điểm khác, chạy song song với bản đang chạy "
         "trên những phiên đến SAU ngày nó được khai, và chỉ lên phiên bản khi qua "
-        "ngưỡng 0,05/K — K là TỔNG số ứng viên đã sàng, kể cả rớt sàng. Việc lên "
+        "ngưỡng 0,05/K — K là TỔNG số ứng viên đã khai, kể cả rớt sàng và chưa "
+        "sàng. Việc lên "
         "phiên bản sẽ HIẾM (ĐO 21). Nguồn: `docs/ung-vien.json`.")
     try:
         import cham_bong as _cb
@@ -1754,7 +1755,7 @@ with t_bong:
         st.warning(f"⚠️ Sổ ứng viên sai khuôn — {_uv_loi}")
     else:
         _m1, _m2, _m3 = st.columns(3)
-        _m1.metric("Đã sàng (K)", _tt_uv["K"])
+        _m1.metric("Đã khai (K)", _tt_uv["K"])
         _m2.metric("Ngưỡng xác nhận", f"{_tt_uv['nguong']:.4f}")
         _m3.metric("Khai trong tuần", f"{_tt_uv['tuan_nay']}/{_tt_uv['tran_tuan']}")
         if _bang_uv.empty:
@@ -1762,8 +1763,9 @@ with t_bong:
                     "sàng trên dữ liệu ĐÃ nhìn (P3c).")
         else:
             st.dataframe(_bang_uv, use_container_width=True, hide_index=True)
-            st.caption("CHUA CHAM: kết quả xác nhận chưa nối vào app. ROT SANG vẫn "
-                       "hiện, vì ngưỡng chia cho tổng.")
+            st.caption("CHUA SANG: đã khai, vòng sàng chưa chạy. CHUA CHAM: kết quả "
+                       "xác nhận chưa nối vào app. ROT SANG và CHUA SANG vẫn hiện, "
+                       "vì ngưỡng chia cho tổng.")
 
 # ── 8. FOOTER BAR ──────────────────────────────────────────────────
 st.markdown(f"""
