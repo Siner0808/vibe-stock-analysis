@@ -134,6 +134,11 @@ trong `CLAUDE.md`, đừng đọc ở đây.
 > BẬT ra **−1,48% [−2,05 ; −0,88]**; và **3 trên 4 dòng** loại được số 0,
 > kể cả dòng TẮT trượt giá theo ngày (−0,72%). Nghĩa là thua rổ không chỉ
 > vì chi phí thực thi.
+>
+> 🔴 **"Bảng ĐO 18" và −1,48% HẾT ĐÚNG từ 30/09/2026** (ĐO 22, sau BƯỚC 143
+> sửa bước giá HNX/UPCoM): hai dòng BẬT trong `CLAUDE.md` nay là số ĐO 22 —
+> theo ngày **−1,68% [−2,24 ; −1,08]**; hai dòng TẮT vẫn là ĐO 18. Vẫn 3/4
+> dòng loại được số 0. Lượt soát 8, BƯỚC 151.
 
 > 🔴 **CÂU CŨ Ở ĐÂY HẾT ĐÚNG TỪ 09/09/2026 VÀ VẪN ĐỨNG TỚI 14/09.** Nó
 > ghi *"dự án hiện không có kết quả nào loại được số 0"* — viết
@@ -162,7 +167,10 @@ thế dùng được.
 
 **Hệ quả cho việc lập kế hoạch, và nó khác hẳn hệ quả cũ.** `CLAUDE.md` và
 `MO-XE-KIEN-TRUC.md` viết *"nguyên nhân gốc là thiếu dữ liệu độc lập"* khi
-chưa nguồn nào được đo; cả hai chỗ nay đã đánh dấu. Dữ liệu độc lập **có**
+chưa nguồn nào được đo; cả hai chỗ nay đã đánh dấu. *(⚠️ `CLAUDE.md` viết lại
+ở BƯỚC 145 nói lại câu ấy KHÔNG kèm dấu, nhưng ngay sau nó là bảng ba nguồn
+đã đo, "không nguồn nào cứu được" — đọc là thiếu dữ liệu độc lập CÓ ÍCH.
+Lượt soát 8, BƯỚC 151.)* Dữ liệu độc lập **có**
 và **đo được** — thứ chặn là **chi phí thực thi**: tín hiệu 0,0387 hoà vốn
 ở chi phí vòng **0,334%**, hiện hành **0,89%**.
 
@@ -378,7 +386,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; (4) xoá hẳn
 >   `scratch/luu_do18/` hay giữ.
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
->   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10.
+>   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).
+>   Lượt 9: 03/10.
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -416,6 +425,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > ĐO 22 (30/09) đo lại hai dòng bật chi phí: **kết cục 1** — Δ alpha −0,07 (theo mã) ·
 > −0,20 (theo ngày), trong nửa bề rộng KTC; hai dòng BẬT mới: 397 lệnh −1,16% ·
 > 619 lệnh −1,68% (`docs/STATE.md` BƯỚC 143). `CLAUDE.md` chưa cập nhật bảng.
+> 🔴 **HẾT ĐÚNG từ 30/09 — BƯỚC 145:** `CLAUDE.md` viết lại mang hai dòng BẬT
+> ĐO 22 (câu "nay là số ĐO 20" ở trên cũng hết đúng). Lượt soát 8, BƯỚC 151.
 > **CUỐI NGÀY 28/09.** #180 (BƯỚC 134, `60d6598`) và #181 (BƯỚC 135,
 > `617eef1`) đã vào `main`; BƯỚC 137 lên PR riêng.
 >

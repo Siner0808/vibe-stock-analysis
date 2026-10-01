@@ -20281,3 +20281,91 @@ ngược"*, hai lượt (một phép đo độ tươi, một cho kết luận B�
 - Chỉ HAI phiên, từ 26/09 tới 30/09; phiên khác (kể cả phiên leader) chưa được xếp hạng.
 - Quy đổi ảnh 1.500 ký tự/ảnh là ƯỚC LƯỢNG (`KY_TU_MOI_ANH`); 20 khối ảnh trong hai phiên.
 - Không đổi hành vi giao dịch hay số đo nào.
+
+## BƯỚC 151 — SOÁT ĐỊNH KỲ 8: LỆNH THỨ HAI CỦA NHỊP BA LƯỢT KHÔNG ĐỂ DẤU VẾT, SÁU CON TRỎ CHẾT VỀ `~/.claude/CLAUDE.md`; HANDOFF CÒN GỌI ĐO 18 LÀ BẢNG HIỆN HÀNH (01/10/2026)
+
+Leader giao lượt 8 (nhịp 2 ngày, lượt 7 = BƯỚC 140). Nhánh `soat/dinh-ky-luot-8` từ
+`main` `0022cca`, worktree ngoài repo. Không chạm mã giao dịch, workflow hay số đo.
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+37 lời khai · 9 tài liệu (lần đầu gồm hai bản lưu `docs/lich-su/`, BƯỚC 145) · chưa ai mở
+**6** → sau lượt **0**. Cả 6 là câu viết lại ở BƯỚC 145 (`CLAUDE.md` :152 · :218 · :339 ·
+:369; `SKILL.md` :88 · :329): nguyên văn đổi nên khoá sổ không khớp. Mở cả 6, cả 6 THẬT —
+lệnh kiểm từng câu ở `docs/soat-dinh-ky.json`.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+truoc luot : 6 chet ·  4 su lieu · 42 con   (ma thoat 1)
+sau luot   : 0 chet · 10 su lieu · 42 con   (ma thoat 0)
+```
+
+Cả 6 là MỘT đường, `~/.claude/CLAUDE.md` — file chỉ chứa khối vnai, người dùng gỡ sau
+BƯỚC 126; BƯỚC 139 (29/09) đã ghi nó vắng. Ba lần ở tài liệu sống (`CLAUDE.md:47` ·
+`NGUYEN-TAC-DO-LUONG.md:9` · `references/loi-da-mac.md:1451`) nói về ĐÍCH ghi của vnai,
+không về file đang có — giữ, kèm cửa thoát ở cuối chính dòng.
+
+**Lỗi 117.** Sổ `docs/soat-dinh-ky.json` nhắc `kiem_duong_ngoai_repo` đúng một lần — lượt 4
+(23/09), ngày dựng nó; lượt 5, 6, 7 không có dấu vết lệnh thứ hai, BƯỚC 140 nhắc nó 0 lần.
+Ở lượt 7 file đã vắng, nên ba con trỏ ở tài liệu sống lẽ ra đã hiện. Gác
+`tests/test_soat_dinh_ky_co_tri_nho.py::test_MOI_LUOT_tu_luot_8_ghi_ket_qua_LENH_THU_HAI`:
+mọi lượt từ 01/10 phải có ô `duong_ngoai_repo` (bốn số nguyên, mã thoát khớp số chết), đối
+chứng dương là sổ phải có ít nhất một lượt từ mốc. Đòi DẤU VẾT, không đòi số 0 — CI không đo
+lại được đường ở thư mục nhà (lỗi 14). Đục **4/4 đỏ** (bỏ ô · dời mốc · mã thoát lệch · thiếu
+khoá).
+
+**Lỗi 118.** Ba lần còn lại nằm trong bản lưu `docs/lich-su/CLAUDE-md-2026-09-30.md` (:44 ·
+:77 · :833). BƯỚC 145 thêm bản lưu vào `soat_loi_khai_cu.TAI_LIEU` cho sổ soát;
+`kiem_duong_ngoai_repo` NHẬP chính hằng ấy, mà bản lưu không được sửa → không mang nổi cửa
+thoát → mã thoát 1 vĩnh viễn. Sửa: `kiem_duong_ngoai_repo.BAN_LUU` — dòng trong bản lưu xếp
+SỬ LIỆU theo TÊN FILE, không theo chữ trên dòng. +2 test (cùng một đường chết: ở bản lưu ra
+sử liệu, ở `docs/HANDOFF.md` ra chết; repo thật với nhà rỗng, có đối chứng dương). Đục
+**5/5 đỏ** (bỏ nhánh · phán theo chữ trên dòng · tiền tố `docs/` · tiền tố sai · đảo nhánh).
+
+### Ngoài tầm công cụ — BƯỚC 141–150 làm câu nào hết đúng
+
+| chỗ | câu | phán quyết |
+|---|---|---|
+| `docs/HANDOFF.md` mục 2 | *"Bảng hiện hành nay là bảng ĐO 18"* · BẬT theo ngày **−1,48%** | SAI từ 30/09 — ĐO 22: −1,68% [−2,24 ; −1,08] (`CLAUDE.md`; `docs/TIEU-CHI-DOC-TRUOC.md` dòng kết quả ĐO 22). Nhãn "ĐO 18" đã lệch từ 28/09 (ĐO 20 thay hai dòng BẬT, cùng số theo ngày). Thêm 🔴. Số TRÍCH, không đo lại |
+| `docs/HANDOFF.md` mục 5 | *"nay là số ĐO 20"* · *"`CLAUDE.md` chưa cập nhật bảng"* | SAI từ 30/09 — BƯỚC 145 viết `CLAUDE.md` mới với ĐO 22. Thêm 🔴 |
+| `docs/HANDOFF.md` mục 2 | *"cả hai chỗ nay đã đánh dấu"* (câu *"thiếu dữ liệu độc lập"*) | SAI về `CLAUDE.md` từ 30/09 — bản viết lại nói câu ấy không dấu (dòng 69); đọc kèm bảng ba nguồn ngay sau thì nội dung đứng. Thêm ⚠️ ở HANDOFF, không sửa `CLAUDE.md` |
+| `SKILL.md` NotebookLM | *"Nguồn của sổ tay gồm cả `docs/lich-su/*.md` (từ BƯỚC 145)"* | SAI ở số BƯỚC: BƯỚC 145 tự ghi chưa đổi `NGUON_MAC_DINH`; `git log -S lich-su -- tools/so_tay.py` → `a51784d` (BƯỚC 150). Đổi thành 150 |
+| `SKILL.md` Nhịp soát | cửa thoát đặt *"ngay trên dòng ấy"* | MƠ HỒ — `phan_loai` tìm cửa thoát trên CHÍNH dòng; đặt ở dòng phía trên thì vẫn báo chết (hỏng về chiều ồn). Viết lại *"ở CUỐI chính dòng ấy"* |
+
+`SKILL.md` đổi một LUẬT (kết quả lệnh thứ hai vào sổ) nên được sửa theo luật BƯỚC 145; hai
+câu kia cùng đoạn. `CLAUDE.md` chỉ nhận cửa thoát ở dòng bảng đích vnai — công cụ không có
+cách thứ ba.
+
+### Hai chỗ chính lượt này suýt đọc sai
+
+1. Công cụ in *"2 dòng trong sổ không còn khớp"* rồi một dòng *"(không nằm trong danh sách
+   công cụ — đây là lớp công cụ KHÔNG thấy)"*. Tôi đọc nó là NHÃN của công cụ. Nó là giá trị
+   `dong` của một mục lượt 23/09 — một ghi chú đặt vào ô khoá. Vô hại (hỏng về chiều an
+   toàn), không sửa sổ; nhưng là thêm một lần văn bản nói VỀ cơ chế bị đọc như cơ chế.
+2. Bản nháp sổ trích *"BƯỚC 61"* cho phép đo `file_upload` theo trí nhớ; tiêu đề gần nhất
+   phía trên dòng 8441 là **BƯỚC 42**. Sửa trước khi ghi.
+
+### Soát chéo
+
+Nguồn `@89fe760` (13 nguồn); đo độ tươi trước: sổ tay trả `## BƯỚC 148` — khớp bản ghim,
+và `git diff --stat 89fe760 0022cca` cho thấy trong các nguồn chỉ `STATE.md` đổi. Dựng câu
+bằng `tools/so_tay.py hoi --js`, gửi trong trình duyệt của phiên này, ghi bằng `ghi`
+(`docs/soat-notebooklm.json`). Sổ tay nêu **4** câu; `tools/doi_chieu_trich_dan.py`:
+
+- `SKILL.md` *"(từ BƯỚC 145)"* — THẬT, đúng phát hiện của lượt (dụng cụ báo LỆCH ở ký tự
+  51 vì cây làm việc đã sửa; `git show 89fe760:…` khớp).
+- `docs/HANDOFF.md` *"nay là số ĐO 20"* · *"`CLAUDE.md` chưa cập nhật bảng"* — THẬT, đã 🔴.
+- `CLAUDE.md` *"**Bảng hiện hành** — ĐO 18 … cho hai dòng"* — **SAI**: sổ tay cắt ở chỗ
+  ngắt dòng; dòng 175 viết tiếp *"TẮT; ĐO 22 … cho hai dòng BẬT"*.
+
+Và nó **bỏ sót đúng ví dụ thứ nhất của câu hỏi**: `docs/HANDOFF.md` *"Bảng hiện hành nay là
+bảng ĐO 18 trong `CLAUDE.md`"* — dòng 132–133 của bản `89fe760`, ngắt dòng giữa câu. `grep`
+của lượt bắt nó trước. Hai lỗi của sổ tay lần này cùng một gốc: **ngắt dòng cứng** — một câu
+bị cắt đọc thành lời khai ngược nghĩa, một câu bị ngắt thì không được tìm thấy.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đo lại ĐO 22; −1,68% là trích từ tài liệu.
+- Không đo lại trang NotebookLM cho ví dụ `file_upload` (THẬT về ngày đo 08/09).
+- Không sửa mã giao dịch, workflow, sổ thật. Không đổi số đo nào.

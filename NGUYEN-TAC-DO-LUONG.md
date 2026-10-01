@@ -6,7 +6,7 @@
 >
 > ⚠️ **Câu trên nêu MỘT trên BỐN đích, và là đích duy nhất KHÔNG bị ghi**
 > (đo 17/09/2026). Ba đích thật sự bị ghi là **toàn cục**:
-> `~/.claude/CLAUDE.md` · `~/.gemini/GEMINI.md` · `~/.codex/AGENTS.md`, và
+> `~/.claude/CLAUDE.md` · `~/.gemini/GEMINI.md` · `~/.codex/AGENTS.md`, và <!-- duong-da-chet: DICH ghi cua vnai, khong phai file dang co; file chi chua khoi vnai, nguoi dung go sau BUOC 126, vang tu BUOC 139 (29/09) -->
 > kích hoạt là `import vnstock_data` chứ không phải `import vnstock`. Kết
 > luận của câu vẫn đúng, chỉ địa chỉ là sai. Bảng đầy đủ: `CLAUDE.md`, mục
 > đầu. `docs/STATE.md` BƯỚC 91.
