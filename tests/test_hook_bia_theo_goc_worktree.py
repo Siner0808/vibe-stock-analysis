@@ -72,6 +72,9 @@ def kho(tmp_path_factory):
     (main / "tools").mkdir(parents=True)
     _git(main, "init", "-q")
     shutil.copy(HOOK_THAT, main / "tools" / "chan_bia_so_lieu.py")
+    # Hook nhập `duyet_repo` cùng thư mục (BƯỚC 147): thiếu nó thì bản sao chết
+    # ngay khi nạp và mọi ca ống bơm thấy mã thoát 1.
+    shutil.copy(GOC / "tools" / "duyet_repo.py", main / "tools" / "duyet_repo.py")
     (main / "README.md").write_text("kho tam\n", encoding="utf-8")
     # Như repo thật: `.claude/worktrees/` nằm trong exclude của bản checkout chính.
     with (main / ".git" / "info" / "exclude").open("a", encoding="utf-8") as f:
@@ -229,6 +232,19 @@ def test_khong_hoi_duoc_git_thi_checkout_chinh_van_quet_worktree_thi_im_nhu_cu(k
     for goc in (kho.trong, kho.ngoai):
         with _viet(goc / "tools" / "bia.py", BIA) as f:
             assert hook.trong_pham_vi(f) is False
+
+
+def test_checkout_chinh_KHONG_CO_git_van_duoc_quet(kho, monkeypatch):
+    """Bản xuất mã nguồn không kèm `.git`: trước BƯỚC này file dưới `GOC_DU_AN`
+    luôn trong phạm vi vì `relative_to` không cần git. BƯỚC 147 bắt được hồi quy
+    ở `test_duyet_repo.py::test_CONG_3`; ca này khoá nó ngay trong file của
+    chính cơ chế."""
+    monkeypatch.setattr(hook, "GOC_DU_AN", kho.khong_git)
+    hook.xoa_bo_nho_goc()
+    with _viet(kho.khong_git / "tools" / "bia.py", BIA) as f:
+        assert hook.trong_pham_vi(f) is True
+        assert hook.goc_cua_file(f) == kho.khong_git
+        assert "R1" in _ma(hook.kiem_tra(f))
 
 
 def test_dau_git_hong_ma_git_khong_doc_duoc_thi_khong_duoc_tinh_la_cung_repo(kho, monkeypatch):

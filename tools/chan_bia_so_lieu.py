@@ -403,9 +403,13 @@ def co_cua_thoat(dong_ma: list[str], dong: int) -> bool:
 
 def _dau_git(thu_muc: Path) -> Path | None:
     """Tổ tiên gần nhất (kể cả chính nó) có mục `.git` — THƯ MỤC ở bản checkout
-    chính, TỆP ở worktree."""
+    chính, TỆP ở worktree — hoặc chính `GOC_DU_AN`, dù nó không có `.git`.
+
+    Vế sau là hành vi cũ giữ lại: `relative_to(GOC_DU_AN)` không cần git, nên
+    một bản xuất mã nguồn không kèm `.git` vẫn được quét. BƯỚC 147 bắt được ngay
+    ở `test_CONG_3`."""
     for d in (thu_muc, *thu_muc.parents):
-        if (d / ".git").exists():
+        if (d / ".git").exists() or d == GOC_DU_AN:
             return d
     return None
 

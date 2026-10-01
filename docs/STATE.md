@@ -20250,7 +20250,7 @@ mã bịa thật; ca `vibe_wt_p3b` ban đầu trỏ vào file **không tồn t�
 - Cửa Stop: `goc_phien()` = worktree chứa cwd của tiến trình, nếu cùng repo; không
   thì bản checkout chính (hành vi cũ). `file_da_doi(goc=None)` nhận gốc, mặc định
   vẫn `GOC_DU_AN` để các test cũ gán `GOC_DU_AN` lúc chạy còn đúng.
-- `tests/test_hook_bia_theo_goc_worktree.py`: 31 test, repo tạm với
+- `tests/test_hook_bia_theo_goc_worktree.py`: 32 test, repo tạm với
   `git worktree add` THẬT (lồng và ngoài), một repo lạ, một thư mục không git;
   ống bơm chạy BẢN SAO hook đặt trong repo tạm từ cwd ngoài mọi repo.
 - `tests/test_hang_rao_tu_dong.py`: ba hàm giả `lambda: …` của
@@ -20280,17 +20280,34 @@ rồi đo lại với gốc tuyệt đối. Gác mới của phần này:
 
 ### Đục
 
-`dot_bien_bo` trên `tools/chan_bia_so_lieu.py`, 23 phát, chạy lại cả bộ sau mỗi
-lần đổi mã: **23/23 đỏ**. Phát đầu dựng lại nguyên văn lỗi (gốc = `GOC_DU_AN` cho mọi
+`dot_bien_bo` trên `tools/chan_bia_so_lieu.py`, 24 phát, chạy lại cả bộ sau mỗi
+lần đổi mã: **24/24 đỏ**. Phát đầu dựng lại nguyên văn lỗi (gốc = `GOC_DU_AN` cho mọi
 file). Lượt đầu 17/18: **một phát sống sót** — bỏ kiểm `returncode` của
 `git rev-parse` — vì git thật khi lỗi in ra stderr nên stdout rỗng và hai nhánh
 trùng nhau. Hỏi trước khi sửa gác: phát ấy không đổi hành vi ở đường thật; nhưng
 `test_hang_rao_tu_dong` từng để một phát sống sót đúng vì hai nhánh ấy bị coi là
 một, nên canh bằng `subprocess.run` giả (mã 128 mà vẫn in một đường hợp lệ). Bốn
 phát thêm cho các nhánh chống chết (`except` của git · của duyệt thư mục · của
-`cwd`) và bỏ `resolve()`; một phát cho bộ nhớ đệm.
+`cwd`) và bỏ `resolve()`; một phát cho bộ nhớ đệm; một phát cho nhánh `GOC_DU_AN`
+không cần `.git` (xem dưới).
 
-Cổng 5: mốc số test cập nhật, thêm 31 test.
+Cổng 5: mốc số test cập nhật, thêm 32 test.
+
+### Hai thứ năm cổng lộ ra SAU khi gộp `main` (BƯỚC 147 vào trước tôi)
+
+Lượt đầu năm cổng xanh; sau khi gộp #194 (BƯỚC 147) cổng 1 đỏ 15 test, cổng 4 đỏ:
+
+- **Hồi quy hành vi do tôi gây, bắt bởi test của người khác.** `test_duyet_repo.py::
+  test_CONG_3` đặt `GOC_DU_AN` vào một thư mục KHÔNG có `.git` và đòi `quet_repo()`
+  bắt một file ở đó. Bản của tôi tìm gốc bằng `.git` nên coi file ấy ngoài repo —
+  hook mù cả bản checkout chính khi nó là một bản xuất mã nguồn không kèm git, mà
+  `relative_to(GOC_DU_AN)` cũ không cần git. Sửa: `_dau_git` dừng ở chính
+  `GOC_DU_AN`. Khoá thêm ở `test_checkout_chinh_KHONG_CO_git_van_duoc_quet`; không
+  test nào của tôi bắt được nó trước đó — cả bộ cũng chỉ thử "git vắng mặt" ở
+  vế `_thu_muc_git_chung`, không thử "không có `.git`".
+- **Fixture của tôi thiếu một phụ thuộc.** 14 ca ống bơm chạy BẢN SAO hook trong repo
+  tạm; bản 147 của hook nhập `duyet_repo` cùng thư mục, bản sao thiếu nó nên chết
+  mã 1 ngay khi nạp. Fixture nay chép cả `tools/duyet_repo.py`.
 
 ### Soát chéo
 
