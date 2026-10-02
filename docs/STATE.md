@@ -20952,9 +20952,12 @@ khoán"*. Phiên điều phối chốt tên và bảng chữ; BƯỚC này chỉ
 
 ### Điều BƯỚC này KHÔNG nói · quyết định tôi tự chọn
 
-- **Một chuỗi nội bộ vẫn lọt ra giao diện và KHÔNG sửa được ở đây:** cột *Lý do* của UV-001 (ghi ở BƯỚC 156) chứa chữ `DANG CHAM` và *"BƯỚC 155, BƯỚC 156"*. Dòng đã khai là
-  BẤT BIẾN (cổng git, luật b: sửa `ly_do` là sửa trường đã khai), và `bang_hien_thi` chỉ ánh xạ các cột trạng thái, không viết lại văn bản tự do. Chỉ nhìn thấy khi người dùng đọc cột Lý do.
-  Dòng khai KẾ TIẾP nên viết `ly_do` bằng chữ thường, không dùng mã trạng thái nội bộ.
+- **Cột *Lý do* của UV-001 mang chữ nội bộ `DANG CHAM` — dòng khai là BẤT BIẾN (cổng git, luật b), nên chỉ tầng HIỂN THỊ được dịch.** Phát hiện lúc kiểm sổ thật; phiên điều phối
+  duyệt cách xử lý: `cham_bong.dich_ma_noi_bo` thay mã trạng thái nội bộ đứng thành TỪ NGUYÊN VẸN trong cột *Lý do* bằng đúng nhãn tiếng Việt của bảng ánh xạ (khớp chữ hoa đúng, hai biên
+  `\w`, một lượt `re.sub` nên nhãn thay vào không bị dịch lại); `QUANG`, `QUA_X`, `xQUA`, `qua`, `Dang cham`… không bị đụng. *"BƯỚC 155, BƯỚC 156"* giữ nguyên (chỉ dẫn tài liệu). Kết quả trên sổ thật:
+  *"Kỳ vọng hợp lý là Đang theo dõi, không phải Đạt — đủ điều kiện nâng cấp (BƯỚC 155, BƯỚC 156)."* — câu đọc hơi gượng vì nhãn QUA dài, nhưng đúng bảng đã chốt. **`docs/ung-vien.json` không đổi một byte**
+  (test băm sha256 trước/sau, và `ly_do` trong bộ nhớ vẫn còn đúng một `DANG CHAM`). Đục thêm 7/7 đỏ; một phát *"sắp xếp mã dài nhất trước"* là mã chết (hai biên `\w` đã chặn khớp một phần) nên gỡ.
+  Chỉ dịch cột Lý do, không dịch cột Mô tả: nếu Mô tả của một dòng sau có mã nội bộ, đó là việc của dòng ấy.
 - Chưa kiểm trên Streamlit Cloud; mới kiểm bằng `AppTest` trong tiến trình. Không kiểm bằng khung preview (cấu hình preview chạy `app.py` của bản checkout chính, không phải worktree).
 - Hai chỗ chữ do tôi chọn, ngoài bảng của phiên điều phối: dòng `CHUA SANG` (dòng khai TRƯỚC 02/10, hiện hiếm vì sổ chưa có dòng nào như thế) và ô *Ngưỡng xác nhận* → *Ngưỡng thống kê để đạt*.
 - Không đổi một con số, khoá, tên module, tên file, hay hành vi giao dịch nào.

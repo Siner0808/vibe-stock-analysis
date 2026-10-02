@@ -47,6 +47,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import re
 from pathlib import Path
 from statistics import NormalDist
 
@@ -343,13 +344,34 @@ TRANG_THAI_HIEN = {
 SANG_HIEN = {"chua": "chưa sàng", "qua": "qua sàng", "rot": "rớt sàng", "bo": "đã bỏ"}
 
 
+#: Mã trạng thái nội bộ đứng thành TỪ NGUYÊN VẸN trong văn bản tự do (`ly_do`):
+#: khớp đúng chữ hoa, `\w` ở hai biên nên `QUANG` hay `QUA_X` không bị đụng. Một
+#: lượt `re.sub` duy nhất — nhãn thay vào không bị dịch lại.
+_RE_MA_NOI_BO = re.compile(
+    r"(?<!\w)(" + "|".join(re.escape(k) for k in TRANG_THAI_HIEN) + r")(?!\w)")
+
+
+def dich_ma_noi_bo(van_ban):
+    """Thay mã trạng thái nội bộ đứng riêng trong `van_ban` bằng nhãn tiếng Việt.
+
+    Dòng sổ đã khai là BẤT BIẾN (cổng git, luật b) nên một `ly_do` viết trước khi có
+    tầng hiển thị vẫn mang `DANG CHAM`; chỉ tầng hiển thị được dịch nó. Không phải
+    chuỗi (NaN, None) thì trả nguyên.
+    """
+    if not isinstance(van_ban, str):
+        return van_ban
+    return _RE_MA_NOI_BO.sub(lambda m: TRANG_THAI_HIEN[m.group(1)], van_ban)
+
+
 def bang_hien_thi(bang: pd.DataFrame) -> pd.DataFrame:
     """Bảng `bang_cong_khai` → bảng hiện cho người dùng. Hàm THUẦN, không đổi `bang`.
 
-    Chỉ đổi CHỮ: tên cột, giá trị cột Sàng và cột Trạng thái. Số hàng, thứ tự và
-    mọi cột khác giữ nguyên. Giá trị chưa có trong ánh xạ → `ValueError`.
+    Chỉ đổi CHỮ: tên cột, giá trị cột Sàng và cột Trạng thái, và mã trạng thái nội
+    bộ đứng thành từ nguyên vẹn trong cột Lý do (`dich_ma_noi_bo`). Số hàng, thứ tự
+    và mọi cột khác giữ nguyên. Giá trị chưa có trong ánh xạ → `ValueError`.
     """
     ra = bang.copy()
+    ra["Lý do"] = ra["Lý do"].map(dich_ma_noi_bo)
     for cot, bangmap in (("Trạng thái", TRANG_THAI_HIEN), ("Sàng", SANG_HIEN)):
         la = sorted(set(ra[cot]) - set(bangmap))
         if la:
