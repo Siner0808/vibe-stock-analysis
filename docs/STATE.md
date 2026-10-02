@@ -20908,3 +20908,65 @@ Nguồn `@89fe760`, cũ hơn `main` (dừng ở BƯỚC 148; không làm tươi)
 K = 1, ngưỡng xác nhận 0,05.* `docs/HANDOFF.md` mục P3c đã cập nhật; thông báo sổ rỗng của `app.py` giữ nguyên vì chỉ hiện khi sổ rỗng.
 
 **Việc kế.** BƯỚC 157 — đổi tên hiển thị tab (chỉ giao diện). Biên *"phiên `khai_ngay` có tính không"* phải được ký trước khi nối kết quả chấm vào app.
+
+## BƯỚC 157 — ĐỔI TÊN HIỂN THỊ: TAB "🧪 CHẤM BÓNG" → "🔬 KIỂM ĐỊNH CHIẾN LƯỢC", "ỨNG VIÊN" → "PHƯƠNG ÁN" (02/10/2026)
+
+**Yêu cầu của người dùng, 02/10/2026** (qua phiên điều phối): *"tôi ko thích cái tên "🧪 Chấm bóng" hãy đổi tên rõ ràng và phụ hợp với chứng
+khoán"*. Phiên điều phối chốt tên và bảng chữ; BƯỚC này chỉ làm phần GIAO DIỆN.
+
+**Tên nội bộ và tên hiển thị.** *"Chấm bóng"* là tên **NỘI BỘ** (module `cham_bong`, sổ `docs/ung-vien.json`, khoá `qua_sang`, chuỗi trạng thái
+`CHUA CHAM`…, test lịch sử, BƯỚC 144–156). Tên người dùng thấy là **"Kiểm định chiến lược"** và **"phương án chấm điểm"**. Tên nội bộ GIỮ NGUYÊN
+để không gãy cổng git (`tests/test_tien_dang_ky_git.py` đọc lịch sử sổ) và test cũ; thứ đổi chỉ là một tầng ánh xạ ở `cham_bong.bang_hien_thi`.
+
+### Thay đổi
+
+- **`app.py`** — nhãn tab *🔬 Kiểm định chiến lược*; tiêu đề *"Kiểm định chiến lược trên phiên mới (forward test)"*; câu giải thích ngắn không dùng thuật ngữ
+  nội bộ (không *"chấm bóng"*, *"ứng viên"*, *"K"*, *"π"*): *"Mỗi phương án là một cách chấm điểm cổ phiếu khác. Nó chạy song song với cách đang dùng trên
+  các phiên SAU ngày đăng ký, và chỉ thay cách đang dùng khi tốt hơn rõ rệt về thống kê — việc này hiếm."*; ô số *Số phương án đã đăng ký (K)* · *Ngưỡng thống kê
+  để đạt* · *Đăng ký trong tháng*; thông báo sổ rỗng, cảnh báo sai khuôn và chú giải dưới bảng viết lại bằng tiếng Việt thường.
+- **`cham_bong.py`** — `bang_hien_thi(bang)`: hàm THUẦN, chỉ đổi chữ (tên cột, cột Sàng, cột Trạng thái), không đổi `bang_cong_khai` và không đổi thứ tự/số hàng.
+  Ánh xạ CHẶT: giá trị chưa có tên hiển thị nổ `ValueError` thay vì để chuỗi nội bộ lọt ra giao diện.
+
+| nội bộ | hiển thị |
+|---|---|
+| `CHUA CHAM` · `CHUA DU DU LIEU` | Chưa đủ dữ liệu |
+| `DANG CHAM` | Đang theo dõi |
+| `QUA` | Đạt — đủ điều kiện nâng cấp |
+| `THUA` | Kém hơn bản đang chạy |
+| `ROT SANG` | Rớt sàng (quy trình cũ) |
+| `CHUA SANG` | Chưa sàng (quy trình cũ) *(thêm bởi BƯỚC này — bảng của phiên điều phối không có dòng này)* |
+| cột *Ứng viên* · *Khai ngày* · *Sàng* | Phương án · Ngày đăng ký · Vòng sàng (cũ); giá trị cột Sàng: chưa sàng · qua sàng · rớt sàng · đã bỏ |
+
+### Kiểm chứng
+
+- **Trên app chạy thật** (`streamlit.testing.v1.AppTest` chạy `app.py` của worktree trong tiến trình, 27 giây, không exception): bảy thẻ tab, thẻ cuối
+  *🔬 Kiểm định chiến lược*; tiêu đề, câu giải thích và ba ô số đúng chữ mới. Ba lượt: (1) sổ rỗng (trước khi gộp BƯỚC 156) ra *"Chưa có phương án nào được đăng ký…"*;
+  (2) một sổ MẪU hai dòng (không phải sổ thật): K = 2, ngưỡng 0,0250, dòng cũ hiện *rớt sàng* / *Rớt sàng (quy trình cũ)*, dòng một vòng *đã bỏ* / *Chưa đủ dữ liệu*;
+  (3) **sổ THẬT sau BƯỚC 156** (31 giây, 0 exception): K = **1**, ngưỡng **0,0500**, *Đăng ký trong tháng* **1/1**, một dòng UV-001, cột *Vòng sàng (cũ)* = *đã bỏ*,
+  *Trạng thái* = *Chưa đủ dữ liệu*.
+  **Đoạn kiểm này nằm ở thư mục nháp, KHÔNG vào repo** nên không tái lập được bằng lệnh trong repo; `docs/STATE.md` không có lệnh nào đứng sau nó ngoài `AppTest` như trên.
+- **+9 test** (mốc 1835 → 1844) ở `tests/test_bang_cham_bong.py`: khoá nội bộ không đổi và `bang_hien_thi` không đổi bảng vào; bảng chữ ghim LITERAL từng cặp; MỌI nhánh sinh trạng
+  thái đều có tên hiển thị; giá trị lạ nổ; tên tab, tiêu đề, nhãn có trong `app.py` bằng AST và **không chuỗi nào của `app.py` còn chứa *"chấm bóng"***; câu giải thích không có
+  thuật ngữ nội bộ; `app.py` gọi `bang_hien_thi(bang_cong_khai(…))`. **Đục 21 phát, 21/21 đỏ ngay lượt đầu** (14 trên `cham_bong.py`: đổi chữ từng cặp, bỏ kiểm giá trị
+  lạ, đổi bảng vào, bỏ ánh xạ cột Sàng, bỏ đổi tên cột; 7 trên `app.py`: tên tab, tiêu đề, nhãn, bỏ gọi `bang_hien_thi`, đưa *π* vào câu giải thích, đổi *ngày đăng ký*).
+
+### Điều BƯỚC này KHÔNG nói · quyết định tôi tự chọn
+
+- **Một chuỗi nội bộ vẫn lọt ra giao diện và KHÔNG sửa được ở đây:** cột *Lý do* của UV-001 (ghi ở BƯỚC 156) chứa chữ `DANG CHAM` và *"BƯỚC 155, BƯỚC 156"*. Dòng đã khai là
+  BẤT BIẾN (cổng git, luật b: sửa `ly_do` là sửa trường đã khai), và `bang_hien_thi` chỉ ánh xạ các cột trạng thái, không viết lại văn bản tự do. Chỉ nhìn thấy khi người dùng đọc cột Lý do.
+  Dòng khai KẾ TIẾP nên viết `ly_do` bằng chữ thường, không dùng mã trạng thái nội bộ.
+- Chưa kiểm trên Streamlit Cloud; mới kiểm bằng `AppTest` trong tiến trình. Không kiểm bằng khung preview (cấu hình preview chạy `app.py` của bản checkout chính, không phải worktree).
+- Hai chỗ chữ do tôi chọn, ngoài bảng của phiên điều phối: dòng `CHUA SANG` (dòng khai TRƯỚC 02/10, hiện hiếm vì sổ chưa có dòng nào như thế) và ô *Ngưỡng xác nhận* → *Ngưỡng thống kê để đạt*.
+- Không đổi một con số, khoá, tên module, tên file, hay hành vi giao dịch nào.
+
+### Soát chéo NotebookLM
+
+Nguồn `@89fe760`, cũ hơn `main` (dừng ở BƯỚC 148; không làm tươi). Câu hỏi gửi hộ từ khung trình duyệt của phiên điều phối; trả lời chép nguyên văn
+*"không tìm thấy câu nào nói ngược"* (trả rất nhanh). **Tự kiểm bằng `grep` ra SAI một phần:** các câu nói tên tab là *"🧪 Chấm bóng"* và các nhãn *`Đã khai (K)`* /
+*"Khai trong tuần"* ở `docs/STATE.md` BƯỚC 148, 153, 155 và `docs/HANDOFF.md` (mục P3b) đúng lúc viết, thành sai về TÊN HIỂN THỊ từ BƯỚC này. `CLAUDE.md`,
+`MO-XE-KIEN-TRUC.md`, `NGUYEN-TAC-DO-LUONG.md`, `SKILL.md` và `references/` không có chữ *"chấm bóng"* nào. **Câu thay thế** (STATE chỉ thêm): *từ BƯỚC 157 tab hiển thị là
+"🔬 Kiểm định chiến lược"; "ứng viên" hiển thị là "phương án chấm điểm"; ô "Đã khai (K)" là "Số phương án đã đăng ký (K)"; ô "Khai trong tuần/tháng" là "Đăng ký trong tháng";
+"chấm bóng" chỉ còn là tên NỘI BỘ.* `docs/HANDOFF.md` đánh dấu 🔴 ở dòng nhắc tab cũ.
+
+**Việc kế.** Biên *"phiên `khai_ngay` có tính không"* phải ký trước khi nối kết quả chấm vào app (BƯỚC 156). Chưa kiểm trên Streamlit Cloud; phiên điều phối kiểm bằng preview
+sau khi merge.

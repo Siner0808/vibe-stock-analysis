@@ -463,6 +463,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   trên dữ liệu thật. P3b xong: dòng quyết định cho mã đang giữ (BƯỚC 146) và
 >   tab app "🧪 Chấm bóng" công khai sổ ứng viên (BƯỚC 148). Việc kế: P3c vòng
 >   sàng + ứng viên đầu tiên.
+>   🔴 **Tên hiển thị ĐỔI từ BƯỚC 157 (02/10/2026):** tab là *"🔬 Kiểm định chiến lược"*, "ứng viên" hiển thị là *"phương án chấm điểm"*.
+>   *"Chấm bóng"* chỉ còn là tên NỘI BỘ (module `cham_bong`, sổ `ung-vien.json`, khoá, test); không đổi chúng.
 >   ✅ **P3c-1 xong (BƯỚC 153):** khai với `qua_sang: null`, commit sàng điền
 >   true/false một lần; K đếm cả dòng chưa sàng. Cổng `tests/test_tien_dang_ky_git.py`
 >   đọc lịch sử git (đỏ ở repo nông; CI `fetch-depth: 0`). **PR khai ứng viên phải

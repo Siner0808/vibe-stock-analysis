@@ -1,4 +1,5 @@
 """Bảng chấm bóng công khai trên app — BƯỚC 148 (P3b-2).
+(Tên HIỂN THỊ từ BƯỚC 157: "Kiểm định chiến lược"; "chấm bóng" là tên nội bộ.)
 
 Ba điều bảng phải giữ:
   1. MỌI ứng viên đều hiện, kể cả rớt sàng — ngưỡng 0,05/K chia cho TỔNG,
