@@ -1289,7 +1289,7 @@ t_pos, t_hist, t_rep, t_fund, t_pipe, t_acct, t_bong = st.tabs([
     "📑 Cơ bản",
     "🛠️ Pipeline v2",
     "💰 Tài khoản Giả lập",
-    "🧪 Chấm bóng",
+    "🔬 Kiểm định chiến lược",
 ])
 
 with t_pos:
@@ -1737,35 +1737,36 @@ with t_bong:
     # BƯỚC 148 (P3b-2). CHỈ ĐỌC sổ đăng ký trong repo — không đọc tab
     # `decisions`, không tính IC nào: tính trên dữ liệu tiến-về-trước trước khi
     # có ứng viên là tiêu mất phần "chưa nhìn" mà vòng xác nhận cần (BƯỚC 144).
-    st.markdown("##### 🧪 Chấm bóng công khai — sổ ứng viên")
+    # BƯỚC 157: tên HIỂN THỊ là "Kiểm định chiến lược"; "chấm bóng" là tên nội
+    # bộ (module `cham_bong`, sổ `ung-vien.json`) và không được hiện ra đây.
+    st.markdown("##### 🔬 Kiểm định chiến lược trên phiên mới (forward test)")
     st.caption(
-        "Mỗi ứng viên là một cách chấm điểm khác, chạy song song với bản đang chạy "
-        "trên những phiên đến SAU ngày nó được khai, và chỉ lên phiên bản khi qua "
-        "ngưỡng 0,05/K — K là TỔNG số ứng viên đã khai. Từ 02/10/2026 chỉ còn "
-        "MỘT vòng (xác nhận): ứng viên khai thẳng, tối đa 1 mỗi tháng. Việc lên "
-        "phiên bản sẽ HIẾM (ĐO 21). Nguồn: `docs/ung-vien.json`.")
+        "Mỗi phương án là một cách chấm điểm cổ phiếu khác. Nó chạy song song với "
+        "cách đang dùng trên các phiên SAU ngày đăng ký, và chỉ thay cách đang dùng "
+        "khi tốt hơn rõ rệt về thống kê — việc này hiếm.")
     try:
         import cham_bong as _cb
         _so_uv = _cb.doc_so_ung_vien()
         _tt_uv = _cb.tom_tat_so(_so_uv, now_vn().date().isoformat())
-        _bang_uv, _uv_loi = _cb.bang_cong_khai(_so_uv), None
+        _bang_uv, _uv_loi = _cb.bang_hien_thi(_cb.bang_cong_khai(_so_uv)), None
     except Exception as _e:
         _uv_loi = f"{type(_e).__name__}: {_e}"
     if _uv_loi:
-        st.warning(f"⚠️ Sổ ứng viên sai khuôn — {_uv_loi}")
+        st.warning(f"⚠️ Sổ phương án sai khuôn — {_uv_loi}")
     else:
         _m1, _m2, _m3 = st.columns(3)
-        _m1.metric("Đã khai (K)", _tt_uv["K"])
-        _m2.metric("Ngưỡng xác nhận", f"{_tt_uv['nguong']:.4f}")
-        _m3.metric("Khai trong tháng", f"{_tt_uv['thang_nay']}/{_tt_uv['tran_thang']}")
+        _m1.metric("Số phương án đã đăng ký (K)", _tt_uv["K"])
+        _m2.metric("Ngưỡng thống kê để đạt", f"{_tt_uv['nguong']:.4f}")
+        _m3.metric("Đăng ký trong tháng", f"{_tt_uv['thang_nay']}/{_tt_uv['tran_thang']}")
         if _bang_uv.empty:
-            st.info("Chưa có ứng viên nào được khai. Ứng viên đầu tiên được khai "
-                    "thẳng vào vòng xác nhận, tối đa 1 mỗi tháng (BƯỚC 155).")
+            st.info("Chưa có phương án nào được đăng ký. Phương án đầu tiên được đăng "
+                    "ký thẳng, tối đa 1 mỗi tháng.")
         else:
             st.dataframe(_bang_uv, use_container_width=True, hide_index=True)
-            st.caption("Sàng `bo`: vòng sàng đã bỏ, vào thẳng xác nhận. CHUA CHAM: kết "
-                       "quả xác nhận chưa nối vào app. Mọi dòng vẫn hiện, kể cả "
-                       "dòng cũ ROT SANG / CHUA SANG, vì ngưỡng chia cho tổng.")
+            st.caption("“Chưa đủ dữ liệu”: phương án mới đăng ký, chưa có đủ phiên mới "
+                       "để so sánh. Mọi phương án đều hiện, kể cả phương án cũ đã rớt "
+                       "sàng, vì ngưỡng thống kê tính trên TỔNG số phương án đã đăng ký. "
+                       "Nguồn dữ liệu: `docs/ung-vien.json`.")
 
 # ── 8. FOOTER BAR ──────────────────────────────────────────────────
 st.markdown(f"""

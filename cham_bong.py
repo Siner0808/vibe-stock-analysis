@@ -319,6 +319,45 @@ def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
     return pd.DataFrame(hang, columns=list(COT_BANG))
 
 
+# ── tầng HIỂN THỊ (BƯỚC 157) ─────────────────────────────────────────────
+# "Chấm bóng" là tên NỘI BỘ (module, sổ, khoá, test). Tên người dùng thấy trên
+# app là "Kiểm định chiến lược" / "phương án chấm điểm". Ánh xạ nằm ở ĐÂY và chỉ
+# ở đây: `bang_cong_khai` và mọi khoá nội bộ giữ nguyên để không gãy cổng git và
+# test lịch sử. Ánh xạ CHẶT — một giá trị lạ nổ `ValueError`, không lọt chuỗi nội
+# bộ ra giao diện.
+
+#: Tên cột hiển thị. Cột không có trong bảng này giữ nguyên.
+TEN_COT_HIEN = {"Ứng viên": "Phương án", "Khai ngày": "Ngày đăng ký",
+                "Sàng": "Vòng sàng (cũ)"}
+#: Trạng thái (`bang_cong_khai` + `trang_thai`) → câu tiếng Việt có dấu.
+TRANG_THAI_HIEN = {
+    "CHUA CHAM": "Chưa đủ dữ liệu",
+    "CHUA DU DU LIEU": "Chưa đủ dữ liệu",
+    "DANG CHAM": "Đang theo dõi",
+    "QUA": "Đạt — đủ điều kiện nâng cấp",
+    "THUA": "Kém hơn bản đang chạy",
+    "ROT SANG": "Rớt sàng (quy trình cũ)",
+    "CHUA SANG": "Chưa sàng (quy trình cũ)",
+}
+#: Cột "Sàng" (`SANG` + `SANG_BO`) → chữ hiển thị.
+SANG_HIEN = {"chua": "chưa sàng", "qua": "qua sàng", "rot": "rớt sàng", "bo": "đã bỏ"}
+
+
+def bang_hien_thi(bang: pd.DataFrame) -> pd.DataFrame:
+    """Bảng `bang_cong_khai` → bảng hiện cho người dùng. Hàm THUẦN, không đổi `bang`.
+
+    Chỉ đổi CHỮ: tên cột, giá trị cột Sàng và cột Trạng thái. Số hàng, thứ tự và
+    mọi cột khác giữ nguyên. Giá trị chưa có trong ánh xạ → `ValueError`.
+    """
+    ra = bang.copy()
+    for cot, bangmap in (("Trạng thái", TRANG_THAI_HIEN), ("Sàng", SANG_HIEN)):
+        la = sorted(set(ra[cot]) - set(bangmap))
+        if la:
+            raise ValueError(f"cot {cot}: gia tri chua co ten hien thi: {la}")
+        ra[cot] = ra[cot].map(bangmap)
+    return ra.rename(columns=TEN_COT_HIEN)
+
+
 # ── tiền đăng ký: một phiên bản sổ so với các phiên bản CHA (P3c-1, BƯỚC 153) ──
 
 #: Giờ VN (UTC+7, không giờ mùa hè) — luật (e) so ngày theo múi này.
