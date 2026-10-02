@@ -12,7 +12,11 @@ các dòng tab `decisions` và bảng giá; module trả số và trạng thái.
 BỐN QUY ƯỚC, mỗi quy ước chặn một cách vòng xác nhận tự khen mình:
 1. **Bản đang chạy là ĐIỂM ĐÃ GHI** (`score` của sổ quyết định), không tính
    lại từ thành phần — điểm ghi đã qua trọng số động, harness, bộ nhớ hậu
-   kiểm; tính lại là so với một bản chưa từng chạy.
+   kiểm; tính lại là so với một bản chưa từng chạy. **Áp cho vòng XÁC NHẬN**
+   (và cho `doc_quyet_dinh`, đường nạp của nó). NGOẠI LỆ CÓ TÊN: vòng SÀNG
+   (`tools/sang_ung_vien.py`, BƯỚC 154, `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 23) dùng
+   điểm TÍNH LẠI vì dòng đã ghi quá thưa để dựng ma trận (mật độ ô 17,1%, 0 mã
+   đầy đủ) — và chỉ khi phép đối chiếu với điểm đã ghi mang kết cục ĐẠT.
 2. **Mỗi (mã, phiên) một lần**, giữ dòng ghi sau cùng — sổ có dòng lặp vì mọi
    lượt quét trong ngày xử lý lại cùng phiên đã đóng (BƯỚC 125).
 3. **So CẶP trên cùng nhãn**: Δ = IC(ứng viên) − IC(bản đang chạy); null hoán

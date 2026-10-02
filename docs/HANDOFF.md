@@ -468,6 +468,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   đọc lịch sử git (đỏ ở repo nông; CI `fetch-depth: 0`). **PR khai ứng viên phải
 >   merge `--merge`, không squash** (squash đổi ngày commit → luật (e) đỏ trên
 >   `main`). Việc kế: P3c-2 vòng sàng, P3c-3 ứng viên đầu tiên.
+>   🟡 **P3c-2 (BƯỚC 154, 02/10): dụng cụ vào, phép đối chiếu KHÔNG ĐẠT.** Dòng seeded quá thưa cho
+>   `ma_tran_cap` (mật độ ô 17,1%, 0 mã đầy đủ); leader chọn sàng trên bảng điểm DÀY tính lại (ĐO 23), nhưng
+>   đối chiếu với điểm đã ghi ra `risk_score` ρ 0,749 < 0,95 (giá đổi giữa các lần kéo, chưa chứng minh).
+>   `docs/sang-doi-chieu.json` mang KHÔNG ĐẠT nên `sang`/`bang-day` từ chối chạy. **Cần người quyết hướng
+>   (ĐO 24 mới · hướng B · dừng) trước P3c-3.** Chi tiết: `docs/STATE.md` BƯỚC 154.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 

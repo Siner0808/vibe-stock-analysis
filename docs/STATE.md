@@ -20669,3 +20669,104 @@ tay hay không; `grep` tìm trên tài liệu sống là phép kiểm duy nhất
 - Phần còn lại 3,1 s là `kiem_tra` từng file (đọc và `ast.parse`); chưa đo chia nhỏ.
 - Không thêm dòng vào bảng lỗi: đây là một ước lượng chưa kiểm của phiên khác được đo
   lại, không phải lỗi mắc phải.
+
+## BƯỚC 154 — P3c-2: VÒNG SÀNG DỰNG XONG, PHÉP ĐỐI CHIẾU ĐIỂM TÍNH LẠI RA KHÔNG ĐẠT, VÀ CHỖ LỆCH LÀ GIÁ KHÔNG ỔN ĐỊNH GIỮA CÁC LẦN KÉO (02/10/2026)
+
+**Việc được giao:** dựng vòng sàng của tầng 3 trên dữ liệu ĐÃ nhìn (phiên < 10/08/2026), ký tiêu chí
+ở commit riêng trước dụng cụ, KHÔNG khai ứng viên nào, KHÔNG tính IC nào trên dữ liệu thật.
+
+**Đo trước — và nó làm sai đề bài.** Đề bài viết *dùng lại `cham_bong.so_cap`/`ma_tran_cap` trên dòng
+quyết định seeded*. Đếm hình dạng dòng seeded (bản lưu cục bộ `paper_trades_seeded_insample.db`, chỉ-đọc,
+`signal_date` < 10/08; lệnh: `./.venv/Scripts/python.exe tools/sang_ung_vien.py hinh-dang --db <bản lưu>
+--cache backtest/cache_2018`, cả `backtest/cache` cho cùng số): **13.818** dòng, 71 mã, 965 phiên, mật độ
+ô **17,1%** (13.818/81.011), mã mỗi phiên trung vị **8**, lớn nhất 41; `ma_tran_cap` cho **0 mã đầy đủ**
+(`MIN_MA` = 40) và cửa sổ 2/5/10/22 phiên liền nhau đều 0. Nguyên nhân: `cmd_seed` chạy `stride=2`, mỗi mã
+một pha, và mã đang giữ vị thế không có dòng. Lỗi 120.
+
+**Quyết định của leader (phiên điều phối, 02/10):** hướng A — sàng trên bảng điểm DÀY tính lại bằng
+`paper_runner._analyze` (bộ nhớ hậu kiểm TẮT), phá quy ước 1 của `cham_bong` ở vòng SÀNG (ngoại lệ có
+tên); vòng XÁC NHẬN giữ điểm đã ghi và ngưỡng 0,05/K. Không hỏi người dùng. Không đọc Google Sheets.
+
+**Tiêu chí ký trước dụng cụ — ĐO 23, commit riêng `37d82ee`, đẩy lên GitHub TRƯỚC khi có một dòng
+mã.** Khai thẳng: vì sao phá quy ước 1 và vì sao xác nhận không bị ảnh hưởng · chặn rò (mốc 10/08, loại lúc
+nạp + lõi ném lỗi) · bảng điểm dày trên `backtest/cache` · **phép đối chiếu điểm tính lại ↔ điểm đã ghi, ngưỡng
+và ba kết cục ký trước** · sàng QUA = Δ > 0 và p hai phía < 0,10, **không chia K** · kết cục từng nhánh.
+
+### Kết quả phép đối chiếu: KHÔNG ĐẠT
+
+`./.venv/Scripts/python.exe tools/sang_ung_vien.py doi-chieu --db <bản lưu> --cache backtest/cache --ghi`,
+chạy MỘT lượt, 93 giây:
+
+```
+N ô khớp 13.759 · rho điểm cuối 0,9617 · rho thành phần: trend 0,9809 · momentum 0,9925 ·
+volume 1,0000 · sr 0,9576 · risk 0,7494 · tỷ lệ ô khớp cả năm thành phần 0,8194
+```
+
+Điều kiện ký là cả hai `rho` ≥ 0,95; `risk_score` (0,7494) không đạt → **KHÔNG ĐẠT**. Theo bảng đã ký,
+hướng A không đứng; **không chỉnh ngưỡng, không đổi chế độ bộ nhớ, không chạy lại bằng tuỳ chọn khác.**
+Số nằm ở `docs/sang-doi-chieu.json`; `bang-day` và `sang` từ chối chạy khi file ấy không mang ĐẠT, và một gác
+đòi kết cục trong file suy ra được từ chính các số trong file (đục 3/3 đỏ). Chi tiết: `docs/TIEU-CHI-DOC-TRUOC.md`,
+mục *Kết quả ĐO 23*.
+
+### Chẩn đoán — SAU kết cục, không đổi nó
+
+`tools/sang_ung_vien.py chan-doan --db <bản lưu> --cache backtest/cache` (mẫu 600 ô, hạt 7, 596 ô khớp):
+cả năm thành phần khớp **100%** ở mọi ô có lịch sử ≤ 800 hàng (292 ô, 2022 → khoảng 04/2025) và chỉ lệch ở
+ô dài hơn (304 ô: trend 0,83 · momentum 0,99 · volume 1,00 · sr 0,84 · risk 0,62).
+`RiskManagementAgent` (`analysis_agents.py`) tính trên TOÀN BỘ lịch sử, không cửa sổ; đọc `git diff e9c5113
+HEAD` trên bốn file agent: **0 dòng** đổi phép tính `risk_score`. Bộ nhớ hậu kiểm chỉ chạm `final_score`
+(`master_agent.py`, `sl_penalty`) — giả thuyết *"chế độ bộ nhớ gây lệch"* bị bác bằng đọc mã nên lượt `co_san`
+(được phép MỘT lần) không chạy; worktree cũng không có `sl_pattern_memory.json`.
+
+Còn lại: **giá đổi giữa các lần kéo.** `tools/sang_ung_vien.py so-cache --cache-khac backtest/cache_2018`:
+80.018 nến chung, **27.219 (34,0%)** có `close` khác nhau, 45/69 mã. Đó là chứng cứ giá không ổn định giữa hai lần
+kéo; nó **không chứng minh** cache lúc `cmd_seed` chạy (nay không còn) khác cache hôm nay ở đoạn từ 2025.
+Nguyên nhân thật của lệch **chưa chứng minh**; suy luận loại trừ chỉ ra giá.
+
+**Giả thuyết bị bác và ước lượng sai** (giữ vì nghe hợp lý): (1) tiêu chí viết *"nếu bản seeded chấm với 44 mẫu thì
+`rho_cuoi` thấp hơn 1 và vẫn có thể ĐẠT"* — dự đoán ngầm là lệch đến từ bộ nhớ và chỉ ở điểm cuối; sai: điểm cuối đạt
+(0,9617), thứ rớt là một thành phần mà bộ nhớ không chạm. (2) Dự đoán ngầm *"cùng mã, cùng khung `iloc[:t+1]` thì tái
+lập gần từng ô"* sai ở 18% số ô — chiều xấu, không phải nịnh.
+
+### Dụng cụ và gác
+
+`tools/sang_ung_vien.py` (lệnh con `hinh-dang` · `doi-chieu` · `chan-doan` · `so-cache` · `bang-day` · `sang`) và
+`tests/test_sang_ung_vien.py` (56 test, dữ liệu TỔNG HỢP, không chạm cache hay sổ thật). Ba chỗ máy sàng có thể tự khen
+mình, mỗi chỗ một gác: **rò ≥ mốc** (loại lúc nạp, lõi ném lỗi, test cấy dòng/nến ≥ mốc đỏ, nhãn `T + NHIP + 1` nằm trong giá
+đã cắt); **nền không phải hệ thống thật** (đối chiếu + cổng chạy); **cửa sổ chọn theo kết quả** (suy từ ngày lên sàn,
+test chứng minh không đọc giá trị). Hiệu chuẩn bằng dữ liệu tổng hợp hình bảng dày (45 mã × 200 phiên, điểm AR(1), nhãn
+chồng lấn 21 phiên): tín hiệu cấy vào **QUA 20/20**; ứng viên thuần nhiễu **QUA 10/200 = 5,0%** (khoảng nhị thức 99,9%:
+2–21); ứng viên giống hệt nền (Δ = 0) RỚT; ứng viên thua nền rõ rệt RỚT. Lệnh: `./.venv/Scripts/python.exe -m pytest
+tests/test_sang_ung_vien.py -q -s`.
+
+**Đục:** 50 phát ở lượt đầu → 46 đỏ; bốn sống: một là đột biến TƯƠNG ĐƯƠNG (`hinh_dang` bỏ `kiem_khong_ro` vì
+`nhan_sach` bên trong tự kiểm cùng việc — lớp kép), ba là lỗ hổng gác thật (dung sai khớp thành phần, biên `≥ MIN_MA`
+của phép đếm, việc chấm có bộ nhớ TẮT) → thêm test → 7/7 đỏ. Phần chẩn đoán/`so-cache`: 11/12 đỏ, sống một phát
+tương đương (`chan_doan` không cắt dòng ≥ mốc — lớp tra ô theo lịch giá đã sạch tự loại nó). Phát đầu dựng lại nguyên văn
+lỗi thật (`cat_quyet_dinh` dùng `<=` thay `<` → ô ngày 10/08 lọt qua mốc). Hai lỗi của chính tôi bắt được TRƯỚC khi chạy
+dụng cụ thật: `cua_so_sang` không loại phiên chưa có nhãn ở đuôi (sẽ không trả mã nào) và tham số mặc định `FILE_DOI_CHIEU`
+buộc lúc định nghĩa nên test không thay được đường — cả hai đã sửa.
+
+### Soát chéo NotebookLM
+
+Nguồn `@89fe760`, cũ hơn `main` `20e1f6d` (không làm tươi theo yêu cầu leader). Hỏi TRƯỚC khi ký tiêu chí. Sổ tay:
+*"không tìm thấy câu nào nói ngược"*. **Tự kiểm bằng `grep` ra SAI một phần:** quy ước 1 của `cham_bong` (*"bản đang chạy là
+ĐIỂM ĐÃ GHI, không tính lại"*) nằm ở `docs/STATE.md` BƯỚC 144, `cham_bong.py` và `tests/test_cham_bong.py`, và hiểu nó áp cho mọi
+vòng thì thành sai từ BƯỚC này. **Câu thay thế cho BƯỚC 144:** quy ước 1 áp cho vòng XÁC NHẬN; vòng SÀNG là ngoại lệ có tên
+(ĐO 23). Docstring `cham_bong.py` và `tests/test_cham_bong.py` đã sửa.
+
+### Chưa giải thích · điều BƯỚC này KHÔNG nói
+
+- **Chưa giải thích:** ĐO 21 nêu 18.649 dòng tab Sheets, 2.430 dòng từ 10/08 → ~16.219 dòng seeded; bản lưu có 13.818.
+  Sheets chưa được đọc (leader: không dùng khoá Google); không đuổi trong BƯỚC này.
+- Không khai ứng viên nào; không tính IC nào trên dữ liệu thật; máy chấm dày chưa chạy trên toàn cache; không đọc dòng quyết
+  định ≥ 10/08 (22 dòng chỉ được đếm). Không đổi cách chấm điểm, hành vi giao dịch hay số đo nào.
+- Điểm tính lại **không** bị bác là sai; nó không tái lập điểm đã ghi theo đúng ngưỡng đã ký. Lập luận *"nền và ứng viên
+  cùng tính từ một cache nên drift giá không làm lệch Δ"* là lập luận cho NGƯỜI quyết, không phải kết quả đo.
+- Hiệu chuẩn null hoán vị mã trên bảng dày THẬT ở cửa sổ > 252 phiên chưa đo (ĐO 21 chỉ tới W = 252); phép kiểm đó phải ký
+  riêng và chạy TRƯỚC khi đọc kết quả sàng của ứng viên thật đầu tiên.
+
+**Việc kế — cần người quyết, vì bảng đã ký chặn hướng A:** (1) *ĐO 24* ký MỚI một phép đối chiếu khác (ví dụ chỉ trên ô mà đầu
+vào giống hệt) rồi mới đi tiếp — lưu ý bản thân chẩn đoán đã cho thấy ô nào khớp, nên một tiêu chí viết bây giờ không còn
+là ký trước hoàn toàn; (2) hướng B — thống kê chịu thưa trên chính dòng seeded; (3) dừng P3c-2 chờ người dùng. P3c-3
+(ứng viên đầu tiên) không thể bắt đầu khi `docs/sang-doi-chieu.json` chưa ĐẠT.

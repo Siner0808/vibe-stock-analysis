@@ -6,7 +6,8 @@ thống kê. ĐO 21 (BƯỚC 142) cho biết việc ấy HIẾM; module này kh�
 nó dễ hơn thật.
 
 Bốn điều, mỗi điều một cách một vòng xác nhận tự khen mình:
-1. Bản đang chạy là ĐIỂM ĐÃ GHI trong sổ quyết định — không tính lại.
+1. Bản đang chạy là ĐIỂM ĐÃ GHI trong sổ quyết định — không tính lại. (Áp cho
+   vòng XÁC NHẬN; vòng SÀNG là ngoại lệ có tên, `tools/sang_ung_vien.py`, ĐO 23.)
 2. Mỗi (mã, phiên) đếm MỘT lần — sổ có dòng lặp (BƯỚC 125).
 3. Phép so là so CẶP trên cùng nhãn, null hoán vị MÃ áp cho CẢ HAI điểm.
 4. Ngưỡng chia cho K = TỔNG số ứng viên đã sàng, kể cả ứng viên rớt sàng.

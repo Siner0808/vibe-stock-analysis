@@ -3658,3 +3658,240 @@ chỉ ở đối chứng (MBS 2023-08-16); theo ngày 449 giống hệt · 104 k
 chứng · 66 chỉ ở bản sửa (trong đó có cả mã HOSE; trần vốn nối các mã — nguyên nhân chưa quy từng lệnh).
 Chênh giá vào theo dải: dưới 10 nghìn +44,6đ / +41,2đ · 10–50 nghìn +22,0đ / +25,2đ ·
 từ 50 nghìn 0. Số liệu và phép ghép: `docs/STATE.md` BƯỚC 143.
+
+
+---
+
+## ĐO 23 — vòng SÀNG của tầng 3: sàng trên dữ liệu đã nhìn bằng điểm TÍNH LẠI, và phép đối chiếu điểm tính lại với điểm đã ghi (khai 02/10/2026)
+
+**Đã tra trùng:** BƯỚC 142 (ĐO 21 — hiệu chuẩn null hoán vị mã và lực vòng XÁC NHẬN; không đo vòng sàng) · BƯỚC 144 (dựng `cham_bong.so_cap`/`ma_tran_cap`, chưa chạy dữ liệu thật) · BƯỚC 146 (dòng quyết định cho mã đang giữ, chỉ từ 30/09) · BƯỚC 153 (`qua_sang: null` lúc khai) · BƯỚC 122 (kế hoạch hai vòng) · BƯỚC 7 (máy chấm dày 63.389 phiên / 69 mã, 512 giây). KHÔNG trùng: chưa BƯỚC nào đo hình dạng dòng seeded để chạy `ma_tran_cap` lên nó, và chưa BƯỚC nào đối chiếu điểm tính lại với điểm đã ghi.
+
+> **Khai 02/10/2026, SAU khi đếm hình dạng dòng seeded và TRƯỚC khi viết dụng cụ
+> hay chạy máy chấm dày trên cache, ở một commit RIÊNG.** Leader chọn hướng A
+> (phiên điều phối, 02/10): sàng trên bảng điểm DÀY tính lại, không trên dòng
+> seeded.
+>
+> **Khai thêm, vì chúng xảy ra trước khi ký — chỉ ĐẾM dòng/mã/phiên, không IC:**
+>
+> - Bản lưu cục bộ `paper_trades_seeded_insample.db` (chỉ-đọc), `signal_date`
+>   < 2026-08-10: **13.818** dòng, đủ năm thành phần + `score` (0 dòng bỏ), 71 mã,
+>   965 phiên (2022-01-07 → 2026-08-07), không dòng lặp (mã, phiên). 22 dòng từ
+>   10/08 chỉ được ĐẾM, không đọc.
+> - Mật độ ô **17,1%** trên lịch phiên thật (1.141 phiên × 71 mã). Mã mỗi phiên:
+>   trung vị **8**, lớn nhất **41**; **14** phiên có ≥ 40 mã.
+> - Chạy NGUYÊN VĂN `cham_bong.ma_tran_cap` (nhãn `E.nhan_vuot_ro` trên
+>   `backtest/cache_2018/`, giá cắt < 10/08): 943 phiên, **0 mã đầy đủ** (`MIN_MA`
+>   = 40). Cửa sổ 2, 5, 10, 22 phiên liên tiếp đều cho **0** mã có dòng ở mọi
+>   phiên. Nguyên nhân: `cmd_seed` chạy `stride=2` mỗi mã một pha, `min_history`
+>   60, và mã đang giữ vị thế không có dòng quyết định.
+> - **Lệch chưa giải thích, không đuổi trong BƯỚC này:** ĐO 21 nêu 18.649 dòng tab
+>   Sheets, trong đó 2.430 dòng ghi từ 10/08 → ~16.219 dòng seeded, khác 13.818
+>   của bản lưu. Sheets chưa được đọc (leader: không dùng khoá Google).
+> - Bản lưu seeded chấm trên `backtest/cache` (ngày đầu 2021-10-14, `min_history`
+>   60 — đối chiếu với cache_2018 bắt đầu 2018-09-13). Nên đối chiếu và bảng điểm
+>   dày dưới đây đều dùng `backtest/cache`, không dùng `cache_2018`.
+> - Dụng cụ vào ở commit SAU chữ ký này; các lệnh trên sẽ được dựng lại thành
+>   một lệnh con của nó và phải ra đúng các số trên, nếu không số ở đây không đứng.
+
+**Không có dụng cụ vì:** dụng cụ tools/sang_ung_vien.py chưa được viết ở thời điểm ký — chủ ý: tiêu chí phải đứng TRƯỚC dụng cụ để phép đối chiếu và ngưỡng sàng không thể được chọn sau khi thấy số; tên và lệnh đọc ghi ở mục "Kết quả" bên dưới khi dụng cụ vào.
+
+### MỘT CÂU HỎI
+
+Vòng sàng của tầng 3 phải chạy trên dữ liệu ĐÃ nhìn (phiên < 10/08/2026) bằng
+`cham_bong.so_cap`. Dòng quyết định đã ghi thì quá thưa để làm việc ấy. **Bảng điểm
+dày tính lại từ cache giá bằng đúng pipeline đang chạy có phải CÙNG MỘT hệ thống
+chấm điểm với bản đã ghi không — và nếu có, ngưỡng nào phán một ứng viên "qua sàng"?**
+
+### Phá quy ước 1 ở vòng sàng — khai thẳng
+
+`cham_bong` quy ước 1: bản đang chạy là ĐIỂM ĐÃ GHI, không tính lại. **Vòng sàng
+phá quy ước ấy** và là ngoại lệ có tên: nền của sàng là `final_score` tính lại
+bằng `paper_runner._analyze` với bộ nhớ hậu kiểm TẮT (điểm là hàm thuần của lát
+cắt giá), vì dòng đã ghi chỉ phủ 17,1% ô và không dựng được ma trận.
+
+**Vì sao vòng XÁC NHẬN không bị ảnh hưởng.** Xác nhận vẫn dùng điểm ĐÃ GHI, trên
+dòng quyết định có `signal_date` ≥ 10/08/2026 và sau `khai_ngay` của ứng viên,
+ngưỡng 0,05/K, K = mọi dòng đã khai — không dòng nào của đoạn này đi qua sàng.
+Sàng chỉ quyết định ai được vào hàng chờ xác nhận. Nền tính lại lệch khỏi nền đã
+ghi chỉ làm sàng kém khớp (mất lực hoặc cho lọt thừa), không đổi một ngưỡng hay một
+con số của xác nhận; ứng viên lọt thừa chỉ tốn chỗ chờ, vì K đã đếm mọi dòng
+đã khai dù sàng cho qua hay không.
+
+### Chặn rò — luật của dữ liệu
+
+- **Mốc đã nhìn** `MOC_DA_NHIN` = **2026-08-10**. Mọi dòng quyết định có
+  `signal_date` ≥ mốc và mọi nến có ngày ≥ mốc bị LOẠI ngay lúc nạp.
+- Nhãn `E.nhan_vuot_ro` (h = 21, dùng giá đóng T+1 và T+22) tính TRÊN giá đã cắt:
+  phiên T mà nhãn chạm ngày ≥ mốc có nhãn NaN và bị bỏ. Không có nhãn nào
+  chạm ≥ 10/08.
+- Phần lõi của dụng cụ nhận giá và bảng điểm ĐÃ cắt và **ném lỗi** nếu thấy một
+  dòng/nến ≥ mốc; test cấy dòng ≥ mốc phải đỏ.
+- Dòng quyết định ≥ 10/08 là dữ liệu của vòng XÁC NHẬN. Việc này không đọc, không
+  tính gì trên nó.
+
+### Bảng điểm dày
+
+`backtest/cache/` qua `E.nap_gia` (69 mã qua sổ mốc sạch), cắt < mốc. Mỗi mã, mỗi
+phiên t từ hàng thứ `E.MIN_HIST` = 250 trở đi mà nhãn có: `_analyze` trên
+`iloc[:t+1]`, bộ nhớ hậu kiểm TẮT (`che_do_hoc="tat"`); lấy năm thành phần
+(`THANH_PHAN` của `cham_bong`) và `final_score`. Cửa sổ sàng = phiên đầu tiên `s`
+sao cho ≥ `MIN_MA` = 40 mã có điểm ở MỌI phiên từ `s` tới phiên cuối có nhãn; mã
+thiếu trong cửa sổ ấy rớt như `ma_tran_cap` đã làm. Quy tắc này chỉ phụ thuộc
+ngày lên sàn, không phụ thuộc điểm hay nhãn.
+
+### Phép đối chiếu điểm tính lại ↔ điểm đã ghi — NGƯỠNG VÀ KẾT CỤC KÝ TRƯỚC
+
+**Ô khớp** = dòng seeded (< mốc, bản lưu cục bộ) có mã nằm trong 69 mã và ngày nằm
+trong lịch nến của `backtest/cache`. Chấm lại ĐÚNG các ô ấy bằng cùng `_analyze`,
+cùng `iloc[:t+1]`, bộ nhớ TẮT, rồi đo:
+
+1. `N` = số ô khớp.
+2. `rho_cuoi` = Spearman giữa `final_score` tính lại và `score` đã ghi.
+3. `rho_tp` = Spearman từng thành phần (năm số); lấy **nhỏ nhất**.
+4. Chỉ để ĐỌC, không quyết định: tỷ lệ ô có cả năm thành phần lệch ≤ 0,1.
+
+| kết cục | điều kiện | làm gì |
+|---|---|---|
+| **ĐẠT** | `N` ≥ 10.000 **và** `rho_cuoi` ≥ 0,95 **và** `rho_tp` nhỏ nhất ≥ 0,95 | Nền tính lại là CÙNG hệ thống chấm điểm. Sàng được chạy trên bảng điểm dày (P3c-3). Công cụ chỉ sàng khi file kết quả đối chiếu mang kết cục ĐẠT |
+| **KHÔNG ĐẠT** | `N` ≥ 10.000 và một trong hai `rho` < 0,95 | Hướng A không đứng. **Không chỉnh ngưỡng, không đổi chế độ bộ nhớ, không chạy lại bằng tuỳ chọn khác để tìm một lượt ĐẠT.** Báo leader, người dùng quyết lại hướng sàng. Chế độ `co_san` được phép chạy MỘT lần CHỈ để chẩn đoán nguyên nhân; nó không đổi kết cục |
+| **KHÔNG ĐỌC** | `N` < 10.000, hoặc máy chấm nổ giữa chừng | Sửa dụng cụ rồi chạy lại **cả** phép đối chiếu; không đọc `rho` nào của lượt hỏng |
+
+**Vì sao 0,95 và không phải số khác — khai là phán đoán.** Không suy ra được từ
+một bất đẳng thức: góc giữa hai điểm không chặn được độ lệch IC ở bậc 0,05. Lập
+luận dùng được là nhiễu của nền tính lại KHÔNG liên quan nhãn nên chỉ làm IC của
+nền co lại theo hệ số xấp xỉ `rho`, và Δ co theo cùng hệ số — 5% là sai số nhỏ hơn
+nhiều so với bề rộng ngưỡng sàng. Nhiễu LIÊN QUAN nhãn (nhìn trộm) bị chặn ở chỗ
+khác, bởi mốc cắt. Một số khác 0,95 mà chọn SAU khi thấy `rho` là điều chữ ký này
+cấm. Ngưỡng `N` ≥ 10.000 = 72% số ô seeded; thấp hơn thì ô khớp quá thưa để một
+`rho` mang nghĩa.
+
+**Chế độ bộ nhớ khai trước:** `tat`, vì (a) đường quét CI chạy 0 mẫu (BƯỚC 140) —
+điểm ghi tiến-về-trước là hàm thuần của lát cắt, giống `tat`; (b) bộ nhớ bật làm
+điểm phụ thuộc thứ tự chạy. Bản seeded có thể đã chấm với 44 mẫu; nếu vậy `rho_cuoi`
+thấp hơn 1 và vẫn có thể ĐẠT.
+
+### Ngưỡng sàng, K, và nghĩa của từng kết cục
+
+Ứng viên là dòng `qua_sang: null` của `docs/ung-vien.json`. Chạy `so_cap` trên bảng
+điểm dày: B = `final_score` tính lại, C = điểm ứng viên (`diem_ung_vien`), Y =
+nhãn vượt rổ h = 21, **2.000 hoán vị mã, hạt `20261002`**, một lượt mỗi ứng viên.
+
+| kết cục sàng | điều kiện | điền `qua_sang` (việc TAY, P3c-3) |
+|---|---|---|
+| **QUA** | Δ > 0 **và** p hai phía < **0,10** (tức 0,05 một phía) | `true` — vào hàng chờ XÁC NHẬN |
+| **RỚT** | mọi trường hợp đọc được còn lại (Δ ≤ 0, hoặc p ≥ 0,10) | `false` |
+| **KHÔNG ĐỌC** | số mã đầy đủ < `MIN_MA` hoặc số phiên có nhãn < `NHIP`, hoặc kết quả đối chiếu chưa ĐẠT | không điền; `qua_sang` còn `null` |
+
+**Vì sao 0,05 một phía và vì sao lỏng hơn xác nhận.** (a) Xác nhận có ngưỡng 0,05/K
+hai phía; ở K = 1 đã là 0,025 một phía, và K càng lớn càng chặt — sàng cố ý lỏng hơn
+xác nhận ở mọi K. (b) ĐO 21 cho thấy LỰC là chỗ nghẽn của cả tầng; một sàng chặt
+như xác nhận thì loại luôn ứng viên thật. (c) Sàng chạy trên dữ liệu ĐÃ nhìn, nơi
+người đề xuất đã có thể thấy dữ liệu, nên chứng cứ của sàng yếu theo thiết kế; việc
+của nó là loại những ứng viên không thắng nổi cả trên dữ liệu đã nhìn, không phải
+chứng minh lợi thế. (d) Ứng viên thuần nhiễu lọt sàng với xác suất 5%; ở trần 5 ứng
+viên mỗi tuần là 0,25 lượt lọt thừa mỗi tuần, mỗi lượt đi tiếp vào xác nhận nơi
+ngưỡng chặt hơn nhiều. Con số 0,05 là phán đoán chọn trước; đổi nó sau khi thấy kết
+quả sàng là việc bị cấm.
+
+**Xử lý K.** K **không** chia vào ngưỡng sàng. K vẫn đếm MỌI dòng đã khai, kể cả
+chưa sàng, rớt sàng và qua sàng — đúng `cham_bong.so_da_sang`, không đổi. Trần 5
+ứng viên mỗi tuần ISO đã cưỡng chế bởi `kiem_so_ung_vien`; công cụ sàng chỉ nhận
+dòng `qua_sang: null` và KHÔNG tự ghi sổ.
+
+**Mỗi ứng viên sàng đúng MỘT lần.** Chạy lại để đọc thì được; điền `qua_sang` một
+lần, đúng luật (c) của cổng tiền đăng ký (BƯỚC 153). Ứng viên sửa sau khi sàng là
+ứng viên MỚI, và K tăng.
+
+### Dụng cụ kiểm bằng dữ liệu TỔNG HỢP — khai trước
+
+Chưa tính IC nào trên dữ liệu thật trong BƯỚC này. Dụng cụ chỉ được test bằng dữ
+liệu tổng hợp có hình dạng của bảng dày (≥ 40 mã × hàng trăm phiên, nhãn chồng lấn
+21 phiên):
+
+- Ứng viên tiêm tín hiệu vượt rõ rào ngưỡng phải **QUA** ở ≥ 95% số lượt.
+- Ứng viên thuần nhiễu (không liên quan nhãn) phải QUA với tỷ lệ trong khoảng nhị
+  thức của ngưỡng 5% (`nguong_im`/cận hai phía ở độ tin cậy 99,9% trên số lượt
+  chọn trước).
+- Cấy một dòng điểm hay một nến có ngày ≥ mốc thì dụng cụ phải NÉM LỖI.
+- Một ứng viên giống hệt bản đang chạy (Δ = 0) phải RỚT.
+
+**Chưa đo, và nói ra:** hiệu chuẩn null hoán vị mã trên bảng dày THẬT ở cửa sổ dài
+hơn 252 phiên (ĐO 21 chỉ kiểm tới W = 252). Ô "không có gì" trên dữ liệu thật phải
+được ký riêng và chạy TRƯỚC khi đọc kết quả sàng của ứng viên thật đầu tiên.
+
+### Điều ĐO này KHÔNG đo
+
+- Không một ứng viên thật; không IC nào trên dữ liệu thật; chưa chạy máy chấm dày
+  trên toàn cache (chỉ chạy lại các ô seeded cho phép đối chiếu).
+- Không đọc tab `decisions` Google Sheets; hình dạng ở nguồn công khai chưa kiểm.
+- Không đo vòng XÁC NHẬN; không đổi cách chấm điểm, hành vi giao dịch hay số đo nào.
+- Điểm tính lại KHÔNG đo cái gì khác ngoài việc nó khớp điểm đã ghi; nó không phải
+  bằng chứng điểm ấy dự báo được gì.
+
+
+---
+
+## Kết quả ĐO 23 — chạy 02/10/2026, đọc theo bảng đã ký
+
+**Dụng cụ:** tools/sang_ung_vien.py (vào SAU chữ ký `37d82ee`, đẩy lên GitHub TRƯỚC khi
+chạy máy chấm) · bản lưu seeded `paper_trades_seeded_insample.db` chỉ-đọc · giá `backtest/cache`
+cắt < 2026-08-10 · không chạm mạng, không đọc Sheets, không đọc dòng ≥ mốc (22 dòng chỉ
+được ĐẾM).
+
+**Số ký ở phần "Khai thêm" dựng lại được bằng một lệnh** (`hinh-dang`, cả hai cache cho cùng số):
+13.818 dòng · 71 mã · 965 phiên · 1.141 phiên lịch × 71 mã = 81.011 ô · mật độ **0,1706** · mã mỗi
+phiên trung vị 8, lớn nhất 41, 14 phiên có ≥ 40 mã · `ma_tran_cap`: 943 phiên, **0** mã đầy đủ · cửa sổ
+2/5/10/22 phiên: 0 mã.
+
+```
+tools/sang_ung_vien.py doi-chieu --db paper_trades_seeded_insample.db --cache backtest/cache --ghi
+chạy 00:16:07 → 00:17:40 (93 giây), một lượt duy nhất, mã thoát 1
+
+N ô khớp                       13.759   (≥ 10.000)
+rho điểm cuối                  0,9617   (≥ 0,95  ĐẠT vế này)
+rho thành phần  trend          0,9809
+                momentum       0,9925
+                volume         1,0000
+                sr             0,9576
+                risk           0,7494   (< 0,95  KHÔNG đạt)
+tỷ lệ ô khớp cả năm thành phần 0,8194   (chỉ để đọc)
+```
+
+**KẾT CỤC: KHÔNG ĐẠT.** Điều kiện ký là *cả hai* `rho` ≥ 0,95; vế điểm cuối đạt, vế
+thành phần nhỏ nhất (`risk_score`, 0,7494) không. Theo bảng đã ký: hướng A không đứng; **không
+chỉnh ngưỡng, không đổi chế độ bộ nhớ, không chạy lại bằng tuỳ chọn khác.** Kết quả nằm ở
+`docs/sang-doi-chieu.json`; `bang-day` và `sang` từ chối chạy khi file ấy không mang ĐẠT, và
+một gác đòi kết cục trong file suy ra được từ chính các số trong file (đục 3/3 đỏ).
+
+### Chẩn đoán — sau kết cục, KHÔNG đổi kết cục
+
+Lệnh con `chan-doan` (mẫu 600 ô, hạt 7, 596 ô khớp): tỷ lệ ô mà từng thành phần khớp
+(|lệch| ≤ 0,1) với điểm đã ghi.
+
+```
+theo độ dài lịch sử (hàng)   trend  momentum  volume   sr    risk      n
+(0, 800] gộp 4 nhóm          1,00    1,00     1,0    1,00   1,00    292
+(800, 5000]                   0,83    0,99     1,0    0,84   0,62    304
+```
+
+Cả năm thành phần khớp **100%** ở mọi ô có lịch sử ≤ 800 hàng (2022 → khoảng tháng 4/2025) và chỉ lệch ở ô
+dài hơn. Mã `RiskManagementAgent` (`analysis_agents.py`) tính độ biến động, drawdown và Sharpe
+trên TOÀN BỘ lịch sử, không cửa sổ; `git diff e9c5113 HEAD` trên bốn file agent không đổi phép
+tính `risk_score`. Bộ nhớ hậu kiểm chỉ chạm `final_score` (`master_agent.py`, `sl_penalty`),
+không chạm các thành phần — nên giả thuyết *"chế độ bộ nhớ gây lệch"* bị bác bằng đọc mã, và
+lượt chẩn đoán `co_san` (được phép MỘT lần) không chạy: worktree không có `sl_pattern_memory.json`,
+chạy sẽ thành `tat`.
+
+Nghi vấn còn lại là **giá đã đổi giữa các lần kéo**. Lệnh `so-cache` so `backtest/cache` với
+`backtest/cache_2018`, cùng cắt < 10/08: **80.018** nến chung, **27.219 (34,0%)** có `close` khác
+nhau, ở **45/69** mã. Đó là chứng cứ giá KHÔNG ổn định giữa hai lần kéo; nó **không chứng minh** cache
+lúc `cmd_seed` chạy (nay không còn) khác cache hôm nay ở đoạn 2025 trở đi. Nguyên nhân thật của lệch
+là **chưa chứng minh**; suy luận loại trừ chỉ ra giá.
+
+### Điều KẾT QUẢ này KHÔNG nói
+
+- Không nói điểm tính lại *sai*: bốn trên năm thành phần và điểm cuối khớp ρ ≥ 0,95. Nói rằng
+  điểm tính lại không tái lập được điểm đã ghi, theo đúng ngưỡng đã ký.
+- Không nói vòng sàng trên bảng điểm dày là vô nghĩa: nền và ứng viên cùng tính từ MỘT cache nên hai
+  vế của Δ không lệch nhau vì drift giá. Đó là lập luận để NGƯỜI quyết (dưới đây), không phải kết quả đo.
+- Chưa tính IC nào trên dữ liệu thật; chưa chạy máy chấm dày trên toàn cache.
