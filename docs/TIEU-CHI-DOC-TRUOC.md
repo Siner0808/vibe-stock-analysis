@@ -3895,3 +3895,7 @@ là **chưa chứng minh**; suy luận loại trừ chỉ ra giá.
 - Không nói vòng sàng trên bảng điểm dày là vô nghĩa: nền và ứng viên cùng tính từ MỘT cache nên hai
   vế của Δ không lệch nhau vì drift giá. Đó là lập luận để NGƯỜI quyết (dưới đây), không phải kết quả đo.
 - Chưa tính IC nào trên dữ liệu thật; chưa chạy máy chấm dày trên toàn cache.
+
+> 🔴 **VÒNG SÀNG BỊ BỎ — BƯỚC 155, 02/10/2026.** Người dùng chọn *"Bỏ vòng sàng"* sau kết cục KHÔNG ĐẠT ở trên: không ký ĐO 24, không
+> sàng trên điểm tính lại, tầng 3 còn một vòng xác nhận. Mục này giữ nguyên làm bản ghi; các lệnh con `hinh-dang`, `doi-chieu`,
+> `chan-doan`, `so-cache` vẫn tái lập được số ở đây. Phần *"Ngưỡng sàng"* ở trên không còn áp cho ứng viên nào.

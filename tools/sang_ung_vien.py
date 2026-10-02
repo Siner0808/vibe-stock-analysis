@@ -1,5 +1,12 @@
 """Tầng 3 — VÒNG SÀNG (P3c-2, BƯỚC 154).
 
+**ĐÃ NGỪNG DÙNG từ BƯỚC 155 (02/10/2026).** Người dùng chọn *"Bỏ vòng sàng"*: tầng 3
+chỉ còn MỘT vòng (xác nhận), ứng viên khai thẳng, `cham_bong.MOC_MOT_VONG`. Lý do đo
+được: ĐO 21 (K lớn → xác nhận gần như bất khả) và ĐO 23 (phép đối chiếu KHÔNG ĐẠT,
+`docs/sang-doi-chieu.json`). File này được GIỮ NGUYÊN — không xoá — để ĐO 23 tái
+lập được (`hinh-dang`, `doi-chieu`, `chan-doan`, `so-cache`). `sang` và `bang-day`
+vẫn từ chối chạy vì kết quả đối chiếu chưa ĐẠT.
+
 Tiêu chí ký trước: `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 23 (commit riêng, đẩy
 TRƯỚC khi file này tồn tại).
 
