@@ -20814,10 +20814,12 @@ không đáng giữ; nó cũng không đổi được một con số nào của 
 
 ### Điều phải nói thẳng
 
-- **Bỏ sàng KHÔNG làm vòng xác nhận có lực hơn.** Lập luận *"K nhỏ nên ngưỡng bớt khắt khe"* đúng một chiều, và nó có số đứng
-  sau: ĐO 21, cột `px_sma50`, W = 252, ứng viên bằng rào, theo K: **K = 1 → 23/30 · K = 20 → 13/30 · K = 260 → 6/30**. Tức
-  K = 1 vẫn chỉ bắt 77% sau một năm dữ liệu chưa nhìn. Bỏ sàng làm K nhỏ vì giữ trần 1/tháng, không phải vì xác nhận dễ
-  hơn; thứ mất đi là bộ lọc trên dữ liệu đã nhìn, nên chất lượng ứng viên nằm hết ở *lập luận* của người chọn.
+- **Bỏ sàng làm K nhỏ nên lực xác nhận CAO hơn kế hoạch hai vòng — nhưng vẫn không đủ.** Số ở ĐO 21 (cột `px_sma50`, W = 252
+  phiên ≈ một năm, ứng viên bằng rào, số lượt bắt trên 30) cho thấy K nhỏ hơn thì lực cao hơn: **K = 1 → 23/30 · K = 20 → 13/30 ·
+  K = 260 → 6/30**. Hai kế hoạch, nếu khai ĐỦ trần: *hai vòng* (sàng ≤ 5/tuần ≈ 260 dòng/năm, K đếm cả dòng rớt sàng) rơi quanh
+  **6/30**; *một vòng* (≤ 1/tháng ≈ **12** dòng/năm) rơi giữa 13/30 và 23/30 — đó là **ước lượng nội suy**, ĐO 21 không có ô K = 12.
+  Dù K = 1, xác nhận chỉ bắt 23/30 (77%) sau một năm dữ liệu chưa nhìn, nên *một vòng tốt hơn hai vòng* không có nghĩa
+  *xác nhận dễ*. Cái mất đi là bộ lọc trên dữ liệu đã nhìn: chất lượng ứng viên nằm hết ở *lập luận* của người chọn.
 - Mỗi dòng khai vẫn **không xoá được và tăng K vĩnh viễn** (cổng git, luật d), và nay không còn vòng nào đứng trước để loại
   nó: dòng khai sai là dòng tăng K thật.
 - Chưa có ứng viên nào; sổ rỗng; không đọc tab `decisions`; không tính IC; không đổi cách chấm điểm hay hành vi giao dịch.
