@@ -3827,3 +3827,71 @@ hơn 252 phiên (ĐO 21 chỉ kiểm tới W = 252). Ô "không có gì" trên d
 - Không đo vòng XÁC NHẬN; không đổi cách chấm điểm, hành vi giao dịch hay số đo nào.
 - Điểm tính lại KHÔNG đo cái gì khác ngoài việc nó khớp điểm đã ghi; nó không phải
   bằng chứng điểm ấy dự báo được gì.
+
+
+---
+
+## Kết quả ĐO 23 — chạy 02/10/2026, đọc theo bảng đã ký
+
+**Dụng cụ:** tools/sang_ung_vien.py (vào SAU chữ ký `37d82ee`, đẩy lên GitHub TRƯỚC khi
+chạy máy chấm) · bản lưu seeded `paper_trades_seeded_insample.db` chỉ-đọc · giá `backtest/cache`
+cắt < 2026-08-10 · không chạm mạng, không đọc Sheets, không đọc dòng ≥ mốc (22 dòng chỉ
+được ĐẾM).
+
+**Số ký ở phần "Khai thêm" dựng lại được bằng một lệnh** (`hinh-dang`, cả hai cache cho cùng số):
+13.818 dòng · 71 mã · 965 phiên · 1.141 phiên lịch × 71 mã = 81.011 ô · mật độ **0,1706** · mã mỗi
+phiên trung vị 8, lớn nhất 41, 14 phiên có ≥ 40 mã · `ma_tran_cap`: 943 phiên, **0** mã đầy đủ · cửa sổ
+2/5/10/22 phiên: 0 mã.
+
+```
+tools/sang_ung_vien.py doi-chieu --db paper_trades_seeded_insample.db --cache backtest/cache --ghi
+chạy 00:16:07 → 00:17:40 (93 giây), một lượt duy nhất, mã thoát 1
+
+N ô khớp                       13.759   (≥ 10.000)
+rho điểm cuối                  0,9617   (≥ 0,95  ĐẠT vế này)
+rho thành phần  trend          0,9809
+                momentum       0,9925
+                volume         1,0000
+                sr             0,9576
+                risk           0,7494   (< 0,95  KHÔNG đạt)
+tỷ lệ ô khớp cả năm thành phần 0,8194   (chỉ để đọc)
+```
+
+**KẾT CỤC: KHÔNG ĐẠT.** Điều kiện ký là *cả hai* `rho` ≥ 0,95; vế điểm cuối đạt, vế
+thành phần nhỏ nhất (`risk_score`, 0,7494) không. Theo bảng đã ký: hướng A không đứng; **không
+chỉnh ngưỡng, không đổi chế độ bộ nhớ, không chạy lại bằng tuỳ chọn khác.** Kết quả nằm ở
+`docs/sang-doi-chieu.json`; `bang-day` và `sang` từ chối chạy khi file ấy không mang ĐẠT, và
+một gác đòi kết cục trong file suy ra được từ chính các số trong file (đục 3/3 đỏ).
+
+### Chẩn đoán — sau kết cục, KHÔNG đổi kết cục
+
+Lệnh con `chan-doan` (mẫu 600 ô, hạt 7, 596 ô khớp): tỷ lệ ô mà từng thành phần khớp
+(|lệch| ≤ 0,1) với điểm đã ghi.
+
+```
+theo độ dài lịch sử (hàng)   trend  momentum  volume   sr    risk      n
+(0, 800] gộp 4 nhóm          1,00    1,00     1,0    1,00   1,00    292
+(800, 5000]                   0,83    0,99     1,0    0,84   0,62    304
+```
+
+Cả năm thành phần khớp **100%** ở mọi ô có lịch sử ≤ 800 hàng (2022 → khoảng tháng 4/2025) và chỉ lệch ở ô
+dài hơn. Mã `RiskManagementAgent` (`analysis_agents.py`) tính độ biến động, drawdown và Sharpe
+trên TOÀN BỘ lịch sử, không cửa sổ; `git diff e9c5113 HEAD` trên bốn file agent không đổi phép
+tính `risk_score`. Bộ nhớ hậu kiểm chỉ chạm `final_score` (`master_agent.py`, `sl_penalty`),
+không chạm các thành phần — nên giả thuyết *"chế độ bộ nhớ gây lệch"* bị bác bằng đọc mã, và
+lượt chẩn đoán `co_san` (được phép MỘT lần) không chạy: worktree không có `sl_pattern_memory.json`,
+chạy sẽ thành `tat`.
+
+Nghi vấn còn lại là **giá đã đổi giữa các lần kéo**. Lệnh `so-cache` so `backtest/cache` với
+`backtest/cache_2018`, cùng cắt < 10/08: **80.018** nến chung, **27.219 (34,0%)** có `close` khác
+nhau, ở **45/69** mã. Đó là chứng cứ giá KHÔNG ổn định giữa hai lần kéo; nó **không chứng minh** cache
+lúc `cmd_seed` chạy (nay không còn) khác cache hôm nay ở đoạn 2025 trở đi. Nguyên nhân thật của lệch
+là **chưa chứng minh**; suy luận loại trừ chỉ ra giá.
+
+### Điều KẾT QUẢ này KHÔNG nói
+
+- Không nói điểm tính lại *sai*: bốn trên năm thành phần và điểm cuối khớp ρ ≥ 0,95. Nói rằng
+  điểm tính lại không tái lập được điểm đã ghi, theo đúng ngưỡng đã ký.
+- Không nói vòng sàng trên bảng điểm dày là vô nghĩa: nền và ứng viên cùng tính từ MỘT cache nên hai
+  vế của Δ không lệch nhau vì drift giá. Đó là lập luận để NGƯỜI quyết (dưới đây), không phải kết quả đo.
+- Chưa tính IC nào trên dữ liệu thật; chưa chạy máy chấm dày trên toàn cache.

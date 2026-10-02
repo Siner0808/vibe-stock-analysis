@@ -1,0 +1,19 @@
+{
+  "ngay": "2026-10-02",
+  "nguon_seeded": "paper_trades_seeded_insample.db",
+  "moc_da_nhin": "2026-08-10",
+  "che_do_bo_nho": "tat",
+  "cache_gia": "backtest/cache",
+  "n": 13759,
+  "n_dong_loai_ge_moc": 22,
+  "rho_cuoi": 0.9616915356064436,
+  "rho_tp": {
+    "trend_score": 0.9809121658705309,
+    "momentum_score": 0.9924937758759265,
+    "volume_score": 1.0,
+    "sr_score": 0.9576070275250274,
+    "risk_score": 0.7493890005347542
+  },
+  "ty_le_khop": 0.8193909441093102,
+  "ket_cuc": "KHONG DAT"
+}

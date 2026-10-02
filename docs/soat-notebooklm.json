@@ -2097,6 +2097,64 @@
           "he_qua": "STATE chỉ thêm: câu thay thế ghi ở BƯỚC 153; docstring cham_bong (quy ước 4), chú thích và nhãn app 'Đã sàng (K)' -> 'Đã khai (K)' đã sửa. Hình dạng bỏ sót: câu hỏi nói 'passed or failed screening', tài liệu nói 'đã sàng, kể cả rớt sàng' — cùng nghĩa, khác từ vựng."
         }
       ]
+    },
+    "BƯỚC 154": {
+      "ngay": "2026-10-02",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md"
+      ],
+      "_do_tuoi": "nguon @89fe760 (13 nguon; docs/STATE.md cua nguon dung o BƯỚC 148), main 20e1f6d (BƯỚC 153) — cu hon; khong lam tuoi theo yeu cau phien leader. Hoi TRUOC khi ky tieu chi DO 23 (37d82ee), tuc truoc khi co ket qua doi chieu.",
+      "cau_hoi": "I am about to write BƯỚC 154 into docs/STATE.md: the tier-3 screening round (vong sang) of the shadow-scoring plan runs on already-seen data (sessions before 2026-08-10) using a RECOMPUTED dense baseline score instead of the recorded score, with the pass rule delta greater than 0 and two-sided p below 0.10 from cham_bong.so_cap, NOT divided by K, while the confirmation round keeps the recorded score and threshold 0.05/K, K counting every declared candidate. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the baseline in shadow comparisons must always be the recorded score and never recomputed, or that the screening round must also use the Bonferroni threshold 0.05/K, or that K counts only candidates that passed screening, or that screening may use decision rows dated on or after 2026-08-10. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay dùng lối thoát: 'không tìm thấy câu nào nói ngược'.",
+          "tu_kiem": "grep -n -i 'không tính lại\\|điểm đã ghi\\|bản đang chạy là' trên docs/STATE.md docs/HANDOFF.md docs/TIEU-CHI-DOC-TRUOC.md cham_bong.py tests/test_cham_bong.py CLAUDE.md MO-XE-KIEN-TRUC.md NGUYEN-TAC-DO-LUONG.md app.py -> docs/STATE.md:19828 (BƯỚC 144, quy ước 1: 'Bản đang chạy là ĐIỂM ĐÃ GHI ... không tính lại'), cham_bong.py:13 (docstring cùng câu), tests/test_cham_bong.py:9 (docstring cùng câu) và :68 ('tính lại từ thành phần là so ứng viên với một bản KHÔNG hề chạy'); grep '0,05/K\\|đã sàng' -> docs/STATE.md:19838/20168 đã đánh dấu ở BƯỚC 153, không thêm câu nào mới nói ngược về K.",
+          "phan_quyet": "SAI một phần — lời khai 'không nói ngược'. Quy ước 1 của cham_bong (điểm đã ghi, không tính lại) nằm ở ba chỗ và sẽ thành SAI nếu hiểu là áp cho MỌI vòng: BƯỚC 154 phá nó ở vòng SÀNG (ngoại lệ có tên, ĐO 23). Ví dụ đầu của chính câu hỏi ('baseline ... must always be the recorded score and never recomputed') trúng đúng câu ấy. Sổ tay không chỉ ra, grep chỉ ra.",
+          "he_qua": "docstring cham_bong.py (quy ước 1) và docstring tests/test_cham_bong.py:9 đã sửa: quy ước áp cho vòng XÁC NHẬN, sàng là ngoại lệ có tên. docs/STATE.md BƯỚC 144 chỉ thêm: câu thay thế nằm ở BƯỚC 154. Câu :68 của test vẫn đúng cho xác nhận (test đó khoá doc_quyet_dinh)."
+        }
+      ]
+    },
+    "ĐO 23": {
+      "ngay": "2026-10-02",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md"
+      ],
+      "_do_tuoi": "CUNG luot hoi voi BƯỚC 154 (mot cau, mot lan gui): cau hoi nhac BƯỚC 154 vi no la cau cua buoc, nhung ket luan duoc soat chinh la noi dung tieu chi DO 23 truoc khi ky (37d82ee). nguon @89fe760 cu hon main 20e1f6d.",
+      "cau_hoi": "I am about to write BƯỚC 154 into docs/STATE.md: the tier-3 screening round (vong sang) of the shadow-scoring plan runs on already-seen data (sessions before 2026-08-10) using a RECOMPUTED dense baseline score instead of the recorded score, with the pass rule delta greater than 0 and two-sided p below 0.10 from cham_bong.so_cap, NOT divided by K, while the confirmation round keeps the recorded score and threshold 0.05/K, K counting every declared candidate. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the baseline in shadow comparisons must always be the recorded score and never recomputed, or that the screening round must also use the Bonferroni threshold 0.05/K, or that K counts only candidates that passed screening, or that screening may use decision rows dated on or after 2026-08-10. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay dùng lối thoát: 'không tìm thấy câu nào nói ngược' về nội dung tiêu chí ĐO 23 (sàng trên điểm tính lại, p hai phía < 0,10 không chia K, xác nhận giữ điểm đã ghi và 0,05/K).",
+          "tu_kiem": "grep -n -i 'không tính lại\\|điểm đã ghi\\|bản đang chạy là' trên docs/STATE.md docs/HANDOFF.md docs/TIEU-CHI-DOC-TRUOC.md cham_bong.py tests/test_cham_bong.py CLAUDE.md MO-XE-KIEN-TRUC.md NGUYEN-TAC-DO-LUONG.md app.py -> docs/STATE.md:19828 (BƯỚC 144, quy ước 1: 'Bản đang chạy là ĐIỂM ĐÃ GHI ... không tính lại'), cham_bong.py:13 (docstring cùng câu), tests/test_cham_bong.py:9 (docstring cùng câu) và :68 ('tính lại từ thành phần là so ứng viên với một bản KHÔNG hề chạy'); grep '0,05/K\\|đã sàng' -> docs/STATE.md:19838/20168 đã đánh dấu ở BƯỚC 153, không thêm câu nào mới nói ngược về K.",
+          "phan_quyet": "SAI một phần — lời khai 'không nói ngược'. Quy ước 1 của cham_bong (điểm đã ghi, không tính lại) nằm ở ba chỗ và sẽ thành SAI nếu hiểu là áp cho MỌI vòng: BƯỚC 154 phá nó ở vòng SÀNG (ngoại lệ có tên, ĐO 23). Ví dụ đầu của chính câu hỏi ('baseline ... must always be the recorded score and never recomputed') trúng đúng câu ấy. Sổ tay không chỉ ra, grep chỉ ra.",
+          "he_qua": "docstring cham_bong.py (quy ước 1) và docstring tests/test_cham_bong.py:9 đã sửa: quy ước áp cho vòng XÁC NHẬN, sàng là ngoại lệ có tên. docs/STATE.md BƯỚC 144 chỉ thêm: câu thay thế nằm ở BƯỚC 154. Câu :68 của test vẫn đúng cho xác nhận (test đó khoá doc_quyet_dinh)."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
