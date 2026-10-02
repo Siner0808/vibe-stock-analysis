@@ -477,6 +477,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   THÁNG dương lịch, `qua_sang: null` nghĩa *vào thẳng xác nhận* (không bao giờ điền); dòng khai trước 02/10 giữ luật
 >   cũ. `tools/sang_ung_vien.py` NGỪNG DÙNG nhưng GIỮ để ĐO 23 tái lập. Việc kế: P3c-3 — đề xuất ứng viên đầu tiên cho
 >   người dùng duyệt TRƯỚC khi khai (dòng khai không xoá được, tăng K vĩnh viễn).
+>   ✅ **UV-001 ĐÃ KHAI 02/10/2026 — BƯỚC 156** (người dùng chọn phương án (a)): bỏ `risk_score` khỏi điểm mua, giữ tỷ lệ chế độ mặc định;
+>   K = 1, ngưỡng 0,05; kỳ vọng hợp lý là `DANG CHAM`, KHÔNG phải QUA; lý do là lập luận cấu trúc, rho risk −0,094 trong mẫu chỉ dùng để CHỌN.
+>   Việc kế: BƯỚC 157 đổi tên hiển thị tab; biên *"phiên khai_ngay có tính không"* phải ký trước khi nối kết quả vào app.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 
