@@ -506,7 +506,16 @@ def _goc_va_tuong_doi(duong_dan: Path) -> tuple[Path, str]:
     return goc, (thu_muc.relative_to(goc) / duong_dan.name).as_posix()
 
 
-def kiem_tra(duong_dan: Path) -> list[PhatHien]:
+def kiem_tra(duong_dan: Path,
+             bo_nho_luoc_do: dict | None = None) -> list[PhatHien]:
+    """Các phát hiện của MỘT file.
+
+    `bo_nho_luoc_do` là `{gốc worktree: lược đồ}` do người quét NHIỀU file giữ
+    suốt một lượt quét. Không truyền thì dựng lược đồ cho riêng file này (đường
+    PostToolUse: một tiến trình một file). Đo 01/10/2026: không nhớ thì
+    `quet_repo()` gọi `thu_thap_truong` 243 lần và dành 90–92% thời gian (khoảng
+    38–41 s trên 42–44 s) để dựng lại cùng một lược đồ. BƯỚC 152.
+    """
     ma = duong_dan.read_text(encoding="utf-8")
     try:
         cay = ast.parse(ma)
@@ -516,7 +525,16 @@ def kiem_tra(duong_dan: Path) -> list[PhatHien]:
     goc, tuong_doi = _goc_va_tuong_doi(duong_dan)
     la_test = tuong_doi.startswith("tests/")
 
-    bo_do = BoDo(thu_thap_truong(goc), la_test)
+    if bo_nho_luoc_do is None:
+        luoc_do = thu_thap_truong(goc)
+    else:
+        # `in`, không `.get(goc) or`: một gốc KHÔNG có dataclass nào cho lược đồ
+        # rỗng `{}`, và rỗng là đáp án hợp lệ, không phải "chưa có".
+        if goc not in bo_nho_luoc_do:
+            bo_nho_luoc_do[goc] = thu_thap_truong(goc)
+        luoc_do = bo_nho_luoc_do[goc]
+
+    bo_do = BoDo(luoc_do, la_test)
     bo_do.visit(cay)
 
     dong_ma = ma.splitlines()
@@ -692,7 +710,11 @@ def goc_phien() -> Path:
 
 
 def quet_thay_doi() -> int:
-    """Quét CHỈ file đã đổi. Cho hook `Stop` — quét cả repo mất 24 giây.
+    """Quét CHỈ file đã đổi. Cho hook `Stop` — lúc viết, quét cả repo mất 24 giây.
+
+    (Đo lại 01/10/2026: 38–44 s trước BƯỚC 152 — con số 24 s đã lệch từ lâu —
+    và 3,1 s sau khi `_quet` giữ lược đồ theo lượt quét. Lý do chỉ quét file
+    đã đổi vẫn đúng: ít việc hơn và ít ồn hơn, nhưng nay không còn vì tốc độ.)
 
     Vì sao cần: hook `PostToolUse` khớp `Write|Edit`, nên MỌI thay đổi đi
     qua Bash đều lọt. Mà chính quy ước của dự án ("vá lớn thì viết một file
@@ -740,11 +762,12 @@ def _quet(duong_dans, nhan: str) -> int:
 
     print(f"Quét {nhan}:")
     tong_chan = tong_canh_bao = 0
+    bo_nho_luoc_do: dict = {}            # theo LƯỢT QUÉT, không toàn cục — BƯỚC 152
     for duong_dan in duong_dans:
         if not trong_pham_vi(duong_dan):
             continue
         try:
-            phat_hien = kiem_tra(duong_dan)
+            phat_hien = kiem_tra(duong_dan, bo_nho_luoc_do)
         except Exception as e:
             print(f"  [LỖI] {duong_dan.name}: {type(e).__name__}: {e}")
             continue

@@ -20131,6 +20131,9 @@ nên **ghi nhận, không vá**. Lời khai ở `CLAUDE.md` (*"CI quét toàn re
 - **`chan_bia_so_lieu.kiem_tra` dựng lại `thu_thap_truong(GOC_DU_AN)` cho MỖI file** —
   0,158 s/lần, **74%** của 0,214 s/file (đo 20 file đầu); toàn lượt ước ~50 s cho 233
   file. Một bộ nhớ theo lượt quét sẽ giảm cổng 3 khoảng 4 lần. Thuộc phiên BƯỚC 149.
+  🔴 **ĐÃ ĐO LẠI — BƯỚC 152 (01/10/2026):** `thu_thap_truong` chiếm **90–92%** (243 lần,
+  37,6–41,0 s trên 41,8–44,4 s), và bộ nhớ theo lượt quét đưa `quet_repo()` từ 37,9 s
+  xuống 3,1 s (~12 lần), đầu ra giống hệt từng ký tự — không phải 74% và ~4 lần.
 - **Hook PostToolUse phán từng file theo gốc CỦA NÓ**, không theo worktree chứa file —
   đo bằng ba payload giả từ `cwd` ngoài repo: cùng một file test, ở bản chính thì lọt, ở
   `.claude/worktrees/…` thì bị CHẶN giả (R1), ở worktree ngoài repo thì im lặng (không
@@ -20586,6 +20589,86 @@ K của MÔ HÌNH lực — K đếm nhiều hơn là chiều chặt, không nó
 
 **Việc kế.** P3c-2: vòng sàng trên dữ liệu ĐÃ nhìn; P3c-3: ứng viên đầu tiên (khai
 `null` → sàng → điền).
+
+---
+
+## BƯỚC 152 — BỘ NHỚ LƯỢC ĐỒ THEO LƯỢT QUÉT: `quet_repo()` 38–44 s → 3,1 s, ĐẦU RA GIỐNG HỆT TỪNG KÝ TỰ; XÁC NHẬN HOOK TOÀN CỤC SAU KHI BƯỚC 149 VÀO `main` (01/10/2026)
+
+Phiên BƯỚC 147 ghi nhận (mục *"Ghi nhận, KHÔNG sửa ở đây"*): `kiem_tra` dựng lại
+`thu_thap_truong` cho MỖI file, ~74% thời gian, bộ nhớ theo lượt quét ước giảm ~4 lần.
+Phiên leader giao việc kèm lời dặn *"chưa ai đo — đo trước khi sửa"*.
+
+### Đo trước khi sửa
+
+Máy đo bọc `thu_thap_truong` và `kiem_tra` bằng bộ đếm giờ rồi chạy `quet_repo()` nguyên
+cái trên cây này (worktree ngoài repo, 243 file trong phạm vi). Tái lập đầu-cuối:
+`./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo` (cổng 3).
+
+| lượt | tổng | trong `thu_thap_truong` | số lần gọi | tỷ trọng |
+|---|---|---|---|---|
+| 1 (trước) | 41,8 s | 37,6 s | 243 | **90%** |
+| 2 (trước) | 44,4 s | 41,0 s | 243 | **92%** |
+| 1 (sau) | 3,1 s | 0,1 s | **1** | 5% |
+| 2 (sau) | 3,1 s | 0,1 s | **1** | 5% |
+
+Ước lượng của BƯỚC 147 (74% · ~4 lần) **thấp hơn thực đo** (90–92% · ~12 lần); tôi chưa
+truy nguyên nhân chênh. BƯỚC 147 ghi *"đo 20 file đầu"*, còn tôi đo cả 243 file; đó là khác
+biệt duy nhất tôi biết, không phải lời giải thích đã kiểm.
+
+### Việc đã làm
+
+- `kiem_tra(duong_dan, bo_nho_luoc_do=None)`: nhận `{gốc worktree: lược đồ}` do người quét
+  nhiều file giữ. `_quet` (dùng chung bởi `--quet-repo` và `--quet-thay-doi`) giữ MỘT dict
+  cho cả lượt quét. Đường PostToolUse (một tiến trình một file) không đổi.
+- **Bộ nhớ theo lượt quét, không toàn cục**: lược đồ đọc từ đĩa nên một bộ nhớ sống lâu hơn
+  lượt quét sẽ cũ khi file đổi giữa các lần gọi — và test sẽ phải xoá nó như
+  `xoa_bo_nho_goc` của BƯỚC 149. Nhớ theo `goc not in`, không theo `.get(goc) or`: một gốc
+  không có dataclass nào cho lược đồ rỗng `{}`, và rỗng là đáp án hợp lệ.
+- Docstring của `quet_thay_doi` ghi *"quét cả repo mất 24 giây"* — con số ấy đã lệch từ lâu
+  (BƯỚC 147 đo 41–119 s); thay bằng số đo hôm nay.
+- `tests/test_hook_bia_theo_goc_worktree.py`: thêm 4 test (nay 36): một lần cho MỖI gốc;
+  gốc không dataclass vẫn một lần; kết quả CÓ bộ nhớ giống hệt KHÔNG bộ nhớ (kèm đòi có
+  ít nhất R1 và R2 để so sánh không rỗng ruột); mỗi gốc lược đồ riêng trong cùng một lượt
+  quét, gốc không dataclass đi TRƯỚC.
+
+### So đầu ra toàn văn, và đục
+
+Bản trước (`git show HEAD:tools/chan_bia_so_lieu.py`) và bản mới chạy `quet_repo()` trên
+cùng cây: **cùng 23 dòng, cùng sha `fecef513d199`**, cùng mã thoát 0; 37,9 s so với 3,1 s.
+
+`dot_bien_bo`, **31 phát, 31/31 đỏ** — 24 phát cũ của BƯỚC 149 (hai neo phải đổi theo mã mới)
+và 7 phát mới: `_quet` không truyền bộ nhớ (nguyên văn lỗi) · truyền dict MỚI mỗi file ·
+`kiem_tra` bỏ qua bộ nhớ · dựng khi bộ nhớ rỗng (KeyError ở gốc thứ hai) · một lược đồ cho
+mọi gốc · lược đồ rỗng bị coi là "chưa có" · lược đồ dựng từ `GOC_DU_AN`. Ca thứ tư của
+bốn test mới xanh ngay trước khi sửa mã (nó canh khoá của bộ nhớ, không canh việc có nhớ);
+chỉ đục mới chứng minh nó có việc.
+
+### Xác nhận hook toàn cục sau khi BƯỚC 149 vào `main` (việc kế của BƯỚC 149)
+
+`gh pr view 195`: `MERGED`, `05a7dd3`, đúng đầu nhánh đã đẩy. Bản checkout chính đang ở
+`main`, sạch, chậm 10 commit, không đi trước → `git pull --ff-only` về `05a7dd3`. Rồi bơm
+payload từ `cwd` ngoài repo vào **chính file hook toàn cục** ở bản checkout chính, với các
+worktree thật của máy này (worktree lồng của phiên khác chỉ ĐỌC): **10/10 ca đúng** — test
+ở bản chính · worktree ngoài · worktree lồng không bị chặn; mã bịa ở bản chính · worktree
+ngoài bị chặn; mã bịa ở repo lạ không bị chặn; cửa Stop thấy file bịa chưa commit ở
+worktree của `cwd` (bản chính · ngoài), không thấy khi `cwd` là worktree khác, và lùi về
+bản chính khi `cwd` ngoài mọi repo. Bản checkout chính sạch sau đó.
+
+### Soát chéo
+
+Sổ tay (`_do_tuoi` trong sổ): *"không tìm thấy câu nào nói ngược"*. **Tự kiểm bằng `grep`
+tìm ra MỘT câu lỗi thời mà sổ tay bỏ sót:** ước lượng 74% · ~4 lần ở BƯỚC 147 (đã đánh dấu
+🔴). Không đo độ tươi nguồn ở lượt này, nên không biết câu ấy có nằm trong bản chụp của sổ
+tay hay không; `grep` tìm trên tài liệu sống là phép kiểm duy nhất đã làm.
+
+### Điều BƯỚC này KHÔNG nói
+
+- Không đổi luật R1–R8, ngưỡng, `MIEN_TRU`, hay thứ nào hook chặn: đầu ra giống hệt.
+- Không đo `cwd` mà Claude Code thật sự cấp cho hook Stop (CLI hết phiên OAuth, BƯỚC 149).
+  Ống bơm đặt `cwd` bằng tay nên chỉ chứng minh hàm đúng với `cwd` được cho.
+- Phần còn lại 3,1 s là `kiem_tra` từng file (đọc và `ast.parse`); chưa đo chia nhỏ.
+- Không thêm dòng vào bảng lỗi: đây là một ước lượng chưa kiểm của phiên khác được đo
+  lại, không phải lỗi mắc phải.
 
 ## BƯỚC 154 — P3c-2: VÒNG SÀNG DỰNG XONG, PHÉP ĐỐI CHIẾU ĐIỂM TÍNH LẠI RA KHÔNG ĐẠT, VÀ CHỖ LỆCH LÀ GIÁ KHÔNG ỔN ĐỊNH GIỮA CÁC LẦN KÉO (02/10/2026)
 

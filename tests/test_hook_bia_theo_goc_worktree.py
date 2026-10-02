@@ -411,3 +411,95 @@ def test_cua_STOP_cwd_ngoai_repo_giu_hanh_vi_cu(kho):
     # Tiêu đề phân biệt "hỏi git ở bản checkout chính" với đường lùi về quét
     # toàn repo (cả hai đều thấy file bịa ở ca này).
     assert "Quét 1 file đã đổi" in ra, ra
+
+
+# ── 4. Bộ nhớ lược đồ THEO LƯỢT QUÉT (BƯỚC 152) ──────────────────────
+# Đo 01/10/2026: một lượt `quet_repo()` gọi `thu_thap_truong` 243 lần (mỗi file
+# một lần, mỗi lần đọc và `ast.parse` mọi `*.py` ở gốc) và dành 90–92% thời gian
+# (37,6 s trên 41,8 s; 41,0 s trên 44,4 s) cho việc dựng lại CÙNG MỘT lược đồ.
+
+def _tao_file(goc: Path, ten: str, n: int, ma: str = BIA_R2) -> list[Path]:
+    ds = []
+    for i in range(n):
+        f = goc / "tools" / f"{ten}_{i}.py"
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(ma, encoding="utf-8")
+        ds.append(f)
+    return ds
+
+
+def _don(ds) -> None:
+    for f in ds:
+        f.unlink(missing_ok=True)
+
+
+def _dem_luoc_do(monkeypatch) -> list:
+    dem = []
+    that = hook.thu_thap_truong
+
+    def dem_goi(goc):
+        dem.append(goc)
+        return that(goc)
+
+    monkeypatch.setattr(hook, "thu_thap_truong", dem_goi)
+    return dem
+
+
+def test_luot_quet_dung_luoc_do_MOT_lan_cho_MOI_goc(kho, monkeypatch):
+    dem = _dem_luoc_do(monkeypatch)
+    ds = _tao_file(kho.trong, "q_trong", 3) + _tao_file(kho.ngoai, "q_ngoai", 3)
+    try:
+        hook._quet(ds, "thu")
+    finally:
+        _don(ds)
+    assert sorted(dem) == sorted([kho.trong, kho.ngoai]), (
+        f"mong mỗi gốc đúng một lần, được {len(dem)} lần: {dem}")
+
+
+def test_goc_KHONG_CO_dataclass_nao_van_chi_dung_luoc_do_MOT_lan(kho, monkeypatch):
+    """Lược đồ rỗng `{}` là giá trị HỢP LỆ, không phải 'chưa có': nhớ theo
+    `in`, không theo độ thật của giá trị."""
+    dem = _dem_luoc_do(monkeypatch)
+    ds = _tao_file(kho.ngoai, "r_ngoai", 4)
+    try:
+        hook._quet(ds, "thu")
+    finally:
+        _don(ds)
+    assert dem == [kho.ngoai], f"gốc không dataclass bị dựng lại {len(dem)} lần"
+
+
+def test_ket_qua_CO_va_KHONG_bo_nho_giong_het_nhau(kho):
+    ds = []
+    try:
+        with _viet(kho.trong / "mo_hinh_thu.py", LOP):
+            ds = (_tao_file(kho.trong, "e_trong", 2) + _tao_file(kho.trong, "e_bia", 1, BIA)
+                  + _tao_file(kho.ngoai, "e_ngoai", 2))
+            bo_nho: dict = {}
+            tat_ca = []
+            for f in ds:
+                a = [(p.ma, p.dong, p.chan, p.thong_diep) for p in hook.kiem_tra(f)]
+                b = [(p.ma, p.dong, p.chan, p.thong_diep) for p in hook.kiem_tra(f, bo_nho)]
+                assert a == b, f"{f.name}: có bộ nhớ khác không bộ nhớ"
+                tat_ca += a
+            assert {m for m, *_ in tat_ca} >= {"R1", "R2"}, (
+                f"ca so sánh rỗng ruột — không phát hiện nào để so: {tat_ca}")
+    finally:
+        _don(ds)
+
+
+def test_MOI_goc_co_luoc_do_RIENG_trong_cung_mot_luot_quet(kho, capsys):
+    """Một bộ nhớ chung cho mọi gốc sẽ trả lược đồ của gốc đầu tiên cho gốc
+    thứ hai: R2 ở worktree có dataclass biến mất, hoặc hiện ở nơi không có."""
+    trong = kho.trong / "tools" / "dung_trong.py"
+    ngoai = kho.ngoai / "tools" / "dung_ngoai.py"
+    try:
+        with _viet(kho.trong / "mo_hinh_thu.py", LOP):
+            for f in (trong, ngoai):
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_text(BIA_R2, encoding="utf-8")
+            hook._quet([ngoai, trong], "thu")           # gốc KHÔNG dataclass đi trước
+            ra = capsys.readouterr().out
+    finally:
+        _don([trong, ngoai])
+    assert "[R2/CHẶN] tools/dung_trong.py" in ra, ra
+    assert "dung_ngoai" not in ra, ra

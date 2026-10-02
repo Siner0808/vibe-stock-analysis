@@ -2098,6 +2098,30 @@
         }
       ]
     },
+    "BƯỚC 152": {
+      "ngay": "2026-10-01",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md"
+      ],
+      "_do_tuoi": "Không đo độ tươi ở lượt này; theo BƯỚC 150 sổ tay có 13 nguồn @89fe760. BƯỚC 151–153 ngoài nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 152 into docs/STATE.md: kiem_tra in tools/chan_bia_so_lieu.py now accepts an optional per-scan schema memo, so thu_thap_truong runs once per worktree root per scan instead of once per file, and quet_repo() drops from 38-44 seconds to 3.1 seconds with byte-identical output; the earlier BƯỚC 147 estimate (74 percent of the time, about 4 times faster) is superseded by the measured 90-92 percent. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that scanning the whole repo or gate 3 takes about 24 seconds or 41-119 seconds as a current fact, or that thu_thap_truong is rebuilt for every file on purpose, or that the schema memo should be global or persistent across runs. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "grep -n -E 'thu_thap_truong|41–119|0,158|0,214|bộ nhớ theo lượt quét|24 giây|mất 24' CLAUDE.md docs/HANDOFF.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md SKILL.md references/*.md -> 1 dòng, không liên quan (MO-XE-KIEN-TRUC.md 184, khoảng tin cậy rho −0,158). grep -n -E 'thu_thap_truong|41–119|0,158|0,214|bộ nhớ theo lượt quét|khoảng 4 lần|mất 24 giây' docs/STATE.md -> 5 dòng: 19633 là một ô bảng không liên quan (+0,214%); 20126 ghi lại việc BƯỚC 147 đo lệch con số 24 giây (41–119 s) — sử liệu đúng; 20131–20133 là ước lượng 74% và ~4 lần của BƯỚC 147, nay SAI so với số đo (90–92%, ~12 lần) và chưa đánh dấu — đã thêm dấu 🔴 ĐÃ ĐO LẠI. Docstring quet_thay_doi trong tools/chan_bia_so_lieu.py còn ghi 'mất 24 giây' — đã thay bằng số đo. Sổ tay không thấy câu 20131–20133; không biết nó có nằm trong bản chụp nguồn không (không đo độ tươi)."
+    },
     "BƯỚC 154": {
       "ngay": "2026-10-02",
       "nguon": [
