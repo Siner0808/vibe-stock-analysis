@@ -20848,3 +20848,63 @@ cho dòng trước mốc, dòng từ mốc ≤ 1 mỗi tháng dương lịch.*
 
 **Việc kế.** P3c-3 — đề xuất ứng viên đầu tiên (spec trọng số, mô tả một câu, lý do dẫn dòng ĐO/BƯỚC) cho người dùng duyệt TRƯỚC khi khai:
 dòng khai không xoá được và tăng K vĩnh viễn. PR khai phải merge `--merge`, không squash (luật (e) của cổng git).
+
+## BƯỚC 156 — KHAI UV-001: ỨNG VIÊN ĐẦU TIÊN CỦA TẦNG 3, BỎ `risk_score` KHỎI ĐIỂM MUA; KỲ VỌNG HỢP LÝ LÀ ĐANG CHẤM, KHÔNG PHẢI QUA (02/10/2026)
+
+**Quyết định của người dùng, 02/10/2026** (qua phiên điều phối), sau khi BƯỚC 155 gửi đề xuất kèm khuyến nghị đọc kỹ: *"chọn (a), nhưng
+tôi ko thích cái tên "🧪 Chấm bóng" hãy đổi tên rõ ràng và phụ hợp với chứng khoán"*. (a) = khai UV-001 như một ứng viên thật, chấp
+nhận khả năng cao là không qua; phần đổi tên là BƯỚC 157 (chỉ giao diện).
+
+**Việc làm — đúng MỘT dòng trong `docs/ung-vien.json`, commit riêng `e82c89a` (2026-10-02 14:22 giờ VN):**
+
+```
+UV-001  khai_ngay 2026-10-02  qua_sang null
+spec    trend_score 0,2941 · momentum_score 0,2941 · volume_score 0,2353 · sr_score 0,1765   (tổng 1)
+```
+
+Là bộ trọng số chế độ mặc định của `master_agent.py` (trend 0,25 · momentum 0,25 · volume 0,20 · sr 0,15 · risk 0,15) với `risk`
+bỏ đi rồi chuẩn hoá về 1 (0,25/0,85 · 0,25/0,85 · 0,20/0,85 · 0,15/0,85 làm tròn 4 chữ số). Đổi MỘT thứ duy nhất để nếu sau này có
+khác biệt thì quy được về một nguyên nhân. K = **1**, ngưỡng xác nhận 0,05. Bảng hiện cột Sàng `bo`, trạng thái `CHUA CHAM`.
+Lệnh: `./.venv/Scripts/python.exe -c "import cham_bong as c; s=c.doc_so_ung_vien(); c.kiem_so_ung_vien(s); print(c.tom_tat_so(s,'2026-10-02'))"`.
+Cổng tiền đăng ký trên lịch sử git thật (`./.venv/Scripts/python.exe -m pytest tests/test_tien_dang_ky_git.py -q -s`): **7 commit được phán,
+0 vi phạm** — dòng mới mang `qua_sang: null` (luật a) và `khai_ngay` khớp ngày commit theo giờ VN (luật e). **PR này phải merge `--merge`,
+không squash**: squash tạo một commit mới mang ngày merge và luật (e) đỏ nếu khác ngày.
+
+### Thành thật về thiên lệch
+
+- Lý do ghi vào sổ là **lập luận cấu trúc**: `risk_score` là thước đo rủi ro, chỗ đúng của nó là định cỡ vị thế và cắt lỗ, không phải chọn mã;
+  đưa nó vào điểm CHỌN là trộn hai việc và phạt biến động bất kể kỳ vọng lợi nhuận.
+- Tôi chú ý tới `risk` vì `MO-XE-KIEN-TRUC.md` ghi rho **−0,094** (KTC 95% [−0,158 ; +0,009], chứa 0) với lợi nhuận 20 phiên sau, âm nhất trong
+  năm thành phần. Đó là số TRONG MẪU đã nhìn nhiều lần (bất biến 7 và 8). **Nó chỉ được dùng để CHỌN ứng viên nào đáng nhìn, không làm bằng chứng.**
+  Nếu UV-001 qua xác nhận, câu *"vì nó đúng"* phải đứng trên dữ liệu SAU ngày khai, không trên con số này.
+
+### Kỳ vọng hợp lý: ĐANG CHẤM (`DANG CHAM`), không phải QUA
+
+Chặn trên của MỌI ứng viên `loai: trong_so` rất thấp. Cách gộp tuyến tính TỐI ƯU trong mẫu của năm điểm agent (cho phép cả trọng số âm, mà
+`kiem_spec` cấm) cho rho **0,0071** ở h = 20 (0,0115 ở h = 5; `docs/STATE.md` BƯỚC 7), trong khi điểm đang chạy là **−0,019**: Δ tối đa
+khoảng **+0,026**, và đó là con số lạc quan vì nó là trong mẫu. Rào hoà vốn hiện hành ở ĐO 21 là **0,0586**. Phép so CẶP (hai điểm tương
+quan cao nên phương sai Δ nhỏ hơn) **chưa ai đo** (ĐO 21, mục *Điều ĐO này KHÔNG đo*), nên đây không phải chứng minh *"không bao giờ qua"* — là một
+kỳ vọng. UV-001 được khai như một ứng viên chấm thật có lập luận, chấp nhận khả năng cao là không qua; giá trị của nó là chạy máy chấm công khai trên dữ
+liệu tiến-về-trước lần đầu và dùng suất K rẻ nhất (K = 1 → 23/30 ở 252 phiên theo ĐO 21; ứng viên thứ hai sẽ gánh ngưỡng 0,05/2).
+
+### Khi nào đọc được — ước lượng, không phải số đo
+
+Cần `NHIP` = 21 phiên CÓ nhãn (nhãn dùng giá tới T + 22) và ≥ `MIN_MA` = 40 mã đủ: khoảng 43 phiên giao dịch ≈ **9 tuần** từ ngày khai là ước lượng
+(`docs/STATE.md` BƯỚC 142 không đo con số này); đọc có lực thì cỡ một năm (ĐO 21). Dữ liệu chấm là các dòng quyết định SAU `khai_ngay`: `doc_quyet_dinh`
+lọc `ngay >= tu_ngay`, và dòng quyết định của phiên 02/10 chỉ ghi trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`, 15:30 giờ VN) — sau giờ commit 14:22. Biên *"phiên
+`khai_ngay` có tính không"* (`>=` hay `>`) **chưa được ký** thành tiêu chí; phải ký TRƯỚC khi nối kết quả vào app, vì sau đó chọn biên là chọn sau khi thấy số.
+
+### Điều BƯỚC này KHÔNG nói
+
+Không tính IC nào; không đọc một dòng quyết định nào ≥ 10/08 (các phiên từ 10/08 tới 02/10 KHÔNG được dùng làm dữ liệu xác nhận của UV-001); không đổi cách chấm điểm,
+hành vi giao dịch hay số đo nào; chưa nối kết quả chấm bóng vào app (bảng chỉ hiện `CHUA CHAM`).
+
+### Soát chéo NotebookLM
+
+Nguồn `@89fe760`, cũ hơn `main` (dừng ở BƯỚC 148; không làm tươi). Câu hỏi gửi hộ từ khung trình duyệt của phiên điều phối, trả lời chép nguyên văn:
+*"không tìm thấy câu nào nói ngược"*. **Tự kiểm bằng `grep` ra SAI một phần:** các câu *"sổ rỗng / chưa có ứng viên nào / không khai ứng viên nào"* ở
+`docs/STATE.md` BƯỚC 148 (K = 0), 153, 154 và 155, đúng lúc viết, thành sai từ BƯỚC này; ví dụ đầu của chính câu hỏi (*"registry is still empty"*) trúng
+đúng chúng. Số rho 0,0071 ở h = 20 trích đúng từ `MO-XE-KIEN-TRUC.md`. **Câu thay thế** (STATE chỉ thêm): *từ 02/10/2026 sổ ứng viên có MỘT dòng, UV-001;
+K = 1, ngưỡng xác nhận 0,05.* `docs/HANDOFF.md` mục P3c đã cập nhật; thông báo sổ rỗng của `app.py` giữ nguyên vì chỉ hiện khi sổ rỗng.
+
+**Việc kế.** BƯỚC 157 — đổi tên hiển thị tab (chỉ giao diện). Biên *"phiên `khai_ngay` có tính không"* phải được ký trước khi nối kết quả chấm vào app.
