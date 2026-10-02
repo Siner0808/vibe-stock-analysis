@@ -1,10 +1,10 @@
 {
-  "_ghi_chu": "So dang ky ung vien cua tang 3 (BUOC 144). MOI ung vien da KHAI deu phai co mot dong o day, ke ca ung vien rot sang va chua sang: nguong xac nhan chia cho TONG so dong (cham_bong.nguong). Khai TRUOC khi chay vong sang, trong mot commit, voi qua_sang null; commit sang dien qua_sang thanh true/false DUNG MOT LAN. Ngoai qua_sang (null -> true/false), khong sua, khong xoa dong da khai. Lich su git la bang chung: tests/test_tien_dang_ky_git.py duyet moi phien ban file nay (BUOC 153).",
+  "_ghi_chu": "So dang ky ung vien cua tang 3 (BUOC 144). MOI ung vien da KHAI deu phai co mot dong o day, ke ca ung vien rot sang va chua sang: nguong xac nhan chia cho TONG so dong (cham_bong.nguong). TU 2026-10-02 (BUOC 155, nguoi dung chon 'Bo vong sang') CHI CON MOT VONG: khai thang vao vong xac nhan, qua_sang LUON null va khong bao gio duoc dien, toi da 1 ung vien moi THANG duong lich. Dong khai truoc moc giu luat cu (<= 5 moi tuan ISO; khai voi qua_sang null, commit sang dien true/false DUNG MOT LAN). Khong sua, khong xoa dong da khai. Lich su git la bang chung: tests/test_tien_dang_ky_git.py duyet moi phien ban file nay (BUOC 153).",
   "_khuon": {
     "khai_ngay": "YYYY-MM-DD — ngay commit khai, gio VN",
     "mo_ta": "ung vien la gi, mot cau",
     "ly_do": "vi sao khai: dong nhat ky / DO / BUOC nao goi y",
-    "qua_sang": "null khi khai (chua sang); commit sang dien true/false mot lan — ket qua vong sang tren du lieu DA nhin",
+    "qua_sang": "null. Tu 2026-10-02: nghia la khong qua vong sang, vao thang xac nhan, khong bao gio duoc dien. (Dong cu truoc moc: null khi khai, commit sang dien true/false mot lan.)",
     "spec": {"loai": "trong_so", "trong_so": {"trend_score": 0.5, "volume_score": 0.5}}
   },
   "ung_vien": {}

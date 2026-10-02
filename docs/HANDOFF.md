@@ -471,8 +471,12 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   🟡 **P3c-2 (BƯỚC 154, 02/10): dụng cụ vào, phép đối chiếu KHÔNG ĐẠT.** Dòng seeded quá thưa cho
 >   `ma_tran_cap` (mật độ ô 17,1%, 0 mã đầy đủ); leader chọn sàng trên bảng điểm DÀY tính lại (ĐO 23), nhưng
 >   đối chiếu với điểm đã ghi ra `risk_score` ρ 0,749 < 0,95 (giá đổi giữa các lần kéo, chưa chứng minh).
->   `docs/sang-doi-chieu.json` mang KHÔNG ĐẠT nên `sang`/`bang-day` từ chối chạy. **Cần người quyết hướng
->   (ĐO 24 mới · hướng B · dừng) trước P3c-3.** Chi tiết: `docs/STATE.md` BƯỚC 154.
+>   `docs/sang-doi-chieu.json` mang KHÔNG ĐẠT nên `sang`/`bang-day` từ chối chạy. ~~**Cần người quyết hướng
+>   (ĐO 24 mới · hướng B · dừng) trước P3c-3.**~~ Chi tiết: `docs/STATE.md` BƯỚC 154.
+>   ✅ **ĐÃ QUYẾT 02/10/2026 — BƯỚC 155: "Bỏ vòng sàng".** Tầng 3 MỘT vòng: ứng viên khai thẳng vào xác nhận, ≤ 1 mỗi
+>   THÁNG dương lịch, `qua_sang: null` nghĩa *vào thẳng xác nhận* (không bao giờ điền); dòng khai trước 02/10 giữ luật
+>   cũ. `tools/sang_ung_vien.py` NGỪNG DÙNG nhưng GIỮ để ĐO 23 tái lập. Việc kế: P3c-3 — đề xuất ứng viên đầu tiên cho
+>   người dùng duyệt TRƯỚC khi khai (dòng khai không xoá được, tăng K vĩnh viễn).
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 
@@ -558,6 +562,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   dùng bác A vì nó bỏ mất lõi của ý tưởng. Hướng mới: agent tự giao dịch
   ảo, học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng.
   `docs/STATE.md` BƯỚC 122.
+  🔴 **"Hai vòng" THAY THẾ từ 02/10/2026 (BƯỚC 155):** tầng 3 chỉ còn MỘT vòng xác nhận.
   **Tiến độ:** P0 hàng rào — BƯỚC 122 · P1 sổ trung thực — BƯỚC 123 ·
   ĐO 18 — BƯỚC 124 · mở lại cổng lệnh ảo — BƯỚC 125. **P1 xong, vào
   `main` 27/09/2026** qua #169. Việc kế: P2, nhật ký *"vì sao"*.

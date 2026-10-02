@@ -28,9 +28,9 @@ def _uv(ngay, qua, ts=None):
 
 
 SO = {"ung_vien": {
-    "B": _uv("2026-10-06", True),
-    "A": _uv("2026-10-05", False),
-    "C": _uv("2026-09-28", True, {"risk_score": 1.0}),
+    "B": _uv("2026-09-16", True),
+    "A": _uv("2026-09-15", False),
+    "C": _uv("2026-09-07", True, {"risk_score": 1.0}),
 }}
 KET_QUA = {"delta": 0.08, "null": [], "z": 3.5, "p": 0.0002}
 
@@ -39,7 +39,7 @@ def test_SO_RONG_bang_rong_dung_cot_va_nguong_la_ALPHA():
     so = {"ung_vien": {}}
     b = cb.bang_cong_khai(so)
     assert b.empty and list(b.columns) == list(cb.COT_BANG)
-    t = cb.tom_tat_so(so, "2026-10-07")
+    t = cb.tom_tat_so(so, "2026-09-17")
     assert (t["K"], t["nguong"], t["qua_sang"], t["tuan_nay"]) == (0, cb.ALPHA, 0, 0)
     print("PASS  so rong: bang rong, K=0, nguong=ALPHA")
 
@@ -65,7 +65,7 @@ def test_CO_ket_qua_thi_trang_thai_qua_trang_thai_voi_NGUONG_chia_TONG():
 
 
 def test_TOM_TAT_dem_K_la_TONG_va_tuan_ISO_cua_hom_nay():
-    t = cb.tom_tat_so(SO, "2026-10-07")          # tuần ISO 2026-W41: A, B
+    t = cb.tom_tat_so(SO, "2026-09-17")          # tuần ISO 2026-W38: A, B
     assert (t["K"], t["qua_sang"], t["tuan_nay"]) == (3, 2, 2), t
     assert t["nguong"] == pytest.approx(cb.ALPHA / 3)
     assert t["tran_tuan"] == cb.TRAN_SANG_MOI_TUAN
@@ -76,22 +76,56 @@ def test_CHUA_SANG_hien_rieng_va_KHONG_dem_vao_qua_sang():
     """BƯỚC 153: `qua_sang: null` = khai rồi, vòng sàng chưa chạy. Không phải
     rớt sàng, không phải chờ chấm — và có `ket` cũng không được chấm nó."""
     so = copy.deepcopy(SO)
-    so["ung_vien"]["D"] = _uv("2026-10-07", None)
+    so["ung_vien"]["D"] = _uv("2026-09-17", None)
     b = cb.bang_cong_khai(so, ket={"D": (KET_QUA, 60, 55)})
     dong = b.set_index("Ứng viên")
     assert (dong.loc["D", "Sàng"], dong.loc["D", "Trạng thái"]) == ("chua", "CHUA SANG")
     assert dict(zip(b["Ứng viên"], b["Sàng"])) == {"C": "qua", "A": "rot", "B": "qua",
                                                     "D": "chua"}
-    t = cb.tom_tat_so(so, "2026-10-07")
+    t = cb.tom_tat_so(so, "2026-09-17")
     assert (t["K"], t["qua_sang"], t["tuan_nay"]) == (4, 2, 3), t
     assert t["nguong"] == pytest.approx(cb.ALPHA / 4)
     print(f"PASS  chua sang: {dict(dong.loc['D'])}; tom tat {t}")
 
 
+def test_SAU_MOC_dong_khai_hien_bo_vao_thang_xac_nhan_khong_bao_gio_CHUA_SANG():
+    """BƯỚC 155: từ `MOC_MOT_VONG` không còn vòng sàng — `qua_sang: null` hiện
+    `bo` / `CHUA CHAM`, và có `ket` thì đi thẳng vào trạng thái xác nhận."""
+    so = copy.deepcopy(SO)
+    so["ung_vien"]["E"] = _uv("2026-10-02", None)
+    so["ung_vien"]["D"] = _uv("2026-09-17", None)          # dòng CŨ chưa sàng
+    b = cb.bang_cong_khai(so)
+    dong = b.set_index("Ứng viên")
+    assert (dong.loc["E", "Sàng"], dong.loc["E", "Trạng thái"]) == ("bo", "CHUA CHAM")
+    assert (dong.loc["D", "Sàng"], dong.loc["D", "Trạng thái"]) == ("chua", "CHUA SANG")
+    assert "CHUA SANG" not in (dong.loc["E", "Trạng thái"],)
+    b2 = cb.bang_cong_khai(so, ket={"E": (KET_QUA, 60, 55), "D": (KET_QUA, 60, 55)})
+    d2 = b2.set_index("Ứng viên")
+    assert d2.loc["E", "Trạng thái"] == "QUA"               # 0,0002 < 0,05/5
+    assert d2.loc["D", "Trạng thái"] == "CHUA SANG"         # dòng cũ vẫn không được chấm
+    assert d2.loc["E", "Sàng"] == cb.SANG_BO == "bo"
+    print("PASS  sau moc: bo / CHUA CHAM / vao thang xac nhan")
+
+
+def test_TOM_TAT_dem_thang_nay_tu_dong_SAU_moc_va_tuan_nay_tu_dong_TRUOC_moc():
+    so = copy.deepcopy(SO)
+    so["ung_vien"]["E"] = _uv("2026-10-02", None)
+    t = cb.tom_tat_so(so, "2026-10-20")
+    assert (t["thang_nay"], t["tran_thang"]) == (1, 1)
+    assert t["tuan_nay"] == 0                                # dòng mới không vào đếm tuần
+    assert cb.tom_tat_so(so, "2026-10-02")["tuan_nay"] == 0  # kể cả cùng tuần ISO với E
+    t = cb.tom_tat_so(so, "2026-11-03")
+    assert t["thang_nay"] == 0
+    assert cb.tom_tat_so(so, "2027-10-20")["thang_nay"] == 0   # cùng tháng, khác NĂM
+    t = cb.tom_tat_so(so, "2026-09-17")
+    assert (t["tuan_nay"], t["thang_nay"]) == (2, 0)         # E khai SAU hom_nay: tháng 9 trống
+    assert t["K"] == 4 and t["nguong"] == pytest.approx(cb.ALPHA / 4)
+
+
 def test_SO_SAI_KHUON_thi_NO_khong_hien_nua_voi():
     hong = copy.deepcopy(SO)
     hong["ung_vien"]["A"]["spec"]["trong_so"] = {"news_score": 1.0}
-    for ham in (cb.bang_cong_khai, lambda s: cb.tom_tat_so(s, "2026-10-07")):
+    for ham in (cb.bang_cong_khai, lambda s: cb.tom_tat_so(s, "2026-09-17")):
         with pytest.raises(ValueError):
             ham(hong)
     print("PASS  so sai khuon -> ValueError, khong hien bang")

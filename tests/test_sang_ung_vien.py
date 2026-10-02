@@ -763,6 +763,14 @@ def test_HINH_DANG_buoc_1_thi_ma_tran_giu_du_ma():
     assert h["cua_so_ma_du_moi_phien"] == {2: 45, 5: 45, 10: 45, 22: 45}
 
 
+def test_DUNG_CU_khai_NGUNG_DUNG_tu_BUOC_155_nhung_van_con_de_tai_lap_DO_23():
+    assert "ĐÃ NGỪNG DÙNG từ BƯỚC 155" in S.__doc__
+    assert "GIỮ NGUYÊN" in S.__doc__
+    for ten in ("hinh_dang", "doi_chieu", "chan_doan", "so_hai_cache"):
+        assert callable(getattr(S, ten))                 # ĐO 23 còn tái lập được
+    assert CB.MOC_MOT_VONG == "2026-10-02"
+
+
 # ── ngưỡng đã ký khớp mã ─────────────────────────────────────────────────
 
 def _muc_do23():

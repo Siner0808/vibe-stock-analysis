@@ -10,7 +10,7 @@ Bốn điều, mỗi điều một cách một vòng xác nhận tự khen mình
    vòng XÁC NHẬN; vòng SÀNG là ngoại lệ có tên, `tools/sang_ung_vien.py`, ĐO 23.)
 2. Mỗi (mã, phiên) đếm MỘT lần — sổ có dòng lặp (BƯỚC 125).
 3. Phép so là so CẶP trên cùng nhãn, null hoán vị MÃ áp cho CẢ HAI điểm.
-4. Ngưỡng chia cho K = TỔNG số ứng viên đã sàng, kể cả ứng viên rớt sàng.
+4. Ngưỡng chia cho K = TỔNG số ứng viên đã KHAI, kể cả rớt sàng hay chưa sàng.
 """
 import json
 
@@ -191,12 +191,13 @@ def _uv(ngay, qua=True):
 
 
 def test_TRAN_5_ung_vien_MOI_TUAN():
-    so = {"ung_vien": {f"UV-{i:03d}": _uv("2026-10-05") for i in range(1, 6)}}
+    """Luật CŨ, còn áp cho dòng khai TRƯỚC `MOC_MOT_VONG` (BƯỚC 155)."""
+    so = {"ung_vien": {f"UV-{i:03d}": _uv("2026-09-14") for i in range(1, 6)}}
     cb.kiem_so_ung_vien(so)
-    so["ung_vien"]["UV-006"] = _uv("2026-10-09")      # cùng tuần ISO
+    so["ung_vien"]["UV-006"] = _uv("2026-09-18")      # cùng tuần ISO
     with pytest.raises(ValueError, match="tuan"):
         cb.kiem_so_ung_vien(so)
-    so["ung_vien"]["UV-006"] = _uv("2026-10-12")      # tuần sau: được
+    so["ung_vien"]["UV-006"] = _uv("2026-09-21")      # tuần sau: được
     cb.kiem_so_ung_vien(so)
 
 
@@ -204,26 +205,85 @@ def test_so_ung_vien_NHAN_qua_sang_NULL_va_TU_CHOI_kieu_khac():
     """BƯỚC 153: commit khai mang `qua_sang: null` — trước đó kiem_so_ung_vien
     đòi true/false, tức đòi kết quả của chính vòng sàng ngay lúc khai."""
     for q in (None, True, False):
-        cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-05", q)}})
+        cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-09-14", q)}})
     for q in (1, 0, "true", "null"):
         with pytest.raises(ValueError, match="qua_sang"):
-            cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-05", q)}})
+            cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-09-14", q)}})
 
 
 def test_K_dem_CA_dong_CHUA_SANG():
     """K = mọi dòng đã khai, kể cả chưa sàng — chiều chặt hơn (BƯỚC 153)."""
-    so = {"ung_vien": {"UV-001": _uv("2026-10-05", True), "UV-002": _uv("2026-10-05", None),
-                       "UV-003": _uv("2026-10-05", None)}}
+    so = {"ung_vien": {"UV-001": _uv("2026-09-14", True), "UV-002": _uv("2026-09-14", None),
+                       "UV-003": _uv("2026-09-14", None)}}
+    assert cb.so_da_sang(so) == 3
+    assert cb.nguong(so) == pytest.approx(0.05 / 3)
+
+
+# ── 6. MỘT VÒNG — từ MOC_MOT_VONG (BƯỚC 155) ────────────────────────────
+
+def test_HANG_SO_mot_vong_ghim_bang_LITERAL():
+    """Ghim literal: đột biến hằng số không được làm mù cả gác lẫn mã."""
+    assert cb.MOC_MOT_VONG == "2026-10-02"
+    assert cb.TRAN_MOI_THANG == 1
+    assert cb.TRAN_SANG_MOI_TUAN == 5
+
+
+def test_SAU_MOC_qua_sang_phai_NULL_truoc_moc_thi_van_true_false():
+    for q in (True, False, 1, "true"):
+        with pytest.raises(ValueError, match="qua_sang"):
+            cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-02", q)}})
+    cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-02", None)}})
+    cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-12-01", None)}})
+    for q in (None, True, False):                     # một ngày TRƯỚC mốc: luật cũ
+        cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-01", q)}})
+
+
+def test_SAU_MOC_tran_1_MOI_THANG_duong_lich():
+    cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-02", None)}})
+    with pytest.raises(ValueError, match="thang"):
+        cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-02", None),
+                                          "UV-002": _uv("2026-10-31", None)}})
+    # biên tháng: 31/10 và 01/11 là hai tháng; 01/11 và 30/11 cùng một tháng
+    cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-10-31", None),
+                                      "UV-002": _uv("2026-11-01", None)}})
+    with pytest.raises(ValueError, match="thang"):
+        cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-11-01", None),
+                                          "UV-002": _uv("2026-11-30", None)}})
+    # cùng tháng khác NĂM không cộng dồn
+    cb.kiem_so_ung_vien({"ung_vien": {"UV-001": _uv("2026-12-15", None),
+                                      "UV-002": _uv("2027-12-15", None)}})
+
+
+def test_TRAN_THANG_khong_dem_dong_TRUOC_moc_va_TRAN_TUAN_khong_dem_dong_SAU_moc():
+    # 5 dòng cũ ở tuần ISO 2026-W40 (28/09–04/10) + 1 dòng mới cùng tuần: hợp lệ
+    so = {"ung_vien": {f"UV-{i}": _uv(d, None) for i, d in enumerate(
+        ("2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01"), 1)}}
+    so["ung_vien"]["UV-5"] = _uv("2026-09-28", True)
+    so["ung_vien"]["UV-6"] = _uv("2026-10-02", None)
+    cb.kiem_so_ung_vien(so)
+    # dòng cũ 01/10 không chiếm chỗ của dòng mới trong tháng 10
+    so["ung_vien"]["UV-7"] = _uv("2026-10-20", None)
+    with pytest.raises(ValueError, match="thang"):
+        cb.kiem_so_ung_vien(so)
+    # và vẫn không được quá 5 dòng cũ trong một tuần
+    cu = {"ung_vien": {f"UV-{i}": _uv("2026-09-28") for i in range(1, 7)}}
+    with pytest.raises(ValueError, match="tuan"):
+        cb.kiem_so_ung_vien(cu)
+
+
+def test_SAU_MOC_K_van_dem_MOI_dong():
+    so = {"ung_vien": {"UV-001": _uv("2026-09-14", False), "UV-002": _uv("2026-10-02", None),
+                       "UV-003": _uv("2026-11-02", None)}}
     assert cb.so_da_sang(so) == 3
     assert cb.nguong(so) == pytest.approx(0.05 / 3)
 
 
 def test_so_ung_vien_TU_CHOI_spec_sai_va_thieu_truong():
-    so = {"ung_vien": {"UV-001": _uv("2026-10-05")}}
+    so = {"ung_vien": {"UV-001": _uv("2026-09-14")}}
     so["ung_vien"]["UV-001"]["spec"] = {"loai": "trong_so", "trong_so": {"news_score": 1.0}}
     with pytest.raises(ValueError):
         cb.kiem_so_ung_vien(so)
-    so = {"ung_vien": {"UV-001": _uv("2026-10-05")}}
+    so = {"ung_vien": {"UV-001": _uv("2026-09-14")}}
     del so["ung_vien"]["UV-001"]["ly_do"]
     with pytest.raises(ValueError):
         cb.kiem_so_ung_vien(so)

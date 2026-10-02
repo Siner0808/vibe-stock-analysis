@@ -17598,6 +17598,10 @@ Hướng mới, ba tầng, người dùng đã duyệt:
    nhật khi quét phát hiện lỗi**. Người dùng: *"Skill Hook Workflow Harness
    phải chặt chẽ"*.
 
+   🔴 **THAY THẾ từ BƯỚC 155 (02/10/2026):** người dùng chọn *"Bỏ vòng sàng"* — tầng 3 chỉ còn MỘT vòng
+   (xác nhận, ≤ 1 ứng viên mỗi tháng, khai thẳng). Điểm 3 ở trên là kế hoạch GỐC, giữ nguyên để đối chiếu; lý do thay
+   là ĐO 21 và ĐO 23 (BƯỚC 154).
+
 Kèm theo: bộ nhớ học cũ (44 mẫu lệnh thua) **chỉ giữ làm lịch sử**; việc ký
 tiêu chí mở rộng ĐO 14 sang 71 mã và việc gỡ khối vnai trong
 `~/.claude/CLAUDE.md` **dời tới sau khi xong kế hoạch**.
@@ -20770,3 +20774,77 @@ vòng thì thành sai từ BƯỚC này. **Câu thay thế cho BƯỚC 144:** qu
 vào giống hệt) rồi mới đi tiếp — lưu ý bản thân chẩn đoán đã cho thấy ô nào khớp, nên một tiêu chí viết bây giờ không còn
 là ký trước hoàn toàn; (2) hướng B — thống kê chịu thưa trên chính dòng seeded; (3) dừng P3c-2 chờ người dùng. P3c-3
 (ứng viên đầu tiên) không thể bắt đầu khi `docs/sang-doi-chieu.json` chưa ĐẠT.
+
+## BƯỚC 155 — TẦNG 3 CÒN MỘT VÒNG: NGƯỜI DÙNG BỎ VÒNG SÀNG; ỨNG VIÊN KHAI THẲNG VÀO XÁC NHẬN, TỐI ĐA 1 MỖI THÁNG (02/10/2026)
+
+**Quyết định của người dùng, 02/10/2026** — chọn qua hộp hỏi ở phiên điều phối, sau khi BƯỚC 154 báo
+phép đối chiếu KHÔNG ĐẠT. Lựa chọn *"Bỏ vòng sàng"*, nguyên văn như phiên điều phối chuyển: *"Khai thẳng ứng
+viên vào vòng xác nhận, ≤1/tháng, chọn bằng lập luận. Không cần điểm tính lại vì xác nhận dùng điểm đã ghi. K
+nhỏ nên ngưỡng bớt khắt khe … Đổi thiết kế hai vòng bạn duyệt 25/09."* Ba lựa chọn còn lại đã bị bỏ: ĐO 24 ký
+mới · hướng B (thống kê chịu thưa) · dừng.
+
+**Lý do đo được** (không phải lý do ý chí): (1) **ĐO 21** (BƯỚC 142): ở nhịp giữ lệnh, một ứng viên đúng bằng rào
+hoà vốn chỉ được bắt 13/30 lần ở 252 phiên dữ liệu chưa nhìn khi K = 20; *"xác nhận ≤ 1 mỗi tháng"* là một trần không
+bao giờ chạm. (2) **ĐO 23** (BƯỚC 154): sàng cần một nền dày, nền dày là điểm TÍNH LẠI, và điểm tính lại KHÔNG
+tái lập được điểm đã ghi theo ngưỡng đã ký (`risk_score` ρ 0,7494 < 0,95). Một vòng sàng không đứng được thì
+không đáng giữ; nó cũng không đổi được một con số nào của vòng xác nhận.
+
+### Thay đổi
+
+- **`cham_bong.py`** — `MOC_MOT_VONG` = `"2026-10-02"`, `TRAN_MOI_THANG` = 1, `sau_moc()`. `kiem_so_ung_vien`: dòng
+  khai TỪ mốc **phải mang `qua_sang: null`** và ≤ 1 mỗi tháng dương lịch (khoá `(năm, tháng)` của `khai_ngay`); dòng
+  khai TRƯỚC mốc giữ luật cũ (≤ 5 mỗi tuần ISO, null → true/false một lần). Hai trần không đếm lẫn nhau. `tom_tat_so`
+  thêm `thang_nay` · `tran_thang`; `tuan_nay` chỉ đếm dòng trước mốc. `bang_cong_khai`: dòng từ mốc hiện cột Sàng
+  **`bo`** và trạng thái `CHUA CHAM` (hoặc trạng thái xác nhận khi có `ket`), **không bao giờ `CHUA SANG`**; dòng cũ giữ
+  `chua`/`qua`/`rot` và `CHUA SANG`/`ROT SANG`. **K vẫn đếm MỌI dòng** (quy ước 4 không đổi). Docstring ghi
+  tầng 3 nay một vòng.
+- **Nghĩa của `qua_sang: null` từ mốc:** *không qua vòng sàng, vào thẳng xác nhận* — không phải *chưa sàng*, và không
+  bao giờ được điền. `docs/ung-vien.json` (`_ghi_chu`, `_khuon`) nói thế; sổ vẫn rỗng.
+- **`app.py`** — tab "🧪 Chấm bóng": chú thích một vòng, ô *Khai trong tháng x/1* thay *Khai trong tuần*, thông báo sổ
+  rỗng và chú giải cột Sàng.
+- **`tools/sang_ung_vien.py`** — **để nguyên, ghi NGỪNG DÙNG** (docstring + test); không xoá vì ĐO 23 phải tái lập được
+  (`hinh-dang`, `doi-chieu`, `chan-doan`, `so-cache`). `sang` và `bang-day` vẫn từ chối chạy vì
+  `docs/sang-doi-chieu.json` mang KHÔNG ĐẠT.
+- **Cổng git `tests/test_tien_dang_ky_git.py` giữ nguyên** (yêu cầu của phiên điều phối). Hệ quả cần biết: luật (c) của cổng
+  vẫn cho phép null → true/false, nên một commit điền `qua_sang` cho dòng khai từ mốc KHÔNG đỏ ở cổng git — nó đỏ ở
+  `test_so_ung_vien_THAT_dung_khuon` (`kiem_so_ung_vien` trên sổ thật) và làm app báo sổ sai khuôn. Hai chỗ, không một.
+- **Tài liệu:** BƯỚC 122 điểm 3 (*"hai vòng"*) đánh dấu 🔴 thay thế, không xoá; `CLAUDE.md` đổi MỘT câu (*"đổi điểm phải qua hai
+  vòng sàng lọc"* → một vòng xác nhận) vì nó là một LUẬT; `docs/HANDOFF.md` mục 5; `docs/TIEU-CHI-DOC-TRUOC.md` ghi chú sau
+  *Kết quả ĐO 23*.
+
+### Điều phải nói thẳng
+
+- **Bỏ sàng làm K nhỏ nên lực xác nhận CAO hơn kế hoạch hai vòng — nhưng vẫn không đủ.** Số ở ĐO 21 (cột `px_sma50`, W = 252
+  phiên ≈ một năm, ứng viên bằng rào, số lượt bắt trên 30) cho thấy K nhỏ hơn thì lực cao hơn: **K = 1 → 23/30 · K = 20 → 13/30 ·
+  K = 260 → 6/30**. Hai kế hoạch, nếu khai ĐỦ trần: *hai vòng* (sàng ≤ 5/tuần ≈ 260 dòng/năm, K đếm cả dòng rớt sàng) rơi quanh
+  **6/30**; *một vòng* (≤ 1/tháng ≈ **12** dòng/năm) rơi giữa 13/30 và 23/30 — đó là **ước lượng nội suy**, ĐO 21 không có ô K = 12.
+  Dù K = 1, xác nhận chỉ bắt 23/30 (77%) sau một năm dữ liệu chưa nhìn, nên *một vòng tốt hơn hai vòng* không có nghĩa
+  *xác nhận dễ*. Cái mất đi là bộ lọc trên dữ liệu đã nhìn: chất lượng ứng viên nằm hết ở *lập luận* của người chọn.
+- Mỗi dòng khai vẫn **không xoá được và tăng K vĩnh viễn** (cổng git, luật d), và nay không còn vòng nào đứng trước để loại
+  nó: dòng khai sai là dòng tăng K thật.
+- Chưa có ứng viên nào; sổ rỗng; không đọc tab `decisions`; không tính IC; không đổi cách chấm điểm hay hành vi giao dịch.
+- Nhãn mới trên app (`bo`, *Khai trong tháng*) **chưa xem trên app chạy thật** — cấu hình preview của phiên chạy `app.py` của bản
+  checkout chính, không phải worktree. Các hàm app gọi (`tom_tat_so`, `bang_cong_khai`) có test; đột biến 15/15 đỏ.
+
+### Gác và đục
+
++8 test (mốc 1827 → 1835): 5 ở `tests/test_cham_bong.py` (hằng số ghim literal; sau mốc `qua_sang` bắt buộc null, biên 01/10 ↔ 02/10; trần 1/tháng với biên 31/10 ↔ 01/11, 01/11 ↔ 30/11 và cùng tháng khác năm; hai trần không đếm lẫn nhau; K đếm mọi dòng),
+2 ở `tests/test_bang_cham_bong.py` (dòng từ mốc hiện `bo`/`CHUA CHAM` và có `ket` thì vào xác nhận; `thang_nay`/`tuan_nay`
+và biên năm), 1 ở `tests/test_sang_ung_vien.py` (khai NGỪNG DÙNG, ĐO 23 còn tái lập). Các test cũ dùng ngày 2026-10-05..12 chuyển sang
+ngày TRƯỚC mốc (2026-09-14..21) để vẫn khoá luật cũ. Đục `cham_bong.py` **15 phát: lượt đầu 14/15 đỏ**; phát sống sót
+(`tuan_nay` đếm cả dòng sau mốc) là lỗ hổng gác thật — thêm khẳng định cùng tuần ISO với dòng mới → đỏ. Phát đầu: dời mốc một
+ngày (biên là chỗ dễ sai nhất) — dòng khai 02/10 thành dòng cũ.
+
+### Soát chéo NotebookLM
+
+Nguồn `@89fe760`, cũ hơn `main` (dừng ở BƯỚC 148; không làm tươi theo yêu cầu phiên điều phối). Câu hỏi được gửi hộ từ khung
+trình duyệt của phiên điều phối (đăng nhập ở đó), trả lời chép nguyên văn: *"không tìm thấy câu nào nói ngược"*. **Tự kiểm
+bằng `grep` ra SAI một phần** — sổ tay không thấy BƯỚC 153/154 và cũng không chỉ ra câu nào: `CLAUDE.md` (*"hai vòng sàng lọc"*,
+đã sửa), `docs/HANDOFF.md` (*"qua hai vòng"* và việc kế P3c-2, đã đánh dấu), BƯỚC 122 điểm 3 (🔴), thông báo lỗi và docstring
+của `cham_bong.py`, docstring của `tests/test_cham_bong.py`, và ĐO 23 (🔴 ghi chú, không sửa chữ đã ký).
+**Câu thay thế cho BƯỚC 153 và 154** (STATE chỉ thêm): *`qua_sang: null` nghĩa là "chưa sàng" chỉ với dòng khai TRƯỚC
+02/10/2026; từ mốc ấy nó nghĩa là "không qua vòng sàng, vào thẳng xác nhận" và không bao giờ được điền; trần ≤ 5 mỗi tuần ISO chỉ áp
+cho dòng trước mốc, dòng từ mốc ≤ 1 mỗi tháng dương lịch.*
+
+**Việc kế.** P3c-3 — đề xuất ứng viên đầu tiên (spec trọng số, mô tả một câu, lý do dẫn dòng ĐO/BƯỚC) cho người dùng duyệt TRƯỚC khi khai:
+dòng khai không xoá được và tăng K vĩnh viễn. PR khai phải merge `--merge`, không squash (luật (e) của cổng git).
