@@ -7,5 +7,13 @@
     "qua_sang": "null. Tu 2026-10-02: nghia la khong qua vong sang, vao thang xac nhan, khong bao gio duoc dien. (Dong cu truoc moc: null khi khai, commit sang dien true/false mot lan.)",
     "spec": {"loai": "trong_so", "trong_so": {"trend_score": 0.5, "volume_score": 0.5}}
   },
-  "ung_vien": {}
+  "ung_vien": {
+    "UV-001": {
+      "khai_ngay": "2026-10-02",
+      "mo_ta": "Bỏ risk_score khỏi điểm mua, giữ nguyên tỷ lệ bốn thành phần còn lại của chế độ trọng số mặc định (chuẩn hoá về tổng 1) — đổi đúng một thứ.",
+      "ly_do": "Điểm chọn mã không nên mang thước rủi ro; bỏ risk, giữ tỷ lệ chế độ mặc định (BƯỚC 7, MO-XE-KIEN-TRUC). Kỳ vọng hợp lý là DANG CHAM, không phải QUA (BƯỚC 155, BƯỚC 156).",
+      "qua_sang": null,
+      "spec": {"loai": "trong_so", "trong_so": {"trend_score": 0.2941, "momentum_score": 0.2941, "volume_score": 0.2353, "sr_score": 0.1765}}
+    }
+  }
 }
