@@ -1,4 +1,5 @@
 """Bảng chấm bóng công khai trên app — BƯỚC 148 (P3b-2).
+(Tên HIỂN THỊ từ BƯỚC 157: "Kiểm định chiến lược"; "chấm bóng" là tên nội bộ.)
 
 Ba điều bảng phải giữ:
   1. MỌI ứng viên đều hiện, kể cả rớt sàng — ngưỡng 0,05/K chia cho TỔNG,
@@ -9,6 +10,7 @@ Ba điều bảng phải giữ:
 """
 import ast
 import copy
+import hashlib
 import sys
 from pathlib import Path
 
@@ -142,7 +144,176 @@ def _goi_cham_bong_trong_app() -> set:
 
 def test_APP_chi_DOC_so_dang_ky_khong_so_tren_du_lieu_that():
     goi = _goi_cham_bong_trong_app()
-    assert {"doc_so_ung_vien", "tom_tat_so", "bang_cong_khai"} <= goi, goi
+    assert {"doc_so_ung_vien", "tom_tat_so", "bang_cong_khai", "bang_hien_thi"} <= goi, goi
     cam = goi & {"so_cap", "ma_tran_cap", "doc_quyet_dinh", "diem_ung_vien"}
     assert not cam, f"app tinh tren du lieu that: {cam}"
     print(f"PASS  app goi cham_bong: {sorted(goi)}")
+
+
+# ── tên HIỂN THỊ — BƯỚC 157 ──────────────────────────────────────────────
+
+def _app_chuoi() -> list[str]:
+    cay = ast.parse((GOC / "app.py").read_text(encoding="utf-8"))
+    return [n.value for n in ast.walk(cay)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+
+
+def test_TEN_NOI_BO_giu_nguyen_chi_TANG_HIEN_THI_doi():
+    """Khoá nội bộ không đổi (gác git và test lịch sử đọc chúng); chỉ `bang_hien_thi`
+    đổi chữ — và không đổi `bang_cong_khai`."""
+    assert cb.COT_BANG == ("Ứng viên", "Khai ngày", "Mô tả", "Trọng số", "Lý do",
+                           "Sàng", "Trạng thái")
+    b = cb.bang_cong_khai(SO)
+    truoc = b.copy()
+    cb.bang_hien_thi(b)
+    assert b.equals(truoc), "bang_hien_thi khong duoc doi bang vao"
+    assert list(b.columns) == list(cb.COT_BANG)
+
+
+def test_BANG_HIEN_THI_dung_bang_ten_da_chot_va_giu_so_hang_thu_tu():
+    b = cb.bang_hien_thi(cb.bang_cong_khai(SO))
+    assert list(b.columns) == ["Phương án", "Ngày đăng ký", "Mô tả", "Trọng số",
+                               "Lý do", "Vòng sàng (cũ)", "Trạng thái"]
+    assert list(b["Phương án"]) == ["C", "A", "B"]          # thứ tự khai, như bảng gốc
+    assert list(b["Trạng thái"]) == ["Chưa đủ dữ liệu", "Rớt sàng (quy trình cũ)",
+                                     "Chưa đủ dữ liệu"]
+    assert list(b["Vòng sàng (cũ)"]) == ["qua sàng", "rớt sàng", "qua sàng"]
+
+
+def test_TRANG_THAI_HIEN_ghim_literal_tung_cap():
+    """Bảng người dùng chốt 02/10/2026. Ghim literal: đột biến một chữ phải đỏ."""
+    assert cb.TRANG_THAI_HIEN == {
+        "CHUA CHAM": "Chưa đủ dữ liệu",
+        "CHUA DU DU LIEU": "Chưa đủ dữ liệu",
+        "DANG CHAM": "Đang theo dõi",
+        "QUA": "Đạt — đủ điều kiện nâng cấp",
+        "THUA": "Kém hơn bản đang chạy",
+        "ROT SANG": "Rớt sàng (quy trình cũ)",
+        "CHUA SANG": "Chưa sàng (quy trình cũ)",
+    }
+    assert cb.SANG_HIEN == {"chua": "chưa sàng", "qua": "qua sàng", "rot": "rớt sàng",
+                            "bo": "đã bỏ"}
+    assert cb.TEN_COT_HIEN == {"Ứng viên": "Phương án", "Khai ngày": "Ngày đăng ký",
+                               "Sàng": "Vòng sàng (cũ)"}
+
+
+def test_MOI_trang_thai_ma_mat_may_co_the_sinh_ra_deu_co_ten_hien_thi():
+    """Không trạng thái nội bộ nào lọt ra giao diện: thử MỌI nhánh sinh trạng thái."""
+    so = copy.deepcopy(SO)
+    so["ung_vien"]["D"] = _uv("2026-09-17", None)           # CHUA SANG (dòng cũ)
+    so["ung_vien"]["E"] = _uv("2026-10-02", None)           # dòng một vòng
+    thay = {"QUA": (dict(KET_QUA), 60, 55), "THUA": (dict(KET_QUA, delta=-0.08), 60, 55),
+            "DANG CHAM": (dict(KET_QUA, p=0.9), 60, 55), "CHUA DU DU LIEU": (KET_QUA, 5, 55)}
+    thay_ra = set()
+    for ten, ket in thay.items():
+        b = cb.bang_cong_khai(so, ket={"E": ket})
+        thay_ra.add(dict(zip(b["Ứng viên"], b["Trạng thái"]))["E"])
+        cb.bang_hien_thi(b)                                  # không được nổ
+    assert thay_ra == set(thay), thay_ra
+    b = cb.bang_cong_khai(so)
+    assert set(b["Trạng thái"]) >= {"CHUA SANG", "ROT SANG", "CHUA CHAM"}
+    h = cb.bang_hien_thi(b)
+    for v in h["Trạng thái"]:
+        assert v == v.capitalize() or v[0].isupper(), v
+        assert not v.isupper() and v not in cb.TRANG_THAI_HIEN, v   # không phải mã nội bộ
+
+
+def test_TRANG_THAI_la_chu_tieng_Viet_co_dau_khong_phai_ma_chu_hoa():
+    for ma, hien in cb.TRANG_THAI_HIEN.items():
+        assert any(ord(c) > 127 for c in hien), (ma, hien)
+        assert hien != ma and not hien.isupper(), (ma, hien)
+
+
+def test_GIA_TRI_la_thi_NO_khong_lot_chuoi_noi_bo_ra_giao_dien():
+    b = cb.bang_cong_khai(SO)
+    xau = b.copy()
+    xau.loc[0, "Trạng thái"] = "TRANG THAI LA"
+    with pytest.raises(ValueError, match="Trạng thái"):
+        cb.bang_hien_thi(xau)
+    xau = b.copy()
+    xau.loc[0, "Sàng"] = "lạ"
+    with pytest.raises(ValueError, match="Sàng"):
+        cb.bang_hien_thi(xau)
+
+
+def test_APP_ten_tab_tieu_de_va_nhan_dung_ten_moi_va_KHONG_con_cham_bong():
+    chuoi = _app_chuoi()
+    assert "🔬 Kiểm định chiến lược" in chuoi
+    assert "##### 🔬 Kiểm định chiến lược trên phiên mới (forward test)" in chuoi
+    for nhan in ("Số phương án đã đăng ký (K)", "Đăng ký trong tháng"):
+        assert nhan in chuoi, nhan
+    cu = [s for s in chuoi if "chấm bóng" in s.lower() or "cham bong" in s.lower()]
+    assert not cu, f"ten noi bo lot ra giao dien: {cu}"
+    for s in ("Đã khai (K)", "Khai trong tháng", "🧪 Chấm bóng", "Sổ ứng viên"):
+        assert s not in chuoi, s
+
+
+def test_APP_cau_giai_thich_khong_dung_thuat_ngu_noi_bo():
+    cau = [s for s in _app_chuoi() if s.startswith("Mỗi phương án là một cách chấm điểm")]
+    assert len(cau) == 1, cau
+    c = cau[0]
+    for cam in ("chấm bóng", "ứng viên", "K ", "π", "Bonferroni", "IC "):
+        assert cam not in c, (cam, c)
+    assert "SAU ngày đăng ký" in c and "hiếm" in c
+
+
+def test_APP_goi_bang_hien_thi_bao_ngoai_bang_cong_khai():
+    cay = ast.parse((GOC / "app.py").read_text(encoding="utf-8"))
+    dung = [n for n in ast.walk(cay) if isinstance(n, ast.Call)
+            and isinstance(n.func, ast.Attribute) and n.func.attr == "bang_hien_thi"]
+    assert len(dung) == 1
+    arg = dung[0].args[0]
+    assert (isinstance(arg, ast.Call) and isinstance(arg.func, ast.Attribute)
+            and arg.func.attr == "bang_cong_khai"), "bang hien phai di qua bang_hien_thi"
+
+
+# ── dịch mã nội bộ trong văn bản tự do `ly_do` — BƯỚC 157 ────────────────
+
+def test_LY_DO_chua_ma_noi_bo_thi_HIEN_nhan_tieng_Viet():
+    so = {"ung_vien": {"X": dict(_uv("2026-10-02", None), ly_do="Kỳ vọng hợp lý là DANG CHAM, "
+                                                                  "không phải QUA (BƯỚC 155, BƯỚC 156).")}}
+    b = cb.bang_hien_thi(cb.bang_cong_khai(so))
+    assert b.loc[0, "Lý do"] == ("Kỳ vọng hợp lý là Đang theo dõi, không phải "
+                                 "Đạt — đủ điều kiện nâng cấp (BƯỚC 155, BƯỚC 156).")
+    # bảng gốc KHÔNG đổi: mã nội bộ vẫn còn ở `bang_cong_khai`
+    assert "DANG CHAM" in cb.bang_cong_khai(so).loc[0, "Lý do"]
+
+
+@pytest.mark.parametrize("ma", sorted(cb.TRANG_THAI_HIEN))
+def test_MOI_ma_noi_bo_dung_rieng_deu_duoc_dich_dung_nhan(ma):
+    assert cb.dich_ma_noi_bo(f"a {ma} b") == f"a {cb.TRANG_THAI_HIEN[ma]} b"
+    assert cb.dich_ma_noi_bo(ma) == cb.TRANG_THAI_HIEN[ma]
+    assert cb.dich_ma_noi_bo(f"({ma}).") == f"({cb.TRANG_THAI_HIEN[ma]})."
+
+
+@pytest.mark.parametrize("van_ban", [
+    "QUANG", "QUA_X", "xQUA", "THUAN", "ROT SANGX", "CHUAN", "qua", "Qua", "dang cham",
+    "Dang Cham", "QUA1", "1QUA", "ĐQUA", "DANG CHAMS", "CHUA", "ROT",
+])
+def test_CHU_KHAC_khong_bi_dung_toi(van_ban):
+    """Chỉ TỪ NGUYÊN VẸN, chữ hoa đúng: `QUANG`, `QUA_X`, `qua`… giữ nguyên."""
+    assert cb.dich_ma_noi_bo(van_ban) == van_ban
+
+
+def test_DICH_mot_luot_nhan_thay_vao_khong_bi_dich_lai():
+    assert cb.dich_ma_noi_bo("CHUA DU DU LIEU") == "Chưa đủ dữ liệu"
+    assert cb.dich_ma_noi_bo("QUA THUA") == "Đạt — đủ điều kiện nâng cấp Kém hơn bản đang chạy"
+    xong = cb.dich_ma_noi_bo("DANG CHAM")
+    assert cb.dich_ma_noi_bo(xong) == xong
+
+
+def test_DICH_khong_chuoi_thi_tra_nguyen():
+    assert cb.dich_ma_noi_bo(None) is None
+    assert cb.dich_ma_noi_bo(3) == 3
+
+
+def test_SO_THAT_UV_001_hien_Dang_theo_doi_va_FILE_SO_khong_doi_mot_byte():
+    duong = GOC / "docs" / "ung-vien.json"
+    truoc = hashlib.sha256(duong.read_bytes()).hexdigest()
+    so = cb.doc_so_ung_vien()
+    b = cb.bang_hien_thi(cb.bang_cong_khai(so))
+    ly_do = b.set_index("Phương án").loc["UV-001", "Lý do"]
+    assert "Đang theo dõi" in ly_do and "DANG CHAM" not in ly_do
+    assert "BƯỚC 155, BƯỚC 156" in ly_do                     # chỉ dẫn tài liệu, giữ nguyên
+    assert so["ung_vien"]["UV-001"]["ly_do"].count("DANG CHAM") == 1   # sổ trong bộ nhớ không đổi
+    assert hashlib.sha256(duong.read_bytes()).hexdigest() == truoc

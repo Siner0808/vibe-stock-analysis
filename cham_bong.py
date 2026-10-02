@@ -47,6 +47,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import re
 from pathlib import Path
 from statistics import NormalDist
 
@@ -317,6 +318,66 @@ def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
         hang.append(dict(zip(COT_BANG, (ma, d["khai_ngay"], d["mo_ta"], ts,
                                         d["ly_do"], sang, tt))))
     return pd.DataFrame(hang, columns=list(COT_BANG))
+
+
+# ── tầng HIỂN THỊ (BƯỚC 157) ─────────────────────────────────────────────
+# "Chấm bóng" là tên NỘI BỘ (module, sổ, khoá, test). Tên người dùng thấy trên
+# app là "Kiểm định chiến lược" / "phương án chấm điểm". Ánh xạ nằm ở ĐÂY và chỉ
+# ở đây: `bang_cong_khai` và mọi khoá nội bộ giữ nguyên để không gãy cổng git và
+# test lịch sử. Ánh xạ CHẶT — một giá trị lạ nổ `ValueError`, không lọt chuỗi nội
+# bộ ra giao diện.
+
+#: Tên cột hiển thị. Cột không có trong bảng này giữ nguyên.
+TEN_COT_HIEN = {"Ứng viên": "Phương án", "Khai ngày": "Ngày đăng ký",
+                "Sàng": "Vòng sàng (cũ)"}
+#: Trạng thái (`bang_cong_khai` + `trang_thai`) → câu tiếng Việt có dấu.
+TRANG_THAI_HIEN = {
+    "CHUA CHAM": "Chưa đủ dữ liệu",
+    "CHUA DU DU LIEU": "Chưa đủ dữ liệu",
+    "DANG CHAM": "Đang theo dõi",
+    "QUA": "Đạt — đủ điều kiện nâng cấp",
+    "THUA": "Kém hơn bản đang chạy",
+    "ROT SANG": "Rớt sàng (quy trình cũ)",
+    "CHUA SANG": "Chưa sàng (quy trình cũ)",
+}
+#: Cột "Sàng" (`SANG` + `SANG_BO`) → chữ hiển thị.
+SANG_HIEN = {"chua": "chưa sàng", "qua": "qua sàng", "rot": "rớt sàng", "bo": "đã bỏ"}
+
+
+#: Mã trạng thái nội bộ đứng thành TỪ NGUYÊN VẸN trong văn bản tự do (`ly_do`):
+#: khớp đúng chữ hoa, `\w` ở hai biên nên `QUANG` hay `QUA_X` không bị đụng. Một
+#: lượt `re.sub` duy nhất — nhãn thay vào không bị dịch lại.
+_RE_MA_NOI_BO = re.compile(
+    r"(?<!\w)(" + "|".join(re.escape(k) for k in TRANG_THAI_HIEN) + r")(?!\w)")
+
+
+def dich_ma_noi_bo(van_ban):
+    """Thay mã trạng thái nội bộ đứng riêng trong `van_ban` bằng nhãn tiếng Việt.
+
+    Dòng sổ đã khai là BẤT BIẾN (cổng git, luật b) nên một `ly_do` viết trước khi có
+    tầng hiển thị vẫn mang `DANG CHAM`; chỉ tầng hiển thị được dịch nó. Không phải
+    chuỗi (NaN, None) thì trả nguyên.
+    """
+    if not isinstance(van_ban, str):
+        return van_ban
+    return _RE_MA_NOI_BO.sub(lambda m: TRANG_THAI_HIEN[m.group(1)], van_ban)
+
+
+def bang_hien_thi(bang: pd.DataFrame) -> pd.DataFrame:
+    """Bảng `bang_cong_khai` → bảng hiện cho người dùng. Hàm THUẦN, không đổi `bang`.
+
+    Chỉ đổi CHỮ: tên cột, giá trị cột Sàng và cột Trạng thái, và mã trạng thái nội
+    bộ đứng thành từ nguyên vẹn trong cột Lý do (`dich_ma_noi_bo`). Số hàng, thứ tự
+    và mọi cột khác giữ nguyên. Giá trị chưa có trong ánh xạ → `ValueError`.
+    """
+    ra = bang.copy()
+    ra["Lý do"] = ra["Lý do"].map(dich_ma_noi_bo)
+    for cot, bangmap in (("Trạng thái", TRANG_THAI_HIEN), ("Sàng", SANG_HIEN)):
+        la = sorted(set(ra[cot]) - set(bangmap))
+        if la:
+            raise ValueError(f"cot {cot}: gia tri chua co ten hien thi: {la}")
+        ra[cot] = ra[cot].map(bangmap)
+    return ra.rename(columns=TEN_COT_HIEN)
 
 
 # ── tiền đăng ký: một phiên bản sổ so với các phiên bản CHA (P3c-1, BƯỚC 153) ──
