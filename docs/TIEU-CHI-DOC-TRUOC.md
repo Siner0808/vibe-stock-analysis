@@ -3945,7 +3945,8 @@ Giá làm tròn 2 chữ số, nên hai lượt kéo cùng một giá thật vẫ
 
 Trên nến chung của một mã: `ℓ_t = ln(close_A / close_B)`.
 - **Điểm đổi bậc** là cặp nến liền nhau (theo chỉ số nến chung) có `|ℓ_t − ℓ_{t−1}| > 0,0202 / c`, với `c` = min của bốn giá `close` trong cặp (làm tròn ±0,005 mỗi giá cho sai số ≤ 0,0101/c ở mỗi `ℓ`).
-- **Đoạn** = chuỗi nến giữa hai điểm đổi bậc. Đoạn đạt **một-hệ-số** nếu mọi nến trong đoạn thoả `|ℓ_t − ln k̂| ≤ 0,0101 / min(close_A, close_B)` với `k̂` = trung vị tỷ số của đoạn (chặn trôi dần từng bước nhỏ dưới ngưỡng).
+- **Đoạn** = chuỗi nến giữa hai điểm đổi bậc. Đoạn đạt **một-hệ-số** nếu mọi nến trong đoạn thoả `|ℓ_t − ln k̂| ≤ 0,0202 / min(close_A, close_B)` với `k̂` = trung vị tỷ số của đoạn (chặn trôi dần từng bước nhỏ dưới ngưỡng).
+  > **SỬA 06/10/2026, ở commit riêng, TRƯỚC khi có dụng cụ và trước mọi phép đo:** bản ký đầu viết dung sai `0,0101 / min(…)`. Khi viết dụng cụ tôi suy lại: mỗi `ℓ_t` lệch khỏi `ln k` tới `0,0101/c` (làm tròn hai giá) và `k̂` là trung vị nên cũng lệch tới `0,0101/c`; hiệu của hai số ấy tới `0,0202/c`. Dung sai `0,0101/c` sẽ loại oan một đoạn hệ-số-hằng thật có hai sai số làm tròn ngược dấu — thiên về K2, tức là đoạn đường làm tiêu chí khó đạt K1 hơn mức chứng minh được. Không có số đo nào của ĐO này đã được xem khi sửa.
 - Mã **DẠNG ĐIỀU CHỈNH** khi có ≥ 1 nến lệch thật VÀ có ≤ 3 điểm đổi bậc VÀ mọi đoạn dài ≥ 5 nến VÀ mọi đoạn đạt một-hệ-số. (Đoạn ≥ 5 nến là "nhảy bậc rồi giữ"; một nến lạc hay hai nến lạc liền nhau không phải điều chỉnh.) Mã có nến lệch thật mà không thoả → **KHÔNG DẠNG ĐIỀU CHỈNH**. Mã không có nến lệch thật → KHỚP (không tính vào P_adj).
 - **P_adj** = số NẾN lệch thật nằm trong mã DẠNG ĐIỀU CHỈNH / tổng nến lệch thật (đếm nến, không đếm mã — mã nhiều nến lệch nặng hơn).
 
