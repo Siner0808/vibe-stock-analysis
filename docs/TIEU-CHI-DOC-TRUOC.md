@@ -3899,3 +3899,109 @@ là **chưa chứng minh**; suy luận loại trừ chỉ ra giá.
 > 🔴 **VÒNG SÀNG BỊ BỎ — BƯỚC 155, 02/10/2026.** Người dùng chọn *"Bỏ vòng sàng"* sau kết cục KHÔNG ĐẠT ở trên: không ký ĐO 24, không
 > sàng trên điểm tính lại, tầng 3 còn một vòng xác nhận. Mục này giữ nguyên làm bản ghi; các lệnh con `hinh-dang`, `doi-chieu`,
 > `chan-doan`, `so-cache` vẫn tái lập được số ở đây. Phần *"Ngưỡng sàng"* ở trên không còn áp cho ứng viên nào.
+
+## ĐO 24 — lệch `close` giữa `backtest/cache` và `backtest/cache_2018`: có DẠNG điều chỉnh giá không, và giá của P3d phải lấy từ đâu (khai 06/10/2026)
+
+**Đã tra trùng:** BƯỚC 52 (ĐO 4, lỗi 31 — nguồn đổi hệ số điều chỉnh tới −1,2% trên 1.172/1.217 phiên VNM; người dùng tách hai cache để khỏi có vết sẹo ở chỗ nối) · BƯỚC 55 (ĐO 5b — trên 33 mã có vùng OOS, `cache/` và `cache_2018/` khớp trung vị 0,000000 ở 32/33 mã; nhóm chứng 08/08 rỗng theo cấu tạo, nên không nói được gì về bước 08/08 → 03/09) · BƯỚC 154 (ĐO 23, lệnh `so-cache`: 80.018 nến chung, 27.219 = 34,0% `close` khác nhau, 45/69 mã — chỉ ĐẾM, không phân loại). KHÔNG trùng: chưa BƯỚC nào hỏi lệch ấy có HÌNH DẠNG điều chỉnh (nhảy bậc rồi giữ) hay không, chưa BƯỚC nào đo sai số nhãn nếu ghép giá từ hai lượt kéo, và chưa BƯỚC nào nói giá của vòng xác nhận tầng 3 lấy từ đâu.
+
+> **Khai 06/10/2026, SAU khi đọc mã để biết đường đi của giá và TRƯỚC khi viết dụng cụ hay chạy phép đo nào, ở một commit RIÊNG.**
+>
+> **Khai thêm, vì chúng xảy ra trước khi ký — chỉ ĐỌC MÃ, không đo giá:**
+>
+> - Agent sống **không đọc cache nào**: `run_daily` gọi `VNStockCollectorAgent.collect` mỗi lượt quét, nó kéo trực tiếp `Quote(...).history` theo thứ tự nguồn `vci` rồi `kbs` (`data_collectors.py`). Cache backtest (`backtest/data.py`) thử `kbs → tcbs → vci → dnse`. Hai thứ tự nguồn khác nhau, và BƯỚC 52 đã đo rằng hai nguồn là hai hệ số điều chỉnh.
+> - Bảng `decisions` **không có cột giá** (`paper_trading.py`, DDL `decisions`: `seq, at, symbol, signal_date, score, recommendation, acted, skip_reason, components, reasons, data_quality`). Bảng `trades` có `entry_price`/`exit_price`, nhưng không phải đầu vào của `cham_bong`.
+> - `cham_bong` là module thuần: giá do BÊN GỌI đưa vào (chưa có bên gọi — P3d chưa làm). Nhãn là `experiment_tran_dac_trung.nhan_vuot_ro`, tính từ cột `close` (`shift(-1)` cho vào, `shift(-h-1)` cho ra). **Ghi nhận ngoài phạm vi:** docstring của hàm nói *"vào ở giá mở cửa T+1"* nhưng mã dùng `close` của T+1; không sửa, không đo trong ĐO này.
+> - Hai cache kết thúc trước ngày khai UV-001 (đọc nến CUỐI của mỗi file bằng `tail -qn1`, không đọc giá nào khác): A có 72 file kết thúc 2026-09-03, 49 file 2026-08-07, 1 file 2026-08-06; B có 123 file kết thúc 2026-09-10, 1 file 2026-09-09, 1 file 2025-10-08. Nên chúng không thể là nguồn nhãn cho ứng viên khai 02/10 — nhãn đầu tiên cần giá tới T + 22 phiên sau ngày ấy.
+> - Đã thấy trước khi ký (từ BƯỚC 154, không phải từ đo này): 34,0% nến chung lệch `close`. **Chưa thấy** cấu trúc tỷ số theo thời gian, nhóm lệch theo mã, hay độ lớn bước. Các ngưỡng bên dưới được chọn khi chưa thấy chúng.
+
+**Không có dụng cụ vì:** `tools/do24_lech_gia.py` chưa được viết ở thời điểm ký — chủ ý: ngưỡng phân loại và các lối đọc phải đứng TRƯỚC dụng cụ để không thể được chọn sau khi thấy số. Lệnh đọc ghi ở mục "Kết quả" khi dụng cụ vào.
+
+### BA CÂU HỎI
+
+1. Lệch `close` có **dạng điều chỉnh** (tỷ số `close_A / close_B` hằng theo đoạn, nhảy bậc tại một ngày rồi giữ) hay là lỗi / khác nguồn?
+2. Giá của nhãn tầng 3 phải đến từ đâu, và nếu ghép giá từ hai lượt kéo thì nhãn sai bao nhiêu? (UV-001 — khai 02/10, nhịp 21 phiên — chưa có nhãn nào tính được; xem *Khung đọc* dưới.)
+3. Vì sao ĐO 21 ngụ ý ~16.219 dòng seeded trong khi bản ở máy có 13.818? (Chỉ ĐẾM dòng; rẻ hay không đã đo ở dưới.)
+
+A = `backtest/cache` (kéo 06/08–03/09), B = `backtest/cache_2018` (kéo 11/09). Điều kiện ghi nhận được về pull: mtime của file, không có thứ nào chắc hơn.
+
+### Chặn rò — luật của dữ liệu
+
+- Mọi giá bị cắt `< 2026-08-10` (`MOC_DA_NHIN`) lúc nạp, bằng đúng `tools/sang_ung_vien.nap_gia`/`cat_gia` cho quần thể P1 và bằng cùng phép cắt cho P2.
+- **Không tính điểm, không tính IC, không đọc `score`/`components` của dòng nào.** Phần Q3 chỉ `COUNT(*)` và `COUNT(DISTINCT symbol, signal_date)` — không SELECT cột điểm.
+- Không động `docs/ung-vien.json`, không xây P3d, không sửa file nào trong cache, **không gọi mạng và không import `vnstock`/`vnai`**: dữ liệu ở máy đủ cho cả ba câu; nếu một phép đo cần mạng thì kết cục là *chưa làm*.
+
+### Quần thể và phép tái lập (M0 — nếu trượt thì DỪNG)
+
+- **P1** = mã chung của hai cache đi qua `E.nap_gia` (rổ 71 mã), cắt `< 10/08`. **P2** = mọi file CSV có ở CẢ HAI thư mục (≤ 125), cột `time` cắt 10 ký tự đầu (cả hai định dạng `YYYY-MM-DD` và `YYYY-MM-DD hh:mm:ss`), cắt `< 10/08`.
+- **M0a.** `so_hai_cache` trên P1 với dung sai 1e-6 phải ra ĐÚNG `n_nen_chung` = 80.018, `n_nen_khac` = 27.219, `n_ma_co_nen_khac` = 45. Lệch bất kỳ số nào → máy đo hỏng hoặc dữ liệu đã đổi → kết cục K0, không đọc gì tiếp.
+- **M0b.** Số chữ số thập phân: nếu < 99,9% ô giá của A hoặc của B có ≤ 2 chữ số thập phân thì phép phân loại bên dưới (dung sai suy ra từ 0,01) không còn đứng → K0.
+- **M0c — A có bị ghi lại sau khi chốt "bản neo" (11/09) không?** (a) mtime: số file của A có mtime sau 2026-09-11 (đã đo trước khi ký bằng `find cache -newermt 2026-09-04`: 0 file; mtime của A là 06/08, 08/08, 03/09); (b) băm nội dung từng file của A so với bản sao `vibe_cache_goc_20260911` (125 file, chép 11/09): số file khác băm. **Kết cục:** nếu (b) > 0 file khác thì A ĐÃ BỊ GHI LẠI sau chốt — lỗi nghiêm trọng (Quy tắc 1), BÁO leader ngay, không đợi hết ĐO; nếu 0 thì ghi *A không đổi từ 11/09 theo băm* — mtime và băm đều là bằng chứng chứ không phải chứng minh. In thêm độ phủ ngày đầu–cuối của A và B.
+
+### M1 — chia lệch thành LÀM TRÒN và LỆCH THẬT
+
+Giá làm tròn 2 chữ số, nên hai lượt kéo cùng một giá thật vẫn có thể khác nhau ≤ 0,01. Nến chung là **lệch thật** khi `|close_A − close_B| > 0,0101`; còn lại (khác nhau nhưng ≤ 0,0101) là **làm tròn**. In: số nến mỗi loại, số mã mỗi loại, theo năm.
+
+### M2 — phân đoạn và phân loại (dung sai SUY RA, không chỉnh)
+
+Trên nến chung của một mã: `ℓ_t = ln(close_A / close_B)`.
+- **Điểm đổi bậc** là cặp nến liền nhau (theo chỉ số nến chung) có `|ℓ_t − ℓ_{t−1}| > 0,0202 / c`, với `c` = min của bốn giá `close` trong cặp (làm tròn ±0,005 mỗi giá cho sai số ≤ 0,0101/c ở mỗi `ℓ`).
+- **Đoạn** = chuỗi nến giữa hai điểm đổi bậc. Đoạn đạt **một-hệ-số** nếu mọi nến trong đoạn thoả `|ℓ_t − ln k̂| ≤ 0,0202 / min(close_A, close_B)` với `k̂` = trung vị tỷ số của đoạn (chặn trôi dần từng bước nhỏ dưới ngưỡng).
+  > **SỬA 06/10/2026, ở commit riêng, TRƯỚC khi có dụng cụ và trước mọi phép đo:** bản ký đầu viết dung sai `0,0101 / min(…)`. Khi viết dụng cụ tôi suy lại: mỗi `ℓ_t` lệch khỏi `ln k` tới `0,0101/c` (làm tròn hai giá) và `k̂` là trung vị nên cũng lệch tới `0,0101/c`; hiệu của hai số ấy tới `0,0202/c`. Dung sai `0,0101/c` sẽ loại oan một đoạn hệ-số-hằng thật có hai sai số làm tròn ngược dấu — thiên về K2, tức là đoạn đường làm tiêu chí khó đạt K1 hơn mức chứng minh được. Không có số đo nào của ĐO này đã được xem khi sửa.
+- Mã **DẠNG ĐIỀU CHỈNH** khi có ≥ 1 nến lệch thật VÀ có ≤ 3 điểm đổi bậc VÀ mọi đoạn dài ≥ 5 nến VÀ mọi đoạn đạt một-hệ-số. (Đoạn ≥ 5 nến là "nhảy bậc rồi giữ"; một nến lạc hay hai nến lạc liền nhau không phải điều chỉnh.) Mã có nến lệch thật mà không thoả → **KHÔNG DẠNG ĐIỀU CHỈNH**. Mã không có nến lệch thật → KHỚP (không tính vào P_adj).
+- **P_adj** = số NẾN lệch thật nằm trong mã DẠNG ĐIỀU CHỈNH / tổng nến lệch thật (đếm nến, không đếm mã — mã nhiều nến lệch nặng hơn).
+
+**Kết cục Q1, ký trước:**
+- **K1** — `P_adj ≥ 0,90`: lệch **mang dạng điều chỉnh**. Câu *"giá OHLCV tin được (local = CI)"* của trí nhớ dự án phải sửa thành *"tin được TRONG MỘT lượt kéo; giữa hai lượt kéo `close` có thể lệch tới x"* (x đọc từ M5).
+- **K2** — `P_adj ≤ 0,50`: lệch **KHÔNG có dạng điều chỉnh**; nguyên nhân chưa biết (lỗi nguồn / khác nguồn / khác đường kéo); câu trí nhớ càng phải sửa và phải mở điều tra nguồn.
+- **K3** — giữa hai ngưỡng: **hỗn hợp**, nói thẳng tỷ lệ, không ép về một phía.
+- **K0** — M0 trượt hoặc M3 trượt: **không kết luận**.
+- **Chặn "đẹp quá":** nếu `P_adj ≥ 0,99` thì M3 (phép đối chứng) phải đã qua cả bốn ô TRƯỚC khi chữ K1 được viết (Quy tắc 1: khớp đẹp thì nghi máy đo trước).
+- **Điều K1 KHÔNG nói:** *dạng điều chỉnh* không chứng minh nguyên nhân là cổ tức hay chia tách. Không có bảng sự kiện doanh nghiệp ở máy; không gọi mạng. Ghi **"chưa làm"** cho việc đối chiếu bước nhảy với ngày giao dịch không hưởng quyền.
+
+### M3 — ĐỐI CHỨNG của máy đo (bắt buộc, chạy cùng lượt, trên dữ liệu thật của B)
+
+Máy phân loại bị nghi ngờ như một gác (`SKILL.md` Bước 3 điều 4). Bốn ô, mỗi ô dựng từ B của MỘT mã có nhiều nến:
+1. **Không tiêm:** A := B → 0 nến lệch thật, mã KHỚP.
+2. **Điều chỉnh tiêm:** A := B, nhân mọi nến trước một ngày D (giữa chuỗi) với 0,97 → mã phải DẠNG ĐIỀU CHỈNH, một điểm đổi bậc đúng ở D.
+3. **Nhiễu hằng ngày:** A := B nhân hệ số ngẫu nhiên độc lập mỗi ngày trong ±0,5% → mã phải KHÔNG DẠNG ĐIỀU CHỈNH.
+4. **Nến lạc:** A := B với MỘT nến nhân 1,05 → mã phải KHÔNG DẠNG ĐIỀU CHỈNH (đoạn dài 1 < 5).
+Ô nào sai hướng → K0. Ô 3 và 4 là chỗ máy có khả năng trả DƯƠNG giả (Bước 3 điều 4: *"mẫu này CÓ KHẢ NĂNG cho kết quả dương không?"* — ở đây ngược: có khả năng cho dương giả không).
+
+### M4 — lệch tập trung ở đâu (đọc ký trước)
+
+Trên P2, tỷ lệ nến lệch thật theo: (i) định dạng cột `time` của A (`ngày` / `ngày-giờ`, 85/40 file theo đo cũ), (ii) nhóm mtime của A (06–08/08 · 03/09), (iii) năm của nến. **Lối đọc:** nếu một nhóm có tỷ lệ ≥ 5 lần nhóm kia (cùng phép chia) thì lệch **tập trung theo nhóm → nghi nguồn / đường kéo**, không phải sự kiện doanh nghiệp chung của thị trường; nếu tỷ lệ gần bằng nhau giữa nhóm thì không nói gì về nguồn. Riêng (iii): in cạnh số 0,000000 ở 32/33 mã của ĐO 5b để người đọc thấy vùng nào chứa lệch.
+
+### M9 — cỡ lệch, tỷ lệ theo mã, và dựng lại câu của ĐO 5b
+
+Trên nến lệch thật (M1): trung vị, p90 và cực đại của `|close_A/close_B − 1|` (phần trăm). Trên P1: phân phối tỷ lệ nến lệch thật THEO MÃ (trung vị theo mã, p90, số mã có tỷ lệ > 50%). **Dựng lại câu ĐO 5b** *"33 mã có OOS: khớp trung vị 0,000000 ở 32/33 mã"*: dùng đúng 33 mã có vùng OOS theo `docs/moc_du_lieu_sach.json`, in `|close_A − close_B|` trung vị mỗi mã trên TOÀN BỘ nến chung rồi trên riêng vùng OOS, cạnh tỷ lệ nến lệch thật của 33 mã ở mỗi vùng. **Lối đọc ký trước:** (i) trung vị bằng 0 KHÔNG mâu thuẫn với tỷ lệ lệch 34% khi tỷ lệ lệch của mã < 50%; ĐO 5b và ĐO 23 chỉ mâu thuẫn nếu câu *"cho CÙNG giá lịch sử"* sai theo CỠ lệch (p90, cực đại) hoặc theo tỷ lệ lệch riêng vùng OOS. (ii) Nếu trung vị theo mã vẫn 0 ở ≥ 32/33 mã và tỷ lệ lệch thật của 33 mã trong vùng OOS < 1%: ĐO 5b đúng trong phạm vi nó đo, và câu *"cùng giá lịch sử"* phải thu hẹp thành *"cùng giá ở vùng OOS"*. (iii) Ngược lại: câu ấy của BƯỚC 55 sai, đánh dấu 🔴 ở BƯỚC 159.
+
+### M5 — hệ số
+
+Với mọi đoạn `k̂` (M2): trung vị và cực đại của `|ln k̂|`, tỷ lệ `k̂ > 1` so với `k̂ < 1`, số đoạn mỗi mã. Chỉ MÔ TẢ; không có ngưỡng.
+
+### M6 — sai số nếu GHÉP giá từ hai lượt kéo (Q2, đo được)
+
+Với mọi (mã, vị trí t) trong P1 có `t`, `t+1`, `t+22` đều là nến chung < 10/08: `e = |ln r_{t+1} − ln r_{t+22}| × 100` (điểm phần trăm) — đúng phần nhãn sai nếu giá vào lấy từ lượt này còn giá ra từ lượt kia. In: số cửa sổ, tỷ lệ `e > 0,5` và `e > 2` điểm, cực đại, số mã chạm. **M7 (nhãn):** `E.nhan_vuot_ro(A, 21)` và `(B, 21)` trên cùng mã/ngày chung: tương quan hạng gộp, tỷ lệ ô `|chênh| > 0,5` điểm.
+
+**Khung đọc cho P3d, ký trước (đây là lập luận cho NGƯỜI quyết, không phải kết quả đo):**
+- Trong MỘT bảng giá kéo một lượt, hệ số điều chỉnh chung của bảng đó triệt tiêu trong `ln(P_{t+22}/P_{t+1})`; sai số chỉ sinh khi nối nhiều lượt kéo.
+- **Nếu tỷ lệ `e > 0,5` điểm ≥ 1%:** khuyến nghị ghi *"P3d KHÔNG được ghép giá từ nhiều lượt kéo; mỗi lần chấm kéo MỘT bảng giá một lượt, phủ cả [T+1, T+22], từ đường kéo cùng họ nguồn với agent sống"*. **Nếu < 1%:** ghép chấp nhận được về độ lớn nhưng vẫn khuyến nghị một lượt (rẻ hơn kiểm).
+- Hai cache không phải nguồn nhãn của UV-001 (kết thúc trước ngày khai). Lợi suất UV-001: **chưa có và chưa tính được**; ĐO này chỉ cho độ phơi (tỷ lệ cửa sổ có bước đổi hệ số). Phép so của tầng 3 là so CẶP (UV-001 so với điểm đang chạy trên CÙNG nhãn), nên sai số nhãn là chung cho hai vế và theo lập luận làm yếu cả hai IC chứ không nghiêng Δ — **chưa ai đo điều đó**.
+
+### M8 — Q3: đếm dòng, chỉ đọc
+
+`sqlite3` mở `mode=ro` hai file: `paper_trades.db` (mtime 29/09) và `paper_trades_seeded_insample.db`. Chỉ `COUNT(*)` và `COUNT(DISTINCT symbol, signal_date)`, tách `signal_date < 10/08` và `≥ 10/08`, và theo tháng. **Lối đọc ký trước:** so với 18.649 / 2.430 / 16.219 của ĐO 21. (a) Nếu `paper_trades.db` có tổng ≈ 18.649 và phần `< 10/08` = 16.219: phân rã 16.219 = 13.818 + X, rồi nói X là dòng lặp (tổng trừ distinct) hay dòng của lượt quét sống từ giữa 08 tới 10/08. (b) Nếu không khớp: ghi *chưa giải thích*, không đoán. Tab Sheets thật không được đọc (không dùng khoá Google); nên con số 18.649 ở ĐO 21 không tái lập được ở đây, chỉ so được bản sao ở máy.
+
+### Điều ĐO này KHÔNG làm
+
+Không tính điểm hay IC; không đọc dòng quyết định ≥ 10/08 ngoài việc đếm; không sửa cache; không đổi nhãn, cách chấm, hành vi giao dịch; không xây P3d; không gọi mạng; không đối chiếu bước nhảy với sự kiện doanh nghiệp; không đo `open` thay `close` ở nhãn.
+
+### Kết quả ĐO 24 (06/10/2026)
+
+Dụng cụ `tools/do24_lech_gia.py` vào SAU commit ký `427f126` (dung sai đoạn sửa ở `421975e`, cũng trước dụng cụ). Lệnh:
+`./.venv/Scripts/python.exe tools/do24_lech_gia.py chay --cache <A> --cache-khac <B> --cache-goc <bản sao A> --db <paper_trades.db> --db <paper_trades_seeded_insample.db>`
+(chẩn đoán: `chan-doan`; đối chứng: `doi-chung`). Số và cách đọc nằm ở `docs/STATE.md` BƯỚC 159; ở đây chỉ ghi kết cục đã ký:
+**M0 qua** (tái lập 80.018 / 27.219 / 45; A không đổi từ 11/09 theo mtime và băm) · **M3 4/4 đạt** · **Q1 = K2** (`P_adj` 0,409, đúng chữ đã ký). Chẩn đoán SAU kết cục, KHÔNG ký trước: tính theo ĐOẠN thay cho theo MÃ là 0,544 — chỉ để
+gợi ý cho một phép đo sau, không đổi K2 · **ĐO 5b dựng lại: lối đọc (iii)**
+(3,05% nến lệch thật ở vùng OOS > 1%) · **M6: 0,088% cửa sổ `e > 0,5` điểm (< 1%)**, khuyến nghị P3d vẫn là MỘT lượt kéo ·
+**Q3: chưa giải thích** (lối đọc (b)).

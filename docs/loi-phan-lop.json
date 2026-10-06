@@ -619,6 +619,16 @@
       "lop": "ky-luat",
       "song_ngay": 5,
       "nguon": "git"
+    },
+    "123": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "git"
+    },
+    "124": {
+      "lop": "ky-luat",
+      "song_ngay": 0,
+      "nguon": "nguoi-thay"
     }
   },
   "_khong_phai_bang_chung": [

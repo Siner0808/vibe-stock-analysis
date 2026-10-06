@@ -21059,3 +21059,73 @@ hai mươi"* (4 đỏ, `tools/doc_bang_loi.py` in con số đúng). Cả hai là
 nó và `tests/test_bang_loi_do_duoc.py` TRƯỚC cổng 1 (~1 giây).
 
 **Việc kế.** Không có việc chờ người dùng quyết. Lượt 10 đến hạn 08/10/2026 (nhịp 2 ngày).
+
+## BƯỚC 159 — ĐO 24: KẾT CỤC KÝ TRƯỚC LÀ K2 (`P_adj` 0,409); `close` HAI LƯỢT KÉO LỆCH THẬT Ở 21,6% NẾN; GIÁ CỦA P3d NÊN LÀ MỘT LƯỢT KÉO (06/10/2026)
+
+**Kết cục ký trước: K2** — `P_adj = 0,409 ≤ 0,50`, theo đúng bảng đã ký ở `docs/TIEU-CHI-DOC-TRUOC.md` (ĐO 24). KHÔNG phải K3, không phải K1. Mọi con số *sau* kết cục (0,544, "hỗn hợp") ở dưới là **CHẨN ĐOÁN SAU KẾT CỤC, không ký trước** và chỉ để gợi ý cho một phép đo sau.
+
+**Việc được giao (leader, 06/10):** lệch `close` giữa `backtest/cache` (A) và `backtest/cache_2018` (B) — 34% nến chung ở ĐO 23 — có DẠNG điều chỉnh giá không; giá của agent sống, `decisions` và vòng xác nhận tầng 3 lấy từ đâu và UV-001 có bị ảnh hưởng không; vì sao ĐO 21 ngụ ý ~16.219 dòng seeded mà máy có 13.818. Không tính IC/điểm, không đụng `docs/ung-vien.json`, không xây P3d, không sửa cache, không gọi mạng.
+
+**Tiêu chí ký trước dụng cụ:** `docs/TIEU-CHI-DOC-TRUOC.md` mục *ĐO 24*, commit `427f126`, đẩy lên GitHub TRƯỚC khi có một dòng mã; **sửa MỘT dung sai ở `421975e`** (lỗi 123, dưới đây). Để ngỏ cả hai kết cục: K1 (`P_adj ≥ 0,90`) · K2 (`≤ 0,50`) · K3 (giữa) · K0 (máy đo trượt). Ngưỡng chọn khi chưa thấy cấu trúc tỷ số.
+
+### Tiêu chí đã sửa MỘT lần sau khi ký — sửa gì, lúc nào, vì sao
+
+- **Sửa gì:** dung sai đoạn ở M2 từ `|ℓ_t − ln k̂| ≤ 0,0101 / min(giá)` thành `0,0202 / min(giá)`. Không đổi ngưỡng K1/K2, trần 3 điểm đổi, đoạn ≥ 5 nến, hay bất kỳ lối đọc nào.
+- **Vì sao:** lúc viết dụng cụ tôi suy lại: mỗi `ℓ_t` lệch khỏi `ln k` tới `0,0101/c` (làm tròn hai giá), `k̂` là trung vị nên cũng mang sai số cùng cỡ; hiệu của chúng tới `0,0202/c`. Dung sai cũ loại oan đoạn hệ-số-hằng thật có hai sai số ngược dấu, tức nghiêng về K2.
+- **Lúc nào (`git log --format=%ci`; mtime):** ký `427f126` lúc **13:58:30**; sửa `421975e` lúc **13:59:47** (+07:00, 06/10/2026), cách nhau 1 phút 17 giây; file kết quả của lượt chạy dụng cụ đầu tiên, `ketqua.json`, có mtime **14:01:40** — **1 phút 53 giây sau** lần sửa. File `tools/do24_lech_gia.py` được viết SAU commit sửa. Đã đẩy cả hai commit lên GitHub trước lượt chạy đầu (`git push` ngay sau mỗi commit).
+- **Điều không thể chứng minh từ git:** rằng tôi chưa thấy một con số nào của ĐO này trước khi sửa. Chứng cứ duy nhất là lời khai trong commit và khoảng thời gian trên; điều tôi ĐÃ thấy trước khi ký/sửa là 27.219/80.018 = 34% của ĐO 23 và các số của BƯỚC 55 (đã khai ở mục *Khai thêm* của tiêu chí).
+
+### Máy đo — trước khi tin số
+
+- **M0a tái lập ĐO 23:** 80.018 nến chung · 27.219 khác (dung sai 1e-6) · 45 mã — đúng từng số. **M0b:** 100% ô giá của A và của B có ≤ 2 chữ số thập phân (nên dung sai làm tròn 0,0101 đứng).
+- **M3 đối chứng 4/4 đạt**, trên `close` thật của ACB (mã nhiều nến chung nhất, chọn theo độ dài): không tiêm → KHỚP; bậc 3% giữa chuỗi → DẠNG ĐIỀU CHỈNH, một điểm đổi đúng ở D; nhiễu ±0,5% mỗi ngày → KHÔNG; một nến ×1,05 → KHÔNG. Đục `tools/do24_lech_gia.py`: lượt đầu **23/29 đỏ**, sáu phát sống là lỗ hổng gác thật (dung sai đoạn rộng, độ dài đoạn tối thiểu, min↔max giá ở ngưỡng, biên `>=` của chẩn đoán, chọn mã đối chứng) → thêm 4 test (29 → 33) → **29/29 đỏ**, cộng phát dựng lại nguyên văn lỗi 123 (dung sai đoạn 0,0101) đỏ. Chưa đục: `m4`, `theo_nen_co_gio`, `m2` tổng hợp (chạy thật, không đục).
+
+### Q1 — lệch có dạng điều chỉnh không
+
+Lệnh: `./.venv/Scripts/python.exe tools/do24_lech_gia.py chay --cache backtest/cache --cache-khac backtest/cache_2018 --cache-goc <vibe_cache_goc_20260911> --db <paper_trades.db> --db <paper_trades_seeded_insample.db>` (A, B, bản sao nằm ở checkout chính vì worktree không có cache).
+
+- **M1:** trong 80.018 nến chung (69 mã), 27.219 khác dưới 1e-6 gồm **9.905 nến chỉ khác làm tròn** (≤ 0,0101) và **17.314 nến lệch thật** (21,6%). 30 mã KHỚP, 39 mã có nến lệch thật.
+- **M2 — kết cục ký trước: K2.** `P_adj = 7.077/17.314 = 0,409` (≤ 0,50): 18 mã DẠNG ĐIỀU CHỈNH, 21 mã KHÔNG.
+- **M9 cỡ lệch:** trên nến lệch thật, trung vị `|A/B − 1|` **0,19%**, p90 **20,2%**, max **25,3%**. Tỷ lệ nến lệch theo mã: trung vị 4,9%, p90 77,6%, **9 mã > 50%**. (Trung vị nhỏ nhưng đuôi dày: vài mã lệch cả chuỗi bằng một hệ số lớn.)
+- **M5 hệ số (85 đoạn):** trung vị `|ln k̂|` 0,0007, max 0,225; 29 đoạn `k̂ > 1`, 25 đoạn `k̂ < 1`.
+- **M4:** không có nhóm nào lệch gấp 5 lần nhóm kia — theo định dạng cột `time` của ô đầu mỗi file 24,3% (`ngày`) so 23,2% (`ngày-giờ`); theo mtime 32,0% (06–08/08, gồm mã ngoài rổ) so 21,1% (03/09). Theo năm: 2021 50,3% · 2022 25,2% · 2023 19,7% · 2024 23,7% · 2025 27,3% · 2026 20,1%. Lệch KHÔNG tập trung ở nhóm "đường kéo" nào đo được ở đây.
+- **M0c — A có bị ghi lại sau chốt "bản neo" 11/09 không: KHÔNG.** 0 file mtime sau 04/09 (mtime là 06/08, 08/08, 03/09); băm 125/125 file của A khớp bản sao `vibe_cache_goc_20260911`. Không có báo động lỗi nghiêm trọng.
+
+**CHẨN ĐOÁN SAU KẾT CỤC — không ký trước, không đổi K2, chỉ gợi ý cho một phép đo sau** (`tools/do24_lech_gia.py chan-doan`): luật M2 xếp loại cả MÃ, nên MỘT nến lạc ở đuôi kéo mã 1.200 nến xuống KHÔNG — MBB (`k̂` 1,2021 trên 1.199 nến, hai nến cuối lệch nhẹ), SSI (1,2484), HPG, GAS, LPB, KDH, HCM, NLG… Tính theo ĐOẠN: tỷ lệ nến lệch nằm trong đoạn ≥ 5 nến đạt một-hệ-số, bất kể nến lạc ở rìa là **0,544** (một con số khác, không phải kết cục K3 — K3 chưa bao giờ được ký cho nó). Nới trần điểm đổi lên vô hạn chỉ đẩy `P_adj` lên 0,431; đoạn tối thiểu 1 và trần vô hạn: 0,516. Đây là gợi ý rằng luật xếp loại theo MÃ có thể đang hạ điểm K1 hơn mức dữ liệu cho thấy; nó KHÔNG đổi kết cục K2 đã ký và không có ngưỡng nào ký cho nó. Hình dạng thấy được (mô tả, không phán):
+
+- *Một hệ số hằng cả chuỗi, lớn:* SSI 1,25 · MBB 1,20 · BID 1,07 · DIG 1,06 · OIL 1,015 (hằng cả 1.144–1.201 nến, kể cả nến gần cuối). Hình dạng này PHÙ HỢP với một sự kiện quyền (chia tách, cổ phiếu thưởng, cổ tức) rơi GIỮA hai lượt kéo (A kéo 03/09 chưa điều chỉnh, B kéo 10/09 đã điều chỉnh) — **đây là SUY LUẬN, CHƯA KIỂM**: không có lịch sự kiện doanh nghiệp ở máy và tôi không gọi mạng. Việc nên đo sau: đối chiếu từng bậc/hệ số với lịch chia tách và cổ tức.
+- *Nhiều bậc nhỏ:* VNM năm bậc 0,07–0,09% mỗi bậc (07/2022 → 06/2026, cộng 0,39%), VCB bốn bậc 0,1–0,2%: vượt trần ≤ 3 điểm đổi của tiêu chí nhưng đúng dạng.
+- *Chưa giải thích:* VIX, HHP, MBS cùng một bậc quanh 07–10/02/2025 (A/B nhảy từ 1,000 lên 1,048 · 1,067 · 1,058, và GIỮ tới hết chuỗi) — bậc ở nến GẦN, không phải nến CŨ như một điều chỉnh lùi.
+- Nến lạc đơn lẻ ở đuôi (TCB, VHM, GEX, VJC, HPG: một hay hai nến cuối lệch 0,08–1,6% so với phần còn lại) — **chưa giải thích.**
+- Giả thuyết *"hai định dạng cột `time` trong cùng file A là vết nối"* BỊ BÁC cho rổ 71 mã: không có nến nào của rổ mang giờ (`theo_nen_co_gio`: 0/80.018). Nó chỉ nằm ở nhóm 06–08/08 ngoài rổ; không đo tiếp.
+
+**ĐO 5b dựng lại (M9):** 33 mã có OOS: trung vị `|A − B|` bằng 0 ở **32/33** mã (đúng như BƯỚC 55; riêng một mã lệch), toàn bộ lẫn riêng vùng OOS. Nhưng nến lệch thật chiếm **3,05%** vùng OOS (770/25.219) và **19,3%** ngoài vùng OOS. Theo lối đọc (iii) đã ký: câu *"hai lượt kéo cùng giá lịch sử"* của BƯỚC 55 **SAI ở phát biểu rộng**; trung vị 0 vẫn đúng. Hai kết quả KHÔNG mâu thuẫn nhau như sổ tay ngờ: 21,6% < 50% nên trung vị bằng 0 (phỏng đoán của leader, nay có số).
+
+### Q2 — giá của agent sống, `decisions`, tầng 3; UV-001
+
+Đọc mã (không đo): agent sống kéo **trực tiếp** `Quote(...).history` mỗi lượt quét, nguồn `vci` rồi `kbs` (`data_collectors.py`), không đọc cache nào; cache backtest thử `kbs → tcbs → vci → dnse`. Bảng `decisions` **không có cột giá**; `cham_bong` nhận giá từ bên gọi (P3d chưa làm); nhãn `nhan_vuot_ro` tính từ `close`. A kết thúc 03/09 (06–07/08 với 50 file ngoài rổ), B kết thúc 10/09 → **không cái nào có thể là nguồn nhãn** cho UV-001 (khai 02/10, nhãn cần giá tới T+22).
+
+- **M6 — sai số nếu GHÉP giá từ hai lượt kéo:** 78.500 cửa sổ 21 phiên; `e > 0,5` điểm ở **0,088%** cửa sổ (9 mã), `e > 2` ở 0,080%, **max 6,51 điểm**. Dưới ngưỡng ký 1% → *"ghép chấp nhận được về độ lớn"*, nhưng tỷ lệ này là của HAI lượt kéo này, không phải của mọi lượt.
+- **M7 — nhãn `nhan_vuot_ro(A)` so `(B)`:** 78.520 ô, tương quan hạng gộp **0,9998**, 0,087% ô chênh > 0,5 điểm, chênh max 6,33.
+- **Khuyến nghị cho P3d (lập luận cho NGƯỜI quyết, không phải kết quả đo):** mỗi lần chấm kéo **MỘT bảng giá một lượt**, phủ trọn [T+1, T+22], từ đường kéo cùng họ nguồn với agent sống (`VNStockCollectorAgent`); đừng nối giá nhiều lượt và đừng đọc cache backtest. Trong một bảng một lượt, hệ số điều chỉnh chung triệt tiêu trong `ln(P_{T+22}/P_{T+1})`; đây là phần suy diễn, M6 chỉ đo sai số khi KHÔNG làm vậy.
+- **Lợi suất UV-001: CHƯA CÓ và chưa tính được** (BƯỚC 156 ước lượng khoảng 9 tuần kể từ 02/10 mới có nhãn đủ để đọc — ước lượng, không phải số đo). Phép so của tầng 3 là so CẶP trên cùng nhãn, nên sai số nhãn là chung cho hai vế; theo lập luận nó làm yếu cả hai IC chứ không nghiêng Δ — **chưa ai đo**.
+
+### Q3 — 16.219 so với 13.818: KHÔNG tái lập ở máy
+
+`do24_lech_gia.py chay --db …` chỉ `COUNT`: `paper_trades.db` (mtime 29/09) có **13.589** dòng — **8.601** trước 10/08 (mỗi cặp mã-phiên một dòng) và **4.988** từ 10/08 nhưng chỉ **703** cặp mã-phiên khác nhau; `paper_trades_seeded_insample.db` có **13.818** trước 10/08 (13.818 cặp khác nhau) + **22** từ 10/08 (khớp ĐO 23). Con số 18.649 − 2.430 = 16.219 ở ĐO 21 là phép trừ trên tab Sheets, **không dựng lại được từ hai file ở máy** (lối đọc (b) đã ký: *chưa giải thích*, không đoán). Thấy thêm: `paper_trades.db` trước 10/08 (8.601) ÍT hơn bản seeded (13.818), nên nó không phải tập cha của seeded.
+
+### Giả thuyết bị bác · ước lượng sai · điều BƯỚC này KHÔNG nói
+
+- Bác: *"cache `backtest/cache/` bị ghi lại sau 12/09"* (leader nghi) — mtime và băm đều không. Bác: *"lệch là vết nối hai định dạng `time`"* (rổ). Sai: dung sai đoạn 0,0101 của bản ký đầu (lỗi 123); luật xếp loại theo MÃ làm K2 nghe mạnh hơn thực tế (chẩn đoán 0,544).
+- **KHÔNG nói** dạng điều chỉnh là cổ tức hay chia tách — không có bảng sự kiện doanh nghiệp, đối chiếu bậc nhảy với ngày giao dịch không hưởng quyền: **chưa làm**. **KHÔNG nói** giá OHLCV không tin được: nó nhất quán TRONG một lượt kéo (M0c, M7), chưa ai đo giá local ↔ CI. **KHÔNG nói** lệch này đổi điểm đã ghi hay đổi quyết định nào; không tính điểm/IC; không đọc dòng ≥ 10/08 ngoài việc đếm.
+- **Câu thay thế** (STATE chỉ thêm), đề nghị cho trí nhớ dự án: *"giá OHLCV nhất quán TRONG MỘT lượt kéo; GIỮA hai lượt kéo `close` lệch thật (> 0,0101) ở 21,6% nến chung, 39/69 mã, p90 cỡ lệch 20%; cache A không đổi từ 11/09."*
+
+### Soát chéo NotebookLM
+
+Câu hỏi gửi hộ từ khung của leader (khung của tôi chưa đăng nhập); độ tươi của nguồn **không do tôi đo**. Câu hỏi viết như thể kết luận đã đo (*"are measured as…"*) trong khi chỉ mới đọc mã — leader chỉ ra, lỗi 124; dùng để dò mâu thuẫn, không chép thành kết luận. Sổ tay nêu ba câu sẽ thành sai; **tự kiểm** bằng `tools/doi_chieu_trich_dan.py` (cả ba trích dẫn KHỚP) rồi bằng số đo: (1) BƯỚC 55 — đúng một phần, xem *ĐO 5b dựng lại* ở trên; (2) `CLAUDE.md` *"784 phiên — y hệt"* — **SAI, sổ tay đọc nhầm**: ô nói SỐ PHIÊN local = CI, không nói giá trùng nhau; (3) *"đóng băng — BẢN NEO"* — **SAI**: A đóng băng là THẬT từ 11/09 (M0c), và A khác B không mâu thuẫn A đứng yên.
+
+### Dụng cụ và gác
+
+`tools/do24_lech_gia.py` (`chay` · `chan-doan` · `doi-chung`) và `tests/test_do24_lech_gia.py` (33 test, dữ liệu TỔNG HỢP). Chỉ đọc, không mạng, không `import vnstock` (một test AST giữ), `m8` không SELECT cột điểm (một test AST giữ).
+
+**Việc kế.** (1) Người quyết: P3d lấy giá theo khuyến nghị trên hay không. (2) Một ĐO sau, ký riêng và TRƯỚC khi chạy: phân loại theo ĐOẠN thay cho theo MÃ (con số 0,544 ở trên không được dùng làm ngưỡng), và đối chiếu hệ số/bậc nhảy với lịch chia tách và cổ tức khi có nguồn ngoài. (3) Giải thích VIX/HHP/MBS ở 02/2025 và nến lạc đuôi.
