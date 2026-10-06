@@ -389,6 +389,41 @@
           "phan_quyet": "THẬT — hai dòng ấy không còn khớp; vô hại, hỏng về chiều an toàn. Lượt này đọc nhầm nó là nhãn ở lần đầu. Không sửa sổ (bản ghi lịch sử)."
         }
       ]
+    },
+    {
+      "ngay": "2026-10-06",
+      "pham_vi": "Lượt 9, quá hạn từ 03/10 (lượt 8 là 01/10, nhịp 2 ngày). Leader giao (BƯỚC 158); nhánh soat/vong-9 từ main 7ce4f78, worktree ngoài repo. Công cụ in 37 lời khai · 9 tài liệu, CHƯA AI MỞ 0, 2 dòng sổ mồ côi. Lệnh thứ hai thoát mã 1 trên HEAD: 2 con trỏ chết (một đường, ~/.claude/CLAUDE.md) — là hai dòng bảng lỗi 117 và 118 do CHÍNH lượt 8 viết sau khi đo (lỗi 121). Ngoài tầm công cụ: chỉ đối chiếu CLAUDE.md 'một vòng kể từ 02/10' với tiêu đề BƯỚC 155; KHÔNG đọc lại toàn bộ HANDOFF · SKILL.md · CLAUDE.md ở lượt này.",
+      "duong_ngoai_repo": {
+        "chet": 2,
+        "su_lieu": 10,
+        "con": 43,
+        "ma_thoat": 1,
+        "sau_luot": {
+          "chet": 0,
+          "su_lieu": 13,
+          "con": 43,
+          "ma_thoat": 0
+        }
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "Dòng sổ mồ côi thứ nhất: '- Commit body **ASCII**, không `Co-Authored-By`.' (câu SKILL.md bản cũ).",
+          "tu_kiem": "grep -rn 'Co-Authored-By' CLAUDE.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md docs/HANDOFF.md .claude/skills/quy-trinh-lam-viec/ -> một kết quả duy nhất, SKILL.md:204: 'Commit body **ASCII**, và **CÓ** `Co-Authored-By` (đo 23/09: 80/100 commit không merge từ 09/09...)'. Không tài liệu sống nào còn vế 'không Co-Authored-By'.",
+          "phan_quyet": "THẬT — câu cũ đã sửa ở lượt 5 (24/09) nên dòng sổ không còn khớp lời khai nào; đúng hành vi, vô hại. Không sửa sổ (bản ghi lịch sử, cùng phán quyết lượt 8).",
+          "dong": "- Commit body **ASCII**, không `Co-Authored-By`."
+        },
+        {
+          "noi_dung": "Dòng sổ mồ côi thứ hai: '(không nằm trong danh sách công cụ — đây là lớp công cụ KHÔNG thấy)' — một GHI CHÚ đặt vào ô `dong` của lượt 4 (23/09), không phải một câu của tài liệu.",
+          "tu_kiem": "Đọc sổ bằng Python: giá trị này có đúng một lần, ở phat_hien lượt 2026-09-23, cùng lượt với dòng Commit body. tools/soat_loi_khai_cu.py::so_tro_vao_hu_khong in mọi `dong` không có trong tập lời khai sống, nên một ghi chú nằm trong ô ấy luôn hiện ra là mồ côi.",
+          "phan_quyet": "THẬT — cùng phán quyết lượt 8: vô hại, hỏng về chiều an toàn; số '2' của công cụ là hằng số của sổ chỉ-thêm, không phải tín hiệu mới. Không sửa sổ.",
+          "dong": "(không nằm trong danh sách công cụ — đây là lớp công cụ KHÔNG thấy)"
+        },
+        {
+          "noi_dung": "Lệnh thứ hai (tools/kiem_duong_ngoai_repo.py) trên HEAD 7ce4f78: 2 chết · 10 sử liệu · 43 còn, mã thoát 1 — hai bản ghi loi-da-mac.md :1497 và :1498, đường ~/.claude/CLAUDE.md. Lượt 8 ghi sau_luot chet 0.",
+          "tu_kiem": "git log -S'| 118 | **mở rộng một quần thể DÙNG CHUNG' -> 663a84a (BƯỚC 151, chính commit của lượt 8): hai dòng 117/118 CÓ MẶT ở commit ấy, chưa có cửa thoát. Lệnh thứ hai chạy sau khi trả file về HEAD (git checkout -- file) -> đúng :1497 · :1498.",
+          "phan_quyet": "SAI — ô sau_luot của lượt 8 mô tả một bản đã không còn: lượt 8 chạy phép đo TRƯỚC khi tự thêm hai dòng nhắc đường chết. Sửa: cửa thoát cuối hai dòng; gác tests/test_kiem_duong_ngoai_repo.py::test_DUONG_DA_BIET_CHET_o_tai_lieu_song_deu_mang_CUA_THOAT; lỗi 121. Sổ lượt 8 không sửa (bản ghi lịch sử, nói về thời điểm ấy). Con số 'còn' đi từ 42 lên 43 giữa hai lượt — một đường ~/ mới được nêu, không điều tra."
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."
