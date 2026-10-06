@@ -482,6 +482,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   ✅ **UV-001 ĐÃ KHAI 02/10/2026 — BƯỚC 156** (người dùng chọn phương án (a)): bỏ `risk_score` khỏi điểm mua, giữ tỷ lệ chế độ mặc định;
 >   K = 1, ngưỡng 0,05; kỳ vọng hợp lý là `DANG CHAM`, KHÔNG phải QUA; lý do là lập luận cấu trúc, rho risk −0,094 trong mẫu chỉ dùng để CHỌN.
 >   Việc kế: BƯỚC 157 đổi tên hiển thị tab; biên *"phiên khai_ngay có tính không"* phải ký trước khi nối kết quả vào app.
+>   ✅ **ĐO 24 XONG 06/10/2026 — BƯỚC 159:** `close` của `backtest/cache` và `cache_2018` lệch thật (> 0,0101) ở 21,6% nến chung; kết cục ký trước **K2** (`P_adj` 0,409)
+>   (con số tính theo đoạn 0,544 là chẩn đoán SAU kết cục, không ký trước). **Giá của P3d (CHƯA làm): một bảng giá kéo MỘT lượt, phủ [T+1, T+22], cùng họ nguồn với agent sống — đừng nối nhiều lượt, đừng đọc cache backtest.** Lợi suất UV-001 chưa có.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 

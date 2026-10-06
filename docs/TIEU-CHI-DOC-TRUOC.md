@@ -3995,3 +3995,13 @@ Với mọi (mã, vị trí t) trong P1 có `t`, `t+1`, `t+22` đều là nến 
 ### Điều ĐO này KHÔNG làm
 
 Không tính điểm hay IC; không đọc dòng quyết định ≥ 10/08 ngoài việc đếm; không sửa cache; không đổi nhãn, cách chấm, hành vi giao dịch; không xây P3d; không gọi mạng; không đối chiếu bước nhảy với sự kiện doanh nghiệp; không đo `open` thay `close` ở nhãn.
+
+### Kết quả ĐO 24 (06/10/2026)
+
+Dụng cụ `tools/do24_lech_gia.py` vào SAU commit ký `427f126` (dung sai đoạn sửa ở `421975e`, cũng trước dụng cụ). Lệnh:
+`./.venv/Scripts/python.exe tools/do24_lech_gia.py chay --cache <A> --cache-khac <B> --cache-goc <bản sao A> --db <paper_trades.db> --db <paper_trades_seeded_insample.db>`
+(chẩn đoán: `chan-doan`; đối chứng: `doi-chung`). Số và cách đọc nằm ở `docs/STATE.md` BƯỚC 159; ở đây chỉ ghi kết cục đã ký:
+**M0 qua** (tái lập 80.018 / 27.219 / 45; A không đổi từ 11/09 theo mtime và băm) · **M3 4/4 đạt** · **Q1 = K2** (`P_adj` 0,409, đúng chữ đã ký). Chẩn đoán SAU kết cục, KHÔNG ký trước: tính theo ĐOẠN thay cho theo MÃ là 0,544 — chỉ để
+gợi ý cho một phép đo sau, không đổi K2 · **ĐO 5b dựng lại: lối đọc (iii)**
+(3,05% nến lệch thật ở vùng OOS > 1%) · **M6: 0,088% cửa sổ `e > 0,5` điểm (< 1%)**, khuyến nghị P3d vẫn là MỘT lượt kéo ·
+**Q3: chưa giải thích** (lối đọc (b)).
