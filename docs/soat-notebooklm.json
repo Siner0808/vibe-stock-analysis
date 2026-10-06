@@ -2267,6 +2267,30 @@
         }
       ]
     },
+    "BƯỚC 158": {
+      "ngay": "2026-10-06",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md"
+      ],
+      "_do_tuoi": "CHƯA ĐO độ tươi nguồn trước lượt hỏi (leader chạy hộ ở khung trình duyệt của họ, ngày 06/10/2026, ngay sau BƯỚC 157). Câu hỏi nói về nội dung đã có trong tài liệu từ BƯỚC 151 trở về trước nên không phụ thuộc BƯỚC 152–157.",
+      "cau_hoi": "I am about to write BƯỚC 158 into docs/STATE.md: Review round 9 concluded that the two lines in docs/soat-dinh-ky.json that no longer match any live claim are harmless historical records (the SKILL.md sentence about commit bodies having no Co-Authored-By was corrected in round 5; the second is a note that was typed into a dong field), and that the two rows 117 and 118 of references/loi-da-mac.md which name ~/.claude/CLAUDE.md are dead pointers kept as history with an exit marker, which the STATE.md BƯỚC 151 entry reported as zero dead pointers after round 8. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: Any document that says the Co-Authored-By rule for commit bodies is still 'không Co-Authored-By' (do not add it), Any document that says ~/.claude/CLAUDE.md currently exists and is a live file, Any document that says kiem_duong_ngoai_repo.py is a CI gate or that its result after round 8 was not exit code 1. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ tay trả 'không tìm thấy câu nào nói ngược' (traloi158.txt). Tự grep ba họ ví dụ trên CLAUDE.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md docs/HANDOFF.md .claude/skills/quy-trinh-lam-viec docs/lich-su: (A) grep 'không `?Co-Authored|khong Co-Authored' -> 1 kết quả, docs/lich-su/SKILL-md-2026-09-30.md:469, một bản lưu nguyên văn dẫn câu cũ để nói nó đã sai (đo 23/09), không phải luật hiện hành; SKILL.md:204 nói CÓ. (B) grep '~/.claude/CLAUDE.md' trừ dòng có duong-da-chet -> 3 kết quả, cả 3 ở docs/lich-su/CLAUDE-md-2026-09-30.md (:44 :77 :833), bản lưu nguyên văn trước BƯỚC 139; tài liệu sống chỉ nêu nó kèm cửa thoát. (C) grep kiem_duong_ngoai_repo cạnh cổng/CI/workflow -> 1 kết quả, docs/HANDOFF.md:271 nói đúng 'máy ĐỌC, cố ý không phải cổng'. (D) 'sau luot 0 chet' ở tài liệu sống: chỉ dòng bảng lỗi 121 mới viết; câu cũ nằm ở docs/STATE.md BƯỚC 151, nhật ký chỉ-thêm không nằm trong quần thể grep, và là sử liệu của ngày ấy — BƯỚC 158 đính chính. Lối thoát chặn nó BỊA, không chặn nó BỎ SÓT; grep trên là kiểm vế bỏ sót."
+    },
     "BƯỚC 159": {
       "ngay": "2026-10-06",
       "nguon": [

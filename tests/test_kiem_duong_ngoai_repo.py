@@ -191,6 +191,47 @@ def test_BAN_LUU_THAT_khong_bao_gio_ra_CHET(tmp_path):
     assert not [r for r in ket["chet"] if r[0].startswith(K.BAN_LUU)]
 
 
+# Đường BIẾT CHẾT từ BƯỚC 139 (file chỉ chứa khối vnai, người dùng gỡ) và
+# BƯỚC 151 (đích ghi của vnai). Danh sách tay, có chủ ý: CI không đọc được
+# thư mục nhà của máy khác (lỗi 14), nhưng đọc được LỜI KHAI của chính dự
+# án về đường nào đã chết (lỗi 121).
+DA_BIET_CHET = ("~/.claude/CLAUDE.md", "~/.claude/rules/ecc/", "~/AGENTS.md")
+
+
+def test_DUONG_DA_BIET_CHET_o_tai_lieu_song_deu_mang_CUA_THOAT(tmp_path):
+    """Lỗi 121: BƯỚC 151 chạy lệnh thứ hai (`sau luot: 0 chet`) RỒI mới thêm
+    hai dòng bảng lỗi nhắc `~/.claude/CLAUDE.md` — hai con trỏ chết chui
+    vào SAU phép đo, và mã thoát thật là 1 suốt ba ngày tới lượt 9. Gác này
+    dựng một thư mục nhà chứa MỌI đường tài liệu nêu, TRỪ ba đường đã khai
+    chết; khi đó bản ghi nào còn ở rổ `chet` là một lần nêu đường chết mà
+    không kèm cửa thoát — bất kể ai thêm nó sau khi đo.
+    """
+    ban_ghi = K.thu_thap(GOC)
+    tat_ca = {b[2] for b in ban_ghi}
+    nha = tmp_path / "nha"
+    nha.mkdir()
+    for d in sorted(tat_ca - set(DA_BIET_CHET)):
+        p = nha / d[2:]
+        if any(o != d and o.startswith(d.rstrip("/") + "/") for o in tat_ca):
+            p.mkdir(parents=True, exist_ok=True)
+        elif not p.exists():
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text("x", encoding="utf-8")
+    ket = K.phan_loai(ban_ghi, nha)
+    # đối chứng dương: mọi đường trong danh sách PHẢI còn được nêu ở tài liệu
+    # sống VÀ đã khai lý do — kẻo gác xanh vì danh sách trỏ vào hư không.
+    # (Không đòi chiều ngược: một cửa thoát phủ cả dòng, nên đường còn sống
+    # nằm cùng dòng cũng hiện ở `su_lieu`.)
+    trong = K.phan_loai(ban_ghi, tmp_path / "nha_trong")  # không đường nào còn
+    da_khai = {r[2] for r in trong["su_lieu"] if not r[0].startswith(K.BAN_LUU)}
+    assert set(DA_BIET_CHET) <= da_khai, (
+        "mot duong trong DA_BIET_CHET khong con o tai lieu song nao - go no "
+        f"khoi danh sach: {sorted(set(DA_BIET_CHET) - da_khai)}")
+    assert not ket["chet"], (
+        "duong DA BIET CHET duoc nhac ma khong co cua thoat: "
+        f"{ket['chet']}")
+
+
 def test_CONG_CU_NAY_CO_Y_KHONG_nam_trong_CI():
     """Một cổng luôn đỏ là một cổng bị tắt, và gác bị tắt thì bằng không.
 

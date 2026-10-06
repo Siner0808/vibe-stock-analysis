@@ -20974,6 +20974,92 @@ Nguồn `@89fe760`, cũ hơn `main` (dừng ở BƯỚC 148; không làm tươi)
 **Việc kế.** Biên *"phiên `khai_ngay` có tính không"* phải ký trước khi nối kết quả chấm vào app (BƯỚC 156). Chưa kiểm trên Streamlit Cloud; phiên điều phối kiểm bằng preview
 sau khi merge.
 
+## BƯỚC 158 — SOÁT ĐỊNH KỲ 9: HAI CON TRỎ CHẾT DO CHÍNH LƯỢT 8 VIẾT SAU KHI ĐO, VÀ Ô `sau_luot` KHAI 0 (06/10/2026)
+
+Leader giao lượt 9 (quá hạn từ 03/10; lượt 8 = BƯỚC 151, 01/10). Nhánh `soat/vong-9` từ `main`
+`7ce4f78`, worktree ngoài repo. Không chạm logic chấm điểm, `docs/ung-vien.json`, IC trên
+decisions ≥ 10/08/2026 hay P3d.
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+37 lời khai · 9 tài liệu · chưa ai mở **0**; **2** dòng sổ không còn khớp lời khai nào. Cả hai
+là giá trị `dong` của lượt 23/09 (`- Commit body **ASCII**, không `Co-Authored-By`.` và một ghi
+chú đặt nhầm vào ô `dong`): câu thứ nhất đã sửa ở lượt 5 (`SKILL.md:204` nay nói **CÓ**;
+`grep -rn Co-Authored-By` trên các tài liệu sống chỉ ra đúng dòng ấy), câu thứ hai không bao giờ
+là câu của tài liệu. Vô hại, hỏng về chiều an toàn — cùng phán quyết lượt 8, không sửa sổ cũ;
+ghi lại ở lượt 9 kèm `dong` nguyên văn. Số "2" là hằng số của một sổ chỉ-thêm, không phải tín
+hiệu mới.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+HEAD 7ce4f78 : 2 chet · 10 su lieu · 43 con   (ma thoat 1)
+sau luot     : 0 chet · 13 su lieu · 43 con   (ma thoat 0)
+```
+
+Hai bản ghi chết là `references/loi-da-mac.md` :1497 và :1498 — hai dòng bảng lỗi 117 và 118,
+cùng nêu `~/.claude/CLAUDE.md`. Chúng do **chính lượt 8 viết** (`git log -S` ra `663a84a`,
+BƯỚC 151); số `duong-da-chet` ở commit ấy là 3, bằng ở HEAD — tức hai dòng chưa bao giờ có cửa
+thoát. Tái lập: trả file về `HEAD` (`git checkout -- <file>`) rồi chạy lại lệnh — ra đúng :1497
+và :1498.
+
+**Lỗi 121.** BƯỚC 151 chạy lệnh thứ hai (`sau luot: 0 chet`) rồi mới thêm hai dòng ấy vào bảng
+lỗi, nên con số "sau lượt" ghi vào `docs/soat-dinh-ky.json` mô tả một bản đã không còn. Mã thoát
+thật là 1 trong 5 ngày. Gác của lỗi 117 chỉ đòi sổ KHAI bốn số nguyên với mã thoát khớp số chết,
+không đòi số ấy đúng với repo — và CI không đo được thư mục nhà (lỗi 14). Cùng họ lỗi 117, từ
+phía ngược lại: lần này dấu vết CÓ, nhưng đo sớm hơn lần ghi cuối của lượt.
+
+Sửa: cửa thoát `<!-- duong-da-chet: … -->` ở cuối hai dòng; dòng lỗi 121 cũng nêu đường ấy nên
+mang cửa thoát. Gác mới
+`tests/test_kiem_duong_ngoai_repo.py::test_DUONG_DA_BIET_CHET_o_tai_lieu_song_deu_mang_CUA_THOAT`:
+dựng một thư mục nhà chứa MỌI đường tài liệu nêu, TRỪ ba đường đã khai chết (`DA_BIET_CHET`:
+`~/.claude/CLAUDE.md`, `~/.claude/rules/ecc/`, `~/AGENTS.md`); bản ghi nào còn ở rổ chết là một
+lần nêu đường chết thiếu cửa thoát, bất kể ai thêm nó sau lượt đo. Đối chứng dương: ba đường
+phải còn được nêu kèm lý do ở tài liệu sống.
+
+**Đục.** Phát đầu dựng lại nguyên văn lỗi: trả `loi-da-mac.md` về `HEAD` → đỏ, đúng :1497 và
+:1498. Bốn phát có nghĩa — bỏ cửa thoát ở `CLAUDE.md` · thêm đường thừa vào danh sách · đảo `<=`
+thành `>=` · (phát đầu) — **cả bốn đỏ**. Hai phát đục vào chính phần dựng của test (bỏ phép
+trừ ba đường; thay `assert not ket["chet"]` bằng `assert True`) **sống sót**: chúng làm yếu test
+chứ không đổi hành vi của mã đang canh, nên tôi không coi là hở của gác.
+**Còn hở, nói rõ:** danh sách ba đường gõ tay. Một đường chết MỚI vẫn phải có người khai vào
+`DA_BIET_CHET` — máy không biết đường nào đã chết trên máy người dùng. Đòi hỏi còn lại là kỷ
+luật: **chạy lệnh thứ hai SAU lần ghi cuối của lượt**, không trước.
+
+**Giả thuyết bị bác (ở giữa lượt).** Tôi định gác bằng *"hai chiều"*: mọi đường đã khai cửa thoát
+cũng phải nằm trong `DA_BIET_CHET`. Bị bác ngay khi chạy: một cửa thoát phủ cả DÒNG, nên các đường
+còn sống nằm cùng dòng (`~/.claude/rules/`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`) cũng hiện
+ở rổ sử liệu — đòi chiều ngược làm đỏ gác ở repo thật. Giữ chiều thuận.
+
+**Chưa điều tra:** số "còn" đi từ 42 (lượt 8) lên 43 (HEAD) — có thêm một đường `~/` được nêu giữa
+BƯỚC 151 và 157; không phải việc của lượt này, ghi lại để lượt sau không phải đoán.
+
+### Soát chéo NotebookLM
+
+Câu hỏi tiếng Anh, đòi trả lời tiếng Việt, dựng bằng `tools/so_tay.py hoi … --js`; leader chạy hộ ở
+khung trình duyệt của họ (khung của phiên con chưa đăng nhập), không Chrome. Kết luận đưa ra: hai dòng
+sổ mồ côi vô hại, và hai dòng bảng lỗi nhắc đường chết là sử liệu có cửa thoát. Trả lời: *"không
+tìm thấy câu nào nói ngược"*. **Tự kiểm câu âm** bằng `grep` ba họ ví dụ (`không Co-Authored-By`,
+`~/.claude/CLAUDE.md` không cửa thoát, `kiem_duong_ngoai_repo` cạnh cổng/CI): chỉ ra
+`docs/lich-su/SKILL-md-2026-09-30.md:469` (bản lưu dẫn câu cũ để nói nó sai), ba dòng ở bản lưu
+`docs/lich-su/CLAUDE-md-2026-09-30.md` (:44 · :77 · :833) và `docs/HANDOFF.md:271` (nói đúng *"cố
+ý không phải cổng"*) — không dòng nào nói ngược. `docs/STATE.md` BƯỚC 151 còn câu *"sau luot: 0
+chet"*: nhật ký chỉ-thêm, sử liệu của ngày ấy, đính chính ở đây. **Độ tươi nguồn CHƯA ĐO** trước
+lượt hỏi (ghi `_do_tuoi` ở sổ).
+
+### Năm cổng và các chỗ đỏ giữa chừng
+
+Mốc `docs/moc_so_test.json` 1871 → **1872** (`--cap-nhat --ly-do`, +1 test, không test nào mất).
+Lượt chạy đầy đủ cuối: cổng 1 `1871 passed, 1 skipped` (280,9 s) · cổng 2 sạch · cổng 3 `0 CHẶN ·
+10 cảnh báo` · cổng 4 xanh một mình · cổng 5 `OK — 1872 test`. Hai lượt cổng 1 đầu ĐỎ, đều vì
+thêm lỗi 121 mà quên hai chỗ máy đọc: `docs/loi-phan-lop.json` (chưa phân lớp lỗi 121 — 7 đỏ; thêm một test nhật ký của `tests/test_cua_doc_bat_buoc.py` đỏ ở lượt đầu rồi xanh khi chạy một mình và ở mọi lượt sau, KHÔNG điều tra) rồi
+dòng tự khai cuối bảng lỗi *"Sáu mươi chín trên một trăm mười chín"* → *"Bảy mươi trên một trăm
+hai mươi"* (4 đỏ, `tools/doc_bang_loi.py` in con số đúng). Cả hai là gác làm đúng việc; mất 2 lượt ×
+~4–5 phút vì chạy cổng 1 trước khi chạy `tools/doc_bang_loi.py` — lần sau thêm dòng bảng lỗi thì chạy
+nó và `tests/test_bang_loi_do_duoc.py` TRƯỚC cổng 1 (~1 giây).
+
+**Việc kế.** Không có việc chờ người dùng quyết. Lượt 10 đến hạn 08/10/2026 (nhịp 2 ngày).
+
 ## BƯỚC 159 — ĐO 24: KẾT CỤC KÝ TRƯỚC LÀ K2 (`P_adj` 0,409); `close` HAI LƯỢT KÉO LỆCH THẬT Ở 21,6% NẾN; GIÁ CỦA P3d NÊN LÀ MỘT LƯỢT KÉO (06/10/2026)
 
 **Kết cục ký trước: K2** — `P_adj = 0,409 ≤ 0,50`, theo đúng bảng đã ký ở `docs/TIEU-CHI-DOC-TRUOC.md` (ĐO 24). KHÔNG phải K3, không phải K1. Mọi con số *sau* kết cục (0,544, "hỗn hợp") ở dưới là **CHẨN ĐOÁN SAU KẾT CỤC, không ký trước** và chỉ để gợi ý cho một phép đo sau.
