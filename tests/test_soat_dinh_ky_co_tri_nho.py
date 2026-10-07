@@ -326,3 +326,54 @@ def test_QUAN_THE_soat_phu_ca_hai_ban_LUU_TRU():
     assert "docs/lich-su/CLAUDE-md-2026-09-30.md" in co, (
         "bản lưu nằm trong TAI_LIEU nhưng không cho ra dòng nào — máy quét "
         "đang đọc hụt")
+
+
+# ── BƯỚC 160: dòng HẠN của HANDOFF phải theo kịp sổ (lỗi 125) ───────────────
+
+HANDOFF = GOC / "docs" / "HANDOFF.md"
+
+#: Nguyên văn hai dòng hạn của HANDOFF như chúng đứng ở `c847553`, SAU khi
+#: lượt 9 (BƯỚC 158, 06/10/2026) đã ghi sổ: `Lượt 8` mang ✅, `Lượt 9` đứng trần.
+HAN_NGUYEN_VAN_C847553 = (
+    ">   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).\n"
+    ">   Lượt 9: 03/10.\n")
+
+
+def test_DONG_HAN_dung_lai_nguyen_van_loi_125_phai_DO():
+    """Phát đầu: dựng lại đúng ca thật. Sổ đã có 9 lượt, `Lượt 9: 03/10.` trần."""
+    assert s.luot_het_han_chua_danh_dau(HAN_NGUYEN_VAN_C847553, 9) == [9]
+
+
+def test_DONG_HAN_luot_da_danh_dau_va_luot_chua_toi_thi_XANH():
+    van = (">   Lượt 8: 01/10 (✅ BƯỚC 151).\n"
+           ">   Lượt 9: 03/10 (✅ BƯỚC 158). Lượt 10: 09/10.\n")
+    assert s.luot_het_han_chua_danh_dau(van, 9) == []       # 10 > 9: chưa tới
+    assert s.luot_het_han_chua_danh_dau(van, 10) == [10]    # sổ nay có lượt 10
+
+
+def test_DONG_HAN_dau_o_LUOT_KE_khong_duoc_tinh_cho_luot_truoc():
+    """✅ của `Lượt 9` không phủ `Lượt 8` đứng trước nó."""
+    van = ("Lượt 8: 01/10. Lượt 9: 03/10 (✅ BƯỚC 158).")
+    assert s.luot_het_han_chua_danh_dau(van, 9) == [8]
+
+
+def test_DONG_HAN_chi_tinh_khuon_co_NGAY_van_xuoi_khong_co_ngay_thi_bo_qua():
+    """`Lượt 3: đo xong.` là văn xuôi, không phải dòng hạn — không đòi ✅."""
+    assert s.luot_het_han_chua_danh_dau("Lượt 3: đo xong rồi.", 9) == []
+
+
+def test_DONG_HAN_ngat_dong_giua_chu_Luot_va_ngay_van_nhan_ra():
+    """Khối trích dẫn `> ` ngắt dòng ngay sau dấu hai chấm vẫn là một dòng hạn."""
+    assert s.luot_het_han_chua_danh_dau(">   Lượt 9:\n>   03/10.\n", 9) == [9]
+
+
+def test_DONG_HAN_cua_HANDOFF_THAT_theo_kip_so_va_con_mot_luot_ke():
+    so = json.loads(SO_DINH_KY.read_text(encoding="utf-8"))
+    n = len(so["lan_soat"])
+    van = HANDOFF.read_text(encoding="utf-8")
+    assert s.luot_het_han_chua_danh_dau(van, n) == [], (
+        "HANDOFF còn một dòng `Lượt k: dd/mm` đã soát mà chưa có ✅")
+    phang = " ".join(van.split())
+    ke = [m.group(1) for m in s.RE_HAN_LUOT.finditer(phang)
+          if int(m.group(1)) == n + 1]
+    assert ke, f"HANDOFF không nêu hạn của lượt {n + 1} — lượt sau không có hạn"

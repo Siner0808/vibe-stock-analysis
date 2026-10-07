@@ -234,6 +234,32 @@ def so_tro_vao_hu_khong(bang, ra) -> list[str]:
     return sorted(d for d in bang if d not in song)
 
 
+#: Dòng "hạn kế" của `docs/HANDOFF.md` (mục *Cuối ngày 27/09*): `Lượt 8: 01/10
+#: (✅ BƯỚC 151).`. Lượt 9 (BƯỚC 158) xong mà dòng `Lượt 9: 03/10.` đứng trần —
+#: lỗi 125. Số lượt = số bản ghi `lan_soat` của sổ.
+RE_HAN_LUOT = re.compile(r"Lượt\s+(\d+):\s*\d{2}/\d{2}")
+
+
+def luot_het_han_chua_danh_dau(van_handoff: str, so_luot_da_soat: int) -> list[int]:
+    """Số các lượt ĐÃ soát (theo sổ) mà dòng hạn của HANDOFF chưa gắn ✅.
+
+    Mỗi `Lượt k: dd/mm` có k <= số lượt đã soát phải mang ✅ trước khi sang
+    `Lượt` kế (hoặc trong 60 ký tự cuối nếu là cái cuối). Khối trích dẫn
+    `> ` và xuống dòng được dàn phẳng trước khi cắt đoạn.
+    """
+    phang = re.sub(r"\s*\n[> ]*", " ", van_handoff)
+    khop = list(RE_HAN_LUOT.finditer(phang))
+    thieu = []
+    for i, m in enumerate(khop):
+        k = int(m.group(1))
+        if k > so_luot_da_soat:
+            continue
+        het = khop[i + 1].start() if i + 1 < len(khop) else m.end() + 60
+        if "✅" not in phang[m.end():het]:
+            thieu.append(k)
+    return thieu
+
+
 def main(tham_so: list[str] | None = None) -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
