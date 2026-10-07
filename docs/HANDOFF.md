@@ -485,6 +485,10 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   Việc kế: BƯỚC 157 đổi tên hiển thị tab; biên *"phiên khai_ngay có tính không"* phải ký trước khi nối kết quả vào app.
 >   ✅ **ĐO 24 XONG 06/10/2026 — BƯỚC 159:** `close` của `backtest/cache` và `cache_2018` lệch thật (> 0,0101) ở 21,6% nến chung; kết cục ký trước **K2** (`P_adj` 0,409)
 >   (con số tính theo đoạn 0,544 là chẩn đoán SAU kết cục, không ký trước). **Giá của P3d (CHƯA làm): một bảng giá kéo MỘT lượt, phủ [T+1, T+22], cùng họ nguồn với agent sống — đừng nối nhiều lượt, đừng đọc cache backtest.** Lợi suất UV-001 chưa có.
+>   🔴 **"Giá của P3d (CHƯA làm)" và "biên phải ký trước" HẾT ĐÚNG từ 07/10/2026 — BƯỚC 161 (P3d phần MÃ, chưa merge lúc viết):** `cham_xac_nhan.py` (module thuần) ghép dòng
+>   quyết định + MỘT bảng giá thành `ket` cho từng ứng viên; bảng giá là CSV dài `symbol,date,close,nguon,keo_luc` (hai `keo_luc` bị từ chối, giá thiếu bị từ chối và gọi tên, không bao giờ điền giá);
+>   `tools/cham_xac_nhan.py` chỉ IN. Biên `khai_ngay` đề xuất ký `>=` (phiên khai_ngay CÓ tính) — **người dùng DUYỆT 07/10/2026**. Chưa chạy trên dữ liệu thật; việc kế (trên máy): phần KÉO giá thật
+>   (MỘT lượt, vci rồi kbs), rồi nối vào tab "🔬 Kiểm định chiến lược".
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 
