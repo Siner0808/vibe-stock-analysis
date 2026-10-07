@@ -24,6 +24,12 @@ KHÔNG BAO GIỜ điền giá. Giá thiếu thì NÓI mã nào, phiên nào, r�
 một giá điền (`ffill`, giá mặc định, nội suy) là một nhãn tính trên số không có.
 
 BIÊN `khai_ngay` (BƯỚC 161): phiên `khai_ngay` CÓ TÍNH — xem `BIEN_KHAI_NGAY`.
+
+MỐC ĐỌC (BƯỚC 162): phán quyết chỉ có ở `cham_bong.MOC_DOC` phiên CÓ NHÃN, trên đúng
+chừng ấy phiên ĐẦU TIÊN kể từ phiên đầu của dữ liệu chấm; trước mốc `cham_mot` không
+chạy phép so nào và không trả `delta`/`p`/`z`. Mốc nằm ở `cham_bong` (`phan_quyet`,
+`trang_thai`) chứ không ở đây, để MỌI bên gọi — không riêng module này — đi qua nó.
+`tien_do_theo_lich` là phép ƯỚC theo lịch công bố cho app (không giá, không Sheets).
 """
 from __future__ import annotations
 
@@ -264,6 +270,46 @@ def tu_ngay_doc(khai_ngay: str) -> str:
     return (d + datetime.timedelta(days=_LECH_NGAY[BIEN_KHAI_NGAY])).isoformat()
 
 
+# ── tiến độ tới mốc đọc, ƯỚC theo lịch (BƯỚC 162) ─────────────────────────
+
+def tien_do_theo_lich(khai_ngay: str, hom_nay: str) -> dict:
+    """Số phiên có nhãn CÓ THỂ có theo lịch công bố, từ phiên đầu của dữ liệu chấm.
+
+    Đếm phiên giao dịch (theo `lich_giao_dich`) trong [`tu_ngay_doc(khai_ngay)`,
+    `hom_nay`] rồi trừ `NHIP + 1` phiên cuối chưa có nhãn (nhãn của phiên T cần giá
+    T+22). Đây là CẬN TRÊN: không đọc giá, không đọc dòng quyết định, nên không biết
+    phiên nào thiếu dòng hay nến hôm nay đã đóng chưa; con số thật chỉ có khi chạy
+    `tools/cham_xac_nhan.py`. Ngoài phạm vi lịch công bố (chỉ 2026) thì
+    `tinh_duoc` là False và `n_co_nhan` là `None` — không đoán.
+    """
+    tu = tu_ngay_doc(khai_ngay)
+    dau = lich.co_phien(tu)
+    if dau is None or lich.co_phien(hom_nay) is None:
+        return {"tinh_duoc": False, "n_phien_lich": None, "n_co_nhan": None,
+                "moc": cb.MOC_DOC}
+    n_lich = 0 if str(hom_nay)[:10] < tu else len(lich.cac_phien(tu, hom_nay)) + (1 if dau else 0)
+    return {"tinh_duoc": True, "n_phien_lich": n_lich,
+            "n_co_nhan": max(0, n_lich - (cb.NHIP + 1)), "moc": cb.MOC_DOC}
+
+
+def nhan_tien_do(td: dict) -> str:
+    """Câu hiện cho người dùng từ `tien_do_theo_lich` — một nơi, để app và test chung."""
+    if not td["tinh_duoc"]:
+        return (f"chưa tính được (lịch công bố chỉ phủ {lich.PHU_TU} → {lich.PHU_TOI})")
+    n, moc = td["n_co_nhan"], td["moc"]
+    s = f"≈ {min(n, moc)}/{moc} phiên có nhãn (theo lịch)"
+    return s + (" — theo lịch đã tới mốc đọc" if n >= moc else "")
+
+
+def bang_tien_do(so_uv: dict, hom_nay: str) -> dict:
+    """{mã: câu tiến độ} cho từng phương án của sổ. Phương án của quy trình cũ không
+    vào vòng xác nhận (rớt sàng hoặc chưa sàng) thì không có tiến độ để hiện."""
+    cb.kiem_so_ung_vien(so_uv)
+    return {ma: (nhan_tien_do(tien_do_theo_lich(d["khai_ngay"], hom_nay))
+                 if cb.sau_moc(d) or d["qua_sang"] is True else "không áp dụng")
+            for ma, d in so_uv["ung_vien"].items()}
+
+
 # ── chấm ─────────────────────────────────────────────────────────────────
 
 def _nhan(gia: pd.DataFrame) -> pd.DataFrame:
@@ -276,25 +322,27 @@ def cham_mot(rows: list[dict], ma: str, d: dict, gia: pd.DataFrame, a: float,
     """Chấm MỘT ứng viên trên dòng quyết định từ `khai_ngay` của CHÍNH nó.
 
     Phép so là `cham_bong.so_cap` (cặp, cùng hoán vị MÃ cho hai điểm) trên nhãn
-    `E.nhan_vuot_ro`; `a` = ngưỡng 0,05/K của cả sổ. Chưa đủ phiên hay mã thì
-    KHÔNG chạy `so_cap` và `delta`/`p`/`z` = NaN (chưa tính) — không số mặc định.
+    `E.nhan_vuot_ro`; `a` = ngưỡng 0,05/K của cả sổ. Đi qua `cham_bong.phan_quyet`
+    nên chỉ phán ở mốc `MOC_DOC`, trên đúng `MOC_DOC` phiên có nhãn đầu tiên. Chưa tới
+    mốc (hoặc tới mốc mà dưới `MIN_MA` mã) thì `so_cap` KHÔNG chạy, `ket` là `None` và
+    kết quả KHÔNG có khoá `delta`/`p`/`z` — không phải NaN đã tính, không số mặc định.
+    `n_phien` là số phiên dùng cho phép so (≤ `MOC_DOC`); `n_phien_co_nhan` là số phiên
+    có nhãn đang có trong dữ liệu (tiến độ thật, có thể vượt mốc).
     """
     tu = tu_ngay_doc(d["khai_ngay"])
     bang = cb.doc_quyet_dinh(rows, tu)
     phu = kiem_phu(gia, bang["ngay"], bang["symbol"])
-    B, C, Y, phien, cot = cb.ma_tran_cap(bang, d["spec"], _nhan(gia))
-    n_phien, n_ma = len(phien), len(cot)
-    if n_phien < cb.NHIP or n_ma < cb.MIN_MA:
-        ket = {"delta": float("nan"), "p": float("nan"), "z": float("nan")}
-    else:
-        ket = cb.so_cap(B, C, Y, np.random.default_rng(hat), so=so)
-    tt = cb.trang_thai(ket, a, n_phien, n_ma)
-    return {"ket": ket, "n_phien": n_phien, "n_ma": n_ma,
-            "trang_thai": tt, "delta": ket["delta"], "p": ket["p"], "z": ket["z"],
-            "nguong": a, "khai_ngay": d["khai_ngay"], "tu_ngay": tu,
-            "bien": BIEN_KHAI_NGAY, "n_dong": len(bang), "n_dong_bo": bang.attrs["bo"],
-            "n_phien_quyet_dinh": len(set(bang["ngay"])),
-            "phien_chua_co_nhan": phu["chua_co_nhan"], "hat": hat, "so_hoan_vi": so}
+    q = cb.phan_quyet(bang, d["spec"], _nhan(gia), a, hat, so=so)
+    c = {"ket": q["ket"], "n_phien": q["n_phien"], "n_ma": q["n_ma"],
+         "trang_thai": q["trang_thai"], "moc_doc": cb.MOC_DOC,
+         "n_phien_co_nhan": len(phu["cham_duoc"]),
+         "nguong": a, "khai_ngay": d["khai_ngay"], "tu_ngay": tu,
+         "bien": BIEN_KHAI_NGAY, "n_dong": len(bang), "n_dong_bo": bang.attrs["bo"],
+         "n_phien_quyet_dinh": len(set(bang["ngay"])),
+         "phien_chua_co_nhan": phu["chua_co_nhan"], "hat": hat, "so_hoan_vi": so}
+    if q["ket"] is not None:
+        c.update(delta=q["ket"]["delta"], p=q["ket"]["p"], z=q["ket"]["z"])
+    return c
 
 
 def cham(rows: list[dict], so_uv: dict, bang_gia: dict, hat: int = HAT_RNG,

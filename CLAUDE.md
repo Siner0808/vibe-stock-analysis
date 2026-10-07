@@ -154,7 +154,8 @@ là `tich_luy`. Nhưng đường quét thật chạy trên Actions với bộ nh
 (`sl_pattern_memory.json` bị gitignore): 71/71 lượt quét ghi "0 mẫu" — vế
 "tích luỹ" chưa từng xảy ra ở nơi nó chạy (BƯỚC 140). Người dùng chốt
 25/09: 44 mẫu chỉ giữ làm lịch sử; đổi điểm phải qua vòng xác nhận của tầng 3 (một vòng
-kể từ 02/10, BƯỚC 155: khai thẳng, ≤ 1 mỗi tháng; vòng sàng đã bỏ).
+kể từ 02/10, BƯỚC 155: khai thẳng, ≤ 1 mỗi tháng; vòng sàng đã bỏ; vòng ấy chỉ PHÁN
+MỘT LẦN, ở đúng 252 phiên có nhãn đầu tiên, BƯỚC 162).
 Dùng 44 mẫu ở đường thật hay không: **quyết định của người dùng, chưa có.**
 
 ---

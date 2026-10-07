@@ -489,6 +489,12 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   quyết định + MỘT bảng giá thành `ket` cho từng ứng viên; bảng giá là CSV dài `symbol,date,close,nguon,keo_luc` (hai `keo_luc` bị từ chối, giá thiếu bị từ chối và gọi tên, không bao giờ điền giá);
 >   `tools/cham_xac_nhan.py` chỉ IN. Biên `khai_ngay` đề xuất ký `>=` (phiên khai_ngay CÓ tính) — **người dùng DUYỆT 07/10/2026**. Chưa chạy trên dữ liệu thật; việc kế (trên máy): phần KÉO giá thật
 >   (MỘT lượt, vci rồi kbs), rồi nối vào tab "🔬 Kiểm định chiến lược".
+>   ✅ **BƯỚC 162 (07/10/2026, chưa merge lúc viết) — P3d phần 2:** người dùng chọn *"Một mốc cố định"*: vòng xác nhận phán MỘT lần, ở đúng
+>   252 phiên CÓ NHÃN đầu tiên (`cham_bong.MOC_DOC`); trước mốc KHÔNG tính Δ/p/z, chỉ hiện tiến độ n/252. Bộ kéo bảng giá một lượt
+>   (`keo_bang_gia.py`, `tools/keo_bang_gia.py`) và tiến độ ước theo lịch trên tab app đã dựng — **chưa chạy thật** (cần máy có vnstock).
+>   🔴 **Mọi câu cũ nói *"vòng xác nhận phán `QUA` khi p < 0,05/K"* mà không nhắc mốc HẾT ĐÚNG từ BƯỚC 162:** nay là *"khi p < 0,05/K, đọc đúng MỘT lần ở mốc 252
+>   phiên có nhãn"*. ⚠️ **Rủi ro CHƯA đo, nêu ở `docs/STATE.md` BƯỚC 162:** phép so chỉ giữ mã có điểm ở MỌI phiên của cửa sổ; trên 252 phiên mã có thời gian đang giữ lệnh
+>   (không có dòng quyết định) có thể làm số mã đủ rơi dưới `MIN_MA` — *chưa đo trên dữ liệu thật*; `tools/cham_xac_nhan.py` in số mã đủ trước mốc để theo dõi.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
 

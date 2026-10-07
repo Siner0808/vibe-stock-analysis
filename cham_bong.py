@@ -9,7 +9,7 @@ lần nào trong năm đầu. Module này không được làm nó dễ hơn th�
 MODULE THUẦN: không gọi mạng, không đọc Sheets, không ghi file. Bên gọi đưa vào
 các dòng tab `decisions` và bảng giá; module trả số và trạng thái.
 
-BỐN QUY ƯỚC, mỗi quy ước chặn một cách vòng xác nhận tự khen mình:
+NĂM QUY ƯỚC, mỗi quy ước chặn một cách vòng xác nhận tự khen mình:
 1. **Bản đang chạy là ĐIỂM ĐÃ GHI** (`score` của sổ quyết định), không tính
    lại từ thành phần — điểm ghi đã qua trọng số động, harness, bộ nhớ hậu
    kiểm; tính lại là so với một bản chưa từng chạy. **Áp cho vòng XÁC NHẬN**
@@ -25,6 +25,21 @@ BỐN QUY ƯỚC, mỗi quy ước chặn một cách vòng xác nhận tự khe
    sàng, vì sàng là chỗ đã nhìn nhiều lần (bất biến 7), và kể cả ứng viên
    chưa sàng hay vào thẳng xác nhận (`qua_sang: null`) — chiều chặt hơn, đừng đổi
    (BƯỚC 153, 155).
+5. **MỘT MỐC ĐỌC, MỘT LẦN PHÁN** (BƯỚC 162; người dùng chọn 07/10/2026 *"Một mốc cố
+   định"*). Vòng xác nhận chỉ phán khi đủ `MOC_DOC` = 252 phiên CÓ NHÃN, và phán trên
+   ĐÚNG 252 phiên có nhãn ĐẦU TIÊN kể từ phiên đầu của dữ liệu chấm — không phải
+   "≥ 252" trên một cửa sổ lớn dần. Lý do: phán `QUA` ngay khi p < 0,05/K mà không nói
+   ĐỌC KHI NÀO là đọc mỗi ngày từ phiên có nhãn thứ 21, khoảng 230 lần nhìn, và sai
+   lầm loại I phồng lên (cùng hiện tượng đã đo ở điều kiện dừng C5: z = 1,96 đánh giá
+   liên tục cho 11,7% thay vì 5%, `docs/STATE.md` mục *"Vì sao hai giá trị z khác
+   nhau"*; với tầng 3 điều đó CHƯA đo, chỉ là ước lượng hướng). ĐO 21 đo lực ở đúng một
+   mốc W = 252. Trước mốc: `so_cap` KHÔNG chạy, Δ/p/z không được tính hay trả ra —
+   trạng thái là `CHUA TOI MOC` kèm tiến độ n/252. Mọi đường tới phán quyết đi qua mốc
+   ở hai đầu: `phan_quyet` là đường DUY NHẤT tới `so_cap` của vòng xác nhận, và
+   `trang_thai` từ chối một phán quyết tính trên số phiên khác `MOC_DOC`. Việc cắt 252
+   phiên đầu xảy ra TRƯỚC khi chọn mã đầy đủ (`ma_tran_cap(phien_toi_da=...)`): cắt
+   sau thì một phiên về sau thiếu một mã sẽ làm rớt mã ấy khỏi phép so, tức đổi kết
+   quả của chính 252 phiên đã đọc.
 
 TIỀN ĐĂNG KÝ (P3c-1, BƯỚC 153): một ứng viên được khai TRƯỚC vòng sàng, trong
 một commit, với `qua_sang: null`; commit sàng điền nó thành true/false đúng một
@@ -69,6 +84,13 @@ NHIP = 21
 ALPHA = 0.05
 #: Dưới chừng này mã đầy đủ thì chưa so — cùng `MIN_MA` của ĐO 21.
 MIN_MA = 40
+#: MỐC ĐỌC (BƯỚC 162, người dùng chọn 07/10/2026): vòng xác nhận phán MỘT lần, trên
+#: đúng chừng này phiên CÓ NHÃN đầu tiên của dữ liệu chấm (≈ 1 năm; ô W = 252 của ĐO 21,
+#: K = 1 bắt 23/30). Quy ước 5 của docstring đầu file. Đơn vị là phiên CÓ NHÃN — phiên
+#: có dòng quyết định và đủ giá T+1..T+22 — không phải phiên lịch.
+MOC_DOC = 252
+#: Trạng thái trước mốc đọc: chưa phán, KHÔNG có Δ/p/z.
+CHUA_TOI_MOC = "CHUA TOI MOC"
 #: Trần sàng mỗi tuần ISO — kế hoạch 25/09 (BƯỚC 122). Chỉ còn áp cho dòng khai
 #: TRƯỚC `MOC_MOT_VONG`.
 TRAN_SANG_MOI_TUAN = 5
@@ -173,11 +195,17 @@ def so_cap(B: np.ndarray, C: np.ndarray, Y: np.ndarray, rng,
             "p": 2.0 * (1.0 - _ND.cdf(abs(z)))}
 
 
-def ma_tran_cap(bang: pd.DataFrame, spec: dict, nhan: pd.DataFrame):
+def ma_tran_cap(bang: pd.DataFrame, spec: dict, nhan: pd.DataFrame,
+                phien_toi_da: int | None = None):
     """(B, C, Y, phiên, mã) — chỉ giữ mã ĐỦ cả ba ở MỌI phiên có nhãn.
 
     `nhan`: ngày × mã từ `E.nhan_vuot_ro`. Phiên chưa đủ `NHIP` phiên sau nó
     thì nhãn NaN và bị bỏ — không đoán nhãn của tương lai.
+
+    `phien_toi_da`: chỉ giữ chừng ấy phiên có nhãn ĐẦU TIÊN (theo ngày), và việc cắt
+    xảy ra TRƯỚC khi chọn mã đầy đủ — xem quy ước 5. `None` = không cắt: chỉ vòng
+    SÀNG cũ (`tools/sang_ung_vien.py`, ngừng dùng) gọi như thế; vòng xác nhận đi qua
+    `phan_quyet`, luôn cắt ở `MOC_DOC`.
     """
     kiem_spec(spec)
     b = bang.copy()
@@ -187,10 +215,33 @@ def ma_tran_cap(bang: pd.DataFrame, spec: dict, nhan: pd.DataFrame):
     Y = nhan.reindex(index=B.index, columns=B.columns)
     co_nhan = Y.notna().any(axis=1)
     B, C, Y = B[co_nhan], C[co_nhan], Y[co_nhan]
+    if phien_toi_da is not None:
+        B, C, Y = B.iloc[:phien_toi_da], C.iloc[:phien_toi_da], Y.iloc[:phien_toi_da]
     du = B.notna().all() & C.notna().all() & Y.notna().all()
     cot = du[du].index
     return (B[cot].to_numpy(float), C[cot].to_numpy(float), Y[cot].to_numpy(float),
             list(B.index), list(cot))
+
+
+def phan_quyet(bang: pd.DataFrame, spec: dict, nhan: pd.DataFrame, alpha_k: float,
+               hat: int, so: int = 2000) -> dict:
+    """Phán MỘT ứng viên của vòng xác nhận — đường DUY NHẤT tới `so_cap` (quy ước 5).
+
+    Dựng ma trận trên `MOC_DOC` phiên có nhãn đầu tiên. Chưa đủ `MOC_DOC` phiên thì
+    `so_cap` KHÔNG chạy và kết quả KHÔNG có khoá `delta`/`p`/`z` — không phải NaN đã
+    tính. Đủ phiên nhưng dưới `MIN_MA` mã đầy đủ cũng không chạy `so_cap`. Mỗi lần gọi
+    dựng một `default_rng(hat)` MỚI, nên chạy lại về sau cho CÙNG kết quả.
+
+    Trả `{"trang_thai", "n_phien", "n_ma", "ket"}`; `ket` là kết quả `so_cap` hoặc
+    `None` khi chưa phán.
+    """
+    B, C, Y, phien, cot = ma_tran_cap(bang, spec, nhan, phien_toi_da=MOC_DOC)
+    n_phien, n_ma = len(phien), len(cot)
+    ket = None
+    if n_phien == MOC_DOC and n_ma >= MIN_MA:
+        ket = so_cap(B, C, Y, np.random.default_rng(hat), so=so)
+    return {"trang_thai": trang_thai(ket, alpha_k, n_phien, n_ma),
+            "n_phien": n_phien, "n_ma": n_ma, "ket": ket}
 
 
 # ── ngưỡng, trạng thái, sổ đăng ký ───────────────────────────────────────
@@ -205,9 +256,22 @@ def nguong(so: dict) -> float:
     return ALPHA / k if k else ALPHA
 
 
-def trang_thai(ket: dict, alpha_k: float, n_phien: int, n_ma: int) -> str:
-    if n_phien < NHIP or n_ma < MIN_MA:
+def trang_thai(ket: dict | None, alpha_k: float, n_phien: int, n_ma: int) -> str:
+    """Trạng thái của MỘT ứng viên trong vòng xác nhận — quy ước 5.
+
+    `n_phien` là số phiên CÓ NHÃN mà `ket` được tính trên. Dưới `MOC_DOC`: chưa phán
+    (`ket` không được đọc, có thể `None`). Trên `MOC_DOC`: nổ — một phán quyết tính
+    trên cửa sổ lớn dần là một lần nhìn mới, không phải lần đọc ở mốc.
+    """
+    if n_phien < MOC_DOC:
+        return CHUA_TOI_MOC
+    if n_phien > MOC_DOC:
+        raise ValueError(f"phan quyet tinh tren {n_phien} phien; chi doc o dung "
+                         f"{MOC_DOC} phien co nhan dau tien")
+    if n_ma < MIN_MA:
         return "CHUA DU DU LIEU"
+    if ket is None:
+        raise ValueError("da toi moc doc ma khong co ket qua so_cap")
     if ket["p"] < alpha_k:
         return "QUA" if ket["delta"] > 0 else "THUA"
     return "DANG CHAM"
@@ -291,7 +355,9 @@ def bang_cong_khai(so: dict, ket: dict | None = None) -> pd.DataFrame:
     MỌI ứng viên đều hiện, kể cả rớt sàng và chưa sàng — ngưỡng chia cho TỔNG
     (quy ước 4), giấu ứng viên rớt là giấu mẫu số. `ket` = {mã: (kết quả
     `so_cap`, số phiên, số mã)} do bên gọi đưa vào; thiếu thì ứng viên qua sàng
-    ghi `CHUA CHAM` — không suy trạng thái từ chỗ không có số. Dòng khai TRƯỚC
+    ghi `CHUA CHAM` — không suy trạng thái từ chỗ không có số. Kết quả `so_cap` là
+    `None` khi chưa tới mốc đọc (`MOC_DOC`): trạng thái `CHUA TOI MOC`, và số phiên khác
+    `MOC_DOC` khi đã quá mốc làm `trang_thai` nổ (quy ước 5). Dòng khai TRƯỚC
     mốc mà chưa sàng (`qua_sang: null`) thì `CHUA SANG`, kể cả khi `ket` có nó.
     Dòng khai TỪ `MOC_MOT_VONG` không có vòng sàng: cột Sàng hiện `SANG_BO` và
     trạng thái đi thẳng vào xác nhận (`CHUA CHAM` khi chưa có `ket`) — không bao
@@ -334,6 +400,7 @@ TEN_COT_HIEN = {"Ứng viên": "Phương án", "Khai ngày": "Ngày đăng ký",
 TRANG_THAI_HIEN = {
     "CHUA CHAM": "Chưa đủ dữ liệu",
     "CHUA DU DU LIEU": "Chưa đủ dữ liệu",
+    "CHUA TOI MOC": "Chưa tới mốc đọc",
     "DANG CHAM": "Đang theo dõi",
     "QUA": "Đạt — đủ điều kiện nâng cấp",
     "THUA": "Kém hơn bản đang chạy",

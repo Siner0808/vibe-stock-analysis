@@ -11,6 +11,11 @@ Ba điều gác chính:
    biên `BIEN_KHAI_NGAY` đã ký (phiên `khai_ngay` CÓ tính).
 3. Phán quyết về LỰC là một TỶ LỆ trên nhiều lượt rút (lỗi 99), kèm ô "không tiêm
    gì" (lỗi 94) và ô tiêm vào BẢN ĐANG CHẠY (chiều của Δ).
+
+MỐC ĐỌC (BƯỚC 162): file này chạy với `cham_bong.MOC_DOC` THU NHỎ về 70 (fixture
+`_moc_nho`, tự trả lại sau mỗi test) để dữ liệu giả 70 phiên đủ tới mốc và bộ test chạy
+nhanh; mọi khẳng định về mốc THẬT (252) và về việc cắt phiên đầu nằm ở
+`tests/test_moc_doc.py`. Hằng số thật được ghim literal ở đó.
 """
 import ast
 import datetime
@@ -28,6 +33,13 @@ import lich_giao_dich as lich
 
 KEO = "2027-03-01T16:30:00+07:00"        # sau phiên cuối của mọi bảng dưới đây
 THIEU = "2026-10-05"
+MOC_NHO = 70                              # = số phiên quyết định mặc định của `dung`
+
+
+@pytest.fixture(autouse=True)
+def _moc_nho(monkeypatch):
+    """Thu nhỏ mốc đọc cho file này. Mốc THẬT: `tests/test_moc_doc.py`."""
+    monkeypatch.setattr(cb, "MOC_DOC", MOC_NHO)
 
 
 # ── dựng dữ liệu giả ─────────────────────────────────────────────────────
@@ -51,13 +63,15 @@ def _so_uv(khai: str, spec: dict, ma: str = "UV-T") -> dict:
                               "qua_sang": None, "spec": spec}}}
 
 
-def dung(W=70, M=45, hat=0, gamma=0.0, tiem="volume_score", ghi_tiem=False, N=None):
+def dung(W=70, M=45, hat=0, gamma=0.0, tiem="volume_score", ghi_tiem=False, N=None,
+         keo=KEO):
     """(rows, bảng giá đã phân tích, lịch, mã).
 
     `W` phiên quyết định × `M` mã; bảng giá dài `N` phiên (mặc định đủ T+22 cho phiên
     quyết định cuối). `gamma` tiêm tín hiệu vào NHÃN theo thành phần `tiem` (hệ số
     đúng `gamma` trên log-lợi-nhuận 21 phiên); `ghi_tiem` đưa cùng tín hiệu ấy vào
-    ĐIỂM ĐÃ GHI (bản đang chạy) thay vì để nó là nhiễu độc lập.
+    ĐIỂM ĐÃ GHI (bản đang chạy) thay vì để nó là nhiễu độc lập. `keo` = `keo_luc` của
+    bảng (phải sau phiên cuối; mặc định đủ cho ~85 phiên, dữ liệu dài hơn đưa `keo` muộn hơn).
     """
     rng = np.random.default_rng(hat)
     N = N or W + cb.NHIP + 1
@@ -77,7 +91,7 @@ def dung(W=70, M=45, hat=0, gamma=0.0, tiem="volume_score", ghi_tiem=False, N=No
             rows.append({"seq": seq, "at": 1e9 + seq, "symbol": m, "signal_date": cal[t],
                          "score": float(diem[t, j]), "components": json.dumps(tp)})
             seq += 1
-    bg = cx.phan_tich_bang_gia(cx.dinh_dang_bang_gia(gia, KEO, {m: "vci" for m in ma}))
+    bg = cx.phan_tich_bang_gia(cx.dinh_dang_bang_gia(gia, keo, {m: "vci" for m in ma}))
     return rows, bg, cal, ma
 
 
@@ -373,6 +387,22 @@ def test_ket_tung_ung_vien_DOC_LAP_voi_ung_vien_khac_va_voi_thu_tu(monkeypatch):
     assert a1["nguong"] == 0.05 and a2["nguong"] == pytest.approx(0.025)
 
 
+def test_NGUONG_0_05_chia_K_di_het_duong_toi_TRANG_THAI_cung_mot_p_khac_K_khac_phan_quyet():
+    """p = 0,0364 (hạt dữ liệu 9, gamma 0,004, 400 lượt): dưới 0,05 nên K = 1 phán `QUA`,
+    trên 0,05/2 nên K = 2 chỉ `DANG CHAM`. Ngưỡng `a` phải ĐI QUA tới `phan_quyet`, không
+    được thay bằng một hằng số — bằng 0,05 thì mọi ca K = 1 vẫn xanh."""
+    rows, bg, cal, _ = dung(W=70, M=45, hat=9, gamma=0.004)
+    mot = _so_uv(cal[0], _spec(volume_score=1.0))
+    hai = {"ung_vien": {**mot["ung_vien"], "UV-B": {
+        "khai_ngay": "2026-11-02", "mo_ta": "b", "ly_do": "b", "qua_sang": None,
+        "spec": _spec(trend_score=1.0)}}}
+    a = cx.cham(rows, mot, bg, so=400)["chi_tiet"]["UV-T"]
+    b = cx.cham(rows, hai, bg, so=400)["chi_tiet"]["UV-T"]
+    assert 0.025 < a["p"] < 0.05 and a["p"] == b["p"] and a["delta"] > 0
+    assert (a["nguong"], b["nguong"]) == (0.05, 0.025)
+    assert (a["trang_thai"], b["trang_thai"]) == ("QUA", "DANG CHAM")
+
+
 def test_cham_TU_CHOI_so_ung_vien_sai_khuon():
     rows, bg, cal, _ = dung(W=30, M=5)
     xau = _so_uv("2026-10-05", _spec(volume_score=1.0))
@@ -383,15 +413,20 @@ def test_cham_TU_CHOI_so_ung_vien_sai_khuon():
 
 # ── 4. chưa đủ dữ liệu · trùng bản đang chạy · LỰC là một TỶ LỆ ───────────
 
-def test_CHUA_DU_DU_LIEU_o_ranh_gioi_phien_va_ma_va_delta_la_NaN_khong_phai_so_mac_dinh():
-    for W, M, du in ((20, 45, False), (21, 45, True), (70, 39, False), (70, 40, True)):
+def test_CHUA_DU_DU_LIEU_o_ranh_gioi_phien_va_ma_va_delta_KHONG_CO_khong_phai_NaN():
+    """Biên phiên là MỐC (thu nhỏ 70): dưới mốc `CHUA TOI MOC`; tới mốc mà dưới
+    `MIN_MA` mã thì `CHUA DU DU LIEU`. Cả hai: không có khoá `delta`/`p`/`z`."""
+    for W, M, mong in ((MOC_NHO - 1, 45, "CHUA TOI MOC"), (MOC_NHO, 39, "CHUA DU DU LIEU"),
+                       (MOC_NHO, 40, None)):
         c = _chay(W=W, M=M, so=50, gamma=0.012)
         assert c["n_phien"] == W and c["n_ma"] == M, (W, M)
-        if du:
-            assert c["trang_thai"] != "CHUA DU DU LIEU" and np.isfinite(c["delta"]), (W, M)
+        if mong is None:
+            assert c["trang_thai"] not in ("CHUA TOI MOC", "CHUA DU DU LIEU"), (W, M)
+            assert np.isfinite(c["delta"]) and c["ket"] is not None, (W, M)
         else:
-            assert c["trang_thai"] == "CHUA DU DU LIEU", (W, M)
-            assert all(np.isnan(c[k]) for k in ("delta", "p", "z")), (W, M)
+            assert c["trang_thai"] == mong, (W, M)
+            assert c["ket"] is None, (W, M)
+            assert not {"delta", "p", "z"} & set(c), (W, M, sorted(c))
 
 
 def test_CHUA_DU_DU_LIEU_khi_chua_phien_nao_co_nhan_hoac_khong_co_dong_nao_tu_khai_ngay():
@@ -399,10 +434,10 @@ def test_CHUA_DU_DU_LIEU_khi_chua_phien_nao_co_nhan_hoac_khong_co_dong_nao_tu_kh
     cat = cx.phan_tich_bang_gia(cx.dinh_dang_bang_gia(bg["gia"].iloc[:15], KEO,
                                                       {m: "vci" for m in ma}))
     c = cx.cham(rows[:15 * 45], _so_uv(cal[0], _spec(volume_score=1.0)), cat)["chi_tiet"]["UV-T"]
-    assert c["n_phien"] == 0 and c["trang_thai"] == "CHUA DU DU LIEU"
-    assert c["phien_chua_co_nhan"] == cal[:15]
+    assert c["n_phien"] == 0 and c["trang_thai"] == "CHUA TOI MOC"
+    assert c["phien_chua_co_nhan"] == cal[:15] and not {"delta", "p", "z"} & set(c)
     c = cx.cham(rows, _so_uv("2027-06-30", _spec(volume_score=1.0)), bg)["chi_tiet"]["UV-T"]
-    assert c["n_dong"] == 0 and c["n_phien"] == 0 and c["trang_thai"] == "CHUA DU DU LIEU"
+    assert c["n_dong"] == 0 and c["n_phien"] == 0 and c["trang_thai"] == "CHUA TOI MOC"
 
 
 def test_UNG_VIEN_trung_ban_dang_chay_thi_DELTA_bang_0_va_khong_qua():
