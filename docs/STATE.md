@@ -21130,6 +21130,54 @@ Câu hỏi gửi hộ từ khung của leader (khung của tôi chưa đăng nh�
 
 **Việc kế.** (1) Người quyết: P3d lấy giá theo khuyến nghị trên hay không. (2) Một ĐO sau, ký riêng và TRƯỚC khi chạy: phân loại theo ĐOẠN thay cho theo MÃ (con số 0,544 ở trên không được dùng làm ngưỡng), và đối chiếu hệ số/bậc nhảy với lịch chia tách và cổ tức khi có nguồn ngoài. (3) Giải thích VIX/HHP/MBS ở 02/2025 và nến lạc đuôi.
 
+## BƯỚC 160 — SOÁT ĐỊNH KỲ 10: 37/37 LỜI KHAI PHÁN LẠI BẰNG LỆNH, KHÔNG SAI MỚI; DÒNG HẠN CỦA HANDOFF ĐỨNG TRẦN SAU LƯỢT 9 (07/10/2026)
+
+Leader giao lượt 10 (lượt 9 = BƯỚC 158, 06/10; nhịp 2 ngày nên hạn 08/10 — làm sớm một ngày). Nhánh `soat/vong-10` từ `main` `c847553`, worktree ngoài repo. Không chạm logic chấm điểm, `docs/ung-vien.json`, `cham_bong.py`, P3d; không gọi mạng hay vnstock; không đọc dữ liệu đã khai trước ngày hẹn. Từ lượt 9 đến `c847553` mã chỉ đổi ở `tools/do24_lech_gia.py` và hai file test (`git diff --stat 7ce4f78 c847553 -- '*.py' .github/`).
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+37 lời khai · 9 tài liệu · chưa ai mở **0**; 2 dòng sổ không còn khớp lời khai nào — vẫn hai dòng lượt 8 và 9 đã phán (`Commit body ASCII…` và một ghi chú đặt nhầm vào ô `dong`): hằng số của một sổ chỉ-thêm, không phải tín hiệu mới, không sửa sổ cũ.
+
+Chưa ai mở = 0 nhưng tôi **không chép phán quyết cũ**: cả 37 được mở lại và phán bằng một lệnh chạy hôm nay (`docs/soat-dinh-ky.json`, lượt 2026-10-07, ô `dong` lấy nguyên văn từ chính công cụ qua `loi_khai_con_song()`). Kết quả: **32 THẬT · 5 SAI-đã-đánh-dấu** (`references/loi-da-mac.md` :303 và :332; `docs/HANDOFF.md` hai dòng nói *"chưa có dòng thật nào"* và *"Repo không nhập `vnstock_data`"*; bản lưu `CLAUDE-md` mục telemetry). Cả năm câu SAI đều có dấu 🔴/⚠️ ngay dòng dưới (kiểm bằng `sed -n`), tức quy ước đánh dấu còn chạy. Lệnh kiểm từng câu nằm ở `tu_kiem` của từng bản ghi; các lệnh đáng chú ý: `git grep -nE '^\s*(import|from) (vnstock_ezchart|altair|matplotlib)' -- '*.py'` rỗng · AST `fill_pending` không gọi `_analyze` · `git log --all -- brain` rỗng · `grep -n 'operation' docs/STATE.md` chỉ BƯỚC 118 (*không đo*) · `pyarrow` máy vẫn 24.0.0.
+
+Một vế KHÔNG đo lại, nói rõ: câu ở bản lưu `SKILL-md` về *"`claude -p` hết hạn OAuth → chưa đo được"* — đo nó phải chạy một phiên `claude -p`, ngoài tầm lượt này; phán quyết giữ *"THẬT về ngày ấy"*.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+c847553 : 0 chet · 13 su lieu · 43 con   (ma thoat 0)
+```
+
+**Số "còn" 42 → 43 mà lượt 9 ghi *"chưa điều tra"* nay đã truy.** Dựng lại tài liệu ở từng commit trong khoảng `663a84a^..c847553` (`git show <commit>:<file>` cho từng file của `TAI_LIEU`, gọi chính `thu_thap` + `phan_loai`): bước nhảy 42 → 43 nằm đúng ở `05a7dd3` — **BƯỚC 149 (#195)**, thêm một lần nêu `~/.claude/settings.json` ở dòng bảng lỗi 116 trong `references/loi-da-mac.md`; sáu commit sau giữ 43. Đường mới còn SỐNG, vô hại.
+
+**Giả thuyết bị bác (của lượt 9):** *"một đường `~/` mới được nêu giữa BƯỚC 151 và 157"*. Số BƯỚC không phải thứ tự vào `main`: BƯỚC 149 mang số thấp hơn 151 nhưng vào `main` SAU lượt 8 (commit `05a7dd3` lúc 14:18 UTC, lượt 8 merge lúc 13:51 UTC ngày 01/10 — `git log -1 --format=%ci`), nên trong cửa sổ giữa hai lượt. Lượt 9 đoán đúng hướng nhưng sai khoảng số.
+
+### Lỗi 125 — một lời khai về việc ĐANG CHỜ còn đứng trần sau khi việc ấy xong
+
+`docs/HANDOFF.md` mục *Hạn kế* ghi `Lượt 8: 01/10 (✅ BƯỚC 151).` rồi `Lượt 9: 03/10.`. Lượt 9 (BƯỚC 158) ghi sổ nhưng không đụng dòng thứ hai (`git diff 7ce4f78 HEAD -- docs/HANDOFF.md` chỉ thêm hai dòng ĐO 24). Cùng hình dạng lỗi 57 — khẳng định trạng thái hết hạn ở file đứng đầu thứ tự ưu tiên — lần này ở dòng hạn; sống 1 ngày (ghi sổ 06/10, bắt 07/10). Nó lộ ra khi tôi đọc dòng ấy để ghi hạn lượt 11, không phải nhờ công cụ nào: công cụ lệnh đầu chỉ quét lời khai PHỦ ĐỊNH và `cua_mo_phien` chỉ đếm ngày kể từ lượt soát cuối.
+
+**Sổ tay bỏ sót nó.** Câu hỏi 3 của BƯỚC 160 nêu thẳng *"says review round 9 is still pending"*; sổ tay trả *"không tìm thấy câu nào nói ngược"* dù dòng `Lượt 9: 03/10.` nằm trong nguồn nó thấy (dòng ấy có từ trước BƯỚC 150). Độ tươi: sổ tay thấy BƯỚC lớn nhất **148**, nguồn `@89fe760`; `main` có BƯỚC 159 — cũ 11 BƯỚC; leader quyết KHÔNG làm tươi lượt này. Vậy hai vế nhắc BƯỚC 149/158 (dòng lỗi 116, lượt 9) nằm ngoài tầm nhìn của nó; vế `Lượt 9: 03/10.` thì KHÔNG — và nó vẫn bỏ sót. Cùng hình dạng 24/09 và BƯỚC 127: lối thoát chặn nó BỊA, không chặn nó BỎ SÓT.
+
+**Sửa:** gắn ✅ ở `Lượt 9` (BƯỚC 158, 06/10), thêm `Lượt 10` (✅ BƯỚC 160, 07/10) và hạn `Lượt 11: 09/10`. **Gác:** `tools/soat_loi_khai_cu.py::luot_het_han_chua_danh_dau` + sáu test `tests/test_soat_dinh_ky_co_tri_nho.py::test_DONG_HAN_*`: mỗi `Lượt k: dd/mm` có k không vượt số bản ghi `lan_soat` phải mang ✅, và HANDOFF phải còn đúng một hạn cho lượt k+1 (nên ai soát lượt 11 mà không viết hạn lượt 12 thì đỏ). **Đục:** phát đầu dựng nguyên văn hai dòng ở `c847553` → đỏ (`[9]`); bảy phát vào hàm — `>`→`>=`, đảo `not in`, `+60`→`+0`, bỏ cắt đoạn ở lượt kế, `append(k)`→`append(i)`, bỏ `[> ]*`, bỏ vế ngày — lần đầu **6/7 đỏ**, phát sống sót là *bỏ vế ngày* (câu văn xuôi `Lượt 3: đo xong.` phải không bị đòi ✅); thêm test cho đúng chỗ ấy → **7/7 đỏ**. Hai phát vào chính HANDOFF (bỏ ✅ ở lượt 9; bỏ hạn lượt 11) → **2/2 đỏ**. **Còn hở:** chỉ canh khuôn `Lượt k: dd/mm`; câu chờ viết khác đi (*"Chờ người dùng: …"*) vẫn cần mắt người. Dòng lỗi 125 ở `references/loi-da-mac.md`, máy chặn được: **có, một phần**.
+
+### Soát chéo NotebookLM
+
+Câu tiếng Anh, đòi trả lời tiếng Việt, dựng bằng `tools/so_tay.py hoi --buoc "BƯỚC 160" … --js`; leader chạy hộ ở khung trình duyệt của họ, không Chrome (khung của phiên con chưa đăng nhập). Kết luận đưa ra mô tả **việc đã đo lại bằng lệnh** (khác lỗi 124: lần này câu hỏi nói đúng thứ đã đo). Trả lời nguyên văn: *"không tìm thấy câu nào nói ngược"*. Tự kiểm câu âm bằng grep ba họ ví dụ (vnii `operation` · import `matplotlib`/`altair`/`vnstock_ezchart`/`_analyze`/bảng ratio · nguyên nhân khác cho đường thứ 43 hoặc *"lượt 9 còn chờ"*): hai họ đầu rỗng đúng như câu khai; họ thứ ba bắt `Lượt 9: 03/10.` trần — xem lỗi 125. Đường thứ 43 tự truy bằng `git show` 8 commit, không tài liệu nào nêu nguyên nhân khác.
+
+### Ước lượng đã sai · điều BƯỚC này KHÔNG nói
+
+- **Ước lượng sai:** tôi định ghi sổ chỉ những lời khai *"chưa ai mở"* như lượt 8 (khi ấy là 6 dòng); chạy ra 0 chưa-ai-mở nên ý định đó sẽ cho một lượt soát gần như trống. Đổi sang phán lại cả 37 bằng lệnh hôm nay — đắt hơn (bốn lô lệnh) nhưng là thứ duy nhất khiến chữ *"vẫn đúng"* ở sổ có ngày hôm nay đứng sau nó.
+- **KHÔNG nói** 37 lời khai là mọi lời khai phủ định — công cụ chỉ thấy lời khai nêu TÊN trong 9 tài liệu, và cố ý bỏ `docs/STATE.md`; lỗi 125 nằm ngoài tầm công cụ. **KHÔNG nói** `docs/STATE.md` còn câu nào ngoài *"sau luot: 0 chet"* của BƯỚC 151 là sai — chưa quét nhật ký.
+- Hai lần cửa Bash chặn lệnh của chính tôi (heredoc ghi file ở một lệnh có hai heredoc; một `pytest … | tail` định dùng cho một việc vô ích): cả hai bị máy chặn đúng luật, không hại gì — ghi lại vì cả hai là tay quen, không phải tay cố ý.
+
+### Năm cổng
+
+Mốc `docs/moc_so_test.json` 1905 → **1911** (`--cap-nhat --ly-do`, +6 test, không test nào mất; lần chạy đầu cổng 5 ĐỎ đúng vì chưa cập nhật mốc). Lượt chạy đầy đủ cuối, tuần tự, ghi ra file: cổng 1 `1910 passed, 1 skipped` (233,8 s) · cổng 2 sạch · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 xanh một mình (129 file, 377 s) · cổng 5 `OK — 1911 test`. Lượt cổng 1 đầu ĐỎ 1 test (`test_MOC_TREN_DIA_khop_so_test_THAT`) vì mốc chưa cập nhật — gác làm đúng việc. Dòng này được ghi SAU lượt chạy đầy đủ nên một lượt cổng nữa chạy trên cây cuối; kết quả của nó sinh ra sau file này, nằm ở thân PR chứ không ở đây.
+
+**Đo lại sau lần ghi cuối** (`./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py`, chạy SAU khi mọi file tài liệu đã được ghi): `0 chết · 13 sử liệu · 43 còn`, mã thoát **0** — khớp ô `duong_ngoai_repo.sau_luot` của lượt 2026-10-07 ở `docs/soat-dinh-ky.json`; `tools/soat_loi_khai_cu.py` sau lượt: chưa ai mở 0.
+
+**Việc kế.** Không có việc chờ người dùng quyết. Lượt 11 đến hạn **09/10/2026** (nhịp 2 ngày kể từ 07/10). Nếu người dùng muốn sổ tay NotebookLM làm tươi, đó là việc riêng (`references/soat-cheo-notebooklm.md`): lượt này để nó cũ 11 BƯỚC theo quyết định của leader.
+
 ## BƯỚC 161 — P3d PHẦN MÃ: MÁY CHẤM XÁC NHẬN CHẠY TRÊN MỘT BẢNG GIÁ CHO SẴN; KÝ BIÊN `khai_ngay` LÀ `>=` (07/10/2026)
 
 **Việc được giao (leader, 07/10):** dựng BÊN GỌI mà `cham_bong` còn thiếu — ghép dòng quyết định + MỘT bảng giá thành `ket` cho từng ứng viên, đúng dạng `cham_bong.bang_cong_khai` nhận. Phiên đám mây (không có vnstock, không mạng giá, không Sheets, không bảy cửa tự động): **chưa chạy trên một dòng dữ liệu thật nào**; mọi phép kiểm là dữ liệu GIẢ dựng trong test. Người dùng chốt 06/10 *"Một bảng tải một lần"* (BƯỚC 159). Phần KÉO giá thật làm sau, trên máy.
