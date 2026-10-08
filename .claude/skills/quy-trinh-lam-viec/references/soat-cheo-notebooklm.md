@@ -4,10 +4,25 @@ Tài liệu tham khảo của skill `quy-trinh-lam-viec`, không phải skill ri
 dự án cố ý giữ **một** skill (`tests/test_skill_quy_trinh.py::test_CHI_CO_MOT_skill_quy_trinh`).
 Đọc nó mỗi lần làm Quy tắc 3.
 
-Mỗi BƯỚC phải qua sổ tay (người dùng chốt 18/09/2026). File này là
-**cách làm**; luật và lý do nằm ở `SKILL.md` — Quy tắc 3 và mục *Luồng
-thông tin thứ hai — NotebookLM*.
+BƯỚC đổi một luật hoặc một kết luận đo phải qua sổ tay; người dùng chốt
+18/09/2026 cho MỌI BƯỚC rồi "Đồng ý" thu hẹp ngày 08/10/2026 (từ BƯỚC 164,
+BƯỚC ≤ 163 giữ luật cũ). File này là **cách làm**; luật và lý do nằm ở
+`SKILL.md` — Quy tắc 3 và mục *Luồng thông tin thứ hai — NotebookLM*.
 Mọi dòng dưới đây đến từ một lượt đã hỏng thật.
+
+**Bước 0 của mỗi BƯỚC từ 164 — phải hỏi hay không?** Hỏi máy, không tự nghĩ:
+
+```bash
+./.venv/Scripts/python.exe tools/buoc_cham_luat.py 164
+```
+
+In `CHAM LUAT [file…]` thì **hỏi thật** (các chặng dưới). In `khong cham luat`
+thì có thể ghi MỘT dòng thay vì hỏi — tệp mục (JSON tạm, ngoài repo) chỉ gồm `buoc` và
+`khong_bat_buoc_vi` (lý do cụ thể, không dán lại lý do của BƯỚC khác), rồi
+`./.venv/Scripts/python.exe tools/so_tay.py ghi <tệp mục>`; `ghi` hỏi lại máy và
+từ chối nếu BƯỚC chạm file luật. Máy chỉ thấy FILE: BƯỚC viết một kết luận đo mới
+chỉ trong `docs/STATE.md` thì máy khai "không chạm" — tự hỏi mình trước khi tin nó.
+Hỏi thật vẫn luôn được phép, kể cả khi máy cho miễn.
 
 Sổ tay chỉ đọc **TÀI LIỆU**, không đọc mã, và nguồn của nó là **bản chụp**
 lúc nạp. Nó là một luồng đọc độc lập, không phải trọng tài.
@@ -142,5 +157,7 @@ hành, không điều khiển được. Đường nạp là URL.
 
 - Không mở Chrome, không dùng `claude-in-chrome` trừ khi người dùng nói thẳng.
 - Không chép một phát hiện vào tài liệu khi chưa mở file đối chiếu.
-- Không dùng `khong_soat_vi` cho một BƯỚC — ô ấy đóng từ BƯỚC 108.
-  Không hỏi được thì **BÁO người dùng**, không ghi ô thoát.
+- Không dùng `khong_soat_vi` cho một BƯỚC — ô ấy đóng từ BƯỚC 108 và KHÔNG
+  mở lại ở BƯỚC 164. Phải hỏi mà không hỏi được thì **BÁO người dùng**, không
+  ghi ô thoát. `khong_bat_buoc_vi` là ô khác: chỉ cho BƯỚC mà máy xác nhận không
+  phải hỏi (Bước 0 ở đầu file).

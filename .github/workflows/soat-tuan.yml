@@ -1,0 +1,54 @@
+# Soát tuần: phần MÁY của lượt soát định kỳ, chạy mỗi tuần trên runner.
+#
+# VÌ SAO (BƯỚC 164, 08/10/2026). Người dùng "Đồng ý" giảm phần việc quy trình:
+# soát tự động mỗi tuần thay cho nhịp 2 ngày (cua_mo_phien.NHIP_SOAT_NGAY nay là
+# 7). Workflow này làm phần máy làm được; phần PHÁN từng lời khai đúng hay sai
+# vẫn là lượt soát của agent mỗi tuần (SKILL.md, mục "Nhịp soát định kỳ").
+#
+# LÀM GÌ. `tools/soat_tuan.py` gọi `tools/soat_loi_khai_cu.py` (danh sách lời khai
+# phủ định còn sống, chưa ai mở), đo số ngày kể từ lượt soát gần nhất, và liệt kê
+# BƯỚC chưa khai sổ tay NotebookLM. Kết quả đi vào $GITHUB_STEP_SUMMARY; điều cần
+# nói ra đi bằng ::warning::.
+#
+# KHÔNG LÀM ĐỎ JOB VÌ CÓ LỜI KHAI CẦN PHÁN. Cùng luật chuông của dự án (CLAUDE.md,
+# mục "Quét tự động"): đỏ một job vì việc người phải làm là báo động giả, và báo
+# động giả dạy người ta bỏ qua chuông. Job chỉ đỏ khi MÁY hỏng (không đọc được sổ
+# hay tài liệu) — chưa kiểm được không phải là sạch.
+#
+# KHÔNG CHẠY công cụ đo đường NGOÀI repo (tên ở SKILL.md, mục Nhịp soát định kỳ;
+# không nêu tên ở đây vì một gác cấm tên ấy xuất hiện trong mọi workflow). Nó đo thư mục nhà trên máy người dùng (~/.claude/...), vắng
+# mặt hoàn toàn trên runner nên nó đỏ mỗi lượt. SKILL.md đã ghi nó cố ý KHÔNG phải
+# một cổng; lượt soát tay vẫn chạy nó.
+#
+# KHÔNG pip install, KHÔNG import vnstock hay gói nào ngoài thư viện chuẩn: job
+# không dính chuyện gói bị cách ly trên PyPI (BƯỚC 122) và không tốn lượt cài.
+#
+# LỊCH. Mỗi thứ Hai. Cron của GitHub trễ hàng giờ và đôi khi rơi một nhịp (BƯỚC
+# 89, 101 — đo trên ba chuông ngày làm việc); dời phút lệch khỏi :00 KHÔNG cứu
+# được điều đó, nên đừng viện nó. Rơi một nhịp thì tuần sau vẫn thấy: lời khai
+# chưa ai mở chỉ tăng, và workflow_dispatch cho chạy tay bất cứ lúc nào.
+
+name: Soát tuần
+
+on:
+  schedule:
+    - cron: '41 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  soat-tuan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Phần máy của lượt soát định kỳ
+        run: python tools/soat_tuan.py --tom-tat "$GITHUB_STEP_SUMMARY"

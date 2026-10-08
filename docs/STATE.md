@@ -21357,3 +21357,79 @@ Mốc `docs/moc_so_test.json` 2055 → **2059** (`tools/kiem_so_test_khong_giam.
 Khớp ô `duong_ngoai_repo.sau_luot` của lượt 2026-10-08. `tools/soat_loi_khai_cu.py` sau lượt: 38 lời khai, chưa ai mở 0.
 
 **Việc kế.** Không có việc chờ người dùng quyết. Lượt 12 đến hạn **10/10/2026** (nhịp 2 ngày kể từ ngày LÀM lượt 11, 08/10). Gợi ý cho lượt sau, không bắt buộc: khi chép đầu ra một lệnh vào `tu_kiem`, dán nguyên văn thay vì tóm tắt (lỗi 129); và phản ứng đầu tiên với một phán quyết *"không … nào"* là hỏi lệnh của nó phủ gì.
+
+> 🔴 **Hạn "Lượt 12 … 10/10/2026 (nhịp 2 ngày …)" ở dòng trên HẾT ĐÚNG từ BƯỚC 164 (08/10/2026):** người dùng "Đồng ý" nhịp 7 ngày, lượt 12 hạn **15/10/2026** (ngày LÀM lượt 11, 08/10, cộng 7). Câu trên là sử liệu đúng lúc viết; sổ tay không thấy nó (BƯỚC 163 sau bản chụp `@13c32a0`), nên dấu này do `grep` của BƯỚC 164 thêm.
+
+## BƯỚC 164 — GIAI ĐOẠN A CỦA LỘ TRÌNH: QUY TẮC 3 THU HẸP VÀ MÁY ĐỌC GIT PHÁN "ĐỔI LUẬT", SOÁT ĐỊNH KỲ MỖI TUẦN, MỖI BƯỚC KHAI MỘT MỐC (08/10/2026)
+
+**Mốc:** A1, A2, A3
+
+Leader giao, hai phiên con nối nhau trên một nhánh (`lo-trinh/giai-doan-a`, worktree ngoài repo `vibe_wt_lotrinh`, từ `main` `0a991e1`): phiên đầu dừng vì hạn mức ở commit WIP `8c73ba7`; phiên sau (bản ghi này) ghi sổ NotebookLM, làm gác và đột biến còn thiếu, chạy năm cổng, mở PR. Không chạm `cham_bong.py`, `cham_xac_nhan.py`, `keo_bang_gia.py`, `docs/ung-vien.json`, hành vi giao dịch; không gọi vnstock; không đọc sổ lệnh; không đụng khoá API (người dùng hoãn tới giai đoạn B).
+
+### Quyết định của người dùng, 08/10/2026 (hộp hỏi ở phiên leader, NGUYÊN VĂN câu trả lời)
+
+- Khung lộ trình "hai đích + năm giai đoạn" → *"duyệt"*.
+- "Giảm phần việc quy trình: soát tự động mỗi tuần, chỉ hỏi NotebookLM cho những BƯỚC đổi kết luận đo hoặc đổi luật" → *"Đồng ý"*.
+- Khoá Claude API → *"Để tới giai đoạn B (Recommended)"* (chưa đặt; không làm gì về khoá).
+- Bắt đầu giai đoạn A → *"Làm ngay"*.
+
+### Đã làm
+
+- **A1 · `docs/LO-TRINH.md`** (luật: người dùng duyệt) — hai đích, năm giai đoạn, mã mốc A1–A5 · B1–B4 · C1–C4 · D1–D4 · E1–E3 · H1–H2 · T1–T7. Cố ý KHÔNG dùng mã `C5` (trùng cổng C5). Gác: `tools/moc_lo_trinh.py` (`TU_BUOC` = 164) + `tests/test_moc_lo_trinh.py` — từ BƯỚC 164 mục `## BƯỚC n` phải có đúng một dòng `**Mốc:** <mã có thật>` hoặc `**Mốc:** quy-trinh — <lý do ≥ 25 ký tự>`. Dòng này của chính BƯỚC 164 là ca dương.
+- **A2 · soát mỗi tuần** — `cua_mo_phien.NHIP_SOAT_NGAY` 2 → 7; `.github/workflows/soat-tuan.yml` (cron thứ Hai + `workflow_dispatch`) chạy `tools/soat_tuan.py`: số lời khai phủ định chưa ai mở, tuổi lượt soát gần nhất, BƯỚC chưa khai sổ tay; kết quả vào `$GITHUB_STEP_SUMMARY`, điều cần nói vào `::warning::`, KHÔNG làm đỏ job vì có lời khai cần phán (luật chuông). Không chạy `kiem_duong_ngoai_repo.py` (đo đường NGOÀI repo, vắng trên runner), không `import vnstock`, không `pip install`. Phần PHÁN vẫn là lượt soát của agent. Lượt 12 hạn **15/10/2026** (ngày LÀM lượt 11 + 7); hạn 10/10 cũ bị thay bởi quyết định 08/10.
+- **A3 · Quy tắc 3 thu hẹp** (luật) — BƯỚC ≥ 164 PHẢI hỏi sổ tay thật khi chạm một trong sáu FILE LUẬT (`CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `.claude/skills/quy-trinh-lam-viec/SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`); BƯỚC khác được thay việc hỏi bằng ô RIÊNG `khong_bat_buoc_vi` (lý do ≥ 25 ký tự, không dán lại cho BƯỚC khác, không đi kèm `cau_hoi`/`phat_hien`/`khong_soat_vi`). `khong_soat_vi` KHÔNG mở lại (đóng từ BƯỚC 108). Máy phán vế "chạm file luật" bằng LỊCH SỬ GIT, `tools/buoc_cham_luat.py` (`git log --first-parent -G'^## BƯỚC n '` trên `docs/STATE.md`, neo `NEO_LICH_SU` = `0a991e1`, repo nông thì NỔ — cùng `tests/test_tien_dang_ky_git.py`). Mốc `_moc_chi_hoi_khi_doi_luat` = 164 nằm trong sổ, không gõ lại ở test hay hook. BƯỚC ≤ 163 giữ luật cũ. Các gác `tests/test_soat_notebooklm.py` được SỬA để canh luật mới (không xoá gác nào; mỗi gác sửa ghi trong docstring câu trả lời nguyên văn và ngày); `tools/so_tay.py` có đường ghi ô mới (từ chối nếu máy thấy BƯỚC chạm luật) và lệnh `dem`.
+- Văn bản luật sửa: `SKILL.md` (Quy tắc 3, dòng Mốc, Nhịp 7 ngày), `CLAUDE.md` (dòng Quy tắc 3, con trỏ LO-TRINH), `references/soat-cheo-notebooklm.md` (mục đầu), bản tin mở phiên `tools/cua_mo_phien.py`, `docs/HANDOFF.md` (bảng tài liệu, lượt 12 hạn 15/10, khối giai đoạn A). Không sửa file ngoài repo (`~/.claude/rules/…`, memory): leader làm sau khi merge.
+
+### Danh sách FILE LUẬT mà BƯỚC này chạm — và vì sao nó PHẢI hỏi thật
+
+`docs/LO-TRINH.md` (mới) · `.claude/skills/quy-trinh-lam-viec/SKILL.md` · `CLAUDE.md`. Cả ba là luật; chính BƯỚC 164 đổi Quy tắc 3 nên là ca đầu tiên của luật mới. `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `docs/TIEU-CHI-DOC-TRUOC.md` không đổi. Gác: `test_BUOC_164_that_cham_file_luat` và `test_BUOC_164_tu_no_DOI_LUAT_nen_phai_HOI_THAT_khong_the_khai_o_moi`.
+
+### Số đo (chạy lại trong phiên này, lệnh tái lập được)
+
+| điều | lệnh | ra |
+|---|---|---|
+| sổ tay bắt được ít dần | `./.venv/Scripts/python.exe tools/so_tay.py dem --tu 1 --den 129` · `--tu 130 --den 162` | **25/30** · **6/33** mục hỏi thật có phán quyết THẬT |
+| hiệu chuẩn luật mới, BƯỚC 130–163 | `tools/buoc_cham_luat.py --tu 130 --den 163 --doi-chieu` | 34 BƯỚC đã hỏi thật: 17 chạm file luật, 17 không; **6/6** mục THẬT nằm ở nhóm CHẠM |
+| hiệu chuẩn, BƯỚC 108–129 | `tools/buoc_cham_luat.py --tu 108 --den 129 --doi-chieu` | 22 BƯỚC, 18 mục THẬT: 14 ở nhóm chạm, **4 ở nhóm KHÔNG chạm** (BƯỚC 110, 111, 115, 129) |
+| quy trình lấy phần của sản phẩm | lệnh `git log … --numstat` + `awk` ở `docs/LO-TRINH.md` (chạy trên `0a991e1`, cửa sổ 08/09 → 09/10/2026) | `ma_goc` 4086 / **65.077** dòng thêm = **6,3%** |
+| `docs/STATE.md` nặng | `git show origin/main:docs/STATE.md \| wc -c` | 1.206.210 byte |
+
+### Giả thuyết bị bác, ước lượng đã sai
+
+- **Ước lượng sai: "UV-001 cần 273 phiên".** Trang đã duyệt ghi 273 ("252 phiên có nhãn + 21 phiên nhãn") và 208 phiên của 2027, đếm `NHIP` mà quên cộng 1 (nhãn dùng giá T+1). Đếm bằng `lich_giao_dich.cac_phien('2026-10-01','2026-12-31')` và `cham_bong.MOC_DOC + cham_bong.NHIP + 1`: **274** (65 phiên đến hết 2026 + 209 phiên 2027). Ngày đọc ước lượng **04/11/2027**, không phải 03/11/2027, với GIẢ ĐỊNH 11 ngày nghỉ 2027 (Sở chưa công bố lịch; `lich_giao_dich.PHU_TOI` là `2026-12-31`). Nó là ƯỚC LƯỢNG và được gọi là ước lượng trong LO-TRINH.
+- **Con số tôi tự chép sai trong bản nháp của phiên đầu:** mẫu số 65.227 ở `docs/LO-TRINH.md` — chạy lại lệnh ra **65.077** (tỷ lệ 6,3% và `ma_goc` 4086 không đổi). Và dòng "273 phiên ÷ ~21 phiên/tháng" còn sót trong cùng file dù đoạn khác đã sửa thành 274. Cả hai sửa trong phiên này (lỗi 131).
+- **9/113 lệnh ảo đã đóng và "5 phiên đã qua trên 273"** là số của leader; phiên con bị cấm đọc sổ lệnh nên KHÔNG tái lập được số đầu. Số sau: 5 phiên giao dịch THEO LỊCH từ 02/10 đến 08/10 (gồm 08/10, chưa kiểm nến đã đóng), `cham_xac_nhan.tien_do_theo_lich("2026-10-02","2026-10-08")` ra 5 phiên lịch và 0 phiên có nhãn; mẫu số đúng là 274. Giữ nhãn "số của leader" trong LO-TRINH.
+- **Giả thuyết "luật mới là chiều an toàn" BỊ BÁC, nói rõ:** ở 108–129 nó sẽ bỏ lỡ **4 trên 18** phát hiện THẬT (BƯỚC 110, 111, 115, 129 không chạm file luật mà sổ tay vẫn ra điều THẬT). Ở 130–163 nó bỏ yêu cầu hỏi ở 17 BƯỚC mà gần đây hỏi chẳng ra gì (0 THẬT trong 17). Hai kết quả cùng đúng: thời sổ tay còn bắt được, luật mới sẽ tốn; thời nó bắt ít, luật mới tiết kiệm. Người dùng đã duyệt biết con số.
+
+### Sổ tay NotebookLM — hỏi thật (BƯỚC này đổi luật)
+
+Câu dựng bằng `tools/so_tay.py hoi --buoc "BƯỚC 164" …`, leader hỏi hộ ở khung trình duyệt của họ, không Chrome. Độ tươi **đo trước lượt hỏi**: sổ tay thấy BƯỚC lớn nhất **161** (`@13c32a0`), `main` có 163 — cũ 2 BƯỚC, không làm tươi (leader quyết). Sổ tay đọc bản chụp của `main`, TRƯỚC khi nhánh này sửa gì, nên nó trích đúng ba câu "MỖI BƯỚC đều phải qua sổ tay" (SKILL.md, CLAUDE.md, `references/soat-cheo-notebooklm.md`) và hai chỗ "nhịp 2 ngày" (SKILL.md) — tôi đối chiếu nguyên văn bằng `git show origin/main:<file> | grep -nF` và cả năm KHỚP trên `main`, rồi `grep -F` trên cây nhánh thì **không còn**: chính BƯỚC 164 đã viết lại chúng. Hai phát hiện ghi sổ là THẬT (trên bản chụp) và đã xử lý. Sổ tay **bỏ sót** (đúng chỗ nó không thể thấy hoặc không đọc): `tools/so_tay.py:3` ("Mỗi BƯỚC phải hỏi sổ tay", docstring — sửa), dòng "Lượt 12 … 10/10/2026" trong "Việc kế" của BƯỚC 163 (thêm 🔴 ở trên), và `docs/LO-TRINH.md` dòng 110 còn "273 phiên" (sửa 274). Bốn ví dụ âm của câu hỏi (273 · 03/11/2027 · `khong_soat_vi` · "Lượt 12: 10/10") sổ tay không nêu; tôi tự quét nhiều dòng — chi tiết ở `_tu_kiem_cau_am` trong `docs/soat-notebooklm.json`. Cùng họ sổ tay bỏ sót đã ghi ở BƯỚC 127, 160, 162, 163: lối thoát chặn nó BỊA, không chặn nó BỎ SÓT.
+
+### Máy mù — hai chỗ đã khai trong sổ (`_vi_sao_co_moc_chi_hoi_khi_doi_luat`)
+
+1. Máy chỉ thấy FILE, không thấy NGHĨA: một BƯỚC chỉ sửa `docs/STATE.md` mà viết một kết luận đo MỚI thì máy khai "không chạm luật". Đỡ bằng hai tầng (mọi ĐO ký trước thêm mục vào `docs/TIEU-CHI-DOC-TRUOC.md`; mọi ngưỡng gác bằng test phải đứng kề tên trong `CLAUDE.md`), phần còn lại là kỷ luật.
+2. Lý do `khong_bat_buoc_vi` có thật không thì máy không đọc được, chỉ đọc được "có bị dán lại cho BƯỚC khác không" (`ly_do_trung`). Lượt soát mỗi tuần phải đọc các ô này.
+
+### Điều CỐ Ý không làm
+
+Không nâng `FILE_LUAT` thành quyền phán nghĩa (giữ đúng sáu file người dùng duyệt); không mở lại `khong_soat_vi`; không sửa mục BƯỚC ≤ 163 của sổ tay; không đụng khoá API; không bắt đầu việc giai đoạn B; không chạy `kiem_duong_ngoai_repo.py` trên CI; không tách `docs/STATE.md` (A4) và không dọn hàng đợi quyết định (A5) — để các BƯỚC sau; không sửa `~/.claude/rules/vibe-preview.md` hay memory (mô tả Quy tắc 3 ở đó thành lạc hậu cho tới khi leader sửa sau merge).
+
+### Gác mới và đột biến
+
+Gác mới: `tests/test_moc_lo_trinh.py` · `tests/test_buoc_cham_luat.py` (ba hình dạng PR dựng trên repo git tạm — gộp một cục, `--no-ff` nhiều commit, nhánh chưa gộp — cộng ba ca trên lịch sử THẬT) · `tests/test_soat_tuan.py` · `tests/test_cua_mo_phien_quy_tac3.py` (bản tin mở phiên nói luật mới) · phần mới của `tests/test_so_tay.py` (đường ghi `khong_bat_buoc_vi`, lệnh `dem`) · các gác của `tests/test_soat_notebooklm.py` được SỬA để canh luật mới. Phát đục đầu tiên đúng đề bài: một BƯỚC chạm `CLAUDE.md` mà khai ô mới → ĐỎ (`test_PHAT_DAU_BUOC_cham_CLAUDE_md_ma_khai_o_moi_thi_DO`); bỏ dòng Mốc khỏi BƯỚC 164 thật → ĐỎ.
+
+- **Lô A** (`tools/buoc_cham_luat.py`, `tests/test_buoc_cham_luat.py` + gác sổ): lần đầu **23 phát / 21 đỏ, 2 sống** — P3 (bỏ dấu cách cuối mẫu `-G^## BƯỚC {n} `: `BƯỚC 16` khớp nhầm `BƯỚC 164`) và P14 (bỏ kiểm `ly.lower() in LY_DO_MO_HO`). P3: ca có sẵn dựng BƯỚC 16 vào TRƯỚC 164 nên "lấy commit cũ nhất" vô tình ra đúng; thêm ca đảo thứ tự (lỗi 132). P14: không ca nào phân biệt được vì mọi phần tử của danh sách đều < 25 ký tự — phép kiểm độ dài đã bắt hết, nó là **mã chết** → gỡ cả danh sách ở `tools/buoc_cham_luat.py` và `tools/moc_lo_trinh.py` thay vì thêm ca giả (lỗi 130). Chạy lại sau sửa, thay P14 bằng hai phát mới (`ly_do.strip()`, ngưỡng 25→20): **24 phát / 24 đỏ**.
+- **Lô B** (`tools/moc_lo_trinh.py` · `tools/soat_tuan.py` · `tools/cua_mo_phien.py` · phần mới của `tools/so_tay.py` · dòng hạn lượt 12 của `docs/HANDOFF.md`): **53 phát, lần đầu 16 sống** (một phát khác sống vì chính tôi để lại một dòng lọc trùng khi hoàn tác một lượt đục hỏng — không tính). Chỗ sống: đường ghi `khong_bat_buoc_vi` và lệnh `dem` của `so_tay.py` hoàn toàn chưa có gác; sáu chỗ của `soat_tuan.py` (mã thoát 2 khi máy hỏng, cắt 8 BƯỚC, `max` ngày cuối, **nối thêm** thay vì ghi đè `$GITHUB_STEP_SUMMARY`, số lượt); tám chỗ của bản tin mở phiên; và `RE_TIEU_DE_BUOC` đòi `—` (một tiêu đề `## BƯỚC 170 - tên` thoát khỏi luật Mốc → đổi regex không đòi `—`, thêm ca). Thêm gác, chạy lại từ đầu từng nhóm: **53/53 đỏ**. Gác còn bắt một lỗi thật không qua đột biến: `**Mốc:** quy-trinh —` (gạch ở CUỐI dòng) bị đọc thành mã `—`; sửa bằng `RE_GACH`.
+- **Sự cố của chính lượt đục:** tôi chạy lô B ở nền; công cụ báo xong khi vòng lặp chưa xong, tôi chạy tiếp một lượt thứ hai, hai tiến trình đục chồng nhau và để lại hai đột biến đang áp (`tools/so_tay.py`, `tools/soat_tuan.py`). Bắt bằng `git diff` trước khi tin bất kỳ kết quả nào; hoàn tác tay, kiểm lại diff chỉ còn thay đổi chủ ý, rồi chạy lại từng nhóm ở tiền cảnh, một nhóm một lượt. Luật đã có ở `SKILL.md` Bước 3 (*"Đừng sửa file khi một lượt chạy đang bay"*); thêm: đục không chạy nền.
+
+### Gác chữ — vì sao một số thứ đổi cho gác cũ
+
+Một số gác cũ đỏ khi BƯỚC 164 vào và được sửa theo đúng ý của chúng (không nới): `docs/loi-phan-lop.json` thêm lỗi 130–132; dòng tự khai của bảng lỗi đếm lại thành 72/128 (`tools/doc_bang_loi.py`); `SKILL.md` phải ≤ 18.000 ký tự nên đoạn Quy tắc 3 viết lại gọn (trần KHÔNG nâng); workflow không được nêu tên `kiem_duong_ngoai_repo` (gác `test_CONG_CU_NAY_CO_Y_KHONG_nam_trong_CI`) nên lý do ghi bằng lời.
+
+### Cửa tự động (đo trong phiên này, theo đề bài)
+
+Cửa Bash CHẶN thật bốn lần trong phiên con: ba lần `heredoc-ghi-file-repo` (ghi script `.py` hoặc nối test bằng heredoc) và một lần `pytest-qua-ong` (`| tail`) — cả hai luật hoạt động từ phiên con của leader, không chỉ phiên chính. Các cửa còn lại không lên tiếng với việc tôi làm (Write/Edit trên `.md`, `.py`, `.yml`) nên không có bằng chứng về chúng ở đây; muốn biết phải chạy `tools/kiem_cua_song.py`.
+
+Mốc `docs/moc_so_test.json` 2059 → **2196** (`tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do`, +137 test, không test nào mất). Lượt chạy đầy đủ của năm cổng trên cây cuối **nằm ở thân PR** (nó sinh ra sau file này).
+
+**Việc kế.** Leader đọc diff PR (PR đổi luật — KHÔNG tự merge), sửa `~/.claude/rules/vibe-preview.md` dòng Quy tắc 3 và memory sau khi merge. Lượt soát 12 hạn **15/10/2026**; từ nay workflow `soat-tuan` chạy phần máy mỗi thứ Hai. Giai đoạn A còn A4 (tách STATE) và A5 (hàng đợi quyết định).

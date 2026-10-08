@@ -36,16 +36,21 @@ SO_SOAT = GOC / "docs" / "soat-notebooklm.json"
 SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 THU_MUC_SKILL = GOC / ".claude" / "skills"
 
-#: Nhịp soát lại quy trình, người dùng chốt 16/09/2026. KHÔNG phải nhịp
-#: *cập nhật*: việc ấy đã chạy theo sự kiện ở Bước 6, và đo được là SKILL
-#: cùng bảng lỗi có sửa **9 trên 14 ngày** gần nhất — đặt nhịp 2 ngày lên
-#: đó là đặt một nhịp THẤP HƠN nhịp đang có.
+#: Nhịp soát lại quy trình. Người dùng chốt 16/09/2026: 2 ngày. ĐỔI 08/10/2026
+#: (BƯỚC 164): người dùng "Đồng ý" giảm phần việc quy trình — soát TỰ ĐỘNG mỗi
+#: tuần — nên nhịp là 7 ngày, và phần máy làm được chạy trên CI
+#: (`.github/workflows/soat-tuan.yml`); phần PHÁN lời khai vẫn là lượt soát của
+#: agent. KHÔNG phải nhịp *cập nhật*: việc ấy đã chạy theo sự kiện ở Bước 6, và
+#: đo được là SKILL cùng bảng lỗi có sửa **9 trên 14 ngày** gần nhất.
 #:
 #: Nhịp này nhắm nửa chưa bao giờ có cơ chế: **soát lại thứ ĐÃ CÓ**. Riêng
 #: ngày 16/09 hai câu cũ bị bắt gặp do TÌNH CỜ — *"cửa Bash không ghi nhật
 #: ký"* (nhật ký đã có từ 14/09) và mâu thuẫn BƯỚC 49 sống sáu ngày với dữ
 #: kiện lật ngược nó nằm ngay trong câu khai ra nó.
-NHIP_SOAT_NGAY = 2
+#:
+#: Hạn của lượt kế = ngày LÀM lượt trước + nhịp này (lượt 11 làm 08/10 → lượt 12
+#: hạn 15/10); dòng hạn ở `docs/HANDOFF.md` phải khớp (gác lỗi 125).
+NHIP_SOAT_NGAY = 7
 
 #: Từ bao nhiêu lượt `khong_soat_vi` LIÊN TIẾP thì bản tin phải nói ra.
 #:
@@ -166,6 +171,32 @@ def moc_bat_buoc_hoi() -> int | None:
         return None
 
 
+def dong_moc_lo_trinh() -> str | None:
+    """Một dòng nhắc luật Mốc (BƯỚC 164). Số BƯỚC đọc từ `moc_lo_trinh.TU_BUOC`."""
+    try:
+        sys.path.insert(0, str(GOC / "tools"))
+        from moc_lo_trinh import TU_BUOC
+        return (f"MỐC: mỗi BƯỚC từ {TU_BUOC} khai `**Mốc:** <mã>` "
+                f"(docs/LO-TRINH.md) hoặc `quy-trinh — <lý do>`")
+    except Exception:
+        return None
+
+
+def moc_chi_hoi_khi_doi_luat() -> int | None:
+    """Mốc BƯỚC từ đó Quy tắc 3 thu hẹp: chỉ BƯỚC đổi luật/kết luận đo phải HỎI.
+
+    Người dùng "Đồng ý" 08/10/2026 (BƯỚC 164). Con số đọc từ
+    `_moc_chi_hoi_khi_doi_luat` trong chính sổ, không gõ ở đây — cùng lý do
+    `moc_bat_buoc_hoi()`. `None` khi chưa đọc được: im lặng, đừng đoán.
+    """
+    try:
+        so = json.loads(SO_SOAT.read_text(encoding="utf-8"))
+        m = so.get("_moc_chi_hoi_khi_doi_luat")
+        return int(m) if isinstance(m, int) and not isinstance(m, bool) else None
+    except Exception:
+        return None
+
+
 def chuoi_khong_soat(so: dict | None = None) -> list[str]:
     """Dãy mục CUỐI SỔ liên tiếp nhau đều khai `khong_soat_vi`. HÀM THUẦN.
 
@@ -239,6 +270,9 @@ def ban_tin(hom_nay: dt.date | None = None) -> str:
 
     d.append("│")
     d.append(f"│ {trang_thai_cua()}")
+    moc = dong_moc_lo_trinh()
+    if moc:
+        d.append(f"│ {moc}")
 
     thieu = buoc_chua_khai_soat()
     tre = ngay_tu_lan_soat_quy_trinh(hom_nay)
@@ -258,15 +292,22 @@ def ban_tin(hom_nay: dt.date | None = None) -> str:
         d.append(f"│ SOÁT CHÉO còn nợ {len(thieu)}: "
                  f"{' · '.join(thieu[:4])}{them}")
         m = moc_bat_buoc_hoi()
+        hep = moc_chi_hoi_khi_doi_luat()
         if m is None:
             d.append("│   khai vào docs/soat-notebooklm.json — phát hiện, hoặc lý do")
-        else:
+        elif hep is None:
             d.append("│   khai vào docs/soat-notebooklm.json — PHÁT HIỆN, không")
             d.append(f"│   phải lý do: từ BƯỚC {m} mỗi BƯỚC phải HỎI (quy tắc 3).")
+        else:
+            d.append("│   khai vào docs/soat-notebooklm.json (quy tắc 3):")
+            d.append(f"│   BƯỚC >= {hep} chạm file luật → phải HỎI thật; BƯỚC khác →")
+            d.append("│   `khong_bat_buoc_vi` (máy xác nhận bằng git: tools/buoc_cham_luat.py);")
+            d.append(f"│   BƯỚC {m}..{hep - 1}: vẫn mỗi BƯỚC phải HỎI.")
     if tre is not None and tre >= NHIP_SOAT_NGAY:
         d.append(f"│ SOÁT QUY TRÌNH: lần gần nhất {tre} ngày trước "
                  f"(nhịp {NHIP_SOAT_NGAY} ngày)")
-        d.append("│   danh sách việc: tools/soat_loi_khai_cu.py")
+        d.append("│   danh sách việc: tools/soat_loi_khai_cu.py "
+                 "(workflow soat-tuan chạy phần máy mỗi tuần)")
 
     chan = moc_ngay_con_chan(hom_nay)
     if chan:

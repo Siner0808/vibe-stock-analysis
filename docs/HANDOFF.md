@@ -3,12 +3,13 @@
 **Viết lại 05/09/2026.** Bản trước ghi ngày 19/08 và **mọi khẳng định sự
 kiện trong nó đã sai** — xem mục 6.
 
-Ba tài liệu, ba vai:
+Ba tài liệu, ba vai (và thêm hai file đứng cạnh — lộ trình, và bản lưu):
 
 | File | Là gì | Đổi nhiều không |
 |---|---|---|
 | `docs/HANDOFF.md` (file này) | *bắt đầu từ đâu* — đọc hết trong 5 phút | phải cập nhật mỗi khi trạng thái đổi |
 | `docs/STATE.md` | *nhật ký từng bước* — đo được gì, cái gì chưa kiểm được | chỉ THÊM, không sửa mục cũ |
+| `docs/LO-TRINH.md` | *đi tới đâu* — hai đích, năm giai đoạn, mã mốc A1…E3 (người dùng duyệt 08/10/2026); mỗi BƯỚC từ 164 khai `**Mốc:** <mã>` | đổi khi giai đoạn đổi; sửa nó là sửa một LUẬT (BƯỚC chạm nó phải hỏi sổ tay thật) |
 | `CLAUDE.md` | *luật hiện hành* — chỉ luật, gọn (BƯỚC 145) | ít đổi nhất; một BƯỚC KHÔNG sửa nó trừ khi đổi một LUẬT |
 | `docs/lich-su/` | bản NGUYÊN VĂN `CLAUDE.md` · `SKILL.md` trước khi rút gọn; **không tự nạp** | không sửa |
 
@@ -388,7 +389,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
->   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 10/10.
+>   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 15/10 (nhịp 7 ngày kể từ NGÀY LÀM
+>   lượt 11, 08/10 — BƯỚC 164; hạn 10/10 cũ bị thay bởi quyết định người dùng 08/10).
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -498,6 +500,18 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   🔴 **Leader 08/10: tiền đề *mã đang giữ không có dòng quyết định* HẾT ĐÚNG từ BƯỚC 146 (30/09)** — mã còn vị thế có dòng `acted = 0` (`paper_runner.py`, `LY_DO_DANG_GIU`); dữ liệu UV-001 từ 02/10. Nguồn thiếu ô còn lại (mã lỗi dữ liệu từng phiên, ra/vào rổ) chưa đo — một ĐO độ phủ ký trước.
 > - Phiên song song: BƯỚC 140 (#186, soát định kỳ 7) · BƯỚC 143 (bước giá và
 >   cột `exchange` theo sàn, phần dư BƯỚC 136; ĐO 22 nếu cần).
+
+> 🧭 **08/10/2026 — GIAI ĐOẠN A của lộ trình ĐANG LÀM (BƯỚC 164).**
+> `docs/LO-TRINH.md` vào repo: hai đích (v1.0 vào 28/02/2027; phán quyết UV-001
+> vào đầu tháng 11/2027, ƯỚC LƯỢNG vì lịch nghỉ 2027 chưa công bố) và năm giai
+> đoạn A–E. Người dùng duyệt khung, "Đồng ý" giảm việc quy trình, hoãn khoá API
+> tới giai đoạn B, và bảo bắt đầu. Đã vào máy ở BƯỚC 164: gác `**Mốc:**` cho mỗi
+> BƯỚC (A1); nhịp soát 7 ngày và workflow `soat-tuan.yml` cho phần máy (A2); Quy
+> tắc 3 thu hẹp, máy phán "có đổi luật" bằng git (A3). A4 (tách `docs/STATE.md`
+> theo tháng) và A5 (hàng đợi quyết định) là phần còn lại của giai đoạn. Lượt 12:
+> 15/10 (dòng hạn ở khối "Hạn kế" trên). File ngoài repo
+> `~/.claude/rules/vibe-preview.md` còn ghi luật Quy tắc 3 cũ — leader sửa sau
+> khi PR của BƯỚC 164 được merge.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
