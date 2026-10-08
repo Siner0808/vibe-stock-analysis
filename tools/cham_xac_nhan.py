@@ -6,14 +6,18 @@ Nối kết quả vào tab "🔬 Kiểm định chiến lược" là việc SAU,
     ./.venv/Scripts/python.exe tools/cham_xac_nhan.py \
         --bang-gia <bang_gia.csv> --quyet-dinh <decisions.json|decisions.csv>
 
+Bảng giá một lượt kéo: `tools/keo_bang_gia.py` (chạy trên máy có vnstock).
 Định dạng bảng giá, luật "một lượt kéo", biên `khai_ngay`: docstring của `cham_xac_nhan`.
-Mã thoát: 0 chấm xong (mọi trạng thái, kể cả chưa đủ dữ liệu) · 1 TỪ CHỐI bảng giá hoặc
+
+MỐC ĐỌC (BƯỚC 162): phán quyết chỉ có ở đủ `cham_bong.MOC_DOC` phiên CÓ NHÃN, trên đúng chừng
+ấy phiên đầu tiên. Trước mốc lệnh này CHỈ in tiến độ n/MOC_DOC — không in Δ, p hay z, vì chúng
+không được tính. Thêm phiên về sau không đổi kết quả (đọc lại cho cùng số).
+Mã thoát: 0 chấm xong (mọi trạng thái, kể cả chưa tới mốc) · 1 TỪ CHỐI bảng giá hoặc
 dữ liệu (nói rõ lý do) · 2 dùng sai lệnh.
 """
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from pathlib import Path
 
@@ -22,10 +26,6 @@ sys.path.insert(0, str(GOC))
 
 import cham_bong as cb  # noqa: E402
 import cham_xac_nhan as cx  # noqa: E402
-
-
-def _so(x: float, mau: str) -> str:
-    return "chua tinh (NaN)" if math.isnan(x) else format(x, mau)
 
 
 def main(argv=None) -> int:
@@ -57,10 +57,16 @@ def main(argv=None) -> int:
         print(f"  trang thai : {c['trang_thai']}")
         print(f"  dong       : {c['n_dong']} dung · {c['n_dong_bo']} bo (thieu thanh phan / JSON hong) · "
               f"{c['n_phien_quyet_dinh']} phien co quyet dinh · {len(c['phien_chua_co_nhan'])} phien chua co nhan")
+        print(f"  tien do    : {c['n_phien_co_nhan']}/{c['moc_doc']} phien co nhan "
+              f"(phan quyet chi doc o dung {c['moc_doc']} phien co nhan dau tien)")
         print(f"  ma tran    : {c['n_phien']} phien co nhan x {c['n_ma']} ma day du "
-              f"(can >= {cb.NHIP} phien va >= {cb.MIN_MA} ma)")
-        print(f"  delta      : {_so(c['delta'], '+.4f')}")
-        print(f"  p          : {_so(c['p'], '.4f')}   z {_so(c['z'], '+.2f')}   (nguong {c['nguong']:.4f})")
+              f"(can {cb.MOC_DOC} phien va >= {cb.MIN_MA} ma)")
+        if "delta" not in c:
+            print("  delta/p/z  : khong tinh (chua toi moc doc, hoac duoi "
+                  f"{cb.MIN_MA} ma day du)")
+            continue
+        print(f"  delta      : {c['delta']:+.4f}")
+        print(f"  p          : {c['p']:.4f}   z {c['z']:+.2f}   (nguong {c['nguong']:.4f})")
     print("\nBANG CONG KHAI (ten noi bo):")
     print(cb.bang_cong_khai(so, kq["ket"])[["Ứng viên", "Khai ngày", "Sàng", "Trạng thái"]]
           .to_string(index=False))

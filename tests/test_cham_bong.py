@@ -167,11 +167,12 @@ def test_NGUONG_chia_cho_TONG_so_ung_vien_da_SANG():
 
 
 @pytest.mark.parametrize("delta, p, n_phien, n_ma, ky_vong", [
-    (+0.05, 0.0001, 300, 60, "QUA"),
-    (-0.05, 0.0001, 300, 60, "THUA"),
-    (+0.05, 0.2000, 300, 60, "DANG CHAM"),
-    (+0.05, 0.0001, 10, 60, "CHUA DU DU LIEU"),     # dưới một nhịp nhãn
-    (+0.05, 0.0001, 300, 20, "CHUA DU DU LIEU"),    # quá ít mã
+    (+0.05, 0.0001, cb.MOC_DOC, 60, "QUA"),
+    (-0.05, 0.0001, cb.MOC_DOC, 60, "THUA"),
+    (+0.05, 0.2000, cb.MOC_DOC, 60, "DANG CHAM"),
+    (+0.05, 0.0001, 10, 60, "CHUA TOI MOC"),               # dưới mốc đọc
+    (+0.05, 0.0001, cb.MOC_DOC - 1, 60, "CHUA TOI MOC"),   # thiếu ĐÚNG một phiên: p nhỏ cũng không phán
+    (+0.05, 0.0001, cb.MOC_DOC, 20, "CHUA DU DU LIEU"),    # tới mốc nhưng quá ít mã
 ])
 def test_trang_thai(delta, p, n_phien, n_ma, ky_vong):
     assert cb.trang_thai({"delta": delta, "p": p}, alpha_k=0.01,

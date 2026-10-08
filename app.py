@@ -1739,6 +1739,9 @@ with t_bong:
     # có ứng viên là tiêu mất phần "chưa nhìn" mà vòng xác nhận cần (BƯỚC 144).
     # BƯỚC 157: tên HIỂN THỊ là "Kiểm định chiến lược"; "chấm bóng" là tên nội
     # bộ (module `cham_bong`, sổ `ung-vien.json`) và không được hiện ra đây.
+    # BƯỚC 162: phán quyết chỉ đọc ở MỘT mốc (`MOC_DOC` phiên có nhãn). App hiện TIẾN ĐỘ
+    # ƯỚC theo lịch (`cham_xac_nhan.bang_tien_do`, không giá, không Sheets) và ẨN Δ/p —
+    # chúng không tồn tại trước mốc, và app không có đường nào tính chúng.
     st.markdown("##### 🔬 Kiểm định chiến lược trên phiên mới (forward test)")
     st.caption(
         "Mỗi phương án là một cách chấm điểm cổ phiếu khác. Nó chạy song song với "
@@ -1749,6 +1752,9 @@ with t_bong:
         _so_uv = _cb.doc_so_ung_vien()
         _tt_uv = _cb.tom_tat_so(_so_uv, now_vn().date().isoformat())
         _bang_uv, _uv_loi = _cb.bang_hien_thi(_cb.bang_cong_khai(_so_uv)), None
+        import cham_xac_nhan as _cx
+        _td_uv = _cx.bang_tien_do(_so_uv, now_vn().date().isoformat())
+        _moc_uv = _cb.MOC_DOC
     except Exception as _e:
         _uv_loi = f"{type(_e).__name__}: {_e}"
     if _uv_loi:
@@ -1762,7 +1768,13 @@ with t_bong:
             st.info("Chưa có phương án nào được đăng ký. Phương án đầu tiên được đăng "
                     "ký thẳng, tối đa 1 mỗi tháng.")
         else:
+            _bang_uv["Tiến độ tới mốc đọc"] = [_td_uv[_m] for _m in _bang_uv["Phương án"]]
             st.dataframe(_bang_uv, use_container_width=True, hide_index=True)
+            st.caption(f"Kết luận của mỗi phương án chỉ được đọc MỘT lần, khi đủ {_moc_uv} "
+                       f"phiên có nhãn đầu tiên (khoảng một năm). Trước mốc đó chỉ hiện tiến "
+                       f"độ — chênh lệch và độ tin cậy chưa được tính. Tiến độ là con số ƯỚC "
+                       f"theo lịch giao dịch công bố (cận trên); con số thật chỉ có khi chạy "
+                       f"lệnh chấm trên máy, và ngoài phạm vi lịch công bố thì chưa tính được.")
             st.caption("“Chưa đủ dữ liệu”: phương án mới đăng ký, chưa có đủ phiên mới "
                        "để so sánh. Mọi phương án đều hiện, kể cả phương án cũ đã rớt "
                        "sàng, vì ngưỡng thống kê tính trên TỔNG số phương án đã đăng ký. "

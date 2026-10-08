@@ -56,9 +56,9 @@ def test_MOI_ung_vien_deu_hien_KE_CA_rot_sang_theo_thu_tu_khai():
 
 
 def test_CO_ket_qua_thi_trang_thai_qua_trang_thai_voi_NGUONG_chia_TONG():
-    b = cb.bang_cong_khai(SO, ket={"B": (KET_QUA, 60, 55),
-                                   "C": (dict(KET_QUA, p=0.02), 60, 55),
-                                   "A": (KET_QUA, 60, 55)})
+    b = cb.bang_cong_khai(SO, ket={"B": (KET_QUA, cb.MOC_DOC, 55),
+                                   "C": (dict(KET_QUA, p=0.02), cb.MOC_DOC, 55),
+                                   "A": (KET_QUA, cb.MOC_DOC, 55)})
     tt = dict(zip(b["Ứng viên"], b["Trạng thái"]))
     # p = 0,02 nằm GIỮA 0,05/3 và 0,05/2: chia TỔNG (3) thì chưa qua; chia số
     # qua sàng (2) thì qua. p = 0,03 ở bản đầu không phân biệt được hai phép chia.
@@ -79,7 +79,7 @@ def test_CHUA_SANG_hien_rieng_va_KHONG_dem_vao_qua_sang():
     rớt sàng, không phải chờ chấm — và có `ket` cũng không được chấm nó."""
     so = copy.deepcopy(SO)
     so["ung_vien"]["D"] = _uv("2026-09-17", None)
-    b = cb.bang_cong_khai(so, ket={"D": (KET_QUA, 60, 55)})
+    b = cb.bang_cong_khai(so, ket={"D": (KET_QUA, cb.MOC_DOC, 55)})
     dong = b.set_index("Ứng viên")
     assert (dong.loc["D", "Sàng"], dong.loc["D", "Trạng thái"]) == ("chua", "CHUA SANG")
     assert dict(zip(b["Ứng viên"], b["Sàng"])) == {"C": "qua", "A": "rot", "B": "qua",
@@ -101,7 +101,8 @@ def test_SAU_MOC_dong_khai_hien_bo_vao_thang_xac_nhan_khong_bao_gio_CHUA_SANG():
     assert (dong.loc["E", "Sàng"], dong.loc["E", "Trạng thái"]) == ("bo", "CHUA CHAM")
     assert (dong.loc["D", "Sàng"], dong.loc["D", "Trạng thái"]) == ("chua", "CHUA SANG")
     assert "CHUA SANG" not in (dong.loc["E", "Trạng thái"],)
-    b2 = cb.bang_cong_khai(so, ket={"E": (KET_QUA, 60, 55), "D": (KET_QUA, 60, 55)})
+    b2 = cb.bang_cong_khai(so, ket={"E": (KET_QUA, cb.MOC_DOC, 55),
+                                    "D": (KET_QUA, cb.MOC_DOC, 55)})
     d2 = b2.set_index("Ứng viên")
     assert d2.loc["E", "Trạng thái"] == "QUA"               # 0,0002 < 0,05/5
     assert d2.loc["D", "Trạng thái"] == "CHUA SANG"         # dòng cũ vẫn không được chấm
@@ -185,6 +186,7 @@ def test_TRANG_THAI_HIEN_ghim_literal_tung_cap():
     assert cb.TRANG_THAI_HIEN == {
         "CHUA CHAM": "Chưa đủ dữ liệu",
         "CHUA DU DU LIEU": "Chưa đủ dữ liệu",
+        "CHUA TOI MOC": "Chưa tới mốc đọc",
         "DANG CHAM": "Đang theo dõi",
         "QUA": "Đạt — đủ điều kiện nâng cấp",
         "THUA": "Kém hơn bản đang chạy",
@@ -202,8 +204,11 @@ def test_MOI_trang_thai_ma_mat_may_co_the_sinh_ra_deu_co_ten_hien_thi():
     so = copy.deepcopy(SO)
     so["ung_vien"]["D"] = _uv("2026-09-17", None)           # CHUA SANG (dòng cũ)
     so["ung_vien"]["E"] = _uv("2026-10-02", None)           # dòng một vòng
-    thay = {"QUA": (dict(KET_QUA), 60, 55), "THUA": (dict(KET_QUA, delta=-0.08), 60, 55),
-            "DANG CHAM": (dict(KET_QUA, p=0.9), 60, 55), "CHUA DU DU LIEU": (KET_QUA, 5, 55)}
+    thay = {"QUA": (dict(KET_QUA), cb.MOC_DOC, 55),
+            "THUA": (dict(KET_QUA, delta=-0.08), cb.MOC_DOC, 55),
+            "DANG CHAM": (dict(KET_QUA, p=0.9), cb.MOC_DOC, 55),
+            "CHUA DU DU LIEU": (KET_QUA, cb.MOC_DOC, cb.MIN_MA - 1),
+            "CHUA TOI MOC": (None, cb.MOC_DOC - 1, 55)}
     thay_ra = set()
     for ten, ket in thay.items():
         b = cb.bang_cong_khai(so, ket={"E": ket})
