@@ -1,7 +1,8 @@
 """Soát chéo bằng sổ tay NotebookLM — DỰNG câu hỏi và GHI sổ, hai việc hay sai.
 
-Vì sao có file này (BƯỚC 130, 27/09/2026). Mỗi BƯỚC phải hỏi sổ tay
-(`SKILL.md` Quy tắc 3), và mỗi lượt hỏi có năm chỗ đã từng hỏng bằng tay:
+Vì sao có file này (BƯỚC 130, 27/09/2026). Mỗi BƯỚC khi đó phải hỏi sổ tay
+(`SKILL.md` Quy tắc 3; từ BƯỚC 164 chỉ BƯỚC đổi luật/kết luận đo, xem cuối
+docstring), và mỗi lượt hỏi có năm chỗ đã từng hỏng bằng tay:
 
   1. câu hỏi có XUỐNG DÒNG  -> Enter trong ô chat là GỬI, câu bị cắt làm mảnh
   2. thiếu LỐI THOÁT        -> sổ tay BỊA thay vì từ chối (BƯỚC 107)

@@ -15,10 +15,10 @@
 # động giả dạy người ta bỏ qua chuông. Job chỉ đỏ khi MÁY hỏng (không đọc được sổ
 # hay tài liệu) — chưa kiểm được không phải là sạch.
 #
-# KHÔNG CHẠY tools/kiem_duong_ngoai_repo.py. Nó đo các đường NGOÀI repo trên máy
-# người dùng (thư mục nhà, ~/.claude/...), vắng mặt hoàn toàn trên runner nên nó
-# đỏ mỗi lượt. SKILL.md đã ghi nó cố ý KHÔNG phải một cổng; lượt soát tay vẫn
-# chạy nó.
+# KHÔNG CHẠY công cụ đo đường NGOÀI repo (tên ở SKILL.md, mục Nhịp soát định kỳ;
+# không nêu tên ở đây vì một gác cấm tên ấy xuất hiện trong mọi workflow). Nó đo thư mục nhà trên máy người dùng (~/.claude/...), vắng
+# mặt hoàn toàn trên runner nên nó đỏ mỗi lượt. SKILL.md đã ghi nó cố ý KHÔNG phải
+# một cổng; lượt soát tay vẫn chạy nó.
 #
 # KHÔNG pip install, KHÔNG import vnstock hay gói nào ngoài thư viện chuẩn: job
 # không dính chuyện gói bị cách ly trên PyPI (BƯỚC 122) và không tốn lượt cài.

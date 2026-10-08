@@ -26,7 +26,7 @@ from pathlib import Path
 
 import pytest
 
-GOC =Path(__file__).resolve().parent.parent
+GOC = Path(__file__).resolve().parent.parent
 SO = GOC / "docs" / "soat-notebooklm.json"
 SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 TIEU_CHI = GOC / "docs" / "TIEU-CHI-DOC-TRUOC.md"

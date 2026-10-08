@@ -182,11 +182,13 @@ def buoc_cham_luat(repo: Path, n: int, goc: str | None = None,
     return bool(cham), cham, nguon
 
 
-#: Lý do `khong_bat_buoc_vi` ngắn hơn ngần này ký tự hay nằm trong danh sách này
-#: là câu thần chú — cùng ngưỡng và cùng danh sách với `khong_soat_vi`
-#: (`tests/test_soat_notebooklm.py::test_LY_DO_KHONG_SOAT_…`).
+#: Lý do `khong_bat_buoc_vi` ngắn hơn ngần này ký tự là câu thần chú — cùng ngưỡng
+#: với `khong_soat_vi` (`tests/test_soat_notebooklm.py::test_LY_DO_KHONG_SOAT_…`).
+#: Bản đầu còn một danh sách "lý do mơ hồ" (`khong can`, `n/a`, `-`…) kiểm RIÊNG;
+#: đột biến (BƯỚC 164, phát P14) cho thấy nó là mã CHẾT: mọi phần tử đều ngắn hơn
+#: 25 ký tự nên phép kiểm độ dài đã bắt hết, bỏ nó đi không ca nào đổi. Gỡ thay
+#: vì thêm một ca giả (`tests/test_buoc_cham_luat.py::test_LY_DO_mo_ho_ngan_…`).
 LY_DO_TOI_THIEU = 25
-LY_DO_MO_HO = ("khong can", "không cần", "khong quan trong", "n/a", "-", "sau")
 #: Ba ô còn lại mà một mục `khong_bat_buoc_vi` KHÔNG được mang cùng: nói "không
 #: hỏi" và "đã hỏi" trong một dòng là nói nước đôi.
 O_XUNG_DOT = ("cau_hoi", "phat_hien", "khong_tim_thay_gi", "khong_soat_vi")
@@ -209,8 +211,6 @@ def loi_khong_bat_buoc(ten: str, muc: dict, cham: list[str]) -> list[str]:
     ly = ly_do.strip()
     if len(ly) < LY_DO_TOI_THIEU:
         ra.append(f"{ten}: ly do khong-bat-buoc qua ngan ({len(ly)} ky tu) — {ly!r}")
-    if ly.lower() in LY_DO_MO_HO:
-        ra.append(f"{ten}: ly do khong-bat-buoc chung chung — {ly!r}")
     dung = [k for k in O_XUNG_DOT if k in muc]
     if dung:
         ra.append(f"{ten}: vua khai `khong_bat_buoc_vi` vua mang {dung} — noi nuoc doi")

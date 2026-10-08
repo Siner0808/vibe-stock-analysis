@@ -107,7 +107,7 @@ chạy lại được thì nói thẳng.
    lượt quét CI đã đếm (`docs/STATE.md` BƯỚC 140). Nhật ký "vì sao" đã ghi nhưng
    chưa có bước rút bài học: P2c chờ khoá API do người dùng tự đặt. Một vòng xác
    nhận của tầng 3 phán MỘT lần ở phiên có nhãn thứ 252, tức khoảng 13 tháng kể
-   từ ngày khai (ƯỚC LƯỢNG: 273 phiên ÷ ~21 phiên/tháng).
+   từ ngày khai (ƯỚC LƯỢNG: 274 phiên ÷ ~21 phiên/tháng).
 3. **Quy trình đang lấy phần của sản phẩm.** Phần dòng thêm vào repo là mã sản
    phẩm, 30 ngày tới 08/10/2026:
 
@@ -116,7 +116,7 @@ chạy lại được thì nói thẳng.
    ```
 
    Ra (phiên viết file này, trên cây `0a991e1`): `ma_goc` 4086 dòng = **6,3%** của
-   65.227; `tai_lieu` 41,3%; `test` 30,0%; `cong_cu` 18,2%; `skill` 4,1%. Cách gom
+   65.077; `tai_lieu` 41,3%; `test` 30,0%; `cong_cu` 18,2%; `skill` 4,1%. Cách gom
    (thư mục đầu; `ma_goc` = file ở gốc repo) là cách của phiên này; trang leader
    trình cho cùng 6,3% với tỷ lệ `tai_lieu` 38,8%, nên cách gom của hai bên
    khác nhau ở phần tài liệu, không ở phần mã sản phẩm.

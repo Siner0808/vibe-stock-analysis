@@ -167,10 +167,12 @@ def test_WORKFLOW_khong_lam_do_job_vi_loi_khai_va_khong_keo_goi():
     assert "permissions:\n  contents: read" in lenh
 
 
-def test_WORKFLOW_ghi_ro_ly_do_khong_chay_kiem_duong_ngoai_repo():
+def test_WORKFLOW_ghi_ro_ly_do_khong_chay_cong_cu_do_duong_ngoai_repo():
+    """Lý do viết bằng lời, KHÔNG nêu tên công cụ: gác `test_CONG_CU_NAY_CO_Y_KHONG_nam_trong_CI`
+    (file test của công cụ ấy) cấm tên ấy xuất hiện trong mọi workflow."""
     van = _wf()
-    assert "KHÔNG CHẠY tools/kiem_duong_ngoai_repo.py" in van
-    assert "NGOÀI repo" in van
+    assert "KHÔNG CHẠY công cụ đo đường NGOÀI repo" in van
+    assert "kiem_duong_ngoai_repo" not in van  # van-ban-ok: dang kiem VAN BAN workflow (YAML), khong co ma nguon de doc bang AST
 
 
 def test_WORKFLOW_khong_vien_doi_phut_de_ne_tre():
@@ -178,3 +180,54 @@ def test_WORKFLOW_khong_vien_doi_phut_de_ne_tre():
     (BƯỚC 89, 101). Workflow chỉ được nhắc điều đó như một lời PHỦ NHẬN."""
     van = _wf()
     assert "KHÔNG cứu" in van and "đừng viện nó" in van
+
+
+# ── phát đục lô B (BƯỚC 164): sáu chỗ của máy hằng tuần chưa có gác ───────────────
+
+def _goc_tam(tmp_path, ngay=("2026-10-08", "2026-10-01")):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "soat-dinh-ky.json").write_text(
+        json.dumps({"lan_soat": [{"ngay": n} for n in ngay]}), encoding="utf-8")
+    (tmp_path / "docs" / "soat-notebooklm.json").write_text(
+        json.dumps({"soat": {}, "_moc_buoc": 81}), encoding="utf-8")
+    (tmp_path / "docs" / "STATE.md").write_text("# s\n", encoding="utf-8")
+    return tmp_path
+
+
+def test_DOC_NGUON_lay_NGAY_MOI_NHAT_va_dem_dung_so_luot(tmp_path, monkeypatch):
+    """Lượt không xếp theo thứ tự: ngày cuối phải là `max`, số lượt là độ dài danh sách."""
+    monkeypatch.setattr(st.sk, "loi_khai_con_song",
+                        lambda goc=None: [("a.md", 1, "loi khai mot")])
+    nguon = st.doc_nguon(_goc_tam(tmp_path, ("2026-10-01", "2026-10-08", "2026-10-03")))
+    assert nguon["ngay_cuoi"] == dt.date(2026, 10, 8)
+    assert nguon["so_luot"] == 3
+
+
+def test_MAIN_may_hong_thi_in_error_va_tra_ma_2(monkeypatch, capsys):
+    """Chỉ MÁY hỏng mới được đỏ job (`::error`, mã 2); lời khai cần phán thì không."""
+    def hong(*a, **k):
+        raise st.ChuaDoc("khong doc duoc nguon")
+    monkeypatch.setattr(st, "doc_nguon", hong)
+    assert st.main([]) == 2
+    out = capsys.readouterr().out
+    assert out.startswith("::error title=") and "khong doc duoc nguon" in out
+
+
+def test_TOM_TAT_NOI_THEM_vao_tep_co_san_khong_ghi_de(tmp_path):
+    """`$GITHUB_STEP_SUMMARY` có thể đã chứa chữ của bước khác trong cùng job."""
+    ra = tmp_path / "summary.md"
+    ra.write_text("bước trước đã viết\n", encoding="utf-8")
+    assert st.main(["--tom-tat", str(ra)]) == 0
+    van = ra.read_text(encoding="utf-8")
+    assert van.startswith("bước trước đã viết\n") and "Soát tuần" in van
+
+
+def test_CAT_8_BUOC_chua_khai_o_ca_canh_bao_lan_tom_tat():
+    thieu = [f"B{n:02d}" for n in range(1, 13)]
+    kq = st.danh_gia(_nguon(thieu=thieu), dt.date(2026, 10, 9), 7)
+    cb = [d for d in st.canh_bao(kq) if "BƯỚC chưa khai" in d][0]
+    md = st.tom_tat_md(kq, dt.date(2026, 10, 9))
+    for van in (cb, md):
+        ten = {t.strip(" ,.()") for t in van.replace(":", " ").split()}
+        assert {"B01", "B08"} <= ten and "B09" not in ten, van
+    assert "**12**" in md

@@ -41,15 +41,19 @@ TU_BUOC = 164
 #: Mã mốc được ĐỊNH NGHĨA bằng một mục danh sách mở đầu `- **A1**` trong
 #: LO-TRINH.md. Một mã chỉ được nhắc trong văn xuôi KHÔNG phải mã định nghĩa.
 RE_MA_DINH_NGHIA = re.compile(r"^- \*\*([A-Z]\d{1,2})\*\*", re.M)
-RE_TIEU_DE_BUOC = re.compile(r"^##\s+BƯỚC\s+(\d+)\s*—")
+#: Không đòi dấu `—` sau số: tiêu đề `## BƯỚC 170 - tên` (gạch nối thường) cũng là một
+#: mục BƯỚC, và một gác chỉ nhận `—` sẽ để nó thoát khỏi luật Mốc (đột biến M14, lô B).
+RE_TIEU_DE_BUOC = re.compile(r"^##\s+BƯỚC\s+(\d+)(?!\d)")
 RE_DONG_MOC = re.compile(r"^\*\*Mốc:\*\*\s*(.*?)\s*$")
 RE_MA = re.compile(r"[A-Z]\d{1,2}")
+#: Gạch ngăn mã và lý do: ` — ` giữa dòng, hoặc `—` cuối dòng (lý do rỗng).
+RE_GACH = re.compile(r"\s+—(?:\s+|$)")
 QUY_TRINH = "quy-trinh"
-#: Lý do dưới ngần này ký tự hay nằm trong danh sách này là câu thần chú —
-#: cùng ngưỡng `test_LY_DO_KHONG_SOAT_khong_duoc_rong_va_khong_duoc_chung_chung`.
+#: Lý do dưới ngần này ký tự là câu thần chú — cùng ngưỡng
+#: `test_LY_DO_KHONG_SOAT_khong_duoc_rong_va_khong_duoc_chung_chung`. Bản đầu có
+#: thêm một danh sách "lý do mơ hồ" kiểm riêng; đột biến (BƯỚC 164, lô B) cho thấy
+#: mọi phần tử đều < 25 ký tự nên nó là mã chết, đã gỡ.
 LY_DO_TOI_THIEU = 25
-LY_DO_MO_HO = ("khong can", "không cần", "khong quan trong", "n/a", "-",
-               "quy trinh", "quy trình", "viec quy trinh", "việc quy trình")
 
 
 def ma_hop_le(van_lo_trinh: str) -> set[str]:
@@ -94,10 +98,12 @@ def loi_moc(dong_muc: list[str], hop_le: set[str]) -> list[str]:
     noi = cac[0]
     if not noi:
         return ["dong `**Mốc:**` rong"]
-    dau, _, duoi = noi.partition(" — ")
+    # `quy-trinh —` (gạch ngang CUỐI dòng, sau khi RE_DONG_MOC cắt khoảng trắng) vẫn là
+    # "có gạch, lý do rỗng", không phải mã `—`.
+    dau, duoi = (RE_GACH.split(noi, maxsplit=1) if RE_GACH.search(noi) else [noi, ""])
     if dau.strip().lower() == QUY_TRINH:
         ly_do = duoi.strip()
-        if len(ly_do) < LY_DO_TOI_THIEU or ly_do.lower() in LY_DO_MO_HO:
+        if len(ly_do) < LY_DO_TOI_THIEU:
             return [f"`**Mốc:** quy-trinh` thieu ly do cu the (>= {LY_DO_TOI_THIEU} "
                     f"ky tu, khong phai cau chung chung): {ly_do!r}"]
         return []

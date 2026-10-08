@@ -142,6 +142,33 @@ def test_dong_Moc_SAI_phai_DO(dong, tu_khoa):
     assert len(loi) == 1 and tu_khoa in loi[0], loi
 
 
+@pytest.mark.parametrize("tieu_de", [
+    "## BƯỚC 170 - gach noi thuong, khong phai em dash",
+    "## BƯỚC 170: hai cham",
+    "## BƯỚC  170  nhieu dau cach",
+    "## BƯỚC 170"])
+def test_tieu_de_BUOC_khong_co_em_dash_van_la_mot_muc_thieu_Moc(tieu_de):
+    """Đột biến M14 (lô B): đòi `—` sau số làm một tiêu đề viết khác dấu thoát khỏi luật."""
+    van = f"{tieu_de}\nnoi dung khong co dong moc\n"
+    loi = m.vi_pham(van, "- **A1** — x\n")
+    assert len(loi) == 1 and loi[0].startswith("BƯỚC 170: thieu"), loi
+
+
+def test_so_BUOC_dai_hon_khong_bi_cat_thanh_so_ngan():
+    """`BƯỚC 1700` là BƯỚC 1700, không phải BƯỚC 170 theo sau chữ số 0."""
+    assert set(m.tach_muc_buoc("## BƯỚC 1700 — x\n", 164)) == {1700}
+    assert m.tach_muc_buoc("## BƯỚC 16 — x\n", 164) == {}
+
+
+def test_ly_do_quy_trinh_dung_BIEN_25_ky_tu():
+    """24 ký tự đỏ, 25 xanh (`<` chứ không `<=`). Cũng khoá lý do gỡ danh sách "lý do
+    mơ hồ" riêng (phát đục lô B của BƯỚC 164): nó là mã chết — mọi phần tử đều < 25 ký
+    tự nên phép kiểm độ dài đã bắt hết."""
+    assert _loi("**Mốc:** quy-trinh — " + "x" * 24) != []
+    assert _loi("**Mốc:** quy-trinh — " + "x" * 25) == []
+    assert not hasattr(m, "LY_DO_MO_HO"), "danh sach chet duoc them lai"
+
+
 def test_THIEU_va_THUA_dong_Moc():
     assert "thieu" in _loi("khong co gi")[0]
     assert "2 dong" in _loi("**Mốc:** A1", "**Mốc:** B1")[0]

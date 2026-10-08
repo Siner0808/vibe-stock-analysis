@@ -17,9 +17,9 @@ Mọi dòng dưới đây đến từ một lượt đã hỏng thật.
 ```
 
 In `CHAM LUAT [file…]` thì **hỏi thật** (các chặng dưới). In `khong cham luat`
-thì có thể ghi MỘT dòng thay vì hỏi — mục `muc.json` chỉ gồm `buoc` và
+thì có thể ghi MỘT dòng thay vì hỏi — tệp mục (JSON tạm, ngoài repo) chỉ gồm `buoc` và
 `khong_bat_buoc_vi` (lý do cụ thể, không dán lại lý do của BƯỚC khác), rồi
-`./.venv/Scripts/python.exe tools/so_tay.py ghi muc.json`; `ghi` hỏi lại máy và
+`./.venv/Scripts/python.exe tools/so_tay.py ghi <tệp mục>`; `ghi` hỏi lại máy và
 từ chối nếu BƯỚC chạm file luật. Máy chỉ thấy FILE: BƯỚC viết một kết luận đo mới
 chỉ trong `docs/STATE.md` thì máy khai "không chạm" — tự hỏi mình trước khi tin nó.
 Hỏi thật vẫn luôn được phép, kể cả khi máy cho miễn.

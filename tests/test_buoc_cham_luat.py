@@ -169,6 +169,23 @@ def test_BUOC_16_khong_khop_BUOC_164_va_tieu_de_cap_ba_khong_tinh(kho):
     assert b.buoc_cham_luat(kho, 16, neo=_neo(kho))[0]
 
 
+def test_BUOC_16_khong_khop_BUOC_164_khi_164_vao_TRUOC_va_16_chua_co(kho):
+    """Phát đục P3 (BƯỚC 164, lô A): bỏ dấu cách cuối mẫu `-G^## BƯỚC {n} ` sống sót ở
+    ca trên vì ở đó BƯỚC 16 vào TRƯỚC 164 — lấy commit CŨ NHẤT thì vô tình ra đúng.
+    Hai ca dưới đảo thứ tự: 164 vào trước, hỏi về 16 (chưa có, hoặc vào sau) thì
+    mẫu cụt `BƯỚC 16` sẽ trả commit của 164. Với mẫu đúng: None / commit của 16."""
+    _ghi(kho, STATE, _tieu_de(164, "vao truoc"), them=True)
+    _ghi(kho, "CLAUDE.md", "luat 1\nluat boi BUOC 164\n")
+    c164 = _cam(kho, "BUOC 164")
+    assert b.commit_dua_buoc_vao(kho, 16, neo=_neo(kho)) is None
+    assert b.commit_dua_buoc_vao(kho, 164, neo=_neo(kho)) == c164
+    _ghi(kho, STATE, _tieu_de(16, "vao sau"), them=True)
+    c16 = _cam(kho, "BUOC 16")
+    assert b.commit_dua_buoc_vao(kho, 16, neo=_neo(kho)) == c16
+    assert not b.buoc_cham_luat(kho, 16, neo=_neo(kho))[0]
+    assert b.buoc_cham_luat(kho, 164, neo=_neo(kho))[0]
+
+
 def test_COMMIT_CU_NHAT_la_commit_dua_BUOC_vao__sua_tieu_de_ve_sau_khong_dich_no(kho):
     _ghi(kho, STATE, _tieu_de(164, "ban dau"), them=True)
     _ghi(kho, "CLAUDE.md", "luat 1\nluat doi\n")
@@ -228,6 +245,27 @@ def test_NEO_khong_phai_to_tien_cua_HEAD_thi_NO(kho):
 
 
 # ── phép phán thuần ───────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("ly_do", ["khong can", "không cần", "khong quan trong",
+                                   "n/a", "-", "sau", "Khong Can"])
+def test_LY_DO_mo_ho_ngan_deu_bi_chan_boi_DO_DAI_nen_khong_can_danh_sach_rieng(ly_do):
+    """Phát đục P14 (BƯỚC 164, lô A): phép kiểm `ly.lower() in LY_DO_MO_HO` sống sót vì
+    mọi phần tử của nó đều < `LY_DO_TOI_THIEU` ký tự — phép kiểm độ dài đã bắt hết
+    trước khi nó được hỏi. Đó là mã CHẾT, nên đã gỡ cả danh sách chứ không thêm ca
+    giả. Ca này khoá lý do gỡ: mọi câu thần chú ngắn vẫn bị chặn, bằng độ dài."""
+    loi = b.loi_khong_bat_buoc("BƯỚC 170", {"khong_bat_buoc_vi": ly_do}, [])
+    assert loi and "qua ngan" in loi[0], (ly_do, loi)
+    assert not hasattr(b, "LY_DO_MO_HO"), "danh sach chet duoc them lai"
+
+
+def test_LY_DO_dung_NGUONG_25_ky_tu_la_hop_le():
+    """Biên của phép kiểm độ dài (`<` chứ không `<=`): 24 ký tự đỏ, 25 ký tự xanh."""
+    assert b.loi_khong_bat_buoc("BƯỚC 170", {"khong_bat_buoc_vi": "x" * 24}, [])
+    assert b.loi_khong_bat_buoc("BƯỚC 170", {"khong_bat_buoc_vi": "x" * 25}, []) == []
+    # khoang trang hai dau khong duoc cong vao do dai
+    assert b.loi_khong_bat_buoc("BƯỚC 170",
+                                {"khong_bat_buoc_vi": "  " + "x" * 24 + "  "}, [])
+
 
 def test_FILE_LUAT_la_dung_sau_file_nguoi_dung_duyet_va_deu_ton_tai():
     assert b.FILE_LUAT == (

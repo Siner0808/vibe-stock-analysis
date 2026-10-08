@@ -186,3 +186,127 @@ def test_CLI_GHI_tep_khong_doc_duoc_la_MA_2_khong_phai_traceback(tmp_path):
             capture_output=True, text=True, encoding="utf-8", cwd=str(GOC))
         assert r.returncode == 2, (tep, r.returncode, r.stderr)
         assert "CHUA DOC DUOC" in (r.stderr or "") and "Traceback" not in (r.stderr or ""), tep
+
+
+# ── BƯỚC 164: đường ghi `khong_bat_buoc_vi` và lệnh `dem` ────────────────────
+#
+# Gác của phần mới thêm ở BƯỚC 164 (người dùng "Đồng ý" thu hẹp Quy tắc 3, 08/10/2026).
+# Đột biến lô B phát hiện phần này chưa có gác nào trong file này.
+
+LY_DO = "BUOC chi ghi ket qua luot soat dinh ky, khong doi luat hay ket luan do"
+
+
+def _khong_cham(n):
+    return ["docs/STATE.md", "tools/x.py"]
+
+
+def test_GHI_khong_bat_buoc_them_DUNG_MOT_dong_chi_co_ngay_va_ly_do(so_tam):
+    truoc = json.loads(so_tam.read_text(encoding="utf-8"))
+    dong = st.ghi({"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": LY_DO}, so=so_tam,
+                  ngay="2026-10-09", cham_luat=_khong_cham)
+    assert dong == {"ngay": "2026-10-09", "khong_bat_buoc_vi": LY_DO}
+    sau = json.loads(so_tam.read_text(encoding="utf-8"))
+    assert sau["soat"]["BƯỚC 9999"] == dong
+    del sau["soat"]["BƯỚC 9999"]
+    assert sau == truoc
+    assert so_tam.read_text(encoding="utf-8").endswith("}\n")
+
+
+def test_GHI_khong_bat_buoc_hoi_MAY_voi_DUNG_so_BUOC(so_tam):
+    thay = []
+    st.ghi({"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": LY_DO}, so=so_tam,
+           ngay="2026-10-09", cham_luat=lambda n: thay.append(n) or [])
+    assert thay == [9999], thay
+
+
+@pytest.mark.parametrize("ten, muc, cham", [
+    ("cham file luat", {"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": LY_DO},
+     ["CLAUDE.md"]),
+    ("truoc moc thu hep", {"buoc": "BƯỚC 163", "khong_bat_buoc_vi": LY_DO}, []),
+    ("ten khong phai BUOC", {"buoc": "ĐO 5", "khong_bat_buoc_vi": LY_DO}, []),
+    ("da co trong so", {"buoc": "BƯỚC 164", "khong_bat_buoc_vi": LY_DO}, []),
+    ("ly do ngan", {"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": "ngan"}, []),
+    ("kem cau_hoi (nuoc doi)", {"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": LY_DO,
+                                "cau_hoi": "x"}, []),
+])
+def test_GHI_khong_bat_buoc_tu_choi_va_KHONG_cham_file(so_tam, ten, muc, cham):
+    truoc = so_tam.read_bytes()
+    with pytest.raises(st.TuChoi):
+        st.ghi(muc, so=so_tam, ngay="2026-10-09", cham_luat=lambda n: cham)
+    assert so_tam.read_bytes() == truoc, ten
+
+
+def test_GHI_khong_bat_buoc_tu_choi_ly_do_dan_lai_tu_BUOC_khac(so_tam):
+    st.ghi({"buoc": "BƯỚC 9998", "khong_bat_buoc_vi": LY_DO}, so=so_tam,
+           ngay="2026-10-09", cham_luat=_khong_cham)
+    truoc = so_tam.read_bytes()
+    with pytest.raises(st.TuChoi, match="9998"):
+        st.ghi({"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": LY_DO.upper()}, so=so_tam,
+               ngay="2026-10-09", cham_luat=_khong_cham)
+    assert so_tam.read_bytes() == truoc
+
+
+def test_GHI_khong_bat_buoc_tu_choi_khi_so_thieu_moc_thu_hep(so_tam):
+    d = json.loads(so_tam.read_text(encoding="utf-8"))
+    del d["_moc_chi_hoi_khi_doi_luat"]
+    so_tam.write_text(json.dumps(d, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with pytest.raises(st.TuChoi, match="moc"):
+        st.ghi({"buoc": "BƯỚC 9999", "khong_bat_buoc_vi": LY_DO}, so=so_tam,
+               ngay="2026-10-09", cham_luat=_khong_cham)
+
+
+def test_GHI_khong_bat_buoc_BUOC_dung_bang_moc_thi_NHAN_BUOC_ngay_duoi_moc_thi_TU_CHOI(so_tam):
+    """Biên của mốc: `n < moc` chứ không `n <= moc` (đột biến T1, lô B). Dời mốc của
+    sổ tạm lên 9990 để BƯỚC bằng mốc chưa có sẵn trong sổ."""
+    d = json.loads(so_tam.read_text(encoding="utf-8"))
+    d["_moc_chi_hoi_khi_doi_luat"] = 9990
+    so_tam.write_text(json.dumps(d, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with pytest.raises(st.TuChoi, match="moc"):
+        st.ghi({"buoc": "BƯỚC 9989", "khong_bat_buoc_vi": LY_DO}, so=so_tam,
+               ngay="2026-10-09", cham_luat=_khong_cham)
+    dong = st.ghi({"buoc": "BƯỚC 9990", "khong_bat_buoc_vi": LY_DO}, so=so_tam,
+                  ngay="2026-10-09", cham_luat=_khong_cham)
+    assert dong["khong_bat_buoc_vi"] == LY_DO
+
+
+def test_GHI_dung_duong_hoi_that_khi_khong_co_o_khong_bat_buoc(so_tam):
+    """Hai đường tách bạch: mục có `phat_hien` không bị nhánh mới nuốt."""
+    dong = st.ghi(_muc_tot(), so=so_tam, ngay="2026-10-09",
+                  cham_luat=lambda n: pytest.fail("duong hoi that khong duoc hoi may git"))
+    assert "khong_bat_buoc_vi" not in dong and dong["phat_hien"]
+
+
+def _the(phan_quyet):
+    return {"cau_hoi": "c", "phat_hien": [{"phan_quyet": phan_quyet}]}
+
+
+def test_DEM_hoi_that_dem_MUC_khong_dem_phat_hien_va_bo_o_khong_hoi():
+    so = {"BƯỚC 10": _the("THẬT. ok"),
+          "BƯỚC 11": {"cau_hoi": "c", "phat_hien": [{"phan_quyet": "THẬT. a"},
+                                                    {"phan_quyet": "THẬT. b"}]},
+          "BƯỚC 12": _the("SAI. x"),
+          "BƯỚC 13": {"cau_hoi": "c", "phat_hien": [], "khong_tim_thay_gi": True},
+          "BƯỚC 14": {"khong_bat_buoc_vi": "ly do"},
+          "BƯỚC 15": {"khong_soat_vi": "ly do cu"},
+          "BƯỚC 16": {"cau_hoi": "   ", "phat_hien": [{"phan_quyet": "THẬT."}]},
+          "ĐO 5": _the("THẬT."),
+          "BƯỚC 70-73": _the("THẬT.")}
+    assert st.dem_hoi_that(so, 10, 16) == (4, 2)         # 10, 11, 12, 13 đã hỏi; THẬT: 10, 11
+    assert st.dem_hoi_that(so, 70, 70) == (1, 1)         # mục gộp tính theo số ĐẦU
+
+
+def test_DEM_hoi_that_bien_hai_dau_la_BAO_GOM():
+    so = {f"BƯỚC {n}": _the("THẬT.") for n in (9, 10, 11, 12, 13)}
+    assert st.dem_hoi_that(so, 10, 12) == (3, 3)
+    assert st.dem_hoi_that(so, 10, 10) == (1, 1)
+    assert st.dem_hoi_that(so, 14, 20) == (0, 0)
+
+
+def test_DEM_CLI_so_that_cua_BUOC_1_den_129_la_25_tren_30():
+    """Số đã dùng làm lý do nới Quy tắc 3 (LO-TRINH.md). Sổ chỉ-thêm nên số này đứng yên."""
+    r = subprocess.run(
+        [sys.executable, str(GOC / "tools" / "so_tay.py"), "dem", "--tu", "1", "--den", "129"],
+        capture_output=True, text=True, encoding="utf-8", cwd=str(GOC))
+    assert r.returncode == 0, r.stderr
+    assert "30 muc da HOI THAT" in r.stdout and "25 muc co phan quyet THẬT" in r.stdout, r.stdout
+    assert "(25/30)" in r.stdout and "BƯỚC 1-129" in r.stdout, r.stdout

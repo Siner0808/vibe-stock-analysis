@@ -24,28 +24,24 @@ liệu, báo cáo hay commit phải được tính TRONG PHIÊN NÀY, kèm lện
 đo được 167,7s).
 
 **Quy tắc số 3 — BƯỚC ĐỔI MỘT LUẬT hoặc MỘT KẾT LUẬN ĐO thì PHẢI đi qua sổ tay
-NotebookLM.** Người dùng chốt 18/09/2026 cho MỌI BƯỚC, rồi **"Đồng ý" thu hẹp
-08/10/2026 (từ BƯỚC 164)**; BƯỚC ≤ 163 giữ luật cũ. Mục trong
-`docs/soat-notebooklm.json` của một BƯỚC là MỘT trong hai:
-(a) **hỏi thật** — `cau_hoi` nguyên văn, một `o_thoat` là chuỗi con của chính
-câu ấy, và một kết quả (`phat_hien` khác rỗng, hoặc `khong_tim_thay_gi: true`);
-(b) **`khong_bat_buoc_vi`** — lý do cụ thể, không dán lại từ BƯỚC khác, và CHỈ
-khi máy xác nhận BƯỚC chỉ đổi file ngoài danh sách luật: `tools/buoc_cham_luat.py`
-đọc lịch sử git; BƯỚC sửa `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` ·
-`MO-XE-KIEN-TRUC.md` · file này · `docs/TIEU-CHI-DOC-TRUOC.md` ·
-`docs/LO-TRINH.md` thì (b) bị từ chối.
-Ô `khong_soat_vi` **vẫn không được nhận** cho một BƯỚC (đóng từ BƯỚC 108). Máy
-chỉ thấy FILE, không thấy nghĩa: BƯỚC chỉ sửa `docs/STATE.md` mà viết một kết
-luận đo mới rồi khai (b) là chỗ kỷ luật, không phải cơ chế. Phải hỏi mà không
-hỏi được thì **BÁO người dùng**. Gác:
-`tests/test_soat_notebooklm.py::test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT`
-và `…::test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat`.
+NotebookLM** (chốt 18/09/2026 cho MỌI BƯỚC; thu hẹp 08/10/2026, từ BƯỚC 164;
+BƯỚC ≤ 163 giữ luật cũ). Mục trong `docs/soat-notebooklm.json` là MỘT trong hai:
+(a) **hỏi thật** — `cau_hoi` nguyên văn, `o_thoat` là chuỗi con của nó, và một
+kết quả (`phat_hien` khác rỗng, hoặc `khong_tim_thay_gi: true`);
+(b) **`khong_bat_buoc_vi`** — lý do cụ thể, không dán lại, và CHỈ khi
+`tools/buoc_cham_luat.py` (lịch sử git) xác nhận; BƯỚC sửa `CLAUDE.md` ·
+`NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · file này ·
+`docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md` thì phải hỏi thật. Ô `khong_soat_vi` **vẫn không
+được nhận** (đóng từ BƯỚC 108). Máy chỉ thấy FILE: kết luận đo mới chỉ nằm trong
+`docs/STATE.md` mà khai (b) là chỗ kỷ luật. Phải hỏi mà không hỏi được
+thì **BÁO người dùng**. Gác trong `tests/test_soat_notebooklm.py`:
+`test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT`,
+`test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat`.
 Cách làm từng thao tác: `references/soat-cheo-notebooklm.md`. Phạm vi là
 BƯỚC, không phải ĐO.
 
-**Mỗi BƯỚC từ 164 còn khai MỘT dòng `**Mốc:** <mã>`** (mã có thật trong
-`docs/LO-TRINH.md`, hoặc `quy-trinh — <lý do>`): người dùng duyệt lộ trình
-08/10/2026. Gác: `tests/test_moc_lo_trinh.py`.
+**Mỗi BƯỚC từ 164 khai MỘT dòng `**Mốc:** <mã>`** (mã trong `docs/LO-TRINH.md`,
+hoặc `quy-trinh — <lý do>`). Gác: `tests/test_moc_lo_trinh.py`.
 
 Chỗ đã trượt 19/27 lượt nằm ở **CÂU HỎI**, không ở công cụ: hỏi *"tài liệu
 nói gì về MÃ của tôi"* thì nó không thấy mã; hỏi *"có chỗ nào NÓI NGƯỢC kết
@@ -329,21 +325,17 @@ tác trình duyệt không để dấu vết trong repo); đây là kỷ luật,
 `tools/doi_chieu_trich_dan.py` phủ chúng, để trích dẫn từ bản nguyên văn cũ
 vẫn đối chiếu được.
 
-### Nhịp soát định kỳ (7 ngày; người dùng chốt 2 ngày 16/09/2026, "Đồng ý" đổi 08/10/2026)
+### Nhịp soát định kỳ (7 ngày; đổi 08/10/2026)
 
 Cập nhật đã chạy theo sự kiện (Bước 6); nửa chưa có cơ chế là **soát lại thứ
-ĐÃ CÓ**. Từ 08/10/2026 phần máy làm được chạy TỰ ĐỘNG mỗi tuần ở
-`.github/workflows/soat-tuan.yml` (kết quả ở `$GITHUB_STEP_SUMMARY`, lời khai
-chưa ai mở thì `::warning::`, không làm đỏ job); **phần PHÁN vẫn là lượt soát của
-agent**, hạn kế = ngày LÀM lượt trước + 7:
+ĐÃ CÓ**. Phần máy chạy TỰ ĐỘNG mỗi tuần ở `.github/workflows/soat-tuan.yml`
+(`::warning::`, không làm đỏ job); **phần PHÁN vẫn là lượt soát của agent**, hạn kế
+= ngày LÀM lượt trước + 7:
 
 ```bash
 ./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py
 ./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py
 ```
-
-Lệnh thứ hai chỉ chạy được trên MÁY người dùng (đường nằm ở thư mục nhà), nên
-workflow không chạy nó; lượt soát tay vẫn chạy cả hai.
 
 Cái đầu in mọi **lời khai phủ định có nêu tên** còn sống trong các tài liệu
 (quét theo họ từ `PHU_DINH` — *không nhập · gọi · dùng · chạm* nằm trong đó,
