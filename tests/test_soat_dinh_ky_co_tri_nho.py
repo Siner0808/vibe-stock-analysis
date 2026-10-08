@@ -377,3 +377,72 @@ def test_DONG_HAN_cua_HANDOFF_THAT_theo_kip_so_va_con_mot_luot_ke():
     ke = [m.group(1) for m in s.RE_HAN_LUOT.finditer(phang)
           if int(m.group(1)) == n + 1]
     assert ke, f"HANDOFF không nêu hạn của lượt {n + 1} — lượt sau không có hạn"
+
+
+# ── BƯỚC 163: phạm vi LỆNH KIỂM phải rộng bằng phạm vi CÂU PHÁN (lỗi 129) ────
+
+#: Từ lượt 11 (08/10/2026). Lượt 10 là bản ghi sinh ra lỗi nên đứng ngoài, và
+#: là ca dương của phép thử: nếu máy không thấy nó thì máy hỏng.
+TU_NGAY_QUET_HEP = "2026-10-08"
+
+#: Nguyên văn `tu_kiem` của lượt 10 cho lời khai `_doc()`.
+TU_KIEM_LUOT_10_DOC = "grep -n 'def _doc' *.py -> chỉ app.py:485 _doc_nhat_ky"
+
+
+def test_QUET_HEP_dung_lai_nguyen_van_loi_129_phai_DO():
+    """Phát đầu: dựng lại đúng lệnh đã sinh ra phán quyết sai."""
+    assert s.tu_kiem_quet_hep(TU_KIEM_LUOT_10_DOC)
+
+
+def test_QUET_HEP_khong_bat_lenh_co_pham_vi_dung():
+    """Chiều ngược lại: nới thành bắt mọi `grep` là gác vô dụng (đỏ giả)."""
+    for lenh in (
+            "git grep -nE 'def _doc' -- '*.py'",          # pathspec: cả cây
+            "grep -rn _doc --include=*.py .",             # đệ quy
+            "grep -nr _doc *.py",                         # cờ gộp có r
+            "grep -Rn _doc *.py",                         # R hoa
+            "grep -c x *.pyc",                            # đuôi khác (\\b)
+            "grepper -c x *.py",                          # không phải từ grep
+            "grep -n _doc --recursive *.py",
+            "grep -n _doc tools/*.py",                    # thư mục nêu tên
+            "grep -n _doc fundamental_agent.py",          # MỘT file nêu tên
+            "ls *.py | wc -l"):                           # không phải grep
+        assert not s.tu_kiem_quet_hep(lenh), lenh
+
+
+def test_QUET_HEP_bat_ca_glob_md_json_va_doan_sau_dau_ong():
+    assert s.tu_kiem_quet_hep("grep -c x *.md")
+    assert s.tu_kiem_quet_hep("grep -c x *.json")
+    # `git grep` với glob KHÔNG nháy cũng bị shell bung ở gốc trước khi tới git
+    assert s.tu_kiem_quet_hep("git grep -n x *.py")
+    assert s.tu_kiem_quet_hep("/usr/bin/grep -n x *.py")
+    assert s.tu_kiem_quet_hep("egrep -n x *.py")                # họ grep
+    # cờ chỉ tính khi là CỜ: `-bar` trong tên không phải `-r`
+    assert s.tu_kiem_quet_hep("grep -n foo-bar *.py")
+    # ranh giới của từng lần grep: `&&` và `|` cũng cắt như `;`
+    assert s.tu_kiem_quet_hep("grep -rn x tools && grep -n y *.py")
+    assert s.tu_kiem_quet_hep("grep -rn x tools | grep -n y *.py")
+    # lần ĐẦU đệ quy không che lần SAU hẹp: phải xét mọi lần, không chỉ lần đầu
+    assert s.tu_kiem_quet_hep("grep -rc x *.md ; grep -c y *.md")
+    # nhiều lần grep: MỘT lần hẹp là đủ, các lần đệ quy không che nó
+    assert s.tu_kiem_quet_hep("grep -c x *.md ; grep -rc y *.md")
+    assert s.tu_kiem_quet_hep("grep -c x *.md && grep -rc y *.md")
+    # đoạn đầu sạch, đoạn sau mới hẹp: phải xét TỪNG lần grep
+    assert s.tu_kiem_quet_hep("git grep -n x -- '*.py' ; grep -n x *.py")
+    # cờ `-r` của lần grep ĐẦU không được che lần grep SAU
+    assert s.tu_kiem_quet_hep("grep -rn x tools ; grep -n y *.py")
+
+
+def test_QUET_HEP_ban_ghi_THAT_luot_10_bi_bat_va_tu_luot_11_deu_sach():
+    luot = _so()["lan_soat"]
+    cu = [l for l in luot if l["ngay"] < TU_NGAY_QUET_HEP]
+    moi = [l for l in luot if l["ngay"] >= TU_NGAY_QUET_HEP]
+    assert moi, "không lượt nào từ mốc — phép thử rỗng"
+    bi_bat_cu = [p["tu_kiem"] for l in cu for p in l.get("phat_hien", [])
+                 if s.tu_kiem_quet_hep(p.get("tu_kiem") or "")]
+    assert bi_bat_cu, "máy không thấy ca THẬT của lượt 10 — máy hỏng"
+    for l in moi:
+        for i, p in enumerate(l.get("phat_hien", [])):
+            assert not s.tu_kiem_quet_hep(p.get("tu_kiem") or ""), (
+                f"{l['ngay']}[{i}]: `tu_kiem` quét glob trần ở GỐC repo, "
+                "không đệ quy — dùng `git grep -- '*.py'`")

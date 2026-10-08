@@ -388,7 +388,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
->   Lượt 11: 09/10.
+>   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 10/10.
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
