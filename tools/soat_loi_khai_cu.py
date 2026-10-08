@@ -260,6 +260,26 @@ def luot_het_han_chua_danh_dau(van_handoff: str, so_luot_da_soat: int) -> list[i
     return thieu
 
 
+#: Lỗi 129 (lượt soát 11): lượt 10 phán *"không module nào của dự án có hàm
+#: `_doc`"* bằng một `grep` trên glob `.py` Ở GỐC REPO — không đệ quy, nên chỉ
+#: thấy các file nằm ngang `app.py`, trong khi hàm có ở `tools/` và `tests/`.
+#: Phạm vi của lệnh kiểm hẹp hơn phạm vi của câu phán.
+RE_QUET_HEP = re.compile(r"grep\b([^|;&>\n]*?)\s\*\.(py|md|json)\b")
+RE_DE_QUY = re.compile(r"(^|\s)-[A-Za-z]*[rR]|--recursive")
+
+
+def tu_kiem_quet_hep(lenh: str) -> bool:
+    """`tu_kiem` có chứa một `grep` (hoặc `git grep`) trên glob TRẦN không nháy, không đệ quy.
+
+    HÀM THUẦN. Shell bung `*.py` không nháy ở thư mục hiện hành trước khi lệnh
+    chạy, nên chỉ file ngang hàng gốc được quét. Chỉ bắt hình dạng đã cắn thật;
+    `git grep -- '*.py'` (pathspec có nháy: git quét cả cây), `grep -r
+    --include=*.py` và `grep ... tools/*.py` (thư mục nêu tên) KHÔNG bị bắt.
+    """
+    return any(not RE_DE_QUY.search(m.group(1))
+               for m in RE_QUET_HEP.finditer(lenh))
+
+
 def main(tham_so: list[str] | None = None) -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")

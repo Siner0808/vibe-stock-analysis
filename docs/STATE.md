@@ -21285,3 +21285,75 @@ Hiệu chuẩn lực ở mốc THẬT: 252 phiên × 45 mã, 20 hạt dữ liệ
 Phiên đám mây không mở được sổ tay: câu hỏi dựng bằng `tools/so_tay.py hoi --buoc "BƯỚC 162" …`, dán nguyên văn trong mô tả PR #208. **Leader hỏi hộ 08/10/2026** từ khung trình duyệt của mình, câu gửi y nguyên; trả lời chép nguyên văn: *"không tìm thấy câu nào nói ngược"*. Độ tươi đo ngay trước lượt hỏi: sổ tay thấy BƯỚC lớn nhất **161** (13 nguồn `@13c32a0`, làm tươi 07/10) = `main`. **Tự kiểm bằng `grep` trên chính `@13c32a0` ra câu âm SAI — sổ tay BỎ SÓT hai câu nằm trong nguồn nó thấy:** BƯỚC 144 quy ước 4 (trạng thái `CHUA DU DU LIEU` dưới 21 phiên có nhãn rồi `DANG CHAM`/`QUA`/`THUA`, không nhắc mốc) và BƯỚC 161 mục *Chấm* (*"Chưa đủ 21 phiên có nhãn … thì KHÔNG chạy `so_cap`"*). Câu đầu đã có ở *Câu thay thế*; câu sau leader bổ sung vào đó. Lệnh: `git show 13c32a0:docs/STATE.md | grep -n -E 'Chưa đủ 21 phiên|nhãn hoặc dưới 40 mã'`. Lối thoát chặn sổ tay BỊA, không chặn nó BỎ SÓT — dù nguồn đã tươi. Tự kiểm bằng `grep` (việc sổ tay không làm được) các câu nói *"vòng xác nhận phán QUA"* mà không nhắc mốc: BƯỚC 144 (quy ước 4), BƯỚC 148, `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 23 — đã nêu ở *Câu thay thế*.
 
 **Việc kế.** (1) ~~Người dùng quyết rủi ro 1 (số mã đủ ở 252 phiên)~~ — leader 08/10: tiền đề hết đúng từ BƯỚC 146 (🔴 ở rủi ro 1); còn lại là một ĐO độ phủ ký trước — nên đo `n_ma` thật trên máy bằng `tools/cham_xac_nhan.py` trước mốc. (2) Trên máy: chạy `tools/keo_bang_gia.py` thật (cần vnstock; sau 15:30 giờ VN), rồi `tools/cham_xac_nhan.py` với bảng giá ấy. (3) Cập nhật `lich_giao_dich` cho 2027 khi Sở công bố (nếu không, tiến độ trên app *"chưa tính được"* từ 01/01/2027). (4) **Chỗ lưu phán quyết khi tới mốc (≈ 2027):** chọn nơi lưu phán quyết cùng mã băm bảng giá và tệp dòng quyết định, để một lần đọc không bị đọc lại thành lần nhìn mới. (5) Leader hỏi sổ tay NotebookLM bằng câu ở PR rồi đẩy mục BƯỚC 162 lên nhánh.
+
+## BƯỚC 163 — SOÁT ĐỊNH KỲ 11: 38/38 LỜI KHAI PHÁN LẠI, MỘT LỜI KHAI MỚI (HỖN HỢP, ĐÃ ĐÁNH DẤU); PHÁN QUYẾT LƯỢT 10 VỀ `_doc()` SAI VÌ LỆNH KIỂM CHỈ QUÉT GỐC REPO (08/10/2026)
+
+Leader giao lượt 11 (lượt 10 = BƯỚC 160, làm 07/10; hạn lượt 11 ghi ở HANDOFF là 09/10 nên làm sớm một ngày). Nhánh `soat/vong-11` từ `main` `0334323`, worktree ngoài repo. Không chạm logic chấm điểm, `docs/ung-vien.json`, `cham_bong.py`, `cham_xac_nhan.py`, `keo_bang_gia.py`; không gọi mạng hay vnstock; không đọc dữ liệu đã khai trước ngày hẹn. Từ lượt 10 (`c847553`) đến `0334323` mã đổi ở P3d: `cham_bong.py` · `cham_xac_nhan.py` · `keo_bang_gia.py` · `app.py` · hai công cụ `tools/` mới và bốn file test (`git diff --stat c847553 0334323 -- '*.py' .github/`: 13 file).
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+```
+38 lời khai · 9 tài liệu · chưa ai mở: 1   (lượt 10: 37 · 0)
+2 dòng sổ không còn khớp lời khai nào      (hằng số của sổ chỉ-thêm, cùng phán quyết lượt 8–10)
+```
+
+Cả 38 được mở lại và phán bằng lệnh chạy hôm nay (`docs/soat-dinh-ky.json`, lượt 2026-10-08, ô `dong` lấy nguyên văn từ chính công cụ qua `loi_khai_con_song()`): **32 THẬT · 5 SAI-đã-đánh-dấu · 1 SAI-MỘT-PHẦN-đã-đánh-dấu**. Năm câu SAI vẫn là năm của lượt 10 (`references/loi-da-mac.md` :303 và :332; `docs/HANDOFF.md` hai dòng *"Chưa có dòng thật nào"* và *"Repo không nhập `vnstock_data`"*; bản lưu `CLAUDE-md` mục telemetry), mỗi câu có dấu 🔴/⚠️ ngay dòng dưới (`sed -n` từng chỗ). Số dòng của các câu ấy trôi vì tài liệu dài ra; sổ khoá theo nguyên văn nên vẫn khớp (chưa ai mở = 0 sau khi ghi).
+
+**Lời khai mới duy nhất: `docs/HANDOFF.md` :497**, trong khối BƯỚC 162 — *"phép so chỉ giữ mã có điểm ở MỌI phiên của cửa sổ; trên 252 phiên mã có thời gian đang giữ lệnh (không có dòng quyết định) có thể làm số mã đủ rơi dưới `MIN_MA` — chưa đo trên dữ liệu thật; `tools/cham_xac_nhan.py` in số mã đủ trước mốc"*. Ba vế, ba phán quyết: (a) *"mã đang giữ không có dòng quyết định"* **SAI từ BƯỚC 146** (30/09) — `grep -rn LY_DO_DANG_GIU --include=*.py . | grep -v tests/` ra `paper_runner.py:334`, `paper_trading.py:304` và `:699`; dấu 🔴 của leader đứng ngay dòng dưới (:498); (b) *"chưa đo trên dữ liệu thật"* **THẬT**; (c) `tools/cham_xac_nhan.py` in số mã đủ trước mốc **THẬT** (`tools/cham_xac_nhan.py:62` in `ma tran : n_phien phien co nhan x n_ma ma day du`). Một dòng ba vế nên phán quyết ghi "hỗn hợp" và mở đầu bằng SAI để máy đọc không đếm nó vào THẬT.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+0334323 : 0 chết · 13 sử liệu · 43 còn   (mã thoát 0)
+```
+
+Bằng lượt 10 từng số. Đo lại **sau lần ghi cuối** của lượt (lỗi 121) — số ở sổ (ô `duong_ngoai_repo.sau_luot`) khớp số ở dưới mục *Đo lại sau lần ghi cuối*.
+
+### Lỗi 129 — phạm vi LỆNH KIỂM hẹp hơn phạm vi CÂU PHÁN, và phán quyết sai đè phán quyết đúng
+
+Lời khai: `docs/lich-su/CLAUDE-md-2026-09-30.md` :670 *"Bản trước trỏ tới một hàm `_doc()` **chưa bao giờ tồn tại** trong module này"*. Lượt 4 (23/09) phán THẬT và ghi: *"tests/test_tai_lieu_khop_ten_ma.py CÓ một hàm tên _doc, nên một lượt grep toàn repo sẽ 'tìm thấy' nó … ba chữ 'trong module này' giữ nó đúng"*. Lượt 10 (07/10) phán lại THẬT với lý do *"không module nào của dự án có hàm `_doc` (chỉ app.py `_doc_nhat_ky`)"* và lệnh `grep -n 'def _doc' *.py` — một glob ở gốc repo, **không đệ quy**, nên chỉ thấy các file ngang hàng `app.py`.
+
+```
+git grep -nE 'def _doc\b' -- '*.py'
+tests/test_canh_gac_du_lieu.py:75 · tests/test_lich_cron_chuong.py:43 · tests/test_tai_lieu_khop_hang_so.py:99
+tests/test_tai_lieu_khop_ten_ma.py:120 · tools/kiem_cua_song.py:122       (năm file)
+grep -n 'def _doc' fundamental_agent.py          -> rỗng (rc=1)
+git log --all --oneline -S'def _doc(' -- fundamental_agent.py -> rỗng
+```
+
+Lời khai trong tài liệu vẫn THẬT (nó nói về `fundamental_agent.py`); **sai ở CÂU PHÁN của lượt 10**, mà `da_soat()` lấy lượt gần nhất thắng nên nó đè phán quyết đúng của lượt 4. Hình dạng là của lỗi 61: một phép đo hẹp hơn quần thể nó phán, ra một kết quả nghe hợp lý. Phán lại từng lời khai bằng lệnh mới là cách làm đúng và vẫn thế; điều thiếu là đối chiếu phạm vi lệnh với phạm vi câu, và đối chiếu kết quả với phán quyết cũ **có sẵn trong sổ** (`grep -n '_doc' docs/soat-dinh-ky.json` ra hai phán quyết đối nghịch cạnh nhau). Vì sao lượt 10 không làm: tôi không biết, và không đoán. Không sửa bản ghi lượt 10 (sổ chỉ-thêm); bản ghi lượt 11 đè lại, và ghi hai dòng: phán quyết đúng cho `_doc()` kèm đầu ra nguyên văn, và dòng "cùng nguyên nhân, nhẹ hơn" cho ba ô `tu_kiem` lượt 10 chép THIẾU đầu ra lệnh (5 thay vì 6 dòng `return 2`; bỏ một trong hai dòng `_cached_tier`; *"+5 file"* thay vì 7 — lượt 10 và `0334323` cùng ra 8 file trong `git grep -ln 'import vnstock_data'`, đo ở cả hai commit). Cả ba phán quyết vẫn đúng.
+
+**Gác (máy chặn được MỘT PHẦN):** `tools/soat_loi_khai_cu.py::tu_kiem_quet_hep` (hàm thuần, hai biểu thức chính quy `RE_QUET_HEP` và `RE_DE_QUY`) + bốn test `tests/test_soat_dinh_ky_co_tri_nho.py::test_QUET_HEP_*`. Từ lượt 11, không `tu_kiem` nào được chứa một `grep` hoặc `git grep` trên glob **trần không nháy** (`*.py`, `*.md`, `*.json`) mà không có cờ đệ quy; `git grep -- '*.py'` (pathspec có nháy), `grep -r --include=*.py` và `grep … tools/*.py` KHÔNG bị bắt. **Ca dương là chính bản ghi lượt 10** — phép thử đòi máy phải thấy nó, nếu không máy hỏng (lỗi 66). **Đục:** phát đầu dựng nguyên văn lệnh lượt 10 → đỏ. Bộ 17 phát (độ rộng chuỗi chính quy, ranh giới `; & |`, hai cờ `r`/`R`, `--recursive`, `any`→`all`, bỏ `not`, `group(1)`→cả lệnh, `finditer`→`search`): lượt đầu **11/17 đỏ**; sáu sống sót là sáu lỗ hổng gác thật — `\b` ở hai đầu `grep` (nó loại nhầm `/usr/bin/grep` và `egrep` nên tôi BỎ `\b` đầu và thêm hai ca), `&` và `|` không bị kiểm là ranh giới giữa hai lần `grep`, `(^|\s)` trước cờ (`-bar` trong `foo-bar` bị đọc là cờ `-r`), `finditer`→`search` (lần đệ quy đứng TRƯỚC lần hẹp che nó). Thêm các ca đó → bộ 18 phát (thêm phát *"thêm `\b` đầu"*): **18/18 đỏ**. **Còn hở:** máy chỉ thấy hình dạng *glob trần ở gốc*; một `grep` một thư mục con rồi phán *"không module nào"* vẫn cần mắt người. Kỷ luật còn lại: phạm vi lệnh kiểm phải phủ cả quần thể mà câu phán nêu, và `tu_kiem` dán đầu ra nguyên văn chứ không tóm tắt. Dòng lỗi 129 ở `references/loi-da-mac.md` (`⚠️ một phần`), phân lớp `chua-do` · sống 1 ngày · nguồn `git` ở `docs/loi-phan-lop.json`.
+
+### Ngoài tầm công cụ — BƯỚC 161 và 162 ở chính `docs/STATE.md`
+
+Công cụ cố ý không quét `docs/STATE.md`, nên phần lớn lời khai của hai BƯỚC P3d (107 dòng) không vào 38. Quét tay bằng chính `PHU_DINH` + `CO_TEN` + `DA_CO_DAU` trên hai mục ấy: **BƯỚC 161 → 8 câu, BƯỚC 162 → 4 câu** chưa đánh dấu (đếm bằng một script nháp ngoài repo gọi lại `PHU_DINH` · `CO_TEN` · `DA_CO_DAU` của công cụ trên từng mục BƯỚC — **không có lệnh tái lập trong repo**, nên hai con số 8 và 4 là số đếm của một lần chạy, không phải số đo đặt gác). Kiểm bằng lệnh **năm nhóm**, tất cả THẬT: (1) *"`tools/cham_xac_nhan.py` CHỈ IN"* — AST không có `write_text`/`to_csv`/`dump`/`replace`/`open(…,'w')` ở hai file `cham_xac_nhan`; (2) *"không bao giờ điền giá"* — `ffill|bfill|fillna|interpolate|fill_value` chỉ xuất hiện đúng một chỗ, `cham_xac_nhan.py:24`, chính câu cấm trong docstring (`keo_bang_gia.py`, hai file `tools/`: 0); (3) `keo_bang_gia.py` không nhập vnstock ở mức module — chỉ `data_collectors` trong `lay_mac_dinh`; (4) *"`nhan_vuot_ro` dùng `close` của T+1 dù docstring nói giá mở cửa"* — `experiment_tran_dac_trung.py:179–187`, `shift(-1)` trên `d["close"]`, docstring ghi *"vào ở giá mở cửa T+1"*; (5) *"không đổi `NHIP`, `ALPHA`, `MIN_MA`; không đụng `docs/ung-vien.json`"* — `git diff c847553 HEAD -- cham_bong.py` không dòng nào đổi ba hằng số; `docs/ung-vien.json` không có trong diff. **Bảy câu còn lại KHÔNG kiểm** (chủ yếu số đo dữ liệu giả của hai bảng *Đo trên dữ liệu GIẢ* và ba câu về phạm vi `kiem_lich`/app); không nói chúng đúng.
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Giả thuyết bị bác:** *"hai BƯỚC P3d lớn (2.752 dòng thêm vào `*.py`, phần lớn là test; 107 dòng STATE) sẽ thêm nhiều lời khai phủ định vào quần thể của công cụ"*. Đo: 37 → 38, một lời khai. Không phải vì hai BƯỚC ít khai mà vì công cụ **không đọc `docs/STATE.md`**, nơi chúng nằm; chỉ phần HANDOFF mà leader chép sang mới vào. Quần thể bị chọn bởi tên file, không bởi nội dung — đúng điều `_gioi_han` của sổ đã khai.
+- **Ước lượng sai (của lượt 10):** *"cả 37 được mở lại và phán bằng một lệnh chạy hôm nay — thứ duy nhất khiến chữ vẫn đúng ở sổ có ngày hôm nay đứng sau nó"*. Đúng với 36, sai với một: lệnh ấy chạy mà không phủ câu phán. Lệnh chạy hôm nay không bằng bằng chứng nếu phạm vi của nó hẹp hơn câu. Lượt này tôi chạy lại **mọi** `tu_kiem` của lượt 10 thay vì chép, và đối chiếu phạm vi từng lệnh với từng câu; bắt được một chỗ, và ba chỗ chép thiếu đầu ra.
+- **KHÔNG nói:** 38 là mọi lời khai phủ định (công cụ chỉ thấy lời khai nêu TÊN trong 9 tài liệu); bảy câu STATE nói trên đúng; `docs/STATE.md` ngoài BƯỚC 161–162 không còn câu nào sai ngoài *"sau luot: 0 chet"* của BƯỚC 151 (chưa quét nhật ký).
+- **Hạn lượt 12.** Leader ghi *11/10* trong lời giao; tôi ghi **10/10** ở HANDOFF vì `tools/cua_mo_phien.py` (`NHIP_SOAT_NGAY = 2`) đếm từ NGÀY lượt cuối (08/10) và lượt 10 cũng làm theo cách ấy (làm 07/10 → hạn lượt 11 09/10). Leader xác nhận 10/10 theo máy: lời giao tính 11/10 từ ngày HẠN của lượt 11 (09/10) thay vì từ ngày LÀM (08/10). Điểm lệch ghi ở đây để lượt 12 không phải đoán.
+
+### Soát chéo NotebookLM
+
+Câu tiếng Anh, đòi trả lời tiếng Việt, dựng bằng `tools/so_tay.py hoi --buoc "BƯỚC 163" …`; leader hỏi hộ ở khung trình duyệt của họ, không Chrome. Độ tươi **đo trước lượt hỏi**: sổ tay thấy BƯỚC lớn nhất **161** (13 nguồn `@13c32a0`), `main` có BƯỚC 162 — cũ 1 BƯỚC, không làm tươi (leader quyết); sổ tay không thấy khối BƯỚC 162 nhưng thấy mọi chỗ khác mà bốn ví dụ nhắm tới. Trả lời chép nguyên văn: *"không tìm thấy câu nào nói ngược"*.
+
+**Tự kiểm câu âm bằng `grep` cả bốn họ ví dụ** (lệnh và kết quả ở `_tu_kiem_cau_am` của mục `docs/soat-notebooklm.json`). Không câu nào nói ngược — kết luận của sổ tay đúng về nội dung — **nhưng nó BỎ SÓT ba chỗ nằm ngay trong nguồn nó thấy**: `docs/TIEU-CHI-DOC-TRUOC.md` :3686 (ĐO 23: *"mã đang giữ vị thế không có dòng quyết định"* làm nguyên nhân cho 0 mã đầy đủ — nói về dữ liệu SEEDED trước mốc BƯỚC 146, không dấu nhưng vẫn THẬT) và `docs/STATE.md` :2118, :7213 (`fundamental_agent._doc()` — cái tên chết mà :7213 tự nêu là con trỏ chết). Cả ba là sử liệu về dữ liệu/ngày của chúng; không sửa. Lần thứ năm sổ tay bỏ sót một câu âm (24/09, BƯỚC 127, BƯỚC 160, BƯỚC 162, nay): lối thoát chặn nó BỊA, không chặn nó BỎ SÓT — dù nguồn gần tươi. Ba chỗ nó đáng được hỏi trúng (lỗi 129, hạn lượt 12, HANDOFF :497) đều là chuyện về LỆNH và NGÀY, những thứ sổ tay không thấy; câu hỏi chỉ bắt được phần chữ.
+
+### Năm cổng
+
+Mốc `docs/moc_so_test.json` 2055 → **2059** (`tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do`, +4 test `test_QUET_HEP_*`, không test nào mất). Lượt cổng 1 chạy SỚM trên cây đã có gác (trước khi viết STATE): `2057 passed, 1 skipped, 1 failed` (263,9 s) — 1 đỏ là `test_MOC_TREN_DIA_khop_so_test_THAT`, đúng vì chưa cập nhật mốc. Lượt chạy đầy đủ cuối, tuần tự, trên cây cuối **nằm ở thân PR** (nó sinh ra sau file này, nên không ghi ở đây). Gác lỗi 125 (`test_DONG_HAN_cua_HANDOFF_THAT_theo_kip_so_va_con_mot_luot_ke`) đỏ đúng một lần ở giữa lượt — sau khi ghi lượt 11 vào sổ, trước khi sửa HANDOFF — và xanh khi HANDOFF mang `Lượt 11 (✅ BƯỚC 163)` cùng `Lượt 12: 10/10`: lần đầu nó được dùng trên một lượt thật, và nó làm đúng việc.
+
+### Đo lại sau lần ghi cuối
+
+`./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py`, chạy SAU khi mọi file tài liệu đã được ghi: kết quả xem dòng ngay dưới (nếu lệch ô `duong_ngoai_repo.sau_luot` của lượt 2026-10-08 ở `docs/soat-dinh-ky.json` thì lượt này sai lỗi 121).
+
+```
+0334323 + sửa lượt 11 : 0 chết · 13 sử liệu · 43 còn   (mã thoát 0)
+```
+
+Khớp ô `duong_ngoai_repo.sau_luot` của lượt 2026-10-08. `tools/soat_loi_khai_cu.py` sau lượt: 38 lời khai, chưa ai mở 0.
+
+**Việc kế.** Không có việc chờ người dùng quyết. Lượt 12 đến hạn **10/10/2026** (nhịp 2 ngày kể từ ngày LÀM lượt 11, 08/10). Gợi ý cho lượt sau, không bắt buộc: khi chép đầu ra một lệnh vào `tu_kiem`, dán nguyên văn thay vì tóm tắt (lỗi 129); và phản ứng đầu tiên với một phán quyết *"không … nào"* là hỏi lệnh của nó phủ gì.
