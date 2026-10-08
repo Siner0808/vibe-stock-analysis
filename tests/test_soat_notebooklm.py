@@ -24,7 +24,9 @@ import re
 import sys
 from pathlib import Path
 
-GOC = Path(__file__).resolve().parent.parent
+import pytest
+
+GOC =Path(__file__).resolve().parent.parent
 SO = GOC / "docs" / "soat-notebooklm.json"
 SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 TIEU_CHI = GOC / "docs" / "TIEU-CHI-DOC-TRUOC.md"
@@ -89,8 +91,9 @@ def test_MOI_BUOC_tu_MOC_deu_co_mot_dong_trong_so():
              if t not in co]
     assert not thieu, (
         f"Cac BUOC sau chua khai da soat cheo hay chua: {thieu}\n"
-        f"Them mot dong vao {SO.name} — hoac `phat_hien`, hoac "
-        f"`khong_soat_vi` kem ly do that.")
+        f"Them mot dong vao {SO.name}: hoi that (`phat_hien` hoac "
+        f"`khong_tim_thay_gi`), hoac — chi tu BUOC {so['_moc_chi_hoi_khi_doi_luat']} "
+        f"va chi khi khong cham file luat — `khong_bat_buoc_vi`.")
     print(f"PASS  moi BUOC tu {so['_moc_buoc']} deu co dong khai")
 
 
@@ -170,14 +173,20 @@ def test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so():
     print(f"PASS  {len(co)} phep do deu co dong khai")
 
 
-def test_MOI_DONG_phai_khai_MOT_trong_HAI_the_khong_duoc_ca_hai():
-    """`phat_hien` XOR `khong_soat_vi`. Có cả hai là nói nước đôi."""
+def test_MOI_DONG_phai_khai_MOT_trong_BA_the_khong_duoc_hai_cai():
+    """`phat_hien` XOR `khong_soat_vi` XOR `khong_bat_buoc_vi`. Hai cái là nói nước đôi.
+
+    Thẻ thứ ba thêm ở BƯỚC 164 (08/10/2026). Người dùng đồng ý thu hẹp Quy tắc 3,
+    trả lời nguyên văn: "Đồng ý" cho câu "Giảm phần việc quy trình: soát tự động
+    mỗi tuần, chỉ hỏi NotebookLM cho những BƯỚC đổi kết luận đo hoặc đổi luật".
+    Đây là nới CÓ CHỦ ĐÍCH: gác vẫn đòi đúng MỘT thẻ, và thẻ mới chỉ hợp lệ khi
+    máy xác nhận BƯỚC không chạm file luật (`test_O_KHONG_BAT_BUOC_…` bên dưới).
+    """
+    cac_the = ("phat_hien", "khong_soat_vi", "khong_bat_buoc_vi")
     for ten, d in _so()["soat"].items():
-        co_pd = "phat_hien" in d
-        co_ks = "khong_soat_vi" in d
-        assert co_pd or co_ks, f"{ten}: khong khai gi ca"
-        assert not (co_pd and co_ks), (
-            f"{ten}: khai CA HAI `phat_hien` lan `khong_soat_vi`")
+        co = [k for k in cac_the if k in d]
+        assert co, f"{ten}: khong khai gi ca"
+        assert len(co) == 1, f"{ten}: khai nhieu hon mot the: {co}"
     print("PASS  moi dong khai dung mot the")
 
 
@@ -185,18 +194,20 @@ def test_LY_DO_KHONG_SOAT_khong_duoc_rong_va_khong_duoc_chung_chung():
     """`khong_soat_vi: ""` hay `"khong can"` bị từ chối — cùng cơ chế `# bia-ok:`.
 
     Một ô thoát không đòi lý do thật thì nó là một ô thoát tự do, và gác
-    này thành trang trí (lỗi 31).
+    này thành trang trí (lỗi 31). Từ BƯỚC 164 gác này canh cả `khong_bat_buoc_vi`
+    (người dùng "Đồng ý" 08/10/2026): ô mới cũng không được là câu thần chú.
     """
     MO_HO = ("khong can", "không cần", "khong quan trong", "n/a", "-", "sau")
     for ten, d in _so()["soat"].items():
-        ly_do = d.get("khong_soat_vi")
-        if ly_do is None:
-            continue
-        assert len(ly_do.strip()) >= 25, (
-            f"{ten}: ly do khong soat qua ngan ({len(ly_do.strip())} ky tu) — "
-            f"{ly_do!r}")
-        assert ly_do.strip().lower() not in MO_HO, f"{ten}: ly do chung chung"
-    print("PASS  moi ly do khong-soat deu cu the")
+        for o in ("khong_soat_vi", "khong_bat_buoc_vi"):
+            ly_do = d.get(o)
+            if ly_do is None:
+                continue
+            assert len(ly_do.strip()) >= 25, (
+                f"{ten}: ly do {o} qua ngan ({len(ly_do.strip())} ky tu) — "
+                f"{ly_do!r}")
+            assert ly_do.strip().lower() not in MO_HO, f"{ten}: ly do chung chung"
+    print("PASS  moi ly do khong-soat / khong-bat-buoc deu cu the")
 
 
 #: BA ô, không phải hai — cùng quy ước với `vnstock_goi.kiem_goi`,
@@ -465,6 +476,20 @@ def buoc_tu_moc_bat_buoc() -> list[str]:
     return ten_buoc(STATE.read_text(encoding="utf-8"), _moc_bat_buoc())
 
 
+def _moc_chi_hoi() -> int:
+    """Mốc BƯỚC 164: từ đó BƯỚC không đổi luật được khai `khong_bat_buoc_vi`."""
+    m = _so().get("_moc_chi_hoi_khi_doi_luat")
+    assert isinstance(m, int) and not isinstance(m, bool), (
+        "so thieu `_moc_chi_hoi_khi_doi_luat` — gac nay khong biet ap tu dau")
+    return m
+
+
+def _tools_so_buoc(ten: str):
+    sys.path.insert(0, str(GOC / "tools"))
+    from buoc_cham_luat import so_buoc
+    return so_buoc(ten)
+
+
 def test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT():
     """Một BƯỚC khai `khong_soat_vi` từ mốc này trở đi → ĐỎ.
 
@@ -481,9 +506,19 @@ def test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT():
     và không thấy gì* với *chưa hỏi*, mà phân biệt ấy là toàn bộ việc của
     gác này. Muốn khai "đã hỏi, không thấy gì" thì dùng
     `khong_tim_thay_gi: true`, cùng quy ước với `docs/soat-dinh-ky.json`.
+
+    SỬA CÓ CHỦ ĐÍCH ở BƯỚC 164 (08/10/2026) — gác này KHÔNG bị gỡ, nó đổi đối
+    tượng canh. Người dùng đồng ý thu hẹp Quy tắc 3 (nguyên văn: "Đồng ý" cho
+    câu "Giảm phần việc quy trình: soát tự động mỗi tuần, chỉ hỏi NotebookLM cho
+    những BƯỚC đổi kết luận đo hoặc đổi luật"). Từ `_moc_chi_hoi_khi_doi_luat`
+    một BƯỚC được thay việc hỏi bằng ô `khong_bat_buoc_vi` — nhưng ô ấy KHÔNG
+    được miễn kiểm ở đây một cách im lặng: nó được chuyển sang
+    `test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat`,
+    nơi máy đọc lịch sử git để phán. Mọi BƯỚC trước mốc ấy giữ luật cũ.
     """
     so = _so()
     moc = _moc_bat_buoc()
+    moc_hep = _moc_chi_hoi()
     loi = []
     for ten in buoc_tu_moc_bat_buoc():
         d = so["soat"].get(ten)
@@ -494,6 +529,12 @@ def test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT():
             loi.append(f"{ten}: con khai `khong_soat_vi` — tu BUOC {moc} "
                        f"o thoat nay KHONG con duoc nhan")
             continue
+        if "khong_bat_buoc_vi" in d:
+            n = _tools_so_buoc(ten)
+            if n is None or n < moc_hep:
+                loi.append(f"{ten}: o `khong_bat_buoc_vi` chi duoc nhan tu BUOC "
+                           f"{moc_hep} — truoc do MOI BUOC deu phai hoi that")
+            continue                    # phan con lai do gac rieng phan xu
         if not (d.get("cau_hoi") or "").strip():
             loi.append(f"{ten}: thieu `cau_hoi` nguyen van")
         co_pd = bool(d.get("phat_hien"))
@@ -517,11 +558,15 @@ def test_CAU_HOI_tu_MOC_BAT_BUOC_phai_mang_MOT_LOI_THOAT():
     chứ không đo được sự có mặt của lối thoát. Nó đòi mục **tự khai**
     `o_thoat`, rồi kiểm rằng chuỗi ấy THẬT SỰ là một phần của câu đã gửi —
     suy ra từ chính dữ liệu, đúng luật *"suy ra, đừng gõ"*.
+
+    Sửa có chủ đích ở BƯỚC 164 (người dùng "Đồng ý" 08/10/2026): mục khai
+    `khong_bat_buoc_vi` không có câu hỏi nên không có lối thoát để kiểm; gác chỉ
+    bỏ qua mục ấy SAU KHI gác kia đã đòi máy xác nhận nó không chạm file luật.
     """
     so = _so()
     for ten in buoc_tu_moc_bat_buoc():
         d = so["soat"].get(ten) or {}
-        if "khong_soat_vi" in d:
+        if "khong_soat_vi" in d or "khong_bat_buoc_vi" in d:
             continue                  # phep kiem tren da goi ten muc nay roi
         ot = (d.get("o_thoat") or "").strip()
         assert len(ot) >= 20, (
@@ -607,4 +652,144 @@ def test_BAN_TIN_phai_NOI_RA_moc_bat_buoc():
     assert "moc_bat_buoc_hoi" in goi, (
         "ban_tin() khong goi moc_bat_buoc_hoi() — ban tin mo phien van moi "
         "nguoi khai `khong_soat_vi` nhu cu")
+    assert "moc_chi_hoi_khi_doi_luat" in goi, (
+        "ban_tin() khong goi moc_chi_hoi_khi_doi_luat() — ban tin van noi "
+        "'moi BUOC phai HOI' sau khi Quy tac 3 da thu hep (BUOC 164)")
     print("PASS  ban tin mo phien noi ra moc bat buoc")
+
+
+#: ─────────────────────────────────────────────────────────────────────
+#: QUY TẮC 3 THU HẸP — BƯỚC 164, người dùng "Đồng ý" 08/10/2026
+#:
+#: Một BƯỚC PHẢI hỏi thật khi nó đổi luật hoặc kết luận đo; BƯỚC khác khai
+#: `khong_bat_buoc_vi`, và ô ấy chỉ hợp lệ khi MÁY (lịch sử git) xác nhận BƯỚC
+#: không chạm file luật. Các gác phía trên được SỬA để canh luật mới, không bị
+#: gỡ; các gác dưới đây là nửa còn lại.
+
+
+def _chay_gac_o_moi(soat: dict, file_cua, moc: int = 164) -> list[str]:
+    sys.path.insert(0, str(GOC / "tools"))
+    from buoc_cham_luat import loi_o_khong_bat_buoc
+    return loi_o_khong_bat_buoc(soat, moc, file_cua)
+
+
+LY_DO_MAU = "BUOC chi ghi ket qua luot soat dinh ky, khong doi luat hay ket luan do"
+
+
+def test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat():
+    """Gác THẬT: mọi mục `khong_bat_buoc_vi` của sổ đi qua máy đọc git.
+
+    Sổ hiện CHƯA có mục nào (BƯỚC 164 tự nó đổi luật nên phải hỏi thật), nên phép
+    này trên sổ thật là phép so tập rỗng — nó xanh với bản đúng lẫn bản hỏng.
+    Thứ chứng minh máy chạy là các ca dựng tay bên dưới, đi qua đúng hàm này.
+    """
+    sys.path.insert(0, str(GOC / "tools"))
+    from buoc_cham_luat import NEO_LICH_SU, file_cua_buoc
+    loi = _chay_gac_o_moi(
+        _so()["soat"],
+        lambda n: file_cua_buoc(GOC, n, neo=NEO_LICH_SU)[0],
+        _moc_chi_hoi())
+    assert not loi, "\n".join(loi)
+    print("PASS  moi o khong_bat_buoc_vi duoc may git xac nhan")
+
+
+def test_PHAT_DAU_BUOC_cham_CLAUDE_md_ma_khai_o_moi_thi_DO():
+    """Dựng lại NGUYÊN VĂN lỗi: BƯỚC sửa một luật nhưng khai 'không bắt buộc'."""
+    soat = {"BƯỚC 170": {"ngay": "2026-10-20", "khong_bat_buoc_vi": LY_DO_MAU}}
+    loi = _chay_gac_o_moi(soat, lambda n: ["CLAUDE.md", "docs/STATE.md"])
+    assert len(loi) == 1 and "CHAM file luat" in loi[0] and "CLAUDE.md" in loi[0], loi
+    # cung BUOC do, khong cham file luat nao -> hop le
+    assert _chay_gac_o_moi(soat, lambda n: ["docs/STATE.md", "tools/x.py"]) == []
+
+
+@pytest.mark.parametrize("file_luat", [
+    "CLAUDE.md", "NGUYEN-TAC-DO-LUONG.md", "MO-XE-KIEN-TRUC.md",
+    ".claude/skills/quy-trinh-lam-viec/SKILL.md",
+    "docs/TIEU-CHI-DOC-TRUOC.md", "docs/LO-TRINH.md"])
+def test_MOI_file_luat_deu_lam_o_moi_thanh_DO(file_luat):
+    soat = {"BƯỚC 170": {"ngay": "2026-10-20", "khong_bat_buoc_vi": LY_DO_MAU}}
+    loi = _chay_gac_o_moi(soat, lambda n: ["docs/STATE.md", file_luat])
+    assert loi and file_luat in loi[0], loi
+
+
+def test_O_moi_khong_di_kem_o_HOI_hay_o_THOAT_cu():
+    for them in ({"cau_hoi": "x"}, {"phat_hien": []}, {"khong_tim_thay_gi": True},
+                 {"khong_soat_vi": "mot ly do du dai de qua duoc cong"}):
+        soat = {"BƯỚC 170": {"khong_bat_buoc_vi": LY_DO_MAU, **them}}
+        loi = _chay_gac_o_moi(soat, lambda n: [])
+        assert loi and "nuoc doi" in loi[0], (them, loi)
+
+
+@pytest.mark.parametrize("ly_do", ["", "ngan", "khong can", "n/a", "-", "x" * 24])
+def test_O_moi_ly_do_RONG_NGAN_hay_CHUNG_CHUNG_thi_DO(ly_do):
+    loi = _chay_gac_o_moi({"BƯỚC 170": {"khong_bat_buoc_vi": ly_do}}, lambda n: [])
+    assert loi, ly_do
+
+
+def test_O_moi_ly_do_DAN_LAI_cho_BUOC_khac_thi_DO():
+    """Lý do giống hệt ở hai BƯỚC là câu thần chú (lỗi 86); chuẩn hoá khoảng trắng và
+    hoa/thường để không lách bằng một dấu cách."""
+    soat = {"BƯỚC 170": {"khong_bat_buoc_vi": LY_DO_MAU},
+            "BƯỚC 171": {"khong_bat_buoc_vi": "  " + LY_DO_MAU.upper().replace(" ", "  ")}}
+    loi = _chay_gac_o_moi(soat, lambda n: [])
+    assert len(loi) == 1 and "171" in loi[0] and "170" in loi[0], loi
+    soat["BƯỚC 171"]["khong_bat_buoc_vi"] = LY_DO_MAU + " va con ghi them mot ve khac"
+    assert _chay_gac_o_moi(soat, lambda n: []) == []
+
+
+@pytest.mark.parametrize("ten", ["BƯỚC 163", "BƯỚC 108", "BƯỚC 70-73", "ĐO 5"])
+def test_O_moi_khong_duoc_lui_ve_BUOC_cu_hay_ten_la(ten):
+    """Mốc 164 chặn: dán ô mới vào BƯỚC cũ là viết lại lịch sử."""
+    loi = _chay_gac_o_moi({ten: {"khong_bat_buoc_vi": LY_DO_MAU}}, lambda n: [])
+    assert loi and "chi hop le cho BUOC >= 164" in loi[0], loi
+
+
+def test_O_moi_nhan_dung_BUOC_164_la_BUOC_dau_tien_cua_luat_moi():
+    """Biên: n == mốc phải được nhận (`n < moc` chứ không `n <= moc`)."""
+    assert _chay_gac_o_moi({"BƯỚC 164": {"khong_bat_buoc_vi": LY_DO_MAU}},
+                           lambda n: []) == []
+    assert _chay_gac_o_moi({"BƯỚC 163": {"khong_bat_buoc_vi": LY_DO_MAU}},
+                           lambda n: [])
+
+
+def test_MAY_DOC_GIT_that_su_duoc_goi_voi_dung_so_BUOC():
+    """Máy nhận `file_cua(n)` với n là số BƯỚC của chính mục — không phải số khác."""
+    thay = []
+    _chay_gac_o_moi({"BƯỚC 177": {"khong_bat_buoc_vi": LY_DO_MAU}},
+                    lambda n: thay.append(n) or [])
+    assert thay == [177], thay
+
+
+def test_MOC_CHI_HOI_khong_duoc_NANG_cho_toi_khi_gac_thanh_RONG():
+    """Nâng mốc là nới luôn phép kiểm — cùng lỗ hổng với hai mốc kia.
+
+    Đặt `_moc_chi_hoi_khi_doi_luat` = 9999 thì không BƯỚC nào bị đưa vào luật mới
+    và các gác xanh trên một quần thể RỖNG. So với HẬU QUẢ, không so một con số."""
+    moc = _moc_chi_hoi()
+    bi_doi = ten_buoc(STATE.read_text(encoding="utf-8"), moc)
+    assert bi_doi, (
+        f"`_moc_chi_hoi_khi_doi_luat` = {moc} khong doi BUOC nao ca — gac dang "
+        f"canh mot quan the RONG. Ha moc xuong, dung nang len cho toi khi no im.")
+    assert moc >= _moc_bat_buoc(), "mốc thu hẹp thấp hơn mốc 'mỗi BƯỚC phải hỏi'"
+
+
+def test_SO_phai_mang_MOC_CHI_HOI_kem_LY_DO_va_CON_SO_DA_DO():
+    """Một quyết định NỚI luật phải mang theo phép đo đứng sau nó và câu trả lời
+    nguyên văn của người dùng — nới mà không có chúng là nới lặng lẽ."""
+    vs = _so().get("_vi_sao_co_moc_chi_hoi_khi_doi_luat", "")
+    assert len(vs) >= 600, "moc thu hep khong kem ly do doc duoc"
+    for can in ("Đồng ý", "08/10/2026", "25/30", "6/33", "FILE_LUAT",
+                "tools/buoc_cham_luat.py", "khong_soat_vi", "BƯỚC <= 163"):
+        assert can in vs, f"loi khai thieu {can!r}"
+    assert "MÁY MÙ" in vs, "loi khai phai noi ro cho may khong thay duoc"
+
+
+def test_BUOC_164_tu_no_DOI_LUAT_nen_phai_HOI_THAT_khong_the_khai_o_moi():
+    """Đề bài giao: BƯỚC 164 đổi chính Quy tắc 3, nên là ca đầu tiên của luật mới.
+
+    Nếu ai đó chuyển nó sang `khong_bat_buoc_vi`, gác máy-đọc-git đã đỏ; ca này
+    khoá thêm một lớp bằng đúng tên BƯỚC, để lỗi đọc ra từ test chứ không từ git."""
+    d = _so()["soat"].get("BƯỚC 164")
+    assert isinstance(d, dict), "BƯỚC 164 chua co dong nao trong so"
+    assert "khong_bat_buoc_vi" not in d and "khong_soat_vi" not in d
+    assert (d.get("cau_hoi") or "").strip(), "BƯỚC 164 doi LUAT nen phai hoi that"

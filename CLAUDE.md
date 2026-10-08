@@ -13,6 +13,9 @@ vnstock. Phát triển local → PR → `main` → Streamlit Cloud tự deploy.
 > **BẮT ĐẦU Ở ĐÂY: `docs/HANDOFF.md`** (ba lệnh đầu tiên, mốc đang chặn,
 > ba ràng buộc). Ưu tiên khi mâu thuẫn: `HANDOFF` → `STATE` → file này.
 >
+> **LỘ TRÌNH: `docs/LO-TRINH.md`** — hai đích, năm giai đoạn, người dùng duyệt
+> 08/10/2026. Mỗi BƯỚC từ 164 khai một dòng `**Mốc:** <mã>` trong `docs/STATE.md`.
+>
 > **Luật giữ file này gọn:** một BƯỚC KHÔNG sửa `CLAUDE.md` trừ khi nó đổi
 > một LUẬT. Số đo, kết quả một ĐO, trạng thái sổ → `docs/STATE.md` và
 > `docs/HANDOFF.md`. Chú thích "đã hết đúng" viết ở đó, không viết ở đây.
@@ -31,7 +34,9 @@ vnstock. Phát triển local → PR → `main` → Streamlit Cloud tự deploy.
 - **Quy tắc 2 — không có lệnh thì không có số.** Mọi con số viết vào tài
   liệu hay commit phải được tính trong phiên này, kèm lệnh tái lập được.
   Ước lượng thì gọi nó là ước lượng.
-- **Quy tắc 3 — mỗi BƯỚC đi qua sổ tay NotebookLM** (`SKILL.md`).
+- **Quy tắc 3 — BƯỚC đổi một luật hoặc một kết luận đo thì đi qua sổ tay
+  NotebookLM; BƯỚC khác khai vì sao không hỏi, và máy xác nhận bằng lịch sử git**
+  (từ BƯỚC 164, người dùng "Đồng ý" 08/10/2026; BƯỚC ≤ 163 giữ luật cũ; `SKILL.md`).
 - Quy trình bắt buộc: skill `quy-trinh-lam-viec`. Cửa tự động đọc bằng
   `./.venv/Scripts/python.exe tools/kiem_cua_song.py`, không suy ra.
 
