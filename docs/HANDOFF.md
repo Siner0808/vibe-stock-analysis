@@ -560,6 +560,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 
 **Cần người quyết:**
 
+> **Hàng đợi gom một chỗ từ 08/10/2026 (BƯỚC 165): `docs/QUYET-DINH-CHO.md`** (mã Q1…Qn, nguồn, lựa chọn, đề xuất; xem bằng `tools/quyet_dinh_cho.py`). Danh sách dưới đây là bản ghi lịch sử, không còn là nơi cập nhật.
+
 - **Bộ nhớ hậu nghiệm trên đường quét thật (29/09/2026, BƯỚC 140).**
   Tài liệu viết đường thật *"dùng 44 mẫu"*; đo ra runner CI dùng **0 mẫu**
   ở cả 71/71 lượt quét từ 21/08, vì `sl_pattern_memory.json` bị gitignore và

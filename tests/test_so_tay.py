@@ -8,7 +8,6 @@ khuôn khác.
 import importlib.util
 import json
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -80,8 +79,19 @@ def test_CAU_HOI_tu_choi_hoi_RONG(ket_luan, vi_du):
 
 @pytest.fixture
 def so_tam(tmp_path):
+    """Bản sao sổ thật, BỎ mọi mục `khong_bat_buoc_vi` thật.
+
+    Các ca dưới đây đếm chính xác những BƯỚC mà `ghi` đưa cho máy phán và đặt
+    `_moc_chi_hoi_khi_doi_luat` lên 9990; một mục `khong_bat_buoc_vi` thật của sổ
+    (từ BƯỚC 165) lọt vào sẽ bị phán lại và làm hai ca đỏ giả (đo 08/10/2026:
+    `[165, 9999] != [9999]`). Test phải độc lập với sổ thật, không phụ thuộc việc
+    sổ thật có mục nào.
+    """
     p = tmp_path / "soat-notebooklm.json"
-    shutil.copyfile(GOC / "docs" / "soat-notebooklm.json", p)
+    d = json.loads((GOC / "docs" / "soat-notebooklm.json").read_text(encoding="utf-8"))
+    d["soat"] = {k: v for k, v in d["soat"].items()
+                 if not (isinstance(v, dict) and "khong_bat_buoc_vi" in v)}
+    p.write_text(json.dumps(d, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return p
 
 

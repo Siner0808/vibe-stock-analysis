@@ -21433,3 +21433,65 @@ Cửa Bash CHẶN thật bốn lần trong phiên con: ba lần `heredoc-ghi-fil
 Mốc `docs/moc_so_test.json` 2059 → **2196** (`tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do`, +137 test, không test nào mất). Lượt chạy đầy đủ của năm cổng trên cây cuối **nằm ở thân PR** (nó sinh ra sau file này).
 
 **Việc kế.** Leader đọc diff PR (PR đổi luật — KHÔNG tự merge), sửa `~/.claude/rules/vibe-preview.md` dòng Quy tắc 3 và memory sau khi merge. Lượt soát 12 hạn **15/10/2026**; từ nay workflow `soat-tuan` chạy phần máy mỗi thứ Hai. Giai đoạn A còn A4 (tách STATE) và A5 (hàng đợi quyết định).
+
+## BƯỚC 165 — HÀNG ĐỢI QUYẾT ĐỊNH CHỜ NGƯỜI DÙNG GOM VÀO MỘT SỔ: CHÍN MỤC, VÀ MỘT THƯ MỤC MÀ HANDOFF CÒN HỎI "GIỮ HAY XOÁ" ĐÃ KHÔNG CÒN TRÊN ĐĨA (08/10/2026)
+
+**Mốc:** A5
+
+Leader giao phiên con (nhánh `lo-trinh/a5-hang-doi-quyet-dinh`, worktree ngoài repo `vibe_wt_a5`, từ `main` `8440239`). Người dùng 08/10/2026 duyệt lộ trình (`docs/LO-TRINH.md`, mục A5) và bảo làm tiếp. Việc: dựng sổ sống `docs/QUYET-DINH-CHO.md` để leader trình người dùng trong MỘT phiên quyết định, và kiểm lại năm mục mà leader nêu (*chưa phiên nào kiểm lại*) trước khi chép vào.
+
+### Đã làm
+
+- **`docs/QUYET-DINH-CHO.md`** — chín mục Q1–Q9, mỗi mục có câu hỏi một dòng, NGUỒN (`tệp:dòng` kèm một trích «…»), cái bị ảnh hưởng, các lựa chọn và hệ quả, ĐỀ XUẤT (phiên soạn nháp thay leader, đánh dấu rõ chưa ai quyết), dữ kiện đã kiểm kèm lệnh và ngày, trạng thái. Bảy `chờ`, một `đã quyết` (Q9, khoá API), một `hết hiệu lực` (Q5).
+- **`tools/quyet_dinh_cho.py`** (bộ đọc và bộ phán khuôn, hàm thuần) và **`tests/test_quyet_dinh_cho.py`** (37 test): mục `chờ` phải có nguồn còn thật, ≥ 2 lựa chọn liền nhau, ĐỀ XUẤT, dữ kiện có lệnh và ngày; mục `đã quyết` phải có câu trả lời nguyên văn `*"…"*` và ngày; mục `hết hiệu lực` phải có bằng chứng (lệnh + ngày); mã Q liền từ Q1 (mục không bị xoá lặng lẽ); quần thể khác rỗng; HANDOFF phải trỏ tới sổ trong 3 dòng dưới "Cần người quyết".
+- **`docs/HANDOFF.md`** mục "Cần người quyết": thêm một khối trỏ tới sổ; danh sách cũ bên dưới giữ làm bản ghi lịch sử, không sửa.
+
+### Kết quả kiểm năm mục leader nêu — và các mục quét thêm
+
+| mục | kết quả đo hôm nay | trạng thái |
+|---|---|---|
+| 44 mẫu bộ nhớ hậu nghiệm (Q1) | MỞ. Lượt quét thành công mới nhất (08/10/2026 08:37Z, cây `0a991e1`) vẫn in "BẬT · 0 mẫu"; `.gitignore:50` chặn tệp; workflow quét không nhắc `sl_pattern` | chờ |
+| vế 3 điều kiện dừng (Q2) | MỞ. Mã và docstring `paper_metrics.dieu_kien_dong_lai` còn nguyên vế thứ ba; chưa quyết ở đâu | chờ |
+| URL Streamlit Cloud (Q3) | MỞ. `grep -rIl "streamlit\.app"` không ra tệp nào, `homepage` của repo là `null` | chờ |
+| "mã thiếu giá thì từ chối cả bảng" (Q4) | MỞ. Hai rủi ro (3 và 5) của BƯỚC 162 còn ghi "nới là quyết định của người dùng"; mã chưa đổi từ `b14d270` | chờ |
+| `scratch/luu_do18` (Q5) | **KHÔNG CÒN ĐỐI TƯỢNG.** `ls -d …/scratch/luu_do18*` báo không tồn tại; `luu_do20` cũng mất; chỉ còn `luu_do22` (8 tệp, 39.194.748 byte) | hết hiệu lực |
+| quét thêm: `vnii` gửi `operation` (Q6) · `backtest/fundamentals/` trong repo công khai (Q7) · báo lỗi `vnstock_ezchart` (Q8) | cả ba còn ghi "người dùng quyết / kiểm / gửi" ở HANDOFF, chưa quyết ở đâu | chờ |
+| khoá `ANTHROPIC_API_KEY` (Q9) | đã quyết 08/10/2026: *"Để tới giai đoạn B (Recommended)"* (BƯỚC 164); đưa vào làm mẫu một mục `đã quyết` | đã quyết |
+
+Mười mục khác đã quét và loại (đã quyết ở chỗ khác, hoặc tiền đề hết đúng) liệt kê ở cuối sổ, mục "Đã quét và loại", kèm nguồn.
+
+### Phát hiện cần nói thẳng
+
+- **`luu_do18` đã mất và hệ quả tái lập.** `docs/STATE.md` BƯỚC 142 tính "582 lệnh trong 35 tháng = 16,6 lệnh/tháng" từ `scratch/luu_do18/wt_do18_p1/wf_oos.db` ("chỉ đọc"), và BƯỚC 143 trích `../luu_do20/…`; cả hai đường đã chết nên con số không chạy lại được từ nguồn đã ghi. KHÔNG sửa mục cũ (STATE chỉ thêm); ghi ở đây và ở Q5. Repo không ghi dấu vết ai xoá khi nào; HANDOFF chỉ ghi "xoá hẳn thì hỏi người dùng" nên tôi không khẳng định việc xoá đã được phép hay không.
+- **Trạng thái thứ ba `hết hiệu lực` là sáng kiến của phiên này**, lệch đề bài (đề bài chỉ có `chờ` / `đã quyết`). Lý do: mục luu_do18 không có câu trả lời nguyên văn của ai nên không được gọi là `đã quyết`, và cũng không còn là `chờ` vì không còn gì để quyết. Leader có thể bỏ trạng thái này bằng cách chuyển Q5 sang một dòng ở mục "Đã quét và loại".
+- **Q9 (`đã quyết`) không nằm trong năm mục của leader**; tôi thêm nó vì sổ cần ít nhất một mục `đã quyết` thật để gác chạy được nhánh ấy trên dữ liệu thật (`test_QUAN_THE_khong_rong_va_co_du_ba_trang_thai`).
+- **Đề xuất trong sổ là nháp của phiên soạn**, không phải của leader. Cột có nhãn "Đề xuất của leader (ĐỀ XUẤT …)" vì khuôn đòi nhãn ấy; leader sửa trước khi trình.
+
+### Số đo (chạy trong phiên này)
+
+- Khuôn sổ: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py` in 9 mục, `{'chờ': 7, 'đã quyết': 1, 'hết hiệu lực': 1}`, 0 lỗi.
+- `./.venv/Scripts/python.exe -m pytest tests/test_quyet_dinh_cho.py -q`: 37 passed.
+- Mốc `docs/moc_so_test.json` 2196 → **2233** (`pytest tests/ --collect-only -q` ra `2233 tests collected`; +37 test, không test nào mất).
+
+### Gác và đột biến
+
+Phát đầu tiên dựng lại đúng lỗi sổ sinh ra để chặn: mục `đã quyết` không có câu trả lời nguyên văn (`test_PHAT_DAU_…`), rồi nguồn trỏ vào đường đã chết (`test_PHAT_2_…`). Đột biến lên `tools/quyet_dinh_cho.py` (`va_an_toan.dot_bien_bo`, lệnh `pytest tests/test_quyet_dinh_cho.py -q -x`): **lượt đầu 31/33 đỏ**, hai phát sống sót — (1) hạ `RE_NGAY` từ `dd/mm/yyyy` xuống hai chữ số: không test nào đưa vào một ngày sai dạng; (2) khớp nhãn trường theo ba ký tự đầu: trên sổ thật các tiền tố trùng nhau chưa từng xảy ra. Thêm `test_PHAT_30` (ngày `2026-10-08` và `8/10` bị từ chối), `test_NGAY_khong_lay_…` (`108/10/20269` không phải ngày) và `test_NHAN_chi_khop_tron_…` (`Nguồn gốc` không đọc là `Nguồn`); khi viết ca nhãn tôi phát hiện bản đầu khớp tiền tố + dấu cách nên `Nguồn gốc` vẫn lọt — bắt được trước khi gác xanh, đổi sang khớp nhãn đúng hoặc nhãn + ` (…)` và đổi nhãn "Dữ kiện đã kiểm 08/10/2026" thành "Dữ kiện đã kiểm (08/10/2026)" trong sổ. **Lượt cuối: 33/33 + 4/4 đỏ** (bốn phát bổ sung về `RE_NGAY` và khớp nhãn).
+
+**Lượt cổng 1 đầu tiên ĐỎ 3 test, và đó là đúng chỗ.** (a) `test_MOC_TREN_DIA_khop_so_test_THAT`: mốc 2196 so với 2233 đếm được, chưa cập nhật — hiển nhiên. (b) `tests/test_so_tay.py::test_GHI_khong_bat_buoc_hoi_MAY_voi_DUNG_so_BUOC` (`[165, 9999] != [9999]`) và `…_BUOC_dung_bang_moc_thi_NHAN_BUOC_ngay_duoi_moc_thi_TU_CHOI` (`BƯỚC 165: o khong_bat_buoc_vi chi hop le cho BUOC >= 9990`): hai ca này chép sổ THẬT làm sổ tạm rồi đếm những BƯỚC mà `ghi` đưa cho máy phán, nên khi sổ thật có mục `khong_bat_buoc_vi` đầu tiên (chính BƯỚC này) nó bị phán lại và hai ca đỏ giả. Tiền đề "sổ thật chưa có mục nào" đã ghi ở docstring của `test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat` từ BƯỚC 164 nhưng không ai canh nó. Sửa: fixture `so_tam` bỏ mọi mục `khong_bat_buoc_vi` thật khỏi bản sao (test độc lập với sổ thật); sau sửa 117 test của ba file sổ tay xanh. Cũng gỡ `import shutil` thành thừa.
+
+### Điều BƯỚC này KHÔNG làm
+
+- Không tự quyết thay người dùng; không đổi hành vi giao dịch, ngưỡng hay cờ nào.
+- Không đọc sổ lệnh thật, Sheets hay dòng quyết định; không gọi vnstock. Dữ kiện của Q1 lấy từ nhật ký một lượt Actions (`gh run view … --log`, chỉ đọc) và từ `json.load` của tệp bộ nhớ ở máy.
+- Không xoá, di chuyển hay sửa tệp nào ngoài repo (kể cả `luu_do22`). Không sửa file luật (`CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`) — nên BƯỚC này khai `khong_bat_buoc_vi` ở sổ tay (máy `tools/buoc_cham_luat.py` xác nhận).
+- Không kiểm các số dòng nguồn của sổ ở `main` mới hơn `8440239`: tách `docs/STATE.md` theo tháng (A4) sẽ làm gác `tests/test_quyet_dinh_cho.py` đỏ ở mọi nguồn trỏ vào `docs/STATE.md`; đó là tín hiệu đúng, phiên A4 sửa các nguồn ấy theo tệp mới.
+
+### Soát chéo NotebookLM
+
+Không hỏi: BƯỚC này không chạm file luật nào và không viết kết luận đo mới. Ô `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json`; máy xác nhận bằng `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 165` (kết quả nằm ở thân PR).
+
+### Cửa tự động (đo trong phiên này)
+
+Cửa Bash CHẶN thật hai lần trong phiên con: lần đầu cùng lúc hai luật `python-he-thong` và `hai-heredoc` (một lệnh tôi gõ vội), lần sau `heredoc-ghi-file-repo` (ghi script `.py` bằng heredoc). Cả hai lần chặn đúng; tôi chuyển sang tool Write vào thư mục scratchpad rồi gọi `./.venv/Scripts/python.exe` bằng đường tuyệt đối. Các cửa còn lại không lên tiếng với việc tôi làm. Lượt chạy đầy đủ của năm cổng trên cây cuối **nằm ở thân PR** (nó sinh ra sau file này).
+
+**Việc kế.** Leader sửa nhãn ĐỀ XUẤT trong sổ nếu muốn, rồi trình Q1–Q4, Q6–Q8 cho người dùng trong một phiên quyết định; mục nào có câu trả lời thì đổi sang `đã quyết` kèm câu nguyên văn và ngày. Hai câu chỉ người dùng trả lời được: URL Streamlit Cloud (Q3) và điều khoản dữ liệu BCTC (Q7). A4 (tách `docs/STATE.md`) phải sửa các nguồn của sổ trỏ vào `docs/STATE.md`. Lượt soát 12 hạn **15/10/2026**.
