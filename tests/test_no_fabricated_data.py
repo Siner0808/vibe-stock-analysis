@@ -608,6 +608,117 @@ def test_run_daily_khong_chep_cung_nguong_mua():
           f"run_daily.py, dung nhu ky vong")
 
 
+def _app_cay():
+    import ast
+    return ast.parse(open(os.path.join(ROOT, "app.py"), encoding="utf-8").read())
+
+
+def test_app_nguong_mua_chi_doc_tu_paper_trading():
+    """Vế `app.py` của "một ngưỡng mua, một chỗ" (Q12, BƯỚC 172).
+
+    Bản cũ của app có thanh trượt "Ngưỡng mua" mặc định 50 trong khi đường
+    giao dịch ảo mua ở `paper_trading.BUY_THRESHOLD` (62): người xem app thấy
+    một ngưỡng khác với ngưỡng thật. Người dùng 09/10/2026 xác nhận thanh
+    trượt không có tác dụng và gỡ nó; app chỉ ĐỌC `BUY_THRESHOLD`.
+
+    Khẳng định bằng AST (không bằng `in`, vì tên cũ còn nằm trong chú thích):
+      1. `app.py` NHẬP `BUY_THRESHOLD` từ `paper_trading` ở mức module;
+      2. không có lời gán nào vào tên chứa "nguong"/"threshold" (không hằng
+         số ngưỡng gõ tay, không bí danh);
+      3. không có widget `slider`/`number_input`/`select_slider` nào mang
+         nhãn hay `key` nói về ngưỡng;
+      4. topbar (khối `st.markdown` chứa `class="topbar"`) in giá trị
+         `BUY_THRESHOLD`; mọi chỗ in ngưỡng khác cũng đọc `BUY_THRESHOLD`;
+      5. khuyến nghị: `score < BUY_THRESHOLD` được xét TRƯỚC `score >= 60.0`
+         (bản cũ xét 60 trước, nên điểm 60–62 hiện "MUA 30%" kèm cảnh báo
+         "thấp hơn ngưỡng mua").
+
+    Giới hạn có tên: một widget đặt tên/nhãn không nhắc tới ngưỡng thì gác
+    này không thấy — nó canh các dấu vết của thanh trượt cũ, không canh ý định.
+    """
+    import ast
+    import re
+    cay = _app_cay()
+
+    nhap = [n for n in cay.body if isinstance(n, ast.ImportFrom)
+            and n.module == "paper_trading"
+            and any(a.name == "BUY_THRESHOLD" and a.asname is None
+                    for a in n.names)]
+    assert nhap, ("app.py phải `from paper_trading import BUY_THRESHOLD` ở "
+                  "mức module — app đọc ngưỡng của đường giao dịch ảo")
+
+    re_ten = re.compile(r"nguong|threshold", re.I)
+    gan = []
+    for n in ast.walk(cay):
+        muc_tieu = []
+        if isinstance(n, ast.Assign):
+            muc_tieu = n.targets
+        elif isinstance(n, (ast.AnnAssign, ast.AugAssign)):
+            muc_tieu = [n.target]
+        for t in muc_tieu:
+            for x in ast.walk(t):
+                if isinstance(x, ast.Name) and re_ten.search(x.id):
+                    gan.append(f"dòng {n.lineno}: {x.id}")
+    assert not gan, (
+        "app.py gán vào tên ngưỡng (hằng số/bí danh) — ngưỡng mua chỉ được "
+        "NHẬP từ paper_trading:\n  " + "\n  ".join(gan))
+
+    widget = []
+    for n in ast.walk(cay):
+        if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                and n.func.attr in ("slider", "number_input", "select_slider")):
+            chuoi = [c.value for c in ast.walk(n)
+                     if isinstance(c, ast.Constant) and isinstance(c.value, str)]
+            if any(re_ten.search(s) for s in chuoi):
+                widget.append(f"dòng {n.lineno}: st.{n.func.attr}")
+    assert not widget, (
+        "app.py có widget chỉnh ngưỡng mua: " + "; ".join(widget) +
+        ". Thanh trượt đã gỡ ở BƯỚC 172 (Q12).")
+
+    def _doc_bt(nut) -> int:
+        return sum(1 for x in ast.walk(nut)
+                   if isinstance(x, ast.FormattedValue)
+                   and isinstance(x.value, ast.Name)
+                   and x.value.id == "BUY_THRESHOLD")
+
+    topbar = [n for n in ast.walk(cay)
+              if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+              and n.func.attr == "markdown"
+              and any(isinstance(c, ast.Constant) and isinstance(c.value, str)
+                      and 'class="topbar"' in c.value for c in ast.walk(n))]
+    assert len(topbar) == 1, f"cần đúng một khối topbar, thấy {len(topbar)}"
+    assert _doc_bt(topbar[0]) >= 1, (
+        "topbar không in BUY_THRESHOLD — ô ngưỡng phải đọc từ paper_trading")
+    tong = _doc_bt(cay)
+    assert tong >= 3, (
+        f"BUY_THRESHOLD chỉ được in {tong} chỗ; topbar, cảnh báo 'thấp hơn "
+        f"ngưỡng mua' và chân trang đều phải đọc nó")
+
+    def _so_sanh(nut):
+        if (isinstance(nut, ast.Compare) and isinstance(nut.left, ast.Name)
+                and nut.left.id == "score" and len(nut.ops) == 1):
+            return nut.ops[0], nut.comparators[0], nut.lineno
+        return None
+
+    dong_bt = dong_60 = None
+    for n in ast.walk(cay):
+        r = _so_sanh(n)
+        if not r:
+            continue
+        op, so, dong = r
+        if (isinstance(op, ast.Lt) and isinstance(so, ast.Name)
+                and so.id == "BUY_THRESHOLD"):
+            dong_bt = dong if dong_bt is None else min(dong_bt, dong)
+        if (isinstance(op, ast.GtE) and isinstance(so, ast.Constant)
+                and so.value == 60.0):
+            dong_60 = dong if dong_60 is None else min(dong_60, dong)
+    assert dong_bt is not None and dong_60 is not None and dong_bt < dong_60, (
+        f"khuyến nghị phải xét `score < BUY_THRESHOLD` (dòng {dong_bt}) "
+        f"TRƯỚC `score >= 60.0` (dòng {dong_60}): điểm 60–62 không được "
+        f"hiện MUA khi đường giao dịch ảo chưa mua")
+    print("PASS  app.py chỉ ĐỌC BUY_THRESHOLD, không còn thanh trượt ngưỡng mua")
+
+
 def test_app_khong_hien_so_cung_tu_mockup():
     """app.py không được hiển thị con số nào không đọc từ sổ lệnh.
 

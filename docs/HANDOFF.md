@@ -311,7 +311,7 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 > - ✅ **Q4** chờ số đếm thật của bộ kéo giá trước khi nới "từ chối cả bảng".
 > - ✅ **Q5** `luu_do18` · `luu_do20`: người dùng *"Xoá cả hai (Recommended)"* (02/10), xác nhận lại *"Đưa lại vào Thùng rác"* (09/10); nay ở Thùng rác Windows, `luu_do22` giữ nguyên. Đường `luu_do18/…` (BƯỚC 142) và `luu_do20/…` (ĐO 22) KHÔNG chạy lại được từ đường đã ghi.
 > - ✅ **Q6** chấp nhận `vnii` gửi `operation`; **Q8** báo lỗi `vnstock_ezchart` soạn lại NGOÀI repo, người dùng gửi hãng. **Q10 (A4)** không tách `docs/STATE.md`.
-> - **CÒN CHỜ:** Q7 (người dùng đọc điều khoản dữ liệu BCTC rồi báo) · Q11 (tắt telemetry `vnstock` trên Cloud và Actions?) · Q12 (mặc định thanh trượt ngưỡng mua trên app là 50, đường giao dịch dùng `BUY_THRESHOLD` 62) · Q13 (thêm ở BƯỚC 169: lệnh mở trước nhật ký "vì sao" có tính vào tiêu chí ra khỏi giai đoạn B không — đề xuất *không tính*; chuông `chuong-bai-hoc.yml` đang chạy theo đề xuất ấy).
+> - **KHÔNG CÒN CÂU NÀO CHỜ (BƯỚC 172, cùng ngày 09/10/2026):** người dùng trả lời nốt bốn câu. ✅ **Q7** *"Gỡ khỏi repo (Recommended)"* — `backtest/fundamentals/` gỡ khỏi chỉ mục git và vào `.gitignore` (lịch sử git cũ vẫn chứa tệp; dữ liệu còn ở máy người dùng). ✅ **Q11** *"Tắt bằng mã ở cả hai (Recommended)"* — `VNSTOCK_TELEMETRY=off` đặt trong `app.py`, `run_daily.py` và `env:` cấp job của mọi workflow cài `requirements.txt`. ✅ **Q12** bỏ hẳn thanh trượt ngưỡng mua; app chỉ ĐỌC `paper_trading.BUY_THRESHOLD`; phán quyết vào lệnh giao cho agent — mốc **B6** · **C7** ở `docs/LO-TRINH.md` (B6 chưa dựng). ✅ **Q13** *"đồng ý không tính"* — lệnh mở trước nhật ký "vì sao" không tính vào tiêu chí ra khỏi giai đoạn B (chuông `chuong-bai-hoc.yml` đã chạy đúng như vậy).
 
 ⛔ **TẠM NGỪNG `vnstock` / `vnai` từ 25/09/2026** — `docs/STATE.md`
 BƯỚC 122. PyPI đặt hai gói ở trạng thái *quarantined*. Người dùng chốt:
@@ -619,8 +619,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   **ĐÃ QUYẾT 25/09, ĐÃ LÀM 26/09 (BƯỚC 123):** người dùng duyệt *"quét
   trong phiên chỉ để cảnh báo, không ghi sổ"*; `run_daily` nay chỉ ghi
   sổ trên nến đã đóng.
-- **Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
-  ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit. **09/10/2026 (BƯỚC 166, Q7):** người dùng chọn *"Tôi đọc điều khoản rồi báo (Recommended)"* — vẫn CHỜ.
+- ~~**Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
+  ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit.~~ **09/10/2026 (BƯỚC 166, Q7):** người dùng chọn *"Tôi đọc điều khoản rồi báo (Recommended)"* — CHỜ. ✅ **ĐÃ GỠ KHỎI REPO 09/10/2026 (BƯỚC 172, Q7):** người dùng bảo leader đọc điều khoản thay, rồi chọn *"Gỡ khỏi repo (Recommended)"*. 217 tệp ra khỏi chỉ mục git (`git rm -r --cached`), `backtest/fundamentals/` vào `.gitignore`. **Lịch sử git cũ VẪN chứa các tệp** (không viết lại lịch sử, không chuyển repo sang riêng tư). Dữ liệu còn trên đĩa của người dùng — **kéo commit này về máy sẽ XOÁ bản `backtest/fundamentals/` ở máy: sao lưu trước khi `git pull`.**
 
 - ~~**`vnstock_data` 3.2.8 KHÔNG import được nữa**~~ **XONG 18/09/2026:**
   nâng **3.3.0**, `vnstock_ta` khỏi theo (nó vỡ vì `import vnstock_data`,
@@ -636,7 +636,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   kiểm giấy phép — docstring ghi *"used only for telemetry"*. Công tắc
   `disable_telemetry()` bật 18/09 là của `vnai`, **không phủ** đường này.
   Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118.
-  ✅ **Người dùng chấp nhận 09/10/2026 (BƯỚC 166, Q6)** — ranh giới: telemetry `vnai` tắt, đường `vnii` vẫn gửi tên hàm. Telemetry `vnstock` trên Cloud và Actions còn BẬT (nhật ký Cloud in dòng số liệu đo lường tuỳ chọn) → hỏi ở Q11.
+  ✅ **Người dùng chấp nhận 09/10/2026 (BƯỚC 166, Q6)** — ranh giới: telemetry `vnai` tắt, đường `vnii` vẫn gửi tên hàm. ~~Telemetry `vnstock` trên Cloud và Actions còn BẬT (nhật ký Cloud in dòng số liệu đo lường tuỳ chọn) → hỏi ở Q11.~~ ✅ **09/10/2026 (BƯỚC 172, Q11):** Cloud và Actions đã TẮT telemetry `vnstock` bằng mã (`VNSTOCK_TELEMETRY=off`); đường `vnii` vẫn gửi tên hàm — biến này không phủ nó.
 - **`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).** Bản
   phát hành 1.0.2 của hãng thiếu gói con `static/` và khai hai phụ thuộc
   bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. 09/10/2026 (BƯỚC 166, Q8): lỗi chưa sửa (PyPI vẫn 1.0.2); báo lỗi soạn lại NGOÀI repo, người dùng gửi hãng. Hãng phát hành

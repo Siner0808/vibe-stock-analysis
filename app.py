@@ -17,6 +17,12 @@ import os
 # với sổ lệnh, không phải vì nó làm điểm tốt hơn; đo được là nó không.
 # Xem docs/ket-qua-bo-nho-rieng-20260821.md.
 os.environ.setdefault("POST_MORTEM_ENABLED", "1")
+
+# Tắt telemetry vnstock/vnai TRƯỚC mọi import có thể kéo chúng (Q11, BƯỚC 172).
+# Chỉ chặn việc gửi tên hàm/thời gian chạy lên hq.vnstocks.com/analytics; tải
+# dữ liệu và kiểm hạng gói là đường khác. `setdefault`: biến đặt tường minh
+# (secrets, môi trường) vẫn thắng.
+os.environ.setdefault("VNSTOCK_TELEMETRY", "off")
 import pathlib
 import pandas as pd
 import plotly.graph_objects as go
@@ -26,6 +32,7 @@ from datetime import timedelta
 
 from master_agent import run_full_analysis
 from pha_wyckoff import doc_pha
+from paper_trading import BUY_THRESHOLD
 from data_quality import now_vn, price_multiplier
 import khung_thoi_gian as _kt
 from data_collectors import VNStockCollectorAgent
@@ -447,12 +454,11 @@ st.markdown("""
 # tồn tại. Bản cũ khi đó rơi vào nhánh dự phòng dựng sẵn một vị thế ACB
 # +7,77% và bốn ô KPI bê từ ui_prototype.html — tức nhánh bịa là nhánh LUÔN
 # chạy trên cloud. Nay: không đọc được sổ thì nói "chưa có dữ liệu".
-# Nguong mua mac dinh cua giao dien. Topbar render TRUOC sidebar nen khong
-# doc duoc bien cua thanh truot; truoc day cho do in cung "50.0 pts", nen
-# keo truot sang 65 thi topbar van noi 50. Nay ca hai doc chung mot nguon:
-# hang so nay cho lan render dau, session_state cho moi lan sau.
-NGUONG_MUA_MAC_DINH = 50.0
-KHOA_NGUONG_MUA = "nguong_mua_pts"
+# Ngưỡng mua của app = ngưỡng của đường giao dịch ảo, NHẬP từ `paper_trading`
+# (`BUY_THRESHOLD`), chỉ đọc. Thanh trượt "Ngưỡng mua" (mặc định 50, đường thật
+# 62) đã gỡ ở BƯỚC 172 theo Q12: người dùng 09/10/2026 xác nhận nó không có tác
+# dụng, và phán quyết vào lệnh giao cho agent (lộ trình B6), không phải "cứ điểm
+# cao là mua". Gác: tests/test_app_nguong_mua_chi_doc.py.
 
 _db_path = pathlib.Path(__file__).parent / "paper_trades.db"
 real_open_trades = []
@@ -734,8 +740,10 @@ st.markdown(
     f'<span class="ti-v {_vni_lop}">{_vni_val}</span></div>'
     f'<div class="ti-item"><span class="ti-l">Sổ lệnh (net)</span>'
     f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span></div>'
-    f'<div class="ti-item"><span class="ti-l">Threshold</span><span class="ti-v bl">'
-    f'{st.session_state.get(KHOA_NGUONG_MUA, NGUONG_MUA_MAC_DINH):.1f} pts</span></div>'
+    f'<div class="ti-item" title="Ngưỡng mua của đường giao dịch ảo '
+    f'(paper_trading.BUY_THRESHOLD) — chỉ đọc, không chỉnh được trên app.">'
+    f'<span class="ti-l">Ngưỡng mua (đường ảo)</span><span class="ti-v bl">'
+    f'{BUY_THRESHOLD:.1f} pts</span></div>'
     # Truoc day pill nay noi "Sheets Synced" kem cham xanh, trong khi
     # app.py khong he import sheets_store va chua bao gio goi trang_thai().
     # Cung ho voi market_filter.status() bao active=True trong khi cong
@@ -832,8 +840,6 @@ with st.sidebar:
     st.markdown('<div style="height: 6px;"></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sb-card-title">🎯 Tham số AI & Quản trị</div>', unsafe_allow_html=True)
-    buy_threshold = st.slider("Ngưỡng mua Multi-Agent (pts)", 40.0, 65.0,
-                              NGUONG_MUA_MAC_DINH, 0.5, key=KHOA_NGUONG_MUA)
     capital_mode = st.radio("Chế độ phân bổ vốn:", ["30% / vị thế", "Kelly Dynamic", "1% Risk"], index=0)
     exchange = st.selectbox("Sàn giao dịch:", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = 180
@@ -1136,15 +1142,18 @@ dyn_phase_full = wy.nhan_day
 phase_cls = {"tang": "pos", "giam": "neg"}.get(wy.huong, "neu")
 
 # Real AI Recommendation
-if score >= 60.0:
-    dyn_rec = "MUA 30%"
-    dyn_rec_cls = "pos"
-elif score >= buy_threshold:
-    dyn_rec = "MUA THĂM DÒ"
-    dyn_rec_cls = "pos"
-else:
+# Dưới ngưỡng mua của đường giao dịch ảo thì luôn THEO DÕI: bản cũ kiểm
+# `score >= 60.0` TRƯỚC ngưỡng, nên khi ngưỡng là 62 điểm 60–62 hiện "MUA 30%"
+# kèm cảnh báo "thấp hơn ngưỡng mua" ở dưới (BƯỚC 172).
+if score < BUY_THRESHOLD:
     dyn_rec = "THEO DÕI"
     dyn_rec_cls = "neu"
+elif score >= 60.0:
+    dyn_rec = "MUA 30%"
+    dyn_rec_cls = "pos"
+else:
+    dyn_rec = "MUA THĂM DÒ"
+    dyn_rec_cls = "pos"
 
 # Dynamic Stop-Loss from risk agent recommendations
 risk_data = result.get("analyses", {}).get("risk", {}).get("recommendations", {})
@@ -1613,7 +1622,7 @@ with t_pos:
     fib = muc_fibonacci.doc_muc(df, mult)
 
     st.markdown(f"##### 🎯 Kế hoạch vào lệnh đề xuất cho mã [{symbol}]")
-    if score >= buy_threshold and dyn_rec != "THEO DÕI":
+    if score >= BUY_THRESHOLD and dyn_rec != "THEO DÕI":
         plan_table = pd.DataFrame([{
             "Mã CK": symbol,
             "Khuyến nghị": dyn_rec,
@@ -1666,7 +1675,7 @@ with t_pos:
             "`MO-XE-KIEN-TRUC.md`."
         )
     else:
-        st.warning(f"⚠️ Mã **{symbol}** hiện có Điểm AI **{score:.1f}/100** (thấp hơn ngưỡng mua **{buy_threshold:.1f} pts**). Hệ thống khuyến nghị tiếp tục **THEO DÕI** và chưa kích hoạt mở vị thế mua.")
+        st.warning(f"⚠️ Mã **{symbol}** hiện có Điểm AI **{score:.1f}/100** (thấp hơn ngưỡng mua **{BUY_THRESHOLD:.1f} pts** của đường giao dịch ảo). Hệ thống khuyến nghị tiếp tục **THEO DÕI** và chưa kích hoạt mở vị thế mua.")
 
 with t_hist:
     if so_lenh_perf:
@@ -2065,7 +2074,7 @@ st.markdown(f"""
 ">
     <div style="display: flex; gap: 14px;">
         <span>Cap nhat: <b style="color:var(--c-t1);">{now_vn().strftime('%H:%M:%S')} ICT</b></span>
-        <span>Nguong: <b style="color:var(--c-g);">{buy_threshold:.1f} pts</b></span>
+        <span>Nguong: <b style="color:var(--c-g);">{BUY_THRESHOLD:.1f} pts</b></span>
         <span>Ma dang chon: <b style="color:var(--c-g);">{symbol} ({exchange})</b></span>
     </div>
     <!-- Đã bỏ "Gemini" (21/08/2026): chữ đó xuất hiện ĐÚNG MỘT LẦN trong
