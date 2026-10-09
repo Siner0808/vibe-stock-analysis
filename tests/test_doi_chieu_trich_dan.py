@@ -222,9 +222,12 @@ def test_CAU_A4_THAT_cua_so_tay_phai_KHOP_LO_TRINH():
 
 
 def test_CAU_A4_van_LECH_khi_quan_the_thieu_LO_TRINH_phat_dau_dung_nguyen_van_loi():
-    """Dựng lại NGUYÊN VĂN lỗi: bỏ `LO-TRINH.md` khỏi quần thể thì câu thật bị vu là LỆCH."""
-    thieu = [f for f in d.TAI_LIEU if f.name != "LO-TRINH.md"]
-    assert len(thieu) == len(d.TAI_LIEU) - 1
+    """Dựng lại NGUYÊN VĂN lỗi: thiếu `LO-TRINH.md` thì câu thật bị vu là LỆCH. Phải bỏ cả
+    `QUYET-DINH-CHO.md` (Q10 trích câu A4) và `STATE.md` (BƯỚC 166 tự trích nó), nếu không
+    câu vẫn khớp ở đó và ca này không dựng lại được lỗi. Câu thật thuộc về `LO-TRINH.md`."""
+    thieu = [f for f in d.TAI_LIEU
+             if f.name not in ("LO-TRINH.md", "QUYET-DINH-CHO.md", "STATE.md")]
+    assert len(thieu) == len(d.TAI_LIEU) - 3
     assert d.phan_dinh(CAU_A4_CUA_SO_TAY, d.ban_da_chuan(thieu))[0] == 1
 
 
