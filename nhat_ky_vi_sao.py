@@ -253,6 +253,16 @@ def _xep_hang_agent(diem: dict[str, float]) -> Optional[str]:
             f"thấp nhất: {ten(thap)} {d[thap]:g}")
 
 
+def thoat_duoi_cat_lo(sl_ban_dau: float, exit_price: float) -> bool:
+    """Giá thoát nằm DƯỚI cắt lỗ ban đầu = gap/trượt giá (bất biến 3).
+
+    MỘT chỗ định nghĩa điều kiện gap: `hau_kiem_may` gọi nó để gắn nhãn, và
+    `so_bai_hoc` (BƯỚC 167) gọi nó để đặt cờ gap — không có công thức thứ
+    hai. Không xét lý do thoát, đúng như nhãn của `hau_kiem_may` trước đây.
+    """
+    return exit_price < sl_ban_dau
+
+
 def hau_kiem_may(*, sl_ban_dau: float, exit_price: float, exit_reason: str,
                  loi_nhuan_rong_pct: float, R: Optional[float],
                  alpha: Optional[float], diem: dict[str, float]) -> list[str]:
@@ -264,7 +274,7 @@ def hau_kiem_may(*, sl_ban_dau: float, exit_price: float, exit_reason: str,
         nhan.append("chưa có rổ chuẩn cho cặp ngày này — không nói được vượt hay thua rổ")
     else:
         nhan.append(f"{'vượt' if alpha > 0 else 'thua'} rổ {alpha:+.2f} điểm")
-    if exit_price < sl_ban_dau:
+    if thoat_duoi_cat_lo(sl_ban_dau, exit_price):
         duoi = (sl_ban_dau - exit_price) / sl_ban_dau * 100.0
         nhan.append(f"thoát DƯỚI cắt lỗ ban đầu {duoi:.2f}% — gap/trượt giá "
                     "(bất biến 3: gap qua SL khớp ở giá mở cửa)")

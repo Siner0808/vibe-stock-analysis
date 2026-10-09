@@ -21495,3 +21495,71 @@ Không hỏi: BƯỚC này không chạm file luật nào và không viết kế
 Cửa Bash CHẶN thật hai lần trong phiên con: lần đầu cùng lúc hai luật `python-he-thong` và `hai-heredoc` (một lệnh tôi gõ vội), lần sau `heredoc-ghi-file-repo` (ghi script `.py` bằng heredoc). Cả hai lần chặn đúng; tôi chuyển sang tool Write vào thư mục scratchpad rồi gọi `./.venv/Scripts/python.exe` bằng đường tuyệt đối. Các cửa còn lại không lên tiếng với việc tôi làm. Lượt chạy đầy đủ của năm cổng trên cây cuối **nằm ở thân PR** (nó sinh ra sau file này).
 
 **Việc kế.** Leader sửa nhãn ĐỀ XUẤT trong sổ nếu muốn, rồi trình Q1–Q4, Q6–Q8 cho người dùng trong một phiên quyết định; mục nào có câu trả lời thì đổi sang `đã quyết` kèm câu nguyên văn và ngày. Hai câu chỉ người dùng trả lời được: URL Streamlit Cloud (Q3) và điều khoản dữ liệu BCTC (Q7). A4 (tách `docs/STATE.md`) phải sửa các nguồn của sổ trỏ vào `docs/STATE.md`. Lượt soát 12 hạn **15/10/2026**.
+
+## BƯỚC 167 — B3 PHẦN 1: SỔ BÀI HỌC, NHÃN NGUYÊN NHÂN CHO LỆNH ẢO ĐÃ ĐÓNG (CHỈ ĐỌC, CHỈ HIỆN); TÁCH PHÍ RA KHỎI "RIÊNG MÃ" VÌ BA PHẦN GỌI NHẦM MỘT LỆNH HOÀ VỐN LÀ "TÍN HIỆU SAI" (09/10/2026)
+
+**Mốc:** B3
+
+Leader giao phiên đám mây (nhánh `lo-trinh/b3-so-bai-hoc`, từ `main` `e00fbbe`). Người dùng 09/10/2026 hỏi có làm tiếp được trong lúc chờ phiên đám mây không, *"nếu đc thì làm luôn"*; leader cho bắt đầu B3 sớm hơn lịch (26/10), phần KHÔNG cần khoá API (B1, hậu kiểm bằng lời, vẫn chờ khoá). Lộ trình `docs/LO-TRINH.md` giai đoạn B: *"B3 — Sổ bài học với nhãn nguyên nhân: thị trường chung, ngành, tín hiệu sai, cắt lỗ sát, gap"*; ra khỏi B khi 100% lệnh đóng có bài học trong vòng 1 phiên.
+
+### Đã làm
+
+- **`so_bai_hoc.py`** — module THUẦN (không đọc sổ, không ghi đĩa, không mạng; gác AST khoá tập import). Từ một dòng nhật ký đã đóng (dict theo `COT_NHAT_KY`) dựng một bản ghi bài học TẤT ĐỊNH: kết quả, bốn phần đóng góp, nguyên nhân chính, cờ gap, cờ cắt lỗ sát, danh sách "còn thiếu". Hàm tổng hợp nhiều lệnh: đếm nguyên nhân chính tách THẮNG/THUA, đóng góp trung bình mỗi phần kèm KTC 95% (z từ `paper_metrics.Z_LOI_THE`), dưới `paper_metrics.N_TOI_THIEU` (113) lệnh thì kèm câu "chưa đủ lệnh để kết luận".
+- **`nhat_ky_vi_sao.thoat_duoi_cat_lo`** — tách đúng điều kiện `exit_price < stop_loss_ban_dau` của `hau_kiem_may` thành một hàm; `hau_kiem_may` gọi lại nó và `so_bai_hoc` gọi nó. Một công thức, ba nơi dùng. **Nhãn `hau_kiem_may` đã ghi trong sổ giữ nguyên từng ký tự** (gác `test_hau_kiem_may_GIU_NGUYEN_nhan_da_ghi_trong_so` khoá hai ca; 18 test cũ của `test_nhat_ky_vi_sao.py` vẫn xanh).
+- **`app.py`** — tab "📜 Lịch sử giao dịch", dưới khối nhật ký "vì sao": khối "📚 Sổ bài học" (`_khoi_so_bai_hoc`): bảng mỗi lệnh đã đóng một dòng, bảng đếm nguyên nhân, bảng đóng góp trung bình. Dùng `_nk` đã đọc bởi `_doc_nhat_ky()`, không đọc Sheets lần hai.
+- **`tests/test_so_bai_hoc.py`** — 214 test.
+
+### ĐỀ XUẤT định nghĩa — CHƯA ĐO
+
+Mọi định nghĩa dưới đây là ĐỀ XUẤT của leader cộng MỘT sửa đổi của phiên này; chưa chạy trên sổ thật (đám mây không đọc được Sheets) nên chưa biết nhãn nào hay xảy ra và chưa ai kiểm nhãn nào hữu ích.
+
+1. **Phân rã không ngưỡng:** `lãi ròng = thị trường + ngành + riêng mã + chi phí`, trong đó thị trường = `ro_chuan_pct` nhật ký ĐÃ GHI (% đổi VN-INDEX cùng cặp ngày); ngành = lợi nhuận TB các mã cùng ngành − thị trường; chi phí = −`paper_metrics.ROUND_TRIP_COST_PCT` (0,46); riêng mã là phần dư. Thiếu số liệu ngành thì ngành = None và nằm trong riêng mã (bản ghi nói rõ); thiếu rổ chuẩn thì KHÔNG phân rã. Gác: tổng các phần = lãi ròng (sai số 1e-9) trên lưới 105 tổ hợp.
+2. **Nguyên nhân chính:** lệnh THUA → phần âm nhất; THẮNG → phần dương nhất; hoà → không có; hoà giữa hai phần lấy phần đứng trước trong `PHAN` (tất định).
+3. **"Tín hiệu sai" KHÔNG phải nhãn đo được từ một lệnh** (bất biến 5). Nó chỉ là cách GỌI phần riêng mã khi phần ấy là nguyên nhân chính của một lệnh THUA; bản ghi mang `cach_goi`, không có khoá nguyên nhân riêng (gác: `"tin_hieu_sai" not in PHAN`).
+4. **Gap:** `thoat_duoi_cat_lo` — không xét lý do thoát, đúng như nhãn `hau_kiem_may` vẫn làm.
+5. **Cắt lỗ sát:** lệnh thoát bằng `STOP_LOSS` VÀ trong `N_PHIEN_SAU_THOAT` = 5 phiên SAU ngày ra (ngày ra không tính), giá đóng cửa cao nhất ≥ giá vào. **5 là ĐỀ XUẤT CHƯA ĐO** — một hằng số, một chỗ, gác khoá bằng cách monkeypatch nó. Không có chuỗi giá sau thoát → "chưa đủ dữ liệu"; chuỗi ngắn hơn cửa sổ mà chưa chạm giá vào → cũng "chưa đủ dữ liệu" (cửa sổ chưa khép), không phải "không".
+6. **Ngành:** suy từ `vn100_symbols.SECTOR_WATCHLIST`, không bảng thứ hai. Mã thuộc 0 hoặc ≥ 2 ngành KHÔNG gán ngành, bản ghi nói lý do. Đo: `PLX` nằm ở "Dầu khí" VÀ "Điện, Nước & Khí đốt" (`python3 -c "from vn100_symbols import SECTOR_WATCHLIST as S; print([k for k,v in S.items() if 'PLX' in v])"`); `FPT` là ngành một mã nên không có mã cùng ngành. Lợi nhuận ngành tính từ đóng cửa ngày vào tới đóng cửa ngày ra — cùng loại giá và cùng cặp ngày mà rổ chuẩn của nhật ký dùng, để "ngành" là hiệu hai thứ cùng loại. Mã cùng ngành thiếu giá ở một trong hai đầu bị loại khỏi trung bình (không đoán bằng ngày gần nhất).
+
+### SỬA ĐỔI SO VỚI ĐỀ XUẤT: bốn phần, không phải ba — và vì sao
+
+Đề xuất của leader là ba phần (thị trường, ngành, riêng mã) với `riêng mã = lãi ròng − ngành`. Lãi ròng là con số SAU PHÍ (`Trade.net_return_pct`: `gross − ((BROKER_FEE_PCT + EXCHANGE_FEE_PCT) × 2 + SELL_TAX_PCT) × 100`), còn rổ chuẩn và lợi nhuận ngành thì KHÔNG trừ phí. Hệ quả của ba phần: phí 0,46 điểm rơi vào "riêng mã". Một lệnh giá vào = giá ra, thị trường đứng yên, mất đúng phí → riêng mã = −0,46 là phần âm nhất → nguyên nhân chính "riêng mã", gọi là "tín hiệu sai". Đó là một nhãn sai ngay ở ca đơn giản nhất, và (theo quy luật của dự án) nó nghiêng một chiều: mọi lệnh gần hoà vốn bị đẩy sang "tín hiệu sai". Tách `chi phí` ra thì lệnh ấy có nguyên nhân chính `chi_phi`, không có `cach_goi`. Gác dựng lại đúng ca này: `test_LENH_HOA_VON_GIA_mat_dung_PHI_la_CHI_PHI_khong_phai_tin_hieu_sai`; đột biến phát đầu tiên (P01, trả về ba phần) bị nó giết.
+
+Hằng đẳng thức vẫn đúng theo cấu trúc (phần cuối là phần dư). `chi phí` là cận DƯỚI: trượt giá (`truot_gia.py`) nằm trong giá vào/ra nên vẫn ở `riêng mã`; công thức phí nằm ở MỘT chỗ (`paper_metrics.ROUND_TRIP_COST_PCT`, bản thân nó đã có chú thích "PHẢI khớp từng số hạng với `Trade.net_return_pct()`"), gác `test_chi_phi_khop_phi_THAT_cua_Trade` đo khoảng cách lãi gộp − lãi ròng của một `Trade` thật bằng đúng hằng số ấy. Leader muốn quay lại ba phần thì đổi `phan_ra` một dòng và bỏ hai test; tôi khuyên giữ bốn.
+
+### Vì sao KHÔNG đổi lược đồ Sheets
+
+`COT_NHAT_KY` (20 cột) là hợp đồng với tab Sheets `nhat_ky`: `sheets_store` NỔ khi lệch cột, nên một cột mới sẽ làm lượt quét thật trên Actions hỏng (BƯỚC 134). Sổ bài học vì thế được TÍNH LÚC HIỆN từ các dòng đã có, không ghi đi đâu. Gác: `test_COT_NHAT_KY_KHONG_DOI_so_voi_main` ghim 20 tên theo thứ tự (chép từ `git show origin/main:nhat_ky_vi_sao.py`; đổi lược đồ có chủ đích thì sửa test ấy); `test_so_bai_hoc_khong_them_cot_hay_bang_nao`. Không sửa `run_daily.py`, `paper_trading.py`, workflow, ngưỡng, cờ.
+
+### Hạn chế — nói thẳng
+
+- **Chưa chạy trên sổ thật.** Đám mây không đọc được Sheets và `CLAUDE.md` cấm chép số lệnh của sổ thật vào tài liệu. Dữ liệu test là dòng nhật ký GIẢ dựng theo `COT_NHAT_KY`, cộng một test đi đường thật `PaperTradingJournal` → `hoan_tat_nhat_ky` → `sheets_store.push` → `doc_nhat_ky` → `bai_hoc_cho_so` trên sổ `:memory:`. Leader kiểm khối trên app sau merge.
+- **Ngành và cắt lỗ sát cần giá**, mà app không giữ chuỗi giá của các mã đã đóng lệnh. App không tự tải: khối có nút "📥 Tải giá…"; chưa bấm thì hai cột ấy nói "chưa đủ dữ liệu". Bấm thì `_gia_cho_so_bai_hoc` (một hàm `@st.cache_data`, TTL 1 giờ) tải MỖI MÃ MỘT LẦN qua `load_stock_data`, mốc đầu cố định cho cả danh sách. **Đường tải này chưa chạy thật** (proxy đám mây chặn vnstock): chỉ được kiểm bằng `load_stock_data` giả. Số mã phải tải = mã của lệnh đóng + mã cùng ngành, có thể vài chục; ở hạng free 60 yêu cầu/phút nó có thể mất cỡ một phút — leader đo khi mở thử, **ước lượng, chưa đo**.
+- Mã nhiều ngành (PLX) không có phần ngành; ngành một mã (FPT) cũng không.
+- `chi phí` là cận dưới (xem trên), nên `riêng mã` còn chứa phần trượt giá.
+- Đóng góp trung bình: cột "Ngành" và "Riêng mã" chỉ tính lệnh tách được ngành (hai nhóm lệnh định nghĩa "riêng mã" khác nhau, trộn thì sai); cột "Ngành + riêng mã" tính mọi lệnh.
+- Bảng tổng hợp là mô tả nguyên nhân của TỪNG lệnh, không xếp hạng agent và không suy ra "agent X sai" (bất biến 5).
+
+### Gác và đột biến
+
+`tests/test_so_bai_hoc.py`: 214 test, chạy một mình 0,8 giây. Các nhóm: hằng đẳng thức · nguyên nhân chính (ghi cả hoà phần và phần None) · gap (AST + so với nhãn `hau_kiem_may` trên 15 ca) · cắt lỗ sát (biên `==`, ngày ra, phiên N và N+1, cửa sổ chưa khép) · ngành · thiếu thì nói · tất định và không sửa đầu vào · tổng hợp + KTC · `N_TOI_THIEU_TONG_HOP` suy ra (AST: `paper_metrics.N_TOI_THIEU`) · lược đồ đứng yên + module thuần · app (AST: giá chỉ qua hàm có đệm, `try` quanh tải giá và dựng bảng, bảng không tự tính số, gọi đúng một lần) · **chạy thật các hàm hiện của app với một `st` giả** (nhật ký rỗng/None/lỗi, có dòng, bấm nút, tải giá hỏng, dựng bảng nổ).
+
+Đột biến (`va_an_toan.dot_bien_bo`): 43 phát (34 lên `so_bai_hoc.py` · 1 lên `nhat_ky_vi_sao.py` · 8 lên `app.py`). **Lượt đầu 42/43**; phát sống sót duy nhất là P31 (`nguyen_nhan_chinh` coi phần None là 0,0). Phân tích: với bộ phần nhất quán (tổng = lãi ròng) thay None bằng 0 không đổi kết quả — đột biến TƯƠNG ĐƯƠNG, không phải lỗ của gác theo nghĩa thường. Nhưng hợp đồng của hàm là chọn trong các phần ĐÃ CÓ, nên thêm `test_phan_None_KHONG_BAO_GIO_la_nguyen_nhan…` với bộ phần mà mọi phần có số cùng dấu; chạy lại **43/43 đỏ**. Một phát (A03) báo neo khớp 2 lần, vì dòng định dạng "Lãi ròng" cũng có ở `_bang_nhat_ky` — công cụ từ chối chạy thay vì đục nhầm chỗ; neo nối thêm dòng kề trước.
+
+### Giả thuyết và ước lượng sai (giữ lại vì nghe hợp lý)
+
+- **"Ba phần là đủ"** — sai, xem trên. Nó nghe hợp lý vì rổ chuẩn là con số có sẵn và "riêng mã = phần còn lại" là cách tự nhiên nhất để đóng hằng đẳng thức.
+- Bản nháp đầu của `gia_sau_thoat` khai `n: int = N_PHIEN_SAU_THOAT` làm đối số mặc định: giá trị bị ĐÓNG BĂNG lúc định nghĩa hàm, nên monkeypatch hằng số (cách gác khoá "một hằng số, một chỗ") không đổi được hành vi. Phát hiện lúc rà bản nháp, trước khi chạy test; đã bỏ đối số, hàm đọc hằng số lúc gọi. Gác `test_N_PHIEN_SAU_THOAT_la_MOT_hang_so…` khoá điều này.
+
+### Cổng gác
+
+Baseline TRƯỚC khi sửa gì (nhánh từ `e00fbbe`): `python3 -m pytest tests/ -q -p no:cacheprovider` → **2230 passed · 2 skipped · 1 failed** trong 211 giây. Ca đỏ duy nhất là `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay`: đỏ MÔI TRƯỜNG (proxy đám mây chặn kho `vnstocks.com`, không cài được `vnstock==4.0.9`), không liên quan BƯỚC này. Lượt năm cổng trên cây cuối nằm ở thân PR.
+
+### Soát chéo NotebookLM
+
+Không hỏi: BƯỚC này không chạm file luật nào (`tools/buoc_cham_luat.py 167` xác nhận, kết quả ở thân PR) và không viết kết luận đo mới — mọi định nghĩa trên gọi rõ là ĐỀ XUẤT chưa đo. Ô `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json`.
+
+### Cửa tự động
+
+Phiên đám mây KHÔNG có bảy cửa (chỉ đăng ký ở `~/.claude/settings.json` của máy người dùng). Tự giữ luật: vá file bằng `tools/va_an_toan.py` (mọi sửa đổi `app.py` và `nhat_ky_vi_sao.py` đi qua `thay`); module và test mới tạo bằng tool Write. Một lệch ghi nhận: tôi nối thêm một test vào cuối `tests/test_so_bai_hoc.py` bằng `cat >>` heredoc — là hình dạng mà luật `heredoc-ghi-file-repo` chặn ở máy (lỗi 128 ở bản đám mây). Nội dung là file tôi vừa tạo, đã chạy lại 214 test, nhưng đáng ghi: ở đám mây không có cửa nào bắt.
+
+**Việc kế.** Leader mở app với sổ thật, đối chiếu khối "📚 Sổ bài học" với khối nhật ký ngay trên nó (ba phần cộng đúng lãi ròng từng dòng; lệnh `hau_kiem_may` ghi "thoát DƯỚI cắt lỗ" phải có cờ Gap "có"), bấm nút tải giá và đo thời gian. Rồi quyết: giữ bốn phần hay quay về ba; `N_PHIEN_SAU_THOAT` = 5 có hợp lý không (cần phân phối giá sau cắt lỗ trên chính sổ, chưa có). B3 phần 2 (đóng "100% lệnh đóng có bài học trong vòng 1 phiên"): đếm `n_dong_cho_nua_dong` ngay trên bảng, nhưng tiêu chí ấy chưa có chuông tự động — chưa làm.
