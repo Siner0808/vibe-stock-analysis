@@ -59,12 +59,16 @@ MIEN_TRU_DA_DANH_DAU = ("A dated record that already carries a later marker "
 HOP_LE = ("THẬT", "SAI", "CHƯA KIỂM ĐƯỢC")
 #: Mười ba nguồn của sổ tay — nạp lại 01/10/2026 từ `main` `89fe760` (BƯỚC 150):
 #: thêm hai bản lưu NGUYÊN VĂN `CLAUDE.md` / `SKILL.md` trước khi rút gọn (BƯỚC 145).
+#: Thêm `LO-TRINH.md` và `QUYET-DINH-CHO.md` ở BƯỚC 166 (09/10/2026) — mười lăm nguồn:
+#: sổ tay từng bỏ sót câu A4 vì lộ trình không nằm trong nguồn nào. Leader đã nạp hai
+#: nguồn này vào sổ tay thật trước lượt hỏi BƯỚC 166 (mục sổ ghi 15 nguồn).
 NGUON_MAC_DINH = [
     "CLAUDE.md", "MO-XE-KIEN-TRUC.md", "NGUYEN-TAC-DO-LUONG.md", "STATE.md",
     "HANDOFF.md", "SKILL.md", "references/loi-da-mac.md", "references/bay.md",
     "references/cong-thuc-chay.md", "docs/TIEU-CHI-DOC-TRUOC.md",
     "references/soat-cheo-notebooklm.md",
     "lich-su/CLAUDE-md-2026-09-30.md", "lich-su/SKILL-md-2026-09-30.md",
+    "LO-TRINH.md", "QUYET-DINH-CHO.md",
 ]
 
 

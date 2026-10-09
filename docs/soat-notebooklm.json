@@ -2502,6 +2502,51 @@
       "ngay": "2026-10-08",
       "khong_bat_buoc_vi": "BƯỚC chỉ thêm sổ docs/QUYET-DINH-CHO.md cùng bộ đọc tools/quyet_dinh_cho.py và gác tests/test_quyet_dinh_cho.py, một dòng trỏ ở docs/HANDOFF.md và mục BƯỚC 165 ở docs/STATE.md; không sửa file luật nào và không viết kết luận đo mới (số đo chỉ là dữ kiện vận hành: nhật ký một lượt Actions, thư mục ngoài repo không còn)."
     },
+    "BƯỚC 166": {
+      "ngay": "2026-10-09",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 09/10/2026): nguồn cũ @13c32a0 (BƯỚC 161) chậm 4 merge so với main e00fbbe. THÊM TRƯỚC 8 URL raw.githubusercontent.com ghim e00fbbebcc90382c9b96c9addead6ea097b2004c (CLAUDE.md, docs/HANDOFF.md, docs/STATE.md, SKILL.md, references/loi-da-mac.md, references/soat-cheo-notebooklm.md, cộng hai nguồn MỚI docs/LO-TRINH.md và docs/QUYET-DINH-CHO.md; curl 8/8 trả 200 và khớp từng byte với git show), XOÁ SAU đúng 6 bản @13c32a0 vừa có bản thay (đọc nhãn trên hộp xác nhận từng cái), đổi tên '<file> @e00fbbe'. 7 nguồn còn nhãn @13c32a0 có nội dung y hệt main (git diff --quiet 13c32a0 origin/main -- <file>). Sổ còn 15 nguồn. Hỏi độ tươi: sổ tay trả BƯỚC lớn nhất 165, tiêu đề '## BƯỚC 165 — HÀNG ĐỢI QUYẾT ĐỊNH CHỜ NGƯỜI DÙNG GOM VÀO MỘT SỔ…' — khớp main e00fbbe.",
+      "cau_hoi": "I am about to write BƯỚC 166 into docs/STATE.md: (A) On 09/10/2026 the user decided: the live scan on GitHub Actions keeps an EMPTY post-mortem memory (0 patterns) and the 44 frozen backtest patterns are NOT loaded into the live path; the third clause of paper_metrics.dieu_kien_dong_lai (at N_DAY_DU = 451 closed trades, CLOSE the gate unless the lower 95% bound of alpha is above 0) stays unchanged for now, and redesigning it as 'roll back to the previous version' instead of 'stop placing trades' becomes a phase C design item, fixed in writing before the ledger reaches N_TOI_THIEU = 113; the scorer cham_xac_nhan keeps refusing the whole price board when any ticker lacks a price until the real fetcher has counted missing tickers. (B) The user decided NOT to split docs/STATE.md by month: roadmap item A4 in docs/LO-TRINH.md is dropped and STATE.md stays one append-only file, because the A4 measurement found a gain of about 0 against 7 broken tests, 199 of 219 dead pointers and silent breakage of tools/ho_so.py and tools/doi_chieu_trich_dan.py. (C) Measured 09/10/2026: the Streamlit Cloud app installed vnstock==4.0.9 and vnai==2.6.2 from requirements.txt with uv, so --extra-index-url works there; it saves VNSTOCK_API_KEY at start-up and its status panel (vnstock_goi.kiem_goi) shows plan silver, expires 2026-11-22, as a match, so Streamlit Cloud does NOT run at the free tier. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the 44 patterns must or will be loaded on the live path, or that the third stop clause was already changed or removed, or that docs/STATE.md will be split by month or that A4 is still a phase A deliverable, or that Streamlit Cloud runs vnstock at the free tier with 8 report periods and 60 requests per minute, or that kiem_goi reports a mismatch on the cloud forever, or that the Streamlit Cloud app is unchecked since BƯỚC 127. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "docs/LO-TRINH.md, mục '### Giai đoạn A': '- **A4** — Tách docs/STATE.md theo tháng, giữ một mục lục.' — thành sai khi người dùng bỏ A4.",
+          "tu_kiem": "grep -n 'A4\\*\\*' docs/LO-TRINH.md -> dòng 164 '- **A4** — Tách `docs/STATE.md` theo tháng, giữ một mục lục. *(chưa làm; …'. tools/doi_chieu_trich_dan.py báo LỆCH 3/54 chỉ vì quần thể 13 tài liệu của nó KHÔNG có LO-TRINH.md (sổ tay lột dấu nháy ngược quanh docs/STATE.md).",
+          "phan_quyet": "THẬT. BƯỚC 166 đánh dấu A4 đã bỏ theo quyết định người dùng 09/10/2026."
+        },
+        {
+          "noi_dung": "CLAUDE.md, '## Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý': hàng bảng '| GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút | **784 phiên — y hệt** |'.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"<hàng ấy>\" -> KHỚP — CLAUDE.md · CLAUDE-md-2026-09-30.md.",
+          "phan_quyet": "THẬT. Sai cho Streamlit Cloud: 09/10/2026 bảng trạng thái app (app.py:846-854, chữ 'ĐÚNG' = vnstock_goi.kiem_goi().dat) hiện 'silver · hết hạn 2026-11-22 · ĐÚNG'. Hạng trên GitHub Actions CHƯA đọc (nhật ký chỉ cho thấy khoá API được lưu)."
+        },
+        {
+          "noi_dung": "CLAUDE.md cùng mục: 'vnstock_goi.kiem_goi() báo LỆCH trên cloud vĩnh viễn — đó là báo ĐÚNG.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"<câu ấy>\" -> KHỚP — CLAUDE.md · CLAUDE-md-2026-09-30.md.",
+          "phan_quyet": "THẬT. Trên Streamlit Cloud 09/10/2026 kiem_goi() cho KHỚP (silver)."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md, '## 5. VIỆC ĐANG TREO': '- **Streamlit Cloud chưa kiểm:** BƯỚC 127 ghi …' và '- **Chờ người dùng:** (1) địa chỉ app Streamlit Cloud — repo không lưu — để kiểm việc treo từ BƯỚC 127;'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py cho cả hai câu -> KHỚP — HANDOFF.md.",
+          "phan_quyet": "THẬT. App đã mở và đọc 09/10/2026 (nhật ký cài + bảng trạng thái + tab 'vì sao')."
+        }
+      ]
+    },
     "BƯỚC 167": {
       "ngay": "2026-10-09",
       "khong_bat_buoc_vi": "BƯỚC thêm module thuần so_bai_hoc.py cùng gác tests/test_so_bai_hoc.py, tách hàm thoat_duoi_cat_lo khỏi hau_kiem_may (nhãn đã ghi giữ nguyên từng ký tự), thêm khối hiện 'Sổ bài học' vào app.py và mục BƯỚC 167 ở docs/STATE.md; không sửa file luật nào và không viết kết luận đo mới (mọi định nghĩa gọi rõ là ĐỀ XUẤT chưa đo, chưa chạy trên sổ thật)."
