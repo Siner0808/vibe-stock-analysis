@@ -411,6 +411,23 @@ def tu_ngay_can_gia(dong_nk: Sequence[Mapping[str, Any]]) -> Optional[str]:
     return min(ngay) if ngay else None
 
 
+def tu_ngay_tai_gia(dong_nk: Sequence[Mapping[str, Any]],
+                    tu_ngay_phan_tich: Optional[str]) -> Optional[str]:
+    """Mốc đầu khi tải giá cho sổ bài học: SỚM HƠN của hai mốc.
+
+    Một là `tu_ngay_can_gia` (ngày vào sớm nhất của lệnh đã đóng), hai là mốc đầu
+    cửa sổ phân tích sẵn có của app (`tu_ngay_phan_tich`). Chỉ lấy mốc thứ nhất thì
+    khi sổ còn non cửa sổ chỉ vài phiên và cổng kiểm định dữ liệu chặn MỌI mã
+    (`data_quality.SO_PHIEN_TOI_THIEU`) — BƯỚC 168. Mốc thứ hai đủ dài cho cổng ấy
+    và dùng lại đệm của mã đang xem. None nếu không có lệnh đã đóng nào.
+    """
+    can = tu_ngay_can_gia(dong_nk)
+    if can is None:
+        return None
+    phan_tich = _ngay(tu_ngay_phan_tich)
+    return min(can, phan_tich) if phan_tich else can
+
+
 def bai_hoc_cho_so(dong_nk: Sequence[Mapping[str, Any]],
                    gia_theo_ma: Optional[Mapping[str, Mapping[str, float]]] = None) -> dict:
     """Mọi dòng nhật ký -> bài học cho lệnh đã đóng + bảng tổng hợp.

@@ -21654,3 +21654,64 @@ Không hỏi: BƯỚC này không chạm file luật nào (`tools/buoc_cham_luat
 Phiên đám mây KHÔNG có bảy cửa (chỉ đăng ký ở `~/.claude/settings.json` của máy người dùng). Tự giữ luật: vá file bằng `tools/va_an_toan.py` (mọi sửa đổi `app.py` và `nhat_ky_vi_sao.py` đi qua `thay`); module và test mới tạo bằng tool Write. Một lệch ghi nhận: tôi nối thêm một test vào cuối `tests/test_so_bai_hoc.py` bằng `cat >>` heredoc — là hình dạng mà luật `heredoc-ghi-file-repo` chặn ở máy (lỗi 128 ở bản đám mây). Nội dung là file tôi vừa tạo, đã chạy lại 214 test, nhưng đáng ghi: ở đám mây không có cửa nào bắt.
 
 **Việc kế.** Leader mở app với sổ thật, đối chiếu khối "📚 Sổ bài học" với khối nhật ký ngay trên nó (ba phần cộng đúng lãi ròng từng dòng; lệnh `hau_kiem_may` ghi "thoát DƯỚI cắt lỗ" phải có cờ Gap "có"), bấm nút tải giá và đo thời gian. Rồi quyết: giữ bốn phần hay quay về ba; `N_PHIEN_SAU_THOAT` = 5 có hợp lý không (cần phân phối giá sau cắt lỗ trên chính sổ, chưa có). B3 phần 2 (đóng "100% lệnh đóng có bài học trong vòng 1 phiên"): đếm `n_dong_cho_nua_dong` ngay trên bảng, nhưng tiêu chí ấy chưa có chuông tự động — chưa làm.
+
+## BƯỚC 168 — B3: SỬA NÚT "📥 TẢI GIÁ" CỦA SỔ BÀI HỌC — CỔNG KIỂM ĐỊNH CHẶN `TOO_SHORT` MỌI MÃ VÌ CỬA SỔ GIÁ BẮT ĐẦU ĐÚNG Ở NGÀY VÀO SỚM NHẤT CỦA SỔ CÒN NON (09/10/2026)
+
+**Mốc:** B3
+
+Leader giao phiên đám mây (nhánh `lo-trinh/b3-tai-gia`, từ `main` `0a79e2d`, đã có BƯỚC 166 và 167).
+
+### Lỗi thật (leader đo trên máy có vnstock, 09/10/2026)
+
+Chạy app với sổ thật, tab "📜 Lịch sử giao dịch" → khối "📚 Sổ bài học" → bấm "📥 Tải giá để xét ngành và cắt lỗ sát": app in *"Không tải được giá 22 mã"* — TẤT CẢ các mã. Tái lập ngoài app: `VNStockCollectorAgent().collect(m, tu, den, exchange=san_giao_dich.san_cua(m))` với `tu = so_bai_hoc.tu_ngay_can_gia(nhat_ky)` (ngày vào sớm nhất của lệnh đã đóng, cuối 09/2026) và `den` = hôm nay → `status=FAILED`, note *"Dữ liệu không qua kiểm định: 🔴 chỉ có 10 phiên, không đủ để tính chỉ báo"*. Hai con số (22 mã, 10 phiên) là số leader đo trên sổ thật; phiên đám mây không đọc được Sheets nên KHÔNG tái lập được chúng, chỉ tái lập được hình dạng lỗi (xem Gác).
+
+### Gốc
+
+`data_quality.validate_ohlcv` chặn mọi chuỗi ít hơn 20 phiên (`TOO_SHORT`, mức BLOCK) và `VNStockCollectorAgent.collect` coi dữ liệu bị chặn là không lấy được (`status=FAILED`). `app._gia_cho_so_bai_hoc` xin giá đúng từ `tu_ngay_can_gia` — ngày vào sớm nhất của sổ. Khi sổ còn non (luôn đúng ở thời điểm này) khoảng từ ngày ấy tới hôm nay ngắn hơn 20 phiên, nên MỌI mã (cả mã của lệnh lẫn mã cùng ngành) bị cổng chặn. Lỗi nằm ở chỗ xin giá, không ở cổng: cổng đúng — một chuỗi 10 phiên thật sự không đủ để tính chỉ báo.
+
+### Đã sửa
+
+- **`so_bai_hoc.tu_ngay_tai_gia(dong_nk, tu_ngay_phan_tich)`** — hàm thuần: mốc đầu = SỚM HƠN của `tu_ngay_can_gia(dong_nk)` và mốc đầu cửa sổ phân tích của app; None khi không có lệnh đã đóng nào. Không gõ số mới (không 20, không 420, không 30 ngày).
+- **`app.py`** — `_khoi_so_bai_hoc` gọi `_sbh.tu_ngay_tai_gia(nk, start_str_phan_tich)` thay cho `tu_ngay_can_gia(nk)`. `start_str_phan_tich` là mốc app đã dựng sẵn từ `NGAY_LICH_SU_PHAN_TICH` cho mã đang xem, nên cửa sổ luôn dài hơn ngưỡng của cổng; lợi phụ: khoá đệm `load_stock_data(mã, start, end, sàn)` của mã đang xem khớp khoá của sổ bài học (mã ấy khỏi tải lại).
+- **`data_quality.py`** — chỉ tách số `20` gõ thẳng thành hằng số có tên `SO_PHIEN_TOI_THIEU` (`rep.rows < SO_PHIEN_TOI_THIEU`). **Hành vi y hệt**, giá trị không đổi — đây là đường quét thật, nên gác kèm (xem dưới) khoá cả giá trị lẫn hình dạng phép so. Không nới cổng, không thêm đường tải giá thứ hai bỏ qua kiểm định.
+- Không đổi `COT_NHAT_KY`, `run_daily.py`, `paper_trading.py`, workflow, ngưỡng giao dịch.
+
+### Vì sao test của BƯỚC 167 không bắt được (lỗi 140)
+
+Các test app của BƯỚC 167 thay `load_stock_data` bằng bộ tải GIẢ trả mỗi mã đúng hai dòng giá (`2026-09-02`, `2026-09-10`) và luôn "OK". Không ca nào đi qua `data_quality.validate_ohlcv` — nơi đường tải giá THẬT có một cổng chặn theo số phiên. Gác kiểm "app gọi hàm có đệm một lần, sau nút bấm" nhưng không kiểm "cửa sổ nó xin có qua được cổng không". Đúng bài học SKILL Bước 3 điều 4: *bắt máy đo đi qua một ca THẬT*; ở đây ca thật là một cổng thật.
+
+### Gác và đột biến
+
+`tests/test_so_bai_hoc.py` thêm nhóm 14:
+
+- **Dựng lại lỗi** `test_LOI_THAT_cua_so_tu_ngay_vao_cua_so_non_BI_cong_kiem_dinh_chan`: bộ tải giả `_tai_qua_cong_kiem_dinh` dựng bảng OHLCV mọi phiên làm việc trong [tu, den] rồi cho CHÍNH `data_quality.validate_ohlcv` phán — ngưỡng không gõ ở test, nó SUY từ cổng (`data_quality.SO_PHIEN_TOI_THIEU`). Sổ giả có lệnh vào cách ngày hôm nay (`2026-10-09`) khoảng 10 phiên: xin giá từ `tu_ngay_can_gia` → mọi mã FAILED.
+- **Ca sau sửa** `test_app_BAM_NUT_voi_so_non_van_co_gia_qua_cong_kiem_dinh_THAT`: cùng sổ, cùng bộ tải qua cổng, đi qua `_khoi_so_bai_hoc` THẬT của `app.py` (nạp bằng AST) → không có dòng "Không tải được giá" và cột Ngành có số.
+- Hàm thuần (`tu_ngay_tai_gia`: sớm hơn của hai mốc, hai chiều, mốc có giờ, thiếu mốc, không có lệnh đóng), độ dài cửa sổ phân tích so với cổng, AST: app truyền đúng `start_str_phan_tich` vào phép tính mốc đầu và không còn gọi `tu_ngay_can_gia`, `start_str_phan_tich` suy từ `NGAY_LICH_SU_PHAN_TICH`.
+- Cổng: `validate_ohlcv` chặn đúng dưới `SO_PHIEN_TOI_THIEU` (biên n−1 chặn, n qua) và AST phép so dùng TÊN hằng số, không số trần.
+
+Đột biến (`va_an_toan.dot_bien_bo`, một lượt, bộ chạy: `test_so_bai_hoc` + `test_data_quality` + `test_data_quality_gate` + `test_cong_chat_luong`): **13/13 đỏ**, 0 sống sót. Phát đầu = bỏ phép lấy mốc sớm hơn (dựng lại lỗi): đỏ. Còn lại: `min`→`max`, thiếu mốc thứ hai, không lệnh đóng, bỏ chuẩn hoá ngày, app quay lại `tu_ngay_can_gia` / truyền `None` / truyền `start_str`, cửa sổ phân tích quá ngắn, cổng `<`→`<=`, trả lại số trần, hằng số 20→21 và 20→19.
+
+### Hạn chế — nói thẳng
+
+- **Chưa chạy bằng vnstock thật.** Phiên đám mây không có `vnstock` (proxy chặn kho hãng) và không đọc được Sheets. Bộ tải giả mô phỏng nguồn bằng bảng giá tổng hợp nhưng cổng kiểm định là mã THẬT. Leader bấm nút trên app với sổ thật rồi mới merge.
+- Mốc `start_str_phan_tich` kéo cửa sổ dài hơn mức cần cho sổ non (mỗi mã tải ~285 phiên thay vì ~10): chậm hơn bản (hỏng) trước, nhưng cùng cỡ với việc tải của mã đang xem, và mã đang xem tải được từ đệm. Chưa đo thời gian nút bấm ở máy thật.
+- Sổ ngày càng già: khi lệnh sớm nhất cũ hơn 420 ngày lịch, mốc đầu lùi theo lệnh (mốc SỚM HƠN thắng) — cửa sổ chỉ dài thêm, không bao giờ ngắn hơn mức cổng cần.
+
+### Giả thuyết và ước lượng sai (giữ lại vì nghe hợp lý)
+
+- *"Nới cổng hoặc thêm đường tải giá không qua kiểm định là cách sửa nhanh"* — bị loại ngay từ đề: cổng đúng, lỗi là xin cửa sổ quá ngắn. Sửa ở chỗ xin giá.
+- *"Lấy 20 phiên đủ rồi, gõ `30 ngày` / `20`"* — bị loại: gõ ngưỡng thứ hai ở chỗ khác sẽ trôi ra khỏi cổng. Dùng mốc cửa sổ phân tích sẵn có (đã đủ dài cho SMA200).
+
+### Cổng gác
+
+Kết quả năm cổng và số liệu đếm ở thân PR (lượt chạy cuối trên cây cuối). Đỏ MÔI TRƯỜNG nếu có là do thiếu `vnstock` trong phiên đám mây, không liên quan BƯỚC này.
+
+### Soát chéo NotebookLM
+
+Không hỏi: BƯỚC này không chạm file luật nào (`tools/buoc_cham_luat.py 168` xác nhận, kết quả ở thân PR) và không viết kết luận đo mới. Ô `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json`.
+
+### Cửa tự động
+
+Phiên đám mây không có bảy cửa. Tự giữ luật: mọi sửa đổi file nguồn và file test đi qua `tools/va_an_toan.py` (`thay`), chạy từ script trong thư mục nháp của phiên; không `sed -i` / `cat >` / `cat >>` / heredoc ghi vào file nguồn hay test; pytest ghi ra file log, không pipe qua `tail`.
+
+**Việc kế.** Leader bấm "📥 Tải giá" trên app với sổ thật: không còn dòng "Không tải được giá …", cột Ngành và Cắt lỗ sát có số; đo thời gian nút bấm. Rồi mới merge.

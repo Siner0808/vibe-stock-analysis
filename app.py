@@ -611,7 +611,7 @@ def _khoi_so_bai_hoc(nk, nk_loi):
         st.session_state["bai_hoc_co_gia"] = True
     gia, gia_thieu = None, []
     if st.session_state.get("bai_hoc_co_gia"):
-        _ma, _tu = _sbh.ma_can_gia(nk), _sbh.tu_ngay_can_gia(nk)
+        _ma, _tu = _sbh.ma_can_gia(nk), _sbh.tu_ngay_tai_gia(nk, start_str_phan_tich)
         if _ma and _tu:
             try:
                 with st.spinner(f"Tải giá {len(_ma)} mã…"):

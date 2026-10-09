@@ -22,6 +22,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+import data_quality
 import nhat_ky_vi_sao as nk
 import paper_metrics
 import so_bai_hoc as sbh
@@ -699,6 +700,22 @@ def _co_cache_data(f):
     return any("cache_data" in ast.unparse(d) for d in f.decorator_list)
 
 
+def _hang_so_app(ten):
+    """Giá trị literal của hằng số mức module trong app.py (không gõ lại số ở test)."""
+    for n in _CAY_APP.body:
+        if isinstance(n, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == ten for t in n.targets):
+            return ast.literal_eval(n.value)
+    raise AssertionError(f"app.py không có hằng số {ten}")
+
+
+#: Mốc đầu cửa sổ phân tích của app, dựng đúng như app dựng (`end_date - timedelta(
+#: days=NGAY_LICH_SU_PHAN_TICH)`) từ cùng hằng số, với `end_str` của `_chay_app`.
+_END_STR_TEST = "2026-10-09"
+_MOC_PHAN_TICH = (pd.Timestamp(_END_STR_TEST)
+                  - pd.Timedelta(days=_hang_so_app("NGAY_LICH_SU_PHAN_TICH"))).strftime("%Y-%m-%d")
+
+
 def test_app_gia_tai_qua_MOT_ham_CO_DEM_va_khong_goi_load_trong_vong_lap_lenh():
     f = _ham_app("_gia_cho_so_bai_hoc")
     assert _co_cache_data(f), "tải giá cho sổ bài học phải có @st.cache_data"
@@ -799,7 +816,8 @@ def _chay_app(st, nk_rows, nk_loi=None, gia_ham=None, loi_gia=None):
     ten = ("_so", "_mau_dau", "_gia_cho_so_bai_hoc", "_bang_bai_hoc", "_bang_dong_gop",
            "_khoi_so_bai_hoc")
     mod = ast.Module(body=[_ham_app(t) for t in ten], type_ignores=[])
-    ns = {"st": st, "pd": pd, "end_str": "2026-10-09", "price_multiplier": lambda d: 1.0,
+    ns = {"st": st, "pd": pd, "end_str": _END_STR_TEST, "price_multiplier": lambda d: 1.0,
+          "start_str_phan_tich": _MOC_PHAN_TICH,
           "load_stock_data": lambda *a, **k: (None, "FAILED", [])}
     if gia_ham is not None:
         ns["load_stock_data"] = gia_ham
@@ -922,3 +940,112 @@ def test_DUONG_THAT_dong_nhat_ky_doc_tu_Sheets_chay_duoc_qua_so_bai_hoc(monkeypa
     assert b["phan"]["thi_truong"] == fpt["ro_chuan_pct"]               # số nhật ký, không tính lại
     assert b["loi_nhuan_rong_pct"] == fpt["loi_nhuan_rong_pct"]
     assert bh["tong_hop"]["cau_luu_y"]
+
+
+# ── 14. BƯỚC 168: cửa sổ giá đi qua CỔNG KIỂM ĐỊNH dữ liệu THẬT ─────────────
+#
+# Lỗi 140: BƯỚC 167 chỉ chạy với giá GIẢ (mỗi mã hai ngày), không ca nào đi qua
+# `data_quality.validate_ohlcv`; trên máy thật mọi mã bị chặn `TOO_SHORT` vì cửa
+# sổ xin giá bắt đầu đúng ở ngày vào sớm nhất của sổ còn non (vài phiên).
+
+def _tai_qua_cong_kiem_dinh(ma, tu, den, san):
+    """Bộ tải giả đúng hình `load_stock_data`: dựng bảng OHLCV MỌI phiên làm việc
+    trong [tu, den] rồi cho CHÍNH `data_quality.validate_ohlcv` phán — bị chặn thì
+    trả FAILED như `VNStockCollectorAgent.collect`. Không ngưỡng nào gõ ở đây."""
+    ngay = pd.bdate_range(tu, den)
+    gia = [100.0 + 0.1 * i for i in range(len(ngay))]
+    df = pd.DataFrame({"time": ngay.strftime("%Y-%m-%d"), "open": gia, "high": gia,
+                       "low": gia, "close": gia, "volume": [1_000_000] * len(ngay)})
+    rep = data_quality.validate_ohlcv(df, symbol=ma, exchange=san, as_of=den)
+    if rep.blocked:
+        return None, "FAILED", []
+    return df, "OK", []
+
+
+#: Sổ còn non: lệnh vào cách ngày hôm nay (`_END_STR_TEST`) khoảng 10 phiên.
+_SO_NON = [_dong(entry_date="2026-09-25", exit_date="2026-10-02")]
+
+
+def test_LOI_THAT_cua_so_tu_ngay_vao_cua_so_non_BI_cong_kiem_dinh_chan():
+    """Dựng lại lỗi: xin giá từ `tu_ngay_can_gia` thì mọi mã FAILED. Nếu test này
+    xanh khi bộ tải giả KHÔNG chặn nữa thì các test dưới chứng minh được gì cũng vô nghĩa."""
+    tu = sbh.tu_ngay_can_gia(_SO_NON)
+    assert len(pd.bdate_range(tu, _END_STR_TEST)) < data_quality.SO_PHIEN_TOI_THIEU
+    for ma in sbh.ma_can_gia(_SO_NON):
+        _d, tt, _ = _tai_qua_cong_kiem_dinh(ma, tu, _END_STR_TEST, "HOSE")
+        assert tt == "FAILED", ma
+
+
+def test_cua_so_phan_tich_cua_app_DU_DAI_cho_cong_kiem_dinh():
+    assert len(pd.bdate_range(_MOC_PHAN_TICH, _END_STR_TEST)) >= data_quality.SO_PHIEN_TOI_THIEU
+
+
+def test_tu_ngay_tai_gia_lay_moc_SOM_HON_cua_hai_mốc():
+    can = sbh.tu_ngay_can_gia(_SO_NON)
+    assert sbh.tu_ngay_tai_gia(_SO_NON, _MOC_PHAN_TICH) == _MOC_PHAN_TICH < can
+    xa = [_dong(entry_date="2020-01-02")]                  # vào TRƯỚC mốc phân tích
+    assert sbh.tu_ngay_tai_gia(xa, _MOC_PHAN_TICH) == "2020-01-02"
+    assert sbh.tu_ngay_tai_gia(_SO_NON, "2026-09-25 00:00:00") == "2026-09-25"
+    assert sbh.tu_ngay_tai_gia(_SO_NON, None) == can       # thiếu mốc thứ hai: như cũ
+    assert sbh.tu_ngay_tai_gia(_SO_NON, "") == can
+
+
+def test_tu_ngay_tai_gia_khong_co_lenh_dong_thi_None():
+    chua = [_dong(exit_date=None, loi_nhuan_rong_pct=None, trang_thai_lenh=Status.OPEN)]
+    assert sbh.tu_ngay_tai_gia(chua, _MOC_PHAN_TICH) is None
+    assert sbh.tu_ngay_tai_gia([], _MOC_PHAN_TICH) is None
+
+
+def test_app_BAM_NUT_voi_so_non_van_co_gia_qua_cong_kiem_dinh_THAT():
+    """Ca thật của lỗi 140: bấm nút trên sổ còn non, bộ tải đi qua cổng kiểm định."""
+    ghi = _chay_app(_St(bam_nut=True), _SO_NON, gia_ham=_tai_qua_cong_kiem_dinh)
+    chu = " ".join(str(g[1][0]) for g in _loai(ghi, "caption"))
+    assert "Không tải được giá" not in chu, chu
+    hang = _loai(ghi, "dataframe")[0][1][0].data
+    assert (hang["Ngành"] != "—").any()
+
+
+def test_app_truyen_MOC_CUA_SO_PHAN_TICH_vao_phep_tinh_moc_dau():
+    """AST, không đọc `in`: `_khoi_so_bai_hoc` lấy mốc đầu qua `tu_ngay_tai_gia`
+    với đúng tên `start_str_phan_tich`, và không còn xin giá từ `tu_ngay_can_gia`."""
+    f = _ham_app("_khoi_so_bai_hoc")
+    goi = [n for n in ast.walk(f) if isinstance(n, ast.Call)
+           and getattr(n.func, "attr", "") == "tu_ngay_tai_gia"]
+    assert len(goi) == 1 and [ast.unparse(a) for a in goi[0].args][1:] == ["start_str_phan_tich"]
+    assert "tu_ngay_can_gia" not in {getattr(c.func, "attr", getattr(c.func, "id", ""))
+                                     for c in ast.walk(f) if isinstance(c, ast.Call)}
+
+
+def test_ngay_lich_su_phan_tich_la_nguon_cua_start_str_phan_tich():
+    gan = next(n for n in _CAY_APP.body if isinstance(n, ast.Assign)
+               and any(getattr(t, "id", "") == "start_str_phan_tich" for t in n.targets))
+    assert "NGAY_LICH_SU_PHAN_TICH" in {x.id for x in ast.walk(gan.value) if isinstance(x, ast.Name)}
+
+
+# ── ngưỡng của cổng kiểm định: MỘT hằng số, đường quét thật không đổi hành vi ──
+
+def _bang_n_phien(n):
+    ngay = pd.bdate_range("2026-01-05", periods=n)
+    gia = [100.0 + 0.1 * i for i in range(n)]
+    return (pd.DataFrame({"time": ngay.strftime("%Y-%m-%d"), "open": gia, "high": gia, "low": gia,
+                          "close": gia, "volume": [1_000_000] * n}),
+            ngay[-1].strftime("%Y-%m-%d"))
+
+
+def test_cong_kiem_dinh_chan_DUNG_duoi_SO_PHIEN_TOI_THIEU():
+    n = data_quality.SO_PHIEN_TOI_THIEU
+    df, den = _bang_n_phien(n - 1)
+    rep = data_quality.validate_ohlcv(df, as_of=den)
+    assert rep.blocked and [i.code for i in rep.blockers] == ["TOO_SHORT"]
+    df, den = _bang_n_phien(n)
+    assert "TOO_SHORT" not in [i.code for i in data_quality.validate_ohlcv(df, as_of=den).issues]
+
+
+def test_cong_kiem_dinh_so_rows_voi_HANG_SO_co_ten_khong_voi_so_tran():
+    """AST: phép so `rep.rows < …` trong `validate_ohlcv` dùng tên `SO_PHIEN_TOI_THIEU`."""
+    cay = ast.parse((GOC / "data_quality.py").read_text(encoding="utf-8"))
+    f = next(n for n in cay.body if isinstance(n, ast.FunctionDef) and n.name == "validate_ohlcv")
+    so = [c for c in ast.walk(f) if isinstance(c, ast.Compare)
+          and ast.unparse(c.left) == "rep.rows" and isinstance(c.ops[0], ast.Lt)
+          and not (isinstance(c.comparators[0], ast.BinOp))]
+    assert len(so) == 1 and ast.unparse(so[0].comparators[0]) == "SO_PHIEN_TOI_THIEU"

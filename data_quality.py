@@ -201,6 +201,10 @@ EXCHANGE_LIMITS = {"HOSE": 0.07, "HNX": 0.10, "UPCOM": 0.15}
 REQUIRED_COLUMNS = ("time", "open", "high", "low", "close", "volume")
 STALE_WARN_DAYS = 4       # cuối tuần + 1 ngày lễ
 STALE_BLOCK_DAYS = 10
+#: Dưới ngần này phiên thì chuỗi giá BỊ CHẶN (`TOO_SHORT`): không đủ để tính chỉ
+#: báo. Mọi nơi xin giá qua `VNStockCollectorAgent.collect` phải xin cửa sổ dài hơn
+#: ngần này, nếu không MỌI mã trả FAILED (BƯỚC 168).
+SO_PHIEN_TOI_THIEU = 20
 
 
 def validate_ohlcv(df: pd.DataFrame | None, symbol: str = "",
@@ -220,7 +224,7 @@ def validate_ohlcv(df: pd.DataFrame | None, symbol: str = "",
         return rep
 
     rep.rows = len(df)
-    if rep.rows < 20:
+    if rep.rows < SO_PHIEN_TOI_THIEU:
         add("TOO_SHORT", Severity.BLOCK,
             f"chỉ có {rep.rows} phiên, không đủ để tính chỉ báo")
         return rep
