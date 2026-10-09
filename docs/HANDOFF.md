@@ -302,6 +302,17 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **09/10/2026 — BƯỚC 166: người dùng chốt phiên quyết định A5.** Câu trả lời NGUYÊN VĂN, hệ quả và việc kế ở
+> `docs/QUYET-DINH-CHO.md` (Q1–Q12) và `docs/STATE.md` BƯỚC 166. Tóm tắt:
+>
+> - ✅ **Q1** đường quét thật **giữ 0 mẫu** (*"Giữ 0 mẫu (Recommended)"*); mọi báo cáo so backtest với sổ thật nêu chỗ lệch 44↔0.
+> - ✅ **Q2** giữ vế 3 điều kiện dừng tạm, thiết kế lại ở giai đoạn C (mốc **C6**, `docs/LO-TRINH.md`), chốt bằng văn bản TRƯỚC khi sổ thật chạm `N_TOI_THIEU`.
+> - ✅ **Q3** Streamlit Cloud ĐÃ KIỂM: app chạy từ `main`, nhật ký cài `vnai==2.6.2` · `vnstock==4.0.9` từ `requirements.txt` ⇒ dòng `--extra-index-url` CÓ hiệu lực; Cloud chạy hạng **silver** (không phải free). URL do người dùng đưa, **cố ý không lưu trong repo công khai**.
+> - ✅ **Q4** chờ số đếm thật của bộ kéo giá trước khi nới "từ chối cả bảng".
+> - ✅ **Q5** `luu_do18` · `luu_do20`: người dùng *"Xoá cả hai (Recommended)"* (02/10), xác nhận lại *"Đưa lại vào Thùng rác"* (09/10); nay ở Thùng rác Windows, `luu_do22` giữ nguyên. Đường `luu_do18/…` (BƯỚC 142) và `luu_do20/…` (ĐO 22) KHÔNG chạy lại được từ đường đã ghi.
+> - ✅ **Q6** chấp nhận `vnii` gửi `operation`; **Q8** báo lỗi `vnstock_ezchart` soạn lại NGOÀI repo, người dùng gửi hãng. **Q10 (A4)** không tách `docs/STATE.md`.
+> - **CÒN CHỜ:** Q7 (người dùng đọc điều khoản dữ liệu BCTC rồi báo) · Q11 (tắt telemetry `vnstock` trên Cloud và Actions?) · Q12 (mặc định thanh trượt ngưỡng mua trên app là 50, đường giao dịch dùng `BUY_THRESHOLD` 62).
+
 ⛔ **TẠM NGỪNG `vnstock` / `vnai` từ 25/09/2026** — `docs/STATE.md`
 BƯỚC 122. PyPI đặt hai gói ở trạng thái *quarantined*. Người dùng chốt:
 không chạy app hay bất kỳ mã/test nào NHẬP hai gói; không cài, nâng, gỡ
@@ -348,7 +359,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   cụ cũ + biến ấy thì xanh. Nay dụng cụ xanh cả khi không có biến nào.
 > - **Hai worktree ĐO 18 đã gỡ** (người dùng cho phép). 18 file dữ liệu
 >   (`wf_*.db` · `sl_pattern_memory.json`) **không xoá** — chuyển sang
->   `C:\Users\cuong\.gemini\antigravity\scratch\luu_do18\`. Xoá hẳn thì hỏi
+>   `C:\Users\cuong\.gemini\antigravity\scratch\luu_do18\`. Xoá hẳn thì hỏi <!-- duong-da-chet: người dùng quyết xoá 02/10/2026 (Q5, BƯỚC 166); thư mục đã chuyển vào Thùng rác Windows, đường cũ không còn -->
 >   người dùng.
 
 > 🧭 **27/09/2026 — CHUỖI PR ĐÃ VÀO `main`.**
@@ -359,9 +370,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   hãng**, hai check xanh → #169 **tự merge** (bật trên thanh PR, không phải
 >   agent bật) kiểu squash thành `41bb329` trên `main`. BƯỚC 121–127 nay ở
 >   `main`.
-> - **Streamlit Cloud chưa kiểm:** BƯỚC 127 ghi *"nó có đọc
+> - ~~**Streamlit Cloud chưa kiểm:** BƯỚC 127 ghi *"nó có đọc
 >   `--extra-index-url` hay không thì chỉ biết sau khi #169 vào `main` — mở
->   app và đọc, đừng suy"*. Nay tới lúc ấy.
+>   app và đọc, đừng suy"*. Nay tới lúc ấy.~~ ✅ **ĐÃ KIỂM 09/10/2026 (BƯỚC 166):** leader đọc nhật ký "Manage app": `vnai==2.6.2` · `vnstock==4.0.9` cài bằng `uv` từ `requirements.txt` ⇒ `--extra-index-url` CÓ hiệu lực; hạng silver.
 > - Lượt soát định kỳ 6 + BƯỚC 128 (gác sổ soát phạt việc soát xong) — PR
 >   riêng từ nhánh `soat/27-09-luot-6`.
 > - Vế `PYTHONUTF8` ở khối trên: **đã sửa, BƯỚC 129** — sáu dụng cụ đặt lại
@@ -381,11 +392,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   cũ — bản chụp dừng ở BƯỚC 120, kiểm bằng nội dung — đã XOÁ, người dùng
 >   cho phép. Hỏi lại sau khi nạp: sổ tay trích đúng tiêu đề BƯỚC 130.
 >   Nạp lại lần sau khi `main` đi xa: `references/soat-cheo-notebooklm.md`.
-> - **Chờ người dùng:** (1) địa chỉ app Streamlit Cloud — repo không lưu —
->   để kiểm việc treo từ BƯỚC 127; (2) vế 3 điều kiện dừng của cổng lệnh ảo;
+> - **Chờ người dùng:** ~~(1) địa chỉ app Streamlit Cloud — repo không lưu —
+>   để kiểm việc treo từ BƯỚC 127; (2) vế 3 điều kiện dừng của cổng lệnh ảo;~~ ✅ đã quyết 09/10 (BƯỚC 166, Q3 · Q2);
 >   ~~(3) bật lại ba workflow~~ ✅ bật 28/09 (BƯỚC 138) — cổng lệnh ảo nay MỞ trên `main`, nên bật
->   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; (4) xoá hẳn
->   `scratch/luu_do18/` hay giữ.
+>   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; ~~(4) xoá hẳn
+>   `scratch/luu_do18/` hay giữ~~ ✅ đã quyết 09/10 (BƯỚC 166, Q5: xoá, đã ở Thùng rác).
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
@@ -446,8 +457,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **BƯỚC 137:** sổ tay NotebookLM nạp lại, 11 nguồn ghim mã băm
 >   `60d6598a…`, nhãn `<file> @60d6598`; độ tươi BƯỚC 134. Cách nạp đúng
 >   (thêm trước, xoá sau) nay ở `references/soat-cheo-notebooklm.md`.
-> - **Chờ người dùng (không đổi từ 27/09):** URL Streamlit Cloud · vế 3 điều
->   kiện dừng · ~~bật ba workflow~~ (✅ BƯỚC 138) · `scratch/luu_do18/`. ~~Thêm: tab
+> - **Chờ người dùng (không đổi từ 27/09):** ~~URL Streamlit Cloud · vế 3 điều
+>   kiện dừng~~ · ~~bật ba workflow~~ (✅ BƯỚC 138) · ~~`scratch/luu_do18/`~~ (✅ cả ba đã quyết 09/10, BƯỚC 166). ~~Thêm: tab
 >   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
 > - **Hạn 29/09:** ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (✅ BƯỚC 140).
 >
@@ -562,7 +573,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 
 > **Hàng đợi gom một chỗ từ 08/10/2026 (BƯỚC 165): `docs/QUYET-DINH-CHO.md`** (mã Q1…Qn, nguồn, lựa chọn, đề xuất; xem bằng `tools/quyet_dinh_cho.py`). Danh sách dưới đây là bản ghi lịch sử, không còn là nơi cập nhật.
 
-- **Bộ nhớ hậu nghiệm trên đường quét thật (29/09/2026, BƯỚC 140).**
+- ~~**Bộ nhớ hậu nghiệm trên đường quét thật (29/09/2026, BƯỚC 140).**~~ ✅ **ĐÃ QUYẾT 09/10/2026 (BƯỚC 166, Q1): *"Giữ 0 mẫu (Recommended)"*** — phương án (a) dưới đây; mọi báo cáo so backtest với sổ thật nêu chỗ lệch 44↔0. Bản hỏi lúc chưa quyết:
   Tài liệu viết đường thật *"dùng 44 mẫu"*; đo ra runner CI dùng **0 mẫu**
   ở cả 71/71 lượt quét từ 21/08, vì `sl_pattern_memory.json` bị gitignore và
   workflow không khôi phục nó. Nên chọn: (a) giữ như đang chạy — đường thật
@@ -609,7 +620,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   trong phiên chỉ để cảnh báo, không ghi sổ"*; `run_daily` nay chỉ ghi
   sổ trên nến đã đóng.
 - **Dữ liệu `backtest/fundamentals/` trong repo công khai**: giữ hay chuyển
-  ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit.
+  ra ngoài. Người dùng kiểm điều khoản; chi tiết trong báo cáo audit. **09/10/2026 (BƯỚC 166, Q7):** người dùng chọn *"Tôi đọc điều khoản rồi báo (Recommended)"* — vẫn CHỜ.
 
 - ~~**`vnstock_data` 3.2.8 KHÔNG import được nữa**~~ **XONG 18/09/2026:**
   nâng **3.3.0**, `vnstock_ta` khỏi theo (nó vỡ vì `import vnstock_data`,
@@ -625,9 +636,10 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   kiểm giấy phép — docstring ghi *"used only for telemetry"*. Công tắc
   `disable_telemetry()` bật 18/09 là của `vnai`, **không phủ** đường này.
   Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118.
+  ✅ **Người dùng chấp nhận 09/10/2026 (BƯỚC 166, Q6)** — ranh giới: telemetry `vnai` tắt, đường `vnii` vẫn gửi tên hàm. Telemetry `vnstock` trên Cloud và Actions còn BẬT (nhật ký Cloud in dòng số liệu đo lường tuỳ chọn) → hỏi ở Q11.
 - **`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).** Bản
   phát hành 1.0.2 của hãng thiếu gói con `static/` và khai hai phụ thuộc
-  bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. Hãng phát hành
+  bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. 09/10/2026 (BƯỚC 166, Q8): lỗi chưa sửa (PyPI vẫn 1.0.2); báo lỗi soạn lại NGOÀI repo, người dùng gửi hãng. Hãng phát hành
   bản sửa thì cài bản chính thức thay — tới lúc ấy `tools/so_ban_goi.py`
   báo lệch ở hạng `QUYET DINH SO` là báo đúng. `docs/STATE.md` BƯỚC 119.
 - ~~**`urllib3` máy 1.26.20 · CI 2.8.0 — khoảng cách bản CHÍNH, CHƯA AI ĐO.**~~

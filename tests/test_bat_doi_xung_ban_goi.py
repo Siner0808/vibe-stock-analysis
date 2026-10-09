@@ -342,3 +342,27 @@ def test_BAN_DO_MODULE_GOI_suy_tu_METADATA_chu_khong_go_tay():
         "khong cap nao co ten module KHAC ten goi — bang nay hoac go tay, "
         "hoac dang lay ten goi lam ten module")
     print(f"PASS  ban do {len(ban_do)} module · {len(khac)} cap module != goi")
+
+
+# ══ 4. BƯỚC 166 (09/10/2026): Cloud đo ra silver, Actions chưa đọc ═════════
+def test_BANG_tach_Streamlit_Cloud_khoi_GitHub_Actions_va_khong_khai_free_cho_Actions():
+    """Hàng cũ gộp *"GitHub Actions · Streamlit Cloud | free"* là SUY LUẬN từ chỗ vắng gói tài
+    trợ; Cloud đo ra silver (bảng trạng thái app in `● ĐÚNG`). Actions chưa ai đọc hạng."""
+    hang = [d for d in _khoi_bat_doi_xung().splitlines() if d.startswith("|")]
+    cloud = [d for d in hang if d.startswith("| Streamlit Cloud")]
+    actions = [d for d in hang if d.startswith("| GitHub Actions")]
+    assert len(cloud) == 1 and len(actions) == 1, (cloud, actions)
+    assert "silver" in cloud[0] and "09/10/2026" in cloud[0] and "free" not in cloud[0].lower()
+    assert "CHƯA đọc" in actions[0] and "| free |" not in actions[0]
+    assert not any(d.startswith("| GitHub Actions · Streamlit Cloud") for d in hang)
+
+
+def test_CAU_CU_free_tren_Cloud_chi_con_duoi_dau_HET_DUNG():
+    """Số/câu cũ được giữ nhưng phải ĐÁNH DẤU (`docs/HANDOFF.md` mục 4)."""
+    khoi = _khoi_bat_doi_xung()
+    for cau in ("báo LỆCH trên cloud vĩnh viễn", "Streamlit Cloud: free"):
+        assert cau in khoi, f"câu cũ {cau!r} biến mất — nếu cố ý gỡ thì sửa cả phép kiểm này"
+        i = khoi.index(cau)
+        assert "HẾT ĐÚNG" in khoi[max(0, i - 300): i + 300], (
+            f"câu cũ {cau!r} đứng TRẦN, không mang dấu HẾT ĐÚNG")
+    assert "kiem_goi()" in khoi and "KHỚP (đo 09/10/2026)" in khoi

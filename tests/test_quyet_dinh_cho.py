@@ -12,6 +12,13 @@ không có câu trả lời nguyên văn (dòng "đã quyết" sống mười l�
 mà không ai kiểm xem câu trả lời đâu), và một mục trỏ vào đường đã chết
 (`luu_do18` — thư mục HANDOFF còn hỏi "giữ hay xoá" đã không còn trên đĩa).
 Quần thể bị đòi KHÁC RỖNG: một bộ đọc trỏ nhầm tệp sẽ xanh trên tập rỗng (lỗi 66).
+
+BƯỚC 166 (09/10/2026) SỬA gác có chủ đích, không nới: người dùng trả lời Q1–Q6, Q8, Q10 nên
+Q3 (từng là mục `chờ` mẫu của nhiều phát đục) thành `đã quyết`, và Q5 (mục `hết hiệu lực`
+duy nhất) cũng thành `đã quyết` — người dùng đã quyết xoá chứ không phải câu hỏi hết đối
+tượng. Các phát đục cần mục `chờ` chuyển sang Q7 / Q11; các phát cần mục `hết hiệu lực`
+chạy trên MẪU dựng sẵn `MAU_HET_HIEU_LUC` (khuôn vẫn giữ trạng thái ấy, nên nhánh của nó
+vẫn phải đỏ được). Quần thể thật không còn bị đòi có mục `hết hiệu lực`.
 """
 import sys
 from pathlib import Path
@@ -22,6 +29,23 @@ sys.path.insert(0, str(GOC / "tools"))
 import quyet_dinh_cho as q  # noqa: E402
 
 BA_NGUON_THAT = GOC / "docs" / "QUYET-DINH-CHO.md"
+
+
+MAU_HET_HIEU_LUC = """# sổ mẫu
+
+## Q1 — Một câu hỏi đã hết đối tượng vì thư mục của nó không còn nữa?
+
+**Trạng thái:** hết hiệu lực
+
+**Nguồn:** `docs/LO-TRINH.md:1 «LỘ TRÌNH — hai đích, năm giai đoạn»`
+
+**Ảnh hưởng:** chỉ dọn dẹp, không đổi hành vi giao dịch hay số đo của dự án.
+
+**Bằng chứng (lệnh + ngày):** ngày 09/10/2026, `ls -d thu-muc-mau` báo không có.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- `ls -d thu-muc-mau` báo không có.
+"""
 
 
 def _van() -> str:
@@ -56,9 +80,17 @@ def test_QUAN_THE_khong_rong_va_co_du_ba_trang_thai():
     muc = q.doc_muc(_van())
     dem = q.tom_tat(muc)
     assert len(muc) >= 5, f"sổ chỉ đọc ra {len(muc)} mục — bộ đọc hụt hoặc tệp sai"
-    assert dem[q.CHO] >= 1 and dem[q.DA_QUYET] >= 1 and dem[q.HET_HIEU_LUC] >= 1, (
+    assert dem[q.CHO] >= 1 and dem[q.DA_QUYET] >= 1, (
         f"thiếu một trạng thái trong sổ thật: {dem} — gác sẽ không bao giờ chạy "
         "nhánh đó trên dữ liệu thật")
+
+
+def test_HET_HIEU_LUC_van_chay_duoc_tren_mau_dung_san():
+    """Sổ thật hết mục `hết hiệu lực` (09/10/2026) nhưng khuôn còn trạng thái ấy:
+    mẫu sạch phải sạch, và nhánh phải đếm được một mục."""
+    muc = q.doc_muc(MAU_HET_HIEU_LUC)
+    assert q.tom_tat(muc)[q.HET_HIEU_LUC] == 1
+    assert q.loi_so(muc, GOC) == []
 
 
 def test_NAM_MUC_cua_leader_deu_co_mat():
@@ -86,7 +118,7 @@ def test_PHAT_DAU_da_quyet_ma_bo_cau_tra_loi_nguyen_van_thi_DO():
 
 def test_PHAT_2_nguon_tro_duong_da_chet_thi_DO():
     """Lỗi thật: `luu_do18` — đường còn được trích trong khi thư mục đã mất."""
-    van = _bien(_van(), "`docs/HANDOFF.md:387 «xoá hẳn»`", "`docs/HANDOFF_XOA.md:387 «xoá hẳn»`")
+    van = _bien(_van(), "`docs/HANDOFF.md:398 «xoá hẳn»`", "`docs/HANDOFF_XOA.md:398 «xoá hẳn»`")
     assert any("không tồn tại" in x for x in _loi(van))
 
 
@@ -96,43 +128,43 @@ def test_PHAT_3_trich_khong_con_nguyen_van_thi_DO():
 
 
 def test_PHAT_4_dong_vuot_do_dai_tep_thi_DO():
-    van = _bien(_van(), "`docs/HANDOFF.md:563 ", "`docs/HANDOFF.md:9999999 ")
+    van = _bien(_van(), "`docs/HANDOFF.md:576 ", "`docs/HANDOFF.md:9999999 ")
     assert any("vượt độ dài" in x for x in _loi(van))
 
 
 def test_PHAT_5_nguon_thieu_trich_thi_DO():
-    van = _bien(_van(), "`CLAUDE.md:164 «quyết định của người dùng, chưa có»`", "`CLAUDE.md:164`")
+    van = _bien(_van(), "`CLAUDE.md:164 «đường thật **giữ 0 mẫu**»`", "`CLAUDE.md:164`")
     assert any("thiếu trích" in x for x in _loi(van))
 
 
 def test_PHAT_6_nguon_rong_thi_DO():
-    """Mục Q3 mất hết nguồn."""
-    van = _thay_dong(_van(), "**Nguồn:** `docs/HANDOFF.md:384 ", "**Nguồn:** chưa rõ")
-    assert any("Q3" in x and "NGUỒN rỗng" in x for x in _loi(van))
+    """Mục Q7 (còn `chờ`) mất hết nguồn."""
+    van = _thay_dong(_van(), "**Nguồn:** `docs/HANDOFF.md:622 ", "**Nguồn:** chưa rõ")
+    assert any("Q7" in x and "NGUỒN rỗng" in x for x in _loi(van))
 
 
 def test_PHAT_7_chi_con_mot_lua_chon_thi_DO():
-    van = _bien(_van(), "- (b) Người dùng tự mở app", "(b) Người dùng tự mở app")
-    van = _bien(van, "- (c) Bỏ việc kiểm.", "(c) Bỏ việc kiểm.")
-    assert any("Q3" in x and "lựa chọn" in x for x in _loi(van))
+    van = _bien(_van(), "- (b) Chuyển ra ngoài repo", "(b) Chuyển ra ngoài repo")
+    van = _bien(van, "- (c) Giữ chỉ các tệp", "(c) Giữ chỉ các tệp")
+    assert any("Q7" in x and "lựa chọn" in x for x in _loi(van))
 
 
 def test_PHAT_8_lua_chon_nhay_chu_thi_DO():
-    van = _bien(_van(), "- (b) Người dùng tự mở app", "- (c) Người dùng tự mở app")
-    van = _bien(van, "- (c) Bỏ việc kiểm.", "- (e) Bỏ việc kiểm.")
+    van = _bien(_van(), "- (b) Chuyển ra ngoài repo", "- (c) Chuyển ra ngoài repo")
+    van = _bien(van, "- (c) Giữ chỉ các tệp", "- (e) Giữ chỉ các tệp")
     assert any("liền nhau" in x for x in _loi(van))
 
 
 def test_PHAT_9_bo_chu_DE_XUAT_thi_DO():
     van = _bien(_van(),
-                "**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a), vì kiểm",
-                "**Đề xuất của leader:** (a), vì kiểm")
-    assert any("Q3" in x and "ĐỀ XUẤT" in x for x in _loi(van))
+                "**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** người dùng đọc",
+                "**Đề xuất của leader:** người dùng đọc")
+    assert any("Q7" in x and "ĐỀ XUẤT" in x for x in _loi(van))
 
 
 def test_PHAT_10_trang_thai_la_thi_DO():
-    van = _bien(_van(), "## Q3 — Địa chỉ (URL) app Streamlit Cloud là gì, để kiểm việc treo từ BƯỚC 127?\n\n**Trạng thái:** chờ",
-                "## Q3 — Địa chỉ (URL) app Streamlit Cloud là gì, để kiểm việc treo từ BƯỚC 127?\n\n**Trạng thái:** tạm gác")
+    tieu_de = "## Q7 — Dữ liệu BCTC `backtest/fundamentals/` nằm trong repo công khai: giữ hay chuyển ra ngoài?"
+    van = _bien(_van(), tieu_de + "\n\n**Trạng thái:** chờ", tieu_de + "\n\n**Trạng thái:** tạm gác")
     assert any("trạng thái" in x for x in _loi(van))
 
 
@@ -166,25 +198,26 @@ def test_PHAT_14_du_kien_khong_co_lenh_thi_DO():
 
 
 def test_PHAT_15_du_kien_khong_co_ngay_thi_DO():
-    van = _bien(_van(), "**Dữ kiện đã kiểm (08/10/2026):**\n- `grep -rIl", "**Dữ kiện đã kiểm:**\n- `grep -rIl")
-    assert any("Q3" in x and "ngày" in x for x in _loi(van))
+    van = _bien(_van(), "**Dữ kiện đã kiểm (09/10/2026):**\n- BƯỚC 166 chạy lại: `git grep -n \"VNSTOCK_TELEMETRY\"",
+                "**Dữ kiện đã kiểm:**\n- BƯỚC 166 chạy lại: `git grep -n \"VNSTOCK_TELEMETRY\"")
+    assert any("Q11" in x and "ngày" in x for x in _loi(van))
 
 
 def test_PHAT_16_anh_huong_rong_thi_DO():
-    van = _thay_dong(_van(), "**Ảnh hưởng:** chỉ kiểm vận hành", "**Ảnh hưởng:** ngắn")
-    assert any("Q3" in x and "Ảnh hưởng" in x for x in _loi(van))
+    van = _thay_dong(_van(), "**Ảnh hưởng:** pháp lý và dọn dẹp", "**Ảnh hưởng:** ngắn")
+    assert any("Q7" in x and "Ảnh hưởng" in x for x in _loi(van))
 
 
 def test_PHAT_17_het_hieu_luc_khong_co_bang_chung_thi_DO():
-    van = _thay_dong(_van(), "**Bằng chứng (lệnh + ngày):**",
-                     "**Bằng chứng (lệnh + ngày):** ngày 08/10/2026, đã xem bằng mắt")
-    assert any("Q5" in x and "Bằng chứng" in x for x in _loi(van))
+    van = _thay_dong(MAU_HET_HIEU_LUC, "**Bằng chứng (lệnh + ngày):**",
+                     "**Bằng chứng (lệnh + ngày):** ngày 09/10/2026, đã xem bằng mắt")
+    assert any("Q1" in x and "Bằng chứng" in x for x in _loi(van))
 
 
 def test_PHAT_18_het_hieu_luc_khong_ngay_thi_DO():
-    van = _thay_dong(_van(), "**Bằng chứng (lệnh + ngày):**",
+    van = _thay_dong(MAU_HET_HIEU_LUC, "**Bằng chứng (lệnh + ngày):**",
                      "**Bằng chứng (lệnh + ngày):** `ls -d x` báo không có")
-    assert any("Q5" in x and "ngày chạy lệnh" in x for x in _loi(van))
+    assert any("Q1" in x and "ngày chạy lệnh" in x for x in _loi(van))
 
 
 def test_PHAT_19_da_quyet_khong_ngay_thi_DO():
@@ -232,15 +265,15 @@ def test_PHAT_25_da_quyet_nguon_chet_thi_DO():
 
 
 def test_PHAT_26_het_hieu_luc_nguon_chet_thi_DO():
-    van = _bien(_van(), "`docs/LO-TRINH.md:169 «giữ hay xoá»`", "`docs/LO-TRINH.md:169 «câu đã mất»`")
-    assert any("Q5" in x and "KHÔNG còn nguyên văn" in x for x in _loi(van))
+    van = _bien(MAU_HET_HIEU_LUC, "«LỘ TRÌNH — hai đích, năm giai đoạn»", "«câu đã mất»")
+    assert any("Q1" in x and "KHÔNG còn nguyên văn" in x for x in _loi(van))
 
 
 def test_PHAT_27_de_xuat_qua_ngan_thi_DO():
     """Nhãn đủ chữ ĐỀ XUẤT nhưng nội dung rỗng ruột."""
-    van = _thay_dong(_van(), "**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a), vì kiểm",
+    van = _thay_dong(_van(), "**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** người dùng đọc",
                      "**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a).")
-    assert any("Q3" in x and "ĐỀ XUẤT" in x for x in _loi(van))
+    assert any("Q7" in x and "ĐỀ XUẤT" in x for x in _loi(van))
 
 
 def test_PHAT_28_tra_loi_mot_ky_tu_thi_DO():
@@ -250,10 +283,10 @@ def test_PHAT_28_tra_loi_mot_ky_tu_thi_DO():
 
 def test_PHAT_29_nguon_chi_co_BUOC_van_hop_le_nhung_thieu_ca_hai_thi_DO():
     """Nguồn chỉ có chữ chung chung, không BƯỚC nào, không tệp:dòng."""
-    van = _thay_dong(_van(), "**Nguồn:** `docs/HANDOFF.md:384 ", "**Nguồn:** theo trí nhớ của leader")
-    assert any("Q3" in x and "NGUỒN rỗng" in x for x in _loi(van))
-    van2 = _thay_dong(_van(), "**Nguồn:** `docs/HANDOFF.md:384 ", "**Nguồn:** xem BƯỚC 127 và BƯỚC 141")
-    assert not any("Q3" in x and "NGUỒN" in x for x in _loi(van2))
+    van = _thay_dong(_van(), "**Nguồn:** `docs/HANDOFF.md:622 ", "**Nguồn:** theo trí nhớ của leader")
+    assert any("Q7" in x and "NGUỒN rỗng" in x for x in _loi(van))
+    van2 = _thay_dong(_van(), "**Nguồn:** `docs/HANDOFF.md:622 ", "**Nguồn:** xem BƯỚC 121 và BƯỚC 127")
+    assert not any("Q7" in x and "NGUỒN" in x for x in _loi(van2))
 
 
 def test_PHAT_30_ngay_sai_dang_thi_DO():
@@ -283,3 +316,55 @@ def test_TRICH_DAN_nam_ngoai_khoi_rao_khong_bi_doc_la_muc():
     """Một ví dụ `## Q1 — …` dán trong khối ``` không phải mục thật."""
     van = _van() + "\n```\n## Q99 — ví dụ trong khối rào, không phải mục thật\n```\n"
     assert "Q99" not in [m.ma for m in q.doc_muc(van)]
+
+
+# ── BƯỚC 166: quyết định 09/10/2026 ─────────────────────────────────────────
+
+def _muc(ma: str):
+    return next(m for m in q.doc_muc(_van()) if m.ma == ma)
+
+
+def test_Q5_la_da_quyet_voi_CA_HAI_cau_tra_loi_nguyen_van():
+    """Đính chính của leader (09/10): Q5 KHÔNG phải `hết hiệu lực`. Người dùng đã quyết xoá
+    (02/10) và xác nhận lại (09/10); BƯỚC 165 từng ghi nhầm là "đã mất"."""
+    m = _muc("Q5")
+    assert m.trang_thai == q.DA_QUYET
+    van = _van()
+    assert '*"Xoá cả hai (Recommended)"*' in m.lay(q.NHAN_TRA_LOI)
+    assert "02/10/2026" in m.truong_nhan(q.NHAN_TRA_LOI)
+    assert '*"Đưa lại vào Thùng rác"*' in "\n".join(m.truong.values())
+    # phát đầu: bỏ câu trả lời có hiệu lực thì ĐỎ
+    bo = _bien(van, '**Trả lời nguyên văn (02/10/2026):** *"Xoá cả hai (Recommended)"*',
+               "**Trả lời nguyên văn (02/10/2026):** (đã chốt)")
+    assert any("Q5" in x and "nguyên văn" in x for x in _loi(bo))
+
+
+def test_Q3_URL_app_KHONG_nam_trong_repo_cong_khai():
+    """Người dùng đưa URL nhưng repo công khai và app dùng khoá API trả phí: URL không được vào repo."""
+    import re
+    import subprocess
+    ds = subprocess.run(["git", "ls-files", "-z"], cwd=str(GOC), capture_output=True,
+                        text=True, check=True).stdout.split("\0")
+    mau = re.compile(r"[A-Za-z0-9-]+\.streamlit\.app")
+    thay = []
+    for rel in ds:
+        p = GOC / rel
+        if not rel or p.suffix not in (".md", ".py", ".yml", ".yaml", ".toml", ".json", ".txt", ".html"):
+            continue
+        if rel == "tests/test_quyet_dinh_cho.py" or not p.is_file():
+            continue
+        if mau.search(p.read_text(encoding="utf-8", errors="ignore")):
+            thay.append(rel)
+    assert thay == [], f"URL app Streamlit nằm trong repo công khai: {thay}"
+    assert "cố ý không lưu trong repo công khai" in _muc("Q3").lay(q.NHAN_TRA_LOI)
+
+
+def test_A4_da_bo_va_Q10_ghi_dung_cau_tra_loi():
+    m = _muc("Q10")
+    assert m.trang_thai == q.DA_QUYET
+    assert '*"Không tách (Recommended)"*' in m.lay(q.NHAN_TRA_LOI)
+    lo_trinh = (GOC / "docs" / "LO-TRINH.md").read_text(encoding="utf-8")
+    dong = next(d for d in lo_trinh.splitlines() if d.startswith("- **A4**"))
+    assert "ĐÃ BỎ 09/10/2026" in dong
+    # gạch ngang phải bao đúng câu A4 (bỏ một đầu `~~` thì chỉ còn nửa câu bị gạch)
+    assert "~~Tách `docs/STATE.md` theo tháng, giữ một mục lục.~~" in dong

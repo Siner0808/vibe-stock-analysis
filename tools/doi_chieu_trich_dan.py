@@ -64,6 +64,10 @@ TAI_LIEU = (
     # câu THẬT của sổ tay trích từ bản cũ bị báo LỆCH.
     GOC / "docs" / "lich-su" / "CLAUDE-md-2026-09-30.md",
     GOC / "docs" / "lich-su" / "SKILL-md-2026-09-30.md",
+    # BƯỚC 166: lộ trình và hàng đợi quyết định là tài liệu sống, và sổ tay phải trích được
+    # chúng. Thiếu `LO-TRINH.md` thì câu A4 THẬT của sổ tay bị báo LỆCH (đo 09/10/2026).
+    GOC / "docs" / "LO-TRINH.md",
+    GOC / "docs" / "QUYET-DINH-CHO.md",
 )
 
 #: Số ký tự tối thiểu của một trích dẫn đáng đối chiếu. Dưới mức này thì

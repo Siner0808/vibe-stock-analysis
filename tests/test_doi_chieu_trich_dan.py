@@ -207,3 +207,36 @@ def test_QUAN_THE_phu_ca_hai_ban_LUU_TRU():
     assert d.tim(ca_skill, ban) == ["SKILL-md-2026-09-30.md"]
     assert d.phan_dinh(ca_claude, ban)[0] == 0
     assert d.phan_dinh(ca_skill, ban)[0] == 0
+
+
+# ── BƯỚC 166: lộ trình và hàng đợi quyết định phải nằm trong quần thể ───────
+
+CAU_A4_CUA_SO_TAY = "- **A4** — Tách docs/STATE.md theo tháng, giữ một mục lục."
+
+
+def test_CAU_A4_THAT_cua_so_tay_phai_KHOP_LO_TRINH():
+    """Lỗ đo được 09/10/2026: sổ tay trích đúng câu A4 của `docs/LO-TRINH.md`, mà dụng cụ
+    đối chiếu báo LỆCH chỉ vì quần thể 13 tài liệu của nó không có tệp ấy."""
+    ma, loi = d.phan_dinh(CAU_A4_CUA_SO_TAY, d.ban_da_chuan())
+    assert ma == 0 and "LO-TRINH.md" in loi, loi
+
+
+def test_CAU_A4_van_LECH_khi_quan_the_thieu_LO_TRINH_phat_dau_dung_nguyen_van_loi():
+    """Dựng lại NGUYÊN VĂN lỗi: thiếu `LO-TRINH.md` thì câu thật bị vu là LỆCH. Phải bỏ cả
+    `QUYET-DINH-CHO.md` (Q10 trích câu A4) và `STATE.md` (BƯỚC 166 tự trích nó), nếu không
+    câu vẫn khớp ở đó và ca này không dựng lại được lỗi. Câu thật thuộc về `LO-TRINH.md`."""
+    thieu = [f for f in d.TAI_LIEU
+             if f.name not in ("LO-TRINH.md", "QUYET-DINH-CHO.md", "STATE.md")]
+    assert len(thieu) == len(d.TAI_LIEU) - 3
+    assert d.phan_dinh(CAU_A4_CUA_SO_TAY, d.ban_da_chuan(thieu))[0] == 1
+
+
+def test_CAU_cua_QUYET_DINH_CHO_phai_KHOP():
+    ma, loi = d.phan_dinh("Mục KHÔNG bị xoá; chỉ đổi trạng thái. Mã Q1…Qn liền nhau",
+                          d.ban_da_chuan())
+    assert ma == 0 and "QUYET-DINH-CHO.md" in loi, loi
+
+
+def test_NGUON_so_tay_mac_dinh_co_LO_TRINH_va_QUYET_DINH_CHO():
+    so_tay = pytest.importorskip("so_tay")
+    assert {"LO-TRINH.md", "QUYET-DINH-CHO.md"} <= set(so_tay.NGUON_MAC_DINH)
