@@ -1,7 +1,7 @@
 # HÀNG ĐỢI QUYẾT ĐỊNH CHỜ NGƯỜI DÙNG
 
 **Sổ sống.** Mỗi mục là MỘT câu hỏi dành cho người dùng, để leader trình trong
-MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12.
+MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12; BƯỚC 169 (09/10/2026) thêm Q13.
 
 Luật của sổ này (gác: `tests/test_quyet_dinh_cho.py`, bộ đọc: `tools/quyet_dinh_cho.py`):
 
@@ -310,6 +310,28 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 **Dữ kiện đã kiểm (09/10/2026):**
 - BƯỚC 166 chạy lại: `grep -n "NGUONG_MUA_MAC_DINH" app.py` ra dòng 453 (`= 50.0`), 600 và 698 (nơi dùng); `grep -n "^BUY_THRESHOLD" paper_trading.py` ra dòng 77 (`= 62`).
 - Chỉ GHI câu hỏi: không sửa `app.py`.
+
+---
+
+## Q13 — Lệnh tiến-về-trước mở trước ngày nhật ký "vì sao" bắt đầu có tính vào tiêu chí ra khỏi giai đoạn B ("100% lệnh đóng có bài học trong vòng 1 phiên") không?
+
+**Trạng thái:** chờ
+
+**Nguồn:** `docs/LO-TRINH.md:196 «100% lệnh đóng có bài học trong vòng 1 phiên»` · `docs/STATE.md:18744 «Vị thế đang mở từ trước (không có dòng nhật ký) không được ghi bù»` · `so_bai_hoc.py:535 «NGAY_NHAT_KY_BAT_DAU = "2026-09-28"»`
+
+**Ảnh hưởng:** việc ĐO tiêu chí ra khỏi giai đoạn B và chuông `tools/chuong_bai_hoc.py`; không đổi lệnh ảo, ngưỡng hay cờ nào. Lệnh ảo mở trước 28/09/2026 không có dòng nhật ký nào (cả nửa VÀO lẫn nửa ĐÓNG), nên nếu tính chúng thì mẫu số của tiêu chí chứa những lệnh KHÔNG THỂ có bài học theo định nghĩa của sổ bài học, và chuông sẽ đỏ vĩnh viễn từ ngày đầu.
+
+**Lựa chọn:**
+- (a) KHÔNG tính: tiêu chí chỉ xét lệnh tiến-về-trước mở từ `NGAY_NHAT_KY_BAT_DAU` trở đi; nhóm mở trước được đếm riêng và in ra là "trước nhật ký — không tính". Hệ quả: chuông chỉ đỏ khi có việc phải làm thật; lệnh đóng trước nhật ký không bao giờ có bài học nên giai đoạn B không đòi chúng; chuông ĐANG chạy theo lựa chọn này cho tới khi người dùng quyết.
+- (b) TÍNH, bằng cách điền bù nửa VÀO cho nhóm trước nhật ký. Hệ quả: lý do vào lệnh và cắt lỗ BAN ĐẦU phải ghi lúc vào (cắt lỗ của các lệnh ấy có thể đã bị nâng); dựng lại sau khi đã biết kết cục là nhìn trộm. Không khuyến nghị.
+- (c) Giữ (a) cho tiêu chí, nhưng thêm vào app một bảng "bài học một phần" dựng từ bảng `trades` cho nhóm trước nhật ký (phần thị trường, chi phí; không có gap vì thiếu cắt lỗ ban đầu). Hệ quả: người dùng vẫn đọc được nhóm này; thêm mã và test, và vẫn không đổi tiêu chí.
+
+**Đề xuất của leader (ĐỀ XUẤT, phiên BƯỚC 169 soạn nháp, chưa ai quyết):** (a). Lý do: nửa VÀO phải ghi lúc vào, và một chuông đỏ vĩnh viễn từ ngày đầu là chuông không ai đọc. Chuông đã chạy theo (a); đổi sang (c) là việc riêng, không chạm tiêu chí.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 169 chạy: `git log -1 --format='%h %ad' --date=iso 60d6598` ra `60d6598 2026-09-28 09:47:17 +0700` (commit nối nhật ký vào sổ thật, BƯỚC 134); `grep -n "^## BƯỚC 138" docs/STATE.md` cho tiêu đề ghi lượt quét đầu tiên chạy mã ấy ngày 28/09/2026. Hằng số `NGAY_NHAT_KY_BAT_DAU` suy từ hai dòng đó.
+- BƯỚC 169 chạy: `python -m pytest tests/test_chuong_bai_hoc.py -q` có ca dựng lại lỗi "đỏ vĩnh viễn" (lệnh trước nhật ký, không dòng nào) và đột biến bỏ phép loại nhóm ấy bị gác bắt.
+- CHƯA đo trên sổ thật: đám mây không đọc được Sheets. Leader chạy `python tools/chuong_bai_hoc.py` với Sheets thật trước khi merge; số lệnh của nhóm "trước nhật ký" do lệnh ấy in ra, không chép vào tài liệu (`CLAUDE.md` cấm).
 
 ---
 

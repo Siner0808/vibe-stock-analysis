@@ -21715,3 +21715,76 @@ Không hỏi: BƯỚC này không chạm file luật nào (`tools/buoc_cham_luat
 Phiên đám mây không có bảy cửa. Tự giữ luật: mọi sửa đổi file nguồn và file test đi qua `tools/va_an_toan.py` (`thay`), chạy từ script trong thư mục nháp của phiên; không `sed -i` / `cat >` / `cat >>` / heredoc ghi vào file nguồn hay test; pytest ghi ra file log, không pipe qua `tail`.
 
 **Việc kế.** Leader bấm "📥 Tải giá" trên app với sổ thật: không còn dòng "Không tải được giá …", cột Ngành và Cắt lỗ sát có số; đo thời gian nút bấm. Rồi mới merge.
+
+## BƯỚC 169 — B3 PHẦN 2: CHUÔNG TỰ ĐỘNG CHO TIÊU CHÍ RA KHỎI GIAI ĐOẠN B, "100% LỆNH ĐÓNG CÓ BÀI HỌC TRONG VÒNG 1 PHIÊN"; LOẠI NHÓM LỆNH MỞ TRƯỚC NHẬT KÝ KHỎI MẪU SỐ VÌ ĐẾM CHÚNG THÌ CHUÔNG ĐỎ VĨNH VIỄN (09/10/2026)
+
+**Mốc:** B3
+
+Leader giao phiên đám mây (nhánh `lo-trinh/b3-chuong-bai-hoc`, từ `main` `56f254e`, đã có BƯỚC 167 sổ bài học và 168 sửa tải giá; clone nông nên đã `git fetch --unshallow`). `docs/LO-TRINH.md` giai đoạn B: *"Ra khi: 100% lệnh đóng có bài học trong vòng 1 phiên."* BƯỚC 167 ghi thẳng ở "Việc kế" rằng tiêu chí ấy *chưa có chuông tự động*; bài này làm nó. Môi trường đám mây không có bảy cửa tự động, không đọc được Sheets thật và không cài được `vnstock`/`vnai` (proxy chặn kho hãng), nên mọi test chạy offline trên sổ `:memory:` và Sheets giả.
+
+### Đã làm
+
+- **`so_bai_hoc.py`** (phần THUẦN, cuối file): `do_phu_bai_hoc(lenh_dong, dong_nk, hom_nay, lich=None)` đo tiêu chí; `phien_ke_tiep` (hạn tính bằng phiên, theo `lich_giao_dich`); `ly_do_thieu_bai_hoc` (thế nào là "có bài học"); hai hàm dựng quần thể `lenh_dong_tu_trades` (đường chuông) và `lenh_dong_tu_nhat_ky` (đường app); `cau_tieu_chi_b` (MỘT dòng kết luận); hằng số `NGAY_NHAT_KY_BAT_DAU`.
+- **`tools/chuong_bai_hoc.py`** — chuông: kéo trades + nhật ký bằng `keo_so_co_thu_lai` (đường `canh_cong_c5` và lượt quét dùng), gọi hàm đo, in số đếm + danh sách lệnh thiếu (mã, mã lệnh, ngày ra, hạn, lý do — KHÔNG in lãi/lỗ). Mã thoát **0** xanh · **1** vi phạm · **2** chưa kiểm được; `main` bắt mọi ngoại lệ và trả 2 vì ngoại lệ chưa bắt thoát mã 1 và lẫn với "vi phạm".
+- **`.github/workflows/chuong-bai-hoc.yml`** — workflow MỚI chép khuôn `canh-cong-c5.yml`: cron `'53 9 * * 1-5'` (09:53 UTC = 16:53 ICT, lệch khỏi `:00/:30` và cách ba chuông kia ≥ 10 phút), `workflow_dispatch`, `permissions: contents: read`, nạp `STREAMLIT_SECRETS_TOML` như cũ. Đỏ = email. Chú thích đầu file nêu lý do tách khỏi `quet-so-lenh` (cùng lý do `canh-cong-c5`: làm đỏ workflow quét sinh báo động giả cho `chuong-bao-quet`). Không sửa workflow nào đang có.
+- **`app.py`** — `_khoi_so_bai_hoc` in MỘT `st.caption` từ CÙNG hàm (`do_phu_bai_hoc` → `cau_tieu_chi_b`), bọc `try` + `st.warning`; app chỉ định dạng, không tính.
+- **`sheets_store.doc_nhat_ky`** — thêm hai khoá `ngay_vao_lenh`, `ngay_dong_lenh` đọc từ tab `trades` trong CÙNG phép nối mà nó đã làm để lấy trạng thái lệnh. Không đổi lược đồ Sheets, không ghi, vẫn chỉ đọc hai tab (gác `test_doc_nhat_ky_van_chi_doc_hai_tab_va_khong_ghi`). Cần vì dòng nhật ký chưa có nửa ĐÓNG thì `exit_date` của nó rỗng dù lệnh đã đóng, mà hạn "một phiên" cần NGÀY ĐÓNG THẬT — chỉ `trades` có nó.
+- **`docs/QUYET-DINH-CHO.md` Q13** — "Lệnh tiến-về-trước mở trước nhật ký có tính vào tiêu chí giai đoạn B không?" — đề xuất *Không tính*; chuông đang chạy theo đề xuất ấy cho tới khi người dùng quyết.
+- **Dọn kèm** (xem mục cuối): `requirements.txt` và docstring `tests/test_requirements.py`.
+- **`tests/test_chuong_bai_hoc.py`** — gác mới.
+
+### Định nghĩa đo (ĐỀ XUẤT của leader, MỘT sửa đổi ở "nguồn sự thật về trạng thái")
+
+1. **Quần thể:** lệnh tiến-về-trước (`paper_metrics.lenh_tien_ve_truoc`) đã ĐÓNG (`trades.status = CLOSED`), mở (`entry_date`) **từ `NGAY_NHAT_KY_BAT_DAU` trở đi**. Nhóm mở trước đếm RIÊNG, in ra là "trước nhật ký — không tính", không làm đỏ.
+2. **"Có bài học"** = dòng nhật ký của lệnh có nửa ĐÓNG (`lenh_da_dong`) VÀ phân rã được (`phan_ra` khác `None`, tức có rổ chuẩn). Ngành và cắt lỗ sát cần giá sau → KHÔNG thuộc tiêu chí. Gác khoá rằng điều kiện này trùng điều kiện để `lap_bai_hoc` ra bản ghi có phân rã (lưới 2×4×4 tổ hợp) — một công thức, không hai.
+3. **"Trong vòng 1 phiên":** lệnh đóng ở phiên D có hạn tới HẾT `phien_ke_tiep(D)` — phiên giao dịch đầu tiên sau D theo `lich_giao_dich`. Quá hạn khi `hom_nay > hạn`; đúng ngày hạn vẫn còn trong hạn. Mỗi lệnh rơi vào đúng một trong năm nhóm: `truoc_nhat_ky` · `co` · `trong_han` · `vi_pham` (kèm lý do: *không có dòng nhật ký* / *dòng nhật ký chưa có nửa ĐÓNG* / *có nửa ĐÓNG nhưng thiếu rổ chuẩn*) · `khong_kiem_duoc` (thiếu ngày vào/đóng trong sổ lệnh, hoặc lịch phiên không phủ tới hạn).
+4. **Kết luận:** `vi_pham` > 0 → mã 1; không thì `khong_kiem_duoc` > 0 → mã 2; không thì mã 0 (kể cả khi chưa có lệnh nào để đo — câu in ra nói thẳng *"chưa có gì để đo"*).
+
+### Vì sao loại nhóm mở trước nhật ký (và vì sao KHÔNG điền bù)
+
+Leader đo 09/10/2026 bằng Sheets rằng sổ có lệnh tiến-về-trước đã đóng mà mở TRƯỚC khi nhật ký "vì sao" bắt đầu (BƯỚC 134): chúng không có dòng nhật ký nào, cả nửa VÀO lẫn nửa ĐÓNG. (Số đếm của sổ trôi và `CLAUDE.md` cấm chép nó vào tài liệu; chuông in nó ra mỗi lượt.) Đếm chúng vào mẫu số thì chuông đỏ **vĩnh viễn** từ ngày đầu, và một chuông đỏ vĩnh viễn là chuông không ai đọc — đúng bài học đã ghi ở `canh_cong_c5.py` (một chuông phải kêu khi có việc chưa ai làm). Điền bù nửa VÀO thì sai tận gốc: lý do vào lệnh và cắt lỗ BAN ĐẦU phải ghi lúc vào (BƯỚC 134: *"Vị thế đang mở từ trước … không được ghi bù: cắt lỗ ban đầu của chúng có thể đã bị nâng"*). Câu hỏi có đưa nhóm này vào tiêu chí hay không đã chuyển thành **Q13** (`docs/QUYET-DINH-CHO.md`), chuông chạy theo đề xuất *Không tính*.
+
+**Mốc suy từ đâu.** Nhật ký chưa có hằng số nào mang ngày bắt đầu (`nhat_ky_vi_sao.py` không có), nên khai MỘT hằng số có tên ở `so_bai_hoc.py`: `NGAY_NHAT_KY_BAT_DAU = "2026-09-28"`. Hai dòng đo ra nó: `git log -1 --format='%h %ad' --date=iso 60d6598` (commit nối nhật ký vào sổ thật, BƯỚC 134) ra ngày 2026-09-28; tiêu đề BƯỚC 138 ghi lượt quét đầu tiên chạy mã ấy trên sổ thật cũng ngày 28/09/2026. Lệnh được tính khi `entry_date >= mốc` vì nửa VÀO ghi lúc KHỚP (`fill_pending` → `_ghi_nua_vao`, kể cả lệnh chờ có từ trước: dòng được ghi với bối cảnh rỗng), không phải lúc tín hiệu — lệnh có tín hiệu trước mốc nhưng khớp từ mốc trở đi vẫn có dòng (BƯỚC 138 đọc Sheets thật ngày 28/09: sáu lệnh chờ có `signal_date` 2026-09-25 — trước mốc — ĐÃ có dòng nhật ký, nửa VÀO để trống chờ khớp; dòng mở lúc tín hiệu và nửa VÀO điền lúc khớp, nên điều kiện đúng là ngày KHỚP chứ không phải ngày tín hiệu). Gác: hằng số khớp ngày trong tiêu đề BƯỚC 134 và 138; ngày ấy được gõ ĐÚNG MỘT lần trong `so_bai_hoc.py`, không ở chuông hay app (AST).
+
+### Hạn theo PHIÊN, không theo ngày lịch
+
+`phien_ke_tiep` hỏi `lich_giao_dich` (lịch công bố trước của dự án; `market_filter._tre_phien` và `cham_xac_nhan.tien_do_theo_lich` cũng dựa vào đó) và không gõ ngày nghỉ lễ hay số ngày nào (AST: hằng số duy nhất trong hàm là bước 1 ngày). Gác dựng lại phép đếm sai đơn vị mà `market_filter._tre_phien` từng mắc (docstring của nó: bản cũ đếm ngày làm việc T2–T6 nên báo trễ 4 phiên trong khi dữ liệu cũ một phiên): lệnh đóng thứ Sáu 02/10/2026 có hạn hết thứ Hai 05/10/2026, nên thứ Bảy, Chủ nhật và thứ Hai vẫn trong hạn, thứ Ba mới quá hạn; đếm bằng ngày lịch thì Chủ nhật đã đỏ. Ngày nghỉ lễ giữa hai mốc được gác bằng cách tiêm ngày nghỉ vào `lich_giao_dich.NGAY_NGHI`. Lịch chỉ phủ 2026 (`PHU_TU`–`PHU_TOI`): hạn rơi ra ngoài thì `phien_ke_tiep` trả `None` và lệnh vào nhóm `khong_kiem_duoc` (mã 2) — **từ 01/01/2027 chuông sẽ đỏ mã 2 cho lệnh đóng cuối năm cho tới khi cập nhật `lich_giao_dich.NGAY_NGHI`**; đó là hành vi cố ý (một chuông hết hạn không được báo "ổn"), không phải lỗi.
+
+### Lệch trạng thái giữa nhật ký và bảng `trades` — nguồn sự thật là `trades`
+
+Đọc mã để quyết: `hoan_tat_nhat_ky` chỉ điền nửa ĐÓNG cho dòng JOIN với `trades.status = CLOSED`, và `nhat_ky_vi_sao.dong_hien_thi` (docstring BƯỚC 141) đọc trạng thái từ sổ lệnh chứ không suy từ ô trống của nhật ký. Nên quần thể lấy từ `trades` (đường chuông) hay từ cột `trang_thai_lenh` — chính là `trades.status` đọc qua `doc_nhat_ky` — (đường app). Dòng nhật ký có nửa ĐÓNG mà `trades` không nói CLOSED được liệt kê riêng là `lech_trang_thai`: chỉ để biết, không vào kết luận.
+
+### Hạn chế — nói thẳng
+
+- **Chưa chạy trên sổ thật.** Đám mây không đọc được Sheets. Dữ liệu test là dòng nhật ký GIẢ cộng một sổ `:memory:` đi đường thật `PaperTradingJournal` → `hoan_tat_nhat_ky` → `sheets_store.push` → Sheets giả → `keo_so_co_thu_lai` → chuông (cả khi chạy như CLI qua `runpy`, với đồng hồ và Sheets giả). Leader chạy `tools/chuong_bai_hoc.py` trên máy với Sheets thật rồi mới merge.
+- **Chuông chỉ thấy bây giờ.** Không có dấu thời gian nào cho biết nửa ĐÓNG được điền lúc nào, nên một lệnh được điền trễ hơn một phiên rồi mới có bài học thì chuông không thấy (nó chỉ biết hiện tại đã có hay chưa). Tiêu chí đo "đã có bài học và không còn quá hạn", không đo "đã có đúng hạn".
+- **Hạn "hết phiên kế tiếp" so với `hom_nay` theo NGÀY.** Chuông chạy một lần cuối ngày; lệnh đóng ở phiên D mà đến phiên D+1 vẫn chưa điền thì chuông ở ngày D+2 mới đỏ (ngày D+1 vẫn tính là trong hạn).
+- **App chỉ thấy lệnh CÓ dòng nhật ký** (nó không có `trades`); câu của app nói thẳng điều đó và chỉ chuông thấy lệnh thiếu hẳn dòng. App không áp `lenh_tien_ve_truoc` — với sổ thật nó thừa vì `entry_date >= mốc` đã loại lô mô phỏng 113 lệnh (`CLAUDE.md`, mục sổ lệnh giấy: `created_at` gom trong một lượt, sổ `.db` đứng yên từ 20/08/2026, tức trước mốc cả tháng). Đó là suy luận từ `CLAUDE.md`, chưa đo trên sổ thật.
+- GitHub trễ và gộp nhịp cron (CLAUDE.md, mục "Quét tự động"): chuông có thể báo muộn, không chắc chạy đúng 16:53.
+- Mốc `NGAY_NHAT_KY_BAT_DAU` và định nghĩa "có bài học" là ĐỀ XUẤT chưa ai duyệt; số lệnh thật rơi vào mỗi nhóm CHƯA ai đếm.
+
+### Gác và đột biến
+
+`tests/test_chuong_bai_hoc.py` (chạy một mình ~1 giây): phiên kế tiếp (cuối tuần, nghỉ lễ tiêm vào, ngoài lịch, lịch giả, AST không gõ ngày) · "có bài học" (3 nhánh + lưới khớp `lap_bai_hoc`) · mốc (khớp tiêu đề BƯỚC 134/138, gõ một lần) · các ca của `do_phu_bai_hoc` (trước mốc, biên mốc, đóng hôm nay, đóng phiên trước, không dòng, thiếu rổ, cuối tuần, nghỉ lễ, ngoài lịch, thiếu ngày, mỗi lệnh đúng một nhóm, lệch trạng thái, tất định) · quần thể (CLOSED, lô hàng loạt, khoá ngày của sổ lệnh) · câu kết luận · `doc_nhat_ky` thêm hai khoá và vẫn chỉ đọc · chuông qua đường THẬT (quá hạn → 1, trong hạn → 0, cuối tuần → 0, không ghi lên Sheets, không in lãi lỗ, Sheets lỗi / chưa cấu hình / lỗi bất ngờ → 2, chạy như CLI) · dây nối AST (chuông, app, workflow) · cron và chú thích giờ của workflow mới · câu cũ về hạng gói.
+
+Đột biến (`va_an_toan.dot_bien_bo`, hai lượt): **47 phát lượt đầu** (25 lên `so_bai_hoc.py` · 10 lên chuông · 4 lên `app.py` · 3 lên `sheets_store.py` · 5 lên workflow) — **47/47 đỏ**. **Phát đầu = P01, bỏ phép loại nhóm mở trước nhật ký (dựng lại "đỏ vĩnh viễn"): đỏ.** Nhưng đọc lại *vì sao* ba phát T01–T03 (đổi giá trị hằng mã thoát) chết thì thấy chúng chết nhờ một test PHỤ (emoji của bản tóm tắt gom hai khoá), không nhờ gác mã thoát: các test so `ma == tool.MA_...` nên đổi giá trị hằng đổi cả hai vế (lỗi 141). Thêm `test_MA_THOAT_la_0_1_2_theo_hop_dong_cua_workflow` (ghim bằng SỐ) và hai test chạy `__main__` thật; lượt hai thêm phát T11 (bỏ `sys.exit`): **4/4 đỏ**, T01–T03 nay chết vì đúng lý do.
+
+### Giả thuyết và ước lượng sai (giữ lại vì nghe hợp lý)
+
+- *"So mã thoát theo tên hằng là đủ"* — sai, xem trên.
+- *"App cũng đếm được lệnh thiếu hẳn dòng nhật ký"* — sai: app không có `trades`. Phát hiện lúc thiết kế, nên hàm đo nhận quần thể đã chuẩn hoá từ hai nguồn và câu của app nói rõ giới hạn.
+- *"Hạn một phiên = một ngày lịch"* — bị loại ngay từ đề (cuối tuần và lễ); xem mục hạn theo phiên.
+
+### Dọn kèm: hạng gói của Cloud và Actions trong `requirements.txt` / `tests/test_requirements.py`
+
+`requirements.txt` (đoạn đầu) và docstring `test_goi_tai_tro_khong_nam_trong_requirements` còn ghi Streamlit Cloud chạy hạng free và `kiem_goi()` *"báo LỆCH trên cloud — đó là báo ĐÚNG"*. HẾT ĐÚNG 09/10/2026 (BƯỚC 166 và bảng bất đối xứng của `CLAUDE.md`): Cloud đo được **silver**, `kiem_goi()` KHỚP; Actions hạng **chưa đọc**. Sửa cho khớp, giữ nguyên lý do "gói tài trợ không có trên PyPI"; câu cũ được giữ nhưng ĐÁNH DẤU HẾT ĐÚNG (gác `test_requirements_cau_cu_ve_Cloud_hang_free_chi_con_khi_DANH_DAU_HET_DUNG`). Danh sách workflow trong docstring thêm `chuong-bai-hoc.yml`. Không đổi gói hay bản ghim.
+
+### Soát chéo NotebookLM
+
+Không hỏi: BƯỚC này không chạm file luật nào (`tools/buoc_cham_luat.py 169` xác nhận, kết quả ở thân PR) và không viết kết luận đo mới — mọi định nghĩa trên gọi rõ là ĐỀ XUẤT, và câu có đưa nhóm trước nhật ký vào tiêu chí hay không nằm ở Q13 chờ người dùng. Ô `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json`. `docs/LO-TRINH.md`, `CLAUDE.md`, `SKILL.md` cố ý KHÔNG sửa (leader làm BƯỚC sau, có hỏi NotebookLM).
+
+### Cửa tự động
+
+Phiên đám mây KHÔNG có bảy cửa. Tự giữ luật: mọi sửa đổi file nguồn và file test đi qua `tools/va_an_toan.py` (`thay`/`ghi`, chạy từ script trong thư mục nháp của phiên); module, công cụ, workflow và file test mới tạo bằng tool Write; không `sed -i` / `cat >` / `cat >>` / heredoc ghi vào file nguồn hay test (heredoc chỉ dùng để viết SCRIPT vá vào thư mục nháp ngoài repo); pytest ghi ra file log, không pipe qua `tail`. Một thao tác sai không liên quan tới luật dự án: `pkill -f` với mẫu khớp cả dòng lệnh của chính shell đã giết phiên shell một lần (không mất dữ liệu).
+
+**Việc kế.** Leader chạy `python tools/chuong_bai_hoc.py` trên máy với Sheets thật: đọc số lệnh rơi vào từng nhóm, kiểm nhóm "trước nhật ký" có đúng là những lệnh khớp trước 28/09/2026 không, và đối chiếu một lệnh `vi_pham` (nếu có) với tab `nhat_ky`. Rồi quyết Q13 và cập nhật `docs/LO-TRINH.md` giai đoạn B (BƯỚC sau, có hỏi NotebookLM). Chạy `workflow_dispatch` một lần sau merge để thấy chuông lên đúng email khi đỏ.

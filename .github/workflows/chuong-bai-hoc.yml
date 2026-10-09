@@ -1,0 +1,70 @@
+# Chuông bài học: lệnh ảo đã đóng quá một phiên mà vẫn chưa có bài học thì báo động.
+# Tiêu chí ra khỏi giai đoạn B của docs/LO-TRINH.md: "100% lệnh đóng có bài học
+# trong vòng 1 phiên". Định nghĩa đo nằm ở so_bai_hoc.do_phu_bai_hoc; file này
+# chỉ gọi tools/chuong_bai_hoc.py (docs/STATE.md BƯỚC 169).
+#
+# VÌ SAO KHÔNG GỘP VÀO "Quét sổ lệnh"
+# Cùng lý do với canh-cong-c5.yml: tools/chuong_bao_quet.py đếm lượt chạy
+# `conclusion == "success"` của workflow quét để biết một ngày có được quét
+# không. Làm đỏ workflow quét vì một lệnh thiếu bài học sẽ sinh báo động giả "ngày
+# này không có lượt quét nào", che mất đúng thứ chuông kia sinh ra để canh.
+# Chuông này kêu bằng cách để lượt chạy của CHÍNH NÓ đỏ; GitHub gửi email cho
+# người sửa cron gần nhất khi một workflow theo lịch thất bại — đó là đường
+# thông báo, không cần dựng thêm gì.
+#
+# MÃ THOÁT: 0 xanh · 1 có lệnh quá hạn một phiên mà chưa có bài học · 2 chưa kiểm
+# được (Sheets không đọc được, lịch phiên không phủ tới hạn). Đỏ cả 1 lẫn 2: không
+# nhìn thấy gì không phải là xanh.
+#
+# CHỈ ĐỌC: `permissions: contents: read`, chuông kéo sổ về file tạm rồi xoá; không
+# đẩy gì lên Sheets.
+#
+# GIỚI HẠN PHẢI BIẾT. Chuông chạy bằng chính cron GitHub nên có thể trễ hoặc rơi
+# một nhịp (xem canh-cong-c5.yml); lệnh quá hạn không tự biến mất nên nhịp sau vẫn
+# bắt được. Chuông không biết lúc nào nửa ĐÓNG được điền, chỉ biết bây giờ đã có hay
+# chưa: lệnh có bài học trễ hơn một phiên rồi mới được điền thì chuông không thấy.
+
+name: Chuông bài học
+
+on:
+  schedule:
+    # 09:53 UTC = 16:53 ICT — sau giờ đóng cửa, sau lượt quét cuối cùng (đo được:
+    # 15:29–15:33 ICT) và sau hai chuông cùng buổi (báo quét 09:23, cổng C5 09:43)
+    # để ba chuông không lẫn vào nhau trong hộp thư.
+    # LỆCH KHỎI MỐC :00 VÀ :30 CÓ CHỦ ĐÍCH: đó là hai mốc nghẽn của GitHub (nhịp ở
+    # 09:00 và 09:30 UTC trễ trung vị 4–4,7 GIỜ, docs/STATE.md BƯỚC 89, 101).
+    - cron: '53 9 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chuong-bai-hoc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        run: pip install -r requirements.txt
+
+      - name: Nạp cấu hình bí mật
+        env:
+          NOI_DUNG: ${{ secrets.STREAMLIT_SECRETS_TOML }}
+        run: |
+          if [ -z "$NOI_DUNG" ]; then
+            echo "::error::Thiếu secret STREAMLIT_SECRETS_TOML."
+            exit 1
+          fi
+          mkdir -p .streamlit
+          printf '%s' "$NOI_DUNG" > .streamlit/secrets.toml
+
+      - name: Soát bài học của lệnh đã đóng
+        run: python tools/chuong_bai_hoc.py

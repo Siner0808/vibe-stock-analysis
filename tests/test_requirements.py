@@ -15,7 +15,8 @@ Phạm vi: HAI phép kiểm.
     Actions: `kiem-dinh.yml` chạy `pytest tests/` và
     `tools/chan_bia_so_lieu.py`, `chuong-bao-quet.yml` chạy
     `tools/chuong_bao_quet.py`, `canh-cong-c5.yml` chạy
-    `tools/canh_cong_c5.py`.
+    `tools/canh_cong_c5.py`, `chuong-bai-hoc.yml` chạy
+    `tools/chuong_bai_hoc.py`.
 
 Bản đầu của file này ghi "tests/ và tools/ không nằm trong đường chạy của
 Actions" và chỉ soát ở gốc. Tiền đề đó sai, và nó cho qua một lỗi thật
@@ -253,10 +254,11 @@ def test_requirements_phu_het_import_o_tests_va_tools():
     29/08/2026: `tests/test_cua_so_du_lieu_quet.py` import `yaml`, xanh ở
     máy (streamlit kéo theo PyYAML) và đỏ trên runner sạch, chặn merge PR.
 
-    Ba workflow đều chạy mã trong hai thư mục này:
+    Các workflow này chạy mã trong hai thư mục trên:
       • `kiem-dinh.yml`      -> `pytest tests/` và `tools/chan_bia_so_lieu.py`
       • `chuong-bao-quet.yml` -> `tools/chuong_bao_quet.py`
       • `canh-cong-c5.yml`    -> `tools/canh_cong_c5.py`
+      • `chuong-bai-hoc.yml`  -> `tools/chuong_bai_hoc.py`
     """
     khai_bao = _da_khai_bao() | NGOAI_LE_CI
     noi_bo = _module_noi_bo_mo_rong()
@@ -297,8 +299,10 @@ def test_goi_tai_tro_khong_nam_trong_requirements():
     dữ liệu tài trợ.
 
     Chúng được cài ở máy local qua API có xác thực bằng khoá. Sự bất đối
-    xứng đó là CỐ Ý, và `vnstock_goi.kiem_goi()` báo LỆCH trên cloud chính
-    là báo đúng.
+    xứng về GÓI CÀI là CỐ Ý. Còn câu cũ ở đây — `vnstock_goi.kiem_goi()` "báo LỆCH
+    trên cloud chính là báo đúng" — HẾT ĐÚNG 09/10/2026: Streamlit Cloud đo được
+    hạng silver, `kiem_goi()` KHỚP (docs/STATE.md BƯỚC 166); GitHub Actions hạng
+    chưa đọc.
     """
     khai_bao = _da_khai_bao()
     lot = [g for g in GOI_TAI_TRO if g.lower() in khai_bao]

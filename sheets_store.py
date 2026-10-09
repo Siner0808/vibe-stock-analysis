@@ -252,6 +252,11 @@ def doc_nhat_ky(backend: SheetBackend) -> list[dict]:
     Cho app HIỆN nhật ký mà không kéo cả bảng quyết định (hàng chục nghìn
     dòng) mỗi lần mở trang, và không chạm sổ SQLite nào. Tab rỗng hay chưa
     có thì `[]`; tiêu đề lệch thì NỔ như `pull()`. Dòng mới nhất đứng đầu.
+
+    Cùng một phép nối với `trades` còn đưa ra `ngay_vao_lenh` và `ngay_dong_lenh`
+    (BƯỚC 169): ngày của SỔ LỆNH, không phải của nhật ký. Dòng nhật ký chưa có nửa
+    ĐÓNG thì `exit_date` của nó rỗng dù lệnh đã đóng — đo hạn "bài học trong một
+    phiên" cần ngày đóng thật, và chỉ `trades` có nó.
     """
     nk = _co_du_lieu(backend.read_rows(TAB_NHAT_KY))
     if not nk:
@@ -259,17 +264,22 @@ def doc_nhat_ky(backend: SheetBackend) -> list[dict]:
     _kiem_tra_header(TAB_NHAT_KY, nk[0], NHAT_KY_COLS)
     tr = _co_du_lieu(backend.read_rows(TAB_TRADES))
     trang_thai: dict[int, str] = {}
+    ngay_so_lenh: dict[int, tuple] = {}
     if tr:
         _kiem_tra_header(TAB_TRADES, tr[0], TRADE_COLS)
         i_id, i_st = TRADE_COLS.index("id"), TRADE_COLS.index("status")
+        i_vao, i_ra = TRADE_COLS.index("entry_date"), TRADE_COLS.index("exit_date")
         for r in tr[1:]:
             r = list(r) + [""] * (len(TRADE_COLS) - len(r))
             trang_thai[int(r[i_id])] = r[i_st]
+            ngay_so_lenh[int(r[i_id])] = (_from_cell("entry_date", r[i_vao]),
+                                          _from_cell("exit_date", r[i_ra]))
     ra = []
     for r in nk[1:]:
         r = list(r) + [""] * (len(NHAT_KY_COLS) - len(r))
         d = {c: _from_cell(c, r[i]) for i, c in enumerate(NHAT_KY_COLS)}
         d["trang_thai_lenh"] = trang_thai.get(d["trade_id"])
+        d["ngay_vao_lenh"], d["ngay_dong_lenh"] = ngay_so_lenh.get(d["trade_id"], (None, None))
         ra.append(d)
     return sorted(ra, key=lambda d: d["trade_id"], reverse=True)
 
