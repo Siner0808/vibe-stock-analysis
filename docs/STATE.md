@@ -21788,3 +21788,27 @@ Không hỏi: BƯỚC này không chạm file luật nào (`tools/buoc_cham_luat
 Phiên đám mây KHÔNG có bảy cửa. Tự giữ luật: mọi sửa đổi file nguồn và file test đi qua `tools/va_an_toan.py` (`thay`/`ghi`, chạy từ script trong thư mục nháp của phiên); module, công cụ, workflow và file test mới tạo bằng tool Write; không `sed -i` / `cat >` / `cat >>` / heredoc ghi vào file nguồn hay test (heredoc chỉ dùng để viết SCRIPT vá vào thư mục nháp ngoài repo); pytest ghi ra file log, không pipe qua `tail`. Một thao tác sai không liên quan tới luật dự án: `pkill -f` với mẫu khớp cả dòng lệnh của chính shell đã giết phiên shell một lần (không mất dữ liệu).
 
 **Việc kế.** Leader chạy `python tools/chuong_bai_hoc.py` trên máy với Sheets thật: đọc số lệnh rơi vào từng nhóm, kiểm nhóm "trước nhật ký" có đúng là những lệnh khớp trước 28/09/2026 không, và đối chiếu một lệnh `vi_pham` (nếu có) với tab `nhat_ky`. Rồi quyết Q13 và cập nhật `docs/LO-TRINH.md` giai đoạn B (BƯỚC sau, có hỏi NotebookLM). Chạy `workflow_dispatch` một lần sau merge để thấy chuông lên đúng email khi đỏ.
+
+## BƯỚC 170 — B3 ĐÃ DỰNG: ĐÁNH DẤU TRONG LỘ TRÌNH, Q13 VÀO HANDOFF; KIỂM #215 TRÊN SỔ THẬT VÀ TRÊN ACTIONS; LÀM TƯƠI SỔ TAY (09/10/2026)
+
+**Mốc:** B3
+
+Leader làm ở máy (nhánh `lo-trinh/b3-xong`, từ `main` `b4088b2` = merge #215). BƯỚC 169 ghi ở "Việc kế": leader chạy chuông trên sổ thật, rồi cập nhật `docs/LO-TRINH.md` giai đoạn B (có hỏi NotebookLM). Bài này làm phần ấy.
+
+**Kiểm #215 trước khi merge (leader, 09/10/2026).**
+- Năm cổng tuần tự ở máy trên `42ae2c6`: cổng 1 `2581 passed, 1 skipped` (test ghim `vnstock` đỏ MÔI TRƯỜNG ở đám mây thì xanh ở máy, vì máy có kho hãng), cổng 2–4 xanh, cổng 5 `2582` khớp mốc. CI 2/2 `pass`. Thân commit 0 ký tự ngoài ASCII, có `Co-Authored-By`.
+- Chuông trên Sheets THẬT (cwd = repo chính để có secrets, mã nạp từ worktree của PR): mã thoát 0. Nhóm "trước nhật ký" trùng đúng tập lệnh tiến-về-trước đã đóng mà leader đếm ĐỘC LẬP bằng một script khác trước khi giao đề — mọi lệnh ấy khớp 03/09/2026, trước `so_bai_hoc.NGAY_NHAT_KY_BAT_DAU`. Không chép số đếm (sổ trôi).
+- Phép thử NGƯỢC trên chính sổ thật, trong bộ nhớ (không ghi gì): lấy một lệnh đã có bài học rồi (a) xoá nửa ĐÓNG → mã 1, lý do "dòng nhật ký chưa có nửa ĐÓNG"; (b) xoá rổ chuẩn → mã 1, "có nửa ĐÓNG nhưng thiếu rổ chuẩn — không phân rã được"; (c) bỏ cả dòng nhật ký → mã 1, "không có dòng nhật ký". Máy đo đi qua ca thật ở CẢ HAI chiều (SKILL Bước 3 điều 4).
+- Merge `b4088b2`; workflow "Chuông bài học" `active`. Chạy tay `workflow_dispatch` một lần (run `37895724909`): `success`, 70 giây từ lúc tạo tới lúc xong, log in đúng hai dòng kết luận — chuông đọc được Sheets bằng secret thật trên Actions. Chiều ĐỎ trên Actions chưa thấy (sổ đang xanh); chiều đỏ mới kiểm ở máy.
+
+**Đổi trong bài này.**
+- `docs/LO-TRINH.md` mục B3: ĐÃ DỰNG 09/10/2026 (BƯỚC 167–169), kèm hai câu hiệu chuẩn còn mở. Dòng "Ra khi" của giai đoạn B: cách đo (chuông, quần thể, Q13, hạn theo phiên) và giới hạn — chuông đo phần NHÃN, CHƯA đo vế "bằng lời" mà T2 đòi (cần B1). Giai đoạn B CHƯA ra: B1, B2, B4 chưa làm.
+- `docs/HANDOFF.md` mục 5: dòng "CÒN CHỜ" thêm Q13 (BƯỚC 169 thêm Q13 vào `docs/QUYET-DINH-CHO.md` nhưng không chạm HANDOFF — thân PR #215 tự khai).
+
+**Sổ tay (Quy tắc 3 — BƯỚC sửa `docs/LO-TRINH.md` nên phải hỏi thật).**
+- Sổ tay nay mang tên "Gemini Notebook", địa chỉ chuyển sang `notebook.google.com` (cùng mã sổ; đăng nhập còn sống trong trình duyệt của Claude Code). Một hộp giới thiệu chặn màn hình: Escape và nút "Đóng hộp thoại" không đóng được; nút `close` trong `.cdk-overlay-container` đóng được.
+- Làm tươi: sáu nguồn đổi giữa `e00fbbe` và `b4088b2` (STATE, HANDOFF, CLAUDE, LO-TRINH, QUYET-DINH-CHO, `references/loi-da-mac.md`) — THÊM sáu URL raw ghim băm 40 ký tự, đổi tên `<file> @b4088b2`, rồi XOÁ sáu bản cũ, đọc nhãn hộp xác nhận trước mỗi lần bấm. Bộ gác nhãn chặn một lần: hộp xác nhận của LO-TRINH hiện khi trình đơn cũ chưa đóng, chữ đọc được là trình đơn + nhãn → bấm Huỷ, làm lại với thời gian chờ dài hơn. Cuối: 15 nguồn, như trước.
+- Độ tươi: hỏi số BƯỚC lớn nhất trong `docs/STATE.md` → 169, khớp tiêu đề cuối của `main`.
+- Câu hỏi (dựng bằng `tools/so_tay.py hoi`) → *"không tìm thấy câu nào nói ngược"*. Tự grep sau câu âm (lệnh ở `docs/soat-notebooklm.json`, ô `_tu_kiem_cau_am`): không câu nào nói ngược; BƯỚC 134 còn ủng hộ thẳng *"Vị thế đang mở từ trước (không có dòng nhật ký) không được ghi bù"*. Nhưng grep thấy thứ sổ tay không nêu: **T2** (`docs/LO-TRINH.md`, Đích 1) đòi bài học *"bằng lời và nhãn nguyên nhân"*, còn chuông BƯỚC 169 chỉ đo phần nhãn. Không phải mâu thuẫn với câu sắp ghi, nhưng không ghi ra thì dễ đọc "chuông xanh" thành "T2 đạt" — đã ghi vào dòng "Ra khi".
+
+**Việc kế.** Người dùng quyết Q13 (cùng Q7, Q11, Q12). B1 (hậu kiểm bằng lời) vẫn chờ khoá API, đầu giai đoạn B; khi B1 chạy, định nghĩa "có bài học" của chuông phải thêm vế bằng lời. Soát định kỳ lượt 12 hạn 15/10/2026.

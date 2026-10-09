@@ -190,10 +190,10 @@ cụ đếm, và chưa có tuần nào đủ dữ liệu.
 
 - **B1** — P2c: hậu kiểm bằng lời cho mọi lệnh đóng. *(cần khoá `ANTHROPIC_API_KEY` do người dùng tự đặt, có trần chi tiêu; người dùng đã hoãn tới đầu giai đoạn B)*
 - **B2** — Bản tin cuối ngày: thị trường, agent đã làm gì, vì sao, học được gì.
-- **B3** — Sổ bài học với nhãn nguyên nhân: thị trường chung, ngành, tín hiệu sai, cắt lỗ sát, gap.
+- **B3** — Sổ bài học với nhãn nguyên nhân: thị trường chung, ngành, tín hiệu sai, cắt lỗ sát, gap. *(ĐÃ DỰNG 09/10/2026, sớm hơn lịch giai đoạn B: BƯỚC 167 `so_bai_hoc.py` — mỗi lệnh ảo đã đóng có một bài học CHỈ ĐỌC, phân rã bốn phần thị trường + ngành + riêng mã/tín hiệu + chi phí, kèm cờ gap và cắt lỗ sát; BƯỚC 168 sửa nút tải giá; BƯỚC 169 chuông đo tiêu chí ra khỏi B. Còn mở hai câu hiệu chuẩn ở `docs/STATE.md` BƯỚC 167: giữ bốn phần hay ba, `so_bai_hoc.N_PHIEN_SAU_THOAT` = 5 có hợp lý không.)*
 - **B4** — Bảng sức khoẻ hệ thống thay cho phần lớn soát tay.
 
-**Ra khi:** 100% lệnh đóng có bài học trong vòng 1 phiên.
+**Ra khi:** 100% lệnh đóng có bài học trong vòng 1 phiên. *(Đo hằng ngày từ BƯỚC 169: `tools/chuong_bai_hoc.py`, workflow `chuong-bai-hoc.yml`, đỏ = email. Quần thể là lệnh tiến-về-trước đã đóng, mở từ `so_bai_hoc.NGAY_NHAT_KY_BAT_DAU`; lệnh mở trước nhật ký không tính và không điền bù — Q13 ở `docs/QUYET-DINH-CHO.md`, chờ người dùng. Hạn tính theo PHIÊN giao dịch. "Có bài học" của chuông hiện là nửa ĐÓNG của nhật ký + phân rã được, tức phần NHÃN; vế "bằng lời" mà T2 đòi cần B1 và chuông CHƯA đo.)*
 
 ### C — Sân đấu phương án → v1.0 · 01/12/2026 → 28/02/2027
 
