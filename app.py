@@ -530,6 +530,135 @@ def _mau_dau(o):
     return ""
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _gia_cho_so_bai_hoc(cac_ma, tu_ngay, den_ngay):
+    """Giá đóng cửa (VNĐ) của các mã sổ bài học cần để xét ngành và cắt lỗ sát.
+
+    CÓ ĐỆM và chỉ chạy khi người dùng bấm nút: mỗi mã một lần tải qua
+    `load_stock_data` (cùng đường với phần còn lại của app, cũng có đệm), mốc
+    đầu cố định cho cả danh sách nên khoá đệm không đổi theo từng lệnh. Không
+    bao giờ gọi trong vòng lặp từng lệnh. Trả (giá, mã không tải được).
+    """
+    import san_giao_dich as _sg
+    import so_bai_hoc as _sbh
+    gia, thieu = {}, []
+    for m in cac_ma:
+        _d, _tt, _ = load_stock_data(m, tu_ngay, den_ngay, _sg.san_cua(m))
+        if _tt != "OK" or _d is None or _d.empty:
+            thieu.append(m)
+            continue
+        gia[m] = _sbh.chuoi_dong_cua(_d, price_multiplier(_d))
+    return gia, thieu
+
+
+def _bang_bai_hoc(cac_bai_hoc):
+    """Bài học -> bảng hiện, qua `so_bai_hoc.dong_bang`. Không tính lại số nào."""
+    import so_bai_hoc as _sbh
+    hang = []
+    for b in cac_bai_hoc:
+        h = _sbh.dong_bang(b)
+        hang.append({
+            "Mã": h["Mã"], "Ra": h["Ra"] or "—", "Kết quả": h["Kết quả"],
+            "Lãi ròng": _so(h["Lãi ròng %"], "{:+.2f}%"),
+            "Nguyên nhân chính": h["Nguyên nhân chính"],
+            "Thị trường": _so(h["Thị trường %"], "{:+.2f}"),
+            "Ngành": _so(h["Ngành %"], "{:+.2f}"),
+            "Riêng mã/tín hiệu": _so(h["Riêng mã/tín hiệu %"], "{:+.2f}"),
+            "Chi phí": _so(h["Chi phí %"], "{:+.2f}"),
+            "Gap": h["Gap"] or "—", "Cắt lỗ sát": h["Cắt lỗ sát"],
+            "Còn thiếu": h["Còn thiếu"] or "—",
+        })
+    return pd.DataFrame(hang)
+
+
+def _bang_dong_gop(tong_hop):
+    """Đóng góp trung bình mỗi phần -> bảng hiện, qua `so_bai_hoc.bang_dong_gop`."""
+    import so_bai_hoc as _sbh
+    hang = []
+    for h in _sbh.bang_dong_gop(tong_hop):
+        ktc = h["KTC 95%"]
+        hang.append({
+            "Phần": h["Phần"], "TB mọi lệnh": _so(h["TB mọi lệnh"], "{:+.2f}"),
+            "KTC 95%": "—" if ktc is None else f"[{ktc[0]:+.2f} ; {ktc[1]:+.2f}]",
+            "Số lệnh": _so(h["Số lệnh"], "{:.0f}"),
+            "TB lệnh THUA": _so(h["TB lệnh THUA"], "{:+.2f}"),
+            "Số lệnh THUA": _so(h["Số lệnh THUA"], "{:.0f}"),
+        })
+    return pd.DataFrame(hang)
+
+
+def _khoi_so_bai_hoc(nk, nk_loi):
+    """Khối "Sổ bài học" của tab Lịch sử giao dịch (BƯỚC 167) — CHỈ HIỆN.
+
+    Dùng dòng nhật ký `_doc_nhat_ky()` đã đọc, không đọc Sheets lần hai. Giá
+    (ngành, cắt lỗ sát) chỉ tải khi người dùng bấm nút, qua hàm có đệm
+    `_gia_cho_so_bai_hoc`. Mọi lỗi hiện cảnh báo, không làm sập tab.
+    """
+    import so_bai_hoc as _sbh
+    st.markdown("##### 📚 Sổ bài học — vì sao mỗi lệnh ảo thắng hoặc thua")
+    st.caption(
+        "Lãi ròng của mỗi lệnh đã đóng tách thành: **thị trường chung** (VN-INDEX cùng "
+        "khoảng giữ lệnh) + **ngành** (các mã cùng ngành hơn/kém thị trường) + **riêng "
+        "mã/tín hiệu** + **chi phí** (phí môi giới, Sở, thuế; cận dưới). Nguyên nhân "
+        "chính = phần âm nhất của lệnh thua, phần dương nhất của lệnh thắng. "
+        "**ĐỀ XUẤT, chưa đo** — xem `docs/STATE.md` BƯỚC 167. “Tín hiệu sai” chỉ là cách "
+        "GỌI phần riêng mã/tín hiệu khi nó gây ra một lệnh thua; một lệnh không "
+        "chứng minh được điều đó.")
+    if nk_loi or not nk:
+        st.info("Chưa có nhật ký để rút bài học (xem khối nhật ký ngay trên).")
+        return
+    if st.button("📥 Tải giá để xét ngành và cắt lỗ sát", key="bai_hoc_tai_gia"):
+        st.session_state["bai_hoc_co_gia"] = True
+    gia, gia_thieu = None, []
+    if st.session_state.get("bai_hoc_co_gia"):
+        _ma, _tu = _sbh.ma_can_gia(nk), _sbh.tu_ngay_can_gia(nk)
+        if _ma and _tu:
+            try:
+                with st.spinner(f"Tải giá {len(_ma)} mã…"):
+                    gia, gia_thieu = _gia_cho_so_bai_hoc(tuple(_ma), _tu, end_str)
+            except Exception as _e:
+                gia = None
+                st.warning(f"⚠️ Chưa tải được giá — {type(_e).__name__}: {_e}")
+    try:
+        bh = _sbh.bai_hoc_cho_so(nk, gia)
+    except Exception as _e:
+        st.warning(f"⚠️ Chưa dựng được sổ bài học — {type(_e).__name__}: {_e}")
+        return
+    th = bh["tong_hop"]
+    if gia is None:
+        st.caption("Chưa tải giá: cột **Ngành** và **Cắt lỗ sát** nói “chưa đủ dữ liệu”. "
+                   "Bấm nút trên để tải (mất vài chục giây).")
+    elif gia_thieu:
+        st.caption(f"Không tải được giá {len(gia_thieu)} mã: {', '.join(gia_thieu)}.")
+    if bh["n_dong_cho_nua_dong"]:
+        st.caption(f"{bh['n_dong_cho_nua_dong']} lệnh sổ đã đóng nhưng nhật ký chưa điền "
+                   "nửa ĐÓNG — bài học có sau lượt quét kế tiếp.")
+    if not bh["bai_hoc"]:
+        st.info("Chưa có lệnh đóng nào có bài học.")
+        return
+    st.dataframe(_bang_bai_hoc(bh["bai_hoc"]).style.map(
+                     _mau_dau, subset=["Lãi ròng", "Thị trường", "Ngành",
+                                       "Riêng mã/tín hiệu", "Chi phí"]),
+                 use_container_width=True, hide_index=True)
+    st.caption(f"{th['n']} lệnh: {th['n_thang']} thắng · {th['n_thua']} thua · "
+               f"{th['n_hoa']} hoà. Gap {th['n_gap']}/{th['n_gap_xet']} lệnh xét được · "
+               f"cắt lỗ sát {th['n_cat_lo_sat']}/{th['n_cat_lo_sat_xet']} lệnh xét được "
+               f"(cửa sổ {_sbh.N_PHIEN_SAU_THOAT} phiên sau ngày ra, ĐỀ XUẤT chưa đo).")
+    if th["cau_luu_y"]:
+        st.warning(th["cau_luu_y"])
+    _c1, _c2 = st.columns(2)
+    with _c1:
+        st.markdown("**Nguyên nhân chính, tách thắng/thua**")
+        st.dataframe(pd.DataFrame(_sbh.bang_nguyen_nhan(th)),
+                     use_container_width=True, hide_index=True)
+        if th["n_khong_phan_ra"]:
+            st.caption(f"{th['n_khong_phan_ra']} lệnh chưa phân rã được (chưa có rổ chuẩn).")
+    with _c2:
+        st.markdown("**Đóng góp trung bình mỗi phần (điểm %/lệnh)**")
+        st.dataframe(_bang_dong_gop(th), use_container_width=True, hide_index=True)
+        st.caption(f"Cột Ngành và Riêng mã chỉ tính {th['n_co_nganh']} lệnh tách được ngành.")
+
+
 def _tip(chuoi) -> str:
     """Chuỗi an toàn để nhét vào thuộc tính `title="..."`.
 
@@ -1466,6 +1595,9 @@ with t_hist:
                 st.markdown("**Hậu kiểm máy**")
                 for _n in str(_hk).split(" | "):
                     st.markdown(f"- {_n}")
+
+    # ── SỔ BÀI HỌC (BƯỚC 167) ──────────────────────────────────────────
+    _khoi_so_bai_hoc(_nk, _nk_loi)
 
 with t_rep:
     # BA THẺ NÀY TỪNG LÀ HAI CHUỖI VIẾT CỨNG (21/08/2026).
