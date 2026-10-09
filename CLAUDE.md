@@ -161,7 +161,7 @@ là `tich_luy`. Nhưng đường quét thật chạy trên Actions với bộ nh
 25/09: 44 mẫu chỉ giữ làm lịch sử; đổi điểm phải qua vòng xác nhận của tầng 3 (một vòng
 kể từ 02/10, BƯỚC 155: khai thẳng, ≤ 1 mỗi tháng; vòng sàng đã bỏ; vòng ấy chỉ PHÁN
 MỘT LẦN, ở đúng 252 phiên có nhãn đầu tiên, BƯỚC 162).
-Dùng 44 mẫu ở đường thật hay không: **quyết định của người dùng, chưa có.**
+**Quyết định 09/10/2026** (`docs/QUYET-DINH-CHO.md` Q1, người dùng: *"Giữ 0 mẫu (Recommended)"*): đường thật **giữ 0 mẫu**, không nạp 44 mẫu. Mọi báo cáo so backtest (44 mẫu) với sổ thật (0 mẫu) phải nêu chỗ lệch 44↔0. Đổi lại phải qua vòng xác nhận của tầng 3.
 
 ---
 
@@ -240,12 +240,15 @@ dịch alpha +0,12–0,13, nhỏ hơn một phần sáu bề rộng KTC. **Đừ
   `tests/test_requirements.py` đỏ khi bản đang chạy lệch bản ghim. Nâng bản
   nghĩa là đo lại và sửa ghim.
 
-## Bất đối xứng local / CI — VĨNH VIỄN, và là chủ ý
+## Bất đối xứng local / CI — chủ ý ở bản thư viện; hạng gói của Cloud và Actions phải ĐỌC, không suy
 
 | Nơi | Hạng | BCTC | Hạn mức | OHLCV |
 |---|---|---|---|---|
 | Máy local | silver | không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 300/phút | 784 phiên / 1095 ngày |
-| GitHub Actions · Streamlit Cloud | free | 8 kỳ | 60/phút | **784 phiên — y hệt** |
+| Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo ở hạng này |
+| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | 784 phiên (số đo cũ, lấy khi còn coi Actions là free) |
+
+🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN từ chỗ vắng gói tài trợ, chưa từng là số đo; Cloud bị bác (`docs/STATE.md` BƯỚC 166). Bản nguyên văn cũ: `docs/lich-su/CLAUDE-md-2026-09-30.md`.
 
 Bất đối xứng KHÔNG CHỈ nằm ở BCTC và hạn mức ⚠️ (câu cũ khai đủ, thiếu vế này): nó còn ở **bản thư viện**.
 `requirements.txt` khai bản `vnstock`/`vnai` bằng ghim `==` (BƯỚC 127), nhưng
@@ -262,8 +265,7 @@ Nó chia ba hạng, in đủ tên và hai số hiệu của từng gói lệch, 
 của hai bên đọc được** (lỗi 80: dụng cụ tự khai bảy tên gõ tay chỉ thấy 1 trong
 32 lệch). Lịch sử lệch bản chính (`streamlit`, `plotly`, `urllib3`) đã đóng
 ở BƯỚC 95–96, 106; còn `pyarrow` 24 → 25. Lớp lệch còn lại luôn phải đọc
-bằng lệnh trên, không đọc ở đây. `vnstock_goi.kiem_goi()` báo LỆCH trên
-cloud vĩnh viễn — đó là báo ĐÚNG.
+bằng lệnh trên, không đọc ở đây. `vnstock_goi.kiem_goi()` trên Streamlit Cloud cho KHỚP (đo 09/10/2026). 🔴 Câu cũ *"báo LỆCH trên cloud vĩnh viễn — đó là báo ĐÚNG"* HẾT ĐÚNG (nó suy Cloud là free). Trên Actions hạng chưa đọc: LỆCH ở đó chưa phải báo đúng hay sai cho tới khi đo.
 
 ---
 

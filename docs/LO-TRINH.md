@@ -28,6 +28,21 @@ Hộp hỏi ở phiên leader. Mỗi dòng: câu hỏi → câu trả lời **ng
 | Khoá Claude API | *"Để tới giai đoạn B (Recommended)"* — chưa đặt; không BƯỚC nào của giai đoạn A làm gì về khoá |
 | Bắt đầu giai đoạn A | *"Làm ngay"* |
 
+## Quyết định (nguyên văn trả lời của người dùng, 09/10/2026)
+
+Phiên quyết định A5, hộp hỏi ở phiên leader (BƯỚC 166). Mã Q trỏ vào `docs/QUYET-DINH-CHO.md`.
+
+| Mã | Câu hỏi | Trả lời |
+|---|---|---|
+| Q1 | Đường quét thật có nạp 44 mẫu bộ nhớ không | *"Giữ 0 mẫu (Recommended)"* |
+| Q2 | Vế 3 của điều kiện dừng | *"Giữ tạm, sửa ở GĐ C (Recommended)"* — giữ luật hiện tại; giai đoạn C thiết kế lại thành "lùi về phiên bản trước" thay vì ngừng đặt lệnh, chốt bằng văn bản trước khi sổ đủ mẫu (mốc **C6** dưới đây) |
+| Q3 | Địa chỉ app Streamlit Cloud | người dùng đưa URL; **cố ý không lưu trong repo công khai** (app dùng khoá API trả phí của người dùng) |
+| Q4 | Mã thiếu giá thì từ chối cả bảng | *"Chờ số đếm thật (Recommended)"* |
+| Q5 | `luu_do18` / `luu_do20` | *"Xoá cả hai (Recommended)"* (02/10/2026), xác nhận lại *"Đưa lại vào Thùng rác"* (09/10/2026) |
+| Q6 · Q8 | `vnii` gửi `operation` · báo lỗi `vnstock_ezchart` | *"Theo đề xuất cả hai (Recommended)"* |
+| Q7 | Dữ liệu BCTC trong repo công khai | *"Tôi đọc điều khoản rồi báo (Recommended)"* — vẫn CHỜ |
+| Q10 (A4) | Tách `docs/STATE.md` theo tháng | *"Không tách (Recommended)"* |
+
 ---
 
 ## Hai đích
@@ -161,13 +176,10 @@ song và không đẩy nhanh được. **Mốc sản phẩm** = mọi mã trừ 
   vẫn là lượt soát của agent. *(BƯỚC 164)*
 - **A3** — NotebookLM chỉ bắt buộc cho BƯỚC đổi một luật hoặc một kết luận đo
   (người dùng duyệt 08/10); BƯỚC khác khai vì sao không hỏi. *(BƯỚC 164)*
-- **A4** — Tách `docs/STATE.md` theo tháng, giữ một mục lục. *(chưa làm; khi làm
-  phải đổi `moc_lo_trinh.TEP_STATE` — gác `tests/test_moc_lo_trinh.py` đòi quần
-  thể khác rỗng nên sẽ đỏ nếu quên)*
+- **A4** — ~~Tách `docs/STATE.md` theo tháng, giữ một mục lục.~~ **ĐÃ BỎ 09/10/2026** (Q10, người dùng: *"Không tách (Recommended)"*). *(Nếu sau này làm lại: phải đổi `moc_lo_trinh.TEP_STATE` — gác `tests/test_moc_lo_trinh.py` đòi quần thể khác rỗng nên sẽ đỏ nếu quên.)*
 - **A5** — Dọn hàng đợi quyết định đang chờ người dùng: 44 mẫu bộ nhớ trên đường
   thật · vế 3 điều kiện dừng · URL Streamlit Cloud · "mã thiếu giá thì từ chối cả
-  bảng" · giữ hay xoá `scratch/luu_do18`. *(danh sách của leader 08/10; năm mục
-  này chưa phiên nào kiểm lại)*
+  bảng" · giữ hay xoá `scratch/luu_do18`. *(danh sách của leader 08/10; BƯỚC 165 dựng sổ `docs/QUYET-DINH-CHO.md`, BƯỚC 166 ghi quyết định 09/10/2026: đã quyết Q1–Q6 · Q8–Q10; còn CHỜ Q7, Q11, Q12)*
 
 **Ra khỏi giai đoạn khi:** ít nhất 2/3 số BƯỚC mỗi tuần phục vụ một **mốc sản
 phẩm**. Đo bằng cách đọc dòng `**Mốc:**` của các BƯỚC trong tuần
@@ -189,6 +201,7 @@ cụ đếm, và chưa có tuần nào đủ dữ liệu.
 - **C2** — Tách hai loại: "thăm dò" (không tính K, không bao giờ lên bản) và "xác nhận".
 - **C3** — Agent tự soạn đề xuất ứng viên hằng tháng: lập luận, bản tiền đăng ký, ước lực; kèm cổng khả thi loại ứng viên mà IC hoà vốn cần có vượt trần IC đã đo của nguồn nó dùng.
 - **C4** — Thị trường giả có lợi thế cài sẵn, để chứng minh cả vòng học chạy đúng.
+- **C6** — Thiết kế lại vế 3 của điều kiện dừng thành "lùi về phiên bản trước" thay vì ngừng đặt lệnh (người dùng 09/10/2026, Q2). Phải chốt bằng văn bản TRƯỚC khi sổ thật chạm `paper_metrics.N_TOI_THIEU` lệnh tiến-về-trước đã đóng; sau mốc ấy mọi thay đổi bị nghi là chế điều kiện sau khi nhìn số (bất biến 7). Mã bỏ qua `C5` vì trùng tên cổng C5.
 
 **Ra khi:** đủ bảy tiêu chí T1–T7 của Đích 1.
 

@@ -1,17 +1,17 @@
 # HÀNG ĐỢI QUYẾT ĐỊNH CHỜ NGƯỜI DÙNG
 
 **Sổ sống.** Mỗi mục là MỘT câu hỏi dành cho người dùng, để leader trình trong
-MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026).
+MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12.
 
 Luật của sổ này (gác: `tests/test_quyet_dinh_cho.py`, bộ đọc: `tools/quyet_dinh_cho.py`):
 
 - Mục KHÔNG bị xoá; chỉ đổi trạng thái. Mã `Q1…Qn` liền nhau, không đứt quãng.
 - `chờ` phải có NGUỒN (mỗi `tệp:dòng` đi kèm một trích `«…»` còn nguyên văn trong tệp), ít nhất hai LỰA CHỌN, một ĐỀ XUẤT và dữ kiện đã kiểm kèm lệnh + ngày.
 - `đã quyết` phải có câu trả lời NGUYÊN VĂN của người dùng và ngày.
-- `hết hiệu lực` (câu hỏi không còn đối tượng) phải có BẰNG CHỨNG: lệnh + ngày chạy. Đây KHÔNG phải `đã quyết`: không ai trả lời.
-- Số dòng đúng tại `main` `8440239` lúc viết; tệp đổi thì dòng trôi, nên gác đòi trích còn nguyên văn và dòng không vượt độ dài tệp. Tách `docs/STATE.md` theo tháng (A4) sẽ làm gác đỏ ở mọi nguồn trỏ vào nó: đó là tín hiệu đúng, sửa nguồn theo tệp mới.
-- Cột "Đề xuất" là ĐỀ XUẤT do phiên soạn viết nháp cho leader; chưa ai quyết, leader sửa trước khi trình.
-- Dữ kiện đo hôm nay (08/10/2026) đều chỉ đọc; không đọc sổ lệnh thật hay Sheets, không gọi vnstock.
+- `hết hiệu lực` (câu hỏi không còn đối tượng) phải có BẰNG CHỨNG: lệnh + ngày chạy. Đây KHÔNG phải `đã quyết`: không ai trả lời. Ngày 09/10/2026 chưa mục nào dùng trạng thái này (Q5, mục duy nhất từng dùng nó, hoá ra đã được người dùng quyết); khuôn vẫn giữ và gác chạy nó trên một mẫu dựng sẵn.
+- Số dòng đúng tại `main` `e00fbbe` lúc viết lại (BƯỚC 166); tệp đổi thì dòng trôi, nên gác đòi trích còn nguyên văn và dòng không vượt độ dài tệp. Tách `docs/STATE.md` theo tháng (A4) đã BỎ (Q10), nên các nguồn trỏ vào `docs/STATE.md` không bị làm trôi bởi việc đó.
+- Cột "Đề xuất" là ĐỀ XUẤT do phiên soạn viết nháp cho leader; mục `chờ` còn giữ nó, mục `đã quyết` giữ lại làm sử liệu.
+- Dữ kiện đo 08/10/2026 đều chỉ đọc; không đọc sổ lệnh thật hay Sheets, không gọi vnstock. Dữ kiện 09/10/2026 ghi rõ ai đo: "leader đo" (trình duyệt, máy của người dùng) hay "BƯỚC 166 chạy lại".
 
 Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
@@ -19,9 +19,9 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 ## Q1 — Đường quét thật có nạp 44 mẫu bộ nhớ hậu nghiệm (chỉ đọc) như backtest không?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
-**Nguồn:** `docs/HANDOFF.md:563 «Bộ nhớ hậu nghiệm trên đường quét thật»` · `CLAUDE.md:164 «quyết định của người dùng, chưa có»` · `docs/STATE.md:19218 «SOÁT ĐỊNH KỲ 7: ĐƯỜNG QUÉT THẬT CHƯA BAO GIỜ DÙNG BỘ NHỚ»` (BƯỚC 140, lỗi 112) · `docs/STATE.md:19312 «Việc cho người dùng quyết»`
+**Nguồn:** `docs/HANDOFF.md:576 «Bộ nhớ hậu nghiệm trên đường quét thật»` · `CLAUDE.md:164 «đường thật **giữ 0 mẫu**»` · `docs/STATE.md:19218 «SOÁT ĐỊNH KỲ 7: ĐƯỜNG QUÉT THẬT CHƯA BAO GIỜ DÙNG BỘ NHỚ»` (BƯỚC 140, lỗi 112) · `docs/STATE.md:19312 «Việc cho người dùng quyết»`
 
 **Ảnh hưởng:** hành vi giao dịch ảo. Backtest dùng 44 mẫu đứng yên (`co_san`, mức phạt −12 ở ca khớp), còn đường quét thật chạy với bộ nhớ rỗng, nên điểm của hai nơi lệch nhau (44 so với 0). Đổi bên nào cũng đổi lệnh nào được mở ở đường thật hoặc đổi cách đọc số backtest.
 
@@ -32,19 +32,22 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a), ghi chỗ lệch 44 so với 0 vào mọi báo cáo so backtest với sổ thật. Nếu người dùng muốn nạp, đi đường (b), không đi (c). Lý do: quyết định 25/09 "44 mẫu chỉ giữ làm lịch sử" đọc được theo cả hai nghĩa (BƯỚC 140) nên không suy hướng từ nó.
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `git check-ignore -v sl_pattern_memory.json` cho `.gitignore:50`: tệp bộ nhớ không vào git.
-- `git grep -n "sl_pattern" -- .github` chỉ ra MỘT dòng chú thích ở `kiem-dinh.yml:50`, không có ở `quet-so-lenh.yml`: workflow quét không khôi phục tệp.
-- `gh run view 37751112790 --repo Siner0808/vibe-stock-analysis --log` rồi lọc `Post-mortem: [^|]*mẫu` cho "BẬT · 0 mẫu, đều từ lệnh thật đã đóng": lượt quét thành công mới nhất (08/10/2026 08:37Z, cây `0a991e1`) vẫn 0 mẫu. Con số 71/71 lượt của BƯỚC 140 đo ngày 29/09/2026, KHÔNG chạy lại hôm nay.
-- Tệp ở máy (`vibe_preview/sl_pattern_memory.json`, 26.969 byte, sửa lần cuối 21/08) có 44 mục: đọc bằng `json.load` rồi `len`.
+**Trả lời nguyên văn (09/10/2026):** *"Giữ 0 mẫu (Recommended)"* — tức phương án (a).
+
+**Hệ quả / việc kế:** không đổi mã, workflow hay ngưỡng. `CLAUDE.md` mục "Bộ nhớ hậu nghiệm" ghi quyết định; mọi báo cáo so backtest (44 mẫu) với sổ thật (0 mẫu) phải nêu chỗ lệch 44↔0. Muốn nạp về sau thì đi đường (b).
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `grep -n "giữ 0 mẫu" CLAUDE.md` cho dòng 164 (quyết định đã vào luật).
+- Lúc hỏi (08/10/2026): `git check-ignore -v sl_pattern_memory.json` cho `.gitignore:50`: tệp bộ nhớ không vào git; `git grep -n "sl_pattern" -- .github` chỉ ra MỘT dòng chú thích ở `kiem-dinh.yml:50`, không có ở `quet-so-lenh.yml`: workflow quét không khôi phục tệp.
+- Lúc hỏi (08/10/2026): `gh run view 37751112790 --repo Siner0808/vibe-stock-analysis --log` rồi lọc `Post-mortem: [^|]*mẫu` cho "BẬT · 0 mẫu, đều từ lệnh thật đã đóng": lượt quét thành công mới nhất khi ấy (08/10/2026 08:37Z, cây `0a991e1`) vẫn 0 mẫu. Con số 71/71 lượt của BƯỚC 140 đo ngày 29/09/2026, KHÔNG chạy lại.
 
 ---
 
 ## Q2 — Vế thứ ba của điều kiện dừng (đủ cỡ mẫu mà chưa chứng minh được lợi thế thì ĐÓNG cổng lệnh ảo) có giữ nguyên không?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
-**Nguồn:** `docs/STATE.md:18053 «vế thứ ba của nó»` (BƯỚC 125) · `docs/HANDOFF.md:385 «vế 3 điều kiện dừng của cổng lệnh ảo»` · `docs/STATE.md:17578 «không phải lý do tắt agent»` (BƯỚC 122, quyết định 25/09) · `docs/STATE.md:18058 «Hướng có thể: ở tầng 3, điều kiện dừng đổi nghĩa»`
+**Nguồn:** `docs/STATE.md:18053 «vế thứ ba của nó»` (BƯỚC 125) · `docs/HANDOFF.md:396 «vế 3 điều kiện dừng của cổng lệnh ảo»` · `docs/STATE.md:17578 «không phải lý do tắt agent»` (BƯỚC 122, quyết định 25/09) · `docs/STATE.md:18058 «Hướng có thể: ở tầng 3, điều kiện dừng đổi nghĩa»`
 
 **Ảnh hưởng:** hành vi giao dịch ảo. Từ số lệnh tiến-về-trước đã đóng bằng `N_DAY_DU`, `paper_metrics.dieu_kien_dong_lai` đóng cổng mở lệnh trừ khi cận dưới của khoảng tin cậy dương. Mục tiêu dự án (BƯỚC 122) nói kết quả đo "không có lợi thế" không phải lý do tắt agent, trong khi BƯỚC 125 chỉ ra vế này sẽ tắt đúng trong ca đó. Chưa kích hoạt: chưa ai ước lượng khi nào sổ chạm `N_DAY_DU`.
 
@@ -55,18 +58,23 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** giữ (a) làm mặc định, đưa (b) thành một mục thiết kế của giai đoạn C (sân đấu phương án có khái niệm phiên bản), và chốt bằng văn bản TRƯỚC khi sổ chạm `N_TOI_THIEU`, vì sau đó mọi thay đổi bị nghi là chế điều kiện sau khi nhìn số.
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `./.venv/Scripts/python.exe -c "import paper_metrics as p; print(p.N_DAY_DU, p.N_TOI_THIEU, p.MUC_BAT_LOI)"` in `451 113 -0.92`; trong `CLAUDE.md`: `N_DAY_DU` = 451 lệnh, `N_TOI_THIEU` = 113.
-- `sed -n 540,556p paper_metrics.py` cho docstring ghi vế thứ ba "n ≥ N_DAY_DU: ĐÓNG TRỪ KHI cận DƯỚI của KTC (z=1,96) > 0".
-- Số lệnh đã đóng của sổ thật KHÔNG đọc hôm nay (đề bài cấm đọc Sheets): đọc bằng `tools/doc_so_that.py` khi cần.
+**Trả lời nguyên văn (09/10/2026):** *"Giữ tạm, sửa ở GĐ C (Recommended)"* — mô tả lựa chọn người dùng đã thấy: "Giữ luật hiện tại; giai đoạn C thiết kế lại thành 'lùi về phiên bản trước' thay vì ngừng đặt lệnh. Chốt bằng văn bản trước khi sổ đủ mẫu."
+
+**Hệ quả / việc kế:** không đổi mã. `docs/LO-TRINH.md` thêm mốc **C6** (cố ý bỏ qua `C5` vì trùng tên cổng C5): thiết kế lại vế 3, chốt bằng văn bản TRƯỚC khi sổ thật chạm `N_TOI_THIEU` lệnh tiến-về-trước đã đóng.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `grep -n "C6" docs/LO-TRINH.md` cho mốc mới.
+- Lúc hỏi (08/10/2026): `./.venv/Scripts/python.exe -c "import paper_metrics as p; print(p.N_DAY_DU, p.N_TOI_THIEU, p.MUC_BAT_LOI)"` in `451 113 -0.92`; trong `CLAUDE.md`: `N_DAY_DU` = 451 lệnh, `N_TOI_THIEU` = 113.
+- Lúc hỏi (08/10/2026): `sed -n 540,556p paper_metrics.py` cho docstring ghi vế thứ ba "n ≥ N_DAY_DU: ĐÓNG TRỪ KHI cận DƯỚI của KTC (z=1,96) > 0".
+- Số lệnh đã đóng của sổ thật KHÔNG đọc: đọc bằng `tools/doc_so_that.py` khi cần.
 
 ---
 
 ## Q3 — Địa chỉ (URL) app Streamlit Cloud là gì, để kiểm việc treo từ BƯỚC 127?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
-**Nguồn:** `docs/HANDOFF.md:384 «địa chỉ app Streamlit Cloud»` · `docs/STATE.md:18220 «chỉ triển khai từ»` (BƯỚC 127) · `docs/STATE.md:19432 «địa chỉ app vẫn chờ người dùng»` (BƯỚC 141)
+**Nguồn:** `docs/HANDOFF.md:395 «địa chỉ app Streamlit Cloud»` · `docs/STATE.md:18220 «chỉ triển khai từ»` (BƯỚC 127) · `docs/STATE.md:19432 «địa chỉ app vẫn chờ người dùng»` (BƯỚC 141)
 
 **Ảnh hưởng:** chỉ kiểm vận hành; không đổi hành vi giao dịch (quét chạy ở GitHub Actions) và không đổi số đo. Điều chưa biết: Streamlit Cloud có đọc dòng `--extra-index-url` trong `requirements.txt` để cài `vnstock` và `vnai` ghim bản từ kho hãng không, và tab nhật ký "vì sao" (BƯỚC 141) có chạy trên Cloud không. PR #169 vào `main` từ 27/09/2026, đã 11 ngày chưa ai mở app để đọc.
 
@@ -77,15 +85,22 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a), vì kiểm một lần tốn vài phút và là cách duy nhất biết `requirements.txt` ghim có chạy trên Cloud.
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `grep -rIl "streamlit\.app" --exclude-dir=.git --exclude-dir=.venv .` (chạy ở gốc repo) không ra tệp nào: repo không lưu URL.
-- `gh api repos/Siner0808/vibe-stock-analysis --jq .homepage` cho `null`; mô tả repo không nêu URL; repo ở chế độ `public`.
+**Trả lời nguyên văn (09/10/2026):** người dùng đưa URL và nói *"địa chỉ app streamlit tôi đã mở thành công trong trình duyệt của bạn"* — tức phương án (a). **URL KHÔNG ghi vào repo** (repo công khai; app dùng khoá API trả phí của người dùng: `VNSTOCK_API_KEY` hạng silver, `GEMINI_API_KEY`): [URL do người dùng đưa, cố ý không lưu trong repo công khai].
+
+**Hệ quả / việc kế:** việc treo từ BƯỚC 127 KHÉP: dòng `--extra-index-url` CÓ hiệu lực trên Cloud, và Cloud chạy hạng **silver**, không phải free (giả thuyết cũ bị bác, `CLAUDE.md` mục "Bất đối xứng" đã sửa). Còn chưa đo: BCTC và hạn mức trên Cloud; hạng trên GitHub Actions. Telemetry `vnstock` trên Cloud còn bật → Q11.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- Leader đo, trình duyệt: app chạy, khởi động lại 01:35:49 UTC từ `main` (sau merge #211). Nhật ký "Manage app": `Using uv pip install.` · ` + vnai==2.6.2` · ` + vnstock==4.0.9` · ` + vnstock-ezchart==1.0.2` · `Python dependencies were installed from /mount/src/vibe-stock-analysis/requirements.txt using uv.`; cũng in `✓ API key đã được lưu thành công!`.
+- Leader đo, trình duyệt: bảng trạng thái của app hiện `🎫 Gói vnstock · silver · hết hạn 2026-11-22 · ● ĐÚNG`. BƯỚC 166 chạy lại: `grep -n '"● ĐÚNG" if _goi.dat' app.py` cho dòng 853: chữ "ĐÚNG" chỉ in khi `vnstock_goi.kiem_goi().dat`.
+- Leader đo: `gh run view 37780109821 --log | grep -i "API key"` (lượt `quet-so-lenh` thành công 08/10 12:54Z) cũng in `✓ API key đã được lưu thành công!`. Hạng gói trên Actions CHƯA đọc.
+- Tab "📜 Lịch sử giao dịch" có khối "📓 Nhật ký 'vì sao' của lệnh ảo" đọc từ Google Sheets, chạy được (số lệnh của sổ KHÔNG chép vào tài liệu).
+- Lúc hỏi (08/10/2026): `grep -rIl "streamlit\.app" --exclude-dir=.git --exclude-dir=.venv .` không ra tệp nào: repo không lưu URL; `gh api repos/Siner0808/vibe-stock-analysis --jq .homepage` cho `null`; repo ở chế độ `public`.
 
 ---
 
 ## Q4 — "Mã thiếu giá thì từ chối cả bảng giá" của máy chấm xác nhận có giữ không, hay nới?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
 **Nguồn:** `docs/STATE.md:21218 «CẢ bảng bị từ chối»` (BƯỚC 161, "chọn có chủ ý") · `docs/STATE.md:21258 «vẫn đòi phủ giá cho MỌI phiên chấm được»` (BƯỚC 162, rủi ro 3) · `docs/STATE.md:21260 «Một mã tạm ngừng giao dịch giữa chừng chặn cả bảng kéo»` (BƯỚC 162, rủi ro 5) · `cham_xac_nhan.py:23 «rồi từ chối cả bảng»`
 
@@ -98,40 +113,51 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (c): giữ (a) tới khi có số đếm thật; chỉ khi bộ kéo thật cho thấy mã thiếu giá hay gặp mới mở (b) như một ĐO ký trước.
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `git grep -n "thieu gia trong cua so" -- cham_xac_nhan.py` ra dòng 242 (nơi `kiem_phu` từ chối); `git grep -n "rồi từ chối cả bảng" -- cham_xac_nhan.py` ra dòng 23.
-- `git log -1 --format=%h -- keo_bang_gia.py cham_xac_nhan.py` ra `b14d270` (BƯỚC 162): hai tệp chưa đổi từ khi nêu rủi ro.
-- Tần suất mã thiếu giá CHƯA đo: bộ kéo thật chưa chạy trên dữ liệu thật (BƯỚC 162, việc kế (2)); hôm nay không gọi vnstock.
+**Trả lời nguyên văn (09/10/2026):** *"Chờ số đếm thật (Recommended)"* — tức phương án (c).
+
+**Hệ quả / việc kế:** giữ (a) cho tới khi bộ kéo thật chạy và đếm được mã thiếu giá (việc kế BƯỚC 162, mục (2)); khi có số đếm thì mở lại câu hỏi như một mục mới của sổ này (mục này không bị xoá). Không đổi mã.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `git log -1 --format=%h -- keo_bang_gia.py cham_xac_nhan.py` ra `b14d270` (BƯỚC 162): hai tệp chưa đổi từ khi nêu rủi ro.
+- Lúc hỏi (08/10/2026): `git grep -n "thieu gia trong cua so" -- cham_xac_nhan.py` ra dòng 242 (nơi `kiem_phu` từ chối); `git grep -n "rồi từ chối cả bảng" -- cham_xac_nhan.py` ra dòng 23.
+- Tần suất mã thiếu giá CHƯA đo: bộ kéo thật chưa chạy trên dữ liệu thật (BƯỚC 162, việc kế (2)); không gọi vnstock.
 
 ---
 
 ## Q5 — Giữ hay xoá `scratch/luu_do18/` (18 tệp dữ liệu ĐO 18)?
 
-**Trạng thái:** hết hiệu lực
+**Trạng thái:** đã quyết
 
-**Nguồn:** `docs/HANDOFF.md:387 «xoá hẳn»` (khối cuối ngày 27/09: "Xoá hẳn thì hỏi người dùng") · `docs/STATE.md:19529 «scratch/luu_do18/wt_do18_p1»` · `docs/LO-TRINH.md:169 «giữ hay xoá»` (mục A5 liệt kê câu này)
+**Nguồn:** `docs/HANDOFF.md:398 «xoá hẳn»` (khối cuối ngày 27/09: "Xoá hẳn thì hỏi người dùng") · `docs/STATE.md:19529 «scratch/luu_do18/wt_do18_p1»` · `docs/LO-TRINH.md:182 «giữ hay xoá»` (mục A5 liệt kê câu này)
 
-**Ảnh hưởng:** chỉ dọn dẹp, cộng một hệ quả tái lập. Thư mục đã KHÔNG còn: BƯỚC 142 (`docs/STATE.md:19529`) tính "582 lệnh trong 35 tháng = 16,6 lệnh/tháng" trực tiếp từ `luu_do18/wt_do18_p1/wf_oos.db` ("chỉ đọc"), và con số ấy nay không chạy lại được từ đường dẫn đã ghi. `docs/STATE.md:19594` (ĐO 22) trỏ tới `../luu_do20/…`, thư mục này cũng đã mất.
+**Ảnh hưởng:** dọn dẹp, cộng một hệ quả tái lập. BƯỚC 142 (`docs/STATE.md:19529`) tính "582 lệnh trong 35 tháng = 16,6 lệnh/tháng" trực tiếp từ `luu_do18/wt_do18_p1/wf_oos.db` ("chỉ đọc"), và ĐO 22 (`docs/STATE.md:19594`) trỏ tới `../luu_do20/…`. Hai thư mục đã được người dùng quyết xoá (02/10/2026) và nằm trong Thùng rác, nên các đường ấy KHÔNG chạy lại được; muốn có số thì chạy lại từ commit đã ghim (vài giờ máy).
 
 **Lựa chọn:**
-- (a) Ghi nhận thư mục đã mất và đánh dấu chỗ trích đường dẫn đã chết (STATE chỉ thêm: một dòng đánh dấu ở BƯỚC có việc thêm, không sửa mục cũ). Hệ quả: trung thực về chuyện "582 lệnh / 16,6 lệnh mỗi tháng" không tái lập được; không tốn đo đạc.
+- (a) Ghi nhận việc xoá và đánh dấu chỗ trích đường dẫn đã chết (STATE chỉ thêm: một dòng đánh dấu ở BƯỚC có việc thêm, không sửa mục cũ). Hệ quả: trung thực về chuyện "582 lệnh / 16,6 lệnh mỗi tháng" không tái lập được từ đường đã ghi; không tốn đo đạc.
 - (b) Dựng lại con số nhịp lệnh từ `scratch/luu_do22/` (4 tệp `wf_oos.db` của ĐO 22) hoặc từ một lượt chạy mới. Hệ quả: có số mới tái lập được, nhưng KHÁC số cũ (ĐO 22 đo 619 lệnh ở dòng theo ngày, không phải 582), nên phải gọi nó là số mới.
 
-**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a) ngay, (b) chỉ khi một BƯỚC sau cần chính nhịp lệnh đó. Có một câu chỉ người dùng trả lời được và không chặn việc gì: thư mục đã bị xoá khi nào và bởi ai (repo không ghi dấu vết; người dùng cho phép xoá hẳn chưa từng được ghi lại).
+**Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a) ngay, (b) chỉ khi một BƯỚC sau cần chính nhịp lệnh đó. (Nháp BƯỚC 165 viết "thư mục đã mất" và hỏi "ai xoá, khi nào" — cả hai SAI, xem chuỗi sự kiện dưới.)
 
-**Bằng chứng (lệnh + ngày):** ngày 08/10/2026, `ls -d /c/Users/cuong/.gemini/antigravity/scratch/luu_do18*` báo "No such file or directory"; `find /c/Users/cuong/.gemini -maxdepth 6 ( -iname "luu_do18*" -o -iname "luu_do20*" -o -iname "wt_do18*" -o -iname "wt_do20*" )` không ra gì; `ls /c/Users/cuong/.gemini/antigravity/scratch` chỉ còn `luu_do22`.
+**Trả lời nguyên văn (02/10/2026):** *"Xoá cả hai (Recommended)"* — hộp hỏi của phiên leader, 04:57Z, kèm lời giải thích: "Xoá hai thư mục cũ thì số của ĐO 18 và ĐO 20 vẫn tái lập được bằng cách chạy lại từ commit đã ghim, nhưng mất vài giờ máy."
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `find /c/Users/cuong/.gemini/antigravity/scratch/luu_do22 -type f` ra 8 tệp (4 nhật ký `.log` và 4 `wf_oos.db`), tổng 39.194.748 byte (`find … -printf '%s\n'` cộng lại). Thư mục này còn nguyên; hỏi giữ hay xoá nó là câu của lúc khác, KHÔNG nằm trong sổ này và không bị đụng hôm nay.
-- Chỉ ĐỌC; không xoá, không di chuyển tệp nào ngoài repo.
+**Xác nhận lại (09/10/2026):** sau khi leader báo sai nguồn gốc, người dùng chọn *"Khôi phục cả hai (Recommended)"*; khi leader đính chính (thư mục bị xoá theo chính quyết định của người dùng), người dùng chọn *"Đưa lại vào Thùng rác"*. Câu trả lời CÓ HIỆU LỰC cuối cùng: xoá.
+
+**Hệ quả / việc kế:** `luu_do18/…` (BƯỚC 142) và `luu_do20/…` (ĐO 22) KHÔNG chạy lại được từ đường đã ghi; chạy lại từ commit đã ghim nếu cần số. `docs/STATE.md` chỉ thêm, nên con trỏ cũ trong STATE giữ nguyên và được ghi chú ở BƯỚC 166; dòng nêu đường ở `docs/HANDOFF.md` mang cửa thoát `duong-da-chet` theo quy ước của `tools/kiem_duong_ngoai_repo.py`. `luu_do22` giữ nguyên.
+
+**Dữ kiện đã kiểm (09/10/2026):** chuỗi sự kiện theo lời leader (bản ghi phiên của leader), BƯỚC 166 không tự kiểm được vì Thùng rác nằm ở máy của người dùng:
+- 02/10/2026 04:57Z: hộp hỏi "Hai thư mục lưu sổ OOS của các phép đo cũ đang chiếm ổ đĩa: luu_do18 (330 MB) và luu_do20 (593 MB)…" → *"Xoá cả hai (Recommended)"*.
+- 02/10/2026 04:58Z: leader chuyển cả hai vào Thùng rác bằng `[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory(<thư mục>, 'OnlyErrorDialogs', 'SendToRecycleBin')`, và chỉ ghi vào bộ nhớ riêng của leader, KHÔNG ghi vào repo — vì thế BƯỚC 165 không tìm thấy quyết định này.
+- 09/10/2026: leader đo Thùng rác bằng PowerShell `(New-Object -ComObject Shell.Application).Namespace(10).Items()` lọc tên `luu_do`: `luu_do18` (18 tệp, 345.117.362 byte), `luu_do20` (36 tệp, 621.727.714 byte), ngày xoá 02/10/2026 11:58 SA, đường gốc `C:\Users\cuong\.gemini\antigravity\scratch`.
+- 09/10/2026: người dùng chọn khôi phục; leader khôi phục bằng `InvokeVerb('undelete')`, đo khớp từng byte; sau đính chính, người dùng chọn đưa lại vào Thùng rác; leader chuyển lại lúc 08:54 sáng 09/10 (giờ VN) bằng cùng lệnh `DeleteDirectory` ở trên. Trạng thái cuối: `luu_do18`, `luu_do20` trong Thùng rác (còn khôi phục được); `luu_do22` giữ nguyên.
+- Bằng chứng cũ của BƯỚC 165 (08/10/2026): `ls -d /c/Users/cuong/.gemini/antigravity/scratch/luu_do18*` báo "No such file or directory" — ĐÚNG với `ls`, SAI khi đọc thành "không ai biết ai xoá": thư mục nằm trong Thùng rác.
 
 ---
 
 ## Q6 — `vnii` 0.2.6 gửi thêm tên hàm đang gọi (trường `operation`) mỗi lần kiểm giấy phép: chấp nhận hay chặn?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
-**Nguồn:** `docs/HANDOFF.md:622 «gửi thêm tên hàm đang gọi»` · `docs/STATE.md:17152 «gửi thêm trường»` (BƯỚC 118, ĐO 17)
+**Nguồn:** `docs/HANDOFF.md:635 «gửi thêm tên hàm đang gọi»` · `docs/STATE.md:17152 «gửi thêm trường»` (BƯỚC 118, ĐO 17)
 
 **Ảnh hưởng:** chỉ riêng tư; không đổi hành vi giao dịch và không đổi số đo. Công tắc `disable_telemetry()` người dùng bật 18/09/2026 thuộc `vnai` và không phủ đường này (docstring của `vnii` ghi "used only for telemetry"). Chưa đo, chưa chặn.
 
@@ -142,9 +168,13 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a) tạm thời, kèm một dòng ranh giới; chỉ mở (b) nếu người dùng coi tên hàm là dữ liệu nhạy cảm.
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `./.venv/Scripts/python.exe -m pip list` (lọc `vnii`) ra `vnii 0.2.6`: phiên bản đang cài trùng bản đã nêu ở BƯỚC 118.
-- Lệnh trên không chạm mạng và không gọi `vnii`. Chưa ai đo trường nào ngoài `operation` được gửi.
+**Trả lời nguyên văn (09/10/2026):** *"Theo đề xuất cả hai (Recommended)"* — hỏi gộp Q6 và Q8; với Q6 là phương án (a): chấp nhận `vnii` gửi `operation`, ghi rõ ranh giới.
+
+**Hệ quả / việc kế:** không đổi mã. Ranh giới ghi ở `docs/HANDOFF.md` (dòng `vnii`): telemetry `vnai` tắt ở máy, đường `vnii` vẫn gửi tên hàm; telemetry `vnstock` trên Cloud và Actions còn bật → hỏi ở Q11.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `grep -n "Người dùng chấp nhận 09/10/2026" docs/HANDOFF.md` cho dòng ghi ranh giới.
+- Lúc hỏi (08/10/2026): `./.venv/Scripts/python.exe -m pip list` (lọc `vnii`) ra `vnii 0.2.6`: phiên bản đang cài trùng bản đã nêu ở BƯỚC 118. Lệnh không chạm mạng và không gọi `vnii`; chưa ai đo trường nào ngoài `operation` được gửi.
 
 ---
 
@@ -152,7 +182,7 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Trạng thái:** chờ
 
-**Nguồn:** `docs/HANDOFF.md:609 «trong repo công khai»` (kèm "Người dùng kiểm điều khoản; chi tiết trong báo cáo audit") · `docs/STATE.md` BƯỚC 121 (audit toàn hệ thống; báo cáo đầy đủ là Artifact riêng tư của người dùng, repo chỉ có bản tóm tắt)
+**Nguồn:** `docs/HANDOFF.md:622 «trong repo công khai»` (kèm "Người dùng kiểm điều khoản; chi tiết trong báo cáo audit") · `docs/STATE.md` BƯỚC 121 (audit toàn hệ thống; báo cáo đầy đủ là Artifact riêng tư của người dùng, repo chỉ có bản tóm tắt)
 
 **Ảnh hưởng:** pháp lý và dọn dẹp, cộng một phụ thuộc của test. Repo ở chế độ `public`. Bản ghi không nói điều khoản dữ liệu của nguồn cho phép hay cấm, vì việc kiểm điều khoản thuộc người dùng và kết quả chưa được ghi lại. Tệp `tests/test_cache_bctc_du_ky.py` đọc đúng thư mục này (`KHO = GOC / "backtest" / "fundamentals"`).
 
@@ -163,6 +193,8 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** người dùng đọc điều khoản trước (việc duy nhất agent không làm hộ được), rồi chọn (a) nếu được phép, (b) hoặc (c) nếu không. Chưa có điều khoản trong tay thì chưa thể đề xuất nghiêng về phía nào.
 
+**Ghi nhận 09/10/2026 (CHƯA phải quyết định cuối):** người dùng trả lời *"Tôi đọc điều khoản rồi báo (Recommended)"* — mục vẫn `chờ` cho tới khi người dùng báo kết quả đọc điều khoản.
+
 **Dữ kiện đã kiểm (08/10/2026):**
 - `git ls-files backtest/fundamentals | wc -l` ra `217` tệp; `git ls-files -z backtest/fundamentals | xargs -0 du -ck | tail -1` ra khoảng `5884` KB.
 - `gh api repos/Siner0808/vibe-stock-analysis --jq .visibility` ra `public`.
@@ -172,9 +204,9 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 ## Q8 — Gửi báo lỗi đóng gói của `vnstock_ezchart` cho hãng, hay giữ bản vá tại máy mãi?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
-**Nguồn:** `docs/HANDOFF.md:628 «Báo lỗi đã soạn»` · `docs/STATE.md:17188 «HỎNG HAI LỚP»` (BƯỚC 119)
+**Nguồn:** `docs/HANDOFF.md:642 «Báo lỗi đã soạn»` · `docs/STATE.md:17188 «HỎNG HAI LỚP»` (BƯỚC 119)
 
 **Ảnh hưởng:** chỉ dọn dẹp và ranh giới với hãng; không đổi hành vi giao dịch hay số đo. Máy chạy bản vá tại máy `1.0.2+vibe1` (ba dòng `pyproject.toml`, không đụng mã). Khi hãng phát hành bản sửa, `tools/so_ban_goi.py` báo lệch ở hạng `QUYET DINH SO` và bản vá phải được thay bằng bản chính thức.
 
@@ -184,9 +216,14 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên A5 soạn nháp, chưa ai quyết):** (a), vì báo đã soạn xong, chi phí của người dùng là một lần gửi.
 
-**Dữ kiện đã kiểm (08/10/2026):**
-- `./.venv/Scripts/python.exe -m pip list` (lọc `ezchart`) ra `vnstock_ezchart 1.0.2+vibe1`: bản vá vẫn đang chạy.
-- Chưa kiểm hãng đã phát hành bản sửa chưa (cần mạng ngoài kho hãng; hôm nay không gọi).
+**Trả lời nguyên văn (09/10/2026):** *"Theo đề xuất cả hai (Recommended)"* — hỏi gộp Q6 và Q8; với Q8 là phương án (a), kèm cách làm: leader soạn lại báo lỗi, NGƯỜI DÙNG gửi hãng.
+
+**Hệ quả / việc kế:** bản nháp gốc của BƯỚC 119 nằm ở thư mục tạm của phiên cũ và đã mất, nên leader soạn lại NGOÀI repo (`C:\Users\cuong\.gemini\antigravity\scratch\vibe_handoff\bao-loi-vnstock-ezchart.md`, trên máy người dùng); người dùng gửi. Bản vá `1.0.2+vibe1` giữ cho tới khi hãng phát hành bản sửa.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `curl -s https://pypi.org/pypi/vnstock-ezchart/json` rồi đọc `info.version` ra `1.0.2`, các bản `['0.0.3', '1.0.1', '1.0.2']`: hãng chưa phát hành bản sửa.
+- Leader đo: GitHub `vnstock-hq/vnstock_ezchart` commit mới nhất vẫn `23d5129`; repo hãng chưa có issue nào ⇒ lỗi chưa sửa.
+- Lúc hỏi (08/10/2026): `./.venv/Scripts/python.exe -m pip list` (lọc `ezchart`) ra `vnstock_ezchart 1.0.2+vibe1`: bản vá vẫn đang chạy.
 
 ---
 
@@ -208,6 +245,71 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Dữ kiện đã kiểm (08/10/2026):**
 - `git grep -n "ANTHROPIC_API_KEY" -- docs/LO-TRINH.md` ra các dòng nêu khoá là việc của người dùng, giai đoạn A không đặt.
+
+---
+
+## Q10 — Có tách `docs/STATE.md` theo tháng (A4) không?
+
+**Trạng thái:** đã quyết
+
+**Nguồn:** `docs/LO-TRINH.md:179 «Tách `docs/STATE.md` theo tháng, giữ một mục lục.»` (mục A4, nay đánh dấu ĐÃ BỎ)
+
+**Ảnh hưởng:** tài liệu và công cụ đọc. `docs/STATE.md` nặng khoảng 1,2 MB (`docs/LO-TRINH.md`, chẩn đoán 4); tách nó đổi `moc_lo_trinh.TEP_STATE`, `tools/buoc_cham_luat.py` và làm gác `tests/test_quyet_dinh_cho.py` đỏ ở mọi nguồn trỏ vào nó. Không đổi hành vi giao dịch hay số đo.
+
+**Lựa chọn:**
+- (a) Tách theo tháng, giữ một mục lục. Hệ quả: các phiên không phải nạp cả 1,2 MB; nhưng đổi quần thể của ba gác và mọi con trỏ `docs/STATE.md:dòng`.
+- (b) Không tách. Hệ quả: giữ nguyên công cụ và con trỏ; phiên đọc phần cuối bằng `offset` như đang làm.
+
+**Trả lời nguyên văn (09/10/2026):** *"Không tách (Recommended)"* — tức phương án (b).
+
+**Hệ quả / việc kế:** `docs/LO-TRINH.md` đánh dấu A4 ĐÃ BỎ (mã A4 vẫn đọc được cho `tests/test_moc_lo_trinh.py`). Lý do leader nêu (câu hỏi gửi sổ tay, `docs/soat-notebooklm.json` mục BƯỚC 166): phép đo A4 của leader cho lợi ≈ 0 so với 7 test hỏng, 199 trên 219 con trỏ chết và hai công cụ (`tools/ho_so.py`, `tools/doi_chieu_trich_dan.py`) hỏng lặng lẽ. Lệnh đo ấy không có trong đề bài của BƯỚC 166 nên chưa tái lập được trong phiên này — đó là số đo của leader, không phải của phiên viết sổ.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `wc -c docs/STATE.md` đo kích thước hiện tại của tệp (đọc bằng lệnh, không chép con số vào tài liệu).
+- `grep -n "A4" docs/LO-TRINH.md` cho dòng 179 đã đánh dấu ĐÃ BỎ.
+
+---
+
+## Q11 — Có đặt `VNSTOCK_TELEMETRY=off` trên Streamlit Cloud và GitHub Actions, cho khớp quyết định tắt telemetry ở máy (18/09/2026)?
+
+**Trạng thái:** chờ
+
+**Nguồn:** `docs/HANDOFF.md:637 «`disable_telemetry()` bật 18/09 là của `vnai`»` · `docs/STATE.md:15348 «trường `VNSTOCK_TELEMETRY`»`
+
+**Ảnh hưởng:** riêng tư, không đổi hành vi giao dịch hay số đo. Nhật ký Cloud (leader đọc 09/10/2026) có dòng `[vnstock] Thư viện gửi số liệu đo lường tuỳ chọn (tên hàm, thời gian chạy, lỗi)… Tắt: đặt VNSTOCK_TELEMETRY=off hoặc gọi vnai.disable_telemetry()`: telemetry `vnstock` đang BẬT ở hai nơi chạy trực tiếp, trong khi máy đã tắt từ 18/09/2026. Đặt biến là sửa secrets/biến môi trường của Cloud và `env:` của workflow.
+
+**Lựa chọn:**
+- (a) Đặt `VNSTOCK_TELEMETRY=off` ở cả hai: Streamlit Cloud (secrets hoặc biến môi trường) và GitHub Actions (`env:` của workflow quét). Hệ quả: khớp tinh thần 18/09; rẻ; chạm workflow nên cần một BƯỚC riêng và gác (`tests/test_bo_cong_khop_CI.py`); không biết trước hãng có coi biến này như điều kiện cấp hạng không (chưa đo).
+- (b) Chỉ đặt ở Actions hoặc chỉ ở Cloud. Hệ quả: nửa vời; một nơi vẫn gửi.
+- (c) Giữ nguyên, ghi ranh giới "telemetry chỉ tắt ở máy". Hệ quả: không đổi gì; hai nơi chạy trực tiếp tiếp tục gửi tên hàm và thời gian chạy.
+
+**Đề xuất của leader (ĐỀ XUẤT, phiên 09/10 soạn nháp, chưa ai quyết):** (a): bật `off` ở cả hai — rẻ, cùng tinh thần quyết định 18/09; làm bằng một BƯỚC riêng có kiểm xem hạng gói (`kiem_goi`) và quét có đổi không.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `git grep -n "VNSTOCK_TELEMETRY" -- . ':!docs' ':!tests'` không ra dòng nào: không workflow, không `app.py`, không cấu hình nào của repo đặt biến này.
+- Leader đo, trình duyệt: nhật ký "Manage app" của Cloud in dòng `[vnstock] Thư viện gửi số liệu đo lường tuỳ chọn…` nói trên. Nhật ký Actions chưa đọc để tìm dòng này.
+- Chỉ GHI câu hỏi: chưa sửa workflow hay secrets nào.
+
+---
+
+## Q12 — Mặc định thanh trượt "Ngưỡng mua" trên app (50) có nên theo `BUY_THRESHOLD` (62) của đường giao dịch không?
+
+**Trạng thái:** chờ
+
+**Nguồn:** `app.py:453 «NGUONG_MUA_MAC_DINH = 50.0»` · `app.py:697 «Ngưỡng mua Multi-Agent (pts)»` · `paper_trading.py:77 «BUY_THRESHOLD = 62»`
+
+**Ảnh hưởng:** hiển thị của app công khai, không đổi lệnh ảo nào (đường giao dịch dùng `paper_trading.BUY_THRESHOLD`). Thanh trượt `app.py:697` mặc định `NGUONG_MUA_MAC_DINH = 50.0`, và app in "thấp hơn ngưỡng mua 50.0 pts" (`app.py:1396`) trong khi sổ lệnh ảo mua ở 62: người xem app thấy một ngưỡng khác với ngưỡng thật của đường giao dịch.
+
+**Lựa chọn:**
+- (a) Mặc định thanh trượt = `BUY_THRESHOLD` nhập từ `paper_trading`; thanh trượt vẫn chỉnh được trong khoảng 40–65. Hệ quả: app khớp đường giao dịch; một ngưỡng, một chỗ (`CLAUDE.md`: "Một ngưỡng mua, một chỗ"); đổi hiển thị mặc định của app công khai; cần sửa `app.py` và test.
+- (b) Giữ 50 và ghi chú trên app rằng đó chỉ là ngưỡng xem thử. Hệ quả: không đổi mã giao dịch; người xem vẫn có thể hiểu nhầm.
+- (c) Giữ nguyên. Hệ quả: không đổi gì.
+
+**Đề xuất của leader (ĐỀ XUẤT, phiên 09/10 soạn nháp, chưa ai quyết):** (a): mặc định = `BUY_THRESHOLD` nhập từ `paper_trading`, thanh trượt vẫn chỉnh được.
+
+**Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 166 chạy lại: `grep -n "NGUONG_MUA_MAC_DINH" app.py` ra dòng 453 (`= 50.0`), 600 và 698 (nơi dùng); `grep -n "^BUY_THRESHOLD" paper_trading.py` ra dòng 77 (`= 62`).
+- Chỉ GHI câu hỏi: không sửa `app.py`.
 
 ---
 

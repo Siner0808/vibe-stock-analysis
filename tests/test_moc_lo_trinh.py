@@ -215,3 +215,32 @@ def test_Moc_trong_van_xuoi_va_khoi_rao_va_muc_khac_KHONG_tinh_cho_BUOC():
 def test_MA_chi_dinh_nghia_bang_muc_danh_sach_dau_dong():
     van = "Van xuoi nhac **A1** va `B2`.\n- **C3** — dinh nghia that\n  - **D4** — long nhau\n"
     assert m.ma_hop_le(van) == {"C3"}
+
+
+# ── BƯỚC 166: quyết định 09/10/2026 ─────────────────────────────────────────
+
+def test_LO_TRINH_chep_cac_cau_tra_loi_nguyen_van_09_10_2026():
+    van = _lo_trinh()
+    muc = van[van.index("## Quyết định (nguyên văn trả lời của người dùng, 09/10/2026)"):]
+    for cau in ("*\"Giữ 0 mẫu (Recommended)\"*", "*\"Giữ tạm, sửa ở GĐ C (Recommended)\"*",
+                "*\"Chờ số đếm thật (Recommended)\"*", "*\"Xoá cả hai (Recommended)\"*",
+                "*\"Đưa lại vào Thùng rác\"*", "*\"Theo đề xuất cả hai (Recommended)\"*",
+                "*\"Tôi đọc điều khoản rồi báo (Recommended)\"*",
+                "*\"Không tách (Recommended)\"*"):
+        assert cau in muc, f"LO-TRINH.md thieu cau tra loi 09/10 {cau}"
+
+
+def test_MOC_C6_ton_tai_va_noi_ve_ve_3_dieu_kien_dung():
+    """Q2 (09/10/2026): vế 3 thiết kế lại ở giai đoạn C. Mã là C6 vì C5 bị cấm (trùng cổng C5)."""
+    van = _lo_trinh()
+    assert "C6" in m.ma_hop_le(van) and "C5" not in m.ma_hop_le(van)
+    dong = next(d for d in van.split("\n") if d.startswith("- **C6**"))
+    assert "lùi về phiên bản trước" in dong and "N_TOI_THIEU" in dong
+    # nằm trong giai đoạn C, không ở giai đoạn khác
+    c = van.index("### C —")
+    assert c < van.index("- **C6**") < van.index("### D —")
+
+
+def test_A4_van_la_ma_hop_le_du_da_bo():
+    """Đã bỏ nhưng mã còn đọc được: BƯỚC cũ khai `Mốc: A4` không được hoá mã lạ."""
+    assert "A4" in m.ma_hop_le(_lo_trinh())
