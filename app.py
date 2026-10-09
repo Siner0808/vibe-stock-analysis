@@ -458,7 +458,8 @@ st.markdown("""
 # (`BUY_THRESHOLD`), chỉ đọc. Thanh trượt "Ngưỡng mua" (mặc định 50, đường thật
 # 62) đã gỡ ở BƯỚC 172 theo Q12: người dùng 09/10/2026 xác nhận nó không có tác
 # dụng, và phán quyết vào lệnh giao cho agent (lộ trình B6), không phải "cứ điểm
-# cao là mua". Gác: tests/test_app_nguong_mua_chi_doc.py.
+# cao là mua". Gác: tests/test_no_fabricated_data.py::
+# test_app_nguong_mua_chi_doc_tu_paper_trading.
 
 _db_path = pathlib.Path(__file__).parent / "paper_trades.db"
 real_open_trades = []

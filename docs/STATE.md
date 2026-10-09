@@ -21901,3 +21901,5 @@ Phiên đám mây (nhánh `lo-trinh/a5-dong-hang-doi`, từ `main` `68910cd`). B
 - B6, C7 mới là dòng lộ trình; chưa có mã, chưa có phép đo.
 
 **Việc kế (leader).** (1) Sao lưu `backtest/fundamentals/` TRƯỚC khi `git pull`. (2) Mở app ở máy: topbar "Ngưỡng mua (đường ảo)" = 62,0; không còn thanh trượt trong sidebar; mã điểm 60–62 hiện THEO DÕI. (3) Sau merge, đọc bảng trạng thái Cloud (hạng gói còn "● ĐÚNG" không) và dòng telemetry trong nhật ký "Manage app". Chưa merge.
+
+**Leader soát trước merge (09/10/2026).** Năm cổng ở máy trên `18ac4c4`: `2630 passed, 2 skipped` (một skip là chính test BCTC — worktree không có `backtest/fundamentals/`, tức nhánh "thiếu dữ liệu thì bỏ qua" chạy thật ở máy), cổng 2–5 xanh, cổng 5 `2632`. Đọc diff thấy chú thích `app.py` trỏ gác tới `tests/test_app_nguong_mua_chi_doc.py` — tệp không tồn tại; gác thật ở `tests/test_no_fabricated_data.py::test_app_nguong_mua_chi_doc_tu_paper_trading`. Sửa trên nhánh PR, ghi **lỗi 145** (`references/loi-da-mac.md`, lớp `ky-luat`).
