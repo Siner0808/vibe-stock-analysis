@@ -311,7 +311,7 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 > - ✅ **Q4** chờ số đếm thật của bộ kéo giá trước khi nới "từ chối cả bảng".
 > - ✅ **Q5** `luu_do18` · `luu_do20`: người dùng *"Xoá cả hai (Recommended)"* (02/10), xác nhận lại *"Đưa lại vào Thùng rác"* (09/10); nay ở Thùng rác Windows, `luu_do22` giữ nguyên. Đường `luu_do18/…` (BƯỚC 142) và `luu_do20/…` (ĐO 22) KHÔNG chạy lại được từ đường đã ghi.
 > - ✅ **Q6** chấp nhận `vnii` gửi `operation`; **Q8** báo lỗi `vnstock_ezchart` soạn lại NGOÀI repo, người dùng gửi hãng. **Q10 (A4)** không tách `docs/STATE.md`.
-> - **CÒN CHỜ:** Q7 (người dùng đọc điều khoản dữ liệu BCTC rồi báo) · Q11 (tắt telemetry `vnstock` trên Cloud và Actions?) · Q12 (mặc định thanh trượt ngưỡng mua trên app là 50, đường giao dịch dùng `BUY_THRESHOLD` 62).
+> - **CÒN CHỜ:** Q7 (người dùng đọc điều khoản dữ liệu BCTC rồi báo) · Q11 (tắt telemetry `vnstock` trên Cloud và Actions?) · Q12 (mặc định thanh trượt ngưỡng mua trên app là 50, đường giao dịch dùng `BUY_THRESHOLD` 62) · Q13 (thêm ở BƯỚC 169: lệnh mở trước nhật ký "vì sao" có tính vào tiêu chí ra khỏi giai đoạn B không — đề xuất *không tính*; chuông `chuong-bai-hoc.yml` đang chạy theo đề xuất ấy).
 
 ⛔ **TẠM NGỪNG `vnstock` / `vnai` từ 25/09/2026** — `docs/STATE.md`
 BƯỚC 122. PyPI đặt hai gói ở trạng thái *quarantined*. Người dùng chốt:
