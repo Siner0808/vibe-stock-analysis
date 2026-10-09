@@ -58,6 +58,9 @@ ra, và chưa ai kiểm nhãn nào "hữu ích".
    đúng loại giá mà rổ chuẩn của nhật ký dùng, để `ngành` là hiệu hai thứ
    cùng loại.
 
+7. TIÊU CHÍ RA KHỎI GIAI ĐOẠN B (BƯỚC 169): "100% lệnh đóng có bài học trong
+   vòng 1 phiên" — `do_phu_bai_hoc`, cuối file. Chỉ ĐO, không sinh lệnh.
+
 ══ ĐIỀU SỔ NÀY KHÔNG NÓI ═════════════════════════════════════════════════
 Không xếp hạng agent, không suy ra "agent X sai" từ một lệnh. Dưới
 `N_TOI_THIEU_TONG_HOP` lệnh, bảng tổng hợp kèm câu "chưa đủ lệnh để kết luận".
@@ -65,9 +68,11 @@ Không xếp hạng agent, không suy ra "agent X sai" từ một lệnh. Dướ
 """
 from __future__ import annotations
 
+import datetime as _dt
 import math
 from typing import Any, Mapping, Optional, Sequence
 
+import lich_giao_dich
 import paper_metrics
 from nhat_ky_vi_sao import thoat_duoi_cat_lo
 from paper_trading import ExitReason, Status
@@ -512,3 +517,188 @@ def bang_dong_gop(th: Mapping[str, Any]) -> list[dict]:
             "Số lệnh THUA": None if thua is None else thua["n"],
         })
     return hang
+
+
+# ── Tiêu chí ra khỏi giai đoạn B (BƯỚC 169) ──────────────────────────────
+#
+# `docs/LO-TRINH.md` giai đoạn B: "Ra khi: 100% lệnh đóng có bài học trong vòng
+# 1 phiên." Phần này ĐO tiêu chí ấy — hàm THUẦN, dùng chung cho chuông
+# (`tools/chuong_bai_hoc.py`, chạy trên Actions) và dòng kết luận của app.
+
+#: Ngày nhật ký "vì sao" bắt đầu ghi lệnh THẬT: lượt quét đầu tiên chạy mã của
+#: `docs/STATE.md` BƯỚC 134 trên sổ thật (BƯỚC 138, 28/09/2026). Lệnh mở TRƯỚC ngày
+#: này không có dòng nhật ký nào — cả nửa VÀO lẫn nửa ĐÓNG — và KHÔNG được điền bù:
+#: lý do vào lệnh phải ghi lúc vào, dựng lại về sau là nhìn trộm. Đếm chúng vào tiêu
+#: chí thì chuông đỏ VĨNH VIỄN từ ngày đầu, và một chuông như thế không ai đọc.
+#: Một hằng số, một chỗ (gác: `tests/test_chuong_bai_hoc.py`). Quyết định này là
+#: ĐỀ XUẤT chờ người dùng: `docs/QUYET-DINH-CHO.md` Q13.
+NGAY_NHAT_KY_BAT_DAU = "2026-09-28"
+
+# Kết luận của `do_phu_bai_hoc`.
+TT_XANH = "xanh"
+TT_VI_PHAM = "vi_pham"
+TT_CHUA_KIEM_DUOC = "chua_kiem_duoc"
+
+LY_DO_KHONG_CO_DONG = "không có dòng nhật ký"
+LY_DO_CHUA_NUA_DONG = "dòng nhật ký chưa có nửa ĐÓNG"
+LY_DO_THIEU_RO_CHUAN = "có nửa ĐÓNG nhưng thiếu rổ chuẩn — không phân rã được"
+
+
+def phien_ke_tiep(ngay: Any, lich: Any = None) -> Optional[str]:
+    """Phiên giao dịch ĐẦU TIÊN sau (nghiêm ngặt) `ngay`, theo lịch công bố.
+
+    `lich` mặc định là `lich_giao_dich` — lịch của dự án, KHÔNG gõ ngày nghỉ lễ nào
+    ở đây. Trả None khi lịch không phủ tới phiên ấy (lịch chỉ phủ một năm): "chưa
+    biết" chứ không đoán, đúng như `lich_giao_dich.co_phien`.
+    """
+    lich = lich_giao_dich if lich is None else lich
+    mot_ngay = _dt.timedelta(days=1)
+    n = _dt.date.fromisoformat(_ngay(ngay)) + mot_ngay
+    while lich.trong_pham_vi(n.isoformat()):
+        if lich.co_phien(n.isoformat()):
+            return n.isoformat()
+        n += mot_ngay
+    return None
+
+
+def ly_do_thieu_bai_hoc(dong: Optional[Mapping[str, Any]]) -> Optional[str]:
+    """Dòng nhật ký này CHƯA có bài học vì sao? None = đã có.
+
+    "Có bài học" = có nửa ĐÓNG (`lenh_da_dong`) VÀ phân rã được (`phan_ra` khác None,
+    tức có rổ chuẩn) — đúng điều kiện để `lap_bai_hoc` ra một bản ghi có phân rã.
+    Ngành và cắt lỗ sát cần giá sau nên KHÔNG thuộc tiêu chí.
+    """
+    if dong is None:
+        return LY_DO_KHONG_CO_DONG
+    if not lenh_da_dong(dong):
+        return LY_DO_CHUA_NUA_DONG
+    if phan_ra(float(dong["loi_nhuan_rong_pct"]), dong.get("ro_chuan_pct")) is None:
+        return LY_DO_THIEU_RO_CHUAN
+    return None
+
+
+def lenh_dong_tu_trades(trades: Sequence[Any]) -> list[dict]:
+    """Lệnh tiến-về-trước ĐÃ ĐÓNG của bảng `trades` — đường của chuông.
+
+    Trạng thái lấy từ bảng `trades` (nguồn sự thật), không suy từ ô của nhật ký:
+    `hoan_tat_nhat_ky` chỉ điền nửa ĐÓNG cho lệnh `trades.status = CLOSED`, và
+    `nhat_ky_vi_sao.dong_hien_thi` đã đọc trạng thái theo cách ấy từ BƯỚC 141.
+    """
+    return [{"trade_id": t.id, "symbol": t.symbol, "entry_date": t.entry_date,
+             "exit_date": t.exit_date}
+            for t in paper_metrics.lenh_tien_ve_truoc(list(trades))
+            if t.status == Status.CLOSED]
+
+
+def lenh_dong_tu_nhat_ky(dong_nk: Sequence[Mapping[str, Any]]) -> list[dict]:
+    """Lệnh đã ĐÓNG thấy được qua dòng nhật ký — đường của app (không có `trades`).
+
+    Dùng `trang_thai_lenh` và `ngay_vao_lenh`/`ngay_dong_lenh` mà
+    `sheets_store.doc_nhat_ky` đọc từ tab `trades`. Thiếu khoá ngày thì lùi về ngày
+    của chính dòng nhật ký (dòng dựng tay trong test); khoá có mà rỗng thì GIỮ rỗng.
+    App chỉ thấy lệnh CÓ dòng; lệnh thiếu hẳn dòng chỉ chuông thấy.
+    """
+    ra = []
+    for d in dong_nk:
+        if d.get("trang_thai_lenh") != Status.CLOSED:
+            continue
+        ra.append({
+            "trade_id": d.get("trade_id"), "symbol": d.get("symbol"),
+            "entry_date": (d["ngay_vao_lenh"] if "ngay_vao_lenh" in d
+                           else d.get("entry_date")),
+            "exit_date": (d["ngay_dong_lenh"] if "ngay_dong_lenh" in d
+                          else d.get("exit_date"))})
+    return ra
+
+
+def do_phu_bai_hoc(lenh_dong: Sequence[Mapping[str, Any]],
+                   dong_nk: Sequence[Mapping[str, Any]], hom_nay: Any,
+                   lich: Any = None) -> dict:
+    """Đo tiêu chí B: bao nhiêu lệnh đóng có bài học trong vòng một phiên.
+
+    `lenh_dong` — mỗi lệnh ĐÃ ĐÓNG một dict `{trade_id, symbol, entry_date,
+    exit_date}` (dựng bằng `lenh_dong_tu_trades` hoặc `lenh_dong_tu_nhat_ky`).
+    `dong_nk` — các dòng nhật ký. `hom_nay` — ngày đo (lịch). HÀM THUẦN.
+
+    Mỗi lệnh rơi vào ĐÚNG MỘT trong năm nhóm:
+      truoc_nhat_ky    mở trước `NGAY_NHAT_KY_BAT_DAU` — không tính, không đỏ
+      co               đã có bài học (`ly_do_thieu_bai_hoc` là None)
+      trong_han        chưa có, nhưng chưa qua hết phiên kế tiếp sau ngày đóng
+      vi_pham          chưa có và đã qua hạn — mang `ly_do`
+      khong_kiem_duoc  thiếu ngày, hoặc lịch phiên không phủ tới hạn
+    Hạn của lệnh đóng ở phiên D là HẾT `phien_ke_tiep(D)`: đếm bằng PHIÊN, không
+    bằng ngày lịch, nên cuối tuần và ngày nghỉ lễ giữa D và hôm nay không làm quá
+    hạn. Đo ở đúng `hom_nay` == ngày hạn thì vẫn còn trong hạn.
+
+    `lech_trang_thai` — dòng nhật ký có nửa ĐÓNG mà lệnh không nằm trong `lenh_dong`
+    (bảng `trades` không nói CLOSED): chỉ để biết, không vào kết luận. Nguồn sự thật
+    là bảng `trades`.
+    """
+    hom = _ngay(hom_nay)
+    if not hom:
+        raise ValueError("thiếu ngày đo (hom_nay) — không đoán")
+    nk = {d.get("trade_id"): d for d in dong_nk}
+    nhom: dict[str, list[dict]] = {k: [] for k in (
+        "co", "trong_han", "vi_pham", "truoc_nhat_ky", "khong_kiem_duoc")}
+    for lenh in lenh_dong:
+        vao, ra = _ngay(lenh.get("entry_date")), _ngay(lenh.get("exit_date"))
+        mot = {"trade_id": lenh.get("trade_id"), "symbol": lenh.get("symbol"),
+               "exit_date": ra or None}
+        if not vao:
+            nhom["khong_kiem_duoc"].append({**mot, "ly_do": "sổ lệnh thiếu ngày vào — "
+                                            "không xếp được trước/sau nhật ký"})
+            continue
+        if vao < NGAY_NHAT_KY_BAT_DAU:
+            nhom["truoc_nhat_ky"].append(mot)
+            continue
+        ly_do = ly_do_thieu_bai_hoc(nk.get(lenh.get("trade_id")))
+        if ly_do is None:
+            nhom["co"].append(mot)
+            continue
+        if not ra:
+            nhom["khong_kiem_duoc"].append({**mot, "ly_do": "sổ lệnh thiếu ngày đóng — "
+                                            "không tính được hạn; " + ly_do})
+            continue
+        han = phien_ke_tiep(ra, lich)
+        if han is None:
+            nhom["khong_kiem_duoc"].append({**mot, "ly_do": "lịch phiên không phủ tới hạn "
+                                            f"của lệnh đóng {ra}; " + ly_do})
+        elif hom <= han:
+            nhom["trong_han"].append({**mot, "han": han, "ly_do": ly_do})
+        else:
+            nhom["vi_pham"].append({**mot, "han": han, "ly_do": ly_do})
+    for ds in nhom.values():
+        ds.sort(key=lambda m: (str(m.get("exit_date") or ""), str(m.get("trade_id"))))
+    co_lenh = {lenh.get("trade_id") for lenh in lenh_dong}
+    lech = sorted(str(d.get("trade_id")) for d in dong_nk
+                  if lenh_da_dong(d) and d.get("trade_id") not in co_lenh)
+    n = {k: len(v) for k, v in nhom.items()}
+    tt = (TT_VI_PHAM if n["vi_pham"] else
+          TT_CHUA_KIEM_DUOC if n["khong_kiem_duoc"] else TT_XANH)
+    return {**nhom, "lech_trang_thai": lech, "hom_nay": hom, "trang_thai": tt,
+            "n_co": n["co"], "n_trong_han": n["trong_han"], "n_vi_pham": n["vi_pham"],
+            "n_truoc_nhat_ky": n["truoc_nhat_ky"],
+            "n_khong_kiem_duoc": n["khong_kiem_duoc"],
+            "n_den_han": n["co"] + n["vi_pham"],
+            "n_tinh": n["co"] + n["trong_han"] + n["vi_pham"] + n["khong_kiem_duoc"]}
+
+
+def cau_tieu_chi_b(kq: Mapping[str, Any], *, chi_thay_dong_nhat_ky: bool = False) -> str:
+    """Một dòng kết luận tiêu chí B từ kết quả `do_phu_bai_hoc`. App chỉ in, không tính."""
+    if kq["n_tinh"] == 0:
+        dau = (f"Tiêu chí B: chưa có lệnh đóng nào từ {NGAY_NHAT_KY_BAT_DAU} — chưa có gì "
+               "để đo")
+    else:
+        dau = (f"Tiêu chí B: {kq['n_co']}/{kq['n_den_han']} lệnh đóng có bài học "
+               "(tính trên lệnh đã có bài học hoặc đã quá hạn một phiên)")
+        if kq["n_trong_han"]:
+            dau += f"; {kq['n_trong_han']} đang trong hạn"
+        if kq["n_vi_pham"]:
+            dau += f"; {kq['n_vi_pham']} QUÁ HẠN"
+        if kq["n_khong_kiem_duoc"]:
+            dau += f"; {kq['n_khong_kiem_duoc']} chưa kiểm được"
+    dau += f"; {kq['n_truoc_nhat_ky']} trước nhật ký — không tính."
+    if chi_thay_dong_nhat_ky:
+        dau += (" Đếm trên các dòng nhật ký; lệnh thiếu hẳn dòng chỉ chuông "
+                "`tools/chuong_bai_hoc.py` thấy.")
+    return dau

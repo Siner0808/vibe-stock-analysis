@@ -624,6 +624,14 @@ def _khoi_so_bai_hoc(nk, nk_loi):
     except Exception as _e:
         st.warning(f"⚠️ Chưa dựng được sổ bài học — {type(_e).__name__}: {_e}")
         return
+    try:
+        # Tiêu chí ra khỏi giai đoạn B (BƯỚC 169): MỘT dòng, cùng hàm với chuông
+        # `tools/chuong_bai_hoc.py`. App chỉ in, không tính.
+        st.caption(_sbh.cau_tieu_chi_b(
+            _sbh.do_phu_bai_hoc(_sbh.lenh_dong_tu_nhat_ky(nk), nk, end_str),
+            chi_thay_dong_nhat_ky=True))
+    except Exception as _e:
+        st.warning(f"⚠️ Chưa đo được tiêu chí B — {type(_e).__name__}: {_e}")
     th = bh["tong_hop"]
     if gia is None:
         st.caption("Chưa tải giá: cột **Ngành** và **Cắt lỗ sát** nói “chưa đủ dữ liệu”. "

@@ -7,10 +7,14 @@
 # API có xác thực bằng khoá. Thêm chúng vào đây sẽ làm CI và cloud hỏng ngay
 # ở bước cài, chứ không phải hỏng lúc chạy.
 #
-# Hệ quả phải biết: máy local có gói tài trợ nên chạy ở hạng silver
-# (BCTC không giới hạn số kỳ, 300 req/phút); CI và Streamlit Cloud không có
-# nên chạy ở hạng free (8 kỳ, 60 req/phút). `vnstock_goi.kiem_goi()` sẽ báo
-# LỆCH trên cloud — đó là báo ĐÚNG, không phải lỗi cần sửa.
+# Hệ quả phải biết: máy local có gói tài trợ nên chạy ở hạng silver (BCTC không
+# giới hạn số kỳ, 300 req/phút). Streamlit Cloud cũng không cài chúng, nhưng
+# ĐO ĐƯỢC hạng silver ngày 09/10/2026: bảng trạng thái của app in "● ĐÚNG" và
+# `vnstock_goi.kiem_goi()` trả KHỚP (docs/STATE.md BƯỚC 166). Câu cũ ở đây — CI và
+# Cloud "chạy ở hạng free (8 kỳ, 60 req/phút)", `kiem_goi()` "báo LỆCH trên cloud,
+# đó là báo ĐÚNG" — HẾT ĐÚNG: nó suy từ chỗ vắng gói tài trợ, chưa từng là số đo.
+# GitHub Actions: hạng chưa đọc — đừng khẳng định free hay silver cho tới khi đo.
+# Gói tài trợ vẫn không khai ở đây vì chúng không có trên PyPI công khai.
 #
 # Vì vậy KHÔNG mã nào ở gốc dự án được `import vnstock_data` ở mức module.
 # Khoá bởi tests/test_requirements.py.
