@@ -27,6 +27,7 @@ from datetime import timedelta
 from master_agent import run_full_analysis
 from pha_wyckoff import doc_pha
 from data_quality import now_vn, price_multiplier
+import khung_thoi_gian as _kt
 from data_collectors import VNStockCollectorAgent
 import mau_bang_gia as _mbg
 import do_tre_khop as _dtk
@@ -1231,6 +1232,123 @@ st.markdown(f"""
 # 15 phiên trên cửa sổ 180 ngày cho khoảng trống chiếm ~11% bề ngang.
 PHIEN_TRONG_BEN_PHAI = 15
 
+# ── BA KHUNG THỜI GIAN D-W-M (BƯỚC 171, mốc B5) — CHỈ ĐỂ HIỆN ────────
+#
+# Chu kỳ RSI lấy từ chính `calculate_rsi` (không viết lại công thức, không gõ
+# lại con số 14): nhãn luôn nói đúng thứ hàm đang tính.
+_CHU_KY_RSI = calculate_rsi.__defaults__[0]
+
+
+def _nen_ba_khung(ma, san, bay_gio):
+    """(nến D·W·M đã đóng, hệ số đơn vị giá, lỗi) của một mã hay VN-INDEX.
+
+    Tải qua `load_stock_data` — CÙNG cổng kiểm định với chart ngày, có đệm,
+    không đường tải thứ hai. Cửa sổ xin là `NGAY_LICH_CHO_KHUNG_THANG`, suy từ
+    chu kỳ chỉ báo dài nhất (MA50) chứ không gõ số ngày. Nguồn có thể cắt
+    ngắn hơn (hạn mức gói); `tu_ngay` lấy từ NGÀY ĐẦU THẬT CỦA BẢNG nhận về,
+    không từ ngày đã xin, nên kỳ đầu bị cắt ngang luôn bị bỏ.
+    """
+    tu = (bay_gio - timedelta(days=_kt.NGAY_LICH_CHO_KHUNG_THANG)
+          ).strftime("%Y-%m-%d")
+    d, trang_thai, _ = load_stock_data(
+        ma, tu, bay_gio.strftime("%Y-%m-%d"), san)
+    if trang_thai != "OK" or d is None or d.empty:
+        return None, 1.0, f"không tải được nến cho {ma} (trạng thái {trang_thai})"
+    dau = pd.to_datetime(d["time"]).min().strftime("%Y-%m-%d")
+    return ({"D": _kt.nen_ngay_da_dong(d, bay_gio),
+             "W": _kt.gop_nen(d, "W", bay_gio, tu_ngay=dau),
+             "M": _kt.gop_nen(d, "M", bay_gio, tu_ngay=dau)},
+            price_multiplier(d), None)
+
+
+def _hien_dong_pha(nen_ck, loi, nhan):
+    """Một dòng đồng pha D-W-M + RSI từng khung. Thiếu nến thì NÓI thiếu."""
+    if nen_ck is None:
+        st.caption(f"{nhan} — ba khung D-W-M: {loi}.")
+        return
+    dp = _kt.doc_dong_pha(nen_ck)
+    rsi = " · ".join(
+        f"{k} {_so(calculate_rsi(nen_ck[k]['close']), '{:.1f}')}"
+        for k in _kt.KHUNG)
+    st.caption(
+        f"{nhan} — giá so với MA{_kt.CHU_KY_MA_NGAN} của chính từng khung: "
+        f"{dp.dong}. RSI({_CHU_KY_RSI}): {rsi}. "
+        f"*Chỉ để hiện — chưa đo, không vào điểm hay lệnh ảo.*")
+
+
+def _ve_nen_khung(nen, he_so):
+    """Nến + MA ngắn + MA dài + khối lượng — cùng khuôn chart ngày.
+
+    MA chưa đủ nến thì KHÔNG vẽ (không đường cụt, không đoán).
+    """
+    d = nen.reset_index(drop=True)
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                        vertical_spacing=0.03, row_heights=[0.75, 0.25])
+    fig.add_trace(go.Candlestick(
+        x=d['time'], open=d['open'] * he_so, high=d['high'] * he_so,
+        low=d['low'] * he_so, close=d['close'] * he_so, name="Giá nến",
+        increasing_line_color='#00d97e', increasing_fillcolor='#00d97e',
+        decreasing_line_color='#f87171', decreasing_fillcolor='#f87171'
+    ), row=1, col=1)
+    for chu_ky, mau in ((_kt.CHU_KY_MA_NGAN, '#ff9800'),
+                        (_kt.CHU_KY_MA_DAI, '#3b82f6')):
+        if len(d) >= chu_ky:
+            fig.add_trace(go.Scatter(
+                x=d['time'], y=d['close'].rolling(window=chu_ky).mean() * he_so,
+                mode='lines', line=dict(color=mau, width=1.2),
+                name=f"MA{chu_ky}"), row=1, col=1)
+    mau_kl = ['#00d97e' if c >= o else '#f87171'
+              for o, c in zip(d['open'], d['close'])]
+    fig.add_trace(go.Bar(x=d['time'], y=d['volume'], marker_color=mau_kl,
+                         name="Khối lượng"), row=2, col=1)
+    fig.update_layout(
+        height=330, template="plotly_dark", paper_bgcolor='#090d16',
+        plot_bgcolor='#090d16', xaxis_rangeslider_visible=False,
+        showlegend=False, margin=dict(l=5, r=5, t=5, b=5),
+        xaxis=dict(gridcolor='rgba(255,255,255,0.04)'),
+        yaxis=dict(gridcolor='rgba(255,255,255,0.04)'))
+    return fig
+
+
+def _chu_thich_khung(nen):
+    thieu = [f"MA{c} chưa đủ {c} nến (có {len(nen)})"
+             for c in (_kt.CHU_KY_MA_NGAN, _kt.CHU_KY_MA_DAI) if len(nen) < c]
+    return (
+        "Chỉ nến ĐÃ ĐÓNG — kỳ đang dở không vẽ; mỗi nến mang ngày phiên cuối "
+        "thật của nó. Giá chưa điều chỉnh theo sự kiện quyền (mốc D2 chưa "
+        "làm) — trên khung tháng nhiều năm có thể có bậc giá giả."
+        + (" " + " · ".join(thieu) + "." if thieu else ""))
+
+
+def _ve_khung_gop(nen_ck, khung, he_so, loi):
+    """Chart nến tuần (W) hoặc tháng (M) của mã đang xem."""
+    if nen_ck is None:
+        st.warning(f"Không có nến khung {khung}: {loi}.")
+        return
+    nen = nen_ck[khung]
+    if nen.empty:
+        st.info(f"Chưa có nến {khung} nào đã đóng trong dữ liệu tải được.")
+        return
+    st.plotly_chart(_ve_nen_khung(nen, he_so), use_container_width=True)
+    st.caption(_chu_thich_khung(nen))
+
+
+def _ve_vnindex_khung(khung, bay_gio):
+    """VN-INDEX cùng khung với chart mã, kèm NGÀY PHIÊN cuối (luật topbar)."""
+    with st.expander(f"📊 VN-INDEX · khung {khung}", expanded=False):
+        nen_vn, he_vn, loi = _nen_ba_khung("VNINDEX", "HOSE", bay_gio)
+        if nen_vn is None:
+            st.caption(f"VN-INDEX — {loi}.")
+            return
+        _hien_dong_pha(nen_vn, None, "VN-INDEX")
+        d = nen_vn["D"]
+        st.caption(
+            "VN-INDEX · phiên đã đóng gần nhất trong dữ liệu: "
+            f"{d['time'].iloc[-1] if len(d) else 'không có'} "
+            "— không mặc định là hôm nay.")
+        _ve_khung_gop(nen_vn, khung, he_vn, None)
+
+
 # ═══════════════════════════════════════════════════════════════════
 # 6. SPLIT DASHBOARD (Chart 65% | Debate Council 35%)
 # ═══════════════════════════════════════════════════════════════════
@@ -1251,82 +1369,100 @@ with col_chart:
     </div>
     """, unsafe_allow_html=True)
 
-    df['ma20'] = df['close'].rolling(window=20).mean()
-    df['ma50'] = df['close'].rolling(window=50).mean()
+    # ── BA KHUNG THỜI GIAN D-W-M — CHỈ ĐỂ HIỆN (BƯỚC 171, mốc B5) ─────
+    #
+    # Nến tuần/tháng gộp từ CHÍNH chuỗi giá ngày nên không phải dữ liệu độc
+    # lập; chúng KHÔNG vào điểm, lệnh ảo hay backtest. Chỉ nến ĐÃ ĐÓNG.
+    _nen_ck, _he_so_ck, _loi_ck = _nen_ba_khung(symbol, exchange, end_date)
+    _khung_chon = st.radio(
+        "Khung thời gian", list(_kt.KHUNG), horizontal=True,
+        format_func=lambda k: {"D": "D · Ngày", "W": "W · Tuần",
+                               "M": "M · Tháng"}[k],
+        key="khung_thoi_gian_chon", label_visibility="collapsed")
+    _hien_dong_pha(_nen_ck, _loi_ck, f"{symbol}.VN")
 
-    fig_candlestick = make_subplots(
-        rows=2, cols=1, shared_xaxes=True,
-        vertical_spacing=0.03, row_heights=[0.75, 0.25]
-    )
-    fig_candlestick.add_trace(go.Candlestick(
-        x=df['time'],
-        open=df['open'] * mult,
-        high=df['high'] * mult,
-        low=df['low'] * mult,
-        close=df['close'] * mult,
-        name="Giá nến",
-        increasing_line_color='#00d97e',
-        increasing_fillcolor='#00d97e',
-        decreasing_line_color='#f87171',
-        decreasing_fillcolor='#f87171'
-    ), row=1, col=1)
+    if _khung_chon == "D":
+        df['ma20'] = df['close'].rolling(window=_kt.CHU_KY_MA_NGAN).mean()
+        df['ma50'] = df['close'].rolling(window=_kt.CHU_KY_MA_DAI).mean()
 
-    fig_candlestick.add_trace(go.Scatter(
-        x=df['time'], y=df['ma20'] * mult,
-        mode='lines', line=dict(color='#ff9800', width=1.2), name='MA20'
-    ), row=1, col=1)
+        fig_candlestick = make_subplots(
+            rows=2, cols=1, shared_xaxes=True,
+            vertical_spacing=0.03, row_heights=[0.75, 0.25]
+        )
+        fig_candlestick.add_trace(go.Candlestick(
+            x=df['time'],
+            open=df['open'] * mult,
+            high=df['high'] * mult,
+            low=df['low'] * mult,
+            close=df['close'] * mult,
+            name="Giá nến",
+            increasing_line_color='#00d97e',
+            increasing_fillcolor='#00d97e',
+            decreasing_line_color='#f87171',
+            decreasing_fillcolor='#f87171'
+        ), row=1, col=1)
 
-    fig_candlestick.add_trace(go.Scatter(
-        x=df['time'], y=df['ma50'] * mult,
-        mode='lines', line=dict(color='#3b82f6', width=1.2), name='MA50'
-    ), row=1, col=1)
+        fig_candlestick.add_trace(go.Scatter(
+            x=df['time'], y=df['ma20'] * mult,
+            mode='lines', line=dict(color='#ff9800', width=1.2), name='MA20'
+        ), row=1, col=1)
 
-    if est_stop_loss is not None:
-        fig_candlestick.add_hline(
-            y=est_stop_loss, line_dash="dash", line_color="#00d97e",
-            annotation_text=f"SL: {est_stop_loss:,.0f}",
-            annotation_position="top left", row=1, col=1
+        fig_candlestick.add_trace(go.Scatter(
+            x=df['time'], y=df['ma50'] * mult,
+            mode='lines', line=dict(color='#3b82f6', width=1.2), name='MA50'
+        ), row=1, col=1)
+
+        if est_stop_loss is not None:
+            fig_candlestick.add_hline(
+                y=est_stop_loss, line_dash="dash", line_color="#00d97e",
+                annotation_text=f"SL: {est_stop_loss:,.0f}",
+                annotation_position="top left", row=1, col=1
+            )
+
+        vol_colors = ['#00d97e' if df['close'].iloc[i] >= df['open'].iloc[i] else '#f87171' for i in range(len(df))]
+        fig_candlestick.add_trace(go.Bar(
+            x=df['time'], y=df['volume'],
+            marker_color=vol_colors, name="Khối lượng"
+        ), row=2, col=1)
+
+        fig_candlestick.update_layout(
+            height=330,
+            template="plotly_dark",
+            paper_bgcolor='#090d16',
+            plot_bgcolor='#090d16',
+            xaxis_rangeslider_visible=False,
+            showlegend=False,
+            margin=dict(l=5, r=5, t=5, b=5),
+            xaxis=dict(gridcolor='rgba(255,255,255,0.04)'),
+            yaxis=dict(gridcolor='rgba(255,255,255,0.04)')
         )
 
-    vol_colors = ['#00d97e' if df['close'].iloc[i] >= df['open'].iloc[i] else '#f87171' for i in range(len(df))]
-    fig_candlestick.add_trace(go.Bar(
-        x=df['time'], y=df['volume'],
-        marker_color=vol_colors, name="Khối lượng"
-    ), row=2, col=1)
+        # Đẩy nến sang trái, chừa trống bên phải. `update_xaxes` chứ không phải
+        # `update_layout(xaxis=...)`: hai hàng dùng hai trục (`xaxis`,`xaxis2`),
+        # đặt qua layout chỉ trúng hàng trên và cột khối lượng sẽ lệch pha với
+        # nến — hai hàng nói về hai khoảng thời gian khác nhau là lỗi tệ hơn
+        # hẳn so với việc không có khoảng trống.
+        _tg = pd.to_datetime(df['time'])
+        _rong_phien = ((_tg.iloc[-1] - _tg.iloc[0]) / (len(_tg) - 1)
+                       if len(_tg) > 1 else pd.Timedelta(days=1))
+        _mep_phai = _tg.iloc[-1] + _rong_phien * PHIEN_TRONG_BEN_PHAI
+        fig_candlestick.update_xaxes(range=[_tg.iloc[0], _mep_phai])
 
-    fig_candlestick.update_layout(
-        height=330,
-        template="plotly_dark",
-        paper_bgcolor='#090d16',
-        plot_bgcolor='#090d16',
-        xaxis_rangeslider_visible=False,
-        showlegend=False,
-        margin=dict(l=5, r=5, t=5, b=5),
-        xaxis=dict(gridcolor='rgba(255,255,255,0.04)'),
-        yaxis=dict(gridcolor='rgba(255,255,255,0.04)')
-    )
+        # Vạch ranh giới giữa ĐÃ QUAN SÁT và CHƯA QUAN SÁT.
+        #
+        # Khoảng trống không kèm vạch thì mơ hồ đúng theo kiểu khác: nó trông
+        # như dữ liệu bị mất chứ không như tương lai chưa tới. Vạch mảnh, không
+        # nhãn — nó là mốc đọc, không phải một kết luận.
+        fig_candlestick.add_vline(
+            x=_tg.iloc[-1], line_width=1, line_dash="dot",
+            line_color="rgba(255,255,255,0.18)")
 
-    # Đẩy nến sang trái, chừa trống bên phải. `update_xaxes` chứ không phải
-    # `update_layout(xaxis=...)`: hai hàng dùng hai trục (`xaxis`,`xaxis2`),
-    # đặt qua layout chỉ trúng hàng trên và cột khối lượng sẽ lệch pha với
-    # nến — hai hàng nói về hai khoảng thời gian khác nhau là lỗi tệ hơn
-    # hẳn so với việc không có khoảng trống.
-    _tg = pd.to_datetime(df['time'])
-    _rong_phien = ((_tg.iloc[-1] - _tg.iloc[0]) / (len(_tg) - 1)
-                   if len(_tg) > 1 else pd.Timedelta(days=1))
-    _mep_phai = _tg.iloc[-1] + _rong_phien * PHIEN_TRONG_BEN_PHAI
-    fig_candlestick.update_xaxes(range=[_tg.iloc[0], _mep_phai])
+        st.plotly_chart(fig_candlestick, use_container_width=True)
+    else:
+        _ve_khung_gop(_nen_ck, _khung_chon, _he_so_ck, _loi_ck)
 
-    # Vạch ranh giới giữa ĐÃ QUAN SÁT và CHƯA QUAN SÁT.
-    #
-    # Khoảng trống không kèm vạch thì mơ hồ đúng theo kiểu khác: nó trông
-    # như dữ liệu bị mất chứ không như tương lai chưa tới. Vạch mảnh, không
-    # nhãn — nó là mốc đọc, không phải một kết luận.
-    fig_candlestick.add_vline(
-        x=_tg.iloc[-1], line_width=1, line_dash="dot",
-        line_color="rgba(255,255,255,0.18)")
+    _ve_vnindex_khung(_khung_chon, end_date)
 
-    st.plotly_chart(fig_candlestick, use_container_width=True)
 
     # ── Bằng chứng của phép đọc Wyckoff ──────────────────────────────
     #

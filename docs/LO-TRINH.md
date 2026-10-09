@@ -192,6 +192,7 @@ cụ đếm, và chưa có tuần nào đủ dữ liệu.
 - **B2** — Bản tin cuối ngày: thị trường, agent đã làm gì, vì sao, học được gì.
 - **B3** — Sổ bài học với nhãn nguyên nhân: thị trường chung, ngành, tín hiệu sai, cắt lỗ sát, gap. *(ĐÃ DỰNG 09/10/2026, sớm hơn lịch giai đoạn B: BƯỚC 167 `so_bai_hoc.py` — mỗi lệnh ảo đã đóng có một bài học CHỈ ĐỌC, phân rã bốn phần thị trường + ngành + riêng mã/tín hiệu + chi phí, kèm cờ gap và cắt lỗ sát; BƯỚC 168 sửa nút tải giá; BƯỚC 169 chuông đo tiêu chí ra khỏi B. Còn mở hai câu hiệu chuẩn ở `docs/STATE.md` BƯỚC 167: giữ bốn phần hay ba, `so_bai_hoc.N_PHIEN_SAU_THOAT` = 5 có hợp lý không.)*
 - **B4** — Bảng sức khoẻ hệ thống thay cho phần lớn soát tay.
+- **B5** — Chart đa khung D-W-M (ngày · tuần · tháng) CHỈ ĐỂ HIỆN, cho mã đang xem và VN-INDEX: nến tuần/tháng gộp từ nến ngày đã qua cổng kiểm định, chỉ nến ĐÃ ĐÓNG, mỗi nến mang ngày phiên cuối có thật của nó; không vào chấm điểm, đường lệnh ảo hay backtest. Dùng xu hướng tuần/tháng làm bộ lọc lệnh ảo là một ứng viên tầng 3 riêng, phải khai trước — không thuộc B5. *(người dùng đề xuất và duyệt 09/10/2026: "đồng ý, làm phần 1 trước"; BƯỚC 171)*
 
 **Ra khi:** 100% lệnh đóng có bài học trong vòng 1 phiên. *(Đo hằng ngày từ BƯỚC 169: `tools/chuong_bai_hoc.py`, workflow `chuong-bai-hoc.yml`, đỏ = email. Quần thể là lệnh tiến-về-trước đã đóng, mở từ `so_bai_hoc.NGAY_NHAT_KY_BAT_DAU`; lệnh mở trước nhật ký không tính và không điền bù — Q13 ở `docs/QUYET-DINH-CHO.md`, chờ người dùng. Hạn tính theo PHIÊN giao dịch. "Có bài học" của chuông hiện là nửa ĐÓNG của nhật ký + phân rã được, tức phần NHÃN; vế "bằng lời" mà T2 đòi cần B1 và chuông CHƯA đo.)*
 
@@ -224,11 +225,11 @@ cụ đếm, và chưa có tuần nào đủ dữ liệu.
 
 ---
 
-## Tính năng sẽ phát minh (chín, đều giữ nguyên lõi)
+## Tính năng sẽ phát minh (mười, đều giữ nguyên lõi)
 
 Lõi: agent tự đặt lệnh ảo, tự học, sổ minh bạch để người dùng học theo.
 
-- Giai đoạn B: bản tin cuối ngày (**B2**) · sổ bài học (**B3**) · bảng sức khoẻ (**B4**).
+- Giai đoạn B: bản tin cuối ngày (**B2**) · sổ bài học (**B3**) · bảng sức khoẻ (**B4**) · chart đa khung D-W-M chỉ để hiện (**B5**).
 - Giai đoạn C: sổ giả thuyết (ý tưởng → thăm dò → xác nhận → qua hoặc bị bác) ·
   sân đấu phương án (**C1**) · agent tự soạn ứng viên (**C3**) · phòng tập thị
   trường giả (**C4**).

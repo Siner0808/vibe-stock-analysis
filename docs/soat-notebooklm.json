@@ -2584,6 +2584,36 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "Sổ tay trả 'không tìm thấy câu nào nói ngược'. Tự grep trên cây b4088b2: grep -n 'B3' CLAUDE.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md docs/HANDOFF.md docs/LO-TRINH.md docs/QUYET-DINH-CHO.md docs/TIEU-CHI-DOC-TRUOC.md .claude/skills/quy-trinh-lam-viec/SKILL.md -> chỉ LO-TRINH.md:193 và :231, không câu nào bắt B3 chờ B1/khoá API; grep -n -i 'điền bù\\|ghi bù' <cùng tập> -> QUYET-DINH-CHO.md:320, :326 (Q13, phương án (b) 'Không khuyến nghị') và docs/STATE.md:18744 (BƯỚC 134) 'Vị thế đang mở từ trước (không có dòng nhật ký) không được ghi bù' — ỦNG HỘ kết luận; grep -n 'ba chuông\\|ba workflow' -> CLAUDE.md:275,280 và HANDOFF.md:116,319,397,423,461,555,558 đều kể ba workflow BẬT LẠI 28/09 hoặc đo độ trễ ba chuông, không câu nào cấm thêm chuông; grep -n 'lệnh đóng có bài học' -> LO-TRINH.md:59 T2 'Mọi lệnh đóng có bài học bằng lời và nhãn nguyên nhân trong vòng 1 phiên' — KHÔNG nói ngược nhưng sổ tay KHÔNG nêu: chuông BƯỚC 169 chỉ đo phần NHÃN, vế 'bằng lời' cần B1; BƯỚC 170 ghi giới hạn ấy vào dòng 'Ra khi' của giai đoạn B."
+    },
+    "BƯỚC 171": {
+      "ngay": "2026-10-09",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 09/10/2026; 'Gemini Notebook' ở notebook.google.com): 3 nguồn @b4088b2 chậm một merge (#216) — THÊM TRƯỚC 3 URL raw.githubusercontent.com ghim e9a6d0cbfcd250f7092af0060e5d107ccfcae4e5 (đầu nhánh #216; cây docs/ của main 0f2a610 trùng nó: git diff --quiet e9a6d0c 0f2a610 -- docs/) cho docs/STATE.md, docs/HANDOFF.md, docs/LO-TRINH.md, đổi tên '<file> @e9a6d0c', XOÁ SAU đúng 3 bản @b4088b2 (đọc nhãn hộp xác nhận từng cái). Sổ còn 15 nguồn. Hỏi độ tươi: sổ tay trả BƯỚC lớn nhất 170, tiêu đề '## BƯỚC 170 — B3 ĐÃ DỰNG: …' — khớp main 0f2a610.",
+      "cau_hoi": "I am about to write BƯỚC 171 into docs/STATE.md: (A) a new roadmap item B5 is added to phase B in docs/LO-TRINH.md: a multi-timeframe chart (daily, weekly, monthly) that is DISPLAY ONLY, for the selected ticker and for VN-INDEX; weekly and monthly bars are aggregated from the daily bars that passed the data-quality gate, only CLOSED bars are used (the bar of a week or month still in progress is dropped), each bar is labelled with the date of its last real trading session, and it never enters scoring, the virtual trading path or any backtest; (B) using the weekly or monthly trend as a filter for virtual trades is a separate tier-3 candidate that must be declared in advance and is NOT part of B5; (C) the user proposed and approved B5 on 09/10/2026, so the feature list in docs/LO-TRINH.md grows from nine to ten items. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the app must show only the daily timeframe, or that no new display feature may be added before a later phase, or that every new chart or indicator must pass the tier-3 confirmation loop even when it is display only, or that the app must not load more price history than its analysis window, or that phase B may contain only B1 to B4, or that the feature list is fixed at nine. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "docs/LO-TRINH.md, tiêu đề '## Tính năng sẽ phát minh (chín, đều giữ nguyên lõi)' — con số 'chín' sẽ sai khi B5 thêm vào danh sách.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"Tính năng sẽ phát minh (chín, đều giữ nguyên lõi)\" -> KHỚP — LO-TRINH.md; grep -n '(chín' docs/LO-TRINH.md -> dòng 227. Tự grep thêm (khung tuần/tháng/ngày, đóng băng, cấm thêm, CHỈ ĐỂ HIỆN) trên CLAUDE.md, NGUYEN-TAC, MO-XE, HANDOFF, LO-TRINH, QUYET-DINH-CHO, TIEU-CHI, SKILL.md: không câu nào cấm chart nhiều khung hay bắt chart chỉ-để-hiện qua tầng 3; CLAUDE.md:73 'thêm agent hay tầng vào một hệ có rho ≈ 0 không cải thiện được' là lý do B5 CHỈ ĐỂ HIỆN, không mâu thuẫn.",
+          "phan_quyet": "THẬT. BƯỚC 171 sửa tiêu đề thành '(mười, đều giữ nguyên lõi)' và thêm B5 vào dòng 'Giai đoạn B' của danh sách."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
