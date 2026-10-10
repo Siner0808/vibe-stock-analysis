@@ -1655,7 +1655,7 @@ with t_pos:
             "Điểm AI": f"{score:.1f} / 100",
         }])
         st.dataframe(plan_table, use_container_width=True, hide_index=True)
-        st.markdown("**Lý do:**\n" + "\n".join(
+        st.markdown("**Lý do:**\n\n" + "\n".join(
             f"- {ly}" for ly in ke_hoach.ly_do))
         st.caption(
             "Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO. Sổ lệnh ảo vẫn mở lệnh cho "
