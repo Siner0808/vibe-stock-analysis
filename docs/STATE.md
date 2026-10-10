@@ -22063,3 +22063,31 @@ Phiên đám mây (nhánh `claude/festive-knuth-xzrfk9`, từ `main` `1c2e40b`; 
 **Chưa kiểm được trong phiên này:** chạy app thật (môi trường đám mây không có `vnstock` và không có Sheets) — chỉ kiểm bằng test hàm thuần và AST; việc leader kiểm ở máy nằm ở thân PR.
 
 **Lỗi mới:** 151 (xem `references/loi-da-mac.md`): gác BƯỚC 174 chỉ canh khối tab mới, nên hai tab cũ vẫn đọc sổ đứng yên. Không có lỗi 152.
+
+## BƯỚC 178 — ĐO 25: KHAI TIÊU CHÍ PHÉP ĐO KẾ HOẠCH VÀO LỆNH B6 TRƯỚC KHI CÓ DỤNG CỤ (10/10/2026)
+
+**Mốc:** C7
+
+Phiên đám mây (nhánh `do/do25-ke-hoach-vao-lenh`, từ `main` `8d302e3`). Việc: ký tiêu chí của phép đo thăm dò mà `docs/LO-TRINH.md` C7 đòi TRƯỚC khi chạy bóng, rồi (commit sau) viết dụng cụ. **Bài này không có một con số đo nào** — đám mây không có `backtest/cache`; leader chạy đo ở máy.
+
+**Người dùng duyệt (10/10/2026), nguyên văn:** *"Duyệt cả 5 điểm (Recommended)"* cho bản nháp tiêu chí của leader.
+
+**ĐO 25** (`docs/TIEU-CHI-DOC-TRUOC.md`, mục cuối file) hỏi: theo phán quyết của `ke_hoach_vao_lenh.lap_ke_hoach` (đóng băng ở `d44cc87`, mọi hằng số GHIM), alpha mỗi tín hiệu có khác alpha của cách đường thật đang làm — mua mọi mã đạt ngưỡng ở giá mở cửa phiên sau — không. Điểm chính đã ký trước: đo theo MỖI tín hiệu duy nhất đạt `BUY_THRESHOLD` (không áp các cổng riêng của sổ), cùng khung 20 phiên, lệnh lỡ và bỏ qua tính alpha 0; cả hai bên chịu CÙNG chi phí vòng `ROUND_TRIP_COST_PCT`, KHÔNG mô phỏng trượt giá cho bên nào; một lượt kéo `backtest/cache` (ĐO 24); thống kê chính là chênh ALPHA mỗi tín hiệu theo định nghĩa của `paper_metrics.vs_benchmark`, KTC bootstrap theo khối ngày (10.000 lượt, hạt giống 20261010); ba kết cục A/B/C và nhánh "chưa đủ" dưới `N_TOI_THIEU` ký trước; Δ trung bình > +2 điểm → soát lỗi trước khi đọc; ba đối chứng của máy đo bắt buộc cùng lượt. Ca "vùng quá xa → `BO_QUA`" mà BƯỚC 173 dặn phải khai: đã nằm trong mã đóng băng `d44cc87`, và dòng "hằng số được chỉnh khi leader nhìn PHÁN QUYẾT (không nhìn kết cục) của 8 mã ngày 09/10/2026" của ĐO 25 khai điều đó.
+
+**Sổ tay (Quy tắc 3 — BƯỚC này chạm `docs/TIEU-CHI-DOC-TRUOC.md` nên PHẢI hỏi thật).** Leader hỏi sổ tay thật (câu nguyên văn trong `docs/soat-notebooklm.json`, mục `BƯỚC 178`; làm tươi nguồn trước khi hỏi: `LO-TRINH.md` và `STATE.md` thay bằng bản ghim `8d302e3`). Sổ tay trả lời nguyên văn *"không tìm thấy câu nào nói ngược"*. Leader tự kiểm câu âm bằng `grep` (luật *Câu ÂM cũng phải kiểm* của skill) và tìm ra HAI điểm mà sổ tay bỏ sót, đều đã sửa vào ĐO 25 TRƯỚC khi ký:
+1. `NGUYEN-TAC-DO-LUONG.md`, bất biến 6 — thước quyết định là **alpha khớp từng lệnh**, không phải lợi nhuận thô. Bản nháp khai chênh lợi nhuận thô làm thống kê chính; khi tín hiệu bị bỏ/lỡ tính 0 thì chênh thô phạt cả beta của thị trường. Sửa: thống kê CHÍNH là chênh alpha; chênh thô chỉ báo kèm.
+2. `CLAUDE.md`, *Chi phí thực thi* — bản nháp không nói chi phí áp thế nào cho hai chính sách; áp trượt giá cho mua-ngay mà không cho lệnh giới hạn thì B6 đẹp lên có hệ thống. Sửa: cùng `ROUND_TRIP_COST_PCT`, không trượt giá cho bên nào.
+Tôi kiểm lại hai tham chiếu ngay trong phiên này (`grep -n "Ma sát có \*\*hai tầng\*\*" CLAUDE.md` → dòng 170; `sed -n 70,77p NGUYEN-TAC-DO-LUONG.md` → mục 6 có câu trên). Hai lưu ý máy. (1) `tools/so_tay.py ghi` chỉ giữ ô `_do_tuoi` của mục, KHÔNG giữ `_tra_loi_so_tay`, nên câu trả lời âm của sổ tay nằm ở đoạn này chứ không nằm trong sổ JSON. (2) Gác `tests/test_soat_notebooklm.py::test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so` đòi một dòng sổ khoá `ĐO 25` riêng (lượt cổng 1 đầu tiên đỏ đúng ở đây — bản leader chỉ dặn ghi mục `BƯỚC 178`). Theo tiền lệ `ĐO 24` ↔ `BƯỚC 159`, tôi ghi mục `ĐO 25` cùng câu hỏi, cùng `phat_hien`, ô `_do_tuoi` nói rõ đây là CÙNG một lượt hỏi (một câu, một lần gửi), không phải lượt hỏi thứ hai.
+
+**Chỗ sửa văn bản ĐO 25 so với bản leader đưa — chỉ để qua gác khuôn, không đổi một con số hay điều kiện nào.** `tests/test_do_phai_khai_da_tra.py` đọc lời khai bằng `\*\*Đã tra trùng:\*\*(.+)` — chỉ DÒNG ĐẦU, mà bản leader để dòng ấy trống rồi liệt kê ba gạch đầu dòng bên dưới (sẽ đọc ra "không khai gì"/"quá ngắn"). Thêm vào cuối dòng ấy: `BƯỚC 46 · BƯỚC 79 · BƯỚC 159 — ba mục đã tra, theo thứ tự dưới đây:` (BƯỚC 46 = ĐO 2, BƯỚC 79 = ĐO 9, BƯỚC 159 = ĐO 24; cả ba có tiêu đề thật trong `docs/STATE.md`); ba gạch đầu dòng giữ nguyên văn. Không chỗ nào khác sửa. Một điều cần biết: ĐO 25 nhắc `walkforward.py` trong dấu nháy ngược và git biết file ấy, nên gác `tests/test_phep_do_neu_dung_cu.py` xếp mục vào loại "có dụng cụ" chứ không vào "không có dụng cụ vì" — cả hai đều đạt gác; dòng "Không có dụng cụ vì" vẫn giữ vì nó là sự thật tại thời điểm ký.
+
+**Giả thuyết tôi đã kiểm trên đường làm:** tôi định thêm vào dòng "Đã tra trùng" cụm "và không cái nào là phép đo này" — bỏ ngay, vì đó là một khẳng định tôi tự thêm vào văn bản leader dặn chép nguyên văn.
+
+**Việc kế (cùng PR, commit sau):** `tools/do25_ke_hoach_vao_lenh.py` (chỉ đọc; lệnh con `chay` và `doi-chung`) cùng gác và bốn đột biến. Sau đó leader chạy `doi-chung` rồi `chay` ở máy.
+
+**Năm cổng trên cây của commit 1 (đám mây, Python 3.13, không `.venv`, không có `vnstock` — đã cài phần còn lại từ PyPI công khai; chạy tuần tự).** Cây này chỉ đổi ba file tài liệu (`docs/TIEU-CHI-DOC-TRUOC.md`, `docs/STATE.md`, `docs/soat-notebooklm.json`), không có mã mới.
+1. `pytest tests/ -q`: lượt đầu `2 failed, 2804 passed, 3 skipped` — một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (`PackageNotFoundError: vnstock`, như BƯỚC 171–175), một là `test_soat_notebooklm::test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so` (thiếu khoá `ĐO 25` — đã xử lý, xem trên). Sau khi ghi mục `ĐO 25`: `1 failed, 2805 passed, 3 skipped` (292,3 s) — chỉ còn đỏ môi trường; lý do ba skip không kiểm lại trong lượt này.
+2. `tools/kiem_cu_phap_311.py`: xanh (277 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo`.
+4. `tools/kiem_test_chay_rieng.py --im`: 144 file trong 402 s, 1 đỏ — `test_requirements.py` (cùng đỏ môi trường); không file nào mượn trạng thái của file khác.
+5. `tools/kiem_so_test_khong_giam.py`: `OK — 2809 test, khop moc da ghi` (commit 1 không thêm test nên mốc không đổi).

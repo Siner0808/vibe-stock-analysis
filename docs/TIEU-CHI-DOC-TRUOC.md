@@ -4005,3 +4005,73 @@ Dụng cụ `tools/do24_lech_gia.py` vào SAU commit ký `427f126` (dung sai đo
 gợi ý cho một phép đo sau, không đổi K2 · **ĐO 5b dựng lại: lối đọc (iii)**
 (3,05% nến lệch thật ở vùng OOS > 1%) · **M6: 0,088% cửa sổ `e > 0,5` điểm (< 1%)**, khuyến nghị P3d vẫn là MỘT lượt kéo ·
 **Q3: chưa giải thích** (lối đọc (b)).
+
+## ĐO 25 — kế hoạch vào lệnh B6 có hơn "mua mọi tín hiệu ở giá mở cửa phiên sau" không: phép đo THĂM DÒ theo MỖI tín hiệu, kể cả lệnh lỡ (khai 10/10/2026)
+
+> **Khai 10/10/2026, TRƯỚC khi có dụng cụ đo, ở một commit RIÊNG.**
+> - Người dùng duyệt nguyên văn: *"Duyệt cả 5 điểm (Recommended)"* cho bản nháp leader 10/10/2026.
+> - Sổ tay hỏi thật ở BƯỚC 178. Hai điểm do leader tự grep tìm ra (bất biến 6, chi phí đối xứng) đã sửa vào đây trước khi ký.
+> - Đây là phép đo **thăm dò** (`docs/LO-TRINH.md` C2): không tính vào K, không bao giờ tự lên bản.
+
+**Đã tra trùng:** BƯỚC 46 · BƯỚC 79 · BƯỚC 159 — ba mục đã tra, theo thứ tự dưới đây:
+- ĐO 2 (độ trễ khớp T+1);
+- ĐO 9 (Fibonacci, BƯỚC 79: Δalpha +0,22 trên nửa bề rộng KTC 0,57 — cắt lỗ cấu trúc không vào đường sinh lệnh);
+- ĐO 24 (giá lệch giữa hai lần kéo → dùng MỘT lượt kéo).
+
+**Không có dụng cụ vì:** dụng cụ viết SAU commit này (BƯỚC 178, commit sau).
+
+### Câu hỏi
+Theo phán quyết của `ke_hoach_vao_lenh.lap_ke_hoach` (MUA_NGAY · CHO_VUNG · BO_QUA · CHUA_LAP_DUOC), alpha của mỗi tín hiệu có khác alpha của cách đường thật đang làm không? Đường thật mua mọi mã đạt ngưỡng ở giá mở cửa phiên sau.
+
+### Mã và hằng số
+- `ke_hoach_vao_lenh` ĐÚNG như ở commit merge của PR #219 (`d44cc87`).
+- Mọi hằng số GHIM ở đó: `CUA_SO_DAY`, `SO_PHIEN_XAC_NHAN_DAY`, `HE_SO_DEM_ATR`, `KEO_GIAN_TOI_DA_ATR`, `LUI_TOI_DA_ATR`, `SO_PHIEN_CHO`, `SL_HEP_NHAT`, `SL_RONG_NHAT`.
+- Đổi bất kỳ hằng số nào sau khi nhìn số = vi phạm bất biến 7. Muốn đổi thì phải là ĐO mới, khai lại.
+- Hằng số được chỉnh khi leader nhìn PHÁN QUYẾT (không nhìn kết cục) của 8 mã ngày 09/10/2026. Tín hiệu ngày ấy chưa có kết cục 20 phiên, nên không nằm trong vùng đo.
+
+### Dữ liệu
+- MỘT lượt kéo: `backtest/cache` (ĐO 24). Không ghép `backtest/cache_2018`.
+- Ghi băm và mtime của thư mục cache vào kết quả. Đây là M0: không tái lập được thì DỪNG.
+
+### Quần thể
+- Mọi cặp (mã, ngày t) có điểm cuối ≥ `BUY_THRESHOLD` (62).
+- Điểm lấy bằng đúng máy chấm mà `walkforward.py` dùng ở chế độ "theo ngày", độ trễ khớp 1, trên vùng ngoài mẫu mặc định của nó.
+- Khử trùng theo (mã, t).
+- KHÔNG áp các cổng riêng của sổ (VN-INDEX trên MA50, chất lượng dữ liệu, mã đang giữ, trần vốn). Nhóm "VN-INDEX trên MA50 tại t" chỉ báo kèm.
+- Mỗi tín hiệu gọi `lap_ke_hoach(df ≤ t, price_multiplier(df), điểm, 62, bay_gio = sau giờ đóng cửa ngày t, san_giao_dich.san_cua(mã))`.
+
+### Hai chính sách
+Cả hai dùng chung khung H = 20 phiên, ra ở giá đóng cửa phiên t+H, và chịu CÙNG chi phí vòng `paper_metrics.ROUND_TRIP_COST_PCT`. KHÔNG mô phỏng trượt giá cho bên nào: áp trượt giá cho mua ngay mà không cho lệnh giới hạn sẽ làm B6 đẹp lên có hệ thống.
+- **Nền:** mua ở giá mở cửa t+1 → r_B.
+- **B6:**
+  - `MUA_NGAY` → r_P = r_B;
+  - `CHO_VUNG` → khớp ở phiên đầu tiên d ∈ [t+1, t+`SO_PHIEN_CHO`] có low(d) ≤ trần vùng − MỘT bước giá (`truot_gia.buoc_gia`, sàn theo mã); giá khớp = min(open(d), trần vùng); r_P = close(t+H) / giá khớp − 1 − chi phí. Không khớp → LỠ;
+  - `BO_QUA` / `CHUA_LAP_DUOC` / LỠ → không nắm giữ.
+
+### Thống kê chính (bất biến 6)
+- Alpha mỗi tín hiệu = lợi nhuận − lợi nhuận CHUẨN trong đúng khoảng nắm giữ, theo định nghĩa chuẩn của `paper_metrics.vs_benchmark`. Không nắm giữ → alpha 0.
+- Δ_i = alpha_P − alpha_B, lấy trung bình trên mọi tín hiệu duy nhất.
+- KTC 95% bằng bootstrap theo KHỐI NGÀY tín hiệu, 10.000 lượt, hạt giống 20261010.
+
+### Báo kèm (không quyết định kết cục)
+- Chênh lợi nhuận thô;
+- tỷ lệ mỗi phán quyết; tỷ lệ khớp của `CHO_VUNG`;
+- r_B trung bình của nhóm `CHO_VUNG` KHỚP so với nhóm LỠ (phép thử "lệnh chờ tự chọn lệnh thua");
+- Δ tách theo phán quyết;
+- biến thể "chạm là khớp" (low ≤ trần vùng);
+- nhóm VN-INDEX trên MA50.
+
+### Kết cục (ký trước)
+- **Chưa đủ:** N duy nhất < `N_TOI_THIEU` (113) → "chưa đủ để kết luận", không đọc dấu.
+- **A — triển vọng:** cận DƯỚI KTC > 0. Việc tiếp theo DUY NHẤT được phép: khai ứng viên UV-002 cho C7 chạy bóng, theo luật tầng 3 (sớm nhất 11/2026, ≤ 1 ứng viên mỗi tháng). KHÔNG đổi đường thật.
+- **B — chưa phân biệt được:** KTC chứa 0. B6 giữ chỉ để hiện, app ghi "đã đo (ĐO 25), chưa phân biệt được".
+- **C — kém hơn:** cận TRÊN KTC < 0. B6 hiện kèm nhãn "đã đo (ĐO 25): kém hơn mua ngay ở giá mở cửa".
+- **Quy tắc 1:** Δ trung bình > +2 điểm %/tín hiệu → soát lỗi TRƯỚC khi đọc: nhìn trộm (df ≤ t), giá khớp, chi phí, khử trùng, đơn vị giá.
+
+### Đối chứng của máy đo (bắt buộc, cùng lượt)
+- (i) phán quyết ép "luôn MUA_NGAY" → Δ ≡ 0;
+- (ii) ép "luôn BO_QUA" → Δ = −trung bình alpha_B;
+- (iii) xáo các nến SAU t → phán quyết không đổi.
+
+### Điều ĐO này KHÔNG làm
+Không đổi đường thật, không chọn hằng số, không đo luật thoát, không thay vòng xác nhận tầng 3.
