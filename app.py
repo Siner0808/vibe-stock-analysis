@@ -690,6 +690,72 @@ def _khoi_so_bai_hoc(nk, nk_loi):
         st.caption(f"Cột Ngành và Riêng mã chỉ tính {th['n_co_nganh']} lệnh tách được ngành.")
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _nen_cho_su_kien_quyen(cac_ma, tu_ngay, den_ngay):
+    """Nến (mở, thấp, cao; VNĐ) của nguồn giá HÔM NAY cho các mã có lệnh (BƯỚC 176).
+
+    CÓ ĐỆM và chỉ chạy khi người dùng bấm nút: mỗi mã một lần qua `load_stock_data`
+    (cùng đường với phần còn lại của app). Trả (nến theo mã, mã không tải được).
+    """
+    import san_giao_dich as _sg
+    import su_kien_quyen as _skq
+    nen, thieu = {}, []
+    for m in cac_ma:
+        _d, _tt, _ = load_stock_data(m, tu_ngay, den_ngay, _sg.san_cua(m))
+        if _tt != "OK" or _d is None or _d.empty:
+            thieu.append(m)
+            continue
+        nen[m] = _skq.dung_nen(_d["time"], _d["open"], _d["low"], _d["high"],
+                               price_multiplier(_d))
+    return nen, thieu
+
+
+def _khoi_su_kien_quyen():
+    """Khối "Soát sự kiện quyền" của tab Lịch sử giao dịch (BƯỚC 176) — CHỈ GẮN NHÃN.
+
+    Chạy `su_kien_quyen` cho lệnh của `_so_lenh`. Giá chỉ tải khi người dùng bấm
+    nút. Không ghi sổ, không đổi điều kiện dừng. Mọi lỗi hiện cảnh báo.
+    """
+    import su_kien_quyen as _skq
+    st.markdown("##### 🧮 Soát sự kiện quyền trong lúc giữ lệnh")
+    st.caption("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều chỉnh). Người dùng đã chốt loại các lệnh này khỏi điều kiện dừng — việc đó là một bước riêng, CHƯA áp dụng.")
+    if so_lenh_loi or not (_so_lenh.vi_the_mo or _so_lenh.lenh_dong):
+        st.info(so_lenh_loi or "Sổ chưa có lệnh nào để soát.")
+        return
+    if st.button("📥 Tải giá để soát sự kiện quyền", key="su_kien_quyen_tai_gia"):
+        st.session_state["su_kien_quyen_co_gia"] = True
+    if not st.session_state.get("su_kien_quyen_co_gia"):
+        st.caption("Chưa tải giá. Bấm nút trên để so giá vào/ra của sổ với nguồn giá "
+                   "hôm nay (mất vài chục giây).")
+        return
+    try:
+        _ma, _tu = _skq.pham_vi_tai(_so_lenh.vi_the_mo, _so_lenh.lenh_dong)
+        if not _ma or _tu is None:
+            st.info("Chưa có lệnh nào đã khớp để soát.")
+            return
+        with st.spinner(f"Tải giá {len(_ma)} mã…"):
+            _nen, _thieu = _nen_cho_su_kien_quyen(tuple(_ma), _tu, end_str)
+        _dong = _skq.soi_so(_so_lenh.vi_the_mo, _so_lenh.lenh_dong, _nen)
+    except Exception as _e:
+        st.warning(f"⚠️ Chưa soát được — {type(_e).__name__}: {_e}")
+        return
+    _dem = _skq.tom_tat(_dong)
+    st.caption(" · ".join(f"{k}: {v}" for k, v in _dem.items()))
+    if _thieu:
+        st.caption(f"Không tải được giá {len(_thieu)} mã: {', '.join(_thieu)}.")
+    _khac = [d for d in _dong if d.ket_qua.trang_thai != _skq.SACH]
+    if not _khac:
+        st.success("Không lệnh nào có dấu hiệu lệch cơ sở giá.")
+        return
+    st.dataframe(pd.DataFrame([{
+        "Lệnh": d.id, "Mã": d.ma, "Vào": d.ngay_vao or "—", "Ra": d.ngay_ra or "—",
+        "Trạng thái lệnh": "ĐÓNG" if d.da_dong else "MỞ",
+        "f vào": _so(d.ket_qua.he_so_vao, "{:.3f}"),
+        "f ra": _so(d.ket_qua.he_so_ra, "{:.3f}"),
+        "Nhãn": d.ket_qua.trang_thai, "Lý do": d.ket_qua.ly_do} for d in _khac]),
+        use_container_width=True, hide_index=True)
+
+
 def _tip(chuoi) -> str:
     """Chuỗi an toàn để nhét vào thuộc tính `title="..."`.
 
@@ -1828,6 +1894,9 @@ with t_hist:
 
     # ── SỔ BÀI HỌC (BƯỚC 167) ──────────────────────────────────────────
     _khoi_so_bai_hoc(_nk, _nk_loi)
+
+    # ── SOÁT SỰ KIỆN QUYỀN (BƯỚC 176) ─────────────────────────────────────
+    _khoi_su_kien_quyen()
 
 with t_tin:
     # BƯỚC 174 (B2). CHỈ ĐỌC: gom thị trường · việc agent đã làm · vì sao · học được

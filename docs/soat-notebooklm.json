@@ -2667,6 +2667,10 @@
       "ngay": "2026-10-10",
       "khong_bat_buoc_vi": "Sửa lỗi hiển thị trong app.py: hai tab Vị thế và Lịch sử đọc sổ cũ ở máy thay cho sổ Sheets, nay đọc từ loader Sheets đã có của BƯỚC 174. Không đổi luật, không đổi kết luận đo, không chạm CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md hay LO-TRINH.md; không đổi điểm, ngưỡng, cờ, cổng hay lược đồ Sheets."
     },
+    "BƯỚC 176": {
+      "ngay": "2026-10-10",
+      "khong_bat_buoc_vi": "BƯỚC 176 chỉ THÊM một module hàm thuần `su_kien_quyen.py`, một CLI chỉ đọc, một khối hiển thị trong tab Lịch sử giao dịch và mục Q14 của hàng đợi quyết định; module không nằm trên đường đo (gác AST: run_daily, paper_trading, paper_metrics, master_agent và backtest/ không nhập nó), không đổi điểm, ngưỡng, cờ hay điều kiện dừng, và không sửa file luật nào; việc LOẠI lệnh có sự kiện quyền khỏi điều kiện dừng (đổi luật đo) được hoãn sang một bước riêng có hỏi NotebookLM."
+    },
     "BƯỚC 177": {
       "ngay": "2026-10-10",
       "khong_bat_buoc_vi": "BƯỚC thêm module chỉ-đọc suc_khoe.py, công cụ tools/suc_khoe.py, tab Sức khoẻ trong app.py, gác tests/test_suc_khoe.py, ba dòng lỗi 156-158 ở bảng lỗi và docs/loi-phan-lop.json, mốc docs/moc_so_test.json và mục BƯỚC 177 ở docs/STATE.md; chỉ GỌI các công cụ kiểm đã có chứ không sửa chúng. Không sửa CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md hay LO-TRINH.md, không đổi điểm, ngưỡng, cờ, cổng, workflow hay lược đồ Sheets, và không có kết luận đo mới (mọi con số trong STATE là số phép kiểm, số test, số đột biến và trạng thái một lượt chạy)."
