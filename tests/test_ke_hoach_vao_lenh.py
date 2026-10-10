@@ -1052,13 +1052,20 @@ def _file_ma_nguon() -> list[pathlib.Path]:
             if not (set(p.relative_to(GOC).parts) & bo)]
 
 
-def test_CHI_app_py_duoc_nhap_ke_hoach_vao_lenh():
-    """Danh sách cấm cụ thể dễ bị quên khi có file mới → cho phép đúng MỘT nơi."""
+#: Hai nơi được nhập: `app.py` (để hiện) và dụng cụ ĐO 25 (BƯỚC 178) — phép đo thăm dò mà BƯỚC
+#: 173 hẹn ("chạy lại ĐÚNG hàm này trên cache lịch sử"). Dụng cụ nằm ở `tools/`, CHỈ ĐỌC (gác AST
+#: ở `tests/test_do25_ke_hoach_vao_lenh.py`), và không phải đường giao dịch, chấm điểm hay dữ liệu:
+#: ba gác `test_duong_giao_dich_cham_diem_va_du_lieu_KHONG_nhap` bên dưới vẫn nguyên.
+CHO_PHEP_NHAP = {"app.py", "tools/do25_ke_hoach_vao_lenh.py"}
+
+
+def test_CHI_app_py_va_dung_cu_DO_25_duoc_nhap_ke_hoach_vao_lenh():
+    """Danh sách cấm cụ thể dễ bị quên khi có file mới → cho phép đúng HAI nơi, gọi tên."""
     nguoi_nhap = {p.relative_to(GOC).as_posix() for p in _file_ma_nguon()
                   if "ke_hoach_vao_lenh" in _nhap_va_goi(p)[0]}
-    assert nguoi_nhap == {"app.py"}, (
-        f"ke_hoach_vao_lenh CHỈ ĐỂ HIỆN, chỉ app.py được nhập; đang có: "
-        f"{sorted(nguoi_nhap)}")
+    assert nguoi_nhap == CHO_PHEP_NHAP, (
+        f"ke_hoach_vao_lenh CHỈ ĐỂ HIỆN; chỉ {sorted(CHO_PHEP_NHAP)} được nhập; "
+        f"đang có: {sorted(nguoi_nhap)}")
 
 
 @pytest.mark.parametrize("ten", [
