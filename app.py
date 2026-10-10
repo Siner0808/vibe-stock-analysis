@@ -35,6 +35,8 @@ from pha_wyckoff import doc_pha
 from paper_trading import BUY_THRESHOLD
 from data_quality import now_vn, price_multiplier
 import khung_thoi_gian as _kt
+import ke_hoach_vao_lenh as _kh
+import san_giao_dich as _sgd
 from data_collectors import VNStockCollectorAgent
 import mau_bang_gia as _mbg
 import do_tre_khop as _dtk
@@ -1142,19 +1144,25 @@ dyn_phase_short = wy.nhan_ngan
 dyn_phase_full = wy.nhan_day
 phase_cls = {"tang": "pos", "giam": "neg"}.get(wy.huong, "neu")
 
-# Real AI Recommendation
-# Dưới ngưỡng mua của đường giao dịch ảo thì luôn THEO DÕI: bản cũ kiểm
-# `score >= 60.0` TRƯỚC ngưỡng, nên khi ngưỡng là 62 điểm 60–62 hiện "MUA 30%"
-# kèm cảnh báo "thấp hơn ngưỡng mua" ở dưới (BƯỚC 172).
-if score < BUY_THRESHOLD:
-    dyn_rec = "THEO DÕI"
-    dyn_rec_cls = "neu"
-elif score >= 60.0:
-    dyn_rec = "MUA 30%"
-    dyn_rec_cls = "pos"
-else:
-    dyn_rec = "MUA THĂM DÒ"
-    dyn_rec_cls = "pos"
+# KẾ HOẠCH VÀO LỆNH (BƯỚC 173, mốc B6) — CHỈ ĐỂ HIỆN, CHƯA ĐO.
+#
+# Điểm CHỌN mã; module này phán quyết ĐIỂM VÀO (người dùng 09/10/2026, Q12:
+# "không phải cứ điểm cao là mua"). Dưới ngưỡng mua thì THEO DÕI. Đủ ngưỡng thì
+# MUA NGAY / CHỜ VÙNG / BỎ QUA / CHƯA LẬP ĐƯỢC kèm lý do. Bản cũ in "MUA 30%"
+# cho mọi điểm qua ngưỡng, và nhánh "MUA THĂM DÒ" KHÔNG BAO GIỜ tới được
+# (ngưỡng 62 > 60 nên mọi điểm qua ngưỡng đã rơi vào `score >= 60.0`).
+#
+# Sổ lệnh ảo KHÔNG làm theo phán quyết này: mã đạt ngưỡng chỉ còn qua các
+# cổng riêng của sổ (`PaperTradingJournal.consider_entry`: VN-INDEX, chất
+# lượng dữ liệu, mã đang giữ, trần vốn); qua đủ thì khớp ở giá mở cửa phiên
+# sau.
+#
+# SÀN tra theo MÃ (`san_giao_dich`, BƯỚC 143), không theo ô chọn sàn ở thanh
+# bên: ô ấy mặc định HOSE nhưng MSR là UPCoM (10/10/2026). Ô chọn chỉ là đường
+# lui khi mã không có trong bảng. Sàn quyết định BƯỚC GIÁ dùng để làm tròn.
+san_gd = _sgd.tra_san(symbol) or exchange
+ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date, san_gd)
+dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 
 # Dynamic Stop-Loss from risk agent recommendations
 risk_data = result.get("analyses", {}).get("risk", {}).get("recommendations", {})
@@ -1166,6 +1174,18 @@ if est_stop_loss is not None and est_stop_loss < 1000:
 est_tp = risk_data.get("take_profit_price")
 if est_tp is not None and est_tp < 1000:
     est_tp = round(est_tp * mult, 0)
+# SL / TP của risk agent: HIỂN THỊ làm tròn theo bước giá của sàn (người dùng
+# 10/10/2026: "cấu trúc giá không được làm tròn và không đúng với cấu trúc giá
+# trên sàn"). SL XUỐNG, TP LÊN. Sổ vẫn lưu số chưa làm tròn (không sửa
+# `analysis_agents.py` hay `paper_trading.py`). Hiển thị vẫn trung thực vì giá
+# giao dịch chỉ nằm trên lưới bước giá: "low ≤ 63.486" tương đương
+# "low ≤ 63.400" (SL), và "high ≥ 81.480" tương đương "high ≥ 81.500" (TP) —
+# điểm kích hoạt không đổi.
+if _kh.san_hop_le(san_gd):
+    if est_stop_loss is not None:
+        est_stop_loss = _kh.lam_tron_xuong(est_stop_loss, san_gd)
+    if est_tp is not None:
+        est_tp = _kh.lam_tron_len(est_tp, san_gd)
 
 sl_txt = _so(est_stop_loss, "{:,.0f}")
 tp_txt = _so(est_tp, "{:,.0f}")
@@ -1623,28 +1643,66 @@ with t_pos:
     fib = muc_fibonacci.doc_muc(df, mult)
 
     st.markdown(f"##### 🎯 Kế hoạch vào lệnh đề xuất cho mã [{symbol}]")
-    if score >= BUY_THRESHOLD and dyn_rec != "THEO DÕI":
+    if score >= BUY_THRESHOLD:
+        # Phán quyết ĐIỂM VÀO (BƯỚC 173, mốc B6) thay cho cột "Khuyến nghị" và
+        # ô "SẴN SÀNG GIẢI NGÂN" — bản cũ in nhãn ấy cho MỌI mã đủ điểm.
+        # TRƯỚC 15/09/2026 ô vùng giá in thẳng GIÁ ĐÓNG CỬA; nay vùng chờ do
+        # `ke_hoach_vao_lenh` dựng (hoặc "giá mở cửa phiên sau" khi MUA NGAY,
+        # hoặc một dấu gạch kèm lý do bên dưới).
+        # NGÀY phán quyết = ngày nến ĐÃ ĐÓNG mà kế hoạch dựa vào (người dùng
+        # 10/10/2026: "thiếu ngày đưa ra phán quyết"). Dạng dd/mm/yyyy.
+        _kh_ngay = (pd.to_datetime(ke_hoach.ngay).strftime("%d/%m/%Y")
+                    if ke_hoach.ngay else "—")
+        _kh_ngay_ngan = (pd.to_datetime(ke_hoach.ngay).strftime("%d/%m")
+                         if ke_hoach.ngay else "—")
+        _kh_cat_lo = (
+            f"{ke_hoach.cat_lo_cau_truc:,.0f} VNĐ "
+            f"(-{ke_hoach.rui_ro_pct:.1f}% so với giá đóng) · dưới đáy xoay "
+            f"{ke_hoach.day_xoay_gia:,.0f} ngày "
+            f"{pd.to_datetime(ke_hoach.day_xoay_ngay).strftime('%d/%m')}"
+            if ke_hoach.cat_lo_cau_truc is not None else "—")
+        if ke_hoach.vung is not None:
+            # Khoảng cách từ TRẦN vùng (giá lệnh giới hạn) tới giá đóng: vùng có
+            # thể xa tới mức không chạm nổi trong số phiên hiệu lực, và người
+            # đọc phải thấy điều đó ngay trên bảng (leader soát PR #219).
+            _kh_vung = (
+                f"{ke_hoach.vung[0]:,.0f} – {ke_hoach.vung[1]:,.0f} VNĐ "
+                f"(trần vùng {ke_hoach.vung[1] / ke_hoach.gia_dong * 100 - 100:+.1f}% "
+                f"so với giá đóng)")
+        elif ke_hoach.phan_quyet == _kh.MUA_NGAY:
+            _kh_vung = "giá mở cửa phiên sau"
+        else:
+            _kh_vung = "—"
         plan_table = pd.DataFrame([{
             "Mã CK": symbol,
-            "Khuyến nghị": dyn_rec,
-            # TRƯỚC 15/09/2026 ô này in `latest_close_fmt` — tức GIÁ ĐÓNG CỬA
-            # phiên gần nhất, in nguyên. Nhãn hứa một *vùng* và một *đề
-            # xuất*; giá trị là dữ liệu thô. Cùng lớp với hai ô đã bị gỡ
-            # ngày 21/08/2026 vì "hứa một thành phần không tồn tại".
-            #
-            # Nay là một vùng THẬT, suy từ nền giá — hoặc một dấu gạch kèm
-            # lý do, khi cấu trúc chưa đủ bằng chứng.
-            "Vùng giá mua (Fibonacci 0,5–0,618)": (
-                f"{fib.vung_mua[0]:,.0f} – {fib.vung_mua[1]:,.0f} VNĐ"
-                if fib.ket_luan_duoc else "— chưa đủ bằng chứng cấu trúc"),
+            "Ngày phán quyết": _kh_ngay,
+            "Phán quyết": dyn_rec,
+            "Vùng chờ / giá vào": _kh_vung,
+            "Cắt lỗ cấu trúc": _kh_cat_lo,
+            "Kéo giãn so MA": (f"{ke_hoach.keo_gian_atr:.1f} ATR"
+                               if ke_hoach.keo_gian_atr is not None else "—"),
+            "Hiệu lực": (f"{ke_hoach.so_phien_cho} phiên, từ phiên sau "
+                         f"{_kh_ngay_ngan}"
+                         if ke_hoach.so_phien_cho is not None else "—"),
             "Cắt lỗ (SL)": f"{sl_txt} VNĐ ({sl_pct_txt})",
             "Chốt lời (TP)": f"{tp_txt} VNĐ ({tp_pct_txt})",
             "Tỷ trọng vốn": _so(
                 result.get("safety", {}).get("safe_position_size"), "{:.0f}%"),
             "Điểm AI": f"{score:.1f} / 100",
-            "Trạng thái": "SẴN SÀNG GIẢI NGÂN"
         }])
         st.dataframe(plan_table, use_container_width=True, hide_index=True)
+        st.markdown("**Lý do:**\n\n" + "\n".join(
+            f"- {ly}" for ly in ke_hoach.ly_do))
+        st.caption(
+            "Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO. Sổ lệnh ảo KHÔNG làm theo "
+            "nó: mã đạt ngưỡng chỉ còn qua các cổng riêng của sổ (VN-INDEX "
+            "trên MA50, chất lượng dữ liệu, mã đang giữ, trần vốn), qua đủ thì "
+            "khớp ở giá mở cửa phiên sau — kể cả khi ở đây ghi CHỜ hay BỎ QUA. "
+            "“Cắt lỗ cấu trúc” (dưới đáy xoay gần nhất trong "
+            f"{_kh.CUA_SO_DAY} phiên, trừ {_kh.HE_SO_DEM_ATR:g} ATR) và “Cắt "
+            "lỗ (SL)” (theo ATR, của risk agent) là hai mức KHÁC nhau; sổ lệnh "
+            "dùng mức theo ATR. Vùng chờ là lệnh giới hạn ở trần vùng, hiệu "
+            f"lực {_kh.SO_PHIEN_CHO} phiên; hết hạn mà không khớp là lỡ.")
 
         # ── Mức Fibonacci, và RANH GIỚI của nó ──────────────────────
         st.markdown("###### 📐 Mức Fibonacci — suy từ nền giá Wyckoff")
@@ -1670,7 +1728,8 @@ with t_pos:
         # Ranh giới, nói thẳng: ô này KHÔNG điều khiển sổ lệnh.
         st.caption(
             "Các mức trên **chỉ để đọc**. Sổ lệnh giấy không dùng chúng: cắt lỗ "
-            "trong sổ tính theo ATR (hàng “Cắt lỗ (SL)” ở bảng trên), và nhánh "
+            "trong sổ tính theo ATR (hàng “Cắt lỗ (SL)” ở bảng trên; khối này "
+            "có mức cắt lỗ dưới nền Wyckoff, thứ ba), và nhánh "
             "chốt lời cứng đang TẮT. Fibonacci tính từ chính chuỗi giá mà các "
             "agent đã dùng, nên nó **không thêm thông tin dự báo** — xem "
             "`MO-XE-KIEN-TRUC.md`."
