@@ -94,7 +94,9 @@ def test_CACHE_ratio_it_ky_la_do_NGUON_cat_chu_khong_phai_cong_cu_hong():
     khớp đúng thứ nguồn cho, nên `fetch_fundamentals.py` không hỏng.
     """
     if not KHO.is_dir():
-        pytest.skip("chưa có cache BCTC trên máy này (CI không tải)")
+        pytest.skip("chưa có cache BCTC trên máy này: dữ liệu Vietcap chỉ nằm "
+                    "ở máy người dùng, không còn trong repo công khai (Q7, "
+                    "BƯỚC 172, docs/QUYET-DINH-CHO.md)")
 
     def so_ky(bang: str) -> list[int]:
         import pandas as pd

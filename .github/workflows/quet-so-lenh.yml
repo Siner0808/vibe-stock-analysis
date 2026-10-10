@@ -40,6 +40,10 @@ concurrency:
 jobs:
   quet:
     runs-on: ubuntu-latest
+    # Tat telemetry vnstock (Q11, BUOC 172): chi chan vnai gui ten ham/thoi gian
+    # chay len hq.vnstocks.com/analytics; du lieu va kiem hang goi khong doi.
+    env:
+      VNSTOCK_TELEMETRY: "off"
     # 40 chứ không phải 25: từ 29/08/2026 cửa sổ dữ liệu là 1095 ngày lịch
     # (~747 phiên) thay vì 60 ngày (~44 phiên), vì ngưỡng 62 được
     # walk-forward hiệu chuẩn trên cửa sổ dài — xem `run_daily.NGAY_LICH_SU`.

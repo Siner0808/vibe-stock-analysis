@@ -24,6 +24,9 @@ backtest/cache/
 # quen them dong. Cung ly do "khong commit trang thai chay".
 backtest/cache*/
 backtest/results/
+# BCTC Vietcap (fetch_fundamentals.py, source=VCI): chi o may nguoi dung, KHONG
+# xuat ban trong repo cong khai - Q7, dieu khoan Vietcap (docs/QUYET-DINH-CHO.md).
+backtest/fundamentals/
 
 # Cache nen noi phien — tai lai duoc tu nguon, khong phai ma nguon.
 # Mot ma / mot khung ~2.200 nen mot nam; ca ro se rat nang neu commit.

@@ -44,6 +44,10 @@ permissions:
 jobs:
   chuong-nguon-dung:
     runs-on: ubuntu-latest
+    # Tat telemetry vnstock (Q11, BUOC 172): chi chan vnai gui ten ham/thoi gian
+    # chay len hq.vnstocks.com/analytics; du lieu va kiem hang goi khong doi.
+    env:
+      VNSTOCK_TELEMETRY: "off"
     timeout-minutes: 10
 
     steps:

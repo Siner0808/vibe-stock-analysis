@@ -9,6 +9,9 @@ import sys
 import pandas as pd
 
 os.environ["POST_MORTEM_ENABLED"] = "1"
+# Tắt telemetry vnstock/vnai TRƯỚC mọi import có thể kéo chúng (Q11, BƯỚC 172).
+# `setdefault`: biến đặt tường minh bên ngoài vẫn thắng.
+os.environ.setdefault("VNSTOCK_TELEMETRY", "off")
 sys.stdout.reconfigure(encoding="utf-8")
 
 from vn100_symbols import CUSTOM_WATCHLIST_SYMBOLS, SECTOR_WATCHLIST

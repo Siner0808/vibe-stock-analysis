@@ -1,7 +1,9 @@
 # HÀNG ĐỢI QUYẾT ĐỊNH CHỜ NGƯỜI DÙNG
 
+> **09/10/2026 — BƯỚC 172 ĐÓNG HÀNG ĐỢI:** Q7 · Q11 · Q12 · Q13 đã quyết; sổ này không còn mục `chờ` nào. Mục `chờ` mới chỉ thêm khi có câu hỏi mới (mục cũ không bị xoá).
+
 **Sổ sống.** Mỗi mục là MỘT câu hỏi dành cho người dùng, để leader trình trong
-MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12; BƯỚC 169 (09/10/2026) thêm Q13.
+MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12; BƯỚC 169 (09/10/2026) thêm Q13; BƯỚC 172 (09/10/2026) ghi câu trả lời Q7 · Q11 · Q12 · Q13.
 
 Luật của sổ này (gác: `tests/test_quyet_dinh_cho.py`, bộ đọc: `tools/quyet_dinh_cho.py`):
 
@@ -180,7 +182,7 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 ## Q7 — Dữ liệu BCTC `backtest/fundamentals/` nằm trong repo công khai: giữ hay chuyển ra ngoài?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
 **Nguồn:** `docs/HANDOFF.md:622 «trong repo công khai»` (kèm "Người dùng kiểm điều khoản; chi tiết trong báo cáo audit") · `docs/STATE.md` BƯỚC 121 (audit toàn hệ thống; báo cáo đầy đủ là Artifact riêng tư của người dùng, repo chỉ có bản tóm tắt)
 
@@ -195,10 +197,23 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Ghi nhận 09/10/2026 (CHƯA phải quyết định cuối):** người dùng trả lời *"Tôi đọc điều khoản rồi báo (Recommended)"* — mục vẫn `chờ` cho tới khi người dùng báo kết quả đọc điều khoản.
 
+**Trả lời nguyên văn (09/10/2026):** *"Gỡ khỏi repo (Recommended)"* — phương án (b), sau khi người dùng bảo leader đọc điều khoản thay: *"làm đi"*. Dữ kiện đọc điều khoản dưới đây là **cách leader đọc văn bản, KHÔNG phải ý kiến pháp lý** (leader không phải luật sư); người dùng chọn gỡ sau khi nghe kết quả đọc.
+
+**Cách leader đọc điều khoản (09/10/2026):**
+- Nguồn của 217 tệp: `fetch_fundamentals.py` gọi `vnstock.Finance(source="VCI", …)` → dữ liệu của Vietcap.
+- Giấy phép vnstock license-2026.09 (`vnstock-4.0.9.dist-info/licenses/LICENSE.md` và https://vnstocks.com/onboard/giay-phep-su-dung): *"Giấy phép này **không cấp quyền sử dụng dữ liệu của nguồn bên thứ ba**. Điều kiện của từng nguồn do bạn tự kiểm tra và tuân thủ."*; bản web, Mục I: *"Không cấp nào kèm quyền bán lại, cho thuê hoặc phân phối dữ liệu của nguồn."*
+- Điều khoản Vietcap (https://www.vietcap.com.vn/dieu-khoan-su-dung-chinh-sach-bao-mat, mục QUYỀN SỞ HỮU TRÍ TUỆ): *"Ngoại trừ việc tải xuống và in các thông tin được yêu cầu để sử dụng cho mục đích cá nhân, Người sử dụng không được phép sao chép, dẫn liên kết, phân phối, kinh doanh hoặc xuất bản các nội dung của trang web dưới bất kỳ hình thức nào."*
+- Kết luận của leader: để các tệp trong repo công khai là xuất bản dữ liệu Vietcap, không văn bản nào ở trên cho phép.
+
+**Hệ quả / việc kế (BƯỚC 172):** `backtest/fundamentals/` gỡ khỏi CHỈ MỤC git (`git rm -r --cached`, 217 tệp) và vào `.gitignore`; dữ liệu trên đĩa của người dùng KHÔNG bị xoá bởi bài này. `tests/test_cache_bctc_du_ky.py` bỏ qua có điều kiện khi thiếu thư mục (đo cả hai chiều). **Lịch sử git cũ VẪN chứa các tệp**: không viết lại lịch sử (`main` có ruleset cấm force-push; người dùng chọn phương án không xoá lịch sử) và không chuyển repo sang riêng tư (tầng 3 dựa vào khai báo CÔNG KHAI). Đo IC BCTC (BƯỚC 53) chỉ tái lập được ở máy có dữ liệu; `experiment_fundamentals.py` và `fetch_fundamentals.py` giữ nguyên.
+
 **Dữ kiện đã kiểm (08/10/2026):**
 - `git ls-files backtest/fundamentals | wc -l` ra `217` tệp; `git ls-files -z backtest/fundamentals | xargs -0 du -ck | tail -1` ra khoảng `5884` KB.
 - `gh api repos/Siner0808/vibe-stock-analysis --jq .visibility` ra `public`.
 - `grep -rln "fundamentals/" tests` (và các tệp mã gốc) chỉ ra `tests/test_cache_bctc_du_ky.py` là nơi đọc thư mục này trong test.
+- BƯỚC 172 chạy (09/10/2026): `git ls-tree -r origin/main --name-only -- backtest/fundamentals | wc -l` ra `217` và `git ls-tree -r -l origin/main -- backtest/fundamentals | awk '{s+=$4} END {print s}'` ra `5423886` byte (tổng kích thước blob); sau `git rm -r --cached`, `git ls-files backtest/fundamentals | wc -l` ra `0`, `ls backtest/fundamentals | wc -l` ra `217` (đĩa còn nguyên) và `git check-ignore -v backtest/fundamentals/FPT_ratio.csv` ra `.gitignore:29`.
+- BƯỚC 172 chạy: `python -m pytest tests/test_cache_bctc_du_ky.py -q -rs` khi thư mục CÓ: 4 passed; khi tạm dời thư mục ra ngoài repo: 3 passed, 1 skipped (lý do nêu Q7).
+- Điều khoản chỉ có trong lời kể của leader ở trên; phiên đám mây KHÔNG đọc lại được (không có `vnstock` để mở `LICENSE.md`, và không mở trang web).
 
 ---
 
@@ -272,7 +287,7 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 ## Q11 — Có đặt `VNSTOCK_TELEMETRY=off` trên Streamlit Cloud và GitHub Actions, cho khớp quyết định tắt telemetry ở máy (18/09/2026)?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
 **Nguồn:** `docs/HANDOFF.md:637 «`disable_telemetry()` bật 18/09 là của `vnai`»` · `docs/STATE.md:15348 «trường `VNSTOCK_TELEMETRY`»`
 
@@ -285,7 +300,12 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên 09/10 soạn nháp, chưa ai quyết):** (a): bật `off` ở cả hai — rẻ, cùng tinh thần quyết định 18/09; làm bằng một BƯỚC riêng có kiểm xem hạng gói (`kiem_goi`) và quét có đổi không.
 
+**Trả lời nguyên văn (09/10/2026):** *"Tắt bằng mã ở cả hai (Recommended)"* — phương án (a), sau khi người dùng hỏi *"tắt có ảnh hưởng gì không?"*. Leader trả lời từ mã `vnai/flow/relay.py`: `telemetry_enabled()` chỉ chặn `_send_data` gửi `function_calls` · `api_requests` · `rate_limits` lên `hq.vnstocks.com/analytics`; tải dữ liệu và kiểm hạng gói là đường khác; máy đã tắt từ 18/09 (`vnai.telemetry_status()` cho `enabled: False`) mà app vẫn báo silver · ĐÚNG.
+
+**Hệ quả / việc kế (BƯỚC 172):** `os.environ.setdefault("VNSTOCK_TELEMETRY", "off")` đặt TRƯỚC mọi import có thể kéo `vnstock`/`vnai` ở `app.py` (Streamlit Cloud) và `run_daily.py` (ngoại lệ DUY NHẤT được chạm `run_daily.py` ở bài này); mọi workflow cài `requirements.txt` đặt `env: VNSTOCK_TELEMETRY: "off"` ở cấp job. Gác: `tests/test_telemetry_vnstock_tat.py`. **Ranh giới vẫn giữ (Q6):** đường `vnii` vẫn gửi tên hàm (`operation`) khi kiểm giấy phép; biến này không phủ nó. Chưa đo: hạng gói trên Actions sau khi tắt (chưa từng đọc); hạng gói trên Cloud sẽ đọc lại ở bảng trạng thái của app sau merge.
+
 **Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 172 chạy: `python -m pytest tests/test_telemetry_vnstock_tat.py -q` xanh (4 phép kiểm); đột biến 44/44 đỏ (bộ đột biến ở thân PR).
 - BƯỚC 166 chạy lại: `git grep -n "VNSTOCK_TELEMETRY" -- . ':!docs' ':!tests'` không ra dòng nào: không workflow, không `app.py`, không cấu hình nào của repo đặt biến này.
 - Leader đo, trình duyệt: nhật ký "Manage app" của Cloud in dòng `[vnstock] Thư viện gửi số liệu đo lường tuỳ chọn…` nói trên. Nhật ký Actions chưa đọc để tìm dòng này.
 - Chỉ GHI câu hỏi: chưa sửa workflow hay secrets nào.
@@ -294,9 +314,9 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 ## Q12 — Mặc định thanh trượt "Ngưỡng mua" trên app (50) có nên theo `BUY_THRESHOLD` (62) của đường giao dịch không?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
-**Nguồn:** `app.py:453 «NGUONG_MUA_MAC_DINH = 50.0»` · `app.py:697 «Ngưỡng mua Multi-Agent (pts)»` · `paper_trading.py:77 «BUY_THRESHOLD = 62»`
+**Nguồn:** `paper_trading.py:77 «BUY_THRESHOLD = 62»` · `docs/STATE.md` BƯỚC 166 (ghi câu hỏi; `app.py` tại `68910cd` dòng 453 `NGUONG_MUA_MAC_DINH = 50.0` và dòng 697 thanh trượt «Ngưỡng mua Multi-Agent (pts)» — đã GỠ ở BƯỚC 172 nên không còn trích được)
 
 **Ảnh hưởng:** hiển thị của app công khai, không đổi lệnh ảo nào (đường giao dịch dùng `paper_trading.BUY_THRESHOLD`). Thanh trượt `app.py:697` mặc định `NGUONG_MUA_MAC_DINH = 50.0`, và app in "thấp hơn ngưỡng mua 50.0 pts" (`app.py:1396`) trong khi sổ lệnh ảo mua ở 62: người xem app thấy một ngưỡng khác với ngưỡng thật của đường giao dịch.
 
@@ -307,7 +327,12 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên 09/10 soạn nháp, chưa ai quyết):** (a): mặc định = `BUY_THRESHOLD` nhập từ `paper_trading`, thanh trượt vẫn chỉnh được.
 
+**Trả lời nguyên văn (09/10/2026):** *"trước đó bạn có đề xuất bỏ ngưỡng thanh trượt. Tôi đã xem xét và đống ý rằng thanh trượt trên app không có tác dụng gì nhiều. Hãy giao việc phán quyết cho Agent, không phải cứ điểm cao là mua (đôi khi đạt đủ điểm chưa chắc đã đúng điểm vào lệnh) bạn hãy tư duy sâu hơn để giải quyết bài toán đó nhé."* — KHÔNG phải phương án (a) (b) (c) nào ở trên: người dùng chọn **bỏ hẳn thanh trượt**. Sau đó người dùng duyệt lộ trình: *"Duyệt cả lộ trình (Recommended)"* (gỡ thanh trượt ngay + ghi B6 · C7 vào lộ trình).
+
+**Hệ quả / việc kế (BƯỚC 172):** gỡ thanh trượt, `NGUONG_MUA_MAC_DINH` và `KHOA_NGUONG_MUA` khỏi `app.py`; app NHẬP `paper_trading.BUY_THRESHOLD` và chỉ ĐỌC (topbar "Ngưỡng mua (đường ảo)", cảnh báo "thấp hơn ngưỡng mua", chân trang). Hành vi giữ bằng `BUY_THRESHOLD`; một chỗ phải sửa theo: bản cũ xét `score >= 60.0` TRƯỚC ngưỡng nên khi ngưỡng là 62, điểm 60–62 hiện "MUA 30%" kèm cảnh báo "thấp hơn ngưỡng mua" — nay `score < BUY_THRESHOLD` xét trước ("MUA THĂM DÒ" không còn tới được khi ngưỡng ≥ 60). Gác: `tests/test_no_fabricated_data.py::test_app_nguong_mua_chi_doc_tu_paper_trading`. Việc phán quyết vào lệnh giao cho agent: **B6** (kế hoạch vào lệnh CHỈ ĐỂ HIỆN) và **C7** (phương án vào lệnh chạy BÓNG) ở `docs/LO-TRINH.md`; bài này chỉ GHI lộ trình, B6 chưa dựng.
+
 **Dữ kiện đã kiểm (09/10/2026):**
+- BƯỚC 172 chạy: `python -m pytest tests/test_no_fabricated_data.py -q -k nguong_mua` xanh; đột biến 16/16 đỏ (bộ đột biến ở thân PR); `grep -n "buy_threshold\|NGUONG_MUA_MAC_DINH\|KHOA_NGUONG_MUA\|st.slider" app.py` không ra dòng nào.
 - BƯỚC 166 chạy lại: `grep -n "NGUONG_MUA_MAC_DINH" app.py` ra dòng 453 (`= 50.0`), 600 và 698 (nơi dùng); `grep -n "^BUY_THRESHOLD" paper_trading.py` ra dòng 77 (`= 62`).
 - Chỉ GHI câu hỏi: không sửa `app.py`.
 
@@ -315,7 +340,7 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 ## Q13 — Lệnh tiến-về-trước mở trước ngày nhật ký "vì sao" bắt đầu có tính vào tiêu chí ra khỏi giai đoạn B ("100% lệnh đóng có bài học trong vòng 1 phiên") không?
 
-**Trạng thái:** chờ
+**Trạng thái:** đã quyết
 
 **Nguồn:** `docs/LO-TRINH.md:196 «100% lệnh đóng có bài học trong vòng 1 phiên»` · `docs/STATE.md:18744 «Vị thế đang mở từ trước (không có dòng nhật ký) không được ghi bù»` · `so_bai_hoc.py:535 «NGAY_NHAT_KY_BAT_DAU = "2026-09-28"»`
 
@@ -327,6 +352,10 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 - (c) Giữ (a) cho tiêu chí, nhưng thêm vào app một bảng "bài học một phần" dựng từ bảng `trades` cho nhóm trước nhật ký (phần thị trường, chi phí; không có gap vì thiếu cắt lỗ ban đầu). Hệ quả: người dùng vẫn đọc được nhóm này; thêm mã và test, và vẫn không đổi tiêu chí.
 
 **Đề xuất của leader (ĐỀ XUẤT, phiên BƯỚC 169 soạn nháp, chưa ai quyết):** (a). Lý do: nửa VÀO phải ghi lúc vào, và một chuông đỏ vĩnh viễn từ ngày đầu là chuông không ai đọc. Chuông đã chạy theo (a); đổi sang (c) là việc riêng, không chạm tiêu chí.
+
+**Trả lời nguyên văn (09/10/2026):** *"đồng ý không tính"* — tức phương án (a).
+
+**Hệ quả / việc kế (BƯỚC 172):** không đổi mã: chuông `chuong-bai-hoc.yml` (`tools/chuong_bai_hoc.py`) đã chạy đúng theo (a) từ BƯỚC 169 — chỉ xét lệnh tiến-về-trước mở từ `NGAY_NHAT_KY_BAT_DAU` trở đi, nhóm mở trước nhật ký đếm riêng và in là "trước nhật ký — không tính". Phương án (c) (bảng "bài học một phần" cho nhóm trước nhật ký) không được chọn; muốn thì là việc riêng, không chạm tiêu chí.
 
 **Dữ kiện đã kiểm (09/10/2026):**
 - BƯỚC 169 chạy: `git log -1 --format='%h %ad' --date=iso 60d6598` ra `60d6598 2026-09-28 09:47:17 +0700` (commit nối nhật ký vào sổ thật, BƯỚC 134); `grep -n "^## BƯỚC 138" docs/STATE.md` cho tiêu đề ghi lượt quét đầu tiên chạy mã ấy ngày 28/09/2026. Hằng số `NGAY_NHAT_KY_BAT_DAU` suy từ hai dòng đó.

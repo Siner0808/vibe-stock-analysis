@@ -2614,6 +2614,46 @@
           "phan_quyet": "THẬT. BƯỚC 171 sửa tiêu đề thành '(mười, đều giữ nguyên lõi)' và thêm B5 vào dòng 'Giai đoạn B' của danh sách."
         }
       ]
+    },
+    "BƯỚC 172": {
+      "ngay": "2026-10-09",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 09/10/2026; 'Gemini Notebook'): 2 nguồn chậm một merge (#217) — THÊM TRƯỚC 2 URL raw.githubusercontent.com ghim 68910cd992f055cf9308918be507fe2c1b1f6416 (docs/STATE.md, docs/LO-TRINH.md), đổi tên '<file> @68910cd' (STATE phải đổi tên hai lần: lần đầu tên không giữ, nguồn vẫn còn), XOÁ SAU đúng 2 bản @e9a6d0c (đọc nhãn hộp xác nhận). Sổ còn 15 nguồn. Hỏi độ tươi: sổ tay trả BƯỚC lớn nhất 171, tiêu đề '## BƯỚC 171 — B5: CHART ĐA KHUNG D-W-M …' — khớp main 68910cd.",
+      "cau_hoi": "I am about to write BƯỚC 172 into docs/STATE.md: (A) the decision queue docs/QUYET-DINH-CHO.md is closed on 09/10/2026: Q7 — the 217 Vietcap financial-statement files in backtest/fundamentals are removed from the public repository and git-ignored, kept only on the user's machine, because the vnstock licence grants no right to distribute source data and Vietcap's terms of use allow only download and print for personal use (old commits still contain them; history is not rewritten); Q11 — VNSTOCK_TELEMETRY is set to off in code at start-up of the app and of the scripts the workflows run, which only stops analytics posts to hq.vnstocks.com/analytics and does not touch data or the tier check; Q12 — the app's adjustable buy-threshold slider (default 50) is removed and the app shows the trading path's paper_trading.BUY_THRESHOLD = 62 read-only; Q13 — forward trades opened before the 'why' journal started are not counted in the phase B exit criterion; so roadmap item A5 has no question left waiting; (B) two roadmap items are added to docs/LO-TRINH.md: B6, a display-only entry plan (for each qualifying signal the agent computes an entry zone, a structural stop, risk per trade, extension above MA20 and a verdict buy now, wait in the zone for K sessions, or skip, with reasons, shown in the app and logged, without changing how virtual orders are filled), and C7, the entry plan run as a SHADOW variant next to the live path on the same signals with a separate virtual account, after a pre-declared exploratory measurement counted per SIGNAL including missed trades, declared as candidate UV-002 no earlier than November 2026 under the tier-3 rule of at most one candidate per month, replacing the live path only if the pre-declared verdict allows; the feature list grows from ten to twelve items. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that backtest/fundamentals must stay in the repository, or that the financial-statement data may be published, or that telemetry must stay on or is needed for the tier check, or that the app must offer an adjustable buy threshold, or that the live entry must stay 'buy at the next open', or that a new entry rule may be switched onto the live paper ledger directly, or that more than one tier-3 candidate may be declared in a month, or that Q7, Q11, Q12 or Q13 are still waiting. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "docs/HANDOFF.md, '## 5. VIỆC ĐANG TREO': dòng '- **CÒN CHỜ:** Q7 (người dùng đọc điều khoản dữ liệu BCTC rồi báo) · Q11 … · Q12 … · Q13 …' sẽ lỗi thời khi BƯỚC 172 chốt cả bốn.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"CÒN CHỜ: Q7 (người dùng đọc điều khoản dữ liệu BCTC rồi báo)\" -> KHỚP — HANDOFF.md (dòng 314).",
+          "phan_quyet": "THẬT. BƯỚC 172 sửa dòng ấy: không còn câu nào chờ."
+        },
+        {
+          "noi_dung": "docs/LO-TRINH.md, mục A5: '(… BƯỚC 166 ghi quyết định 09/10/2026: đã quyết Q1–Q6 · Q8–Q10; còn CHỜ Q7, Q11, Q12)'. Sổ tay gọi tiêu đề là '### Giai đoạn A — Dọn quy trình, gom việc chờ, mở bảng theo dõi (BƯỚC 164…)'.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"BƯỚC 166 ghi quyết định 09/10/2026: đã quyết Q1–Q6 · Q8–Q10; còn CHỜ Q7, Q11, Q12\" -> KHỚP — LO-TRINH.md (dòng 182). NHƯNG tên tiêu đề sổ tay đưa là BỊA: grep -n '^### A' docs/LO-TRINH.md -> dòng 171 '### A — Dọn đường (giảm thuế quy trình) · 09/10 → 25/10/2026'; grep 'Dọn quy trình, gom việc chờ' docs/*.md CLAUDE.md -> 0 dòng. Trích đúng chữ, sai tên mục (cùng hình dạng BƯỚC 119).",
+          "phan_quyet": "THẬT (câu trích đúng; tên tiêu đề sai). BƯỚC 172 thêm vào ghi chú A5: BƯỚC 172 ghi nốt Q7 · Q11 · Q12 · Q13 — hàng đợi rỗng."
+        },
+        {
+          "noi_dung": "docs/QUYET-DINH-CHO.md, các mục Q7, Q11, Q12, Q13: dòng '**Trạng thái:** chờ' sẽ sai khi BƯỚC 172 chốt cả bốn.",
+          "tu_kiem": "grep -c '^\\*\\*Trạng thái:\\*\\* chờ' docs/QUYET-DINH-CHO.md -> 4 (đúng bốn mục Q7, Q11, Q12, Q13).",
+          "phan_quyet": "THẬT. BƯỚC 172 đổi cả bốn sang 'đã quyết 09/10/2026' kèm câu trả lời nguyên văn."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
