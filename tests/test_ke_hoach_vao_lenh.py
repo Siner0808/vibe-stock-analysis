@@ -1021,7 +1021,8 @@ def test_hang_so_de_xuat_deu_duoc_danh_dau_CHUA_DO():
     src = (GOC / "ke_hoach_vao_lenh.py").read_text(encoding="utf-8")
     assert "ĐỀ XUẤT, CHƯA ĐO" in src
     assert "bất biến 7" in src
-    assert "VÌ SAO ĐỔI (10/10/2026)" in src and "MSR" in src
+    # Docstring của module (không quét văn bản nguồn: "MSR" là mã cổ phiếu).
+    assert "VÌ SAO ĐỔI (10/10/2026)" in kh.__doc__ and "MSR" in kh.__doc__
 
 
 # ─────────────────────────────────────────────────────────────────────
