@@ -36,6 +36,7 @@ from paper_trading import BUY_THRESHOLD
 from data_quality import now_vn, price_multiplier
 import khung_thoi_gian as _kt
 import ke_hoach_vao_lenh as _kh
+import san_giao_dich as _sgd
 from data_collectors import VNStockCollectorAgent
 import mau_bang_gia as _mbg
 import do_tre_khop as _dtk
@@ -1155,7 +1156,12 @@ phase_cls = {"tang": "pos", "giam": "neg"}.get(wy.huong, "neu")
 # cổng riêng của sổ (`PaperTradingJournal.consider_entry`: VN-INDEX, chất
 # lượng dữ liệu, mã đang giữ, trần vốn); qua đủ thì khớp ở giá mở cửa phiên
 # sau.
-ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date)
+#
+# SÀN tra theo MÃ (`san_giao_dich`, BƯỚC 143), không theo ô chọn sàn ở thanh
+# bên: ô ấy mặc định HOSE nhưng MSR là UPCoM (10/10/2026). Ô chọn chỉ là đường
+# lui khi mã không có trong bảng. Sàn quyết định BƯỚC GIÁ dùng để làm tròn.
+san_gd = _sgd.tra_san(symbol) or exchange
+ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date, san_gd)
 dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 
 # Dynamic Stop-Loss from risk agent recommendations
@@ -1168,6 +1174,18 @@ if est_stop_loss is not None and est_stop_loss < 1000:
 est_tp = risk_data.get("take_profit_price")
 if est_tp is not None and est_tp < 1000:
     est_tp = round(est_tp * mult, 0)
+# SL / TP của risk agent: HIỂN THỊ làm tròn theo bước giá của sàn (người dùng
+# 10/10/2026: "cấu trúc giá không được làm tròn và không đúng với cấu trúc giá
+# trên sàn"). SL XUỐNG, TP LÊN. Sổ vẫn lưu số chưa làm tròn (không sửa
+# `analysis_agents.py` hay `paper_trading.py`). Hiển thị vẫn trung thực vì giá
+# giao dịch chỉ nằm trên lưới bước giá: "low ≤ 63.486" tương đương
+# "low ≤ 63.400" (SL), và "high ≥ 81.480" tương đương "high ≥ 81.500" (TP) —
+# điểm kích hoạt không đổi.
+if _kh.san_hop_le(san_gd):
+    if est_stop_loss is not None:
+        est_stop_loss = _kh.lam_tron_xuong(est_stop_loss, san_gd)
+    if est_tp is not None:
+        est_tp = _kh.lam_tron_len(est_tp, san_gd)
 
 sl_txt = _so(est_stop_loss, "{:,.0f}")
 tp_txt = _so(est_tp, "{:,.0f}")
@@ -1631,9 +1649,17 @@ with t_pos:
         # TRƯỚC 15/09/2026 ô vùng giá in thẳng GIÁ ĐÓNG CỬA; nay vùng chờ do
         # `ke_hoach_vao_lenh` dựng (hoặc "giá mở cửa phiên sau" khi MUA NGAY,
         # hoặc một dấu gạch kèm lý do bên dưới).
+        # NGÀY phán quyết = ngày nến ĐÃ ĐÓNG mà kế hoạch dựa vào (người dùng
+        # 10/10/2026: "thiếu ngày đưa ra phán quyết"). Dạng dd/mm/yyyy.
+        _kh_ngay = (pd.to_datetime(ke_hoach.ngay).strftime("%d/%m/%Y")
+                    if ke_hoach.ngay else "—")
+        _kh_ngay_ngan = (pd.to_datetime(ke_hoach.ngay).strftime("%d/%m")
+                         if ke_hoach.ngay else "—")
         _kh_cat_lo = (
             f"{ke_hoach.cat_lo_cau_truc:,.0f} VNĐ "
-            f"(−{ke_hoach.rui_ro_pct:.1f}% so với giá đóng)"
+            f"(−{ke_hoach.rui_ro_pct:.1f}% so với giá đóng) · dưới đáy xoay "
+            f"{ke_hoach.day_xoay_gia:,.0f} ngày "
+            f"{pd.to_datetime(ke_hoach.day_xoay_ngay).strftime('%d/%m')}"
             if ke_hoach.cat_lo_cau_truc is not None else "—")
         if ke_hoach.vung is not None:
             # Khoảng cách từ TRẦN vùng (giá lệnh giới hạn) tới giá đóng: vùng có
@@ -1649,12 +1675,14 @@ with t_pos:
             _kh_vung = "—"
         plan_table = pd.DataFrame([{
             "Mã CK": symbol,
+            "Ngày phán quyết": _kh_ngay,
             "Phán quyết": dyn_rec,
             "Vùng chờ / giá vào": _kh_vung,
             "Cắt lỗ cấu trúc": _kh_cat_lo,
             "Kéo giãn so MA": (f"{ke_hoach.keo_gian_atr:.1f} ATR"
                                if ke_hoach.keo_gian_atr is not None else "—"),
-            "Hiệu lực": (f"{ke_hoach.so_phien_cho} phiên"
+            "Hiệu lực": (f"{ke_hoach.so_phien_cho} phiên, từ phiên sau "
+                         f"{_kh_ngay_ngan}"
                          if ke_hoach.so_phien_cho is not None else "—"),
             "Cắt lỗ (SL)": f"{sl_txt} VNĐ ({sl_pct_txt})",
             "Chốt lời (TP)": f"{tp_txt} VNĐ ({tp_pct_txt})",
