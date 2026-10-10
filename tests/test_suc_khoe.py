@@ -715,18 +715,28 @@ def test_khong_phep_nao_truyen_doi_so_ghi():
     assert sk.THEO_TEN["soat_tuan"].doi_so == (), "soat_tuan chỉ được chạy KHÔNG --tom-tat"
 
 
+def _duyet(goc, mau):
+    """`tools/duyet_repo.duyet`: duyệt đệ quy KHÔNG đi vào worktree lồng (BƯỚC 147)."""
+    spec = importlib.util.spec_from_file_location("duyet_repo_cho_suc_khoe",
+                                                  GOC / "tools" / "duyet_repo.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.duyet(goc, mau)
+
+
 def _anh_chup():
     ra = {}
-    for goc, ds, tep in os.walk(GOC):
-        if ".git" in Path(goc).parts or ".pytest_cache" in Path(goc).parts:
+    for p in _duyet(GOC, "*"):
+        phan = p.relative_to(GOC).parts
+        if ".git" in phan or ".pytest_cache" in phan or ".venv" in phan:
             continue
-        for t in tep:
-            p = Path(goc) / t
-            try:
-                s = p.stat()
-            except OSError:
+        try:
+            if not p.is_file():
                 continue
-            ra[str(p.relative_to(GOC))] = (s.st_size, s.st_mtime_ns)
+            s = p.stat()
+        except OSError:
+            continue
+        ra[p.relative_to(GOC).as_posix()] = (s.st_size, s.st_mtime_ns)
     return ra
 
 
@@ -734,6 +744,7 @@ def test_THAT_mot_luot_chay_thuc_cua_phep_offline_khong_doi_tep_nao_trong_repo(m
     """Chạy tiến trình thật (soat_tuan: chỉ đọc tài liệu) và so ảnh chụp cả cây repo."""
     monkeypatch.delenv("PYTHONDONTWRITEBYTECODE", raising=False)
     truoc = _anh_chup()
+    assert "suc_khoe.py" in truoc and len(truoc) > 100, "ảnh chụp rỗng thì mọi so sánh đều xanh"
     kq = sk.kiem_mot(sk.THEO_TEN["soat_tuan"])
     sau = _anh_chup()
     assert kq.trang_thai in (sk.XANH, sk.VANG), kq
@@ -800,7 +811,7 @@ def test_danh_gia_ma_thoat_thu_tu_cung_traceback_roi_dau_hieu_roi_mo_ho_roi_bang
 
 
 def _tep_py_ngoai_tests():
-    for p in GOC.rglob("*.py"):
+    for p in _duyet(GOC, "*.py"):
         r = p.relative_to(GOC)
         if (".venv" in r.parts or "tests" in r.parts or ".git" in r.parts
                 or "worktrees" in r.parts):
@@ -828,7 +839,7 @@ def test_duong_giao_dich_cham_diem_du_lieu_khong_nhap_suc_khoe(duong):
 
 
 def test_backtest_khong_nhap_suc_khoe():
-    for p in (GOC / "backtest").rglob("*.py"):
+    for p in _duyet(GOC / "backtest", "*.py"):
         assert "suc_khoe" not in _ten_nhap(ast.parse(p.read_text(encoding="utf-8"))), p
 
 
