@@ -21978,6 +21978,8 @@ Tôi đọc kết quả ba lượt chạy test nhanh (một file) qua `| tail` �
 **Giới hạn.** (1) Đáy xoay cần K = 2 phiên sau để xác nhận nên một đáy mới hình thành chưa tính; trong lúc đó kế hoạch có thể dựa vào đáy cũ hơn. (2) Chưa xét lô chẵn, trần/sàn biên độ và tính khớp thật của lệnh giới hạn ở trần vùng. (3) Sàn tra theo bảng chụp 71 mã (`san_giao_dich`); mã ngoài bảng dùng ô chọn sàn và vẫn có thể sai sàn. (4) Tất cả hằng số mới và cũ vẫn ĐỀ XUẤT, CHƯA ĐO; không có số đo lợi nhuận nào trong bài này. (5) Trên dữ liệu thật `CHO_VUNG` thuần vì kéo giãn có thể hiếm (đã ghi ở lượt trước).
 
 **Năm cổng sau lượt sửa (đám mây, Python 3.13, không có `vnstock`).**
-1. `pytest tests/ -q`: lượt đầu `3 failed, 2716 passed, 3 skipped` (305,6 s): mốc cổng 5 chưa cập nhật (2685 → 2722); gác `test_gac_van_ban_phai_khai` (xem trên, đã sửa); và đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (`PackageNotFoundError: vnstock`). Lượt chạy lại sau sửa: xem dòng cuối mục này.
+1. `pytest tests/ -q`: lượt đầu `3 failed, 2716 passed, 3 skipped` (305,6 s): mốc cổng 5 chưa cập nhật (2685 → 2722); gác `test_gac_van_ban_phai_khai` (xem trên, đã sửa); và đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (`PackageNotFoundError: vnstock`). Lượt chạy lại sau sửa: xem dòng cuối mục này (cổng 5).
 2. `tools/kiem_cu_phap_311.py`: xanh. 3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo`.
-4–5: xem dòng cuối mục này.
+4. `tools/kiem_test_chay_rieng.py --im`: 142 file trong 412 s, 1 đỏ — `test_requirements.py` (cùng đỏ môi trường `PackageNotFoundError: vnstock`); không file nào mượn trạng thái của file khác.
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2685 → 2722 (+37 = 90 − 53 test của `tests/test_ke_hoach_vao_lenh.py`; không test nào mất); lượt kiểm sau: `OK — 2722 test, khop moc da ghi`.
+Chạy lại cổng 1 sau khi viết mục này: `1 failed, 2718 passed, 3 skipped` (313,1 s) — chỉ còn đỏ môi trường; ba skip như các lượt trước (thiếu cache BCTC · đoạn đã gỡ · `vnai` không có). (2718 + 3 skip + 1 đỏ = 2722, khớp mốc.)
