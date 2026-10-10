@@ -629,9 +629,10 @@ def test_app_nguong_mua_chi_doc_tu_paper_trading():
          nhãn hay `key` nói về ngưỡng;
       4. topbar (khối `st.markdown` chứa `class="topbar"`) in giá trị
          `BUY_THRESHOLD`; mọi chỗ in ngưỡng khác cũng đọc `BUY_THRESHOLD`;
-      5. khuyến nghị: `score < BUY_THRESHOLD` được xét TRƯỚC `score >= 60.0`
-         (bản cũ xét 60 trước, nên điểm 60–62 hiện "MUA 30%" kèm cảnh báo
-         "thấp hơn ngưỡng mua").
+      5. khuyến nghị: không còn nhánh `score >= 60.0` (bản cũ xét 60 trước,
+         nên điểm 60–62 hiện "MUA 30%" kèm cảnh báo "thấp hơn ngưỡng mua").
+         Từ BƯỚC 173 nhãn đến từ `ke_hoach_vao_lenh`, đã nhận `BUY_THRESHOLD`
+         làm tham số; app chỉ còn so điểm với CHÍNH `BUY_THRESHOLD`.
 
     Giới hạn có tên: một widget đặt tên/nhãn không nhắc tới ngưỡng thì gác
     này không thấy — nó canh các dấu vết của thanh trượt cũ, không canh ý định.
@@ -700,22 +701,22 @@ def test_app_nguong_mua_chi_doc_tu_paper_trading():
             return nut.ops[0], nut.comparators[0], nut.lineno
         return None
 
-    dong_bt = dong_60 = None
+    dong_bt = []
+    dong_60 = []
     for n in ast.walk(cay):
         r = _so_sanh(n)
         if not r:
             continue
         op, so, dong = r
-        if (isinstance(op, ast.Lt) and isinstance(so, ast.Name)
-                and so.id == "BUY_THRESHOLD"):
-            dong_bt = dong if dong_bt is None else min(dong_bt, dong)
-        if (isinstance(op, ast.GtE) and isinstance(so, ast.Constant)
-                and so.value == 60.0):
-            dong_60 = dong if dong_60 is None else min(dong_60, dong)
-    assert dong_bt is not None and dong_60 is not None and dong_bt < dong_60, (
-        f"khuyến nghị phải xét `score < BUY_THRESHOLD` (dòng {dong_bt}) "
-        f"TRƯỚC `score >= 60.0` (dòng {dong_60}): điểm 60–62 không được "
-        f"hiện MUA khi đường giao dịch ảo chưa mua")
+        if isinstance(so, ast.Name) and so.id == "BUY_THRESHOLD":
+            dong_bt.append(dong)
+        if isinstance(so, ast.Constant) and so.value == 60.0:
+            dong_60.append(dong)
+    assert dong_bt, ("app.py phải còn so điểm với BUY_THRESHOLD (nhánh "
+                     "'thấp hơn ngưỡng mua' và bảng kế hoạch)")
+    assert not dong_60, (
+        f"app.py so `score` với 60.0 ở dòng {dong_60}: điểm 60–62 không được "
+        f"hiện MUA khi đường giao dịch ảo chưa mua — ngưỡng chỉ có MỘT chỗ")
     print("PASS  app.py chỉ ĐỌC BUY_THRESHOLD, không còn thanh trượt ngưỡng mua")
 
 
