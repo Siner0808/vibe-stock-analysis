@@ -284,6 +284,45 @@ def doc_nhat_ky(backend: SheetBackend) -> list[dict]:
     return sorted(ra, key=lambda d: d["trade_id"], reverse=True)
 
 
+#: Cột `decisions` mà bản tin cuối ngày cần (BƯỚC 174). Bỏ ba cột JSON nặng
+#: (`components`, `reasons`, `data_quality`): bảng quyết định có hàng chục nghìn
+#: dòng, và bản tin không đọc chúng. Header vẫn được kiểm ĐỦ cột.
+COT_QUYET_DINH_BAN_TIN: tuple[str, ...] = (
+    "seq", "at", "symbol", "signal_date", "score", "recommendation",
+    "acted", "skip_reason",
+)
+
+
+def _doc_tab(backend: SheetBackend, tab: str, cols: tuple[str, ...],
+             giu: tuple[str, ...] | None = None) -> list[dict]:
+    """Một tab -> list dict, qua `_from_cell`. Tab rỗng -> `[]`; header lệch thì NỔ."""
+    rows = _co_du_lieu(backend.read_rows(tab))
+    if not rows:
+        return []
+    _kiem_tra_header(tab, rows[0], cols)
+    giu = cols if giu is None else giu
+    ra = []
+    for r in rows[1:]:
+        r = list(r) + [""] * (len(cols) - len(r))
+        ra.append({c: _from_cell(c, r[i]) for i, c in enumerate(cols) if c in giu})
+    return ra
+
+
+def doc_so_ban_tin(backend: SheetBackend) -> dict[str, list[dict]]:
+    """CHỈ ĐỌC ba tab cho bản tin cuối ngày (BƯỚC 174), không chạm sổ SQLite nào.
+
+    `{"quyet_dinh": [...], "lenh": [...], "nhat_ky": [...]}` — dòng đúng như sổ
+    lưu (`quyet_dinh` chỉ giữ `COT_QUYET_DINH_BAN_TIN`). Tab chưa có dòng nào
+    thì `[]`; tiêu đề lệch với lược đồ thì NỔ như `pull()`. Chỉ gọi `read_rows`.
+    """
+    return {
+        "quyet_dinh": _doc_tab(backend, TAB_DECISIONS, DECISION_COLS,
+                               COT_QUYET_DINH_BAN_TIN),
+        "lenh": _doc_tab(backend, TAB_TRADES, TRADE_COLS),
+        "nhat_ky": _doc_tab(backend, TAB_NHAT_KY, NHAT_KY_COLS),
+    }
+
+
 def _dem_dong(rows: list[list[str]]) -> int:
     """Bỏ header và các dòng trống đệm do write_all() để lại."""
     return sum(1 for r in rows[1:] if r and any(c != "" for c in r))
