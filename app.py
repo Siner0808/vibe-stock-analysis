@@ -1151,8 +1151,10 @@ phase_cls = {"tang": "pos", "giam": "neg"}.get(wy.huong, "neu")
 # cho mọi điểm qua ngưỡng, và nhánh "MUA THĂM DÒ" KHÔNG BAO GIỜ tới được
 # (ngưỡng 62 > 60 nên mọi điểm qua ngưỡng đã rơi vào `score >= 60.0`).
 #
-# Sổ lệnh ảo KHÔNG làm theo phán quyết này: nó vẫn mở lệnh cho mọi mã đạt
-# ngưỡng và khớp ở giá mở cửa phiên sau.
+# Sổ lệnh ảo KHÔNG làm theo phán quyết này: mã đạt ngưỡng chỉ còn qua các
+# cổng riêng của sổ (`PaperTradingJournal.consider_entry`: VN-INDEX, chất
+# lượng dữ liệu, mã đang giữ, trần vốn); qua đủ thì khớp ở giá mở cửa phiên
+# sau.
 ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date)
 dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 
@@ -1634,7 +1636,13 @@ with t_pos:
             f"(−{ke_hoach.rui_ro_pct:.1f}% so với giá đóng)"
             if ke_hoach.cat_lo_cau_truc is not None else "—")
         if ke_hoach.vung is not None:
-            _kh_vung = f"{ke_hoach.vung[0]:,.0f} – {ke_hoach.vung[1]:,.0f} VNĐ"
+            # Khoảng cách từ TRẦN vùng (giá lệnh giới hạn) tới giá đóng: vùng có
+            # thể xa tới mức không chạm nổi trong số phiên hiệu lực, và người
+            # đọc phải thấy điều đó ngay trên bảng (leader soát PR #219).
+            _kh_vung = (
+                f"{ke_hoach.vung[0]:,.0f} – {ke_hoach.vung[1]:,.0f} VNĐ "
+                f"(trần vùng {ke_hoach.vung[1] / ke_hoach.gia_dong * 100 - 100:+.1f}% "
+                f"so với giá đóng)")
         elif ke_hoach.phan_quyet == _kh.MUA_NGAY:
             _kh_vung = "giá mở cửa phiên sau"
         else:
@@ -1658,9 +1666,11 @@ with t_pos:
         st.markdown("**Lý do:**\n\n" + "\n".join(
             f"- {ly}" for ly in ke_hoach.ly_do))
         st.caption(
-            "Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO. Sổ lệnh ảo vẫn mở lệnh cho "
-            "mọi mã đạt ngưỡng, khớp ở giá mở cửa phiên sau — kể cả khi ở đây "
-            "ghi CHỜ hay BỎ QUA. “Cắt lỗ cấu trúc” (dưới đáy "
+            "Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO. Sổ lệnh ảo KHÔNG làm theo "
+            "nó: mã đạt ngưỡng chỉ còn qua các cổng riêng của sổ (VN-INDEX "
+            "trên MA50, chất lượng dữ liệu, mã đang giữ, trần vốn), qua đủ thì "
+            "khớp ở giá mở cửa phiên sau — kể cả khi ở đây ghi CHỜ hay BỎ QUA. "
+            "“Cắt lỗ cấu trúc” (dưới đáy "
             f"{_kh.CUA_SO_DAY} phiên, trừ {_kh.HE_SO_DEM_ATR:g} ATR) và “Cắt "
             "lỗ (SL)” (theo ATR, của risk agent) là hai mức KHÁC nhau; sổ lệnh "
             "dùng mức theo ATR. Vùng chờ là lệnh giới hạn ở trần vùng, hiệu "

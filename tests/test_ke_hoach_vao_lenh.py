@@ -743,5 +743,10 @@ def test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong():
     assert "CHỈ ĐỂ HIỆN và CHƯA ĐO" in chuoi
     assert "khớp ở giá mở cửa phiên sau" in chuoi
     assert "kể cả khi ở đây ghi CHỜ hay BỎ QUA" in chuoi
+    # Sổ có cổng RIÊNG (VN-INDEX, chất lượng dữ liệu, mã đang giữ, trần vốn):
+    # câu cũ "vẫn mở lệnh cho mọi mã đạt ngưỡng" sai mỗi ngày VN-INDEX dưới
+    # MA50 (lỗi 146, leader soát PR #219).
+    assert "KHÔNG làm theo" in chuoi and "cổng riêng của sổ" in chuoi
+    assert "vẫn mở lệnh cho mọi mã đạt ngưỡng" not in chuoi
     assert "hai mức KHÁC nhau" in chuoi and "dùng mức theo ATR" in chuoi
     assert "chưa kích hoạt mở vị thế mua" in chuoi          # nhánh dưới ngưỡng
