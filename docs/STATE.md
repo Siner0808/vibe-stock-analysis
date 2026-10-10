@@ -22025,6 +22025,8 @@ Phiên đám mây (nhánh `lo-trinh/b2-ban-tin`, từ `main` `d44cc87`). Lộ tr
 4. `tools/kiem_test_chay_rieng.py --im`: 143 file trong 556 s, 2 đỏ — `test_kiem_so_test.py` (mốc chưa cập nhật, lúc đó) và `test_requirements.py` (đỏ môi trường như trên); `test_ban_tin.py` xanh khi chạy một mình.
 5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2722 → 2794 (+72 test của `tests/test_ban_tin.py`; không test nào mất); lượt kiểm sau: `OK — 2794 test, khop moc da ghi`.
 
+Chạy lại cả năm cổng trên cây cuối (sau khi cập nhật mốc và ghi sổ tay): cổng 1 `1 failed, 2790 passed, 3 skipped` (400,8 s) — chỉ còn đỏ môi trường (2790 + 3 + 1 = 2794, khớp mốc); cổng 2 xanh; cổng 3 `0 CHẶN · 10 cảnh báo`; cổng 4 chỉ `test_requirements.py` đỏ (môi trường); cổng 5 `OK — 2794 test, khop moc da ghi`.
+
 **Sổ tay (Quy tắc 3).** BƯỚC này KHÔNG chạm `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`; không đổi luật, không đổi kết luận đo — khai ô `khong_bat_buoc_vi` sau khi `tools/buoc_cham_luat.py` xác nhận. B2 CHƯA được đánh dấu "đã dựng" ở `docs/LO-TRINH.md` và module chưa vào danh sách "CHỈ ĐỂ HIỆN" của `CLAUDE.md` (leader làm sau).
 
 **Lỗi mới:** không có (dải 148–150 chưa dùng). Hai phát đột biến sống sót ở trên là gác chưa canh đủ, bắt được TRƯỚC khi giao, chưa gây hậu quả.
