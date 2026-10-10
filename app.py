@@ -1657,7 +1657,7 @@ with t_pos:
                          if ke_hoach.ngay else "—")
         _kh_cat_lo = (
             f"{ke_hoach.cat_lo_cau_truc:,.0f} VNĐ "
-            f"(−{ke_hoach.rui_ro_pct:.1f}% so với giá đóng) · dưới đáy xoay "
+            f"(-{ke_hoach.rui_ro_pct:.1f}% so với giá đóng) · dưới đáy xoay "
             f"{ke_hoach.day_xoay_gia:,.0f} ngày "
             f"{pd.to_datetime(ke_hoach.day_xoay_ngay).strftime('%d/%m')}"
             if ke_hoach.cat_lo_cau_truc is not None else "—")
@@ -1698,7 +1698,7 @@ with t_pos:
             "nó: mã đạt ngưỡng chỉ còn qua các cổng riêng của sổ (VN-INDEX "
             "trên MA50, chất lượng dữ liệu, mã đang giữ, trần vốn), qua đủ thì "
             "khớp ở giá mở cửa phiên sau — kể cả khi ở đây ghi CHỜ hay BỎ QUA. "
-            "“Cắt lỗ cấu trúc” (dưới đáy "
+            "“Cắt lỗ cấu trúc” (dưới đáy xoay gần nhất trong "
             f"{_kh.CUA_SO_DAY} phiên, trừ {_kh.HE_SO_DEM_ATR:g} ATR) và “Cắt "
             "lỗ (SL)” (theo ATR, của risk agent) là hai mức KHÁC nhau; sổ lệnh "
             "dùng mức theo ATR. Vùng chờ là lệnh giới hạn ở trần vùng, hiệu "

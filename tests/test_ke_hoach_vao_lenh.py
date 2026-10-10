@@ -1218,4 +1218,7 @@ def test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong():
     assert "KHÔNG làm theo" in chuoi and "cổng riêng của sổ" in chuoi
     assert "vẫn mở lệnh cho mọi mã đạt ngưỡng" not in chuoi
     assert "hai mức KHÁC nhau" in chuoi and "dùng mức theo ATR" in chuoi
+    # Câu chú thích tả ĐÚNG luật cắt lỗ hiện hành (đáy xoay), không phải luật
+    # cũ "dưới đáy 20 phiên" đã bỏ sau ca MSR (leader soát lượt sửa, 10/10).
+    assert "dưới đáy xoay gần nhất trong" in chuoi
     assert "chưa kích hoạt mở vị thế mua" in chuoi          # nhánh dưới ngưỡng
