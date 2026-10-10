@@ -21940,7 +21940,9 @@ Phiên đám mây (nhánh `lo-trinh/b6-ke-hoach-vao-lenh`, từ `main` `a050af2`
 1. `pytest tests/ -q` (trước khi viết mục này): `2 failed, 2680 passed, 3 skipped` (310,9 s): một là mốc cổng 5 chưa cập nhật (2632 → 2685), một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (`PackageNotFoundError: vnstock`, đã gặp ở BƯỚC 171 và 172).
 2. `tools/kiem_cu_phap_311.py`: xanh (272 file `.py` + 3 đoạn nhúng, Python 3.11).
 3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không có cảnh báo nào ở file mới).
-4–5. xem dòng cập nhật ở cuối mục này.
+4. `tools/kiem_test_chay_rieng.py --im`: 142 file trong 420 s, 1 đỏ — `test_requirements.py` (cùng đỏ môi trường `PackageNotFoundError: vnstock`); không file nào mượn trạng thái của file khác.
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2632 → 2685 (+53 test của `tests/test_ke_hoach_vao_lenh.py`; không test nào mất); lượt kiểm sau: `OK — 2685 test, khop moc da ghi`.
+Chạy lại cổng 1 sau khi viết mục này và ghi sổ tay: `1 failed, 2681 passed, 3 skipped` (295–302 s, hai lượt) — chỉ còn đỏ môi trường. Ba skip: thiếu cache BCTC trên máy (Q7, BƯỚC 172) · một đoạn đã gỡ hẳn của gác hằng số · `vnai` không có ở môi trường này (BƯỚC 172 ghi 2 skip; skip thứ ba là do môi trường đám mây, không phải do bài này).
 Tôi đọc kết quả ba lượt chạy test nhanh (một file) qua `| tail` để lấy dòng tóm tắt, không dùng mã thoát và không nối `&&`; luật cấm pipe pytest qua `tail` — chưa gây hậu quả, không ghi thành lỗi mới.
 
 **Sổ tay (Quy tắc 3).** BƯỚC này KHÔNG chạm `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`; không đổi luật, không đổi kết luận đo — khai ô `khong_bat_buoc_vi` sau khi `tools/buoc_cham_luat.py` xác nhận.
