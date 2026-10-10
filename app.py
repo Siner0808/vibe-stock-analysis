@@ -452,38 +452,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── SỔ LỆNH GIẤY — nguồn DUY NHẤT cho mọi con số hiệu quả trên giao diện ──
-# Trên Streamlit Cloud, `.gitignore` chặn `*.db` nên paper_trades.db KHÔNG
-# tồn tại. Bản cũ khi đó rơi vào nhánh dự phòng dựng sẵn một vị thế ACB
-# +7,77% và bốn ô KPI bê từ ui_prototype.html — tức nhánh bịa là nhánh LUÔN
-# chạy trên cloud. Nay: không đọc được sổ thì nói "chưa có dữ liệu".
+# Bản cũ dựng bốn ô KPI và một vị thế ACB +7,77% bê từ ui_prototype.html (nhánh
+# bịa LUÔN chạy trên cloud). Nay: không đọc được sổ thì nói "chưa có dữ liệu".
+# Sổ THẬT là Google Sheets (BƯỚC 175, khối `so_lenh` bên dưới `_doc_so_ban_tin`).
 # Ngưỡng mua của app = ngưỡng của đường giao dịch ảo, NHẬP từ `paper_trading`
 # (`BUY_THRESHOLD`), chỉ đọc. Thanh trượt "Ngưỡng mua" (mặc định 50, đường thật
 # 62) đã gỡ ở BƯỚC 172 theo Q12: người dùng 09/10/2026 xác nhận nó không có tác
 # dụng, và phán quyết vào lệnh giao cho agent (lộ trình B6), không phải "cứ điểm
 # cao là mua". Gác: tests/test_no_fabricated_data.py::
 # test_app_nguong_mua_chi_doc_tu_paper_trading.
-
-_db_path = pathlib.Path(__file__).parent / "paper_trades.db"
-real_open_trades = []
-so_lenh_perf = None
-so_lenh_dong = 0
-if _db_path.exists():
-    try:
-        from paper_metrics import compute as _compute
-        from paper_trading import PaperTradingJournal as _PJ
-        _j = _PJ(str(_db_path), cho_phep_so_that=True)
-        _all = _j.all_trades()
-        _j.db.close()
-        real_open_trades = [t for t in _all
-                            if t.status in ("OPEN", "PENDING", "CLOSING")]
-        _dong = [t for t in _all if t.status == "CLOSED"]
-        so_lenh_dong = len(_dong)
-        so_lenh_perf = _compute(_dong)
-        so_lenh_loi = None
-    except Exception as _e:
-        so_lenh_loi = f"lỗi đọc sổ lệnh: {type(_e).__name__}: {_e}"
-else:
-    so_lenh_loi = "không tìm thấy paper_trades.db (bình thường trên Streamlit Cloud)"
 
 
 def _so(gia_tri, dinh_dang="{:,.2f}"):
@@ -512,6 +489,22 @@ def _doc_so_ban_tin():
     """
     import google_sheets_sync as _gss
     return _gss.load_so_ban_tin_from_google_sheets()
+
+
+# Sổ lệnh cho tab "Vị thế" và "Lịch sử giao dịch" (BƯỚC 175): CÙNG lần đọc (cùng
+# bộ nhớ đệm) với tab Bản tin, KHÔNG đường đọc Sheets thứ hai, KHÔNG rơi về
+# sổ ở máy. Kho chưa cấu hình -> `so_lenh_loi` nói thẳng, danh sách rỗng.
+from so_lenh_app import SoLenhApp as _SoLenhApp, dung_so_lenh as _dung_so_lenh
+try:
+    _so_lenh = _dung_so_lenh(_doc_so_ban_tin())
+    so_lenh_loi = _so_lenh.loi
+except Exception as _e:
+    _so_lenh = _SoLenhApp((), (), (), None, None)
+    so_lenh_loi = f"lỗi đọc sổ lệnh: {type(_e).__name__}: {_e}"
+real_open_trades = list(_so_lenh.vi_the_mo)
+so_lenh_perf = _so_lenh.hieu_qua
+so_lenh_dong = len(_so_lenh.lenh_dong)
+so_lenh_tat_ca = list(_so_lenh.tat_ca)
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
@@ -1761,10 +1754,12 @@ with t_pos:
 with t_hist:
     if so_lenh_perf:
         st.info(f"📜 {so_lenh_dong:,} lệnh đã đóng trong sổ lệnh giấy "
-                f"(`paper_trades.db`). Đây là sổ ghi tiến về phía trước, "
+                f"(Google Sheets). Đây là sổ ghi tiến về phía trước, "
                 f"không phải kết quả backtest.")
-    else:
+    elif so_lenh_loi:
         st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}")
+    else:
+        st.info(f"📜 {_so_lenh.ly_do_khong_co_thong_ke.capitalize()} (Google Sheets).")
 
     # ── NHẬT KÝ "VÌ SAO" (BƯỚC 141) ────────────────────────────────────
     st.markdown("##### 📓 Nhật ký \"vì sao\" của lệnh ảo")
@@ -2065,13 +2060,13 @@ with t_acct:
     # bê từ ui_prototype.html: 7.361 Tỷ · +636,11% · 1.787 lệnh · PF 1,43 ·
     # WR 61,2% · DD 19,4% — không con số nào tồn tại trong sổ lệnh.
     if so_lenh_perf is None:
-        st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}. "
+        st.warning(f"⚠️ Chưa có số liệu hiệu quả — {_so_lenh.ly_do_khong_co_thong_ke}. "
                    f"Không hiển thị số liệu hiệu quả.")
     else:
         _p = so_lenh_perf
         try:
             from paper_metrics import expectancy_significant
-            _sig = expectancy_significant([t for t in _all if t.status == "CLOSED"])
+            _sig = expectancy_significant(list(_so_lenh.lenh_dong))
         except Exception:
             _sig = None
 
@@ -2105,7 +2100,7 @@ with t_acct:
         # cách gọi "sổ lệnh thật" đẩy người đọc về phía hiểu sai.
         try:
             from paper_metrics import tom_tat_lo_ghi
-            _lo = tom_tat_lo_ghi(_all)
+            _lo = tom_tat_lo_ghi(so_lenh_tat_ca)
         except Exception:
             _lo = None
         if _lo and _lo["so_lo"]:
@@ -2131,7 +2126,7 @@ with t_acct:
                 f"{_p.avg_capital_deployed_pct:.0f}%). Lợi nhuận cộng dồn ở "
                 f"trên là của một tài khoản vay được, không phải tài khoản "
                 f"thật — xem NGUYEN-TAC-DO-LUONG.md, bất biến 7b.")
-        st.caption("Nguồn: paper_trades.db qua paper_metrics.compute(). "
+        st.caption("Nguồn: Google Sheets (tab trades) qua paper_metrics.compute(). "
                    "Sổ lệnh giấy — không phải giao dịch thật.")
 
 with t_bong:
