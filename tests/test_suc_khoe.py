@@ -489,6 +489,14 @@ def test_THAT_canh_cong_c5_thong_diep_that_di_qua_phep_phan(monkeypatch, capsys,
     import paper_trading as pt
     t = _nap_tool("canh_cong_c5")
     monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
+
+    def _thu_muc(ten):
+        # Windows KHOÁ tệp SQLite đang mở: canh_cong_c5.main() trả sớm mà không
+        # đóng sổ DB tạm, nên lượt gọi sau không xoá được tệp cũ (WinError 32;
+        # CI Linux không thấy). Mỗi lượt một thư mục tạm riêng (leader, 10/10).
+        d = tmp_path / ten
+        d.mkdir()
+        return str(d)
     monkeypatch.setattr(t, "ro_chuan", lambda trades: None)
 
     # (a) kho ngoài chưa cấu hình
@@ -505,17 +513,20 @@ def test_THAT_canh_cong_c5_thong_diep_that_di_qua_phep_phan(monkeypatch, capsys,
     monkeypatch.setattr(gs, "keo_so_co_thu_lai",
                         lambda *a, **kw: {"trades": 0, "decisions": 0})
     # (c) không đo được
+    monkeypatch.setattr(tempfile, "tempdir", _thu_muc("c"))
     monkeypatch.setattr(paper_metrics, "dieu_kien_dong_lai",
                         lambda *a, **kw: {"do_duoc": False, "ly_do": "thiếu lệnh"})
     ma, ra = _chay_main(t, capsys)
     assert ma == 1 and _phan("canh_cong_c5", ma, ra) == sk.CHUA_KIEM_DUOC
     # (d) điều kiện đạt mà cổng còn mở
+    monkeypatch.setattr(tempfile, "tempdir", _thu_muc("d"))
     monkeypatch.setattr(pt, "CHO_PHEP_MO_LENH_MOI", True)
     monkeypatch.setattr(paper_metrics, "dieu_kien_dong_lai",
                         lambda *a, **kw: {"do_duoc": True, "dat": True, "ly_do": "alpha < 0"})
     ma, ra = _chay_main(t, capsys)
     assert ma == 1 and _phan("canh_cong_c5", ma, ra) == sk.DO
     # (e) điều kiện chưa đạt, cổng mở: yên
+    monkeypatch.setattr(tempfile, "tempdir", _thu_muc("e"))
     monkeypatch.setattr(paper_metrics, "dieu_kien_dong_lai",
                         lambda *a, **kw: {"do_duoc": True, "dat": False, "ly_do": "chưa đủ mẫu"})
     ma, ra = _chay_main(t, capsys)
