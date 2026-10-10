@@ -503,6 +503,26 @@ def _doc_nhat_ky():
     return _gss.load_nhat_ky_from_google_sheets()
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _doc_so_ban_tin():
+    """`decisions` + `trades` + `nhat_ky` từ Google Sheets — CHỈ ĐỌC (BƯỚC 174).
+
+    Cho tab "Bản tin". `None` = kho ngoài chưa cấu hình. Sổ `.db` ở máy đứng yên
+    từ 20/08 nên KHÔNG phải nguồn của bản tin.
+    """
+    import google_sheets_sync as _gss
+    return _gss.load_so_ban_tin_from_google_sheets()
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def _vni_cho_ban_tin():
+    """Bảng VN-INDEX kèm MA50 của bộ lọc (`get_vni_df`: cache trên đĩa trước, mạng
+    khi cache rỗng). Có thể đứng sau phiên mới nhất — khi đó bản tin tự nói "chưa
+    có nến ngày D" thay vì dùng nến cũ."""
+    import market_filter as _mf
+    return _mf.get_vni_df()
+
+
 def _bang_nhat_ky(dong_nk):
     """Dòng nhật ký -> bảng hiện, qua `nhat_ky_vi_sao.dong_hien_thi`.
 
@@ -1581,9 +1601,10 @@ with col_debate:
 # 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
 num_open_positions = len(real_open_trades)
-t_pos, t_hist, t_rep, t_fund, t_pipe, t_acct, t_bong = st.tabs([
+t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
     f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
+    "📰 Bản tin",
     # Đổi tên 21/08/2026: ba thẻ bên trong không còn là ba phiên trong ngày.
     # Hai trong ba từng là chuỗi viết cứng ("Hold {mã}", "Doi SL Breakeven")
     # nên cái tên "3 phiên" mô tả một kế hoạch không tồn tại. Nay chúng đọc
@@ -1811,6 +1832,41 @@ with t_hist:
 
     # ── SỔ BÀI HỌC (BƯỚC 167) ──────────────────────────────────────────
     _khoi_so_bai_hoc(_nk, _nk_loi)
+
+with t_tin:
+    # BƯỚC 174 (B2). CHỈ ĐỌC: gom thị trường · việc agent đã làm · vì sao · học được
+    # gì của MỘT ngày phiên vào một trang. Dữ liệu từ Google Sheets, không từ
+    # paper_trades.db ở máy; mọi phép tính nằm ở `ban_tin` (hàm thuần).
+    st.markdown("##### 📰 Bản tin cuối ngày")
+    st.caption("Thị trường, việc agent đã làm trong ngày, vì sao, và bài học từ lệnh vừa "
+               "đóng — đọc từ sổ lệnh ẢO trên Google Sheets, làm mới mỗi 5 phút.")
+    try:
+        _sbt, _sbt_loi = _doc_so_ban_tin(), None
+    except Exception as _e:
+        _sbt, _sbt_loi = None, f"{type(_e).__name__}: {_e}"
+    if _sbt_loi:
+        st.warning(f"⚠️ Chưa đọc được sổ — {_sbt_loi}")
+    elif _sbt is None:
+        st.info("Kho ngoài (Google Sheets) chưa cấu hình — bản tin chỉ đọc từ kho ấy, "
+                "không có bản tin để hiện.")
+    else:
+        import datetime as _dtm
+        import ban_tin as _bantin
+        _ngay_gn = _bantin.ngay_gan_nhat(_sbt["quyet_dinh"])
+        if _ngay_gn is None:
+            st.info("Sổ chưa có quyết định nào — chưa có ngày để lập bản tin.")
+        else:
+            _ngay_bt = st.date_input("Ngày", value=_dtm.date.fromisoformat(_ngay_gn),
+                                     key="ban_tin_ngay")
+            try:
+                _bt = _bantin.lap_ban_tin(_sbt["quyet_dinh"], _sbt["lenh"], _sbt["nhat_ky"],
+                                          _vni_cho_ban_tin(), _ngay_bt.isoformat(),
+                                          BUY_THRESHOLD)
+            except Exception as _e:
+                _bt = None
+                st.warning(f"⚠️ Chưa lập được bản tin — {type(_e).__name__}: {_e}")
+            if _bt is not None:
+                st.markdown(_bantin.ban_tin_markdown(_bt))
 
 with t_rep:
     # BA THẺ NÀY TỪNG LÀ HAI CHUỖI VIẾT CỨNG (21/08/2026).
