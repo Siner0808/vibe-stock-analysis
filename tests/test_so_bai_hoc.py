@@ -724,7 +724,8 @@ def test_app_gia_tai_qua_MOT_ham_CO_DEM_va_khong_goi_load_trong_vong_lap_lenh():
     trong_ham = [n for n in ast.walk(f) if isinstance(n, ast.Call)
                  and getattr(n.func, "id", "") == "load_stock_data"]
     # 1 của phân tích mã + 1 trong hàm có đệm + 1 trong `_nen_ba_khung` (BƯỚC 171, có đệm qua load_stock_data)
-    assert len(trong_ham) == 1 and len(cho_goi) == 3
+    # + 1 trong `_nen_cho_su_kien_quyen` (BƯỚC 176, có đệm, chỉ chạy sau nút bấm; gác riêng ở tests/test_su_kien_quyen.py)
+    assert len(trong_ham) == 1 and len(cho_goi) == 4
     for ten in ("_khoi_so_bai_hoc", "_bang_bai_hoc", "_bang_dong_gop"):
         assert "load_stock_data" not in {getattr(c.func, "id", "") for c in ast.walk(_ham_app(ten))
                                          if isinstance(c, ast.Call)}, ten
