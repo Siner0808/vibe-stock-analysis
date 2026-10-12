@@ -125,7 +125,7 @@ là lỗi sẽ tái diễn.
 
 | 64 | **một ô giao diện hứa một VÙNG rồi in ra một ĐIỂM — và điểm ấy là dữ liệu thô.** `app.py` ghi *"Vùng giá mua đề xuất"* rồi in `latest_close_fmt`, tức **giá đóng cửa phiên gần nhất**, không qua một phép tính nào. Sinh **18/08/2026**, sống **28 ngày** — dài nhất bảng này. Chỗ trớ trêu: ngày **21/08**, ba ngày sau khi nó ra đời, dự án gỡ **hai ô khác** (`Pha C — Wyckoff Spring`, `Fundamental Agent · BCTC Q2`) vì đúng lý do *"hứa một thành phần không tồn tại"* — lượt dọn ấy sửa hai ca và **không quét cả lớp**, đúng thứ `docs/HANDOFF.md` ràng buộc 5 cấm | **người dùng gửi ảnh chụp màn hình** | ⚠️ một phần | ô ấy nay lấy số từ `muc_fibonacci.doc_muc()` — một vùng thật, hoặc một dấu gạch kèm lý do. `tests/test_muc_fibonacci.py::test_O_VUNG_MUA_tren_APP_khong_duoc_quay_ve_GIA_DONG_CUA` chặn đúng ca này quay lại, và **chỉ ca này**: câu *"nhãn nào hứa quá"* nói chung không đọc được từ văn bản. Lớp vẫn hở |
 
-**Bảy mươi bảy trên một trăm ba mươi chín máy chặn được.** Lỗi 4 hoá ra không phải lỗi
+**Tám mươi trên một trăm bốn mươi hai máy chặn được.** Lỗi 4 hoá ra không phải lỗi
 thao tác mà là một LUẬT SAI (mục dưới). Năm cái còn lại — 6, 8, 9, 13, 14 —
 là kỷ luật đọc và kỷ luật số; chúng thành Quy tắc số 2, Bước 1, Bước 4,
 `cong-thuc-chay.md` và file rules toàn cục.
