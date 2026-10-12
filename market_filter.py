@@ -27,6 +27,7 @@ import pandas as pd
 
 import lich_giao_dich as _lgd
 from backtest import data as _btd
+from data_quality import now_vn
 
 MA_WINDOW = 50
 #: Ô C1 — cache VN-INDEX trễ quá bao nhiêu phiên thì coi là KHÔNG CÓ dữ liệu.
@@ -196,9 +197,14 @@ def get_vni_df():
             source = "mạng"
             if df is not None and not df.empty:
                 try:
-                    _btd.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-                    df.to_csv(_btd.cache_path("VNINDEX"), index=False)
-                    source = "mạng (đã ghi cache)"
+                    # BƯỚC 180: nến chưa đóng không vào cache (cùng luật
+                    # với backtest.data). Chỉ bản GHI bị cắt; `df` trả về
+                    # cho người gọi giữ nguyên như trước.
+                    df_ghi = _btd.bo_nen_dang_do(df, now_vn())
+                    if len(df_ghi):
+                        _btd.CACHE_DIR.mkdir(parents=True, exist_ok=True)
+                        df_ghi.to_csv(_btd.cache_path("VNINDEX"), index=False)
+                        source = "mạng (đã ghi cache)"
                 except Exception:
                     pass
 
