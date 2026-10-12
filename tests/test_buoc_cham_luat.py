@@ -151,6 +151,151 @@ def test_DIEM_TACH_khong_phai_dau_nhanh_goc__sua_luat_cua_main_khong_tinh_cho_PR
     assert not cham and "CLAUDE.md" not in files, files
 
 
+# ── hình dạng 4: nhánh PR đã GỘP `main` vào (BƯỚC 181) ────────────────────
+
+STATE_NEN = "# So\n" + "\n".join(f"dong dem {i}" for i in range(6)) + "\n" \
+    + _tieu_de(163, "truoc moc")
+
+
+@pytest.fixture
+def su_co(tmp_path):
+    """Dựng đúng hình dạng sự cố 12/10/2026 (PR #224) trên repo tạm.
+
+    `main`: gốc R, rồi A đưa `## BƯỚC 1 ` vào cuối STATE và đổi `docs/x.md`.
+    `pr`: tách TRƯỚC A; commit B đưa `## BƯỚC 2 ` vào ĐẦU STATE (cách xa chỗ A
+    thêm nên gộp không xung đột) và đổi `CLAUDE.md` — một file LUẬT.
+    HEAD đứng ở `pr`, chưa gộp gì. Trả (repo, neo, hash_A, hash_B)."""
+    repo = tmp_path / "su-co"
+    repo.mkdir()
+    _git(repo, "init", "-q", "-b", "main")
+    _ghi(repo, STATE, STATE_NEN)
+    _ghi(repo, "CLAUDE.md", "luat 1\n")
+    _ghi(repo, "docs/x.md", "x\n")
+    neo = _cam(repo, "goc")
+    _git(repo, "checkout", "-q", "-b", "pr")
+    p = repo / STATE
+    p.write_text(p.read_text(encoding="utf-8").replace(
+        "# So\n", "# So\n" + _tieu_de(2, "buoc cua PR"), 1), encoding="utf-8", newline="\n")
+    _ghi(repo, "CLAUDE.md", "luat 1\nluat doi boi PR\n")
+    hash_b = _cam(repo, "B: BUOC 2 + doi file luat")
+    _git(repo, "checkout", "-q", "main")
+    _ghi(repo, STATE, _tieu_de(1, "buoc cua main"), them=True)
+    _ghi(repo, "docs/x.md", "x\nmain doi\n")
+    hash_a = _cam(repo, "A: BUOC 1, chi dong file thuong")
+    _git(repo, "checkout", "-q", "pr")
+    return repo, neo, hash_a, hash_b
+
+
+FILE_CUA_A = [STATE, "docs/x.md"]
+
+
+def test_GOP_MAIN_vao_PR__BUOC_cua_main_khong_bi_quy_cho_file_luat_cua_PR(su_co):
+    """CA GỐC của BƯỚC 181. Sau `git merge main` vào nhánh PR, commit gộp (cha đầu =
+    nhánh PR) là commit CŨ NHẤT trên đường cha-đầu của HEAD mà diff có `## BƯỚC 1 `
+    — nó không phải tổ tiên của `main`, nên mã cũ rơi xuống nhánh "CHƯA vào gốc" và
+    quy cho BƯỚC 1 mọi file của PR, gồm CLAUDE.md (đỏ GIẢ). BƯỚC 1 đã vào `main` ở
+    commit A: phải phán bằng A."""
+    repo, neo, hash_a, _ = su_co
+    _git(repo, "merge", "-q", "--no-ff", "-m", "gop main vao pr", "main")
+    cha = _git(repo, "rev-list", "--parents", "-n", "1", "HEAD").split()
+    assert len(cha) == 3, "gia dinh cua test: HEAD phai la commit GOP"
+    cham, files, nguon = b.buoc_cham_luat(repo, 1, neo=neo)
+    assert not cham and files == [], (files, nguon)
+    assert sorted(b.file_cua_buoc(repo, 1, neo=neo)[0]) == FILE_CUA_A
+    assert "da vao" in nguon and hash_a[:7] in nguon, nguon
+
+
+def test_GOP_MAIN_vao_PR__khong_neo_van_tim_tren_NHANH_GOC_khong_tren_HEAD(su_co):
+    """Không `neo` (BƯỚC trước `TU_BUOC`) thì khoảng tìm chỉ còn là ref: ref phải là
+    nhánh gốc, không rơi về HEAD ngầm định của `git log`."""
+    repo, _, hash_a, _ = su_co
+    _git(repo, "merge", "-q", "--no-ff", "-m", "gop main vao pr", "main")
+    assert b.commit_dua_buoc_vao(repo, 1, tren="main") == hash_a
+    cham, files, nguon = b.buoc_cham_luat(repo, 1)
+    assert not cham and files == [], (files, nguon)
+    assert sorted(b.file_cua_buoc(repo, 1)[0]) == FILE_CUA_A
+
+
+def test_DONG_LENH_tren_nhanh_PR_da_gop_main__BUOC_cua_main_ra_KHONG_cham(su_co, monkeypatch,
+                                                                       capsys):
+    """Đi qua `main()` (đường người dùng gọi) chứ không chỉ hàm thư viện."""
+    repo, _, _, _ = su_co
+    _git(repo, "merge", "-q", "--no-ff", "-m", "gop main vao pr", "main")
+    monkeypatch.setattr(b, "GOC", repo)
+    assert b.main(["1", "2"]) == 0
+    ra = capsys.readouterr().out
+    assert "BƯỚC 1: khong cham luat" in ra and "BƯỚC 2: CHAM LUAT ['CLAUDE.md']" in ra, ra
+
+
+def test_GOP_MAIN_vao_PR__BUOC_cua_PR_van_thay_file_luat(su_co):
+    """Không được "chữa" bằng cách làm mù BƯỚC chưa vào gốc: BƯỚC 2 chỉ có trên PR,
+    và PR sửa CLAUDE.md — phải CHẠM, nguồn là nhánh "CHƯA vào"."""
+    repo, neo, _, _ = su_co
+    _git(repo, "merge", "-q", "--no-ff", "-m", "gop main vao pr", "main")
+    cham, files, nguon = b.buoc_cham_luat(repo, 2, neo=neo)
+    assert cham and files == ["CLAUDE.md"], (files, nguon)
+    assert "CHUA vao" in nguon
+    assert sorted(b.file_cua_buoc(repo, 2, neo=neo)[0]) == ["CLAUDE.md", STATE]
+
+
+def test_REBASE_thay_vi_gop__ket_qua_nhu_gop(su_co):
+    repo, neo, hash_a, _ = su_co
+    _git(repo, "rebase", "-q", "main")
+    cha = _git(repo, "rev-list", "--parents", "-n", "1", "HEAD").split()
+    assert len(cha) == 2, "gia dinh cua test: rebase khong de commit gop"
+    cham, files, nguon = b.buoc_cham_luat(repo, 1, neo=neo)
+    assert not cham and files == [], (files, nguon)
+    assert sorted(b.file_cua_buoc(repo, 1, neo=neo)[0]) == FILE_CUA_A
+    assert hash_a[:7] in nguon, nguon
+    cham2, files2, nguon2 = b.buoc_cham_luat(repo, 2, neo=neo)
+    assert cham2 and files2 == ["CLAUDE.md"] and "CHUA vao" in nguon2, (files2, nguon2)
+
+
+def test_MERGE_REF_cua_CI__cha_dau_la_main_cha_hai_la_PR(su_co):
+    """CI checkout merge-ref của `pull_request`: HEAD tách rời, cha đầu = `main`,
+    cha hai = đầu PR. BƯỚC của main phải ra file của A; BƯỚC của PR phải chạm luật."""
+    repo, neo, hash_a, _ = su_co
+    _git(repo, "checkout", "-q", "--detach", "main")
+    _git(repo, "merge", "-q", "--no-ff", "-m", "merge-ref", "pr")
+    cha = _git(repo, "rev-list", "--parents", "-n", "1", "HEAD").split()
+    assert cha[1] == _git(repo, "rev-parse", "main").strip(), "cha dau phai la main"
+    cham, files, nguon = b.buoc_cham_luat(repo, 1, neo=neo)
+    assert not cham and files == [], (files, nguon)
+    assert sorted(b.file_cua_buoc(repo, 1, neo=neo)[0]) == FILE_CUA_A
+    cham2, files2, nguon2 = b.buoc_cham_luat(repo, 2, neo=neo)
+    assert cham2 and "CLAUDE.md" in files2 and "CHUA vao" in nguon2, (files2, nguon2)
+
+
+def test_GOP_MAIN_vao_PR__tieu_de_sua_o_commit_sau_tren_main_van_lay_commit_CU_NHAT(su_co):
+    """BƯỚC 1 được sửa tiêu đề ở một commit A2 SAU trên `main` (A2 cũng đổi
+    `docs/y.md`). Trên nhánh đã gộp, commit gộp, A2 và A đều khớp `-G`; phải lấy A."""
+    repo, neo, hash_a, _ = su_co
+    _git(repo, "checkout", "-q", "main")
+    p = repo / STATE
+    p.write_text(p.read_text(encoding="utf-8").replace("buoc cua main", "sua tieu de"),
+                 encoding="utf-8", newline="\n")
+    _ghi(repo, "docs/y.md", "y\n")
+    _cam(repo, "A2: sua tieu de BUOC 1")
+    _git(repo, "checkout", "-q", "pr")
+    _git(repo, "merge", "-q", "--no-ff", "-m", "gop main vao pr", "main")
+    assert b.commit_dua_buoc_vao(repo, 1, neo=neo, tren="main") == hash_a
+    cham, files, nguon = b.buoc_cham_luat(repo, 1, neo=neo)
+    assert not cham and files == [], (files, nguon)
+    assert sorted(b.file_cua_buoc(repo, 1, neo=neo)[0]) == FILE_CUA_A, nguon
+
+
+def test_NEO_phai_la_to_tien_cua_NHANH_GOC_dang_tim_khong_chi_cua_HEAD(su_co):
+    """Tìm trên `main` mà neo chỉ là tổ tiên của HEAD (một commit riêng của PR) thì
+    khoảng `neo..main` rỗng nghĩa — phải NỔ, không im lặng trả None."""
+    repo, _, _, _ = su_co
+    _ghi(repo, "docs/z.md", "z\n")
+    chi_pr = _cam(repo, "commit chi co tren pr")
+    with pytest.raises(b.LoiLichSu, match="neo"):
+        b.file_cua_buoc(repo, 1, neo=chi_pr)
+    with pytest.raises(b.LoiLichSu, match="neo"):
+        b.commit_dua_buoc_vao(repo, 1, neo=chi_pr, tren="main")
+
+
 # ── tìm tiêu đề ───────────────────────────────────────────────────────────
 
 def test_BUOC_16_khong_khop_BUOC_164_va_tieu_de_cap_ba_khong_tinh(kho):
