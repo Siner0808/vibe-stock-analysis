@@ -2675,6 +2675,116 @@
       "ngay": "2026-10-10",
       "khong_bat_buoc_vi": "BƯỚC thêm module chỉ-đọc suc_khoe.py, công cụ tools/suc_khoe.py, tab Sức khoẻ trong app.py, gác tests/test_suc_khoe.py, ba dòng lỗi 156-158 ở bảng lỗi và docs/loi-phan-lop.json, mốc docs/moc_so_test.json và mục BƯỚC 177 ở docs/STATE.md; chỉ GỌI các công cụ kiểm đã có chứ không sửa chúng. Không sửa CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md hay LO-TRINH.md, không đổi điểm, ngưỡng, cờ, cổng, workflow hay lược đồ Sheets, và không có kết luận đo mới (mọi con số trong STATE là số phép kiểm, số test, số đột biến và trạng thái một lượt chạy)."
     },
+    "BƯỚC 178": {
+      "ngay": "2026-10-10",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 10/10/2026, 'Gemini Notebook'): LO-TRINH.md và STATE.md @68910cd đã cũ — THÊM TRƯỚC 2 URL raw.githubusercontent.com ghim 8d302e3c8db0f951c9e87501ba4eb43026d46eae (main lúc hỏi) cho docs/LO-TRINH.md và docs/STATE.md, XOÁ SAU đúng 2 bản @68910cd (đọc nhãn hộp xác nhận 'Xoá LO-TRINH.md @68910cd?' / 'Xoá STATE.md @68910cd?'). Hai nguồn mới mang tên URL (chưa đổi tên). Nguồn luật đo kiểm bằng git diff --quiet <ghim> origin/main: CLAUDE.md @b4088b2, NGUYEN-TAC-DO-LUONG.md @13c32a0, MO-XE-KIEN-TRUC.md @13c32a0, docs/TIEU-CHI-DOC-TRUOC.md @13c32a0, SKILL.md @e00fbbe đều TƯƠI. Sổ còn 15 nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 178 into docs/STATE.md: (A) a new pre-registered exploratory measurement ĐO 25 for the B6 entry plan (module ke_hoach_vao_lenh, display only, merged in BƯỚC 173) is written into docs/TIEU-CHI-DOC-TRUOC.md in its own commit BEFORE any measuring tool exists; (B) it compares, for EVERY unique signal (ticker, day t) whose score is at least the buy threshold 62, regardless of the ledger's own gates (VN-INDEX above MA50, data quality, open position, capital cap), two entry policies over the SAME fixed 20-session horizon: the current path (buy at the next session's open) versus the B6 verdict (buy now at the next open, a limit order at the top of the waiting zone valid 5 sessions that fills only when the session low trades at least one price tick BELOW the limit, or skip); a skipped or missed signal counts as a zero return, so the policy is penalized for winners it misses; (C) prices come from ONE pull only (backtest/cache, as ĐO 24 recommends), the B6 constants are frozen at the merged commit and may not be tuned after seeing results (invariant 7), the 95% interval uses a block bootstrap by signal date, and fewer than 113 unique signals (N_TOI_THIEU) means no conclusion; (D) three outcomes are signed in advance: A promising if the lower bound of the 95% interval of the mean per-signal difference is above zero, which only opens the way to declare candidate UV-002 for a shadow run C7 no earlier than November 2026 and never changes the live path by itself; B indistinguishable if the interval contains zero, B6 stays display only; C worse if the upper bound is below zero, B6 is shown with a label saying it measured worse; (E) a mean difference above +2 percentage points per signal must be treated as a probable bug first (rule 1). Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that a measurement must use the ledger's exit rules rather than a fixed horizon, a statement that every measurement must count only filled trades, or must apply the ledger's gates to its population, a statement that N_TOI_THIEU or the stop condition thresholds apply only to the live ledger and may not be reused as a minimum sample for an exploratory measurement, a statement that an exploratory measurement may not be declared before the tier-3 confirmation loop or that only one candidate per month may be measured, a statement that backtest/cache must not be used, or that two caches must be combined. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md, '### 6. Đối chiếu chuẩn là phép đo quyết định': 'Phép so đúng là **alpha khớp từng lệnh**: mỗi lệnh so với việc cầm đều cả rổ trong đúng khoảng thời gian lệnh đó nắm giữ'. Câu hỏi khai thống kê chính là chênh LỢI NHUẬN THÔ mỗi tín hiệu — khi bỏ qua/lỡ tính 0 thì chênh thô phạt cả phần beta của thị trường.",
+          "tu_kiem": "sed -n 70,77p NGUYEN-TAC-DO-LUONG.md -> đúng câu trên; paper_metrics.vs_benchmark(trades, benchmark_return_by_period) là hàm thi hành bất biến 6.",
+          "phan_quyet": "THẬT — sổ tay bỏ sót. ĐO 25 sửa trước khi ký: thống kê CHÍNH = chênh ALPHA mỗi tín hiệu (alpha = lợi nhuận − lợi nhuận chuẩn cùng khoảng giữ, theo đúng định nghĩa của vs_benchmark; tín hiệu bỏ/lỡ có alpha 0 vì không nắm giữ); chênh thô chỉ báo kèm."
+        },
+        {
+          "noi_dung": "CLAUDE.md, '## Chi phí thực thi — mọi số cũ phải trừ hao': ma sát hai tầng (tầng 1 phí 0,46% luôn bật; tầng 2 trượt giá `truot_gia`). Câu hỏi không nói chi phí áp thế nào cho hai chính sách; áp trượt giá cho lệnh mua-ngay mà không cho lệnh giới hạn sẽ làm B6 đẹp lên một cách có hệ thống (Quy tắc 1).",
+          "tu_kiem": "grep -n 'Ma sát có \\*\\*hai tầng\\*\\*' CLAUDE.md -> có; NGUYEN-TAC bất biến 3 (giả định bất lợi).",
+          "phan_quyet": "THẬT (thiếu sót của câu khai, không phải câu nói ngược). ĐO 25 ghi rõ: cả hai chính sách chịu CÙNG chi phí vòng ROUND_TRIP_COST_PCT, KHÔNG mô phỏng trượt giá cho bên nào."
+        }
+      ]
+    },
+    "ĐO 25": {
+      "ngay": "2026-10-10",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "CUNG luot hoi voi BƯỚC 178 (mot cau, mot lan gui): noi dung duoc soat la tieu chi ĐO 25 truoc khi ky (commit 1 cua BƯỚC 178). Gac tests/test_soat_notebooklm.py::test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so doi mot dong KEY 'ĐO 25' rieng; tien le: ĐO 24 va BƯỚC 159. Do tuoi cua luot hoi do leader lam, noi nguyen van o muc BƯỚC 178: ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 10/10/2026, 'Gemini Notebook'): LO-TRINH.md và STATE.md @68910cd đã cũ — THÊM TRƯỚC 2 URL raw.githubusercontent.com ghim 8d302e3c8db0f951c9e87501ba4eb43026d46eae (main lúc hỏi) cho docs/LO-TRINH.md và docs/STATE.md, XOÁ SAU đúng 2 bản @68910cd (đọc nhãn hộp xác nhận 'Xoá LO-TRINH.md @68910cd?' / 'Xoá STATE.md @68910cd?'). Hai nguồn mới mang tên URL (chưa đổi tên). Nguồn luật đo kiểm bằng git diff --quiet <ghim> origin/main: CLAUDE.md @b4088b2, NGUYEN-TAC-DO-LUONG.md @13c32a0, MO-XE-KIEN-TRUC.md @13c32a0, docs/TIEU-CHI-DOC-TRUOC.md @13c32a0, SKILL.md @e00fbbe đều TƯƠI. Sổ còn 15 nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 178 into docs/STATE.md: (A) a new pre-registered exploratory measurement ĐO 25 for the B6 entry plan (module ke_hoach_vao_lenh, display only, merged in BƯỚC 173) is written into docs/TIEU-CHI-DOC-TRUOC.md in its own commit BEFORE any measuring tool exists; (B) it compares, for EVERY unique signal (ticker, day t) whose score is at least the buy threshold 62, regardless of the ledger's own gates (VN-INDEX above MA50, data quality, open position, capital cap), two entry policies over the SAME fixed 20-session horizon: the current path (buy at the next session's open) versus the B6 verdict (buy now at the next open, a limit order at the top of the waiting zone valid 5 sessions that fills only when the session low trades at least one price tick BELOW the limit, or skip); a skipped or missed signal counts as a zero return, so the policy is penalized for winners it misses; (C) prices come from ONE pull only (backtest/cache, as ĐO 24 recommends), the B6 constants are frozen at the merged commit and may not be tuned after seeing results (invariant 7), the 95% interval uses a block bootstrap by signal date, and fewer than 113 unique signals (N_TOI_THIEU) means no conclusion; (D) three outcomes are signed in advance: A promising if the lower bound of the 95% interval of the mean per-signal difference is above zero, which only opens the way to declare candidate UV-002 for a shadow run C7 no earlier than November 2026 and never changes the live path by itself; B indistinguishable if the interval contains zero, B6 stays display only; C worse if the upper bound is below zero, B6 is shown with a label saying it measured worse; (E) a mean difference above +2 percentage points per signal must be treated as a probable bug first (rule 1). Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that a measurement must use the ledger's exit rules rather than a fixed horizon, a statement that every measurement must count only filled trades, or must apply the ledger's gates to its population, a statement that N_TOI_THIEU or the stop condition thresholds apply only to the live ledger and may not be reused as a minimum sample for an exploratory measurement, a statement that an exploratory measurement may not be declared before the tier-3 confirmation loop or that only one candidate per month may be measured, a statement that backtest/cache must not be used, or that two caches must be combined. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md, '### 6. Đối chiếu chuẩn là phép đo quyết định': 'Phép so đúng là **alpha khớp từng lệnh**: mỗi lệnh so với việc cầm đều cả rổ trong đúng khoảng thời gian lệnh đó nắm giữ'. Câu hỏi khai thống kê chính là chênh LỢI NHUẬN THÔ mỗi tín hiệu — khi bỏ qua/lỡ tính 0 thì chênh thô phạt cả phần beta của thị trường.",
+          "tu_kiem": "sed -n 70,77p NGUYEN-TAC-DO-LUONG.md -> đúng câu trên; paper_metrics.vs_benchmark(trades, benchmark_return_by_period) là hàm thi hành bất biến 6.",
+          "phan_quyet": "THẬT — sổ tay bỏ sót. ĐO 25 sửa trước khi ký: thống kê CHÍNH = chênh ALPHA mỗi tín hiệu (alpha = lợi nhuận − lợi nhuận chuẩn cùng khoảng giữ, theo đúng định nghĩa của vs_benchmark; tín hiệu bỏ/lỡ có alpha 0 vì không nắm giữ); chênh thô chỉ báo kèm."
+        },
+        {
+          "noi_dung": "CLAUDE.md, '## Chi phí thực thi — mọi số cũ phải trừ hao': ma sát hai tầng (tầng 1 phí 0,46% luôn bật; tầng 2 trượt giá `truot_gia`). Câu hỏi không nói chi phí áp thế nào cho hai chính sách; áp trượt giá cho lệnh mua-ngay mà không cho lệnh giới hạn sẽ làm B6 đẹp lên một cách có hệ thống (Quy tắc 1).",
+          "tu_kiem": "grep -n 'Ma sát có \\*\\*hai tầng\\*\\*' CLAUDE.md -> có; NGUYEN-TAC bất biến 3 (giả định bất lợi).",
+          "phan_quyet": "THẬT (thiếu sót của câu khai, không phải câu nói ngược). ĐO 25 ghi rõ: cả hai chính sách chịu CÙNG chi phí vòng ROUND_TRIP_COST_PCT, KHÔNG mô phỏng trượt giá cho bên nào."
+        }
+      ]
+    },
+    "BƯỚC 179": {
+      "ngay": "2026-10-12",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 12/10/2026, 'Gemini Notebook'): THÊM TRƯỚC 3 URL raw.githubusercontent.com ghim f40400987d6ad8ca76119ec10bbee2068671160e (cây của commit gộp PR #226, nay là main 7138f02) cho docs/STATE.md, docs/TIEU-CHI-DOC-TRUOC.md, docs/QUYET-DINH-CHO.md; XOÁ SAU đúng 3 bản cũ, đọc nhãn hộp xác nhận 'Xoá docs/TIEU-CHI-DOC-TRUOC.md @13c32a0?' · 'Xoá QUYET-DINH-CHO.md @b4088b2?' · 'Xoá https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/8d302e3c8db0f951c9e87501ba4eb43026d46eae/docs/STATE.md?'. Đo độ tươi: hỏi số BƯỚC lớn nhất trong các nguồn -> sổ trả 178 ở docs/STATE.md @f404009, khớp grep '^## BƯỚC 178 ' trên main lúc hỏi. LO-TRINH @8d302e3 và CLAUDE.md @b4088b2 không đổi tới f404009 (git log trống). Sổ còn 15 nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 179 into docs/STATE.md: ĐO 25 was run on 12/10/2026 exactly as signed in docs/TIEU-CHI-DOC-TRUOC.md (one pull of backtest/cache, 125 files, sha256 acf6dca1..., ke_hoach_vao_lenh.py identical to d44cc87, 44 memory patterns, theo ngay, lag 1): N = 1955 unique signals over 386 days, mean delta alpha (B6 plan minus buying every signal at the next open) = +0.21 percentage points per signal, 95% CI [-0.16 ; +0.57] by day-block bootstrap, all three instrument controls passed; therefore the signed outcome is B (cannot be distinguished): B6 stays display-only, the app now says 'đã đo (ĐO 25), chưa phân biệt được', no UV-002 candidate is declared for C7 on the basis of ĐO 25, and docs/LO-TRINH.md marks B2 (BƯỚC 174), B4 (BƯỚC 177) and B6 part 1 (BƯỚC 173) as built. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: A — triển vọng: cận DƯỚI KTC > 0, Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO, B6 chưa dựng. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay trả nguyên văn 'không tìm thấy câu nào nói ngược'. Leader grep lại (câu âm phải kiểm): docs/HANDOFF.md mục '## 5. VIỆC ĐANG TREO', dòng Q12 (BƯỚC 172): 'phán quyết vào lệnh giao cho agent — mốc **B6** · **C7** ở `docs/LO-TRINH.md` (B6 chưa dựng).' — sai từ BƯỚC 173 và càng sai khi BƯỚC 179 ghi B6 đã dựng.",
+          "tu_kiem": "grep -n 'B6 chưa dựng' docs/HANDOFF.md -> dòng 314. Nguồn HANDOFF của sổ là bản @e9a6d0c, cũ hơn câu ấy, nên sổ không thể thấy nó.",
+          "phan_quyet": "THẬT — sổ tay không thấy vì nguồn cũ. BƯỚC 179 giữ câu (sử liệu của BƯỚC 172) và thêm dấu '⚠️ HẾT ĐÚNG: B6 phần 1 dựng ở BƯỚC 173 …; ĐO 25 ra kết cục B ở BƯỚC 179'."
+        },
+        {
+          "noi_dung": "app.py, chú thích bảng kế hoạch B6: 'Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO.' — sai khi ĐO 25 đã chạy; kết cục B ký trước đòi app ghi 'đã đo (ĐO 25), chưa phân biệt được'.",
+          "tu_kiem": "grep -n 'CHƯA ĐO' app.py -> dòng 1226 (chú thích mã) và 1778 (chuỗi hiển thị). Sổ tay không đọc mã nên không thể thấy.",
+          "phan_quyet": "THẬT — sửa trong BƯỚC 179: chú thích mới 'CHỈ ĐỂ HIỆN — đã đo (ĐO 25), chưa phân biệt được …'; gác test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong đòi câu mới và cấm câu cũ (hai đột biến đỏ)."
+        },
+        {
+          "noi_dung": "ke_hoach_vao_lenh.py, docstring: 'Phán quyết CHƯA ĐO.' và 'MỌI HẰNG SỐ DƯỚI ĐÂY LÀ \"ĐỀ XUẤT, CHƯA ĐO\"'.",
+          "tu_kiem": "grep -n 'CHƯA ĐO' ke_hoach_vao_lenh.py -> dòng 36, 54, 98. tools/do25_ke_hoach_vao_lenh.py::kiem_ma_ke_hoach đòi tệp khớp d44cc87 (git diff --quiet), lệch thì DỪNG.",
+          "phan_quyet": "THẬT nhưng CỐ Ý GIỮ — sửa một chữ là lượt tái lập ĐO 25 sau DỪNG ở M0; từng hằng số vẫn đúng là chưa đo riêng. Khai trong STATE BƯỚC 179, mục 'Câu cố ý KHÔNG sửa'."
+        }
+      ]
+    },
     "BƯỚC 181": {
       "ngay": "2026-10-12",
       "khong_bat_buoc_vi": "Chỉ đổi CÁCH TÌM commit của tools/buoc_cham_luat.py (tìm trên nhánh gốc thay vì HEAD) cùng test và bảng lỗi 166; không sửa file luật nào, không đổi Quy tắc 3, FILE_LUAT hay kết luận đo; tools/buoc_cham_luat.py xác nhận không chạm luật."
