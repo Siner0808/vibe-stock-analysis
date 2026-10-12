@@ -95,7 +95,7 @@ if __name__ == "__main__":
         f()
 
 
-def test_mo_phong_bao_alpha_va_trang_thai_bo_nho():
+def test_mo_phong_bao_alpha_va_trang_thai_bo_nho(monkeypatch):
     """`_mo_phong` phải trả về ALPHA và tình trạng bộ nhớ, không chỉ lãi/lỗ.
 
     Trước 21/08/2026 nó chỉ trả kỳ vọng, win rate và lợi nhuận cộng dồn —
@@ -109,6 +109,13 @@ def test_mo_phong_bao_alpha_va_trang_thai_bo_nho():
     nhãn tự nói ra khi chưa đo được.
     """
     import os
+
+    import market_filter
+    # BƯỚC 184: `_mo_phong` -> `consider_entry` hỏi bộ lọc VN-INDEX. Dữ liệu giả
+    # ở đây là năm 2024; hỏi hàm THẬT thì kết quả theo cache ở máy (hoặc tải mạng,
+    # ghi VNINDEX.csv, khi chạy riêng file trên CI). Ghim `True`, đúng giá trị test
+    # nhận khi chạy cả bộ (phần vá mức module của test_sheets_store).
+    monkeypatch.setattr(market_filter, "is_vni_bullish", lambda *a, **k: True)
 
     du_lieu = {"AAA": _df("2024-01-01", "2024-05-01"),
                "BBB": _df("2024-01-01", "2024-05-01")}

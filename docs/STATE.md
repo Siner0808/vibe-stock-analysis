@@ -22489,3 +22489,65 @@ Phiên đám mây (nhánh `sua/loai-su-kien-quyen-khoi-dieu-kien-dung`, từ `ma
 **Leader kiểm ở máy (12/10/2026, mã của PR #229 `f88e358`, sổ thật trên Sheets, CHỈ ĐỌC).** Chạy từ repo chính với `PYTHONPATH` trỏ worktree của nhánh — worktree không có `.streamlit/secrets.toml` nên tự nó không đọc được Sheets.
 1. `python tools/canh_cong_c5.py` → mã thoát 0; câu điều kiện dừng kết thúc bằng *"1 lệnh LOẠI vì sự kiện quyền trong lúc giữ: #122"* — đúng HDB #122, lệnh tiến-về-trước có lỗ giả −23,18% (BƯỚC 176).
 2. `python tools/soi_su_kien_quyen.py` → `SU_KIEN_TRONG_LUC_GIU`: BID #19 (lệnh thời mô phỏng, KHÔNG thuộc nhóm tiến-về-trước nên không bị loại) và HDB #122; `LECH_KHAC`: SSI #100, VPB #110 (ở lại mẫu). Dòng tổng của dụng cụ: *"ĐIỀU KIỆN DỪNG LOẠI KHỎI MẪU (tiến-về-trước, đã đóng, SU_KIEN_TRONG_LUC_GIU): 1 lệnh: #122"* — cùng một danh sách với (1).
+
+## BƯỚC 184 — TEST CHẠY RIÊNG TỪNG FILE KHÔNG ĐƯỢC ĐỌC/GHI VN-INDEX THẬT (12/10/2026)
+
+**Mốc:** quy-trinh — test không kín khi chạy riêng từng file (cổng 4, CI)
+
+Phiên đám mây (nhánh `sua/test-kin-vnindex`, từ `main` `455a6c7`; Python 3.13, không `.venv`, không `vnstock`). **Chỉ sửa test và `tests/conftest.py`**: không chạm mã sản phẩm (`market_filter.py`, `paper_trading.py`, `walkforward.py`), ngưỡng, điểm, workflow, và không file luật nào. BƯỚC 183 (phiên khác) có thể vào `main` trong lúc này; mục này chỉ THÊM ở cuối `docs/STATE.md`.
+
+**Sự cố (leader đo 12/10/2026, `main` `455a6c7`).** Một ống nghe pytest bọc `market_filter.get_vni_df` (ghi nodeid mỗi lần hàm THẬT chạy) cho: chạy CẢ BỘ ⇒ chỉ test cố ý; chạy RIÊNG TỪNG FILE (cổng 4, cũng chạy trên CI) ⇒ thêm hai test chạm hàm thật — `tests/test_chuong_bai_hoc.py::test_CHUONG_khong_co_lenh_nao_tu_moc_thi_XANH_va_noi_ro` (1 lượt gọi) và `tests/test_walkforward.py::test_mo_phong_bao_alpha_va_trang_thai_bo_nho` (4 lượt). Cả hai đi `consider_entry` → `market_filter.is_vni_bullish` → `get_vni_df()`. Cache có sẵn thì kết quả theo dữ liệu ở máy; cache rỗng (CI) thì tải mạng rồi GHI `backtest/cache/VNINDEX.csv` (khối "BƯỚC 180: nến chưa đóng không vào cache" của `market_filter.get_vni_df`).
+
+**Gốc.** `tests/test_sheets_store.py` dòng 31/34 vá `paper_trading.CHO_PHEP_MO_LENH_MOI` và `market_filter.is_vni_bullish` ở MỨC MODULE. Chạy cả bộ thì phần vá phủ lên mọi file nạp sau; chạy riêng thì không. Hai test trên không bao giờ tự vá `is_vni_bullish`, nên hành vi của chúng đổi theo CÁCH CHẠY — và vì cả hai đều xanh trong cả hai cách, cổng 4 (chỉ so XANH/ĐỎ) không thấy (lỗi 174).
+
+**Đo lại TRƯỚC khi sửa (đám mây, cache rỗng, `main` `455a6c7`; ống nghe của leader nguyên văn, cắm bằng `PYTEST_ADDOPTS="-p vet_vni"`, `PYTHONPATH` trỏ thư mục chứa nó).**
+
+```
+VET_LOG=/tmp/vet.log PYTHONPATH=/tmp/vet PYTEST_ADDOPTS="-p vet_vni" python -m pytest tests/ -q
+VET_LOG=/tmp/vet.log PYTHONPATH=/tmp/vet PYTEST_ADDOPTS="-p vet_vni" python tools/kiem_test_chay_rieng.py --im
+sort /tmp/vet.log | uniq -c
+```
+
+| chế độ | kết quả | `sort \| uniq -c` của log ống nghe |
+|---|---|---|
+| cả bộ | `1 failed, 3119 passed, 3 skipped` (368,27 s) | `1 tests/test_noi_cache_an_toan.py::test_market_filter_khong_ghi_nen_chua_dong_vao_cache_vnindex` |
+| riêng từng file | 150 file / 491 s, 1 file đỏ | `1 tests/test_chuong_bai_hoc.py::test_CHUONG_khong_co_lenh_nao_tu_moc_thi_XANH_va_noi_ro` · `4 tests/test_walkforward.py::test_mo_phong_bao_alpha_va_trang_thai_bo_nho` · `1 tests/test_noi_cache_an_toan.py::test_market_filter_khong_ghi_nen_chua_dong_vao_cache_vnindex` |
+
+Khớp từng dòng với số của leader. Hai file đỏ duy nhất ở cả hai chế độ là `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (`PackageNotFoundError: vnstock` — môi trường đám mây, như BƯỚC 171–182). **Chỗ KHÔNG tái lập được:** sau cả hai lượt `backtest/cache/` không tồn tại — đám mây không có `vnstock` nên nhánh "tải mạng rồi GHI cache" không chạy; thứ tái lập được là việc hàm THẬT bị gọi (ống nghe) và ca dựng lại nguyên văn ở dưới.
+
+**Sửa (4 file test, 0 file mã sản phẩm).**
+1. `tests/test_chuong_bai_hoc.py` · `tests/test_walkforward.py`: mỗi test rò nhận `monkeypatch` và ghim `market_filter.is_vni_bullish → True` — đúng giá trị chúng nhận khi chạy cả bộ, nên điều test khẳng định không đổi (chuông không thấy lệnh đóng; `_mo_phong` báo đủ trường alpha/bộ nhớ).
+2. `tests/conftest.py`: gác `gac_khong_doc_vnindex_that` (autouse) + hook `pytest_runtest_call`. Trong lúc một test chạy, `market_filter.get_vni_df` là bản bọc: gọi nó khi `backtest.data.CACHE_DIR` còn là đường chưa ai vá ⇒ ném `AssertionError` NGAY, TRƯỚC khi hàm thật kịp đọc đĩa hay ra mạng; thông điệp nêu nodeid của test và hai cách sửa (vá `is_vni_bullish`/`get_vni_df`, hoặc trỏ `CACHE_DIR` sang `tmp_path`). Lần vi phạm được ghi nhớ, và hook ép test ĐỎ kể cả khi code của test nuốt `AssertionError`. Hoàn tra bản gốc sau mỗi test; `cache_clear`/`cache_info` được chuyển sang bản bọc (một số test gọi `cache_clear`). KHÔNG trả lại phần vá mức module của `tests/test_sheets_store.py` (docstring của file ghi sẵn: trả thì chính file đó hỏng từ test thứ hai).
+3. `tests/test_gac_vnindex_that.py` (mới, +10 test): gác của gác. Dựng thư mục tạm có `conftest.py` nạp NGUYÊN VĂN fixture/hook của `tests/conftest.py`, chạy hai file mẫu trong tiến trình pytest riêng (gỡ `PYTEST_ADDOPTS` và `VIBE_CACHE_DIR` khỏi môi trường con), đọc kết quả từng ca bằng JUnit XML: (a) gọi hàm thật trên `CACHE_DIR` mặc định ⇒ ĐỎ và thông điệp có tên test + `is_vni_bullish` + `tmp_path` · (b) test nuốt lỗi vẫn ĐỎ · (c) `CACHE_DIR` → `tmp_path` + `fetch_one` giả ⇒ XANH (đúng ca của `tests/test_noi_cache_an_toan.py`) · (d) vá `is_vni_bullish` ⇒ XANH · (e) vá `get_vni_df` ⇒ XANH · (f, g) hai test liền nhau: bản bọc đúng một lớp, được trả lại giữa hai test · (h) `cache_clear`/`cache_info` dùng được · (k) hàm thật không chạy khi gác chặn (ống nghe đếm đúng 1 lượt: ca c) · (i) `VIBE_CACHE_DIR` đặt sẵn mà `CACHE_DIR` chưa vá ⇒ vẫn ĐỎ.
+
+**Gác và đột biến (`va_an_toan.dot_bien_bo`, hoàn tra từng byte; 15 phát — lượt cuối 15/15 đỏ).**
+- **Phát đầu tiên: dựng lại nguyên văn ca `test_chuong_bai_hoc` chạy riêng, cache rỗng.** Có gác, test CHƯA vá: `python -m pytest tests/test_chuong_bai_hoc.py` ⇒ `1 failed, 112 passed`, thông điệp mở đầu *"tests/test_chuong_bai_hoc.py::test_CHUONG_khong_co_lenh_nao_tu_moc_thi_XANH_va_noi_ro gọi market_filter.get_vni_df() THẬT trong khi backtest.data.CACHE_DIR vẫn là đường của repo"*; `tests/test_walkforward.py` ⇒ `1 failed, 6 passed`, cùng hình dạng; `tests/test_noi_cache_an_toan.py` (ca cố ý) ⇒ `28 passed`. Sau khi vá hai test: cả ba file xanh.
+- **Bỏ phần vá ở từng test rò, chạy RIÊNG file ấy (2):** `tests/test_chuong_bai_hoc.py`, `tests/test_walkforward.py` ⇒ đỏ cả hai.
+- **Đục gác (13, lệnh `pytest tests/test_gac_vnindex_that.py -x`, riêng phát chặn-cả-khi-tmp_path chạy ở cả hai: `tests/test_noi_cache_an_toan.py` và `tests/test_gac_vnindex_that.py`):** gác luôn cho qua (`if False`) · hook không `fail` khi test nuốt lỗi · không trả lại bản gốc · thông điệp không nêu tên test · không nêu cách sửa · bỏ chuyển `cache_clear` · bỏ chuyển `cache_info` · so sai chiều (`!=`) · bỏ qua `VIBE_CACHE_DIR` · không ghi nhớ lần vi phạm · gác chặn cả khi `CACHE_DIR` đã trỏ `tmp_path` (`if True`) — **test cố ý `tests/test_noi_cache_an_toan.py` đỏ, và ca (c) của gác-của-gác đỏ** · gọi hàm thật rồi mới ném lỗi. **Lượt đầu 13/14 đỏ, một phát sống sót; sửa gác rồi lặp (thêm B12 bỏ chuyển `cache_info` ⇒ 15 phát):** B7 (bỏ chuyển `cache_clear`) sống vì ống nghe giả là hàm trơn gắn tay `cache_clear` mà `functools.wraps` sao chép theo (lỗi 176; đã đo `hasattr(wraps(lru)(g), "cache_clear")` là `False`); ống nghe được đổi thành `functools.lru_cache` thật ⇒ B7 và B12 đỏ. Lượt cuối 15/15 đỏ. Không phát tương đương nào phải bỏ.
+
+**Đo SAU khi sửa (cùng ống nghe, cùng hai lệnh).** Cả bộ ⇒ log chỉ còn `1 tests/test_noi_cache_an_toan.py::test_market_filter_khong_ghi_nen_chua_dong_vao_cache_vnindex`. Riêng từng file ⇒ cũng chỉ còn đúng dòng đó. Hai test rò biến mất khỏi log vì hàm thật không còn bị gọi (không phải vì gác chặn: gác ném lỗi TRƯỚC khi ống nghe ghi, nên test còn rò sẽ ĐỎ chứ không im).
+
+**Chỗ đề bài chưa nói hoặc nói khác, tôi chọn và khai.**
+1. **So `CACHE_DIR` với đường TÍNH LẠI từ môi trường** (`VIBE_CACHE_DIR` hoặc mặc định của `backtest.data`), không với giá trị lúc vào test: một file vá `CACHE_DIR` ở mức module sẽ làm giá trị lúc vào test đã là đường vá và gác tự im. Hệ quả: nếu ai đặt `VIBE_CACHE_DIR` cho cả lượt chạy, `CACHE_DIR` chưa vá vẫn bị canh (ca i).
+2. **Gác chặn cả khi `get_vni_df` còn nằm trong `lru_cache` từ test trước** (không phân biệt cache hit): một lần trúng cache vẫn là phụ thuộc dữ liệu ở máy.
+3. **Hook dùng `wrapper=True`** (cần pluggy ≥ 1.2; bản chạy ở đây pytest 9.1.1, pluggy 1.6.0; CI `pip install pytest` không ghim bản nên lấy bản mới nhất — chưa kiểm). CI chưa chạy nhánh này.
+4. Thêm một file test mới (+10 test) thay vì chỉ sửa `tests/conftest.py`: một gác chết (luôn cho qua) xanh y như một gác sống khi hai test rò đã được vá; chỉ một ca cố ý chạm hàm thật, trong tiến trình riêng, mới phân biệt được.
+
+**Giới hạn (đọc trước khi tin).**
+- **Gác chỉ canh `market_filter.get_vni_df`.** Không canh `backtest.data.load("VNINDEX")` hay `fetch_one` gọi trực tiếp, không canh `market_filter.chi_so_moi_nhat` (đường mạng của topbar), và một module giữ sẵn bản tham chiếu (`from market_filter import get_vni_df`) đi vòng qua nó. `grep -rn "from market_filter import" --include=*.py .` trong mã sản phẩm chỉ ra `paper_trading.py:684` (`is_vni_bullish`, nhập lúc gọi) và `app.py:782` (`chi_so_moi_nhat`); tôi KHÔNG gác điều này.
+- **Phần vá `market_filter.is_vni_bullish` không hoàn tra vẫn còn — CHƯA dọn:** mức module ở `tests/test_sheets_store.py`, `tests/test_google_sheets_sync.py`, `tests/test_paper_trading.py`, `tests/test_trade_review.py`; trong hàm ở `tests/test_cong_chat_luong.py`. Chúng là lý do chạy cả bộ che được chuyện này; BƯỚC này không đụng vào (rủi ro hỏng chính các file đó, xem docstring `tests/conftest.py`). `paper_trading.CHO_PHEP_MO_LENH_MOI` bị vá tương tự ở nhiều file — cũng chưa dọn.
+- Gác chỉ thấy test chạy QUA pytest có `tests/conftest.py`; các script `__main__` của vài file test và ống nghe dùng ngoài pytest không được canh.
+- Chưa chạy trên CI thật và chưa thấy nhánh "tải mạng rồi GHI cache" chạy (xem trên).
+
+**Lỗi mới:** 174 (cổng 4 chỉ so XANH/ĐỎ nên hai test chạm dữ liệu ngoài sống 52 ngày: `git log -S"def test_mo_phong_bao_alpha_va_trang_thai_bo_nho" -- tests/test_walkforward.py` cho `5d9c3c8` 2026-08-21), 175 (gác bọc hàm mà giả định hàm bị bọc có đủ thuộc tính; và gác-của-gác không hermetic với `PYTEST_ADDOPTS` — nổ ở lượt đo đầu), 176 (ống nghe giả là hàm trơn che đột biến bỏ-chuyển-`cache_clear`). Máy chặn: có cả ba (xem bảng lỗi).
+
+**Sổ tay (Quy tắc 3).** BƯỚC này chỉ sửa test và `tests/conftest.py`; không sửa file luật nào, không đổi luật hay kết luận đo ⇒ mục `khong_bat_buoc_vi` (ghi bằng `python tools/so_tay.py ghi`), và `python tools/buoc_cham_luat.py 184` phải xác nhận không chạm.
+
+**Năm cổng (đám mây, Python 3.13, không `.venv`, không có `vnstock` — cài thêm `pytest` · `pandas` · `numpy` · `pyyaml` · `requests` · `streamlit` · `plotly` · `feedparser` · `gspread` · `toml` · `tradingview-ta` · `beautifulsoup4` · `lxml` · `google-generativeai` từ PyPI; tuần tự, log ra file, trên cây đã có mã + tài liệu + mục sổ tay).**
+1. `python3 -m pytest tests/ -q`: `1 failed, 3129 passed, 3 skipped` (394,36 s); đỏ duy nhất là `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (MÔI TRƯỜNG: `PackageNotFoundError: vnstock`). Lượt chạy trước trên cây chưa có sổ lỗi đúng khuôn còn đỏ thêm `tests/test_dau_tick_phai_co_dia_chi.py` (dấu ✅ của lỗi 175 thiếu địa chỉ) và `tests/test_skill_quy_trinh.py` (tên file test viết trần trong dòng 174, và file mới chưa vào git) — đã sửa, đây là lượt sau.
+2. `tools/kiem_cu_phap_311.py`: xanh (291 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không cảnh báo nào ở file tôi sửa hay thêm).
+4. `tools/kiem_test_chay_rieng.py --im`: ĐÚNG MỘT file đỏ, `test_requirements.py` (môi trường như trên); `tests/test_gac_vnindex_that.py`, `tests/test_chuong_bai_hoc.py`, `tests/test_walkforward.py`, `tests/test_noi_cache_an_toan.py` xanh khi chạy một mình.
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 3123 → 3133 (+10 test của `tests/test_gac_vnindex_that.py`; không test nào mất); lượt kiểm sau: `OK — 3133 test, khop moc da ghi`.
+
+Ống nghe VN-INDEX của đo SAU được chạy trên cây mã đã xong (trước khi thêm tài liệu và mục sổ tay); mã test không đổi từ đó, nên các cổng 1 và 4 ở trên (không cắm ống nghe) chỉ xác nhận xanh, không đo lại việc hàm thật bị gọi.
