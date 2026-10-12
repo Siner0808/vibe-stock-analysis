@@ -22263,3 +22263,46 @@ Trước khi chạy `chay`: chốt MỘT giá trị cho `--che-do-hoc` và `--st
 3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không cảnh báo nào ở hai file mới).
 4. `tools/kiem_test_chay_rieng.py --im`: 145 file trong 427 s, 1 đỏ — `test_requirements.py` (đỏ môi trường); `test_do25_ke_hoach_vao_lenh.py` xanh khi chạy một mình.
 5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2809 → 2881 (+72 test của `tests/test_do25_ke_hoach_vao_lenh.py`, không test nào mất); lượt kiểm sau: `OK — 2881 test, khop moc da ghi`.
+
+## BƯỚC 179 — ĐO 25 CHẠY: KẾ HOẠCH VÀO LỆNH B6 "CHƯA PHÂN BIỆT ĐƯỢC" VỚI MUA MỌI TÍN HIỆU Ở GIÁ MỞ CỬA PHIÊN SAU (KẾT CỤC B); ĐÁNH DẤU B2 · B4 · B6 TRONG LỘ TRÌNH (12/10/2026)
+
+**Mốc:** C7
+
+Leader, phiên máy. Đọc ĐO 25 đúng bảng đã ký ở `docs/TIEU-CHI-DOC-TRUOC.md` (khai ở BƯỚC 178, commit `352168c`, TRƯỚC dụng cụ `f388e00`; vào `main` ở `7138f02`, PR #226 thay cho #224).
+
+**Lệnh tái lập** (repo chính, cần `sl_pattern_memory.json` 44 mẫu ở gốc repo vì máy chấm của `walkforward.chay` mặc định `co_san`):
+
+```bash
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py doi-chung
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py chay --cache backtest/cache --ghi <đường dẫn JSON>
+```
+
+Chạy hai lượt: lượt đầu trong worktree ở cây `f404009` (bản chép `sl_pattern_memory.json`, cùng sha256 `e8b44cf8…` với tệp gốc, xoá sau khi chạy), lượt hai ở repo chính trên `7138f02` sau merge. **Đầu ra hai lượt giống hệt từng dòng** (`diff` rỗng). Mỗi lượt ~2,5 phút.
+
+**M0.** Cache `backtest/cache`: 125 tệp, sha256 `acf6dca1dd38d5157ee397bbccb7f82d662698b318a6dcf6b72617335bf44d6e`, mtime 2026-08-06T06:09:50Z → 2026-09-03T02:45:39Z (MỘT lượt kéo theo nghĩa ĐO 24: không ghép `cache_2018`). `ke_hoach_vao_lenh.py` so với `d44cc87`: khớp. Ngưỡng 62 (đã ký 62). Chế độ học `co_san`, 44 mẫu. `stride` 2, `min_history` 60 (đọc từ chữ ký `walkforward.chay`). 33 mã có vùng ngoài mẫu; 11.623 phiên quyết định được chấm.
+
+**Quần thể.** 1.973 tín hiệu đạt ngưỡng · bỏ 18 vì thiếu 20 phiên về sau · 0 trùng (mã, t) · 0 thiếu chuẩn ⇒ **N = 1.955 tín hiệu duy nhất trong 386 ngày** (≥ `N_TOI_THIEU` = 113).
+
+**Thống kê chính (bất biến 6).** Δ alpha trung bình mỗi tín hiệu (B6 − nền) **+0,21 điểm %**, KTC 95% **[−0,16 ; +0,57]** (bootstrap khối ngày, 10.000 lượt, hạt 20261010). **KẾT CỤC KÝ TRƯỚC: B — chưa phân biệt được.** Quy tắc 1 không kích hoạt (+0,21 < +2).
+
+**Đối chứng của máy đo (cùng lượt) — cả ba ĐẠT:** (i) ép luôn MUA_NGAY → Δ ≡ 0; (ii) ép luôn BO_QUA → Δ trung bình +0,65 = −alpha nền trung bình; (iii) xáo nến sau t → 0 lệch / 1.968 tín hiệu. `doi-chung` trên dữ liệu tổng hợp ở máy: mã thoát 0, ba đối chứng ĐẠT (0 lệch / 474).
+
+**Báo kèm (không quyết định kết cục).**
+- Chênh lợi nhuận sau chi phí, chưa trừ chuẩn: −0,32 điểm %/tín hiệu.
+- Tỷ lệ phán quyết: BO_QUA 838 (42,9%) · CHO_VUNG 663 (33,9%) · MUA_NGAY 445 (22,8%) · CHUA_LAP_DUOC 9 (0,5%).
+- CHO_VUNG: khớp 327/663 (49,3%), lỡ 336. **Lệnh chờ tự chọn lệnh thua — đúng như `docs/LO-TRINH.md` C7 đã cảnh báo:** lợi nhuận nền của nhóm KHỚP −4,04% so với nhóm LỠ +2,50% (alpha nền −3,24 so với +0,47). Lệnh giới hạn chỉ khớp khi giá đang rơi.
+- Δ theo phán quyết: BO_QUA n=838 −0,13 · CHO_VUNG n=663 +0,84 · CHUA_LAP_DUOC n=9 −3,80 · MUA_NGAY n=445 0,00.
+- Biến thể "chạm là khớp" (low ≤ trần vùng): Δ +0,22, KTC [−0,14 ; +0,57] — cùng kết cục.
+- VN-INDEX tại t: trên MA50 n=1.565 Δ +0,26 · dưới MA50 n=390 Δ +0,00.
+
+**Hệ quả theo kết cục B đã ký.** B6 giữ CHỈ ĐỂ HIỆN. App ghi "đã đo (ĐO 25), chưa phân biệt được" ở chú thích bảng kế hoạch (`app.py`); gác `tests/test_ke_hoach_vao_lenh.py::test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong` đòi câu ấy và cấm câu cũ "CHỈ ĐỂ HIỆN và CHƯA ĐO" sống cạnh nó — hai đột biến (bỏ câu kết cục; để câu cũ sống lại) đều đỏ. KHÔNG khai UV-002 dựa trên ĐO 25 (chỉ kết cục A cho phép). Không đổi đường thật, không chọn hằng số.
+
+**Kiểm dữ liệu trước khi tin (leader, 12/10/2026).** Quét bước đổi đóng-cửa liền kề vượt biên độ sàn trên cả `backtest/cache`: 84 bước trên 8 mã; trong vùng ngoài mẫu chỉ có BSR (20 bước) và VTP (10 bước), cả hai ở giai đoạn còn niêm yết UPCoM — biên ±15% tính trên giá tham chiếu là giá BÌNH QUÂN phiên trước, nên đóng-cửa-so-đóng-cửa có thể vượt 15% (lớn nhất: VTP +17,14% ngày 2022-11-16). Các bước ấy CHƯA được kiểm từng cái với lịch sự kiện; 31 mã ngoài mẫu còn lại không có bước nào vượt biên. Bậc lớn thật nằm ở vùng TRONG mẫu: SSI −17,87% và MBB −16,36% ngày 2026-08-10, HHP −12,52% ngày 2026-08-12 (chỗ đuôi lượt kéo 07/08 gặp lượt nối 03/09; chưa phân biệt được GDKHQ thật trong chuỗi chưa điều chỉnh với chỗ nối — việc của BƯỚC 180). Nến 2026-09-03 trong cache là nến CHƯA ĐÓNG (kéo lúc ~09:40) nhưng nằm ngoài vùng đo. **Giới hạn:** phép quét không thấy bậc nhỏ hơn biên (cổ tức tiền vài %); một lượt kéo đơn là nhất quán bên trong nên vùng ngoài mẫu (dựng từ lượt kéo lùi) ít có chỗ nối, nhưng điều đó là SUY LUẬN từ cách dựng, không phải phép đo từng mã.
+
+**Câu cố ý KHÔNG sửa.** `ke_hoach_vao_lenh.py` vẫn ghi "Phán quyết CHƯA ĐO" và "ĐỀ XUẤT, CHƯA ĐO" cho từng hằng số: dụng cụ ĐO 25 đòi tệp ấy khớp TỪNG BYTE với `d44cc87` (M0) — sửa một chữ là lượt tái lập sau DỪNG. Từng hằng số vẫn đúng là chưa đo riêng (ĐO 25 đo cả kế hoạch, không chỉnh hằng số nào). Trạng thái đo của cả kế hoạch nằm ở app, mục này và `docs/LO-TRINH.md`.
+
+**Lộ trình.** `docs/LO-TRINH.md`: B2 ĐÃ DỰNG (BƯỚC 174) · B4 ĐÃ DỰNG (BƯỚC 177) · B6 PHẦN 1 ĐÃ DỰNG (BƯỚC 173; vế "nhật ký ghi" CHƯA làm) kèm kết cục ĐO 25 · C7: phép đo thăm dò là ĐO 25, kết cục B, không khai UV-002. `docs/HANDOFF.md` câu "(B6 chưa dựng)" (BƯỚC 172) mang dấu ⚠️ HẾT ĐÚNG.
+
+**Sổ tay (Quy tắc 3) — hỏi thật** (BƯỚC này sửa `docs/LO-TRINH.md` và ghi một kết luận đo). Làm tươi trước: STATE · TIEU-CHI · QUYET-DINH-CHO thêm bản ghim `f404009` rồi xoá bản cũ (@8d302e3 · @13c32a0 · @b4088b2), đọc nhãn hộp xác nhận; đo độ tươi: sổ trả "178, docs/STATE.md @f404009" — khớp. Sổ trả "không tìm thấy câu nào nói ngược"; leader grep lại và tìm ra ba câu (ghi ở `docs/soat-notebooklm.json`): HANDOFF "(B6 chưa dựng)" (nguồn HANDOFF của sổ còn @e9a6d0c, cũ hơn câu ấy), chú thích app "CHƯA ĐO", docstring `ke_hoach_vao_lenh.py` (cố ý giữ, xem trên).
+
+**Phát hiện phụ, CHƯA xử lý.** Trong lượt cổng 4 đầu tiên ở worktree (cache rỗng), một test gọi `market_filter.get_vni_df()` đã TẢI MẠNG và GHI `backtest/cache/VNINDEX.csv` vào worktree (mtime 08:31:10, giữa lượt cổng; lượt ĐO 25 lúc 09:10 đọc VN-INDEX từ cache của repo chính qua `--cache`, không dính). Ở repo chính cache có sẵn nên đường ghi ngầm (lỗi 157) không chạy. Chưa tìm test nào gây ra.

@@ -1216,7 +1216,11 @@ def test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong():
     cay = ast.parse((GOC / "app.py").read_text(encoding="utf-8"))
     chuoi = " ".join(n.value for n in ast.walk(cay)
                      if isinstance(n, ast.Constant) and isinstance(n.value, str))
-    assert "CHỈ ĐỂ HIỆN và CHƯA ĐO" in chuoi
+    assert "CHỈ ĐỂ HIỆN" in chuoi
+    # Kết cục B đã ký của ĐO 25 (docs/TIEU-CHI-DOC-TRUOC.md): app phải ghi đúng câu này,
+    # và câu cũ "CHƯA ĐO" không được sống sót cạnh nó (BƯỚC 179).
+    assert "đã đo (ĐO 25), chưa phân biệt được" in chuoi
+    assert "CHỈ ĐỂ HIỆN và CHƯA ĐO" not in chuoi
     assert "khớp ở giá mở cửa phiên sau" in chuoi
     assert "kể cả khi ở đây ghi CHỜ hay BỎ QUA" in chuoi
     # Sổ có cổng RIÊNG (VN-INDEX, chất lượng dữ liệu, mã đang giữ, trần vốn):
