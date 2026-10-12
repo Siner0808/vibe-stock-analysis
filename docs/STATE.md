@@ -22191,6 +22191,121 @@ Mã khác các mã trên (kể cả `-9`, `127`, `255`, hoặc `1` của `soat_t
 5. Cân nhắc đưa B4 vào `docs/LO-TRINH.md` ("đã dựng") và thêm `suc_khoe` vào danh sách "CHỈ ĐỂ HIỆN" của `CLAUDE.md` — tôi KHÔNG chạm hai file này.
 
 **Sổ tay (Quy tắc 3).** BƯỚC này KHÔNG chạm `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`; không đổi luật, không đổi kết luận đo — khai ô `khong_bat_buoc_vi` sau khi `tools/buoc_cham_luat.py` xác nhận. `references/loi-da-mac.md` và `docs/loi-phan-lop.json` có đổi (bảng lỗi, không phải file luật).
+## BƯỚC 178 — ĐO 25: KHAI TIÊU CHÍ PHÉP ĐO KẾ HOẠCH VÀO LỆNH B6 TRƯỚC KHI CÓ DỤNG CỤ (10/10/2026)
+
+**Mốc:** C7
+
+Phiên đám mây (nhánh `do/do25-ke-hoach-vao-lenh`, từ `main` `8d302e3`). Việc: ký tiêu chí của phép đo thăm dò mà `docs/LO-TRINH.md` C7 đòi TRƯỚC khi chạy bóng, rồi (commit sau) viết dụng cụ. **Bài này không có một con số đo nào** — đám mây không có `backtest/cache`; leader chạy đo ở máy.
+
+**Người dùng duyệt (10/10/2026), nguyên văn:** *"Duyệt cả 5 điểm (Recommended)"* cho bản nháp tiêu chí của leader.
+
+**ĐO 25** (`docs/TIEU-CHI-DOC-TRUOC.md`, mục cuối file) hỏi: theo phán quyết của `ke_hoach_vao_lenh.lap_ke_hoach` (đóng băng ở `d44cc87`, mọi hằng số GHIM), alpha mỗi tín hiệu có khác alpha của cách đường thật đang làm — mua mọi mã đạt ngưỡng ở giá mở cửa phiên sau — không. Điểm chính đã ký trước: đo theo MỖI tín hiệu duy nhất đạt `BUY_THRESHOLD` (không áp các cổng riêng của sổ), cùng khung 20 phiên, lệnh lỡ và bỏ qua tính alpha 0; cả hai bên chịu CÙNG chi phí vòng `ROUND_TRIP_COST_PCT`, KHÔNG mô phỏng trượt giá cho bên nào; một lượt kéo `backtest/cache` (ĐO 24); thống kê chính là chênh ALPHA mỗi tín hiệu theo định nghĩa của `paper_metrics.vs_benchmark`, KTC bootstrap theo khối ngày (10.000 lượt, hạt giống 20261010); ba kết cục A/B/C và nhánh "chưa đủ" dưới `N_TOI_THIEU` ký trước; Δ trung bình > +2 điểm → soát lỗi trước khi đọc; ba đối chứng của máy đo bắt buộc cùng lượt. Ca "vùng quá xa → `BO_QUA`" mà BƯỚC 173 dặn phải khai: đã nằm trong mã đóng băng `d44cc87`, và dòng "hằng số được chỉnh khi leader nhìn PHÁN QUYẾT (không nhìn kết cục) của 8 mã ngày 09/10/2026" của ĐO 25 khai điều đó.
+
+**Sổ tay (Quy tắc 3 — BƯỚC này chạm `docs/TIEU-CHI-DOC-TRUOC.md` nên PHẢI hỏi thật).** Leader hỏi sổ tay thật (câu nguyên văn trong `docs/soat-notebooklm.json`, mục `BƯỚC 178`; làm tươi nguồn trước khi hỏi: `LO-TRINH.md` và `STATE.md` thay bằng bản ghim `8d302e3`). Sổ tay trả lời nguyên văn *"không tìm thấy câu nào nói ngược"*. Leader tự kiểm câu âm bằng `grep` (luật *Câu ÂM cũng phải kiểm* của skill) và tìm ra HAI điểm mà sổ tay bỏ sót, đều đã sửa vào ĐO 25 TRƯỚC khi ký:
+1. `NGUYEN-TAC-DO-LUONG.md`, bất biến 6 — thước quyết định là **alpha khớp từng lệnh**, không phải lợi nhuận thô. Bản nháp khai chênh lợi nhuận thô làm thống kê chính; khi tín hiệu bị bỏ/lỡ tính 0 thì chênh thô phạt cả beta của thị trường. Sửa: thống kê CHÍNH là chênh alpha; chênh thô chỉ báo kèm.
+2. `CLAUDE.md`, *Chi phí thực thi* — bản nháp không nói chi phí áp thế nào cho hai chính sách; áp trượt giá cho mua-ngay mà không cho lệnh giới hạn thì B6 đẹp lên có hệ thống. Sửa: cùng `ROUND_TRIP_COST_PCT`, không trượt giá cho bên nào.
+Tôi kiểm lại hai tham chiếu ngay trong phiên này (`grep -n "Ma sát có \*\*hai tầng\*\*" CLAUDE.md` → dòng 170; `sed -n 70,77p NGUYEN-TAC-DO-LUONG.md` → mục 6 có câu trên). Hai lưu ý máy. (1) `tools/so_tay.py ghi` chỉ giữ ô `_do_tuoi` của mục, KHÔNG giữ `_tra_loi_so_tay`, nên câu trả lời âm của sổ tay nằm ở đoạn này chứ không nằm trong sổ JSON. (2) Gác `tests/test_soat_notebooklm.py::test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so` đòi một dòng sổ khoá `ĐO 25` riêng (lượt cổng 1 đầu tiên đỏ đúng ở đây — bản leader chỉ dặn ghi mục `BƯỚC 178`). Theo tiền lệ `ĐO 24` ↔ `BƯỚC 159`, tôi ghi mục `ĐO 25` cùng câu hỏi, cùng `phat_hien`, ô `_do_tuoi` nói rõ đây là CÙNG một lượt hỏi (một câu, một lần gửi), không phải lượt hỏi thứ hai.
+
+**Chỗ sửa văn bản ĐO 25 so với bản leader đưa — chỉ để qua gác khuôn, không đổi một con số hay điều kiện nào.** `tests/test_do_phai_khai_da_tra.py` đọc lời khai bằng `\*\*Đã tra trùng:\*\*(.+)` — chỉ DÒNG ĐẦU, mà bản leader để dòng ấy trống rồi liệt kê ba gạch đầu dòng bên dưới (sẽ đọc ra "không khai gì"/"quá ngắn"). Thêm vào cuối dòng ấy: `BƯỚC 46 · BƯỚC 79 · BƯỚC 159 — ba mục đã tra, theo thứ tự dưới đây:` (BƯỚC 46 = ĐO 2, BƯỚC 79 = ĐO 9, BƯỚC 159 = ĐO 24; cả ba có tiêu đề thật trong `docs/STATE.md`); ba gạch đầu dòng giữ nguyên văn. Không chỗ nào khác sửa. Một điều cần biết: ĐO 25 nhắc `walkforward.py` trong dấu nháy ngược và git biết file ấy, nên gác `tests/test_phep_do_neu_dung_cu.py` xếp mục vào loại "có dụng cụ" chứ không vào "không có dụng cụ vì" — cả hai đều đạt gác; dòng "Không có dụng cụ vì" vẫn giữ vì nó là sự thật tại thời điểm ký.
+
+**Giả thuyết tôi đã kiểm trên đường làm:** tôi định thêm vào dòng "Đã tra trùng" cụm "và không cái nào là phép đo này" — bỏ ngay, vì đó là một khẳng định tôi tự thêm vào văn bản leader dặn chép nguyên văn.
+
+**Việc kế (cùng PR, commit sau):** `tools/do25_ke_hoach_vao_lenh.py` (chỉ đọc; lệnh con `chay` và `doi-chung`) cùng gác và bốn đột biến. Sau đó leader chạy `doi-chung` rồi `chay` ở máy.
+
+**Năm cổng trên cây của commit 1 (đám mây, Python 3.13, không `.venv`, không có `vnstock` — đã cài phần còn lại từ PyPI công khai; chạy tuần tự).** Cây này chỉ đổi ba file tài liệu (`docs/TIEU-CHI-DOC-TRUOC.md`, `docs/STATE.md`, `docs/soat-notebooklm.json`), không có mã mới.
+1. `pytest tests/ -q`: lượt đầu `2 failed, 2804 passed, 3 skipped` — một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (`PackageNotFoundError: vnstock`, như BƯỚC 171–175), một là `test_soat_notebooklm::test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so` (thiếu khoá `ĐO 25` — đã xử lý, xem trên). Sau khi ghi mục `ĐO 25`: `1 failed, 2805 passed, 3 skipped` (292,3 s) — chỉ còn đỏ môi trường; lý do ba skip không kiểm lại trong lượt này.
+2. `tools/kiem_cu_phap_311.py`: xanh (277 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo`.
+4. `tools/kiem_test_chay_rieng.py --im`: 144 file trong 402 s, 1 đỏ — `test_requirements.py` (cùng đỏ môi trường); không file nào mượn trạng thái của file khác.
+5. `tools/kiem_so_test_khong_giam.py`: `OK — 2809 test, khop moc da ghi` (commit 1 không thêm test nên mốc không đổi).
+
+### Commit 2 — dụng cụ `tools/do25_ke_hoach_vao_lenh.py` và gác `tests/test_do25_ke_hoach_vao_lenh.py` (72 test)
+
+**Dụng cụ (CHỈ ĐỌC: không mạng, không `import vnstock`, không mở sổ lệnh, không ghi cache; chỉ ghi MỘT file JSON ở đường dẫn người gọi chọn).** Hai lệnh con:
+- `doi-chung` — ba đối chứng của ĐO 25 trên dữ liệu TỔNG HỢP (hạt cố định), qua CHÍNH đường `thu_thap_tin_hieu` → `do_tin_hieu` của lệnh `chay`; điểm giả 70 cho mọi phiên.
+- `chay --cache <thư mục> --ghi <json> [--tu --den --symbols --stride --min-history --che-do-hoc --bam-mong-doi]` — in bảng kết cục đúng khuôn ĐO 25 (M0 · quần thể · thống kê chính · kết cục ký trước · Quy tắc 1 · báo kèm · đối chứng) và ghi JSON. Ba đối chứng chạy CÙNG lượt trên chính các tín hiệu thật (ĐO 25: "bắt buộc, cùng lượt"); trượt thì in "KHÔNG đọc kết cục" và thoát mã 1.
+
+**Máy chấm — tái dùng, không viết lại.** Vùng ngoài mẫu = `walkforward.nap_moc_sach` + `walkforward.chia_vung` (cùng phép dựng như `walkforward.chay`); lịch = `walkforward.lich_theo_ngay(vung_oos, min_history, stride, 1)` bỏ phiên chỉ-khớp; bộ nhớ = `walkforward._dung_bo_nho`; điểm = `paper_runner._analyze(mã, df.iloc[:t+1], "HOSE", ngày)["final_score"]` (đúng lời gọi `run_session` thực hiện); alpha = `Trade.net_return_pct()` − chuẩn của `paper_runner.build_benchmark` trên rổ OOS — cùng công thức một dòng với `paper_metrics.vs_benchmark`, kèm một test khớp trung bình alpha của dụng cụ với `alpha` của hàm ấy. `stride`, `min_history`, `che_do_hoc` mặc định ĐỌC từ chữ ký của `walkforward.chay` (không gõ lại). Không cần tách hàm nào khỏi `walkforward.py`, `paper_runner.py`, `paper_metrics.py` (chỉ nhập, không sửa).
+
+**M0.** Băm SHA-256 theo (tên file, nội dung) của mọi `*.csv` trong thư mục cache + mtime nhỏ nhất/lớn nhất, ghi vào JSON; `--bam-mong-doi` để lượt sau DỪNG nếu cache đổi. DỪNG (mã thoát 1) nếu `paper_trading.BUY_THRESHOLD` ≠ 62; DỪNG nếu `ke_hoach_vao_lenh.py` khác `d44cc87` (`git diff --quiet d44cc87 -- ke_hoach_vao_lenh.py`, mã 1 nếu lệch, mã 2 nếu không kiểm được — repo nông, không có commit, hay ngoài repo; gác bắt hai nhánh này).
+
+**Chỗ ĐO 25 không nêu mà tôi phải chọn — leader nhìn trước khi chạy (đổi sau khi thấy số là bất biến 7):**
+1. **`stride` = 2** (mặc định của `walkforward.chay`): tín hiệu chỉ xét ở phiên quyết định cách ngày; `--stride 1` cho mọi phiên. ĐO 25 nói "vùng ngoài mẫu mặc định của nó" nên tôi lấy mặc định.
+2. **`che_do_hoc` = `co_san`** (mặc định của `walkforward.chay`, 44 mẫu trên máy có `sl_pattern_memory.json`). Đường thật chạy **0 mẫu** (`docs/QUYET-DINH-CHO.md` Q1, 09/10/2026) — mọi báo cáo phải nêu chỗ lệch 44 ↔ 0. `--che-do-hoc tat` là 0 mẫu. Chọn MỘT chế độ TRƯỚC khi chạy; chạy cả hai rồi chọn là cực đại của hai lần thử. JSON ghi số mẫu thật (`m0.mau_bo_nho`).
+3. **Giá sau ngày t lấy từ CHÍNH vùng ngoài mẫu** (không đi qua mốc `moc_du_lieu_sach.json`): tín hiệu trong 20 phiên cuối vùng OOS của mỗi mã không đủ `t+20` nên BỊ BỎ khỏi cả hai chính sách và được ĐẾM (`bo_vi_thieu_tuong_lai`). Bỏ như nhau cho hai bên nên không nghiêng Δ, nhưng làm N nhỏ đi.
+4. **Bước giá tại mức giá CỦA TRẦN vùng** (`truot_gia.buoc_gia(trần, sàn)`), đúng chữ ĐO 25. Khác "bước giá liền dưới trần" chỉ khi trần đúng bằng 10.000 hoặc 50.000 (HOSE): ở đó dụng cụ đòi low thấp hơn 50/100 đồng chứ không 10/50 — lệnh khó khớp hơn một chút, nên nếu có nghiêng thì nghiêng bất lợi cho B6.
+5. **Rổ chuẩn = rổ OOS** của lượt (đúng `walkforward._mo_phong`), chuẩn tính từ close ngày vào tới close ngày ra (định nghĩa của `build_benchmark`).
+6. **Nhóm VN-INDEX** đọc `VNINDEX.csv` trong chính thư mục cache (`close ≥ MA50`, chỉ dữ liệu ≤ t, cùng phép so `>=` của `market_filter.is_vni_bullish`) — KHÔNG gọi `market_filter` (nó có thể ra mạng và ghi cache). Không có file hoặc chưa đủ 50 phiên → nhãn `khong_xac_dinh`, không bịa.
+7. **Chi phí**: mọi lệnh đi qua `Trade.net_return_pct()`, tức cùng `ROUND_TRIP_COST_PCT`; không có trượt giá ở đâu trong dụng cụ.
+
+**Sửa một gác cũ (cần leader xem).** `tests/test_ke_hoach_vao_lenh.py::test_CHI_app_py_duoc_nhap_ke_hoach_vao_lenh` đòi `app.py` là nơi DUY NHẤT nhập `ke_hoach_vao_lenh`; dụng cụ ĐO 25 phải nhập nó (không có cách nào khác để chạy "ĐÚNG hàm này"). Đổi thành `test_CHI_app_py_va_dung_cu_DO_25_duoc_nhap_ke_hoach_vao_lenh`: tập được nhập là ĐÚNG `{"app.py", "tools/do25_ke_hoach_vao_lenh.py"}` (so bằng, không phải chứa). Ba gác `test_duong_giao_dich_cham_diem_va_du_lieu_KHONG_nhap` giữ nguyên. Docstring của `ke_hoach_vao_lenh.py` vẫn nói "chỉ `app.py` được nhập" — KHÔNG sửa vì ĐO 25 đòi file ấy ĐÚNG như ở `d44cc87`; chữ ấy nay hơi cũ.
+
+**Gác (dữ liệu tổng hợp, đáp số tính tay ghi ở chú thích từng ca).** Biên khớp: low đúng bằng trần KHÔNG khớp, thiếu đúng một bước thì khớp (HOSE 50đ, HNX 100đ, HOSE > 50.000 là 100đ); giá khớp chặn ở trần khi mở cửa cao hơn; cửa sổ `t+1…t+5` có cả hai biên; nhiễu dấu phẩy động `16,1 × 1000`. Bản ghi: nền vào ở MỞ CỬA `t+1` ra ở ĐÓNG CỬA `t+20`; biên `t+20 = chỉ số cuối`. Alpha: nền −0,9813 · khớp +5,1556 · Δ +6,1369 (số tính tay, mục *Gác* của test). Chênh: Δα = [0 ; +3 ; +1 ; −2,5] → +0,375 trên 4 tín hiệu, lệnh lỡ tính alpha 0 và KHÔNG bị loại. Bootstrap: hai ngày ±1 cho KTC đúng [−1 ; +1], ngày không đều [−1 ; 3]. Kết cục ở các biên 112/113 và `lo == 0`/`hi == 0`. Quét: chỉ phiên quyết định (lịch sử đưa vào có đúng `t+1` hàng), ngưỡng 62 gồm đúng 62 và loại 61,99, B6 chỉ nhận lịch sử ≤ t, sàn theo MÃ. Ba đối chứng chạy hai chiều (có ca khiến chúng TRƯỢT và ca khiến chúng không-có-nghĩa). AST: không nhập mạng/`vnstock`/`sqlite3`/Sheets/`market_filter`, không gọi hàm ghi sổ, chỉ `lenh_chay` có `write_text`, đúng các hàm tái dùng được gọi, đối số của `lap_ke_hoach` là hình dạng `lich_su, price_multiplier(lich_su), diem, NGUONG_DA_KY, bay_gio, san` với `lich_su = df.iloc[:t + 1]`.
+
+**Đột biến — 37 phát, 36 đỏ, 1 sống sót đã xử lý.** Bốn phát leader yêu cầu đỏ cả bốn ngay lượt đầu: (1) khớp khi low ≤ trần · (2) lệnh lỡ bị loại khỏi quần thể · (3) nền dùng close t thay vì open t+1 · (4) bootstrap theo dòng. Thêm 33 phát: ra ở `t+H−1` (ngày và giá) · cửa sổ khớp bắt đầu ở `t` / dài thêm một phiên · giá khớp không chặn ở trần · ba biên kết cục · B6 nhìn cả bảng · biên `t+20` · so VN-INDEX `>=` → `>` · alpha `−` → `+` · trần vùng lấy phần tử đầu · Quy tắc 1 `>` → `>=` · ngưỡng tín hiệu `<` → `<=` · hai biên `--tu/--den` · không khử trùng · ba đối chứng luôn đạt (hai phát) và bỏ vế chống rỗng · hash không gồm tên file · đảo biến thể chạm/nghiêm · bỏ hạt · phân vị 90% · giờ 00:00 · gồm cả phiên chỉ-khớp · "xáo" không xáo · `lech → khop` · sàn cố định HOSE · bỏ làm tròn giá thấp nhất / giá mở cửa. **Một phát sống sót:** bỏ `round(…, 6)` của NGƯỠNG khớp — đột biến TƯƠNG ĐƯƠNG (ngưỡng = trần − bước giá, hai số nguyên) nên tôi gỡ dòng thừa thay vì dựng gác giả. Tôi mở lý do chết của một phát (lỗi 141): "bỏ vế chống rỗng của (iii)" chết đúng bởi `test_DOI_CHUNG_xao_khong_co_nghia_khi_tuong_lai_khong_doi_duoc`, không bởi test nào khác — chạy riêng phát ấy để thấy.
+
+**Giả thuyết bị bác trên đường làm** (ba cái là lỗi 159–161 ở `references/loi-da-mac.md`): (1) `19.95 × 1000 ≠ 19950.0` — SAI ở Python 3.13; ví dụ có thật là `16.1 × 1000 = 16100.000000000002`. (2) `git diff --quiet` ngoài repo trả 1 ("lệch") — SAI hướng: nó rơi sang chế độ so hai đường dẫn. (3) xáo cả dòng kể cả cột ngày thì "tương lai đổi" luôn đúng. (4) Tôi tưởng `tools/ho_so.py TIEU-CHI-DOC-TRUOC.md` sẽ liệt kê gác đòi khoá `ĐO` trong sổ tay — đo ra 0 tham chiếu (lỗi 159 ghi con số đo).
+
+**Chạy thử đường `chay` trọn vẹn bằng máy chấm THẬT trên cache TỔNG HỢP** (4 mã `VPL,VCK,GEL,VTP` giá sinh ngẫu nhiên có hạt, mốc OOS thật trong `docs/moc_du_lieu_sach.json`, `git diff` thật, `paper_runner._analyze` thật): chạy trong 11 giây, M0 ghi băm và mtime, cả ba đối chứng ĐẠT, JSON ghi ra. **Số của lượt thử ấy KHÔNG phải kết quả và tôi không ghi chúng ở đây**: dữ liệu tổng hợp không nói gì về B6. Tôi cũng chưa đo thời gian của lượt chạy thật (rổ 33 mã OOS × ~12.600 phiên quyết định): ở đây chấm điểm tốn cỡ 0,03 giây/lần trên dữ liệu tổng hợp (0,2 giây cho 6 lần), đừng suy ra thời gian thật.
+
+**Lỗi mới: 159, 160, 161** (xem `references/loi-da-mac.md`; phân lớp ở `docs/loi-phan-lop.json`). Bảng đếm lại bằng `tools/doc_bang_loi.py`: 138 lỗi; dòng tự khai đã sửa thành 78/138.
+
+**Lệnh leader chạy ở máy (Windows, `.venv`):**
+```
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py doi-chung
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py chay --cache backtest/cache --ghi <đường dẫn JSON>
+```
+Trước khi chạy `chay`: chốt MỘT giá trị cho `--che-do-hoc` và `--stride` (mục 1–2 trên). Đối chứng (i)–(iii) phải ĐẠT trong cùng lượt, nếu không thì kết cục không được đọc. Chưa có kết quả nào; PR này KHÔNG chạy đo.
+
+**Năm cổng trên cây cuối của commit 2 (đám mây, Python 3.13, không `.venv`, không có `vnstock`; chạy tuần tự).**
+1. `pytest tests/ -q`: lượt đầu `3 failed, 2875 passed, 3 skipped` (317,6 s) — đỏ môi trường `test_requirements` (thiếu `vnstock`), mốc cổng 5 chưa cập nhật, và `test_CHI_app_py_duoc_nhap_ke_hoach_vao_lenh` (dụng cụ mới nhập `ke_hoach_vao_lenh`; xử lý ở mục *Sửa một gác cũ*). Cây cuối: `1 failed, 2877 passed, 3 skipped` (311,8 s) — chỉ còn đỏ môi trường; 2877 + 3 + 1 = 2881, khớp mốc.
+2. `tools/kiem_cu_phap_311.py`: xanh (279 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không cảnh báo nào ở hai file mới).
+4. `tools/kiem_test_chay_rieng.py --im`: 145 file trong 427 s, 1 đỏ — `test_requirements.py` (đỏ môi trường); `test_do25_ke_hoach_vao_lenh.py` xanh khi chạy một mình.
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2809 → 2881 (+72 test của `tests/test_do25_ke_hoach_vao_lenh.py`, không test nào mất); lượt kiểm sau: `OK — 2881 test, khop moc da ghi`.
+
+## BƯỚC 179 — ĐO 25 CHẠY: KẾ HOẠCH VÀO LỆNH B6 "CHƯA PHÂN BIỆT ĐƯỢC" VỚI MUA MỌI TÍN HIỆU Ở GIÁ MỞ CỬA PHIÊN SAU (KẾT CỤC B); ĐÁNH DẤU B2 · B4 · B6 TRONG LỘ TRÌNH (12/10/2026)
+
+**Mốc:** C7
+
+Leader, phiên máy. Đọc ĐO 25 đúng bảng đã ký ở `docs/TIEU-CHI-DOC-TRUOC.md` (khai ở BƯỚC 178, commit `352168c`, TRƯỚC dụng cụ `f388e00`; vào `main` ở `7138f02`, PR #226 thay cho #224).
+
+**Lệnh tái lập** (repo chính, cần `sl_pattern_memory.json` 44 mẫu ở gốc repo vì máy chấm của `walkforward.chay` mặc định `co_san`):
+
+```bash
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py doi-chung
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py chay --cache backtest/cache --ghi <đường dẫn JSON>
+```
+
+Chạy hai lượt: lượt đầu trong worktree ở cây `f404009` (bản chép `sl_pattern_memory.json`, cùng sha256 `e8b44cf8…` với tệp gốc, xoá sau khi chạy), lượt hai ở repo chính trên `7138f02` sau merge. **Đầu ra hai lượt giống hệt từng dòng** (`diff` rỗng). Mỗi lượt ~2,5 phút.
+
+**M0.** Cache `backtest/cache`: 125 tệp, sha256 `acf6dca1dd38d5157ee397bbccb7f82d662698b318a6dcf6b72617335bf44d6e`, mtime 2026-08-06T06:09:50Z → 2026-09-03T02:45:39Z (MỘT lượt kéo theo nghĩa ĐO 24: không ghép `cache_2018`). `ke_hoach_vao_lenh.py` so với `d44cc87`: khớp. Ngưỡng 62 (đã ký 62). Chế độ học `co_san`, 44 mẫu. `stride` 2, `min_history` 60 (đọc từ chữ ký `walkforward.chay`). 33 mã có vùng ngoài mẫu; 11.623 phiên quyết định được chấm.
+
+**Quần thể.** 1.973 tín hiệu đạt ngưỡng · bỏ 18 vì thiếu 20 phiên về sau · 0 trùng (mã, t) · 0 thiếu chuẩn ⇒ **N = 1.955 tín hiệu duy nhất trong 386 ngày** (≥ `N_TOI_THIEU` = 113).
+
+**Thống kê chính (bất biến 6).** Δ alpha trung bình mỗi tín hiệu (B6 − nền) **+0,21 điểm %**, KTC 95% **[−0,16 ; +0,57]** (bootstrap khối ngày, 10.000 lượt, hạt 20261010). **KẾT CỤC KÝ TRƯỚC: B — chưa phân biệt được.** Quy tắc 1 không kích hoạt (+0,21 < +2).
+
+**Đối chứng của máy đo (cùng lượt) — cả ba ĐẠT:** (i) ép luôn MUA_NGAY → Δ ≡ 0; (ii) ép luôn BO_QUA → Δ trung bình +0,65 = −alpha nền trung bình; (iii) xáo nến sau t → 0 lệch / 1.968 tín hiệu. `doi-chung` trên dữ liệu tổng hợp ở máy: mã thoát 0, ba đối chứng ĐẠT (0 lệch / 474).
+
+**Báo kèm (không quyết định kết cục).**
+- Chênh lợi nhuận sau chi phí, chưa trừ chuẩn: −0,32 điểm %/tín hiệu.
+- Tỷ lệ phán quyết: BO_QUA 838 (42,9%) · CHO_VUNG 663 (33,9%) · MUA_NGAY 445 (22,8%) · CHUA_LAP_DUOC 9 (0,5%).
+- CHO_VUNG: khớp 327/663 (49,3%), lỡ 336. **Lệnh chờ tự chọn lệnh thua — đúng như `docs/LO-TRINH.md` C7 đã cảnh báo:** lợi nhuận nền của nhóm KHỚP −4,04% so với nhóm LỠ +2,50% (alpha nền −3,24 so với +0,47). Lệnh giới hạn chỉ khớp khi giá đang rơi.
+- Δ theo phán quyết: BO_QUA n=838 −0,13 · CHO_VUNG n=663 +0,84 · CHUA_LAP_DUOC n=9 −3,80 · MUA_NGAY n=445 0,00.
+- Biến thể "chạm là khớp" (low ≤ trần vùng): Δ +0,22, KTC [−0,14 ; +0,57] — cùng kết cục.
+- VN-INDEX tại t: trên MA50 n=1.565 Δ +0,26 · dưới MA50 n=390 Δ +0,00.
+
+**Hệ quả theo kết cục B đã ký.** B6 giữ CHỈ ĐỂ HIỆN. App ghi "đã đo (ĐO 25), chưa phân biệt được" ở chú thích bảng kế hoạch (`app.py`); gác `tests/test_ke_hoach_vao_lenh.py::test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong` đòi câu ấy và cấm câu cũ "CHỈ ĐỂ HIỆN và CHƯA ĐO" sống cạnh nó — hai đột biến (bỏ câu kết cục; để câu cũ sống lại) đều đỏ. KHÔNG khai UV-002 dựa trên ĐO 25 (chỉ kết cục A cho phép). Không đổi đường thật, không chọn hằng số.
+
+**Kiểm dữ liệu trước khi tin (leader, 12/10/2026).** Quét bước đổi đóng-cửa liền kề vượt biên độ sàn trên cả `backtest/cache`: 84 bước trên 8 mã; trong vùng ngoài mẫu chỉ có BSR (20 bước) và VTP (10 bước), cả hai ở giai đoạn còn niêm yết UPCoM — biên ±15% tính trên giá tham chiếu là giá BÌNH QUÂN phiên trước, nên đóng-cửa-so-đóng-cửa có thể vượt 15% (lớn nhất: VTP +17,14% ngày 2022-11-16). Các bước ấy CHƯA được kiểm từng cái với lịch sự kiện; 31 mã ngoài mẫu còn lại không có bước nào vượt biên. Bậc lớn thật nằm ở vùng TRONG mẫu: SSI −17,87% và MBB −16,36% ngày 2026-08-10, HHP −12,52% ngày 2026-08-12 (chỗ đuôi lượt kéo 07/08 gặp lượt nối 03/09; chưa phân biệt được GDKHQ thật trong chuỗi chưa điều chỉnh với chỗ nối — việc của BƯỚC 180). Nến 2026-09-03 trong cache là nến CHƯA ĐÓNG (kéo lúc ~09:40) nhưng nằm ngoài vùng đo. **Giới hạn:** phép quét không thấy bậc nhỏ hơn biên (cổ tức tiền vài %); một lượt kéo đơn là nhất quán bên trong nên vùng ngoài mẫu (dựng từ lượt kéo lùi) ít có chỗ nối, nhưng điều đó là SUY LUẬN từ cách dựng, không phải phép đo từng mã.
+
+**Câu cố ý KHÔNG sửa.** `ke_hoach_vao_lenh.py` vẫn ghi "Phán quyết CHƯA ĐO" và "ĐỀ XUẤT, CHƯA ĐO" cho từng hằng số: dụng cụ ĐO 25 đòi tệp ấy khớp TỪNG BYTE với `d44cc87` (M0) — sửa một chữ là lượt tái lập sau DỪNG. Từng hằng số vẫn đúng là chưa đo riêng (ĐO 25 đo cả kế hoạch, không chỉnh hằng số nào). Trạng thái đo của cả kế hoạch nằm ở app, mục này và `docs/LO-TRINH.md`.
+
+**Lộ trình.** `docs/LO-TRINH.md`: B2 ĐÃ DỰNG (BƯỚC 174) · B4 ĐÃ DỰNG (BƯỚC 177) · B6 PHẦN 1 ĐÃ DỰNG (BƯỚC 173; vế "nhật ký ghi" CHƯA làm) kèm kết cục ĐO 25 · C7: phép đo thăm dò là ĐO 25, kết cục B, không khai UV-002. `docs/HANDOFF.md` câu "(B6 chưa dựng)" (BƯỚC 172) mang dấu ⚠️ HẾT ĐÚNG.
+
+**Sổ tay (Quy tắc 3) — hỏi thật** (BƯỚC này sửa `docs/LO-TRINH.md` và ghi một kết luận đo). Làm tươi trước: STATE · TIEU-CHI · QUYET-DINH-CHO thêm bản ghim `f404009` rồi xoá bản cũ (@8d302e3 · @13c32a0 · @b4088b2), đọc nhãn hộp xác nhận; đo độ tươi: sổ trả "178, docs/STATE.md @f404009" — khớp. Sổ trả "không tìm thấy câu nào nói ngược"; leader grep lại và tìm ra ba câu (ghi ở `docs/soat-notebooklm.json`): HANDOFF "(B6 chưa dựng)" (nguồn HANDOFF của sổ còn @e9a6d0c, cũ hơn câu ấy), chú thích app "CHƯA ĐO", docstring `ke_hoach_vao_lenh.py` (cố ý giữ, xem trên).
+
+**Phát hiện phụ, CHƯA xử lý.** Trong lượt cổng 4 đầu tiên ở worktree (cache rỗng), một test gọi `market_filter.get_vni_df()` đã TẢI MẠNG và GHI `backtest/cache/VNINDEX.csv` vào worktree (mtime 08:31:10, giữa lượt cổng; lượt ĐO 25 lúc 09:10 đọc VN-INDEX từ cache của repo chính qua `--cache`, không dính). Ở repo chính cache có sẵn nên đường ghi ngầm (lỗi 157) không chạy. Chưa tìm test nào gây ra.
 
 ## BƯỚC 180 — D2: NỐI CACHE GIÁ AN TOÀN (KHÔNG TRỘN HAI CƠ SỞ GIÁ, KHÔNG GHI NẾN CHƯA ĐÓNG) VÀ MỘT DỤNG CỤ SOÁT CACHE CHỈ ĐỌC (12/10/2026)
 
@@ -22259,3 +22374,51 @@ Mục này được ghi SAU cổng; sau khi ghi tôi chạy lại các test tài
 **Đề xuất sửa file luật (leader làm ở bước có NotebookLM; bước này KHÔNG chạm chúng).** (a) Bảng "Những chỗ hỏng âm thầm" (`NGUYEN-TAC-DO-LUONG.md`) thiếu dòng "cache giá nối từ hai lượt kéo / nến chưa đóng trong cache" kèm lệnh `tools/kiem_co_so_cache.py`; (b) `CLAUDE.md` mục *Dữ liệu và gói vnstock* nên nói `extend_history` không hợp nhất mã lệch cơ sở và có `--thay-ca-chuoi`; (c) `docs/LO-TRINH.md` D2 có thể ghi "đã dựng phần chặn trộn cơ sở; chưa dựng phần điều chỉnh giá theo sự kiện quyền".
 
 **Sổ tay (Quy tắc 3).** BƯỚC này KHÔNG chạm `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`; `tools/buoc_cham_luat.py 180` xác nhận không chạm → khai `khong_bat_buoc_vi`.
+
+**Leader kiểm ở máy (12/10/2026, mã của PR #227 `99a213f`, cache thật CHỈ ĐỌC hoặc BẢN SAO).**
+1. `python tools/kiem_co_so_cache.py --cache backtest/cache` → mã thoát 1, **40 bước vượt biên ở 7 mã** (BSR 20 · VTP 10 · MSR 5 · OIL 2 · SSI 1 · MBB 1 · HHP 1), 54 mã CHƯA KIỂM ĐƯỢC (ngoài bảng sàn). Khớp lượt quét tay độc lập của leader cùng ngày sau khi bỏ 44 bước báo nhầm của IDC (lượt tay lùi mã ngoài bảng về biên HOSE). SSI và MBB 2026-08-10, HHP 2026-08-12 có mặt; IDC KHÔNG bị báo như HOSE.
+2. `--doi-chieu-nguon` → dòng tổng của dụng cụ: **CUNG_CO_SO 81 · LECH_CO_SO 44**. HDB 83/83 ngày lệch (0,7695–0,7698), FPT 83/83 (0,9055–0,9095), SSI 68/83 (0,7984–1,0) → LECH như kỳ vọng. **Hai chỗ khác đề bài, cả hai do ĐỀ BÀI sai (lỗi 168):** ACB ra LECH (6/83 ngày lệch, tỷ lệ 1,0–1,00102 — nguồn sửa số đi LÊN, không phải điều chỉnh lùi; luật đối xứng nên từ chối nối — chiều an toàn, làm tươi ACB phải dùng `--thay-ca-chuoi`); VNM ra CUNG (chỉ 1/83 ngày lệch, 0,9949) — đề bài gọi VNM là "lệch cả đoạn — cổ tức tiền thật" sau khi chỉ đọc min/max. Sáu mã LECH chỉ vì sửa số đi lên: ACB 6 · DBC 21 · DXG 16 · HCM 6 · LCG 4 · VCB 11 ngày.
+3. `extend_history.py` thật trên BẢN SAO cache (`VIBE_CACHE_DIR` trỏ thư mục tạm; cache thật không đụng) → "So cơ sở giá: 33 CUNG_CO_SO · 39 LECH_CO_SO · 0 KHONG_SO_DUOC"; 33 tệp đổi; **giao (mã LECH ∩ tệp đổi) = rỗng** (so băm sha256 từng tệp trước/sau); quét lại bản sao sau khi nối: vẫn đúng 40 bước ở 7 mã — chỗ nối mới không sinh bậc nào.
+
+**Ngưỡng 0,1% đứng, lý do sửa.** Đoạn điều chỉnh LÙI nhỏ nhất đo được trên dữ liệu thật (≥ 5 ngày lệch, mọi tỷ lệ < 1): IDC 54/83 ngày ở 0,99865 (−0,13%), HHV 36 ngày ở 0,99812, OCB 35 ngày ở 0,99791 — cả ba > 0,1% nên bị bắt. Chú thích `NGUONG_LECH_CO_SO` trong `backtest/data.py` dẫn VNM làm bậc cổ tức nhỏ nhất — sai (VNM là một ngày lẻ); sửa chú thích sang IDC/HHV/OCB.
+
+**Phát hiện mới, CHƯA xử lý — nến chưa đóng nằm BÊN TRONG cache.** 18 mã CUNG lệch đúng MỘT ngày (ACV −0,96% · BSR −1,7% · HAG −2,1% · TCB −0,68% · VNM −0,51% …). Leader kéo lại 5 mã: ngày lệch là **2026-08-06** (TCB, VNM) và **2026-08-11** (ACV, HAG, BSR) — đúng các đuôi lượt kéo cũ (mtime sớm nhất của cache: 2026-08-06 06:09 UTC = 13:09 giờ VN, giữa phiên chiều). Phép hợp nhất giữ-dòng-cũ đã giữ các nến dở ấy qua mọi lượt nối sau. `hop_nhat` của BƯỚC 180 chỉ thay ngày CUỐI của cache cũ nên KHÔNG chữa được chúng; cả hai ngày nằm vùng TRONG mẫu (không chạm ĐO 25). Việc sau: khi `CUNG_CO_SO`, ngày trùng lệch đơn lẻ lấy bản mới (nến đã đóng) — đổi luật "giữ dòng cũ", cần một BƯỚC riêng.
+
+## BƯỚC 181 — `tools/buoc_cham_luat.py` gán nhầm BƯỚC sau khi gộp `main` vào nhánh PR (12/10/2026)
+
+**Mốc:** quy-trinh — gác Quy tắc 3 đỏ giả khi nhánh PR gộp main
+
+Phiên đám mây (nhánh `sua/buoc-cham-luat-sau-gop-main`, từ `main` `076e3e4`). Hai phiên khác (BƯỚC 179, 180) chạy song song và cùng ghi `docs/STATE.md`; mục này chỉ THÊM ở cuối. **Chỉ sửa CÁCH TÌM của một công cụ đọc git: không đổi Quy tắc 3, `FILE_LUAT`, ô `khong_bat_buoc_vi` / `khong_soat_vi`, `docs/soat-notebooklm.json` của BƯỚC khác; không chạm file luật, workflow, mã đo lường.**
+
+**Sự cố (leader gặp ở máy, 12/10/2026).** PR #224 (BƯỚC 178, nhánh `do/do25-ke-hoach-vao-lenh`) sửa `docs/TIEU-CHI-DOC-TRUOC.md` — một file luật — và đã HỎI THẬT sổ tay. Trong lúc PR mở, `main` nhận BƯỚC 176 và 177, cả hai khai `khong_bat_buoc_vi` (đúng: không chạm file luật). Leader `git merge origin/main` vào nhánh PR (commit gộp, cha đầu = nhánh, cha hai = `main`); cổng 1 đỏ: `tests/test_soat_notebooklm.py::test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat` — *"BƯỚC 176: BUOC nay CHAM file luat ['docs/TIEU-CHI-DOC-TRUOC.md'] — phai HOI THAT so tay"*, y hệt cho BƯỚC 177. Leader tránh bằng rebase (không còn commit gộp). Đó là đường vòng, không phải lời giải.
+
+**Gốc rễ.** `commit_dua_buoc_vao` chạy `git log --first-parent -G"^## BƯỚC n "` trên **HEAD** rồi lấy commit CŨ NHẤT. Trên nhánh PR đã gộp `main`, commit CŨ NHẤT trên đường cha-đầu của HEAD có diff đụng `## BƯỚC 176 ` là CHÍNH commit gộp (diff so với cha đầu mang cả 176 và 177 vào). Commit gộp không phải tổ tiên của `main`, nên `file_cua_buoc` rơi xuống nhánh "CHƯA vào gốc": cả cây làm việc của PR so với điểm tách, tức mọi file của BƯỚC 178 — kể cả file luật — bị quy cho BƯỚC 176 và 177. Mọi test cũ chạy với HEAD = nhánh gốc hoặc nhánh PR chưa gộp gì, nên "HEAD" và "nhánh gốc" luôn trùng ở chỗ tìm; hình dạng này chưa từng nằm trong ca nào.
+
+**Sửa (`tools/buoc_cham_luat.py`).**
+- `commit_dua_buoc_vao(..., tren="HEAD")` nhận thêm ref để tìm. `file_cua_buoc` truyền **nhánh gốc** (`goc`): BƯỚC đã có tiêu đề trên đường cha-đầu của nhánh gốc thì phán bằng commit đưa nó vào gốc (diff so với cha đầu), HEAD là gì cũng vậy. Chỉ khi nhánh gốc CHƯA có BƯỚC ấy mới đi nhánh "CHƯA vào gốc" như cũ (BƯỚC chỉ có trên PR vẫn thấy file luật của PR). Kiểm `_la_to_tien(c, goc)` thành thừa — commit tìm được trên đường của `goc` thì là tổ tiên của `goc` — và đã gỡ.
+- Neo giờ phải là tổ tiên của **nơi đang tìm** (`tren`), không của HEAD: khoảng `neo..tren` rỗng vì neo nằm ngoài `tren` thì NỔ, không im lặng trả None. `main()` (dòng lệnh) tra cùng nhánh gốc khi hỏi tiêu đề có trong lịch sử không.
+- Giữ nguyên: dấu cách sau số (`BƯỚC 16` không khớp `BƯỚC 164`), `-G` chứ không `-S`, lấy commit CŨ NHẤT, `--first-parent`, `neo` giới hạn khoảng tìm, repo nông thì NỔ.
+
+**Gác (`tests/test_buoc_cham_luat.py`, 29 → 37 ca; dựng repo git TẠM, không chạm repo thật).** Fixture `su_co`: `main` = gốc R → A (đưa `## BƯỚC 1 `, đổi file thường `docs/x.md`); nhánh `pr` tách TRƯỚC A, commit B đưa `## BƯỚC 2 ` và đổi `CLAUDE.md` (file luật).
+- (a) `git merge main` vào `pr` → BƯỚC 1 ra đúng file của A (`docs/STATE.md`, `docs/x.md`), KHÔNG chạm; nguồn là "da vao" kèm mã A. Cũng chạy với `neo=None` (BƯỚC trước `TU_BUOC`) và qua `main()`.
+- (b) cùng repo, BƯỚC 2 (chưa vào `main`) → vẫn CHẠM `CLAUDE.md`, nguồn "CHUA vao".
+- (c) `git rebase main` thay vì gộp → kết quả như (a); (d) giả lập merge-ref của CI (HEAD tách rời, cha đầu = `main`, cha hai = `pr`) → BƯỚC 1 như (a), BƯỚC 2 chạm luật; (e) BƯỚC 1 bị sửa tiêu đề ở commit A2 SAU trên `main` → vẫn lấy commit CŨ NHẤT (A); và một ca neo là tổ tiên của HEAD nhưng không phải của `main` → NỔ.
+- **Phát đầu tiên chạy trên mã CŨ (đỏ):** `AssertionError: (['CLAUDE.md'], 'CHUA vao main: cay lam viec so voi diem tach 319be44')` — đúng sự cố: BƯỚC 1 của `main` bị quy file luật của PR; ca tiêu đề-sửa-về-sau nổ `TypeError` (chưa có tham số `tren`), ca neo `DID NOT RAISE`. Ba ca (b), (c), (d) XANH trên mã cũ: chúng là hàng rào chống "chữa" bằng cách làm mù BƯỚC chưa vào gốc.
+- **Đột biến (11 phát, `va_an_toan.dot_bien_bo`, lệnh `pytest tests/test_buoc_cham_luat.py -x`): 11/11 đỏ.** Quay về mã cũ (tìm trên HEAD) · lấy commit MỚI nhất · bỏ dấu cách sau số · nhánh "CHƯA vào gốc" trả rỗng · bỏ kiểm neo là tổ tiên · kiểm neo so với HEAD thay vì `tren` · diff so với cha HAI · bỏ ref khỏi `git log` · ref luôn HEAD · `file_cua_buoc` luôn đi nhánh "CHƯA vào" · bỏ `--first-parent`.
+
+**Trên lịch sử THẬT (đo trong phiên này, `HEAD` = `main` `076e3e4`; lệnh `python tools/buoc_cham_luat.py 176 177 162 163 164`).**
+- 176: *khong cham luat* [da vao origin/main: commit 18512f2] · 177: *khong cham luat* [commit 076e3e4] · 162: CHAM `CLAUDE.md` · 163: khong cham · 164: CHAM `SKILL.md`, `CLAUDE.md`, `docs/LO-TRINH.md` — giữ nguyên các phán quyết cũ.
+- **178 chưa vào `main`** (PR #224 còn mở) nên không thể "báo CHẠM do đã vào gốc"; tôi dựng đúng sự cố trong MỘT BẢN CLONE TẠM (không ghi repo thật): `do/do25-ke-hoach-vao-lenh` rồi `git merge origin/main` (xung đột ở `STATE.md`, `loi-da-mac.md`, `loi-phan-lop.json`, `moc_so_test.json`, `soat-notebooklm.json` — giải bằng `--ours` cho `STATE.md`, `--theirs` cho bốn file còn lại; chỉ để có commit gộp 2 cha). Mã CŨ trên commit gộp: 176 và 177 *CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']* [CHUA vao origin/main] — tái hiện đúng sự cố. Mã MỚI trên cùng commit: 176 và 177 *khong cham luat* [da vao origin/main: commit 18512f2 / 076e3e4], **178 CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']** [CHUA vao origin/main] — đúng cả ba.
+
+**Giới hạn còn lại (khai thẳng).** (1) Máy vẫn chỉ thấy FILE, không thấy NGHĨA — sửa này chỉ đổi CÁCH TÌM. (2) Nó phụ thuộc `origin/main` cục bộ phản ánh `main` thật: chưa `git fetch` thì "nhánh gốc" là bản cũ; hình dạng ấy tôi KHÔNG gác và không đo. (3) Nếu `main` có BƯỚC n nhưng tiêu đề đã bị XOÁ rồi thêm lại ở PR sau, commit CŨ NHẤT vẫn thắng — đúng hành vi cũ.
+
+**Năm cổng (đám mây, Python 3.13, không `.venv`, KHÔNG có `vnstock`/`vnai` — kho hãng không với tới; còn lại cài từ PyPI; tuần tự, log ra file).**
+1. `pytest tests/ -q`: lượt đầu `5 failed, 2968 passed, 3 skipped` (283,9 s) — ba ca `tests/test_soat_notebooklm.py` đỏ vì BƯỚC 181 chưa có mục sổ tay (ghi sau cổng, theo thứ tự đề bài), một là mốc cổng 5 (2968 → 2976), một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (không có `vnstock`/`vnai` để khớp bản ghim). Sau khi ghi sổ tay và mốc, chạy lại các file tài liệu liên quan (`test_kiem_so_test`, `test_soat_notebooklm`, `test_buoc_cham_luat`, `test_moc_lo_trinh`, `test_skill_quy_trinh`, `test_tai_lieu_khop_*`): `173 passed, 1 skipped`.
+2. `tools/kiem_cu_phap_311.py`: xanh (283 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không cảnh báo nào ở file tôi sửa).
+4. `tools/kiem_test_chay_rieng.py --im`: 146 file trong 369 s, 2 đỏ — `test_requirements.py` (môi trường như trên) và `test_kiem_so_test.py` (mốc chưa cập nhật lúc chạy; xanh sau bước 5).
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2968 → 2976 (+8 test của `tests/test_buoc_cham_luat.py`; không test nào mất); lượt kiểm sau: `OK — 2976 test, khop moc da ghi`.
+
+**Lỗi mới:** 166 (gác Quy tắc 3 tìm commit "đưa BƯỚC vào" trên đường cha-đầu của HEAD; một commit gộp `main` chưa vào gốc bị coi là nơi đưa BƯỚC cũ vào). Không lỗi khác trong phiên này; 167 chưa dùng.
+
+**Việc leader kiểm ở máy.** Tạo một nhánh thử từ `main`, gộp vào nó một nhánh chạm file luật có BƯỚC riêng (ví dụ `do/do25-ke-hoach-vao-lenh` sau khi giải xung đột), rồi `./.venv/Scripts/python.exe -m pytest tests/test_soat_notebooklm.py -q`: hai ca BƯỚC 176/177 phải xanh mà không cần rebase.

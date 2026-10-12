@@ -219,8 +219,11 @@ KHONG_SO_DUOC = "KHONG_SO_DUOC"
 #: Hai bên lệch quá ngần này (|mới/cũ − 1|) ở một ngày trùng thì ngày ấy tính
 #: là LỆCH. ĐỀ XUẤT, hiệu chỉnh bằng số đo leader 12/10/2026 (125 mã, đo ở
 #: máy; đám mây không tái lập được): nguồn sửa số lẻ một ngày cho tỷ lệ tối
-#: đa 1,0002–1,0008 (SAB, PLX, CTG, DPM, VJC) — NHỎ HƠN 0,1%; bậc cổ tức tiền
-#: nhỏ nhất đo được là VNM 0,9949 (lệch 0,51%) — LỚN HƠN 0,1% năm lần. 0,1%
+#: đa 1,0002–1,0008 (SAB, PLX, CTG, DPM, VJC) — NHỎ HƠN 0,1%; đoạn điều chỉnh
+#: LÙI nhỏ nhất đo được (leader, `--doi-chieu-nguon` 12/10/2026, ≥ 5 ngày lệch)
+#: là IDC 54/83 ngày ở 0,99865 (−0,13%), rồi HHV 0,99812, OCB 0,99791 — LỚN
+#: HƠN 0,1%. (Đề bài từng dẫn VNM 0,9949 làm mốc: sai, VNM lệch MỘT ngày — lỗi
+#: 168.) 0,1%
 #: nằm giữa hai cụm, sát cụm nhiễu về phía an toàn (nghi quá thì không nối,
 #: không phải nối nhầm). Viết dạng NHÂN (`|mới − cũ| > ngưỡng × cũ`), không
 #: chia, để biên không phụ thuộc làm tròn dấu phẩy động.
