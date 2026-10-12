@@ -43,7 +43,7 @@ BƯỚC, không phải ĐO.
 **Mỗi BƯỚC từ 164 khai MỘT dòng `**Mốc:** <mã>`** (mã trong `docs/LO-TRINH.md`,
 hoặc `quy-trinh — <lý do>`). Gác: `tests/test_moc_lo_trinh.py`.
 
-Chỗ đã trượt 19/27 lượt nằm ở **CÂU HỎI**, không ở công cụ: hỏi *"tài liệu
+Chỗ đã trượt 19/27 lượt (đo 18/09/2026) nằm ở **CÂU HỎI**, không ở công cụ: hỏi *"tài liệu
 nói gì về MÃ của tôi"* thì nó không thấy mã; hỏi *"có chỗ nào NÓI NGƯỢC kết
 luận tôi sắp viết"* thì luôn có đích. Trả *"không tìm thấy câu nào nói
 ngược"* là kết quả hợp lệ. Dựng câu hỏi và ghi sổ bằng `tools/so_tay.py hoi`
@@ -65,8 +65,7 @@ còn nợ n` (soát rồi khai vào `docs/soat-notebooklm.json`) và `SOÁT QUY 
 n ngày trước` (quá nhịp 7 ngày → `tools/soat_loi_khai_cu.py`).
 
 Luật nạp skill ở mọi phiên nằm trong `~/.claude/rules/vibe-preview.md`
-(nạp bất kể phiên mở ở đâu). Đường ngoài repo đổi dưới chân: kiểm bằng
-`tools/kiem_duong_ngoai_repo.py`.
+(nạp bất kể phiên mở ở đâu).
 
 ---
 
@@ -105,14 +104,15 @@ mãi; "không nạp được nguồn" sai ngay khi có đường thứ hai.
 ```python
 import sys; sys.path.insert(0, "tools")
 from va_an_toan import thay, dot_bien
-thay("paper_metrics.py", "N_TOI_THIEU = 113", "N_TOI_THIEU = 120")
+thay("tools/do_token_phien.py", "NGUONG_GHI_LAI = 200_000", "NGUONG_GHI_LAI = 250_000")
 ```
 
 `tools/va_an_toan.py` đọc/ghi ở **chế độ văn bản**, neo viết bằng `\n`, neo
 phải khớp **đúng một lần** hoặc nổ, ghi qua file tạm rồi đổi tên. **KHÔNG
 tự viết neo theo byte** (5/11 lỗi một ngày). Luật "giữ CRLF" cũ đã bị bác:
 trong index toàn file là LF, quy ước xuống dòng trên đĩa không ảnh hưởng
-thứ được commit.
+thứ được commit. Ví dụ ở Bước 2–3 phải chạy được:
+`tests/test_skill_quy_trinh.py::test_VI_DU_neo_chay_duoc`.
 
 **Suy ra, đừng gõ.** Một ngưỡng gõ tay ở hai chỗ sẽ trôi ra khỏi nhau.
 
@@ -121,7 +121,7 @@ thứ được commit.
 ## Bước 3 — Đột biến mọi gác mới. VÒNG LẶP, không phải một lượt
 
 ```python
-dot_bien("paper_metrics.py", "z=2,30", "z=1,00",
+dot_bien("paper_metrics.py", "Z_BIEN_HAI = 2.30", "Z_BIEN_HAI = 1.00",
          ["-m", "pytest", "tests/test_dieu_kien_dung_alpha.py", "-q"])
 ```
 
@@ -181,7 +181,8 @@ test cũng phải cập nhật mốc** (mốc trôi tụt lại là lỗ hổng 
 - `PYTHONIOENCODING=utf-8` cho mọi lệnh có tiếng Việt. **Ghi ra file log,
   đừng pipe qua `tail`** (đệm hết output; và mã thoát của ống là của `tail`,
   luôn 0 — `&&` đi tiếp dù pytest đỏ). Đừng sửa file khi một lượt chạy đang
-  bay. Chi tiết: `references/cong-thuc-chay.md`.
+  bay. Chi tiết, và phiên đám mây (không `.venv`, không `vnstock`):
+  `references/cong-thuc-chay.md`.
 - Số cổng là con số đếm thứ có thật nên nó trôi:
   `tests/test_bo_cong_khop_CI.py` suy danh sách từ `.github/workflows/kiem-dinh.yml`.
 - **Sửa `SKILL.md` hay `references/` thì chạy MỘT file này TRƯỚC** (11 giây):
@@ -251,6 +252,7 @@ tuyệt đối — bản trong repo khai cùng lúc thì mỗi hook chạy HAI L
 | `tools/cua_mo_phien.py` | SessionStart | nhắc gọi skill · mốc ngày đang chặn · dòng `CUA: n/m song` |
 | `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
 | `tools/cua_bash_an_toan.py` | Pre · Bash\|PowerShell | chặn hình dạng lệnh đã cắn thật |
+| `tools/cua_ho_so.py` | Pre · Read/Edit | bơm hồ sơ `tools/ho_so.py` khi mở file đủ dày |
 | `tools/chan_bia_so_lieu.py` | Post · Write/Edit | quét mẫu bịa số liệu |
 | `tools/cua_ghi_an_toan.py` | Post · Write/Edit | file còn 0 byte sau lượt ghi |
 | `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | soát lại file đã đổi |
@@ -305,17 +307,13 @@ Nói đúng trong báo cáo: *"NotebookLM chỉ ra chỗ X, tôi kiểm lại b�
 - **Ô thoát đòi lý do cụ thể vẫn có thể thành câu thần chú** (lỗi 86: sáu mục
   liên tiếp viện dẫn cùng một phát hiện đúng). Chuỗi bỏ qua là một đại lượng
   — bản tin mở phiên nói ra từ 3 mục trở lên (`tools/cua_mo_phien.chuoi_khong_soat()`).
-  Gác so chữ đã đo và bỏ: sáu lời khai ấy giống nhau *ít hơn* mức trung bình.
 
 **Đo độ tươi TRƯỚC mỗi lượt hỏi**, không nhớ từ lượt trước: hỏi *"số BƯỚC lớn
 nhất trong các nguồn"* (kèm lối thoát) rồi so `grep -c '^## BƯỚC' docs/STATE.md`.
 Phép BỎ CHỌN nguồn không sống qua phiên. Lệch thì làm tươi — **THÊM TRƯỚC, XOÁ
 SAU** (xoá trước có một cửa sổ sổ rỗng; bản trùng còn làm sổ trả lời SAI:
-BƯỚC 95 thay vì 96). Nguồn là URL `raw.githubusercontent.com/…/<mã băm 40 ký
-tự>/<file>` (ghim băm, tránh CDN chậm một commit), đổi tên nguồn thành
-`<file> @<7 ký tự băm>`, nhắm nút xoá theo tham chiếu cây trợ năng chứ không
-theo pixel, và đọc **nhãn** trên hộp xác nhận. Cách làm chi tiết ở
-`references/soat-cheo-notebooklm.md`.
+BƯỚC 95 thay vì 96). Từng bước (URL ghim băm, đổi tên nguồn, đọc nhãn trên
+hộp xác nhận): `references/soat-cheo-notebooklm.md`, mục *Nạp lại nguồn*.
 
 **Xoá nguồn:** hỏi người dùng trước (xoá là vĩnh viễn) — **TRỪ** bản trùng
 của đúng nguồn vừa dán lại ở bước THÊM. Không có gác máy cho luật này (thao

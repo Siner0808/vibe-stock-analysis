@@ -357,6 +357,294 @@ def test_skill_NHAC_ranh_gioi_khong_dat_lenh_that():
     print("PASS  skill giữ ranh giới đặt lệnh và luật nhánh")
 
 
+# ── Ví dụ lệnh trong skill phải CHẠY ĐƯỢC (BƯỚC 183, lỗi 171) ─────────────
+#
+# `SKILL.md` Bước 2–3 và docstring của `tools/va_an_toan.py` dạy hai lời gọi
+# `thay()` / `dot_bien()`. Cả hai ví dụ chết ngay từ ngày viết (07/09/2026,
+# `2c88dfe`) và sống 35 ngày: neo `N_TOI_THIEU = 113` chưa từng có trong mã
+# (đó là giá trị SUY RA: `round(N_DAY_DU / 4)`), neo `z=2,30` khớp HAI lần và
+# cả hai nằm trong chú thích — nên kể cả sửa cho khớp một lần thì đột biến
+# cũng không đổi hành vi nào. `test_moi_file_skill_nhac_toi_deu_CO_THAT` chỉ
+# kiểm TÊN file, không kiểm ví dụ có chạy được hay không.
+#
+# GIỚI HẠN, khai thẳng (lỗi 44): "AST đổi" là điều kiện CẦN, không phải
+# ĐỦ. Gác chỉ chặn neo nằm trọn trong chú thích hoặc docstring; một neo nằm
+# trong một chuỗi thông báo vẫn qua. Nó cũng KHÔNG chạy pytest.
+
+#: Số lời gọi tối thiểu gác phải soi được: hai trong SKILL.md (Bước 2, Bước 3)
+#: và hai trong docstring của `va_an_toan.py`. Dưới mức này là bộ trích hỏng.
+SAN_VI_DU = 4
+
+
+def _khoi_python_trong_md(src: str) -> list[str]:
+    return re.findall(r"```python\n(.*?)\n```", src, re.S)
+
+
+def _khoi_cach_dung_trong_docstring(src_py: str) -> list[str]:
+    """Khối mã thụt lề sau dòng `CÁCH DÙNG` trong docstring module."""
+    import ast
+    import textwrap
+
+    doc = ast.get_docstring(ast.parse(src_py)) or ""
+    moc = doc.find("CÁCH DÙNG")
+    return [textwrap.dedent(doc[moc:].split("\n", 1)[1])] if moc >= 0 else []
+
+
+def _ast_khong_docstring(src: str) -> str:
+    """`ast.dump` của file, bỏ docstring: chú thích vốn không vào AST."""
+    import ast
+
+    cay = ast.parse(src)
+    for nut in ast.walk(cay):
+        if isinstance(nut, (ast.Module, ast.ClassDef, ast.FunctionDef,
+                            ast.AsyncFunctionDef)):
+            dau = nut.body[0] if nut.body else None
+            if (isinstance(dau, ast.Expr) and isinstance(dau.value, ast.Constant)
+                    and isinstance(dau.value.value, str)):
+                nut.body = nut.body[1:] or [ast.Pass()]
+    return ast.dump(cay)
+
+
+def _vi_du_lenh_chet(khoi: str, goc: Path) -> tuple[int, list[str]]:
+    """PHÉP PHÁN. Mỗi lời gọi `thay()` / `dot_bien()` trong `khoi` phải chạy được.
+
+    Trả `(số lời gọi đã soi, danh sách lỗi)`. Chạy được nghĩa là: file có;
+    neo khớp ĐÚNG MỘT lần (luật của `va_an_toan`); với file `.py`, thay neo
+    làm file vẫn parse được và làm AST (bỏ docstring) ĐỔI; với `dot_bien`,
+    file test nêu trong `lenh` có thật. Tách riêng khỏi thân test để đục
+    thử được phép phán (cùng lý do `_ten_module_test_chet`).
+    """
+    import ast
+
+    try:
+        cay = ast.parse(khoi)
+    except SyntaxError as e:
+        return 0, [f"khối python không parse được: {e.msg}"]
+    dem, loi = 0, []
+    for nut in ast.walk(cay):
+        if not (isinstance(nut, ast.Call) and isinstance(nut.func, ast.Name)
+                and nut.func.id in ("thay", "dot_bien")):
+            continue
+        ten = nut.func.id
+        chuoi = [a.value for a in nut.args
+                 if isinstance(a, ast.Constant) and isinstance(a.value, str)]
+        if len(chuoi) < 3:
+            continue       # mẩu mã minh hoạ lỗi cũ (biến, không hằng) — không phải ví dụ
+        dem += 1
+        duong, cu, moi = chuoi[:3]
+        p = goc / duong
+        if not p.is_file():
+            loi.append(f"{ten}({duong!r}): file không có")
+            continue
+        src = p.read_text(encoding="utf-8")
+        if src.count(cu) != 1:
+            loi.append(f"{ten}({duong!r}): neo {cu!r} khớp {src.count(cu)} lần, "
+                       f"phải đúng 1")
+            continue
+        if duong.endswith(".py"):
+            try:
+                doi = (_ast_khong_docstring(src.replace(cu, moi, 1))
+                       != _ast_khong_docstring(src))
+            except SyntaxError:
+                loi.append(f"{ten}({duong!r}): thay neo làm file không parse được")
+                continue
+            if not doi:
+                loi.append(f"{ten}({duong!r}): neo {cu!r} chỉ nằm trong chú thích "
+                           f"hoặc docstring — đột biến không đổi hành vi")
+        if ten == "dot_bien" and len(nut.args) > 3 and isinstance(nut.args[3], ast.List):
+            for a in nut.args[3].elts:
+                if (isinstance(a, ast.Constant) and isinstance(a.value, str)
+                        and a.value.endswith(".py") and not (goc / a.value).is_file()):
+                    loi.append(f"dot_bien({duong!r}): file test {a.value!r} không có")
+    return dem, loi
+
+
+def _soi_tat_ca_vi_du(khoi: list[str], goc: Path) -> list[str]:
+    """Soi mọi khối; NỔ nếu soi được ít hơn `SAN_VI_DU` lời gọi.
+
+    Tách khỏi thân test CÓ CHỦ ĐÍCH (cùng `_tat_ca_token_skill`): để phép chặn
+    số 0 nằm trong thân test thì đột biến "bỏ sàn" sống sót, vì đường chạy
+    êm không bao giờ chạm tới nó (đục thử 12/10/2026: 1/13 sống).
+    """
+    dem, loi = 0, []
+    for k in khoi:
+        n, l = _vi_du_lenh_chet(k, goc)
+        dem += n
+        loi += l
+    if dem < SAN_VI_DU:
+        raise AssertionError(
+            f"chỉ soi được {dem} lời gọi (sàn {SAN_VI_DU}) — bộ trích hỏng, "
+            f"và gác sẽ xanh mà không kiểm gì")
+    return loi
+
+
+_VI_DU_XAU = [
+    ("neo không có thật",
+     {"m.py": "X = 1\n"}, 'thay("m.py", "X = 9", "X = 2")'),
+    ("neo khớp hai lần",
+     {"m.py": "A = 1\nB = 1\n"}, 'thay("m.py", "= 1", "= 2")'),
+    ("neo chỉ nằm trong chú thích (đúng ca z=2,30 cũ)",
+     {"m.py": "# Z = 2.3\nY = 1\n"}, 'thay("m.py", "Z = 2.3", "Z = 1.0")'),
+    ("neo chỉ nằm trong docstring",
+     {"m.py": '"""Z = 2.3"""\nY = 1\n'}, 'thay("m.py", "Z = 2.3", "Z = 1.0")'),
+    ("file không có", {}, 'thay("khong_co.py", "a", "b")'),
+    ("thay neo làm file hết parse được",
+     {"m.py": "X = 1\n"}, 'thay("m.py", "X = 1", "X = (")'),
+    ("dot_bien trỏ tới file test không có",
+     {"m.py": "X = 1\n"},
+     'dot_bien("m.py", "X = 1", "X = 2", ["-m", "pytest", "tests/khong_co.py"])'),
+]
+_VI_DU_TOT = [
+    ("neo thật, đổi hành vi", {"m.py": "X = 1\n"},
+     'thay("m.py", "X = 1", "X = 2")'),
+    ("neo thật, file có docstring ở chỗ khác", {"m.py": '"""doc"""\nX = 1\n'},
+     'thay("m.py", "X = 1", "X = 2")'),
+    ("neo nằm trong lời gọi hàm (đổi chuỗi hằng là đổi AST)",
+     {"m.py": 'print("a")\n'}, 'thay("m.py", \'print("a")\', \'print("b")\')'),
+    ("dot_bien với file test có thật",
+     {"m.py": "X = 1\n", "tests/t.py": "pass\n"},
+     'dot_bien("m.py", "X = 1", "X = 2", ["-m", "pytest", "tests/t.py", "-q"])'),
+]
+
+
+def test_VI_DU_gac_tu_chung_minh_bat_dung_hinh_dang_chet(tmp_path):
+    """Mẫu đã biết là chết phải bị bắt; mẫu đã biết là sống phải được tha.
+
+    Không có phần này thì `test_VI_DU_neo_chay_duoc` chỉ chứng minh được
+    rằng HÔM NAY hai ví dụ chạy được — không chứng minh gác bắt được ví dụ
+    chết (một gác kiểm "không có vi phạm" không phân biệt được với một gác
+    kiểm gì cả, lỗi 34).
+    """
+    def _chay(tep, khoi):
+        for ten, nd in tep.items():
+            (tmp_path / ten).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / ten).write_text(nd, encoding="utf-8")
+        return _vi_du_lenh_chet(khoi, tmp_path)
+
+    for ten, tep, khoi in _VI_DU_XAU:
+        dem, loi = _chay(tep, khoi)
+        assert loi, f"BỎ SÓT: {ten}"
+    for ten, tep, khoi in _VI_DU_TOT:
+        dem, loi = _chay(tep, khoi)
+        assert dem == 1 and not loi, f"KÊU OAN: {ten}: {loi}"
+    assert _vi_du_lenh_chet("x = 1\n", tmp_path) == (0, [])
+    # mẩu minh hoạ lỗi cũ dùng biến, không dùng hằng: bỏ qua, KHÔNG đếm vào sàn
+    assert _vi_du_lenh_chet('dot_bien(F, cu, moi, BO)', tmp_path) == (0, [])
+    assert SAN_VI_DU == 4, "hạ sàn là một quyết định, không phải một lần sửa lặng lẽ"
+    try:
+        _soi_tat_ca_vi_du([], tmp_path)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("không soi được lời gọi nào mà vẫn im lặng")
+    print(f"PASS  bắt {len(_VI_DU_XAU)} ví dụ chết, tha {len(_VI_DU_TOT)} ví dụ sống")
+
+
+def test_VI_DU_neo_chay_duoc():
+    """Ví dụ `thay()` / `dot_bien()` trong skill và trong `va_an_toan.py` phải
+    chạy được trên mã HIỆN HÀNH — neo có thật, đúng một lần, đổi hành vi."""
+    khoi = []
+    for f in [SKILL] + THAM_CHIEU:
+        khoi += _khoi_python_trong_md(f.read_text(encoding="utf-8"))
+    khoi += _khoi_cach_dung_trong_docstring(
+        (GOC / "tools" / "va_an_toan.py").read_text(encoding="utf-8"))
+    loi = _soi_tat_ca_vi_du(khoi, GOC)       # nổ nếu bộ trích hỏng
+    assert not loi, "ví dụ trong skill không chạy được:\n  " + "\n  ".join(loi)
+    print(f"PASS  mọi ví dụ thay()/dot_bien() đều chạy được trên mã hiện hành "
+          f"({len(khoi)} khối python)")
+
+
+# ── `description` không được mang hình dạng làm YAML đọc khác dòng thô ────
+#
+# Nguồn: `CHANGELOG.md:39` của `mattpocock/skills` (#911) — một `: ` không
+# nháy trong `description` làm khối frontmatter thành YAML sai và công cụ
+# nạp skill BỎ QUA sáu skill, không lỗi. `test_skill_ton_tai_va_frontmatter_hop_le`
+# in "frontmatter hợp lệ" mà chỉ so bằng regex. Không `import yaml`: PyYAML
+# không nằm trong `requirements.txt`, và `tests/test_cua_so_du_lieu_quet.py`
+# đã ghi một lần xanh-ở-máy-đỏ-trên-CI vì đúng việc ấy.
+
+def _mo_ta_yaml_hong(gia_tri: str) -> str | None:
+    """PHÉP PHÁN. Lý do `gia_tri` (không nháy) bị YAML đọc khác dòng thô, hoặc None."""
+    g = gia_tri.strip()
+    if g[:1] in ('"', "'"):
+        return None                       # có nháy: YAML đọc theo nháy
+    if ": " in g or g.endswith(":"):
+        return "dấu ':' + khoảng trắng trong giá trị không nháy"
+    if " #" in g:
+        return "' #' mở chú thích YAML — phần sau bị cắt"
+    if g[:1] and g[:1] in "!&*[]{}|>%@`":
+        return f"ký tự đầu {g[:1]!r} là ký hiệu YAML"
+    return None
+
+
+def test_MO_TA_frontmatter_khong_mang_hinh_dang_lam_YAML_hong():
+    xau = ["Dung khi: viet gac", "Dung khi viet gac # ghi chu", "*dung* khi viet",
+           "Chu ky:", "[a, b] la danh sach"]
+    tot = ["Quy trinh bat buoc - doc, sua, them test", '"Dung khi: da quote"',
+           "Cau co dau phay, dau gach - va (ngoac)"]
+    for g in xau:
+        assert _mo_ta_yaml_hong(g), f"BỎ SÓT: {g!r}"
+    for g in tot:
+        assert not _mo_ta_yaml_hong(g), f"KÊU OAN: {g!r}"
+    fm = SKILL.read_text(encoding="utf-8").split("---", 2)[1]
+    mo_ta = re.search(r"^description:\s*(.+)", fm, re.M)
+    assert mo_ta, "frontmatter thiếu description"
+    ly_do = _mo_ta_yaml_hong(mo_ta.group(1))
+    assert ly_do is None, f"description của skill: {ly_do}"
+    print("PASS  description không mang hình dạng làm YAML đọc sai")
+
+
+# ── Bảng cửa trong skill phải phủ MỌI hook đã khai (BƯỚC 183, lỗi 172) ─────
+#
+# `SKILL.md` mục "Cửa tự động" nói BẢY cửa nhưng bảng chỉ có sáu hàng: thiếu
+# `tools/cua_ho_so.py`, hook thứ bảy, đã khai ở `docs/cua-du-an.json` từ khi
+# nó ra đời. `tools/kiem_cua_song.py` so bản khai với `~/.claude/settings.json`
+# (không có trên CI); không gác nào so bản khai với BẢNG NGƯỜI ĐỌC.
+
+#: Số hook đã khai (đo 12/10/2026 ở `docs/cua-du-an.json`). Sàn chống bộ đọc
+#: hỏng: đọc ra ít hơn thì NỔ chứ không "sạch". Thêm hook thì nâng sàn có chủ đích.
+SAN_CUA = 7
+
+
+def _cua_thieu_trong_bang(hooks: dict, bang: str, san: int | None = None) -> list[str]:
+    """PHÉP PHÁN. Tên script hook đã khai mà `bang` không nhắc tới.
+
+    NỔ nếu đọc được ít hơn `san` (mặc định `SAN_CUA`) hook.
+    """
+    lenh = [h.get("command", "") for nhom in hooks.values() for muc in nhom
+            for h in muc.get("hooks", [])]
+    if len(lenh) < (SAN_CUA if san is None else san):
+        raise AssertionError(f"chỉ đọc được {len(lenh)} hook — bộ đọc hỏng")
+    ten = sorted({m for c in lenh for m in re.findall(r"tools/(\w+\.py)", c)})
+    return [t for t in ten if t not in bang]
+
+
+def test_BANG_CUA_trong_SKILL_phu_du_moi_hook_da_khai():
+    import json
+
+    # máy đo tự chứng minh: thiếu một hàng thì phải bị bắt, đủ thì được tha
+    mau = {"Stop": [{"hooks": [{"command": 'python "x/tools/a_cua.py"'},
+                               {"command": 'python "x/tools/b_cua.py" --co'}]}]}
+    assert _cua_thieu_trong_bang(mau, "| `tools/a_cua.py` | Stop |", san=2) == ["b_cua.py"]
+    assert _cua_thieu_trong_bang(mau, "tools/a_cua.py tools/b_cua.py", san=2) == []
+    assert SAN_CUA == 7, "hạ sàn là một quyết định, không phải một lần sửa lặng lẽ"
+    try:
+        _cua_thieu_trong_bang({}, "bất kỳ")
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("đọc được 0 hook mà vẫn im lặng")
+
+    khai = json.loads((GOC / "docs" / "cua-du-an.json").read_text(encoding="utf-8"))
+    hooks = khai["hooks"]
+    src = SKILL.read_text(encoding="utf-8")
+    bang = src.split("## Cửa tự động", 1)[1].split("\n## ", 1)[0]
+    thieu = _cua_thieu_trong_bang(hooks, bang)
+    assert not thieu, ("bảng 'Cửa tự động' trong SKILL.md thiếu hook đã khai ở "
+                       f"docs/cua-du-an.json: {thieu}")
+    print("PASS  bảng cửa trong skill phủ mọi hook đã khai")
+
+
 if __name__ == "__main__":
     for ten, ham in sorted(globals().items()):
         if ten.startswith("test_"):

@@ -153,6 +153,29 @@ trước có một cửa sổ sổ rỗng, và bản trùng gỡ được còn s
 Không có `input[type=file]` (đo 08/09): "Tải tệp lên" mở hộp thoại hệ điều
 hành, không điều khiển được. Đường nạp là URL.
 
+## Phiên đám mây — không mở được sổ tay, không hỏi được leader
+
+Phiên đám mây không có trình duyệt tới NotebookLM, và leader không nhắn lại được trong
+lúc phiên chạy: mọi báo cáo nằm trong thân PR. Câu *"phải hỏi mà không hỏi được thì BÁO
+người dùng"* (mục *Không làm* dưới đây) nghĩa là:
+
+1. Hỏi máy BƯỚC có chạm luật không (lệnh `tools/buoc_cham_luat.py` ở đầu file, dùng python của venv).
+2. **Không chạm** → ghi một dòng `khong_bat_buoc_vi` bằng `tools/so_tay.py ghi` như thường.
+3. **Chạm** (ví dụ BƯỚC sửa `SKILL.md`) → KHÔNG tự bịa mục sổ và KHÔNG ghi
+   `docs/soat-notebooklm.json`. Dựng câu hỏi bằng MÁY:
+
+   ```bash
+   /tmp/venv_ci/bin/python tools/so_tay.py hoi --buoc "BƯỚC n" --ket-luan "<kết luận sắp viết>" --vi-du "<câu nghi ngờ>"
+   ```
+
+   Dán nguyên văn vào thân PR, dưới tiêu đề **"Câu hỏi sổ tay chờ leader"**. Mở PR ở dạng
+   **DRAFT** và gọi tên cổng đỏ chờ: `test_TU_MOC_BAT_BUOC_moi_BUOC_deu_phai_HOI_THAT`.
+   Leader hỏi, ghi mục sổ, và đẩy vào chính nhánh.
+4. Mọi cổng khác phải xanh. Đỏ này là đỏ CHỜ, khác đỏ MÔI TRƯỜNG
+   (`references/cong-thuc-chay.md`, mục *Phiên đám mây*).
+
+Chứng cứ: BƯỚC 164 (Quy tắc 3 thu hẹp, máy phán bằng git) và phiếu giao BƯỚC 183.
+
 ## Không làm
 
 - Không mở Chrome, không dùng `claude-in-chrome` trừ khi người dùng nói thẳng.
