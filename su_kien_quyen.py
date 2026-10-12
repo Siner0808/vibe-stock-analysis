@@ -14,11 +14,16 @@ của sổ có còn nằm trong biên giá của nguồn ở ngày ra, sau khi q
 nguồn bằng f_vào? Có thì hai đầu cùng một cơ sở giá (sự kiện, nếu có, xảy ra SAU
 khi lệnh đóng): SẠCH. Không thì cơ sở giá đổi GIỮA lúc vào và ra.
 
-HÀM THUẦN. Không mạng, không đồng hồ, không đĩa, không ghi sổ. Không nằm trên
-đường đo: `run_daily` · `paper_trading` · `paper_metrics` · `master_agent` ·
-`backtest/` KHÔNG được nhập nó (gác AST ở `tests/test_su_kien_quyen.py`). Việc
-LOẠI các lệnh này khỏi điều kiện dừng là ĐỔI LUẬT ĐO — một bước riêng có hỏi
-NotebookLM, KHÔNG làm ở đây (`docs/QUYET-DINH-CHO.md` Q14).
+HÀM THUẦN. Không mạng, không đồng hồ, không đĩa, không ghi sổ. `paper_trading` ·
+`paper_metrics` · `paper_runner` · `master_agent` · `backtest/` KHÔNG được nhập
+nó (gác AST ở `tests/test_su_kien_quyen.py`): hàm phán của điều kiện dừng nhận
+tập `id` cần loại từ NGƯỜI GỌI chứ không tự nhìn nhãn.
+
+BƯỚC 182 (Q14, `docs/QUYET-DINH-CHO.md`): `id_su_kien_trong_luc_giu` trả tập lệnh
+đã đóng mang nhãn `SU_KIEN_TRONG_LUC_GIU` — đó là tập mà `run_daily` và
+`tools/canh_cong_c5.py` (qua `nen_su_kien_quyen`) truyền cho
+`paper_metrics.dieu_kien_dong_lai(..., loai_tru=...)`. Chỉ nhãn này mới bị loại;
+`KHONG_KIEM_DUOC` · `LECH_KHAC` · `SACH` ở lại mẫu.
 
 GIỚI HẠN (đọc trước khi tin nhãn)
 ─────────────────────────────────
@@ -226,6 +231,21 @@ def soi_so(vi_the_mo: Iterable[Any], lenh_dong: Iterable[Any],
             ra.append(DongSoi(l["id"], str(l["symbol"]), _ngay(l["entry_date"]),
                               _ngay(l["exit_date"]) if dong else "", dong, kq))
     return sorted(ra, key=lambda d: d.id)
+
+
+def id_su_kien_trong_luc_giu(lenh_dong: Iterable[Any],
+                             nen_theo_ma: Mapping[str, Mapping[str, Nen]]
+                             ) -> dict[Any, str]:
+    """{id: lý do} của các lệnh ĐÃ ĐÓNG mang nhãn `SU_KIEN_TRONG_LUC_GIU` (BƯỚC 182).
+
+    Đây là tập mà điều kiện dừng LOẠI khỏi mẫu (Q14). Chọn theo NHÃN CỦA MÁY, không
+    theo lãi/lỗ: `KHONG_KIEM_DUOC` (kể cả mã không tải được nến) · `LECH_KHAC` ·
+    `SACH` đều ở lại. Mọi lệnh truyền vào được coi là ĐÃ ĐÓNG — người gọi chỉ
+    đưa nhóm đã đóng; lệnh mở KHÔNG bao giờ vào tập này (không có `vi_the_mo`).
+    """
+    return {d.id: d.ket_qua.ly_do
+            for d in soi_so((), lenh_dong, nen_theo_ma)
+            if d.ket_qua.trang_thai == SU_KIEN_TRONG_LUC_GIU}
 
 
 def tom_tat(dong: Iterable[DongSoi]) -> dict[str, int]:

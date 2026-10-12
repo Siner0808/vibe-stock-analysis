@@ -381,7 +381,7 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Trả lời nguyên văn (10/10/2026):** *"Đánh dấu + loại khỏi điều kiện dừng (Recommended)"* — tức phương án (b).
 
-**Hệ quả / việc kế:** BƯỚC 176 làm phần ĐÁNH DẤU (`su_kien_quyen.py`, `tools/soi_su_kien_quyen.py`, khối "Soát sự kiện quyền" ở tab Lịch sử giao dịch). Phần LOẠI khỏi điều kiện dừng CHƯA làm: đổi luật đo, là một bước riêng có hỏi NotebookLM, không làm trong BƯỚC 176.
+**Hệ quả / việc kế:** BƯỚC 176 làm phần ĐÁNH DẤU (`su_kien_quyen.py`, `tools/soi_su_kien_quyen.py`, khối "Soát sự kiện quyền" ở tab Lịch sử giao dịch). Phần LOẠI khỏi điều kiện dừng đã làm ở BƯỚC 182 (đổi luật đo, có hỏi NotebookLM): `paper_metrics.dieu_kien_dong_lai(trades, benchmark, loai_tru)` loại TRƯỚC `vs_benchmark` các lệnh tiến-về-trước đã đóng mang nhãn `SU_KIEN_TRONG_LUC_GIU`; tập loại do `nen_su_kien_quyen.tap_loai` tính, `run_daily` và `tools/canh_cong_c5.py` cùng gọi. `KHONG_KIEM_DUOC` · `LECH_KHAC` ở lại mẫu; ngưỡng không đổi; số lệnh bị loại in cạnh lý do. Chi tiết và giới hạn: `docs/STATE.md` BƯỚC 182.
 
 **Dữ kiện đã kiểm (10/10/2026):**
 - Leader đo ở máy, dữ liệu thật (10/10/2026): lệnh HDB #122 vào 28/09 giá 27.950, đóng 09/10 `STOP_LOSS` −23,18%; nguồn giá hôm nay cho giá mở ngày 28/09 ≈ 21.460. Quét 127 lệnh: 26 lệnh có |f − 1| > 5%, 2 lệnh có sự kiện giữa lúc vào và ra (HDB #122, BID #19), 2 lệnh lệch kiểu khác (SSI #100, VPB #110). Số này do leader đo, phiên đám mây KHÔNG đọc được sổ thật và không tái lập.

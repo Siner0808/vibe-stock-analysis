@@ -314,8 +314,11 @@ def test_CHI_app_va_CLI_duoc_nhap_su_kien_quyen():
         nhap, _ = _nhap_va_goi(ast.parse(p.read_text(encoding="utf-8")))
         if "su_kien_quyen" in nhap:
             ai.add(p.relative_to(GOC).as_posix())
-    assert ai == {"app.py", "tools/soi_su_kien_quyen.py"}, (
-        f"su_kien_quyen CHỈ GẮN NHÃN, không vào đường đo; đang có: {sorted(ai)}")
+    # BƯỚC 182: thêm `nen_su_kien_quyen.py` — đường nối duy nhất giữa nhãn và điều kiện
+    # dừng (xem `tests/test_loai_su_kien_quyen.py`). `run_daily` và chuông C5 vẫn KHÔNG
+    # nhập thẳng `su_kien_quyen`, chỉ nhập `nen_su_kien_quyen`.
+    assert ai == {"app.py", "tools/soi_su_kien_quyen.py", "nen_su_kien_quyen.py"}, (
+        f"su_kien_quyen chỉ được nhập ở app, CLI soi và đường nối; đang có: {sorted(ai)}")
 
 
 @pytest.mark.parametrize("ten", [
@@ -407,9 +410,11 @@ def test_APP_khoi_khong_goi_ham_ghi_va_khong_mo_so_ma_nguon():
     assert "PaperTradingJournal" not in ten
 
 
+# BƯỚC 182: câu cũ "...việc đó là một bước riêng, CHƯA áp dụng." HẾT ĐÚNG — việc loại đã làm.
 CAU_CO_DINH = ("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều "
-               "chỉnh). Người dùng đã chốt loại các lệnh này khỏi điều kiện dừng — việc "
-               "đó là một bước riêng, CHƯA áp dụng.")
+               "chỉnh). Từ BƯỚC 182, lệnh tiến-về-trước ĐÃ ĐÓNG mang nhãn "
+               "SU_KIEN_TRONG_LUC_GIU bị LOẠI khỏi mẫu của điều kiện dừng cổng C5 (Q14); "
+               "lệnh KHONG_KIEM_DUOC và LECH_KHAC ở lại. Bảng dưới chỉ HIỆN nhãn.")
 
 
 def test_APP_in_cau_co_dinh_nguyen_van():
@@ -497,7 +502,8 @@ def test_CLI_chay_tron_ve_ma_thoat_1_khi_co_su_kien_va_tai_moi_ma_mot_lan(capsys
     gon = " ".join(ra.split())
     assert "SACH 1 SU_KIEN_TRONG_LUC_GIU 2 LECH_KHAC 0 KHONG_KIEM_DUOC 2" in gon
     assert "Không tải được nến: ZZZ" in ra
-    assert "CHƯA áp dụng" in ra
+    assert "ĐIỀU KIỆN DỪNG LOẠI KHỎI MẪU" in ra      # BƯỚC 182: thay câu "CHƯA áp dụng"
+    assert "CHƯA áp dụng" not in ra
 
 
 def test_CLI_ma_thoat_0_khi_khong_co_su_kien(capsys):

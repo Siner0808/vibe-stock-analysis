@@ -24,6 +24,7 @@ from data_collectors import VNStockCollectorAgent
 from data_quality import nen_cuoi_dang_do, now_vn
 import market_filter
 import do_tre_khop
+import nen_su_kien_quyen
 
 DB_PATH = "paper_trades.db"
 
@@ -159,8 +160,36 @@ def bao_cua_so_du_lieu(phien_nhan, ky_vong, ngay_ro) -> tuple[str, str]:
         f'KHÁC. Xem docs/STATE.md, mục "BƯỚC 2 — ĐO CHỖ TỐI".')
 
 
+def tinh_loai_tru_c5(trades, tai=nen_su_kien_quyen.tai_that,
+                     hom_nay=None) -> dict:
+    """{id: lý do} lệnh bị LOẠI khỏi điều kiện dừng vì sự kiện quyền (BƯỚC 182, Q14).
+
+    Gọi `nen_su_kien_quyen.tap_loai` — CÙNG đường với `tools/canh_cong_c5.py`. Tải
+    hỏng (cả lượt hoặc từng mã) thì KHÔNG loại lệnh nào ngoài những lệnh đã kiểm
+    được, và nói ra bằng `::warning::` (+ `$GITHUB_STEP_SUMMARY`): theo luật cảnh
+    báo nội phiên, KHÔNG đổi mã thoát — làm đỏ lượt quét sinh báo động giả cho
+    `tools/chuong_bao_quet.py`. Không bao giờ ném lỗi.
+    """
+    ket = nen_su_kien_quyen.tap_loai(trades, hom_nay=hom_nay, tai=tai)
+    print(f"🧮 Sự kiện quyền (Q14): soi {ket.n_xet} lệnh tiến-về-trước đã đóng, "
+          f"LOẠI {len(ket.loai)} khỏi điều kiện dừng"
+          + (": " + ", ".join(f"#{i}" for i in sorted(ket.loai))
+             if ket.loai else ""))
+    if ket.canh_bao:
+        tom_tat = os.environ.get("GITHUB_STEP_SUMMARY")
+        for dong in ket.canh_bao:
+            print(f"::warning::{dong}")
+        if tom_tat:
+            with open(tom_tat, "a", encoding="utf-8") as f:
+                print("### ⚠️ Sự kiện quyền: tập LOẠI không đầy đủ", file=f)
+                print("", file=f)
+                for dong in ket.canh_bao:
+                    print(dong, file=f)
+    return ket.loai
+
+
 def thi_hanh_dieu_kien_dung(trades, dat_co,
-                            benchmark=None) -> tuple[bool, str]:
+                            benchmark=None, loai_tru=None) -> tuple[bool, str]:
     """Điều kiện dừng phải ĐỔI TRẠNG THÁI, không chỉ in ra một câu.
 
     Đây là chỗ vá nguyên nhân 4 trong `docs/STATE.md` — "GỐC RỄ CỦA CỔNG
@@ -173,6 +202,9 @@ def thi_hanh_dieu_kien_dung(trades, dat_co,
     `benchmark` — rổ đối chiếu VN-INDEX ({(ngày vào, ngày ra): %}). Điều
     kiện đo ALPHA khớp từng lệnh (bất biến 6), nên THIẾU rổ này thì nó
     KHÔNG kết luận gì — và nói ra điều đó, không lặng lẽ quay về kỳ vọng.
+
+    `loai_tru` — tập `id` lệnh bị LOẠI khỏi mẫu vì sự kiện quyền trong lúc giữ
+    (BƯỚC 182, Q14), từ `tinh_loai_tru_c5`; chuyển nguyên cho `dieu_kien_dong_lai`.
 
     `dat_co(gia_tri)` — hàm đặt `paper_trading.CHO_PHEP_MO_LENH_MOI`.
     Truyền vào chứ không gán thẳng trong đây, để test chứng minh được
@@ -198,7 +230,7 @@ def thi_hanh_dieu_kien_dung(trades, dat_co,
        "ngày này không có lượt quét nào" và che mất đúng thứ chuông sinh
        ra để canh. Chuông riêng cho C5 nằm ở `tools/canh_cong_c5.py`.
     """
-    dk = dieu_kien_dong_lai(trades, benchmark)
+    dk = dieu_kien_dong_lai(trades, benchmark, loai_tru)
     if not dk["dat"]:
         dau = "" if dk.get("do_duoc") else "⚠️ "
         return False, f"{dau}Cổng C5 (mở vị thế mới): {dk['ly_do']}"
@@ -379,10 +411,12 @@ def execute_daily_scan():
     # bản sao lấy lúc nạp thì gán vào không ai thấy.
     import paper_trading as _pt
     _so_truoc_quet = journal.all_trades()
+    _loai_c5 = tinh_loai_tru_c5(_so_truoc_quet)
     _c5_da_dong, _c5_thong_diep = thi_hanh_dieu_kien_dung(
         _so_truoc_quet,
         lambda v: setattr(_pt, "CHO_PHEP_MO_LENH_MOI", v),
-        _ro_chuan_vnindex(_so_truoc_quet))
+        _ro_chuan_vnindex(_so_truoc_quet),
+        _loai_c5)
     print(f"🚦 {_c5_thong_diep}")
     if _c5_da_dong:
         # Annotation đọc được qua API công khai; nhật ký chạy và artifact
@@ -538,7 +572,8 @@ def execute_daily_scan():
           + ("" if _gia_nk else " — THIẾU chuỗi VN-INDEX, chưa so được với rổ"))
 
     trades = journal.all_trades()
-    rep = report(trades, benchmark=_ro_chuan_vnindex(trades))
+    rep = report(trades, benchmark=_ro_chuan_vnindex(trades),
+                 loai_tru=_loai_c5)
 
     # Vi sao dem theo `at` chu khong theo signal_date: cac ma co ngay phien
     # cuoi khac nhau, con `at` la moc GHI nen no khoanh dung mot luot quet.
