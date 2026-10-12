@@ -16,11 +16,14 @@ lỗi 86 (sáu lượt liên tiếp viện lý do thật mà vẫn bỏ qua). N�
 
 CÁCH PHÁN
 ─────────
-1. Tìm commit ĐƯA `## BƯỚC n` vào `docs/STATE.md`, đi theo CHA ĐẦU
-   (`git log --first-parent -G…`): squash cho commit gộp; `--merge` cho commit
-   gộp mà diff so với cha đầu chính là cả PR.
+1. Tìm commit ĐƯA `## BƯỚC n` vào `docs/STATE.md`, đi theo CHA ĐẦU CỦA NHÁNH GỐC
+   (`git log --first-parent -G… <nhánh gốc>`; BƯỚC 181 — trước đó tìm trên HEAD,
+   và một nhánh PR đã gộp `main` vào lấy commit gộp làm nơi "đưa" mọi BƯỚC của
+   `main` vào): squash cho commit gộp; `--merge` cho commit gộp mà diff so với
+   cha đầu chính là cả PR.
 2. Danh sách file đổi của commit ấy mà chạm `FILE_LUAT` → BẮT BUỘC hỏi thật.
-3. BƯỚC CHƯA VÀO nhánh gốc (còn trên nhánh PR, hoặc chưa commit): file đổi =
+3. BƯỚC CHƯA VÀO nhánh gốc (nhánh gốc không có tiêu đề ấy trên đường cha-đầu của
+   nó; BƯỚC còn trên nhánh PR, hoặc chưa commit): file đổi =
    cây làm việc so với điểm tách khỏi nhánh gốc, cộng file chưa theo dõi. Cùng
    câu trả lời ở máy lẫn CI (CI checkout merge-ref: điểm tách chính là `main`).
 
@@ -109,26 +112,32 @@ def nhanh_goc(repo: Path, ung_vien: tuple[str, ...] = NHANH_GOC) -> str:
 
 def commit_dua_buoc_vao(repo: Path, n: int,
                         tep_state: tuple[str, ...] = TEP_STATE,
-                        neo: str | None = None) -> str | None:
-    """Commit CŨ NHẤT trên đường cha-đầu của HEAD mà diff (so với cha đầu) đụng
+                        neo: str | None = None,
+                        tren: str = "HEAD") -> str | None:
+    """Commit CŨ NHẤT trên đường cha-đầu của `tren` mà diff (so với cha đầu) đụng
     dòng tiêu đề `## BƯỚC n `. None nếu chưa commit nào chứa nó.
+
+    `tren` mặc định `HEAD`; `file_cua_buoc` truyền NHÁNH GỐC (BƯỚC 181). Tìm trên
+    HEAD của một nhánh PR đã gộp `main` vào thì commit gộp (cha đầu = nhánh PR) là
+    nơi "đưa" mọi BƯỚC của `main` vào — sai chỗ: BƯỚC ấy đã vào `main` từ commit
+    của riêng nó.
 
     `-G` (diff có dòng khớp) chứ không `-S` (đếm số lần): `-S` với chuỗi
     `## BƯỚC 16` khớp cả tiêu đề cấp ba `### BƯỚC 16`. Dấu cách cuối mẫu để
     `BƯỚC 16` không khớp `BƯỚC 164`. Lấy cái CŨ NHẤT vì một lần sửa tiêu đề về
     sau cũng khớp `-G`.
 
-    `neo` (xem `NEO_LICH_SU`) giới hạn khoảng tìm `neo..HEAD`. Neo không phải
-    tổ tiên của HEAD (repo nông, nhánh lạ) thì NỔ chứ không tìm tay không.
+    `neo` (xem `NEO_LICH_SU`) giới hạn khoảng tìm `neo..tren`. Neo không phải
+    tổ tiên của `tren` (repo nông, nhánh lạ) thì NỔ chứ không tìm tay không.
     """
     khoang = []
     if neo is not None:
-        if not _la_to_tien(repo, neo, "HEAD"):
-            raise LoiLichSu(f"neo {neo} khong phai to tien cua HEAD — khong "
+        if not _la_to_tien(repo, neo, tren):
+            raise LoiLichSu(f"neo {neo} khong phai to tien cua {tren} — khong "
                             f"gioi han duoc khoang tim")
-        khoang = [f"{neo}..HEAD"]
+        khoang = [f"{neo}..{tren}"]
     ra = _git(repo, "log", "--first-parent", "--format=%H",
-              f"-G^## BƯỚC {n} ", *khoang, "--", *tep_state).split()
+              f"-G^## BƯỚC {n} ", *khoang, tren, "--", *tep_state).split()
     return ra[-1] if ra else None
 
 
@@ -151,8 +160,10 @@ def file_cua_buoc(repo: Path, n: int, goc: str | None = None,
     """(file đổi của BƯỚC n, mô tả NGUỒN của câu trả lời)."""
     kiem_khong_nong(repo)
     goc = goc or nhanh_goc(repo)
-    c = commit_dua_buoc_vao(repo, n, tep_state, neo)
-    if c is not None and _la_to_tien(repo, c, goc):
+    # Tìm trên đường cha-đầu của NHÁNH GỐC, không của HEAD (BƯỚC 181): BƯỚC đã
+    # vào gốc thì phán bằng commit đưa nó vào gốc, HEAD là gì cũng vậy.
+    c = commit_dua_buoc_vao(repo, n, tep_state, neo, tren=goc)
+    if c is not None:
         cha = _git(repo, "rev-list", "--parents", "-n", "1", c).split()[1:]
         if cha:
             files = _tach_nul(_git(repo, "diff", "--name-only", "-z", cha[0], c))
@@ -308,10 +319,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     ket_qua: dict[int, bool] = {}
     try:
+        goc = nhanh_goc(GOC)
         for n in ds:
             # BƯỚC trước TU_BUOC nằm TRƯỚC neo: tìm từ đầu lịch sử (chậm, đúng).
             neo = NEO_LICH_SU if n >= TU_BUOC else None
-            if commit_dua_buoc_vao(GOC, n, neo=neo) is None and not any(
+            if commit_dua_buoc_vao(GOC, n, neo=neo, tren=goc) is None and not any(
                     f"## BƯỚC {n} " in (GOC / t).read_text(encoding="utf-8")
                     for t in TEP_STATE):
                 print(f"BƯỚC {n}: khong co tieu de trong {TEP_STATE}")

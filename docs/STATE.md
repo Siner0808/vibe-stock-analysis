@@ -22191,3 +22191,35 @@ Mã khác các mã trên (kể cả `-9`, `127`, `255`, hoặc `1` của `soat_t
 5. Cân nhắc đưa B4 vào `docs/LO-TRINH.md` ("đã dựng") và thêm `suc_khoe` vào danh sách "CHỈ ĐỂ HIỆN" của `CLAUDE.md` — tôi KHÔNG chạm hai file này.
 
 **Sổ tay (Quy tắc 3).** BƯỚC này KHÔNG chạm `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`; không đổi luật, không đổi kết luận đo — khai ô `khong_bat_buoc_vi` sau khi `tools/buoc_cham_luat.py` xác nhận. `references/loi-da-mac.md` và `docs/loi-phan-lop.json` có đổi (bảng lỗi, không phải file luật).
+
+## BƯỚC 181 — `tools/buoc_cham_luat.py` gán nhầm BƯỚC sau khi gộp `main` vào nhánh PR (12/10/2026)
+
+**Mốc:** quy-trinh — gác Quy tắc 3 đỏ giả khi nhánh PR gộp main
+
+Phiên đám mây (nhánh `sua/buoc-cham-luat-sau-gop-main`, từ `main` `076e3e4`). Hai phiên khác (BƯỚC 179, 180) chạy song song và cùng ghi `docs/STATE.md`; mục này chỉ THÊM ở cuối. **Chỉ sửa CÁCH TÌM của một công cụ đọc git: không đổi Quy tắc 3, `FILE_LUAT`, ô `khong_bat_buoc_vi` / `khong_soat_vi`, `docs/soat-notebooklm.json` của BƯỚC khác; không chạm file luật, workflow, mã đo lường.**
+
+**Sự cố (leader gặp ở máy, 12/10/2026).** PR #224 (BƯỚC 178, nhánh `do/do25-ke-hoach-vao-lenh`) sửa `docs/TIEU-CHI-DOC-TRUOC.md` — một file luật — và đã HỎI THẬT sổ tay. Trong lúc PR mở, `main` nhận BƯỚC 176 và 177, cả hai khai `khong_bat_buoc_vi` (đúng: không chạm file luật). Leader `git merge origin/main` vào nhánh PR (commit gộp, cha đầu = nhánh, cha hai = `main`); cổng 1 đỏ: `tests/test_soat_notebooklm.py::test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat` — *"BƯỚC 176: BUOC nay CHAM file luat ['docs/TIEU-CHI-DOC-TRUOC.md'] — phai HOI THAT so tay"*, y hệt cho BƯỚC 177. Leader tránh bằng rebase (không còn commit gộp). Đó là đường vòng, không phải lời giải.
+
+**Gốc rễ.** `commit_dua_buoc_vao` chạy `git log --first-parent -G"^## BƯỚC n "` trên **HEAD** rồi lấy commit CŨ NHẤT. Trên nhánh PR đã gộp `main`, commit CŨ NHẤT trên đường cha-đầu của HEAD có diff đụng `## BƯỚC 176 ` là CHÍNH commit gộp (diff so với cha đầu mang cả 176 và 177 vào). Commit gộp không phải tổ tiên của `main`, nên `file_cua_buoc` rơi xuống nhánh "CHƯA vào gốc": cả cây làm việc của PR so với điểm tách, tức mọi file của BƯỚC 178 — kể cả file luật — bị quy cho BƯỚC 176 và 177. Mọi test cũ chạy với HEAD = nhánh gốc hoặc nhánh PR chưa gộp gì, nên "HEAD" và "nhánh gốc" luôn trùng ở chỗ tìm; hình dạng này chưa từng nằm trong ca nào.
+
+**Sửa (`tools/buoc_cham_luat.py`).**
+- `commit_dua_buoc_vao(..., tren="HEAD")` nhận thêm ref để tìm. `file_cua_buoc` truyền **nhánh gốc** (`goc`): BƯỚC đã có tiêu đề trên đường cha-đầu của nhánh gốc thì phán bằng commit đưa nó vào gốc (diff so với cha đầu), HEAD là gì cũng vậy. Chỉ khi nhánh gốc CHƯA có BƯỚC ấy mới đi nhánh "CHƯA vào gốc" như cũ (BƯỚC chỉ có trên PR vẫn thấy file luật của PR). Kiểm `_la_to_tien(c, goc)` thành thừa — commit tìm được trên đường của `goc` thì là tổ tiên của `goc` — và đã gỡ.
+- Neo giờ phải là tổ tiên của **nơi đang tìm** (`tren`), không của HEAD: khoảng `neo..tren` rỗng vì neo nằm ngoài `tren` thì NỔ, không im lặng trả None. `main()` (dòng lệnh) tra cùng nhánh gốc khi hỏi tiêu đề có trong lịch sử không.
+- Giữ nguyên: dấu cách sau số (`BƯỚC 16` không khớp `BƯỚC 164`), `-G` chứ không `-S`, lấy commit CŨ NHẤT, `--first-parent`, `neo` giới hạn khoảng tìm, repo nông thì NỔ.
+
+**Gác (`tests/test_buoc_cham_luat.py`, 29 → 37 ca; dựng repo git TẠM, không chạm repo thật).** Fixture `su_co`: `main` = gốc R → A (đưa `## BƯỚC 1 `, đổi file thường `docs/x.md`); nhánh `pr` tách TRƯỚC A, commit B đưa `## BƯỚC 2 ` và đổi `CLAUDE.md` (file luật).
+- (a) `git merge main` vào `pr` → BƯỚC 1 ra đúng file của A (`docs/STATE.md`, `docs/x.md`), KHÔNG chạm; nguồn là "da vao" kèm mã A. Cũng chạy với `neo=None` (BƯỚC trước `TU_BUOC`) và qua `main()`.
+- (b) cùng repo, BƯỚC 2 (chưa vào `main`) → vẫn CHẠM `CLAUDE.md`, nguồn "CHUA vao".
+- (c) `git rebase main` thay vì gộp → kết quả như (a); (d) giả lập merge-ref của CI (HEAD tách rời, cha đầu = `main`, cha hai = `pr`) → BƯỚC 1 như (a), BƯỚC 2 chạm luật; (e) BƯỚC 1 bị sửa tiêu đề ở commit A2 SAU trên `main` → vẫn lấy commit CŨ NHẤT (A); và một ca neo là tổ tiên của HEAD nhưng không phải của `main` → NỔ.
+- **Phát đầu tiên chạy trên mã CŨ (đỏ):** `AssertionError: (['CLAUDE.md'], 'CHUA vao main: cay lam viec so voi diem tach 319be44')` — đúng sự cố: BƯỚC 1 của `main` bị quy file luật của PR; ca tiêu đề-sửa-về-sau nổ `TypeError` (chưa có tham số `tren`), ca neo `DID NOT RAISE`. Ba ca (b), (c), (d) XANH trên mã cũ: chúng là hàng rào chống "chữa" bằng cách làm mù BƯỚC chưa vào gốc.
+- **Đột biến (11 phát, `va_an_toan.dot_bien_bo`, lệnh `pytest tests/test_buoc_cham_luat.py -x`): 11/11 đỏ.** Quay về mã cũ (tìm trên HEAD) · lấy commit MỚI nhất · bỏ dấu cách sau số · nhánh "CHƯA vào gốc" trả rỗng · bỏ kiểm neo là tổ tiên · kiểm neo so với HEAD thay vì `tren` · diff so với cha HAI · bỏ ref khỏi `git log` · ref luôn HEAD · `file_cua_buoc` luôn đi nhánh "CHƯA vào" · bỏ `--first-parent`.
+
+**Trên lịch sử THẬT (đo trong phiên này, `HEAD` = `main` `076e3e4`; lệnh `python tools/buoc_cham_luat.py 176 177 162 163 164`).**
+- 176: *khong cham luat* [da vao origin/main: commit 18512f2] · 177: *khong cham luat* [commit 076e3e4] · 162: CHAM `CLAUDE.md` · 163: khong cham · 164: CHAM `SKILL.md`, `CLAUDE.md`, `docs/LO-TRINH.md` — giữ nguyên các phán quyết cũ.
+- **178 chưa vào `main`** (PR #224 còn mở) nên không thể "báo CHẠM do đã vào gốc"; tôi dựng đúng sự cố trong MỘT BẢN CLONE TẠM (không ghi repo thật): `do/do25-ke-hoach-vao-lenh` rồi `git merge origin/main` (xung đột ở `STATE.md`, `loi-da-mac.md`, `loi-phan-lop.json`, `moc_so_test.json`, `soat-notebooklm.json` — giải bằng `--ours` cho `STATE.md`, `--theirs` cho bốn file còn lại; chỉ để có commit gộp 2 cha). Mã CŨ trên commit gộp: 176 và 177 *CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']* [CHUA vao origin/main] — tái hiện đúng sự cố. Mã MỚI trên cùng commit: 176 và 177 *khong cham luat* [da vao origin/main: commit 18512f2 / 076e3e4], **178 CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']** [CHUA vao origin/main] — đúng cả ba.
+
+**Giới hạn còn lại (khai thẳng).** (1) Máy vẫn chỉ thấy FILE, không thấy NGHĨA — sửa này chỉ đổi CÁCH TÌM. (2) Nó phụ thuộc `origin/main` cục bộ phản ánh `main` thật: chưa `git fetch` thì "nhánh gốc" là bản cũ; hình dạng ấy tôi KHÔNG gác và không đo. (3) Nếu `main` có BƯỚC n nhưng tiêu đề đã bị XOÁ rồi thêm lại ở PR sau, commit CŨ NHẤT vẫn thắng — đúng hành vi cũ.
+
+**Lỗi mới:** 166 (gác Quy tắc 3 tìm commit "đưa BƯỚC vào" trên đường cha-đầu của HEAD; một commit gộp `main` chưa vào gốc bị coi là nơi đưa BƯỚC cũ vào). Không lỗi khác trong phiên này; 167 chưa dùng.
+
+**Việc leader kiểm ở máy.** Tạo một nhánh thử từ `main`, gộp vào nó một nhánh chạm file luật có BƯỚC riêng (ví dụ `do/do25-ke-hoach-vao-lenh` sau khi giải xung đột), rồi `./.venv/Scripts/python.exe -m pytest tests/test_soat_notebooklm.py -q`: hai ca BƯỚC 176/177 phải xanh mà không cần rebase.
