@@ -61,11 +61,16 @@ def ro_chuan(trades: list):
         return None
 
 
-def kiem(trades: list, cong_dang_mo: bool, benchmark=None) -> tuple[int, str]:
-    """(mã thoát, thông điệp). 0 = không phải làm gì, 1 = phải kêu."""
+def kiem(trades: list, cong_dang_mo: bool, benchmark=None,
+         loai_tru=None) -> tuple[int, str]:
+    """(mã thoát, thông điệp). 0 = không phải làm gì, 1 = phải kêu.
+
+    `loai_tru` — tập `id` bị LOẠI khỏi mẫu vì sự kiện quyền trong lúc giữ (BƯỚC 182,
+    Q14), tính bởi `nen_su_kien_quyen.tap_loai` — cùng đường với `run_daily`.
+    """
     from paper_metrics import dieu_kien_dong_lai
 
-    dk = dieu_kien_dong_lai(trades, benchmark)
+    dk = dieu_kien_dong_lai(trades, benchmark, loai_tru)
     if not dk.get("do_duoc"):
         # Không đo được KHÔNG phải "không sao". Chuông sinh ra để canh;
         # một cái chuông im lặng vì không nhìn thấy gì thì tệ hơn không có
@@ -164,7 +169,14 @@ def main() -> int:
 
     so = PaperTradingJournal(str(tam))
     trades = so.all_trades()
-    ma, thong_diep = kiem(trades, pt.CHO_PHEP_MO_LENH_MOI, ro_chuan(trades))
+    # Cùng đường tính tập LOẠI với `run_daily` (BƯỚC 182, Q14). Tải hỏng thì
+    # `tap_loai` KHÔNG loại gì và trả cảnh báo — in ra, không làm đỏ chuông.
+    import nen_su_kien_quyen
+    loai = nen_su_kien_quyen.tap_loai(trades)
+    for _dong_cb in loai.canh_bao:
+        print(f"::warning::{_dong_cb}")
+    ma, thong_diep = kiem(trades, pt.CHO_PHEP_MO_LENH_MOI, ro_chuan(trades),
+                          loai.loai)
 
     # Phép đối chiếu THỨ HAI, độc lập với phép trên: cổng đã đóng thì
     # sổ lệnh phải chứng minh được là nó chặn.

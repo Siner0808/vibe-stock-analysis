@@ -714,11 +714,13 @@ def _khoi_su_kien_quyen():
     """Khối "Soát sự kiện quyền" của tab Lịch sử giao dịch (BƯỚC 176) — CHỈ GẮN NHÃN.
 
     Chạy `su_kien_quyen` cho lệnh của `_so_lenh`. Giá chỉ tải khi người dùng bấm
-    nút. Không ghi sổ, không đổi điều kiện dừng. Mọi lỗi hiện cảnh báo.
+    nút. Không ghi sổ. Khối này chỉ HIỆN nhãn; việc LOẠI lệnh khỏi điều kiện dừng
+    (BƯỚC 182, Q14) do `run_daily` và chuông C5 tự tính, không đi qua app.
+    Mọi lỗi hiện cảnh báo.
     """
     import su_kien_quyen as _skq
     st.markdown("##### 🧮 Soát sự kiện quyền trong lúc giữ lệnh")
-    st.caption("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều chỉnh). Người dùng đã chốt loại các lệnh này khỏi điều kiện dừng — việc đó là một bước riêng, CHƯA áp dụng.")
+    st.caption("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều chỉnh). Từ BƯỚC 182, lệnh tiến-về-trước ĐÃ ĐÓNG mang nhãn SU_KIEN_TRONG_LUC_GIU bị LOẠI khỏi mẫu của điều kiện dừng cổng C5 (Q14); lệnh KHONG_KIEM_DUOC và LECH_KHAC ở lại. Bảng dưới chỉ HIỆN nhãn.")
     if so_lenh_loi or not (_so_lenh.vi_the_mo or _so_lenh.lenh_dong):
         st.info(so_lenh_loi or "Sổ chưa có lệnh nào để soát.")
         return

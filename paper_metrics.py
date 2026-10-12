@@ -539,11 +539,28 @@ def lenh_tien_ve_truoc(trades: list[Trade]) -> list[Trade]:
 
 
 def dieu_kien_dong_lai(trades: list[Trade],
-                       benchmark: dict | None = None) -> dict:
+                       benchmark: dict | None = None,
+                       loai_tru=None) -> dict:
     """Cổng C5 có nên đóng lại không. `dat=True` nghĩa là NÊN ĐÓNG.
 
     Đo bằng ALPHA KHỚP TỪNG LỆNH (bất biến 6), trên nhóm lệnh
     tiến-về-trước ĐÃ ĐÓNG và khớp được cặp ngày với rổ chuẩn.
+
+    `loai_tru` (BƯỚC 182, Q14) — tập hoặc ánh xạ `id` lệnh bị LOẠI khỏi mẫu
+    TRƯỚC `vs_benchmark`, chỉ trong nhóm lệnh tiến-về-trước đã đóng (`id` không
+    thuộc nhóm ấy — lệnh mô phỏng, lệnh còn mở — không ảnh hưởng gì). HÀM NÀY
+    KHÔNG BIẾT vì sao một lệnh bị loại và không tự nhìn nhãn nào: người gọi tính
+    tập loại (lệnh mang nhãn `SU_KIEN_TRONG_LUC_GIU` của `su_kien_quyen`: sổ lưu
+    giá CHƯA điều chỉnh, nguồn điều chỉnh LÙI, nên lệnh ấy mang lỗ GIẢ). Kết quả
+    trả thêm `n_loai` và `id_loai`, và `ly_do` nói ra số lệnh bị loại cùng `id`.
+    `None` hoặc rỗng: kết quả y hệt bản trước (chỉ thêm `n_loai` = 0, `id_loai` rỗng).
+    Ngưỡng `N_TOI_THIEU` · `N_DAY_DU` · `Z_*` KHÔNG đổi; lệnh bị loại không được
+    đếm vào `n`.
+
+    CHIỀU THIÊN LỆCH, nói thẳng (Quy tắc 1): sự kiện quyền chỉ làm giá GIẢM nên lệnh
+    bị loại luôn là lệnh LỖ GIẢ; loại chúng chỉ có thể làm alpha ĐẸP LÊN. Vì vậy
+    bằng chứng duy nhất được nhận để loại là NHÃN CỦA MÁY, không phải phán đoán về
+    một lệnh lỗ; lệnh không kiểm được thì ở lại.
 
         n < N_TOI_THIEU        chưa đủ để kết luận
         N_TOI_THIEU ≤ n < N_DAY_DU
@@ -579,19 +596,26 @@ def dieu_kien_dong_lai(trades: list[Trade],
     lẽ quay về kỳ vọng — đó đúng là lỗi đang sửa.
     """
     tien = lenh_tien_ve_truoc(trades)
-    dong = [t for t in tien if t.status == "CLOSED"]
+    loai = set(loai_tru) if loai_tru else set()
+    dong_het = [t for t in tien if t.status == "CLOSED"]
+    id_loai = sorted(t.id for t in dong_het if t.id in loai)
+    dong = [t for t in dong_het if t.id not in loai]
     cam_ket = [t for t in tien if t.status in ("OPEN", "PENDING", "CLOSING")]
+    loai_ke = (f" · {len(id_loai)} lệnh LOẠI vì sự kiện quyền trong lúc giữ: "
+               + ", ".join(f"#{i}" for i in id_loai)) if id_loai else ""
     #: `do_duoc=False` nghĩa là phép kiểm KHÔNG chạy được, khác hẳn
     #: `dat=False` nghĩa là đã chạy và chưa tới ngưỡng. Người gọi phải
     #: phân biệt được hai thứ đó mà không phải so chuỗi lý do.
     khung = {"so_lenh": 0, "n_cam_ket": len(cam_ket), "alpha": None,
-             "ci": (None, None), "bo_qua": 0, "do_duoc": False}
+             "ci": (None, None), "bo_qua": 0, "do_duoc": False,
+             "n_loai": len(id_loai), "id_loai": id_loai}
 
     if benchmark is None:
         return {**khung, "dat": False,
                 "ly_do": ("KHÔNG đo được — thiếu rổ đối chiếu VN-INDEX. "
                           "Điều kiện này đo ALPHA, không đo kỳ vọng; không "
-                          "có rổ chuẩn thì nó không kết luận gì cả")}
+                          "có rổ chuẩn thì nó không kết luận gì cả"
+                          f"{loai_ke}")}
 
     b = vs_benchmark(dong, benchmark, z=Z_BIEN_HAI)
     n = b["n"]
@@ -604,7 +628,8 @@ def dieu_kien_dong_lai(trades: list[Trade],
     if n < N_TOI_THIEU:
         return {**khung, "dat": False,
                 "ly_do": (f"mới {n}/{N_TOI_THIEU} lệnh tiến-về-trước có đối "
-                          f"chiếu — chưa đủ để kết luận{duoi_ke}{bo_ke}")}
+                          f"chiếu — chưa đủ để kết luận{duoi_ke}{bo_ke}"
+                          f"{loai_ke}")}
 
     lo, hi = b["ci"]
     alpha = b["alpha"]
@@ -614,7 +639,8 @@ def dieu_kien_dong_lai(trades: list[Trade],
         return {**khung, "dat": True,
                 "ly_do": (f"{n} lệnh, alpha {alpha:+.3f}%/lệnh, KTC 97,9% "
                           f"[{lo:+.3f}; {hi:+.3f}] — cận trên dưới 0, hệ "
-                          f"thống THUA rổ chuẩn một cách đo được{duoi_ke}")}
+                          f"thống THUA rổ chuẩn một cách đo được{duoi_ke}"
+                          f"{loai_ke}")}
 
     if n >= N_DAY_DU:
         b95 = vs_benchmark(dong, benchmark, z=Z_LOI_THE)
@@ -625,20 +651,21 @@ def dieu_kien_dong_lai(trades: list[Trade],
                               f"({N_DAY_DU}) mà alpha {alpha:+.3f}%/lệnh vẫn "
                               f"chưa chứng minh được lợi thế: KTC 95% "
                               f"[{lo95:+.3f}; {hi95:+.3f}] không loại được "
-                              f"số 0{duoi_ke}")}
+                              f"số 0{duoi_ke}{loai_ke}")}
         return {**khung, "ci": (lo95, hi95), "dat": False,
                 "ly_do": (f"{n} lệnh, alpha {alpha:+.3f}%/lệnh, KTC 95% "
                           f"[{lo95:+.3f}; {hi95:+.3f}] — VƯỢT rổ chuẩn có ý "
-                          f"nghĩa{duoi_ke}")}
+                          f"nghĩa{duoi_ke}{loai_ke}")}
 
     return {**khung, "dat": False,
             "ly_do": (f"{n}/{N_DAY_DU} lệnh, alpha {alpha:+.3f}%/lệnh, KTC "
                       f"97,9% [{lo:+.3f}; {hi:+.3f}] — chưa chạm biên hại"
-                      f"{duoi_ke}{bo_ke}")}
+                      f"{duoi_ke}{bo_ke}{loai_ke}")}
 
 
 def report(trades: list[Trade],
-           benchmark: dict[tuple[str, str], float] | None = None) -> str:
+           benchmark: dict[tuple[str, str], float] | None = None,
+           loai_tru=None) -> str:
     out: list[str] = []
     add = out.append
     add("=" * 64)
@@ -722,7 +749,7 @@ def report(trades: list[Trade],
         for _d in _dong_tre:
             add(f"   {_d}")
 
-    _dk = dieu_kien_dong_lai(trades, benchmark)
+    _dk = dieu_kien_dong_lai(trades, benchmark, loai_tru)
     add("")
     add(f"Cổng C5 (mở vị thế mới): {_dk['ly_do']}")
     if _dk["dat"]:

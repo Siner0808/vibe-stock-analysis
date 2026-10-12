@@ -4,12 +4,15 @@
 
 Kéo sổ THẬT từ Google Sheets vào một DB TẠM (`tools/doc_so_that.keo_ve_so_tam`,
 cùng đường với `tools/doc_so_that.py`), tải nến của nguồn giá HÔM NAY mỗi mã MỘT
-lần (`VNStockCollectorAgent().collect`, đường của app, nhân `price_multiplier`),
-rồi gắn nhãn từng lệnh bằng `su_kien_quyen.kiem_lenh`. In bảng mọi lệnh KHÔNG
-`SACH`, tổng theo trạng thái, và tách riêng lệnh CÒN MỞ. Không ghi sổ, không đẩy,
-không sửa gì (gác AST: `tests/test_su_kien_quyen.py`).
+lần (`nen_su_kien_quyen.tai_nen`, đường của app, nhân `price_multiplier`), rồi gắn
+nhãn từng lệnh bằng `su_kien_quyen.kiem_lenh`. In bảng mọi lệnh KHÔNG `SACH`,
+tổng theo trạng thái, và tách riêng lệnh CÒN MỞ. Không ghi sổ, không đẩy, không
+sửa gì (gác AST: `tests/test_su_kien_quyen.py`).
 
-Chỉ GẮN NHÃN. Việc loại các lệnh này khỏi điều kiện dừng là một bước riêng.
+BƯỚC 182 (Q14): bảng cuối in thêm danh sách lệnh mà ĐIỀU KIỆN DỪNG LOẠI khỏi mẫu,
+tính bằng ĐÚNG hàm `nen_su_kien_quyen.loai_tu_nen` mà `run_daily` và
+`tools/canh_cong_c5.py` dùng (qua `tap_loai`) — hai danh sách phải trùng nhau.
+Dụng cụ này vẫn chỉ đọc: loại là việc của `paper_metrics.dieu_kien_dong_lai`.
 
 Mã thoát: 0 không có lệnh `SU_KIEN_TRONG_LUC_GIU` · 1 có · 2 không đọc được sổ.
 """
@@ -30,38 +33,14 @@ for _luong in (sys.stdout, sys.stderr):
         pass
 
 import doc_so_that  # noqa: E402
+import nen_su_kien_quyen as nsk  # noqa: E402
 import su_kien_quyen as skq  # noqa: E402
 from so_lenh_app import TRANG_THAI_DONG, TRANG_THAI_MO  # noqa: E402
 
-
-def _tai_that(ma: str, tu_ngay: str, den_ngay: str):
-    """(trạng thái, bảng OHLCV, hệ số VNĐ) của MỘT mã, qua đường của app."""
-    from data_collectors import VNStockCollectorAgent
-    from data_quality import price_multiplier
-    import san_giao_dich
-
-    kq = VNStockCollectorAgent().collect(
-        ma, tu_ngay, den_ngay, exchange=san_giao_dich.san_cua(ma))
-    df = kq.get("df")
-    return kq.get("status"), df, price_multiplier(df)
-
-
-def tai_nen(cac_ma: list[str], tu_ngay: str, den_ngay: str,
-            tai=_tai_that) -> tuple[dict[str, dict], list[str]]:
-    """Nến (mở, thấp, cao) VNĐ của từng mã, MỖI MÃ MỘT LẦN. Trả (nến, mã không tải được)."""
-    nen: dict[str, dict] = {}
-    thieu: list[str] = []
-    for ma in cac_ma:
-        try:
-            tt, df, he = tai(ma, tu_ngay, den_ngay)
-        except Exception:
-            thieu.append(ma)
-            continue
-        if tt != "OK" or df is None or len(df) == 0:
-            thieu.append(ma)
-            continue
-        nen[ma] = skq.dung_nen(df["time"], df["open"], df["low"], df["high"], he)
-    return nen, thieu
+#: Đường tải nến nằm ở `nen_su_kien_quyen` (BƯỚC 182) để điều kiện dừng dùng CHUNG;
+#: hai tên cũ giữ lại cho chỗ gọi và test sẵn có.
+_tai_that = nsk.tai_that
+tai_nen = nsk.tai_nen
 
 
 def in_bang(dong: list[skq.DongSoi]) -> None:
@@ -114,8 +93,12 @@ def main(keo=None, tai=_tai_that, hom_nay=None) -> int:
     print("\nTỔNG THEO TRẠNG THÁI:")
     for k, v in dem.items():
         print(f"  {k:<22} {v}")
-    print("\nCHỈ GẮN NHÃN. Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ; việc")
-    print("loại chúng khỏi điều kiện dừng là một bước riêng, CHƯA áp dụng.")
+    loai = nsk.loai_tu_nen(trades, nen)
+    print(f"\nĐIỀU KIỆN DỪNG LOẠI KHỎI MẪU (tiến-về-trước, đã đóng, "
+          f"{skq.SU_KIEN_TRONG_LUC_GIU}): {len(loai)} lệnh"
+          + (": " + ", ".join(f"#{i}" for i in sorted(loai)) if loai else ""))
+    print("Cùng hàm với run_daily và tools/canh_cong_c5.py (BƯỚC 182, Q14). Lệnh")
+    print("còn mở, lệnh mô phỏng, KHONG_KIEM_DUOC và LECH_KHAC KHÔNG bị loại.")
     return 1 if dem[skq.SU_KIEN_TRONG_LUC_GIU] else 0
 
 

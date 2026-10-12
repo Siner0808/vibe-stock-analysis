@@ -133,7 +133,10 @@ backtest sống lại nhưng không đo được).
   `MUC_BAT_LOI` = −0,920% (không gõ tay): `N_DAY_DU` = 451 lệnh (80% lực
   phát hiện), `N_TOI_THIEU` = 113. Dưới `N_TOI_THIEU`: chưa đủ để kết luận.
   Giữa hai ngưỡng: ĐÓNG nếu cận TRÊN KTC (z = 2,30) < 0. Từ `N_DAY_DU`: ĐÓNG
-  **trừ khi** cận DƯỚI KTC (z = 1,96) > 0 (đảo gánh nặng). Đừng chế điều
+  **trừ khi** cận DƯỚI KTC (z = 1,96) > 0 (đảo gánh nặng). Mẫu LOẠI lệnh có
+  sự kiện quyền rơi trong lúc giữ (`su_kien_quyen` nhãn `SU_KIEN_TRONG_LUC_GIU`,
+  lỗ GIẢ; Q14, BƯỚC 182): `KHONG_KIEM_DUOC`/`LECH_KHAC` ở lại, ngưỡng không
+  đổi, số lệnh loại in cạnh lý do. Đừng chế điều
   kiện khác sau khi đã nhìn số (bất biến 7). `run_daily.thi_hanh_dieu_kien_dung()`
   chạy trước vòng quét và TẮT cờ cho lượt đó; chuông riêng
   `tools/canh_cong_c5.py` + `canh-cong-c5.yml`. `tests/test_hang_rao_quy_trinh.py`
