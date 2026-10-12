@@ -690,6 +690,72 @@ def _khoi_so_bai_hoc(nk, nk_loi):
         st.caption(f"Cột Ngành và Riêng mã chỉ tính {th['n_co_nganh']} lệnh tách được ngành.")
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _nen_cho_su_kien_quyen(cac_ma, tu_ngay, den_ngay):
+    """Nến (mở, thấp, cao; VNĐ) của nguồn giá HÔM NAY cho các mã có lệnh (BƯỚC 176).
+
+    CÓ ĐỆM và chỉ chạy khi người dùng bấm nút: mỗi mã một lần qua `load_stock_data`
+    (cùng đường với phần còn lại của app). Trả (nến theo mã, mã không tải được).
+    """
+    import san_giao_dich as _sg
+    import su_kien_quyen as _skq
+    nen, thieu = {}, []
+    for m in cac_ma:
+        _d, _tt, _ = load_stock_data(m, tu_ngay, den_ngay, _sg.san_cua(m))
+        if _tt != "OK" or _d is None or _d.empty:
+            thieu.append(m)
+            continue
+        nen[m] = _skq.dung_nen(_d["time"], _d["open"], _d["low"], _d["high"],
+                               price_multiplier(_d))
+    return nen, thieu
+
+
+def _khoi_su_kien_quyen():
+    """Khối "Soát sự kiện quyền" của tab Lịch sử giao dịch (BƯỚC 176) — CHỈ GẮN NHÃN.
+
+    Chạy `su_kien_quyen` cho lệnh của `_so_lenh`. Giá chỉ tải khi người dùng bấm
+    nút. Không ghi sổ, không đổi điều kiện dừng. Mọi lỗi hiện cảnh báo.
+    """
+    import su_kien_quyen as _skq
+    st.markdown("##### 🧮 Soát sự kiện quyền trong lúc giữ lệnh")
+    st.caption("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều chỉnh). Người dùng đã chốt loại các lệnh này khỏi điều kiện dừng — việc đó là một bước riêng, CHƯA áp dụng.")
+    if so_lenh_loi or not (_so_lenh.vi_the_mo or _so_lenh.lenh_dong):
+        st.info(so_lenh_loi or "Sổ chưa có lệnh nào để soát.")
+        return
+    if st.button("📥 Tải giá để soát sự kiện quyền", key="su_kien_quyen_tai_gia"):
+        st.session_state["su_kien_quyen_co_gia"] = True
+    if not st.session_state.get("su_kien_quyen_co_gia"):
+        st.caption("Chưa tải giá. Bấm nút trên để so giá vào/ra của sổ với nguồn giá "
+                   "hôm nay (mất vài chục giây).")
+        return
+    try:
+        _ma, _tu = _skq.pham_vi_tai(_so_lenh.vi_the_mo, _so_lenh.lenh_dong)
+        if not _ma or _tu is None:
+            st.info("Chưa có lệnh nào đã khớp để soát.")
+            return
+        with st.spinner(f"Tải giá {len(_ma)} mã…"):
+            _nen, _thieu = _nen_cho_su_kien_quyen(tuple(_ma), _tu, end_str)
+        _dong = _skq.soi_so(_so_lenh.vi_the_mo, _so_lenh.lenh_dong, _nen)
+    except Exception as _e:
+        st.warning(f"⚠️ Chưa soát được — {type(_e).__name__}: {_e}")
+        return
+    _dem = _skq.tom_tat(_dong)
+    st.caption(" · ".join(f"{k}: {v}" for k, v in _dem.items()))
+    if _thieu:
+        st.caption(f"Không tải được giá {len(_thieu)} mã: {', '.join(_thieu)}.")
+    _khac = [d for d in _dong if d.ket_qua.trang_thai != _skq.SACH]
+    if not _khac:
+        st.success("Không lệnh nào có dấu hiệu lệch cơ sở giá.")
+        return
+    st.dataframe(pd.DataFrame([{
+        "Lệnh": d.id, "Mã": d.ma, "Vào": d.ngay_vao or "—", "Ra": d.ngay_ra or "—",
+        "Trạng thái lệnh": "ĐÓNG" if d.da_dong else "MỞ",
+        "f vào": _so(d.ket_qua.he_so_vao, "{:.3f}"),
+        "f ra": _so(d.ket_qua.he_so_ra, "{:.3f}"),
+        "Nhãn": d.ket_qua.trang_thai, "Lý do": d.ket_qua.ly_do} for d in _khac]),
+        use_container_width=True, hide_index=True)
+
+
 def _tip(chuoi) -> str:
     """Chuỗi an toàn để nhét vào thuộc tính `title="..."`.
 
@@ -1594,7 +1660,7 @@ with col_debate:
 # 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
 num_open_positions = len(real_open_trades)
-t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong = st.tabs([
+t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong, t_suc_khoe = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
     f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
     "📰 Bản tin",
@@ -1607,6 +1673,7 @@ t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong = st.tabs([
     "🛠️ Pipeline v2",
     "💰 Tài khoản Giả lập",
     "🔬 Kiểm định chiến lược",
+    "🩺 Sức khoẻ",
 ])
 
 with t_pos:
@@ -1827,6 +1894,9 @@ with t_hist:
 
     # ── SỔ BÀI HỌC (BƯỚC 167) ──────────────────────────────────────────
     _khoi_so_bai_hoc(_nk, _nk_loi)
+
+    # ── SOÁT SỰ KIỆN QUYỀN (BƯỚC 176) ─────────────────────────────────────
+    _khoi_su_kien_quyen()
 
 with t_tin:
     # BƯỚC 174 (B2). CHỈ ĐỌC: gom thị trường · việc agent đã làm · vì sao · học được
@@ -2175,6 +2245,60 @@ with t_bong:
                        "để so sánh. Mọi phương án đều hiện, kể cả phương án cũ đã rớt "
                        "sàng, vì ngưỡng thống kê tính trên TỔNG số phương án đã đăng ký. "
                        "Nguồn dữ liệu: `docs/ung-vien.json`.")
+
+with t_suc_khoe:
+    # BƯỚC 177 (B4). CHỈ ĐỌC: gom mười phép kiểm rời rạc (chuông quét, nguồn đứng,
+    # cổng C5, bài học, lệch bản gói, hạng gói, bộ lọc VN-INDEX, cửa tự động, đường
+    # ngoài repo, soát tuần) thành một bảng. KHÔNG chạy lúc tải trang: có phép đi mạng
+    # và kéo sổ Sheets, nên chỉ chạy khi bấm nút. Trên Streamlit Cloud các phép
+    # chỉ-có-nghĩa-ở-máy hiện CHƯA KIỂM ĐƯỢC kèm lý do — không ẩn, không tô xanh.
+    import html as _html
+    import suc_khoe as _sk
+    st.markdown("##### 🩺 Sức khoẻ hệ thống")
+    st.caption(
+        "Mỗi dòng là một công cụ kiểm đã có sẵn, chạy lần lượt và chỉ đọc. “Chưa kiểm "
+        "được” (xám) KHÔNG phải “ổn”: nó nghĩa là phép kiểm không chạy được ở nơi này "
+        "(thiếu mạng, thiếu khoá, hoặc chỉ có nghĩa trên máy của người dùng). Vàng là "
+        "cảnh báo do chính công cụ khai; đỏ là công cụ nói có việc phải làm.")
+    if st.button("Chạy kiểm", key="suc_khoe_chay"):
+        _sk_ds = []
+        _sk_tong = len(_sk.DANH_MUC)
+        _sk_tien = st.progress(0.0, text="Đang kiểm…")
+        for _sk_i, _sk_k in enumerate(_sk.kiem_lan_luot(), 1):
+            _sk_ds.append(_sk_k)
+            _sk_tien.progress(_sk_i / _sk_tong, text=f"{_sk_i}/{_sk_tong} · {_sk_k.ten}")
+        _sk_tien.empty()
+        st.session_state["suc_khoe_ket_qua"] = _sk_ds
+        st.session_state["suc_khoe_luc"] = now_vn().strftime("%d/%m/%Y %H:%M:%S")
+    _sk_kq = st.session_state.get("suc_khoe_ket_qua")
+    if not _sk_kq:
+        st.info("Chưa chạy kiểm. Bấm “Chạy kiểm” — có phép đi mạng và kéo sổ Sheets nên "
+                "có thể mất vài phút.")
+    else:
+        _SK_MAU = {_sk.XANH: ("#61cc69", "XANH"), _sk.VANG: ("#fcaa2b", "VÀNG"),
+                   _sk.DO: ("#e24947", "ĐỎ"), _sk.CHUA_KIEM_DUOC: ("#8b95a1", "CHƯA KIỂM ĐƯỢC")}
+        _sk_dong = []
+        for _r in _sk.dong_hien_thi(_sk_kq):
+            _mau, _nhan = _SK_MAU[_r["trang_thai"]]
+            _ct = "<br>".join(_html.escape(_d) for _d in _r["chi_tiet"]) or "—"
+            _sk_dong.append(
+                f"<tr><td style='color:{_mau};font-weight:700;white-space:nowrap;'>● {_nhan}</td>"
+                f"<td><b>{_html.escape(_r['ten'])}</b><br><span style='opacity:.7'>"
+                f"{_html.escape(_sk.THEO_TEN[_r['ten']].mo_ta)}</span></td>"
+                f"<td>{_ct}</td>"
+                f"<td><code>{_html.escape(_r['lenh_tai_lap'])}</code></td>"
+                f"<td style='white-space:nowrap;'>{_r['thoi_gian_giay']:g}s</td></tr>")
+        st.markdown(
+            "<table style='width:100%;font-size:12px;'><thead><tr><th>Trạng thái</th>"
+            "<th>Phép kiểm</th><th>Chi tiết</th><th>Lệnh tái lập</th><th>Thời gian</th>"
+            "</tr></thead><tbody>" + "".join(_sk_dong) + "</tbody></table>",
+            unsafe_allow_html=True)
+        _sk_dem = {_t: sum(1 for _k in _sk_kq if _k.trang_thai == _t) for _t in _sk.TRANG_THAI}
+        st.caption(
+            f"Chạy lúc {st.session_state.get('suc_khoe_luc', '?')} (giờ ICT) · "
+            f"xanh {_sk_dem[_sk.XANH]} · vàng {_sk_dem[_sk.VANG]} · đỏ {_sk_dem[_sk.DO]} · "
+            f"chưa kiểm được {_sk_dem[_sk.CHUA_KIEM_DUOC]}. Cùng bảng này ở dòng lệnh: "
+            "`python tools/suc_khoe.py`.")
 
 # ── 8. FOOTER BAR ──────────────────────────────────────────────────
 st.markdown(f"""

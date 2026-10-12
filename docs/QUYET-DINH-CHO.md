@@ -3,7 +3,7 @@
 > **09/10/2026 — BƯỚC 172 ĐÓNG HÀNG ĐỢI:** Q7 · Q11 · Q12 · Q13 đã quyết; sổ này không còn mục `chờ` nào. Mục `chờ` mới chỉ thêm khi có câu hỏi mới (mục cũ không bị xoá).
 
 **Sổ sống.** Mỗi mục là MỘT câu hỏi dành cho người dùng, để leader trình trong
-MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12; BƯỚC 169 (09/10/2026) thêm Q13; BƯỚC 172 (09/10/2026) ghi câu trả lời Q7 · Q11 · Q12 · Q13.
+MỘT phiên quyết định (`docs/LO-TRINH.md`, mục A5). Dựng ở BƯỚC 165 (08/10/2026); BƯỚC 166 (09/10/2026) ghi các câu người dùng đã trả lời trong phiên quyết định A5 và thêm Q10–Q12; BƯỚC 169 (09/10/2026) thêm Q13; BƯỚC 172 (09/10/2026) ghi câu trả lời Q7 · Q11 · Q12 · Q13; BƯỚC 176 (10/10/2026) thêm Q14 (đã quyết ngay khi thêm).
 
 Luật của sổ này (gác: `tests/test_quyet_dinh_cho.py`, bộ đọc: `tools/quyet_dinh_cho.py`):
 
@@ -361,6 +361,31 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 - BƯỚC 169 chạy: `git log -1 --format='%h %ad' --date=iso 60d6598` ra `60d6598 2026-09-28 09:47:17 +0700` (commit nối nhật ký vào sổ thật, BƯỚC 134); `grep -n "^## BƯỚC 138" docs/STATE.md` cho tiêu đề ghi lượt quét đầu tiên chạy mã ấy ngày 28/09/2026. Hằng số `NGAY_NHAT_KY_BAT_DAU` suy từ hai dòng đó.
 - BƯỚC 169 chạy: `python -m pytest tests/test_chuong_bai_hoc.py -q` có ca dựng lại lỗi "đỏ vĩnh viễn" (lệnh trước nhật ký, không dòng nào) và đột biến bỏ phép loại nhóm ấy bị gác bắt.
 - CHƯA đo trên sổ thật: đám mây không đọc được Sheets. Leader chạy `python tools/chuong_bai_hoc.py` với Sheets thật trước khi merge; số lệnh của nhóm "trước nhật ký" do lệnh ấy in ra, không chép vào tài liệu (`CLAUDE.md` cấm).
+
+---
+
+## Q14 — Lệnh ảo có sự kiện quyền rơi trong lúc giữ (HDB #122): chỉ đánh dấu, hay đánh dấu và loại khỏi điều kiện dừng?
+
+**Trạng thái:** đã quyết
+
+**Nguồn:** `docs/LO-TRINH.md:214 «Điều chỉnh giá theo sự kiện quyền»` · `su_kien_quyen.py:48 «NGUONG_LECH = 0.05»`
+
+**Ảnh hưởng:** điều kiện dừng của cổng lệnh ảo (`paper_metrics.dieu_kien_dong_lai`) đo alpha khớp từng lệnh; sổ lưu giá CHƯA điều chỉnh lúc khớp, còn nguồn giá điều chỉnh LÙI sau một sự kiện quyền; lệnh nào có sự kiện rơi trong lúc giữ mang lãi/lỗ GIẢ, nên đưa nó vào mẫu là đưa một số đo sai vào phép đo quyết định đóng hay mở cổng.
+
+**Lựa chọn:**
+- (a) Chỉ đánh dấu, không đụng điều kiện dừng. Hệ quả: lệnh lỗ giả vẫn nằm trong mẫu; người xem thấy nhãn nhưng phép đo không đổi.
+- (b) Đánh dấu và loại các lệnh `SU_KIEN_TRONG_LUC_GIU` khỏi điều kiện dừng. Hệ quả: mẫu sạch hơn nhưng đổi LUẬT ĐO (`N_TOI_THIEU` · `N_DAY_DU` đếm lệnh), phải qua sổ tay NotebookLM, và không được chọn sau khi đã nhìn số (bất biến 7).
+- (c) Điều chỉnh giá sổ lùi theo hệ số f rồi giữ lệnh trong mẫu. Hệ quả: phải đoán f từ một nguồn giá đổi theo ngày, dễ sinh số đẹp giả.
+
+**Đề xuất của leader (ĐỀ XUẤT, 10/10/2026, người dùng đã chọn):** (b), làm theo hai bước: BƯỚC 176 chỉ đánh dấu; loại khỏi điều kiện dừng là bước riêng.
+
+**Trả lời nguyên văn (10/10/2026):** *"Đánh dấu + loại khỏi điều kiện dừng (Recommended)"* — tức phương án (b).
+
+**Hệ quả / việc kế:** BƯỚC 176 làm phần ĐÁNH DẤU (`su_kien_quyen.py`, `tools/soi_su_kien_quyen.py`, khối "Soát sự kiện quyền" ở tab Lịch sử giao dịch). Phần LOẠI khỏi điều kiện dừng CHƯA làm: đổi luật đo, là một bước riêng có hỏi NotebookLM, không làm trong BƯỚC 176.
+
+**Dữ kiện đã kiểm (10/10/2026):**
+- Leader đo ở máy, dữ liệu thật (10/10/2026): lệnh HDB #122 vào 28/09 giá 27.950, đóng 09/10 `STOP_LOSS` −23,18%; nguồn giá hôm nay cho giá mở ngày 28/09 ≈ 21.460. Quét 127 lệnh: 26 lệnh có |f − 1| > 5%, 2 lệnh có sự kiện giữa lúc vào và ra (HDB #122, BID #19), 2 lệnh lệch kiểu khác (SSI #100, VPB #110). Số này do leader đo, phiên đám mây KHÔNG đọc được sổ thật và không tái lập.
+- BƯỚC 176 chạy: `python -m pytest tests/test_su_kien_quyen.py -q` có ca dựng lại hình dạng HDB (f_vào 1,3 · f_ra ≈ 0,98) và đột biến bốn phát đều đỏ (bộ đột biến ở `docs/STATE.md` BƯỚC 176).
 
 ---
 
