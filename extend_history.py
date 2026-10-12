@@ -20,6 +20,13 @@ CHẠY
     python extend_history.py                 # về 2022-01-01
     python extend_history.py --start 2021-01-01
     python extend_history.py --check         # chỉ xem độ phủ, không tải
+    python extend_history.py --thay-ca-chuoi # ghi đè trọn mã bằng MỘT lượt kéo
+
+BƯỚC 180: mã nào có lượt kéo mới LỆCH CƠ SỞ GIÁ so với cache cũ (nguồn đã
+điều chỉnh lùi sau sự kiện quyền) thì KHÔNG được hợp nhất — file cũ giữ
+nguyên, dòng báo ghi mã + số ngày lệch + tỷ lệ min/max. `--thay-ca-chuoi` là
+lối đi có chủ đích để kéo lại trọn mã (một cơ sở); kết quả đo cũ trên mã đó
+không tái lập được nữa. Nến chưa đóng không bao giờ được ghi vào cache.
 
 Cần kết nối mạng và API key vnstock (xem vnstock_auth.py).
 Chạy lại nhiều lần an toàn: mã nào đã đủ lịch sử thì bỏ qua.
@@ -30,7 +37,9 @@ import argparse
 import sys
 from datetime import date
 
-from backtest.data import coverage, extend_history
+from backtest.data import (CUNG_CO_SO, KHONG_SO_DUOC, LECH_CO_SO, coverage,
+                           extend_history)
+from data_quality import now_vn
 from vn100_symbols import VN100_SYMBOLS
 
 # Console Windows mặc định cp1258, không mã hoá nổi tiếng Việt. Thiếu
@@ -90,6 +99,9 @@ def main() -> int:
     ap.add_argument("--end", default=date.today().isoformat())
     ap.add_argument("--check", action="store_true",
                     help="chỉ in độ phủ hiện tại, không tải gì")
+    ap.add_argument("--thay-ca-chuoi", action="store_true",
+                    help="GHI ĐÈ trọn mỗi mã bằng một lượt kéo mới (một cơ sở "
+                         "giá); kết quả đo cũ trên mã đó không tái lập được")
     a = ap.parse_args()
 
     symbols = VN100_SYMBOLS
@@ -112,11 +124,31 @@ def main() -> int:
 
     can_tai = list(symbols) + [m for m in CHI_SO_NGOAI_RO
                                if m not in symbols]
-    changed = extend_history(can_tai, a.start, a.end)
+    if a.thay_ca_chuoi:
+        print("⚠️ --thay-ca-chuoi: ghi đè TRỌN từng mã bằng một lượt kéo mới; "
+              "kết quả đo cũ trên các mã đó không tái lập được nữa.\n")
+    # Giờ VN lấy MỘT lần cho cả lượt: mọi mã dùng cùng một thời điểm để
+    # quyết định nến cuối đã đóng chưa.
+    bao_cao: dict = {}
+    changed = extend_history(can_tai, a.start, a.end,
+                             thay_ca_chuoi=a.thay_ca_chuoi,
+                             bay_gio=now_vn(), bao_cao=bao_cao)
 
     print(f"\n{'=' * 66}")
     print(f"Đã cập nhật {len(changed)}/{len(can_tai)} mã "
           f"(rổ {len(symbols)} + {len(CHI_SO_NGOAI_RO)} chỉ số ngoài rổ)")
+    lech = sorted(m for m, kq in bao_cao.items() if kq.nhan == LECH_CO_SO)
+    khong = sorted(m for m, kq in bao_cao.items() if kq.nhan == KHONG_SO_DUOC)
+    cung = sum(1 for kq in bao_cao.values() if kq.nhan == CUNG_CO_SO)
+    if bao_cao:
+        print(f"So cơ sở giá: {cung} CUNG_CO_SO · {len(lech)} LECH_CO_SO · "
+              f"{len(khong)} KHONG_SO_DUOC")
+    if lech:
+        print(f"  ⚠️ LECH_CO_SO — KHÔNG hợp nhất, cache giữ nguyên: "
+              f"{', '.join(lech)}")
+    if khong:
+        print(f"  ⚠️ KHONG_SO_DUOC — KHÔNG hợp nhất, cache giữ nguyên: "
+              f"{', '.join(khong)}")
     print_coverage(symbols)
 
     # Nói ra đuôi của chỉ số, vì đó là thứ quyết định cổng C1 bật hay tắt

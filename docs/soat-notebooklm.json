@@ -2745,6 +2745,54 @@
         }
       ]
     },
+    "BƯỚC 179": {
+      "ngay": "2026-10-12",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt của leader, 12/10/2026, 'Gemini Notebook'): THÊM TRƯỚC 3 URL raw.githubusercontent.com ghim f40400987d6ad8ca76119ec10bbee2068671160e (cây của commit gộp PR #226, nay là main 7138f02) cho docs/STATE.md, docs/TIEU-CHI-DOC-TRUOC.md, docs/QUYET-DINH-CHO.md; XOÁ SAU đúng 3 bản cũ, đọc nhãn hộp xác nhận 'Xoá docs/TIEU-CHI-DOC-TRUOC.md @13c32a0?' · 'Xoá QUYET-DINH-CHO.md @b4088b2?' · 'Xoá https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/8d302e3c8db0f951c9e87501ba4eb43026d46eae/docs/STATE.md?'. Đo độ tươi: hỏi số BƯỚC lớn nhất trong các nguồn -> sổ trả 178 ở docs/STATE.md @f404009, khớp grep '^## BƯỚC 178 ' trên main lúc hỏi. LO-TRINH @8d302e3 và CLAUDE.md @b4088b2 không đổi tới f404009 (git log trống). Sổ còn 15 nguồn.",
+      "cau_hoi": "I am about to write BƯỚC 179 into docs/STATE.md: ĐO 25 was run on 12/10/2026 exactly as signed in docs/TIEU-CHI-DOC-TRUOC.md (one pull of backtest/cache, 125 files, sha256 acf6dca1..., ke_hoach_vao_lenh.py identical to d44cc87, 44 memory patterns, theo ngay, lag 1): N = 1955 unique signals over 386 days, mean delta alpha (B6 plan minus buying every signal at the next open) = +0.21 percentage points per signal, 95% CI [-0.16 ; +0.57] by day-block bootstrap, all three instrument controls passed; therefore the signed outcome is B (cannot be distinguished): B6 stays display-only, the app now says 'đã đo (ĐO 25), chưa phân biệt được', no UV-002 candidate is declared for C7 on the basis of ĐO 25, and docs/LO-TRINH.md marks B2 (BƯỚC 174), B4 (BƯỚC 177) and B6 part 1 (BƯỚC 173) as built. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: A — triển vọng: cận DƯỚI KTC > 0, Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO, B6 chưa dựng. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay trả nguyên văn 'không tìm thấy câu nào nói ngược'. Leader grep lại (câu âm phải kiểm): docs/HANDOFF.md mục '## 5. VIỆC ĐANG TREO', dòng Q12 (BƯỚC 172): 'phán quyết vào lệnh giao cho agent — mốc **B6** · **C7** ở `docs/LO-TRINH.md` (B6 chưa dựng).' — sai từ BƯỚC 173 và càng sai khi BƯỚC 179 ghi B6 đã dựng.",
+          "tu_kiem": "grep -n 'B6 chưa dựng' docs/HANDOFF.md -> dòng 314. Nguồn HANDOFF của sổ là bản @e9a6d0c, cũ hơn câu ấy, nên sổ không thể thấy nó.",
+          "phan_quyet": "THẬT — sổ tay không thấy vì nguồn cũ. BƯỚC 179 giữ câu (sử liệu của BƯỚC 172) và thêm dấu '⚠️ HẾT ĐÚNG: B6 phần 1 dựng ở BƯỚC 173 …; ĐO 25 ra kết cục B ở BƯỚC 179'."
+        },
+        {
+          "noi_dung": "app.py, chú thích bảng kế hoạch B6: 'Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO.' — sai khi ĐO 25 đã chạy; kết cục B ký trước đòi app ghi 'đã đo (ĐO 25), chưa phân biệt được'.",
+          "tu_kiem": "grep -n 'CHƯA ĐO' app.py -> dòng 1226 (chú thích mã) và 1778 (chuỗi hiển thị). Sổ tay không đọc mã nên không thể thấy.",
+          "phan_quyet": "THẬT — sửa trong BƯỚC 179: chú thích mới 'CHỈ ĐỂ HIỆN — đã đo (ĐO 25), chưa phân biệt được …'; gác test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong đòi câu mới và cấm câu cũ (hai đột biến đỏ)."
+        },
+        {
+          "noi_dung": "ke_hoach_vao_lenh.py, docstring: 'Phán quyết CHƯA ĐO.' và 'MỌI HẰNG SỐ DƯỚI ĐÂY LÀ \"ĐỀ XUẤT, CHƯA ĐO\"'.",
+          "tu_kiem": "grep -n 'CHƯA ĐO' ke_hoach_vao_lenh.py -> dòng 36, 54, 98. tools/do25_ke_hoach_vao_lenh.py::kiem_ma_ke_hoach đòi tệp khớp d44cc87 (git diff --quiet), lệch thì DỪNG.",
+          "phan_quyet": "THẬT nhưng CỐ Ý GIỮ — sửa một chữ là lượt tái lập ĐO 25 sau DỪNG ở M0; từng hằng số vẫn đúng là chưa đo riêng. Khai trong STATE BƯỚC 179, mục 'Câu cố ý KHÔNG sửa'."
+        }
+      ]
+    },
+    "BƯỚC 181": {
+      "ngay": "2026-10-12",
+      "khong_bat_buoc_vi": "Chỉ đổi CÁCH TÌM commit của tools/buoc_cham_luat.py (tìm trên nhánh gốc thay vì HEAD) cùng test và bảng lỗi 166; không sửa file luật nào, không đổi Quy tắc 3, FILE_LUAT hay kết luận đo; tools/buoc_cham_luat.py xác nhận không chạm luật."
+    },
+    "BƯỚC 180": {
+      "ngay": "2026-10-12",
+      "khong_bat_buoc_vi": "Đổi đường GHI cache giá (backtest/data.py, market_filter.get_vni_df) và thêm một dụng cụ chỉ đọc; không đổi luật, ngưỡng, cờ, điểm hay kết luận đo nào, không chạm file luật."
+    },
     "BƯỚC 182": {
       "ngay": "2026-10-12",
       "nguon": [

@@ -22264,6 +22264,164 @@ Trước khi chạy `chay`: chốt MỘT giá trị cho `--che-do-hoc` và `--st
 4. `tools/kiem_test_chay_rieng.py --im`: 145 file trong 427 s, 1 đỏ — `test_requirements.py` (đỏ môi trường); `test_do25_ke_hoach_vao_lenh.py` xanh khi chạy một mình.
 5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2809 → 2881 (+72 test của `tests/test_do25_ke_hoach_vao_lenh.py`, không test nào mất); lượt kiểm sau: `OK — 2881 test, khop moc da ghi`.
 
+## BƯỚC 179 — ĐO 25 CHẠY: KẾ HOẠCH VÀO LỆNH B6 "CHƯA PHÂN BIỆT ĐƯỢC" VỚI MUA MỌI TÍN HIỆU Ở GIÁ MỞ CỬA PHIÊN SAU (KẾT CỤC B); ĐÁNH DẤU B2 · B4 · B6 TRONG LỘ TRÌNH (12/10/2026)
+
+**Mốc:** C7
+
+Leader, phiên máy. Đọc ĐO 25 đúng bảng đã ký ở `docs/TIEU-CHI-DOC-TRUOC.md` (khai ở BƯỚC 178, commit `352168c`, TRƯỚC dụng cụ `f388e00`; vào `main` ở `7138f02`, PR #226 thay cho #224).
+
+**Lệnh tái lập** (repo chính, cần `sl_pattern_memory.json` 44 mẫu ở gốc repo vì máy chấm của `walkforward.chay` mặc định `co_san`):
+
+```bash
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py doi-chung
+./.venv/Scripts/python.exe tools/do25_ke_hoach_vao_lenh.py chay --cache backtest/cache --ghi <đường dẫn JSON>
+```
+
+Chạy hai lượt: lượt đầu trong worktree ở cây `f404009` (bản chép `sl_pattern_memory.json`, cùng sha256 `e8b44cf8…` với tệp gốc, xoá sau khi chạy), lượt hai ở repo chính trên `7138f02` sau merge. **Đầu ra hai lượt giống hệt từng dòng** (`diff` rỗng). Mỗi lượt ~2,5 phút.
+
+**M0.** Cache `backtest/cache`: 125 tệp, sha256 `acf6dca1dd38d5157ee397bbccb7f82d662698b318a6dcf6b72617335bf44d6e`, mtime 2026-08-06T06:09:50Z → 2026-09-03T02:45:39Z (MỘT lượt kéo theo nghĩa ĐO 24: không ghép `cache_2018`). `ke_hoach_vao_lenh.py` so với `d44cc87`: khớp. Ngưỡng 62 (đã ký 62). Chế độ học `co_san`, 44 mẫu. `stride` 2, `min_history` 60 (đọc từ chữ ký `walkforward.chay`). 33 mã có vùng ngoài mẫu; 11.623 phiên quyết định được chấm.
+
+**Quần thể.** 1.973 tín hiệu đạt ngưỡng · bỏ 18 vì thiếu 20 phiên về sau · 0 trùng (mã, t) · 0 thiếu chuẩn ⇒ **N = 1.955 tín hiệu duy nhất trong 386 ngày** (≥ `N_TOI_THIEU` = 113).
+
+**Thống kê chính (bất biến 6).** Δ alpha trung bình mỗi tín hiệu (B6 − nền) **+0,21 điểm %**, KTC 95% **[−0,16 ; +0,57]** (bootstrap khối ngày, 10.000 lượt, hạt 20261010). **KẾT CỤC KÝ TRƯỚC: B — chưa phân biệt được.** Quy tắc 1 không kích hoạt (+0,21 < +2).
+
+**Đối chứng của máy đo (cùng lượt) — cả ba ĐẠT:** (i) ép luôn MUA_NGAY → Δ ≡ 0; (ii) ép luôn BO_QUA → Δ trung bình +0,65 = −alpha nền trung bình; (iii) xáo nến sau t → 0 lệch / 1.968 tín hiệu. `doi-chung` trên dữ liệu tổng hợp ở máy: mã thoát 0, ba đối chứng ĐẠT (0 lệch / 474).
+
+**Báo kèm (không quyết định kết cục).**
+- Chênh lợi nhuận sau chi phí, chưa trừ chuẩn: −0,32 điểm %/tín hiệu.
+- Tỷ lệ phán quyết: BO_QUA 838 (42,9%) · CHO_VUNG 663 (33,9%) · MUA_NGAY 445 (22,8%) · CHUA_LAP_DUOC 9 (0,5%).
+- CHO_VUNG: khớp 327/663 (49,3%), lỡ 336. **Lệnh chờ tự chọn lệnh thua — đúng như `docs/LO-TRINH.md` C7 đã cảnh báo:** lợi nhuận nền của nhóm KHỚP −4,04% so với nhóm LỠ +2,50% (alpha nền −3,24 so với +0,47). Lệnh giới hạn chỉ khớp khi giá đang rơi.
+- Δ theo phán quyết: BO_QUA n=838 −0,13 · CHO_VUNG n=663 +0,84 · CHUA_LAP_DUOC n=9 −3,80 · MUA_NGAY n=445 0,00.
+- Biến thể "chạm là khớp" (low ≤ trần vùng): Δ +0,22, KTC [−0,14 ; +0,57] — cùng kết cục.
+- VN-INDEX tại t: trên MA50 n=1.565 Δ +0,26 · dưới MA50 n=390 Δ +0,00.
+
+**Hệ quả theo kết cục B đã ký.** B6 giữ CHỈ ĐỂ HIỆN. App ghi "đã đo (ĐO 25), chưa phân biệt được" ở chú thích bảng kế hoạch (`app.py`); gác `tests/test_ke_hoach_vao_lenh.py::test_APP_giu_cau_chu_thich_bat_buoc_va_nhanh_duoi_nguong` đòi câu ấy và cấm câu cũ "CHỈ ĐỂ HIỆN và CHƯA ĐO" sống cạnh nó — hai đột biến (bỏ câu kết cục; để câu cũ sống lại) đều đỏ. KHÔNG khai UV-002 dựa trên ĐO 25 (chỉ kết cục A cho phép). Không đổi đường thật, không chọn hằng số.
+
+**Kiểm dữ liệu trước khi tin (leader, 12/10/2026).** Quét bước đổi đóng-cửa liền kề vượt biên độ sàn trên cả `backtest/cache`: 84 bước trên 8 mã; trong vùng ngoài mẫu chỉ có BSR (20 bước) và VTP (10 bước), cả hai ở giai đoạn còn niêm yết UPCoM — biên ±15% tính trên giá tham chiếu là giá BÌNH QUÂN phiên trước, nên đóng-cửa-so-đóng-cửa có thể vượt 15% (lớn nhất: VTP +17,14% ngày 2022-11-16). Các bước ấy CHƯA được kiểm từng cái với lịch sự kiện; 31 mã ngoài mẫu còn lại không có bước nào vượt biên. Bậc lớn thật nằm ở vùng TRONG mẫu: SSI −17,87% và MBB −16,36% ngày 2026-08-10, HHP −12,52% ngày 2026-08-12 (chỗ đuôi lượt kéo 07/08 gặp lượt nối 03/09; chưa phân biệt được GDKHQ thật trong chuỗi chưa điều chỉnh với chỗ nối — việc của BƯỚC 180). Nến 2026-09-03 trong cache là nến CHƯA ĐÓNG (kéo lúc ~09:40) nhưng nằm ngoài vùng đo. **Giới hạn:** phép quét không thấy bậc nhỏ hơn biên (cổ tức tiền vài %); một lượt kéo đơn là nhất quán bên trong nên vùng ngoài mẫu (dựng từ lượt kéo lùi) ít có chỗ nối, nhưng điều đó là SUY LUẬN từ cách dựng, không phải phép đo từng mã.
+
+**Câu cố ý KHÔNG sửa.** `ke_hoach_vao_lenh.py` vẫn ghi "Phán quyết CHƯA ĐO" và "ĐỀ XUẤT, CHƯA ĐO" cho từng hằng số: dụng cụ ĐO 25 đòi tệp ấy khớp TỪNG BYTE với `d44cc87` (M0) — sửa một chữ là lượt tái lập sau DỪNG. Từng hằng số vẫn đúng là chưa đo riêng (ĐO 25 đo cả kế hoạch, không chỉnh hằng số nào). Trạng thái đo của cả kế hoạch nằm ở app, mục này và `docs/LO-TRINH.md`.
+
+**Lộ trình.** `docs/LO-TRINH.md`: B2 ĐÃ DỰNG (BƯỚC 174) · B4 ĐÃ DỰNG (BƯỚC 177) · B6 PHẦN 1 ĐÃ DỰNG (BƯỚC 173; vế "nhật ký ghi" CHƯA làm) kèm kết cục ĐO 25 · C7: phép đo thăm dò là ĐO 25, kết cục B, không khai UV-002. `docs/HANDOFF.md` câu "(B6 chưa dựng)" (BƯỚC 172) mang dấu ⚠️ HẾT ĐÚNG.
+
+**Sổ tay (Quy tắc 3) — hỏi thật** (BƯỚC này sửa `docs/LO-TRINH.md` và ghi một kết luận đo). Làm tươi trước: STATE · TIEU-CHI · QUYET-DINH-CHO thêm bản ghim `f404009` rồi xoá bản cũ (@8d302e3 · @13c32a0 · @b4088b2), đọc nhãn hộp xác nhận; đo độ tươi: sổ trả "178, docs/STATE.md @f404009" — khớp. Sổ trả "không tìm thấy câu nào nói ngược"; leader grep lại và tìm ra ba câu (ghi ở `docs/soat-notebooklm.json`): HANDOFF "(B6 chưa dựng)" (nguồn HANDOFF của sổ còn @e9a6d0c, cũ hơn câu ấy), chú thích app "CHƯA ĐO", docstring `ke_hoach_vao_lenh.py` (cố ý giữ, xem trên).
+
+**Phát hiện phụ, CHƯA xử lý.** Trong lượt cổng 4 đầu tiên ở worktree (cache rỗng), một test gọi `market_filter.get_vni_df()` đã TẢI MẠNG và GHI `backtest/cache/VNINDEX.csv` vào worktree (mtime 08:31:10, giữa lượt cổng; lượt ĐO 25 lúc 09:10 đọc VN-INDEX từ cache của repo chính qua `--cache`, không dính). Ở repo chính cache có sẵn nên đường ghi ngầm (lỗi 157) không chạy. Chưa tìm test nào gây ra.
+
+## BƯỚC 180 — D2: NỐI CACHE GIÁ AN TOÀN (KHÔNG TRỘN HAI CƠ SỞ GIÁ, KHÔNG GHI NẾN CHƯA ĐÓNG) VÀ MỘT DỤNG CỤ SOÁT CACHE CHỈ ĐỌC (12/10/2026)
+
+**Mốc:** D2
+
+Phiên đám mây (nhánh `sua/noi-cache-an-toan`, từ `main` `076e3e4`). Đổi ĐƯỜNG GHI cache (`backtest/data.py`, `market_filter.get_vni_df`) và thêm một dụng cụ chỉ đọc. **KHÔNG sửa, xoá hay kéo lại `backtest/cache/` hay `backtest/cache_2018/`** (dữ liệu của người dùng; đám mây cũng không có). Không đổi `walkforward.py`, `paper_runner.py`, `paper_metrics`, điểm, ngưỡng, cờ, workflow, `run_daily.py`. Phiên khác chạy song song (BƯỚC 181) và leader viết BƯỚC 179: mục này chỉ THÊM ở cuối.
+
+**Bối cảnh — số do LEADER đo ở máy ngày 12/10/2026, dữ liệu thật; phiên đám mây KHÔNG có `vnstock` và KHÔNG tái lập được chúng.**
+- Toàn bộ `backtest/cache/` ở máy là các lượt kéo cũ: 72 mã dừng ở 2026-09-03 (kéo lúc ~09:40 sáng hôm ấy, TRONG giờ giao dịch), 49 mã dừng ở 2026-08-07, vài mã cũ hơn.
+- Nguồn giá ĐIỀU CHỈNH LÙI cả lịch sử sau mỗi sự kiện quyền. Leader kéo lại 125 mã (`backtest.data.fetch_one`, 2026-07-01 → 2026-10-12) và so với cache trên các ngày trùng đã đóng phiên (bỏ ngày cuối của cache): **64/125 mã khớp tuyệt đối** (mới/cũ = 1,000000 mọi ngày); **lệch lẻ một ngày** với tỷ lệ tối đa 1,0002–1,0008 và tối thiểu 1,0 (SAB, PLX, CTG, DPM, VJC — nguồn sửa số lẻ); **lệch cả đoạn** từ ~0,5% trở lên (VNM 0,9949 · TCB 0,9932 · HPG 0,9932 · MWG 0,987 · FPT 0,905–0,909 · HDB 0,7695–0,7698 · VPB 0,793 · GMD 0,667 · PHR 0,543); **23 mã lệch > 5%, 40 mã > 1%**.
+- Ngày cuối của cache (03/09, kéo lúc phiên chưa đóng) lệch ở **86/125 mã** — nến CHƯA ĐÓNG bị ghi vào cache (ACB: cache 22,30, nguồn 22,20).
+- **Hệ quả cho `extend_history` cũ:** tải lại trọn khoảng rồi hợp nhất, giữ dòng CŨ khi trùng ngày, nối dòng MỚI cho ngày chưa có. Với HDB lúc đó: dòng cũ (≤ 03/09) ở cơ sở chưa điều chỉnh, dòng mới 04/09 ở cơ sở đã nhân 0,77 ⇒ một bậc **−23% GIẢ** ở ngày không có sự kiện nào (FPT −9%, PHR −46% tương tự). Và vì giữ dòng cũ, nến chưa đóng của 03/09 nằm đó mãi.
+- **Cache đã có bậc lớn bên trong** (leader quét bước nhảy đóng-cửa liền kề vượt biên độ sàn): SSI −17,87% ngày 2026-08-10 (trước đó 08-07), MBB −16,36% cùng ngày, HHP −12,52% ngày 2026-08-12 — đúng chỗ đuôi cũ 07/08 gặp lượt nối 03/09. Leader CHƯA phân biệt được GDKHQ thật trong chuỗi chưa điều chỉnh với chỗ nối hai cơ sở (cần lịch sự kiện). Liên quan mục chẩn đoán sau kết cục ĐO 24 (SSI 1,25 · MBB 1,20 "SUY LUẬN, CHƯA KIỂM") và `docs/LO-TRINH.md` mục D2.
+
+**Thiết kế (`backtest/data.py`).**
+- **`so_co_so(cu, moi, bay_gio) -> KetQuaCoSo`** — HÀM THUẦN (không mạng, không đồng hồ, không đĩa; không ghi vào đầu vào, có test). So `close` trên các ngày TRÙNG ĐÃ ĐÓNG: bỏ ngày CUỐI của cache cũ (có thể là nến dở của một lượt kéo giữa phiên) và bỏ nến chưa đóng của lượt mới (`bo_nen_dang_do`). Dataclass đóng băng: `nhan`, `so_ngay_trung`, `so_ngay_lech`, `ty_le_min`, `ty_le_max`, `ngay_lech_dau`, `ngay_lech_cuoi`, `ly_do`. Ba nhãn: `CUNG_CO_SO` · `LECH_CO_SO` · `KHONG_SO_DUOC` (một bên rỗng/thiếu cột `time`/`close`, hoặc không có ngày trùng đã đóng nào so được — ngày có `close` ≤ 0 hay NaN không tính).
+- **`hop_nhat(cu, moi)`** — hàm thuần, CHỈ gọi sau `CUNG_CO_SO`: giữ dòng CŨ khi trùng ngày (lý do cũ còn đúng: sổ đã dùng dữ liệu cũ), NGOẠI LỆ ngày CUỐI của cache cũ lấy bản MỚI nếu lượt mới có ngày ấy.
+- **`bo_nen_dang_do(df, bay_gio)`** — hàm thuần, luật "đã đóng chưa" là của `data_quality.nen_cuoi_dang_do` (không viết lại). Lặp tới khi nến cuối đã đóng (nến "tương lai" + nến hôm nay dở cùng có mặt thì bỏ cả hai); giữ nguyên dạng cột `time` đầu vào.
+- **`extend_history(..., *, thay_ca_chuoi=False, bay_gio=None, bao_cao=None)`** — kiểu trả về KHÔNG đổi (`{mã: (đầu, cuối, số phiên)}` cho mã có thay đổi); phán quyết từng mã đã so được ghi vào `bao_cao` (tham số ra) để người gọi đếm. `bay_gio` lấy MỘT lần ở đầu hàm (`now_vn()` nếu không truyền). Mỗi mã: tải → bỏ nến dở → (mã đã có cache) `so_co_so` → `LECH_CO_SO`: in một dòng (mã · số ngày lệch/số ngày trùng · tỷ lệ min/max · khoảng ngày lệch · "KHÔNG hợp nhất, giữ nguyên cache") rồi `continue`; `KHONG_SO_DUOC`: in lý do rồi `continue`; `CUNG_CO_SO`: `hop_nhat`. Trước khi ghi, hàng rào cuối bỏ nến dở một lần nữa (bắt cả nến dở nằm sẵn trong cache cũ do bản trước ghi).
+- **`thay_ca_chuoi=True`** (CLI `extend_history.py --thay-ca-chuoi`): ghi đè trọn mã bằng MỘT lượt kéo (một cơ sở), KHÔNG bỏ qua mã "đã đủ và đã tươi" (đúng loại mã có bậc điều chỉnh nằm lẫn), in "THAY CẢ CHUỖI … kết quả đo cũ trên mã này KHÔNG tái lập được nữa" và số phiên đầu của cache cũ bị mất nếu lượt mới ngắn hơn (đúng sự cố VNINDEX 1.724 → 1.655 phiên). Mặc định False (gác AST). `--check` giữ nguyên. CLI in thêm dòng tổng `n CUNG_CO_SO · n LECH_CO_SO · n KHONG_SO_DUOC` và liệt kê mã không hợp nhất.
+- **`download`** (không ghi nến dở, `bay_gio` lấy một lần) và **`market_filter.get_vni_df`** (chỉ bản GHI bị cắt; `df` trả về cho người gọi và thứ tự ưu tiên cache/mạng KHÔNG đổi).
+
+**Luật ngưỡng, và vì sao (ĐỀ XUẤT, hiệu chỉnh bằng số đo leader 12/10/2026; bạn chốt = tôi chốt như dưới).**
+- `NGUONG_LECH_CO_SO = 0,001` (0,1%) — một ngày là LỆCH khi `|mới − cũ| > 0,001 × cũ` (viết dạng NHÂN, không chia, cho biên không dính làm tròn dấu phẩy động). Cụm nhiễu đo được: sửa số lẻ cho tỷ lệ tối đa 1,0002–1,0008, tức lệch ≤ **0,08%** < 0,1%; cụm đổi cơ sở thật nhỏ nhất đo được: VNM 0,9949, tức lệch **0,51%** > 0,1%. 0,1% nằm giữa hai cụm, sát cụm nhiễu về phía an toàn (nghi quá thì không nối, không phải nối nhầm). Độ dư phía nhiễu chỉ 1,25 lần (0,08 → 0,1) — mỏng, nên ngưỡng nên được xem lại nếu `--doi-chieu-nguon` trên máy cho thấy nhiễu lẻ vượt 0,1%.
+- `SO_NGAY_LECH_TOI_THIEU = 2`. Đề bài đề xuất "≥ 2 ngày lệch, HOẶC một đoạn liền ≥ 2 ngày cùng lệch": vế sau là TẬP CON của vế đầu (hai ngày liền lệch thì đã có ≥ 2 ngày lệch), nên chỉ giữ một điều kiện. Đổi cơ sở thì lệch CẢ ĐOẠN (mọi ngày trước mốc sự kiện), nên luôn ≥ 2 ngày; một ngày lẻ là sửa số.
+- Chỉ so `close` (một đổi cơ sở dịch cả OHLC; `close` đủ và là cột mọi phép đo dùng).
+
+**Chỗ đề bài chưa nói, tôi chọn và khai** (đổi thì sửa `backtest/data.py` và test đi cùng):
+1. **Một ngày trùng duy nhất lệch lớn vẫn là `CUNG_CO_SO`** (< 2 ngày lệch). Hệ quả: mã chỉ có MỘT ngày trùng đã đóng và ngày ấy lệch 23% sẽ được hợp nhất. Tôi cố ý theo đúng chữ đề bài (và giữ `tests/test_backtest.py::test_ghep_cache_cu_voi_du_lieu_moi_khac_kieu_ngay`, fixture có một ngày trùng 10,5 ↔ 99,0 mà bản cũ khoá "giữ bản ghi cũ"). Trong thực tế lượt kéo của `extend_history` phủ trọn cache nên số ngày trùng là hàng trăm; `KetQuaCoSo.so_ngay_trung` cho người gọi thấy khi bằng chứng yếu. Nếu leader muốn chặt hơn (< 2 ngày trùng → `KHONG_SO_DUOC`) là một dòng, nhưng làm đỏ test cũ nói trên.
+2. **`bao_cao` là tham số ra, kiểu trả về không đổi** (đề bài cho phép "khoá riêng của dict trả về hoặc một tham số ra"): đổi kiểu trả về làm gãy `len(changed)` ở `extend_history.py` và các test cũ `changed == {}`.
+3. **`so_co_so` tự bỏ nến chưa đóng của lượt mới** dù `extend_history` đã bỏ trước — để dụng cụ chỉ đọc gọi cùng một hàm mà không phải nhớ bước ấy. Test riêng khoá hành vi này.
+4. **`thay_ca_chuoi` bỏ qua cả nhánh "đã đủ và đã tươi → bỏ qua"**, nếu không lệnh kéo lại một mã tươi sẽ không làm gì. Không từ chối khi lượt mới NGẮN hơn cache cũ (đề bài: ghi đè trọn) — chỉ in rõ số phiên mất.
+5. **Hàng rào cuối** cũng bỏ nến dở nằm sẵn trong cache cũ (chạy lúc 10:00 thì nến 09/09 dở do bản trước ghi bị xoá khỏi file) — hệ quả của "mọi đường ghi bỏ nến cuối nếu dở".
+6. **Dụng cụ: mã CHƯA KIỂM ĐƯỢC không đổi mã thoát** (0 khi không có bước vượt biên) theo đúng đề bài; cảnh báo nằm ở dòng tổng. Mã `VNINDEX` (chỉ số, không trong bảng sàn) vì thế luôn hiện CHƯA KIỂM ĐƯỢC.
+7. **`--doi-chieu-nguon` kéo cửa sổ `--so-ngay` (mặc định 120) ngày lùi từ nến cuối của cache** thay vì trọn lịch sử (leader đã kéo từ 2026-07-01); 120 là ĐỀ XUẤT, chưa đo.
+
+**Giới hạn (đọc trước khi tin nhãn).**
+- **Không phân biệt được GDKHQ thật trong chuỗi chưa điều chỉnh với chỗ nối hai cơ sở** — cả hai cho một bước vượt biên ở dụng cụ; cần lịch sự kiện doanh nghiệp hoặc `--doi-chieu-nguon`.
+- **Bậc nhỏ hơn biên độ sàn không thấy** (cổ tức tiền vài %): chuỗi chưa điều chỉnh có thể đầy bậc nhỏ mà dụng cụ vẫn sạch. `so_co_so` thì thấy từ 0,1% — nhưng chỉ khi có ≥ 2 ngày trùng.
+- Mã từng đổi sàn (BSR, VTP rời UPCoM lên HOSE) có thể bị báo theo biên sàn hiện tại ở giai đoạn cũ. Bảng sàn không có IDC (mã HNX): dụng cụ báo CHƯA KIỂM ĐƯỢC, không lùi về HOSE 7% (±9,9% là biên HNX bình thường).
+- "Liền kề" là hai dòng kề nhau TRONG FILE; file thiếu phiên làm bước nhảy trông lớn hơn thực.
+- **Cache ở máy KHÔNG được sửa bởi bước này.** Đã nối hay chưa, đúng hay sai: việc của leader ở máy. Các mã ở máy đã mang bậc (SSI · MBB · HHP) vẫn mang; `thay_ca_chuoi` chỉ là lối đi cho lần kéo sau, và đổi nó thì mọi kết quả đo cũ trên mã ấy không tái lập được.
+- Đám mây không có `vnstock` nên `--doi-chieu-nguon` KHÔNG chạy được ở đây; nó được kiểm bằng nguồn giả (`doi_chieu` nhận hàm kéo).
+
+**Gác và đột biến (`tests/test_noi_cache_an_toan.py` 28 test, `tests/test_kiem_co_so_cache.py` 18 test; +46 so với mốc 2968).**
+- **Số TÍNH TAY trên dữ liệu giả**, đáp số bằng số, phép tính ở chú thích: (a) khớp tuyệt đối → `CUNG_CO_SO`, 5 ngày trùng (6 − 1 ngày cuối cũ), 0 lệch, hợp nhất 7 dòng; (b) HDB — mới = cũ × 0,77 trên mọi ngày trùng → `LECH_CO_SO` 7/7, tỷ lệ 0,77, file cũ giữ nguyên TỪNG BYTE, dòng báo có mã · 7/7 · min/max 0,770000; (c) ngày lẻ lệch 0,03% → `CUNG_CO_SO` (và một ngày lệch 5% vẫn `CUNG`, hai ngày `LECH`; biên 0,09% `CUNG` · 0,11% `LECH`); (d) cổ tức tiền — 6 ngày đầu × 0,995, 3 ngày sau khớp → `LECH_CO_SO` 6/9, min 0,995; (e) ngày cuối cache cũ lệch 0,45% → `CUNG_CO_SO` 5 ngày trùng 0 lệch và ngày ấy lấy bản mới 22,20; (f) `bay_gio` 10:00 → nến 09-09 không ghi, 15:30 → ghi; (g) không ngày trùng (và chỉ trùng đúng ngày cuối cũ) → `KHONG_SO_DUOC`, file không đổi; (h) `thay_ca_chuoi=True` với (b) → file bằng đúng lượt mới 9 dòng, kể cả khi mã "đã đủ và đã tươi".
+- `extend_history` thật chạy với `fetch_one` giả và `CACHE_DIR` trỏ `tmp_path`, không duyệt cây repo. Gác AST: `extend_history` thật sự gọi `so_co_so` · `hop_nhat` · `bo_nen_dang_do` · `now_vn`; nhánh `LECH_CO_SO` (đúng một) kết thúc bằng `continue` và nằm GIỮA lời gọi `so_co_so` và `hop_nhat`; `thay_ca_chuoi` mặc định `False`; CLI truyền cả ba tham số; `download` và `get_vni_df` gọi `bo_nen_dang_do`; `now_vn` được hỏi đúng MỘT lần cho ba mã. Dụng cụ: bậc −17,87% HOSE (SSI) báo đúng ngày 2026-08-10 (trước 08-07) → mã thoát 1; +9,9% của MBS (HNX) không báo, của mã HOSE thì báo; IDC (ngoài bảng) → CHƯA KIỂM ĐƯỢC, mã thoát 0; cache vắng/rỗng/thiếu cột → 2; không ghi gì vào thư mục cache; AST cấm `to_csv`/`write_*`/`open`/`mkdir`…, cấm `san_cua`.
+- **Đột biến** (qua `va_an_toan.dot_bien`, hoàn tra từng byte, lệnh `pytest` hai file test mới): **31 phát**. Phát đầu tiên dựng lại nguyên văn ca HDB (bỏ phép so, luôn hợp nhất) — đỏ. Lượt đầu **30/31 đỏ**; **một phát sống sót** — bỏ lần cắt nến dở NGAY SAU KHI TẢI (hàng rào cuối bắt thay) — là gác chưa canh nhánh "mã mới mà lượt kéo chỉ có nến dở" (nổ `IndexError` ở `merged["time"].iloc[0]`): thêm `test_luot_moi_chi_co_nen_chua_dong_thi_khong_ghi_gi` (lỗi 165) → **31/31 đỏ** ở lượt hai. Các phát: bỏ phép so cơ sở · ngưỡng 0,1% → 10% · không bỏ ngày cuối cũ khỏi phép so · `bo_nen_dang_do` không lặp · bỏ hàng rào cuối · bỏ cắt nến dở sau khi tải · `download` ghi nến dở · `get_vni_df` ghi nến dở · nhánh `LECH` không `continue` · `KHONG_SO_DUOC` vẫn hợp nhất · `LECH` lọt cả hai hàng rào · mã ngoài bảng lùi về HOSE · `thay_ca_chuoi` mặc định True · ngày cuối cũ không lấy bản mới · `keep="last"` · số ngày lệch tối thiểu 2 → 1 và 2 → 3 · `>=` → `>` · bỏ lọc giá ≤ 0 · `so_co_so` không tự bỏ nến dở · `thay_ca_chuoi` vẫn bị bỏ qua khi cache đủ và tươi · hỏi đồng hồ mỗi mã · CLI không truyền `thay_ca_chuoi` · dấu so ngưỡng đảo · biên HNX 10% → 7% · đệm 0,5 → 5 điểm · mã thoát luôn 0 · `vung` `<` → `<=` · bỏ `abs` · đối chiếu dùng phép so khác · cửa sổ đối chiếu không lùi. **Phát tương đương, không viết:** không có.
+
+**Năm cổng (đám mây, Python 3.13, không `.venv`, không có `vnstock`; cài thêm `pytest` · `streamlit` · `plotly` · `feedparser` · `gspread` · `toml` · `tradingview-ta` · `beautifulsoup4` · `lxml` · `google-generativeai` từ PyPI công khai; tuần tự, log ra file).**
+1. `python3 -m pytest tests/ -q`: lượt đầu (trước khi khai sổ tay và cập nhật mốc) `5 failed, 3006 passed, 3 skipped` (441,5 s): bốn là của TÔI chưa làm xong (mốc cổng 5 chưa cập nhật; ba test `test_soat_notebooklm` đòi mục BƯỚC 180) — đã sửa, chạy lại `tests/test_kiem_so_test.py` và `tests/test_soat_notebooklm.py`: `70 passed`; một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (thiếu `vnstock`, như BƯỚC 171–177). 3006 + 3 + 5 = 3014, khớp mốc.
+2. `tools/kiem_cu_phap_311.py`: xanh (286 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (số cũ; không cảnh báo nào ở file mới).
+4. `tools/kiem_test_chay_rieng.py --im`: 148 file trong 586 s, 1 đỏ — `test_requirements.py` (môi trường như trên); `test_noi_cache_an_toan.py` và `test_kiem_co_so_cache.py` xanh khi chạy một mình.
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat`: mốc 2968 → 3014 (+46 test, không test nào mất); lượt kiểm sau: `OK — 3014 test, khop moc da ghi`.
+Mục này được ghi SAU cổng; sau khi ghi tôi chạy lại các test tài liệu (xem thân PR).
+
+**Lỗi mới:** 162 (hợp nhất giữ-dòng-cũ trộn hai cơ sở giá), 163 (lượt kéo giữa phiên ghi nến chưa đóng và giữ-dòng-cũ giữ nó mãi), 164 (không phép soát nào hỏi cache hiện có có bậc vượt biên không; ⚠️ một phần), 165 (hai hàng rào chồng nhau che nhau khỏi đột biến). Dải 162–165 dùng hết.
+
+**Việc leader kiểm ở máy (có `.venv`, `vnstock`, cache thật).**
+1. `./.venv/Scripts/python.exe tools/kiem_co_so_cache.py` trên cache thật — kỳ vọng thấy SSI 2026-08-10, MBB 2026-08-10, HHP 2026-08-12 và KHÔNG báo IDC như HOSE (IDC ra CHƯA KIỂM ĐƯỢC).
+2. `./.venv/Scripts/python.exe tools/kiem_co_so_cache.py --doi-chieu-nguon` — kỳ vọng HDB, FPT `LECH_CO_SO`; ACB `CUNG_CO_SO`; xem nhiễu lẻ (SAB, PLX, CTG, DPM, VJC) có thật dưới 0,1% không (độ dư chỉ 1,25 lần).
+3. Chạy thử `extend_history.py` trên một BẢN SAO cache (đặt `VIBE_CACHE_DIR` trỏ bản sao, KHÔNG phải cache thật) và xác nhận không mã `LECH_CO_SO` nào bị đổi.
+4. Quyết định có chặt hơn ở chỗ đã khai (mục *Chỗ đề bài chưa nói* số 1: một ngày trùng duy nhất lệch lớn vẫn `CUNG_CO_SO`).
+
+**Đề xuất sửa file luật (leader làm ở bước có NotebookLM; bước này KHÔNG chạm chúng).** (a) Bảng "Những chỗ hỏng âm thầm" (`NGUYEN-TAC-DO-LUONG.md`) thiếu dòng "cache giá nối từ hai lượt kéo / nến chưa đóng trong cache" kèm lệnh `tools/kiem_co_so_cache.py`; (b) `CLAUDE.md` mục *Dữ liệu và gói vnstock* nên nói `extend_history` không hợp nhất mã lệch cơ sở và có `--thay-ca-chuoi`; (c) `docs/LO-TRINH.md` D2 có thể ghi "đã dựng phần chặn trộn cơ sở; chưa dựng phần điều chỉnh giá theo sự kiện quyền".
+
+**Sổ tay (Quy tắc 3).** BƯỚC này KHÔNG chạm `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `SKILL.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`; `tools/buoc_cham_luat.py 180` xác nhận không chạm → khai `khong_bat_buoc_vi`.
+
+**Leader kiểm ở máy (12/10/2026, mã của PR #227 `99a213f`, cache thật CHỈ ĐỌC hoặc BẢN SAO).**
+1. `python tools/kiem_co_so_cache.py --cache backtest/cache` → mã thoát 1, **40 bước vượt biên ở 7 mã** (BSR 20 · VTP 10 · MSR 5 · OIL 2 · SSI 1 · MBB 1 · HHP 1), 54 mã CHƯA KIỂM ĐƯỢC (ngoài bảng sàn). Khớp lượt quét tay độc lập của leader cùng ngày sau khi bỏ 44 bước báo nhầm của IDC (lượt tay lùi mã ngoài bảng về biên HOSE). SSI và MBB 2026-08-10, HHP 2026-08-12 có mặt; IDC KHÔNG bị báo như HOSE.
+2. `--doi-chieu-nguon` → dòng tổng của dụng cụ: **CUNG_CO_SO 81 · LECH_CO_SO 44**. HDB 83/83 ngày lệch (0,7695–0,7698), FPT 83/83 (0,9055–0,9095), SSI 68/83 (0,7984–1,0) → LECH như kỳ vọng. **Hai chỗ khác đề bài, cả hai do ĐỀ BÀI sai (lỗi 168):** ACB ra LECH (6/83 ngày lệch, tỷ lệ 1,0–1,00102 — nguồn sửa số đi LÊN, không phải điều chỉnh lùi; luật đối xứng nên từ chối nối — chiều an toàn, làm tươi ACB phải dùng `--thay-ca-chuoi`); VNM ra CUNG (chỉ 1/83 ngày lệch, 0,9949) — đề bài gọi VNM là "lệch cả đoạn — cổ tức tiền thật" sau khi chỉ đọc min/max. Sáu mã LECH chỉ vì sửa số đi lên: ACB 6 · DBC 21 · DXG 16 · HCM 6 · LCG 4 · VCB 11 ngày.
+3. `extend_history.py` thật trên BẢN SAO cache (`VIBE_CACHE_DIR` trỏ thư mục tạm; cache thật không đụng) → "So cơ sở giá: 33 CUNG_CO_SO · 39 LECH_CO_SO · 0 KHONG_SO_DUOC"; 33 tệp đổi; **giao (mã LECH ∩ tệp đổi) = rỗng** (so băm sha256 từng tệp trước/sau); quét lại bản sao sau khi nối: vẫn đúng 40 bước ở 7 mã — chỗ nối mới không sinh bậc nào.
+
+**Ngưỡng 0,1% đứng, lý do sửa.** Đoạn điều chỉnh LÙI nhỏ nhất đo được trên dữ liệu thật (≥ 5 ngày lệch, mọi tỷ lệ < 1): IDC 54/83 ngày ở 0,99865 (−0,13%), HHV 36 ngày ở 0,99812, OCB 35 ngày ở 0,99791 — cả ba > 0,1% nên bị bắt. Chú thích `NGUONG_LECH_CO_SO` trong `backtest/data.py` dẫn VNM làm bậc cổ tức nhỏ nhất — sai (VNM là một ngày lẻ); sửa chú thích sang IDC/HHV/OCB.
+
+**Phát hiện mới, CHƯA xử lý — nến chưa đóng nằm BÊN TRONG cache.** 18 mã CUNG lệch đúng MỘT ngày (ACV −0,96% · BSR −1,7% · HAG −2,1% · TCB −0,68% · VNM −0,51% …). Leader kéo lại 5 mã: ngày lệch là **2026-08-06** (TCB, VNM) và **2026-08-11** (ACV, HAG, BSR) — đúng các đuôi lượt kéo cũ (mtime sớm nhất của cache: 2026-08-06 06:09 UTC = 13:09 giờ VN, giữa phiên chiều). Phép hợp nhất giữ-dòng-cũ đã giữ các nến dở ấy qua mọi lượt nối sau. `hop_nhat` của BƯỚC 180 chỉ thay ngày CUỐI của cache cũ nên KHÔNG chữa được chúng; cả hai ngày nằm vùng TRONG mẫu (không chạm ĐO 25). Việc sau: khi `CUNG_CO_SO`, ngày trùng lệch đơn lẻ lấy bản mới (nến đã đóng) — đổi luật "giữ dòng cũ", cần một BƯỚC riêng.
+
+## BƯỚC 181 — `tools/buoc_cham_luat.py` gán nhầm BƯỚC sau khi gộp `main` vào nhánh PR (12/10/2026)
+
+**Mốc:** quy-trinh — gác Quy tắc 3 đỏ giả khi nhánh PR gộp main
+
+Phiên đám mây (nhánh `sua/buoc-cham-luat-sau-gop-main`, từ `main` `076e3e4`). Hai phiên khác (BƯỚC 179, 180) chạy song song và cùng ghi `docs/STATE.md`; mục này chỉ THÊM ở cuối. **Chỉ sửa CÁCH TÌM của một công cụ đọc git: không đổi Quy tắc 3, `FILE_LUAT`, ô `khong_bat_buoc_vi` / `khong_soat_vi`, `docs/soat-notebooklm.json` của BƯỚC khác; không chạm file luật, workflow, mã đo lường.**
+
+**Sự cố (leader gặp ở máy, 12/10/2026).** PR #224 (BƯỚC 178, nhánh `do/do25-ke-hoach-vao-lenh`) sửa `docs/TIEU-CHI-DOC-TRUOC.md` — một file luật — và đã HỎI THẬT sổ tay. Trong lúc PR mở, `main` nhận BƯỚC 176 và 177, cả hai khai `khong_bat_buoc_vi` (đúng: không chạm file luật). Leader `git merge origin/main` vào nhánh PR (commit gộp, cha đầu = nhánh, cha hai = `main`); cổng 1 đỏ: `tests/test_soat_notebooklm.py::test_O_KHONG_BAT_BUOC_chi_hop_le_khi_MAY_xac_nhan_BUOC_khong_cham_luat` — *"BƯỚC 176: BUOC nay CHAM file luat ['docs/TIEU-CHI-DOC-TRUOC.md'] — phai HOI THAT so tay"*, y hệt cho BƯỚC 177. Leader tránh bằng rebase (không còn commit gộp). Đó là đường vòng, không phải lời giải.
+
+**Gốc rễ.** `commit_dua_buoc_vao` chạy `git log --first-parent -G"^## BƯỚC n "` trên **HEAD** rồi lấy commit CŨ NHẤT. Trên nhánh PR đã gộp `main`, commit CŨ NHẤT trên đường cha-đầu của HEAD có diff đụng `## BƯỚC 176 ` là CHÍNH commit gộp (diff so với cha đầu mang cả 176 và 177 vào). Commit gộp không phải tổ tiên của `main`, nên `file_cua_buoc` rơi xuống nhánh "CHƯA vào gốc": cả cây làm việc của PR so với điểm tách, tức mọi file của BƯỚC 178 — kể cả file luật — bị quy cho BƯỚC 176 và 177. Mọi test cũ chạy với HEAD = nhánh gốc hoặc nhánh PR chưa gộp gì, nên "HEAD" và "nhánh gốc" luôn trùng ở chỗ tìm; hình dạng này chưa từng nằm trong ca nào.
+
+**Sửa (`tools/buoc_cham_luat.py`).**
+- `commit_dua_buoc_vao(..., tren="HEAD")` nhận thêm ref để tìm. `file_cua_buoc` truyền **nhánh gốc** (`goc`): BƯỚC đã có tiêu đề trên đường cha-đầu của nhánh gốc thì phán bằng commit đưa nó vào gốc (diff so với cha đầu), HEAD là gì cũng vậy. Chỉ khi nhánh gốc CHƯA có BƯỚC ấy mới đi nhánh "CHƯA vào gốc" như cũ (BƯỚC chỉ có trên PR vẫn thấy file luật của PR). Kiểm `_la_to_tien(c, goc)` thành thừa — commit tìm được trên đường của `goc` thì là tổ tiên của `goc` — và đã gỡ.
+- Neo giờ phải là tổ tiên của **nơi đang tìm** (`tren`), không của HEAD: khoảng `neo..tren` rỗng vì neo nằm ngoài `tren` thì NỔ, không im lặng trả None. `main()` (dòng lệnh) tra cùng nhánh gốc khi hỏi tiêu đề có trong lịch sử không.
+- Giữ nguyên: dấu cách sau số (`BƯỚC 16` không khớp `BƯỚC 164`), `-G` chứ không `-S`, lấy commit CŨ NHẤT, `--first-parent`, `neo` giới hạn khoảng tìm, repo nông thì NỔ.
+
+**Gác (`tests/test_buoc_cham_luat.py`, 29 → 37 ca; dựng repo git TẠM, không chạm repo thật).** Fixture `su_co`: `main` = gốc R → A (đưa `## BƯỚC 1 `, đổi file thường `docs/x.md`); nhánh `pr` tách TRƯỚC A, commit B đưa `## BƯỚC 2 ` và đổi `CLAUDE.md` (file luật).
+- (a) `git merge main` vào `pr` → BƯỚC 1 ra đúng file của A (`docs/STATE.md`, `docs/x.md`), KHÔNG chạm; nguồn là "da vao" kèm mã A. Cũng chạy với `neo=None` (BƯỚC trước `TU_BUOC`) và qua `main()`.
+- (b) cùng repo, BƯỚC 2 (chưa vào `main`) → vẫn CHẠM `CLAUDE.md`, nguồn "CHUA vao".
+- (c) `git rebase main` thay vì gộp → kết quả như (a); (d) giả lập merge-ref của CI (HEAD tách rời, cha đầu = `main`, cha hai = `pr`) → BƯỚC 1 như (a), BƯỚC 2 chạm luật; (e) BƯỚC 1 bị sửa tiêu đề ở commit A2 SAU trên `main` → vẫn lấy commit CŨ NHẤT (A); và một ca neo là tổ tiên của HEAD nhưng không phải của `main` → NỔ.
+- **Phát đầu tiên chạy trên mã CŨ (đỏ):** `AssertionError: (['CLAUDE.md'], 'CHUA vao main: cay lam viec so voi diem tach 319be44')` — đúng sự cố: BƯỚC 1 của `main` bị quy file luật của PR; ca tiêu đề-sửa-về-sau nổ `TypeError` (chưa có tham số `tren`), ca neo `DID NOT RAISE`. Ba ca (b), (c), (d) XANH trên mã cũ: chúng là hàng rào chống "chữa" bằng cách làm mù BƯỚC chưa vào gốc.
+- **Đột biến (11 phát, `va_an_toan.dot_bien_bo`, lệnh `pytest tests/test_buoc_cham_luat.py -x`): 11/11 đỏ.** Quay về mã cũ (tìm trên HEAD) · lấy commit MỚI nhất · bỏ dấu cách sau số · nhánh "CHƯA vào gốc" trả rỗng · bỏ kiểm neo là tổ tiên · kiểm neo so với HEAD thay vì `tren` · diff so với cha HAI · bỏ ref khỏi `git log` · ref luôn HEAD · `file_cua_buoc` luôn đi nhánh "CHƯA vào" · bỏ `--first-parent`.
+
+**Trên lịch sử THẬT (đo trong phiên này, `HEAD` = `main` `076e3e4`; lệnh `python tools/buoc_cham_luat.py 176 177 162 163 164`).**
+- 176: *khong cham luat* [da vao origin/main: commit 18512f2] · 177: *khong cham luat* [commit 076e3e4] · 162: CHAM `CLAUDE.md` · 163: khong cham · 164: CHAM `SKILL.md`, `CLAUDE.md`, `docs/LO-TRINH.md` — giữ nguyên các phán quyết cũ.
+- **178 chưa vào `main`** (PR #224 còn mở) nên không thể "báo CHẠM do đã vào gốc"; tôi dựng đúng sự cố trong MỘT BẢN CLONE TẠM (không ghi repo thật): `do/do25-ke-hoach-vao-lenh` rồi `git merge origin/main` (xung đột ở `STATE.md`, `loi-da-mac.md`, `loi-phan-lop.json`, `moc_so_test.json`, `soat-notebooklm.json` — giải bằng `--ours` cho `STATE.md`, `--theirs` cho bốn file còn lại; chỉ để có commit gộp 2 cha). Mã CŨ trên commit gộp: 176 và 177 *CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']* [CHUA vao origin/main] — tái hiện đúng sự cố. Mã MỚI trên cùng commit: 176 và 177 *khong cham luat* [da vao origin/main: commit 18512f2 / 076e3e4], **178 CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']** [CHUA vao origin/main] — đúng cả ba.
+
+**Giới hạn còn lại (khai thẳng).** (1) Máy vẫn chỉ thấy FILE, không thấy NGHĨA — sửa này chỉ đổi CÁCH TÌM. (2) Nó phụ thuộc `origin/main` cục bộ phản ánh `main` thật: chưa `git fetch` thì "nhánh gốc" là bản cũ; hình dạng ấy tôi KHÔNG gác và không đo. (3) Nếu `main` có BƯỚC n nhưng tiêu đề đã bị XOÁ rồi thêm lại ở PR sau, commit CŨ NHẤT vẫn thắng — đúng hành vi cũ.
+
+**Năm cổng (đám mây, Python 3.13, không `.venv`, KHÔNG có `vnstock`/`vnai` — kho hãng không với tới; còn lại cài từ PyPI; tuần tự, log ra file).**
+1. `pytest tests/ -q`: lượt đầu `5 failed, 2968 passed, 3 skipped` (283,9 s) — ba ca `tests/test_soat_notebooklm.py` đỏ vì BƯỚC 181 chưa có mục sổ tay (ghi sau cổng, theo thứ tự đề bài), một là mốc cổng 5 (2968 → 2976), một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (không có `vnstock`/`vnai` để khớp bản ghim). Sau khi ghi sổ tay và mốc, chạy lại các file tài liệu liên quan (`test_kiem_so_test`, `test_soat_notebooklm`, `test_buoc_cham_luat`, `test_moc_lo_trinh`, `test_skill_quy_trinh`, `test_tai_lieu_khop_*`): `173 passed, 1 skipped`.
+2. `tools/kiem_cu_phap_311.py`: xanh (283 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không cảnh báo nào ở file tôi sửa).
+4. `tools/kiem_test_chay_rieng.py --im`: 146 file trong 369 s, 2 đỏ — `test_requirements.py` (môi trường như trên) và `test_kiem_so_test.py` (mốc chưa cập nhật lúc chạy; xanh sau bước 5).
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2968 → 2976 (+8 test của `tests/test_buoc_cham_luat.py`; không test nào mất); lượt kiểm sau: `OK — 2976 test, khop moc da ghi`.
+
+**Lỗi mới:** 166 (gác Quy tắc 3 tìm commit "đưa BƯỚC vào" trên đường cha-đầu của HEAD; một commit gộp `main` chưa vào gốc bị coi là nơi đưa BƯỚC cũ vào). Không lỗi khác trong phiên này; 167 chưa dùng.
+
+**Việc leader kiểm ở máy.** Tạo một nhánh thử từ `main`, gộp vào nó một nhánh chạm file luật có BƯỚC riêng (ví dụ `do/do25-ke-hoach-vao-lenh` sau khi giải xung đột), rồi `./.venv/Scripts/python.exe -m pytest tests/test_soat_notebooklm.py -q`: hai ca BƯỚC 176/177 phải xanh mà không cần rebase.
 ## BƯỚC 182 — D2: LOẠI LỆNH CÓ SỰ KIỆN QUYỀN TRONG LÚC GIỮ KHỎI MẪU CỦA ĐIỀU KIỆN DỪNG (Q14(b)) (12/10/2026)
 
 **Mốc:** D2
@@ -22327,3 +22485,7 @@ Phiên đám mây (nhánh `sua/loai-su-kien-quyen-khoi-dieu-kien-dung`, từ `ma
 **Lỗi mới:** 169 (xem `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`): gác của đường mới canh các chỗ GỌI hàm phán nhưng bỏ sót bản văn bản của chính phép đo (`paper_metrics.report()`); máy chặn: có (`test_report_in_dong_cong_C5_voi_cung_tap_loai`, đột biến 18). Dải 170–171 để trống: không có lỗi thật nào để ghi, không bịa cho đủ. Dòng lỗi 153 (chưa chặn được phép đo coi hai đầu lệnh cùng cơ sở giá) đánh dấu 🔴 HẾT ĐÚNG một phần: nay có chặn cho phần máy thấy.
 
 **Việc kế (leader, ở máy có `vnstock` và sổ thật).** (1) `./.venv/Scripts/python.exe tools/canh_cong_c5.py` trên sổ thật: kỳ vọng dòng "Cổng C5 …" của nó nêu "· 1 lệnh LOẠI vì sự kiện quyền trong lúc giữ: #122" (HDB #122 là lệnh tiến-về-trước đã đóng); nếu không thấy #122, chạy (2) rồi in thô `f_vào` · `f_ra` của #122 trước khi đoán. (2) `./.venv/Scripts/python.exe tools/soi_su_kien_quyen.py`: dòng "ĐIỀU KIỆN DỪNG LOẠI KHỎI MẪU" phải nêu CÙNG danh sách với (1). (3) Đo phân bố f trên toàn sổ để quyết hai ngưỡng 5% / 2% của nhãn (D2 vẫn mở). (4) Đo thời gian thêm của lượt quét `quet-so-lenh` và chuông `canh-cong-c5` do việc tải nến (chưa đo). (5) Đánh dấu D2 "đã dựng" ở `docs/LO-TRINH.md` và `su_kien_quyen` vào danh sách "CHỈ ĐỂ HIỆN" của `CLAUDE.md` nếu muốn (cả hai là file luật). Chưa merge.
+
+**Leader kiểm ở máy (12/10/2026, mã của PR #229 `f88e358`, sổ thật trên Sheets, CHỈ ĐỌC).** Chạy từ repo chính với `PYTHONPATH` trỏ worktree của nhánh — worktree không có `.streamlit/secrets.toml` nên tự nó không đọc được Sheets.
+1. `python tools/canh_cong_c5.py` → mã thoát 0; câu điều kiện dừng kết thúc bằng *"1 lệnh LOẠI vì sự kiện quyền trong lúc giữ: #122"* — đúng HDB #122, lệnh tiến-về-trước có lỗ giả −23,18% (BƯỚC 176).
+2. `python tools/soi_su_kien_quyen.py` → `SU_KIEN_TRONG_LUC_GIU`: BID #19 (lệnh thời mô phỏng, KHÔNG thuộc nhóm tiến-về-trước nên không bị loại) và HDB #122; `LECH_KHAC`: SSI #100, VPB #110 (ở lại mẫu). Dòng tổng của dụng cụ: *"ĐIỀU KIỆN DỪNG LOẠI KHỎI MẪU (tiến-về-trước, đã đóng, SU_KIEN_TRONG_LUC_GIU): 1 lệnh: #122"* — cùng một danh sách với (1).

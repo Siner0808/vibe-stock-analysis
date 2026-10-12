@@ -730,8 +730,43 @@
       "song_ngay": 0,
       "nguon": "co-che"
     },
+    "166": {
+      "lop": "gac-hong",
+      "song_ngay": 4,
+      "nguon": "git"
+    },
+    "162": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "nguoi-thay"
+    },
+    "163": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "nguoi-thay"
+    },
+    "164": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "nguoi-thay"
+    },
+    "165": {
+      "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "nguoi-thay"
+    },
+    "168": {
+      "lop": "chua-do",
+      "song_ngay": 0,
+      "nguon": "co-che"
+    },
     "169": {
       "lop": "gac-hong",
+      "song_ngay": 0,
+      "nguon": "co-che"
+    },
+    "170": {
+      "lop": "thao-tac",
       "song_ngay": 0,
       "nguon": "co-che"
     }

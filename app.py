@@ -1225,7 +1225,8 @@ dyn_phase_short = wy.nhan_ngan
 dyn_phase_full = wy.nhan_day
 phase_cls = {"tang": "pos", "giam": "neg"}.get(wy.huong, "neu")
 
-# KẾ HOẠCH VÀO LỆNH (BƯỚC 173, mốc B6) — CHỈ ĐỂ HIỆN, CHƯA ĐO.
+# KẾ HOẠCH VÀO LỆNH (BƯỚC 173, mốc B6) — CHỈ ĐỂ HIỆN. ĐO 25 (BƯỚC 179): kết cục B,
+# chưa phân biệt được với mua mọi tín hiệu ở giá mở cửa phiên sau.
 #
 # Điểm CHỌN mã; module này phán quyết ĐIỂM VÀO (người dùng 09/10/2026, Q12:
 # "không phải cứ điểm cao là mua"). Dưới ngưỡng mua thì THEO DÕI. Đủ ngưỡng thì
@@ -1777,7 +1778,9 @@ with t_pos:
         st.markdown("**Lý do:**\n\n" + "\n".join(
             f"- {ly}" for ly in ke_hoach.ly_do))
         st.caption(
-            "Phán quyết này CHỈ ĐỂ HIỆN và CHƯA ĐO. Sổ lệnh ảo KHÔNG làm theo "
+            "Phán quyết này CHỈ ĐỂ HIỆN — đã đo (ĐO 25), chưa phân biệt được "
+            "với việc mua mọi tín hiệu ở giá mở cửa phiên sau (BƯỚC 179, "
+            "12/10/2026). Sổ lệnh ảo KHÔNG làm theo "
             "nó: mã đạt ngưỡng chỉ còn qua các cổng riêng của sổ (VN-INDEX "
             "trên MA50, chất lượng dữ liệu, mã đang giữ, trần vốn), qua đủ thì "
             "khớp ở giá mở cửa phiên sau — kể cả khi ở đây ghi CHỜ hay BỎ QUA. "
