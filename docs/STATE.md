@@ -22220,6 +22220,13 @@ Phiên đám mây (nhánh `sua/buoc-cham-luat-sau-gop-main`, từ `main` `076e3e
 
 **Giới hạn còn lại (khai thẳng).** (1) Máy vẫn chỉ thấy FILE, không thấy NGHĨA — sửa này chỉ đổi CÁCH TÌM. (2) Nó phụ thuộc `origin/main` cục bộ phản ánh `main` thật: chưa `git fetch` thì "nhánh gốc" là bản cũ; hình dạng ấy tôi KHÔNG gác và không đo. (3) Nếu `main` có BƯỚC n nhưng tiêu đề đã bị XOÁ rồi thêm lại ở PR sau, commit CŨ NHẤT vẫn thắng — đúng hành vi cũ.
 
+**Năm cổng (đám mây, Python 3.13, không `.venv`, KHÔNG có `vnstock`/`vnai` — kho hãng không với tới; còn lại cài từ PyPI; tuần tự, log ra file).**
+1. `pytest tests/ -q`: lượt đầu `5 failed, 2968 passed, 3 skipped` (283,9 s) — ba ca `tests/test_soat_notebooklm.py` đỏ vì BƯỚC 181 chưa có mục sổ tay (ghi sau cổng, theo thứ tự đề bài), một là mốc cổng 5 (2968 → 2976), một là đỏ MÔI TRƯỜNG `test_requirements::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (không có `vnstock`/`vnai` để khớp bản ghim). Sau khi ghi sổ tay và mốc, chạy lại các file tài liệu liên quan (`test_kiem_so_test`, `test_soat_notebooklm`, `test_buoc_cham_luat`, `test_moc_lo_trinh`, `test_skill_quy_trinh`, `test_tai_lieu_khop_*`): `173 passed, 1 skipped`.
+2. `tools/kiem_cu_phap_311.py`: xanh (283 file `.py` + 3 đoạn nhúng, Python 3.11).
+3. `tools/chan_bia_so_lieu.py --quet-repo`: `0 CHẶN · 10 cảnh báo` (không cảnh báo nào ở file tôi sửa).
+4. `tools/kiem_test_chay_rieng.py --im`: 146 file trong 369 s, 2 đỏ — `test_requirements.py` (môi trường như trên) và `test_kiem_so_test.py` (mốc chưa cập nhật lúc chạy; xanh sau bước 5).
+5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 2968 → 2976 (+8 test của `tests/test_buoc_cham_luat.py`; không test nào mất); lượt kiểm sau: `OK — 2976 test, khop moc da ghi`.
+
 **Lỗi mới:** 166 (gác Quy tắc 3 tìm commit "đưa BƯỚC vào" trên đường cha-đầu của HEAD; một commit gộp `main` chưa vào gốc bị coi là nơi đưa BƯỚC cũ vào). Không lỗi khác trong phiên này; 167 chưa dùng.
 
 **Việc leader kiểm ở máy.** Tạo một nhánh thử từ `main`, gộp vào nó một nhánh chạm file luật có BƯỚC riêng (ví dụ `do/do25-ke-hoach-vao-lenh` sau khi giải xung đột), rồi `./.venv/Scripts/python.exe -m pytest tests/test_soat_notebooklm.py -q`: hai ca BƯỚC 176/177 phải xanh mà không cần rebase.
