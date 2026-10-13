@@ -106,6 +106,9 @@ Vài test ghi thư mục tạm vào **gốc repo**, nên hai tiến trình pytes
 lúc cho **đỏ giả**. Đây là ràng buộc thật, không phải sở thích.
 
 Thời gian đo 07/09/2026 ở máy local: cổng 1 ≈ 150s · cổng 4 ≈ 220s.
+🔴 **HẾT ĐÚNG:** bộ test đã lớn lên (874 test ngày 09/09/2026, hơn 3.000 nay) —
+số hiện hành ở mục *Phiên đám mây* dưới đây; đừng chờ "150s" rồi kết luận
+cổng treo.
 
 ---
 
@@ -119,3 +122,60 @@ Thời gian đo 07/09/2026 ở máy local: cổng 1 ≈ 150s · cổng 4 ≈ 220
 
 **2 không phải là sạch.** Trên CI nó là lỗi: runner chính là môi trường
 mà công cụ nói nó chưa kiểm được.
+
+---
+
+## Phiên đám mây (không `.venv`, không `vnstock`)
+
+Đo 12/10/2026 (BƯỚC 183) trên container Linux, Python 3.13. Mọi lệnh ở trên viết cho
+máy Windows (`./.venv/Scripts/python.exe`); ở đây KHÔNG có `.venv/`, không có
+`vnstock`/`vnai` (kho hãng `vnstocks.com/api/simple` bị proxy chặn: `curl` trả
+`CONNECT tunnel failed, response 403`; PyPI vẫn với tới). Công thức này từng được dựng lại
+từ đầu ở mười mục BƯỚC 171–182 của `docs/STATE.md`
+(`grep -c "Năm cổng (đám mây" docs/STATE.md` → 10).
+
+**1. Dựng venv ngoài repo.** `pip install` của Python hệ thống nổ `TypeError … 'NoneType'`
+ở bộ giải phụ thuộc, nên phải đi qua venv:
+
+```bash
+# lenh-xau-ok: python3 hệ thống chỉ để TẠO venv; mọi lệnh sau đi qua python của venv
+python3 -m venv /tmp/venv_ci
+grep -v -e '^#' -e '^--' -e '^vnstock' -e '^vnai' requirements.txt > /tmp/req_dam_may.txt
+/tmp/venv_ci/bin/pip install -q pytest -r /tmp/req_dam_may.txt
+```
+
+Dòng `grep` bỏ chú thích, dòng `--extra-index-url` và hai gói của kho hãng
+(`vnstock`, `vnai`); phần còn lại cài từ PyPI (đo: 12 gói, 43 giây).
+
+**2. Năm cổng**, tuần tự, log ra file — cùng lệnh như mục trên, thay python:
+
+```bash
+/tmp/venv_ci/bin/python -m pytest tests/ -q -rs > /tmp/g1.log 2>&1
+/tmp/venv_ci/bin/python tools/kiem_cu_phap_311.py
+/tmp/venv_ci/bin/python tools/chan_bia_so_lieu.py --quet-repo
+/tmp/venv_ci/bin/python tools/kiem_test_chay_rieng.py --im > /tmp/g4.log 2>&1
+/tmp/venv_ci/bin/python tools/kiem_so_test_khong_giam.py
+```
+
+Cổng 2 tự tìm `python3.11` trên PATH (`/usr/bin/python3.11` có sẵn). Nếu không có, nó trả mã
+thoát **2** (chưa kiểm được), không phải xanh.
+
+**3. Thời gian đo** (12/10/2026): cổng 1 ≈ 568s · cổng 2 ≈ 1s · cổng 3 ≈ 2s ·
+cổng 4 ≈ 730s · cổng 5 ≈ 3s. Chúng đổi theo tải máy; nói ra là một khoảng.
+
+**4. Đỏ và skip ĐÃ BIẾT ở môi trường này** (3127 test: 3123 pass · 1 đỏ · 3 skip):
+
+| test | trạng thái | vì sao |
+|---|---|---|
+| `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` | đỏ MÔI TRƯỜNG | không có `vnstock`/`vnai` để so bản ghim; không phải lỗi của thay đổi |
+| `tests/test_cache_bctc_du_ky.py` | skip | dữ liệu BCTC chỉ nằm ở máy người dùng |
+| `tests/test_vnstock_goi.py` | skip | `vnai` không có ở môi trường này |
+| `tests/test_tai_lieu_khop_hang_so.py` | skip | đoạn được canh đã gỡ hẳn |
+
+Một test đọc dữ liệu bị `.gitignore` sẽ **skip lặng lẽ** ở đây (worktree/clone chỉ có thứ
+git theo dõi), và xanh ở đây không bằng xanh ở máy người dùng. Luôn thêm `-rs` để đọc
+LÝ DO skip; nếu một test lẽ ra phải chạy mà skip, nói ra trong báo cáo.
+
+**5. Đọc sai thì mất 10 phút.** Đỏ môi trường (bảng trên) khác đỏ CHỜ (ví dụ mục sổ tay
+chưa có, `references/soat-cheo-notebooklm.md`, mục *Phiên đám mây*): cả hai đều đỏ ở cổng 1,
+nhưng chỉ cái đầu là thứ phiên này không sửa được.

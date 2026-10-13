@@ -35,9 +35,10 @@ CÁCH DÙNG
 
     from va_an_toan import thay, dot_bien
 
-    thay("paper_metrics.py", "N_TOI_THIEU = 113", "N_TOI_THIEU = 120")
+    thay("tools/do_token_phien.py", "NGUONG_GHI_LAI = 200_000",
+         "NGUONG_GHI_LAI = 250_000")
 
-    dot_bien("paper_metrics.py", "z=2,30", "z=1,00",
+    dot_bien("paper_metrics.py", "Z_BIEN_HAI = 2.30", "Z_BIEN_HAI = 1.00",
              ["-m", "pytest", "tests/test_dieu_kien_dung_alpha.py", "-q"])
 """
 import pathlib
