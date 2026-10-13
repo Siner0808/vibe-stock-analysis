@@ -21,18 +21,21 @@ Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
 ## Một ngày của agent
 
 ```mermaid
-flowchart TD
-    A["⏱️ GitHub Actions quét mỗi ngày giao dịch"] --> B["🤖 6 agent kỹ thuật chấm điểm 71 mã"]
-    B --> C{"🚪 Cổng mở lệnh<br/>ngưỡng · VN-INDEX · trần vốn"}
-    C -- đạt --> D[("📒 Sổ lệnh ảo trên Google Sheets")]
-    D --> E["🧠 Bài học có nhãn nguyên nhân + bản tin cuối ngày"]
-    E --> F["📊 App Streamlit"]
-    D --> G["🛑 Điều kiện dừng: alpha khớp từng lệnh"]
-    G -. "thua chuẩn rõ ràng → đóng cổng" .-> C
+flowchart LR
+    A["⏱️ Quét"] --> B["🤖 6 agent<br/>chấm điểm"]
+    B --> C{"🚪 Cổng<br/>mở lệnh"}
+    C -- đạt --> D[("📒 Sổ<br/>lệnh ảo")]
+    D --> E["🧠 Bài học<br/>+ bản tin"]
+    D --> G["🛑 Điều kiện<br/>dừng"]
+    G -. đóng cổng .-> C
 ```
 
-Bên cạnh vòng ấy, app có các lớp **chỉ để xem** (không vào đường sinh lệnh): phân tích cơ
-bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào lệnh từng mã.
+**Quét** chạy trên GitHub Actions mỗi ngày giao dịch · **cổng** xét ngưỡng điểm, xu hướng
+VN-INDEX và trần vốn · **sổ** nằm trên Google Sheets · mỗi lệnh đóng có **bài học** gắn nhãn
+nguyên nhân, cuối ngày có **bản tin** · **điều kiện dừng** đo alpha khớp từng lệnh và đóng cổng
+khi thua rổ chuẩn rõ ràng. App Streamlit hiện tất cả, cùng các lớp **chỉ để xem** (không vào
+đường sinh lệnh): phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào
+lệnh từng mã.
 
 ## Kết quả đo được
 
