@@ -22586,3 +22586,27 @@ Khớp từng dòng với số của leader. Hai file đỏ duy nhất ở cả 
 5. `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do ...`: mốc 3123 → 3133 (+10 test của `tests/test_gac_vnindex_that.py`; không test nào mất); lượt kiểm sau: `OK — 3133 test, khop moc da ghi`.
 
 Ống nghe VN-INDEX của đo SAU được chạy trên cây mã đã xong (trước khi thêm tài liệu và mục sổ tay); mã test không đổi từ đó, nên các cổng 1 và 4 ở trên (không cắm ống nghe) chỉ xác nhận xanh, không đo lại việc hàm thật bị gọi.
+
+## BƯỚC 185 — CACHE GIÁ Ở MÁY ĐÃ LÀM TƯƠI (12/10/2026): ĐO 25 KHÔNG CÒN TÁI LẬP TỪNG BYTE TRÊN MÁY NÀY; KẾT LUẬN ĐO 25 KHÔNG ĐỔI (13/10/2026)
+
+**Mốc:** D2 — dữ liệu giá ở máy đổi theo đường nối an toàn của BƯỚC 180; ghi lại để phép đo sau không dựa vào M0 cũ
+
+Leader, máy của người dùng. **Chỉ thêm mục này vào `docs/STATE.md`**: không đổi mã, ngưỡng, điểm, workflow hay file luật. `backtest/cache/` bị gitignore — nó không nằm trong repo; mục này là bản ghi duy nhất của việc đã làm với nó.
+
+**Việc đã làm (12/10/2026 chiều; người dùng: *"làm tươi, không cần sao lưu."*).**
+1. Lượt 1 — `extend_history.py` (đường nối của BƯỚC 180, so cơ sở giá trước khi hợp nhất): rổ 71 mã + `VNINDEX` → `So cơ sở giá: 33 CUNG_CO_SO · 39 LECH_CO_SO · 0 KHONG_SO_DUOC`; 33 mã nối đuôi tới 2026-10-12 (kể cả `VNINDEX`), 39 mã LECH giữ nguyên.
+2. Lượt 2 — thay CẢ CHUỖI 39 mã LECH, từng mã một: `backtest.data.extend_history([ma], dau, het, thay_ca_chuoi=True, bay_gio=...)` với `dau` = ngày đầu của chính cache cũ mã ấy (để không lùi mất lịch sử) → 39/39 đổi, 0 mã lùi ngày đầu, 0 tải hỏng, mỗi mã +27 phiên tới 2026-10-12. Không sao lưu cache cũ (người dùng chọn).
+
+**Đo lại 13/10/2026 (chỉ đọc, repo chính).**
+- Đối chiếu từng mã với cột "sau" của nhật ký lượt 2 (ngày đầu, ngày cuối, số dòng): **39/39 khớp, 0 lệch**.
+- Cả thư mục: 125 tệp; ngày cuối — 72 tệp `2026-10-12` (= 33 + 39), 49 tệp `2026-08-07`, 2 tệp `2026-07-31`, 1 tệp `2026-08-06`, 1 tệp `2025-10-08` (53 tệp ngoài rổ, không ai làm tươi).
+- `tools/kiem_co_so_cache.py` → mã thoát 1: `37 bước vượt biên ở 4 mã · 54 mã CHƯA KIỂM ĐƯỢC`, giống hệt từng dòng lượt chạy ngay sau khi làm tươi 12/10 (`diff` rỗng). Bốn mã: BSR 20 · VTP 10 — có từ trước (đã nêu ở BƯỚC 179); hai mã này thuộc nhóm CUNG nên chỉ được nối đuôi ở lượt 1, không thay chuỗi, và các bước vượt biên nằm ở giai đoạn còn niêm yết UPCoM trong khi công cụ áp biên của sàn HIỆN TẠI (HOSE); MSR 5 · OIL 2 — chuỗi của MỘT lượt kéo nên không thể là chỗ nối; giải thích có khả năng là tham chiếu UPCoM = giá bình quân phiên trước — CHƯA kiểm từng bước với lịch sự kiện.
+- **Băm M0** bằng chính `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc("backtest/cache")`: 125 tệp, sha256 `e900a91de34ef8534267b115b04c1b784fdcb6931e724f0f49460b239e057b83`, mtime 2026-08-06T06:09:50Z → 2026-10-12T10:03:26Z. ĐO 25 (BƯỚC 179) ghi `acf6dca1dd38d5157ee397bbccb7f82d662698b318a6dcf6b72617335bf44d6e` → **KHÁC**.
+
+**Hệ quả.**
+- Chạy lại ĐO 25 với `--bam-mong-doi acf6dca1…` sẽ DỪNG ở M0 — đúng như tiêu chí đã ký (`docs/TIEU-CHI-DOC-TRUOC.md` ĐO 25: *"M0: không tái lập được thì DỪNG"*). Cache cũ không còn, nên **ĐO 25 không tái lập được từng byte trên máy này nữa**; một lượt kéo mới không thể cho lại băm cũ (nến mới, chuỗi điều chỉnh lại).
+- **Kết luận ĐO 25 KHÔNG đổi**: kết cục B đo trên cache `acf6dca1…`, hai lượt giống hệt từng dòng (BƯỚC 179). Mục này không chạy lại ĐO 25 và không có số mới nào về nó.
+- Phép đo nào từ nay dùng `backtest/cache` phải ghi M0 MỚI của chính lượt ấy, không dựa vào băm của ĐO 25.
+- **Một lý do trong văn bản đã ký nay chỉ còn đúng cho lúc ký** (grep của leader tìm ra; sổ tay không nêu): `docs/TIEU-CHI-DOC-TRUOC.md`, ĐO 24, *Khung đọc cho P3d, ký trước* (06/10/2026) viết *"Hai cache không phải nguồn nhãn của UV-001 (kết thúc trước ngày khai)"*. Từ 12/10 cache A (`backtest/cache`) chạy tới 2026-10-12, SAU ngày khai UV-001 (02/10/2026). Vế chính vẫn đúng — nhưng vì LUẬT của P3d (nhãn lấy từ MỘT bảng giá kéo một lượt, không đọc cache backtest), không còn vì ngày. Đường chấm của tầng 3 không đi qua cache: docstring `cham_xac_nhan.py` dòng 8 khai *"không đọc `backtest/cache*`"*, và `grep -n 'from backtest\|backtest.data\|CACHE_DIR' cham_xac_nhan.py` → 0 dòng; bảng giá do `tools/keo_bang_gia.py` kéo riêng (đọc mã 13/10, chưa chạy). BƯỚC này KHÔNG sửa văn bản đã ký; đánh dấu ⚠️ ở đó là việc của một BƯỚC chạm file luật (hỏi sổ tay thật).
+
+**Giới hạn.** Hai con số của lượt 1–2 (33 · 39, +27 phiên) lấy từ nhật ký lúc chạy 12/10 (thư mục nháp của phiên leader, ngoài repo); thứ tái lập được hôm nay là trạng thái cache (39/39 khớp nhật ký, băm, `kiem_co_so_cache`). Câu hỏi nến dở BÊN TRONG cache (ngày 2026-08-06 và 2026-08-11) CHƯA kiểm — việc riêng; 39 mã thay cả chuỗi không còn mang các dòng của lượt kéo cũ, 33 mã chỉ nối đuôi thì vẫn mang nếu có. 53 tệp ngoài rổ vẫn cũ.
