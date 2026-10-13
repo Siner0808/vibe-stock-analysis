@@ -1,198 +1,113 @@
 # vibe-stock-analysis
 
-Hệ thống phân tích và **paper trading** cổ phiếu Việt Nam — 71 mã thuộc 16
-ngành, dữ liệu từ [vnstock](https://vnstocks.com), giao diện Streamlit.
+[![kiem-dinh](https://github.com/Siner0808/vibe-stock-analysis/actions/workflows/kiem-dinh.yml/badge.svg)](https://github.com/Siner0808/vibe-stock-analysis/actions/workflows/kiem-dinh.yml)
+![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/giao%20di%E1%BB%87n-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+![Chỉ giao dịch ảo](https://img.shields.io/badge/giao%20d%E1%BB%8Bch-ch%E1%BB%89%20%E1%BA%A2O-6e7781)
 
-Nhưng thứ đáng đọc trong repo này không phải hệ thống giao dịch. Nó là
-**nhật ký của một dự án cố gắng tự chứng minh mình sai**, và phần lớn thời
-gian là thành công.
+**Một agent tự giao dịch ẢO cổ phiếu Việt Nam, tự ghi bài học sau mỗi lệnh — và một bộ
+dụng cụ đo được dựng để bắt chính nó nói dối.**
 
-> ### ⚠️ Đọc trước khi dùng
-> - **Không phải khuyến nghị đầu tư.** Không có gì ở đây nên dùng để ra
->   quyết định mua bán.
-> - **Không đặt lệnh thật.** Máy chuẩn bị → người xác nhận → **người** đặt
->   lệnh. Không có đường nào trong mã nguồn nối tới tài khoản chứng khoán.
-> - **Hệ thống này chưa chứng minh được lợi thế nào.** Xem ngay mục dưới.
+71 mã thuộc 16 ngành · dữ liệu [vnstock](https://vnstocks.com) · quét tự động trên GitHub
+Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
+
+> [!WARNING]
+> **Không phải khuyến nghị đầu tư, và không đặt lệnh thật.** Máy chuẩn bị → người xác
+> nhận → **người** đặt lệnh; không có đường nào trong mã nối tới tài khoản chứng khoán.
+> Tới nay hệ thống **chưa chứng minh được lợi thế nào** — xem [Kết quả](#kết-quả-đo-được).
 
 ---
 
-## Kết quả đo được — đặt lên đầu, không giấu xuống cuối
+## Một ngày của agent
 
-**Kết quả có ý nghĩa thống kê đầu tiên của dự án là một kết quả ÂM.**
-
-Walk-forward ngoài mẫu, bật chi phí thực thi thật (bước giá 50đ, lô chẵn,
-biên độ ±7%, khớp một phần):
-
-| | số lệnh | kỳ vọng/lệnh | alpha khớp từng lệnh | KTC 95% |
-|---|---|---|---|---|
-| tắt chi phí | 390 | +0,614% | −0,011% | [−0,766 ; +0,832] **chứa 0** |
-| **bật chi phí** | 385 | **−0,291%** | **−0,927%** | **[−1,689 ; −0,076] LOẠI 0** |
-
-> ⚠️ *"bước giá 50đ"* và *"biên độ ±7%"* ở trên chỉ đúng cho mã HOSE. Bước giá
-> HNX/UPCoM là 100đ mọi mức giá và biên độ sàn khác nhau; biên độ đã sửa ở
-> BƯỚC 136, bước giá đã sửa ở BƯỚC 143 (`san_giao_dich.py`; ĐO 22 đo lại hai dòng
-> bật chi phí). Bảng hiện hành: `CLAUDE.md`.
-
-Cách đọc: rổ đối chiếu mua một lần rồi giữ, trả chi phí **hai** lần. Chiến
-lược quay vòng 385 lệnh, trả **770** lần. Lợi thế vốn đã không phân biệt
-được với 0; cộng chi phí quay vòng vào thì phần âm lộ ra.
-
-Và điểm số — thứ toàn bộ kiến trúc sinh ra để tính — **không dự báo được
-lợi nhuận**:
-
-```
-tương quan hạng giữa điểm tại phiên T và lợi nhuận 20 phiên sau:
-    rho = −0,019      KTC 95% [−0,100 ; +0,064]
+```mermaid
+flowchart LR
+    A["GitHub Actions<br/>quét mỗi ngày giao dịch"] --> B["6 agent kỹ thuật<br/>chấm điểm 71 mã"]
+    B --> C{"Cổng mở lệnh<br/>ngưỡng · VN-INDEX · trần vốn"}
+    C -- đạt --> D[("Sổ lệnh ảo<br/>Google Sheets")]
+    D --> E["Bài học có nhãn nguyên nhân<br/>+ bản tin cuối ngày"]
+    E --> F["App Streamlit"]
+    D --> G["Điều kiện dừng<br/>alpha khớp từng lệnh"]
+    G -. "thua chuẩn rõ ràng → đóng cổng" .-> C
 ```
 
-Không thành phần nào trong sáu agent có tương quan khác 0 một cách có ý
-nghĩa. Cách gộp tuyến tính **tối ưu trong mẫu** của năm điểm agent — tức
-cận trên tuyệt đối, không cách gộp nào tốt hơn tồn tại — cho rho 0,0115 ở
-nhịp 5 phiên, dưới sàn nhiễu 0,0446.
+Bên cạnh vòng ấy, app có các lớp **chỉ để xem** (không vào đường sinh lệnh): phân tích cơ
+bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào lệnh từng mã.
 
-### Năm lần con số đẹp hoá ra vô nghĩa
+## Kết quả đo được
 
-`+22,42%` · `+14,88%` · `+14,24%` · `+636,11%` — và lần thứ năm là chính
-giao diện công bố `+636,11%` suốt nhiều ngày sau khi con số ấy đã bị bác.
+Đặt lên đầu, không giấu xuống cuối:
 
-Không lần nào có ai cố ý. Mỗi lần đều là một lỗi kỹ thuật nhỏ, âm thầm, và
-**luôn nghiêng về phía làm kết quả đẹp lên**. Con số +636,11% tái lập được
-chính xác — nó không bịa; nó chỉ dùng đòn bẩy 2,2 lần mà không ai để ý.
+| Câu hỏi | Kết quả | Nguồn |
+|---|---|---|
+| Điểm tổng hợp có dự báo lợi nhuận 20 phiên sau? | rho **−0,019**, KTC 95% [−0,100 ; +0,064] — **không** | 573 phiên / 10 mã, [`MO-XE-KIEN-TRUC.md`](MO-XE-KIEN-TRUC.md) |
+| Walk-forward ngoài mẫu, chi phí thực thi thật, danh mục theo ngày | 619 lệnh · alpha **−1,68%/lệnh**, KTC [−2,24 ; −1,08] — **thua rổ chuẩn** | ĐO 22, 30/09/2026 · bảng đầy đủ ở [`CLAUDE.md`](CLAUDE.md) |
+| Kế hoạch vào lệnh (vùng chờ, cắt lỗ theo cấu trúc) có hơn mua mọi tín hiệu? | Δ alpha **+0,21** điểm %, KTC [−0,16 ; +0,57] — **chưa phân biệt được** | ĐO 25, 12/10/2026 · [`docs/STATE.md`](docs/STATE.md) BƯỚC 179 |
 
-Từ đó có **quy tắc số 1** của repo này:
+Nguyên nhân gốc không nằm ở mã: cả sáu agent tính từ **cùng một chuỗi giá**. *Phần đo được
+thì không có tín hiệu; phần có thể có tín hiệu thì chưa đo được.*
 
-> Nếu một thay đổi làm con số đẹp lên đáng kể, giả định đầu tiên phải là
-> **có lỗi**.
+## Vì sao repo này đáng đọc
 
----
+Dự án đã **năm lần** cho ra con số rất đẹp rồi hoá ra vô nghĩa — `+22,42%`, `+14,88%`,
+`+14,24%`, `+636,11%` (đòn bẩy ẩn 2,2 lần), và lần thứ năm là chính giao diện vẫn khoe
+`+636,11%` nhiều ngày sau khi con số ấy đã bị bác. Không lần nào cố ý. Từ đó có:
 
-## Thứ khiến repo này khác thường
+> **Quy tắc số 1 — nếu một thay đổi làm con số đẹp lên đáng kể, giả định đầu tiên là CÓ LỖI.**
 
-Phần lớn công sức không nằm ở chiến lược, mà ở **dụng cụ đo và hàng rào
-chống tự lừa mình**.
+Phần lớn công sức vì thế nằm ở hàng rào chống tự lừa mình:
 
-**Khai trước, tách commit.** Thiết kế phép kiểm được commit **một mình**,
-kết quả nằm ở commit sau — nên lịch sử git chứng minh được thứ tự, không ai
-phải tin lời hứa. Lần đầu áp dụng, nó lập tức có tác dụng: ô duy nhất cho
-ra "ĐẠT" trong phép kiểm đảo chiều đúng là ô đã khai trước là **không đọc
-được**. Không có bản khai, dòng tiêu đề đã là *"tìm thấy đảo chiều, rho
-−0,035, trên rào hoà vốn"*.
+- 🧾 **Khai trước, đo sau.** Tiêu chí của phép đo được ký và commit **riêng**, trước khi chạy
+  và trước khi thấy số ([`docs/TIEU-CHI-DOC-TRUOC.md`](docs/TIEU-CHI-DOC-TRUOC.md)) — lịch sử git
+  chứng minh thứ tự, không ai phải tin lời hứa.
+- 🧬 **Đột biến mọi hàng rào mới.** Sửa mã cho sai đi, test phải ĐỎ; một gác vừa viết xong mà
+  chưa bị đục thử được coi là chưa có.
+- 🚦 **Ba trạng thái, không hai.** Mọi phép kiểm phân biệt *đạt* / *không đạt* / **chưa kiểm
+  được** — và trạng thái thứ ba không bao giờ được gộp vào trạng thái đầu.
+- 📓 **Nhật ký ghi cả cái sai.** [`docs/STATE.md`](docs/STATE.md) giữ từng bước: đo được gì, giả
+  thuyết nào bị bác, ước lượng nào đã trượt; bảng lỗi quy trình ghi từng lỗi và "máy chặn được
+  chưa".
 
-**Đột biến mọi hàng rào mới.** Một gác vừa viết xong, vừa xanh, thường là
-một gác vô dụng — đã xảy ra ba lần trong một ngày. Nên mỗi gác mới đều bị
-đục thử: sửa mã cho sai đi, test phải ĐỎ. Hôm gần nhất: 24/24 đỏ.
+## Lộ trình
 
-**Gác đọc AST, không đọc `in`.** `"tên_hàm" in src` khớp cả chữ trong khối
-chú thích — càng viết chú thích trung thực thì gác kiểu ấy càng dễ vô hiệu.
-Và gác một phép **suy ra** thì phải kiểm *hình dạng* biểu thức, không kiểm
-*giá trị* nó cho ra: giá trị trùng nhau tại một điểm là chuyện thường, cấu
-trúc sai thì sai ở mọi điểm khác.
+Hai đích, nhịp khác nhau ([`docs/LO-TRINH.md`](docs/LO-TRINH.md), người dùng duyệt 08/10/2026):
 
-**Dụng cụ phải tự khai khi nó không dùng được.** Một cái chuông im lặng vì
-không nhìn thấy gì thì tệ hơn không có chuông — nó tạo cảm giác đang được
-canh. Mọi phép kiểm ở đây phân biệt ba trạng thái: *đạt* / *không đạt* /
-**chưa kiểm được**, và trạng thái thứ ba không bao giờ được gộp vào trạng
-thái đầu.
-
-**Đối chiếu bằng nguồn ngoài.** Bảng lịch nghỉ giao dịch không được chép từ
-báo rồi tin: nó phải tái lập đúng chuỗi phiên quan sát được (162/162 phiên,
-lệch 0 ở cả hai chiều). Bản chép đầu tiên sai một ngày, và phép đối chiếu
-bắt được.
-
-**719 test**, chạy offline không cần mạng lẫn credential. CI kiểm cả cú
-pháp Python 3.11 cho từng file *và* cho python nhúng trong workflow YAML —
-máy phát triển chạy 3.13, và khoảng cách đó đã ẩn được lỗi một lần.
-
----
+- **Đích 1 — "máy học được"**, v1.0 ngày **28/02/2027**: agent tự giao dịch ảo, tự rút bài
+  học, minh bạch; nghiệm thu bằng bảy tiêu chí đo được.
+- **Đích 2 — "có lợi thế thật"**: ứng viên đầu tiên (UV-001) đã khai công khai từ 02/10/2026 và
+  chỉ được đọc **một lần**, khoảng đầu tháng 11/2027 (ƯỚC LƯỢNG). Kết cục "không có lợi thế" là
+  một kết quả hợp lệ.
 
 ## Chạy thử
 
-```bash
-pip install -r requirements.txt
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # rồi điền
-```
+Cần Python 3.11. Sau khi clone, tạo một môi trường ảo tên `.venv` trong thư mục repo, rồi
+(đường dưới là của Windows; Linux/macOS dùng `.venv/bin/python`):
 
 ```bash
-./.venv/Scripts/python.exe -m pytest tests/ -q    # toàn bộ test, không cần mạng
-streamlit run app.py                          # giao diện
-./.venv/Scripts/python.exe run_daily.py           # một lượt quét + cập nhật sổ
+git clone https://github.com/Siner0808/vibe-stock-analysis.git
+cd vibe-stock-analysis
+./.venv/Scripts/python.exe -m pip install -r requirements.txt
+./.venv/Scripts/python.exe -m streamlit run app.py
+./.venv/Scripts/python.exe -m pytest tests/ -q
 ```
 
-Không cấu hình `secrets.toml` thì phần kho ngoài tắt sạch, app vẫn chạy.
-**Đừng bao giờ commit file đó** — nó đã nằm trong `.gitignore`.
-
----
-
-## Kiến trúc — bản vẽ và bản thật
-
-| File | Là gì |
-|---|---|
-| `architecture_diagram.html` | bản mô tả tham vọng ban đầu |
-| `architecture_diagram_v2.html` | bản đã vá 7 lỗ hổng thiết kế |
-| **`architecture_asbuilt.html`** | **thứ đo được khi chạy thật** |
-
-Ba bản đầu mô tả thứ *nên* chạy. Chỉ bản as-built mô tả thứ *đang* chạy.
-Khi hai bên lệch nhau, bản as-built đúng.
-
-Sơ đồ vẽ 6 agent độc lập, một tầng tranh luận đa chiều và một chốt chặn an
-toàn. Đo trên 573 phiên: **1 agent là hằng số**, tầng tranh luận điều chỉnh
-±0,9 điểm trên thang 100 (trung bình đúng bằng 0), và chốt chặn an toàn
-kích hoạt **0%**. Bỏ hẳn cả hai tầng cuối: 572/573 phiên cho cùng quyết
-định.
-
-Nguyên nhân không phải mã kém, mà là **thiếu dữ liệu độc lập** — sáu agent
-đều tính từ cùng một chuỗi giá, nên về lý thuyết chúng không tạo được thông
-tin ngoài thứ đã có trong chuỗi đó.
-
-> Đây là mâu thuẫn cốt lõi của dự án: *phần đo được thì không có tín hiệu,
-> phần có thể có tín hiệu thì không đo được.*
-
----
+Lệnh cuối chạy toàn bộ test — offline, không cần mạng hay khoá. Kho ngoài (Google Sheets) là tuỳ chọn: chép `.streamlit/secrets.toml.example` thành
+`.streamlit/secrets.toml` rồi điền; không cấu hình thì phần ấy tắt sạch, app vẫn chạy.
+**Đừng commit file `secrets.toml`.**
 
 ## Tài liệu
 
-| File | Vai trò |
+| Bắt đầu từ | Để biết |
 |---|---|
-| [`NGUYEN-TAC-DO-LUONG.md`](NGUYEN-TAC-DO-LUONG.md) | **8 bất biến đo lường.** Đọc trước khi sửa bất cứ thứ gì liên quan tới kết quả |
-| [`MO-XE-KIEN-TRUC.md`](MO-XE-KIEN-TRUC.md) | Mổ xẻ 5 tầng: thành phần nào thật sự chạy, thành phần nào là trang trí |
-| [`CLAUDE.md`](CLAUDE.md) | Kiến trúc và luật chơi — thứ ít đổi nhất |
-| [`docs/STATE.md`](docs/STATE.md) | Nhật ký từng bước: đo được gì, cái gì chưa kiểm được, cái gì đã sai |
-| [`docs/HANDOFF.md`](docs/HANDOFF.md) | Bàn giao 19/08/2026 — **đã cũ**, giữ làm mốc lịch sử |
-
-Hai file đầu là bắt buộc, và có hook chặn ở `tools/cua_doc_bat_buoc.py`.
-
----
-
-## Trạng thái hiện tại
-
-**Cổng mở lệnh (C5) MỞ LẠI từ 26/09/2026** (`docs/STATE.md` BƯỚC 125),
-khoá bởi test — nhưng đường quét tự động đang tạm ngừng cùng `vnstock`,
-nên chưa sinh lệnh mới nào. Bản trước ghi *"đang ĐÓNG"*, đúng từ
-29/08 tới 26/09/2026.
-
-> 🔴 **"Đang tạm ngừng … chưa sinh lệnh mới nào" HẾT ĐÚNG từ 28/09/2026**
-> (`docs/STATE.md` BƯỚC 138): ba workflow bật lại và đã sinh lệnh ảo thật.
-
-Bằng chứng tiến-về-trước đã đóng: **0**. Sổ 117 lệnh trên kho ngoài chưa
-bao giờ tích luỹ một lệnh nào từ việc quét tiến về phía trước — mọi con số
-lịch sử nói về *một lượt mô phỏng*, không phải kết quả tích luỹ.
-
-> 🔴 Con số **0** ở trên hết đúng từ 04/09/2026, khi lệnh tiến-về-trước
-> đầu tiên đóng. Đọc sổ bằng `tools/doc_so_that.py`, đừng đọc ở đây.
-> Vế *"sổ 117 lệnh … chưa bao giờ tích luỹ"* cũng hết đúng từ 28/08/2026,
-> khi bốn lệnh tiến-về-trước đầu tiên được ghi (soát định kỳ 7, BƯỚC 140).
-
-Số học không dễ chịu: cần ~1.050 lệnh để kỳ vọng loại được số 0 (~23 năm ở
-nhịp 45 lệnh/năm); alpha cần 22.601 lệnh. *"Chờ thêm dữ liệu rồi quyết"*
-không phải một lựa chọn khả thi, và repo này ghi rõ điều đó thay vì lảng
-tránh.
-
----
+| [`docs/HANDOFF.md`](docs/HANDOFF.md) | hệ thống đang ở đâu, lệnh đầu tiên nên chạy |
+| [`docs/LO-TRINH.md`](docs/LO-TRINH.md) | đi tới đâu, theo mốc nào |
+| [`NGUYEN-TAC-DO-LUONG.md`](NGUYEN-TAC-DO-LUONG.md) | tám bất biến đo lường — đọc trước khi sửa bất cứ thứ gì chạm kết quả |
+| [`MO-XE-KIEN-TRUC.md`](MO-XE-KIEN-TRUC.md) · [`architecture_asbuilt.html`](architecture_asbuilt.html) | thành phần nào chạy thật, thành phần nào là trang trí |
+| [`docs/STATE.md`](docs/STATE.md) | nhật ký từng bước |
+| [`CLAUDE.md`](CLAUDE.md) · [`.claude/skills/quy-trinh-lam-viec/`](.claude/skills/quy-trinh-lam-viec/SKILL.md) | luật hiện hành và quy trình bắt buộc cho người lẫn agent AI |
 
 ## Giấy phép
 
-Chưa có. Mặc định là **giữ toàn quyền** — nếu bạn muốn dùng lại, hãy mở
-issue hỏi trước.
-
-Dữ liệu thị trường thuộc về nhà cung cấp tương ứng. Tài liệu kỹ thuật của
-gói vnstock **không** được lưu trong repo này theo đúng giấy phép của nó.
+Chưa có. Mặc định là **giữ toàn quyền** — muốn dùng lại, hãy mở issue hỏi trước. Dữ liệu thị
+trường thuộc nhà cung cấp tương ứng; tài liệu kỹ thuật của gói vnstock **không** được lưu trong
+repo này, đúng giấy phép của nó.
