@@ -20,21 +20,17 @@ Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
 
 ## Một ngày của agent
 
-```mermaid
-flowchart LR
-    A["⏱️ Quét"] --> B["🤖 6 agent<br/>chấm điểm"]
-    B --> C{"🚪 Cổng<br/>mở lệnh"}
-    C -- đạt --> D[("📒 Sổ<br/>lệnh ảo")]
-    D --> E["🧠 Bài học<br/>+ bản tin"]
-    D --> G["🛑 Điều kiện<br/>dừng"]
-    G -. đóng cổng .-> C
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/hinh/mot-ngay-cua-agent-toi.svg">
+  <img alt="Một lượt quét: kéo sổ từ Google Sheets, xét điều kiện dừng, quét 71 mã (khớp lệnh chờ ở giá mở cửa; đang giữ thì xét thoát; không giữ thì chấm điểm và qua 7 cổng thành lệnh chờ khớp ở phiên sau), điền nhật ký, đẩy sổ lên; app đọc sổ." src="docs/hinh/mot-ngay-cua-agent-sang.svg">
+</picture>
 
-**Quét** chạy trên GitHub Actions mỗi ngày giao dịch · **cổng** xét ngưỡng điểm, xu hướng
-VN-INDEX và trần vốn · **sổ** nằm trên Google Sheets · mỗi lệnh đóng có **bài học** gắn nhãn
-nguyên nhân, cuối ngày có **bản tin** · **điều kiện dừng** đo alpha khớp từng lệnh và đóng cổng
-khi thua rổ chuẩn rõ ràng. App Streamlit hiện tất cả, cùng các lớp **chỉ để xem** (không vào
-đường sinh lệnh): phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào
+Mỗi **lượt quét** chạy trên GitHub Actions trong ngày giao dịch, 9:00–11:30 và 13:00–15:30 giờ
+VN (nhịp 30 phút; GitHub hay trễ hoặc gộp nhịp). Lệnh mới **không bao giờ** khớp ở giá của phiên ra
+tín hiệu — nó chờ giá mở cửa phiên sau. Buổi chiều có bốn chuông canh: không có lượt quét nào
+thành công (16:23), điều kiện dừng đã đạt mà cổng vẫn mở (16:43), lệnh đóng quá một phiên chưa có
+bài học (16:53), có phiên mà không có nến mới (17:17). App chỉ ĐỌC sổ; ngoài vòng này nó còn các
+lớp **chỉ để xem** — phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào
 lệnh từng mã.
 
 ## Kết quả đo được
