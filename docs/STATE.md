@@ -22610,3 +22610,28 @@ Leader, máy của người dùng. **Chỉ thêm mục này vào `docs/STATE.md`
 - **Một lý do trong văn bản đã ký nay chỉ còn đúng cho lúc ký** (grep của leader tìm ra; sổ tay không nêu): `docs/TIEU-CHI-DOC-TRUOC.md`, ĐO 24, *Khung đọc cho P3d, ký trước* (06/10/2026) viết *"Hai cache không phải nguồn nhãn của UV-001 (kết thúc trước ngày khai)"*. Từ 12/10 cache A (`backtest/cache`) chạy tới 2026-10-12, SAU ngày khai UV-001 (02/10/2026). Vế chính vẫn đúng — nhưng vì LUẬT của P3d (nhãn lấy từ MỘT bảng giá kéo một lượt, không đọc cache backtest), không còn vì ngày. Đường chấm của tầng 3 không đi qua cache: docstring `cham_xac_nhan.py` dòng 8 khai *"không đọc `backtest/cache*`"*, và `grep -n 'from backtest\|backtest.data\|CACHE_DIR' cham_xac_nhan.py` → 0 dòng; bảng giá do `tools/keo_bang_gia.py` kéo riêng (đọc mã 13/10, chưa chạy). BƯỚC này KHÔNG sửa văn bản đã ký; đánh dấu ⚠️ ở đó là việc của một BƯỚC chạm file luật (hỏi sổ tay thật).
 
 **Giới hạn.** Hai con số của lượt 1–2 (33 · 39, +27 phiên) lấy từ nhật ký lúc chạy 12/10 (thư mục nháp của phiên leader, ngoài repo); thứ tái lập được hôm nay là trạng thái cache (39/39 khớp nhật ký, băm, `kiem_co_so_cache`). Câu hỏi nến dở BÊN TRONG cache (ngày 2026-08-06 và 2026-08-11) CHƯA kiểm — việc riêng; 39 mã thay cả chuỗi không còn mang các dòng của lượt kéo cũ, 33 mã chỉ nối đuôi thì vẫn mang nếu có. 53 tệp ngoài rổ vẫn cũ.
+
+## BƯỚC 186 — README VIẾT LẠI: GỌN, CÓ SƠ ĐỒ VÀ BẢNG KẾT QUẢ, BỎ CÁC KHỐI ĐÃ HẾT ĐÚNG (13/10/2026)
+
+**Mốc:** quy-trinh — README công khai viết lại theo yêu cầu người dùng 13/10/2026; tài liệu giới thiệu, không phục vụ mốc sản phẩm nào
+
+Leader, máy của người dùng. Người dùng: *"ReadME của dự án trên repo Github quá dài dòng và ko thu hút được người xem hãy tinh chỉnh lại."* **Chỉ sửa `README.md`** (cộng mục này và một dòng sổ tay): không đổi mã, luật, ngưỡng hay kết luận đo.
+
+**Trước → sau.** 198 → 116 dòng (`git show 1238343:README.md | wc -l` · `wc -l README.md`), 7 mục cấp hai: *Một ngày của agent* (sơ đồ mermaid + một đoạn chú thích) · *Kết quả đo được* (bảng ba dòng, mỗi dòng có nguồn và ngày) · *Vì sao repo này đáng đọc* (năm lần số đẹp, Quy tắc số 1, bốn hàng rào) · *Lộ trình* · *Chạy thử* · *Tài liệu* · *Giấy phép*. Thêm bốn huy hiệu (CI `kiem-dinh` thật của `main`; Python 3.11; Streamlit; "giao dịch chỉ ẢO") và hộp `[!WARNING]` cho hai ranh giới (không khuyến nghị đầu tư, không đặt lệnh thật).
+
+**Gỡ khỏi README vì đã hết đúng** (bản cũ: `git show 1238343:README.md`): *"719 test"* (con số trôi; README mới không ghim số test); `docs/HANDOFF.md` bị gọi là *"Bàn giao 19/08/2026 — đã cũ"* (nay là điểm bắt đầu); cả mục *Trạng thái hiện tại* (hai khối 🔴 HẾT ĐÚNG, số lệnh sổ thật); bảng walk-forward trước ĐO 22 kèm chú thích ⚠️ bước giá. Các khối ấy vẫn nằm nguyên trong `docs/STATE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`.
+
+**Mọi con số trong README đối chiếu trong phiên này với nguồn ghi cạnh nó** (không số mới nào):
+- 71 mã · 16 ngành: `vn100_symbols.CUSTOM_WATCHLIST_SYMBOLS` (71) và `SECTOR_WATCHLIST` (16 ngành, 71 mã) đọc bằng `.venv` 13/10.
+- rho −0,019, KTC [−0,100 ; +0,064], 573 phiên / 10 mã: `MO-XE-KIEN-TRUC.md` dòng 179 và `CLAUDE.md`.
+- 619 lệnh · alpha −1,68% · KTC [−2,24 ; −1,08]: dòng "BẬT · theo ngày" của bảng hiện hành trong `CLAUDE.md` (ĐO 22, 30/09/2026).
+- Δ alpha +0,21, KTC [−0,16 ; +0,57]: BƯỚC 179 (ĐO 25, 12/10/2026).
+- Năm con số đẹp (+22,42% · +14,88% · +14,24% · +636,11%, đòn bẩy 2,2 lần): `NGUYEN-TAC-DO-LUONG.md`.
+- 28/02/2027, UV-001 khai 02/10/2026, đọc một lần ≈ đầu 11/2027 (ƯỚC LƯỢNG): `docs/LO-TRINH.md`.
+- Lịch quét "mỗi ngày giao dịch": cron `0,30 2-4 * * 1-5` và `0,30 6-8 * * 1-5` (UTC) trong `.github/workflows/quet-so-lenh.yml` — bản nháp đầu viết "sau giờ giao dịch", sai, đã sửa trước khi đẩy.
+
+**Khối lệnh.** `tools/soat_lenh_tai_lieu.py` → *"khong dong lenh nao trong tai lieu bi cua Bash chan"*. Lệnh tạo môi trường ảo bằng `python`/`py` trần bị cửa Bash chặn (luật `python-he-thong`, kiểm bằng `cua_bash_an_toan.kiem`), nên bước ấy viết bằng lời; khối chỉ gồm `git clone`, `cd` và ba lệnh qua `./.venv/Scripts/python.exe`. Khối chỉ nêu MỘT cổng (pytest) nên `tests/test_bo_cong_khop_CI.py` không đòi đủ năm.
+
+**Xem hiển thị THẬT trên GitHub** (nhánh đẩy lên, trình duyệt của leader; trang theo tên nhánh bị đệm bản cũ, phải mở theo mã commit): huy hiệu CI hiện *passing*, hộp WARNING, bảng, neo `#kết-quả-đo-được` khớp `id` của tiêu đề. Sơ đồ mermaid đi ba lượt: ngang 7 nút nhãn dài → chữ quá nhỏ (khung 846×199); dọc → đọc được nhưng cao 1.174 px; **ngang 6 nút nhãn ngắn, chi tiết dời xuống đoạn chú thích → khung 1.012×263**, giữ bản này.
+
+**Giới hạn.** Không có ảnh chụp app: app hiện số của sổ thật, mà số sổ thật không được chép vào tài liệu. Huy hiệu tĩnh dựa vào `img.shields.io` (dịch vụ ngoài). Huy hiệu CI ghim `?branch=main` (tải 13/10: mã 200, ảnh SVG chứa chữ `passing`). Câu chữ của README là lựa chọn trình bày — người dùng duyệt sau khi xem.

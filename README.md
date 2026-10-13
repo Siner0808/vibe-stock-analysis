@@ -1,6 +1,6 @@
 # vibe-stock-analysis
 
-[![kiem-dinh](https://github.com/Siner0808/vibe-stock-analysis/actions/workflows/kiem-dinh.yml/badge.svg)](https://github.com/Siner0808/vibe-stock-analysis/actions/workflows/kiem-dinh.yml)
+[![kiem-dinh](https://github.com/Siner0808/vibe-stock-analysis/actions/workflows/kiem-dinh.yml/badge.svg?branch=main)](https://github.com/Siner0808/vibe-stock-analysis/actions/workflows/kiem-dinh.yml)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/giao%20di%E1%BB%87n-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
 ![Chỉ giao dịch ảo](https://img.shields.io/badge/giao%20d%E1%BB%8Bch-ch%E1%BB%89%20%E1%BA%A2O-6e7781)
