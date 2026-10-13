@@ -21,13 +21,13 @@ Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
 ## Một ngày của agent
 
 ```mermaid
-flowchart LR
-    A["GitHub Actions<br/>quét mỗi ngày giao dịch"] --> B["6 agent kỹ thuật<br/>chấm điểm 71 mã"]
-    B --> C{"Cổng mở lệnh<br/>ngưỡng · VN-INDEX · trần vốn"}
-    C -- đạt --> D[("Sổ lệnh ảo<br/>Google Sheets")]
-    D --> E["Bài học có nhãn nguyên nhân<br/>+ bản tin cuối ngày"]
-    E --> F["App Streamlit"]
-    D --> G["Điều kiện dừng<br/>alpha khớp từng lệnh"]
+flowchart TD
+    A["⏱️ GitHub Actions quét mỗi ngày giao dịch"] --> B["🤖 6 agent kỹ thuật chấm điểm 71 mã"]
+    B --> C{"🚪 Cổng mở lệnh<br/>ngưỡng · VN-INDEX · trần vốn"}
+    C -- đạt --> D[("📒 Sổ lệnh ảo trên Google Sheets")]
+    D --> E["🧠 Bài học có nhãn nguyên nhân + bản tin cuối ngày"]
+    E --> F["📊 App Streamlit"]
+    D --> G["🛑 Điều kiện dừng: alpha khớp từng lệnh"]
     G -. "thua chuẩn rõ ràng → đóng cổng" .-> C
 ```
 
