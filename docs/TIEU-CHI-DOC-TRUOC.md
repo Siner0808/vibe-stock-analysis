@@ -3987,6 +3987,7 @@ Với mọi (mã, vị trí t) trong P1 có `t`, `t+1`, `t+22` đều là nến 
 - Trong MỘT bảng giá kéo một lượt, hệ số điều chỉnh chung của bảng đó triệt tiêu trong `ln(P_{t+22}/P_{t+1})`; sai số chỉ sinh khi nối nhiều lượt kéo.
 - **Nếu tỷ lệ `e > 0,5` điểm ≥ 1%:** khuyến nghị ghi *"P3d KHÔNG được ghép giá từ nhiều lượt kéo; mỗi lần chấm kéo MỘT bảng giá một lượt, phủ cả [T+1, T+22], từ đường kéo cùng họ nguồn với agent sống"*. **Nếu < 1%:** ghép chấp nhận được về độ lớn nhưng vẫn khuyến nghị một lượt (rẻ hơn kiểm).
 - Hai cache không phải nguồn nhãn của UV-001 (kết thúc trước ngày khai). Lợi suất UV-001: **chưa có và chưa tính được**; ĐO này chỉ cho độ phơi (tỷ lệ cửa sổ có bước đổi hệ số). Phép so của tầng 3 là so CẶP (UV-001 so với điểm đang chạy trên CÙNG nhãn), nên sai số nhãn là chung cho hai vế và theo lập luận làm yếu cả hai IC chứ không nghiêng Δ — **chưa ai đo điều đó**.
+  > ⚠️ **Vế trong ngoặc HẾT ĐÚNG từ 12/10/2026** (ghi thêm 13/10/2026, BƯỚC 187 — không sửa chữ đã ký): cache A được làm tươi tới 2026-10-12 (BƯỚC 185) nên nay chứa 6 phiên SAU ngày khai UV-001 (05/10 → 12/10). Vế chính vẫn đúng, nhưng vì LUẬT của P3d — nhãn lấy từ MỘT bảng giá kéo một lượt, `cham_xac_nhan.py` không đọc `backtest/cache*` — không còn vì ngày. Đừng dùng `backtest/cache` để xem trước bất cứ thứ gì về UV-001 trước mốc đọc (`docs/LO-TRINH.md`, H1).
 
 ### M8 — Q3: đếm dòng, chỉ đọc
 
