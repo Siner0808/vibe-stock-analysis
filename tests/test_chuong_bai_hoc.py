@@ -605,8 +605,14 @@ def test_CHUONG_CHI_DOC_khong_ghi_gi_len_Sheets_va_khong_in_lai_lo(moi_truong, c
         assert tu not in ra, tu
 
 
-def test_CHUONG_khong_co_lenh_nao_tu_moc_thi_XANH_va_noi_ro(capsys):
+def test_CHUONG_khong_co_lenh_nao_tu_moc_thi_XANH_va_noi_ro(monkeypatch, capsys):
+    import market_filter
     from paper_trading import PaperTradingJournal
+    # BƯỚC 184: `consider_entry` hỏi bộ lọc VN-INDEX. Chạy riêng file này thì không
+    # ai vá nó (phần vá mức module nằm ở test_sheets_store), nên hàm THẬT đọc cache
+    # ở máy hoặc tải mạng rồi ghi VNINDEX.csv. Ghim `True` — đúng giá trị test nhận
+    # khi chạy cả bộ; điều test này khẳng định (chuông không thấy lệnh đóng) không đổi.
+    monkeypatch.setattr(market_filter, "is_vni_bullish", lambda *a, **k: True)
     j = PaperTradingJournal(":memory:", cho_phep_so_that=True)
     j.ghi_nhat_ky = False
     j.consider_entry("AAA", "2026-09-22", _kq())
