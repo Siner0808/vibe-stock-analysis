@@ -2888,6 +2888,32 @@
       "ngay": "2026-10-13",
       "khong_bat_buoc_vi": "BƯỚC 186 viết lại README.md (trang giới thiệu công khai) theo yêu cầu người dùng 13/10/2026, kèm sơ đồ SVG sinh bởi tools/ve_so_do_mot_ngay.py và một file test giữ hai tệp SVG khớp nguồn sinh: không đổi luật, ngưỡng, mã hay kết luận đo nào; ba kết quả nêu trong README (rho điểm cuối, ĐO 22 dòng theo ngày bật chi phí, ĐO 25) được chép nguyên từ bản ghi đã có kèm nguồn và ngày, đối chiếu từng số trong phiên. README không nằm trong danh sách file luật của tools/buoc_cham_luat.py."
     },
+    "BƯỚC 187": {
+      "ngay": "2026-10-13",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "Cùng phiên trình duyệt với lượt BƯỚC 183/185 (13/10/2026). Nguồn cần cho câu này đều TƯƠI: TIEU-CHI-DOC-TRUOC.md @f404009 và LO-TRINH.md @1238343 không đổi tới main c4f116f (git diff --quiet); STATE.md @1238343 thiếu BƯỚC 183/185 — BƯỚC 185 chứa đúng phát hiện mà BƯỚC 187 đánh dấu, nên grep tự kiểm chạy trên c4f116f (đủ hơn nguồn).",
+      "cau_hoi": "I am about to write BƯỚC 187 into docs/STATE.md: BƯỚC 187 adds one dated warning line directly under a signed sentence of docs/TIEU-CHI-DOC-TRUOC.md, ĐO 24, section Khung đọc cho P3d (signed 06/10/2026), without changing any signed word: the reason in brackets, that the two caches end before the UV-001 declaration date, is no longer true since 12/10/2026 because the local price cache backtest/cache was refreshed up to 2026-10-12 and now holds 6 sessions after the UV-001 declaration date 02/10/2026; the main clause, that the two caches are not the label source of UV-001, stays true because of the P3d rule that labels come from one single price pull and cham_xac_nhan.py does not read backtest/cache; no threshold, label rule, reading date or verdict changes. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a sentence saying a signed section of TIEU-CHI-DOC-TRUOC.md must never receive a later dated marker, or that UV-001 labels may be computed from backtest/cache, or that backtest/cache must stay frozen until UV-001 is read, or that the UV-001 reading date or the ĐO 24 verdict depends on when the cache ends. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Sổ trả 'không tìm thấy câu nào nói ngược'. Tự kiểm bằng quét NHIỀU DÒNG 15 nguồn ở main c4f116f (scratchpad grep_cau_am_187.py), bốn mẫu theo bốn ví dụ: (1) cấm thêm dấu vào mục đã ký — 6 khớp ở TIEU-CHI đều là tiêu đề 'BẢNG ĐỌC — ký trước, không sửa sau khi thấy số' (cấm SỬA chữ đã ký, không cấm THÊM ghi chú có ngày), 2 khớp ở STATE trong đó có tiền lệ 'ĐO 23 (🔴 ghi chú, không sửa chữ đã ký)' — nhất quán với BƯỚC 187; (2) nhãn UV-001 từ backtest/cache — 2 khớp ở STATE: đề bài ĐO 24 (hỏi UV-001 có bị ảnh hưởng không) và BƯỚC 185 (ghi đúng phát hiện này) — 0 câu cho phép; (3) cache phải đóng băng — khớp là sự cố 'cache VN-INDEX đóng băng' cũ và 'giữ nguyên cache' của LECH_CO_SO (BƯỚC 180) — 0 luật đóng băng; (4) ngày đọc UV-001 phụ thuộc cache — 0 khớp."
+    },
     "BƯỚC 188": {
       "ngay": "2026-10-14",
       "khong_bat_buoc_vi": "Soát định kỳ lượt 12 (ghi lượt 2026-10-14 vào docs/soat-dinh-ky.json, hàng lỗi 177 vào references/loi-da-mac.md và docs/loi-phan-lop.json) và gỡ con số cửa đã trôi ở docs/HANDOFF.md, docs/cua-du-an.json, docstring tools/kiem_cua_song.py; không sửa file nào trong sáu file luật (cố ý KHÔNG sửa NGUYEN-TAC-DO-LUONG.md :203-207 dù lượt soát tìm ra câu sai ở đó, báo leader hỏi sổ tay thật), không đổi ngưỡng, điểm hay kết luận đo; tools/buoc_cham_luat.py 188 xác nhận không chạm luật."

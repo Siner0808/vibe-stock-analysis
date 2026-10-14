@@ -22638,6 +22638,23 @@ Leader, máy của người dùng. Người dùng: *"ReadME của dự án trên
 
 **Giới hạn.** Không có ảnh chụp app: app hiện số của sổ thật, mà số sổ thật không được chép vào tài liệu. Huy hiệu tĩnh dựa vào `img.shields.io` (dịch vụ ngoài). Huy hiệu CI ghim `?branch=main` (tải 13/10: mã 200, ảnh SVG chứa chữ `passing`). Câu chữ của README là lựa chọn trình bày — người dùng duyệt sau khi xem.
 
+## BƯỚC 187 — ĐÁNH DẤU ⚠️ LÝ DO ĐÃ CŨ TRONG KHUNG ĐỌC ĐÃ KÝ CỦA ĐO 24: CACHE NAY CHỨA GIÁ SAU NGÀY KHAI UV-001 (13/10/2026)
+
+**Mốc:** H1 — giữ UV-001 sạch tới lần đọc duy nhất: chặn việc coi `backtest/cache` là vùng an toàn trước ngày khai
+
+Leader, máy của người dùng. Người dùng: *"Cần bạn đánh giá thiệt hơn trước khi đánh dấu nó, sau khi bạn đánh giá tôi đồng ý với đề xuất của bạn."* **Chỉ thêm MỘT dòng** vào `docs/TIEU-CHI-DOC-TRUOC.md` (`git diff --stat` → `1 insertion(+)`, 0 dòng xoá): không sửa chữ nào đã ký, không đổi ngưỡng, nhãn, ngày đọc hay kết cục.
+
+**Chỗ.** ĐO 24, *Khung đọc cho P3d, ký trước* (06/10/2026): *"Hai cache không phải nguồn nhãn của UV-001 (kết thúc trước ngày khai)."* — BƯỚC 185 đã ghi rằng vế trong ngoặc chỉ còn đúng cho lúc ký nhưng không sửa văn bản đã ký.
+
+**Thiệt hơn (leader đánh giá, người dùng đồng ý theo đề xuất).**
+- *Lợi:* câu trần mời người đọc — hay một agent sau — coi `backtest/cache` là vùng an toàn trước UV-001, trong khi cache nay chứa **6 phiên sau ngày khai** (`lich_giao_dich.cac_phien("2026-10-02", "2026-10-12")` → 05/10 · 06/10 · 07/10 · 08/10 · 09/10 · 12/10; `VNINDEX.csv` trong cache có đúng 6 nến sau 02/10), tức 6/22 phiên của cửa sổ nhãn đầu tiên. Dùng nó cho một phân tích dính UV-001 là nhìn trộm trước ngày đọc — UV-001 chỉ được đọc MỘT lần, nhìn trộm rồi không sửa lại được. Luật dự án: câu đã hết đúng phải mang dấu, câu cũ để trần là bẫy; sổ tay NotebookLM đọc TIEU-CHI.
+- *Thiệt:* chạm file luật ⇒ phải hỏi sổ tay thật (đã hỏi, dưới); chạm văn bản đã ký có thể bị đọc thành sửa tiêu chí sau khi thấy số ⇒ chỉ THÊM một dòng có ngày, theo tiền lệ của chính dự án (ĐO 23: *"🔴 ghi chú, không sửa chữ đã ký"*; ĐO 14 ô D: dòng ✅ đọc đúng hạn thêm dưới văn bản ký). Không gác nào khoá văn bản ký (grep `tests/` theo băm/nguyên văn của TIEU-CHI → không có).
+- *Không làm:* không thêm mốc ngày ước lượng của UV-001 vào khối *"Chờ tới ngày"* của `docs/HANDOFF.md` — khối ấy được `tools/cua_mo_phien.py` đọc bằng máy như ngày cứng, còn mốc đọc UV-001 là số phiên có nhãn (`cham_bong.MOC_DOC`), ngày chỉ là ƯỚC LƯỢNG.
+
+**Dòng thêm** (dưới câu đã ký, cùng mục): vế trong ngoặc HẾT ĐÚNG từ 12/10/2026; vế chính vẫn đúng vì LUẬT của P3d (nhãn lấy từ một bảng giá kéo một lượt, `cham_xac_nhan.py` không đọc `backtest/cache*`); đừng dùng `backtest/cache` để xem trước bất cứ thứ gì về UV-001 trước mốc đọc (H1).
+
+**Sổ tay (Quy tắc 3, hỏi thật vì chạm `docs/TIEU-CHI-DOC-TRUOC.md`).** Câu dựng bằng `tools/so_tay.py hoi`, gửi nguyên văn (checksum khớp). Trả lời: *"không tìm thấy câu nào nói ngược"*. Câu âm tự kiểm bằng quét nhiều dòng 15 nguồn ở `main` `c4f116f` theo bốn ví dụ: cấm thêm dấu vào mục đã ký — chỉ thấy *"ký trước, không sửa sau khi thấy số"* (cấm SỬA, không cấm THÊM ghi chú có ngày) và tiền lệ ĐO 23 nói trên; nhãn UV-001 từ cache — 0 câu cho phép (hai khớp là đề bài ĐO 24 và chính BƯỚC 185); cache phải đóng băng — 0 (các khớp là sự cố VN-INDEX cũ và hành vi `LECH_CO_SO` của BƯỚC 180); ngày đọc phụ thuộc cache — 0.
+
 ## BƯỚC 188 — SOÁT ĐỊNH KỲ 12: 39/39 LỜI KHAI PHÁN LẠI, MỘT Ô ⚠️ SAI (LỖI 177: `brain/` CÓ, NGOÀI REPO); GỠ CON SỐ "SÁU CỬA" ĐÃ TRÔI (14/10/2026)
 
 **Mốc:** quy-trinh — soát định kỳ lượt 12 (nhịp 7 ngày) + gỡ con số cửa đã trôi
