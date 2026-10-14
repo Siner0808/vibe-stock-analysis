@@ -22637,3 +22637,82 @@ Leader, máy của người dùng. Người dùng: *"ReadME của dự án trên
 **Lượt hai — sơ đồ vẽ CƠ CHẾ (người dùng: *"sử dụng skill /artifact-diagramming để thiết kế sơ đồ 'Một ngày của agent' cho chính xác hơn"*).** Bản mermaid sáu nút gọi TÊN ("cổng", "bài học") mà không cho thấy thứ tự thật. Đọc mã trước khi vẽ: `run_daily.execute_daily_scan` (kéo sổ — hỏng thì DỪNG; `thi_hanh_dieu_kien_dung` chạy TRƯỚC vòng 71 mã; `hoan_tat_nhat_ky`; `sheets_store.push`), `paper_runner.run_session` (bỏ nến dở → `fill_pending`/`fill_closing` ở giá MỞ CỬA → đang giữ thì `evaluate_open`, không thì `consider_entry`), `PaperTradingJournal.consider_entry` (bảy cổng theo thứ tự: VN-INDEX ≥ MA50 · chất lượng dữ liệu · điểm ≥ ngưỡng · chưa giữ mã · có SL/TP · cờ `CHO_PHEP_MO_LENH_MOI` · trần vốn; mọi kết cục ghi một dòng `decisions`), `evaluate_open` (SL/TP khớp trong phiên; đảo tín hiệu và giữ quá hạn thành CHỜ bán; +5% dời stop), `app.py` `_doc_nhat_ky` · `_doc_so_ban_tin` (CHỈ ĐỌC Sheets), cron của bốn chuông (16:23 · 16:43 · 16:53 · 17:17 giờ VN). Hình mới: hai tệp `docs/hinh/mot-ngay-cua-agent-{sang,toi}.svg` SINH bởi `tools/ve_so_do_mot_ngay.py` (nguồn duy nhất; `--kiem` so lại), README chọn tệp bằng `<picture>` + `prefers-color-scheme` (ảnh trong `<img>` không theo `currentColor` của trang). Huy hiệu số vẽ bằng `<circle>` — ký tự ①② bị phông thay bằng dạng đậm khác kiểu. Soát bằng mắt cả hai bản (bản tối trên nền `#0d1117`). Gác `tests/test_so_do_mot_ngay.py` (+4): hai tệp khớp từng byte với `ve()`, SVG hợp lệ có `role`/`aria-label`, hai bản chỉ khác MÀU, README trỏ đúng hai tệp qua `<picture>`; đột biến 5/5 ĐỎ (sửa tay SVG tối · bản tối có nội dung riêng · đổi `src` · đổi `media` · đổi `role`).
 
 **Giới hạn.** Không có ảnh chụp app: app hiện số của sổ thật, mà số sổ thật không được chép vào tài liệu. Huy hiệu tĩnh dựa vào `img.shields.io` (dịch vụ ngoài). Huy hiệu CI ghim `?branch=main` (tải 13/10: mã 200, ảnh SVG chứa chữ `passing`). Câu chữ của README là lựa chọn trình bày — người dùng duyệt sau khi xem.
+
+## BƯỚC 188 — SOÁT ĐỊNH KỲ 12: 39/39 LỜI KHAI PHÁN LẠI, MỘT Ô ⚠️ SAI (LỖI 177: `brain/` CÓ, NGOÀI REPO); GỠ CON SỐ "SÁU CỬA" ĐÃ TRÔI (14/10/2026)
+
+**Mốc:** quy-trinh — soát định kỳ lượt 12 (nhịp 7 ngày) + gỡ con số cửa đã trôi
+
+Leader giao phiên con (lượt 11 = BƯỚC 163, làm 08/10; hạn lượt 12 ghi ở HANDOFF là 15/10 nên làm sớm một ngày). Nhánh `soat/vong-12-188` từ `main` `c3bd920`, worktree ngoài repo (`vibe_wt_188`). Không chạm logic chấm điểm, `docs/ung-vien.json`, sổ lệnh hay file luật; không gọi mạng hay vnstock; không đọc dữ liệu đã khai trước ngày hẹn. Hai phần: soát (phần 1) và gỡ con số cửa đã trôi (phần 2, người dùng chốt 14/10/2026: *"Bỏ con số, ghi cách đọc"*).
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+```
+39 lời khai · 9 tài liệu · chưa ai mở: 1   (lượt 11: 38 · 0)
+2 dòng sổ không còn khớp lời khai nào      (hằng số của sổ chỉ-thêm, cùng phán quyết lượt 8–11)
+```
+
+Cả 39 được mở lại và phán bằng lệnh chạy hôm nay trên `c3bd920` (`docs/soat-dinh-ky.json`, lượt 2026-10-14, ô `dong` lấy nguyên văn từ `loi_khai_con_song()`; ô `tu_kiem` dán lệnh và đầu ra thay vì tóm tắt — lời nhắc của lượt 11): **32 THẬT · 5 SAI-đã-đánh-dấu · 2 SAI-MỘT-PHẦN** (một đã đánh dấu: `docs/HANDOFF.md` :510; một CHƯA: `NGUYEN-TAC-DO-LUONG.md` :205, mục dưới). Năm câu SAI-đã-đánh-dấu: `loi-da-mac.md` :304 · :333, `HANDOFF.md` :423 · :628, bản lưu `CLAUDE-md` :847 — mỗi câu có dấu 🔴/⚠️ ngay dòng dưới (`sed -n` từng chỗ). **Lời khai mới duy nhất vào quần thể:** `references/cong-thuc-chay.md` :180 (*"mục sổ tay chưa có, `references/soat-cheo-notebooklm.md`, mục *Phiên đám mây*"*, BƯỚC 183): là một VÍ DỤ về loại đỏ CHỜ, không khẳng định một mục cụ thể thiếu; mục *Phiên đám mây* của `soat-cheo-notebooklm.md` CÓ (:156) và gác thật tồn tại (`tests/test_soat_notebooklm.py:493`) — THẬT.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+trước lượt : 0 chết · 13 sử liệu · 47 còn   (mã thoát 0)      lượt 11: 0 · 13 · 43
+```
+
+Số "còn" tăng 4 so với lượt 11, không có đường chết; không truy nguyên nhân (không đổi phán quyết). Đo lại sau lần ghi cuối: xem mục *Đo lại sau lần ghi cuối*.
+
+### LỖI 177 — một ô ⚠️ viết "không tìm thấy ở đâu" bằng lệnh chỉ quét repo, và công cụ không bao giờ mở lại nó
+
+`NGUYEN-TAC-DO-LUONG.md` :203-207 (ô ⚠️ gắn bởi lượt soát 2, 18/09/2026): *"Thư mục ấy NAY KHÔNG CÒN … `brain/` cũng không còn ở gốc repo, và bản báo cáo `20loop_custom71_18m_optimization_report.md` mà đoạn trên dẫn thì không tìm thấy ở đâu."* Nửa đầu đúng (`git log --all --oneline -- brain | wc -l` → 0; `git ls-files brain | wc -l` → 0; `ls -d brain` ở gốc repo → không có). **Nửa sau SAI:**
+
+```
+find "C:/Users/cuong/.gemini/antigravity" -maxdepth 4 ( -iname '*20loop_custom71*' -o -iname brain )
+ -> C:/Users/cuong/.gemini/antigravity/brain
+    C:/Users/cuong/.gemini/antigravity/brain/94db5080-33a8-473d-9aa7-24e6bc20d5a5/20loop_custom71_18m_optimization_report.md
+    (+ .md.metadata.json)
+ls -la --time-style=full-iso (thư mục ấy) -> 20loop_custom71_18m_optimization_report.md 3912 byte, 2026-08-12 23:35:53
+head -c 700 tệp ấy -> "# 🏆 BÁO CÁO TỔNG HỢP TỐI ƯU HÓA 20 VÒNG LẶP (71 MÃ CỔ PHIẾU - 18 THÁNG GẦN NHẤT) … Ngày thực hiện: 12/08/2026"
+grep -c 636 tệp ấy -> 3
+```
+
+Tức tệp mà `NGUYEN-TAC-DO-LUONG.md` :176 dẫn (`brain/…/20loop_custom71_18m_optimization_report.md`, sự cố +636,11% ngày 12/08) **có đó**, trong thư mục `brain/` của Antigravity ở `~/.gemini/antigravity/`, **ngoài repo** — nên không lệnh quét cây repo nào thấy được. Lượt 2 ghi `tu_kiem` = `ls -la | grep -i brain · git log --all -- brain · find . -name '*20loop*' -not -path './.venv/*'` (`find .` = gốc repo); lượt 5 (24/09), 10 (07/10), 11 (08/10) chép `git log --all --oneline -- brain; ls brain` và phán *"THẬT … trỏ vào hư không"*. **Sống 26 ngày, bốn lượt** (2, 5, 10, 11). Hai chỗ hở chồng nhau:
+1. **Lỗi 129 lặp lại**: phạm vi lệnh (cây repo) hẹp hơn phạm vi câu (*"ở đâu"* = mọi nơi). Gác `tu_kiem_quet_hep` của BƯỚC 163 chỉ bắt hình dạng *glob trần* của `grep`; không bắt `find .`.
+2. **Lời khai nằm TRONG một ô đã đánh dấu thì công cụ không thấy**: `DA_CO_DAU` loại cả DÒNG mang dấu; các dòng :206-:207 không mang dấu nhưng :207 không nêu tên trong dấu nháy ngược (tên tệp ở :206) và cụm *"không tìm thấy"* không thuộc `PHU_DINH`. Đo (14/10/2026): thêm *"không tìm thấy"* vào `PHU_DINH` kéo vào đúng **1** dòng ở 9 tài liệu (`SKILL.md` :304) — không bắt ca này, vì tên và cụm nằm ở hai dòng khác nhau.
+
+**BƯỚC này KHÔNG sửa `NGUYEN-TAC-DO-LUONG.md`** (file luật; đề bài cấm): ghi vào sổ soát và báo leader. Đề xuất sửa cho leader hỏi sổ tay thật: :203 ("Thư mục ấy NAY KHÔNG CÒN") và :205-207 ("không còn ở gốc repo … không tìm thấy ở đâu") thành *"không còn trong repo; Antigravity giữ nó ở `~/.gemini/antigravity/brain/<uuid>/`"* — giữ nguyên hai câu gốc làm sử liệu. Lỗi 177 vào `references/loi-da-mac.md` (lớp `chua-do`, sống 26 ngày, nguồn `git`, **máy chưa chặn** — hàng 177; đã nêu hướng một phần máy làm được, chưa làm).
+
+### Ngoài tầm công cụ
+
+- **`docs/HANDOFF.md` "Hạn kế".** Dòng lượt 11 đã ✅ từ trước; thêm ✅ cho lượt 12 ở cả hai nơi nêu nó (khối "Hạn kế" và khối "08/10/2026 — giai đoạn A") và ghi **hạn lượt 13 = 21/10/2026** (ngày LÀM lượt 12, 14/10, cộng 7). Gác lỗi 125 (`tests/test_soat_dinh_ky_co_tri_nho.py::test_DONG_HAN_cua_HANDOFF_THAT_theo_kip_so_va_con_mot_luot_ke`) đòi đúng điều ấy khi sổ có lượt 12.
+- **Quét tay `docs/STATE.md` BƯỚC 163–185** bằng chính `PHU_DINH` + `CO_TEN` + `DA_CO_DAU` (công cụ cố ý không quét STATE): **141 câu** chưa đánh dấu. Kiểm **8 nhóm** bằng lệnh (chi tiết ở sổ): 6 nhóm THẬT; **2 nhóm SAI theo thời gian, không đánh dấu** (STATE là nhật ký chỉ-thêm, câu đúng lúc viết): BƯỚC 173 *"chỉ `app.py` nhập `ke_hoach_vao_lenh`"* (nay thêm `tools/do25_ke_hoach_vao_lenh.py` từ BƯỚC 178 — BƯỚC 178 đã ghi *"Sửa một gác cũ"*) và BƯỚC 176 *"chỉ `app.py` và `tools/soi_su_kien_quyen.py` nhập `su_kien_quyen`"* (nay thêm `nen_su_kien_quyen.py` từ BƯỚC 182 — gác `tests/test_su_kien_quyen.py:317-320` đã cập nhật). **Không kiểm từng câu còn lại**; không nói chúng đúng.
+- **Một việc còn NỢ cho leader (nhóm kiểm số 3):** BƯỚC 173 và 177 ghi *"chưa vào danh sách CHỈ ĐỂ HIỆN của `CLAUDE.md`"* cho `ke_hoach_vao_lenh` và `suc_khoe`; hôm nay vẫn đúng — `git grep -n -E 'ke_hoach_vao_lenh|suc_khoe|ban_tin|su_kien_quyen' -- CLAUDE.md` ra 1 dòng (:137, `su_kien_quyen` trong điều kiện dừng). `CLAUDE.md` là file luật nên bước này không thêm.
+- **Diff tài liệu từ lượt 11** (`0334323` → `c3bd920`): 12 file `.md` đổi, 7 ngoài 9 tài liệu của công cụ (STATE · LO-TRINH · QUYET-DINH-CHO · README · soat-cheo-notebooklm · danh-gia-skills-mattpocock · TIEU-CHI). Cùng ba bộ lọc trên dòng thêm vào: README 0 · TIEU-CHI 0 · LO-TRINH 3 · QUYET-DINH-CHO 22 · soat-cheo 4 · danh-gia 1. Kiểm `docs/LO-TRINH.md` D2 (*"SUY LUẬN, CHƯA KIỂM"*): THẬT, BƯỚC 176 vẫn ghi nghi vấn hệ số SSI là *"CHƯA kiểm"*. **29 câu còn lại không kiểm từng câu** (QUYET-DINH-CHO phần lớn là bản HỎI có ngày kèm *"Trả lời nguyên văn"* cạnh bên; soat-cheo là hướng dẫn).
+
+### Phần 2 — gỡ con số cửa đã trôi
+
+`./.venv/Scripts/python.exe tools/kiem_cua_song.py` → *"Hook trong BAN KHAI cua du an : 7 · Trong so do co ban TOAN CUC : 7"*, mã thoát 0. Cửa thứ bảy `tools/cua_ho_so.py` vào ngày 15/09/2026 (`git log -S` trên `docs/cua-du-an.json` → `a42d8bd`); các câu *"sáu"* viết ngày 10/09 hết đúng từ đó. Ba chỗ người dùng chỉ định:
+- `docs/HANDOFF.md` :71 *"sáu trên sáu"*: **câu cũ giữ nguyên**, thêm ngay sau đoạn ấy một ô ⚠️ có ngày (14/10/2026, BƯỚC 188) nói con số sáu đã trôi, nay bảy, đừng ghim số, đọc bằng `tools/kiem_cua_song.py`.
+- `docs/cua-du-an.json` (`_ghi_chu`): *"no se bao 0/6 … hay chep sau hook nay"* → *"no se bao 0/n (n = so hook khai o day, doc bang chinh cong cu nay) … hay chep cac hook nay"*.
+- `tools/kiem_cua_song.py` (docstring): *"báo 0/6"* → *"báo 0/n (n = số hook khai ở `docs/cua-du-an.json`, đọc bằng chính công cụ này)"*.
+
+`grep -rn` trong `tests/` (`git grep -n -E '0/6|hay chep|chép sau|sáu trên sáu|sau hook nay|sáu hook này' -- tests/`) → không test nào đọc các chuỗi này (chỉ `0/60`, `0/67`, `35/50/65`… khác). **Giữ nguyên làm sử liệu** (có ngày hoặc bối cảnh lúc viết): `tests/test_cua_song.py` :9 · :49 (*"tới 10/09/2026"*) · :245, `tests/test_hang_rao_tu_dong.py` :33, `tests/test_kiem_so_test.py` :149, `tools/kiem_cua_song.py` :6 · :19, `tools/cua_mo_phien.py` :122, `tools/kiem_duong_ngoai_repo.py` :32, `loi-da-mac.md` hàng 14 · 25 · 48 và các đoạn :300 · :405 · :546. **Một chỗ chưa xử lý, cần quyết:** `.claude/settings.json` :12 (*"Vi ca sau hook da co ban o ~/.claude/settings.json"*) — trong `_ghi_chu` đề ngày 10/09/2026 nên là sử liệu, nhưng nằm trong một file cấu hình đang được nạp; `tests/test_cua_song.py` :245 chép cùng câu. Không đổi (file cấu hình dự án ngoài đề bài).
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Giả thuyết bị bác:** *"39 lời khai, một mới, hai mồ côi — lượt này chỉ là gia hạn phán quyết"* (suy từ lượt 11 và con số 39 leader chạy thử). Số đếm đúng; phán quyết của MỘT ô sai từ 26 ngày trước. Chỗ sai không nằm trong 39 dòng công cụ in mà ở khối ⚠️ KỀ hai dòng (:200, :205) mà bốn lượt đã phán THẬT.
+- **Ước lượng sai (của lượt 11, tự kiểm lại):** *"Phán lại từng lời khai bằng lệnh mới là cách làm đúng"* — đúng, nhưng chưa đủ: lệnh mới phải CÓ PHẠM VI của câu. Ở mục 20 lượt 11 đã chép đúng lệnh cũ (`git log --all -- brain`, `ls brain`) và đúng phạm vi của dòng :205 (*"gốc repo"*), nên phán *"THẬT"* cho dòng ấy không sai chữ — cái sai là không mở nửa câu :206-207 đi cùng. Phản ứng cần có: với mỗi lời khai phủ định, đọc cả câu (không chỉ dòng công cụ in) và hỏi *"chữ nào trong câu chỉ tới phạm vi rộng hơn lệnh?"*.
+- **KHÔNG nói:** 39 là mọi lời khai phủ định (công cụ chỉ thấy lời khai nêu TÊN, trong 9 tài liệu, từng dòng); STATE ngoài BƯỚC 163–185 sạch; các câu *"sáu"* còn lại ở trên đều là sử liệu (đọc từng dòng của một lượt `git grep` ở mục *Phần 2*, không phải một lượt quét có công cụ); số "còn" của lệnh thứ hai tăng 4 mà chưa biết vì sao.
+
+### Soát chéo NotebookLM
+
+**Không hỏi** (`khong_bat_buoc_vi`, ô riêng ở `docs/soat-notebooklm.json`): BƯỚC này sửa `docs/HANDOFF.md`, `docs/cua-du-an.json`, `tools/kiem_cua_song.py` (docstring), `docs/soat-dinh-ky.json`, `references/loi-da-mac.md` (hàng 177) và `docs/loi-phan-lop.json`; không file nào trong sáu file luật (`CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`), không đổi ngưỡng, điểm hay kết luận đo. Máy xác nhận: `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 188` — kết quả ở mục *Năm cổng* và thân PR. **Điều lượt này tìm ra thì CHƯA hỏi sổ tay và phải hỏi:** sửa `NGUYEN-TAC-DO-LUONG.md` :203-207 là sửa một file luật (BƯỚC riêng, hỏi thật).
+
+### Năm cổng
+
+(điền sau khi chạy)
+
+### Đo lại sau lần ghi cuối
+
+(điền sau khi chạy)
+
+**Việc kế.** (1) Leader: hỏi sổ tay thật rồi sửa `NGUYEN-TAC-DO-LUONG.md` :203-207 (mục *LỖI 177*) và thêm `ke_hoach_vao_lenh` · `suc_khoe` (cùng các module chỉ-để-hiện B2–B5) vào danh sách CHỈ ĐỂ HIỆN của `CLAUDE.md` — hai việc file luật. (2) Lượt 13 đến hạn **21/10/2026**; gợi ý: với mỗi lời khai phủ định chạm MỘT NƠI (thư mục, tệp, máy), chạy lệnh trên chính nơi ấy; và mở cả các dòng nằm trong khối ⚠️ có chữ *"không tìm thấy"*. (3) Việc riêng, chưa làm: cho `tools/soat_loi_khai_cu.py` đọc khối trích dẫn có dấu (hướng của hàng 177).
