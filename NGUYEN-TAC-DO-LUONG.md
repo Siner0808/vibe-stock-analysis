@@ -206,6 +206,13 @@ con số được diễn giải thành kết luận.
 > repo, và bản báo cáo `20loop_custom71_18m_optimization_report.md` mà
 > đoạn trên dẫn thì không tìm thấy ở đâu.
 >
+> ⚠️ **Vế "không tìm thấy ở đâu" HẾT ĐÚNG — đo lại 14/10/2026 (BƯỚC 190, lỗi 177).**
+> Bản báo cáo vẫn còn, NGOÀI repo, trong thư mục làm việc của Antigravity:
+> `~/.gemini/antigravity/brain/94db5080-33a8-473d-9aa7-24e6bc20d5a5/20loop_custom71_18m_optimization_report.md`
+> (3.912 byte, ghi 12/08/2026 23:35, có `+636.11%` và ngưỡng `50.0`). Lượt soát
+> 18/09 chỉ tìm trong cây repo nên không thấy. Vế *git chưa bao giờ theo dõi
+> `brain/`* vẫn đúng. Câu cũ giữ nguyên làm sử liệu.
+>
 > Giữ nguyên hai câu vì chúng là **sử liệu** của sự cố 12/08/2026. Thêm dấu
 > vì một câu ở thì hiện tại về một thư mục đã mất thì mời người đọc đi tìm
 > nó — đúng hình dạng đã cắn dự án ở `N_DAY_DU` 596/451 và ở cờ C5.
