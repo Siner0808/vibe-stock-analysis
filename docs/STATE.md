@@ -22794,3 +22794,77 @@ Leader, máy của người dùng. Người dùng trả lời đề xuất của
   4. *không còn bản nào trên máy* → 0 khớp.
 
 **Giới hạn.** Đường dẫn trỏ vào thư mục nhà của máy này: `tools/kiem_duong_ngoai_repo.py` sẽ canh nó ở lượt soát kế (21/10). Nếu Antigravity dọn `brain/` thì dòng ấy lại thành một câu ở thì hiện tại về một tệp đã mất.
+
+## BƯỚC 191 — MÁY QUÉT LỜI KHAI PHỦ ĐỊNH ĐỌC CẢ CÂU NHIỀU DÒNG VÀ DÒNG ĐÃ MANG DẤU (LỖI 177) (14/10/2026)
+
+**Mốc:** quy-trinh — vá chỗ hở của `tools/soat_loi_khai_cu.py` đã để lỗi 177 sống 26 ngày
+
+Leader, máy của người dùng. Leader nêu một việc chưa ai quyết: *có nên cho `tools/soat_loi_khai_cu.py` quét cả những dòng đã mang dấu ⚠️ không?* Người dùng trả lời: *"làm nốt đi"*.
+
+**Đo trước khi sửa — và câu hỏi của leader đã sai một nửa.** Leader viết rằng lỗi 177 lọt *"vì công cụ bỏ qua các dòng ấy"*; câu ấy chép từ báo cáo của phiên con, chưa kiểm. Đọc mã thì dòng sai (`NGUYEN-TAC-DO-LUONG.md` dòng 207, *"đoạn trên dẫn thì không tìm thấy ở đâu."*) **không mang dấu nào**: dấu ⚠️ nằm ở dòng 203.
+
+Script nháp (ngoài repo) gọi chính `TAI_LIEU`, `PHU_DINH`, `CO_TEN`, `DA_CO_DAU` của công cụ và đo bốn phương án trên quần thể thật, mỗi phương án cộng dồn lên phương án trước:
+
+| phương án | lời khai | bắt dòng 207 |
+|---|---|---|
+| bản cũ: từng dòng, bỏ dòng mang dấu | 39 | không |
+| + không bỏ dòng mang dấu | 43 | không |
+| + thêm cụm "không tìm thấy" vào `PHU_DINH` | 44 | không |
+| + quét theo CÂU trải nhiều dòng | — | **có** |
+
+Lần đo đầu, phương án theo câu cũng báo "không bắt". **Lỗi nằm ở chính máy đo**: biểu thức tách câu `[^.!?]+…` cắt ngang dấu chấm của `report.md`. Sửa thành `\S.*?(?:[.!?](?=\s|$)|$)` thì nó bắt được.
+
+Quét CHỈ theo câu thì mất 25/39 dòng cũ. Các dòng ấy khớp vì hai vế (cụm phủ định và tên) TÌNH CỜ nằm chung một dòng, mà khoá `dong` của sổ soát lại dựa trên chính các dòng ấy. Áp quét theo câu cho hai bản lưu `docs/lich-su/` thì thêm 21 lời khai, mà hai bản ấy không bao giờ được sửa.
+
+**Thay đổi (`tools/soat_loi_khai_cu.py`).**
+- **Dòng mang dấu KHÔNG còn bị bỏ.** Một ô ⚠️ là lời khai MỚI của một lượt soát, và có thể sai như mọi lời khai khác (lỗi 177 chính là như vậy). `DA_CO_DAU` từ nay chỉ gắn nhãn `[có dấu]` trong bản in.
+- **`không tìm thấy`** được thêm vào `PHU_DINH`. Ba từ *không đọc / có / còn* vẫn để ngoài; gác `test_HO_MOI_khong_duoc_NHAN_TU_DA_DO_LA_NHIEU` vẫn xanh.
+- **Hàm thuần mới `cau_nhieu_dong(dong)`.**
+  - Đơn vị là một câu trong một đoạn. Hàm bỏ tiền tố `> `. Dòng trống, `>` đứng một mình, dòng bảng, tiêu đề `#` và rào ``` đều cắt đoạn; bên trong rào không quét.
+  - Hàm trả dòng chứa cụm phủ định ĐẦU TIÊN của câu, để làm khoá `dong`.
+  - `loi_khai_con_song` lấy HỢP của hai phép quét: theo dòng (như cũ) và theo câu, nhưng không áp quét theo câu cho `TAI_LIEU_LUU`. Mỗi dòng chỉ vào danh sách một lần.
+- Docstring có thêm mục "BƯỚC 191 — LỖI 177", kèm bảng đo ở trên.
+
+**Kết quả trên repo (cây của nhánh này):**
+- `tools/soat_loi_khai_cu.py` → **66 lời khai** · 9 tài liệu · **27 chưa ai mở**; 2 dòng sổ mồ côi, đúng như lượt 12.
+- Trong 66 dòng: 44 dòng tự đủ hai vế trên một dòng, 22 dòng chỉ thấy khi đọc cả câu, 8 dòng mang dấu.
+- Có dòng 207 trong danh sách.
+- **Lượt soát 13 (hạn 21/10) sẽ mở 66 dòng thay vì 39.** Đó là cái giá đo được của phép vá, không phải ước lượng.
+
+**Gác — `tests/test_soat_cau_nhieu_dong.py` (+13 test).**
+- Test đầu dựng lại nguyên văn dòng 203–207.
+- Cùng ca ấy trên repo thật.
+- `không tìm thấy` thuộc `PHU_DINH`.
+- Dòng mang dấu được giữ, ở tài liệu sống lẫn ở bản lưu.
+- Số dòng trả về là dòng của cụm phủ định.
+- Hai câu riêng không bị ghép.
+- Ranh giới đoạn: `>` đứng một mình, rào mã, bảng, tiêu đề.
+- Bản lưu chỉ quét theo dòng.
+- Không lặp dòng.
+- Bản in gắn nhãn `[có dấu]`.
+
+**Đột biến** (`va_an_toan.dot_bien_bo`, chạy trên file test mới): lượt 1 **10/12 đỏ**. Hai phát sống sót, cả hai là lỗ của gác:
+- **Lại bỏ dòng mang dấu:** ở tài liệu sống, phép quét theo câu che mất phép lọc, nên đột biến chỉ đổi hành vi ở bản lưu. Thêm `test_dong_MANG_DAU_o_BAN_LUU_cung_khong_bi_bo`.
+- **Rào mã không cắt đoạn:** dòng `# …` trong test bị nhánh "tiêu đề" cắt thay cho nhánh rào. Đổi thành `echo …`.
+
+Lượt 2: **12/12 đỏ**. Mười hai phát:
+1. bỏ quét theo câu (dựng lại ca 177);
+2. bỏ `không tìm thấy`;
+3. lại bỏ dòng mang dấu;
+4. quét theo câu cả bản lưu;
+5. không bỏ `> `;
+6. rào không cắt;
+7. bảng/tiêu đề không cắt;
+8. số dòng = đầu đoạn;
+9. không khử trùng;
+10. tách câu ở mọi dấu chấm (đúng lỗi của máy đo ở trên);
+11. cả đoạn là một câu;
+12. bỏ nhãn `[có dấu]`.
+
+Mốc cổng 5: 3141 → **3154** (`--cap-nhat`, +13).
+
+**Không làm.**
+- Không sửa `SKILL.md`: câu *"Cái đầu in mọi lời khai phủ định có nêu tên … không nhập · gọi · dùng · chạm nằm trong đó, không đọc · có · còn cố ý ngoài"* vẫn đúng, và con số phải đọc bằng lệnh.
+- Không phán lại 27 dòng mới: đó là việc của lượt 13.
+
+**Sổ tay:** ô `khong_bat_buoc_vi`. BƯỚC này chỉ chạm một công cụ, một file test, mốc số test và hai sổ; không chạm file luật, và `tools/buoc_cham_luat.py 191` xác nhận điều ấy.

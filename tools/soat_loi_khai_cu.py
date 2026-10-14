@@ -32,6 +32,7 @@ ai soát 187 dòng mỗi hai ngày, và một công cụ không dùng nổi thì
      mô tả lúc ấy và phải giữ nguyên.
   2. **bỏ dòng đã mang dấu bác bỏ** (🔴 ⚠️ ~~…~~ "ĐÃ BỊ BÁC") — đã có
      người soát rồi, và quy ước dự án là giữ lại bản cũ kèm dấu.
+     🔴 **BỎ từ BƯỚC 191 (14/10/2026)** — xem mục cuối docstring.
   3. **phải NÊU TÊN một thành phần** (`` `tools/x.py` ``) — chỉ loại ấy mới
      kiểm lại được bằng máy: có cái tên thì có chỗ để chạy `grep`.
 
@@ -82,6 +83,29 @@ dòng trôi mỗi lần tài liệu dài ra, và hai mục ngày 16/09 đã trô
 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa
 ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói
 về nó nữa.
+
+BƯỚC 191 — LỖI 177: MỘT CÂU SAI SỐNG 26 NGÀY NGAY TRONG MỘT Ô ⚠️
+────────────────────────────────────────────────────────────────
+`NGUYEN-TAC-DO-LUONG.md` (ô ⚠️ của lượt soát 2, 18/09/2026) viết bản báo cáo
++636,11% *"không tìm thấy ở đâu"* — sai: tệp nằm ngoài repo, trong thư mục
+`brain/` của Antigravity. Công cụ không bao giờ đưa câu ấy ra vì BA lỗ chồng
+nhau, và chỉ cả ba cùng vá mới bắt được nó (đo 14/10/2026 trên quần thể thật):
+
+    tung dong, bo dong co dau (ban cu)    39 loi khai · bat ca 177: KHONG
+    + khong bo dong co dau                43            · KHONG
+    + 'khong tim thay' vao PHU_DINH        44            · KHONG
+    + quet theo CAU trai nhieu dong        bat ca 177: CO (dong 207)
+
+  1. **Dòng mang dấu không còn bị bỏ.** Một dấu ⚠️ là lời khai MỚI của
+     chính một lượt soát, và nó có thể sai như mọi lời khai khác. `DA_CO_DAU`
+     nay chỉ GẮN NHÃN `[có dấu]` trong bản in, không lọc.
+  2. **`không tìm thấy`** vào `PHU_DINH` — đúng cụm của câu sai.
+  3. **Quét theo CÂU** (`cau_nhieu_dong`): cụm phủ định ở dòng 207, tên tệp
+     ở dòng 206 — quét từng dòng không bao giờ thấy cả hai vế cùng lúc. Bổ
+     sung, không thay: phép quét từng dòng giữ nguyên để khoá `dong` cũ trong
+     sổ còn khớp (quét chỉ theo câu làm mất 25/39 dòng cũ — chúng khớp nhờ hai
+     vế TÌNH CỜ chung một dòng). KHÔNG áp cho `TAI_LIEU_LUU` (hai bản nguyên
+     văn không bao giờ sửa): ở đó nó thêm 21 lời khai không ai sửa được.
 """
 from __future__ import annotations
 
@@ -124,7 +148,9 @@ TAI_LIEU = [
 PHU_DINH = re.compile(
     r"(chưa bao giờ|chưa ai|không ai|chưa có|chưa làm|chưa đo|chưa được"
     r"|chưa kiểm|không tồn tại|không ghi"
-    r"|không nhập|không gọi|không dùng|không chạm)", re.I)
+    r"|không nhập|không gọi|không dùng|không chạm"
+    r"|không tìm thấy)", re.I)   # BƯỚC 191, lỗi 177
+#: Từ BƯỚC 191 chỉ GẮN NHÃN `[có dấu]` trong bản in — KHÔNG lọc (lỗi 177).
 DA_CO_DAU = ("🔴", "⚠️", "ĐÃ BỊ BÁC", "đã bị thay", "ĐÃ ĐO", "ĐÃ TRUY", "~~")
 #: Một cái tên trong dấu nháy ngược. `()` ở cuối được nhận, vì dự án
 #: viết tên hàm đúng kiểu ấy suốt — `kiem_goi()`, `_doc()`, `chay()`.
@@ -169,24 +195,84 @@ def buoc_chua_khai(van_state: str, da_khai, moc: int) -> list[str]:
     return ra
 
 
+#: Hai bản NGUYÊN VĂN (không bao giờ sửa): phép quét theo CÂU không áp cho
+#: chúng; phép quét theo DÒNG vẫn áp để khoá `dong` cũ trong sổ còn khớp.
+TAI_LIEU_LUU = tuple(t for t in TAI_LIEU if t.startswith("docs/lich-su/"))
+
+#: Một câu: từ ký tự khác trắng tới dấu . ! ? đứng trước khoảng trắng/cuối.
+#: Dấu chấm GIỮA chữ (`report.md`, `0,46%`) không cắt câu.
+RE_CAU = re.compile(r"\S.*?(?:[.!?](?=\s|$)|$)")
+
+
+def cau_nhieu_dong(dong: list[str]) -> list[tuple[int, str]]:
+    """(số dòng, nguyên văn dòng) cho mỗi CÂU có cả cụm phủ định lẫn một tên. HÀM THUẦN.
+
+    Đơn vị là câu trong một ĐOẠN: các dòng liền nhau, bỏ tiền tố `> ` của
+    blockquote; dòng trống, dòng bảng, tiêu đề `#` và rào ``` cắt đoạn (trong
+    rào là mã, không phải lời khai). Số dòng trả về là dòng chứa cụm phủ định
+    ĐẦU TIÊN của câu — đó là dòng làm khoá `dong` trong sổ soát. Lỗi 177: cụm
+    phủ định ở dòng 207, tên tệp ở dòng 206.
+    """
+    ra: list[tuple[int, str]] = []
+    doan: list[tuple[int, str]] = []
+
+    def xu_ly() -> None:
+        van, moc = "", []
+        for i, nd in doan:
+            moc.append((len(van), i))
+            van += nd + " "
+        for m in RE_CAU.finditer(van):
+            pd = PHU_DINH.search(m.group(0))
+            if not pd or not CO_TEN.search(m.group(0)):
+                continue
+            vt = m.start() + pd.start()
+            so = [i for k, i in moc if k <= vt][-1]
+            if all(so != s for s, _ in ra):
+                ra.append((so, dong[so - 1]))
+        doan.clear()
+
+    trong_rao = False
+    for i, d in enumerate(dong, 1):
+        if d.strip().startswith("```"):
+            xu_ly()
+            trong_rao = not trong_rao
+            continue
+        nd = re.sub(r"^\s*>\s?", "", d)
+        if trong_rao or not nd.strip() or nd.lstrip().startswith(("|", "#")):
+            xu_ly()
+            continue
+        doan.append((i, nd))
+    xu_ly()
+    return ra
+
+
 def loi_khai_con_song(goc: Path = GOC) -> list[tuple[str, int, str]]:
-    """(file, dòng, nội dung) — mọi lời khai phủ định CÓ NÊU TÊN, chưa đánh dấu."""
+    """(file, dòng, nội dung) — mọi lời khai phủ định CÓ NÊU TÊN.
+
+    Hai phép quét, HỢP lại (BƯỚC 191): theo DÒNG (cụm phủ định và tên chung
+    một dòng) và theo CÂU (`cau_nhieu_dong`, trừ `TAI_LIEU_LUU`). Dòng mang
+    dấu 🔴/⚠️ KHÔNG còn bị bỏ — lỗi 177 là một câu sai trong chính một ô ⚠️.
+    """
     ra: list[tuple[str, int, str]] = []
     for ten in TAI_LIEU:
         p = goc / ten
         if not p.exists():
             continue
-        for i, d in enumerate(p.read_text(encoding="utf-8",
-                                          errors="replace").splitlines(), 1):
+        dong = p.read_text(encoding="utf-8", errors="replace").splitlines()
+        cua_file: list[tuple[str, int, str]] = []
+        for i, d in enumerate(dong, 1):
             if not PHU_DINH.search(d):
                 continue
             if d.lstrip().startswith("|"):
                 continue
-            if any(x in d for x in DA_CO_DAU):
-                continue
             if not CO_TEN.search(d):
                 continue
-            ra.append((ten, i, d.strip()))
+            cua_file.append((ten, i, d.strip()))
+        if ten not in TAI_LIEU_LUU:
+            co = {i for _, i, _ in cua_file}
+            cua_file += [(ten, i, d.strip()) for i, d in cau_nhieu_dong(dong)
+                         if i not in co]
+        ra += sorted(cua_file, key=lambda x: x[1])
     return ra
 
 
@@ -313,7 +399,8 @@ def main(tham_so: list[str] | None = None) -> int:
             if f != f_cu:
                 print(f"\n{f}")
                 f_cu = f
-            print(f"  {dong:5}  {noi_dung[:150]}")
+            nhan = "[có dấu] " if any(x in noi_dung for x in DA_CO_DAU) else ""
+            print(f"  {dong:5}  {nhan}{noi_dung[:150]}")
             if dau:
                 print(f"         ↳ soát {dau[0]} — {dau[1][:110]}")
         print("\n" + "=" * 64)
