@@ -22767,3 +22767,30 @@ Leader, máy của người dùng. **Chỉ thêm mục này vào `docs/STATE.md`
 - `backtest/cache` vẫn chứa 6 phiên sau ngày khai UV-001 (⚠️ ĐO 24, BƯỚC 187). Thao tác này không thêm phiên nào sau 2026-10-12.
 
 **Giới hạn.** Bản sao lưu 66 tệp nằm ở thư mục nháp của phiên leader, ngoài repo, nên sẽ mất khi phiên ấy bị dọn. Mọi số ở trên lấy từ ba lượt chạy cùng ngày 14/10. Một lượt kéo mới có thể cho số khác ở các dòng nguồn sửa số lẻ (như VHM). Ngưỡng 0,1% không thấy nến dở lệch giá ít hơn 0,1%. Khối lượng là dấu hiệu bổ sung, không được dùng làm tiêu chí lọc.
+
+## BƯỚC 190 — LỖI 177: ĐÁNH DẤU ⚠️ VẾ "KHÔNG TÌM THẤY Ở ĐÂU" TRONG `NGUYEN-TAC-DO-LUONG.md` — BÁO CÁO +636,11% VẪN CÒN, NGOÀI REPO (14/10/2026)
+
+**Mốc:** quy-trinh — sửa một lời khai sai trong file luật (lỗi 177, phát hiện ở lượt soát 12, BƯỚC 188)
+
+Leader, máy của người dùng. Người dùng trả lời đề xuất của leader: *"làm theo đề xuất"* (thêm một dòng ⚠️ có ngày, giữ nguyên chữ cũ; vì là file luật nên hỏi sổ tay thật). Cùng lượt, người dùng cũng *"làm theo đề xuất"* cho câu thứ hai, tức **KHÔNG** thêm `ke_hoach_vao_lenh` và `suc_khoe` vào mục "CHỈ ĐỂ HIỆN" của `CLAUDE.md`. Lý do: cả hai đã có gác máy (`tests/test_ke_hoach_vao_lenh.py::test_CHI_app_py_va_dung_cu_DO_25_duoc_nhap_ke_hoach_vao_lenh`, `tests/test_suc_khoe.py::test_backtest_khong_nhap_suc_khoe`), còn `CLAUDE.md` được nạp ở mọi phiên.
+
+**Thay đổi.** `NGUYEN-TAC-DO-LUONG.md`: **+7 dòng, 0 dòng xoá** (`git diff --stat`). Một đoạn ⚠️ có ngày đặt trong chính ô ⚠️ 18/09/2026 của mục *"Lần thứ tư: +636,11%"*, ngay dưới câu sai. Đoạn ấy nói: vế *"không tìm thấy ở đâu"* HẾT ĐÚNG; báo cáo vẫn còn ở `~/.gemini/antigravity/brain/94db5080-33a8-473d-9aa7-24e6bc20d5a5/`; lượt soát 18/09 chỉ tìm trong cây repo; vế *git chưa bao giờ theo dõi `brain/`* vẫn đúng. Không sửa chữ nào cũ.
+
+**Kiểm lại phát hiện của phiên con (leader, bằng lệnh, 14/10).**
+- `ls -la` tệp ấy → 3.912 byte, 2026-08-12 23:35.
+- `grep -n "636\|50[.,]0"` → dòng 25: bảng *"Vòng 11 (🏆) | `50.0` | … | `+636.11%`"*; dòng 41–42: *"Điểm Ngưỡng Mua Tối Ưu Nhất … Ngưỡng 50.0 điểm … +636.11%"*. Đúng là báo cáo mà dòng 176 của `NGUYEN-TAC-DO-LUONG.md` dẫn (*"công bố ngưỡng 50,0 là 'QUÁN QUÂN TỐI ƯU' với +636,11%"*).
+- `brain/` là thư mục làm việc của Antigravity: `~/.gemini/antigravity/brain/` có 13 thư mục con, nằm cạnh `scratch/`, ngoài repo.
+- Một `brain/` từng nằm ở gốc repo hay chưa thì git không trả lời được (`git log --all -- brain` rỗng: chưa bao giờ được theo dõi). Dòng thêm cố ý không khẳng định điều ấy.
+
+**Sổ tay (Quy tắc 3, hỏi thật vì chạm `NGUYEN-TAC-DO-LUONG.md`).**
+- **Đo độ tươi:** sổ trích đúng tiêu đề BƯỚC 184 là BƯỚC lớn nhất; main có 189, tức sổ cũ 5 BƯỚC. **Không làm tươi**, có lý do:
+  - `git diff --stat 1238343 ea97c07` không có `NGUYEN-TAC-DO-LUONG.md`, nên sổ đọc đúng câu đang có trên main;
+  - mọi dòng thêm từ 1238343 có nhắc `brain` · `20loop` · `636` (grep trên diff) đều ỦNG HỘ kết luận: hàng 177 của bảng lỗi và mục BƯỚC 188.
+- **Câu hỏi:** dựng bằng `tools/so_tay.py hoi`, gửi nguyên văn (1.379 ký tự, checksum khớp trước khi bấm). Trả lời: *"không tìm thấy câu nào nói ngược"*.
+- **Tự kiểm câu âm:** quét nhiều dòng (bỏ ngắt dòng cứng và dấu `> `) trên `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `README.md` · `SKILL.md` · `references/*.md` · `docs/HANDOFF.md` · `docs/STATE.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md` · `docs/QUYET-DINH-CHO.md` · `docs/lich-su/*.md`, theo bốn ví dụ đã hỏi:
+  1. *báo cáo đã mất* → 4 khớp. Chính câu đang đánh dấu; hàng 177 và BƯỚC 188 (ủng hộ); và **một câu sổ tay BỎ SÓT**: bảng của **BƯỚC 102** (lượt soát 2, 18/09/2026) phán *"thư mục ấy **không còn tồn tại**, kể cả bản báo cáo `20loop_custom71_18m_optimization_report.md`"*. Đó là gốc của lỗi 177, nằm trong nguồn @1238343 và chưa có dấu nào tại chỗ. Không sửa, vì STATE chỉ thêm; BƯỚC 188 và mục này là bản ghi sửa.
+  2. *`brain/` ở gốc repo* → 26 khớp, chỉ có chính câu *"`brain/` cũng không còn ở gốc repo"* và các chỗ trích lại nó. Không câu nào khẳng định nó từng ở đó.
+  3. *cấm thêm ghi chú vào ô cảnh báo* → 1 khớp: BƯỚC 185 nói đánh dấu văn bản đã ký là việc của một BƯỚC chạm file luật, tức cùng chiều.
+  4. *không còn bản nào trên máy* → 0 khớp.
+
+**Giới hạn.** Đường dẫn trỏ vào thư mục nhà của máy này: `tools/kiem_duong_ngoai_repo.py` sẽ canh nó ở lượt soát kế (21/10). Nếu Antigravity dọn `brain/` thì dòng ấy lại thành một câu ở thì hiện tại về một tệp đã mất.
