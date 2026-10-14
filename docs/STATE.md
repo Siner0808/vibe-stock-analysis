@@ -22726,10 +22726,16 @@ Tức tệp mà `NGUYEN-TAC-DO-LUONG.md` :176 dẫn (`brain/…/20loop_custom71_
 
 ### Năm cổng
 
-(điền sau khi chạy)
+Mốc `docs/moc_so_test.json` **không đổi** (3141): BƯỚC này không thêm hay bớt test nào. Trước khi chạy cổng, lượt kiểm nhanh các file test chạm sổ và skill đỏ MỘT test — `tests/test_skill_quy_trinh.py::test_moi_file_skill_nhac_toi_deu_CO_THAT`: hàng 177 của `references/loi-da-mac.md` nhắc một tên tệp `.md` trong dấu nháy ngược mà git không biết (tệp nằm ngoài repo). Sửa bằng cách bỏ dấu nháy quanh tên tệp (đường đầy đủ `~/.gemini/…` vốn không khớp mẫu của gác); chạy lại hai file test: `31 passed` (23,14 s). Lượt đầy đủ, tuần tự, log ra file ở thư mục nháp của phiên con (ngoài repo), trên cây `8cd2bee` (trước khi gộp `main` có BƯỚC 187): cổng 1 `3139 passed, 2 skipped` (393,66 s) · cổng 2 `Đã kiểm 293 file .py + 3 đoạn nhúng trong workflow, bằng Python 3.11` · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 `Đã chạy riêng 152 file trong 522s` · cổng 5 `OK — 3141 test, khop moc da ghi` — cả năm mã thoát 0. Sau gộp BƯỚC 187 (`e0070ad`, hai xung đột `docs/STATE.md` và `docs/soat-notebooklm.json` giải bằng cách giữ CẢ HAI mục, 187 trước 188; tệp JSON dựng lại từ dict) có lượt cổng thứ hai trên cây cuối: số nằm ở thân PR (nó sinh ra sau file này). `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 188` → *"BƯỚC 188: khong cham luat"* (trước và sau khi gộp 187; cùng lệnh cho 187 → `CHAM LUAT ['docs/TIEU-CHI-DOC-TRUOC.md']`, BƯỚC 187 đã hỏi thật).
 
 ### Đo lại sau lần ghi cuối
 
-(điền sau khi chạy)
+`./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py`, chạy SAU khi mọi file tài liệu đã được ghi và sau khi gộp BƯỚC 187 (kết quả đối chiếu với ô `duong_ngoai_repo.sau_luot` của lượt 2026-10-14 ở `docs/soat-dinh-ky.json`; lệch thì lượt này sai lỗi 121):
+
+```
+c3bd920 + sửa lượt 12 + gộp 3d24b6f : 0 chết · 13 sử liệu · 49 còn   (mã thoát 0)
+```
+
+Khớp ô `sau_luot`. `tools/soat_loi_khai_cu.py` sau lượt: 39 lời khai, chưa ai mở 0. `tools/kiem_cua_song.py`: *"Trong so do co ban TOAN CUC : 7"*, *"OK — moi hook deu co ban toan cuc"*.
 
 **Việc kế.** (1) Leader: hỏi sổ tay thật rồi sửa `NGUYEN-TAC-DO-LUONG.md` :203-207 (mục *LỖI 177*) và thêm `ke_hoach_vao_lenh` · `suc_khoe` (cùng các module chỉ-để-hiện B2–B5) vào danh sách CHỈ ĐỂ HIỆN của `CLAUDE.md` — hai việc file luật. (2) Lượt 13 đến hạn **21/10/2026**; gợi ý: với mỗi lời khai phủ định chạm MỘT NƠI (thư mục, tệp, máy), chạy lệnh trên chính nơi ấy; và mở cả các dòng nằm trong khối ⚠️ có chữ *"không tìm thấy"*. (3) Việc riêng, chưa làm: cho `tools/soat_loi_khai_cu.py` đọc khối trích dẫn có dấu (hướng của hàng 177).
