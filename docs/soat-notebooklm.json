@@ -2914,6 +2914,10 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "Sổ trả 'không tìm thấy câu nào nói ngược'. Tự kiểm bằng quét NHIỀU DÒNG 15 nguồn ở main c4f116f (scratchpad grep_cau_am_187.py), bốn mẫu theo bốn ví dụ: (1) cấm thêm dấu vào mục đã ký — 6 khớp ở TIEU-CHI đều là tiêu đề 'BẢNG ĐỌC — ký trước, không sửa sau khi thấy số' (cấm SỬA chữ đã ký, không cấm THÊM ghi chú có ngày), 2 khớp ở STATE trong đó có tiền lệ 'ĐO 23 (🔴 ghi chú, không sửa chữ đã ký)' — nhất quán với BƯỚC 187; (2) nhãn UV-001 từ backtest/cache — 2 khớp ở STATE: đề bài ĐO 24 (hỏi UV-001 có bị ảnh hưởng không) và BƯỚC 185 (ghi đúng phát hiện này) — 0 câu cho phép; (3) cache phải đóng băng — khớp là sự cố 'cache VN-INDEX đóng băng' cũ và 'giữ nguyên cache' của LECH_CO_SO (BƯỚC 180) — 0 luật đóng băng; (4) ngày đọc UV-001 phụ thuộc cache — 0 khớp."
     },
+    "BƯỚC 188": {
+      "ngay": "2026-10-14",
+      "khong_bat_buoc_vi": "Soát định kỳ lượt 12 (ghi lượt 2026-10-14 vào docs/soat-dinh-ky.json, hàng lỗi 177 vào references/loi-da-mac.md và docs/loi-phan-lop.json) và gỡ con số cửa đã trôi ở docs/HANDOFF.md, docs/cua-du-an.json, docstring tools/kiem_cua_song.py; không sửa file nào trong sáu file luật (cố ý KHÔNG sửa NGUYEN-TAC-DO-LUONG.md :203-207 dù lượt soát tìm ra câu sai ở đó, báo leader hỏi sổ tay thật), không đổi ngưỡng, điểm hay kết luận đo; tools/buoc_cham_luat.py 188 xác nhận không chạm luật."
+    },
     "BƯỚC 189": {
       "ngay": "2026-10-14",
       "khong_bat_buoc_vi": "BƯỚC 189 chỉ ghi vào docs/STATE.md một thao tác dữ liệu trên backtest/cache (thư mục bị gitignore) do người dùng chọn 14/10/2026: thay cả chuỗi 13 mã rổ còn nến dở và 53 tệp ngoài rổ bằng đúng đường extend_history(thay_ca_chuoi=True) đã dùng ở BƯỚC 185. Không đổi mã, ngưỡng, điểm, workflow hay file luật nào. Không chạy lại ĐO nào, nên không đổi kết luận đo nào: ĐO 25 giữ kết cục B; việc nó không tái lập từng byte trên máy này đã được ghi và hỏi sổ tay thật ở BƯỚC 185. Băm M0 mới chỉ là số đo trạng thái cache. Phát hiện BSR/VTP (các bước vượt biên y nguyên sau khi thay cả chuỗi) thu hẹp một giả thuyết về dụng cụ kiem_co_so_cache, không phải kết luận của một ĐO."

@@ -73,6 +73,12 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 > năm cửa `Read/Write/Edit` và `Stop`. Đó là **lỗi 25** — một phép thử
 > đo một cửa bị đọc thành phán quyết về sáu.
 >
+> ⚠️ **14/10/2026 (BƯỚC 188): con số "sáu" ở đoạn trên đã trôi — nay là bảy cửa**
+> (cửa thứ bảy `tools/cua_ho_so.py` vào ngày 15/09/2026, `git log -S` trên
+> `docs/cua-du-an.json` ra `a42d8bd`). Câu cũ giữ nguyên làm sử liệu. Đừng ghim số
+> cửa ở đâu cả: đọc bằng `./.venv/Scripts/python.exe tools/kiem_cua_song.py` (nó
+> in số hook trong bản khai và số hook trong bản toàn cục).
+>
 > **Đọc trạng thái, đừng suy ra nó:**
 >
 > ```bash
@@ -400,8 +406,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
->   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 15/10 (nhịp 7 ngày kể từ NGÀY LÀM
->   lượt 11, 08/10 — BƯỚC 164; hạn 10/10 cũ bị thay bởi quyết định người dùng 08/10).
+>   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 15/10 (✅ BƯỚC 188, 14/10; nhịp 7 ngày
+>   kể từ NGÀY LÀM lượt 11, 08/10 — BƯỚC 164; hạn 10/10 cũ bị thay bởi quyết định người dùng 08/10).
+>   Lượt 13: 21/10 (nhịp 7 ngày kể từ NGÀY LÀM lượt 12, 14/10 — BƯỚC 188).
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -520,7 +527,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > BƯỚC (A1); nhịp soát 7 ngày và workflow `soat-tuan.yml` cho phần máy (A2); Quy
 > tắc 3 thu hẹp, máy phán "có đổi luật" bằng git (A3). A4 (tách `docs/STATE.md`
 > theo tháng) và A5 (hàng đợi quyết định) là phần còn lại của giai đoạn. Lượt 12:
-> 15/10 (dòng hạn ở khối "Hạn kế" trên). File ngoài repo
+> 15/10 (✅ BƯỚC 188, 14/10; dòng hạn ở khối "Hạn kế" trên). File ngoài repo
 > `~/.claude/rules/vibe-preview.md` còn ghi luật Quy tắc 3 cũ — leader sửa sau
 > khi PR của BƯỚC 164 được merge.
 

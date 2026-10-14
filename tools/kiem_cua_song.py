@@ -50,7 +50,8 @@ nên người ta gán quan hệ nhân quả. Chưa ai từng mở phiên ở đ�
 
 Vì thế hook đã được **gỡ khỏi** `<repo>/.claude/settings.json`; phần khai
 chuyển sang `docs/cua-du-an.json` để công cụ này còn cái để so. Trên một
-máy mới nó sẽ báo 0/6 — đúng thông điệp cần có.
+máy mới nó sẽ báo 0/n (n = số hook khai ở `docs/cua-du-an.json`, đọc bằng chính
+công cụ này) — đúng thông điệp cần có.
 
 Trạng thái thứ ba bắt buộc, cùng lý do như ba cổng cùng loại: một công cụ
 không chạy được mà trả 0 thì chính nó là cổng xanh giả.
