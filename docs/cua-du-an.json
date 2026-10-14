@@ -17,8 +17,9 @@
     "nguy -- nen no duoc go di, va phan khai bao chuyen sang day.",
     "",
     "tools/kiem_cua_song.py doc file nay roi so voi ~/.claude/settings.json.",
-    "Tren mot may moi, no se bao 0/6 -- dung thong diep can co: hay chep sau",
-    "hook nay sang settings toan cuc bang duong dan tuyet doi.",
+    "Tren mot may moi, no se bao 0/n (n = so hook khai o day, doc bang chinh cong cu",
+    "nay) -- dung thong diep can co: hay chep cac hook nay sang settings toan cuc",
+    "bang duong dan tuyet doi.",
     "",
     "Giu nguyen hinh dang cua settings.json de cong cu doc chung mot ham."
   ],
