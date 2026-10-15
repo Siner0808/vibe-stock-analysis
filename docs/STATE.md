@@ -23153,6 +23153,7 @@ Leader, máy của người dùng. Sau BƯỚC 197 leader hỏi việc kế; ng�
 **Gác:** `tests/test_ke_hoach_da_ghi.py`, 17 test. Đột biến 28/28 đỏ ngay vòng đầu.
 - Phát đầu dựng lại lỗi dễ mắc nhất: `fromtimestamp(at)` thiếu múi giờ. Máy này chạy giờ VN, nên phép kiểm giá trị xanh ở máy và chỉ đỏ trên máy UTC.
 - Vì vậy có thêm một gác AST đọc hình dạng lời gọi (`GIO_VN` là đối số thứ hai); gác ấy bắt được lỗi ở mọi máy.
+- Năm cổng lượt đầu ĐỎ đúng chỗ: `tests/test_so_lenh_app.py` chỉ cho app gọi hai hàm `*_google_sheets` có tên. Danh sách nay thêm `load_ke_hoach_from_google_sheets`, lý do ghi cạnh nó; hai đột biến (app gọi thêm `sync_*` hay `restore_*`) vẫn đỏ, 2/2.
 
 **Chạy thật trên app.** Leader chạy app của nhánh ở cổng 8523, đọc Sheet thật.
 - Bảng hiện các kế hoạch của ngày nến mới nhất. Số trùng với phép đối chiếu tay ở BƯỚC 197. "Ghi lúc" hiện đúng giờ VN của lượt quét.
