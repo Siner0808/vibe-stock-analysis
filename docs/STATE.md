@@ -23104,3 +23104,26 @@ Lỗi nằm ở thứ tự: cẩm nang đặt bước đo độ tươi SAU bư�
 **Sổ tay:** hỏi thật (checksum 202252288). Sổ trả *"không tìm thấy câu nào nói ngược"*. Grep năm ví dụ không thấy câu nào nói ngược; chi tiết ở `_tu_kiem_cau_am`. Ô ⚠️ của cẩm nang và lỗi 179 viết SAU lượt hỏi, từ chính lượt làm tươi; chúng không đổi kết luận nào mà câu hỏi đã nêu.
 
 **Lượt quét Actions đầu tiên chạy mã BƯỚC 195:** chưa chạy khi bước này đóng (14:07 giờ VN). Việc kế: đọc log của lượt ấy (dòng 📝, dòng đẩy "kế hoạch", không có `::warning::` về `ke_hoach`), mở tab `ke_hoach` trên Sheet, và đối chiếu một dòng với `lap_ke_hoach` chạy tay.
+
+## BƯỚC 197 — `docs/HANDOFF.md` BẮT KỊP 15/10; ĐỐI CHIẾU TAY TAB `ke_hoach` SAU LƯỢT QUÉT THẬT ĐẦU TIÊN (15/10/2026)
+
+**Mốc:** B6
+
+Leader, máy của người dùng. Người dùng nhắn *"tiếp tục đi"* sau khi nén ngữ cảnh. Lượt soát 13 và lượt đọc 2 ĐO 27 để tới gần hạn 21/10.
+
+**Việc kế của BƯỚC 195–196 đã làm.** Lượt quét Actions đầu tiên chạy mã BƯỚC 195 là lượt 07:10 UTC ngày 15/10, trên `9ec0556`, kết quả success.
+- Log có dòng `📝 Kế hoạch vào lệnh:` với 0 lỗi, có dòng đẩy "thêm … kế hoạch", và không có `::warning::` nào về `ke_hoach`.
+- Tab `ke_hoach` đã được tạo trên Google Sheet thật. Tiêu đề trùng `sheets_store.KE_HOACH_COLS` (21 cột).
+- Cách đối chiếu (chỉ đọc; leader chạy hai lần: sau lượt quét và lại lúc 15:3x giờ VN). Với MỖI dòng trên tab:
+  1. kéo nến bằng `VNStockCollectorAgent().collect(mã, "2023-01-01", ngày nến, exchange=san_giao_dich.san_cua(mã))`, rồi cắt tới ngày nến;
+  2. gọi `ke_hoach_vao_lenh.lap_ke_hoach(df, price_multiplier(df), diem, nguong, <18:00 giờ VN ngày nến>, san)`, với `diem`, `nguong`, `san` đọc từ chính dòng ấy.
+- Kết quả: năm trường `phan_quyet`, `cat_lo`, `vung_day`, `vung_tran`, `gia_dong` khớp ở MỌI dòng. `rui_ro_pct` và `keo_gian_atr` trùng tới chữ số cuối. Ô rỗng trên Sheet ứng với `None` (mã mua ngay thì không có vùng).
+- Không chép số dòng hay giá vào đây, vì số của sổ tự trôi (`CLAUDE.md`).
+- **Giới hạn:** nguồn giá điều chỉnh LÙI theo sự kiện quyền (BƯỚC 176, 193). Nếu mã có ngày GDKHQ rơi giữa ngày nến và ngày đối chiếu, chạy lại sẽ lệch theo hệ số điều chỉnh. Lệch kiểu ấy không phải lỗi của bộ ghi. Phép đối chiếu này chỉ có nghĩa khi chạy sớm.
+
+**`docs/HANDOFF.md` bắt kịp.** HANDOFF đứng ĐẦU thứ tự ưu tiên nhưng mới nhắc tới BƯỚC 188, trong khi BƯỚC 192–196 đã đổi trạng thái. Đó là hình dạng lỗi 57: phép sửa nằm ở file thấp hơn, nên người đọc đúng luật không bao giờ thấy.
+- Mục 5 thêm khối 🧭 15/10: ĐO 26 ra K0 và vì sao; ĐO 27 và nhịp đọc; chú thích chart; B6 phần 2 chạy thật; nguồn STATE bị cắt cụt trong sổ tay.
+- Dòng hạn lượt 13 ghi thêm: làm kèm lượt đọc 2 ĐO 27.
+- **Cố ý KHÔNG thêm ĐO 27 vào mục "Chờ tới ngày":** bản ký chỉ nói "đọc kèm mỗi lượt soát". Lượt soát làm sớm hơn hạn là chuyện thường (lượt 12 làm 14/10, hạn 15/10). Ghi ĐO 27 vào mục ấy sẽ đặt thêm một luật mà bản ký không có, là "không đọc trước 21/10".
+
+**Sổ tay:** BƯỚC này khai `khong_bat_buoc_vi`. Nó chỉ sửa `docs/HANDOFF.md`, `docs/STATE.md` và `docs/soat-notebooklm.json`. Không file luật nào bị chạm, và không kết luận đo nào đổi: khối HANDOFF chỉ chép lại kết luận đã hỏi sổ tay ở BƯỚC 192–196. Ý nghĩa của tab `ke_hoach` thì không đổi.
