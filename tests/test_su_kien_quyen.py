@@ -320,7 +320,8 @@ def test_CHI_app_va_CLI_duoc_nhap_su_kien_quyen():
     # BƯỚC 192: thêm dụng cụ ĐO 26 (chỉ đọc) — nó phải gắn nhãn bằng ĐÚNG hàm của sản
     # phẩm (`soi_so`) để đo nhãn ấy, như dụng cụ ĐO 25 nhập `ke_hoach_vao_lenh`.
     assert ai == {"app.py", "tools/soi_su_kien_quyen.py", "nen_su_kien_quyen.py",
-                  "tools/do26_nguong_su_kien_quyen.py"}, (
+                  "tools/do26_nguong_su_kien_quyen.py",
+                  "tools/do27_su_kien_quyen_chieu_tien.py"}, (   # BƯỚC 194: ĐO 27
         f"su_kien_quyen chỉ được nhập ở app, CLI soi và đường nối; đang có: {sorted(ai)}")
 
 
@@ -417,7 +418,11 @@ def test_APP_khoi_khong_goi_ham_ghi_va_khong_mo_so_ma_nguon():
 CAU_CO_DINH = ("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều "
                "chỉnh). Từ BƯỚC 182, lệnh tiến-về-trước ĐÃ ĐÓNG mang nhãn "
                "SU_KIEN_TRONG_LUC_GIU bị LOẠI khỏi mẫu của điều kiện dừng cổng C5 (Q14); "
-               "lệnh KHONG_KIEM_DUOC và LECH_KHAC ở lại. Bảng dưới chỉ HIỆN nhãn.")
+               "lệnh KHONG_KIEM_DUOC và LECH_KHAC ở lại. Bảng dưới chỉ HIỆN nhãn. "
+               # BƯỚC 194: thêm giới hạn của nhãn với lệnh mô phỏng (ĐO 26 K0, lỗi 178).
+               "Nhãn của lệnh MÔ PHỎNG không đọc được thành sự kiện trong lúc giữ: giá sổ "
+               "của chúng đã điều chỉnh tới ngày ghi sổ (ĐO 26, BƯỚC 193); điều kiện dừng "
+               "không dùng chúng.")
 
 
 def test_APP_in_cau_co_dinh_nguyen_van():

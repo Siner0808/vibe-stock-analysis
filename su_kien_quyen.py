@@ -33,6 +33,11 @@ GIỚI HẠN (đọc trước khi tin nhãn)
 · Lệnh có |f_vào − 1| ≤ `NGUONG_LECH` là `SACH` ngay, kể cả khi giá ra của sổ
   lệch biên ngày ra vì một lý do khác (gap ghi ở giá SL): không soi tới đó.
 · Nhãn dựa vào giá của NGUỒN HÔM NAY; nguồn đổi cơ sở lần nữa thì nhãn đổi.
+· Tiền đề "sổ lưu giá CHƯA điều chỉnh lúc khớp" chỉ đúng cho lệnh GHI LÚC KHỚP
+  (tiến-về-trước). Lệnh mô phỏng (lô ghi 07/08/2026) mang giá chuỗi cache đã điều
+  chỉnh tới NGÀY GHI SỔ, nên nhãn của chúng không đọc được thành "sự kiện trong
+  lúc giữ" (ĐO 26 kết cục K0; chẩn đoán khớp 77/78 khi đếm từ ngày ghi sổ —
+  `docs/STATE.md` BƯỚC 193, lỗi 178). Điều kiện dừng chỉ dùng lệnh tiến-về-trước.
 """
 from __future__ import annotations
 

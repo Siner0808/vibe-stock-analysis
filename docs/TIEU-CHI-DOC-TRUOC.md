@@ -4140,3 +4140,60 @@ Trên sổ lệnh thật, nhãn `SU_KIEN_TRONG_LUC_GIU` của `su_kien_quyen.kie
 
 ### Điều ĐO này KHÔNG làm
 Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sheets; không dùng lịch sự kiện trong đường chạy thật. Muốn dùng nó làm nhãn là mốc D1, việc riêng.
+
+## ĐO 27 — nhãn sự kiện quyền trên lệnh TIẾN-VỀ-TRƯỚC đóng SAU ngày ký: đo theo chiều tiến, đối chiếu lịch sự kiện VCI (khai 15/10/2026)
+
+> **Khai 15/10/2026, TRƯỚC khi có dụng cụ đo, ở một commit RIÊNG.**
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 15/10/2026.
+> - Sổ tay hỏi thật ở BƯỚC 194.
+> - Thay ĐO 26 (kết cục K0, BƯỚC 193). Cũng như ĐO 26, đây là phép đo **kiểm một cái máy gắn nhãn**, không đo lợi thế: không tính vào K, không chạm điểm, ngưỡng mua hay đường lệnh.
+
+**Đã tra trùng:** BƯỚC 192 · BƯỚC 193 · BƯỚC 182 — ba mục đã tra, và hai điều phải khai:
+- BƯỚC 192–193 (ĐO 26): kết cục K0, vì giá trong sổ của lệnh mô phỏng là giá đã điều chỉnh tới NGÀY GHI SỔ, không phải giá khớp chưa điều chỉnh (lỗi 178). Lệnh tiến-về-trước thì ghi lúc khớp, nên tiền đề của nhãn đúng cho nhóm ấy.
+- BƯỚC 182: điều kiện dừng chỉ loại lệnh tiến-về-trước đã đóng. Vì thế ĐO 27 đo đúng nhóm ấy.
+- **Đã nhìn:** leader đã thấy toàn bộ sổ tới 15/10/2026 qua ĐO 26. Trên lệnh tiến-về-trước đã đóng tới ngày ấy, lệnh duy nhất mang nhãn là #122, và nó có sự kiện trong lúc giữ. Chẩn đoán ĐO 26 (khoảng tính từ ngày ghi sổ) cho lịch sự kiện khớp nguồn giá 77/78. Vì vậy quần thể của ĐO 27 chỉ gồm lệnh ĐÓNG SAU ngày ký: những lệnh ấy chưa ai nhìn.
+- **Ngày ký là ngày của commit ký**, không phải ngày duyệt.
+
+**Không có dụng cụ vì:** dụng cụ viết SAU commit này (BƯỚC 194, commit sau). Nó dùng lại các hàm thuần của `tools/do26_nguong_su_kien_quyen.py`.
+
+### Câu hỏi
+Trên lệnh tiến-về-trước đóng sau ngày ký, nhãn `SU_KIEN_TRONG_LUC_GIU` của `su_kien_quyen.kiem_lenh` (hai ngưỡng hiện hành) có trùng với việc một sự kiện điều chỉnh giá THẬT SỰ có ngày GDKHQ rơi trong lúc giữ lệnh không? Và hai ngưỡng cách mức nhiễu bao xa?
+
+### Mã và hằng số
+- `su_kien_quyen` và `nen_su_kien_quyen` ĐÚNG như ở `main` lúc ký. `NGUONG_LECH` = 0,05 và `NOI_BIEN` = 0,02 GHIM.
+- Đổi ngưỡng sau khi nhìn số = vi phạm bất biến 7; muốn đổi thì phải là ĐO mới, ký lại.
+
+### Dữ liệu
+Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0). Ba nguồn như ĐO 26: sổ thật qua `doc_so_that.keo_ve_so_tam`, giá qua `nen_su_kien_quyen.tai_nen`, lịch VCI `DIV,ISS` lật hết trang. Ba loại điều chỉnh CK · TM · QM và loại bỏ qua giữ đúng định nghĩa của ĐO 26.
+
+### Quần thể và khoảng sự kiện
+- **Quần thể:** lệnh tiến-về-trước (`paper_metrics.lenh_tien_ve_truoc`) có trạng thái `CLOSED` và **ngày ra SAU ngày ký**.
+- **Sự kiện trong lúc giữ:** sự kiện điều chỉnh (CK/TM/QM) có `exright_date` ∈ (max(ngày vào, ngày ghi sổ), ngày ra]. Ngày ghi sổ là `created_at` theo giờ VN. Với lệnh tiến-về-trước, ngày ghi sổ ≤ ngày vào nên khoảng này là (ngày vào, ngày ra]; dụng cụ vẫn tính max để không phụ thuộc giả định ấy.
+
+### Thống kê chính (đếm; không suy tỷ lệ khi nhóm < 30)
+Định nghĩa của ĐO 26, áp lên quần thể trên:
+- **DƯƠNG TÍNH GIẢ (quyết định):** mang nhãn `SU_KIEN_TRONG_LUC_GIU` mà KHÔNG có sự kiện điều chỉnh trong lúc giữ.
+- **ÂM TÍNH GIẢ LỚN:** có sự kiện CK/TM trong lúc giữ với F > 1 + `NGUONG_LECH` (dạng nhân) mà nhãn là `SACH` hoặc `LECH_KHAC`.
+- **DƯƠNG THẬT:** mang nhãn `SU_KIEN_TRONG_LUC_GIU` và có sự kiện trong lúc giữ.
+- **Biên `NOI_BIEN`:** lệnh qua cổng của nhãn mà không có sự kiện trong lúc giữ; đo max e.
+- **Biên `NGUONG_LECH`:** lệnh KHÔNG có sự kiện từ max(ngày vào, ngày ghi sổ) tới ngày kéo; đo max |f_vào − 1|.
+
+### Đối chứng của máy đo (mỗi lượt đọc; trượt thì lượt ấy KHÔNG kết luận)
+- (i) HDB #122 vẫn là ca dương: lịch có CK 5% + CK 25% GDKHQ 2026-10-09 trong lúc giữ, và nhãn `SU_KIEN_TRONG_LUC_GIU`. #122 đóng TRƯỚC ngày ký nên chỉ dùng làm đối chứng, không vào quần thể.
+- (ii) **Giá ↔ lịch, khoảng tính từ ngày ghi sổ, trên MỌI lệnh trong sổ.** Lấy các lệnh có ít nhất một CK hoặc TM trong (max(ngày vào, ngày ghi sổ), ngày kéo] và không có QM. Ở nhóm này đo |f_vào ÷ F − 1| ≤ 2% theo M_CK và M_CKTM. Cần N ≥ 10 và mô hình tốt hơn khớp ≥ 80%. Leader đã thấy 77/78 ở chẩn đoán ĐO 26; mỗi lượt đọc đo lại trên dữ liệu kéo mới.
+- (iii) Tập lệnh tiến-về-trước đã đóng mang nhãn của dụng cụ TRÙNG tập mà `nen_su_kien_quyen.tap_loai` trả trong cùng lượt.
+
+### Nhịp đọc
+Đọc kèm mỗi lượt soát định kỳ (7 ngày; lượt kế là lượt 13, hạn 21/10/2026), cộng dồn. Mỗi lượt đọc ghi MỘT dòng vào `docs/STATE.md` gồm M0, ba đối chứng, các số đếm và kết cục của lượt.
+
+### Kết cục (ký trước), xét ở từng lượt đọc
+- **K0:** M0 hoặc một đối chứng trượt ⇒ lượt ấy không kết luận.
+- **B — có dương tính giả:** liệt kê từng lệnh. Lệnh ấy đang bị điều kiện dừng loại oan ⇒ **báo người dùng ngay**. Sửa nhãn = ĐO mới.
+- **C — có âm tính giả lớn:** liệt kê. Đây là chiều an toàn: lỗ giả còn ở lại mẫu. Sửa = ĐO mới. B và C có thể cùng xảy ra.
+- **CHƯA ĐỦ:** không B/C, nhưng quần thể < 30 lệnh hoặc có < 3 dương thật. Đọc tiếp ở lượt sau.
+- **A — giữ, đã đo:** quần thể ≥ 30 lệnh, ≥ 3 dương thật, 0 dương tính giả, 0 âm tính giả lớn, max e ≤ `NOI_BIEN`/2, và max |f_vào − 1| của nhóm sạch ≤ `NGUONG_LECH`/2. Khi ấy thay chữ *"ĐỀ XUẤT, CHƯA ĐO"* ở hai hằng số bằng *"đo ở ĐO 27"*; giá trị không đổi. Một nhóm biên rỗng tính là biên trượt.
+- **A′ — giữ, biên mỏng:** như A nhưng một biên trượt. Giữ giá trị, ghi biên cạnh hằng số.
+- A hoặc A′ là kết cục CUỐI; sau đó ĐO 27 đóng. B ở bất kỳ lượt nào thì báo ngay, rồi vẫn đọc tiếp cho tới khi người dùng quyết.
+
+### Điều ĐO này KHÔNG làm
+Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sheets. Không dùng lịch sự kiện trong đường chạy thật (đó là mốc D1). Không đọc lại lệnh đóng trước ngày ký.
