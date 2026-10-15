@@ -22997,3 +22997,76 @@ Nhóm (ii) của ĐO 27 nhỏ hơn nhóm chẩn đoán của ĐO 26 (32 so với
 - đo độ tươi: sổ trích đúng BƯỚC 193.
 
 Câu hỏi của BƯỚC 194 và ĐO 27 gửi một lần (checksum 273236911); sổ trả *"không tìm thấy câu nào nói ngược"*. Grep năm ví dụ không thấy câu nào nói ngược. Ví dụ 1 trúng chính câu BƯỚC 171 mà bước này sửa.
+
+## BƯỚC 195 — B6 PHẦN 2: GHI KẾ HOẠCH VÀO LỆNH CỦA MỖI TÍN HIỆU LÚC QUÉT, VÀO TAB MỚI `ke_hoach` (15/10/2026)
+
+**Mốc:** B6
+
+Leader, máy của người dùng. Người dùng chọn *"B6 phần 2: viết thiết kế trước (Recommended)"*. Leader viết thiết kế; người dùng chốt bốn chỗ:
+- *"Tab mới `ke_hoach` (Recommended)"*;
+- *"Mọi mã đủ điểm (Recommended)"*;
+- *"Leader làm trên máy"*;
+- *"Để sau (Recommended)"* cho phần hiện trên app.
+
+**Vì sao phải ghi lúc quét, không tính lại sau.** `lap_ke_hoach` là hàm thuần, nhưng tính lại kế hoạch của một tín hiệu cũ là tính trên một chuỗi giá KHÁC chuỗi agent đã thấy:
+- giữa hai lượt kéo, `close` lệch thật ở 21,6% nến chung (ĐO 24);
+- nguồn điều chỉnh lùi sau mỗi sự kiện quyền (ĐO 26, BƯỚC 193).
+
+C7 và mọi phép đo B6 sau này cần phán quyết GHI TẠI ngày t, trước khi biết kết cục (bất biến 7).
+
+**Vì sao chọn tab mới.** `sheets_store._kiem_tra_header` đòi header trùng tuyệt đối, và `run_daily` kéo sổ TRƯỚC khi quét. Nếu thêm cột vào `decisions`, `trades` hay `nhat_ky`, lượt kéo đầu tiên sẽ nổ, trừ khi sửa tay Sheet thật. Nhét vào JSON có sẵn cũng không được: `components` đang được bộ nhớ hậu nghiệm và `tools/dung_lai_bo_nho.py` đọc như bảng điểm agent. Tab mới đi đúng đường của `nhat_ky` (BƯỚC 134): tab chưa có thì đọc ra rỗng, lần đẩy đầu tiên tạo tab.
+
+**Thay đổi.**
+- `so_ke_hoach.py` (mới): lược đồ `COT_KE_HOACH` (21 cột) và `DDL_KE_HOACH` có `UNIQUE(symbol, signal_date)`, kèm hàm thuần `dong_tu_ke_hoach`. File này KHÔNG nhập hàm lập kế hoạch.
+  - Cột điểm tên `diem` (số thực), không phải `score`: `sheets_store` khai kiểu theo TÊN cột cho mọi tab, mà `score` ở đó là số nguyên.
+  - Kế hoạch không lập được thì lấy ngày nến của lượt quét, để khoá không bao giờ là NULL (SQLite coi hai NULL là khác nhau).
+- `ke_hoach_vao_lenh.PHIEN_BAN`: phiên bản luật lập kế hoạch, ghi kèm mỗi dòng.
+- `paper_trading`: mọi sổ có bảng `ke_hoach`. `ghi_ke_hoach` chỉ ghi ở sổ thật (cờ của nhật ký), dùng `INSERT OR IGNORE`, nên mỗi (mã, ngày nến) ghi đúng một lần.
+- `sheets_store`: thêm tab `ke_hoach`.
+  - Đẩy chỉ thêm, khoá (mã, ngày); dòng nào chưa lên sheet thì lượt sau vẫn lên, không phụ thuộc mốc `seq`.
+  - Kéo đọc tab TRƯỚC mọi lệnh DELETE.
+  - Tab lệch header thì chỉ báo ra (`ke_hoach_loi`), không làm hỏng lượt kéo hay đẩy của ba tab sổ lệnh. Ba tab ấy vẫn nổ như cũ khi lệch.
+- `run_daily`:
+  - `ghi_ke_hoach_tin_hieu` được gọi SAU `run_session` của mỗi mã, cho mọi mã có điểm ≥ `BUY_THRESHOLD` (kể cả điểm đúng bằng ngưỡng, và kể cả mã bị cổng của sổ chặn). Nó không bao giờ ném lỗi.
+  - Dòng tổng: *"📝 Kế hoạch vào lệnh: n ghi mới · m đã có · k lỗi"*.
+  - Lỗi đi bằng `::warning::` và `$GITHUB_STEP_SUMMARY` (hàm `_canh_bao_noi_phien`), không đổi mã thoát. Báo cáo đẩy in thêm số kế hoạch.
+
+**Gác đổi có chủ đích.**
+- `tests/test_ke_hoach_vao_lenh.py`: `run_daily.py` vào danh sách được nhập và rời danh sách cấm. Lý do ghi tại chỗ.
+- Ba file test so NGUYÊN dict kết quả của `pull` thêm hai khoá mới.
+
+**Gác mới — `tests/test_ghi_ke_hoach.py` (16 test).**
+- dựng dòng;
+- ngày dự phòng;
+- `so_ke_hoach` không nhập hàm lập kế hoạch;
+- ghi một lần;
+- sổ không thật không ghi;
+- `ghi_ke_hoach` chỉ chạm bảng `ke_hoach`;
+- đẩy tạo tab và chỉ thêm;
+- dòng `seq` nhỏ chưa lên sheet vẫn được đẩy;
+- đẩy–kéo một vòng không mất gì, kể cả NULL;
+- tab vắng thì kéo ra rỗng và không tạo tab;
+- kéo hai lần không nhân đôi;
+- tab lệch header không làm hỏng ba tab cũ;
+- ghi đúng mã đủ điểm, bỏ mã dưới ngưỡng và điểm `None`;
+- lỗi ghi không ném ra;
+- AST: lời gọi đứng SAU `run_session`; hàm ghi chỉ gọi `ghi_ke_hoach` trên sổ lệnh.
+
+**Đột biến: 12/12 đỏ lượt đầu.** Phát 01 dựng lại đúng thứ cần cấm: lập kế hoạch TRƯỚC `run_session`. Các phát còn lại:
+- `<=` ở ngưỡng · bỏ `except` · hàm ghi gọi thêm một hàm sổ lệnh;
+- bỏ `UNIQUE` · bỏ ngày dự phòng · sổ không thật vẫn ghi;
+- đẩy theo mốc `seq` · kéo nổ khi lệch header · lỗi đẩy lan ra;
+- kéo không xoá trước khi nạp · `day_xoay_ngay` không được NULL.
+
+**Không làm.**
+- Không đổi khớp lệnh, điểm, ngưỡng hay điều kiện dừng.
+- Không đọc tab `ke_hoach` để quyết định bất cứ điều gì; đọc nó là việc của một ĐO ký trước ở C7.
+- Không hiện trên app.
+- Không sửa `docs/LO-TRINH.md`: đánh dấu B6 phần 2 "đã dựng" là file luật, nên để BƯỚC 196 làm, có hỏi sổ tay thật.
+
+**Việc kế.**
+1. Sau merge: đọc log lượt quét Actions đầu tiên chạy mã này (dòng 📝, dòng đẩy có "kế hoạch", không `::warning::` của tab `ke_hoach`).
+2. Mở Sheet thật, xem tab `ke_hoach` đã được tạo, rồi đối chiếu một dòng với `lap_ke_hoach` chạy tay trên đúng nến ấy.
+3. BƯỚC 196: `docs/LO-TRINH.md` B6.
+
+**Sổ tay:** ô `khong_bat_buoc_vi`. Bước này không chạm file luật nào, và `tools/buoc_cham_luat.py 195` xác nhận điều ấy.

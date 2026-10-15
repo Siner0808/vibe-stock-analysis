@@ -52,6 +52,7 @@ import sqlite3
 from typing import Any, Optional, Protocol
 
 from nhat_ky_vi_sao import COT_NHAT_KY, COT_SO_NGUYEN, COT_SO_THUC
+import so_ke_hoach
 
 # ── Lược đồ: thứ tự cột ở đây LÀ hợp đồng với Google Sheet ───────────
 # Đổi thứ tự hoặc đổi tên cột là đổi lược đồ -> pull() sẽ nổ chứ không
@@ -71,9 +72,13 @@ DECISION_COLS: tuple[str, ...] = (
 #: Lược đồ tab nhật ký "vì sao" — suy từ `nhat_ky_vi_sao`, không gõ lại.
 NHAT_KY_COLS: tuple[str, ...] = COT_NHAT_KY
 
-_INT_COLS = {"id", "seq", "entry_score", "score", "acted"} | COT_SO_NGUYEN
+#: Lược đồ tab kế hoạch vào lệnh (BƯỚC 195) — suy từ `so_ke_hoach`.
+KE_HOACH_COLS: tuple[str, ...] = so_ke_hoach.COT_KE_HOACH
+
+_INT_COLS = ({"id", "seq", "entry_score", "score", "acted"} | COT_SO_NGUYEN
+             | so_ke_hoach.COT_SO_NGUYEN)
 _FLOAT_COLS = {"entry_price", "exit_price", "stop_loss", "take_profit",
-               "size_pct", "created_at", "at"} | COT_SO_THUC
+               "size_pct", "created_at", "at"} | COT_SO_THUC | so_ke_hoach.COT_SO_THUC
 
 # Ô rỗng trên sheet mang HAI nghĩa khác nhau tuỳ cột, nên phải khai báo rõ
 # cột nào được phép NULL. Không khai báo thì buộc phải chọn bừa một nghĩa,
@@ -93,10 +98,12 @@ _NULLABLE_TEXT_COLS = {"entry_date", "exit_date", "exit_reason"}
 _NULLABLE_TEXT_COLS |= ({c for c in NHAT_KY_COLS
                          if c not in COT_SO_NGUYEN | COT_SO_THUC}
                         - {"symbol", "signal_date"})
+_NULLABLE_TEXT_COLS |= so_ke_hoach.COT_CHU_RONG_DUOC
 
 TAB_TRADES = "trades"
 TAB_DECISIONS = "decisions"
 TAB_NHAT_KY = "nhat_ky"
+TAB_KE_HOACH = "ke_hoach"
 
 
 class SheetError(RuntimeError):
@@ -451,9 +458,50 @@ def push(db: sqlite3.Connection, backend: SheetBackend,
     bang_nk += [[_to_cell(c, r[c]) for c in NHAT_KY_COLS] for r in nk]
     backend.write_all(TAB_NHAT_KY, bang_nk)
 
+    # ── kế hoạch vào lệnh: chỉ thêm, khoá (mã, ngày nến) — BƯỚC 195 ──
+    # Đứng CUỐI và tự bắt lỗi: tab này là bản ghi phụ, hỏng nó không được
+    # làm ba tab trên (đã ghi xong) bị báo là "đẩy thất bại".
+    try:
+        kh_moi, kh_loi = _day_ke_hoach(db, backend), ""
+    except Exception as e:
+        kh_moi, kh_loi = 0, f"{type(e).__name__}: {e}"
+
     return {"trades": len(rows), "decisions_moi": len(moi),
             "decisions_da_co": seq_lon_nhat, "decisions_bo_sot": 0,
-            "nhat_ky": len(nk)}
+            "nhat_ky": len(nk), "ke_hoach_moi": kh_moi,
+            "ke_hoach_loi": kh_loi}
+
+
+def _dong_ke_hoach(db: sqlite3.Connection) -> list:
+    """Dòng kế hoạch của sổ local, theo `seq`. Sổ đời trước BƯỚC 195 không có
+    bảng thì 0 dòng."""
+    if not _co_bang(db, "ke_hoach"):
+        return []
+    return db.execute(f"SELECT {', '.join(KE_HOACH_COLS)} FROM ke_hoach"
+                      " ORDER BY seq").fetchall()
+
+
+def _day_ke_hoach(db: sqlite3.Connection, backend: SheetBackend) -> int:
+    """Thêm lên tab `ke_hoach` mọi dòng local chưa có trên sheet. Khoá nhận dạng
+    là (mã, ngày nến) — cùng khoá duy nhất của bảng — nên dòng nào chưa lên
+    sheet thì lượt sau vẫn lên, không phụ thuộc mốc `seq` (bài học 14/08 của
+    `decisions`). Tab rỗng thì ghi tiêu đề trước. Trả số dòng đã thêm."""
+    hien_co = _co_du_lieu(backend.read_rows(TAB_KE_HOACH))
+    tren_sheet: set[tuple] = set()
+    if hien_co:
+        _kiem_tra_header(TAB_KE_HOACH, hien_co[0], KE_HOACH_COLS)
+        i_ma = KE_HOACH_COLS.index("symbol")
+        i_ngay = KE_HOACH_COLS.index("signal_date")
+        tren_sheet = {(r[i_ma], r[i_ngay]) for r in hien_co[1:]}
+    moi = [r for r in _dong_ke_hoach(db)
+           if (str(r["symbol"]), str(r["signal_date"])) not in tren_sheet]
+    if not moi:
+        return 0
+    if not hien_co:
+        backend.write_all(TAB_KE_HOACH, [list(KE_HOACH_COLS)])
+    backend.append_rows(
+        TAB_KE_HOACH, [[_to_cell(c, r[c]) for c in KE_HOACH_COLS] for r in moi])
+    return len(moi)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -472,7 +520,7 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
     db.row_factory = sqlite3.Row
     dang_co = (db.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
                + db.execute("SELECT COUNT(*) FROM decisions").fetchone()[0]
-               + len(_dong_nhat_ky(db)))
+               + len(_dong_nhat_ky(db)) + len(_dong_ke_hoach(db)))
     if dang_co and not allow_overwrite:
         raise SheetError(
             f"Sổ lệnh đích đang có {dang_co} bản ghi. pull() từ chối ghi đè.\n"
@@ -490,12 +538,25 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
     # trên sheet thật. Một tab không có dòng nào là tab RỖNG, không phải
     # lược đồ lệch; tab có dòng thì vẫn kiểm tiêu đề như cũ.
     bang_nk = _co_du_lieu(backend.read_rows(TAB_NHAT_KY))
+    # Kế hoạch vào lệnh (BƯỚC 195): đọc cùng chỗ, TRƯỚC mọi DELETE. Tab chưa có
+    # (sheet đời trước BƯỚC 195) thì rỗng. Tab lệch tiêu đề thì KHÔNG nạp và
+    # báo ra — bản ghi phụ không được làm dừng lượt quét (bước kéo hỏng là
+    # dừng phiên); ba tab sổ lệnh vẫn nổ như cũ.
+    kh_loi = ""
+    bang_kh = _co_du_lieu(backend.read_rows(TAB_KE_HOACH))
+    if bang_kh:
+        try:
+            _kiem_tra_header(TAB_KE_HOACH, bang_kh[0], KE_HOACH_COLS)
+        except SheetError as e:
+            kh_loi, bang_kh = str(e), []
 
-    n_trades = n_dec = n_nk = 0
+    n_trades = n_dec = n_nk = n_kh = 0
     db.execute("DELETE FROM trades")
     db.execute("DELETE FROM decisions")
     if _co_bang(db, "nhat_ky"):
         db.execute("DELETE FROM nhat_ky")
+    if _co_bang(db, "ke_hoach"):
+        db.execute("DELETE FROM ke_hoach")
 
     if bang_trades:
         _kiem_tra_header(TAB_TRADES, bang_trades[0], TRADE_COLS)
@@ -534,8 +595,18 @@ def pull(db: sqlite3.Connection, backend: SheetBackend,
                 [_from_cell(c, r[i]) for i, c in enumerate(NHAT_KY_COLS)])
             n_nk += 1
 
+    if bang_kh and _co_bang(db, "ke_hoach"):
+        cho = ",".join("?" * len(KE_HOACH_COLS))
+        for r in bang_kh[1:]:
+            r = list(r) + [""] * (len(KE_HOACH_COLS) - len(r))
+            db.execute(
+                f"INSERT INTO ke_hoach ({', '.join(KE_HOACH_COLS)}) VALUES ({cho})",
+                [_from_cell(c, r[i]) for i, c in enumerate(KE_HOACH_COLS)])
+            n_kh += 1
+
     db.commit()
-    return {"trades": n_trades, "decisions": n_dec, "nhat_ky": n_nk}
+    return {"trades": n_trades, "decisions": n_dec, "nhat_ky": n_nk,
+            "ke_hoach": n_kh, "ke_hoach_loi": kh_loi}
 
 
 # ─────────────────────────────────────────────────────────────────────

@@ -119,6 +119,11 @@ SO_PHIEN_CHO = 5
 #: trước, nên +1.
 SO_NEN_TOI_THIEU = max(CHU_KY_MA, CHU_KY_ATR + 1, CUA_SO_DAY)
 
+#: Phiên bản LUẬT lập kế hoạch, ghi kèm mỗi dòng của tab `ke_hoach` (BƯỚC 195).
+#: Đổi bất kỳ hằng số hay nhánh phán quyết nào ở file này thì ĐỔI chuỗi này, để
+#: bản ghi cũ vẫn nói được nó sinh ra từ luật nào (một ĐO sau đọc theo phiên bản).
+PHIEN_BAN = "B6-1 (BƯỚC 173, sửa ca MSR 10/10/2026)"
+
 # ── Phán quyết ────────────────────────────────────────────────────────
 KHONG_XET = "KHONG_XET"          # điểm dưới ngưỡng — chưa phải ứng viên
 CHUA_LAP_DUOC = "CHUA_LAP_DUOC"  # thiếu dữ liệu — không đoán

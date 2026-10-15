@@ -139,7 +139,8 @@ def test_keo_hong_o_lenh_khong_de_lai_dau_vet():
         # Lần thử sau phải kéo được — nếu lần hỏng để lại dấu vết thì
         # gác chống ghi đè trong pull() sẽ từ chối ở đây.
         bc = gs.restore_journal_from_google_sheets(p, backend=hong)
-        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0}, bc
+        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0,
+                      "ke_hoach": 0, "ke_hoach_loi": ""}, bc   # BƯỚC 195
         print("PASS  kéo hỏng ở lệnh -> sổ vẫn sạch, lần sau kéo được")
     finally:
         if os.path.exists(p):
@@ -166,7 +167,8 @@ def test_keo_hong_giua_chung_khong_lam_mat_so_dang_co():
         # Seed: kéo thành công một lần.
         bc = gs.restore_journal_from_google_sheets(
             p, backend=sheet_co_du_lieu())
-        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0}, bc
+        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0,
+                      "ke_hoach": 0, "ke_hoach_loi": ""}, bc   # BƯỚC 195
         assert _dem_ban_ghi(p) == (1, 1), _dem_ban_ghi(p)
 
         # Kéo lại, cho phép ghi đè, nhưng hỏng ở lần đọc mạng THỨ HAI.
@@ -199,7 +201,8 @@ def test_thu_lai_cuu_duoc_loi_nhat_thoi():
         nghi = NghiGia()
         bc = gs.keo_so_co_thu_lai(p, so_lan=3, cho=(5, 20), backend=hong,
                                   nghi=nghi, ghi=lambda _s: None)
-        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0}, bc
+        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0,
+                      "ke_hoach": 0, "ke_hoach_loi": ""}, bc   # BƯỚC 195
         assert nghi.cac_lan == [5], f"chờ sai nhịp: {nghi.cac_lan}"
         print("PASS  hỏng lần 1 -> thử lại -> kéo được, chờ đúng 5s")
     finally:
@@ -214,7 +217,8 @@ def test_gian_dan_thoi_gian_cho():
         nghi = NghiGia()
         bc = gs.keo_so_co_thu_lai(p, so_lan=3, cho=(5, 20), backend=hong,
                                   nghi=nghi, ghi=lambda _s: None)
-        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0}, bc
+        assert bc == {"trades": 1, "decisions": 1, "nhat_ky": 0,
+                      "ke_hoach": 0, "ke_hoach_loi": ""}, bc   # BƯỚC 195
         assert nghi.cac_lan == [5, 20], f"chờ sai nhịp: {nghi.cac_lan}"
         print("PASS  hỏng 2 lần -> chờ giãn dần 5s rồi 20s")
     finally:
