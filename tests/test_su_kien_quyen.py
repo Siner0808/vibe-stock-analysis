@@ -317,7 +317,10 @@ def test_CHI_app_va_CLI_duoc_nhap_su_kien_quyen():
     # BƯỚC 182: thêm `nen_su_kien_quyen.py` — đường nối duy nhất giữa nhãn và điều kiện
     # dừng (xem `tests/test_loai_su_kien_quyen.py`). `run_daily` và chuông C5 vẫn KHÔNG
     # nhập thẳng `su_kien_quyen`, chỉ nhập `nen_su_kien_quyen`.
-    assert ai == {"app.py", "tools/soi_su_kien_quyen.py", "nen_su_kien_quyen.py"}, (
+    # BƯỚC 192: thêm dụng cụ ĐO 26 (chỉ đọc) — nó phải gắn nhãn bằng ĐÚNG hàm của sản
+    # phẩm (`soi_so`) để đo nhãn ấy, như dụng cụ ĐO 25 nhập `ke_hoach_vao_lenh`.
+    assert ai == {"app.py", "tools/soi_su_kien_quyen.py", "nen_su_kien_quyen.py",
+                  "tools/do26_nguong_su_kien_quyen.py"}, (
         f"su_kien_quyen chỉ được nhập ở app, CLI soi và đường nối; đang có: {sorted(ai)}")
 
 
