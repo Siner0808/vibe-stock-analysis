@@ -1056,11 +1056,15 @@ def _file_ma_nguon() -> list[pathlib.Path]:
 #: 173 hẹn ("chạy lại ĐÚNG hàm này trên cache lịch sử"). Dụng cụ nằm ở `tools/`, CHỈ ĐỌC (gác AST
 #: ở `tests/test_do25_ke_hoach_vao_lenh.py`), và không phải đường giao dịch, chấm điểm hay dữ liệu:
 #: ba gác `test_duong_giao_dich_cham_diem_va_du_lieu_KHONG_nhap` bên dưới vẫn nguyên.
-CHO_PHEP_NHAP = {"app.py", "tools/do25_ke_hoach_vao_lenh.py"}
+# BƯỚC 195 (B6 phần 2, người dùng duyệt thiết kế 15/10/2026): thêm `run_daily.py` —
+# nó GHI kế hoạch của mỗi tín hiệu vào tab `ke_hoach`, SAU `run_session` của mã ấy.
+# Kế hoạch vẫn không vào khớp lệnh: gác thứ tự và gác "không truyền kế hoạch cho
+# sổ lệnh" ở `tests/test_ghi_ke_hoach.py`. Đường đo và giao dịch vẫn CẤM (dưới).
+CHO_PHEP_NHAP = {"app.py", "tools/do25_ke_hoach_vao_lenh.py", "run_daily.py"}
 
 
 def test_CHI_app_py_va_dung_cu_DO_25_duoc_nhap_ke_hoach_vao_lenh():
-    """Danh sách cấm cụ thể dễ bị quên khi có file mới → cho phép đúng HAI nơi, gọi tên."""
+    """Danh sách cấm cụ thể dễ bị quên khi có file mới → cho phép đúng BA nơi, gọi tên."""
     nguoi_nhap = {p.relative_to(GOC).as_posix() for p in _file_ma_nguon()
                   if "ke_hoach_vao_lenh" in _nhap_va_goi(p)[0]}
     assert nguoi_nhap == CHO_PHEP_NHAP, (
@@ -1069,7 +1073,8 @@ def test_CHI_app_py_va_dung_cu_DO_25_duoc_nhap_ke_hoach_vao_lenh():
 
 
 @pytest.mark.parametrize("ten", [
-    "run_daily.py", "paper_trading.py", "paper_runner.py", "paper_metrics.py",
+    # `run_daily.py` rời danh sách ở BƯỚC 195 (xem CHO_PHEP_NHAP).
+    "paper_trading.py", "paper_runner.py", "paper_metrics.py",
     "master_agent.py", "analysis_agents.py", "debate_agents.py",
     "news_sentiment_agent.py", "fundamental_agent.py", "data_collectors.py",
     "walkforward.py", "sheets_store.py"])

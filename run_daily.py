@@ -6,6 +6,7 @@ Script tự động quét danh mục VN100 và cập nhật Sổ Lệnh Giấy p
 """
 import os
 import sys
+from collections import Counter
 import pandas as pd
 
 os.environ["POST_MORTEM_ENABLED"] = "1"
@@ -317,6 +318,48 @@ def _ro_chuan_vnindex(trades):
         return None
 
 
+def _canh_bao_noi_phien(tieu_de: str, dong: list[str]) -> None:
+    """`::warning::` + `$GITHUB_STEP_SUMMARY` — KHÔNG đổi mã thoát (luật cảnh
+    báo nội phiên: làm đỏ lượt quét sinh báo động giả cho chuông)."""
+    if not dong:
+        return
+    for d in dong:
+        print(f"::warning::{tieu_de}: {d}")
+    tom_tat = os.environ.get("GITHUB_STEP_SUMMARY")
+    if tom_tat:
+        with open(tom_tat, "a", encoding="utf-8") as f:
+            print(f"### ⚠️ {tieu_de}", file=f)
+            print("", file=f)
+            for d in dong:
+                print(f"- {d}", file=f)
+
+
+def ghi_ke_hoach_tin_hieu(journal, ma, df, diem, san, bay_gio,
+                          ngay_nen) -> tuple[str, str]:
+    """Ghi kế hoạch vào lệnh của MỘT mã vừa quét (BƯỚC 195, B6 phần 2).
+
+    Gọi SAU `run_session` của mã ấy: sổ đã xử lý xong, nên kế hoạch không chạm
+    được việc khớp lệnh (gác AST trong `tests/test_ghi_ke_hoach.py`). Ghi MỌI mã
+    có điểm ≥ `BUY_THRESHOLD`, kể cả mã bị cổng của sổ chặn — C7 đo theo MỖI tín
+    hiệu. Trả ("duoi_nguong" | "moi" | "trung" | "loi", chi tiết).
+    KHÔNG BAO GIỜ ném lỗi: bản ghi phụ không được làm hỏng lượt quét.
+    """
+    if diem is None or diem < BUY_THRESHOLD:
+        return ("duoi_nguong", "")
+    try:
+        import ke_hoach_vao_lenh as _khvl
+        import so_ke_hoach as _skh
+        from data_quality import price_multiplier as _pm
+        kh = _khvl.lap_ke_hoach(df, _pm(df), diem, BUY_THRESHOLD, bay_gio, san)
+        dong = _skh.dong_tu_ke_hoach(kh, ma, diem, BUY_THRESHOLD, san,
+                                     _khvl.PHIEN_BAN, bay_gio.timestamp(),
+                                     ngay_nen)
+        moi = journal.ghi_ke_hoach(dong)
+        return ("moi" if moi else "trung", kh.phan_quyet)
+    except Exception as e:
+        return ("loi", f"{type(e).__name__}: {e}")
+
+
 def execute_daily_scan():
     import time as _time
     moc_bat_dau = _time.time()
@@ -392,6 +435,9 @@ def execute_daily_scan():
             _da_keo = True
             print(f"⬇️ Đã kéo sổ lệnh từ kho ngoài: {_bc['trades']} lệnh, "
                   f"{_bc['decisions']} quyết định.")
+            if _bc.get("ke_hoach_loi"):
+                _canh_bao_noi_phien("Tab ke_hoach không nạp được (sổ lệnh vẫn kéo đủ)",
+                                    [_bc["ke_hoach_loi"]])
         else:
             print("ℹ️ Kho ngoài chưa cấu hình — quét trên sổ lệnh của máy này.")
     except Exception as _e:
@@ -449,6 +495,9 @@ def execute_daily_scan():
     # Số phiên nến THẬT SỰ nhận được cho từng mã đã chấm được điểm.
     phien_nhan = []
     collector = VNStockCollectorAgent()
+    # Kế hoạch vào lệnh ghi lúc quét (BƯỚC 195): đếm theo kết quả, gom lỗi.
+    ke_hoach_dem: Counter = Counter()
+    ke_hoach_loi: list[str] = []
 
     import time
     for idx, sym in enumerate(CUSTOM_WATCHLIST_SYMBOLS, 1):
@@ -507,6 +556,13 @@ def execute_daily_scan():
                 }
                 s = run_session(journal, sym, df, bar, str(row["time"]),
                                 san_cua(sym), BUY_THRESHOLD)
+                # SAU run_session: sổ đã xử lý xong mã này (BƯỚC 195).
+                _kq_kh = ghi_ke_hoach_tin_hieu(
+                    journal, sym, df, s.get("final_score"), san_cua(sym),
+                    now_time, str(row["time"])[:10])
+                ke_hoach_dem[_kq_kh[0]] += 1
+                if _kq_kh[0] == "loi":
+                    ke_hoach_loi.append(f"{sym}: {_kq_kh[1]}")
                 quet_duoc += 1
                 phien_nhan.append(len(df))
                 opened_count += s["opened"]
@@ -542,6 +598,12 @@ def execute_daily_scan():
                     break
 
         time.sleep(1.0) # Tạm dừng 1.0s giữa các request
+
+    # ── KẾ HOẠCH VÀO LỆNH đã ghi (BƯỚC 195) ──────────────────────────
+    print(f"📝 Kế hoạch vào lệnh: {ke_hoach_dem['moi']} ghi mới · "
+          f"{ke_hoach_dem['trung']} đã có · "
+          f"{ke_hoach_dem['loi']} lỗi")
+    _canh_bao_noi_phien("Kế hoạch vào lệnh không ghi được", ke_hoach_loi)
 
     # ── CỬA SỔ DỮ LIỆU THẬT SỰ NHẬN ĐƯỢC ─────────────────────────────
     # Đi bằng `::notice::` vì annotation đọc được qua API công khai,
@@ -756,7 +818,11 @@ def execute_daily_scan():
         else:
             _bc = _ss.push(journal.db, _backend)
             print(f"\n☁️ Đã đẩy sổ lệnh ra Google Sheets: "
-                  f"{_bc['trades']} lệnh · thêm {_bc['decisions_moi']} quyết định mới")
+                  f"{_bc['trades']} lệnh · thêm {_bc['decisions_moi']} quyết định mới"
+                  f" · thêm {_bc['ke_hoach_moi']} kế hoạch")
+            if _bc.get("ke_hoach_loi"):
+                _canh_bao_noi_phien("Tab ke_hoach không đẩy được (ba tab sổ lệnh đã đẩy)",
+                                    [_bc["ke_hoach_loi"]])
     except Exception as _e:
         print(f"\n🚨 ĐẨY KHO NGOÀI THẤT BẠI: {type(_e).__name__}: {_e}")
         print("   Sổ lệnh local vẫn nguyên. Nhưng trên cloud, dữ liệu phiên "

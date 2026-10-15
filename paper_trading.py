@@ -546,6 +546,10 @@ class PaperTradingJournal:
         from nhat_ky_vi_sao import DDL_NHAT_KY
         self.ghi_nhat_ky = bool(cho_phep_so_that)
         self.db.execute(DDL_NHAT_KY)
+        # Kế hoạch vào lệnh ghi lúc quét (BƯỚC 195, B6 phần 2): cùng luật với
+        # nhật ký — bảng sổ nào cũng có, CHỈ sổ thật ghi (`ghi_ke_hoach`).
+        from so_ke_hoach import DDL_KE_HOACH
+        self.db.execute(DDL_KE_HOACH)
         self.db.commit()
 
     # ─────────────────── Ghi quyết định (kể cả không vào lệnh) ────────
@@ -562,6 +566,23 @@ class PaperTradingJournal:
              json.dumps(result.get("key_reasons", []), ensure_ascii=False),
              result.get("data_quality", "")))
         self.db.commit()
+
+    # ─────────────────── Kế hoạch vào lệnh (BƯỚC 195) ─────────────────
+    def ghi_ke_hoach(self, dong: dict) -> bool:
+        """Ghi MỘT dòng kế hoạch (`so_ke_hoach.dong_tu_ke_hoach`). True nếu là
+        dòng mới; False nếu (mã, ngày nến) đã có, hoặc sổ không phải sổ thật.
+
+        Không đọc, không đổi bảng nào khác: kế hoạch KHÔNG chạm việc khớp lệnh.
+        """
+        if not self.ghi_nhat_ky:
+            return False
+        from so_ke_hoach import COT_KE_HOACH
+        cot = [c for c in COT_KE_HOACH if c != "seq"]
+        cur = self.db.execute(
+            f"INSERT OR IGNORE INTO ke_hoach ({', '.join(cot)}) "
+            f"VALUES ({','.join('?' * len(cot))})", [dong[c] for c in cot])
+        self.db.commit()
+        return cur.rowcount == 1
 
     # ─────────────────── Mở lệnh ──────────────────────────────────────
     def dong_so_sach(self, symbol: str, session_date: str,

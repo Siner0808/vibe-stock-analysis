@@ -428,7 +428,9 @@ def test_bao_ro_khi_kho_ngoai_loi():
 def test_sheet_rong_thi_keo_ve_so_rong():
     moi = PaperTradingJournal(":memory:")
     bao_cao = ss.pull(moi.db, ss.InMemorySheet())
-    assert bao_cao == {"trades": 0, "decisions": 0, "nhat_ky": 0}
+    # BƯỚC 195: pull() trả thêm số dòng tab `ke_hoach` và lỗi của tab ấy (rỗng).
+    assert bao_cao == {"trades": 0, "decisions": 0, "nhat_ky": 0,
+                       "ke_hoach": 0, "ke_hoach_loi": ""}
     assert moi.all_trades() == []
     print("PASS  sheet rỗng -> sổ rỗng, không vỡ")
 
