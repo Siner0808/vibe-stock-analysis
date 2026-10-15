@@ -4076,3 +4076,67 @@ Cả hai dùng chung khung H = 20 phiên, ra ở giá đóng cửa phiên t+H, v
 
 ### Điều ĐO này KHÔNG làm
 Không đổi đường thật, không chọn hằng số, không đo luật thoát, không thay vòng xác nhận tầng 3.
+
+## ĐO 26 — hai ngưỡng của nhãn sự kiện quyền (`NGUONG_LECH` 5%, `NOI_BIEN` 2%) có gắn nhãn đúng trên sổ thật không: đối chiếu với lịch sự kiện doanh nghiệp (khai 15/10/2026)
+
+> **Khai 15/10/2026, TRƯỚC khi có dụng cụ đo, ở một commit RIÊNG.**
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 15/10/2026.
+> - Sổ tay hỏi thật ở BƯỚC 192.
+> - Phép đo **kiểm một cái máy gắn nhãn**, không đo lợi thế: không tính vào K, không chạm điểm, ngưỡng mua hay đường lệnh.
+
+**Đã tra trùng:** BƯỚC 176 · BƯỚC 182 · BƯỚC 159 — ba mục đã tra, và một điều phải khai:
+- BƯỚC 176 (D2, dựng nhãn): hai ngưỡng ghi *"ĐỀ XUẤT, CHƯA ĐO"*, đặt TRƯỚC khi chạy trên sổ. Leader đo 10/10 trên 127 lệnh: 26 lệnh |f_vào − 1| > 5%; 2 `SU_KIEN_TRONG_LUC_GIU` (HDB #122, BID #19), 2 `LECH_KHAC` (SSI #100, VPB #110). Đó là phần sổ ĐÃ NHÌN qua nhãn; phân bố f thì chưa ai in.
+- BƯỚC 182 (loại khỏi điều kiện dừng): từ đây hai ngưỡng quyết định MẪU của điều kiện dừng; dương tính giả làm alpha đẹp lên.
+- ĐO 24 (BƯỚC 159): lệch giá giữa hai lượt kéo; câu *"không có bảng sự kiện doanh nghiệp ở máy; không gọi mạng"*, đối chiếu với ngày GDKHQ **chưa làm**. ĐO 26 là lần đầu dự án dùng một bảng sự kiện.
+- Khi soạn bản này leader đã xem lịch sự kiện của HDB, VNM, SSI (dữ liệu tham chiếu, CHƯA ghép với ngày của lệnh nào) để biết bộ mã sự kiện.
+
+**Không có dụng cụ vì:** dụng cụ viết SAU commit này (BƯỚC 192, commit sau).
+
+### Câu hỏi
+Trên sổ lệnh thật, nhãn `SU_KIEN_TRONG_LUC_GIU` của `su_kien_quyen.kiem_lenh` (với hai ngưỡng hiện hành) có trùng với việc một sự kiện điều chỉnh giá THẬT SỰ có ngày GDKHQ rơi trong lúc giữ lệnh không? Và hai ngưỡng cách mức nhiễu bao xa?
+
+### Mã và hằng số
+- `su_kien_quyen` và `nen_su_kien_quyen` ĐÚNG như ở `main` lúc khai. `NGUONG_LECH` = 0,05 và `NOI_BIEN` = 0,02 GHIM.
+- ĐO này KHÔNG chọn ngưỡng mới. Đổi ngưỡng sau khi nhìn số = vi phạm bất biến 7; muốn đổi thì phải là ĐO mới, khai lại.
+
+### Dữ liệu (một lượt kéo mỗi nguồn; ghi giờ kéo và băm vào kết quả = M0)
+- **Sổ:** sổ thật trên Sheets qua `doc_so_that.keo_ve_so_tam` (DB tạm). Lấy mọi lệnh có ngày vào, trừ `HUY`.
+- **Giá:** `nen_su_kien_quyen.tai_nen` — đúng đường mà nhãn dùng trong `run_daily`.
+- **Đáp án (nguồn độc lập với giá):** lịch sự kiện VCI (`vnstock.explorer.vci.company.Company(mã)._fetch_events`, mã `DIV,ISS`, lật hết trang). Đây là hàm nội bộ của thư viện, ghi rõ trong dụng cụ. Có bốn loại điều chỉnh:
+  - **CK**: *Cổ phiếu thưởng* hoặc *Trả cổ tức bằng cổ phiếu*, tỷ lệ r, hệ số giá 1/(1+r);
+  - **TM**: cổ tức tiền mặt v đồng; cỡ ước lượng = v ÷ giá vào sổ;
+  - **QM**: quyền mua cho cổ đông hiện hữu; cỡ không tính được, chỉ gắn cờ;
+  - **Bỏ qua**: phát hành riêng lẻ, cho CBCNV, chuyển đổi trái phiếu. Ba loại này không điều chỉnh giá.
+- Sự kiện "trong lúc giữ" của một lệnh đã đóng là sự kiện điều chỉnh (CK/TM/QM) có `exright_date` ∈ (ngày vào, ngày ra].
+
+### Thống kê chính (đếm, không suy tỷ lệ khi nhóm < 30)
+- **DƯƠNG TÍNH GIẢ (quyết định):** lệnh đã đóng mang nhãn `SU_KIEN_TRONG_LUC_GIU` mà KHÔNG có sự kiện điều chỉnh nào trong lúc giữ. Báo riêng nhóm tiến-về-trước, là nhóm điều kiện dừng đang loại.
+- **ÂM TÍNH GIẢ LỚN:** lệnh đã đóng có sự kiện CK hoặc TM trong lúc giữ với cỡ > `NGUONG_LECH` mà nhãn là `SACH` hoặc `LECH_KHAC`.
+- **Biên của `NOI_BIEN`:** lấy các lệnh đã đóng qua cổng (|f_vào − 1| > 5%) mà KHÔNG có sự kiện trong lúc giữ. Ở nhóm này đo độ lệch xuống e = (thấp − giá ra ÷ f_vào) ÷ thấp, lấy 0 nếu giá ra ÷ f_vào ≥ thấp. In N, max, cả danh sách.
+- **Biên của `NGUONG_LECH`:** lấy các lệnh KHÔNG có sự kiện điều chỉnh nào từ ngày vào tới ngày kéo (nguồn không thể đã điều chỉnh giá ngày vào). Ở nhóm này đo |f_vào − 1|: in N, max, p95.
+
+### Đối chứng của máy đo (bắt buộc, cùng lượt; trượt thì KHÔNG kết luận)
+- (i) **Ca dương đã biết:** HDB #122 phải có sự kiện CK 25% + 5% ngày 2026-10-09 trong lúc giữ, và nhãn `SU_KIEN_TRONG_LUC_GIU`.
+- (ii) **Nguồn giá và lịch sự kiện có nói cùng một chuyện không:** lấy các lệnh có ít nhất một sự kiện CK hoặc TM từ ngày vào tới ngày kéo, và không có QM. Ở nhóm này so f_vào với hệ số lý thuyết F theo HAI mô hình:
+  - **M_CK:** F = Π(1+r), bỏ qua TM;
+  - **M_CKTM:** F = Π(1+r) × Π 1/(1 − v ÷ giá vào).
+
+  Khớp nghĩa là |f_vào ÷ F − 1| ≤ 2%. In tỷ lệ khớp của cả hai mô hình và mọi lệnh trượt. Mô hình khớp nhiều hơn cho biết nguồn giá điều chỉnh theo quy ước nào; đó là báo kèm, không phải biến quyết định. Hai trường hợp dẫn tới **K0** vì lịch sự kiện không dùng được làm đáp án: nhóm có dưới 10 lệnh, hoặc cả hai mô hình đều khớp dưới 80%.
+- (iii) **Cùng một tập loại:** tập lệnh tiến-về-trước đã đóng (có `created_at`) mang nhãn `SU_KIEN_TRONG_LUC_GIU` của dụng cụ phải TRÙNG tập mà `nen_su_kien_quyen.tap_loai` trả trong cùng lượt.
+
+### Kết cục (ký trước)
+- **K0 — không kết luận:** M0 trượt, hoặc (i) hoặc (ii) trượt.
+- **A — giữ, đã đo:** 0 dương tính giả, 0 âm tính giả lớn, max e ≤ `NOI_BIEN`/2 và max |f_vào − 1| của nhóm sạch ≤ `NGUONG_LECH`/2. Việc được phép: thay chữ *"ĐỀ XUẤT, CHƯA ĐO"* ở hai hằng số bằng *"đo ở ĐO 26"*; giá trị không đổi.
+- **A′ — giữ, biên mỏng:** 0 dương tính giả, 0 âm tính giả lớn, nhưng một biên trượt. Giữ giá trị và ghi biên đo được cạnh hằng số; không đổi gì khác.
+- **B — có dương tính giả:** liệt kê từng lệnh. Lệnh nào thuộc tập điều kiện dừng đang loại thì **báo người dùng ngay**: một lệnh lỗ thật đang bị loại oan. Sửa nhãn = ĐO mới.
+- **C — có âm tính giả lớn:** liệt kê; chiều an toàn (lỗ giả ở lại mẫu). Sửa = ĐO mới. B và C có thể cùng xảy ra.
+- **Quy tắc 1:** nếu kết cục làm tập loại LỚN lên thì soát dụng cụ trước khi đọc. Nhưng ĐO này không đổi tập loại.
+
+### Báo kèm (không quyết định kết cục)
+- Bảng chéo nhãn × (có/không sự kiện trong lúc giữ), tách nhóm mô phỏng và nhóm tiến-về-trước.
+- Hai lệnh `LECH_KHAC` (SSI #100, VPB #110): sự kiện nào rơi trong lúc giữ. Giả thuyết "gap ở SL trước BƯỚC 123" vẫn để ngỏ.
+- Lệnh `KHONG_KIEM_DUOC` có sự kiện trong lúc giữ.
+- Sự kiện TM: nguồn giá có điều chỉnh cho cổ tức tiền không. Dùng nhóm chỉ có TM sau ngày vào, so f_vào với 1/(1 − v ÷ giá vào).
+
+### Điều ĐO này KHÔNG làm
+Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sheets; không dùng lịch sự kiện trong đường chạy thật. Muốn dùng nó làm nhãn là mốc D1, việc riêng.
