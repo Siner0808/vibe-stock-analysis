@@ -23127,3 +23127,52 @@ Leader, máy của người dùng. Người dùng nhắn *"tiếp tục đi"* sa
 - **Cố ý KHÔNG thêm ĐO 27 vào mục "Chờ tới ngày":** bản ký chỉ nói "đọc kèm mỗi lượt soát". Lượt soát làm sớm hơn hạn là chuyện thường (lượt 12 làm 14/10, hạn 15/10). Ghi ĐO 27 vào mục ấy sẽ đặt thêm một luật mà bản ký không có, là "không đọc trước 21/10".
 
 **Sổ tay:** BƯỚC này khai `khong_bat_buoc_vi`. Nó chỉ sửa `docs/HANDOFF.md`, `docs/STATE.md` và `docs/soat-notebooklm.json`. Không file luật nào bị chạm, và không kết luận đo nào đổi: khối HANDOFF chỉ chép lại kết luận đã hỏi sổ tay ở BƯỚC 192–196. Ý nghĩa của tab `ke_hoach` thì không đổi.
+
+## BƯỚC 198 — B6: APP HIỆN KẾ HOẠCH VÀO LỆNH ĐÃ GHI (TAB `ke_hoach`), CHỈ ĐỌC, KÈM VIỆC SỔ ẢO ĐÃ LÀM VỚI TỪNG TÍN HIỆU (15/10/2026)
+
+**Mốc:** B6
+
+Leader, máy của người dùng. Sau BƯỚC 197 leader hỏi việc kế; người dùng chọn *"App hiện kế hoạch đã ghi (Recommended)"*. Sáng cùng ngày, lúc duyệt thiết kế BƯỚC 195, người dùng đã chọn *"Để sau (Recommended)"* cho phần này. Nay tab đã có dữ liệu thật nên leader hỏi lại.
+
+**Mã.**
+- `sheets_store.doc_ke_hoach` CHỈ ĐỌC tab `ke_hoach` qua `_doc_tab`: đổi kiểu theo tên cột, tiêu đề lệch thì nổ. Dòng mới nhất đứng đầu (ngày nến giảm dần, cùng ngày thì `seq` giảm dần).
+- `google_sheets_sync.load_ke_hoach_from_google_sheets` trả None khi kho ngoài chưa cấu hình, `[]` khi tab trống.
+- `so_ke_hoach` thêm các hàm HIỆN thuần:
+  - `dong_hien_thi`: không tính lại số nào, ô thiếu giữ None;
+  - `ly_do_tu_o`: ô JSON hỏng thì trả nguyên chữ trong ô;
+  - `khoa_tin_hieu`: mã + ngày 10 ký tự, vì sổ có hai định dạng thời gian (HANDOFF mục 3, ràng buộc 1);
+  - `noi_lenh`: nhiều lệnh cùng tín hiệu thì giữ lệnh `id` lớn nhất;
+  - `noi_quyet_dinh`: nhiều dòng quyết định thì giữ dòng `seq` lớn nhất;
+  - `o_so_ao`: ô "Sổ ảo".
+  - Giờ ghi đọc theo `GIO_VN` (UTC+7 cố định), vì Streamlit Cloud chạy UTC.
+- `app.py`: hàm đọc `_doc_ke_hoach` (bộ nhớ đệm 5 phút) và khối `_khoi_ke_hoach_da_ghi` trong tab "📜 Lịch sử giao dịch", ngay dưới nhật ký "vì sao".
+  - Có ô chọn ngày nến, mặc định là ngày mới nhất.
+  - Cột "Sổ ảo" cho một trong ba thứ: lệnh sổ ảo mở cho cùng tín hiệu; hoặc lý do sổ KHÔNG mở, chép nguyên văn `skip_reason` của bảng quyết định; hoặc dấu gạch khi không có cả hai. Bảng quyết định lấy từ cùng lần đọc (cùng bộ nhớ đệm) với tab Bản tin, không đọc Sheets lần hai.
+  - Khối KHÔNG gọi `lap_ke_hoach`. Lập lại kế hoạch của một tín hiệu cũ là lập trên một chuỗi giá khác chuỗi agent đã thấy (ĐO 24, ĐO 26).
+
+**Gác:** `tests/test_ke_hoach_da_ghi.py`, 17 test. Đột biến 28/28 đỏ ngay vòng đầu.
+- Phát đầu dựng lại lỗi dễ mắc nhất: `fromtimestamp(at)` thiếu múi giờ. Máy này chạy giờ VN, nên phép kiểm giá trị xanh ở máy và chỉ đỏ trên máy UTC.
+- Vì vậy có thêm một gác AST đọc hình dạng lời gọi (`GIO_VN` là đối số thứ hai); gác ấy bắt được lỗi ở mọi máy.
+
+**Chạy thật trên app.** Leader chạy app của nhánh ở cổng 8523, đọc Sheet thật.
+- Bảng hiện các kế hoạch của ngày nến mới nhất. Số trùng với phép đối chiếu tay ở BƯỚC 197. "Ghi lúc" hiện đúng giờ VN của lượt quét.
+- Lượt đầu, cột "Sổ ảo" chỉ có dấu gạch. Leader đọc (chỉ đọc) tab `trades` và `decisions`: sổ không mở lệnh nào cho các tín hiệu ấy, và bảng quyết định ghi lý do là cổng VN-INDEX. Dấu gạch đúng nhưng không nói vì sao, nên leader thêm `noi_quyet_dinh` và `o_so_ao`. Lượt hai, cột hiện nguyên văn lý do.
+- Không chép số dòng hay giá vào đây (`CLAUDE.md`).
+
+**Bẫy dụng cụ xem trước.** `preview_start` đọc `launch.json` trong thư mục `.claude` của người dùng, không đọc file của repo. Gọi một tên không có ở đó thì nó chạy cấu hình ĐẦU TIÊN, ở đây là app của repo chính, cổng 8511. Leader đã:
+1. dừng server ấy;
+2. thêm tạm một cấu hình cổng 8523 vào file của người dùng, rồi trả lại nguyên bản khi xong;
+3. chép tạm tệp khoá Sheets vào worktree (`.gitignore` bỏ qua tệp này), rồi xoá sau khi xem xong.
+
+**Sổ tay: hỏi thật,** vì bước này sửa `docs/LO-TRINH.md`.
+- Độ tươi: sổ trích tiêu đề BƯỚC 197, đúng bằng `main`.
+- Câu hỏi có checksum 76857345. Sổ chỉ ra ba câu:
+  1. HANDOFF, khối 🧭 15/10: *"Phần app hiện kế hoạch đã ghi thì người dùng chọn để sau."* — **THẬT** (`tools/doi_chieu_trich_dan.py` cho KHỚP). Đã gắn ⚠️ HẾT ĐÚNG.
+  2. LO-TRINH, mục B6: *"App hiện kế hoạch đã ghi: để sau."* — **THẬT** (KHỚP). Đã gắn ⚠️ HẾT ĐÚNG, chữ cũ giữ nguyên.
+  3. STATE BƯỚC 195: sổ trích *"- App hiện kế hoạch đã ghi: để sau."* — **SAI về chữ**: công cụ cho LỆCH, chỉ khớp 6/35 ký tự đầu. STATE 195 thật ghi lựa chọn *"Để sau (Recommended)"* và câu "Không hiện trên app.". Đó là bản ghi có ngày của quyết định lúc ấy. STATE chỉ thêm, nên không sửa; thay đổi được ghi ở chính bước này.
+- Grep chữ "để sau" trên tài liệu, cẩm nang và ba file mã liên quan: ngoài hai câu ở (1) và (2), không còn câu nào nói phần hiện trên app còn để sau.
+
+**Không làm:**
+- Không đổi khớp lệnh, điểm, ngưỡng, sổ hay lược đồ Sheets.
+- Không ghi gì lên Sheets: khối này chỉ đọc, gác AST cấm cả các đường ghi lẫn đường kéo sổ.
+- B6 vẫn CHỈ ĐỂ HIỆN (ĐO 25), và sổ ảo vẫn không làm theo phán quyết.

@@ -551,7 +551,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   có điểm ≥ ngưỡng vào tab MỚI `ke_hoach` trên Google Sheets. Tab này chỉ thêm dòng, khoá theo
 >   mã + ngày nến. Lượt quét đầu tiên chạy mã mới (15/10) đã tạo tab, và đối chiếu tay khớp
 >   (BƯỚC 197). Đây là dữ liệu tiến về phía trước cho C7. Phần app hiện kế hoạch đã ghi thì
->   người dùng chọn để sau.
+>   người dùng chọn để sau. ⚠️ HẾT ĐÚNG cùng ngày: hỏi lại, người dùng chọn làm — BƯỚC 198
+>   hiện bảng ở tab "📜 Lịch sử giao dịch" (chỉ đọc; cột "Sổ ảo" nói sổ ảo đã mở lệnh
+>   nào, hay vì sao không mở).
 > - **Sổ tay NotebookLM:** nạp `docs/STATE.md` bản ghim `9ec0556` thì bị CẮT CỤT ở BƯỚC 122,
 >   hai lần, chưa rõ vì sao. Sổ đang giữ bản `@3194422`, đọc tới BƯỚC 193. Lần làm tươi kế: đo
 >   độ tươi bản MỚI trước, rồi mới xoá bản cũ (lỗi 179).
