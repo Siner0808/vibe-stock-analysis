@@ -330,6 +330,20 @@ def doc_so_ban_tin(backend: SheetBackend) -> dict[str, list[dict]]:
     }
 
 
+def doc_ke_hoach(backend: SheetBackend) -> list[dict]:
+    """CHỈ ĐỌC tab `ke_hoach` cho app (BƯỚC 198) — kế hoạch agent ĐÃ GHI lúc quét.
+
+    Không tính lại kế hoạch nào: tính lại trên chuỗi giá hôm nay là tính trên một
+    chuỗi KHÁC chuỗi agent đã thấy (`so_ke_hoach`). Tab rỗng hay chưa có thì `[]`;
+    tiêu đề lệch thì NỔ (app bắt và báo; lượt quét không đi qua hàm này). Mới nhất
+    đứng đầu: ngày nến giảm dần, cùng ngày thì `seq` giảm dần. Chỉ gọi `read_rows`.
+    """
+    ra = _doc_tab(backend, TAB_KE_HOACH, KE_HOACH_COLS)
+    return sorted(ra, key=lambda d: (str(d["signal_date"])[:10],
+                                     -1 if d["seq"] is None else d["seq"]),
+                  reverse=True)
+
+
 def _dem_dong(rows: list[list[str]]) -> int:
     """Bỏ header và các dòng trống đệm do write_all() để lại."""
     return sum(1 for r in rows[1:] if r and any(c != "" for c in r))
