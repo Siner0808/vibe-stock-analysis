@@ -408,7 +408,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
 >   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 15/10 (✅ BƯỚC 188, 14/10; nhịp 7 ngày
 >   kể từ NGÀY LÀM lượt 11, 08/10 — BƯỚC 164; hạn 10/10 cũ bị thay bởi quyết định người dùng 08/10).
->   Lượt 13: 21/10 (nhịp 7 ngày kể từ NGÀY LÀM lượt 12, 14/10 — BƯỚC 188).
+>   Lượt 13: 21/10 (nhịp 7 ngày kể từ NGÀY LÀM lượt 12, 14/10 — BƯỚC 188), làm kèm
+>   **lượt đọc 2 ĐO 27** (ĐO 27 chỉ đọc kèm lượt soát, cộng dồn — `docs/TIEU-CHI-DOC-TRUOC.md`,
+>   mục *Nhịp đọc*; BƯỚC 197).
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -530,6 +532,29 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > 15/10 (✅ BƯỚC 188, 14/10; dòng hạn ở khối "Hạn kế" trên). File ngoài repo
 > `~/.claude/rules/vibe-preview.md` còn ghi luật Quy tắc 3 cũ — leader sửa sau
 > khi PR của BƯỚC 164 được merge.
+
+> 🧭 **15/10/2026 — BƯỚC 192–197: hai ĐO về nhãn sự kiện quyền; B6 phần 2 chạy thật.**
+>
+> - **ĐO 26 (BƯỚC 192–193) ra K0**, nên chưa kết luận được gì về hai ngưỡng của nhãn sự kiện quyền.
+>   Bản ký giả định lệnh trong sổ mang giá khớp CHƯA điều chỉnh. Thực tế 113 lệnh MÔ PHỎNG mang giá
+>   của cache đã điều chỉnh tới ngày ghi sổ, nên đó là tiền đề sai (lỗi 178). Nguồn giá điều chỉnh
+>   LÙI cả lịch sử, kể cả cổ tức tiền. Lệnh duy nhất bị loại khỏi mẫu điều kiện dừng (#122) có sự
+>   kiện thật trong lúc giữ, nên không bị loại oan.
+> - **ĐO 27 (BƯỚC 194) đo theo chiều tiến.** Quần thể chỉ gồm lệnh tiến-về-trước đóng SAU
+>   15/10/2026. ĐO 27 đọc kèm MỖI lượt soát định kỳ, cộng dồn, không đọc lẻ. Lượt đọc 1 ra CHƯA ĐỦ.
+>   Lượt đọc 2 đi cùng lượt soát 13 (dòng hạn ở khối "Hạn kế" trên). Lệnh đọc:
+>   `./.venv/Scripts/python.exe tools/do27_su_kien_quyen_chieu_tien.py`. Chạy từ repo chính vì
+>   worktree không có tệp khoá Sheets.
+> - Chú thích chart D-W-M trên app đã sửa: câu "giá chưa điều chỉnh" sai từ 10/10. Tab soát sự
+>   kiện quyền nay ghi giới hạn của nhãn trên lệnh mô phỏng.
+> - **B6 phần 2 (BƯỚC 195–196) đang chạy thật.** `run_daily` ghi kế hoạch vào lệnh của mọi mã
+>   có điểm ≥ ngưỡng vào tab MỚI `ke_hoach` trên Google Sheets. Tab này chỉ thêm dòng, khoá theo
+>   mã + ngày nến. Lượt quét đầu tiên chạy mã mới (15/10) đã tạo tab, và đối chiếu tay khớp
+>   (BƯỚC 197). Đây là dữ liệu tiến về phía trước cho C7. Phần app hiện kế hoạch đã ghi thì
+>   người dùng chọn để sau.
+> - **Sổ tay NotebookLM:** nạp `docs/STATE.md` bản ghim `9ec0556` thì bị CẮT CỤT ở BƯỚC 122,
+>   hai lần, chưa rõ vì sao. Sổ đang giữ bản `@3194422`, đọc tới BƯỚC 193. Lần làm tươi kế: đo
+>   độ tươi bản MỚI trước, rồi mới xoá bản cũ (lỗi 179).
 
 **Chờ tới ngày, đừng đọc sớm:**
 
