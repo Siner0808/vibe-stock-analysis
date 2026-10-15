@@ -22932,3 +22932,68 @@ Ngày ghi sổ của nhóm mô phỏng: 2026-08-07 (lô ghi hàng loạt) và 20
 **Lỗi mới:** 178 (`.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`).
 
 **Sổ tay:** hỏi thật (checksum 215631172). Sổ trả *"không tìm thấy câu nào nói ngược"*; grep của leader tìm ra HAI câu sổ bỏ sót, ghi thành phát hiện ở mục `BƯỚC 193` của `docs/soat-notebooklm.json`: (1) **THẬT** — STATE BƯỚC 171 và chú thích chart trên app nói giá *"CHƯA điều chỉnh theo sự kiện quyền"*, trong khi chart đi qua đúng nguồn đã đo là điều chỉnh lùi (việc kế (c)); (2) **THẬT MỘT PHẦN** — `docs/QUYET-DINH-CHO.md` Q14 và STATE BƯỚC 182 viết *"sổ lưu giá CHƯA điều chỉnh lúc khớp"* như tiền đề cho cả sổ; đúng trong ngữ cảnh điều kiện dừng (chỉ lệnh tiến-về-trước), hẹp hơn thực tế nếu đọc cho lệnh mô phỏng.
+
+## BƯỚC 194 — ĐO 27 KÝ TRƯỚC: NHÃN SỰ KIỆN QUYỀN ĐO THEO CHIỀU TIẾN; SỬA CHÚ THÍCH CHART ĐA KHUNG; GHI GIỚI HẠN NHÃN CỦA LỆNH MÔ PHỎNG (15/10/2026)
+
+**Mốc:** D2
+
+Leader, máy của người dùng. Sau K0 của ĐO 26 (BƯỚC 193), người dùng chọn ba việc kế: *"Sửa chú thích chart (Recommended), Ghi giới hạn nhãn mô phỏng (Recommended), Ký ĐO 27 đo theo chiều tiến"*, rồi duyệt bản ký ĐO 27 nguyên văn: *"Duyệt cả bản nháp (Recommended)"*.
+
+**Ba commit, đúng thứ tự.**
+1. `19a7950` — ký `## ĐO 27` vào `docs/TIEU-CHI-DOC-TRUOC.md` TRƯỚC khi có dụng cụ; đẩy lên ngay.
+2. `0266968` — `tools/do27_su_kien_quyen_chieu_tien.py` + `tests/test_do27_su_kien_quyen_chieu_tien.py` (16 test).
+3. Commit này — sửa chú thích chart, ghi giới hạn nhãn, lượt đọc đầu.
+
+**ĐO 27 khác ĐO 26 đúng hai chỗ.**
+- Khoảng sự kiện bắt đầu ở max(ngày vào, ngày ghi sổ); ngày ghi sổ là `created_at` theo giờ VN. Đây chính là chỗ ĐO 26 hỏng (lỗi 178).
+- Thống kê chính và hai biên tính trên quần thể: lệnh tiến-về-trước đóng SAU ngày ký (`NGAY_KY` = 2026-10-15), tức dữ liệu chưa ai nhìn. Ba đối chứng vẫn tính trên mọi lệnh.
+
+Mọi định nghĩa khác gọi lại nguyên hàm của dụng cụ ĐO 26 (`cham`, `tong_hop`). Đọc kèm mỗi lượt soát định kỳ, cộng dồn. A/A′ chỉ khi quần thể ≥ 30 lệnh có lịch và ≥ 3 dương thật; dương tính giả thì báo người dùng ngay.
+
+Chỗ bản ký chưa nói, chọn trước lượt đọc đầu: mức "30 lệnh" chỉ đếm lệnh có lịch đọc được.
+
+**Gác.** 16 test trên thế giới giả tính tay. 12 lệnh SSX mô phỏng ghi 07/08 có CK 10% TRƯỚC ngày ghi và CK 20% SAU ngày ghi:
+- đếm từ ngày ghi sổ: F = 1,2, khớp f_vào;
+- đếm từ ngày vào: F = 1,32, trượt ⇒ K0.
+
+Các ca khác: quần thể rỗng ⇒ CHƯA ĐỦ · 30 lệnh + 3 dương thật + một lệnh có sự kiện sau ngày ra ⇒ A · 29 lệnh ⇒ CHƯA ĐỦ · 2 dương thật ⇒ CHƯA ĐỦ · nhóm biên rỗng ⇒ A′ · dương tính giả trong quần thể ⇒ B, mã thoát 1 · lệnh mô phỏng đóng sau ngày ký không vào quần thể · lệnh đóng ĐÚNG ngày ký không vào · ngày ghi theo giờ VN (00:30 VN = 17:30 UTC hôm trước) · AST.
+
+**Đột biến: 15/15 đỏ lượt đầu.** Phát 01 dựng lại lỗi 178 (đếm từ ngày vào). Các phát khác:
+- quần thể: `>=` ngày ký · không lọc ngày ký · gồm lệnh mô phỏng;
+- tính sai tập: đối chứng tính trên quần thể · thống kê tính trên mọi lệnh;
+- bỏ ngưỡng: bỏ mức 30 lệnh · bỏ mức 3 dương thật · dương thật không đòi sự kiện;
+- kết cục: biên rỗng tính là qua · B/C không chặn · bỏ đối chứng (ii) · B ra mã thoát 0;
+- khác: ngày ghi theo UTC · không đặt lại khoảng giữ.
+
+**Sửa chú thích chart đa khung** (`app.py`, hàm `_chu_thich_khung`; phát hiện 1 của sổ tay ở BƯỚC 193).
+- Câu cũ *"Giá chưa điều chỉnh theo sự kiện quyền (mốc D2 chưa làm) — trên khung tháng nhiều năm có thể có bậc giá giả"* sai từ 10/10/2026: chart tải qua `load_stock_data`, tức nguồn đã đo là điều chỉnh lùi.
+- Câu mới: nguồn giá điều chỉnh LÙI cả lịch sử tính tới lúc tải (BƯỚC 176, 193), nên giá quá khứ trên chart có thể thấp hơn giá đã khớp lúc ấy và thấp hơn giá trong sổ lệnh.
+- Gác AST: `tests/test_khung_thoi_gian.py::test_CHU_THICH_khung_khong_noi_gia_CHUA_dieu_chinh`.
+
+**Ghi giới hạn nhãn của lệnh mô phỏng.**
+- Docstring `su_kien_quyen.py` mục GIỚI HẠN: tiền đề *"sổ lưu giá CHƯA điều chỉnh lúc khớp"* chỉ đúng cho lệnh ghi lúc khớp.
+- Câu cố định của khối "Soát sự kiện quyền" trên app thêm một câu: nhãn của lệnh MÔ PHỎNG không đọc được thành sự kiện trong lúc giữ, và điều kiện dừng không dùng chúng.
+- Gác `CAU_CO_DINH` của `tests/test_su_kien_quyen.py` đổi theo, có ghi lý do.
+- Hai phát đục, trả câu chart về câu cũ và bỏ câu giới hạn khỏi app: 2/2 đỏ.
+
+**Lượt đọc 1 của ĐO 27** (15/10/2026 10:17, trình bọc ngoài repo như BƯỚC 193). M0 gồm băm sổ `7668c7999c9584e3`, băm nến `7cf96af0a8288cd3`, băm lịch `9ec781fab88d36b1`; nến 51/51 mã; lịch 50/51 mã (MSR lại hết giờ đọc ở `iq.vietcap.com.vn`).
+- (i) HDB #122: QUA.
+- (ii) giá ↔ lịch, đếm từ ngày ghi sổ: N = 32 · M_CK 18 (56,2%) · **M_CKTM 31 (96,9%)** → QUA.
+- (iii) dụng cụ [122] = `tap_loai` [122] → QUA.
+- Quần thể: 0 lệnh. **Kết cục lượt 1: CHƯA ĐỦ.**
+
+Lượt đọc kế: cùng lượt soát định kỳ 13 (hạn 21/10/2026).
+
+Nhóm (ii) của ĐO 27 nhỏ hơn nhóm chẩn đoán của ĐO 26 (32 so với 78). Lý do: bản ký chọn nhóm theo sự kiện SAU ngày ghi sổ, còn chẩn đoán chọn nhóm theo sự kiện sau ngày vào. Hai số trả lời hai câu khác nhau, không so trực tiếp được. M_CKTM vẫn hơn M_CK rõ (96,9% so với 56,2%): nguồn có điều chỉnh cổ tức tiền.
+
+**Không làm.**
+- Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng.
+- Không sửa `docs/QUYET-DINH-CHO.md` Q14: câu tiền đề ở đó nằm trong ngữ cảnh điều kiện dừng nên đúng.
+- Không sửa STATE BƯỚC 171: STATE chỉ thêm, và phép sửa nằm ở đây.
+
+**Sổ tay:** hỏi thật, sau khi làm tươi ba nguồn (`references/loi-da-mac.md`, `docs/STATE.md`, `docs/TIEU-CHI-DOC-TRUOC.md`):
+- thêm 3 URL ghim `3194422` trước;
+- xoá 3 bản `@4194c57` sau, đọc nhãn trên hộp xác nhận từng cái;
+- đo độ tươi: sổ trích đúng BƯỚC 193.
+
+Câu hỏi của BƯỚC 194 và ĐO 27 gửi một lần (checksum 273236911); sổ trả *"không tìm thấy câu nào nói ngược"*. Grep năm ví dụ không thấy câu nào nói ngược. Ví dụ 1 trúng chính câu BƯỚC 171 mà bước này sửa.

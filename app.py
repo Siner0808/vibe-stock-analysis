@@ -720,7 +720,7 @@ def _khoi_su_kien_quyen():
     """
     import su_kien_quyen as _skq
     st.markdown("##### 🧮 Soát sự kiện quyền trong lúc giữ lệnh")
-    st.caption("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều chỉnh). Từ BƯỚC 182, lệnh tiến-về-trước ĐÃ ĐÓNG mang nhãn SU_KIEN_TRONG_LUC_GIU bị LOẠI khỏi mẫu của điều kiện dừng cổng C5 (Q14); lệnh KHONG_KIEM_DUOC và LECH_KHAC ở lại. Bảng dưới chỉ HIỆN nhãn.")
+    st.caption("Lệnh có sự kiện quyền trong lúc giữ mang lãi/lỗ GIẢ (giá sổ chưa điều chỉnh). Từ BƯỚC 182, lệnh tiến-về-trước ĐÃ ĐÓNG mang nhãn SU_KIEN_TRONG_LUC_GIU bị LOẠI khỏi mẫu của điều kiện dừng cổng C5 (Q14); lệnh KHONG_KIEM_DUOC và LECH_KHAC ở lại. Bảng dưới chỉ HIỆN nhãn. Nhãn của lệnh MÔ PHỎNG không đọc được thành sự kiện trong lúc giữ: giá sổ của chúng đã điều chỉnh tới ngày ghi sổ (ĐO 26, BƯỚC 193); điều kiện dừng không dùng chúng.")
     if so_lenh_loi or not (_so_lenh.vi_the_mo or _so_lenh.lenh_dong):
         st.info(so_lenh_loi or "Sổ chưa có lệnh nào để soát.")
         return
@@ -1427,8 +1427,9 @@ def _chu_thich_khung(nen):
              for c in (_kt.CHU_KY_MA_NGAN, _kt.CHU_KY_MA_DAI) if len(nen) < c]
     return (
         "Chỉ nến ĐÃ ĐÓNG — kỳ đang dở không vẽ; mỗi nến mang ngày phiên cuối "
-        "thật của nó. Giá chưa điều chỉnh theo sự kiện quyền (mốc D2 chưa "
-        "làm) — trên khung tháng nhiều năm có thể có bậc giá giả."
+        "thật của nó. Nguồn giá điều chỉnh LÙI cả lịch sử theo sự kiện quyền "
+        "tính tới lúc tải (BƯỚC 176, 193) — giá quá khứ trên chart có thể thấp "
+        "hơn giá đã khớp lúc ấy và giá ghi trong sổ lệnh."
         + (" " + " · ".join(thieu) + "." if thieu else ""))
 
 

@@ -504,3 +504,17 @@ def test_APP_goi_dung_gop_nen_va_calculate_rsi_va_khong_viet_lai_chi_bao():
         assert "tu_ngay" in {k.arg for k in n.keywords}, f"dòng {n.lineno}: thiếu tu_ngay"
     # Nạp giá W/M đi qua load_stock_data (cổng kiểm định), không thêm đường tải thứ hai.
     assert not ({"Quote", "fetch_one"} & goi), "app.py không được tải giá ngoài load_stock_data"
+
+
+def test_CHU_THICH_khung_khong_noi_gia_CHUA_dieu_chinh():
+    """BƯỚC 194: câu cũ *"Giá chưa điều chỉnh theo sự kiện quyền … có thể có bậc giá
+    giả"* SAI từ 10/10/2026 — chart tải qua `load_stock_data`, nguồn ĐIỀU CHỈNH LÙI
+    cả lịch sử (BƯỚC 176; chẩn đoán ĐO 26, BƯỚC 193). Gác đọc mọi chuỗi trong thân
+    `_chu_thich_khung` bằng AST."""
+    cay = ast.parse((GOC / "app.py").read_text(encoding="utf-8"))
+    ham = next(n for n in cay.body
+               if isinstance(n, ast.FunctionDef) and n.name == "_chu_thich_khung")
+    van = "".join(n.value for n in ast.walk(ham)
+                  if isinstance(n, ast.Constant) and isinstance(n.value, str))
+    assert "chưa điều chỉnh" not in van.lower() and "bậc giá giả" not in van
+    assert "điều chỉnh LÙI" in van and "BƯỚC 176" in van
