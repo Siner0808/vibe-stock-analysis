@@ -145,6 +145,15 @@ trước có một cửa sổ sổ rỗng, và bản trùng gỡ được còn s
 5. **Đo độ tươi**: hỏi số BƯỚC lớn nhất trong `docs/STATE.md` kèm lối thoát,
    so với `git show <mã băm>:docs/STATE.md | grep '^## BƯỚC' | tail -1`.
 
+> ⚠️ **15/10/2026 (BƯỚC 196, lỗi 179): làm bước 5 TRÊN BẢN MỚI TRƯỚC bước 3.**
+> Một lượt nạp có thể bị CẮT CỤT mà không báo lỗi: `docs/STATE.md` @9ec0556
+> (1.583.623 byte) nạp HAI lần đều dừng ở BƯỚC 122 — sổ không thấy BƯỚC 123,
+> 160, 190 — trong khi @3194422 (1.571.526 byte) nạp cùng ngày đọc tới BƯỚC 193.
+> Nguyên nhân chưa rõ (kích thước gần như nhau). Thứ tự an toàn: thêm (2) → đổi
+> tên (4) → đo độ tươi bản MỚI (5) → mới xoá bản cũ (3). Hỏi thẳng tiêu đề BƯỚC
+> cuối (`'## BƯỚC n'` có hay không) để phân biệt cắt cụt với đọc sót; bản mới
+> cụt thì giữ bản cũ và khai độ chậm ở `_do_tuoi`.
+
 > 🔴 **Bản 27/09 (BƯỚC 130) của mục này ghi XOÁ trước, THÊM sau** — ngược thứ
 > tự `SKILL.md` đã chốt từ 17/09, và ngược cả luật xoá nguồn: xoá một nguồn
 > CHƯA có bản thay là việc phải hỏi người dùng. Hôm ấy người dùng đã cho phép

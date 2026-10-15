@@ -23070,3 +23070,37 @@ C7 và mọi phép đo B6 sau này cần phán quyết GHI TẠI ngày t, trư�
 3. BƯỚC 196: `docs/LO-TRINH.md` B6.
 
 **Sổ tay:** ô `khong_bat_buoc_vi`. Bước này không chạm file luật nào, và `tools/buoc_cham_luat.py 195` xác nhận điều ấy.
+
+## BƯỚC 196 — ĐÁNH DẤU B6 PHẦN 2 ĐÃ DỰNG; `CLAUDE.md` GHI TAB `ke_hoach` VÀ NGOẠI LỆ CỦA BẤT BIẾN "LỆCH CỘT THÌ NỔ"; MỘT LƯỢT NẠP NGUỒN SỔ TAY BỊ CẮT CỤT (15/10/2026)
+
+**Mốc:** B6
+
+Leader, máy của người dùng, sau khi #241 (BƯỚC 195) vào `main` (`9ec0556`). Người dùng nhắn *"tiếp tục"*.
+
+**Ba file đổi chữ (không đổi hành vi).**
+- `docs/LO-TRINH.md`, mục B6:
+  - vế cũ *"vế 'nhật ký ghi' CHƯA làm"* giữ nguyên, thêm *"⚠️ HẾT ĐÚNG 15/10/2026, xem PHẦN 2"*;
+  - thêm mục *"PHẦN 2 ĐÃ DỰNG 15/10/2026: BƯỚC 195 — …"*;
+  - B6 vẫn CHỈ ĐỂ HIỆN về mặt giao dịch.
+- `CLAUDE.md`, mục *Sổ ngoài*:
+  - bảng thêm dòng `ke_hoach` (chỉ thêm, khoá mã + ngày nến);
+  - bất biến *"lệch cột thì nổ"* thêm đúng một ngoại lệ đã khai: tab phụ `ke_hoach` lệch thì chỉ báo `::warning::`, không dừng lượt quét. Ba tab sổ lệnh vẫn nổ.
+  - Đây là luật hiện hành mà BƯỚC 195 đã đổi bằng mã; để chữ cũ đứng là để `CLAUDE.md` nói hẹp hơn thực tế.
+- Docstring `ke_hoach_vao_lenh.py`:
+  - câu cũ *"chỉ `app.py` được nhập module này"* sai từ khi có dụng cụ ĐO 25, và càng sai thêm từ BƯỚC 195;
+  - nay ghi đủ ba nơi được nhập, và `run_daily` CHỈ GHI kế hoạch, SAU `run_session`.
+
+**Lượt làm tươi sổ tay — một nguồn bị CẮT CỤT (lỗi 179).** `git diff --quiet` cho thấy chỉ STATE và TIEU-CHI `@3194422` đã cũ.
+1. Leader thêm hai bản ghim `9ec0556` (curl 200, khớp byte), xoá hai bản `@3194422` (đọc nhãn), rồi mới đo độ tươi.
+2. Sổ trả *"BƯỚC lớn nhất 122"*. Hỏi thẳng *"## BƯỚC 195 / 123 / 160 / 190"* thì đều "không có".
+3. Nạp lại cùng URL lần hai: vẫn cụt ở BƯỚC 122. Trong khi đó bản `@3194422` nạp sáng cùng ngày đọc tới BƯỚC 193.
+4. Đo kích thước: 1.571.526 byte so với 1.583.623 byte, gần như bằng nhau. Nguyên nhân chưa rõ.
+5. Xử lý: nạp lại `@3194422`; sổ trích đúng tiêu đề BƯỚC 160 và 193. Giữ bản ấy, xoá bản cụt (đọc nhãn).
+
+Lúc hỏi, STATE trong sổ CHẬM 2 BƯỚC (thiếu 194, 195), đã khai ở `_do_tuoi`.
+
+Lỗi nằm ở thứ tự: cẩm nang đặt bước đo độ tươi SAU bước xoá, nên làm đúng cẩm nang vẫn mất bản tốt. `references/soat-cheo-notebooklm.md`, mục *Nạp lại nguồn*, thêm ô ⚠️: đo độ tươi bản MỚI trước, rồi mới xoá bản cũ; bản mới cụt thì giữ bản cũ.
+
+**Sổ tay:** hỏi thật (checksum 202252288). Sổ trả *"không tìm thấy câu nào nói ngược"*. Grep năm ví dụ không thấy câu nào nói ngược; chi tiết ở `_tu_kiem_cau_am`. Ô ⚠️ của cẩm nang và lỗi 179 viết SAU lượt hỏi, từ chính lượt làm tươi; chúng không đổi kết luận nào mà câu hỏi đã nêu.
+
+**Lượt quét Actions đầu tiên chạy mã BƯỚC 195:** chưa chạy khi bước này đóng (14:07 giờ VN). Việc kế: đọc log của lượt ấy (dòng 📝, dòng đẩy "kế hoạch", không có `::warning::` về `ke_hoach`), mở tab `ke_hoach` trên Sheet, và đối chiếu một dòng với `lap_ke_hoach` chạy tay.

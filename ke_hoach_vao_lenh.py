@@ -34,8 +34,9 @@ Người dùng còn chỉ ra giá không được làm tròn và không đúng b
 VÌ SAO CHỈ ĐỂ HIỆN, KHÔNG VÀO SỔ (đừng đổi điều này trong cùng bài)
 ───────────────────────────────────────────────────────────────────
 Phán quyết CHƯA ĐO. Đổi cách khớp của sổ giữa chừng phá phép đo tiến về phía
-trước (`NGUYEN-TAC-DO-LUONG.md`, bất biến 7). Hệ quả cứng: chỉ `app.py` được
-nhập module này (`tests/test_ke_hoach_vao_lenh.py`).
+trước (`NGUYEN-TAC-DO-LUONG.md`, bất biến 7). Hệ quả cứng: chỉ `app.py`, dụng cụ
+ĐO 25 và `run_daily` được nhập module này (`tests/test_ke_hoach_vao_lenh.py`);
+`run_daily` CHỈ GHI kế hoạch vào tab `ke_hoach`, SAU `run_session` (BƯỚC 195).
 
 Thứ tự đã duyệt: B6 (hiện) → một phép đo thăm dò KHAI TIÊU CHÍ TRƯỚC → C7 chạy
 bóng → sớm nhất 11/2026 mới bàn tới đường thật. Ba bẫy đã biết:
