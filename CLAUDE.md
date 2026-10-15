@@ -306,11 +306,13 @@ SQLite là máy chạy, Google Sheets là kho bền, **không đồng bộ hai c
 |---|---|
 | `decisions` | chỉ thêm dòng có `seq` lớn hơn |
 | `trades`, `nhat_ky` | soi gương toàn phần (đổi trạng thái/stop được nâng) |
+| `ke_hoach` | chỉ thêm, khoá (mã, ngày nến) — kế hoạch vào lệnh ghi lúc quét (BƯỚC 195) |
 
 Bốn bất biến (`tests/test_sheets_store.py`, offline nhờ `InMemorySheet`):
 `pull()` **từ chối** ghi vào sổ đang có dữ liệu trừ `allow_overwrite=True`;
-lệch cột thì **nổ**; `id`/`seq` giữ nguyên khi khôi phục; vòng đẩy–kéo không
-mất gì (NULL ≠ chuỗi rỗng). Cấu hình `.streamlit/secrets.toml`
+lệch cột thì **nổ** (riêng tab phụ `ke_hoach` lệch thì chỉ báo `::warning::`, không
+dừng lượt quét — `tests/test_ghi_ke_hoach.py`); `id`/`seq` giữ nguyên khi khôi phục;
+vòng đẩy–kéo không mất gì (NULL ≠ chuỗi rỗng). Cấu hình `.streamlit/secrets.toml`
 (`GOOGLE_SHEET_KEY` + `[gcp_service_account]`, xem `secrets.toml.example`);
 không cấu hình thì tắt sạch.
 
