@@ -22868,3 +22868,67 @@ Mốc cổng 5: 3141 → **3154** (`--cap-nhat`, +13).
 - Không phán lại 27 dòng mới: đó là việc của lượt 13.
 
 **Sổ tay:** ô `khong_bat_buoc_vi`. BƯỚC này chỉ chạm một công cụ, một file test, mốc số test và hai sổ; không chạm file luật, và `tools/buoc_cham_luat.py 191` xác nhận điều ấy.
+
+## BƯỚC 192 — ĐO 26 KÝ TRƯỚC + DỤNG CỤ: HAI NGƯỠNG CỦA NHÃN SỰ KIỆN QUYỀN ĐỐI CHIẾU LỊCH SỰ KIỆN VCI (15/10/2026)
+
+**Mốc:** D2
+
+Leader, máy của người dùng. Người dùng chọn việc hôm nay: *"D2: đo hai ngưỡng (Recommended)"*. Lý do đề xuất: hai ngưỡng của nhãn (`NGUONG_LECH` 5%, `NOI_BIEN` 2%) ghi *"ĐỀ XUẤT, CHƯA ĐO"* từ BƯỚC 176, và từ BƯỚC 182 chúng quyết định MẪU của điều kiện dừng; dương tính giả làm alpha ĐẸP LÊN.
+
+**Đáp án độc lập với giá — tìm thấy trong phiên.** `vnstock.explorer.vci.company.Company(mã)._fetch_events` (hàm nội bộ; `events()` công khai chỉ trả 50 dòng mới nhất của mọi loại) trả lịch `DIV,ISS` có ngày GDKHQ (`exright_date`), tỷ lệ và tiền mỗi cổ phiếu. Ca đã biết đi qua: HDB có *Cổ phiếu thưởng 5%* và *Trả cổ tức bằng cổ phiếu 25%* cùng GDKHQ 2026-10-09 — 1,05 × 1,25 = 1,3125, khớp f_vào ≈ 1,30 của HDB #122 (BƯỚC 176). Đây là lần đầu dự án dùng một bảng sự kiện doanh nghiệp; câu *"không có bảng sự kiện doanh nghiệp ở máy; không gọi mạng"* của ĐO 24 nói về luật riêng của ĐO 24 và vẫn đúng ở phạm vi ấy.
+
+**Ba commit, đúng thứ tự.**
+1. `f93394c` — ký `## ĐO 26` vào `docs/TIEU-CHI-DOC-TRUOC.md`, TRƯỚC khi có dụng cụ. Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"*. Đẩy lên remote ngay để mốc ký là công khai.
+2. `8a46e0e` — `tools/do26_nguong_su_kien_quyen.py` (chỉ đọc) + `tests/test_do26_nguong_su_kien_quyen.py`.
+3. Commit ghi kết quả — BƯỚC 193.
+
+**Dụng cụ.** Nhãn lấy bằng `su_kien_quyen.soi_so` (hàm của sản phẩm, hai ngưỡng GHIM); giá bằng `nen_su_kien_quyen.tai_nen`; đối chứng (iii) gọi `nen_su_kien_quyen.tap_loai` trong cùng lượt. Nhóm biên `NOI_BIEN` dùng chính cổng dạng nhân của nhãn (`_lech_qua_nguong`). Bốn chỗ bản ký chưa nói, leader chọn và ghi ở docstring TRƯỚC khi chạy: cỡ sự kiện trong lúc giữ = F − 1 của M_CKTM, so dạng nhân `F > 1 + NGUONG_LECH`; nhóm biên rỗng tính là biên trượt (A′); đối chứng (iii) trượt cũng là K0; p95 theo hạng gần nhất.
+
+**Hai lỗi biên số thực, sửa trước khi chạy** (tính tay khi viết test): `1,05 − 1` = 0,050000000000000044 > 0,05, nên (1) một CK đúng 5% bị đếm thành âm tính giả, và (2) nhóm biên tự tính cổng bằng `abs(f − 1)` xếp lệnh lệch đúng 5% khác phía với nhãn. Cả hai đổi sang dạng nhân; mỗi chỗ có test biên.
+
+**Gác.** 39 test trên một "thế giới" giả tính tay (HDB #122 dương thật; 12 lệnh SSX có thưởng 20% SAU ngày ra; 3 lệnh sạch), mỗi biến thể đổi một thứ: A · A′ ×3 · B · C · B+C · K0 ×4, lật trang lịch, AST (không gọi hàm ghi sổ; một `write_text` duy nhất cho `--json`; nhãn qua `skq.soi_so`; thân `tong_hop`/`cham` không gõ lại ngưỡng). Hai gác danh sách nhập (`test_su_kien_quyen`, `test_loai_su_kien_quyen`) thêm dụng cụ ĐO 26, có ghi lý do tại chỗ, như tiền lệ dụng cụ ĐO 25.
+
+**Đột biến** (`va_an_toan.dot_bien_bo`): **24/24 đỏ lượt đầu**. Phát 01 dựng lại đúng thứ gác sinh ra để bắt — dụng cụ không có đáp án (dương tính giả không bao giờ đếm). Còn lại: khoảng giữ đóng ở ngày vào / mở ở ngày ra · bỏ *cổ phiếu thưởng* khỏi CK · TM nhân thay chia · CK bỏ số 1 · lệch xuống đo từ đỉnh · p95 lệch hạng · hai biên không chia đôi · nhóm rỗng tính là qua · bỏ N ≥ 10 · bỏ tỷ lệ khớp · bỏ đối chứng (i) / (iii) · âm tính giả `>=` / dạng cộng · lịch chỉ trang đầu · nhóm sạch dùng khoảng giữ · tập loại không lọc tiến-về-trước · bỏ lọc mã trong lịch · nhóm biên tự tính cổng dạng cộng · nhóm biên nhận lệnh có sự kiện · B/C thành A.
+
+**Sổ tay:** hỏi thật (BƯỚC 192 và ĐO 26 cùng một lần gửi, checksum 223651209; sổ tươi: trích đúng tiêu đề BƯỚC 191, `git diff --quiet 4194c57 1a07257`). Sổ trả *"không tìm thấy câu nào nói ngược"*. Leader grep năm ví dụ: một câu sổ bỏ sót dù chính ví dụ nêu nó — ĐO 24 mục K1 *"Không có bảng sự kiện doanh nghiệp ở máy; không gọi mạng"* (cùng ở STATE BƯỚC 159) — không mâu thuẫn vì là luật riêng của ĐO 24; bản ký ĐO 26 dẫn đúng câu ấy.
+
+## BƯỚC 193 — ĐO 26 CHẠY: KẾT CỤC K0 — LỊCH SỰ KIỆN VÀ NGUỒN GIÁ KHỚP 98,7%, NHƯNG CHỈ KHI ĐẾM TỪ NGÀY GHI SỔ; GIÁ SỔ CỦA LỆNH MÔ PHỎNG KHÔNG PHẢI GIÁ KHỚP CHƯA ĐIỀU CHỈNH (15/10/2026)
+
+**Mốc:** D2
+
+Leader chạy dụng cụ của BƯỚC 192 (`8a46e0e`) trên sổ thật, một lượt, 15/10/2026 09:08:37 → 09:10:36. Worktree không có `.streamlit/secrets.toml` nên một trình bọc ngoài repo nạp `sheets_store` · `google_sheets_sync` · `doc_so_that` từ repo chính rồi chạy dụng cụ của nhánh (in đường dẫn từng module; các module dùng chung trùng `main`, `git diff --quiet`). Lượt đầu chết ở trình bọc (module nạp theo đường dẫn chưa đăng ký `sys.modules` nên `dataclass` nổ) trước khi kéo dữ liệu nào.
+
+**M0.** băm sổ `7576bb3fe9e6efdf` · băm nến `8b17df7b0982f2d4` · băm lịch `9ffe7f24e2888b93`; nến 51/51 mã; lịch 49/51 mã — MSR, NAF hết giờ đọc (30 s) ở `iq.vietcap.com.vn`, lệnh của hai mã ấy không vào phép đối chiếu.
+
+**Đối chứng của máy đo.**
+- (i) HDB #122: QUA — lịch có CK 5% + CK 25% GDKHQ 2026-10-09 trong lúc giữ, nhãn `SU_KIEN_TRONG_LUC_GIU`.
+- (ii) giá ↔ lịch: **TRƯỢT** — N = 78; M_CK khớp 39 (50,0%), M_CKTM khớp 16 (20,5%); cả hai dưới 80%.
+- (iii) cùng tập loại: QUA — dụng cụ [122] = `tap_loai` [122].
+
+**KẾT CỤC KÝ TRƯỚC: K0 — không kết luận.** Hai ngưỡng vẫn *"ĐỀ XUẤT, CHƯA ĐO"*; `su_kien_quyen.py` không đổi một chữ.
+
+**Số dụng cụ in nhưng KHÔNG được đọc thành kết luận (K0):** 1 dương tính giả (BID #19, lệnh mô phỏng — không thuộc mẫu điều kiện dừng); 3 âm tính giả lớn (ACB #3, SHB #98, VIB #108, đều mô phỏng); nhóm biên `NOI_BIEN` N = 24, max e = 0,0270 (chính BID #19; mọi lệnh khác e = 0); nhóm biên `NGUONG_LECH` N = 29, max |f_vào − 1| = 0,0038, p95 = 0,0028.
+
+**Chẩn đoán SAU K0 — giả thuyết, không phải kết luận, KHÔNG đổi kết cục.** Bản in thô cho thấy nhiều lệnh f_vào đúng 1,000 dù lịch có CK sau ngày vào (ACB, CTG, HPG, NKG…). Giả thuyết H: giá trong sổ của lệnh mô phỏng là giá của chuỗi cache **đã điều chỉnh tới ngày ghi sổ**, không phải giá khớp chưa điều chỉnh — nên chỉ sự kiện SAU ngày ghi sổ mới làm f_vào lệch 1. Phép kiểm (một lệnh, trình ngoài repo, cùng `--json` thô của lượt chạy + `created_at` kéo lại từ sổ): cùng nhóm 78 lệnh, cùng hai mô hình, chỉ đổi khoảng sự kiện thành (ngày ghi sổ, ngày kéo]:
+
+| khoảng sự kiện | M_CK | M_CKTM |
+|---|---|---|
+| (ngày vào, ngày kéo] — bản ký | 39/78 = 50,0% | 16/78 = 20,5% |
+| (ngày ghi sổ, ngày kéo] — chẩn đoán | 64/78 = 82,1% | **77/78 = 98,7%** |
+
+Ngày ghi sổ của nhóm mô phỏng: 2026-08-07 (lô ghi hàng loạt) và 2026-09-28. Ba điều H giải thích được, và chưa kiểm cơ chế (mã đã sinh lô 07/08):
+1. **Lịch VCI và nguồn giá nói CÙNG một chuyện** khi đếm đúng khoảng — lịch dùng được làm đáp án.
+2. **Nguồn giá điều chỉnh cả cổ tức tiền mặt** (M_CKTM 98,7% so với M_CK 82,1%).
+3. **Tiền đề của nhãn — *"sổ lưu giá CHƯA điều chỉnh lúc khớp"* (docstring `su_kien_quyen.py`, BƯỚC 176/182) — chỉ đúng cho lệnh tiến-về-trước** (ghi lúc khớp). Với lệnh mô phỏng, nhãn so hai chuỗi đều đã điều chỉnh tại hai thời điểm khác nhau; nhãn của chúng (khối "Soát sự kiện quyền" trên app) không đọc được thành "sự kiện trong lúc giữ". BID #19 và ba "âm tính giả" đều thuộc nhóm này. Điều kiện dừng chỉ dùng lệnh tiến-về-trước nên đường loại KHÔNG bị ảnh hưởng.
+
+**Điều chắc chắn, không phụ thuộc kết cục (đối chứng (i) + (iii)):** lệnh DUY NHẤT điều kiện dừng đang loại (#122) có sự kiện điều chỉnh trong lúc giữ theo một nguồn độc lập với giá. Không có lệnh tiến-về-trước nào bị loại oan ⇒ không có việc "báo người dùng ngay" của kết cục B.
+
+**Bác:** giả định của chính bản ký rằng mọi lệnh trong sổ mang giá khớp chưa điều chỉnh (lỗi 178). Bác luôn đọc thử *"lịch VCI không khớp nguồn giá"* — 98,7% khi đếm đúng khoảng.
+
+**Không làm.** Không đọc lại ĐO 26 theo khoảng mới (đó là chọn luật sau khi nhìn số — bất biến 7). Không đổi ngưỡng, nhãn, docstring, app. Một ĐO mới với khoảng (max(ngày vào, ngày ghi sổ), ngày ra] chạy trên sổ HIỆN TẠI sẽ là phép đo trên dữ liệu ĐÃ NHÌN; đường sạch là ký trước rồi đo **về phía trước** trên lệnh tiến-về-trước đóng SAU ngày ký. Việc người dùng quyết.
+
+**Việc kế (chờ người dùng).** (a) Ký ĐO 27: chỉ lệnh tiến-về-trước, khoảng từ ngày ghi sổ, đo dần khi lệnh đóng. (b) Ghi giới hạn "nhãn của lệnh mô phỏng không đọc được" vào docstring `su_kien_quyen.py` và câu cố định trên app. (c) Sửa chú thích chart đa khung trên app (`app.py`, hàm `_chu_thich_khung`): câu *"Giá chưa điều chỉnh theo sự kiện quyền … có thể có bậc giá giả"* sai từ 10/10/2026 — chart lấy giá qua `VNStockCollectorAgent().collect`, nguồn ĐIỀU CHỈNH LÙI (BƯỚC 176; chẩn đoán ở trên). (d) MSR, NAF: lịch hết giờ đọc — thử lại.
+
+**Lỗi mới:** 178 (`.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`).
+
+**Sổ tay:** hỏi thật (checksum 215631172). Sổ trả *"không tìm thấy câu nào nói ngược"*; grep của leader tìm ra HAI câu sổ bỏ sót, ghi thành phát hiện ở mục `BƯỚC 193` của `docs/soat-notebooklm.json`: (1) **THẬT** — STATE BƯỚC 171 và chú thích chart trên app nói giá *"CHƯA điều chỉnh theo sự kiện quyền"*, trong khi chart đi qua đúng nguồn đã đo là điều chỉnh lùi (việc kế (c)); (2) **THẬT MỘT PHẦN** — `docs/QUYET-DINH-CHO.md` Q14 và STATE BƯỚC 182 viết *"sổ lưu giá CHƯA điều chỉnh lúc khớp"* như tiền đề cho cả sổ; đúng trong ngữ cảnh điều kiện dừng (chỉ lệnh tiến-về-trước), hẹp hơn thực tế nếu đọc cho lệnh mô phỏng.
