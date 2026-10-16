@@ -203,7 +203,7 @@ def get_vni_df():
                     df_ghi = _btd.bo_nen_dang_do(df, now_vn())
                     if len(df_ghi):
                         _btd.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-                        df_ghi.to_csv(_btd.cache_path("VNINDEX"), index=False)
+                        _btd.ghi_cache(df_ghi, "VNINDEX")   # BƯỚC 200: chụp trước khi ghi
                         source = "mạng (đã ghi cache)"
                 except Exception:
                     pass

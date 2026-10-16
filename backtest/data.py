@@ -5,7 +5,9 @@ Backtest phải tất định — cùng dữ liệu vào, cùng kết quả ra.
 """
 from __future__ import annotations
 
+import hashlib
 import os
+import shutil
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -55,6 +57,110 @@ VN30_SNAPSHOT = [
 
 def cache_path(symbol: str) -> Path:
     return CACHE_DIR / f"{symbol.upper()}.csv"
+
+
+# ── Kho phiên bản cache (BƯỚC 200) ──────────────────────────────────────
+#
+# Cache bị gitignore và bị LÀM TƯƠI: lượt 12/10/2026 thay cả chuỗi 39 mã mà
+# không ai sao lưu, nên số đo trên cache cũ (ĐO 22: −1,68%) chỉ còn tái lập
+# được nhờ một bản sao tình cờ (`docs/STATE.md` BƯỚC 199). Vì vậy MỌI lượt ghi
+# CSV vào `CACHE_DIR` đi qua `ghi_cache`, và lượt ghi đầu tiên của mỗi tiến
+# trình chụp nguyên cache cũ vào kho TRƯỚC. Người dùng chọn để MÁY làm thay vì
+# dựa vào kỷ luật hay trí nhớ của agent (16/10/2026, phương án b).
+#
+# Kho BẬT khi thư mục đã TỒN TẠI — mặc định `<thư mục chứa repo>/luu_cache`,
+# hoặc `VIBE_LUU_CACHE_DIR`. Không có thì không chụp: CI và Streamlit Cloud
+# không có nó. Kho CHỈ ĐỌC: cache trỏ vào trong kho thì từ chối ghi.
+LUU_CACHE_DIR = Path(os.environ.get("VIBE_LUU_CACHE_DIR", "")
+                     or Path(__file__).resolve().parent.parent.parent / "luu_cache")
+
+#: Đầu vào thứ hai của mọi backtest `co_san` (bị gitignore như cache):
+#: chép kèm vào ảnh chụp. Không phải `*.csv` nên không đổi băm của ảnh chụp.
+FILE_BO_NHO_HAU_NGHIEM = Path(__file__).resolve().parent.parent / "sl_pattern_memory.json"
+
+#: CACHE_DIR (đường tuyệt đối) đã được xét chụp trong tiến trình này. Một lượt
+#: làm tươi ghi từng mã một; chụp lại sau mỗi mã sẽ lưu cả các trạng thái dở.
+_DA_CHUP: set[str] = set()
+
+
+def bam_cache(thu_muc) -> dict:
+    """Băm SHA-256 theo (tên, nội dung) của mọi `*.csv` trong `thu_muc`.
+
+    CÙNG phép băm với `tools/do25_ke_hoach_vao_lenh.bam_thu_muc` (M0 của các
+    ĐO) — gác ở `tests/test_chup_cache.py`, để băm ghi trong STATE tra được ra
+    đúng thư mục trong kho.
+    """
+    files = sorted(Path(thu_muc).glob("*.csv"))
+    h = hashlib.sha256()
+    for f in files:
+        h.update(f.name.encode("utf-8"))
+        h.update(b"\0")
+        h.update(f.read_bytes())
+        h.update(b"\0")
+    return {"so_file": len(files), "sha256": h.hexdigest(),
+            "mtime_lon_nhat": max((f.stat().st_mtime for f in files), default=None)}
+
+
+def chup_cache_truoc_khi_ghi() -> Path | None:
+    """Chụp `CACHE_DIR` vào kho nếu phiên bản này chưa có trong kho.
+
+    Trả thư mục ảnh chụp (vừa chụp, hoặc đã có từ trước), hoặc None khi: kho
+    không bật, cache chưa có tệp nào, hay tiến trình này đã xét rồi.
+
+    NỔ — và người gọi KHÔNG được ghi tiếp — khi cache nằm trong kho, hoặc bản
+    chép lệch băm. Thư mục chép dở để nguyên cho người xem, không tự xoá.
+    """
+    cache = Path(CACHE_DIR).resolve()
+    khoa = str(cache)
+    if khoa in _DA_CHUP:
+        return None
+    kho = Path(LUU_CACHE_DIR)
+    if not kho.is_dir():
+        return None
+    kho = kho.resolve()
+    if cache == kho or kho in cache.parents:
+        raise ValueError(f"CACHE_DIR ({cache}) nằm TRONG kho lưu ({kho}): "
+                         f"kho chỉ đọc, không ghi vào đó")
+    b = bam_cache(cache)
+    if b["so_file"] == 0:
+        _DA_CHUP.add(khoa)
+        return None
+    duoi = "_" + b["sha256"][:8]
+    for d in sorted(kho.iterdir()):
+        if d.is_dir() and d.name.endswith(duoi):
+            _DA_CHUP.add(khoa)
+            return d
+    ngay = datetime.fromtimestamp(b["mtime_lon_nhat"]).strftime("%Y%m%d")
+    dich = kho / f"{ngay}{duoi}"
+    tam = kho / f".dang_chup{duoi}_{os.getpid()}"
+    tam.mkdir()
+    for f in sorted(cache.glob("*.csv")):
+        shutil.copy2(f, tam / f.name)
+    if FILE_BO_NHO_HAU_NGHIEM.is_file():
+        shutil.copy2(FILE_BO_NHO_HAU_NGHIEM, tam / FILE_BO_NHO_HAU_NGHIEM.name)
+    lai = bam_cache(tam)["sha256"]
+    if lai != b["sha256"]:
+        raise RuntimeError(f"ảnh chụp lệch băm ({lai[:8]} ≠ {b['sha256'][:8]}); "
+                           f"để nguyên {tam} cho người xem, KHÔNG ghi cache")
+    tam.rename(dich)
+    with open(kho / "DANH_MUC.md", "a", encoding="utf-8") as f:
+        f.write(f"- `{dich.name}/` — băm `{b['sha256'][:16]}…`, {b['so_file']} tệp — "
+                f"tự chụp trước lượt ghi {now_vn():%d/%m/%Y %H:%M} (BƯỚC 200)\n")
+    _DA_CHUP.add(khoa)
+    print(f"📦 Đã chụp cache cũ ({b['so_file']} tệp, băm {b['sha256'][:8]}) → {dich}")
+    return dich
+
+
+def ghi_cache(df: pd.DataFrame, symbol: str) -> Path:
+    """CHỖ DUY NHẤT ghi CSV vào `CACHE_DIR`: chụp cache cũ trước, rồi mới ghi.
+
+    Gác AST ở `tests/test_chup_cache.py`: không còn `.to_csv(` nào khác trong
+    `backtest/data.py` và `market_filter.py`.
+    """
+    chup_cache_truoc_khi_ghi()
+    path = cache_path(symbol)
+    df.to_csv(path, index=False)
+    return path
 
 
 NGUON_MAC_DINH = ("kbs", "tcbs", "vci", "dnse")
@@ -170,7 +276,7 @@ def download(symbols: list[str], start: str, end: str,
         if df.empty:
             print(f"[{i}/{len(symbols)}] {sym}: ❌ chỉ có nến chưa đóng — BỎ QUA")
             continue
-        df.to_csv(path, index=False)
+        ghi_cache(df, sym)
         result[sym] = len(df)
         print(f"[{i}/{len(symbols)}] {sym}: ✅ {len(df)} phiên")
     return result
@@ -442,7 +548,7 @@ def extend_history(symbols: list[str], start: str, end: str,
                 continue
             merged = hop_nhat(old, fresh)
         merged = bo_nen_dang_do(merged, bay_gio)
-        merged.to_csv(path, index=False)
+        ghi_cache(merged, sym)
 
         d0, d1 = str(merged["time"].iloc[0])[:10], str(merged["time"].iloc[-1])[:10]
         changed[sym] = (d0, d1, len(merged))
