@@ -173,6 +173,18 @@ def load_so_ban_tin_from_google_sheets(backend: Any = None
     return _ss.doc_so_ban_tin(b)
 
 
+def load_ke_hoach_from_google_sheets(backend: Any = None) -> Optional[list[dict]]:
+    """Tab `ke_hoach` từ Sheets, CHỈ ĐỌC — kế hoạch vào lệnh ĐÃ GHI lúc quét (BƯỚC 198).
+
+    None nghĩa là kho ngoài CHƯA cấu hình; `[]` nghĩa là đã cấu hình mà tab chưa
+    có dòng nào. Hai trạng thái ấy phải hiện khác nhau.
+    """
+    b = get_backend(backend)
+    if b is None:
+        return None
+    return _ss.doc_ke_hoach(b)
+
+
 def restore_journal_from_google_sheets(db_path: str = DB_PATH,
                                        allow_overwrite: bool = False,
                                        backend: Any = None) -> Optional[dict]:

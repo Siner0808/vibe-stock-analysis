@@ -491,6 +491,17 @@ def _doc_so_ban_tin():
     return _gss.load_so_ban_tin_from_google_sheets()
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _doc_ke_hoach():
+    """Kế hoạch vào lệnh agent ĐÃ GHI lúc quét, tab `ke_hoach` — CHỈ ĐỌC (BƯỚC 198).
+
+    `None` = kho ngoài chưa cấu hình; `[]` = chưa có dòng nào. Bảng kế hoạch của
+    mã đang xem (tab Vị thế) là bản tính TRỰC TIẾP; bảng này là bản GHI tại ngày nến.
+    """
+    import google_sheets_sync as _gss
+    return _gss.load_ke_hoach_from_google_sheets()
+
+
 # Sổ lệnh cho tab "Vị thế" và "Lịch sử giao dịch" (BƯỚC 175): CÙNG lần đọc (cùng
 # bộ nhớ đệm) với tab Bản tin, KHÔNG đường đọc Sheets thứ hai, KHÔNG rơi về
 # sổ ở máy. Kho chưa cấu hình -> `so_lenh_loi` nói thẳng, danh sách rỗng.
@@ -756,6 +767,71 @@ def _khoi_su_kien_quyen():
         "f ra": _so(d.ket_qua.he_so_ra, "{:.3f}"),
         "Nhãn": d.ket_qua.trang_thai, "Lý do": d.ket_qua.ly_do} for d in _khac]),
         use_container_width=True, hide_index=True)
+
+
+def _khoi_ke_hoach_da_ghi():
+    """Khối "Kế hoạch vào lệnh đã ghi" của tab Lịch sử giao dịch (BƯỚC 198, B6 phần 2).
+
+    CHỈ ĐỌC tab `ke_hoach` và sổ lệnh đã đọc (`_so_lenh`). Mọi số là số ĐÃ GHI lúc
+    quét: khối này không lập lại kế hoạch nào (gác AST). Mọi lỗi hiện cảnh báo.
+    """
+    import so_ke_hoach as _skh
+    st.markdown("##### 🗂️ Kế hoạch vào lệnh agent đã ghi lúc quét")
+    st.caption(
+        "Mỗi lượt quét, agent ghi MỘT kế hoạch cho mỗi mã có điểm ≥ ngưỡng mua (kể cả mã "
+        "bị cổng của sổ chặn), khoá theo mã và ngày nến — có từ 15/10/2026 (BƯỚC 195). Đây "
+        "là phán quyết TẠI ngày nến, không tính lại trên giá hôm nay; bảng kế hoạch của mã "
+        "đang xem ở tab Vị thế thì tính trực tiếp. Phán quyết CHỈ ĐỂ HIỆN (ĐO 25): sổ lệnh "
+        "ảo không làm theo nó. Cột “Sổ ảo” là lệnh sổ ảo mở cho cùng tín hiệu, hoặc lý do "
+        "sổ KHÔNG mở lệnh (nguyên văn bảng quyết định); dấu gạch là không tìm thấy cả hai. "
+        "Đọc từ Google Sheets, làm mới mỗi 5 phút.")
+    try:
+        _ds, _loi = _doc_ke_hoach(), None
+    except Exception as _e:
+        _ds, _loi = None, f"{type(_e).__name__}: {_e}"
+    if _loi:
+        st.warning(f"⚠️ Chưa đọc được kế hoạch đã ghi — {_loi}")
+        return
+    if _ds is None:
+        st.info("Kho ngoài (Google Sheets) chưa cấu hình — kế hoạch chỉ ghi trên kho ấy.")
+        return
+    if not _ds:
+        st.info("Chưa có kế hoạch nào được ghi.")
+        return
+    _ngay = sorted({_skh.khoa_tin_hieu("", d["signal_date"])[1] for d in _ds}, reverse=True)
+    _chon = st.selectbox("Ngày nến", options=["Tất cả"] + _ngay, index=1,
+                         key="ke_hoach_ngay")
+    _lenh = {} if so_lenh_loi else _skh.noi_lenh(_so_lenh.tat_ca)
+    try:
+        _sbt_kh = _doc_so_ban_tin()
+    except Exception:
+        _sbt_kh = None
+    _qd = {} if so_lenh_loi or _sbt_kh is None else _skh.noi_quyet_dinh(_sbt_kh["quyet_dinh"])
+    _hang = []
+    for d in _ds:
+        _k = _skh.khoa_tin_hieu(d["symbol"], d["signal_date"])
+        if _chon != "Tất cả" and _k[1] != _chon:
+            continue
+        h = _skh.dong_hien_thi(d, _lenh.get(_k), _qd.get(_k))
+        _hang.append({
+            "Ngày nến": h["Ngày nến"] or "—", "Mã": h["Mã"],
+            "Điểm": _so(h["Điểm"], "{:.1f}"),
+            "Phán quyết": _kh.HIEN_THI.get(h["Phán quyết"], (h["Phán quyết"] or "—",))[0],
+            "Vùng chờ": ("—" if h["Vùng chờ"] is None
+                         else f"{h['Vùng chờ'][0]:,.0f} – {h['Vùng chờ'][1]:,.0f}"),
+            "Cắt lỗ cấu trúc": _so(h["Cắt lỗ cấu trúc"], "{:,.0f}"),
+            "Rủi ro": _so(h["Rủi ro %"], "{:.1f}%"),
+            "Kéo giãn": _so(h["Kéo giãn ATR"], "{:.1f} ATR"),
+            "Giá đóng": _so(h["Giá đóng"], "{:,.0f}"),
+            "Hiệu lực": _so(h["Hiệu lực (phiên)"], "{:.0f} phiên"),
+            "Sổ ảo": "chưa đọc được" if so_lenh_loi else (h["Sổ ảo"] or "—"),
+            "Ghi lúc": h["Ghi lúc"] or "—",
+            "Lý do": " · ".join(h["Lý do"]) or "—",
+        })
+    st.dataframe(pd.DataFrame(_hang), use_container_width=True, hide_index=True)
+    _pb = sorted({d["phien_ban"] for d in _ds if d.get("phien_ban")})
+    st.caption(f"{len(_hang)} kế hoạch. Phiên bản bộ lập kế hoạch: {'; '.join(_pb) or '—'}."
+               + (f" Cột “Sổ ảo” chưa đọc được — {so_lenh_loi}" if so_lenh_loi else ""))
 
 
 def _tip(chuoi) -> str:
@@ -1897,6 +1973,9 @@ with t_hist:
                 st.markdown("**Hậu kiểm máy**")
                 for _n in str(_hk).split(" | "):
                     st.markdown(f"- {_n}")
+
+    # ── KẾ HOẠCH VÀO LỆNH ĐÃ GHI (BƯỚC 198, B6 phần 2) ───────────────────
+    _khoi_ke_hoach_da_ghi()
 
     # ── SỔ BÀI HỌC (BƯỚC 167) ──────────────────────────────────────────
     _khoi_so_bai_hoc(_nk, _nk_loi)

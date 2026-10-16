@@ -10,17 +10,23 @@ NGÀY t, trước khi biết kết cục (bất biến 7). Người dùng duyệ
 tab MỚI `ke_hoach` (không thêm cột vào tab cũ), MỌI mã có điểm ≥ ngưỡng (kể cả mã
 bị cổng của sổ chặn), một tín hiệu ghi MỘT lần.
 
-FILE NÀY CHỈ CÓ LƯỢC ĐỒ VÀ MỘT HÀM THUẦN
-───────────────────────────────────────
+FILE NÀY CHỈ CÓ LƯỢC ĐỒ VÀ HÀM THUẦN
+───────────────────────────────────
 Nó KHÔNG nhập `ke_hoach_vao_lenh` (đường đo và giao dịch — `paper_trading`,
 `sheets_store` — nhập file này để có DDL và cột; chúng không được chạm tới hàm lập
 kế hoạch). `dong_tu_ke_hoach` đọc kết quả của `lap_ke_hoach` qua TÊN TRƯỜNG.
 Chỉ `run_daily` gọi cả hai.
+
+Các hàm HIỆN (BƯỚC 198) — `dong_hien_thi`, `noi_lenh`, `noi_quyet_dinh`,
+`khoa_tin_hieu` — cho app
+đọc lại dòng ĐÃ GHI: không tính lại số nào, ô thiếu giữ None. App hiện bản GHI
+tại ngày nến, không bao giờ lập lại kế hoạch của một tín hiệu cũ.
 """
 from __future__ import annotations
 
 import json
-from typing import Any
+from datetime import datetime, timedelta, timezone
+from typing import Any, Iterable
 
 #: Thứ tự cột = hợp đồng với tab `ke_hoach` trên Google Sheets. Đổi thứ tự hay
 #: tên là đổi lược đồ: `sheets_store._kiem_tra_header` sẽ báo.
@@ -81,4 +87,107 @@ def dong_tu_ke_hoach(kh: Any, ma: str, diem: float, nguong: float, san: str,
         "day_xoay_ngay": kh.day_xoay_ngay, "day_xoay_gia": kh.day_xoay_gia,
         "ly_do": json.dumps(list(kh.ly_do), ensure_ascii=False),
         "phien_ban": str(phien_ban),
+    }
+
+
+#: Giờ Việt Nam: UTC+7 cố định, không có giờ mùa hè. `at` ghi bằng
+#: `bay_gio.timestamp()` (giây epoch), nên đọc lại phải đặt đúng múi giờ này —
+#: múi giờ của máy chạy app (Streamlit Cloud chạy UTC) cho giờ lệch 7 tiếng.
+GIO_VN = timezone(timedelta(hours=7))
+
+
+def ly_do_tu_o(o: Any) -> list[str]:
+    """Ô `ly_do` (chuỗi JSON một danh sách) → list chữ. Ô rỗng → `[]`.
+
+    Ô không đọc được thành danh sách thì trả NGUYÊN chữ trong ô thành một mục —
+    bản ghi là bằng chứng, không được nuốt.
+    """
+    if o is None or o == "":
+        return []
+    try:
+        ds = json.loads(o) if isinstance(o, str) else o
+    except ValueError:
+        return [str(o)]
+    if isinstance(ds, list):
+        return [str(x) for x in ds]
+    return [str(o)]
+
+
+def khoa_tin_hieu(ma: Any, ngay: Any) -> tuple[str, str]:
+    """(mã, ngày nến 10 ký tự). Sổ lệnh có hai định dạng thời gian
+    (`docs/HANDOFF.md` mục 3, ràng buộc 1) — so chuỗi đầy đủ là mất dòng."""
+    return (str(ma), str(ngay)[:10])
+
+
+def noi_lenh(lenh: Iterable[Any]) -> dict[tuple[str, str], Any]:
+    """Lệnh sổ ảo (`Trade`) theo khoá tín hiệu (mã, ngày nến).
+
+    Lệnh không có `signal_date` bị bỏ. Nhiều lệnh cùng một tín hiệu thì giữ lệnh
+    có `id` LỚN nhất (ghi sau cùng).
+    """
+    ra: dict[tuple[str, str], Any] = {}
+    for t in lenh:
+        if not t.signal_date:
+            continue
+        k = khoa_tin_hieu(t.symbol, t.signal_date)
+        cu = ra.get(k)
+        if cu is None or (t.id is not None and (cu.id is None or t.id > cu.id)):
+            ra[k] = t
+    return ra
+
+
+def noi_quyet_dinh(quyet_dinh: Iterable[dict]) -> dict[tuple[str, str], dict]:
+    """Dòng tab `decisions` theo khoá tín hiệu (mã, ngày nến).
+
+    Một tín hiệu có thể có nhiều dòng (mỗi lượt quét xử lý lại nến đã đóng ghi một
+    dòng): giữ dòng có `seq` LỚN nhất — lượt sau cùng. Dòng thiếu `signal_date` bị bỏ.
+    """
+    ra: dict[tuple[str, str], dict] = {}
+    for q in quyet_dinh:
+        if not q.get("signal_date"):
+            continue
+        k = khoa_tin_hieu(q.get("symbol"), q["signal_date"])
+        cu = ra.get(k)
+        if cu is None or (q.get("seq") is not None
+                          and (cu.get("seq") is None or q["seq"] > cu["seq"])):
+            ra[k] = q
+    return ra
+
+
+def o_so_ao(lenh: Any = None, quyet_dinh: dict | None = None) -> str | None:
+    """Sổ ảo đã làm gì với tín hiệu: lệnh nó mở, hoặc lý do nó KHÔNG mở (ghi
+    nguyên văn từ bảng quyết định). Không có cả hai thì None — không đoán lý do."""
+    if lenh is not None:
+        return f"#{lenh.id} {lenh.status}"
+    if quyet_dinh is not None and quyet_dinh.get("skip_reason"):
+        return f"không mở — {quyet_dinh['skip_reason']}"
+    return None
+
+
+def dong_hien_thi(d: dict, lenh: Any = None, quyet_dinh: dict | None = None) -> dict:
+    """Một dòng tab `ke_hoach` (đã đổi kiểu qua `sheets_store`) → dict để hiện.
+
+    KHÔNG tính lại gì: mọi số là số ĐÃ GHI lúc quét; ô thiếu là None (app hiện
+    dấu gạch), không điền 0. `lenh`: lệnh sổ ảo cùng tín hiệu (từ `noi_lenh`);
+    `quyet_dinh`: dòng quyết định cùng tín hiệu (từ `noi_quyet_dinh`) — cột
+    "Sổ ảo" đi qua `o_so_ao`.
+    """
+    day, tran = d.get("vung_day"), d.get("vung_tran")
+    at = d.get("at")
+    return {
+        "Ngày nến": d.get("signal_date"),
+        "Mã": d.get("symbol"),
+        "Điểm": d.get("diem"),
+        "Phán quyết": d.get("phan_quyet"),
+        "Vùng chờ": None if day is None or tran is None else (day, tran),
+        "Cắt lỗ cấu trúc": d.get("cat_lo"),
+        "Rủi ro %": d.get("rui_ro_pct"),
+        "Kéo giãn ATR": d.get("keo_gian_atr"),
+        "Giá đóng": d.get("gia_dong"),
+        "Hiệu lực (phiên)": d.get("so_phien_cho"),
+        "Sổ ảo": o_so_ao(lenh, quyet_dinh),
+        "Ghi lúc": (None if at is None
+                    else datetime.fromtimestamp(at, GIO_VN).strftime("%d/%m %H:%M")),
+        "Phiên bản": d.get("phien_ban"),
+        "Lý do": ly_do_tu_o(d.get("ly_do")),
     }

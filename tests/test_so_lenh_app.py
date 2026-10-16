@@ -204,11 +204,15 @@ def test_doc_so_ban_tin_la_ham_cache_va_la_NOI_DUY_NHAT_goi_loader_cua_sheets():
             and n.func.attr == "load_so_ban_tin_from_google_sheets"]
     assert len(cuoc) == 1 and cuoc[0].lineno >= ham.lineno      # một đường đọc, không đường thứ hai
     # và vị thế không đọc bằng đường Sheets nào khác (`sync_*`, `restore_*`, `load_nhat_ky`)
+    # BƯỚC 198 thêm `load_ke_hoach_from_google_sheets`: đọc tab `ke_hoach` CHỈ ĐỌC cho
+    # khối "Kế hoạch vào lệnh đã ghi", không đọc sổ lệnh; gác của nó ở
+    # `tests/test_ke_hoach_da_ghi.py` (hàm có bộ nhớ đệm, không gọi đường ghi nào).
     ten_khac = {n.func.attr for n in ast.walk(cay) if isinstance(n, ast.Call)
                 and isinstance(n.func, ast.Attribute)
                 and n.func.attr.endswith("_google_sheets")} - {
                     "load_so_ban_tin_from_google_sheets",
-                    "load_nhat_ky_from_google_sheets"}
+                    "load_nhat_ky_from_google_sheets",
+                    "load_ke_hoach_from_google_sheets"}
     assert not ten_khac, ten_khac
 
 
