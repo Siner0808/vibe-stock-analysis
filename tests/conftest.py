@@ -123,6 +123,25 @@ def pytest_runtest_call(item):
     return ket_qua
 
 
+#: Đường KHÔNG tồn tại: kho lưu cache tắt trong mọi test (BƯỚC 200).
+_KHO_TAT = Path(__file__).resolve().parent / "_kho_luu_cache_khong_bao_gio_tao"
+
+
+@pytest.fixture(autouse=True)
+def kho_luu_cache_tat(monkeypatch):
+    """Không test nào được chụp cache vào kho THẬT (`<thư mục chứa repo>/luu_cache`).
+
+    Ở máy này kho có thật (BƯỚC 200): một test ghi cache giả vào `tmp_path` mà
+    không có gác này sẽ chụp cache GIẢ vào kho thật. Test cố ý thử việc chụp
+    thì tự trỏ `LUU_CACHE_DIR` sang một thư mục tạm đã tạo.
+    """
+    from backtest import data as btd
+    monkeypatch.setattr(btd, "LUU_CACHE_DIR", _KHO_TAT)
+    monkeypatch.setattr(btd, "_DA_CHUP", set())
+    yield
+    assert not _KHO_TAT.exists(), f"test đã tạo {_KHO_TAT} — kho tắt bị bật"
+
+
 @pytest.fixture(autouse=True)
 def tra_lai_analyze():
     """Chụp `paper_runner._analyze` trước mỗi test, đặt lại sau."""

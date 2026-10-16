@@ -567,6 +567,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **Đừng xoá `scratch/vibe_cache_goc_20260911`**: bản DUY NHẤT của cache `acf6dca1…` (dữ liệu ĐO 18–25).
 >   Cache hiện tại `01e9d9c7…` chưa có bản sao; làm tươi lại là mất khả năng tái lập −1,51%. Chính sách
 >   sao lưu cache: người dùng yêu cầu nghiên cứu lại (16/10), CHƯA quyết.
+>   ⚠️ HẾT ĐÚNG cùng ngày (BƯỚC 200): kho `scratch/luu_cache/` giữ `01e9d9c7…`, `e900a91d…` (dựng lại) và một
+>   bản không rõ gốc `b74e0028…` (`DANH_MUC.md` trong kho). Người dùng chọn MÁY tự chụp: mọi lượt ghi cache đi
+>   qua `backtest.data.ghi_cache`, chụp cache cũ vào kho trước. Sổ đo BƯỚC 199: `scratch/luu_tra_168_151/`.
 
 **Chờ tới ngày, đừng đọc sớm:**
 

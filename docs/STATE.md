@@ -23219,6 +23219,7 @@ DHG 12 0.947 0.949 · MSR 30 0.975 1.000 · NVL 25 0.992 0.997 · OIL 16 0.980 0
 **Giới hạn, chưa làm.**
 - Cache hiện tại `01e9d9c7…` CHƯA có bản sao: làm tươi lại là mất khả năng tái lập −1,51%.
 - Chính sách sao lưu cache (và nơi giữ sổ đo của BƯỚC này): người dùng yêu cầu nghiên cứu lại (16/10), CHƯA quyết. BƯỚC này không chép, không xoá dữ liệu nào ngoài repo.
+  > ⚠️ **HẾT ĐÚNG cùng ngày (BƯỚC 200):** đã chép, đã quyết — xem BƯỚC 200. Hai dòng trên giữ nguyên chữ.
 - Không chạy lại ba dòng còn lại của bảng; không quy Δ từng lệnh.
 
 **Sổ tay: hỏi thật** (BƯỚC này chạm `CLAUDE.md`, Quy tắc 3). Độ tươi đo ngay trước: ba nguồn chậm một BƯỚC (STATE, HANDOFF, LO-TRINH) làm tươi lên `@b353c16` theo thứ tự lỗi 179 (thêm → đổi tên → đo bản MỚI → xoá bản cũ). **Lượt nạp đầu của `STATE.md` @b353c16 bị CẮT CỤT ở BƯỚC 42** (sổ không thấy BƯỚC 123, 190, 198; bản cũ `@1d1d4d6` cùng lúc đọc đủ tới 197 — đối chứng). Xoá bản cụt, nạp lại: lượt hai đọc đủ tới BƯỚC 198. Cắt cụt là lỗi THOÁNG QUA của lượt nạp, lần này ở 1.596.038 byte. Cả 15 nguồn bằng `main` `b353c16`. Sổ chỉ ra hai câu:
@@ -23226,3 +23227,31 @@ DHG 12 0.947 0.949 · MSR 30 0.975 1.000 · NVL 25 0.992 0.997 · OIL 16 0.980 0
 2. BƯỚC 189: *"ĐO 25 vốn đã không tái lập được từng byte trên máy này từ 12/10 (BƯỚC 185)."* — **THẬT** (KHỚP). Leader chưa thấy câu này trước khi hỏi; đã gắn ⚠️ HẾT ĐÚNG ngay dưới nó.
 
 Tự kiểm phần sổ KHÔNG nêu (`git grep -nE "1,68"` trên `*.md`): `README.md` dòng kết quả, `docs/HANDOFF.md` (hai chỗ), `docs/TIEU-CHI-DOC-TRUOC.md` ghi −1,68% như KẾT QUẢ CÓ NGÀY của ĐO 22 — vẫn đúng với cache của nó, không mâu thuẫn; không sửa. `git grep` *"không tái lập được từng byte"* · *"Cache cũ không còn"*: chỉ hai câu trên.
+
+## BƯỚC 200 — KHO PHIÊN BẢN CACHE: MÁY TỰ CHỤP CACHE CŨ TRƯỚC MỖI LƯỢT GHI; KHO `scratch/luu_cache/` VỚI BA PHIÊN BẢN (16/10/2026)
+
+**Mốc:** D2 — dữ liệu giá: không để một lượt làm tươi xoá mất khả năng tái lập số đo (BƯỚC 199)
+
+Leader, máy người dùng. Người dùng duyệt ba việc (16/10): *"làm đi"* (chép ngay các phiên bản cache ra chỗ bền), *"duyệt"* (giữ sổ ngoài mẫu + log, bỏ sổ trong mẫu và bản chép thừa), và hỏi: phương án kỷ luật (a) *"có dùng skill memory Agent để khắc phục được không? nếu ko được thì chọn (b)"*.
+
+**Trả lời câu (a), vì sao chọn (b).** Bộ nhớ và skill của agent là CHỮ được nạp vào ngữ cảnh: (1) chỉ phiên nạp nó mới thấy — phiên con, phiên đám mây, người dùng tự chạy lệnh, hay chính app đều không; (2) agent phải tự nhận ra đúng lúc — lượt ghi cache có thể nằm sâu trong một hàm khác; (3) chữ không tự chạy. Dự án đã đo điều này: lỗi 56 — một luật đã viết trong `SKILL.md` vẫn bị vi phạm năm lần — và vì thế mới có bảy cửa tự động. Ca 12/10 cũng không phải quên: agent có hỏi, người dùng chọn *"không cần sao lưu"* vì cái giá lúc ấy chưa thấy. (b) bỏ hẳn quyết định ấy.
+
+**Đã làm ngoài repo (chép, không xoá; băm kiểm bằng `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc`).**
+- `scratch/luu_cache/20261014_01e9d9c7/` — cache sống chép 16/10 (125 tệp, KHỚP `01e9d9c7…`) + `sl_pattern_memory.json` (sha256 KHỚP `e8b44cf8…`; tệp gốc gitignore, chưa từng có bản sao).
+- `scratch/luu_cache/20261012_e900a91d/` — trạng thái 12/10→14/10 dựng lại (BƯỚC 199): KHỚP `e900a91d…`.
+- `scratch/luu_cache/khong_ro_b74e0028/` — một bản chép trong thư mục nháp của leader, KHÔNG khớp băm nào đã ghi (mtime tới 12/10 02:34 UTC); giữ vì xoá thì không lấy lại được.
+- `acf6dca1…` vẫn ở `scratch/vibe_cache_goc_20260911` (không chuyển: tài liệu trỏ đường ấy). `DANH_MUC.md` trong kho kê cả bốn.
+- `scratch/luu_tra_168_151/` — ba sổ ngoài mẫu của BƯỚC 199 (sha256 bản chép KHỚP bản gốc) + bảy log, 29 MB, kèm `GHI_CHU.md`. Ô thứ tư (ĐO 22 gốc) vẫn ở `scratch/luu_do22/`.
+- Xoá trong thư mục nháp của leader theo duyệt: 21 sổ trong mẫu (chạy lại được — BƯỚC 199 chứng minh 619/619 giống hệt) và năm bản chép cache đã có ở kho.
+
+**Mã.**
+- `backtest/data.py`: `ghi_cache(df, symbol)` là CHỖ DUY NHẤT ghi CSV vào `CACHE_DIR`; nó gọi `chup_cache_truoc_khi_ghi()` trước. `download`, `extend_history` và `market_filter` (VNINDEX) — ba chỗ từng gọi `.to_csv` thẳng — nay gọi nó.
+- `chup_cache_truoc_khi_ghi()`: kho BẬT khi thư mục `LUU_CACHE_DIR` đã tồn tại (mặc định `<thư mục chứa repo>/luu_cache`, hoặc `VIBE_LUU_CACHE_DIR`); CI và Streamlit Cloud không có nó nên không chụp. Một lần mỗi tiến trình (`_DA_CHUP`), vì lượt làm tươi ghi từng mã một. Đã có thư mục mang đuôi `_<8 ký tự băm>` thì bỏ qua. Chép vào `.dang_chup…` rồi băm lại; lệch thì NỔ và người gọi không ghi; khớp thì đổi tên thành `<ngày của mtime mới nhất>_<băm8>` và thêm một dòng vào `DANH_MUC.md`. Cache trỏ VÀO kho thì NỔ (kho chỉ đọc).
+- `bam_cache` cùng phép băm với `bam_thu_muc` của ĐO 25 (gác), để băm M0 ghi trong STATE tra ra đúng thư mục.
+- `tests/conftest.py` `kho_luu_cache_tat` (tự động): mọi test trỏ kho sang một đường KHÔNG tồn tại — ở máy này kho có thật, một test ghi cache giả sẽ chụp rác vào kho thật.
+
+**Gác:** `tests/test_chup_cache.py`, 14 test — hành vi trên thư mục tạm (chụp đúng bản CŨ, kho tắt, một lần mỗi tiến trình, khử trùng, kho chỉ đọc, bản chép lệch băm, cache rỗng, băm trùng M0, `extend_history --thay-ca-chuoi` và `download --force` thật với `fetch_one` giả) và AST (mọi `.to_csv` của hai file chỉ nằm trong `ghi_cache`; chụp TRƯỚC ghi; ba đường ghi gọi `ghi_cache`; gác conftest bật). **Đột biến 18/18 đỏ ngay vòng đầu** (`dot_bien_bo`, không để rác ở gốc); phát 01 dựng lại nguyên văn lỗi thật: làm tươi mà không chụp.
+
+**Chạy thật (chỉ đọc).** Từ worktree, `VIBE_CACHE_DIR` → `backtest/cache` của repo chính: `chup_cache_truoc_khi_ghi()` trả `scratch/luu_cache/20261014_01e9d9c7` (nhận ra phiên bản đã có, KHÔNG chép thêm); gọi lần hai trong cùng tiến trình trả `None`; kho vẫn bốn mục. 129 test của các file cache/VNINDEX/ĐO 25 xanh.
+
+**Không làm.** Không sửa `CLAUDE.md`, `LO-TRINH.md` hay file luật nào (sổ tay: `khong_bat_buoc_vi`, máy xác nhận). Không đổi dữ liệu nào trong `backtest/cache`. Không tự xoá ảnh chụp — kho chỉ lớn lên (5 MB mỗi phiên bản).
