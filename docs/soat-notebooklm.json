@@ -3203,6 +3203,46 @@
     "BƯỚC 200": {
       "ngay": "2026-10-16",
       "khong_bat_buoc_vi": "BƯỚC 200 thêm cơ chế máy tự chụp cache giá cũ vào kho scratch/luu_cache trước mỗi lượt ghi (backtest/data.py ghi_cache, market_filter.py đi qua nó, tests/conftest.py tắt kho thật trong test) cùng file test mới, và ghi docs/STATE.md, docs/HANDOFF.md. Không chạm CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, docs/TIEU-CHI-DOC-TRUOC.md hay docs/LO-TRINH.md; không đổi luật, ngưỡng, điểm, khớp lệnh, dữ liệu đọc vào backtest hay kết luận đo nào — chỉ thêm một bản sao TRƯỚC khi ghi, nội dung cache được ghi không đổi."
+    },
+    "BƯỚC 201": {
+      "ngay": "2026-10-16",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "Đo ngay trước lượt hỏi (leader, khung trình duyệt trong app, 16/10/2026 chiều): CLAUDE.md, HANDOFF.md làm tươi lên @e5bf662 (= main) và trích đúng câu BƯỚC 199–200. STATE.md @e5bf662 nạp BA lần đều CẮT CỤT ở BƯỚC 42 (lần 1 cùng hai URL khác, lần 2–3 một mình) → giữ STATE.md @b353c16, đọc đủ tới BƯỚC 198 (chậm 199–200, không chứa luật năm cổng). 15 nguồn, câu checksum 117309288, 1252 ký tự, 15/15 nguồn chọn.",
+      "cau_hoi": "I am about to write BƯỚC 201 into docs/STATE.md: The five gates may now run AT THE SAME TIME: the new tools/nam_cong.py starts the same five gates CI runs all at once, and gate 4 now runs test files in parallel (three quarters of the CPU cores, each file still alone in its own process); --tuan-tu keeps the old one-by-one path. The old rule 'five gates, in order, NEVER in parallel, because some tests write temporary folders into the repo root so parallel runs give false reds' is replaced: the only source of those false reds was tests/test_chan_bia_so_lieu.py creating temporary folders in the repo root, and test temporary files now live only under .tam_test/, which tools/duyet_repo.py skips. Measured on this machine: one-by-one 12.5 to 27.5 minutes, all at once about 6.4 minutes. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: KHÔNG song song, ĐÚNG THỨ TỰ, chạy tuần tự. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md, '## Bước 4 — Năm cổng gác, ĐÚNG THỨ TỰ, KHÔNG song song' và 'Vài test ghi thư mục tạm vào gốc repo → chạy song song cho đỏ giả.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — SKILL.md (sổ đọc bản main @4194c57).",
+          "phan_quyet": "THẬT — đã sửa trong chính BƯỚC 201 (tiêu đề mới, câu cũ thay bằng luật .tam_test/)"
+        },
+        {
+          "noi_dung": "references/cong-thuc-chay.md, '## Năm cổng, tuần tự, không song song' và 'Vài test ghi thư mục tạm vào gốc repo, nên hai tiến trình pytest cùng lúc cho đỏ giả. Đây là ràng buộc thật, không phải sở thích.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — cong-thuc-chay.md.",
+          "phan_quyet": "THẬT — đã sửa trong BƯỚC 201: tiêu đề mới, câu cũ GIỮ, gắn ⚠️ HẾT ĐÚNG 16/10/2026"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md: 'Nó có: cách vá file (một đường duy nhất), vòng lặp đột biến, năm cổng gác đúng thứ tự, công thức chạy-và-chờ, và bảng lỗi đã mắc kèm cột \"máy chặn được chưa\".'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — HANDOFF.md. git grep 'đúng thứ tự|KHÔNG song song|tuần tự' tìm thêm hai chỗ sổ KHÔNG nêu: HANDOFF mục 1 'CHẠY SAU pytest, không song song' và bản tin tools/cua_mo_phien.py 'năm cổng gác đúng thứ tự'.",
+          "phan_quyet": "THẬT — sửa sau khi hỏi, cùng hai chỗ grep tìm ra (BƯỚC 201)"
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
