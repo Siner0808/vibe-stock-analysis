@@ -86,7 +86,13 @@ Lỡ rồi thì chạy lại đúng những file đọc file vừa sửa:
 
 ---
 
-## Năm cổng, tuần tự, không song song
+## Năm cổng — một lệnh, chạy cùng lúc (BƯỚC 201)
+
+```bash
+./.venv/Scripts/python.exe tools/nam_cong.py --thu-muc-log /tmp/nc > /tmp/nc.txt 2>&1
+```
+
+Từng cổng lẻ (cùng lệnh `tools/nam_cong.py` chạy bên trong):
 
 ```bash
 ./.venv/Scripts/python.exe -m pytest tests/ -q > /tmp/g1.log 2>&1
@@ -104,6 +110,12 @@ Lỡ rồi thì chạy lại đúng những file đọc file vừa sửa:
 
 Vài test ghi thư mục tạm vào **gốc repo**, nên hai tiến trình pytest cùng
 lúc cho **đỏ giả**. Đây là ràng buộc thật, không phải sở thích.
+> ⚠️ **HẾT ĐÚNG 16/10/2026 (BƯỚC 201):** ràng buộc ấy có MỘT nguồn —
+> `tests/test_chan_bia_so_lieu.py` đặt thư mục tạm `tmp…` có file mẫu ở gốc, test quét repo ở
+> tiến trình khác đọc đúng lúc nó bị xoá (`FileNotFoundError`, 3/158 file mỗi vòng
+> 8 tiến trình). Nguồn đã dọn: file tạm của test chỉ ở `.tam_test/`, nơi
+> `tools/duyet_repo.py` bỏ qua (luật 3) → 0/158 ở hai vòng. Năm cổng chạy cùng lúc
+> bằng `tools/nam_cong.py`; số đo ở `docs/STATE.md` BƯỚC 201.
 
 Thời gian đo 07/09/2026 ở máy local: cổng 1 ≈ 150s · cổng 4 ≈ 220s.
 🔴 **HẾT ĐÚNG:** bộ test đã lớn lên (874 test ngày 09/09/2026, hơn 3.000 nay) —
@@ -147,7 +159,8 @@ grep -v -e '^#' -e '^--' -e '^vnstock' -e '^vnai' requirements.txt > /tmp/req_da
 Dòng `grep` bỏ chú thích, dòng `--extra-index-url` và hai gói của kho hãng
 (`vnstock`, `vnai`); phần còn lại cài từ PyPI (đo: 12 gói, 43 giây).
 
-**2. Năm cổng**, tuần tự, log ra file — cùng lệnh như mục trên, thay python:
+**2. Năm cổng**, log ra file — cùng lệnh như mục trên, thay python (hoặc một lệnh:
+`/tmp/venv_ci/bin/python tools/nam_cong.py --thu-muc-log /tmp/nc`, BƯỚC 201):
 
 ```bash
 /tmp/venv_ci/bin/python -m pytest tests/ -q -rs > /tmp/g1.log 2>&1

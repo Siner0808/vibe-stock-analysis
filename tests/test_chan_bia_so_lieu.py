@@ -17,11 +17,21 @@ sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
 
 import chan_bia_so_lieu as hook
+from duyet_repo import THU_MUC_TAM_TEST
+
+
+def _tam_trong_repo():
+    """Thư mục tạm TRONG repo (bộ dò chỉ chấm file thuộc worktree của repo), nhưng
+    dưới `.tam_test/` — chỗ mọi lượt duyệt repo bỏ qua — để năm cổng chạy song song
+    không thấy file tạm của nhau (BƯỚC 201)."""
+    goc_tam = GOC / THU_MUC_TAM_TEST
+    goc_tam.mkdir(exist_ok=True)
+    return tempfile.TemporaryDirectory(dir=str(goc_tam))
 
 
 def _do(ma: str, ten_file: str = "thu.py") -> list:
     """Chạy bộ dò trên một đoạn mã, trả list phát hiện."""
-    with tempfile.TemporaryDirectory(dir=str(GOC)) as d:
+    with _tam_trong_repo() as d:
         f = Path(d) / ten_file
         f.write_text(ma, encoding="utf-8")
         return hook.kiem_tra(f)
@@ -229,7 +239,8 @@ def test_chong_bao_trung():
     from pathlib import Path as P
 
     ma = 'x = getattr(t, "position_size_pct", 30)\n'
-    f = GOC / "__tam_chong_trung.py"
+    tam = _tam_trong_repo()
+    f = P(tam.name) / "__tam_chong_trung.py"
     dau = hashlib.sha256(f"{f.resolve()}\n{ma}".encode()).hexdigest()[:32]
     moc = P(tf.gettempdir()) / f"chan_bia_{dau}.moc"
     try:
@@ -248,6 +259,7 @@ def test_chong_bao_trung():
         for x in (f, moc):
             if x.exists():
                 x.unlink()
+        tam.cleanup()
     print("PASS  chạy trùng -> im; nội dung đổi -> báo lại ngay")
 
 
@@ -275,11 +287,19 @@ def test_quet_repo_bat_duoc_mau_chan():
     `git merge` đều không kích hoạt. Chế độ này để CI chạy: cửa chống
     cháy, không phải chuông báo cháy.
     """
-    with tempfile.TemporaryDirectory(dir=str(GOC)) as d:
-        Path(d, "vi_pham_tam.py").write_text(
-            'x = getattr(t, "position_size_pct", 30)\n', encoding="utf-8")
-        assert hook.quet_repo() == 1, (
-            "quét toàn repo KHÔNG bắt được mẫu R1/R2 mức CHẶN")
+    # File vi phạm nằm dưới `.tam_test/`, nơi `duyet` bỏ qua (BƯỚC 201); nên
+    # `duyet` được thay tạm bằng một lượt chỉ thấy đúng file ấy, CÓ hoàn trả.
+    # Phần `duyet` đi qua những gì có gác riêng ở `tests/test_duyet_repo.py`.
+    with _tam_trong_repo() as d:
+        f = Path(d, "vi_pham_tam.py")
+        f.write_text('x = getattr(t, "position_size_pct", 30)\n', encoding="utf-8")
+        duyet_goc = hook.duyet
+        hook.duyet = lambda goc, mau: iter([f])
+        try:
+            assert hook.quet_repo() == 1, (
+                "quét toàn repo KHÔNG bắt được mẫu R1/R2 mức CHẶN")
+        finally:
+            hook.duyet = duyet_goc
     print("PASS  --quet-repo trả 1 khi có mẫu chặn")
 
 
@@ -288,7 +308,13 @@ def test_repo_hien_tai_sach_o_muc_chan():
 
     Test này là thứ CI dựa vào. Nó đỏ nghĩa là một mẫu đã từng làm hỏng dự
     án vừa quay lại — đọc output để biết file và dòng nào.
+
+    `hook.duyet` phải là hàm duyệt THẬT: một test trước quên hoàn trả bản thay
+    tạm (BƯỚC 201) thì lượt quét này chỉ thấy file tạm đã xoá và XANH mà không
+    quét gì — đột biến 16 của BƯỚC 201 sống sót đúng như thế.
     """
+    import duyet_repo
+    assert hook.duyet is duyet_repo.duyet, "hook.duyet đang bị thay — một test chưa hoàn trả"
     assert hook.quet_repo() == 0, (
         "repo có mẫu bịa số liệu mức CHẶN — xem danh sách in ở trên")
     print("PASS  repo sạch ở mức CHẶN")

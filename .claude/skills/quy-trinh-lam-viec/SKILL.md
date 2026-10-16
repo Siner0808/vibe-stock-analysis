@@ -161,7 +161,9 @@ Ba mẫu hay sống sót nhất và các bẫy khác: `references/bay.md`.
 
 ---
 
-## Bước 4 — Năm cổng gác, ĐÚNG THỨ TỰ, KHÔNG song song
+## Bước 4 — Năm cổng gác, CÙNG LÚC: `tools/nam_cong.py`
+
+Nó chạy cùng lúc năm cổng dưới (`--tuan-tu`: lần lượt):
 
 ```bash
 ./.venv/Scripts/python.exe -m pytest tests/ -q > /tmp/kq.log 2>&1
@@ -176,7 +178,7 @@ mất 40 phép kiểm trong khi cả bốn cổng XANH). Nó không cấm giảm
 trùng hợp lệ) mà buộc khai lý do: `--cap-nhat --ly-do "<vì sao>"`. **Thêm
 test cũng phải cập nhật mốc** (mốc trôi tụt lại là lỗ hổng tăng dần).
 
-- Vài test ghi thư mục tạm vào gốc repo → chạy song song cho **đỏ giả**.
+- File tạm của test CHỈ ở `.tam_test/` (`tools/duyet_repo.py`, BƯỚC 201).
 - Mã thoát **2** của cổng 2 và 4 là *chưa kiểm được*, không phải sạch.
 - `PYTHONIOENCODING=utf-8` cho mọi lệnh có tiếng Việt. **Ghi ra file log,
   đừng pipe qua `tail`** (đệm hết output; và mã thoát của ống là của `tail`,

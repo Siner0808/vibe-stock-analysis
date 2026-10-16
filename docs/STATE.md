@@ -23255,3 +23255,44 @@ Leader, máy người dùng. Người dùng duyệt ba việc (16/10): *"làm đ
 **Chạy thật (chỉ đọc).** Từ worktree, `VIBE_CACHE_DIR` → `backtest/cache` của repo chính: `chup_cache_truoc_khi_ghi()` trả `scratch/luu_cache/20261014_01e9d9c7` (nhận ra phiên bản đã có, KHÔNG chép thêm); gọi lần hai trong cùng tiến trình trả `None`; kho vẫn bốn mục. 129 test của các file cache/VNINDEX/ĐO 25 xanh.
 
 **Không làm.** Không sửa `CLAUDE.md`, `LO-TRINH.md` hay file luật nào (sổ tay: `khong_bat_buoc_vi`, máy xác nhận). Không đổi dữ liệu nào trong `backtest/cache`. Không tự xoá ảnh chụp — kho chỉ lớn lên (5 MB mỗi phiên bản).
+
+## BƯỚC 201 — NĂM CỔNG CHẠY CÙNG LÚC (`tools/nam_cong.py`), CỔNG 4 SONG SONG; ĐỎ GIẢ CŨ DỌN TẬN GỐC: FILE TẠM CỦA TEST CHỈ Ở `.tam_test/` (16/10/2026)
+
+**Mốc:** quy-trinh — người dùng hỏi vì sao năm cổng mất 30–40 phút, rồi duyệt *"làm A+B, ép máy chạy đa nhân"*
+
+Leader, máy người dùng (16 nhân). Không đổi mã sản phẩm, điểm, ngưỡng, sổ hay kết luận đo nào; đổi CÁCH CHẠY năm cổng và một luật quy trình.
+
+**Đo trước (15–16/10, `scratchpad/nam_cong.sh` tuần tự, giờ lấy từ mtime log từng cổng).**
+
+| lượt | cổng 1 (cả bộ) | cổng 4 (từng file) | cổng 2+3+5 | cả lượt |
+|---|---|---|---|---|
+| g198 (15/10) | 5:31 | 7:21 | ~10 s | 13:00 |
+| g198b (15/10) | 5:17 | 7:04 | ~10 s | 12:29 |
+| g199 (16/10) | 16:26 | 10:43 | ~15 s | 27:25 |
+| g200 (16/10) | 8:32 | 9:57 | ~5 s | 18:33 |
+
+- Hai cổng nặng chạy trên MỘT nhân; bộ test chạy HAI lần (cổng 1 chung, cổng 4 từng file). CI chạy lại đủ năm cổng (~14 phút) sau khi đẩy.
+- Cùng bộ test, cổng 1 từ 5 tới 16 phút: tải máy (lúc đo có một game, ChatGPT, trình duyệt, hai phiên Claude chạy cùng).
+- `pytest tests/ --durations=0 --durations-min=0.3` (352 s): 200/3.254 test chiếm 293 s; nặng nhất là test quét repo/lịch sử git (`test_ho_so_dem` 28 s, `test_skill_quy_trinh` 25 s, `test_chan_bia_so_lieu` 18 s…) — chúng lớn dần theo `docs/STATE.md`. CHƯA làm nhẹ (hướng C, để sau).
+
+**Gốc của luật "KHÔNG song song" — đo, không suy.** Cổng 4 chạy 8 tiến trình (script nháp `chan_doan_song_song.py`, cùng lệnh `chay_mot_file`), hai vòng: **3/158 file đỏ mỗi vòng** (`test_chatbot_khong_bia_va_khong_chet`, `test_khung_thoi_gian`, `test_khuyen_nghi_rui_ro`, `test_loai_su_kien_quyen` — đổi theo vòng), TẤT CẢ cùng một lỗi: `FileNotFoundError: …\tmpXXXX\thu.py`. Nguồn DUY NHẤT: `tests/test_chan_bia_so_lieu.py` tạo `TemporaryDirectory(dir=str(GOC))` (ba chỗ) và `GOC / "__tam_chong_trung.py"`; test quét repo ở tiến trình khác (`duyet_repo.duyet` = `rglob`) thấy file rồi đọc đúng lúc nó bị xoá. Ba file đỏ ấy chạy riêng đều xanh.
+
+**Sửa.**
+- `tools/duyet_repo.py` luật 3: bỏ qua `.tam_test/` ở GỐC (không ở tầng khác, không theo tiền tố); `.gitignore` thêm `.tam_test/`.
+- `tests/test_chan_bia_so_lieu.py`: file tạm trong repo đi qua `_tam_trong_repo()` (dưới `.tam_test/`); test `--quet-repo` thay tạm `hook.duyet` bằng lượt chỉ thấy file vi phạm, CÓ hoàn trả; `test_repo_hien_tai_sach_o_muc_chan` khẳng định `hook.duyet is duyet_repo.duyet` (xem đột biến 16).
+- Sau sửa, cùng phép đo 8 tiến trình hai vòng: **0/158 đỏ** (89 s, 88 s).
+- `tools/kiem_test_chay_rieng.py`: `chay_nhieu_file` — `SO_TIEN_TRINH_MAC_DINH` = ¾ số nhân (suy từ `os.cpu_count()`; máy này 12, runner CI 4 nhân → 3) file cùng lúc, mỗi file VẪN một tiến trình riêng, kết quả đúng thứ tự; `--tuan-tu` / `--so-tien-trinh N`; `-p no:cacheprovider` cho mỗi tiến trình; tự kiểm đi qua đúng đường song song.
+- `tools/nam_cong.py` (MỚI): khởi động cùng lúc đúng năm cổng CI chạy, hỏi trạng thái cả nhóm, in `congN=<mã>` và thời gian TỪNG cổng, log `congN.log`; `--tuan-tu` là đường lui. KHÔNG đưa vào workflow (gác bộ cổng suy cổng từ `tools/<tên>.py` trong workflow — thêm vào là thành cổng thứ sáu). CI tự hưởng cổng 4 song song.
+- Luật: `SKILL.md` Bước 4, `references/cong-thuc-chay.md` (tiêu đề mới; câu cũ giữ, gắn ⚠️ HẾT ĐÚNG), `CLAUDE.md` (khối lệnh), `docs/HANDOFF.md` (mục 1, câu mô tả skill, khối 🧭), bản tin mở phiên `tools/cua_mo_phien.py`, chú thích `kiem-dinh.yml`. `SKILL.md` gọn lại để nằm trong trần 18.000 ký tự (`tests/test_do_token_phien.py` đỏ ở 18.393 rồi 18.049 — không nâng trần).
+
+**Đo sau (`tools/nam_cong.py`, cùng máy).** Lượt `nc201_2` (cây đủ mã, trước khi gọn SKILL.md): cổng 1 386 s · **cổng 4 88 s** · cổng 2 2 s · cổng 3 3 s · cổng 5 11 s — **cả lượt 386 s ≈ 6,4 phút** (trước: 12,5–27,5 phút). Sàn mới là cổng 1 (một tiến trình — giữ nguyên để còn bắt nhiễm chéo giữa các file); làm nhẹ test quét repo (hướng C) là đường giảm tiếp.
+
+**Lỗi bắt được trong lúc làm (đều trước commit).**
+- Bản đầu của `nam_cong.chay` chờ `wait()` theo thứ tự → cả năm cổng ghi 383 s (thời gian của cổng 1). Sửa: hỏi `poll()` cả nhóm; gác `test_THOI_GIAN_moi_cong_la_cua_CHINH_no…`.
+- `tests/test_nam_cong.py` so `"pytest" in yml` → `test_gac_van_ban_phai_khai` đỏ ĐÚNG (cổng 1 và 4 cùng bắt); khai `# van-ban-ok:` (YAML là văn bản).
+
+**Gác.** `tests/test_nam_cong.py` (7: bộ cổng = bộ CI, cùng lúc thật — mọi cổng bắt đầu trước khi cổng nào xong, thời gian từng cổng, tuần tự, mã thoát, AST khởi động hết rồi mới chờ); `tests/test_kiem_test_chay_rieng.py` +4 (đúng thứ tự + có lúc ≥ 2 file cùng chạy, `--tuan-tu` một file một lúc, mặc định suy từ số nhân bằng AST, `main` dùng mặc định); `tests/test_duyet_repo.py` +2 (luật 3; không test nào `dir=GOC`/`dir=str(GOC)`). **Đột biến: 15/16 đỏ vòng đầu; phát 16 (không hoàn trả `hook.duyet`) SỐNG** — lượt quét toàn repo sau đó chỉ thấy file tạm đã xoá và XANH mà không quét gì. Thêm khẳng định danh tính → 16/16. Phát 01 dựng lại nguyên văn lỗi thật (`TemporaryDirectory(dir=str(GOC))`).
+
+**Sổ tay: hỏi thật** (chạm `SKILL.md`, `CLAUDE.md`). Làm tươi CLAUDE/HANDOFF/STATE lên `@e5bf662`: CLAUDE và HANDOFF trích đúng câu BƯỚC 199–200; **`STATE.md` @e5bf662 nạp BA lần đều CẮT CỤT ở BƯỚC 42** (lần 1 cùng hai URL khác, lần 2 và 3 một mình — giả thuyết "nạp chung thì cụt" BỊ BÁC). Giữ `STATE.md @b353c16` (đọc đủ tới 198; chậm hai BƯỚC 199–200, không chứa luật năm cổng). Sổ chỉ ra ba câu, cả ba **THẬT** (`tools/doi_chieu_trich_dan.py` KHỚP): `SKILL.md` Bước 4 (tiêu đề + câu "Vài test ghi thư mục tạm…"), `cong-thuc-chay.md` (tiêu đề + câu "ràng buộc thật"), `docs/HANDOFF.md` *"…năm cổng gác đúng thứ tự…"* — hai cái đầu đã sửa trong BƯỚC này (sổ đọc bản `main`), cái thứ ba sửa sau khi hỏi. Tự kiểm bằng `git grep` (`đúng thứ tự|KHÔNG song song|tuần tự`): thêm `docs/HANDOFF.md` mục 1 *"CHẠY SAU pytest, không song song"* và bản tin `tools/cua_mo_phien.py` *"năm cổng gác đúng thứ tự"* — sổ tay KHÔNG nêu; đã sửa cả hai.
+
+**Không làm.** Không đổi CI (vẫn năm bước tuần tự trên runner; cổng 4 tự song song). Không làm nhẹ test quét repo (hướng C). Không đổi luật tự merge (hướng D).
