@@ -558,6 +558,16 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   hai lần, chưa rõ vì sao. Sổ đang giữ bản `@3194422`, đọc tới BƯỚC 193. Lần làm tươi kế: đo
 >   độ tươi bản MỚI trước, rồi mới xoá bản cũ (lỗi 179).
 
+> 🧭 **16/10/2026 — BƯỚC 199: −1,68% (ĐO 22) thành −1,51% khi chạy lại là do CACHE, không do mã.**
+>
+> - Phép thử chéo 2×2 (mã ĐO 22 / mã hiện tại × cache cũ / cache mới): đổi mã thì sổ OOS giống hệt
+>   619/619 lệnh, đổi cache thì alpha nhảy. Bảng hiện hành trong `CLAUDE.md` gắn với cache `acf6dca1…`;
+>   kết luận "THUA chuẩn" đứng ở cả hai cache. Hai lần đo trên hai cache khác nhau lệch thêm một khoản
+>   mà KTC không chứa (ở đây ≈ 0,17 điểm).
+> - **Đừng xoá `scratch/vibe_cache_goc_20260911`**: bản DUY NHẤT của cache `acf6dca1…` (dữ liệu ĐO 18–25).
+>   Cache hiện tại `01e9d9c7…` chưa có bản sao; làm tươi lại là mất khả năng tái lập −1,51%. Chính sách
+>   sao lưu cache: người dùng yêu cầu nghiên cứu lại (16/10), CHƯA quyết.
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - ~~**29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.**~~ **ĐÃ ĐỌC

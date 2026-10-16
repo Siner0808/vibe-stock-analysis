@@ -22605,6 +22605,7 @@ Leader, máy của người dùng. **Chỉ thêm mục này vào `docs/STATE.md`
 
 **Hệ quả.**
 - Chạy lại ĐO 25 với `--bam-mong-doi acf6dca1…` sẽ DỪNG ở M0 — đúng như tiêu chí đã ký (`docs/TIEU-CHI-DOC-TRUOC.md` ĐO 25: *"M0: không tái lập được thì DỪNG"*). Cache cũ không còn, nên **ĐO 25 không tái lập được từng byte trên máy này nữa**; một lượt kéo mới không thể cho lại băm cũ (nến mới, chuỗi điều chỉnh lại).
+  > ⚠️ **HẾT ĐÚNG 16/10/2026 (BƯỚC 199):** vế *"Cache cũ không còn"* sai ngay lúc viết. Bản sao `scratch/vibe_cache_goc_20260911` băm đúng `acf6dca1…` (`bam_thu_muc`, đo 16/10), và ĐO 22 tái lập được TỪNG LỆNH trên nó. Đầu vào của ĐO 25 vẫn còn; ĐO 25 chưa được chạy lại.
 - **Kết luận ĐO 25 KHÔNG đổi**: kết cục B đo trên cache `acf6dca1…`, hai lượt giống hệt từng dòng (BƯỚC 179). Mục này không chạy lại ĐO 25 và không có số mới nào về nó.
 - Phép đo nào từ nay dùng `backtest/cache` phải ghi M0 MỚI của chính lượt ấy, không dựa vào băm của ĐO 25.
 - **Một lý do trong văn bản đã ký nay chỉ còn đúng cho lúc ký** (grep của leader tìm ra; sổ tay không nêu): `docs/TIEU-CHI-DOC-TRUOC.md`, ĐO 24, *Khung đọc cho P3d, ký trước* (06/10/2026) viết *"Hai cache không phải nguồn nhãn của UV-001 (kết thúc trước ngày khai)"*. Từ 12/10 cache A (`backtest/cache`) chạy tới 2026-10-12, SAU ngày khai UV-001 (02/10/2026). Vế chính vẫn đúng — nhưng vì LUẬT của P3d (nhãn lấy từ MỘT bảng giá kéo một lượt, không đọc cache backtest), không còn vì ngày. Đường chấm của tầng 3 không đi qua cache: docstring `cham_xac_nhan.py` dòng 8 khai *"không đọc `backtest/cache*`"*, và `grep -n 'from backtest\|backtest.data\|CACHE_DIR' cham_xac_nhan.py` → 0 dòng; bảng giá do `tools/keo_bang_gia.py` kéo riêng (đọc mã 13/10, chưa chạy). BƯỚC này KHÔNG sửa văn bản đã ký; đánh dấu ⚠️ ở đó là việc của một BƯỚC chạm file luật (hỏi sổ tay thật).
@@ -22762,6 +22763,7 @@ Leader, máy của người dùng. **Chỉ thêm mục này vào `docs/STATE.md`
 
 **Hệ quả.**
 - Kết luận ĐO 25 không đổi; mục này không chạy lại ĐO nào. Cả hai ngày nến dở nằm trong vùng TRONG mẫu. ĐO 25 vốn đã không tái lập được từng byte trên máy này từ 12/10 (BƯỚC 185).
+  > ⚠️ **HẾT ĐÚNG 16/10/2026 (BƯỚC 199):** cùng tiền đề sai với BƯỚC 185 — bản sao `scratch/vibe_cache_goc_20260911` vẫn băm đúng `acf6dca1…`, nên đầu vào của ĐO 25 vẫn còn.
 - Phép đo nào từ nay dùng `backtest/cache` phải ghi M0 của chính lượt ấy.
 - Không tệp nào còn mang dòng của các lượt kéo tháng 8: mtime nhỏ nhất nay là 2026-10-12. Nến dở mới cũng không lọt vào được nữa, vì từ BƯỚC 180 mọi đường ghi đều gọi `bo_nen_dang_do`. Vì vậy luật hợp nhất "giữ dòng cũ" của `hop_nhat` KHÔNG cần đổi để dọn việc này. Người dùng đã được hỏi phương án đổi luật và không chọn.
 - `backtest/cache` vẫn chứa 6 phiên sau ngày khai UV-001 (⚠️ ĐO 24, BƯỚC 187). Thao tác này không thêm phiên nào sau 2026-10-12.
@@ -23177,3 +23179,50 @@ Leader, máy của người dùng. Sau BƯỚC 197 leader hỏi việc kế; ng�
 - Không đổi khớp lệnh, điểm, ngưỡng, sổ hay lược đồ Sheets.
 - Không ghi gì lên Sheets: khối này chỉ đọc, gác AST cấm cả các đường ghi lẫn đường kéo sổ.
 - B6 vẫn CHỈ ĐỂ HIỆN (ĐO 25), và sổ ảo vẫn không làm theo phán quyết.
+
+## BƯỚC 199 — −1,68% (ĐO 22) THÀNH −1,51% KHI CHẠY LẠI: DO CACHE GIÁ LÀM TƯƠI 12/10 VÀ 14/10, KHÔNG DO MÃ; BẢNG HIỆN HÀNH GẮN VỚI CACHE `acf6dca1…` (16/10/2026)
+
+**Mốc:** D2 — dữ liệu giá: một số của bảng hiện hành đổi theo lượt làm tươi cache; ghi lại để không so hai số trên hai cache mà không biết
+
+Leader, máy người dùng. Người dùng bảo tra (*"làm cái này"*), rồi duyệt ghi STATE (*"theo đề xuất"*) và chú thích `CLAUDE.md` (*"làm đi"*). Không đổi mã, ngưỡng, điểm, sổ hay workflow.
+
+**Câu hỏi.** 15/10, chạy lại dòng "BẬT · theo ngày" của ĐO 22 trên `main` `7f2fa52` bằng đúng lệnh của ĐO 22 (`tools/do1_chi_phi_thuc_thi.py --mot-luot 2`, worktree riêng để không đè `wf_*.db` ở gốc repo, `VIBE_CACHE_DIR` → `backtest/cache`, bản chép `sl_pattern_memory.json` sha256 `e8b44cf8…` như ĐO 18/20/22, xoá sau khi chạy): **619 lệnh OOS · alpha −1,51% · KTC [−2,09 ; −0,91]**, ngưỡng IS chọn 45. Bảng hiện hành trong `CLAUDE.md` ghi −1,68% · [−2,24 ; −1,08] cho cùng cấu hình. Số đẹp lên → tra (Quy tắc 1).
+
+**Phép thử chéo 2×2** (16/10; mỗi ô một worktree riêng, cùng lệnh, ngưỡng IS chọn 45 ở cả bốn ô):
+
+| mã \ cache | `acf6dca1…` (cache của ĐO 22, phiên cuối 2026-09-03) | `01e9d9c7…` (cache hiện tại, sau BƯỚC 185 và 189) |
+|---|---|---|
+| `ab385dd` (mã của ĐO 22) | −1,68% [−2,24 ; −1,08] — ĐO 22 gốc, sổ ở `scratch/luu_do22/wt_do22_s2/` | −1,51% [−2,09 ; −0,91] |
+| `7f2fa52` (`main` 15/10) | −1,68% [−2,24 ; −1,08] | −1,51% [−2,09 ; −0,91] |
+
+- Ghép từng lệnh: `./.venv/Scripts/python.exe tools/do20_ghep_tung_lenh.py --doi-chung <A/wf_oos.db> --sua <B/wf_oos.db>`.
+  - Cùng cache, khác mã: **619/619 GIỐNG HỆT** ở cả hai cột (0 khác, 0 chỉ một bên).
+  - Cùng mã, khác cache (ĐO 22 ↔ lượt 15/10): 436 giống hệt · 110 cùng khoá khác giá/cỡ · 73 chỉ ở ĐO 22 · 73 chỉ ở lượt mới. **619 = 619 là trùng số.**
+- **Kết luận: toàn bộ chênh lệch đến từ dữ liệu.** Mã đổi từ `ab385dd` tới `7f2fa52` — `backtest/data.py` (đường GHI cache, BƯỚC 180), `paper_metrics.dieu_kien_dong_lai` (`loai_tru`, chỉ sổ thật), `paper_trading` (bảng kế hoạch) — không chạm kết quả walk-forward.
+- Cache cũ lấy từ bản sao `scratch/vibe_cache_goc_20260911`, chép ra thư mục nháp trước khi chạy. `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` cho bản sao và bản chép đúng `acf6dca1…` (băm ĐO 25 ghi); bản chép sau lượt chạy vẫn `acf6dca1…`, tức backtest không ghi vào cache. Cache hiện tại cho `01e9d9c7…`, bằng băm BƯỚC 189 ghi.
+
+**Dữ liệu đổi ở đâu.** Trên lệnh chung, giá vào lệch > 0,5% ở 6/33 mã OOS (tỷ lệ giá mới/cũ, số lệnh chung):
+
+```
+./.venv/Scripts/python.exe -c "import sqlite3,sys; d=lambda p:{(r[0],r[1][:10]):r[2] for r in sqlite3.connect(f'file:{p}?mode=ro',uri=True).execute('SELECT symbol,signal_date,entry_price FROM trades')}; a,b=d(sys.argv[1]),d(sys.argv[2]); t={}; [t.setdefault(k[0],[]).append(b[k]/a[k]) for k in sorted(a.keys()&b.keys())]; [print(m,len(v),f'{min(v):.3f}',f'{max(v):.3f}') for m,v in sorted(t.items()) if max(abs(x-1) for x in v)>0.005]" <DO22/wf_oos.db> <moi/wf_oos.db>
+DHG 12 0.947 0.949 · MSR 30 0.975 1.000 · NVL 25 0.992 0.997 · OIL 16 0.980 0.992 · PVS 12 0.832 0.837 · SHS 20 0.955 0.973
+```
+
+Đây là chuỗi điều chỉnh lại của nguồn (39 mã `LECH_CO_SO` thay cả chuỗi ở BƯỚC 185). Tỷ lệ không đều trong một mã (MSR, SHS, OIL, NVL) nghĩa là có sự kiện được điều chỉnh GIỮA các lệnh, không chỉ sau cửa sổ. Lệnh chỉ ở một bên rải cả trên mã KHÔNG đổi giá (AAA, ACV, CII … trong danh sách của `do20`): đúng hình dạng dây chuyền qua trần vốn ở chế độ theo ngày mà ĐO 22 nêu làm giả thuyết; ở đây thấy hình dạng, chưa quy từng lệnh.
+
+**Hệ quả.**
+1. Bốn dòng của bảng hiện hành trong `CLAUDE.md` (ĐO 18 và ĐO 22) đo trên cache `acf6dca1…`. `CLAUDE.md` thêm MỘT luật đọc bảng ngay dưới bảng: so số mới với bảng thì chạy trên cùng cache, hoặc nêu băm cache của cả hai. Chỉ dòng BẬT · theo ngày được chạy lại trên cache mới; ba dòng kia chưa. Kết luận "THUA chuẩn có ý nghĩa" đứng ở cả hai cache (KTC loại 0 ở cả hai).
+2. **Nhiễu phiên bản dữ liệu.** Cùng mã, hai lượt kéo của cùng nguồn → alpha lệch ≈ 0,17 điểm, khoảng 29% nửa bề rộng KTC của ĐO 22 ((2,24 − 1,08)/2 = 0,58). KTC chỉ chứa nhiễu lấy mẫu, KHÔNG chứa khoản này. So hai nhánh TRONG một ĐO (chung cache) thì không dính; so hai ĐO chạy trên hai cache khác nhau thì dính. Một Δ cỡ 0,2 giữa hai lần đo khác ngày không đọc được nếu không ghi băm cache của cả hai.
+3. Lời khai BƯỚC 185 *"Cache cũ không còn"* sai, và câu BƯỚC 189 lặp lại nó (sổ tay chỉ ra): đã gắn ⚠️ HẾT ĐÚNG tại cả hai chỗ, chữ cũ giữ nguyên.
+4. Trạng thái `e900a91d…` (cache 12/10–14/10, BƯỚC 185) dựng lại được: 59 tệp hiện tại + 66 tệp sao lưu trước BƯỚC 189 cho đúng băm `e900a91d…` (đo 16/10). Bản sao 66 tệp nằm ở thư mục nháp của leader, chưa ở chỗ bền.
+
+**Giới hạn, chưa làm.**
+- Cache hiện tại `01e9d9c7…` CHƯA có bản sao: làm tươi lại là mất khả năng tái lập −1,51%.
+- Chính sách sao lưu cache (và nơi giữ sổ đo của BƯỚC này): người dùng yêu cầu nghiên cứu lại (16/10), CHƯA quyết. BƯỚC này không chép, không xoá dữ liệu nào ngoài repo.
+- Không chạy lại ba dòng còn lại của bảng; không quy Δ từng lệnh.
+
+**Sổ tay: hỏi thật** (BƯỚC này chạm `CLAUDE.md`, Quy tắc 3). Độ tươi đo ngay trước: ba nguồn chậm một BƯỚC (STATE, HANDOFF, LO-TRINH) làm tươi lên `@b353c16` theo thứ tự lỗi 179 (thêm → đổi tên → đo bản MỚI → xoá bản cũ). **Lượt nạp đầu của `STATE.md` @b353c16 bị CẮT CỤT ở BƯỚC 42** (sổ không thấy BƯỚC 123, 190, 198; bản cũ `@1d1d4d6` cùng lúc đọc đủ tới 197 — đối chứng). Xoá bản cụt, nạp lại: lượt hai đọc đủ tới BƯỚC 198. Cắt cụt là lỗi THOÁNG QUA của lượt nạp, lần này ở 1.596.038 byte. Cả 15 nguồn bằng `main` `b353c16`. Sổ chỉ ra hai câu:
+1. BƯỚC 185: *"Cache cũ không còn, nên ĐO 25 không tái lập được từng byte trên máy này nữa…"* — **THẬT** (`tools/doi_chieu_trich_dan.py`: KHỚP, STATE.md). Đã gắn ⚠️ HẾT ĐÚNG ở trên.
+2. BƯỚC 189: *"ĐO 25 vốn đã không tái lập được từng byte trên máy này từ 12/10 (BƯỚC 185)."* — **THẬT** (KHỚP). Leader chưa thấy câu này trước khi hỏi; đã gắn ⚠️ HẾT ĐÚNG ngay dưới nó.
+
+Tự kiểm phần sổ KHÔNG nêu (`git grep -nE "1,68"` trên `*.md`): `README.md` dòng kết quả, `docs/HANDOFF.md` (hai chỗ), `docs/TIEU-CHI-DOC-TRUOC.md` ghi −1,68% như KẾT QUẢ CÓ NGÀY của ĐO 22 — vẫn đúng với cache của nó, không mâu thuẫn; không sửa. `git grep` *"không tái lập được từng byte"* · *"Cache cũ không còn"*: chỉ hai câu trên.

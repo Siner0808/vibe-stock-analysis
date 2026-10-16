@@ -192,6 +192,11 @@ Alpha là thước quyết định (bất biến 6):
 | TẮT | theo mã | 62 | 399 | −0,41% | [−1,24 ; +0,48] chứa 0 | 51% · 191% |
 | TẮT | theo ngày | 45 | 582 | −0,72% | [−1,33 ; −0,07] LOẠI 0 | 58% · 100% |
 
+⚠️ **Luật đọc bảng (BƯỚC 199):** bốn dòng đo trên cache giá `acf6dca1…` (bản sao DUY NHẤT:
+`scratch/vibe_cache_goc_20260911`, đừng xoá). So một số mới với bảng thì chạy trên CÙNG cache,
+hoặc nêu băm cache của cả hai: cùng mã, cache làm tươi 12/10 và 14/10 cho dòng BẬT · theo ngày
+−1,51% [−2,09 ; −0,91] — chênh do DỮ LIỆU, kết luận không đổi (`docs/STATE.md` BƯỚC 199).
+
 - Chi phí thực thi (TẮT − BẬT) nay **0,75** (theo mã) · **0,96** (theo ngày)
   điểm mỗi lệnh; cộng thêm ~0,5 điểm/lệnh vì bản mã trước BƯỚC 123 ghi gap
   dưới SL ở đúng giá SL (115/387 lệnh cắt lỗ bị gap). **Trừ hao 0,75–0,96 +

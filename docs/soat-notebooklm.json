@@ -3164,6 +3164,41 @@
           "phan_quyet": "SAI về chữ — câu trích không có trong nguồn; ý (STATE 195 hoãn phần hiện) là bản ghi có ngày của quyết định lúc ấy, STATE chỉ thêm, không sửa"
         }
       ]
+    },
+    "BƯỚC 199": {
+      "ngay": "2026-10-16",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "Đo ngay trước lượt hỏi (leader, khung trình duyệt trong app, 16/10/2026): STATE, HANDOFF, LO-TRINH chậm một BƯỚC (@1d1d4d6, tới 197) → làm tươi lên @b353c16 theo thứ tự lỗi 179. Lượt nạp đầu của STATE.md @b353c16 CẮT CỤT ở BƯỚC 42 (không thấy 123/190/198; bản @1d1d4d6 cùng lúc đọc đủ tới 197). Xoá bản cụt, nạp lại: lượt hai đọc đủ, tiêu đề cuối '## BƯỚC 198'. HANDOFF/LO-TRINH @b353c16 trích đúng câu BƯỚC 198. Xoá ba bản @1d1d4d6 (nhãn hộp xác nhận đúng). Cả 15 nguồn bằng main b353c16 (git diff --numstat từng nguồn: 0). Câu gửi checksum 115319041, 1304 ký tự, 15/15 nguồn chọn.",
+      "cau_hoi": "I am about to write BƯỚC 199 into docs/STATE.md: Re-running the 'slippage ON, by-day' row of measurement ĐO 22 now gives alpha -1.51% [-2.09 ; -0.91] instead of -1.68% [-2.24 ; -1.08]. A 2x2 cross-run (ĐO 22 code vs current code, times old price cache acf6dca1 vs the cache refreshed on 12/10 and 14/10) shows the WHOLE difference comes from the refreshed price data, not from code: on the same cache both codes give 619/619 identical trades. The current results table in CLAUDE.md is tied to cache acf6dca1, and a new reading rule says a new number may be compared with that table only on the same cache or with both cache hashes stated. The claim in BƯỚC 185 that the old cache no longer exists, so ĐO 25 can no longer be reproduced byte for byte, is false: the backup folder scratch/vibe_cache_goc_20260911 still has hash acf6dca1. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: Cache cũ không còn, không tái lập được từng byte. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "STATE.md BƯỚC 185: 'Cache cũ không còn, nên ĐO 25 không tái lập được từng byte trên máy này nữa; một lượt kéo mới không thể cho lại băm cũ (nến mới, chuỗi điều chỉnh lại).'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — STATE.md. bam_thu_muc(scratch/vibe_cache_goc_20260911) = acf6dca1… (16/10).",
+          "phan_quyet": "THẬT — câu sai từ lúc viết; gắn ⚠️ HẾT ĐÚNG 16/10 ngay dưới nó, chữ cũ giữ nguyên (BƯỚC 199)"
+        },
+        {
+          "noi_dung": "STATE.md BƯỚC 189: 'ĐO 25 vốn đã không tái lập được từng byte trên máy này từ 12/10 (BƯỚC 185).'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py: KHỚP — STATE.md. Leader chưa thấy câu này trước lượt hỏi; git grep 'không tái lập được từng byte' chỉ ra đúng hai câu (185, 189).",
+          "phan_quyet": "THẬT — cùng tiền đề sai với BƯỚC 185; gắn ⚠️ HẾT ĐÚNG ngay dưới nó (BƯỚC 199)"
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
