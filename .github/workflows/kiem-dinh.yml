@@ -25,7 +25,8 @@ jobs:
       VNSTOCK_TELEMETRY: "off"
     # 20 -> 30 ngày 07/09/2026: bước "chạy một mình" tốn ~200s ở máy local
     # (65 tiến trình pytest tuần tự — song song cho đỏ giả), và runner chậm
-    # hơn. Không phải nới vì bước nào đang chạm trần.
+    # hơn. Không phải nới vì bước nào đang chạm trần. Từ BƯỚC 201 bước ấy
+    # chạy ¾ số nhân cùng lúc (đỏ giả đã dọn tận gốc: file tạm ở .tam_test/).
     timeout-minutes: 30
 
     steps:

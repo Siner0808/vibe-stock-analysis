@@ -103,3 +103,77 @@ def test_khong_doi_so_thi_soi_dung_thu_muc_tests():
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     print("Chạy bằng: pytest tests/test_kiem_test_chay_rieng.py -q")
+
+
+# ── BƯỚC 201: song song ─────────────────────────────────────────────────
+
+def test_SONG_SONG_giu_dung_thu_tu_va_that_su_chay_cung_luc(tmp_path, monkeypatch):
+    """Kết quả trả ĐÚNG thứ tự đầu vào; và có lúc ≥ 2 file chạy cùng lúc."""
+    import threading
+    import time as _t
+    dang, dinh, khoa = [0], [0], threading.Lock()
+
+    def gia(f, cwd):
+        with khoa:
+            dang[0] += 1
+            dinh[0] = max(dinh[0], dang[0])
+        _t.sleep(0.15 if f.name.endswith("0.py") else 0.05)
+        with khoa:
+            dang[0] -= 1
+        return (not f.name.startswith("do"), f.name)
+
+    monkeypatch.setattr(k, "chay_mot_file", gia)
+    ds = [tmp_path / t for t in ("xanh0.py", "do1.py", "xanh2.py", "do3.py", "xanh4.py")]
+    kq = k.chay_nhieu_file(ds, tmp_path, 4)
+    assert [(f.name, x) for f, x, _ in kq] == [
+        ("xanh0.py", True), ("do1.py", False), ("xanh2.py", True), ("do3.py", False), ("xanh4.py", True)]
+    assert dinh[0] >= 2, "không có lúc nào hai file chạy cùng lúc"
+
+
+def test_TUAN_TU_chi_mot_file_mot_luc(tmp_path, monkeypatch):
+    import threading
+    import time as _t
+    dang, dinh, khoa = [0], [0], threading.Lock()
+
+    def gia(f, cwd):
+        with khoa:
+            dang[0] += 1
+            dinh[0] = max(dinh[0], dang[0])
+        _t.sleep(0.03)
+        with khoa:
+            dang[0] -= 1
+        return (True, "")
+
+    monkeypatch.setattr(k, "chay_mot_file", gia)
+    fx = tmp_path / "test_x.py"
+    fx.write_text("def test_a():\n    assert True\n", encoding="utf-8")
+    monkeypatch.setattr(k, "tu_kiem", lambda: None)
+    assert k.main(["--im", "--tuan-tu", str(fx), str(fx), str(fx)]) == 0
+    assert dinh[0] == 1
+
+
+def test_MAC_DINH_suy_tu_so_nhan_khong_go_tay():
+    """Hình dạng (AST): SO_TIEN_TRINH_MAC_DINH là biểu thức có gọi os.cpu_count()."""
+    import ast
+    cay = ast.parse(Path(k.__file__).read_text(encoding="utf-8"))
+    gan = next(n for n in cay.body if isinstance(n, ast.Assign)
+               and any(isinstance(t, ast.Name) and t.id == "SO_TIEN_TRINH_MAC_DINH" for t in n.targets))
+    goi = [n for n in ast.walk(gan.value) if isinstance(n, ast.Call)
+           and isinstance(n.func, ast.Attribute) and n.func.attr == "cpu_count"]
+    assert goi, ast.unparse(gan.value)
+    assert k.SO_TIEN_TRINH_MAC_DINH >= 1
+
+
+def test_MAC_DINH_main_chay_song_song(tmp_path, monkeypatch):
+    """Không truyền gì thì main() chạy với SO_TIEN_TRINH_MAC_DINH file cùng lúc."""
+    thay = {}
+    monkeypatch.setattr(k, "tu_kiem", lambda: None)
+    monkeypatch.setattr(k, "SO_TIEN_TRINH_MAC_DINH", 5)
+    monkeypatch.setattr(k, "chay_nhieu_file",
+                        lambda ds, cwd, n: thay.setdefault("n", n) and [(f, True, "") for f in ds])
+    fx = tmp_path / "test_x.py"
+    fx.write_text("def test_a():\n    assert True\n", encoding="utf-8")
+    # argparse đọc mặc định lúc dựng parser → phải là giá trị LÚC CHẠY của hằng
+    assert k.main(["--im", str(fx)]) == 0
+    assert thay["n"] == 5
+

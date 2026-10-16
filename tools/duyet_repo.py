@@ -16,13 +16,18 @@ git KHÔNG thấy thư mục ấy — ứng dụng ghi `.claude/worktrees/` vào
 `.git/info/exclude` — nên mọi phép dựa trên `git ls-files` vẫn đúng. Nhưng
 `Path.rglob` không hỏi git.
 
-Hai luật:
+Ba luật:
   1. mọi thứ dưới `.claude/worktrees/` — KỂ CẢ khi đã mất `.git`: gỡ worktree
      trên Windows để lại thư mục khi có file đang bị khoá, và bản sao mồ côi
      ấy vẫn làm cổng đỏ giả.
   2. mọi thư mục CON của gốc có mục `.git` — tệp `gitdir:` (worktree) hay
      thư mục (bản clone lồng): đó là một cây làm việc KHÁC, không phải repo
      này. Gốc thì không xét — gốc nào cũng có `.git`.
+  3. thư mục `.tam_test/` ở GỐC (BƯỚC 201): chỗ DUY NHẤT test được đặt file
+     tạm TRONG repo (bộ dò bịa số chỉ chấm file thuộc một worktree của repo).
+     Năm cổng chạy song song thì một test quét repo ở tiến trình này bắt gặp
+     `tmpXXXX/thu.py` của tiến trình kia đúng lúc nó bị xoá → `FileNotFoundError`
+     — đỏ giả, đo 16/10/2026: 3/158 file mỗi vòng, hai vòng, cùng một nguồn.
 
 Mỗi máy quét giữ bộ lọc riêng của nó (`.venv`, `scratch`…); file này chỉ
 thêm đúng một điều. Gác: `tests/test_duyet_repo.py`, gồm một sổ đăng ký bắt
@@ -34,6 +39,9 @@ from pathlib import Path
 from typing import Iterator
 
 THU_MUC_WORKTREE_APP = (".claude", "worktrees")
+
+#: Thư mục ở gốc repo dành cho file tạm của test (gitignore). Luật 3.
+THU_MUC_TAM_TEST = ".tam_test"
 
 
 def la_worktree_long(goc: Path, duong_dan: Path, _nho: dict | None = None) -> bool:
@@ -60,9 +68,11 @@ def la_worktree_long(goc: Path, duong_dan: Path, _nho: dict | None = None) -> bo
 
 
 def duyet(goc: Path, mau: str) -> Iterator[Path]:
-    """`goc.rglob(mau)` trừ mọi thứ nằm trong worktree lồng."""
+    """`goc.rglob(mau)` trừ mọi thứ nằm trong worktree lồng và trong `.tam_test/`."""
     goc = Path(goc)
     nho: dict = {}
     for p in goc.rglob(mau):
+        if p.relative_to(goc).parts[:1] == (THU_MUC_TAM_TEST,):
+            continue
         if not la_worktree_long(goc, p, nho):
             yield p

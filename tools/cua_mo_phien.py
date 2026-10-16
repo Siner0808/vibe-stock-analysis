@@ -264,7 +264,7 @@ def ban_tin(hom_nay: dt.date | None = None) -> str:
     for t in ten_skill():
         d.append(f"│ QUY TRÌNH BẮT BUỘC — gọi skill `{t}` TRƯỚC khi đọc")
         d.append("│ hay sửa file đầu tiên. Nó có: cách vá file (một đường")
-        d.append("│ duy nhất), vòng lặp đột biến, năm cổng gác đúng thứ tự.")
+        d.append("│ duy nhất), vòng lặp đột biến, năm cổng gác chạy cùng lúc.")
     if not ten_skill():
         d.append("│ ⚠️  không thấy skill quy trình nào trong .claude/skills/")
 

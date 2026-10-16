@@ -36,18 +36,30 @@ Trạng thái thứ ba là bắt buộc, cùng lý do như `kiem_cu_phap_311.py`
 công cụ không chạy được mà trả 0 thì chính nó là cổng xanh giả — đúng thứ
 nó sinh ra để chặn.
 
-KHÔNG CHẠY SONG SONG. Vài test ghi thư mục tạm vào gốc repo; hai tiến
-trình pytest cùng lúc cho đỏ giả. Xem CLAUDE.md, mục "Dọn code chết".
+CHẠY SONG SONG (BƯỚC 201). Mỗi file VẪN chạy một mình trong tiến trình
+riêng; song song chỉ là nhiều file cùng lúc — mặc định ba phần tư số nhân
+(`SO_TIEN_TRINH_MAC_DINH`), `--tuan-tu` để chạy từng file một. Bản cũ
+chạy tuần tự vì đỏ giả: `tests/test_chan_bia_so_lieu.py` đặt `tmpXXXX/thu.py`
+ở GỐC repo, và test quét repo ở tiến trình khác đọc đúng lúc nó bị xoá
+(`FileNotFoundError`; đo 16/10/2026: 3/158 file mỗi vòng). Đã dọn tận gốc:
+file tạm của test chỉ được nằm dưới `.tam_test/`, nơi `duyet_repo.duyet`
+bỏ qua — 0/158 đỏ ở hai vòng 8 tiến trình sau khi sửa.
 """
 import argparse
+import os
 import pathlib
 import subprocess
 import sys
 import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
 THU_MUC_TEST = GOC / "tests"
+
+#: Số file chạy cùng lúc (BƯỚC 201): ba phần tư số nhân, chừa chỗ cho cổng 1
+#: chạy cùng lúc ở `tools/nam_cong.py`. Máy 16 nhân → 12; runner CI 4 nhân → 3.
+SO_TIEN_TRINH_MAC_DINH = max(1, (os.cpu_count() or 1) * 3 // 4)
 
 
 def chay_mot_file(duong: pathlib.Path, thu_muc_lam_viec: pathlib.Path,
@@ -55,7 +67,8 @@ def chay_mot_file(duong: pathlib.Path, thu_muc_lam_viec: pathlib.Path,
     """Chạy MỘT file test trong tiến trình riêng. Trả (xanh, tóm tắt)."""
     try:
         kq = subprocess.run(
-            [sys.executable, "-m", "pytest", str(duong), "-q", "--tb=line"],
+            [sys.executable, "-m", "pytest", str(duong), "-q", "--tb=line",
+             "-p", "no:cacheprovider"],   # nhiều tiến trình: không tranh .pytest_cache
             cwd=str(thu_muc_lam_viec), capture_output=True, text=True,
             encoding="utf-8", errors="replace", timeout=giay_toi_da)
     except FileNotFoundError as e:
@@ -68,6 +81,18 @@ def chay_mot_file(duong: pathlib.Path, thu_muc_lam_viec: pathlib.Path,
             if "passed" in d or "failed" in d or "error" in d
             or "no tests ran" in d]
     return kq.returncode == 0, (dong[-1] if dong else ra.strip()[-160:])
+
+
+def chay_nhieu_file(ds: list[pathlib.Path], thu_muc_lam_viec: pathlib.Path,
+                    so_tien_trinh: int) -> list[tuple[pathlib.Path, bool, str]]:
+    """[(file, xanh, tóm tắt)] ĐÚNG thứ tự `ds`; tối đa `so_tien_trinh` file chạy cùng lúc.
+
+    Gọi `chay_mot_file` qua tên của module lúc chạy (không giữ tham chiếu), nên
+    test thay nó bằng `monkeypatch` vẫn thay được đường song song."""
+    n = max(1, min(int(so_tien_trinh), len(ds) or 1))
+    with ThreadPoolExecutor(max_workers=n) as ex:
+        kq = list(ex.map(lambda f: chay_mot_file(f, thu_muc_lam_viec), ds))
+    return [(f, xanh, tom) for f, (xanh, tom) in zip(ds, kq)]
 
 
 def tu_kiem() -> None:
@@ -84,8 +109,9 @@ def tu_kiem() -> None:
         (tmp / "test_chac_chan_do.py").write_text(
             "def test_b():\n    assert 1 == 2\n", encoding="utf-8")
 
-        xanh, _ = chay_mot_file(tmp / "test_chac_chan_xanh.py", tmp)
-        do, _ = chay_mot_file(tmp / "test_chac_chan_do.py", tmp)
+        # Đi qua ĐÚNG đường song song mà lượt thật dùng.
+        (_, xanh, _), (_, do, _) = chay_nhieu_file(
+            [tmp / "test_chac_chan_xanh.py", tmp / "test_chac_chan_do.py"], tmp, 2)
 
     if not xanh:
         raise RuntimeError("tự kiểm hỏng: file chắc chắn XANH lại báo đỏ")
@@ -98,6 +124,10 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--im", action="store_true",
                     help="chỉ in file đỏ, không in từng dòng")
+    ap.add_argument("--so-tien-trinh", type=int, default=SO_TIEN_TRINH_MAC_DINH,
+                    help="số file chạy cùng lúc (mặc định %(default)s = ba phần tư số nhân)")
+    ap.add_argument("--tuan-tu", action="store_true",
+                    help="chạy từng file một (đường lui; bằng --so-tien-trinh 1)")
     ap.add_argument("file", nargs="*",
                     help="chỉ kiểm những file này; bỏ trống thì kiểm cả "
                          "tests/. CI gọi KHÔNG có đối số.")
@@ -118,14 +148,14 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"Chạy riêng từng file trong {THU_MUC_TEST.relative_to(GOC)} "
           f"— {len(ds)} file.")
-    print("Song song sẽ cho đỏ giả (test ghi thư mục tạm vào gốc repo), "
-          "nên chạy tuần tự.")
+    so_tien_trinh = 1 if tuy_chon.tuan_tu else max(1, tuy_chon.so_tien_trinh)
+    print(f"{so_tien_trinh} file chạy cùng lúc, mỗi file một tiến trình riêng "
+          f"(BƯỚC 201; --tuan-tu để chạy từng file một).")
     print()
 
     hong: list[tuple[str, str]] = []
     t0 = time.time()
-    for i, f in enumerate(ds, 1):
-        xanh, tom = chay_mot_file(f, GOC)
+    for i, (f, xanh, tom) in enumerate(chay_nhieu_file(ds, GOC, so_tien_trinh), 1):
         if not xanh:
             hong.append((f.name, tom))
         if not tuy_chon.im:
@@ -135,7 +165,8 @@ def main(argv: list[str] | None = None) -> int:
     # In cả số file: một số 0 ở đây phải NHÌN THẤY được, nếu không thì một
     # cái glob hỏng sẽ báo xanh y như khi mọi thứ đều sạch.
     print()
-    print(f"Đã chạy riêng {len(ds)} file trong {time.time() - t0:.0f}s.")
+    print(f"Đã chạy riêng {len(ds)} file trong {time.time() - t0:.0f}s "
+          f"({so_tien_trinh} cùng lúc).")
     print()
 
     if hong:

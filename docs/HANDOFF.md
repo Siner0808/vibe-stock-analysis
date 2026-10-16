@@ -34,7 +34,7 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 # Đỏ ở đâu thì dừng ở đó. Bộ test này lớn dần mỗi ngày.
 
 ./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py
-# CHẠY SAU pytest, không song song. Máy dùng 3.13, CI dùng 3.11 --
+# Chạy được CÙNG LÚC với các cổng khác: tools/nam_cong.py (BƯỚC 201). Máy dùng 3.13, CI dùng 3.11 --
 # cú pháp 3.12 nạp được ở máy rồi làm CI đỏ ngay bước đầu.
 
 ./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo
@@ -91,7 +91,7 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 > **Quy trình đầy đủ nằm ở skill `quy-trinh-lam-viec`** — gọi nó ngay khi
 > bắt đầu bất cứ việc gì trong repo này, TRƯỚC khi đọc hay sửa file đầu
 > tiên. Nó có: cách vá file (một đường duy nhất), vòng lặp đột biến, **năm**
-> cổng gác đúng thứ tự, công thức chạy-và-chờ, và bảng **lỗi đã mắc** kèm
+> cổng gác (chạy cùng lúc bằng `tools/nam_cong.py`, BƯỚC 201), công thức chạy-và-chờ, và bảng **lỗi đã mắc** kèm
 > cột "máy chặn được chưa".
 >
 > Nó thay skill `quy-trinh-do-luong` cũ (07/09/2026) — hai skill cùng tự
@@ -570,6 +570,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   ⚠️ HẾT ĐÚNG cùng ngày (BƯỚC 200): kho `scratch/luu_cache/` giữ `01e9d9c7…`, `e900a91d…` (dựng lại) và một
 >   bản không rõ gốc `b74e0028…` (`DANH_MUC.md` trong kho). Người dùng chọn MÁY tự chụp: mọi lượt ghi cache đi
 >   qua `backtest.data.ghi_cache`, chụp cache cũ vào kho trước. Sổ đo BƯỚC 199: `scratch/luu_tra_168_151/`.
+> - **BƯỚC 201: năm cổng chạy CÙNG LÚC** — `./.venv/Scripts/python.exe tools/nam_cong.py --thu-muc-log <dir>`
+>   (`--tuan-tu`: đường lui). Cổng 4 tự chạy ¾ số nhân. File tạm của test CHỈ được ở `.tam_test/`.
 
 **Chờ tới ngày, đừng đọc sớm:**
 

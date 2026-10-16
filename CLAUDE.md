@@ -413,8 +413,9 @@ streamlit run app.py                                            # chạy app
 ./.venv/Scripts/python.exe extend_history.py --check            # độ phủ dữ liệu
 ./.venv/Scripts/python.exe tools/doc_so_that.py                 # sổ lệnh THẬT đang có gì
 
-# NĂM CỔNG, tuần tự, KHÔNG song song (vài test ghi thư mục tạm vào gốc repo nên
-# chạy song song cho ĐỎ GIẢ). Ghi ra file log, đừng pipe qua `tail`.
+# NĂM CỔNG: một lệnh chạy cả năm CÙNG LÚC (BƯỚC 201; `--tuan-tu` là đường lui),
+# hoặc từng cổng như năm dòng dưới. Ghi ra file log, đừng pipe qua `tail`.
+./.venv/Scripts/python.exe tools/nam_cong.py --thu-muc-log <thư mục log>
 ./.venv/Scripts/python.exe -m pytest tests/ -q                  # cổng 1
 ./.venv/Scripts/python.exe tools/kiem_cu_phap_311.py            # cổng 2 — CI cũng chạy
 ./.venv/Scripts/python.exe tools/chan_bia_so_lieu.py --quet-repo      # cổng 3

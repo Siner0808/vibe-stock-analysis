@@ -264,3 +264,34 @@ def test_SO_DANG_KY_KHONG_MU_thay_du_cac_may_quet_that():
                 goi.append(f.relative_to(GOC).as_posix())
     may_quet = {f for f in goi if f != "tests/test_duyet_repo.py"}
     assert len(may_quet) >= 9, f"chi thay {sorted(may_quet)}"
+
+
+# ── BƯỚC 201: luật 3 — `.tam_test/` ở gốc ───────────────────────────────
+
+def test_TAM_TEST_o_GOC_bi_bo_qua_nhung_ten_giong_o_noi_khac_thi_khong(tmp_path):
+    from duyet_repo import THU_MUC_TAM_TEST
+    (tmp_path / THU_MUC_TAM_TEST / "tmpab12").mkdir(parents=True)
+    (tmp_path / THU_MUC_TAM_TEST / "tmpab12" / "thu.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "tools" / THU_MUC_TAM_TEST).mkdir(parents=True)
+    (tmp_path / "tools" / THU_MUC_TAM_TEST / "giu.py").write_text("x = 2\n", encoding="utf-8")
+    (tmp_path / ".tam_test_khac").mkdir()
+    (tmp_path / ".tam_test_khac" / "giu2.py").write_text("x = 3\n", encoding="utf-8")
+    (tmp_path / "a.py").write_text("x = 4\n", encoding="utf-8")
+    thay = sorted(p.relative_to(tmp_path).as_posix() for p in duyet_repo.duyet(tmp_path, "*.py"))
+    assert thay == [".tam_test_khac/giu2.py", "a.py", "tools/.tam_test/giu.py"]
+
+
+def test_KHONG_TEST_NAO_tao_thu_muc_tam_o_GOC_repo():
+    """Nguồn đỏ giả khi chạy song song (BƯỚC 201): `TemporaryDirectory(dir=str(GOC))`.
+    File tạm TRONG repo phải đi qua `.tam_test/` (tools/duyet_repo.py, luật 3)."""
+    import ast
+    vi_pham = []
+    for f in sorted((GOC / "tests").glob("test_*.py")):
+        cay = ast.parse(f.read_text(encoding="utf-8"))
+        for n in ast.walk(cay):
+            if isinstance(n, ast.Call):
+                for kw in n.keywords:
+                    if kw.arg == "dir" and ast.unparse(kw.value) in ("GOC", "str(GOC)", "ROOT", "str(ROOT)"):
+                        vi_pham.append(f"{f.name}:{n.lineno} {ast.unparse(n)[:80]}")
+    assert not vi_pham, vi_pham
+

@@ -62,6 +62,9 @@ walkforward_results/
 *.txt
 *.log
 
+# File tạm của test buộc phải nằm TRONG repo (tools/duyet_repo.py, luật 3; BƯỚC 201).
+.tam_test/
+
 # File nháp để soi lỗi bằng tay — không phải mã của dự án.
 # Hook chan_bia_so_lieu.py cũng miễn trừ thư mục này.
 scratch/
