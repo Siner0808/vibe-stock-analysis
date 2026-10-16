@@ -314,8 +314,8 @@ Nói đúng trong báo cáo: *"NotebookLM chỉ ra chỗ X, tôi kiểm lại b�
 nhất trong các nguồn"* (kèm lối thoát) rồi so `grep -c '^## BƯỚC' docs/STATE.md`.
 Phép BỎ CHỌN nguồn không sống qua phiên. Lệch thì làm tươi — **THÊM TRƯỚC, XOÁ
 SAU** (xoá trước có một cửa sổ sổ rỗng; bản trùng còn làm sổ trả lời SAI:
-BƯỚC 95 thay vì 96). Từng bước (URL ghim băm, đổi tên nguồn, đọc nhãn trên
-hộp xác nhận): `references/soat-cheo-notebooklm.md`, mục *Nạp lại nguồn*.
+BƯỚC 95 thay vì 96). Từng bước (URL ghim băm, STATE thì DÁN khúc; đổi tên,
+đọc nhãn hộp xác nhận): `references/soat-cheo-notebooklm.md`, *Nạp lại nguồn*.
 
 **Xoá nguồn:** hỏi người dùng trước (xoá là vĩnh viễn) — **TRỪ** bản trùng
 của đúng nguồn vừa dán lại ở bước THÊM. Không có gác máy cho luật này (thao

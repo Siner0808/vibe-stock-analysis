@@ -3243,6 +3243,56 @@
           "phan_quyet": "THẬT — sửa sau khi hỏi, cùng hai chỗ grep tìm ra (BƯỚC 201)"
         }
       ]
+    },
+    "BƯỚC 202": {
+      "ngay": "2026-10-16",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "ĐÃ LÀM TƯƠI ngay trước lượt hỏi (leader, khung trình duyệt trong app, 16/10/2026 chiều): git diff --quiet <ghim> 3c2fd2c cho 4 nguồn cũ (CLAUDE.md, HANDOFF.md @e5bf662; SKILL.md, cong-thuc-chay.md @4194c57) → THÊM URL @3c2fd2c (curl 200 khớp byte), trích đúng dòng 'nam_cong.py' (chỉ có từ #247) ở cả bốn, rồi mới xoá bản cũ. docs/STATE.md vào sổ thành BỐN khúc DÁN @3c2fd2c (tools/so_tay.py chia-state; 345.706/347.324/340.577/280.351 ký tự), mỗi khúc dò neo nhìn tới cuối, rồi mới xoá @b353c16. 18 nguồn (14 file + STATE bốn khúc), 18/18 chọn; câu checksum 146424397, 1.578 ký tự.",
+      "cau_hoi": "I am about to write BƯỚC 202 into docs/STATE.md: docs/STATE.md is no longer loaded into the notebook by URL. Measured 16/10/2026: a URL load stores the full file (the source viewer shows it up to the last BƯỚC) but the answering model only reads a leading chunk (at commit 3c2fd2c it stops mid-sentence near character 352,490, and a second load stops at the same place; 7 of 8 loads of versions of 1,583,623 bytes or more were cut). From now on STATE.md is pasted as copied text in chunks of at most 350,000 characters, cut only right before a '## BƯỚC n' line by tools/so_tay.py chia-state; the paste box accepts at most 500,000 characters; the freshness of each chunk is checked by asking for a sentence that contains two phrases found only near the end of that chunk, not by asking for the largest BƯỚC number; the older note that the cause of the truncation is unknown is now outdated. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a sentence saying that sources are loaded only by URL, a sentence saying to measure freshness by asking for the largest BƯỚC number in docs/STATE.md, a sentence saying the cause of the STATE.md truncation is unknown, a sentence saying the notebook has fifteen sources. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, '## Nạp lại nguồn — khi sổ cũ hơn main': 'Đường nạp là URL.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Đường nạp là URL.' -> KHỚP — soat-cheo-notebooklm.md",
+          "phan_quyet": "THẬT — sửa trong chính BƯỚC 202 (sổ đọc bản main): thêm ngoại lệ 'trừ docs/STATE.md, DÁN thành khúc'"
+        },
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, bước 5: '5. **Đo độ tươi**: hỏi số BƯỚC lớn nhất trong docs/STATE.md kèm lối thoát, so với git show <mã băm>:docs/STATE.md | grep '^## BƯỚC' | tail -1.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py '5. **Đo độ tươi**: hỏi số BƯỚC lớn nhất trong docs/STATE.md kèm lối thoát' -> KHỚP — soat-cheo-notebooklm.md",
+          "phan_quyet": "THẬT — câu vẫn đúng cho CẢ SỔ nhưng thiếu với khúc dán; BƯỚC 202 thêm ngay sau nó cách đo TỪNG khúc (câu chứa hai cụm chỉ có gần cuối khúc; không hỏi 'hai câu cuối', không hỏi số BƯỚC lớn nhất của khúc)"
+        },
+        {
+          "noi_dung": "SKILL.md (theo sổ), '## Luồng thông tin thứ hai — NotebookLM': '**ĐO ĐỘ TƯƠI TRƯỚC KHI HỎI, mỗi lượt, không nhớ từ lượt trước.** Hỏi sổ tay *\"số hiệu BƯỚC lớn nhất xuất hiện trong các nguồn\"* rồi đối chiếu grep -c '^## BƯỚC' docs/STATE.md.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py '**ĐO ĐỘ TƯƠI TRƯỚC KHI HỎI, mỗi lượt, không nhớ từ lượt trước.** Hỏi sổ tay ...' -> KHỚP — SKILL-md-2026-09-30.md (bản lưu lịch sử, KHÔNG phải SKILL.md hiện hành). Câu tương đương ở SKILL.md hiện hành ('**Đo độ tươi TRƯỚC mỗi lượt hỏi**… hỏi \"số BƯỚC lớn nhất trong các nguồn\"') đọc bằng Read.",
+          "phan_quyet": "SAI — sổ gán sai tên file (như BƯỚC 119): câu nằm ở docs/lich-su/SKILL-md-2026-09-30.md, bản lưu NGUYÊN VĂN không sửa; câu tương đương ở SKILL.md hiện hành vẫn ĐÚNG cho cả sổ (khúc cuối mang BƯỚC lớn nhất), phép đo từng khúc ở cẩm nang bước 5 mà SKILL.md trỏ tới"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md, '## 5. NHỮNG VIỆC CÒN TREO / BẬT LẠI': '- **Sổ tay NotebookLM:** nạp docs/STATE.md bản ghim 9ec0556 thì bị CẮT CỤT ở BƯỚC 122, hai lần, chưa rõ vì sao.'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Sổ tay NotebookLM: nạp docs/STATE.md bản ghim 9ec0556 thì bị CẮT CỤT ở BƯỚC 122, hai lần, chưa rõ vì sao.' -> KHỚP — HANDOFF.md",
+          "phan_quyet": "THẬT — sửa trong BƯỚC 202: câu giữ, gắn ⚠️ HẾT ĐÚNG 16/10/2026 kèm nguyên nhân đã đo"
+        },
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, ô ⚠️ 15/10/2026 (BƯỚC 196, lỗi 179): '> Nguyên nhân chưa rõ (kích thước gần như nhau).'",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py 'Nguyên nhân chưa rõ (kích thước gần như nhau).' -> KHỚP — soat-cheo-notebooklm.md",
+          "phan_quyet": "THẬT — sửa trong BƯỚC 202: câu giữ, gắn ⚠️ HẾT ĐÚNG 16/10/2026 (bộ nạp lưu đủ, góc nhìn của mô hình mới cụt)"
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

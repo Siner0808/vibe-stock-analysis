@@ -557,6 +557,8 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > - **Sổ tay NotebookLM:** nạp `docs/STATE.md` bản ghim `9ec0556` thì bị CẮT CỤT ở BƯỚC 122,
 >   hai lần, chưa rõ vì sao. Sổ đang giữ bản `@3194422`, đọc tới BƯỚC 193. Lần làm tươi kế: đo
 >   độ tươi bản MỚI trước, rồi mới xoá bản cũ (lỗi 179).
+>   ⚠️ HẾT ĐÚNG 16/10/2026 (BƯỚC 202): đã đo — bộ nạp lưu ĐỦ, cái cụt là góc nhìn của mô hình
+>   khi trả lời; `docs/STATE.md` nay vào sổ bằng DÁN thành khúc, không bằng URL.
 
 > 🧭 **16/10/2026 — BƯỚC 199: −1,68% (ĐO 22) thành −1,51% khi chạy lại là do CACHE, không do mã.**
 >
@@ -572,6 +574,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   qua `backtest.data.ghi_cache`, chụp cache cũ vào kho trước. Sổ đo BƯỚC 199: `scratch/luu_tra_168_151/`.
 > - **BƯỚC 201: năm cổng chạy CÙNG LÚC** — `./.venv/Scripts/python.exe tools/nam_cong.py --thu-muc-log <dir>`
 >   (`--tuan-tu`: đường lui). Cổng 4 tự chạy ¾ số nhân. File tạm của test CHỈ được ở `.tam_test/`.
+> - **BƯỚC 202: `docs/STATE.md` vào sổ tay bằng DÁN khúc ≤ 350.000 ký tự, KHÔNG bằng URL** — nạp URL
+>   thì mô hình chỉ đọc khúc đầu (@3c2fd2c dừng ở ký tự ~352.490). Lệnh: `./.venv/Scripts/python.exe
+>   tools/so_tay.py chia-state --bam <băm> --js`; cách dán và đo độ tươi từng khúc ở
+>   `references/soat-cheo-notebooklm.md` bước 2 và 5. Lúc BƯỚC 202 hỏi, sổ tươi theo `main` `3c2fd2c`
+>   (18 nguồn: 14 file + STATE bốn khúc).
 
 **Chờ tới ngày, đừng đọc sớm:**
 

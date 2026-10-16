@@ -23,6 +23,7 @@ Dùng:
     python tools/so_tay.py hoi --buoc "BƯỚC 130" --ket-luan "..." --vi-du "..." --vi-du "..."
     python tools/so_tay.py ghi <muc.json>
     python tools/so_tay.py dem --tu 130 --den 162
+    python tools/so_tay.py chia-state --bam <commit> [--js]
 
 `muc.json` gồm `buoc`, `cau_hoi` (NGUYÊN VĂN câu đã gửi), và hoặc
 `phat_hien` (danh sách `noi_dung` · `tu_kiem` · `phan_quyet`) hoặc
@@ -34,11 +35,19 @@ thứ hai cho BƯỚC KHÔNG đổi luật: `muc.json` chỉ gồm `buoc` và `k
 chạm file luật không — chạm thì TỪ CHỐI, phải hỏi thật. `dem` đếm mục đã hỏi thật
 và mục có phán quyết THẬT trong một khoảng BƯỚC (số liệu của LO-TRINH.md).
 Mã thoát: 0 ghi được · 1 bị từ chối (in lý do) · 2 dùng sai lệnh.
+
+Từ BƯỚC 202 (16/10/2026, người dùng chọn "Dán 3 phần, repo giữ nguyên"):
+`docs/STATE.md` KHÔNG nạp vào sổ tay bằng URL nữa. Nạp bằng URL thì bộ nạp lưu
+đủ tệp (trình xem nguồn hiện tới BƯỚC cuối) nhưng MÔ HÌNH chỉ đọc được một khúc
+đầu, và nạp lại dừng đúng chỗ cũ. `chia-state` cắt tệp tại các dòng `## BƯỚC n`
+thành khúc <= `CO_PHAN_TOI_DA` để DÁN (ô "Văn bản đã sao chép");
+`--js` in lệnh JS tải tệp ở đúng commit, kiểm số byte rồi cắt sẵn từng khúc.
 """
 from __future__ import annotations
 
 import datetime
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -243,6 +252,83 @@ def ghi(muc: dict, so: Path = SO, ngay: str | None = None, cham_luat=None) -> di
     return dong
 
 
+#: Ô "Văn bản đã sao chép" của sổ tay nhận tối đa ĐÚNG 500.000 ký tự, đếm theo
+#: đơn vị UTF-16 của ô nhập (đo 16/10/2026, BƯỚC 202: 500.000 thì nút Chèn mở,
+#: 500.001 thì khoá).
+TRAN_O_DAN = 500_000
+#: Cỡ tối đa một khúc `docs/STATE.md` khi DÁN (BƯỚC 202). Đo 16/10/2026: nạp URL
+#: nguyên tệp (1,31 triệu ký tự) thì mô hình dừng ở ký tự ~352.490, nạp lại dừng
+#: đúng chỗ ấy; dán ba khúc ~437 nghìn ký tự thì một khúc hụt ~7.800 ký tự cuối.
+#: Con số này là mức ĐÃ ĐO đọc trọn — hạ nữa nếu một lần đo độ tươi thấy hụt.
+CO_PHAN_TOI_DA = 350_000
+TIEU_DE_BUOC = re.compile(r"^## BƯỚC (\d+)", re.M)
+RAW = "https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis"
+
+
+def _dai16(s: str) -> int:
+    """Độ dài theo đơn vị UTF-16 — cách ô dán của sổ tay (và chuỗi JS) đếm."""
+    return len(s.encode("utf-16-le")) // 2
+
+
+def chia_state(van_ban: str, co_toi_da: int = CO_PHAN_TOI_DA) -> list[tuple[int, int]]:
+    """Cắt `docs/STATE.md` thành các khúc `[đầu, cuối)` để DÁN vào sổ tay.
+
+    HÀM THUẦN. Chỉ cắt NGAY TRƯỚC một dòng `## BƯỚC n`, không cắt giữa một BƯỚC;
+    mỗi khúc <= `co_toi_da` đơn vị UTF-16; ghép các khúc lại đúng nguyên văn.
+    THAM LAM từ đầu tệp: STATE chỉ dài thêm ở cuối, nên ranh giới các khúc đầu
+    đứng yên giữa hai lần làm tươi — thường chỉ khúc cuối phải dán lại. Một BƯỚC
+    dài hơn trần thì TỪ CHỐI (không có chỗ cắt hợp lệ).
+    """
+    moc = [m.start() for m in TIEU_DE_BUOC.finditer(van_ban)]
+    khuc: list[tuple[int, int]] = []
+    dau = vua = 0
+    for m in moc + [len(van_ban)]:
+        if _dai16(van_ban[dau:m]) > co_toi_da:
+            khuc.append((dau, vua))
+            dau = vua
+            if _dai16(van_ban[dau:m]) > co_toi_da:
+                raise TuChoi(f"mot BUOC dai hon tran {co_toi_da} (tu ky tu {dau}) — "
+                             "khong cat giua BUOC; ha tran thi phai tach BUOC ay")
+        vua = m
+    khuc.append((dau, len(van_ban)))
+    return khuc
+
+
+def ke_hoach_chia(van_ban: str, bam: str, co_toi_da: int = CO_PHAN_TOI_DA) -> list[dict]:
+    """Mỗi khúc một dòng: nhãn nguồn, khoảng BƯỚC, vị trí UTF-16 (cho `slice` của JS)."""
+    khuc = chia_state(van_ban, co_toi_da)
+    ra = []
+    for i, (a, b) in enumerate(khuc, 1):
+        so = [int(x) for x in TIEU_DE_BUOC.findall(van_ban[a:b])]
+        tu, den = (min(so), max(so)) if so else (0, 0)
+        ra.append({
+            "nhan": f"STATE.md @{bam[:7]} phan{i}/{len(khuc)} (BUOC {tu}-{den})",
+            "dau16": _dai16(van_ban[:a]), "cuoi16": _dai16(van_ban[:b]),
+            "dai16": _dai16(van_ban[a:b]), "byte": len(van_ban[a:b].encode("utf-8")),
+            "buoc_tu": tu, "buoc_den": den,
+            "buoc_cuoi_vi_tri": so[-1] if so else 0,
+        })
+    return ra
+
+
+def lenh_js_chia(bam: str, tong_byte: int, ke_hoach: list[dict]) -> str:
+    """Lệnh JS (cho `javascript_tool`): tải STATE ở ĐÚNG commit, kiểm byte, cắt sẵn.
+
+    Kết quả nằm ở `window.__phanState = [[nhãn, văn bản], …]`; lệch byte thì
+    `null` — không dán một bản khác commit đã ghim.
+    """
+    if not re.fullmatch(r"[0-9a-f]{40}", bam):
+        raise TuChoi(f"can ma bam DU 40 ky tu (ghim commit, khong ghim nhanh): {bam!r}")
+    cat = ", ".join(f"[{json.dumps(k['nhan'], ensure_ascii=False)}, {k['dau16']}, {k['cuoi16']}]"
+                    for k in ke_hoach)
+    return (
+        f"const r = await fetch('{RAW}/{bam}/docs/STATE.md'); const t = await r.text();"
+        " const n = new TextEncoder().encode(t).length;"
+        f" window.__phanState = (n === {tong_byte}) ? [{cat}].map(([h, a, b]) => [h, t.slice(a, b)]) : null;"
+        " window.__phanState ? window.__phanState.map(([h, p]) => h + ' · ' + p.length)"
+        f" : ('LECH BYTE: tai ' + n + ', can {tong_byte}')")
+
+
 def main(argv: list[str]) -> int:
     for _luong in (sys.stdout, sys.stderr):
         try:
@@ -275,6 +361,35 @@ def main(argv: list[str]) -> int:
                                  a.tu, a.den)
         print(f"BƯỚC {a.tu}-{a.den}: {hoi} muc da HOI THAT, {that} muc co phan quyet "
               f"THẬT ({that}/{hoi})")
+        return 0
+    if argv and argv[0] == "chia-state":
+        import argparse
+        ap = argparse.ArgumentParser(prog="so_tay.py chia-state")
+        ap.add_argument("--bam", default="HEAD", help="commit (mac dinh HEAD)")
+        ap.add_argument("--co-toi-da", type=int, default=CO_PHAN_TOI_DA)
+        ap.add_argument("--js", action="store_true", help="in LENH JS tai + cat san")
+        a = ap.parse_args(argv[1:])
+        import subprocess
+        try:
+            bam = subprocess.run(["git", "-C", str(GOC), "rev-parse", a.bam], check=True,
+                                 capture_output=True, text=True).stdout.strip()
+            raw = subprocess.run(["git", "-C", str(GOC), "show", f"{bam}:docs/STATE.md"],
+                                 check=True, capture_output=True).stdout
+        except (OSError, subprocess.CalledProcessError) as e:
+            print(f"CHUA DOC DUOC docs/STATE.md o {a.bam}: {e}", file=sys.stderr)
+            return 2
+        try:
+            kh = ke_hoach_chia(raw.decode("utf-8"), bam, a.co_toi_da)
+            if a.js:
+                print(lenh_js_chia(bam, len(raw), kh))
+                return 0
+        except TuChoi as e:
+            print(f"TU CHOI: {e}", file=sys.stderr)
+            return 1
+        print(f"docs/STATE.md @{bam} · {len(raw):,} byte · {len(kh)} khuc <= {a.co_toi_da:,} ky tu")
+        for k in kh:
+            print(f"  {k['nhan']:<44} {k['dai16']:>8,} ky tu {k['byte']:>9,} byte"
+                  f" · tieu de cuoi (vi tri) BUOC {k['buoc_cuoi_vi_tri']}")
         return 0
     if len(argv) == 2 and argv[0] == "ghi":
         try:
