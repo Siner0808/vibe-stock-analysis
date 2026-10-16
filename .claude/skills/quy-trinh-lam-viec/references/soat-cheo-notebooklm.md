@@ -134,6 +134,22 @@ trước có một cửa sổ sổ rỗng, và bản trùng gỡ được còn s
    `git show <mã băm>:<file> | wc -c` — 28/09: 11/11 trả 200, khớp từng byte.
    Ghim băm tránh CDN chậm một commit sau merge, và làm bản mới khác bản cũ
    ngay trên nhãn.
+
+   **RIÊNG `docs/STATE.md`: DÁN thành khúc, KHÔNG nạp URL** (BƯỚC 202, 16/10/2026,
+   người dùng chọn *"Dán 3 phần, repo giữ nguyên"*). Nạp bằng URL thì bộ nạp lưu
+   ĐỦ tệp — trình xem nguồn hiện tới BƯỚC cuối — nhưng MÔ HÌNH chỉ đọc được một
+   khúc đầu: @3c2fd2c (1.616.807 byte) dừng giữa câu ở ký tự ~352.490, nạp lại
+   dừng đúng chỗ ấy; từ 1.583.623 byte trở lên 8/9 lượt nạp cụt. Cách làm:
+   - `./.venv/Scripts/python.exe tools/so_tay.py chia-state --bam <mã băm> --js`
+     in lệnh JS: tải tệp ở ĐÚNG commit, kiểm số byte, cắt sẵn tại dòng
+     `## BƯỚC n` thành khúc ≤ `CO_PHAN_TOI_DA` ký tự (`window.__phanState`).
+     Bỏ `--js` thì in nhãn và cỡ từng khúc.
+   - Mỗi khúc: **Thêm nguồn** → **Văn bản đã sao chép** → ô `textarea`
+     *"Văn bản được dán"* (setter gốc + sự kiện `input`; ô nhận tối đa ĐÚNG
+     500.000 ký tự, quá là nút **Chèn** khoá) → **Chèn** → đổi tên đúng nhãn
+     lệnh in ra (`STATE.md @<băm> phanK/N (BUOC a-b)`).
+   - Làm tươi: dán ĐỦ các khúc của commit mới, đo từng khúc (bước 5), rồi mới
+     xoá MỌI khúc cũ — nhãn mang băm nên không lẫn hai đời.
 3. **Xoá bản cũ** — chỉ những bản vừa có bản thay ở bước 2 (không phải hỏi;
    xoá nguồn nào khác thì HỎI người dùng). Menu *"Tuỳ chọn khác"* → **Xoá
    nguồn**; đọc **nhãn** trên hộp xác nhận (`Xoá <nhãn>?`) rồi mới bấm. Bấm
@@ -141,15 +157,25 @@ trước có một cửa sổ sổ rỗng, và bản trùng gỡ được còn s
    trong DOM, bấm theo toạ độ rơi vào lớp vô hình.
 4. **Đổi tên nguồn** thành `<file> @<7 ký tự băm>` — mặc định nhãn là URL
    đầy đủ; giữ băm ngắn thì độ tươi đọc được ngay trên nhãn. Ô tên nhận giá
-   trị qua setter gốc + sự kiện `input`, rồi bấm **Lưu**.
+   trị qua setter gốc + sự kiện `input`, rồi bấm **Lưu**. Tìm nút menu
+   bằng ô chọn của CHÍNH nguồn ấy (`closest('.single-source-container')`, nút
+   `aria-label="Tuỳ chọn khác"`), đọc lại tên cũ trong ô trước khi Lưu, đếm
+   lại danh sách sau khi đổi — leo cây DOM tìm `more_vert` từng đổi nhầm tên
+   `SKILL.md` (lỗi 180).
 5. **Đo độ tươi**: hỏi số BƯỚC lớn nhất trong `docs/STATE.md` kèm lối thoát,
    so với `git show <mã băm>:docs/STATE.md | grep '^## BƯỚC' | tail -1`.
+   Với từng khúc `docs/STATE.md`: hỏi câu chứa HAI cụm chỉ có trong ~150 ký tự cuối
+   của khúc, kèm câu đứng ngay trước nó. Đừng hỏi *"hai câu cuối"* (16/10: sổ trả
+   một gạch đầu dòng cách cuối 3.923 ký tự dù vẫn nhìn tới cuối), cũng đừng hỏi
+   *"số BƯỚC lớn nhất"* của khúc (tiêu đề không theo thứ tự số: 152 đứng sau 153).
 
 > ⚠️ **15/10/2026 (BƯỚC 196, lỗi 179): làm bước 5 TRÊN BẢN MỚI TRƯỚC bước 3.**
 > Một lượt nạp có thể bị CẮT CỤT mà không báo lỗi: `docs/STATE.md` @9ec0556
 > (1.583.623 byte) nạp HAI lần đều dừng ở BƯỚC 122 — sổ không thấy BƯỚC 123,
 > 160, 190 — trong khi @3194422 (1.571.526 byte) nạp cùng ngày đọc tới BƯỚC 193.
-> Nguyên nhân chưa rõ (kích thước gần như nhau). Thứ tự an toàn: thêm (2) → đổi
+> Nguyên nhân chưa rõ (kích thước gần như nhau). ⚠️ HẾT ĐÚNG 16/10/2026 (BƯỚC 202):
+> đã đo — bộ nạp lưu ĐỦ, cái cụt là góc nhìn của MÔ HÌNH lúc trả lời; `docs/STATE.md`
+> nay DÁN thành khúc (bước 2). Thứ tự an toàn: thêm (2) → đổi
 > tên (4) → đo độ tươi bản MỚI (5) → mới xoá bản cũ (3). Hỏi thẳng tiêu đề BƯỚC
 > cuối (`'## BƯỚC n'` có hay không) để phân biệt cắt cụt với đọc sót; bản mới
 > cụt thì giữ bản cũ và khai độ chậm ở `_do_tuoi`.
@@ -160,7 +186,8 @@ trước có một cửa sổ sổ rỗng, và bản trùng gỡ được còn s
 > nên không có hậu quả; sửa ở BƯỚC 137 (28/09/2026).
 
 Không có `input[type=file]` (đo 08/09): "Tải tệp lên" mở hộp thoại hệ điều
-hành, không điều khiển được. Đường nạp là URL.
+hành, không điều khiển được. Đường nạp là URL — trừ `docs/STATE.md`, DÁN thành
+khúc (bước 2, BƯỚC 202).
 
 ## Phiên đám mây — không mở được sổ tay, không hỏi được leader
 

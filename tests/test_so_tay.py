@@ -320,3 +320,121 @@ def test_DEM_CLI_so_that_cua_BUOC_1_den_129_la_25_tren_30():
     assert r.returncode == 0, r.stderr
     assert "30 muc da HOI THAT" in r.stdout and "25 muc co phan quyet THẬT" in r.stdout, r.stdout
     assert "(25/30)" in r.stdout and "BƯỚC 1-129" in r.stdout, r.stdout
+
+
+# ── chia STATE.md để DÁN vào sổ tay (BƯỚC 202) ───────────────────────────
+
+def _state_gia(*cac_buoc: tuple[int, int]) -> str:
+    """Tệp giả: phần mở đầu rồi các mục `## BƯỚC n`, mỗi mục dài đúng `dai` ký tự."""
+    vb = "# STATE.md — mở đầu\n\n"
+    for n, dai in cac_buoc:
+        dau = f"## BƯỚC {n} — tiêu đề\n"
+        vb += dau + "x" * (dai - len(dau) - 1) + "\n"
+    return vb
+
+
+def test_CHIA_ghep_lai_dung_nguyen_van_va_chi_cat_truoc_tieu_de_BUOC():
+    vb = _state_gia(*[(n, 300) for n in range(1, 40)])
+    khuc = st.chia_state(vb, 1000)
+    assert "".join(vb[a:b] for a, b in khuc) == vb
+    assert [a for a, _ in khuc][0] == 0 and khuc[-1][1] == len(vb)
+    assert all(khuc[i][1] == khuc[i + 1][0] for i in range(len(khuc) - 1))
+    for a, _ in khuc[1:]:
+        assert st.TIEU_DE_BUOC.match(vb, a), vb[a:a + 20]
+    assert all(st._dai16(vb[a:b]) <= 1000 for a, b in khuc)
+
+
+def test_CHIA_tham_lam_it_khuc_nhat_va_ranh_gioi_cu_dung_yen_khi_STATE_dai_them():
+    vb = _state_gia(*[(n, 300) for n in range(1, 40)])
+    khuc = st.chia_state(vb, 1000)
+    # Mở đầu 21 ký tự + 39 mục × 300: mỗi khúc chứa đúng 3 mục (khúc đầu có thêm mở đầu).
+    assert len(khuc) == 13
+    dau1 = [a for a, _ in khuc]
+    for them in ("## BƯỚC 40 — mới\n" + "y" * 50 + "\n",       # còn vừa khúc cuối
+                 "## BƯỚC 40 — mới\n" + "y" * 200 + "\n"):      # phải mở khúc mới
+        dau2 = [a for a, _ in st.chia_state(vb + them, 1000)]
+        assert dau2[:len(dau1)] == dau1     # ranh giới cũ đứng yên: chỉ khúc cuối (và khúc mới) đổi
+    assert len(st.chia_state(vb + "## BƯỚC 40 — mới\n" + "y" * 50 + "\n", 1000)) == 13
+
+
+def test_CHIA_dem_theo_UTF16_nhu_o_dan_va_JS():
+    # '🔴' là 1 ký tự Python nhưng 2 đơn vị UTF-16: đếm theo Python thì vừa trần, thật ra vượt.
+    vb = "## BƯỚC 1 — a\n" + "🔴" * 300 + "\n## BƯỚC 2 — b\n" + "🔴" * 300 + "\n"
+    assert len(vb) <= 700 < st._dai16(vb)
+    khuc = st.chia_state(vb, 700)
+    assert len(khuc) == 2
+    assert all(st._dai16(vb[a:b]) <= 700 for a, b in khuc)
+
+
+def test_CHIA_mot_BUOC_dai_hon_tran_thi_TU_CHOI_khong_cat_giua_BUOC():
+    vb = _state_gia((1, 300), (2, 1500), (3, 300))
+    with pytest.raises(st.TuChoi, match="dai hon tran"):
+        st.chia_state(vb, 1000)
+    with pytest.raises(st.TuChoi, match="dai hon tran"):
+        st.chia_state(_state_gia((1, 1500)), 1000)
+
+
+def test_CHIA_khong_cat_o_tieu_de_CON_hay_dong_nhac_BUOC():
+    """Một BƯỚC dài có tiểu mục `### BƯỚC …` và câu nhắc `## BƯỚC n` giữa dòng: không phải chỗ cắt."""
+    vb = ("## BƯỚC 1 — a\n" + "z" * 600 + "\n### BƯỚC 1b — tiểu mục\n" + "z" * 600
+          + "\nXem ## BƯỚC 9 ở trên.\n" + "z" * 300 + "\n")
+    with pytest.raises(st.TuChoi, match="dai hon tran"):
+        st.chia_state(vb, 1000)
+    assert st.chia_state(vb, 2000) == [(0, len(vb))]
+
+
+def test_TRAN_khuc_KHONG_vuot_muc_DA_DO_doc_tron_va_nam_duoi_tran_o_dan():
+    """Hạ trần là chiều an toàn; NÂNG trần phải kèm một lần đo đọc trọn mới (BƯỚC 202)."""
+    assert st.TRAN_O_DAN == 500_000
+    assert 0 < st.CO_PHAN_TOI_DA <= 350_000 < st.TRAN_O_DAN
+
+
+def test_KE_HOACH_nhan_khoang_BUOC_va_vi_tri_UTF16():
+    vb = "🔴 mở đầu\n" + _state_gia((5, 300), (3, 300), (9, 300), (7, 300))[len("# STATE.md — mở đầu\n\n"):]
+    kh = st.ke_hoach_chia(vb, "0123456789abcdef0123456789abcdef01234567", 650)
+    assert [k["nhan"] for k in kh] == ["STATE.md @0123456 phan1/2 (BUOC 3-5)",
+                                       "STATE.md @0123456 phan2/2 (BUOC 7-9)"]
+    assert [k["buoc_cuoi_vi_tri"] for k in kh] == [3, 7]   # tiêu đề KHÔNG theo thứ tự số
+    assert kh[0]["dau16"] == 0 and kh[0]["cuoi16"] == kh[1]["dau16"] == kh[0]["dai16"]
+    assert kh[-1]["cuoi16"] == st._dai16(vb)
+
+
+def test_LENH_JS_ghim_bam_40_ky_tu_kiem_byte_va_cat_dung_vi_tri():
+    bam = "0123456789abcdef0123456789abcdef01234567"
+    kh = [{"nhan": "STATE.md @0123456 phan1/2 (BUOC 1-2)", "dau16": 0, "cuoi16": 10},
+          {"nhan": "STATE.md @0123456 phan2/2 (BUOC 3-3)", "dau16": 10, "cuoi16": 25}]
+    js = st.lenh_js_chia(bam, 777, kh)
+    assert re.search(r"fetch\('https://raw\.githubusercontent\.com/Siner0808/vibe-stock-analysis/"
+                     + bam + r"/docs/STATE\.md'\)", js), js
+    assert re.search(r"\(n === 777\)", js), js
+    assert re.search(r'\["STATE\.md @0123456 phan1/2 \(BUOC 1-2\)", 0, 10\], '
+                     r'\["STATE\.md @0123456 phan2/2 \(BUOC 3-3\)", 10, 25\]', js), js
+    assert "\n" not in js
+    for sai in ("main", "3c2fd2c", bam.upper()):
+        with pytest.raises(st.TuChoi, match="40 ky tu"):
+            st.lenh_js_chia(sai, 777, kh)
+
+
+def test_CHIA_STATE_THAT_cua_repo_moi_khuc_duoi_tran():
+    vb = (GOC / "docs" / "STATE.md").read_text(encoding="utf-8")
+    khuc = st.chia_state(vb)
+    assert "".join(vb[a:b] for a, b in khuc) == vb
+    assert all(st._dai16(vb[a:b]) <= st.CO_PHAN_TOI_DA for a, b in khuc)
+    assert len(khuc) >= 2      # 1,31 triệu ký tự (16/10/2026): một khúc là quay lại đường URL đã hỏng
+
+
+def test_CHIA_CLI_in_ke_hoach_va_lenh_JS():
+    r = subprocess.run([sys.executable, str(GOC / "tools" / "so_tay.py"), "chia-state", "--bam", "HEAD"],
+                       capture_output=True, text=True, encoding="utf-8", cwd=str(GOC))
+    assert r.returncode == 0, r.stderr
+    dong = r.stdout.splitlines()
+    assert re.match(r"docs/STATE\.md @[0-9a-f]{40} · [\d,]+ byte · (\d+) khuc", dong[0]), dong[0]
+    so = int(re.match(r".* · (\d+) khuc", dong[0]).group(1))
+    assert len([d for d in dong[1:] if re.match(r"  STATE\.md @[0-9a-f]{7} phan\d+/\d+ ", d)]) == so
+    r = subprocess.run([sys.executable, str(GOC / "tools" / "so_tay.py"), "chia-state", "--js"],
+                       capture_output=True, text=True, encoding="utf-8", cwd=str(GOC))
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.startswith("const r = await fetch('https://raw.githubusercontent.com/"), r.stdout[:80]
+    so_byte = len(subprocess.run(["git", "-C", str(GOC), "show", "HEAD:docs/STATE.md"],
+                                 capture_output=True, check=True).stdout)
+    assert re.search(rf"\(n === {so_byte}\)", r.stdout), (so_byte, r.stdout[:300])
