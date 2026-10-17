@@ -586,6 +586,9 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > `hau_kiem_loi.py` (luật viết + máy kiểm, chưa gọi API). Việc kế: tab + phần chạy + workflow TẮT (BƯỚC 204),
 > rồi hiện ra + chuông (BƯỚC 205); 26/10 người dùng đặt khoá. Bốn mục chờ của 16/10 (7 ý tưởng · kịch
 > trần/sàn · hướng C · hướng D) VẪN CHỜ.
+> **BƯỚC 204:** tab `hau_kiem`, phần chạy `./.venv/Scripts/python.exe tools/hau_kiem_loi.py --thu` (in lời dặn +
+> dữ kiện, không gọi API, không cần khoá), workflow `hau-kiem-loi.yml` merge rồi TẮT; gói `anthropic` ghim ở
+> `requirements-hau-kiem.txt` (máy đã cài 1.15.0). Bật ngày 26/10: người dùng đặt secret, agent `gh workflow enable`.
 
 **Chờ tới ngày, đừng đọc sớm:**
 

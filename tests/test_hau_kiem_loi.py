@@ -140,6 +140,18 @@ def test_MODULE_khong_nhap_anthropic_va_muc_module_chi_thu_vien_chuan():
             assert n.module.split(".")[0] in sys.stdlib_module_names, n.module
 
 
+def test_THAM_SO_GOI_dung_hop_dong_Opus_5_5():
+    t = hk.tham_so_goi("nội dung")
+    assert set(t) == {"model", "max_tokens", "system", "messages", "output_config",
+                      "betas", "fallbacks"}
+    assert t["model"] == "claude-opus-5-5" and t["max_tokens"] == hk.MAX_TOKENS
+    assert t["system"] == hk.LOI_DAN
+    assert t["messages"] == [{"role": "user", "content": "nội dung"}]
+    assert t["output_config"] == {"effort": "medium", "format": {
+        "type": "json_schema", "schema": hk.SCHEMA_BON_TRUONG}}
+    assert t["betas"] == ["server-side-fallback-2026-07-01"] and t["fallbacks"] == "default"
+
+
 # ── Máy kiểm: mẫu đạt ─────────────────────────────────────────────────────
 
 def test_VAN_MAU_dat_moi_luat():
@@ -180,6 +192,16 @@ def test_DOC_SO_kieu_viet_nghin_va_thap_phan():
 
 def test_SO_TRONG_CHUOI_du_kien_la_nguon_hop_le():
     assert _luat_vi_pham(_van(ke_lai="Lệnh HPG vào khi RSI 71,3.")) == set()
+
+
+def test_SO_PHAY_NGHIN_KIEU_ANH_trong_du_kien_doc_ca_hai_cach():
+    """Sổ thật ghi lý do vào kiểu Anh: "Vào lệnh=53,500 VNĐ | SL=50,022 VNĐ" (đo trên
+    `--thu` với Sheets thật, 17/10/2026). Văn viết kiểu Việt "53.500" phải khớp; cách đọc
+    thập phân (53,5) vẫn giữ vì chuỗi nguồn có thể là thập phân thật."""
+    dk = _du_kien(ly_do=json.dumps(["🎯 Vào lệnh=53,500 VNĐ | SL=50,022 VNĐ (-6.5%)"]))
+    for van in ("giá vào dự kiến 53.500 đồng", "cắt lỗ dự kiến 50.022 đồng", "lệch 53,5"):
+        assert _luat_vi_pham(_van(ke_lai=f"Lệnh HPG có {van}."), dk) == set(), van
+    assert "so-co-nguon" in _luat_vi_pham(_van(ke_lai="Lệnh HPG có giá 53.600 đồng."), dk)
 
 
 def test_SO_TRONG_VAN_doc_ca_ngay_va_so():

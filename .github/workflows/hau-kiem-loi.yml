@@ -1,0 +1,70 @@
+# Hậu kiểm BẰNG LỜI (B1, BƯỚC 204): mỗi lệnh ảo đã đóng có một đoạn văn bốn phần do Claude
+# viết, THÊM vào tab Sheets `hau_kiem`; app và bản tin chỉ đọc. Đặc tả:
+# docs/thiet-ke-b1-hau-kiem-loi.md. File này chỉ gọi tools/hau_kiem_loi.py.
+#
+# MERGE Ở TRẠNG THÁI TẮT (`gh workflow disable hau-kiem-loi.yml`) cho tới khi người dùng đặt
+# secret ANTHROPIC_API_KEY (Q9 — giai đoạn B từ 26/10/2026). Bật: `gh workflow enable`.
+#
+# KHÔNG CHUNG `concurrency.group` VỚI quet-so-lenh: một nhóm của GitHub giữ tối đa MỘT lượt
+# chờ, lượt chờ mới HUỶ lượt chờ cũ — lượt quét đang chờ có thể bị lượt này thay chỗ.
+#
+# MÃ THOÁT: 0 xong (lệnh hỏng chỉ ::warning::, lượt sau làm lại) · 1 lỗi cấu hình hoặc yêu
+# cầu sai hình dạng (401 · 403 · 400) · 2 không chạy được (thiếu khoá, không đọc/ghi được
+# Sheets). Đỏ = GitHub gửi email.
+#
+# TIỀN: trần 5 USD/tháng trong mã (cộng từ chính tab hau_kiem) là lớp THỨ HAI; trần cứng là
+# trần chi tiêu của workspace trong Anthropic Console, người dùng tự đặt.
+
+name: Hậu kiểm bằng lời
+
+on:
+  schedule:
+    # 11:17 UTC = 18:17 ICT — sau lượt quét cuối và sau ba chuông 16:23–16:53 ICT. LỆCH khỏi
+    # :00 và :30 có chủ đích: hai mốc nghẽn của GitHub (docs/STATE.md BƯỚC 89, 101).
+    - cron: '17 11 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hau-kiem-loi
+  cancel-in-progress: false
+
+jobs:
+  hau-kiem-loi:
+    runs-on: ubuntu-latest
+    # Tat telemetry vnstock (Q11, BUOC 172): chi chan vnai gui ten ham/thoi gian
+    # chay len hq.vnstocks.com/analytics; du lieu va kiem hang goi khong doi.
+    env:
+      VNSTOCK_TELEMETRY: "off"
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-hau-kiem.txt
+
+      - name: Nạp cấu hình bí mật
+        env:
+          NOI_DUNG: ${{ secrets.STREAMLIT_SECRETS_TOML }}
+        run: |
+          if [ -z "$NOI_DUNG" ]; then
+            echo "::error::Thiếu secret STREAMLIT_SECRETS_TOML."
+            exit 1
+          fi
+          mkdir -p .streamlit
+          printf '%s' "$NOI_DUNG" > .streamlit/secrets.toml
+
+      - name: Viết hậu kiểm cho lệnh đã đóng
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python tools/hau_kiem_loi.py

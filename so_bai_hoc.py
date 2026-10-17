@@ -153,6 +153,28 @@ def chuoi_dong_cua(df: Any, he_so: float) -> dict[str, float]:
     return ra
 
 
+def gia_tu_bo_tai(cac_ma: Sequence[str], tai: Any) -> tuple[dict[str, dict[str, float]],
+                                                          list[str]]:
+    """Vòng gom giá DÙNG CHUNG: `tai(mã) -> (bảng OHLCV, trạng thái)`.
+
+    App (nút "📥 Tải giá…", có đệm Streamlit) và phần chạy B1 (`tools/hau_kiem_loi.py`)
+    cùng đi qua đây, chỉ khác bộ tải — không có đường giá thứ hai (BƯỚC 204). Bảng nào
+    không `"OK"` hay rỗng thì mã ấy vào danh sách thiếu; giá quy VNĐ bằng
+    `data_quality.price_multiplier` của chính bảng ấy. Hàm không tự gọi mạng.
+    """
+    from data_quality import price_multiplier
+
+    gia: dict[str, dict[str, float]] = {}
+    thieu: list[str] = []
+    for m in cac_ma:
+        df, tt = tai(m)
+        if tt != "OK" or df is None or df.empty:
+            thieu.append(m)
+            continue
+        gia[m] = chuoi_dong_cua(df, price_multiplier(df))
+    return gia, thieu
+
+
 def loi_nhuan_nganh(ma: str, ngay_vao: Any, ngay_ra: Any,
                     gia_theo_ma: Optional[Mapping[str, Mapping[str, float]]]) -> dict:
     """Lợi nhuận TB (%) các mã cùng ngành, đóng cửa ngày vào -> đóng cửa ngày ra.

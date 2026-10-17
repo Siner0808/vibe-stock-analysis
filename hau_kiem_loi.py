@@ -85,6 +85,10 @@ NGAY_HAU_KIEM_LOI_BAT_DAU: Optional[str] = None
 
 NHAN_HIEN = "Claude viết · chỉ để đọc · máy chỉ kiểm số và câu chữ"
 
+#: `fallbacks="default"` (khuyến nghị của Anthropic, người dùng giữ ở phần 2 của thiết kế)
+#: đi kèm đúng header này; dạng mảng dùng header khác — ghép sai là lỗi 400.
+BETA_FALLBACK = "server-side-fallback-2026-07-01"
+
 
 # ── Đọc số và ngày trong văn ─────────────────────────────────────────────
 
@@ -93,6 +97,9 @@ _NGAY_VN = re.compile(r"(?<!\d)(\d{1,2})/(\d{1,2})/(\d{4})(?!\d)")
 #: Số đứng riêng: không dính chữ phía trước (`MA20`), dấu `−` Unicode như `-`.
 _SO = re.compile(r"(?<![\w.,])[+\-−]?\d+(?:[.,]\d+)*(?!\d)")
 _NGHIN_CHAM = re.compile(r"\d{1,3}(?:\.\d{3})+")
+#: Số kiểu Anh `53,500` — chỉ xét trong chuỗi NGUỒN (lý do vào lệnh của sổ thật ghi
+#: "Vào lệnh=53,500 VNĐ", đo 17/10/2026); văn của model vẫn đọc dấu phẩy là thập phân.
+_NGHIN_PHAY = re.compile(r"\d{1,3}(?:,\d{3})+")
 
 
 def _doc_so(tok: str) -> tuple[float, int]:
@@ -150,9 +157,13 @@ def so_nguon(du_kien: Mapping) -> tuple[set[str], list[float]]:
         if isinstance(v, (int, float)):
             so.append(abs(float(v)))
         elif isinstance(v, str):
-            n, s = so_trong_van(v)
+            n, con = _ngay_iso(v)
             ngay |= n
-            so.extend(x for x, _ in s)
+            for m in _SO.finditer(con):
+                tok = m.group(0)
+                so.append(_doc_so(tok)[0])
+                if _NGHIN_PHAY.fullmatch(tok.lstrip("+-−")):
+                    so.append(float(tok.lstrip("+-−").replace(",", "")))
     return ngay, so
 
 
@@ -354,6 +365,22 @@ def du_kien(dong_nk: Mapping[str, Any], bai_hoc: Mapping[str, Any]) -> dict:
         "ma_cung_nganh": so_bai_hoc.ma_cung_nganh(sym) if sym else [],
         "hang_so": {"n_phien_sau_thoat": so_bai_hoc.N_PHIEN_SAU_THOAT,
                     "chi_phi_vong_pct": paper_metrics.ROUND_TRIP_COST_PCT},
+    }
+
+
+def tham_so_goi(noi_dung: str) -> dict:
+    """Toàn bộ tham số của `client.beta.messages.create` — MỘT chỗ. Opus 5.5: không
+    `thinking` (luôn bật; `disabled`/`budget_tokens` là lỗi 400), không `temperature` /
+    `top_p` / `top_k`, không prefill; độ sâu chỉnh bằng `output_config.effort`."""
+    return {
+        "model": MODEL,
+        "max_tokens": MAX_TOKENS,
+        "system": LOI_DAN,
+        "messages": [{"role": "user", "content": noi_dung}],
+        "output_config": {"effort": EFFORT,
+                          "format": {"type": "json_schema", "schema": SCHEMA_BON_TRUONG}},
+        "betas": [BETA_FALLBACK],
+        "fallbacks": "default",
     }
 
 

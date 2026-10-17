@@ -52,6 +52,7 @@ import sqlite3
 from typing import Any, Optional, Protocol
 
 from nhat_ky_vi_sao import COT_NHAT_KY, COT_SO_NGUYEN, COT_SO_THUC
+import hau_kiem_loi
 import so_ke_hoach
 
 # ── Lược đồ: thứ tự cột ở đây LÀ hợp đồng với Google Sheet ───────────
@@ -75,10 +76,14 @@ NHAT_KY_COLS: tuple[str, ...] = COT_NHAT_KY
 #: Lược đồ tab kế hoạch vào lệnh (BƯỚC 195) — suy từ `so_ke_hoach`.
 KE_HOACH_COLS: tuple[str, ...] = so_ke_hoach.COT_KE_HOACH
 
+#: Lược đồ tab hậu kiểm bằng lời (B1, BƯỚC 204) — suy từ `hau_kiem_loi`.
+HAU_KIEM_COLS: tuple[str, ...] = hau_kiem_loi.COT_HAU_KIEM
+
 _INT_COLS = ({"id", "seq", "entry_score", "score", "acted"} | COT_SO_NGUYEN
-             | so_ke_hoach.COT_SO_NGUYEN)
-_FLOAT_COLS = {"entry_price", "exit_price", "stop_loss", "take_profit",
-               "size_pct", "created_at", "at"} | COT_SO_THUC | so_ke_hoach.COT_SO_THUC
+             | so_ke_hoach.COT_SO_NGUYEN | hau_kiem_loi.COT_SO_NGUYEN)
+_FLOAT_COLS = ({"entry_price", "exit_price", "stop_loss", "take_profit",
+                "size_pct", "created_at", "at"} | COT_SO_THUC | so_ke_hoach.COT_SO_THUC
+               | hau_kiem_loi.COT_SO_THUC)
 
 # Ô rỗng trên sheet mang HAI nghĩa khác nhau tuỳ cột, nên phải khai báo rõ
 # cột nào được phép NULL. Không khai báo thì buộc phải chọn bừa một nghĩa,
@@ -99,11 +104,13 @@ _NULLABLE_TEXT_COLS |= ({c for c in NHAT_KY_COLS
                          if c not in COT_SO_NGUYEN | COT_SO_THUC}
                         - {"symbol", "signal_date"})
 _NULLABLE_TEXT_COLS |= so_ke_hoach.COT_CHU_RONG_DUOC
+_NULLABLE_TEXT_COLS |= hau_kiem_loi.COT_CHU_RONG_DUOC
 
 TAB_TRADES = "trades"
 TAB_DECISIONS = "decisions"
 TAB_NHAT_KY = "nhat_ky"
 TAB_KE_HOACH = "ke_hoach"
+TAB_HAU_KIEM = "hau_kiem"
 
 
 class SheetError(RuntimeError):
@@ -342,6 +349,41 @@ def doc_ke_hoach(backend: SheetBackend) -> list[dict]:
     return sorted(ra, key=lambda d: (str(d["signal_date"])[:10],
                                      -1 if d["seq"] is None else d["seq"]),
                   reverse=True)
+
+
+def doc_hau_kiem(backend: SheetBackend) -> list[dict]:
+    """CHỈ ĐỌC tab `hau_kiem` (B1, BƯỚC 204) — MỌI lần viết hậu kiểm bằng lời, kể cả lần
+    bị bác, bị từ chối, bị cắt (đúng như phần chạy đã ghi). Thứ để HIỆN là
+    `hau_kiem_loi.ban_moi_nhat`. Tab rỗng hay chưa có thì `[]`; tiêu đề lệch thì NỔ.
+    Chỉ gọi `read_rows`."""
+    return _doc_tab(backend, TAB_HAU_KIEM, HAU_KIEM_COLS)
+
+
+def them_hau_kiem(backend: SheetBackend, dong: list[dict]) -> int:
+    """CHỈ THÊM dòng vào tab `hau_kiem` (B1, BƯỚC 204). Khoá (`trade_id`, `lan`).
+
+    Tab rỗng thì ghi tiêu đề trước. Một khoá đã có trên tab, hoặc lặp trong chính lô
+    này, thì `SheetError` và KHÔNG ghi gì: hai lượt viết đè nhau là lỗi phải kêu, không
+    phải việc lặng lẽ bỏ qua (tiền đã tiêu cho cả hai). Trả số dòng đã thêm.
+    """
+    if not dong:
+        return 0
+    hien_co = _co_du_lieu(backend.read_rows(TAB_HAU_KIEM))
+    da_co: set[tuple[str, str]] = set()
+    if hien_co:
+        _kiem_tra_header(TAB_HAU_KIEM, hien_co[0], HAU_KIEM_COLS)
+        i_id, i_lan = HAU_KIEM_COLS.index("trade_id"), HAU_KIEM_COLS.index("lan")
+        da_co = {(r[i_id], r[i_lan]) for r in hien_co[1:]}
+    khoa = [(_to_cell("trade_id", d["trade_id"]), _to_cell("lan", d["lan"])) for d in dong]
+    trung = sorted({k for k in khoa if k in da_co or khoa.count(k) > 1})
+    if trung:
+        raise SheetError(f"Tab '{TAB_HAU_KIEM}': khoá (trade_id, lan) đã có hoặc lặp: "
+                         f"{trung}. Không ghi dòng nào.")
+    if not hien_co:
+        backend.write_all(TAB_HAU_KIEM, [list(HAU_KIEM_COLS)])
+    backend.append_rows(
+        TAB_HAU_KIEM, [[_to_cell(c, d.get(c)) for c in HAU_KIEM_COLS] for d in dong])
+    return len(dong)
 
 
 def _dem_dong(rows: list[list[str]]) -> int:

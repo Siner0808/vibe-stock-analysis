@@ -6,7 +6,9 @@ lãi lỗ bao nhiêu*; nhật ký này trả lời *VÌ SAO vào, và lệnh ấ
 
     lúc VÀO   điểm từng agent · lý do · bối cảnh · cắt lỗ BAN ĐẦU · rủi ro
     lúc ĐÓNG  lợi nhuận ròng · kết quả theo R · so với rổ · hậu kiểm máy
-              · (hậu kiểm lời — Claude, khoá API người dùng tự đặt; P2c)
+              · (cột `hau_kiem_loi` ĐỂ TRỐNG: đoạn hậu kiểm bằng lời của B1 nằm ở
+                tab Sheets `hau_kiem` — `hau_kiem_loi.py`, BƯỚC 203–204; gỡ cột này
+                là đổi lược đồ tab `nhat_ky`)
 
 File này là phần THUẦN (P2a): nhận dữ liệu, trả dòng; không đọc sổ, không
 ghi đĩa, không gọi mạng. Nối vào `paper_trading` và tab Sheets là P2b.
