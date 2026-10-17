@@ -23453,3 +23453,42 @@ Leader, phần cuối của kế hoạch ba PR. Không đổi điểm, ngưỡng
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, máy xác nhận.
 
 **Việc kế (ngày 26/10/2026, giai đoạn B).** Người dùng tạo khoá trong Anthropic Console (workspace riêng, trần 5 USD/tháng) và thêm secret `ANTHROPIC_API_KEY`; agent `gh workflow enable hau-kiem-loi.yml`, chạy tay một lượt (phép đo: chi phí thật từ `usage`, tỷ lệ `DAT`), đọc `allowed_fallback_models`, đặt `NGAY_HAU_KIEM_LOI_BAT_DAU` bằng một BƯỚC nhỏ; người dùng đọc rồi chọn effort.
+
+## BƯỚC 207 — `tests/test_nam_cong.py` HẾT ĐỎ GIẢ DƯỚI TẢI: HAI PHÉP THỬ SO THEO THỨ TỰ SỰ KIỆN GIỮA CÁC CỔNG GIẢ, KHÔNG SO VỚI SỐ GIÂY TUYỆT ĐỐI; LỖI 16/10 VẪN BỊ BẮT (17/10/2026)
+
+**Mốc:** quy-trinh — leader giao sửa đỏ giả của test thời gian năm cổng khi máy tải nặng (17/10)
+
+Phiên con của leader, worktree `vibe_wt_207`. Không đổi mã sản phẩm, điểm, ngưỡng, sổ hay kết luận đo nào; không sửa `tools/nam_cong.py`. Đổi hai test trong `tests/test_nam_cong.py`.
+
+**Sự cố (leader thuật lại).** 17/10, máy tải nặng (người dùng chơi game, hai phiên chạy cổng cùng lúc; cổng 1 mất 812–1064 s thay vì ~400 s): `test_THOI_GIAN_moi_cong_la_cua_CHINH_no_khong_phai_cua_cong_cham_dung_truoc` đỏ ở cổng 4 song song 4/4 lượt (hai lượt của #251, hai của leader); chạy riêng file 3/3 xanh. Test đòi mỗi cổng giả 2–5 (một tiến trình Python con ngủ 0,05 s) xong dưới 0,9 s TUYỆT ĐỐI — tính cả lúc khởi động Python. Nó canh lỗi thật 16/10 (BƯỚC 201): `nam_cong.chay` bản đầu `wait()` theo thứ tự nên cổng nhanh mang giờ của cổng chậm đứng trước (cả năm cổng ghi 383 s).
+
+**Đo — dụng cụ nháp `do_tach_207.py`** (ngoài repo): gọi đúng `nam_cong.chay` với đúng cổng giả của test (`_cong_thoi_gian`, `_cong_gia` nhập từ chính file test); bản lỗi là nguồn `tools/nam_cong.py` thay khối hỏi bằng `wait()` theo thứ tự (= đột biến D01) rồi `exec`; mỗi lượt in dữ liệu thô. Tải tổng hợp: `tai_cpu.py` — K tiến trình `while` bận, cwd ngoài repo, tự hết hạn; máy 16 nhân logic (`os.cpu_count()`), game của người dùng chạy suốt mọi ô. T1 = giây cổng 1, g_k = giây cổng k (k = 2…5); ranh giới mới = 1,5 s.
+
+| điều kiện (20 lượt mỗi ô) | đúng: min_k(T1 − g_k) | đúng đỏ | lỗi D01: max_k(T1 − g_k) | lỗi bị bắt | thiết kế CŨ: max g_k | cũ đỏ (≥ 0,9 s) |
+|---|---|---|---|---|---|---|
+| không tải tổng hợp | 3,026–3,077 | 0/20 | 0,074–0,098 | 20/20 | 0,436–0,474 | 0/20 |
+| 16 tiến trình bận ¹ | 3,133–3,419 | 0/20 | 0,089–0,320 | 20/20 | 0,688–1,354 | **13/20** |
+| 32 tiến trình bận ² | 2,995–3,507 | 0/20 | 0,054–0,139 | 20/20 | 0,653–0,972 | 3/20 |
+
+¹ đo trên bản trung gian của test (cổng 1 chờ đúng hai dòng, hạn 60 s) — cùng hành vi với bản cuối ở phép thử này. ² 16 tiến trình của ô trên còn chạy thêm ~2 phút đầu (tới 16:20:46).
+
+- Đề bài đúng ở vế cơ chế: dưới tải, một cổng giả 0,05 s mất tới 1,354 s — riêng khởi động đã vượt 0,9; lúc rảnh nó cũng đã mất 0,40–0,47 s, nên biên cũ chỉ gấp đôi mức rảnh.
+- Hai cổng đúng và lỗi tách nhau hơn mười lần ở cả ba ô (nhỏ nhất 2,995 so với lớn nhất 0,320).
+
+**Sửa.**
+- Kịch bản cổng giả CHỜ `_CONG_CHO` (một chỗ, hai test dùng): ghi mốc BẮT ĐẦU; chờ mọi tệp mốc được nêu có ít nhất n dòng (quá 30 s thì thoát 3); ngủ; ghi mốc XONG.
+- `test_THOI_GIAN…`: cổng 1 chỉ bắt đầu ngủ 3 s (`_NGU_CONG_CHAM`) SAU khi bốn cổng kia ghi mốc XONG. Đúng thì T1 − g_k ≥ 3 − (lúc cổng k thoát hẳn + một nhịp hỏi 0,2 s); lỗi 16/10 thì T1 − g_k chỉ còn độ lệch lúc KHỞI ĐỘNG giữa cổng 1 và cổng k. Đòi T1 − g_k ≥ 1,5 s (nửa giấc ngủ, suy từ hằng số), T1 ≥ 3 s, và g_k ≥ 0,05 s (cận dưới — tải chỉ làm nó lỏng hơn).
+- **Ngoài đề bài, cùng hình dạng** (`docs/HANDOFF.md` ràng buộc 5 — quét cả lớp): `test_CUNG_LUC_moi_cong_bat_dau_truoc_khi_cong_nao_xong` ngủ 0,6 s rồi đòi mọi cổng bắt đầu trước khi cổng nào xong. Script nháp `do_cung_luc_207.py`, 20 lượt mỗi ô: không tải, biên min(xong) − max(bắt đầu) 0,536–0,564 s; dưới 16 tiến trình bận 0,128–0,569 s (độ lệch khởi động tới 0,509 s), 0/20 đỏ — chưa đỏ nhưng còn 0,13 s. Nay dùng RÀO: mỗi cổng chỉ ghi XONG khi đã thấy mốc BẮT ĐẦU của cả năm; bản chạy lần lượt để cổng 1 chờ tới hạn rồi thoát 3. Không còn giấc ngủ nào.
+- Quét các test khác tìm khẳng định giây tuyệt đối (`grep` các dòng `assert` so `giay`/`time.time()` với số): chỉ có hai dòng cũ của chính test này.
+
+**Đo sau sửa (bản cuối).** Dưới 32 tiến trình bận: `test_CUNG_LUC…` 0/20 đỏ, cả file 0/10 đỏ (10,7–11,2 s). Dưới 16 tiến trình bận (bản trung gian, trước khi đổi `test_CUNG_LUC…`): cả file 0/10 đỏ (12,2–16,4 s). Không tải tổng hợp: cả file 6,6–6,8 s ba lượt (bản cũ 7,67 s một lượt) — `test_THOI_GIAN…` 1,54 → 3,26 s, `test_CUNG_LUC…` 1,20 s → dưới 0,46 s.
+
+**Đột biến `tools/nam_cong.py` (`va_an_toan.dot_bien_bo`), 8/8 đỏ**, mỗi phát chạy đúng test nó nhắm; chạy 16:15–16:18, dưới 16 tiến trình bận. Trên `test_THOI_GIAN…`: D01 **dựng lại nguyên văn lỗi 16/10** (`wait()` theo thứ tự, giây = lúc `wait` trả − t0); D02 giây tính SAU vòng hỏi; D03 chờ riêng cổng 1 trước rồi mới hỏi cả nhóm; D04 đồng hồ đặt lại sau mỗi lần chờ (cổng nhanh ra ~0 s — chỉ cận dưới bắt được); D05 `wait()` thay `poll()` trong vòng hỏi; D06 giây = 0. Trên `test_CUNG_LUC…`: D07 nhánh cùng lúc chạy lần lượt (`if tuan_tu:` → `if True:`); D08 khởi động cổng 1, chờ nó xong, rồi mới khởi động bốn cổng kia — hai phát này `test_AST_ban_cung_luc_khoi_dong_HET_roi_moi_cho` không bắt (cây AST vẫn đúng hình). Một lượt đột biến trước đó trên bản trung gian (D01–D06, không tải tổng hợp): 6/6 đỏ.
+
+**Giả thuyết bị bác / ước lượng đã sai.** "Nhiều tiến trình bận hơn thì đỏ nhiều hơn": thiết kế cũ đỏ 13/20 dưới 16 tiến trình nhưng 3/20 dưới 32 — tỷ lệ không đơn điệu theo số tiến trình bận; cơ chế lập lịch bên trong không đo. Vì sao lượt thật 17/10 đỏ 4/4 trong khi tải tổng hợp cho 13/20 và 3/20: SUY LUẬN, chưa đo — tải thật khác (game, mười hai tiến trình pytest của cổng 4 cùng đọc ghi đĩa).
+
+**Chưa làm / chưa đo.** Chưa chạy lại đúng điều kiện 17/10 (game + hai phiên năm cổng) nhiều lượt; lượt năm cổng của BƯỚC này là một lượt rút. Nhánh `--tuan-tu`: không test nào kiểm `giay` của từng cổng — một phép tính giây cộng dồn ở nhánh ấy CHƯA đục thử. `tests/test_kiem_test_chay_rieng.py::test_SONG_SONG_giu_dung_thu_tu_va_that_su_chay_cung_luc` (luồng, ngủ 0,15/0,05 s, đòi có lúc ≥ 2 file cùng chạy) cùng họ thời gian — chưa đo dưới tải. Không có máy chặn một test MỚI so thời gian tiến trình con với số giây tuyệt đối (lỗi 182, ⚠️ một phần).
+
+**Bảng lỗi.** Lỗi 182 (`gac-hong`, sống 1 ngày theo git: sinh ở `35dbe19` 16/10, lộ 17/10); dòng tự khai 91/162.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
