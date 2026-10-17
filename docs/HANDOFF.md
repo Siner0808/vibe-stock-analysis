@@ -580,6 +580,13 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `references/soat-cheo-notebooklm.md` bước 2 và 5. Lúc BƯỚC 202 hỏi, sổ tươi theo `main` `3c2fd2c`
 >   (18 nguồn: 14 file + STATE bốn khúc).
 
+> 🧭 **17/10/2026 — B1 (hậu kiểm bằng lời) bắt đầu, người dùng chọn thay cho các mục chờ của bàn giao 16/10.**
+> Thiết kế người dùng duyệt từng phần: `docs/thiet-ke-b1-hau-kiem-loi.md` — Opus 5.5, bốn phần mỗi lệnh,
+> CHỈ ĐỂ HIỆN, trần 5 $/tháng, workflow riêng ghi tab Sheets mới `hau_kiem`. BƯỚC 203: module thuần
+> `hau_kiem_loi.py` (luật viết + máy kiểm, chưa gọi API). Việc kế: tab + phần chạy + workflow TẮT (BƯỚC 204),
+> rồi hiện ra + chuông (BƯỚC 205); 26/10 người dùng đặt khoá. Bốn mục chờ của 16/10 (7 ý tưởng · kịch
+> trần/sàn · hướng C · hướng D) VẪN CHỜ.
+
 **Chờ tới ngày, đừng đọc sớm:**
 
 - ~~**29/09/2026 — chuỗi khối ngoại có bị SỬA LẠI về sau không.**~~ **ĐÃ ĐỌC

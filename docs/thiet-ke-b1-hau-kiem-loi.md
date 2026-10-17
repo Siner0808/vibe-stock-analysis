@@ -46,7 +46,9 @@ run_daily -> tab nhat_ky  ──đọc──▶  1. chọn lệnh ĐÃ ĐÓNG ch
 ```
 
 1. **`hau_kiem_loi.py` — module THUẦN** (khuôn `so_ke_hoach.py`, `so_bai_hoc.py`): nhận dữ liệu,
-   trả dữ liệu; không nhập `anthropic`, không gọi mạng, không ghi đĩa. Chứa:
+   trả dữ liệu; không nhập `anthropic`, không gọi mạng, không ghi đĩa. Mức module chỉ nhập
+   thư viện chuẩn (`sheets_store` nhập file này để lấy lược đồ); các hàm cần `so_bai_hoc`,
+   `nhat_ky_vi_sao`, `paper_metrics` nhập chúng TRONG hàm (BƯỚC 203). Chứa:
    - `COT_HAU_KIEM` — lược đồ tab (mục 7), một chỗ; `sheets_store` suy từ đây.
    - `du_kien(dong_nk, bai_hoc)` — bộ dữ kiện gửi đi. Chỉ chứa số ĐÃ tính bởi
      `nhat_ky_vi_sao` và `so_bai_hoc`; không công thức thứ hai.
@@ -62,7 +64,10 @@ run_daily -> tab nhat_ky  ──đọc──▶  1. chọn lệnh ĐÃ ĐÓNG ch
    app. Khuôn `ke_hoach` (BƯỚC 195): lệch cột thì cảnh báo, không dừng gì khác.
 4. **`.github/workflows/hau-kiem-loi.yml`** — cron ngày làm việc sau giờ quét + `workflow_dispatch`.
    Khoá `ANTHROPIC_API_KEY` chỉ ở job này. Thư viện `anthropic` ghim `==` trong một file
-   requirements RIÊNG mà chỉ workflow này cài — Streamlit Cloud không cài nó. Merge ở trạng thái
+   requirements RIÊNG (`requirements-hau-kiem.txt`) mà chỉ workflow này và `kiem-dinh.yml` cài
+   (để test thấy gói thật) — Streamlit Cloud không cài nó. `tests/test_requirements.py` đọc thêm
+   file ấy cho `tools/` và `tests/`, kèm gác: chỉ phần chạy được nhập `anthropic`, và nhập trong
+   hàm (BƯỚC 203). Merge ở trạng thái
    TẮT (`gh workflow disable`) cho tới khi có khoá.
    - **Bẫy:** đừng cho workflow này chung `concurrency.group` với `quet-so-lenh`. Một nhóm của
      GitHub giữ tối đa MỘT lượt chờ; lượt chờ mới HUỶ lượt chờ cũ — lượt quét đang chờ có thể bị
@@ -80,9 +85,9 @@ run_daily -> tab nhat_ky  ──đọc──▶  1. chọn lệnh ĐÃ ĐÓNG ch
 
 ## 4. Luồng một lượt chạy
 
-1. Đọc tab `nhat_ky` và tab `hau_kiem` (chỉ đọc). Lệnh cần viết = có nửa ĐÓNG đầy đủ
-   (`so_bai_hoc.lenh_da_dong`) VÀ chưa có dòng `DAT` VÀ có ít hơn `SO_LAN_TOI_DA` = 2 dòng không
-   `DAT`. Lệnh chạm 2 lần hỏng: không gọi nữa, in `::warning::` gọi tên để người xem.
+1. Đọc tab `nhat_ky` và tab `hau_kiem` (chỉ đọc). Lệnh cần viết = ĐÃ CÓ bài học theo đúng
+   tiêu chí của chuông (`so_bai_hoc.ly_do_thieu_bai_hoc` là None: nửa ĐÓNG và rổ chuẩn — BƯỚC 203)
+   VÀ chưa có dòng `DAT` VÀ có ít hơn `SO_LAN_TOI_DA` = 2 dòng không `DAT`. Lệnh chạm 2 lần hỏng: không gọi nữa, in `::warning::` gọi tên để người xem.
 2. Tải giá các mã cùng ngành qua đúng đường giá mà nút "📥 Tải giá…" của app dùng (rút phần
    không phụ thuộc Streamlit ra một hàm dùng chung; không viết đường giá thứ hai). Thiếu giá thì
    bài học nói "chưa đủ dữ liệu" như trên app — không đoán.
@@ -133,7 +138,8 @@ client.beta.messages.create(
 - **Tiền:**
   - `chi_phi_uoc(usage)` nhân MỌI token với giá CAO NHẤT trong `GIA_USD_MOI_TRIEU` — bảng gồm
     Opus 5.5 và các model mà `fallbacks="default"` có thể chuyển sang (đọc
-    `allowed_fallback_models` từ Models API lúc làm mã). Ước DƯ, không bao giờ ước thiếu.
+    `allowed_fallback_models` từ Models API lúc làm mã). Ước DƯ, không bao giờ ước thiếu. Có
+    `usage.iterations` (model dự phòng đã chạy) thì lấy tổng các bước khi nó lớn hơn số cấp trên.
   - Trước mỗi lời gọi: tổng `chi_phi_usd_uoc` của các dòng trong THÁNG DƯƠNG LỊCH hiện tại (giờ
     Việt Nam, theo `viet_luc`) + trần một lời gọi > `TRAN_USD_THANG` = 5 → dừng lượt,
     `::warning::`. Trạng thái nằm trên Sheets, không ở runner.
@@ -152,8 +158,8 @@ client.beta.messages.create(
 |---|---|---|
 | `so-co-nguon` | Mọi con số có nguồn (Quy tắc 2) | Mọi số trong bốn trường — phần trăm, số thập phân dấu phẩy, ngày — khớp một số trong `du_kien`. Làm tròn đúng số chữ số đã viết là khớp (−3,4567 → "−3,46%"). Ngày khớp theo giá trị, không theo định dạng. Phần kiến thức cũng không có số ví dụ tự đặt. |
 | `mot-lenh` | Không kết luận từ một lệnh (bất biến 5) | Cấm "chứng minh", "chắc chắn", "luôn luôn", "agent sai" — trừ khi đứng sau "không"/"chưa". "Tín hiệu sai" chỉ được dùng khi `du_kien` có `cach_goi`. |
-| `khong-khuyen-nghi` | Không là lời khuyên đầu tư | Cấm "nên mua", "nên bán", "khuyến nghị", "mua vào", "bán ra". |
-| `ma-co-nguon` | Không nhắc mã lạ | Mọi mã cổ phiếu trong văn là mã của lệnh hoặc mã cùng ngành có trong `du_kien`; danh sách chữ viết tắt hợp lệ (VN-INDEX, MA20, RSI, HOSE, ATC, …) đặt một chỗ. |
+| `khong-khuyen-nghi` | Không là lời khuyên đầu tư | Cấm "nên mua", "nên bán", "hãy mua", "hãy bán", "khuyến nghị" — trừ khi đứng sau "không"/"chưa". *(Bản duyệt đầu có "mua vào", "bán ra": bỏ ở BƯỚC 203 vì chúng bác nhầm văn tự nhiên như "giá mua vào ngày …".)* |
+| `ma-co-nguon` | Không nhắc mã lạ | Mọi mã (ba ký tự in hoa đứng riêng) trong văn phải nằm trong một chuỗi của `du_kien` — mã của lệnh, mã cùng ngành, mã nhắc trong lý do vào — hoặc trong danh sách chữ viết tắt hợp lệ `VIET_TAT` (HOSE, RSI, ATR, ATC, …) đặt một chỗ. |
 | `gia-thuyet-dan-nhan` | Giả thuyết phải dán nhãn | `theo_doi` mở đầu bằng "Chưa kiểm:". |
 | `do-dai` | Gọn | `ke_lai` ≤ 180 từ; ba trường còn lại mỗi trường ≤ 80 từ. |
 
