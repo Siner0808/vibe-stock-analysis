@@ -16,7 +16,8 @@ Phạm vi: HAI phép kiểm.
     `tools/chan_bia_so_lieu.py`, `chuong-bao-quet.yml` chạy
     `tools/chuong_bao_quet.py`, `canh-cong-c5.yml` chạy
     `tools/canh_cong_c5.py`, `chuong-bai-hoc.yml` chạy
-    `tools/chuong_bai_hoc.py`.
+    `tools/chuong_bai_hoc.py`, `hau-kiem-loi.yml` chạy `tools/hau_kiem_loi.py`
+    (gói riêng của nó — `anthropic` — khai ở `requirements-hau-kiem.txt`, BƯỚC 204).
 
 Bản đầu của file này ghi "tests/ và tools/ không nằm trong đường chạy của
 Actions" và chỉ soát ở gốc. Tiền đề đó sai, và nó cho qua một lỗi thật
@@ -49,6 +50,25 @@ def _dong_that() -> list[str]:
         if dong:
             ra.append(dong)
     return ra
+
+
+#: File requirements RIÊNG của B1 (BƯỚC 204): chỉ `hau-kiem-loi.yml` và `kiem-dinh.yml`
+#: cài nó, Streamlit Cloud thì không. Nó phủ `tools/` và `tests/`, KHÔNG phủ gốc dự án.
+REQ_RIENG = "requirements-hau-kiem.txt"
+WORKFLOW_CAI_REQ_RIENG = frozenset({"hau-kiem-loi.yml", "kiem-dinh.yml"})
+
+
+def _dong_rieng() -> list[str]:
+    ra = []
+    for dong in (GOC / REQ_RIENG).read_text(encoding="utf-8").splitlines():
+        dong = dong.split("#")[0].strip()
+        if dong:
+            ra.append(dong)
+    return ra
+
+
+def _khai_bao_rieng() -> set:
+    return {d.split("==")[0].strip().lower() for d in _dong_rieng()}
 
 
 def _da_khai_bao() -> set:
@@ -171,7 +191,8 @@ GOI_TAI_TRO = ("vnstock_data", "vnstock-data", "vnstock_ta", "vnstock-ta",
 
 
 #: `kiem-dinh.yml` chạy `pip install -r requirements.txt` RỒI `pip install
-#: pytest`. Đó là ngoại lệ DUY NHẤT được cài thêm.
+#: pytest`. Đó là ngoại lệ DUY NHẤT được cài thêm — cộng file requirements riêng của B1
+#: (`REQ_RIENG`, BƯỚC 204), mà gác dưới đọc thẳng từ file chứ không gõ lại tên.
 NGOAI_LE_CI = {"pytest"}
 
 
@@ -260,7 +281,7 @@ def test_requirements_phu_het_import_o_tests_va_tools():
       • `canh-cong-c5.yml`    -> `tools/canh_cong_c5.py`
       • `chuong-bai-hoc.yml`  -> `tools/chuong_bai_hoc.py`
     """
-    khai_bao = _da_khai_bao() | NGOAI_LE_CI
+    khai_bao = _da_khai_bao() | NGOAI_LE_CI | _khai_bao_rieng()
     noi_bo = _module_noi_bo_mo_rong()
     tai_tro = {g.replace("-", "_") for g in GOI_TAI_TRO}
     thieu: dict = {}
@@ -414,3 +435,42 @@ def test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay():
         assert md.version(g) == ghim, (
             f"{g}: requirements ghim {ghim}, dang chay {md.version(g)} — may "
             f"va CI se chay hai ban khac nhau (loi 79)")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Gói riêng của B1 (BƯỚC 204) — `anthropic`
+# ─────────────────────────────────────────────────────────────────────
+
+def test_CHI_phan_chay_B1_nhap_anthropic_va_nhap_TRONG_ham():
+    """`anthropic` không có trong requirements.txt (Streamlit Cloud không cài): gốc dự án
+    KHÔNG được nhập nó; trong tools/ CHỈ `tools/hau_kiem_loi.py`, và trong thân hàm; tests/
+    nhập trong thân test. Module thuần `hau_kiem_loi.py` ở gốc không bao giờ nhập."""
+    nhap = {}
+    for f in tap_file_cam_muc_module():
+        if "anthropic" in _import_cua_file(f):
+            nhap[f.relative_to(GOC).as_posix()] = "anthropic" in _import_muc_module(f)
+    assert [p for p in nhap if "/" not in p] == []
+    assert [p for p in nhap if p.startswith("tools/")] == ["tools/hau_kiem_loi.py"]
+    assert [p for p, o_muc in nhap.items() if o_muc] == []
+
+
+def test_GOI_RIENG_B1_GHIM_DUNG_ban_va_chi_HAI_workflow_cai():
+    import importlib.metadata as md
+
+    dong = _dong_rieng()
+    assert dong and all("==" in d for d in dong), dong
+    assert not (_khai_bao_rieng() & _da_khai_bao()), "gói riêng lọt vào requirements.txt"
+    for d in dong:
+        ten, ban = (x.strip() for x in d.split("=="))
+        try:
+            dang = md.version(ten)
+        except md.PackageNotFoundError:
+            continue        # máy chưa cài: CI cài đúng bản ghim
+        assert dang == ban, f"{ten} đang chạy {dang}, ghim {ban} — sửa ghim hoặc cài lại"
+    # Đếm DÒNG LỆNH cài, không đếm chữ: tên file còn nằm trong chú thích của
+    # kiem-dinh.yml, nên xoá lệnh cài mà tìm chữ thì gác vẫn xanh (đột biến BƯỚC 204).
+    import re
+    lenh = re.compile(r"^\s*pip install -r " + re.escape(REQ_RIENG) + r"\s*$", re.M)
+    cai = {p.name for p in (GOC / ".github" / "workflows").glob("*.yml")
+           if lenh.search(p.read_text(encoding="utf-8"))}
+    assert cai == WORKFLOW_CAI_REQ_RIENG, cai

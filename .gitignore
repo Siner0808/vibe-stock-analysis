@@ -60,6 +60,9 @@ wf_bo_nho_*.json
 walkforward_results/
 *.pkl
 *.txt
+# Ngoai le: requirements rieng cua B1 (BUOC 204) — `*.txt` o tren nuot no; requirements.txt
+# duoc theo doi chi vi da add tu truoc.
+!requirements-hau-kiem.txt
 *.log
 
 # File tạm của test buộc phải nằm TRONG repo (tools/duyet_repo.py, luật 3; BƯỚC 201).

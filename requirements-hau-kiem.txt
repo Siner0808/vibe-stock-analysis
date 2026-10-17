@@ -1,0 +1,9 @@
+# Thư viện RIÊNG của B1 — hậu kiểm bằng lời (BƯỚC 204, docs/thiet-ke-b1-hau-kiem-loi.md).
+#
+# Chỉ HAI workflow cài file này: `hau-kiem-loi.yml` (chạy tools/hau_kiem_loi.py) và
+# `kiem-dinh.yml` (để test thấy gói thật). Streamlit Cloud cài `requirements.txt` nên KHÔNG
+# cài nó: app chỉ ĐỌC tab `hau_kiem`, không gọi API.
+#
+# GHIM ĐÚNG BẢN, không khai sàn: bản đang chạy lệch bản ghim thì `tests/test_requirements.py`
+# đỏ. Nâng bản là đo lại và sửa ghim. 1.15.0 = bản mới nhất trên PyPI đo 17/10/2026.
+anthropic==1.15.0
