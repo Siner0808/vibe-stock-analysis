@@ -441,14 +441,19 @@ def test_DO_PHU_LOI_da_bat_xep_dung_nhom_va_han_mot_phien():
 
 # ── CHỈ ĐỂ HIỆN (B1, BƯỚC 205) ────────────────────────────────────────────
 
-#: Nơi DUY NHẤT được đọc tab `hau_kiem`: đường đọc chung, phần chạy, chuông, app.
+#: Nơi DUY NHẤT được GỌI hàm đọc tab `hau_kiem`: đường đọc chung, phần chạy, chuông.
+#: App đọc qua `doc_so_ban_tin` (khoá `hau_kiem`) — MỘT đường đọc Sheets, gác ở
+#: `tests/test_so_lenh_app.py` — nên không có tên ở đây.
 DUOC_DOC_TAB_HAU_KIEM = frozenset({
-    "google_sheets_sync.py", "tools/hau_kiem_loi.py", "tools/chuong_bai_hoc.py", "app.py"})
+    "google_sheets_sync.py", "tools/hau_kiem_loi.py", "tools/chuong_bai_hoc.py"})
 
 
-def test_CHI_DE_HIEN_khong_noi_nao_khac_doc_tab_hau_kiem():
+def test_CHI_DE_HIEN_khong_noi_nao_khac_doc_tab_hau_kiem(monkeypatch):
     """Đặc tả mục 2: đoạn văn không vào đường sinh lệnh, điểm, ngưỡng, điều kiện dừng,
     backtest hay tầng 3. Gác theo LỜI GỌI hàm đọc tab (AST), quét gốc + tools/ + backtest/."""
+    # Ghim TẠI CHỖ, có hoàn trả: chạy một mình thì chưa file nào đặt tools/ lên sys.path
+    # (cổng 4 bắt, BƯỚC 205). Không đặt ở mức module: tools/ có `hau_kiem_loi.py` trùng tên.
+    monkeypatch.syspath_prepend(str(GOC / "tools"))
     import duyet_repo
 
     doc = set()

@@ -482,24 +482,13 @@ def _doc_nhat_ky():
 
 @st.cache_data(ttl=300, show_spinner=False)
 def _doc_so_ban_tin():
-    """`decisions` + `trades` + `nhat_ky` từ Google Sheets — CHỈ ĐỌC (BƯỚC 174).
+    """`decisions` + `trades` + `nhat_ky` (+ `hau_kiem`, BƯỚC 205) từ Google Sheets — CHỈ ĐỌC (BƯỚC 174).
 
     Cho tab "Bản tin". `None` = kho ngoài chưa cấu hình. Sổ `.db` ở máy đứng yên
     từ 20/08 nên KHÔNG phải nguồn của bản tin.
     """
     import google_sheets_sync as _gss
     return _gss.load_so_ban_tin_from_google_sheets()
-
-
-@st.cache_data(ttl=300, show_spinner=False)
-def _doc_hau_kiem():
-    """Hậu kiểm bằng lời Claude ĐÃ VIẾT, tab `hau_kiem` — CHỈ ĐỌC (B1, BƯỚC 205).
-
-    `None` = kho ngoài chưa cấu hình; `[]` = chưa có dòng nào. App chỉ hiện bản `DAT`
-    mới nhất của mỗi lệnh (`hau_kiem_loi.ban_moi_nhat`), không bao giờ gọi API.
-    """
-    import google_sheets_sync as _gss
-    return _gss.load_hau_kiem_from_google_sheets()
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -1980,9 +1969,12 @@ with t_hist:
                 for _n in str(_hk).split(" | "):
                     st.markdown(f"- {_n}")
         # ── HẬU KIỂM BẰNG LỜI (B1, BƯỚC 205) — CHỈ ĐỌC tab `hau_kiem` ─────────
+        # Đọc khoá `hau_kiem` của `_doc_so_ban_tin()`, không thêm loader thứ hai: app giữ MỘT
+        # đường đọc Sheets. Chỉ hiện bản `DAT` mới nhất của lệnh; app không bao giờ gọi API.
         import hau_kiem_loi as _hkl_mod
         try:
-            _hkl = _hkl_mod.ban_moi_nhat(_doc_hau_kiem() or [], _nk[_chon].get("trade_id"))
+            _hk_tab = (_doc_so_ban_tin() or {}).get("hau_kiem") or []
+            _hkl = _hkl_mod.ban_moi_nhat(_hk_tab, _nk[_chon].get("trade_id"))
         except Exception as _e:
             _hkl = None
             st.caption(f"⚠️ Chưa đọc được hậu kiểm bằng lời — {type(_e).__name__}: {_e}")

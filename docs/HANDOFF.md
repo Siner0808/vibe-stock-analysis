@@ -590,7 +590,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > dữ kiện, không gọi API, không cần khoá), workflow `hau-kiem-loi.yml` merge rồi TẮT; gói `anthropic` ghim ở
 > `requirements-hau-kiem.txt` (máy đã cài 1.15.0). Bật ngày 26/10: người dùng đặt secret, agent `gh workflow enable`.
 > **BƯỚC 205:** app (chi tiết nhật ký + bản tin) hiện bản `DAT` mới nhất; chuông bài học có vế "có lời" — CHƯA BẬT
-> (`hau_kiem_loi.NGAY_HAU_KIEM_LOI_BAT_DAU` = None) nên chưa đo, chưa đổi mã thoát. Ngày bật: đặt hằng số ấy bằng một BƯỚC nhỏ.
+> (hằng `NGAY_HAU_KIEM_LOI_BAT_DAU` của `hau_kiem_loi.py` ở gốc = None) nên chưa đo, chưa đổi mã thoát. Ngày bật: đặt hằng số ấy bằng một BƯỚC nhỏ.
 
 **Chờ tới ngày, đừng đọc sớm:**
 
