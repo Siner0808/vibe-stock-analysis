@@ -437,3 +437,50 @@ def test_DO_PHU_LOI_da_bat_xep_dung_nhom_va_han_mot_phien():
     assert [m["trade_id"] for m in kq["vi_pham"]] == [3]        # hạn hết 30/10
     assert [m["trade_id"] for m in kq["trong_han"]] == [4]      # hạn hết 02/11
     assert kq["trang_thai"] == so_bai_hoc.TT_VI_PHAM
+
+
+# ── CHỈ ĐỂ HIỆN (B1, BƯỚC 205) ────────────────────────────────────────────
+
+#: Nơi DUY NHẤT được GỌI hàm đọc tab `hau_kiem`: đường đọc chung, phần chạy, chuông.
+#: App đọc qua `doc_so_ban_tin` (khoá `hau_kiem`) — MỘT đường đọc Sheets, gác ở
+#: `tests/test_so_lenh_app.py` — nên không có tên ở đây.
+DUOC_DOC_TAB_HAU_KIEM = frozenset({
+    "google_sheets_sync.py", "tools/hau_kiem_loi.py", "tools/chuong_bai_hoc.py"})
+
+
+def test_CHI_DE_HIEN_khong_noi_nao_khac_doc_tab_hau_kiem(monkeypatch):
+    """Đặc tả mục 2: đoạn văn không vào đường sinh lệnh, điểm, ngưỡng, điều kiện dừng,
+    backtest hay tầng 3. Gác theo LỜI GỌI hàm đọc tab (AST), quét gốc + tools/ + backtest/."""
+    # Ghim TẠI CHỖ, có hoàn trả: chạy một mình thì chưa file nào đặt tools/ lên sys.path
+    # (cổng 4 bắt, BƯỚC 205). Không đặt ở mức module: tools/ có `hau_kiem_loi.py` trùng tên.
+    monkeypatch.syspath_prepend(str(GOC / "tools"))
+    import duyet_repo
+
+    doc = set()
+    tep = (list(GOC.glob("*.py")) + list((GOC / "tools").glob("*.py"))
+           + list(duyet_repo.duyet(GOC / "backtest", "*.py")))
+    for p in tep:
+        for n in ast.walk(ast.parse(p.read_text(encoding="utf-8"))):
+            if isinstance(n, ast.Call):
+                ten = n.func.attr if isinstance(n.func, ast.Attribute) else getattr(n.func, "id", "")
+                if ten in ("doc_hau_kiem", "load_hau_kiem_from_google_sheets"):
+                    doc.add(p.relative_to(GOC).as_posix())
+    assert doc <= DUOC_DOC_TAB_HAU_KIEM, sorted(doc - DUOC_DOC_TAB_HAU_KIEM)
+    assert {"tools/hau_kiem_loi.py", "tools/chuong_bai_hoc.py"} <= doc
+
+
+@pytest.mark.parametrize("ten", [
+    "run_daily.py", "paper_trading.py", "paper_runner.py", "paper_metrics.py",
+    "master_agent.py", "analysis_agents.py", "debate_agents.py", "data_collectors.py",
+    "walkforward.py", "ke_hoach_vao_lenh.py", "cham_bong.py", "cham_xac_nhan.py"])
+def test_CHI_DE_HIEN_duong_giao_dich_va_do_khong_nhap_module(ten):
+    p = GOC / ten
+    if not p.exists():
+        return
+    nhap = set()
+    for n in ast.walk(ast.parse(p.read_text(encoding="utf-8"))):
+        if isinstance(n, ast.Import):
+            nhap |= {a.name.split(".")[0] for a in n.names}
+        elif isinstance(n, ast.ImportFrom) and n.module:
+            nhap.add(n.module.split(".")[0])
+    assert "hau_kiem_loi" not in nhap, ten

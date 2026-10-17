@@ -84,6 +84,10 @@ SCHEMA_BON_TRUONG: dict = {
 NGAY_HAU_KIEM_LOI_BAT_DAU: Optional[str] = None
 
 NHAN_HIEN = "Claude viết · chỉ để đọc · máy chỉ kiểm số và câu chữ"
+#: Nhãn hiện của bốn trường — app và bản tin dùng chung (BƯỚC 205).
+NHAN_TRUONG: dict[str, str] = {
+    "ke_lai": "Kể lại", "khong_chung_minh": "Điều một lệnh không chứng minh",
+    "theo_doi": "Nên theo dõi", "kien_thuc": "Kiến thức"}
 
 #: `fallbacks="default"` (khuyến nghị của Anthropic, người dùng giữ ở phần 2 của thiết kế)
 #: đi kèm đúng header này; dạng mảng dùng header khác — ghép sai là lỗi 400.

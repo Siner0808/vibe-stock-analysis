@@ -48,8 +48,9 @@ GIỚI HẠN (khai thẳng)
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Mapping, Optional, Sequence
 
+import hau_kiem_loi
 import lich_giao_dich
 import paper_trading
 from nhat_ky_vi_sao import vni_so_voi_ma50
@@ -57,6 +58,7 @@ from paper_trading import Status
 
 CAU_RANH_GIOI = "Bản tin đọc từ sổ lệnh ẢO. Không phải khuyến nghị đặt lệnh thật."
 CAU_KHONG_BAI_HOC = "Hôm nay không có lệnh đóng — chưa có bài học mới."
+CAU_CHUA_CO_LOI = "chưa có (B1 viết sau khi lệnh đóng; tab `hau_kiem`)"
 CAU_TRO_SO_BAI_HOC = ("Phân rã nguyên nhân từng lệnh (thị trường · ngành · riêng "
                       "mã/tín hiệu · chi phí): mục «Sổ bài học» trong tab "
                       "«📜 Lịch sử giao dịch» (B3).")
@@ -123,6 +125,8 @@ class BaiHocLenh:
     ket_qua_R: Optional[float]
     alpha_pct: Optional[float]
     hau_kiem_may: Optional[str]
+    #: Bản DAT mới nhất của tab `hau_kiem` (B1, BƯỚC 205); None = chưa có.
+    hau_kiem_loi: Optional[Mapping[str, Any]] = None
 
 
 @dataclass(frozen=True)
@@ -144,6 +148,9 @@ class BanTin:
     top: tuple[MaChamDiem, ...]
     hoc: tuple[BaiHocLenh, ...]
     cau_ranh_gioi: str
+    #: Người gọi CÓ truyền tab `hau_kiem` (B1, BƯỚC 205). False = không biết -> bản tin
+    #: không in dòng hậu kiểm lời (thay vì in nhầm "chưa có"); CLI hiện chưa đọc tab ấy.
+    co_hau_kiem: bool = False
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -301,30 +308,33 @@ def _vi_the_cuoi_ngay(lenh: list[dict], ngay: str) -> tuple[int, int]:
     return mo, cho
 
 
-def _bai_hoc(l: dict, nk_theo_id: dict[int, dict]) -> BaiHocLenh:
+def _bai_hoc(l: dict, nk_theo_id: dict[int, dict],
+             hau_kiem: Sequence[Mapping[str, Any]] = ()) -> BaiHocLenh:
     lid = None if l.get("id") in (None, "") else int(l["id"])
+    loi = hau_kiem_loi.ban_moi_nhat(hau_kiem, lid) if lid is not None else None
     ma = str(l.get("symbol"))
     ly_do_ra = None if l.get("exit_reason") in (None, "") else str(l["exit_reason"])
     nk = nk_theo_id.get(lid) if lid is not None else None
     if nk is None:
         return BaiHocLenh(lid, ma, False, "sổ không có dòng nhật ký cho lệnh này",
-                          ly_do_ra, None, None, None, None)
+                          ly_do_ra, None, None, None, None, loi)
     if _ngay(nk.get("exit_date")) == "":
         return BaiHocLenh(lid, ma, False,
                           "nhật ký chưa điền nửa ĐÓNG (điền ở lượt quét kế tiếp)",
-                          ly_do_ra, None, None, None, None)
+                          ly_do_ra, None, None, None, None, loi)
     return BaiHocLenh(
         lid, ma, True, None, ly_do_ra,
         _so_thuc(nk.get("loi_nhuan_rong_pct")), _so_thuc(nk.get("ket_qua_R")),
         _so_thuc(nk.get("alpha_pct")),
-        None if nk.get("hau_kiem_may") in (None, "") else str(nk["hau_kiem_may"]))
+        None if nk.get("hau_kiem_may") in (None, "") else str(nk["hau_kiem_may"]), loi)
 
 
 # ─────────────────────────────────────────────────────────────────────
 # Lập bản tin
 # ─────────────────────────────────────────────────────────────────────
 def lap_ban_tin(quyet_dinh: list[dict], lenh: list[dict], nhat_ky: list[dict],
-                vni_df: Any, ngay: str, nguong: float) -> BanTin:
+                vni_df: Any, ngay: str, nguong: float,
+                hau_kiem: Optional[Sequence[Mapping[str, Any]]] = None) -> BanTin:
     """Bản tin của `ngay` từ các dòng sổ. HÀM THUẦN — xem docstring module.
 
     `nguong` bắt buộc (người gọi truyền `paper_trading.BUY_THRESHOLD`). Dòng
@@ -364,8 +374,8 @@ def lap_ban_tin(quyet_dinh: list[dict], lenh: list[dict], nhat_ky: list[dict],
         dong=tuple(_lenh(l, nk_theo_id) for l in dong_ds),
         huy=huy, cho_thoat=cho_thoat, dang_mo=dang_mo, dang_cho=dang_cho,
         nhom_bo=nhom_bo, top=tuple(sorted(ma_cham, key=_khoa_diem)[:SO_TOP]),
-        hoc=tuple(_bai_hoc(l, nk_theo_id) for l in dong_ds),
-        cau_ranh_gioi=CAU_RANH_GIOI)
+        hoc=tuple(_bai_hoc(l, nk_theo_id, hau_kiem or ()) for l in dong_ds),
+        cau_ranh_gioi=CAU_RANH_GIOI, co_hau_kiem=hau_kiem is not None)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -462,6 +472,14 @@ def ban_tin_markdown(bt: BanTin) -> str:
                  f"{'' if b.loi_nhuan_rong_pct is None else '%'} · "
                  f"R {_so(b.ket_qua_R, '+.2f')} · alpha {_so(b.alpha_pct, '+.2f')}")
         d.append(f"  - Hậu kiểm máy: {b.hau_kiem_may or 'chưa có'}")
+        if not bt.co_hau_kiem:
+            continue
+        if b.hau_kiem_loi:
+            d.append(f"  - Hậu kiểm lời — _{hau_kiem_loi.NHAN_HIEN}_:")
+            for t in hau_kiem_loi.TRUONG:
+                d.append(f"    - **{hau_kiem_loi.NHAN_TRUONG[t]}:** {b.hau_kiem_loi.get(t)}")
+        else:
+            d.append(f"  - Hậu kiểm lời: {CAU_CHUA_CO_LOI}")
     d += ["", f"_{CAU_TRO_SO_BAI_HOC}_", ""]
 
     d += ["---", f"_{bt.cau_ranh_gioi}_"]
