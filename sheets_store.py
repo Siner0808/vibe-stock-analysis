@@ -334,6 +334,8 @@ def doc_so_ban_tin(backend: SheetBackend) -> dict[str, list[dict]]:
                                COT_QUYET_DINH_BAN_TIN),
         "lenh": _doc_tab(backend, TAB_TRADES, TRADE_COLS),
         "nhat_ky": _doc_tab(backend, TAB_NHAT_KY, NHAT_KY_COLS),
+        # B1 (BƯỚC 205): hậu kiểm bằng lời đã viết — bản tin hiện bản DAT mới nhất.
+        "hau_kiem": _doc_tab(backend, TAB_HAU_KIEM, HAU_KIEM_COLS),
     }
 
 

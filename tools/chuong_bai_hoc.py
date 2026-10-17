@@ -81,15 +81,62 @@ def dong_in_ra(kq: dict) -> list[str]:
     return ra
 
 
+def dong_loi(kq: dict) -> list[str]:
+    """Dòng báo cáo của vế "có lời" (B1, BƯỚC 205). KHÔNG chép văn hậu kiểm, KHÔNG lãi lỗ."""
+    import hau_kiem_loi as hkl
+
+    if kq["trang_thai"] == hkl.TT_CHUA_BAT:
+        return ["Vế có lời (B1): chưa bật — chưa đo."]
+    ra = [f"Vế có lời (B1, từ {kq['bat_dau']}): {kq['n_co']}/{kq['n_co'] + kq['n_vi_pham']} "
+          f"lệnh đóng có hậu kiểm bằng lời; {kq['n_trong_han']} đang trong hạn; "
+          f"{kq['n_vi_pham']} QUÁ HẠN; {kq['n_khong_kiem_duoc']} chưa kiểm được; "
+          f"{kq['n_truoc_b1']} đóng trước khi bật — không tính."]
+    for m in kq["vi_pham"] + kq["khong_kiem_duoc"]:
+        han = f" · hạn hết {m['han']}" if m.get("han") else ""
+        ra.append(f"  - {m.get('symbol')} · lệnh #{m.get('trade_id')} · ra "
+                  f"{m.get('exit_date') or '?'}{han}{' — ' + m['ly_do'] if m.get('ly_do') else ''}")
+    return ra
+
+
 def kiem(trades: list, dong_nk: list, hom_nay: str,
-         lich=None) -> tuple[int, list[str], dict]:
-    """(mã thoát, các dòng báo cáo, kết quả đo). Hàm thuần — test không cần Sheets."""
+         lich=None, dong_hk=None) -> tuple[int, list[str], dict]:
+    """(mã thoát, các dòng báo cáo, kết quả đo). Hàm thuần — test không cần Sheets.
+
+    Hai vế: "có bài học" (`so_bai_hoc.do_phu_bai_hoc`) và "có lời" (B1,
+    `hau_kiem_loi.do_phu_hau_kiem_loi`; B1 chưa bật thì vế ấy không đo, không đổi mã
+    thoát). Mã chung: VI PHẠM thắng CHƯA KIỂM ĐƯỢC thắng XANH. Dòng đầu (dòng đi vào
+    `::error::`) là dòng của vế đang hỏng.
+    """
+    import hau_kiem_loi as hkl
     import so_bai_hoc as sbh
 
-    kq = sbh.do_phu_bai_hoc(sbh.lenh_dong_tu_trades(trades), dong_nk, hom_nay, lich)
-    ma = {sbh.TT_XANH: MA_XANH, sbh.TT_VI_PHAM: MA_VI_PHAM,
-          sbh.TT_CHUA_KIEM_DUOC: MA_CHUA_KIEM_DUOC}[kq["trang_thai"]]
-    return ma, dong_in_ra(kq), kq
+    lenh = sbh.lenh_dong_tu_trades(trades)
+    kq = sbh.do_phu_bai_hoc(lenh, dong_nk, hom_nay, lich)
+    kq_loi = hkl.do_phu_hau_kiem_loi(lenh, dong_hk or [], hom_nay,
+                                     bat_dau=hkl.NGAY_HAU_KIEM_LOI_BAT_DAU, lich=lich)
+    theo = {sbh.TT_XANH: MA_XANH, sbh.TT_VI_PHAM: MA_VI_PHAM,
+            sbh.TT_CHUA_KIEM_DUOC: MA_CHUA_KIEM_DUOC, hkl.TT_CHUA_BAT: MA_XANH}
+    ma_bh, ma_loi = theo[kq["trang_thai"]], theo[kq_loi["trang_thai"]]
+    ma = (MA_VI_PHAM if MA_VI_PHAM in (ma_bh, ma_loi) else
+          MA_CHUA_KIEM_DUOC if MA_CHUA_KIEM_DUOC in (ma_bh, ma_loi) else MA_XANH)
+    if ma_bh == MA_XANH and ma_loi != MA_XANH:
+        return ma, [*dong_loi(kq_loi), *dong_in_ra(kq)], kq
+    return ma, [*dong_in_ra(kq), *dong_loi(kq_loi)], kq
+
+
+def doc_hau_kiem(backend=None) -> list:
+    """Tab `hau_kiem` (B1) — CHỈ ĐỌC, và CHỈ khi B1 đã bật: chưa bật thì không chạm Sheets
+    thêm lần nào (một lỗi đọc tab chưa dùng không được làm đỏ chuông)."""
+    import hau_kiem_loi as hkl
+
+    if hkl.NGAY_HAU_KIEM_LOI_BAT_DAU is None:
+        return []
+    import google_sheets_sync as gs
+
+    dong = gs.load_hau_kiem_from_google_sheets(backend)
+    if dong is None:
+        raise RuntimeError("kho ngoài chưa cấu hình — không đọc được tab hau_kiem")
+    return dong
 
 
 def doc_so(db_path: str, backend=None):
@@ -129,7 +176,7 @@ def main(backend=None, hom_nay: str | None = None, lich=None) -> int:
             print("::error::Chuông bài học: kho ngoài (Google Sheets) chưa cấu hình — "
                   "không đọc được sổ lệnh, nên không canh được gì.")
             return MA_CHUA_KIEM_DUOC
-        ma, dong, kq = kiem(trades, dong_nk, hom_nay, lich)
+        ma, dong, kq = kiem(trades, dong_nk, hom_nay, lich, doc_hau_kiem(backend))
     except Exception as e:
         print(f"::error::Chuông bài học KHÔNG KIỂM ĐƯỢC — {type(e).__name__}: {e}")
         return MA_CHUA_KIEM_DUOC
