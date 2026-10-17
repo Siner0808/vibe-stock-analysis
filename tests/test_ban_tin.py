@@ -548,7 +548,8 @@ def test_doc_so_ban_tin_doc_dung_kieu_va_chi_giu_cot_can():
 
 def test_doc_so_ban_tin_tab_rong_la_danh_sach_rong_va_header_lech_thi_no():
     s = _SoChiDoc()
-    assert ss.doc_so_ban_tin(s) == {"quyet_dinh": [], "lenh": [], "nhat_ky": []}
+    assert ss.doc_so_ban_tin(s) == {"quyet_dinh": [], "lenh": [], "nhat_ky": [],
+                                    "hau_kiem": []}        # tab B1, BƯỚC 205
     s.tabs[ss.TAB_DECISIONS] = [[]]                          # gspread trả [[]] cho tab rỗng
     assert ss.doc_so_ban_tin(s)["quyet_dinh"] == []
     xau = _sheet_day_du()
@@ -678,8 +679,10 @@ def test_duong_giao_dich_cham_diem_va_du_lieu_KHONG_nhap_ban_tin(ten):
 
 def test_module_chi_nhap_thu_trung_tinh_va_khong_goi_ham_ghi_mang_dong_ho():
     nhap, goi = _nhap_va_goi("ban_tin.py")
+    # `hau_kiem_loi` (B1, BƯỚC 205): module THUẦN, mức module chỉ thư viện chuẩn — bản tin
+    # chỉ dùng `ban_moi_nhat` và nhãn của nó.
     assert nhap <= {"__future__", "dataclasses", "typing", "lich_giao_dich",
-                    "paper_trading", "nhat_ky_vi_sao"}, nhap
+                    "paper_trading", "nhat_ky_vi_sao", "hau_kiem_loi"}, nhap
     assert not (TEN_GHI & goi), sorted(TEN_GHI & goi)
     # không nhập đường tải giá / sổ bài học (cần giá) / kho ngoài
     assert not ({"market_filter", "so_bai_hoc", "sheets_store", "google_sheets_sync",
@@ -732,7 +735,8 @@ def test_nguoi_goi_truyen_nguong_la_TEN_BUY_THRESHOLD(duong):
     ten = ("quyet_dinh", "lenh", "nhat_ky", "vni_df", "ngay", "nguong")
     doi = dict(zip(ten, goi[0].args))
     doi.update({k.arg: k.value for k in goi[0].keywords})
-    assert set(doi) == set(ten)
+    # app truyền thêm tab `hau_kiem` (B1, BƯỚC 205); CLI không đọc tab ấy nên không truyền.
+    assert set(doi) == set(ten) | ({"hau_kiem"} if duong == "app.py" else set())
     assert isinstance(doi["nguong"], ast.Name) and doi["nguong"].id == "BUY_THRESHOLD"
 
 

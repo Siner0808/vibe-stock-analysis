@@ -492,6 +492,17 @@ def _doc_so_ban_tin():
 
 
 @st.cache_data(ttl=300, show_spinner=False)
+def _doc_hau_kiem():
+    """Hậu kiểm bằng lời Claude ĐÃ VIẾT, tab `hau_kiem` — CHỈ ĐỌC (B1, BƯỚC 205).
+
+    `None` = kho ngoài chưa cấu hình; `[]` = chưa có dòng nào. App chỉ hiện bản `DAT`
+    mới nhất của mỗi lệnh (`hau_kiem_loi.ban_moi_nhat`), không bao giờ gọi API.
+    """
+    import google_sheets_sync as _gss
+    return _gss.load_hau_kiem_from_google_sheets()
+
+
+@st.cache_data(ttl=300, show_spinner=False)
 def _doc_ke_hoach():
     """Kế hoạch vào lệnh agent ĐÃ GHI lúc quét, tab `ke_hoach` — CHỈ ĐỌC (BƯỚC 198).
 
@@ -1968,6 +1979,18 @@ with t_hist:
                 st.markdown("**Hậu kiểm máy**")
                 for _n in str(_hk).split(" | "):
                     st.markdown(f"- {_n}")
+        # ── HẬU KIỂM BẰNG LỜI (B1, BƯỚC 205) — CHỈ ĐỌC tab `hau_kiem` ─────────
+        import hau_kiem_loi as _hkl_mod
+        try:
+            _hkl = _hkl_mod.ban_moi_nhat(_doc_hau_kiem() or [], _nk[_chon].get("trade_id"))
+        except Exception as _e:
+            _hkl = None
+            st.caption(f"⚠️ Chưa đọc được hậu kiểm bằng lời — {type(_e).__name__}: {_e}")
+        if _hkl:
+            st.markdown("**Hậu kiểm bằng lời**")
+            st.caption(_hkl_mod.NHAN_HIEN + " — đối chiếu với phân rã của máy ở sổ bài học bên dưới.")
+            for _t in _hkl_mod.TRUONG:
+                st.markdown(f"**{_hkl_mod.NHAN_TRUONG[_t]}:** {_hkl.get(_t)}")
 
     # ── KẾ HOẠCH VÀO LỆNH ĐÃ GHI (BƯỚC 198, B6 phần 2) ───────────────────
     _khoi_ke_hoach_da_ghi()
@@ -2006,7 +2029,7 @@ with t_tin:
             try:
                 _bt = _bantin.lap_ban_tin(_sbt["quyet_dinh"], _sbt["lenh"], _sbt["nhat_ky"],
                                           _vni_cho_ban_tin(), _ngay_bt.isoformat(),
-                                          BUY_THRESHOLD)
+                                          BUY_THRESHOLD, hau_kiem=_sbt.get("hau_kiem"))
             except Exception as _e:
                 _bt = None
                 st.warning(f"⚠️ Chưa lập được bản tin — {type(_e).__name__}: {_e}")

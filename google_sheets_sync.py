@@ -173,6 +173,17 @@ def load_so_ban_tin_from_google_sheets(backend: Any = None
     return _ss.doc_so_ban_tin(b)
 
 
+def load_hau_kiem_from_google_sheets(backend: Any = None) -> Optional[list[dict]]:
+    """Tab `hau_kiem` từ Sheets, CHỈ ĐỌC — hậu kiểm bằng lời ĐÃ VIẾT (B1, BƯỚC 205).
+
+    None nghĩa là kho ngoài CHƯA cấu hình; `[]` là đã cấu hình mà chưa có dòng nào.
+    """
+    b = get_backend(backend)
+    if b is None:
+        return None
+    return _ss.doc_hau_kiem(b)
+
+
 def load_ke_hoach_from_google_sheets(backend: Any = None) -> Optional[list[dict]]:
     """Tab `ke_hoach` từ Sheets, CHỈ ĐỌC — kế hoạch vào lệnh ĐÃ GHI lúc quét (BƯỚC 198).
 

@@ -75,7 +75,9 @@ run_daily -> tab nhat_ky  ──đọc──▶  1. chọn lệnh ĐÃ ĐÓNG ch
      đang đẩy có thể thiếu dòng; dòng thiếu được lượt sau nhặt (khoá là `trade_id`).
 5. **Hiện ra:** app — khối sổ bài học (tab "📜 Lịch sử giao dịch"); bản tin B2 (`ban_tin.py`).
    Chỉ hiện dòng `DAT` mới nhất của mỗi lệnh, nhãn *"Claude viết · chỉ để đọc · máy chỉ kiểm số
-   và câu chữ"*, bảng phân rã của máy đặt ngay cạnh.
+   và câu chữ"*, bảng phân rã của máy đặt ngay cạnh. Bản tin chỉ in dòng hậu kiểm lời khi người
+   gọi CÓ truyền tab `hau_kiem` (app có; CLI `tools/ban_tin.py` chưa đọc tab ấy nên không in —
+   không nói "chưa có" khi không biết; BƯỚC 205).
 6. **Chuông bài học** (`tools/chuong_bai_hoc.py`, `so_bai_hoc.do_phu_bai_hoc`): thêm vế "có lời" —
    lệnh đóng có dòng `DAT` trong vòng 1 phiên. Quần thể: lệnh đóng SAU ngày bật B1 (khuôn Q13,
    không điền bù).

@@ -23434,3 +23434,22 @@ Bên ghi thứ hai, tiêm thử (script nháp `tiem_pyc.py`, giây 4 một tiế
 **Chưa làm / chưa đo.** Chưa đo tỷ lệ đỏ của cổng 4 ở test chụp cây TRÊN MÃ ĐÃ GHIM qua nhiều lượt năm cổng — chỉ có các phép tiêm (0/10, 0/8) và lượt năm cổng xác nhận của BƯỚC này (406 s, cả năm cổng thoát 0: cổng 1 3321 passed + 1 skipped, cổng 4 xanh, cổng 5 khớp mốc 3322; máy canh cây thấy một lượt `tests/__tam_kiem_tra_mien_tru.py` sống 94,6 → 96,1 s) — một lượt rút, không phải tỷ lệ. Gác quy ước tên chỉ thấy dạng `GOC / "tests" / <tên>`; tệp tạm ghi vào repo bằng dạng khác sẽ không bị nó bắt. Những ghi đồng thời KHÁC (người sửa file giữa lượt chạy) vẫn làm test chụp cây đỏ — đó là luật "đừng sửa file khi một lượt chạy đang bay", không phải đỏ giả. Chưa nới bề ngang cho dòng `FAILED` (lý do bị cắt khi tên test dài).
 
 **Sổ tay.** BƯỚC không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 205 — B1 PHẦN 3: HIỆN HẬU KIỂM BẰNG LỜI TRÊN APP VÀ BẢN TIN, VẾ "CÓ LỜI" CỦA CHUÔNG BÀI HỌC (CHƯA BẬT → KHÔNG ĐO), HÀNG RÀO "CHỈ ĐỂ HIỆN" (17/10/2026)
+
+**Mốc:** B1
+
+Leader, phần cuối của kế hoạch ba PR. Không đổi điểm, ngưỡng, khớp lệnh, lượt quét, sổ hay kết luận đo. Tab `hau_kiem` hiện chưa có dòng nào (B1 chưa bật), nên trên app chưa thấy gì mới; mã đi qua nhánh "không có bản" mà không lỗi.
+
+**Đã làm.**
+- `hau_kiem_loi.NHAN_TRUONG`: nhãn hiện bốn trường, một chỗ cho app và bản tin.
+- Đường đọc: `google_sheets_sync.load_hau_kiem_from_google_sheets` (None = chưa cấu hình); `sheets_store.doc_so_ban_tin` trả thêm khoá `hau_kiem`.
+- `ban_tin`: `BaiHocLenh.hau_kiem_loi` (bản `DAT` mới nhất, `hau_kiem_loi.ban_moi_nhat`), `lap_ban_tin(..., hau_kiem=None)`, `BanTin.co_hau_kiem`; markdown in bốn trường kèm nhãn `NHAN_HIEN`, hoặc "chưa có" khi CÓ tab mà không có bản `DAT`, và KHÔNG in gì khi người gọi không truyền tab (CLI `tools/ban_tin.py` chưa đọc tab ấy — tự đọc thì test hiện có của CLI sẽ chạm Sheets thật ở máy có tệp khoá; không nói "chưa có" khi không biết).
+- `app.py`: hàm đệm 5 phút `_doc_hau_kiem`; khối chi tiết nhật ký hiện "Hậu kiểm bằng lời" (bốn trường, nhãn, câu nhắc đối chiếu phân rã của máy); lỗi đọc → `st.caption`, không sập tab; tab "📰 Bản tin" truyền `hau_kiem`.
+- `tools/chuong_bai_hoc.py`: `dong_loi` + vế "có lời" trong `kiem` (mã chung: vi phạm thắng chưa kiểm được thắng xanh; dòng đầu — dòng vào `::error::` — là dòng của vế đang hỏng); `doc_hau_kiem` CHỈ đọc tab khi `NGAY_HAU_KIEM_LOI_BAT_DAU` khác None. Hôm nay nó là None: chuông in "Vế có lời (B1): chưa bật — chưa đo." và mã thoát không đổi.
+
+**Gác.** `tests/test_hien_hau_kiem_loi.py` (bản tin ba trường hợp; chuông chưa bật/đã bật quá hạn/đã bật có DAT; chưa bật thì không chạm Sheets). `tests/test_hau_kiem_loi.py` thêm hàng rào CHỈ ĐỂ HIỆN: lời gọi đọc tab `hau_kiem` chỉ được nằm ở `google_sheets_sync.py`, `tools/hau_kiem_loi.py`, `tools/chuong_bai_hoc.py`, `app.py` (AST, quét gốc + `tools/` + `backtest/`), và 12 file đường giao dịch/đo không nhập `hau_kiem_loi`. Ba test cũ sửa theo giao diện mới, có lý do ghi tại chỗ (`doc_so_ban_tin` thêm khoá; app truyền thêm `hau_kiem`; gác whitelist nhập của `ban_tin` thêm module thuần `hau_kiem_loi`). Gác "chuông không tự tính số" bắt một `BinOp` — đó là chú thích kiểu `list | None` trong chữ ký `kiem`, không phải phép tính: bỏ chú thích, KHÔNG nới gác.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, máy xác nhận.
+
+**Việc kế (ngày 26/10/2026, giai đoạn B).** Người dùng tạo khoá trong Anthropic Console (workspace riêng, trần 5 USD/tháng) và thêm secret `ANTHROPIC_API_KEY`; agent `gh workflow enable hau-kiem-loi.yml`, chạy tay một lượt (phép đo: chi phí thật từ `usage`, tỷ lệ `DAT`), đọc `allowed_fallback_models`, đặt `NGAY_HAU_KIEM_LOI_BAT_DAU` bằng một BƯỚC nhỏ; người dùng đọc rồi chọn effort.
