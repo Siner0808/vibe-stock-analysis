@@ -44,6 +44,14 @@ chạy tuần tự vì đỏ giả: `tests/test_chan_bia_so_lieu.py` đặt `tmp
 (`FileNotFoundError`; đo 16/10/2026: 3/158 file mỗi vòng). Đã dọn tận gốc:
 file tạm của test chỉ được nằm dưới `.tam_test/`, nơi `duyet_repo.duyet`
 bỏ qua — 0/158 đỏ ở hai vòng 8 tiến trình sau khi sửa.
+
+TÊN TEST HỎNG (BƯỚC 206). Với file đỏ, báo cáo in thêm các dòng `FAILED
+<file>::<test> - <lý do>` / `ERROR …` của mục *short test summary info*
+(`dong_test_hong`), mỗi dòng thụt dưới dòng tóm tắt. Bản cũ chỉ giữ dòng
+tóm tắt cuối: 17/10/2026 cổng 4 báo `test_suc_khoe.py — 1 failed, 103
+passed` khi chạy cùng lúc với cổng 1, chạy lại thì xanh, và không ai biết
+test nào đã đỏ. `-rfE` truyền TƯỜNG MINH: pytest mặc định đã có `fE`,
+nhưng một `addopts = -rN` trong cấu hình sẽ tắt mục ấy.
 """
 import argparse
 import os
@@ -61,13 +69,25 @@ THU_MUC_TEST = GOC / "tests"
 #: chạy cùng lúc ở `tools/nam_cong.py`. Máy 16 nhân → 12; runner CI 4 nhân → 3.
 SO_TIEN_TRINH_MAC_DINH = max(1, (os.cpu_count() or 1) * 3 // 4)
 
+#: Tiền tố các dòng của mục "short test summary info" (`-rfE`) gọi TÊN một
+#: test hỏng: `FAILED <file>::<test> - <lý do>`, `ERROR <file>[::<test>] - …`.
+TIEN_TO_TEST_HONG = ("FAILED ", "ERROR ")
+
+
+def dong_test_hong(ra: str) -> list[str]:
+    """Các dòng gọi tên test hỏng trong đầu ra pytest, đúng thứ tự pytest in.
+
+    Chỉ khớp ở ĐẦU dòng: dòng `--tb=line` (`<file>:<số>: <lỗi>`) có thể chứa
+    chữ FAILED/ERROR ở giữa mà không gọi tên test nào."""
+    return [d for d in ra.splitlines() if d.startswith(TIEN_TO_TEST_HONG)]
+
 
 def chay_mot_file(duong: pathlib.Path, thu_muc_lam_viec: pathlib.Path,
                   giay_toi_da: int = 300) -> tuple[bool, str]:
     """Chạy MỘT file test trong tiến trình riêng. Trả (xanh, tóm tắt)."""
     try:
         kq = subprocess.run(
-            [sys.executable, "-m", "pytest", str(duong), "-q", "--tb=line",
+            [sys.executable, "-m", "pytest", str(duong), "-q", "--tb=line", "-rfE",
              "-p", "no:cacheprovider"],   # nhiều tiến trình: không tranh .pytest_cache
             cwd=str(thu_muc_lam_viec), capture_output=True, text=True,
             encoding="utf-8", errors="replace", timeout=giay_toi_da)
@@ -80,7 +100,9 @@ def chay_mot_file(duong: pathlib.Path, thu_muc_lam_viec: pathlib.Path,
     dong = [d for d in ra.strip().splitlines()
             if "passed" in d or "failed" in d or "error" in d
             or "no tests ran" in d]
-    return kq.returncode == 0, (dong[-1] if dong else ra.strip()[-160:])
+    tom = dong[-1] if dong else ra.strip()[-160:]
+    # Tên từng test hỏng, mỗi tên một dòng thụt dưới dòng tóm tắt (BƯỚC 206).
+    return kq.returncode == 0, "\n".join([tom] + [f"      {d}" for d in dong_test_hong(ra)])
 
 
 def chay_nhieu_file(ds: list[pathlib.Path], thu_muc_lam_viec: pathlib.Path,
