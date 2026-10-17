@@ -28,6 +28,18 @@ DO = "def test_b():\n    assert 1 == 2\n"
 
 
 def _viet(thu_muc: Path, ten: str, noi_dung: str) -> Path:
+    """Viết một file test vào `thu_muc`, kèm `pytest.ini` rỗng nếu chưa có (BƯỚC 206).
+
+    `k.main()` chạy pytest LỒNG với cwd = repo. Tệp nằm ở `%TEMP%` mà thư mục không
+    có tệp cấu hình thì rootdir là tổ tiên chung của repo và tệp — thư mục NHÀ — và
+    pytest đi từ đó xuống `%TEMP%`, nơi mọi tiến trình tạo/xoá thư mục tạm (kể cả
+    `tu_kiem()` ngay trước đó): `ERROR ../../../.. - FileNotFoundError` trên một
+    `Temp/tmpXXXX` vừa bị xoá. Đo 17/10/2026, chạy cùng cổng 4: 11/116 lượt lồng đỏ;
+    có `pytest.ini` thì 0/895. Tệp ấy ghim rootdir vào chính `thu_muc`.
+    """
+    ini = thu_muc / "pytest.ini"
+    if not ini.exists():
+        ini.write_text("[pytest]\n", encoding="utf-8")
     f = thu_muc / ten
     f.write_text(noi_dung, encoding="utf-8")
     return f
@@ -176,4 +188,77 @@ def test_MAC_DINH_main_chay_song_song(tmp_path, monkeypatch):
     # argparse đọc mặc định lúc dựng parser → phải là giá trị LÚC CHẠY của hằng
     assert k.main(["--im", str(fx)]) == 0
     assert thay["n"] == 5
+
+
+# ── BƯỚC 206: tên test hỏng ─────────────────────────────────────────────
+# Sự cố 17/10/2026: cổng 4 (chạy cùng lúc với cổng 1) báo
+# `⛔ test_suc_khoe.py — 1 failed, 103 passed`, chạy lại thì xanh — và báo cáo
+# không nói test NÀO đỏ, nên không tái hiện được.
+
+HAI = ("def test_xanh_rieng():\n    assert 1 == 1\n\n\n"
+       "def test_hong_ten_rieng():\n    assert 1 == 2\n")
+
+
+def test_FILE_DO_bao_ten_TUNG_test_hong_ngay_duoi_dong_tom_tat(tmp_path):
+    f = _viet(tmp_path, "test_hai.py", HAI)
+    xanh, tom = k.chay_mot_file(f, tmp_path)
+    assert xanh is False
+    dong = tom.splitlines()
+    assert "1 failed, 1 passed" in dong[0], tom
+    hong = [d.strip() for d in dong[1:]]
+    assert len(hong) == 1 and hong[0].startswith("FAILED "), tom
+    assert "test_hai.py::test_hong_ten_rieng" in hong[0], tom
+    assert "test_xanh_rieng" not in tom
+
+
+def test_TEN_test_hong_van_in_khi_cau_hinh_TAT_muc_tom_tat(tmp_path):
+    """`-rfE` tường minh: `addopts = -rN` (tắt mục tóm tắt) không được làm mất tên."""
+    (tmp_path / "pytest.ini").write_text("[pytest]\naddopts = -rN\n", encoding="utf-8")
+    f = _viet(tmp_path, "test_hai.py", HAI)
+    assert "-rN" in (tmp_path / "pytest.ini").read_text(encoding="utf-8"), "_viet đè mất cấu hình"
+    xanh, tom = k.chay_mot_file(f, tmp_path)
+    assert xanh is False and "test_hai.py::test_hong_ten_rieng" in tom, tom
+
+
+def test_LOI_NAP_file_bao_ten_qua_dong_ERROR(tmp_path):
+    f = _viet(tmp_path, "test_nap_hong.py", "import mo_dun_khong_ton_tai_206\n")
+    xanh, tom = k.chay_mot_file(f, tmp_path)
+    assert xanh is False
+    assert any(d.strip().startswith("ERROR ") and "test_nap_hong.py" in d
+               for d in tom.splitlines()[1:]), tom
+
+
+def test_dong_test_hong_chi_lay_FAILED_ERROR_o_DAU_dong():
+    ra = ("..F\n"
+          "E   assert 1 == 2\n"
+          "C:\\x\\test_a.py:6: RuntimeError: FAILED to ERROR out\n"
+          "=========== short test summary info ===========\n"
+          "FAILED tests/test_a.py::test_b - assert 1 == 2\n"
+          "ERROR tests/test_c.py - ModuleNotFoundError\n"
+          "1 failed, 1 error, 2 passed in 0.10s\n")
+    assert k.dong_test_hong(ra) == ["FAILED tests/test_a.py::test_b - assert 1 == 2",
+                                    "ERROR tests/test_c.py - ModuleNotFoundError"]
+    assert k.dong_test_hong("3 passed in 0.10s\n") == []
+
+
+def test_main_IM_in_ten_test_hong_vao_bao_cao(tmp_path, capsys):
+    """Đường cổng 4 thật (`--im`, đi qua `chay_nhieu_file`) phải in tên ra log."""
+    f = _viet(tmp_path, "test_hai.py", HAI)
+    assert k.main(["--im", str(f)]) == 1
+    ra = capsys.readouterr().out
+    assert "test_hai.py::test_hong_ten_rieng" in ra, ra
+
+
+def test_LUOT_LONG_co_rootdir_RIENG_khong_di_tu_thu_muc_NHA(tmp_path):
+    """Lượt lồng như `k.main()` gọi (cwd = repo) trên file của `_viet`: rootdir = thư mục tạm.
+
+    Thiếu ghim ấy rootdir là thư mục nhà và lượt lồng chập chờn khi máy chạy nhiều tiến
+    trình — đo 17/10/2026: cổng 4 đỏ ở 2/3 chu kỳ năm cổng (`test_main_IM_in_ten…`), cổng 1
+    ở 1/3 (`test_main_tra_0_khi_moi_file_XANH`, test có từ trước), một vòng lặp riêng 1/72."""
+    import subprocess
+    f = _viet(tmp_path, "test_x.py", XANH)
+    kq = subprocess.run([sys.executable, "-m", "pytest", str(f), "--co", "-p", "no:cacheprovider"],
+                        cwd=str(GOC), capture_output=True, text=True, encoding="utf-8",
+                        errors="replace")
+    assert f"rootdir: {tmp_path}" in kq.stdout, kq.stdout[-800:]
 

@@ -18,6 +18,7 @@ Bốn tầng:
 import ast
 import importlib.util
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -735,11 +736,32 @@ def _duyet(goc, mau):
     return mod.duyet(goc, mau)
 
 
-def _anh_chup():
+#: Thư mục ảnh chụp KHÔNG so. `__pycache__` (BƯỚC 206): tiến trình KHÁC nạp một module
+#: vừa sửa (cổng 1 và cổng 4 chạy cùng lúc ở `tools/nam_cong.py`) thì Python ghi lại
+#: `.pyc` của nó, đúng lúc test dưới đang chụp. Đo 17/10/2026: tiêm một lượt nạp module
+#: có `.pyc` cũ vào giây 4 → 8/8 đỏ (`doi = ['tools/__pycache__/doc_bang_loi…pyc']`);
+#: `.pyc` còn mới → 0/8; không tiêm → 0/8. Tiến trình CON không ghi bytecode được canh
+#: ở gốc: `test_tien_trinh_con_bi_go_GITHUB_STEP_SUMMARY_va_khong_ghi_bytecode`.
+BO_QUA_ANH_CHUP = (".git", ".pytest_cache", ".venv", "__pycache__")
+
+#: Tệp tạm mà một test KHÁC buộc phải đặt thẳng trong `tests/` (BƯỚC 206):
+#: `tests/test_chan_bia_so_lieu.py` thử phép miễn trừ của bộ dò bịa số, phép ấy chỉ
+#: miễn khi đường tương đối BẮT ĐẦU bằng `tests/`, nên không dời vào `.tam_test/` được.
+#: Đo 17/10/2026: chạy liên tục hai test ấy bên cạnh → 7/10 lượt test chụp cây đỏ
+#: (`moi`/`mat` = `tests/__tam_kiem_tra_*.py`), không chạy → 0/10; và lượt năm cổng cuối
+#: của BƯỚC 206 đỏ đúng như sự cố 17/10. Quy ước tên được gác ở
+#: `test_TEP_TAM_ghi_thang_vao_tests_deu_mang_tien_to_TAM`.
+TIEN_TO_TAM_TRONG_TESTS = "tests/__tam_"
+
+
+def _anh_chup(goc=GOC):
     ra = {}
-    for p in _duyet(GOC, "*"):
-        phan = p.relative_to(GOC).parts
-        if ".git" in phan or ".pytest_cache" in phan or ".venv" in phan:
+    for p in _duyet(goc, "*"):
+        phan = p.relative_to(goc).parts
+        if any(t in phan for t in BO_QUA_ANH_CHUP):
+            continue
+        tuong_doi = p.relative_to(goc).as_posix()
+        if tuong_doi.startswith(TIEN_TO_TAM_TRONG_TESTS):
             continue
         try:
             if not p.is_file():
@@ -747,8 +769,73 @@ def _anh_chup():
             s = p.stat()
         except OSError:
             continue
-        ra[p.relative_to(GOC).as_posix()] = (s.st_size, s.st_mtime_ns)
+        ra[tuong_doi] = (s.st_size, s.st_mtime_ns)
     return ra
+
+
+def test_ANH_CHUP_bo_qua_pyc_tien_trinh_KHAC_ghi_nhung_thay_moi_doi_khac(tmp_path):
+    """Trên một cây giả: ghi lại / thêm `.pyc` trong `__pycache__`, thêm/xoá
+    `tests/__tam_*` thì không tính; sửa (kể cả cùng cỡ, chỉ khác mtime) · thêm · xoá một
+    tệp thường thì tính — kể cả tệp thường trong `tests/` và `__tam_*` NGOÀI `tests/`.
+    `.github/` là tệp thường: phép bỏ qua so theo TỪNG phần đường dẫn, không chuỗi con."""
+    for con in ("pkg/__pycache__", ".git", ".venv", ".pytest_cache", ".github", "tests",
+                "docs"):
+        (tmp_path / con).mkdir(parents=True)
+    a = tmp_path / "pkg" / "a.py"
+    a.write_text("x = 1\n", encoding="utf-8")
+    pyc = tmp_path / "pkg" / "__pycache__" / "a.cpython-313.pyc"
+    pyc.write_bytes(b"cu")
+    for ten in (".git/HEAD", ".venv/pyvenv.cfg", ".pytest_cache/v", ".github/w.yml", "b.txt"):
+        (tmp_path / ten).write_text("z", encoding="utf-8")
+    truoc = _anh_chup(tmp_path)
+    assert set(truoc) == {"pkg/a.py", ".github/w.yml", "b.txt"}, sorted(truoc)
+
+    pyc.write_bytes(b"moi hon")                                   # tiến trình khác ghi lại .pyc
+    (tmp_path / "pkg" / "__pycache__" / "c.cpython-313.pyc").write_bytes(b"c")
+    (tmp_path / "tests" / "__tam_kiem_tra_x.py").write_text("t", encoding="utf-8")  # test khác
+    assert _anh_chup(tmp_path) == truoc
+    (tmp_path / "tests" / "thuong.py").write_text("t", encoding="utf-8")
+    (tmp_path / "docs" / "__tam_y.md").write_text("t", encoding="utf-8")
+    assert set(_anh_chup(tmp_path)) - set(truoc) == {"tests/thuong.py", "docs/__tam_y.md"}
+
+    s = a.stat()
+    a.write_text("x = 2\n", encoding="utf-8")                     # cùng cỡ
+    os.utime(a, ns=(s.st_atime_ns, s.st_mtime_ns + 10**9))
+    assert _anh_chup(tmp_path)["pkg/a.py"] != truoc["pkg/a.py"]
+    (tmp_path / "moi.md").write_text("m", encoding="utf-8")
+    (tmp_path / "b.txt").unlink()
+    sau = _anh_chup(tmp_path)
+    assert "moi.md" in sau and "b.txt" not in sau
+
+
+_MAU_TEP_TRONG_TESTS = re.compile(r'GOC\s*/\s*"tests"\s*/\s*"([^"/]+)"')
+
+
+def _tep_tam_sai_ten(nguon: str, tep_that: set) -> list:
+    """PHÉP PHÁN: tên literal `GOC / "tests" / <tên trong nháy>` mà git không biết (tức tệp tạm)
+    và không mang tiền tố `__tam_` — thứ ảnh chụp cây sẽ đếm khi test ấy chạy song song."""
+    return [t for t in _MAU_TEP_TRONG_TESTS.findall(nguon)
+            if t not in tep_that and not t.startswith("__tam_")]
+
+
+def test_TEP_TAM_ghi_thang_vao_tests_deu_mang_tien_to_TAM():
+    """Ảnh chụp cây chỉ tha `tests/__tam_*`: một test mới đặt tệp tạm tên khác thẳng vào
+    `tests/` sẽ làm test chụp cây chập chờn lại khi năm cổng chạy cùng lúc (BƯỚC 206).
+    Chỉ thấy dạng `GOC / "tests" / <tên trong nháy>` — dạng khác là chỗ hở đã biết."""
+    g = 'GOC / "tests"'
+    xau = f'f = {g} / "tam_moi.py"\nf.write_text("x")\n'
+    tot = f'f = {g} / "__tam_x.py"\nh = {g} / "test_that.py"\n'
+    assert _tep_tam_sai_ten(xau, {"test_that.py"}) == ["tam_moi.py"]
+    assert _tep_tam_sai_ten(tot, {"test_that.py"}) == []
+    kq = subprocess.run(["git", "ls-files", "tests"], cwd=str(GOC), capture_output=True,
+                        text=True, encoding="utf-8")
+    that = {Path(x).name for x in kq.stdout.splitlines()}
+    assert kq.returncode == 0 and "test_suc_khoe.py" in that, "không đọc được git ls-files"
+    nguon = {p.name: p.read_text(encoding="utf-8") for p in (GOC / "tests").glob("test_*.py")}
+    thay_duoc = {t for v in nguon.values() for t in _MAU_TEP_TRONG_TESTS.findall(v)}
+    assert {"__tam_kiem_tra_mien_tru.py", "__tam_kiem_tra_r6.py"} <= thay_duoc, thay_duoc
+    sai = {k: _tep_tam_sai_ten(v, that) for k, v in nguon.items()}
+    assert not any(sai.values()), {k: v for k, v in sai.items() if v}
 
 
 def test_THAT_mot_luot_chay_thuc_cua_phep_offline_khong_doi_tep_nao_trong_repo(monkeypatch):
