@@ -156,7 +156,7 @@ client.beta.messages.create(
 
 | Mã | Luật | Máy kiểm |
 |---|---|---|
-| `so-co-nguon` | Mọi con số có nguồn (Quy tắc 2) | Mọi số trong bốn trường — phần trăm, số thập phân dấu phẩy, ngày — khớp một số trong `du_kien`. Làm tròn đúng số chữ số đã viết là khớp (−3,4567 → "−3,46%"). Ngày khớp theo giá trị, không theo định dạng. Phần kiến thức cũng không có số ví dụ tự đặt. |
+| `so-co-nguon` | Mọi con số có nguồn (Quy tắc 2) | Mọi số trong bốn trường — phần trăm, số thập phân dấu phẩy, ngày — khớp một số trong `du_kien`. Làm tròn đúng số chữ số đã viết là khớp (−3,4567 → "−3,46%"). Ngày khớp theo giá trị, không theo định dạng. Phần kiến thức cũng không có số ví dụ tự đặt. Số kiểu Anh như `53,500` nằm trong CHUỖI nguồn (lý do vào lệnh của sổ thật) được nhận theo cả hai cách đọc; văn của model vẫn đọc dấu phẩy là thập phân (BƯỚC 204, đo bằng `--thu`). |
 | `mot-lenh` | Không kết luận từ một lệnh (bất biến 5) | Cấm "chứng minh", "chắc chắn", "luôn luôn", "agent sai" — trừ khi đứng sau "không"/"chưa". "Tín hiệu sai" chỉ được dùng khi `du_kien` có `cach_goi`. |
 | `khong-khuyen-nghi` | Không là lời khuyên đầu tư | Cấm "nên mua", "nên bán", "hãy mua", "hãy bán", "khuyến nghị" — trừ khi đứng sau "không"/"chưa". *(Bản duyệt đầu có "mua vào", "bán ra": bỏ ở BƯỚC 203 vì chúng bác nhầm văn tự nhiên như "giá mua vào ngày …".)* |
 | `ma-co-nguon` | Không nhắc mã lạ | Mọi mã (ba ký tự in hoa đứng riêng) trong văn phải nằm trong một chuỗi của `du_kien` — mã của lệnh, mã cùng ngành, mã nhắc trong lý do vào — hoặc trong danh sách chữ viết tắt hợp lệ `VIET_TAT` (HOSE, RSI, ATR, ATC, …) đặt một chỗ. |

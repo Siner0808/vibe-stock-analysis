@@ -23355,6 +23355,36 @@ Leader, phiên mở ngày. Không đổi mã sản phẩm đang chạy, điểm,
 
 **Không làm.** Không bàn các mục chờ của bàn giao 16/10 (người dùng chọn B1 trước). Không đổi `nhat_ky_vi_sao.COT_NHAT_KY`.
 
+## BƯỚC 204 — B1 PHẦN 2: TAB `hau_kiem`, PHẦN CHẠY `tools/hau_kiem_loi.py` (`--thu` CHẠY TRÊN SỔ THẬT, CHỈ ĐỌC), WORKFLOW `hau-kiem-loi.yml` MERGE Ở TRẠNG THÁI TẮT; CHƯA GỌI API (17/10/2026)
+
+**Mốc:** B1
+
+Leader, làm tại chỗ theo kế hoạch ba PR (người dùng *"Leader làm tại chỗ (Recommended)"*). Không đổi điểm, ngưỡng, cách khớp lệnh, lượt quét hay sổ lệnh; app đổi một chỗ (vòng gom giá của nút sổ bài học, cùng hành vi). Chưa có lời gọi API nào.
+
+**Đã làm.**
+- `sheets_store`: `TAB_HAU_KIEM`, `HAU_KIEM_COLS` (suy từ `hau_kiem_loi.COT_HAU_KIEM`), kiểu cột gộp vào ba tập chung, `doc_hau_kiem` (chỉ đọc) và `them_hau_kiem` (CHỈ THÊM; khoá (`trade_id`, `lan`) đã có trên tab hoặc lặp trong lô → `SheetError`, không ghi dòng nào; tiêu đề lệch → nổ).
+- `so_bai_hoc.gia_tu_bo_tai(cac_ma, tai)`: vòng gom giá DÙNG CHUNG — app (`_gia_cho_so_bai_hoc`, bộ tải có đệm) và phần chạy B1 cùng đi qua, chỉ khác bộ tải (đặc tả mục 4: không đường giá thứ hai).
+- `hau_kiem_loi.tham_so_goi`: toàn bộ tham số `client.beta.messages.create` ở MỘT chỗ (model, `max_tokens`, `system` = `LOI_DAN`, `output_config` effort + JSON schema bốn trường, `betas` = `server-side-fallback-2026-07-01`, `fallbacks="default"`; không `thinking`/`temperature`/`top_p`/`top_k`).
+- `tools/hau_kiem_loi.py` (phần chạy; chỗ DUY NHẤT nhập `anthropic`, trong hàm): đọc `nhat_ky` + `hau_kiem`, `can_viet`, trần lượt 10, giá qua `gia_tu_bo_tai` + `VNStockCollectorAgent`, `bai_hoc_cho_so`; `--thu` in lời dặn + dữ kiện, không gọi API, không cần khoá; chạy thật: trần tháng kiểm TRƯỚC mỗi lời gọi (cộng cả tiền vừa tiêu trong lượt), lỗi 401/403/400 → thoát 1, 429/5xx/mạng → cảnh báo rồi sang lệnh kế, ghi tab hỏng SAU khi đã gọi → dừng ngay (thoát 2). Mã thoát 0 · 1 · 2 như đặc tả.
+- `requirements-hau-kiem.txt` (`anthropic==1.15.0`, bản mới nhất trên PyPI đo hôm nay); `.gitignore` thêm ngoại lệ `!requirements-hau-kiem.txt` (`*.txt` nuốt nó). `kiem-dinh.yml` cài thêm file ấy (để test thấy gói thật). `.github/workflows/hau-kiem-loi.yml`: cron `17 11 * * 1-5` (18:17 ICT, lệch :00/:30), nút chạy tay, nhóm `concurrency` RIÊNG, `VNSTOCK_TELEMETRY: "off"`, khoá chỉ ở bước chạy.
+- `nhat_ky_vi_sao.py`: docstring — cột `hau_kiem_loi` ĐỂ TRỐNG, đoạn văn ở tab `hau_kiem`.
+
+**Đo trên sổ thật (`--thu`, chỉ đọc).** Script nháp `thu_that.py` nạp bản `tools/hau_kiem_loi.py` của worktree, dựng backend từ tệp khoá của repo chính (worktree không có), gọi `main(["--thu"])`: thoát 0, dựng đủ dữ kiện cho 10 lệnh (đúng trần lượt), tải được giá các mã cùng ngành, không lỗi; `sheets_store` nạp từ worktree (in đường dẫn kiểm). Số lệnh sổ thật cố ý không chép vào đây (`CLAUDE.md`). **Phát hiện:** lý do vào lệnh trong sổ ghi số kiểu Anh — `🎯 Vào lệnh=53,500 VNĐ | SL=50,022 VNĐ` — mà máy kiểm đọc dấu phẩy đơn là thập phân (53,5), nên một câu đúng "giá vào dự kiến 53.500 đồng" sẽ bị bác oan. Sửa: số dạng `53,500` trong CHUỖI nguồn được nhận theo cả hai cách đọc (chỉ nới nguồn, văn của model vẫn đọc kiểu Việt); test dựng từ đúng chuỗi ấy, đỏ trước khi sửa.
+
+**Gác.** `tests/test_tools_hau_kiem_loi.py` (client GIẢ ghi tham số + `InMemorySheet` + bộ tải giá giả; một test dùng `anthropic` THẬT khoá tên sáu lớp lỗi và thứ bậc lớp hẹp dưới `APIStatusError`), `tests/test_tab_hau_kiem.py`, `tests/test_gia_tu_bo_tai.py` (AST: hàm app gọi `gia_tu_bo_tai`, không còn vòng lặp riêng), thêm vào `tests/test_hau_kiem_loi.py` (tham số lời gọi, số kiểu Anh) và `tests/test_requirements.py` (file requirements riêng phủ `tools/` + `tests/`; chỉ `tools/hau_kiem_loi.py` nhập `anthropic`, trong hàm; ghim `==` khớp bản đang chạy; đúng hai workflow có DÒNG LỆNH cài file ấy). **Đột biến: vòng đầu 26/27 đỏ** (năm file mã, file requirements riêng, `kiem-dinh.yml`). Phát SỐNG "CI không cài gói riêng": gác tìm CHỮ `requirements-hau-kiem.txt` mà chữ ấy còn trong chú thích của `kiem-dinh.yml`; sửa gác đếm DÒNG LỆNH `pip install -r …`, đục lại phát ấy cộng một phát mới cho `hau-kiem-loi.yml`: 2/2 đỏ.
+
+**Lỗi trong lúc làm.**
+- Chú thích mới trong `kiem-dinh.yml` nhắc đường dẫn công cụ của phần chạy → `tests/test_bo_cong_khop_CI.py` đọc nó thành cổng CI THỨ SÁU và đòi mọi khối lệnh tài liệu liệt kê thêm. Bẫy đã ghi trong bàn giao 16/10 (gác bộ cổng suy cổng từ mọi đường dẫn công cụ trong workflow, kể cả chú thích) — mắc lại; máy chặn đúng. Viết lại chú thích không nêu đường dẫn, kèm câu dặn.
+- `.gitignore` (`*.txt`) nuốt file requirements mới — thấy vì `git status` không liệt kê nó; thêm ngoại lệ thay vì `git add -f`.
+
+**Ghi lại từ BƯỚC 203 (cổng 4 chập chờn).** Lượt năm cổng cùng lúc của BƯỚC 203: cổng 4 đỏ `tests/test_suc_khoe.py` (1 failed, 103 passed) trong khi cổng 1 xanh. Không tái hiện: chạy riêng 5/5 xanh, chạy lại riêng cổng 4 160/160 file xanh trên cùng cây. Log cổng 4 không in tên test hỏng nên chưa biết test nào; tách thành việc riêng (chip "Lần ra test chập chờn trong test_suc_khoe.py"), không sửa ở đây.
+
+**Máy.** Cài `anthropic==1.15.0` vào `.venv` của repo chính: thêm 8 gói MỚI (`anthropic`, `docstring_parser`, `httpcore2`, `httpx2`, `jiter`, `opentelemetry_api`, `sniffio`, `truststore` — liệt kê bằng các thư mục `*.dist-info` có giờ sửa hôm nay); không gói đang có nào bị nâng; `vnstock` 4.0.9 · `vnai` 2.6.2 không đổi.
+
+**Chưa làm.** Hiện đoạn văn trên app và bản tin, vế "có lời" của chuông (BƯỚC 205). Workflow tắt ngay sau merge (`gh workflow disable hau-kiem-loi.yml`). Chưa đọc `allowed_fallback_models` (cần khoá). Chưa lời gọi API nào — chi phí trong đặc tả vẫn là ước lượng.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, máy xác nhận.
+
 ## BƯỚC 206 — CỔNG 4 IN TÊN TEST HỎNG; SỰ CỐ 17/10 TÁI HIỆN VÀ CÓ TÊN: TEST CHỤP CÂY REPO CỦA `tests/test_suc_khoe.py` ĐẾM TỆP DO TIẾN TRÌNH KHÁC GHI (`tests/__tam_*` · `.pyc`); THÊM MỘT CHẬP CHỜN: LƯỢT PYTEST LỒNG LẤY ROOTDIR LÀ THƯ MỤC NHÀ — CẢ BA GHIM TẠI CHỖ (17/10/2026)
 
 **Mốc:** quy-trinh — người dùng giao sửa cổng 4 cho in tên test hỏng và tìm test chập chờn trong `tests/test_suc_khoe.py` sau sự cố năm cổng của BƯỚC 203

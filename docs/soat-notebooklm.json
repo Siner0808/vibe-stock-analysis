@@ -3298,6 +3298,10 @@
       "ngay": "2026-10-17",
       "khong_bat_buoc_vi": "BƯỚC thêm tài liệu thiết kế B1 docs/thiet-ke-b1-hau-kiem-loi.md, module thuần hau_kiem_loi.py chưa ai nhập (chưa gọi API, chưa nối vào app, sổ hay workflow nào) cùng gác tests/test_hau_kiem_loi.py, mục BƯỚC 203 ở docs/STATE.md và một khối 🧭 ở docs/HANDOFF.md; không sửa file luật nào và không viết kết luận đo mới (chi phí mỗi lệnh ghi rõ là ước lượng chưa đo)."
     },
+    "BƯỚC 204": {
+      "ngay": "2026-10-17",
+      "khong_bat_buoc_vi": "BƯỚC thêm phần chạy tools/hau_kiem_loi.py (chưa gọi API; workflow hau-kiem-loi.yml merge rồi tắt), tab Sheets hau_kiem chỉ thêm, vòng gom giá dùng chung so_bai_hoc.gia_tu_bo_tai (app cùng hành vi), requirements-hau-kiem.txt, ngoại lệ .gitignore, bước cài trong kiem-dinh.yml và các test; không sửa file luật nào, không đổi điểm, ngưỡng, khớp lệnh hay kết luận đo."
+    },
     "BƯỚC 206": {
       "ngay": "2026-10-17",
       "khong_bat_buoc_vi": "BƯỚC sửa công cụ cổng 4 tools/kiem_test_chay_rieng.py để in tên test hỏng (-rfE), ghim hai điều kiện tại chỗ trong hai file test (pytest.ini cho lượt pytest lồng của tests/test_kiem_test_chay_rieng.py; ảnh chụp cây của tests/test_suc_khoe.py bỏ __pycache__ và tests/__tam_*, gác quy ước tên tệp tạm), thêm dòng lỗi 181 vào bảng lỗi cùng phân lớp và mục BƯỚC 206; không sửa file luật nào, không đổi điểm, ngưỡng, sổ hay kết luận đo nào — số đo trong BƯỚC là tỷ lệ đỏ của test, không phải kết luận về chiến lược."

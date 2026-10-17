@@ -46,8 +46,13 @@ jobs:
       - name: Cài thư viện
         # pytest KHÔNG nằm trong requirements.txt vì nó là thư viện phát
         # triển, còn requirements.txt là thứ Streamlit Cloud cài để chạy app.
+        # requirements-hau-kiem.txt (B1, BUOC 204): goi rieng cua phan chay hau kiem bang
+        # loi, cai o day de test thay goi that; Streamlit Cloud khong cai no. Dung viet
+        # duong dan cong cu vao chu thich o day: gac bo cong suy cong CI tu moi
+        # duong dan cong cu xuat hien trong file nay (bai hoc 16/10).
         run: |
           pip install -r requirements.txt
+          pip install -r requirements-hau-kiem.txt
           pip install pytest
 
       - name: Bộ test

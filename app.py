@@ -575,14 +575,9 @@ def _gia_cho_so_bai_hoc(cac_ma, tu_ngay, den_ngay):
     """
     import san_giao_dich as _sg
     import so_bai_hoc as _sbh
-    gia, thieu = {}, []
-    for m in cac_ma:
-        _d, _tt, _ = load_stock_data(m, tu_ngay, den_ngay, _sg.san_cua(m))
-        if _tt != "OK" or _d is None or _d.empty:
-            thieu.append(m)
-            continue
-        gia[m] = _sbh.chuoi_dong_cua(_d, price_multiplier(_d))
-    return gia, thieu
+    # Vòng gom giá dùng chung với phần chạy B1 (BƯỚC 204): app chỉ đưa bộ tải có đệm.
+    return _sbh.gia_tu_bo_tai(
+        cac_ma, lambda m: load_stock_data(m, tu_ngay, den_ngay, _sg.san_cua(m))[:2])
 
 
 def _bang_bai_hoc(cac_bai_hoc):
