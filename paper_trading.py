@@ -652,9 +652,12 @@ class PaperTradingJournal:
         (`san_giao_dich.san_cua`, BƯỚC 143). Tra theo MÃ chứ không đọc cột
         `exchange` của lệnh, vì cột ấy ghi `HOSE` cho cả 125 dòng cũ.
 
-        Bán KHÔNG đi qua `vong_doi_lenh`: một vị thế đang mở phải thoát
-        được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. Cái đo được ở
-        đây là trượt giá, không phải rủi ro không khớp.
+        Bán KHÔNG đi qua vòng đời lệnh của `vong_doi_lenh`: một vị thế đang
+        mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. Cái
+        đo được ở đây là trượt giá. Rủi ro không khớp chỉ được mô hình hoá ở
+        MỘT chỗ, trước khi gọi hàm này: phiên KỊCH SÀN một giá thì lệnh bán
+        chờ phiên sau (`evaluate_open`, `fill_closing`; ĐO 28, BƯỚC 209) —
+        kẹt có hạn, hết khoá thì thoát.
         """
         if not MO_PHONG_TRUOT_GIA:
             return float(gia)

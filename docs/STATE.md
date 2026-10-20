@@ -2925,7 +2925,7 @@ không phải phép đo**.
 | | qua module nào | vì sao |
 |---|---|---|
 | **vào lệnh** | `vong_doi_lenh.dat_lenh` → `khop_trong_nen` | dùng cả hai module: lô chẵn, biên độ ±7%, trần thanh khoản mỗi nến, khớp một phần, rồi mới tới trượt giá |
-| **ra lệnh** | `truot_gia(..., BAN, ...)` | **không** qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn |
+| **ra lệnh** | `truot_gia(..., BAN, ...)` | **không** qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. ⚠️ BƯỚC 209 (ĐO 28): vế "phải thoát được" có một ngoại lệ có chủ đích — phiên kịch sàn MỘT GIÁ thì lệnh bán chờ phiên mở khoá; vế "không qua vòng đời lệnh" vẫn đúng |
 
 Khớp một phần thì `size_pct` giảm theo tỷ lệ thực khớp — giữ nguyên là ghi
 vào sổ một vị thế chưa bao giờ tồn tại. Sàn từ chối thì **xoá** lệnh
@@ -23521,3 +23521,47 @@ Leader, tại chỗ (người dùng: *"ok làm tiếp đi"*, 20/10; việc của
 **Bảng lỗi.** Lỗi 183 (`gac-hong`, sống 10 ngày theo git: từ cặp trùng tên đầu tiên 07/10 tới 17/10); dòng tự khai 91/163 (`tools/doc_bang_loi.py`).
 
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 209 — ĐO 28: SỔ ẢO HẾT KHỚP Ở PHIÊN KỊCH TRẦN/SÀN MỘT GIÁ; DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` ĐỨNG YÊN −1,68% (2/619 LỆNH DÍNH KHOÁ, CẢ HAI LÀ GIL 12/2022); LỘ THÊM: WALK-FORWARD KHÔNG XÉT CẮT LỖ Ở PHIÊN CHỈ-KHỚP (20/10/2026)
+
+**Mốc:** B3 — sổ bài học học từ chính các lệnh cắt lỗ; giá khớp của chúng ở phiên kịch sàn quyết định lỗ thật được ghi
+
+Leader, tại chỗ. Người dùng chốt 20/10 qua hộp hỏi: sửa mô hình khớp, *"Sửa, làm sau 21/10 (Recommended)"*; định nghĩa, *"Một giá + đổi ≥ 90% biên (Recommended)"*; mua gặp kịch trần, *"Huỷ lệnh (Recommended)"*; cache đo, *"Cache gốc acf6dca1 (Recommended)"*; bản khai, *"Duyệt cả bản nháp (Recommended)"*. Rồi *"làm tiếp đi"* → làm ngay trên nhánh, **merge SAU lượt đọc 2 của ĐO 27 (21/10)**. Không đọc sổ thật (lệnh đóng sau 15/10 là quần thể ĐO 27).
+
+**Đã làm (bốn commit).**
+- `059e456` — ký ĐO 28 ở `docs/TIEU-CHI-DOC-TRUOC.md`, commit riêng, trước mã và lượt chạy.
+- `3b5ff29` — mô hình: `vong_doi_lenh.khoa_bien` (`KICH_TRAN` · `KICH_SAN` · `TY_LE_NHAN_KHOA_BIEN` = 0,9). `paper_trading` (tầng 2, sau `MO_PHONG_TRUOT_GIA`): `fill_pending` mua gặp kịch trần → `HUY`, lý do `LY_DO_KICH_TRAN`; `evaluate_open` cắt lỗ chạm ở kịch sàn → không đóng, không nâng stop, phiên sau xét lại (đường BƯỚC 123); `fill_closing` chờ qua kịch sàn; biên độ tra theo mã. `paper_runner.run_session` đưa giá tham chiếu vào `evaluate_open`.
+- `360274d` — dụng cụ `tools/do28_khoa_bien.py` (đối chứng iii, số đếm), viết và commit TRƯỚC khi đọc lượt chạy.
+- Commit cuối — tài liệu và docstring `_gia_ban_that` (rủi ro không khớp chỉ mô hình hoá ở MỘT chỗ, trước hàm ấy).
+- Gác: `tests/test_khop_kich_tran_san.py` (15; mười test đỏ trên mã cũ, đúng lý do — mua khớp ở kịch trần, cắt lỗ và lệnh chờ bán khớp ở kịch sàn, `run_session` không đưa tham chiếu), `tests/test_do28_khoa_bien.py` (6; thế giới giả sáu phiên tính tay). Đột biến 17/17 đỏ trên mô hình (6 `vong_doi_lenh`, 10 `paper_trading`, 1 `paper_runner`), 6/6 đỏ trên dụng cụ.
+
+**Đếm trước (dữ liệu thị trường, không sổ nào).** Cache hiện tại: 120.375 nến; nến một giá kịch trần 147, kịch sàn 149, một giá không sát biên 108 (chủ yếu VCF khối lượng 100 cổ phiếu, KOS, DCL). Dụng cụ nháp `dem_nen_mot_gia.py`.
+
+**ĐO 28.** Hai worktree tách rời ở `059e456` (A, mô hình cũ) và `3b5ff29` (B, mô hình mới); `tools/do1_chi_phi_thuc_thi.py --mot-luot 2`; `VIBE_CACHE_DIR` trỏ hai bản chép của `scratch/vibe_cache_goc_20260911`; `sl_pattern_memory.json` sha256 `e8b44cf8…`; chạy song song 14:23–14:55.
+
+| lượt | IS ngưỡng 45: lệnh · kỳ vọng | ngưỡng IS chọn | lệnh OOS | alpha | KTC 95% | kỳ vọng OOS | cộng dồn OOS |
+|---|---|---|---|---|---|---|---|
+| A | 891 · −0,04 | 45 | 619 | −1,68% | [−2,24 ; −1,08] | −1,29% | −34,96% |
+| B | 887 · −0,12 | 45 | 617 | −1,68% | [−2,24 ; −1,08] | −1,29% | −34,77% |
+
+- Đối chứng: **(i)** A tái lập ĐO 22 — 619 lệnh, −1,68% [−2,24 ; −1,08], ngưỡng 45; `tools/do20_ghep_tung_lenh.py` A ↔ `scratch/luu_do22/wt_do22_s2`: 619/619 giống hệt. **(ii)** băm hai bản chép cache trước và sau lượt chạy đều `acf6dca1…`. **(iii)** `tools/do28_khoa_bien.py`: 2/2 lệnh A dính phiên khoá khác ở B (mã thoát 0).
+- **Kết cục A — đúng chiều.** Δalpha = 0,00 ở hai chữ số log in ra (|Δ| < 0,01 ≤ +0,05), KTC của B loại 0 → *"THUA chuẩn có ý nghĩa"* đứng; ngưỡng IS không đổi. `CLAUDE.md` thêm một dòng dưới bảng chi phí, bốn dòng cũ giữ nguyên.
+- Lệnh dính khoá: 33 mã OOS có 89 phiên khoá biên (46 trần, 43 sàn); A vào ở kịch trần 0, ra ở kịch sàn 2 — cả hai GIL. Ghép A ↔ B: 616 giống hệt; 1 khác (GIL tín hiệu 14/12/2022: A ra 16/12 ở 16.800, B ra 22/12 ở 16.200); 2 chỉ ở A (GIL tín hiệu 16/12 — ở B vị thế trước còn mở; HAG tín hiệu 20/12, vào ở phiên thường — dây chuyền trần vốn của chế độ theo ngày); 0 chỉ ở B. B: `HUY` vì kịch trần 0.
+- Dải IS dòng 45 xấu đi (891 · −0,04 → 887 · −0,12), chiều an toàn. Cộng dồn OOS nhích lên 0,19 điểm vì hai lệnh lỗ của A biến mất; alpha — thước quyết định — không đổi.
+
+**Lộ thêm — walk-forward không xét cắt lỗ ở phiên chỉ-khớp.** GIL khoá sàn 16, 19, 20/12/2022; phiên mở khoá 21/12 mở 13,59, đáy 13,59 — dưới SL 18.139 xa. Lưới chấm theo ngày (stride 2) qua 12, 14, 16, 20, 22, 26/12; 21/12 là phiên chỉ-khớp và `run_session` trả về TRƯỚC `evaluate_open`, nên B ra 22/12 ở min(SL, mở 16,30) → 16.200 sau trượt. Xét cắt lỗ mọi phiên thì lệnh ra 21/12 quanh 13.590 — ƯỚC LƯỢNG, chưa chạy. Điều này không mới về cơ chế: `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 2 viết *"một cây thủng stop-loss ở `t+1` vẫn vô hình, y như hôm nay"* và giữ nguyên có chủ đích. Cái mới là chỗ phép bác cũ không thấy: BƯỚC 26 bác giả thuyết *"stride=2 bỏ sót lệnh chạm cắt lỗ"* bằng TỶ LỆ lệnh đóng bằng cắt lỗ (71,8% / 69,9%), còn ca GIL là GIÁ khớp — phiên bị bỏ qua làm giá ra đẹp lên mà tỷ lệ không đổi. Chiều: lạc quan (Quy tắc 1). Cỡ: chưa đo; đổi lưới xét cắt lỗ là một ĐO mới, người dùng quyết.
+
+**Giả thuyết bị bác / ước lượng đã sai.** Số đếm *"lệnh ra ngay sau chuỗi phiên kịch sàn"* của dụng cụ ra 0 dù lệnh GIL của B có bị dời: phiên ngay trước ngày ra (21/12) là phiên mở khoá, không phải kịch sàn — định nghĩa đếm không bắt được ca dời bị stride kéo dài. Báo đúng như máy in, không sửa định nghĩa sau khi nhìn số. Ước 15/10 (cache hiện tại) là 2/619 lệnh ra ở kịch sàn, −0,038 điểm/lệnh; trên cache `acf6dca1…` cũng 2/619 nhưng alpha không nhúc nhích ở hai chữ số — một lệnh xấu đi, hai lệnh lỗ biến mất theo dây chuyền.
+
+**Giới hạn đã biết.** UPCoM lấy tham chiếu là giá bình quân phiên trước, ở đây là giá đóng cửa (cùng phần dư của `BIEN_DO_KIEM_GIA_MO`). Khoá biên một phần và trần khối lượng của lệnh bán chưa mô hình hoá. Lệnh còn kẹt khi hết dữ liệu: `dong_so_sach` đóng như cũ; chưa đếm. Ba dòng còn lại của bảng chi phí chưa chạy lại.
+
+**Sổ tay — hỏi thật** (câu nguyên văn trong `docs/soat-notebooklm.json`). Ba phát hiện; cả ba trích dẫn KHỚP (`tools/doi_chieu_trich_dan.py`), hai cái sai tiêu đề:
+1. `CLAUDE.md` *"Không bao giờ suy trần bằng ngưỡng phần trăm"* (thật ở mục *Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá*) — luật của MÀU bảng giá; dòng mới của `CLAUDE.md` nói rõ ranh giới.
+2. `docs/STATE.md` bảng *Đường nối* (24/08; sổ tay gọi là BƯỚC 41): *"không qua vòng đời lệnh — một vị thế đang mở phải thoát được…"* — gắn ⚠️ tại chỗ; vế "không qua vòng đời lệnh" vẫn đúng.
+3. `NGUYEN-TAC-DO-LUONG.md` bất biến 3 (thật tên *"Giả định bất lợi khi nến không phân định được"*): *"Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA"* — thêm một đoạn về phiên kịch trần/sàn.
+
+Quét câu âm (`grep` *khớp ngay · luôn khớp · phải thoát được · không thể kẹt* trên tài liệu sống): không thấy câu nào khác. Độ tươi: sổ chụp `3c2fd2c`; `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`, `docs/QUYET-DINH-CHO.md` giống hệt `efa6a58` (`git diff`); `docs/STATE.md` thiếu BƯỚC 202–208 (B1, quy trình — không chạm khớp lệnh).
+
+**Bảng lỗi.** Lỗi 184 (`chua-do`, 48 ngày theo git: `8c7efe5` 28/08 nối lối bán không qua vòng đời lệnh — lộ 15/10); dòng tự khai 91/164.
+
+**Việc kế.** Merge sau lượt đọc 2 ĐO 27 (21/10); sổ thật theo mô hình mới từ lượt quét đầu tiên sau merge. Rồi bản thiết kế ý 5 (tra tiền lệ) — dựng kho từ sổ OOS của lượt B (sổ hai lượt lưu ở `scratch/luu_do28/`: `A_wf_oos.db`, `B_wf_oos.db`). Chờ người dùng: có mở một ĐO cho cắt lỗ ở phiên chỉ-khớp không.
