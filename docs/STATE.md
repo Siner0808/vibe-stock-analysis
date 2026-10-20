@@ -23521,3 +23521,22 @@ Leader, tại chỗ (người dùng: *"ok làm tiếp đi"*, 20/10; việc của
 **Bảng lỗi.** Lỗi 183 (`gac-hong`, sống 10 ngày theo git: từ cặp trùng tên đầu tiên 07/10 tới 17/10); dòng tự khai 91/163 (`tools/doc_bang_loi.py`).
 
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 210 — THIẾT KẾ Ý 5 "TRA TIỀN LỆ, CHỈ ĐỂ HIỆN": NGƯỜI DÙNG CHỐT TỪNG PHẦN; CHIỀU "VN-INDEX TRÊN/DƯỚI MA50" VÔ DỤNG (617/617 LỆNH TRÊN MA50) NÊN "GIỐNG" ĐỔI THÀNH DẢI ĐIỂM × ĐỘ CAO VN-INDEX (20/10/2026)
+
+**Mốc:** B3 — người dùng học từ sổ: mỗi lệnh trong nhật ký hiện những lệnh cũ cùng bối cảnh đã kết thúc ra sao
+
+Leader, tại chỗ. Chỉ thêm `docs/thiet-ke-y5-tien-le.md` và mục này; chưa có dòng mã nào, không đổi luật, điểm, ngưỡng, lệnh, sổ hay kết luận đo. Ý 5 đến từ lượt tra ngoài 15–16/10 (bảng 7 ý tưởng); người dùng chọn bàn nó rồi duyệt từng phần (nguyên văn trong mục 1 của bản thiết kế).
+
+**Số đếm làm đổi thiết kế (chỉ đếm, không nhìn kết cục; sổ OOS lượt B của ĐO 28 ở `scratch/luu_do28/B_wf_oos.db`, dụng cụ nháp `do_kho_tien_le.py`, `dem_khoa_thay.py`).**
+- Cổng mở lệnh bỏ qua mọi tín hiệu khi VN-Index dưới MA50 (`paper_trading.py`, `consider_entry`), nên 617/617 lệnh có VN-Index trên MA50 ngày tín hiệu: chiều "trên/dưới MA50" của bản lần 1 không phân biệt được gì.
+- Lượt walk-forward chọn ngưỡng 45 trên IS: 498/617 lệnh OOS điểm < 62, 93 lệnh 62–69, 26 lệnh ≥ 70. Lệnh thật luôn ≥ `BUY_THRESHOLD`, nên kho chỉ lấy 119 lệnh ≥ 62.
+- Trên 119 lệnh ấy, lệnh nằm trong nhóm ≥ 10 tiền lệ: ngành × dải điểm 29 (24%); chỉ ngành 64 (54%); dải điểm × nấc VN-Index cao hơn MA50 (0–2% / 2–5% / ≥ 5%) 107 (90%); ngành × nấc VN-Index 21 (18%). Người dùng chọn *"Dải điểm × độ cao VNI (Recommended)"*. Hai biên 2% · 5% chọn theo số lệnh mỗi nấc trên cả kho (396 / 180 / 41).
+
+**Thiết kế (tóm tắt; chi tiết trong tệp).** Kho = sổ OOS dòng "BẬT · theo ngày" của máy đo cuối cùng trên cache `acf6dca1…` (điểm ≥ `BUY_THRESHOLD`, tệp JSON trong repo) + lệnh thật từ nhật ký; khoá nhóm (dải điểm, nấc VN-Index), `vni_pct_tren_ma50` tính bằng đúng `nhat_ky_vi_sao.vni_so_voi_ma50`; tiền lệ chỉ gồm lệnh có ngày RA < ngày VÀO; hiện tỷ lệ thắng nhóm (Wilson) CẠNH tỷ lệ nền, nhóm < 10 thì "chưa đủ tiền lệ"; thắng/thua theo `so_bai_hoc.ket_qua_lenh`; module thuần `tien_le.py`, gác AST CHỈ ĐỂ HIỆN.
+
+**Giả thuyết bị bác.** Bản lần 1 (*"Cùng bối cảnh"*: ngành × VN-Index trên/dưới MA50 × dải điểm) do leader đề xuất mà không kiểm cổng mở lệnh — chiều thứ hai là hằng số theo cấu tạo. Phát hiện lúc soạn thiết kế, trước dòng mã nào.
+
+**Việc kế.** Làm mã SAU ĐO 29 (kho dựng từ sổ OOS của máy đo cuối cùng): PR 1 module thuần + dụng cụ + tệp kho + test; PR 2 khối trên app.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
