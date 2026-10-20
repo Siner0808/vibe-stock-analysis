@@ -23492,3 +23492,32 @@ Phiên con của leader, worktree `vibe_wt_207`. Không đổi mã sản phẩm,
 **Bảng lỗi.** Lỗi 182 (`gac-hong`, sống 1 ngày theo git: sinh ở `35dbe19` 16/10, lộ 17/10); dòng tự khai 91/162.
 
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 208 — GÁC TÊN TÀI LIỆU GOM MODULE TRÙNG TÊN BẰNG PHÉP HỢP, KHÔNG GÁN ĐÈ: TÊN CỦA MODULE Ở GỐC HẾT BỊ MODULE CÙNG TÊN TRONG `tools/` CHE (20/10/2026)
+
+**Mốc:** quy-trinh — gác tên tài liệu báo chết giả khi module gốc trùng tên module `tools/` (lộ ở BƯỚC 205, lỗi 183)
+
+Leader, tại chỗ (người dùng: *"ok làm tiếp đi"*, 20/10; việc của chip mở 17/10). Chỉ sửa `tests/test_tai_lieu_khop_ten_ma.py`; không đổi mã sản phẩm, điểm, ngưỡng, sổ hay kết luận đo nào.
+
+**Sự cố.** 17/10 (BƯỚC 205): `docs/HANDOFF.md` ghi tên hằng `NGAY_HAU_KIEM_LOI_BAT_DAU` dạng mô-đun-chấm-tên — hằng CÓ THẬT trong `hau_kiem_loi.py` ở gốc — và gác báo con trỏ chết. `_cac_module` quét `THU_MUC` (gốc, `tools/`, `backtest/`) và gán `ra[p.stem] = …`, nên `tools/hau_kiem_loi.py` (đọc sau) đè tập tên của module gốc. BƯỚC 205 lách bằng cách viết tên tệp trong HANDOFF.
+
+**Đo (dụng cụ nháp ngoài repo `do_trung_ten_208.py`, `dem_ten_bi_de.py`; gọi đúng `_ten_cap_module` của gác).**
+- Năm cặp trùng tên, đều gốc ↔ `tools/`: `ban_tin`, `cham_xac_nhan`, `hau_kiem_loi`, `keo_bang_gia`, `suc_khoe`; `backtest/` không trùng tên nào.
+- Dưới phép gán đè, 239 tên cấp module của năm module gốc bị che: `ban_tin` 75/75, `cham_xac_nhan` 23/23, `hau_kiem_loi` 81/81, `keo_bang_gia` 9/9, `suc_khoe` 51/52.
+- `CLAUDE.md` và `docs/HANDOFF.md` hôm nay có 0 cặp mô-đun-chấm-tên chạm năm module ấy, nên bản sửa không đổi phán quyết của gác trên tài liệu hiện có.
+- Theo git: phép gán đè có từ `a3846fb` (05/09); cặp trùng tên đầu tiên sinh 07/10 (`88f1dd6` `cham_xac_nhan`, `b14d270` `keo_bang_gia`) → lỗi tiềm ẩn 10 ngày tới lúc lộ.
+
+**Sửa.** `_cac_module(goc=GOC)` gom HỢP: `ra.setdefault(p.stem, set()).update(_ten_cap_module(p))` — một tên sống khi có trong ít nhất một tệp cùng tên; tên không tệp nào có vẫn chết. Tham số `goc` để test dựng thư mục giả.
+
+**Gác.**
+- `test_CA_THAT_17_10_ten_cua_module_GOC_trung_ten_voi_TOOLS_van_SONG`: dựng lại nguyên văn ca thật — hằng của module gốc VÀ `main` (chỉ có ở `tools/hau_kiem_loi.py`) đều phải sống; đỏ trên mã cũ với đúng câu báo "tên của module GỐC bị coi là chết".
+- `test_MODULE_TRUNG_TEN_o_BA_thu_muc_gom_HOP_khong_DE`: thư mục giả có cùng một tên tệp ở cả ba tầng, đi qua `_con_tro_chet` (hàm PHÁN); tên không có ở tệp nào vẫn chết.
+- Đột biến `va_an_toan.dot_bien_bo`, 6/6 đỏ: D01 gán đè (nguyên văn lỗi); D02 đè ngược (tệp đọc trước thắng); D03 giao thay cho hợp; D04 bỏ `goc`, luôn quét repo thật; D05 bỏ `backtest/`; D06 bỏ gốc. Riêng test ca thật bắt D01–D02; riêng test thư mục giả bắt D01–D05.
+
+**Quét lớp.** `grep` các khoá và phép gom theo `.stem` trong `*.py`: các chỗ khác chỉ gom trong MỘT thư mục (tệp cache CSV) hoặc dựng TẬP tên — không chỗ nào khác ánh xạ tên tệp sang nội dung qua nhiều thư mục.
+
+**Không làm.** Không viết lại câu HANDOFF về dạng mô-đun-chấm-tên (câu tên tệp hiện tại đúng). Không có máy chặn một gác MỚI gom đè theo tên tệp — lỗi 183 ⚠️ một phần.
+
+**Bảng lỗi.** Lỗi 183 (`gac-hong`, sống 10 ngày theo git: từ cặp trùng tên đầu tiên 07/10 tới 17/10); dòng tự khai 91/163 (`tools/doc_bang_loi.py`).
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
