@@ -108,12 +108,20 @@ def _ten_cap_module(p: Path) -> set[str]:
     return ra
 
 
-def _cac_module() -> dict[str, set[str]]:
+def _cac_module(goc: Path = GOC) -> dict[str, set[str]]:
+    """Tên tệp -> tập tên cấp module, HỢP qua mọi thư mục của `THU_MUC`.
+
+    Tài liệu viết `module.tên`, không viết thư mục, nên hai tệp cùng tên ở gốc và
+    `tools/` là MỘT khoá. Bản cũ gán đè (`ra[p.stem] = …`): tệp đọc sau xoá tập tên
+    của tệp đọc trước, và ngày 17/10/2026 hằng số có thật của `hau_kiem_loi.py` ở gốc
+    bị báo chết (BƯỚC 205, lỗi 183). Gom HỢP: một tên sống khi CÓ trong ít nhất một
+    tệp cùng tên.
+    """
     ra: dict[str, set[str]] = {}
     for tm in THU_MUC:
-        thu_muc = GOC / tm if tm else GOC
+        thu_muc = goc / tm if tm else goc
         for p in sorted(thu_muc.glob("*.py")):
-            ra[p.stem] = _ten_cap_module(p)
+            ra.setdefault(p.stem, set()).update(_ten_cap_module(p))
     return ra
 
 
@@ -202,6 +210,48 @@ def test_MAY_DO_tu_chung_minh_no_bat_duoc():
     # Module không thuộc dự án thì không phải việc của gác này.
     assert _cap_can_kiem("`khong_phai_module_du_an.gi_do`", mods) == [], \
         "gác đang phán về module không có trong dự án"
+
+
+def test_CA_THAT_17_10_ten_cua_module_GOC_trung_ten_voi_TOOLS_van_SONG():
+    """Dựng lại nguyên văn ca 17/10/2026 (BƯỚC 205, lỗi 183).
+
+    `docs/HANDOFF.md` ghi `hau_kiem_loi.NGAY_HAU_KIEM_LOI_BAT_DAU` — hằng số CÓ THẬT
+    trong `hau_kiem_loi.py` ở gốc — mà gác báo con trỏ chết: bản gom theo tên tệp để
+    `tools/hau_kiem_loi.py` (cùng tên) ĐÈ tập tên của module gốc. BƯỚC 205 lách bằng
+    cách viết lại câu trong HANDOFF; đây là chỗ sửa gác.
+    """
+    mods = _cac_module()
+    for tm in ("", "tools"):
+        assert (GOC / tm / "hau_kiem_loi.py").is_file(), (
+            "ca thật cần CẢ HAI tệp `hau_kiem_loi.py` (gốc và tools/) — đổi tên "
+            "một bên thì sửa test này CÓ CHỦ ĐÍCH")
+    assert _con_tro_chet("`hau_kiem_loi.NGAY_HAU_KIEM_LOI_BAT_DAU`", mods) == [], (
+        "tên của module GỐC bị coi là chết vì module cùng tên ở tools/ đè lên")
+    assert _con_tro_chet("`hau_kiem_loi.main`", mods) == [], (
+        "tên của module ở tools/ bị coi là chết — gom phải là HỢP, không phải đè "
+        "theo chiều ngược lại")
+
+
+def test_MODULE_TRUNG_TEN_o_BA_thu_muc_gom_HOP_khong_DE(tmp_path):
+    """Ba tệp cùng tên ở gốc, `tools/`, `backtest/`: tên của CẢ BA phải sống, và tên
+    không có ở tệp nào vẫn chết. Đi qua `_cac_module` thật (thư mục giả) rồi qua
+    `_con_tro_chet` — hàm PHÁN, không phải hàm trích."""
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "backtest").mkdir()
+    (tmp_path / "x_trung.py").write_text("HANG_GOC = 1\n", encoding="utf-8")
+    (tmp_path / "tools" / "x_trung.py").write_text(
+        "def ham_tools():\n    return 1\n", encoding="utf-8")
+    (tmp_path / "backtest" / "x_trung.py").write_text(
+        "class LopBacktest:\n    pass\n", encoding="utf-8")
+    (tmp_path / "x_rieng.py").write_text("RIENG = 1\n", encoding="utf-8")
+
+    mods = _cac_module(tmp_path)
+    assert mods["x_rieng"] == {"RIENG"}
+    src = ("`x_trung.HANG_GOC` `x_trung.ham_tools` `x_trung.LopBacktest` "
+           "`x_trung.khong_co_o_dau` `x_rieng.RIENG`")
+    assert _con_tro_chet(src, mods) == ["x_trung.khong_co_o_dau"], (
+        "gom theo tên tệp phải là HỢP: tên của mọi tệp cùng tên đều sống, tên "
+        "không tệp nào có thì vẫn chết")
 
 
 def test_HAI_CON_TRO_CHET_cua_05_09_khong_duoc_quay_lai():
