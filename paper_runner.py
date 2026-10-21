@@ -16,7 +16,8 @@ THỨ TỰ TRONG MỘT PHIÊN — KHÔNG ĐƯỢC ĐỔI
 ────────────────────────────────────────
     1. fill_pending  (khớp lệnh VÀO ở giá mở cửa hôm nay)
     2. fill_closing  (khớp lệnh RA ở giá mở cửa hôm nay)
-    3. evaluate_open (xét SL/TP bằng nến hôm nay)
+    3. evaluate_open (xét SL/TP bằng nến hôm nay) — phiên CHỈ-KHỚP của
+       walk-forward chỉ xét lệnh đặt sẵn: xet_lenh_dat_san (ĐO 29)
     4. consider_entry(tín hiệu hôm nay -> chờ khớp phiên sau)
 
 Bước 4 phải ở CUỐI. Nếu tính tín hiệu rồi khớp luôn trong cùng phiên thì
@@ -299,6 +300,10 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     stats["filled_out"] = journal.fill_closing(symbol, session_date,
                                                bar["open"], _nen)
 
+    # Kèm giá tham chiếu: không có nó thì `khoa_bien` không phân được phiên
+    # kịch sàn, và cắt lỗ khớp ở phiên trắng bên mua (ĐO 28, BƯỚC 209).
+    _bar = dict(bar, tham_chieu=_nen["tham_chieu"]) if _nen else bar
+
     if chi_khop:
         # Phiên ghé CHỈ để KHỚP — không chấm, không quyết định, không gọi
         # `_analyze`. Đây là toàn bộ nội dung của ĐO 2: `stride` sinh ra để
@@ -306,6 +311,12 @@ def run_session(journal: PaperTradingJournal, symbol: str,
         # nên độ trễ khớp bị dính vào nó. Xem `walkforward.diem_ghe()` và
         # `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 2.
         #
+        # Lệnh ĐẶT SẴN (cắt lỗ) thì vẫn xét: nó nằm ở sàn và khớp khi giá chạm,
+        # không cần ai chấm (ĐO 29, BƯỚC 212). Trước đó cây thủng SL ở phiên này
+        # vô hình tới phiên chấm sau — giá ra đẹp hơn thật (GIL 21/12/2022).
+        # Nâng stop, thoát theo tín hiệu, trần thời gian: vẫn chỉ ở phiên chấm.
+        stats["closed"] = len(journal.xet_lenh_dat_san(symbol, session_date,
+                                                       _bar))
         # `final_score` để None chứ KHÔNG để 50 hay 0: phiên này không chấm
         # điểm, và một con số ở đây sẽ đi vào báo cáo như thể có ai đã chấm.
         stats["final_score"] = None
@@ -314,9 +325,6 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     result = None
     if journal.open_position(symbol) is not None:
         result = _analyze(symbol, history, exchange, session_date)
-        # Kèm giá tham chiếu: không có nó thì `khoa_bien` không phân được phiên
-        # kịch sàn, và cắt lỗ khớp ở phiên trắng bên mua (ĐO 28, BƯỚC 209).
-        _bar = dict(bar, tham_chieu=_nen["tham_chieu"]) if _nen else bar
         closed = journal.evaluate_open(symbol, session_date, _bar,
                                        current_score=int(result["final_score"]))
         stats["closed"] = len(closed)

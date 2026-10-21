@@ -3409,6 +3409,86 @@
     "BƯỚC 213": {
       "ngay": "2026-10-21",
       "khong_bat_buoc_vi": "BƯỚC chỉ ghi lượt soát định kỳ 13 vào docs/soat-dinh-ky.json (68 lời khai phán lại bằng lệnh hôm nay), thêm hai ô ⚠️ có ngày vào docs/HANDOFF.md (số hiệu CI của pyarrow; câu về ~/.claude/rules/vibe-preview.md), ghi ✅ lượt 13 và hạn lượt 14 ở khối Hạn kế, và thêm mục BƯỚC 213 vào docs/STATE.md cùng mục này; không sửa file luật nào (ba chỗ sai một phần trong SKILL.md, CLAUDE.md và docs/TIEU-CHI-DOC-TRUOC.md được ghi vào mục Chờ leader để leader hỏi sổ tay thật), không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là số lời khai và số câu ứng viên đếm bằng công cụ hôm nay."
+    },
+    "BƯỚC 212": {
+      "ngay": "2026-10-21",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "Nạp lại 3 nguồn (leader, khung trình duyệt trong app, 21/10/2026): CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, docs/TIEU-CHI-DOC-TRUOC.md ghim ed9a9ab (URL raw ghim băm; curl 200, khớp từng byte 30919 · 15820 · 273010 với git show). Thứ tự THÊM → đổi tên '<file> @ed9a9ab' → đo độ tươi bản MỚI → XOÁ ba bản cũ @3c2fd2c · @4194c57 · @9ec0556 (đọc nhãn 'Xoá <nhãn>?' trên hộp xác nhận từng cái); 18 nguồn sau lượt. Đo độ tươi lượt 1: TIEU-CHI trích đúng hai câu cuối tệp (ĐO 28); CLAUDE.md và NGUYEN-TAC trả 'không có' câu mới. Lượt 2: NGUYEN-TAC trích đúng câu 'phiên trắng một bên … phiên mở khoá' của bất biến 3; CLAUDE.md vẫn không thấy '617 lệnh' (trích dẫn dừng ở 'cho dòng BẬT · theo ngày'), nhưng trình xem nguồn CLAUDE.md @ed9a9ab CÓ đoạn ĐO 28 và dòng cuối tệp (document.body.innerText) — nạp đủ, mô hình đọc sót. Không nạp lại: docs/STATE.md (khúc dán @3c2fd2c, BƯỚC 2–201; thiếu 202–211 — BƯỚC 209 chính là chỗ ghi ca GIL sinh ra ĐO 29); git diff --shortstat <ghim> ed9a9ab rỗng cho MO-XE @13c32a0, LO-TRINH @b353c16, QUYET-DINH-CHO @1238343, bay.md @13c32a0, cong-thuc-chay.md @3c2fd2c; lệch ở HANDOFF @3c2fd2c (+19, B1), SKILL.md @3c2fd2c (2/2), loi-da-mac.md @1d1d4d6 (+7/−2, lỗi 182–184), soat-cheo @1d1d4d6 (+30/−3) — grep 'stride|cắt lỗ|chỉ-khớp|stop' trên phần lệch: 1 dòng, hàng lỗi 184 (ĐO 28), không chạm cắt lỗ ở phiên chỉ-khớp.",
+      "cau_hoi": "I am about to write BƯỚC 212 into docs/STATE.md: ĐO 29 is signed in docs/TIEU-CHI-DOC-TRUOC.md, and the walk-forward will check the resting stop-loss of every open position on EVERY session, including the fill-only sessions that walkforward.py inserts between graded sessions (stride 2, run_session with chi_khop=True), through one function shared with evaluate_open: never on the entry session, low <= stop fills at min(stop, open) via _gia_ban_that, a single-price limit-down lock waits as in ĐO 28; raising the stop (trailing, breakeven), signal exits and the time limit still happen only on graded sessions; the real-ledger path run_daily grades every session and has no fill-only session, so the real ledger does not change; the row 'BẬT · theo ngày' is re-measured on cache acf6dca1 and read as outcome A, A′, B or C with thresholds of -0.29 and +0.05 points of alpha. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that stride only thins out decision points while every order and stop is still checked on each session, or that BƯỚC 26 settled that stride 2 does not miss stop-loss exits, or that ĐO 2 kept the t+1 stop-loss blind spot on purpose and it must stay, or that changing the measuring machine requires re-running all four rows of the cost table in CLAUDE.md, or that the real ledger also checks stops only every second session. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "docs/TIEU-CHI-DOC-TRUOC.md, mục ĐO 2, '### Phép tách đề xuất': 'Phiên t+1 vẫn không được chấm — nên một cây thủng stop-loss ở t+1 vẫn vô hình, y như hôm nay. Đó là chủ đích: giữ nguyên mọi thứ trừ đúng một biến.' và 'Ghé mọi phiên để KHỚP; ghé các phiên cách nhau stride để CHẤM và RA QUYẾT ĐỊNH.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py cho từng câu -> KHỚP — TIEU-CHI-DOC-TRUOC.md (cả hai); grep -n 'cây thủng stop-loss' docs/TIEU-CHI-DOC-TRUOC.md -> :400 (ĐO 2) và :4266 (Đã tra trùng của ĐO 29)",
+          "phan_quyet": "THẬT — câu đầu là thiết kế CÓ CHỦ ĐÍCH của ĐO 2 (đổi đúng một biến), viết ở thì hiện tại; ĐO 29 đã nêu nó ở 'Đã tra trùng'. Khi mã BƯỚC 212 vào, vế 'vẫn vô hình' hết đúng cho máy đo: BƯỚC 212 thêm dấu ⚠️ có ngày ngay sau đoạn ấy, giữ nguyên câu cũ làm sử liệu. Câu thứ hai KHÔNG bị nói ngược: cắt lỗ là lệnh đặt sẵn, xét nó ở phiên chỉ-khớp là KHỚP; lưới CHẤM và tập QUYẾT ĐỊNH không đổi."
+        },
+        {
+          "noi_dung": "Sổ tay ghi 'CLAUDE.md @ed9a9ab', tiêu đề '## Backtest khớp lệnh ở T+2, đường chạy thật khớp ở T+1 (04/09/2026)': 'walkforward.diem_ghe() tách hai thứ ấy — ghé thêm phiên để KHỚP, không ghé thêm để CHẤM hay RA QUYẾT ĐỊNH' và 'Ba điều kiện của phép cài đặt, đã ký và khoá bởi tests/test_do_tre_khop.py: … tập phiên CHẤM không đổi · tập phiên QUYẾT ĐỊNH không đổi.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py cho hai câu -> KHỚP — CLAUDE-md-2026-09-30.md (bản lưu docs/lich-su/), KHÔNG phải CLAUDE.md hiện hành; tiêu đề ấy không có trong CLAUDE.md @ed9a9ab (mục hiện hành: '### Backtest khớp T+1 (mặc định từ 10/09/2026)')",
+          "phan_quyet": "SAI — sai tên file (trích đúng chữ của bản lưu docs/lich-su/CLAUDE-md-2026-09-30.md), và không mâu thuẫn: ĐO 29 giữ nguyên lưới CHẤM và tập QUYẾT ĐỊNH, chỉ xét lệnh đặt sẵn ở phiên đã ghé để KHỚP; tests/test_do_tre_khop.py vẫn canh hai tập ấy và chạy trong năm cổng của BƯỚC 212."
+        },
+        {
+          "noi_dung": "docs/STATE.md BƯỚC 26, '##### Giả thuyết 1 — stride=2 bỏ sót lệnh chạm cắt lỗ. BỊ BÁC.': 'Dữ liệu: tỷ lệ đóng bằng STOP_LOSS là 71,8% (stride=2) so với 69,9% (stride=1). Không có dấu vết của việc bỏ sót.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"Dữ liệu: tỷ lệ đóng bằng STOP_LOSS là 71,8% …\" -> KHỚP — STATE.md; grep -n 'Lộ thêm — walk-forward không xét cắt lỗ' docs/STATE.md -> BƯỚC 209 (ca GIL)",
+          "phan_quyet": "THẬT — câu có; phép bác đo TỶ LỆ lệnh đóng bằng cắt lỗ, không đo GIÁ khớp, và BƯỚC 209 đã ghi phản ví dụ GIL 12/2022. STATE là nhật ký chỉ-thêm nên không sửa BƯỚC 26; mục BƯỚC 212 ghi rõ phép bác cũ không nhìn giá và ghi kết cục ĐO 29."
+        }
+      ]
+    },
+    "ĐO 29": {
+      "ngay": "2026-10-21",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "CÙNG lượt hỏi với BƯỚC 212 (một câu, một lần gửi, 21/10/2026): nội dung được soát là mô hình của ĐO 29 đã ký ở c4d01ed. Nạp lại 3 nguồn (leader, khung trình duyệt trong app, 21/10/2026): CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, docs/TIEU-CHI-DOC-TRUOC.md ghim ed9a9ab (URL raw ghim băm; curl 200, khớp từng byte 30919 · 15820 · 273010 với git show). Thứ tự THÊM → đổi tên '<file> @ed9a9ab' → đo độ tươi bản MỚI → XOÁ ba bản cũ @3c2fd2c · @4194c57 · @9ec0556 (đọc nhãn 'Xoá <nhãn>?' trên hộp xác nhận từng cái); 18 nguồn sau lượt. Đo độ tươi lượt 1: TIEU-CHI trích đúng hai câu cuối tệp (ĐO 28); CLAUDE.md và NGUYEN-TAC trả 'không có' câu mới. Lượt 2: NGUYEN-TAC trích đúng câu 'phiên trắng một bên … phiên mở khoá' của bất biến 3; CLAUDE.md vẫn không thấy '617 lệnh' (trích dẫn dừng ở 'cho dòng BẬT · theo ngày'), nhưng trình xem nguồn CLAUDE.md @ed9a9ab CÓ đoạn ĐO 28 và dòng cuối tệp (document.body.innerText) — nạp đủ, mô hình đọc sót. Không nạp lại: docs/STATE.md (khúc dán @3c2fd2c, BƯỚC 2–201; thiếu 202–211 — BƯỚC 209 chính là chỗ ghi ca GIL sinh ra ĐO 29); git diff --shortstat <ghim> ed9a9ab rỗng cho MO-XE @13c32a0, LO-TRINH @b353c16, QUYET-DINH-CHO @1238343, bay.md @13c32a0, cong-thuc-chay.md @3c2fd2c; lệch ở HANDOFF @3c2fd2c (+19, B1), SKILL.md @3c2fd2c (2/2), loi-da-mac.md @1d1d4d6 (+7/−2, lỗi 182–184), soat-cheo @1d1d4d6 (+30/−3) — grep 'stride|cắt lỗ|chỉ-khớp|stop' trên phần lệch: 1 dòng, hàng lỗi 184 (ĐO 28), không chạm cắt lỗ ở phiên chỉ-khớp.",
+      "cau_hoi": "I am about to write BƯỚC 212 into docs/STATE.md: ĐO 29 is signed in docs/TIEU-CHI-DOC-TRUOC.md, and the walk-forward will check the resting stop-loss of every open position on EVERY session, including the fill-only sessions that walkforward.py inserts between graded sessions (stride 2, run_session with chi_khop=True), through one function shared with evaluate_open: never on the entry session, low <= stop fills at min(stop, open) via _gia_ban_that, a single-price limit-down lock waits as in ĐO 28; raising the stop (trailing, breakeven), signal exits and the time limit still happen only on graded sessions; the real-ledger path run_daily grades every session and has no fill-only session, so the real ledger does not change; the row 'BẬT · theo ngày' is re-measured on cache acf6dca1 and read as outcome A, A′, B or C with thresholds of -0.29 and +0.05 points of alpha. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that stride only thins out decision points while every order and stop is still checked on each session, or that BƯỚC 26 settled that stride 2 does not miss stop-loss exits, or that ĐO 2 kept the t+1 stop-loss blind spot on purpose and it must stay, or that changing the measuring machine requires re-running all four rows of the cost table in CLAUDE.md, or that the real ledger also checks stops only every second session. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "docs/TIEU-CHI-DOC-TRUOC.md, mục ĐO 2, '### Phép tách đề xuất': 'Phiên t+1 vẫn không được chấm — nên một cây thủng stop-loss ở t+1 vẫn vô hình, y như hôm nay. Đó là chủ đích: giữ nguyên mọi thứ trừ đúng một biến.' và 'Ghé mọi phiên để KHỚP; ghé các phiên cách nhau stride để CHẤM và RA QUYẾT ĐỊNH.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py cho từng câu -> KHỚP — TIEU-CHI-DOC-TRUOC.md (cả hai); grep -n 'cây thủng stop-loss' docs/TIEU-CHI-DOC-TRUOC.md -> :400 (ĐO 2) và :4266 (Đã tra trùng của ĐO 29)",
+          "phan_quyet": "THẬT — câu đầu là thiết kế CÓ CHỦ ĐÍCH của ĐO 2 (đổi đúng một biến), viết ở thì hiện tại; ĐO 29 đã nêu nó ở 'Đã tra trùng'. Khi mã BƯỚC 212 vào, vế 'vẫn vô hình' hết đúng cho máy đo: BƯỚC 212 thêm dấu ⚠️ có ngày ngay sau đoạn ấy, giữ nguyên câu cũ làm sử liệu. Câu thứ hai KHÔNG bị nói ngược: cắt lỗ là lệnh đặt sẵn, xét nó ở phiên chỉ-khớp là KHỚP; lưới CHẤM và tập QUYẾT ĐỊNH không đổi."
+        },
+        {
+          "noi_dung": "Sổ tay ghi 'CLAUDE.md @ed9a9ab', tiêu đề '## Backtest khớp lệnh ở T+2, đường chạy thật khớp ở T+1 (04/09/2026)': 'walkforward.diem_ghe() tách hai thứ ấy — ghé thêm phiên để KHỚP, không ghé thêm để CHẤM hay RA QUYẾT ĐỊNH' và 'Ba điều kiện của phép cài đặt, đã ký và khoá bởi tests/test_do_tre_khop.py: … tập phiên CHẤM không đổi · tập phiên QUYẾT ĐỊNH không đổi.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py cho hai câu -> KHỚP — CLAUDE-md-2026-09-30.md (bản lưu docs/lich-su/), KHÔNG phải CLAUDE.md hiện hành; tiêu đề ấy không có trong CLAUDE.md @ed9a9ab (mục hiện hành: '### Backtest khớp T+1 (mặc định từ 10/09/2026)')",
+          "phan_quyet": "SAI — sai tên file (trích đúng chữ của bản lưu docs/lich-su/CLAUDE-md-2026-09-30.md), và không mâu thuẫn: ĐO 29 giữ nguyên lưới CHẤM và tập QUYẾT ĐỊNH, chỉ xét lệnh đặt sẵn ở phiên đã ghé để KHỚP; tests/test_do_tre_khop.py vẫn canh hai tập ấy và chạy trong năm cổng của BƯỚC 212."
+        },
+        {
+          "noi_dung": "docs/STATE.md BƯỚC 26, '##### Giả thuyết 1 — stride=2 bỏ sót lệnh chạm cắt lỗ. BỊ BÁC.': 'Dữ liệu: tỷ lệ đóng bằng STOP_LOSS là 71,8% (stride=2) so với 69,9% (stride=1). Không có dấu vết của việc bỏ sót.'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"Dữ liệu: tỷ lệ đóng bằng STOP_LOSS là 71,8% …\" -> KHỚP — STATE.md; grep -n 'Lộ thêm — walk-forward không xét cắt lỗ' docs/STATE.md -> BƯỚC 209 (ca GIL)",
+          "phan_quyet": "THẬT — câu có; phép bác đo TỶ LỆ lệnh đóng bằng cắt lỗ, không đo GIÁ khớp, và BƯỚC 209 đã ghi phản ví dụ GIL 12/2022. STATE là nhật ký chỉ-thêm nên không sửa BƯỚC 26; mục BƯỚC 212 ghi rõ phép bác cũ không nhìn giá và ghi kết cục ĐO 29."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

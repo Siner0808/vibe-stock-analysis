@@ -400,6 +400,11 @@ hôm nay thì vẫn được soi, không hơn không kém. Phiên `t+1` vẫn **
 được chấm — nên một cây thủng stop-loss ở `t+1` vẫn vô hình, y như hôm
 nay. Đó là chủ đích: giữ nguyên mọi thứ trừ đúng một biến.
 
+> ⚠️ **Vế "cây thủng stop-loss ở `t+1` vẫn vô hình" HẾT ĐÚNG cho máy đo từ BƯỚC 212
+> (ĐO 29, 21/10/2026).** Phiên `t+1` vẫn không được CHẤM, nhưng lệnh đặt sẵn (cắt lỗ) nay được
+> xét ở MỌI phiên — phiên chỉ-khớp gọi `xet_lenh_dat_san`, cùng một hàm với `evaluate_open`.
+> Câu trên giữ nguyên làm sử liệu của thiết kế ĐO 2.
+
 **Tập điểm quyết định KHÔNG đổi.** `consider_entry` vẫn chỉ chạy trên lưới
 `stride`, nên tập tín hiệu là **cùng một tập** — khác hẳn hướng 2, nơi số
 điểm quyết định gấp đôi và tập lệnh khác hẳn.
@@ -4253,3 +4258,56 @@ Khi sổ ảo không còn khớp được ở phiên kịch trần/sàn một gi
 
 ### Điều ĐO này KHÔNG làm
 Không đọc sổ thật: lệnh đóng sau 15/10 là quần thể ĐO 27, và mã mới chỉ đổi sổ thật về sau, khi đã merge. Không chạy lại ba dòng còn lại của bảng, không chạy trên cache hiện tại. Không mô hình hoá khoá biên một phần (nến hai giá nhưng gần như trắng bên), không thêm trần khối lượng cho lệnh bán, không đổi ngưỡng hay điểm.
+
+## ĐO 29 — walk-forward xét LỆNH ĐẶT SẴN (cắt lỗ) ở MỌI phiên, không chỉ phiên chấm: đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 21/10/2026)
+
+> **Khai 21/10/2026, SAU khi #255 (ĐO 28) merge (`ed9a9ab`), TRƯỚC khi có mã sửa và lượt chạy, ở một commit RIÊNG.**
+> - Người dùng chốt 20/10/2026 qua hộp hỏi, nguyên văn: *"Mở ĐO 29, sau khi #255 merge (Recommended)"*.
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 20/10/2026.
+> - Sổ tay hỏi thật ở BƯỚC 212.
+> - Phép đo đổi MÁY ĐO backtest. Đường chạy thật (`run_daily`) chấm mọi phiên, không có phiên chỉ-khớp, nên sổ thật KHÔNG đổi.
+
+**Đã tra trùng:** BƯỚC 46 · BƯỚC 26 · BƯỚC 209 — ba mục đã tra, và hai điều phải khai:
+- BƯỚC 46 (ĐO 2): tách KHỚP (mọi phiên) khỏi CHẤM (cách `stride`); giữ nguyên CÓ CHỦ ĐÍCH *"một cây thủng stop-loss ở `t+1` vẫn vô hình, y như hôm nay"* để chỉ đổi một biến.
+- BƯỚC 26: bác giả thuyết *"stride=2 bỏ sót lệnh chạm cắt lỗ"* bằng TỶ LỆ lệnh đóng bằng cắt lỗ (71,8% so với 69,9%) — phép bác không nhìn GIÁ khớp. Khoảng cách alpha stride 1↔2 (−0,58, mã và cache khi ấy) được ghi là *"không có cơ chế"*.
+- BƯỚC 209 (ĐO 28): ca GIL tín hiệu 14/12/2022 — phiên mở khoá 21/12 mở 13,59, đáy 13,59, dưới SL 18.139; 21/12 là phiên chỉ-khớp nên lệnh ra 22/12 ở 16.200.
+- **Đã nhìn:** leader thấy đúng MỘT ca (GIL) qua ĐO 28. Chưa ai đếm có bao nhiêu lệnh có phiên chỉ-khớp chạm SL, cũng chưa ai chạy bản xét mọi phiên.
+
+**Không có dụng cụ vì:** mã sửa, dụng cụ đếm (iv) và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Khi walk-forward khớp lệnh đặt sẵn (cắt lỗ) ở MỌI phiên — cả phiên chỉ-khớp — alpha OOS của dòng "BẬT · theo ngày" đổi bao nhiêu trên cache `acf6dca1…`, và kết luận *"THUA chuẩn có ý nghĩa"* có đứng không?
+
+### Mô hình mới (ghim)
+- Ở phiên chỉ-khớp, SAU `fill_pending` và `fill_closing`, xét lệnh đặt sẵn của vị thế đang mở ĐÚNG như nhánh cắt lỗ của `evaluate_open`: không xét ở chính phiên vào lệnh; `low ≤ SL` → khớp ở min(SL, giá mở cửa) qua `_gia_ban_that`; phiên kịch sàn một giá → chờ (ĐO 28). `CHOT_LOI_CUNG` bật thì TP được xét y như nhánh ấy (mặc định tắt).
+- MỘT bản mã cho hai đường: nhánh lệnh đặt sẵn của `evaluate_open` tách thành một hàm dùng chung, không chép.
+- KHÔNG đổi: nâng stop (trailing, hoà vốn), thoát theo tín hiệu, trần thời gian — vẫn chỉ ở phiên chấm. Lưới chấm, tập điểm quyết định, `stride`, độ trễ khớp, ngưỡng, điểm: không đổi.
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911`, băm `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau — `acf6dca1…` cả hai lần (M0). Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…`.
+- Hai lượt `tools/do1_chi_phi_thuc_thi.py --mot-luot 2`, mỗi lượt một worktree: **A** = `main` lúc ký (mô hình ĐO 28), **B** = nhánh ĐO 29. Ghép `tools/do20_ghep_tung_lenh.py`.
+
+### Đối chứng của máy đo (trượt thì K0)
+- (i) A tái lập lượt B của ĐO 28: 617 lệnh, −1,68%, KTC [−2,24 ; −1,08], ngưỡng IS 45; ghép với `scratch/luu_do28/B_wf_oos.db`: giống hệt.
+- (ii) M0: băm cache trước và sau đều `acf6dca1…`.
+- (iii) **Ca thật:** ở B, lệnh GIL tín hiệu 14/12/2022 ra ngày 21/12/2022 bằng `STOP_LOSS`, giá ≤ 13.590 (giá mở cửa phiên ấy, trước trượt).
+- (iv) A có 0 lệnh ra bằng `STOP_LOSS` ở phiên chỉ-khớp, B có > 0 (lịch phiên lấy từ `walkforward.lich_theo_ngay`; dụng cụ viết sau commit ký).
+
+### Thống kê chính
+- Δalpha = alpha(B) − alpha(A), kèm KTC 95% và ngưỡng IS của B.
+- Số lệnh B ra bằng cắt lỗ ở phiên chỉ-khớp; với lệnh chung khoá A ↔ B mà ngày ra khác: lợi nhuận trung bình đổi bao nhiêu.
+
+### Kết cục (ký trước)
+- **K0:** (i)–(iv) trượt, hoặc B không chạy xong.
+- **A — đúng chiều, nhỏ:** −0,29 < Δalpha ≤ +0,05 và KTC của B vẫn loại 0. Kết luận giữ. `CLAUDE.md`: dòng ĐO 28 dưới bảng chi phí thay bằng số của ĐO 29; bốn dòng cũ ghi rõ *"máy đo cũ: cắt lỗ chỉ xét ở phiên chấm"*.
+- **A′ — đúng chiều, lớn:** Δalpha ≤ −0,29 (một nửa của nửa bề rộng KTC ĐO 22, 0,58) và KTC của B vẫn loại 0. Như A, cộng **báo người dùng**: ba dòng còn lại của bảng nên đo lại bằng máy đo mới (ĐO riêng).
+- **B — Quy tắc 1:** Δalpha > +0,05. Soát mã sửa và máy đo TRƯỚC khi đọc tiếp; báo người dùng; `CLAUDE.md` không đổi cho tới khi người dùng quyết.
+- **C — đổi kết luận:** KTC của B chứa 0 → báo người dùng ngay; `CLAUDE.md` không đổi.
+- Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng.
+
+### Báo kèm (không quyết định kết cục)
+- Khoảng cách stride 1↔2 của BƯỚC 26 (−0,58) đo trên mã và cache khác — chỉ nêu cạnh Δalpha, KHÔNG so trực tiếp.
+- Dải IS của B; phân bố số phiên lệnh cắt lỗ ra sớm hơn so với A.
+
+### Điều ĐO này KHÔNG làm
+Không đổi lưới chấm, `stride`, nâng stop, ngưỡng hay điểm. Không chạy lại ba dòng còn lại của bảng, không chạy trên cache hiện tại. Không đọc sổ thật, không đổi đường chạy thật.
