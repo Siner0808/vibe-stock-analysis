@@ -23584,3 +23584,51 @@ Leader, tại chỗ. Chỉ thêm `docs/thiet-ke-y5-tien-le.md` và mục này; c
 **Việc kế.** Làm mã SAU ĐO 29 (kho dựng từ sổ OOS của máy đo cuối cùng): PR 1 module thuần + dụng cụ + tệp kho + test; PR 2 khối trên app.
 
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 212 — ĐO 29: WALK-FORWARD XÉT CẮT LỖ Ở MỌI PHIÊN, CẢ PHIÊN CHỈ-KHỚP; DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` −1,68% → −1,73% (KẾT CỤC A — ĐÚNG CHIỀU, NHỎ); 194 LỆNH RA BẰNG CẮT LỖ Ở PHIÊN MÁY CŨ KHÔNG NHÌN (21/10/2026)
+
+**Mốc:** B3 — sổ bài học và kho tiền lệ ý 5 dựng từ sổ OOS của máy đo; giá khớp của lệnh cắt lỗ ở phiên chỉ-khớp quyết định lỗ thật được ghi
+
+Leader, tại chỗ. Nhánh `do/cat-lo-moi-phien-212` từ `main` `ed9a9ab` (sau #255), worktree `vibe_wt_212`. Commit: `c4d01ed` ký ĐO 29 (riêng, trước mã; người dùng duyệt bản nháp 20/10: *"Duyệt cả bản nháp (Recommended)"*) · `e4d43be` mã + test + dấu ⚠️ ở ĐO 2 + sổ soát · `dc06d3c` dụng cụ (iii)/(iv) · `dd66b92` gộp `main` (#256) · commit cuối: kết quả và tài liệu.
+
+**Mã.** Nhánh lệnh đặt sẵn của `evaluate_open` (cắt lỗ ở min(SL, giá mở) qua `_gia_ban_that`; chốt lời khi bật `CHOT_LOI_CUNG`; phiên kịch sàn một giá thì chờ — ĐO 28) thành `_lenh_dat_san`, MỘT hàm cho hai đường: `evaluate_open` ở phiên chấm, và `xet_lenh_dat_san` mới mà `run_session` gọi ở phiên chỉ-khớp, SAU `fill_pending` và `fill_closing`, với nến có giá tham chiếu. Nâng stop, thoát theo tín hiệu, trần thời gian vẫn chỉ ở phiên chấm. `run_daily` không truyền `chi_khop` (gác AST), nên sổ thật không đổi. `tests/test_cat_lo_moi_phien.py`: 11 test; đục 10/10 đỏ, phát đầu dựng lại lỗi thật (phiên chỉ-khớp không xét lệnh đặt sẵn). Sau khi tách hàm, 28 tệp test quanh `evaluate_open`/`run_session`/phiên chỉ-khớp: 900 passed.
+
+**Dụng cụ.** `tools/do29_cat_lo_moi_phien.py`: lịch phiên chỉ-khớp dựng bằng chính `walkforward.chia_vung` rồi `walkforward.diem_ghe`, tham số đọc từ mặc định của `walkforward.chay` (lượt `do1` không truyền); (iii) ca GIL; (iv) đếm lệnh ra bằng cắt lỗ ở phiên chỉ-khớp; ghép lệnh cùng ngày vào, khác ngày ra. 13 test, đục 8/8 đỏ. Viết và commit TRƯỚC khi đọc đầu ra của hai lượt.
+
+**Lượt chạy.** Hai worktree tách rời, A ở `ed9a9ab` (máy đo cũ), B ở `e4d43be`; `tools/do1_chi_phi_thuc_thi.py --mot-luot 2`; `VIBE_CACHE_DIR` trỏ hai bản chép của `scratch/vibe_cache_goc_20260911`; `sl_pattern_memory.json` sha256 `e8b44cf8…`; chạy song song 08:51–09:27. Sổ và log lưu ở `scratch/luu_do29/`.
+
+| | A — máy đo cũ | B — ĐO 29 |
+|---|---|---|
+| ngưỡng IS | 45 | 45 |
+| lệnh OOS | 617 | 650 |
+| kỳ vọng mỗi lệnh | −1,29% | −1,32% |
+| alpha khớp từng lệnh | −1,68% [−2,24 ; −1,08] | −1,73% [−2,28 ; −1,17] |
+| vốn TB · đỉnh | 56% · 100,00% | 55% · 99,90% |
+
+**Đối chứng của máy đo.**
+- (i) A ghép với `scratch/luu_do28/B_wf_oos.db` bằng `tools/do20_ghep_tung_lenh.py`: 617/617 giống hệt → ĐẠT.
+- (ii) M0: cả hai bản chép cache, trước và sau lượt chạy, băm `acf6dca1dd38d515…` (125 tệp) → ĐẠT.
+- (iii) GIL tín hiệu 14/12/2022 ở B: vào 15/12 ở 18.700, ra 21/12/2022 bằng `STOP_LOSS` ở 13.500 ≤ 13.590 → ĐẠT. Ở A lệnh ra 22/12 ở 16.200.
+- (iv) lệnh ra bằng cắt lỗ ở phiên chỉ-khớp: A 0 · B 194 (lịch dựng được 11.616 phiên chỉ-khớp trên 33 mã) → ĐẠT.
+
+**Kết cục (ký trước): A — đúng chiều, nhỏ.** Δalpha = −1,73 − (−1,68) = **−0,05** điểm. Log in hai chữ số lẻ nên Δ nằm trong [−0,06 ; −0,04], trọn trong khoảng (−0,29 ; +0,05] của kết cục A. KTC của B loại 0, ngưỡng IS không đổi. Kết luận *"THUA chuẩn có ý nghĩa"* đứng. Số xấu đi là chiều an toàn của Quy tắc 1. Theo bản ký, `CLAUDE.md` thay dòng ĐO 28 dưới bảng chi phí bằng số của ĐO 29 và ghi rõ bốn dòng của bảng là máy đo cũ.
+
+**Báo kèm (không quyết định kết cục).**
+- Ghép A↔B (`do20`): 302 lệnh giống hệt, 140 cùng khoá nhưng khác, 175 chỉ ở A, 209 chỉ ở B. Đây là dây chuyền trần vốn: lệnh cắt lỗ ra sớm giải phóng vốn sớm, nên B mở thêm lệnh khác (650 so với 617).
+- 140 lệnh cùng ngày vào, khác ngày ra (dụng cụ do29): Δ lợi nhuận B − A, trước phí, trung bình −1,125 điểm, trung vị 0,000, nhỏ nhất −40,61, lớn nhất +9,38. B ra sớm hơn A 1 phiên ở 94 lệnh; lệnh xa nhất sớm 28 phiên. Có lệnh A giữ tới trần thời gian vì không phiên chấm nào thấy đáy dưới SL, ví dụ BAF tín hiệu 18/08/2023: A ra `MAX_HOLD` 15/11 ở 15.350, B cắt lỗ 18/10 ở 12.950.
+- Dải IS, dòng 45: A 887 lệnh, kỳ vọng −0,12; B 918 lệnh, −0,23. Ở B dòng 48 nhiều lệnh nhất (924) nhưng luật chọn vẫn ra 45.
+- B còn 1 lệnh `CLOSING` khi hết dữ liệu (HHV tín hiệu 31/12/2024, `SIGNAL_REVERSED`), không vào 650 lệnh OOS; A không có lệnh nào như vậy. Đây là giới hạn đã biết ở BƯỚC 209: `dong_so_sach` chỉ đóng lệnh mở.
+- Khoảng cách stride 1↔2 của BƯỚC 26 (−0,58) đo trên mã và cache khác; chỉ nêu cạnh, không so trực tiếp.
+
+**Giả thuyết bị bác.** BƯỚC 26 bác giả thuyết *"stride=2 bỏ sót lệnh chạm cắt lỗ"* bằng TỶ LỆ lệnh đóng bằng cắt lỗ (71,8% so với 69,9%). Máy cũ vẫn cắt lỗ phần lớn các lệnh ấy, chỉ ở phiên chấm sau, với ngày và giá khác, nên tỷ lệ không lộ ra. ĐO 29 đếm được 194 lệnh ra bằng cắt lỗ ở phiên máy cũ không nhìn. Câu BƯỚC 26 giữ nguyên (STATE chỉ thêm); sổ tay nêu nó ở lượt hỏi thật này.
+
+**Lỗi 187 — gọi `--help` lên một dụng cụ đo không có `argparse`, qua `| head -30`.** Lúc mở ngày, leader muốn xem cách dùng `tools/do27_su_kien_quyen_chieu_tien.py`. Dụng cụ chỉ đọc cờ `--json` từ `sys.argv`, nên cờ thừa bị bỏ qua và nó chạy thật phép đọc đã hẹn: kéo sổ thật, nến, lịch VCI. 30 dòng đầu là băng rôn vnstock, nên dòng kết quả nào in sau đó cũng chết vì ống đã đóng. Không ai thấy số nào, nên lượt đọc 2 chạy lại sạch, có log. Nhưng một phép đọc ký "kéo mỗi nguồn MỘT lần" đã kéo hai lần. Cùng họ `pytest | tail`, mà luật cửa Bash hiện chỉ canh `pytest`. Máy chặn được, CHƯA làm: luật cửa Bash cho `tools/do*.py … | head|tail`, hoặc gác buộc mọi `tools/do*.py` từ chối cờ lạ.
+
+**Sổ tay.** Hỏi thật, ghi ở hai mục BƯỚC 212 và ĐO 29 của `docs/soat-notebooklm.json`. Trước khi hỏi đã nạp lại `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `docs/TIEU-CHI-DOC-TRUOC.md` ghim `ed9a9ab` (thêm trước, đo độ tươi, xoá sau). Sổ nêu 3 phát hiện:
+- THẬT — câu ĐO 2 *"một cây thủng stop-loss ở `t+1` vẫn vô hình"*: thêm ô ⚠️ có ngày ngay dưới câu trong `docs/TIEU-CHI-DOC-TRUOC.md`.
+- THẬT — câu BƯỚC 26: ghi ở mục này.
+- SAI — sổ trích đúng chữ bản lưu `docs/lich-su/CLAUDE-md-2026-09-30.md` nhưng gán cho `CLAUDE.md`, và câu ấy không mâu thuẫn.
+
+**Không làm.** Không chạy lại ba dòng còn lại của bảng. Không đổi lưới chấm, `stride`, nâng stop, ngưỡng hay điểm. Không đọc sổ thật.
+
+**Việc kế.** Dọn `vibe_wt_do29_A/B` sau merge (sổ đã lưu ở `scratch/luu_do29/`). Làm mã ý 5: kho dựng từ `scratch/luu_do29/B_wf_oos.db` (máy đo hiện hành).
