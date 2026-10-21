@@ -242,9 +242,14 @@ def test_DANH_SACH_LOC_duoc_SUY_RA_chu_khong_GO_TAY():
     assert not hang_chuoi, f"có tên file gõ thẳng trong hàm: {hang_chuoi}"
     ten = ho_so.ten_dang_bom()
     assert CA_THAT in ten, f"{CA_THAT} phải nằm trong danh sách lọc"
-    assert 5 <= len(ten) <= 45, (
-        f"danh sách lọc {len(ten)} file — 15/09/2026 đo được 23/52. "
-        f"Ngoài dải này thì ngưỡng hoặc phép tra đã trôi.")
+    # Dải là TỶ LỆ trên số `.py` ở gốc, không phải số đếm gõ tay: bản 5–45 (từ 23/52 đo
+    # 15/09/2026) đỏ oan ngày 21/10 ở BƯỚC 216 — repo lớn lên 45/70 → 46/71 khi thêm một
+    # module đủ dày (`tien_le.py`), phép tra không trôi. Hai chiều trôi thật vẫn bị bắt:
+    # ngưỡng hỏng → gần như mọi file lọt (> 90%); phép tra hỏng → không file nào (< 10%).
+    tong = len(list(GOC.glob("*.py")))
+    assert 0.10 * tong <= len(ten) <= 0.90 * tong, (
+        f"danh sách lọc {len(ten)}/{tong} file — 15/09/2026 đo được 23/52, 21/10/2026 46/71. "
+        f"Ngoài 10–90% thì ngưỡng hoặc phép tra đã trôi.")
     print(f"PASS  danh sách lọc suy ra được: {len(ten)} file")
 
 

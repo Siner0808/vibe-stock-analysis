@@ -23804,6 +23804,10 @@ Leader, tại chỗ, người dùng: *"ok làm đi, làm từ bước nhỏ đ�
 
 **Giả thuyết bị bác.** Kho ước 119 dòng (thiết kế mục 10, từ lượt B ĐO 28); đo ra 118 trên máy đo ĐO 29.
 
+**Một gác cũ đỏ oan.** `tests/test_ho_so.py::test_DANH_SACH_LOC_duoc_SUY_RA_chu_khong_GO_TAY` giữ dải 5–45 file (từ 23/52 đo 15/09/2026); `main` đã đúng 45/70, `tien_le.py` đủ dày nên thành 46/71 — phép tra không trôi, số tuyệt đối thì trôi theo cỡ repo. Dải nay là 10–90% số `.py` ở gốc (suy ra); đột biến *ngưỡng hỏng, mọi file lọt* (`if True` trong `ten_dang_bom`) vẫn đỏ.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 215` xác nhận (sau khi BƯỚC 214 vào `main`).
+
 **Việc kế.** PR 2 — khối "Tiền lệ" trong chi tiết nhật ký trên app, cạnh hậu kiểm B1; kiểm bằng mắt ở `localhost:8511`.
 
 ## BƯỚC 216 — Ý 5 PHẦN 2: KHỐI "TIỀN LỆ" TRONG CHI TIẾT NHẬT KÝ, CẠNH HẬU KIỂM B1 — CHỮ DỰNG Ở HÀM THUẦN, APP CHỈ IN (21/10/2026)
