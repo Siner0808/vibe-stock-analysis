@@ -3398,6 +3398,10 @@
         }
       ]
     },
+    "BƯỚC 210": {
+      "ngay": "2026-10-20",
+      "khong_bat_buoc_vi": "BƯỚC chỉ thêm bản thiết kế docs/thiet-ke-y5-tien-le.md (tra tiền lệ, chỉ để hiện, chưa có mã) và mục STATE kèm số đếm cỡ nhóm trên sổ OOS (không nhìn kết cục); không sửa file luật nào, không đổi điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo."
+    },
     "BƯỚC 212": {
       "ngay": "2026-10-21",
       "nguon": [
