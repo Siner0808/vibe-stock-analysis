@@ -400,6 +400,11 @@ hôm nay thì vẫn được soi, không hơn không kém. Phiên `t+1` vẫn **
 được chấm — nên một cây thủng stop-loss ở `t+1` vẫn vô hình, y như hôm
 nay. Đó là chủ đích: giữ nguyên mọi thứ trừ đúng một biến.
 
+> ⚠️ **Vế "cây thủng stop-loss ở `t+1` vẫn vô hình" HẾT ĐÚNG cho máy đo từ BƯỚC 212
+> (ĐO 29, 21/10/2026).** Phiên `t+1` vẫn không được CHẤM, nhưng lệnh đặt sẵn (cắt lỗ) nay được
+> xét ở MỌI phiên — phiên chỉ-khớp gọi `xet_lenh_dat_san`, cùng một hàm với `evaluate_open`.
+> Câu trên giữ nguyên làm sử liệu của thiết kế ĐO 2.
+
 **Tập điểm quyết định KHÔNG đổi.** `consider_entry` vẫn chỉ chạy trên lưới
 `stride`, nên tập tín hiệu là **cùng một tập** — khác hẳn hướng 2, nơi số
 điểm quyết định gấp đôi và tập lệnh khác hẳn.

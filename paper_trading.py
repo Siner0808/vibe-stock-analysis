@@ -392,6 +392,9 @@ LY_DO_TU_CHOI_LENH = "sàn từ chối lệnh"
 #: Lệnh mua chờ khớp gặp phiên KỊCH TRẦN một giá (`vong_doi_lenh.khoa_bien`):
 #: trắng bên bán, không khớp được — ĐO 28, BƯỚC 209. Lý do RIÊNG để đếm được.
 LY_DO_KICH_TRAN = "kịch trần một giá — trắng bên bán"
+#: `_lenh_dat_san` trả hằng này khi cắt lỗ chạm ở phiên KỊCH SÀN một giá: vị thế
+#: chờ phiên mở khoá, và `evaluate_open` cũng không nâng stop ở phiên ấy (ĐO 28).
+CHO_PHIEN_MO_KHOA = "CHO_PHIEN_MO_KHOA"
 
 #: Biên kiểm GIÁ MỞ CỬA lúc khớp lệnh VÀO — biên độ RỘNG NHẤT của mọi sàn,
 #: SUY RA từ `data_quality.EXCHANGE_LIMITS`, không gõ tay.
@@ -980,6 +983,114 @@ class PaperTradingJournal:
         return float(lenh.gia_binh_quan), round(size_pct * ty_le, 4)
 
     # ─────────────────── Đóng lệnh ────────────────────────────────────
+    def _lenh_dat_san(self, r, symbol: str, session_date: str, bar: dict):
+        """Nhánh LỆNH ĐẶT SẴN của MỘT vị thế đang mở: cắt lỗ, và chốt lời khi bật
+        `CHOT_LOI_CUNG`. Lệnh dừng đã nằm ở sàn nên khớp ở BẤT KỲ phiên nào giá
+        chạm — không cần ai chấm điểm phiên ấy.
+
+        MỘT bản cho hai đường (ĐO 29, BƯỚC 212): `evaluate_open` ở phiên chấm, và
+        `xet_lenh_dat_san` ở phiên CHỈ-KHỚP của walk-forward. Trước BƯỚC 212 phiên
+        chỉ-khớp trả về trước `evaluate_open`, nên một cây thủng cắt lỗ ở phiên ấy
+        vô hình tới phiên chấm kế tiếp và khớp ở giá phiên sau — GIL 21/12/2022 mở
+        13,59 dưới SL 18,139 mà lệnh ra 22/12 ở 16.200 (BƯỚC 209).
+
+        Bên gọi tự bỏ qua phiên vào lệnh và tự commit. Trả:
+        `CHO_PHIEN_MO_KHOA` — chạm SL ở phiên kịch sàn một giá: không đóng, không
+        nâng stop (ĐO 28); dict của lệnh vừa đóng; hoặc None — không chạm gì.
+        """
+        low, high = float(bar["low"]), float(bar["high"])
+        sl, tp = float(r["stop_loss"]), float(r["take_profit"])
+
+        # SL là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
+        #
+        # `elif` chứ không phải `if` thứ hai: cả hai cùng chạm thì
+        # LẤY SL (bất biến 3). Đổi sang hai `if` rời là để TP ghi đè
+        # SL — đúng cái giả định có lợi bị cấm.
+        if low <= sl and MO_PHONG_TRUOT_GIA and \
+                self._khoa_bien(symbol, bar) == KICH_SAN:
+            # Phiên KỊCH SÀN một giá: trắng bên mua, lệnh dừng không khớp.
+            # Không đóng, không nâng stop; phiên sau xét lại như thường — giá
+            # còn dưới SL thì khớp ở min(SL, giá mở cửa) ngay dưới (ĐO 28).
+            return CHO_PHIEN_MO_KHOA
+        if low <= sl:
+            # Gap xuống DƯỚI SL: phiên MỞ CỬA đã dưới mức cắt lỗ, nên
+            # lệnh dừng chỉ khớp được ở giá mở cửa, không phải ở SL.
+            # Bản cũ luôn ghi đúng giá SL — giả định có lợi mà bất biến
+            # 3 cấm. Audit 25/09/2026, ma_giao_dich-03.
+            reason = ExitReason.STOP_LOSS
+            price = min(sl, float(bar["open"]))
+        elif CHOT_LOI_CUNG and high >= tp:
+            reason, price = ExitReason.TAKE_PROFIT, tp
+        else:
+            return None
+
+        if reason == ExitReason.STOP_LOSS:
+            try:
+                from post_mortem_learning import get_learning_engine
+                engine = get_learning_engine()
+                if engine.enabled:
+                    breakdown = json.loads(r["components"]) if r["components"] else {}
+                    reasons = json.loads(r["reasons"]) if r["reasons"] else []
+                    # signal_date, KHÔNG phải session_date: mẫu hình thuộc về
+                    # thời điểm sinh tín hiệu, và đó là mốc dùng để so sánh
+                    # thời gian ở get_penalty_for_pattern.
+                    engine.record_sl_trade(
+                        symbol, int(r["entry_score"] or 0), breakdown,
+                        reasons, signal_date=r["signal_date"],
+                        trade_id=r["id"], nguon=self.duong_dan,
+                        # phien_hoc = phien LENH DONG, khac
+                        # signal_date la phien sinh tin hieu. Day la
+                        # truc thoi gian thu hai.
+                        phien_hoc=session_date)
+
+                    # CHI SO THAT moi duoc boi vao bo nho tren dia.
+                    #
+                    # Ba script optimize dat POST_MORTEM_ENABLED=1.
+                    # Neu save_memory() chay cho ca so scratch thi moi
+                    # lan backtest lai boi them mau vao bo nho that --
+                    # dung co che da de ra khoi 6.327 mau, trong do
+                    # 99,1% khong ung voi mot lenh that nao.
+                    #
+                    # Day la mat kia cua guard_not_real_ledger(): o do
+                    # so that duoc bao ve khoi backtest GHI VAO; o day
+                    # bo nho that duoc bao ve khoi backtest BOI THEM.
+                    if Path(self.duong_dan).name == Path(DB_PATH).name:
+                        engine.save_memory()
+            except Exception:
+                pass
+
+        price = self._gia_ban_that(price, r["size_pct"], bar, symbol)
+        self.db.execute(
+            "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
+            " status=? WHERE id=?",
+            (session_date, price, reason, Status.CLOSED, r["id"]))
+        return {"id": r["id"], "symbol": symbol,
+                "reason": reason, "exit_price": price}
+
+    def xet_lenh_dat_san(self, symbol: str, session_date: str,
+                         bar: dict) -> list[dict]:
+        """Phiên CHỈ-KHỚP của walk-forward (ĐO 29, BƯỚC 212): CHỈ xét lệnh đặt sẵn
+        (`_lenh_dat_san`) của các vị thế đang mở — cùng một bản với `evaluate_open`.
+
+        Không nâng stop (trailing, hoà vốn), không thoát theo tín hiệu hay trần
+        thời gian: những việc ấy cần một lượt CHẤM, và phiên chỉ-khớp không chấm.
+        Không xét ở chính phiên vào lệnh, như `evaluate_open`. Đường chạy thật
+        (`run_daily`) chấm mọi phiên nên không bao giờ đi qua hàm này.
+        """
+        closed = []
+        rows = self.db.execute(
+            "SELECT * FROM trades WHERE symbol=? AND status=?",
+            (symbol, Status.OPEN)).fetchall()
+        for r in rows:
+            if session_date[:10] <= str(r["entry_date"] or "")[:10]:
+                continue                      # không đóng ngay trong phiên vào
+            ket = self._lenh_dat_san(r, symbol, session_date, bar)
+            if isinstance(ket, dict):
+                closed.append(ket)
+        if closed:
+            self.db.commit()
+        return closed
+
     def evaluate_open(self, symbol: str, session_date: str, bar: dict,
                       current_score: Optional[int] = None) -> list[dict]:
         """Xét đóng các lệnh đang mở theo quy tắc, dựa trên nến phiên hiện tại.
@@ -1002,36 +1113,22 @@ class PaperTradingJournal:
         for r in rows:
             if session_date[:10] <= str(r["entry_date"] or "")[:10]:
                 continue                      # không đóng ngay trong phiên vào
-            low, high = float(bar["low"]), float(bar["high"])
-            sl, tp = float(r["stop_loss"]), float(r["take_profit"])
-            reason = price = None
+            # Lệnh đặt sẵn (cắt lỗ; chốt lời khi bật) — MỘT bản với phiên
+            # chỉ-khớp của walk-forward (`xet_lenh_dat_san`, ĐO 29).
+            dat_san = self._lenh_dat_san(r, symbol, session_date, bar)
+            if dat_san is CHO_PHIEN_MO_KHOA:
+                continue
+            if dat_san is not None:
+                closed.append(dat_san)
+                continue
 
             entry_p = float(r["entry_price"]) if r["entry_price"] else None
-
-            # SL là lệnh chờ đặt sẵn ở sàn -> khớp NGAY trong phiên.
-            #
-            # `elif` chứ không phải `if` thứ hai: cả hai cùng chạm thì
-            # LẤY SL (bất biến 3). Đổi sang hai `if` rời là để TP ghi đè
-            # SL — đúng cái giả định có lợi bị cấm.
-            if low <= sl and MO_PHONG_TRUOT_GIA and \
-                    self._khoa_bien(symbol, bar) == KICH_SAN:
-                # Phiên KỊCH SÀN một giá: trắng bên mua, lệnh dừng không khớp.
-                # Không đóng, không nâng stop; phiên sau xét lại như thường — giá
-                # còn dưới SL thì khớp ở min(SL, giá mở cửa) ngay dưới (ĐO 28).
-                continue
-            if low <= sl:
-                # Gap xuống DƯỚI SL: phiên MỞ CỬA đã dưới mức cắt lỗ, nên
-                # lệnh dừng chỉ khớp được ở giá mở cửa, không phải ở SL.
-                # Bản cũ luôn ghi đúng giá SL — giả định có lợi mà bất biến
-                # 3 cấm. Audit 25/09/2026, ma_giao_dich-03.
-                reason = ExitReason.STOP_LOSS
-                price = min(sl, float(bar["open"]))
-            elif CHOT_LOI_CUNG and high >= tp:
-                reason, price = ExitReason.TAKE_PROFIT, tp
+            sl = float(r["stop_loss"])
+            high = float(bar["high"])
 
             # TRAILING STOP & BREAK-EVEN: CHỈ CÓ HIỆU LỰC TỪ PHIÊN SAU.
             close_p = float(bar["close"])
-            if reason is None and entry_p:
+            if entry_p:
                 new_sl = sl
                 # 1. Dời stop về hoà vốn khi giá đạt +5%
                 if high >= entry_p * 1.05 and sl < entry_p:
@@ -1056,52 +1153,7 @@ class PaperTradingJournal:
                     # nhau vĩnh viễn.
                     self.db.commit()
 
-            if reason:
-                if reason == ExitReason.STOP_LOSS:
-                    try:
-                        from post_mortem_learning import get_learning_engine
-                        engine = get_learning_engine()
-                        if engine.enabled:
-                            breakdown = json.loads(r["components"]) if r["components"] else {}
-                            reasons = json.loads(r["reasons"]) if r["reasons"] else []
-                            # signal_date, KHÔNG phải session_date: mẫu hình thuộc về
-                            # thời điểm sinh tín hiệu, và đó là mốc dùng để so sánh
-                            # thời gian ở get_penalty_for_pattern.
-                            engine.record_sl_trade(
-                                symbol, int(r["entry_score"] or 0), breakdown,
-                                reasons, signal_date=r["signal_date"],
-                                trade_id=r["id"], nguon=self.duong_dan,
-                                # phien_hoc = phien LENH DONG, khac
-                                # signal_date la phien sinh tin hieu. Day la
-                                # truc thoi gian thu hai.
-                                phien_hoc=session_date)
-
-                            # CHI SO THAT moi duoc boi vao bo nho tren dia.
-                            #
-                            # Ba script optimize dat POST_MORTEM_ENABLED=1.
-                            # Neu save_memory() chay cho ca so scratch thi moi
-                            # lan backtest lai boi them mau vao bo nho that --
-                            # dung co che da de ra khoi 6.327 mau, trong do
-                            # 99,1% khong ung voi mot lenh that nao.
-                            #
-                            # Day la mat kia cua guard_not_real_ledger(): o do
-                            # so that duoc bao ve khoi backtest GHI VAO; o day
-                            # bo nho that duoc bao ve khoi backtest BOI THEM.
-                            if Path(self.duong_dan).name == Path(DB_PATH).name:
-                                engine.save_memory()
-                    except Exception:
-                        pass
-
-                price = self._gia_ban_that(price, r["size_pct"], bar,
-                                           symbol)
-                self.db.execute(
-                    "UPDATE trades SET exit_date=?, exit_price=?, exit_reason=?,"
-                    " status=? WHERE id=?",
-                    (session_date, price, reason, Status.CLOSED, r["id"]))
-                closed.append({"id": r["id"], "symbol": symbol,
-                               "reason": reason, "exit_price": price})
-                continue
-
+            reason = None
             # Ý TƯỞNG A & D: Khai thác đuôi béo (Fat-Tail Exploitation)
             # Tắt đảo chiều bằng điểm số cho lệnh đang LÃI (unrealized_profit > 0).
             # Khi lệnh đã có lãi, để Trailing Stop & Stop-Loss quản trị việc thoát lệnh,
