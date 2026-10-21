@@ -646,6 +646,23 @@ LUAT = [
         "73 dòng lệnh tài liệu. `perl -pe` (không `-i`) vẫn được tha.\n"
         "  Cách đúng: `tools/va_an_toan.thay()`.",
     ),
+    (
+        "dung-cu-do-qua-ong",
+        # Chỉ khi PYTHON CHẠY dụng cụ đo (`tools/doN_*.py`): `cat tools/do27… | head`
+        # là đọc tệp, không chạy gì. `doc_bang_loi.py` · `do_token_phien.py` không
+        # mang chữ số sau `do` nên ngoài phạm vi.
+        re.compile(r"python[\w.]*\s+(?:-\S+\s+)*\S*tools/do\d+\w*\.py\b[^|\n]*"
+                   r"\|\s*(?:tail|head)\b"),
+        "Dụng cụ ĐO chạy qua ống `head`/`tail`. 21/10/2026 (lỗi 187): "
+        "`tools/do27_su_kien_quyen_chieu_tien.py --help 2>&1 | head -30` — dụng cụ "
+        "bỏ qua cờ lạ nên chạy THẬT phép đọc đã hẹn của ĐO 27 (kéo sổ thật, nến, "
+        "lịch VCI), và 30 dòng đầu là băng rôn vnstock nên `head` nuốt mọi dòng kết "
+        "quả. Một phép đọc ký \"kéo mỗi nguồn MỘT lần\" bị kéo hai lần.\n"
+        "  Cùng họ `pytest-qua-ong`: ống cắt hay đệm đầu ra, và mã thoát là của "
+        "`head`/`tail`.\n"
+        "  Cách đúng: `... > <tệp log> 2>&1` rồi đọc tệp log; xem cách dùng bằng "
+        "Read docstring của dụng cụ.",
+    ),
 ]
 
 # Cho phép thoát cửa khi có chủ đích, kèm LÝ DO — cùng lối `# bia-ok:`
