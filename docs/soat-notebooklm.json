@@ -3489,6 +3489,41 @@
           "phan_quyet": "THẬT — câu có; phép bác đo TỶ LỆ lệnh đóng bằng cắt lỗ, không đo GIÁ khớp, và BƯỚC 209 đã ghi phản ví dụ GIL 12/2022. STATE là nhật ký chỉ-thêm nên không sửa BƯỚC 26; mục BƯỚC 212 ghi rõ phép bác cũ không nhìn giá và ghi kết cục ĐO 29."
         }
       ]
+    },
+    "BƯỚC 214": {
+      "ngay": "2026-10-21",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "Không nạp lại (leader, khung trình duyệt trong app, 21/10/2026 chiều; người dùng đăng nhập lại): sổ 18 nguồn, CLAUDE.md · NGUYEN-TAC-DO-LUONG.md · docs/TIEU-CHI-DOC-TRUOC.md ghim ed9a9ab (nạp lại sáng cùng ngày, BƯỚC 212); SKILL.md @3c2fd2c — git diff --shortstat 3c2fd2c ed9a9ab -- SKILL.md: 2/2 dòng, câu 'từng sai hai lần' có ở cả hai; references/soat-cheo-notebooklm.md @1d1d4d6 có cùng câu (:97). docs/STATE.md khúc dán @3c2fd2c (BƯỚC 2–201).",
+      "cau_hoi": "I am about to write BƯỚC 214 into docs/STATE.md: error 187 is closed by two guards: every measuring tool tools/doN_*.py that has a __main__ now reads its flags with argparse, so --help prints usage and an unknown flag exits 2 before any data source is pulled, and a new Bash gate rule dung-cu-do-qua-ong blocks python running tools/doN_*.py piped into head or tail; four drifted sentences found by review round 13 are fixed: SKILL.md now says the notebook's 'not found' answers have been wrong many times (first two cases 24/09/2026 and BƯỚC 127) instead of 'twice', CLAUDE.md no longer pins the pyarrow version 24 to 25, CLAUDE.md lists ke_hoach_vao_lenh, ban_tin, suc_khoe and hau_kiem_loi as display-only modules that the trading, scoring and measuring paths do not import, and docs/TIEU-CHI-DOC-TRUOC.md ĐO 26 gets a dated marker saying max and p95 of |f−1| have been printed since BƯỚC 193 while the full distribution has not. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the Bash gate only needs to watch pytest piped into tail, or that a measuring tool may parse sys.argv by hand, or that pyarrow on CI is version 25, or that hau_kiem_loi, ban_tin, suc_khoe or ke_hoach_vao_lenh may feed scores or orders, or that the distribution of f has never been printed, or that the notebook's negative answers were wrong exactly twice. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, mục 'Bất đối xứng local / CI': 'Lịch sử lệch bản chính (streamlit, plotly, urllib3) đã đóng ở BƯỚC 95–96, 106; còn pyarrow 24 → 25.' — sổ tay nói câu ấy hết đúng khi BƯỚC 214 ghi.",
+          "tu_kiem": "grep -n 'pyarrow' CLAUDE.md -> :280 (bản trước sửa); tools/so_ban_goi.py hôm nay -> pyarrow máy 24.0.0, CI 26.0.0, 'repo KHONG nhap'",
+          "phan_quyet": "THẬT — đúng câu BƯỚC 214 sửa: số hiệu CI đã trôi sang 26.0.0; câu mới không ghim số, trỏ sang lệnh."
+        },
+        {
+          "noi_dung": "SKILL.md, mục 'Luồng thông tin thứ hai — NotebookLM': câu trả lời âm 'không tìm thấy' 'từng sai hai lần' — sổ tay diễn ý, không trích nguyên văn.",
+          "tu_kiem": "grep -rn 'từng sai hai lần' --include=*.md . (bỏ docs/lich-su, STATE) -> SKILL.md (trước sửa) và references/soat-cheo-notebooklm.md:97",
+          "phan_quyet": "THẬT — đúng câu BƯỚC 214 sửa; tự kiểm lộ thêm bản thứ hai cùng chữ ở references/soat-cheo-notebooklm.md:97, sửa cùng BƯỚC."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

@@ -32,6 +32,7 @@ Mã thoát: 0 kết cục A/A′ · 1 kết cục B và/hoặc C · 2 không đ�
 """
 from __future__ import annotations
 
+import argparse
 import datetime
 import hashlib
 import json
@@ -349,8 +350,13 @@ def _in_dong(d: Dong) -> str:
 def main(argv: Optional[list[str]] = None, keo: Optional[Callable] = None,
          tai: Callable = nsk.tai_that, tai_lich: Callable = tai_lich_that,
          hom_nay: Optional[str] = None) -> int:
-    argv = list(sys.argv[1:] if argv is None else argv)
-    tep_json = argv[argv.index("--json") + 1] if "--json" in argv else None
+    # argparse, không đọc `sys.argv` bằng tay: `--help` hay một cờ lạ phải dừng
+    # TRƯỚC khi kéo nguồn nào. Lỗi 187 (21/10/2026): `--help` bị bỏ qua, dụng cụ
+    # chạy thật phép đọc đã hẹn của ĐO 27 và `| head` nuốt mất kết quả.
+    ap = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    ap.add_argument("--json", dest="tep_json", metavar="TEP",
+                    help="ghi dữ liệu thô của lượt đọc ra tệp này")
+    tep_json = ap.parse_args(sys.argv[1:] if argv is None else argv).tep_json
     import doc_so_that
     gio_keo = datetime.datetime.now().isoformat(timespec="seconds")
     ra = (keo or doc_so_that.keo_ve_so_tam)()

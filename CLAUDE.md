@@ -108,6 +108,8 @@ backtest sống lại nhưng không đo được).
   không có hàm tính trần. Không đọc được bảng giá → tụt xuống ba màu. Ô
   VN-Index ở topbar gọi `market_filter.chi_so_moi_nhat()` (ưu tiên MẠNG),
   KHÔNG phải `get_vni_df()` (ưu tiên cache) và luôn kèm ngày phiên.
+- Giai đoạn B: `ke_hoach_vao_lenh`, `ban_tin`, `suc_khoe`, `hau_kiem_loi` — đường
+  giao dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`).
 
 ---
 
@@ -279,7 +281,7 @@ Nó chia ba hạng, in đủ tên và hai số hiệu của từng gói lệch, 
 0/1/2 (không chạm quyết định / có chạm / chưa kiểm được). Quần thể là **giao
 của hai bên đọc được** (lỗi 80: dụng cụ tự khai bảy tên gõ tay chỉ thấy 1 trong
 32 lệch). Lịch sử lệch bản chính (`streamlit`, `plotly`, `urllib3`) đã đóng
-ở BƯỚC 95–96, 106; còn `pyarrow` 24 → 25. Lớp lệch còn lại luôn phải đọc
+ở BƯỚC 95–96, 106; còn `pyarrow` (repo KHÔNG nhập; số hiệu CI trôi theo ngày). Lớp lệch còn lại luôn phải đọc
 bằng lệnh trên, không đọc ở đây. `vnstock_goi.kiem_goi()` trên Streamlit Cloud cho KHỚP (đo 09/10/2026). 🔴 Câu cũ *"báo LỆCH trên cloud vĩnh viễn — đó là báo ĐÚNG"* HẾT ĐÚNG (nó suy Cloud là free). Trên Actions hạng chưa đọc: LỆCH ở đó chưa phải báo đúng hay sai cho tới khi đo.
 
 ---

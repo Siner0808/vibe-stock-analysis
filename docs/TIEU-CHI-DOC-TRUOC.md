@@ -4091,6 +4091,9 @@ Không đổi đường thật, không chọn hằng số, không đo luật tho
 
 **Đã tra trùng:** BƯỚC 176 · BƯỚC 182 · BƯỚC 159 — ba mục đã tra, và một điều phải khai:
 - BƯỚC 176 (D2, dựng nhãn): hai ngưỡng ghi *"ĐỀ XUẤT, CHƯA ĐO"*, đặt TRƯỚC khi chạy trên sổ. Leader đo 10/10 trên 127 lệnh: 26 lệnh |f_vào − 1| > 5%; 2 `SU_KIEN_TRONG_LUC_GIU` (HDB #122, BID #19), 2 `LECH_KHAC` (SSI #100, VPB #110). Đó là phần sổ ĐÃ NHÌN qua nhãn; phân bố f thì chưa ai in.
+  ⚠️ *(21/10/2026, BƯỚC 214)* Vế *"phân bố f thì chưa ai in"* đúng lúc ký; từ BƯỚC 193 (ĐO 26) dụng cụ in
+  max và p95 của |f_vào − 1| ở nhóm sạch (0,0038 · 0,0028, kết cục K0), và `tools/do27_su_kien_quyen_chieu_tien.py`
+  in cùng hai số mỗi lượt đọc. Phân bố đầy đủ vẫn chưa ai in. Câu ký giữ nguyên.
 - BƯỚC 182 (loại khỏi điều kiện dừng): từ đây hai ngưỡng quyết định MẪU của điều kiện dừng; dương tính giả làm alpha đẹp lên.
 - ĐO 24 (BƯỚC 159): lệch giá giữa hai lượt kéo; câu *"không có bảng sự kiện doanh nghiệp ở máy; không gọi mạng"*, đối chiếu với ngày GDKHQ **chưa làm**. ĐO 26 là lần đầu dự án dùng một bảng sự kiện.
 - Khi soạn bản này leader đã xem lịch sự kiện của HDB, VNM, SSI (dữ liệu tham chiếu, CHƯA ghép với ngày của lệnh nào) để biết bộ mã sự kiện.

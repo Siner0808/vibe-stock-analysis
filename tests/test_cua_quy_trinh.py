@@ -233,6 +233,15 @@ XAU = [
     # khong duoc lam mu dang nay.
     ("pytest.exe qua ong tail", ".venv/Scripts/pytest.exe tests/ -q | tail -5",
      "pytest-qua-ong"),
+    # Loi 187, 21/10/2026 — nguyen van lenh that: dung cu do bo qua `--help`, chay
+    # that phep doc DO 27, `head` nuot ket qua.
+    ("dung cu do qua ong head (loi 187 nguyen van)",
+     "./.venv/Scripts/python.exe tools/do27_su_kien_quyen_chieu_tien.py --help 2>&1 | head -30",
+     "dung-cu-do-qua-ong"),
+    ("dung cu do qua ong tail, python cua worktree, co bien moi truong",
+     "PYTHONIOENCODING=utf-8 ../vibe_preview/.venv/Scripts/python.exe "
+     "tools/do1_chi_phi_thuc_thi.py --mot-luot 2 | tail -20",
+     "dung-cu-do-qua-ong"),
     ("sed dang DAI --in-place, cung cong cu cung co che",
      "sed --in-place 's/a/b/' CLAUDE.md", "sed-i-file-repo"),
     ("python3.11 — van la python he thong",
@@ -328,6 +337,15 @@ TOT = [
     ("ten luat `pytest-qua-ong` la mot DINH DANH, khong phai lenh pytest",
      "./.venv/Scripts/python.exe tools/soat_nhat_ky_cua.py "
      "--thu-luat pytest-qua-ong 2>&1 | tail -12"),
+    # Ranh gioi cua `dung-cu-do-qua-ong` (BUOC 214): DOC tep dung cu khong chay gi;
+    # dung cu khong mang so sau `do` ngoai pham vi; ghi log roi loc log qua ong la dung.
+    ("doc tep dung cu do bang cat | head — khong chay gi",
+     "cat tools/do27_su_kien_quyen_chieu_tien.py | head -30"),
+    ("dung cu khong phai doN_ — doc_bang_loi qua ong",
+     "./.venv/Scripts/python.exe tools/doc_bang_loi.py | head -5"),
+    ("dung cu do GHI LOG, roi loc log qua ong",
+     "./.venv/Scripts/python.exe tools/do27_su_kien_quyen_chieu_tien.py > /tmp/x.log 2>&1; "
+     "grep KET /tmp/x.log | head"),
     # BAT NHAM that 25/09/2026: TEN FILE `pytest.ini` bi doc thanh lenh.
     ("ten file pytest.ini qua ong head, khong phai lenh pytest",
      "ls pytest.ini setup.cfg tox.ini pyproject.toml 2>&1 | head -4"),
