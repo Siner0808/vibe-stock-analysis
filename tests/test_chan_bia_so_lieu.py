@@ -17,7 +17,7 @@ sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
 
 import chan_bia_so_lieu as hook
-from duyet_repo import THU_MUC_TAM_TEST
+from duyet_repo import THU_MUC_TAM_TEST, tep_tam_trong_tests
 
 
 def _tam_trong_repo():
@@ -116,15 +116,13 @@ def test_khong_bao_nham_get_mac_dinh_trung_tinh():
 def test_file_trong_tests_duoc_mien():
     """Test dựng dữ liệu giả là đúng việc của nó."""
     ma = 'x = getattr(t, "size_pct", 30)\nv = d.get("volume", 999)\n'
-    f = GOC / "tests" / "__tam_kiem_tra_mien_tru.py"
-    try:
+    # Phải nằm THẲNG trong tests/ (miễn trừ theo đường); tên duy nhất mỗi lượt vì cổng 1
+    # và cổng 4 chạy file này cùng lúc (BƯỚC 211, `tools/duyet_repo.py` luật 4).
+    with tep_tam_trong_tests(GOC, "kiem_tra_mien_tru") as f:
         f.write_text(ma, encoding="utf-8")
         p = hook.kiem_tra(f)
         assert "R1" not in _ma(p) and "R4" not in _ma(p), \
             f"tests/ phải được miễn R1/R4: {_ma(p)}"
-    finally:
-        if f.exists():
-            f.unlink()
     print("PASS  file trong tests/ được miễn R1/R4")
 
 
@@ -359,13 +357,9 @@ def test_khong_bao_nham_or_voi_chuoi_rong_va_none():
 
 def test_or_trong_tests_duoc_mien():
     """Miễn trừ tính theo THƯ MỤC tests/, không theo tên file."""
-    f = GOC / "tests" / "__tam_kiem_tra_r6.py"
-    try:
+    with tep_tam_trong_tests(GOC, "kiem_tra_r6") as f:
         f.write_text("gia = t.entry_price or 22750.0", encoding="utf-8")
         assert "R6" not in _ma(hook.kiem_tra(f))
-    finally:
-        if f.exists():
-            f.unlink()
     print("PASS  tests/ được miễn R6")
 
 

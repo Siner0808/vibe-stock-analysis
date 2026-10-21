@@ -28,6 +28,13 @@ Ba luật:
      Năm cổng chạy song song thì một test quét repo ở tiến trình này bắt gặp
      `tmpXXXX/thu.py` của tiến trình kia đúng lúc nó bị xoá → `FileNotFoundError`
      — đỏ giả, đo 16/10/2026: 3/158 file mỗi vòng, hai vòng, cùng một nguồn.
+  4. tệp hay thư mục có tiền tố `__tam_` NGAY dưới `tests/` của gốc (BƯỚC 211):
+     tệp tạm mà một test BUỘC phải đặt trong `tests/` — bộ dò bịa số chỉ miễn trừ
+     đường bắt đầu bằng `tests/`, nên luật 3 không dời được nó (BƯỚC 206). Đặt bằng
+     `tep_tam_trong_tests` (tên duy nhất mỗi lượt). Đỏ giả 20/10/2026 (PR #255, CI
+     cổng 4): `duyet` trả `tests/__tam_kiem_tra_mien_tru.py`, tiến trình kia xoá nó,
+     `test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET` đọc → `FileNotFoundError`.
+     `liet_ke` là bản MỘT TẦNG của `duyet` cho cùng luật này.
 
 Mỗi máy quét giữ bộ lọc riêng của nó (`.venv`, `scratch`…); file này chỉ
 thêm đúng một điều. Gác: `tests/test_duyet_repo.py`, gồm một sổ đăng ký bắt
@@ -35,6 +42,9 @@ mọi lượt duyệt đệ quy mới không đi qua đây. `docs/STATE.md` BƯ�
 """
 from __future__ import annotations
 
+import contextlib
+import os
+import tempfile
 from pathlib import Path
 from typing import Iterator
 
@@ -42,6 +52,35 @@ THU_MUC_WORKTREE_APP = (".claude", "worktrees")
 
 #: Thư mục ở gốc repo dành cho file tạm của test (gitignore). Luật 3.
 THU_MUC_TAM_TEST = ".tam_test"
+
+#: Luật 4: tệp tạm của test đặt THẲNG trong `tests/` mang tiền tố này.
+THU_MUC_TESTS = "tests"
+TIEN_TO_TAM = "__tam_"
+
+
+def la_tep_tam_cua_test(goc: Path, duong_dan: Path) -> bool:
+    """`duong_dan` (dưới `goc`) có phải tệp tạm luật 4 không: phần đường THỨ HAI mang
+    tiền tố `__tam_` và phần đầu là `tests`. So theo PHẦN, không theo chuỗi con."""
+    phan = Path(duong_dan).relative_to(goc).parts
+    return (len(phan) >= 2 and phan[0] == THU_MUC_TESTS
+            and phan[1].startswith(TIEN_TO_TAM))
+
+
+@contextlib.contextmanager
+def tep_tam_trong_tests(goc: Path, ten: str) -> Iterator[Path]:
+    """Một tệp `.py` RỖNG, tên duy nhất `tests/__tam_<ten>_<ngẫu nhiên>.py`; xoá khi ra.
+
+    Tên cố định thì hai tiến trình chạy cùng một test (cổng 1 và cổng 4) xoá tệp của
+    nhau: đo 21/10/2026, 6/1600 lượt đỏ `PermissionError`/`FileNotFoundError`.
+    """
+    fd, ten_tep = tempfile.mkstemp(prefix=f"{TIEN_TO_TAM}{ten}_", suffix=".py",
+                                   dir=str(Path(goc) / THU_MUC_TESTS))
+    os.close(fd)
+    p = Path(ten_tep)
+    try:
+        yield p
+    finally:
+        p.unlink(missing_ok=True)
 
 
 def la_worktree_long(goc: Path, duong_dan: Path, _nho: dict | None = None) -> bool:
@@ -68,11 +107,20 @@ def la_worktree_long(goc: Path, duong_dan: Path, _nho: dict | None = None) -> bo
 
 
 def duyet(goc: Path, mau: str) -> Iterator[Path]:
-    """`goc.rglob(mau)` trừ mọi thứ nằm trong worktree lồng và trong `.tam_test/`."""
+    """`goc.rglob(mau)` trừ worktree lồng, `.tam_test/` và tệp tạm `tests/__tam_*`."""
     goc = Path(goc)
     nho: dict = {}
     for p in goc.rglob(mau):
         if p.relative_to(goc).parts[:1] == (THU_MUC_TAM_TEST,):
             continue
+        if la_tep_tam_cua_test(goc, p):
+            continue
         if not la_worktree_long(goc, p, nho):
             yield p
+
+
+def liet_ke(goc: Path, thu_muc, mau: str) -> list[Path]:
+    """`(goc / thu_muc).glob(mau)` MỘT TẦNG, trừ tệp tạm luật 4. Đã sắp xếp."""
+    goc = Path(goc)
+    return sorted(p for p in (goc / thu_muc).glob(mau)
+                  if not la_tep_tam_cua_test(goc, p))

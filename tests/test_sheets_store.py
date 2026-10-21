@@ -630,7 +630,7 @@ def test_secrets_toml_ton_tai_nhung_khong_doc_duoc_thi_NO():
     print("PASS  secrets.toml không đọc được -> nổ, không lẫn với chưa cấu hình")
 
 
-def test_khong_test_nao_GHI_vao_thu_muc_streamlit_THAT():
+def test_khong_test_nao_GHI_vao_thu_muc_streamlit_THAT(monkeypatch):
     """Gác cho cả `tests/`: không hàm test nào vừa nhắc đường `.streamlit`
     vừa gọi một thao tác GHI lên đĩa.
 
@@ -660,8 +660,12 @@ def test_khong_test_nao_GHI_vao_thu_muc_streamlit_THAT():
             return False
         return s == TEN or s.startswith(TEN + "/") or ("/" + TEN) in s
 
+    goc = Path(__file__).resolve().parent.parent
+    monkeypatch.syspath_prepend(str(goc / "tools"))
+    import duyet_repo                    # bỏ tệp tạm của test khác (BƯỚC 211, luật 4)
+
     vi_pham = []
-    for p in sorted(Path(__file__).parent.glob("*.py")):
+    for p in duyet_repo.liet_ke(goc, "tests", "*.py"):
         cay = ast.parse(p.read_text(encoding="utf-8"))
         for fn in ast.walk(cay):
             if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):

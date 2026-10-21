@@ -408,9 +408,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
 >   Lượt 11: 09/10 (✅ BƯỚC 163, 08/10). Lượt 12: 15/10 (✅ BƯỚC 188, 14/10; nhịp 7 ngày
 >   kể từ NGÀY LÀM lượt 11, 08/10 — BƯỚC 164; hạn 10/10 cũ bị thay bởi quyết định người dùng 08/10).
->   Lượt 13: 21/10 (nhịp 7 ngày kể từ NGÀY LÀM lượt 12, 14/10 — BƯỚC 188), làm kèm
+>   Lượt 13: 21/10 (✅ BƯỚC 213, 21/10; nhịp 7 ngày kể từ NGÀY LÀM lượt 12, 14/10 — BƯỚC 188), làm kèm
 >   **lượt đọc 2 ĐO 27** (ĐO 27 chỉ đọc kèm lượt soát, cộng dồn — `docs/TIEU-CHI-DOC-TRUOC.md`,
->   mục *Nhịp đọc*; BƯỚC 197).
+>   mục *Nhịp đọc*; BƯỚC 197): kết cục CHƯA ĐỦ, quần thể 0 lệnh.
+>   Lượt 14: 28/10 (nhịp 7 ngày kể từ NGÀY LÀM lượt 13, 21/10 — BƯỚC 213), làm kèm
+>   **lượt đọc kế của ĐO 27** (cùng quy ước cộng dồn).
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -529,9 +531,16 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > BƯỚC (A1); nhịp soát 7 ngày và workflow `soat-tuan.yml` cho phần máy (A2); Quy
 > tắc 3 thu hẹp, máy phán "có đổi luật" bằng git (A3). A4 (tách `docs/STATE.md`
 > theo tháng) và A5 (hàng đợi quyết định) là phần còn lại của giai đoạn. Lượt 12:
-> 15/10 (✅ BƯỚC 188, 14/10; dòng hạn ở khối "Hạn kế" trên). File ngoài repo
+> 15/10 (✅ BƯỚC 188, 14/10; dòng hạn ở khối "Hạn kế" trên). Lượt 13:
+> 21/10 (✅ BƯỚC 213, 21/10; hạn lượt 14 = 28/10, dòng hạn ở khối "Hạn kế" trên). File ngoài repo
 > `~/.claude/rules/vibe-preview.md` còn ghi luật Quy tắc 3 cũ — leader sửa sau
 > khi PR của BƯỚC 164 được merge.
+>
+> ⚠️ **21/10/2026 (BƯỚC 213): câu "còn ghi luật Quy tắc 3 cũ" hết đúng từ 08/10/2026.**
+> `grep -n "THU HẸP" ~/.claude/rules/vibe-preview.md` ra dòng 53 (*"Sổ tay NotebookLM (chốt
+> 18/09/2026; THU HẸP 08/10/2026, từ BƯỚC 164)"*), và `ls -la` cho tệp 4711 byte, sửa lúc
+> 2026-10-08 15:48. Công cụ soát không thấy câu này vì cụm "còn ghi" không thuộc `PHU_DINH`;
+> câu cũ giữ nguyên làm sử liệu.
 
 > 🧭 **15/10/2026 — BƯỚC 192–197: hai ĐO về nhãn sự kiện quyền; B6 phần 2 chạy thật.**
 >
@@ -735,6 +744,10 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   Hệ quả phải nhớ: máy local ở 24.0.0, CI và Streamlit Cloud ở 25.0.1, và
   **khoảng cách ấy CỐ Ý để lại**. `tools/so_ban_goi.py` vẫn in nó ở hạng
   `con lai` mỗi lượt chạy — nó không im, chỉ là không ai định đóng.
+  ⚠️ **21/10/2026 (BƯỚC 213): số hiệu CI ở đoạn trên đã trôi.** `./.venv/Scripts/python.exe
+  tools/so_ban_goi.py` hôm nay ra pyarrow máy 24.0.0, CI 26.0.0 (lượt CI 39397230690, ngày
+  20/10); "25.0.1" là số đo của tháng 9. Quyết định để lại khoảng cách vẫn đứng. Đừng ghim số
+  hiệu CI ở đâu: đọc bằng lệnh trên. Câu cũ giữ nguyên làm sử liệu.
 - *(đoạn cũ, giữ để đối chiếu)*
   Nó nằm ở hạng `con lai` nên công cụ không kêu, nhưng `requests` — gói
   repo **CÓ** nhập — chạy trên nó, và 1.x với 2.x khác hành vi. Nâng là

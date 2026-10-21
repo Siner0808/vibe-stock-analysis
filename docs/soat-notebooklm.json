@@ -3402,6 +3402,14 @@
       "ngay": "2026-10-20",
       "khong_bat_buoc_vi": "BƯỚC chỉ thêm bản thiết kế docs/thiet-ke-y5-tien-le.md (tra tiền lệ, chỉ để hiện, chưa có mã) và mục STATE kèm số đếm cỡ nhóm trên sổ OOS (không nhìn kết cục); không sửa file luật nào, không đổi điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo."
     },
+    "BƯỚC 211": {
+      "ngay": "2026-10-21",
+      "khong_bat_buoc_vi": "BƯỚC chỉ sửa công cụ duyệt cây tools/duyet_repo.py (luật 4: bỏ tệp tạm tests/__tam_* của test khác, bản liệt kê một tầng, tệp tạm tên duy nhất) và mười một file test (máy quét một tầng chuyển sang liet_ke, hai bên tạo tệp tạm dùng tên duy nhất hoặc gốc giả, sổ đăng ký một tầng, test tái hiện cuộc đua), dòng lỗi 185 cùng phân lớp, mốc số test và mục BƯỚC 211; không sửa file luật nào, không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là tỷ lệ đỏ giả của bộ test khi hai tiến trình chạy cùng lúc."
+    },
+    "BƯỚC 213": {
+      "ngay": "2026-10-21",
+      "khong_bat_buoc_vi": "BƯỚC chỉ ghi lượt soát định kỳ 13 vào docs/soat-dinh-ky.json (68 lời khai phán lại bằng lệnh hôm nay), thêm hai ô ⚠️ có ngày vào docs/HANDOFF.md (số hiệu CI của pyarrow; câu về ~/.claude/rules/vibe-preview.md), ghi ✅ lượt 13 và hạn lượt 14 ở khối Hạn kế, và thêm mục BƯỚC 213 vào docs/STATE.md cùng mục này; không sửa file luật nào (ba chỗ sai một phần trong SKILL.md, CLAUDE.md và docs/TIEU-CHI-DOC-TRUOC.md được ghi vào mục Chờ leader để leader hỏi sổ tay thật), không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là số lời khai và số câu ứng viên đếm bằng công cụ hôm nay."
+    },
     "BƯỚC 212": {
       "ngay": "2026-10-21",
       "nguon": [

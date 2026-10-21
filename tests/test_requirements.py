@@ -29,6 +29,9 @@ import pathlib
 import sys
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(GOC / "tools"))
+
+import duyet_repo  # noqa: E402  — liệt kê một tầng bỏ tệp tạm của test khác (BƯỚC 211)
 
 # Tên module khi import khác tên gói khi cài.
 TEN_GOI = {
@@ -228,7 +231,7 @@ def tap_file_cam_muc_module() -> list:
     goc_p = _goc()
     ra: list = []
     for tm in THU_MUC_CAM_MUC_MODULE:
-        ra += sorted((goc_p / tm).glob("*.py")) if tm != "." else sorted(goc_p.glob("*.py"))
+        ra += duyet_repo.liet_ke(goc_p, tm, "*.py")
     return ra
 
 
@@ -263,7 +266,7 @@ def _module_noi_bo_mo_rong() -> set:
     """
     ten = _module_noi_bo()
     for thu_muc in ("tests", "tools"):
-        ten |= {p.stem for p in (GOC / thu_muc).glob("*.py")}
+        ten |= {p.stem for p in duyet_repo.liet_ke(GOC, thu_muc, "*.py")}
     return ten
 
 
@@ -286,7 +289,7 @@ def test_requirements_phu_het_import_o_tests_va_tools():
     tai_tro = {g.replace("-", "_") for g in GOI_TAI_TRO}
     thieu: dict = {}
     for thu_muc in ("tests", "tools"):
-        for f in sorted((GOC / thu_muc).glob("*.py")):
+        for f in duyet_repo.liet_ke(GOC, thu_muc, "*.py"):
             o_muc_module = _import_muc_module(f)
             for m in _import_cua_file(f):
                 if m in noi_bo or m in sys.stdlib_module_names:
@@ -350,7 +353,7 @@ def test_QUAN_THE_cua_gac_cam_muc_module_phai_phu_CA_BA_thu_muc():
     ten = {p.name for p in tap}
     goc_p = _goc()
     for tm in ("tools", "tests"):
-        co_that = {p.name for p in (goc_p / tm).glob("*.py")}
+        co_that = {p.name for p in duyet_repo.liet_ke(goc_p, tm, "*.py")}
         assert co_that, f"{tm}/ không có file .py nào — mẫu rỗng, phép kiểm vô nghĩa"
         thieu = co_that - ten
         assert not thieu, f"{tm}/ có file ngoài tầm gác: {sorted(thieu)[:5]}"
