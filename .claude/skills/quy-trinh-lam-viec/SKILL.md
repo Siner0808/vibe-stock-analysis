@@ -303,8 +303,7 @@ Nói đúng trong báo cáo: *"NotebookLM chỉ ra chỗ X, tôi kiểm lại b�
   Nó cũng nói lệch từ ký tự thứ mấy.
 - **Sổ tay có thể trích đúng chữ nhưng SAI TÊN FILE** (BƯỚC 119); dụng cụ
   in cả tên file. Một dấu 🔴/`~~` ở cấp MỤC không phủ từng câu trong mục.
-- **Câu ÂM cũng phải kiểm** (*"không tìm thấy"* đã sai nhiều lần, hai ca đầu 24/09/2026
-  và BƯỚC 127): `grep` từ
+- **Câu ÂM cũng phải kiểm** (*"không tìm thấy"* đã sai nhiều lần): `grep` từ
   khoá tiếng Việt của chính dự án sau mọi câu âm. Lối thoát chặn nó BỊA, không
   chặn nó BỎ SÓT.
 - **Ô thoát đòi lý do cụ thể vẫn có thể thành câu thần chú** (lỗi 86: sáu mục

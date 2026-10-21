@@ -23777,10 +23777,12 @@ Leader, tại chỗ, người dùng: *"ok làm đi, làm từ bước nhỏ đ�
 **Đột biến 5/5 đỏ:** trả `do26`, `do27` về đọc `sys.argv` bằng tay (2 phát, dựng lại lỗi thật); bỏ vế "python chạy" của luật (chặn nhầm `cat | head`); luật mù; nới `doN_` thành `do*` (chặn nhầm `doc_bang_loi`).
 
 **Bốn câu đã trôi** (lượt soát 13 chuyển cho leader; kiểm lại bằng lệnh hôm nay):
-- `SKILL.md`, mục sổ tay: *"không tìm thấy" từng sai hai lần* → *đã sai nhiều lần, hai ca đầu 24/09/2026 và BƯỚC 127* — không ghim số ca.
+- `SKILL.md`, mục sổ tay: *"không tìm thấy" từng sai hai lần* → *đã sai nhiều lần* — không ghim số ca; hai ca đầu (24/09/2026, BƯỚC 127) ghi ở `references/soat-cheo-notebooklm.md`.
 - `CLAUDE.md`, bất đối xứng local/CI: *còn `pyarrow` 24 → 25* → không ghim số hiệu (`tools/so_ban_goi.py` hôm nay: máy 24.0.0, CI 26.0.0, repo KHÔNG nhập).
-- `CLAUDE.md`, danh sách CHỈ ĐỂ HIỆN: thêm lớp hiện của giai đoạn B (`ke_hoach_vao_lenh` · `ban_tin` · `suc_khoe` · `hau_kiem_loi`), mỗi module trỏ tới gác AST đã có (`tests/test_ke_hoach_vao_lenh.py` · `tests/test_ban_tin.py` · `tests/test_suc_khoe.py` · `tests/test_hau_kiem_loi.py`) — việc nợ từ lượt soát 12.
+- `CLAUDE.md`, danh sách CHỈ ĐỂ HIỆN: thêm giai đoạn B (`ke_hoach_vao_lenh` · `ban_tin` · `suc_khoe` · `hau_kiem_loi`); gác AST đã có ở `tests/test_<tên>.py` của từng module — việc nợ từ lượt soát 12.
 - `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 26: *"phân bố f thì chưa ai in"* đúng lúc ký; thêm dòng ⚠️ có ngày: từ BƯỚC 193 dụng cụ in max và p95 của |f_vào − 1| ở nhóm sạch (0,0038 · 0,0028), phân bố đầy đủ vẫn chưa ai in. Câu ký giữ nguyên.
+
+**Ngân sách ký tự.** Lượt năm cổng đầu đỏ ở `tests/test_do_token_phien.py`: `CLAUDE.md` 26.105 > trần 26.000, rồi `SKILL.md` 18.037 > 18.000. Không nâng trần: gạch giai đoạn B rút còn hai dòng (`CLAUDE.md` 25.947), câu `SKILL.md` giữ đúng độ dài câu cũ (18.000).
 
 **Bảng lỗi.** Hàng 187 thành ✅ (hai lớp trên); dòng tự khai 92/166 (`tools/doc_bang_loi.py`). Lúc đếm lộ thêm: hàng 187 do chính BƯỚC 212 viết có dấu `|` TRẦN trong mã (`| head -30`, `pytest | tail`), làm lệch cột "máy chặn?" — máy đếm bắt ngay (đếm được 91 khi khai 92), đã thoát thành `\|`. Ở BƯỚC 212 lệch cột ấy không lộ vì ô đúng là ❌ theo cả hai cách đọc.
 
