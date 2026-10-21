@@ -23818,4 +23818,4 @@ Leader, tại chỗ; PR 2 của `docs/thiet-ke-y5-tien-le.md` mục 9. Nhánh `y
 
 **Kiểm bằng mắt — chưa làm ở bước này.** Thử chạy app của worktree trên cổng riêng: công cụ xem trước đọc cấu hình của người dùng ở `~/.claude/launch.json` (chạy `app.py` của repo CHÍNH ở 8511), không đọc cấu hình của worktree; leader không sửa cấu hình ấy, dừng server vừa mở, trả `launch.json` của worktree về như cũ, xoá bản chép khoá. Theo thiết kế mục 9, kiểm bằng mắt ở `localhost:8511` SAU khi merge.
 
-**Việc kế.** Sau merge: xem khối ở `localhost:8511` (tab Vị thế → Nhật ký "vì sao" → chọn một lệnh đã đóng).
+**Việc kế.** Sau merge: xem khối ở `localhost:8511` (tab "Lịch sử giao dịch" → mục Nhật ký "vì sao" → chọn một lệnh đã đóng).
