@@ -46,6 +46,14 @@ BIEN_DO = 0.07                  # ±7% HOSE
 TY_LE_KHOP_TOI_DA = 0.10        # giả định: tối đa 10% khối lượng nến
 SO_NEN_CHO_TOI_DA = 9           # hết một phiên không khớp đủ thì huỷ phần dư
 
+# Phiên khoá biên (ĐO 28, BƯỚC 209) — `khoa_bien`
+KICH_TRAN = "KICH_TRAN"         # một giá ở trần: trắng bên bán, lệnh MUA không khớp
+KICH_SAN = "KICH_SAN"           # một giá ở sàn: trắng bên mua, lệnh BÁN không khớp
+#: Nến một giá đổi ít nhất chừng này phần biên độ của sàn mới là khoá biên. Ghim
+#: ở `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 28; phần 10% còn lại hấp thụ sai số làm
+#: tròn của giá trần/sàn quanh tham chiếu.
+TY_LE_NHAN_KHOA_BIEN = 0.9
+
 
 class LenhError(ValueError):
     """Lệnh không hợp lệ — ném ngay khi đặt, không để nó đi tiếp."""
@@ -186,6 +194,36 @@ def _het_kien_nhan(lenh: Lenh) -> None:
     lenh.trang_thai = HUY
     lenh.ly_do = (f"hết {SO_NEN_CHO_TOI_DA} nến chờ, huỷ phần dư "
                   f"{lenh.con_lai}/{lenh.khoi_luong} CP")
+
+
+def khoa_bien(nen: dict, bien_do: float) -> str | None:
+    """`KICH_TRAN` / `KICH_SAN` nếu phiên khoá ở biên độ, None nếu không — hoặc
+    nếu thiếu dữ kiện để phân (không đoán).
+
+    Khoá biên = nến MỘT GIÁ (cao = thấp) VÀ |giá ÷ tham chiếu − 1| ≥
+    `TY_LE_NHAN_KHOA_BIEN` × `bien_do`. Cả phiên chỉ khớp ở đúng một giá sát
+    biên nghĩa là một bên trắng: kịch trần không ai bán, kịch sàn không ai mua.
+    Nến một giá KHÔNG sát biên (mã thanh khoản mỏng chỉ khớp một lô) không
+    phải khoá biên — 108 nến như vậy trong cache 20/10/2026.
+
+    `nen` cần `high`, `low`, `tham_chieu` (giá đóng cửa phiên trước, đúng thứ
+    `paper_runner` truyền); `bien_do` là biên độ của SÀN của mã. Không suy giá
+    trần làm màu bảng giá (việc ấy `mau_bang_gia` ĐỌC từ bảng giá): ở đây ngưỡng
+    chỉ phân loại một nến đã khoá.
+    """
+    try:
+        cao, thap = float(nen["high"]), float(nen["low"])
+        tham_chieu = float(nen["tham_chieu"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if tham_chieu <= 0 or abs(cao - thap) > 1e-9:
+        return None
+    doi = cao / tham_chieu - 1
+    if doi >= TY_LE_NHAN_KHOA_BIEN * bien_do:
+        return KICH_TRAN
+    if doi <= -TY_LE_NHAN_KHOA_BIEN * bien_do:
+        return KICH_SAN
+    return None
 
 
 def doi_soat(lenh: Lenh) -> dict:
