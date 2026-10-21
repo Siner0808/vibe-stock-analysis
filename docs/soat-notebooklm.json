@@ -3398,6 +3398,10 @@
         }
       ]
     },
+    "BƯỚC 210": {
+      "ngay": "2026-10-20",
+      "khong_bat_buoc_vi": "BƯỚC chỉ thêm bản thiết kế docs/thiet-ke-y5-tien-le.md (tra tiền lệ, chỉ để hiện, chưa có mã) và mục STATE kèm số đếm cỡ nhóm trên sổ OOS (không nhìn kết cục); không sửa file luật nào, không đổi điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo."
+    },
     "BƯỚC 211": {
       "ngay": "2026-10-21",
       "khong_bat_buoc_vi": "BƯỚC chỉ sửa công cụ duyệt cây tools/duyet_repo.py (luật 4: bỏ tệp tạm tests/__tam_* của test khác, bản liệt kê một tầng, tệp tạm tên duy nhất) và mười một file test (máy quét một tầng chuyển sang liet_ke, hai bên tạo tệp tạm dùng tên duy nhất hoặc gốc giả, sổ đăng ký một tầng, test tái hiện cuộc đua), dòng lỗi 185 cùng phân lớp, mốc số test và mục BƯỚC 211; không sửa file luật nào, không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là tỷ lệ đỏ giả của bộ test khi hai tiến trình chạy cùng lúc."
