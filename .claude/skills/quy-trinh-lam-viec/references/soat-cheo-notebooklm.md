@@ -94,7 +94,7 @@ Phần tử áp chót phải là **đúng câu vừa gửi** — lịch sử cha
 
 - **Mỗi phát hiện: mở file ra đối chiếu** (`sed -n`/`grep -n`). Sổ tay từng
   trích đúng chữ nhưng SAI TÊN FILE (BƯỚC 119).
-- **Câu ÂM cũng phải kiểm** — *"không tìm thấy"* từng sai hai lần (24/09,
+- **Câu ÂM cũng phải kiểm** — *"không tìm thấy"* đã sai nhiều lần (hai ca đầu 24/09,
   BƯỚC 127). `grep` các từ khoá của chính các ví dụ trên tài liệu sống, và
   quét **nhiều dòng** khi cụm từ có thể bị ngắt dòng (BƯỚC 128: ba trên sáu
   câu lọt `grep` một dòng).

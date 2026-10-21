@@ -23763,3 +23763,25 @@ Leader, tại chỗ. Nhánh `do/cat-lo-moi-phien-212` từ `main` `ed9a9ab` (sau
 **Không làm.** Không chạy lại ba dòng còn lại của bảng. Không đổi lưới chấm, `stride`, nâng stop, ngưỡng hay điểm. Không đọc sổ thật.
 
 **Việc kế.** Dọn `vibe_wt_do29_A/B` sau merge (sổ đã lưu ở `scratch/luu_do29/`). Làm mã ý 5: kho dựng từ `scratch/luu_do29/B_wf_oos.db` (máy đo hiện hành).
+
+## BƯỚC 214 — LỖI 187 ĐÓNG BẰNG HAI LỚP: DỤNG CỤ ĐO ĐỌC CỜ BẰNG `argparse` (`--help` KHÔNG CÒN CHẠY THẬT), CỬA BASH CHẶN DỤNG CỤ ĐO QUA ỐNG `head`/`tail`; BỐN CÂU ĐÃ TRÔI TỪ LƯỢT SOÁT 13 (21/10/2026)
+
+**Mốc:** quy-trinh — đóng lỗi 187 bằng máy; sửa bốn câu file luật lượt soát 13 (BƯỚC 213) chuyển cho leader
+
+Leader, tại chỗ, người dùng: *"ok làm đi, làm từ bước nhỏ đến bước lớn"*. Nhánh `quy-trinh/loi-187-cau-troi-214` xếp chồng trên nhánh BƯỚC 212 (hàng lỗi 187 nằm ở đó), worktree `vibe_wt_214`. Không đổi điểm, ngưỡng, lệnh, sổ hay kết luận đo nào.
+
+**Lớp 1 — dụng cụ đo từ chối cờ lạ.** `tools/do26_nguong_su_kien_quyen.py` và `tools/do27_su_kien_quyen_chieu_tien.py` là hai `tools/doN_*.py` duy nhất có `__main__` mà đọc `sys.argv` bằng tay (đếm: `grep -c argparse` trên 27 tệp `tools/do*.py`). Nay cả hai dùng `argparse`: `--help` in cách dùng rồi thoát 0, cờ lạ thoát 2, TRƯỚC khi kéo nguồn nào (đo tại máy: `do27 --help` in `usage: … [-h] [--json TEP]`, mã thoát 0). Gác `tests/test_dung_cu_do_tu_choi_co_la.py`: mọi `tools/doN_*.py` có `__main__` phải nhập `argparse` và gọi `parse_args` (AST); `--help` và cờ gõ nhầm `--jsno` gọi `main` với hàm kéo sổ làm test thất bại nếu bị gọi. Lệnh `--json` không đổi nghĩa; phép đọc của ĐO 27 không đổi.
+
+**Lớp 2 — cửa Bash.** Luật `dung-cu-do-qua-ong` (`tools/cua_bash_an_toan.py`, khai nguồn 21/10/2026): python chạy `tools/doN_*.py` mà nối ống vào `head`/`tail`. Tha: `cat tools/do27….py | head` (đọc tệp), `tools/doc_bang_loi.py | head` (không phải `doN_`), ghi log rồi lọc log qua ống. Hai mẫu XẤU (một là nguyên văn lệnh 21/10) và ba mẫu TỐT thêm vào `tests/test_cua_quy_trinh.py`.
+
+**Đột biến 5/5 đỏ:** trả `do26`, `do27` về đọc `sys.argv` bằng tay (2 phát, dựng lại lỗi thật); bỏ vế "python chạy" của luật (chặn nhầm `cat | head`); luật mù; nới `doN_` thành `do*` (chặn nhầm `doc_bang_loi`).
+
+**Bốn câu đã trôi** (lượt soát 13 chuyển cho leader; kiểm lại bằng lệnh hôm nay):
+- `SKILL.md`, mục sổ tay: *"không tìm thấy" từng sai hai lần* → *đã sai nhiều lần, hai ca đầu 24/09/2026 và BƯỚC 127* — không ghim số ca.
+- `CLAUDE.md`, bất đối xứng local/CI: *còn `pyarrow` 24 → 25* → không ghim số hiệu (`tools/so_ban_goi.py` hôm nay: máy 24.0.0, CI 26.0.0, repo KHÔNG nhập).
+- `CLAUDE.md`, danh sách CHỈ ĐỂ HIỆN: thêm lớp hiện của giai đoạn B (`ke_hoach_vao_lenh` · `ban_tin` · `suc_khoe` · `hau_kiem_loi`), mỗi module trỏ tới gác AST đã có (`tests/test_ke_hoach_vao_lenh.py` · `tests/test_ban_tin.py` · `tests/test_suc_khoe.py` · `tests/test_hau_kiem_loi.py`) — việc nợ từ lượt soát 12.
+- `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 26: *"phân bố f thì chưa ai in"* đúng lúc ký; thêm dòng ⚠️ có ngày: từ BƯỚC 193 dụng cụ in max và p95 của |f_vào − 1| ở nhóm sạch (0,0038 · 0,0028), phân bố đầy đủ vẫn chưa ai in. Câu ký giữ nguyên.
+
+**Bảng lỗi.** Hàng 187 thành ✅ (hai lớp trên); dòng tự khai 92/166 (`tools/doc_bang_loi.py`). Lúc đếm lộ thêm: hàng 187 do chính BƯỚC 212 viết có dấu `|` TRẦN trong mã (`| head -30`, `pytest | tail`), làm lệch cột "máy chặn?" — máy đếm bắt ngay (đếm được 91 khi khai 92), đã thoát thành `\|`. Ở BƯỚC 212 lệch cột ấy không lộ vì ô đúng là ❌ theo cả hai cách đọc.
+
+**Sổ tay.** Hỏi thật (mục BƯỚC 214 của `docs/soat-notebooklm.json`; người dùng đăng nhập lại khung trình duyệt). Sổ nêu đúng hai câu BƯỚC này sửa: `pyarrow` 24 → 25 ở `CLAUDE.md`, *"từng sai hai lần"* ở `SKILL.md` — cả hai THẬT. Phần còn lại sổ trả *"không tìm thấy câu mâu thuẫn"*; tự kiểm câu âm bằng `grep` (`sys.argv`, *phân bố f*, *từng sai hai lần*) lộ thêm bản thứ hai của câu *"từng sai hai lần"* ở `references/soat-cheo-notebooklm.md` :97 — sửa cùng BƯỚC. `su_kien_quyen.py` vẫn ghi *"Chưa đo phân bố f"*: khớp vế *phân bố đầy đủ chưa ai in*.
