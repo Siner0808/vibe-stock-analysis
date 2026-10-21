@@ -3318,6 +3318,94 @@
       "ngay": "2026-10-20",
       "khong_bat_buoc_vi": "BƯỚC chỉ sửa một hàm của bộ gác tests/test_tai_lieu_khop_ten_ma.py (gom tên cấp module theo tên tệp bằng phép HỢP thay cho gán đè, để module tools/ cùng tên không che tên của module gốc), thêm hai test, dòng lỗi 183 cùng phân lớp, mốc số test và mục BƯỚC 208; không sửa file luật nào, không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là số tên bị che của năm cặp module trùng tên."
     },
+    "BƯỚC 209": {
+      "ngay": "2026-10-20",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "Không nạp lại (leader, khung trình duyệt trong app, 20/10/2026): sổ có 18 nguồn, bản chụp mới nhất @3c2fd2c. git diff --shortstat <ghim> efa6a58 rỗng cho CLAUDE.md @3c2fd2c, NGUYEN-TAC-DO-LUONG.md @4194c57, MO-XE-KIEN-TRUC.md @13c32a0, docs/TIEU-CHI-DOC-TRUOC.md @9ec0556, docs/LO-TRINH.md @b353c16, docs/QUYET-DINH-CHO.md @1238343. docs/STATE.md thiếu BƯỚC 202–208 (B1, quy trình — không chạm khớp lệnh); loi-da-mac.md lệch 6 dòng (lỗi 182–183). Quét câu âm: grep 'khớp ngay|luôn khớp|phải thoát được|không thể kẹt' trên CLAUDE.md, NGUYEN-TAC, MO-XE, HANDOFF, TIEU-CHI, SKILL.md -> chỉ docs/HANDOFF.md:661 (lệnh thoát khớp cùng phiên tín hiệu — việc khác, đã vá BƯỚC 123).",
+      "cau_hoi": "I am about to write BƯỚC 209 into docs/STATE.md: ĐO 28 is signed in docs/TIEU-CHI-DOC-TRUOC.md, and the paper ledger and the walk-forward will no longer fill orders on a single-price limit-lock session. A session counts as locked when the daily bar has one price (high equals low) and moved at least 0.9 times the exchange price band (HOSE 7%, HNX 10%, UPCoM 15%) versus the previous close. A pending buy that meets a limit-up lock is cancelled (status HUY) with its own reason. A stop-loss hit on a limit-down lock does not fill; the position stays open and fills at min(stop, open) on the first unlocked session. A pending sell (signal exit, max-hold) waits through limit-down locks. This applies only when the slippage switch MO_PHONG_TRUOT_GIA is on. The real ledger follows the new model once merged; the four rows of the cost table in CLAUDE.md stay as measured on the old fill model. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the ceiling price must never be inferred from a percentage threshold, or that a stop-loss always fills in the same session at the stop or at the open, or that an open position must always be able to exit and can never be stuck, or that sells never go through the order lifecycle model vong_doi_lenh, or that the tier-2 switch covers only slippage and not fill feasibility. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md (mục Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá; sổ tay gọi sai tiêu đề): 'Không bao giờ suy trần bằng ngưỡng phần trăm (SSI trần ở +6,96%, SHS +8,16% mà không trần)' — sổ tay cho là mâu thuẫn với định nghĩa khoá biên 0,9 × biên độ.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"Không bao giờ suy trần bằng ngưỡng phần trăm (SSI trần ở +6,96%, ...)\" -> KHỚP — CLAUDE.md",
+          "phan_quyet": "THẬT — câu có, nhưng là luật của MÀU bảng giá (xác định đúng một giá có phải giá trần); khoá biên chỉ phân loại một nến một giá đã khoá, biên 10% hấp thụ sai số làm tròn. CLAUDE.md thêm dòng ĐO 28 nói rõ ranh giới; bản khai ĐO 28 cũng đã nói."
+        },
+        {
+          "noi_dung": "docs/STATE.md bảng 'Đường nối' (24/08; sổ tay gọi là BƯỚC 41): 'không qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể \"sàn từ chối\" rồi kẹt lại vĩnh viễn'.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"không qua vòng đời lệnh — một vị thế đang mở phải thoát được, ...\" -> KHỚP — STATE.md; sed -n 2928p docs/STATE.md",
+          "phan_quyet": "THẬT — vế 'phải thoát được' nay có ngoại lệ có chủ đích (phiên kịch sàn một giá thì lệnh bán chờ phiên mở khoá); vế 'không qua vòng đời lệnh' vẫn đúng. Gắn ⚠️ BƯỚC 209 tại chỗ; docstring paper_trading._gia_ban_that sửa theo."
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md bất biến 3 (thật tên 'Giả định bất lợi khi nến không phân định được'; sổ tay gọi 'Khớp lệnh bất lợi'): 'Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA, không ở SL (từ BƯỚC 123).'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA, không ở SL (từ BƯỚC 123).\" -> KHỚP — NGUYEN-TAC-DO-LUONG.md; grep -n '^### 3' NGUYEN-TAC-DO-LUONG.md",
+          "phan_quyet": "THẬT — câu vẫn đúng cho phiên thường; phiên kịch sàn một giá nay là ngoại lệ (chờ phiên mở khoá rồi mới khớp ở min(SL, giá mở cửa)). Bất biến 3 thêm một đoạn về phiên kịch trần/sàn."
+        }
+      ]
+    },
+    "ĐO 28": {
+      "ngay": "2026-10-20",
+      "nguon": [
+        "CLAUDE.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "STATE.md",
+        "HANDOFF.md",
+        "SKILL.md",
+        "references/loi-da-mac.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "docs/TIEU-CHI-DOC-TRUOC.md",
+        "references/soat-cheo-notebooklm.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "QUYET-DINH-CHO.md"
+      ],
+      "_do_tuoi": "CÙNG lượt hỏi với BƯỚC 209 (một câu, một lần gửi, 20/10/2026): nội dung được soát là mô hình khớp của ĐO 28 đã ký ở 059e456 và các câu tài liệu sẽ thành sai khi ghi kết quả. Không nạp lại (leader, khung trình duyệt trong app, 20/10/2026): sổ có 18 nguồn, bản chụp mới nhất @3c2fd2c. git diff --shortstat <ghim> efa6a58 rỗng cho CLAUDE.md @3c2fd2c, NGUYEN-TAC-DO-LUONG.md @4194c57, MO-XE-KIEN-TRUC.md @13c32a0, docs/TIEU-CHI-DOC-TRUOC.md @9ec0556, docs/LO-TRINH.md @b353c16, docs/QUYET-DINH-CHO.md @1238343. docs/STATE.md thiếu BƯỚC 202–208 (B1, quy trình — không chạm khớp lệnh); loi-da-mac.md lệch 6 dòng (lỗi 182–183). Quét câu âm: grep 'khớp ngay|luôn khớp|phải thoát được|không thể kẹt' trên CLAUDE.md, NGUYEN-TAC, MO-XE, HANDOFF, TIEU-CHI, SKILL.md -> chỉ docs/HANDOFF.md:661 (lệnh thoát khớp cùng phiên tín hiệu — việc khác, đã vá BƯỚC 123).",
+      "cau_hoi": "I am about to write BƯỚC 209 into docs/STATE.md: ĐO 28 is signed in docs/TIEU-CHI-DOC-TRUOC.md, and the paper ledger and the walk-forward will no longer fill orders on a single-price limit-lock session. A session counts as locked when the daily bar has one price (high equals low) and moved at least 0.9 times the exchange price band (HOSE 7%, HNX 10%, UPCoM 15%) versus the previous close. A pending buy that meets a limit-up lock is cancelled (status HUY) with its own reason. A stop-loss hit on a limit-down lock does not fill; the position stays open and fills at min(stop, open) on the first unlocked session. A pending sell (signal exit, max-hold) waits through limit-down locks. This applies only when the slippage switch MO_PHONG_TRUOT_GIA is on. The real ledger follows the new model once merged; the four rows of the cost table in CLAUDE.md stay as measured on the old fill model. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that the ceiling price must never be inferred from a percentage threshold, or that a stop-loss always fills in the same session at the stop or at the open, or that an open position must always be able to exit and can never be stuck, or that sells never go through the order lifecycle model vong_doi_lenh, or that the tier-2 switch covers only slippage and not fill feasibility. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md (mục Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá; sổ tay gọi sai tiêu đề): 'Không bao giờ suy trần bằng ngưỡng phần trăm (SSI trần ở +6,96%, SHS +8,16% mà không trần)' — sổ tay cho là mâu thuẫn với định nghĩa khoá biên 0,9 × biên độ.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"Không bao giờ suy trần bằng ngưỡng phần trăm (SSI trần ở +6,96%, ...)\" -> KHỚP — CLAUDE.md",
+          "phan_quyet": "THẬT — câu có, nhưng là luật của MÀU bảng giá (xác định đúng một giá có phải giá trần); khoá biên chỉ phân loại một nến một giá đã khoá, biên 10% hấp thụ sai số làm tròn. CLAUDE.md thêm dòng ĐO 28 nói rõ ranh giới; bản khai ĐO 28 cũng đã nói."
+        },
+        {
+          "noi_dung": "docs/STATE.md bảng 'Đường nối' (24/08; sổ tay gọi là BƯỚC 41): 'không qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể \"sàn từ chối\" rồi kẹt lại vĩnh viễn'.",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"không qua vòng đời lệnh — một vị thế đang mở phải thoát được, ...\" -> KHỚP — STATE.md; sed -n 2928p docs/STATE.md",
+          "phan_quyet": "THẬT — vế 'phải thoát được' nay có ngoại lệ có chủ đích (phiên kịch sàn một giá thì lệnh bán chờ phiên mở khoá); vế 'không qua vòng đời lệnh' vẫn đúng. Gắn ⚠️ BƯỚC 209 tại chỗ; docstring paper_trading._gia_ban_that sửa theo."
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md bất biến 3 (thật tên 'Giả định bất lợi khi nến không phân định được'; sổ tay gọi 'Khớp lệnh bất lợi'): 'Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA, không ở SL (từ BƯỚC 123).'",
+          "tu_kiem": "tools/doi_chieu_trich_dan.py \"Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA, không ở SL (từ BƯỚC 123).\" -> KHỚP — NGUYEN-TAC-DO-LUONG.md; grep -n '^### 3' NGUYEN-TAC-DO-LUONG.md",
+          "phan_quyet": "THẬT — câu vẫn đúng cho phiên thường; phiên kịch sàn một giá nay là ngoại lệ (chờ phiên mở khoá rồi mới khớp ở min(SL, giá mở cửa)). Bất biến 3 thêm một đoạn về phiên kịch trần/sàn."
+        }
+      ]
+    },
+    "BƯỚC 210": {
+      "ngay": "2026-10-20",
+      "khong_bat_buoc_vi": "BƯỚC chỉ thêm bản thiết kế docs/thiet-ke-y5-tien-le.md (tra tiền lệ, chỉ để hiện, chưa có mã) và mục STATE kèm số đếm cỡ nhóm trên sổ OOS (không nhìn kết cục); không sửa file luật nào, không đổi điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo."
+    },
+    "BƯỚC 211": {
+      "ngay": "2026-10-21",
+      "khong_bat_buoc_vi": "BƯỚC chỉ sửa công cụ duyệt cây tools/duyet_repo.py (luật 4: bỏ tệp tạm tests/__tam_* của test khác, bản liệt kê một tầng, tệp tạm tên duy nhất) và mười một file test (máy quét một tầng chuyển sang liet_ke, hai bên tạo tệp tạm dùng tên duy nhất hoặc gốc giả, sổ đăng ký một tầng, test tái hiện cuộc đua), dòng lỗi 185 cùng phân lớp, mốc số test và mục BƯỚC 211; không sửa file luật nào, không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là tỷ lệ đỏ giả của bộ test khi hai tiến trình chạy cùng lúc."
+    },
     "BƯỚC 213": {
       "ngay": "2026-10-21",
       "khong_bat_buoc_vi": "BƯỚC chỉ ghi lượt soát định kỳ 13 vào docs/soat-dinh-ky.json (68 lời khai phán lại bằng lệnh hôm nay), thêm hai ô ⚠️ có ngày vào docs/HANDOFF.md (số hiệu CI của pyarrow; câu về ~/.claude/rules/vibe-preview.md), ghi ✅ lượt 13 và hạn lượt 14 ở khối Hạn kế, và thêm mục BƯỚC 213 vào docs/STATE.md cùng mục này; không sửa file luật nào (ba chỗ sai một phần trong SKILL.md, CLAUDE.md và docs/TIEU-CHI-DOC-TRUOC.md được ghi vào mục Chờ leader để leader hỏi sổ tay thật), không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo — số đo trong BƯỚC là số lời khai và số câu ứng viên đếm bằng công cụ hôm nay."

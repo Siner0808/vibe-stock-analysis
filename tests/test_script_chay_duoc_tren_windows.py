@@ -17,8 +17,13 @@ Vá từng file là cách sửa ba lần đầu. Đây là cách sửa lần th�
 """
 import ast
 import os
+import sys
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+
+import duyet_repo  # noqa: E402  — liệt kê một tầng bỏ tệp tạm của test khác (BƯỚC 211)
 
 #: Thư mục quét. `tests/` không cần — pytest tự bắt stdout.
 THU_MUC = ("", "tools")
@@ -50,13 +55,8 @@ def _co_reconfigure(duong_dan: str) -> bool:
 def _liet_ke():
     ra = []
     for tm in THU_MUC:
-        d = os.path.join(ROOT, tm) if tm else ROOT
-        if not os.path.isdir(d):
-            continue
-        for ten in sorted(os.listdir(d)):
-            if not ten.endswith(".py"):
-                continue
-            p = os.path.join(d, ten)
+        for f in duyet_repo.liet_ke(Path(ROOT), tm or ".", "*.py"):
+            p = str(f)
             if os.path.isfile(p) and _script_co_print(p):
                 ra.append(p)
     return ra
@@ -259,13 +259,9 @@ def _trinh_thong_dich_ghim_cung(duong_dan: str) -> list:
 def _liet_ke_py():
     ra = []
     for tm in THU_MUC_QUET:
-        d = os.path.join(ROOT, tm) if tm else ROOT
-        if not os.path.isdir(d):
-            continue
-        for ten in sorted(os.listdir(d)):
-            p = os.path.join(d, ten)
-            if ten.endswith(".py") and os.path.isfile(p):
-                ra.append(p)
+        for f in duyet_repo.liet_ke(Path(ROOT), tm or ".", "*.py"):
+            if f.is_file():
+                ra.append(str(f))
     return ra
 
 

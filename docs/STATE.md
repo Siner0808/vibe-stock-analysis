@@ -2925,7 +2925,7 @@ không phải phép đo**.
 | | qua module nào | vì sao |
 |---|---|---|
 | **vào lệnh** | `vong_doi_lenh.dat_lenh` → `khop_trong_nen` | dùng cả hai module: lô chẵn, biên độ ±7%, trần thanh khoản mỗi nến, khớp một phần, rồi mới tới trượt giá |
-| **ra lệnh** | `truot_gia(..., BAN, ...)` | **không** qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn |
+| **ra lệnh** | `truot_gia(..., BAN, ...)` | **không** qua vòng đời lệnh — một vị thế đang mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. ⚠️ BƯỚC 209 (ĐO 28): vế "phải thoát được" có một ngoại lệ có chủ đích — phiên kịch sàn MỘT GIÁ thì lệnh bán chờ phiên mở khoá; vế "không qua vòng đời lệnh" vẫn đúng |
 
 Khớp một phần thì `size_pct` giảm theo tỷ lệ thực khớp — giữ nguyên là ghi
 vào sổ một vị thế chưa bao giờ tồn tại. Sàn từ chối thì **xoá** lệnh
@@ -23522,6 +23522,115 @@ Leader, tại chỗ (người dùng: *"ok làm tiếp đi"*, 20/10; việc của
 
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
 
+## BƯỚC 209 — ĐO 28: SỔ ẢO HẾT KHỚP Ở PHIÊN KỊCH TRẦN/SÀN MỘT GIÁ; DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` ĐỨNG YÊN −1,68% (2/619 LỆNH DÍNH KHOÁ, CẢ HAI LÀ GIL 12/2022); LỘ THÊM: WALK-FORWARD KHÔNG XÉT CẮT LỖ Ở PHIÊN CHỈ-KHỚP (20/10/2026)
+
+**Mốc:** B3 — sổ bài học học từ chính các lệnh cắt lỗ; giá khớp của chúng ở phiên kịch sàn quyết định lỗ thật được ghi
+
+Leader, tại chỗ. Người dùng chốt 20/10 qua hộp hỏi: sửa mô hình khớp, *"Sửa, làm sau 21/10 (Recommended)"*; định nghĩa, *"Một giá + đổi ≥ 90% biên (Recommended)"*; mua gặp kịch trần, *"Huỷ lệnh (Recommended)"*; cache đo, *"Cache gốc acf6dca1 (Recommended)"*; bản khai, *"Duyệt cả bản nháp (Recommended)"*. Rồi *"làm tiếp đi"* → làm ngay trên nhánh, **merge SAU lượt đọc 2 của ĐO 27 (21/10)**. Không đọc sổ thật (lệnh đóng sau 15/10 là quần thể ĐO 27).
+
+**Đã làm (bốn commit).**
+- `059e456` — ký ĐO 28 ở `docs/TIEU-CHI-DOC-TRUOC.md`, commit riêng, trước mã và lượt chạy.
+- `3b5ff29` — mô hình: `vong_doi_lenh.khoa_bien` (`KICH_TRAN` · `KICH_SAN` · `TY_LE_NHAN_KHOA_BIEN` = 0,9). `paper_trading` (tầng 2, sau `MO_PHONG_TRUOT_GIA`): `fill_pending` mua gặp kịch trần → `HUY`, lý do `LY_DO_KICH_TRAN`; `evaluate_open` cắt lỗ chạm ở kịch sàn → không đóng, không nâng stop, phiên sau xét lại (đường BƯỚC 123); `fill_closing` chờ qua kịch sàn; biên độ tra theo mã. `paper_runner.run_session` đưa giá tham chiếu vào `evaluate_open`.
+- `360274d` — dụng cụ `tools/do28_khoa_bien.py` (đối chứng iii, số đếm), viết và commit TRƯỚC khi đọc lượt chạy.
+- Commit cuối — tài liệu và docstring `_gia_ban_that` (rủi ro không khớp chỉ mô hình hoá ở MỘT chỗ, trước hàm ấy).
+- Gác: `tests/test_khop_kich_tran_san.py` (15; mười test đỏ trên mã cũ, đúng lý do — mua khớp ở kịch trần, cắt lỗ và lệnh chờ bán khớp ở kịch sàn, `run_session` không đưa tham chiếu), `tests/test_do28_khoa_bien.py` (6; thế giới giả sáu phiên tính tay). Đột biến 17/17 đỏ trên mô hình (6 `vong_doi_lenh`, 10 `paper_trading`, 1 `paper_runner`), 6/6 đỏ trên dụng cụ.
+
+**Đếm trước (dữ liệu thị trường, không sổ nào).** Cache hiện tại: 120.375 nến; nến một giá kịch trần 147, kịch sàn 149, một giá không sát biên 108 (chủ yếu VCF khối lượng 100 cổ phiếu, KOS, DCL). Dụng cụ nháp `dem_nen_mot_gia.py`.
+
+**ĐO 28.** Hai worktree tách rời ở `059e456` (A, mô hình cũ) và `3b5ff29` (B, mô hình mới); `tools/do1_chi_phi_thuc_thi.py --mot-luot 2`; `VIBE_CACHE_DIR` trỏ hai bản chép của `scratch/vibe_cache_goc_20260911`; `sl_pattern_memory.json` sha256 `e8b44cf8…`; chạy song song 14:23–14:55.
+
+| lượt | IS ngưỡng 45: lệnh · kỳ vọng | ngưỡng IS chọn | lệnh OOS | alpha | KTC 95% | kỳ vọng OOS | cộng dồn OOS |
+|---|---|---|---|---|---|---|---|
+| A | 891 · −0,04 | 45 | 619 | −1,68% | [−2,24 ; −1,08] | −1,29% | −34,96% |
+| B | 887 · −0,12 | 45 | 617 | −1,68% | [−2,24 ; −1,08] | −1,29% | −34,77% |
+
+- Đối chứng: **(i)** A tái lập ĐO 22 — 619 lệnh, −1,68% [−2,24 ; −1,08], ngưỡng 45; `tools/do20_ghep_tung_lenh.py` A ↔ `scratch/luu_do22/wt_do22_s2`: 619/619 giống hệt. **(ii)** băm hai bản chép cache trước và sau lượt chạy đều `acf6dca1…`. **(iii)** `tools/do28_khoa_bien.py`: 2/2 lệnh A dính phiên khoá khác ở B (mã thoát 0).
+- **Kết cục A — đúng chiều.** Δalpha = 0,00 ở hai chữ số log in ra (|Δ| < 0,01 ≤ +0,05), KTC của B loại 0 → *"THUA chuẩn có ý nghĩa"* đứng; ngưỡng IS không đổi. `CLAUDE.md` thêm một dòng dưới bảng chi phí, bốn dòng cũ giữ nguyên.
+- Lệnh dính khoá: 33 mã OOS có 89 phiên khoá biên (46 trần, 43 sàn); A vào ở kịch trần 0, ra ở kịch sàn 2 — cả hai GIL. Ghép A ↔ B: 616 giống hệt; 1 khác (GIL tín hiệu 14/12/2022: A ra 16/12 ở 16.800, B ra 22/12 ở 16.200); 2 chỉ ở A (GIL tín hiệu 16/12 — ở B vị thế trước còn mở; HAG tín hiệu 20/12, vào ở phiên thường — dây chuyền trần vốn của chế độ theo ngày); 0 chỉ ở B. B: `HUY` vì kịch trần 0.
+- Dải IS dòng 45 xấu đi (891 · −0,04 → 887 · −0,12), chiều an toàn. Cộng dồn OOS nhích lên 0,19 điểm vì hai lệnh lỗ của A biến mất; alpha — thước quyết định — không đổi.
+
+**Lộ thêm — walk-forward không xét cắt lỗ ở phiên chỉ-khớp.** GIL khoá sàn 16, 19, 20/12/2022; phiên mở khoá 21/12 mở 13,59, đáy 13,59 — dưới SL 18.139 xa. Lưới chấm theo ngày (stride 2) qua 12, 14, 16, 20, 22, 26/12; 21/12 là phiên chỉ-khớp và `run_session` trả về TRƯỚC `evaluate_open`, nên B ra 22/12 ở min(SL, mở 16,30) → 16.200 sau trượt. Xét cắt lỗ mọi phiên thì lệnh ra 21/12 quanh 13.590 — ƯỚC LƯỢNG, chưa chạy. Điều này không mới về cơ chế: `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 2 viết *"một cây thủng stop-loss ở `t+1` vẫn vô hình, y như hôm nay"* và giữ nguyên có chủ đích. Cái mới là chỗ phép bác cũ không thấy: BƯỚC 26 bác giả thuyết *"stride=2 bỏ sót lệnh chạm cắt lỗ"* bằng TỶ LỆ lệnh đóng bằng cắt lỗ (71,8% / 69,9%), còn ca GIL là GIÁ khớp — phiên bị bỏ qua làm giá ra đẹp lên mà tỷ lệ không đổi. Chiều: lạc quan (Quy tắc 1). Cỡ: chưa đo; đổi lưới xét cắt lỗ là một ĐO mới, người dùng quyết.
+
+**Giả thuyết bị bác / ước lượng đã sai.** Số đếm *"lệnh ra ngay sau chuỗi phiên kịch sàn"* của dụng cụ ra 0 dù lệnh GIL của B có bị dời: phiên ngay trước ngày ra (21/12) là phiên mở khoá, không phải kịch sàn — định nghĩa đếm không bắt được ca dời bị stride kéo dài. Báo đúng như máy in, không sửa định nghĩa sau khi nhìn số. Ước 15/10 (cache hiện tại) là 2/619 lệnh ra ở kịch sàn, −0,038 điểm/lệnh; trên cache `acf6dca1…` cũng 2/619 nhưng alpha không nhúc nhích ở hai chữ số — một lệnh xấu đi, hai lệnh lỗ biến mất theo dây chuyền.
+
+**Giới hạn đã biết.** UPCoM lấy tham chiếu là giá bình quân phiên trước, ở đây là giá đóng cửa (cùng phần dư của `BIEN_DO_KIEM_GIA_MO`). Khoá biên một phần và trần khối lượng của lệnh bán chưa mô hình hoá. Lệnh còn kẹt khi hết dữ liệu: `dong_so_sach` đóng như cũ; chưa đếm. Ba dòng còn lại của bảng chi phí chưa chạy lại.
+
+**Sổ tay — hỏi thật** (câu nguyên văn trong `docs/soat-notebooklm.json`). Ba phát hiện; cả ba trích dẫn KHỚP (`tools/doi_chieu_trich_dan.py`), hai cái sai tiêu đề:
+1. `CLAUDE.md` *"Không bao giờ suy trần bằng ngưỡng phần trăm"* (thật ở mục *Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá*) — luật của MÀU bảng giá; dòng mới của `CLAUDE.md` nói rõ ranh giới.
+2. `docs/STATE.md` bảng *Đường nối* (24/08; sổ tay gọi là BƯỚC 41): *"không qua vòng đời lệnh — một vị thế đang mở phải thoát được…"* — gắn ⚠️ tại chỗ; vế "không qua vòng đời lệnh" vẫn đúng.
+3. `NGUYEN-TAC-DO-LUONG.md` bất biến 3 (thật tên *"Giả định bất lợi khi nến không phân định được"*): *"Gap qua SL lúc mở cửa → khớp ở giá MỞ CỬA"* — thêm một đoạn về phiên kịch trần/sàn.
+
+Quét câu âm (`grep` *khớp ngay · luôn khớp · phải thoát được · không thể kẹt* trên tài liệu sống): không thấy câu nào khác. Độ tươi: sổ chụp `3c2fd2c`; `CLAUDE.md`, `NGUYEN-TAC-DO-LUONG.md`, `MO-XE-KIEN-TRUC.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`, `docs/QUYET-DINH-CHO.md` giống hệt `efa6a58` (`git diff`); `docs/STATE.md` thiếu BƯỚC 202–208 (B1, quy trình — không chạm khớp lệnh).
+
+**Bảng lỗi.** Lỗi 184 (`chua-do`, 48 ngày theo git: `8c7efe5` 28/08 nối lối bán không qua vòng đời lệnh — lộ 15/10); dòng tự khai 91/164.
+
+**Việc kế.** Merge sau lượt đọc 2 ĐO 27 (21/10); sổ thật theo mô hình mới từ lượt quét đầu tiên sau merge. Rồi bản thiết kế ý 5 (tra tiền lệ) — dựng kho từ sổ OOS của lượt B (sổ hai lượt lưu ở `scratch/luu_do28/`: `A_wf_oos.db`, `B_wf_oos.db`). Chờ người dùng: có mở một ĐO cho cắt lỗ ở phiên chỉ-khớp không.
+
+## BƯỚC 210 — THIẾT KẾ Ý 5 "TRA TIỀN LỆ, CHỈ ĐỂ HIỆN": NGƯỜI DÙNG CHỐT TỪNG PHẦN; CHIỀU "VN-INDEX TRÊN/DƯỚI MA50" VÔ DỤNG (617/617 LỆNH TRÊN MA50) NÊN "GIỐNG" ĐỔI THÀNH DẢI ĐIỂM × ĐỘ CAO VN-INDEX (20/10/2026)
+
+**Mốc:** B3 — người dùng học từ sổ: mỗi lệnh trong nhật ký hiện những lệnh cũ cùng bối cảnh đã kết thúc ra sao
+
+Leader, tại chỗ. Chỉ thêm `docs/thiet-ke-y5-tien-le.md` và mục này; chưa có dòng mã nào, không đổi luật, điểm, ngưỡng, lệnh, sổ hay kết luận đo. Ý 5 đến từ lượt tra ngoài 15–16/10 (bảng 7 ý tưởng); người dùng chọn bàn nó rồi duyệt từng phần (nguyên văn trong mục 1 của bản thiết kế).
+
+**Số đếm làm đổi thiết kế (chỉ đếm, không nhìn kết cục; sổ OOS lượt B của ĐO 28 ở `scratch/luu_do28/B_wf_oos.db`, dụng cụ nháp `do_kho_tien_le.py`, `dem_khoa_thay.py`).**
+- Cổng mở lệnh bỏ qua mọi tín hiệu khi VN-Index dưới MA50 (`paper_trading.py`, `consider_entry`), nên 617/617 lệnh có VN-Index trên MA50 ngày tín hiệu: chiều "trên/dưới MA50" của bản lần 1 không phân biệt được gì.
+- Lượt walk-forward chọn ngưỡng 45 trên IS: 498/617 lệnh OOS điểm < 62, 93 lệnh 62–69, 26 lệnh ≥ 70. Lệnh thật luôn ≥ `BUY_THRESHOLD`, nên kho chỉ lấy 119 lệnh ≥ 62.
+- Trên 119 lệnh ấy, lệnh nằm trong nhóm ≥ 10 tiền lệ: ngành × dải điểm 29 (24%); chỉ ngành 64 (54%); dải điểm × nấc VN-Index cao hơn MA50 (0–2% / 2–5% / ≥ 5%) 107 (90%); ngành × nấc VN-Index 21 (18%). Người dùng chọn *"Dải điểm × độ cao VNI (Recommended)"*. Hai biên 2% · 5% chọn theo số lệnh mỗi nấc trên cả kho (396 / 180 / 41).
+
+**Thiết kế (tóm tắt; chi tiết trong tệp).** Kho = sổ OOS dòng "BẬT · theo ngày" của máy đo cuối cùng trên cache `acf6dca1…` (điểm ≥ `BUY_THRESHOLD`, tệp JSON trong repo) + lệnh thật từ nhật ký; khoá nhóm (dải điểm, nấc VN-Index), `vni_pct_tren_ma50` tính bằng đúng `nhat_ky_vi_sao.vni_so_voi_ma50`; tiền lệ chỉ gồm lệnh có ngày RA < ngày VÀO; hiện tỷ lệ thắng nhóm (Wilson) CẠNH tỷ lệ nền, nhóm < 10 thì "chưa đủ tiền lệ"; thắng/thua theo `so_bai_hoc.ket_qua_lenh`; module thuần `tien_le.py`, gác AST CHỈ ĐỂ HIỆN.
+
+**Giả thuyết bị bác.** Bản lần 1 (*"Cùng bối cảnh"*: ngành × VN-Index trên/dưới MA50 × dải điểm) do leader đề xuất mà không kiểm cổng mở lệnh — chiều thứ hai là hằng số theo cấu tạo. Phát hiện lúc soạn thiết kế, trước dòng mã nào.
+
+**Việc kế.** Làm mã SAU ĐO 29 (kho dựng từ sổ OOS của máy đo cuối cùng): PR 1 module thuần + dụng cụ + tệp kho + test; PR 2 khối trên app.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 211 — MÁY QUÉT REPO BỎ QUA TỆP TẠM CỦA TEST KHÁC (`tests/__tam_*`) Ở MỘT CHỖ, `tools/duyet_repo.py` LUẬT 4; TỆP TẠM TRONG `tests/` TÊN DUY NHẤT; HAI TEST RÁC CỦA `tests/test_bo_dot_bien.py` CHẠY TRÊN GỐC GIẢ (21/10/2026)
+
+**Mốc:** quy-trinh — đỏ giả cổng 4 trên CI của PR #255 (20/10): máy quét đọc tệp tạm mà một test khác vừa xoá
+
+Phiên con của leader, worktree `vibe_wt_211`. Không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo: đổi `tools/duyet_repo.py` và mười một file test.
+
+**Sự cố.** CI run 39391559847 lượt 1 (PR #255, 20/10/2026 08:19 UTC), bước *Mỗi file test phải xanh khi CHẠY MỘT MÌNH* (12 file song song): `FAILED tests/test_chatbot_khong_bia_va_khong_chet.py::test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET - FileNotFoundError: [Errno 2] No such file or directory: '…/tests/__tam_kiem_tra_mien_tru.py'` (đọc lại bằng `gh run view 39391559847 --attempt 1 --log-failed`). Dòng `kiem-dinh` kia xanh; năm cổng ở máy xanh.
+
+**Cơ chế (đọc mã, rồi tái hiện tất định).** Test ấy đọc mọi tệp mà `duyet_repo.duyet(GOC, "*.py")` trả, chỉ bắt `SyntaxError`. `tests/test_chan_bia_so_lieu.py` (`test_file_trong_tests_duoc_mien`, `test_or_trong_tests_duoc_mien`) ghi rồi xoá `tests/__tam_kiem_tra_*.py` — buộc nằm trong `tests/` vì bộ dò bịa số chỉ miễn đường bắt đầu bằng `tests/` (BƯỚC 206). Hai tiến trình chạy cùng lúc thì tệp biến mất giữa lúc liệt kê và lúc đọc. Cùng họ lỗi 181 (BƯỚC 206 sửa nửa CHỤP CÂY của cùng bên ghi).
+
+**Đo** (script nháp ngoài repo, mỗi lượt in dữ liệu thô).
+1. `Path.rglob` khi một thư mục con biến mất giữa lượt duyệt (`do_rglob_mat_thu_muc.py`: xoá `.tam_test/tmpXX` ngay sau khi thư mục cha được liệt kê): 3.11.15 trả `['a.py']`, không nổ; 3.13 bắt `OSError` trong `glob._Globber` (đọc nguồn). Chỗ hỏng chỉ là phần ĐỌC tệp — giữ `rglob`.
+2. Cuộc đua thật, 90 s, hai tiến trình (`do_cuoc_dua_that.py`: A chạy lặp hai test tạo tệp; B chạy lặp `test_KHONG_FILE_NAO…` và `test_MOI_khang_dinh_ve_MA_NGUON_deu_phai_KHAI_ly_do` của `tests/test_gac_van_ban_phai_khai.py`, một máy quét một tầng):
+
+| mã | B đỏ | A đỏ |
+|---|---|---|
+| cũ (`ed9a9ab`, worktree tạm đã gỡ) | 62/152 — 61 `FileNotFoundError` qua `duyet`, 1 qua glob một tầng | 1/346 `PermissionError [WinError 32]` (B đang mở tệp lúc A xoá) |
+| mới | 0/98 | 0/334 |
+
+3. Tên tệp tạm cố định (`do_va_cham_ten.py`, hai tiến trình × 400 vòng hai test tạo tệp): 6/1600 lượt đỏ (`PermissionError` 5, `FileNotFoundError` 1). Cổng 1 và cổng 4 chạy file ấy cùng lúc.
+4. Bên tạo thứ hai, tìm ra khi quét lớp (`do_lap_pytest.py`, 120 s): `tests/test_bo_dot_bien.py` đặt `vibe-rac-thu-nghiem*.tmp` tên cố định ở GỐC repo thật. Hai lượt chạy lặp file ấy song song → 42 dòng đỏ / 153 lượt, kể cả `test_LUOT_DUC_THU_SACH_thi_KHONG_no` và `test_DOT_BIEN_BI_GIET_khong_nam_trong_danh_sach_tra_ve` (phép canh rác của `va_an_toan.dot_bien` thấy rác của tiến trình kia); chạy lặp hai test rác cạnh `test_THAT_mot_luot_chay_thuc_cua_phep_offline_khong_doi_tep_nao_trong_repo` → 2/72 đỏ `([], [], ['vibe-rac-thu-nghiem-2.tmp'])`. Sau sửa: 0/146 và 0/124 · 0/97.
+
+**Sửa.**
+- `tools/duyet_repo.py` luật 4: `la_tep_tam_cua_test(goc, p)` — phần đường THỨ HAI mang `__tam_` dưới `tests/` của gốc (tệp hay thư mục), so theo phần; `duyet` bỏ chúng; `liet_ke(goc, thu_muc, mau)` là bản một tầng; `tep_tam_trong_tests(goc, ten)` cho một tệp rỗng tên duy nhất `tests/__tam_<ten>_<ngẫu nhiên>.py` và xoá khi ra.
+- Bên tạo: hai test của `tests/test_chan_bia_so_lieu.py` dùng `tep_tam_trong_tests`. Hai test rác của `tests/test_bo_dot_bien.py` trỏ `vat.GOC` sang một gốc giả trong `tmp_path` (`_goc_gia`; `dot_bien` đọc `GOC` lúc chạy cho cả `cwd` lẫn `_muc_goc_repo()`, nên cơ chế được thử y nguyên) và khẳng định gốc thật không mọc tệp rác.
+- `tests/test_suc_khoe.py`: `_anh_chup` bỏ phép tha riêng `TIEN_TO_TAM_TRONG_TESTS` (`duyet` đã tha — một chỗ quyết). Gác bên tạo đổi tên thành `test_TEP_TAM_trong_tests_chi_qua_tep_tam_trong_tests_KHONG_ten_co_dinh` (thay `test_TEP_TAM_ghi_thang_vao_tests_deu_mang_tien_to_TAM`) và chặt hơn BƯỚC 206: mọi tên literal `GOC / "tests" / <tên>` mà git không biết đều vi phạm, kể cả mang `__tam_`; đối chứng dương là lời gọi `tep_tam_trong_tests` (AST).
+
+**Quét lớp — danh sách đầy đủ.**
+- Đệ quy qua `duyet` (luật 4 tự phủ): `tests/test_chatbot_khong_bia_va_khong_chet.py` (lỗi gốc), `tests/test_ban_tin.py`, `tests/test_chi_dan_chay_duoc.py`, `tests/test_doi_chung_ngoai_venv.py`, `tests/test_hau_kiem_loi.py` (chỉ `backtest/`), `tests/test_ke_hoach_vao_lenh.py`, `tests/test_khung_thoi_gian.py`, `tests/test_khuyen_nghi_rui_ro.py`, `tests/test_loai_su_kien_quyen.py`, `tests/test_su_kien_quyen.py`, `tests/test_suc_khoe.py` (`_anh_chup`), `tests/test_chan_bia_so_lieu.py::test_repo_hien_tai_sach_o_muc_chan` và cổng 3 (`tools/chan_bia_so_lieu.py --quet-repo`; vốn hỏi `exists()` trước khi đọc, nên chỉ còn cửa sổ hẹp và nó in `[LỖI]` rồi đi tiếp), cổng 2 (`tools/kiem_cu_phap_311.py` `cac_file` — tệp mất ra dòng `khong doc duoc`, cổng đỏ giả), `tools/so_ban_goi.py`, `tools/do11_nang_streamlit.py`, `tools/do12_nang_plotly.py`. Sổ đăng ký đệ quy có sẵn (BƯỚC 147) giữ không lượt đệ quy nào đi vòng `duyet`.
+- Một tầng trên `tests/` rồi đọc — cùng cuộc đua, `duyet` không phủ; chuyển sang `liet_ke` (sáu tệp): `tests/test_duyet_repo.py` (`_file_quan_the`), `tests/test_gac_van_ban_phai_khai.py` (hai test), `tests/test_nhat_ky_cua_bash.py`, `tests/test_sheets_store.py`, `tests/test_skill_quy_trinh.py`, `tests/test_requirements.py` (bốn chỗ; một test so HAI lần liệt kê cách nhau — tệp tạm xuất hiện giữa chừng là một đỏ giả kiểu khác), `tests/test_script_chay_duoc_tren_windows.py` (hai chỗ `os.listdir`).
+- Một tầng không chạm `tests/` — khai miễn trừ có lý do, sáu mục: `tools/duyet_repo.py` (`liet_ke`), `tools/chan_bia_so_lieu.py` (`thu_thap_truong`), `tests/test_chup_cache.py` (hai chỗ, `tmp_path`), `tests/test_no_fabricated_data.py` (bỏ `/tests/` trước khi mở), `tests/test_tai_lieu_khop_ten_ma.py` (`_cac_module`: gốc, `tools/`, `backtest/`).
+- Bên ghi khác vào cây repo: quét AST nháp `quet_ben_ghi.py` (theo cả biến gán từ `GOC`/`ROOT`/`__file__`; đi qua ca thật đã biết — bản cũ của `tests/test_chan_bia_so_lieu.py` ra đủ bốn dòng ghi/xoá tệp tạm): cây hiện tại chỉ còn `tests/test_bo_dot_bien.py` (mục 4 ở trên, đã sửa). Bản đầu của chính máy quét này mù với dạng `f = GOC / …; f.write_text(…)` — đúng dạng đã cắn; sửa trước khi tin con số 0.
+
+**Gác** (test-first: hai test tái hiện ĐỎ trên mã cũ đúng nguyên văn `FileNotFoundError: … tests\__tam_kiem_tra_mien_tru.py`).
+- `tests/test_duyet_repo.py` +8: `test_CUOC_DUA_20_10_tep_tam_bien_mat_giua_LIET_KE_va_DOC` (bọc `Path.rglob`: liệt kê thật rồi xoá `tests/__tam_*`; đòi phép giả lập có chạy), `test_LUAT_4_chi_bo_tep_tam_NGAY_DUOI_tests_cua_GOC`, `test_LIET_KE_MOT_TANG_cung_bo_tep_tam_ke_ca_khi_no_bien_mat`, `test_TEP_TAM_TRONG_TESTS_ten_DUY_NHAT_moi_luot_va_may_quet_khong_thay`, `test_CONG_2_khong_doc_tep_tam_cua_test_KHAC`, sổ đăng ký MỘT TẦNG `test_SO_DANG_KY_MOT_TANG_moi_luot_liet_ke_co_the_thay_tep_tam_deu_qua_liet_ke` và hai phép tự kiểm `…KHONG_MU…` (15 hình dạng mẫu; cây thật có ≥ 6 tệp gọi `liet_ke`). Máy dò một tầng chạy nháp trên cây thật trước khi viết sổ: 21 chỗ, trùm đủ danh sách kê tay.
+- `tests/test_chatbot_khong_bia_va_khong_chet.py` +1: `test_CUOC_DUA_20_10_tep_tam_cua_test_KHAC_bien_mat_truoc_khi_doc` chạy đúng phép quét của test hỏng (tách thành `_quet_cau_lenh_chet(goc)`) trên cây giả; đối chứng dương: một câu lệnh chết thật vẫn bị bắt.
+
+**Đột biến, 27/27 đỏ ngay vòng đầu** (`va_an_toan.dot_bien_bo`). D01 bỏ luật 4 khỏi `duyet` — NGUYÊN VĂN lỗi thật — đỏ riêng ở năm gác (cuộc đua `duyet`, cuộc đua của phép quét thật, cổng 2, ảnh chụp cây, cây giả luật 4); D02 `liet_ke` không lọc; D03 bỏ `__tam_` ở mọi nơi; D04 bỏ cả `tests/`; D05 so chuỗi con thay cho phần; D06 chỉ tệp ngay dưới `tests/`; D07 tên cố định; D08 không xoá khi ra; D09 thiếu tiền tố; D10 tệp tạm vào `.tam_test/` (kiểm lại bằng tay: đỏ đúng lý do, bộ dò bắt R1/R4); E01 test quay về tên cố định; E02 phép phán bên tạo luôn rỗng; E03 phép phán quay về luật BƯỚC 206; F01–F05 máy dò một tầng mù `os.listdir` · mù `iterdir` · coi `GOC / "tests"` là an toàn · lọc mẫu sai · coi mọi bên nhận là an toàn; F06 một máy quét quay về glob một tầng; F07 miễn trừ chết; G01–G03 hai test rác quay về gốc thật · `_goc_gia` không vá `GOC`.
+
+**Giả thuyết bị bác / ước lượng đã sai.** (a) Tôi định dời tệp tạm vào THƯ MỤC `tests/__tam_<ngẫu nhiên>/` để glob một tầng khỏi thấy chúng — bỏ trước khi viết: lượt thu thập của cổng 1 (`pytest tests/`) sẽ `scandir` một thư mục có thể biến mất (cùng cơ chế lượt pytest lồng ở BƯỚC 206), còn tệp phẳng thì pytest chỉ so tên với `test_*.py`. SUY LUẬN từ đọc mã pytest, chưa đo. (b) Tôi ngờ `rglob` nổ khi thư mục con biến mất (sẽ phải viết lại `duyet` bằng `os.walk` cắt tỉa) — đo bác ở cả 3.11.15 và 3.13. (c) Ngưỡng đối chứng "bảy tệp gọi `liet_ke`" tôi gõ theo trí nhớ — đếm thật là sáu.
+
+**Chưa làm / chưa đo.** Gác bên tạo chỉ thấy dạng literal `GOC / "tests" / <tên>`; một test MỚI đặt tệp tạm tên cố định ở chỗ khác trong cây repo (ngoài `.tam_test/` và `tests/__tam_*`) không bị máy nào chặn — chỉ có lượt quét nháp hôm nay. Máy dò một tầng phán bên nhận "chắc chắn không phải `tests/`" theo tên hằng (`GOC` · `ROOT` · `GOC_DU_AN`) và `tmp_path`: một biến trỏ vào `tests/` mà mang đúng tên ấy sẽ lọt. Chưa chạy lại đúng cấu hình CI (Linux, 12 file song song) nhiều lượt — lượt CI của PR này là một lượt rút.
+
+**Bảng lỗi.** Lỗi 185 (`gac-hong`, sống 4 ngày theo git: `35dbe19` 16/10 cho cổng 4 chạy song song → lộ 20/10); ⚠️ một phần; dòng tự khai 91/165 (`tools/doc_bang_loi.py`).
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
 
 ## BƯỚC 213 — SOÁT ĐỊNH KỲ 13: 68/68 LỜI KHAI PHÁN LẠI, BA CHỖ SAI MỘT PHẦN TRONG FILE LUẬT CHỜ LEADER, HAI Ô ⚠️ MỚI Ở HANDOFF, KHÔNG CÓ LỖI MỚI (21/10/2026)
 

@@ -88,8 +88,23 @@ def test_HOAN_TRA_nguyen_trang_sau_ca_bo(tmp_path):
 import pytest  # noqa: E402
 
 
+def _goc_gia(tmp_path: Path, monkeypatch) -> Path:
+    """`vat.GOC` trỏ sang một gốc GIẢ trong `tmp_path` cho riêng test này.
+
+    Tệp rác tên cố định ở gốc repo THẬT là thứ tiến trình KHÁC nhìn thấy: cổng 1 và
+    cổng 4 chạy file này cùng lúc, và phép canh rác của mỗi bên thấy rác của bên kia.
+    Đo 21/10/2026 (BƯỚC 211): hai lượt chạy lặp file này song song 120 s → 42 dòng
+    đỏ / 153 lượt, kể cả các test lượt SẠCH; test chụp cây của `tests/test_suc_khoe.py`
+    đỏ 2/72 với `vibe-rac-thu-nghiem-2.tmp`. Cơ chế được thử y nguyên — `dot_bien`
+    đọc `GOC` lúc chạy cho cả `cwd` lẫn `_muc_goc_repo()`."""
+    goc = tmp_path / "goc_gia"
+    goc.mkdir()
+    monkeypatch.setattr(vat, "GOC", goc)
+    return goc
+
+
 def _bai_de_rac(tmp_path: Path, ten_rac: str) -> tuple[Path, list[str]]:
-    """Một bài thử mà lượt chạy GHI một file vào gốc repo."""
+    """Một bài thử mà lượt chạy GHI một file vào gốc repo (`vat.GOC`)."""
     muc_tieu = tmp_path / "muc_tieu_rac.py"
     muc_tieu.write_text("DE_RAC = 0\n", encoding="utf-8")
     rac = vat.GOC / ten_rac
@@ -99,9 +114,10 @@ def _bai_de_rac(tmp_path: Path, ten_rac: str) -> tuple[Path, list[str]]:
     return muc_tieu, lenh
 
 
-def test_DUC_THU_DE_LAI_FILE_o_GOC_REPO_thi_NO(tmp_path):
-    """Ca thật của lỗi 76, dựng lại nguyên văn."""
+def test_DUC_THU_DE_LAI_FILE_o_GOC_REPO_thi_NO(tmp_path, monkeypatch):
+    """Ca thật của lỗi 76, dựng lại nguyên văn — trên gốc giả (`_goc_gia`)."""
     ten_rac = "vibe-rac-thu-nghiem.tmp"
+    _goc_gia(tmp_path, monkeypatch)
     muc_tieu, lenh = _bai_de_rac(tmp_path, ten_rac)
     rac = vat.GOC / ten_rac
     try:
@@ -111,11 +127,12 @@ def test_DUC_THU_DE_LAI_FILE_o_GOC_REPO_thi_NO(tmp_path):
         assert rac.exists(), (
             "gac KHONG duoc tu xoa — CLAUDE.md cam xoa file o goc repo "
             "ma chua hoi, va mot cong cu tu don se don nham")
+        assert not (GOC / ten_rac).exists(), "rac roi vao goc repo THAT"
     finally:
         rac.unlink(missing_ok=True)
 
 
-def test_FILE_BI_VA_VAN_duoc_HOAN_TRA_khi_no_vi_RAC(tmp_path):
+def test_FILE_BI_VA_VAN_duoc_HOAN_TRA_khi_no_vi_RAC(tmp_path, monkeypatch):
     """Phép canh rác không được NUỐT phép hoàn trả.
 
     Trong `finally`, `p.write_bytes(goc)` đứng TRƯỚC `kiem_khong_de_rac`.
@@ -124,6 +141,7 @@ def test_FILE_BI_VA_VAN_duoc_HOAN_TRA_khi_no_vi_RAC(tmp_path):
     sinh ra để không bao giờ xảy ra.
     """
     ten_rac = "vibe-rac-thu-nghiem-2.tmp"
+    _goc_gia(tmp_path, monkeypatch)
     muc_tieu, lenh = _bai_de_rac(tmp_path, ten_rac)
     goc = muc_tieu.read_bytes()
     rac = vat.GOC / ten_rac
@@ -132,6 +150,7 @@ def test_FILE_BI_VA_VAN_duoc_HOAN_TRA_khi_no_vi_RAC(tmp_path):
             vat.dot_bien(muc_tieu, "DE_RAC = 0", "DE_RAC = 1", lenh)
         assert muc_tieu.read_bytes() == goc, (
             "file bi va KHONG tro ve nguyen trang khi lo rac no")
+        assert not (GOC / ten_rac).exists(), "rac roi vao goc repo THAT"
     finally:
         rac.unlink(missing_ok=True)
 
