@@ -22,6 +22,7 @@ Ba lớp gác:
 from __future__ import annotations
 
 import ast
+import fnmatch
 import importlib.util
 import subprocess
 import sys
@@ -172,8 +173,8 @@ MIEN_TRU = {
 
 
 def _file_quan_the() -> list[Path]:
-    return (sorted(GOC.glob("*.py")) + sorted((GOC / "tools").glob("*.py"))
-            + sorted((GOC / "tests").glob("*.py")))
+    return (duyet_repo.liet_ke(GOC, ".", "*.py") + duyet_repo.liet_ke(GOC, "tools", "*.py")
+            + duyet_repo.liet_ke(GOC, "tests", "*.py"))
 
 
 def _duyet_de_quy(cay: ast.AST) -> list[tuple[str, int]]:
@@ -294,4 +295,240 @@ def test_KHONG_TEST_NAO_tao_thu_muc_tam_o_GOC_repo():
                     if kw.arg == "dir" and ast.unparse(kw.value) in ("GOC", "str(GOC)", "ROOT", "str(ROOT)"):
                         vi_pham.append(f"{f.name}:{n.lineno} {ast.unparse(n)[:80]}")
     assert not vi_pham, vi_pham
+
+
+# ── BƯỚC 211: luật 4 — tệp tạm `tests/__tam_*` của một test KHÁC ──────────
+
+def _cuoc_dua(monkeypatch, ten_ham: str = "rglob") -> list:
+    """Giả lập TẤT ĐỊNH cuộc đua 20/10/2026 (PR #255, cổng 4, 12 file song song):
+    lượt liệt kê thấy `tests/__tam_*` của một test KHÁC, rồi test ấy xoá tệp TRƯỚC
+    khi máy quét đọc tới. Bọc `Path.<ten_ham>`: liệt kê thật xong thì xoá mọi
+    `tests/__tam_*` trong danh sách. Trả tên các tệp đã xoá — đối chứng rằng phép
+    giả lập có chạy (một giả lập không xoá gì thì mọi máy quét đều "chịu được")."""
+    goc_ham = getattr(Path, ten_ham)
+    da_xoa: list = []
+
+    def ham_mat(self, *a, **k):
+        ds = list(goc_ham(self, *a, **k))
+        for p in ds:
+            if p.parent.name == "tests" and p.name.startswith("__tam_") and p.is_file():
+                p.unlink()
+                da_xoa.append(p.name)
+        return iter(ds)
+
+    monkeypatch.setattr(Path, ten_ham, ham_mat)
+    return da_xoa
+
+
+def test_CUOC_DUA_20_10_tep_tam_bien_mat_giua_LIET_KE_va_DOC(tmp_path, monkeypatch):
+    """Dựng lại NGUYÊN VĂN lỗi thật: `test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET`
+    đỏ `FileNotFoundError: … tests/__tam_kiem_tra_mien_tru.py` — `duyet` trả tệp tạm mà
+    `tests/test_chan_bia_so_lieu.py` (tiến trình khác) vừa xoá. Mọi máy quét đọc tệp
+    sau `duyet` cùng hình dạng, nên sửa ở bộ duyệt, một chỗ."""
+    _tao(tmp_path, "a.py", "tests/test_b.py", "tests/__tam_kiem_tra_mien_tru.py")
+    da_xoa = _cuoc_dua(monkeypatch)
+    doc = {p.relative_to(tmp_path).as_posix(): p.read_text(encoding="utf-8")
+           for p in duyet_repo.duyet(tmp_path, "*.py")}
+    assert da_xoa == ["__tam_kiem_tra_mien_tru.py"], "phep gia lap cuoc dua khong chay"
+    assert sorted(doc) == ["a.py", "tests/test_b.py"]
+
+
+def test_LUAT_4_chi_bo_tep_tam_NGAY_DUOI_tests_cua_GOC(tmp_path):
+    """Bỏ đúng phần đường THỨ HAI mang tiền tố `__tam_` dưới `tests/` của gốc (tệp hay
+    thư mục). `__tam_` ở nơi khác, `tests/` lồng, tên gần giống thì VẪN quét: phép bỏ
+    qua rộng hơn quy ước là nới thứ máy quét kiểm."""
+    _tao(tmp_path, "tests/__tam_x.py", "tests/__tam_d/y.py", "tests/test_a.py",
+         "tests/con/__tam_z.py", "tools/tests/__tam_w.py", "docs/__tam_v.py",
+         "__tam_goc.py", "tests_cu/__tam_u.py", "tests/tam_t.py")
+    assert _ten(tmp_path, duyet_repo.duyet(tmp_path, "*.py")) == [
+        "__tam_goc.py", "docs/__tam_v.py", "tests/con/__tam_z.py", "tests/tam_t.py",
+        "tests/test_a.py", "tests_cu/__tam_u.py", "tools/tests/__tam_w.py"]
+
+
+def test_LIET_KE_MOT_TANG_cung_bo_tep_tam_ke_ca_khi_no_bien_mat(tmp_path, monkeypatch):
+    """`(GOC / "tests").glob("*.py")` rồi đọc là cùng cuộc đua, một tầng: sáu máy quét
+    trong `tests/` làm đúng thế (BƯỚC 211). `liet_ke` là bản một tầng của `duyet`."""
+    _tao(tmp_path, "tests/test_a.py", "tests/_ho_tro.py", "tests/__tam_kiem_tra_r6.py",
+         "a.py", "__tam_goc.py")
+    da_xoa = _cuoc_dua(monkeypatch, "glob")
+    doc = {p.name: p.read_text(encoding="utf-8")
+           for p in duyet_repo.liet_ke(tmp_path, "tests", "*.py")}
+    assert da_xoa == ["__tam_kiem_tra_r6.py"], "phep gia lap cuoc dua khong chay"
+    assert sorted(doc) == ["_ho_tro.py", "test_a.py"]
+    assert _ten(tmp_path, duyet_repo.liet_ke(tmp_path, ".", "*.py")) == [
+        "__tam_goc.py", "a.py"]
+
+
+def test_TEP_TAM_TRONG_TESTS_ten_DUY_NHAT_moi_luot_va_may_quet_khong_thay(tmp_path):
+    """Đo 21/10/2026: hai tiến trình chạy lặp hai test của `tests/test_chan_bia_so_lieu.py`
+    (mỗi test MỘT tên tệp cố định) → 6/1600 lượt đỏ `PermissionError`/`FileNotFoundError`
+    — tiến trình này xoá tệp tiến trình kia đang đọc. Cổng 1 và cổng 4 chạy file ấy cùng
+    lúc. Tên duy nhất mỗi lượt thì không ai xoá tệp của ai."""
+    (tmp_path / "tests").mkdir()
+    with duyet_repo.tep_tam_trong_tests(tmp_path, "kiem_tra") as a, \
+            duyet_repo.tep_tam_trong_tests(tmp_path, "kiem_tra") as b:
+        assert a != b
+        for p in (a, b):
+            assert p.parent == tmp_path / "tests" and p.is_file()
+            assert p.name.startswith("__tam_kiem_tra_") and p.suffix == ".py"
+            assert duyet_repo.la_tep_tam_cua_test(tmp_path, p)
+        assert list(duyet_repo.duyet(tmp_path, "*.py")) == []
+        assert list(duyet_repo.liet_ke(tmp_path, "tests", "*.py")) == []
+    assert not a.exists() and not b.exists()
+    with pytest.raises(RuntimeError):
+        with duyet_repo.tep_tam_trong_tests(tmp_path, "loi") as c:
+            raise RuntimeError("giua chung")
+    assert not c.exists(), "tep tam con lai sau mot test no"
+
+
+# ── Sổ đăng ký MỘT TẦNG: lượt liệt kê một tầng nào có thể thấy `tests/__tam_*` ──
+#: Một tên tệp tạm luật 4. Mẫu glob không khớp nó (`test_*.py`, `*.csv`…) thì lượt liệt
+#: kê ấy không thể trả tệp tạm và không phải khai.
+_TEN_TEP_TAM_MAU = "__tam_x.py"
+#: Hằng mức module trỏ GỐC repo trong dự án. Liệt kê một tầng ở gốc, ở `<gốc> / "<khác
+#: tests>"`, hay dưới `tmp_path` thì không thấy `tests/`.
+_NHAN_GOC = {"GOC", "ROOT", "GOC_DU_AN"}
+
+#: (file, hàm) -> lý do. Lượt liệt kê ở đây KHÔNG liệt kê `tests/` của repo.
+MIEN_TRU_MOT_TANG = {
+    ("tools/duyet_repo.py", "liet_ke"):
+        "chinh bo liet ke mot tang; noi loc tep tam luat 4",
+    ("tools/chan_bia_so_lieu.py", "thu_thap_truong"):
+        "goi voi goc worktree (luoc do dataclass); mot tang o goc, khong co tests/",
+    ("tests/test_chup_cache.py", "_anh"):
+        "kho la thu muc tam cua test (tmp_path qua fixture)",
+    ("tests/test_chup_cache.py", "test_ban_chep_lech_bam_thi_no_va_KHONG_ghi"):
+        "kho la thu muc tam cua test (tmp_path qua fixture)",
+    ("tests/test_no_fabricated_data.py", "test_khong_co_key_trong_ma_nguon"):
+        "bo moi duong co /tests/ TRUOC khi mo; `*` cua glob khong khop .tam_test",
+    ("tests/test_tai_lieu_khop_ten_ma.py", "_cac_module"):
+        "THU_MUC = goc, tools/, backtest/ — khong co tests/",
+}
+
+
+def _mau_cua(nut) -> str | None:
+    """Mẫu glob đọc được tĩnh; phần biến của f-string thành `*`. Không đọc được: None."""
+    if isinstance(nut, ast.Constant) and isinstance(nut.value, str):
+        return nut.value
+    if isinstance(nut, ast.JoinedStr):
+        return "".join(v.value if isinstance(v, ast.Constant) else "*" for v in nut.values)
+    return None
+
+
+def _nhan_khong_phai_tests(nut) -> bool:
+    """Bên nhận CHẮC CHẮN không phải `tests/`: `GOC`, `Path(GOC)`, `GOC / "<khác tests>"`,
+    hay bắt đầu bằng `tmp_path`. Không chứng minh được thì coi là có thể."""
+    if ast.unparse(nut).startswith("tmp_path"):
+        return True
+    if isinstance(nut, ast.Name) and nut.id in _NHAN_GOC:
+        return True
+    if (isinstance(nut, ast.Call) and len(nut.args) == 1 and isinstance(nut.args[0], ast.Name)
+            and nut.args[0].id in _NHAN_GOC and ast.unparse(nut.func).endswith("Path")):
+        return True
+    return (isinstance(nut, ast.BinOp) and isinstance(nut.op, ast.Div)
+            and isinstance(nut.left, ast.Name) and nut.left.id in _NHAN_GOC
+            and isinstance(nut.right, ast.Constant) and nut.right.value != "tests")
+
+
+def _liet_ke_mot_tang(cay: ast.AST) -> list[tuple[str, int, str]]:
+    """[(hàm bao quanh, dòng, mã)] của mọi lượt liệt kê MỘT TẦNG có thể trả `tests/__tam_*`.
+
+    Năm hình dạng: `.glob(...)`/`.iglob(...)` không `**`, `.iterdir()`, `os.listdir(...)`,
+    `os.scandir(...)`, `glob.glob(...)` không `recursive`. Dạng đệ quy thuộc sổ đăng ký
+    trên. Bỏ qua khi mẫu không khớp `_TEN_TEP_TAM_MAU` hoặc bên nhận chắc chắn không
+    phải `tests/` (`_nhan_khong_phai_tests`).
+    """
+    ra = []
+
+    def tham(nut, ham):
+        for con in ast.iter_child_nodes(nut):
+            ten = con.name if isinstance(con, (ast.FunctionDef, ast.AsyncFunctionDef)) else ham
+            if isinstance(con, ast.Call) and isinstance(con.func, ast.Attribute):
+                f, nhan, mau, la = con.func, con.func.value, None, False
+                if (isinstance(nhan, ast.Name) and nhan.id == "os"
+                        and f.attr in ("listdir", "scandir")):
+                    la, nhan = True, (con.args[0] if con.args else None)
+                elif isinstance(nhan, ast.Name) and nhan.id == "glob" and f.attr in ("glob", "iglob"):
+                    la = not any(k.arg == "recursive" for k in con.keywords)
+                    mau, nhan = (_mau_cua(con.args[0]) if con.args else None), None
+                elif f.attr in ("glob", "iglob"):
+                    mau = _mau_cua(con.args[0]) if con.args else None
+                    la = not (mau is not None and "**" in mau)
+                elif f.attr == "iterdir":
+                    la = True
+                if (la and not (mau is not None and not fnmatch.fnmatchcase(_TEN_TEP_TAM_MAU, mau))
+                        and not (nhan is not None and _nhan_khong_phai_tests(nhan))):
+                    ra.append((ham, con.lineno, ast.unparse(con)[:90]))
+            tham(con, ten)
+
+    tham(cay, "<module>")
+    return ra
+
+
+def test_SO_DANG_KY_MOT_TANG_moi_luot_liet_ke_co_the_thay_tep_tam_deu_qua_liet_ke():
+    """Thêm `(GOC / "tests").glob("*.py")` rồi đọc thì đỏ ở đây: lượt liệt kê ấy trả tệp
+    tạm của một test khác đang chạy song song (BƯỚC 211). Sửa: `duyet_repo.liet_ke(GOC,
+    "tests", "*.py")`. Nếu nó thật sự không liệt kê `tests/`, khai `MIEN_TRU_MOT_TANG`."""
+    vi_pham, thay = [], set()
+    for f in _file_quan_the():
+        rel = f.relative_to(GOC).as_posix()
+        cay = ast.parse(f.read_text(encoding="utf-8", errors="replace"))
+        for ham, dong, ma in _liet_ke_mot_tang(cay):
+            thay.add((rel, ham))
+            if (rel, ham) not in MIEN_TRU_MOT_TANG:
+                vi_pham.append(f"{rel}:{dong} (ham {ham}) {ma}")
+    assert not vi_pham, (
+        "luot liet ke MOT TANG co the tra tep tam tests/__tam_* cua test khac — dung "
+        "duyet_repo.liet_ke:\n  " + "\n  ".join(vi_pham))
+    chet = set(MIEN_TRU_MOT_TANG) - thay
+    assert not chet, f"mien tru khong con ai dung, go di: {sorted(chet)}"
+
+
+def test_SO_DANG_KY_MOT_TANG_KHONG_MU_bat_duoc_moi_hinh_dang_da_khai():
+    """Máy đo cũng bị nghi như gác: đi qua đúng từng hình dạng nó khai, và KHÔNG bắt mẫu
+    không khớp tệp tạm, bên nhận là gốc / `<gốc> / "tools"` / `tmp_path`, dạng đệ quy,
+    f-string đuôi khác, hay chính `liet_ke`."""
+    src = (
+        "import os, glob\n"
+        "def a(t):\n    return list(t.glob('*.py'))\n"
+        "def b(t):\n    return os.listdir(t)\n"
+        "def c(t):\n    return list(t.iterdir())\n"
+        "def d():\n    return glob.glob(os.path.join(R, '*.py'))\n"
+        "def e(t):\n    return list(os.scandir(t))\n"
+        "def f(t):\n    return list(t.glob('test_*.py'))\n"
+        "def g():\n    return list(GOC.glob('*.py'))\n"
+        "def h():\n    return list((GOC / 'tools').glob('*.py'))\n"
+        "def i():\n    return list((GOC / 'tests').glob('*.py'))\n"
+        "def j(tmp_path):\n    return list((tmp_path / 'x').iterdir())\n"
+        "def k(t):\n    return list(t.glob('**/*.py'))\n"
+        "def l(t, b):\n    return list(t.glob(f'*_{b}.csv'))\n"
+        "def m():\n    return duyet_repo.liet_ke(GOC, 'tests', '*.py')\n"
+        "def n():\n    return list(Path(GOC).glob('*.py'))\n"
+        "def o(t):\n    return list(t.iglob('*'))\n"
+    )
+    assert [h for h, _, _ in _liet_ke_mot_tang(ast.parse(src))] == [
+        "a", "b", "c", "d", "e", "i", "o"]
+
+
+def test_SO_DANG_KY_MOT_TANG_KHONG_MU_thay_du_cac_may_quet_that():
+    """Đối chứng dương trên CÂY THẬT: sáu tệp đọc `tests/` một tầng đã chuyển sang
+    `liet_ke` ngày 21/10/2026; thấy ít hơn thì phép đếm đang mù."""
+    goi = set()
+    for f in _file_quan_the():
+        cay = ast.parse(f.read_text(encoding="utf-8", errors="replace"))
+        for n in ast.walk(cay):
+            if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                    and n.func.attr == "liet_ke"):
+                goi.add(f.relative_to(GOC).as_posix())
+    assert len(goi - {"tests/test_duyet_repo.py"}) >= 6, f"chi thay {sorted(goi)}"
+
+
+def test_CONG_2_khong_doc_tep_tam_cua_test_KHAC(tmp_path, monkeypatch):
+    """Cổng 2 biên dịch bằng 3.11 mọi tệp `cac_file` trả: tệp đã mất ra dòng `khong doc
+    duoc` → cổng ĐỎ giả. (Cổng 3 hỏi `exists()` trước khi đọc nên đã chịu được phần lớn
+    cửa sổ; nó cũng đi qua `duyet` nên cùng được sửa.)"""
+    k = _nap("kiem_cu_phap_311")
+    _tao(tmp_path, "a.py", "tests/test_b.py", "tests/__tam_kiem_tra_mien_tru.py")
+    _cuoc_dua(monkeypatch)
+    assert _ten(tmp_path, k.cac_file(tmp_path)) == ["a.py", "tests/test_b.py"]
 

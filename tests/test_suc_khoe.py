@@ -749,9 +749,9 @@ BO_QUA_ANH_CHUP = (".git", ".pytest_cache", ".venv", "__pycache__")
 #: miễn khi đường tương đối BẮT ĐẦU bằng `tests/`, nên không dời vào `.tam_test/` được.
 #: Đo 17/10/2026: chạy liên tục hai test ấy bên cạnh → 7/10 lượt test chụp cây đỏ
 #: (`moi`/`mat` = `tests/__tam_kiem_tra_*.py`), không chạy → 0/10; và lượt năm cổng cuối
-#: của BƯỚC 206 đỏ đúng như sự cố 17/10. Quy ước tên được gác ở
-#: `test_TEP_TAM_ghi_thang_vao_tests_deu_mang_tien_to_TAM`.
-TIEN_TO_TAM_TRONG_TESTS = "tests/__tam_"
+#: của BƯỚC 206 đỏ đúng như sự cố 17/10. Từ BƯỚC 211 phép bỏ qua ấy nằm MỘT chỗ,
+#: `tools/duyet_repo.py` luật 4 (`_duyet` không trả `tests/__tam_*`); bên tạo được gác
+#: ở `test_TEP_TAM_trong_tests_chi_qua_tep_tam_trong_tests_KHONG_ten_co_dinh`.
 
 
 def _anh_chup(goc=GOC):
@@ -761,8 +761,6 @@ def _anh_chup(goc=GOC):
         if any(t in phan for t in BO_QUA_ANH_CHUP):
             continue
         tuong_doi = p.relative_to(goc).as_posix()
-        if tuong_doi.startswith(TIEN_TO_TAM_TRONG_TESTS):
-            continue
         try:
             if not p.is_file():
                 continue
@@ -811,30 +809,33 @@ def test_ANH_CHUP_bo_qua_pyc_tien_trinh_KHAC_ghi_nhung_thay_moi_doi_khac(tmp_pat
 _MAU_TEP_TRONG_TESTS = re.compile(r'GOC\s*/\s*"tests"\s*/\s*"([^"/]+)"')
 
 
-def _tep_tam_sai_ten(nguon: str, tep_that: set) -> list:
-    """PHÉP PHÁN: tên literal `GOC / "tests" / <tên trong nháy>` mà git không biết (tức tệp tạm)
-    và không mang tiền tố `__tam_` — thứ ảnh chụp cây sẽ đếm khi test ấy chạy song song."""
-    return [t for t in _MAU_TEP_TRONG_TESTS.findall(nguon)
-            if t not in tep_that and not t.startswith("__tam_")]
+def _tep_tam_ten_co_dinh(nguon: str, tep_that: set) -> list:
+    """PHÉP PHÁN: tên literal `GOC / "tests" / <tên trong nháy>` mà git không biết — một tệp
+    tạm TÊN CỐ ĐỊNH đặt thẳng vào `tests/`. Kể cả khi mang `__tam_`: hai tiến trình chạy
+    cùng test (cổng 1 và cổng 4) xoá tệp của nhau (BƯỚC 211)."""
+    return [t for t in _MAU_TEP_TRONG_TESTS.findall(nguon) if t not in tep_that]
 
 
-def test_TEP_TAM_ghi_thang_vao_tests_deu_mang_tien_to_TAM():
-    """Ảnh chụp cây chỉ tha `tests/__tam_*`: một test mới đặt tệp tạm tên khác thẳng vào
-    `tests/` sẽ làm test chụp cây chập chờn lại khi năm cổng chạy cùng lúc (BƯỚC 206).
-    Chỉ thấy dạng `GOC / "tests" / <tên trong nháy>` — dạng khác là chỗ hở đã biết."""
+def test_TEP_TAM_trong_tests_chi_qua_tep_tam_trong_tests_KHONG_ten_co_dinh():
+    """Tệp tạm mà một test buộc đặt trong `tests/` đi qua `duyet_repo.tep_tam_trong_tests`:
+    tên duy nhất mỗi lượt, tiền tố `__tam_` mà mọi máy quét bỏ qua (luật 4). BƯỚC 206 đòi
+    tiền tố; BƯỚC 211 đòi thêm tên duy nhất — đo 21/10/2026, hai tiến trình chạy lặp hai test
+    tên cố định → 6/1600 lượt đỏ. Chỉ thấy dạng `GOC / "tests" / <tên trong nháy>` — dạng
+    khác là chỗ hở đã biết."""
     g = 'GOC / "tests"'
-    xau = f'f = {g} / "tam_moi.py"\nf.write_text("x")\n'
-    tot = f'f = {g} / "__tam_x.py"\nh = {g} / "test_that.py"\n'
-    assert _tep_tam_sai_ten(xau, {"test_that.py"}) == ["tam_moi.py"]
-    assert _tep_tam_sai_ten(tot, {"test_that.py"}) == []
+    xau = f'f = {g} / "__tam_x.py"\nh = {g} / "tam_moi.py"\nk = {g} / "test_that.py"\n'
+    assert _tep_tam_ten_co_dinh(xau, {"test_that.py"}) == ["__tam_x.py", "tam_moi.py"]
     kq = subprocess.run(["git", "ls-files", "tests"], cwd=str(GOC), capture_output=True,
                         text=True, encoding="utf-8")
     that = {Path(x).name for x in kq.stdout.splitlines()}
     assert kq.returncode == 0 and "test_suc_khoe.py" in that, "không đọc được git ls-files"
     nguon = {p.name: p.read_text(encoding="utf-8") for p in (GOC / "tests").glob("test_*.py")}
-    thay_duoc = {t for v in nguon.values() for t in _MAU_TEP_TRONG_TESTS.findall(v)}
-    assert {"__tam_kiem_tra_mien_tru.py", "__tam_kiem_tra_r6.py"} <= thay_duoc, thay_duoc
-    sai = {k: _tep_tam_sai_ten(v, that) for k, v in nguon.items()}
+    dung_ham = {k for k, v in nguon.items() for n in ast.walk(ast.parse(v))
+                if isinstance(n, ast.Call)
+                and (isinstance(n.func, ast.Name) and n.func.id == "tep_tam_trong_tests"
+                     or isinstance(n.func, ast.Attribute) and n.func.attr == "tep_tam_trong_tests")}
+    assert "test_chan_bia_so_lieu.py" in dung_ham, f"doi chung duong: khong thay ai goi: {dung_ham}"
+    sai = {k: _tep_tam_ten_co_dinh(v, that) for k, v in nguon.items()}
     assert not any(sai.values()), {k: v for k, v in sai.items() if v}
 
 

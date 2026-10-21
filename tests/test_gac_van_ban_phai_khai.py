@@ -42,6 +42,9 @@ DINH_DANH = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$")
 DAI_TOI_THIEU = 20
 
 sys.path.insert(0, str(GOC))
+sys.path.insert(0, str(GOC / "tools"))
+
+import duyet_repo  # noqa: E402
 
 
 def bien_doc_tu_file(cay: ast.AST) -> set[str]:
@@ -158,7 +161,7 @@ def test_NGUONG_DAI_khong_duoc_noi_am_tham():
 def test_MOI_khang_dinh_ve_MA_NGUON_deu_phai_KHAI_ly_do():
     """Thiếu `# van-ban-ok:` → đỏ. Đó là toàn bộ việc của gác này."""
     thieu = []
-    for f in sorted(TESTS.glob("*.py")):
+    for f in duyet_repo.liet_ke(GOC, "tests", "*.py"):
         dong_van = f.read_text(encoding="utf-8").splitlines()
         for so_dong, chuoi in cho_can_khai(f):
             if da_khai(dong_van, so_dong) is None:
@@ -177,7 +180,7 @@ def test_LY_DO_KHONG_duoc_rong_hay_chung_chung():
     Một ô thoát không đòi lý do thật thì gác này thành trang trí (lỗi 31).
     """
     xau = []
-    for f in sorted(TESTS.glob("*.py")):
+    for f in duyet_repo.liet_ke(GOC, "tests", "*.py"):
         dong_van = f.read_text(encoding="utf-8").splitlines()
         for so_dong, _ in cho_can_khai(f):
             ly_do = da_khai(dong_van, so_dong)

@@ -87,6 +87,52 @@ def _chet_trong_file(p: Path) -> list[tuple[int, str]]:
 BO_QUA = {".venv", "__pycache__", "backtest", "brain", "scratch"}
 
 
+def _quet_cau_lenh_chet(goc: Path = GOC) -> tuple[int, list]:
+    """(số tệp đã quét, danh sách tệp có câu lệnh chết) trên cả cây `goc`."""
+    xau = []
+    quet = 0
+    for p in sorted(duyet_repo.duyet(goc, "*.py")):
+        if any(x in p.relative_to(goc).parts for x in BO_QUA):
+            continue
+        quet += 1
+        try:
+            chet = _chet_trong_file(p)
+        except SyntaxError:
+            continue
+        if chet:
+            xau.append(f"{p.relative_to(goc).as_posix()}: {chet}")
+    return quet, xau
+
+
+def test_CUOC_DUA_20_10_tep_tam_cua_test_KHAC_bien_mat_truoc_khi_doc(tmp_path, monkeypatch):
+    """Dựng lại NGUYÊN VĂN sự cố 20/10/2026 (PR #255, CI cổng 4): `FileNotFoundError:
+    … tests/__tam_kiem_tra_mien_tru.py` — tệp tạm của `tests/test_chan_bia_so_lieu.py`
+    (chạy song song) bị liệt kê rồi bị xoá trước khi phép quét này đọc tới.
+
+    Tất định: bọc `Path.rglob` cho xoá `tests/__tam_*` ngay sau khi liệt kê. Đối chứng
+    dương đi CÙNG cây: một câu lệnh chết thật vẫn phải bị bắt."""
+    for ten, ma in (("a.py", "def f():\n    return 1\n    x = 2\n"),
+                    ("tests/test_b.py", "x = 1\n"),
+                    ("tests/__tam_kiem_tra_mien_tru.py", "x = 1\n")):
+        (tmp_path / ten).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / ten).write_text(ma, encoding="utf-8")
+    goc_rglob = Path.rglob
+    da_xoa = []
+
+    def rglob_mat(self, *a, **k):
+        ds = list(goc_rglob(self, *a, **k))
+        for p in ds:
+            if p.parent.name == "tests" and p.name.startswith("__tam_"):
+                p.unlink()
+                da_xoa.append(p.name)
+        return iter(ds)
+
+    monkeypatch.setattr(Path, "rglob", rglob_mat)
+    quet, xau = _quet_cau_lenh_chet(tmp_path)
+    assert da_xoa == ["__tam_kiem_tra_mien_tru.py"], "phep gia lap cuoc dua khong chay"
+    assert quet == 2 and xau == ["a.py: [(3, 'Assign')]"], (quet, xau)
+
+
 def test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET():
     """Đo 17/09/2026 sau khi sửa: **0 file · 0 dòng** trên cả repo.
 
@@ -97,18 +143,7 @@ def test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET():
     đúng, và mọi test đi qua nhánh khác vẫn xanh. Thứ duy nhất nhìn thấy
     nó là AST.
     """
-    xau = []
-    quet = 0
-    for p in sorted(duyet_repo.duyet(GOC, "*.py")):
-        if any(x in p.relative_to(GOC).parts for x in BO_QUA):
-            continue
-        quet += 1
-        try:
-            chet = _chet_trong_file(p)
-        except SyntaxError:
-            continue
-        if chet:
-            xau.append(f"{p.relative_to(GOC).as_posix()}: {chet}")
+    quet, xau = _quet_cau_lenh_chet()
     assert quet > 100, f"chi quet duoc {quet} file — phep kiem nay mu"
     assert not xau, "có câu lệnh KHÔNG BAO GIỜ CHẠY:\n  " + "\n  ".join(xau)
     print(f"PASS  {quet} file .py · 0 câu lệnh chết")
