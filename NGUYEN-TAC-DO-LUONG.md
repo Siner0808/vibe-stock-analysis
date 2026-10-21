@@ -53,6 +53,13 @@ ghi chúng ở giá SL làm mọi dòng walkforward đẹp lên **~0,5 điểm m
 lệnh** — lớn hơn cả phần trượt giá bán từng bị bỏ sót. Đúng quy luật ở
 đầu file: lỗi đo lường gần như không bao giờ làm kết quả xấu đi.
 
+**Phiên kịch trần/sàn MỘT GIÁ → chiều bị trắng KHÔNG khớp** (từ BƯỚC 209, ĐO
+28). Nến cao = thấp và đổi ≥ 0,9 × biên độ của sàn là phiên trắng một bên:
+lệnh mua gặp kịch trần bị huỷ; cắt lỗ và lệnh chờ bán gặp kịch sàn chờ tới
+phiên mở khoá, rồi khớp ở min(SL, giá mở cửa) như đoạn trên
+(`vong_doi_lenh.khoa_bien`). Trước đó sổ ảo bán được ở giá sàn trong phiên
+không ai mua.
+
 ### 4. Đường vốn theo thời gian, không theo id
 Sổ trả lệnh theo thứ tự chèn (hết mã A rồi tới mã B). Dựng drawdown từ thứ tự
 đó cho ra một chuỗi chưa từng tồn tại. Đo được 23,0% so với 30,7% trên cùng

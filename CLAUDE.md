@@ -197,6 +197,11 @@ Alpha là thước quyết định (bất biến 6):
 hoặc nêu băm cache của cả hai: cùng mã, cache làm tươi 12/10 và 14/10 cho dòng BẬT · theo ngày
 −1,51% [−2,09 ; −0,91] — chênh do DỮ LIỆU, kết luận không đổi (`docs/STATE.md` BƯỚC 199).
 
+**ĐO 28 (BƯỚC 209, 20/10/2026, cùng cache `acf6dca1…`):** sổ ảo không còn khớp ở phiên kịch trần/sàn
+một giá (`vong_doi_lenh.khoa_bien`: nến một giá đổi ≥ 0,9 × biên độ của sàn — phân loại một nến đã khoá,
+khác luật màu bảng giá "không suy trần bằng ngưỡng phần trăm" ở trên). Dòng BẬT · theo ngày: 617 lệnh,
+−1,68% [−2,24 ; −1,08], không đổi (2/619 lệnh dính phiên khoá). Ba dòng còn lại đo trên mô hình khớp cũ.
+
 - Chi phí thực thi (TẮT − BẬT) nay **0,75** (theo mã) · **0,96** (theo ngày)
   điểm mỗi lệnh; cộng thêm ~0,5 điểm/lệnh vì bản mã trước BƯỚC 123 ghi gap
   dưới SL ở đúng giá SL (115/387 lệnh cắt lỗ bị gap). **Trừ hao 0,75–0,96 +
