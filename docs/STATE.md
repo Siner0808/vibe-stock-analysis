@@ -23585,6 +23585,137 @@ Leader, tại chỗ. Chỉ thêm `docs/thiet-ke-y5-tien-le.md` và mục này; c
 
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
 
+## BƯỚC 211 — MÁY QUÉT REPO BỎ QUA TỆP TẠM CỦA TEST KHÁC (`tests/__tam_*`) Ở MỘT CHỖ, `tools/duyet_repo.py` LUẬT 4; TỆP TẠM TRONG `tests/` TÊN DUY NHẤT; HAI TEST RÁC CỦA `tests/test_bo_dot_bien.py` CHẠY TRÊN GỐC GIẢ (21/10/2026)
+
+**Mốc:** quy-trinh — đỏ giả cổng 4 trên CI của PR #255 (20/10): máy quét đọc tệp tạm mà một test khác vừa xoá
+
+Phiên con của leader, worktree `vibe_wt_211`. Không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo: đổi `tools/duyet_repo.py` và mười một file test.
+
+**Sự cố.** CI run 39391559847 lượt 1 (PR #255, 20/10/2026 08:19 UTC), bước *Mỗi file test phải xanh khi CHẠY MỘT MÌNH* (12 file song song): `FAILED tests/test_chatbot_khong_bia_va_khong_chet.py::test_KHONG_FILE_NAO_trong_repo_co_CAU_LENH_CHET - FileNotFoundError: [Errno 2] No such file or directory: '…/tests/__tam_kiem_tra_mien_tru.py'` (đọc lại bằng `gh run view 39391559847 --attempt 1 --log-failed`). Dòng `kiem-dinh` kia xanh; năm cổng ở máy xanh.
+
+**Cơ chế (đọc mã, rồi tái hiện tất định).** Test ấy đọc mọi tệp mà `duyet_repo.duyet(GOC, "*.py")` trả, chỉ bắt `SyntaxError`. `tests/test_chan_bia_so_lieu.py` (`test_file_trong_tests_duoc_mien`, `test_or_trong_tests_duoc_mien`) ghi rồi xoá `tests/__tam_kiem_tra_*.py` — buộc nằm trong `tests/` vì bộ dò bịa số chỉ miễn đường bắt đầu bằng `tests/` (BƯỚC 206). Hai tiến trình chạy cùng lúc thì tệp biến mất giữa lúc liệt kê và lúc đọc. Cùng họ lỗi 181 (BƯỚC 206 sửa nửa CHỤP CÂY của cùng bên ghi).
+
+**Đo** (script nháp ngoài repo, mỗi lượt in dữ liệu thô).
+1. `Path.rglob` khi một thư mục con biến mất giữa lượt duyệt (`do_rglob_mat_thu_muc.py`: xoá `.tam_test/tmpXX` ngay sau khi thư mục cha được liệt kê): 3.11.15 trả `['a.py']`, không nổ; 3.13 bắt `OSError` trong `glob._Globber` (đọc nguồn). Chỗ hỏng chỉ là phần ĐỌC tệp — giữ `rglob`.
+2. Cuộc đua thật, 90 s, hai tiến trình (`do_cuoc_dua_that.py`: A chạy lặp hai test tạo tệp; B chạy lặp `test_KHONG_FILE_NAO…` và `test_MOI_khang_dinh_ve_MA_NGUON_deu_phai_KHAI_ly_do` của `tests/test_gac_van_ban_phai_khai.py`, một máy quét một tầng):
+
+| mã | B đỏ | A đỏ |
+|---|---|---|
+| cũ (`ed9a9ab`, worktree tạm đã gỡ) | 62/152 — 61 `FileNotFoundError` qua `duyet`, 1 qua glob một tầng | 1/346 `PermissionError [WinError 32]` (B đang mở tệp lúc A xoá) |
+| mới | 0/98 | 0/334 |
+
+3. Tên tệp tạm cố định (`do_va_cham_ten.py`, hai tiến trình × 400 vòng hai test tạo tệp): 6/1600 lượt đỏ (`PermissionError` 5, `FileNotFoundError` 1). Cổng 1 và cổng 4 chạy file ấy cùng lúc.
+4. Bên tạo thứ hai, tìm ra khi quét lớp (`do_lap_pytest.py`, 120 s): `tests/test_bo_dot_bien.py` đặt `vibe-rac-thu-nghiem*.tmp` tên cố định ở GỐC repo thật. Hai lượt chạy lặp file ấy song song → 42 dòng đỏ / 153 lượt, kể cả `test_LUOT_DUC_THU_SACH_thi_KHONG_no` và `test_DOT_BIEN_BI_GIET_khong_nam_trong_danh_sach_tra_ve` (phép canh rác của `va_an_toan.dot_bien` thấy rác của tiến trình kia); chạy lặp hai test rác cạnh `test_THAT_mot_luot_chay_thuc_cua_phep_offline_khong_doi_tep_nao_trong_repo` → 2/72 đỏ `([], [], ['vibe-rac-thu-nghiem-2.tmp'])`. Sau sửa: 0/146 và 0/124 · 0/97.
+
+**Sửa.**
+- `tools/duyet_repo.py` luật 4: `la_tep_tam_cua_test(goc, p)` — phần đường THỨ HAI mang `__tam_` dưới `tests/` của gốc (tệp hay thư mục), so theo phần; `duyet` bỏ chúng; `liet_ke(goc, thu_muc, mau)` là bản một tầng; `tep_tam_trong_tests(goc, ten)` cho một tệp rỗng tên duy nhất `tests/__tam_<ten>_<ngẫu nhiên>.py` và xoá khi ra.
+- Bên tạo: hai test của `tests/test_chan_bia_so_lieu.py` dùng `tep_tam_trong_tests`. Hai test rác của `tests/test_bo_dot_bien.py` trỏ `vat.GOC` sang một gốc giả trong `tmp_path` (`_goc_gia`; `dot_bien` đọc `GOC` lúc chạy cho cả `cwd` lẫn `_muc_goc_repo()`, nên cơ chế được thử y nguyên) và khẳng định gốc thật không mọc tệp rác.
+- `tests/test_suc_khoe.py`: `_anh_chup` bỏ phép tha riêng `TIEN_TO_TAM_TRONG_TESTS` (`duyet` đã tha — một chỗ quyết). Gác bên tạo đổi tên thành `test_TEP_TAM_trong_tests_chi_qua_tep_tam_trong_tests_KHONG_ten_co_dinh` (thay `test_TEP_TAM_ghi_thang_vao_tests_deu_mang_tien_to_TAM`) và chặt hơn BƯỚC 206: mọi tên literal `GOC / "tests" / <tên>` mà git không biết đều vi phạm, kể cả mang `__tam_`; đối chứng dương là lời gọi `tep_tam_trong_tests` (AST).
+
+**Quét lớp — danh sách đầy đủ.**
+- Đệ quy qua `duyet` (luật 4 tự phủ): `tests/test_chatbot_khong_bia_va_khong_chet.py` (lỗi gốc), `tests/test_ban_tin.py`, `tests/test_chi_dan_chay_duoc.py`, `tests/test_doi_chung_ngoai_venv.py`, `tests/test_hau_kiem_loi.py` (chỉ `backtest/`), `tests/test_ke_hoach_vao_lenh.py`, `tests/test_khung_thoi_gian.py`, `tests/test_khuyen_nghi_rui_ro.py`, `tests/test_loai_su_kien_quyen.py`, `tests/test_su_kien_quyen.py`, `tests/test_suc_khoe.py` (`_anh_chup`), `tests/test_chan_bia_so_lieu.py::test_repo_hien_tai_sach_o_muc_chan` và cổng 3 (`tools/chan_bia_so_lieu.py --quet-repo`; vốn hỏi `exists()` trước khi đọc, nên chỉ còn cửa sổ hẹp và nó in `[LỖI]` rồi đi tiếp), cổng 2 (`tools/kiem_cu_phap_311.py` `cac_file` — tệp mất ra dòng `khong doc duoc`, cổng đỏ giả), `tools/so_ban_goi.py`, `tools/do11_nang_streamlit.py`, `tools/do12_nang_plotly.py`. Sổ đăng ký đệ quy có sẵn (BƯỚC 147) giữ không lượt đệ quy nào đi vòng `duyet`.
+- Một tầng trên `tests/` rồi đọc — cùng cuộc đua, `duyet` không phủ; chuyển sang `liet_ke` (sáu tệp): `tests/test_duyet_repo.py` (`_file_quan_the`), `tests/test_gac_van_ban_phai_khai.py` (hai test), `tests/test_nhat_ky_cua_bash.py`, `tests/test_sheets_store.py`, `tests/test_skill_quy_trinh.py`, `tests/test_requirements.py` (bốn chỗ; một test so HAI lần liệt kê cách nhau — tệp tạm xuất hiện giữa chừng là một đỏ giả kiểu khác), `tests/test_script_chay_duoc_tren_windows.py` (hai chỗ `os.listdir`).
+- Một tầng không chạm `tests/` — khai miễn trừ có lý do, sáu mục: `tools/duyet_repo.py` (`liet_ke`), `tools/chan_bia_so_lieu.py` (`thu_thap_truong`), `tests/test_chup_cache.py` (hai chỗ, `tmp_path`), `tests/test_no_fabricated_data.py` (bỏ `/tests/` trước khi mở), `tests/test_tai_lieu_khop_ten_ma.py` (`_cac_module`: gốc, `tools/`, `backtest/`).
+- Bên ghi khác vào cây repo: quét AST nháp `quet_ben_ghi.py` (theo cả biến gán từ `GOC`/`ROOT`/`__file__`; đi qua ca thật đã biết — bản cũ của `tests/test_chan_bia_so_lieu.py` ra đủ bốn dòng ghi/xoá tệp tạm): cây hiện tại chỉ còn `tests/test_bo_dot_bien.py` (mục 4 ở trên, đã sửa). Bản đầu của chính máy quét này mù với dạng `f = GOC / …; f.write_text(…)` — đúng dạng đã cắn; sửa trước khi tin con số 0.
+
+**Gác** (test-first: hai test tái hiện ĐỎ trên mã cũ đúng nguyên văn `FileNotFoundError: … tests\__tam_kiem_tra_mien_tru.py`).
+- `tests/test_duyet_repo.py` +8: `test_CUOC_DUA_20_10_tep_tam_bien_mat_giua_LIET_KE_va_DOC` (bọc `Path.rglob`: liệt kê thật rồi xoá `tests/__tam_*`; đòi phép giả lập có chạy), `test_LUAT_4_chi_bo_tep_tam_NGAY_DUOI_tests_cua_GOC`, `test_LIET_KE_MOT_TANG_cung_bo_tep_tam_ke_ca_khi_no_bien_mat`, `test_TEP_TAM_TRONG_TESTS_ten_DUY_NHAT_moi_luot_va_may_quet_khong_thay`, `test_CONG_2_khong_doc_tep_tam_cua_test_KHAC`, sổ đăng ký MỘT TẦNG `test_SO_DANG_KY_MOT_TANG_moi_luot_liet_ke_co_the_thay_tep_tam_deu_qua_liet_ke` và hai phép tự kiểm `…KHONG_MU…` (15 hình dạng mẫu; cây thật có ≥ 6 tệp gọi `liet_ke`). Máy dò một tầng chạy nháp trên cây thật trước khi viết sổ: 21 chỗ, trùm đủ danh sách kê tay.
+- `tests/test_chatbot_khong_bia_va_khong_chet.py` +1: `test_CUOC_DUA_20_10_tep_tam_cua_test_KHAC_bien_mat_truoc_khi_doc` chạy đúng phép quét của test hỏng (tách thành `_quet_cau_lenh_chet(goc)`) trên cây giả; đối chứng dương: một câu lệnh chết thật vẫn bị bắt.
+
+**Đột biến, 27/27 đỏ ngay vòng đầu** (`va_an_toan.dot_bien_bo`). D01 bỏ luật 4 khỏi `duyet` — NGUYÊN VĂN lỗi thật — đỏ riêng ở năm gác (cuộc đua `duyet`, cuộc đua của phép quét thật, cổng 2, ảnh chụp cây, cây giả luật 4); D02 `liet_ke` không lọc; D03 bỏ `__tam_` ở mọi nơi; D04 bỏ cả `tests/`; D05 so chuỗi con thay cho phần; D06 chỉ tệp ngay dưới `tests/`; D07 tên cố định; D08 không xoá khi ra; D09 thiếu tiền tố; D10 tệp tạm vào `.tam_test/` (kiểm lại bằng tay: đỏ đúng lý do, bộ dò bắt R1/R4); E01 test quay về tên cố định; E02 phép phán bên tạo luôn rỗng; E03 phép phán quay về luật BƯỚC 206; F01–F05 máy dò một tầng mù `os.listdir` · mù `iterdir` · coi `GOC / "tests"` là an toàn · lọc mẫu sai · coi mọi bên nhận là an toàn; F06 một máy quét quay về glob một tầng; F07 miễn trừ chết; G01–G03 hai test rác quay về gốc thật · `_goc_gia` không vá `GOC`.
+
+**Giả thuyết bị bác / ước lượng đã sai.** (a) Tôi định dời tệp tạm vào THƯ MỤC `tests/__tam_<ngẫu nhiên>/` để glob một tầng khỏi thấy chúng — bỏ trước khi viết: lượt thu thập của cổng 1 (`pytest tests/`) sẽ `scandir` một thư mục có thể biến mất (cùng cơ chế lượt pytest lồng ở BƯỚC 206), còn tệp phẳng thì pytest chỉ so tên với `test_*.py`. SUY LUẬN từ đọc mã pytest, chưa đo. (b) Tôi ngờ `rglob` nổ khi thư mục con biến mất (sẽ phải viết lại `duyet` bằng `os.walk` cắt tỉa) — đo bác ở cả 3.11.15 và 3.13. (c) Ngưỡng đối chứng "bảy tệp gọi `liet_ke`" tôi gõ theo trí nhớ — đếm thật là sáu.
+
+**Chưa làm / chưa đo.** Gác bên tạo chỉ thấy dạng literal `GOC / "tests" / <tên>`; một test MỚI đặt tệp tạm tên cố định ở chỗ khác trong cây repo (ngoài `.tam_test/` và `tests/__tam_*`) không bị máy nào chặn — chỉ có lượt quét nháp hôm nay. Máy dò một tầng phán bên nhận "chắc chắn không phải `tests/`" theo tên hằng (`GOC` · `ROOT` · `GOC_DU_AN`) và `tmp_path`: một biến trỏ vào `tests/` mà mang đúng tên ấy sẽ lọt. Chưa chạy lại đúng cấu hình CI (Linux, 12 file song song) nhiều lượt — lượt CI của PR này là một lượt rút.
+
+**Bảng lỗi.** Lỗi 185 (`gac-hong`, sống 4 ngày theo git: `35dbe19` 16/10 cho cổng 4 chạy song song → lộ 20/10); ⚠️ một phần; dòng tự khai 91/165 (`tools/doc_bang_loi.py`).
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py` xác nhận.
+
+## BƯỚC 213 — SOÁT ĐỊNH KỲ 13: 68/68 LỜI KHAI PHÁN LẠI, BA CHỖ SAI MỘT PHẦN TRONG FILE LUẬT CHỜ LEADER, HAI Ô ⚠️ MỚI Ở HANDOFF, KHÔNG CÓ LỖI MỚI (21/10/2026)
+
+**Mốc:** quy-trinh — soát định kỳ lượt 13 (nhịp 7 ngày)
+
+Phiên con của leader (lượt 12 = BƯỚC 188, làm 14/10; hạn lượt 13 ở HANDOFF là 21/10, làm đúng hạn). Nhánh `soat/vong-13-213` từ `main` `efa6a58`, worktree ngoài repo (`vibe_wt_213`). Không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo; không sửa file luật; không đọc dữ liệu đã khai trước ngày hẹn. Mạng chỉ qua `gh` (trạng thái workflow, tên secret, lượt CI mà `tools/so_ban_goi.py` đọc); không gọi vnstock. Số lỗi cấp cho lượt (186) không dùng: không có lỗi mới.
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+```
+68 lời khai · 9 tài liệu · chưa ai mở: 29   (lượt 12: 39 · 1)
+2 dòng sổ không còn khớp lời khai nào      (hằng số của sổ chỉ-thêm, cùng phán quyết lượt 8–12)
+```
+
+Tăng từ 39 lên 68 vì hai việc, đo bằng lệnh: BƯỚC 191 (lỗi 177) cho công cụ đọc câu nhiều dòng, không bỏ dòng mang 🔴/⚠️ và thêm *"không tìm thấy"* vào `PHU_DINH` (BƯỚC 191 ghi 66, tức +27), cộng hai dòng HANDOFF mới (:590, :593, từ BƯỚC 204 và 205) thành 68. Trong 29 dòng chưa ai mở chỉ 8 mang nhãn `[có dấu]`.
+
+Cả 68 được mở lại và phán bằng lệnh chạy hôm nay trên `efa6a58` (`docs/soat-dinh-ky.json`, lượt 2026-10-21; ô `dong` lấy nguyên văn từ chính công cụ; ô `tu_kiem` dán lệnh và đầu ra, cắt chỗ quá dài và ghi *[…cắt]*): **59 THẬT · 6 SAI-đã-đánh-dấu · 3 SAI-MỘT-PHẦN** (một CHƯA đánh dấu: `SKILL.md` :306; hai đã đánh dấu: `docs/HANDOFF.md` :519 và `NGUYEN-TAC-DO-LUONG.md` :205). Sáu câu SAI-đã-đánh-dấu: `loi-da-mac.md` :304 · :333, `HANDOFF.md` :432 · :696, `NGUYEN-TAC-DO-LUONG.md` :207 (ô ⚠️ BƯỚC 190), bản lưu `CLAUDE-md` :847. Bảy trong 59 mục THẬT có một vế KHÔNG đo lại trong phiên (ghi tại chỗ ở ô `phan_quyet`): `SKILL.md` :97 (trang NotebookLM) · :301 (số *4/15* của BƯỚC 119), `CLAUDE.md` :160 (*71/71* của BƯỚC 140) · :239 (số đo ROE), `HANDOFF.md` :510 (*chưa chạy trên dữ liệu thật*, cần vnstock), bản lưu `CLAUDE-md` :2156 (TradingView sống) và bản lưu `SKILL-md` :578 (`claude -p` lồng). Phạm vi lệnh được nới cho mọi câu chạm *"ở đâu"* (bài học lỗi 129/177): tìm toàn `~/.gemini/antigravity` cho tệp `brain/`; `git log --all -S` cho *"chưa bao giờ tồn tại"* của `_doc()`; AST toàn cây `.py` cho mọi câu *"không nhập"*; `gh workflow list --all`, `gh secret list` và `ls -la` trên chính tệp ngoài repo cho câu về workflow, khoá và `~/.claude/rules/`.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+trước lượt : 0 chết · 13 sử liệu · 50 còn   (mã thoát 0)      lượt 12: 0 · 13 · 47 (trước) → 49 (sau)
+```
+
+Số "còn" tăng 1 so với cuối lượt 12, không có đường chết; không truy nguyên nhân (không đổi phán quyết). Đo lại sau lần ghi cuối: xem mục *Đo lại sau lần ghi cuối*.
+
+### Phát hiện của lượt
+
+1. **`SKILL.md` :306 — số đếm đã trôi, file luật, chưa đánh dấu.** *"(*"không tìm thấy"* từng sai hai lần)"*. Hôm nay `git grep -c -E "không tìm thấy câu nào nói ngược" -- docs/STATE.md` ra 33 dòng; 14 dòng vừa có *"không tìm thấy"* vừa có *"sai"* hoặc *"bỏ sót"*; đọc tay còn ít nhất 7 vụ riêng (STATE :17520 · :19240 · :19701 · :20757 · :20905 · :20968 · :21159) sổ tay trả câu âm mà grep của leader bắt được. Vế luật (grep từ khoá tiếng Việt sau MỌI câu âm) vẫn đúng. Không sửa ở BƯỚC này; xem *Chờ leader*.
+2. **pyarrow — số hiệu CI đã trôi.** `HANDOFF.md` :735 viết *"CI và Streamlit Cloud ở 25.0.1"*; `tools/so_ban_goi.py` hôm nay: máy 24.0.0, CI 26.0.0 (lượt CI 39397230690, 20/10). Đã thêm ô ⚠️ có ngày dưới đoạn ở HANDOFF (câu cũ giữ nguyên). Cùng số hiệu ở `CLAUDE.md` :275 (*"còn `pyarrow` 24 → 25"*) — file luật, xem *Chờ leader*.
+3. **`HANDOFF.md` :531-533 — câu ngoài họ `PHU_DINH`.** *"File ngoài repo `~/.claude/rules/vibe-preview.md` còn ghi luật Quy tắc 3 cũ — leader sửa sau khi PR của BƯỚC 164 được merge"*: hết đúng từ 08/10/2026 (`grep -n "THU HẸP"` ra dòng 53 của tệp; `ls -la` cho 4711 byte, 2026-10-08 15:48). Đã thêm ô ⚠️ có ngày. Công cụ không thấy câu này (cụm *"còn ghi"*); tôi gặp nó khi đọc khối "Hạn kế", không phải một lượt quét — các câu cùng họ *"còn …"* ở nơi khác của HANDOFF không quét.
+4. **`docs/TIEU-CHI-DOC-TRUOC.md` :4088 (file luật) — không chắc.** *"phân bố f thì chưa ai in"*, khai 15/10 trước khi ĐO 26 chạy. Từ BƯỚC 192 có bản in thô `f_vào` từng lệnh, nhưng không thấy bảng phân bố tổng hợp ở STATE và `su_kien_quyen.py` :56 vẫn ghi *"Chưa đo phân bố f"*. Không kết luận sai; ghi để leader xem.
+
+### Ngoài tầm công cụ
+
+- **Diff tài liệu từ cây lượt 12** (`c3bd920` → `efa6a58`): 11 file `.md` đổi. Ba bộ lọc (`PHU_DINH` · `CO_TEN` · `DA_CO_DAU`) trên dòng thêm vào, cả theo dòng lẫn theo câu nhiều dòng: `SKILL.md` 0 · `cong-thuc-chay.md` 0 · `loi-da-mac.md` 0 · `soat-cheo-notebooklm.md` 0 · `CLAUDE.md` 0 · `NGUYEN-TAC-DO-LUONG.md` 1 · `HANDOFF.md` 2 · `LO-TRINH.md` 0 chưa dấu (1 ứng viên đã mang ⚠️) · `TIEU-CHI-DOC-TRUOC.md` 3 · `thiet-ke-b1-hau-kiem-loi.md` 9. Ba câu của 9 tài liệu công cụ đã nằm trong 68; **12 câu ngoài công cụ (3 + 9) đều được kiểm từng câu** (sổ: bốn mục cuối của lượt). `thiet-ke-b1`: chín câu đều THẬT hôm nay; `TIEU-CHI` :4129 · :4194 THẬT (điều kiện A chưa thoả: hai hằng số vẫn *"ĐỀ XUẤT, CHƯA ĐO"*); :4088 xem *Phát hiện* mục 4.
+- **Quét tay `docs/STATE.md` BƯỚC 186–208** bằng chính `PHU_DINH` + `CO_TEN` + `DA_CO_DAU`, theo dòng và theo câu nhiều dòng: 63 câu ứng viên, **52 chưa đánh dấu** (BƯỚC 187: 1 · 188: 5 · 189: 1 · 190: 1 · 191: 5 · 192: 3 · 193: 2 · 194: 2 · 195: 4 · 198: 1 · 199: 2 · 200: 2 · 201: 1 · 202: 1 · 203: 4 · 204: 4 · 205: 5 · 206: 6 · 207: 1 · 208: 1; BƯỚC 186, 196, 197: 0). Kiểm **11 nhóm** bằng lệnh (chi tiết ở sổ): 7 nhóm THẬT, 1 nhóm không kiểm (BƯỚC 189), và **3 nhóm có câu SAI theo thời gian, không đánh dấu** (STATE là nhật ký chỉ-thêm, câu đúng lúc viết): BƯỚC 188 *"39 lời khai, chưa ai mở 0"* (nay 68 · 29), BƯỚC 191 *"66 lời khai · 27 chưa ai mở"* (nay 68 · 29; chênh +2 đúng bằng hai dòng HANDOFF mới), BƯỚC 193 *"`su_kien_quyen.py` không đổi một chữ"* (BƯỚC 194, commit `3c8b301`, thêm 5 dòng docstring giới hạn; hằng số không đổi). **Không kiểm từng câu:** văn kể của BƯỚC 188, BƯỚC 189 :22761 (số đo `kiem_co_so_cache` ngày 14/10), BƯỚC 192 ×3 (API nội bộ vnstock, cần mạng), BƯỚC 193 :22936 (phát hiện của sổ tay), BƯỚC 195 :23019 (lập luận thiết kế), BƯỚC 199 :23201, các số đột biến và lượt chạy của BƯỚC 206; không nói chúng đúng. Câu *"tab `hau_kiem` hiện chưa có dòng nào"* (BƯỚC 205) cũng không kiểm (đọc Sheets cần khoá); chỉ suy: workflow `disabled_manually` và `gh secret list` không có `ANTHROPIC_API_KEY` thì không có đường ghi.
+
+### Lượt đọc 2 của ĐO 27
+
+**Lượt đọc 2 của ĐO 27** (21/10/2026 08:21, leader chạy `./.venv/Scripts/python.exe tools/do27_su_kien_quyen_chieu_tien.py --json <tệp nháp>`, đầu ra ghi ra tệp log). M0 gồm băm sổ `e18c164dd49ffb52`, băm nến `a7d4bed735ddb8be`, băm lịch `d760909d3ab50b2f`; nến 51/51 mã; lịch 41/51 mã (DBC, FPT, GEL, MSB, OCB, PVT, REE, SAB, TCB, VGC hết giờ đọc ở `iq.vietcap.com.vn`, read timeout 30 s).
+- (i) HDB #122: QUA.
+- (ii) giá ↔ lịch, đếm từ ngày ghi sổ: N = 29 · M_CK 15 (51,7%) · **M_CKTM 28 (96,6%)** → QUA. Trượt M_CKTM duy nhất: #24 DGC (f_vào 1,207 · F 1,181).
+- (iii) dụng cụ [122] = `tap_loai` [122] → QUA.
+- Quần thể: 0 lệnh. **Kết cục lượt 2: CHƯA ĐỦ.**
+
+Mẫu có khả năng cho kết quả dương không — in thô (scratchpad leader `do27_l2/tho_quan_the.py`, cùng công thức băm, băm sổ `e18c164dd49ffb52` trùng M0): sổ thật có 127 lệnh, cả 127 `CLOSED`, 14 lệnh tiến-về-trước; ngày ra lớn nhất 2026-10-15; **0 lệnh có ngày ra sau 2026-10-15**, 0 lệnh đang mở. Quần thể rỗng vì sổ chưa đóng lệnh nào sau ngày ký, không phải vì bộ lọc. Lượt quét `quet-so-lenh` chạy `success` hai lượt mỗi ngày làm việc 15, 16, 19, 20/10 (`gh run list --workflow quet-so-lenh.yml`).
+
+Giả thuyết bị bác (ghi cùng tiểu mục): lần gọi đầu, leader gõ `tools/do27_su_kien_quyen_chieu_tien.py --help 2>&1 | head -30` để xem cách dùng; dụng cụ không có `--help` nên chạy thật phép đọc, và `head -30` nuốt hết sau 30 dòng băng rôn vnstock, nên không dòng kết quả nào hiện ra. Không ai thấy số của lần ấy; lượt đọc 2 là lần chạy thứ hai ở trên.
+
+Lượt đọc kế: cùng lượt soát định kỳ 14 (hạn 28/10/2026).
+
+### Chờ leader (file luật — BƯỚC này KHÔNG sửa; leader hỏi sổ tay thật rồi sửa)
+
+1. `SKILL.md` :306 — đổi *"(*"không tìm thấy"* từng sai hai lần)"* thành *"(*"không tìm thấy"* đã sai nhiều lần; đếm bằng `git grep -c "không tìm thấy câu nào nói ngược" -- docs/STATE.md`)"*.
+2. `CLAUDE.md` :275 — đổi *"còn `pyarrow` 24 → 25"* thành *"còn `pyarrow` (số hiệu CI: đọc bằng `tools/so_ban_goi.py`)"*; hôm nay CI là 26.0.0.
+3. `docs/TIEU-CHI-DOC-TRUOC.md` :4088 — tuỳ leader: thêm một dòng ⚠️ có ngày dưới câu *"phân bố f thì chưa ai in"* (không sửa chữ đã ký) nếu coi bản in thô của BƯỚC 192 là đã in.
+4. **Mang từ lượt 12, vẫn mở:** `git grep -n -E 'ke_hoach_vao_lenh|suc_khoe|ban_tin|su_kien_quyen|hau_kiem' -- CLAUDE.md` hôm nay ra đúng một dòng (:137, `su_kien_quyen` trong điều kiện dừng) — các module chỉ-để-hiện B2–B5 (`ke_hoach_vao_lenh` · `suc_khoe` · `ban_tin` · `hau_kiem_loi`) chưa vào danh sách CHỈ ĐỂ HIỆN của `CLAUDE.md`.
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Giả thuyết bị bác:** *"29 dòng mới chủ yếu đã có dấu nên phán nhanh được"*. Chỉ 8 trong 29 mang nhãn `[có dấu]`; trong 21 dòng còn lại có MỘT câu SAI-MỘT-PHẦN chưa đánh dấu (`SKILL.md` :306) và một số hết đúng ở vế kề bên (pyarrow).
+- **Ước lượng sai của chính phiên này:** mục `_doc()` (bản lưu `CLAUDE-md` :670) lúc đầu ghi *"6 hàm `def _doc`"*; lệnh đúng cho 5 hàm (4 ở `tests/`, 1 ở `tools/kiem_cua_song.py`), dòng thứ sáu là một chuỗi trong test chép lại lệnh cũ. Chuỗi ấy còn làm gác `test_QUET_HEP_ban_ghi_THAT_luot_10_bi_bat_va_tu_luot_11_deu_sach` bắt ô `tu_kiem` của chính lượt này (đầu ra lệnh dán nguyên văn chứa `grep -n 'def _doc' *.py`); sửa bằng cách loại tệp test ấy khỏi pathspec và ghi *"5 hàm"*.
+- **KHÔNG nói:** 68 là mọi lời khai phủ định (công cụ chỉ thấy lời khai nêu TÊN trong 9 tài liệu; câu *"còn ghi …"* ở HANDOFF :531 nằm ngoài); STATE ngoài BƯỚC 186–208 sạch; 11 nhóm STATE được kiểm từng câu; các số trong mục THẬT mà ghi *"không đo lại"* là đúng hôm nay.
+
+### Soát chéo NotebookLM
+
+**Không hỏi** (`khong_bat_buoc_vi`, ô riêng ở `docs/soat-notebooklm.json`): BƯỚC này sửa `docs/soat-dinh-ky.json`, `docs/HANDOFF.md` (khối Hạn kế và hai ô ⚠️), `docs/STATE.md` và `docs/soat-notebooklm.json`; không file nào trong sáu file luật (`CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`), không đổi ngưỡng, điểm hay kết luận đo. Máy xác nhận: `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 213` — kết quả ở mục *Năm cổng*. **Điều lượt này tìm ra thì CHƯA hỏi sổ tay và phải hỏi:** ba chỗ ở mục *Chờ leader* đều sửa một file luật (BƯỚC riêng, hỏi thật).
+
+### Năm cổng
+
+Mốc `docs/moc_so_test.json` **không đổi** (BƯỚC này không thêm hay bớt test nào): cổng 5 `OK — 3371 test, khop moc da ghi`. Lượt đầy đủ đầu tiên (năm cổng cùng lúc, `tools/nam_cong.py --thu-muc-log <thư mục nháp>`, 08:41–08:47, 384 s) trên cây có sổ lượt 13 bản đầu: cổng 1 `1 failed, 3368 passed, 2 skipped` (381,44 s) · cổng 2 `Mọi file nạp được bằng 3.11` · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 đỏ MỘT file (`tests/test_soat_notebooklm.py`, cùng test đỏ ở cổng 1) · cổng 5 `OK — 3371 test`. Test đỏ: `test_SO_DINH_KY_moi_PHAT_HIEN_kem_LENH_va_PHAN_QUYET` — `phan_quyet` của ba mục ngoài công cụ (diff tài liệu, :4088 của TIEU-CHI, quét STATE) mở đầu bằng chữ khác THẬT/SAI, mà gác đòi mọi ô mở bằng THẬT hoặc SAI. Sửa tại nguồn (ba ô nay mở bằng THẬT · THẬT · SAI MỘT PHẦN), không nới gác; chạy lại bốn file test chạm sổ và skill (`test_soat_notebooklm` · `test_soat_dinh_ky_co_tri_nho` · `test_skill_quy_trinh` · `test_tai_lieu_khop_ten_ma`): `100 passed in 35.46s`. Lượt năm cổng thứ hai, trên cây cuối: số nằm ở thân PR (nó sinh ra sau file này). `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 213` → *"BƯỚC 213: khong cham luat"*.
+
+### Đo lại sau lần ghi cuối
+
+`./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py`, chạy SAU khi mọi file tài liệu đã được ghi (kết quả đối chiếu với ô `sau_luot` của lượt 2026-10-21 ở `docs/soat-dinh-ky.json`; lệch thì lượt này sai lỗi 121):
+
+```
+efa6a58 + sửa lượt 13 : 0 chết · 13 sử liệu · 51 còn   (mã thoát 0)
+```
+
+Khớp ô `sau_luot`. `tools/soat_loi_khai_cu.py` sau lượt: 68 lời khai, chưa ai mở 0. `tools/kiem_cua_song.py`: *"Trong so do co ban TOAN CUC   : 7"*, *"OK — moi hook deu co ban toan cuc"*.
+
+**Việc kế.** (1) Leader: hỏi sổ tay thật rồi sửa ba chỗ ở *Chờ leader* và xử lý mục 4 mang từ lượt 12. (2) Lượt 14 đến hạn **28/10/2026**, làm kèm lượt đọc kế của ĐO 27; gợi ý: với lời khai chạm một NƠI, chạy lệnh trên chính nơi ấy (bài học lỗi 129/177 tiếp tục đúng); và đọc cả các câu *"còn …"* ở HANDOFF mà `PHU_DINH` không thấy (câu :531 là ví dụ). (3) Việc riêng, chưa làm: cho `tools/soat_loi_khai_cu.py` đọc họ *"còn ghi / còn đang / nay còn"* — chưa đo xem họ này kéo vào bao nhiêu dòng.
+
 ## BƯỚC 212 — ĐO 29: WALK-FORWARD XÉT CẮT LỖ Ở MỌI PHIÊN, CẢ PHIÊN CHỈ-KHỚP; DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` −1,68% → −1,73% (KẾT CỤC A — ĐÚNG CHIỀU, NHỎ); 194 LỆNH RA BẰNG CẮT LỖ Ở PHIÊN MÁY CŨ KHÔNG NHÌN (21/10/2026)
 
 **Mốc:** B3 — sổ bài học và kho tiền lệ ý 5 dựng từ sổ OOS của máy đo; giá khớp của lệnh cắt lỗ ở phiên chỉ-khớp quyết định lỗ thật được ghi

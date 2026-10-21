@@ -31,6 +31,7 @@ sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
 
 import cua_bash_an_toan as cb  # noqa: E402
+import duyet_repo  # noqa: E402
 import soat_nhat_ky_cua as sn  # noqa: E402
 
 PY = sys.executable
@@ -138,7 +139,7 @@ def test_MOI_TEST_chay_CUA_nhu_tien_trinh_con_deu_CACH_LY_TEMP():
     trong chú thích của chính các file test (lỗi 38).
     """
     thieu = []
-    for f in sorted((GOC / "tests").glob("*.py")):
+    for f in duyet_repo.liet_ke(GOC, "tests", "*.py"):
         try:
             cay = ast.parse(f.read_text(encoding="utf-8"))
         except SyntaxError:
