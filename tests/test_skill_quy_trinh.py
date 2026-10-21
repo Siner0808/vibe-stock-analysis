@@ -113,7 +113,7 @@ def test_moi_file_skill_nhac_toi_deu_CO_THAT():
     print("PASS  mọi file skill nhắc tới đều được git biết")
 
 
-def test_moi_TEST_skill_nhac_toi_deu_CO_THAT():
+def test_moi_TEST_skill_nhac_toi_deu_CO_THAT(monkeypatch):
     """Tên test mục ruỗng nhanh nhất — chúng bị đổi tên khi refactor."""
     src = "\n".join(f.read_text(encoding="utf-8")
                     for f in [SKILL] + THAM_CHIEU)
@@ -123,10 +123,12 @@ def test_moi_TEST_skill_nhac_toi_deu_CO_THAT():
         if not f.exists() or f"def {ham}" not in f.read_text(encoding="utf-8"):
             thieu.append(f"{m.group(1)}::{ham}")
     # Hàm nhắc tới không kèm đường dẫn file
+    monkeypatch.syspath_prepend(str(GOC / "tools"))
+    import duyet_repo                    # bỏ tệp tạm của test khác (BƯỚC 211, luật 4)
     for ham in ("_ten_da_nhap_va_goi",):
         if ham in src:
             co = any(f"def {ham}" in p.read_text(encoding="utf-8")
-                     for p in (GOC / "tests").glob("*.py"))
+                     for p in duyet_repo.liet_ke(GOC, "tests", "*.py"))
             if not co:
                 thieu.append(ham)
     assert not thieu, "skill trỏ tới test không tồn tại:\n  " + "\n  ".join(thieu)
