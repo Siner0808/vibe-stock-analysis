@@ -314,7 +314,10 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     result = None
     if journal.open_position(symbol) is not None:
         result = _analyze(symbol, history, exchange, session_date)
-        closed = journal.evaluate_open(symbol, session_date, bar,
+        # Kèm giá tham chiếu: không có nó thì `khoa_bien` không phân được phiên
+        # kịch sàn, và cắt lỗ khớp ở phiên trắng bên mua (ĐO 28, BƯỚC 209).
+        _bar = dict(bar, tham_chieu=_nen["tham_chieu"]) if _nen else bar
+        closed = journal.evaluate_open(symbol, session_date, _bar,
                                        current_score=int(result["final_score"]))
         stats["closed"] = len(closed)
 

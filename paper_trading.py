@@ -42,6 +42,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from data_quality import EXCHANGE_LIMITS, now_vn
+from vong_doi_lenh import KICH_SAN, KICH_TRAN
 
 DB_PATH = "paper_trades.db"
 
@@ -388,6 +389,10 @@ VON_DANH_MUC_VND = 1_000_000_000
 
 LY_DO_TU_CHOI_LENH = "sàn từ chối lệnh"
 
+#: Lệnh mua chờ khớp gặp phiên KỊCH TRẦN một giá (`vong_doi_lenh.khoa_bien`):
+#: trắng bên bán, không khớp được — ĐO 28, BƯỚC 209. Lý do RIÊNG để đếm được.
+LY_DO_KICH_TRAN = "kịch trần một giá — trắng bên bán"
+
 #: Biên kiểm GIÁ MỞ CỬA lúc khớp lệnh VÀO — biên độ RỘNG NHẤT của mọi sàn,
 #: SUY RA từ `data_quality.EXCHANGE_LIMITS`, không gõ tay.
 #:
@@ -647,9 +652,12 @@ class PaperTradingJournal:
         (`san_giao_dich.san_cua`, BƯỚC 143). Tra theo MÃ chứ không đọc cột
         `exchange` của lệnh, vì cột ấy ghi `HOSE` cho cả 125 dòng cũ.
 
-        Bán KHÔNG đi qua `vong_doi_lenh`: một vị thế đang mở phải thoát
-        được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. Cái đo được ở
-        đây là trượt giá, không phải rủi ro không khớp.
+        Bán KHÔNG đi qua vòng đời lệnh của `vong_doi_lenh`: một vị thế đang
+        mở phải thoát được, không thể "sàn từ chối" rồi kẹt lại vĩnh viễn. Cái
+        đo được ở đây là trượt giá. Rủi ro không khớp chỉ được mô hình hoá ở
+        MỘT chỗ, trước khi gọi hàm này: phiên KỊCH SÀN một giá thì lệnh bán
+        chờ phiên sau (`evaluate_open`, `fill_closing`; ĐO 28, BƯỚC 209) —
+        kẹt có hạn, hết khoá thì thoát.
         """
         if not MO_PHONG_TRUOT_GIA:
             return float(gia)
@@ -827,6 +835,16 @@ class PaperTradingJournal:
             size = float(r["size_pct"] or 0.0)
 
             if MO_PHONG_TRUOT_GIA and nen:
+                if self._khoa_bien(symbol, nen) == KICH_TRAN:
+                    # Trắng bên bán: lệnh mua không khớp, cuối phiên sàn huỷ.
+                    # Cùng đường `HUY` với lệnh bị từ chối (BƯỚC 136), lý do
+                    # riêng (ĐO 28).
+                    self.db.execute(
+                        "UPDATE trades SET status=?, exit_date=?, exit_reason=?"
+                        " WHERE id=?",
+                        (Status.HUY, session_date[:10], LY_DO_KICH_TRAN,
+                         r["id"]))
+                    continue
                 kq = self._khop_that(symbol, gia, size, nen)
                 if kq is None:
                     # Sàn từ chối hoặc không khớp nổi một lô. Lệnh này không
@@ -913,6 +931,21 @@ class PaperTradingJournal:
         self.db.commit()
         return doi
 
+    @staticmethod
+    def _khoa_bien(symbol: str, nen: dict | None) -> str | None:
+        """`vong_doi_lenh.khoa_bien` với biên độ của SÀN của mã (tra theo MÃ,
+        `san_giao_dich.san_cua`, như bước giá — BƯỚC 143). Sàn không có trong
+        `EXCHANGE_LIMITS` hoặc thiếu nến thì None: không phân được, giữ hành vi cũ.
+        """
+        if not nen:
+            return None
+        from san_giao_dich import san_cua
+        from vong_doi_lenh import khoa_bien
+        bien = EXCHANGE_LIMITS.get(str(san_cua(symbol)).upper())
+        if bien is None:
+            return None
+        return khoa_bien(nen, bien)
+
     def _khop_that(self, symbol: str, gia_mo: float, size_pct: float,
                    nen: dict):
         """(giá bình quân, size_pct thực khớp) — hoặc None nếu không khớp.
@@ -980,6 +1013,12 @@ class PaperTradingJournal:
             # `elif` chứ không phải `if` thứ hai: cả hai cùng chạm thì
             # LẤY SL (bất biến 3). Đổi sang hai `if` rời là để TP ghi đè
             # SL — đúng cái giả định có lợi bị cấm.
+            if low <= sl and MO_PHONG_TRUOT_GIA and \
+                    self._khoa_bien(symbol, bar) == KICH_SAN:
+                # Phiên KỊCH SÀN một giá: trắng bên mua, lệnh dừng không khớp.
+                # Không đóng, không nâng stop; phiên sau xét lại như thường — giá
+                # còn dưới SL thì khớp ở min(SL, giá mở cửa) ngay dưới (ĐO 28).
+                continue
             if low <= sl:
                 # Gap xuống DƯỚI SL: phiên MỞ CỬA đã dưới mức cắt lỗ, nên
                 # lệnh dừng chỉ khớp được ở giá mở cửa, không phải ở SL.
@@ -1119,6 +1158,8 @@ class PaperTradingJournal:
             ngay_tin_hieu = str(r["exit_date"] or "")[:10]
             if ngay_tin_hieu and session_date[:10] <= ngay_tin_hieu:
                 continue                      # chưa tới phiên sau tín hiệu
+            if MO_PHONG_TRUOT_GIA and self._khoa_bien(symbol, nen) == KICH_SAN:
+                continue                      # trắng bên mua: chờ phiên sau (ĐO 28)
             gia = self._gia_ban_that(float(open_price), r["size_pct"], nen,
                                      symbol)
             self.db.execute(

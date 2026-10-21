@@ -4197,3 +4197,59 @@ Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0
 
 ### Điều ĐO này KHÔNG làm
 Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sheets. Không dùng lịch sự kiện trong đường chạy thật (đó là mốc D1). Không đọc lại lệnh đóng trước ngày ký.
+
+## ĐO 28 — mô hình khớp ở phiên KỊCH TRẦN/SÀN MỘT GIÁ: lệnh mua không khớp ở phiên kịch trần, lệnh bán chờ qua phiên kịch sàn; đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 20/10/2026)
+
+> **Khai 20/10/2026, TRƯỚC khi có mã sửa và lượt chạy, ở một commit RIÊNG.**
+> - Người dùng chốt 20/10/2026 qua hộp hỏi, nguyên văn: sửa mô hình — *"Sửa, làm sau 21/10 (Recommended)"*; định nghĩa — *"Một giá + đổi ≥ 90% biên (Recommended)"*; lệnh mua gặp phiên kịch trần — *"Huỷ lệnh (Recommended)"*; cache đo — *"Cache gốc acf6dca1 (Recommended)"*.
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 20/10/2026.
+> - Sổ tay hỏi thật ở BƯỚC 209. Mã sửa chỉ merge SAU lượt đọc 2 của ĐO 27 (21/10/2026).
+> - Phép đo này **đổi một mô hình đo** theo bất biến 3 (giả định bất lợi khi nến không phân định được), không đo lợi thế: không chạm điểm, ngưỡng mua, không tính vào K.
+
+**Đã tra trùng:** BƯỚC 123 · BƯỚC 136 · BƯỚC 199 — ba mục đã tra, và hai điều phải khai:
+- BƯỚC 123 (gap dưới SL khớp ở giá MỞ CỬA, không ở SL): cùng họ giả định bất lợi. Mô hình mới dùng lại đúng đường ấy: phiên mở khoá đầu tiên khớp ở min(SL, giá mở cửa).
+- BƯỚC 136 (lệnh mua không khớp đóng ở `HUY`, không xoá): lệnh mua gặp phiên kịch trần đi đúng đường `HUY` ấy, kèm lý do riêng.
+- BƯỚC 199: bốn dòng của bảng chi phí trong `CLAUDE.md` gắn cache `acf6dca1…`; so số mới với bảng thì chạy cùng cache.
+- `grep` các chữ *kịch trần · kịch sàn · khoá sàn · trắng bên · cao == thấp* trong `docs/STATE.md`, file này và bảng lỗi: chưa BƯỚC hay ĐO nào mô hình hoá khớp ở phiên khoá biên.
+- **Đã nhìn:** 15–16/10 leader đo NGOÀI repo (dụng cụ nháp, cùng định nghĩa khoá biên) trên cache `01e9d9c7…` (cache hiện tại): sổ OOS dạng ĐO 22 có 0/619 lệnh vào ở nến kịch trần và 2/619 lệnh ra ở nến kịch sàn (−0,038 điểm/lệnh nếu bán ở giá mở cửa phiên mở khoá); IS ngưỡng 45 có 0 và 5/906 (−0,060); sổ thật 0/127 (dữ liệu tới 15/10). Nặng nhất PNJ #897: sổ ghi −7,82%, khoá sàn 4 phiên, ước −30,8%. Trên cache `acf6dca1…` CHƯA ai đếm. 20/10 leader đếm nến một giá trong cache hiện tại (dữ liệu thị trường, không sổ nào): 120.375 nến, 147 kịch trần và 149 kịch sàn theo định nghĩa dưới, 108 nến một giá không sát biên (chủ yếu VCF khối lượng 100 cổ phiếu, KOS, DCL).
+
+**Không có dụng cụ vì:** mã sửa và lượt chạy làm SAU commit này (BƯỚC 209, commit sau). Ghép từng lệnh dùng `tools/do20_ghep_tung_lenh.py` có sẵn; máy đếm đối chứng (iii) viết sau commit này.
+
+### Câu hỏi
+Khi sổ ảo không còn khớp được ở phiên kịch trần/sàn một giá — mua ở phiên kịch trần thì không khớp, bán ở phiên kịch sàn thì chờ phiên mở khoá — alpha OOS của dòng "BẬT · theo ngày" đổi bao nhiêu trên cùng cache với bảng hiện hành, và kết luận *"THUA chuẩn có ý nghĩa"* có đứng không?
+
+### Mô hình mới (ghim)
+- **Khoá biên:** nến có cao = thấp (sai số 1e-9) VÀ |đóng ÷ tham chiếu − 1| ≥ 0,9 × biên độ của sàn (`data_quality.EXCHANGE_LIMITS`; sàn tra theo MÃ bằng `san_giao_dich.san_cua`). Tham chiếu là giá đóng cửa phiên trước, đúng giá `paper_runner` đang truyền cho mô hình khớp. Lên là KỊCH TRẦN, xuống là KỊCH SÀN. Hệ số 0,9 ghim. Câu *"không bao giờ suy trần bằng ngưỡng phần trăm"* của `CLAUDE.md` nói về MÀU bảng giá (một giá cụ thể có phải giá trần không); ở đây ngưỡng chỉ phân loại nến đã khoá, và biên 10% hấp thụ sai số làm tròn của giá trần.
+- **Mua:** lệnh chờ khớp gặp phiên KỊCH TRẦN → `HUY`, không giá vào, lý do riêng (không dùng chữ "sàn từ chối lệnh").
+- **Bán:** cắt lỗ chạm ở phiên KỊCH SÀN → không đóng; phiên sau xét lại như thường (giá còn dưới SL thì khớp ở min(SL, giá mở cửa) — đường BƯỚC 123). Lệnh `CLOSING` (đảo tín hiệu, trần thời gian) gặp phiên KỊCH SÀN → chờ phiên sau.
+- Mua ở phiên kịch sàn, bán ở phiên kịch trần, nến một giá không sát biên: không đổi. Trượt giá, khối lượng, ngưỡng, điểm: không đổi.
+- Lệnh còn kẹt khi hết dữ liệu: `dong_so_sach` đóng như hiện nay (giới hạn đã biết; đếm và in).
+
+### Dữ liệu và lượt chạy
+- **Cache:** bản chép của `scratch/vibe_cache_goc_20260911` vào thư mục nháp; băm bằng `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau lượt chạy — phải là `acf6dca1…` cả hai lần (M0).
+- **Bộ nhớ hậu nghiệm:** bản chép `sl_pattern_memory.json` sha256 `e8b44cf8…`, như ĐO 18/20/22 và BƯỚC 199.
+- Hai lượt `tools/do1_chi_phi_thuc_thi.py --mot-luot 2`, mỗi lượt một worktree, `VIBE_CACHE_DIR` trỏ bản chép: **A** = `main` lúc ký (mô hình cũ), **B** = nhánh BƯỚC 209 (mô hình mới). Ghép: `tools/do20_ghep_tung_lenh.py --doi-chung <A/wf_oos.db> --sua <B/wf_oos.db>`.
+
+### Đối chứng của máy đo (trượt thì K0)
+- (i) A tái lập ĐO 22: 619 lệnh OOS, alpha −1,68%, KTC [−2,24 ; −1,08], ngưỡng IS 45.
+- (ii) M0: băm cache trước và sau đều `acf6dca1…`.
+- (iii) Mọi lệnh OOS của A có ngày vào là phiên KỊCH TRẦN, hoặc ngày ra là phiên KỊCH SÀN (đếm từ cache bằng định nghĩa trên, in cả danh sách), phải KHÁC ở B: biến mất, hoặc ra ở ngày khác. Một lệnh như vậy mà B giữ nguyên nghĩa là mã sửa không chạy trên đường walk-forward.
+
+### Thống kê chính
+- Δalpha = alpha(B) − alpha(A), kèm KTC 95% của B và ngưỡng IS B chọn.
+- Đếm: lệnh A vào ở kịch trần, lệnh A ra ở kịch sàn; ở B: số lệnh `HUY` vì kịch trần, số lần lệnh bán bị dời, số phiên dời dài nhất.
+
+### Kết cục (ký trước)
+- **K0:** (i), (ii) hoặc (iii) trượt, hoặc B không chạy xong.
+- **A — đúng chiều:** Δalpha ≤ +0,05 điểm VÀ KTC của B vẫn loại 0 về phía âm. Kết luận giữ. `CLAUDE.md` thêm MỘT dòng dưới bảng chi phí: số của B, băm cache, *"mô hình khớp kịch trần/sàn (ĐO 28)"*; bốn dòng cũ giữ nguyên, ba dòng chưa chạy lại ghi rõ là mô hình khớp cũ.
+- **B — Quy tắc 1:** Δalpha > +0,05 điểm. Soát mã sửa và máy đo TRƯỚC khi đọc tiếp; không thấy lỗi thì báo người dùng kèm ghép từng lệnh. `CLAUDE.md` không đổi cho tới khi người dùng quyết.
+- **C — đổi kết luận:** KTC của B chứa 0 → báo người dùng ngay; `CLAUDE.md` không đổi cho tới khi người dùng quyết.
+- Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng, vẫn đọc theo ba kết cục trên.
+
+### Báo kèm (không quyết định kết cục)
+- Dải IS của B, nhất là dòng 45: số lệnh, kỳ vọng.
+- Dây chuyền trần vốn: số lệnh chỉ ở A, chỉ ở B mà không dính phiên khoá biên nào (theo `do20`).
+- Lệnh kẹt tới hết dữ liệu.
+
+### Điều ĐO này KHÔNG làm
+Không đọc sổ thật: lệnh đóng sau 15/10 là quần thể ĐO 27, và mã mới chỉ đổi sổ thật về sau, khi đã merge. Không chạy lại ba dòng còn lại của bảng, không chạy trên cache hiện tại. Không mô hình hoá khoá biên một phần (nến hai giá nhưng gần như trắng bên), không thêm trần khối lượng cho lệnh bán, không đổi ngưỡng hay điểm.
