@@ -35,6 +35,12 @@ N_TOI_THIEU_TIEN_LE = 10
 #: Z của KTC 95% hai phía.
 Z_95 = 1.96
 
+#: Tệp kho phần mô phỏng, tính từ gốc repo (`tools/dung_kho_tien_le.py` ghi, app đọc).
+DUONG_KHO = "docs/kho-tien-le.json"
+#: Câu cố định của khối trên app — đọc tỷ lệ của nhóm như một lát cắt, không như dự báo.
+NHAN_HIEN = ("Để HỌC, không để dự báo: điểm không dự báo được lợi nhuận, nên tỷ lệ thắng của "
+             "một nhóm gần như là tỷ lệ nền cộng nhiễu — luôn đọc nó cạnh tỷ lệ nền.")
+
 MO_PHONG = "mô phỏng"
 THAT = "thật"
 #: Khoá của lệnh thiếu điểm/VN-Index, điểm dưới ngưỡng mua, hoặc VN-Index dưới MA50
@@ -166,3 +172,41 @@ def tom_tat(kho: Iterable[TienLe], diem: Any, pct_tren_ma50: Any, ngay_vao: str,
     gan = sorted(nhom, key=lambda t: (t.ngay_ra, t.ma), reverse=True)[:so_ca_gan]
     return {"khoa": khoa, "nhom": g, "nen": nen, "du": du,
             "khong_phan_biet": khong_pb, "gan_nhat": gan}
+
+
+def _pt(x: float) -> str:
+    return f"{x * 100:.0f}%"
+
+
+def _ty_le(d: dict) -> str:
+    lo, hi = d["ktc"]
+    return f"thắng {_pt(d['ty_le'])} [KTC 95%: {_pt(lo)} ; {_pt(hi)}]"
+
+
+def dong_hien(kq: Mapping[str, Any]) -> list[str]:
+    """Các dòng chữ của khối \"Tiền lệ\" (thiết kế mục 6). Bên hiện in nguyên, không tính gì.
+
+    Nhóm dưới `N_TOI_THIEU_TIEN_LE`: KHÔNG có tỷ lệ. Tỷ lệ nền luôn đi cạnh tỷ lệ nhóm.
+    """
+    g, nen, khoa = kq["nhom"], kq["nen"], kq["khoa"]
+    if khoa == KHONG_XEP_DUOC:
+        ra = ["Không xếp được nhóm: thiếu điểm vào hoặc độ cao VN-Index so MA50, điểm dưới "
+              "ngưỡng mua, hoặc VN-Index dưới MA50."]
+    else:
+        ra = [f"Tiền lệ lúc vào lệnh — điểm {khoa[0]} · VN-Index cao hơn MA50 {khoa[1]}"]
+        if not kq["du"]:
+            ra.append(f"Chưa đủ tiền lệ (n = {g['n']}; cần ≥ {N_TOI_THIEU_TIEN_LE}) — không in tỷ lệ.")
+        else:
+            ra.append(f"{g['n']} tiền lệ ({g['n_mo_phong']} {MO_PHONG}, {g['n_that']} {THAT}): "
+                      f"{g['thang']} thắng · {g['thua']} thua · {g['hoa']} hoà — {_ty_le(g)}")
+    if nen["n"]:
+        ra.append(f"Nền (mọi tiền lệ có trước ngày vào, n = {nen['n']}): {_ty_le(nen)}")
+    else:
+        ra.append("Nền: chưa có tiền lệ nào đóng trước ngày vào.")
+    if kq["du"]:
+        ra.append("→ Không phân biệt được với nền." if kq["khong_phan_biet"] else
+                  "→ Khác nền ở lát cắt này; điểm vẫn không dự báo được lợi nhuận — đọc như "
+                  "một lát cắt, không như tín hiệu.")
+    for t in kq["gan_nhat"]:
+        ra.append(f"{t.ma} · {t.ngay_vao} → {t.ngay_ra} · {t.loi_nhuan_rong_pct:+.2f}% · {t.nguon}")
+    return ra

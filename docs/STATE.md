@@ -23809,3 +23809,19 @@ Leader, tại chỗ, người dùng: *"ok làm đi, làm từ bước nhỏ đ�
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 215` xác nhận (sau khi BƯỚC 214 vào `main`).
 
 **Việc kế.** PR 2 — khối "Tiền lệ" trong chi tiết nhật ký trên app, cạnh hậu kiểm B1; kiểm bằng mắt ở `localhost:8511`.
+
+## BƯỚC 216 — Ý 5 PHẦN 2: KHỐI "TIỀN LỆ" TRONG CHI TIẾT NHẬT KÝ, CẠNH HẬU KIỂM B1 — CHỮ DỰNG Ở HÀM THUẦN, APP CHỈ IN (21/10/2026)
+
+**Mốc:** B3 — người dùng học từ sổ: mỗi lệnh trong nhật ký hiện những lệnh cũ cùng bối cảnh đã kết thúc ra sao
+
+Leader, tại chỗ; PR 2 của `docs/thiet-ke-y5-tien-le.md` mục 9. Nhánh `y5/khoi-app-216` xếp chồng trên BƯỚC 215. Không đổi điểm, ngưỡng, lệnh, sổ hay kết luận đo.
+
+**Mã.** `tien_le.dong_hien` (thuần) dựng các dòng của khối theo mục 6: tiêu đề có khoá nhóm; số đếm và tỷ lệ thắng của nhóm kèm KTC Wilson CHỈ khi n ≥ 10 (dưới đó: *"Chưa đủ tiền lệ (n = …; cần ≥ 10) — không in tỷ lệ"*); tỷ lệ nền LUÔN cạnh bên; *"→ Không phân biệt được với nền"* khi KTC chứa nền, ngược lại một câu nhắc đó là lát cắt, không phải tín hiệu; ba ca gần nhất kèm nhãn nguồn. `tien_le.DUONG_KHO` và `tien_le.NHAN_HIEN` là hai hằng mới. `app.py`: `_doc_kho_tien_le` (đọc tệp kho, cache) và `_khoi_tien_le` (in), gọi ngay dưới hậu kiểm bằng lời của chi tiết nhật ký. Kho = phần mô phỏng + lệnh THẬT đã đóng của chính nhật ký tab đang hiện (`_nk`) — không thêm đường đọc Sheets. Lệnh chưa khớp hoặc lỗi đọc → một dòng caption.
+
+**Test.** `tests/test_tien_le_hien.py`: 8 test — chữ của bốn ca (chưa đủ · đủ và không phân biệt · đủ và khác nền · không xếp được), Wilson in phần trăm, nền rỗng, ca gần nhất ghi nguồn; AST: `_khoi_tien_le` gọi `tom_tat`/`dong_hien`/`tu_dong_nhat_ky`/`vni_cua_dong` và KHÔNG tự tính (`wilson`, `khoa_nhom`, `chon_tien_le`, `ket_qua_lenh`), app gọi khối ở thân module, loader dùng `DUONG_KHO`. Đột biến 6/6 đỏ.
+
+**Kiểm bằng mắt — chưa làm ở bước này.** Thử chạy app của worktree trên cổng riêng: công cụ xem trước đọc cấu hình của người dùng ở `~/.claude/launch.json` (chạy `app.py` của repo CHÍNH ở 8511), không đọc cấu hình của worktree; leader không sửa cấu hình ấy, dừng server vừa mở, trả `launch.json` của worktree về như cũ, xoá bản chép khoá. Theo thiết kế mục 9, kiểm bằng mắt ở `localhost:8511` SAU khi merge.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 216` xác nhận.
+
+**Việc kế.** Sau merge: xem khối ở `localhost:8511` (tab "Lịch sử giao dịch" → mục Nhật ký "vì sao" → chọn một lệnh đã đóng).

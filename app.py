@@ -616,6 +616,37 @@ def _bang_dong_gop(tong_hop):
     return pd.DataFrame(hang)
 
 
+@st.cache_data(show_spinner=False)
+def _doc_kho_tien_le():
+    """Phần MÔ PHỎNG của kho tiền lệ ý 5 — tệp JSON trong repo (BƯỚC 215), CHỈ ĐỌC."""
+    import tien_le as _tl
+    from pathlib import Path as _P
+    return _tl.doc_kho(json.loads((_P(__file__).parent / _tl.DUONG_KHO).read_text(encoding="utf-8")))
+
+
+def _khoi_tien_le(dong, nk):
+    """Tiền lệ của MỘT lệnh nhật ký (ý 5, BƯỚC 216) — CHỈ ĐỂ HIỆN.
+
+    Kho = phần mô phỏng (tệp trong repo) + lệnh THẬT đã đóng của chính nhật ký đang hiện
+    (`nk`, không thêm đường đọc Sheets). Mọi phép tính ở `tien_le` (hàm thuần); hàng rào
+    ngày ra < ngày vào nằm ở đó. Lỗi đọc → một dòng caption, không sập tab.
+    """
+    import tien_le as _tl
+    st.markdown("**Tiền lệ**")
+    if not dong.get("entry_date"):
+        st.caption("Lệnh chưa khớp — chưa có ngày vào để tra tiền lệ.")
+        return
+    try:
+        _kho = list(_doc_kho_tien_le()) + [t for t in (_tl.tu_dong_nhat_ky(d) for d in nk or []) if t]
+        _kq = _tl.tom_tat(_kho, dong.get("entry_score"), _tl.vni_cua_dong(dong), dong["entry_date"])
+    except Exception as _e:
+        st.caption(f"⚠️ Chưa tra được tiền lệ — {type(_e).__name__}: {_e}")
+        return
+    for _d in _tl.dong_hien(_kq):
+        st.markdown(f"- {_d}")
+    st.caption(_tl.NHAN_HIEN)
+
+
 def _khoi_so_bai_hoc(nk, nk_loi):
     """Khối "Sổ bài học" của tab Lịch sử giao dịch (BƯỚC 167) — CHỈ HIỆN.
 
@@ -1983,6 +2014,8 @@ with t_hist:
             st.caption(_hkl_mod.NHAN_HIEN + " — đối chiếu với phân rã của máy ở sổ bài học bên dưới.")
             for _t in _hkl_mod.TRUONG:
                 st.markdown(f"**{_hkl_mod.NHAN_TRUONG[_t]}:** {_hkl.get(_t)}")
+        # ── TIỀN LỆ (ý 5, BƯỚC 216) — CHỈ ĐỂ HIỆN ─────────────────────────────
+        _khoi_tien_le(_nk[_chon], _nk)
 
     # ── KẾ HOẠCH VÀO LỆNH ĐÃ GHI (BƯỚC 198, B6 phần 2) ───────────────────
     _khoi_ke_hoach_da_ghi()
