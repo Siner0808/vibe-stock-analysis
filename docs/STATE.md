@@ -23825,3 +23825,25 @@ Leader, tại chỗ; PR 2 của `docs/thiet-ke-y5-tien-le.md` mục 9. Nhánh `y
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 216` xác nhận.
 
 **Việc kế.** Sau merge: xem khối ở `localhost:8511` (tab "Lịch sử giao dịch" → mục Nhật ký "vì sao" → chọn một lệnh đã đóng).
+
+## BƯỚC 217 — APP BỎ THAM SỐ STREAMLIT ĐÃ KHAI TỬ `use_container_width` → `width="stretch"` (22/10/2026)
+
+**Mốc:** quy-trinh — giữ app chạy được trên Streamlit Cloud khi Streamlit gỡ tham số đã khai tử
+
+Leader, tại chỗ; người dùng chọn *"Thay use_container_width (Recommended)"* 22/10/2026 (ngoài bàn giao). Không đổi điểm, ngưỡng, lệnh, sổ hay kết luận đo.
+
+**Vì sao.** `requirements.txt` khai `streamlit` không ghim → Streamlit Cloud và CI cài bản mới nhất. Log app ở máy (streamlit 1.64.0) in cảnh báo *"`use_container_width` will be removed after 2025-12-31"* cho mỗi lời gọi; ngày ấy đã qua, tham số còn sống chỉ vì Streamlit chưa gỡ. Gỡ là `TypeError` ngay ở thanh bên của app trên Cloud.
+
+**Mã.** `app.py`: 17 lời gọi (`st.dataframe` 12, `st.button` 3, `st.plotly_chart` 2), tất cả `use_container_width=True`, đổi thành `width="stretch"` bằng MỘT lượt `va_an_toan.thay(..., so_lan=17)`. Chữ ký ở 1.64.0 (đọc bằng `inspect.signature`): `dataframe`/`plotly_chart` mặc định `width='stretch'`, `button` mặc định `width='content'` — nên ghi tường minh `"stretch"` cho cả ba, không xoá tham số (xoá thì ba nút ở thanh bên co lại).
+
+**Test.** `tests/test_app_khong_dung_tham_so_streamlit_cu.py` (4 test, AST): không lời gọi nào trong mã nguồn (trừ `tests/`) mang từ khoá `use_container_width`; `width=` dạng chuỗi chỉ là `"stretch"`/`"content"`; mọi `st.<tên>(width=…)` trong `app.py` thật sự nhận `width` ở bản Streamlit đang cài (trên CI là bản mới nhất → đỏ ngay khi Streamlit đổi chữ ký). Trên `app.py` chưa vá: 2 đỏ (dựng lại đúng lỗi thật). Đột biến 4/4 đỏ: một chỗ quay lại tham số cũ · gõ sai `"strech"` · `width` ở hàm không nhận (`st.toast`) · tham số cũ ở tệp ngoài `app.py` (`tools/ban_tin.py`).
+
+**Kiểm bằng mắt BƯỚC 216 — đã làm 22/10.** Sau merge #262, `localhost:8511` → "📜 Lịch sử giao dịch" → Nhật ký "vì sao" → `#127 · FRT`: khối "Tiền lệ" hiện ngay dưới hậu kiểm máy, đủ tiêu đề nhóm, dòng nhóm có KTC, dòng nền, *"→ Không phân biệt được với nền."*, ba ca gần nhất ghi nguồn, câu *"Để HỌC, không để dự báo"*. Khối ghi *"0 thật"*: ĐÚNG — mười lệnh của nhật ký đều có tín hiệu 25–30/09, lệnh thật đóng sớm nhất 02/10 (`tools/doc_so_that.py`), nên chưa lệnh thật nào ra trước ngày vào. Nhánh lệnh thật chỉ thấy được trên app khi có lệnh vào sau 02/10; nó đã có test ở BƯỚC 216.
+
+**Vì sao sổ ảo không mở lệnh từ 01/10.** `tools/ban_tin.py --ngay 2026-10-21`: 71 mã chấm, 5 mã đạt 62, cả 5 bị cổng *"VN-INDEX nằm dưới MA50"* chặn — đúng luật, không phải hỏng. (Số VN-Index cụ thể không ghi ở đây: nó trôi theo ngày.)
+
+**Cache giá ở máy làm tươi** (người dùng chọn *"Làm tươi bằng extend_history.py (Recommended)"*): `backtest/cache` đứng ở 12/10 → bảng sức khoẻ báo đỏ `market_status`. `extend_history.py` (không `--thay-ca-chuoi`) nối 72/72 mã, không mã nào `LECH_CO_SO`; VNINDEX cuối 2026-10-21 (nến dở 22/10 không vào cache). Băm `backtest.data.bam_cache`: `01e9d9c7…` → `3c277014…`. Bản gốc đo `acf6dca1…` (`scratch/vibe_cache_goc_20260911`) không chạm.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 217` xác nhận.
+
+**Việc kế.** Sau merge: chạy app ở 8511, đọc log server — không còn dòng `use_container_width`; ba nút thanh bên vẫn rộng hết khung.
