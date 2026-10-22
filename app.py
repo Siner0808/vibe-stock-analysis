@@ -707,7 +707,7 @@ def _khoi_so_bai_hoc(nk, nk_loi):
     st.dataframe(_bang_bai_hoc(bh["bai_hoc"]).style.map(
                      _mau_dau, subset=["Lãi ròng", "Thị trường", "Ngành",
                                        "Riêng mã/tín hiệu", "Chi phí"]),
-                 use_container_width=True, hide_index=True)
+                 width="stretch", hide_index=True)
     st.caption(f"{th['n']} lệnh: {th['n_thang']} thắng · {th['n_thua']} thua · "
                f"{th['n_hoa']} hoà. Gap {th['n_gap']}/{th['n_gap_xet']} lệnh xét được · "
                f"cắt lỗ sát {th['n_cat_lo_sat']}/{th['n_cat_lo_sat_xet']} lệnh xét được "
@@ -718,12 +718,12 @@ def _khoi_so_bai_hoc(nk, nk_loi):
     with _c1:
         st.markdown("**Nguyên nhân chính, tách thắng/thua**")
         st.dataframe(pd.DataFrame(_sbh.bang_nguyen_nhan(th)),
-                     use_container_width=True, hide_index=True)
+                     width="stretch", hide_index=True)
         if th["n_khong_phan_ra"]:
             st.caption(f"{th['n_khong_phan_ra']} lệnh chưa phân rã được (chưa có rổ chuẩn).")
     with _c2:
         st.markdown("**Đóng góp trung bình mỗi phần (điểm %/lệnh)**")
-        st.dataframe(_bang_dong_gop(th), use_container_width=True, hide_index=True)
+        st.dataframe(_bang_dong_gop(th), width="stretch", hide_index=True)
         st.caption(f"Cột Ngành và Riêng mã chỉ tính {th['n_co_nganh']} lệnh tách được ngành.")
 
 
@@ -792,7 +792,7 @@ def _khoi_su_kien_quyen():
         "f vào": _so(d.ket_qua.he_so_vao, "{:.3f}"),
         "f ra": _so(d.ket_qua.he_so_ra, "{:.3f}"),
         "Nhãn": d.ket_qua.trang_thai, "Lý do": d.ket_qua.ly_do} for d in _khac]),
-        use_container_width=True, hide_index=True)
+        width="stretch", hide_index=True)
 
 
 def _khoi_ke_hoach_da_ghi():
@@ -854,7 +854,7 @@ def _khoi_ke_hoach_da_ghi():
             "Ghi lúc": h["Ghi lúc"] or "—",
             "Lý do": " · ".join(h["Lý do"]) or "—",
         })
-    st.dataframe(pd.DataFrame(_hang), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(_hang), width="stretch", hide_index=True)
     _pb = sorted({d["phien_ban"] for d in _ds if d.get("phien_ban")})
     st.caption(f"{len(_hang)} kế hoạch. Phiên bản bộ lập kế hoạch: {'; '.join(_pb) or '—'}."
                + (f" Cột “Sổ ảo” chưa đọc được — {so_lenh_loi}" if so_lenh_loi else ""))
@@ -1008,7 +1008,7 @@ with st.sidebar:
     with c_s1:
         symbol = st.text_input("Mã CK", value=target_sym, label_visibility="collapsed").upper().strip()
     with c_s2:
-        search_btn = st.button("Tìm", type="primary", use_container_width=True)
+        search_btn = st.button("Tìm", type="primary", width="stretch")
 
     st.caption("Mã theo dõi phổ biến:")
     quick_tickers = ["ACB", "SSI", "FPT", "HPG", "VNM", "BSR", "MWG", "DGC", "PNJ"]
@@ -1016,7 +1016,7 @@ with st.sidebar:
     for idx, sym_pick in enumerate(quick_tickers):
         with q_cols[idx % 3]:
             btn_label = f"✓ {sym_pick}" if sym_pick == symbol else sym_pick
-            if st.button(btn_label, key=f"q_{sym_pick}", use_container_width=True):
+            if st.button(btn_label, key=f"q_{sym_pick}", width="stretch"):
                 st.session_state["target_symbol"] = sym_pick
                 st.rerun()
 
@@ -1030,7 +1030,7 @@ with st.sidebar:
     exchange = st.selectbox("Sàn giao dịch:", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = 180
 
-    run_btn = st.button("⚡ KÍCH HOẠT MULTI-AGENT SCAN", type="primary", use_container_width=True)
+    run_btn = st.button("⚡ KÍCH HOẠT MULTI-AGENT SCAN", type="primary", width="stretch")
 
     # Placeholders for Dynamic Quick Signals in Sidebar
     sig_container = st.container()
@@ -1544,7 +1544,7 @@ def _ve_khung_gop(nen_ck, khung, he_so, loi):
     if nen.empty:
         st.info(f"Chưa có nến {khung} nào đã đóng trong dữ liệu tải được.")
         return
-    st.plotly_chart(_ve_nen_khung(nen, he_so), use_container_width=True)
+    st.plotly_chart(_ve_nen_khung(nen, he_so), width="stretch")
     st.caption(_chu_thich_khung(nen))
 
 
@@ -1672,7 +1672,7 @@ with col_chart:
             x=_tg.iloc[-1], line_width=1, line_dash="dot",
             line_color="rgba(255,255,255,0.18)")
 
-        st.plotly_chart(fig_candlestick, use_container_width=True)
+        st.plotly_chart(fig_candlestick, width="stretch")
     else:
         _ve_khung_gop(_nen_ck, _khung_chon, _he_so_ck, _loi_ck)
 
@@ -1812,7 +1812,7 @@ with t_pos:
                 "% Vốn": _so(t.size_pct, "{:.0f}%"),
                 "Điểm AI": _so(t.entry_score, "{:.1f}"),
             })
-        st.dataframe(pd.DataFrame(open_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(open_rows), width="stretch", hide_index=True)
     elif so_lenh_loi:
         st.warning(f"⚠️ Chưa đọc được sổ lệnh — {so_lenh_loi}")
     else:
@@ -1877,7 +1877,7 @@ with t_pos:
                 result.get("safety", {}).get("safe_position_size"), "{:.0f}%"),
             "Điểm AI": f"{score:.1f} / 100",
         }])
-        st.dataframe(plan_table, use_container_width=True, hide_index=True)
+        st.dataframe(plan_table, width="stretch", hide_index=True)
         st.markdown("**Lý do:**\n\n" + "\n".join(
             f"- {ly}" for ly in ke_hoach.ly_do))
         st.caption(
@@ -1957,7 +1957,7 @@ with t_hist:
         import nhat_ky_vi_sao as _nkv
         st.dataframe(_bang_nhat_ky(_nk).style.map(
                          _mau_dau, subset=["VN-INDEX so MA50", "Lãi ròng", "R", "Alpha"]),
-                     use_container_width=True, hide_index=True)
+                     width="stretch", hide_index=True)
         st.caption(f"{len(_nk)} lệnh. Một lệnh không phải bằng chứng — đọc R "
                    f"và Alpha trên nhiều lệnh (bất biến 5).")
         _chon = st.selectbox(
@@ -1978,7 +1978,7 @@ with t_hist:
                 st.dataframe(pd.DataFrame(
                     [{"Agent": k.replace("_score", ""), "Điểm": _so(v, "{:.1f}")}
                      for k, v in sorted(_ct["diem_agent"].items(), key=lambda kv: -kv[1])]),
-                    use_container_width=True, hide_index=True)
+                    width="stretch", hide_index=True)
         with _c2:
             st.markdown("**Bối cảnh lúc tín hiệu**")
             if _ct["boi_canh"]:
@@ -1987,7 +1987,7 @@ with t_hist:
                       "Giá trị": "—" if v is None else (
                           _so(v, "{:,.2f}") if isinstance(v, (int, float)) else str(v))}
                      for k, v in _ct["boi_canh"].items()]),
-                    use_container_width=True, hide_index=True)
+                    width="stretch", hide_index=True)
             else:
                 st.caption("Không chụp được bối cảnh lúc tín hiệu (lệnh chờ có từ trước nhật ký).")
         with _c3:
@@ -2189,7 +2189,7 @@ with t_fund:
                      ("Tăng trưởng LNST", _cs.ln_tang_pct, "{:+.1f}%"),
                      ("Tăng trưởng vốn chủ", _cs.vcsh_tang_pct, "{:+.1f}%"),
                      ("Tăng trưởng tổng tài sản", _cs.tts_tang_pct, "{:+.1f}%")]]
-        st.dataframe(pd.DataFrame(_bang), use_container_width=True,
+        st.dataframe(pd.DataFrame(_bang), width="stretch",
                      hide_index=True)
 
         if _fu.get("canh_bao"):
@@ -2363,7 +2363,7 @@ with t_bong:
                     "ký thẳng, tối đa 1 mỗi tháng.")
         else:
             _bang_uv["Tiến độ tới mốc đọc"] = [_td_uv[_m] for _m in _bang_uv["Phương án"]]
-            st.dataframe(_bang_uv, use_container_width=True, hide_index=True)
+            st.dataframe(_bang_uv, width="stretch", hide_index=True)
             st.caption(f"Kết luận của mỗi phương án chỉ được đọc MỘT lần, khi đủ {_moc_uv} "
                        f"phiên có nhãn đầu tiên (khoảng một năm). Trước mốc đó chỉ hiện tiến "
                        f"độ — chênh lệch và độ tin cậy chưa được tính. Tiến độ là con số ƯỚC "
