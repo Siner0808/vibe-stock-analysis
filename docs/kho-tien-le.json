@@ -1,0 +1,1196 @@
+{
+ "_ghi_chu": "Kho tiền lệ ý 5, phần MÔ PHỎNG (BƯỚC 215). CHỈ ĐỂ HIỆN — không vào điểm, ngưỡng hay lệnh. Dựng bằng tools/dung_kho_tien_le.py; đừng sửa tay.",
+ "nguon": {
+  "do": "ĐO 29",
+  "commit_luot_chay": "e4d43be",
+  "nguong_is": 45.0,
+  "bam_cache": "acf6dca1dd38d5157ee397bbccb7f82d662698b318a6dcf6b72617335bf44d6e",
+  "so_tep_cache": 125,
+  "bam_so": "12f77939de8fefa371a9ea0f864230a45bb50a12a98031289e2921de8c087672",
+  "nguong_mua": 62,
+  "lenh_dung": "tools/dung_kho_tien_le.py --so <B_wf_oos.db> --cache <cache> --ra docs/kho-tien-le.json --do \"ĐO 29\" --commit e4d43be --nguong-is 45"
+ },
+ "so_lenh_so": 651,
+ "lenh": [
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2022-04-05",
+   "ngay_vao": "2022-04-06",
+   "ngay_ra": "2022-04-07",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 2.1219,
+   "loi_nhuan_rong_pct": -7.4711,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "MBS",
+   "ngay_tin_hieu": "2022-04-05",
+   "ngay_vao": "2022-04-06",
+   "ngay_ra": "2022-04-12",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 2.1219,
+   "loi_nhuan_rong_pct": -7.7064,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NAF",
+   "ngay_tin_hieu": "2022-04-05",
+   "ngay_vao": "2022-04-06",
+   "ngay_ra": "2022-04-12",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 2.1219,
+   "loi_nhuan_rong_pct": -6.4902,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "AAA",
+   "ngay_tin_hieu": "2022-08-02",
+   "ngay_vao": "2022-08-03",
+   "ngay_ra": "2022-08-11",
+   "diem_vao": 71,
+   "vni_pct_tren_ma50": 1.8599,
+   "loi_nhuan_rong_pct": -0.891,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2022-08-02",
+   "ngay_vao": "2022-08-03",
+   "ngay_ra": "2022-08-11",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 1.8599,
+   "loi_nhuan_rong_pct": -4.9315,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HUT",
+   "ngay_tin_hieu": "2022-08-02",
+   "ngay_vao": "2022-08-03",
+   "ngay_ra": "2022-08-11",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 1.8599,
+   "loi_nhuan_rong_pct": -0.8036,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "CII",
+   "ngay_tin_hieu": "2022-08-02",
+   "ngay_vao": "2022-08-03",
+   "ngay_ra": "2022-08-29",
+   "diem_vao": 69,
+   "vni_pct_tren_ma50": 1.8599,
+   "loi_nhuan_rong_pct": 13.9601,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "ACV",
+   "ngay_tin_hieu": "2022-08-02",
+   "ngay_vao": "2022-08-03",
+   "ngay_ra": "2022-09-06",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 1.8599,
+   "loi_nhuan_rong_pct": -0.46,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "NVL",
+   "ngay_tin_hieu": "2022-08-12",
+   "ngay_vao": "2022-08-15",
+   "ngay_ra": "2022-09-06",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 3.9718,
+   "loi_nhuan_rong_pct": -1.8979,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2022-08-30",
+   "ngay_vao": "2022-08-31",
+   "ngay_ra": "2022-09-07",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 4.7938,
+   "loi_nhuan_rong_pct": -7.3184,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VCG",
+   "ngay_tin_hieu": "2022-09-07",
+   "ngay_vao": "2022-09-08",
+   "ngay_ra": "2022-09-09",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 1.2762,
+   "loi_nhuan_rong_pct": -9.2438,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "CII",
+   "ngay_tin_hieu": "2022-09-07",
+   "ngay_vao": "2022-09-08",
+   "ngay_ra": "2022-09-19",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 1.2762,
+   "loi_nhuan_rong_pct": -4.4946,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "OIL",
+   "ngay_tin_hieu": "2022-09-07",
+   "ngay_vao": "2022-09-08",
+   "ngay_ra": "2022-09-19",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 1.2762,
+   "loi_nhuan_rong_pct": -7.837,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "ACV",
+   "ngay_tin_hieu": "2022-09-15",
+   "ngay_vao": "2022-09-16",
+   "ngay_ra": "2022-09-22",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 1.0538,
+   "loi_nhuan_rong_pct": -3.6919,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HVN",
+   "ngay_tin_hieu": "2022-09-09",
+   "ngay_vao": "2022-09-12",
+   "ngay_ra": "2022-09-22",
+   "diem_vao": 72,
+   "vni_pct_tren_ma50": 1.6551,
+   "loi_nhuan_rong_pct": -3.0132,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "SHS",
+   "ngay_tin_hieu": "2022-12-08",
+   "ngay_vao": "2022-12-09",
+   "ngay_ra": "2022-12-12",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 3.2183,
+   "loi_nhuan_rong_pct": -9.102,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HVN",
+   "ngay_tin_hieu": "2022-12-16",
+   "ngay_vao": "2022-12-19",
+   "ngay_ra": "2022-12-20",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 3.8626,
+   "loi_nhuan_rong_pct": -10.2559,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "FRT",
+   "ngay_tin_hieu": "2023-02-06",
+   "ngay_vao": "2023-02-07",
+   "ngay_ra": "2023-02-10",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 4.4608,
+   "loi_nhuan_rong_pct": -1.5964,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "PVD",
+   "ngay_tin_hieu": "2023-02-10",
+   "ngay_vao": "2023-02-13",
+   "ngay_ra": "2023-02-23",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.3335,
+   "loi_nhuan_rong_pct": 2.4936,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VCB",
+   "ngay_tin_hieu": "2023-01-10",
+   "ngay_vao": "2023-01-11",
+   "ngay_ra": "2023-03-17",
+   "diem_vao": 71,
+   "vni_pct_tren_ma50": 4.0721,
+   "loi_nhuan_rong_pct": 1.5892,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BAF",
+   "ngay_tin_hieu": "2023-02-02",
+   "ngay_vao": "2023-02-03",
+   "ngay_ra": "2023-03-20",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 3.7923,
+   "loi_nhuan_rong_pct": 4.5174,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HHV",
+   "ngay_tin_hieu": "2023-03-31",
+   "ngay_vao": "2023-04-03",
+   "ngay_ra": "2023-04-05",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.573,
+   "loi_nhuan_rong_pct": -0.955,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HUT",
+   "ngay_tin_hieu": "2023-03-30",
+   "ngay_vao": "2023-03-31",
+   "ngay_ra": "2023-04-14",
+   "diem_vao": 64,
+   "vni_pct_tren_ma50": 0.0902,
+   "loi_nhuan_rong_pct": -0.46,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "MBS",
+   "ngay_tin_hieu": "2023-03-30",
+   "ngay_vao": "2023-03-31",
+   "ngay_ra": "2023-04-14",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 0.0902,
+   "loi_nhuan_rong_pct": 6.4844,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "PVT",
+   "ngay_tin_hieu": "2023-04-05",
+   "ngay_vao": "2023-04-06",
+   "ngay_ra": "2023-04-14",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 2.1336,
+   "loi_nhuan_rong_pct": -6.71,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BAF",
+   "ngay_tin_hieu": "2023-04-17",
+   "ngay_vao": "2023-04-18",
+   "ngay_ra": "2023-04-21",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 0.037,
+   "loi_nhuan_rong_pct": -6.71,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "PVS",
+   "ngay_tin_hieu": "2023-04-17",
+   "ngay_vao": "2023-04-18",
+   "ngay_ra": "2023-04-28",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 0.037,
+   "loi_nhuan_rong_pct": -3.0574,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DCL",
+   "ngay_tin_hieu": "2023-03-30",
+   "ngay_vao": "2023-03-31",
+   "ngay_ra": "2023-05-17",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 0.0902,
+   "loi_nhuan_rong_pct": -1.3258,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DHG",
+   "ngay_tin_hieu": "2023-05-08",
+   "ngay_vao": "2023-05-09",
+   "ngay_ra": "2023-05-23",
+   "diem_vao": 72,
+   "vni_pct_tren_ma50": 0.3686,
+   "loi_nhuan_rong_pct": -1.0113,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "VCB",
+   "ngay_tin_hieu": "2023-05-08",
+   "ngay_vao": "2023-05-09",
+   "ngay_ra": "2023-05-29",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.3686,
+   "loi_nhuan_rong_pct": -1.9985,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HHP",
+   "ngay_tin_hieu": "2023-05-30",
+   "ngay_vao": "2023-05-31",
+   "ngay_ra": "2023-06-05",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 1.9838,
+   "loi_nhuan_rong_pct": -5.62,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VCG",
+   "ngay_tin_hieu": "2023-05-26",
+   "ngay_vao": "2023-05-29",
+   "ngay_ra": "2023-06-09",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.7147,
+   "loi_nhuan_rong_pct": -0.829,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "AAA",
+   "ngay_tin_hieu": "2023-05-08",
+   "ngay_vao": "2023-05-09",
+   "ngay_ra": "2023-06-16",
+   "diem_vao": 72,
+   "vni_pct_tren_ma50": 0.3686,
+   "loi_nhuan_rong_pct": 3.1707,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HHP",
+   "ngay_tin_hieu": "2023-06-05",
+   "ngay_vao": "2023-06-06",
+   "ngay_ra": "2023-06-16",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 3.4606,
+   "loi_nhuan_rong_pct": -1.3305,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "MBS",
+   "ngay_tin_hieu": "2023-05-08",
+   "ngay_vao": "2023-05-09",
+   "ngay_ra": "2023-06-26",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.3686,
+   "loi_nhuan_rong_pct": 1.8929,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "SHS",
+   "ngay_tin_hieu": "2023-05-24",
+   "ngay_vao": "2023-05-25",
+   "ngay_ra": "2023-06-29",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.5958,
+   "loi_nhuan_rong_pct": 15.3295,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "OIL",
+   "ngay_tin_hieu": "2023-06-23",
+   "ngay_vao": "2023-06-26",
+   "ngay_ra": "2023-07-04",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 5.025,
+   "loi_nhuan_rong_pct": -2.4802,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "VND",
+   "ngay_tin_hieu": "2023-06-23",
+   "ngay_vao": "2023-06-26",
+   "ngay_ra": "2023-07-06",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 5.025,
+   "loi_nhuan_rong_pct": -7.1267,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "AAA",
+   "ngay_tin_hieu": "2023-07-07",
+   "ngay_vao": "2023-07-10",
+   "ngay_ra": "2023-08-02",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 4.2932,
+   "loi_nhuan_rong_pct": 0.0139,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2023-08-04",
+   "ngay_vao": "2023-08-07",
+   "ngay_ra": "2023-08-10",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 7.2317,
+   "loi_nhuan_rong_pct": -6.9676,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2023-08-02",
+   "ngay_vao": "2023-08-03",
+   "ngay_ra": "2023-08-11",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 7.3256,
+   "loi_nhuan_rong_pct": -0.5689,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "PVS",
+   "ngay_tin_hieu": "2023-05-16",
+   "ngay_vao": "2023-05-17",
+   "ngay_ra": "2023-08-11",
+   "diem_vao": 76,
+   "vni_pct_tren_ma50": 1.2666,
+   "loi_nhuan_rong_pct": 30.2454,
+   "ly_do_thoat": "MAX_HOLD"
+  },
+  {
+   "ma": "AAA",
+   "ngay_tin_hieu": "2023-08-02",
+   "ngay_vao": "2023-08-03",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 7.3256,
+   "loi_nhuan_rong_pct": -6.3961,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BSR",
+   "ngay_tin_hieu": "2023-07-07",
+   "ngay_vao": "2023-07-10",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 4.2932,
+   "loi_nhuan_rong_pct": 8.9927,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "CII",
+   "ngay_tin_hieu": "2023-08-04",
+   "ngay_vao": "2023-08-07",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 7.2317,
+   "loi_nhuan_rong_pct": -5.1937,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2023-08-14",
+   "ngay_vao": "2023-08-15",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 6.4827,
+   "loi_nhuan_rong_pct": -5.5402,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "FRT",
+   "ngay_tin_hieu": "2023-08-16",
+   "ngay_vao": "2023-08-17",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 6.5594,
+   "loi_nhuan_rong_pct": -7.27,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2023-08-10",
+   "ngay_vao": "2023-08-11",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 5.5952,
+   "loi_nhuan_rong_pct": -5.3144,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2023-08-10",
+   "ngay_vao": "2023-08-11",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 5.5952,
+   "loi_nhuan_rong_pct": -0.8506,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NVL",
+   "ngay_tin_hieu": "2023-06-19",
+   "ngay_vao": "2023-06-20",
+   "ngay_ra": "2023-08-18",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 3.197,
+   "loi_nhuan_rong_pct": 39.464,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VTP",
+   "ngay_tin_hieu": "2023-07-03",
+   "ngay_vao": "2023-07-04",
+   "ngay_ra": "2023-08-21",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 3.8312,
+   "loi_nhuan_rong_pct": 5.8605,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VIX",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-08-22",
+   "diem_vao": 72,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": -6.4794,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-08-31",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": -0.46,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-12",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": -0.5736,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HUT",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-14",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": 15.2807,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-15",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": -0.8649,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HHP",
+   "ngay_tin_hieu": "2023-08-10",
+   "ngay_vao": "2023-08-11",
+   "ngay_ra": "2023-09-19",
+   "diem_vao": 69,
+   "vni_pct_tren_ma50": 5.5952,
+   "loi_nhuan_rong_pct": -1.0606,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VIX",
+   "ngay_tin_hieu": "2023-08-22",
+   "ngay_vao": "2023-08-23",
+   "ngay_ra": "2023-09-19",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 0.6199,
+   "loi_nhuan_rong_pct": 6.6155,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BSR",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-22",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": 10.3997,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "CII",
+   "ngay_tin_hieu": "2023-09-19",
+   "ngay_vao": "2023-09-20",
+   "ngay_ra": "2023-09-22",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.3727,
+   "loi_nhuan_rong_pct": -0.7541,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2023-09-07",
+   "ngay_vao": "2023-09-08",
+   "ngay_ra": "2023-09-22",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 4.3481,
+   "loi_nhuan_rong_pct": -6.3273,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "MBS",
+   "ngay_tin_hieu": "2023-08-30",
+   "ngay_vao": "2023-08-31",
+   "ngay_ra": "2023-09-22",
+   "diem_vao": 70,
+   "vni_pct_tren_ma50": 2.5662,
+   "loi_nhuan_rong_pct": 10.2543,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "SHS",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-22",
+   "diem_vao": 71,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": 23.7587,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-26",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": 13.8629,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "MSR",
+   "ngay_tin_hieu": "2023-09-21",
+   "ngay_vao": "2023-09-22",
+   "ngay_ra": "2023-09-26",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.2461,
+   "loi_nhuan_rong_pct": -1.5411,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "DCL",
+   "ngay_tin_hieu": "2023-08-18",
+   "ngay_vao": "2023-08-21",
+   "ngay_ra": "2023-09-28",
+   "diem_vao": 71,
+   "vni_pct_tren_ma50": 0.6156,
+   "loi_nhuan_rong_pct": -2.6434,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HUT",
+   "ngay_tin_hieu": "2023-12-04",
+   "ngay_vao": "2023-12-05",
+   "ngay_ra": "2023-12-11",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 1.1343,
+   "loi_nhuan_rong_pct": -0.9728,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NVL",
+   "ngay_tin_hieu": "2023-12-08",
+   "ngay_vao": "2023-12-11",
+   "ngay_ra": "2023-12-14",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 1.6929,
+   "loi_nhuan_rong_pct": -7.4509,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2023-12-04",
+   "ngay_vao": "2023-12-05",
+   "ngay_ra": "2023-12-19",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 1.1343,
+   "loi_nhuan_rong_pct": 1.1727,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2023-12-22",
+   "ngay_vao": "2023-12-25",
+   "ngay_ra": "2024-01-05",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.319,
+   "loi_nhuan_rong_pct": -9.0931,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NVL",
+   "ngay_tin_hieu": "2023-12-14",
+   "ngay_vao": "2023-12-15",
+   "ngay_ra": "2024-01-12",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 0.4686,
+   "loi_nhuan_rong_pct": -0.7879,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VSC",
+   "ngay_tin_hieu": "2024-01-10",
+   "ngay_vao": "2024-01-11",
+   "ngay_ra": "2024-01-12",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 4.4365,
+   "loi_nhuan_rong_pct": -6.9325,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "FRT",
+   "ngay_tin_hieu": "2024-01-10",
+   "ngay_vao": "2024-01-11",
+   "ngay_ra": "2024-01-17",
+   "diem_vao": 72,
+   "vni_pct_tren_ma50": 4.4365,
+   "loi_nhuan_rong_pct": -0.46,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "BAF",
+   "ngay_tin_hieu": "2023-12-04",
+   "ngay_vao": "2023-12-05",
+   "ngay_ra": "2024-01-29",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 1.1343,
+   "loi_nhuan_rong_pct": -6.0521,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2024-01-26",
+   "ngay_vao": "2024-01-29",
+   "ngay_ra": "2024-02-02",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 4.064,
+   "loi_nhuan_rong_pct": -4.1513,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HAG",
+   "ngay_tin_hieu": "2024-02-05",
+   "ngay_vao": "2024-02-06",
+   "ngay_ra": "2024-02-19",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 4.1759,
+   "loi_nhuan_rong_pct": -7.8949,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NVL",
+   "ngay_tin_hieu": "2024-02-26",
+   "ngay_vao": "2024-02-27",
+   "ngay_ra": "2024-03-11",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 5.5643,
+   "loi_nhuan_rong_pct": -6.1382,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "MBS",
+   "ngay_tin_hieu": "2024-01-18",
+   "ngay_vao": "2024-01-19",
+   "ngay_ra": "2024-03-18",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 4.1937,
+   "loi_nhuan_rong_pct": 15.4491,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "PNJ",
+   "ngay_tin_hieu": "2023-12-26",
+   "ngay_vao": "2023-12-27",
+   "ngay_ra": "2024-03-18",
+   "diem_vao": 75,
+   "vni_pct_tren_ma50": 2.1073,
+   "loi_nhuan_rong_pct": 9.7064,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VTP",
+   "ngay_tin_hieu": "2024-01-12",
+   "ngay_vao": "2024-01-15",
+   "ngay_ra": "2024-03-20",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 3.4461,
+   "loi_nhuan_rong_pct": 50.5372,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VTP",
+   "ngay_tin_hieu": "2024-03-20",
+   "ngay_vao": "2024-03-21",
+   "ngay_ra": "2024-03-25",
+   "diem_vao": 70,
+   "vni_pct_tren_ma50": 4.3986,
+   "loi_nhuan_rong_pct": -8.4022,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2024-01-08",
+   "ngay_vao": "2024-01-09",
+   "ngay_ra": "2024-04-03",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 4.7853,
+   "loi_nhuan_rong_pct": 47.8546,
+   "ly_do_thoat": "MAX_HOLD"
+  },
+  {
+   "ma": "NAF",
+   "ngay_tin_hieu": "2024-04-04",
+   "ngay_vao": "2024-04-05",
+   "ngay_ra": "2024-04-11",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 2.8223,
+   "loi_nhuan_rong_pct": -7.0572,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "CII",
+   "ngay_tin_hieu": "2024-04-02",
+   "ngay_vao": "2024-04-03",
+   "ngay_ra": "2024-04-15",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 4.699,
+   "loi_nhuan_rong_pct": -6.8498,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NVL",
+   "ngay_tin_hieu": "2024-03-11",
+   "ngay_vao": "2024-03-12",
+   "ngay_ra": "2024-04-15",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 3.8987,
+   "loi_nhuan_rong_pct": 3.8733,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2024-04-08",
+   "ngay_vao": "2024-04-09",
+   "ngay_ra": "2024-04-16",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 1.1397,
+   "loi_nhuan_rong_pct": -4.9956,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2024-05-08",
+   "ngay_vao": "2024-05-09",
+   "ngay_ra": "2024-05-24",
+   "diem_vao": 76,
+   "vni_pct_tren_ma50": 0.2361,
+   "loi_nhuan_rong_pct": -0.825,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "ACV",
+   "ngay_tin_hieu": "2024-05-08",
+   "ngay_vao": "2024-05-09",
+   "ngay_ra": "2024-05-27",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 0.2361,
+   "loi_nhuan_rong_pct": -1.7889,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "MSR",
+   "ngay_tin_hieu": "2024-05-22",
+   "ngay_vao": "2024-05-23",
+   "ngay_ra": "2024-05-27",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 1.4036,
+   "loi_nhuan_rong_pct": -1.0347,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "AAA",
+   "ngay_tin_hieu": "2024-05-24",
+   "ngay_vao": "2024-05-27",
+   "ngay_ra": "2024-06-11",
+   "diem_vao": 71,
+   "vni_pct_tren_ma50": 0.9079,
+   "loi_nhuan_rong_pct": 0.0254,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BAF",
+   "ngay_tin_hieu": "2024-05-08",
+   "ngay_vao": "2024-05-09",
+   "ngay_ra": "2024-06-17",
+   "diem_vao": 69,
+   "vni_pct_tren_ma50": 0.2361,
+   "loi_nhuan_rong_pct": 7.0027,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2024-05-24",
+   "ngay_vao": "2024-05-27",
+   "ngay_ra": "2024-06-17",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.9079,
+   "loi_nhuan_rong_pct": 1.3582,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "ACV",
+   "ngay_tin_hieu": "2024-05-28",
+   "ngay_vao": "2024-05-29",
+   "ngay_ra": "2024-06-24",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 2.4356,
+   "loi_nhuan_rong_pct": 22.7658,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BSR",
+   "ngay_tin_hieu": "2024-06-19",
+   "ngay_vao": "2024-06-20",
+   "ngay_ra": "2024-06-24",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 2.0158,
+   "loi_nhuan_rong_pct": -7.3329,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "DCL",
+   "ngay_tin_hieu": "2024-05-08",
+   "ngay_vao": "2024-05-09",
+   "ngay_ra": "2024-06-24",
+   "diem_vao": 80,
+   "vni_pct_tren_ma50": 0.2361,
+   "loi_nhuan_rong_pct": -0.8134,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "GIL",
+   "ngay_tin_hieu": "2024-06-17",
+   "ngay_vao": "2024-06-18",
+   "ngay_ra": "2024-06-24",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 1.6474,
+   "loi_nhuan_rong_pct": -7.5286,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VTP",
+   "ngay_tin_hieu": "2024-06-14",
+   "ngay_vao": "2024-06-17",
+   "ngay_ra": "2024-06-24",
+   "diem_vao": 73,
+   "vni_pct_tren_ma50": 2.0372,
+   "loi_nhuan_rong_pct": 1.4197,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HVN",
+   "ngay_tin_hieu": "2024-05-08",
+   "ngay_vao": "2024-05-09",
+   "ngay_ra": "2024-06-25",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.2361,
+   "loi_nhuan_rong_pct": 64.8133,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "NAF",
+   "ngay_tin_hieu": "2024-05-08",
+   "ngay_vao": "2024-05-09",
+   "ngay_ra": "2024-06-26",
+   "diem_vao": 74,
+   "vni_pct_tren_ma50": 0.2361,
+   "loi_nhuan_rong_pct": -3.9856,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HVN",
+   "ngay_tin_hieu": "2024-06-25",
+   "ngay_vao": "2024-06-26",
+   "ngay_ra": "2024-06-28",
+   "diem_vao": 69,
+   "vni_pct_tren_ma50": 0.0872,
+   "loi_nhuan_rong_pct": -0.6527,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HVN",
+   "ngay_tin_hieu": "2024-07-05",
+   "ngay_vao": "2024-07-08",
+   "ngay_ra": "2024-07-10",
+   "diem_vao": 70,
+   "vni_pct_tren_ma50": 1.5056,
+   "loi_nhuan_rong_pct": -6.0156,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2024-07-11",
+   "ngay_vao": "2024-07-12",
+   "ngay_ra": "2024-07-17",
+   "diem_vao": 66,
+   "vni_pct_tren_ma50": 1.0691,
+   "loi_nhuan_rong_pct": -7.2535,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VSC",
+   "ngay_tin_hieu": "2024-07-05",
+   "ngay_vao": "2024-07-08",
+   "ngay_ra": "2024-07-17",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 1.5056,
+   "loi_nhuan_rong_pct": -7.8446,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2024-08-20",
+   "ngay_vao": "2024-08-21",
+   "ngay_ra": "2024-09-04",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 1.2029,
+   "loi_nhuan_rong_pct": -6.9215,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "OIL",
+   "ngay_tin_hieu": "2024-08-22",
+   "ngay_vao": "2024-08-23",
+   "ngay_ra": "2024-09-04",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 2.073,
+   "loi_nhuan_rong_pct": -7.6968,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "BSR",
+   "ngay_tin_hieu": "2024-08-20",
+   "ngay_vao": "2024-08-21",
+   "ngay_ra": "2024-09-16",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 1.2029,
+   "loi_nhuan_rong_pct": -5.9772,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2024-09-05",
+   "ngay_vao": "2024-09-06",
+   "ngay_ra": "2024-09-18",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.8371,
+   "loi_nhuan_rong_pct": -3.2292,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DCL",
+   "ngay_tin_hieu": "2024-10-01",
+   "ngay_vao": "2024-10-02",
+   "ngay_ra": "2024-10-04",
+   "diem_vao": 62,
+   "vni_pct_tren_ma50": 2.8529,
+   "loi_nhuan_rong_pct": -1.0392,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DCM",
+   "ngay_tin_hieu": "2024-09-17",
+   "ngay_vao": "2024-09-18",
+   "ngay_ra": "2024-10-08",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 0.2177,
+   "loi_nhuan_rong_pct": -1.345,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2024-09-17",
+   "ngay_vao": "2024-09-18",
+   "ngay_ra": "2024-10-10",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.2177,
+   "loi_nhuan_rong_pct": -3.1338,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "HAX",
+   "ngay_tin_hieu": "2024-10-03",
+   "ngay_vao": "2024-10-04",
+   "ngay_ra": "2024-10-14",
+   "diem_vao": 69,
+   "vni_pct_tren_ma50": 1.6021,
+   "loi_nhuan_rong_pct": -4.2575,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "PVS",
+   "ngay_tin_hieu": "2024-10-07",
+   "ngay_vao": "2024-10-08",
+   "ngay_ra": "2024-10-15",
+   "diem_vao": 65,
+   "vni_pct_tren_ma50": 0.8422,
+   "loi_nhuan_rong_pct": -6.1595,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "PVS",
+   "ngay_tin_hieu": "2024-10-15",
+   "ngay_vao": "2024-10-16",
+   "ngay_ra": "2024-10-17",
+   "diem_vao": 67,
+   "vni_pct_tren_ma50": 1.3298,
+   "loi_nhuan_rong_pct": -11.786,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "VTP",
+   "ngay_tin_hieu": "2024-12-05",
+   "ngay_vao": "2024-12-06",
+   "ngay_ra": "2024-12-12",
+   "diem_vao": 68,
+   "vni_pct_tren_ma50": 0.7231,
+   "loi_nhuan_rong_pct": -4.3193,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "DPM",
+   "ngay_tin_hieu": "2024-12-06",
+   "ngay_vao": "2024-12-09",
+   "ngay_ra": "2024-12-23",
+   "diem_vao": 76,
+   "vni_pct_tren_ma50": 0.9638,
+   "loi_nhuan_rong_pct": -4.4178,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "VCB",
+   "ngay_tin_hieu": "2024-10-17",
+   "ngay_vao": "2024-10-18",
+   "ngay_ra": "2025-01-03",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 1.491,
+   "loi_nhuan_rong_pct": -1.6038,
+   "ly_do_thoat": "SIGNAL_REVERSED"
+  },
+  {
+   "ma": "BAF",
+   "ngay_tin_hieu": "2024-12-18",
+   "ngay_vao": "2024-12-19",
+   "ngay_ra": "2025-01-06",
+   "diem_vao": 72,
+   "vni_pct_tren_ma50": 0.8018,
+   "loi_nhuan_rong_pct": -0.6842,
+   "ly_do_thoat": "STOP_LOSS"
+  },
+  {
+   "ma": "FRT",
+   "ngay_tin_hieu": "2024-12-06",
+   "ngay_vao": "2024-12-09",
+   "ngay_ra": "2025-01-07",
+   "diem_vao": 63,
+   "vni_pct_tren_ma50": 0.9638,
+   "loi_nhuan_rong_pct": 1.6498,
+   "ly_do_thoat": "HET_DU_LIEU"
+  }
+ ]
+}

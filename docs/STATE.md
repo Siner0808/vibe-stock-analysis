@@ -23787,3 +23787,25 @@ Leader, tại chỗ, người dùng: *"ok làm đi, làm từ bước nhỏ đ�
 **Bảng lỗi.** Hàng 187 thành ✅ (hai lớp trên); dòng tự khai 92/166 (`tools/doc_bang_loi.py`). Lúc đếm lộ thêm: hàng 187 do chính BƯỚC 212 viết có dấu `|` TRẦN trong mã (`| head -30`, `pytest | tail`), làm lệch cột "máy chặn?" — máy đếm bắt ngay (đếm được 91 khi khai 92), đã thoát thành `\|`. Ở BƯỚC 212 lệch cột ấy không lộ vì ô đúng là ❌ theo cả hai cách đọc.
 
 **Sổ tay.** Hỏi thật (mục BƯỚC 214 của `docs/soat-notebooklm.json`; người dùng đăng nhập lại khung trình duyệt). Sổ nêu đúng hai câu BƯỚC này sửa: `pyarrow` 24 → 25 ở `CLAUDE.md`, *"từng sai hai lần"* ở `SKILL.md` — cả hai THẬT. Phần còn lại sổ trả *"không tìm thấy câu mâu thuẫn"*; tự kiểm câu âm bằng `grep` (`sys.argv`, *phân bố f*, *từng sai hai lần*) lộ thêm bản thứ hai của câu *"từng sai hai lần"* ở `references/soat-cheo-notebooklm.md` :97 — sửa cùng BƯỚC. `su_kien_quyen.py` vẫn ghi *"Chưa đo phân bố f"*: khớp vế *phân bố đầy đủ chưa ai in*.
+
+## BƯỚC 215 — Ý 5 PHẦN 1: TRA TIỀN LỆ, CHỈ ĐỂ HIỆN — MODULE THUẦN `tien_le.py`, DỤNG CỤ DỰNG KHO, KHO MÔ PHỎNG 118 LỆNH TỪ SỔ OOS LƯỢT B CỦA ĐO 29 (21/10/2026)
+
+**Mốc:** B3 — người dùng học từ sổ: mỗi lệnh trong nhật ký hiện những lệnh cũ cùng bối cảnh đã kết thúc ra sao
+
+Leader, tại chỗ, người dùng: *"ok làm đi, làm từ bước nhỏ đến bước lớn"* (sau BƯỚC 214). Làm theo `docs/thiet-ke-y5-tien-le.md` (BƯỚC 210), PR 1 của mục 9. Nhánh `y5/tien-le-215` xếp chồng trên nhánh BƯỚC 214. Không đổi điểm, ngưỡng, lệnh, sổ hay kết luận đo; chưa hiện gì trên app (PR 2).
+
+**`tien_le.py` (thuần).** Khoá = (dải điểm vào [`BUY_THRESHOLD`, 70) · [70, ∞), nấc VN-Index cao hơn MA50 [0, 2) · [2, 5) · [5, ∞)); thiếu một chiều, điểm dưới ngưỡng mua, hoặc VN-Index dưới MA50 → `KHONG_XEP_DUOC`, không gộp. Tiền lệ chỉ gồm lệnh có NGÀY RA < NGÀY VÀO (cùng ngày bị loại). `tom_tat` trả nhóm, nền (mọi tiền lệ trước ngày vào), KTC Wilson 95%, cờ `du` (nhóm ≥ `N_TOI_THIEU_TIEN_LE` = 10) và cờ *không phân biệt được với nền* (KTC nhóm chứa tỷ lệ nền), ba ca gần nhất theo ngày ra. Thắng/thua/hoà bằng `so_bai_hoc.ket_qua_lenh`. Hai lối vào: `doc_kho` (dict của tệp kho) và `tu_dong_nhat_ky` (một dòng nhật ký đã đóng; `vni_pct_tren_ma50` đọc từ ô `boi_canh`).
+
+**`tools/dung_kho_tien_le.py`.** Mở BẢN CHÉP của sổ OOS bằng `PaperTradingJournal` (lợi nhuận ròng = `Trade.net_return_pct()`, đúng hàm sổ thật), độ cao VN-Index = `nhat_ky_vi_sao.vni_so_voi_ma50` trên `market_filter.get_vni_df()` nạp từ CHÍNH cache của lượt chạy (thiếu `VNINDEX.csv` thì dừng, không kéo mạng); đầu tệp ghi băm cache, băm sổ, số ĐO, commit, ngưỡng IS, lệnh dựng.
+
+**Kho.** `docs/kho-tien-le.json` dựng từ `scratch/luu_do29/B_wf_oos.db` (sha256 `12f77939…`), cache `acf6dca1…` (125 tệp), ĐO 29 lượt B ở `e4d43be`, ngưỡng IS 45: sổ 651 dòng → **118 lệnh** đã đóng có điểm ≥ 62, 0 lệnh thiếu VN-Index, 0 lệnh VN-Index dưới MA50. Dựng lại hai lần: cùng sha256 `c85d05ac…`. Chỉ ĐẾM, chưa ai nhìn tỷ lệ thắng của nhóm nào (thiết kế mục 10).
+
+**Test.** `tests/test_tien_le.py` + `tests/test_dung_kho_tien_le.py`: 53 test — mọi biên của khoá (61,99/62/69,99/70; −0,01/0/1,99/2/4,99/5; thiếu; NaN), hàng rào cùng ngày, nhóm 9/10, KTC chứa/không chứa nền, Wilson tính tay, kho giả tính tay (MA50 = 1010 ⇒ 8,9109%), sổ nguồn không bị chạm, tái lập từng byte, gác CHỈ ĐỂ HIỆN (14 module đường giao dịch/chấm điểm/đo không nhập `tien_le`), gác một định nghĩa. **Đột biến 18/18 đỏ** sau khi siết ba test: lượt đầu ba phát SỐNG — xếp ca gần nhất theo mã (kho giả có mã cùng thứ tự với ngày ra), lấy VN-Index theo ngày VÀO thay vì ngày tín hiệu (VN-Index giả đứng yên quanh hai ngày ấy), mở thẳng sổ nguồn (sổ giả đã đủ bảng nên không byte nào đổi; nay sổ giả là sqlite TRẦN chỉ có bảng `trades`, như sổ đời cũ).
+
+**Giả thuyết bị bác.** Kho ước 119 dòng (thiết kế mục 10, từ lượt B ĐO 28); đo ra 118 trên máy đo ĐO 29.
+
+**Một gác cũ đỏ oan.** `tests/test_ho_so.py::test_DANH_SACH_LOC_duoc_SUY_RA_chu_khong_GO_TAY` giữ dải 5–45 file (từ 23/52 đo 15/09/2026); `main` đã đúng 45/70, `tien_le.py` đủ dày nên thành 46/71 — phép tra không trôi, số tuyệt đối thì trôi theo cỡ repo. Dải nay là 10–90% số `.py` ở gốc (suy ra); đột biến *ngưỡng hỏng, mọi file lọt* (`if True` trong `ten_dang_bom`) vẫn đỏ.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 215` xác nhận (sau khi BƯỚC 214 vào `main`).
+
+**Việc kế.** PR 2 — khối "Tiền lệ" trong chi tiết nhật ký trên app, cạnh hậu kiểm B1; kiểm bằng mắt ở `localhost:8511`.
