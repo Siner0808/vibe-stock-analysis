@@ -183,8 +183,12 @@ song và không đẩy nhanh được. **Mốc sản phẩm** = mọi mã trừ 
 
 **Ra khỏi giai đoạn khi:** ít nhất 2/3 số BƯỚC mỗi tuần phục vụ một **mốc sản
 phẩm**. Đo bằng cách đọc dòng `**Mốc:**` của các BƯỚC trong tuần
-(`grep -n '^\*\*Mốc:\*\*' docs/STATE.md`, ngày nằm ở tiêu đề BƯỚC); chưa có công
-cụ đếm, và chưa có tuần nào đủ dữ liệu.
+(`grep -n '^\*\*Mốc:\*\*' docs/STATE.md`, ngày nằm ở tiêu đề BƯỚC). Đếm bằng
+`./.venv/Scripts/python.exe tools/dem_moc_tuan.py` (BƯỚC 218; `--tho` in từng BƯỚC). ⚠️ HẾT ĐÚNG
+22/10/2026: câu cũ *"chưa có công cụ đếm, và chưa có tuần nào đủ dữ liệu"*. Lượt đếm bằng
+dụng cụ (22/10) không thấy mọi tuần đạt; người dùng chọn *"Vào B đúng lịch + dựng công cụ đếm
+(Recommended)"* — giai đoạn B mở 26/10/2026 như lịch. Số đếm từng tuần trôi theo ngày: đọc bằng
+lệnh trên; bản ghi đầu ở `docs/STATE.md` BƯỚC 218.
 
 ### B — Agent biết nói (hoàn tất tầng 2) · 26/10 → 30/11/2026
 
