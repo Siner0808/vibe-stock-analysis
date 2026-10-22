@@ -88,6 +88,23 @@ def tach_muc_buoc(van_state: str, tu: int = TU_BUOC) -> dict[int, list[str]]:
     return ra
 
 
+def tach_dau_ly_do(noi: str) -> tuple[str, str]:
+    """(phần mã, lý do) của nội dung dòng Mốc — cắt ở gạch ngang `—` ĐẦU TIÊN. HÀM THUẦN.
+
+    Dùng chung cho gác (`loi_moc`) và dụng cụ đếm (`tools/dem_moc_tuan.py`): mã nhắc
+    trong LÝ DO ("D2 — … BƯỚC 180, Q14") không phải mã khai.
+    """
+    if RE_GACH.search(noi):
+        dau, duoi = RE_GACH.split(noi, maxsplit=1)
+        return dau, duoi
+    return noi, ""
+
+
+def cac_ma(dau: str) -> list[str]:
+    """Các mã trong phần mã của dòng Mốc (`A1, A2 · B3`). HÀM THUẦN."""
+    return [t for t in re.split(r"[\s,;·+/]+", dau.strip()) if t]
+
+
 def loi_moc(dong_muc: list[str], hop_le: set[str]) -> list[str]:
     """Lỗi của MỘT mục BƯỚC (rỗng = sạch). HÀM THUẦN — chỗ phán duy nhất."""
     cac = [m.group(1) for d in dong_muc if (m := RE_DONG_MOC.match(d))]
@@ -100,14 +117,14 @@ def loi_moc(dong_muc: list[str], hop_le: set[str]) -> list[str]:
         return ["dong `**Mốc:**` rong"]
     # `quy-trinh —` (gạch ngang CUỐI dòng, sau khi RE_DONG_MOC cắt khoảng trắng) vẫn là
     # "có gạch, lý do rỗng", không phải mã `—`.
-    dau, duoi = (RE_GACH.split(noi, maxsplit=1) if RE_GACH.search(noi) else [noi, ""])
+    dau, duoi = tach_dau_ly_do(noi)
     if dau.strip().lower() == QUY_TRINH:
         ly_do = duoi.strip()
         if len(ly_do) < LY_DO_TOI_THIEU:
             return [f"`**Mốc:** quy-trinh` thieu ly do cu the (>= {LY_DO_TOI_THIEU} "
                     f"ky tu, khong phai cau chung chung): {ly_do!r}"]
         return []
-    ma = [t for t in re.split(r"[\s,;·+/]+", dau.strip()) if t]
+    ma = cac_ma(dau)
     if not ma:
         return ["dong `**Mốc:**` khong co ma nao"]
     la = [t for t in ma if not RE_MA.fullmatch(t)]

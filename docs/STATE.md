@@ -23847,3 +23847,33 @@ Leader, tại chỗ; người dùng chọn *"Thay use_container_width (Recommend
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 217` xác nhận.
 
 **Việc kế.** Sau merge: chạy app ở 8511, đọc log server — không còn dòng `use_container_width`; ba nút thanh bên vẫn rộng hết khung.
+
+## BƯỚC 218 — ĐẾM TIÊU CHÍ RA KHỎI GIAI ĐOẠN A: `tools/dem_moc_tuan.py`; GIAI ĐOẠN A CHƯA ĐẠT MỌI TUẦN, VÀO B ĐÚNG LỊCH (22/10/2026)
+
+**Mốc:** A1 — đếm tiêu chí ra khỏi giai đoạn A bằng chính dòng Mốc mà A1 đặt ra
+
+Leader, tại chỗ. Ngoài bàn giao; người dùng *"tiếp tục"*, rồi chọn qua hộp hỏi *"Vào B đúng lịch + dựng công cụ đếm (Recommended)"* (22/10/2026). Không đổi điểm, ngưỡng, lệnh, sổ hay kết luận đo của sổ ảo.
+
+**Vì sao.** `docs/LO-TRINH.md`, giai đoạn A (09/10 → 25/10/2026): *"Ra khỏi giai đoạn khi: ít nhất 2/3 số BƯỚC mỗi tuần phục vụ một mốc sản phẩm"*, kèm *"chưa có công cụ đếm"*. Hạn còn ba ngày; tới nay chỉ có đếm bằng script nháp, không tái lập được từ repo.
+
+**Giả thuyết bị bác (trước commit).** Bản nháp mục này và docstring dụng cụ viết *"mà chưa ai đếm"*. Sai: BƯỚC 203 (17/10) đã ghi một lượt đếm thô — tuần 41 là 10/15, tuần 42 là 15/24 lúc tuần còn dở. Bắt được khi đo độ tươi sổ tay (STATE trong sổ dừng ở BƯỚC 201 → `grep` phần 202–217 tìm câu liên quan). Cùng họ với bài học *"tra trước khi nói không ai làm"*. Hai lượt đếm cùng chiều: W42 sau khi hết tuần thêm BƯỚC 203–207 (3 sản phẩm · 2 quy-trinh) → 18/29.
+
+**Lượt đếm bằng dụng cụ** (`./.venv/Scripts/python.exe tools/dem_moc_tuan.py`, 22/10/2026, trên `main` `8e66893` — BƯỚC 164–217; cùng số với script nháp của leader sáng 22/10):
+
+| tuần ISO | BƯỚC | phục vụ sản phẩm | tỷ lệ | ≥ 2/3? |
+|---|---|---|---|---|
+| 2026-W41 (08–11/10) | 15 | 10 | 67% | đạt — đúng điểm bằng |
+| 2026-W42 (12–18/10) | 29 | 18 | 62% | không |
+| 2026-W43 (20–22/10, CHƯA HẾT tuần) | 10 | 5 | 50% | không (tới nay) |
+
+Đọc kèm: mã Mốc do chính BƯỚC tự khai, máy chỉ kiểm mã có thật (giới hạn đã ghi ở `tools/moc_lo_trinh.py`); W41 gồm bốn BƯỚC nhóm A (164–166, 172) là chính việc của giai đoạn A; BƯỚC 217 (leader, `quy-trinh`) và BƯỚC này (A1) đều kéo W43 xuống. **Quyết định:** người dùng chọn vào giai đoạn B đúng lịch 26/10 thay vì kéo dài A.
+
+**Mã.** `tools/dem_moc_tuan.py` (CHỈ ĐỌC): `loai_moc` (sản phẩm · nhóm A · quy-trinh · thiếu), `doc_buoc` (ngày ở cuối tiêu đề; tiêu đề không ngày được NÊU TÊN, không lặng lẽ rơi), `dem_theo_tuan` (tuần ISO, so 2/3 bằng số nguyên, đánh dấu tuần CHƯA HẾT), `--tho` in từng BƯỚC. Đọc bằng đúng bộ tách của gác Mốc: phép cắt ở gạch ngang và tách mã trong `moc_lo_trinh.loi_moc` rút thành hai hàm thuần `moc_lo_trinh.tach_dau_ly_do` và `moc_lo_trinh.cac_ma`, gác gọi lại chúng (38 test cũ của gác vẫn xanh) — mã nhắc trong LÝ DO (*"A5 — liên quan B1"*) không được đếm. `docs/LO-TRINH.md`: câu *"chưa có công cụ đếm…"* đánh dấu HẾT ĐÚNG, trỏ tới dụng cụ và ghi quyết định; số từng tuần không chép vào đó (nó trôi).
+
+**Test.** `tests/test_dem_moc_tuan.py`: 8 test — loại của từng dạng dòng Mốc (kể cả mã trong lý do, mã trộn `A1 · B2`), BƯỚC < 164 và khối rào bị loại, tiêu đề không ngày được nêu tên, tuần ISO và tuần chưa hết, biên 2/3 ở ĐÚNG điểm bằng (10/15 đạt, 18/29 không, 3/5 không), ngưỡng khớp câu của LO-TRINH (đọc tài liệu, không gõ lại), STATE thật đọc được ngày của mọi BƯỚC ≥ 164, AST: dụng cụ không tự dựng regex dòng Mốc và gác `loi_moc` đi qua cùng hai hàm tách. Đột biến 10/10 đỏ (biên `>`, ngưỡng 1/2, `all` thay `any`, đếm mã trong lý do, bỏ nhánh quy-trinh, BƯỚC không ngày rơi, tuần hiện tại coi như hết, nhóm A tính là sản phẩm, hàm tách không cắt gạch, gác tự tách lại).
+
+**Ghi chú về cổng 1 của BƯỚC 217** (1232 s, so với ~400 s ngày 21/10): lúc ấy máy chạy game (Summoners War ~13.800 s CPU, League client) — cùng hình dạng ngày 17/10 (BƯỚC 207). Chưa đo lại lúc máy rảnh; lặp lại thì chạy `pytest --durations` khi máy nhẹ.
+
+**Sổ tay — hỏi thật** (chạm `docs/LO-TRINH.md`). Không nạp lại: LO-TRINH trong sổ (@b353c16) khớp `main`; STATE trong sổ dừng ở BƯỚC 201 — phần thiếu chỉ BƯỚC 203 nhắc tiêu chí này, và chính phép `grep` ấy bắt được câu sai *"chưa ai đếm"* ở trên. Một phát hiện: câu *"chưa có công cụ đếm, và chưa có tuần nào đủ dữ liệu"* của LO-TRINH sẽ hết đúng — THẬT (`tools/doi_chieu_trich_dan.py` KHỚP), là đúng câu BƯỚC này sửa. Hai câu âm (ngày A/B khớp; không câu nào cấm mở B khi A chưa đạt) tự kiểm bằng `git grep` — cả hai THẬT. Mục ở `docs/soat-notebooklm.json`.
+
+**Việc kế.** 26/10: mở giai đoạn B (B1 cần khoá `ANTHROPIC_API_KEY` người dùng tự đặt). Đếm lại tuần W43 khi hết tuần bằng `tools/dem_moc_tuan.py`.
