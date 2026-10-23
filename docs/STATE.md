@@ -23877,3 +23877,26 @@ Leader, tại chỗ. Ngoài bàn giao; người dùng *"tiếp tục"*, rồi ch
 **Sổ tay — hỏi thật** (chạm `docs/LO-TRINH.md`). Không nạp lại: LO-TRINH trong sổ (@b353c16) khớp `main`; STATE trong sổ dừng ở BƯỚC 201 — phần thiếu chỉ BƯỚC 203 nhắc tiêu chí này, và chính phép `grep` ấy bắt được câu sai *"chưa ai đếm"* ở trên. Một phát hiện: câu *"chưa có công cụ đếm, và chưa có tuần nào đủ dữ liệu"* của LO-TRINH sẽ hết đúng — THẬT (`tools/doi_chieu_trich_dan.py` KHỚP), là đúng câu BƯỚC này sửa. Hai câu âm (ngày A/B khớp; không câu nào cấm mở B khi A chưa đạt) tự kiểm bằng `git grep` — cả hai THẬT. Mục ở `docs/soat-notebooklm.json`.
 
 **Việc kế.** 26/10: mở giai đoạn B (B1 cần khoá `ANTHROPIC_API_KEY` người dùng tự đặt). Đếm lại tuần W43 khi hết tuần bằng `tools/dem_moc_tuan.py`.
+
+## BƯỚC 219 — DỜI THƯ MỤC DỰ ÁN SANG `C:\Users\cuong\Vibe_Stock_Analysis\`; DÒNG DỊCH `scratch/<X>` Ở ĐẦU HANDOFF (23/10/2026)
+
+**Mốc:** quy-trinh — giữ con trỏ tài liệu đọc được sau khi người dùng dời thư mục dự án
+
+Leader, tại chỗ. Người dùng dặn 22/10: *"gom tất cả file của dự án này vào 1 thư mục và xuất ra desktop, nhớ là "Di chuyển" file chứ không "Copy". Vì có nhiều file bị trùng với dự án Antigravity_VNStock."* Ngày 23/10 chốt qua hộp hỏi: *"Thư mục riêng + lối tắt (Recommended)"* · *"Toàn bộ của dự án (Recommended)"* · *"Sửa + sao lưu (Recommended)"*. Không đổi mã, điểm, ngưỡng, lệnh, sổ hay kết luận đo.
+
+**Đã làm (ngoài repo).** Mười một thư mục (`vibe_preview`, `vibe_handoff`, `vibe_bang_chung`, `vibe_bctc_sao_luu_2026-10-09`, `vibe_cache_goc_20260911`, `luu_cache`, `luu_do22`, `luu_do28`, `luu_do29`, `luu_tra_168_151`, `soat158`) và 46 tệp log rời (gom vào `log_cu_scratch\`) dời từ `C:\Users\cuong\.gemini\antigravity\scratch\` sang `C:\Users\cuong\Vibe_Stock_Analysis\` bằng `Move-Item` — cùng ổ C nên là phép đổi tên nguyên tử. Đếm `Get-ChildItem -Recurse -Force -File` (số tệp và tổng byte) trước và sau: 12/12 mục KHỚP. Chỗ cũ chỉ còn thứ không thuộc dự án (bốn bộ skill tải về, `EDSR_x2/x4.pb`, hai script ảnh). Không đặt thẳng trên Desktop: Desktop nằm trong OneDrive (tài khoản Personal đang liên kết), nó sẽ tải `.streamlit/secrets.toml`, `.git`, `.venv` lên mây; trên Desktop chỉ có lối tắt `Vibe_Stock_Analysis.lnk`.
+
+**Ba cái bẫy đã gặp — để lần dời sau:**
+1. Lượt dời đầu báo *"The process cannot access the file because it is being used by another process"* và KHÔNG dời gì (script dời `vibe_preview` trước, hỏng thì gỡ thư mục đích rỗng): thư mục làm việc của phiên Claude đang nằm trong repo. Đổi thư mục phiên ra `C:\Users\cuong` (hiệu lực khi hết lượt) rồi dời được.
+2. Bảy cửa hook trong `~/.claude/settings.json` ghim đường tuyệt đối: dời mà chưa sửa thì `python` không mở được tệp hook, thoát 2 — ở PreToolUse đó là CHẶN mọi lệnh. Đặt cầu nối tạm (junction) ở chỗ cũ ngay sau khi dời `vibe_preview`, sửa settings (bản gốc ở `~/.claude/archive/truoc-di-chuyen-2026-10-23/`), rồi gỡ cầu nối bằng `rmdir` không `/s`. **Đo một lần:** sửa settings xong, cửa Bash chặn một lệnh và in đường dẫn MỚI ngay trong phiên — khác câu SKILL *"Hook mới chỉ có hiệu lực từ PHIÊN SAU"*. SKILL chưa sửa (một lần đo; cơ chế chưa rõ — phiên cũng vừa đổi thư mục).
+3. `.venv` vẫn chạy qua `python.exe` (nó đọc `pyvenv.cfg` cạnh mình), nhưng 31 launcher `.exe` (`streamlit.exe`, `pytest.exe`, `pip.exe`…) ghim shebang tuyệt đối. Sửa dòng shebang trong tệp (launcher distlib tìm zip từ cuối tệp nên đổi độ dài được) — thử trên bản sao trước: `pytest`, `streamlit`, `pip` chạy `--version` mã 0. Cùng lượt: `Scripts/numba`, `activate`, `activate.bat`, `activate.fish`, `pyvenv.cfg`. Đường cũ còn trong `.pyc` (chỉ là tên tệp trong traceback) — để nguyên.
+
+**Kiểm sau dời.** `git status` sạch ở `main`; `tools/kiem_cua_song.py` thoát 0; `import vnstock_data` xác thực đúng hạng gói; 76 test của sáu tệp chạm đường dẫn (`tests/test_cua_song.py`, `tests/test_chup_cache.py`, `tests/test_requirements.py`, `tests/test_skill_quy_trinh.py`, `tests/test_chi_dan_chay_duoc.py`, `tests/test_ho_so.py`) xanh. `backtest/data.py` tìm kho `luu_cache` ở thư mục CHỨA repo (`Path(__file__).resolve().parent.parent.parent`); kho dời cùng repo nên vẫn đúng.
+
+**Trong repo.** Một khối ở đầu `docs/HANDOFF.md`: `scratch/<X>` trong tài liệu cũ = `C:\Users\cuong\Vibe_Stock_Analysis\<X>`. Không sửa từng con trỏ: `CLAUDE.md` :198 và `docs/TIEU-CHI-DOC-TRUOC.md` :794 là file luật, STATE chỉ thêm — một dòng dịch ở file đứng đầu thứ tự ưu tiên đủ cho người đọc, không viết lại sử liệu.
+
+**Giả thuyết bị bác (trước commit).** "`tools/kiem_duong_ngoai_repo.py` sẽ bắt con trỏ chết sau khi dời." Sai: chạy sau dời in *"CON TRỎ CHẾT — (không có)"* — nó chỉ quét dạng `~/…` (`DUONG`), nên `scratch/…`, `C:\Users\…`, `/c/Users/…` đều lọt. Ghi lại, chưa sửa dụng cụ.
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 219` xác nhận.
+
+**Việc kế.** Mở phiên Claude ở thư mục mới. Hẹn cũ giữ nguyên: đếm lại W43 sau 25/10; 26/10 mở giai đoạn B; 28/10 soát 14 + ĐO 27 lượt đọc 3.
