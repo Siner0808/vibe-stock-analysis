@@ -24,6 +24,14 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 > con số, đừng ghi con số. Chỗ nào buộc phải có số thì đó là **quyết
 > định**, không phải phép đo — và quyết định thì hiếm khi đổi.
 
+> 📁 **23/10/2026 — THƯ MỤC DỰ ÁN ĐÃ DỜI (BƯỚC 219).** Mọi thứ của dự án nằm ngoài repo trước ở
+> `C:\Users\cuong\.gemini\antigravity\scratch\` nay ở `C:\Users\cuong\Vibe_Stock_Analysis\` — người dùng
+> chốt, DỜI chứ không chép, tên thư mục con giữ nguyên; repo là `C:\Users\cuong\Vibe_Stock_Analysis\vibe_preview`.
+> **Đọc `scratch/<X>` (hay `scratch\<X>`) ở mọi tài liệu và mục STATE cũ thành
+> `C:\Users\cuong\Vibe_Stock_Analysis\<X>`** — ví dụ `scratch/vibe_cache_goc_20260911` (đừng xoá),
+> `scratch/luu_cache/`, `scratch/luu_do28/`. Kho chụp cache tìm `luu_cache` ở thư mục CHỨA repo
+> (`backtest/data.py`), nên vẫn đúng chỗ. Worktree mới đặt cạnh repo (`../vibe_wt_<việc>`).
+
 ---
 
 ## 1. NĂM LỆNH ĐẦU TIÊN
