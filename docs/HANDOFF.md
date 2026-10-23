@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **23/10/2026 — BƯỚC 223, ĐO 31 (lọc IMOM nhóm thấp): kết cục A — không phân biệt được; ý IMOM gác lại.** A −1,73% [−2,28 ; −1,17] · B −1,63% [−2,26 ; −0,93], ngưỡng IS B = 52; Δalpha +0,10. Nhóm bị lọc lại là nhóm đỡ tệ nhất (−0,65%). Phép 1 trong họ 3 trên cùng vùng OOS; ĐO 32 (độ rộng thị trường) · ĐO 33 (chốt sụt giảm của sổ) chưa khai. `LOC_IMOM_PHAN_VI` ở nguồn vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 223.
+
 > 🧭 **23/10/2026 — BƯỚC 221, ĐO 30 (nghỉ 7 ngày lịch sau lệnh lỗ): kết cục A⁺ — CHỜ NGƯỜI DÙNG.** Dòng "BẬT · theo ngày" trên cache `acf6dca1…`: A (không nghỉ) −1,73% [−2,28 ; −1,17] · B (nghỉ 7) −1,22% [−1,90 ; −0,55], ngưỡng IS B = 50; Δalpha +0,51; vẫn THUA chuẩn. Theo kết cục ký trước: người dùng quyết có khai ứng viên tầng 3 (`docs/LO-TRINH.md` C7, sớm nhất 11/2026) hay gác. `NGHI_SAU_LO_NGAY` ở nguồn vẫn 0 — đường chạy thật không đổi. Chi tiết: `docs/STATE.md` BƯỚC 221, `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 30.
 
 > 🧭 **09/10/2026 — BƯỚC 166: người dùng chốt phiên quyết định A5.** Câu trả lời NGUYÊN VĂN, hệ quả và việc kế ở
