@@ -23924,3 +23924,38 @@ Leader, tại chỗ. Ngoài bàn giao: leader đề xuất ở cuối BƯỚC 21
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 220` xác nhận.
 
 **Việc kế.** Lượt soát 14 (28/10) chạy `tools/kiem_duong_ngoai_repo.py` — nay thấy cả bốn dạng.
+
+## BƯỚC 221 — ĐO 30: NGHỈ 7 NGÀY LỊCH SAU LỆNH LỖ; DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` −1,73% → −1,22% (KẾT CỤC A⁺ — TỐT LÊN VỪA, NGƯỠNG IS ĐỔI 45 → 50); CHỜ NGƯỜI DÙNG: KHAI ỨNG VIÊN TẦNG 3 HAY KHÔNG (23/10/2026)
+
+**Mốc:** D3 — phép đo THĂM DÒ (C2) cho một ứng viên giảm vòng quay: không mở lại cùng mã ngay sau một lệnh lỗ
+
+Leader, tại chỗ. Ngoài bàn giao: ý 3 của bảng 7 ý tưởng 16/10 ("dải không giao dịch"); người dùng *"tiếp đi quota còn nhiều"* → leader đo chỉ-đọc sổ OOS ĐO 29 → hỏi hướng, người dùng chọn *"Soạn khai trước ĐO 30 (Recommended)"* → duyệt *"Duyệt cả bản nháp (Recommended)"*. Nhánh `do/nghi-sau-lo-221` từ `main` `72c51ec`, worktree `vibe_wt_221`. Commit: `ed3a08f` ký ĐO 30 (riêng, trước mã) · `269b7a5` sửa đường sau kết cục A⁺ TRƯỚC lượt chạy · `d8ac552` mã + test + dụng cụ.
+
+**Vì sao đo cái này (chỉ-đọc, trước khi khai).** Sổ OOS lượt B của ĐO 29 (`scratch/luu_do29/B_wf_oos.db`): 650 lệnh đóng — STOP_LOSS 433 · SIGNAL_REVERSED 192 · HET_DU_LIEU 13 · MAX_HOLD 12. Tái vào cùng mã sau MỌI lần thoát: ≤ 5 ngày lịch 224/617, trung vị 10 ngày; sau thoát tín hiệu chỉ 30/179, trung vị 22. Vào–ra liên tục KHÔNG nằm ở dải 62/45 mà ở vòng "cắt lỗ rồi mua lại ngay" (điểm vẫn ≥ ngưỡng). Kết cục của các lần vào lại nhanh CỐ Ý không tính trước khi khai (bất biến 7); mọi thứ đã nhìn được khai trong mục ĐO 30.
+
+**Mã.** `paper_trading.NGHI_SAU_LO_NGAY` = 0 (TẮT; đường chạy thật không đổi) · `LY_DO_NGHI_SAU_LO` · `PaperTradingJournal.ngay_ra_lo_gan` (TẮT thì trả ngay, không đọc sổ) · một nhánh trong `consider_entry` ngay sau cổng "đang giữ" và trước chốt C5. `tools/do30_nghi_sau_lo.py`: `--luot A|B` đặt cờ TRONG tiến trình rồi giao cho lượt 2 của `tools/do1_chi_phi_thuc_thi.py`; `--dem` đếm đối chứng (iv) cùng định nghĩa với cổng. `tests/test_nghi_sau_lo.py` 14 test (phát đầu dựng lại ca thật DPM 07/04/2022); đột biến 18/18 đỏ.
+
+**Sổ tay — hỏi thật** (chạm `docs/TIEU-CHI-DOC-TRUOC.md`). Lượt 1 trả lời LẠC ĐỀ (tóm tắt hiện trạng dự án) → gửi lại nguyên câu; lượt 2 ÂM. Tự kiểm câu âm: SAI một chỗ — sổ tay cho rằng tầng 3 chỉ áp cho việc đổi điểm, nhưng `docs/LO-TRINH.md` C7 cho thấy một luật VÀO LỆNH có triển vọng thì khai ứng viên theo luật tầng 3, chỉ thay đường thật khi phán quyết khai trước cho phép. Câu A⁺ của bản ký (bật bằng một BƯỚC đổi luật riêng) trái tiền lệ ấy → sửa TRƯỚC lượt chạy (`269b7a5`, câu cũ gạch và đánh dấu). Bốn câu âm còn lại THẬT (`git grep`). Không nạp lại nguồn; độ lệch từng nguồn ghi ở `_do_tuoi`. Mục ở `docs/soat-notebooklm.json`.
+
+**Lượt chạy.** Hai worktree tách rời ở `d8ac552`; `tools/do30_nghi_sau_lo.py --luot A|B`; `VIBE_CACHE_DIR` trỏ hai bản chép của `scratch/vibe_cache_goc_20260911`; `sl_pattern_memory.json` sha256 `e8b44cf8…`; chạy song song 13:21:06 → 13:56:10 (B) / 13:56:16 (A). Sổ và log lưu ở `scratch/luu_do30/` (A_wf_oos.db sha256 `6ba2df97…`, B_wf_oos.db `b36ca6bf…`).
+
+**Đối chứng của máy đo — cả bốn ĐẠT.**
+- (i) A ghép với `scratch/luu_do29/B_wf_oos.db` bằng `tools/do20_ghep_tung_lenh.py`: 651/651 dòng cùng khoá GIỐNG HỆT, 0 khác; log A: 650 lệnh, −1,73%, KTC [−2,28 ; −1,17], ngưỡng IS 45. Cũng là phép thử "mặc định 0 không đổi gì".
+- (ii) M0: hai bản chép cache trước và sau đều `acf6dca1dd38d515…` (125 tệp).
+- (iii) A có lệnh DPM tín hiệu 07/04/2022 (id 18); B có 0 lệnh DPM tín hiệu trong 07/04–14/04/2022.
+- (iv) `--dem`: A = 227 (khớp số khai), B = 0.
+
+**Thống kê chính.** A: ngưỡng IS 45 · 650 lệnh · alpha −1,73% [−2,28 ; −1,17]. B: ngưỡng IS **50** · 539 lệnh · alpha **−1,22% [−1,90 ; −0,55]**. **Δalpha = +0,51.** Ngưỡng suy từ nửa bề rộng KTC của A (0,555): +0,28 < +0,51 ≤ +0,56 → **kết cục A⁺ — tốt lên vừa.** KTC của B vẫn loại 0 → kết luận *"THUA chuẩn có ý nghĩa"* đứng. Ngưỡng IS của B khác 45 → theo bản khai, Δalpha gộp cả phần đổi ngưỡng.
+
+**Báo kèm (đã khai; không quyết định kết cục; `scratchpad/do30/bao_kem.py` phiên 59808c4e, cùng đường `build_benchmark` → `vs_benchmark` của walkforward, tái lập đúng −1,73 và −1,22).**
+- Nhóm 227 lệnh A mà luật chặn: alpha −2,28% [−3,01 ; −1,50]; 423 lệnh còn lại: −1,43% [−2,16 ; −0,61] — vào lại ngay sau một lệnh lỗ là nhóm tệ nhất; Δ có cơ chế.
+- Ghép A↔B theo (mã, ngày tín hiệu): chung 200 · chỉ ở A 450 · chỉ ở B 339 (lệnh chỉ ở B: −0,79% [−1,61 ; +0,09]) — sổ xáo lại mạnh vì ngưỡng 50 và vốn được giải phóng.
+- Vòng mua–bán bớt 111 (650 → 539).
+
+**Thăm dò SAU KHI NHÌN — KHÔNG khai trước, KHÔNG quyết định gì.** Trên sổ A: chỉ giữ điểm ≥ 50 (ngưỡng thôi, không nghỉ) −1,95% [−2,63 ; −1,21]; điểm 45–49 −1,30% [−2,24 ; −0,27]; điểm ≥ 50 và không bị chặn −1,54%. Tức là đổi ngưỡng một mình KHÔNG giải thích được phần tốt lên; phép tách này bỏ qua tương tác vốn nên chỉ là gợi ý.
+
+**Theo kết cục ký trước (A⁺, bản đã sửa trước lượt chạy).** Báo người dùng; nếu người dùng chọn, khai ứng viên theo luật tầng 3 (`docs/LO-TRINH.md` C7: ≤ 1 ứng viên mỗi tháng; chỉ thay đường thật khi phán quyết khai trước cho phép). ĐO này không tự bật gì: `NGHI_SAU_LO_NGAY` ở nguồn vẫn 0. `CLAUDE.md` không đổi.
+
+**Giả thuyết bị bác (trước khi khai).** "Ý 3 = vặn dải 62/45" — đo chỉ-đọc cho thấy dải 45 KHÔNG phải chỗ vào–ra liên tục (sau thoát tín hiệu chỉ 30/179 lần vào lại trong ≤ 5 ngày).
+
+**Việc kế.** Người dùng quyết: khai ứng viên tầng 3 cho luật nghỉ (sớm nhất tháng 11/2026) hay gác. Hẹn cũ giữ nguyên: đếm lại W43 sau 25/10; 26/10 mở giai đoạn B; 28/10 soát 14 + ĐO 27 lượt đọc 3.

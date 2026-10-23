@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **23/10/2026 — BƯỚC 221, ĐO 30 (nghỉ 7 ngày lịch sau lệnh lỗ): kết cục A⁺ — CHỜ NGƯỜI DÙNG.** Dòng "BẬT · theo ngày" trên cache `acf6dca1…`: A (không nghỉ) −1,73% [−2,28 ; −1,17] · B (nghỉ 7) −1,22% [−1,90 ; −0,55], ngưỡng IS B = 50; Δalpha +0,51; vẫn THUA chuẩn. Theo kết cục ký trước: người dùng quyết có khai ứng viên tầng 3 (`docs/LO-TRINH.md` C7, sớm nhất 11/2026) hay gác. `NGHI_SAU_LO_NGAY` ở nguồn vẫn 0 — đường chạy thật không đổi. Chi tiết: `docs/STATE.md` BƯỚC 221, `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 30.
+
 > 🧭 **09/10/2026 — BƯỚC 166: người dùng chốt phiên quyết định A5.** Câu trả lời NGUYÊN VĂN, hệ quả và việc kế ở
 > `docs/QUYET-DINH-CHO.md` (Q1–Q12) và `docs/STATE.md` BƯỚC 166. Tóm tắt:
 >
