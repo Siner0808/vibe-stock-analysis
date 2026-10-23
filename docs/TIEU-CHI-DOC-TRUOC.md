@@ -4314,3 +4314,62 @@ Khi walk-forward khớp lệnh đặt sẵn (cắt lỗ) ở MỌI phiên — c�
 
 ### Điều ĐO này KHÔNG làm
 Không đổi lưới chấm, `stride`, nâng stop, ngưỡng hay điểm. Không chạy lại ba dòng còn lại của bảng, không chạy trên cache hiện tại. Không đọc sổ thật, không đổi đường chạy thật.
+
+## ĐO 30 — NGHỈ SAU LỆNH LỖ: không mở lại CÙNG mã khi tín hiệu rơi trong 7 ngày lịch sau ngày ra của một lệnh đóng lỗ; đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 23/10/2026)
+
+> **Khai 23/10/2026, TRƯỚC khi có mã và lượt chạy, ở một commit RIÊNG.**
+> - Người dùng chốt 23/10/2026 qua hộp hỏi *"Ý 3 đi hướng nào?"*, nguyên văn: *"Soạn khai trước ĐO 30 (Recommended)"*.
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 23/10/2026.
+> - Sổ tay hỏi thật ở BƯỚC 221.
+> - Phép đo thêm một luật cho SỔ ẢO qua một tham số mặc định TẮT. Đường chạy thật (`run_daily`) KHÔNG đổi. Bật luật trên sổ thật là một quyết định RIÊNG của người dùng sau kết cục, không phải hệ quả tự động của ĐO này.
+
+**Đã tra trùng:** BƯỚC 212 · BƯỚC 209 — và một lượt tra từ khoá:
+- BƯỚC 212 (ĐO 29): máy đo hiện hành và sổ OOS mà phần "đã nhìn" dưới đây đọc (`scratch/luu_do29/B_wf_oos.db`).
+- BƯỚC 209 (ĐO 28): mô hình khớp kịch trần/sàn mà cả hai lượt giữ nguyên.
+- `git grep` (cooldown · nghỉ sau · tái vào · vào lại · re-entry · whipsaw) trên `*.py`/`*.md` và `git log --grep` cùng từ khoá: 0 mục. `consider_entry` chỉ chặn mã ĐANG GIỮ (`open_position`), không nhìn lệnh đã đóng.
+- Gốc ý: bảng 7 ý tưởng 16/10/2026 (ngoài repo), ý 3 *"dải không giao dịch"*; đánh giá lại 20/10: repo đã có dải 62/45.
+- **Đã nhìn (leader, 23/10/2026, chỉ-đọc, cùng sổ OOS ấy):** 650 lệnh CLOSED; lý do ra STOP_LOSS 433 · SIGNAL_REVERSED 192 · HET_DU_LIEU 13 · MAX_HOLD 12; 506 lệnh đóng lỗ. Tái vào cùng mã sau MỌI lần thoát: ≤ 5 ngày lịch 224/617, trung vị 10 ngày. Sau thoát TÍN HIỆU: 30/179, trung vị 22. Lợi nhuận thô lệnh thoát tín hiệu: trung vị −1,90%. Theo đúng định nghĩa dưới: 227 tín hiệu cùng mã trong 0–7 ngày lịch sau một lệnh lỗ; sớm nhất DPM, GIL, HHP, HUT ra 07/04/2022 bằng `STOP_LOSS`, có tín hiệu mới cùng ngày.
+- **CHƯA nhìn:** kết cục (giá, lợi nhuận, alpha) của bất kỳ lệnh vào lại nào; chưa chạy bản có luật. Nhìn trước là chế điều kiện sau khi thấy số (bất biến 7).
+
+**Không có dụng cụ vì:** mã luật, cờ chạy, dụng cụ đếm (iv) và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Khi sổ ảo KHÔNG mở lại cùng mã trong 7 ngày lịch sau ngày ra của một lệnh đóng lỗ, alpha OOS của dòng "BẬT · theo ngày" đổi bao nhiêu trên cache `acf6dca1…` — và đổi theo chiều nào?
+
+### Luật mới (ghim)
+- `consider_entry` có thêm một cổng: tham số `NGHI_SAU_LO_NGAY` > 0, và CÙNG mã có một lệnh CLOSED với giá ra < giá vào (giá khớp thật, đã trượt; mọi lý do ra), và ngày tín hiệu đang xét nằm trong [ngày ra ; ngày ra + `NGHI_SAU_LO_NGAY` ngày lịch] → KHÔNG mở, ghi lý do vào sổ như các cổng khác.
+- `NGHI_SAU_LO_NGAY` mặc định **0 = tắt**. Lượt B đặt **7**. Một giá trị duy nhất, ghim trước; ĐO này không thử giá trị khác.
+- Ngày LỊCH, không phải phiên: không cần lịch sàn, đường chạy thật và backtest đếm như nhau; 7 ngày lịch ≈ 5 phiên.
+- KHÔNG đổi: ngưỡng, điểm, `stride`, độ trễ khớp, cắt lỗ, nâng stop, thoát tín hiệu, trần thời gian, trần vốn, mô hình khớp kịch trần/sàn.
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911`, băm `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau — `acf6dca1…` cả hai lần (M0). Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…` (như ĐO 29).
+- Hai lượt `tools/do1_chi_phi_thuc_thi.py --mot-luot 2` trên CÙNG nhánh ĐO 30: **A** = `NGHI_SAU_LO_NGAY` 0, **B** = 7. Cách truyền tham số vào lượt chạy viết sau commit ký. Ghép `tools/do20_ghep_tung_lenh.py`.
+
+### Đối chứng của máy đo (trượt thì K0)
+- (i) **A tái lập lượt B của ĐO 29** — 650 lệnh, −1,73%, KTC [−2,28 ; −1,17], ngưỡng IS 45; ghép với `scratch/luu_do29/B_wf_oos.db`: giống hệt. Đây cũng là phép thử *"mặc định 0 không đổi gì"*.
+- (ii) M0: băm cache trước và sau đều `acf6dca1…`.
+- (iii) **Ca thật:** ở A, lệnh DPM tín hiệu 07/04/2022 (cùng ngày lệnh DPM trước ra bằng `STOP_LOSS`, lỗ) CÓ mặt; ở B, không lệnh DPM nào có tín hiệu trong 07/04–14/04/2022.
+- (iv) Đếm theo đúng định nghĩa của luật — tín hiệu mở lệnh cùng mã trong 0–7 ngày lịch sau một lệnh lỗ: A = 227 (khớp số đếm 23/10), B = 0. Dụng cụ viết sau commit ký.
+
+### Thống kê chính
+- Δalpha = alpha(B) − alpha(A), kèm KTC 95% của từng lượt và ngưỡng IS của B.
+- Số lệnh A, B; số lệnh có ở A mà không có ở B (bị luật chặn), số lệnh có ở B mà không có ở A (vốn được giải phóng — chế độ theo ngày có trần vốn 100%).
+
+### Kết cục (ký trước)
+Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt B của ĐO 29: (−1,17 − (−2,28)) / 2 = 0,555): nhỏ = 0,28 (một nửa), lớn = 0,56.
+- **K0:** (i)–(iv) trượt, hoặc B không chạy xong.
+- **A — không phân biệt được:** −0,28 ≤ Δalpha ≤ +0,28. Giữ luật hiện tại (không nghỉ); ghi STATE; ý 3 gác lại. `CLAUDE.md` không đổi.
+- **A⁺ — tốt lên vừa:** +0,28 < Δalpha ≤ +0,56. Báo người dùng. Bật trên sổ thật là một BƯỚC đổi luật riêng (hỏi sổ tay thật) chỉ khi người dùng chọn; không tự bật.
+- **B — Quy tắc 1:** Δalpha > +0,56. Giả định CÓ LỖI: soát mã luật và máy đo TRƯỚC khi đọc tiếp; báo người dùng; không đổi gì cho tới khi người dùng quyết.
+- **C — xấu đi:** Δalpha < −0,28. Luật hại; ghi STATE; ý 3 gác lại.
+- KTC của B chứa 0: báo người dùng ngay (kết luận *"THUA chuẩn có ý nghĩa"* có thể đổi); `CLAUDE.md` không đổi.
+- Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng.
+
+### Báo kèm (không quyết định kết cục)
+- Alpha của nhóm lệnh A bị luật chặn so với nhóm còn lại — chẩn đoán CƠ CHẾ, không phải tiêu chí.
+- Số vòng mua–bán bớt đi và phần ma sát tương ứng (tầng 1 `paper_metrics.ROUND_TRIP_COST_PCT`).
+- Phân bố khoảng cách (ngày lịch) từ ngày ra lệnh lỗ tới tín hiệu kế của cùng mã, ở A và B.
+
+### Điều ĐO này KHÔNG làm
+Không đổi đường chạy thật hay sổ thật (mặc định 0). Không thử số ngày khác 7, không đổi định nghĩa "lệnh lỗ" sau khi ký. Không đổi ngưỡng, điểm, `stride`, cắt lỗ, nâng stop. Không chạy lại ba dòng còn lại của bảng, không chạy trên cache hiện tại. Không đọc sổ thật.
