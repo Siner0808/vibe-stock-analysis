@@ -4322,6 +4322,7 @@ Không đổi lưới chấm, `stride`, nâng stop, ngưỡng hay điểm. Khôn
 > - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 23/10/2026.
 > - Sổ tay hỏi thật ở BƯỚC 221.
 > - Phép đo thêm một luật cho SỔ ẢO qua một tham số mặc định TẮT. Đường chạy thật (`run_daily`) KHÔNG đổi. Bật luật trên sổ thật là một quyết định RIÊNG của người dùng sau kết cục, không phải hệ quả tự động của ĐO này.
+> - **Sửa TRƯỚC lượt chạy (23/10/2026, cùng BƯỚC 221, commit sau commit ký; chưa lượt nào chạy):** ĐO này là phép đo THĂM DÒ (`docs/LO-TRINH.md` C2: không tính K, không bao giờ lên bản). Câu cũ ở kết cục A⁺ trái tiền lệ C7 (một luật VÀO LỆNH có triển vọng thì khai ứng viên theo luật tầng 3, chỉ thay đường thật khi phán quyết khai trước cho phép) — lộ ra khi tự kiểm câu trả lời ÂM của sổ tay (nó cho rằng tầng 3 chỉ áp cho việc đổi điểm). Luật đo, giá trị 7, ngưỡng, đối chứng và các kết cục khác KHÔNG đổi.
 
 **Đã tra trùng:** BƯỚC 212 · BƯỚC 209 — và một lượt tra từ khoá:
 - BƯỚC 212 (ĐO 29): máy đo hiện hành và sổ OOS mà phần "đã nhìn" dưới đây đọc (`scratch/luu_do29/B_wf_oos.db`).
@@ -4360,7 +4361,7 @@ Khi sổ ảo KHÔNG mở lại cùng mã trong 7 ngày lịch sau ngày ra củ
 Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt B của ĐO 29: (−1,17 − (−2,28)) / 2 = 0,555): nhỏ = 0,28 (một nửa), lớn = 0,56.
 - **K0:** (i)–(iv) trượt, hoặc B không chạy xong.
 - **A — không phân biệt được:** −0,28 ≤ Δalpha ≤ +0,28. Giữ luật hiện tại (không nghỉ); ghi STATE; ý 3 gác lại. `CLAUDE.md` không đổi.
-- **A⁺ — tốt lên vừa:** +0,28 < Δalpha ≤ +0,56. Báo người dùng. Bật trên sổ thật là một BƯỚC đổi luật riêng (hỏi sổ tay thật) chỉ khi người dùng chọn; không tự bật.
+- **A⁺ — tốt lên vừa:** +0,28 < Δalpha ≤ +0,56. Báo người dùng; nếu người dùng chọn, khai ứng viên theo luật tầng 3 (`docs/LO-TRINH.md` C7: ≤ 1 ứng viên mỗi tháng; chỉ thay đường thật khi phán quyết khai trước cho phép). ĐO này không tự bật gì. ~~Bật trên sổ thật là một BƯỚC đổi luật riêng (hỏi sổ tay thật) chỉ khi người dùng chọn; không tự bật.~~ *(câu ký 23/10, ⚠️ HẾT ĐÚNG trước lượt chạy — xem đầu mục)*
 - **B — Quy tắc 1:** Δalpha > +0,56. Giả định CÓ LỖI: soát mã luật và máy đo TRƯỚC khi đọc tiếp; báo người dùng; không đổi gì cho tới khi người dùng quyết.
 - **C — xấu đi:** Δalpha < −0,28. Luật hại; ghi STATE; ý 3 gác lại.
 - KTC của B chứa 0: báo người dùng ngay (kết luận *"THUA chuẩn có ý nghĩa"* có thể đổi); `CLAUDE.md` không đổi.
