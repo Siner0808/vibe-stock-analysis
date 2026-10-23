@@ -12,11 +12,19 @@ repo, và test quét repo ở tiến trình khác đọc đúng lúc nó bị xo
 nên năm cổng chạy cùng lúc được, và cổng 4 tự chạy nhiều file một lúc.
 
 Năm cổng KHÔNG đổi: cùng năm công cụ CI chạy (`.github/workflows/kiem-dinh.yml`,
-gác ở `tests/test_nam_cong.py`), cổng 1 vẫn là cả bộ trong MỘT tiến trình, cổng 4
-vẫn mỗi file một tiến trình. Chỉ đổi lúc bắt đầu.
+gác ở `tests/test_nam_cong.py`), cổng 4 vẫn mỗi file một tiến trình. Chỉ đổi lúc bắt đầu.
+
+CỔNG 1 SONG SONG LÀ TUỲ CHỌN (BƯỚC 222). Người dùng 23/10/2026 muốn dùng GPU cho nhanh;
+GPU của máy là AMD Radeon 780M tích hợp, không có CUDA, và việc nặng là vòng lặp Python —
+người dùng chọn "Thử pytest-xdist". `--song-song` cho cổng 1 thêm `SONG_SONG_CONG1` khi
+trình thông dịch có `pytest-xdist` (thiếu gói thì một tiến trình, không nổ). MẶC ĐỊNH vẫn MỘT
+tiến trình: đo 23/10 trên máy đang bận, cổng 1 song song chạy chồng cổng 4 làm cả hai chậm và
+cổng 4 đỏ giả vì quá giờ — chưa đo được lợi trên cả lượt. CI VẪN một tiến trình (gác:
+`tests/test_nam_cong.py`): đó là nơi giữ phép thử "cả bộ chung một tiến trình" — bắt test làm
+bẩn trạng thái của test khác. Số đo: `docs/STATE.md` BƯỚC 222.
 
 CÁCH DÙNG
-    ./.venv/Scripts/python.exe tools/nam_cong.py [--thu-muc-log <dir>] [--tuan-tu]
+    ./.venv/Scripts/python.exe tools/nam_cong.py [--thu-muc-log <dir>] [--tuan-tu] [--song-song]
 
 In một dòng `congN=<mã thoát>` cho mỗi cổng (cùng dạng bản tuần tự), thời gian
 của từng cổng và của cả lượt. Log đầy đủ ở `<dir>/congN.log`.
@@ -43,6 +51,36 @@ CONG: list[tuple[int, str, list[str]]] = [
     (4, "từng file một mình", ["tools/kiem_test_chay_rieng.py", "--im"]),
     (5, "số test không giảm", ["tools/kiem_so_test_khong_giam.py"]),
 ]
+
+#: Cổng 1 Ở MÁY thêm đối số này khi trình thông dịch có pytest-xdist (BƯỚC 222). CI không thêm.
+SONG_SONG_CONG1 = ["-n", "auto"]
+
+
+def co_xdist(python: str) -> bool:
+    """Trình thông dịch CHẠY cổng có `xdist` không — hỏi chính nó, không hỏi tiến trình này
+    (`python` của lượt gọi có thể khác `sys.executable`). Không gọi được thì coi như không có."""
+    try:
+        r = subprocess.run([python, "-c", "import importlib.util as u, sys; "
+                            "sys.exit(0 if u.find_spec('xdist') else 1)"],
+                           capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        r = None
+    return r is not None and r.returncode == 0
+
+
+def cong_may(python: str | None = None, song_song: bool = False):
+    """Bộ cổng chạy Ở MÁY, và một dòng nói cổng 1 chạy thế nào.
+
+    Như `CONG`. Xin `song_song` VÀ trình thông dịch có pytest-xdist thì cổng 1 thêm
+    `SONG_SONG_CONG1`; thiếu gói thì lùi về một tiến trình, không nổ.
+    """
+    if not song_song:
+        return list(CONG), "cổng 1: MỘT tiến trình (mặc định, như CI; --song-song để thử xdist)"
+    if not co_xdist(python or sys.executable):
+        return list(CONG), "cổng 1: MỘT tiến trình — xin --song-song nhưng thiếu pytest-xdist"
+    return ([(so, ten, [*doi_so, *SONG_SONG_CONG1] if so == 1 else doi_so)
+             for so, ten, doi_so in CONG],
+            f"cổng 1: SONG SONG ({' '.join(SONG_SONG_CONG1)}, pytest-xdist) · CI vẫn một tiến trình")
 
 
 def chay(cong=None, thu_muc_log: pathlib.Path | None = None, tuan_tu: bool = False,
@@ -113,12 +151,16 @@ def main(argv: list[str] | None = None) -> int:
                     help="nơi ghi congN.log (mặc định một thư mục tạm mới)")
     ap.add_argument("--tuan-tu", action="store_true",
                     help="chạy từng cổng một như bản cũ (đường lui)")
+    ap.add_argument("--song-song", action="store_true",
+                    help="thử cổng 1 song song bằng pytest-xdist (mặc định một tiến trình như CI)")
     a = ap.parse_args(argv)
 
     t0 = time.time()
     print(f"Năm cổng {'TUẦN TỰ' if a.tuan_tu else 'CÙNG LÚC'} · bắt đầu {time.strftime('%H:%M:%S')}",
           flush=True)
-    kq = chay(thu_muc_log=a.thu_muc_log, tuan_tu=a.tuan_tu)
+    cong, ghi_chu = cong_may(song_song=a.song_song)
+    print(ghi_chu, flush=True)
+    kq = chay(cong=cong, thu_muc_log=a.thu_muc_log, tuan_tu=a.tuan_tu)
     for c in kq:
         print(f"cong{c['so']}={c['ma']}  {c['giay']:6.0f}s  {c['ten']:20s} {_dong_cuoi(c['log'])}")
     print(f"xong {time.strftime('%H:%M:%S')} · cả lượt {time.time() - t0:.0f}s · "

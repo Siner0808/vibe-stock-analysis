@@ -23959,3 +23959,36 @@ Leader, tại chỗ. Ngoài bàn giao: ý 3 của bảng 7 ý tưởng 16/10 ("d
 **Giả thuyết bị bác (trước khi khai).** "Ý 3 = vặn dải 62/45" — đo chỉ-đọc cho thấy dải 45 KHÔNG phải chỗ vào–ra liên tục (sau thoát tín hiệu chỉ 30/179 lần vào lại trong ≤ 5 ngày).
 
 **Việc kế.** Người dùng quyết: khai ứng viên tầng 3 cho luật nghỉ (sớm nhất tháng 11/2026) hay gác. Hẹn cũ giữ nguyên: đếm lại W43 sau 25/10; 26/10 mở giai đoạn B; 28/10 soát 14 + ĐO 27 lượt đọc 3.
+
+## BƯỚC 222 — THỬ CỔNG 1 SONG SONG BẰNG `pytest-xdist` (GPU CỦA MÁY KHÔNG DÙNG ĐƯỢC): CÓ NHƯ TUỲ CHỌN `--song-song`, MẶC ĐỊNH GIỮ MỘT TIẾN TRÌNH; SỬA LỖI 188 (HAI TEST ĐẾM TRÊN NHẬT KÝ DÙNG CHUNG) (23/10/2026)
+
+**Mốc:** quy-trinh — thử tăng tốc năm cổng ở máy; người dùng muốn dùng GPU, đo ra GPU không dùng được cho việc này
+
+Leader, tại chỗ. Người dùng 23/10/2026: *"Ngoài lề, hãy sử dụng GPU của máy tính để sử lý công việc nhanh hơn."* Nhánh `quy-trinh/cong1-song-song-222` từ `main` `d158bc6`, worktree `vibe_wt_222`.
+
+**Đo trước khi làm.**
+- GPU: `Get-CimInstance Win32_VideoController` → **AMD Radeon 780M Graphics** (tích hợp, dùng chung RAM); `nvidia-smi` không có; `numba.cuda.is_available()` → False; `torch`, `cupy`, `cudf` không cài. Thư viện tăng tốc GPU của Python ở đây đều cần CUDA (NVIDIA), và việc nặng của dự án là vòng lặp Python theo ngày + ghi SQLite, không phải phép tính ma trận lớn.
+- CPU: AMD Ryzen 7 8845H, 8 nhân / 16 luồng; RAM 31,3 GB.
+- Ba lượt năm cổng gần nhất (log `nam_cong` của BƯỚC 219, 220, 221): cổng 1 = 501 · 492 · 430 s, cổng 4 = 110 · 121 · 100 s, cả lượt chờ cổng 1.
+- Người dùng chọn qua hộp hỏi, nguyên văn: *"Thử pytest-xdist (Recommended)"* (mô tả lựa chọn có nêu phải tải gói từ PyPI). Cài vào `.venv`: `pytest-xdist` 3.8.0 + `execnet` 2.1.2.
+- Cả bộ test RIÊNG, `-n auto`, ở repo chính `d158bc6`: **3546 passed, 1 skipped trong 214,53 s**. Lượt một tiến trình gần nhất (worktree BƯỚC 221): 3545 passed, 2 skipped. Chênh một skip do MÔI TRƯỜNG: `tests/test_cache_bctc_du_ky.py` tự bỏ qua khi thiếu `backtest/fundamentals/` (gỡ khỏi git ở BƯỚC 172; repo chính còn 217 tệp, worktree mới không có) — chạy riêng ở repo chính: 4 passed. Tổng hai bên cùng 3547.
+
+**Đo cả lượt năm cổng với cổng 1 song song** (worktree `vibe_wt_222`, cùng cây; máy ĐANG BẬN — một trò chơi chạy cùng, tải CPU 96% lúc đọc `Win32_Processor.LoadPercentage`, và leader làm việc khác song song):
+
+| cổng 1 | cổng 1 | cổng 4 | cả lượt |
+|---|---|---|---|
+| `-n auto` | 358 s | 350 s (ĐỎ) | **358 s** |
+| `-n 8` | 504 s | 476 s (ĐỎ) | **505 s** |
+| `-n 4` | 530 s | 393 s (xanh) | **530 s** |
+
+Ba hàng cùng nhiễu, không so sạch được với nhau hay với ba lượt một tiến trình trước. Điều đọc được: cổng 1 song song chạy CHỒNG cổng 4 (¾ số nhân, `kiem_test_chay_rieng.SO_TIEN_TRINH_MAC_DINH`) làm cả hai chậm; ở `-n 8` cổng 4 ĐỎ GIẢ vì một tệp quá 300 s (`tests/test_ho_so_dem.py`). **Chưa đo được lợi trên cả lượt; đã thấy rủi ro đỏ giả.**
+
+**Quyết định:** `tools/nam_cong.py` có `--song-song` — cổng 1 thêm `nam_cong.SONG_SONG_CONG1` (`-n auto`) khi trình thông dịch có xdist (`nam_cong.co_xdist` hỏi TIẾN TRÌNH CON của đúng trình thông dịch chạy cổng; thiếu gói — như venv CI của phiên đám mây — thì một tiến trình, không nổ). **Mặc định GIỮ MỘT tiến trình** như BƯỚC 201. `nam_cong.cong_may` dựng bộ cổng ở máy; `main` in một dòng nói cổng 1 chạy thế nào. `CONG` (bộ khớp CI) và `.github/workflows/kiem-dinh.yml` KHÔNG đổi. CI vẫn một tiến trình — nơi giữ phép thử "cả bộ chung một tiến trình" (bắt test làm bẩn trạng thái của test khác); gác `tests/test_nam_cong.py::test_CI_cong1_van_MOT_tien_trinh`.
+
+**Lỗi 188 (lượt `-n auto` lộ ra).** Hai test của `tests/test_cua_doc_bat_buoc.py` đếm `trước + 1` dòng trên nhật ký THẬT của cửa đọc bắt buộc ở thư mục tạm của máy — nơi cửa thật của phiên (mỗi lần Read/Write) và tiến trình test khác (cổng 1 và cổng 4 cùng chạy tệp này) cũng ghi. Đỏ ở cổng 4, xanh khi chạy một mình. Sửa ở TEST, không đổi cửa: `_goi_tam_rieng` gọi cửa với `TEMP`/`TMP`/`TMPDIR` trỏ `tmp_path`, test đếm đúng 1 dòng trên nhật ký riêng. Đục: bỏ lời ghi ở nhánh stdin hỏng · bỏ ở đường chính · ghi hai lần → 3/3 đỏ.
+
+**Test.** +6 ở `tests/test_nam_cong.py` (mặc định một tiến trình dù có xdist; `--song-song` + có xdist → `-n auto`; `--song-song` + thiếu → một tiến trình; `co_xdist` hỏi đúng trình thông dịch, đường không tồn tại → False; `main` truyền cờ và in cách chạy; CI một tiến trình). Đột biến **15/15 đỏ** (13 ở `tools/nam_cong.py`, 2 ở workflow). Mốc 3553.
+
+**Giả thuyết bị bác.** (1) "Dùng GPU cho nhanh" — GPU tích hợp không có CUDA, việc nặng không phải phép tính ma trận. (2) "Cổng 1 song song thì cả lượt nhanh hơn" — đúng khi cổng 1 chạy RIÊNG (214,53 s), chưa đúng được khi chạy chồng cổng 4 trên máy bận.
+
+**Việc kế.** Đo `--song-song` khi máy RẢNH (không trò chơi, leader không chạy gì song song) — nếu cả lượt nhanh hơn và cổng 4 xanh ở vài lượt thì đề xuất bật mặc định. Bản khai trước ĐO 31 (IMOM rút gọn 12 tháng) đã ký ở BƯỚC 223; ĐO 32 · ĐO 33 theo sau. Hẹn cũ giữ nguyên.
