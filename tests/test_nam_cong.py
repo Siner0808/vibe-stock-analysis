@@ -167,3 +167,66 @@ def test_AST_ban_cung_luc_khoi_dong_HET_roi_moi_cho():
     vong_cho = [n for n in ham.body if isinstance(n, ast.For)
                 and isinstance(n.iter, ast.Name) and n.iter.id == "dang_chay"]
     assert vong_cho and vong_cho[0].lineno > dung[0].lineno
+
+
+# ── BƯỚC 222: cổng 1 Ở MÁY chạy song song bằng pytest-xdist; CI giữ MỘT tiến trình ──────────
+
+def test_CONG1_MAC_DINH_mot_tien_trinh_du_co_xdist(monkeypatch):
+    """Mặc định giữ hành vi BƯỚC 201: đo 23/10 chưa thấy lợi trên cả lượt khi máy bận."""
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: True)
+    cong, ghi_chu = nam_cong.cong_may(python="py-gia")
+    assert cong == nam_cong.CONG and "mặc định" in ghi_chu
+
+
+def test_CONG1_SONG_SONG_khi_XIN_va_CO_xdist(monkeypatch):
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: True)
+    cong, ghi_chu = nam_cong.cong_may(python="py-gia", song_song=True)
+    assert cong[0][2] == [*nam_cong.CONG[0][2], "-n", "auto"]
+    assert cong[1:] == nam_cong.CONG[1:], "chỉ cổng 1 đổi"
+    assert "SONG SONG" in ghi_chu
+
+
+def test_CONG1_xin_song_song_ma_THIEU_xdist_thi_mot_tien_trinh(monkeypatch):
+    """Venv CI của phiên đám mây không có xdist: lùi về một tiến trình, không nổ."""
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: False)
+    cong, ghi_chu = nam_cong.cong_may(python="py-gia", song_song=True)
+    assert cong == nam_cong.CONG and "thiếu pytest-xdist" in ghi_chu
+
+
+def test_co_xdist_HOI_chinh_trinh_thong_dich_duoc_truyen(tmp_path):
+    """Hỏi TIẾN TRÌNH CON của đúng trình thông dịch được truyền: trình đang chạy test trả đúng như
+    `find_spec` của nó; một đường không tồn tại trả False, không nổ."""
+    import importlib.util
+    assert nam_cong.co_xdist(sys.executable) is (importlib.util.find_spec("xdist") is not None)
+    assert nam_cong.co_xdist(str(tmp_path / "khong_co_python.exe")) is False
+
+
+def test_MAIN_truyen_song_song_va_in_cach_chay_cong1(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(nam_cong, "CONG", _cong_gia(tmp_path, ngu=0.1))
+    monkeypatch.setattr(nam_cong, "GOC", tmp_path)
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: True)
+    nhan = {}
+    that = nam_cong.chay
+
+    def chay_ghi(cong=None, **kw):
+        nhan["cong"] = cong
+        return that(cong=cong, **kw)
+
+    monkeypatch.setattr(nam_cong, "chay", chay_ghi)
+    assert nam_cong.main(["--thu-muc-log", str(tmp_path / "a")]) == 0
+    assert "-n" not in nhan["cong"][0][2]
+    assert "MỘT tiến trình" in capsys.readouterr().out
+    assert nam_cong.main(["--thu-muc-log", str(tmp_path / "b"), "--song-song"]) == 0
+    assert nhan["cong"][0][2][-2:] == ["-n", "auto"]
+    assert "SONG SONG" in capsys.readouterr().out
+
+
+def test_CI_cong1_van_MOT_tien_trinh():
+    """Phép thử "cả bộ chung một tiến trình" (bắt test làm bẩn trạng thái của test khác) sống ở CI:
+    lệnh pytest của workflow không chia tiến trình, và workflow không cài pytest-xdist."""
+    yml = (GOC / ".github" / "workflows" / "kiem-dinh.yml").read_text(encoding="utf-8")
+    lenh = [d for d in yml.splitlines() if "-m pytest" in d]  # van-ban-ok: workflow YAML là văn bản
+    assert lenh, "workflow phải còn lệnh pytest"
+    for d in lenh:
+        assert not re.search(r"(^|\s)(-n|--numprocesses|--dist)(\s|=|$)", d), d
+    assert "xdist" not in yml  # van-ban-ok: workflow YAML là văn bản, không phải mã Python

@@ -17,6 +17,7 @@ là cửa thì chỉ là gợi ý.** `.claude/settings.json` trước đó chỉ
 `PostToolUse` — chạy SAU khi ghi. Chuông báo cháy, không phải cửa chống cháy.
 """
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -158,23 +159,20 @@ def test_MOI_nhanh_deu_co_nhan_rieng_trong_nhat_ky():
     print(f"PASS  bảy nhánh, bảy nhãn: {len(nhan_thay)}")
 
 
-def test_nhanh_NHUONG_DUONG_cung_ghi_nhat_ky():
+def test_nhanh_NHUONG_DUONG_cung_ghi_nhat_ky(tmp_path):
     """Nhánh im lặng nhất — không đọc nổi stdin — vẫn phải để lại dấu.
 
     Đây là nhánh "hỏng thì KHÔNG chặn" ở đầu file. Nó đúng về hành vi
     (cửa hỏng không được làm kẹt việc), nhưng nếu nó im luôn thì không ai
     biết cửa đã chạy hay chưa — và đó chính là chỗ mất một buổi sáng.
     """
-    truoc = _so_dong_nhat_ky()
-    r = subprocess.run([sys.executable, str(HOOK)], input="{ khong phai json",
-                       capture_output=True, text=True, timeout=30,
-                       encoding="utf-8", errors="replace")
+    r = _goi_tam_rieng(tmp_path, "{ khong phai json")
     assert r.returncode == 0, "stdin hỏng mà lại chặn — sai hướng fail"
-    sau = _so_dong_nhat_ky()
-    assert sau == truoc + 1, (
-        f"nhánh nhường đường không ghi nhật ký ({truoc} -> {sau}). "
+    dong = _doc_nhat_ky(tmp_path)
+    assert len(dong) == 1, (
+        f"nhánh nhường đường không ghi nhật ký ({len(dong)} dòng). "
         f"Cửa im lặng ở nhánh này thì không phân biệt được với cửa chết.")
-    assert "HONG-khong-doc-duoc-stdin" in _doc_nhat_ky()[-1]
+    assert "HONG-khong-doc-duoc-stdin" in dong[-1]
     print("PASS  nhánh nhường đường vẫn ghi nhật ký")
 
 
@@ -199,18 +197,28 @@ def test_nhat_ky_HONG_thi_cua_van_chay():
     print("PASS  nhật ký hỏng -> cửa vẫn quyết định đúng")
 
 
-def _doc_nhat_ky() -> list:
-    f = cua.duong_dan_nhat_ky()
+def _goi_tam_rieng(tam: Path, vao: str) -> subprocess.CompletedProcess:
+    """Gọi cửa với thư mục tạm RIÊNG (`TEMP`/`TMP`/`TMPDIR` → `tam`), nên nhật ký nó ghi nằm ở
+    `tam`, không chung với nhật ký THẬT ở thư mục tạm của máy.
+
+    Lỗi 188 (BƯỚC 222): hai test đếm `trước + 1` dòng trên nhật ký thật; cổng 1 song song chạy
+    cùng lúc cổng 4, cả hai chạy file này, và cửa thật của phiên ghi mỗi lần Read/Write — một
+    người ghi khác chen giữa hai lần đếm là trượt (đỏ ở cổng 4, xanh khi chạy một mình).
+    """
+    moi_truong = dict(os.environ, TEMP=str(tam), TMP=str(tam), TMPDIR=str(tam))
+    return subprocess.run([sys.executable, str(HOOK)], input=vao,
+                          capture_output=True, text=True, timeout=30,
+                          encoding="utf-8", errors="replace", env=moi_truong)
+
+
+def _doc_nhat_ky(tam: Path) -> list:
+    f = tam / cua.TEN_NHAT_KY
     if not f.exists():
         return []
     return f.read_text(encoding="utf-8").splitlines()
 
 
-def _so_dong_nhat_ky() -> int:
-    return len(_doc_nhat_ky())
-
-
-def test_duong_CHINH_cung_ghi_nhat_ky_moi_lan_chay():
+def test_duong_CHINH_cung_ghi_nhat_ky_moi_lan_chay(tmp_path):
     """Lần chạy BÌNH THƯỜNG cũng phải để lại một dòng.
 
     Test này ra đời vì một đột biến sống sót: xoá lời gọi ghi nhật ký ở
@@ -225,14 +233,14 @@ def test_duong_CHINH_cung_ghi_nhat_ky_moi_lan_chay():
     không ghi nhật ký, `main()` mới ghi. Kiểm ở tầng nào thì phải chạy ở
     tầng ấy.
     """
-    truoc = _so_dong_nhat_ky()
-    r = _goi("Edit", str(GOC / "app.py"), "test-duong-chinh")
+    vao = json.dumps({"session_id": "test-duong-chinh", "tool_name": "Edit",
+                      "tool_input": {"file_path": str(GOC / "app.py")}})
+    r = _goi_tam_rieng(tmp_path, vao)
     assert r.returncode == 0, f"app.py không ảnh hưởng kết quả mà bị chặn"
-    sau = _so_dong_nhat_ky()
-    assert sau == truoc + 1, (
-        f"đường chính không ghi nhật ký ({truoc} -> {sau}). Cửa chạy mà "
+    dong = _doc_nhat_ky(tmp_path)
+    assert len(dong) == 1, (
+        f"đường chính không ghi nhật ký ({len(dong)} dòng). Cửa chạy mà "
         f"không để lại dấu thì không phân biệt được với cửa chết — đó "
         f"đúng là thứ nhật ký này sinh ra để chấm dứt.")
-    assert "BO-QUA-file-khong-anh-huong-ket-qua" in _doc_nhat_ky()[-1], (
-        f"ghi nhầm nhãn: {_doc_nhat_ky()[-1]!r}")
+    assert "BO-QUA-file-khong-anh-huong-ket-qua" in dong[-1], f"ghi nhầm nhãn: {dong[-1]!r}"
     print("PASS  đường chính ghi nhật ký mỗi lần chạy")
