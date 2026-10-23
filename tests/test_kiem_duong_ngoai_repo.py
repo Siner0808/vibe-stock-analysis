@@ -149,6 +149,90 @@ def test_NHAY_NGUOC_va_DAU_CACH_dung_duoc_duong(tmp_path):
     assert [b[2] for b in K.thu_thap(goc)] == ["~/.claude/settings.json"]
 
 
+# ── BƯỚC 220: bốn dạng, không chỉ `~/` ─────────────────────────────
+
+def test_SCRATCH_chet_sau_khi_DOI_THU_MUC_phai_ra_CHET(tmp_path):
+    r"""Phát đầu của BƯỚC 220 — dựng lại nguyên văn lỗi thật.
+
+    23/10/2026 người dùng dời mọi thứ ngoài repo sang
+    `C:\Users\cuong\Vibe_Stock_Analysis\`. Chạy công cụ ngay sau đó in
+    *"CON TRỎ CHẾT — (không có)"*, trong khi `docs/HANDOFF.md` còn hai lần nêu
+    `scratch/luu_do18/` — thư mục đã xoá từ 09/10 (Q5), không cửa thoát. Bản
+    cũ chỉ quét `~/…`, nên dạng `scratch/<X>` lọt hẳn khỏi quần thể.
+    """
+    goc = _cay(tmp_path / "repo",
+               ">   `scratch/luu_do18/` hay giữ~~ ✅ đã quyết 09/10\n",
+               ten="docs/HANDOFF.md")
+    (tmp_path / "luu_cache").mkdir()
+    ket = K.phan_loai(K.thu_thap(goc), _nha(tmp_path), goc=goc)
+    assert ket["chet"] == [("docs/HANDOFF.md", 1, "scratch/luu_do18/")]
+
+
+def test_SCRATCH_tro_vao_THU_MUC_CHUA_REPO_chu_khong_phai_ten_ghim(tmp_path):
+    """`scratch/<X>` luôn nghĩa là "thư mục CHỨA repo": đúng cả TRƯỚC khi dời
+    (repo nằm trong `.gemini/antigravity/scratch/`) lẫn SAU (repo nằm trong
+    `Vibe_Stock_Analysis/`). Nên suy từ `goc.parent`, không ghim tên nào —
+    lần dời sau không phải sửa công cụ.
+    """
+    goc = _cay(tmp_path / "repo",
+               "kho `scratch/luu_cache/` và `scratch/vibe_cache_goc` "
+               "và `scratch/mat`\n")
+    (tmp_path / "luu_cache").mkdir()
+    (tmp_path / "vibe_cache_goc").mkdir()
+    ket = K.phan_loai(K.thu_thap(goc), _nha(tmp_path), goc=goc)
+    assert {d for _, _, d in ket["co"]} == {"scratch/luu_cache/",
+                                           "scratch/vibe_cache_goc"}
+    assert {d for _, _, d in ket["chet"]} == {"scratch/mat"}
+
+
+def test_duong_that_moi_dang_tro_dung_cho():
+    """Hàm phán chỗ thật — đi qua đúng hàm `phan_loai` gọi."""
+    nha, goc = Path("/n"), Path("/cha/repo")
+    assert K.duong_that("~/a/b.md", nha, goc) == nha / "a/b.md"
+    assert K.duong_that("scratch/luu_cache/", nha, goc) == goc.parent / "luu_cache"
+    assert K.duong_that("scratch\\luu_do28", nha, goc) == goc.parent / "luu_do28"
+    # so CHUỖI, không so Path: đường Windows so không phân biệt hoa thường
+    assert K.duong_that("/c/Users/a/b.md", nha, goc).as_posix() == "C:/Users/a/b.md"
+    # chạy thật bắt được (loi-da-mac.md:1468): `/c/Users/...` qua `_bo_dau_cau`
+    # còn `/c/Users/` — vẫn phải về ổ C, không rơi xuống `\\c\\Users`
+    assert K.duong_that("/c/Users/", nha, goc).as_posix() == "C:/Users"
+    assert K.duong_that("C:\\Users\\a", nha, goc) == Path("C:\\Users\\a")
+
+
+def test_O_DIA_va_GIT_BASH_duoc_thu_thap_NGUYEN_DUONG(tmp_path):
+    r"""Lớp ký tự phải nuốt cả `\` — đường Windows viết bằng gạch ngược."""
+    goc = _cay(tmp_path, "c `/c/Users/z/q.md` a `C:\\Users\\x\\b.md` "
+                         "b `C:/Users/y/`\n")
+    # theo VỊ TRÍ trên dòng, không theo thứ tự mẫu trong `MAU`
+    assert [b[2] for b in K.thu_thap(goc)] == [
+        "/c/Users/z/q.md", "C:\\Users\\x\\b.md", "C:/Users/y/"]
+
+
+def test_KHONG_DEM_HAI_LAN_va_KHONG_bat_nham_URL(tmp_path):
+    r"""Đường tuyệt đối có đoạn `\scratch\` ở giữa là MỘT lần nêu, không phải
+    hai; `~/…/scratch/…` cũng vậy. Và `https://` không phải ổ đĩa `s:`.
+    """
+    goc = _cay(tmp_path,
+               "a `C:\\Users\\c\\.gemini\\antigravity\\scratch\\luu_do18\\` x\n"
+               "b `~/.gemini/antigravity/scratch/vibe` y\n"
+               "c https://github.com/a/b va http://x.y/z\n")
+    assert [(b[1], b[2]) for b in K.thu_thap(goc)] == [
+        (1, "C:\\Users\\c\\.gemini\\antigravity\\scratch\\luu_do18\\"),
+        (2, "~/.gemini/antigravity/scratch/vibe")]
+
+
+@pytest.mark.skipif(sys.platform != "win32",
+                    reason="duong o dia chi co nghia tren Windows")
+def test_O_DIA_con_hay_mat_doc_tu_DIA_THAT(tmp_path):
+    """Đường ổ đĩa không đi qua `nha` hay `goc` — nó tự trỏ thẳng vào đĩa."""
+    con = tmp_path / "con"
+    con.mkdir()
+    goc = _cay(tmp_path / "repo", f"a `{con}` b `{tmp_path / 'mat'}`\n")
+    ket = K.phan_loai(K.thu_thap(goc), _nha(tmp_path), goc=goc)
+    assert [d for _, _, d in ket["co"]] == [str(con)]
+    assert [d for _, _, d in ket["chet"]] == [str(tmp_path / "mat")]
+
+
 # ── quần thể, và quyết định KHÔNG đưa vào CI ────────────────────────
 
 def test_QUAN_THE_dung_chung_chu_KHONG_go_lai(tmp_path):
@@ -195,7 +279,12 @@ def test_BAN_LUU_THAT_khong_bao_gio_ra_CHET(tmp_path):
 # BƯỚC 151 (đích ghi của vnai). Danh sách tay, có chủ ý: CI không đọc được
 # thư mục nhà của máy khác (lỗi 14), nhưng đọc được LỜI KHAI của chính dự
 # án về đường nào đã chết (lỗi 121).
-DA_BIET_CHET = ("~/.claude/CLAUDE.md", "~/.claude/rules/ecc/", "~/AGENTS.md")
+#
+# BƯỚC 220: thêm `scratch/luu_do18/` — người dùng quyết xoá 09/10/2026 (Q5,
+# BƯỚC 166). Dạng `scratch/<X>` suy từ vị trí repo nên CI dựng được thế giới
+# giả cho nó; dạng ổ đĩa (`C:\…`, `/c/…`) thì không, nên gác này bỏ qua chúng.
+DA_BIET_CHET = ("~/.claude/CLAUDE.md", "~/.claude/rules/ecc/", "~/AGENTS.md",
+                "scratch/luu_do18/")
 
 
 def test_DUONG_DA_BIET_CHET_o_tai_lieu_song_deu_mang_CUA_THOAT(tmp_path):
@@ -206,23 +295,26 @@ def test_DUONG_DA_BIET_CHET_o_tai_lieu_song_deu_mang_CUA_THOAT(tmp_path):
     chết; khi đó bản ghi nào còn ở rổ `chet` là một lần nêu đường chết mà
     không kèm cửa thoát — bất kể ai thêm nó sau khi đo.
     """
-    ban_ghi = K.thu_thap(GOC)
+    ban_ghi = [b for b in K.thu_thap(GOC) if b[2].startswith(("~/", "scratch"))]
     tat_ca = {b[2] for b in ban_ghi}
     nha = tmp_path / "nha"
     nha.mkdir()
+    goc_gia = tmp_path / "cha" / "repo"
+    goc_gia.mkdir(parents=True)
     for d in sorted(tat_ca - set(DA_BIET_CHET)):
-        p = nha / d[2:]
+        p = K.duong_that(d, nha, goc_gia)
         if any(o != d and o.startswith(d.rstrip("/") + "/") for o in tat_ca):
             p.mkdir(parents=True, exist_ok=True)
         elif not p.exists():
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text("x", encoding="utf-8")
-    ket = K.phan_loai(ban_ghi, nha)
+    ket = K.phan_loai(ban_ghi, nha, goc=goc_gia)
     # đối chứng dương: mọi đường trong danh sách PHẢI còn được nêu ở tài liệu
     # sống VÀ đã khai lý do — kẻo gác xanh vì danh sách trỏ vào hư không.
     # (Không đòi chiều ngược: một cửa thoát phủ cả dòng, nên đường còn sống
     # nằm cùng dòng cũng hiện ở `su_lieu`.)
-    trong = K.phan_loai(ban_ghi, tmp_path / "nha_trong")  # không đường nào còn
+    trong = K.phan_loai(ban_ghi, tmp_path / "nha_trong",  # không đường nào còn
+                        goc=tmp_path / "cha_trong" / "repo")
     da_khai = {r[2] for r in trong["su_lieu"] if not r[0].startswith(K.BAN_LUU)}
     assert set(DA_BIET_CHET) <= da_khai, (
         "mot duong trong DA_BIET_CHET khong con o tai lieu song nao - go no "

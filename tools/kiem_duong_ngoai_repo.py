@@ -82,6 +82,22 @@ Ba lần, cùng một hình dạng: **một văn bản nói VỀ cơ chế bị 
 bản DÙNG cơ chế.** Cùng họ `SKILL.md` Bước 4 — *"KHÔNG viết tên file trần
 ra đây làm ví dụ"*.
 
+BỐN DẠNG, KHÔNG CHỈ `~/` (BƯỚC 220, 23/10/2026)
+───────────────────────────────────────────────
+Ngày 23/10/2026 người dùng dời mọi thứ ngoài repo từ
+`.gemini/antigravity/scratch/` sang `C:/Users/cuong/Vibe_Stock_Analysis/`.
+Chạy công cụ ngay sau đó in "CON TRO CHET — (khong co)", trong khi
+`docs/HANDOFF.md` còn hai lần nêu `scratch/luu_do18/` — thư mục đã xoá từ
+09/10. Bản trước chỉ quét `~/...`, nên ba dạng khác lọt hẳn khỏi quần thể:
+
+    C:/Users/...  (ca gach nguoc)   duong tuyet doi co o dia
+    /c/Users/...                    cung duong ay, viet kieu Git Bash
+    scratch/<X>   (ca gach nguoc)   bi danh: "thu muc CHUA repo"
+
+Bí danh `scratch/<X>` suy từ `GOC.parent`, không ghim tên: nó đúng cả TRƯỚC
+khi dời (repo nằm trong `scratch/`) lẫn SAU (repo nằm trong
+`Vibe_Stock_Analysis/`) — `docs/HANDOFF.md` đầu file ghi luật đọc ấy.
+
 ĐỐI CHỨNG DƯƠNG NẰM TRONG CHÍNH NÓ
 ──────────────────────────────────
 Nếu **không đường nào** trong quần thể tồn tại thì thứ hỏng gần như chắc
@@ -105,6 +121,25 @@ GOC = Path(__file__).resolve().parent.parent
 #: Một đường dẫn viết theo lối `~/...`. Lớp ký tự cố ý KHÔNG chứa dấu
 #: nháy ngược và dấu cách, nên nó dừng đúng ở biên của đoạn mã inline.
 DUONG = re.compile(r"~/[A-Za-z0-9._/@-]+")
+
+#: Ba dạng nữa (BƯỚC 220). Lớp ký tự có thêm `\` — đường Windows viết bằng
+#: gạch ngược; vẫn KHÔNG chứa nháy ngược, dấu cách, `*` hay `…`.
+_KY = r"[A-Za-z0-9._/\\@-]"
+
+#: Đường tuyệt đối có ổ đĩa. Ký tự trước chữ ổ đĩa không được là chữ/số:
+#: `https://` không phải ổ `s:`.
+O_DIA = re.compile(rf"(?<![A-Za-z0-9])[A-Za-z]:[\\/]{_KY}+")
+
+#: Cùng đường ấy viết kiểu Git Bash: `/c/Users/...` = `C:/Users/...`.
+GIT_BASH = re.compile(rf"(?<![A-Za-z0-9._~/\\-])/[a-z]/Users/{_KY}+")
+
+#: Bí danh `scratch/<X>` = `<thư mục chứa repo>/<X>`. Đứng sau `/`, `\` hay
+#: chữ thì nó là một ĐOẠN của đường khác (`~/.gemini/.../scratch/...`,
+#: `C:\...\scratch\...`) — đếm hai lần là đếm sai một lần nêu.
+SCRATCH = re.compile(rf"(?<![A-Za-z0-9._/\\-])scratch[\\/]{_KY}+")
+
+#: Mọi dạng `thu_thap` quét. Thêm dạng mới thì thêm cả cách phán ở `duong_that`.
+MAU = (DUONG, O_DIA, GIT_BASH, SCRATCH)
 
 #: Cửa thoát TƯỜNG MINH, và phải kèm lý do khác rỗng. Không có danh sách
 #: dấu nào để đoán — xem khối "BẢN ĐẦU ĐOÁN CÁI DẤU" ở đầu file: phép
@@ -132,7 +167,7 @@ def _bo_dau_cau(s: str) -> str:
 
 
 def thu_thap(goc: Path = GOC) -> list[tuple[str, int, str, str]]:
-    """Mọi đường dẫn `~/...` trong tài liệu sống.
+    """Mọi đường dẫn ngoài repo trong tài liệu sống — bốn dạng của `MAU`.
 
     Trả về `(tai_lieu, so_dong, duong_dan, nguyen_van_dong)`. Một dòng nêu
     hai đường thì ra hai bản ghi — đếm theo LẦN NÊU, không theo dòng.
@@ -143,15 +178,34 @@ def thu_thap(goc: Path = GOC) -> list[tuple[str, int, str, str]]:
         if not p.exists():
             continue
         for i, dong in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
-            for m in DUONG.finditer(dong):
+            khop = sorted((m for mau in MAU for m in mau.finditer(dong)),
+                          key=lambda m: m.start())
+            for m in khop:
                 d = _bo_dau_cau(m.group(0))
                 if d != "~/":
                     ra.append((ten, i, d, dong))
     return ra
 
 
+def duong_that(duong: str, nha: Path, goc: Path = GOC) -> Path:
+    """Chỗ thật trên đĩa mà một lần nêu trỏ tới. HÀM THUẦN — chỗ phán duy nhất.
+
+    `~/x` → `nha/x` · `scratch/x` → `goc.parent/x` · `/c/x` → `C:/x` ·
+    còn lại (ổ đĩa) → chính nó.
+    """
+    if duong.startswith("~/"):
+        return nha / duong[2:]
+    # Phán theo DẠNG MỞ ĐẦU, không khớp lại cả mẫu: `_bo_dau_cau` đã cắt đuôi,
+    # và `/c/Users/...` còn `/c/Users/` — không khớp `GIT_BASH` nữa (BƯỚC 220).
+    if duong.startswith(("scratch/", "scratch\\")):
+        return goc.parent / re.split(r"[\\/]", duong, maxsplit=1)[1]
+    if re.match(r"/[a-z]/", duong):
+        return Path(duong[1].upper() + ":" + duong[2:])
+    return Path(duong)
+
+
 def phan_loai(ban_ghi: list[tuple[str, int, str, str]],
-              nha: Path) -> dict[str, list]:
+              nha: Path, goc: Path = GOC) -> dict[str, list]:
     """Chia ba rổ: `co` · `su_lieu` · `chet`.
 
     `su_lieu` là đường không còn nhưng dòng nêu nó mang **cửa thoát tường
@@ -160,7 +214,7 @@ def phan_loai(ban_ghi: list[tuple[str, int, str, str]],
     """
     ket: dict[str, list] = {"co": [], "su_lieu": [], "chet": []}
     for ten, so_dong, duong, dong in ban_ghi:
-        that = nha / duong[2:]
+        that = duong_that(duong, nha, goc)
         if that.exists():
             ket["co"].append((ten, so_dong, duong))
         elif (ten.startswith(BAN_LUU)
