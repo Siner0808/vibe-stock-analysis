@@ -23900,3 +23900,27 @@ Leader, tại chỗ. Người dùng dặn 22/10: *"gom tất cả file của d�
 **Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 219` xác nhận.
 
 **Việc kế.** Mở phiên Claude ở thư mục mới. Hẹn cũ giữ nguyên: đếm lại W43 sau 25/10; 26/10 mở giai đoạn B; 28/10 soát 14 + ĐO 27 lượt đọc 3.
+
+## BƯỚC 220 — `tools/kiem_duong_ngoai_repo.py` QUÉT BỐN DẠNG ĐƯỜNG, KHÔNG CHỈ `~/…` (23/10/2026)
+
+**Mốc:** quy-trinh — máy đo con trỏ ngoài repo thấy được đường chết sau khi dời thư mục dự án
+
+Leader, tại chỗ. Ngoài bàn giao: leader đề xuất ở cuối BƯỚC 219, người dùng nhắn *"tiếp"*. Không đổi mã đường giao dịch, luật, điểm, ngưỡng, lệnh, sổ hay kết luận đo.
+
+**Lỗi thật.** Sau khi dời thư mục (BƯỚC 219), công cụ in *"CON TRỎ CHẾT — (không có)"* trong khi `docs/HANDOFF.md` còn hai lần nêu `scratch/luu_do18/` — thư mục người dùng quyết xoá 09/10 (Q5, BƯỚC 166), không mang cửa thoát. Nguyên nhân: mẫu `DUONG` chỉ bắt `~/…`; chạy bản cũ trên đúng dòng HANDOFF ấy thì `thu_thap` trả `[]` — đường chết nằm NGOÀI quần thể, không phải bị xếp sai rổ.
+
+**Mã.** Ba mẫu mới cạnh `DUONG`, gom ở `MAU`: ổ đĩa (`C:\…`, `C:/…`), Git Bash (`/c/Users/…`), bí danh `scratch/<X>` (cả gạch ngược). `thu_thap` quét mọi mẫu, xếp theo vị trí trên dòng. Hàm thuần mới `duong_that` là chỗ phán duy nhất "lần nêu này trỏ vào đâu": `~/x` → thư mục nhà; `scratch/x` → `goc.parent/x`; `/c/x` → `C:/x`; ổ đĩa → chính nó. `phan_loai` nhận thêm `goc` (mặc định repo thật) và đi qua `duong_that`. Bí danh `scratch` suy từ thư mục CHỨA repo, không ghim tên: nó đúng cả trước khi dời (repo nằm trong `scratch/`) lẫn sau (repo nằm trong `Vibe_Stock_Analysis/`), nên lần dời sau không phải sửa công cụ. Lookbehind ở `O_DIA` (`https://` không phải ổ `s:`) và ở `SCRATCH` (đoạn `\scratch\` giữa một đường tuyệt đối không bị đếm lần hai).
+
+**Chạy thật bắt được lỗi của chính bản vá (trước commit).** Bản đầu của `duong_that` phân loại bằng cách khớp lại cả mẫu (`GIT_BASH.match`). `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md` :1468 nêu `/c/Users/...`; `_bo_dau_cau` cắt đuôi còn `/c/Users/` — không khớp lại `GIT_BASH` (mẫu đòi ít nhất một ký tự sau `Users/`), rơi xuống nhánh ổ đĩa thành `\c\Users` → một CON TRỎ CHẾT giả. Sửa: phân loại theo DẠNG MỞ ĐẦU (`scratch/`, `scratch\`, `/x/`); ca ấy thành một dòng trong `test_duong_that_moi_dang_tro_dung_cho`. 25 test của tệp đều xanh khi đó — chỉ phép chạy trên tài liệu thật lộ ra nó (`SKILL.md` Bước 3 điều 4: máy đo phải bị nghi như gác).
+
+**Tài liệu.** Hai lần nêu `scratch/luu_do18/` ở `docs/HANDOFF.md` mang cửa thoát `<!-- duong-da-chet: … -->` (lý do: người dùng quyết xoá 09/10, Q5, BƯỚC 166).
+
+**Đo (cùng máy, cùng lúc; lệnh `./.venv/Scripts/python.exe tools/kiem_duong_ngoai_repo.py`).** Bản cũ trên `main` `36f938f`: 0 chết · 13 sử liệu · 51 còn. Bản này: 0 chết · 18 sử liệu · 70 còn — thêm 24 lần nêu; không có hai cửa thoát trên thì 2 trong số ấy là CHẾT.
+
+**Test.** `tests/test_kiem_duong_ngoai_repo.py` +6 test (một chỉ chạy trên Windows: tồn tại của đường ổ đĩa đọc từ đĩa thật). Phát đầu dựng lại nguyên văn lỗi thật (`scratch/luu_do18/` trên dòng HANDOFF rút gọn phải ra CHẾT). Gác "đường đã biết chết" mở sang `scratch/<X>`: `DA_BIET_CHET` thêm `scratch/luu_do18/`, thế giới giả dựng qua `duong_that` với một `goc` giả — dạng ổ đĩa thì bỏ qua vì CI Linux không dựng được (lỗi 14). Trên bản cũ: 7 đỏ. Đột biến 13/13 đỏ (`MAU` chỉ còn `DUONG` · bỏ từng mẫu khỏi `MAU` · `goc` thay `goc.parent` · không viết hoa ổ đĩa · phân loại bằng cả mẫu · bỏ hai lookbehind · `_KY` mất gạch ngược · `phan_loai` không qua `duong_that` · bỏ sắp theo vị trí · `scratch` chỉ nhận gạch xuôi).
+
+**Không làm.** Không mở rộng quần thể `TAI_LIEU` (dùng chung với `tools/soat_loi_khai_cu.py`): `docs/LO-TRINH.md`, `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/QUYET-DINH-CHO.md` vẫn ngoài tầm công cụ. Công cụ vẫn KHÔNG là một cổng (lỗi 14 — `test_CONG_CU_NAY_CO_Y_KHONG_nam_trong_CI` giữ).
+
+**Sổ tay.** Không đổi luật hay kết luận đo, không chạm file luật → `khong_bat_buoc_vi`, `tools/buoc_cham_luat.py 220` xác nhận.
+
+**Việc kế.** Lượt soát 14 (28/10) chạy `tools/kiem_duong_ngoai_repo.py` — nay thấy cả bốn dạng.

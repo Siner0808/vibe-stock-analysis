@@ -410,7 +410,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   để kiểm việc treo từ BƯỚC 127; (2) vế 3 điều kiện dừng của cổng lệnh ảo;~~ ✅ đã quyết 09/10 (BƯỚC 166, Q3 · Q2);
 >   ~~(3) bật lại ba workflow~~ ✅ bật 28/09 (BƯỚC 138) — cổng lệnh ảo nay MỞ trên `main`, nên bật
 >   `quet-so-lenh` là bắt đầu sinh lệnh ảo thật; ~~(4) xoá hẳn
->   `scratch/luu_do18/` hay giữ~~ ✅ đã quyết 09/10 (BƯỚC 166, Q5: xoá, đã ở Thùng rác).
+>   `scratch/luu_do18/` hay giữ~~ ✅ đã quyết 09/10 (BƯỚC 166, Q5: xoá, đã ở Thùng rác). <!-- duong-da-chet: nguoi dung quyet xoa 09/10/2026 (Q5, BUOC 166), thu muc o Thung rac -->
 > - **Hạn kế:** 29/09 — đọc ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (nhịp
 >   2 ngày từ lượt 6 ngày 27/09; ✅ BƯỚC 140). Lượt 8: 01/10 (✅ BƯỚC 151).
 >   Lượt 9: 03/10 (✅ BƯỚC 158, 06/10). Lượt 10: 08/10 (✅ BƯỚC 160, 07/10).
@@ -477,7 +477,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   `60d6598a…`, nhãn `<file> @60d6598`; độ tươi BƯỚC 134. Cách nạp đúng
 >   (thêm trước, xoá sau) nay ở `references/soat-cheo-notebooklm.md`.
 > - **Chờ người dùng (không đổi từ 27/09):** ~~URL Streamlit Cloud · vế 3 điều
->   kiện dừng~~ · ~~bật ba workflow~~ (✅ BƯỚC 138) · ~~`scratch/luu_do18/`~~ (✅ cả ba đã quyết 09/10, BƯỚC 166). ~~Thêm: tab
+>   kiện dừng~~ · ~~bật ba workflow~~ (✅ BƯỚC 138) · ~~`scratch/luu_do18/`~~ (✅ cả ba đã quyết 09/10, BƯỚC 166). <!-- duong-da-chet: nguoi dung quyet xoa 09/10/2026 (Q5, BUOC 166), thu muc o Thung rac --> ~~Thêm: tab
 >   `nhat_ky` rỗng ở trên.~~ Đã quyết: để yên.
 > - **Hạn 29/09:** ĐO 14 (khối dưới; ✅ BƯỚC 139) và lượt soát định kỳ 7 (✅ BƯỚC 140).
 >
