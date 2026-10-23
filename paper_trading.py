@@ -304,6 +304,17 @@ LY_DO_TRAN_VON = ("vốn cam kết đã chạm trần — mở thêm là dùng �
 #: một hằng: bảng chấm bóng lọc theo đúng chuỗi này.
 LY_DO_DANG_GIU = "đã có vị thế đang mở"
 
+#: Nghỉ sau lệnh LỖ — ĐO 30 (BƯỚC 221; khai trước ở `docs/TIEU-CHI-DOC-TRUOC.md`).
+#: > 0 thì `consider_entry` KHÔNG mở lại CÙNG mã khi ngày tín hiệu rơi trong
+#: [ngày ra ; ngày ra + N ngày LỊCH] của một lệnh CLOSED có giá ra < giá vào
+#: (mọi lý do ra). 0 = TẮT, và tắt là hành vi đang chạy: đường chạy thật không
+#: đổi. Lượt B của ĐO 30 đặt 7 TRONG TIẾN TRÌNH (`tools/do30_nghi_sau_lo.py`),
+#: không sửa nguồn — cùng lối `tools/do1_chi_phi_thuc_thi.py` đặt cờ trượt giá.
+NGHI_SAU_LO_NGAY = 0
+
+#: Tiền tố lý do ghi sổ khi cổng nghỉ-sau-lỗ chặn; ngày ra của lệnh lỗ đứng sau.
+LY_DO_NGHI_SAU_LO = "nghỉ sau lệnh lỗ"
+
 #: Số vị thế MỤC TIÊU nắm đồng thời. ĐÂY LÀ QUYẾT ĐỊNH ĐO LƯỜNG, KHÔNG PHẢI
 #: QUYẾT ĐỊNH LỢI NHUẬN — đọc kỹ trước khi vặn.
 #:
@@ -729,6 +740,9 @@ class PaperTradingJournal:
             skip = f"điểm {score} dưới ngưỡng {threshold:g}"
         elif self.open_position(symbol) is not None:
             skip = LY_DO_DANG_GIU
+        elif (ra_lo := self.ngay_ra_lo_gan(symbol, signal_date)) is not None:
+            skip = (f"{LY_DO_NGHI_SAU_LO}: ra lỗ ngày {ra_lo}, "
+                    f"chưa qua {NGHI_SAU_LO_NGAY} ngày lịch")
         else:
             risk = (result.get("analyses", {}).get("risk", {})
                     .get("recommendations", {}))
@@ -1242,6 +1256,28 @@ class PaperTradingJournal:
             "SELECT * FROM trades WHERE symbol=? AND status IN (?,?,?) LIMIT 1",
             (symbol, Status.OPEN, Status.PENDING, Status.CLOSING)).fetchone()
         return self._to_trade(r) if r else None
+
+    def ngay_ra_lo_gan(self, symbol: str, signal_date: str) -> Optional[str]:
+        """Ngày ra (YYYY-MM-DD) của lệnh LỖ gần nhất của `symbol` mà ngày tín hiệu
+        còn nằm trong cửa sổ `NGHI_SAU_LO_NGAY` ngày lịch; None nếu không có —
+        và None ngay, KHÔNG đọc sổ, khi cổng TẮT (0). ĐO 30, BƯỚC 221.
+
+        "Lỗ" = giá ra < giá vào, mọi lý do ra. Lệnh ra ĐÚNG ngày tín hiệu cũng
+        tính: `paper_runner.run_session` xét thoát trước khi xét vào.
+        """
+        if NGHI_SAU_LO_NGAY <= 0:
+            return None
+        from datetime import date
+        ngay = str(signal_date)[:10]
+        r = self.db.execute(
+            "SELECT substr(exit_date, 1, 10) FROM trades WHERE symbol=? AND status=?"
+            " AND exit_price < entry_price AND substr(exit_date, 1, 10) <= ?"
+            " ORDER BY substr(exit_date, 1, 10) DESC LIMIT 1",
+            (symbol, Status.CLOSED, ngay)).fetchone()
+        if r is None:
+            return None
+        cach = (date.fromisoformat(ngay) - date.fromisoformat(r[0])).days
+        return r[0] if cach <= NGHI_SAU_LO_NGAY else None
 
     def all_trades(self, status: str | None = None) -> list[Trade]:
         sql = "SELECT * FROM trades"
