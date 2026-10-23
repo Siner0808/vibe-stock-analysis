@@ -116,6 +116,10 @@ lúc cho **đỏ giả**. Đây là ràng buộc thật, không phải sở thí
 > 8 tiến trình). Nguồn đã dọn: file tạm của test chỉ ở `.tam_test/`, nơi
 > `tools/duyet_repo.py` bỏ qua (luật 3) → 0/158 ở hai vòng. Năm cổng chạy cùng lúc
 > bằng `tools/nam_cong.py`; số đo ở `docs/STATE.md` BƯỚC 201.
+> **BƯỚC 222 (23/10/2026):** `--song-song` cho cổng 1 chạy `-n auto` khi venv có
+> `pytest-xdist` (cài: `./.venv/Scripts/python.exe -m pip install pytest-xdist==3.8.0`);
+> mặc định vẫn MỘT tiến trình, CI cũng vậy. Đo trên máy bận chưa thấy lợi trên cả lượt
+> và thấy cổng 4 đỏ giả vì quá giờ khi hai cổng nặng chạy chồng — `docs/STATE.md` BƯỚC 222.
 
 Thời gian đo 07/09/2026 ở máy local: cổng 1 ≈ 150s · cổng 4 ≈ 220s.
 🔴 **HẾT ĐÚNG:** bộ test đã lớn lên (874 test ngày 09/09/2026, hơn 3.000 nay) —
