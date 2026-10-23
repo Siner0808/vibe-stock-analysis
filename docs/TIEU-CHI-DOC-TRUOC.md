@@ -4374,3 +4374,69 @@ Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt B của ĐO 29: (
 
 ### Điều ĐO này KHÔNG làm
 Không đổi đường chạy thật hay sổ thật (mặc định 0). Không thử số ngày khác 7, không đổi định nghĩa "lệnh lỗ" sau khi ký. Không đổi ngưỡng, điểm, `stride`, cắt lỗ, nâng stop. Không chạy lại ba dòng còn lại của bảng, không chạy trên cache hiện tại. Không đọc sổ thật.
+
+## ĐO 31 — LỌC IMOM NHÓM THẤP: không mở lệnh khi momentum đặc thù 12 tháng của mã (đã trừ beta với VN-Index, bỏ tháng gần nhất) nằm ở 20% thấp nhất của cache; đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 23/10/2026)
+
+> **Khai 23/10/2026, TRƯỚC khi có mã và lượt chạy, ở một commit RIÊNG.**
+> - Gốc ý: tra cứu ngoài 23/10/2026 (leader), bài Hoàng Văn Hải, Trần Thị Tâm Châu, Phạm Văn Sơn (2022), *Tạp chí Khoa học và Công nghệ — Đại học Đà Nẵng* tập 20 số 12.1, tr. 103. Người dùng đáp đề xuất "IMOM dùng để lọc bỏ nhóm thấp", nguyên văn: *"Nên thử"*.
+> - Người dùng chốt 23/10/2026 qua hộp hỏi *"IMOM đúng như bài báo chỉ tính được cho 10/650 lệnh OOS. Đo phiên bản nào?"*, nguyên văn: *"Rút gọn 12 tháng (Recommended)"*.
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 23/10/2026 (hộp hỏi *"Bản nháp khai trước ĐO 31: có duyệt để ký không?"*).
+> - Sổ tay hỏi thật ở BƯỚC 223.
+> - Phép đo THĂM DÒ (`docs/LO-TRINH.md` C2: không tính K, không bao giờ lên bản). Luật mới cho SỔ ẢO qua một tham số mặc định TẮT; đường chạy thật (`run_daily`) KHÔNG đổi. Kết cục có triển vọng thì người dùng chọn có khai ứng viên tầng 3 hay không (C7: ≤ 1 ứng viên mỗi tháng; chỉ thay đường thật khi phán quyết khai trước cho phép).
+> - **Họ thử:** ĐO 31 là phép thứ nhất trong một họ ba phép dự kiến trên CÙNG vùng OOS (ĐO 31 IMOM · ĐO 32 độ rộng thị trường · ĐO 33 chốt sụt giảm của sổ; hai phép sau khai riêng). Ngưỡng KHÔNG hiệu chỉnh cho họ (thăm dò); mọi báo cáo kết cục ghi "phép k trong họ 3", và không kết cục nào đi tắt qua tầng 3.
+
+**Đã tra trùng:** BƯỚC 221 · BƯỚC 212 — và một lượt tra từ khoá:
+- BƯỚC 221 (ĐO 30): máy đo, sổ lượt A (`scratch/luu_do30/A_wf_oos.db`, sha256 `6ba2df97…`) và ngưỡng kết cục mà ĐO này dùng lại.
+- BƯỚC 212 (ĐO 29): lượt B của nó là chính lượt A của ĐO 30 (651/651 dòng).
+- `git grep -i` (IMOM · residual momentum · idiosyncratic · momentum đặc thù · momentum phần dư) trên `*.py`/`*.md`/`*.json` và `git log --grep` cùng từ khoá: 0 mục. `analysis_agents.MomentumAgent` chỉ dùng chỉ báo dao động ngắn (RSI, MACD, Stochastic, CCI, Williams %R, Momentum); repo chưa có momentum trung hạn hay momentum phần dư.
+- **Bằng chứng ngoài (đọc từ bài gốc, 23/10/2026):** HOSE + HNX, phi tài chính, 7/2010–6/2021, có mã huỷ niêm yết (DataStream). Bảng 1, năm nhóm trọng số đều, lợi nhuận vượt phi rủi ro mỗi tháng: thấp 0,13% (t 0,35) · 2: 0,75% (t 2,21) · 3: 0,79% (t 2,46) · 4: 0,86% (t 1,24) · cao 0,92% (t 2,20) · cao − thấp 0,79% (t 2,99). Momentum giá thường (MOM) không ý nghĩa khi kiểm soát (−0,0027; t −0,85). Bảng 4: thị trường lên (lợi nhuận 36 tháng > 0) 1,22%/tháng (1%); thị trường xuống 0,11% (t 0,15). Không thấy đoạn nào trừ phí giao dịch.
+- **Bản này LỆCH bài gốc ở ba chỗ, khai trước:** (1) chỉ trừ thị trường, không trừ quy mô/giá trị (repo không có số liệu sổ sách); (2) cửa sổ 12 tháng thay vì hồi quy 36 tháng — vì giá cache bắt đầu 10/2021 nên bản 36 tháng chỉ tính được cho 10/650 lệnh OOS; (3) lọc từng lệnh lúc vào thay vì danh mục tháng. Bài gốc vì thế ủng hộ Ý TƯỞNG "nhóm IMOM thấp là nhóm tệ", không ủng hộ con số nào ở đây.
+- **Đã nhìn (leader, 23/10/2026, chỉ-đọc; `scratchpad/ytuong/imom_nhap.py` phiên 59808c4e; đọc sổ A CHỈ cột id, mã, ngày tín hiệu):** 650 lệnh CLOSED; 94 thiếu IMOM (không đủ 200 phiên) · 556 có IMOM · **109 rơi nhóm thấp** (19,6%; nền 20%). Sớm nhất 30/11/2022: AAA (phân vị 0,134), DCL (0,073), HVN (0,061), SHS (0,195), VCG (0,110), N = 82. IMOM thô ngày 02/01/2024: N = 83, từ −0,161 tới 0,183, trung vị 0,051, độ lệch chuẩn 0,067. Cache có 9 ngày |r| > 16% ở 5 mã (MBB 1 · MSR 4 · OIL 2 · SSI 1 · VTP 1) — dấu hiệu chia tách chưa điều chỉnh hoặc ngày chuyển sàn; GIỮ NGUYÊN vì máy đo dùng đúng dữ liệu ấy.
+- **CHƯA nhìn:** giá ra, lợi nhuận, alpha của bất kỳ lệnh nào theo IMOM; chưa chạy bản có luật. Nhìn trước là chế điều kiện sau khi thấy số (bất biến 7).
+
+**Không có dụng cụ vì:** mã luật, cờ chạy, dụng cụ đếm (iv) và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Khi sổ ảo KHÔNG mở lệnh cho mã có IMOM 12 tháng nằm trong 20% thấp nhất của cache vào ngày tín hiệu, alpha OOS của dòng "BẬT · theo ngày" đổi bao nhiêu trên cache `acf6dca1…` — và đổi theo chiều nào?
+
+### Luật mới (ghim)
+- `r_i`, `r_m`: lợi nhuận ngày từ giá đóng cửa liên tiếp của mã và của `VNINDEX` trong cache.
+- Ngày tín hiệu `t`. Cửa sổ W = các phiên có ngày trong [t − 12 tháng ; t − 1 tháng) — bỏ tháng gần nhất. Cần ≥ 200 phiên có cả `r_i` và `r_m`, không thì IMOM = THIẾU.
+- β = hệ số góc OLS (có hệ số chặn) của `r_i` theo `r_m` trên W. `e = r_i − β·r_m` — KHÔNG trừ hệ số chặn, vì cửa sổ ước lượng trùng cửa sổ hình thành: trừ nó thì trung bình phần dư bằng 0 theo cấu tạo và IMOM ≡ 0.
+- IMOM = trung bình(e) / độ lệch chuẩn(e, ddof = 1).
+- Xếp hạng tại `t`: mọi mã trong cache (trừ `VNINDEX`) có IMOM; cần N ≥ 20, không thì không chặn. Phân vị = hạng tăng dần (hạng trung bình khi bằng nhau) / N. Bảng tính trên cache ĐẦY ĐỦ (không chia vùng theo mốc sạch) nhưng chỉ dùng giá trước `t − 1 tháng` — không nhìn tương lai.
+- `consider_entry` có thêm một cổng: tham số `LOC_IMOM_PHAN_VI` > 0 và phân vị IMOM của mã tại `t` ≤ `LOC_IMOM_PHAN_VI` → KHÔNG mở, ghi lý do vào sổ như các cổng khác. IMOM thiếu → KHÔNG chặn. Vị trí: sau cổng "nghỉ sau lệnh lỗ" (ĐO 30), trước chốt C5.
+- `LOC_IMOM_PHAN_VI` mặc định **0 = tắt**. Lượt B đặt **0,20**. Một giá trị duy nhất, ghim trước; ĐO này không thử giá trị khác.
+- KHÔNG đổi: ngưỡng, điểm, `stride`, độ trễ khớp, cắt lỗ, nâng stop, thoát tín hiệu, trần thời gian, trần vốn, mô hình khớp kịch trần/sàn, `NGHI_SAU_LO_NGAY` (vẫn 0).
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911`, băm `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau — `acf6dca1…` cả hai lần (M0). Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…`.
+- Hai lượt `tools/do1_chi_phi_thuc_thi.py --mot-luot 2` trên CÙNG nhánh ĐO 31: **A** = `LOC_IMOM_PHAN_VI` 0, **B** = 0,20. Cách truyền tham số vào lượt chạy viết sau commit ký. Ghép `tools/do20_ghep_tung_lenh.py`.
+
+### Đối chứng của máy đo (trượt thì K0)
+- (i) **A tái lập lượt A của ĐO 30** — 650 lệnh, −1,73%, KTC [−2,28 ; −1,17], ngưỡng IS 45; ghép với `scratch/luu_do30/A_wf_oos.db`: giống hệt. Cũng là phép thử *"mặc định 0 không đổi gì"*.
+- (ii) M0: băm cache trước và sau đều `acf6dca1…`.
+- (iii) **Ca thật:** ở A, lệnh HVN tín hiệu 30/11/2022 (phân vị 0,061 trong N = 82) CÓ mặt; ở B, không lệnh HVN nào có tín hiệu 30/11/2022.
+- (iv) Đếm theo đúng định nghĩa của luật — lệnh có IMOM ở phân vị ≤ 0,20 tại ngày tín hiệu: A = 109 (khớp số đếm 23/10), B = 0. Dụng cụ viết sau commit ký và phải tái lập 109 trên sổ A của ĐO 30.
+
+### Thống kê chính
+- Δalpha = alpha(B) − alpha(A), kèm KTC 95% của từng lượt và ngưỡng IS của B.
+- Số lệnh A, B; số lệnh có ở A mà không có ở B, số lệnh có ở B mà không có ở A (vốn giải phóng — chế độ theo ngày có trần vốn 100%).
+
+### Kết cục (ký trước)
+Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt A của ĐO 30: (−1,17 − (−2,28)) / 2 = 0,555): nhỏ = 0,28 (một nửa), lớn = 0,56 — cùng ngưỡng ĐO 30.
+- **K0:** (i)–(iv) trượt, hoặc B không chạy xong.
+- **A — không phân biệt được:** −0,28 ≤ Δalpha ≤ +0,28. Không lọc; ghi STATE; ý IMOM gác lại.
+- **A⁺ — tốt lên vừa:** +0,28 < Δalpha ≤ +0,56. Báo người dùng; nếu người dùng chọn, khai ứng viên theo luật tầng 3 (C7). ĐO này không tự bật gì.
+- **B — Quy tắc 1:** Δalpha > +0,56. Giả định CÓ LỖI: soát mã luật và máy đo TRƯỚC khi đọc tiếp; báo người dùng; không đổi gì cho tới khi người dùng quyết.
+- **C — xấu đi:** Δalpha < −0,28. Lọc hại; ghi STATE; ý IMOM gác lại.
+- KTC của B chứa 0: báo người dùng ngay (kết luận *"THUA chuẩn có ý nghĩa"* có thể đổi); `CLAUDE.md` không đổi.
+- Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng.
+
+### Báo kèm (không quyết định kết cục)
+- Alpha của 109 lệnh A bị lọc so với phần còn lại; alpha theo năm nhóm IMOM của lệnh A — chẩn đoán CƠ CHẾ, so với dự báo của bài gốc (nhóm thấp tệ nhất), không phải tiêu chí.
+- Alpha của 94 lệnh A thiếu IMOM.
+- Số vòng mua–bán bớt đi và phần ma sát tương ứng (`paper_metrics.ROUND_TRIP_COST_PCT`).
+
+### Điều ĐO này KHÔNG làm
+Không đổi đường chạy thật hay sổ thật (mặc định 0). Không thử phân vị, cửa sổ, số phiên tối thiểu hay thị trường chuẩn khác sau khi ký. Không thêm nhân tố quy mô/giá trị. Không bật luật nghỉ của ĐO 30. Không chạy lại ba dòng còn lại của bảng. Không đọc sổ thật.
