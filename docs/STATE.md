@@ -24058,3 +24058,25 @@ Leader, tại chỗ. Theo bàn giao mở ngày 24/10 (*"soạn bản khai ĐO 32
 **Phát hiện phụ, chưa xử lý.** `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trên một thư mục KHÔNG tồn tại trả `so_file` 0 và băm của chuỗi rỗng (`e3b0c442…`) chứ không nổ — một lần gọi với đường kiểu `/c/…` lọt vào chuỗi Python (24/10) in ra con số ấy. Các script dựng lượt (`dung31`, `dung32`) đều `assert` băm bắt đầu bằng `acf6dca1` nên chưa cắn lần nào.
 
 **Việc kế.** ĐO 33 (chốt sụt giảm của sổ; người dùng 24/10: *"Vốn đã chốt (Recommended)"* · *"15% như Azoth (Recommended)"* · *"Chặn 20 phiên rồi đặt lại đỉnh (Recommended)"*) — bản nháp chờ người dùng duyệt, nhánh riêng sau khi BƯỚC này vào `main`. Người dùng 24/10 cho ĐO 30: *"Chờ xong họ 3 phép rồi quyết (Recommended)"* — cùng cách cho ĐO 32 nếu người dùng chọn. Hẹn cũ giữ nguyên.
+
+## BƯỚC 225 — ĐO 32b (CHẨN ĐOÁN, KHAI SAU KẾT QUẢ ĐO 32): CỔNG VN-INDEX Ở NGƯỠNG GHIM 62 CHO −1,11% [−1,99 ; −0,16] — GẦN LƯỢT B (−1,26) XA LƯỢT A (−1,73): PHẦN TỐT LÊN CỦA ĐO 32 ĐI VỚI NGƯỠNG 62, CỔNG ĐỘ RỘNG KHÔNG THÊM GÌ PHÂN BIỆT ĐƯỢC (24/10/2026)
+
+**Mốc:** D3 — chẩn đoán cho phép thăm dò ĐO 32 (C2); không phải một phép của họ thử, không đổi kết cục A⁺ đã ký của ĐO 32
+
+Leader, tại chỗ. Sau BƯỚC 224 (#270 merge `b7a5d0d`), người dùng chọn qua hộp hỏi *"Có chạy thêm một lượt chẩn đoán để tách phần do ngưỡng 62 khỏi phần do cổng độ rộng không?"*, nguyên văn: *"Có, khai ngắn rồi chạy (Recommended)"*; cùng lượt: ĐO 32 *"Chờ xong họ 3 phép rồi quyết (Recommended)"* · *"Merge khi 2/2 xanh (Recommended)"* · ĐO 33 *"Duyệt cả bản nháp (Recommended)"*. Nhánh `do/chan-doan-nguong-225` từ `main` `b7a5d0d`, worktree `vibe_wt_225`. Commit: `12dca91` ký ĐO 32b (riêng, trước mã) · `b3bb5f1` mã.
+
+**Sổ tay — hỏi thật TRƯỚC commit ký** (chạm `docs/TIEU-CHI-DOC-TRUOC.md`). Một lượt, ÂM. Nó dẫn ba tiền lệ, tự kiểm đều THẬT và thêm vào tra trùng trước khi ký: ghim ngưỡng bằng tay ở ĐO 2 (BƯỚC 46, `tools/do2_do_tre_khop.py`); lỗi 21 (*"tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa"* — đúng hình dạng ĐO 32 gặp); chẩn đoán sau kết cục đã ký (BƯỚC 154 · 159 · 193). Mục ở `docs/soat-notebooklm.json` ("BƯỚC 225", "ĐO 32b").
+
+**Mã.** `tools/do32_do_rong.py`: `NGUONG_GHIM_A62` = 62,0 · `CHAN_DOAN` · `--luot A62` đặt cờ của lượt A và `walkforward.DAI_NGUONG` = [62,0] TRONG tiến trình; lượt A, B, C không chạm dải. +2 test; đột biến **5/5 đỏ** — lượt đầu 4/5: phát "ghim dải ở cả lượt thường" sống vì một test chạy trước để lại `DAI_NGUONG` = [62] trong tiến trình và test mới đọc lại dải ĐÃ BỊ GHI làm mốc; nay dùng dải đánh dấu.
+
+**Lượt chạy.** Worktree tách rời `vibe_wt_225r` ở `b3bb5f1`; bản chép cache gốc; bộ nhớ hậu nghiệm sha256 `e8b44cf8…`; 10:15:02 → 10:20:59 (dải IS một dòng nên ~6 phút thay vì ~37). Sổ và log ở `scratch/luu_do32/` (A62_wf_oos.db sha256 `8ca53db8…`).
+
+**Đối chứng — cả bốn ĐẠT.** (i) M0: cache trước và sau `acf6dca1dd38d515…`. (ii) Log in *"Ngưỡng chọn trên IS: 62"*, dải IS một dòng: 62 · 653 lệnh — trùng dòng 62 của dải IS lượt A ĐO 32. (iii) Sổ IS ở 62 ghép với `scratch/luu_do32/A_wf_is_62.db`: 653/653 GIỐNG HỆT. (iv) `--dem`: 0 quyết định lý do độ rộng; 4.962 lý do VN-INDEX.
+
+**Kết quả.** A62: ngưỡng 62 · **345 lệnh · alpha −1,11% [−1,99 ; −0,16]**. α62 − α(B) = **+0,16**; α62 − α(A) = **+0,62** (cùng đường `build_benchmark` → `vs_benchmark`, `scratchpad/do32/bao_kem32b.py` phiên 59808c4e, tái lập −1,73 · −1,26 · −1,11). **Đọc đã ký: GẦN B, XA A** — phần tốt lên +0,46 của ĐO 32 đi với NGƯỠNG 62; cổng độ rộng không thêm gì phân biệt được (ở cùng ngưỡng 62, có cổng độ rộng còn kém 0,16 — trong nhiễu). Ghép (mã, ngày tín hiệu): A62∩B 260 · chỉ A62 85 · chỉ B 95. KTC của A62 vẫn loại 0 → *"THUA chuẩn có ý nghĩa"* đứng.
+
+**Điều KHÔNG được rút ra.** Ngưỡng 62 cho OOS tốt hơn ngưỡng 45 (+0,62) — nhưng đây là nhìn OOS rồi so ngưỡng: dùng nó để đổi ngưỡng là đúng lỗi bất biến 7 cấm. Luật chọn ngưỡng trên IS giữ nguyên; `BUY_THRESHOLD` của đường thật (62) không liên quan tới phép đo này. Nó chỉ nói: một cổng làm luật chọn IS nhảy ngưỡng sẽ "trông tốt" trên OOS mà không cần tự nó có ích (lỗi 21).
+
+**Hệ quả cho ĐO 32.** Kết cục A⁺ đã ký đứng nguyên (chẩn đoán không lật kết cục); nhưng cơ chế của nó đã được tách: không phải cổng độ rộng. Quyết định ứng viên tầng 3 vẫn chờ xong họ 3 phép như người dùng chọn — chẩn đoán này là dòng đọc kèm cho quyết định ấy.
+
+**Việc kế.** ĐO 33 (chốt sụt giảm của sổ) — bản nháp người dùng đã duyệt; ký ở BƯỚC 226 sau khi BƯỚC này vào `main`. Hẹn cũ giữ nguyên.

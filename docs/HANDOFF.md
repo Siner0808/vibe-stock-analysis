@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **24/10/2026 — BƯỚC 225, ĐO 32b (chẩn đoán, khai sau kết quả ĐO 32): cổng VN-INDEX ở ngưỡng GHIM 62 −1,11% [−1,99 ; −0,16] — gần lượt B (−1,26), xa lượt A (−1,73).** Phần tốt lên của ĐO 32 đi với ngưỡng 62, không với cổng độ rộng. Kết cục A⁺ của ĐO 32 đứng nguyên; người dùng quyết ứng viên sau khi xong họ 3 phép. Không dùng để đổi ngưỡng (chọn ngưỡng bằng OOS là bất biến 7). Chi tiết: `docs/STATE.md` BƯỚC 225.
+
 > 🧭 **24/10/2026 — BƯỚC 224, ĐO 32 (độ rộng thị trường thay cổng VN-INDEX): kết cục A⁺ — CHỜ NGƯỜI DÙNG.** A −1,73% [−2,28 ; −1,17] · B −1,26% [−2,10 ; −0,41], ngưỡng IS B = **62**; Δalpha +0,46 — gộp cả phần đổi ngưỡng, và 105 lệnh bị chặn không tệ hơn phần còn lại (−1,75 · −1,72). Lượt C không cổng thị trường −2,16%: cổng VN-INDEX đỡ 0,43. Phép 2 trong họ 3; ĐO 33 (chốt sụt giảm của sổ) bản nháp chờ duyệt. Người dùng cho ĐO 30: *"Chờ xong họ 3 phép rồi quyết (Recommended)"*. `CONG_VNI_BAT` vẫn True, `DO_RONG_NGUONG` vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 224.
 
 > 🧭 **23/10/2026 — BƯỚC 223, ĐO 31 (lọc IMOM nhóm thấp): kết cục A — không phân biệt được; ý IMOM gác lại.** A −1,73% [−2,28 ; −1,17] · B −1,63% [−2,26 ; −0,93], ngưỡng IS B = 52; Δalpha +0,10. Nhóm bị lọc lại là nhóm đỡ tệ nhất (−0,65%). Phép 1 trong họ 3 trên cùng vùng OOS; ĐO 32 (độ rộng thị trường) · ĐO 33 (chốt sụt giảm của sổ) chưa khai. `LOC_IMOM_PHAN_VI` ở nguồn vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 223.

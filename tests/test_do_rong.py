@@ -285,6 +285,33 @@ def test_ba_luot_THAT_SU_chay_voi_dung_co_va_dung_luot_2_cua_do1(monkeypatch):
     assert ghi == [(2, False, 0.50), (2, False, 0), (2, True, 0)]
 
 
+def test_chan_doan_A62_GHIM_dai_nguong_va_dung_co_cua_luot_A(monkeypatch):
+    """ĐO 32b: A62 = cờ của lượt A + `walkforward.DAI_NGUONG` = [62] trong tiến trình. Lượt A, B, C
+    KHÔNG được chạm dải ngưỡng."""
+    import do1_chi_phi_thuc_thi as do1
+    import walkforward
+    monkeypatch.setattr(pt, "CONG_VNI_BAT", pt.CONG_VNI_BAT)       # trả lại sau test
+    monkeypatch.setattr(pt, "DO_RONG_NGUONG", pt.DO_RONG_NGUONG)
+    # dải ĐÁNH DẤU, không đọc lại dải đang có: một lượt chạy trước trong cùng tiến trình có thể đã
+    # ghi đè nó, và đọc lại thì phép so tự khớp với chính chỗ hỏng (đột biến sống sót 24/10).
+    goc = [45.0, 99.0]
+    monkeypatch.setattr(walkforward, "DAI_NGUONG", goc)
+    ghi = []
+    monkeypatch.setattr(do1, "chay_mot_luot", lambda n, *a, **k: ghi.append(
+        (n, pt.CONG_VNI_BAT, pt.DO_RONG_NGUONG, list(walkforward.DAI_NGUONG))) or 0)
+    assert D.chay_luot("A") == 0 and D.chay_luot("B") == 0
+    assert D.chay_luot("A62") == 0
+    assert ghi == [(2, True, 0, goc), (2, False, 0.50, goc), (2, True, 0, [62.0])]
+
+
+def test_NGUONG_GHIM_cua_dung_cu_KHOP_muc_DO_32b_da_ky():
+    van = (GOC / "docs" / "TIEU-CHI-DOC-TRUOC.md").read_text(encoding="utf-8")
+    muc = van[van.index("## ĐO 32b"):]
+    m = re.search(r"chỉ còn MỘT giá trị \*\*(\d+)\*\*", muc)
+    assert m and float(m.group(1)) == D.NGUONG_GHIM_A62 == D.CHAN_DOAN["A62"][1]
+    assert D.CHAN_DOAN["A62"][0] == D.LUOT["A"]
+
+
 def test_dung_cu_dem_chay_THAT_tren_so_tam_va_cache_tam(tmp_path, monkeypatch, capsys):
     _ghi_cache(tmp_path / "c", so_len=8, so_xuong=12)          # độ rộng 0,40 < 0,50 tại T
     import backtest.data

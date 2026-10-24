@@ -4507,3 +4507,54 @@ Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt A của ĐO 31: (
 
 ### Điều ĐO này KHÔNG làm
 Không đổi đường chạy thật hay sổ thật (mặc định giữ đường hiện tại). Không thử MA, ngưỡng, quần thể hay N tối thiểu khác sau khi ký. Không bật luật của ĐO 30 hay ĐO 31. Không chạy lại ba dòng còn lại của bảng. Không đọc sổ thật.
+
+## ĐO 32b — CHẨN ĐOÁN SAU ĐO 32: cấu hình lượt A (cổng VN-INDEX, không cổng độ rộng) với ngưỡng GHIM 62 — tách phần do ngưỡng khỏi phần do cổng độ rộng (khai 24/10/2026, SAU khi thấy kết quả ĐO 32)
+
+> **Khai 24/10/2026, SAU kết quả ĐO 32 (BƯỚC 224) và TRƯỚC mã, lượt chạy của chẩn đoán này, ở một commit RIÊNG.**
+> - Lý do: ĐO 32 ra A⁺ (Δalpha +0,46) nhưng ngưỡng IS của lượt B nhảy 45 → 62, A và B chỉ chung 59 lệnh, và 105 lệnh cổng độ rộng chặn không tệ hơn phần còn lại (−1,75 · −1,72). Bản khai ĐO 32 đã ghi trước: *"Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng."*
+> - Người dùng chọn 24/10/2026, nguyên văn: *"Có, khai ngắn rồi chạy (Recommended)"* (hộp hỏi *"Có chạy thêm một lượt chẩn đoán để tách phần do ngưỡng 62 khỏi phần do cổng độ rộng không?"*, mô tả phương án: một lượt, giữ cổng VN-INDEX, ghim ngưỡng 62). Cùng lúc người dùng chọn cho ĐO 32: *"Chờ xong họ 3 phép rồi quyết (Recommended)"*.
+> - Sổ tay hỏi thật ở BƯỚC 225, TRƯỚC commit ký: câu trả lời ÂM; nó dẫn ba tiền lệ (ghim ngưỡng ở ĐO 2, lỗi 21, chẩn đoán sau kết cục), tự kiểm đúng và thêm vào tra trùng dưới đây.
+> - **Đây là CHẨN ĐOÁN khai SAU khi đã thấy số:** nó KHÔNG đổi kết cục A⁺ đã ký của ĐO 32, không phải một phép của họ thử, không mở kết cục nào cho phép bật gì. Nó chỉ thêm một dòng đọc kèm cho quyết định của người dùng về ứng viên tầng 3. Một lượt duy nhất, ghim trước khi chạy; không thử ngưỡng khác.
+
+**Đã tra trùng:** BƯỚC 224 · BƯỚC 46 · BƯỚC 154 · BƯỚC 159 · BƯỚC 193 — và các mục liên quan:
+- BƯỚC 46 (ĐO 2, sổ tay chỉ ra): tiền lệ GHIM NGƯỠNG BẰNG TAY để luật chọn ngưỡng không kéo theo một trục nữa — `tools/do2_do_tre_khop.py`, mục *"VÌ SAO NGƯỠNG GHIM BẰNG TAY, KHÔNG ĐỂ LUẬT TỰ CHỌN"*.
+- Lỗi 21 (`references/loi-da-mac.md`, sổ tay chỉ ra): *"tưởng một phép so 2×2 là 2×2, trong khi luật chọn tham số kéo theo một trục nữa"* — đúng hình dạng ĐO 32 gặp; bản khai ĐO 32 chỉ phòng nó bằng một dòng báo kèm.
+- BƯỚC 154 · 159 · 193 (sổ tay chỉ ra): tiền lệ chạy chẩn đoán SAU kết cục đã ký mà không lật kết cục ấy.
+- BƯỚC 224 (ĐO 32): ba lượt A, B, C lưu ở `scratch/luu_do32/` (A_wf_oos.db sha256 `8f7e419f…`, B `f8796978…`); sổ IS ở ngưỡng 62 của lượt A lưu thêm sau khi chạy: `scratch/luu_do32/A_wf_is_62.db` (sha256 `65c0b0dc…`).
+- Bảng hiện hành trong `CLAUDE.md`: ngưỡng 62 là ngưỡng IS của hai dòng "theo mã" — khác chế độ (không có danh mục thật), không so trực tiếp với dòng "theo ngày".
+- **Đã nhìn:** toàn bộ kết quả ĐO 32 (ba lượt, báo kèm, ghép). Dải IS của lượt A (log `scratch/luu_do32/luot_A.log`): ngưỡng 62 trên IS có 653 lệnh — đủ ≥ 30 nên luật chọn cũ sẽ chọn 62 khi dải chỉ còn 62. Đó là IS, không phải OOS.
+- **CHƯA nhìn:** alpha OOS của dòng "BẬT · theo ngày" có cổng VN-INDEX ở ngưỡng 62 — chưa lượt nào chạy OOS ở cấu hình ấy.
+
+**Không có dụng cụ vì:** cờ ghim ngưỡng của dụng cụ và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Ở ngưỡng GHIM 62, sổ có cổng VN-INDEX (cấu hình lượt A của ĐO 32) cho alpha OOS bao nhiêu — gần −1,26% (lượt B của ĐO 32, ngưỡng 62, cổng độ rộng) hay gần −1,73% (lượt A, ngưỡng 45, cổng VN-INDEX)?
+
+### Luật (ghim)
+- Cấu hình lượt A của ĐO 32: `CONG_VNI_BAT` True, `DO_RONG_NGUONG` 0; lượt 2 của `tools/do1_chi_phi_thuc_thi.py` (trượt giá BẬT · theo ngày).
+- Dải ngưỡng dò IS chỉ còn MỘT giá trị **62** — đặt `walkforward.DAI_NGUONG` = [62.0] TRONG tiến trình, không sửa nguồn. Luật chọn ngưỡng không đổi (≥ 30 lệnh IS); IS ở 62 không đủ thì chẩn đoán không chạy được.
+- KHÔNG đổi gì khác (mọi cờ ĐO 30–32 giữ mặc định).
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911`, băm `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau — `acf6dca1…` cả hai lần. Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…`. Một worktree tách rời ở commit mã.
+
+### Đối chứng của máy đo (trượt thì không đọc)
+- (i) M0: băm cache trước và sau đều `acf6dca1…`.
+- (ii) Log in *"Ngưỡng chọn trên IS: 62"* và dải IS chỉ có một dòng (62).
+- (iii) Sổ IS ở 62 của lượt này ghép với `scratch/luu_do32/A_wf_is_62.db` bằng `tools/do20_ghep_tung_lenh.py`: giống hệt — chứng tỏ ghim dải không đổi gì khác ngoài ngưỡng OOS.
+- (iv) `tools/do32_do_rong.py --dem` trên sổ OOS: 0 quyết định lý do độ rộng; quyết định lý do VN-INDEX > 0.
+
+### Đọc (ký trước; KHÔNG phải kết cục của ĐO 32)
+Gọi alpha OOS của lượt này là α62. Nửa ngưỡng như ĐO 32: 0,28 (= nửa của nửa bề rộng KTC lượt A, 0,555).
+- |α62 − α(B)| ≤ 0,28 VÀ |α62 − α(A)| > 0,28 → phần tốt lên của ĐO 32 đi với ngưỡng 62; cổng độ rộng không thêm gì phân biệt được.
+- |α62 − α(A)| ≤ 0,28 VÀ |α62 − α(B)| > 0,28 → ngưỡng không giải thích; phần tốt lên đi với cổng độ rộng.
+- Cả hai ≤ 0,28 (α(B) − α(A) = 0,46 < 2 × 0,28 nên vùng giữa có thể xảy ra) → không tách được.
+- Cả hai > 0,28 → báo cả hai hiệu, không kết luận cơ chế.
+- α62 tốt hơn α(B) quá 0,56 → Quy tắc 1: soát máy đo trước khi đọc.
+- Mọi trường hợp: báo người dùng; không đổi gì ở nguồn; quyết định ứng viên tầng 3 vẫn chờ xong họ 3 phép như người dùng đã chọn.
+
+### Báo kèm
+- KTC 95% của α62; số lệnh; ghép (mã, ngày tín hiệu) với lượt B của ĐO 32 (cùng ngưỡng 62, khác cổng) và với lượt A (cùng cổng, khác ngưỡng).
+
+### Điều chẩn đoán này KHÔNG làm
+Không đổi kết cục hay ngưỡng của ĐO 32. Không thử ngưỡng nào khác 62. Không chạy cổng độ rộng ở ngưỡng 45. Không đổi đường chạy thật hay sổ thật.
