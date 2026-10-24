@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **24/10/2026 — BƯỚC 227, ĐO 30b (chẩn đoán, khai sau kết quả ĐO 30): không nghỉ ở ngưỡng GHIM 50 −1,56% [−2,17 ; −0,92] — gần lượt A (−1,73), xa lượt B (−1,22): phần tốt lên của ĐO 30 đi với LUẬT NGHỈ, không với ngưỡng. CHỜ NGƯỜI DÙNG: khai ứng viên tầng 3 cho luật nghỉ hay gác. ĐO 32 GÁC (người dùng: *"Gác ĐO 32; chẩn đoán ĐO 30 trước (Recommended)"*).** Ở ngưỡng 50, 166 lệnh vào lại ngay sau một lệnh lỗ −2,45% so với −1,21% phần còn lại. Kết cục A⁺ của ĐO 30 đứng nguyên; `NGHI_SAU_LO_NGAY` vẫn 0. Lỗi 189 (băm M0 thư mục vắng ra băm rỗng) đã chặn ở `bam_thu_muc`. Chi tiết: `docs/STATE.md` BƯỚC 227.
+
 > 🧭 **24/10/2026 — BƯỚC 226, ĐO 33 (chốt sụt giảm của sổ: vốn đã chốt tụt > 15% thì chặn mua 20 phiên): kết cục A — không phân biệt được; ý gác lại. XONG HỌ BA PHÉP — CHỜ NGƯỜI DÙNG quyết ứng viên tầng 3 (ĐO 30 A⁺, ĐO 32 A⁺).** A −1,73% · B −1,62% [−2,19 ; −1,02], ngưỡng IS 45 cả hai; Δ +0,11; 3 lần đóng băng; 55 lệnh bị chặn là nhóm đỡ tệ (−0,23%); sụt giảm tối đa không đổi (37,1% · 37,7%). ĐO 32: phần tốt lên đi với ngưỡng 62 (ĐO 32b), không với cổng độ rộng. `CHOT_SUT_GIAM_NGUONG` vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 226.
 
 > 🧭 **24/10/2026 — BƯỚC 225, ĐO 32b (chẩn đoán, khai sau kết quả ĐO 32): cổng VN-INDEX ở ngưỡng GHIM 62 −1,11% [−1,99 ; −0,16] — gần lượt B (−1,26), xa lượt A (−1,73).** Phần tốt lên của ĐO 32 đi với ngưỡng 62, không với cổng độ rộng. Kết cục A⁺ của ĐO 32 đứng nguyên; người dùng quyết ứng viên sau khi xong họ 3 phép. Không dùng để đổi ngưỡng (chọn ngưỡng bằng OOS là bất biến 7). Chi tiết: `docs/STATE.md` BƯỚC 225.

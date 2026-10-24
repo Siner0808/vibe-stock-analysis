@@ -92,7 +92,13 @@ def dat_cache(thu_muc):
 
 
 def bam_thu_muc(thu_muc) -> dict:
-    """M0 — băm SHA-256 theo (tên file, nội dung) của mọi `*.csv`, cùng mtime nhỏ nhất/lớn nhất."""
+    """M0 — băm SHA-256 theo (tên file, nội dung) của mọi `*.csv`, cùng mtime nhỏ nhất/lớn nhất.
+
+    Đường không phải thư mục thì NỔ (lỗi 189): `glob` trên một thư mục vắng trả rỗng, và băm rỗng
+    `e3b0c442…` làm phép so M0 báo lệch giả — hai thư mục cùng vắng còn báo KHỚP giả.
+    """
+    if not Path(thu_muc).is_dir():
+        raise FileNotFoundError(f"M0: {thu_muc} không phải thư mục — không băm (lỗi 189)")
     files = sorted(Path(thu_muc).glob("*.csv"))
     h = hashlib.sha256()
     mt = []
