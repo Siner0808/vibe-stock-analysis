@@ -3630,6 +3630,58 @@
     "BƯỚC 222": {
       "ngay": "2026-10-23",
       "khong_bat_buoc_vi": "Dụng cụ chạy cổng ở máy: tools/nam_cong.py thêm tuỳ chọn --song-song (cổng 1 chạy -n auto khi venv có pytest-xdist; mặc định vẫn một tiến trình như BƯỚC 201) + 6 test trong tests/test_nam_cong.py (có gác khoá CI vẫn một tiến trình); sửa lỗi 188 ở hai test của tests/test_cua_doc_bat_buoc.py (gọi cửa với thư mục tạm riêng, không đổi cửa); một ghi chú ở references/cong-thuc-chay.md và một dòng bảng lỗi. Bộ năm cổng, tập công cụ và lệnh CI không đổi; không đổi luật, điểm, ngưỡng, lệnh, sổ hay kết luận đo nào; không chạm CLAUDE.md, NGUYEN-TAC, MO-XE, SKILL, TIEU-CHI, LO-TRINH — tools/buoc_cham_luat.py 222 xác nhận."
+    },
+    "BƯỚC 223": {
+      "ngay": "2026-10-23",
+      "nguon": [
+        "CLAUDE.md",
+        "HANDOFF.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "QUYET-DINH-CHO.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "references/loi-da-mac.md",
+        "references/soat-cheo-notebooklm.md",
+        "SKILL.md",
+        "STATE.md",
+        "TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "Không nạp lại (leader, khung trình duyệt trong app, 23/10/2026 chiều): sổ 18 nguồn, cùng bộ nguồn lượt BƯỚC 221. `git diff --shortstat <băm> origin/main -- <tệp>`: CLAUDE.md @ed9a9ab LỆCH (+9/−5) · HANDOFF @3c2fd2c LỆCH (+47/−5) · LO-TRINH @b353c16 LỆCH (+6/−2; C2, C7 có trong bản sổ) · TIEU-CHI @ed9a9ab LỆCH (+121, thiếu ĐO 29–31) · NGUYEN-TAC @ed9a9ab và QUYET-DINH-CHO @1238343 KHỚP · STATE khúc @3c2fd2c (BƯỚC 2–201; +664/−1). Phần câu hỏi dựa vào (C2, C7, bất biến 7 và 8, BƯỚC 7, 9) có trong bản sổ; số ĐO 30 KHÔNG có — tự kiểm bằng git grep.",
+      "cau_hoi": "I am about to write BƯỚC 223 into docs/STATE.md: docs/TIEU-CHI-DOC-TRUOC.md gets a new pre-registered measurement ĐO 31, signed 23/10/2026 before any code or run: an 'idiosyncratic momentum (IMOM) low-quintile filter' for the virtual book. IMOM at signal date t = mean/std of the beta-adjusted daily residual return of the stock versus VN-Index over the window [t-12 months, t-1 month) (at least 200 sessions; the intercept is not subtracted); the stock is not opened when its IMOM percentile, ranked across all symbols of the price cache, is <= 0.20. The parameter LOC_IMOM_PHAN_VI defaults to 0 (off), so the live path run_daily and the real book do not change. It is an exploratory measurement (LO-TRINH C2); a promising outcome only lets the user choose to declare a tier-3 candidate (C7). Two walk-forward runs of the 'BẬT · theo ngày' row on cache acf6dca1 (A = 0, B = 0.20), where A must reproduce ĐO 30 run A (650 trades, alpha -1.73%, CI [-2.28; -1.17], IS threshold 45); outcome thresholds 0.28 and 0.56 as in ĐO 30. The idea comes from an external paper on the Vietnam market (Hoang, Tran, Pham 2022), and ĐO 31 is declared as the first of a family of three measurements on the same out-of-sample window. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a rule that every new measurement must correct its thresholds for multiple testing on the same out-of-sample window, or that price-derived signals were already shown to carry no information so a price-based filter must not be measured, or that the cross-sectional ranking may not use data after a symbol's clean cut date (moc sach), or that momentum was already measured and rejected as an entry rule, or that ĐO 30 run A numbers differ from 650 trades and -1.73%, or that no new measurement may start while the ĐO 30 decision is pending. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, câu trả lời ÂM. Tự kiểm: (1) THẬT, và tra trùng của bản ký THIẾU nó — sổ tay dẫn STATE BƯỚC 7: `tools/doi_chieu_trich_dan.py \"Anomaly được ghi nhận ở Việt Nam là ĐẢO CHIỀU, không phải momentum\"` → KHỚP STATE.md; `… \"Momentum VN yếu và biến mất khi kiểm soát rủi ro\"` → KHỚP; lần theo ra BƯỚC 9 (`grep -n \"^## BƯỚC 9 \" docs/STATE.md` → 4516: đảo chiều bị bác) → bổ sung vào mục ĐO 31 TRƯỚC lượt chạy, commit 1856042. (2) THẬT: `… \"xếp hạng chéo trong đúng ngày đó\"` → KHỚP STATE.md — tiền lệ ủng hộ xếp hạng tại ngày t. (3) THẬT: ngưỡng 0,05/K là của vòng xác nhận tầng 3 — `git grep -n \"0,05/K\" -- docs/STATE.md` → :20175, :20692; ĐO 31 là C2 nên không áp. (4) THẬT: số ĐO 30 lượt A — `git grep -n \"650 lệnh, −1,73%\" -- CLAUDE.md` → :205. (5) THẬT: không câu nào cấm ĐO mới khi ĐO 30 còn chờ — `git grep -i -E \"không mở ĐO|không đo mới|cấm.*ĐO mới\" -- docs CLAUDE.md .claude` (trừ lich-su) rỗng."
+    },
+    "ĐO 31": {
+      "ngay": "2026-10-23",
+      "nguon": [
+        "CLAUDE.md",
+        "HANDOFF.md",
+        "lich-su/CLAUDE-md-2026-09-30.md",
+        "lich-su/SKILL-md-2026-09-30.md",
+        "LO-TRINH.md",
+        "MO-XE-KIEN-TRUC.md",
+        "NGUYEN-TAC-DO-LUONG.md",
+        "QUYET-DINH-CHO.md",
+        "references/bay.md",
+        "references/cong-thuc-chay.md",
+        "references/loi-da-mac.md",
+        "references/soat-cheo-notebooklm.md",
+        "SKILL.md",
+        "STATE.md",
+        "TIEU-CHI-DOC-TRUOC.md"
+      ],
+      "_do_tuoi": "CÙNG lượt hỏi với BƯỚC 223 (một câu, 23/10/2026): nội dung được soát là mô hình và kết cục của ĐO 31 đã ký ở a9a99fd. Không nạp lại (leader, khung trình duyệt trong app, 23/10/2026 chiều): sổ 18 nguồn, cùng bộ nguồn lượt BƯỚC 221. `git diff --shortstat <băm> origin/main -- <tệp>`: CLAUDE.md @ed9a9ab LỆCH (+9/−5) · HANDOFF @3c2fd2c LỆCH (+47/−5) · LO-TRINH @b353c16 LỆCH (+6/−2; C2, C7 có trong bản sổ) · TIEU-CHI @ed9a9ab LỆCH (+121, thiếu ĐO 29–31) · NGUYEN-TAC @ed9a9ab và QUYET-DINH-CHO @1238343 KHỚP · STATE khúc @3c2fd2c (BƯỚC 2–201; +664/−1). Phần câu hỏi dựa vào (C2, C7, bất biến 7 và 8, BƯỚC 7, 9) có trong bản sổ; số ĐO 30 KHÔNG có — tự kiểm bằng git grep.",
+      "cau_hoi": "I am about to write BƯỚC 223 into docs/STATE.md: docs/TIEU-CHI-DOC-TRUOC.md gets a new pre-registered measurement ĐO 31, signed 23/10/2026 before any code or run: an 'idiosyncratic momentum (IMOM) low-quintile filter' for the virtual book. IMOM at signal date t = mean/std of the beta-adjusted daily residual return of the stock versus VN-Index over the window [t-12 months, t-1 month) (at least 200 sessions; the intercept is not subtracted); the stock is not opened when its IMOM percentile, ranked across all symbols of the price cache, is <= 0.20. The parameter LOC_IMOM_PHAN_VI defaults to 0 (off), so the live path run_daily and the real book do not change. It is an exploratory measurement (LO-TRINH C2); a promising outcome only lets the user choose to declare a tier-3 candidate (C7). Two walk-forward runs of the 'BẬT · theo ngày' row on cache acf6dca1 (A = 0, B = 0.20), where A must reproduce ĐO 30 run A (650 trades, alpha -1.73%, CI [-2.28; -1.17], IS threshold 45); outcome thresholds 0.28 and 0.56 as in ĐO 30. The idea comes from an external paper on the Vietnam market (Hoang, Tran, Pham 2022), and ĐO 31 is declared as the first of a family of three measurements on the same out-of-sample window. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a rule that every new measurement must correct its thresholds for multiple testing on the same out-of-sample window, or that price-derived signals were already shown to carry no information so a price-based filter must not be measured, or that the cross-sectional ranking may not use data after a symbol's clean cut date (moc sach), or that momentum was already measured and rejected as an entry rule, or that ĐO 30 run A numbers differ from 650 trades and -1.73%, or that no new measurement may start while the ĐO 30 decision is pending. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, câu trả lời ÂM. Tự kiểm: (1) THẬT, và tra trùng của bản ký THIẾU nó — sổ tay dẫn STATE BƯỚC 7: `tools/doi_chieu_trich_dan.py \"Anomaly được ghi nhận ở Việt Nam là ĐẢO CHIỀU, không phải momentum\"` → KHỚP STATE.md; `… \"Momentum VN yếu và biến mất khi kiểm soát rủi ro\"` → KHỚP; lần theo ra BƯỚC 9 (`grep -n \"^## BƯỚC 9 \" docs/STATE.md` → 4516: đảo chiều bị bác) → bổ sung vào mục ĐO 31 TRƯỚC lượt chạy, commit 1856042. (2) THẬT: `… \"xếp hạng chéo trong đúng ngày đó\"` → KHỚP STATE.md — tiền lệ ủng hộ xếp hạng tại ngày t. (3) THẬT: ngưỡng 0,05/K là của vòng xác nhận tầng 3 — `git grep -n \"0,05/K\" -- docs/STATE.md` → :20175, :20692; ĐO 31 là C2 nên không áp. (4) THẬT: số ĐO 30 lượt A — `git grep -n \"650 lệnh, −1,73%\" -- CLAUDE.md` → :205. (5) THẬT: không câu nào cấm ĐO mới khi ĐO 30 còn chờ — `git grep -i -E \"không mở ĐO|không đo mới|cấm.*ĐO mới\" -- docs CLAUDE.md .claude` (trừ lich-su) rỗng."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

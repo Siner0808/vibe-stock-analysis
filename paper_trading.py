@@ -315,6 +315,27 @@ NGHI_SAU_LO_NGAY = 0
 #: Tiền tố lý do ghi sổ khi cổng nghỉ-sau-lỗ chặn; ngày ra của lệnh lỗ đứng sau.
 LY_DO_NGHI_SAU_LO = "nghỉ sau lệnh lỗ"
 
+#: Lọc IMOM nhóm thấp — ĐO 31 (BƯỚC 223; khai trước ở `docs/TIEU-CHI-DOC-TRUOC.md`).
+#: > 0 thì `consider_entry` KHÔNG mở mã có phân vị IMOM 12 tháng (`imom.py`) tại ngày
+#: tín hiệu ≤ giá trị này; IMOM thiếu thì không chặn. 0 = TẮT, và tắt là hành vi đang
+#: chạy: đường chạy thật không đổi, `imom` không được nạp. Lượt B của ĐO 31 đặt 0,20
+#: TRONG TIẾN TRÌNH (`tools/do31_loc_imom.py`), không sửa nguồn.
+LOC_IMOM_PHAN_VI = 0
+
+#: Tiền tố lý do ghi sổ khi cổng lọc IMOM chặn; phân vị của mã đứng sau.
+LY_DO_LOC_IMOM = "lọc IMOM nhóm thấp"
+
+
+def phan_vi_imom_bi_loc(symbol: str, signal_date: str) -> Optional[float]:
+    """Phân vị IMOM của `symbol` tại ngày tín hiệu nếu nó ≤ `LOC_IMOM_PHAN_VI` (bị lọc);
+    None nếu không bị lọc hoặc IMOM thiếu — và None ngay, KHÔNG nạp `imom` hay đọc cache,
+    khi cổng TẮT (0). ĐO 31, BƯỚC 223."""
+    if LOC_IMOM_PHAN_VI <= 0:
+        return None
+    import imom
+    pv = imom.phan_vi_mac_dinh(symbol, str(signal_date)[:10])
+    return pv if pv is not None and pv <= LOC_IMOM_PHAN_VI else None
+
 #: Số vị thế MỤC TIÊU nắm đồng thời. ĐÂY LÀ QUYẾT ĐỊNH ĐO LƯỜNG, KHÔNG PHẢI
 #: QUYẾT ĐỊNH LỢI NHUẬN — đọc kỹ trước khi vặn.
 #:
@@ -743,6 +764,8 @@ class PaperTradingJournal:
         elif (ra_lo := self.ngay_ra_lo_gan(symbol, signal_date)) is not None:
             skip = (f"{LY_DO_NGHI_SAU_LO}: ra lỗ ngày {ra_lo}, "
                     f"chưa qua {NGHI_SAU_LO_NGAY} ngày lịch")
+        elif (pv := phan_vi_imom_bi_loc(symbol, signal_date)) is not None:
+            skip = f"{LY_DO_LOC_IMOM}: phân vị {pv:.3f} ≤ {LOC_IMOM_PHAN_VI:g}"
         else:
             risk = (result.get("analyses", {}).get("risk", {})
                     .get("recommendations", {}))

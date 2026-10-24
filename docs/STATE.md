@@ -23992,3 +23992,35 @@ Ba hàng cùng nhiễu, không so sạch được với nhau hay với ba lượ
 **Giả thuyết bị bác.** (1) "Dùng GPU cho nhanh" — GPU tích hợp không có CUDA, việc nặng không phải phép tính ma trận. (2) "Cổng 1 song song thì cả lượt nhanh hơn" — đúng khi cổng 1 chạy RIÊNG (214,53 s), chưa đúng được khi chạy chồng cổng 4 trên máy bận.
 
 **Việc kế.** Đo `--song-song` khi máy RẢNH (không trò chơi, leader không chạy gì song song) — nếu cả lượt nhanh hơn và cổng 4 xanh ở vài lượt thì đề xuất bật mặc định. Bản khai trước ĐO 31 (IMOM rút gọn 12 tháng) đã ký ở BƯỚC 223; ĐO 32 · ĐO 33 theo sau. Hẹn cũ giữ nguyên.
+
+## BƯỚC 223 — ĐO 31: LỌC IMOM NHÓM THẤP (MOMENTUM ĐẶC THÙ 12 THÁNG, PHÂN VỊ ≤ 0,20); DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` −1,73% → −1,63% (KẾT CỤC A — KHÔNG PHÂN BIỆT ĐƯỢC; NGƯỠNG IS ĐỔI 45 → 52); NHÓM BỊ LỌC LẠI LÀ NHÓM ĐỠ TỆ NHẤT; Ý IMOM GÁC LẠI (23/10/2026)
+
+**Mốc:** D3 — phép đo THĂM DÒ (C2) cho một bộ lọc vào lệnh lấy từ tài liệu ngoài; phép thứ nhất trong họ ba phép (ĐO 31 IMOM · ĐO 32 độ rộng thị trường · ĐO 33 chốt sụt giảm của sổ) trên cùng vùng OOS
+
+Leader, tại chỗ. Ngoài bàn giao: người dùng nhờ *"tìm trên GITHUB hoặc các nền tản khác xem có ý tưởng nào, hoặc có số liệu nào được kiểm chứng mà mình có thể sử dụng được"* → leader báo IMOM (Hoàng Văn Hải, Trần Thị Tâm Châu, Phạm Văn Sơn 2022, *Tạp chí KH&CN — ĐH Đà Nẵng* 20(12.1): HOSE + HNX 7/2010–6/2021, cao − thấp 0,79%/tháng t 2,99; nhóm thấp 0,13%) → người dùng *"Nên thử"* → hộp hỏi *"Rút gọn 12 tháng (Recommended)"* (bản 36 tháng chỉ tính được 10/650 lệnh OOS vì giá cache bắt đầu 10/2021) → *"Duyệt cả bản nháp (Recommended)"*. Nhánh `do/loc-imom-223` từ `main` `d158bc6`, worktree `vibe_wt_223`. Commit: `a9a99fd` ký ĐO 31 (riêng, trước mã) · `1856042` bổ sung tra trùng TRƯỚC lượt chạy · `92b32da` mã + test + dụng cụ · gộp `main` sau BƯỚC 222 (#268).
+
+**Sổ tay — hỏi thật** (chạm `docs/TIEU-CHI-DOC-TRUOC.md`). Một lượt, ÂM. Nó dẫn STATE BƯỚC 7 — *"Anomaly được ghi nhận ở Việt Nam là ĐẢO CHIỀU, không phải momentum."* — mà tra trùng của bản ký thiếu; tự kiểm bằng `tools/doi_chieu_trich_dan.py` (KHỚP) và lần theo ra BƯỚC 9 (đảo chiều bị BÁC trên 69 mã) → bổ sung vào mục ĐO 31 TRƯỚC lượt chạy (`1856042`; luật, giá trị, ngưỡng, đối chứng, kết cục không đổi). Bốn câu âm còn lại THẬT (`git grep`). Mục ở `docs/soat-notebooklm.json`.
+
+**Mã.** `imom.py` (mới): định nghĩa ghim — `r_i`, `r_m` lợi nhuận ngày của mã và VNINDEX; cửa sổ [t − 12 tháng ; t − 1 tháng); β OLS; `e = r_i − β·r_m` KHÔNG trừ hệ số chặn (cửa sổ ước lượng trùng cửa sổ hình thành — trừ nó thì IMOM ≡ 0, bẫy dựng lại ở phát đầu của test); IMOM = mean/std; ≥ 200 phiên; phân vị trên mọi mã của cache, N ≥ 20; `imom.BangIMOM` nạp cache một lần và nhớ theo ngày. `paper_trading.LOC_IMOM_PHAN_VI` = 0 (TẮT; đường chạy thật không đổi, `imom` không được nạp) · `LY_DO_LOC_IMOM` · `paper_trading.phan_vi_imom_bi_loc`; cổng nằm sau cổng nghỉ-sau-lỗ (ĐO 30) và trước chốt C5. `tools/do31_loc_imom.py`: `--luot A|B` đặt cờ TRONG tiến trình rồi giao lượt 2 của `tools/do1_chi_phi_thuc_thi.py`; `--dem` đếm đối chứng (iv) cùng định nghĩa với cổng. `tests/test_loc_imom.py` 22 test; đột biến **23/23 đỏ**.
+
+**Lượt chạy.** Hai worktree tách rời ở `92b32da`; `VIBE_CACHE_DIR` trỏ hai bản chép của `scratch/vibe_cache_goc_20260911`; `sl_pattern_memory.json` sha256 `e8b44cf8…`; chạy song song 16:35:47 → 17:31:00 (A) / 17:32:40 (B). Sổ và log lưu ở `scratch/luu_do31/` (A_wf_oos.db sha256 `dab0579d…`, B_wf_oos.db `a484a806…`; sổ A khác băm sổ A của ĐO 30 vì tệp sổ ghi cả thời điểm tạo — nội dung lệnh giống hệt, xem (i)).
+
+**Đối chứng của máy đo — cả bốn ĐẠT.**
+- (i) A ghép với `scratch/luu_do30/A_wf_oos.db` bằng `tools/do20_ghep_tung_lenh.py`: 651/651 dòng cùng khoá GIỐNG HỆT, 0 khác; log A: 650 lệnh, −1,73%, KTC [−2,28 ; −1,17], ngưỡng IS 45. Cũng là phép thử *"mặc định 0 không đổi gì"*.
+- (ii) M0: hai bản chép cache trước và sau đều `acf6dca1dd38d515…` (125 tệp).
+- (iii) A có lệnh HVN tín hiệu 30/11/2022 (id 103); B có 0 lệnh HVN tín hiệu 30/11/2022.
+- (iv) `--dem`: A = 109 (khớp số khai), B = 0.
+
+**Thống kê chính.** A: ngưỡng IS 45 · 650 lệnh · alpha −1,73% [−2,28 ; −1,17]. B: ngưỡng IS **52** · 511 lệnh · alpha **−1,63% [−2,26 ; −0,93]**. **Δalpha = +0,10.** Ngưỡng đã ký (suy từ nửa bề rộng KTC của A, 0,555): −0,28 ≤ +0,10 ≤ +0,28 → **kết cục A — không phân biệt được.** Phép 1 trong họ 3. KTC của B vẫn loại 0 → kết luận *"THUA chuẩn có ý nghĩa"* đứng. Ngưỡng IS của B khác 45 → theo bản khai, Δalpha gộp cả phần đổi ngưỡng.
+
+**Báo kèm (đã khai; không quyết định kết cục; `scratchpad/do31/bao_kem31.py` phiên 59808c4e, cùng đường `build_benchmark` → `vs_benchmark` của walkforward, tái lập đúng −1,73 và −1,63).**
+- 109 lệnh A bị lọc: alpha **−0,65% [−2,18 ; +1,04]**; 447 lệnh có IMOM không bị lọc: −2,00% [−2,67 ; −1,30]; 94 lệnh thiếu IMOM: −1,70% [−2,76 ; −0,62].
+- Theo năm nhóm IMOM của lệnh A (thấp → cao): −0,65 · −2,99 · −1,08 · −1,94 · −1,79. Bài gốc dự báo nhóm thấp tệ nhất; ở sổ này nhóm thấp lại ĐỠ TỆ nhất, và không có thứ tự đơn điệu. KTC từng nhóm rộng — đây là chẩn đoán, không phải phán quyết.
+- Ghép A↔B theo (mã, ngày tín hiệu): chung 217 · chỉ ở A 433 · chỉ ở B 294 (lệnh chỉ ở B: −1,07% [−1,94 ; −0,14]) — sổ xáo lại mạnh vì ngưỡng 52 và vốn được giải phóng.
+- Vòng mua–bán bớt 139 (650 → 511).
+
+**Theo kết cục ký trước (A).** Không lọc; ý IMOM gác lại. ĐO này không tự bật gì: `LOC_IMOM_PHAN_VI` ở nguồn vẫn 0. `CLAUDE.md` không đổi.
+
+**Giả thuyết bị bác.** "Nhóm IMOM thấp là nhóm tệ nhất" (bài gốc, danh mục tháng, trọng số đều, nghiêng mã nhỏ) không mang sang được sổ này (lệnh vào theo điểm, rổ VN100, giữ ngắn): nhóm bị lọc là nhóm đỡ tệ nhất. Ba chỗ lệch đã khai trước (chỉ trừ thị trường, 12 tháng, lọc từng lệnh) là ứng viên giải thích; ĐO này không tách được chúng.
+
+**Việc kế.** Họ thử còn ĐO 32 (độ rộng thị trường làm thước trạng thái) và ĐO 33 (chốt sụt giảm của sổ) — người dùng: *"ĐO xem rồi thêm ý tưởng nó vào Repo của mình."* Mỗi phép khai riêng, chờ người dùng duyệt bản nháp. Câu ĐO 30 (khai ứng viên tầng 3 hay gác) vẫn chờ. Hẹn cũ giữ nguyên.
