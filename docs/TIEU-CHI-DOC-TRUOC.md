@@ -4558,3 +4558,73 @@ Gọi alpha OOS của lượt này là α62. Nửa ngưỡng như ĐO 32: 0,28 (
 
 ### Điều chẩn đoán này KHÔNG làm
 Không đổi kết cục hay ngưỡng của ĐO 32. Không thử ngưỡng nào khác 62. Không chạy cổng độ rộng ở ngưỡng 45. Không đổi đường chạy thật hay sổ thật.
+
+## ĐO 33 — CHỐT SỤT GIẢM CỦA SỔ: vốn đã chốt của sổ tụt hơn 15% so với đỉnh thì chặn mua 20 phiên, rồi đặt lại đỉnh; đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 24/10/2026)
+
+> **Khai 24/10/2026, TRƯỚC khi có mã và lượt chạy, ở một commit RIÊNG.**
+> - Gốc ý: tra cứu ngoài 23/10/2026 (leader), repo `toreleon/Azoth` (`src/agent/backtestRunner.ts` @ `3490cdd`, đọc 24/10/2026 qua `gh api`): `BACKTEST_MAX_DRAWDOWN_FLOOR = 0.15`; mỗi lượt `peakMtm = Math.max(peakMtm, mtm)`, `freezeBuys = drawdown > BACKTEST_MAX_DRAWDOWN_FLOOR` — vốn theo giá thị trường, mở lại chỉ khi vốn hồi; không công bố kết quả kiểm chứng. Người dùng đáp nhóm ý từ repo ngoài, nguyên văn: *"ĐO xem rồi thêm ý tưởng nó vào Repo của mình."*
+> - Người dùng chốt 24/10/2026 qua bốn hộp hỏi, nguyên văn: *"Vốn đã chốt (Recommended)"* (hộp *"ĐO 33 đo sụt giảm của sổ theo thước nào?"*); *"15% như Azoth (Recommended)"* (hộp *"Ngưỡng sụt giảm để chặn mua?"*); *"Chặn 20 phiên rồi đặt lại đỉnh (Recommended)"* (hộp *"Luật mở băng sau khi chặn mua?"*); và cho ĐO 30: *"Chờ xong họ 3 phép rồi quyết (Recommended)"*.
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 24/10/2026 (hộp hỏi *"Bản nháp khai trước ĐO 33 (sổ tụt hơn 15% so với đỉnh vốn đã chốt thì chặn mua 20 phiên, rồi đặt lại đỉnh): duyệt để ký sau khi #270 merge?"*).
+> - **Sửa sau duyệt, TRƯỚC ký (leader 24/10/2026, báo người dùng):** bản duyệt ghi "ngày ra ≤ d"; nay "ngày ra < d". Lý do đọc từ mã: `walkforward.lich_theo_ngay` chạy các mã của một phiên theo thứ tự chữ cái, mỗi mã xử lý lệnh thoát của nó rồi mới xét mở lệnh — nên với "≤ d", mã đứng trước thấy một E, mã đứng sau thấy E khác trong CÙNG phiên, và dụng cụ không dựng lại được. "< d" cho mọi mã cùng phiên một E. Thước (vốn đã chốt), ngưỡng 15%, 20 phiên, luật mở băng không đổi.
+> - Sổ tay hỏi thật ở BƯỚC 226, TRƯỚC commit ký: câu trả lời ÂM; nó dẫn bất biến 4 và ĐO 8 (BƯỚC 66), tự kiểm đúng; BƯỚC 66 thêm vào tra trùng dưới đây (luật, giá trị, ngưỡng, đối chứng, kết cục không đổi so với bản người dùng duyệt).
+> - Phép đo THĂM DÒ (`docs/LO-TRINH.md` C2: không tính K, không bao giờ lên bản). Tham số mặc định TẮT; đường chạy thật (`run_daily`) KHÔNG đổi. Kết cục có triển vọng thì người dùng chọn có khai ứng viên tầng 3 hay không (C7).
+> - **Họ thử:** phép thứ BA, cuối cùng, trong họ ba phép trên CÙNG vùng OOS (ĐO 31 IMOM · ĐO 32 độ rộng thị trường · ĐO 33). Ngưỡng KHÔNG hiệu chỉnh cho họ (thăm dò); mọi báo cáo kết cục ghi "phép 3 trong họ 3".
+> - **Vì sao phải có luật mở băng (khác Azoth):** sổ này đóng phần lớn lệnh bằng cắt lỗ; khi bị chặn mua, sổ về tiền mặt trong vài phiên, vốn đã chốt đứng yên và luật "mở khi vốn hồi" của Azoth thành "ngừng mua vĩnh viễn".
+
+**Đã tra trùng:** BƯỚC 221 · BƯỚC 223 · BƯỚC 224 · BƯỚC 66 — và một lượt tra từ khoá:
+- BƯỚC 221 (ĐO 30): ý gần nhất — nghỉ sau lệnh lỗ, nhưng THEO MÃ; ĐO 33 chặn theo CẢ SỔ.
+- BƯỚC 223 (ĐO 31): máy đo, sổ lượt A (`scratch/luu_do31/A_wf_oos.db`, sha256 `dab0579d…`) và ngưỡng kết cục mà ĐO này dùng lại.
+- BƯỚC 224 (ĐO 32): lượt A của nó tái lập lượt A của ĐO 31 — 651/651 dòng giống hệt (`scratch/luu_do32/A_wf_oos.db`, sha256 `8f7e419f…`); kết cục A⁺ chờ người dùng sau khi xong họ.
+- BƯỚC 66 (ĐO 8, sổ tay chỉ ra): số học của `paper_metrics.compute` ĐÚNG nhưng là nhân dồn tuần tự theo ngày ra — khác một danh mục thật khi lệnh chồng lấn (số hạng chéo, cấp vốn). Thước sụt giảm của ĐO 33 vì thế là thước của đường vốn ấy (đúng lựa chọn *"Vốn đã chốt"*), không phải sụt giảm của một tài khoản thật.
+- `NGUYEN-TAC-DO-LUONG.md` bất biến 4 (đường vốn theo thời gian, không theo id): vốn đã chốt ở đây sắp theo ngày ra, đúng như `paper_metrics.compute`.
+- `git grep -i` (circuit · chốt sụt giảm · đóng băng mua · dừng mua khi) trên `*.py` và STATE/TIEU-CHI/LO-TRINH/QUYET-DINH-CHO: 0 mục. `max_drawdown_pct` chỉ được BÁO (`paper_metrics.compute`, app, nhật ký "vì sao" của từng mã) và dùng để xếp hạng trong các script `optimize_*` đời "20 vòng tối ưu" — chưa bao giờ là một cổng của sổ.
+- **Bản này LỆCH nguồn ngoài ở hai chỗ, khai trước:** (1) vốn ĐÃ CHỐT, không theo giá thị trường (người dùng chọn); (2) có luật mở băng 20 phiên rồi đặt lại đỉnh (người dùng chọn), Azoth thì không. Ngưỡng 15% lấy nguyên của Azoth, không dò.
+- **Đã nhìn:** không gì về lợi nhuận. Log của ĐO 30, ĐO 31 không in sụt giảm (`grep -c -i "drawdown\|sụt giảm\|maxdd"` = 0 ở `luu_do31/luot_A.log`, `luu_do30/luot_A.log`, `luu_do30/luot_B.log`).
+- **CHƯA nhìn:** đường vốn, sụt giảm, ngày nào chạm 15% của bất kỳ sổ nào. Vì thế ĐO này KHÔNG ghim trước được một ngày ca thật — đếm một ngày như vậy là nhìn lợi nhuận (bất biến 7); đối chứng (iii) thay bằng phép tự nhất quán bên dưới.
+
+**Không có dụng cụ vì:** mã luật, cờ chạy, dụng cụ dựng lại máy trạng thái và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Khi sổ ảo ngừng mở lệnh 20 phiên mỗi lần vốn đã chốt của chính nó tụt hơn 15% so với đỉnh (rồi lấy vốn lúc mở băng làm đỉnh mới), alpha OOS của dòng "BẬT · theo ngày" đổi bao nhiêu trên cache `acf6dca1…` — và đổi theo chiều nào?
+
+### Luật mới (ghim)
+- Vốn đã chốt tại ngày `d`: E(d) = 100 × ∏ (1 + r/100 × s/100) trên các lệnh CLOSED của CHÍNH sổ lượt chạy có ngày ra **< d** (đã chốt TRƯỚC phiên d), nhân theo thứ tự ngày ra — cùng công thức `paper_metrics.compute` (r = `net_return_pct()`, s = `size_pct`). Chưa có lệnh đóng: E = 100.
+- Phiên = ngày có dòng `VNINDEX` trong cache. Máy trạng thái đi theo phiên từ phiên đầu tới ngày tín hiệu `t`, đỉnh P bắt đầu 100:
+  - KHÔNG đóng băng: P = max(P, E(d)); nếu (P − E(d)) / P > 0,15 thì đóng băng từ phiên d (phép so `>` như Azoth).
+  - Đóng băng từ d₀: chặn đúng 20 phiên d₀ … d₁₉. Ở phiên d₂₀: mở băng, P = E(d₂₀), rồi xét lại như trên.
+- `consider_entry` có thêm một cổng: tham số `CHOT_SUT_GIAM_NGUONG` > 0 và sổ đang đóng băng ở `t` → KHÔNG mở, ghi lý do vào sổ (kèm mức sụt và ngày bắt đầu đóng băng). Vị trí: sau hai cổng mức thị trường (VN-INDEX, độ rộng), trước cổng chất lượng dữ liệu.
+- `CHOT_SUT_GIAM_NGUONG` mặc định **0 = tắt**; `CHOT_SUT_GIAM_PHIEN` = 20. Hai lượt: **A** = 0 · **B** = **0,15**. Một giá trị duy nhất, ghim trước; ĐO này không thử giá trị khác.
+- KHÔNG đổi: ngưỡng, điểm, `stride`, độ trễ khớp, cắt lỗ, nâng stop, thoát tín hiệu, trần thời gian, trần vốn, mô hình khớp kịch trần/sàn, `NGHI_SAU_LO_NGAY` (0), `LOC_IMOM_PHAN_VI` (0), `CONG_VNI_BAT` (True), `DO_RONG_NGUONG` (0).
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911` cho từng lượt, băm trước và sau — `acf6dca1…` mọi lần (M0). Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…`.
+- Hai lượt `tools/do1_chi_phi_thuc_thi.py --mot-luot 2` trên CÙNG nhánh ĐO 33, hai worktree tách rời: A, B như trên. Ghép `tools/do20_ghep_tung_lenh.py`.
+
+### Đối chứng của máy đo (trượt thì K0)
+- (i) **A tái lập lượt A của ĐO 31** — 650 lệnh, −1,73%, KTC [−2,28 ; −1,17], ngưỡng IS 45; ghép với `scratch/luu_do31/A_wf_oos.db`: giống hệt.
+- (ii) M0: băm cache trước và sau của cả hai lượt đều `acf6dca1…`.
+- (iii) **Tự nhất quán (thay ca thật):** dụng cụ dựng lại máy trạng thái TỪ sổ B (lệnh CLOSED + lịch phiên) phải cho ĐÚNG tập ngày mà B ghi lý do chốt sụt giảm; mỗi khối đóng băng ≤ 20 phiên; và vì A, B giống hệt nhau tới lần đóng băng đầu, phiên đầu tiên dụng cụ thấy sụt > 15% trên sổ A phải là ngày đóng băng đầu của B.
+- (iv) Đếm: A = 0 quyết định lý do chốt sụt giảm. B > 0 — hoặc B = 0, khi ấy sổ B phải giống hệt sổ A (ghép) và kết cục là A₀ bên dưới.
+
+### Thống kê chính
+- Δalpha = alpha(B) − alpha(A), kèm KTC 95% của từng lượt và ngưỡng IS của B.
+- Số lần đóng băng, tổng số phiên bị chặn trong OOS; số lệnh A, B và lệnh chỉ có ở một bên.
+
+### Kết cục (ký trước)
+Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt A của ĐO 31: 0,555): nhỏ = 0,28, lớn = 0,56 — cùng ngưỡng ĐO 30–32.
+- **K0:** (i)–(iv) trượt, hoặc B không chạy xong.
+- **A₀ — không kích hoạt:** B không đóng băng lần nào trong OOS. Ngưỡng 15% không chạm; ý gác lại; báo người dùng.
+- **A — không phân biệt được:** −0,28 ≤ Δalpha ≤ +0,28. Không chặn; ghi STATE; ý gác lại.
+- **A⁺ — tốt lên vừa:** +0,28 < Δalpha ≤ +0,56. Báo người dùng; nếu người dùng chọn, khai ứng viên theo luật tầng 3 (C7). ĐO này không tự bật gì.
+- **B — Quy tắc 1:** Δalpha > +0,56. Giả định CÓ LỖI: soát mã luật và máy đo TRƯỚC khi đọc tiếp; báo người dùng; không đổi gì cho tới khi người dùng quyết.
+- **C — xấu đi:** Δalpha < −0,28. Chặn hại; ghi STATE; ý gác lại.
+- KTC của B chứa 0: báo người dùng ngay; `CLAUDE.md` không đổi.
+- Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng.
+
+### Báo kèm (không quyết định kết cục)
+- Ngày bắt đầu từng lần đóng băng của B; alpha của các lệnh A mở trong các khối ấy so với phần còn lại.
+- Sụt giảm tối đa (vốn đã chốt) của A và B.
+- Số vòng mua–bán đổi và phần ma sát tương ứng (`paper_metrics.ROUND_TRIP_COST_PCT`).
+
+### Điều ĐO này KHÔNG làm
+Không đổi đường chạy thật hay sổ thật (mặc định 0). Không thử ngưỡng, số phiên chặn, thước vốn hay luật mở băng khác sau khi ký. Không bật luật của ĐO 30–32. Không chạy lại ba dòng còn lại của bảng. Không đọc sổ thật.
