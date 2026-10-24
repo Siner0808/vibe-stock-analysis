@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **24/10/2026 — BƯỚC 228: luật nghỉ sau lệnh lỗ GÁC theo người dùng (*"Gác luật nghỉ (Recommended)"*), KHÔNG khai UV-002.** Ở ngưỡng 62 của đường thật, nhóm luật nghỉ chặn −0,21% [−2,66 ; +2,76] (n 71) so với −1,34% phần còn lại — cơ chế thấy ở 45/50 không còn; lực xác nhận ước lượng cần ≈ 7 năm; khai thì ngưỡng của UV-001 giảm một nửa. Họ ĐO 30–33 đóng hết, không ý nào đổi đường thật. `NGHI_SAU_LO_NGAY` vẫn 0, `docs/ung-vien.json` không đổi. Chi tiết: `docs/STATE.md` BƯỚC 228.
+
 > 🧭 **24/10/2026 — BƯỚC 227, ĐO 30b (chẩn đoán, khai sau kết quả ĐO 30): không nghỉ ở ngưỡng GHIM 50 −1,56% [−2,17 ; −0,92] — gần lượt A (−1,73), xa lượt B (−1,22): phần tốt lên của ĐO 30 đi với LUẬT NGHỈ, không với ngưỡng. CHỜ NGƯỜI DÙNG: khai ứng viên tầng 3 cho luật nghỉ hay gác. ĐO 32 GÁC (người dùng: *"Gác ĐO 32; chẩn đoán ĐO 30 trước (Recommended)"*).** Ở ngưỡng 50, 166 lệnh vào lại ngay sau một lệnh lỗ −2,45% so với −1,21% phần còn lại. Kết cục A⁺ của ĐO 30 đứng nguyên; `NGHI_SAU_LO_NGAY` vẫn 0. Lỗi 189 (băm M0 thư mục vắng ra băm rỗng) đã chặn ở `bam_thu_muc`. Chi tiết: `docs/STATE.md` BƯỚC 227.
 
 > 🧭 **24/10/2026 — BƯỚC 226, ĐO 33 (chốt sụt giảm của sổ: vốn đã chốt tụt > 15% thì chặn mua 20 phiên): kết cục A — không phân biệt được; ý gác lại. XONG HỌ BA PHÉP — CHỜ NGƯỜI DÙNG quyết ứng viên tầng 3 (ĐO 30 A⁺, ĐO 32 A⁺).** A −1,73% · B −1,62% [−2,19 ; −1,02], ngưỡng IS 45 cả hai; Δ +0,11; 3 lần đóng băng; 55 lệnh bị chặn là nhóm đỡ tệ (−0,23%); sụt giảm tối đa không đổi (37,1% · 37,7%). ĐO 32: phần tốt lên đi với ngưỡng 62 (ĐO 32b), không với cổng độ rộng. `CHOT_SUT_GIAM_NGUONG` vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 226.
