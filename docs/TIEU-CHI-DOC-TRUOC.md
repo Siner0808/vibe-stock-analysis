@@ -4628,3 +4628,55 @@ Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt A của ĐO 31: 0
 
 ### Điều ĐO này KHÔNG làm
 Không đổi đường chạy thật hay sổ thật (mặc định 0). Không thử ngưỡng, số phiên chặn, thước vốn hay luật mở băng khác sau khi ký. Không bật luật của ĐO 30–32. Không chạy lại ba dòng còn lại của bảng. Không đọc sổ thật.
+
+## ĐO 30b — CHẨN ĐOÁN SAU ĐO 30: cấu hình lượt A (không nghỉ sau lệnh lỗ) với ngưỡng GHIM 50 — tách phần do ngưỡng khỏi phần do luật nghỉ (khai 24/10/2026, SAU khi thấy kết quả ĐO 30)
+
+> **Khai 24/10/2026, SAU kết quả ĐO 30 (BƯỚC 221) và TRƯỚC mã, lượt chạy của chẩn đoán này, ở một commit RIÊNG.**
+> - Lý do: ĐO 30 ra A⁺ (Δalpha +0,51) nhưng ngưỡng IS của lượt B nhảy 45 → 50, và A với B chỉ chung 200 lệnh (chỉ A 450 · chỉ B 339). Bản khai ĐO 30 đã ghi trước: *"Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng."* ĐO 32b (BƯỚC 225) vừa cho thấy đúng hình dạng ấy có thể là phần do ngưỡng.
+> - Người dùng chọn 24/10/2026, nguyên văn: *"Gác ĐO 32; chẩn đoán ĐO 30 trước (Recommended)"* (hộp hỏi *"Ứng viên tầng 3 sau khi xong họ: xử lý ĐO 30 và ĐO 32 thế nào?"*, mô tả phương án: *"ĐO 30: chạy một lượt ghim ngưỡng 50 không nghỉ (giống ĐO 32b) để tách phần do ngưỡng 45→50, rồi bạn mới quyết khai hay gác."*).
+> - Sổ tay hỏi thật ở BƯỚC 227, TRƯỚC commit ký: câu trả lời ÂM. Tự kiểm: ba ý đúng (tiền lệ ghim ngưỡng ở ĐO 2; dòng không nghỉ ở ngưỡng 50 chưa từng chạy OOS trên máy đo hiện hành; kết cục A⁺ chỉ mở quyền chọn của người dùng). Hai chỗ SAI: nó dẫn ĐO 16 · 23 · 24 · 26 làm tiền lệ "chẩn đoán", nhưng không mục nào là chẩn đoán sau một kết cục đã ký — tiền lệ đúng là BƯỚC 154 · 159 · 193 (đã dẫn ở ĐO 32b); và câu nó đặt trong ngoặc kép về A⁺ là diễn ý (`tools/doi_chieu_trich_dan.py`: LỆCH).
+> - **Đây là CHẨN ĐOÁN khai SAU khi đã thấy số:** nó KHÔNG đổi kết cục A⁺ đã ký của ĐO 30, không tính vào K, không mở kết cục nào cho phép bật gì. Nó chỉ thêm một dòng đọc kèm cho quyết định của người dùng: khai ứng viên tầng 3 cho luật nghỉ hay gác. Một lượt duy nhất, ghim trước khi chạy; không thử ngưỡng khác.
+
+**Đã tra trùng:** BƯỚC 221 · BƯỚC 225 · BƯỚC 46 · BƯỚC 154 · BƯỚC 159 · BƯỚC 193 — và các mục liên quan:
+- BƯỚC 221 (ĐO 30): hai lượt lưu ở `scratch/luu_do30/` (A_wf_oos.db sha256 `6ba2df97…`, B `b36ca6bf…`). Sổ IS chỉ còn ở ngưỡng đã chọn (A_wf_is_45.db, B_wf_is_50.db) — sổ IS ở 50 của lượt A KHÔNG được lưu.
+- BƯỚC 225 (ĐO 32b): tiền lệ trực tiếp — cùng cách ghim dải (`walkforward.DAI_NGUONG` trong tiến trình), cùng nửa ngưỡng 0,28, cùng bốn ô đọc.
+- BƯỚC 46 (ĐO 2): ghim ngưỡng bằng tay (`tools/do2_do_tre_khop.py`, mục *"VÌ SAO NGƯỠNG GHIM BẰNG TAY, KHÔNG ĐỂ LUẬT TỰ CHỌN"*); ĐO 2 có dòng theo ngày ghim 50 (546 lệnh) nhưng ở máy đo CŨ — trước BƯỚC 123 (gap qua SL), ĐO 28, ĐO 29 — không so được.
+- Lỗi 21 (`references/loi-da-mac.md`): luật chọn tham số kéo theo một trục nữa.
+- BƯỚC 154 · 159 · 193: chẩn đoán sau kết cục đã ký mà không lật kết cục ấy.
+- ĐO 32 lượt C (BƯỚC 224) cũng chọn ngưỡng 50 trên IS, nhưng KHÔNG có cổng thị trường — khác cấu hình, không dùng.
+- **Đã nhìn:** toàn bộ kết quả ĐO 30 (hai lượt, báo kèm, ghép), kể cả mục *"Thăm dò SAU KHI NHÌN"* của BƯỚC 221: trên sổ OOS lượt A, chỉ giữ lệnh điểm ≥ 50 cho −1,95% [−2,63 ; −1,21] — đó là phép LỌC một sổ có sẵn, bỏ qua tương tác vốn (trần 100%), không phải một lượt chạy ở ngưỡng 50. Dải IS của lượt A (log `scratch/luu_do30/luot_A.log`): ngưỡng 50 trên IS có 888 lệnh, kỳ vọng −0,46 — đủ ≥ 30 nên luật chọn cũ chọn 50 khi dải chỉ còn 50. Đó là IS.
+- **CHƯA nhìn:** alpha OOS của dòng "BẬT · theo ngày" KHÔNG nghỉ ở ngưỡng 50 trên máy đo hiện hành — chưa lượt nào chạy OOS ở cấu hình ấy.
+
+**Không có dụng cụ vì:** cờ ghim ngưỡng của dụng cụ, phép đếm (iii) và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Ở ngưỡng GHIM 50, sổ không nghỉ sau lệnh lỗ (cấu hình lượt A của ĐO 30) cho alpha OOS bao nhiêu — gần −1,22% (lượt B của ĐO 30, ngưỡng 50, nghỉ 7 ngày) hay gần −1,73% (lượt A, ngưỡng 45, không nghỉ)?
+
+### Luật (ghim)
+- Cấu hình lượt A của ĐO 30: `NGHI_SAU_LO_NGAY` 0; lượt 2 của `tools/do1_chi_phi_thuc_thi.py` (trượt giá BẬT · theo ngày).
+- Dải ngưỡng dò IS chỉ còn MỘT giá trị **50** — đặt `walkforward.DAI_NGUONG` = [50.0] TRONG tiến trình, không sửa nguồn. Luật chọn ngưỡng không đổi (≥ 30 lệnh IS); IS ở 50 không đủ thì chẩn đoán không chạy được.
+- KHÔNG đổi gì khác (mọi cờ ĐO 30–33 giữ mặc định).
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911`, băm `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau — `acf6dca1…` cả hai lần. Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…`. Một worktree tách rời ở commit mã.
+
+### Đối chứng của máy đo (trượt thì không đọc)
+- (i) M0: băm cache trước và sau đều `acf6dca1…`.
+- (ii) Log in *"Ngưỡng chọn trên IS: 50"*, dải IS chỉ có một dòng (50), và dòng ấy trùng dòng 50 của dải IS lượt A ĐO 30: 888 lệnh · lợi nhuận −20,23% · kỳ vọng −0,46 · win rate 21,28 · vốn đỉnh 100,00 — chứng tỏ ghim dải không đổi gì khác ngoài ngưỡng OOS. Sổ IS ở 50 của lượt A không được lưu nên phép ghép sổ IS như ĐO 32b (iii) không làm được; dòng dải IS thay cho nó.
+- (iii) `tools/do30_nghi_sau_lo.py --dem` trên sổ OOS: số tín hiệu cùng mã trong 0–7 ngày lịch sau một lệnh lỗ > 0 (luật nghỉ TẮT thật), và 0 quyết định mang lý do `paper_trading.LY_DO_NGHI_SAU_LO`.
+
+### Đọc (ký trước; KHÔNG phải kết cục của ĐO 30)
+Gọi alpha OOS của lượt này là α50. Nửa ngưỡng như ĐO 30: 0,28 (= nửa của nửa bề rộng KTC lượt A, 0,555).
+- |α50 − α(B)| ≤ 0,28 VÀ |α50 − α(A)| > 0,28 → phần tốt lên của ĐO 30 đi với ngưỡng 50; luật nghỉ không thêm gì phân biệt được.
+- |α50 − α(A)| ≤ 0,28 VÀ |α50 − α(B)| > 0,28 → ngưỡng không giải thích; phần tốt lên đi với luật nghỉ.
+- Cả hai ≤ 0,28 (α(B) − α(A) = 0,51 < 2 × 0,28 nên vùng giữa có thể xảy ra) → không tách được.
+- Cả hai > 0,28 → báo cả hai hiệu, không kết luận cơ chế.
+- α50 tốt hơn α(B) quá 0,56 → Quy tắc 1: soát máy đo trước khi đọc.
+- Mọi trường hợp: báo người dùng; không đổi gì ở nguồn; câu khai hay gác ứng viên tầng 3 cho luật nghỉ là của người dùng, sau chẩn đoán này.
+
+### Báo kèm
+- KTC 95% của α50; số lệnh; ghép (mã, ngày tín hiệu) với lượt B của ĐO 30 (cùng ngưỡng 50, khác luật nghỉ) và với lượt A (cùng luật, khác ngưỡng).
+- Trên sổ của lượt này: alpha của nhóm lệnh mà luật nghỉ lẽ ra chặn (định nghĩa của `--dem`) so với phần còn lại — chẩn đoán cơ chế ở ngưỡng 50, không phải tiêu chí.
+
+### Điều chẩn đoán này KHÔNG làm
+Không đổi kết cục hay ngưỡng của ĐO 30. Không thử ngưỡng nào khác 50, không thử số ngày nghỉ khác 7. Không chạy luật nghỉ ở ngưỡng khác. Không đổi đường chạy thật hay sổ thật. Không đọc sổ thật.
