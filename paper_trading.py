@@ -336,6 +336,36 @@ def phan_vi_imom_bi_loc(symbol: str, signal_date: str) -> Optional[float]:
     pv = imom.phan_vi_mac_dinh(symbol, str(signal_date)[:10])
     return pv if pv is not None and pv <= LOC_IMOM_PHAN_VI else None
 
+#: Lý do ghi sổ khi cổng VN-INDEX chặn. Một hằng để dụng cụ ĐO 32 đếm theo đúng chuỗi.
+LY_DO_VNI = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"
+
+#: Cổng VN-INDEX — ĐO 32 (BƯỚC 224; khai trước ở `docs/TIEU-CHI-DOC-TRUOC.md`).
+#: True là hành vi đang chạy: `consider_entry` hỏi `market_filter.is_vni_bullish`, kể cả
+#: phép kiểm cache quá hạn (ô C1) nằm trong nó. False = BỎ QUA hẳn cổng ấy — chỉ dùng
+#: trong lượt đo: lượt B, C của ĐO 32 đặt TRONG TIẾN TRÌNH (`tools/do32_do_rong.py`),
+#: không sửa nguồn. Đường chạy thật giữ True.
+CONG_VNI_BAT = True
+
+#: Cổng độ rộng thị trường — ĐO 32 (BƯỚC 224). > 0 thì `consider_entry` KHÔNG mở lệnh khi
+#: tỉ lệ mã của cache đóng cửa ≥ MA50 của chính nó (`do_rong.py`) tại ngày tín hiệu NHỎ
+#: HƠN giá trị này; độ rộng thiếu thì không chặn. 0 = TẮT, và tắt là hành vi đang chạy:
+#: đường chạy thật không đổi, `do_rong` không được nạp. Lượt B của ĐO 32 đặt 0,50.
+DO_RONG_NGUONG = 0
+
+#: Tiền tố lý do ghi sổ khi cổng độ rộng chặn; độ rộng tại ngày tín hiệu đứng sau.
+LY_DO_DO_RONG = "độ rộng thị trường thấp"
+
+
+def do_rong_bi_chan(signal_date: str) -> Optional[float]:
+    """Độ rộng thị trường tại ngày tín hiệu nếu nó < `DO_RONG_NGUONG` (bị chặn); None nếu
+    không bị chặn hoặc độ rộng thiếu — và None ngay, KHÔNG nạp `do_rong` hay đọc cache,
+    khi cổng TẮT (0). ĐO 32, BƯỚC 224."""
+    if DO_RONG_NGUONG <= 0:
+        return None
+    import do_rong
+    dr = do_rong.do_rong_mac_dinh(str(signal_date)[:10])
+    return dr if dr is not None and dr < DO_RONG_NGUONG else None
+
 #: Số vị thế MỤC TIÊU nắm đồng thời. ĐÂY LÀ QUYẾT ĐỊNH ĐO LƯỜNG, KHÔNG PHẢI
 #: QUYẾT ĐỊNH LỢI NHUẬN — đọc kỹ trước khi vặn.
 #:
@@ -746,10 +776,12 @@ class PaperTradingJournal:
         # Cong VN-INDEX qua han nay nem CacheQuaHanError va no PHAI di ra
         # ngoai de dung ca phien quet -- do la o C1.
         from market_filter import is_vni_bullish
-        vni_ok = is_vni_bullish(signal_date)
+        vni_ok = is_vni_bullish(signal_date) if CONG_VNI_BAT else True
 
         if not vni_ok:
-            skip = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"
+            skip = LY_DO_VNI
+        elif (dr := do_rong_bi_chan(signal_date)) is not None:
+            skip = f"{LY_DO_DO_RONG}: {dr:.3f} < {DO_RONG_NGUONG:g}"
         elif str(quality).upper() not in MUC_CHAT_LUONG_DUNG_DUOC:
             # CHAN theo muc BLOCK, khong chan ca WARN. Ban cu chan moi thu
             # khac "OK" -- gop hai muc lam mot la mat thong tin: WARN nghia
