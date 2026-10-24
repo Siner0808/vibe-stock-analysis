@@ -9,6 +9,7 @@ BA LƯỢT, MỖI LƯỢT MỘT TIẾN TRÌNH — và một worktree, vì walkfo
     A   CONG_VNI_BAT True,  DO_RONG_NGUONG 0      mặc định; phải tái lập lượt A của ĐO 31
     B   CONG_VNI_BAT False, DO_RONG_NGUONG 0,50   giá trị DUY NHẤT ĐO 32 ghim
     C   CONG_VNI_BAT False, DO_RONG_NGUONG 0      chẩn đoán: không cổng thị trường nào
+    A62 như A, dải ngưỡng IS ghim [62]            chẩn đoán ĐO 32b (BƯỚC 225), khai SAU kết quả
 
 Cả ba là lượt 2 của `tools/do1_chi_phi_thuc_thi.py` (trượt giá BẬT · theo
 ngày). Công cụ này chỉ đặt cờ TRONG tiến trình rồi giao cho `chay_mot_luot` —
@@ -39,6 +40,11 @@ GOC = Path(__file__).resolve().parent.parent
 NGUONG_LUOT_B = 0.50
 #: (CONG_VNI_BAT, DO_RONG_NGUONG) của từng lượt.
 LUOT = {"A": (True, 0), "B": (False, NGUONG_LUOT_B), "C": (False, 0)}
+
+#: Chẩn đoán ĐO 32b (BƯỚC 225, khai sau kết quả ĐO 32): cấu hình lượt A, dải ngưỡng dò IS
+#: chỉ còn MỘT giá trị — đặt `walkforward.DAI_NGUONG` TRONG tiến trình, không sửa nguồn.
+NGUONG_GHIM_A62 = 62.0
+CHAN_DOAN = {"A62": (LUOT["A"], NGUONG_GHIM_A62)}
 
 #: Lượt của `tools/do1_chi_phi_thuc_thi.py` mà ĐO 32 đo lại: trượt giá BẬT · theo ngày.
 LUOT_DO1 = 2
@@ -85,7 +91,13 @@ def chay_luot(ten: str) -> int:
     import paper_trading
     import do1_chi_phi_thuc_thi as do1
 
-    paper_trading.CONG_VNI_BAT, paper_trading.DO_RONG_NGUONG = LUOT[ten]
+    if ten in CHAN_DOAN:
+        import walkforward
+        (paper_trading.CONG_VNI_BAT, paper_trading.DO_RONG_NGUONG), nguong = CHAN_DOAN[ten]
+        walkforward.DAI_NGUONG = [nguong]
+        print(f"ĐO 32b · dải ngưỡng IS ghim: walkforward.DAI_NGUONG = {walkforward.DAI_NGUONG}", flush=True)
+    else:
+        paper_trading.CONG_VNI_BAT, paper_trading.DO_RONG_NGUONG = LUOT[ten]
     print(f"ĐO 32 · LƯỢT {ten} — paper_trading.CONG_VNI_BAT = {paper_trading.CONG_VNI_BAT} · "
           f"DO_RONG_NGUONG = {paper_trading.DO_RONG_NGUONG}", flush=True)
     return do1.chay_mot_luot(LUOT_DO1)
@@ -99,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
             pass
     ap = argparse.ArgumentParser(description="ĐO 32 — độ rộng thị trường thay cổng VN-INDEX")
     g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--luot", choices=sorted(LUOT), help="chạy một lượt walk-forward")
+    g.add_argument("--luot", choices=sorted(LUOT) + sorted(CHAN_DOAN), help="chạy một lượt walk-forward")
     g.add_argument("--dem", metavar="SO_DB", help="phép đếm (iv) trên một sổ, chỉ đọc")
     a = ap.parse_args(argv)
     if a.luot:
