@@ -4441,3 +4441,69 @@ Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt A của ĐO 30: (
 
 ### Điều ĐO này KHÔNG làm
 Không đổi đường chạy thật hay sổ thật (mặc định 0). Không thử phân vị, cửa sổ, số phiên tối thiểu hay thị trường chuẩn khác sau khi ký. Không thêm nhân tố quy mô/giá trị. Không bật luật nghỉ của ĐO 30. Không chạy lại ba dòng còn lại của bảng. Không đọc sổ thật.
+
+## ĐO 32 — ĐỘ RỘNG THỊ TRƯỜNG THAY CỔNG VN-INDEX: không mở lệnh khi dưới 50% mã của cache đóng cửa trên MA50 của chính nó (thay cho "VN-Index dưới MA50"); đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…`, kèm một lượt không cổng thị trường (khai 24/10/2026)
+
+> **Khai 24/10/2026, TRƯỚC khi có mã và lượt chạy, ở một commit RIÊNG.**
+> - Gốc ý: tra cứu ngoài 23/10/2026 (leader), repo `FTU-kudo/VN_Index_and_MA_ratio_analysis` (đo tỉ lệ mã HOSE trên MA10/20/50/200 mỗi ngày; không công bố kết quả kiểm chứng). Người dùng đáp nhóm ý từ repo ngoài, nguyên văn: *"ĐO xem rồi thêm ý tưởng nó vào Repo của mình."*
+> - Người dùng chốt 24/10/2026 qua ba hộp hỏi, nguyên văn: *"MA50 · ngưỡng 50% (Recommended)"* (hộp *"ĐO 32 đo độ rộng thị trường theo cách nào?"*); *"Thay cổng VN-INDEX (Recommended)"* (hộp *"Cổng độ rộng thay hay thêm vào cổng VN-INDEX hiện tại?"*); *"Có, chỉ để báo kèm (Recommended)"* (hộp *"Có chạy thêm lượt C (tắt hẳn cổng thị trường) để đo chính giá trị của cổng VN-INDEX không?"*).
+> - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 24/10/2026 (hộp hỏi *"Bản nháp khai trước ĐO 32: có duyệt để ký không?"*).
+> - Sổ tay hỏi thật ở BƯỚC 224, TRƯỚC commit ký: câu trả lời ÂM; nó dẫn ĐO 25 làm tiền lệ, tự kiểm đúng và thêm vào tra trùng dưới đây (luật, giá trị, ngưỡng, đối chứng, kết cục không đổi so với bản người dùng duyệt).
+> - Phép đo THĂM DÒ (`docs/LO-TRINH.md` C2: không tính K, không bao giờ lên bản). Hai tham số mặc định giữ nguyên đường hiện tại; đường chạy thật (`run_daily`) KHÔNG đổi. Kết cục có triển vọng thì người dùng chọn có khai ứng viên tầng 3 hay không (C7: ≤ 1 ứng viên mỗi tháng; chỉ thay đường thật khi phán quyết khai trước cho phép).
+> - **Họ thử:** phép thứ HAI trong họ ba phép trên CÙNG vùng OOS (ĐO 31 IMOM — kết cục A · ĐO 32 · ĐO 33 chốt sụt giảm của sổ). Ngưỡng KHÔNG hiệu chỉnh cho họ (thăm dò); mọi báo cáo kết cục ghi "phép 2 trong họ 3". Lượt C là chẩn đoán, không phải phép thứ tư của họ: nó không quyết định kết cục và không đổi gì.
+
+**Đã tra trùng:** BƯỚC 223 · BƯỚC 179 · BƯỚC 55 · PHASE 2 (20/08/2026) — và một lượt tra từ khoá:
+- BƯỚC 223 (ĐO 31): máy đo, sổ lượt A (`scratch/luu_do31/A_wf_oos.db`, sha256 `dab0579d…`) và ngưỡng kết cục mà ĐO này dùng lại; lượt A của nó là lượt A của ĐO 30 (651/651 dòng).
+- BƯỚC 179 (ĐO 25, sổ tay chỉ ra): đo trên mọi tín hiệu mà KHÔNG áp cổng riêng của sổ; nhóm "VN-INDEX trên MA50 tại t" chỉ là báo kèm của Δ giữa hai cách vào lệnh (trên MA50 n = 1.565, Δ +0,26 · dưới MA50 n = 390, Δ +0,00) — không phải alpha khi tắt cổng.
+- BƯỚC 55 (ĐO 5): 4.941/8.935 quyết định OOS của lượt khi ấy bị cổng VN-INDEX chặn (55%), 309 trong số đó có điểm ≥ 62 — đếm cổng chặn bao nhiêu, KHÔNG đo cổng làm alpha đổi ra sao.
+- PHASE 2 (20/08/2026, `docs/STATE.md`): cổng được làm cho LỘ RA (2A cache quá hạn ném `CacheQuaHanError` — ô C1; 2B báo cáo phiên nói lý do chặn). Cổng có từ commit `ea9192f` (thời "20 vòng tối ưu", trước walk-forward trung thực). `git log -S is_vni_bullish` và `grep` STATE: chưa BƯỚC nào đo alpha khi TẮT cổng — lượt C là lần đầu.
+- `git grep -i` (breadth · độ rộng thị trường · do_rong · % mã trên MA) trên `*.py`: 0 mục. Chữ *breadth* ở `docs/STATE.md` BƯỚC 7 là độ rộng theo nghĩa Grinold — số cược độc lập — khác khái niệm.
+- **Bản này LỆCH nguồn ngoài ở hai chỗ, khai trước:** (1) quần thể là cache của repo (83–86 mã mỗi ngày trong OOS; 86–124 trong IS vì 37 mã chỉ có giá từ 2025), không phải toàn HOSE — cache là ảnh chụp hiện tại nên có thiên lệch sống sót; (2) một MA (50) và một ngưỡng (50%), chọn trước theo cổng hiện tại và theo nghĩa "đa số", không dò. Nguồn ngoài không có con số kiểm chứng: ĐO này kiểm Ý TƯỞNG, không kiểm con số nào.
+- **Đã nhìn (leader, 24/10/2026, chỉ-đọc; `scratchpad/do32/dem32.py` phiên 59808c4e trên bản chép cache gốc; cổng VN-INDEX đi qua đúng `market_filter.is_vni_bullish`; đọc sổ A CHỈ cột id, mã, ngày tín hiệu của lệnh và ngày tín hiệu, lý do của quyết định):** 709 ngày phiên từ 05/04/2022 tới 06/02/2025 (khoảng tín hiệu của sổ A), N 83–86. Hai cổng: VN-INDEX < MA50 và độ rộng < 50% **298** ngày · VN-INDEX < MA50, độ rộng ≥ 50% **21** · VN-INDEX ≥ MA50, độ rộng < 50% **33** · cả hai thuận **357** — trùng 655/709 ngày. Độ rộng nhỏ nhất 0,012 · trung vị 0,523 · lớn nhất 0,964. **105** lệnh A (trên 650) có độ rộng < 50% ở ngày tín hiệu, trên 21 ngày; sớm nhất HHV 08/09/2022 (0,494), rồi 30/11/2022 (0,446: AAA id 93, ACV, BAF, CII, DCL, DHG, GIL…). Quyết định A lý do *"VN-INDEX nằm dưới MA50"*: **4.804** trên 311 ngày, trong đó 278 quyết định trên 19 ngày có độ rộng ≥ 50%.
+- **CHƯA nhìn:** giá ra, lợi nhuận, alpha của bất kỳ lệnh nào theo độ rộng hay theo cổng; chưa chạy bản có luật. Nhìn trước là chế điều kiện sau khi thấy số (bất biến 7).
+
+**Không có dụng cụ vì:** mã luật, cờ chạy, dụng cụ đếm (iv) và lượt chạy làm SAU commit này.
+
+### Câu hỏi
+Khi cổng thị trường của sổ ảo là "dưới 50% mã của cache đóng cửa trên MA50 của chính nó thì không mở lệnh" THAY CHO "VN-Index dưới MA50 thì không mở lệnh", alpha OOS của dòng "BẬT · theo ngày" đổi bao nhiêu trên cache `acf6dca1…` — và đổi theo chiều nào? (Chẩn đoán kèm: không có cổng thị trường nào thì sao.)
+
+### Luật mới (ghim)
+- Với mỗi mã của cache (trừ `VNINDEX`): chuỗi giá đóng cửa theo các dòng của chính mã; MA50 = trung bình 50 giá đóng cửa liên tiếp gần nhất, tính tới hết dòng ấy (cùng cách `market_filter.get_vni_df` tính `vni_ma50`).
+- Ngày tín hiệu `t`. Mã được tính vào N(t) nếu có ≥ 50 dòng với ngày ≤ t; giá trị lấy ở dòng cuối có ngày ≤ t. Mã "trên" khi giá đóng cửa ≥ MA50 (cùng phép so `>=` của cổng VN-INDEX).
+- Độ rộng(t) = số mã "trên" / N(t). Cần N(t) ≥ 20, không thì không chặn. Bảng tính trên cache ĐẦY ĐỦ (không chia vùng theo mốc sạch) nhưng chỉ dùng giá tới hết `t` — như cổng VN-INDEX; lệnh vẫn khớp ở giá mở cửa phiên sau.
+- `consider_entry` có thêm một cổng: tham số `DO_RONG_NGUONG` > 0 và độ rộng(t) < `DO_RONG_NGUONG` → KHÔNG mở, ghi lý do vào sổ như các cổng khác. Độ rộng thiếu → KHÔNG chặn. Vị trí: ngay sau cổng VN-INDEX, trước cổng chất lượng dữ liệu (hai cổng mức thị trường đứng liền nhau).
+- Tham số `CONG_VNI_BAT`: True = như hiện nay; False = bỏ qua hẳn `is_vni_bullish` (cả phép kiểm cache quá hạn ô C1 nằm trong nó) — chỉ dùng trong lượt đo.
+- Mặc định `CONG_VNI_BAT` **True**, `DO_RONG_NGUONG` **0 = tắt** — đường hiện tại không đổi. Ba lượt: **A** = (True, 0) · **B** = (False, **0,50**) · **C** = (False, 0). Một giá trị duy nhất cho mỗi tham số, ghim trước; ĐO này không thử giá trị khác.
+- KHÔNG đổi: ngưỡng, điểm, `stride`, độ trễ khớp, cắt lỗ, nâng stop, thoát tín hiệu, trần thời gian, trần vốn, mô hình khớp kịch trần/sàn, `NGHI_SAU_LO_NGAY` (vẫn 0), `LOC_IMOM_PHAN_VI` (vẫn 0).
+
+### Dữ liệu và lượt chạy
+- Cache: bản chép của `scratch/vibe_cache_goc_20260911` cho từng lượt, băm `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` trước và sau — `acf6dca1…` mọi lần (M0). Bộ nhớ hậu nghiệm: bản chép sha256 `e8b44cf8…`.
+- Ba lượt `tools/do1_chi_phi_thuc_thi.py --mot-luot 2` trên CÙNG nhánh ĐO 32, ba worktree tách rời, chạy song song: A, B, C như trên. Cách truyền tham số vào lượt chạy viết sau commit ký (khuôn `tools/do31_loc_imom.py`). Ghép `tools/do20_ghep_tung_lenh.py`.
+
+### Đối chứng của máy đo (trượt thì K0)
+- (i) **A tái lập lượt A của ĐO 31** — 650 lệnh, −1,73%, KTC [−2,28 ; −1,17], ngưỡng IS 45; ghép với `scratch/luu_do31/A_wf_oos.db`: giống hệt. Cũng là phép thử *"mặc định không đổi gì"*.
+- (ii) M0: băm cache trước và sau của cả ba lượt đều `acf6dca1…`.
+- (iii) **Ca thật:** ở A, lệnh AAA tín hiệu 30/11/2022 (id 93; độ rộng 0,446, VN-INDEX ≥ MA50) CÓ mặt; ở B, KHÔNG lệnh nào có ngày tín hiệu 30/11/2022. Ở C, có ≥ 1 lệnh với ngày tín hiệu mà VN-INDEX < MA50 (ở A: 0).
+- (iv) Đếm theo đúng định nghĩa của luật: lệnh CLOSED có độ rộng < 50% ở ngày tín hiệu — A = 105 (khớp số đếm 24/10), B = 0. Quyết định lý do *"VN-INDEX nằm dưới MA50"* — A = 4.804 (khớp), B = 0, C = 0. Quyết định lý do độ rộng — A = 0, C = 0, B > 0 và MỌI quyết định ấy rơi vào ngày có độ rộng < 50%. Dụng cụ viết sau commit ký và phải tái lập 105 và 4.804 trên sổ A của ĐO 31.
+
+### Thống kê chính
+- Δalpha = alpha(B) − alpha(A), kèm KTC 95% của từng lượt và ngưỡng IS của B.
+- Số lệnh A, B; số lệnh có ở A mà không có ở B, và ngược lại (vốn giải phóng — chế độ theo ngày có trần vốn 100%).
+
+### Kết cục (ký trước)
+Ngưỡng SUY RA từ nửa bề rộng KTC của A (= lượt A của ĐO 31: (−1,17 − (−2,28)) / 2 = 0,555): nhỏ = 0,28 (một nửa), lớn = 0,56 — cùng ngưỡng ĐO 30, ĐO 31.
+- **K0:** (i)–(iv) trượt, hoặc B không chạy xong. (C không chạy xong thì không phải K0; báo kèm thiếu.)
+- **A — không phân biệt được:** −0,28 ≤ Δalpha ≤ +0,28. Giữ cổng VN-INDEX; ghi STATE; ý độ rộng gác lại.
+- **A⁺ — tốt lên vừa:** +0,28 < Δalpha ≤ +0,56. Báo người dùng; nếu người dùng chọn, khai ứng viên theo luật tầng 3 (C7). ĐO này không tự bật gì.
+- **B — Quy tắc 1:** Δalpha > +0,56. Giả định CÓ LỖI: soát mã luật và máy đo TRƯỚC khi đọc tiếp; báo người dùng; không đổi gì cho tới khi người dùng quyết.
+- **C — xấu đi:** Δalpha < −0,28. Độ rộng là thước tệ hơn; ghi STATE; ý gác lại.
+- KTC của B chứa 0: báo người dùng ngay (kết luận *"THUA chuẩn có ý nghĩa"* có thể đổi); `CLAUDE.md` không đổi.
+- Ngưỡng IS của B khác 45: báo kèm; Δalpha khi ấy gộp cả phần đổi ngưỡng.
+
+### Báo kèm (không quyết định kết cục)
+- **Lượt C** — alpha(C) − alpha(A) là giá trị của chính cổng VN-INDEX (dương = cổng làm sổ TỆ đi), và alpha(C) − alpha(B); kèm KTC, ngưỡng IS của C, số lệnh C có ngày tín hiệu VN-INDEX < MA50 và alpha của chúng. |alpha(C) − alpha(A)| > 0,56 thì cũng soát theo Quy tắc 1 trước khi báo. Gỡ hay giữ cổng VN-INDEX ở đường thật là một luật khác — ĐO này không làm.
+- Alpha của 105 lệnh A có độ rộng < 50% so với phần còn lại; alpha của lệnh B rơi vào 21 ngày "VN-INDEX < MA50, độ rộng ≥ 50%" (lệnh A không thể có).
+- Số vòng mua–bán đổi và phần ma sát tương ứng (`paper_metrics.ROUND_TRIP_COST_PCT`).
+
+### Điều ĐO này KHÔNG làm
+Không đổi đường chạy thật hay sổ thật (mặc định giữ đường hiện tại). Không thử MA, ngưỡng, quần thể hay N tối thiểu khác sau khi ký. Không bật luật của ĐO 30 hay ĐO 31. Không chạy lại ba dòng còn lại của bảng. Không đọc sổ thật.
