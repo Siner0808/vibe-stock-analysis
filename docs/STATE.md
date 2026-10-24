@@ -24113,3 +24113,35 @@ Leader, tại chỗ. Gốc ý: repo `toreleon/Azoth` (`src/agent/backtestRunner.
 **Tổng kết họ ba phép (ĐO 31–33, cùng vùng OOS, ngưỡng không hiệu chỉnh cho họ).** ĐO 31 IMOM: A (Δ +0,10). ĐO 32 độ rộng thay cổng VN-INDEX: A⁺ (Δ +0,46) — nhưng ĐO 32b tách được: phần tốt lên đi với ngưỡng IS 62, không với cổng; lượt C cho thấy chính cổng VN-INDEX đỡ 0,43. ĐO 33 chốt sụt giảm: A (Δ +0,11). Không ý nào từ ba nguồn ngoài cho một cơ chế ủng hộ được. Kèm ĐO 30 (nghỉ sau lệnh lỗ, A⁺ Δ +0,51), câu ứng viên tầng 3 giờ là của người dùng — họ đã xong.
 
 **Việc kế.** Người dùng quyết ứng viên tầng 3 cho ĐO 30 / ĐO 32 (C7: ≤ 1 mỗi tháng, sớm nhất 11/2026). Hẹn cũ giữ nguyên.
+
+## BƯỚC 227 — ĐO 30b (CHẨN ĐOÁN, KHAI SAU KẾT QUẢ ĐO 30): KHÔNG NGHỈ Ở NGƯỠNG GHIM 50 CHO −1,56% [−2,17 ; −0,92] — GẦN LƯỢT A (−1,73) XA LƯỢT B (−1,22): PHẦN TỐT LÊN CỦA ĐO 30 ĐI VỚI LUẬT NGHỈ, KHÔNG VỚI NGƯỠNG; ĐO 32 GÁC THEO NGƯỜI DÙNG; LỖI 189 (24/10/2026)
+
+**Mốc:** D3 — chẩn đoán cho phép thăm dò ĐO 30 (C2); không phải một phép của họ thử, không đổi kết cục A⁺ đã ký của ĐO 30
+
+Leader, tại chỗ. Sau BƯỚC 226 (#272 merge `5bb6dff`), người dùng chọn qua hộp hỏi *"Ứng viên tầng 3 sau khi xong họ: xử lý ĐO 30 và ĐO 32 thế nào?"*, nguyên văn: *"Gác ĐO 32; chẩn đoán ĐO 30 trước (Recommended)"*; rồi *"tiếp tục"* (hạn mức tuần 72%; sáng cùng ngày người dùng đã chọn *"Làm tiếp hôm nay (Recommended)"*). Nhánh `do/chan-doan-nguong-227` từ `main` `5bb6dff`, worktree `vibe_wt_227`. Commit: `7ce89d5` ký ĐO 30b (riêng, trước mã) · `b247fe8` mã.
+
+**Quyết định của người dùng — ĐO 32 GÁC.** ĐO 32 (độ rộng thị trường thay cổng VN-INDEX, kết cục A⁺) KHÔNG khai ứng viên tầng 3, vì ĐO 32b (BƯỚC 225) cho thấy phần tốt lên đi với ngưỡng IS 62, không với cổng độ rộng. `DO_RONG_NGUONG` ở nguồn vẫn 0, `CONG_VNI_BAT` vẫn True (lượt C của ĐO 32: chính cổng VN-INDEX đỡ 0,43).
+
+**Sổ tay — hỏi thật TRƯỚC commit ký** (chạm `docs/TIEU-CHI-DOC-TRUOC.md`). Một lượt, ÂM. Bản sổ (18 nguồn, không nạp lại) KHÔNG có ĐO 29–33 (`git show 3c2fd2c:docs/HANDOFF.md | grep -c "ĐO 30"` = 0), nên mọi câu nó nói về số ĐO 30 là lặp lại câu hỏi — tự kiểm bằng log và STATE. Hai chỗ SAI: nó dẫn ĐO 16 · 23 · 24 · 26 làm tiền lệ chẩn đoán (không mục nào là chẩn đoán sau một kết cục đã ký; tiền lệ đúng BƯỚC 154 · 159 · 193), và một câu trong ngoặc kép là diễn ý (`tools/doi_chieu_trich_dan.py` LỆCH). Cả hai ghi vào đầu mục ĐO 30b trước khi ký. Mục ở `docs/soat-notebooklm.json` ("BƯỚC 227", "ĐO 30b").
+
+**Mã.** `tools/do30_nghi_sau_lo.py`: `NGUONG_GHIM_A50` = 50,0 · `CHAN_DOAN` · `--luot A50` đặt cờ của lượt A và `walkforward.DAI_NGUONG` = [50,0] TRONG tiến trình (vẫn đúng MỘT phép gán cờ); `--dem` đếm thêm quyết định mang lý do `paper_trading.LY_DO_NGHI_SAU_LO` (đối chứng iii), sổ thiếu bảng `decisions` thì nổ thay vì đếm 0. +4 test; đột biến **9/9 đỏ** ngay lượt đầu (phát đầu dựng lại bẫy của ĐO 32b: ghim dải lọt sang lượt thường).
+
+**Lượt chạy.** Worktree tách rời `vibe_wt_227r` ở `b247fe8`; bản chép cache gốc; bộ nhớ hậu nghiệm sha256 `e8b44cf8…`; 14:18:56 → 14:31:56 (lượt cùng dạng của ĐO 32b mất ~6 phút — lệch theo tải máy). Sổ và log ở `scratch/luu_do30/` (A50_wf_oos.db sha256 `c1f1a8c2…`, A50_wf_is_50.db `45974740…`).
+
+**Đối chứng — cả ba ĐẠT.**
+- (i) M0: bản chép cache trước và sau `acf6dca1dd38d515…` (125 tệp). Lần băm SAU đầu tiên ra băm RỖNG vì đường sai (lỗi 189, dưới); băm lại đúng đường thì khớp.
+- (ii) Log in *"Ngưỡng chọn trên IS: 50"*, dải IS một dòng, trùng từng số dòng 50 của dải IS lượt A ĐO 30: 888 lệnh · −20,23% · −0,46 · 21,28 · 100,00.
+- (iii) `--dem` trên sổ OOS: 166 tín hiệu cùng mã trong 0–7 ngày lịch sau một lệnh lỗ (luật nghỉ TẮT thật); 0 quyết định lý do nghỉ.
+
+**Kết quả.** A50: ngưỡng 50 · **579 lệnh · alpha −1,56% [−2,17 ; −0,92]**. α50 − α(B) = **−0,34**; α50 − α(A) = **+0,16** (cùng đường `build_benchmark` → `vs_benchmark`, `scratchpad/do30b/bao_kem30b.py` phiên 59808c4e, tái lập −1,73 · −1,22 · −1,56). **Đọc đã ký: GẦN A, XA B** — ngưỡng 50 không giải thích phần tốt lên +0,51 của ĐO 30; phần ấy đi với LUẬT NGHỈ. Ngược với ĐO 32b, nơi phần tốt lên đi với ngưỡng. KTC của A50 loại 0 → *"THUA chuẩn có ý nghĩa"* đứng.
+
+**Báo kèm.**
+- Ghép (mã, ngày tín hiệu): A50∩B 344 · chỉ A50 235 · chỉ B 195; A50∩A 309 · chỉ A50 270 · chỉ A 341.
+- Trên sổ A50: 166 lệnh mà luật nghỉ lẽ ra chặn **−2,45% [−3,51 ; −1,31]** · 413 lệnh còn lại −1,21% [−1,95 ; −0,40] — vào lại ngay sau một lệnh lỗ vẫn là nhóm tệ nhất ở ngưỡng 50, như ở ngưỡng 45 (−2,28 · −1,43, BƯỚC 221).
+- Cùng chiều với thăm dò sau khi nhìn ở BƯỚC 221 (lọc sổ A giữ điểm ≥ 50: −1,95); lượt chạy thật cho −1,56 — phép lọc bỏ qua tương tác vốn.
+
+**Điều KHÔNG được rút ra.** Chẩn đoán không đổi kết cục A⁺ đã ký (Δ +0,51 của ĐO 30 vẫn gộp phần đổi ngưỡng). Nó không chứng minh luật nghỉ có lợi thế: B vẫn THUA chuẩn có ý nghĩa, và hiệu cùng ngưỡng B − A50 = +0,34 đến từ một cặp khai sau khi nhìn — dòng đọc kèm, không phải kết cục. Nó chỉ nói: trong hai trục bị gộp ở ĐO 30, trục luật nghỉ mang phần tốt lên. Không dùng để đổi ngưỡng (bất biến 7).
+
+**Lỗi 189 — băm M0 một thư mục vắng ra băm rỗng thay vì nổ.** Lần băm sau lượt chạy dùng `python -c` có đường POSIX `/c/Users/…` nằm TRONG chuỗi mã. Đo trong phiên: Git Bash đổi `/c/Users/cuong` thành `C:/Users/cuong` ở biến môi trường (nên lượt chạy, nhận `VIBE_CACHE_DIR` dạng `/c/…`, đọc đúng bản chép — dải IS trùng từng số), nhưng không đổi bên trong một chuỗi (`os.path.isdir('/c/Users/cuong')` = False). `bam_thu_muc` trả 0 tệp, băm `e3b0c442…`. Đây là phát hiện phụ của BƯỚC 224 (chưa xử lý), nay cắn thật — lần này theo chiều an toàn (báo lệch); hai thư mục cùng vắng sẽ báo KHỚP giả. Sửa: `tools/do25_ke_hoach_vao_lenh.py::bam_thu_muc` nổ `FileNotFoundError` khi đường không phải thư mục (+1 test; đột biến 2/2 đỏ). `backtest/data.bam_cache` CỐ Ý giữ nguyên: `chup_cache_truoc_khi_ghi` dựa vào băm rỗng khi `CACHE_DIR` chưa có.
+
+**Việc kế.** Người dùng quyết: khai ứng viên tầng 3 cho luật nghỉ 7 ngày lịch sau lệnh lỗ (`docs/LO-TRINH.md` C7: ≤ 1 mỗi tháng, sớm nhất 11/2026) hay gác. `NGHI_SAU_LO_NGAY` ở nguồn vẫn 0. Hẹn cũ giữ nguyên: đếm lại W43 sau 25/10; 26/10 mở giai đoạn B (B1); 28/10 soát 14 + ĐO 27 lượt đọc 3.

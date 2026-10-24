@@ -203,7 +203,40 @@ def test_luot_B_THAT_SU_chay_voi_co_7_va_dung_luot_2_cua_do1(monkeypatch):
     assert thay_the == [(2, 7), (2, 0)]
 
 
-def test_dung_cu_chay_THAT_tren_so_tam(tmp_path):
+def test_chan_doan_A50_GHIM_dai_nguong_va_dung_co_cua_luot_A(monkeypatch):
+    """ĐO 30b: A50 = cờ của lượt A + `walkforward.DAI_NGUONG` = [50] trong tiến trình. Lượt A, B
+    KHÔNG được chạm dải ngưỡng."""
+    import do1_chi_phi_thuc_thi as do1
+    import walkforward
+    monkeypatch.setattr(pt, "NGHI_SAU_LO_NGAY", pt.NGHI_SAU_LO_NGAY)  # trả lại sau test
+    # dải ĐÁNH DẤU, không đọc lại dải đang có: một lượt chạy trước trong cùng tiến trình có thể đã
+    # ghi đè nó (bẫy đột biến sống sót của ĐO 32b, 24/10).
+    goc = [45.0, 99.0]
+    monkeypatch.setattr(walkforward, "DAI_NGUONG", goc)
+    ghi = []
+    monkeypatch.setattr(do1, "chay_mot_luot", lambda n, *a, **k: ghi.append(
+        (n, pt.NGHI_SAU_LO_NGAY, list(walkforward.DAI_NGUONG))) or 0)
+    assert D.chay_luot("A") == 0 and D.chay_luot("B") == 0
+    assert D.chay_luot("A50") == 0
+    assert ghi == [(2, 0, goc), (2, 7, goc), (2, 0, [50.0])]
+
+
+def test_main_NHAN_luot_chan_doan_A50(monkeypatch):
+    """Lượt chẩn đoán phải đi được qua dòng lệnh, không chỉ qua `chay_luot`."""
+    ghi = []
+    monkeypatch.setattr(D, "chay_luot", lambda ten: ghi.append(ten) or 0)
+    assert D.main(["--luot", "A50"]) == 0 and ghi == ["A50"]
+
+
+def test_NGUONG_GHIM_cua_dung_cu_KHOP_muc_DO_30b_da_ky():
+    van = (GOC / "docs" / "TIEU-CHI-DOC-TRUOC.md").read_text(encoding="utf-8")
+    muc = van[van.index("## ĐO 30b"):]
+    m = re.search(r"chỉ còn MỘT giá trị \*\*(\d+)\*\*", muc)
+    assert m and float(m.group(1)) == D.NGUONG_GHIM_A50 == D.CHAN_DOAN["A50"][1]
+    assert D.CHAN_DOAN["A50"][0] == D.LUOT["A"]
+
+
+def test_dung_cu_chay_THAT_tren_so_tam(tmp_path, capsys):
     db = tmp_path / "wf_oos.db"
     c = sqlite3.connect(db)
     c.execute("CREATE TABLE trades (id INTEGER, symbol TEXT, signal_date TEXT, exit_date TEXT,"
@@ -211,7 +244,26 @@ def test_dung_cu_chay_THAT_tren_so_tam(tmp_path):
     c.executemany("INSERT INTO trades VALUES (?,?,?,?,?,?,?)", [
         (1, "DPM", "2022-03-01", "2022-04-07", 100, 92, "CLOSED"),
         (2, "DPM", "2022-04-07", "2022-05-01", 100, 110, "CLOSED")])
+    c.execute("CREATE TABLE decisions (seq INTEGER, skip_reason TEXT)")
+    c.executemany("INSERT INTO decisions VALUES (?,?)", [
+        (1, f"{pt.LY_DO_NGHI_SAU_LO}: ra lỗ ngày 2022-04-07, chưa qua 7 ngày lịch"),
+        (2, pt.LY_DO_VNI), (3, None),
+        (4, f"vì {pt.LY_DO_NGHI_SAU_LO}")])                       # chứa nhưng KHÔNG mở đầu → không đếm
     c.commit()
     c.close()
     assert [x["id"] for x in D.tin_hieu_bi_chan(D.doc_so(str(db)), 7)] == [2]
+    capsys.readouterr()
     assert D.main(["--dem", str(db)]) == 0
+    assert f"quyết định lý do {pt.LY_DO_NGHI_SAU_LO}: 1\n" in capsys.readouterr().out
+
+
+def test_dem_quyet_dinh_NO_khi_so_KHONG_CO_bang_decisions(tmp_path):
+    """Đếm 0 trên một bảng vắng là đối chứng giả: thiếu bảng thì phải nổ."""
+    db = tmp_path / "wf_oos.db"
+    c = sqlite3.connect(db)
+    c.execute("CREATE TABLE trades (id INTEGER, symbol TEXT, signal_date TEXT, exit_date TEXT,"
+              " entry_price REAL, exit_price REAL, status TEXT)")
+    c.commit()
+    c.close()
+    with pytest.raises(sqlite3.OperationalError):
+        D.main(["--dem", str(db)])

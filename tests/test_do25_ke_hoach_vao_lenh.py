@@ -556,6 +556,17 @@ def test_VUNG_OOS_chi_ma_co_moc_cat_truoc_moc_va_phai_dai_hon_min_history():
     assert "C" not in D.dung_vung_oos(tat_ca, moc, 3)               # 3 hàng KHÔNG dài hơn 3
 
 
+def test_BAM_THU_MUC_NO_khi_duong_KHONG_PHAI_thu_muc(tmp_path):
+    """Lỗi 189 (24/10, ĐO 30b): đường POSIX `/c/Users/…` trong chuỗi `python -c` không tới được
+    thư mục trên Windows, và M0 ra băm RỖNG 0 tệp thay vì nổ."""
+    with pytest.raises(FileNotFoundError):
+        D.bam_thu_muc(tmp_path / "khong_co")
+    (tmp_path / "A.csv").write_text("x\n1\n", encoding="utf-8")
+    with pytest.raises(FileNotFoundError):
+        D.bam_thu_muc(tmp_path / "A.csv")                              # một TỆP, không phải thư mục
+    assert D.bam_thu_muc(tmp_path)["so_file"] == 1
+
+
 def test_BAM_THU_MUC_on_dinh_va_nhay_voi_noi_dung_va_ten(tmp_path):
     (tmp_path / "A.csv").write_text("x\n1\n", encoding="utf-8")
     (tmp_path / "B.csv").write_text("x\n2\n", encoding="utf-8")
