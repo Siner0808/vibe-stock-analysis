@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **24/10/2026 — BƯỚC 226, ĐO 33 (chốt sụt giảm của sổ: vốn đã chốt tụt > 15% thì chặn mua 20 phiên): kết cục A — không phân biệt được; ý gác lại. XONG HỌ BA PHÉP — CHỜ NGƯỜI DÙNG quyết ứng viên tầng 3 (ĐO 30 A⁺, ĐO 32 A⁺).** A −1,73% · B −1,62% [−2,19 ; −1,02], ngưỡng IS 45 cả hai; Δ +0,11; 3 lần đóng băng; 55 lệnh bị chặn là nhóm đỡ tệ (−0,23%); sụt giảm tối đa không đổi (37,1% · 37,7%). ĐO 32: phần tốt lên đi với ngưỡng 62 (ĐO 32b), không với cổng độ rộng. `CHOT_SUT_GIAM_NGUONG` vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 226.
+
 > 🧭 **24/10/2026 — BƯỚC 225, ĐO 32b (chẩn đoán, khai sau kết quả ĐO 32): cổng VN-INDEX ở ngưỡng GHIM 62 −1,11% [−1,99 ; −0,16] — gần lượt B (−1,26), xa lượt A (−1,73).** Phần tốt lên của ĐO 32 đi với ngưỡng 62, không với cổng độ rộng. Kết cục A⁺ của ĐO 32 đứng nguyên; người dùng quyết ứng viên sau khi xong họ 3 phép. Không dùng để đổi ngưỡng (chọn ngưỡng bằng OOS là bất biến 7). Chi tiết: `docs/STATE.md` BƯỚC 225.
 
 > 🧭 **24/10/2026 — BƯỚC 224, ĐO 32 (độ rộng thị trường thay cổng VN-INDEX): kết cục A⁺ — CHỜ NGƯỜI DÙNG.** A −1,73% [−2,28 ; −1,17] · B −1,26% [−2,10 ; −0,41], ngưỡng IS B = **62**; Δalpha +0,46 — gộp cả phần đổi ngưỡng, và 105 lệnh bị chặn không tệ hơn phần còn lại (−1,75 · −1,72). Lượt C không cổng thị trường −2,16%: cổng VN-INDEX đỡ 0,43. Phép 2 trong họ 3; ĐO 33 (chốt sụt giảm của sổ) bản nháp chờ duyệt. Người dùng cho ĐO 30: *"Chờ xong họ 3 phép rồi quyết (Recommended)"*. `CONG_VNI_BAT` vẫn True, `DO_RONG_NGUONG` vẫn 0. Chi tiết: `docs/STATE.md` BƯỚC 224.

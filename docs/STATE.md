@@ -24080,3 +24080,36 @@ Leader, tại chỗ. Sau BƯỚC 224 (#270 merge `b7a5d0d`), người dùng ch�
 **Hệ quả cho ĐO 32.** Kết cục A⁺ đã ký đứng nguyên (chẩn đoán không lật kết cục); nhưng cơ chế của nó đã được tách: không phải cổng độ rộng. Quyết định ứng viên tầng 3 vẫn chờ xong họ 3 phép như người dùng chọn — chẩn đoán này là dòng đọc kèm cho quyết định ấy.
 
 **Việc kế.** ĐO 33 (chốt sụt giảm của sổ) — bản nháp người dùng đã duyệt; ký ở BƯỚC 226 sau khi BƯỚC này vào `main`. Hẹn cũ giữ nguyên.
+
+## BƯỚC 226 — ĐO 33: CHỐT SỤT GIẢM CỦA SỔ (VỐN ĐÃ CHỐT TỤT > 15% THÌ CHẶN MUA 20 PHIÊN, RỒI ĐẶT LẠI ĐỈNH); DÒNG "BẬT · THEO NGÀY" TRÊN CACHE `acf6dca1…` −1,73% → −1,62% (KẾT CỤC A — KHÔNG PHÂN BIỆT ĐƯỢC); 55 LỆNH BỊ CHẶN LẠI LÀ NHÓM ĐỠ TỆ, SỤT GIẢM TỐI ĐA KHÔNG ĐỔI; Ý GÁC LẠI; XONG HỌ BA PHÉP (24/10/2026)
+
+**Mốc:** D3 — phép đo THĂM DÒ (C2) cho một chốt rủi ro mức cả sổ lấy từ repo ngoài; phép thứ ba, cuối cùng, trong họ ba phép (ĐO 31 · ĐO 32 · ĐO 33) trên cùng vùng OOS
+
+Leader, tại chỗ. Gốc ý: repo `toreleon/Azoth` (`src/agent/backtestRunner.ts` @ `3490cdd`: `BACKTEST_MAX_DRAWDOWN_FLOOR = 0.15`, vốn theo giá thị trường, mở lại chỉ khi vốn hồi), người dùng: *"ĐO xem rồi thêm ý tưởng nó vào Repo của mình."* Bốn hộp hỏi 24/10: *"Vốn đã chốt (Recommended)"* · *"15% như Azoth (Recommended)"* · *"Chặn 20 phiên rồi đặt lại đỉnh (Recommended)"* · ĐO 30 *"Chờ xong họ 3 phép rồi quyết (Recommended)"*; bản nháp: *"Duyệt cả bản nháp (Recommended)"*. **Sửa sau duyệt, trước ký** (khai trong chính mục ĐO 33): "ngày ra ≤ d" → "< d", vì `walkforward.lich_theo_ngay` chạy mã theo chữ cái và `paper_runner.run_session` xử lý lệnh thoát rồi mới `consider_entry` — với "≤ d" các mã cùng phiên thấy vốn khác nhau. Nhánh `do/chot-sut-giam-226` xếp chồng trên `do/chan-doan-nguong-225`, worktree `vibe_wt_226`. Commit: `e1f559d` ký ĐO 33 · `5018083` mã.
+
+**Sổ tay — hỏi thật TRƯỚC commit ký** (chạm `docs/TIEU-CHI-DOC-TRUOC.md`). Một lượt, ÂM. Nó dẫn bất biến 4 (KHỚP, `tools/doi_chieu_trich_dan.py`) và ĐO 8 — BƯỚC 66 *"SỐ HỌC CỦA TA ĐÚNG, NHƯNG NÓ TRẢ LỜI MỘT CÂU HỎI KHÁC"*: nhân dồn tuần tự khác danh mục thật khi lệnh chồng lấn → thêm vào tra trùng trước khi ký (thước sụt giảm của ĐO 33 là thước của đường vốn ấy, không phải của một tài khoản thật). Mục ở `docs/soat-notebooklm.json` ("BƯỚC 226", "ĐO 33").
+
+**Mã.** `chot_sut_giam.py` (mới): máy trạng thái thuần theo phiên (dòng `VNINDEX` của cache) — vốn đã chốt từ lệnh ra TRƯỚC phiên (công thức `paper_metrics.compute`), (P − E)/P > ngưỡng thì đóng băng, chặn đúng N phiên, rồi đặt lại đỉnh; `chot_sut_giam.khoi_dong_bang` dựng lại mọi khối từ một sổ. `paper_trading`: `CHOT_SUT_GIAM_NGUONG` = 0 (TẮT; module không được nạp) · `CHOT_SUT_GIAM_PHIEN` = 20 (chỗ khai DUY NHẤT; hàm của module nhận nó làm đối số) · `PaperTradingJournal.dang_dong_bang` nhớ theo (ngày, số lệnh đã đóng, ngày ra cuối) · cổng đứng sau cổng độ rộng, trước cổng chất lượng dữ liệu. `tools/do33_chot_sut_giam.py`: `--luot A|B` · `--dem` (tự nhất quán + đếm). `tests/test_chot_sut_giam.py` 21 test (phát đầu: bẫy "≤ d"); đột biến **23/23 đỏ** ngay lượt đầu. Không chạy dụng cụ trên sổ thật nào TRƯỚC lượt chạy — dựng khối trên sổ A là nhìn đường vốn.
+
+**Lượt chạy.** Hai worktree tách rời ở `5018083`; bản chép cache gốc; bộ nhớ hậu nghiệm sha256 `e8b44cf8…`; 10:35:57 → 11:14:30 (A) / 11:16:19 (B). Sổ và log ở `scratch/luu_do33/` (66 MB; A_wf_oos.db sha256 `068a7d20…`, B `ff061d84…`).
+
+**Đối chứng — cả bốn ĐẠT.**
+- (i) A ghép với `scratch/luu_do31/A_wf_oos.db`: 651/651 GIỐNG HỆT; log A 650 lệnh, −1,73% [−2,28 ; −1,17], ngưỡng IS 45.
+- (ii) M0: hai bản chép cache trước và sau `acf6dca1dd38d515…`.
+- (iii) Tự nhất quán: `--dem` trên B dựng lại 3 khối (bắt đầu 20/09/2022 · 27/12/2022 · 09/09/2024; mỗi khối 20 phiên); 523 quyết định lý do chốt sụt giảm, 0 nằm ngoài khối; 0 lệnh B có ngày tín hiệu trong khối. Phiên đầu sổ A sụt > 15% = 20/09/2022 = ngày đóng băng đầu của B; 92 lệnh có tín hiệu trước ngày ấy GIỐNG HỆT ở A và B.
+- (iv) A: 0 quyết định lý do chốt sụt giảm; B: 523.
+
+**Thống kê chính.** A: ngưỡng IS 45 · 650 lệnh · alpha −1,73% [−2,28 ; −1,17]. B: ngưỡng IS **45** · 606 lệnh · alpha **−1,62% [−2,19 ; −1,02]**. **Δalpha = +0,11.** Ngưỡng đã ký (0,555 → 0,28 · 0,56): −0,28 ≤ +0,11 ≤ +0,28 → **kết cục A — không phân biệt được.** Phép 3 trong họ 3. Ba lần đóng băng, 60 phiên bị chặn. KTC của B vẫn loại 0 → *"THUA chuẩn có ý nghĩa"* đứng. Ghép: chung 525 · chỉ A 125 · chỉ B 81.
+
+**Báo kèm (`scratchpad/do33/bao_kem33.py` phiên 59808c4e, tái lập −1,73 · −1,62).**
+- 55 lệnh A có ngày tín hiệu trong các khối đóng băng của B: **−0,23% [−2,72 ; +2,82]** · 595 lệnh còn lại: −1,87% [−2,40 ; −1,30] — chốt chặn nhóm ĐỠ TỆ (KTC nhóm chặn rất rộng).
+- Sụt giảm tối đa (vốn đã chốt, `paper_metrics.compute`): A 37,11% · B 37,69% — chốt KHÔNG giảm được sụt giảm.
+- Vòng mua–bán B − A = −44.
+
+**Theo kết cục ký trước (A).** Không chặn; ý chốt sụt giảm gác lại. `CHOT_SUT_GIAM_NGUONG` ở nguồn vẫn 0. `CLAUDE.md` không đổi.
+
+**Giả thuyết bị bác.** *"Ngừng mua khi sổ đang sụt sâu thì tránh được chuỗi lệnh xấu và giảm sụt giảm"* — trên sổ này cả hai vế đều không đứng: lệnh bị chặn là nhóm đỡ tệ, sụt giảm tối đa không đổi. Đây là lần thứ hai trong họ (sau ĐO 31) một bộ lọc chặn đúng nhóm ĐỠ tệ — dấu hiệu rằng các lệnh mở ở lúc thị trường/sổ xấu nhất không phải phần tệ nhất của sổ này.
+
+**Tổng kết họ ba phép (ĐO 31–33, cùng vùng OOS, ngưỡng không hiệu chỉnh cho họ).** ĐO 31 IMOM: A (Δ +0,10). ĐO 32 độ rộng thay cổng VN-INDEX: A⁺ (Δ +0,46) — nhưng ĐO 32b tách được: phần tốt lên đi với ngưỡng IS 62, không với cổng; lượt C cho thấy chính cổng VN-INDEX đỡ 0,43. ĐO 33 chốt sụt giảm: A (Δ +0,11). Không ý nào từ ba nguồn ngoài cho một cơ chế ủng hộ được. Kèm ĐO 30 (nghỉ sau lệnh lỗ, A⁺ Δ +0,51), câu ứng viên tầng 3 giờ là của người dùng — họ đã xong.
+
+**Việc kế.** Người dùng quyết ứng viên tầng 3 cho ĐO 30 / ĐO 32 (C7: ≤ 1 mỗi tháng, sớm nhất 11/2026). Hẹn cũ giữ nguyên.
