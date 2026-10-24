@@ -366,6 +366,18 @@ def do_rong_bi_chan(signal_date: str) -> Optional[float]:
     dr = do_rong.do_rong_mac_dinh(str(signal_date)[:10])
     return dr if dr is not None and dr < DO_RONG_NGUONG else None
 
+#: Chốt sụt giảm của sổ — ĐO 33 (BƯỚC 226; khai trước ở `docs/TIEU-CHI-DOC-TRUOC.md`).
+#: > 0 thì `consider_entry` KHÔNG mở lệnh khi sổ đang đóng băng: vốn đã chốt (lệnh ra TRƯỚC
+#: ngày tín hiệu, công thức `paper_metrics.compute`) tụt hơn giá trị này so với đỉnh thì chặn
+#: `CHOT_SUT_GIAM_PHIEN` phiên rồi đặt lại đỉnh (`chot_sut_giam.py`). 0 = TẮT, và tắt là hành vi
+#: đang chạy: đường chạy thật không đổi, `chot_sut_giam` không được nạp. Lượt B của ĐO 33 đặt
+#: 0,15 TRONG TIẾN TRÌNH (`tools/do33_chot_sut_giam.py`), không sửa nguồn.
+CHOT_SUT_GIAM_NGUONG = 0
+CHOT_SUT_GIAM_PHIEN = 20
+
+#: Tiền tố lý do ghi sổ khi sổ đang đóng băng; mức sụt và phiên bắt đầu đứng sau.
+LY_DO_CHOT_SUT_GIAM = "chốt sụt giảm của sổ"
+
 #: Số vị thế MỤC TIÊU nắm đồng thời. ĐÂY LÀ QUYẾT ĐỊNH ĐO LƯỜNG, KHÔNG PHẢI
 #: QUYẾT ĐỊNH LỢI NHUẬN — đọc kỹ trước khi vặn.
 #:
@@ -745,6 +757,27 @@ class PaperTradingJournal:
             # test. Nhưng cũng không để một lỗi mô hình làm sập phiên quét.
             return float(gia)
 
+    def dang_dong_bang(self, signal_date: str) -> Optional[tuple[float, str]]:
+        """(mức sụt lúc đóng băng, phiên bắt đầu) nếu sổ ĐANG đóng băng ở ngày tín hiệu; None nếu
+        không — và None ngay, KHÔNG nạp `chot_sut_giam` hay đọc sổ, khi cổng TẮT (0). ĐO 33, BƯỚC 226.
+
+        Nhớ theo (ngày, số lệnh đã đóng, ngày ra cuối): trong một phiên, mỗi mã xét mở lệnh một lần
+        mà kết quả chỉ phụ thuộc lệnh ra TRƯỚC ngày ấy."""
+        if CHOT_SUT_GIAM_NGUONG <= 0:
+            return None
+        import chot_sut_giam
+        t = str(signal_date)[:10]
+        so_dong, ra_cuoi = self.db.execute(
+            "SELECT COUNT(*), MAX(exit_date) FROM trades WHERE status=?", (Status.CLOSED,)).fetchone()
+        khoa = (t, so_dong, ra_cuoi, CHOT_SUT_GIAM_NGUONG, CHOT_SUT_GIAM_PHIEN)
+        nho = self.__dict__.setdefault("_nho_dong_bang", {})
+        if khoa not in nho:
+            nho[khoa] = chot_sut_giam.may_trang_thai(
+                chot_sut_giam.lich_phien_mac_dinh(),
+                chot_sut_giam.he_so_lenh(self.all_trades(Status.CLOSED)),
+                t, CHOT_SUT_GIAM_NGUONG, CHOT_SUT_GIAM_PHIEN)
+        return nho[khoa]
+
     def von_dang_cam_ket(self) -> float:
         """Tổng `size_pct` của các lệnh ĐANG MỞ **và ĐANG CHỜ KHỚP**.
 
@@ -782,6 +815,8 @@ class PaperTradingJournal:
             skip = LY_DO_VNI
         elif (dr := do_rong_bi_chan(signal_date)) is not None:
             skip = f"{LY_DO_DO_RONG}: {dr:.3f} < {DO_RONG_NGUONG:g}"
+        elif (bang := self.dang_dong_bang(signal_date)) is not None:
+            skip = f"{LY_DO_CHOT_SUT_GIAM}: sụt {bang[0]:.1%} từ {bang[1]}"
         elif str(quality).upper() not in MUC_CHAT_LUONG_DUNG_DUOC:
             # CHAN theo muc BLOCK, khong chan ca WARN. Ban cu chan moi thu
             # khac "OK" -- gop hai muc lam mot la mat thong tin: WARN nghia
