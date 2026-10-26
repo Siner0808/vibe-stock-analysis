@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **26/10/2026 — BƯỚC 230: soát 14 xong sớm 2 ngày (71/71 lời khai), ĐO 27 lượt đọc 3 CHƯA ĐỦ (quần thể 0; băm sổ trùng 21/10), sổ tay NotebookLM tươi về `61221db` (19 nguồn, STATE 5 khúc tới BƯỚC 229), ba câu hết đúng ở `docs/LO-TRINH.md` đánh dấu.** Người dùng: B1 giữ mức suy nghĩ *"medium"*. Lỗi 191 (số soát ngoài công cụ không tái lập được). Chờ BƯỚC 231: `CLAUDE.md` :112 và hai ô ⚠️ ở `TIEU-CHI` — mỗi chỗ một câu hỏi sổ tay thật. Lượt 15 + ĐO 27 lượt 4: hạn 02/11. Chi tiết: `docs/STATE.md` BƯỚC 230.
+
 > 🧭 **26/10/2026 — BƯỚC 229: giai đoạn B MỞ, B1 BẬT bằng Gemini 3.8 Flash bậc miễn phí** (API Anthropic cần nạp tín dụng; người dùng: *"Đổi sang Gemini 3.8 Flash (Recommended)"*). Secret `GEMINI_API_KEY`, workflow `hau-kiem-loi.yml` BẬT, chạy 18:17 VN mỗi ngày làm việc. Bậc miễn phí: **20 request/ngày/model** (lỗi 429 thật) và model đang quá tải (503/504) — lệnh hỏng lượt sau viết lại. Hai lượt đo: 4 lệnh được viết, 3 đạt. `NGAY_HAU_KIEM_LOI_BAT_DAU` = 2026-10-26. W43: 57%, không đạt 2/3. Dòng B1 của `docs/LO-TRINH.md` (ANTHROPIC_API_KEY) HẾT ĐÚNG — sửa ở soát 14. Chi tiết: `docs/STATE.md` BƯỚC 229.
 
 > 🧭 **24/10/2026 — BƯỚC 228: luật nghỉ sau lệnh lỗ GÁC theo người dùng (*"Gác luật nghỉ (Recommended)"*), KHÔNG khai UV-002.** Ở ngưỡng 62 của đường thật, nhóm luật nghỉ chặn −0,21% [−2,66 ; +2,76] (n 71) so với −1,34% phần còn lại — cơ chế thấy ở 45/50 không còn; lực xác nhận ước lượng cần ≈ 7 năm; khai thì ngưỡng của UV-001 giảm một nửa. Họ ĐO 30–33 đóng hết, không ý nào đổi đường thật. `NGHI_SAU_LO_NGAY` vẫn 0, `docs/ung-vien.json` không đổi. Chi tiết: `docs/STATE.md` BƯỚC 228.
