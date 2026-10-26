@@ -250,6 +250,54 @@ def test_TEN_KHOA_phan_chay_doc_DUNG_ten_workflow_dua_vao():
     assert dua == [("GEMINI_API_KEY", "GEMINI_API_KEY")], dua
 
 
+def test_HAN_LUOT_qua_gio_thi_KHONG_mo_loi_goi_moi(capsys):
+    """Lượt đo 1 (26/10/2026) treo tới trần của job: quá `HAN_LUOT_GIAY` thì dừng xanh."""
+    gio = iter([0.0, 0.0, CLI.HAN_LUOT_GIAY + 1.0, CLI.HAN_LUOT_GIAY + 2.0])
+    b = _so([_dong(trade_id=1, exit_date="2026-10-08"), _dong(trade_id=2)])
+    c = _Client(_phan_hoi(), _phan_hoi())
+    assert CLI.main([], backend=b, client=c, loi_mod=MOD, tai_gia=_tai_hong, bay_gio=BAY_GIO,
+                    dong_ho=lambda: next(gio)) == CLI.MA_XONG
+    assert len(c.goi) == 1
+    assert "phút của lượt" in capsys.readouterr().out
+
+
+def test_HAN_GIO_vua_trong_TIMEOUT_cua_job():
+    """Hạn lượt + một lời gọi tệ nhất (mọi lần thử đều chờ hết hạn) + 3 phút dựng job
+    (đo lượt 1: ~1 phút cài, ~40 giây đọc Sheets và giá) phải nằm trong `timeout-minutes`."""
+    import re
+
+    wf = (GOC / ".github" / "workflows" / "hau-kiem-loi.yml").read_text(encoding="utf-8")
+    phut = int(re.search(r"^\s*timeout-minutes:\s*(\d+)", wf, re.M).group(1))
+    te_nhat = CLI.SO_LAN_THU * CLI.THOI_GIAN_CHO_MS / 1000
+    assert CLI.HAN_LUOT_GIAY + te_nhat + 180 <= phut * 60
+    assert re.search(r'^\s*PYTHONUNBUFFERED:\s*"1"', wf, re.M)
+
+
+def test_CLIENT_THAT_dung_HAN_CHO_va_SO_LAN_THU(monkeypatch):
+    """Đường không truyền `client`: phần chạy tự dựng `genai.Client` — thay lớp ấy bằng
+    bản giả ghi tham số, để khoá `timeout` và `attempts` mà không gọi mạng."""
+    from google import genai
+    from google.genai import errors
+
+    dung = {}
+
+    class _Gia:
+        def __init__(self, **kw):
+            dung.update(kw)
+            self.models = NS(generate_content=lambda **k: _phan_hoi())
+
+    monkeypatch.setenv("GEMINI_API_KEY", "khoa-gia")
+    monkeypatch.setattr(genai, "Client", _Gia)
+    b = _so([_dong()])
+    assert CLI.main([], backend=b, tai_gia=_tai_hong, bay_gio=BAY_GIO) == CLI.MA_XONG
+    assert dung["api_key"] == "khoa-gia"
+    h = dung["http_options"]
+    assert h.timeout == CLI.THOI_GIAN_CHO_MS
+    assert h.retry_options.attempts == CLI.SO_LAN_THU
+    assert [d["trang_thai"] for d in ss.doc_hau_kiem(b)] == [hk.TT_DAT]
+    assert errors.APIError  # đường thật dùng đúng module lỗi của SDK
+
+
 def test_KHONG_DOC_DUOC_SHEETS_thoat_2():
     class _Hong(ss.InMemorySheet):
         def read_rows(self, tab):

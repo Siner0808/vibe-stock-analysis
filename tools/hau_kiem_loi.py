@@ -26,6 +26,7 @@ import argparse
 import datetime
 import os
 import sys
+import time
 from collections import Counter
 from pathlib import Path
 
@@ -60,6 +61,14 @@ MA_HTTP_HET_HAN_MUC = 429
 #: SDK `google-genai` mặc định KHÔNG thử lại (`retry_args(None)`, đọc mã 2.33.0) — đặt
 #: tường minh, gồm cả lần đầu; nó thử lại 408 · 429 · 5xx.
 SO_LAN_THU = 3
+#: Hạn chờ MỖI request (mili giây, đơn vị của `HttpOptions.timeout`). Không đặt thì một lời
+#: gọi treo giữ job tới trần của workflow: lượt đo 1 (run 40256929934, 26/10/2026) viết 4
+#: lệnh rồi treo ~18 phút và bị GitHub huỷ ở `timeout-minutes`.
+THOI_GIAN_CHO_MS = 90_000
+#: Hạn của cả lượt gọi (giây): quá thì KHÔNG mở lời gọi mới, dừng xanh, lượt sau làm. Cộng
+#: một lời gọi tệ nhất (`SO_LAN_THU` × `THOI_GIAN_CHO_MS`) vẫn phải nằm trong `timeout-minutes`
+#: của job (gác `tests/test_tools_hau_kiem_loi.py`).
+HAN_LUOT_GIAY = 12 * 60
 #: SDK gọi HTTP bằng `httpx`: lỗi mạng còn lại sau các lần thử mang module ấy. Nhận ra bằng
 #: TÊN module để phần chạy không phải nhập `httpx` (gói không khai trong requirements).
 GOI_LOI_MANG = frozenset({"httpx", "httpcore"})
@@ -118,7 +127,7 @@ def _doi_so(argv) -> argparse.Namespace:
 
 
 def main(argv=None, *, backend=None, client=None, loi_mod=None, tai_gia=None,
-         bay_gio=None) -> int:
+         bay_gio=None, dong_ho=time.monotonic) -> int:
     a = _doi_so(argv)
     import sheets_store
     import so_bai_hoc
@@ -181,11 +190,17 @@ def main(argv=None, *, backend=None, client=None, loi_mod=None, tai_gia=None,
 
         loi_mod = errors
         client = genai.Client(api_key=khoa, http_options=types.HttpOptions(
+            timeout=THOI_GIAN_CHO_MS,
             retry_options=types.HttpRetryOptions(attempts=SO_LAN_THU)))
 
     moi: list[dict] = []
     dem: Counter = Counter()
+    bat_dau = dong_ho()
     for i, d in enumerate(luot):
+        if dong_ho() - bat_dau > HAN_LUOT_GIAY:
+            print(f"::warning::Hậu kiểm lời: hết {HAN_LUOT_GIAY // 60} phút của lượt — dừng, "
+                  f"còn {len(luot) - i} lệnh chưa viết; lượt sau làm.")
+            break
         dk = hk.du_kien(d, bai_hoc[d["trade_id"]])
         nd = hk.noi_dung_gui(dk)
         if hk.vuot_tran(hk.da_tieu_thang(hkd + moi, thang), hk.tran_mot_loi_goi(nd)):

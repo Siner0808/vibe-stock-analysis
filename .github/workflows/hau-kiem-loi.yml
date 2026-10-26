@@ -68,4 +68,6 @@ jobs:
       - name: Viết hậu kiểm cho lệnh đã đóng
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Đầu ra không đệm: job bị huỷ thì log vẫn còn từng dòng đã in (lượt đo 1 mất hết).
+          PYTHONUNBUFFERED: "1"
         run: python tools/hau_kiem_loi.py
