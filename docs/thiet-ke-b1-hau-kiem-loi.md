@@ -7,6 +7,8 @@
 > miễn phí qua SDK `google-genai`, khoá `GEMINI_API_KEY` — không còn Claude Opus 5.5 /
 > `ANTHROPIC_API_KEY`. Mọi câu về Opus 5.5, `fallbacks`, Anthropic Console bên dưới là sử liệu;
 > bốn phần, luật viết, máy kiểm, tab `hau_kiem`, trần 5 $ giữ nguyên. Xem mục 12.
+>
+> ⚠️ **HẾT ĐÚNG vế "Trạng thái: thiết kế; chưa có dòng mã nào" (dòng 4) từ 17/10/2026** (soát 14, 26/10/2026, BƯỚC 230): nó đúng lúc ký; mã đã dựng — `hau_kiem_loi.py` (BƯỚC 203), `tools/hau_kiem_loi.py` và workflow `hau-kiem-loi.yml` (BƯỚC 204), bật ở BƯỚC 229. Câu cũ giữ nguyên làm sử liệu.
 
 Tài liệu này là đề bài cho phiên làm mã. Luật chung của dự án (vá file, đột biến, năm cổng,
 giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó, đừng chép lại vào đây.

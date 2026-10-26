@@ -192,14 +192,14 @@ lệnh trên; bản ghi đầu ở `docs/STATE.md` BƯỚC 218.
 
 ### B — Agent biết nói (hoàn tất tầng 2) · 26/10 → 30/11/2026
 
-- **B1** — P2c: hậu kiểm bằng lời cho mọi lệnh đóng. *(cần khoá `ANTHROPIC_API_KEY` do người dùng tự đặt, có trần chi tiêu; người dùng đã hoãn tới đầu giai đoạn B)*
+- **B1** — P2c: hậu kiểm bằng lời cho mọi lệnh đóng. *(cần khoá `ANTHROPIC_API_KEY` do người dùng tự đặt, có trần chi tiêu; người dùng đã hoãn tới đầu giai đoạn B)* ⚠️ HẾT ĐÚNG 26/10/2026: B1 BẬT bằng **Gemini 3.8 Flash** bậc miễn phí, khoá `GEMINI_API_KEY` người dùng tự đặt (API của Anthropic cần nạp tín dụng; người dùng *"Đổi sang Gemini 3.8 Flash (Recommended)"*) — `docs/STATE.md` BƯỚC 229.
 - **B2** — Bản tin cuối ngày: thị trường, agent đã làm gì, vì sao, học được gì. *(ĐÃ DỰNG 10/10/2026: BƯỚC 174 — `ban_tin.py` hàm thuần, `tools/ban_tin.py`, tab "📰 Bản tin" của app; CHỈ ĐỌC sổ thật trên Sheets.)*
 - **B3** — Sổ bài học với nhãn nguyên nhân: thị trường chung, ngành, tín hiệu sai, cắt lỗ sát, gap. *(ĐÃ DỰNG 09/10/2026, sớm hơn lịch giai đoạn B: BƯỚC 167 `so_bai_hoc.py` — mỗi lệnh ảo đã đóng có một bài học CHỈ ĐỌC, phân rã bốn phần thị trường + ngành + riêng mã/tín hiệu + chi phí, kèm cờ gap và cắt lỗ sát; BƯỚC 168 sửa nút tải giá; BƯỚC 169 chuông đo tiêu chí ra khỏi B. Còn mở hai câu hiệu chuẩn ở `docs/STATE.md` BƯỚC 167: giữ bốn phần hay ba, `so_bai_hoc.N_PHIEN_SAU_THOAT` = 5 có hợp lý không.)*
 - **B4** — Bảng sức khoẻ hệ thống thay cho phần lớn soát tay. *(ĐÃ DỰNG 10/10/2026: BƯỚC 177 — `suc_khoe.py`, `tools/suc_khoe.py`, tab "🩺 Sức khoẻ"; mười phép kiểm chạy tuần tự, bốn trạng thái, chỉ đọc.)*
 - **B5** — Chart đa khung D-W-M (ngày · tuần · tháng) CHỈ ĐỂ HIỆN, cho mã đang xem và VN-INDEX: nến tuần/tháng gộp từ nến ngày đã qua cổng kiểm định, chỉ nến ĐÃ ĐÓNG, mỗi nến mang ngày phiên cuối có thật của nó; không vào chấm điểm, đường lệnh ảo hay backtest. Dùng xu hướng tuần/tháng làm bộ lọc lệnh ảo là một ứng viên tầng 3 riêng, phải khai trước — không thuộc B5. *(người dùng đề xuất và duyệt 09/10/2026: "đồng ý, làm phần 1 trước"; BƯỚC 171)*
 - **B6** — Kế hoạch vào lệnh CHỈ ĐỂ HIỆN: với mỗi mã đủ điểm, agent lập vùng vào, cắt lỗ theo cấu trúc, rủi ro mỗi lệnh, độ kéo giãn so với MA20 và một phán quyết (mua ngay · đặt chờ ở vùng trong K phiên · bỏ qua) kèm lý do; app hiện, nhật ký ghi; KHÔNG đổi cách khớp lệnh của sổ ảo. *(người dùng 09/10/2026, Q12: "Hãy giao việc phán quyết cho Agent, không phải cứ điểm cao là mua"; duyệt "Duyệt cả lộ trình (Recommended)"; BƯỚC 172)* *(PHẦN 1 ĐÃ DỰNG 10/10/2026: BƯỚC 173 — `ke_hoach_vao_lenh.py` và bảng kế hoạch trên app; vế "nhật ký ghi" CHƯA làm ⚠️ HẾT ĐÚNG 15/10/2026, xem PHẦN 2. ĐO 25 — khai ở BƯỚC 178, chạy ở BƯỚC 179 ngày 12/10/2026 — ra kết cục B: chưa phân biệt được với mua mọi tín hiệu ở giá mở cửa phiên sau; B6 giữ CHỈ ĐỂ HIỆN.)* *(PHẦN 2 ĐÃ DỰNG 15/10/2026: BƯỚC 195 — `run_daily` ghi kế hoạch của MỌI mã có điểm ≥ ngưỡng (kể cả mã bị cổng của sổ chặn) vào tab MỚI `ke_hoach` trên Google Sheets lúc quét, SAU `run_session`, mỗi tín hiệu MỘT lần; không đổi cách khớp lệnh. Bản ghi này là dữ liệu tiến về phía trước cho C7. App hiện kế hoạch đã ghi: để sau. ⚠️ HẾT ĐÚNG cùng ngày 15/10/2026: hỏi lại sau khi tab có dữ liệu thật, người dùng chọn làm — BƯỚC 198 hiện chúng ở tab "📜 Lịch sử giao dịch", chỉ đọc, không tính lại, kèm việc sổ ảo đã làm với từng tín hiệu. Người dùng duyệt thiết kế 15/10/2026.)*
 
-**Ra khi:** 100% lệnh đóng có bài học trong vòng 1 phiên. *(Đo hằng ngày từ BƯỚC 169: `tools/chuong_bai_hoc.py`, workflow `chuong-bai-hoc.yml`, đỏ = email. Quần thể là lệnh tiến-về-trước đã đóng, mở từ `so_bai_hoc.NGAY_NHAT_KY_BAT_DAU`; lệnh mở trước nhật ký không tính và không điền bù — Q13 ở `docs/QUYET-DINH-CHO.md`, chờ người dùng. Hạn tính theo PHIÊN giao dịch. "Có bài học" của chuông hiện là nửa ĐÓNG của nhật ký + phân rã được, tức phần NHÃN; vế "bằng lời" mà T2 đòi cần B1 và chuông CHƯA đo.)*
+**Ra khi:** 100% lệnh đóng có bài học trong vòng 1 phiên. *(Đo hằng ngày từ BƯỚC 169: `tools/chuong_bai_hoc.py`, workflow `chuong-bai-hoc.yml`, đỏ = email. Quần thể là lệnh tiến-về-trước đã đóng, mở từ `so_bai_hoc.NGAY_NHAT_KY_BAT_DAU`; lệnh mở trước nhật ký không tính và không điền bù — Q13 ở `docs/QUYET-DINH-CHO.md`, chờ người dùng. Hạn tính theo PHIÊN giao dịch. "Có bài học" của chuông hiện là nửa ĐÓNG của nhật ký + phân rã được, tức phần NHÃN; vế "bằng lời" mà T2 đòi cần B1 và chuông CHƯA đo.)* ⚠️ HẾT ĐÚNG 26/10/2026 (BƯỚC 229): B1 bật, chuông đo vế "có lời" cho lệnh đóng từ 2026-10-26 (`hau_kiem_loi.NGAY_HAU_KIEM_LOI_BAT_DAU`).
 
 ### C — Sân đấu phương án → v1.0 · 01/12/2026 → 28/02/2027
 
@@ -272,7 +272,9 @@ cho tới khi đã thành một đầu việc có mã ở trên.
 
 - **Khoá `ANTHROPIC_API_KEY`**: người dùng tự đặt (GitHub và Streamlit secrets),
   có trần chi tiêu tháng; mở giai đoạn B. Chi phí CHƯA đo — đo ở tuần đầu giai
-  đoạn B. **Chưa đặt; giai đoạn A không làm gì về khoá.**
+  đoạn B. **Chưa đặt; giai đoạn A không làm gì về khoá.** ⚠️ HẾT ĐÚNG 26/10/2026 (BƯỚC 229):
+  B1 dùng khoá `GEMINI_API_KEY` (GitHub secret; app không gọi API), người dùng đặt 26/10;
+  bậc miễn phí 20 request/ngày/model, không tốn tiền.
 - **20 phút mỗi tuần của người dùng** cho một phiên quyết định (hàng đợi: **A5**).
 - **Tín dụng đám mây** hết hạn 05/11/2026: dồn cho BƯỚC thuần mã của A–B (ước
   lượng của leader: 5–9 BƯỚC).
