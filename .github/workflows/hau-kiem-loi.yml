@@ -1,19 +1,20 @@
-# Hậu kiểm BẰNG LỜI (B1, BƯỚC 204): mỗi lệnh ảo đã đóng có một đoạn văn bốn phần do Claude
-# viết, THÊM vào tab Sheets `hau_kiem`; app và bản tin chỉ đọc. Đặc tả:
-# docs/thiet-ke-b1-hau-kiem-loi.md. File này chỉ gọi tools/hau_kiem_loi.py.
+# Hậu kiểm BẰNG LỜI (B1, BƯỚC 204): mỗi lệnh ảo đã đóng có một đoạn văn bốn phần do Gemini
+# 3.8 Flash viết (BƯỚC 229; trước đó Claude Opus 5.5), THÊM vào tab Sheets `hau_kiem`; app và
+# bản tin chỉ đọc. Đặc tả: docs/thiet-ke-b1-hau-kiem-loi.md. File này chỉ gọi
+# tools/hau_kiem_loi.py.
 #
-# MERGE Ở TRẠNG THÁI TẮT (`gh workflow disable hau-kiem-loi.yml`) cho tới khi người dùng đặt
-# secret ANTHROPIC_API_KEY (Q9 — giai đoạn B từ 26/10/2026). Bật: `gh workflow enable`.
+# Khoá: secret GEMINI_API_KEY, người dùng tự đặt (BƯỚC 229). Tắt:
+# `gh workflow disable hau-kiem-loi.yml` · bật: `gh workflow enable`.
 #
 # KHÔNG CHUNG `concurrency.group` VỚI quet-so-lenh: một nhóm của GitHub giữ tối đa MỘT lượt
 # chờ, lượt chờ mới HUỶ lượt chờ cũ — lượt quét đang chờ có thể bị lượt này thay chỗ.
 #
-# MÃ THOÁT: 0 xong (lệnh hỏng chỉ ::warning::, lượt sau làm lại) · 1 lỗi cấu hình hoặc yêu
-# cầu sai hình dạng (401 · 403 · 400) · 2 không chạy được (thiếu khoá, không đọc/ghi được
-# Sheets). Đỏ = GitHub gửi email.
+# MÃ THOÁT: 0 xong (lệnh hỏng chỉ ::warning::, lượt sau làm lại; hết hạn mức 429 thì dừng
+# lượt) · 1 lỗi cấu hình hoặc yêu cầu sai hình dạng (400 · 401 · 403 · 404) · 2 không chạy
+# được (thiếu khoá, không đọc/ghi được Sheets). Đỏ = GitHub gửi email.
 #
-# TIỀN: trần 5 USD/tháng trong mã (cộng từ chính tab hau_kiem) là lớp THỨ HAI; trần cứng là
-# trần chi tiêu của workspace trong Anthropic Console, người dùng tự đặt.
+# TIỀN: khoá ở bậc miễn phí của Gemini thì không tốn tiền. Trần 5 USD/tháng trong mã (cộng từ
+# chính tab hau_kiem, theo giá bậc TRẢ PHÍ) là lớp chặn khi khoá nằm ở bậc trả phí.
 
 name: Hậu kiểm bằng lời
 
@@ -66,5 +67,5 @@ jobs:
 
       - name: Viết hậu kiểm cho lệnh đã đóng
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python tools/hau_kiem_loi.py

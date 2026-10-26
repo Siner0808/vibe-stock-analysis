@@ -17,7 +17,8 @@ Phạm vi: HAI phép kiểm.
     `tools/chuong_bao_quet.py`, `canh-cong-c5.yml` chạy
     `tools/canh_cong_c5.py`, `chuong-bai-hoc.yml` chạy
     `tools/chuong_bai_hoc.py`, `hau-kiem-loi.yml` chạy `tools/hau_kiem_loi.py`
-    (gói riêng của nó — `anthropic` — khai ở `requirements-hau-kiem.txt`, BƯỚC 204).
+    (gói riêng của nó — `google-genai` từ BƯỚC 229, trước đó `anthropic` — khai ở
+    `requirements-hau-kiem.txt`, BƯỚC 204).
 
 Bản đầu của file này ghi "tests/ và tools/ không nằm trong đường chạy của
 Actions" và chỉ soát ở gốc. Tiền đề đó sai, và nó cho qua một lỗi thật
@@ -441,17 +442,38 @@ def test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay():
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Gói riêng của B1 (BƯỚC 204) — `anthropic`
+# Gói riêng của B1 (BƯỚC 204; `google-genai` từ BƯỚC 229, trước đó `anthropic`)
 # ─────────────────────────────────────────────────────────────────────
 
-def test_CHI_phan_chay_B1_nhap_anthropic_va_nhap_TRONG_ham():
-    """`anthropic` không có trong requirements.txt (Streamlit Cloud không cài): gốc dự án
-    KHÔNG được nhập nó; trong tools/ CHỈ `tools/hau_kiem_loi.py`, và trong thân hàm; tests/
-    nhập trong thân test. Module thuần `hau_kiem_loi.py` ở gốc không bao giờ nhập."""
+def _nhap_google_genai(duong_dan) -> tuple[bool, bool]:
+    """(có nhập `google.genai` ở đâu đó, có nhập nó ở MỨC MODULE). Đọc tên CHẤM đầy đủ:
+    `_import_cua_file` chỉ thấy `google`, mà `google` là cả một họ gói."""
+    cay = ast.parse(duong_dan.read_text(encoding="utf-8"))
+
+    def la_genai(n) -> bool:
+        if isinstance(n, ast.Import):
+            return any(a.name == "google.genai" or a.name.startswith("google.genai.")
+                       for a in n.names)
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module:
+            return (n.module == "google.genai" or n.module.startswith("google.genai.")
+                    or (n.module == "google" and any(a.name == "genai" for a in n.names)))
+        return False
+
+    return any(la_genai(n) for n in ast.walk(cay)), any(la_genai(n) for n in cay.body)
+
+
+def test_CHI_phan_chay_B1_nhap_SDK_model_va_nhap_TRONG_ham():
+    """`google-genai` (và `anthropic` trước BƯỚC 229) không có trong requirements.txt
+    (Streamlit Cloud không cài): gốc dự án KHÔNG được nhập nó; trong tools/ CHỈ
+    `tools/hau_kiem_loi.py`, và trong thân hàm; tests/ nhập trong thân test. Module thuần
+    `hau_kiem_loi.py` ở gốc không bao giờ nhập."""
     nhap = {}
     for f in tap_file_cam_muc_module():
+        co, o_muc = _nhap_google_genai(f)
         if "anthropic" in _import_cua_file(f):
-            nhap[f.relative_to(GOC).as_posix()] = "anthropic" in _import_muc_module(f)
+            co, o_muc = True, o_muc or "anthropic" in _import_muc_module(f)
+        if co:
+            nhap[f.relative_to(GOC).as_posix()] = o_muc
     assert [p for p in nhap if "/" not in p] == []
     assert [p for p in nhap if p.startswith("tools/")] == ["tools/hau_kiem_loi.py"]
     assert [p for p, o_muc in nhap.items() if o_muc] == []
