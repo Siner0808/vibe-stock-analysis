@@ -59,16 +59,19 @@ MA_HTTP_CAU_HINH = frozenset({400, 401, 403, 404})
 #: Hết hạn mức (kể cả hạn mức NGÀY của bậc miễn phí): các lệnh sau cũng sẽ 429 -> dừng lượt.
 MA_HTTP_HET_HAN_MUC = 429
 #: SDK `google-genai` mặc định KHÔNG thử lại (`retry_args(None)`, đọc mã 2.33.0) — đặt
-#: tường minh, gồm cả lần đầu; nó thử lại 408 · 429 · 5xx.
-SO_LAN_THU = 3
+#: tường minh, gồm cả lần đầu; nó thử lại 408 · 429 · 5xx. MỖI lần thử ăn một request của
+#: hạn mức ngày (bậc miễn phí: 20 request/ngày/model — lỗi 429 thật của lượt đo 2) nên chỉ
+#: thử lại MỘT lần: lượt đo 2 mất 3 request mỗi lệnh hỏng vì 503/504 khi model quá tải.
+SO_LAN_THU = 2
 #: Hạn chờ MỖI request (mili giây, đơn vị của `HttpOptions.timeout`). Không đặt thì một lời
 #: gọi treo giữ job tới trần của workflow: lượt đo 1 (run 40256929934, 26/10/2026) viết 4
-#: lệnh rồi treo ~18 phút và bị GitHub huỷ ở `timeout-minutes`.
-THOI_GIAN_CHO_MS = 90_000
+#: lệnh rồi treo ~18 phút và bị GitHub huỷ ở `timeout-minutes`. 90 giây thì quá ngắn: lượt
+#: đo 2 (run 40258909497) nhận 504 DEADLINE_EXCEEDED ở hai lệnh khi model quá tải.
+THOI_GIAN_CHO_MS = 180_000
 #: Hạn của cả lượt gọi (giây): quá thì KHÔNG mở lời gọi mới, dừng xanh, lượt sau làm. Cộng
 #: một lời gọi tệ nhất (`SO_LAN_THU` × `THOI_GIAN_CHO_MS`) vẫn phải nằm trong `timeout-minutes`
 #: của job (gác `tests/test_tools_hau_kiem_loi.py`).
-HAN_LUOT_GIAY = 12 * 60
+HAN_LUOT_GIAY = 10 * 60
 #: SDK gọi HTTP bằng `httpx`: lỗi mạng còn lại sau các lần thử mang module ấy. Nhận ra bằng
 #: TÊN module để phần chạy không phải nhập `httpx` (gói không khai trong requirements).
 GOI_LOI_MANG = frozenset({"httpx", "httpcore"})

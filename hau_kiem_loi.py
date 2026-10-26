@@ -81,9 +81,9 @@ SCHEMA_BON_TRUONG: dict = {
 }
 
 #: Ngày bật B1 (khoá API có, workflow bật). None = CHƯA BẬT: vế "có lời" của chuông
-#: chưa đo. Đặt bằng một BƯỚC riêng đúng ngày bật; lệnh đóng trước ngày ấy không tính
-#: và không điền bù (khuôn Q13).
-NGAY_HAU_KIEM_LOI_BAT_DAU: Optional[str] = None
+#: chưa đo. Lệnh đóng trước ngày ấy không tính và không điền bù (khuôn Q13). Đặt 26/10/2026
+#: ở BƯỚC 229, cùng ngày khoá Gemini có và lượt đo thật đầu tiên viết được lệnh.
+NGAY_HAU_KIEM_LOI_BAT_DAU: Optional[str] = "2026-10-26"
 
 NHAN_HIEN = "Gemini viết · chỉ để đọc · máy chỉ kiểm số và câu chữ"
 #: Nhãn hiện của bốn trường — app và bản tin dùng chung (BƯỚC 205).

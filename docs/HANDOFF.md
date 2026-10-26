@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **26/10/2026 — BƯỚC 229: giai đoạn B MỞ, B1 BẬT bằng Gemini 3.8 Flash bậc miễn phí** (API Anthropic cần nạp tín dụng; người dùng: *"Đổi sang Gemini 3.8 Flash (Recommended)"*). Secret `GEMINI_API_KEY`, workflow `hau-kiem-loi.yml` BẬT, chạy 18:17 VN mỗi ngày làm việc. Bậc miễn phí: **20 request/ngày/model** (lỗi 429 thật) và model đang quá tải (503/504) — lệnh hỏng lượt sau viết lại. Hai lượt đo: 4 lệnh được viết, 3 đạt. `NGAY_HAU_KIEM_LOI_BAT_DAU` = 2026-10-26. W43: 57%, không đạt 2/3. Dòng B1 của `docs/LO-TRINH.md` (ANTHROPIC_API_KEY) HẾT ĐÚNG — sửa ở soát 14. Chi tiết: `docs/STATE.md` BƯỚC 229.
+
 > 🧭 **24/10/2026 — BƯỚC 228: luật nghỉ sau lệnh lỗ GÁC theo người dùng (*"Gác luật nghỉ (Recommended)"*), KHÔNG khai UV-002.** Ở ngưỡng 62 của đường thật, nhóm luật nghỉ chặn −0,21% [−2,66 ; +2,76] (n 71) so với −1,34% phần còn lại — cơ chế thấy ở 45/50 không còn; lực xác nhận ước lượng cần ≈ 7 năm; khai thì ngưỡng của UV-001 giảm một nửa. Họ ĐO 30–33 đóng hết, không ý nào đổi đường thật. `NGHI_SAU_LO_NGAY` vẫn 0, `docs/ung-vien.json` không đổi. Chi tiết: `docs/STATE.md` BƯỚC 228.
 
 > 🧭 **24/10/2026 — BƯỚC 227, ĐO 30b (chẩn đoán, khai sau kết quả ĐO 30): không nghỉ ở ngưỡng GHIM 50 −1,56% [−2,17 ; −0,92] — gần lượt A (−1,73), xa lượt B (−1,22): phần tốt lên của ĐO 30 đi với LUẬT NGHỈ, không với ngưỡng. CHỜ NGƯỜI DÙNG: khai ứng viên tầng 3 cho luật nghỉ hay gác. ĐO 32 GÁC (người dùng: *"Gác ĐO 32; chẩn đoán ĐO 30 trước (Recommended)"*).** Ở ngưỡng 50, 166 lệnh vào lại ngay sau một lệnh lỗ −2,45% so với −1,21% phần còn lại. Kết cục A⁺ của ĐO 30 đứng nguyên; `NGHI_SAU_LO_NGAY` vẫn 0. Lỗi 189 (băm M0 thư mục vắng ra băm rỗng) đã chặn ở `bam_thu_muc`. Chi tiết: `docs/STATE.md` BƯỚC 227.
@@ -620,6 +622,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > **BƯỚC 204:** tab `hau_kiem`, phần chạy `./.venv/Scripts/python.exe tools/hau_kiem_loi.py --thu` (in lời dặn +
 > dữ kiện, không gọi API, không cần khoá), workflow `hau-kiem-loi.yml` merge rồi TẮT; gói `anthropic` ghim ở
 > `requirements-hau-kiem.txt` (máy đã cài 1.15.0). Bật ngày 26/10: người dùng đặt secret, agent `gh workflow enable`.
+> ⚠️ HẾT ĐÚNG 26/10/2026 (BƯỚC 229): B1 chạy Gemini 3.8 Flash, gói `google-genai`, secret `GEMINI_API_KEY` — không còn `anthropic` / Opus 5.5.
 > **BƯỚC 205:** app (chi tiết nhật ký + bản tin) hiện bản `DAT` mới nhất; chuông bài học có vế "có lời" — CHƯA BẬT
 > (hằng `NGAY_HAU_KIEM_LOI_BAT_DAU` của `hau_kiem_loi.py` ở gốc = None) nên chưa đo, chưa đổi mã thoát. Ngày bật: đặt hằng số ấy bằng một BƯỚC nhỏ.
 
