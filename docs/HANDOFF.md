@@ -435,8 +435,11 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   Lượt 13: 21/10 (✅ BƯỚC 213, 21/10; nhịp 7 ngày kể từ NGÀY LÀM lượt 12, 14/10 — BƯỚC 188), làm kèm
 >   **lượt đọc 2 ĐO 27** (ĐO 27 chỉ đọc kèm lượt soát, cộng dồn — `docs/TIEU-CHI-DOC-TRUOC.md`,
 >   mục *Nhịp đọc*; BƯỚC 197): kết cục CHƯA ĐỦ, quần thể 0 lệnh.
->   Lượt 14: 28/10 (nhịp 7 ngày kể từ NGÀY LÀM lượt 13, 21/10 — BƯỚC 213), làm kèm
+>   Lượt 14: 28/10 (✅ BƯỚC 230, 26/10 — làm sớm 2 ngày theo người dùng; nhịp 7 ngày kể từ
+>   NGÀY LÀM lượt 13, 21/10 — BƯỚC 213), làm kèm
 >   **lượt đọc kế của ĐO 27** (cùng quy ước cộng dồn).
+>   Lượt 15: 02/11 (nhịp 7 ngày kể từ NGÀY LÀM lượt 14, 26/10 — BƯỚC 230), làm kèm
+>   **lượt đọc kế của ĐO 27** nếu ĐO chưa đủ.
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
 >   máy). **Chưa nối** vào `paper_trading` — việc kế là **P2b**: ghi dòng VÀO
@@ -625,6 +628,7 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 > ⚠️ HẾT ĐÚNG 26/10/2026 (BƯỚC 229): B1 chạy Gemini 3.8 Flash, gói `google-genai`, secret `GEMINI_API_KEY` — không còn `anthropic` / Opus 5.5.
 > **BƯỚC 205:** app (chi tiết nhật ký + bản tin) hiện bản `DAT` mới nhất; chuông bài học có vế "có lời" — CHƯA BẬT
 > (hằng `NGAY_HAU_KIEM_LOI_BAT_DAU` của `hau_kiem_loi.py` ở gốc = None) nên chưa đo, chưa đổi mã thoát. Ngày bật: đặt hằng số ấy bằng một BƯỚC nhỏ.
+> ⚠️ HẾT ĐÚNG 26/10/2026 (BƯỚC 229; soát 14, BƯỚC 230): `NGAY_HAU_KIEM_LOI_BAT_DAU` ở `hau_kiem_loi.py` nay là "2026-10-26" (không còn None), nên vế "có lời" của chuông bài học ĐÃ BẬT; workflow `hau-kiem-loi.yml` ở trạng thái `active` (`gh workflow list --all`), không còn TẮT. Hai câu trên giữ nguyên làm sử liệu của BƯỚC 204–205.
 
 **Chờ tới ngày, đừng đọc sớm:**
 

@@ -261,6 +261,8 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 **Dữ kiện đã kiểm (08/10/2026):**
 - `git grep -n "ANTHROPIC_API_KEY" -- docs/LO-TRINH.md` ra các dòng nêu khoá là việc của người dùng, giai đoạn A không đặt.
 
+> ⚠️ **HẾT ĐÚNG phần TÊN KHOÁ từ 26/10/2026** (BƯỚC 229; soát 14, BƯỚC 230): B1 chạy Gemini 3.8 Flash bậc miễn phí, khoá là `GEMINI_API_KEY` (GitHub secret đặt 26/10); `ANTHROPIC_API_KEY` không còn dùng. Quyết định "để tới giai đoạn B" đã được thi hành đúng hạn (26/10). Câu hỏi và trả lời nguyên văn giữ làm sử liệu.
+
 ---
 
 ## Q10 — Có tách `docs/STATE.md` theo tháng (A4) không?
