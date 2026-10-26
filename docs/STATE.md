@@ -24269,12 +24269,12 @@ sau lượt   : 0 chết · 18 sử liệu · 72 còn   (mã thoát 0)      lư�
 
 **Lỗi 191 ghi; đề xuất 192 KHÔNG ghi.** 191 (lớp `ky-luat`): đúng hình dạng Quy tắc 2 — một con số đã ghi mà lệnh tái lập không còn; dòng tự khai cuối bảng thành 93/170. 192 không phải một lỗi đã xảy ra: năm hàng bảng sống phiên con kiểm tay đều THẬT, công cụ bỏ hàng bảng là có chủ ý và tự khai; ghi thành phát hiện (mục *Phát hiện* 5), gộp vào việc công cụ của 191.
 
-**Đo `tools/nam_cong.py --song-song`** (việc 5 của bàn giao; 26/10 10:38–10:45, `pytest-xdist` 3.8.0): cả năm cổng thoát 0, cả lượt **455 s** (cổng 1 `-n auto` 454 s, 3636 passed; cổng 4 428 s). So với một tiến trình: 539 s lúc rảnh (24/10), 523–624 s hôm nay. Máy KHÔNG rảnh lúc đo (ĐO 27 lượt 3 kéo mạng và phiên con soát chạy cùng lúc) — đọc là cận trên; chưa đủ để đổi mặc định (CI vẫn một tiến trình).
+**Đo `tools/nam_cong.py --song-song`** (việc 5 của bàn giao; 26/10 10:38–10:45, `pytest-xdist` 3.8.0): cả năm cổng thoát 0, cả lượt **455 s** (cổng 1 `-n auto` 454 s, 3636 passed; cổng 4 428 s). So với một tiến trình: 539 s lúc rảnh (24/10), 523–624 s hôm nay. Máy KHÔNG rảnh lúc đo (ĐO 27 lượt 3 kéo mạng và phiên con soát chạy cùng lúc) — đọc là cận trên; chưa đủ để đổi mặc định (CI vẫn một tiến trình). Lượt gác của chính BƯỚC này, MỘT tiến trình lúc máy rảnh hơn: 444 s — nhanh hơn lượt song song lúc bận, nên chưa có bằng chứng song song có lợi ở máy này.
 
 **Chờ — BƯỚC sau, mỗi chỗ một câu hỏi sổ tay thật:** (1) `CLAUDE.md` :111-112 (hai ngoại lệ có gác — mục *Chờ leader* 1 của phiên con); (2) hai ô ⚠️ có ngày ở `docs/TIEU-CHI-DOC-TRUOC.md` :4392 · :4580 (mục 3). Mục 2 (LO-TRINH) làm ở BƯỚC này.
 
 ### Năm cổng
 
-{NAM_CONG_230}
+Cả năm cổng thoát 0 trên commit `5be25cc` (`tools/nam_cong.py`, MỘT tiến trình, 26/10 11:16–11:23, 444 s): cổng 1 3635 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3637 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** BƯỚC 231: hai chỗ file luật ở *Chờ* (CLAUDE.md :112, TIEU-CHI :4392 · :4580), mỗi chỗ một câu hỏi sổ tay thật. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026**. Công cụ cho lỗi 191 khi có dịp. BƯỚC kế 231, lỗi kế 192.
