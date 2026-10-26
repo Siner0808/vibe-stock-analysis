@@ -555,6 +555,9 @@ def test_THAT_chuong_bai_hoc_ba_ma_thoat_cua_chinh_no(monkeypatch, capsys):
     assert _phan("chuong_bai_hoc", ma, ra) == sk.CHUA_KIEM_DUOC
 
     monkeypatch.setattr(t, "doc_so", lambda *a, **kw: ({"trades": 0}, [], []))
+    # B1 bật từ BƯỚC 229 (`NGAY_HAU_KIEM_LOI_BAT_DAU` khác None) thì chuông đọc thêm tab
+    # `hau_kiem` trên Sheets — ở đây không có kho ngoài, nên ghim tab ấy RỖNG tại chỗ.
+    monkeypatch.setattr(t, "doc_hau_kiem", lambda *a, **kw: [])
     ma, ra = _chay_main(t, capsys, hom_nay="2026-10-09")
     assert ma == 0 and _phan("chuong_bai_hoc", ma, ra) == sk.XANH
 
