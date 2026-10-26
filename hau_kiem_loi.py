@@ -1,11 +1,12 @@
 """Hậu kiểm BẰNG LỜI cho mỗi lệnh ảo đã đóng — B1 (BƯỚC 203), phần THUẦN.
 
 Đặc tả người dùng duyệt 17/10/2026: `docs/thiet-ke-b1-hau-kiem-loi.md`. Mỗi lệnh ảo đã
-đóng có MỘT đoạn văn bốn phần do Claude viết từ số máy ĐÃ tính (nhật ký "vì sao" +
+đóng có MỘT đoạn văn bốn phần do model ngôn ngữ viết (Gemini 3.8 Flash từ BƯỚC 229; trước
+đó Claude Opus 5.5) từ số máy ĐÃ tính (nhật ký "vì sao" +
 sổ bài học B3), để NGƯỜI DÙNG đọc và học. CHỈ ĐỂ HIỆN (khuôn B6): không module nào
 trên đường sinh lệnh, điểm, ngưỡng, điều kiện dừng, backtest hay tầng 3 đọc nó.
 
-File này KHÔNG gọi mạng, KHÔNG ghi đĩa, KHÔNG nhập `anthropic` — phần chạy
+File này KHÔNG gọi mạng, KHÔNG ghi đĩa, KHÔNG nhập SDK của model (`google.genai`) — phần chạy
 `tools/hau_kiem_loi.py` làm những việc ấy. Mức module chỉ nhập thư viện chuẩn vì
 `sheets_store` nhập file này để lấy lược đồ tab `hau_kiem`; các hàm cần `so_bai_hoc`,
 `nhat_ky_vi_sao`, `paper_metrics` nhập chúng TRONG hàm (nhập ở mức module sẽ kéo cả
@@ -24,26 +25,27 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-#: Người dùng chọn 17/10/2026: "Opus 5.5 (Recommended)". Model ID không hậu tố ngày.
-MODEL = "claude-opus-5-5"
-#: Mặc định của Opus 5.5 là `medium` — đặt TƯỜNG MINH. Lượt chạy thật đầu tiên là phép
-#: đo; hạ `low` hay giữ là quyết định của người dùng sau khi đọc (đặc tả mục 9).
+#: Người dùng chọn 17/10/2026 "Opus 5.5 (Recommended)"; đổi 26/10/2026 (BƯỚC 229) vì API của
+#: Anthropic cần nạp tín dụng: "Đổi sang Gemini 3.8 Flash (Recommended)", bậc miễn phí.
+MODEL = "gemini-3.8-flash"
+#: `thinking_level` — mặc định của Gemini 3.8 Flash là `medium` (tài liệu Google, đọc
+#: 26/10/2026); đặt TƯỜNG MINH. Lượt chạy thật đầu tiên là phép đo; đổi hay giữ là quyết
+#: định của người dùng sau khi đọc (đặc tả mục 9). Tên cột `effort` của tab giữ nguyên.
 EFFORT = "medium"
-#: Gồm cả phần suy nghĩ; cũng là trần tiền của một lời gọi.
+#: `max_output_tokens`; cũng là trần tiền ra của một lời gọi. CHƯA KIỂM: tài liệu SDK không
+#: nói nó có gồm token suy nghĩ hay không — lượt đo đầu đọc `thoughts_token_count`.
 MAX_TOKENS = 8000
-#: Người dùng chọn 17/10/2026: "5 $ mỗi tháng (Recommended)". Trần CỨNG thật sự là trần
-#: chi tiêu của workspace trong Anthropic Console; đây là lớp thứ hai.
+#: Người dùng chọn 17/10/2026: "5 $ mỗi tháng (Recommended)". Bậc miễn phí không tính tiền,
+#: nhưng máy không biết khoá đang ở bậc nào, nên vẫn cộng theo giá bậc trả phí: lớp thứ hai.
 TRAN_USD_THANG = 5.0
 SO_LENH_MOI_LUOT = 10
 #: Một lệnh hỏng (bị bác, từ chối, bị cắt) tới số lần này thì dừng, chờ người xem.
 SO_LAN_TOI_DA = 2
-#: USD mỗi một triệu token (vào, ra) — bảng giá của skill `claude-api`, cập nhật
-#: 06/10/2026. Gồm Opus 5.5 và các model mà `fallbacks="default"` có thể chuyển sang.
-#: Tiền tính theo giá CAO NHẤT của bảng (`gia_cao_nhat`): ước dư, không bao giờ thiếu.
+#: USD mỗi một triệu token (vào, ra) ở bậc TRẢ PHÍ — trang giá của Google đọc 26/10/2026:
+#: 0,75/3,75 tới 31/12/2026, 1,50/7,50 từ 01/01/2027; giá ra gồm token suy nghĩ. Lấy mức
+#: CAO (`gia_cao_nhat`): ước dư, không bao giờ thiếu. Bậc miễn phí thật ra là 0.
 GIA_USD_MOI_TRIEU: dict[str, tuple[float, float]] = {
-    "claude-opus-5-5": (4.0, 20.0),
-    "claude-opus-5": (5.0, 25.0),
-    "claude-opus-4-8": (5.0, 25.0),
+    "gemini-3.8-flash": (1.50, 7.50),
 }
 
 TT_DAT = "DAT"
@@ -79,19 +81,23 @@ SCHEMA_BON_TRUONG: dict = {
 }
 
 #: Ngày bật B1 (khoá API có, workflow bật). None = CHƯA BẬT: vế "có lời" của chuông
-#: chưa đo. Đặt bằng một BƯỚC riêng đúng ngày bật; lệnh đóng trước ngày ấy không tính
-#: và không điền bù (khuôn Q13).
-NGAY_HAU_KIEM_LOI_BAT_DAU: Optional[str] = None
+#: chưa đo. Lệnh đóng trước ngày ấy không tính và không điền bù (khuôn Q13). Đặt 26/10/2026
+#: ở BƯỚC 229, cùng ngày khoá Gemini có và lượt đo thật đầu tiên viết được lệnh.
+NGAY_HAU_KIEM_LOI_BAT_DAU: Optional[str] = "2026-10-26"
 
-NHAN_HIEN = "Claude viết · chỉ để đọc · máy chỉ kiểm số và câu chữ"
+NHAN_HIEN = "Gemini viết · chỉ để đọc · máy chỉ kiểm số và câu chữ"
 #: Nhãn hiện của bốn trường — app và bản tin dùng chung (BƯỚC 205).
 NHAN_TRUONG: dict[str, str] = {
     "ke_lai": "Kể lại", "khong_chung_minh": "Điều một lệnh không chứng minh",
     "theo_doi": "Nên theo dõi", "kien_thuc": "Kiến thức"}
 
-#: `fallbacks="default"` (khuyến nghị của Anthropic, người dùng giữ ở phần 2 của thiết kế)
-#: đi kèm đúng header này; dạng mảng dùng header khác — ghép sai là lỗi 400.
-BETA_FALLBACK = "server-side-fallback-2026-07-01"
+#: `finish_reason` của Gemini (tên trong `google.genai.types.FinishReason`, bản 2.33.0).
+KET_THUC_XONG = "STOP"
+KET_THUC_CAT = "MAX_TOKENS"
+#: Bị chặn vì an toàn hay nội dung -> TU_CHOI. Lời nhắc bị chặn TRƯỚC khi có ứng viên
+#: (`prompt_feedback.block_reason`) cũng là từ chối, `stop_reason` ghi "BLOCKED:<lý do>".
+KET_THUC_TU_CHOI: frozenset[str] = frozenset(
+    {"SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII", "RECITATION"})
 
 
 # ── Đọc số và ngày trong văn ─────────────────────────────────────────────
@@ -373,18 +379,19 @@ def du_kien(dong_nk: Mapping[str, Any], bai_hoc: Mapping[str, Any]) -> dict:
 
 
 def tham_so_goi(noi_dung: str) -> dict:
-    """Toàn bộ tham số của `client.beta.messages.create` — MỘT chỗ. Opus 5.5: không
-    `thinking` (luôn bật; `disabled`/`budget_tokens` là lỗi 400), không `temperature` /
-    `top_p` / `top_k`, không prefill; độ sâu chỉnh bằng `output_config.effort`."""
+    """Toàn bộ tham số của `client.models.generate_content` — MỘT chỗ. JSON đúng bốn
+    trường bằng `response_json_schema` (Gemini nhận `additionalProperties`); độ sâu chỉnh
+    bằng `thinking_level`; không `temperature` / `top_p` / `top_k`."""
     return {
         "model": MODEL,
-        "max_tokens": MAX_TOKENS,
-        "system": LOI_DAN,
-        "messages": [{"role": "user", "content": noi_dung}],
-        "output_config": {"effort": EFFORT,
-                          "format": {"type": "json_schema", "schema": SCHEMA_BON_TRUONG}},
-        "betas": [BETA_FALLBACK],
-        "fallbacks": "default",
+        "contents": noi_dung,
+        "config": {
+            "system_instruction": LOI_DAN,
+            "max_output_tokens": MAX_TOKENS,
+            "response_mime_type": "application/json",
+            "response_json_schema": SCHEMA_BON_TRUONG,
+            "thinking_config": {"thinking_level": EFFORT},
+        },
     }
 
 
@@ -476,29 +483,30 @@ def _so_nguyen(o: Any, ten: str) -> int:
     return int(v) if v else 0
 
 
-def _token(u: Any) -> tuple[int, int]:
-    vao = (_so_nguyen(u, "input_tokens") + _so_nguyen(u, "cache_creation_input_tokens")
-           + _so_nguyen(u, "cache_read_input_tokens"))
-    return vao, _so_nguyen(u, "output_tokens")
+def _ten(x: Any) -> Optional[str]:
+    """Enum của SDK (`FinishReason.STOP`) hay chuỗi -> tên trần ("STOP")."""
+    return None if x is None else str(getattr(x, "value", x))
 
 
 def tach_phan_hoi(resp: Any) -> dict:
-    """Phản hồi `messages.create` -> dict thuần. Đọc chữ từ khối `type == "text"` —
-    khối `thinking` của Opus 5.5 đứng TRƯỚC, `content[0]` không phải chữ. Có
-    `usage.iterations` (model dự phòng đã chạy) thì lấy tổng các bước nếu nó lớn hơn."""
-    text = "".join(getattr(b, "text", "") for b in (getattr(resp, "content", None) or [])
-                   if getattr(b, "type", None) == "text")
-    u = getattr(resp, "usage", None)
-    vao, ra = _token(u)
-    buoc = getattr(u, "iterations", None) or []
-    if buoc:
-        tung = [_token(b) for b in buoc]
-        vao, ra = max(vao, sum(v for v, _ in tung)), max(ra, sum(r for _, r in tung))
-    stop = getattr(resp, "stop_reason", None)
-    sd = getattr(resp, "stop_details", None)
-    return {"stop_reason": stop, "model": getattr(resp, "model", None), "text": text,
-            "token_vao": vao, "token_ra": ra,
-            "danh_muc": getattr(sd, "category", None) if stop == "refusal" and sd else None}
+    """Phản hồi `generate_content` -> dict thuần. Chữ = các phần `text` của ứng viên đầu,
+    BỎ phần suy nghĩ (`thought` True). Token ra = token trả lời + token suy nghĩ (giá ra
+    của Google gồm cả suy nghĩ). Lời nhắc bị chặn (không có ứng viên, có
+    `prompt_feedback.block_reason`) -> `stop_reason` "BLOCKED:<lý do>"."""
+    ung = (getattr(resp, "candidates", None) or [None])[0]
+    phan = getattr(getattr(ung, "content", None), "parts", None) or []
+    text = "".join(getattr(p, "text", None) or "" for p in phan if not getattr(p, "thought", None))
+    u = getattr(resp, "usage_metadata", None)
+    ra = _so_nguyen(u, "candidates_token_count") + _so_nguyen(u, "thoughts_token_count")
+    stop, danh_muc = _ten(getattr(ung, "finish_reason", None)), None
+    chan = _ten(getattr(getattr(resp, "prompt_feedback", None), "block_reason", None))
+    if ung is None and chan:
+        stop, danh_muc = f"BLOCKED:{chan}", chan
+    elif stop in KET_THUC_TU_CHOI:
+        danh_muc = stop
+    return {"stop_reason": stop, "model": getattr(resp, "model_version", None), "text": text,
+            "token_vao": _so_nguyen(u, "prompt_token_count"), "token_ra": ra,
+            "danh_muc": danh_muc}
 
 
 def doc_json(text: str) -> Optional[dict]:
@@ -516,17 +524,18 @@ def ket_qua_mot_lenh(dong_nk: Mapping[str, Any], lan: int, resp: Any,
                      du_kien_lenh: Mapping, viet_luc: str) -> dict:
     """Một phản hồi API -> MỘT dòng tab `hau_kiem` (theo `COT_HAU_KIEM`).
 
-    `refusal` -> TU_CHOI · `max_tokens` -> CAT_CUT · JSON hỏng hoặc vi phạm luật ->
-    BI_BAC (văn vẫn giữ làm bằng chứng; app không hiện) · còn lại -> DAT. Mọi phản
-    hồi có `usage` đều thành một dòng, để tổng tiền cộng từ tab luôn đủ.
+    Bị chặn (`KET_THUC_TU_CHOI`, lời nhắc bị chặn) -> TU_CHOI · `MAX_TOKENS` -> CAT_CUT ·
+    JSON hỏng, kết thúc khác `STOP` hoặc vi phạm luật -> BI_BAC (văn vẫn giữ làm bằng
+    chứng; app không hiện) · còn lại -> DAT. Mọi phản hồi đều thành một dòng, để tổng
+    tiền cộng từ tab luôn đủ.
     """
     t = tach_phan_hoi(resp)
-    van = doc_json(t["text"]) if t["stop_reason"] == "end_turn" else None
+    van = doc_json(t["text"]) if t["stop_reason"] == KET_THUC_XONG else None
     vi_pham = kiem_dau_ra(van, du_kien_lenh) if van is not None else []
-    if t["stop_reason"] == "refusal":
+    if t["danh_muc"] is not None:
         tt, ly_do = TT_TU_CHOI, f"bị từ chối (danh mục: {t['danh_muc']})"
-    elif t["stop_reason"] == "max_tokens":
-        tt, ly_do = TT_CAT_CUT, f"chạm max_tokens {MAX_TOKENS}"
+    elif t["stop_reason"] == KET_THUC_CAT:
+        tt, ly_do = TT_CAT_CUT, f"chạm max_output_tokens {MAX_TOKENS}"
     elif van is None:
         tt, ly_do = TT_BI_BAC, (f"stop_reason {t['stop_reason']}: phản hồi không phải "
                                 "JSON đúng bốn trường")

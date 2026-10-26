@@ -5,13 +5,15 @@
 
 Phần thuần (luật viết, máy kiểm, dữ kiện, tiền, tham số lời gọi) ở module gốc
 `hau_kiem_loi.py`; đặc tả `docs/thiet-ke-b1-hau-kiem-loi.md`. File này là chỗ DUY NHẤT
-nhập `anthropic`, và nhập TRONG hàm (gác `tests/test_requirements.py`). Workflow
-`hau-kiem-loi.yml` chạy nó; khoá `ANTHROPIC_API_KEY` chỉ có ở job ấy.
+nhập SDK của model (`google.genai`, từ BƯỚC 229; trước đó `anthropic`), và nhập TRONG hàm
+(gác `tests/test_requirements.py`). Workflow `hau-kiem-loi.yml` chạy nó; khoá
+`GEMINI_API_KEY` chỉ có ở job ấy.
 
 MÃ THOÁT — ba nấc
-  0  xong — kể cả khi có lệnh hỏng (đã `::warning::`, lượt sau làm lại) hay chạm trần
-  1  lỗi cấu hình hoặc yêu cầu sai hình dạng (401 · 403 · 400): mọi lệnh sẽ hỏng như
-     nhau, nên job phải ĐỎ để người dùng nhận email
+  0  xong — kể cả khi có lệnh hỏng (đã `::warning::`, lượt sau làm lại), chạm trần tiền
+     hay hết hạn mức của Gemini (429: dừng lượt, lượt sau làm)
+  1  lỗi cấu hình hoặc yêu cầu sai hình dạng (400 · 401 · 403 · 404): mọi lệnh sẽ hỏng
+     như nhau, nên job phải ĐỎ để người dùng nhận email
   2  không chạy được: thiếu khoá, kho ngoài chưa cấu hình, không đọc/ghi được Sheets
 
 CHỈ THÊM vào tab `hau_kiem`; không đọc hay ghi sổ SQLite nào, không đổi tab khác. Mọi
@@ -24,6 +26,7 @@ import argparse
 import datetime
 import os
 import sys
+import time
 from collections import Counter
 from pathlib import Path
 
@@ -50,14 +53,44 @@ MA_KHONG_CHAY = 2
 NGAY_GIA_LUI = 120
 
 
-def _loi_cau_hinh(mod) -> tuple:
-    """Lỗi mà lượt sau KHÔNG tự hết: khoá sai, không có quyền, yêu cầu sai hình dạng."""
-    return (mod.AuthenticationError, mod.PermissionDeniedError, mod.BadRequestError)
+#: Mã HTTP mà lượt sau KHÔNG tự hết: yêu cầu sai hình dạng, khoá sai, không có quyền,
+#: không có model ấy.
+MA_HTTP_CAU_HINH = frozenset({400, 401, 403, 404})
+#: Hết hạn mức (kể cả hạn mức NGÀY của bậc miễn phí): các lệnh sau cũng sẽ 429 -> dừng lượt.
+MA_HTTP_HET_HAN_MUC = 429
+#: SDK `google-genai` mặc định KHÔNG thử lại (`retry_args(None)`, đọc mã 2.33.0) — đặt
+#: tường minh, gồm cả lần đầu; nó thử lại 408 · 429 · 5xx. MỖI lần thử ăn một request của
+#: hạn mức ngày (bậc miễn phí: 20 request/ngày/model — lỗi 429 thật của lượt đo 2) nên chỉ
+#: thử lại MỘT lần: lượt đo 2 mất 3 request mỗi lệnh hỏng vì 503/504 khi model quá tải.
+SO_LAN_THU = 2
+#: Hạn chờ MỖI request (mili giây, đơn vị của `HttpOptions.timeout`). Không đặt thì một lời
+#: gọi treo giữ job tới trần của workflow: lượt đo 1 (run 40256929934, 26/10/2026) viết 4
+#: lệnh rồi treo ~18 phút và bị GitHub huỷ ở `timeout-minutes`. 90 giây thì quá ngắn: lượt
+#: đo 2 (run 40258909497) nhận 504 DEADLINE_EXCEEDED ở hai lệnh khi model quá tải.
+THOI_GIAN_CHO_MS = 180_000
+#: Hạn của cả lượt gọi (giây): quá thì KHÔNG mở lời gọi mới, dừng xanh, lượt sau làm. Cộng
+#: một lời gọi tệ nhất (`SO_LAN_THU` × `THOI_GIAN_CHO_MS`) vẫn phải nằm trong `timeout-minutes`
+#: của job (gác `tests/test_tools_hau_kiem_loi.py`).
+HAN_LUOT_GIAY = 10 * 60
+#: SDK gọi HTTP bằng `httpx`: lỗi mạng còn lại sau các lần thử mang module ấy. Nhận ra bằng
+#: TÊN module để phần chạy không phải nhập `httpx` (gói không khai trong requirements).
+GOI_LOI_MANG = frozenset({"httpx", "httpcore"})
+
+LOI_CAU_HINH = "cau_hinh"
+LOI_HET_HAN_MUC = "het_han_muc"
+LOI_TAM = "tam"
 
 
-def _loi_tam(mod) -> tuple:
-    """Lỗi tạm sau khi SDK đã tự thử lại (429 · 5xx · mạng): bỏ lệnh này, lượt sau làm."""
-    return (mod.APIStatusError, mod.APIConnectionError)
+def _loai_loi(e: BaseException, loi_mod) -> str | None:
+    """Phân loại một lỗi khi gọi model; None = lỗi lạ (lỗi mã), để nó nổ ra ngoài."""
+    if isinstance(e, loi_mod.APIError):
+        ma = getattr(e, "code", None)
+        if ma in MA_HTTP_CAU_HINH:
+            return LOI_CAU_HINH
+        return LOI_HET_HAN_MUC if ma == MA_HTTP_HET_HAN_MUC else LOI_TAM
+    if type(e).__module__.split(".")[0] in GOI_LOI_MANG:
+        return LOI_TAM
+    return None
 
 
 def _tai_gia_that(tu: str, den: str):
@@ -96,8 +129,8 @@ def _doi_so(argv) -> argparse.Namespace:
     return p.parse_args(argv)
 
 
-def main(argv=None, *, backend=None, client=None, anthropic_mod=None, tai_gia=None,
-         bay_gio=None) -> int:
+def main(argv=None, *, backend=None, client=None, loi_mod=None, tai_gia=None,
+         bay_gio=None, dong_ho=time.monotonic) -> int:
     a = _doi_so(argv)
     import sheets_store
     import so_bai_hoc
@@ -150,18 +183,27 @@ def main(argv=None, *, backend=None, client=None, anthropic_mod=None, tai_gia=No
         return MA_XONG
 
     if client is None:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            print("::error::Hậu kiểm lời: thiếu ANTHROPIC_API_KEY — người dùng tự đặt "
-                  "secret (Q9, docs/QUYET-DINH-CHO.md).")
+        khoa = os.environ.get("GEMINI_API_KEY")
+        if not khoa:
+            print("::error::Hậu kiểm lời: thiếu GEMINI_API_KEY — người dùng tự đặt secret "
+                  "(BƯỚC 229).")
             return MA_KHONG_CHAY
-        import anthropic
+        from google import genai
+        from google.genai import errors, types
 
-        anthropic_mod = anthropic
-        client = anthropic.Anthropic()
+        loi_mod = errors
+        client = genai.Client(api_key=khoa, http_options=types.HttpOptions(
+            timeout=THOI_GIAN_CHO_MS,
+            retry_options=types.HttpRetryOptions(attempts=SO_LAN_THU)))
 
     moi: list[dict] = []
     dem: Counter = Counter()
+    bat_dau = dong_ho()
     for i, d in enumerate(luot):
+        if dong_ho() - bat_dau > HAN_LUOT_GIAY:
+            print(f"::warning::Hậu kiểm lời: hết {HAN_LUOT_GIAY // 60} phút của lượt — dừng, "
+                  f"còn {len(luot) - i} lệnh chưa viết; lượt sau làm.")
+            break
         dk = hk.du_kien(d, bai_hoc[d["trade_id"]])
         nd = hk.noi_dung_gui(dk)
         if hk.vuot_tran(hk.da_tieu_thang(hkd + moi, thang), hk.tran_mot_loi_goi(nd)):
@@ -169,12 +211,20 @@ def main(argv=None, *, backend=None, client=None, anthropic_mod=None, tai_gia=No
                   f"— dừng lượt, còn {len(luot) - i} lệnh chưa viết.")
             break
         try:
-            resp = client.beta.messages.create(**hk.tham_so_goi(nd))
-        except _loi_cau_hinh(anthropic_mod) as e:
-            print(f"::error::Hậu kiểm lời: lỗi cấu hình hoặc yêu cầu — {type(e).__name__}: {e}")
-            _tom_tat(dem, hk.da_tieu_thang(hkd + moi, thang), thang)
-            return MA_CAU_HINH
-        except _loi_tam(anthropic_mod) as e:
+            resp = client.models.generate_content(**hk.tham_so_goi(nd))
+        except Exception as e:
+            loai = _loai_loi(e, loi_mod)
+            if loai is None:
+                raise
+            if loai == LOI_CAU_HINH:
+                print(f"::error::Hậu kiểm lời: lỗi cấu hình hoặc yêu cầu — "
+                      f"{type(e).__name__}: {e}")
+                _tom_tat(dem, hk.da_tieu_thang(hkd + moi, thang), thang)
+                return MA_CAU_HINH
+            if loai == LOI_HET_HAN_MUC:
+                print(f"::warning::Hậu kiểm lời: hết hạn mức của Gemini — dừng lượt, còn "
+                      f"{len(luot) - i} lệnh chưa viết; lượt sau làm. {type(e).__name__}: {e}")
+                break
             print(f"::warning::Hậu kiểm lời: lệnh #{d['trade_id']} {d['symbol']} — "
                   f"{type(e).__name__}: {e}; lượt sau làm lại.")
             continue

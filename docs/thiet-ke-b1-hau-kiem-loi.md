@@ -3,6 +3,11 @@
 **Mốc:** B1 (`docs/LO-TRINH.md`, giai đoạn B). **Duyệt:** người dùng duyệt từng phần ngày
 17/10/2026 trong phiên leader (BƯỚC 203). **Trạng thái:** thiết kế; chưa có dòng mã nào.
 
+> ⚠️ **HẾT ĐÚNG phần MODEL từ 26/10/2026 (BƯỚC 229):** B1 nay chạy **Gemini 3.8 Flash** bậc
+> miễn phí qua SDK `google-genai`, khoá `GEMINI_API_KEY` — không còn Claude Opus 5.5 /
+> `ANTHROPIC_API_KEY`. Mọi câu về Opus 5.5, `fallbacks`, Anthropic Console bên dưới là sử liệu;
+> bốn phần, luật viết, máy kiểm, tab `hau_kiem`, trần 5 $ giữ nguyên. Xem mục 12.
+
 Tài liệu này là đề bài cho phiên làm mã. Luật chung của dự án (vá file, đột biến, năm cổng,
 giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó, đừng chép lại vào đây.
 
@@ -221,3 +226,22 @@ Con số thật đến từ lượt đo ở mục 9; đừng chép ước lượ
 - Không viết lại đoạn văn khi cờ cắt lỗ sát chín muồi sau 5 phiên.
 - Không Batch API, không prompt caching, không dùng cột `hau_kiem_loi` của nhật ký.
 - Không điền bù vế "có lời" của chuông cho lệnh đóng trước ngày bật B1.
+
+## 12. Đổi nhà cung cấp — Gemini 3.8 Flash (26/10/2026, BƯỚC 229)
+
+**Vì sao.** Ngày bật B1, lượt chạy tay với Claude hỏng hai lần: 401 (khoá dán sai), rồi 400
+*"Your credit balance is too low to access the Anthropic API"* — API của Anthropic tính tiền
+riêng với gói Pro, không có model miễn phí. Người dùng có khoá Gemini và chọn nguyên văn
+*"Đổi sang Gemini 3.8 Flash (Recommended)"*, sau khi đọc hai điều: ở bậc miễn phí Google DÙNG
+nội dung gửi đi để cải thiện sản phẩm (trang giá của Google, đọc 26/10/2026; dữ kiện gửi đi là
+lệnh ẢO, không có thông tin cá nhân), và hạn mức bậc miễn phí Google không công bố.
+
+**Đổi gì.** Lớp gọi API (`hau_kiem_loi.tham_so_goi`, `hau_kiem_loi.tach_phan_hoi`, phần chạy
+`tools/hau_kiem_loi.py`), gói ghim `google-genai`, secret `GEMINI_API_KEY`, bảng giá (bậc trả
+phí, mức cao: ước dư; bậc miễn phí thật ra là 0). Giữ nguyên: bốn phần, `LUAT_VIET` và máy kiểm,
+tên cột tab `hau_kiem` (`effort` nay ghi `thinking_level`, `stop_reason` ghi `finish_reason`
+của Gemini), trần 5 $/tháng, CHỈ ĐỂ HIỆN.
+
+**Không có tương đương.** Gemini không có `fallbacks` phía máy chủ: một lời bị chặn vì an toàn
+thành dòng `TU_CHOI`, lượt sau viết lại (tối đa `SO_LAN_TOI_DA`). Hạn mức ngày hết (429) thì
+dừng lượt, xanh.

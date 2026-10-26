@@ -20,7 +20,7 @@ def _dong(**doi) -> dict:
               "theo_doi": "Chưa kiểm: gap.", "kien_thuc": "Gap là …",
               "model_yeu_cau": hk.MODEL, "model_phuc_vu": hk.MODEL, "effort": hk.EFFORT,
               "bam_loi_dan": "abc", "bam_du_kien": "def", "token_vao": 2000,
-              "token_ra": 1500, "chi_phi_usd_uoc": 0.0475, "stop_reason": "end_turn",
+              "token_ra": 1500, "chi_phi_usd_uoc": 0.0475, "stop_reason": "STOP",
               "viet_luc": "2026-10-26T18:20:00"})
     d.update(doi)
     return d

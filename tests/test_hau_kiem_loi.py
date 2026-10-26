@@ -2,7 +2,8 @@
 
 Đặc tả: `docs/thiet-ke-b1-hau-kiem-loi.md`. File này canh phần THUẦN: lược đồ tab,
 luật viết và máy kiểm, dữ kiện gửi đi, tiền, chọn lệnh cần viết, tách phản hồi API
-(phản hồi GIẢ, đúng hình dạng Opus 5.5: khối `thinking` đứng TRƯỚC khối `text`),
+(phản hồi GIẢ, đúng hình dạng Gemini từ BƯỚC 229: phần suy nghĩ `thought=True` đứng TRƯỚC
+phần chữ),
 và phép đo vế "có lời" của tiêu chí B. Không gọi mạng, không cần khoá.
 """
 from __future__ import annotations
@@ -88,7 +89,7 @@ def test_SCHEMA_bon_truong_bat_buoc_khong_truong_la():
 
 
 def test_MODEL_EFFORT_va_tran_dung_quyet_dinh_nguoi_dung():
-    assert hk.MODEL == "claude-opus-5-5"
+    assert hk.MODEL == "gemini-3.8-flash"
     assert hk.EFFORT == "medium"
     assert hk.TRAN_USD_THANG == 5.0
     assert hk.SO_LENH_MOI_LUOT == 10
@@ -122,16 +123,18 @@ def test_DO_DAI_trong_LOI_DAN_suy_tu_GIOI_HAN_TU():
         assert f"{t}" in dan and f"{n}" in dan
 
 
-def test_MODULE_khong_nhap_anthropic_va_muc_module_chi_thu_vien_chuan():
+def test_MODULE_khong_nhap_SDK_model_va_muc_module_chi_thu_vien_chuan():
     """`sheets_store` nhập file này để lấy lược đồ — mức module chỉ được thư viện
     chuẩn (nhập `so_bai_hoc` ở mức module sẽ kéo cả `paper_trading`). Và module
-    thuần không bao giờ nhập `anthropic`: chỉ phần chạy làm việc ấy."""
+    thuần không bao giờ nhập SDK của model (`google.genai`, trước BƯỚC 229 là
+    `anthropic`), kể cả trong hàm: chỉ phần chạy làm việc ấy."""
     import sys
+    sdk = {"google", "anthropic"}
     for n in ast.walk(CAY):
         if isinstance(n, ast.Import):
-            assert all(a.name.split(".")[0] != "anthropic" for a in n.names)
+            assert all(a.name.split(".")[0] not in sdk for a in n.names)
         if isinstance(n, ast.ImportFrom):
-            assert (n.module or "").split(".")[0] != "anthropic"
+            assert (n.module or "").split(".")[0] not in sdk
     for n in CAY.body:
         if isinstance(n, ast.Import):
             for a in n.names:
@@ -140,16 +143,17 @@ def test_MODULE_khong_nhap_anthropic_va_muc_module_chi_thu_vien_chuan():
             assert n.module.split(".")[0] in sys.stdlib_module_names, n.module
 
 
-def test_THAM_SO_GOI_dung_hop_dong_Opus_5_5():
+def test_THAM_SO_GOI_dung_hop_dong_Gemini():
+    """Hình dạng `generate_content(model, contents, config)`; SDK thật nhận `config` này:
+    `tests/test_tools_hau_kiem_loi.py::test_GENAI_THAT_nhan_DUNG_config_cua_tham_so_goi`."""
     t = hk.tham_so_goi("nội dung")
-    assert set(t) == {"model", "max_tokens", "system", "messages", "output_config",
-                      "betas", "fallbacks"}
-    assert t["model"] == "claude-opus-5-5" and t["max_tokens"] == hk.MAX_TOKENS
-    assert t["system"] == hk.LOI_DAN
-    assert t["messages"] == [{"role": "user", "content": "nội dung"}]
-    assert t["output_config"] == {"effort": "medium", "format": {
-        "type": "json_schema", "schema": hk.SCHEMA_BON_TRUONG}}
-    assert t["betas"] == ["server-side-fallback-2026-07-01"] and t["fallbacks"] == "default"
+    assert set(t) == {"model", "contents", "config"}
+    assert t["model"] == "gemini-3.8-flash" and t["contents"] == "nội dung"
+    assert t["config"] == {
+        "system_instruction": hk.LOI_DAN, "max_output_tokens": hk.MAX_TOKENS,
+        "response_mime_type": "application/json",
+        "response_json_schema": hk.SCHEMA_BON_TRUONG,
+        "thinking_config": {"thinking_level": "medium"}}
 
 
 # ── Máy kiểm: mẫu đạt ─────────────────────────────────────────────────────
@@ -296,9 +300,11 @@ def test_NOI_DUNG_GUI_la_JSON_doc_lai_duoc_va_on_dinh():
 # ── Tiền ─────────────────────────────────────────────────────────────────
 
 def test_TIEN_uoc_DU_theo_gia_CAO_NHAT_cua_bang():
-    assert hk.chi_phi_uoc(1_000_000, 0) == 5.0
-    assert hk.chi_phi_uoc(0, 1_000_000) == 25.0
-    assert hk.gia_cao_nhat() == (5.0, 25.0)
+    """Giá Gemini 3.8 Flash bậc TRẢ PHÍ từ 01/01/2027 (cao hơn giá tới 31/12/2026):
+    ước dư cả khi khoá nằm ở bậc trả phí; bậc miễn phí thật ra là 0 (BƯỚC 229)."""
+    assert hk.chi_phi_uoc(1_000_000, 0) == 1.5
+    assert hk.chi_phi_uoc(0, 1_000_000) == 7.5
+    assert hk.gia_cao_nhat() == (1.5, 7.5)
 
 
 def test_TRAN_THANG_dung_bien():
@@ -336,31 +342,40 @@ def test_CAN_VIET_bo_lenh_co_DAT_dua_lenh_het_luot_ra_rieng():
     assert hk.lan_ke(hkd, 1) == 2 and hk.lan_ke(hkd, 2) == 1
 
 
-# ── Tách phản hồi (giả, đúng hình dạng Opus 5.5) ─────────────────────────
+# ── Tách phản hồi (giả, đúng hình dạng Gemini) ───────────────────────────
 
-def _phan_hoi(text="{}", stop="end_turn", model="claude-opus-5-5", danh_muc=None,
-              iterations=None, vao=1200, ra=900):
-    return NS(content=[NS(type="thinking", thinking=""), NS(type="text", text=text)],
-              stop_reason=stop, model=model,
-              stop_details=NS(category=danh_muc) if stop == "refusal" else None,
-              usage=NS(input_tokens=vao, output_tokens=ra, cache_creation_input_tokens=None,
-                       cache_read_input_tokens=None, iterations=iterations))
+def _phan_hoi(text="{}", stop="STOP", model="gemini-3.8-flash", vao=1200, ra=700, nghi=200,
+              chan=None):
+    """`chan` = lời nhắc bị chặn: không ứng viên, chỉ `prompt_feedback.block_reason`."""
+    u = NS(prompt_token_count=vao, candidates_token_count=None if chan else ra,
+           thoughts_token_count=None if chan else nghi)
+    if chan:
+        return NS(candidates=None, prompt_feedback=NS(block_reason=chan),
+                  model_version=model, usage_metadata=u)
+    return NS(candidates=[NS(content=NS(parts=[NS(text="nghĩ thầm: {}", thought=True),
+                                               NS(text=text, thought=None)]),
+                             finish_reason=stop)],
+              prompt_feedback=None, model_version=model, usage_metadata=u)
 
 
-def test_TACH_PHAN_HOI_doc_khoi_TEXT_khong_doc_content_0():
+def test_TACH_PHAN_HOI_bo_phan_SUY_NGHI_va_token_ra_GOM_suy_nghi():
     t = hk.tach_phan_hoi(_phan_hoi(text='{"a": 1}'))
     assert t["text"] == '{"a": 1}'
     assert (t["token_vao"], t["token_ra"]) == (1200, 900)
-    assert t["danh_muc"] is None
+    assert t["danh_muc"] is None and t["stop_reason"] == "STOP"
+    assert t["model"] == "gemini-3.8-flash"
 
 
-def test_TACH_PHAN_HOI_tu_choi_mang_danh_muc_va_iterations_lay_phan_lon_hon():
-    t = hk.tach_phan_hoi(_phan_hoi(stop="refusal", danh_muc="cyber"))
-    assert t["danh_muc"] == "cyber"
-    hai_buoc = [NS(type="message", input_tokens=1200, output_tokens=50),
-                NS(type="fallback_message", input_tokens=1300, output_tokens=880)]
-    t = hk.tach_phan_hoi(_phan_hoi(iterations=hai_buoc, vao=1300, ra=880))
-    assert (t["token_vao"], t["token_ra"]) == (2500, 930)
+def test_TACH_PHAN_HOI_tu_choi_mang_danh_muc_va_doc_ENUM_cua_SDK():
+    t = hk.tach_phan_hoi(_phan_hoi(stop="SAFETY"))
+    assert (t["stop_reason"], t["danh_muc"]) == ("SAFETY", "SAFETY")
+    t = hk.tach_phan_hoi(_phan_hoi(chan="PROHIBITED_CONTENT"))
+    assert (t["stop_reason"], t["danh_muc"]) == ("BLOCKED:PROHIBITED_CONTENT",
+                                                 "PROHIBITED_CONTENT")
+    assert (t["text"], t["token_vao"], t["token_ra"]) == ("", 1200, 0)
+    # SDK trả enum (`FinishReason.STOP`), không phải chuỗi: đọc `.value`.
+    t = hk.tach_phan_hoi(_phan_hoi(stop=NS(value="MAX_TOKENS")))
+    assert t["stop_reason"] == "MAX_TOKENS" and t["danh_muc"] is None
 
 
 # ── Kết quả một lệnh ─────────────────────────────────────────────────────
@@ -379,7 +394,8 @@ def test_KET_QUA_DAT_dung_luoc_do_va_mang_bam():
     assert k["bam_du_kien"] == hk.bam(_du_kien())
     assert k["chi_phi_usd_uoc"] == pytest.approx(hk.chi_phi_uoc(1200, 900))
     assert (k["model_yeu_cau"], k["model_phuc_vu"], k["effort"]) == (
-        "claude-opus-5-5", "claude-opus-5-5", "medium")
+        "gemini-3.8-flash", "gemini-3.8-flash", "medium")
+    assert k["stop_reason"] == "STOP"
 
 
 def test_KET_QUA_BI_BAC_khi_JSON_hong_hoac_vi_pham_TU_CHOI_CAT_CUT():
@@ -387,9 +403,14 @@ def test_KET_QUA_BI_BAC_khi_JSON_hong_hoac_vi_pham_TU_CHOI_CAT_CUT():
     assert _ket(_phan_hoi(text='{"ke_lai": "x"}'))["trang_thai"] == hk.TT_BI_BAC
     k = _ket(_phan_hoi(text=json.dumps(_van(ke_lai="Lệnh HPG lỗ 4,8%."), ensure_ascii=False)))
     assert k["trang_thai"] == hk.TT_BI_BAC and "so-co-nguon" in k["ly_do_bac"]
-    k = _ket(_phan_hoi(stop="refusal", danh_muc="cyber", text=""))
-    assert k["trang_thai"] == hk.TT_TU_CHOI and "cyber" in k["ly_do_bac"]
-    assert _ket(_phan_hoi(stop="max_tokens"))["trang_thai"] == hk.TT_CAT_CUT
+    k = _ket(_phan_hoi(stop="SAFETY", text=""))
+    assert k["trang_thai"] == hk.TT_TU_CHOI and "SAFETY" in k["ly_do_bac"]
+    k = _ket(_phan_hoi(chan="PROHIBITED_CONTENT"))
+    assert k["trang_thai"] == hk.TT_TU_CHOI and k["stop_reason"] == "BLOCKED:PROHIBITED_CONTENT"
+    assert _ket(_phan_hoi(stop="MAX_TOKENS"))["trang_thai"] == hk.TT_CAT_CUT
+    # Kết thúc khác STOP thì không đọc văn, kể cả khi văn là JSON đạt mọi luật.
+    dat = json.dumps(_van(), ensure_ascii=False)
+    assert _ket(_phan_hoi(text=dat, stop="OTHER"))["trang_thai"] == hk.TT_BI_BAC
     thua = json.dumps({**_van(), "ghi_chu": "trường lạ"}, ensure_ascii=False)
     assert _ket(_phan_hoi(text=thua))["trang_thai"] == hk.TT_BI_BAC
 
