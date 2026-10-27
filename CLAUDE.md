@@ -109,10 +109,8 @@ backtest sống lại nhưng không đo được).
   VN-Index ở topbar gọi `market_filter.chi_so_moi_nhat()` (ưu tiên MẠNG),
   KHÔNG phải `get_vni_df()` (ưu tiên cache) và luôn kèm ngày phiên.
 - Giai đoạn B: `ke_hoach_vao_lenh`, `ban_tin`, `suc_khoe`, `hau_kiem_loi` — lõi giao
-  dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`). Hai ngoại
-  lệ có gác: `run_daily.ghi_ke_hoach_tin_hieu` nhập `ke_hoach_vao_lenh` SAU
-  `run_session` (`CHO_PHEP_NHAP`, `tests/test_ke_hoach_vao_lenh.py`); `sheets_store`
-  nhập `hau_kiem_loi` lấy hằng cột (mức module của nó chỉ thư viện chuẩn).
+  dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`; ngoại lệ
+  có gác: `run_daily`, `sheets_store`).
 
 ---
 
