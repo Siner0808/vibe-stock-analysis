@@ -24321,3 +24321,21 @@ Lượt soát 15 + ĐO 27 lượt đọc 4 (hạn **02/11/2026**; soát 14 mới
 Lượt đầu trên `545651a` (08:41–08:51, 546 s): cổng 1 và cổng 4 ĐỎ ở `tests/test_do_token_phien.py::test_CLAUDE_md_va_SKILL_md_nam_trong_ngan_sach` (`CLAUDE.md` 26.191 > 26.000 ký tự) — xem mục đầu. Lượt hai trên `3e206af` (`tools/nam_cong.py`, MỘT tiến trình, 08:52–09:00, 521 s): cả năm cổng thoát 0 — cổng 1 3639 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3641 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** Đọc lượt B1 hằng ngày. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026**. Công cụ cho lỗi 191 khi có dịp. BƯỚC kế 232, lỗi kế 193.
+
+## BƯỚC 232 — CÔNG CỤ CHO LỖI 191: `tools/soat_ngoai_cong_cu.py` ĐƯA BA PHÉP QUÉT NGOÀI TẦM CỦA LƯỢT SOÁT VÀO REPO, TÁI LẬP ĐÚNG MỌI SỐ CỦA LƯỢT 14 (27/10/2026)
+
+**Mốc:** quy-trinh — lỗi 191: số đếm của phần soát ngoài tầm công cụ phải tái lập được từ repo
+
+Người dùng: *"làm nốt"* (27/10, sau BƯỚC 231); soát 15 để đúng hạn 02/11 (*"Đúng hạn 02/11 (Recommended)"*, hỏi trong phiên vì làm ngay thì chỉ lặp lại lượt 14). Nhánh `quy-trinh/soat-ngoai-cong-cu-232` từ `main` `88d8396`, worktree ngoài repo (`vibe_wt_232`). Không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo; không chạm file luật.
+
+**Vì sao.** Lỗi 191: lượt 13 ghi *"63 câu ứng viên, 52 chưa dấu"* cho STATE BƯỚC 186–208 bằng script ở scratchpad của phiên con; script mất, lượt 14 dựng lại ra 64 · 53 và không truy ra câu lệch. Lượt 14 cũng dùng ba script ở scratchpad của leader (`b230/diff14.py`, `state14.py`, `hang_bang.py`) — cùng số phận nếu không đưa vào repo.
+
+**Công cụ.** `tools/soat_ngoai_cong_cu.py`, ba lệnh: `diff <A> <B>` (dòng THÊM vào `*.md` giữa hai cây, qua bộ lọc, chia trong/ngoài tầm công cụ chính) · `state <a> <b> [--cay C]` (câu ứng viên của `docs/STATE.md` thuộc BƯỚC a..b, bao gồm hai đầu) · `hang-bang [--cay C]` (hàng bảng trong `TAI_LIEU` mà `tools/soat_loi_khai_cu.py` cố ý bỏ). Đọc cây bằng `git show <cây>:<tệp>`; bộ lọc (`PHU_DINH`, `CO_TEN`, `DA_CO_DAU`, `cau_nhieu_dong`) NHẬP từ công cụ chính, không chép. Không đọc được cây → mã thoát 2 (*chưa kiểm được*), không phải sạch. `tools/soat_loi_khai_cu.py` in thêm một dòng con trỏ sang công cụ mới — lượt soát chạy nó đầu tiên nên thấy được mà không phải sửa `SKILL.md` (file luật).
+
+**Đi qua ca thật đã biết trước** (số của lượt 14 trong BƯỚC 230): `state 209 229 --cay 61221db` → 49 câu ứng viên, 44 chưa dấu, khớp từng BƯỚC (209: 2 · 210: 2 · 211: 4 · … · 229: 2); `state 186 208 --cay efa6a58` → 64 · 53 (số lượt 14 dựng lại; 63 · 52 của lượt 13 vẫn không truy được); `hang-bang --cay 61221db` → 67 hàng, 46 chưa dấu (`loi-da-mac.md` 59 · 38); `diff efa6a58 61221db` khớp từng tệp (STATE +674 · 49 · 44, TIEU-CHI +483 · 6 · 5, …; tổng ngoài tầm 53). Bốn ca này thành test (CI lấy đủ lịch sử, `fetch-depth: 0`).
+
+**Gác.** `tests/test_soat_ngoai_cong_cu.py`, 12 test: năm hàm thuần (hunk có/không độ dài và hunk chỉ xoá; ứng viên dòng + câu nhiều dòng + bỏ dòng có dấu; khoảng BƯỚC hai đầu và một dòng nhắc `## BƯỚC 9` GIỮA dòng không phải tiêu đề; hàng bảng; tầm công cụ chính), bốn ca thật, ba ca dòng lệnh (cây không có → mã 2; bản in số; con trỏ ở công cụ chính). Gác mã hoá stderr (`tests/test_script_chay_duoc_tren_windows.py`) bắt bản đầu chỉ đặt lại stdout — đã sửa. **Đục thử 13/13 đỏ.** Một phát của bộ đầu SỐNG — bỏ `^` khỏi regex tiêu đề — vì `re.match` vốn neo đầu chuỗi: phát thiết kế sai, không đổi hành vi; thay bằng phát có thật (tìm tiêu đề GIỮA dòng bằng `re.search`) kèm ca test dòng nhắc `## BƯỚC 9`, phát ấy đỏ.
+
+Bảng lỗi: hàng 191 → ✅, dòng tự khai 95/171.
+
+**Việc kế.** Đọc lượt B1 hằng ngày. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026** — phần ngoài tầm chạy bằng `tools/soat_ngoai_cong_cu.py` (ghi LỆNH kèm cây vào sổ). BƯỚC kế 233, lỗi kế 193.
