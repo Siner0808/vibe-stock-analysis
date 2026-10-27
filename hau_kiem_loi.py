@@ -28,6 +28,13 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 #: Người dùng chọn 17/10/2026 "Opus 5.5 (Recommended)"; đổi 26/10/2026 (BƯỚC 229) vì API của
 #: Anthropic cần nạp tín dụng: "Đổi sang Gemini 3.8 Flash (Recommended)", bậc miễn phí.
 MODEL = "gemini-3.8-flash"
+#: Model dự phòng (BƯỚC 233). Ba trên bốn lượt chạy bằng Gemini 26–27/10/2026 viết 0 lệnh:
+#: 3.8 Flash bậc miễn phí trả 503 UNAVAILABLE ("high demand") hoặc 504 DEADLINE_EXCEEDED.
+#: Lời gọi chính hỏng vì lỗi TẠM thì phần chạy gọi model này MỘT lần cho cùng lệnh, cùng mọi
+#: tham số khác; hạn mức ngày của bậc miễn phí tính riêng từng model (429 thật ghi
+#: `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, BƯỚC 229). Người dùng chọn
+#: 27/10/2026: "A. Lui model + rút hạn chờ (Recommended)".
+MODEL_DU_PHONG = "gemini-3.5-flash-lite"
 #: `thinking_level` — mặc định của Gemini 3.8 Flash là `medium` (tài liệu Google, đọc
 #: 26/10/2026); đặt TƯỜNG MINH. Lượt chạy thật đầu tiên là phép đo; đổi hay giữ là quyết
 #: định của người dùng sau khi đọc (đặc tả mục 9). Tên cột `effort` của tab giữ nguyên.
@@ -44,8 +51,12 @@ SO_LAN_TOI_DA = 2
 #: USD mỗi một triệu token (vào, ra) ở bậc TRẢ PHÍ — trang giá của Google đọc 26/10/2026:
 #: 0,75/3,75 tới 31/12/2026, 1,50/7,50 từ 01/01/2027; giá ra gồm token suy nghĩ. Lấy mức
 #: CAO (`gia_cao_nhat`): ước dư, không bao giờ thiếu. Bậc miễn phí thật ra là 0.
+#: `gemini-3.5-flash-lite` (BƯỚC 233, cùng trang đọc 27/10/2026): 0,30/2,50, giá ra gồm
+#: token suy nghĩ — thấp hơn nên mức cao của bảng không đổi. Mọi model phần chạy gọi phải
+#: có mặt ở đây (gác `tests/test_tools_hau_kiem_loi.py`).
 GIA_USD_MOI_TRIEU: dict[str, tuple[float, float]] = {
     "gemini-3.8-flash": (1.50, 7.50),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
 }
 
 TT_DAT = "DAT"
@@ -378,12 +389,13 @@ def du_kien(dong_nk: Mapping[str, Any], bai_hoc: Mapping[str, Any]) -> dict:
     }
 
 
-def tham_so_goi(noi_dung: str) -> dict:
+def tham_so_goi(noi_dung: str, model: str = MODEL) -> dict:
     """Toàn bộ tham số của `client.models.generate_content` — MỘT chỗ. JSON đúng bốn
     trường bằng `response_json_schema` (Gemini nhận `additionalProperties`); độ sâu chỉnh
-    bằng `thinking_level`; không `temperature` / `top_p` / `top_k`."""
+    bằng `thinking_level`; không `temperature` / `top_p` / `top_k`. `model`: `MODEL` hoặc
+    `MODEL_DU_PHONG` (BƯỚC 233) — mọi tham số khác giống hệt."""
     return {
-        "model": MODEL,
+        "model": model,
         "contents": noi_dung,
         "config": {
             "system_instruction": LOI_DAN,
@@ -521,13 +533,13 @@ def doc_json(text: str) -> Optional[dict]:
 
 
 def ket_qua_mot_lenh(dong_nk: Mapping[str, Any], lan: int, resp: Any,
-                     du_kien_lenh: Mapping, viet_luc: str) -> dict:
+                     du_kien_lenh: Mapping, viet_luc: str, model: str = MODEL) -> dict:
     """Một phản hồi API -> MỘT dòng tab `hau_kiem` (theo `COT_HAU_KIEM`).
 
     Bị chặn (`KET_THUC_TU_CHOI`, lời nhắc bị chặn) -> TU_CHOI · `MAX_TOKENS` -> CAT_CUT ·
     JSON hỏng, kết thúc khác `STOP` hoặc vi phạm luật -> BI_BAC (văn vẫn giữ làm bằng
     chứng; app không hiện) · còn lại -> DAT. Mọi phản hồi đều thành một dòng, để tổng
-    tiền cộng từ tab luôn đủ.
+    tiền cộng từ tab luôn đủ. `model`: model ĐÃ GỌI (chính hoặc dự phòng) -> `model_yeu_cau`.
     """
     t = tach_phan_hoi(resp)
     van = doc_json(t["text"]) if t["stop_reason"] == KET_THUC_XONG else None
@@ -547,7 +559,7 @@ def ket_qua_mot_lenh(dong_nk: Mapping[str, Any], lan: int, resp: Any,
         "trade_id": dong_nk.get("trade_id"), "lan": lan, "symbol": dong_nk.get("symbol"),
         "exit_date": str(dong_nk.get("exit_date"))[:10], "trang_thai": tt,
         "ly_do_bac": ly_do, **{f: (van or {}).get(f) for f in TRUONG},
-        "model_yeu_cau": MODEL, "model_phuc_vu": t["model"], "effort": EFFORT,
+        "model_yeu_cau": model, "model_phuc_vu": t["model"], "effort": EFFORT,
         "bam_loi_dan": bam(LOI_DAN), "bam_du_kien": bam(du_kien_lenh),
         "token_vao": t["token_vao"], "token_ra": t["token_ra"],
         "chi_phi_usd_uoc": round(chi_phi_uoc(t["token_vao"], t["token_ra"]), 6),
