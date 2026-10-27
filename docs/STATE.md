@@ -24362,6 +24362,6 @@ Người dùng 27/10 (tối): *"làm tiếp đi"*; leader đưa bốn phương �
 
 **Giả thuyết bị bác.** BƯỚC 229 nâng hạn chờ 90 → 180 s vì *"90 giây thì quá ngắn"* (504 ở lượt đo 2). Run 40472660912 vẫn `504` ở 180 s, và ở run 40530072923 3.8 Flash từ chối bằng `503` gần như tức thì: chờ lâu hơn không cứu một model quá tải, đổi model thì cứu được.
 
-**Năm cổng ở máy:** (điền sau lượt cổng).
+**Năm cổng ở máy:** cả năm thoát 0 trên `dee6961` (`tools/nam_cong.py --song-song`, 27/10 22:30–22:33, 165 s): cổng 1 3659 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3661 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** Câu chờ người dùng: chất lượng văn của model dự phòng (giữ Flash-Lite · đổi sang model khác, vd. `gemini-3.6-flash` cùng giá 3.8 Flash · nới luật đọc số viết kiểu Anh) — mỗi hướng là một BƯỚC riêng, chỉ làm khi người dùng chọn. Đọc lượt B1 hằng ngày. Soát 15 + ĐO 27 lượt đọc 4 hạn **02/11/2026**. BƯỚC kế 234, lỗi kế 193.
