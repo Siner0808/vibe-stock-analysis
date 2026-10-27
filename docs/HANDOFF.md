@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **27/10/2026 — BƯỚC 233: B1 lui sang `gemini-3.5-flash-lite` khi 3.8 Flash quá tải (lỗi tạm → gọi dự phòng một lần), hạn chờ 90 s, SDK không thử lại. Lượt đo trên nhánh (run 40530072923): 7/7 lệnh có phản hồi (ba lượt trước liền 0), 2 ĐẠT · 5 bị bác vì Flash-Lite trượt luật viết.** Chất lượng văn của model dự phòng là câu chờ người dùng. Chi tiết: `docs/STATE.md` BƯỚC 233.
+
 > 🧭 **27/10/2026 — BƯỚC 232: công cụ cho lỗi 191 — `tools/soat_ngoai_cong_cu.py` (`diff` · `state` · `hang-bang`, đọc cây bằng `git show`) tái lập đúng mọi số ngoài tầm của lượt soát 14; công cụ soát chính in con trỏ sang nó.** Soát 15 đúng hạn 02/11 (người dùng chọn). Chi tiết: `docs/STATE.md` BƯỚC 232.
 
 > 🧭 **27/10/2026 — BƯỚC 231: `CLAUDE.md` nêu hai ngoại lệ có gác (`run_daily.ghi_ke_hoach_tin_hieu` → `ke_hoach_vao_lenh`; `sheets_store` → `hau_kiem_loi`), hai ô ⚠️ có ngày ở `TIEU-CHI` (ĐO 31 · ĐO 33), lỗi 192 (ô `nguon` của mục sổ tay BƯỚC 230 vỡ thành 524 ký tự — `so_tay.kiem_muc` nay chặn, mục đã dựng lại).** Sổ tay tươi về `bbb516b` (5 nguồn nạp lại, 19 nguồn). Lượt B1 26/10: 0/7 lệnh, cả bảy `503` (model quá tải). Secret `ANTHROPIC_API_KEY` đã xoá theo người dùng (khoá Console: người dùng tự xoá). Lượt 15 + ĐO 27 lượt 4: hạn 02/11. Chi tiết: `docs/STATE.md` BƯỚC 231.

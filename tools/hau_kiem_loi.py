@@ -58,19 +58,25 @@ NGAY_GIA_LUI = 120
 MA_HTTP_CAU_HINH = frozenset({400, 401, 403, 404})
 #: Hết hạn mức (kể cả hạn mức NGÀY của bậc miễn phí): các lệnh sau cũng sẽ 429 -> dừng lượt.
 MA_HTTP_HET_HAN_MUC = 429
+#: Thứ tự model của MỘT lệnh (BƯỚC 233): lời gọi chính hỏng vì lỗi TẠM thì gọi model dự phòng
+#: một lần. 429 (hết hạn mức) và lỗi cấu hình KHÔNG chuyển sang dự phòng.
+CHUOI_MODEL = (hk.MODEL, hk.MODEL_DU_PHONG)
 #: SDK `google-genai` mặc định KHÔNG thử lại (`retry_args(None)`, đọc mã 2.33.0) — đặt
 #: tường minh, gồm cả lần đầu; nó thử lại 408 · 429 · 5xx. MỖI lần thử ăn một request của
-#: hạn mức ngày (bậc miễn phí: 20 request/ngày/model — lỗi 429 thật của lượt đo 2) nên chỉ
-#: thử lại MỘT lần: lượt đo 2 mất 3 request mỗi lệnh hỏng vì 503/504 khi model quá tải.
-SO_LAN_THU = 2
+#: hạn mức ngày (bậc miễn phí: 20 request/ngày/model — lỗi 429 thật của lượt đo 2). Từ BƯỚC
+#: 233 SDK KHÔNG thử lại: model dự phòng thay chỗ lần thử lại (lượt 27/10/2026, run
+#: 40472660912: mỗi lệnh 504 ăn 2 × 180 s ≈ 6 phút của lượt 10 phút).
+SO_LAN_THU = 1
 #: Hạn chờ MỖI request (mili giây, đơn vị của `HttpOptions.timeout`). Không đặt thì một lời
 #: gọi treo giữ job tới trần của workflow: lượt đo 1 (run 40256929934, 26/10/2026) viết 4
-#: lệnh rồi treo ~18 phút và bị GitHub huỷ ở `timeout-minutes`. 90 giây thì quá ngắn: lượt
-#: đo 2 (run 40258909497) nhận 504 DEADLINE_EXCEEDED ở hai lệnh khi model quá tải.
-THOI_GIAN_CHO_MS = 180_000
-#: Hạn của cả lượt gọi (giây): quá thì KHÔNG mở lời gọi mới, dừng xanh, lượt sau làm. Cộng
-#: một lời gọi tệ nhất (`SO_LAN_THU` × `THOI_GIAN_CHO_MS`) vẫn phải nằm trong `timeout-minutes`
-#: của job (gác `tests/test_tools_hau_kiem_loi.py`).
+#: lệnh rồi treo ~18 phút và bị GitHub huỷ ở `timeout-minutes`. Lượt đo 2 (run 40258909497,
+#: 90 s) nhận 504 ở hai lệnh; nâng 180 s (BƯỚC 229) vẫn 504 ở hai lệnh của run 40472660912 —
+#: chờ lâu không cứu một model quá tải. BƯỚC 233 về 90 s: một lệnh tệ nhất =
+#: `len(CHUOI_MODEL)` × 90 s, bằng nửa một lệnh tệ nhất trước đó.
+THOI_GIAN_CHO_MS = 90_000
+#: Hạn của cả lượt gọi (giây): quá thì KHÔNG mở lệnh mới, dừng xanh, lượt sau làm. Cộng một
+#: LỆNH tệ nhất (`len(CHUOI_MODEL)` × `SO_LAN_THU` × `THOI_GIAN_CHO_MS`) vẫn phải nằm trong
+#: `timeout-minutes` của job (gác `tests/test_tools_hau_kiem_loi.py`).
 HAN_LUOT_GIAY = 10 * 60
 #: SDK gọi HTTP bằng `httpx`: lỗi mạng còn lại sau các lần thử mang module ấy. Nhận ra bằng
 #: TÊN module để phần chạy không phải nhập `httpx` (gói không khai trong requirements).
@@ -210,26 +216,36 @@ def main(argv=None, *, backend=None, client=None, loi_mod=None, tai_gia=None,
             print(f"::warning::Hậu kiểm lời: chạm trần {hk.TRAN_USD_THANG} USD tháng {thang} "
                   f"— dừng lượt, còn {len(luot) - i} lệnh chưa viết.")
             break
-        try:
-            resp = client.models.generate_content(**hk.tham_so_goi(nd))
-        except Exception as e:
-            loai = _loai_loi(e, loi_mod)
-            if loai is None:
-                raise
-            if loai == LOI_CAU_HINH:
-                print(f"::error::Hậu kiểm lời: lỗi cấu hình hoặc yêu cầu — "
-                      f"{type(e).__name__}: {e}")
-                _tom_tat(dem, hk.da_tieu_thang(hkd + moi, thang), thang)
-                return MA_CAU_HINH
-            if loai == LOI_HET_HAN_MUC:
-                print(f"::warning::Hậu kiểm lời: hết hạn mức của Gemini — dừng lượt, còn "
-                      f"{len(luot) - i} lệnh chưa viết; lượt sau làm. {type(e).__name__}: {e}")
+        resp, het_han_muc = None, False
+        for model in CHUOI_MODEL:
+            try:
+                resp = client.models.generate_content(**hk.tham_so_goi(nd, model))
                 break
-            print(f"::warning::Hậu kiểm lời: lệnh #{d['trade_id']} {d['symbol']} — "
-                  f"{type(e).__name__}: {e}; lượt sau làm lại.")
+            except Exception as e:
+                loai = _loai_loi(e, loi_mod)
+                if loai is None:
+                    raise
+                if loai == LOI_CAU_HINH:
+                    print(f"::error::Hậu kiểm lời: lỗi cấu hình hoặc yêu cầu ({model}) — "
+                          f"{type(e).__name__}: {e}")
+                    _tom_tat(dem, hk.da_tieu_thang(hkd + moi, thang), thang)
+                    return MA_CAU_HINH
+                if loai == LOI_HET_HAN_MUC:
+                    print(f"::warning::Hậu kiểm lời: hết hạn mức của Gemini ({model}) — dừng "
+                          f"lượt, còn {len(luot) - i} lệnh chưa viết; lượt sau làm. "
+                          f"{type(e).__name__}: {e}")
+                    het_han_muc = True
+                    break
+                sau = ("lượt sau làm lại" if model == CHUOI_MODEL[-1]
+                       else f"thử {CHUOI_MODEL[CHUOI_MODEL.index(model) + 1]}")
+                print(f"::warning::Hậu kiểm lời: lệnh #{d['trade_id']} {d['symbol']} ({model}) — "
+                      f"{type(e).__name__}: {e}; {sau}.")
+        if het_han_muc:
+            break
+        if resp is None:
             continue
         dong = hk.ket_qua_mot_lenh(d, hk.lan_ke(hkd + moi, d["trade_id"]), resp, dk,
-                                   bay_gio.isoformat(timespec="seconds"))
+                                   bay_gio.isoformat(timespec="seconds"), model)
         try:
             sheets_store.them_hau_kiem(backend, [dong])
         except Exception as e:

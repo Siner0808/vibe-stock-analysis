@@ -128,6 +128,7 @@ def test_DAT_goi_DUNG_tham_so_va_THEM_mot_dong():
     assert len(c.goi) == 1
     nd = hk.noi_dung_gui(hk.du_kien(_dong(), {}))
     assert set(c.goi[0]) == set(hk.tham_so_goi(nd))
+    assert c.goi[0]["model"] == hk.MODEL
     assert c.goi[0]["config"] == hk.tham_so_goi(nd)["config"]
     for cam in ("temperature", "top_p", "top_k"):
         assert cam not in c.goi[0]["config"]
@@ -135,6 +136,7 @@ def test_DAT_goi_DUNG_tham_so_va_THEM_mot_dong():
     assert [(d["trade_id"], d["lan"], d["trang_thai"]) for d in dong] == [(125, 1, hk.TT_DAT)]
     assert dong[0]["ke_lai"] == VAN["ke_lai"]
     assert dong[0]["viet_luc"] == "2026-10-26T18:20:00"
+    assert dong[0]["model_yeu_cau"] == hk.MODEL
 
 
 def test_THU_khong_goi_khong_ghi_khong_can_khoa(monkeypatch, capsys):
@@ -201,11 +203,69 @@ def test_LOI_CAU_HINH_thoat_1_va_khong_ghi(ma):
 
 @pytest.mark.parametrize("loi", [_APIError(500), _APIError(503), _APIError(408), _LoiMang("x")])
 def test_LOI_TAM_canh_bao_roi_sang_lenh_ke(loi, capsys):
+    """Cả model chính lẫn model dự phòng hỏng vì lỗi tạm: cảnh báo, sang lệnh kế."""
     b = _so([_dong(trade_id=1, exit_date="2026-10-08"), _dong(trade_id=2)])
-    c = _Client(loi, _phan_hoi())
+    c = _Client(loi, loi, _phan_hoi())
     assert _chay(b, c) == CLI.MA_XONG
+    assert [g["model"] for g in c.goi] == [hk.MODEL, hk.MODEL_DU_PHONG, hk.MODEL]
     assert [(d["trade_id"], d["trang_thai"]) for d in ss.doc_hau_kiem(b)] == [(2, hk.TT_DAT)]
-    assert "::warning::" in capsys.readouterr().out
+    ra = capsys.readouterr().out
+    assert "::warning::" in ra and "lượt sau làm lại" in ra
+
+
+@pytest.mark.parametrize("loi", [_APIError(503), _APIError(504), _LoiMang("x")])
+def test_LOI_TAM_o_model_CHINH_thi_model_DU_PHONG_viet_CUNG_lenh(loi):
+    """BƯỚC 233: lời gọi chính hỏng vì lỗi tạm (503/504 khi 3.8 Flash quá tải — run
+    40472660912) thì gọi `MODEL_DU_PHONG` MỘT lần cho CÙNG lệnh, mọi tham số khác giống
+    hệt; dòng ghi model đã gọi thật ở `model_yeu_cau`."""
+    b, c = _so([_dong()]), _Client(loi, _phan_hoi())
+    assert _chay(b, c) == CLI.MA_XONG
+    assert [g["model"] for g in c.goi] == [hk.MODEL, hk.MODEL_DU_PHONG]
+    khac = [{k: v for k, v in g.items() if k != "model"} for g in c.goi]
+    assert khac[0] == khac[1]
+    dong = ss.doc_hau_kiem(b)
+    assert [(d["trade_id"], d["trang_thai"], d["model_yeu_cau"]) for d in dong] == [
+        (125, hk.TT_DAT, hk.MODEL_DU_PHONG)]
+
+
+def test_HET_HAN_MUC_o_model_DU_PHONG_cung_dung_LUOT(capsys):
+    b = _so([_dong(trade_id=1, exit_date="2026-10-08"), _dong(trade_id=2)])
+    c = _Client(_APIError(503), _APIError(429), _phan_hoi())
+    assert _chay(b, c) == CLI.MA_XONG
+    assert len(c.goi) == 2 and ss.doc_hau_kiem(b) == []
+    assert "hết hạn mức" in capsys.readouterr().out
+
+
+def test_LOI_CAU_HINH_o_model_DU_PHONG_thoat_1():
+    """Model dự phòng sai tên hay không nhận tham số (400 · 404) là lỗi cấu hình: job ĐỎ
+    để người dùng nhận email, như với model chính."""
+    b = _so([_dong(trade_id=1), _dong(trade_id=2)])
+    c = _Client(_APIError(503), _APIError(404), _phan_hoi())
+    assert _chay(b, c) == CLI.MA_CAU_HINH
+    assert len(c.goi) == 2 and ss.doc_hau_kiem(b) == []
+
+
+def test_MOI_MODEL_phan_chay_goi_DEU_CO_GIA():
+    """Trần tiền tháng cộng theo giá CAO NHẤT của bảng; model nào phần chạy gọi mà vắng
+    bảng thì mức ấy không còn phủ nó — ước dư thành có thể ước thiếu."""
+    assert CLI.CHUOI_MODEL[0] == hk.MODEL
+    assert len(set(CLI.CHUOI_MODEL)) == len(CLI.CHUOI_MODEL) >= 2
+    assert set(CLI.CHUOI_MODEL) <= set(hk.GIA_USD_MOI_TRIEU)
+
+
+def test_SDK_KHONG_thu_lai_MOI_lenh_toi_da_MOT_request_MOI_model():
+    """Bậc miễn phí: 20 request/ngày/model (429 thật, BƯỚC 229), mỗi lần SDK thử lại là
+    một request. Từ BƯỚC 233 model dự phòng thay chỗ lần thử lại: mỗi lệnh ăn tối đa MỘT
+    request của mỗi model."""
+    assert CLI.SO_LAN_THU == 1
+
+
+def test_MOT_LENH_te_nhat_NGAN_HON_lenh_504_cua_run_40472660912():
+    """Run 40472660912 (27/10/2026): mỗi lệnh 504 ăn 358–359 s của lượt 10 phút — cấu hình
+    BƯỚC 229 là 2 lần thử × 180 s. Gác vừa-job ở trên KHÔNG bắt việc quay lại 180 s (vẫn
+    vừa 20 phút): một lệnh tệ nhất (mọi model, mọi lần thử) phải NGẮN HƠN cấu hình ấy."""
+    te_nhat_229 = 2 * 180
+    assert len(CLI.CHUOI_MODEL) * CLI.SO_LAN_THU * CLI.THOI_GIAN_CHO_MS / 1000 < te_nhat_229
 
 
 def test_HET_HAN_MUC_429_dung_LUOT_khong_goi_lenh_ke(capsys):
@@ -262,13 +322,13 @@ def test_HAN_LUOT_qua_gio_thi_KHONG_mo_loi_goi_moi(capsys):
 
 
 def test_HAN_GIO_vua_trong_TIMEOUT_cua_job():
-    """Hạn lượt + một lời gọi tệ nhất (mọi lần thử đều chờ hết hạn) + 3 phút dựng job
+    """Hạn lượt + một LỆNH tệ nhất (mọi model, mọi lần thử đều chờ hết hạn) + 3 phút dựng job
     (đo lượt 1: ~1 phút cài, ~40 giây đọc Sheets và giá) phải nằm trong `timeout-minutes`."""
     import re
 
     wf = (GOC / ".github" / "workflows" / "hau-kiem-loi.yml").read_text(encoding="utf-8")
     phut = int(re.search(r"^\s*timeout-minutes:\s*(\d+)", wf, re.M).group(1))
-    te_nhat = CLI.SO_LAN_THU * CLI.THOI_GIAN_CHO_MS / 1000
+    te_nhat = len(CLI.CHUOI_MODEL) * CLI.SO_LAN_THU * CLI.THOI_GIAN_CHO_MS / 1000
     assert CLI.HAN_LUOT_GIAY + te_nhat + 180 <= phut * 60
     assert re.search(r'^\s*PYTHONUNBUFFERED:\s*"1"', wf, re.M)
 

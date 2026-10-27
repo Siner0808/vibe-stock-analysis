@@ -247,3 +247,11 @@ của Gemini), trần 5 $/tháng, CHỈ ĐỂ HIỆN.
 **Không có tương đương.** Gemini không có `fallbacks` phía máy chủ: một lời bị chặn vì an toàn
 thành dòng `TU_CHOI`, lượt sau viết lại (tối đa `SO_LAN_TOI_DA`). Hạn mức ngày hết (429) thì
 dừng lượt, xanh.
+
+**Model dự phòng (BƯỚC 233, 27/10/2026).** 3.8 Flash bậc miễn phí quá tải gần như liên tục: ba
+lượt liền viết 0 lệnh (`503 UNAVAILABLE`, `504 DEADLINE_EXCEEDED`). Lỗi TẠM ở model chính thì
+phần chạy gọi `MODEL_DU_PHONG` = `gemini-3.5-flash-lite` MỘT lần cho cùng lệnh, cùng mọi tham
+số; 429 và lỗi cấu hình không chuyển. SDK không thử lại (`SO_LAN_THU` = 1), hạn chờ mỗi
+request 90 s. Dòng tab ghi model đã gọi ở `model_yeu_cau`. Người dùng chọn *"A. Lui model +
+rút hạn chờ (Recommended)"*. Lượt đo trên nhánh và chất lượng văn của model dự phòng:
+`docs/STATE.md` BƯỚC 233.
