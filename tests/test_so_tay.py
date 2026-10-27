@@ -129,12 +129,25 @@ def test_GHI_ra_dong_ma_GAC_SO_nhan(so_tam):
     ("tu kiem qua ngan", {"phat_hien": [{"noi_dung": "n", "tu_kiem": "grep", "phan_quyet": "THẬT."}]}),
     ("buoc sai", {"buoc": "buoc 9999"}),
     ("trung BUOC da co", {"buoc": "BƯỚC 129"}),
+    ("nguon la CHUOI (loi 192)", {"nguon": "['CLAUDE.md @61221db', 'HANDOFF.md @61221db'] — 19 nguồn"}),
+    ("nguon co phan tu MOT ky tu", {"nguon": ["CLAUDE.md @61221db", "["]}),
+    ("nguon co phan tu KHONG phai chuoi", {"nguon": ["CLAUDE.md @61221db", None]}),
 ])
 def test_GHI_tu_choi_va_KHONG_cham_file(so_tam, ten, thay):
     truoc = so_tam.read_bytes()
     with pytest.raises(st.TuChoi):
         st.ghi(_muc_tot(**thay), so=so_tam, ngay="2026-09-27")
     assert so_tam.read_bytes() == truoc, ten
+
+
+def test_SO_THAT_moi_o_nguon_la_DANH_SACH_TEN_khong_phai_tung_ky_tu():
+    """Lỗi 192: mục BƯỚC 230 từng mang `nguon` là 524 ký tự rời — `ghi()` gọi `list()`
+    lên một CHUỖI. Đọc sổ thật: ô `nguon` (nếu có) là danh sách tên, mỗi tên >= 2 ký tự."""
+    hong = {k: v["nguon"][:3] for k, v in _so_that()["soat"].items()
+            if isinstance(v, dict) and "nguon" in v
+            and (not isinstance(v["nguon"], list)
+                 or any(not isinstance(x, str) or len(x.strip()) < 2 for x in v["nguon"]))}
+    assert not hong, hong
 
 
 def test_GHI_cau_AM_co_tu_kiem_thi_nhan(so_tam):
