@@ -24314,6 +24314,6 @@ Lượt soát 15 + ĐO 27 lượt đọc 4 (hạn **02/11/2026**; soát 14 mới
 
 ### Năm cổng ở máy
 
-(điền sau lượt cổng)
+Lượt đầu trên `545651a` (08:41–08:51, 546 s): cổng 1 và cổng 4 ĐỎ ở `tests/test_do_token_phien.py::test_CLAUDE_md_va_SKILL_md_nam_trong_ngan_sach` (`CLAUDE.md` 26.191 > 26.000 ký tự) — xem mục đầu. Lượt hai trên `3e206af` (`tools/nam_cong.py`, MỘT tiến trình, 08:52–09:00, 521 s): cả năm cổng thoát 0 — cổng 1 3639 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3641 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** Đọc lượt B1 hằng ngày. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026**. Công cụ cho lỗi 191 khi có dịp. BƯỚC kế 232, lỗi kế 193.
