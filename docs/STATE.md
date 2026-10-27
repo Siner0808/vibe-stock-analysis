@@ -24278,3 +24278,46 @@ sau lượt   : 0 chết · 18 sử liệu · 72 còn   (mã thoát 0)      lư�
 Cả năm cổng thoát 0 trên commit `5be25cc` (`tools/nam_cong.py`, MỘT tiến trình, 26/10 11:16–11:23, 444 s): cổng 1 3635 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3637 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** BƯỚC 231: hai chỗ file luật ở *Chờ* (CLAUDE.md :112, TIEU-CHI :4392 · :4580), mỗi chỗ một câu hỏi sổ tay thật. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026**. Công cụ cho lỗi 191 khi có dịp. BƯỚC kế 231, lỗi kế 192.
+
+## BƯỚC 231 — `CLAUDE.md` NÊU HAI NGOẠI LỆ CÓ GÁC CỦA CÂU "LÕI KHÔNG NHẬP MODULE GIAI ĐOẠN B"; HAI Ô ⚠️ CÓ NGÀY Ở `docs/TIEU-CHI-DOC-TRUOC.md` (ĐO 31 · ĐO 33); LỖI 192: Ô `nguon` CỦA MỤC SỔ TAY BƯỚC 230 VỠ THÀNH 524 KÝ TỰ RỜI — `so_tay.kiem_muc` NAY CHẶN (27/10/2026)
+
+**Mốc:** quy-trinh — đóng ba câu file luật mà soát 14 (BƯỚC 230) chuyển cho leader, và chặn lỗi 192 của công cụ ghi sổ tay
+
+Người dùng: *"làm ngay bây giờ đi"* (sáng 27/10, trước giờ đặt lại hạn mức tuần 13:00; hạn mức tuần lúc mở 89%). Nhánh `quy-trinh/ngoai-le-231` từ `main` `bbb516b`, worktree ngoài repo (`vibe_wt_231`). Không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo.
+
+### Ba câu file luật (soát 14, *Phát hiện* 1 và 4)
+
+- **`CLAUDE.md` :111-113** viết lại thành *"lõi giao dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`; ngoại lệ có gác: `run_daily`, `sheets_store`)"*. File luật hiện hành nên viết lại câu, không thêm ô HẾT ĐÚNG (luật giữ `CLAUDE.md` gọn). Bản đầu nêu đủ tên hàm và gác ngay trong câu (+244 ký tự) làm `CLAUDE.md` dài 26.191 ký tự, vượt trần 26.000 của `tests/test_do_token_phien.py::test_CLAUDE_md_va_SKILL_md_nam_trong_ngan_sach` (cổng 1 và cổng 4 đỏ ở lượt cổng đầu trên `545651a`); test ghi *"đừng nâng trần"*, nên câu rút về +46 ký tự (25,993) và chi tiết ở đây: `run_daily.ghi_ke_hoach_tin_hieu` nhập `ke_hoach_vao_lenh` SAU `run_session`; `sheets_store` nhập `hau_kiem_loi` lấy hằng cột. Kiểm bằng lệnh hôm nay: `git grep -n "import ke_hoach_vao_lenh" -- run_daily.py` → :350 trong `ghi_ke_hoach_tin_hieu` (docstring *"Gọi SAU `run_session`"*); `tests/test_ke_hoach_vao_lenh.py:1063` `CHO_PHEP_NHAP = {"app.py", "tools/do25_ke_hoach_vao_lenh.py", "run_daily.py"}`; `git grep -n "import hau_kiem_loi" -- sheets_store.py` → :55; gác mức module ở `tests/test_hau_kiem_loi.py:126` (`test_MODULE_khong_nhap_SDK_model_va_muc_module_chi_thu_vien_chuan`); danh sách lõi không được nhập ở `tests/test_hau_kiem_loi.py:493` có cả `run_daily.py`.
+- **`docs/TIEU-CHI-DOC-TRUOC.md`** — hai câu trong khối *Đã tra trùng* có ngày ký, đúng lúc ký, hết đúng sau; KHÔNG sửa chữ đã ký, thêm ô ⚠️ có ngày ngay dưới: :4393 (ĐO 31, *"repo chưa có momentum trung hạn hay momentum phần dư"* → `imom.py`, `tools/do31_loc_imom.py`, `paper_trading.LOC_IMOM_PHAN_VI` = 0; `git log -S LOC_IMOM_PHAN_VI -- paper_trading.py` → `92b32da` 2026-10-23) và :4582 (ĐO 33, *"0 mục … chưa bao giờ là một cổng của sổ"* → `chot_sut_giam.py`, `tools/do33_chot_sut_giam.py`, `paper_trading.CHOT_SUT_GIAM_NGUONG` = 0; `git log -S CHOT_SUT_GIAM_NGUONG -- paper_trading.py` → `5018083` 2026-10-24).
+
+### Sổ tay NotebookLM — làm tươi 5 nguồn, hỏi thật một câu
+
+- **Làm tươi về `bbb516b`** (người dùng đăng nhập lại khung trình duyệt). `git diff --quiet <băm nhãn> bbb516b -- <file>` trên cả 14 tệp: đổi đúng 5 — `HANDOFF.md`, `LO-TRINH.md`, `QUYET-DINH-CHO.md`, `references/loi-da-mac.md` (nạp URL ghim `bbb516bb57bab6f0ace9ab09fd288bc9fdfd1e77`, curl 200, khớp byte với `git show`) và `STATE.md`. STATE chỉ dán lại khúc 5/5: `git diff 61221db bbb516b -- docs/STATE.md` có 0 dòng bị xoá, và `tools/so_tay.py chia-state` cho phan1–4 cùng ranh giới, cùng cỡ ở hai commit — bốn khúc cũ giữ nhãn `@61221db`, giống `bbb516b` từng byte. Đo độ tươi trên bản MỚI trước khi xoá (khúc 5 có `## BƯỚC 230` và trích đúng câu cuối; HANDOFF trích đúng dòng 🧭 BƯỚC 230), rồi xoá 5 bản cũ sau khi đọc nhãn; sổ về 19 nguồn. Lượt đo chạy ~7 phút (đo bằng đồng hồ của lượt gọi, ước lượng).
+- **Hỏi thật MỘT câu cho cả ba chỗ** (`docs/soat-notebooklm.json` mục BƯỚC 231; dựng bằng `tools/so_tay.py hoi`, ba câu ví dụ — mỗi chỗ một câu). Bàn giao 26/10 ghi *"mỗi chỗ một câu hỏi sổ tay thật"*; leader gộp vì ba chỗ cùng một dạng (câu phủ định có ngày, hết đúng theo thời gian) và mỗi lượt hỏi hôm nay mất vài phút — đây là chỗ lệch bàn giao, nói ra. Sổ trả đúng ba câu ấy; `tools/doi_chieu_trich_dan.py` trên `main` cho cả ba KHỚP (mã 0). Hai giới hạn: sổ gọi SAI tên mục của câu `CLAUDE.md` (*"Quy trình phát triển"*; đúng là *Agent cơ bản … CHỈ ĐỂ HIỆN*), và cả ba câu đã nằm sẵn trong STATE BƯỚC 230 nên câu trả lời có thể chỉ đọc lại STATE, không độc lập. Câu âm tự kiểm: `git grep -n -E "chưa có momentum (trung hạn|phần dư)|KHÔNG nhập chúng|chưa bao giờ là một cổng|không nhập chúng" -- '*.md' ':!docs/STATE.md' ':!docs/lich-su/*'` → chỉ ba chỗ này.
+
+### Lỗi 192 — ô `nguon` vỡ thành từng ký tự
+
+Lúc mở mục BƯỚC 230 của `docs/soat-notebooklm.json` làm khuôn, ô `nguon` là **524 phần tử một ký tự**: 26/10 leader đưa `nguon` cho `tools/so_tay.py ghi` là MỘT chuỗi (danh sách 15 tên đã in, cộng đuôi *"— 19 nguồn"*), `ghi()` gọi `list(...)` lên chuỗi ấy, và PR #276 merge với mục hỏng. `kiem_muc` kiểm mọi ô khác (lối thoát, xuống dòng, tiếng Việt, phán quyết) nhưng không kiểm ô này.
+
+- **Sửa sổ:** dựng lại từ dict (định dạng `json.dumps(indent=2)` tái tạo tệp từng byte, kiểm trước khi ghi), ô `nguon` của BƯỚC 230 về đúng 15 tên (`ast.literal_eval` phần trong ngoặc vuông của chuỗi đã nối). Quét toàn sổ: chỉ mục BƯỚC 230 hỏng.
+- **Chặn bằng máy:** `kiem_muc` từ chối `nguon` có phần tử không phải chuỗi hoặc ngắn hơn 2 ký tự (một chuỗi qua `list()` luôn ra phần tử một ký tự). Test: ba ca mới trong `tests/test_so_tay.py::test_GHI_tu_choi_va_KHONG_cham_file` (chuỗi nguyên văn kiểu lỗi thật · một phần tử một ký tự · một phần tử `None`) và `test_SO_THAT_moi_o_nguon_la_DANH_SACH_TEN_khong_phai_tung_ky_tu` đọc sổ thật.
+- **Đục thử 5/5 đỏ** (`va_an_toan.dot_bien_bo`, gốc repo không mọc rác): bỏ hẳn phép kiểm (dựng lại lỗi thật) · ngưỡng 2 → 1 · `any` → `all` · bỏ vế kiểu `str` · trên sổ: một tên thành một ký tự (dựng lại lỗi thật cho test sổ).
+- Bảng lỗi: hàng 192, phân lớp `thao-tac`, sống 1 ngày (`git log -1 5be25cc` 2026-10-26 → thấy 27/10), dòng tự khai 94/171 (`tools/doc_bang_loi.py`: *khớp dòng tự khai ở cuối bảng*).
+
+### Lượt B1 26/10 — 0/7 lệnh được viết
+
+`gh run view 40368535591 --log`: lượt theo lịch chạy 17:25 UTC (00:25 VN 27/10; cron 11:17 UTC — GitHub trễ ~6 giờ). Cả bảy lệnh (#119 #123 #118 #122 #126 #127 #120) nhận `503 UNAVAILABLE` *"model is currently experiencing high demand"*; theo thiết kế 503 chỉ là `::warning::` nên job xanh, 0 dòng ghi. Lượt sau viết lại. Chưa kiểm: 503 có tính vào hạn mức 20 request/ngày không.
+
+### Secret `ANTHROPIC_API_KEY` — đã xoá theo người dùng
+
+Người dùng: *"xóa"* (27/10, trả lời câu hỏi xoá hay giữ). Trước khi xoá: `git grep -n ANTHROPIC_API_KEY -- .github/ '*.py' '*.yml' '*.toml' '*.example'` rỗng — không workflow hay mã nào dùng tên ấy (B1 dùng `GEMINI_API_KEY` từ BƯỚC 229). Leader chạy `gh secret delete ANTHROPIC_API_KEY` (mã 0); `gh secret list` sau đó: `GEMINI_API_KEY` · `STREAMLIT_SECRETS_TOML`. Các câu tài liệu nêu khoá ấy đã mang dấu hết đúng từ BƯỚC 229–230. Khoá trong Anthropic Console: người dùng tự xoá (agent không đăng nhập Console).
+
+### Không làm ở BƯỚC này
+
+Lượt soát 15 + ĐO 27 lượt đọc 4 (hạn **02/11/2026**; soát 14 mới làm 26/10, sổ lệnh không thêm lệnh từ 21/10). Công cụ cho lỗi 191.
+
+### Năm cổng ở máy
+
+Lượt đầu trên `545651a` (08:41–08:51, 546 s): cổng 1 và cổng 4 ĐỎ ở `tests/test_do_token_phien.py::test_CLAUDE_md_va_SKILL_md_nam_trong_ngan_sach` (`CLAUDE.md` 26.191 > 26.000 ký tự) — xem mục đầu. Lượt hai trên `3e206af` (`tools/nam_cong.py`, MỘT tiến trình, 08:52–09:00, 521 s): cả năm cổng thoát 0 — cổng 1 3639 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3641 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
+
+**Việc kế.** Đọc lượt B1 hằng ngày. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026**. Công cụ cho lỗi 191 khi có dịp. BƯỚC kế 232, lỗi kế 193.

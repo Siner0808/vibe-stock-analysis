@@ -150,6 +150,10 @@ def kiem_muc(muc: dict) -> None:
         raise TuChoi("`cau_hoi` thieu LOI THOAT nguyen van — so tay se bia (BƯỚC 107)")
     if "answer in vietnamese" not in cau.lower():
         raise TuChoi("`cau_hoi` khong doi tra loi tieng Viet")
+    nguon = muc.get("nguon")
+    if nguon is not None and any(not isinstance(x, str) or len(x.strip()) < 2 for x in nguon):
+        raise TuChoi("`nguon` phai la DANH SACH ten nguon (moi ten >= 2 ky tu) — mot CHUOI "
+                     "qua list() thanh tung ky tu (loi 192)")
     pds = muc.get("phat_hien") or []
     am = muc.get("khong_tim_thay_gi") is True
     if bool(pds) == am:
