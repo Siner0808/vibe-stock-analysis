@@ -24338,4 +24338,6 @@ Người dùng: *"làm nốt"* (27/10, sau BƯỚC 231); soát 15 để đúng h
 
 Bảng lỗi: hàng 191 → ✅, dòng tự khai 95/171.
 
+**Năm cổng ở máy:** cả năm thoát 0 trên `0ecc58d` (`tools/nam_cong.py`, MỘT tiến trình, 27/10 10:12–10:21, 545 s): cổng 1 3651 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3653 test, khớp mốc. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
+
 **Việc kế.** Đọc lượt B1 hằng ngày. Lượt soát 15 + ĐO 27 lượt đọc 4: hạn **02/11/2026** — phần ngoài tầm chạy bằng `tools/soat_ngoai_cong_cu.py` (ghi LỆNH kèm cây vào sổ). BƯỚC kế 233, lỗi kế 193.
