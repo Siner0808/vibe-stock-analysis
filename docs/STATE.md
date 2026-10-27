@@ -24308,9 +24308,13 @@ Lúc mở mục BƯỚC 230 của `docs/soat-notebooklm.json` làm khuôn, ô `n
 
 `gh run view 40368535591 --log`: lượt theo lịch chạy 17:25 UTC (00:25 VN 27/10; cron 11:17 UTC — GitHub trễ ~6 giờ). Cả bảy lệnh (#119 #123 #118 #122 #126 #127 #120) nhận `503 UNAVAILABLE` *"model is currently experiencing high demand"*; theo thiết kế 503 chỉ là `::warning::` nên job xanh, 0 dòng ghi. Lượt sau viết lại. Chưa kiểm: 503 có tính vào hạn mức 20 request/ngày không.
 
+### Secret `ANTHROPIC_API_KEY` — đã xoá theo người dùng
+
+Người dùng: *"xóa"* (27/10, trả lời câu hỏi xoá hay giữ). Trước khi xoá: `git grep -n ANTHROPIC_API_KEY -- .github/ '*.py' '*.yml' '*.toml' '*.example'` rỗng — không workflow hay mã nào dùng tên ấy (B1 dùng `GEMINI_API_KEY` từ BƯỚC 229). Leader chạy `gh secret delete ANTHROPIC_API_KEY` (mã 0); `gh secret list` sau đó: `GEMINI_API_KEY` · `STREAMLIT_SECRETS_TOML`. Các câu tài liệu nêu khoá ấy đã mang dấu hết đúng từ BƯỚC 229–230. Khoá trong Anthropic Console: người dùng tự xoá (agent không đăng nhập Console).
+
 ### Không làm ở BƯỚC này
 
-Lượt soát 15 + ĐO 27 lượt đọc 4 (hạn **02/11/2026**; soát 14 mới làm 26/10, sổ lệnh không thêm lệnh từ 21/10). Công cụ cho lỗi 191. Secret `ANTHROPIC_API_KEY` và khoá Console: người dùng quyết.
+Lượt soát 15 + ĐO 27 lượt đọc 4 (hạn **02/11/2026**; soát 14 mới làm 26/10, sổ lệnh không thêm lệnh từ 21/10). Công cụ cho lỗi 191.
 
 ### Năm cổng ở máy
 
