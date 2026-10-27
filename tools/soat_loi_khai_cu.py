@@ -412,6 +412,9 @@ def main(tham_so: list[str] | None = None) -> int:
               "KHÔNG nằm trong đó —\n         nó là nhật ký chỉ-thêm, lời "
               "khai trong một BƯỚC cũ mô tả NGÀY ẤY.\n         Một con số "
               "ở đây KHÔNG nói gì về lời khai nằm trong STATE.md.")
+        print("NGOÀI TẦM (STATE, hàng bảng, .md khác — đổi giữa hai cây): "
+              "tools/soat_ngoai_cong_cu.py diff|state|hang-bang\n"
+              "         — ghi LỆNH ấy vào sổ, đừng dùng script ngoài repo (lỗi 191).")
 
     if not a.im:
         lac = so_tro_vao_hu_khong(bang, ra)

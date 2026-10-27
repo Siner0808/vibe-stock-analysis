@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **27/10/2026 — BƯỚC 232: công cụ cho lỗi 191 — `tools/soat_ngoai_cong_cu.py` (`diff` · `state` · `hang-bang`, đọc cây bằng `git show`) tái lập đúng mọi số ngoài tầm của lượt soát 14; công cụ soát chính in con trỏ sang nó.** Soát 15 đúng hạn 02/11 (người dùng chọn). Chi tiết: `docs/STATE.md` BƯỚC 232.
+
 > 🧭 **27/10/2026 — BƯỚC 231: `CLAUDE.md` nêu hai ngoại lệ có gác (`run_daily.ghi_ke_hoach_tin_hieu` → `ke_hoach_vao_lenh`; `sheets_store` → `hau_kiem_loi`), hai ô ⚠️ có ngày ở `TIEU-CHI` (ĐO 31 · ĐO 33), lỗi 192 (ô `nguon` của mục sổ tay BƯỚC 230 vỡ thành 524 ký tự — `so_tay.kiem_muc` nay chặn, mục đã dựng lại).** Sổ tay tươi về `bbb516b` (5 nguồn nạp lại, 19 nguồn). Lượt B1 26/10: 0/7 lệnh, cả bảy `503` (model quá tải). Secret `ANTHROPIC_API_KEY` đã xoá theo người dùng (khoá Console: người dùng tự xoá). Lượt 15 + ĐO 27 lượt 4: hạn 02/11. Chi tiết: `docs/STATE.md` BƯỚC 231.
 
 > 🧭 **26/10/2026 — BƯỚC 230: soát 14 xong sớm 2 ngày (71/71 lời khai), ĐO 27 lượt đọc 3 CHƯA ĐỦ (quần thể 0; băm sổ trùng 21/10), sổ tay NotebookLM tươi về `61221db` (19 nguồn, STATE 5 khúc tới BƯỚC 229), ba câu hết đúng ở `docs/LO-TRINH.md` đánh dấu.** Người dùng: B1 giữ mức suy nghĩ *"medium"*. Lỗi 191 (số soát ngoài công cụ không tái lập được). Chờ BƯỚC 231: `CLAUDE.md` :112 và hai ô ⚠️ ở `TIEU-CHI` — mỗi chỗ một câu hỏi sổ tay thật. Lượt 15 + ĐO 27 lượt 4: hạn 02/11. Chi tiết: `docs/STATE.md` BƯỚC 230.
