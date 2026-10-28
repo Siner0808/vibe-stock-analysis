@@ -214,6 +214,74 @@ def test_SO_TRONG_VAN_doc_ca_ngay_va_so():
     assert so == [(5.21, 2), (26020.0, 0)]
 
 
+#: Số kiểu Anh THẬT của lượt B1 27/10/2026 (cron 40543693323, tab `hau_kiem`): nguồn là số
+#: trần (`exit_price` 17500.0, `1775.09`...), model viết `17,500` · `1,775.09` · `54,100.0`.
+SO_ANH_THAT = (("17,500", 17500.0), ("54,100.0", 54100.0), ("1,775.09", 1775.09),
+               ("68,200.0", 68200.0), ("27,950.0", 27950.0), ("33,400", 33400.0),
+               ("32,850", 32850.0))
+
+
+def _dk_voi_so(*so: float) -> dict:
+    dk = _du_kien()
+    dk["hang_so"]["nguon_thu"] = list(so)
+    return dk
+
+
+def test_SO_KIEU_ANH_cua_model_duoc_nhan_khi_cach_doc_Anh_khop_nguon():
+    """BƯỚC 234: 9/10 dòng bị bác ở cron 27/10 chỉ vì `_doc_so` đọc `17,500` thành 17,5."""
+    for tok, goc in SO_ANH_THAT:
+        dk = _dk_voi_so(goc)
+        van = _van(ke_lai=f"Lệnh HPG thoát ở mức {tok} VNĐ.")
+        assert _luat_vi_pham(van, dk) == set(), tok
+        # cùng token, nguồn KHÔNG có số ấy (nguồn khác hẳn) thì vẫn bị bác
+        assert "so-co-nguon" in _luat_vi_pham(van, _dk_voi_so(goc + 1000)), tok
+
+
+def test_SO_KIEU_ANH_khong_khop_cach_doc_nao_van_bi_bac():
+    dk = _dk_voi_so(17500.0)
+    for tok in ("17,600", "17,400.0", "17,5", "17.600"):
+        assert "so-co-nguon" in _luat_vi_pham(
+            _van(ke_lai=f"Lệnh HPG thoát ở mức {tok} VNĐ."), dk), tok
+    # "17,5" là thập phân kiểu Việt: nguồn có 17,5 thì nhận (cách đọc Việt không mất)
+    assert _luat_vi_pham(_van(ke_lai="Lệnh HPG lệch 17,5 điểm."), _dk_voi_so(17.5)) == set()
+    # ... kể cả khi token CÓ dạng Anh (`17,500`): thêm cách đọc thứ hai, không thay cách thứ nhất
+    assert _luat_vi_pham(_van(ke_lai="Lệnh HPG lệch 17,500 điểm."), _dk_voi_so(17.5)) == set()
+
+
+def test_SO_KIEU_ANH_lam_tron_theo_SO_CHU_SO_CUA_CACH_DOC_ANH():
+    """Cách đọc Anh có số chữ số thập phân RIÊNG: `1,775.1` (1 chữ số) khớp 1775.09,
+    `1,775.0` (1 chữ số) thì lệch 0,09 > 0,05; `1,775` (0 chữ số) khớp tới 0,5."""
+    dk = _dk_voi_so(1775.09)
+    cho_qua = ("1,775.09", "1,775.1", "1,775")
+    bi_bac = ("1,775.0", "1,775.2", "1,776")
+    for tok in cho_qua:
+        assert _luat_vi_pham(_van(ke_lai=f"Lệnh HPG ở {tok} điểm."), dk) == set(), tok
+    for tok in bi_bac:
+        assert "so-co-nguon" in _luat_vi_pham(_van(ke_lai=f"Lệnh HPG ở {tok} điểm."), dk), tok
+
+
+def test_SO_KIEU_ANH_chi_token_khop_nguyen_dang_moi_co_cach_doc_thu_hai():
+    assert hk._doc_so_kieu_anh("17,500") == (17500.0, 0)
+    assert hk._doc_so_kieu_anh("1,775.09") == (1775.09, 2)
+    assert hk._doc_so_kieu_anh("-54,100.0") == (54100.0, 1)
+    assert hk._doc_so_kieu_anh("1,234,567.5") == (1234567.5, 1)
+    for tok in ("17,5", "1.234", "1.234,5", "17500", "1234,567", "12,34,567", "1,23"):
+        assert hk._doc_so_kieu_anh(tok) is None, tok
+
+
+def test_SO_KIEU_ANH_mac_dinh_dung_cach_doc_Viet_khi_khong_phai_dang_Anh():
+    """`1.234,5` (Việt) và `53,5` không có cách đọc Anh: chỉ nguồn 1234,5 / 53,5 mới nhận."""
+    assert _luat_vi_pham(_van(ke_lai="Lệnh HPG ở 1.234,5 điểm."), _dk_voi_so(1234.5)) == set()
+    assert "so-co-nguon" in _luat_vi_pham(
+        _van(ke_lai="Lệnh HPG ở 1.234,5 điểm."), _dk_voi_so(1.2345))
+
+
+def test_LOI_DAN_so_co_nguon_bao_model_viet_so_kieu_Viet():
+    dan = next(l.dan for l in hk.LUAT_VIET if l.ma == "so-co-nguon")
+    assert "dấu chấm ngăn nghìn" in dan and "dấu phẩy thập phân" in dan
+    assert "17.500 đồng" in hk.LOI_DAN and "lỗ 5,21%" in hk.LOI_DAN
+
+
 # ── mot-lenh ──────────────────────────────────────────────────────────────
 
 def test_MOT_LENH_cam_ket_luan_tru_khi_phu_dinh():
@@ -222,12 +290,61 @@ def test_MOT_LENH_cam_ket_luan_tru_khi_phu_dinh():
            # "không" ở CÂU TRƯỚC không phủ định câu sau
            "Không có gap. Lệnh này chứng minh tín hiệu tốt.",
            # "không" cùng câu nhưng quá xa (> 25 ký tự) không phủ định cụm này
-           "Lệnh không có gap dưới cắt lỗ và kết quả này chứng minh tín hiệu tốt.")
+           "Lệnh không có gap dưới cắt lỗ và kết quả này chứng minh tín hiệu tốt.",
+           # BƯỚC 234: "không chứng minh" ở CÂU TRƯỚC không phủ định câu sau
+           "Một lệnh không chứng minh được gì. Agent sai ở lệnh HPG.",
+           # cụm cấm đứng TRƯỚC "không chứng minh" không được phủ định ngược về phía sau
+           "Chắc chắn agent đúng, và lệnh này không chứng minh được gì.",
+           # ... và "nhưng" đổi chiều mệnh đề
+           "Lệnh này không chứng minh được gì, nhưng chắc chắn agent sai.")
     dat = ("Lệnh này chưa chứng minh được gì.", "Không chắc chắn về nguyên nhân.")
     for v in bac:
         assert "mot-lenh" in _luat_vi_pham(_van(khong_chung_minh=v)), v
     for v in dat:
         assert _luat_vi_pham(_van(khong_chung_minh=v)) == set(), v
+
+
+#: Bốn câu THẬT của tab `hau_kiem` (cron 27/10/2026) bị bác vì cụm cấm cách "không" > 25 ký tự.
+CAU_PHU_DINH_THAT = (
+    "Một lệnh này không chứng minh được tín hiệu sai hay agent sai, vì kết quả thua lỗ có "
+    "thể do biến động chung…",
+    "Một lệnh này không chứng minh được agent hay tín hiệu luôn luôn đúng hoặc sai.",
+    "Lệnh này không chứng minh được agent hay tín hiệu luôn luôn chính xác hay sai lệch.",
+    "Lệnh này không chứng minh được các agent hay điểm số chắc chắn đúng hoặc luôn mang "
+    "lại hiệu quả ở mọi thời điểm.")
+
+
+def test_MOT_LENH_phu_dinh_ca_menh_de_nhan_bon_cau_that():
+    dk = _du_kien()
+    assert dk["bai_hoc"]["cach_goi"]
+    for v in CAU_PHU_DINH_THAT:
+        assert _luat_vi_pham(_van(khong_chung_minh=v)) == set(), v
+    # "tín hiệu sai" cũng theo mệnh đề khi dữ kiện KHÔNG có cach_goi (cụm cách "không" > 25)
+    dk["bai_hoc"]["cach_goi"] = None
+    cau = "Một lệnh này không chứng minh được rằng agent hoạt động tốt hay xấu, kể cả khi tín hiệu sai."
+    assert _luat_vi_pham(_van(khong_chung_minh=cau), dk) == set()
+
+
+def test_MOT_LENH_phu_dinh_ca_menh_de_dung_o_RANH_GIOI_va_chi_cho_luat_nay():
+    """Mệnh đề hết ở `.` `!` `?` xuống dòng `;` "nhưng" "tuy nhiên" (hoa thường đều được);
+    "chưa" thay "không" được; và quy tắc này KHÔNG áp cho `khong-khuyen-nghi`."""
+    mo = "Một lệnh này không chứng minh được điều gì về agent hay tín hiệu của nó"
+    for ranh in (". ", "! ", "? ", "\n", "; ", ", nhưng ", ", Nhưng ", ", tuy nhiên ",
+                 ", Tuy Nhiên "):
+        assert "mot-lenh" in _luat_vi_pham(
+            _van(khong_chung_minh=f"{mo}{ranh}chắc chắn agent đúng.")), repr(ranh)
+    for v in (mo + ", vì chắc chắn còn nhiều yếu tố khác.",
+              mo.replace("không", "chưa") + ", vì chắc chắn còn nhiều yếu tố khác.",
+              mo.replace("không", "KHÔNG") + ", vì chắc chắn còn nhiều yếu tố khác."):
+        assert _luat_vi_pham(_van(khong_chung_minh=v)) == set(), v
+    # Không phải "không chứng minh" thì cụm cách xa vẫn bị bác (câu giữ khắt của người dùng)
+    assert "mot-lenh" in _luat_vi_pham(_van(khong_chung_minh=(
+        "Lệnh không có gap dưới cắt lỗ nên kết quả này chứng minh tín hiệu tốt.")))
+    assert "mot-lenh" in _luat_vi_pham(_van(khong_chung_minh=(
+        "Một lệnh này không chắc chắn về điều gì, vậy mà luôn luôn đúng.")))
+    # `khong-khuyen-nghi` giữ cửa sổ 25 ký tự
+    assert "khong-khuyen-nghi" in _luat_vi_pham(_van(kien_thuc=(
+        "Một lệnh này không chứng minh được điều gì rõ ràng, và khuyến nghị mua thêm.")))
 
 
 def test_TIN_HIEU_SAI_chi_khi_du_kien_co_cach_goi():
@@ -340,6 +457,70 @@ def test_CAN_VIET_bo_lenh_co_DAT_dua_lenh_het_luot_ra_rieng():
     assert [d["trade_id"] for d in can] == [2, 1]          # ngày ra tăng dần
     assert [d["trade_id"] for d in het] == [4]
     assert hk.lan_ke(hkd, 1) == 2 and hk.lan_ke(hkd, 2) == 1
+
+
+def _hk_dong(**doi) -> dict:
+    d = {c: None for c in hk.COT_HAU_KIEM}
+    d.update({"trade_id": 125, "lan": 1, "trang_thai": hk.TT_BI_BAC, "stop_reason": "STOP",
+              **_van()})
+    d.update(doi)
+    return d
+
+
+def test_LAN_HONG_THAT_tu_choi_cat_cut_luon_tinh_dat_khong_tinh():
+    dk = _du_kien()
+    assert hk.lan_hong_that([], dk) == 0
+    assert hk.lan_hong_that([_hk_dong(trang_thai=hk.TT_TU_CHOI, stop_reason="SAFETY")], dk) == 1
+    assert hk.lan_hong_that([_hk_dong(trang_thai=hk.TT_CAT_CUT, stop_reason="MAX_TOKENS")],
+                            dk) == 1
+    # kể cả khi văn lưu sẵn đạt mọi luật: bị từ chối/cắt vẫn là lần hỏng
+    assert hk.lan_hong_that([_hk_dong(trang_thai=hk.TT_TU_CHOI),
+                             _hk_dong(trang_thai=hk.TT_CAT_CUT)], dk) == 2
+    assert hk.lan_hong_that([_hk_dong(trang_thai=hk.TT_DAT)], dk) == 0
+    assert hk.lan_hong_that([_hk_dong(trang_thai="la")], dk) == 1
+
+
+def test_LAN_HONG_THAT_BI_BAC_chi_tinh_khi_van_VAN_truot_may_kiem_hien_hanh():
+    dk = _du_kien()
+    # văn đạt luật hiện hành (đã bị bác vì luật cũ): KHÔNG tính
+    assert hk.lan_hong_that([_hk_dong(khong_chung_minh=CAU_PHU_DINH_THAT[1])], dk) == 0
+    assert hk.lan_hong_that([_hk_dong()], dk) == 0
+    # văn VẪN trượt: mỗi luật một ca
+    for loi in (dict(ke_lai="Lệnh HPG lỗ 4,8%."),
+                dict(khong_chung_minh="Lệnh này chứng minh tín hiệu tốt."),
+                dict(kien_thuc="Nên mua lại HPG khi giá hồi."),
+                dict(ke_lai="HPG kém VCB trong cùng kỳ."),
+                dict(theo_doi="Lệnh cắt lỗ hay bị gap dưới cắt lỗ.")):
+        assert hk.lan_hong_that([_hk_dong(**loi)], dk) == 1, loi
+    # trường rỗng hay thiếu: trượt do-dai
+    assert hk.lan_hong_that([_hk_dong(kien_thuc="")], dk) == 1
+    assert hk.lan_hong_that([_hk_dong(kien_thuc=None)], dk) == 1
+    # kết thúc khác STOP: không có văn đáng tin để kiểm -> luôn tính, kể cả văn đạt
+    for stop in ("MAX_TOKENS", "OTHER", None):
+        assert hk.lan_hong_that([_hk_dong(stop_reason=stop)], dk) == 1, stop
+
+
+def test_LAN_HONG_THAT_kiem_theo_DU_KIEN_dung_lai_khong_theo_thoi_diem_bac():
+    """Cùng một văn, hai bộ dữ kiện: số 17.500 có trong dữ kiện này mà không có trong kia."""
+    van = dict(ke_lai="Lệnh HPG thoát ở mức 17,500 VNĐ.")
+    co, khong = _dk_voi_so(17500.0), _dk_voi_so(1.0)
+    assert hk.lan_hong_that([_hk_dong(**van)], co) == 0
+    assert hk.lan_hong_that([_hk_dong(**van)], khong) == 1
+
+
+def test_LAN_HONG_THAT_cong_tung_dong():
+    dk = _du_kien()
+    hs = [_hk_dong(lan=1), _hk_dong(lan=2, trang_thai=hk.TT_TU_CHOI),
+          _hk_dong(lan=3, ke_lai="Lệnh HPG lỗ 4,8%.")]
+    assert hk.lan_hong_that(hs, dk) == 2
+
+
+def test_SAP_THEO_NGAY_RA_va_CAN_VIET_dung_chung_thu_tu():
+    d = [_dong(trade_id=3, exit_date="2026-10-09"), _dong(trade_id=1, exit_date="2026-10-10"),
+         _dong(trade_id=2, exit_date="2026-10-09")]
+    assert [x["trade_id"] for x in hk.sap_theo_ngay_ra(d)] == [2, 3, 1]
+    can, _ = hk.can_viet(d, [])
+    assert [x["trade_id"] for x in can] == [2, 3, 1]
 
 
 # ── Tách phản hồi (giả, đúng hình dạng Gemini) ───────────────────────────

@@ -96,7 +96,7 @@ run_daily -> tab nhat_ky  ──đọc──▶  1. chọn lệnh ĐÃ ĐÓNG ch
 
 1. Đọc tab `nhat_ky` và tab `hau_kiem` (chỉ đọc). Lệnh cần viết = ĐÃ CÓ bài học theo đúng
    tiêu chí của chuông (`so_bai_hoc.ly_do_thieu_bai_hoc` là None: nửa ĐÓNG và rổ chuẩn — BƯỚC 203)
-   VÀ chưa có dòng `DAT` VÀ có ít hơn `SO_LAN_TOI_DA` = 2 dòng không `DAT`. Lệnh chạm 2 lần hỏng: không gọi nữa, in `::warning::` gọi tên để người xem.
+   VÀ chưa có dòng `DAT` VÀ có ít hơn `SO_LAN_TOI_DA` = 2 lần hỏng THẬT. Lệnh chạm 2 lần hỏng thật: không gọi nữa, in `::warning::` gọi tên để người xem. *Hỏng thật* (BƯỚC 234, `hau_kiem_loi.lan_hong_that`): dòng `TU_CHOI` · `CAT_CUT` luôn tính; dòng `BI_BAC` chỉ tính khi `stop_reason` khác `STOP` hoặc bốn trường đã lưu VẪN trượt `kiem_dau_ra` hiện hành với `du_kien` dựng lại (trường rỗng trượt `do-dai`) — một dòng bị bác vì luật đã sửa không còn là lần hỏng. Lệnh đủ 2 dòng không `DAT` mà hỏng thật < 2 được đưa lại vào danh sách cần viết (đúng chỗ theo ngày ra, trước trần `SO_LENH_MOI_LUOT`), in `::notice::` nêu lệnh và số dòng không còn tính; lần viết kế vẫn là `lan_ke` (lần 3). Không dòng nào của tab bị sửa hay xoá.
 2. Tải giá các mã cùng ngành qua đúng đường giá mà nút "📥 Tải giá…" của app dùng (rút phần
    không phụ thuộc Streamlit ra một hàm dùng chung; không viết đường giá thứ hai). Thiếu giá thì
    bài học nói "chưa đủ dữ liệu" như trên app — không đoán.
@@ -165,15 +165,15 @@ client.beta.messages.create(
 
 | Mã | Luật | Máy kiểm |
 |---|---|---|
-| `so-co-nguon` | Mọi con số có nguồn (Quy tắc 2) | Mọi số trong bốn trường — phần trăm, số thập phân dấu phẩy, ngày — khớp một số trong `du_kien`. Làm tròn đúng số chữ số đã viết là khớp (−3,4567 → "−3,46%"). Ngày khớp theo giá trị, không theo định dạng. Phần kiến thức cũng không có số ví dụ tự đặt. Số kiểu Anh như `53,500` nằm trong CHUỖI nguồn (lý do vào lệnh của sổ thật) được nhận theo cả hai cách đọc; văn của model vẫn đọc dấu phẩy là thập phân (BƯỚC 204, đo bằng `--thu`). |
-| `mot-lenh` | Không kết luận từ một lệnh (bất biến 5) | Cấm "chứng minh", "chắc chắn", "luôn luôn", "agent sai" — trừ khi đứng sau "không"/"chưa". "Tín hiệu sai" chỉ được dùng khi `du_kien` có `cach_goi`. |
+| `so-co-nguon` | Mọi con số có nguồn (Quy tắc 2) | Mọi số trong bốn trường — phần trăm, số thập phân dấu phẩy, ngày — khớp một số trong `du_kien`. Làm tròn đúng số chữ số đã viết là khớp (−3,4567 → "−3,46%"). Ngày khớp theo giá trị, không theo định dạng. Phần kiến thức cũng không có số ví dụ tự đặt. Số kiểu Anh như `53,500` nằm trong CHUỖI nguồn (lý do vào lệnh của sổ thật) được nhận theo cả hai cách đọc (BƯỚC 204, đo bằng `--thu`). Trong văn của model, dấu phẩy đọc là thập phân, TRỪ token khớp nguyên `\d{1,3}(,\d{3})+(\.\d+)?` (`17,500` · `1,775.09` · `54,100.0`): token ấy được nhận khi MỘT trong hai cách đọc — Việt (như trên) hoặc Anh (bỏ dấu phẩy, `.` thập phân, số chữ số thập phân của riêng cách đọc ấy) — khớp một số nguồn. Token khác (`17,5` · `53,5` · `1.234`) chỉ đọc kiểu Việt; `17,600` khi nguồn là 17500 vẫn bị bác (BƯỚC 234: cron 27/10/2026, 9/10 dòng bác chỉ vì `17,500` bị đọc thành 17,5). Lời dặn bảo model viết số kiểu Việt (dấu chấm ngăn nghìn, dấu phẩy thập phân). |
+| `mot-lenh` | Không kết luận từ một lệnh (bất biến 5) | Cấm "chứng minh", "chắc chắn", "luôn luôn", "agent sai" — trừ khi đứng sau "không"/"chưa" (cách ≤ 25 ký tự, cùng câu) HOẶC trong một mệnh đề đã mở bằng "không chứng minh"/"chưa chứng minh" (BƯỚC 234); mệnh đề hết ở `.` `!` `?` xuống dòng `;` "nhưng" "tuy nhiên". "Tín hiệu sai" chỉ được dùng khi `du_kien` có `cach_goi` (cùng hai cách phủ định). Câu "không có gap … chứng minh tín hiệu tốt" vẫn bị bác. |
 | `khong-khuyen-nghi` | Không là lời khuyên đầu tư | Cấm "nên mua", "nên bán", "hãy mua", "hãy bán", "khuyến nghị" — trừ khi đứng sau "không"/"chưa". *(Bản duyệt đầu có "mua vào", "bán ra": bỏ ở BƯỚC 203 vì chúng bác nhầm văn tự nhiên như "giá mua vào ngày …".)* |
-| `ma-co-nguon` | Không nhắc mã lạ | Mọi mã (ba ký tự in hoa đứng riêng) trong văn phải nằm trong một chuỗi của `du_kien` — mã của lệnh, mã cùng ngành, mã nhắc trong lý do vào — hoặc trong danh sách chữ viết tắt hợp lệ `VIET_TAT` (HOSE, RSI, ATR, ATC, …) đặt một chỗ. |
+| `ma-co-nguon` | Không nhắc mã lạ | Mọi mã (ba ký tự in hoa đứng riêng) trong văn phải nằm trong một chuỗi của `du_kien` — mã của lệnh, mã cùng ngành, mã nhắc trong lý do vào — hoặc trong danh sách chữ viết tắt hợp lệ `VIET_TAT` (HOSE, RSI, ATR, ATC, …) đặt một chỗ. `VNI` KHÔNG vào danh sách: nó là mã niêm yết thật (VNI — Công ty Cổ phần Đầu tư Bất động sản Việt Nam, đo `Listing().all_symbols()` 28/10/2026), nên model viết "VNI" để chỉ VN-Index vẫn bị bác (BƯỚC 234). |
 | `gia-thuyet-dan-nhan` | Giả thuyết phải dán nhãn | `theo_doi` mở đầu bằng "Chưa kiểm:". |
 | `do-dai` | Gọn | `ke_lai` ≤ 180 từ; ba trường còn lại mỗi trường ≤ 80 từ. |
 
 Bị bác → dòng `BI_BAC`, cột `ly_do_bac` ghi mã luật và đoạn vi phạm; app không hiện. Tối đa 2
-dòng không `DAT` mỗi lệnh (mục 4).
+lần hỏng THẬT mỗi lệnh (mục 4; dòng bị bác mà văn của nó nay qua máy kiểm thì không tính).
 
 **Giới hạn — nói ra trên app, không giấu:** máy bắt số bịa, câu cấm và mã lạ. Nó KHÔNG bắt được
 một lập luận sai dùng toàn số đúng (gán nhầm nguyên nhân). Vì thế bảng phân rã của máy luôn đứng
