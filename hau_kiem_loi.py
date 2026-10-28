@@ -346,7 +346,8 @@ LUAT_VIET: tuple[Luat, ...] = (
          "\"hãy bán\", \"khuyến nghị\" trừ khi đứng sau \"không\" hoặc \"chưa\".",
          _kiem_khuyen_nghi),
     Luat("ma-co-nguon",
-         "Chỉ nhắc mã cổ phiếu của lệnh này và các mã cùng ngành có trong dữ kiện.",
+         "Chỉ nhắc mã cổ phiếu của lệnh này và các mã cùng ngành có trong dữ kiện; chỉ số "
+         "thị trường luôn viết đủ tên \"VN-INDEX\".",
          _kiem_ma),
     Luat("gia-thuyet-dan-nhan",
          f"Trường theo_doi mở đầu đúng bằng \"{NHAN_GIA_THUYET}\".",

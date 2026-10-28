@@ -374,6 +374,39 @@ def test_MA_LA_bi_bac_ma_cung_nganh_va_viet_tat_duoc_nhan():
     assert "ma-co-nguon" in _luat_vi_pham(_van(ke_lai="HPG kém VCB trong cùng kỳ."))
 
 
+_CAU_VN_INDEX = ("Chỉ nhắc mã cổ phiếu của lệnh này và các mã cùng ngành có trong dữ kiện; "
+                 "chỉ số thị trường luôn viết đủ tên \"VN-INDEX\".")
+
+
+def test_LOI_DAN_ma_co_nguon_bao_model_viet_chi_so_la_VN_INDEX():
+    """BƯỚC 237: cron 27/10, lệnh #120 lần 1 bị bác vì model viết "VNI" cho chỉ số. Lời dặn
+    phải NÓI tên chỉ số (chữ ấy đã nằm trong khung ke_lai, chưa có luật nào bảo dùng nó)."""
+    dan = next(l.dan for l in hk.LUAT_VIET if l.ma == "ma-co-nguon")
+    assert dan == _CAU_VN_INDEX
+    assert _CAU_VN_INDEX in hk.LOI_DAN
+
+
+def test_VN_INDEX_o_ca_bon_truong_khong_bi_ma_co_nguon_bac():
+    for truong in hk.TRUONG:
+        van = _van(**{truong: "Lệnh HPG kém VN-INDEX trong cùng kỳ."})
+        if truong == "theo_doi":
+            van[truong] = f"{hk.NHAN_GIA_THUYET} lệnh HPG kém VN-INDEX trong cùng kỳ."
+        assert "ma-co-nguon" not in _luat_vi_pham(van), truong
+
+
+def test_VNI_vang_trong_du_kien_van_bi_ma_co_nguon_bac_o_ca_bon_truong():
+    """BƯỚC 234: VNI là mã niêm yết thật nên KHÔNG vào `VIET_TAT`; BƯỚC 237 sửa lời dặn,
+    không sửa máy kiểm. VNI không nằm trong dữ kiện của lệnh HPG thì vẫn bị bác."""
+    assert "VNI" not in hk.VIET_TAT
+    dk = _du_kien()
+    assert "VNI" not in json.dumps(dk, ensure_ascii=False)
+    for truong in hk.TRUONG:
+        van = _van(**{truong: "Lệnh HPG kém VNI trong cùng kỳ."})
+        if truong == "theo_doi":
+            van[truong] = f"{hk.NHAN_GIA_THUYET} lệnh HPG kém VNI trong cùng kỳ."
+        assert "ma-co-nguon" in _luat_vi_pham(van, dk), truong
+
+
 # ── gia-thuyet-dan-nhan, do-dai ──────────────────────────────────────────
 
 def test_GIA_THUYET_phai_mo_dau_CHUA_KIEM():
