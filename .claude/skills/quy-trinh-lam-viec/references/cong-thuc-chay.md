@@ -204,13 +204,15 @@ thoát **2** (chưa kiểm được), không phải xanh.
 **3. Thời gian đo** (12/10/2026, MỘT tiến trình; xem `docs/STATE.md` BƯỚC 236 cho số đo cổng 1 song song): cổng 1 ≈ 568s · cổng 2 ≈ 1s · cổng 3 ≈ 2s ·
 cổng 4 ≈ 730s · cổng 5 ≈ 3s. Chúng đổi theo tải máy; nói ra là một khoảng.
 
-**4. Đỏ và skip ĐÃ BIẾT ở môi trường này** (3127 test: 3123 pass · 1 đỏ · 3 skip):
+**4. Đỏ và skip ĐÃ BIẾT ở môi trường này** (số đếm 12/10/2026, 3127 test: 3123 pass · 1 đỏ · 3 skip; dòng `test_tools_hau_kiem_loi` thêm 28/10/2026 khi bộ có 3685 test — đếm lại bằng `-rs`):
 
 | test | trạng thái | vì sao |
 |---|---|---|
 | `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` | đỏ MÔI TRƯỜNG | không có `vnstock`/`vnai` để so bản ghim; không phải lỗi của thay đổi |
+| `tests/test_tools_hau_kiem_loi.py::test_CLIENT_THAT_dung_HAN_CHO_va_SO_LAN_THU` · `::test_GENAI_THAT_loi_mang_ma_HTTP_va_phan_loai_dung` · `::test_GENAI_THAT_nhan_DUNG_config_cua_tham_so_goi` | đỏ MÔI TRƯỜNG (đo 28/10/2026, BƯỚC 236) | `ImportError: cannot import name 'genai' from 'google'`: gói `google-genai` không nằm trong `requirements.txt`, nên venv dựng theo mục 1 không có nó; đỏ y hệt trên `main` `a877ca6` |
 | `tests/test_cache_bctc_du_ky.py` | skip | dữ liệu BCTC chỉ nằm ở máy người dùng |
 | `tests/test_vnstock_goi.py` | skip | `vnai` không có ở môi trường này |
+| `tests/test_do_rong.py` · `tests/test_loc_imom.py` · `tests/test_kiem_duong_ngoai_repo.py` | skip (đo 28/10/2026) | không có bản chép cache gốc `acf6dca1…` cạnh repo (hai file đầu); đường dạng Windows (file cuối) |
 | `tests/test_tai_lieu_khop_hang_so.py` | skip | đoạn được canh đã gỡ hẳn |
 
 Một test đọc dữ liệu bị `.gitignore` sẽ **skip lặng lẽ** ở đây (worktree/clone chỉ có thứ
