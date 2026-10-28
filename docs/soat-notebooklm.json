@@ -4008,6 +4008,10 @@
       "ngay": "2026-10-28",
       "khong_bat_buoc_vi": "BƯỚC sửa máy kiểm lời của B1 (CHỈ ĐỂ HIỆN) theo lựa chọn người dùng 28/10: nhận số viết kiểu Anh trong văn model khi một trong hai cách đọc khớp nguồn, phủ định cụm cấm theo mệnh đề \"không/chưa chứng minh\", chỉ đếm lần hỏng thật vào trần 2 lần; sửa hau_kiem_loi.py, tools/hau_kiem_loi.py, test của chúng, đặc tả B1 mục 4 và 6 và sổ; không sửa file luật nào (tools/buoc_cham_luat.py xác nhận), không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào."
     },
+    "BƯỚC 235": {
+      "ngay": "2026-10-28",
+      "khong_bat_buoc_vi": "BƯỚC soát định kỳ lượt 15 (phần máy và phán của phiên con): chỉ ghi lượt soát 2026-10-28 vào docs/soat-dinh-ky.json, một ô ⚠️ có ngày và dòng Hạn kế ở docs/HANDOFF.md, mục BƯỚC 235 ở docs/STATE.md; không sửa file luật nào (tools/buoc_cham_luat.py 235 xác nhận), không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào. Kết quả 'không câu sai chưa đánh dấu' là kết quả của một lượt soát, không phải một kết luận đo mới; ĐO 27 lượt đọc 4 và phần sổ tay là việc của leader, ghi ở phần riêng của BƯỚC."
+    },
     "BƯỚC 236": {
       "ngay": "2026-10-28",
       "khong_bat_buoc_vi": "BƯỚC đổi mặc định của công cụ chạy năm cổng ở máy (tools/nam_cong.py: cổng 1 chạy song song bằng pytest-xdist khi có gói, cờ --mot-tien-trinh để lui, --song-song còn nhận như lệnh trống) theo lựa chọn người dùng 27/10 và 28/10; sửa tools/nam_cong.py, tests/test_nam_cong.py, references/cong-thuc-chay.md và sổ; không sửa file luật nào (tools/buoc_cham_luat.py xác nhận: cây làm việc so với điểm tách a877ca6), không đổi bộ năm cổng của CI, điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào."

@@ -24399,6 +24399,84 @@ Bảng lỗi: hàng 193 (lớp `gac-hong`, nguồn `git`, sống 10 ngày: `a85a
 
 **Việc kế.** Leader merge sau khi xem lượt phát lại; lượt B1 kế (cron 18:17 VN ngày làm việc) viết lại năm lệnh ở lần 3 — đọc tab `hau_kiem` sau lượt ấy. Soát 15 + ĐO 27 lượt đọc 4 hạn **02/11/2026**. BƯỚC kế 235, lỗi kế 194.
 
+## BƯỚC 235 — SOÁT ĐỊNH KỲ 15 (71/71 LỜI KHAI PHÁN LẠI: 61 THẬT · 7 SAI ĐÃ ĐÁNH DẤU · 3 SAI MỘT PHẦN ĐÃ ĐÁNH DẤU · 0 CHƯA DẤU) + PHẦN NGOÀI CÔNG CỤ CHẠY BẰNG `tools/soat_ngoai_cong_cu.py` (LỆNH GHI KÈM CÂY) + KHÔNG CHỖ NÀO Ở FILE LUẬT BẮT BUỘC SỬA (28/10/2026)
+
+**Mốc:** quy-trinh — soát định kỳ lượt 15 (nhịp 7 ngày), phần máy và phán của phiên con
+
+Phiên con của leader (lượt 14 = BƯỚC 230, làm 26/10; hạn lượt 15 ở HANDOFF là 02/11, làm SỚM 5 ngày theo người dùng: *"làm đi"*, 28/10, trên danh sách của leader *"Soát 15 + ĐO 27 lượt đọc 4, hạn 02/11 …"*). Nhánh `soat/vong-15-235` từ `main` `a877ca6` (cây lượt 14 = `61221db`), worktree ngoài repo (`vibe_wt_235`); python = `../vibe_preview/.venv/Scripts/python.exe`. Không đổi mã sản phẩm, điểm, ngưỡng, khớp lệnh, sổ hay kết luận đo; không sửa file luật; không gọi vnstock; không đọc Google Sheets; không mở trình duyệt. Mạng chỉ qua `gh` (danh sách workflow, tên secret, trạng thái ba lượt chạy, lượt CI mà `tools/so_ban_goi.py` đọc). Các mục dưới tới *Chờ leader* và *Đề xuất lỗi* là của phiên con; mục *Phần leader* là của leader.
+
+### Lệnh đầu — `tools/soat_loi_khai_cu.py`
+
+```
+71 lời khai · 9 tài liệu · chưa ai mở: 1   (lượt 14: 71 · 9 · 4)
+4 dòng sổ không còn khớp lời khai nào      (lượt 14: 3)
+```
+
+Cùng 71 lời khai như lượt 14 (đo bằng lệnh: `./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py` trên `a877ca6`). Một chưa ai mở: `CLAUDE.md` :112, câu BƯỚC 231 viết lại (*"lõi giao dịch … ngoại lệ có gác: `run_daily`, `sheets_store`"*), nên câu cũ thành dòng sổ mồ côi thứ tư (3 → 4). 70 dòng còn lại trùng nguyên văn với dòng đã soát lượt 14; số dòng trôi vì HANDOFF/CLAUDE.md dài ra. Cả 71 được mở lại và phán bằng lệnh chạy hôm nay (`docs/soat-dinh-ky.json`, lượt 2026-10-28; ô `dong` NGUYÊN VĂN từ chính công cụ; ô `tu_kiem` dán lệnh và đầu ra; số dòng trong ô là ở `a877ca6`). Chỉ năm tệp mã đổi từ `61221db` tới `a877ca6` (`git diff --name-only 61221db a877ca6 -- '*.py'`: `hau_kiem_loi.py`, `tools/hau_kiem_loi.py`, `tools/so_tay.py`, `tools/soat_loi_khai_cu.py`, `tools/soat_ngoai_cong_cu.py`) nên các lệnh kiểm về mã chạy lại y nguyên; AST toàn cây nay 339 tệp (lượt 14: 337, hai tệp của BƯỚC 232).
+
+**Phán: 61 THẬT · 7 SAI-đã-đánh-dấu · 3 SAI-MỘT-PHẦN (cả ba đã có ô) · 0 SAI chưa đánh dấu** (đếm lại bằng `./.venv/Scripts/python.exe -c "import json,collections;l=json.load(open('docs/soat-dinh-ky.json',encoding='utf-8'))['lan_soat'][-1]['phat_hien'][:71];print(collections.Counter(...))"` theo tiền tố của `phan_quyet`: THẬT 61 · SAI 7 · SAI MỘT PHẦN 3). So lượt 14 (60 · 6 · 4 · 1): `CLAUDE.md` :112 từ SAI-MỘT-PHẦN chưa dấu thành THẬT (BƯỚC 231), `HANDOFF.md` :640 từ SAI chưa dấu thành SAI đã dấu (ô ⚠️ :641 thêm ở lượt 14). Bảy SAI-đã-đánh-dấu: `loi-da-mac.md` :304 · :333, `HANDOFF.md` :471 · :640 · :744, `NGUYEN-TAC-DO-LUONG.md` :214, bản lưu `CLAUDE-md` :847. Ba SAI-MỘT-PHẦN: `HANDOFF.md` :558 · :636 (đã đánh dấu 🔴 :559, ⚠️ :638) · `NGUYEN-TAC-DO-LUONG.md` :212 (ô ⚠️ từ 14/10). Trong 61 mục THẬT có **18** mục mang ít nhất một vế KHÔNG đo lại được trong phiên (đếm bằng regex trên chữ *"không/KHÔNG đo|tái dựng|tính|dựng|đọc lại"* của chính `phan_quyet`, cùng cách lượt 14 đếm ra 16): số alpha của ĐO 32b ở HANDOFF :337, `file_upload` của BƯỚC 42, *"4/15"* của BƯỚC 119, số kỳ bảng `ratio`, *145%/524%/1372%*, *"71/71 lượt quét ghi 0 mẫu"*, số đo ROE, *"chưa chạy trên dữ liệu thật"* của `keo_bang_gia`, mốc ngày của UV-001, `claude -p` hết OAuth, *"3 trên 10"* hạng gói, MSR của TradingView… Phạm vi lệnh như lượt 13–14: AST toàn cây `.py` cho mọi câu *"không nhập"*, `git log --all -S` cho `_doc()`, `gh workflow list --all` và `gh secret list` cho câu về workflow và khoá. Một khác biệt nhỏ ghi lại: lượt 14 viết *"hit duy nhất ở mã sản phẩm là chú thích `app.py:1170`"* (HANDOFF :754 · `vnii`); `git grep -n -E "disable_telemetry|vnii" -- '*.py' ':!tests'` hôm nay thấy thêm docstring `vnstock_goi.py:15-21` — không phải mã đổi, lượt 14 chỉ xem hai dòng đầu; kết luận *"chưa chặn"* không đổi.
+
+### Lệnh thứ hai — `tools/kiem_duong_ngoai_repo.py`
+
+```
+trước lượt : 0 chết · 18 sử liệu · 72 còn   (mã thoát 0)
+sau lượt   : 0 chết · 18 sử liệu · 72 còn   (mã thoát 0)      lượt 14: 0 · 18 · 72
+```
+
+Không đường mới chết hay xuất hiện giữa hai lượt. Đo lại SAU lần ghi cuối (sổ, HANDOFF, STATE): vẫn `0 chết · 18 sử liệu · 72 còn`, khớp ô `sau_luot`.
+
+### Phát hiện của lượt
+
+1. **Không câu sai chưa đánh dấu trong chín tài liệu của công cụ chính.** Hai câu hết đúng theo thời gian sau BƯỚC 231–234 nằm ở khối 🧭 của `docs/HANDOFF.md` mục 5 (không phải file luật) — ĐÃ thêm một ô ⚠️ có ngày dưới khối 🧭 BƯỚC 235: (a) *"Soát 15 đúng hạn 02/11"* / *"Lượt 15 + ĐO 27 lượt đọc 4: hạn 02/11"* (BƯỚC 230–232; nay làm 28/10, hạn kế 04/11); (b) BƯỚC 233 *"5 bị bác vì Flash-Lite trượt luật viết"* và *"chất lượng văn của model dự phòng là câu chờ người dùng"* — BƯỚC 234 đo 9 trong 10 dòng bác là do chính máy kiểm.
+2. **`docs/STATE.md` BƯỚC 233 viết *"Văn của Flash-Lite trượt LUẬT VIẾT, máy kiểm làm đúng việc"* — SAI THEO THỜI GIAN**, và chính BƯỚC 234/lỗi 193 sửa nó. STATE chỉ-thêm (`git diff --numstat 61221db a877ca6 -- docs/STATE.md` → 204 thêm · 0 xoá) nên không đánh dấu tại chỗ; ô ⚠️ ở HANDOFF (mục 1b) là chỗ người đọc thấy.
+3. **`CLAUDE.md` đang 25.993/26.000 ký tự** (`./.venv/Scripts/python.exe -c "print(len(open('CLAUDE.md',encoding='utf-8').read()))"`; trần của `tests/test_do_token_phien.py`): mọi chữ thêm vào phải rút chỗ khác. Không đề xuất sửa nó lượt này, nhưng đây là lý do mọi đề xuất bên dưới nhắm file khác.
+4. **Tên test lỗi thời, hành vi đúng:** `tests/test_ke_hoach_vao_lenh.py:1066` `test_CHI_app_py_va_dung_cu_DO_25_duoc_nhap_ke_hoach_vao_lenh` — thân test và docstring đã là *"đúng BA nơi"* (`CHO_PHEP_NHAP` :1063 có cả `run_daily.py`, BƯỚC 195). Không sửa (đổi tên test đổi mã định danh của nó, cổng 5 đếm test); ghi để ai sửa test này nhớ.
+5. **Bẫy công cụ:** `tools/soat_ngoai_cong_cu.py state`/`hang-bang` mặc định đọc *"thư mục làm việc"* — số đổi khi BƯỚC này thêm chữ vào STATE (đúng hình dạng lỗi 191 nếu ghi lệnh không kèm `--cay`). Mọi lệnh ghi vào sổ lượt này dùng `--cay a877ca6`.
+
+### Ngoài tầm công cụ (lệnh ghi kèm cây — lỗi 191)
+
+Chi tiết từng lệnh và đầu ra ở `docs/soat-dinh-ky.json` (lượt 2026-10-28, các mục sau bốn dòng sổ mồ côi).
+
+- **Công cụ tái lập trước khi tin** (`state 209 229 --cay 61221db` → 49 · 44 khớp từng BƯỚC; `state 186 208 --cay efa6a58` → 64 · 53; `hang-bang --cay 61221db` → 67 · 46; `diff efa6a58 61221db` → tổng ngoài tầm 53): cả bốn khớp số của lượt 14/BƯỚC 232.
+- **Diff `.md` từ cây lượt 14** (`git diff --name-only 61221db a877ca6 -- '*.md'` → 8 tệp; `tools/soat_ngoai_cong_cu.py diff 61221db a877ca6`): `loi-da-mac.md` +4 · `CLAUDE.md` +3 · `HANDOFF.md` +15 · `LO-TRINH.md` +5 · `QUYET-DINH-CHO.md` +2 · `STATE.md` +204 · `TIEU-CHI-DOC-TRUOC.md` +2 · `thiet-ke-b1-hau-kiem-loi.md` +15; **17 câu chưa dấu ngoài tầm công cụ chính**, mỗi câu mở lại: hàng lỗi 193 THẬT (hai commit 17/10, `SO_LAN_TOI_DA` = 2, bảy token Anh trong `SO_ANH_THAT`; số *"9 trong 10"* và *"5/16 → 15/16"* đọc từ Sheets nên KHÔNG kiểm), `LO-TRINH.md` :276 THẬT (`GEMINI_API_KEY` có trong `gh secret list`, `hau-kiem-loi.yml:70` dùng nó, `app.py` không nhập `google`/`anthropic`), `thiet-ke-b1` :99 THẬT (`lan_hong_that` :530 · `sap_theo_ngay_ra` :525); 14 câu còn lại ở STATE (dưới).
+- **STATE BƯỚC 230–234** (`tools/soat_ngoai_cong_cu.py state 230 234 --cay a877ca6` → **22 câu ứng viên, 14 chưa dấu**; theo BƯỚC 230: 9 · 231: 2 · 232: 2 · 233: 1 · 234: 0): đọc từng câu — 10 THẬT, 1 THẬT-đã-xử-lý (:24240), 1 SAI THEO THỜI GIAN đã xử lý (:24226), 1 THẬT-một-phần (:24359, vế Sheets), 1 KHÔNG KIỂM (:24272, thời gian chạy). BƯỚC 234 bộ lọc cho 0 vì câu phủ định của nó dùng *"không đọc"/"không chứng minh"* (ngoài `PHU_DINH`); đọc tay, xem dưới.
+- **BƯỚC 231–234 đối chiếu mã** (câu MỚI từ lượt 14): `CLAUDE.md` 25.993 ký tự; hai ô ⚠️ `TIEU-CHI` khớp `git log -S` (`92b32da` 2026-10-23 · `5018083` 2026-10-24, cả hai hằng = 0); điều kiện chặn của lỗi 192 có ở `tools/so_tay.py:154`; `ANTHROPIC_API_KEY` đã xoá (`gh secret list` chỉ còn `GEMINI_API_KEY` · `STREAMLIT_SECRETS_TOML`; `git grep` không thấy tên trong `.github/` · `*.py` · `*.yml`); lượt B1 26/10 bảy dòng `503 UNAVAILABLE`; `soat_ngoai_cong_cu.py` 12 test, con trỏ ở `soat_loi_khai_cu.py:416`, bộ lọc NHẬP không chép, cây không có → mã 2; `MODEL_DU_PHONG` · `CHUOI_MODEL` · `SO_LAN_THU` = 1 · `THOI_GIAN_CHO_MS` = 90_000; ba lượt chạy (40368535591 · 40472660912 · 40530072923) đúng giờ và sha; `_doc_so_kieu_anh` · `_bi_phu_dinh_ca_menh_de` · `lan_hong_that` · `sap_theo_ngay_ra` có; +13 và +6 hàm test; *"người đọc khác của `SO_LAN_TOI_DA`/`can_viet`/`lan_ke`"* đúng ở mức mã; `VNI` không vào `hau_kiem_loi.py`. KHÔNG đo lại: *"VNI là mã niêm yết thật"* (cần vnstock), phát lại 16 dòng và `#122` lệch băm (đọc Sheets), đục thử 45/45.
+- **Hàng bảng** (`hang-bang --cay a877ca6` → **68 hàng · 47 chưa dấu**; lượt 14: 67 · 46): chênh duy nhất là hàng lỗi 193; năm hàng bảng sống (`cong-thuc-chay.md` :135 :136, `CLAUDE.md` :266, `HANDOFF.md` :11 :282) vẫn THẬT; 41 hàng lịch sử không phán từng hàng.
+- **Họ Opus 5.5 / `ANTHROPIC_API_KEY` / anthropic**: mọi câu đã mang ô ⚠️ (HANDOFF :638, LO-TRINH :195 · :276, QUYET-DINH-CHO :264, thiet-ke-b1 :6-:11); secret xoá 27/10 không làm câu nào sai.
+
+### Chờ leader (file luật — BƯỚC này KHÔNG sửa)
+
+**Không có chỗ nào BẮT BUỘC sửa.** Không câu nào ở sáu file luật hết đúng mà chưa có dấu: `CLAUDE.md` :112 (câu mới) THẬT; `LO-TRINH.md` :195 · :276 · mục *Ra khi* giai đoạn B đã có ⚠️ 26/10; `TIEU-CHI-DOC-TRUOC.md` hai ô ⚠️ BƯỚC 231 đứng. Một việc TUỲ CHỌN (nếu bỏ qua, không gì sai): `docs/LO-TRINH.md` dòng B1 (:195), thêm sau ô ⚠️ hiện có — *"BƯỚC 233 (27/10/2026): khi 3.8 Flash quá tải B1 gọi MỘT lần `gemini-3.5-flash-lite` (`hau_kiem_loi.MODEL_DU_PHONG`)."* — vì dòng chỉ nêu 3.8 Flash (không sai, model chính), thiếu model dự phòng. Sửa nó là BƯỚC chạm file luật: phải hỏi sổ tay thật (Quy tắc 3) — nên chỉ làm nếu gộp được với một lần chạm LO-TRINH khác. `CLAUDE.md` còn 7 ký tự trần.
+
+### Đề xuất lỗi (leader ghi; lỗi kế 194)
+
+**Không đề xuất lỗi mới.** Hai ứng viên xét và bác: (a) `wc -m CLAUDE.md` in 31.888 trong khi STATE ghi 25.993 — Git Bash đếm BYTE; bắt ngay bằng chính con số STATE đã khai, đo lại bằng `len()` của Python ra 25.993, chưa vào tài liệu nào (lỗi chỉ tính khi đã sống ở đâu đó); (b) tên test lỗi thời — không phải lỗi quy trình đã xảy ra, ghi ở *Phát hiện* 4.
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Ước lượng sai của chính phiên này:** tôi đọc `wc -m CLAUDE.md` = 31.888 như số ký tự và định báo *"CLAUDE.md vượt trần 26.000"*; `len(open(...).read())` ra 25.993. Số đúng là số của máy đo đúng loại (ký tự), không phải số của `wc`.
+- **Giả thuyết bị bác:** *"sau BƯỚC 233–234 còn ít nhất một câu ở file luật hết đúng"* — `LO-TRINH.md` B1 đã có ⚠️ và vẫn đúng với model chính; `CLAUDE.md` :112 đúng.
+- **Giả thuyết bị bác:** *"câu âm 'chỉ ba chỗ' của BƯỚC 231 sai vì hai ô ⚠️ TIEU-CHI trích lại cụm"* — `git grep -n -E "chưa có momentum (trung hạn|phần dư)|KHÔNG nhập chúng|chưa bao giờ là một cổng|không nhập chúng" -- '*.md' ':!docs/STATE.md' ':!docs/lich-su/*'` ra năm dòng ở hai tệp (`CLAUDE.md` :112, `TIEU-CHI` :4392 :4393 :4581 :4582) — vẫn đúng ba ý, hai ô ⚠️ chỉ nhắc lại.
+- **KHÔNG nói:** *"0 câu sai chưa xử lý"* là cho chín tài liệu của công cụ chính + 17 câu diff + 14 câu STATE + hàng bảng; không phủ `thiet-ke-y5-tien-le.md`/TIEU-CHI cũ (lượt 14 đã mở, tệp không đổi: `git diff --name-only 61221db a877ca6` không có), không phủ số đọc từ Sheets.
+
+### Phần leader
+
+**Quyết định của người dùng.** Danh sách việc của leader ghi *"Soát 15 + ĐO 27 lượt đọc 4, hạn 02/11"*; người dùng: *"làm đi"* (28/10). Làm SỚM 5 ngày; hạn 02/11 là HẠN CHÓT của nhịp 7 ngày, không phải ngày chặn đọc (như lượt 14, BƯỚC 230). Hạn lượt 16 = 04/11.
+
+**Lượt đọc 4 của ĐO 27** (28/10/2026 09:20–09:25, `./.venv/Scripts/python.exe tools/do27_su_kien_quyen_chieu_tien.py --json <tệp nháp>` trên `main` `a877ca6`, đầu ra ghi ra tệp log). M0: băm sổ `adbce3e29f0996de`, băm nến `55f57df4c2bf48a6`, băm lịch `56bc890a647e1ec8`; nến 54/54 mã; lịch 46/54 mã (MBB, MSB, PDR, PLX, PVT, REE, TPB, VIB hết giờ đọc ở `iq.vietcap.com.vn`, read timeout 30 s).
+- (i) HDB #122: QUA.
+- (ii) giá ↔ lịch: N = 26 · M_CK 15 (57,7%) · **M_CKTM 25 (96,2%)** → QUA. Trượt M_CKTM duy nhất: #24 DGC (f_vào 1,207 · F 1,181), như lượt 3. N 29 → 26 vì lịch đọc được của hôm nay ít mã hơn.
+- (iii) dụng cụ [122] = `tap_loai` [122] → QUA.
+- Quần thể: 0 lệnh (ô `quan_the` của JSON rỗng; không có dòng "không có lịch"). **Kết cục lượt 4: CHƯA ĐỦ.** Băm sổ ĐỔI so với lượt 3 (`e18c164dd49ffb52`) vì sổ có lệnh MỚI MỞ: tín hiệu 26/10, vào 27/10, còn `OPEN` — đọc tab `trades` bằng `sheets_store._doc_tab(b, TAB_TRADES, TRADE_COLS)`, lọc ngày vào ≥ 16/10 hoặc ngày ra > 15/10: không lệnh nào đóng sau 2026-10-15. Mẫu vẫn không có khả năng dương. Lượt đọc kế: cùng lượt soát 16 (hạn 04/11/2026).
+
+**Sổ tay NotebookLM — làm tươi** (khung trình duyệt trong app; THÊM TRƯỚC, XOÁ SAU, `references/soat-cheo-notebooklm.md` *Nạp lại nguồn*). Trước: 19 nguồn, mới nhất `bbb516b` (STATE tới BƯỚC 230). So từng nguồn với `a877ca6` (`git diff --quiet <băm của nhãn> a877ca6 -- <file>`): 4 file đổi — `CLAUDE.md`, `docs/HANDOFF.md`, `references/loi-da-mac.md`, `docs/TIEU-CHI-DOC-TRUOC.md` — nạp bằng URL ghim `a877ca646626909b83eeaec3b2bfab4766e86cd4` (cả 4 `curl` 200, khớp byte với `git show`), đổi tên `<file> @a877ca6`. `docs/STATE.md`: `git diff 61221db a877ca6 -- docs/STATE.md` chỉ THÊM từ dòng 24197 (0 dòng xoá), và `tools/so_tay.py chia-state` cho bốn khúc đầu cùng cỡ ở hai cây — chỉ dán lại khúc 5 (`STATE.md @a877ca6 phan5/5 (BUOC 212-234)`, 137.481 ký tự). Đo độ tươi trên bản MỚI trước khi xoá: sổ trích đúng đoạn cuối của khúc 5 và tiêu đề `## BƯỚC 234`, hàng `| 193 |` của bảng lỗi, câu "ngoại lệ có gác" của `CLAUDE.md` — `tools/doi_chieu_trich_dan.py` KHỚP cả ba. Câu về `HANDOFF.md` lần đầu LỆCH (sổ ghép đầu dòng 🧭 của BƯỚC 234 với thân dòng BƯỚC 233; dụng cụ báo khớp 25/80 ký tự đầu); hỏi lại riêng nguồn ấy, sổ trích đúng 30 từ đầu dòng BƯỚC 234. `TIEU-CHI-DOC-TRUOC.md @a877ca6` không có câu hỏi riêng. Rồi xoá 5 bản cũ (4 file + STATE @bbb516b phan5/5) — đúng những bản vừa có bản thay. Sau: 19 nguồn.
+
+### Năm cổng ở máy
+
+Cả năm cổng thoát 0 trên `17b8718` (`tools/nam_cong.py --song-song`, 28/10 09:33–09:36, 191 s, log ngoài repo): cổng 1 3678 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3680 test, khớp mốc (không thêm test, mốc không đổi). Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
+
+**Việc kế.** Leader merge (dòng B1 tuỳ chọn ở `docs/LO-TRINH.md` KHÔNG làm ở BƯỚC này: chạm file luật thì phải hỏi sổ tay thật — gộp với lần chạm `LO-TRINH` kế; mục sổ tay giữ `khong_bat_buoc_vi`). Lượt soát 16 + ĐO 27 lượt đọc 5: **04/11/2026**. BƯỚC kế 236 (phiên đám mây), lỗi kế 194.
+
 ## BƯỚC 236 — `tools/nam_cong.py` CHẠY CỔNG 1 SONG SONG (`pytest-xdist`) THEO MẶC ĐỊNH Ở MÁY; `--mot-tien-trinh` LÀ CỜ LUI; `--song-song` CÒN NHẬN NHƯ LỆNH TRỐNG; CI GIỮ MỘT TIẾN TRÌNH (28/10/2026)
 
 **Mốc:** quy-trinh — đổi mặc định của công cụ chạy năm cổng ở máy, không đổi bộ cổng, điểm, ngưỡng hay kết luận đo

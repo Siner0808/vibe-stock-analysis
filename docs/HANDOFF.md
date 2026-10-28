@@ -316,6 +316,10 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **28/10/2026 — BƯỚC 235: soát định kỳ 15 (phần máy và phán), làm sớm 5 ngày. 71/71 lời khai mở lại và phán bằng lệnh hôm nay: 61 THẬT · 7 SAI đã đánh dấu · 3 SAI MỘT PHẦN đã đánh dấu · 0 chưa dấu; đường ngoài repo 0 chết · 18 sử liệu · 72 còn. Phần ngoài công cụ chạy bằng `tools/soat_ngoai_cong_cu.py` (lệnh ghi kèm cây): 17 câu diff, 14 câu STATE BƯỚC 230–233, hàng bảng 68 · 47 — không câu sai chưa xử lý, không lỗi mới, không file luật nào cần sửa (một dòng tuỳ chọn ở `docs/LO-TRINH.md` B1). ĐO 27 lượt đọc 4: CHƯA ĐỦ (quần thể 0 lệnh — sổ có lệnh mới MỞ 27/10, chưa lệnh nào đóng sau 15/10). Sổ tay NotebookLM tươi về `a877ca6` (19 nguồn, STATE tới BƯỚC 234). Lượt 16: 04/11.** Chi tiết: `docs/STATE.md` BƯỚC 235.
+>
+> ⚠️ **28/10/2026 (BƯỚC 235, soát 15): hai chỗ ở các khối 🧭 BƯỚC 230–233 bên dưới hết đúng; câu cũ giữ nguyên.** (1) *"Soát 15 đúng hạn 02/11 (người dùng chọn)"* / *"Lượt 15 + ĐO 27 lượt đọc 4: hạn 02/11"* (BƯỚC 230–232): người dùng đổi ý 28/10 (*"làm đi"*), phần soát đã LÀM 28/10; hạn kế là Lượt 16: 04/11 (khối *Hạn kế* ở dưới). (2) BƯỚC 233, *"5 bị bác vì Flash-Lite trượt luật viết"* và *"chất lượng văn của model dự phòng là câu chờ người dùng"*: BƯỚC 234 đo 9 trong 10 dòng bác là do chính máy kiểm (số viết kiểu Anh, phủ định theo mệnh đề), đã sửa — hai số 2 ĐẠT · 5 BỊ BÁC không còn là số đo chất lượng văn của Flash-Lite; câu chờ ấy còn hay không là việc của người dùng.
+
 > 🧭 **28/10/2026 — BƯỚC 234: máy kiểm lời của B1 nhận văn đúng — số viết kiểu Anh (`17,500`, `1,775.09`) khi một trong hai cách đọc khớp nguồn, cụm cấm nằm trong mệnh đề "không/chưa chứng minh"; trần 2 lần chỉ đếm lần hỏng THẬT (`hau_kiem_loi.lan_hong_that`, tab giữ nguyên). Phát lại 16 dòng thật của tab: đạt 5/16 → 15/16; năm lệnh kẹt (#118 · #119 · #120 · #122 · #126) hồi sinh, viết lại ở lần 3. "VNI" KHÔNG vào danh sách viết tắt (là mã niêm yết thật). Lỗi 193.** Chi tiết: `docs/STATE.md` BƯỚC 234.
 
 > 🧭 **27/10/2026 — BƯỚC 233: B1 lui sang `gemini-3.5-flash-lite` khi 3.8 Flash quá tải (lỗi tạm → gọi dự phòng một lần), hạn chờ 90 s, SDK không thử lại. Lượt đo trên nhánh (run 40530072923): 7/7 lệnh có phản hồi (ba lượt trước liền 0), 2 ĐẠT · 5 bị bác vì Flash-Lite trượt luật viết.** Chất lượng văn của model dự phòng là câu chờ người dùng. Chi tiết: `docs/STATE.md` BƯỚC 233.
@@ -448,7 +452,10 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
 >   Lượt 14: 28/10 (✅ BƯỚC 230, 26/10 — làm sớm 2 ngày theo người dùng; nhịp 7 ngày kể từ
 >   NGÀY LÀM lượt 13, 21/10 — BƯỚC 213), làm kèm
 >   **lượt đọc kế của ĐO 27** (cùng quy ước cộng dồn).
->   Lượt 15: 02/11 (nhịp 7 ngày kể từ NGÀY LÀM lượt 14, 26/10 — BƯỚC 230), làm kèm
+>   Lượt 15: 02/11 (✅ BƯỚC 235, 28/10 — làm sớm 5 ngày theo người dùng *"làm đi"*; nhịp 7 ngày kể từ
+>   NGÀY LÀM lượt 14, 26/10 — BƯỚC 230), làm kèm
+>   **lượt đọc 4 ĐO 27**: kết cục CHƯA ĐỦ, quần thể 0 lệnh.
+>   Lượt 16: 04/11 (nhịp 7 ngày kể từ NGÀY LÀM lượt 15, 28/10 — BƯỚC 235), làm kèm
 >   **lượt đọc kế của ĐO 27** nếu ĐO chưa đủ.
 > - **P2 bắt đầu — BƯỚC 131 (P2a):** module thuần `nhat_ky_vi_sao.py`
 >   (dòng VÀO lúc khớp · dòng ĐÓNG: R trên cắt lỗ BAN ĐẦU, so rổ, hậu kiểm
