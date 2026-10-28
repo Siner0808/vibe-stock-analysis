@@ -159,9 +159,38 @@ def main(argv=None, *, backend=None, client=None, loi_mod=None, tai_gia=None,
         return MA_KHONG_CHAY
 
     can, het = hk.can_viet(nk, hkd)
+    if not can and not het:
+        print("Hậu kiểm lời: không có lệnh nào cần viết.")
+        _tom_tat(Counter(), hk.da_tieu_thang(hkd, thang), thang)
+        return MA_XONG
+
+    # Giá cho các lệnh có thể vào lượt VÀ cho lệnh đã đủ `SO_LAN_TOI_DA` dòng (cần dữ kiện
+    # dựng lại để đếm lần hỏng THẬT, BƯỚC 234). Lệnh `can` ngoài trần lượt không cần giá.
+    pool = can[:hk.SO_LENH_MOI_LUOT] + het
+    tu_lui = (bay_gio - datetime.timedelta(days=NGAY_GIA_LUI)).strftime("%Y-%m-%d")
+    tu = so_bai_hoc.tu_ngay_tai_gia(pool, tu_lui)
+    tai = _tai_gia_that(tu, hom_nay) if tai_gia is None else tai_gia
+    gia, thieu = so_bai_hoc.gia_tu_bo_tai(so_bai_hoc.ma_can_gia(pool), tai)
+    if thieu:
+        print(f"⚠️ Không tải được giá {len(thieu)} mã ({', '.join(thieu)}): phần ngành và "
+              "cắt lỗ sát của bài học nói \"chưa đủ dữ liệu\".")
+    bai_hoc = {b["trade_id"]: b for b in so_bai_hoc.bai_hoc_cho_so(pool, gia)["bai_hoc"]}
+
+    # Lệnh đủ 2 dòng không `DAT`: chỉ dừng khi lần hỏng THẬT (văn VẪN trượt máy kiểm hiện
+    # hành, hoặc bị từ chối/cắt) còn đủ `SO_LAN_TOI_DA`. Dòng tab không bị sửa hay xoá.
     for d in het:
-        print(f"::warning::Hậu kiểm lời: lệnh #{d['trade_id']} {d['symbol']} đã hỏng "
-              f"{hk.SO_LAN_TOI_DA} lần — dừng, chờ người xem tab hau_kiem.")
+        hs = [h for h in hkd if h.get("trade_id") == d["trade_id"]]
+        that = hk.lan_hong_that(hs, hk.du_kien(d, bai_hoc[d["trade_id"]]))
+        if that < hk.SO_LAN_TOI_DA:
+            can = hk.sap_theo_ngay_ra(can + [d])
+            print(f"::notice::Hậu kiểm lời: lệnh #{d['trade_id']} {d['symbol']} có {len(hs)} "
+                  f"dòng không đạt, {len(hs) - that} dòng không còn tính (văn của nó qua máy "
+                  f"kiểm hiện hành); hỏng thật {that}/{hk.SO_LAN_TOI_DA} — viết lại ở lần "
+                  f"{hk.lan_ke(hkd, d['trade_id'])}.")
+        else:
+            print(f"::warning::Hậu kiểm lời: lệnh #{d['trade_id']} {d['symbol']} đã hỏng "
+                  f"thật {that} lần (trần {hk.SO_LAN_TOI_DA}) — dừng, chờ người xem tab "
+                  "hau_kiem.")
     luot = can[:hk.SO_LENH_MOI_LUOT]
     if len(can) > len(luot):
         print(f"::notice::Hậu kiểm lời: {len(can) - len(luot)} lệnh để lượt sau "
@@ -170,15 +199,6 @@ def main(argv=None, *, backend=None, client=None, loi_mod=None, tai_gia=None,
         print("Hậu kiểm lời: không có lệnh nào cần viết.")
         _tom_tat(Counter(), hk.da_tieu_thang(hkd, thang), thang)
         return MA_XONG
-
-    tu_lui = (bay_gio - datetime.timedelta(days=NGAY_GIA_LUI)).strftime("%Y-%m-%d")
-    tu = so_bai_hoc.tu_ngay_tai_gia(luot, tu_lui)
-    tai = _tai_gia_that(tu, hom_nay) if tai_gia is None else tai_gia
-    gia, thieu = so_bai_hoc.gia_tu_bo_tai(so_bai_hoc.ma_can_gia(luot), tai)
-    if thieu:
-        print(f"⚠️ Không tải được giá {len(thieu)} mã ({', '.join(thieu)}): phần ngành và "
-              "cắt lỗ sát của bài học nói \"chưa đủ dữ liệu\".")
-    bai_hoc = {b["trade_id"]: b for b in so_bai_hoc.bai_hoc_cho_so(luot, gia)["bai_hoc"]}
 
     if a.thu:
         print("=== LỜI DẶN (system) ===")

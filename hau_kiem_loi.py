@@ -121,6 +121,10 @@ _NGHIN_CHAM = re.compile(r"\d{1,3}(?:\.\d{3})+")
 #: Số kiểu Anh `53,500` — chỉ xét trong chuỗi NGUỒN (lý do vào lệnh của sổ thật ghi
 #: "Vào lệnh=53,500 VNĐ", đo 17/10/2026); văn của model vẫn đọc dấu phẩy là thập phân.
 _NGHIN_PHAY = re.compile(r"\d{1,3}(?:,\d{3})+")
+#: Số kiểu Anh trong văn của MODEL: `17,500` · `1,775.09` · `54,100.0` (BƯỚC 234). Model
+#: viết kiểu này dù lời dặn bảo kiểu Việt; chỉ token khớp NGUYÊN dạng này mới có cách đọc
+#: thứ hai. Token khác (`17,5` · `53,5` · `1.234`) vẫn chỉ đọc kiểu Việt.
+_SO_KIEU_ANH = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
 
 
 def _doc_so(tok: str) -> tuple[float, int]:
@@ -139,6 +143,16 @@ def _doc_so(tok: str) -> tuple[float, int]:
         nguyen, le = t.replace(".", ""), ""
     else:
         nguyen, _, le = t.partition(".")
+    return float(f"{nguyen}.{le}" if le else nguyen), len(le)
+
+
+def _doc_so_kieu_anh(tok: str) -> Optional[tuple[float, int]]:
+    """Cách đọc THỨ HAI của một số trong văn model: `,` ngăn nghìn, `.` thập phân. Chỉ token
+    khớp nguyên `_SO_KIEU_ANH` (bỏ dấu đặt ngoài) mới có; còn lại None."""
+    t = tok.lstrip("+-−")
+    if not _SO_KIEU_ANH.fullmatch(t):
+        return None
+    nguyen, _, le = t.replace(",", "").partition(".")
     return float(f"{nguyen}.{le}" if le else nguyen), len(le)
 
 
@@ -204,10 +218,16 @@ def _kiem_so(van: Mapping, dk: Mapping) -> list[str]:
     ngay_nguon, so_ng = so_nguon(dk)
     loi = []
     for t, s in _cac_doan(van):
-        ngay, so = so_trong_van(s)
+        ngay, con = _ngay_iso(s)
         loi += [f"{t}: ngày {n} không có trong dữ kiện" for n in sorted(ngay - ngay_nguon)]
-        loi += [f"{t}: số {x:g} không có trong dữ kiện" for x, d in so
-                if not _khop(x, d, so_ng)]
+        for m in _SO.finditer(con):
+            tok = m.group(0)
+            x, d = _doc_so(tok)
+            anh = _doc_so_kieu_anh(tok)
+            if _khop(x, d, so_ng) or (anh is not None and _khop(anh[0], anh[1], so_ng)):
+                continue
+            loi.append(f"{t}: số {x:g} không có trong dữ kiện"
+                       + ("" if anh is None else f" (đọc kiểu Anh: {anh[0]:g})"))
     return loi
 
 
@@ -222,12 +242,26 @@ def _bi_phu_dinh(s: str, dau: int) -> bool:
     return bool(_PHU_DINH.search(truoc))
 
 
-def _tim_cum(van: Mapping, cum: Sequence[str]) -> list[str]:
+#: "không/chưa chứng minh" phủ định MỌI cụm đứng sau nó trong cùng mệnh đề (BƯỚC 234):
+#: "Một lệnh này không chứng minh được agent hay tín hiệu luôn luôn đúng hoặc sai" -- cụm
+#: cấm cách "không" quá 25 ký tự nhưng vẫn nằm trong một câu phủ định.
+_KHONG_CHUNG_MINH = re.compile(r"\b(?:không|chưa)\s+chứng\s+minh\b", re.IGNORECASE)
+#: Ranh giới mệnh đề: hết câu, dấu chấm phẩy, "nhưng", "tuy nhiên" (sau đó câu đổi chiều).
+_RANH_MENH_DE = re.compile(r"[.!?\n;]|\b(?:nhưng|tuy nhiên)\b", re.IGNORECASE)
+
+
+def _bi_phu_dinh_ca_menh_de(s: str, dau: int) -> bool:
+    """Cụm ở `dau` nằm trong một mệnh đề đã mở bằng "không chứng minh"/"chưa chứng minh"."""
+    return bool(_KHONG_CHUNG_MINH.search(_RANH_MENH_DE.split(s[:dau])[-1]))
+
+
+def _tim_cum(van: Mapping, cum: Sequence[str], *, ca_menh_de: bool = False) -> list[str]:
     loi = []
     for t, s in _cac_doan(van):
         for c in cum:
             for m in re.finditer(re.escape(c), s, re.IGNORECASE):
-                if not _bi_phu_dinh(s, m.start()):
+                if not (_bi_phu_dinh(s, m.start())
+                        or (ca_menh_de and _bi_phu_dinh_ca_menh_de(s, m.start()))):
                     loi.append(f"{t}: \"{m.group(0)}\"")
     return loi
 
@@ -238,9 +272,10 @@ _TIN_HIEU_SAI = "tín hiệu sai"
 
 
 def _kiem_mot_lenh(van: Mapping, dk: Mapping) -> list[str]:
-    loi = _tim_cum(van, _CAM_MOT_LENH)
+    loi = _tim_cum(van, _CAM_MOT_LENH, ca_menh_de=True)
     if not (dk.get("bai_hoc") or {}).get("cach_goi"):
-        loi += [f"{v} — dữ kiện không có cach_goi" for v in _tim_cum(van, (_TIN_HIEU_SAI,))]
+        loi += [f"{v} — dữ kiện không có cach_goi"
+                for v in _tim_cum(van, (_TIN_HIEU_SAI,), ca_menh_de=True)]
     return loi
 
 
@@ -297,7 +332,9 @@ class Luat:
 LUAT_VIET: tuple[Luat, ...] = (
     Luat("so-co-nguon",
          "Mọi con số và mọi ngày phải lấy từ dữ kiện (được làm tròn); không tự tính số mới, "
-         "không dùng số ví dụ, kể cả trong phần kiến thức. Viết ngày dạng dd/mm/yyyy.",
+         "không dùng số ví dụ, kể cả trong phần kiến thức. Viết ngày dạng dd/mm/yyyy. "
+         "Viết số kiểu Việt Nam: dấu chấm ngăn nghìn, dấu phẩy thập phân (cách viết minh "
+         "hoạ, đừng chép số này: \"17.500 đồng\", \"lỗ 5,21%\").",
          _kiem_so),
     Luat("mot-lenh",
          "Một lệnh không chứng minh được gì về agent hay tín hiệu: không viết "
@@ -482,10 +519,33 @@ def can_viet(dong_nk: Sequence[Mapping[str, Any]],
             continue
         (het if len(hs) >= SO_LAN_TOI_DA else can).append(d)
 
-    def khoa(d):
-        return str(d.get("exit_date"))[:10], d.get("trade_id")
+    return sap_theo_ngay_ra(can), sap_theo_ngay_ra(het)
 
-    return sorted(can, key=khoa), sorted(het, key=khoa)
+
+def sap_theo_ngay_ra(lenh: Sequence[Mapping[str, Any]]) -> list[Mapping]:
+    """Dòng nhật ký theo (ngày ra, trade_id) tăng dần — thứ tự viết của một lượt."""
+    return sorted(lenh, key=lambda d: (str(d.get("exit_date"))[:10], d.get("trade_id")))
+
+
+def lan_hong_that(dong_cua_lenh: Sequence[Mapping[str, Any]], du_kien_lenh: Mapping) -> int:
+    """Số lần hỏng THẬT của MỘT lệnh (BƯỚC 234) — thứ so với `SO_LAN_TOI_DA`.
+
+    `TU_CHOI` và `CAT_CUT` luôn tính. `BI_BAC` chỉ tính khi văn của nó VẪN trượt máy kiểm
+    hiện hành (`kiem_dau_ra` trên bốn trường đã lưu, với `du_kien_lenh` dựng lại): một dòng
+    bị bác vì luật đã sửa không còn là lần hỏng. `BI_BAC` mà `stop_reason` khác `STOP` luôn
+    tính (không có văn để kiểm); trường rỗng/thiếu trượt `do-dai`. Dòng `DAT` không tính.
+    Không dòng nào của tab bị sửa hay xoá: đây chỉ là cách ĐẾM.
+    """
+    dem = 0
+    for h in dong_cua_lenh:
+        tt = h.get("trang_thai")
+        if tt == TT_DAT:
+            continue
+        if tt == TT_BI_BAC and h.get("stop_reason") == KET_THUC_XONG and not kiem_dau_ra(
+                {t: h.get(t) for t in TRUONG}, du_kien_lenh):
+            continue
+        dem += 1
+    return dem
 
 
 # ── Phản hồi API -> một dòng của tab ────────────────────────────────────

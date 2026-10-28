@@ -166,6 +166,94 @@ def test_LENH_CO_DAT_va_LENH_HET_LUOT_khong_goi(capsys):
     assert "#2" in capsys.readouterr().out
 
 
+def _bac_nhung_van_dat(**doi) -> dict:
+    """Dòng BI_BAC mà văn của nó QUA máy kiểm hiện hành (bị bác vì luật cũ hơn)."""
+    return _dong_hk(**{"trang_thai": hk.TT_BI_BAC, "stop_reason": "STOP", **VAN, **doi})
+
+
+def test_HET_LUOT_chi_tinh_LAN_HONG_THAT_hai_dong_bac_nham_thi_viet_lai(capsys):
+    """BƯỚC 234: cron 27/10 — 5 lệnh bị bác ở `lan` 1 (hai lần bác nhầm) đứng ở trần 2 dù văn
+    của chúng qua máy kiểm hiện hành. Nay không tính: viết lại ở lần 3, tab giữ nguyên."""
+    b = _so([_dong()], [_bac_nhung_van_dat(lan=1), _bac_nhung_van_dat(lan=2)])
+    truoc = [dict(d) for d in ss.doc_hau_kiem(b)]
+    c = _Client(_phan_hoi())
+    assert _chay(b, c) == CLI.MA_XONG
+    assert len(c.goi) == 1
+    ra = capsys.readouterr().out
+    assert "::notice::" in ra and "#125" in ra and "HPG" in ra
+    assert "2 dòng không còn tính" in ra and "lần 3" in ra
+    assert "dừng" not in ra
+    sau = ss.doc_hau_kiem(b)
+    assert sau[:2] == truoc and len(sau) == 3          # không sửa, không xoá dòng nào
+    assert (sau[2]["lan"], sau[2]["trang_thai"]) == (3, hk.TT_DAT)
+
+
+def test_HET_LUOT_mot_dong_hong_that_va_mot_dong_bac_nham_thi_van_con_mot_lan(capsys):
+    b = _so([_dong()], [_dong_hk(lan=1, stop_reason="STOP", **{**VAN, "kien_thuc": ""}),
+                        _bac_nhung_van_dat(lan=2)])
+    c = _Client(_phan_hoi())
+    assert _chay(b, c) == CLI.MA_XONG
+    assert len(c.goi) == 1
+    ra = capsys.readouterr().out
+    assert "1 dòng không còn tính" in ra and "hỏng thật 1/2" in ra
+
+
+def test_HET_LUOT_van_dung_khi_hai_lan_hong_THAT(capsys):
+    """Bác thật (văn VẪN trượt), từ chối, cắt cụt: mỗi dòng là một lần hỏng thật."""
+    for hs in ([_dong_hk(lan=1, stop_reason="STOP", **{**VAN, "ke_lai": "Lệnh HPG lỗ 4,8%."}),
+                _dong_hk(lan=2, stop_reason="STOP", **{**VAN, "ke_lai": "Lệnh HPG lỗ 4,6%."})],
+               [_dong_hk(lan=1, trang_thai=hk.TT_TU_CHOI, stop_reason="SAFETY"),
+                _bac_nhung_van_dat(lan=2, trang_thai=hk.TT_CAT_CUT, stop_reason="MAX_TOKENS")],
+               [_dong_hk(lan=1), _dong_hk(lan=2)]):          # stop_reason rỗng: không văn
+        b, c = _so([_dong()], hs), _Client()
+        assert _chay(b, c) == CLI.MA_XONG
+        assert c.goi == []
+        ra = capsys.readouterr().out
+        assert "::warning::" in ra and "#125" in ra and "hỏng thật 2 lần" in ra
+        assert "::notice::" not in ra
+
+
+def test_HET_LUOT_chi_dem_dong_cua_CHINH_lenh_do_khong_dem_dong_lenh_khac(capsys):
+    """Lệnh 1: hai dòng bác nhầm (hồi sinh). Lệnh 2: hai lần hỏng thật (dừng). Dòng của lệnh 2
+    không được cộng vào lệnh 1."""
+    hang = {"trang_thai": hk.TT_TU_CHOI, "stop_reason": "SAFETY"}
+    b = _so([_dong(trade_id=1), _dong(trade_id=2)],
+            [_bac_nhung_van_dat(trade_id=1, lan=1), _bac_nhung_van_dat(trade_id=1, lan=2),
+             _dong_hk(trade_id=2, lan=1, **hang), _dong_hk(trade_id=2, lan=2, **hang)])
+    c = _Client(_phan_hoi())
+    assert _chay(b, c) == CLI.MA_XONG
+    assert len(c.goi) == 1
+    ra = capsys.readouterr().out
+    assert "#1 HPG có 2 dòng không đạt, 2 dòng không còn tính" in ra
+    assert "#2 HPG đã hỏng thật 2 lần" in ra
+    assert [(d["trade_id"], d["lan"]) for d in ss.doc_hau_kiem(b)][-1] == (1, 3)
+
+
+def test_HET_LUOT_duoc_hoi_sinh_vao_DUNG_cho_theo_ngay_ra_TRUOC_tran_luot(capsys):
+    """Lệnh ra SỚM NHẤT được hồi sinh phải nằm trong lượt 10 lệnh (đẩy lệnh ra muộn nhất
+    sang lượt sau), và là lệnh được gọi ĐẦU TIÊN."""
+    n = hk.SO_LENH_MOI_LUOT
+    muon = [_dong(trade_id=100 + i, exit_date=f"2026-10-{10 + i:02d}") for i in range(n)]
+    som = _dong(trade_id=7)                                   # ra 2026-10-09: sớm hơn cả n lệnh
+    b = _so(muon + [som], [_bac_nhung_van_dat(trade_id=7, lan=1),
+                           _bac_nhung_van_dat(trade_id=7, lan=2)])
+    c = _Client(*[_phan_hoi() for _ in range(n + 1)])
+    assert _chay(b, c) == CLI.MA_XONG
+    assert len(c.goi) == n
+    moi = ss.doc_hau_kiem(b)[2:]                              # theo thứ tự ghi = thứ tự gọi
+    assert (moi[0]["trade_id"], moi[0]["lan"]) == (7, 3)
+    assert len(moi) == n and 100 + n - 1 not in [d["trade_id"] for d in moi]
+    assert "1 lệnh để lượt sau" in capsys.readouterr().out
+
+
+def test_THU_in_ca_lenh_duoc_hoi_sinh(capsys):
+    b = _so([_dong()], [_bac_nhung_van_dat(lan=1), _bac_nhung_van_dat(lan=2)])
+    assert CLI.main(["--thu"], backend=b, tai_gia=_tai_hong, bay_gio=BAY_GIO) == CLI.MA_XONG
+    ra = capsys.readouterr().out
+    assert "=== Lệnh #125 HPG" in ra
+    assert len(ss.doc_hau_kiem(b)) == 2
+
+
 def test_CHAM_TRAN_THANG_dung_TRUOC_loi_goi(capsys):
     b = _so([_dong(trade_id=1)], [_dong_hk(trade_id=9, chi_phi_usd_uoc=4.95)])
     c = _Client(_phan_hoi())

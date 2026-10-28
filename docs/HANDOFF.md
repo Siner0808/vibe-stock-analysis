@@ -316,6 +316,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **28/10/2026 — BƯỚC 234: máy kiểm lời của B1 nhận văn đúng — số viết kiểu Anh (`17,500`, `1,775.09`) khi một trong hai cách đọc khớp nguồn, cụm cấm nằm trong mệnh đề "không/chưa chứng minh"; trần 2 lần chỉ đếm lần hỏng THẬT (`hau_kiem_loi.lan_hong_that`, tab giữ nguyên). Phát lại 16 dòng thật của tab: đạt 5/16 → 15/16; năm lệnh kẹt (#118 · #119 · #120 · #122 · #126) hồi sinh, viết lại ở lần 3. "VNI" KHÔNG vào danh sách viết tắt (là mã niêm yết thật). Lỗi 193.** Chi tiết: `docs/STATE.md` BƯỚC 234.
+
 > 🧭 **27/10/2026 — BƯỚC 233: B1 lui sang `gemini-3.5-flash-lite` khi 3.8 Flash quá tải (lỗi tạm → gọi dự phòng một lần), hạn chờ 90 s, SDK không thử lại. Lượt đo trên nhánh (run 40530072923): 7/7 lệnh có phản hồi (ba lượt trước liền 0), 2 ĐẠT · 5 bị bác vì Flash-Lite trượt luật viết.** Chất lượng văn của model dự phòng là câu chờ người dùng. Chi tiết: `docs/STATE.md` BƯỚC 233.
 
 > 🧭 **27/10/2026 — BƯỚC 232: công cụ cho lỗi 191 — `tools/soat_ngoai_cong_cu.py` (`diff` · `state` · `hang-bang`, đọc cây bằng `git show`) tái lập đúng mọi số ngoài tầm của lượt soát 14; công cụ soát chính in con trỏ sang nó.** Soát 15 đúng hạn 02/11 (người dùng chọn). Chi tiết: `docs/STATE.md` BƯỚC 232.
