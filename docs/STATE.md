@@ -24476,3 +24476,49 @@ Chi tiết từng lệnh và đầu ra ở `docs/soat-dinh-ky.json` (lượt 202
 Cả năm cổng thoát 0 trên `17b8718` (`tools/nam_cong.py --song-song`, 28/10 09:33–09:36, 191 s, log ngoài repo): cổng 1 3678 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3680 test, khớp mốc (không thêm test, mốc không đổi). Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** Leader merge (dòng B1 tuỳ chọn ở `docs/LO-TRINH.md` KHÔNG làm ở BƯỚC này: chạm file luật thì phải hỏi sổ tay thật — gộp với lần chạm `LO-TRINH` kế; mục sổ tay giữ `khong_bat_buoc_vi`). Lượt soát 16 + ĐO 27 lượt đọc 5: **04/11/2026**. BƯỚC kế 236 (phiên đám mây), lỗi kế 194.
+
+## BƯỚC 236 — `tools/nam_cong.py` CHẠY CỔNG 1 SONG SONG (`pytest-xdist`) THEO MẶC ĐỊNH Ở MÁY; `--mot-tien-trinh` LÀ CỜ LUI; `--song-song` CÒN NHẬN NHƯ LỆNH TRỐNG; CI GIỮ MỘT TIẾN TRÌNH (28/10/2026)
+
+**Mốc:** quy-trinh — đổi mặc định của công cụ chạy năm cổng ở máy, không đổi bộ cổng, điểm, ngưỡng hay kết luận đo
+
+Người dùng 27/10/2026: *"Lập BƯỚC, làm sau (Recommended)"* — mặc định ở máy của `tools/nam_cong.py` là cổng 1 song song; có cờ lui về một tiến trình; thiếu `pytest-xdist` thì tự lùi; CI giữ một tiến trình. 28/10/2026 (hộp hỏi của leader): *"Gửi phiên đám mây (Recommended)"* và *"Không chạm file luật (Recommended)"* — bản mô tả lựa chọn: `CLAUDE.md` đang 25.993/26.000 ký tự, câu "một lệnh chạy cả năm CÙNG LÚC; `--tuan-tu` là đường lui" vẫn đúng, cờ lui ghi vào `references/cong-thuc-chay.md`, không cần hỏi sổ tay. Phiên đám mây, nhánh `quy-trinh/nam-cong-song-song-236` từ `main` `a877ca6`; BƯỚC 235 (soát định kỳ, máy của leader) ghi cùng các sổ song song, leader gộp 235 trước.
+
+**Vì sao.** BƯỚC 222 (23/10) thêm `--song-song` nhưng để mặc định một tiến trình vì lượt đo trên máy bận chưa thấy lợi trên cả lượt và cổng 4 đỏ giả vì quá giờ. Phiếu giao của leader nêu một lượt đo xen kẽ ngày 27/10 cho thấy song song nhanh hơn rõ; lượt ấy không có lệnh tái lập trong repo nên KHÔNG chép số của nó vào đây (Quy tắc 2) — số ở máy leader là mục *Đo ở máy leader* dưới, đo trong phiên 28/10.
+
+**Mã** (`tools/nam_cong.py`).
+- `cong_may(python=None, mot_tien_trinh=False)`: mặc định cổng 1 thêm `SONG_SONG_CONG1` (`-n auto`) khi `co_xdist(python)`; `mot_tien_trinh` trả `CONG` nguyên (và KHÔNG hỏi xdist); thiếu gói trả `CONG` kèm dòng *"lùi vì thiếu pytest-xdist"*. Tham số `song_song` bỏ.
+- Dòng lệnh: `--mot-tien-trinh` (cờ lui) và `--song-song` (còn nhận, LỆNH TRỐNG vì đã là mặc định; lệnh cũ trong tài liệu và phiếu giao còn dùng) nằm trong một nhóm loại trừ nhau (đi chung thì argparse thoát mã 2). `--tuan-tu` là trục khác, không đổi.
+- KHÔNG đổi: bộ năm cổng `CONG` (không mang `-n`), `.github/workflows/kiem-dinh.yml` (một tiến trình, không cài xdist), `requirements.txt` (`pytest` cũng không ở đó; `tests/test_requirements.py` `NGOAI_LE_CI = {"pytest"}` — kế hoạch cũ "ghim pytest-xdist trong requirements.txt" đã bỏ vì thứ ấy là cái Streamlit Cloud cài).
+- Tài liệu: docstring `tools/nam_cong.py`; `references/cong-thuc-chay.md` (đoạn mặc định song song và cờ lui; ghi chú BƯỚC 222 đánh 🔴 HẾT ĐÚNG ở câu "mặc định còn MỘT tiến trình"; hai bảng đỏ/skip môi trường). Không file luật nào đổi (`tools/buoc_cham_luat.py 236` → *"khong cham luat"*, cây làm việc so với điểm tách `a877ca6`).
+
+**Gác** (`tests/test_nam_cong.py`: 13 → 18 hàm; cả bộ 3680 → 3685, `pytest tests/ --collect-only -q`; mốc `docs/moc_so_test.json` cập nhật kèm lý do). Mặc định có xdist → `-n auto` (bốn cổng kia nguyên); mặc định thiếu xdist → một tiến trình + dòng lùi; `--mot-tien-trinh` → một tiến trình dù có xdist và không hỏi xdist; `--song-song` parse được, cho cùng kết quả mặc định (có lẫn không xdist) và đi chung `--mot-tien-trinh` thì thoát 2; `--tuan-tu` không chạm cổng 1; `CONG[0]` không mang `-n`; CI không `-n`, không xdist (gác BƯỚC 222 giữ). `tests/test_bo_cong_khop_CI.py` xanh.
+
+**Đột biến** (`tools/va_an_toan.dot_bien_bo`, lệnh `pytest tests/test_nam_cong.py -q`; nhật ký `/tmp/dot.log`, `/tmp/dot2.log`): 16 phát ở lượt đầu, 15 đỏ · 1 sống (M8: đổi tên `--song-song` thành `--song-song-x` — phát THIẾT KẾ SAI: argparse nhận tiền tố nên `--song-song` vẫn parse; thay bằng M8b đổi thành `--xong-song`, ĐỎ). Danh sách, tất cả ĐỎ: M1 khôi phục mặc định cũ (luôn một tiến trình) · M2 bỏ lùi khi thiếu xdist · M3 `main` bỏ ép `--mot-tien-trinh` · M4 `main` biến `--song-song` thành ép một tiến trình · M5 `-n auto`→`-n 2` · M6 `-n` thêm vào mọi cổng · M7 bỏ nhóm loại trừ · M8b · M9b (đổi tên `--mot-tien-trinh`) · M10 `-n` lọt vào `CONG` gốc · M11 mất chữ *thiếu pytest-xdist* · M12 hỏi xdist trước khi ép · M13 `-n` chỉ cổng 4 · M14 mất chữ *SONG SONG* · M15 CI thêm `-n auto` (đục `kiem-dinh.yml`) · M16 CI cài xdist. Bộ cuối 16 phát (M1–M7 · M8b · M9b · M10–M16), 16/16 đỏ. Đột biến để lại cây sạch (`git status` chỉ còn file đã sửa).
+
+**Đo trên máy phiên đám mây** (container Linux, `nproc` 4, Python 3.13 trong venv ngoài repo `/tmp/venv_ci` có `pytest-xdist` 3.8.0; MỖI chế độ MỘT lượt, nối tiếp không xen kẽ, không lặp — chỉ là một khoảng, không phải phép đo xen kẽ như của leader; cây `20915df` trong worktree riêng, script `/tmp/do.sh`):
+
+| cổng 1 | lệnh | thời gian | kết quả |
+|---|---|---|---|
+| song song | `python -m pytest tests/ -q -rs -n auto -p no:cacheprovider` | 130,25 s (đồng hồ ngoài 131 s) | 4 failed · 3675 passed · 6 skipped |
+| một tiến trình | `python -m pytest tests/ -q -rs -p no:cacheprovider` | 441,82 s (đồng hồ ngoài 443 s) | 4 failed · 3675 passed · 6 skipped |
+
+Tỷ lệ 3,4 lần trên 4 nhân; cùng 4 đỏ và cùng 6 skip ở cả hai chế độ. Cả lượt năm cổng bằng chính mặc định mới (`tools/nam_cong.py --thu-muc-log /tmp/nc`, 02:19:44–02:25:01): cả lượt 317 s; cổng 1 227 s (chạy chồng cổng 4 nên chậm hơn lượt riêng 130 s), cổng 4 317 s (179 file, 3 cùng lúc) là cổng dài nhất. Cổng 4 KHÔNG đỏ vì quá giờ: nó đỏ đúng ở hai file môi trường dưới đây (0 dòng "quá giờ" trong `cong4.log`) — lượt đo này không tái hiện nỗi lo đỏ giả của BƯỚC 222, nhưng 4 nhân chạy mức chồng khác 16 luồng của máy leader, nên không bác nỗi lo ấy cho máy đó.
+
+**Đỏ môi trường** (đỏ y hệt trên `main` `a877ca6` — chạy `tests/test_tools_hau_kiem_loi.py tests/test_requirements.py` trong worktree của nó: 4 failed · 45 passed): `test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` (không có `vnstock`/`vnai`, đã biết) và ba test `test_GENAI_THAT_*` / `test_CLIENT_THAT_*` của `tests/test_tools_hau_kiem_loi.py` (MỚI trong bảng: `ImportError: cannot import name 'genai' from 'google'` — `google-genai` không nằm trong `requirements.txt`, nên venv dựng theo công thức không có nó). Đã ghi vào bảng của `references/cong-thuc-chay.md` cùng ba skip mới.
+
+**Giả thuyết bị bác.** "Phải ghim `pytest-xdist` trong `requirements.txt` cho máy khác cài được" — tệp ấy là thứ Streamlit Cloud cài và `pytest` cũng cố ý không ở đó; thiếu gói đã có đường lùi tự động nên không cần.
+
+**Năm cổng (đám mây, cây `4914bf6`, mặc định song song, `tools/nam_cong.py --thu-muc-log /tmp/nc`, 02:36:45–02:41:50, cả lượt 305 s):** cổng 1 mã 1 (219,10 s; 4 failed · 3675 passed · 6 skipped) — đúng bốn đỏ MÔI TRƯỜNG ở trên, không đỏ nào khác · cổng 2 mã 0 (mọi file nạp được bằng 3.11) · cổng 3 mã 0 (0 CHẶN · 10 cảnh báo) · cổng 4 mã 1 (305 s; đúng hai file `test_requirements.py` và `test_tools_hau_kiem_loi.py`, không file nào khác) · cổng 5 mã 0 (3685 test, khớp mốc; 3680 → 3685, +5). Lượt đầu trên `20915df` cho cùng kết quả (cả lượt 317 s). Không cổng nào xanh trọn ở môi trường này vì bốn đỏ ấy; ngoài chúng, mọi test xanh. CI chạy lại trên cây cuối.
+
+**Đo ở máy leader** (28/10/2026, sau khi gộp `main` `37d81fc` — BƯỚC 235 — vào nhánh; cây `b61f6c8`; Windows, Python 3.13 của `.venv`, `pytest-xdist` 3.8.0). Hai lượt `tools/nam_cong.py` NỐI TIẾP, mỗi chế độ MỘT lượt, không xen kẽ, không đo tải máy — một khoảng, không phải phép đo lặp:
+
+| lệnh | giờ | cả lượt | cổng 1 | cổng 4 | kết quả |
+|---|---|---|---|---|---|
+| `tools/nam_cong.py --thu-muc-log <dir>` (mặc định mới) | 10:04:28–10:07:48 | 200 s | 199 s (`-n auto`) | 188 s | cả năm cổng thoát 0; cổng 1 3683 passed · 2 skipped; cổng 5 3685, khớp mốc |
+| `tools/nam_cong.py --mot-tien-trinh --thu-muc-log <dir>` | 10:07:48–10:17:09 | 561 s | 561 s | 137 s | cả năm cổng thoát 0; cổng 1 3683 passed · 2 skipped; cổng 5 3685, khớp mốc |
+
+Cả lượt 561 s → 200 s (2,8 lần) trên cùng cây; cổng 4 chậm hơn khi chạy chồng cổng 1 song song (188 s so với 137 s) nhưng không đỏ vì quá giờ. Lượt mặc định là lượt năm cổng của BƯỚC này trên cây đã gộp `main`; dòng này điền SAU lượt cổng (chỉ chữ trong STATE).
+
+**Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi` (khuôn BƯỚC 232–234): BƯỚC đổi mặc định của công cụ chạy cổng ở máy, không sửa file luật nào theo `tools/buoc_cham_luat.py`, không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo.
+
+**Việc kế.** Leader đã gộp `main` (BƯỚC 235) vào nhánh và đo ở máy (mục trên); merge khi CI xanh. BƯỚC kế 237, lỗi kế 195 (không ghi lỗi mới ở BƯỚC này).
