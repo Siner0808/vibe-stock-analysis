@@ -24393,6 +24393,8 @@ Người dùng 28/10 (hộp hỏi của leader): *"Sửa máy kiểm, giữ kh�
 
 Bảng lỗi: hàng 193 (lớp `gac-hong`, nguồn `git`, sống 10 ngày: `a85af2f` 17/10 → thấy 27/10), dòng tự khai 96/172.
 
+**Năm cổng ở máy:** cả năm thoát 0 trên `7eda650` (`tools/nam_cong.py --song-song`, 28/10 08:31–08:34, 151 s): cổng 1 3678 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3680 test, khớp mốc (3661 → 3680, +19). Đục thử chạy lại trên cây cuối: 45/45 đỏ. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
+
 **Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi` (khuôn BƯỚC 232–233): BƯỚC sửa luật viết của B1 (sản phẩm CHỈ ĐỂ HIỆN), không sửa file luật nào theo `tools/buoc_cham_luat.py`, không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo.
 
 **Việc kế.** Leader merge sau khi xem lượt phát lại; lượt B1 kế (cron 18:17 VN ngày làm việc) viết lại năm lệnh ở lần 3 — đọc tab `hau_kiem` sau lượt ấy. Soát 15 + ĐO 27 lượt đọc 4 hạn **02/11/2026**. BƯỚC kế 235, lỗi kế 194.
