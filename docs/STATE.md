@@ -24430,7 +24430,7 @@ Tỷ lệ 3,4 lần trên 4 nhân; cùng 4 đỏ và cùng 6 skip ở cả hai c
 
 **Giả thuyết bị bác.** "Phải ghim `pytest-xdist` trong `requirements.txt` cho máy khác cài được" — tệp ấy là thứ Streamlit Cloud cài và `pytest` cũng cố ý không ở đó; thiếu gói đã có đường lùi tự động nên không cần.
 
-**Năm cổng ở máy:** (điền sau lượt cuối.)
+**Năm cổng (đám mây, cây `4914bf6`, mặc định song song, `tools/nam_cong.py --thu-muc-log /tmp/nc`, 02:36:45–02:41:50, cả lượt 305 s):** cổng 1 mã 1 (219,10 s; 4 failed · 3675 passed · 6 skipped) — đúng bốn đỏ MÔI TRƯỜNG ở trên, không đỏ nào khác · cổng 2 mã 0 (mọi file nạp được bằng 3.11) · cổng 3 mã 0 (0 CHẶN · 10 cảnh báo) · cổng 4 mã 1 (305 s; đúng hai file `test_requirements.py` và `test_tools_hau_kiem_loi.py`, không file nào khác) · cổng 5 mã 0 (3685 test, khớp mốc; 3680 → 3685, +5). Lượt đầu trên `20915df` cho cùng kết quả (cả lượt 317 s). Không cổng nào xanh trọn ở môi trường này vì bốn đỏ ấy; ngoài chúng, mọi test xanh. CI chạy lại trên cây cuối.
 
 **Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi` (khuôn BƯỚC 232–234): BƯỚC đổi mặc định của công cụ chạy cổng ở máy, không sửa file luật nào theo `tools/buoc_cham_luat.py`, không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo.
 
