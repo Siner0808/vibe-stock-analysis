@@ -24544,3 +24544,7 @@ Người dùng 28/10/2026 trả lời danh sách việc của leader. Mục *"Đ
 **Dòng B1 của `docs/LO-TRINH.md` (:195) — GHI CHÉP, không làm.** Dòng chỉ nêu 3.8 Flash; thiếu model dự phòng `gemini-3.5-flash-lite` của BƯỚC 233 (BƯỚC 235 đã xếp việc này là TUỲ CHỌN). Theo *"note lại"*: ghi một dòng 📌 ở `docs/HANDOFF.md` mục 5 — lần sửa `LO-TRINH.md` kế tiếp thêm nó trong CÙNG lần sửa, vì sửa file luật phải hỏi sổ tay thật (Quy tắc 3). BƯỚC 237 không chạm file luật nào.
 
 **Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi` (khuôn BƯỚC 232–236): BƯỚC đổi MỘT câu trong lời dặn B1 gửi cho model, không sửa file luật nào theo `tools/buoc_cham_luat.py`, không đổi máy kiểm hay kết luận đo nào. Không duyệt sổ tay.
+
+**Năm cổng ở máy:** cả năm thoát 0 trên cây của `150bf43` (`tools/nam_cong.py --thu-muc-log <thư mục>`, mặc định song song, 28/10 13:21–13:24, 182 s): cổng 1 3686 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3688 test, khớp mốc (3685 → 3688, +3 qua `docs/moc_so_test.json` với `--cap-nhat --ly-do`). Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
+
+**Việc kế.** Leader đọc CI một lần rồi merge. Đọc tab `hau_kiem` sau lượt B1 kế để xem model còn viết "VNI" cho chỉ số không (cột `ly_do_bac`). Lần sửa `docs/LO-TRINH.md` kế thêm `gemini-3.5-flash-lite` vào dòng B1 (ghi ở HANDOFF mục 5). BƯỚC kế 238, lỗi kế 194 (không ghi lỗi mới ở BƯỚC này).
