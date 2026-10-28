@@ -1,7 +1,7 @@
 # Thiết kế C1 — Sân đấu: nhiều phương án bóng chạy song song, mỗi phương án một tài khoản ảo
 
 **Mốc:** C1 (`docs/LO-TRINH.md`, giai đoạn C). **Duyệt hướng:** người dùng, 28/10/2026, trong phiên leader (BƯỚC 238).
-**Trạng thái:** đặc tả; chưa có dòng mã nào. Hai chỗ mang nhãn **"đề xuất — người dùng chốt khi duyệt đặc tả"** (độ dài khối ở mục 8.3, thước 1 ở mục 8.2) chưa phải quyết định; năm câu mở còn lại nằm ở mục 15.
+**Trạng thái:** đặc tả **ĐÃ CHỐT** ngày 28/10/2026; chưa có dòng mã nào. Bản đầu của đặc tả (cùng ngày) để hai chỗ mang nhãn *"đề xuất — người dùng chốt khi duyệt đặc tả"* (độ dài khối ở mục 8.3, thước 1 ở mục 8.2) và năm câu mở khác; người dùng đã trả lời cả bảy, nguyên văn ở mục 15. Nhãn "đề xuất" còn nằm trong văn bản làm LỊCH SỬ, mỗi chỗ kèm dòng *ĐÃ CHỐT*.
 
 Tài liệu này là đề bài cho các phiên làm mã. Luật chung của dự án (vá file, đột biến, năm cổng, giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó, đừng chép lại vào đây. Mọi `file:dòng` bên dưới được `grep` lại ở cây `9cb325e` ngày 28/10/2026; số dòng trôi theo mã, tên hàm thì không.
 
@@ -127,10 +127,10 @@ Nguồn: `tools/do25_ke_hoach_vao_lenh.py::tim_khop` (:178), phép đo thăm dò
 - `MUA_NGAY` → vào như đường thật (mở cửa phiên sau). `BO_QUA` và `CHUA_LAP_DUOC` → không vào lệnh (như ĐO 25: *"mọi phán quyết khác không nắm giữ"*). Tín hiệu đủ điểm mà **không có dòng `ke_hoach`** → không vào lệnh và được ĐẾM trong "thiếu kế hoạch", không đoán.
 - `CHO_VUNG` → lệnh giới hạn mua ở `vung_tran`, hiệu lực `so_phien_cho` phiên kể từ phiên SAU ngày tín hiệu (`ke_hoach_vao_lenh.SO_PHIEN_CHO` = 5, :117). **Khớp nghiêm** (cái đã ký ở ĐO 25, không phải biến thể "chạm là khớp"): khớp ở phiên d đầu tiên có `low(d)` ≤ `vung_tran` trừ MỘT bước giá (`truot_gia.buoc_gia`); giá khớp cơ sở = `min(open(d), vung_tran)`. Không khớp hết hạn → lệnh bị huỷ, không giữ.
 - Giá khớp cơ sở đi qua `PaperTradingJournal._khop_that` (trượt giá, lô chẵn, biên) như mọi lệnh khác — khác ĐO 25 (đo thăm dò chưa tính ma sát) và đúng ý "bộ máy thật".
-- **Chỉ ĐỔI LUẬT VÀO.** Cắt lỗ, cỡ vị thế, chốt, trailing, thoát theo điểm, trần giữ lệnh đều của bộ máy (SL từ phần rủi ro dựng lại, không phải `cat_lo` của kế hoạch). Một thay đổi một yếu tố; dùng `cat_lo` là phương án khác (câu hỏi 6, mục 15).
+- **Chỉ ĐỔI LUẬT VÀO.** Cắt lỗ, cỡ vị thế, chốt, trailing, thoát theo điểm, trần giữ lệnh đều của bộ máy (SL từ phần rủi ro dựng lại, không phải `cat_lo` của kế hoạch). Một thay đổi một yếu tố; dùng `cat_lo` là phương án khác (mục 15, quyết định 4c — ĐÃ CHỐT).
 - Hook trong bộ máy: `fill_pending(..., luat_khop=None)` (mục 5). `luat_khop` là đối tượng có `xet(lenh, ngay, nen) -> (khop, gia_co_so, het_han)`. Lệnh hết hạn được phát lại đổi sang trạng thái riêng `EXPIRED` **bằng SQL ở bộ phát lại trên DB bộ nhớ**, không thêm trạng thái vào lớp `Status` của đường thật (đường thật không bao giờ sinh nó; `von_dang_cam_ket` :781 chỉ đếm `OPEN`/`PENDING` nên tự giải phóng vốn).
 - **Dùng chung `tim_khop`** (BƯỚC 4): chuyển hàm ra một module thuần dùng chung (`khop_gioi_han.py`); `tools/do25_ke_hoach_vao_lenh.py` nhập lại và vẫn export tên cũ để `tests/test_do25_ke_hoach_vao_lenh.py` (gọi `D.tim_khop`) giữ xanh KHÔNG sửa.
-- **Dữ liệu bắt đầu muộn hơn.** Tab `ke_hoach` có từ BƯỚC 195 (15/10/2026). PB-003 có cửa sổ riêng bắt đầu ở tín hiệu có `ke_hoach` đầu tiên (đo bằng lệnh ở BƯỚC 4, không ghi ở đây); so sánh PB-003 với đường thật và rổ chỉ trên **cửa sổ chung** của cặp (câu hỏi 5).
+- **Dữ liệu bắt đầu muộn hơn.** Tab `ke_hoach` có từ BƯỚC 195 (15/10/2026). PB-003 có cửa sổ riêng bắt đầu ở tín hiệu có `ke_hoach` đầu tiên (đo bằng lệnh ở BƯỚC 4, không ghi ở đây); so sánh PB-003 với đường thật và rổ chỉ trên **cửa sổ chung** của cặp (mục 15, quyết định 4b — ĐÃ CHỐT).
 
 ## 8. Thống kê
 
@@ -146,7 +146,7 @@ Mỗi tài khoản có **chuỗi lợi nhuận mỗi phiên** `r_t` tính bằng
 
 ### 8.2 Hai thước, một chỗ tính
 
-- **Thước 1 — tài khoản trừ rổ, khớp mức đầu tư:** `x_t = r_t(tài khoản) − e_t × r_t(rổ)`, `e_t` = tổng `size_pct/100` đang cam kết ở đầu phiên t. *"Đề xuất — người dùng chốt khi duyệt đặc tả"* (câu hỏi 2): nếu trừ thẳng rổ 100% thì tài khoản chỉ cầm 56% vốn (con số cũ của ĐO 22, CLAUDE.md) sẽ thua rổ trong thị trường lên chỉ vì tiền mặt, không vì chọn mã. Cột thứ hai LUÔN in cạnh: `r_t(tài khoản) − r_t(rổ)` thô. Phiên `e_t = 0` cho `x_t = 0` và **được đếm riêng** ("phiên không giữ"), không làm tăng n hiệu dụng.
+- **Thước 1 — tài khoản trừ rổ, khớp mức đầu tư:** `x_t = r_t(tài khoản) − e_t × r_t(rổ)`, `e_t` = tổng `size_pct/100` đang cam kết ở đầu phiên t. *Bản đầu ghi "đề xuất — người dùng chốt khi duyệt đặc tả"; **ĐÃ CHỐT 28/10/2026**, người dùng: "Khớp mức giải ngân (Recommended)" (mục 15, quyết định 2).* Lý do của đề xuất: nếu trừ thẳng rổ 100% thì tài khoản chỉ cầm 56% vốn (con số cũ của ĐO 22, CLAUDE.md) sẽ thua rổ trong thị trường lên chỉ vì tiền mặt, không vì chọn mã. Cột thứ hai LUÔN in cạnh: `r_t(tài khoản) − r_t(rổ)` thô. Phiên `e_t = 0` cho `x_t = 0` và **được đếm riêng** ("phiên không giữ"), không làm tăng n hiệu dụng.
 - **Thước 2 — phương án trừ đường thật:** `d_t = r_t(phương án) − r_t(đường thật phát lại)`, chỉ trên các phiên của cửa sổ chung.
 - **Alpha từng lệnh** của `paper_metrics.vs_benchmark` (:264) giữ nguyên, tính riêng cho từng tài khoản trên các lệnh đã đóng của nó. Đó là một ĐỐI TƯỢNG KHÁC (mẫu = lệnh, bootstrap độc lập từng lệnh, ngưỡng n ≥ 10 của nó); không được "đối chiếu" hai KTC với nhau.
 
@@ -155,7 +155,7 @@ Mỗi tài khoản có **chuỗi lợi nhuận mỗi phiên** `r_t` tính bằng
 Thống kê: **trung bình** của chuỗi (`x_t` hoặc `d_t`). Cộng dồn trên cửa sổ = trung bình × n (in cạnh, không có KTC riêng).
 - **Có cặp** nghĩa là: mỗi lần rút, MỘT bộ khối được chọn và áp cho mọi chuỗi liên quan (với `x_t` và `d_t` đã là chuỗi hiệu nên cặp nằm sẵn trong chuỗi; hàm vẫn nhận hai chuỗi A, B và rút khối chung để tính KTC của `mean(A) − mean(B)` — dùng cho cả hai thước và cho phép thử độ phủ ở dạng cặp).
 - Bootstrap khối vòng, khối cố định `L`, rút `ceil(n/L)` khối, cắt về n; 5000 lần rút (cùng `VONG` với `paper_metrics.vs_benchmark`), khoảng phân vị 2,5–97,5, hạt giống cố định 0.
-- **Độ dài khối `L` = 10 phiên — *đề xuất — người dùng chốt khi duyệt đặc tả*.** Lý do:
+- **Độ dài khối `L` = 10 phiên — ĐÃ CHỐT 28/10/2026, người dùng: *"10 phiên (Recommended)"* (mục 15, quyết định 1).** Bản đầu ghi nó là *"đề xuất — người dùng chốt khi duyệt đặc tả"*. Lý do của đề xuất:
   - thời gian giữ lệnh trung bình của hệ là 20,3 phiên (`cham_bong.py` :82, `NHIP`); hai phiên cách nhau dưới chừng đó cùng chịu các vị thế đang mở nên `x_t` tự tương quan, và khối phải đủ dài để giữ nó;
   - nửa chu kỳ giữ lệnh là điểm giữa: dài hơn nữa (≥ 21) làm số khối quá ít ở mẫu ngắn, ngắn hơn (quy tắc `n^(1/3)` cho 3–6 phiên ở n = 40–252) bỏ sót phần lớn phụ thuộc đã biết;
   - nó được **ghim trước khi thấy dữ liệu thật** và chỉ đổi bằng một commit sửa đặc tả TRƯỚC lượt đọc đầu tiên trên dữ liệu thật (không đổi sau khi nhìn).
@@ -199,7 +199,7 @@ Khuôn `docs/ung-vien.json` (`cham_bong.SO_UNG_VIEN`), nhưng là một FILE RI�
 | `lop` | `"tham_do"` (duy nhất ở C1). `"xac_nhan"` bị máy từ chối cho tới C2 |
 | `bo_co` | các cờ ghi đè, khoá phải là tên trường của `CauHinhVao` (kể cả `luat_vao`), kiểu giá trị đúng; chỉ những cờ mà C1 có nguồn tiêm (mục 5, khoản 4) |
 | `khai_ngay` | `YYYY-MM-DD` giờ VN = ngày commit đầu tiên có dòng này |
-| `commit` | `null` lúc khai; điền MỘT lần ở commit sau = mã băm đầy đủ của commit đầu tiên có dòng (diễn giải của đặc tả — câu hỏi 4) |
+| `commit` | `null` lúc khai; điền MỘT lần ở commit sau = mã băm đầy đủ của commit đầu tiên có dòng (diễn giải của đặc tả — mục 15, quyết định 4a, ĐÃ CHỐT) |
 
 **Cách chứng "ngày khai"** (khuôn `cham_bong.vi_pham_tien_dang_ky` :465 và `tests/test_tien_dang_ky_git.py` :78): một file chỉ cho thấy trạng thái HIỆN TẠI, nên máy đọc LỊCH SỬ GIT, đi theo từng cạnh cha → con của HEAD (commit gộp có hai cha). Luật, phán trên mỗi cạnh:
 - (a) dòng mới phải mang `commit: null`;
@@ -272,14 +272,20 @@ Tìm kiếm ngày 28/10/2026, báo cáo gốc `C:\Users\cuong\AppData\Local\Temp
 - Không viết lại `docs/LO-TRINH.md` ở BƯỚC này (ghi chú "C kéo sớm" gộp vào lần sửa kế, theo người dùng). Không đổi file luật nào.
 - Không dùng kết quả sân đấu để đổi ngưỡng, điểm hay đường thật (bất biến 7).
 
-## 15. Câu hỏi mở cho người dùng
+## 15. Câu hỏi mở — ĐÃ CHỐT 28/10/2026
 
-Mỗi câu có khuyến nghị; chưa có câu nào được coi là đã chốt.
+Bản đầu của đặc tả (28/10/2026) để bảy câu mở, mỗi câu kèm khuyến nghị; hai trong số đó (1 và 2) mang nhãn *"đề xuất — người dùng chốt khi duyệt đặc tả"*. Người dùng đã trả lời cả bảy cùng ngày, theo lời leader chuyển. Bảng dưới giữ cả **đề xuất ban đầu** (để lịch sử còn thấy) và **quyết định**; từ đây chỉ quyết định có hiệu lực. Sửa một quyết định sau khi có dữ liệu thật là sửa đặc tả bằng một commit riêng, trước lượt đọc đầu tiên (bất biến 7).
 
-1. **Độ dài khối `L` = 10 phiên** *(đề xuất — người dùng chốt khi duyệt đặc tả)*. Lý do ở mục 8.3. Thay thế: `L` = 5 hoặc 21, hoặc `ceil(n^(1/3))`. Khuyến nghị: 10.
-2. **Thước 1: trừ rổ KHỚP MỨC ĐẦU TƯ** (`r − e×rổ`), kèm cột thô (`r − rổ`) — *đề xuất — người dùng chốt khi duyệt đặc tả*. Câu bạn đã duyệt là "lợi nhuận mỗi phiên của mỗi tài khoản trừ rổ"; tôi chia nó thành hai cột vì nếu chỉ có cột thô, tài khoản chỉ cầm một phần vốn sẽ trông thua rổ khi thị trường lên chỉ vì giữ tiền mặt. Khuyến nghị: giữ cả hai, thước 1 là thước chính.
-3. **Cửa sổ bắt đầu: 28/09/2026** (ngày cổng mở lệnh mở), không phải 28/08. Từ 28/08 đến 27/09 sổ thật không có lệnh mới; cho bóng giao dịch trong tháng ấy làm cột "so với đường thật" mất nghĩa. Đổi lại n nhỏ hơn. Phương án thay thế: tính từ 28/08 cho rổ và bóng, đường thật phẳng — bạn mất khả năng nói "chênh là do luật". Khuyến nghị: 28/09.
-4. **Trường `commit`** của sổ phương án: tôi diễn giải là *mã băm của commit đầu tiên có dòng, điền một lần ở commit sau* (một commit không thể chứa mã băm của chính nó). Nếu bạn nghĩa là "commit của bộ máy mà bóng chạy trên đó" thì cần trường thứ hai. Khuyến nghị: giữ diễn giải của tôi.
-5. **PB-003 có cửa sổ ngắn hơn** (tab `ke_hoach` chỉ có từ 15/10/2026). So sánh với đường thật và rổ chỉ trên cửa sổ chung của cặp; hàng PB-003 mang nhãn cửa sổ riêng. Khuyến nghị: chấp nhận.
-6. **PB-003 chỉ đổi LUẬT VÀO** (cắt lỗ, cỡ, thoát giữ của bộ máy). Dùng luôn `cat_lo` của kế hoạch B6 làm cắt lỗ là phương án thứ tư, đổi hai yếu tố cùng lúc. Khuyến nghị: chỉ đổi luật vào ở C1; `cat_lo` để sau.
-7. **Tab app tính lại trong bộ nhớ** khi bấm nút (kiểu "📥 Tải giá…"), không đọc một file kết quả. Lý do: Streamlit Cloud có ổ đĩa tạm và app KHÔNG được tự push; một file kết quả sẽ cần một workflow ghi vào repo. Đổi lại nút bấm chậm. Khuyến nghị: tính trong bộ nhớ; `tools/san_dau.py` là bản chuẩn để tái lập.
+| # | Đề xuất ban đầu (nhãn) | Quyết định — nguyên văn của người dùng, 28/10/2026 | Hiệu lực |
+|---|---|---|---|
+| 1 | Độ dài khối `L` = 10 phiên *(đề xuất — người dùng chốt khi duyệt đặc tả)*; thay thế 5, 21 hoặc `ceil(n^(1/3))` | *"10 phiên (Recommended)"* | `L` = 10, ghim trước dữ liệu thật (mục 8.3) |
+| 2 | Thước 1: trừ rổ KHỚP MỨC ĐẦU TƯ (`r − e×rổ`) kèm cột thô (`r − rổ`) *(đề xuất — người dùng chốt khi duyệt đặc tả)* | *"Khớp mức giải ngân (Recommended)"* | thước 1 là thước chính; cột thô LUÔN in cạnh (mục 8.2) |
+| 3 | Cửa sổ kế toán bắt đầu 28/09/2026 (ngày cổng mở lệnh mở), không phải 28/08 | *"28/09/2026, khi cổng mở (Recommended)"* | `NGAY_MO_CONG` = 2026-09-28 (mục 4, khoản 7) |
+| 4a | Trường `commit` của sổ phương án = mã băm của commit đầu tiên có dòng, điền một lần ở commit sau | *"Duyệt cả bốn (Recommended)"* | mục 9 |
+| 4b | PB-003 có cửa sổ riêng ngắn hơn (tab `ke_hoach` có từ 15/10/2026); so với đường thật và rổ chỉ trên cửa sổ chung của từng cặp | *"Duyệt cả bốn (Recommended)"* | mục 7 |
+| 4c | PB-003 chỉ đổi LUẬT VÀO; cắt lỗ, cỡ vị thế, thoát là của bộ máy; `cat_lo` của kế hoạch để sau | *"Duyệt cả bốn (Recommended)"* | mục 7 |
+| 4d | Tab app tính lại trong bộ nhớ khi bấm nút; `tools/san_dau.py` là bản chuẩn để tái lập; không file kết quả do app ghi | *"Duyệt cả bốn (Recommended)"* | mục 10.1 |
+
+Ghi chú: các câu 4a–4d được hỏi chung một hộp (bốn điểm của phiên con), người dùng trả lời một lần cho cả bốn; bảng ghi cùng một câu trả lời ở bốn hàng vì thế.
+
+Không còn câu mở nào. Việc tiếp theo là giao Lát 1 (mục 12).
