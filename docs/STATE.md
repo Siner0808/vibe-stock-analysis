@@ -24461,10 +24461,18 @@ Chi tiết từng lệnh và đầu ra ở `docs/soat-dinh-ky.json` (lượt 202
 
 ### Phần leader
 
-(leader điền: ĐO 27 lượt đọc 4, sổ tay NotebookLM)
+**Quyết định của người dùng.** Danh sách việc của leader ghi *"Soát 15 + ĐO 27 lượt đọc 4, hạn 02/11"*; người dùng: *"làm đi"* (28/10). Làm SỚM 5 ngày; hạn 02/11 là HẠN CHÓT của nhịp 7 ngày, không phải ngày chặn đọc (như lượt 14, BƯỚC 230). Hạn lượt 16 = 04/11.
+
+**Lượt đọc 4 của ĐO 27** (28/10/2026 09:20–09:25, `./.venv/Scripts/python.exe tools/do27_su_kien_quyen_chieu_tien.py --json <tệp nháp>` trên `main` `a877ca6`, đầu ra ghi ra tệp log). M0: băm sổ `adbce3e29f0996de`, băm nến `55f57df4c2bf48a6`, băm lịch `56bc890a647e1ec8`; nến 54/54 mã; lịch 46/54 mã (MBB, MSB, PDR, PLX, PVT, REE, TPB, VIB hết giờ đọc ở `iq.vietcap.com.vn`, read timeout 30 s).
+- (i) HDB #122: QUA.
+- (ii) giá ↔ lịch: N = 26 · M_CK 15 (57,7%) · **M_CKTM 25 (96,2%)** → QUA. Trượt M_CKTM duy nhất: #24 DGC (f_vào 1,207 · F 1,181), như lượt 3. N 29 → 26 vì lịch đọc được của hôm nay ít mã hơn.
+- (iii) dụng cụ [122] = `tap_loai` [122] → QUA.
+- Quần thể: 0 lệnh (ô `quan_the` của JSON rỗng; không có dòng "không có lịch"). **Kết cục lượt 4: CHƯA ĐỦ.** Băm sổ ĐỔI so với lượt 3 (`e18c164dd49ffb52`) vì sổ có lệnh MỚI MỞ: tín hiệu 26/10, vào 27/10, còn `OPEN` — đọc tab `trades` bằng `sheets_store._doc_tab(b, TAB_TRADES, TRADE_COLS)`, lọc ngày vào ≥ 16/10 hoặc ngày ra > 15/10: không lệnh nào đóng sau 2026-10-15. Mẫu vẫn không có khả năng dương. Lượt đọc kế: cùng lượt soát 16 (hạn 04/11/2026).
+
+**Sổ tay NotebookLM — làm tươi** (khung trình duyệt trong app; THÊM TRƯỚC, XOÁ SAU, `references/soat-cheo-notebooklm.md` *Nạp lại nguồn*). Trước: 19 nguồn, mới nhất `bbb516b` (STATE tới BƯỚC 230). So từng nguồn với `a877ca6` (`git diff --quiet <băm của nhãn> a877ca6 -- <file>`): 4 file đổi — `CLAUDE.md`, `docs/HANDOFF.md`, `references/loi-da-mac.md`, `docs/TIEU-CHI-DOC-TRUOC.md` — nạp bằng URL ghim `a877ca646626909b83eeaec3b2bfab4766e86cd4` (cả 4 `curl` 200, khớp byte với `git show`), đổi tên `<file> @a877ca6`. `docs/STATE.md`: `git diff 61221db a877ca6 -- docs/STATE.md` chỉ THÊM từ dòng 24197 (0 dòng xoá), và `tools/so_tay.py chia-state` cho bốn khúc đầu cùng cỡ ở hai cây — chỉ dán lại khúc 5 (`STATE.md @a877ca6 phan5/5 (BUOC 212-234)`, 137.481 ký tự). Đo độ tươi trên bản MỚI trước khi xoá: sổ trích đúng đoạn cuối của khúc 5 và tiêu đề `## BƯỚC 234`, hàng `| 193 |` của bảng lỗi, câu "ngoại lệ có gác" của `CLAUDE.md` — `tools/doi_chieu_trich_dan.py` KHỚP cả ba. Câu về `HANDOFF.md` lần đầu LỆCH (sổ ghép đầu dòng 🧭 của BƯỚC 234 với thân dòng BƯỚC 233; dụng cụ báo khớp 25/80 ký tự đầu); hỏi lại riêng nguồn ấy, sổ trích đúng 30 từ đầu dòng BƯỚC 234. `TIEU-CHI-DOC-TRUOC.md @a877ca6` không có câu hỏi riêng. Rồi xoá 5 bản cũ (4 file + STATE @bbb516b phan5/5) — đúng những bản vừa có bản thay. Sau: 19 nguồn.
 
 ### Năm cổng ở máy
 
 Cả năm cổng thoát 0 trên `17b8718` (`tools/nam_cong.py --song-song`, 28/10 09:33–09:36, 191 s, log ngoài repo): cổng 1 3678 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3680 test, khớp mốc (không thêm test, mốc không đổi). Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
-**Việc kế.** Leader: ĐO 27 lượt đọc 4 và mục sổ tay (`khong_bat_buoc_vi` đã ghi; thay bằng hỏi thật nếu leader sửa file luật), rồi merge. Lượt soát 16: **04/11/2026**. BƯỚC kế 236 (phiên đám mây), lỗi kế 194.
+**Việc kế.** Leader merge (dòng B1 tuỳ chọn ở `docs/LO-TRINH.md` KHÔNG làm ở BƯỚC này: chạm file luật thì phải hỏi sổ tay thật — gộp với lần chạm `LO-TRINH` kế; mục sổ tay giữ `khong_bat_buoc_vi`). Lượt soát 16 + ĐO 27 lượt đọc 5: **04/11/2026**. BƯỚC kế 236 (phiên đám mây), lỗi kế 194.
