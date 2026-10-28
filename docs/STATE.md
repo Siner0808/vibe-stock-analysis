@@ -24465,6 +24465,6 @@ Chi tiết từng lệnh và đầu ra ở `docs/soat-dinh-ky.json` (lượt 202
 
 ### Năm cổng ở máy
 
-(điền SAU lượt cổng.)
+Cả năm cổng thoát 0 trên `17b8718` (`tools/nam_cong.py --song-song`, 28/10 09:33–09:36, 191 s, log ngoài repo): cổng 1 3678 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3680 test, khớp mốc (không thêm test, mốc không đổi). Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** Leader: ĐO 27 lượt đọc 4 và mục sổ tay (`khong_bat_buoc_vi` đã ghi; thay bằng hỏi thật nếu leader sửa file luật), rồi merge. Lượt soát 16: **04/11/2026**. BƯỚC kế 236 (phiên đám mây), lỗi kế 194.
