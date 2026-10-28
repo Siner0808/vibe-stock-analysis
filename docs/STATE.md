@@ -24483,7 +24483,7 @@ Cả năm cổng thoát 0 trên `17b8718` (`tools/nam_cong.py --song-song`, 28/1
 
 Người dùng 27/10/2026: *"Lập BƯỚC, làm sau (Recommended)"* — mặc định ở máy của `tools/nam_cong.py` là cổng 1 song song; có cờ lui về một tiến trình; thiếu `pytest-xdist` thì tự lùi; CI giữ một tiến trình. 28/10/2026 (hộp hỏi của leader): *"Gửi phiên đám mây (Recommended)"* và *"Không chạm file luật (Recommended)"* — bản mô tả lựa chọn: `CLAUDE.md` đang 25.993/26.000 ký tự, câu "một lệnh chạy cả năm CÙNG LÚC; `--tuan-tu` là đường lui" vẫn đúng, cờ lui ghi vào `references/cong-thuc-chay.md`, không cần hỏi sổ tay. Phiên đám mây, nhánh `quy-trinh/nam-cong-song-song-236` từ `main` `a877ca6`; BƯỚC 235 (soát định kỳ, máy của leader) ghi cùng các sổ song song, leader gộp 235 trước.
 
-**Vì sao.** BƯỚC 222 (23/10) thêm `--song-song` nhưng để mặc định một tiến trình vì lượt đo trên máy bận chưa thấy lợi trên cả lượt và cổng 4 đỏ giả vì quá giờ. Leader báo đo lại 27/10 xen kẽ trên cây `667c9ee` (SỐ CỦA LEADER, phiên đám mây này không tái lập được, nguồn là phiếu giao): một tiến trình 563 s và 527 s, song song 168 s và 170 s, cả bốn lượt 3652 passed · 1 skipped.
+**Vì sao.** BƯỚC 222 (23/10) thêm `--song-song` nhưng để mặc định một tiến trình vì lượt đo trên máy bận chưa thấy lợi trên cả lượt và cổng 4 đỏ giả vì quá giờ. Phiếu giao của leader nêu một lượt đo xen kẽ ngày 27/10 cho thấy song song nhanh hơn rõ; lượt ấy không có lệnh tái lập trong repo nên KHÔNG chép số của nó vào đây (Quy tắc 2) — số ở máy leader là mục *Đo ở máy leader* dưới, đo trong phiên 28/10.
 
 **Mã** (`tools/nam_cong.py`).
 - `cong_may(python=None, mot_tien_trinh=False)`: mặc định cổng 1 thêm `SONG_SONG_CONG1` (`-n auto`) khi `co_xdist(python)`; `mot_tien_trinh` trả `CONG` nguyên (và KHÔNG hỏi xdist); thiếu gói trả `CONG` kèm dòng *"lùi vì thiếu pytest-xdist"*. Tham số `song_song` bỏ.
@@ -24510,6 +24510,15 @@ Tỷ lệ 3,4 lần trên 4 nhân; cùng 4 đỏ và cùng 6 skip ở cả hai c
 
 **Năm cổng (đám mây, cây `4914bf6`, mặc định song song, `tools/nam_cong.py --thu-muc-log /tmp/nc`, 02:36:45–02:41:50, cả lượt 305 s):** cổng 1 mã 1 (219,10 s; 4 failed · 3675 passed · 6 skipped) — đúng bốn đỏ MÔI TRƯỜNG ở trên, không đỏ nào khác · cổng 2 mã 0 (mọi file nạp được bằng 3.11) · cổng 3 mã 0 (0 CHẶN · 10 cảnh báo) · cổng 4 mã 1 (305 s; đúng hai file `test_requirements.py` và `test_tools_hau_kiem_loi.py`, không file nào khác) · cổng 5 mã 0 (3685 test, khớp mốc; 3680 → 3685, +5). Lượt đầu trên `20915df` cho cùng kết quả (cả lượt 317 s). Không cổng nào xanh trọn ở môi trường này vì bốn đỏ ấy; ngoài chúng, mọi test xanh. CI chạy lại trên cây cuối.
 
+**Đo ở máy leader** (28/10/2026, sau khi gộp `main` `37d81fc` — BƯỚC 235 — vào nhánh; cây `b61f6c8`; Windows, Python 3.13 của `.venv`, `pytest-xdist` 3.8.0). Hai lượt `tools/nam_cong.py` NỐI TIẾP, mỗi chế độ MỘT lượt, không xen kẽ, không đo tải máy — một khoảng, không phải phép đo lặp:
+
+| lệnh | giờ | cả lượt | cổng 1 | cổng 4 | kết quả |
+|---|---|---|---|---|---|
+| `tools/nam_cong.py --thu-muc-log <dir>` (mặc định mới) | 10:04:28–10:07:48 | 200 s | 199 s (`-n auto`) | 188 s | cả năm cổng thoát 0; cổng 1 3683 passed · 2 skipped; cổng 5 3685, khớp mốc |
+| `tools/nam_cong.py --mot-tien-trinh --thu-muc-log <dir>` | 10:07:48–10:17:09 | 561 s | 561 s | 137 s | cả năm cổng thoát 0; cổng 1 3683 passed · 2 skipped; cổng 5 3685, khớp mốc |
+
+Cả lượt 561 s → 200 s (2,8 lần) trên cùng cây; cổng 4 chậm hơn khi chạy chồng cổng 1 song song (188 s so với 137 s) nhưng không đỏ vì quá giờ. Lượt mặc định là lượt năm cổng của BƯỚC này trên cây đã gộp `main`; dòng này điền SAU lượt cổng (chỉ chữ trong STATE).
+
 **Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi` (khuôn BƯỚC 232–234): BƯỚC đổi mặc định của công cụ chạy cổng ở máy, không sửa file luật nào theo `tools/buoc_cham_luat.py`, không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo.
 
-**Việc kế.** Leader gộp sau BƯỚC 235 (gộp `main` vào nhánh này). BƯỚC kế 237, lỗi kế 195 (không ghi lỗi mới ở BƯỚC này).
+**Việc kế.** Leader đã gộp `main` (BƯỚC 235) vào nhánh và đo ở máy (mục trên); merge khi CI xanh. BƯỚC kế 237, lỗi kế 195 (không ghi lỗi mới ở BƯỚC này).
