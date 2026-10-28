@@ -24398,3 +24398,9 @@ Bảng lỗi: hàng 193 (lớp `gac-hong`, nguồn `git`, sống 10 ngày: `a85a
 **Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi` (khuôn BƯỚC 232–233): BƯỚC sửa luật viết của B1 (sản phẩm CHỈ ĐỂ HIỆN), không sửa file luật nào theo `tools/buoc_cham_luat.py`, không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo.
 
 **Việc kế.** Leader merge sau khi xem lượt phát lại; lượt B1 kế (cron 18:17 VN ngày làm việc) viết lại năm lệnh ở lần 3 — đọc tab `hau_kiem` sau lượt ấy. Soát 15 + ĐO 27 lượt đọc 4 hạn **02/11/2026**. BƯỚC kế 235, lỗi kế 194.
+
+## BƯỚC 236 — `tools/nam_cong.py` CHẠY CỔNG 1 SONG SONG (`pytest-xdist`) THEO MẶC ĐỊNH Ở MÁY; `--mot-tien-trinh` LÀ CỜ LUI; `--song-song` CÒN NHẬN NHƯ LỆNH TRỐNG; CI GIỮ MỘT TIẾN TRÌNH (28/10/2026)
+
+**Mốc:** quy-trinh — đổi mặc định của công cụ chạy năm cổng ở máy, không đổi bộ cổng, điểm, ngưỡng hay kết luận đo
+
+(đang viết)

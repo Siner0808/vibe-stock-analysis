@@ -14,17 +14,27 @@ nên năm cổng chạy cùng lúc được, và cổng 4 tự chạy nhiều fi
 Năm cổng KHÔNG đổi: cùng năm công cụ CI chạy (`.github/workflows/kiem-dinh.yml`,
 gác ở `tests/test_nam_cong.py`), cổng 4 vẫn mỗi file một tiến trình. Chỉ đổi lúc bắt đầu.
 
-CỔNG 1 SONG SONG LÀ TUỲ CHỌN (BƯỚC 222). Người dùng 23/10/2026 muốn dùng GPU cho nhanh;
-GPU của máy là AMD Radeon 780M tích hợp, không có CUDA, và việc nặng là vòng lặp Python —
-người dùng chọn "Thử pytest-xdist". `--song-song` cho cổng 1 thêm `SONG_SONG_CONG1` khi
-trình thông dịch có `pytest-xdist` (thiếu gói thì một tiến trình, không nổ). MẶC ĐỊNH vẫn MỘT
-tiến trình: đo 23/10 trên máy đang bận, cổng 1 song song chạy chồng cổng 4 làm cả hai chậm và
-cổng 4 đỏ giả vì quá giờ — chưa đo được lợi trên cả lượt. CI VẪN một tiến trình (gác:
-`tests/test_nam_cong.py`): đó là nơi giữ phép thử "cả bộ chung một tiến trình" — bắt test làm
-bẩn trạng thái của test khác. Số đo: `docs/STATE.md` BƯỚC 222.
+CỔNG 1 Ở MÁY MẶC ĐỊNH SONG SONG (BƯỚC 222 làm tuỳ chọn, BƯỚC 236 đổi mặc định). Người dùng
+23/10/2026 muốn dùng GPU cho nhanh; GPU của máy là AMD Radeon 780M tích hợp, không có CUDA, và
+việc nặng là vòng lặp Python — người dùng chọn "Thử pytest-xdist". Lượt đo đầu (23/10, máy đang
+bận) chưa thấy lợi trên cả lượt nên BƯỚC 222 để mặc định một tiến trình. 27/10/2026 leader đo
+lại xen kẽ trên máy rảnh và thấy cổng 1 song song nhanh hơn rõ rệt (số: `docs/STATE.md`
+BƯỚC 236, ghi rõ ai đo và đo ở đâu). Người dùng 27/10 chọn "Lập BƯỚC, làm sau": mặc định ở
+máy là song song, có cờ lui, và tự lùi về một tiến trình khi thiếu gói.
+
+  - Mặc định: cổng 1 thêm `SONG_SONG_CONG1` nếu trình thông dịch của cổng có `pytest-xdist`.
+  - `--mot-tien-trinh`: ép cổng 1 một tiến trình (đường lui, như CI).
+  - Thiếu `pytest-xdist`: một tiến trình, in dòng nói rõ vì sao — không nổ. `pytest-xdist` KHÔNG
+    nằm trong `requirements.txt` (tệp ấy là thứ Streamlit Cloud cài; pytest cũng không ở đó).
+  - `--song-song` vẫn được nhận nhưng là LỆNH TRỐNG (đã là mặc định); giữ vì lệnh cũ trong tài
+    liệu và phiếu giao còn dùng nó.
+
+CI VẪN một tiến trình (gác: `tests/test_nam_cong.py`): đó là nơi giữ phép thử "cả bộ chung một
+tiến trình" — bắt test làm bẩn trạng thái của test khác. `--tuan-tu` (chạy từng cổng một) là
+trục KHÁC với cổng 1 song song hay không.
 
 CÁCH DÙNG
-    ./.venv/Scripts/python.exe tools/nam_cong.py [--thu-muc-log <dir>] [--tuan-tu] [--song-song]
+    ./.venv/Scripts/python.exe tools/nam_cong.py [--thu-muc-log <dir>] [--tuan-tu] [--mot-tien-trinh]
 
 In một dòng `congN=<mã thoát>` cho mỗi cổng (cùng dạng bản tuần tự), thời gian
 của từng cổng và của cả lượt. Log đầy đủ ở `<dir>/congN.log`.
@@ -52,7 +62,7 @@ CONG: list[tuple[int, str, list[str]]] = [
     (5, "số test không giảm", ["tools/kiem_so_test_khong_giam.py"]),
 ]
 
-#: Cổng 1 Ở MÁY thêm đối số này khi trình thông dịch có pytest-xdist (BƯỚC 222). CI không thêm.
+#: Cổng 1 Ở MÁY thêm đối số này khi trình thông dịch có pytest-xdist (BƯỚC 222, mặc định từ BƯỚC 236). CI không thêm.
 SONG_SONG_CONG1 = ["-n", "auto"]
 
 
@@ -68,16 +78,16 @@ def co_xdist(python: str) -> bool:
     return r is not None and r.returncode == 0
 
 
-def cong_may(python: str | None = None, song_song: bool = False):
+def cong_may(python: str | None = None, mot_tien_trinh: bool = False):
     """Bộ cổng chạy Ở MÁY, và một dòng nói cổng 1 chạy thế nào.
 
-    Như `CONG`. Xin `song_song` VÀ trình thông dịch có pytest-xdist thì cổng 1 thêm
-    `SONG_SONG_CONG1`; thiếu gói thì lùi về một tiến trình, không nổ.
+    Như `CONG`. Mặc định cổng 1 thêm `SONG_SONG_CONG1` khi trình thông dịch có pytest-xdist;
+    `mot_tien_trinh` ép một tiến trình; thiếu gói thì lùi về một tiến trình, không nổ.
     """
-    if not song_song:
-        return list(CONG), "cổng 1: MỘT tiến trình (mặc định, như CI; --song-song để thử xdist)"
+    if mot_tien_trinh:
+        return list(CONG), "cổng 1: MỘT tiến trình (xin --mot-tien-trinh, như CI)"
     if not co_xdist(python or sys.executable):
-        return list(CONG), "cổng 1: MỘT tiến trình — xin --song-song nhưng thiếu pytest-xdist"
+        return list(CONG), "cổng 1: MỘT tiến trình — lùi vì thiếu pytest-xdist ở trình thông dịch của cổng"
     return ([(so, ten, [*doi_so, *SONG_SONG_CONG1] if so == 1 else doi_so)
              for so, ten, doi_so in CONG],
             f"cổng 1: SONG SONG ({' '.join(SONG_SONG_CONG1)}, pytest-xdist) · CI vẫn một tiến trình")
@@ -151,14 +161,18 @@ def main(argv: list[str] | None = None) -> int:
                     help="nơi ghi congN.log (mặc định một thư mục tạm mới)")
     ap.add_argument("--tuan-tu", action="store_true",
                     help="chạy từng cổng một như bản cũ (đường lui)")
-    ap.add_argument("--song-song", action="store_true",
-                    help="thử cổng 1 song song bằng pytest-xdist (mặc định một tiến trình như CI)")
+    nhom = ap.add_mutually_exclusive_group()
+    nhom.add_argument("--mot-tien-trinh", action="store_true",
+                      help="ép cổng 1 chạy MỘT tiến trình như CI (đường lui; mặc định là song song "
+                           "bằng pytest-xdist, tự lùi về một tiến trình khi thiếu gói)")
+    nhom.add_argument("--song-song", action="store_true",
+                      help="lệnh trống: song song đã là mặc định (BƯỚC 236); giữ cho lệnh cũ")
     a = ap.parse_args(argv)
 
     t0 = time.time()
     print(f"Năm cổng {'TUẦN TỰ' if a.tuan_tu else 'CÙNG LÚC'} · bắt đầu {time.strftime('%H:%M:%S')}",
           flush=True)
-    cong, ghi_chu = cong_may(song_song=a.song_song)
+    cong, ghi_chu = cong_may(mot_tien_trinh=a.mot_tien_trinh)
     print(ghi_chu, flush=True)
     kq = chay(cong=cong, thu_muc_log=a.thu_muc_log, tuan_tu=a.tuan_tu)
     for c in kq:

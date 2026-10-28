@@ -14,6 +14,8 @@ import sys
 import textwrap
 from pathlib import Path
 
+import pytest
+
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC / "tools"))
 
@@ -143,6 +145,7 @@ def test_TUAN_TU_cong_sau_bat_dau_sau_khi_cong_truoc_xong(tmp_path):
 def test_MA_THOAT_mot_cong_hong_thi_ca_luot_tra_1(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(nam_cong, "CONG", _cong_gia(tmp_path, ma={3: 2}, ngu=0.1))
     monkeypatch.setattr(nam_cong, "GOC", tmp_path)
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: False)
     assert nam_cong.main(["--thu-muc-log", str(tmp_path / "log")]) == 1
     ra = capsys.readouterr().out
     assert "cong3=2" in ra and "cong1=0" in ra and "cổng 3 (mã 2)" in ra
@@ -151,6 +154,7 @@ def test_MA_THOAT_mot_cong_hong_thi_ca_luot_tra_1(tmp_path, monkeypatch, capsys)
 def test_MA_THOAT_ca_nam_xanh_thi_tra_0_va_moi_cong_mot_log(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(nam_cong, "CONG", _cong_gia(tmp_path, ngu=0.1))
     monkeypatch.setattr(nam_cong, "GOC", tmp_path)
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: False)
     assert nam_cong.main(["--thu-muc-log", str(tmp_path / "log")]) == 0
     assert sorted(p.name for p in (tmp_path / "log").iterdir()) == [f"cong{i}.log" for i in range(1, 6)]
     assert "Cả năm cổng thoát 0" in capsys.readouterr().out
@@ -169,28 +173,33 @@ def test_AST_ban_cung_luc_khoi_dong_HET_roi_moi_cho():
     assert vong_cho and vong_cho[0].lineno > dung[0].lineno
 
 
-# ── BƯỚC 222: cổng 1 Ở MÁY chạy song song bằng pytest-xdist; CI giữ MỘT tiến trình ──────────
+# ── BƯỚC 222/236: cổng 1 Ở MÁY mặc định song song bằng pytest-xdist; CI giữ MỘT tiến trình ──
 
-def test_CONG1_MAC_DINH_mot_tien_trinh_du_co_xdist(monkeypatch):
-    """Mặc định giữ hành vi BƯỚC 201: đo 23/10 chưa thấy lợi trên cả lượt khi máy bận."""
+def test_CONG1_MAC_DINH_song_song_khi_CO_xdist(monkeypatch):
+    """BƯỚC 236: không xin gì cả, có xdist thì cổng 1 chạy `-n auto`; bốn cổng kia không đổi."""
     monkeypatch.setattr(nam_cong, "co_xdist", lambda python: True)
     cong, ghi_chu = nam_cong.cong_may(python="py-gia")
-    assert cong == nam_cong.CONG and "mặc định" in ghi_chu
-
-
-def test_CONG1_SONG_SONG_khi_XIN_va_CO_xdist(monkeypatch):
-    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: True)
-    cong, ghi_chu = nam_cong.cong_may(python="py-gia", song_song=True)
     assert cong[0][2] == [*nam_cong.CONG[0][2], "-n", "auto"]
     assert cong[1:] == nam_cong.CONG[1:], "chỉ cổng 1 đổi"
     assert "SONG SONG" in ghi_chu
 
 
-def test_CONG1_xin_song_song_ma_THIEU_xdist_thi_mot_tien_trinh(monkeypatch):
-    """Venv CI của phiên đám mây không có xdist: lùi về một tiến trình, không nổ."""
+def test_CONG1_MAC_DINH_thieu_xdist_thi_lui_mot_tien_trinh_va_noi_ro(monkeypatch):
+    """Máy không cài pytest-xdist (venv của phiên đám mây): lùi về một tiến trình, không nổ."""
     monkeypatch.setattr(nam_cong, "co_xdist", lambda python: False)
-    cong, ghi_chu = nam_cong.cong_may(python="py-gia", song_song=True)
-    assert cong == nam_cong.CONG and "thiếu pytest-xdist" in ghi_chu
+    cong, ghi_chu = nam_cong.cong_may(python="py-gia")
+    assert cong == nam_cong.CONG
+    assert "MỘT tiến trình" in ghi_chu and "thiếu pytest-xdist" in ghi_chu
+
+
+def test_CONG1_ep_MOT_tien_trinh_du_co_xdist(monkeypatch):
+    """`--mot-tien-trinh` thắng xdist: đường lui. Cũng không được hỏi xdist làm gì (không tốn một
+    tiến trình con) khi người dùng đã ép."""
+    hoi = []
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: hoi.append(python) or True)
+    cong, ghi_chu = nam_cong.cong_may(python="py-gia", mot_tien_trinh=True)
+    assert cong == nam_cong.CONG and "--mot-tien-trinh" in ghi_chu and "thiếu" not in ghi_chu
+    assert hoi == []
 
 
 def test_co_xdist_HOI_chinh_trinh_thong_dich_duoc_truyen(tmp_path):
@@ -201,10 +210,11 @@ def test_co_xdist_HOI_chinh_trinh_thong_dich_duoc_truyen(tmp_path):
     assert nam_cong.co_xdist(str(tmp_path / "khong_co_python.exe")) is False
 
 
-def test_MAIN_truyen_song_song_va_in_cach_chay_cong1(tmp_path, monkeypatch, capsys):
+def _main_ghi_cong(tmp_path, monkeypatch, co_xdist: bool):
+    """Dựng `main` với năm cổng giả; trả hàm `chay_main(*cờ)` -> (mã thoát, cổng 1 đã nhận, stdout)."""
     monkeypatch.setattr(nam_cong, "CONG", _cong_gia(tmp_path, ngu=0.1))
     monkeypatch.setattr(nam_cong, "GOC", tmp_path)
-    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: True)
+    monkeypatch.setattr(nam_cong, "co_xdist", lambda python: co_xdist)
     nhan = {}
     that = nam_cong.chay
 
@@ -213,12 +223,56 @@ def test_MAIN_truyen_song_song_va_in_cach_chay_cong1(tmp_path, monkeypatch, caps
         return that(cong=cong, **kw)
 
     monkeypatch.setattr(nam_cong, "chay", chay_ghi)
-    assert nam_cong.main(["--thu-muc-log", str(tmp_path / "a")]) == 0
-    assert "-n" not in nhan["cong"][0][2]
-    assert "MỘT tiến trình" in capsys.readouterr().out
-    assert nam_cong.main(["--thu-muc-log", str(tmp_path / "b"), "--song-song"]) == 0
-    assert nhan["cong"][0][2][-2:] == ["-n", "auto"]
-    assert "SONG SONG" in capsys.readouterr().out
+    dem = iter(range(100))
+
+    def chay_main(capsys, *co):
+        ma = nam_cong.main(["--thu-muc-log", str(tmp_path / f"log{next(dem)}"), *co])
+        return ma, nhan["cong"][0][2], capsys.readouterr().out
+
+    return chay_main
+
+
+def test_MAIN_mac_dinh_song_song_va_in_cach_chay_cong1(tmp_path, monkeypatch, capsys):
+    chay_main = _main_ghi_cong(tmp_path, monkeypatch, co_xdist=True)
+    ma, cong1, ra = chay_main(capsys)
+    assert ma == 0 and cong1[-2:] == ["-n", "auto"] and "SONG SONG" in ra
+
+
+def test_MAIN_mot_tien_trinh_ep_cong1_khong_chia_tien_trinh(tmp_path, monkeypatch, capsys):
+    chay_main = _main_ghi_cong(tmp_path, monkeypatch, co_xdist=True)
+    ma, cong1, ra = chay_main(capsys, "--mot-tien-trinh")
+    assert ma == 0 and "-n" not in cong1 and "--mot-tien-trinh" in ra and "SONG SONG" not in ra
+
+
+def test_MAIN_thieu_xdist_mac_dinh_mot_tien_trinh_va_in_dong_lui(tmp_path, monkeypatch, capsys):
+    chay_main = _main_ghi_cong(tmp_path, monkeypatch, co_xdist=False)
+    ma, cong1, ra = chay_main(capsys)
+    assert ma == 0 and "-n" not in cong1 and "thiếu pytest-xdist" in ra
+
+
+def test_MAIN_song_song_van_duoc_nhan_va_giong_mac_dinh(tmp_path, monkeypatch, capsys):
+    """Lệnh cũ trong tài liệu và phiếu giao còn `--song-song`: phải parse được, làm đúng như mặc định
+    (cả khi có lẫn không xdist), và không đi chung được với `--mot-tien-trinh`."""
+    for co in (True, False):
+        chay_main = _main_ghi_cong(tmp_path, monkeypatch, co_xdist=co)
+        mac_dinh = chay_main(capsys)
+        cu = chay_main(capsys, "--song-song")
+        assert cu[:2] == mac_dinh[:2] and cu[0] == 0, (co, cu, mac_dinh)
+    with pytest.raises(SystemExit) as loi:
+        nam_cong.main(["--song-song", "--mot-tien-trinh"])
+    assert loi.value.code == 2
+
+
+def test_MAIN_tuan_tu_la_truc_khac_khong_dung_den_cong1_song_song(tmp_path, monkeypatch, capsys):
+    chay_main = _main_ghi_cong(tmp_path, monkeypatch, co_xdist=True)
+    ma, cong1, ra = chay_main(capsys, "--tuan-tu")
+    assert ma == 0 and cong1[-2:] == ["-n", "auto"] and "TUẦN TỰ" in ra
+
+
+def test_CONG_goc_cong1_khong_mang_san_song_song():
+    """`CONG` là bản MẪU theo CI (một tiến trình); song song chỉ được thêm trong `cong_may`. Nếu
+    `-n` lọt vào `CONG` thì `--mot-tien-trinh` ép không nổi và cổng 1 bị thêm `-n` hai lần."""
+    assert not set(nam_cong.CONG[0][2]) & {"-n", "--numprocesses", "--dist", "auto"}
 
 
 def test_CI_cong1_van_MOT_tien_trinh():

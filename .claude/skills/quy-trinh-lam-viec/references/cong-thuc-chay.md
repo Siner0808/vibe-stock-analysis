@@ -92,6 +92,28 @@ Lỡ rồi thì chạy lại đúng những file đọc file vừa sửa:
 ./.venv/Scripts/python.exe tools/nam_cong.py --thu-muc-log /tmp/nc > /tmp/nc.txt 2>&1
 ```
 
+**Cổng 1 ở máy chạy SONG SONG theo mặc định (BƯỚC 236, 28/10/2026).** `tools/nam_cong.py` thêm
+`-n auto` (pytest-xdist) vào cổng 1 khi trình thông dịch của cổng có `pytest-xdist`; thiếu gói
+thì tự lùi về MỘT tiến trình và in dòng nói rõ vì sao (không nổ). Cờ lui:
+
+```bash
+./.venv/Scripts/python.exe tools/nam_cong.py --mot-tien-trinh --thu-muc-log /tmp/nc > /tmp/nc.txt 2>&1
+```
+
+- `--mot-tien-trinh`: ép cổng 1 một tiến trình, như CI. Dùng khi nghi một test đỏ vì chạy song
+  song (hai tiến trình dùng chung một thứ) — đỏ ở `-n auto` mà xanh ở một tiến trình là
+  tín hiệu thật cần điều tra, không phải đỏ giả để chạy lại cho qua.
+- `--song-song`: vẫn được nhận, là LỆNH TRỐNG (đã là mặc định); giữ vì lệnh cũ trong tài liệu và
+  phiếu giao còn dùng nó. Không đi chung với `--mot-tien-trinh` (argparse bỏ mã thoát 2).
+- `--tuan-tu`: trục KHÁC (năm cổng lần lượt thay vì cùng lúc); không đổi cổng 1 song song hay không.
+- CI KHÔNG đổi: một tiến trình, không cài `pytest-xdist` (`.github/workflows/kiem-dinh.yml`,
+  gác ở `tests/test_nam_cong.py`). `pytest-xdist` cố ý KHÔNG vào `requirements.txt` (tệp ấy là
+  thứ Streamlit Cloud cài; `pytest` cũng không ở đó, `tests/test_requirements.py`). Cài ở máy:
+  `./.venv/Scripts/python.exe -m pip install pytest-xdist==3.8.0`.
+- Cổng 1 song song và cổng 4 (mỗi file một tiến trình) chạy chồng nên tranh nhân: lượt đo của
+  BƯỚC 222 trên máy đang bận từng thấy cổng 4 đỏ giả vì quá giờ. Cổng 4 đỏ vì quá giờ mà xanh khi
+  chạy riêng thì chạy lại cổng 4 một mình trước khi kết luận.
+
 Từng cổng lẻ (cùng lệnh `tools/nam_cong.py` chạy bên trong):
 
 ```bash
@@ -118,8 +140,10 @@ lúc cho **đỏ giả**. Đây là ràng buộc thật, không phải sở thí
 > bằng `tools/nam_cong.py`; số đo ở `docs/STATE.md` BƯỚC 201.
 > **BƯỚC 222 (23/10/2026):** `--song-song` cho cổng 1 chạy `-n auto` khi venv có
 > `pytest-xdist` (cài: `./.venv/Scripts/python.exe -m pip install pytest-xdist==3.8.0`);
-> mặc định vẫn MỘT tiến trình, CI cũng vậy. Đo trên máy bận chưa thấy lợi trên cả lượt
+> khi đó mặc định còn MỘT tiến trình. Đo trên máy bận chưa thấy lợi trên cả lượt
 > và thấy cổng 4 đỏ giả vì quá giờ khi hai cổng nặng chạy chồng — `docs/STATE.md` BƯỚC 222.
+> 🔴 **HẾT ĐÚNG 28/10/2026 (BƯỚC 236):** "mặc định còn MỘT tiến trình" — mặc định ở máy nay là
+> SONG SONG, `--mot-tien-trinh` là cờ lui (đoạn đầu mục này); CI vẫn một tiến trình.
 
 Thời gian đo 07/09/2026 ở máy local: cổng 1 ≈ 150s · cổng 4 ≈ 220s.
 🔴 **HẾT ĐÚNG:** bộ test đã lớn lên (874 test ngày 09/09/2026, hơn 3.000 nay) —
@@ -177,7 +201,7 @@ Dòng `grep` bỏ chú thích, dòng `--extra-index-url` và hai gói của kho 
 Cổng 2 tự tìm `python3.11` trên PATH (`/usr/bin/python3.11` có sẵn). Nếu không có, nó trả mã
 thoát **2** (chưa kiểm được), không phải xanh.
 
-**3. Thời gian đo** (12/10/2026): cổng 1 ≈ 568s · cổng 2 ≈ 1s · cổng 3 ≈ 2s ·
+**3. Thời gian đo** (12/10/2026, MỘT tiến trình; xem `docs/STATE.md` BƯỚC 236 cho số đo cổng 1 song song): cổng 1 ≈ 568s · cổng 2 ≈ 1s · cổng 3 ≈ 2s ·
 cổng 4 ≈ 730s · cổng 5 ≈ 3s. Chúng đổi theo tải máy; nói ra là một khoảng.
 
 **4. Đỏ và skip ĐÃ BIẾT ở môi trường này** (3127 test: 3123 pass · 1 đỏ · 3 skip):
