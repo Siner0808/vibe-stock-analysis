@@ -17804,7 +17804,10 @@ không hại gì.
 `run_daily` gặp nến dở thì **bỏ nó và xử lý phiên đã đóng gần nhất**, với
 **một** thời điểm cho cả lượt. Làm vậy vì hai lý do:
 
-- **Lặp lại vô hại.** Phiên ấy đã xử lý thì lượt này không đổi gì — khớp
+- **Lặp lại vô hại.** ⚠️ **HẾT ĐÚNG từ BƯỚC 241 (lỗi 196)** — vế cuối sai: lượt hai KHÔNG
+  "cho cùng một mức" mà xét ĐÁY của chính nến với cắt lỗ lượt một vừa nâng và cắt lệnh (MSR #119,
+  01/10); từ BƯỚC 241 vòng quét BỎ QUA nến đã có dòng quyết định. Câu cũ giữ nguyên làm sử liệu:
+  Phiên ấy đã xử lý thì lượt này không đổi gì — khớp
   lệnh chờ đòi phiên sau ngày tín hiệu, `fill_closing` đòi phiên sau ngày
   tín hiệu thoát, `evaluate_open` bỏ phiên vào, và nâng stop trên cùng một
   nến cho cùng một mức.
@@ -24664,3 +24667,81 @@ Trong lượt cuối (đầy đủ nhất): **10/16 lệnh thật tái lập Đ�
 **Năm cổng ở máy:** cả năm thoát 0 trên cây của nhánh `c1/lat2-240` (`tools/nam_cong.py --thu-muc-log <thư mục>`, mặc định song song, 29/10 11:14–11:17, 183 s): cổng 1 3784 passed, 2 skipped (cộng 3786 = mốc) · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo (số cảnh báo như BƯỚC 239) · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3786 test, khớp mốc (3740 → 3786). **Lượt đầu (11:08) đỏ 11 test**: 7 của `tests/test_bang_loi_do_duoc.py` vì dòng lỗi 194 chưa có phân lớp ở `docs/loi-phan-lop.json` và dòng tự khai chưa đổi 96/172 thành 96/173; 3 của chính BƯỚC này vì `tests/test_sheets_store.py` ghim `market_filter.is_vni_bullish` thành hàm giả ở MỨC MODULE nên chạy cả bộ thì "cổng thật" trong test là hàm giả (xanh khi chạy một mình — cổng 4 không bắt được loại đỏ này; sửa bằng bản sao riêng của `market_filter` theo khuôn `tests/test_market_filter.py`); 1 của `tests/test_ho_so.py::test_CUA_khu_trung_trong_cung_mot_phien` đỏ ở lượt đầu, xanh ở lượt sau và xanh khi chạy riêng mà KHÔNG sửa gì — chưa truy ra nguyên nhân, ghi là nhấp nháy. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** Hỏi người dùng (qua leader): (1) cổng VN-INDEX chạy thật thấy nến trễ MỘT phiên còn backtest/cache thấy nến cùng ngày — chủ ý hay muốn thống nhất (đổi bên nào là đổi luật); (2) quét nhiều lần một nến cho phép cắt lỗ vừa được nâng cắt ngay nến ấy — giữ hay đổi; (3) Tầng B: chấp nhận "mọi sai khác đã truy ra nguồn" hay đợi đủ lệnh đóng sau 01/10. Lát 3 (đặc tả mục 12): `docs/phuong-an-bong.json` (PB-001, PB-002), tài khoản rổ, chuỗi lợi nhuận phiên, KTC có cặp, độ phủ. Merge PR của BƯỚC này khi CI xanh. Lỗi kế 195.
+
+## BƯỚC 241 — SỬA HAI LỖI CỦA BỘ MÁY SỔ THẬT MÀ BƯỚC 240 PHÁT HIỆN: CỔNG VN-INDEX ĐỌC NẾN CÙNG NGÀY (LỖI 195), MỖI NẾN CHỈ XỬ LÝ MỘT LẦN (LỖI 196); ĐO DẤU CHÂN TRÊN SỔ THẬT (29/10/2026)
+
+**Mốc:** C1
+
+Người dùng 29/10/2026 (nguyên văn): *"Sửa sổ thật dùng nến cùng ngày, làm trước Lát 3 (Recommended)"* và *"Mỗi nến chỉ xử lý một lần, làm trước Lát 3 (Recommended)"*. Phiên con của leader, nhánh `sua/bo-may-241` từ `main` `9d04997` (PR #286), worktree ngoài repo `vibe_wt_241`. Hai lỗi do `docs/STATE.md` BƯỚC 240 nêu ở "Việc kế" câu (1) và (2); BƯỚC này sửa chúng ở ĐƯỜNG QUÉT THẬT, đo dấu chân trên sổ thật (chỉ đọc), và KHÔNG đổi `CHO_PHEP_MO_LENH_MOI`, ngưỡng hay trần. Không ghi Google Sheets, không ghi `*.db` ở gốc repo, không viết lại lịch sử sổ.
+
+### Lỗi 195 — cổng VN-INDEX của đường thật đọc thị trường trễ MỘT phiên
+
+`market_filter.is_vni_bullish` lọc `vni_df["time"] <= signal_date` bằng so CHUỖI. `get_vni_df()` ưu tiên cache CSV (`time` = `2026-09-30`) và chỉ ra mạng khi cache rỗng — đúng trên Actions — mà nguồn mạng trả `2026-09-30 07:00:00`; `"2026-09-30 07:00:00" <= "2026-09-30"` là False nên nến của chính ngày tín hiệu bị loại, đúng trái với docstring *"tới hết `signal_date`"*. Backtest (cache) thấy nến cùng ngày, quét thật thấy nến phiên trước.
+
+**Sửa:** so ngày 10 ký tự ở cả ba nơi cùng hình dạng: `market_filter.is_vni_bullish` (cổng), `nhat_ky_vi_sao.vni_so_voi_ma50` (bối cảnh ghi vào nhật ký lúc tín hiệu — gác AST cũ đòi hai hàm cùng biểu thức, nên phải đổi cùng lúc), `san_dau.NguonVni` (bản chép của bộ phát lại; BƯỚC 240 cố ý lặp lại độ trễ, nay lặp lại cổng đã sửa, và test "kèm giờ trễ một phiên" đã đảo thành "hai dạng cột đọc cùng nến").
+
+**Không nhìn trộm tương lai** (kiểm bằng mã, không bằng suy luận): `run_daily.execute_daily_scan` bỏ nến cuối khi `data_quality.nen_cuoi_dang_do(df["time"].iloc[-1], now_time)` (`data_quality.py:55-73`; nến của hôm nay trước `GIO_NEN_DA_DONG` là nến dở), nên `signal_date` luôn là ngày của một nến ĐÃ ĐÓNG; nến VN-INDEX của đúng ngày ấy cùng phiên HOSE, cùng giờ chốt. Phép so vẫn là `<=`: nến ngày SAU bị loại (`tests/test_cong_vni_nen_cung_ngay.py::test_KHONG_nhin_trom_nen_cua_ngay_SAU`).
+
+**Quét cùng lớp** (so chuỗi một cột `time` có thể mang hậu tố giờ với một ngày; lệnh: `grep -nE '\["time"\] *(<=|<|>=|>) ' *.py tools/*.py backtest/*.py app.py`). Mọi chỗ cổng `consider_entry` hỏi:
+
+| chỗ | trên đường vào lệnh? | tình trạng |
+|---|---|---|
+| `market_filter.py:292` `is_vni_bullish` | CÓ (cổng VN-INDEX) | **LỖI → sửa** |
+| `nhat_ky_vi_sao.py:174` `vni_so_voi_ma50` | CÓ (bối cảnh nhật ký lúc tín hiệu, gọi từ `consider_entry` khi mở lệnh) | **LỖI → sửa** |
+| `san_dau.py:120` `NguonVni.vni_tren_ma50` | không (bộ phát lại C1) | cùng lỗi, **sửa** để khớp cổng |
+| `ban_tin.py:218` | không (bản tin, chỉ đọc) | ĐÚNG — cắt 10 ký tự ở :215 trước khi so |
+| `do_rong.py:36,50` (cổng độ rộng) | CÓ nhưng cổng TẮT (`DO_RONG_NGUONG` = 0) | ĐÚNG — `to_datetime(… .str[:10])`, `searchsorted` trên ngày |
+| `imom.py:41,80` (lọc IMOM) | CÓ nhưng cổng TẮT | ĐÚNG — `.str[:10]`, `ngay[:10]` |
+| `chot_sut_giam.py:41,85` (chốt sụt giảm) | CÓ nhưng cổng TẮT | ĐÚNG — `[:10]` cả hai phía |
+| `paper_trading.py` `fill_pending`/`evaluate_open`/`xet_lenh_dat_san`/`fill_closing`/`ngay_ra_lo_gan` | CÓ | ĐÚNG — `[:10]` hoặc `substr(…,1,10)` (audit 25/09) |
+| `backtest/data.py:526` | không (gộp cache) | `_norm_time` chuẩn hoá trước khi so |
+| `intraday_data.py:142` | không | so `Timestamp`, không so chuỗi |
+
+Chưa gác được bằng máy ngoài hai hàm đã biết: gác AST chỉ canh `is_vni_bullish` và `vni_so_voi_ma50`; một chỗ MỚI so chuỗi cột `time` trên đường vào lệnh sẽ lọt (ghi ở lỗi 195).
+
+### Lỗi 196 — quét lại cùng một nến cắt lệnh ở nến đã nâng cắt lỗ
+
+Actions quét 2–3 lần mỗi ngày làm việc và mỗi lượt sau giờ đóng cửa xử lý CÙNG nến đã đóng (lượt TRƯỚC giờ đóng cửa cũng xử lý lại nến hôm qua, vì nến hôm nay bị bỏ là nến dở). `buoc_phien` → `evaluate_open` không lặp lại được: lượt 1 nâng cắt lỗ lên 0,93 × giá đóng cửa, lượt 2 so ĐÁY của chính nến ấy với cắt lỗ mới — trái bất biến 3. Chú thích cũ ở `run_daily` khẳng định điều ngược lại (*"không đổi gì … nâng stop … cho cùng kết quả trên cùng nến"*, BƯỚC 123); đã sửa chú thích.
+
+**Sửa** (đúng thiết kế đề xuất, không lệch): `PaperTradingJournal.nen_da_xu_ly(mã, ngày)` đọc dòng `decisions` cuối của (mã, `substr(signal_date,1,10)`); `run_daily.tra_nen_da_xu_ly` dựng kết quả "không làm gì" cùng khuôn `run_session` kèm điểm của lượt trước; vòng quét hỏi nó TRƯỚC `run_session` (`s = tra_nen_da_xu_ly(...)`, `if s is None: s = run_session(...)`). `buoc_phien`, `run_session`, walk-forward và `san_dau.phat_lai` KHÔNG đổi (gác AST: ba file ấy không gọi hai hàm mới; đục thử P1 đỏ). Không thêm cột nào vào bảng đẩy lên Sheets.
+
+**Dấu "đã xử lý" — kiểm mọi đường trước khi dựa vào** (`tests/test_moi_nen_xu_ly_mot_lan.py::test_MOI_duong_cua_luot_quet_de_lai_dau_da_xu_ly_va_luot_hai_khong_doi_gi`, chín kịch bản chạy `run_session` thật trên sổ thật trong bộ nhớ): mã chưa giữ → `consider_entry` ghi MỘT dòng ở MỌI nhánh (vào lệnh · cổng chặn · điểm dưới ngưỡng · chất lượng dữ liệu · ô C5 đóng · trần vốn · thiếu SL/TP); mã đang giữ → dòng "đã có vị thế" (CHỈ sổ thật, từ BƯỚC 146 — vì thế dấu CHỈ dùng khi `ghi_nhat_ky`, sổ khác trả None); mã giữ rồi cắt lỗ rồi xét vào lại → dòng của `consider_entry`. Lượt NỔ giữa chừng không ghi dòng nào nên lượt sau xử lý bù. Chỗ không dùng được: nến của 28–30/09 (trước BƯỚC 146 mã đang giữ không có dòng) — chúng đã qua.
+
+**Rà các hiệu ứng quét lại khác** (mỗi dòng có lệnh hoặc test):
+- `fill_pending` · `fill_closing`: lượt hai là no-op (lệnh đã sang OPEN/CLOSED; `fill_closing` chốt `exit_date` ngày tín hiệu).
+- Đóng theo đảo tín hiệu / trần giữ lệnh: lượt 1 đặt CLOSING, lượt 2 thấy lệnh không còn OPEN nên `evaluate_open` bỏ qua — lặp lại vô hại (và nay không còn lượt 2).
+- **Vào lại cùng nến sau một cú cắt lỗ của lượt 2:** có thật trên mã (`tests/test_moi_nen_xu_ly_mot_lan.py::test_ĐOI_CHUNG_hanh_vi_cu_quet_hai_lan_cat_lenh_NGAY_nen_da_nang_stop` thấy một lệnh PENDING mới cùng nến), nhưng trên sổ thật từ 28/09 là **0**: lệnh có `signal_date` = ngày ra của lệnh trước cùng mã chỉ có hai ca cũ (ANV 29/01/2026, POW 04/06/2024 — lượt mô phỏng). MSR 01/10 không vào lại vì cổng VN-INDEX chặn lượt 2.
+- `ke_hoach`: `INSERT OR IGNORE` khoá (mã, ngày nến); vòng quét vẫn gọi `ghi_ke_hoach_tin_hieu` cho mã bị bỏ qua (điểm lấy từ dòng quyết định) để lượt trước nổ giữa chừng vẫn được bù — kết quả "trùng", đếm như cũ.
+- Dòng `decisions` trùng: sổ thật từ 28/09 mỗi (mã, ngày) có 2–3 dòng; từ nay một.
+- Người tiêu dùng đã soát: chuông quét (`tools/chuong_bao_quet.py`: chỉ đếm lượt chạy `success`), chuông nguồn đứng, chuông bài học, `suc_khoe.py` — không cái nào đọc bảng `decisions` (gác AST của test). `tools/canh_cong_c5.py` đọc `acted = 1`: dấu bỏ qua không bao giờ thêm hay xoá một dòng vào lệnh. `cham_bong` giữ dòng SAU CÙNG theo `(at, seq)` mỗi (mã, phiên): từ nay là dòng của lượt xử lý (trước: dòng của lượt cuối; điểm giống nhau trên cùng nến). `ban_tin` ghép mỗi cặp bằng "có dòng nào acted" nên một dòng vẫn đúng. Báo cáo phiên: thêm một dòng "N/M mã đã xử lý ở lượt trước" ở nhật ký và ở khối cổng chặn, để lượt hai không in "không có dòng nào" như thể chưa chặn gì; điểm của mã bị bỏ qua in theo số nguyên của dòng cũ (`/100` hiện `.0`).
+- Thời gian: `nen_da_xu_ly` không có chỉ mục; gọi cho 71 mã trên bản sao sổ thật 21.613 dòng mất 0,47 s (đo một lần bằng `time.time()` quanh vòng gọi; ước lượng cỡ, không phải số gác).
+
+### Đo dấu chân trên sổ thật (chỉ đọc)
+
+Sổ: `tools/doc_so_that.py` (`keo_ve_so_tam`, 29/10 ~14:33) → bản sao `scratchpad/b241_c/so_that_29-10.db` (băm SHA-256 16 ký tự đầu `ae20e1604476a97e`; 133 lệnh, 21.613 quyết định), mở `mode=ro`. Giá VN-INDEX và giá mã tải thẳng bằng `backtest.data.fetch_one` (không ghi cache). Dụng cụ ĐO nằm trong repo: `tools/do_dau_chan_241.py` (hai lệnh con `cat-lo`, `cong-vni`; chỉ đọc).
+
+**Đo 1 — bao nhiêu lệnh STOP_LOSS từ 28/09 bị cắt bởi cắt lỗ do một lượt TRƯỚC nâng trên CHÍNH nến thoát?** Luật nâng ở `evaluate_open` là `max(cắt lỗ, giá vào nếu cao ≥ 1,05 × vào, 0,93 × đóng)`, và xét cắt lỗ chạy TRƯỚC bước nâng trong cùng một lượt; nên nếu cắt lỗ cuối cùng của lệnh đã đóng bằng 0,93 × đóng cửa của chính nến thoát (hay bằng giá vào khi cao ≥ 1,05 × vào) thì nó được nâng ở một lượt trên nến thoát, và cắt lệnh ở một lượt SAU của nến ấy. **Kết quả: 1/7** — #119 MSR (01/10): cắt lỗ cuối 54.498 = 0,93 × 58.600, đáy 54.300 ≤ 54.498 và > 0,93 × đóng nến trước (51.429), ba dòng quyết định (15:38, 19:33 ngày 01/10 và 15:14 ngày 02/10). Sáu lệnh còn lại có cắt lỗ cuối ≠ 0,93 × đóng nến thoát (đặt từ nến trước, hợp lệ theo bất biến 3): #115 STB (01/10) · #124 BSR (02/10) · #125 BAF (02/10) · #122 HDB (09/10) · #127 FRT (14/10) · #120 PVT (15/10). Hai trong sáu (HDB · BAF) chịu giá điều chỉnh sau (BƯỚC 240, ước lượng chưa tra bằng `su_kien_quyen`) nên phép so 0,93 × đóng cửa của chúng chỉ nói "≠" ở thang giá điều chỉnh; riêng HDB ra ở 21.600 vì gap sau sự kiện quyền (BƯỚC 240) chứ không vì cắt lỗ vừa nâng. Lệnh: `VIBE_CACHE_DIR=<repo chính>/backtest/cache ./.venv/Scripts/python.exe tools/do_dau_chan_241.py cat-lo <DB bản sao>` (chạy từ repo chính). Phần phản thực (MSR sẽ ra thế nào nếu mỗi nến một lần) KHÔNG đo ở BƯỚC này: Tầng B của BƯỚC 240 phát lại MSR theo phiên cho ngày ra 13/10 ở 57.200 nhưng mang sang trạng thái cắt lỗ cuối của sổ, nên không dùng làm số.
+
+**Đo 2 — ngày tín hiệu nào cổng VN-INDEX đổi phán quyết?** Cùng hàm so, ba nguồn: nguồn mạng kèm giờ (hành vi cũ), nguồn mạng cắt 10 ký tự (sau sửa), cache CSV (đến 21/10). 24 ngày tín hiệu từ 25/09 (quét 28/09 đọc nến 25/09). **3/24 đổi:**
+
+| ngày tín hiệu | cũ → sau sửa | so THẬT ghi trong sổ |
+|---|---|---|
+| 30/09 | QUA → **CHẶN** | cổng QUA; mở #126 GVR (điểm 62, đóng 12/10 SIGNAL_REVERSED) và #127 FRT (điểm 64, đóng 14/10 STOP_LOSS) |
+| 23/10 | CHẶN → **QUA** | cổng CHẶN 142 dòng; 5 tín hiệu điểm ≥ 62 bị chặn (FRT 67 · GIL 66 · HDB 62 · TCB 67 · VPL 62) mà sau sửa không bị cổng này chặn (vẫn còn các cổng sau chưa xét) |
+| 26/10 | QUA → **CHẶN** | cổng QUA; mở #128 TCB · #129 HDB · #130 AAA · #131 GIL · #132 ACV · #133 HCM (cả sáu còn OPEN) |
+
+21 ngày còn lại cùng phán quyết giữa nguồn mạng kèm giờ và nguồn mạng cắt 10 ký tự. Hai kiểm: (a) phán quyết MÔ PHỎNG của hành vi cũ khớp phán quyết THẬT trong sổ ở cả 24 ngày (không dòng `!!` nào trong log) — tức dữ liệu mạng lúc quét giống dữ liệu mạng lúc đo; (b) cache cho cùng phán quyết với "sau sửa" ở mọi ngày tới 21/10 — 19 ngày có cả ba nguồn (không dòng `!!`); 5 ngày 22/10–28/10 cache chưa phủ. Lệnh: `VIBE_CACHE_DIR=<repo chính>/backtest/cache ./.venv/Scripts/python.exe tools/do_dau_chan_241.py cong-vni <DB bản sao>` (chạy từ repo chính). Bản chạy đầu dùng hai script tạm cùng nội dung; log nguyên văn ở `scratchpad/b241_c/do_1_cat_lo.log`, `do_2_cong_vni.log`. KHÔNG đo kết quả lãi/lỗ phản thực của tám lệnh (#126–#133) hay của năm tín hiệu bị chặn 23/10: chưa có phép đo nào đứng sau và sổ chưa đủ lệnh đóng; lịch sử sổ KHÔNG bị viết lại.
+
+### Đột biến, test, cổng
+
+**Số test:** 3.786 → 3.839 (+53: `tests/test_cong_vni_nen_cung_ngay.py` 28 · `tests/test_moi_nen_xu_ly_mot_lan.py` 25 · `tests/test_san_dau.py` giữ 46, một test đảo nghĩa), mốc `docs/moc_so_test.json` cập nhật cùng BƯỚC.
+
+**Đột biến** (`va_an_toan.dot_bien`; lệnh sau mỗi phát: `./.venv/Scripts/python.exe -m pytest <ba file test của nhóm> -q -x`): **28 phát, lượt đầu 28/28 ĐỎ.** Lỗi 195 (11): nguyên văn lỗi (so chuỗi trần) · `<=` thành `<` · `signal_date` không cắt 10 ký tự · bỏ nến cuối · `>=` (nhìn tương lai) · cắt theo tháng — ở cổng; ba phát tương ứng ở nhật ký; hai ở `NguonVni`. Lỗi 196 (17): bảy phát ở `nen_da_xu_ly` (sổ không-thật vẫn có dấu · so cột `signal_date` trần · tham số không cắt · dòng đầu thay vì cuối · lọc mã ngược · không bao giờ có dấu · luôn có dấu), chín ở `tra_nen_da_xu_ly` và vòng quét (gỡ cổng bỏ qua · hỏi sai ngày · hỏi sai mã · điểm bằng 0 · cờ `da_xu_ly` sai · báo `closed`/`opened` = 1 · luôn chạy `run_session` · đảo nhánh), một ở `buoc_phien` (tự bỏ qua — đổi ngữ nghĩa của đường đo). Lượt kiểm tra TRƯỚC khi viết đột biến: test cổng đỏ trên mã cũ (một dạng cột kèm giờ đỏ ở lần chạy đầu, trước khi sửa); đối chứng hành vi cũ nằm trong chính test (`run_session` hai lần cắt MSR-hình-dạng và mở một lệnh PENDING mới cùng nến).
+
+**Năm cổng ở máy:** cả năm thoát 0 trên cây của nhánh `sua/bo-may-241` (`tools/nam_cong.py --tuan-tu --thu-muc-log <thư mục>`, 29/10 14:57–15:01, 282 s): cổng 1 3837 passed, 2 skipped (cộng 3839 = mốc) · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo (như BƯỚC 240) · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3839 test, khớp mốc (3786 → 3839). **Hai lượt trước KHÔNG xanh, và lý do không nằm ở mã mới:** lượt đầu (14:46, song song) đỏ cổng 5 vì mốc chưa cập nhật và `tests/test_gac_van_ban_phai_khai.py` (chính test mới của BƯỚC này đọc `"decisions"` bằng chuỗi — sửa sang AST); lượt thứ hai (14:53, song song) đỏ cổng 1 và cổng 4 ở MỘT test, `tests/test_ho_so.py::test_CUA_khu_trung_trong_cung_mot_phien` — xanh khi chạy riêng (11 passed) và xanh ở lượt tuần tự. Đây là test BƯỚC 240 đã ghi là "nhấp nháy"; đọc mã: dấu vết `tools/cua_ho_so._dau_vet` là MỘT file trong thư mục tạm, khoá theo mã phiên cố định `t-khu-trung`, nên cổng 1 và cổng 4 chạy CÙNG LÚC (mặc định của `nam_cong.py`) giẫm lên nhau — giả thuyết từ đọc mã, chưa dựng lại bằng hai tiến trình. Việc riêng: đổi mã phiên của test theo tiến trình; CI chạy tuần tự nên không đỏ ở đó. Lượt cuối chạy `--tuan-tu`; CI chạy lại trên cây cuối.
+
+**Lượt soát NotebookLM (BƯỚC đổi hai luật chạy thật nên HỎI THẬT, người dùng chốt hai việc này 29/10):** mục `BƯỚC 241` ở `docs/soat-notebooklm.json`, câu hỏi tiếng Anh dựng bằng `tools/so_tay.py hoi --js` và gửi ở khung trình duyệt của leader (khung của phiên con chưa đăng nhập). **Câu đo độ tươi trả LẠC ĐỀ** — sổ tay trả lời lại một câu cũ về BƯỚC 231 thay vì đưa số BƯỚC nên KHÔNG ghi là kết quả độ tươi; sổ tay được coi là cũ (HANDOFF BƯỚC 235: STATE tới BƯỚC 234), chấp nhận được vì câu hỏi về luật cũ. **Một phát hiện, THẬT:** `docs/STATE.md` BƯỚC 123, gạch đầu dòng *"Lặp lại vô hại. Phiên ấy đã xử lý thì lượt này không đổi gì … nâng stop trên cùng một nến cho cùng một mức"* — hết đúng với lỗi 196; kiểm lại bằng `tools/doi_chieu_trich_dan.py` (KHỚP, STATE.md, dòng 17807) và bằng chạy hành vi (test đối chứng). Đã đánh dấu ⚠️ HẾT ĐÚNG kèm con trỏ BƯỚC 241 tại chỗ, câu cũ giữ nguyên. **Hai câu ÂM của sổ tay** (không tài liệu nào nói cổng VN-INDEX chủ ý đọc trễ; không tài liệu nào buộc mọi lượt quét ghi dòng quyết định) đã tự grep — 0 dòng cả hai, lệnh ở mục sổ. Sổ tay không thấy dòng nào khác nói quét lại là vô hại; `grep -rnE 'vô hại|cùng kết quả trên cùng nến'` ngoài STATE và sử liệu cũng không ra câu nào khác. Lưu ý giới hạn: sổ tay chỉ đọc tài liệu; phát hiện duy nhất trùng với chỗ BƯỚC 240 đã chạm tới bằng tái lập.
+
+**Câu hỏi cho người dùng** (trong PR, mục riêng): (1) Tám lệnh mở ở 30/09 và 26/10 (#126–#133) và các tín hiệu 23/10 qua/ không qua cổng theo phán quyết cũ — giữ nguyên trong sổ và trong mẫu của điều kiện dừng (mặc định, không viết lại lịch sử), hay đánh dấu để loại khỏi mẫu như lệnh có sự kiện quyền (Q14)? (2) #119 MSR là một lệnh cắt lỗ do lỗi 196 — giữ hay đánh dấu loại? Cả hai chỉ đổi cách ĐỌC sổ, không đổi mã.
+
+**Việc kế.** Lát 3 (đặc tả mục 12) trên bộ máy đã sửa; cache giá `acf6dca1…` không đổi nên các số đo của walk-forward không đổi (cổng VN-INDEX của backtest đọc cache cùng ngày từ trước). Sơ đồ "Một ngày của agent" chưa nêu bước "bỏ qua nến đã xử lý" (việc trang trí, chưa làm). Lỗi kế 197.

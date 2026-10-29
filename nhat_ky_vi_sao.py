@@ -163,15 +163,15 @@ def chi_tiet(dong: dict) -> dict:
 def vni_so_voi_ma50(vni_df, signal_date: str) -> dict:
     """VN-INDEX TẠI `signal_date`: giá đóng, MA50, % trên MA50.
 
-    Cắt ĐÚNG biểu thức của `market_filter.is_vni_bullish` — `time <=
-    signal_date` — để bối cảnh ghi vào nhật ký là cùng một phiên mà cổng
+    Cắt ĐÚNG biểu thức của `market_filter.is_vni_bullish` — `time` cắt 10 ký tự
+    `<= signal_date` 10 ký tự (BƯỚC 241, lỗi 195) — để bối cảnh ghi vào nhật ký là cùng một phiên mà cổng
     mở lệnh đã nhìn (bất biến 1). Gác AST so hai biểu thức.
     Thiếu dữ liệu thì trả None ở cả ba ô, không đoán.
     """
     rong = {"vni_close": None, "vni_ma50": None, "vni_pct_tren_ma50": None}
     if vni_df is None or vni_df.empty:
         return rong
-    sub = vni_df[vni_df["time"] <= signal_date]
+    sub = vni_df[vni_df["time"].astype(str).str[:10] <= str(signal_date)[:10]]
     if sub.empty:
         return rong
     latest = sub.iloc[-1]

@@ -334,6 +334,23 @@ def _canh_bao_noi_phien(tieu_de: str, dong: list[str]) -> None:
                 print(f"- {d}", file=f)
 
 
+def tra_nen_da_xu_ly(journal, ma: str, thoi_gian_nen) -> dict | None:
+    """Nến này của mã đã được xử lý ở lượt trước? Đã xử lý thì trả "kết quả" cùng khuôn `run_session`
+    (không khớp, không đóng, không mở) kèm điểm của lượt trước; chưa thì None.
+
+    BƯỚC 241, lỗi 196. Actions quét 2–3 lần mỗi ngày và `run_daily` KHÔNG ĐƯỢC xử lý lại một nến đã
+    đóng: lượt 1 nâng cắt lỗ theo giá đóng cửa, lượt 2 xét đáy CHÍNH nến ấy với cắt lỗ mới và cắt lệnh
+    (MSR 01/10, BƯỚC 240) — cắt lỗ dời phải chỉ có hiệu lực từ phiên SAU (bất biến 3). Dấu "đã xử lý"
+    là dòng quyết định của (mã, ngày nến) (`PaperTradingJournal.nen_da_xu_ly`). `paper_runner.buoc_phien`
+    giữ nguyên ngữ nghĩa — walk-forward và bộ phát lại của sân đấu (C1) đã xử lý mỗi nến đúng một lần.
+    """
+    cu = journal.nen_da_xu_ly(ma, str(thoi_gian_nen))
+    if cu is None:
+        return None
+    return {"filled_in": 0, "filled_out": 0, "closed": 0, "opened": 0,
+            "final_score": float(cu["score"]), "da_xu_ly": True}
+
+
 def ghi_ke_hoach_tin_hieu(journal, ma, df, diem, san, bay_gio,
                           ngay_nen) -> tuple[str, str]:
     """Ghi kế hoạch vào lệnh của MỘT mã vừa quét (BƯỚC 195, B6 phần 2).
@@ -491,6 +508,8 @@ def execute_daily_scan():
     quet_duoc = 0
     # Số mã mà nến cuối là nến ĐANG DỞ, đã bỏ để chỉ ghi sổ trên nến đóng.
     bo_nen_do = 0
+    # Số mã mà nến đã đóng này ĐÃ xử lý ở lượt trước (có dòng quyết định) — bỏ qua, không ghi thêm.
+    nen_da_xu_ly = 0
     _da_nap_lich = False
     # Số phiên nến THẬT SỰ nhận được cho từng mã đã chấm được điểm.
     phien_nhan = []
@@ -530,9 +549,10 @@ def execute_daily_scan():
                     print(f"📅 Lịch phiên cho ô C1: {_n} phiên từ {sym}")
                 # CHỈ GHI SỔ TRÊN NẾN ĐÃ ĐÓNG (BƯỚC 123). Trong phiên, nến
                 # cuối là nến NGÀY ĐANG DỞ: bỏ nó và xử lý phiên ĐÃ ĐÓNG gần
-                # nhất. Phiên ấy đã xử lý thì lượt này không đổi gì (khớp,
-                # chấm, nâng stop đều cho cùng kết quả trên cùng nến); bị lỡ
-                # thì lượt này xử lý bù. `now_time` là MỘT thời điểm cho cả
+                # nhất. Phiên ấy đã xử lý thì lượt này BỎ QUA mã đó (`tra_nen_da_xu_ly`, BƯỚC 241):
+                # câu cũ "không đổi gì" SAI — nâng stop theo giá đóng cửa rồi xét đáy của chính nến ấy
+                # với stop mới cắt lệnh ở lượt thứ hai (lỗi 196); bị lỡ thì lượt này xử lý bù.
+                # `now_time` là MỘT thời điểm cho cả
                 # lượt — một lượt vắt qua giờ chốt không được xử lý nửa rổ
                 # bằng nến hôm nay, nửa kia bằng nến hôm qua.
                 if (df is not None and len(df)
@@ -554,8 +574,14 @@ def execute_daily_scan():
                     # Khối lượng cho mô hình trượt giá. KHÔNG nhân hệ số giá.
                     "volume": float(row["volume"]) if "volume" in row else 0.0,
                 }
-                s = run_session(journal, sym, df, bar, str(row["time"]),
-                                san_cua(sym), BUY_THRESHOLD)
+                # MỖI NẾN CHỈ XỬ LÝ MỘT LẦN (BƯỚC 241, lỗi 196): lượt quét thứ hai trên cùng nến đã
+                # đóng KHÔNG chạy `run_session` nữa. Đừng gộp nhánh này vào `run_session`.
+                s = tra_nen_da_xu_ly(journal, sym, str(row["time"]))
+                if s is None:
+                    s = run_session(journal, sym, df, bar, str(row["time"]),
+                                    san_cua(sym), BUY_THRESHOLD)
+                else:
+                    nen_da_xu_ly += 1
                 # SAU run_session: sổ đã xử lý xong mã này (BƯỚC 195).
                 _kq_kh = ghi_ke_hoach_tin_hieu(
                     journal, sym, df, s.get("final_score"), san_cua(sym),
@@ -599,6 +625,9 @@ def execute_daily_scan():
 
         time.sleep(1.0) # Tạm dừng 1.0s giữa các request
 
+    if nen_da_xu_ly:
+        print(f"⏭️ {nen_da_xu_ly}/{quet_duoc} mã: nến đóng gần nhất ĐÃ xử lý ở lượt trước "
+              f"(có dòng quyết định) — bỏ qua, không khớp/chấm/ghi thêm (BƯỚC 241)")
     # ── KẾ HOẠCH VÀO LỆNH đã ghi (BƯỚC 195) ──────────────────────────
     print(f"📝 Kế hoạch vào lệnh: {ke_hoach_dem['moi']} ghi mới · "
           f"{ke_hoach_dem['trung']} đã có · "
@@ -669,6 +698,9 @@ def execute_daily_scan():
             dong_cong.append(f"    - `{_n}` — {_ly_do or '(không ghi lý do)'}")
     else:
         dong_cong.append("- **Quyết định KHÔNG vào lệnh trong phiên này:** không có dòng nào")
+    if nen_da_xu_ly:
+        dong_cong.append(f"- **Mã đã xử lý ở lượt trước (bỏ qua, không ghi dòng mới):** "
+                         f"`{nen_da_xu_ly}`/`{quet_duoc}` — lý do chặn của chúng nằm ở lượt đã xử lý")
     khoi_cong = chr(10).join(dong_cong)
 
     # ── TẠO BÁO CÁO PHÂN TÍCH CHUYÊN SÂU KHI HOÀN THÀNH ──────────────

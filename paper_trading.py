@@ -735,6 +735,30 @@ class PaperTradingJournal:
              result.get("data_quality", "")))
         self.db.commit()
 
+    def nen_da_xu_ly(self, symbol: str, signal_date: str) -> Optional[dict]:
+        """Dòng quyết định CUỐI của (mã, ngày nến), hoặc None nếu nến này CHƯA được xử lý — dấu
+        "đã xử lý" của đường quét THẬT (BƯỚC 241, lỗi 196).
+
+        Vì sao có hàm này: Actions quét 2–3 lần mỗi ngày và mỗi lượt sau giờ đóng cửa xử lý CÙNG
+        MỘT nến đã đóng. `evaluate_open` không lặp lại được: lượt 1 nâng cắt lỗ theo giá đóng cửa
+        của nến, lượt 2 xét đáy của CHÍNH nến ấy với cắt lỗ mới và cắt lệnh — trái bất biến 3
+        (cắt lỗ dời chỉ có hiệu lực từ phiên sau). Người gọi (`run_daily`) bỏ qua mã đã có dấu.
+
+        Dấu = một dòng `decisions` của (mã, ngày 10 ký tự). Mọi đường của `paper_runner.buoc_phien`
+        trên sổ THẬT ghi đúng một dòng như vậy ở cuối lượt xử lý: mã chưa giữ → `consider_entry` ghi
+        mọi nhánh (vào lệnh, bị cổng chặn, trần vốn); mã đang giữ → dòng "đã có vị thế" (từ BƯỚC 146,
+        CHỈ sổ thật). Lượt nổ giữa chừng không ghi dòng nào nên lượt sau xử lý bù. Sổ không phải sổ
+        thật (`ghi_nhat_ky` tắt) không ghi dòng cho mã đang giữ nên KHÔNG có dấu: trả None.
+        Tên cột `signal_date` ở sổ cũ có thể mang giờ: so `substr(…, 1, 10)` (HANDOFF mục 3, ràng buộc 1).
+        """
+        if not self.ghi_nhat_ky:
+            return None
+        r = self.db.execute(
+            "SELECT score FROM decisions"
+            " WHERE symbol=? AND substr(signal_date, 1, 10)=? ORDER BY seq DESC LIMIT 1",
+            (symbol, str(signal_date)[:10])).fetchone()
+        return None if r is None else {"score": r["score"]}
+
     # ─────────────────── Kế hoạch vào lệnh (BƯỚC 195) ─────────────────
     def ghi_ke_hoach(self, dong: dict) -> bool:
         """Ghi MỘT dòng kế hoạch (`so_ke_hoach.dong_tu_ke_hoach`). True nếu là
