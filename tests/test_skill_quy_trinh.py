@@ -14,8 +14,11 @@ import re
 import sys
 from pathlib import Path
 
+import pytest
+
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
+sys.path.insert(0, str(GOC / "tools"))
 
 THU_MUC_SKILL = GOC / ".claude" / "skills"
 SKILL = THU_MUC_SKILL / "quy-trinh-lam-viec" / "SKILL.md"
@@ -340,12 +343,74 @@ def test_CHI_CO_MOT_skill_quy_trinh():
     `docs/STATE.md` BƯỚC 33 và 34 đều là biến thể của "hai chỗ nói về cùng
     một thứ, một chỗ đã hết đúng". Một skill thừa còn tệ hơn, vì nó được
     nạp TỰ ĐỘNG.
+
+    BƯỚC 244: repo có thêm skill ĐỌC MỘT LĨNH VỰC (`dow-theory-analysis`).
+    Luật nới đúng một nấc: skill nào không phải quy trình phải được khai trong
+    `cua_mo_phien.SKILL_PHU` (danh sách đóng); phần còn lại vẫn phải là ĐÚNG
+    MỘT skill quy trình. Skill mới chưa khai thì test này đỏ.
     """
-    co = sorted(p.name for p in THU_MUC_SKILL.glob("*/SKILL.md"))
+    import cua_mo_phien as mp
     ds = sorted(p.parent.name for p in THU_MUC_SKILL.glob("*/SKILL.md"))
-    assert len(co) == 1, f"có {len(co)} skill trong dự án: {ds}"
-    assert ds == ["quy-trinh-lam-viec"], ds
-    print(f"PASS  đúng một skill: {ds[0]}")
+    quy_trinh = [t for t in ds if t not in mp.SKILL_PHU]
+    assert quy_trinh == ["quy-trinh-lam-viec"], (
+        f"skill chưa khai là phụ và không phải quy trình duy nhất: {quy_trinh}")
+    assert set(mp.SKILL_PHU) <= set(ds), (
+        f"SKILL_PHU khai skill không có trên đĩa: {sorted(set(mp.SKILL_PHU) - set(ds))}")
+    # bản tin mở phiên chỉ được gọi skill QUY TRÌNH là bắt buộc
+    assert mp.ten_skill() == quy_trinh
+    print(f"PASS  đúng một skill quy trình: {quy_trinh[0]}; skill phụ: {list(mp.SKILL_PHU)}")
+
+
+#: Câu sai đã bị báo cáo nghiên cứu 29/10/2026 bác khỏi bản nháp của người dùng
+#: (BƯỚC 244; `docs/thiet-ke-dow-cau-truc.md` mục 12). Skill phụ mà chép lại là
+#: đưa ngược lỗi đã sửa. Cố ý tìm CHUỖI NGUYÊN VĂN của bản nháp.
+CAU_DA_BAC = {
+    "dow-theory-analysis": (
+        "T+2.5",            # chu kỳ thanh toán không có nguồn nào ghi
+        "20% – 30%", "20%–30%",     # "phần con sóng mới đã đi mất": không nguồn
+        "2 – 6 tuần", "2–6 tuần",   # độ dài con sóng ở VN: không có phép đo nào
+        "độ tin cậy cao nhất",      # xếp hạng "failure swing": không có nguồn gốc
+        "tương đương vùng",         # "1/3–2/3 = vùng Fibonacci": sai số học
+    ),
+}
+
+
+def _skill_phu():
+    import cua_mo_phien as mp
+    return list(mp.SKILL_PHU)
+
+
+@pytest.mark.parametrize("ten", _skill_phu())
+def test_SKILL_PHU_frontmatter_hop_le_va_khong_tu_nhan_la_quy_trinh(ten):
+    duong = THU_MUC_SKILL / ten / "SKILL.md"
+    assert duong.exists(), f"SKILL_PHU khai {ten} nhưng không có {duong}"
+    src = duong.read_text(encoding="utf-8")
+    assert src.startswith("---\n"), "thiếu frontmatter YAML"
+    fm = src.split("---", 2)[1]
+    t = re.search(r"^name:\s*(\S+)", fm, re.M)
+    mo = re.search(r"^description:\s*(.+)", fm, re.M)
+    assert t and mo, "frontmatter thiếu name hoặc description"
+    assert t.group(1) == ten, f"name {t.group(1)!r} khác tên thư mục {ten!r}"
+    assert "<" not in fm and ">" not in fm, "frontmatter không được có < >"
+    assert len(mo.group(1)) > 60, "description quá ngắn để làm điều kiện kích hoạt"
+    mota = mo.group(1).lower()
+    assert "bắt buộc" not in mota, (
+        "skill phụ tự nhận BẮT BUỘC trong description — đó là nhãn riêng của "
+        "skill quy trình")
+    assert "không dùng" in mota, (
+        "description phải nêu rõ KHÔNG dùng cho việc gì, để không tranh kích hoạt "
+        "với các skill SMC / Wyckoff của người dùng")
+    print(f"PASS  skill phụ {ten}: frontmatter hợp lệ, không tự nhận là quy trình")
+
+
+@pytest.mark.parametrize("ten", _skill_phu())
+def test_SKILL_PHU_khong_chep_lai_cau_da_bi_bac(ten):
+    src = (THU_MUC_SKILL / ten / "SKILL.md").read_text(encoding="utf-8")
+    cam = CAU_DA_BAC.get(ten)
+    assert cam, f"skill phụ {ten} chưa khai CAU_DA_BAC (có thể là rỗng có lý do)"
+    co = [c for c in cam if c in src]
+    assert not co, f"skill {ten} chép lại câu đã bị bác: {co}"
+    print(f"PASS  skill phụ {ten}: vắng {len(cam)} câu đã bị bác")
 
 
 def test_skill_NHAC_ranh_gioi_khong_dat_lenh_that():
