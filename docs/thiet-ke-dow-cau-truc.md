@@ -36,7 +36,7 @@ Hệ quả đã chốt: (1) một MODULE thuần mới + một ô trên app + m�
 |---|---|---|
 | Swing / internal structure (đỉnh–đáy xoay chiều theo hai cấp) | **KHÔNG** | `git grep -i -I -n "swing\|zigzag\|fractal\|choch\|break of structure" 7e0218c -- '*.py' '*.md' ':!tests'` (cây TRƯỚC BƯỚC này) ra 0 dòng. `git log --all -S"CHoCH" --oneline` 0 commit |
 | BOS / CHoCH | **KHÔNG** | cùng lệnh trên |
-| HH / HL / LH / LL | **KHÔNG** | `TrendAgent` chỉ đọc EMA20, SMA50, SMA200, ADX (`analysis_agents.py`, lớp `TrendAnalysisAgent`) — thước trung bình động, không phải cấu trúc đỉnh–đáy |
+| HH / HL / LH / LL | **KHÔNG** | `TrendAgent` (`analysis_agents.py`, lớp `TrendAnalysisAgent`) chấm bằng EMA20, SMA50, SMA200, ADX và một luật giá so MA10 / MA20 (`MO-XE-KIEN-TRUC.md`, mục *Điều này nghĩa là gì*) — thước trung bình động, không phải cấu trúc đỉnh–đáy |
 | "Smart Money" | chỉ là TÊN | `app.py:1306–1309`: "Smart Money Flow %" = `last_vol / avg_vol − 1` — một tỷ lệ khối lượng, không phải khái niệm SMC |
 | Pivot | chỉ pivot sàn cổ điển | `analysis_agents.py:330–337`: `(H+L+C)/3` của phiên cuối, R1, S1 — không dò đỉnh–đáy |
 | Wyckoff: tích luỹ / phân phối / pha A–E, cao trào, AR, Spring, UTAD, Test, SOS, SOW | **CÓ** | `pha_wyckoff.py` — `doc_pha` (`:309`), hằng số (`:61–78`), lớp `PhaWyckoff` (`:87`); đọc `df.tail(CUA_SO_CAU_TRUC)` = 120 phiên (`:62`, `:136`); nền / gần đây không giao nhau (`:346–347`); "Chưa đủ bằng chứng" là câu trả lời hợp lệ (`:109–118`) |
