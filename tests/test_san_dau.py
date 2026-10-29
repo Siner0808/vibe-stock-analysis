@@ -48,6 +48,7 @@ _spec_mf.loader.exec_module(MF)
 
 DUONG_MODULE = GOC / "san_dau.py"
 DUONG_CLI = GOC / "tools" / "san_dau.py"
+DUONG_PAB = GOC / "phuong_an_bong.py"
 
 
 def _nap_cli():
@@ -731,10 +732,10 @@ def _so_nhat_ky_sai(cay) -> list[str]:
     return sai
 
 
-FILE_GAC = [DUONG_MODULE, DUONG_CLI]
+FILE_GAC = [DUONG_MODULE, DUONG_CLI, DUONG_PAB]      # BƯỚC 242: phuong_an_bong.py cũng không ghi, không chấm lại điểm, không UV-
 
 
-@pytest.mark.parametrize("duong", FILE_GAC, ids=lambda p: p.name if p == DUONG_MODULE else "tools/san_dau.py")
+@pytest.mark.parametrize("duong", FILE_GAC, ids=lambda p: "tools/san_dau.py" if p == DUONG_CLI else p.name)
 def test_G1_khong_ghi(duong):
     cay = _cay(duong)
     assert not (_goi(cay) & TEN_GHI), sorted(_goi(cay) & TEN_GHI)
