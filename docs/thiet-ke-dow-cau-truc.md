@@ -1,7 +1,7 @@
 # Thiết kế — Đọc cấu trúc giá theo Lý thuyết Dow (swing / internal, BOS / CHoCH, thủy triều – con sóng) và ghép chu kỳ Wyckoff 4 giai đoạn
 
 **Mốc:** B5 (mượn — xem mục 14, câu 2: `docs/LO-TRINH.md` chưa có dòng nào cho việc đọc cấu trúc giá; B5 là dòng gần nhất: "CHỈ ĐỂ HIỆN, không vào chấm điểm, đường lệnh ảo hay backtest").
-**Duyệt hướng:** người dùng, 29/10/2026, trong phiên leader (BƯỚC 244). **Trạng thái:** BẢN ĐẶC TẢ, **chưa có dòng mã nào**; chờ người dùng trả lời các câu ở mục 14.
+**Duyệt hướng:** người dùng, 29/10/2026, trong phiên leader (BƯỚC 244). **Trạng thái:** BẢN ĐẶC TẢ, **chưa có dòng mã nào**; bảy câu mở ở mục 14 ĐÃ CHỐT 29/10/2026. Việc kế: BƯỚC khai ĐO (Lát 0b), rồi Lát 1.
 
 Tài liệu này là đề bài cho các phiên làm mã, theo khuôn `docs/thiet-ke-c1-san-dau.md`. Luật chung (vá file, đột biến, năm cổng, giao PR) ở skill `quy-trinh-lam-viec` — đi theo nó, đừng chép lại vào đây. Hai nguồn bằng chứng nằm NGOÀI repo, nên mọi khẳng định bên dưới đều kèm mục của chúng:
 
@@ -321,7 +321,7 @@ Dow đòi hai chỉ số xác nhận nhau (mục 4.5). Với một chuỗi giá 
 
 Việc đầu của PHẦN 2 là lệnh kiểm mục 1 (không viết mã giao dịch, không đọc kết cục); nó chỉ được mở khi người dùng muốn (mục 14, câu 4).
 
-## 11. Các lát cắt, mỗi lát một BƯỚC, `Mốc:` theo mục 14 câu 2
+## 11. Các lát cắt, mỗi lát một BƯỚC, `Mốc:` theo mục 14 câu 2 (thứ tự đã chốt: Lát 0b trước Lát 1)
 
 Số BƯỚC do leader cấp lúc giao việc. Mỗi lát qua năm cổng, đột biến mọi gác, PR riêng. **Đặc tả này (BƯỚC 244) là lát 0.**
 
@@ -369,7 +369,21 @@ Người dùng soạn bản nháp (`C:\Users\cuong\OneDrive\Desktop\dow-theory-a
 - Không điều chỉnh giá trong mô-đun.
 - Không nói "tín hiệu Dow" cho một chuỗi giá đơn lẻ.
 
-## 14. Câu hỏi mở cho người dùng (mỗi câu một khuyến nghị)
+## 14. Câu hỏi mở — ĐÃ CHỐT 29/10/2026
+
+Bản đầu của đặc tả (29/10/2026) để bảy câu mở, mỗi câu một khuyến nghị. Leader chuyển câu trả lời của người dùng cùng ngày. Bảng dưới ghi **quyết định** (bốn câu có trích nguyên văn; ba câu còn lại người dùng không phản đối khuyến nghị được đặt làm mặc định — đó KHÔNG phải một trích dẫn) cạnh **đề xuất ban đầu** ở danh sách ngay sau; từ đây chỉ quyết định có hiệu lực.
+
+| # | Quyết định | Nguồn |
+|---|---|---|
+| 1 | Ký ĐO ở một BƯỚC riêng, TRƯỚC Lát 1 (mục 9.1 và 11: Lát 0b) | *"BƯỚC riêng ngay sau khi duyệt, trước Lát 1 (Recommended)"* |
+| 2 | Tạm mượn mốc **B5**; thêm MỘT dòng riêng cho việc này ở lần sửa `docs/LO-TRINH.md` kế | khuyến nghị đặt làm mặc định, người dùng không phản đối (không phải trích dẫn) |
+| 3 | Ô chỉ nói cấp swing + chu kỳ 4 giai đoạn; cấp nội bộ và BOS / CHoCH nội bộ nằm trong phần mở rộng (mục 7.1) | *"Swing + chu kỳ trên ô, Internal trong phần mở rộng (Recommended)"* |
+| 4 | PHẦN 2 (hai chỉ số) sau khi có kết cục ĐO phần một (mục 10) | *"Sau khi có kết quả ĐO phần 1 (Recommended)"* |
+| 5 | Giữ mặc định ATR (2,4) và con sóng 3/8 VÀ 10 phiên (mục 5.3, 5.8) | *"Giữ (Recommended)"* |
+| 6 | Phép đo chỉ mua / đứng ngoài, không bán khống (mục 9.2) | khuyến nghị đặt làm mặc định, người dùng không phản đối (không phải trích dẫn) |
+| 7 | Chấp nhận danh sách đóng `SKILL_PHU` (mục 12) | khuyến nghị đặt làm mặc định, người dùng không phản đối (không phải trích dẫn) |
+
+Hệ quả cho các lát (mục 11): Lát 0b (khai ĐO, sổ tay hỏi thật, commit riêng) đứng TRƯỚC Lát 1; ô ở Lát 3 chỉ hiện cấp swing + chu kỳ, khối mở rộng chứa cấp nội bộ; PHẦN 2 không có lát nào cho tới khi ĐO phần một có kết cục. Đề xuất ban đầu, giữ làm lịch sử:
 
 1. **Khi nào ký ĐO?** (a) BƯỚC riêng ngay sau khi duyệt đặc tả, TRƯỚC Lát 1 *(khuyến nghị — đúng khuôn ĐO 32: khai trước mã, commit riêng)*; (b) gộp với Lát 4; (c) bỏ phép đo, chỉ hiện.
 2. **Mốc trong `docs/LO-TRINH.md`.** (a) Tạm mượn **B5** (hiện cấu trúc, chỉ để hiện) và thêm MỘT dòng mới cho việc này ở lần sửa `LO-TRINH.md` kế — nó đã có hai ghi chú chờ gộp (`docs/HANDOFF.md` mục 5: dòng B1; "C kéo sớm"); file luật nên cần sổ tay hỏi thật, vì thế không sửa riêng *(khuyến nghị)*; (b) sửa `LO-TRINH.md` ngay trong BƯỚC khai ĐO; (c) ghi `quy-trinh — …` (không khớp bản chất).
