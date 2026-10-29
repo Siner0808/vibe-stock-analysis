@@ -26,7 +26,9 @@ import pytest
 
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
-sys.path.insert(0, str(GOC / "tools"))
+# `tools` ở CUỐI đường tìm: `tools/cham_xac_nhan.py` cùng tên với module gốc, đứng trước là
+# làm test nạp sau (test_keo_bang_gia) nhập nhầm dụng cụ thay vì module.
+sys.path.append(str(GOC / "tools"))
 
 import sinh_bang_vang_phien as S  # noqa: E402
 

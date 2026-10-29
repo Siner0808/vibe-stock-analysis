@@ -18,7 +18,7 @@ lô chẵn, khoá biên, trần vốn, cắt lỗ, trailing) chạy nguyên văn
 bằng hàm xác định: VN-INDEX (`market_filter.is_vni_bullish`), độ rộng (`do_rong`), IMOM
 (`imom`), lịch phiên và máy đóng băng (`chot_sut_giam`), bộ nhớ hậu nghiệm (tắt).
 
-MƯỜI HAI KỊCH BẢN CỜ. Mỗi kịch bản đặt một (hoặc vài) cờ của bộ máy rồi chạy cả 95 phiên. Cờ
+MƯỜI BỐN KỊCH BẢN. Mỗi kịch bản cờ đặt một (hoặc vài) cờ của bộ máy rồi chạy cả 95 phiên. Cờ
 đặt bằng GÁN BIẾN MODULE (`paper_trading.<CỜ> = giá trị`) — đúng cách các dụng cụ ĐO 30–33
 đang làm — nên bảng này cũng khoá việc ĐỌC CỜ LÚC GỌI. Mặc định phải bằng nguồn: kịch bản
 `mac_dinh` không đặt gì, và `co_mac_dinh` ghi các cờ đọc từ module lúc sinh.

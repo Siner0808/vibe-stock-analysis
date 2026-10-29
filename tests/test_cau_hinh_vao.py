@@ -24,7 +24,9 @@ import pytest
 
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
-sys.path.insert(0, str(GOC / "tools"))
+# `tools` ở CUỐI đường tìm: `tools/cham_xac_nhan.py` cùng tên với module gốc, đứng trước là
+# làm test nạp sau (test_keo_bang_gia) nhập nhầm dụng cụ thay vì module.
+sys.path.append(str(GOC / "tools"))
 
 import market_filter  # noqa: E402
 import paper_runner as pr  # noqa: E402
@@ -247,6 +249,7 @@ class _SoGia:
 
     def __init__(self, dang_giu=False, dong_sau_xet=False):
         self.dang_giu, self.dong_sau_xet, self.lan = dang_giu, dong_sau_xet, []
+        self.ngay_vao = None
 
     def fill_pending(self, *a, **k):
         self.lan.append("fill_pending")
@@ -271,6 +274,7 @@ class _SoGia:
 
     def consider_entry(self, *a, **k):
         self.lan.append("consider_entry")
+        self.ngay_vao = a[1]
         return None
 
 
@@ -295,6 +299,14 @@ def test_buoc_phien_THU_TU_bon_buoc():
     so = _SoGia(dang_giu=True, dong_sau_xet=True)
     _chay(so)
     assert so.lan == ["fill_pending", "fill_closing", "evaluate_open", "consider_entry"]
+
+
+def test_buoc_phien_chuan_hoa_ngay_ve_10_ky_tu():
+    """Đường thật truyền `str(row["time"])` 19 ký tự; sổ và rổ chuẩn so NGÀY (ma_giao_dich-05/-06)."""
+    so = _SoGia()
+    ls, nen = _ls_nen()
+    pr.buoc_phien(so, "FPT", ls, nen, "2026-09-03 07:00:00", "HOSE", _cfg(), lambda: _kq())
+    assert so.ngay_vao == "2026-09-03"
 
 
 def test_buoc_phien_chi_khop_khong_cham_diem_va_final_score_None():
