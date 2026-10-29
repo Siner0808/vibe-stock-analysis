@@ -39,7 +39,7 @@ import json
 import sqlite3
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Protocol
 
 from data_quality import EXCHANGE_LIMITS, now_vn
 from vong_doi_lenh import KICH_SAN, KICH_TRAN
@@ -326,15 +326,21 @@ LOC_IMOM_PHAN_VI = 0
 LY_DO_LOC_IMOM = "lọc IMOM nhóm thấp"
 
 
-def phan_vi_imom_bi_loc(symbol: str, signal_date: str) -> Optional[float]:
-    """Phân vị IMOM của `symbol` tại ngày tín hiệu nếu nó ≤ `LOC_IMOM_PHAN_VI` (bị lọc);
+def phan_vi_imom_bi_loc(symbol: str, signal_date: str,
+                        phan_vi: float | None = None) -> Optional[float]:
+    """Phân vị IMOM của `symbol` tại ngày tín hiệu nếu nó ≤ `phan_vi` (bị lọc);
     None nếu không bị lọc hoặc IMOM thiếu — và None ngay, KHÔNG nạp `imom` hay đọc cache,
-    khi cổng TẮT (0). ĐO 31, BƯỚC 223."""
-    if LOC_IMOM_PHAN_VI <= 0:
+    khi cổng TẮT (0). ĐO 31, BƯỚC 223.
+
+    `phan_vi` — ngưỡng; thiếu thì lấy `CauHinhVao.tu_module().loc_imom_phan_vi` (BƯỚC 239:
+    chữ ký cũ gọi không tham số vẫn chạy đúng như trước)."""
+    if phan_vi is None:
+        phan_vi = CauHinhVao.tu_module().loc_imom_phan_vi
+    if phan_vi <= 0:
         return None
     import imom
     pv = imom.phan_vi_mac_dinh(symbol, str(signal_date)[:10])
-    return pv if pv is not None and pv <= LOC_IMOM_PHAN_VI else None
+    return pv if pv is not None and pv <= phan_vi else None
 
 #: Lý do ghi sổ khi cổng VN-INDEX chặn. Một hằng để dụng cụ ĐO 32 đếm theo đúng chuỗi.
 LY_DO_VNI = "VN-INDEX nằm dưới MA50 (Downtrend/Điều chỉnh - Giữ 100% tiền mặt)"
@@ -356,15 +362,24 @@ DO_RONG_NGUONG = 0
 LY_DO_DO_RONG = "độ rộng thị trường thấp"
 
 
-def do_rong_bi_chan(signal_date: str) -> Optional[float]:
-    """Độ rộng thị trường tại ngày tín hiệu nếu nó < `DO_RONG_NGUONG` (bị chặn); None nếu
+def do_rong_bi_chan(signal_date: str, nguong: float | None = None,
+                    nguon: "NguonThiTruong | None" = None) -> Optional[float]:
+    """Độ rộng thị trường tại ngày tín hiệu nếu nó < `nguong` (bị chặn); None nếu
     không bị chặn hoặc độ rộng thiếu — và None ngay, KHÔNG nạp `do_rong` hay đọc cache,
-    khi cổng TẮT (0). ĐO 32, BƯỚC 224."""
-    if DO_RONG_NGUONG <= 0:
+    khi cổng TẮT (0). ĐO 32, BƯỚC 224.
+
+    `nguong` — thiếu thì lấy `CauHinhVao.tu_module().do_rong_nguong`. `nguon` — nguồn độ
+    rộng TIÊM ĐƯỢC (BƯỚC 239); thiếu thì `do_rong.do_rong_mac_dinh` như trước."""
+    if nguong is None:
+        nguong = CauHinhVao.tu_module().do_rong_nguong
+    if nguong <= 0:
         return None
-    import do_rong
-    dr = do_rong.do_rong_mac_dinh(str(signal_date)[:10])
-    return dr if dr is not None and dr < DO_RONG_NGUONG else None
+    if nguon is None:
+        import do_rong
+        dr = do_rong.do_rong_mac_dinh(str(signal_date)[:10])
+    else:
+        dr = nguon.do_rong(str(signal_date)[:10])
+    return dr if dr is not None and dr < nguong else None
 
 #: Chốt sụt giảm của sổ — ĐO 33 (BƯỚC 226; khai trước ở `docs/TIEU-CHI-DOC-TRUOC.md`).
 #: > 0 thì `consider_entry` KHÔNG mở lệnh khi sổ đang đóng băng: vốn đã chốt (lệnh ra TRƯỚC
@@ -487,6 +502,77 @@ BIEN_DO_KIEM_GIA_MO = max(EXCHANGE_LIMITS.values())
 
 EXIT_SIGNAL_THRESHOLD = 45  # điểm rơi xuống dưới mức này -> đóng theo nguyên tắc
 MAX_HOLD_SESSIONS = 60      # trần thời gian nắm giữ
+
+#: Luật VÀO của một cấu hình: `MO_CUA_SAU` là đường thật (khớp ở giá mở cửa phiên sau tín hiệu);
+#: `KE_HOACH_B6` dành cho Lát 4 của C1 (`docs/thiet-ke-c1-san-dau.md` mục 7). Là CỜ CHỌN — đối
+#: tượng `luat_khop` truyền cho `fill_pending` được dựng ở bộ phát lại, không nằm trong cấu hình.
+LUAT_VAO = ("MO_CUA_SAU", "KE_HOACH_B6")
+
+
+@dataclass(frozen=True)
+class CauHinhVao:
+    """Mọi cờ của luật VÀO / RA mà bộ máy sổ lệnh đọc, gom thành MỘT giá trị bất biến
+    (BƯỚC 239, Lát 1 của C1; `docs/thiet-ke-c1-san-dau.md` mục 5).
+
+    Tên trường = tên cờ ở nguồn, chữ thường. Bộ máy đọc `cau_hinh.<trường>`, KHÔNG đọc tên
+    cờ module trần — sân đấu (Lát 2+) chạy nhiều tài khoản cùng lúc, mỗi tài khoản một cấu hình,
+    điều không thể làm khi cờ là biến toàn cục. Mặc định (`cau_hinh=None`) là `tu_module()`, tức
+    CHÍNH các biến module bên dưới, đọc LÚC GỌI: mọi nơi đặt cờ bằng gán biến module
+    (`tools/do30_nghi_sau_lo.py` … `tools/do33_chot_sut_giam.py`, `run_daily`, `monkeypatch` của
+    test) vẫn đúng nghĩa. Gác AST (`tests/test_cau_hinh_vao.py`): cờ chỉ được đọc ở `tu_module()`.
+    """
+    cho_phep_mo_lenh_moi: bool
+    buy_threshold: float
+    tran_von_cam_ket_pct: float
+    cong_vni_bat: bool
+    do_rong_nguong: float
+    nghi_sau_lo_ngay: int
+    loc_imom_phan_vi: float
+    chot_sut_giam_nguong: float
+    chot_sut_giam_phien: int
+    exit_signal_threshold: float
+    max_hold_sessions: int
+    chot_loi_cung: bool
+    luat_vao: str = "MO_CUA_SAU"
+
+    def __post_init__(self) -> None:
+        if self.luat_vao not in LUAT_VAO:
+            raise ValueError(f"luat_vao={self.luat_vao!r}: chỉ nhận {LUAT_VAO}")
+
+    @classmethod
+    def tu_module(cls) -> "CauHinhVao":
+        """Cấu hình = giá trị HIỆN TẠI của các cờ module. Chỗ DUY NHẤT trong `paper_trading`
+        đọc tên cờ trần (ngoài khai báo và phép suy `CO_MUC_TIEU_PCT`)."""
+        return cls(
+            cho_phep_mo_lenh_moi=CHO_PHEP_MO_LENH_MOI,
+            buy_threshold=BUY_THRESHOLD,
+            tran_von_cam_ket_pct=TRAN_VON_CAM_KET_PCT,
+            cong_vni_bat=CONG_VNI_BAT,
+            do_rong_nguong=DO_RONG_NGUONG,
+            nghi_sau_lo_ngay=NGHI_SAU_LO_NGAY,
+            loc_imom_phan_vi=LOC_IMOM_PHAN_VI,
+            chot_sut_giam_nguong=CHOT_SUT_GIAM_NGUONG,
+            chot_sut_giam_phien=CHOT_SUT_GIAM_PHIEN,
+            exit_signal_threshold=EXIT_SIGNAL_THRESHOLD,
+            max_hold_sessions=MAX_HOLD_SESSIONS,
+            chot_loi_cung=CHOT_LOI_CUNG,
+            luat_vao="MO_CUA_SAU")
+
+
+def dung_cau_hinh(cau_hinh: "CauHinhVao | None") -> "CauHinhVao":
+    """`cau_hinh` nếu có; không thì `CauHinhVao.tu_module()` (hành vi trước BƯỚC 239)."""
+    return CauHinhVao.tu_module() if cau_hinh is None else cau_hinh
+
+
+class NguonThiTruong(Protocol):
+    """Hai nguồn thị trường mà cổng vào lệnh hỏi, TIÊM ĐƯỢC (BƯỚC 239). Mặc định (`None`) là
+    `market_filter.is_vni_bullish` và `do_rong.do_rong_mac_dinh` — đọc cache toàn cục, kể cả
+    để `CacheQuaHanError` đi ra ngoài. Sân đấu tiêm nguồn riêng để phát lại một ngày cũ
+    mà không phụ thuộc cache lúc chạy. IMOM và chốt sụt giảm CHƯA tiêm được (Lát 2+)."""
+
+    def vni_tren_ma50(self, ngay: str) -> bool: ...
+
+    def do_rong(self, ngay: str) -> Optional[float]: ...
 
 # Chi phí thị trường VN (điều chỉnh theo công ty chứng khoán của bạn)
 BROKER_FEE_PCT = 0.0015     # 0,15% mỗi chiều — CẬN DƯỚI của dải bán lẻ
@@ -757,25 +843,30 @@ class PaperTradingJournal:
             # test. Nhưng cũng không để một lỗi mô hình làm sập phiên quét.
             return float(gia)
 
-    def dang_dong_bang(self, signal_date: str) -> Optional[tuple[float, str]]:
+    def dang_dong_bang(self, signal_date: str,
+                       cau_hinh: "CauHinhVao | None" = None) -> Optional[tuple[float, str]]:
         """(mức sụt lúc đóng băng, phiên bắt đầu) nếu sổ ĐANG đóng băng ở ngày tín hiệu; None nếu
         không — và None ngay, KHÔNG nạp `chot_sut_giam` hay đọc sổ, khi cổng TẮT (0). ĐO 33, BƯỚC 226.
 
         Nhớ theo (ngày, số lệnh đã đóng, ngày ra cuối): trong một phiên, mỗi mã xét mở lệnh một lần
-        mà kết quả chỉ phụ thuộc lệnh ra TRƯỚC ngày ấy."""
-        if CHOT_SUT_GIAM_NGUONG <= 0:
+        mà kết quả chỉ phụ thuộc lệnh ra TRƯỚC ngày ấy.
+
+        `cau_hinh` — thiếu thì `CauHinhVao.tu_module()` (BƯỚC 239)."""
+        cau_hinh = dung_cau_hinh(cau_hinh)
+        nguong, so_phien = cau_hinh.chot_sut_giam_nguong, cau_hinh.chot_sut_giam_phien
+        if nguong <= 0:
             return None
         import chot_sut_giam
         t = str(signal_date)[:10]
         so_dong, ra_cuoi = self.db.execute(
             "SELECT COUNT(*), MAX(exit_date) FROM trades WHERE status=?", (Status.CLOSED,)).fetchone()
-        khoa = (t, so_dong, ra_cuoi, CHOT_SUT_GIAM_NGUONG, CHOT_SUT_GIAM_PHIEN)
+        khoa = (t, so_dong, ra_cuoi, nguong, so_phien)
         nho = self.__dict__.setdefault("_nho_dong_bang", {})
         if khoa not in nho:
             nho[khoa] = chot_sut_giam.may_trang_thai(
                 chot_sut_giam.lich_phien_mac_dinh(),
                 chot_sut_giam.he_so_lenh(self.all_trades(Status.CLOSED)),
-                t, CHOT_SUT_GIAM_NGUONG, CHOT_SUT_GIAM_PHIEN)
+                t, nguong, so_phien)
         return nho[khoa]
 
     def von_dang_cam_ket(self) -> float:
@@ -793,15 +884,23 @@ class PaperTradingJournal:
 
     def consider_entry(self, symbol: str, signal_date: str, result: dict,
                        exchange: str = "HOSE",
-                       buy_threshold: float | None = None) -> Optional[int]:
+                       buy_threshold: float | None = None,
+                       cau_hinh: "CauHinhVao | None" = None,
+                       nguon: "NguonThiTruong | None" = None) -> Optional[int]:
         """Xét mở lệnh theo ngưỡng. Trả id lệnh, hoặc None kèm lý do đã ghi sổ.
 
         Lệnh ở trạng thái PENDING: giá vào lấy ở phiên SAU, không phải phiên
         có tín hiệu — nếu không thì đã nhìn trộm tương lai.
+
+        BƯỚC 239 (Lát 1 của C1): cờ đi qua `cau_hinh` (thiếu thì `CauHinhVao.tu_module()`,
+        tức đúng các biến module như trước) và hai nguồn thị trường đi qua `nguon` (thiếu thì
+        `market_filter.is_vni_bullish` và `do_rong.do_rong_mac_dinh` như trước). `buy_threshold`
+        tường minh thắng `cau_hinh.buy_threshold`.
         """
+        cau_hinh = dung_cau_hinh(cau_hinh)
         score = int(result.get("final_score", 0))
         quality = result.get("data_quality", "")
-        threshold = BUY_THRESHOLD if buy_threshold is None else buy_threshold
+        threshold = cau_hinh.buy_threshold if buy_threshold is None else buy_threshold
 
         skip = None
         # KHONG bat Exception o day nua. Ban cu nuot MOI loi thanh
@@ -809,13 +908,18 @@ class PaperTradingJournal:
         # Cong VN-INDEX qua han nay nem CacheQuaHanError va no PHAI di ra
         # ngoai de dung ca phien quet -- do la o C1.
         from market_filter import is_vni_bullish
-        vni_ok = is_vni_bullish(signal_date) if CONG_VNI_BAT else True
+        if not cau_hinh.cong_vni_bat:
+            vni_ok = True
+        elif nguon is None:
+            vni_ok = is_vni_bullish(signal_date)
+        else:
+            vni_ok = nguon.vni_tren_ma50(signal_date)
 
         if not vni_ok:
             skip = LY_DO_VNI
-        elif (dr := do_rong_bi_chan(signal_date)) is not None:
-            skip = f"{LY_DO_DO_RONG}: {dr:.3f} < {DO_RONG_NGUONG:g}"
-        elif (bang := self.dang_dong_bang(signal_date)) is not None:
+        elif (dr := do_rong_bi_chan(signal_date, cau_hinh.do_rong_nguong, nguon)) is not None:
+            skip = f"{LY_DO_DO_RONG}: {dr:.3f} < {cau_hinh.do_rong_nguong:g}"
+        elif (bang := self.dang_dong_bang(signal_date, cau_hinh)) is not None:
             skip = f"{LY_DO_CHOT_SUT_GIAM}: sụt {bang[0]:.1%} từ {bang[1]}"
         elif str(quality).upper() not in MUC_CHAT_LUONG_DUNG_DUOC:
             # CHAN theo muc BLOCK, khong chan ca WARN. Ban cu chan moi thu
@@ -828,11 +932,12 @@ class PaperTradingJournal:
             skip = f"điểm {score} dưới ngưỡng {threshold:g}"
         elif self.open_position(symbol) is not None:
             skip = LY_DO_DANG_GIU
-        elif (ra_lo := self.ngay_ra_lo_gan(symbol, signal_date)) is not None:
+        elif (ra_lo := self.ngay_ra_lo_gan(symbol, signal_date, cau_hinh)) is not None:
             skip = (f"{LY_DO_NGHI_SAU_LO}: ra lỗ ngày {ra_lo}, "
-                    f"chưa qua {NGHI_SAU_LO_NGAY} ngày lịch")
-        elif (pv := phan_vi_imom_bi_loc(symbol, signal_date)) is not None:
-            skip = f"{LY_DO_LOC_IMOM}: phân vị {pv:.3f} ≤ {LOC_IMOM_PHAN_VI:g}"
+                    f"chưa qua {cau_hinh.nghi_sau_lo_ngay} ngày lịch")
+        elif (pv := phan_vi_imom_bi_loc(symbol, signal_date,
+                                        cau_hinh.loc_imom_phan_vi)) is not None:
+            skip = f"{LY_DO_LOC_IMOM}: phân vị {pv:.3f} ≤ {cau_hinh.loc_imom_phan_vi:g}"
         else:
             risk = (result.get("analyses", {}).get("risk", {})
                     .get("recommendations", {}))
@@ -843,7 +948,7 @@ class PaperTradingJournal:
         # Chốt cuối cùng, ĐẶT SAU mọi cổng khác có chủ đích: lý do ghi vào sổ
         # khi đó cho biết lệnh này LẼ RA đã mở. Đặt trước thì cổng VN-INDEX và
         # cổng chất lượng dữ liệu không còn thống kê được nữa.
-        if skip is None and not CHO_PHEP_MO_LENH_MOI:
+        if skip is None and not cau_hinh.cho_phep_mo_lenh_moi:
             skip = LY_DO_C5
 
         if skip:
@@ -878,11 +983,11 @@ class PaperTradingJournal:
         # tính được sau khi đã có stop-loss. Lý do ghi vào sổ vì thế
         # cho biết lệnh này đã qua MỌI cổng khác và chỉ dừng ở trần.
         dang_cam_ket = self.von_dang_cam_ket()
-        if dang_cam_ket + size > TRAN_VON_CAM_KET_PCT:
+        if dang_cam_ket + size > cau_hinh.tran_von_cam_ket_pct:
             self.record_decision(
                 symbol, signal_date, result, False,
                 f"{LY_DO_TRAN_VON}: đang cam kết {dang_cam_ket:.1f}% "
-                f"+ {size:.1f}% > {TRAN_VON_CAM_KET_PCT:.0f}%")
+                f"+ {size:.1f}% > {cau_hinh.tran_von_cam_ket_pct:.0f}%")
             return None
 
         cur = self.db.execute(
@@ -918,13 +1023,21 @@ class PaperTradingJournal:
         return int(cur.lastrowid)
 
     def fill_pending(self, symbol: str, session_date: str,
-                     open_price: float, nen: dict | None = None) -> int:
+                     open_price: float, nen: dict | None = None,
+                     luat_khop=None) -> int:
         """Khớp các lệnh PENDING bằng giá MỞ CỬA của phiên sau ngày tín hiệu.
 
         `nen` — {"high", "low", "volume", "tham_chieu"} của phiên khớp. Chỉ
         cần khi `MO_PHONG_TRUOT_GIA` bật; thiếu nó thì khớp như cũ, ở đúng
         giá mở cửa. Tham số tuỳ chọn để mọi chỗ gọi cũ không phải đổi.
+
+        `luat_khop` — chỗ móc của Lát 4 (C1, `docs/thiet-ke-c1-san-dau.md` mục 7): None là
+        hành vi hiện tại. KHÁC None thì nổ, vì Lát 1 chưa hiện thực nó — nhận mà lặng lẽ bỏ qua
+        sẽ khớp lệnh theo luật mở cửa trong khi người gọi tưởng đã đổi luật.
         """
+        if luat_khop is not None:
+            raise NotImplementedError(
+                "fill_pending(luat_khop=...) chưa có — Lát 4 của C1 (BƯỚC thiết kế 238, mục 7)")
         rows = self.db.execute(
             "SELECT id, signal_date, size_pct FROM trades"
             " WHERE symbol=? AND status=?",
@@ -1087,10 +1200,13 @@ class PaperTradingJournal:
         return float(lenh.gia_binh_quan), round(size_pct * ty_le, 4)
 
     # ─────────────────── Đóng lệnh ────────────────────────────────────
-    def _lenh_dat_san(self, r, symbol: str, session_date: str, bar: dict):
+    def _lenh_dat_san(self, r, symbol: str, session_date: str, bar: dict,
+                      cau_hinh: "CauHinhVao | None" = None):
         """Nhánh LỆNH ĐẶT SẴN của MỘT vị thế đang mở: cắt lỗ, và chốt lời khi bật
         `CHOT_LOI_CUNG`. Lệnh dừng đã nằm ở sàn nên khớp ở BẤT KỲ phiên nào giá
         chạm — không cần ai chấm điểm phiên ấy.
+
+        `cau_hinh` — thiếu thì `CauHinhVao.tu_module()`; ở đây chỉ `chot_loi_cung` được đọc.
 
         MỘT bản cho hai đường (ĐO 29, BƯỚC 212): `evaluate_open` ở phiên chấm, và
         `xet_lenh_dat_san` ở phiên CHỈ-KHỚP của walk-forward. Trước BƯỚC 212 phiên
@@ -1102,6 +1218,7 @@ class PaperTradingJournal:
         `CHO_PHIEN_MO_KHOA` — chạm SL ở phiên kịch sàn một giá: không đóng, không
         nâng stop (ĐO 28); dict của lệnh vừa đóng; hoặc None — không chạm gì.
         """
+        cau_hinh = dung_cau_hinh(cau_hinh)
         low, high = float(bar["low"]), float(bar["high"])
         sl, tp = float(r["stop_loss"]), float(r["take_profit"])
 
@@ -1123,7 +1240,7 @@ class PaperTradingJournal:
             # 3 cấm. Audit 25/09/2026, ma_giao_dich-03.
             reason = ExitReason.STOP_LOSS
             price = min(sl, float(bar["open"]))
-        elif CHOT_LOI_CUNG and high >= tp:
+        elif cau_hinh.chot_loi_cung and high >= tp:
             reason, price = ExitReason.TAKE_PROFIT, tp
         else:
             return None
@@ -1172,7 +1289,8 @@ class PaperTradingJournal:
                 "reason": reason, "exit_price": price}
 
     def xet_lenh_dat_san(self, symbol: str, session_date: str,
-                         bar: dict) -> list[dict]:
+                         bar: dict,
+                         cau_hinh: "CauHinhVao | None" = None) -> list[dict]:
         """Phiên CHỈ-KHỚP của walk-forward (ĐO 29, BƯỚC 212): CHỈ xét lệnh đặt sẵn
         (`_lenh_dat_san`) của các vị thế đang mở — cùng một bản với `evaluate_open`.
 
@@ -1181,6 +1299,7 @@ class PaperTradingJournal:
         Không xét ở chính phiên vào lệnh, như `evaluate_open`. Đường chạy thật
         (`run_daily`) chấm mọi phiên nên không bao giờ đi qua hàm này.
         """
+        cau_hinh = dung_cau_hinh(cau_hinh)
         closed = []
         rows = self.db.execute(
             "SELECT * FROM trades WHERE symbol=? AND status=?",
@@ -1188,7 +1307,7 @@ class PaperTradingJournal:
         for r in rows:
             if session_date[:10] <= str(r["entry_date"] or "")[:10]:
                 continue                      # không đóng ngay trong phiên vào
-            ket = self._lenh_dat_san(r, symbol, session_date, bar)
+            ket = self._lenh_dat_san(r, symbol, session_date, bar, cau_hinh)
             if isinstance(ket, dict):
                 closed.append(ket)
         if closed:
@@ -1196,7 +1315,8 @@ class PaperTradingJournal:
         return closed
 
     def evaluate_open(self, symbol: str, session_date: str, bar: dict,
-                      current_score: Optional[int] = None) -> list[dict]:
+                      current_score: Optional[int] = None,
+                      cau_hinh: "CauHinhVao | None" = None) -> list[dict]:
         """Xét đóng các lệnh đang mở theo quy tắc, dựa trên nến phiên hiện tại.
 
         Mặc định `CHOT_LOI_CUNG = False`, nên **không có lối thoát bằng
@@ -1208,7 +1328,10 @@ class PaperTradingJournal:
         một phiên là LẤY SL. Nến ngày không cho biết cái nào chạm trước,
         nên chọn giả định bất lợi — giả định có lợi sẽ thổi phồng kết quả
         một cách có hệ thống (bất biến 3).
+
+        `cau_hinh` — thiếu thì `CauHinhVao.tu_module()` (BƯỚC 239).
         """
+        cau_hinh = dung_cau_hinh(cau_hinh)
         closed = []
         rows = self.db.execute(
             "SELECT * FROM trades WHERE symbol=? AND status=?",
@@ -1219,7 +1342,7 @@ class PaperTradingJournal:
                 continue                      # không đóng ngay trong phiên vào
             # Lệnh đặt sẵn (cắt lỗ; chốt lời khi bật) — MỘT bản với phiên
             # chỉ-khớp của walk-forward (`xet_lenh_dat_san`, ĐO 29).
-            dat_san = self._lenh_dat_san(r, symbol, session_date, bar)
+            dat_san = self._lenh_dat_san(r, symbol, session_date, bar, cau_hinh)
             if dat_san is CHO_PHIEN_MO_KHOA:
                 continue
             if dat_san is not None:
@@ -1265,9 +1388,11 @@ class PaperTradingJournal:
             close_p = float(bar["close"])
             is_profitable = entry_p is not None and close_p > entry_p
 
-            if current_score is not None and current_score < EXIT_SIGNAL_THRESHOLD and not is_profitable:
+            if (current_score is not None and current_score < cau_hinh.exit_signal_threshold
+                    and not is_profitable):
                 reason = ExitReason.SIGNAL_REVERSED
-            elif self._sessions_held(r["entry_date"], session_date) >= MAX_HOLD_SESSIONS:
+            elif (self._sessions_held(r["entry_date"], session_date)
+                    >= cau_hinh.max_hold_sessions):
                 reason = ExitReason.MAX_HOLD
 
             if reason:
@@ -1347,15 +1472,18 @@ class PaperTradingJournal:
             (symbol, Status.OPEN, Status.PENDING, Status.CLOSING)).fetchone()
         return self._to_trade(r) if r else None
 
-    def ngay_ra_lo_gan(self, symbol: str, signal_date: str) -> Optional[str]:
+    def ngay_ra_lo_gan(self, symbol: str, signal_date: str,
+                       cau_hinh: "CauHinhVao | None" = None) -> Optional[str]:
         """Ngày ra (YYYY-MM-DD) của lệnh LỖ gần nhất của `symbol` mà ngày tín hiệu
-        còn nằm trong cửa sổ `NGHI_SAU_LO_NGAY` ngày lịch; None nếu không có —
+        còn nằm trong cửa sổ `cau_hinh.nghi_sau_lo_ngay` ngày lịch; None nếu không có —
         và None ngay, KHÔNG đọc sổ, khi cổng TẮT (0). ĐO 30, BƯỚC 221.
+        `cau_hinh` thiếu thì `CauHinhVao.tu_module()` (BƯỚC 239).
 
         "Lỗ" = giá ra < giá vào, mọi lý do ra. Lệnh ra ĐÚNG ngày tín hiệu cũng
         tính: `paper_runner.run_session` xét thoát trước khi xét vào.
         """
-        if NGHI_SAU_LO_NGAY <= 0:
+        nghi = dung_cau_hinh(cau_hinh).nghi_sau_lo_ngay
+        if nghi <= 0:
             return None
         from datetime import date
         ngay = str(signal_date)[:10]
@@ -1367,7 +1495,7 @@ class PaperTradingJournal:
         if r is None:
             return None
         cach = (date.fromisoformat(ngay) - date.fromisoformat(r[0])).days
-        return r[0] if cach <= NGHI_SAU_LO_NGAY else None
+        return r[0] if cach <= nghi else None
 
     def all_trades(self, status: str | None = None) -> list[Trade]:
         sql = "SELECT * FROM trades"

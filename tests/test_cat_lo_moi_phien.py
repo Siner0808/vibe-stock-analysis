@@ -229,8 +229,10 @@ def test_MOT_BAN_MA_nhanh_lenh_dat_san_cho_HAI_duong():
 
 
 def test_RUN_SESSION_phien_chi_khop_goi_xet_lenh_dat_san_TRUOC_khi_tra_ve():
+    # BƯỚC 239: thân của `run_session` chuyển sang `buoc_phien` (run_session là vỏ mỏng,
+    # gác ở tests/test_cau_hinh_vao.py); nhánh `if chi_khop:` ở đúng chỗ mới.
     cay = ast.parse((GOC / "paper_runner.py").read_text(encoding="utf-8"))
-    rs = _ham(cay, "run_session")
+    rs = _ham(cay, "buoc_phien")
     nhanh = [n for n in ast.walk(rs) if isinstance(n, ast.If)
              and isinstance(n.test, ast.Name) and n.test.id == "chi_khop"]
     assert len(nhanh) == 1, "không thấy đúng một nhánh `if chi_khop:`"

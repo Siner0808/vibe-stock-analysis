@@ -129,15 +129,17 @@ def test_lenh_thoat_theo_tin_hieu_CHIU_truot_gia_ban():
 
 def test_run_session_TRUYEN_nen_cho_fill_closing():
     """Đọc AST: hàm có tham số `nen` mà không ai truyền thì trượt giá bán
-    vẫn không bao giờ chạy — đúng hình dạng "dây chưa cắm"."""
+    vẫn không bao giờ chạy — đúng hình dạng "dây chưa cắm".
+    BƯỚC 239: thân của `run_session` chuyển sang `buoc_phien` (vỏ mỏng, xem
+    tests/test_cau_hinh_vao.py); gác đọc hàm mới, điều kiện không đổi."""
     cay = ast.parse((GOC / "paper_runner.py").read_text(encoding="utf-8"))
     ham = next(n for n in ast.walk(cay)
-               if isinstance(n, ast.FunctionDef) and n.name == "run_session")
+               if isinstance(n, ast.FunctionDef) and n.name == "buoc_phien")
     goi = [n for n in ast.walk(ham) if isinstance(n, ast.Call)
            and isinstance(n.func, ast.Attribute) and n.func.attr == "fill_closing"]
-    assert len(goi) == 1, f"run_session gọi fill_closing {len(goi)} lần"
+    assert len(goi) == 1, f"buoc_phien gọi fill_closing {len(goi)} lần"
     so_doi = len(goi[0].args) + len(goi[0].keywords)
-    assert so_doi >= 4, "run_session không truyền nến cho fill_closing"
+    assert so_doi >= 4, "buoc_phien không truyền nến cho fill_closing"
     print("PASS  run_session truyền nến khớp cho fill_closing")
 
 
