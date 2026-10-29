@@ -36,6 +36,13 @@ SO_SOAT = GOC / "docs" / "soat-notebooklm.json"
 SO_DINH_KY = GOC / "docs" / "soat-dinh-ky.json"
 THU_MUC_SKILL = GOC / ".claude" / "skills"
 
+#: Skill KHÔNG phải quy trình làm việc (BƯỚC 244): chúng đọc một lĩnh vực chứ không
+#: bắt phải gọi trước khi đọc hay sửa file đầu tiên. `ten_skill()` loại chúng, nên bản
+#: tin mở phiên chỉ gọi skill QUY TRÌNH là "bắt buộc". Danh sách ĐÓNG, gõ tay có chủ
+#: ý: một skill mới chưa khai ở đây sẽ bị bản tin gọi nhầm là quy trình VÀ làm đỏ
+#: `tests/test_skill_quy_trinh.py` — lỗi ồn ào, không lặng lẽ.
+SKILL_PHU = ("dow-theory-analysis",)
+
 #: Nhịp soát lại quy trình. Người dùng chốt 16/09/2026: 2 ngày. ĐỔI 08/10/2026
 #: (BƯỚC 164): người dùng "Đồng ý" giảm phần việc quy trình — soát TỰ ĐỘNG mỗi
 #: tuần — nên nhịp là 7 ngày, và phần máy làm được chạy trên CI
@@ -73,9 +80,12 @@ RE_NGAY = re.compile(r"\*\*(\d{2})/(\d{2})/(\d{4})\b")
 
 
 def ten_skill() -> list[str]:
-    """Đọc từ đĩa, không gõ tay — đổi tên skill thì lời nhắc đi theo."""
+    """Skill QUY TRÌNH, đọc từ đĩa — đổi tên skill thì lời nhắc đi theo.
+
+    Skill phụ (`SKILL_PHU`) không được gọi là bắt buộc nên bị loại."""
     try:
-        return sorted(p.parent.name for p in THU_MUC_SKILL.glob("*/SKILL.md"))
+        return sorted(p.parent.name for p in THU_MUC_SKILL.glob("*/SKILL.md")
+                      if p.parent.name not in SKILL_PHU)
     except OSError:
         return []
 
