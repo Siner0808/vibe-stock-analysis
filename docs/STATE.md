@@ -24911,3 +24911,95 @@ Người dùng 29/10/2026 (nguyên văn): *"Tôi muốn nó thêm vào dự án 
 **Năm cổng ở máy:** cả năm thoát 0 trên cây của nhánh `dow/thiet-ke-244` (`tools/nam_cong.py --tuan-tu --thu-muc-log <thư mục>`, 29/10 20:56–21:00, 241 s): cổng 1 3839 passed, 2 skipped (cộng 3841 = mốc) · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3841 test, khớp mốc (3839 → 3841). **Hai lượt trước KHÔNG xanh hoàn toàn:** lượt đầu (song song, 20:45) đỏ cổng 5 vì mốc chưa cập nhật (cổng 1 đỏ đúng một test là `tests/test_kiem_so_test.py::test_MOC_TREN_DIA_khop_so_test_THAT`, cùng lý do; cổng 4 đỏ đúng file ấy) và đã sửa bằng `--cap-nhat`; lượt hai (song song, 20:53) đỏ cổng 1 ở MỘT test, `tests/test_suc_khoe.py::test_THAT_mot_luot_chay_thuc_cua_phep_offline_khong_doi_tep_nao_trong_repo` (`['test_mo_phong_tam.db']` xuất hiện trong repo trong lúc test chạy), xanh ở cổng 4 (chạy một mình) và ở lượt tuần tự; giả thuyết từ đọc log: một test khác trong cùng lượt song song ghi tệp ấy vào gốc repo giữa hai lần chụp của test sức khoẻ — CHƯA dựng lại bằng hai tiến trình. **Sau khi hợp nhất `origin/main` (BƯỚC 242, `d7f6cd7`; STATE/HANDOFF main trước, JSON dựng lại từ dict, mốc 3928 + 2):** lượt song song 29/10 21:24–21:28, 210 s, cả năm cổng thoát 0 — cổng 1 3928 passed, 2 skipped · cổng 5 3930 test, khớp mốc (số 3839 → 3841 ở trên là so với cây trước 242). CI chạy tuần tự và chạy lại trên cây cuối.
 
 **Việc kế.** Bảy câu đã chốt (trên): BƯỚC khai ĐO (sổ tay hỏi thật, commit riêng), rồi Lát 1 → 4 (đặc tả mục 11). Merge PR này khi CI xanh. Lỗi kế 198 (không ghi lỗi mới ở BƯỚC này).
+
+## BƯỚC 243 — LÁT 3B CỦA C1: KTC BOOTSTRAP KHỐI VÒNG CÓ CẶP, PHÉP THỬ ĐỘ PHỦ Ở n = 40 · 113 · 252, NHÃN ĐỘ PHỦ TRÊN MỌI KTC CỦA `bang`, LỆNH `do-phu` (29/10/2026)
+
+**Mốc:** C1
+
+Nửa sau của Lát 3 (đặc tả mục 12). Phiên con của leader, nhánh `c1/lat3b-243` từ `main` `d7f6cd7` (PR #288), worktree ngoài repo `vibe_wt_243`; đã hợp nhất `origin/main` `05aae75` (PR #289, BƯỚC 244) vào nhánh. KHÔNG làm ở BƯỚC này: B6/PB-003, `khop_gioi_han.py`, tab app (Lát 4). Không ghi Google Sheets, không ghi `*.db` ở gốc repo, UV-001 không xuất hiện ở đâu.
+
+**Quyết định của người dùng về tập mã tính độ rộng của PB-002 (nguyên văn, 29/10/2026):** *"71 mã, ghi rõ khác ĐO 32 (Recommended)"* — độ rộng tính trên 71 mã đã quét (tập mã có quyết định, dựng từ chính khung giá của bản phát lại), KHÔNG phải 124 tệp cache của ĐO 32. Câu (1) của danh sách câu hỏi ở BƯỚC 242 đã được trả lời; ghi rõ ở đây để mọi con số PB-002 của sân đấu được đọc là "độ rộng của 71 mã", khác định nghĩa của ĐO 32.
+
+**Ghi chú của leader (kiểm trước khi bật PB-002 ngoài đời).** Cổng độ rộng của đường thật `do_rong.do_rong_mac_dinh` đọc `backtest.data.CACHE_DIR`, thư mục KHÔNG nằm trong repo (`backtest/cache/` bị gitignore). Trước khi PB-002 có thể bị bật trên đường chạy THẬT, phải kiểm trên GitHub Actions rằng thư mục ấy có dữ liệu ở đó; ở sân đấu thì không cần vì độ rộng dựng từ khung giá của chính bản phát lại. Chưa kiểm ở BƯỚC này (không có việc bật PB-002).
+
+**Việc làm.**
+1. `san_dau.ktc_khoi_co_cap(a, b=None, do_dai=10, vong=5000, hat=0)`: bootstrap khối VÒNG, khối cố định `L` = 10, rút ceil(n/L) khối rồi cắt về n, 5000 lần rút (cùng `VONG` với `paper_metrics.vs_benchmark`), khoảng phân vị 2,5–97,5, hạt 0. CÓ CẶP: MỘT bộ chỉ số khối cho cả hai chuỗi, KTC của `mean(a) − mean(b)`. Cài bằng tổng cộng dồn của chuỗi nhân đôi (không dựng ma trận vong × n); test đối chiếu với bản dựng chỉ số tường minh ở chín cặp (n, L) kể cả khối cuối bị cắt, sai số ≤ 1e-12.
+2. `san_dau.mo_phong_do_phu` / `do_phu_mot_o` / `sinh_chuoi_do_phu`: phép thử độ phủ theo mục 8.4 — mô hình sinh: đuôi dày t 4 bậc tự do · tự tương quan do trung bình trượt 20 phiên · thành phần chung 0,5 giữa A và B · đoạn không giữ (Markov hai trạng thái, vào giữ 0,1 mỗi phiên, đoạn giữ dài TB 15 phiên → 60% phiên giữ) · trung bình thật 0; 2000 lần lặp, hạt 0, lưới n = 40, 113, 252, `L` = 10 (chính) và {5, 21} (bảng nhạy cảm). Phép thử gọi CHÍNH `ktc_khoi_co_cap` mà `bang` in. Mỗi n sinh MỘT lần bộ chuỗi dùng chung cho mọi `L` và mọi dạng.
+3. `docs/san-dau-do-phu.json`: kết quả đo, sinh bằng `tools/san_dau.py do-phu --json` (stdout; ghi vào file bằng `va_an_toan.ghi`); `san_dau.vi_pham_bang_do_phu` bắt file lệch hằng số hiện hành; ba ô ở n = 40 được đo lại trong test (cả file: `do-phu --kiem`, 30 giây).
+4. `san_dau.dinh_dang_ktc`: NƠI DUY NHẤT ghép chuỗi `"KTC danh nghĩa 95% [lo ; hi] — độ phủ đo được p% (n=<n lưới>, L=10)"` (gác G6, AST). n < 40 → `"mẫu quá ngắn (n=… < 40): không in KTC"`; n không có trên lưới → điểm lưới lớn nhất ≤ n; độ phủ < 90% → thêm `"— mẫu quá ngắn: độ phủ đo được dưới 90%"`; không có bảng độ phủ → không in con số 95.
+5. `tools/san_dau.py bang`: mỗi hàng (đường thật, PB-001, PB-002) in KTC thước 1, KTC cột thô và (phương án) KTC thước 2, mỗi dòng kèm nhãn; hàng rổ nói rõ không có KTC (rổ là thước đo, không phải một hiệu). Tuỳ chọn `--do-phu`. Lệnh mới `do-phu` (`--json`, `--kiem`, `--so-lan`): KHÔNG ghi file nào (G1 giữ nguyên, không nới).
+6. `tests/test_san_dau_ktc.py` (54 test) + một đổi nhỏ ở `tests/test_san_dau_bang.py` (`_dung` nhận tham số chuyển cho `dung_bang`; một test đổi tên vì câu "KTC đến ở BƯỚC 243" không còn đúng).
+
+**Lệch so với đặc tả / chỗ phải hiểu, khai thẳng.**
+- **Ở cửa sổ hiện tại `bang` KHÔNG in con số KTC nào.** Đặc tả mục 8.4: n < 40 → "mẫu quá ngắn", không in KTC; cửa sổ thật có 24 phiên. Mỗi hàng vẫn mang dòng KTC với nhãn ấy (đề bài của leader nói "in một KTC kèm nhãn trên mọi hàng": nhãn thì có ở mọi hàng, con số thì đặc tả cấm in). Nhánh in con số được gác bằng kịch bản tổng hợp 90 phiên.
+- **Thước 1: KTC là của trung bình `x_t` trên MỌI phiên của cửa sổ** (phiên không giữ `x_t = 0` nằm trong chuỗi, n = số phiên cửa sổ), khớp với "cộng dồn = trung bình × n" của mục 8.3; KHÔNG phải của `x_tb_giu` (trung bình chỉ trên phiên giữ) đang in ở dòng trên. Dòng KTC in kèm giá trị trung bình mà nó ứng với. Đặc tả không nói rõ điểm này; đây là cách đọc của tôi.
+- **Ba dạng độ phủ, không phải hai.** Mục 8.4 đòi hai dạng (cặp và một chuỗi). Cột thô `r − rổ` không có đoạn `x = 0` (rổ luôn đầu tư 100%) nên không khớp dạng "một chuỗi có đoạn không giữ"; thêm dạng thứ ba `tho` (chuỗi một, không mặt nạ) để mọi KTC in ra ứng với mô hình ĐÚNG của nó: `cap` (thước 2), `mot_chuoi` (thước 1), `tho` (cột thô).
+- Hai khối "đã nhìn"/"chưa nhìn" chỉ in giá trị điểm, KHÔNG in KTC (đặc tả không đòi; chúng là một phần lệnh của cùng cửa sổ, mẫu thưa hơn nữa).
+- Tập mã độ rộng của PB-002: 71 mã (quyết định trên), khác ĐO 32.
+
+**Độ phủ đo được (Quy tắc 2).** Lệnh: `./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem` (29/10, 21:50, 30 giây; mã thoát 0, dòng cuối `KHOP: … bang ket qua do lai.`). 2000 lần lặp mỗi ô, hạt 0; sai số Monte Carlo lớn nhất 1,12 điểm phần trăm (căn p(1 − p)/2000).
+
+```
+   L     n        cap  mot_chuoi        tho
+ L10    40      59.1%      59.4%      54.2%
+ L10   113      71.2%      71.0%      70.0%
+ L10   252      77.4%      76.6%      74.4%
+  L5    40      52.0%      52.7%      48.1%
+  L5   113      62.0%      61.1%      57.1%
+  L5   252      65.1%      65.8%      62.5%
+ L21    40      55.9%      56.1%      50.0%
+ L21   113      75.9%      76.0%      75.4%
+ L21   252      84.5%      83.2%      84.6%
+```
+
+**MỌI ô đều dưới 90%** (đủ 27/27, kể cả `L` = 10 chính: 54,2–77,4%, và `L` = 21 ở n = 252: 83,2–84,6%). Hệ quả khai thẳng: mọi KTC mà sân đấu in từ nay, ở n nào trên lưới, đều mang nhãn "mẫu quá ngắn: độ phủ đo được dưới 90%". Đó là kết quả của mô hình do đặc tả ghim, không điều chỉnh gì cho đẹp: số xấu đi là chiều an toàn (Quy tắc 1). **Giả thuyết giải thích (CHƯA kiểm):** tự tương quan 20 phiên của mô hình lớn hơn nhiều `L` ≤ 21 và n hiệu dụng chỉ cỡ n/20; sai số của bootstrap khối vì thế lớn nhất ở n = 40 (chỉ 4 khối), đúng chiều dự đoán của mục 8.3.
+
+**Máy đo đi qua ca thật đã biết trước (skill, Bước 3 điều 4).** Trước khi tin kết quả ÂM của một phép thử độ phủ, máy phải cho được kết quả DƯƠNG: test `test_may_do_do_phu_cho_KET_QUA_DUONG` đo dữ liệu iid chuẩn với khối 1 (bootstrap thường): độ phủ nằm trong [91%, 98,5%] ở n = 40, 113, 252 (400 lặp × 1000 lần rút, hạt cố định). Khi chạy thử lần đầu ngoài test: 93,8% · 94,0% · 95,5% (600 lặp). Hàm KTC bằng bản dựng chỉ số tường minh ở chín cặp (n, L); số tính tay: chuỗi [1,2,3,4], `L` = 2 → khoảng đúng [1,5 ; 3,5].
+
+**`bang` trên bản sao CHỈ ĐỌC của sổ thật.** Sổ kéo từ Sheets bằng `tools/doc_so_that.py::keo_ve_so_tam` (chạy ở repo chính, 29/10 21:46, chỉ đọc) rồi `Connection.backup` sang bản sao ở scratchpad (133 lệnh); `bang` mở bằng `--so-tam` (đường `mode=ro`). Lệnh (lượt giá tải thẳng, nến cuối 29/10 — không tái lập được về sau vì nguồn mạng điều chỉnh giá):
+
+```
+VIBE_CACHE_DIR=<repo chính>/backtest/cache ./.venv/Scripts/python.exe tools/san_dau.py bang --so-tam <bản sao> --nguon-gia mang
+```
+
+```
+gia: 71/71 ma (mang), nen cuoi 2026-10-29; VN-INDEX: co; quyet dinh toi 2026-10-29; do rong: dung tu 71 chuoi gia cua ban phat lai (KHAC tap ma cua do_rong_mac_dinh)
+duong that phat lai vs so THAT (12 cot): khop tung o 1/10 lenh trong cua so, khac 14 lenh -- xem `tuong-duong`
+SAN DAU / BANG (BUOC 243, Lat 3b) -- GIA TRI DIEM + KTC kem nhan DO PHU DO DUOC
+Cua so ke toan : 2026-09-28 .. 2026-10-29  (24 phien); vi the mang sang tu so that, chep vao MOI tai khoan: 7
+Phien LOAI (do rong van thieu ...): 0 []
+KTC            : bootstrap khoi vong CO CAP, L=10, 5000 lan rut, hat 0; n < 40 phien thi KHONG in KTC; do phu doc tu docs/san-dau-do-phu.json
+
+[1] DUONG THAT PHAT LAI
+   lenh dong/mo/cho/huy : 9/5/0/0   lai/lo cong don : -2.62 diem%   sut giam toi da = 3.48   so phien = 24
+   thuoc 1 : trung binh/phien GIU = -0.045  cong don = -0.64   [14 phien giu, 10 phien KHONG giu]
+   tho     : trung binh/phien = -0.030  cong don = -0.73   [24 phien]
+   bao toan (8.1) : 14 lenh kiem, 8 dong tron cua so (+ net_return_pct), 0 VI PHAM
+   KTC thuoc 1 (x, trung binh CA CUA SO = -0.026 diem%/phien, n=24): mẫu quá ngắn (n=24 < 40): không in KTC
+   KTC tho (r - ro, trung binh = -0.030 diem%/phien, n=24): mẫu quá ngắn (n=24 < 40): không in KTC
+[2] PB-001  (trung duong that: luat nghi sau lo chan 0 tin hieu; thuoc 2 = +0.000)
+   KTC thuoc 1 / tho / thuoc 2 (n=24): mẫu quá ngắn (n=24 < 40): không in KTC  (ba dong)
+[3] PB-002
+   lenh dong/mo/cho/huy : 7/0/0/0   lai/lo cong don : -2.07 diem%   sut giam toi da = 2.07   so phien = 24
+   thuoc 1 : trung binh/phien GIU = -0.110  cong don = -1.10   [10 phien giu, 14 phien KHONG giu]
+   tho     : trung binh/phien = -0.007  cong don = -0.18
+   thuoc 2 (PB - duong that): trung binh/phien = +0.023 diem%  cong don = +0.55   [24 phien cua cua so CHUNG]
+   KTC thuoc 1 (… = -0.046 diem%/phien, n=24) / KTC tho (… = -0.007, n=24) / KTC thuoc 2 (CUNG bo khoi, … = +0.023, n=24): mẫu quá ngắn (n=24 < 40): không in KTC  (ba dong)
+[4] RO DEU  (71 ma)  lai/lo cong don = -1.89 diem%   sut giam toi da = 3.88
+   KTC: khong co (ro la thuoc do cua thuoc 1 va thuoc 2, khong phai mot chenh lech)
+exit=0
+```
+
+Lượt cache (không đặt `--nguon-gia`, `VIBE_CACHE_DIR` như trên, nến cuối 21/10, 18 phiên): mã thoát 0, 0 vi phạm bảo toàn, mọi dòng KTC cũng là `mẫu quá ngắn (n=18 < 40)`; đường thật −2,90 · PB-002 −2,05 (thước 2 = +0,85) như ở BƯỚC 242. Dòng đầu: `CANH BAO: gia dung truoc quyet dinh cuoi (2026-10-21 < 2026-10-29)`. Số lượt mạng khác BƯỚC 242 (cửa sổ 24 phiên thay vì 23, rổ −1,89 thay vì −0,83, PB-002 thước 2 +0,55 trùng): thêm một phiên giá (29/10) và nguồn mạng điều chỉnh lại giá.
+
+**Đột biến** (`va_an_toan.dot_bien_bo`, lệnh sau mỗi phát: `-m pytest tests/test_san_dau_ktc.py -q -x`; nhóm gác AST dùng thêm `tests/test_san_dau.py -k "G1 or G3 or G4 or G5 or G6"`): **62 phát khác nhau; lượt đầu 60/62 đỏ, 2 phát SỐNG, đã sửa test rồi chạy lại: 62/62 đỏ.** Nhóm hàm KTC (18): `ceil` thành `floor` · khối cuối không bị cắt · điểm đầu khối không vòng · khối ĐỘC LẬP cho chuỗi B (mất tính có cặp) · A + B thay cho A − B (hai chỗ) · khối không vòng · chia n + 1 · phân vị 5–95 · bỏ qua hạt · `VONG` 4000 · `L` 9 · nhảy {6, 21} · lưới 30 · lặp 1000 · hạt 1 · cho `L` > n · bỏ kiểm độ dài hai chuỗi. Nhóm mô hình sinh và phép đếm (13): t 30 bậc · cửa sổ vị thế 5 · không thành phần chung · `P_VAO_GIU` 0,3 · đoạn giữ 5 · mặt nạ đổi dấu · B không mặt nạ · B dùng chung phần riêng với A · "chứa 0" thành bất đẳng thức chặt · dạng `mot_chuoi` đọc chuỗi thô · hạt không theo n · chia số lần lặp + 1 · khoá `L` lệch. Nhóm nhãn (13): ngưỡng 0,85 · nhãn ở `<=` · điểm lưới `<` n · điểm lưới nhỏ nhất · độ phủ không nhân 100 · n < 40 vẫn in · không có bảng vẫn in · `ktc_co_nhan` bỏ B · thước 2 B = A · x chỉ trên phiên giữ · không kiểm tham số / mô hình của file · sai số MC thiếu (1 − p). Nhóm `tools/san_dau.py` (12): thước 1 gán dạng `tho` · thước 2 không có cặp · `co_do_phu` luôn đúng · bỏ qua `--do-phu` · nhãn thấp đảo · `--kiem` luôn khớp · bỏ dòng KTC của đường thật / của phương án / ghi chú rổ · trung bình không chia n · `do-phu --json` không in. Nhóm gác AST (6): "95%" ở ghi chú của `tools/san_dau.py` · "95%" ở hằng của `san_dau.py` · `dinh_dang_ktc` bỏ độ phủ · nhập `os` ở mức module · gọi `write_text` ở `san_dau.py` và ở `do-phu --json` (G1, G3, G6). Hai phát sống ở lượt đầu: bỏ kiểm độ dài hai chuỗi (test dùng `do_dai` mặc định nên bị `ValueError` của `do_dai` che — đỗ vì lý do sai) và sai số Monte Carlo (không test nào gọi `dung_bang_do_phu` với tỷ lệ đã biết).
+
+**Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi`: BƯỚC thêm hàm đo (KTC có cặp, phép thử độ phủ) vào module đo thuần đã có, một lệnh chỉ-đọc, một sổ dữ liệu đo (`docs/san-dau-do-phu.json`) và test; không sửa file luật nào theo `tools/buoc_cham_luat.py 243`; các thông số đã được người dùng/đặc tả chốt (khối 10, 5000 lần rút, lưới, 90%). Con số độ phủ là kết quả đo của MÁY ĐO mới, không phải kết luận đo về hệ giao dịch. Không duyệt sổ tay.
+
+**Số test:** 3.930 (`main` sau PR #289) → 3.984 (+54: `tests/test_san_dau_ktc.py`), mốc `docs/moc_so_test.json` cập nhật cùng BƯỚC. Đếm bằng `./.venv/Scripts/python.exe -m pytest tests --collect-only -q > <log> 2>&1`.
+
+**Năm cổng ở máy:** cả năm thoát 0 trên cây của nhánh sau khi hợp nhất `origin/main` `05aae75`, ở LƯỢT ĐẦU, chạy song song mặc định (`tools/nam_cong.py --thu-muc-log <thư mục>`, 29/10 21:50–21:54, 197 s): cổng 1 3982 passed, 2 skipped (cộng 3984 = mốc) · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo (như BƯỚC 242) · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3984 test, khớp mốc (3930 → 3984; `kiem_so_test_khong_giam --cap-nhat --ly-do`). Không cần `--tuan-tu`. CI chạy lại trên cây cuối.
+
+**Câu hỏi cho người dùng** (trong PR, mục riêng): (1) Mô hình sinh của mục 8.4 cho độ phủ DƯỚI 90% ở MỌI ô, kể cả `L` = 21 và n = 252 (83–85%), nên mọi KTC của sân đấu sẽ luôn mang nhãn "mẫu quá ngắn" kể cả khi đủ phiên. Chấp nhận như đặc tả (trung thực: tự tương quan 20 phiên của mô hình là giả định chọn trước), hay muốn sửa đặc tả TRƯỚC lượt đọc KTC đầu tiên trên dữ liệu thật (ví dụ khối dài hơn, hoặc bộ ước lượng khác)? Lượt đọc đầu chưa xảy ra: n = 24 < 40, không có KTC nào được in. (2) Ghi nhận: Lát 4 (B6/PB-003 và tab app) là việc kế.
+
+**Việc kế.** Lát 4 (BƯỚC kế, leader cấp số): `khop_gioi_han.py`, `luat_khop` dùng thật, PB-003, tab "🏟️ Sân đấu" + G6 ở app. Merge PR bằng `--merge`. Lỗi kế: 198 (BƯỚC này không thêm lỗi mới).
