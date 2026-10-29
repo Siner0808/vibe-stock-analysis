@@ -4054,6 +4054,10 @@
         }
       ]
     },
+    "BƯỚC 242": {
+      "ngay": "2026-10-29",
+      "khong_bat_buoc_vi": "BƯỚC thêm MÁY ĐO của sân đấu C1 (Lát 3a, theo lựa chọn người dùng 28/10 \"Đồng ý cách A\" và hai quyết định 29/10 \"Nhận Δgiá/giá vào\", \"Tính từ cùng nguồn giá của bản phát lại\"): một module thuần mới (phuong_an_bong.py, luật của sổ phương án bóng), thêm hàm đo vào san_dau.py và lệnh bang vào tools/san_dau.py (chỉ đọc, không ghi Sheets), sổ docs/phuong-an-bong.json mới (PB-001, PB-002, lớp thăm dò, không tính vào K, không đường lên bản), hai file test, một dòng bảng lỗi (197) và sửa mục 8.1 và 4 của đặc tả thiết kế (không phải file luật). Không sửa paper_trading.py, paper_runner.py, điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo; không sửa file luật nào theo tools/buoc_cham_luat.py 242. Các số trong bảng bang là GIÁ TRỊ ĐIỂM của một máy đo mới, chưa là kết luận đo (KTC và độ phủ ở BƯỚC 243). Không duyệt sổ tay."
+    },
     "BƯỚC 244": {
       "ngay": "2026-10-29",
       "khong_bat_buoc_vi": "BƯỚC thêm MỘT tài liệu thiết kế (docs/thiet-ke-dow-cau-truc.md, đặc tả đọc cấu trúc giá theo Lý thuyết Dow theo lựa chọn người dùng 29/10 \"Module + hiển thị + đo chỉ-đọc\") và MỘT skill phụ chỉ-để-đọc (.claude/skills/dow-theory-analysis/SKILL.md, KHÔNG phải file luật), sửa một công cụ mở phiên (tools/cua_mo_phien.py: danh sách SKILL_PHU để skill thứ hai không bị gọi nhầm là quy trình bắt buộc) cùng một gác của nó (tests/test_skill_quy_trinh.py), và ghi STATE, HANDOFF, mốc số test, sổ này. Không có dòng mã mô-đun nào, không sửa file luật nào theo tools/buoc_cham_luat.py 244 (kể cả docs/TIEU-CHI-DOC-TRUOC.md: phép đo mới chỉ là bản nháp trong đặc tả, chưa ký), không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào; mọi khẳng định về Lý thuyết Dow lấy từ báo cáo nghiên cứu ngoài repo và ghi nhãn nguồn."

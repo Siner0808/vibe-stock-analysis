@@ -1,0 +1,29 @@
+{
+  "_ghi_chu": "So phuong an BONG cua san dau C1 (BUOC 242, Lat 3a; docs/thiet-ke-c1-san-dau.md muc 9). Khuon docs/ung-vien.json nhung la MOT FILE RIENG: ung vien tang 3 dem vao K, phuong an bong tham do KHONG dem vao K va khong co duong len ban. Moi phuong an la mot bo co ghi de len CauHinhVao (paper_trading) chay trong san dau bang bo may THAT. Luat (phan boi tests/test_phuong_an_bong_git.py tren lich su git, moi canh cha -> con cua HEAD): (a) dong moi mang commit null; (e) khai_ngay = ngay COMMITTER (gio VN) cua commit dau tien co dong nay; (b) lop, bo_co, mo_ta, ly_do, khai_ngay khong doi o moi phien ban sau; (c) commit chi di null -> ma bam day du cua commit dau tien co dong, dung mot lan, o MOT commit SAU; (d) khong dong nao bi xoa; (f) lop thuoc {tham_do}, id mang tien to PB-, bo_co hop le. Khong sua, khong xoa dong da khai. PHAI hop nhat PR bang --merge (khong squash): squash doi ma bam va ngay commit cua dong da khai.",
+  "_khuon": {
+    "lop": "tham_do (duy nhat o C1; xac_nhan bi may tu choi cho toi C2)",
+    "bo_co": "cac co ghi de len CauHinhVao; khoa la ten truong cua CauHinhVao, kieu gia tri dung; khong co loc_imom_phan_vi / chot_sut_giam_* (chua co nguon tiem)",
+    "khai_ngay": "YYYY-MM-DD — ngay commit dau tien co dong, gio VN",
+    "commit": "null luc khai; commit sau dien MOT lan ma bam day du cua commit dau tien co dong",
+    "mo_ta": "phuong an la gi, mot cau",
+    "ly_do": "vi sao khai: dong nhat ky / DO / BUOC nao goi y"
+  },
+  "phuong_an": {
+    "PB-001": {
+      "lop": "tham_do",
+      "bo_co": {"nghi_sau_lo_ngay": 7},
+      "khai_ngay": "2026-10-29",
+      "commit": "2fa880c68ef03a13957ce204218b96d982ca2697",
+      "mo_ta": "Đường thật phát lại, thêm đúng một luật: sau một lệnh LỖ, cùng mã đó nghỉ 7 ngày lịch rồi mới được vào lại (cờ NGHI_SAU_LO_NGAY = 7); mọi cờ khác như đường thật.",
+      "ly_do": "ĐO 30 (BƯỚC 221, 227): phần tốt lên đi với luật nghỉ; BƯỚC 228 gác luật theo người dùng, không khai ứng viên tầng 3. Sân đấu cho nó một lượt thử TIẾN-VỀ-TRƯỚC, không phải một phép đo thứ hai trên dữ liệu cũ (đặc tả mục 3)."
+    },
+    "PB-002": {
+      "lop": "tham_do",
+      "bo_co": {"cong_vni_bat": false, "do_rong_nguong": 0.5},
+      "khai_ngay": "2026-10-29",
+      "commit": "2fa880c68ef03a13957ce204218b96d982ca2697",
+      "mo_ta": "Độ rộng thị trường THAY cổng VN-INDEX: tắt cổng VN-INDEX và không mở lệnh khi dưới 50% mã của cache đóng cửa trên MA50 của chính nó; hai cờ đi cùng nhau, tách ra là sai ý.",
+      "ly_do": "ĐO 32 (BƯỚC 224, 225, 227), giá trị 0,50 là lượt B đã ghim trước ở docs/TIEU-CHI-DOC-TRUOC.md; BƯỚC 227 gác ĐO 32. Sân đấu cho nó một lượt thử tiến-về-trước. Ngày nào thiếu độ rộng thì phiên ấy bị loại khỏi cửa sổ của nó (đặc tả mục 4 khoản 4), không bao giờ coi là không chặn."
+    }
+  }
+}
