@@ -268,6 +268,13 @@ def is_vni_bullish(signal_date: str) -> bool:
     """VN-INDEX tại `signal_date` có nằm trên MA50 không.
 
     Chỉ dùng dữ liệu tới hết `signal_date` — không nhìn trộm phiên sau.
+
+    SO NGÀY 10 KÝ TỰ, không so chuỗi nguyên (BƯỚC 241, lỗi 195): cache CSV có `time` =
+    `2026-09-30` nhưng nguồn mạng (Actions không có cache) trả `2026-09-30 07:00:00`, và
+    `"2026-09-30 07:00:00" <= "2026-09-30"` là False — nến của CHÍNH ngày tín hiệu bị loại,
+    cổng chạy thật đọc VN-INDEX trễ một phiên. `signal_date` của đường thật luôn là ngày của
+    nến ĐÃ ĐÓNG (`run_daily` bỏ nến cuối khi `data_quality.nen_cuoi_dang_do`), nên nến
+    VN-INDEX cùng ngày cũng đã đóng: không thêm nhìn trộm.
     """
     vni_df = get_vni_df()
     if vni_df is None or vni_df.empty:
@@ -289,7 +296,7 @@ def is_vni_bullish(signal_date: str) -> bool:
             f"Cập nhật bằng `extend_history.py`, KHÔNG phải `download()` — "
             f"download() bỏ qua mọi mã đã có cache.")
 
-    sub = vni_df[vni_df["time"] <= signal_date]
+    sub = vni_df[vni_df["time"].astype(str).str[:10] <= str(signal_date)[:10]]
     if sub.empty:
         return True
 

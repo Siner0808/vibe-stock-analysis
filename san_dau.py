@@ -90,7 +90,9 @@ def chon_quyet_dinh(quyet_dinh: Iterable[dict]) -> dict:
 # ── nguồn thị trường tiêm được ────────────────────────────────────────────────────────────────
 class NguonVni:
     """`NguonThiTruong` cho cổng VN-INDEX: CÙNG phép so với `market_filter.is_vni_bullish` — lấy dòng
-    cuối có `time <= ngày tín hiệu` (so CHUỖI, như nguồn), đóng cửa ≥ MA50 của chính chuỗi.
+    cuối có ngày (10 ký tự đầu của `time`) `<=` ngày tín hiệu, đóng cửa ≥ MA50 của chính chuỗi. Cả hai dạng
+    cột `time` (cache CSV `2026-09-30`, nguồn mạng `2026-09-30 07:00:00`) đọc CÙNG nến — nguồn thật sửa ở
+    BƯỚC 241 (lỗi 195); trước đó nó so chuỗi nguyên và dạng kèm giờ lùi một phiên.
 
     Khác nguồn thật ở đúng MỘT chỗ, và nó là chỗ cố ý: nguồn thật ném `CacheQuaHanError` khi cache cũ
     hơn ngưỡng và trả "cho qua" khi thiếu; ở đây ngày nào VN-INDEX KHÔNG có nến đúng ngày ấy (thiếu hẳn,
@@ -107,7 +109,7 @@ class NguonVni:
             self._df = None
             return
         df = vni_df.copy()
-        df["time"] = df["time"].astype(str)
+        df["time"] = df["time"].astype(str).str[:10]
         df = df.sort_values("time").reset_index(drop=True)
         df["vni_ma50"] = df["close"].rolling(MA_WINDOW).mean()
         self._df = df

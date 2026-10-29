@@ -243,9 +243,9 @@ def test_TANG_A_vn_index_THAT_cua_nguon_tiem_duoc_bang_cong_cua_market_filter(gi
 
 @pytest.mark.parametrize("hau_to", ["", " 07:00:00"], ids=["ngay_tron", "ngay_kem_gio"])
 def test_TANG_A_nguon_vni_tiem_duoc_giong_market_filter_tren_moi_ngay(gia, monkeypatch, hau_to):
-    """Cả hai dạng cột `time`: cache CSV (`2026-09-30`) và nguồn tải thẳng (`2026-09-30 07:00:00`). Dạng
-    thứ hai làm phép so CHUỖI `time <= ngày tín hiệu` loại nến của chính ngày ấy — nguồn tiêm được phải
-    LẶP LẠI đúng đặc điểm đó, không "sửa" nó."""
+    """Cả hai dạng cột `time`: cache CSV (`2026-09-30`) và nguồn tải thẳng (`2026-09-30 07:00:00`). Từ BƯỚC
+    241 (lỗi 195) cổng thật so NGÀY 10 ký tự nên hai dạng đọc cùng nến; nguồn tiêm được phải giống nó ở
+    cả hai dạng."""
     vni = _khung_vni(gia)
     vni["time"] = vni["time"] + hau_to
     khung = vni.copy()
@@ -259,19 +259,21 @@ def test_TANG_A_nguon_vni_tiem_duoc_giong_market_filter_tren_moi_ngay(gia, monke
     assert nguon.ngay_thieu == set()
 
 
-def test_nguon_vni_kem_gio_thay_VN_INDEX_tre_mot_phien_so_voi_ngay_tron(gia):
-    """Hai dạng cột `time` cho hai đáp án KHÁC NHAU ở ít nhất một ngày: dạng kèm giờ nhìn thấy nến hôm
-    trước chứ không phải nến hôm nay. Đây là chỗ cổng chạy thật khác backtest dùng cache CSV."""
+def test_nguon_vni_hai_dang_cot_time_doc_CUNG_nen(gia):
+    """Hai dạng cột `time` cho CÙNG đáp án mọi ngày (BƯỚC 241, lỗi 195). Trước đó dạng kèm giờ nhìn nến hôm
+    trước — bản gốc của test này khẳng định đúng điều ngược lại, và đó là lỗi của cổng thật."""
     tron = _khung_vni(gia)
     kem = tron.copy()
     kem["time"] = kem["time"] + " 07:00:00"
     a, b = sd.NguonVni(tron), sd.NguonVni(kem)
-    khac = [d for d in S.PHIEN if a.vni_tren_ma50(d) != b.vni_tren_ma50(d)]
-    assert khac, "không ngày nào phân biệt hai dạng: khung tổng hợp không canh gì"
-    # dạng kèm giờ ở ngày d = dạng tròn ở phiên liền trước d
-    truoc = {d: tron["time"].iloc[i - 1] for i, d in enumerate(tron["time"]) if i}
-    for d in S.PHIEN[1:]:
-        assert b.vni_tren_ma50(d) == a.vni_tren_ma50(truoc[d]), d
+    ket = [(a.vni_tren_ma50(d), b.vni_tren_ma50(d)) for d in S.PHIEN]
+    assert all(x == y for x, y in ket)
+    assert {x for x, _ in ket} == {True, False}, "khung không cắt MA50: phép so trống rỗng"
+    # đáp án của ngày d là nến của CHÍNH ngày d, không phải nến liền trước
+    d = tron.assign(ma=tron["close"].rolling(50).mean())
+    for ngay in S.PHIEN:
+        dong = d[d["time"] == ngay].iloc[-1]
+        assert b.vni_tren_ma50(ngay) == (float(dong["close"]) >= float(dong["ma"])), ngay
 
 
 def test_rui_ro_dung_lai_BANG_agent_rui_ro_trong_duong_cham_diem_THAT(gia, monkeypatch):
