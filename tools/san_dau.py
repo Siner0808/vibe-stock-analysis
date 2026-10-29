@@ -265,8 +265,25 @@ def in_bao_cao(b: dict, ghi=print) -> None:
 # ── lệnh `bang` (BƯỚC 242, Lát 3a): một hàng mỗi tài khoản, GIÁ TRỊ ĐIỂM, chưa có KTC ────────────
 SO_PHUONG_AN = GOC / "docs" / "phuong-an-bong.json"
 
-#: Dòng in kèm MỖI hàng: khoảng tin cậy và độ phủ chưa có ở BƯỚC này.
-GHI_CHU_CHUA_CO_KTC = "KTC va do phu: den o BUOC 243 (chua co o BUOC 242, day chi la GIA TRI DIEM)"
+#: Độ phủ đã đo của KTC (BƯỚC 243): dụng cụ CHỈ ĐỌC file này; `do-phu --kiem` đo lại và so.
+SO_DO_PHU = GOC / "docs" / "san-dau-do-phu.json"
+
+#: Dòng in kèm hàng RỔ: rổ là thước đo của hai thước, không phải một hiệu nên không có KTC riêng.
+GHI_CHU_RO_KHONG_CO_KTC = "KTC: khong co (ro la thuoc do cua thuoc 1 va thuoc 2, khong phai mot chenh lech)"
+
+
+def doc_bang_do_phu(duong=None) -> dict | None:
+    """Bảng độ phủ đã đo, hoặc None khi file KHÔNG có (không bao giờ đoán một độ phủ); NỔ khi file hỏng hay
+    lệch hằng số hiện hành (`san_dau.vi_pham_bang_do_phu`)."""
+    import json
+    p = Path(duong if duong is not None else SO_DO_PHU)
+    if not p.exists():
+        return None
+    bang = json.loads(p.read_text(encoding="utf-8"))
+    loi = sd.vi_pham_bang_do_phu(bang)
+    if loi:
+        raise ValueError("bang do phu khong hop le: " + "; ".join(loi))
+    return bang
 
 
 def doc_so_phuong_an(duong=None) -> dict:
@@ -312,7 +329,7 @@ def _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai_ngay) -> dict:
 
 def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, phuong_an: dict, *,
               bang_co: dict | None = None, tu_ngay: str = sd.NGAY_MO_CONG, den_ngay: str | None = None,
-              cau_hinh=None) -> dict:
+              cau_hinh=None, do_phu: dict | None = None) -> dict:
     """Dựng bảng sân đấu: đường thật phát lại, mỗi phương án bóng của `phuong_an`, và rổ. Không in, không
     đọc đĩa. Cửa sổ kế toán bắt đầu `tu_ngay` (mặc định `NGAY_MO_CONG`); vị thế mang sang chép vào MỌI tài
     khoản.
@@ -321,7 +338,10 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
     `bang_co` được đưa vào (test). Phiên mà độ rộng VẪN thiếu bị LOẠI khỏi cửa sổ so sánh của MỌI tài khoản
     (đường thật, mọi phương án, rổ) và lệnh có ngày TÍN HIỆU ở phiên ấy không vào tổng nào (số lệnh, nhãn,
     đường vốn, alpha từng lệnh); phương án có cổng độ rộng không mở lệnh nào ở phiên ấy (đặc tả mục 4
-    khoản 4; quyết định của người dùng 29/10/2026)."""
+    khoản 4; quyết định của người dùng 29/10/2026).
+
+    `do_phu` = bảng độ phủ đã đo (`doc_bang_do_phu`); mỗi KTC của bảng mang nhãn độ phủ của nó, và KHÔNG có bảng
+    thì KTC không được in (BƯỚC 243)."""
     import paper_trading as pt
 
     co_so = cau_hinh if cau_hinh is not None else pt.CauHinhVao.tu_module()
@@ -384,6 +404,12 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
                 h["thuoc2"] = sd.thuoc_2(ch.r, that["r"], phien_dung)
                 h["khoi"] = {nhan: _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai)
                              for nhan in (sd.NHAN_DA_NHIN, sd.NHAN_CHUA_NHIN)}
+            t1 = h["thuoc1"]
+            h["ktc"] = {"thuoc1": sd.ktc_co_nhan(t1["x_chuoi"], None, "mot_chuoi", do_phu),
+                        "tho": sd.ktc_co_nhan(t1["tho_chuoi"], None, "tho", do_phu)}
+            if that is not None:
+                t2 = h["thuoc2"]
+                h["ktc"]["thuoc2"] = sd.ktc_co_nhan(t2["a_chuoi"], t2["b_chuoi"], "cap", do_phu)
             return h
 
         that = hang("duong that phat lai", None, tk_that, co_so, vni_that, vni_that, None, None)
@@ -394,7 +420,7 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
                    "sut_giam": sd.sut_giam_toi_da(r_ro, phien_ro)}
         return {"tu_ngay": tu_ngay, "ngay_cuoi": tk_that.ngay_ket_thuc, "phien": phien,
                 "phien_loai": sorted(loai), "mang_sang": len(mang), "that": that, "phuong_an": ra_pa,
-                "ro": ro_hang}
+                "ro": ro_hang, "co_do_phu": do_phu is not None}
     finally:
         for tk in tk_ds:
             tk.dong()
@@ -411,6 +437,24 @@ def _in_thuoc1(t1: dict, ghi, lui: str = "   ") -> None:
         f"cong don = {_s(t1['x_cong_don'])}   [{t1['n_giu']} phien giu, {t1['n_khong_giu']} phien KHONG giu]")
     ghi(f"{lui}tho   (r - ro)   : trung binh/phien = {_s(t1['tho_tb'], 3)} diem%  "
         f"cong don = {_s(t1['tho_cong_don'])}   [{t1['n_phien']} phien]")
+
+
+def _in_ktc(h: dict, ghi) -> None:
+    """Mọi KTC của một hàng, MỖI cái kèm nhãn độ phủ của nó (chuỗi do `sd.dinh_dang_ktc` ghép)."""
+    t1 = h["thuoc1"]
+    k = h["ktc"]
+    n = t1["n_phien"]
+    if n:
+        ghi(f"   KTC thuoc 1 (x, trung binh CA CUA SO = {_s(t1['x_cong_don'] / n, 3)} diem%/phien, n={n}): "
+            f"{k['thuoc1']['dong']}")
+        ghi(f"   KTC tho (r - ro, trung binh = {_s(t1['tho_cong_don'] / n, 3)} diem%/phien, n={n}): "
+            f"{k['tho']['dong']}")
+    if "thuoc2" in k:
+        t2 = h["thuoc2"]
+        n2 = t2["n_phien"]
+        if n2:
+            ghi(f"   KTC thuoc 2 (PB - duong that, CUNG bo khoi cho hai chuoi, trung binh = "
+                f"{_s(t2['cong_don'] / n2, 3)} diem%/phien, n={n2}): {k['thuoc2']['dong']}")
 
 
 def _in_tai_khoan(h: dict, ghi) -> None:
@@ -446,7 +490,7 @@ def _in_tai_khoan(h: dict, ghi) -> None:
 
 def in_bang(b: dict, ghi=print) -> None:
     ghi("=" * 74)
-    ghi("SAN DAU / BANG (BUOC 242, Lat 3a) -- GIA TRI DIEM, chua co KTC / do phu (BUOC 243)")
+    ghi("SAN DAU / BANG (BUOC 243, Lat 3b) -- GIA TRI DIEM + KTC kem nhan DO PHU DO DUOC")
     ghi("=" * 74)
     ghi("THAM DO -- khong bao gio len ban. Don vi: diem phan tram von (size_pct la % von ban dau).")
     ghi(f"Cua so ke toan : {b['tu_ngay']} .. {b['ngay_cuoi']}  ({len(b['phien'])} phien); "
@@ -455,11 +499,15 @@ def in_bang(b: dict, ghi=print) -> None:
         f"hieu o do): {len(b['phien_loai'])} {b['phien_loai']}")
     ghi(f"Nhan du lieu   : tin hieu < {sd.NGAY_TIEN_VE_TRUOC} = MO PHONG (loai khoi thong ke); "
         f"[{sd.NGAY_TIEN_VE_TRUOC}, khai_ngay) = DA NHIN; >= khai_ngay = CHUA NHIN (hai khoi, KHONG cong)")
+    ghi(f"KTC            : bootstrap khoi vong CO CAP, L={sd.DO_DAI_KHOI}, {sd.VONG_KTC} lan rut, hat {sd.HAT_KTC}; "
+        f"n < {min(sd.LUOI_N)} phien thi KHONG in KTC; " + (
+            "do phu doc tu docs/san-dau-do-phu.json" if b.get("co_do_phu")
+            else "KHONG co docs/san-dau-do-phu.json -> khong in KTC nao"))
     ghi("")
     t = b["that"]
     ghi(f"[1] {t['ten'].upper()}  (cau hinh = tu_module; bo may HIEN HANH replay, KHONG phai ban sao so that)")
     _in_tai_khoan(t, ghi)
-    ghi(f"   {GHI_CHU_CHUA_CO_KTC}")
+    _in_ktc(t, ghi)
     for i, p in enumerate(b["phuong_an"], 2):
         ghi("")
         ghi(f"[{i}] {p['ten']}  khai_ngay {p['khai_ngay']}")
@@ -477,13 +525,14 @@ def in_bang(b: dict, ghi=print) -> None:
                 _in_thuoc1(k["thuoc1"], ghi, "      ")
                 ghi(f"      thuoc 2: trung binh/phien = {_s(k['thuoc2']['tb'], 3)}  "
                     f"cong don = {_s(k['thuoc2']['cong_don'])}")
-        ghi(f"   {GHI_CHU_CHUA_CO_KTC}")
+        ghi("   (hai khoi tren: chi gia tri diem, KHONG in KTC)")
+        _in_ktc(p, ghi)
     ro = b["ro"]
     ghi("")
     ghi(f"[{len(b['phuong_an']) + 2}] {ro['ten'].upper()}  ({ro['n_ma']} ma, luon dau tu 100%)")
     ghi(f"   phien: {len(ro['phien'])} (khong dung duoc: {len(ro['thieu'])} {ro['thieu']})")
     ghi(f"   lai/lo cong don = {_s(ro['cong_don'])} diem%   sut giam toi da = {_s(ro['sut_giam'], 2, False)}")
-    ghi(f"   {GHI_CHU_CHUA_CO_KTC}")
+    ghi(f"   {GHI_CHU_RO_KHONG_CO_KTC}")
 
 
 def ma_thoat_bang(b: dict) -> int:
@@ -557,9 +606,43 @@ def lenh_bang(a) -> int:
     tt = so_tuong_duong(lenh, qd, gia, vni, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay)
     print(f"duong that phat lai vs so THAT (12 cot): khop tung o {tt['khop_tung_o']}/{tt['lenh_thuc_trong_cua_so']}"
           f" lenh trong cua so, khac {tt['so_khoa_khac']} lenh -- xem `tuong-duong`")
-    b = dung_bang(lenh, qd, gia, vni, phuong_an, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay)
+    do_phu = doc_bang_do_phu(a.do_phu)
+    if do_phu is None:
+        print("CANH BAO: khong co bang do phu (docs/san-dau-do-phu.json) -> KHONG in KTC nao")
+    b = dung_bang(lenh, qd, gia, vni, phuong_an, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay, do_phu=do_phu)
     in_bang(b)
     return ma_thoat_bang(b)
+
+
+def in_bang_do_phu(bang: dict, ghi=print) -> None:
+    """Bảng độ phủ dạng đọc được: mỗi L, mỗi n, ba dạng; ô dưới ngưỡng ghi thẳng 'mau qua ngan'."""
+    ts = bang["tham_so"]
+    ghi(f"DO PHU KTC danh nghia {100 - 2 * (100 - sd.PHAN_VI_KTC[1]):.0f} phan tram: {ts['so_lan_lap']} lan lap/o, "
+        f"{ts['vong_bootstrap']} lan rut bootstrap, hat {ts['hat']}; sai so Monte Carlo toi da "
+        f"{100 * bang['sai_so_monte_carlo_toi_da']:.2f} diem phan tram")
+    ghi(f"{'L':>4} {'n':>5} " + " ".join(f"{d:>10}" for d in sd.DANG_KTC))
+    for ld, theo_n in bang["do_phu"].items():
+        for n, o in theo_n.items():
+            cac = " ".join(f"{100 * o[d]:9.1f}%" for d in sd.DANG_KTC)
+            thap = [d for d in sd.DANG_KTC if o[d] < sd.NGUONG_DO_PHU]
+            ghi(f"{ld:>4} {n:>5} {cac}" + (f"   DUOI {100 * sd.NGUONG_DO_PHU:.0f}%: " + ", ".join(thap) if thap else ""))
+
+
+def lenh_do_phu(a) -> int:
+    import json
+    bang = sd.dung_bang_do_phu(sd.mo_phong_do_phu(so_lan=a.so_lan), so_lan=a.so_lan)
+    if a.json:
+        print(json.dumps(bang, indent=2, ensure_ascii=False))
+        return MA_BANG_NHAU
+    in_bang_do_phu(bang)
+    if a.kiem:
+        da = json.loads(Path(a.duong or SO_DO_PHU).read_text(encoding="utf-8"))
+        if da == json.loads(json.dumps(bang)):
+            print(f"KHOP: {a.duong or SO_DO_PHU} bang ket qua do lai.")
+            return MA_BANG_NHAU
+        print(f"KHAC: {a.duong or SO_DO_PHU} khong bang ket qua do lai -- chay lai `do-phu --json` va commit.")
+        return MA_KHAC
+    return MA_BANG_NHAU
 
 
 def dung_parser() -> argparse.ArgumentParser:
@@ -571,7 +654,15 @@ def dung_parser() -> argparse.ArgumentParser:
     bg.add_argument("--so-tam", default=None, help="DB tạm đã kéo sẵn (mở chỉ đọc); không có thì kéo từ Sheets")
     bg.add_argument("--nguon-gia", choices=("cache", "mang"), default="cache")
     bg.add_argument("--so-phuong-an", default=None, help="đường tới sổ phương án (mặc định docs/phuong-an-bong.json)")
+    bg.add_argument("--do-phu", default=None, help="đường tới bảng độ phủ (mặc định docs/san-dau-do-phu.json)")
     bg.set_defaults(ham=lenh_bang)
+    dp = con.add_parser("do-phu", help="đo độ phủ của KTC (BƯỚC 243); in JSON hoặc so với file đã commit")
+    dp.add_argument("--json", action="store_true", help="in nội dung docs/san-dau-do-phu.json ra stdout (không ghi file)")
+    dp.add_argument("--kiem", action="store_true", help="đo lại và SO với file đã commit; mã thoát 0 khi bằng nhau")
+    dp.add_argument("--duong", default=None, help="file để --kiem so (mặc định docs/san-dau-do-phu.json)")
+    dp.add_argument("--so-lan", type=int, default=sd.SO_LAN_LAP_DO_PHU,
+                    help="số lần lặp mỗi ô (mặc định theo đặc tả; đổi chỉ để thử máy)")
+    dp.set_defaults(ham=lenh_do_phu)
     td = con.add_parser("tuong-duong", help="Tầng B: phát lại sổ thật, so từng ô")
     td.add_argument("--tu-ngay", default=sd.NGAY_MO_CONG, help="ngày bắt đầu của cửa sổ (mặc định NGAY_MO_CONG)")
     td.add_argument("--den-ngay", default=None, help="ngày cuối (mặc định: ngày cuối của giá)")

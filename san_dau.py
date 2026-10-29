@@ -4,6 +4,9 @@ BƯỚC 242 (Lát 3a) thêm: nguồn độ rộng tiêm được cho PB-002 (`Ng
 (`cau_hinh_tu_phuong_an`), chuỗi lợi nhuận mỗi phiên + gác bảo toàn, rổ, và hai thước ở dạng GIÁ TRỊ ĐIỂM
 (khoảng tin cậy và độ phủ đến ở BƯỚC 243).
 
+BƯỚC 243 (Lát 3b) thêm: KTC bootstrap khối vòng CÓ CẶP (`ktc_khoi_co_cap`), phép thử độ phủ ở n = 40, 113, 252
+(`mo_phong_do_phu`), và nhãn độ phủ (`dinh_dang_ktc`, nơi duy nhất ghép chuỗi KTC danh nghĩa).
+
 Phát lại những QUYẾT ĐỊNH ĐÃ GHI (tab `decisions`) trên một chuỗi giá, bằng bộ máy sổ lệnh THẬT
 (`paper_runner.buoc_phien` — CHỖ DUY NHẤT giữ thứ tự bốn bước), trên một `PaperTradingJournal` đặt trong
 bộ nhớ. Không nạp mạng, không đĩa, không đồng hồ: dữ liệu đi vào bằng tham số, kết quả đi ra bằng giá trị.
@@ -26,6 +29,7 @@ import dataclasses
 import json
 from typing import Any, Callable, Iterable, Optional
 
+import numpy as np
 import pandas as pd
 
 #: Cổng mở lệnh mở từ ngày này (`docs/STATE.md` BƯỚC 138; đặc tả mục 4 khoản 7, quyết định 3).
@@ -676,7 +680,8 @@ def thuoc_1(r: dict, e: dict, ro: dict, phien: list[str]) -> dict:
     giu = [d for d in ds if e[d] > _E_KHONG]
     return {"n_phien": len(ds), "n_giu": len(giu), "n_khong_giu": len(ds) - len(giu),
             "x_tb_giu": _trung_binh([x[d] for d in giu]), "x_cong_don": sum(x.values()),
-            "tho_tb": _trung_binh(list(tho.values())), "tho_cong_don": sum(tho.values())}
+            "tho_tb": _trung_binh(list(tho.values())), "tho_cong_don": sum(tho.values()),
+            "x_chuoi": [x[d] for d in ds], "tho_chuoi": [tho[d] for d in ds]}
 
 
 def thuoc_2(r_pa: dict, r_that: dict, phien: list[str]) -> dict:
@@ -684,7 +689,8 @@ def thuoc_2(r_pa: dict, r_that: dict, phien: list[str]) -> dict:
     các phiên của cửa sổ CHUNG `phien`."""
     ds = [d for d in phien if d in r_pa and d in r_that]
     d_t = [r_pa[d] - r_that[d] for d in ds]
-    return {"n_phien": len(ds), "tb": _trung_binh(d_t), "cong_don": sum(d_t)}
+    return {"n_phien": len(ds), "tb": _trung_binh(d_t), "cong_don": sum(d_t),
+            "a_chuoi": [r_pa[d] for d in ds], "b_chuoi": [r_that[d] for d in ds]}
 
 
 def sut_giam_toi_da(r: dict, phien: list[str]) -> float:
@@ -726,3 +732,243 @@ def alpha_tung_lenh(tk: TaiKhoan, gia: dict, *, bo_tin_hieu: Iterable[str] = ())
     lenh = [t for t in tk.nhat_ky.all_trades() if ngay10(t.signal_date) not in bo]
     kq = pm.vs_benchmark(lenh, build_benchmark(lenh, gia))
     return {"n": kq["n"], "alpha": kq.get("alpha"), "bo_qua": kq["bo_qua"]}
+
+# ── BƯỚC 243 (Lát 3b): KTC bootstrap khối CÓ CẶP, phép thử độ phủ, nhãn độ phủ ─────────────────
+#: Đặc tả mục 8.3. `L` = 10 phiên được ghim TRƯỚC khi thấy dữ liệu thật (người dùng 28/10/2026); {5, 21} chỉ là
+#: bảng nhạy cảm, không dùng để chọn `L`.
+DO_DAI_KHOI = 10
+DO_DAI_KHOI_NHAY = (5, 21)
+#: Cùng `VONG` với `paper_metrics.vs_benchmark`; hạt giống cố định 0; khoảng phân vị 2,5–97,5.
+VONG_KTC = 5000
+HAT_KTC = 0
+PHAN_VI_KTC = (2.5, 97.5)
+
+#: Đặc tả mục 8.4: lưới n, số lần lặp, hạt giống, mô hình sinh — CỐ ĐỊNH trước khi chạy; sửa là sửa đặc tả.
+LUOI_N = (40, 113, 252)
+SO_LAN_LAP_DO_PHU = 2000
+HAT_DO_PHU = 0
+#: Độ phủ đo được dưới ngưỡng này thì nhãn "mẫu quá ngắn: độ phủ đo được dưới 90%" (người dùng duyệt).
+NGUONG_DO_PHU = 0.90
+#: Ba dạng chuỗi được in, mỗi dạng một cột độ phủ riêng:
+#:   `cap`       KTC của mean(A) − mean(B), MỘT bộ khối cho cả hai chuỗi (thước 2: phương án − đường thật);
+#:   `mot_chuoi` KTC của mean(x) khi x có đoạn KHÔNG GIỮ (e_t = 0 cho x_t = 0; thước 1: r − e×rổ);
+#:   `tho`       KTC của mean(x) khi x KHÔNG có đoạn không giữ (cột thô r − rổ; rổ luôn đầu tư 100%).
+DANG_KTC = ("cap", "mot_chuoi", "tho")
+
+#: Mô hình sinh của phép thử độ phủ (mục 8.4): đuôi dày t 4 bậc tự do · tự tương quan do vị thế chồng nhau =
+#: trung bình trượt `CUA_SO_VI_THE` phiên của nhiễu · thành phần chung `TY_TRONG_CHUNG` giữa A và B ·
+#: đoạn không giữ = chuỗi Markov hai trạng thái, vào giữ với xác suất `P_VAO_GIU` mỗi phiên, đoạn giữ dài
+#: trung bình `TB_DOAN_GIU` phiên. Trung bình thật của mọi chuỗi bằng 0 (nhiễu đối xứng, độc lập với mặt nạ).
+BAC_TU_DO_T = 4
+CUA_SO_VI_THE = 20
+TY_TRONG_CHUNG = 0.5
+P_VAO_GIU = 0.1
+TB_DOAN_GIU = 15
+
+NHAN_MAU_QUA_NGAN = "mẫu quá ngắn"
+NHAN_DO_PHU_THAP = "mẫu quá ngắn: độ phủ đo được dưới 90%"
+
+
+def _trung_binh_khoi(x: np.ndarray, dau: np.ndarray, do_dai: int, du: int) -> np.ndarray:
+    """Trung bình của mỗi lần rút bootstrap khối VÒNG. `dau` (vong × số khối): chỉ số bắt đầu mỗi khối; mỗi lần
+    rút ghép `số khối` khối dài `do_dai` rồi CẮT về n (khối cuối chỉ lấy `du` phiên đầu). Tính bằng tổng cộng dồn
+    của chuỗi nhân đôi (khối vòng) nên không dựng ma trận vong × n; test đối chiếu với bản dựng chỉ số tường minh."""
+    n = x.size
+    p = np.concatenate([[0.0], np.cumsum(np.concatenate([x, x]))])
+    s = np.arange(n)
+    day = p[s + do_dai] - p[s]
+    cuoi = p[s + du] - p[s]
+    return (day[dau[:, :-1]].sum(axis=1) + cuoi[dau[:, -1]]) / n
+
+
+def ktc_khoi_co_cap(a: Any, b: Any = None, *, do_dai: int = DO_DAI_KHOI, vong: int = VONG_KTC,
+                    hat: int = HAT_KTC) -> dict:
+    """Khoảng tin cậy phân vị của `mean(a) − mean(b)` (hay `mean(a)` khi không có `b`) bằng bootstrap khối vòng
+    CÓ CẶP (đặc tả mục 8.3): MỘT bộ chỉ số khối được rút và áp cho MỌI chuỗi (cặp), nên phần chung của hai chuỗi
+    triệt tiêu như nó triệt tiêu trong số liệu. Khối cố định `do_dai`, rút ceil(n/do_dai) khối, cắt về n; `vong`
+    lần rút; hạt giống `hat`. Đây là HÀM DUY NHẤT tính KTC của sân đấu: phép thử độ phủ gọi chính nó."""
+    a = np.asarray(a, dtype=float)
+    n = int(a.size)
+    if b is not None:
+        b = np.asarray(b, dtype=float)
+        if b.size != n:
+            raise ValueError(f"hai chuoi phai cung do dai ({n} != {b.size})")
+    if n < 1 or not 1 <= do_dai <= n:
+        raise ValueError(f"do dai khoi {do_dai} khong hop le voi n = {n}")
+    so_khoi = -(-n // do_dai)
+    du = n - (so_khoi - 1) * do_dai
+    dau = np.random.default_rng(hat).integers(0, n, size=(vong, so_khoi))
+    boot = _trung_binh_khoi(a, dau, do_dai, du)
+    tb = float(a.mean())
+    if b is not None:
+        boot = boot - _trung_binh_khoi(b, dau, do_dai, du)
+        tb -= float(b.mean())
+    can_duoi, can_tren = np.percentile(boot, PHAN_VI_KTC)
+    return {"n": n, "do_dai": do_dai, "so_khoi": so_khoi, "tb": tb, "can_duoi": float(can_duoi),
+            "can_tren": float(can_tren), "vong": vong, "hat": hat}
+
+
+def _nhieu_chong_vi_the(rng: Any, so_lan: int, n: int) -> np.ndarray:
+    """Nhiễu t đuôi dày, tự tương quan do trung bình trượt `CUA_SO_VI_THE` phiên (vị thế chồng nhau), phương sai ~1."""
+    z = rng.standard_t(BAC_TU_DO_T, size=(so_lan, n + CUA_SO_VI_THE - 1))
+    p = np.concatenate([np.zeros((so_lan, 1)), np.cumsum(z, axis=1)], axis=1)
+    return (p[:, CUA_SO_VI_THE:] - p[:, :-CUA_SO_VI_THE]) / np.sqrt(CUA_SO_VI_THE)
+
+
+def _mat_na_giu(rng: Any, so_lan: int, n: int) -> np.ndarray:
+    """Mặt nạ GIỮ / KHÔNG GIỮ (True = đang giữ), chuỗi Markov hai trạng thái ở phân phối dừng."""
+    p_ra = 1.0 / TB_DOAN_GIU
+    dung = P_VAO_GIU / (P_VAO_GIU + p_ra)
+    u = rng.random((so_lan, n))
+    s = rng.random(so_lan) < dung
+    ra = np.empty((so_lan, n), dtype=bool)
+    for t in range(n):
+        s = np.where(s, u[:, t] >= p_ra, u[:, t] < P_VAO_GIU)
+        ra[:, t] = s
+    return ra
+
+
+def sinh_chuoi_do_phu(n: int, so_lan: int, hat: int = HAT_DO_PHU) -> tuple:
+    """(A, B, A_tho), mỗi mảng so_lan × n, trung bình thật bằng 0. A và B chung thành phần (cặp) và chung mặt
+    nạ không giữ; A_tho là A không mặt nạ. Hạt giống phụ thuộc (hat, n) nên cùng một bộ chuỗi được dùng cho mọi `L`."""
+    rng = np.random.default_rng([hat, n])
+    chung = _nhieu_chong_vi_the(rng, so_lan, n)
+    ia = _nhieu_chong_vi_the(rng, so_lan, n)
+    ib = _nhieu_chong_vi_the(rng, so_lan, n)
+    giu = _mat_na_giu(rng, so_lan, n)
+    w = float(np.sqrt(TY_TRONG_CHUNG))
+    v = float(np.sqrt(1.0 - TY_TRONG_CHUNG))
+    a_tho = w * chung + v * ia
+    b_tho = w * chung + v * ib
+    return a_tho * giu, b_tho * giu, a_tho
+
+
+def do_phu_mot_o(n: int, do_dai: int, dang: str, *, so_lan: int = SO_LAN_LAP_DO_PHU, hat: int = HAT_DO_PHU,
+                 vong: int = VONG_KTC, chuoi: Optional[tuple] = None) -> float:
+    """Tỷ lệ KTC (do `ktc_khoi_co_cap` tính, cùng mã với thứ được in) chứa 0 trên `so_lan` bộ chuỗi có trung bình
+    thật bằng 0, ở n, `do_dai` và dạng `dang` đã cho. `chuoi` = kết quả `sinh_chuoi_do_phu` (để dùng chung)."""
+    if dang not in DANG_KTC:
+        raise ValueError(f"dang KTC khong ro: {dang!r}")
+    a, b, a_tho = chuoi if chuoi is not None else sinh_chuoi_do_phu(n, so_lan, hat)
+    chua = 0
+    for i in range(so_lan):
+        if dang == "cap":
+            k = ktc_khoi_co_cap(a[i], b[i], do_dai=do_dai, vong=vong)
+        elif dang == "mot_chuoi":
+            k = ktc_khoi_co_cap(a[i], do_dai=do_dai, vong=vong)
+        else:
+            k = ktc_khoi_co_cap(a_tho[i], do_dai=do_dai, vong=vong)
+        if k["can_duoi"] <= 0.0 <= k["can_tren"]:
+            chua += 1
+    return chua / so_lan
+
+
+def mo_phong_do_phu(*, luoi_n: Iterable[int] = LUOI_N,
+                    do_dai: Iterable[int] = (DO_DAI_KHOI, *DO_DAI_KHOI_NHAY),
+                    so_lan: int = SO_LAN_LAP_DO_PHU, hat: int = HAT_DO_PHU, vong: int = VONG_KTC) -> dict:
+    """Độ phủ đo được: {"L<do_dai>": {"<n>": {dạng: tỷ lệ}}}. Mỗi n sinh MỘT lần bộ chuỗi dùng cho mọi `L`."""
+    ra: dict = {}
+    for n in luoi_n:
+        chuoi = sinh_chuoi_do_phu(n, so_lan, hat)
+        for ld in do_dai:
+            o = ra.setdefault(f"L{ld}", {}).setdefault(str(n), {})
+            for dang in DANG_KTC:
+                o[dang] = do_phu_mot_o(n, ld, dang, so_lan=so_lan, hat=hat, vong=vong, chuoi=chuoi)
+    return ra
+
+
+def dung_bang_do_phu(do_phu: dict, *, luoi_n: Iterable[int] = LUOI_N,
+                     do_dai: Iterable[int] = (DO_DAI_KHOI, *DO_DAI_KHOI_NHAY),
+                     so_lan: int = SO_LAN_LAP_DO_PHU, hat: int = HAT_DO_PHU, vong: int = VONG_KTC) -> dict:
+    """Nội dung `docs/san-dau-do-phu.json`: tham số cố định, mô hình sinh (suy ra từ hằng số, không gõ tay) và độ
+    phủ đo được. Sai số Monte Carlo lớn nhất (căn p(1−p)/số lần lặp) in kèm để biết ô nào là nhiễu."""
+    sai_so = max((float(np.sqrt(p * (1.0 - p) / so_lan)) for l_ in do_phu.values() for o in l_.values()
+                  for p in o.values()), default=0.0)
+    return {
+        "_ghi_chu": ("Do phu cua khoang tin cay bootstrap khoi (BUOC 243, Lat 3b; docs/thiet-ke-c1-san-dau.md muc 8.4). "
+                     "Tai lap: ./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem (so sanh voi file nay) hoac "
+                     "do-phu --json (in lai). App/bang CHI DOC file nay; sua tham so o dac ta TRUOC khi chay lai."),
+        "lenh": "./.venv/Scripts/python.exe tools/san_dau.py do-phu --json",
+        "tham_so": {"hat": hat, "so_lan_lap": so_lan, "vong_bootstrap": vong, "hat_bootstrap": HAT_KTC,
+                    "phan_vi": list(PHAN_VI_KTC), "luoi_n": list(luoi_n), "do_dai_khoi": list(do_dai),
+                    "do_dai_khoi_chinh": DO_DAI_KHOI, "nguong_do_phu": NGUONG_DO_PHU},
+        "mo_hinh": {"bac_tu_do_t": BAC_TU_DO_T, "cua_so_vi_the": CUA_SO_VI_THE, "ty_trong_chung": TY_TRONG_CHUNG,
+                    "p_vao_giu": P_VAO_GIU, "tb_doan_giu": TB_DOAN_GIU,
+                    "dang": {"cap": "mean(A) - mean(B), mot bo khoi cho ca hai chuoi (thuoc 2)",
+                             "mot_chuoi": "mean(x), x co doan KHONG GIU bang 0 (thuoc 1)",
+                             "tho": "mean(x), x khong co doan khong giu (cot tho r - ro)"}},
+        "do_phu": do_phu,
+        "sai_so_monte_carlo_toi_da": sai_so,
+    }
+
+
+def vi_pham_bang_do_phu(bang: Any) -> list[str]:
+    """Lỗi cấu trúc của `docs/san-dau-do-phu.json` (rỗng = hợp lệ): khoá, kiểu, p ∈ [0, 1], đủ ô của lưới, và
+    tham số phải KHỚP hằng số hiện hành của module — sửa mô hình hay lưới mà không chạy lại thì file cũ bị bắt."""
+    if not isinstance(bang, dict):
+        return ["khong phai tu dien"]
+    loi: list = []
+    ts = bang.get("tham_so") or {}
+    mong = {"hat": HAT_DO_PHU, "so_lan_lap": SO_LAN_LAP_DO_PHU, "vong_bootstrap": VONG_KTC,
+            "hat_bootstrap": HAT_KTC, "phan_vi": list(PHAN_VI_KTC), "luoi_n": list(LUOI_N),
+            "do_dai_khoi": [DO_DAI_KHOI, *DO_DAI_KHOI_NHAY], "do_dai_khoi_chinh": DO_DAI_KHOI,
+            "nguong_do_phu": NGUONG_DO_PHU}
+    for k, v in mong.items():
+        if ts.get(k) != v:
+            loi.append(f"tham_so.{k} = {ts.get(k)!r}, hang so hien hanh = {v!r}")
+    mh = bang.get("mo_hinh") or {}
+    for k, v in (("bac_tu_do_t", BAC_TU_DO_T), ("cua_so_vi_the", CUA_SO_VI_THE), ("ty_trong_chung", TY_TRONG_CHUNG),
+                 ("p_vao_giu", P_VAO_GIU), ("tb_doan_giu", TB_DOAN_GIU)):
+        if mh.get(k) != v:
+            loi.append(f"mo_hinh.{k} = {mh.get(k)!r}, hang so hien hanh = {v!r}")
+    dp = bang.get("do_phu")
+    if not isinstance(dp, dict):
+        return loi + ["thieu muc do_phu"]
+    for ld in (DO_DAI_KHOI, *DO_DAI_KHOI_NHAY):
+        for n in LUOI_N:
+            o = (dp.get(f"L{ld}") or {}).get(str(n))
+            if not isinstance(o, dict):
+                loi.append(f"thieu o L{ld} n={n}")
+                continue
+            for dang in DANG_KTC:
+                p = o.get(dang)
+                if isinstance(p, bool) or not isinstance(p, (int, float)) or not 0.0 <= p <= 1.0:
+                    loi.append(f"o L{ld} n={n} dang {dang}: {p!r} khong phai ty le")
+    return loi
+
+
+def n_luoi_cua(n: int, luoi_n: Iterable[int] = LUOI_N) -> Optional[int]:
+    """Điểm lưới LỚN NHẤT ≤ n (đặc tả mục 8.4); None khi n nhỏ hơn mọi điểm lưới."""
+    ok = [g for g in luoi_n if g <= n]
+    return max(ok) if ok else None
+
+
+def dinh_dang_ktc(n: int, dang: str, ktc: Optional[dict], bang_do_phu: Optional[dict],
+                  do_dai: int = DO_DAI_KHOI) -> str:
+    """NƠI DUY NHẤT ghép chuỗi KTC danh nghĩa và LUÔN kèm độ phủ đã đo (gác G6): không có độ phủ đo thì không
+    in con số 95. n nhỏ hơn mọi điểm lưới → "mẫu quá ngắn", không in KTC; n không có trên lưới → dùng điểm lưới
+    lớn nhất ≤ n; độ phủ đo được < `NGUONG_DO_PHU` → thêm nhãn "mẫu quá ngắn: độ phủ đo được dưới 90%"."""
+    luoi = (bang_do_phu or {}).get("tham_so", {}).get("luoi_n", LUOI_N)
+    g = n_luoi_cua(n, luoi)
+    if g is None:
+        return f"{NHAN_MAU_QUA_NGAN} (n={n} < {min(luoi)}): không in KTC"
+    if bang_do_phu is None:
+        return f"chưa có bảng độ phủ đo (docs/san-dau-do-phu.json): không in KTC (n={n})"
+    p = ((bang_do_phu.get("do_phu") or {}).get(f"L{do_dai}") or {}).get(str(g), {}).get(dang)
+    if p is None or ktc is None:
+        return f"chưa đo độ phủ ở n={g}, L={do_dai}, dạng {dang}: không in KTC (n={n})"
+    s = (f"KTC danh nghĩa 95% [{ktc['can_duoi']:+.3f} ; {ktc['can_tren']:+.3f}] — "
+         f"độ phủ đo được {100.0 * p:.1f}% (n={g}, L={do_dai})")
+    if p < NGUONG_DO_PHU:
+        s += f" — {NHAN_DO_PHU_THAP}"
+    return s
+
+
+def ktc_co_nhan(a: Any, b: Any, dang: str, bang_do_phu: Optional[dict], *, do_dai: int = DO_DAI_KHOI) -> dict:
+    """KTC của một chuỗi (hay một cặp) KÈM nhãn độ phủ: {n, ktc | None, dong}. Chỉ tính KTC khi sẽ được in
+    (n đủ lớn và đã có bảng độ phủ); `dong` là chuỗi in được, ghép bởi `dinh_dang_ktc`."""
+    n = len(a)
+    luoi = (bang_do_phu or {}).get("tham_so", {}).get("luoi_n", LUOI_N)
+    ktc = ktc_khoi_co_cap(a, b, do_dai=do_dai) if (bang_do_phu is not None and n_luoi_cua(n, luoi) is not None
+                                                  and n >= do_dai) else None
+    return {"n": n, "dang": dang, "ktc": ktc, "dong": dinh_dang_ktc(n, dang, ktc, bang_do_phu, do_dai)}

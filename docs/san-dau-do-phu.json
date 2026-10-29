@@ -1,0 +1,92 @@
+{
+  "_ghi_chu": "Do phu cua khoang tin cay bootstrap khoi (BUOC 243, Lat 3b; docs/thiet-ke-c1-san-dau.md muc 8.4). Tai lap: ./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem (so sanh voi file nay) hoac do-phu --json (in lai). App/bang CHI DOC file nay; sua tham so o dac ta TRUOC khi chay lai.",
+  "lenh": "./.venv/Scripts/python.exe tools/san_dau.py do-phu --json",
+  "tham_so": {
+    "hat": 0,
+    "so_lan_lap": 2000,
+    "vong_bootstrap": 5000,
+    "hat_bootstrap": 0,
+    "phan_vi": [
+      2.5,
+      97.5
+    ],
+    "luoi_n": [
+      40,
+      113,
+      252
+    ],
+    "do_dai_khoi": [
+      10,
+      5,
+      21
+    ],
+    "do_dai_khoi_chinh": 10,
+    "nguong_do_phu": 0.9
+  },
+  "mo_hinh": {
+    "bac_tu_do_t": 4,
+    "cua_so_vi_the": 20,
+    "ty_trong_chung": 0.5,
+    "p_vao_giu": 0.1,
+    "tb_doan_giu": 15,
+    "dang": {
+      "cap": "mean(A) - mean(B), mot bo khoi cho ca hai chuoi (thuoc 2)",
+      "mot_chuoi": "mean(x), x co doan KHONG GIU bang 0 (thuoc 1)",
+      "tho": "mean(x), x khong co doan khong giu (cot tho r - ro)"
+    }
+  },
+  "do_phu": {
+    "L10": {
+      "40": {
+        "cap": 0.5905,
+        "mot_chuoi": 0.5935,
+        "tho": 0.5425
+      },
+      "113": {
+        "cap": 0.712,
+        "mot_chuoi": 0.7105,
+        "tho": 0.7
+      },
+      "252": {
+        "cap": 0.774,
+        "mot_chuoi": 0.7665,
+        "tho": 0.744
+      }
+    },
+    "L5": {
+      "40": {
+        "cap": 0.52,
+        "mot_chuoi": 0.527,
+        "tho": 0.481
+      },
+      "113": {
+        "cap": 0.6195,
+        "mot_chuoi": 0.6105,
+        "tho": 0.5715
+      },
+      "252": {
+        "cap": 0.651,
+        "mot_chuoi": 0.6575,
+        "tho": 0.625
+      }
+    },
+    "L21": {
+      "40": {
+        "cap": 0.5585,
+        "mot_chuoi": 0.561,
+        "tho": 0.5005
+      },
+      "113": {
+        "cap": 0.7595,
+        "mot_chuoi": 0.7605,
+        "tho": 0.7545
+      },
+      "252": {
+        "cap": 0.8445,
+        "mot_chuoi": 0.8325,
+        "tho": 0.846
+      }
+    }
+  },
+  "sai_so_monte_carlo_toi_da": 0.011180334297327607
+}

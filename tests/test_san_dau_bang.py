@@ -475,7 +475,7 @@ def test_TANG_A_phuong_an_nghi_sau_lo_va_phuong_an_do_rong_khac_duong_that_o_dun
 
 
 # ── 7. bảng sân đấu: một hàng mỗi tài khoản ───────────────────────────────────────────────────
-def _dung(gia, monkeypatch, *, thieu_cuoi=5, them=None):
+def _dung(gia, monkeypatch, *, thieu_cuoi=5, them=None, **kw_bang):
     cli = _nap_cli()
     monkeypatch.setattr(sd, "NGAY_TIEN_VE_TRUOC", S.PHIEN[0])          # kịch bản nằm trước 28/08/2026
     vni = _khung_vni(gia)
@@ -489,7 +489,7 @@ def _dung(gia, monkeypatch, *, thieu_cuoi=5, them=None):
           "PB-002": {"lop": "tham_do", "bo_co": {"cong_vni_bat": False, "do_rong_nguong": 0.5},
                      "khai_ngay": khai, "commit": None, "mo_ta": "x", "ly_do": "y"}}
     pa.update(them or {})
-    b = cli.dung_bang(lenh, qd, gia, vni, pa, bang_co=bang_co, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())
+    b = cli.dung_bang(lenh, qd, gia, vni, pa, bang_co=bang_co, tu_ngay=S.PHIEN[0], cau_hinh=_cfg(), **kw_bang)
     return cli, b, lenh, qd, pa
 
 
@@ -713,14 +713,16 @@ def test_bao_toan_bat_sai_o_lenh_dang_mo_khong_qua_net_return_pct_va_lenh_da_xon
         tk.dong()
 
 
-def test_bang_in_mot_hang_moi_tai_khoan_voi_nhan_va_dong_KTC_den_o_BUOC_243(bang_tong_hop):
+def test_bang_in_mot_hang_moi_tai_khoan_voi_nhan_va_KHONG_co_bang_do_phu_thi_KHONG_in_KTC_nao(bang_tong_hop):
     cli, b, *_ = bang_tong_hop
     ra = []
     cli.in_bang(b, ghi=ra.append)
     van = "\n".join(ra)
     for tieu_de in ("[1] DUONG THAT PHAT LAI", "[2] PB-001", "[3] PB-002", "[4] PB-009", "[5] RO DEU"):
         assert tieu_de in van, tieu_de
-    assert van.count("BUOC 243") >= 5, "MỖI hàng phải nói KTC và độ phủ đến ở BƯỚC 243"
+    assert "KHONG co docs/san-dau-do-phu.json -> khong in KTC nao" in van
+    assert van.count("chưa có bảng độ phủ đo") >= 11, "mỗi KTC của đường thật (2) và của ba phương án (3 mỗi cái)"
+    assert "KTC danh nghĩa" not in van
     assert "THAM DO -- khong bao gio len ban" in van
     assert "DA_NHIN" in van and "CHUA_NHIN" in van and "KHONG cong" in van
     assert "95%" not in van and "KTC" in van
