@@ -23,18 +23,23 @@ THỨ TỰ TRONG MỘT PHIÊN — KHÔNG ĐƯỢC ĐỔI
 Bước 4 phải ở CUỐI. Nếu tính tín hiệu rồi khớp luôn trong cùng phiên thì
 đã nhìn trộm: điểm số dựa trên giá đóng cửa hôm nay, không thể mua ở giá
 mở cửa hôm nay bằng thông tin đó.
+
+MỘT CHỖ GIỮ THỨ TỰ (BƯỚC 239, Lát 1 của C1): bốn bước trên nằm trong `buoc_phien`, và
+`run_session` chỉ là vỏ mỏng quanh nó. Bộ phát lại của sân đấu (Lát 2+) gọi CHÍNH hàm ấy,
+nên không thể trôi khỏi đường thật về thứ tự.
 """
 from __future__ import annotations
 
 import argparse
 import contextlib
+import dataclasses
 import sys
 
 import pandas as pd
 
 from data_quality import now_vn
 from paper_metrics import report as build_report
-from paper_trading import PaperTradingJournal
+from paper_trading import CauHinhVao, PaperTradingJournal
 
 
 class DaLuongVoiBoNhoError(RuntimeError):
@@ -260,8 +265,35 @@ def run_session(journal: PaperTradingJournal, symbol: str,
                 history: pd.DataFrame, bar: dict, session_date: str,
                 exchange: str = "HOSE",
                 buy_threshold: float | None = None,
-                chi_khop: bool = False) -> dict:
-    """Xử lý MỘT phiên cho MỘT mã. `history` chỉ chứa dữ liệu tới hết phiên này.
+                chi_khop: bool = False,
+                cau_hinh: CauHinhVao | None = None) -> dict:
+    """Xử lý MỘT phiên cho MỘT mã — VỎ MỎNG quanh `buoc_phien` (BƯỚC 239). `history` chỉ
+    chứa dữ liệu tới hết phiên này.
+
+    Vỏ chỉ làm ba việc: chọn cấu hình (`cau_hinh`, thiếu thì `CauHinhVao.tu_module()` — tức
+    đúng các biến module như trước; `buy_threshold` tường minh thắng ngưỡng của cấu hình),
+    gói việc chấm điểm thành MỘT hàm không đối số (`_analyze` tra lúc gọi, nên vẫn thay được
+    bằng `monkeypatch`), rồi gọi `buoc_phien`. Mọi quy tắc nằm ở đó.
+    """
+    cau_hinh = CauHinhVao.tu_module() if cau_hinh is None else cau_hinh
+    if buy_threshold is not None:
+        cau_hinh = dataclasses.replace(cau_hinh, buy_threshold=buy_threshold)
+    return buoc_phien(journal, symbol, history, bar, session_date, exchange, cau_hinh,
+                      lambda: _analyze(symbol, history, exchange, str(session_date)[:10]),
+                      chi_khop=chi_khop)
+
+
+def buoc_phien(nhat_ky: PaperTradingJournal, ma: str, lich_su: pd.DataFrame, nen: dict,
+               ngay: str, san: str, cau_hinh: CauHinhVao, cham_diem,
+               chi_khop: bool = False, nguon=None) -> dict:
+    """MỘT bước tài khoản cho MỘT mã trong MỘT phiên: khớp vào → khớp ra → xét thoát → xét vào.
+
+    CHỖ DUY NHẤT giữ thứ tự bốn bước (xem đầu file). `run_session` (đường thật, walk-forward)
+    và bộ phát lại của sân đấu (C1) cùng đi qua đây. `nhat_ky` là sổ của MỘT tài khoản;
+    `cham_diem` là hàm KHÔNG đối số trả `result` của phiên — gọi LƯỜI, đúng lúc cần và nhiều
+    nhất hai lần (phiên chỉ-khớp không gọi), nên đường thật vẫn chỉ chấm khi phải chấm.
+    `nen` là nến THÔ của nguồn; hàm quy về VNĐ. `nguon` — `NguonThiTruong` tiêm được cho hai
+    cổng thị trường (None = cache toàn cục, như đường thật).
 
     ĐƠN VỊ: mọi giá đưa vào sổ đều quy về VNĐ.
     Nguồn vnstock trả giá theo nghìn đồng (FPT = 71.2), trong khi
@@ -275,30 +307,28 @@ def run_session(journal: PaperTradingJournal, symbol: str,
     # 19 ký tự, hậu tố giờ đổi theo nguồn — và sổ lưu nguyên chuỗi ấy, nên
     # mọi phép so ngày trong sổ và trong rổ chuẩn thành so CHUỖI THỜI GIAN.
     # Audit 25/09/2026, ma_giao_dich-05 và -06.
-    session_date = str(session_date)[:10]
+    ngay = str(ngay)[:10]
 
-    mult = price_multiplier(history)
+    mult = price_multiplier(lich_su)
     # KHÔNG nhân hệ số vào `volume` — nó là số cổ phiếu, không phải giá.
     # Nhân nhầm thì tác động thị trường nhỏ đi 1.000 lần và trượt giá gần
     # như biến mất, mà kết quả vẫn trông hợp lý.
     bar = {k: (float(v) * mult if v is not None and k != "volume" else v)
-           for k, v in bar.items()}
-    if "volume" not in bar and "volume" in getattr(history, "columns", []):
-        bar["volume"] = float(history["volume"].iloc[-1])
+           for k, v in nen.items()}
+    if "volume" not in bar and "volume" in getattr(lich_su, "columns", []):
+        bar["volume"] = float(lich_su["volume"].iloc[-1])
 
     stats = {"filled_in": 0, "filled_out": 0, "closed": 0, "opened": 0}
 
     # Nến khớp cho mô hình trượt giá. `tham_chieu` là giá đóng cửa phiên
     # TRƯỚC — mốc mà biên độ ±7% quay quanh, không phải giá mở cửa hôm nay.
     _nen = None
-    if len(history) >= 2:
+    if len(lich_su) >= 2:
         _nen = {"high": bar.get("high"), "low": bar.get("low"),
                 "volume": bar.get("volume"),
-                "tham_chieu": float(history["close"].iloc[-2]) * mult}
-    stats["filled_in"] = journal.fill_pending(symbol, session_date,
-                                              bar["open"], _nen)
-    stats["filled_out"] = journal.fill_closing(symbol, session_date,
-                                               bar["open"], _nen)
+                "tham_chieu": float(lich_su["close"].iloc[-2]) * mult}
+    stats["filled_in"] = nhat_ky.fill_pending(ma, ngay, bar["open"], _nen)
+    stats["filled_out"] = nhat_ky.fill_closing(ma, ngay, bar["open"], _nen)
 
     # Kèm giá tham chiếu: không có nó thì `khoa_bien` không phân được phiên
     # kịch sàn, và cắt lỗ khớp ở phiên trắng bên mua (ĐO 28, BƯỚC 209).
@@ -315,33 +345,34 @@ def run_session(journal: PaperTradingJournal, symbol: str,
         # không cần ai chấm (ĐO 29, BƯỚC 212). Trước đó cây thủng SL ở phiên này
         # vô hình tới phiên chấm sau — giá ra đẹp hơn thật (GIL 21/12/2022).
         # Nâng stop, thoát theo tín hiệu, trần thời gian: vẫn chỉ ở phiên chấm.
-        stats["closed"] = len(journal.xet_lenh_dat_san(symbol, session_date,
-                                                       _bar))
+        stats["closed"] = len(nhat_ky.xet_lenh_dat_san(ma, ngay, _bar,
+                                                       cau_hinh=cau_hinh))
         # `final_score` để None chứ KHÔNG để 50 hay 0: phiên này không chấm
         # điểm, và một con số ở đây sẽ đi vào báo cáo như thể có ai đã chấm.
         stats["final_score"] = None
         return stats
 
     result = None
-    if journal.open_position(symbol) is not None:
-        result = _analyze(symbol, history, exchange, session_date)
-        closed = journal.evaluate_open(symbol, session_date, _bar,
-                                       current_score=int(result["final_score"]))
+    if nhat_ky.open_position(ma) is not None:
+        result = cham_diem()
+        closed = nhat_ky.evaluate_open(ma, ngay, _bar,
+                                       current_score=int(result["final_score"]),
+                                       cau_hinh=cau_hinh)
         stats["closed"] = len(closed)
 
-    if journal.open_position(symbol) is None:
-        result = result or _analyze(symbol, history, exchange, session_date)
-        if journal.consider_entry(symbol, session_date, result, exchange,
-                                  buy_threshold) is not None:
+    if nhat_ky.open_position(ma) is None:
+        result = result or cham_diem()
+        if nhat_ky.consider_entry(ma, ngay, result, san,
+                                  cau_hinh=cau_hinh, nguon=nguon) is not None:
             stats["opened"] = 1
-    elif journal.ghi_nhat_ky:
+    elif nhat_ky.ghi_nhat_ky:
         # Mã ĐANG GIỮ cũng có một dòng quyết định (BƯỚC 146). Không có dòng
         # này thì bảng `decisions` thiếu đúng những mã điểm cao nhất — mã
         # đang giữ — và phép chấm bóng (`cham_bong.py`) đo IC trên một lát
         # cắt đã bị cổng mua lọc. CHỈ sổ thật: walkforward cũng đi qua
         # hàm này, trên sổ không cờ, nên không phép đo nào đổi.
         import paper_trading as pt
-        journal.record_decision(symbol, session_date, result, False,
+        nhat_ky.record_decision(ma, ngay, result, False,
                                 pt.LY_DO_DANG_GIU)
 
     # Điểm THẬT của phiên này. Bên dựng báo cáo cần nó; trước đây nó được

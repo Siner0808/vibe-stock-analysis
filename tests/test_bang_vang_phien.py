@@ -30,7 +30,8 @@ sys.path.insert(0, str(GOC / "tools"))
 
 import sinh_bang_vang_phien as S  # noqa: E402
 
-BANG = json.loads((GOC / "tests" / "du_lieu" / "bang_vang_phien.json").read_text(encoding="utf-8"))
+BANG = json.loads((Path(__file__).resolve().parent / "du_lieu" / "bang_vang_phien.json")
+                   .read_text(encoding="utf-8"))
 TEN = sorted(BANG["kich_ban"])
 
 
