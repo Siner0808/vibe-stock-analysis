@@ -24745,3 +24745,132 @@ Sổ: `tools/doc_so_that.py` (`keo_ve_so_tam`, 29/10 ~14:33) → bản sao `scra
 **Câu hỏi cho người dùng** (trong PR, mục riêng): (1) Tám lệnh mở ở 30/09 và 26/10 (#126–#133) và các tín hiệu 23/10 qua/ không qua cổng theo phán quyết cũ — giữ nguyên trong sổ và trong mẫu của điều kiện dừng (mặc định, không viết lại lịch sử), hay đánh dấu để loại khỏi mẫu như lệnh có sự kiện quyền (Q14)? (2) #119 MSR là một lệnh cắt lỗ do lỗi 196 — giữ hay đánh dấu loại? Cả hai chỉ đổi cách ĐỌC sổ, không đổi mã.
 
 **Việc kế.** Lát 3 (đặc tả mục 12) trên bộ máy đã sửa; cache giá `acf6dca1…` không đổi nên các số đo của walk-forward không đổi (cổng VN-INDEX của backtest đọc cache cùng ngày từ trước). Sơ đồ "Một ngày của agent" chưa nêu bước "bỏ qua nến đã xử lý" (việc trang trí, chưa làm). Lỗi kế 197.
+
+
+## BƯỚC 242 — LÁT 3A CỦA C1: SỔ PHƯƠNG ÁN BÓNG (PB-001, PB-002), NGUỒN ĐỘ RỘNG, ĐƯỜNG VỐN MỖI PHIÊN + GÁC BẢO TOÀN, RỔ, HAI THƯỚC Ở DẠNG GIÁ TRỊ ĐIỂM, `tools/san_dau.py bang` (29/10/2026)
+
+**Mốc:** C1
+
+Nửa đầu của Lát 3 (đặc tả mục 12; leader chia đôi Lát 3 vì hạn mức). Phiên con của leader, nhánh `c1/lat3a-242` từ `main` `7e0218c` (PR #287), worktree ngoài repo `vibe_wt_242`. KHÔNG làm ở BƯỚC này: KTC bootstrap khối có cặp, đo độ phủ, `docs/san-dau-do-phu.json`, lệnh `do-phu`, nhãn độ phủ (BƯỚC 243); B6/PB-003 và tab app (Lát 4). Không ghi Google Sheets, không ghi `*.db` ở gốc repo, UV-001 không xuất hiện ở đâu.
+
+**Quyết định của người dùng (nguyên văn, 29/10/2026).**
+- Về chín lệnh trúng lỗi 195/196 của BƯỚC 241: *"Giữ tất cả, chỉ ghi nhận (Recommended)"* — #119 và #126–#133 ở LẠI trong mẫu của điều kiện dừng (`paper_metrics.dieu_kien_dong_lai`); BƯỚC 241 chỉ ghi nó làm mặc định, nay là quyết định. Lịch sử sổ không viết lại.
+- Công thức đóng góp mỗi phiên: *"Nhận Δgiá/giá vào (Recommended)"* — xem lỗi 197 dưới đây; đặc tả `docs/thiet-ke-c1-san-dau.md` mục 8.1 đã sửa, câu cũ gạch và ghi "thay thế".
+- Nguồn độ rộng của PB-002: *"Tính từ cùng nguồn giá của bản phát lại (Recommended)"* — độ rộng dựng từ CHÍNH các khung giá mà bản phát lại dùng (cache hay `--nguon-gia mang`), nên có giá là có độ rộng; ngày độ rộng VẪN thiếu thì phiên ấy bị loại khỏi cửa sổ so sánh của MỌI tài khoản, không chỉ PB-002.
+
+**Việc làm.**
+1. `docs/phuong-an-bong.json` (commit `2fa880c68ef03a13957ce204218b96d982ca2697`, `khai_ngay` 2026-10-29, `commit: null` lúc khai): PB-001 = `nghi_sau_lo_ngay` 7; PB-002 = MỘT cặp cờ `cong_vni_bat` False + `do_rong_nguong` 0,50 (giá trị lượt B của ĐO 32, đối chiếu `docs/TIEU-CHI-DOC-TRUOC.md`). Commit SAU (commit của BƯỚC này) điền `commit` = mã băm đầy đủ trên cả hai dòng. `phuong_an_bong.py` (module thuần) phán sáu luật (a)–(f) của mục 9; `tests/test_phuong_an_bong_git.py` (45 test) đi theo CẠNH cha → con của HEAD trên repo git tạm (từng luật một + gộp hai nhánh + squash + repo nông) và chạy một lần trên repo thật, đi qua commit khai từng dòng. **PR phải hợp nhất bằng `--merge`**: squash tạo commit đầu tiên có dòng với mã băm và ngày khác, làm luật (a), (c), (e) đỏ trên `main` (test `test_SQUASH_doi_ma_bam_va_ngay` dựng lại ca ấy).
+2. `san_dau.NguonDoRong` (nguồn độ rộng tiêm được) + `san_dau.co_tu_gia` (bảng cờ "trên MA50" dựng từ khung giá, cùng cách `do_rong.gia_dong_cua` đọc một tệp). Độ rộng = chính `do_rong.do_rong`. **THIẾU** khi ít hơn 20 mã còn nến tới ngày t HOẶC N(t) < 20. Hàm gốc lấy "dòng cuối có ngày ≤ t" nên khi giá dừng trước t nó lặng lẽ dùng độ rộng CŨ (test dựng lại đúng bẫy ấy). Thiếu → nguồn trả 0,0 để bộ máy CHẶN (bộ máy hiểu None là "không chặn" — chính cái bẫy mà đặc tả mục 4 khoản 4 cấm) và ghi `ngay_thieu_rong`. `phat_lai` vẫn từ chối mọi cấu hình chưa có đầu vào: cổng độ rộng chỉ chạy khi nguồn tự khai `co_do_rong`; `luat_vao`, IMOM, chốt sụt giảm, `DUNG_MUC_FIBONACCI` như cũ.
+3. `san_dau.cau_hinh_tu_phuong_an` (CauHinhVao của đường thật ghi đè bởi `bo_co`), `dong_gop_lenh`, `chuoi_tai_khoan`, `loi_nhuan_ro`, `kiem_bao_toan`, `thuoc_1`, `thuoc_2`, `sut_giam_toi_da`, `alpha_tung_lenh`, `dem_lenh`, `dem_theo_nhan`, `phien_cua_so`.
+4. `tools/san_dau.py bang` (CHỈ ĐỌC, mã thoát 0 khi gác bảo toàn xanh ở mọi tài khoản): một hàng mỗi tài khoản (đường thật phát lại · PB-001 · PB-002 · rổ) với số lệnh, lãi/lỗ cộng dồn, thước 1 (kèm cột thô), thước 2, alpha từng lệnh, sụt giảm tối đa, số phiên, nhãn "đã nhìn"/"chưa nhìn" ở hai khối riêng, độ phủ cổng, số tín hiệu mỗi cổng chặn; mỗi hàng nói KTC và độ phủ đến ở BƯỚC 243. `phuong_an_bong.py` vào FILE_GAC của gác AST (G1, G4, G5) và có gác G2/G3 riêng.
+5. `tests/test_san_dau_bang.py` (43 test) + 3 tham số G ở `tests/test_san_dau.py`.
+
+**Lệch so với đặc tả, khai thẳng.**
+- **Lỗi 197 — mục 8.1 tự mâu thuẫn.** `w × (đóng cửa_t / đóng cửa_{t-1} − 1)` mỗi phiên VÀ gác "tổng = `size_pct/100 × net_return_pct`" không đi cùng nhau (+10% rồi −10%: cộng 0, nhân −1%). Dùng `w × Δgiá / giá vào` (lệnh giữ SỐ CỔ PHIẾU cố định, đúng "không tái đầu tư"), thu gọn về `w × (ra − vào) / vào`. Người dùng chốt 29/10. Đột biến dựng lại NGUYÊN VĂN công thức của đặc tả (chia cho đóng cửa hôm trước) làm gác bảo toàn đỏ.
+- **Rổ** là chuỗi lợi nhuận, KHÔNG phải một `PaperTradingJournal`, và không trả phí (không đảo danh mục): đặc tả nói "rổ là một tài khoản"; một sổ để giữ 100% đều trọng số không thêm gì và phải chạm bộ máy khớp lệnh. Rổ = trung bình lợi nhuận một phiên của các mã đủ nến hai phiên LIỀN, đối chiếu từng cặp phiên với `paper_runner.build_benchmark`.
+- **`e_t`** = tổng `size_pct/100` của các lệnh có đóng góp ở phiên t (khớp vào ở ĐẦU phiên t kể cả lệnh chờ, và khớp ra ở đầu phiên t): đúng nghĩa "đang cam kết ở đầu phiên", đo theo giá vốn (không theo giá thị trường).
+- **Nhãn "đã nhìn"/"chưa nhìn" tách theo LỆNH** (ngày tín hiệu, đúng mục 4 khoản 7), không theo phiên; hai khối cộng lại đúng bằng tổng của tài khoản (có test) nhưng được in riêng. Lệnh có tín hiệu < 2026-08-28 (mô phỏng) bị loại khỏi mọi đường vốn.
+- **Tập mã của độ rộng** = tập mã có quyết định (71), KHÁC tập "mọi tệp của thư mục cache" (124 tệp) mà `do_rong.do_rong_mac_dinh` — nguồn của ĐO 32 và của đường thật khi bật cổng — dùng. Hệ quả của quyết định 29/10: PB-002 trong sân đấu không phải là PB-002 của ĐO 32 về định nghĩa độ rộng. Chưa đo độ lệch giữa hai tập; ghi thành câu hỏi cho người dùng ở PR.
+- `phat_lai` nhận cổng độ rộng qua cờ `co_do_rong` của nguồn thay vì kiểm kiểu: nguồn nào không khai thì bị từ chối, kể cả nguồn có phương thức `do_rong` (test cũ `_NguonKichBan` vẫn nổ `NotImplementedError`).
+
+**Đường thật phát lại ≠ sổ thật, nói thẳng.** "Đường thật phát lại" là bộ máy HIỆN HÀNH (sau BƯỚC 241: cổng VN-INDEX đọc nến cùng ngày, mỗi nến xử lý một lần) phát lại các quyết định đã ghi, KHÔNG phải bản sao của sổ. Nó khác sổ thật ở các lệnh trúng lỗi 195/196 (#119, #126–#133) và ở giá điều chỉnh (HDB, BAF, TCB, BƯỚC 240). Người dùng đã chốt giữ cả chín lệnh trong mẫu điều kiện dừng; sân đấu so các phương án với đường PHÁT LẠI, không với sổ.
+
+**Số đo (Quy tắc 2: lệnh + dữ liệu).** Sổ: `tools/doc_so_that.py` chạy từ repo chính (`keo_ve_so_tam`, 29/10 ~15:40) → bản sao `scratchpad/so_that_ban_sao.db` (133 lệnh, 21.684 quyết định), mở `mode=ro` (`--so-tam`). Giá tải thẳng (`--nguon-gia mang`, nến cuối 28/10) — KHÔNG tái lập được về sau vì nguồn mạng điều chỉnh giá; bản tái lập được là lượt cache (nến cuối 21/10, lệnh thứ hai dưới).
+
+```
+VIBE_CACHE_DIR=<repo chính>/backtest/cache ./.venv/Scripts/python.exe tools/san_dau.py bang --so-tam <DB bản sao> --nguon-gia mang
+```
+
+```
+gia: 71/71 ma (mang), nen cuoi 2026-10-28; VN-INDEX: co; quyet dinh toi 2026-10-28; do rong: dung tu 71 chuoi gia cua ban phat lai (KHAC tap ma cua do_rong_mac_dinh)
+duong that phat lai vs so THAT (12 cot): khop tung o 1/10 lenh trong cua so, khac 14 lenh -- xem `tuong-duong`
+==========================================================================
+SAN DAU / BANG (BUOC 242, Lat 3a) -- GIA TRI DIEM, chua co KTC / do phu (BUOC 243)
+==========================================================================
+THAM DO -- khong bao gio len ban. Don vi: diem phan tram von (size_pct la % von ban dau).
+Cua so ke toan : 2026-09-28 .. 2026-10-28  (23 phien); vi the mang sang tu so that, chep vao MOI tai khoan: 7
+Phien LOAI (do rong van thieu, loai khoi cua so cua MOI tai khoan va khoi moi tong lenh co ngay tin hieu o do): 0 []
+Nhan du lieu   : tin hieu < 2026-08-28 = MO PHONG (loai khoi thong ke); [2026-08-28, khai_ngay) = DA NHIN; >= khai_ngay = CHUA NHIN (hai khoi, KHONG cong)
+
+[1] DUONG THAT PHAT LAI  (cau hinh = tu_module; bo may HIEN HANH replay, KHONG phai ban sao so that)
+   lenh dong/mo/cho/huy : 9/5/0/0   nhan: {'TIEN_VE_TRUOC': 14}
+   lai/lo cong don      : -2.62 diem%   sut giam toi da = 3.48   so phien = 23
+   thuoc 1 (r - e*ro): trung binh/phien GIU = -0.076 diem%  cong don = -0.99   [13 phien giu, 10 phien KHONG giu]
+   tho   (r - ro)   : trung binh/phien = -0.078 diem%  cong don = -1.79   [23 phien]
+   alpha tung lenh      : chua du (n=9; vs_benchmark, doi tuong KHAC hai thuoc)
+   do phu cong VN-INDEX : thieu 0/23 phien []
+   lenh co ngay tin hieu o phien LOAI (khong vao tong nao): 0
+   tin hieu bi cong chan : (tong/du diem mua) VN-INDEX 1384/80, nghi sau lo 0/0, do rong 0/0
+   thieu diem/nen       : 24/0 phien-ma   thieu gia: 0 lenh
+   bao toan (8.1)       : 14 lenh kiem, 8 dong tron cua so (+ net_return_pct), 0 VI PHAM
+   KTC va do phu: den o BUOC 243 (chua co o BUOC 242, day chi la GIA TRI DIEM)
+
+[2] PB-001  khai_ngay 2026-10-29
+   lenh dong/mo/cho/huy : 9/5/0/0   nhan: {'DA_NHIN': 14}
+   lai/lo cong don      : -2.62 diem%   sut giam toi da = 3.48   so phien = 23
+   thuoc 1 (r - e*ro): trung binh/phien GIU = -0.076 diem%  cong don = -0.99   [13 phien giu, 10 phien KHONG giu]
+   tho   (r - ro)   : trung binh/phien = -0.078 diem%  cong don = -1.79   [23 phien]
+   alpha tung lenh      : chua du (n=9; vs_benchmark, doi tuong KHAC hai thuoc)
+   do phu cong VN-INDEX : thieu 0/23 phien []
+   lenh co ngay tin hieu o phien LOAI (khong vao tong nao): 0
+   tin hieu bi cong chan : (tong/du diem mua) VN-INDEX 1384/80, nghi sau lo 0/0, do rong 0/0
+   thieu diem/nen       : 24/0 phien-ma   thieu gia: 0 lenh
+   bao toan (8.1)       : 14 lenh kiem, 8 dong tron cua so (+ net_return_pct), 0 VI PHAM
+   lenh KHAC duong that (ma, ngay tin hieu): chi o duong that 0 []; chi o PB-001 0 []
+   thuoc 2 (PB - duong that): trung binh/phien = +0.000 diem%  cong don = +0.00   [23 phien cua cua so CHUNG]
+   khoi DA_NHIN  : 14 lenh {'dong': 9, 'mo': 5, 'cho': 0, 'huy': 0}  lai/lo cong don = -2.62
+      thuoc 1 (r - e*ro): trung binh/phien GIU = -0.076 diem%  cong don = -0.99   [13 phien giu, 10 phien KHONG giu]
+      tho   (r - ro)   : trung binh/phien = -0.078 diem%  cong don = -1.79   [23 phien]
+      thuoc 2: trung binh/phien = +0.000  cong don = +0.00
+   khoi CHUA_NHIN: 0 lenh {'dong': 0, 'mo': 0, 'cho': 0, 'huy': 0}  lai/lo cong don = +0.00
+   KTC va do phu: den o BUOC 243 (chua co o BUOC 242, day chi la GIA TRI DIEM)
+
+[3] PB-002  khai_ngay 2026-10-29
+   lenh dong/mo/cho/huy : 7/0/0/0   nhan: {'DA_NHIN': 7}
+   lai/lo cong don      : -2.07 diem%   sut giam toi da = 2.07   so phien = 23
+   thuoc 1 (r - e*ro): trung binh/phien GIU = -0.110 diem%  cong don = -1.10   [10 phien giu, 13 phien KHONG giu]
+   tho   (r - ro)   : trung binh/phien = -0.054 diem%  cong don = -1.24   [23 phien]
+   alpha tung lenh      : chua du (n=7; vs_benchmark, doi tuong KHAC hai thuoc)
+   do phu cong DO RONG  : 0/23 phien THIEU (loai khoi cua so MOI tai khoan); ngay bi hoi ma thieu (cong CHAN, khong mo lenh): []
+   lenh co ngay tin hieu o phien LOAI (khong vao tong nao): 0
+   tin hieu bi cong chan : (tong/du diem mua) VN-INDEX 0/0, nghi sau lo 0/0, do rong 1599/97
+   thieu diem/nen       : 24/0 phien-ma   thieu gia: 0 lenh
+   bao toan (8.1)       : 7 lenh kiem, 6 dong tron cua so (+ net_return_pct), 0 VI PHAM
+   lenh KHAC duong that (ma, ngay tin hieu): chi o duong that 7 [('BAF', '2026-09-29'), ('BSR', '2026-09-28'), ('FRT', '2026-10-23'), ('GIL', '2026-10-23'), ('HDB', '2026-10-23'), ('TCB', '2026-10-23'), ('VPL', '2026-10-23')]; chi o PB-002 0 []
+   thuoc 2 (PB - duong that): trung binh/phien = +0.024 diem%  cong don = +0.55   [23 phien cua cua so CHUNG]
+   khoi DA_NHIN  : 7 lenh {'dong': 7, 'mo': 0, 'cho': 0, 'huy': 0}  lai/lo cong don = -2.07
+      thuoc 1 (r - e*ro): trung binh/phien GIU = -0.110 diem%  cong don = -1.10   [10 phien giu, 13 phien KHONG giu]
+      tho   (r - ro)   : trung binh/phien = -0.054 diem%  cong don = -1.24   [23 phien]
+      thuoc 2: trung binh/phien = +0.024  cong don = +0.55
+   khoi CHUA_NHIN: 0 lenh {'dong': 0, 'mo': 0, 'cho': 0, 'huy': 0}  lai/lo cong don = +0.00
+   KTC va do phu: den o BUOC 243 (chua co o BUOC 242, day chi la GIA TRI DIEM)
+
+[4] RO DEU (MUA-GIU, KHONG PHI)  (71 ma, luon dau tu 100%)
+   phien: 23 (khong dung duoc: 0 [])
+   lai/lo cong don = -0.83 diem%   sut giam toi da = 3.88
+   KTC va do phu: den o BUOC 243 (chua co o BUOC 242, day chi la GIA TRI DIEM)
+exit=0
+```
+
+Lượt cache (`... tools/san_dau.py bang --so-tam <DB bản sao>`, 18 phiên 28/09–21/10): đường thật −2,90 (9 lệnh đóng, sụt giảm 2,90) · PB-001 trùng đường thật (thước 2 = +0,00) · PB-002 −2,05, thước 2 = +0,85 · rổ −0,47; mã thoát 0, 0 vi phạm bảo toàn, 0 phiên bị loại. Dòng đầu: `CANH BAO: gia dung truoc quyet dinh cuoi (2026-10-21 < 2026-10-28); quyet dinh sau do bi bo`.
+
+**Đọc các con số này cho đúng (Quy tắc 1: bóng hơn thật đáng kể thì nghi lỗi trước).**
+- **PB-001 trùng đường thật tuyệt đối** vì luật nghỉ 7 ngày chặn **0** tín hiệu trong cửa sổ (cột "tin hieu bi cong chan": nghi sau lo 0/0). Thước 2 = 0 ở đây KHÔNG phải hai đường vốn trùng ngẫu nhiên mà là cờ chưa có dịp cắn; kịch bản tổng hợp của test thì có (PB-001 khác đường thật). Nên chưa nói được gì về luật nghỉ.
+- **PB-002 hơn đường thật +0,55 điểm% (23 phiên, mạng) và +0,85 (18 phiên, cache): đã tra nguồn, không phải lỗi máy.** Ở lượt cache, hai lệnh có mặt ở đường thật mà PB-002 không mở là BAF (tín hiệu 29/09, STOP_LOSS 02/10, 8,6% vốn, 31.650 → 30.250) và BSR (tín hiệu 28/09, STOP_LOSS 02/10, 5,3% vốn, 32.750 → 30.250): 8,6% × −4,4% − phí + 5,3% × −7,6% − phí ≈ −0,84, đúng bằng chênh. Tái lập bằng dòng `lenh KHAC duong that` của `bang` ở lượt cache (hai khoá chỉ có ở đường thật). Ở lượt mạng, ngoài BAF và BSR, PB-002 còn không mở năm lệnh tín hiệu 23/10 (FRT · GIL · HDB · TCB · VPL; vẫn đang MỞ ở đường thật, chưa chốt). Số +0,55 (23 phiên) khác +0,85 (18 phiên) vì cửa sổ dài hơn năm phiên và vì năm vị thế đang mở ấy được đánh dấu theo giá đóng cửa vào đường vốn của đường thật mà không vào PB-002; chưa tách phần nào là bao nhiêu. Cổng độ rộng chặn 97 tín hiệu đủ điểm trong cửa sổ. **Mẫu: hai lệnh đã đóng khác nhau, cả hai cắt lỗ; chưa phải bằng chứng.**
+- Rổ −0,83 trong khi đường thật −2,62: cả hai âm; thước 1 trung bình mỗi phiên giữ −0,076 (đường thật), −0,110 (PB-002) — chưa có KTC.
+- Lệnh thật so với bản phát lại: 1/10 lệnh khớp từng ô (mạng), 2/4 (cache) — đúng các nguyên nhân đã ghi ở BƯỚC 240–241 (cổng VN-INDEX trễ một phiên lúc mở các lệnh #126–#133, quét nhiều lần #119, giá điều chỉnh); `tools/san_dau.py tuong-duong` in từng sai khác.
+- Hai lượt có **0 phiên bị loại**: sau quyết định 29/10 độ rộng luôn dựng được khi có giá. Nhánh "loại phiên" vì vậy được gác bằng kịch bản tổng hợp (45 phiên cuối thiếu độ rộng), không bằng dữ liệu thật.
+
+**Đột biến** (`va_an_toan.dot_bien_bo`, lệnh sau mỗi phát là các file test của nhóm với `-x`): **105 phát khác nhau; lượt đầu 96/105 đỏ, 9 phát SỐNG, đã thêm test cho từng phát rồi chạy lại: 105/105 đỏ.** Nhóm sổ phương án (28): lớp xác nhận · id `UV-` · mã băm ngắn · mỗi trong năm trường bất biến · mỗi luật (a), (c) ×3, (d), (e) · khoá/kiểu/`luat_vao` của `bo_co` · `bo_co` rỗng. Nhóm đường vốn, rổ, bảo toàn, thước (54): phí · phiên vào/ra · công thức chia đóng cửa hôm trước (NGUYÊN VĂN đặc tả) · cửa sổ hai đầu · đơn vị giá · `+=` thành `=` · rổ chia sai/thiếu phiên · gác bảo toàn tắt ở từng nhánh · thước 1 không trừ `e` · thước 2 đảo dấu · sụt giảm. Nhóm nguồn độ rộng, phiên loại và lệnh khác đường thật (12): thiếu → None (không chặn) · thiếu → 1,0 · bỏ phiên loại khỏi cửa sổ · lệnh ở phiên loại vẫn vào tổng · alpha/khối nhãn không loại · rổ không loại. Nhóm gác AST (11): gọi ghi, mở file ghi, nhập `subprocess`/`os`, nhắc `_analyze`/`cham_bong`/`UV-`/`ung-vien`, `paper_trading` nhập `phuong_an_bong`. Chín phát sống ở lượt đầu: ba cờ `chot_sut_giam_phien`/float nhận bool/ngày sai dạng (sổ phương án); `co_tu_gia` không sắp (test dữ liệu xáo), bảo toàn nhánh `dong` (cần lệnh MỞ để net_return_pct không che), lệnh xong trước cửa sổ; alpha, khối nhãn và danh sách lệnh khác đường thật không nhận phiên loại.
+
+**Lượt soát NotebookLM.** Mục `khong_bat_buoc_vi`: BƯỚC thêm module đo thuần, một dụng cụ chỉ-đọc, một sổ dữ liệu mới và test; không sửa file luật nào theo `tools/buoc_cham_luat.py 242`; công thức đóng góp là thiết kế của MÁY ĐO mới (người dùng chốt), không phải kết luận đo hay luật. Không duyệt sổ tay.
+
+**Lỗi 197** (`references/loi-da-mac.md`): đặc tả mục 8.1 đòi hai điều không đi cùng nhau mà chưa thử bằng một con số; phát hiện khi viết gác bảo toàn bằng công thức đóng. Máy chặn được: gác bảo toàn + đột biến dựng lại công thức cũ.
+
+**Số test:** 3.839 → 3.928 (+89: `tests/test_phuong_an_bong_git.py` 45 · `tests/test_san_dau_bang.py` 43 · `tests/test_san_dau.py` +1 tham số G), mốc `docs/moc_so_test.json` cập nhật cùng BƯỚC.
+
+**Năm cổng ở máy:** cả năm thoát 0 trên cây của nhánh `c1/lat3a-242` ở LƯỢT ĐẦU, chạy song song mặc định (`tools/nam_cong.py --thu-muc-log <thư mục>`, 29/10 20:50–20:55, 271 s): cổng 1 3926 passed, 2 skipped (cộng 3928 = mốc) · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo (như BƯỚC 241) · cổng 4 mọi file xanh khi chạy một mình · cổng 5 3928 test, khớp mốc (3839 → 3928). Test nhấp nháy `tests/test_ho_so.py::test_CUA_khu_trung_trong_cung_mot_phien` không đỏ lượt này, nên không cần `--tuan-tu`. CI chạy lại trên cây cuối.
+
+**Câu hỏi cho người dùng** (trong PR, mục riêng): (1) tập mã tính độ rộng của PB-002 là 71 mã có quyết định, không phải 124 tệp cache như ĐO 32 — chấp nhận làm định nghĩa của sân đấu, hay dựng lại đúng tập của ĐO 32 (cần nguồn giá cho cả 124 mã mỗi lượt)? (2) PB-001 chưa có dịp cắn (0 tín hiệu bị luật nghỉ chặn) — chờ thêm dữ liệu, không việc gì phải làm.
+
+**Việc kế.** BƯỚC 243: KTC bootstrap khối có cặp, độ phủ (`docs/san-dau-do-phu.json`), lệnh `do-phu`, nhãn độ phủ trên mỗi hàng của `bang`. Merge PR bằng `--merge`. Lỗi kế 198.

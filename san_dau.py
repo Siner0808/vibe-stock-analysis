@@ -151,11 +151,12 @@ class NguonDoRong:
     như `do_rong.BangDoRong.bang_co`, hay `co_tu_gia` trên giá đã tải). Độ rộng tại ngày t = `do_rong.do_rong`
     (CÙNG hàm mà đường thật gọi): tỉ lệ mã trên MA50, THIẾU khi N(t) < `do_rong.N_TOI_THIEU`.
 
-    Khác hàm gốc ở đúng MỘT chỗ, và là chỗ cố ý (đặc tả mục 4 khoản 4): hàm gốc lấy "dòng cuối có ngày ≤ t"
-    nên khi cache dừng trước t nó lặng lẽ dùng độ rộng CŨ. Ở đây ngày t mà ít hơn `N_TOI_THIEU` mã còn nến
-    tới t (cache chưa tới) cũng là THIẾU. Thiếu → trả None (bộ máy hiểu "không chặn") và ghi vào
-    `ngay_thieu_rong`; người gọi LOẠI phiên ấy khỏi cửa sổ của PB-002 (`phien_thieu`) — không bao giờ coi
-    là không chặn.
+    Khác hàm gốc ở hai chỗ, cả hai cố ý (đặc tả mục 4 khoản 4): (1) hàm gốc lấy "dòng cuối có ngày ≤ t" nên
+    khi giá dừng trước t nó lặng lẽ dùng độ rộng CŨ; ở đây ngày t mà ít hơn `N_TOI_THIEU` mã còn nến tới t cũng
+    là THIẾU. (2) Bộ máy hiểu độ rộng None là "không chặn" — đúng cái bẫy mà đặc tả cấm — nên ngày THIẾU trả
+    0,0: mọi ngưỡng > 0 CHẶN, tức PB-002 không mở lệnh nào ở ngày ấy. Ngày thiếu được ghi vào
+    `ngay_thieu_rong`; người gọi LOẠI phiên ấy khỏi cửa sổ so sánh của MỌI tài khoản (`phien_thieu`) và
+    lệnh có ngày tín hiệu ở đó khỏi mọi tổng. Giá trị 0,0 chỉ là cách để bộ máy chặn, không phải một độ rộng.
 
     `vni` — nguồn VN-INDEX (`NguonVni`) nếu cấu hình còn cổng VN-INDEX; thiếu mà bị hỏi thì NỔ.
     """
@@ -179,7 +180,7 @@ class NguonDoRong:
         n = ngay10(ngay)
         if self.thieu(n):
             self.ngay_thieu_rong.add(n)
-            return None
+            return 0.0
         return dr.do_rong(self.bang_co, pd.Timestamp(n))
 
     def vni_tren_ma50(self, ngay: str) -> bool:
@@ -714,12 +715,14 @@ def dem_theo_nhan(lenh: Iterable[dict], khai_ngay: Optional[str] = None) -> dict
     return ra
 
 
-def alpha_tung_lenh(tk: TaiKhoan, gia: dict) -> dict:
+def alpha_tung_lenh(tk: TaiKhoan, gia: dict, *, bo_tin_hieu: Iterable[str] = ()) -> dict:
     """Alpha từng lệnh của `paper_metrics.vs_benchmark` (đặc tả mục 8.2, ĐỐI TƯỢNG KHÁC với hai thước):
-    `{n, alpha}` — alpha None khi n < 10. Khoảng tin cậy của nó KHÔNG được in ở đây."""
+    `{n, alpha}` — alpha None khi n < 10. Khoảng tin cậy của nó KHÔNG được in ở đây. Lệnh có ngày tín hiệu
+    trong `bo_tin_hieu` (phiên bị loại khỏi cửa sổ) không vào."""
     import paper_metrics as pm
     from paper_runner import build_benchmark
 
-    lenh = tk.nhat_ky.all_trades()
+    bo = {ngay10(d) for d in bo_tin_hieu}
+    lenh = [t for t in tk.nhat_ky.all_trades() if ngay10(t.signal_date) not in bo]
     kq = pm.vs_benchmark(lenh, build_benchmark(lenh, gia))
     return {"n": kq["n"], "alpha": kq.get("alpha"), "bo_qua": kq["bo_qua"]}

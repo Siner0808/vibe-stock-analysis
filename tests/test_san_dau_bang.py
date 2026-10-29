@@ -328,7 +328,7 @@ def test_nguon_do_rong_bang_ham_goc_o_ngay_con_trong_cache_va_THIEU_o_ngay_cache
     # cache DỪNG ở 12/08: ngày sau đó hàm gốc LẶNG LẼ dùng độ rộng cũ, nguồn tiêm được phải báo THIẾU
     sau = "2026-08-17"
     assert dr.do_rong(bang_co, pd.Timestamp(sau)) is not None, "hàm gốc phải trả độ rộng cũ (bẫy của đặc tả)"
-    assert nguon.thieu(sau) and nguon.do_rong(sau) is None and nguon.ngay_thieu_rong == {sau}
+    assert nguon.thieu(sau) and nguon.do_rong(sau) == 0.0 and nguon.ngay_thieu_rong == {sau}   # 0,0 = CHẶN
     assert nguon.phien_thieu([ngay[-1], sau, "2026-08-18"]) == [sau, "2026-08-18"]
     assert not nguon.thieu(ngay[-1]), "ngày CUỐI của cache vẫn có độ rộng"
 
@@ -336,12 +336,12 @@ def test_nguon_do_rong_bang_ham_goc_o_ngay_con_trong_cache_va_THIEU_o_ngay_cache
 def test_nguon_do_rong_thieu_khi_it_hon_N_TOI_THIEU_ma_va_khi_chua_du_50_dong():
     ft = _gia_tong_hop(n_ma=dr.N_TOI_THIEU - 1)
     nguon = sd.NguonDoRong(sd.co_tu_gia(ft))
-    assert nguon.thieu("2026-08-10") and nguon.do_rong("2026-08-10") is None
+    assert nguon.thieu("2026-08-10") and nguon.do_rong("2026-08-10") == 0.0
     du = sd.NguonDoRong(sd.co_tu_gia(_gia_tong_hop(n_ma=dr.N_TOI_THIEU)))
     assert not du.thieu("2026-08-10")
     # 30 dòng đầu chưa đủ MA50: mọi mã chưa đủ dữ liệu → THIẾU (N(t) < 20), không phải "độ rộng 0"
     ngay_dau = pd.bdate_range(end="2026-08-12", periods=165)[10].strftime("%Y-%m-%d")
-    assert du.thieu(ngay_dau) and du.do_rong(ngay_dau) is None
+    assert du.thieu(ngay_dau) and du.do_rong(ngay_dau) == 0.0 and ngay_dau in du.ngay_thieu_rong
 
 
 def test_nguon_do_rong_giong_BangDoRong_doc_tu_thu_muc_cache(tmp_path):
@@ -489,7 +489,7 @@ def _dung(gia, monkeypatch, *, thieu_cuoi=5, them=None):
           "PB-002": {"lop": "tham_do", "bo_co": {"cong_vni_bat": False, "do_rong_nguong": 0.5},
                      "khai_ngay": khai, "commit": None, "mo_ta": "x", "ly_do": "y"}}
     pa.update(them or {})
-    b = cli.dung_bang(lenh, qd, gia, vni, bang_co, pa, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())
+    b = cli.dung_bang(lenh, qd, gia, vni, pa, bang_co=bang_co, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())
     return cli, b, lenh, qd, pa
 
 
@@ -544,6 +544,13 @@ def test_bang_thuoc_2_la_phuong_an_TRU_duong_that__dung_dau_va_khoi_nhan_khop_nh
         assert k1["thuoc2"]["cong_don"] + k2["thuoc2"]["cong_don"] == pytest.approx(h["thuoc2"]["cong_don"]), h["id"]
     pb1 = next(h for h in b["phuong_an"] if h["id"] == "PB-001")
     pb2 = next(h for h in b["phuong_an"] if h["id"] == "PB-002")
+    pb9 = next(h for h in b["phuong_an"] if h["id"] == "PB-009")
+    # lệnh khác đường thật: cấu hình trùng thì không khác; khác thì tập hai phía đúng bằng hiệu hai tập khoá
+    assert pb9["khac_lenh"] == {"chi_duong_that": [], "chi_phuong_an": []}
+    for h in (pb1, pb2):
+        kl = h["khac_lenh"]
+        assert kl["chi_duong_that"] or kl["chi_phuong_an"], h["id"]
+        assert len(kl["chi_duong_that"]) - len(kl["chi_phuong_an"]) == sum(that["lenh"].values()) - sum(h["lenh"].values())
     assert that["chan"]["vni"][0] > 0 and that["chan"]["nghi_sau_lo"] == (0, 0) and that["chan"]["do_rong"] == (0, 0)
     assert pb1["chan"]["nghi_sau_lo"][0] > 0 and pb2["chan"]["do_rong"][0] > 0 and pb2["chan"]["vni"] == (0, 0)
     assert pb1["thuoc2"]["cong_don"] != 0.0, "nghỉ 7 ngày không đổi đường vốn: kịch bản không canh thước 2"
@@ -562,6 +569,14 @@ def test_alpha_tung_lenh_la_vs_benchmark_tren_ro_cua_chinh_ma_da_phat_lai(gia):
                       for t in dong) / len(dong)
         assert a["alpha"] == pytest.approx(ky_vong)
         assert pm.vs_benchmark(dong, pr.build_benchmark(dong, gia))["alpha"] == pytest.approx(ky_vong)
+        # phiên bị loại: lệnh có ngày tín hiệu ở đó không vào alpha từng lệnh
+        bo = {t.signal_date[:10] for t in dong[:2]}
+        con = [t for t in dong if t.signal_date[:10] not in bo]
+        a2 = sd.alpha_tung_lenh(tk, gia, bo_tin_hieu=bo)
+        assert a2["n"] == len(con) < a["n"]
+        if len(con) >= 10:
+            assert a2["alpha"] == pytest.approx(sum(t.net_return_pct() - pr.build_benchmark([t], gia)[
+                (t.entry_date[:10], t.exit_date[:10])] for t in con) / len(con))
     finally:
         tk.dong()
     # dưới 10 lệnh: không có alpha
@@ -577,12 +592,125 @@ def test_bang_phuong_an_do_rong_LOAI_dung_cac_phien_thieu_do_rong_va_thuoc_2_chi
     pb2 = next(h for h in b["phuong_an"] if h["id"] == "PB-002")
     pb1 = next(h for h in b["phuong_an"] if h["id"] == "PB-001")
     cuoi = S.PHIEN[-5:]
-    assert pb2["rong_loai"] == cuoi, pb2["rong_loai"]
-    assert len(pb2["phien_dung"]) == len(b["phien"]) - 5 and not set(cuoi) & set(pb2["phien_dung"])
+    assert b["phien_loai"] == cuoi, b["phien_loai"]
+    # phiên thiếu độ rộng bị loại khỏi cửa sổ của MỌI tài khoản và của rổ (quyết định của người dùng 29/10)
+    for h in (b["that"], pb1, pb2):
+        assert h["rong_loai"] == cuoi and h["phien_dung"] == b["phien"][:-5], h["ten"]
+        assert len(h["phien_dung"]) == len(b["phien"]) - 5 and not set(cuoi) & set(h["phien_dung"])
+    assert b["ro"]["phien"] == b["phien"][1:-5]       # phiên đầu chuỗi không có phiên trước nên rổ không dựng được
     assert pb2["thuoc2"]["n_phien"] <= len(b["phien"]) - 5
     assert pb2["rong_thieu"] is not None and pb2["vni_thieu"] is None, "PB-002 tắt cổng VN-INDEX"
-    assert pb1["rong_thieu"] is None and pb1["vni_thieu"] is not None and pb1["rong_loai"] == []
+    assert pb1["rong_thieu"] is None and pb1["vni_thieu"] is not None
     assert b["that"]["rong_thieu"] is None
+
+
+@pytest.fixture(scope="module")
+def bang_cat_som(gia):
+    """Độ rộng chỉ tới PHIEN[49]: 45 phiên cuối thiếu độ rộng, và kịch bản có tín hiệu đủ điểm ở đó."""
+    mp = pytest.MonkeyPatch()
+    try:
+        yield _dung(gia, mp, thieu_cuoi=45)
+    finally:
+        mp.undo()
+
+
+def test_phien_thieu_do_rong_PB002_khong_mo_lenh_va_khong_lenh_nao_o_do_vao_tong_nao(bang_cat_som):
+    """Thiếu độ rộng KHÔNG phải "không chặn" (đặc tả mục 4 khoản 4): ở phiên thiếu, phương án có cổng độ rộng
+    không mở lệnh nào; lệnh của tài khoản khác có ngày tín hiệu ở đó không vào số lệnh, nhãn, đường vốn, alpha."""
+    _, b, lenh, qd, _ = bang_cat_som
+    loai = S.PHIEN[50:]
+    assert b["phien_loai"] == loai and b["that"]["phien_dung"] == S.PHIEN[:50]
+    pb2 = next(h for h in b["phuong_an"] if h["id"] == "PB-002")
+    pb1 = next(h for h in b["phuong_an"] if h["id"] == "PB-001")
+    # PB-002 không mở gì ở phiên loại; các tài khoản khác CÓ mở (nếu không thì phép thử trống rỗng)
+    assert pb2["lenh_o_phien_loai"] == 0
+    assert b["that"]["lenh_o_phien_loai"] > 0 and pb1["lenh_o_phien_loai"] > 0
+    # đường thật phát lại = sổ kịch bản; số lệnh trong tổng chỉ gồm lệnh có tín hiệu ở phiên được giữ
+    giu = [t for t in lenh if sd.ngay10(t["signal_date"]) not in loai]
+    assert 0 < len(giu) < len(lenh)
+    assert sum(b["that"]["lenh"].values()) == len(giu) == sum(b["that"]["nhan"].values())
+    assert sum(pb1["lenh"].values()) == sum(pb1["nhan"].values())
+    # nhãn / khối cũng không đếm lệnh của phiên loại
+    for h in (b["that"], pb1, pb2):
+        assert sum(h["lenh"].values()) == sum(h["nhan"].values()), h["ten"]
+    # lệnh "khác đường thật" cũng không nhắc lệnh của phiên loại
+    for h in (pb1, pb2):
+        for ds in h["khac_lenh"].values():
+            assert not [k for k in ds if k[1] in loai], (h["id"], ds)
+    # khối nhãn cũng chỉ đếm lệnh của phiên được giữ
+    for h in (pb1, pb2):
+        for nhan in (sd.NHAN_DA_NHIN, sd.NHAN_CHUA_NHIN):
+            assert h["khoi"][nhan]["n_lenh"] == h["nhan"].get(nhan, 0), (h["id"], nhan)
+    # rổ chỉ trên phiên được giữ
+    assert b["ro"]["phien"] == [d for d in S.PHIEN[1:50]]
+
+
+def test_phien_loai_duoc_truyen_cho_alpha_tung_lenh_cua_moi_tai_khoan(gia, monkeypatch):
+    goi = []
+    goc = sd.alpha_tung_lenh
+
+    def ghi(tk, g, **kw):
+        goi.append(kw)
+        return goc(tk, g, **kw)
+
+    monkeypatch.setattr(sd, "alpha_tung_lenh", ghi)
+    _dung(gia, monkeypatch, thieu_cuoi=45)
+    assert len(goi) == 3 and all(set(kw["bo_tin_hieu"]) == set(S.PHIEN[50:]) for kw in goi), goi
+
+
+def test_nguon_do_rong_thieu_thi_bo_may_CHAN_chu_khong_cho_qua(gia):
+    """Dựng thẳng: `phat_lai` PB-002 với độ rộng dừng ở PHIEN[49] không tạo lệnh nào có ngày tín hiệu sau đó,
+    trong khi cùng cấu hình mà độ rộng phủ hết thì có."""
+    qd = [_qd_diem(ma, d, 90, i) for i, (ma, d) in enumerate(
+        [(m, S.PHIEN[k]) for k in (52, 53, 60, 70) for m in ("FPT", "VCB")], 1)]
+    cfg = _cfg(cong_vni_bat=False, do_rong_nguong=0.5)
+    cat = sd.NguonDoRong(sd.co_tu_gia(_gia_tong_hop(den=S.PHIEN[49])))
+    day = sd.NguonDoRong(sd.co_tu_gia(_gia_tong_hop(den=S.PHIEN[-1])))
+    tk_day = sd.phat_lai(cfg, qd, {m: gia[m] for m in ("FPT", "VCB")}, day, ngay_bat_dau=S.PHIEN[50])
+    try:
+        assert tk_day.lenh(), "độ rộng phủ hết mà cũng không mở lệnh nào: phép thử trống rỗng"
+    finally:
+        tk_day.dong()
+    tk_cat = sd.phat_lai(cfg, qd, {m: gia[m] for m in ("FPT", "VCB")}, cat, ngay_bat_dau=S.PHIEN[50])
+    try:
+        assert tk_cat.lenh() == [] and cat.ngay_thieu_rong
+    finally:
+        tk_cat.dong()
+
+
+def _qd_diem(ma, ngay, diem, seq):
+    return {"seq": seq, "at": float(seq), "symbol": ma, "signal_date": ngay, "score": diem,
+            "recommendation": "MUA", "acted": 0, "skip_reason": "", "components": "{}", "reasons": "[]",
+            "data_quality": "OK"}
+
+
+def test_co_tu_gia_khong_phu_thuoc_thu_tu_dong_va_hau_to_gio():
+    sach = _gia_tong_hop()
+    xao = {ma: df.sample(frac=1.0, random_state=5) for ma, df in _gia_tong_hop(hau_to=" 07:00:00").items()}
+    a, b = sd.co_tu_gia(sach), sd.co_tu_gia(xao)
+    assert sorted(a) == sorted(b)
+    for ma in a:
+        pd.testing.assert_series_equal(a[ma], b[ma])
+
+
+def test_bao_toan_bat_sai_o_lenh_dang_mo_khong_qua_net_return_pct_va_lenh_da_xong_truoc_cua_so(gia, monkeypatch):
+    tk, bd, kt = _phat_thuoc_ky(gia)
+    try:
+        lenh = tk.lenh()
+        mo = [t for t in lenh if t["status"] == "OPEN"]
+        assert mo
+        goc = sd.dong_gop_lenh
+        monkeypatch.setattr(sd, "dong_gop_lenh", lambda *a, **k: {d: v * 1.01 for d, v in goc(*a, **k).items()})
+        kq = sd.kiem_bao_toan(mo, gia, bd, kt)
+        monkeypatch.undo()
+        assert kq["vi_pham"] and {v["loai"] for v in kq["vi_pham"]} == {"dong"}, "lệnh mở chỉ có đường `dong`"
+        # lệnh đã xong TRƯỚC cửa sổ: đóng góp rỗng và kỳ vọng 0, không vi phạm
+        dong_som = [t for t in lenh if t["status"] == "CLOSED" and sd.ngay10(t["exit_date"]) < S.PHIEN[70]]
+        assert dong_som
+        kq2 = sd.kiem_bao_toan(dong_som, gia, S.PHIEN[70], kt)
+        assert kq2["vi_pham"] == [] and kq2["da_kiem"] == len(dong_som)
+    finally:
+        tk.dong()
 
 
 def test_bang_in_mot_hang_moi_tai_khoan_voi_nhan_va_dong_KTC_den_o_BUOC_243(bang_tong_hop):
@@ -610,9 +738,9 @@ def test_bang_loai_lenh_MO_PHONG_khoi_moi_thong_ke_nhung_van_dem_no(gia, monkeyp
     so.db.close()
     bang_co = sd.co_tu_gia(_gia_tong_hop())
     monkeypatch.setattr(sd, "NGAY_TIEN_VE_TRUOC", S.PHIEN[0])
-    h0 = cli.dung_bang(lenh, qd, gia, vni, bang_co, {}, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())["that"]
+    h0 = cli.dung_bang(lenh, qd, gia, vni, {}, bang_co=bang_co, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())["that"]
     monkeypatch.setattr(sd, "NGAY_TIEN_VE_TRUOC", S.PHIEN[40])
-    h = cli.dung_bang(lenh, qd, gia, vni, bang_co, {}, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())["that"]
+    h = cli.dung_bang(lenh, qd, gia, vni, {}, bang_co=bang_co, tu_ngay=S.PHIEN[0], cau_hinh=_cfg())["that"]
     assert h["nhan"].get(sd.NHAN_MO_PHONG, 0) > 0 and h0["nhan"].get(sd.NHAN_MO_PHONG, 0) == 0
     assert h["cong_don"] != pytest.approx(h0["cong_don"]) and h["thuoc1"]["n_giu"] < h0["thuoc1"]["n_giu"]
 
@@ -627,7 +755,7 @@ def test_bang_ma_thoat_la_1_khi_gac_bao_toan_do_va_vi_pham_duoc_IN(gia, monkeypa
     so.db.close()
     pa = {"PB-001": {"lop": "tham_do", "bo_co": {"nghi_sau_lo_ngay": 7}, "khai_ngay": S.PHIEN[48],
                      "commit": None, "mo_ta": "x", "ly_do": "y"}}
-    b = cli.dung_bang(lenh, qd, gia, None, {}, pa, tu_ngay=S.PHIEN[0], cau_hinh=_cfg(cong_vni_bat=False))
+    b = cli.dung_bang(lenh, qd, gia, None, pa, bang_co={}, tu_ngay=S.PHIEN[0], cau_hinh=_cfg(cong_vni_bat=False))
     ra = []
     cli.in_bang(b, ghi=ra.append)
     assert cli.ma_thoat_bang(b) == cli.MA_KHAC and any("VI PHAM bao toan" in d for d in ra)
@@ -650,7 +778,6 @@ def test_dung_cu_bang_chay_dau_cuoi_tren_so_tam_va_sai_so_phuong_an_thi_NO(gia, 
                    "mo_ta": "x", "ly_do": "y"}}}), encoding="utf-8")
     monkeypatch.setattr(cli, "doc_gia_cache",
                         lambda ds: dict({m: gia[m] for m in ds if m in gia}, **({"VNINDEX": vni} if "VNINDEX" in ds else {})))
-    monkeypatch.setattr(cli, "doc_bang_co_cache", lambda: sd.co_tu_gia(_gia_tong_hop(den=S.PHIEN[-1])))
     cuoi = S.PHIEN[80]
     ma = cli.main(["bang", "--so-tam", str(duong), "--tu-ngay", S.PHIEN[0], "--den-ngay", cuoi,
                    "--so-phuong-an", str(pa_json)])

@@ -13,7 +13,7 @@
       "lop": "tham_do",
       "bo_co": {"nghi_sau_lo_ngay": 7},
       "khai_ngay": "2026-10-29",
-      "commit": null,
+      "commit": "2fa880c68ef03a13957ce204218b96d982ca2697",
       "mo_ta": "Đường thật phát lại, thêm đúng một luật: sau một lệnh LỖ, cùng mã đó nghỉ 7 ngày lịch rồi mới được vào lại (cờ NGHI_SAU_LO_NGAY = 7); mọi cờ khác như đường thật.",
       "ly_do": "ĐO 30 (BƯỚC 221, 227): phần tốt lên đi với luật nghỉ; BƯỚC 228 gác luật theo người dùng, không khai ứng viên tầng 3. Sân đấu cho nó một lượt thử TIẾN-VỀ-TRƯỚC, không phải một phép đo thứ hai trên dữ liệu cũ (đặc tả mục 3)."
     },
@@ -21,7 +21,7 @@
       "lop": "tham_do",
       "bo_co": {"cong_vni_bat": false, "do_rong_nguong": 0.5},
       "khai_ngay": "2026-10-29",
-      "commit": null,
+      "commit": "2fa880c68ef03a13957ce204218b96d982ca2697",
       "mo_ta": "Độ rộng thị trường THAY cổng VN-INDEX: tắt cổng VN-INDEX và không mở lệnh khi dưới 50% mã của cache đóng cửa trên MA50 của chính nó; hai cờ đi cùng nhau, tách ra là sai ý.",
       "ly_do": "ĐO 32 (BƯỚC 224, 225, 227), giá trị 0,50 là lượt B đã ghim trước ở docs/TIEU-CHI-DOC-TRUOC.md; BƯỚC 227 gác ĐO 32. Sân đấu cho nó một lượt thử tiến-về-trước. Ngày nào thiếu độ rộng thì phiên ấy bị loại khỏi cửa sổ của nó (đặc tả mục 4 khoản 4), không bao giờ coi là không chặn."
     }

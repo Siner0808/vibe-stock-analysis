@@ -280,14 +280,6 @@ def doc_so_phuong_an(duong=None) -> dict:
     return so["phuong_an"]
 
 
-def doc_bang_co_cache() -> dict:
-    """Bảng cờ "trên MA50" của cache lịch sử cục bộ — CHÍNH `do_rong.BangDoRong` mà đường thật dùng
-    (thư mục `backtest.data.CACHE_DIR`, nên `VIBE_CACHE_DIR` đổi được). Chỉ đọc."""
-    from backtest import data as bt_data
-    from do_rong import BangDoRong
-    return BangDoRong(Path(bt_data.CACHE_DIR)).bang_co
-
-
 def _dem_chan(tk, nguong_mua: float) -> dict:
     """{cổng: (số dòng quyết định bị cổng ấy chặn, số trong đó ĐỦ điểm mua)} của lượt phát lại. Để biết một
     phương án có THẬT SỰ khác đường thật trong cửa sổ hay chỉ khác trên giấy: thước 2 bằng 0 vì cổng của nó
@@ -302,32 +294,38 @@ def _dem_chan(tk, nguong_mua: float) -> dict:
     return ra
 
 
-def _khoi(tk, tk_that, gia, phien, phien_dung, ro, nhan, khai_ngay) -> dict:
+def _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai_ngay) -> dict:
     """Số đo của MỘT khối nhãn dữ liệu (đã nhìn / chưa nhìn) của một phương án, và của đường thật CHỌN
     THEO CÙNG NHÃN (nhãn theo NGÀY TÍN HIỆU của từng lệnh, đặc tả mục 4 khoản 7, nên tách theo lệnh; hai
-    khối KHÔNG cộng vào nhau)."""
+    khối KHÔNG cộng vào nhau). `lenh`, `lenh_that`: lệnh của hai tài khoản đã loại phiên bị loại."""
     def chon(t):
         return sd.nhan_du_lieu(t["signal_date"], khai_ngay) == nhan
 
-    lenh = [t for t in tk.lenh() if chon(t)]
-    ch = sd.chuoi_tai_khoan(lenh, gia, phien)
-    ch_that = sd.chuoi_tai_khoan([t for t in tk_that.lenh() if chon(t)], gia, phien)
-    return {"n_lenh": len(lenh), "lenh": sd.dem_lenh(lenh),
+    cua_pa = [t for t in lenh if chon(t)]
+    ch = sd.chuoi_tai_khoan(cua_pa, gia, phien)
+    ch_that = sd.chuoi_tai_khoan([t for t in lenh_that if chon(t)], gia, phien)
+    return {"n_lenh": len(cua_pa), "lenh": sd.dem_lenh(cua_pa),
             "thuoc1": sd.thuoc_1(ch.r, ch.e, ro, phien_dung),
             "cong_don": sum(ch.r[d] for d in phien_dung),
             "thuoc2": sd.thuoc_2(ch.r, ch_that.r, phien_dung)}
 
 
-def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, bang_co: dict,
-              phuong_an: dict, *, tu_ngay: str = sd.NGAY_MO_CONG, den_ngay: str | None = None,
+def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, phuong_an: dict, *,
+              bang_co: dict | None = None, tu_ngay: str = sd.NGAY_MO_CONG, den_ngay: str | None = None,
               cau_hinh=None) -> dict:
     """Dựng bảng sân đấu: đường thật phát lại, mỗi phương án bóng của `phuong_an`, và rổ. Không in, không
     đọc đĩa. Cửa sổ kế toán bắt đầu `tu_ngay` (mặc định `NGAY_MO_CONG`); vị thế mang sang chép vào MỌI tài
-    khoản. Phương án có cổng độ rộng LOẠI khỏi cửa sổ của nó các phiên thiếu độ rộng; thước 2 chỉ tính trên
-    cửa sổ chung của cặp (đặc tả mục 8.2)."""
+    khoản.
+
+    Độ rộng của PB-002 dựng từ CHÍNH khung giá `gia` mà bản phát lại dùng (`sd.co_tu_gia`), trừ khi
+    `bang_co` được đưa vào (test). Phiên mà độ rộng VẪN thiếu bị LOẠI khỏi cửa sổ so sánh của MỌI tài khoản
+    (đường thật, mọi phương án, rổ) và lệnh có ngày TÍN HIỆU ở phiên ấy không vào tổng nào (số lệnh, nhãn,
+    đường vốn, alpha từng lệnh); phương án có cổng độ rộng không mở lệnh nào ở phiên ấy (đặc tả mục 4
+    khoản 4; quyết định của người dùng 29/10/2026)."""
     import paper_trading as pt
 
     co_so = cau_hinh if cau_hinh is not None else pt.CauHinhVao.tu_module()
+    bang_co = bang_co if bang_co is not None else sd.co_tu_gia(gia)
     mang = sd.vi_the_mang_sang(lenh_thuc, tu_ngay)
     tk_ds: list = []
 
@@ -341,51 +339,62 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
         vni_that = sd.NguonVni(vni_df)
         tk_that = chay(co_so, vni_that)
         phien = sd.phien_cua_so(gia, tu_ngay, tk_that.ngay_ket_thuc)
-        ro, ro_thieu = sd.loi_nhuan_ro(gia, phien)
-        phien_ro = [d for d in phien if d in ro]
-
-        def hang(ten, ma, tk, cfg_tk, nguon, vni, pa, that, phien_dung):
-            khai = pa["khai_ngay"] if pa is not None else None
-            lenh = tk.lenh()
-            ch = sd.chuoi_tai_khoan(
-                lenh, gia, phien, loc=lambda t: sd.nhan_du_lieu(t["signal_date"], khai) != sd.NHAN_MO_PHONG)
-            h = {"ten": ten, "id": ma, "khai_ngay": khai, "lenh": sd.dem_lenh(lenh),
-                 "nhan": sd.dem_theo_nhan(lenh, khai), "phien_dung": phien_dung, "n_phien_cua_so": len(phien),
-                 "thuoc1": sd.thuoc_1(ch.r, ch.e, ro, phien_dung), "cong_don": sum(ch.r[d] for d in phien_dung),
-                 "sut_giam": sd.sut_giam_toi_da(ch.r, phien_dung), "alpha_lenh": sd.alpha_tung_lenh(tk, gia),
-                 "vni_thieu": [d for d in phien if vni.thieu(d)] if vni is not None else None,
-                 "rong_thieu": sorted(nguon.ngay_thieu_rong) if hasattr(nguon, "ngay_thieu_rong") else None,
-                 "rong_loai": [d for d in phien if d not in set(phien_dung)],
-                 "dem": dict(tk.dem), "thieu_gia": ch.thieu_gia, "r": ch.r,
-                 "chan": _dem_chan(tk, cfg_tk.buy_threshold),
-                 "bao_toan": sd.kiem_bao_toan(lenh, gia, phien[0], phien[-1]),
-                 "ds_thieu_diem": list(tk.ds_thieu_diem), "ds_thieu_nen": list(tk.ds_thieu_nen)}
-            if that is not None:
-                h["thuoc2"] = sd.thuoc_2(ch.r, that["r"], phien_dung)
-                h["khoi"] = {nhan: _khoi(tk, tk_that, gia, phien, phien_dung, ro, nhan, khai)
-                             for nhan in (sd.NHAN_DA_NHIN, sd.NHAN_CHUA_NHIN)}
-            return h
-
-        that = hang("duong that phat lai", None, tk_that, co_so, vni_that, vni_that, None, None, phien)
-        ra_pa = []
+        loai: set = set()
+        chay_pa = []
         for ma, pa in sorted(phuong_an.items()):
             cfg = sd.cau_hinh_tu_phuong_an(co_so, pa)
             vni = sd.NguonVni(vni_df) if cfg.cong_vni_bat else None
             if cfg.do_rong_nguong > 0:
                 nguon = sd.NguonDoRong(bang_co, vni=vni)
-                thieu = set(nguon.phien_thieu(phien))
-                phien_dung = [d for d in phien if d not in thieu]
+                loai |= set(nguon.phien_thieu(phien))
             else:
                 nguon = vni
-                phien_dung = phien
-            tk = chay(cfg, nguon)
-            ra_pa.append(hang(ma, ma, tk, cfg, nguon, vni, pa, that, phien_dung))
+            chay_pa.append((ma, pa, cfg, nguon, vni, chay(cfg, nguon)))
+        phien_dung = [d for d in phien if d not in loai]
+        ro, ro_thieu = sd.loi_nhuan_ro(gia, phien)
+        phien_ro = [d for d in phien_dung if d in ro]
+
+        def trong_tong(tk):
+            return [t for t in tk.lenh() if sd.ngay10(t["signal_date"]) not in loai]
+
+        lenh_that = trong_tong(tk_that)
+
+        def hang(ten, ma, tk, cfg_tk, nguon, vni, pa, that):
+            khai = pa["khai_ngay"] if pa is not None else None
+            lenh = trong_tong(tk)
+            ch = sd.chuoi_tai_khoan(
+                lenh, gia, phien, loc=lambda t: sd.nhan_du_lieu(t["signal_date"], khai) != sd.NHAN_MO_PHONG)
+            h = {"ten": ten, "id": ma, "khai_ngay": khai, "lenh": sd.dem_lenh(lenh),
+                 "nhan": sd.dem_theo_nhan(lenh, khai), "phien_dung": phien_dung, "n_phien_cua_so": len(phien),
+                 "thuoc1": sd.thuoc_1(ch.r, ch.e, ro, phien_dung), "cong_don": sum(ch.r[d] for d in phien_dung),
+                 "sut_giam": sd.sut_giam_toi_da(ch.r, phien_dung),
+                 "alpha_lenh": sd.alpha_tung_lenh(tk, gia, bo_tin_hieu=loai),
+                 "vni_thieu": [d for d in phien if vni.thieu(d)] if vni is not None else None,
+                 "rong_thieu": sorted(nguon.ngay_thieu_rong) if hasattr(nguon, "ngay_thieu_rong") else None,
+                 "rong_loai": sorted(loai),
+                 "lenh_o_phien_loai": sum(1 for t in tk.lenh() if sd.ngay10(t["signal_date"]) in loai),
+                 "dem": dict(tk.dem), "thieu_gia": ch.thieu_gia, "r": ch.r,
+                 "chan": _dem_chan(tk, cfg_tk.buy_threshold),
+                 "bao_toan": sd.kiem_bao_toan(tk.lenh(), gia, phien[0], phien[-1]),
+                 "ds_thieu_diem": list(tk.ds_thieu_diem), "ds_thieu_nen": list(tk.ds_thieu_nen)}
+            if that is not None:
+                khoa_pa = {(str(t["symbol"]), sd.ngay10(t["signal_date"])) for t in lenh}
+                khoa_that = {(str(t["symbol"]), sd.ngay10(t["signal_date"])) for t in lenh_that}
+                h["khac_lenh"] = {"chi_duong_that": sorted(khoa_that - khoa_pa), "chi_phuong_an": sorted(khoa_pa - khoa_that)}
+                h["thuoc2"] = sd.thuoc_2(ch.r, that["r"], phien_dung)
+                h["khoi"] = {nhan: _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai)
+                             for nhan in (sd.NHAN_DA_NHIN, sd.NHAN_CHUA_NHIN)}
+            return h
+
+        that = hang("duong that phat lai", None, tk_that, co_so, vni_that, vni_that, None, None)
+        ra_pa = [hang(ma, ma, tk, cfg, nguon, vni, pa, that) for ma, pa, cfg, nguon, vni, tk in chay_pa]
         r_ro = {d: ro[d] for d in phien_ro}
         ro_hang = {"ten": "ro deu (mua-giu, khong phi)", "n_ma": len(gia), "phien": phien_ro,
                    "thieu": ro_thieu, "cong_don": sum(r_ro.values()),
                    "sut_giam": sd.sut_giam_toi_da(r_ro, phien_ro)}
         return {"tu_ngay": tu_ngay, "ngay_cuoi": tk_that.ngay_ket_thuc, "phien": phien,
-                "mang_sang": len(mang), "that": that, "phuong_an": ra_pa, "ro": ro_hang}
+                "phien_loai": sorted(loai), "mang_sang": len(mang), "that": that, "phuong_an": ra_pa,
+                "ro": ro_hang}
     finally:
         for tk in tk_ds:
             tk.dong()
@@ -419,8 +428,9 @@ def _in_tai_khoan(h: dict, ghi) -> None:
     if h["vni_thieu"] is not None:
         ghi(f"   do phu cong VN-INDEX : thieu {len(h['vni_thieu'])}/{h['n_phien_cua_so']} phien {h['vni_thieu']}")
     if h["rong_thieu"] is not None:
-        ghi(f"   do phu cong DO RONG  : {len(h['rong_loai'])}/{h['n_phien_cua_so']} phien THIEU -> LOAI khoi cua so "
-            f"cua phuong an nay {h['rong_loai']}; ngay bi hoi ma thieu: {h['rong_thieu']}")
+        ghi(f"   do phu cong DO RONG  : {len(h['rong_loai'])}/{h['n_phien_cua_so']} phien THIEU (loai khoi cua so "
+            f"MOI tai khoan); ngay bi hoi ma thieu (cong CHAN, khong mo lenh): {h['rong_thieu']}")
+    ghi(f"   lenh co ngay tin hieu o phien LOAI (khong vao tong nao): {h['lenh_o_phien_loai']}")
     c = h["chan"]
     ghi(f"   tin hieu bi cong chan : (tong/du diem mua) VN-INDEX {c['vni'][0]}/{c['vni'][1]}, "
         f"nghi sau lo {c['nghi_sau_lo'][0]}/{c['nghi_sau_lo'][1]}, do rong {c['do_rong'][0]}/{c['do_rong'][1]}")
@@ -441,6 +451,8 @@ def in_bang(b: dict, ghi=print) -> None:
     ghi("THAM DO -- khong bao gio len ban. Don vi: diem phan tram von (size_pct la % von ban dau).")
     ghi(f"Cua so ke toan : {b['tu_ngay']} .. {b['ngay_cuoi']}  ({len(b['phien'])} phien); "
         f"vi the mang sang tu so that, chep vao MOI tai khoan: {b['mang_sang']}")
+    ghi(f"Phien LOAI (do rong van thieu, loai khoi cua so cua MOI tai khoan va khoi moi tong lenh co ngay tin "
+        f"hieu o do): {len(b['phien_loai'])} {b['phien_loai']}")
     ghi(f"Nhan du lieu   : tin hieu < {sd.NGAY_TIEN_VE_TRUOC} = MO PHONG (loai khoi thong ke); "
         f"[{sd.NGAY_TIEN_VE_TRUOC}, khai_ngay) = DA NHIN; >= khai_ngay = CHUA NHIN (hai khoi, KHONG cong)")
     ghi("")
@@ -452,6 +464,9 @@ def in_bang(b: dict, ghi=print) -> None:
         ghi("")
         ghi(f"[{i}] {p['ten']}  khai_ngay {p['khai_ngay']}")
         _in_tai_khoan(p, ghi)
+        kl = p["khac_lenh"]
+        ghi(f"   lenh KHAC duong that (ma, ngay tin hieu): chi o duong that {len(kl['chi_duong_that'])} "
+            f"{kl['chi_duong_that']}; chi o {p['ten']} {len(kl['chi_phuong_an'])} {kl['chi_phuong_an']}")
         t2 = p["thuoc2"]
         ghi(f"   thuoc 2 (PB - duong that): trung binh/phien = {_s(t2['tb'], 3)} diem%  cong don = "
             f"{_s(t2['cong_don'])}   [{t2['n_phien']} phien cua cua so CHUNG]")
@@ -527,13 +542,9 @@ def lenh_bang(a) -> int:
     else:
         gia = tai_gia_mang(ma_list, cuoi_qd)
         vni = tai_vni_mang(cuoi_qd)
-    # Độ rộng LUÔN đọc từ cache (CHÍNH bảng mà đường thật dùng, mọi mã của thư mục), kể cả khi giá tải trực tiếp:
-    # cache dừng trước ngày nào thì ngày ấy THIẾU độ rộng (không dùng độ rộng cũ) và phiên bị LOẠI khỏi PB-002.
-    bang_co = doc_bang_co_cache()
-    nguon_rong = f"cache {len(bang_co)} ma (do_rong.BangDoRong, nhu duong that)"
-    if not bang_co:
-        bang_co = sd.co_tu_gia(gia)
-        nguon_rong = f"CACHE RONG -> dung {len(bang_co)} ma da tai (KHAC dinh nghia cua duong that)"
+    # Độ rộng dựng từ CHÍNH khung giá của bản phát lại (người dùng 29/10/2026): có giá là có độ rộng. Tập mã
+    # là tập có quyết định, KHÁC tập "mọi mã của thư mục cache" mà `do_rong.do_rong_mac_dinh` dùng.
+    nguon_rong = f"dung tu {len(gia)} chuoi gia cua ban phat lai (KHAC tap ma cua do_rong_mac_dinh)"
     if not gia:
         print("CHUA DOC DUOC -- khong co chuoi gia nao.", file=sys.stderr)
         return MA_KHONG_DOC_DUOC
@@ -546,7 +557,7 @@ def lenh_bang(a) -> int:
     tt = so_tuong_duong(lenh, qd, gia, vni, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay)
     print(f"duong that phat lai vs so THAT (12 cot): khop tung o {tt['khop_tung_o']}/{tt['lenh_thuc_trong_cua_so']}"
           f" lenh trong cua so, khac {tt['so_khoa_khac']} lenh -- xem `tuong-duong`")
-    b = dung_bang(lenh, qd, gia, vni, bang_co, phuong_an, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay)
+    b = dung_bang(lenh, qd, gia, vni, phuong_an, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay)
     in_bang(b)
     return ma_thoat_bang(b)
 
