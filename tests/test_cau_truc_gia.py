@@ -24,8 +24,10 @@ import pandas as pd
 import pytest
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
+# `tools/` vào CUỐI đường tìm: có hai `cham_xac_nhan.py` (gốc và tools/); chèn `tools/` lên đầu ở đây
+# (tên file xếp trước `test_cham_xac_nhan`) làm bốn mươi tám test của file kia nhập nhầm bản thứ hai.
 sys.path.insert(0, str(GOC))
-sys.path.insert(0, str(GOC / "tools"))
+sys.path.append(str(GOC / "tools"))
 
 import cau_truc_gia as C  # noqa: E402
 import duyet_repo  # noqa: E402

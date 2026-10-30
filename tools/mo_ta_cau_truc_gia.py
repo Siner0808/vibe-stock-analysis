@@ -25,8 +25,8 @@ import numpy as np
 import pandas as pd
 
 GOC = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
+sys.path.insert(0, str(GOC))
 
 import cau_truc_gia as C  # noqa: E402
 from data_quality import price_multiplier  # noqa: E402
