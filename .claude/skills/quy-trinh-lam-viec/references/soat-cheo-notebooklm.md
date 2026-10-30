@@ -151,7 +151,9 @@ Lệnh điền chọn ô chat theo nhãn `Hộp truy vấn` (`textarea` **đầu
 mới trên web"* — lỗi 113: một lệnh tự viết đã gửi câu hỏi vào đó), KHÔNG bấm gì, và in
 `DA DIEN · o co <D> ky tu · tra loi truoc: <N>`. **Ghi D và N.** Nút Gửi còn khoá ngay sau sự kiện
 `input` (đo 29/09) nên bấm là lệnh thứ hai: nó chỉ bấm khi ô chat có ĐÚNG D đơn vị (chống bấm khi
-ô đang chứa thứ khác) và nút đã mở khoá; khoá thì trả `NUT GUI VAN KHOA` — gọi lại sau ~1 giây.
+ô đang chứa thứ khác) và nút đã mở khoá; cả lệnh điền lẫn lệnh bấm xoá bộ đếm của `chup`
+(`window.__chupSoTay`, đo 30/10: bộ đếm của lượt trước còn nguyên `giong 3` sau khi xong, nên chụp lại
+cùng câu trả lời sẽ `xong` ngay lần đầu) để mỗi câu hỏi đếm lại từ 0; khoá thì trả `NUT GUI VAN KHOA` — gọi lại sau ~1 giây.
 Trang có HAI nút `Gửi` (nút số 0 luôn khoá, ô "Nghiên cứu nhanh"); lệnh leo cây từ ô chat nên lấy nút
 gần ô chat nhất.
 

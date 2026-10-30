@@ -147,7 +147,7 @@ def lenh_dien_cau(cau: str, giu_lich_su: bool = False) -> str:
         raise TuChoi(f"cau hoi dai {n} don vi UTF-16 > tran {TRAN_GUI} (nut Gui khoa tu "
                      f"{TRAN_NUT_GUI_DO + 1}, do 30/10/2026) — rut ngan ket luan hoac bot vi du")
     return (
-        f"let kq = 'KHONG THAY O CHAT'; const ta = document.querySelector('{O_CHAT}');"
+        f"let kq = 'KHONG THAY O CHAT'; window.__chupSoTay = null; const ta = document.querySelector('{O_CHAT}');"
         f" const truoc = document.querySelectorAll({json.dumps(O_TRA_LOI)}).length;"
         f" if (ta && truoc > 0 && {'false' if giu_lich_su else 'true'}) kq = 'TU CHOI · nhat ky chat con ' + truoc"
         " + ' tra loi: xoa nhat ky (xoa-nhat-ky) va cho buoc 4 = 0 truoc khi dien'; else if (ta) {"
@@ -163,7 +163,9 @@ def lenh_bam_gui(dai: int) -> str:
 
     Trang có HAI nút `Gửi`; nút số 0 luôn khoá (ô "Nghiên cứu nhanh"), nút của ô chat là nút ở
     gần ô nhất khi leo cây từ ô chat (đo 30/10/2026). Khoá thì trả `NUT GUI VAN KHOA` và không
-    bấm gì: chạy lại sau ~1 giây.
+    bấm gì: chạy lại sau ~1 giây. Lệnh điền VÀ lệnh bấm đều xoá `window.__chupSoTay` (bộ đếm của
+    `lenh_chup_tra_loi`): leader thấy bộ đếm của lượt trước còn nguyên sau khi xong (giong 3), nên chụp
+    lại cùng câu trả lời sẽ trả `xong` ngay từ lần đầu; mỗi câu hỏi phải đếm lại từ 0.
     """
     if not isinstance(dai, int) or isinstance(dai, bool) or dai < 1:
         raise TuChoi(f"`dai` phai la so nguyen >= 1: {dai!r}")
@@ -175,7 +177,7 @@ def lenh_bam_gui(dai: int) -> str:
         f" if (ta.value.length !== {dai}) kq = 'TU CHOI · o chat co ' + ta.value.length + ' ky tu, can {dai}';"
         " else if (!b) kq = 'KHONG THAY NUT GUI';"
         " else if (b.disabled) kq = 'NUT GUI VAN KHOA · chay lai sau 1 giay';"
-        f" else {{ b.click(); kq = 'DA BAM GUI · o co {dai} ky tu luc bam'; }} }} kq")
+        f" else {{ window.__chupSoTay = null; b.click(); kq = 'DA BAM GUI · o co {dai} ky tu luc bam'; }} }} kq")
 
 # ── BƯỚC 246: sổ tay chuyên nghiệp hơn — chặn gửi quá dài, xoá lịch sử có đọc hộp xác nhận,
 # ── chờ trả lời xong, bắt tay SHA-256, đo độ tươi bằng NHÃN nguồn ────────────────────────────

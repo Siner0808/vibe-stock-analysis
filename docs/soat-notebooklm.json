@@ -10,7 +10,9 @@
     "khong_soat_vi": "dùng THAY cho `phat_hien` khi cố ý không soát; phải nêu lý do cụ thể. TỪ `_moc_bat_buoc_hoi` TRỞ ĐI, ô này KHÔNG còn được nhận cho một BƯỚC",
     "khong_bat_buoc_vi": "TỪ `_moc_chi_hoi_khi_doi_luat` TRỞ ĐI, cho BƯỚC KHÔNG đổi luật hay kết luận đo: lý do cụ thể (>= 25 ký tự, không trùng lý do BƯỚC khác) vì sao không hỏi. CHỈ hợp lệ khi `tools/buoc_cham_luat.py` (lịch sử git) xác nhận BƯỚC không chạm file luật; không đi kèm `cau_hoi` · `phat_hien` · `khong_tim_thay_gi` · `khong_soat_vi`. Ghi bằng `tools/so_tay.py ghi`",
     "o_thoat": "từ `_moc_bat_buoc_hoi` trở đi: NGUYÊN VĂN lối thoát nằm trong `cau_hoi` — ví dụ \"If no source contains such a statement, say exactly that and do not guess.\" Thiếu nó thì sổ tay BỊA thay vì từ chối (BƯỚC 107)",
-    "khong_tim_thay_gi": "true khi ĐÃ hỏi và sổ tay không tìm thấy gì — một kết quả hợp lệ, KHÁC hẳn với không hỏi"
+    "khong_tim_thay_gi": "true khi ĐÃ hỏi và sổ tay không tìm thấy gì — một kết quả hợp lệ, KHÁC hẳn với không hỏi",
+    "tra_loi": "TUỲ CHỌN, từ BƯỚC 246 (30/10/2026), chỉ ở mục HỎI THẬT: `{sha256, dai16, trich_dan: [{n, nguon}]}` — băm SHA-256 của `innerText` câu trả lời do CHÍNH TRANG tính (bắt tay: `tools/so_tay.py kiem-tra-loi` / `ghi` từ chối nếu tệp trả lời chép lại không khớp), độ dài theo đơn vị UTF-16, và các trích dẫn đọc từ `button.citation-marker span[aria-label]` (số trích dẫn -> nhãn nguồn, giữ thứ tự và bản lặp). Câu trả lời chính nó KHÔNG vào sổ, chỉ băm của nó. Mục cũ không có ô này vẫn hợp lệ",
+    "_do_tuoi": "TUỲ CHỌN. Từ BƯỚC 246, khi mục khai `nhan_nguon_tep` thì ô này do MÁY sinh từ git (`tools/so_tay.py do-tuoi --tom-tat`: nhãn `<tệp> @<băm>` so với một commit), không phải lời của mô hình. Trước đó là văn do người viết"
   },
   "soat": {
     "ĐO 1": {
@@ -4117,6 +4119,112 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "Một lượt, câu trả lời ÂM, cùng câu và cùng kết quả với BƯỚC 245; tự kiểm bảy vế ghi ở mục BƯỚC 245 của sổ này (không lặp lại ở đây, tránh hai bản trôi ra khỏi nhau): `grep -n '\"BƯỚC 245\"' docs/soat-notebooklm.json`."
+    },
+    "BƯỚC 246": {
+      "ngay": "2026-10-30",
+      "nguon": [
+        "CLAUDE.md @a877ca6",
+        "HANDOFF.md @a877ca6",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @bbb516b",
+        "MO-XE-KIEN-TRUC.md @13c32a0",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @61221db",
+        "references/loi-da-mac.md @a877ca6",
+        "references/soat-cheo-notebooklm.md @61221db",
+        "SKILL.md @61221db",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan3/5 (BUOC 117-168)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @a877ca6 phan5/5 (BUOC 212-234)",
+        "TIEU-CHI-DOC-TRUOC.md @a877ca6"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với origin/main 44f6c2c): 19 nguồn, 13 tươi; không tươi: HANDOFF.md @a877ca6 = CU; references/cong-thuc-chay.md @61221db = CU; references/loi-da-mac.md @a877ca6 = CU; STATE.md @61221db phan3/5 (BUOC 117-168) = CU; STATE.md @a877ca6 phan5/5 (BUOC 212-234) = CU; TIEU-CHI-DOC-TRUOC.md @a877ca6 = CU — kết luận CU.",
+      "cau_hoi": "I am about to write BƯỚC 246 into docs/STATE.md: From BƯỚC 246 the procedure for asking the notebook is: (1) measure source freshness by comparing each source label '<file> @<hash>' with git (tools/so_tay.py lay-nhan then do-tuoi), NOT by asking the model for the largest BƯỚC number; (2) start every round from an EMPTY chat history, deleting only the chat history (never sources or the notebook) under the standing permission the user gave on 29/10/2026 after the confirmation dialog is read by the tool; (3) keep every question at or below 3,800 UTF-16 units because the Send button silently locks from 3,901; (4) page JavaScript never uses timers because a hidden browser pane throttles setTimeout, so waiting is done by the caller re-running a snapshot until three consecutive snapshots have the same SHA-256; (5) the saved answer must pass a SHA-256 handshake against the hash computed by the page; (6) the answer reader is the element '.to-user-container .message-text-content' and not '.individual-message'. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that source freshness is measured by asking the model for the largest BƯỚC number in its sources and comparing it with grep -c on docs/STATE.md, a statement that the chat history must never be deleted, or that deleting it always needs a fresh question to the user, a statement that a question has no length limit, or that a long question may be split into two messages, a statement that answers are read from '.individual-message' or by waiting inside the page with setTimeout, a statement that the saved answer may be retyped by hand without any hash check, a statement that deleting a source needs no question to the user in any case. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "7a0f2c7ee4ec0acdde0418b80a14d8f382a4e6b73dfdc6304328959d2961a0c6",
+        "dai16": 2983,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 2,
+            "nguon": "references/soat-cheo-notebooklm.md @61221db"
+          },
+          {
+            "n": 2,
+            "nguon": "references/soat-cheo-notebooklm.md @61221db"
+          },
+          {
+            "n": 2,
+            "nguon": "references/soat-cheo-notebooklm.md @61221db"
+          },
+          {
+            "n": 2,
+            "nguon": "references/soat-cheo-notebooklm.md @61221db"
+          },
+          {
+            "n": 2,
+            "nguon": "references/soat-cheo-notebooklm.md @61221db"
+          },
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 3,
+            "nguon": "lich-su/SKILL-md-2026-09-30.md @13c32a0"
+          },
+          {
+            "n": 1,
+            "nguon": "SKILL.md @61221db"
+          },
+          {
+            "n": 2,
+            "nguon": "references/soat-cheo-notebooklm.md @61221db"
+          }
+        ]
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "SKILL.md, mục Luồng thông tin thứ hai — NotebookLM: *\"**Đo độ tươi TRƯỚC mỗi lượt hỏi**, không nhớ từ lượt trước: hỏi *\"số BƯỚC lớn nhất trong các nguồn\"* (kèm lối thoát) rồi so `grep -c '^## BƯỚC' docs/STATE.md`.\"* — sổ tay báo câu này sẽ NÓI NGƯỢC kết luận (1) (đo độ tươi bằng nhãn nguồn so với git, không hỏi mô hình).",
+          "tu_kiem": "MSYS_NO_PATHCONV=1 git show origin/main:.claude/skills/quy-trinh-lam-viec/SKILL.md | grep -n 'Đo độ tươi TRƯỚC mỗi lượt hỏi' -> dòng 313-314, chữ đúng như trích; trên cây của BƯỚC: grep -n 'số BƯỚC lớn' .claude/skills/quy-trinh-lam-viec/SKILL.md -> 0 dòng (đoạn đã viết lại: đo bằng nhãn, `so_tay.py lay-nhan` + `do-tuoi`); git grep -n -i 'số BƯỚC lớn nhất' -- . ':!docs/STATE.md' ':!docs/lich-su' ':!docs/soat-notebooklm.json' -> 2 dòng, cả hai là câu NÓI KHÔNG ĐƯỢC làm vậy (references/soat-cheo-notebooklm.md Nạp lại nguồn bước 5; chú thích tests/test_so_tay_bat_tay_do_tuoi.py).",
+          "phan_quyet": "THẬT. Câu có thật ở nguồn SKILL.md @61221db (cũng là bản trên origin/main) và là chính đoạn BƯỚC 246 viết lại; đã xử lý trong cùng BƯỚC, không còn sót ở chỗ nào khác của tài liệu luật."
+        },
+        {
+          "noi_dung": "references/soat-cheo-notebooklm.md, Chặng 4 — Đọc trả lời: đoạn JS `const all = [...document.querySelectorAll('.individual-message')];` — sổ tay báo nó sẽ NÓI NGƯỢC kết luận (6) (trình đọc là `.to-user-container .message-text-content`, không phải `.individual-message`).",
+          "tu_kiem": "MSYS_NO_PATHCONV=1 git show origin/main:.claude/skills/quy-trinh-lam-viec/references/soat-cheo-notebooklm.md | grep -n 'individual-message' -> dòng 85, chữ đúng như trích; trên cây của BƯỚC: git grep -n 'individual-message' -- . ':!docs/STATE.md' ':!docs/lich-su' ':!docs/soat-notebooklm.json' -> 3 dòng, đều là test cấm (tests/test_so_tay_trinh_duyet.py x2) hoặc chú thích giải thích vì sao bỏ (tools/so_tay.py); references/ không còn.",
+          "phan_quyet": "THẬT. Đoạn có thật ở bản nguồn @61221db và là đoạn BƯỚC 246 thay (Chặng 6 nay dùng `chup`); gác `tests/test_so_tay_trinh_duyet.py::test_KHONG_con_doc_tra_loi_bang_individual_message` canh cả tài liệu lẫn mọi lệnh JS."
+        },
+        {
+          "noi_dung": "Các vế còn lại sổ tay trả ÂM: không có câu nào nói lịch sử chat không bao giờ được xoá hoặc luôn phải hỏi người dùng; không có câu nào nói câu hỏi không có giới hạn độ dài hay có thể chia làm hai tin; không có câu nào nói trả lời được đọc bằng `setTimeout` trong trang; không có câu nào nói chép tay trả lời mà khỏi kiểm băm; xoá nguồn vẫn phải hỏi (chỉ miễn cho bản trùng vừa thêm).",
+          "tu_kiem": "grep -n -i 'xoá lịch sử\\|xoá nhật ký\\|lịch sử chat\\|nhật ký chat\\|lịch sử trò chuyện' trên CLAUDE.md MO-XE-KIEN-TRUC.md NGUYEN-TAC-DO-LUONG.md docs/HANDOFF.md docs/LO-TRINH.md docs/QUYET-DINH-CHO.md docs/TIEU-CHI-DOC-TRUOC.md và ba tệp references/ khác -> 3 dòng, không dòng nào là luật về lịch sử chat (một về dữ liệu Vietcap, một ghi chú ĐO 34, một chính là hàng lỗi 198 mới); `grep -n 'setTimeout'` trên các tài liệu luật -> chỉ chữ của BƯỚC này (SKILL.md :295, references, lỗi 198); `git show origin/main:.claude/skills/quy-trinh-lam-viec/SKILL.md | grep -n 'Xoá nguồn'` -> dòng 320 đúng luật hỏi-trước. MỘT chỗ sổ tay KHÔNG thể thấy vì nằm ngoài nguồn: mục sổ BƯỚC 241 (`docs/soat-notebooklm.json`, ô `_do_tuoi`) ghi *\"không xoá lịch sử chat (dữ liệu của người dùng)\"* — bản ghi có ngày về một quyết định lúc ấy; quyền thường trực xoá nhật ký chat do người dùng cho sau đó (29/10/2026, *\"Cho phép, đọc lại hộp xác nhận trước khi bấm (Recommended)\"*).",
+          "phan_quyet": "THẬT. Các vế ÂM đúng sau khi tự kiểm bằng grep; bản ghi BƯỚC 241 là sử liệu có ngày, không phải luật hiện hành."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

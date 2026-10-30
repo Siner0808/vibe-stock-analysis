@@ -426,6 +426,29 @@ def test_GUI_hai_lenh_dien_roi_bam_chi_bam_nut_cua_O_CHAT_khi_do_dai_khop(tmp_pa
 
 
 @can_node
+def test_DIEN_va_BAM_xoa_bo_dem_cua_chup_nhung_BAM_bi_tu_choi_thi_khong_xoa(tmp_path):
+    """Leader 30/10: bộ đếm `window.__chupSoTay` còn nguyên (giong 3) sau lượt trước -> lượt sau xong ngay."""
+    cau = "hoi gi do"
+    kb = r"""
+mk('div', {cls: ['message-text-content'], text: 'cu'}, mk('div', {cls: ['to-user-container']}));
+const khung = mk('div', {});
+const ta = mk('textarea', {attrs: {'aria-label': 'Hộp truy vấn'}}, khung);
+const gui = mk('button', {attrs: {'aria-label': 'Gửi'}, disabled: false}, mk('div', {}, khung));
+window.__chupSoTay = {dem: 3};
+await chay(L.dien);
+const sau_dien = window.__chupSoTay;
+window.__chupSoTay = {dem: 3};
+await chay(L.bam_sai);
+const sau_bam_sai = window.__chupSoTay;
+await chay(L.bam);
+ra({sau_dien, sau_bam_sai, sau_bam: window.__chupSoTay, bam: gui.clicks});
+"""
+    lenh = {"dien": st.lenh_dien_cau(cau, True), "bam": st.lenh_bam_gui(len(cau)), "bam_sai": st.lenh_bam_gui(len(cau) + 1)}
+    r = chay_js(tmp_path, lenh, kb)
+    assert r == {"sau_dien": None, "sau_bam_sai": {"dem": 3}, "sau_bam": None, "bam": 1}, r
+
+
+@can_node
 def test_DIEN_tu_choi_khi_nhat_ky_chat_con_tra_loi_vi_xoa_la_bat_dong_bo(tmp_path):
     """Leader đo 30/10: bước 4 chạy ngay sau bước 3 còn thấy 1 trả lời; vài giây sau mới 0."""
     cau = "hoi gi do"
