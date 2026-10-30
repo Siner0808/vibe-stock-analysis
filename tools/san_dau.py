@@ -499,7 +499,7 @@ def in_bang(b: dict, ghi=print) -> None:
         f"hieu o do): {len(b['phien_loai'])} {b['phien_loai']}")
     ghi(f"Nhan du lieu   : tin hieu < {sd.NGAY_TIEN_VE_TRUOC} = MO PHONG (loai khoi thong ke); "
         f"[{sd.NGAY_TIEN_VE_TRUOC}, khai_ngay) = DA NHIN; >= khai_ngay = CHUA NHIN (hai khoi, KHONG cong)")
-    ghi(f"KTC            : bootstrap khoi vong CO CAP, L={sd.DO_DAI_KHOI}, {sd.VONG_KTC} lan rut, hat {sd.HAT_KTC}; "
+    ghi(f"KTC            : bootstrap khoi vong CO CAP, khoi={sd.nhan_do_dai(sd.DO_DAI_KHOI)}, {sd.VONG_KTC} lan rut, hat {sd.HAT_KTC}; "
         f"n < {min(sd.LUOI_N)} phien thi KHONG in KTC; " + (
             "do phu doc tu docs/san-dau-do-phu.json" if b.get("co_do_phu")
             else "KHONG co docs/san-dau-do-phu.json -> khong in KTC nao"))
@@ -615,22 +615,63 @@ def lenh_bang(a) -> int:
 
 
 def in_bang_do_phu(bang: dict, ghi=print) -> None:
-    """Bảng độ phủ dạng đọc được: mỗi L, mỗi n, ba dạng; ô dưới ngưỡng ghi thẳng 'mau qua ngan'."""
+    """Bảng độ phủ dạng đọc được: cấu hình khoá, mỗi n, ba dạng; rồi các ứng viên đã thử, lượt kiểm lại và căng thẳng."""
     ts = bang["tham_so"]
     ghi(f"DO PHU KTC danh nghia {100 - 2 * (100 - sd.PHAN_VI_KTC[1]):.0f} phan tram: {ts['so_lan_lap']} lan lap/o, "
         f"{ts['vong_bootstrap']} lan rut bootstrap, hat {ts['hat']}; sai so Monte Carlo toi da "
         f"{100 * bang['sai_so_monte_carlo_toi_da']:.2f} diem phan tram")
-    ghi(f"{'L':>4} {'n':>5} " + " ".join(f"{d:>10}" for d in sd.DANG_KTC))
+    ck = bang.get("cau_hinh_khoa") or {}
+    ghi(f"CAU HINH KHOA (BUOC {ck.get('buoc')}): {ck.get('phuong_phap')}, khoi = {ck.get('nhan')}, {ck.get('vong')} lan rut, "
+        f"hat {ck.get('hat_bootstrap')}, phan vi {ck.get('phan_vi')}")
+    ghi(f"{'khoi':>4} {'n':>5} " + " ".join(f"{d:>10}" for d in sd.DANG_KTC))
     for ld, theo_n in bang["do_phu"].items():
         for n, o in theo_n.items():
-            cac = " ".join(f"{100 * o[d]:9.1f}%" for d in sd.DANG_KTC)
-            thap = [d for d in sd.DANG_KTC if o[d] < sd.NGUONG_DO_PHU]
+            cac = " ".join("        --" if o[d] is None else f"{100 * o[d]:9.1f}%" for d in sd.DANG_KTC)
+            thap = [d for d in sd.DANG_KTC if o[d] is None or o[d] < sd.NGUONG_DO_PHU]
             ghi(f"{ld:>4} {n:>5} {cac}" + (f"   DUOI {100 * sd.NGUONG_DO_PHU:.0f}%: " + ", ".join(thap) if thap else ""))
+    for m in bang.get("ung_vien_da_thu") or []:
+        o_dat = sum(1 for theo_n in m["do_phu"].values() for p in theo_n.values() if sd.o_dat(p))
+        ghi(f"ung vien {m['nhan']:>4}: {o_dat}/{len(sd.LUOI_N) * len(sd.DANG_KTC)} o dat -> " + ("DAT, CHOT" if m["dat"] else "khong dat"))
+    for ten, tb in (bang.get("kiem_lai") or {}).items():
+        tat_ca = [p for t in tb.values() for p in t.values()]
+        ghi(f"kiem lai {ten}: nho nhat {100 * min(tat_ca):.2f}%  ({'ca 9 o >= 90%' if all(sd.o_dat(p) for p in tat_ca) else 'CO O DUOI 90%'})")
+    cg = bang.get("cang_thang") or {}
+    if cg:
+        tat_ca = [p for t in cg["do_phu"].values() for tt in t.values() for p in tt.values()]
+        ghi(f"cang thang phi={cg['phi']}: nho nhat {100 * min(tat_ca):.2f}%, {sum(1 for p in tat_ca if p < sd.NGUONG_DO_PHU)} o duoi 90% (bao cao, khong de chon)")
+
+
+def in_ung_vien(nhan: str, bang: dict, dat: bool, ghi=print) -> None:
+    """Một ứng viên của `do-phu --chon`: mỗi n một dòng ba dạng ('--' = không xác định ở n ấy), rồi ĐẠT / KHÔNG."""
+    for n, o in bang.items():
+        cac = " ".join("       -- " if o[d] is None else f"{100 * o[d]:8.2f}%" for d in sd.DANG_KTC)
+        ghi(f"  {nhan:>4} n={n:>4}  " + cac)
+    ghi(f"  => {nhan}: " + ("DAT (ca 9 o >= " + f"{100 * sd.NGUONG_DO_PHU:.0f}%)" if dat else "KHONG DAT"))
+
+
+def lenh_chon_ung_vien(a) -> int:
+    """BƯỚC 248: chạy ứng viên THEO THỨ TỰ khai (đặc tả 8.4b), dừng ở ứng viên đầu tiên đạt; KHÔNG ghi file."""
+    sinh = (lambda n, k, h: sd.sinh_chuoi_do_phu(n, k, h, phi=a.phi))
+    print(f"CHON UNG VIEN KTC: mo hinh moi (GARCH-t), phi={a.phi}, {a.so_lan} lan lap/o, hat {a.hat}, "
+          f"{sd.VONG_KTC} lan rut bootstrap; thu tu {[sd.nhan_do_dai(u) for u in sd.UNG_VIEN_KTC]}")
+    print(f"{'':>9}{'n':>4}  " + " ".join(f"{d:>9}" for d in sd.DANG_KTC))
+    uv = None
+    if a.cau_hinh:
+        uv = [int(t[1:]) if t[:1] == "L" and t[1:].isdigit() else t for t in a.cau_hinh.split(",")]
+        print(f"CHI cac cau hinh {a.cau_hinh} (kiem lai / can thang cua cau hinh da chot, KHONG de chon)")
+    kq = sd.chon_ung_vien(ung_vien=uv, so_lan=a.so_lan, hat=a.hat, sinh=sinh, ghi=in_ung_vien)
+    print(f"CHOT: {kq['chot']}" if kq["chot"] else "KHONG UNG VIEN NAO DAT -- dung, khong doi mac dinh nao, hoi nguoi dung (DO 34 (d)).")
+    return MA_BANG_NHAU if kq["chot"] else MA_KHAC
 
 
 def lenh_do_phu(a) -> int:
     import json
-    bang = sd.dung_bang_do_phu(sd.mo_phong_do_phu(so_lan=a.so_lan), so_lan=a.so_lan)
+    if a.chon:
+        return lenh_chon_ung_vien(a)
+    bang = sd.do_phu_day_du(so_lan=a.so_lan)
+    if bang is None:
+        print("KHONG UNG VIEN NAO DAT -- dung, khong doi mac dinh nao, hoi nguoi dung (DO 34 (d)).")
+        return MA_KHAC
     if a.json:
         print(json.dumps(bang, indent=2, ensure_ascii=False))
         return MA_BANG_NHAU
@@ -645,9 +686,137 @@ def lenh_do_phu(a) -> int:
     return MA_BANG_NHAU
 
 
+#: Các cỡ tài khoản ngẫu nhiên (số phiên giữ, xác suất vào mỗi phiên, tỷ trọng vốn mỗi vị thế): cỡ CHÍNH trước, rồi
+#: năm cỡ để thử độ bền của kết luận "tự tương quan ≈ 0". e trung bình ~0,56 ở cỡ chính (như sổ ghi trong CLAUDE.md).
+CO_TAI_KHOAN_NGAU_NHIEN = ((20, 0.30, 0.10), (10, 0.50, 0.10), (40, 0.15, 0.10), (20, 0.30, 0.05),
+                           (20, 0.10, 0.10), (60, 0.10, 0.10))
+HAT_KIEM_MO_HINH = 20261030
+
+
+def doc_gia_dong_cache(thu_muc: str | None) -> tuple:
+    """(khung giá đóng cửa phiên × mã, thư mục) của 71 mã của `vn100_symbols.CUSTOM_WATCHLIST_SYMBOLS` trong thư
+    mục cache (CHỈ ĐỌC). Mặc định `VIBE_CACHE_DIR`; thiếu cả hai thì NỔ, không đoán."""
+    import pandas as pd
+    import vn100_symbols
+    thu_muc = thu_muc or os.environ.get("VIBE_CACHE_DIR")
+    if not thu_muc or not Path(thu_muc).is_dir():
+        raise FileNotFoundError(f"khong co thu muc cache: {thu_muc!r} (dat --cache hay VIBE_CACHE_DIR)")
+    cot = {}
+    for ma in dict.fromkeys(vn100_symbols.CUSTOM_WATCHLIST_SYMBOLS):
+        p = Path(thu_muc) / f"{ma}.csv"
+        if p.exists():
+            d = pd.read_csv(p, usecols=["time", "close"])
+            d["time"] = d["time"].astype(str).str[:10]
+            cot[ma] = d.set_index("time")["close"].astype(float)
+    return pd.DataFrame(cot).sort_index(), thu_muc
+
+
+def hop_garch(chuoi: list) -> tuple:
+    """Hợp lý cực đại GARCH(1,1) đuôi t CHUNG cho nhiều chuỗi (mỗi chuỗi chia độ lệch chuẩn của nó; phương sai mục
+    tiêu ω = 1 − α − β). Chỉ numpy: tìm kiếm mẫu (pattern search) quanh (α, β, ν), bước co dần. Trả (α, β, ν)."""
+    import math
+    import numpy as np
+    y = np.array([np.asarray(c, float) / np.std(c) for c in chuoi])
+
+    def nll(par):
+        a, b, nu = par
+        if not (0 < a < 1 and 0 <= b < 1 and a + b < 0.999 and 2.2 < nu < 60):
+            return 1e18
+        s = math.sqrt((nu - 2) / nu)
+        h = np.ones(y.shape[0])
+        tong = 0.0
+        for t in range(1, y.shape[1]):
+            h = (1 - a - b) + a * y[:, t - 1] ** 2 + b * h
+            z = y[:, t] / np.sqrt(h) / s
+            tong += float((math.lgamma((nu + 1) / 2) - math.lgamma(nu / 2) - 0.5 * math.log(nu * math.pi)
+                           - (nu + 1) / 2 * np.log1p(z * z / nu) - math.log(s) - 0.5 * np.log(h)).sum())
+        return -tong
+
+    x = [0.08, 0.88, 6.0]
+    buoc = [0.04, 0.04, 2.0]
+    f = nll(x)
+    while max(buoc[0], buoc[1]) > 1e-3:
+        tot_hon = False
+        for k in range(3):
+            for dau in (1, -1):
+                thu = list(x)
+                thu[k] += dau * buoc[k]
+                ft = nll(thu)
+                if ft < f:
+                    x, f, tot_hon = thu, ft, True
+        if not tot_hon:
+            buoc = [v / 2 for v in buoc]
+    return tuple(float(v) for v in x)
+
+
+def lenh_kiem_mo_hinh(a) -> int:
+    """BƯỚC 248, việc 1: mô hình sinh của `do-phu` có tái tạo được cấu trúc phụ thuộc của chuỗi THẬT không? Chỉ
+    thống kê MÔ TẢ trên giá đóng cửa của cache (rổ đều, từng mã, tài khoản vào lệnh NGẪU NHIÊN trừ e×rổ); KHÔNG
+    dùng lệnh, lãi hay đường vốn nào của sổ thật, KHÔNG so chiến lược nào với chiến lược nào."""
+    import numpy as np
+    gia, thu_muc = doc_gia_dong_cache(a.cache)
+    bam = None
+    try:
+        import do25_ke_hoach_vao_lenh as d25
+        bam = d25.bam_thu_muc(thu_muc)
+    except Exception as e:  # noqa: BLE001 — băm chỉ để in; thiếu thì nói thiếu
+        print(f"(khong bam duoc cache: {e})")
+    print(f"cache {thu_muc}" + (f" sha256 {bam['sha256']} ({bam['so_file']} tep)" if bam else ""))
+    print(f"gia: {gia.shape[1]} ma, {gia.shape[0]} phien, {gia.index[0]} .. {gia.index[-1]}")
+    v = gia.values
+    loi = gia.pct_change(fill_method=None) * 100.0
+    ro = loi.mean(axis=1, skipna=True).values
+    mo_ta = sd.mo_ta_chuoi(ro[1:])
+    print(f"(a) RO DEU: ACF {mo_ta['acf']} | ACF|r| {mo_ta['acf_tuyet_doi']} | kurt thua {mo_ta['kurt_thua']}")
+    print(f"    nguong nhieu 2/sqrt(n) = {2 / np.sqrt(len(ro) - 1):.3f}, n = {len(ro) - 1}")
+    tung_ma = [loi[m].dropna().values for m in gia.columns if loi[m].notna().sum() >= 300]
+    ac = np.median([sd.acf_mau(y) for y in tung_ma], axis=0)
+    aa = np.median([sd.acf_mau(np.abs(y)) for y in tung_ma], axis=0)
+    print(f"(b) TUNG MA ({len(tung_ma)} ma, trung vi): ACF { {str(k): round(float(ac[k - 1]), 3) for k in sd.TRE_IN} }")
+    print(f"    ACF|r| { {str(k): round(float(aa[k - 1]), 3) for k in sd.TRE_IN} } | kurt thua trung vi "
+          f"{np.median([sd.kurt_thua(y) for y in tung_ma]):.2f}")
+    rng = np.random.default_rng(HAT_KIEM_MO_HINH)
+    giu_chinh = None
+    for (h, q, w) in CO_TAI_KHOAN_NGAU_NHIEN:
+        xs, es = [], []
+        for _ in range(a.so_tk):
+            x, e = sd.tai_khoan_ngau_nhien(v, ro, rng, so_phien_giu=h, xac_suat_vao=q, ty_trong=w)
+            xs.append(x[len(x) // 10:])
+            es.append(float(e[len(e) // 10:].mean()))
+        xs = np.array(xs)
+        m = sd.mo_ta_chuoi(xs)
+        print(f"(c) TAI KHOAN NGAU NHIEN giu={h} vao={q} w={w} ({a.so_tk} ban, e tb {np.mean(es):.2f}, n={m['n']}): "
+              f"ACF {m['acf']} | ACF|x| {m['acf_tuyet_doi']} | he so PS {m['he_so_phuong_sai']} | kurt {m['kurt_thua']}")
+        if giu_chinh is None:
+            giu_chinh = xs
+    ch = np.array([np.corrcoef(giu_chinh[i], giu_chinh[i + 1])[0, 1] for i in range(0, len(giu_chinh) - 1, 2)])
+    print(f"    tuong quan hai tai khoan ngau nhien DOC LAP (co chinh): tb {ch.mean():.3f} [{ch.min():.3f} ; {ch.max():.3f}] "
+          f"(thanh phan chung cua mo hinh = {sd.TY_TRONG_CHUNG} la gia dinh KHONG do duoc o day)")
+    if a.hop_garch:
+        alpha, beta, nu = hop_garch([x for x in giu_chinh[:30]])
+        print(f"    GARCH(1,1)-t chung 30 ban: alpha {alpha:.3f} beta {beta:.3f} nu {nu:.2f} "
+              f"(hang so: {sd.GARCH_ALPHA} {sd.GARCH_BETA} {sd.GARCH_NU})")
+    for n_ in (252, 1000):
+        for ten, sinh in (("MO HINH CU (BUOC 243)", lambda n, k: sd.sinh_chuoi_mo_hinh_cu(n, k)),
+                          ("MO HINH MOI (BUOC 248)", lambda n, k: sd.sinh_chuoi_do_phu(n, k)),
+                          (f"CANG THANG phi={sd.PHI_CANG_THANG}", lambda n, k: sd.sinh_chuoi_do_phu(n, k, phi=sd.PHI_CANG_THANG))):
+            x, y, tho = sinh(n_, a.so_mo_hinh)
+            for dang, m in (("mot_chuoi", x), ("tho", tho), ("cap", x - y)):
+                mt = sd.mo_ta_chuoi(m[:a.so_tk])
+                print(f"(d) {ten} n={n_} {dang}: ACF {mt['acf']} | ACF|x| {mt['acf_tuyet_doi']} | he so PS "
+                      f"{mt['he_so_phuong_sai']} | kurt {mt['kurt_thua']}")
+    return MA_BANG_NHAU
+
+
 def dung_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     con = ap.add_subparsers(dest="lenh", required=True)
+    km = con.add_parser("kiem-mo-hinh", help="BƯỚC 248: mô hình sinh của do-phu có khớp chuỗi thật không (chỉ MÔ TẢ)")
+    km.add_argument("--cache", default=None, help="thư mục cache giá (mặc định VIBE_CACHE_DIR)")
+    km.add_argument("--so-tk", type=int, default=100, help="số tài khoản ngẫu nhiên mỗi cỡ / số chuỗi mô hình đem mô tả")
+    km.add_argument("--so-mo-hinh", type=int, default=2000, help="số chuỗi sinh mỗi mô hình")
+    km.add_argument("--hop-garch", action="store_true", help="hợp GARCH-t chung (numpy, ~1 phút)")
+    km.set_defaults(ham=lenh_kiem_mo_hinh)
     bg = con.add_parser("bang", help="bảng sân đấu: giá trị điểm, chưa có KTC (BƯỚC 242)")
     bg.add_argument("--tu-ngay", default=sd.NGAY_MO_CONG, help="ngày bắt đầu cửa sổ (mặc định NGAY_MO_CONG)")
     bg.add_argument("--den-ngay", default=None, help="ngày cuối (mặc định: ngày cuối của giá)")
@@ -662,6 +831,11 @@ def dung_parser() -> argparse.ArgumentParser:
     dp.add_argument("--duong", default=None, help="file để --kiem so (mặc định docs/san-dau-do-phu.json)")
     dp.add_argument("--so-lan", type=int, default=sd.SO_LAN_LAP_DO_PHU,
                     help="số lần lặp mỗi ô (mặc định theo đặc tả; đổi chỉ để thử máy)")
+    dp.add_argument("--chon", action="store_true",
+                    help="BƯỚC 248: chạy ứng viên theo thứ tự mục 8.4b, dừng ở ứng viên đầu tiên đạt (mô hình mới)")
+    dp.add_argument("--hat", type=int, default=sd.HAT_DO_PHU, help="hạt giống mô phỏng của --chon (chọn: 0; kiểm lại: 1, 2)")
+    dp.add_argument("--cau-hinh", default=None, help="chỉ các nhãn này (vd PW hay L10,PW); để KIỂM LẠI, không để chọn")
+    dp.add_argument("--phi", type=float, default=0.0, help="tự hồi quy bậc 1 của mô hình (chọn: 0; căng thẳng: 0,15)")
     dp.set_defaults(ham=lenh_do_phu)
     td = con.add_parser("tuong-duong", help="Tầng B: phát lại sổ thật, so từng ô")
     td.add_argument("--tu-ngay", default=sd.NGAY_MO_CONG, help="ngày bắt đầu của cửa sổ (mặc định NGAY_MO_CONG)")

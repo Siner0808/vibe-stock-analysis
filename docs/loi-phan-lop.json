@@ -909,6 +909,11 @@
       "lop": "gac-hong",
       "song_ngay": 0,
       "nguon": "nguoi-thay"
+    },
+    "200": {
+      "lop": "chua-do",
+      "song_ngay": 1,
+      "nguon": "git"
     }
   },
   "_khong_phai_bang_chung": [
