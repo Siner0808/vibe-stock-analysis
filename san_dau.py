@@ -843,6 +843,127 @@ def sinh_chuoi_do_phu(n: int, so_lan: int, hat: int = HAT_DO_PHU) -> tuple:
     return a_tho * giu, b_tho * giu, a_tho
 
 
+# ── BƯỚC 248: kiểm mô hình sinh với chuỗi THẬT, rồi mô hình mới ─────────────────────────────────
+#: Mô hình sinh của BƯỚC 243 (trung bình trượt `CUA_SO_VI_THE` phiên của nhiễu) cho tự tương quan bậc 1 cỡ 0,86–0,94
+#: và hệ số phương sai 9–17; chuỗi THẬT (tài khoản vào lệnh ngẫu nhiên trên cache, `tools/san_dau.py kiem-mo-hinh`)
+#: cho 0,04 và 0,94–1,09. Trung bình trượt của nhiễu mô tả lợi nhuận của một cửa sổ 20 phiên, KHÔNG mô tả đóng góp
+#: MỖI PHIÊN của một sổ vị thế (trọng số biết trước, lợi nhuận phiên không tự tương quan). Mô hình mới: nhiễu
+#: GARCH(1,1) đuôi t, KHÔNG tự tương quan ở mức, có phương sai theo cụm. Ba số dưới là KHỚP CHUNG (hợp lý cực đại, 30
+#: tài khoản ngẫu nhiên, `kiem-mo-hinh --hop-garch`) làm tròn: lượt thử đầu (300 tài khoản, mầm 20261030) 0,137 · 0,809 ·
+#: 7,54; lượt của dụng cụ (100 tài khoản) 0,149 · 0,794 · 7,43; mỗi tài khoản một mình 0,10–0,17 · 0,75–0,86 · 5,4–8,6.
+#: KHÔNG chọn theo độ phủ (khi chốt chúng chưa có độ phủ nào của mô hình mới).
+GARCH_ALPHA = 0.14
+GARCH_BETA = 0.81
+GARCH_NU = 7.5
+#: Dư để GARCH về phân phối dừng trước khi lấy mẫu.
+GARCH_DU = 200
+#: Hệ số tự hồi quy bậc 1 của mô hình CĂNG THẲNG (báo cáo, không phải tiêu chí chọn): cao hơn mọi số đo được
+#: (rổ đều 0,09 · trung vị mã 0,06 · tài khoản ngẫu nhiên 0,04).
+PHI_CANG_THANG = 0.15
+
+
+def _nhieu_garch(rng: Any, so_lan: int, n: int, phi: float = 0.0) -> np.ndarray:
+    """Nhiễu GARCH(1,1) đuôi t (`GARCH_NU` bậc tự do, chuẩn hoá phương sai 1), phương sai vô điều kiện 1 (ω = 1 − α − β).
+    `phi` ≠ 0 thêm tự hồi quy bậc 1 giữ phương sai 1: y_t = φ·y_(t−1) + √(1−φ²)·a_t."""
+    t_tong = n + GARCH_DU
+    z = rng.standard_t(GARCH_NU, size=(so_lan, t_tong)) / np.sqrt(GARCH_NU / (GARCH_NU - 2.0))
+    omega = 1.0 - GARCH_ALPHA - GARCH_BETA
+    a = np.empty((so_lan, t_tong))
+    h = np.ones(so_lan)
+    for t in range(t_tong):
+        a[:, t] = np.sqrt(h) * z[:, t]
+        h = omega + GARCH_ALPHA * a[:, t] ** 2 + GARCH_BETA * h
+    if phi == 0.0:
+        return a[:, GARCH_DU:]
+    y = np.empty_like(a)
+    y[:, 0] = a[:, 0]
+    k = float(np.sqrt(1.0 - phi * phi))
+    for t in range(1, t_tong):
+        y[:, t] = phi * y[:, t - 1] + k * a[:, t]
+    return y[:, GARCH_DU:]
+
+
+def sinh_chuoi_mo_hinh_moi(n: int, so_lan: int, hat: int = HAT_DO_PHU, phi: float = 0.0) -> tuple:
+    """(A, B, A_tho) như `sinh_chuoi_do_phu` nhưng nhiễu là `_nhieu_garch` (BƯỚC 248). Cùng thành phần chung, cùng mặt
+    nạ không giữ, cùng cách đặt hạt giống (hat, n); trung bình thật bằng 0."""
+    rng = np.random.default_rng([hat, n])
+    chung = _nhieu_garch(rng, so_lan, n, phi)
+    ia = _nhieu_garch(rng, so_lan, n, phi)
+    ib = _nhieu_garch(rng, so_lan, n, phi)
+    giu = _mat_na_giu(rng, so_lan, n)
+    w = float(np.sqrt(TY_TRONG_CHUNG))
+    v = float(np.sqrt(1.0 - TY_TRONG_CHUNG))
+    a_tho = w * chung + v * ia
+    b_tho = w * chung + v * ib
+    return a_tho * giu, b_tho * giu, a_tho
+
+
+# Thống kê MÔ TẢ chuỗi (không so sánh chiến lược): dùng để kiểm mô hình sinh với chuỗi thật.
+SO_TRE_MO_TA = 60
+TRE_IN = (1, 2, 5, 10, 20, 30, 40, 60)
+
+
+def acf_mau(y: Any, so_tre: int = SO_TRE_MO_TA) -> np.ndarray:
+    """Tự tương quan mẫu bậc 1..so_tre (bỏ NaN, trừ trung bình mẫu, chia cho tổng bình phương)."""
+    y = np.asarray(y, dtype=float)
+    y = y[~np.isnan(y)]
+    y = y - y.mean()
+    mau = float((y * y).sum())
+    return np.array([float((y[k:] * y[:-k]).sum()) / mau for k in range(1, so_tre + 1)])
+
+
+def he_so_phuong_sai(rho: Any, n: int) -> float:
+    """1 + 2·Σ (1 − k/n)·ρ_k: tỷ số giữa phương sai của TRUNG BÌNH mẫu và phương sai nếu các phiên độc lập."""
+    rho = np.asarray(rho, dtype=float)
+    k = np.arange(1, rho.size + 1)
+    return 1.0 + 2.0 * float((np.clip(1.0 - k / n, 0.0, None) * rho).sum())
+
+
+def kurt_thua(y: Any) -> float:
+    """Độ nhọn thừa (m4/m2² − 3) của chuỗi, bỏ NaN."""
+    y = np.asarray(y, dtype=float)
+    y = y[~np.isnan(y)]
+    d = y - y.mean()
+    return float((d ** 4).mean() / (d ** 2).mean() ** 2 - 3.0)
+
+
+def mo_ta_chuoi(m: Any) -> dict:
+    """Trung bình theo hàng của ACF(y), ACF(|y|), hệ số phương sai và độ nhọn thừa, trên ma trận m (số chuỗi × n).
+    Chỉ các bậc `TRE_IN` được trả về."""
+    m = np.atleast_2d(np.asarray(m, dtype=float))
+    ac = np.array([acf_mau(r) for r in m]).mean(axis=0)
+    aa = np.array([acf_mau(np.abs(r)) for r in m]).mean(axis=0)
+    return {"so_chuoi": int(m.shape[0]), "n": int(m.shape[1]),
+            "acf": {str(k): round(float(ac[k - 1]), 3) for k in TRE_IN},
+            "acf_tuyet_doi": {str(k): round(float(aa[k - 1]), 3) for k in TRE_IN},
+            "he_so_phuong_sai": round(float(np.mean([he_so_phuong_sai(acf_mau(r), m.shape[1]) for r in m])), 3),
+            "kurt_thua": round(float(np.mean([kurt_thua(r) for r in m])), 2)}
+
+
+def tai_khoan_ngau_nhien(gia: Any, ro: Any, rng: Any, *, so_phien_giu: int, xac_suat_vao: float,
+                         ty_trong: float) -> tuple[np.ndarray, np.ndarray]:
+    """MỘT tài khoản vào lệnh NGẪU NHIÊN trên ma trận giá đóng cửa `gia` (phiên × mã, NaN = thiếu) để đo cấu trúc
+    phụ thuộc của x_t = r_t − e_t·rổ_t mà KHÔNG dùng lệnh hay lãi nào của sổ thật: mỗi phiên, xác suất `xac_suat_vao`
+    mở một vị thế ở một mã ngẫu nhiên, cỡ `ty_trong` vốn, giữ `so_phien_giu` phiên (cắt ở chỗ mất nến); đóng góp mỗi
+    phiên = ty_trong × Δgiá / giá vào (đặc tả mục 8.1). Trả (x_t, e_t); `ro[t]` NaN coi là 0."""
+    gia = np.asarray(gia, dtype=float)
+    n_phien, n_ma = gia.shape
+    dong_gop = np.zeros(n_phien)
+    e = np.zeros(n_phien)
+    for s in range(n_phien - 1):
+        if rng.random() >= xac_suat_vao:
+            continue
+        j = int(rng.integers(0, n_ma))
+        doan = gia[s: min(n_phien - 1, s + so_phien_giu) + 1, j]
+        if np.isnan(doan).any():      # cắt ở chỗ mất nến; mất ngay giá vào thì còn 0 phiên và bị bỏ ở dưới
+            doan = doan[: int(np.argmax(np.isnan(doan)))]
+        if doan.size < 2:
+            continue
+        dong_gop[s + 1: s + doan.size] += (doan[1:] - doan[:-1]) / doan[0] * 100.0 * ty_trong
+        e[s + 1: s + doan.size] += ty_trong
+    return dong_gop - e * np.nan_to_num(np.asarray(ro, dtype=float)), e
+
+
 def do_phu_mot_o(n: int, do_dai: int, dang: str, *, so_lan: int = SO_LAN_LAP_DO_PHU, hat: int = HAT_DO_PHU,
                  vong: int = VONG_KTC, chuoi: Optional[tuple] = None) -> float:
     """Tỷ lệ KTC (do `ktc_khoi_co_cap` tính, cùng mã với thứ được in) chứa 0 trên `so_lan` bộ chuỗi có trung bình
