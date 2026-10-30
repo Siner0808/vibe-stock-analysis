@@ -1,9 +1,29 @@
 {
-  "_ghi_chu": "Do phu cua khoang tin cay bootstrap khoi (BUOC 243, Lat 3b; docs/thiet-ke-c1-san-dau.md muc 8.4). Tai lap: ./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem (so sanh voi file nay) hoac do-phu --json (in lai). App/bang CHI DOC file nay; sua tham so o dac ta TRUOC khi chay lai.",
+  "_ghi_chu": "Do phu cua khoang tin cay bootstrap khoi (BUOC 243, doi mo hinh va khoa cau hinh o BUOC 248; docs/thiet-ke-c1-san-dau.md muc 8.4b). Tai lap: ./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem (so sanh voi file nay) hoac do-phu --json (in lai). App/bang CHI DOC file nay; Lat 4 cua Dow (DO 34) phai in cau hinh KTC va khop khoa cau_hinh_khoa. Sua tham so o dac ta TRUOC khi chay lai.",
   "lenh": "./.venv/Scripts/python.exe tools/san_dau.py do-phu --json",
+  "cau_hinh_khoa": {
+    "buoc": 248,
+    "phuong_phap": "bootstrap khoi vong CO CAP",
+    "do_dai_khoi": "PW",
+    "nhan": "PW",
+    "vong": 5000,
+    "hat_bootstrap": 0,
+    "phan_vi": [
+      2.5,
+      97.5
+    ],
+    "nguong_do_phu": 0.9,
+    "luoi_n": [
+      40,
+      113,
+      252
+    ],
+    "so_lan_lap": 10000,
+    "hat_mo_phong": 0
+  },
   "tham_so": {
     "hat": 0,
-    "so_lan_lap": 2000,
+    "so_lan_lap": 10000,
     "vong_bootstrap": 5000,
     "hat_bootstrap": 0,
     "phan_vi": [
@@ -16,16 +36,29 @@
       252
     ],
     "do_dai_khoi": [
-      10,
-      5,
-      21
+      "PW"
     ],
-    "do_dai_khoi_chinh": 10,
-    "nguong_do_phu": 0.9
+    "do_dai_khoi_chinh": "PW",
+    "nguong_do_phu": 0.9,
+    "ung_vien": [
+      "L42",
+      "L63",
+      "L21",
+      "PW",
+      "L10",
+      "N13",
+      "L5"
+    ],
+    "hat_kiem_lai": [
+      1,
+      2
+    ],
+    "phi_cang_thang": 0.15
   },
   "mo_hinh": {
-    "bac_tu_do_t": 4,
-    "cua_so_vi_the": 20,
+    "garch_alpha": 0.14,
+    "garch_beta": 0.81,
+    "garch_nu": 7.5,
     "ty_trong_chung": 0.5,
     "p_vao_giu": 0.1,
     "tb_doan_giu": 15,
@@ -33,60 +66,171 @@
       "cap": "mean(A) - mean(B), mot bo khoi cho ca hai chuoi (thuoc 2)",
       "mot_chuoi": "mean(x), x co doan KHONG GIU bang 0 (thuoc 1)",
       "tho": "mean(x), x khong co doan khong giu (cot tho r - ro)"
-    }
+    },
+    "gia_dinh_chua_do": "ty_trong_chung va mat na khong giu KHONG do duoc tu chuoi that (muc 8.4b khoan 1); chuoi that la vao lenh NGAU NHIEN (null), khong phai mot phuong an co tin hieu"
   },
   "do_phu": {
-    "L10": {
+    "PW": {
       "40": {
-        "cap": 0.5905,
-        "mot_chuoi": 0.5935,
-        "tho": 0.5425
+        "cap": 0.9122,
+        "mot_chuoi": 0.9196,
+        "tho": 0.9171
       },
       "113": {
-        "cap": 0.712,
-        "mot_chuoi": 0.7105,
-        "tho": 0.7
+        "cap": 0.932,
+        "mot_chuoi": 0.9279,
+        "tho": 0.9348
       },
       "252": {
-        "cap": 0.774,
-        "mot_chuoi": 0.7665,
-        "tho": 0.744
-      }
-    },
-    "L5": {
-      "40": {
-        "cap": 0.52,
-        "mot_chuoi": 0.527,
-        "tho": 0.481
-      },
-      "113": {
-        "cap": 0.6195,
-        "mot_chuoi": 0.6105,
-        "tho": 0.5715
-      },
-      "252": {
-        "cap": 0.651,
-        "mot_chuoi": 0.6575,
-        "tho": 0.625
-      }
-    },
-    "L21": {
-      "40": {
-        "cap": 0.5585,
-        "mot_chuoi": 0.561,
-        "tho": 0.5005
-      },
-      "113": {
-        "cap": 0.7595,
-        "mot_chuoi": 0.7605,
-        "tho": 0.7545
-      },
-      "252": {
-        "cap": 0.8445,
-        "mot_chuoi": 0.8325,
-        "tho": 0.846
+        "cap": 0.9429,
+        "mot_chuoi": 0.9448,
+        "tho": 0.9442
       }
     }
   },
-  "sai_so_monte_carlo_toi_da": 0.011180334297327607
+  "ung_vien_da_thu": [
+    {
+      "nhan": "L42",
+      "do_phu": {
+        "40": {
+          "cap": null,
+          "mot_chuoi": null,
+          "tho": null
+        },
+        "113": {
+          "cap": 0.8136,
+          "mot_chuoi": 0.8137,
+          "tho": 0.8118
+        },
+        "252": {
+          "cap": 0.8806,
+          "mot_chuoi": 0.8896,
+          "tho": 0.8893
+        }
+      },
+      "dat": false
+    },
+    {
+      "nhan": "L63",
+      "do_phu": {
+        "40": {
+          "cap": null,
+          "mot_chuoi": null,
+          "tho": null
+        },
+        "113": {
+          "cap": 0.7413,
+          "mot_chuoi": 0.7421,
+          "tho": 0.7437
+        },
+        "252": {
+          "cap": 0.8476,
+          "mot_chuoi": 0.8585,
+          "tho": 0.8529
+        }
+      },
+      "dat": false
+    },
+    {
+      "nhan": "L21",
+      "do_phu": {
+        "40": {
+          "cap": 0.7699,
+          "mot_chuoi": 0.7799,
+          "tho": 0.7353
+        },
+        "113": {
+          "cap": 0.8817,
+          "mot_chuoi": 0.8755,
+          "tho": 0.8836
+        },
+        "252": {
+          "cap": 0.9137,
+          "mot_chuoi": 0.9196,
+          "tho": 0.9217
+        }
+      },
+      "dat": false
+    },
+    {
+      "nhan": "PW",
+      "do_phu": {
+        "40": {
+          "cap": 0.9122,
+          "mot_chuoi": 0.9196,
+          "tho": 0.9171
+        },
+        "113": {
+          "cap": 0.932,
+          "mot_chuoi": 0.9279,
+          "tho": 0.9348
+        },
+        "252": {
+          "cap": 0.9429,
+          "mot_chuoi": 0.9448,
+          "tho": 0.9442
+        }
+      },
+      "dat": true
+    }
+  ],
+  "kiem_lai": {
+    "hat1": {
+      "40": {
+        "cap": 0.914,
+        "mot_chuoi": 0.9175,
+        "tho": 0.9253
+      },
+      "113": {
+        "cap": 0.9346,
+        "mot_chuoi": 0.934,
+        "tho": 0.937
+      },
+      "252": {
+        "cap": 0.9432,
+        "mot_chuoi": 0.9437,
+        "tho": 0.9409
+      }
+    },
+    "hat2": {
+      "40": {
+        "cap": 0.9169,
+        "mot_chuoi": 0.9148,
+        "tho": 0.914
+      },
+      "113": {
+        "cap": 0.9341,
+        "mot_chuoi": 0.9362,
+        "tho": 0.9432
+      },
+      "252": {
+        "cap": 0.9367,
+        "mot_chuoi": 0.9413,
+        "tho": 0.9454
+      }
+    }
+  },
+  "cang_thang": {
+    "phi": 0.15,
+    "do_phu": {
+      "PW": {
+        "40": {
+          "cap": 0.8926,
+          "mot_chuoi": 0.9027,
+          "tho": 0.8926
+        },
+        "113": {
+          "cap": 0.9167,
+          "mot_chuoi": 0.9122,
+          "tho": 0.9124
+        },
+        "252": {
+          "cap": 0.929,
+          "mot_chuoi": 0.9275,
+          "tho": 0.931
+        }
+      }
+    }
+  },
+  "sai_so_monte_carlo_toi_da": 0.002830038162286862
 }

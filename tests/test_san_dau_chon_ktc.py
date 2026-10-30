@@ -257,11 +257,11 @@ def test_lenh_chon_in_va_ma_thoat(monkeypatch, capsys):
     cli = _nap_cli()
     monkeypatch.setattr(sd, "UNG_VIEN_KTC", (42, 3))
     monkeypatch.setattr(sd, "NGUONG_DO_PHU", 0.0)
-    a = cli.dung_parser().parse_args(["do-phu", "--chon", "--so-lan-chon", "3", "--hat", "0"])
+    a = cli.dung_parser().parse_args(["do-phu", "--chon", "--so-lan", "3", "--hat", "0"])
     assert a.ham(a) == cli.MA_BANG_NHAU
     ra = capsys.readouterr().out
     assert "CHON UNG VIEN KTC" in ra and "CHOT: L3" in ra and "KHONG DAT" in ra
     monkeypatch.setattr(sd, "NGUONG_DO_PHU", 1.01)
-    a = cli.dung_parser().parse_args(["do-phu", "--chon", "--so-lan-chon", "3"])
+    a = cli.dung_parser().parse_args(["do-phu", "--chon", "--so-lan", "3"])
     assert a.ham(a) == cli.MA_KHAC
     assert "KHONG UNG VIEN NAO DAT" in capsys.readouterr().out

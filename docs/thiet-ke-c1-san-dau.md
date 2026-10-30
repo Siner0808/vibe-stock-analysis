@@ -155,6 +155,7 @@ Mỗi tài khoản có **chuỗi lợi nhuận mỗi phiên** `r_t` tính bằng
 Thống kê: **trung bình** của chuỗi (`x_t` hoặc `d_t`). Cộng dồn trên cửa sổ = trung bình × n (in cạnh, không có KTC riêng).
 - **Có cặp** nghĩa là: mỗi lần rút, MỘT bộ khối được chọn và áp cho mọi chuỗi liên quan (với `x_t` và `d_t` đã là chuỗi hiệu nên cặp nằm sẵn trong chuỗi; hàm vẫn nhận hai chuỗi A, B và rút khối chung để tính KTC của `mean(A) − mean(B)` — dùng cho cả hai thước và cho phép thử độ phủ ở dạng cặp).
 - Bootstrap khối vòng, khối cố định `L`, rút `ceil(n/L)` khối, cắt về n; 5000 lần rút (cùng `VONG` với `paper_metrics.vs_benchmark`), khoảng phân vị 2,5–97,5, hạt giống cố định 0.
+- 🔴 **THAY THẾ ở BƯỚC 248 (30/10/2026): độ dài khối KHÔNG còn là 10 phiên cố định mà là quy tắc Politis–White tính từ chính chuỗi (mục 8.4b khoản 6). Bản 10 phiên dưới đây giữ làm LỊCH SỬ — nó đã được đo lại dưới mô hình sinh đúng và THẤT BẠI ở n = 40 (84,4–87,2%).** Người dùng 29/10/2026: *"Sửa cách tính trước lần đọc thật đầu tiên (Recommended)"*; 30/10/2026: *"Duyệt, sửa câu KTC (Recommended)"*.
 - **Độ dài khối `L` = 10 phiên — ĐÃ CHỐT 28/10/2026, người dùng: *"10 phiên (Recommended)"* (mục 15, quyết định 1).** Bản đầu ghi nó là *"đề xuất — người dùng chốt khi duyệt đặc tả"*. Lý do của đề xuất:
   - thời gian giữ lệnh trung bình của hệ là 20,3 phiên (`cham_bong.py` :82, `NHIP`); hai phiên cách nhau dưới chừng đó cùng chịu các vị thế đang mở nên `x_t` tự tương quan, và khối phải đủ dài để giữ nó;
   - nửa chu kỳ giữ lệnh là điểm giữa: dài hơn nữa (≥ 21) làm số khối quá ít ở mẫu ngắn, ngắn hơn (quy tắc `n^(1/3)` cho 3–6 phiên ở n = 40–252) bỏ sót phần lớn phụ thuộc đã biết;
@@ -165,9 +166,10 @@ Thống kê: **trung bình** của chuỗi (`x_t` hoặc `d_t`). Cộng dồn tr
 ### 8.4 Phép thử độ phủ — đo trước khi in "95%"
 
 `prism` tự báo độ phủ 0,908 cho KTC danh nghĩa 95% ở 250 kỳ (*tác giả tự báo*, mục 13): bootstrap khối thiếu phủ ở mẫu ngắn là chuyện đã biết, nên C1 không in "95%" trần.
-- **Mô phỏng:** với n ∈ {40, 113, 252}, 2000 lần lặp, mỗi lần dựng một cặp chuỗi có trung bình thật bằng 0 và cấu trúc giống thứ cần đo: thành phần chung giữa hai chuỗi (cặp), tự tương quan do vị thế chồng nhau (trung bình trượt cửa sổ 20 phiên của nhiễu), đuôi dày (phân phối t, 4 bậc tự do), và đoạn không giữ (e_t = 0). Đếm tỷ lệ KTC chứa 0, cho cả `mean(A) − mean(B)` (dạng cặp) và `mean(x)` (một chuỗi).
+- 🔴 **MÔ HÌNH SINH Ở DÒNG DƯỚI SAI, đã thay ở BƯỚC 248 (mục 8.4b): "tự tương quan do vị thế chồng nhau (trung bình trượt cửa sổ 20 phiên của nhiễu)" cho tự tương quan bậc 1 cỡ 0,9 mà chuỗi thật không có (0,04); mọi độ phủ dưới 90% của BƯỚC 243 là hệ quả. Số lần lặp nay là 10.000, mô hình là GARCH(1,1) đuôi t.**
+- **Mô phỏng (bản của BƯỚC 243, đã thay):** với n ∈ {40, 113, 252}, 2000 lần lặp, mỗi lần dựng một cặp chuỗi có trung bình thật bằng 0 và cấu trúc giống thứ cần đo: thành phần chung giữa hai chuỗi (cặp), tự tương quan do vị thế chồng nhau (trung bình trượt cửa sổ 20 phiên của nhiễu), đuôi dày (phân phối t, 4 bậc tự do), và đoạn không giữ (e_t = 0). Đếm tỷ lệ KTC chứa 0, cho cả `mean(A) − mean(B)` (dạng cặp) và `mean(x)` (một chuỗi).
 - **Cố định trước khi chạy:** hạt giống, số lần lặp, mô hình sinh, lưới n (khai ở đặc tả này; sửa là sửa đặc tả). Kết quả ghi vào `docs/san-dau-do-phu.json` (dữ liệu đo, commit cùng BƯỚC 3; app chỉ ĐỌC file ấy).
-- **Hiển thị:** KTC luôn in dạng *"KTC danh nghĩa 95% — độ phủ đo được <p>% (n=<n lưới>, L=10)"*. n thực không có trên lưới → dùng điểm lưới lớn nhất ≤ n; n < 40 → *"mẫu quá ngắn"*, không in KTC. **Độ phủ < 90% → nhãn "mẫu quá ngắn: độ phủ đo được dưới 90%"** cạnh KTC. Ngưỡng 90% do người dùng duyệt.
+- **Hiển thị:** KTC luôn in dạng *"KTC danh nghĩa 95% — độ phủ đo được <p>% (n=<n lưới>, khối=PW)"* (BƯỚC 248; trước đó `L=10`). n thực không có trên lưới → dùng điểm lưới lớn nhất ≤ n; n < 40 → *"mẫu quá ngắn"*, không in KTC. **Độ phủ < 90% → nhãn "mẫu quá ngắn: độ phủ đo được dưới 90%"** cạnh KTC. Ngưỡng 90% do người dùng duyệt.
 - Phép thử độ phủ dùng chính hàm KTC của app (cùng mã, không bản sao), nên "độ phủ đã đo" là độ phủ của thứ đang in.
 
 ### 8.4b KHAI TRƯỚC của BƯỚC 248 (30/10/2026) — sửa cách tính KTC cho tới khi độ phủ ≥ 90%
@@ -198,6 +200,29 @@ Thống kê: **trung bình** của chuỗi (`x_t` hoặc `d_t`). Cộng dồn tr
 Ứng viên 1 và 2 được dự kiến THẤT BẠI theo cấu trúc ở n = 40 (khối dài hơn chuỗi); chúng vẫn được chạy để ghi lại bảng, vì đó là việc leader giao, không vì có hy vọng.
 
 **5. Chốt.** Cấu hình đạt đầu tiên thành mặc định của `ktc_khoi_co_cap` và của nhãn trong `bang`; bản ghi (độ dài khối hay tên quy tắc, 5.000 lần rút, phân vị, hạt, bảng độ phủ 9 ô) nằm ở `docs/san-dau-do-phu.json` (khoá `cau_hinh_khoa`) và ở `docs/STATE.md`; một test đòi mặc định trong mã BẰNG bản ghi. Lát 4 của Dow in cấu hình KTC của nó và phải khớp bản ghi này.
+
+**6. KẾT QUẢ (BƯỚC 248, 30/10/2026) — CHỐT: bootstrap khối vòng CÓ CẶP với độ dài khối theo quy tắc Politis–White (ứng viên 4).** Lệnh tái lập: `./.venv/Scripts/python.exe tools/san_dau.py do-phu --chon` (chạy ứng viên theo thứ tự, dừng ở ứng viên đầu tiên đạt, mô hình mới, 10.000 lần lặp mỗi ô, hạt 0; không ghi file) và `./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem` (đo lại toàn bộ và so với `docs/san-dau-do-phu.json`). Độ phủ đo được (%), danh nghĩa 95%, tiêu chí đạt ≥ 90 ở cả 9 ô:
+
+| ứng viên | n | `cap` | `mot_chuoi` | `tho` |
+|---|---|---|---|---|
+| `L` = 42 | 40 | — | — | — |
+| `L` = 42 | 113 | 81,36 | 81,37 | 81,18 |
+| `L` = 42 | 252 | 88,06 | 88,96 | 88,93 |
+| `L` = 63 | 40 | — | — | — |
+| `L` = 63 | 113 | 74,13 | 74,21 | 74,37 |
+| `L` = 63 | 252 | 84,76 | 85,85 | 85,29 |
+| `L` = 21 | 40 | 76,99 | 77,99 | 73,53 |
+| `L` = 21 | 113 | 88,17 | 87,55 | 88,36 |
+| `L` = 21 | 252 | 91,37 | 91,96 | 92,17 |
+| **PW — ĐẠT, CHỐT** | 40 | 91,22 | 91,96 | 91,71 |
+| **PW — ĐẠT, CHỐT** | 113 | 93,20 | 92,79 | 93,48 |
+| **PW — ĐẠT, CHỐT** | 252 | 94,29 | 94,48 | 94,42 |
+
+Ứng viên 1 và 2 không xác định ở n = 40 (khối dài hơn chuỗi) như đã dự kiến, và cũng dưới 90% ở n = 113 (74–81%) và n = 252 (85–89%); ứng viên 3 hỏng ở n = 40 (73,5–78,0%) và n = 113 (87,5–88,4%). **Cấu hình khoá: `DO_DAI_KHOI` = "PW", 5.000 lần rút, phân vị 2,5–97,5, hạt bootstrap 0**, bản ghi ở khoá `cau_hinh_khoa` của `docs/san-dau-do-phu.json` (gác `tests/test_san_dau_cau_hinh_khoa.py`). Sai số Monte Carlo lớn nhất của một ô là 0,28 điểm phần trăm (`sai_so_monte_carlo_toi_da`); ô thấp nhất của cấu hình chốt là 91,22% (n = 40, `cap`).
+
+Kiểm lại (CHỈ BÁO CÁO, không đổi cấu hình): hạt 1 nhỏ nhất 91,40%, hạt 2 nhỏ nhất 91,40% — cả hai lượt đủ 9 ô ≥ 90%. Mô hình CĂNG THẲNG (tự hồi quy bậc 1 φ = 0,15, cao hơn mọi số đo được): n = 40 cho 89,26 (`cap`) · 90,27 (`mot_chuoi`) · 89,26 (`tho`) — **hai ô dưới 90%**; n = 113 và 252: 91,22–93,10%. Hiểu đúng: nếu chuỗi thật có tự tương quan bậc 1 cỡ 0,15 thì ở n = 40 độ phủ thật là ~89%, gần ngưỡng chứ không xa. Nhãn "độ phủ đo được 91,x%" ở n = 40 vì thế nói về MÔ HÌNH SINH, như mục 8.4 vốn nói.
+
+Thông tin sau khi chốt (KHÔNG dùng để chọn; chạy `do-phu --chon --ung-vien L10,L5`): `L` = 10 cho 85,89 · 87,19 · 84,35% ở n = 40 (hỏng), `L` = 5 cho 89,71 · 90,91 · 89,56% ở n = 40 (hai ô dưới 90%). Tức khối 10 phiên mà người dùng chốt 28/10 sẽ chưa đủ ngay cả dưới mô hình đúng.
 
 ### 8.5 Không làm ở C1
 

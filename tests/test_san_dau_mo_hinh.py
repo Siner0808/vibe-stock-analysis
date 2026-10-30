@@ -110,7 +110,7 @@ def test_tai_khoan_ngau_nhien_khong_vao_khi_xac_suat_khong():
 # ── 3. mô hình sinh mới phải khớp thực tế, mô hình cũ thì không ────────────────────────────────
 @pytest.fixture(scope="module")
 def mo_hinh_moi():
-    return sd.sinh_chuoi_mo_hinh_moi(1000, 300)
+    return sd.sinh_chuoi_do_phu(1000, 300)
 
 
 def test_hang_so_garch_dung_ban_ghi_va_ben_vung():
@@ -148,14 +148,14 @@ def test_mo_hinh_moi_giu_thanh_phan_chung_va_mat_na_khong_giu(mo_hinh_moi):
 
 
 def test_mo_hinh_moi_tat_dinh_va_phu_thuoc_hat_va_n():
-    a1 = sd.sinh_chuoi_mo_hinh_moi(40, 6)
-    assert all(np.array_equal(p, q) for p, q in zip(a1, sd.sinh_chuoi_mo_hinh_moi(40, 6)))
-    assert not np.array_equal(a1[2], sd.sinh_chuoi_mo_hinh_moi(40, 6, hat=1)[2])
-    assert not np.array_equal(a1[2][:, :10], sd.sinh_chuoi_mo_hinh_moi(113, 6)[2][:, :10])
+    a1 = sd.sinh_chuoi_do_phu(40, 6)
+    assert all(np.array_equal(p, q) for p, q in zip(a1, sd.sinh_chuoi_do_phu(40, 6)))
+    assert not np.array_equal(a1[2], sd.sinh_chuoi_do_phu(40, 6, hat=1)[2])
+    assert not np.array_equal(a1[2][:, :10], sd.sinh_chuoi_do_phu(113, 6)[2][:, :10])
 
 
 def test_mo_hinh_cang_thang_co_tu_hoi_quy_bac_1_bang_phi():
-    tho = sd.sinh_chuoi_mo_hinh_moi(1000, 200, phi=sd.PHI_CANG_THANG)[2]
+    tho = sd.sinh_chuoi_do_phu(1000, 200, phi=sd.PHI_CANG_THANG)[2]
     ac1 = float(np.mean([sd.acf_mau(r, 1)[0] for r in tho]))
     assert ac1 == pytest.approx(sd.PHI_CANG_THANG, abs=0.03)
     # giữ phương sai 1: mẫu lớn (1.500 × 800, hạt 7) cho 1,0027; bỏ hệ số √(1−φ²) cho ~1,026
@@ -165,7 +165,7 @@ def test_mo_hinh_cang_thang_co_tu_hoi_quy_bac_1_bang_phi():
 
 def test_mo_hinh_cu_BI_BAC_vi_cho_tu_tuong_quan_thang_hon_chuoi_that():
     """Bản ghi vì sao BƯỚC 248 thay mô hình: cùng dụng cụ đo, mô hình cũ ACF bậc 1 > 0,8 (thật: 0,04)."""
-    a, _, tho = sd.sinh_chuoi_do_phu(252, 100)
+    a, _, tho = sd.sinh_chuoi_mo_hinh_cu(252, 100)
     assert sd.mo_ta_chuoi(tho)["acf"]["1"] > 0.8
     assert sd.mo_ta_chuoi(a)["he_so_phuong_sai"] > 4.0
 
