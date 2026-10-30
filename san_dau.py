@@ -917,8 +917,9 @@ def sinh_chuoi_mo_hinh_cu(n: int, so_lan: int, hat: int = HAT_DO_PHU) -> tuple:
 #: cho 0,04 và 0,94–1,09. Trung bình trượt của nhiễu mô tả lợi nhuận của một cửa sổ 20 phiên, KHÔNG mô tả đóng góp
 #: MỖI PHIÊN của một sổ vị thế (trọng số biết trước, lợi nhuận phiên không tự tương quan). Mô hình mới: nhiễu
 #: GARCH(1,1) đuôi t, KHÔNG tự tương quan ở mức, có phương sai theo cụm. Ba số dưới là KHỚP CHUNG (hợp lý cực đại, 30
-#: tài khoản ngẫu nhiên, `kiem-mo-hinh --hop-garch`) làm tròn: lượt thử đầu (300 tài khoản, mầm 20261030) 0,137 · 0,809 ·
-#: 7,54; lượt của dụng cụ (100 tài khoản) 0,149 · 0,794 · 7,43; mỗi tài khoản một mình 0,10–0,17 · 0,75–0,86 · 5,4–8,6.
+#: tài khoản ngẫu nhiên, `kiem-mo-hinh --hop-garch`) làm tròn: lượt thử đầu (scipy, 300 tài khoản, mầm 20261030) 0,137 ·
+#: 0,809 · 7,54; scipy với dụng cụ (100 tài khoản) 0,149 · 0,794 · 7,43; dụng cụ trong repo (numpy) 0,145 · 0,800 · 7,44;
+#: mỗi tài khoản một mình 0,10–0,17 · 0,75–0,86 · 5,4–8,6.
 #: KHÔNG chọn theo độ phủ (khi chốt chúng chưa có độ phủ nào của mô hình mới).
 GARCH_ALPHA = 0.14
 GARCH_BETA = 0.81

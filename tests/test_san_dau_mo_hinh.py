@@ -211,7 +211,6 @@ def test_lenh_kiem_mo_hinh_NO_khi_khong_co_thu_muc_cache(tmp_path, monkeypatch):
 
 
 def test_hop_garch_tim_lai_tham_so_cua_chuoi_sinh():
-    pytest.importorskip("scipy")
     cli = _nap_cli()
     rng = np.random.default_rng(11)
     y = sd._nhieu_garch(rng, 12, 700)
@@ -219,12 +218,10 @@ def test_hop_garch_tim_lai_tham_so_cua_chuoi_sinh():
     assert 0.07 < alpha < 0.22 and 0.65 < beta < 0.92 and 4.0 < nu < 14.0, (alpha, beta, nu)
 
 
-def test_module_thuan_khong_nhap_scipy():
-    """scipy không có trong requirements.txt: chỉ `tools/san_dau.py::hop_garch` được nạp nó, TRONG hàm."""
+def test_khong_nhap_scipy_o_dau():
+    """scipy không có trong requirements.txt: cả module thuần lẫn dụng cụ không được nhập nó (`hop_garch` chỉ dùng numpy)."""
     cay = ast.parse(DUONG_MODULE.read_text(encoding="utf-8"))
     assert not [n for n in ast.walk(cay) if isinstance(n, (ast.Import, ast.ImportFrom)) and "scipy" in ast.dump(n)]
     cli = ast.parse((GOC / "tools" / "san_dau.py").read_text(encoding="utf-8"))
     assert not [n for n in cli.body if isinstance(n, (ast.Import, ast.ImportFrom)) and "scipy" in ast.dump(n)]
-    trong_ham = [n for f in ast.walk(cli) if isinstance(f, ast.FunctionDef) for n in ast.walk(f)
-                 if isinstance(n, ast.ImportFrom) and n.module == "scipy"]
-    assert trong_ham, "hop_garch phải nạp scipy trong hàm"
+    assert not [n for n in ast.walk(cli) if isinstance(n, (ast.Import, ast.ImportFrom)) and "scipy" in ast.dump(n)]

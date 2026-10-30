@@ -656,9 +656,9 @@ def lenh_chon_ung_vien(a) -> int:
           f"{sd.VONG_KTC} lan rut bootstrap; thu tu {[sd.nhan_do_dai(u) for u in sd.UNG_VIEN_KTC]}")
     print(f"{'':>9}{'n':>4}  " + " ".join(f"{d:>9}" for d in sd.DANG_KTC))
     uv = None
-    if a.ung_vien:
-        uv = [int(t[1:]) if t[:1] == "L" and t[1:].isdigit() else t for t in a.ung_vien.split(",")]
-        print(f"CHI cac ung vien {a.ung_vien} (kiem lai / can thang cua cau hinh da chot, KHONG de chon)")
+    if a.cau_hinh:
+        uv = [int(t[1:]) if t[:1] == "L" and t[1:].isdigit() else t for t in a.cau_hinh.split(",")]
+        print(f"CHI cac cau hinh {a.cau_hinh} (kiem lai / can thang cua cau hinh da chot, KHONG de chon)")
     kq = sd.chon_ung_vien(ung_vien=uv, so_lan=a.so_lan, hat=a.hat, sinh=sinh, ghi=in_ung_vien)
     print(f"CHOT: {kq['chot']}" if kq["chot"] else "KHONG UNG VIEN NAO DAT -- dung, khong doi mac dinh nao, hoi nguoi dung (DO 34 (d)).")
     return MA_BANG_NHAU if kq["chot"] else MA_KHAC
@@ -713,29 +713,40 @@ def doc_gia_dong_cache(thu_muc: str | None) -> tuple:
 
 def hop_garch(chuoi: list) -> tuple:
     """Hợp lý cực đại GARCH(1,1) đuôi t CHUNG cho nhiều chuỗi (mỗi chuỗi chia độ lệch chuẩn của nó; phương sai mục
-    tiêu ω = 1 − α − β). Cần scipy (KHÔNG có trong requirements.txt: dụng cụ máy dev, nạp trong hàm). Trả (α, β, ν)."""
+    tiêu ω = 1 − α − β). Chỉ numpy: tìm kiếm mẫu (pattern search) quanh (α, β, ν), bước co dần. Trả (α, β, ν)."""
+    import math
     import numpy as np
-    from scipy import optimize, stats
+    y = np.array([np.asarray(c, float) / np.std(c) for c in chuoi])
 
     def nll(par):
         a, b, nu = par
         if not (0 < a < 1 and 0 <= b < 1 and a + b < 0.999 and 2.2 < nu < 60):
             return 1e18
-        s = np.sqrt((nu - 2) / nu)
+        s = math.sqrt((nu - 2) / nu)
+        h = np.ones(y.shape[0])
         tong = 0.0
-        for y in chuoi:
-            y = np.asarray(y, float) / np.std(y)
-            h = np.empty(len(y))
-            h[0] = 1.0
-            for t in range(1, len(y)):
-                h[t] = (1 - a - b) + a * y[t - 1] ** 2 + b * h[t - 1]
-            z = y / np.sqrt(h) / s
-            tong -= float((stats.t.logpdf(z, nu) - np.log(s) - 0.5 * np.log(h)).sum())
-        return tong
+        for t in range(1, y.shape[1]):
+            h = (1 - a - b) + a * y[:, t - 1] ** 2 + b * h
+            z = y[:, t] / np.sqrt(h) / s
+            tong += float((math.lgamma((nu + 1) / 2) - math.lgamma(nu / 2) - 0.5 * math.log(nu * math.pi)
+                           - (nu + 1) / 2 * np.log1p(z * z / nu) - math.log(s) - 0.5 * np.log(h)).sum())
+        return -tong
 
-    r = optimize.minimize(nll, x0=[0.08, 0.88, 6.0], method="Nelder-Mead",
-                          options={"xatol": 1e-3, "fatol": 1e-2, "maxiter": 200})
-    return tuple(float(v) for v in r.x)
+    x = [0.08, 0.88, 6.0]
+    buoc = [0.04, 0.04, 2.0]
+    f = nll(x)
+    while max(buoc[0], buoc[1]) > 1e-3:
+        tot_hon = False
+        for k in range(3):
+            for dau in (1, -1):
+                thu = list(x)
+                thu[k] += dau * buoc[k]
+                ft = nll(thu)
+                if ft < f:
+                    x, f, tot_hon = thu, ft, True
+        if not tot_hon:
+            buoc = [v / 2 for v in buoc]
+    return tuple(float(v) for v in x)
 
 
 def lenh_kiem_mo_hinh(a) -> int:
@@ -804,7 +815,7 @@ def dung_parser() -> argparse.ArgumentParser:
     km.add_argument("--cache", default=None, help="thư mục cache giá (mặc định VIBE_CACHE_DIR)")
     km.add_argument("--so-tk", type=int, default=100, help="số tài khoản ngẫu nhiên mỗi cỡ / số chuỗi mô hình đem mô tả")
     km.add_argument("--so-mo-hinh", type=int, default=2000, help="số chuỗi sinh mỗi mô hình")
-    km.add_argument("--hop-garch", action="store_true", help="hợp GARCH-t chung (cần scipy, máy dev)")
+    km.add_argument("--hop-garch", action="store_true", help="hợp GARCH-t chung (numpy, ~1 phút)")
     km.set_defaults(ham=lenh_kiem_mo_hinh)
     bg = con.add_parser("bang", help="bảng sân đấu: giá trị điểm, chưa có KTC (BƯỚC 242)")
     bg.add_argument("--tu-ngay", default=sd.NGAY_MO_CONG, help="ngày bắt đầu cửa sổ (mặc định NGAY_MO_CONG)")
@@ -823,7 +834,7 @@ def dung_parser() -> argparse.ArgumentParser:
     dp.add_argument("--chon", action="store_true",
                     help="BƯỚC 248: chạy ứng viên theo thứ tự mục 8.4b, dừng ở ứng viên đầu tiên đạt (mô hình mới)")
     dp.add_argument("--hat", type=int, default=sd.HAT_DO_PHU, help="hạt giống mô phỏng của --chon (chọn: 0; kiểm lại: 1, 2)")
-    dp.add_argument("--ung-vien", default=None, help="chỉ các nhãn này (vd PW hay L10,PW); để KIỂM LẠI, không để chọn")
+    dp.add_argument("--cau-hinh", default=None, help="chỉ các nhãn này (vd PW hay L10,PW); để KIỂM LẠI, không để chọn")
     dp.add_argument("--phi", type=float, default=0.0, help="tự hồi quy bậc 1 của mô hình (chọn: 0; căng thẳng: 0,15)")
     dp.set_defaults(ham=lenh_do_phu)
     td = con.add_parser("tuong-duong", help="Tầng B: phát lại sổ thật, so từng ô")
