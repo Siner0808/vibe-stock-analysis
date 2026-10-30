@@ -242,6 +242,26 @@ def test_MOI_PHAT_HIEN_phai_kem_LENH_tu_kiem_va_mot_PHAN_QUYET():
     print("PASS  moi phat hien deu co lenh tu kiem va phan quyet")
 
 
+def test_MOI_tra_loi_trong_so_dung_khuon_sha256_dai16_va_trich_dan():
+    """BƯỚC 246 (30/10/2026): ô `tra_loi` là DỮ LIỆU của bắt tay SHA-256 — băm câu trả lời của trang,
+    độ dài UTF-16 và danh sách trích dẫn. Ô tuỳ chọn (mục cũ không có), nhưng đã có thì phải đúng
+    khuôn, và chỉ mục HỎI THẬT mới có câu trả lời để băm."""
+    for ten, d in _so()["soat"].items():
+        tl = d.get("tra_loi")
+        if tl is None:
+            continue
+        assert set(tl) == {"sha256", "dai16", "trich_dan"}, f"{ten}: khoa la {sorted(tl)}"
+        assert re.fullmatch(r"[0-9a-f]{64}", str(tl["sha256"])), f"{ten}: sha256 sai khuon"
+        assert isinstance(tl["dai16"], int) and not isinstance(tl["dai16"], bool) and tl["dai16"] > 0, ten
+        assert isinstance(tl["trich_dan"], list), ten
+        for i, c in enumerate(tl["trich_dan"]):
+            assert set(c) == {"n", "nguon"}, f"{ten}.trich_dan[{i}]: khoa {sorted(c)}"
+            assert isinstance(c["n"], int) and c["n"] >= 1, f"{ten}.trich_dan[{i}]: n"
+            assert isinstance(c["nguon"], str) and len(c["nguon"].strip()) >= 3, f"{ten}.trich_dan[{i}]: nguon"
+        assert str(d.get("cau_hoi", "")).strip(), f"{ten}: co `tra_loi` ma khong co `cau_hoi` (khong hoi that)"
+    print("PASS  moi `tra_loi` trong so dung khuon")
+
+
 #: Dòng bắt buộc trong mọi câu gửi sổ tay, từ `_moc_ngon_ngu` trở đi.
 #: Người dùng chốt 17/09/2026: hỏi bằng tiếng Anh, đòi trả lời tiếng Việt.
 DOI_TRA_LOI_VIET = "answer in vietnamese"

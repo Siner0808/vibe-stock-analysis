@@ -20,8 +20,7 @@ tất cả là lỗi thao tác lặp lại.
 
 **Quy tắc số 2 — không có lệnh thì không có số.** Mọi con số viết vào tài
 liệu, báo cáo hay commit phải được tính TRONG PHIÊN NÀY, kèm lệnh tái lập
-được. Ước lượng thì phải gọi nó là ước lượng (từng suýt ghi "≈40s" cho thứ
-đo được 167,7s).
+được. Ước lượng thì phải gọi nó là ước lượng.
 
 **Quy tắc số 3 — BƯỚC ĐỔI MỘT LUẬT hoặc MỘT KẾT LUẬN ĐO thì PHẢI đi qua sổ tay
 NotebookLM** (chốt 18/09/2026 cho MỌI BƯỚC; thu hẹp 08/10/2026, từ BƯỚC 164;
@@ -259,12 +258,9 @@ tuyệt đối — bản trong repo khai cùng lúc thì mỗi hook chạy HAI L
 | `tools/cua_ghi_an_toan.py` | Post · Write/Edit | file còn 0 byte sau lượt ghi |
 | `tools/chan_bia_so_lieu.py --quet-thay-doi` | Stop | soát lại file đã đổi |
 
-- **`python --version` KHÔNG phải phép thử của cả bảy** (lỗi 25): nó đi qua
-  đúng MỘT hook, cửa Bash. Một phép thử đo MỘT cửa không phải phán quyết về
-  bảy.
-- Hook mới chỉ có hiệu lực từ **PHIÊN SAU**. Hook không thấy gì đi qua Bash
-  trừ cửa Bash. Thêm cửa lên toàn cục thì bơm payload giả từ một cwd ngoài
-  repo TRƯỚC (lỗi 15: công cụ đúng trong repo có thể sai khi gọi từ nơi khác).
+- **`python --version` KHÔNG phải phép thử của cả bảy** (lỗi 25): nó chỉ đi qua cửa Bash.
+- Hook mới chỉ có hiệu lực từ **PHIÊN SAU**. Thêm cửa lên toàn cục thì bơm payload
+  giả từ một cwd ngoài repo TRƯỚC (lỗi 15).
 
 ---
 
@@ -292,6 +288,11 @@ Nói đúng trong báo cáo: *"NotebookLM chỉ ra chỗ X, tôi kiểm lại b�
   cả trích dẫn lẫn tên file; con số đúng bọc trong bằng chứng bịa là hình
   dạng khó thấy nhất. Hỏi một DÒNG thì lối thoát phải nói *"nếu không tìm
   thấy dòng ấy"* — phủ đúng cái đang hỏi, không phủ cái chứa nó.
+- **Mỗi lượt bắt đầu từ nhật ký chat RỖNG; câu gửi ≤ 3.800 đơn vị UTF-16** (BƯỚC 246;
+  nút Gửi khoá từ 3.901, không báo lỗi). Xoá nhật ký chat — không bao giờ nguồn hay sổ
+  tay — là quyền thường trực của người dùng, 29/10/2026: *"Cho phép, đọc lại hộp xác
+  nhận trước khi bấm (Recommended)"*; `so_tay.py xoa-nhat-ky` tự đọc hộp. Lệnh JS không
+  hẹn giờ (khung ẩn bóp `setTimeout`); lưu trả lời qua bắt tay SHA-256.
 - **Ngôn ngữ:** hỏi bằng **TIẾNG ANH**, mỗi câu kèm dòng `Answer in
   Vietnamese.` (chốt 17/09/2026, lý do người dùng chưa nêu). Báo cáo,
   `phat_hien`, `phan_quyet` vẫn tiếng Việt; trích dẫn tài liệu giữ tiếng
@@ -306,24 +307,21 @@ Nói đúng trong báo cáo: *"NotebookLM chỉ ra chỗ X, tôi kiểm lại b�
 - **Câu ÂM cũng phải kiểm** (*"không tìm thấy"* đã sai nhiều lần): `grep` từ
   khoá tiếng Việt của chính dự án sau mọi câu âm. Lối thoát chặn nó BỊA, không
   chặn nó BỎ SÓT.
-- **Ô thoát đòi lý do cụ thể vẫn có thể thành câu thần chú** (lỗi 86: sáu mục
-  liên tiếp viện dẫn cùng một phát hiện đúng). Chuỗi bỏ qua là một đại lượng
+- **Ô thoát đòi lý do cụ thể vẫn có thể thành câu thần chú** (lỗi 86). Chuỗi bỏ qua là một đại lượng
   — bản tin mở phiên nói ra từ 3 mục trở lên (`tools/cua_mo_phien.chuoi_khong_soat()`).
 
-**Đo độ tươi TRƯỚC mỗi lượt hỏi**, không nhớ từ lượt trước: hỏi *"số BƯỚC lớn
-nhất trong các nguồn"* (kèm lối thoát) rồi so `grep -c '^## BƯỚC' docs/STATE.md`.
-Phép BỎ CHỌN nguồn không sống qua phiên. Lệch thì làm tươi — **THÊM TRƯỚC, XOÁ
-SAU** (xoá trước có một cửa sổ sổ rỗng; bản trùng còn làm sổ trả lời SAI:
-BƯỚC 95 thay vì 96). Từng bước (URL ghim băm, STATE thì DÁN khúc; đổi tên,
-đọc nhãn hộp xác nhận): `references/soat-cheo-notebooklm.md`, *Nạp lại nguồn*.
+**Đo độ tươi TRƯỚC mỗi lượt hỏi, bằng NHÃN nguồn, không hỏi mô hình** (BƯỚC 246;
+29/10 câu đo bị trả lạc đề): `so_tay.py lay-nhan` rồi `do-tuoi` so `<tệp> @<băm>` với
+git; `_do_tuoi` do máy sinh. Lệch thì làm tươi — **THÊM TRƯỚC, XOÁ SAU** (xoá trước có
+cửa sổ sổ rỗng; bản trùng làm sổ trả lời SAI: BƯỚC 95 thay vì 96). Từng bước:
+`references/soat-cheo-notebooklm.md`, *Nạp lại nguồn*.
 
-**Xoá nguồn:** hỏi người dùng trước (xoá là vĩnh viễn) — **TRỪ** bản trùng
-của đúng nguồn vừa dán lại ở bước THÊM. Không có gác máy cho luật này (thao
-tác trình duyệt không để dấu vết trong repo); đây là kỷ luật, không phải cơ chế.
+**Xoá nguồn:** hỏi người dùng trước (vĩnh viễn) — **TRỪ** bản trùng của đúng nguồn vừa
+dán lại ở bước THÊM. Không có gác máy (thao tác trình duyệt không để dấu vết trong repo):
+kỷ luật, không phải cơ chế.
 
-**Nguồn của sổ tay gồm cả `docs/lich-su/*.md`** (từ BƯỚC 150) — quần thể
-`tools/doi_chieu_trich_dan.py` phủ chúng, để trích dẫn từ bản nguyên văn cũ
-vẫn đối chiếu được.
+**Nguồn của sổ tay gồm cả `docs/lich-su/*.md`** (từ BƯỚC 150); `tools/doi_chieu_trich_dan.py`
+phủ chúng.
 
 ### Nhịp soát định kỳ (7 ngày; đổi 08/10/2026)
 
