@@ -170,13 +170,18 @@ def co_nen(cache: Path, rổ: list[str]) -> dict:
     kb = Counter()
     kgd = phang = 0
     piv_kb, piv_kgd, piv_tong = Counter(), 0, 0
+    tran_la_dinh = san_la_day = 0
     for ma in rổ:
         df, he, san = cau_hinh(cache, ma)
         nens = C.chuan_bi_nen(df, san)
         nen_tong += len(nens)
+        dong = df["close"].to_numpy(dtype=float)
         for n in nens:
             kb[n.khoa_bien] += 1
             kgd += n.khong_giao_dich
+            cua_so = dong[max(0, n.chi_so - 5):n.chi_so + 6]    # chỉ để ĐẾM: kiểm máy đo, không vào mô-đun
+            tran_la_dinh += n.khoa_bien == "KICH_TRAN" and dong[n.chi_so] >= cua_so.max()
+            san_la_day += n.khoa_bien == "KICH_SAN" and dong[n.chi_so] <= cua_so.min()
         c = df["close"]
         phang += int(((df["high"] == df["low"]) & (df["low"] == c) & (c == c.shift(1))).sum())
         r = C.doc_cau_truc(df, he_so_gia=he, san=san)
@@ -186,6 +191,8 @@ def co_nen(cache: Path, rổ: list[str]) -> dict:
             piv_kgd += p.khong_giao_dich
     return {"so_nen": nen_tong,
             "khoa_bien": {str(k): v for k, v in kb.items()},
+            "kich_tran_la_dong_cua_cao_nhat_cua_so_pm5": int(tran_la_dinh),
+            "kich_san_la_dong_cua_thap_nhat_cua_so_pm5": int(san_la_day),
             "khong_giao_dich_volume_0": kgd,
             "nen_dung_yen_cao_thap_dong_bang_dong_truoc": phang,
             "pivot_mac_dinh_tong": piv_tong,
