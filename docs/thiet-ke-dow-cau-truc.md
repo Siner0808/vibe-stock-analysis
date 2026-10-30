@@ -34,7 +34,7 @@ Hệ quả đã chốt: (1) một MODULE thuần mới + một ô trên app + m�
 
 | Thành phần người dùng hỏi | Có trong repo? | Bằng chứng |
 |---|---|---|
-| Swing / internal structure (đỉnh–đáy xoay chiều theo hai cấp) | **KHÔNG** | `git grep -i -I -n "swing\|zigzag\|fractal\|choch\|break of structure" 7e0218c -- '*.py' '*.md' ':!tests'` (cây TRƯỚC BƯỚC này) ra 0 dòng. `git log --all -S"CHoCH" --oneline` 0 commit |
+| Swing / internal structure (đỉnh–đáy xoay chiều theo hai cấp) | **KHÔNG theo nghĩa Dow**, nhưng **CÓ một bộ dò đáy MỘT phía** để đặt cắt lỗ (sửa ở BƯỚC 247) | Từ khoá TIẾNG ANH: `git grep -i -I -n "swing\|zigzag\|fractal\|choch\|break of structure" 7e0218c -- '*.py' '*.md' ':!tests'` ra 0 dòng, `git log --all -S"CHoCH" --oneline` 0 commit. Từ khoá TIẾNG VIỆT bản nháp bỏ sót: `ke_hoach_vao_lenh.tim_day_xoay` (BƯỚC 173, "đáy xoay": 17 dòng ở `ke_hoach_vao_lenh.py`, 2 ở `app.py`, 1 ở `so_ke_hoach.py`). Nó chỉ tìm ĐÁY (không đỉnh), MỘT cấp, trên `low`, không nhãn HH/HL/LH/LL, không `ngay_biet`; quan hệ với mô-đun mới: mục 5.10 |
 | BOS / CHoCH | **KHÔNG** | cùng lệnh trên |
 | HH / HL / LH / LL | **KHÔNG** | `TrendAgent` (`analysis_agents.py`, lớp `TrendAnalysisAgent`) chấm bằng EMA20, SMA50, SMA200, ADX và một luật giá so MA10 / MA20 (`MO-XE-KIEN-TRUC.md`, mục *Điều này nghĩa là gì*) — thước trung bình động, không phải cấu trúc đỉnh–đáy |
 | "Smart Money" | chỉ là TÊN | `app.py:1306–1309`: "Smart Money Flow %" = `last_vol / avg_vol − 1` — một tỷ lệ khối lượng, không phải khái niệm SMC |
@@ -102,6 +102,8 @@ Hai cấp là HAI bộ dò độc lập với hai ngưỡng (kiểu LuxAlgo: `le
 
 Khi một nến xác nhận pivot mà nó đã chứa sẵn cực trị của chặng mới, cực trị chờ của chặng mới là cực trị của các `close` trong `(chỉ số pivot, t]` — KHÔNG phải chỉ `close_t`, vì ngưỡng ATR đổi theo phiên và nến trước `t` có thể cao hơn `close_t` mà chưa đủ ngưỡng ở phiên ấy.
 
+**Ghi chú thi công (Lát 1, BƯỚC 247 — `cau_truc_gia.py`; tên mô-đun giữ nguyên).** Ba chỗ mã làm KHÁC hoặc THÊM so với văn bản trên, đều khai ở `docs/STATE.md` BƯỚC 247: (1) ZigZag chạy trên CÙNG máy trạng thái với ATR (ngưỡng là tỷ lệ θ của chính cực trị chờ) nên xen kẽ có sẵn do cấu trúc, không cần dòng `thay_the`; chỉ họ Fractal cần luật xen kẽ R2 và dùng dòng `thay_the`; (2) cực trị ở NẾN ĐẦU của bảng không bao giờ là pivot (chưa biết nó là đỉnh/đáy hay chỉ là chỗ cửa sổ bắt đầu); (3) ATR bằng 0 thì không xác nhận gì. Hệ số giá `he_so_gia` nhận NGOÀI và người gọi tính MỘT lần (`data_quality.price_multiplier` lấy trung vị cả chuỗi nên đổi khi cắt đuôi).
+
 ### 5.4 Giá bằng nhau trên lưới bước giá; kịch trần / sàn; phiên không giao dịch
 
 - **Bằng nhau.** Giá đóng cửa VN nằm trên lưới bước giá (`truot_gia.BUOC_GIA`, `truot_gia.py:61–65`; `buoc_gia`, `:70`). Hai giá coi là **bằng nhau** khi chênh nhau dưới nửa bước giá của mức giá ấy (đổi sang VNĐ bằng hệ số giá, bước giá theo sàn tra bằng `san_giao_dich`). Hệ quả: (i) cực trị chờ chỉ bị thay khi giá vượt NGHIÊM NGẶT qua nửa bước (cực trị cũ giữ, đỉnh bằng không thay đỉnh cũ); (ii) mốc bị phá chỉ khi đóng cửa vượt mốc quá nửa bước; (iii) nhãn so hai đỉnh liền kề trả `bằng` (không ép HH hay LH) — theo Dow, đỉnh KHÔNG vượt đỉnh trước thì không phải xu hướng tăng xác nhận (NC §1.7 mục 1). Hai bản sao của lỗi này đã thấy ngoài đời: Kaltsit coi hai đỉnh cùng giá là "không có đỉnh mới" qua `!= shift(1)` và PyIndicators đánh `≥` ở cả hai nến (TR §5.3–5.4); đặc tả đòi so TỪNG sự kiện, không so "giá đổi".
@@ -165,6 +167,12 @@ class SuKienPha:           # BOS / CHOCH / KHOI_DAU
 ```
 
 Mã thật được gác bằng test; đoạn trên chỉ để thống nhất tên trường giữa các lát.
+
+### 5.10 Quan hệ với "đáy xoay" của kế hoạch vào lệnh (chốt ở BƯỚC 247)
+
+`ke_hoach_vao_lenh.tim_day_xoay` (BƯỚC 173) tìm đáy `i` khi `low[i]` ≤ min của 2 phiên NGAY TRƯỚC và < min của 2 phiên NGAY SAU, chỉ trong 20 phiên gần nhất, để đặt cắt lỗ dưới đáy gần nhất còn dưới giá đóng. So với `cau_truc_gia`: (a) chỉ đáy, không đỉnh; (b) dùng `low`, mô-đun mới dùng giá đóng cửa; (c) một cấp, cửa sổ cố định 2 phiên, không ngưỡng theo biến động; (d) so sánh bất đối xứng (`≤` trước, `<` sau), mô-đun mới so nghiêm ngặt hai phía qua nửa bước giá; (e) không nhãn, không `ngay_biet` (nó đọc `n − 1 − k` nến đã đóng nên không nhìn trộm, nhưng không ghi lại ngày biết); (f) nằm trên đường sinh kế hoạch, mô-đun mới thì không (gác nhập, mục 8.3).
+
+**Quyết định: SONG SONG, không dùng chung.** Dùng chung nghĩa là `ke_hoach_vao_lenh.py` gọi `cau_truc_gia` (đổi hành vi hoặc ít nhất đổi mã trên đường sống, mà Lát 1 cấm: mục 11) và phá gác nhập (`ke_hoach_vao_lenh.py` nằm trong danh sách cấm của mục 8.3). Hai bộ dò không cho cùng đáp số (khác `low`/`close`, khác ngưỡng), nên thay cái này bằng cái kia là đổi kế hoạch cắt lỗ, tức đổi KẾT QUẢ ĐÃ ĐO (ĐO 25). Tuỳ chọn để lại cho người dùng, KHÔNG làm trong chuỗi Dow: sau khi có kết cục ĐO 34, cân nhắc cho kế hoạch vào lệnh đọc đáy swing từ `cau_truc_gia` — việc ấy là một BƯỚC riêng có ĐO riêng.
 
 ## 6. Chu kỳ 4 giai đoạn — GHÉP, không phát minh
 
