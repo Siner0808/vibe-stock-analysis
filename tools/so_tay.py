@@ -200,6 +200,13 @@ NUT_XOA = "Xoá"
 #: chạy bình thường khi ẩn).
 LAN_CHUP_GIONG = 3
 KHOANG_CHUP_TOI_THIEU_MS = 2_000
+#: Điều kiện THỨ BA của "xong": khung `.to-user-container` của câu trả lời cuối có nút mang nhãn này
+#: ("Sao chép câu trả lời của mô hình vào bảng nhớ tạm"). Bằng chứng: leader thấy nút (cùng nút
+#: "Đánh giá…", "Lưu tin nhắn vào ghi chú") có mặt LÚC XONG, 30/10/2026. CHƯA chụp được nó VẮNG
+#: trong lúc đang phát, nên điều kiện này chỉ có thể làm "xong" đến MUỘN hơn, không chứng minh
+#: một bản phát dở không bao giờ có nút. Chốt chặn thật vẫn là BA lần chụp cùng sha256 cách >= 2 s
+#: (lần chạy 30/10 có một ảnh chụp 253 ký tự của bản phát dở vượt qua phép thử "không đang nghĩ").
+NHAN_NUT_SAO_CHEP = "Sao chép câu trả lời"
 #: Dòng trạng thái khi sổ tay đang nghĩ ("Analyzing the documents...\nexpand_more") ngắn hơn
 #: ngần này và kết thúc bằng `expand_more`; câu trả lời thật bắt đầu "Thoughts\nexpand_more\n".
 DO_DAI_TRANG_THAI = 200
@@ -252,7 +259,7 @@ JS_CHUP_TRA_LOI = r"""await (async () => {
   const moi = ds.length > TRUOC && !!cuoi;
   const t = moi ? cuoi.innerText : '';
   const dang_nghi = !t.trim() || (t.trim().length < @@DO_DAI@@ && /expand_more\s*$/.test(t));
-  const ra = {so_tra_loi: ds.length, truoc: TRUOC, moi: moi, dang_nghi: dang_nghi, xong: false, giong: 0, khoang_ms: 0, dai16: t.length};
+  const ra = {so_tra_loi: ds.length, truoc: TRUOC, moi: moi, dang_nghi: dang_nghi, xong: false, giong: 0, khoang_ms: 0, dai16: t.length, co_nut_sao_chep: false};
   if (!moi || dang_nghi) { window.__chupSoTay = null; ra.dau = t.slice(0, 80); return ra; }
   const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
   const sha = [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -261,7 +268,10 @@ JS_CHUP_TRA_LOI = r"""await (async () => {
   chay.dem++;
   window.__chupSoTay = chay;
   ra.sha256 = sha; ra.giong = chay.dem; ra.khoang_ms = nay - chay.t0;
-  ra.xong = chay.dem >= @@GIONG@@ && ra.khoang_ms >= @@KHOANG@@;
+  const khung = cuoi.closest('.to-user-container');
+  ra.co_nut_sao_chep = !!khung && [...khung.querySelectorAll('button[aria-label]')]
+    .some(b => (b.getAttribute('aria-label') || '').includes(@@NUT@@));
+  ra.xong = chay.dem >= @@GIONG@@ && ra.khoang_ms >= @@KHOANG@@ && ra.co_nut_sao_chep;
   if (ra.xong) {
     ra.text = t;
     ra.trich_dan = [...cuoi.querySelectorAll('button.citation-marker span[aria-label]')]
@@ -318,12 +328,13 @@ def lenh_chup_tra_loi(truoc: int) -> str:
     `truoc` = số trả lời đã có TRƯỚC khi gửi (`lenh_dien_cau` in nó); chỉ tin phần tử trả lời
     thứ `truoc + 1` trở đi, nên một câu trả lời CŨ trong lịch sử không bị nhận nhầm. Không hẹn giờ:
     người gọi chạy lại cho tới khi `xong: true` (`LAN_CHUP_GIONG` lần chụp liên tiếp cùng sha256,
-    cách nhau >= `KHOANG_CHUP_TOI_THIEU_MS`). Chỉ khi xong mới trả `text`, `trich_dan`, `vo_hinh`.
+    cách nhau >= `KHOANG_CHUP_TOI_THIEU_MS`, VÀ khung câu trả lời có nút sao chép: `NHAN_NUT_SAO_CHEP`).
+    Chỉ khi xong mới trả `text`, `trich_dan`, `vo_hinh`.
     """
     if not isinstance(truoc, int) or isinstance(truoc, bool) or truoc < 0:
         raise TuChoi(f"`truoc` phai la so nguyen >= 0: {truoc!r}")
     return _dien(JS_CHUP_TRA_LOI, TRUOC=truoc, O_TRA_LOI=O_TRA_LOI, DO_DAI=DO_DAI_TRANG_THAI,
-                 GIONG=LAN_CHUP_GIONG, KHOANG=KHOANG_CHUP_TOI_THIEU_MS)
+                 GIONG=LAN_CHUP_GIONG, KHOANG=KHOANG_CHUP_TOI_THIEU_MS, NUT=NHAN_NUT_SAO_CHEP)
 
 
 def lenh_lay_nhan() -> str:
@@ -358,7 +369,20 @@ NHAN_TRICH_DAN = re.compile(r"(\d+): (\S.*)")
 
 
 def doc_trich_dan(van_ban: str) -> list[dict]:
-    """Mỗi dòng `<n>: <nhãn nguồn>` -> `{n, nguon}`, giữ thứ tự và bản lặp như trang."""
+    """Mỗi dòng `<n>: <nhãn nguồn>` -> `{n, nguon}`, giữ thứ tự và bản lặp như trang.
+
+    Nhận cả dạng JSON mà lệnh `chup` trả (`[{"n": 1, "nguon": "…"}, …]`, hoặc `[]`).
+    """
+    if van_ban.lstrip().startswith("["):
+        try:
+            ds = json.loads(van_ban)
+        except ValueError as e:
+            raise TuChoi(f"tep trich dan bat dau bang '[' nhung khong phai JSON: {e}") from e
+        if not all(isinstance(c, dict) and set(c) == {"n", "nguon"} and isinstance(c["n"], int)
+                   and not isinstance(c["n"], bool) and c["n"] >= 1
+                   and isinstance(c["nguon"], str) and c["nguon"].strip() for c in ds):
+            raise TuChoi("tep trich dan JSON phai la danh sach {n: so >= 1, nguon: chuoi}")
+        return [{"n": c["n"], "nguon": c["nguon"].strip()} for c in ds]
     ra = []
     for i, d in enumerate(van_ban.splitlines(), 1):
         if not d.strip():
@@ -517,7 +541,7 @@ def _dung_nguon_va_do_tuoi(muc: dict, git) -> tuple[list[str], str] | None:
     if not nhan:
         raise TuChoi("tep nhan nguon khong co nhan nao — tab Nguon chua mo? (doc 0 nguon la MAU HONG)")
     try:
-        kq = do_tuoi(nhan, la, git or _git_that)
+        kq = do_tuoi(nhan, la, git or _git_that, so_voi=muc.get("nhan_nguon_so_voi") or "HEAD")
     except KhongKiemDuoc as e:
         raise TuChoi(f"CHUA KIEM DUOC do tuoi: {e}") from e
     return nhan, tom_tat_do_tuoi(kq)
@@ -623,7 +647,7 @@ def ghi(muc: dict, so: Path = SO, ngay: str | None = None, cham_luat=None, git=N
     Từ BƯỚC 246 mục hỏi thật có thể mang (tuỳ chọn): `tra_loi_tep` + `tra_loi_sha256` +
     `trich_dan_tep` (BẮT TAY: sha256 tệp phải khớp sha256 trang đã băm, lệch thì từ chối và
     không chạm sổ) -> ô `tra_loi`; `nhan_nguon_tep` (nhãn nguồn như trang hiện) -> `nguon`
-    và `_do_tuoi` SINH ra từ git, không từ lời mô hình.
+    và `_do_tuoi` SINH ra từ git, không từ lời mô hình (so với `nhan_nguon_so_voi`, mặc định `HEAD`).
     """
     if "khong_bat_buoc_vi" in muc:
         return _ghi_khong_bat_buoc(muc, so, ngay, cham_luat)

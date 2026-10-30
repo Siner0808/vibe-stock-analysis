@@ -69,7 +69,7 @@ chưa kể từ băm ấy; mô hình thì không (29/10/2026 nó trả lạc đ�
    ```
 
    Kết quả có dòng đầu `<n> nhan` rồi mỗi nhãn một dòng (số nguồn hiện cạnh ô chat, ví dụ
-   "(19)", phải bằng n; đọc ra 0 nhãn là MẪU hỏng, không phải sổ rỗng). Leader lưu vào một tệp. Nhãn
+   "(19)", phải bằng n; đọc ra 0 nhãn là MẪU hỏng, không phải sổ rỗng). Leader lưu vào một tệp. Phép BỎ CHỌN nguồn không sống qua phiên: đọc nhãn mỗi lượt. Nhãn
    lấy từ `aria-label` của NÚT nguồn, **không bao giờ** gỡ từ một câu trả lời của mô hình (đo 30/10:
    nó gộp 19 nhãn trên MỘT dòng cách nhau bằng dấu cách).
 2. Đo:
@@ -103,7 +103,7 @@ mỗi lượt soát bắt đầu từ nhật ký rỗng.
   `--buoc 2` (chọn mục `Xoá nhật ký trò chuyện`) · `--buoc 3` (đọc MỌI hộp thoại — hộp hiện hai lần
   trong DOM và một hộp chọn emoji ẩn cũng mang `role=dialog` — chọn cái HIỆN và mang đúng câu
   `Bạn sắp xoá toàn bộ nhật ký trò chuyện của sổ ghi chú này`, chỉ bấm nút `Xoá` của hộp ấy; hộp khác
-  → `TU CHOI ·…` và không bấm gì) · `--buoc 4` (đếm trả lời còn lại, phải là 0).
+  → `TU CHOI ·…` và không bấm gì) · `--buoc 4` (đếm trả lời còn lại — xoá là BẤT ĐỒNG BỘ: đo 30/10, bước 4 ngay sau bước 3 còn thấy 1 và vài giây sau mới thấy 0. **Chạy lại bước 4 cho tới khi = 0; không gửi khi còn > 0**; lệnh điền câu hỏi cũng từ chối điền khi nhật ký còn trả lời, trừ `--giu-lich-su`).
 - Thấy `TU CHOI` thì DỪNG, đọc chẩn đoán trong chuỗi trả về, đừng bấm tay thay máy. Quyền này chỉ phủ
   nhật ký trò chuyện.
 
@@ -114,7 +114,7 @@ bóp `setTimeout` đến mức MỘT `await new Promise(r => setTimeout(r, 750))
 45 s — công cụ giết JS ở 45 s. Đọc đồng bộ thì tức thì; `await crypto.subtle.digest(...)` VẪN xong khi
 ẩn (thử hai lần). Bản đầu của BƯỚC 246 chờ 38 s ngay trong trang và chết đúng như vậy. Hệ quả:
 mọi lệnh của `tools/so_tay.py` đọc hoặc bấm MỘT lần rồi trả về; **việc chờ là của người gọi**
-(chạy lại lệnh), và "xong" là chuỗi lần chụp giống nhau chứ không phải một lần đọc. Gác:
+(chạy lại lệnh), và "xong" là chuỗi lần chụp giống nhau chứ không phải một lần đọc. **Mỗi lệnh đi qua MỘT lần `javascript_tool`, không qua `browser_batch`** (đường truyền làm hỏng chuỗi JS dài), và lệnh không mang `\uXXXX` nào: `\u2028`/`\u2029` trong một regex literal bị đổi thành ký tự ngắt dòng thật và lệnh không biên dịch được (lỗi 199, 30/10/2026; so mã ký tự bằng `charCodeAt`). Gác:
 `tests/test_so_tay_trinh_duyet.py::test_KHONG_lenh_JS_nao_hen_gio_vi_khung_an_bop_setTimeout`.
 
 ## Chặng 4 — Dựng câu hỏi bằng MÁY, không gõ tay
@@ -163,9 +163,15 @@ gần ô chat nhất.
 
 Mỗi lần gọi chụp câu trả lời thứ N+1 trở đi MỘT lần (cách nhau bằng độ trễ của lần gọi công cụ, 1–3 s)
 và trả `{xong, giong, khoang_ms, sha256, dang_nghi, dai16, …}`. **Xong = 3 lần chụp liên tiếp cùng
-sha256, lần đầu cách lần cuối ≥ 2 giây**; bộ đếm nằm trong trang (`window.__chupSoTay`), đổi nội dung
+sha256, lần đầu cách lần cuối ≥ 2 giây, VÀ khung câu trả lời có nút sao chép** (`co_nut_sao_chep`); bộ đếm nằm trong trang (`window.__chupSoTay`), đổi nội dung
 hay gặp dòng trạng thái kiểu *"Analyzing the documents...\nexpand_more"* là đếm lại từ 1. Câu trả lời
-thật bắt đầu `Thoughts\nexpand_more\n`. Đo 30/10/2026 (BƯỚC 245): xong sau ~105 s. Chỉ khi
+thật bắt đầu `Thoughts\nexpand_more\n`. Đo 30/10/2026 (BƯỚC 245): xong sau ~105 s. Điều kiện nút sao chép: leader thấy ba nút (*Sao chép câu trả lời của mô hình vào bảng nhớ tạm* ·
+*Đánh giá câu trả lời là tốt/không tốt* · *Lưu tin nhắn vào ghi chú*) CÓ MẶT trong `.to-user-container` cuối
+LÚC XONG (30/10/2026); sự VẮNG MẶT của chúng trong lúc đang phát CHƯA được chụp. Nên điều kiện này chỉ
+làm `xong` đến muộn hơn, không chứng minh một bản phát dở thiếu nút. Chốt chặn chính vẫn là ba lần chụp
+cùng sha256: lượt nghiệm thu BƯỚC 246 có một ảnh chụp 253 ký tự của bản phát dở đã qua phép thử
+"không đang nghĩ" (`dang_nghi: false`, `giong: 1`), và chỉ không bị nhận nhầm vì lần chụp kế đổi sha256.
+Nếu một khung ẩn dừng cập nhật DOM giữa chừng thì bản phát dở có thể trông như đã xong. Chỉ khi
 `xong: true` lệnh mới trả thêm `text`, `trich_dan: [{n, nguon}]` (đọc thẳng từ
 `button.citation-marker span[aria-label="<n>: <nhãn nguồn>"]`, số lặp liệt kê đúng như trang) và
 `vo_hinh` (vị trí và mã của tab, ký tự rộng-không và ký tự điều khiển, để dựng lại tệp đúng từng byte).
@@ -220,7 +226,8 @@ Ba ô mới (đều tuỳ chọn; mục cũ vẫn hợp lệ):
 - `tra_loi_tep` + `tra_loi_sha256` + `trich_dan_tep` — khai đủ cả ba hoặc không ô nào. `ghi` chạy
   lại bắt tay; khớp thì mục mang `tra_loi: {sha256, dai16, trich_dan: [{n, nguon}]}` như DỮ LIỆU
   (đường dẫn tạm không vào sổ; chính câu trả lời không vào sổ, chỉ băm của nó).
-- `nhan_nguon_tep` — sinh `nguon` (đúng nhãn trang hiện) và `_do_tuoi` (dòng `--tom-tat`).
+- `nhan_nguon_tep` — sinh `nguon` (đúng nhãn trang hiện) và `_do_tuoi` (dòng `--tom-tat`), so với `HEAD`
+  hoặc với `nhan_nguon_so_voi` (ví dụ `origin/main`: nguồn của sổ tay nên phản chiếu `main`).
 
 ## Nạp lại nguồn — khi `do-tuoi` báo CU hoặc THIEU
 

@@ -60,6 +60,7 @@ class El {
   getBoundingClientRect() { return {top: this.top, left: 0}; }
   dispatchEvent(e) { this.sukien.push(e.type); return true; }
   click() { this.clicks++; if (this.onclick) this.onclick(this); }
+  closest(sel) { const p = doc_tu_khoa(sel); for (let e = this; e; e = e.cha) if (e.khop && e.khop(p)) return e; return null; }
   remove() { this.cha.children = this.cha.children.filter(c => c !== this); }
   all() { return this.children.flatMap(c => [c, ...c.all()]); }
   khop(p) { return (!p.tag || p.tag === this.tag) && p.cls.every(c => this.cls.includes(c))
@@ -226,21 +227,28 @@ TRANG_THAI = "Analyzing the documents...\nexpand_more"
 CAU_TRA_LOI = "Thoughts\nexpand_more\nKhông tìm thấy câu nào nói ngược. 💡 x_t\t​ = 1. " + "Đoạn dài. " * 40
 
 
-def kich_ban_chup(text_js: str, lan: list, truoc: int = 0, so_cu: int = 0, trich_dan: bool = True) -> str:
+def kich_ban_chup(text_js: str, lan: list, truoc: int = 0, so_cu: int = 0, trich_dan: bool = True,
+                  nut_sao_chep: str = "co") -> str:
     """`text_js`: biểu thức JS của câu trả lời MỚI, đọc biến `giai_doan`. `lan`: danh sách (ms trước lần
     chụp, giai đoạn). Trả danh sách kết quả mỗi lần chụp."""
     return (r"""
-for (let i = 0; i < SO_CU; i++) mk('div', {cls: ['message-text-content'], text: 'tra loi CU ' + i + ' '.repeat(300) + 'chu'}, mk('div', {cls: ['to-user-container']}));
+let khung_cu = null;
+for (let i = 0; i < SO_CU; i++) { khung_cu = mk('div', {cls: ['to-user-container']});
+  mk('div', {cls: ['message-text-content'], text: 'tra loi CU ' + i + ' '.repeat(300) + 'chu'}, khung_cu); }
 let giai_doan = 0;
 const goc = mk('div', {cls: ['to-user-container']});
 const moi = mk('div', {cls: ['message-text-content'], text: () => (TEXT)}, goc);
 if (TRICH) for (const [n, nhan] of [[1, 'CLAUDE.md @a877ca6'], [13, 'STATE.md @61221db phan1/5 (BUOC 2-40)'], [13, 'STATE.md @61221db phan1/5 (BUOC 2-40)']])
   mk('span', {attrs: {'aria-label': n + ': ' + nhan}}, mk('button', {cls: ['citation-marker']}, moi));
 mk('span', {attrs: {'aria-label': 'khong phai trich dan'}}, moi);
+const NHAN_SAO = 'Sao chép câu trả lời của mô hình vào bảng nhớ tạm', KHAC = ['Đánh giá câu trả lời là tốt', 'Lưu tin nhắn vào ghi chú'];
+if (NUT === 'co') for (const a of [NHAN_SAO, ...KHAC]) mk('button', {attrs: {'aria-label': a}}, goc);
+if (NUT === 'khac') for (const a of KHAC) mk('button', {attrs: {'aria-label': a}}, goc);
+if (NUT === 'cu') mk('button', {attrs: {'aria-label': NHAN_SAO}}, khung_cu);
 const kq = [];
 for (const [ms, gd] of LAN) { avan(ms); giai_doan = gd; kq.push(await chay(L.chup)); }
 ra({kq});
-""").replace("SO_CU", str(so_cu)).replace("TEXT", text_js).replace("TRICH", "true" if trich_dan else "false") \
+""").replace("SO_CU", str(so_cu)).replace("TEXT", text_js).replace("TRICH", "true" if trich_dan else "false").replace("NUT", json.dumps(nut_sao_chep)) \
         .replace("LAN", json.dumps(lan))
 
 
@@ -278,6 +286,17 @@ def test_CHUP_bat_tay_THAT_tep_ghi_tu_ket_qua_khop_kiem_tra_loi(tmp_path):
     tep = tmp_path / "tl.txt"
     tep.write_bytes(x["text"].encode("utf-8"))
     assert st.kiem_tra_loi(tep.read_bytes(), x["sha256"])["dai16"] == x["dai16"]
+
+
+@can_node
+def test_CHUP_thieu_nut_sao_chep_trong_khung_thi_CHUA_xong_du_3_lan_giong_nhau_cach_xa(tmp_path):
+    """Điều kiện thứ ba (leader, 30/10: một ảnh chụp 253 ký tự của bản PHÁT DỞ đã qua phép thử "không đang nghĩ")."""
+    for che_do, so_cu in (("khong", 0), ("khac", 0), ("cu", 1)):    # không nút · nút khác nhãn · nút ở khung CŨ
+        kq = _chup(tmp_path, truoc=so_cu, so_cu=so_cu, text_js=_cau(), lan=[[3000, 2]] * 4, nut_sao_chep=che_do)
+        assert [k["giong"] for k in kq] == [1, 2, 3, 4] and not any(k["xong"] for k in kq), (che_do, kq)
+        assert all(k["co_nut_sao_chep"] is False for k in kq), che_do
+    co = _chup(tmp_path, text_js=_cau(), lan=[[3000, 2]] * 3)
+    assert co[-1]["xong"] is True and co[-1]["co_nut_sao_chep"] is True, co
 
 
 @can_node

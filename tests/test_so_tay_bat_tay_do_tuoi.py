@@ -72,6 +72,15 @@ def test_TRICH_DAN_doc_dung_khuon_va_giu_ban_lap():
             st.doc_trich_dan(xau)
 
 
+def test_TRICH_DAN_nhan_ca_dang_JSON_cua_lenh_chup_va_tu_choi_JSON_sai_khuon():
+    assert st.doc_trich_dan("[]") == st.doc_trich_dan("  [ ] ") == []
+    assert st.doc_trich_dan('[{"n": 2, "nguon": " CLAUDE.md @a877ca6 "}]') == [{"n": 2, "nguon": "CLAUDE.md @a877ca6"}]
+    for xau in ("[", '[{"n": 0, "nguon": "x"}]', '[{"n": true, "nguon": "x"}]', '[{"n": 1}]',
+                '[{"n": 1, "nguon": ""}]', '[1]', '[{"n": 1, "nguon": "x", "them": 1}]'):
+        with pytest.raises(st.TuChoi):
+            st.doc_trich_dan(xau)
+
+
 def _muc_tl(tmp_path, sha=None, **thay):
     (tmp_path / "tl.txt").write_bytes(TL.encode("utf-8"))
     (tmp_path / "td.txt").write_text("1: CLAUDE.md @a877ca6\n2: STATE.md @61221db phan1/5 (BUOC 2-40)\n",
@@ -324,6 +333,19 @@ def test_GHI_nhan_nguon_sinh_nguon_va_do_tuoi_tu_git_khong_tu_loi_khai(kho, tmp_
     assert dong["nguon"] == [f"CLAUDE.md @{c2}", f"HANDOFF.md @{c1}", f"SKILL.md @{c1}"]
     assert dong["_do_tuoi"].startswith("ĐO BẰNG NHÃN") and "THIẾU" in dong["_do_tuoi"]
     assert "nhan_nguon_tep" not in dong
+
+
+def test_GHI_nhan_nguon_so_voi_mot_commit_khac_HEAD(kho, tmp_path, so_tam):
+    """`nhan_nguon_so_voi` chọn mốc so sánh: c1 là HEAD~1 nên CLAUDE.md @c1 TƯƠI so với c1 mà CŨ so với HEAD."""
+    r, c1, c2, git = kho
+    (tmp_path / "nhan.txt").write_text(f"CLAUDE.md @{c1}\n", encoding="utf-8")
+    cau = st.dung_cau_hoi("BƯỚC 9999", "x" * 60, ["a statement that y"])
+    m = {"buoc": "BƯỚC 9999", "cau_hoi": cau, "nhan_nguon_tep": str(tmp_path / "nhan.txt"),
+         "phat_hien": [{"noi_dung": "n", "tu_kiem": "grep -n x CLAUDE.md -> 1", "phan_quyet": "THẬT."}]}
+    cu = st.ghi({**m, "nhan_nguon_so_voi": c1}, so=so_tam, ngay="2026-10-30", git=git)
+    assert f"so với {c1} {c1}" in cu["_do_tuoi"] and "CLAUDE.md @" + c1 + " = " not in cu["_do_tuoi"]
+    moi = st.ghi({**m, "buoc": "BƯỚC 9998"}, so=so_tam, ngay="2026-10-30", git=git)
+    assert f"CLAUDE.md @{c1} = CU" in moi["_do_tuoi"] and f"so với HEAD {c2}" in moi["_do_tuoi"]
 
 
 def test_GHI_nhan_nguon_ket_hop_khai_tay_nguon_hoac_do_tuoi_la_TU_CHOI(kho, tmp_path, so_tam):
