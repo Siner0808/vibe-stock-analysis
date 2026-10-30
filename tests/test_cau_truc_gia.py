@@ -98,6 +98,20 @@ def test_pivot_CHO_khong_vao_nhat_ky():
     assert not any(p.chi_so_xay_ra >= 47 and p.chi_so_biet >= 57 for p in r2.nhat_ky)
 
 
+def test_ATR_bang_0_khong_xac_nhan_gi_va_hai_pivot_cung_nen_xac_nhan_theo_thu_tu_xay_ra():
+    # 6 nến lên rồi 25 nến đứng yên ở đỉnh: khi cửa sổ 14 nến toàn đứng yên, ATR = 0 và `close <= đỉnh − k×0`
+    # sẽ "xác nhận" một đỉnh mà giá không lùi tick nào
+    dung_yen = [30000 + 500 * i for i in range(6)] + [32500.0] * 25
+    assert C.doc_cau_truc(_df(dung_yen)).nhat_ky == ()
+    # ca đặc biệt: nến đầu tiên có ATR (nến 13) xác nhận được CẢ đỉnh nến 1 lẫn đáy nến 2.
+    # ATR = (5.000 + 10.000 + 10×500 + 0)/14 = 1.428,57 ⇒ nội bộ k=2: ngưỡng 2.857,14.
+    gia = [30000, 35000, 25000] + [25500 + 500 * j for j in range(10)] + [30000]
+    assert len(gia) == 14
+    r = C.doc_cau_truc(_df(gia), tham_so=(2, 4))
+    assert _hang(r) == [("noi_bo", "dinh", 1, 13, 35000.0, "chua_co"),
+                        ("noi_bo", "day", 2, 13, 25000.0, "chua_co")]      # cái XẢY RA SỚM ghi trước
+
+
 def test_nen_dau_bang_khong_la_pivot_va_chuoi_ngan_khong_co_gi():
     d = _df([20000 + 500 * i for i in range(21)])      # chỉ tăng: đáy duy nhất là nến 0
     assert C.doc_cau_truc(d).nhat_ky == ()
@@ -270,6 +284,27 @@ def test_GIA_BANG_dung_nua_buoc_van_la_bang_cuc_tri_chi_thay_khi_vuot_NGHIEM_NGA
     assert (p.chi_so_xay_ra, p.gia) == (21, 40050.0)
     p = _dinh_gan_bang(40000.0).nhat_ky[0]           # bằng hệt: giữ nến SỚM
     assert p.chi_so_xay_ra == 20
+
+
+def test_GIA_BANG_doi_xung_o_day_va_o_fractal():
+    """Cùng luật nửa bước cho ĐÁY (đột biến 5b) và cho họ fractal (5c): chênh ĐÚNG nửa bước = bằng."""
+    def day(gia_20):
+        gia = [49500 - 500 * i for i in range(20)] + [gia_20, 41100.0]     # đáy 40.000 ở nến 19
+        return C.doc_cau_truc(_df(gia), he_so_gia=1.0, tham_so=(2, 4)).nhat_ky[0]
+    for g in (39990.0, 39975.0, 40000.0):
+        assert (day(g).loai, day(g).chi_so_xay_ra, day(g).gia) == ("day", 19, 40000.0), g
+    assert (day(39950.0).chi_so_xay_ra, day(39950.0).gia) == (20, 39950.0)
+
+    def fractal(gia):
+        return C.doc_cau_truc(_df(gia), he_so_gia=1.0, ho="fractal", tham_so=(3, 8)).nhat_ky
+    # nến 4 cao hơn nến 3 ĐÚNG 25 = nửa bước: không nến nào cao hơn NGHIÊM NGẶT ⇒ không có đỉnh
+    assert fractal([38000, 38500, 39000, 40000, 40025, 39000, 38500, 38000, 37500, 37000]) == ()
+    assert fractal([42000, 41500, 41000, 40000, 39975, 41000, 41500, 42000, 42500, 43000]) == ()
+    # chênh 50 = một bước ⇒ có đỉnh / đáy
+    assert [(p.loai, p.chi_so_xay_ra) for p in fractal(
+        [38000, 38500, 39000, 40000, 40050, 39000, 38500, 38000, 37500, 37000])] == [("dinh", 4)]
+    assert [(p.loai, p.chi_so_xay_ra) for p in fractal(
+        [42000, 41500, 41000, 40000, 39950, 41000, 41500, 42000, 42500, 43000])] == [("day", 4)]
 
 
 def test_NHAN_bang_khi_hai_dinh_lien_ke_trong_nua_buoc():
