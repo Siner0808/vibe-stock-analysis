@@ -25,6 +25,21 @@ Dùng:
     python tools/so_tay.py dem --tu 130 --den 162
     python tools/so_tay.py chia-state --bam <commit> [--js]
 
+BƯỚC 246 (30/10/2026) — làm việc với trang bằng LỆNH JS do máy dựng (leader dán vào trình
+duyệt; mọi lệnh ĐỒNG BỘ, không hẹn giờ — khung ẩn bóp `setTimeout`, xem `LAN_CHUP_GIONG`):
+
+    python tools/so_tay.py lay-nhan                  # JS đọc nhãn nguồn `<tệp> @<băm>`
+    python tools/so_tay.py do-tuoi <tệp nhãn> [--tom-tat]   # nhãn so với git, KHÔNG hỏi mô hình
+    python tools/so_tay.py xoa-nhat-ky --buoc 1..4   # JS xoá nhật ký chat, đọc hộp xác nhận
+    python tools/so_tay.py hoi … --js                # JS ĐIỀN câu hỏi (từ chối > 3.800 UTF-16)
+    python tools/so_tay.py bam-gui --dai N           # JS bấm Gửi (sau ~1 giây)
+    python tools/so_tay.py chup --truoc N            # JS chụp câu trả lời; lặp tới xong:true
+    python tools/so_tay.py kiem-tra-loi <tệp> --sha256 <băm của trang>   # bắt tay
+
+`ghi` nhận thêm `tra_loi_tep` + `tra_loi_sha256` + `trich_dan_tep` (bắt tay, lưu `tra_loi`)
+và `nhan_nguon_tep` (sinh `nguon` và `_do_tuoi` từ git). Cách làm đầy đủ:
+`.claude/skills/quy-trinh-lam-viec/references/soat-cheo-notebooklm.md`.
+
 `muc.json` gồm `buoc`, `cau_hoi` (NGUYÊN VĂN câu đã gửi), và hoặc
 `phat_hien` (danh sách `noi_dung` · `tu_kiem` · `phan_quyet`) hoặc
 `khong_tim_thay_gi: true` kèm `_tu_kiem_cau_am`. Tuỳ chọn: `_do_tuoi`.
@@ -46,8 +61,10 @@ thành khúc <= `CO_PHAN_TOI_DA` để DÁN (ô "Văn bản đã sao chép");
 from __future__ import annotations
 
 import datetime
+import hashlib
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -113,29 +130,397 @@ def dung_cau_hoi(buoc: str, ket_luan: str, vi_du: list[str]) -> str:
 O_CHAT = 'textarea[aria-label="Hộp truy vấn"]'
 
 
-def lenh_gui(cau: str) -> str:
-    """Lệnh JS (cho `javascript_tool`) gửi `cau` vào ô chat của sổ tay.
+def lenh_dien_cau(cau: str, giu_lich_su: bool = False) -> str:
+    """Lệnh JS (cho `javascript_tool`) ĐIỀN `cau` vào ô chat của sổ tay. Chưa gửi.
 
-    Nhúng câu bằng `json.dumps` nên nháy đơn, nháy kép, tiếng Việt đi nguyên
-    văn. Nút Gửi còn khoá ngay sau sự kiện `input` (đo 29/09: bấm lúc ấy
-    không gửi gì), nên chờ tới khi nó mở rồi mới bấm, và trả lại độ dài ô
-    sau khi bấm — 0 nghĩa là đã gửi.
+    Nhúng câu bằng `json.dumps` nên nháy đơn, nháy kép, tiếng Việt đi nguyên văn. Nút Gửi còn
+    khoá ngay sau sự kiện `input` (đo 29/09: bấm lúc ấy không gửi gì) và trang không cho hẹn giờ
+    (xem `LAN_CHUP_GIONG`), nên gửi là LỆNH THỨ HAI, `lenh_bam_gui`, chạy sau ~1 giây. Kết quả
+    in độ dài ô (đưa nguyên cho `lenh_bam_gui`) và số trả lời đã có TRƯỚC khi gửi (đưa cho
+    `lenh_chup_tra_loi`). TỪ CHỐI dựng lệnh khi câu dài hơn `TRAN_GUI` đơn vị UTF-16: nút Gửi
+    khoá từ 3.901 mà không báo gì. Lệnh JS cũng TỪ CHỐI điền khi nhật ký chat còn trả lời
+    (xoá nhật ký là bất đồng bộ — leader đo 30/10: bước 4 ngay sau bước 3 còn thấy 1), trừ khi
+    `giu_lich_su` (cố ý hỏi tiếp trong cùng cuộc trò chuyện).
     """
+    n = _dai16(cau)
+    if n > TRAN_GUI:
+        raise TuChoi(f"cau hoi dai {n} don vi UTF-16 > tran {TRAN_GUI} (nut Gui khoa tu "
+                     f"{TRAN_NUT_GUI_DO + 1}, do 30/10/2026) — rut ngan ket luan hoac bot vi du")
     return (
         f"let kq = 'KHONG THAY O CHAT'; const ta = document.querySelector('{O_CHAT}');"
-        " if (ta) {"
+        f" const truoc = document.querySelectorAll({json.dumps(O_TRA_LOI)}).length;"
+        f" if (ta && truoc > 0 && {'false' if giu_lich_su else 'true'}) kq = 'TU CHOI · nhat ky chat con ' + truoc"
+        " + ' tra loi: xoa nhat ky (xoa-nhat-ky) va cho buoc 4 = 0 truoc khi dien'; else if (ta) {"
         " Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')"
         f".set.call(ta, {json.dumps(cau, ensure_ascii=False)});"
         " ta.dispatchEvent(new Event('input', {bubbles: true}));"
-        " let el = ta, b = null;"
+        " kq = 'DA DIEN · o co ' + ta.value.length + ' ky tu · tra loi truoc: ' + truoc"
+        " + ' · doi 1 giay roi chay bam-gui --dai ' + ta.value.length; } kq")
+
+
+def lenh_bam_gui(dai: int) -> str:
+    """Lệnh JS BẤM Gửi — chỉ khi ô chat có đúng `dai` đơn vị UTF-16 và nút Gửi đã mở khoá.
+
+    Trang có HAI nút `Gửi`; nút số 0 luôn khoá (ô "Nghiên cứu nhanh"), nút của ô chat là nút ở
+    gần ô nhất khi leo cây từ ô chat (đo 30/10/2026). Khoá thì trả `NUT GUI VAN KHOA` và không
+    bấm gì: chạy lại sau ~1 giây.
+    """
+    if not isinstance(dai, int) or isinstance(dai, bool) or dai < 1:
+        raise TuChoi(f"`dai` phai la so nguyen >= 1: {dai!r}")
+    return (
+        f"let kq = 'KHONG THAY O CHAT'; const ta = document.querySelector('{O_CHAT}');"
+        " if (ta) { let el = ta, b = null;"
         " while (el && !b) { el = el.parentElement;"
         " b = el && el.querySelector('button[aria-label=\"Gửi\"]'); }"
-        " for (let i = 0; i < 20 && b && b.disabled; i++)"
-        " await new Promise(r => setTimeout(r, 250));"
-        " kq = 'NUT GUI VAN KHOA';"
-        " if (b && !b.disabled) { b.click();"
-        " await new Promise(r => setTimeout(r, 500));"
-        " kq = 'DA BAM GUI · o con ' + ta.value.length + ' ky tu'; } } kq")
+        f" if (ta.value.length !== {dai}) kq = 'TU CHOI · o chat co ' + ta.value.length + ' ky tu, can {dai}';"
+        " else if (!b) kq = 'KHONG THAY NUT GUI';"
+        " else if (b.disabled) kq = 'NUT GUI VAN KHOA · chay lai sau 1 giay';"
+        f" else {{ b.click(); kq = 'DA BAM GUI · o co {dai} ky tu luc bam'; }} }} kq")
+
+# ── BƯỚC 246: sổ tay chuyên nghiệp hơn — chặn gửi quá dài, xoá lịch sử có đọc hộp xác nhận,
+# ── chờ trả lời xong, bắt tay SHA-256, đo độ tươi bằng NHÃN nguồn ────────────────────────────
+
+#: Nút Gửi của ô chat khoá khi chuỗi JS dài >= 3901 đơn vị UTF-16 (ĐO 30/10/2026, leader,
+#: bisection trên các tiền tố của một câu 4.423 ký tự; không có bộ đếm hay `maxlength`).
+TRAN_NUT_GUI_DO = 3_900
+#: Trần của CÔNG CỤ: chừa 100 đơn vị. Quá thì `lenh_dien_cau` từ chối dựng lệnh.
+TRAN_GUI = 3_800
+#: Câu trả lời nằm ở đây (đo 30/10/2026); `.individual-message` gồm cả câu hỏi lẫn trả lời
+#: nên KHÔNG dùng để đếm hay đọc trả lời nữa.
+O_TRA_LOI = ".to-user-container .message-text-content"
+MUC_MENU_XOA = "Xoá nhật ký trò chuyện"
+#: Câu trong hộp xác nhận — công cụ chỉ bấm "Xoá" khi hộp mang ĐÚNG câu này.
+CAU_XAC_NHAN_XOA = "Bạn sắp xoá toàn bộ nhật ký trò chuyện của sổ ghi chú này"
+NUT_XOA = "Xoá"
+#: LỆNH JS CỦA MODULE NÀY KHÔNG HẸN GIỜ. Leader đo 30/10/2026: khi cửa sổ Claude không hiện,
+#: `document.hidden` là true và trình duyệt bóp `setTimeout` đến mức MỘT `await setTimeout(750)`
+#: không xong trong 45 s (công cụ giết JS ở 45 s); `await crypto.subtle.digest` thì xong. Nên chờ
+#: là việc của người gọi: mỗi lệnh đọc/bấm MỘT lần rồi trả về, "xong" là CHUỖI lần chụp giống nhau.
+#: "Xong" = 3 lần chụp liên tiếp cùng sha256, và lần đầu cách lần cuối >= 2 giây (`Date.now()`
+#: chạy bình thường khi ẩn).
+LAN_CHUP_GIONG = 3
+KHOANG_CHUP_TOI_THIEU_MS = 2_000
+#: Dòng trạng thái khi sổ tay đang nghĩ ("Analyzing the documents...\nexpand_more") ngắn hơn
+#: ngần này và kết thúc bằng `expand_more`; câu trả lời thật bắt đầu "Thoughts\nexpand_more\n".
+DO_DAI_TRANG_THAI = 200
+
+_JS_HAM = r"""  const hien = e => e.getClientRects().length > 0;
+  const gon = s => (s || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+  const dem = () => document.querySelectorAll(@@O_TRA_LOI@@).length;
+"""
+
+#: Bốn BƯỚC xoá nhật ký, mỗi bước một lệnh ĐỒNG BỘ; người gọi chờ ~1 giây giữa hai bước để trang vẽ.
+JS_XOA_BUOC = {
+    1: r"""(() => {
+@@HAM@@  const nut = [...document.querySelectorAll('button')].filter(hien);
+  const i = nut.findIndex(b => /chia sẻ|share/i.test((b.getAttribute('aria-label') || '') + ' ' + gon(b.innerText)));
+  let bam = i >= 0 ? nut[i + 1] : null;
+  if (!bam || !/more_vert/.test(bam.innerText || ''))
+    bam = nut.find(b => gon(b.innerText) === 'more_vert' && !b.getAttribute('aria-label') && b.getBoundingClientRect().top < 100);
+  if (!bam) return 'TU CHOI · khong thay nut menu tren thanh dau · cac nut o thanh dau: ' + JSON.stringify(nut.filter(b => b.getBoundingClientRect().top < 100).map(b => [b.getAttribute('aria-label'), gon(b.innerText).slice(0, 20)]));
+  bam.click();
+  return 'DA BAM NUT MENU · tra loi hien co ' + dem() + ' · doi 1 giay roi chay buoc 2';
+})()""",
+    2: r"""(() => {
+@@HAM@@  const muc = [...document.querySelectorAll('[role="menuitem"], button')]
+    .filter(e => hien(e) && gon(e.innerText).includes(@@MUC@@))
+    .sort((a, b) => gon(a.innerText).length - gon(b.innerText).length)[0];
+  if (!muc) return 'TU CHOI · menu khong co muc "Xoá nhật ký trò chuyện" (chua mo menu? chay lai buoc 1)';
+  muc.click();
+  return 'DA CHON MUC XOA NHAT KY · doi 1 giay roi chay buoc 3';
+})()""",
+    3: r"""(() => {
+@@HAM@@  const hop = [...document.querySelectorAll('[role="dialog"]')].filter(d => hien(d) && gon(d.innerText).includes(@@CAU@@));
+  if (!hop.length) return 'TU CHOI · khong co hop thoai HIEN mang DUNG cau xac nhan · cac hop thoai: ' + JSON.stringify([...document.querySelectorAll('[role="dialog"]')].map(d => [hien(d), gon(d.innerText).slice(0, 120)]));
+  const xoa = [...hop[0].querySelectorAll('button')].filter(b => gon(b.innerText) === @@NUT@@);
+  if (xoa.length !== 1) return 'TU CHOI · hop thoai co ' + xoa.length + ' nut "Xoá" (can dung 1)';
+  const truoc = dem();
+  xoa[0].click();
+  return 'DA BAM XOA · tra loi truoc ' + truoc + ' · doi 1 giay roi chay buoc 4';
+})()""",
+    4: r"""(() => {
+@@HAM@@  const con = dem();
+  return 'tra loi con ' + con + (con === 0 ? ' · XONG, co the gui' : ' · CHUA 0: xoa khong dong bo, chay lai buoc 4 cho toi khi = 0 (dung gui khi con > 0)');
+})()""",
+}
+
+#: Một lần CHỤP câu trả lời mới nhất. Trạng thái giữa hai lần chụp nằm trong `window.__chupSoTay`.
+JS_CHUP_TRA_LOI = r"""await (async () => {
+  const TRUOC = @@TRUOC@@;
+  const ds = document.querySelectorAll(@@O_TRA_LOI@@);
+  const cuoi = ds.length ? ds[ds.length - 1] : null;
+  const moi = ds.length > TRUOC && !!cuoi;
+  const t = moi ? cuoi.innerText : '';
+  const dang_nghi = !t.trim() || (t.trim().length < @@DO_DAI@@ && /expand_more\s*$/.test(t));
+  const ra = {so_tra_loi: ds.length, truoc: TRUOC, moi: moi, dang_nghi: dang_nghi, xong: false, giong: 0, khoang_ms: 0, dai16: t.length};
+  if (!moi || dang_nghi) { window.__chupSoTay = null; ra.dau = t.slice(0, 80); return ra; }
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  const sha = [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join('');
+  const nay = Date.now(), cu = window.__chupSoTay;
+  const chay = (cu && cu.truoc === TRUOC && cu.sha === sha) ? cu : {truoc: TRUOC, sha: sha, dem: 0, t0: nay};
+  chay.dem++;
+  window.__chupSoTay = chay;
+  ra.sha256 = sha; ra.giong = chay.dem; ra.khoang_ms = nay - chay.t0;
+  ra.xong = chay.dem >= @@GIONG@@ && ra.khoang_ms >= @@KHOANG@@;
+  if (ra.xong) {
+    ra.text = t;
+    ra.trich_dan = [...cuoi.querySelectorAll('button.citation-marker span[aria-label]')]
+      .map(s => s.getAttribute('aria-label'))
+      .map(a => { const m = a.match(/^(\d+): ([\s\S]*)$/); return m ? {n: +m[1], nguon: m[2]} : {n: null, nguon: a}; });
+    const vh = c => (c < 32 && c !== 10) || c === 127 || c === 160 || (c >= 0x200b && c <= 0x200f)
+      || c === 0x2028 || c === 0x2029 || (c >= 0x202a && c <= 0x202e) || c === 0x2060 || c === 0xfeff;
+    ra.vo_hinh = [];
+    for (let i = 0; i < t.length && ra.vo_hinh.length < 50; i++) {
+      const c = t.charCodeAt(i);
+      if (vh(c)) ra.vo_hinh.push([i, c.toString(16)]);
+    }
+  }
+  return ra;
+})()"""
+
+JS_LAY_NHAN = r"""(() => {
+  const d = [...new Set([...document.querySelectorAll('button[aria-label]')].map(b => b.getAttribute('aria-label')).filter(a => /@[0-9a-f]{7}/.test(a)))];
+  return d.length + ' nhan\n' + d.join('\n');
+})()"""
+
+
+def _dien(mau: str, **tham_so) -> str:
+    """Điền `@@TÊN@@` bằng JSON của giá trị — chuỗi tiếng Việt đi nguyên văn."""
+    for k, v in tham_so.items():
+        mau = mau.replace(f"@@{k}@@", json.dumps(v, ensure_ascii=False))
+    if "@@" in mau:
+        raise TuChoi(f"mau JS con cho trong: {mau[mau.index('@@'):][:30]!r}")
+    return mau
+
+
+def lenh_xoa_nhat_ky(buoc: int) -> str:
+    """Lệnh JS ĐỒNG BỘ cho MỘT trong bốn bước xoá nhật ký chat của sổ tay — và CHỈ nhật ký chat.
+
+    1 bấm nút ⋮ ở thanh đầu · 2 chọn mục `Xoá nhật ký trò chuyện` · 3 đọc hộp xác nhận và bấm
+    "Xoá" · 4 đếm trả lời còn lại. Người gọi chờ ~1 giây giữa hai bước (không hẹn giờ trong
+    trang: xem `LAN_CHUP_GIONG`).
+
+    Người dùng cho phép thường trực (29/10/2026: *"Cho phép, đọc lại hộp xác nhận trước khi
+    bấm (Recommended)"*). "Đọc lại hộp" là mã, không phải lời dặn: bước 3 đọc MỌI hộp thoại,
+    chọn cái HIỆN và mang đúng `CAU_XAC_NHAN_XOA`, chỉ bấm nút "Xoá" của CÁI ĐÓ; hộp khác (xoá
+    nguồn, xoá sổ tay…) thì trả `TU CHOI` và không bấm gì. Hộp thoại xuất hiện hai lần trong
+    DOM và một hộp chọn emoji ẩn cũng mang `role=dialog` (đo 30/10/2026), nên lọc theo chữ và độ hiện.
+    """
+    if buoc not in JS_XOA_BUOC:
+        raise TuChoi(f"buoc xoa nhat ky phai la {sorted(JS_XOA_BUOC)}: {buoc!r}")
+    mau = JS_XOA_BUOC[buoc].replace("@@HAM@@", _JS_HAM)
+    return _dien(mau, O_TRA_LOI=O_TRA_LOI, MUC=MUC_MENU_XOA, CAU=CAU_XAC_NHAN_XOA, NUT=NUT_XOA)
+
+
+def lenh_chup_tra_loi(truoc: int) -> str:
+    """Lệnh JS CHỤP câu trả lời mới nhất một lần: `{xong, giong, khoang_ms, sha256, …}`.
+
+    `truoc` = số trả lời đã có TRƯỚC khi gửi (`lenh_dien_cau` in nó); chỉ tin phần tử trả lời
+    thứ `truoc + 1` trở đi, nên một câu trả lời CŨ trong lịch sử không bị nhận nhầm. Không hẹn giờ:
+    người gọi chạy lại cho tới khi `xong: true` (`LAN_CHUP_GIONG` lần chụp liên tiếp cùng sha256,
+    cách nhau >= `KHOANG_CHUP_TOI_THIEU_MS`). Chỉ khi xong mới trả `text`, `trich_dan`, `vo_hinh`.
+    """
+    if not isinstance(truoc, int) or isinstance(truoc, bool) or truoc < 0:
+        raise TuChoi(f"`truoc` phai la so nguyen >= 0: {truoc!r}")
+    return _dien(JS_CHUP_TRA_LOI, TRUOC=truoc, O_TRA_LOI=O_TRA_LOI, DO_DAI=DO_DAI_TRANG_THAI,
+                 GIONG=LAN_CHUP_GIONG, KHOANG=KHOANG_CHUP_TOI_THIEU_MS)
+
+
+def lenh_lay_nhan() -> str:
+    """Lệnh JS đọc nhãn mọi nguồn (`<tệp> @<băm 7>`) — tab Nguồn phải đang mở."""
+    return JS_LAY_NHAN
+
+
+# ── bắt tay SHA-256 ───────────────────────────────────────────────────────────
+
+def kiem_tra_loi(noi_dung: bytes, sha_trang: str) -> dict:
+    """Từ chối nếu tệp trả lời KHÁC câu trang đã băm. Trả `{sha256, dai16}`.
+
+    Chép lại bằng tay một câu trả lời dài mất âm thầm ký tự vô hình (`\\t\\u200b` trong công
+    thức toán, 30/10/2026); băm SHA-256 của `innerText` do TRANG tính là nhân chứng.
+    """
+    sha_trang = sha_trang.strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", sha_trang):
+        raise TuChoi(f"sha256 cua trang phai la 64 ky tu hex: {sha_trang[:20]!r}")
+    sha = hashlib.sha256(noi_dung).hexdigest()
+    if sha != sha_trang:
+        raise TuChoi(f"BAT TAY LECH: tep {len(noi_dung)} byte co sha256 {sha[:16]}…, trang bam "
+                     f"{sha_trang[:16]}… — tep phai la ban sao NGUYEN VAN `text` (UTF-8, xuong dong LF), "
+                     "khong chep lai bang tay")
+    try:
+        van = noi_dung.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise TuChoi(f"tep tra loi khong phai UTF-8: {e}") from e
+    return {"sha256": sha, "dai16": _dai16(van)}
+
+
+NHAN_TRICH_DAN = re.compile(r"(\d+): (\S.*)")
+
+
+def doc_trich_dan(van_ban: str) -> list[dict]:
+    """Mỗi dòng `<n>: <nhãn nguồn>` -> `{n, nguon}`, giữ thứ tự và bản lặp như trang."""
+    ra = []
+    for i, d in enumerate(van_ban.splitlines(), 1):
+        if not d.strip():
+            continue
+        m = NHAN_TRICH_DAN.fullmatch(d.strip())
+        if not m:
+            raise TuChoi(f"tep trich dan dong {i} sai khuon '<n>: <nhan nguon>': {d[:60]!r}")
+        ra.append({"n": int(m[1]), "nguon": m[2].strip()})
+    return ra
+
+
+def _dung_tra_loi(muc: dict) -> dict | None:
+    """`tra_loi` của mục sổ từ BA ô: tệp trả lời, sha256 của trang, tệp trích dẫn."""
+    o = ("tra_loi_tep", "tra_loi_sha256", "trich_dan_tep")
+    co = [k for k in o if muc.get(k)]
+    if not co:
+        return None
+    if len(co) != len(o):
+        raise TuChoi(f"khai du ca ba o {o} hoac khong o nao; thieu {[k for k in o if k not in co]}")
+    try:
+        noi = Path(muc["tra_loi_tep"]).read_bytes()
+        td = Path(muc["trich_dan_tep"]).read_text(encoding="utf-8")
+    except OSError as e:
+        raise TuChoi(f"khong doc duoc tep: {e}") from e
+    kq = kiem_tra_loi(noi, muc["tra_loi_sha256"])
+    return {"sha256": kq["sha256"], "dai16": kq["dai16"], "trich_dan": doc_trich_dan(td)}
+
+
+# ── độ tươi bằng NHÃN nguồn ────────────────────────────────────────────────────
+
+NHAN_NGUON = re.compile(
+    r"(?P<tep>\S+) @(?P<bam>[0-9a-f]{7,40})"
+    r"(?: phan(?P<k>\d+)/(?P<n>\d+)(?: \(BUOC (?P<a>\d+)-(?P<b>\d+)\))?)?")
+#: Thư mục thử khi đổi tên nhãn thành đường dẫn repo: gốc, `docs/`, thư mục skill.
+THU_MUC_NGUON = ("", "docs/", ".claude/skills/quy-trinh-lam-viec/")
+TEP_STATE = "docs/STATE.md"
+
+
+class KhongKiemDuoc(RuntimeError):
+    """Git không trả lời — không được báo "tươi" khi chưa đo được."""
+
+
+def _git_that(*args: str) -> tuple[int, str]:
+    r = subprocess.run(["git", "-C", str(GOC), *args], capture_output=True)
+    return r.returncode, r.stdout.decode("utf-8", errors="replace")
+
+
+def doc_nhan(van_ban: str) -> tuple[list[str], list[str]]:
+    """(nhãn đúng khuôn, dòng LẠ). Bỏ dòng trống và dòng đầu `<n> nhan` của `lenh_lay_nhan`."""
+    dung, la = [], []
+    for d in van_ban.splitlines():
+        d = d.strip()
+        if not d or re.fullmatch(r"\d+ nhan", d):
+            continue
+        (dung if NHAN_NGUON.fullmatch(d) else la).append(d)
+    return dung, la
+
+
+def _doi_ten(ten: str, da_theo_doi: set[str]) -> list[str]:
+    """Các đường dẫn repo khớp tên nhãn (`STATE.md` -> `docs/STATE.md`). Suy ra, không bảng gõ tay."""
+    return [p for pre in THU_MUC_NGUON if (p := pre + ten) in da_theo_doi]
+
+
+def do_tuoi(nhan: list[str], la: list[str] = (), git=_git_that, so_voi: str = "HEAD",
+            ky_vong: list[str] = NGUON_MAC_DINH, co_phan: int | None = None) -> dict:
+    """So từng nhãn `<tệp> @<băm>` với git. KHÔNG hỏi mô hình.
+
+    Mỗi nguồn: `TUOI` (tệp không đổi giữa băm và `so_voi`) · `CU` · `KHONG_RO_BAM` (băm không
+    phải commit của repo này) · `KHONG_THAY_TEP` / `MO_HO` (nhãn không đổi được ra đúng một tệp
+    theo dõi). `docs/STATE.md` dán thành khúc: nhãn `phanK/N` so khúc K ở băm với khúc K ở
+    `so_voi` (cùng `chia_state`), nên khúc đầu không bị coi cũ chỉ vì cuối tệp dài thêm.
+    Thiếu = tệp của `ky_vong` không có nhãn nào (STATE: khúc 1..N' không có nhãn).
+    """
+    co_phan = co_phan or CO_PHAN_TOI_DA
+    rc, ls = git("ls-files")
+    rc2, ma = git("rev-parse", "--short=7", so_voi)
+    if rc or rc2:
+        raise KhongKiemDuoc("git ls-files / rev-parse that bai")
+    theo_doi = set(ls.splitlines())
+    ma = ma.strip()
+    kho: dict[tuple[str, str], list] = {}
+
+    def khuc(rev: str) -> list[str]:
+        if ("khuc", rev) not in kho:
+            r, van = git("show", f"{rev}:{TEP_STATE}")
+            if r:
+                raise KhongKiemDuoc(f"git show {rev}:{TEP_STATE} that bai")
+            try:
+                kho[("khuc", rev)] = [van[a:b] for a, b in chia_state(van, co_phan)]
+            except TuChoi as e:
+                raise KhongKiemDuoc(str(e)) from e
+        return kho[("khuc", rev)]
+
+    ra, da_co, khuc_co = [], set(), set()
+    for dong in nhan:
+        m = NHAN_NGUON.fullmatch(dong)
+        ung = _doi_ten(m["tep"], theo_doi)
+        d = {"nhan": dong, "tep": ung[0] if len(ung) == 1 else None}
+        if len(ung) != 1:
+            d["trang_thai"] = "MO_HO" if ung else "KHONG_THAY_TEP"
+        elif git("rev-parse", "--verify", "--quiet", m["bam"] + "^{commit}")[0]:
+            d["trang_thai"] = "KHONG_RO_BAM"
+        elif ung[0] == TEP_STATE and m["k"]:
+            k = int(m["k"])
+            khuc_co.add(k)
+            moi, cu = khuc(so_voi), khuc(m["bam"])
+            tuoi = k <= len(moi) and k <= len(cu) and moi[k - 1] == cu[k - 1]
+            d["trang_thai"] = "TUOI" if tuoi else "CU"
+        else:
+            r = git("diff", "--quiet", m["bam"], so_voi, "--", ung[0])[0]
+            if r not in (0, 1):
+                raise KhongKiemDuoc(f"git diff {m['bam']} {so_voi} -- {ung[0]} ma {r}")
+            d["trang_thai"] = "TUOI" if r == 0 else "CU"
+        if d["tep"]:
+            da_co.add(d["tep"])
+        ra.append(d)
+
+    thieu = []
+    for ten in ky_vong:
+        ung = _doi_ten(ten, theo_doi)
+        if len(ung) != 1:
+            thieu.append(f"{ten} (khong doi duoc ra dung mot tep theo doi)")
+        elif ung[0] == TEP_STATE:
+            if khuc_co or ung[0] not in da_co:
+                thieu += [f"{TEP_STATE} phan{k}/{len(khuc(so_voi))}"
+                          for k in range(1, len(khuc(so_voi)) + 1) if k not in khuc_co]
+        elif ung[0] not in da_co:
+            thieu.append(ung[0])
+    xau = [d for d in ra if d["trang_thai"] != "TUOI"]
+    return {"so_voi": so_voi, "ma_so_voi": ma, "nguon": ra, "thieu": thieu, "la": list(la),
+            "ket_luan": "TUOI" if not (xau or thieu or la) else "CU"}
+
+
+def tom_tat_do_tuoi(kq: dict) -> str:
+    """MỘT dòng cho ô `_do_tuoi` — sinh từ kết quả đo, không gõ tay, không do mô hình nói."""
+    xau = [f"{d['nhan']} = {d['trang_thai']}" for d in kq["nguon"] if d["trang_thai"] != "TUOI"]
+    return (f"ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với {kq['so_voi']} "
+            f"{kq['ma_so_voi']}): {len(kq['nguon'])} nguồn, {len(kq['nguon']) - len(xau)} tươi"
+            + (f"; không tươi: {'; '.join(xau)}" if xau else "")
+            + (f"; THIẾU: {'; '.join(kq['thieu'])}" if kq["thieu"] else "")
+            + (f"; nhãn LẠ: {'; '.join(kq['la'])}" if kq["la"] else "")
+            + f" — kết luận {kq['ket_luan']}.")
+
+
+def _dung_nguon_va_do_tuoi(muc: dict, git) -> tuple[list[str], str] | None:
+    """Từ `nhan_nguon_tep` -> (`nguon`, `_do_tuoi`). Khai tay `nguon`/`_do_tuoi` kèm nó thì từ chối."""
+    if not muc.get("nhan_nguon_tep"):
+        return None
+    if muc.get("nguon") is not None or muc.get("_do_tuoi"):
+        raise TuChoi("`nhan_nguon_tep` sinh `nguon` va `_do_tuoi`: khong khai tay hai o do cung luc")
+    try:
+        van = Path(muc["nhan_nguon_tep"]).read_text(encoding="utf-8")
+    except OSError as e:
+        raise TuChoi(f"khong doc duoc tep nhan nguon: {e}") from e
+    nhan, la = doc_nhan(van)
+    if not nhan:
+        raise TuChoi("tep nhan nguon khong co nhan nao — tab Nguon chua mo? (doc 0 nguon la MAU HONG)")
+    try:
+        kq = do_tuoi(nhan, la, git or _git_that)
+    except KhongKiemDuoc as e:
+        raise TuChoi(f"CHUA KIEM DUOC do tuoi: {e}") from e
+    return nhan, tom_tat_do_tuoi(kq)
 
 
 def kiem_muc(muc: dict) -> None:
@@ -146,6 +531,9 @@ def kiem_muc(muc: dict) -> None:
     cau = str(muc.get("cau_hoi", ""))
     if "\n" in cau:
         raise TuChoi("`cau_hoi` co xuong dong — trong o chat Enter la GUI")
+    if _dai16(cau) > TRAN_GUI:
+        raise TuChoi(f"`cau_hoi` dai {_dai16(cau)} don vi UTF-16 > tran {TRAN_GUI}: nut Gui khoa tu "
+                     f"{TRAN_NUT_GUI_DO + 1}, nen khong the la cau da gui")
     if O_THOAT not in cau:
         raise TuChoi("`cau_hoi` thieu LOI THOAT nguyen van — so tay se bia (BƯỚC 107)")
     if "answer in vietnamese" not in cau.lower():
@@ -226,25 +614,37 @@ def _file_cua_buoc_that(n: int) -> list[str]:
     return file_cua_buoc(GOC, n, neo=NEO_LICH_SU)[0]
 
 
-def ghi(muc: dict, so: Path = SO, ngay: str | None = None, cham_luat=None) -> dict:
+def ghi(muc: dict, so: Path = SO, ngay: str | None = None, cham_luat=None, git=None) -> dict:
     """Kiểm rồi mới ghi. Giữ nguyên định dạng file (JSON indent 2, UTF-8).
 
     `cham_luat(n) -> [file đổi]` để test thay máy đọc git; mặc định đọc lịch sử thật.
+    `git(*args) -> (mã, đầu ra)` thay máy đọc git của phép đo độ tươi.
+
+    Từ BƯỚC 246 mục hỏi thật có thể mang (tuỳ chọn): `tra_loi_tep` + `tra_loi_sha256` +
+    `trich_dan_tep` (BẮT TAY: sha256 tệp phải khớp sha256 trang đã băm, lệch thì từ chối và
+    không chạm sổ) -> ô `tra_loi`; `nhan_nguon_tep` (nhãn nguồn như trang hiện) -> `nguon`
+    và `_do_tuoi` SINH ra từ git, không từ lời mô hình.
     """
     if "khong_bat_buoc_vi" in muc:
         return _ghi_khong_bat_buoc(muc, so, ngay, cham_luat)
     kiem_muc(muc)
+    tra_loi = _dung_tra_loi(muc)
+    nguon_tuoi = _dung_nguon_va_do_tuoi(muc, git)
     s = so.read_text(encoding="utf-8")
     d = json.loads(s)
     buoc = muc["buoc"]
     if buoc in d["soat"]:
         raise TuChoi(f"{buoc} da co trong so — khong ghi de")
     dong = {"ngay": ngay or datetime.date.today().isoformat(),
-            "nguon": list(muc.get("nguon") or NGUON_MAC_DINH)}
-    if muc.get("_do_tuoi"):
+            "nguon": nguon_tuoi[0] if nguon_tuoi else list(muc.get("nguon") or NGUON_MAC_DINH)}
+    if nguon_tuoi:
+        dong["_do_tuoi"] = nguon_tuoi[1]
+    elif muc.get("_do_tuoi"):
         dong["_do_tuoi"] = muc["_do_tuoi"]
     dong["cau_hoi"] = muc["cau_hoi"]
     dong["o_thoat"] = O_THOAT
+    if tra_loi:
+        dong["tra_loi"] = tra_loi
     if muc.get("khong_tim_thay_gi") is True:
         dong["khong_tim_thay_gi"] = True
         dong["phat_hien"] = []
@@ -346,15 +746,82 @@ def main(argv: list[str]) -> int:
         ap.add_argument("--ket-luan", required=True)
         ap.add_argument("--vi-du", action="append", default=[])
         ap.add_argument("--js", action="store_true",
-                        help="in LENH JS gui cau hoi vao o chat (loi 113)")
+                        help="in LENH JS dien cau hoi vao o chat (loi 113); chua gui")
+        ap.add_argument("--giu-lich-su", action="store_true",
+                        help="cho phep dien khi nhat ky chat chua rong (mac dinh TU CHOI)")
         a = ap.parse_args(argv[1:])
         try:
             cau = dung_cau_hoi(a.buoc, a.ket_luan, a.vi_du)
-            print(lenh_gui(cau) if a.js else cau)
+            print(lenh_dien_cau(cau, a.giu_lich_su) if a.js else cau)
+            print(f"cau hoi dai {_dai16(cau)} don vi UTF-16 (tran gui {TRAN_GUI})", file=sys.stderr)
         except TuChoi as e:
             print(f"TU CHOI: {e}", file=sys.stderr)
             return 1
         return 0
+    if argv and argv[0] == "lay-nhan":
+        print(lenh_lay_nhan())
+        return 0
+    if argv and argv[0] in ("xoa-nhat-ky", "chup", "bam-gui"):
+        import argparse
+        ap = argparse.ArgumentParser(prog=f"so_tay.py {argv[0]}")
+        ap.add_argument({"xoa-nhat-ky": "--buoc", "chup": "--truoc", "bam-gui": "--dai"}[argv[0]],
+                        type=int, required=True,
+                        help={"xoa-nhat-ky": "buoc 1-4 (moi buoc MOT lenh, cho ~1 giay giua hai buoc)",
+                              "chup": "so tra loi da co TRUOC khi gui (lenh `hoi --js` in ra)",
+                              "bam-gui": "do dai o chat (UTF-16) `hoi --js` da in ra"}[argv[0]])
+        a = ap.parse_args(argv[1:])
+        try:
+            print(lenh_xoa_nhat_ky(a.buoc) if argv[0] == "xoa-nhat-ky"
+                  else lenh_chup_tra_loi(a.truoc) if argv[0] == "chup" else lenh_bam_gui(a.dai))
+        except TuChoi as e:
+            print(f"TU CHOI: {e}", file=sys.stderr)
+            return 1
+        return 0
+    if argv and argv[0] == "kiem-tra-loi":
+        import argparse
+        ap = argparse.ArgumentParser(prog="so_tay.py kiem-tra-loi")
+        ap.add_argument("tep")
+        ap.add_argument("--sha256", required=True, help="sha256 do TRANG tinh")
+        a = ap.parse_args(argv[1:])
+        try:
+            kq = kiem_tra_loi(Path(a.tep).read_bytes(), a.sha256)
+        except OSError as e:
+            print(f"CHUA DOC DUOC tep: {e}", file=sys.stderr)
+            return 2
+        except TuChoi as e:
+            print(f"TU CHOI: {e}", file=sys.stderr)
+            return 1
+        print(f"KHOP · sha256 {kq['sha256']} · {kq['dai16']} don vi UTF-16")
+        return 0
+    if argv and argv[0] == "do-tuoi":
+        import argparse
+        ap = argparse.ArgumentParser(prog="so_tay.py do-tuoi")
+        ap.add_argument("tep_nhan", help="nhan nguon, moi dong mot nhan (ket qua cua `lay-nhan`)")
+        ap.add_argument("--so-voi", default="HEAD", help="commit dem lam 'moi' (mac dinh HEAD)")
+        ap.add_argument("--tom-tat", action="store_true", help="chi in dong cho o `_do_tuoi`")
+        a = ap.parse_args(argv[1:])
+        try:
+            nhan, la = doc_nhan(Path(a.tep_nhan).read_text(encoding="utf-8"))
+            if not nhan:
+                print("TU CHOI: tep khong co nhan nao — tab Nguon chua mo? (doc 0 nguon la MAU HONG)",
+                      file=sys.stderr)
+                return 1
+            kq = do_tuoi(nhan, la, so_voi=a.so_voi)
+        except (OSError, KhongKiemDuoc) as e:
+            print(f"CHUA KIEM DUOC: {e}", file=sys.stderr)
+            return 2
+        if a.tom_tat:
+            print(tom_tat_do_tuoi(kq))
+        else:
+            for d in kq["nguon"]:
+                print(f"{d['trang_thai']:<14} {d['nhan']}  ->  {d['tep']}")
+            for t in kq["thieu"]:
+                print(f"{'THIEU':<14} {t}")
+            for t in kq["la"]:
+                print(f"{'NHAN_LA':<14} {t}")
+            print(f"KET LUAN {kq['ket_luan']} · so voi {kq['so_voi']} {kq['ma_so_voi']} · "
+                  f"{len(kq['nguon'])} nguon")
+        return 0 if kq["ket_luan"] == "TUOI" else 1
     if argv and argv[0] == "dem":
         import argparse
         ap = argparse.ArgumentParser(prog="so_tay.py dem")

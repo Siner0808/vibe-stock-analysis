@@ -174,18 +174,20 @@ def test_CLI_HOI_in_MOT_DONG_va_TU_CHOI_ra_stderr_doc_duoc_UTF8():
     assert "TU CHOI" in (hong.stderr or "")
 
 
-def test_LENH_GUI_chon_O_CHAT_theo_nhan_KHONG_lay_textarea_dau_tien():
+def test_LENH_DIEN_CAU_chon_O_CHAT_theo_nhan_KHONG_lay_textarea_dau_tien():
     """Lỗi 113: `textarea` ĐẦU TIÊN của trang là ô *"Tìm nguồn mới trên web"*.
     Ngày 29/09 câu hỏi BƯỚC 142 đi vào đó, bấm Gửi là đi tìm nguồn trên web."""
     cau = st.dung_cau_hoi("BƯỚC 1", "k" * 60, ["câu có 'nháy đơn' và \"nháy kép\""])
-    js = st.lenh_gui(cau)
+    js = st.lenh_dien_cau(cau)
     assert 'textarea[aria-label="Hộp truy vấn"]' in js
     assert "querySelector('textarea')" not in js and 'querySelector("textarea")' not in js
     assert json.dumps(cau, ensure_ascii=False) in js      # câu nhúng NGUYÊN VĂN
-    # nút Gửi còn khoá ngay sau `input` — đo 29/09 bấm lúc ấy không gửi gì:
-    # phải có một VÒNG CHỜ trên `disabled`, đứng TRƯỚC lệnh bấm
-    cho = re.search(r"for \([^)]*b\.disabled[^)]*\)\s*await", js)
-    assert cho and cho.start() < js.index("b.click()")
+    # BƯỚC 246: nút Gửi còn khoá ngay sau `input` (đo 29/09) và trang không cho hẹn giờ (khung ẩn
+    # bóp `setTimeout`, đo 30/10), nên KHÔNG còn vòng chờ trong một lệnh: lệnh điền KHÔNG bấm,
+    # lệnh `lenh_bam_gui` chạy ~1 giây sau và chỉ bấm khi nút đã mở khoá.
+    assert "click()" not in js and "setTimeout" not in js
+    bam = st.lenh_bam_gui(st._dai16(cau))
+    assert "b.disabled" in bam and bam.index("b.disabled") < bam.index("b.click()") and "setTimeout" not in bam
 
 
 def test_CLI_HOI_JS_in_lenh_gui_cua_DUNG_cau_hoi():
@@ -196,7 +198,7 @@ def test_CLI_HOI_JS_in_lenh_gui_cua_DUNG_cau_hoi():
     js = subprocess.run(chay + arg + ["--js"], capture_output=True, text=True,
                         encoding="utf-8", cwd=str(GOC))
     assert js.returncode == 0, js.stderr
-    assert js.stdout.strip() == st.lenh_gui(cau)
+    assert js.stdout.strip() == st.lenh_dien_cau(cau)
 
 
 def test_CLI_GHI_tep_khong_doc_duoc_la_MA_2_khong_phai_traceback(tmp_path):
