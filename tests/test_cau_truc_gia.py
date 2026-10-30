@@ -281,6 +281,8 @@ def test_NHAN_bang_khi_hai_dinh_lien_ke_trong_nua_buoc():
         return [p for p in C.doc_cau_truc(_df(gia), he_so_gia=1.0).nhat_ky
                 if p.cap == "noi_bo" and p.loai == "dinh"]
     assert [p.nhan for p in hai_dinh(40010.0)] == ["chua_co", "bang"]
+    assert [p.nhan for p in hai_dinh(40025.0)] == ["chua_co", "bang"]      # ĐÚNG nửa bước vẫn là bằng
+    assert [p.nhan for p in hai_dinh(39975.0)] == ["chua_co", "bang"]
     assert [p.nhan for p in hai_dinh(40050.0)] == ["chua_co", "HH"]
     assert [p.nhan for p in hai_dinh(39950.0)] == ["chua_co", "LH"]
 
@@ -361,11 +363,6 @@ def test_FRACTAL_dung_tay_ngay_biet_la_n_nen_sau():
 
 def test_FRACTAL_xen_ke_hai_dinh_lien_nhau_thi_giu_cuc_tri_hon():
     # đáy giữa là CAO NGANG (1010, 1010): không nến nào thấp hơn NGHIÊM NGẶT ⇒ không có đáy ⇒ hai đỉnh liền nhau
-    def chay(dinh_2):
-        gia = _FR + [dinh_2, dinh_2 - 30, dinh_2 - 50, dinh_2 - 70]
-        return [(p.su_kien, p.chi_so_xay_ra, p.chi_so_biet, p.gia, p.thay_the_chi_so, p.nhan)
-                for p in C.doc_cau_truc(_df(gia), he_so_gia=1.0, ho="fractal", tham_so=(3, 8)).nhat_ky]
-    # lưu ý: nến 12.. phải thấp hơn đỉnh 2 ⇒ dựng riêng
     gia_cao = _FR + [1120, 1090, 1070, 1050]
     r = C.doc_cau_truc(_df(gia_cao), he_so_gia=1.0, ho="fractal", tham_so=(3, 8))
     assert [(p.su_kien, p.chi_so_xay_ra, p.chi_so_biet, p.gia, p.thay_the_chi_so, p.nhan) for p in r.nhat_ky] == [
