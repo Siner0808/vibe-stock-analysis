@@ -252,6 +252,8 @@ Một phát sống sót là câu trả lời: gác chưa canh chỗ đó; trư�
 
 ## 9. Phép đo chỉ-đọc — BẢN NHÁP KHAI TRƯỚC (CHƯA KÝ)
 
+> 🔴 **HẾT ĐÚNG từ 30/10/2026 (BƯỚC 245): mục 9.2 đã được KÝ thành `ĐO 34` trong `docs/TIEU-CHI-DOC-TRUOC.md`, với MỘT chỗ sửa — câu KTC (khối 10 phiên) thay bằng hàm KTC của sân đấu ở cấu hình được khoá bởi độ phủ ≥ 90%. Văn bản có hiệu lực là `ĐO 34`; mục này giữ làm bản nháp lịch sử, đừng đọc câu KTC của nó như luật.**
+
 ### 9.1 Có đưa vào `docs/TIEU-CHI-DOC-TRUOC.md` ở BƯỚC này không?
 
 **Không. Giữ làm bản nháp trong tài liệu này; ký ở một BƯỚC riêng ngay sau khi người dùng duyệt đặc tả, TRƯỚC Lát 1.** Lý do, theo luật của chính repo:
