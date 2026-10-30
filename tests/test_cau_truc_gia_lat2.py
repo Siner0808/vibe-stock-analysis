@@ -559,6 +559,16 @@ def test_CON_SONG_thuy_trieu_doc_luc_BIET_khong_doc_luc_xay_ra():
     assert len(C.con_song_tu_nhat_ky(ok)) == 1
 
 
+def test_CON_SONG_thuy_trieu_tinh_ca_dong_swing_CUNG_nen_voi_dong_noi_bo():
+    """Luật đã chọn (khai ở STATE): thủy triều tại nến `t` gồm MỌI dòng swing có `chi_so_biet <= t`, kể cả dòng ở
+    chính nến `t` — đáy swing HL và đáy nội bộ B cùng được biết ở nến 42 thì nhịp ngược vào nhật ký ở 42."""
+    swing = _swing_tang()
+    cung_nen = [replace(p, ngay_biet=NGAY[42], chi_so_biet=42) if p.chi_so_xay_ra == 20 else p for p in swing]
+    noi = [_P("noi_bo", "dinh", 30, 31, 100.0), _P("noi_bo", "day", 40, 42, 70.0)]
+    song = C.con_song_tu_nhat_ky(sorted(cung_nen + noi, key=lambda p: (p.chi_so_biet, p.cap != "noi_bo")))
+    assert [(w.chi_so_biet, w.thuy_trieu) for w in song] == [(42, "tang")]
+
+
 def test_CON_SONG_khong_co_nhip_chinh_thi_khong_du_bien_do_nhung_hoac_van_theo_thoi_gian():
     swing = [_P("swing", "day", 20, 23, 60.0, nhan="HL"), _P("swing", "dinh", 30, 33, 100.0, nhan="HH")]
     # hai swing có mặt nhưng đáy swing nằm SAU đỉnh nội bộ A (xảy ra 25 > 20?) — dùng đáy xảy ra sau A ⇒ không có đáy trước A
@@ -792,3 +802,80 @@ def test_ghep_end_to_end_tren_khung_that_khong_no_va_khop_Wyckoff():
         df2 = _dat(df2, i, close=85.0, high=85.5, volume=2000)
     c2 = C.ghep_chu_ky(C.trang_thai_dow(C.doc_cau_truc(df2, he_so_gia=1000.0)), wy.doc_pha(df2, 1000.0))
     assert c2.giai_doan == "Markup" and c2.nguon == "pha_wyckoff"
+
+
+# ── 7. dụng cụ đo `tools/mo_ta_cau_truc_gia.py` (máy đo bị nghi ngờ như gác) ──────────────
+def _nap_dung_cu():
+    """Nhập dụng cụ mà KHÔNG để nó chèn `tools/` lên đầu `sys.path` (nó làm vậy lúc nhập; xem chú thích đầu file
+    `test_cau_truc_gia.py` về hai `cham_xac_nhan.py`)."""
+    truoc = list(sys.path)
+    try:
+        import mo_ta_cau_truc_gia as M
+    finally:
+        sys.path[:] = truoc
+    return M
+
+
+def test_dung_cu_doc_lap_im_lang_tren_nhat_ky_dung_va_BAO_khi_nhat_ky_bi_dung_vao():
+    M = _nap_dung_cu()
+    he = 1000.0
+    df = _ngau(260, 2)
+    r = C.doc_cau_truc(df, he_so_gia=he)
+    ok = M.doc_lap_su_kien(df, r, he, "HOSE")
+    assert ok["tong_vi_pham"] == 0 and ok["da_kiem"]["su_kien"] == len(r.su_kien) >= 8
+    assert ok["da_kiem"]["pivot_co_nen_vuot"] >= 8, "quần thể phép kiểm ĐẦY ĐỦ phải khác rỗng (lỗi 66)"
+    # bỏ một sự kiện ⇒ phải báo THIẾU
+    thieu = replace(r, su_kien=r.su_kien[:3] + r.su_kien[4:])
+    assert M.doc_lap_su_kien(df, thieu, he, "HOSE")["vi_pham"].get("e_thieu_su_kien", 0) >= 1
+    # dời một sự kiện sớm đi 2 nến ⇒ nến ấy không vượt pivot
+    e = r.su_kien[5]
+    som = replace(e, chi_so_xay_ra=e.chi_so_xay_ra - 2, chi_so_biet=e.chi_so_biet - 2)
+    sai = replace(r, su_kien=r.su_kien[:5] + (som,) + r.su_kien[6:])
+    assert M.doc_lap_su_kien(df, sai, he, "HOSE")["tong_vi_pham"] >= 1
+    # đảo BOS <-> CHOCH ⇒ báo loại sai
+    moi = next(i for i, x in enumerate(r.su_kien) if x.loai in ("BOS", "CHOCH"))
+    x = r.su_kien[moi]
+    doi = replace(x, loai="CHOCH" if x.loai == "BOS" else "BOS")
+    sai2 = replace(r, su_kien=r.su_kien[:moi] + (doi,) + r.su_kien[moi + 1:])
+    assert M.doc_lap_su_kien(df, sai2, he, "HOSE")["vi_pham"].get("d_khoi_dau_sai", 0) >= 1
+
+
+def test_dung_cu_lat_lai_dem_dung_tren_ca_dung_tay():
+    """Giả lập 4 sự kiện nội bộ. e1 tăng ở nến 5 (đỉnh 100): trong 3 nến sau có đóng ≤ 100 ⇒ quay lại; sự kiện kế
+    (e2) ngược chiều cách 2 nến ⇒ lật lại. e2 giảm ở nến 7 (đáy 90): nến 9 đóng 95 ≥ 90 ⇒ quay lại; sự kiện kế (e3)
+    CÙNG chiều ⇒ không lật. e3 giảm ở nến 20 (đáy 50): 3 nến sau đóng 40 ⇒ không quay lại. e4 ở nến 28 của bảng 30 nến
+    (còn < 3 nến) ⇒ bị LOẠI khỏi mẫu (cắt phải)."""
+    import types
+    M = _nap_dung_cu()
+    dong = [80.0] * 30
+    dong[5], dong[6], dong[7], dong[8], dong[9] = 105.0, 99.0, 85.0, 86.0, 95.0
+    for i in range(21, 24):
+        dong[i] = 40.0
+    df = _df(dong)
+
+    def ev(loai, chieu, i, gia):
+        return C.SuKienPha(cap="noi_bo", loai=loai, chieu=chieu, ngay_xay_ra=NGAY[i], chi_so_xay_ra=i,
+                           ngay_biet=NGAY[i], chi_so_biet=i,
+                           pivot_bi_pha=_P("noi_bo", "dinh" if chieu == "tang" else "day", 1, 2, gia),
+                           gia_dong=dong[i], khoa_bien=None, khong_giao_dich=False)
+    r = types.SimpleNamespace(su_kien=(ev("KHOI_DAU", "tang", 5, 100.0), ev("CHOCH", "giam", 7, 90.0),
+                                       ev("BOS", "giam", 20, 50.0), ev("BOS", "giam", 28, 50.0)))
+    d = M.lat_lai(df, r)
+    assert d["noi_bo/tat_ca"] == {"n": 3, "su_kien_nguoc": 1, "dong_cua_quay_lai": 2}
+    assert d["noi_bo/KHOI_DAU"] == {"n": 1, "su_kien_nguoc": 1, "dong_cua_quay_lai": 1}
+    assert d["noi_bo/CHOCH"] == {"n": 1, "dong_cua_quay_lai": 1}
+    assert d["noi_bo/BOS"] == {"n": 1}
+    assert "swing/tat_ca" not in d
+
+
+def test_dung_cu_thuy_trieu_theo_nen_khop_trang_thai_dow_tung_nen():
+    M = _nap_dung_cu()
+    for df, he in ((_df(_BOS), 1.0), (_ngau(300, 6), 1000.0)):
+        r = C.doc_cau_truc(df, he_so_gia=he)
+        mong = {}
+        for t in range(len(df)):
+            tt = C.trang_thai_dow(r, t).thuy_trieu
+            mong[tt] = mong.get(tt, 0) + 1
+        got = {k: v for k, v in M.thuy_trieu_theo_nen(r).items() if v}
+        assert got == mong
+        assert len(got) >= 2

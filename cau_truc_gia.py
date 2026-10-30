@@ -570,11 +570,11 @@ def trang_thai_tu_nhat_ky(nhat_ky, su_kien, con_song, chi_so_t: int) -> TrangTha
     sw, huong_sw, dinh, day = [], _CHUA_CO_HUONG, None, None
     moc = None
     for b in sorted(set(pv) | set(ev)):
-        lines_p, lines_e = (pv[b] if b in pv else []), (ev[b] if b in ev else [])
-        ngay = (lines_p + lines_e)[0].ngay_biet
-        for p in lines_p:
+        dong_pv, dong_ev = (pv[b] if b in pv else []), (ev[b] if b in ev else [])
+        ngay = (dong_pv + dong_ev)[0].ngay_biet
+        for p in dong_pv:
             sw = _ap_dong(sw, p)
-        for e in lines_e:
+        for e in dong_ev:
             huong_sw = e.chieu
         thuy_trieu, dinh, day = _thuy_trieu_tu_swing(sw)
         moc = day if thuy_trieu == TANG else (dinh if thuy_trieu == GIAM else None)
