@@ -8,6 +8,7 @@ Không mạng, không ghi cache; chỉ ghi MỘT file JSON kết quả ở đư�
     ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py mo-ta --cache <thư mục cache> [--ghi X.json]
     ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py kiem-cat --cache <thư mục cache> [--so-diem 40]
     ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py su-kien --cache <thư mục cache> [--ghi X.json]
+    ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py cua-so --cache <thư mục cache> [--ghi X.json]
 
 Rổ: `vn100_symbols.CUSTOM_WATCHLIST_SYMBOLS` (71 mã). Hệ số giá tính MỘT lần trên cả chuỗi rồi
 truyền cho mọi lượt cắt (xem docstring `cau_truc_gia`). Băm cache bằng
@@ -524,6 +525,80 @@ def ca_that_vnindex(cache: Path) -> dict:
                                      "canh_bao": s.canh_bao_dao_chieu, "huong_swing": s.thien_huong_swing}}
 
 
+CUA_SO_THU = (124, 285, 784)   # đặc tả 7.3: số phiên của biểu đồ, của cửa sổ phân tích, của bộ nhớ đệm dài nhất
+
+
+def _cu_ky_xac_dinh(r) -> bool:
+    """Thủy triều đã xác định được (không phải `chua_du_bang_chung`) ở nến cuối."""
+    return C.trang_thai_dow(r).thuy_trieu != C.CHUA_DU
+
+
+def mo_ta_cua_so(cache: Path, rổ: list[str], cac_cua_so=CUA_SO_THU) -> dict:
+    """Đặc tả 7.3: đếm pivot swing ở từng cửa sổ (đuôi `w` phiên của cache) và những gì ô trên app sẽ nói ở nến
+    cuối. MÔ TẢ THUẦN, không lợi nhuận. Hệ số giá tính trên CHÍNH cửa sổ (như app tính trên bảng nó nạp)."""
+    import pha_wyckoff as W
+    theo_cua_so, ket = {}, {}
+    for w in cac_cua_so:
+        so_dinh, so_day, du, tide, chu_ky, mau_thuan = [], [], 0, Counter(), Counter(), 0
+        so_nen, biet = [], {}
+        for ma in rổ:
+            df = nap(cache, ma).tail(w).reset_index(drop=True)
+            he = float(price_multiplier(df))
+            r = C.doc_cau_truc(df, he_so_gia=he, san=san_cua(ma))
+            s = C.trang_thai_dow(r)
+            sw = [p for p in r.nhat_ky if p.cap == C.CAP_SWING]
+            dinh = sum(p.loai == C.DINH for p in sw)
+            day = sum(p.loai == C.DAY for p in sw)
+            so_nen.append(len(df))
+            so_dinh.append(dinh)
+            so_day.append(day)
+            du += dinh >= 2 and day >= 2
+            tide[s.thuy_trieu] += 1
+            c = C.ghep_chu_ky(s, W.doc_pha(df, he))
+            chu_ky[c.giai_doan] += 1
+            mau_thuan += c.mau_thuan
+            ket[(w, ma)] = (s.thuy_trieu, s.ngay_biet_thuy_trieu, c.giai_doan)
+        n = len(rổ)
+        theo_cua_so[w] = {
+            "so_nen_trung_vi": phan_vi(so_nen, 50),
+            "dinh_swing": {"min": min(so_dinh), "p10": phan_vi(so_dinh, 10), "trung_vi": phan_vi(so_dinh, 50),
+                           "p90": phan_vi(so_dinh, 90), "max": max(so_dinh)},
+            "day_swing": {"min": min(so_day), "p10": phan_vi(so_day, 10), "trung_vi": phan_vi(so_day, 50),
+                          "p90": phan_vi(so_day, 90), "max": max(so_day)},
+            "ma_du_hai_dinh_hai_day": du, "ty_le_du": round(du / n, 4),
+            "thuy_trieu_nen_cuoi": dict(tide.most_common()),
+            "ty_le_chua_du": round(tide[C.CHUA_DU] / n, 4),
+            "chu_ky_nen_cuoi": dict(chu_ky.most_common()),
+            "mau_thuan": mau_thuan,
+        }
+    # độ nhạy với cửa sổ: cùng một mã, cửa sổ khác thì ô nói khác không?
+    nhay = {}
+    dai = max(cac_cua_so)
+    for w in cac_cua_so:
+        if w == dai:
+            continue
+        khac_tide = sum(ket[(w, ma)][0] != ket[(dai, ma)][0] for ma in rổ)
+        khac_ngay = sum(ket[(w, ma)][1] != ket[(dai, ma)][1] for ma in rổ)
+        khac_cu_ky = sum(ket[(w, ma)][2] != ket[(dai, ma)][2] for ma in rổ)
+        nhay[f"{w}_so_voi_{dai}"] = {"khac_thuy_trieu": khac_tide, "khac_ngay_biet": khac_ngay,
+                                     "khac_chu_ky": khac_cu_ky, "tren": len(rổ)}
+    return {"cua_so": theo_cua_so, "do_nhay": nhay}
+
+
+def lenh_cua_so(a) -> int:
+    cache = Path(a.cache)
+    bam_truoc = bam_cache(cache)
+    print(f"cache {bam_truoc['sha256'][:16]}… · {bam_truoc['so_file']} file")
+    kq = {"cache": bam_truoc, "cua_so": mo_ta_cua_so(cache, CUSTOM_WATCHLIST_SYMBOLS)}
+    print(json.dumps(kq["cua_so"], ensure_ascii=False, indent=1))
+    bam_sau = bam_cache(cache)
+    kq["bam_sau"] = bam_sau
+    print("băm cache sau:", "KHỚP" if bam_sau["sha256"] == bam_truoc["sha256"] else "LỆCH", bam_sau["sha256"][:16])
+    if a.ghi:
+        Path(a.ghi).write_text(json.dumps(kq, ensure_ascii=False, indent=1), encoding="utf-8")
+    return 0 if bam_sau["sha256"] == bam_truoc["sha256"] else 1
+
+
 def lenh_su_kien(a) -> int:
     cache = Path(a.cache)
     bam_truoc = bam_cache(cache)
@@ -561,9 +636,14 @@ def main(argv=None) -> int:
     s.add_argument("--cache", required=True)
     s.add_argument("--ghi", help="đường dẫn JSON kết quả")
     s.add_argument("--toi-da-ma", type=int, default=None, help="chỉ để chạy thử nhanh; bỏ trống = cả 71 mã")
+    cs = sub.add_parser("cua-so", help="Lát 3: đếm pivot swing ở ba cửa sổ (đặc tả 7.3) và điều ô trên app sẽ nói")
+    cs.add_argument("--cache", required=True)
+    cs.add_argument("--ghi", help="đường dẫn JSON kết quả")
     a = ap.parse_args(argv)
     if a.lenh == "mo-ta":
         return lenh_mo_ta(a)
+    if a.lenh == "cua-so":
+        return lenh_cua_so(a)
     return lenh_su_kien(a) if a.lenh == "su-kien" else lenh_kiem_cat(a)
 
 
