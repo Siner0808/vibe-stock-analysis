@@ -758,6 +758,7 @@ GHI_CHU_XAP_XI = ("Hai cấp là xấp xỉ: nội bộ và swing không đồng
                   "xác nhận nhau; ở đây chỉ có một chuỗi giá, nên BOS và CHoCH chỉ là cảnh báo cấu trúc. Đỉnh hay đáy "
                   "chưa được xác nhận (tạm) không được hiện.")
 GHI_CHU_KHONG_DIEM = "Kết quả này không tham gia chấm điểm; sổ lệnh ảo không nhập mô-đun đọc cấu trúc này."
+PHU_NEN_DANG_DO = "gồm nến chưa đóng cửa"
 GHI_CHU_CON_SONG = ("Cách chọn con sóng chưa có đồng thuận giữa các học trò của Dow; 3/8 nhịp chính VÀ 10 phiên là cách đọc "
                     "của đặc tả. Nhịp ngược đang chạy chưa được phân loại: nó chỉ vào nhật ký khi pivot kết thúc được xác nhận.")
 CHAN_KHOI = ("Đọc cấu trúc giá, không dự báo. Chưa có phép đo nào cho thấy cấu trúc này cho lợi thế; "
@@ -855,12 +856,14 @@ def khong_doc_duoc(ly_do: str) -> HienThiCauTruc:
                           trang_thai=None, chu_ky=None)
 
 
-def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int = CUA_SO_PHIEN) -> HienThiCauTruc:
+def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int = CUA_SO_PHIEN,
+                 nen_cuoi_dang_do: bool = False) -> HienThiCauTruc:
     """Đọc cấu trúc trên `cua_so` phiên CUỐI của `df` và soạn hai ô cùng khối chi tiết (đặc tả 7.1).
 
     `pha` là `PhaWyckoff` mà ô Pha Wyckoff cạnh nó đã dùng (cùng một lần đọc, không đọc lại). `he_so_gia` người gọi
     tính MỘT lần trên chính bảng này. Thủy triều là hàm của nhật ký đã biết tại nến cuối; không có gì ở đây nhìn tới
-    sau nến cuối."""
+    sau nến cuối. `nen_cuoi_dang_do` (người gọi hỏi `data_quality.nen_cuoi_dang_do`) chỉ để GHI NHÃN: nến cuối chưa
+    đóng thì mọi "biết từ" có thể đổi khi nến đóng; ô Pha Wyckoff cạnh nó cũng đọc cùng nến, nên không bỏ nến."""
     w = df.tail(cua_so).reset_index(drop=True)
     cs = doc_cau_truc(w, he_so_gia=he_so_gia, san=san)
     tt = trang_thai_dow(cs)
@@ -878,6 +881,8 @@ def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int 
         phu_tt = (f"biết từ {tt.ngay_biet_thuy_trieu}",)
         if tt.canh_bao_dao_chieu:
             phu_tt += ("cảnh báo cấu trúc: CHoCH swing ngược thủy triều",)
+    if nen_cuoi_dang_do:
+        phu_tt += (PHU_NEN_DANG_DO,)
     sac_tt = SAC_TANG if tt.thuy_trieu == TANG else SAC_GIAM if tt.thuy_trieu == GIAM else SAC_TRUNG_TINH
     o_tt = OHienThi(nhan=_hoa_dau(ten_tt), sac_thai=sac_tt, phu=phu_tt, goi_y=GOI_Y_THUY_TRIEU)
 
@@ -890,6 +895,8 @@ def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int 
         phu_ck = ("nguồn: thủy triều swing",)
     if ck.mau_thuan:
         phu_ck += ("mâu thuẫn với thủy triều: xem chi tiết",)
+    if nen_cuoi_dang_do:
+        phu_ck += (PHU_NEN_DANG_DO,)
     sac_ck = (SAC_TRUNG_TINH if ck.mau_thuan else SAC_TANG if ck.giai_doan == MARKUP
               else SAC_GIAM if ck.giai_doan == MARKDOWN else SAC_TRUNG_TINH)
     o_ck = OHienThi(nhan=_hoa_dau(ck.giai_doan), sac_thai=sac_ck, phu=phu_ck, goi_y=GOI_Y_CHU_KY)
@@ -899,7 +906,10 @@ def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int 
     cua = (f"Cửa sổ đọc: {so_nen} phiên, tới {ngay_cuoi}; giá theo cơ sở điều chỉnh hôm nay của nguồn."
            if so_nen >= cua_so else
            f"Cửa sổ đọc: nguồn chỉ trả {so_nen}/{cua_so} phiên, tới {ngay_cuoi}; giá theo cơ sở điều chỉnh hôm nay của nguồn.")
-    dong = [cua, f"Thủy triều cấp swing: {ten_tt}" + (f", biết từ {tt.ngay_biet_thuy_trieu}." if tt.ngay_biet_thuy_trieu else
+    dong = [cua]
+    if nen_cuoi_dang_do:
+        dong.append(f"Nến phiên {ngay_cuoi} chưa đóng cửa: mọi \"biết từ\" và mọi nhãn có thể đổi khi nến đóng.")
+    dong += [f"Thủy triều cấp swing: {ten_tt}" + (f", biết từ {tt.ngay_biet_thuy_trieu}." if tt.ngay_biet_thuy_trieu else
                                                       f" ({n_dinh} đỉnh, {n_day} đáy swing đã xác nhận).")]
     for cap, chuoi in ((CAP_SWING, sw), (CAP_NOI_BO, nb)):
         dinh = next((p for p in reversed(chuoi) if p.loai == DINH), None)
