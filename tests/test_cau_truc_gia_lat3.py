@@ -450,18 +450,21 @@ def test_html_o_la_mot_dong_va_thoat_ky_tu():
 
 # ── 6. dụng cụ `cua-so` (máy đo bị nghi như gác) ──────────────────────────────────────────
 def test_dung_cu_cua_so_dem_dung_tren_ca_dung_tay(tmp_path):
-    """Hai mã: ACB = `_BOS` (80 nến: 3 đỉnh + 3 đáy swing, thủy triều lẫn), HPG = 30 nến đầu (1 đỉnh + 0 đáy, chưa
-    đủ). Đáp số đọc từ STATE BƯỚC 249 và đếm tay ở `test_o_thuy_trieu_*`."""
+    """Ba mã: ACB = `_BOS` (80 nến: 3 đỉnh + 3 đáy swing, thủy triều lẫn), HPG = 30 nến đầu (1 đỉnh + 0 đáy, chưa
+    đủ), VNM = 47 nến đầu (2 đỉnh + 1 đáy: đủ đỉnh mà thiếu đáy, nên `và` khác `hoặc`; đáy duy nhất chưa có nhãn nên
+    thủy triều chưa đủ). Đáp số đếm tay: đỉnh swing biết ở nến 24 và 46, đáy biết ở nến 32 (STATE BƯỚC 249)."""
     import mo_ta_cau_truc_gia as M
-    for ma, dong in (("ACB", _BOS), ("HPG", _BOS[:30])):
+    for ma, dong in (("ACB", _BOS), ("HPG", _BOS[:30]), ("VNM", _BOS[:47])):
         d = _df(dong)
         d["time"] = d["time"].dt.strftime("%Y-%m-%d")
         d.to_csv(tmp_path / f"{ma}.csv", index=False)
-    kq = M.mo_ta_cua_so(tmp_path, ["ACB", "HPG"], cac_cua_so=(80, 30))
+    kq = M.mo_ta_cua_so(tmp_path, ["ACB", "HPG", "VNM"], cac_cua_so=(80, 30))
     k80 = kq["cua_so"][80]
-    assert k80["ma_du_hai_dinh_hai_day"] == 1 and k80["ty_le_du"] == 0.5
-    assert k80["dinh_swing"]["max"] == 3 and k80["dinh_swing"]["min"] == 1
+    assert k80["ma_du_hai_dinh_hai_day"] == 1 and k80["ty_le_du"] == round(1 / 3, 4)
+    # số đỉnh swing mỗi mã {3, 1, 2}: np.percentile tuyến tính cho p10 = 1,2 và p90 = 2,8
+    assert k80["dinh_swing"] == {"min": 1, "p10": pytest.approx(1.2), "trung_vi": 2.0, "p90": pytest.approx(2.8),
+                                 "max": 3}
     assert k80["day_swing"]["max"] == 3 and k80["day_swing"]["min"] == 0
-    assert k80["thuy_trieu_nen_cuoi"] == {"lan": 1, "chua_du_bang_chung": 1} and k80["ty_le_chua_du"] == 0.5
-    assert kq["do_nhay"]["30_so_voi_80"]["tren"] == 2
+    assert k80["thuy_trieu_nen_cuoi"] == {"chua_du_bang_chung": 2, "lan": 1} and k80["ty_le_chua_du"] == round(2 / 3, 4)
+    assert kq["do_nhay"]["30_so_voi_80"]["tren"] == 3
     assert kq["do_nhay"]["30_so_voi_80"]["khac_thuy_trieu"] >= 1      # ACB: cửa sổ 30 nến đọc khác cửa sổ 80
