@@ -422,7 +422,7 @@ st.markdown("""
     .sig-lbl { font-size: 8.5px; color: var(--c-t3); text-transform: uppercase; font-weight: 700; }
     .sig-val { font-family: var(--fm); font-size: 11px; font-weight: 800; color: var(--c-g); }
     .sig-val.pos { color: var(--c-g); } .sig-val.neu { color: var(--c-b); } .sig-val.neg { color: var(--c-r); }
-    .sig-sub { font-size: 8.5px; color: var(--c-t3); line-height: 1.25; }
+    .sig-sub { font-size: 9.5px; color: var(--c-t2); line-height: 1.3; }
 
     /* ─── AGENT ROWS ─────────────────────────────────────────── */
     .a-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: var(--c-s1); border-radius: 6px; border: 1px solid var(--c-border); font-size: 10.5px; }

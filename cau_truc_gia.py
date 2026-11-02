@@ -706,7 +706,7 @@ def ghep_chu_ky(trang_thai: TrangThaiDow, pha) -> ChuKy4:
             else:
                 raise ValueError(f"pha E có sự kiện lạ {pha.su_kien!r}")
             if tt == nguoc:
-                ghi = (f"thủy triều swing chưa xác nhận: đang {ten_tt} trong khi pha_wyckoff đọc {gd}; "
+                ghi = (f"thủy triều swing chưa xác nhận: đang {ten_tt} trong khi pha Wyckoff đọc {gd}; "
                        f"hai phép đọc được hiển thị cạnh nhau, không phép nào bị ghi đè", dong_tt)
                 return _chu_ky(trang_thai, gd, NGUON_WYCKOFF, f"giá đã rời vùng đi ngang ({pha.nhan_ngan})",
                                ghi, mau_thuan=True)
@@ -759,6 +759,8 @@ GHI_CHU_XAP_XI = ("Hai cấp là xấp xỉ: nội bộ và swing không đồng
                   "chưa được xác nhận (tạm) không được hiện.")
 GHI_CHU_KHONG_DIEM = "Kết quả này không tham gia chấm điểm; sổ lệnh ảo không nhập mô-đun đọc cấu trúc này."
 PHU_NEN_DANG_DO = "gồm nến chưa đóng cửa"
+#: Tên NGƯỜI ĐỌC của nguồn chu kỳ (`ChuKy4.nguon` là định danh nội bộ, không được hiện ra màn hình).
+TEN_NGUON = {NGUON_WYCKOFF: "pha Wyckoff", NGUON_THUY_TRIEU: "thủy triều swing"}
 GHI_CHU_CON_SONG = ("Cách chọn con sóng chưa có đồng thuận giữa các học trò của Dow; 3/8 nhịp chính VÀ 10 phiên là cách đọc "
                     "của đặc tả. Nhịp ngược đang chạy chưa được phân loại: nó chỉ vào nhật ký khi pivot kết thúc được xác nhận.")
 CHAN_KHOI = ("Đọc cấu trúc giá, không dự báo. Chưa có phép đo nào cho thấy cấu trúc này cho lợi thế; "
@@ -888,11 +890,11 @@ def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int 
 
     # ── ô chu kỳ ──
     if ck.nguon == NGUON_WYCKOFF:
-        phu_ck = ("nguồn: pha Wyckoff", f"dữ liệu tới {ngay_cuoi}")
+        phu_ck = (f"nguồn: {TEN_NGUON[ck.nguon]}", f"dữ liệu tới {ngay_cuoi}")
     elif ck.ngay_biet_thuy_trieu:
-        phu_ck = ("nguồn: thủy triều swing", f"biết từ {ck.ngay_biet_thuy_trieu}")
+        phu_ck = (f"nguồn: {TEN_NGUON[ck.nguon]}", f"biết từ {ck.ngay_biet_thuy_trieu}")
     else:
-        phu_ck = ("nguồn: thủy triều swing",)
+        phu_ck = (f"nguồn: {TEN_NGUON[ck.nguon]}",)
     if ck.mau_thuan:
         phu_ck += ("mâu thuẫn với thủy triều: xem chi tiết",)
     if nen_cuoi_dang_do:
@@ -928,7 +930,7 @@ def doc_hien_thi(df: pd.DataFrame, he_so_gia: float, san: str, pha, cua_so: int 
     dong.append(_dong_su_kien(CAP_SWING, tt.su_kien_cuoi_swing, he_so_gia))
     dong.append(_dong_su_kien(CAP_NOI_BO, tt.su_kien_cuoi_noi_bo, he_so_gia))
     dong.append(_dong_con_song(tt.con_song_cuoi, he_so_gia))
-    dong.append(f"Chu kỳ 4 giai đoạn: {ck.giai_doan}; nguồn {ck.nguon}; {ck.ly_do}.")
+    dong.append(f"Chu kỳ 4 giai đoạn: {ck.giai_doan}; nguồn {TEN_NGUON[ck.nguon]}; {ck.ly_do}.")
     dong.extend(f"Ghi chú chu kỳ: {g}" for g in ck.ghi_chu)
     dong.extend((GHI_CHU_CON_SONG, GHI_CHU_XAP_XI, GHI_CHU_KHONG_DIEM, CHAN_KHOI))
     return HienThiCauTruc(o_thuy_trieu=o_tt, o_chu_ky=o_ck, chi_tiet=tuple(dong), chan=CHAN_KHOI, doc_duoc=True,
