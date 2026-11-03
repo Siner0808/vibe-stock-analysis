@@ -25297,3 +25297,53 @@ Quần thể: 33 trong 71 mã có phiên trước mốc dữ liệu sạch (38 m
 **Quyết định của người dùng** (03/11/2026, nguyên văn; leader chuyển sau khi đọc báo cáo đối chứng): *"Sửa ĐO 34 trước khi đọc (Recommended)"* → BƯỚC 252 sửa văn bản ĐO 34 (file luật ⇒ sổ tay HỎI THẬT, người dùng duyệt văn bản đã sửa), rồi BƯỚC 253 = Lát 4b chạy kết cục MỘT lần. Các câu hỏi mở về đối chứng (ii), (iii), khe của chữ ký kết cục, A⁺, trọng số 1/71 ở vùng sạch 33 mã, báo kèm R8/R9 và hai chọn lựa (f) chuyển hết sang BƯỚC 252; BƯỚC này không đề xuất ngưỡng sửa nào.
 
 **Việc kế.** BƯỚC 252 (sửa ĐO 34), rồi BƯỚC 253 (Lát 4b: lật `CHO_PHEP_DOC_KET_QUA_THAT` trong commit riêng và chạy MỘT lần). KHÔNG chạy Lát 4b trước đó. Merge PR bằng `--merge`. Lỗi kế: 203.
+
+
+## BƯỚC 252 — SỬA VĂN BẢN ĐO 34 TRƯỚC LƯỢT CHẠY DUY NHẤT: ĐỐI CHỨNG (ii) ĐỐI CHIẾU KỲ VỌNG GIẢI TÍCH · ĐỐI CHỨNG (iii) CÓ LƯỚI + MDE + Ô K0 20× RÀO · BẢN ĐỒ KẾT CỤC TOÀN PHẦN (LỚN = 2H) · BẢN CHỜ NGƯỜI DÙNG DUYỆT, CHƯA CÓ HIỆU LỰC (03/11/2026)
+
+**Mốc:** B5
+
+Mốc mượn như BƯỚC 244–251 (`docs/LO-TRINH.md` chưa có dòng riêng cho cấu trúc giá; BƯỚC này KHÔNG sửa nó). Phiên con của leader, nhánh `do34/sua-252` (từ `origin/main` `2cd47f2`), worktree ngoài repo `vibe_wt_252`; python = `../vibe_preview/.venv/Scripts/python.exe`. Người dùng 03/11/2026: *"Sửa ĐO 34 trước khi đọc (Recommended)"* (BƯỚC 251); phạm vi trước đó *"làm cho xong lý thuyết DOW đi"* · *"Đến Lát 4, có số ĐO 34 (Recommended)"*.
+
+**Trạng thái: BẢN SỬA CHỜ NGƯỜI DÙNG DUYỆT.** Người dùng đã quyết SỬA văn bản (BƯỚC 251); người dùng CHƯA duyệt văn bản đã sửa. Khối `### SỬA ĐO 34` ở cuối mục ĐO 34 của `docs/TIEU-CHI-DOC-TRUOC.md` ghi "CHỜ NGƯỜI DÙNG DUYỆT"; chưa duyệt thì nó chưa thay gì và BƯỚC 253 (Lát 4b) KHÔNG chạy. PR của BƯỚC này mở ở dạng nháp, không tự hợp nhất.
+
+**Ranh giới đã giữ.** Không có Δ của danh mục Dow so với chuẩn nào, không có KTC của Δ, không có nhãn kết cục nào trên dữ liệu thật — không trong STATE này, không trong log, không trong PR. `CHO_PHEP_DOC_KET_QUA_THAT` vẫn `False`; `chay_ket_qua` vẫn không được gọi ở đâu ngoài test. Mọi số dưới đây là số của ĐỐI CHỨNG: tính từ trạng thái, độ dài khoảng và mức đầu tư của Dow (không lợi nhuận của Dow), từ lợi nhuận của chính các chuẩn ngẫu nhiên, hoặc trên dữ liệu tổng hợp.
+
+**Đã làm.**
+1. `docs/TIEU-CHI-DOC-TRUOC.md`: khối `### SỬA ĐO 34` (S1–S7), bản ký 30/10 GIỮ NGUYÊN; thêm một dòng trỏ ở đầu mục. Khuôn là TIỀN LỆ của chính tệp (ĐO 8 · 24 · 30 · 33), không phải một quy tắc cấm/bắt buộc (xem sổ tay, `_tu_kiem_cau_am`).
+2. `tools/do_dow_cau_truc.py`: `ky_vong_dich_giai_tich` (E_gt, liệt kê mọi dịch chuyển, KHÔNG gọi động cơ) + `doi_chung_ii` mới; `doi_chung_iii` có lưới 9 ô × 100 lượt lặp, `khoang_wilson`, `mde_80`, ô K0 `HE_SO_K0 = 20`; `ket_cuc` toàn phần K0 → B → C → A⁺ → A với `HE_SO_LON = 2`; `ngau_nhien` nhận `khoa`/`truot`/`dong_co`; `LOI_CAY` (gài lỗi để chứng minh (ii) CÓ THỂ trượt); lệnh `khoang-cach-ii`; `chay_ket_qua` thêm `nua_h_quy_nam`. Xoá nhãn `KET_CUC_KHE`, `KET_CUC_MAU_THUAN`.
+3. `tests/test_do_dow_cau_truc.py`: 60 → 68 test (E_gt đáp số tay một mã một xung; E_gt = trung bình động cơ khi liệt kê MỌI cặp dịch chuyển; biên của phân bố dịch; (ii) bắt lỗi gài và im khi lành; (ii) tắt khoá biên; cấu trúc x trôi không còn làm (ii) trượt; (iii) K0/MDE/Wilson; bản đồ kết cục toàn phần và cả bốn nhãn tới được).
+4. `docs/thiet-ke-dow-cau-truc.md` (ghi chú thi công), `docs/soat-notebooklm.json` (BƯỚC 252, hỏi thật), `references/loi-da-mac.md` + `docs/loi-phan-lop.json` (lỗi 203), `docs/HANDOFF.md`, `docs/moc_so_test.json`.
+
+**Số đo (đều của đối chứng; lệnh tái lập, cây của BƯỚC này, cache `acf6dca1…`, vùng sạch 33 mã · 770 ngày).**
+
+(a) *Khoảng cách của (ii)* — `./.venv/Scripts/python.exe tools/do_dow_cau_truc.py khoang-cach-ii --cache C:\Users\cuong\Vibe_Stock_Analysis\vibe_cache_goc_20260911` (mã thoát 0):
+```
+xấp xỉ BƯỚC 251                                                +2.1197e-05
++ trọng số số-ngày hiện diện, r_rổ theo cửa sổ từng mã         +2.3084e-05
+liệt kê, dịch đều [0, n), bỏ quy ước nửa ngày                  +2.3129e-05
+liệt kê, dịch ≥ 252, bỏ quy ước nửa ngày                       +2.7304e-05
+liệt kê, dịch ≥ 252, nửa ngày (= E_gt)                         +2.7446e-05
+động cơ KHÔNG gài lỗi: x̄ +2.6665e-05 ± 8.63e-07, lệch so E_gt -7.82e-07 = 0.91 SE
+```
+Khoảng "chưa giải thích hết" của BƯỚC 251 (đo 2,634e-5 so với giải tích 2,120e-5) KHÔNG phải bí ẩn: công thức xấp xỉ thiếu (1) trọng số số-ngày hiện diện và r_rổ lấy trên cửa sổ của từng mã (+0,19e-5), (2) dịch vòng chỉ ≥ 252 chứ không đều trên [0, n) (+0,42e-5); quy ước nửa ngày đóng góp +0,014e-5 (0,16 SE) — ứng viên của BƯỚC 251 BỊ BÁC. Giải tích liệt kê 2,7446e-5 so với đo 2,6665e-5 ± 0,0863e-5: lệch 0,91 SE. Bản có khoá biên + trượt trừ bản không (cùng lượt rút): −3,22e-7 ± 4,9e-8, nhỏ so với SE 8,6e-7 của lượt không ghép.
+
+(b) *(ii) CÓ THỂ trượt* — cùng lệnh, gài lỗi vào động cơ: cộng-thêm 0,15 bp mỗi đơn-vị-đầu-tư-ngày 1,16 SE (KHÔNG bắt) · 0,5 bp **5,98 SE (bắt)** · 1 bp **12,87 SE (bắt)** · nhân lợi nhuận 1,01: 0,22 SE (KHÔNG bắt) · nhân 1,05: **2,37 SE (bắt)**. 2 SE của (ii) = 1,73e-6 mỗi ngày = **0,145 bp** mỗi đơn-vị-đầu-tư-ngày (≈ 0,37 điểm phần trăm mỗi năm trên vốn đang đầu tư). Nó KHÔNG bắt sai thứ tự thời gian (nhìn trước một phiên): vị thế dịch vòng độc lập với lợi nhuận. Phần ấy do (v) và test động cơ dựng tay canh.
+
+(c) *Đối chứng đầy đủ (i)–(vi) dưới văn bản ĐÃ SỬA* — `doi-chung --cache … --ghi <JSON>` (mã thoát 0, "TẤT CẢ ĐỐI CHỨNG: ĐẠT"): băm cache trước = sau = `acf6dca1dd38d5157ee397bbccb7f82d662698b318a6dcf6b72617335bf44d6e`; KTC KHỚP; (i) lệch giá 1,24e-14, lệch phí 0; (ii) 0,91 SE, 0 mã vùng ≤ 252; (iv) ca BSR khớp ba pivot; (v) 4.102 phép so, 0 ca lệch. (iii): rào hoà vốn 7,254e-5 mỗi đơn-vị-đầu-tư-ngày, mức đầu tư trung bình 0,1188, **100 lượt lặp mỗi ô** (bắt, khoảng Wilson 95%): 0× 6% [2,8 ; 12,5] · 0,5× 6% · 1× 9% [4,8 ; 16,2] · 2× 19% [12,5 ; 27,8] · 5× 47% [37,5 ; 56,7] · 7× 70% [60,4 ; 78,1] · **10× 89% [81,4 ; 93,7]** · 14× 99% · **20× 100% [96,3 ; 100]**. **MDE₈₀ (cận trên, lưới thô) = 10× rào = 7,254e-4 mỗi đơn-vị-đầu-tư-ngày = 2,17 điểm phần trăm vốn (71 ô) mỗi năm = 18,3 điểm phần trăm trên vốn đang đầu tư mỗi năm.** Độ lệch chuẩn của x̄ một lượt rút 2,737e-5 (1,96× = 5,37e-5); tiêm ở 20× = 1,72e-4 = 3,21 lần nửa bề rộng ấy (căn cứ chữ "gấp ba" trong S2).
+
+**Giả thuyết bị bác / ước lượng đã sai.** (1) *"Khoảng 0,5e-5 còn lại của (ii) là do quy ước nửa ngày"* (ứng viên của BƯỚC 251): sai, 0,16 SE; nó là hai yếu tố bị bỏ sót của công thức xấp xỉ. (2) *"Bản hoán vị mã (0,54 SE) là cách đúng để sửa (ii)"*: không dùng, vì nó kiểm một đối tượng KHÁC chuẩn mà A⁺ so Dow với; E_gt kiểm đúng chuẩn dịch vòng. (3) Tôi nghĩ nửa rào hoà vốn là mức "lực" hợp lý để đòi: sai — đường cong lực nằm xa hơn 10 lần; câu hỏi lực đúng là MDE, không phải một điều kiện K0. (4) (ii) không phải bằng chứng cho quy ước vào lệnh (vào ở mở cửa t+1): vị thế dịch vòng độc lập với lợi nhuận nên sai thứ tự không đổi kỳ vọng (xem (b)).
+
+**Chỗ NỚI so với bản ký, tách khỏi chỗ chỉ sửa khiếm khuyết (cho người dùng thấy rõ).** *Nới:* (N1) ô K0 của (iii): từ "nửa rào bắt ≥ 80% trên 30 lượt" (đo được 6,7%, TRƯỢT) sang "20× rào bắt ≥ 80% trên 100 lượt" (100%, đạt) — hạ yêu cầu từ lực phát hiện nửa rào xuống lực phát hiện 20× rào, và chuyển câu hỏi lực sang MDE báo cáo; (N2) ngưỡng lớn của kết cục từ H lên 2H: tripwire Quy tắc 1 (B: "đẹp tới nghi có lỗi") nay bắn ở Δ > 2H thay vì Δ > H, nên một Δ dương có ý nghĩa nằm trong (H, 2H] KHÔNG còn bị đòi soát lỗi mà thành A⁺ hoặc A; (N3) bỏ ba mục báo kèm (R8, R9, alpha từng lệnh) và H2 hạ xuống mô tả không KTC (đều không quyết định kết cục). *Chỉ sửa khiếm khuyết:* (F1) (ii): kỳ vọng ký trước KHÔNG thể đạt vì cơ chế tự nhiên của chuẩn (30,47 SE), thay bằng kỳ vọng giải tích — cùng dung sai 2 SE, nhưng nay kiểm được lỗi động cơ (gài lỗi ở (b)); (F2) bản đồ kết cục bỏ trống vài vùng — phủ kín, vùng rơi vào A (bảo thủ); (F3) "loại 0" của (ii)/(iii) trong A⁺ chỉ tính phía dương, C đòi cận trên KTC < 0 (siết); (F4) viết rõ định nghĩa "bắt", hai chọn lựa động cơ, khởi động chuẩn, cuối vùng, quần thể 33 mã. Các đối chứng dưới văn bản sửa ĐỀU ĐẠT, nhưng dưới bản ký (ii) và (iii) TRƯỢT; **đạt-sau-khi-đổi-luật không phải bằng chứng máy đo tốt hơn** (Quy tắc 1, chiều nới) — đó là lý do N1, N2 được nêu riêng và có phương án chặt hơn ở các câu hỏi.
+
+**Sổ tay (HỎI THẬT; đổi luật).** Lượt hỏi 03/11/2026 sau khi xoá nhật ký chat (0 tin trước), 20/20 nguồn tươi so với `2cd47f2`, bắt tay sha256 KHỚP; câu hỏi 3.145 đơn vị UTF-16. Kết quả ÂM (lối thoát). Tự kiểm các vế DƯƠNG (chi tiết ở mục `BƯỚC 252` của `docs/soat-notebooklm.json`): (1) *"quyết định đã được người dùng phê duyệt ở BƯỚC 251"* nói rộng hơn nguồn (người dùng quyết SỬA, chưa duyệt văn bản); (2) *"quy tắc cấm sửa đè chữ ký, bắt buộc giữ bản gốc"* KHÔNG TÌM THẤY — là tiền lệ, và đầu tệp tiêu chí nói ngược ý (*"để nó không thể sửa sau"*), cộng STATE dòng 6128–6137 (*"Sửa ngưỡng sau khi đã thấy dữ liệu nghiêng về một phía là đúng thứ bất biến 7 cấm, kể cả khi sửa theo hướng nghiêm khắc hơn"*); (3) *"nguyên tắc sửa có kiểm soát … miễn là chưa đọc kết quả thật"* KHÔNG TÌM THẤY; (4) Bất biến 5 và lỗi 99 CÓ THẬT. Hệ quả cho người dùng: hai khoản nới N1, N2 nằm sát nhất với dòng 6128–6137 (được đề xuất SAU khi thấy số của ĐỐI CHỨNG, chưa thấy số của Dow) và là chỗ người dùng quyết.
+
+**Lỗi 203** (`references/loi-da-mac.md`, lớp `gac-hong`): đối chứng (ii) ký trước đòi một giá trị (x̄ ≈ 0) mà phép tính liệt kê trên một ca nhỏ không cho, rồi chẩn đoán ở BƯỚC 251 dùng công thức xấp xỉ thiếu hai yếu tố và gọi phần dư là "chưa giải thích hết" trong khi tính ra được.
+
+**Đột biến** (`va_an_toan.dot_bien_bo`, 38 phát trên `tools/do_dow_cau_truc.py` gồm `ket_cuc`, E_gt, `doi_chung_ii`, K0 của (iii), MDE, Wilson, quy đổi năm, gài lỗi): lượt 1 — 32/35 đỏ, 3 sống sót: A⁺ với cận dưới KTC(i) `>= 0` thay `> 0`, A⁺ với `ktc_ii[0] >= 0`, cận trên Wilson không cắt ở 1. Hai phát đầu sống vì thiếu test đúng-biên-0: thêm ba assert (cận dưới đúng 0 của KTC(i), (ii), (iii)) → 3/3 đỏ. Phát cuối TƯƠNG ĐƯƠNG: cận Wilson tính ra không bao giờ vượt [0, 1] trên đầu vào hợp lệ (đã đo (100/100) → 0,9999999999999999), phép cắt chỉ là chốt phòng hờ nhiễu float.
+
+**Câu hỏi cho người dùng** (một phương án đề xuất mỗi khoản; phương án khác nằm trong câu hỏi): xem phần "Bản sửa chờ người dùng duyệt" của PR.
+
+**Năm cổng ở máy:** (điền sau lượt chạy cuối).
+
+**Việc kế.** Người dùng duyệt (hay sửa) văn bản; rồi BƯỚC 253 = Lát 4b (lật `CHO_PHEP_DOC_KET_QUA_THAT` trong commit riêng, chạy MỘT lần). KHÔNG chạy Lát 4b trước khi người dùng duyệt. Merge PR bằng `--merge`. Lỗi kế: 204.
