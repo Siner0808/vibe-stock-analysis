@@ -4237,6 +4237,110 @@
     "BƯỚC 250": {
       "ngay": "2026-11-02",
       "khong_bat_buoc_vi": "BƯỚC thêm Lát 3 của Dow theo lựa chọn người dùng 29/10 \"Module + hiển thị + đo chỉ-đọc\" và \"Swing + chu kỳ trên ô, Internal trong phần mở rộng\" và 30/10 \"Đến Lát 4, có số ĐO 34\": thêm hàm đọc doc_hien_thi cuối module thuần cau_truc_gia.py, hai ô và một khối mở trên app.py (chỉ để hiện, không vào điểm, sổ lệnh hay kế hoạch), lệnh cua-so của dụng cụ chỉ-đọc tools/mo_ta_cau_truc_gia.py (bảng đếm pivot swing ở ba cửa sổ, không đọc lợi nhuận), tests/test_cau_truc_gia_lat3.py (gác lời, gác định danh, gác nhập cho app.py), ghi chú thi công ở docs/thiet-ke-dow-cau-truc.md (không phải file luật) và ghi STATE, HANDOFF, bảng lỗi (lỗi 201), mốc số test, sổ này. Không sửa paper_trading.py, paper_runner.py, paper_metrics.py, pha_wyckoff.py, ke_hoach_vao_lenh.py, điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào; không ký ĐO mới và không đọc lợi nhuận (ĐO 34 đã ký ở BƯỚC 245, chưa chạy); không sửa file luật nào theo tools/buoc_cham_luat.py 250. Thêm một dòng vào bảng lỗi không đổi luật nào. Các số mô tả (bảng cửa sổ) là kết quả của MÁY ĐO mới trên cache, không phải kết luận đo về hệ giao dịch. Không duyệt sổ tay."
+    },
+    "BƯỚC 248": {
+      "ngay": "2026-11-03",
+      "nguon": [
+        "CLAUDE.md @a877ca6",
+        "HANDOFF.md @f27bc50",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @bbb516b",
+        "MO-XE-KIEN-TRUC.md @13c32a0",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @f27bc50",
+        "references/loi-da-mac.md @f27bc50",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @f27bc50",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "STATE.md @f27bc50 phan5/5 (BUOC 212-250)",
+        "TIEU-CHI-DOC-TRUOC.md @f27bc50"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với HEAD f2c0e45): 19 nguồn, 16 tươi; không tươi: HANDOFF.md @f27bc50 = CU; references/loi-da-mac.md @f27bc50 = CU; STATE.md @f27bc50 phan5/5 (BUOC 212-250) = CU — kết luận CU.",
+      "cau_hoi": "I am about to write BƯỚC 248 into docs/STATE.md: the simulated-coverage model of the Sân đấu (C1) confidence interval built in BƯỚC 243 (noise smoothed by a 20-session moving average, lag-1 autocorrelation 0.87-0.94) is WRONG, because random-entry accounts on the cache acf6dca1 have lag-1 autocorrelation 0.04, so the BƯỚC 243 coverage result (all 27 cells below 90%, 54-85%) is an artifact of the model and is replaced by a GARCH(1,1) t model; under the corrected model the frozen CI configuration is the paired circular block bootstrap with block length chosen by the Politis-White rule (function ktc_khoi_co_cap, do_dai PW, 5000 draws, percentiles 2.5-97.5, seed 0) with coverage 9 of 9 cells at or above 90% (minimum 91.22%), which is the configuration that ĐO 34 in docs/TIEU-CHI-DOC-TRUOC.md points to as the one locked by the BƯỚC that fixes the CI, while the fixed 10-session block chosen on 28/10/2026 fails at n=40 (84.35-87.19%). Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that ĐO 34 or the Dow design pins the CI to a fixed 10-session block, or that the C1 design (section 8.3 or 8.4 of docs/thiet-ke-c1-san-dau.md) or STATE BƯỚC 243 says the 10-session block length is final or that coverage below 90% is acceptable, or that says the autocorrelation of the account series is about 20 sessions. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "4ef475fc8bec4c301735cbe3e21ebc8e5bcdc63ccab4532a5dff8394eab6c2c1",
+        "dai16": 2379,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 2,
+            "nguon": "HANDOFF.md @f27bc50"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 3,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f27bc50"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 3,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f27bc50"
+          },
+          {
+            "n": 5,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 6,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 6,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 7,
+            "nguon": "HANDOFF.md @f27bc50"
+          },
+          {
+            "n": 2,
+            "nguon": "HANDOFF.md @f27bc50"
+          },
+          {
+            "n": 4,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 5,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 6,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @f27bc50 phan5/5 (BUOC 212-250)"
+          },
+          {
+            "n": 3,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f27bc50"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, câu trả lời ÂM, hỏi SAU commit khai trước (aaa41ef) và SAU khi đã khoá cấu hình (cecf3f4), trên cây f27bc50 (sổ tay 19/19 nguồn TƯƠI; kiểm đọc-đủ: chạm cuối STATE/TIEU-CHI/loi-da-mac nhưng trả sai 2/4 câu hàng xóm, nên MỌI vế dưới đây tự kiểm bằng lệnh, cả hai chiều). Sổ tay nói: không có chỗ nào mâu thuẫn; ĐO 34 không ghim khối 10 phiên; BƯỚC 243 không coi khối 10/độ phủ < 90% là cuối cùng và tự nhận 'tự tương quan 20 phiên của mô hình' là giả thuyết; mọi BƯỚC sau chờ BƯỚC 248. Tự kiểm: (1) THẬT — ĐO 34 không ghim 10 phiên: `awk '/^## ĐO 34/,0' docs/TIEU-CHI-DOC-TRUOC.md | grep -n \"10 phiên\\|khối 10\"` → các dòng 4, 6, 36, 42: dòng 6 và 42 chỉ nhắc 'Bản nháp ghim khối 10 phiên … đã bị thay' (lịch sử, có nhãn), dòng 36 là 'con sóng 3/8 VÀ 10 phiên' (tham số khác, không phải KTC); câu KTC (dòng 42) viết 'theo ĐÚNG cấu hình được khoá bởi BƯỚC sửa cách tính KTC'. (2) THẬT — trích 'tự tương quan 20 phiên của mô hình lớn hơn nhiều L ≤ 21': `grep -n \"tự tương quan 20 phiên của mô hình lớn hơn nhiều\" docs/STATE.md` → :24955 (BƯỚC 243). (3) THẬT — 'các BƯỚC sau chờ BƯỚC 248': `grep -n \"BƯỚC 248\" docs/STATE.md` → :25127 (BƯỚC 247) 'Lát 4 chờ BƯỚC sửa KTC sân đấu (BƯỚC 248)', :25165, :25207 (BƯỚC 250) '(BƯỚC 248, PR #295)'; HANDOFF :319 (BƯỚC 250) 'Lát 4 (ĐO 34) chờ BƯỚC 248'. (4) SAI một phần — dải 'độ phủ dưới 90% (54,2%–84,6%)': `python -c` trên `git show a619cbe:docs/san-dau-do-phu.json` → 27 ô, nhỏ nhất 0,481 (L5, n=40, tho), lớn nhất 0,846; 54,2 là nhỏ nhất của riêng L=10 (54,25). Đây là lỗi của CHÍNH tôi, đã vào câu hỏi gửi đi ('54-85%') và vào bản đầu STATE/lỗi 200 — đã sửa thành 48,1–84,6% ở STATE BƯỚC 248 và dòng lỗi 200; sổ tay chỉ lặp lại số tôi đưa. (5) Vế ÂM chính, VÌ docs/thiet-ke-c1-san-dau.md và docs/thiet-ke-dow-cau-truc.md KHÔNG phải nguồn sổ tay nên nó không thể kiểm §8.3/§8.4: `grep -n \"10 phiên\" docs/thiet-ke-c1-san-dau.md` → :158 🔴 THAY THẾ ở BƯỚC 248, :159 (bản 10 phiên giữ làm LỊCH SỬ, ngay dưới dòng :158), :225 (số đo L=10 hỏng sau khi chốt), :335 (bảng quyết định 28/10, lịch sử); `grep -n \"chấp nhận\\|dưới 90\" docs/thiet-ke-c1-san-dau.md` → :169 (đánh dấu SAI), :172, :181, :221, :223, :225 — không dòng nào nói 'khối 10 phiên là cuối cùng' hay 'độ phủ dưới 90% chấp nhận được' mà không kèm nhãn thay thế; `grep -rn \"khối 10 phiên\\|khối 10\\b\" docs --include=*.md` ngoài STATE/HANDOFF/lich-su → thiet-ke-dow-cau-truc.md :267 (🔴 HẾT ĐÚNG) và :300 (bản nháp lịch sử bị :267 phủ), TIEU-CHI-DOC-TRUOC.md :4691 (lý do đổi). Không phát hiện nào cần đổi nội dung BƯỚC 248."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

@@ -145,9 +145,9 @@ def test_ktc_nho_dau_vao_sai_thi_NO():
 
 
 def test_hang_so_dac_ta_8_3_va_8_4():
-    assert (sd.DO_DAI_KHOI, sd.DO_DAI_KHOI_NHAY) == (10, (5, 21))
+    assert sd.DO_DAI_KHOI == "PW"                       # khoá ở BƯỚC 248 (cũ: 10 phiên)
     assert (sd.VONG_KTC, sd.HAT_KTC, sd.PHAN_VI_KTC) == (5000, 0, (2.5, 97.5))
-    assert (sd.LUOI_N, sd.SO_LAN_LAP_DO_PHU, sd.HAT_DO_PHU, sd.NGUONG_DO_PHU) == ((40, 113, 252), 2000, 0, 0.90)
+    assert (sd.LUOI_N, sd.SO_LAN_LAP_DO_PHU, sd.HAT_DO_PHU, sd.NGUONG_DO_PHU) == ((40, 113, 252), 10_000, 0, 0.90)
     import paper_metrics as pm
     import inspect
     assert "VONG = 5000" in inspect.getsource(pm.vs_benchmark), "cùng VONG với vs_benchmark"
@@ -183,43 +183,7 @@ def test_do_phu_mot_o_dem_dung_ty_le_va_dung_dau_bang_khi_khoang_la_diem_0():
         sd.do_phu_mot_o(40, 10, "dang_la", so_lan=2, vong=50)
 
 
-# ── 3. mô hình sinh của phép thử độ phủ ───────────────────────────────────────────────────────
-@pytest.fixture(scope="module")
-def chuoi_sinh():
-    return sd.sinh_chuoi_do_phu(252, 400)
-
-
-def _cap_ke_nhau_khac_0(a):
-    x, y = a[:, :-1], a[:, 1:]
-    ok = (x != 0) & (y != 0)
-    return x[ok], y[ok]
-
-
-def test_mo_hinh_sinh_trung_binh_that_bang_0_va_phan_doan_khong_giu_dung_dac_ta(chuoi_sinh):
-    a, b, a_tho = chuoi_sinh
-    assert a.shape == b.shape == a_tho.shape == (400, 252)
-    assert abs(a.mean()) < 0.05 and abs(b.mean()) < 0.05 and abs(a_tho.mean()) < 0.05
-    ty_le_khong = float((a == 0).mean())
-    ky_vong = (1 / sd.TB_DOAN_GIU) / (1 / sd.TB_DOAN_GIU + sd.P_VAO_GIU)      # tỷ lệ KHÔNG giữ ở phân phối dừng
-    assert ky_vong == pytest.approx(0.4) and abs(ty_le_khong - ky_vong) < 0.04, ty_le_khong
-    assert ((a == 0) == (b == 0)).all(), "A và B chung mặt nạ không giữ"
-    assert (a_tho != 0).all() and np.array_equal(a_tho * (a != 0), a)
-
-
-def test_mo_hinh_sinh_tu_tuong_quan_thanh_phan_chung_va_duoi_day(chuoi_sinh):
-    a, b, a_tho = chuoi_sinh
-    x, y = _cap_ke_nhau_khac_0(a)
-    rho1 = float(np.corrcoef(x, y)[0, 1])
-    assert 0.90 < rho1 < 0.99, rho1                       # trung bình trượt 20 phiên: ρ(1) = 19/20
-    ok = (a != 0)
-    rho_ab = float(np.corrcoef(a[ok], b[ok])[0, 1])
-    assert 0.40 < rho_ab < 0.60, rho_ab                   # TY_TRONG_CHUNG = 0,5
-    # đuôi dày t4: phương sai t4 = 2 (t100 = 1,02); mô hình có phương sai ~ 2 trước mặt nạ
-    assert 1.5 < float(a_tho.var()) < 2.6, float(a_tho.var())
-    # độc lập giữa phần riêng: sinh hai lần cùng hạt thì GIỐNG nhau, đổi n hay hạt thì khác
-    assert all(np.array_equal(p, q) for p, q in zip(sd.sinh_chuoi_do_phu(252, 400), chuoi_sinh))
-    assert not np.array_equal(sd.sinh_chuoi_do_phu(113, 4)[2][0, :10], sd.sinh_chuoi_do_phu(252, 4)[2][0, :10])
-    assert not np.array_equal(sd.sinh_chuoi_do_phu(40, 4, hat=1)[0], sd.sinh_chuoi_do_phu(40, 4, hat=0)[0])
+# ── 3. mô hình sinh của phép thử độ phủ: xem `tests/test_san_dau_mo_hinh.py` (BƯỚC 248 thay mô hình của BƯỚC 243) ───────
 
 
 # ── 4. file đã commit ─────────────────────────────────────────────────────────────────────────
@@ -230,7 +194,7 @@ def _bang_that() -> dict:
 def test_file_do_phu_da_commit_hop_le_va_khop_hang_so_cua_ma():
     bang = _bang_that()
     assert sd.vi_pham_bang_do_phu(bang) == []
-    assert set(bang["do_phu"]) == {"L10", "L5", "L21"} and list(bang["tham_so"]["luoi_n"]) == [40, 113, 252]
+    assert set(bang["do_phu"]) == {"PW"} and list(bang["tham_so"]["luoi_n"]) == [40, 113, 252]
     for theo_n in bang["do_phu"].values():
         for o in theo_n.values():
             assert set(o) == set(sd.DANG_KTC) and all(0.0 <= p <= 1.0 for p in o.values())
@@ -239,12 +203,11 @@ def test_file_do_phu_da_commit_hop_le_va_khop_hang_so_cua_ma():
             (x for t in bang["do_phu"].values() for x in t.values()) for p in o.values()))
 
 
-@pytest.mark.parametrize("ld, n, dang", [("L10", 40, "cap"), ("L21", 40, "mot_chuoi"), ("L5", 40, "tho")])
-def test_file_do_phu_da_commit_BANG_do_lai_o_ba_o_n_40(ld, n, dang):
-    """Ghim file vào mã: đổi hàm KTC, mô hình sinh hay phép đếm mà không chạy lại `do-phu` thì ô này lệch. Ba ô ở
-    n = 40 (đo lại đủ 2000 lần, vài giây mỗi ô); cả file đo lại bằng `tools/san_dau.py do-phu --kiem`."""
-    do_dai = int(ld[1:])
-    p = sd.do_phu_mot_o(n, do_dai, dang)
+@pytest.mark.parametrize("ld, n, dang", [("PW", 40, "cap")])
+def test_file_do_phu_da_commit_BANG_do_lai_o_cap_n_40(ld, n, dang):
+    """Ghim file vào mã: đổi hàm KTC, quy tắc khối, mô hình sinh hay phép đếm mà không chạy lại `do-phu` thì ô này
+    lệch. MỘT ô (n = 40, dạng cặp) đo lại đủ 10.000 lần; cả file đo lại bằng `tools/san_dau.py do-phu --kiem`."""
+    p = sd.do_phu_mot_o(n, sd.DO_DAI_KHOI, dang)
     assert p == _bang_that()["do_phu"][ld][str(n)][dang]
 
 
@@ -261,10 +224,13 @@ def test_vi_pham_bang_do_phu_bat_file_lech_hang_so_thieu_o_va_ty_le_vo_ly():
     bang = _bang_that()
     assert sd.vi_pham_bang_do_phu(bang) == []
     for sua in (lambda b: b["tham_so"].update(hat=1), lambda b: b["tham_so"].update(so_lan_lap=100),
-                lambda b: b["tham_so"].update(luoi_n=[40, 113]), lambda b: b["mo_hinh"].update(bac_tu_do_t=30),
-                lambda b: b["mo_hinh"].update(cua_so_vi_the=1), lambda b: b["mo_hinh"].update(tb_doan_giu=3),
-                lambda b: b["do_phu"]["L10"].pop("113"), lambda b: b["do_phu"]["L21"]["252"].pop("tho"),
-                lambda b: b["do_phu"]["L5"]["40"].update(cap=1.2), lambda b: b["do_phu"]["L5"]["40"].update(cap=True),
+                lambda b: b["tham_so"].update(luoi_n=[40, 113]), lambda b: b["mo_hinh"].update(garch_nu=30),
+                lambda b: b["mo_hinh"].update(garch_alpha=0.5), lambda b: b["mo_hinh"].update(tb_doan_giu=3),
+                lambda b: b["cau_hinh_khoa"].update(nhan="L10"), lambda b: b["cau_hinh_khoa"].update(vong=1000),
+                lambda b: b["tham_so"].update(ung_vien=["L10"]), lambda b: b.pop("cau_hinh_khoa"),
+                lambda b: b["do_phu"]["PW"].pop("113"), lambda b: b["do_phu"]["PW"]["252"].pop("tho"),
+                lambda b: b["do_phu"]["PW"]["40"].update(cap=1.2), lambda b: b["do_phu"]["PW"]["40"].update(cap=True),
+                lambda b: b["do_phu"].update(L10=b["do_phu"].pop("PW")),
                 lambda b: b.pop("do_phu")):
         x = json.loads(json.dumps(bang))
         sua(x)
@@ -274,11 +240,11 @@ def test_vi_pham_bang_do_phu_bat_file_lech_hang_so_thieu_o_va_ty_le_vo_ly():
 
 # ── 5. nhãn độ phủ ────────────────────────────────────────────────────────────────────────────
 def _bang_gia(ghi_de: dict | None = None) -> dict:
-    """Bảng độ phủ tổng hợp: mọi ô 0,93, trừ ô được ghi đè {(L, n, dạng): p}."""
-    dp = {f"L{ld}": {str(n): {d: 0.93 for d in sd.DANG_KTC} for n in sd.LUOI_N}
-          for ld in (sd.DO_DAI_KHOI, *sd.DO_DAI_KHOI_NHAY)}
+    """Bảng độ phủ tổng hợp: mọi ô 0,93 ở các nhãn PW (cấu hình khoá), L10 và L21, trừ ô được ghi đè
+    {(nhãn, n, dạng): p}."""
+    dp = {ld: {str(n): {d: 0.93 for d in sd.DANG_KTC} for n in sd.LUOI_N} for ld in ("PW", "L10", "L21")}
     for (ld, n, d), p in (ghi_de or {}).items():
-        dp[f"L{ld}"][str(n)][d] = p
+        dp[ld][str(n)][d] = p
     return sd.dung_bang_do_phu(dp)
 
 
@@ -299,13 +265,13 @@ def test_nhan_n_nho_hon_40_la_mau_qua_ngan_va_khong_in_KTC_hay_95():
                                        (252, 252), (253, 252), (10_000, 252)])
 def test_nhan_n_khong_co_tren_luoi_dung_diem_luoi_lon_nhat_khong_vuot_n(n, n_luoi):
     dong = sd.dinh_dang_ktc(n, "mot_chuoi", KTC_MAU, _bang_gia())
-    assert f"(n={n_luoi}, L=10)" in dong
+    assert f"(n={n_luoi}, khối=PW)" in dong
     assert dong.startswith("KTC danh nghĩa 95% [-0.123 ; +0.432] — độ phủ đo được 93.0% (")
 
 
 def test_nhan_do_phu_duoi_90_them_nhan_mau_qua_ngan_va_tu_90_tro_len_thi_khong():
-    bang = _bang_gia({(10, 113, "cap"): 0.8999, (10, 252, "cap"): 0.90, (10, 40, "cap"): 0.5905,
-                        (10, 113, "tho"): 0.0})
+    bang = _bang_gia({("PW", 113, "cap"): 0.8999, ("PW", 252, "cap"): 0.90, ("PW", 40, "cap"): 0.5905,
+                        ("PW", 113, "tho"): 0.0})
     thap = sd.dinh_dang_ktc(113, "cap", KTC_MAU, bang)
     assert thap.endswith("mẫu quá ngắn: độ phủ đo được dưới 90%") and "độ phủ đo được 90.0%" in thap
     dung = sd.dinh_dang_ktc(252, "cap", KTC_MAU, bang)
@@ -317,11 +283,12 @@ def test_nhan_do_phu_duoi_90_them_nhan_mau_qua_ngan_va_tu_90_tro_len_thi_khong()
 
 
 def test_nhan_doc_dung_do_dai_khoi_va_o_chua_do_thi_khong_in():
-    bang = _bang_gia({(21, 113, "cap"): 0.61})
-    assert "độ phủ đo được 93.0%" in sd.dinh_dang_ktc(113, "cap", KTC_MAU, bang, do_dai=10)
+    bang = _bang_gia({("L21", 113, "cap"): 0.61})
+    assert "độ phủ đo được 93.0% (n=113, khối=L10)" in sd.dinh_dang_ktc(113, "cap", KTC_MAU, bang, do_dai=10)
+    assert "(n=113, khối=PW)" in sd.dinh_dang_ktc(113, "cap", KTC_MAU, bang)
     dong = sd.dinh_dang_ktc(113, "cap", KTC_MAU, bang, do_dai=21)
-    assert "độ phủ đo được 61.0% (n=113, L=21)" in dong
-    bang["do_phu"]["L10"]["113"].pop("cap")
+    assert "độ phủ đo được 61.0% (n=113, khối=L21)" in dong
+    bang["do_phu"]["PW"]["113"].pop("cap")
     dong = sd.dinh_dang_ktc(113, "cap", KTC_MAU, bang)
     assert "chưa đo độ phủ" in dong and "95" not in dong
 
@@ -394,8 +361,8 @@ def test_tab_app_chua_co_nhung_neu_co_thi_khong_ghep_95_rieng():
 def bang_co_do_phu(gia_ktc):
     mp = pytest.MonkeyPatch()
     try:
-        yield _dung(gia_ktc, mp, do_phu=_bang_gia({(10, 40, "cap"): 0.7, (10, 40, "mot_chuoi"): 0.95,
-                                                     (10, 40, "tho"): 0.5}))
+        yield _dung(gia_ktc, mp, do_phu=_bang_gia({("PW", 40, "cap"): 0.7, ("PW", 40, "mot_chuoi"): 0.95,
+                                                     ("PW", 40, "tho"): 0.5}))
     finally:
         mp.undo()
 
@@ -413,7 +380,7 @@ def test_bang_moi_KTC_mang_nhan_do_phu_cua_dung_dang_va_thuoc_2_tinh_tren_cap_ph
     dong_ktc = [d for d in ra if d.lstrip().startswith("KTC thuoc") or d.lstrip().startswith("KTC tho")]
     assert len(b["phuong_an"]) == 2 and len(dong_ktc) == 2 + 3 * 2, "đường thật 2 + mỗi phương án (thước 1, thô, thước 2) × 3"
     for d in dong_ktc:
-        assert "KTC danh nghĩa 95%" in d and "độ phủ đo được" in d and "(n=40, L=10)" in d, d
+        assert "KTC danh nghĩa 95%" in d and "độ phủ đo được" in d and "(n=40, khối=PW)" in d, d
     assert sum("mẫu quá ngắn: độ phủ đo được dưới 90%" in d for d in dong_ktc) == 2 + 3   # thước 2 ×2 (0,70) + thô ×3 (0,50)
     assert all(("độ phủ đo được 95.0%" in d) for d in dong_ktc if d.lstrip().startswith("KTC thuoc 1"))
     assert all(("độ phủ đo được 70.0%" in d) for d in dong_ktc if d.lstrip().startswith("KTC thuoc 2"))
@@ -482,7 +449,7 @@ def test_doc_bang_do_phu_thieu_file_la_None_file_hong_thi_NO_file_that_doc_duoc(
     ok = tmp_path / "ok.json"
     ok.write_text(json.dumps(bang), encoding="utf-8")
     assert cli.doc_bang_do_phu(ok) == bang
-    bang["do_phu"]["L10"]["40"]["cap"] = 7
+    bang["do_phu"]["PW"]["40"]["cap"] = 7
     xau = tmp_path / "xau.json"
     xau.write_text(json.dumps(bang), encoding="utf-8")
     with pytest.raises(ValueError):
@@ -490,25 +457,30 @@ def test_doc_bang_do_phu_thieu_file_la_None_file_hong_thi_NO_file_that_doc_duoc(
     assert cli.doc_bang_do_phu() == _bang_that() and cli.SO_DO_PHU == DUONG_DO_PHU
 
 
-def test_lenh_do_phu_json_in_bang_hop_le_khong_ghi_file_va_kiem_so_voi_file(tmp_path, capsys):
+def test_lenh_do_phu_json_in_bang_hop_le_khong_ghi_file_va_kiem_so_voi_file(tmp_path, capsys, monkeypatch):
     cli = _nap_cli()
+    monkeypatch.setattr(sd, "UNG_VIEN_KTC", ("PW",))       # 8 lần lặp thì ngưỡng 90% là xổ số: ép đạt để thử ĐƯỜNG ĐI
+    monkeypatch.setattr(sd, "NGUONG_DO_PHU", 0.0)
     truoc = DUONG_DO_PHU.read_bytes()
     assert cli.main(["do-phu", "--json", "--so-lan", "8"]) == cli.MA_BANG_NHAU
     ra = json.loads(capsys.readouterr().out)
-    assert ra["tham_so"]["so_lan_lap"] == 8 and set(ra["do_phu"]) == {"L10", "L5", "L21"}
+    assert ra["tham_so"]["so_lan_lap"] == 8 and set(ra["do_phu"]) == {"PW"}
+    assert [m["nhan"] for m in ra["ung_vien_da_thu"]] == ["PW"] and set(ra["kiem_lai"]) == {"hat1", "hat2"}
+    assert ra["cang_thang"]["phi"] == sd.PHI_CANG_THANG
     assert sd.vi_pham_bang_do_phu(ra), "so-lan 8 khác đặc tả nên file in ra KHÔNG hợp lệ với hằng số: gác bắt"
     assert DUONG_DO_PHU.read_bytes() == truoc, "lệnh không ghi file"
     f = tmp_path / "dp.json"
     f.write_text(json.dumps(ra), encoding="utf-8")
     assert cli.main(["do-phu", "--kiem", "--so-lan", "8", "--duong", str(f)]) == cli.MA_BANG_NHAU
     assert "KHOP" in capsys.readouterr().out
-    ra["do_phu"]["L10"]["40"]["cap"] = 0.123
+    ra["do_phu"]["PW"]["40"]["cap"] = 0.123
     f.write_text(json.dumps(ra), encoding="utf-8")
     assert cli.main(["do-phu", "--kiem", "--so-lan", "8", "--duong", str(f)]) == cli.MA_KHAC
     assert "KHAC" in capsys.readouterr().out
     assert cli.main(["do-phu", "--so-lan", "8"]) == cli.MA_BANG_NHAU
     ban = capsys.readouterr().out
-    assert "DO PHU KTC" in ban and " L10    40 " in ban and "L21   252" in ban
+    assert "DO PHU KTC" in ban and " PW    40 " in ban and "PW   252" in ban and "CAU HINH KHOA" in ban
+    assert "ung vien   PW" in ban and "kiem lai hat1" in ban and "cang thang phi=" in ban
 
 
 def test_lenh_bang_doc_bang_do_phu_tu_co_do_phu_va_canh_bao_khi_thieu_file(gia_ktc, tmp_path, monkeypatch, capsys):
@@ -530,10 +502,10 @@ def test_lenh_bang_doc_bang_do_phu_tu_co_do_phu_va_canh_bao_khi_thieu_file(gia_k
                                                               **({"VNINDEX": vni} if "VNINDEX" in ds else {})))
     chung = ["bang", "--so-tam", str(db), "--tu-ngay", S.PHIEN[0], "--den-ngay", S.PHIEN[80], "--so-phuong-an", str(pa)]
     dp = tmp_path / "dp.json"
-    dp.write_text(json.dumps(_bang_gia({(10, 40, "cap"): 0.66})), encoding="utf-8")
+    dp.write_text(json.dumps(_bang_gia({("PW", 40, "cap"): 0.66})), encoding="utf-8")
     assert cli.main([*chung, "--do-phu", str(dp)]) == cli.MA_BANG_NHAU
     ra = capsys.readouterr().out
-    assert "doc tu docs/san-dau-do-phu.json" in ra and "độ phủ đo được 66.0% (n=40, L=10)" in ra
+    assert "doc tu docs/san-dau-do-phu.json" in ra and "độ phủ đo được 66.0% (n=40, khối=PW)" in ra
     assert "CANH BAO: khong co bang do phu" not in ra
     assert cli.main([*chung, "--do-phu", str(tmp_path / "khong_co.json")]) == cli.MA_BANG_NHAU
     ra = capsys.readouterr().out
@@ -546,7 +518,7 @@ def test_lenh_bang_doc_bang_do_phu_tu_co_do_phu_va_canh_bao_khi_thieu_file(gia_k
 def test_in_bang_do_phu_ghi_thang_o_nao_duoi_90():
     cli = _nap_cli()
     ra: list = []
-    cli.in_bang_do_phu(_bang_gia({(10, 113, "cap"): 0.71}), ghi=ra.append)
+    cli.in_bang_do_phu(_bang_gia({("PW", 113, "cap"): 0.71}), ghi=ra.append)
     van = "\n".join(ra)
     assert "DUOI 90%: cap" in van and van.count("DUOI 90%") == 1
     assert "sai so Monte Carlo toi da" in van
