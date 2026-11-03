@@ -222,7 +222,7 @@ Thống kê: **trung bình** của chuỗi (`x_t` hoặc `d_t`). Cộng dồn tr
 
 Kiểm lại (CHỈ BÁO CÁO, không đổi cấu hình): hạt 1 nhỏ nhất 91,40%, hạt 2 nhỏ nhất 91,40% — cả hai lượt đủ 9 ô ≥ 90%. Mô hình CĂNG THẲNG (tự hồi quy bậc 1 φ = 0,15, cao hơn mọi số đo được): n = 40 cho 89,26 (`cap`) · 90,27 (`mot_chuoi`) · 89,26 (`tho`) — **hai ô dưới 90%**; n = 113 và 252: 91,22–93,10%. Hiểu đúng: nếu chuỗi thật có tự tương quan bậc 1 cỡ 0,15 thì ở n = 40 độ phủ thật là ~89%, gần ngưỡng chứ không xa. Nhãn "độ phủ đo được 91,x%" ở n = 40 vì thế nói về MÔ HÌNH SINH, như mục 8.4 vốn nói.
 
-Thông tin sau khi chốt (KHÔNG dùng để chọn; chạy `do-phu --chon --ung-vien L10,L5`): `L` = 10 cho 85,89 · 87,19 · 84,35% ở n = 40 (hỏng), `L` = 5 cho 89,71 · 90,91 · 89,56% ở n = 40 (hai ô dưới 90%). Tức khối 10 phiên mà người dùng chốt 28/10 sẽ chưa đủ ngay cả dưới mô hình đúng.
+Thông tin sau khi chốt (KHÔNG dùng để chọn; chạy `do-phu --chon --cau-hinh L10,L5`): `L` = 10 cho 85,89 · 87,19 · 84,35% ở n = 40 (hỏng), `L` = 5 cho 89,71 · 90,91 · 89,56% ở n = 40 (hai ô dưới 90%). Tức khối 10 phiên mà người dùng chốt 28/10 sẽ chưa đủ ngay cả dưới mô hình đúng.
 
 ### 8.5 Không làm ở C1
 
