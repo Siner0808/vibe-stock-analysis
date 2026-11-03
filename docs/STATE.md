@@ -25299,13 +25299,13 @@ Quần thể: 33 trong 71 mã có phiên trước mốc dữ liệu sạch (38 m
 **Việc kế.** BƯỚC 252 (sửa ĐO 34), rồi BƯỚC 253 (Lát 4b: lật `CHO_PHEP_DOC_KET_QUA_THAT` trong commit riêng và chạy MỘT lần). KHÔNG chạy Lát 4b trước đó. Merge PR bằng `--merge`. Lỗi kế: 203.
 
 
-## BƯỚC 252 — SỬA VĂN BẢN ĐO 34 TRƯỚC LƯỢT CHẠY DUY NHẤT: ĐỐI CHỨNG (ii) ĐỐI CHIẾU KỲ VỌNG GIẢI TÍCH · ĐỐI CHỨNG (iii) CÓ LƯỚI + MDE + Ô K0 20× RÀO · BẢN ĐỒ KẾT CỤC TOÀN PHẦN (LỚN = 2H) · BẢN CHỜ NGƯỜI DÙNG DUYỆT, CHƯA CÓ HIỆU LỰC (03/11/2026)
+## BƯỚC 252 — SỬA VĂN BẢN ĐO 34 TRƯỚC LƯỢT CHẠY DUY NHẤT: ĐỐI CHỨNG (ii) ĐỐI CHIẾU KỲ VỌNG GIẢI TÍCH · ĐỐI CHỨNG (iii) CÓ LƯỚI + MDE + Ô K0 20× RÀO · BẢN ĐỒ KẾT CỤC TOÀN PHẦN (LỚN = 2H) · NGƯỜI DÙNG ĐÃ DUYỆT (03/11/2026)
 
 **Mốc:** B5
 
 Mốc mượn như BƯỚC 244–251 (`docs/LO-TRINH.md` chưa có dòng riêng cho cấu trúc giá; BƯỚC này KHÔNG sửa nó). Phiên con của leader, nhánh `do34/sua-252` (từ `origin/main` `2cd47f2`), worktree ngoài repo `vibe_wt_252`; python = `../vibe_preview/.venv/Scripts/python.exe`. Người dùng 03/11/2026: *"Sửa ĐO 34 trước khi đọc (Recommended)"* (BƯỚC 251); phạm vi trước đó *"làm cho xong lý thuyết DOW đi"* · *"Đến Lát 4, có số ĐO 34 (Recommended)"*.
 
-**Trạng thái: BẢN SỬA CHỜ NGƯỜI DÙNG DUYỆT.** Người dùng đã quyết SỬA văn bản (BƯỚC 251); người dùng CHƯA duyệt văn bản đã sửa. Khối `### SỬA ĐO 34` ở cuối mục ĐO 34 của `docs/TIEU-CHI-DOC-TRUOC.md` ghi "CHỜ NGƯỜI DÙNG DUYỆT"; chưa duyệt thì nó chưa thay gì và BƯỚC 253 (Lát 4b) KHÔNG chạy. PR của BƯỚC này mở ở dạng nháp, không tự hợp nhất.
+**Trạng thái: NGƯỜI DÙNG ĐÃ DUYỆT bản sửa, 03/11/2026.** Sau khi đọc báo cáo của BƯỚC này (bản sửa chờ duyệt, các khoản NỚI N1–N3 nêu riêng, lực đo yếu, căng thẳng với bất biến 7), leader hỏi người dùng và chuyển NGUYÊN VĂN (cũng ghi ở bình luận PR #298): (1) hướng — *"Duyệt sửa, chạy 4b (Recommended)"*; (2) ô K0 của đối chứng (iii) — *"20× rào (Recommended)"*; (3) ngưỡng lớn — *"2H (Recommended)"*; (4) các khoản còn lại ((ii) so với kỳ vọng giải tích, trọng số 1/71, bỏ R8 · R9 · alpha từng lệnh, H2 chỉ mô tả, ghi hai chọn lựa của động cơ) — *"Duyệt cả theo đề xuất (Recommended)"*. Khối `### SỬA ĐO 34` trong `docs/TIEU-CHI-DOC-TRUOC.md` ghi lại bốn câu ấy và CÓ HIỆU LỰC từ 03/11/2026. (Phiên con không tự hỏi người dùng; bốn câu là lời leader chuyển, kèm bình luận PR.)
 
 **Ranh giới đã giữ.** Không có Δ của danh mục Dow so với chuẩn nào, không có KTC của Δ, không có nhãn kết cục nào trên dữ liệu thật — không trong STATE này, không trong log, không trong PR. `CHO_PHEP_DOC_KET_QUA_THAT` vẫn `False`; `chay_ket_qua` vẫn không được gọi ở đâu ngoài test. Mọi số dưới đây là số của ĐỐI CHỨNG: tính từ trạng thái, độ dài khoảng và mức đầu tư của Dow (không lợi nhuận của Dow), từ lợi nhuận của chính các chuẩn ngẫu nhiên, hoặc trên dữ liệu tổng hợp.
 
@@ -25342,8 +25342,8 @@ Khoảng "chưa giải thích hết" của BƯỚC 251 (đo 2,634e-5 so với gi
 
 **Đột biến** (`va_an_toan.dot_bien_bo`, 38 phát trên `tools/do_dow_cau_truc.py` gồm `ket_cuc`, E_gt, `doi_chung_ii`, K0 của (iii), MDE, Wilson, quy đổi năm, gài lỗi): lượt 1 — 32/35 đỏ, 3 sống sót: A⁺ với cận dưới KTC(i) `>= 0` thay `> 0`, A⁺ với `ktc_ii[0] >= 0`, cận trên Wilson không cắt ở 1. Hai phát đầu sống vì thiếu test đúng-biên-0: thêm ba assert (cận dưới đúng 0 của KTC(i), (ii), (iii)) → 3/3 đỏ. Phát cuối TƯƠNG ĐƯƠNG: cận Wilson tính ra không bao giờ vượt [0, 1] trên đầu vào hợp lệ (đã đo (100/100) → 0,9999999999999999), phép cắt chỉ là chốt phòng hờ nhiễu float.
 
-**Câu hỏi cho người dùng** (một phương án đề xuất mỗi khoản; phương án khác nằm trong câu hỏi): xem phần "Bản sửa chờ người dùng duyệt" của PR.
+**Quyết định (không còn câu hỏi mở).** Bốn câu trả lời nguyên văn ở mục *Trạng thái*: phương án ĐỀ XUẤT được chọn ở cả bốn khoản — (ii) so với kỳ vọng giải tích (không dùng bản hoán vị, không bỏ); (iii) K0 ở 20× rào (không phải 10× hay nửa rào); ngưỡng lớn 2H (không phải 1,5H hay H); trọng số giữ 1/71; bỏ R8 · R9 · alpha từng lệnh; H2 chỉ mô tả; hai chọn lựa động cơ giữ và ghi vào văn bản. Bản sửa NỚI N1, N2 (ô K0 của (iii); ngưỡng lớn) được duyệt với đầy đủ thông tin về MDE và bất biến 7.
 
-**Năm cổng ở máy:** (điền sau lượt chạy cuối).
+**Năm cổng ở máy** (`tools/nam_cong.py --tuan-tu`, 03/11 19:33–19:39, 335 s, cây `8fd2ff7`): cổng 1 4409 passed, 2 skipped (4411 = mốc mới, 4403 + 8) · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file test xanh một mình · cổng 5 4411 test khớp mốc. Sau lượt ấy chỉ đổi văn bản ghi lại quyết định của người dùng (TIEU-CHI, STATE, HANDOFF, ghi chú ở `tools/do_dow_cau_truc.py` và `docs/thiet-ke-dow-cau-truc.md`); lượt chạy lại trên cây cuối ghi ở bình luận PR #298.
 
-**Việc kế.** Người dùng duyệt (hay sửa) văn bản; rồi BƯỚC 253 = Lát 4b (lật `CHO_PHEP_DOC_KET_QUA_THAT` trong commit riêng, chạy MỘT lần). KHÔNG chạy Lát 4b trước khi người dùng duyệt. Merge PR bằng `--merge`. Lỗi kế: 204.
+**Việc kế.** BƯỚC 253 = Lát 4b: lật `CHO_PHEP_DOC_KET_QUA_THAT` trong một commit RIÊNG và chạy kết cục MỘT lần dưới văn bản đã duyệt (hạt 0, băm cache trước/sau, in cấu hình KTC); kết cục ghi đúng chữ S2/S3 (A = *"không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0"*, không phải *"Dow không có lợi thế"*); B ⇒ DỪNG, Quy tắc 1, soát lỗi trước khi đọc tiếp, báo người dùng. Merge PR bằng `--merge`. Lỗi kế: 204.

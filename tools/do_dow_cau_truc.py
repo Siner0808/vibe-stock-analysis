@@ -16,7 +16,7 @@ bị khoá sau `CHO_PHEP_DOC_KET_QUA_THAT` (= False ở Lát 4a) VÀ một cờ 
 CHỈ ĐỌC: không mạng, không `import vnstock`, không ghi cache, không đọc sổ lệnh. Chỉ ghi MỘT file JSON kết quả
 ở đường dẫn người gọi chọn (`--ghi`).
 
-BƯỚC 252 SỬA văn bản ĐO 34 TRƯỚC lượt chạy duy nhất (khối `### SỬA ĐO 34` ở cuối mục, CHỜ người dùng duyệt): đối chứng (ii) đối
+BƯỚC 252 SỬA văn bản ĐO 34 TRƯỚC lượt chạy duy nhất (khối `### SỬA ĐO 34` ở cuối mục, người dùng ĐÃ DUYỆT 03/11/2026): đối chứng (ii) đối
 chiếu kỳ vọng giải tích (S1), đối chứng (iii) có lưới, MDE và ô K0 20× rào (S2), bản đồ kết cục toàn phần với lớn = 2H (S3), trọng số
 1/71 giữ nguyên (S4), báo kèm bỏ R8/R9 (S5). Các hằng `HE_SO_*`, `SO_LAP_TIEM`, hàm `ket_cuc`, `doi_chung_ii`, `doi_chung_iii` theo khối ấy.
 
