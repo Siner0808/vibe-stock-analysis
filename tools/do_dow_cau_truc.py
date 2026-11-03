@@ -385,26 +385,23 @@ def ket_cuc(*, delta_i: float, ktc_i: tuple, ktc_ii: tuple, ktc_iii: tuple, than
 
 # ── đối chứng của máy đo ──────────────────────────────────────────────────────────────────
 def doi_chung_i(M: MaTran, phi: float) -> dict:
-    """(i) Luật "luôn giữ" = cầm rổ trừ đúng MỘT vòng phí mỗi mã: đồng nhất thức trên giá. Với từng mã, lợi nhuận
-    gộp ghép của động cơ (muc_tieu = 1, không trượt, không khoá) phải bằng đóng_cuối/mở_đầu − 1 và chi phí phải bằng
-    đúng 2 × nửa phí. Chạy từng mã MỘT làn (muc_tieu chỉ có cột j)."""
+    """(i) Luật "luôn giữ" = cầm rổ trừ đúng MỘT vòng phí mỗi mã: đồng nhất thức trên giá. Với từng mã chạy MỘT làn qua
+    CHÍNH động cơ (muc_tieu = 1, không trượt, không khoá): lợi nhuận gộp ghép của làn phải bằng đóng_cuối / (đóng_ngày_vào ÷
+    (1 + mở→đóng ngày vào)) − 1, tức đóng cuối / mở cửa ngày vào, và chi phí phải bằng đúng 2 × nửa phí. (Ngày đầu của
+    ma trận không vào được vì không có mục tiêu biết từ ngày trước: ngày vào là ngày đầu tiên có mức đầu tư > 0.)"""
     T, N = M.vung.shape
     lech_gia, lech_phi = 0.0, 0.0
-    kiem = []
     for j in range(N):
         cot = np.zeros((1, T, N))
         cot[0, :, j] = 1.0
         kq = chay_dong_co(cot, M, phi, khoa=False, truot=False)
-        a = int(np.flatnonzero(M.vung[:, j])[0])
         b = int(np.flatnonzero(M.vung[:, j])[-1])
-        # lợi nhuận ghép = tích (1 + lai_j) — lấy lại lai của riêng mã j bằng dựng lại từ mảng gốc
-        lai = np.where(np.arange(T) == a, M.trong_phien[:, j], (1 + M.qua_dem[:, j]) * (1 + M.trong_phien[:, j]) - 1)
-        gop = float(np.prod(1 + lai[a:b + 1]) - 1)
-        mo_dau = M.dong[a, j] / (1 + M.trong_phien[a, j])
-        dung = float(M.dong[b, j] / mo_dau - 1)
+        h = int(np.flatnonzero(kq["phoi"][0] > 0)[0])               # ngày vào
+        gop = float(np.prod(1.0 + kq["ret"][0, h:b + 1] * SO_MA) - 1.0)
+        mo_vao = M.dong[h, j] / (1.0 + M.trong_phien[h, j])
+        dung = float(M.dong[b, j] / mo_vao - 1.0)
         lech_gia = max(lech_gia, abs(gop - dung))
         lech_phi = max(lech_phi, abs(kq["chi_phi"].sum() * SO_MA - 2 * phi))
-        kiem.append((M.ma[j], gop, dung))
     return {"lech_gia_toi_da": lech_gia, "lech_phi_toi_da": lech_phi, "so_ma": N,
             "dat": lech_gia < 1e-9 and lech_phi < 1e-12}
 
@@ -465,6 +462,11 @@ def ngau_nhien(M: MaTran, s_dow: np.ndarray, phi: float, kieu: str, so_luot: int
     return out
 
 
+def trong_khoang_se(trung_binh: float, sai_so_chuan: float, so_se: float = SO_SIGMA_DOI_CHUNG_II) -> bool:
+    """|trung bình| ≤ `so_se` sai số chuẩn (biên đóng). Đối chứng (ii)."""
+    return bool(abs(trung_binh) <= so_se * sai_so_chuan)
+
+
 def doi_chung_ii(M: MaTran, s_dow: np.ndarray, phi: float, so_luot: int = SO_LUOT_NGAU_NHIEN) -> dict:
     """(ii) Hạt ngẫu nhiên: chuẩn (iv) đồng bộ thời gian cho kỳ vọng ≈ lợi nhuận thị trường — trung bình x gộp
     (không phí) trên các lượt phải nằm trong 2 sai số chuẩn của chính nó quanh 0 (x = lợi nhuận danh mục trừ e × rổ).
@@ -473,7 +475,7 @@ def doi_chung_ii(M: MaTran, s_dow: np.ndarray, phi: float, so_luot: int = SO_LUO
         r = ngau_nhien(M, s_dow, phi, kieu, so_luot)
         tb, se = float(r["x_tho"].mean()), float(r["x_tho"].std(ddof=1) / np.sqrt(len(r["x_tho"])))
         return {"trung_binh_x_tho": tb, "sai_so_chuan": se, "so_sigma": abs(tb) / se if se > 0 else float("inf"),
-                "ma_vung_ngan": r["ma_vung_ngan"], "dat": bool(abs(tb) <= SO_SIGMA_DOI_CHUNG_II * se)}
+                "ma_vung_ngan": r["ma_vung_ngan"], "dat": trong_khoang_se(tb, se)}
     ky = mot("dich")          # đúng chữ ĐO 34
     hoan = mot("hoan")        # chẩn đoán: cắt tương quan thời-gian-trong-thị-trường × độ trôi của từng mã
     return {"so_luot": so_luot, **ky, "hoan_vi": hoan, "ky_vong_giai_tich_doc_lap": ky_vong_doc_lap(M, s_dow)}
@@ -488,6 +490,14 @@ def ky_vong_doc_lap(M: MaTran, s_dow: np.ndarray) -> float:
     p = (s_dow * v).sum(axis=0) / np.maximum(v.sum(axis=0), 1)
     m = lai_ro_theo_ma(M).sum(axis=0) / np.maximum(v.sum(axis=0), 1)
     return float((p * m).sum() / SO_MA - p.sum() / SO_MA * ro_trung_binh(M).mean())
+
+
+NGUONG_IM_TIEM = 0.10    # ô "không tiêm gì" phải IM: tỷ lệ bắt ≤ 10% (lỗi 94; danh nghĩa một phía 2,5%)
+
+
+def phan_quyet_tiem(ty_le_khong: float, ty_le_nua_rao: float) -> bool:
+    """Đạt khi CẢ HAI: ô không tiêm IM (≤ `NGUONG_IM_TIEM`) VÀ ô nửa rào BẮT (≥ `NGUONG_BAT_TIEM`)."""
+    return bool(ty_le_khong <= NGUONG_IM_TIEM and ty_le_nua_rao >= NGUONG_BAT_TIEM)
 
 
 def doi_chung_iii(M: MaTran, s_dow: np.ndarray, phi: float, *, so_lap: int = SO_LAP_TIEM, so_ngan_hang: int = 200,
@@ -521,8 +531,8 @@ def doi_chung_iii(M: MaTran, s_dow: np.ndarray, phi: float, *, so_lap: int = SO_
             lech += khop_cau_hinh(t["ktc"]) if k == 0 else []
             bat += int(t["ktc"] is not None and t["ktc"]["can_duoi"] > 0)
         ket[str(h)] = {"he_so_rao": h, "tiem_moi_don_vi_ngay": a_tiem, "bat": bat, "so_lap": so_lap, "ty_le": bat / so_lap}
-    dat = ket[str(he_so[0])]["ty_le"] <= 0.10 and ket[str(HE_SO_NUA_RAO)]["ty_le"] >= NGUONG_BAT_TIEM
-    return {"rao_hoa_von": rao, "o": ket, "dat": bool(dat),
+    dat = phan_quyet_tiem(ket[str(he_so[0])]["ty_le"], ket[str(HE_SO_NUA_RAO)]["ty_le"])
+    return {"rao_hoa_von": rao, "o": ket, "dat": dat,
             "ghi_chu": "dat = ty le bat o he so 0 <= 10% (phai im) VA o nua rao >= 80%"}
 
 
@@ -680,6 +690,19 @@ def s_matran(M: MaTran, chuoi: dict, s: dict) -> np.ndarray:
     return out
 
 
+def chuan_i(M: MaTran, phi: float, ro: np.ndarray) -> np.ndarray:
+    """Chuẩn (i): rổ đều trọng số, không phí ngoài một vòng mua đầu và bán cuối (không trượt, không khoá biên). Phần
+    gộp của rổ trừ chính nó là 0 theo ĐỊNH NGHĨA (x của rổ so với rổ), nên x_(i) chỉ còn là −chi phí của đúng hai chuyến;
+    tính qua động cơ để chi phí và ngày vào/ra là của động cơ, không gõ tay. `ro` giữ trong chữ ký cho khớp các chuẩn khác."""
+    del ro
+    return -chay_dong_co(np.ones((1,) + M.vung.shape), M, phi, khoa=False, truot=False)["chi_phi"][0]
+
+
+def thang_tong_hop(iv: dict) -> float:
+    """Tỷ lệ Dow thắng ở chuẩn (iv) dùng cho A⁺: giá trị NHỎ HƠN trong hai bản (đặt ngẫu nhiên, đồng bộ thời gian)."""
+    return min(iv["dat"]["thang"], iv["dich"]["thang"])
+
+
 def chay_ket_qua(M: MaTran, s_dow: np.ndarray, s_sma: np.ndarray, w_tsmom: np.ndarray, phi: float, *,
                  doi_chung_dat: bool, so_luot: int = SO_LUOT_NGAU_NHIEN, bang: dict | None = None,
                  hat: int = HAT) -> dict:
@@ -690,7 +713,7 @@ def chay_ket_qua(M: MaTran, s_dow: np.ndarray, s_sma: np.ndarray, w_tsmom: np.nd
     ro = ro_trung_binh(M)
     x_dow = x_tu_dong_co(chay_dong_co(s_dow[None].astype(float), M, phi), ro)[0]
     kq_dow = chay_dong_co(s_dow[None].astype(float), M, phi)
-    x_i = x_tu_dong_co(chay_dong_co(np.ones((1,) + s_dow.shape), M, phi, khoa=False, truot=False), ro)[0]
+    x_i = chuan_i(M, phi, ro)
     x_ii = x_tu_dong_co(chay_dong_co(s_sma[None].astype(float), M, phi), ro)[0]
     x_iii = x_tu_dong_co(chay_dong_co(w_tsmom[None], M, phi), ro)[0]
     th = {"i": tom_tat_x(x_dow, x_i, bang), "ii": tom_tat_x(x_dow, x_ii, bang), "iii": tom_tat_x(x_dow, x_iii, bang)}
@@ -698,7 +721,7 @@ def chay_ket_qua(M: MaTran, s_dow: np.ndarray, s_sma: np.ndarray, w_tsmom: np.nd
     rd = {k: ngau_nhien(M, s_dow, phi, k, so_luot, hat=hat, giu_x=True) for k in ("dat", "dich")}
     iv = {k: {"thang": float((v["x_phi"] < x_dow.mean()).mean()), "tb_ngau_nhien": float(v["x_phi"].mean()),
               "delta": float(x_dow.mean() - v["x_phi"].mean())} for k, v in rd.items()}
-    thang_iv = min(iv["dat"]["thang"], iv["dich"]["thang"])
+    thang_iv = thang_tong_hop(iv)
     ok = doi_chung_dat and not lech and all(t["ktc"] is not None for t in th.values())
     kc = ket_cuc(delta_i=th["i"]["delta"], ktc_i=(th["i"]["ktc"]["can_duoi"], th["i"]["ktc"]["can_tren"]),
                  ktc_ii=(th["ii"]["ktc"]["can_duoi"], th["ii"]["ktc"]["can_tren"]),
