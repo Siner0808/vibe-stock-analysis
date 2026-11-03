@@ -23,6 +23,7 @@ os.environ.setdefault("POST_MORTEM_ENABLED", "1")
 # dữ liệu và kiểm hạng gói là đường khác. `setdefault`: biến đặt tường minh
 # (secrets, môi trường) vẫn thắng.
 os.environ.setdefault("VNSTOCK_TELEMETRY", "off")
+import html as _html
 import pathlib
 import pandas as pd
 import plotly.graph_objects as go
@@ -33,13 +34,14 @@ from datetime import timedelta
 from master_agent import run_full_analysis
 from pha_wyckoff import doc_pha
 from paper_trading import BUY_THRESHOLD
-from data_quality import now_vn, price_multiplier
+from data_quality import nen_cuoi_dang_do, now_vn, price_multiplier
 import khung_thoi_gian as _kt
 import ke_hoach_vao_lenh as _kh
 import san_giao_dich as _sgd
 from data_collectors import VNStockCollectorAgent
 import mau_bang_gia as _mbg
 import do_tre_khop as _dtk
+import cau_truc_gia as _ctg
 
 # ── Animated Brand Logo Generator ─────────────────────────────────
 def get_animated_logo_html(size=44, uid="sb"):
@@ -420,6 +422,7 @@ st.markdown("""
     .sig-lbl { font-size: 8.5px; color: var(--c-t3); text-transform: uppercase; font-weight: 700; }
     .sig-val { font-family: var(--fm); font-size: 11px; font-weight: 800; color: var(--c-g); }
     .sig-val.pos { color: var(--c-g); } .sig-val.neu { color: var(--c-b); } .sig-val.neg { color: var(--c-r); }
+    .sig-sub { font-size: 9.5px; color: var(--c-t2); line-height: 1.3; }
 
     /* ─── AGENT ROWS ─────────────────────────────────────────── */
     .a-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: var(--c-s1); border-radius: 6px; border: 1px solid var(--c-border); font-size: 10.5px; }
@@ -1348,6 +1351,47 @@ san_gd = _sgd.tra_san(symbol) or exchange
 ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date, san_gd)
 dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 
+# DOW-BAT-DAU
+# ── CẤU TRÚC GIÁ THEO LÝ THUYẾT DOW (BƯỚC 250, Dow Lát 3, mốc B5) — CHỈ ĐỂ HIỆN ──
+#
+# Hai ô cạnh "Pha Wyckoff" + một khối mở ở cột biểu đồ. KHÔNG đổi điểm, `dyn_rec`,
+# phán quyết kế hoạch hay `result`: biến `cau_truc` và `_ct_*` chỉ xuất hiện trong
+# các khối DOW-BAT-DAU … DOW-KET-THUC (gác AST ở tests/test_cau_truc_gia_lat3.py,
+# yếu hơn các gác nhập: nó không chứng minh được "không rò" mà chỉ bắt chỗ lộ).
+#
+# Cửa sổ ghim RIÊNG (đặc tả 7.3): biểu đồ chỉ có ~124 phiên, ở đó cấp swing đủ hai
+# đỉnh + hai đáy ở 14,1% số mã (đo BƯỚC 250); `cau_truc_gia.CUA_SO_PHIEN` phiên
+# nạp bằng CÙNG `load_stock_data` (có đệm 300 giây). Pha Wyckoff dùng đúng `wy`
+# ở trên, nên hai ô chu kỳ và ô Pha Wyckoff đọc cùng một lần `doc_pha`.
+#
+# Dữ liệu không nạp được thì ô NÓI "Không đọc được", không đoán một nhãn.
+_ct_df, _ct_tt, _ct_canh_bao = load_stock_data(
+    symbol, (end_date - timedelta(days=_ctg.NGAY_LICH_CUA_SO)).strftime("%Y-%m-%d"),
+    end_str, exchange)
+if _ct_tt != "OK" or _ct_df is None or _ct_df.empty:
+    cau_truc = _ctg.khong_doc_duoc("không nạp được dữ liệu giá dài")
+else:
+    try:
+        cau_truc = _ctg.doc_hien_thi(
+            _ct_df, price_multiplier(_ct_df), san_gd, wy,
+            nen_cuoi_dang_do=nen_cuoi_dang_do(_ct_df["time"].iloc[-1], now_vn()))
+    except ValueError as _e_ct:
+        cau_truc = _ctg.khong_doc_duoc(f"{type(_e_ct).__name__}: {str(_e_ct)[:90]}")
+
+
+def _o_cau_truc_html(nhan_o, o):
+    """Một ô `sig-item` MỘT dòng (không xuống dòng: khối Markdown thụt lề bốn khoảng trắng sẽ thành mã)."""
+    lop = {"tang": "pos", "giam": "neg"}.get(o.sac_thai, "neu")
+    phu = "".join(f'<span class="sig-sub">{_html.escape(d)}</span>' for d in o.phu)
+    return (f'<div class="sig-item" title="{_html.escape(o.goi_y, quote=True)}">'
+            f'<span class="sig-lbl">{_html.escape(nhan_o)}</span>'
+            f'<span class="sig-val {lop}">{_html.escape(o.nhan)}</span>{phu}</div>')
+
+
+o_thuy_trieu_html = _o_cau_truc_html(_ctg.TEN_O_THUY_TRIEU, cau_truc.o_thuy_trieu)
+o_chu_ky_html = _o_cau_truc_html(_ctg.TEN_O_CHU_KY, cau_truc.o_chu_ky)
+# DOW-KET-THUC
+
 # Dynamic Stop-Loss from risk agent recommendations
 risk_data = result.get("analyses", {}).get("risk", {}).get("recommendations", {})
 # Thiếu khuyến nghị của risk agent thì để TRỐNG. Bản cũ suy ra
@@ -1387,6 +1431,8 @@ with sig_container:
             <span class="sig-lbl">Pha Wyckoff</span>
             <span class="sig-val {phase_cls}">{dyn_phase_short}</span>
         </div>
+        {o_thuy_trieu_html}
+        {o_chu_ky_html}
         <div class="sig-item">
             <span class="sig-lbl">RSI (14)</span>
             <span class="sig-val {rsi_cls}">{rsi_txt}</span>
@@ -1702,6 +1748,16 @@ with col_chart:
                    "đối chiếu VN-INDEX; cổ phiếu Việt Nam đồng pha với chỉ "
                    "số rất cao nên phần lớn mã chỉ đang phản chiếu thị "
                    "trường. Kết quả này KHÔNG tham gia chấm điểm.")
+
+    # DOW-BAT-DAU
+    # Chi tiết cấu trúc giá (đặc tả 7.1): pivot hai cấp kèm ngày xảy ra / ngày biết, mốc
+    # phủ định, cảnh báo cấu trúc, con sóng, nguồn của chu kỳ. Dòng cuối là chân khối cố định.
+    with st.expander(f"📐 Cấu trúc giá (Dow, xấp xỉ) — thủy triều: "
+                     f"{cau_truc.o_thuy_trieu.nhan} · chu kỳ: {cau_truc.o_chu_ky.nhan}",
+                     expanded=False):
+        st.markdown("\n".join(f"- {d}" for d in cau_truc.chi_tiet[:-1]))
+        st.caption(cau_truc.chan)
+    # DOW-KET-THUC
 
 with col_debate:
     debate = result.get("debate") or {}
