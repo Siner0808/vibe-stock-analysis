@@ -215,6 +215,8 @@ Cạnh ô "Pha Wyckoff" ở khung "📊 Tín hiệu nhanh" (`app.py:1387`, lư�
 
 `df` của biểu đồ chỉ dài ≈ 124 phiên (mục 3). Ô cấu trúc dùng cửa sổ riêng, nạp bằng cùng `load_stock_data` (cache 300 s). Độ dài cần thiết **chưa đo**: Lát 3 đếm, trên 71 mã của cache, số pivot swing đủ ở 124, ≈ 285 và 784 phiên (mô tả thuần), rồi ghim cửa sổ trước khi viết ô; nếu mã không đủ pivot thì ô nói "chưa đủ bằng chứng (cấp swing: n đỉnh, m đáy)" thay vì hạ ngưỡng.
 
+**Ghi chú thi công (Lát 3, BƯỚC 250 — `cau_truc_gia.doc_hien_thi`, `app.py`).** Cửa sổ ĐÃ ĐO và GHIM: 784 phiên (`CUA_SO_PHIEN`), nạp bằng 1095 ngày lịch; bảng đếm ở `docs/STATE.md` BƯỚC 250 (14,08% · 88,73% · 97,18% số mã có ít nhất hai đỉnh và hai đáy swing ở 124 · 285 · 784 phiên). Khác hoặc thêm so với văn bản trên: (1) ô chu kỳ ghép với `wy` của ô Pha Wyckoff, không đọc lại `doc_pha` (0/71 mã khác nhau giữa 131 và 784 phiên); (2) nến cuối chưa đóng được GHI NHÃN "gồm nến chưa đóng cửa", không bị bỏ; (3) nhịp ngược đang chạy chưa hiện (mục 5.8 viết "có thể"); (4) tên người đọc của nguồn chu kỳ qua `TEN_NGUON`, không lộ định danh nội bộ (lỗi 201).
+
 ## 8. Gác
 
 ### 8.1 Bất biến khi cắt (gác chính — chứng minh không nhìn trộm)
