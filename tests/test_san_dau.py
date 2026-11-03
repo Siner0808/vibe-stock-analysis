@@ -775,8 +775,10 @@ def _importers_cua_san_dau() -> set[str]:
 
 def test_G2_duong_that_KHONG_nhap_san_dau():
     nguoi_nhap = _importers_cua_san_dau()
-    assert nguoi_nhap <= {"app.py", "tools/san_dau.py"}, f"chỉ app.py và tools/san_dau.py được nhập: {nguoi_nhap}"
-    assert "tools/san_dau.py" in nguoi_nhap
+    # `tools/do_dow_cau_truc.py` (BƯỚC 251): ĐO 34 đòi dùng lại HÀM KTC của sân đấu, không viết bản sao thứ hai.
+    cho_phep = {"app.py", "tools/san_dau.py", "tools/do_dow_cau_truc.py"}
+    assert nguoi_nhap <= cho_phep, f"chỉ {sorted(cho_phep)} được nhập: {nguoi_nhap}"
+    assert "tools/san_dau.py" in nguoi_nhap and "tools/do_dow_cau_truc.py" in nguoi_nhap
     for ten in ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "run_daily.py", "master_agent.py",
                 "analysis_agents.py", "walkforward.py", "sheets_store.py", "cham_bong.py", "hau_kiem_loi.py",
                 "ban_tin.py"):
