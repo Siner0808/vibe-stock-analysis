@@ -25409,7 +25409,9 @@ Chi tiết từng lệnh và đầu ra ở `docs/soat-dinh-ky.json` (lượt 202
 
 `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 254` → *"khong cham luat"* (so với điểm tách `cced339`; chạy lại sau commit cho cùng kết quả). BƯỚC này chỉ ghi lượt soát vào `docs/soat-dinh-ky.json`, ba ô ⚠️ có ngày (HANDOFF, skill Dow, đặc tả C1), dòng Hạn kế ở HANDOFF và mục này; không sửa file luật (không `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `TIEU-CHI-DOC-TRUOC.md` · `LO-TRINH.md`), không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo. Việc đánh dấu SAI THEO THỜI GIAN và việc ghi kết cục CHƯA ĐỦ của ĐO 27 là *kết quả của một lượt soát/đọc đã ký trước*, không phải một kết luận đo mới; kết cục CHƯA ĐỦ giữ y nguyên lượt 4 (quy tắc ký sẵn). Mục sổ tay giữ `khong_bat_buoc_vi` như BƯỚC 235. Sổ tay NotebookLM KHÔNG được làm tươi ở BƯỚC này (nguồn đứng ở `a877ca6`/`2cd47f2`; việc làm tươi chỉ cần khi có lượt hỏi thật).
 
-### Câu hỏi cho người dùng (ghi ở mục riêng của PR)
+### Quyết định của người dùng (04/11/2026, nguyên văn; leader chuyển vào bình luận PR #299)
+
+*"Chờ lượt 6 (11/11) (Recommended)"* — KHÔNG đọc bổ sung TCB; lượt 6 kéo lại TCB như mọi nguồn, giữ đúng chữ ký *"mỗi lượt đọc kéo mỗi nguồn MỘT lần"*. Câu hỏi đã hỏi, giữ nguyên văn:
 
 1. **#128 TCB — đọc bổ sung lịch sự kiện của riêng TCB?** Ca mang nhãn duy nhất của quần thể ĐO 27 không phân loại được vì VCI hết giờ đọc (10/54 mã hết giờ ở lượt này, 8/54 ở lượt 4 — tỷ lệ ~15–20% mã rơi ngẫu nhiên mỗi lượt). ĐO 27 ký *"mỗi lượt đọc kéo mỗi nguồn MỘT lần"*; một lần kéo thêm chỉ cho TCB (chỉ-đọc, không đổi gì khác) nằm ngoài chữ ký. Hai lựa chọn: (a) đọc bổ sung TCB ngay và ghi thành *"lượt 5b"* (nếu có sự kiện → dương thật đầu tiên; nếu không → kết cục B, báo ngay); (b) đợi lượt 6 (11/11) với cùng kỷ luật, chấp nhận TCB có thể lại hết giờ. Phiên con KHÔNG tự chọn.
 
@@ -25431,4 +25433,4 @@ Chi tiết từng lệnh và đầu ra ở `docs/soat-dinh-ky.json` (lượt 202
 
 Cả năm cổng thoát 0 trên cây của nhánh `soat/16-254` (`tools/nam_cong.py --tuan-tu`, 04/11 08:55–09:03, 513 s, log ngoài repo; cổng 1 chạy song song `-n auto` ở máy): cổng 1 4409 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file test xanh khi chạy một mình · cổng 5 4411 test, khớp mốc (không thêm test, mốc không đổi). Một lượt cổng trước đó (08:45–08:54, 522 s) cũng thoát 0 trên cây cùng nội dung trừ ô tạm của một mục sổ. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
-**Việc kế.** Leader đọc CI một lần rồi merge (PR này TRƯỚC BƯỚC 253; BƯỚC 253 giải xung đột STATE/HANDOFF/sổ khi gộp `main`). Quyết định #128 TCB (Câu hỏi 1). Lượt soát 17 + ĐO 27 lượt đọc 6: **11/11/2026**. Đề xuất lỗi (một ứng viên) cho leader ghi. BƯỚC kế 255, lỗi kế = số kế tại lúc ghi.
+**Việc kế.** Leader đọc CI một lần rồi merge (PR này TRƯỚC BƯỚC 253; BƯỚC 253 giải xung đột STATE/HANDOFF/sổ khi gộp `main`). #128 TCB: người dùng chọn chờ lượt 6 (xem trên). Lượt soát 17 + ĐO 27 lượt đọc 6: **11/11/2026**. Đề xuất lỗi (một ứng viên): CHƯA ghi ở BƯỚC này — vào danh sách chờ của leader. BƯỚC kế 255, lỗi kế = số kế tại lúc ghi.
