@@ -523,12 +523,18 @@ def test_CHAY_KET_QUA_K0_khi_doi_chung_truot():
 
 
 # ── khoá: lượt chạy dữ liệu thật bị khoá ở Lát 4a ─────────────────────────────────────────
-def test_KHOA_lat_4a_khong_doc_ket_qua_that(monkeypatch, capsys):
+def test_KHOA_hang_so_cua_lat_4b():
+    """Giá trị HIỆN TẠI của khoá: False ngoài đúng lượt chạy duy nhất của BƯỚC 253 (commit mở khoá riêng, commit khoá lại riêng)."""
     assert D.CHO_PHEP_DOC_KET_QUA_THAT is False
+
+
+def test_KHOA_hai_khoa_doc_lap_khong_doc_ket_qua_that_khi_thieu_mot(monkeypatch, capsys):
+    monkeypatch.setattr(D, "CHO_PHEP_DOC_KET_QUA_THAT", False)       # không phụ thuộc giá trị hằng số của commit
     def bom(*a, **k):
         raise AssertionError("khong duoc nap du lieu khi khoa")
     monkeypatch.setattr(D, "nap_cache", bom)
     monkeypatch.setattr(D, "chay_ket_qua", bom)
+    monkeypatch.setattr(D, "chay_lat_4b", bom)
     assert D.main(["ket-qua", "--cache", "x"]) == 3
     assert D.main(["ket-qua", "--cache", "x", "--xac-nhan", D.CAU_XAC_NHAN_LAT_4B]) == 3          # câu đúng nhưng cờ khoá
     monkeypatch.setattr(D, "CHO_PHEP_DOC_KET_QUA_THAT", True)
