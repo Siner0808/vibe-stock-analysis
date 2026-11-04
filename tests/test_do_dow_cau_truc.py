@@ -8,6 +8,7 @@ from __future__ import annotations
 import ast
 import importlib
 import itertools
+import json
 import sys
 from pathlib import Path
 
@@ -522,12 +523,18 @@ def test_CHAY_KET_QUA_K0_khi_doi_chung_truot():
 
 
 # ── khoá: lượt chạy dữ liệu thật bị khoá ở Lát 4a ─────────────────────────────────────────
-def test_KHOA_lat_4a_khong_doc_ket_qua_that(monkeypatch, capsys):
+def test_KHOA_hang_so_cua_lat_4b():
+    """Giá trị HIỆN TẠI của khoá: False ngoài đúng lượt chạy duy nhất của BƯỚC 253 (commit mở khoá riêng, commit khoá lại riêng)."""
     assert D.CHO_PHEP_DOC_KET_QUA_THAT is False
+
+
+def test_KHOA_hai_khoa_doc_lap_khong_doc_ket_qua_that_khi_thieu_mot(monkeypatch, capsys):
+    monkeypatch.setattr(D, "CHO_PHEP_DOC_KET_QUA_THAT", False)       # không phụ thuộc giá trị hằng số của commit
     def bom(*a, **k):
         raise AssertionError("khong duoc nap du lieu khi khoa")
     monkeypatch.setattr(D, "nap_cache", bom)
     monkeypatch.setattr(D, "chay_ket_qua", bom)
+    monkeypatch.setattr(D, "chay_lat_4b", bom)
     assert D.main(["ket-qua", "--cache", "x"]) == 3
     assert D.main(["ket-qua", "--cache", "x", "--xac-nhan", D.CAU_XAC_NHAN_LAT_4B]) == 3          # câu đúng nhưng cờ khoá
     monkeypatch.setattr(D, "CHO_PHEP_DOC_KET_QUA_THAT", True)
@@ -536,11 +543,26 @@ def test_KHOA_lat_4a_khong_doc_ket_qua_that(monkeypatch, capsys):
 
 
 def test_KHOA_chay_ket_qua_chi_duoc_goi_tu_test_va_mot_ham_khoa():
-    """Gác AST: ngoài định nghĩa, `chay_ket_qua` KHÔNG được gọi ở đâu trong tools/do_dow_cau_truc.py (Lát 4a); và
-    `lenh_ket_qua` phải đọc cả hai khoá TRƯỚC mọi dòng khác."""
+    """Gác AST (Lát 4b, BƯỚC 253): ngoài định nghĩa, `chay_ket_qua` chỉ được gọi BÊN TRONG `chay_lat_4b`; `chay_lat_4b` chỉ được gọi
+    từ `lenh_ket_qua`, SAU câu lệnh khoá đầu hàm; và `lenh_ket_qua` phải đọc cả hai khoá TRƯỚC mọi dòng khác."""
     cay = ast.parse(DUONG.read_text(encoding="utf-8"))
-    goi = [n for n in ast.walk(cay) if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "chay_ket_qua"]
-    assert goi == []
+
+    def goi_trong(ten_ham_goi):
+        ra = []
+        for ham in (n for n in cay.body if isinstance(n, ast.FunctionDef)):
+            for n in ast.walk(ham):
+                if isinstance(n, ast.Call) and getattr(n.func, "id", None) == ten_ham_goi:
+                    ra.append(ham.name)
+        return ra
+    dong_goi = goi_trong("chay_ket_qua")
+    assert dong_goi and set(dong_goi) == {"chay_lat_4b"}                       # quần thể KHÁC RỖNG (lỗi 66)
+    assert goi_trong("chay_lat_4b") == ["lenh_ket_qua"]
+    assert goi_trong("lenh_ket_qua") == ["main"]
+    lk = next(n for n in cay.body if isinstance(n, ast.FunctionDef) and n.name == "lenh_ket_qua")
+    thuc0 = [s for s in lk.body if not (isinstance(s, ast.Expr) and isinstance(getattr(s, "value", None), ast.Constant))]
+    assert len(thuc0) >= 2 and isinstance(thuc0[0], ast.If)
+    assert not [n for n in ast.walk(thuc0[0]) if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "chay_lat_4b"]
+    assert [n for s in thuc0[1:] for n in ast.walk(s) if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "chay_lat_4b"]
     lenh = next(n for n in cay.body if isinstance(n, ast.FunctionDef) and n.name == "lenh_ket_qua")
     thuc = [s for s in lenh.body if not (isinstance(s, ast.Expr) and isinstance(getattr(s, "value", None), ast.Constant))]
     dau = thuc[0]
@@ -808,6 +830,219 @@ def test_DOI_CHUNG_iii_nen_la_ban_DICH_VONG_khong_phai_dat_ngau_nhien():
 def test_CLI_cau_hinh_ktc_thoat_0_va_in_khop(capsys):
     assert D.main(["cau-hinh-ktc"]) == 0
     assert "KHỚP" in capsys.readouterr().out
+
+
+# ── Lát 4b (BƯỚC 253): các hàm của lượt chạy duy nhất, trên cache TỔNG HỢP (không test nào đọc cache thật) ─────────────
+def test_THANG_CUA_SO_RO_dap_so_dung_tay_mo_cua_t_cong_1_toi_dong_cua_t_cong_do_dai():
+    dong = np.array([[10, 20], [11, 21], [12, 22], [13, 23], [14, 24], [15, 25]], float)
+    M = _mt(np.zeros((6, 2)), np.zeros((6, 2)))
+    M.dong = dong                                                # mở = đóng (lợi nhuận trong phiên 0)
+    th = D.thang_cua_so_ro(M, 2)
+    assert th[0] == pytest.approx(((12 / 11 - 1) + (22 / 21 - 1)) / 2)
+    assert th[3] == pytest.approx(((15 / 14 - 1) + (25 / 24 - 1)) / 2)
+    assert np.isnan(th[4]) and np.isnan(th[5])
+    vung = np.ones((6, 2), bool)
+    vung[2, 1] = False                                           # mã 1 ra khỏi vùng ở cuối cửa sổ của t = 0
+    M2 = _mt(np.zeros((6, 2)), np.zeros((6, 2)), vung=vung, cuoi=np.zeros((6, 2), bool))
+    M2.dong = dong
+    assert D.thang_cua_so_ro(M2, 2)[0] == pytest.approx(12 / 11 - 1)        # chỉ mã 0 còn ở cả hai đầu
+    mo = _mt(np.zeros((6, 1)), np.full((6, 1), 0.1))
+    mo.dong = dong[:, :1]                                        # đóng/mở − 1 = 0,1 → mở = đóng / 1,1
+    assert D.thang_cua_so_ro(mo, 2)[0] == pytest.approx(12 / (11 / 1.1) - 1)
+
+
+def test_CHUAN_II_III_xep_hang_cung_ngay_toan_cuc_va_nhan_qua():
+    chuoi = {f"M{k}": (_khung(420, k), 1000.0, "HOSE") for k in (3, 4)}          # hạt 3, 4: giá nằm trên SMA200 một phần dài
+    M = D.dung_ma_tran(chuoi, {m: np.ones(420, dtype=bool) for m in chuoi}, von_vnd=1e9)
+    sma, ts = D.chuan_ii_iii(M, chuoi)
+    assert sma.shape == ts.shape == M.vung.shape
+    for j, m in enumerate(M.ma):
+        dong = chuoi[m][0]["close"].to_numpy(float)
+        assert np.array_equal(sma[:, j], D.trang_thai_sma200(dong).astype(float))
+        assert np.allclose(ts[:, j], D.trong_so_tsmom(dong))
+        assert np.array_equal(sma[:300, j], D.trang_thai_sma200(dong[:300]).astype(float))       # cắt đuôi không đổi phần đầu
+        assert np.allclose(ts[:300, j], D.trong_so_tsmom(dong[:300]))
+        assert sma[:199, j].sum() == 0.0
+        assert set(np.round(np.unique(ts[:, j]), 9)) <= {0.0, round(1 / 3, 9), round(2 / 3, 9), 1.0}
+    assert sma.sum() > 0 and ts.sum() > 0                           # quần thể KHÁC RỖNG (lỗi 66)
+
+
+def test_H2_MO_TA_chuyen_dung_thang_cua_so_ro_theo_ngay_cua_ma():
+    chuoi, vung, M = _ma_tran_tong_hop(n=900, so_ma=2)
+    bat = []
+    goc = D.su_kien_h2
+
+    def ghi(df, he, san, thang, rng, *a, **k):
+        bat.append(np.array(thang))
+        return goc(df, he, san, thang, rng, *a, **k)
+    import unittest.mock as um
+    with um.patch.object(D, "su_kien_h2", ghi):
+        ds = D.h2_mo_ta(M, chuoi, vung)
+    assert len(bat) == 2 and ds["so_su_kien"] > 0
+    assert ds[C.TANG]["n"] + ds[C.GIAM]["n"] == ds["so_su_kien"]
+    mo = [chuoi[k][0]["open"].to_numpy(float) for k in M.ma]
+    dg = [chuoi[k][0]["close"].to_numpy(float) for k in M.ma]
+    for j in range(2):
+        for i in (0, 100, 500, 870):
+            mong = np.mean([dg[q][i + 21] / mo[q][i + 1] - 1 for q in range(2)])
+            assert bat[j][i] == pytest.approx(mong)
+        assert np.isnan(bat[j][900 - 21:]).all() and len(bat[j]) == 900
+
+
+def test_MO_TA_BAO_KEM_khop_dem_truc_tiep_tren_bang_da_cat():
+    chuoi, vung, _ = _ma_tran_tong_hop(n=700, so_ma=1)
+    m = next(iter(chuoi))
+    vung[m][600:] = False                                         # vùng sạch = 600 nến đầu
+    kq = D.mo_ta_bao_kem(chuoi, vung)
+    df = chuoi[m][0].iloc[:600].reset_index(drop=True)
+    r = C.doc_cau_truc(df, he_so_gia=1000.0, san="HOSE")
+    assert kq["so_nam_ma"] == pytest.approx(600 / 252)
+    for cap in C.CAPS:
+        assert kq["su_kien_dem"][cap].get(C.CHOCH, 0) == sum(1 for e in r.su_kien if e.cap == cap and e.loai == C.CHOCH)
+        tre = [p.chi_so_biet - p.chi_so_xay_ra for p in r.nhat_ky if p.cap == cap]
+        assert kq["do_tre_trung_vi"][cap] == float(np.median(tre)) and kq["do_tre_p90"][cap] == float(np.percentile(tre, 90))
+        assert kq["su_kien_moi_ma_moi_nam"][cap][C.BOS] == pytest.approx(kq["su_kien_dem"][cap][C.BOS] / (600 / 252))
+    assert set(kq["lat_lai_3_phien"]) == set(D.lat_lai_hai_dinh_nghia(df, r))
+    assert all(v["n"] >= v["lat_lai_sau_su_kien_nguoc"] for v in kq["lat_lai_3_phien"].values())
+
+
+@pytest.fixture
+def cache_tong_hop(tmp_path):
+    ma = list(D.CUSTOM_WATCHLIST_SYMBOLS[:3])
+    for k, m in enumerate(ma + ["VNINDEX"]):
+        df = _khung(800, 60 + k)
+        if m == "VNINDEX":
+            df[["open", "high", "low", "close"]] *= 60.0
+        df.to_csv(tmp_path / f"{m}.csv", index=False)
+    return tmp_path, ma, {m: _khung(800, 0)["time"].iloc[600] for m in ma}
+
+
+def _bam(cache):
+    import mo_ta_cau_truc_gia as MT
+    return MT.bam_cache(cache)["sha256"]
+
+
+def _chay_4b(cache_tong_hop, monkeypatch, *, dat=True, **kw):
+    cache, ma, moc = cache_tong_hop
+    monkeypatch.setattr(D, "doi_chung_tat_ca", lambda cache, ra=print, so_luot=None: {"tat_ca_dat": dat})
+    dong = []
+    if "bam_ky" not in kw:                                  # KHÔNG setdefault: nó tính đối số ngay cả khi đã có khoá
+        kw["bam_ky"] = _bam(cache)
+    out = D.chay_lat_4b(cache, ra=dong.append, so_luot=20, ma_ds=ma, moc=moc, **kw)
+    return out, dong
+
+
+def test_CHAY_LAT_4B_tong_hop_in_ket_cuc_TRUOC_bao_kem_va_ghi_json(cache_tong_hop, monkeypatch, tmp_path):
+    ghi = tmp_path / "kq.json"
+    out, dong = _chay_4b(cache_tong_hop, monkeypatch, ghi=ghi)
+    vt = {k: next(i for i, x in enumerate(dong) if x.startswith(k)) for k in ("KẾT CỤC:", "== BÁO KÈM", "KẾT CỤC CUỐI", "băm cache SAU")}
+    assert vt["KẾT CỤC:"] < vt["== BÁO KÈM"] < vt["băm cache SAU"] < vt["KẾT CỤC CUỐI"]
+    nhan = out["ket_cuc_cuoi"]["ket_cuc"]
+    assert nhan in ("A", "A+", "B", "C") and nhan == out["ket_qua"]["ket_cuc"]["ket_cuc"] == out["ket_cuc_truoc_bam_sau"]
+    bk = out["bao_kem"]
+    assert not [k for k, v in bk.items() if isinstance(v, dict) and "loi" in v], bk
+    assert len(bk["luoi_10_o"]) == 10 and sum(o["mac_dinh"] for o in bk["luoi_10_o"]) == 1
+    assert bk["nhay_phi_0_76"]["phi_pct"] == 0.76 and "ghi_chu" in bk["vung_sau_moc"]
+    assert out["bam_truoc_chay"]["sha256"] == out["bam_sau_chay"]["sha256"] == out["bam_ky"]
+    kq_file = json.loads(ghi.read_text(encoding="utf-8"))
+    assert kq_file["ket_cuc_cuoi"]["ket_cuc"] == nhan and set(kq_file["bao_kem"]) == set(bk)
+    assert any(x.startswith("cấu hình KTC đã dùng ở Δ_(i): KHỚP") for x in dong)
+    assert any(x.startswith(f"KẾT CỤC: {nhan}") for x in dong) and f"KẾT CỤC CUỐI (sau băm cache): {nhan}" in dong      # dòng in = nhãn tính ra
+    assert bk["vung_sau_moc"]["so_ngay"] == 200 and out["ket_qua"]["so_ngay"] == 600           # sạch 600 nến đầu, sau mốc 200 nến cuối
+    nhay = bk["nhay_phi_0_76"]["delta_i"]
+    assert nhay["delta"] < out["ket_qua"]["delta"]["i"]["delta"]                              # phí cao hơn → Dow (nhiều chuyến hơn rổ) kém đi
+
+
+def test_CHAY_LAT_4B_dung_hat_0_va_cung_so_luot_nhu_chay_ket_qua_truc_tiep(cache_tong_hop, monkeypatch):
+    out, _ = _chay_4b(cache_tong_hop, monkeypatch)
+    cache, ma, moc = cache_tong_hop
+    chuoi, vung, s = D.nap_cache(cache, ma, moc, vung="sach")
+    M = D.dung_ma_tran(chuoi, vung)
+    sma, ts = D.chuan_ii_iii(M, chuoi)
+    truc_tiep = D.chay_ket_qua(M, D.s_matran(M, chuoi, s), sma, ts, D.phi_nua(), doi_chung_dat=True, so_luot=20, hat=D.HAT)
+    assert out["hat"] == D.HAT == 0
+    assert out["ket_qua"]["ngau_nhien"] == truc_tiep["ngau_nhien"] and out["ket_qua"]["thang_iv"] == truc_tiep["thang_iv"]
+    assert out["ket_qua"]["delta"]["i"]["delta"] == truc_tiep["delta"]["i"]["delta"]
+
+
+def test_CHAY_LAT_4B_ban_khong_khoa_bien_that_su_tat_khoa_cua_dong_co():
+    """Gác AST: mục 'bản không có sự kiện nến khoá biên' gọi động cơ với `khoa=False` (cả hai bản trùng nhau trên dữ liệu
+    không có nến kịch trần / sàn, nên so giá trị không bắt được việc quên cờ)."""
+    cay = ast.parse(DUONG.read_text(encoding="utf-8"))
+    ham = next(n for n in cay.body if isinstance(n, ast.FunctionDef) and n.name == "chay_lat_4b")
+    kk = next(n for n in ast.walk(ham) if isinstance(n, ast.FunctionDef) and n.name == "khong_khoa")
+    goi = [n for n in ast.walk(kk) if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "chay_dong_co"]
+    assert len(goi) == 1
+    assert {k.arg: getattr(k.value, "value", None) for k in goi[0].keywords}.get("khoa") is False
+
+
+def test_CHAY_LAT_4B_luoi_mac_dinh_trung_delta_i_cua_ket_qua(cache_tong_hop, monkeypatch):
+    out, _ = _chay_4b(cache_tong_hop, monkeypatch)
+    o = next(o for o in out["bao_kem"]["luoi_10_o"] if o["mac_dinh"])
+    assert (o["ho"], tuple(o["tham_so"])) == C.MAC_DINH
+    assert o["delta"] == pytest.approx(out["ket_qua"]["delta"]["i"]["delta"], abs=0, rel=1e-12)
+
+
+def test_CHAY_LAT_4B_bam_ky_lech_hoac_doi_chung_truot_thi_K0(cache_tong_hop, monkeypatch):
+    out, _ = _chay_4b(cache_tong_hop, monkeypatch, bam_ky="0" * 64)
+    assert out["ket_cuc_cuoi"]["ket_cuc"] == "K0" == out["ket_cuc_truoc_bam_sau"]            # dòng in sớm cũng là K0, không lộ nhãn khác
+    out, _ = _chay_4b(cache_tong_hop, monkeypatch, dat=False)
+    assert out["ket_cuc_cuoi"]["ket_cuc"] == "K0"
+
+
+def test_CHAY_LAT_4B_bam_sau_lech_thi_ket_cuc_cuoi_K0_du_ket_cuc_dau_khac(cache_tong_hop, monkeypatch):
+    import mo_ta_cau_truc_gia as MT
+    that = MT.bam_cache
+    ky = that(cache_tong_hop[0])["sha256"]
+    dem = {"n": 0}
+
+    def gia(cache):
+        dem["n"] += 1
+        r = dict(that(cache))
+        if dem["n"] >= 2:
+            r["sha256"] = "f" * 64
+        return r
+    monkeypatch.setattr(MT, "bam_cache", gia)
+    out, dong = _chay_4b(cache_tong_hop, monkeypatch, bam_ky=ky)
+    assert out["ket_cuc_truoc_bam_sau"] != "K0" and out["ket_cuc_cuoi"]["ket_cuc"] == "K0"
+    assert any("LỆCH → K0" in x for x in dong)
+
+
+def test_CHAY_LAT_4B_mot_muc_bao_kem_hong_khong_lam_mat_ket_cuc_va_muc_sau(cache_tong_hop, monkeypatch):
+    def hong(*a, **k):
+        raise RuntimeError("gai loi")
+    monkeypatch.setattr(D, "luoi_h1", hong)
+    out, dong = _chay_4b(cache_tong_hop, monkeypatch)
+    bk = out["bao_kem"]
+    assert "gai loi" in bk["luoi_10_o"]["loi"] and any("BÁO KÈM LỖI" in x for x in dong)
+    assert out["ket_cuc_cuoi"]["ket_cuc"] in ("A", "A+", "B", "C") and "delta" in bk["vung_sau_moc"]
+
+
+def test_LENH_KET_QUA_sau_hai_khoa_goi_chay_lat_4b_dung_doi_so(monkeypatch):
+    goi = []
+    monkeypatch.setattr(D, "chay_lat_4b", lambda cache, **k: goi.append((cache, k)) or {})
+    monkeypatch.setattr(D, "CHO_PHEP_DOC_KET_QUA_THAT", True)
+    assert D.main(["ket-qua", "--cache", "x", "--xac-nhan", D.CAU_XAC_NHAN_LAT_4B, "--ghi", "kq.json"]) == 0
+    assert goi == [(Path("x"), {"ghi": "kq.json"})]
+    goi.clear()
+    assert D.main(["ket-qua", "--cache", "x", "--xac-nhan", "sai"]) == 3 and goi == []
+
+
+def test_IN_KET_QUA_in_nhan_va_cac_con_so_cua_ket_qua():
+    M, s = _tong_hop_co_loi_the(0.0)
+    sma = (np.arange(M.vung.shape[0])[:, None] % 5 < 3) & np.ones(M.vung.shape, bool)
+    ts = np.clip((np.arange(M.vung.shape[0])[:, None] % 9) / 9.0, 0, 1) * np.ones(M.vung.shape)
+    kq = D.chay_ket_qua(M, s, sma.astype(float), ts, PHI, doi_chung_dat=True, so_luot=20)
+    dong = []
+    D.in_ket_qua(kq, dong.append)
+    txt = "\n".join(dong)
+    assert f"KẾT CỤC: {kq['ket_cuc']['ket_cuc']}" in txt and "Δ_(i) rổ" in txt and "(iv) đặt ngẫu nhiên" in txt
+    assert f"{kq['nua_h_quy_nam']['diem_pt_von_moi_nam']:.2f} điểm % vốn" in txt
+    assert "ngưỡng nhỏ = H/2" in txt and "cấu hình KTC đã dùng ở Δ_(i): KHỚP" in txt
+    for nhan in ("B", "C", "A+", "K0"):                                  # nhãn in ra là nhãn của kết quả, không phải chữ gõ cứng
+        d2 = []
+        D.in_ket_qua({**kq, "ket_cuc": {**kq["ket_cuc"], "ket_cuc": nhan, "ly_do_A": None}}, d2.append)
+        assert d2[-1] == f"KẾT CỤC: {nhan}"
 
 
 def test_HANG_SO_khop_ky_ho_so_cache_va_ngay_khong_rong():

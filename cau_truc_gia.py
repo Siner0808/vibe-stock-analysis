@@ -763,8 +763,12 @@ PHU_NEN_DANG_DO = "gồm nến chưa đóng cửa"
 TEN_NGUON = {NGUON_WYCKOFF: "pha Wyckoff", NGUON_THUY_TRIEU: "thủy triều swing"}
 GHI_CHU_CON_SONG = ("Cách chọn con sóng chưa có đồng thuận giữa các học trò của Dow; 3/8 nhịp chính VÀ 10 phiên là cách đọc "
                     "của đặc tả. Nhịp ngược đang chạy chưa được phân loại: nó chỉ vào nhật ký khi pivot kết thúc được xác nhận.")
-CHAN_KHOI = ("Đọc cấu trúc giá, không dự báo. Chưa có phép đo nào cho thấy cấu trúc này cho lợi thế; "
-             "xem docs/thiet-ke-dow-cau-truc.md.")
+#: Chân khối (đặc tả 7.2, mục 3): số ĐO và kết cục. BƯỚC 253 (04/11/2026): ĐO 34 chạy MỘT lần, kết cục A, nói đúng chữ của
+#: văn bản ĐO đã sửa (S2) — không phải "cấu trúc này không có lợi thế". Con số 18,3 là cận TRÊN MDE₈₀ (lưới thô) trên vốn
+#: ĐANG đầu tư mỗi năm, đọc từ `docs/do34-lat4b-ket-qua.json` (test khoá hai bên với nhau).
+CHAN_KHOI = ("Đọc cấu trúc giá, không dự báo. ĐO 34 (04/11/2026), kết cục A: không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0 "
+             "(MDE₈₀ tối đa 18,3 điểm phần trăm mỗi năm trên vốn đang đầu tư) — đây không phải bằng chứng cấu trúc này "
+             "không có lợi thế. Xem docs/STATE.md BƯỚC 253.")
 TEN_LOAI_SU_KIEN = {BOS: "BOS (phá mốc cùng chiều thiên hướng)", CHOCH: "CHoCH (phá mốc ngược chiều thiên hướng)",
                     KHOI_DAU: "phá mốc đầu tiên của chuỗi"}
 TEN_CAP = {CAP_SWING: "swing", CAP_NOI_BO: "nội bộ"}

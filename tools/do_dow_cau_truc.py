@@ -6,12 +6,12 @@ chuẩn, đối chứng và kết cục ở đây chép từ mục ấy; đổi 
 BƯỚC này (Lát 4a) dựng DỤNG CỤ và chạy ĐỐI CHỨNG. Nó KHÔNG đọc, KHÔNG tính, KHÔNG in lợi nhuận của danh mục Dow
 so với chuẩn nào, trên dữ liệu thật. Đường ra kết cục chỉ chạy trên dữ liệu TỔNG HỢP trong test; trên dữ liệu thật nó
 bị khoá sau `CHO_PHEP_DOC_KET_QUA_THAT` (= False ở Lát 4a) VÀ một cờ gõ nguyên văn (`CAU_XAC_NHAN_LAT_4B`) — Lát 4b
-(BƯỚC riêng) lật khoá và chạy MỘT lần.
+(BƯỚC 253) lật khoá trong một commit riêng, chạy MỘT lần qua `chay_lat_4b` rồi khoá lại. Phần dưới nói về Lát 4a.
 
     ./.venv/Scripts/python.exe tools/do_dow_cau_truc.py doi-chung --cache <thư mục cache> [--ghi X.json]
     ./.venv/Scripts/python.exe tools/do_dow_cau_truc.py cau-hinh-ktc
     ./.venv/Scripts/python.exe tools/do_dow_cau_truc.py khoang-cach-ii --cache <thư mục cache>   (BƯỚC 252; KHÔNG tính Δ của Dow)
-    ./.venv/Scripts/python.exe tools/do_dow_cau_truc.py ket-qua --cache <thư mục cache> --xac-nhan "<câu>"   (khoá ở 4a)
+    ./.venv/Scripts/python.exe tools/do_dow_cau_truc.py ket-qua --cache <thư mục cache> --xac-nhan "<câu>" [--ghi X.json]   (khoá; Lát 4b)
 
 CHỈ ĐỌC: không mạng, không `import vnstock`, không ghi cache, không đọc sổ lệnh. Chỉ ghi MỘT file JSON kết quả
 ở đường dẫn người gọi chọn (`--ghi`).
@@ -75,7 +75,7 @@ DUONG_BANG_DO_PHU = GOC / "docs" / "san-dau-do-phu.json"
 DUONG_MOC_SACH = GOC / "docs" / "moc_du_lieu_sach.json"
 
 #: Khoá lượt chạy trên dữ liệu THẬT. Lát 4a để False; Lát 4b (BƯỚC 252) lật nó trong một commit riêng.
-CHO_PHEP_DOC_KET_QUA_THAT = False
+CHO_PHEP_DOC_KET_QUA_THAT = False    # BUOC 253: da chay ket-qua MOT LAN (commit mo khoa 9b9ea3d); khoa lai. Chay lai = ca mot BUOC moi
 CAU_XAC_NHAN_LAT_4B = "DOC KET QUA DO 34 MOT LAN"
 
 KET_CUC_K0, KET_CUC_A, KET_CUC_A_CONG, KET_CUC_B, KET_CUC_C = "K0", "A", "A+", "B", "C"
@@ -859,15 +859,264 @@ def chay_ket_qua(M: MaTran, s_dow: np.ndarray, s_sma: np.ndarray, w_tsmom: np.nd
                                      for j in range(len(M.ma))))}
 
 
+# ── Lát 4b (BƯỚC 253): lượt chạy DUY NHẤT dưới văn bản ĐO 34 đã sửa ──────────────────────────
+def chuan_ii_iii(M: MaTran, chuoi: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Trạng thái SMA200 (chuẩn (ii)) và trọng số TSMOM (chuẩn (iii)) theo (ngày toàn cục × mã), xếp hàng cùng cách với
+    `s_matran` (ngày vắng hàng giữa vùng giữ giá trị trước). Chưa đủ lịch sử: SMA → không giữ; cửa sổ TSMOM → đóng góp 0 (S7)."""
+    dong = {m: pd.to_numeric(chuoi[m][0]["close"]).to_numpy(float) for m in M.ma}
+    return (s_matran(M, chuoi, {m: trang_thai_sma200(dong[m]) for m in M.ma}).astype(float),
+            s_matran(M, chuoi, {m: trong_so_tsmom(dong[m]) for m in M.ma}))
+
+
+def _json_mac_dinh(o):
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    if isinstance(o, np.generic):
+        return o.item()
+    return str(o)
+
+
+def _an_toan(ten: str, ra, f):
+    """Một mục BÁO KÈM hỏng không được làm mất kết cục đã in (lượt chạy là DUY NHẤT): ghi lỗi to ra và vào JSON."""
+    try:
+        return f()
+    except Exception as e:  # noqa: BLE001
+        import traceback
+        ra(f"[BÁO KÈM LỖI] {ten}: {e!r}")
+        return {"loi": repr(e), "vet": traceback.format_exc()}
+
+
+def thang_cua_so_ro(M: MaTran, do_dai: int = CUA_SO_SU_KIEN) -> np.ndarray:
+    """Lợi nhuận của rổ trong cửa sổ `do_dai` phiên (từ MỞ CỬA t+1 tới ĐÓNG CỬA t+do_dai) tại mỗi ngày toàn cục t: trung bình
+    các mã đang trong vùng ở CẢ HAI đầu cửa sổ. NaN khi không mã nào đủ. (H2: chuẩn trừ là rổ cùng cửa sổ.)"""
+    T = M.vung.shape[0]
+    mo = np.where(M.vung, M.dong / (1.0 + M.trong_phien), np.nan)
+    out = np.full(T, np.nan)
+    for t in range(T - do_dai):
+        ok = M.vung[t + 1] & M.vung[t + do_dai]
+        if ok.any():
+            out[t] = float(np.mean(M.dong[t + do_dai][ok] / mo[t + 1][ok] - 1.0))
+    return out
+
+
+def cat_vung_sach(df: pd.DataFrame, vung: np.ndarray) -> pd.DataFrame:
+    """Bảng của một mã cắt tới nến cuối của vùng đọc (nhân quả: nhật ký đến đó giống hệt bản đầy đủ — bất biến khi cắt)."""
+    return df.iloc[:int(np.flatnonzero(vung)[-1]) + 1].reset_index(drop=True)
+
+
+def luoi_h1(M: MaTran, chuoi: dict, phi: float, ro: np.ndarray, x_i: np.ndarray, bang: dict) -> list[dict]:
+    """Toàn lưới 10 ô × H1 (S5): CHỈ Δ_(i) kèm KTC và nhãn độ phủ, KHÔNG nhãn kết cục. Ô tốt nhất không phải một kết quả."""
+    kq = []
+    for ho in sorted(C.LUOI):
+        for ts in C.LUOI[ho]:
+            s = {m: trang_thai_dow(chuoi[m][0], chuoi[m][1], chuoi[m][2], ho, ts) for m in M.ma}
+            x = x_tu_dong_co(chay_dong_co(s_matran(M, chuoi, s)[None].astype(float), M, phi), ro)[0]
+            t = tom_tat_x(x, x_i, bang)
+            kq.append({"ho": ho, "tham_so": list(ts), "mac_dinh": (ho, ts) == C.MAC_DINH, "delta": t["delta"],
+                       "ktc": t["ktc"], "dong": t["dong"], "chua_0": t["chua_0"]})
+    return kq
+
+
+def mo_ta_bao_kem(chuoi: dict, vung_ma: dict) -> dict:
+    """Số MÔ TẢ ở ô mặc định, vùng sạch (S5): số sự kiện mỗi mã mỗi năm, độ trễ `chi_so_biet − chi_so_xay_ra` (trung vị, p90) mỗi cấp,
+    HAI định nghĩa "lật lại trong 3 phiên". Không đọc lợi nhuận."""
+    dem = {c: {} for c in C.CAPS}
+    tre = {c: [] for c in C.CAPS}
+    lat: dict = {}
+    so_nam = 0.0
+    for m in chuoi:
+        if not vung_ma[m].any():
+            continue
+        df = cat_vung_sach(chuoi[m][0], vung_ma[m])
+        r = C.doc_cau_truc(df, he_so_gia=chuoi[m][1], san=chuoi[m][2])
+        so_nam += int(vung_ma[m].sum()) / 252.0
+        for e in r.su_kien:
+            for k in (e.loai, f"{e.loai}/{e.chieu}"):
+                dem[e.cap][k] = dem[e.cap].get(k, 0) + 1
+        for p in r.nhat_ky:
+            tre[p.cap].append(p.chi_so_biet - p.chi_so_xay_ra)
+        for k, v in lat_lai_hai_dinh_nghia(df, r).items():
+            o = lat.setdefault(k, {"n": 0, "lat_lai_sau_su_kien_nguoc": 0, "lat_lai_dong_cua_qua_moc": 0})
+            for kk in o:
+                o[kk] += v[kk]
+    return {"so_nam_ma": so_nam,
+            "su_kien_moi_ma_moi_nam": {c: {k: v / so_nam for k, v in sorted(dem[c].items())} for c in C.CAPS},
+            "su_kien_dem": dem,
+            "do_tre_trung_vi": {c: float(np.median(tre[c])) if tre[c] else None for c in C.CAPS},
+            "do_tre_p90": {c: float(np.percentile(tre[c], 90)) if tre[c] else None for c in C.CAPS},
+            "lat_lai_3_phien": {k: {**v, "ty_le_su_kien_nguoc": v["lat_lai_sau_su_kien_nguoc"] / v["n"] if v["n"] else None,
+                                    "ty_le_dong_cua_qua_moc": v["lat_lai_dong_cua_qua_moc"] / v["n"] if v["n"] else None}
+                                for k, v in sorted(lat.items())}}
+
+
+def h2_mo_ta(M: MaTran, chuoi: dict, vung_ma: dict, hat: int = HAT) -> dict:
+    """H2 ở dạng MÔ TẢ (S5): số sự kiện CHoCH cấp swing và trung bình / trung vị của (lợi nhuận 21 phiên trừ rổ trừ ngày ngẫu
+    nhiên cùng mã cùng tháng) theo hướng. KHÔNG KTC, KHÔNG vào kết cục. Chuẩn trừ của rổ: `thang_cua_so_ro`."""
+    thang = thang_cua_so_ro(M)
+    chi_so = {d: i for i, d in enumerate(M.ngay)}
+    rng = np.random.default_rng(hat + 3)
+    ds = []
+    for m in M.ma:
+        df = cat_vung_sach(chuoi[m][0], vung_ma[m])
+        thang_ma = np.full(len(df), np.nan)
+        for i, t in enumerate(df["time"]):
+            if vung_ma[m][i]:
+                thang_ma[i] = thang[chi_so[str(t)[:10]]]
+        ds += su_kien_h2(df, chuoi[m][1], chuoi[m][2], thang_ma, rng)
+    kq = {"so_su_kien": len(ds)}
+    for chieu in (C.TANG, C.GIAM):
+        du = np.array([e["du"] for e in ds if e["chieu"] == chieu], float)
+        kq[chieu] = {"n": int(len(du)), "trung_binh": float(du.mean()) if len(du) else None,
+                     "trung_vi": float(np.median(du)) if len(du) else None,
+                     "n_khoa_bien": int(sum(1 for e in ds if e["chieu"] == chieu and e["khoa_bien"]))}
+    return kq
+
+
+def h3_vnindex(cache: Path) -> dict:
+    """H3 (mô tả, KHÔNG suy diễn): VN-INDEX như MỘT chuỗi, toàn bảng của cache."""
+    import mo_ta_cau_truc_gia as MT
+    df, he, san = MT.cau_hinh(Path(cache), "VNINDEX")
+    return h3_chi_so(df, he, san)
+
+
+def _dong_delta(t: dict) -> str:
+    ktc = t["ktc"]
+    if ktc is None:
+        return f"Δ {t['delta']:+.4e}, KTC không tính được"
+    return (f"Δ {t['delta']:+.4e} mỗi ngày, KTC [{ktc['can_duoi']:+.4e} ; {ktc['can_tren']:+.4e}] "
+            f"({'chứa 0' if t['chua_0'] else 'LOẠI 0'}); {t['dong']}")
+
+
+def in_ket_qua(kq: dict, ra=print) -> None:
+    """In kết cục và các số của `chay_ket_qua` (mọi con số ở đây được tính trong lượt chạy này)."""
+    kc = kq["ket_cuc"]
+    nam = kq["nua_h_quy_nam"]
+    ra(f"quần thể: {kq['so_ma']} mã, {kq['so_ngay']} ngày toàn cục, {kq['so_khoang_giu']} khoảng nắm giữ của Dow")
+    ra(f"x trung bình mỗi ngày của Dow (sau phí, trừ rổ): {kq['x_trung_binh_moi_ngay']:+.4e}; cộng dồn {kq['x_cong_don_diem_phan_tram']:+.2f} điểm %; "
+       f"cột thô cộng dồn {kq['cot_tho_cong_don_diem_phan_tram']:+.2f} điểm %")
+    for k, ten in (("i", "(i) rổ"), ("ii", "(ii) SMA200"), ("iii", "(iii) TSMOM")):
+        ra(f"Δ_{ten}: {_dong_delta(kq['delta'][k])}")
+    for k, ten in (("dat", "đặt ngẫu nhiên"), ("dich", "đồng bộ thời gian (dịch vòng ≥ 252)")):
+        v = kq["ngau_nhien"][k]
+        ra(f"(iv) {ten}: Dow thắng {100 * v['thang']:.1f}% lượt rút, x̄ ngẫu nhiên {v['tb_ngau_nhien']:+.4e}, Δ {v['delta']:+.4e}")
+    ra(f"(iv) tỷ lệ dùng cho A⁺ (số nhỏ hơn trong hai bản): {100 * kq['thang_iv']:.1f}%")
+    if nam["nua_be_rong_ktc_i"] is not None:
+        ra(f"H = nửa bề rộng KTC của Δ_(i) = {nam['nua_be_rong_ktc_i']:.4e} mỗi ngày = {nam['diem_pt_von_moi_nam']:.2f} điểm % vốn (71 ô) mỗi năm = "
+           f"{nam['diem_pt_dang_dau_tu_moi_nam']:.1f} điểm % trên vốn đang đầu tư mỗi năm (mức đầu tư trung bình {nam['phoi_trung_binh']:.4f})")
+    if kc["nguong_nho"] is not None:
+        ra(f"ngưỡng nhỏ = H/2 = {kc['nguong_nho']:.4e}; ngưỡng lớn = 2H = {kc['nguong_lon']:.4e}")
+    ra("cấu hình KTC đã dùng ở Δ_(i): " + ("; ".join(kq["lech_cau_hinh_ktc"]) if kq["lech_cau_hinh_ktc"] else "KHỚP bản đã khoá (BƯỚC 248)"))
+    ra(f"KẾT CỤC: {kc['ket_cuc']}" + (f"  (dạng A — {kc['ly_do_A']})" if kc.get("ly_do_A") else ""))
+
+
+def chay_lat_4b(cache: Path, ra=print, *, so_luot: int = SO_LUOT_NGAU_NHIEN, ma_ds=None, moc: dict | None = None,
+                bam_ky: str = BAM_CACHE_KY, ghi: str | Path | None = None, bang: dict | None = None) -> dict:
+    """LƯỢT CHẠY DUY NHẤT của ĐO 34 (Lát 4b, BƯỚC 253) dưới văn bản đã sửa: băm cache → đối chứng (i)–(vi) → kết cục (H1) trên vùng
+    sạch (in ngay) → báo kèm (lưới 10 ô, bản không khoá biên, độ nhạy phí 0,76%, mô tả, H2 mô tả, H3, vùng sau mốc, KHÔNG vào kết
+    cục) → băm cache sau. Chỉ `lenh_ket_qua` (sau hai khoá) gọi hàm này. Băm trước lệch băm đã ký, hoặc băm sau lệch băm trước,
+    thì kết cục cuối là K0. `ma_ds`/`moc`/`bam_ky` chỉ để test trên cache tổng hợp."""
+    import mo_ta_cau_truc_gia as MT
+    bang = doc_bang_do_phu() if bang is None else bang
+    out: dict = {"hat": HAT, "so_luot": so_luot, "bam_ky": bam_ky}
+
+    def luu():
+        if ghi:
+            Path(ghi).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=_json_mac_dinh), encoding="utf-8")
+
+    truoc = MT.bam_cache(cache)
+    out["bam_truoc_chay"] = truoc
+    khop_ky = truoc["sha256"] == bam_ky
+    ra(f"băm cache TRƯỚC lượt chạy: {truoc['sha256']} ({truoc['so_file']} file) — băm đã ký {'KHỚP' if khop_ky else 'LỆCH → K0'}")
+    ra("== ĐỐI CHỨNG (i)–(vi), cùng lượt chạy ==")
+    dc = doi_chung_tat_ca(cache, ra=ra, so_luot=so_luot)
+    out["doi_chung"] = dc
+    dat_dc = bool(dc["tat_ca_dat"]) and khop_ky
+    ra("== H1: KẾT CỤC trên vùng sạch ==")
+    chuoi, vung_ma, s = nap_cache(cache, ma_ds, moc, vung="sach")
+    M = dung_ma_tran(chuoi, vung_ma)
+    s_dow = s_matran(M, chuoi, s)
+    s_sma, w_ts = chuan_ii_iii(M, chuoi)
+    phi = phi_nua()
+    ra(f"vùng sạch: {len(M.ma)} mã, {len(M.ngay)} ngày toàn cục ({M.ngay[0]} → {M.ngay[-1]}), {int(M.vung.sum())} ngày-mã")
+    kq = chay_ket_qua(M, s_dow, s_sma, w_ts, phi, doi_chung_dat=dat_dc, so_luot=so_luot, bang=bang, hat=HAT)
+    out["ket_qua"] = kq
+    in_ket_qua(kq, ra)
+    k_ban_dau = kq["ket_cuc"]["ket_cuc"]
+    out["ket_cuc_truoc_bam_sau"] = k_ban_dau
+    luu()
+
+    ro = ro_trung_binh(M)
+    x_i = chuan_i(M, phi, ro)
+    ra("== BÁO KÈM (không quyết định kết cục) ==")
+    out["bao_kem"] = bk = {}
+    bk["luoi_10_o"] = _an_toan("lưới 10 ô", ra, lambda: luoi_h1(M, chuoi, phi, ro, x_i, bang))
+    if isinstance(bk["luoi_10_o"], list):
+        ra("lưới 10 ô × H1 (CHỈ Δ_(i); ô tốt nhất không phải một kết quả):")
+        for o in bk["luoi_10_o"]:
+            ra(f"  {o['ho']:8s} {str(o['tham_so']):12s}{' [mặc định]' if o['mac_dinh'] else '            '} Δ {o['delta']:+.4e}  "
+               f"KTC {'không tính được' if o['ktc'] is None else '[%+.4e ; %+.4e]' % (o['ktc']['can_duoi'], o['ktc']['can_tren'])}")
+
+    def khong_khoa():
+        x = x_tu_dong_co(chay_dong_co(s_dow[None].astype(float), M, phi, khoa=False), ro)[0]
+        return tom_tat_x(x, x_i, bang)
+    bk["khong_khoa_bien"] = _an_toan("bản không khoá biên", ra, khong_khoa)
+    if "delta" in bk["khong_khoa_bien"]:
+        ra("bản không có sự kiện nến khoá biên (động cơ khoa=False: lệnh không bị huỷ / chặn ở nến kịch trần / sàn): "
+           + _dong_delta(bk["khong_khoa_bien"]))
+
+    def nhay_phi():
+        k = chay_ket_qua(M, s_dow, s_sma, w_ts, phi_nua(PHI_NHAY_PCT), doi_chung_dat=dat_dc, so_luot=so_luot, bang=bang, hat=HAT)
+        return {"phi_pct": PHI_NHAY_PCT, "delta_i": k["delta"]["i"], "ket_cuc": k["ket_cuc"], "thang_iv": k["thang_iv"]}
+    bk["nhay_phi_0_76"] = _an_toan("độ nhạy phí 0,76%", ra, nhay_phi)
+    if "delta_i" in bk["nhay_phi_0_76"]:
+        v = bk["nhay_phi_0_76"]
+        ra(f"độ nhạy phí {PHI_NHAY_PCT}% một vòng: {_dong_delta(v['delta_i'])}; nhãn tính được {v['ket_cuc']['ket_cuc']} (KHÔNG đổi nhãn chính)")
+    bk["mo_ta"] = _an_toan("mô tả sự kiện", ra, lambda: mo_ta_bao_kem(chuoi, vung_ma))
+    if "su_kien_dem" in bk["mo_ta"]:
+        ra("sự kiện mỗi mã mỗi năm (loại, ô mặc định, vùng sạch): " + json.dumps(bk["mo_ta"]["su_kien_moi_ma_moi_nam"], ensure_ascii=False))
+        ra(f"độ trễ chi_so_biet − chi_so_xay_ra: trung vị {bk['mo_ta']['do_tre_trung_vi']}, p90 {bk['mo_ta']['do_tre_p90']}")
+        ra("lật lại trong 3 phiên (HAI định nghĩa): " + json.dumps(bk["mo_ta"]["lat_lai_3_phien"], ensure_ascii=False))
+    bk["h2_mo_ta"] = _an_toan("H2 mô tả", ra, lambda: h2_mo_ta(M, chuoi, vung_ma))
+    ra("H2 (MÔ TẢ, không KTC, không vào kết cục): " + json.dumps(bk["h2_mo_ta"], ensure_ascii=False))
+    bk["h3_vnindex"] = _an_toan("H3 VN-INDEX", ra, lambda: h3_vnindex(cache))
+    ra("H3 (mô tả, VN-INDEX): " + json.dumps(bk["h3_vnindex"], ensure_ascii=False))
+    luu()
+
+    def sau_moc():
+        chuoi2, vung2, s2 = nap_cache(cache, ma_ds, moc, vung="sau_moc")
+        M2 = dung_ma_tran(chuoi2, vung2)
+        sd2 = s_matran(M2, chuoi2, s2)
+        sm2, ts2 = chuan_ii_iii(M2, chuoi2)
+        k = chay_ket_qua(M2, sd2, sm2, ts2, phi, doi_chung_dat=dat_dc, so_luot=so_luot, bang=bang, hat=HAT)
+        k["ghi_chu"] = "vùng SAU mốc dữ liệu sạch: đã nhìn bởi các vòng tối ưu khác; báo RIÊNG, không phải kết cục chính"
+        return k
+    bk["vung_sau_moc"] = _an_toan("vùng sau mốc", ra, sau_moc)
+    if "delta" in bk["vung_sau_moc"]:
+        v = bk["vung_sau_moc"]
+        ra(f"vùng SAU mốc (đã nhìn bởi các vòng tối ưu khác; báo RIÊNG; không phải kết cục): {v['so_ma']} mã, {v['so_ngay']} ngày; "
+           f"{_dong_delta(v['delta']['i'])}; nhãn máy tính {v['ket_cuc']['ket_cuc']}")
+    luu()
+
+    sau = MT.bam_cache(cache)
+    out["bam_sau_chay"] = sau
+    khop = sau["sha256"] == truoc["sha256"]
+    ra(f"băm cache SAU lượt chạy: {sau['sha256']} → {'KHỚP băm trước' if khop else 'LỆCH → K0'}")
+    nhan = k_ban_dau if (khop and khop_ky) else KET_CUC_K0
+    out["ket_cuc_cuoi"] = {**kq["ket_cuc"], "ket_cuc": nhan}
+    ra(f"KẾT CỤC CUỐI (sau băm cache): {nhan}")
+    luu()
+    return out
+
+
 def lenh_ket_qua(a) -> int:
-    """Lượt chạy kết cục trên dữ liệu THẬT — KHOÁ ở Lát 4a. Hai khoá độc lập: hằng `CHO_PHEP_DOC_KET_QUA_THAT` (Lát 4b
-    lật nó trong commit riêng) và câu xác nhận gõ nguyên văn. Thiếu một trong hai thì thoát 3 TRƯỚC khi nạp bất kỳ
-    dữ liệu nào."""
+    """Lượt chạy kết cục trên dữ liệu THẬT. Hai khoá độc lập: hằng `CHO_PHEP_DOC_KET_QUA_THAT` (Lát 4b lật nó trong commit riêng, rồi
+    khoá lại sau lượt chạy) và câu xác nhận gõ nguyên văn. Thiếu một trong hai thì thoát 3 TRƯỚC khi nạp bất kỳ dữ liệu nào."""
     if not CHO_PHEP_DOC_KET_QUA_THAT or a.xac_nhan != CAU_XAC_NHAN_LAT_4B:
-        print("TỪ CHỐI: Lát 4a không đọc kết cục trên dữ liệu thật (ĐO 34: không đọc lợi nhuận trước khi 8.1 xanh trên cache "
-              "thật và trước Lát 4b). Khoá: CHO_PHEP_DOC_KET_QUA_THAT + câu xác nhận.")
+        print("TỪ CHỐI: lượt đọc kết cục trên dữ liệu thật bị khoá (ĐO 34: chạy MỘT lần, ở Lát 4b). "
+              "Khoá: CHO_PHEP_DOC_KET_QUA_THAT + câu xác nhận.")
         return 3
-    raise NotImplementedError("Lát 4b nối đường này; Lát 4a không có nhánh chạy dữ liệu thật")
+    chay_lat_4b(Path(a.cache), ghi=a.ghi)
+    return 0
 
 
 def doi_chung_tat_ca(cache: Path, ra=print, so_luot: int = SO_LUOT_NGAU_NHIEN) -> dict:
@@ -978,7 +1227,7 @@ def lenh_khoang_cach_ii(a) -> int:
 
 
 def main(argv=None) -> int:
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="lenh", required=True)
     sub.add_parser("cau-hinh-ktc", help="in cấu hình KTC dùng và kết quả so với bản ghi đã khoá")
@@ -989,9 +1238,10 @@ def main(argv=None) -> int:
     d.add_argument("--cache", required=True)
     d.add_argument("--ghi", help="đường dẫn JSON kết quả")
     d.add_argument("--so-luot", type=int, default=SO_LUOT_NGAU_NHIEN)
-    k = sub.add_parser("ket-qua", help="KHOÁ ở Lát 4a: đọc kết cục trên dữ liệu thật")
+    k = sub.add_parser("ket-qua", help="KHOÁ (hằng + câu xác nhận): lượt đọc kết cục DUY NHẤT trên dữ liệu thật (Lát 4b)")
     k.add_argument("--cache", required=True)
     k.add_argument("--xac-nhan", default="")
+    k.add_argument("--ghi", help="đường dẫn JSON kết quả (ghi sau kết cục, sau báo kèm, và cuối lượt)")
     a = ap.parse_args(argv)
     if a.lenh == "cau-hinh-ktc":
         return lenh_cau_hinh_ktc(a)

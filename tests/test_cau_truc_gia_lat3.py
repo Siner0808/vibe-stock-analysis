@@ -204,9 +204,23 @@ def test_khoi_chi_tiet_co_pivot_hai_cap_moc_phu_dinh_su_kien_con_song_va_chan_kh
     assert h.chi_tiet[-1] == C.CHAN_KHOI == h.chan
 
 
-def test_chan_khoi_dung_nguyen_van_dac_ta_7_2():
-    assert C.CHAN_KHOI == ("Đọc cấu trúc giá, không dự báo. Chưa có phép đo nào cho thấy cấu trúc này cho lợi thế; "
-                           "xem docs/thiet-ke-dow-cau-truc.md.")
+def test_chan_khoi_mang_so_DO_ket_cuc_va_dung_chu_cua_van_ban_DO_34_da_sua():
+    """Chân khối (BƯỚC 253): số ĐO + kết cục A + câu "không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0" của S2; KHÔNG được nói
+    "Dow không có lợi thế" / "bằng rổ". Số MDE và nhãn đọc từ bản ghi thô của lượt chạy duy nhất, không gõ lại bằng tay."""
+    import json
+    from pathlib import Path
+    ban_ghi = json.loads((Path(__file__).resolve().parent.parent / "docs" / "do34-lat4b-ket-qua.json").read_text(encoding="utf-8"))
+    nhan = ban_ghi["ket_cuc_cuoi"]["ket_cuc"]
+    mde = ban_ghi["doi_chung"]["iii"]["mde_80"]["diem_pt_dang_dau_tu_moi_nam"]
+    assert nhan == "A"
+    chan = C.CHAN_KHOI
+    assert chan.startswith("Đọc cấu trúc giá, không dự báo.")
+    assert "ĐO 34" in chan and f"kết cục {nhan}:" in chan
+    assert "không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0" in chan
+    assert f"{mde:.1f}".replace(".", ",") + " điểm phần trăm mỗi năm trên vốn đang đầu tư" in chan
+    assert "không phải bằng chứng cấu trúc này không có lợi thế" in chan
+    assert "Dow không có lợi thế" not in chan and "bằng rổ" not in chan and "Chưa có phép đo" not in chan
+    assert "docs/STATE.md BƯỚC 253" in chan
 
 
 def test_gia_hien_thi_theo_he_so_gia_va_co_khoa_bien_hien_ra():
