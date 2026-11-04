@@ -294,6 +294,8 @@ Lệnh con: `bang` (in bảng), `tuong-duong` (Tầng B, mục 6), `do-phu` (BƯ
 | G7 sổ phương án | luật (a)–(f) mục 9 | `tests/test_tien_dang_ky_git.py` |
 | G8 cờ ↔ sổ | khoá của `bo_co` ⊆ trường `CauHinhVao`; mỗi trường chỉ-đọc ở `tu_module()` (mục 5, khoản 6) | `tests/test_hang_rao_quy_trinh.py` (khuôn sổ đăng ký) |
 
+> ⚠️ **G2 HẾT ĐÚNG MỘT PHẦN — soát định kỳ lượt 16, 04/11/2026 (BƯỚC 254).** Danh sách người được nhập `san_dau` nay là `app.py` (chỉ được phép, CHƯA nhập — Lát 4), `tools/san_dau.py` và `tools/do_dow_cau_truc.py` (BƯỚC 251: ĐO 34 dùng lại hàm KTC của sân đấu); gác `tests/test_san_dau.py::test_G2_duong_that_KHONG_nhap_san_dau` (`cho_phep` ở :779) đã mở đúng ba tên ấy. Phần cấm (`paper_trading`, `paper_runner`, `paper_metrics`, `run_daily`, `master_agent`, `analysis_agents`, `walkforward`, `sheets_store`, `cham_bong`, `hau_kiem_loi`, `ban_tin`) vẫn đúng. Câu cũ ở hàng G2 giữ nguyên.
+
 Mỗi gác mới đi qua vòng đột biến (Bước 3 của skill): thêm một lời gọi ghi → G1 đỏ; nhập `san_dau` từ `paper_trading` → G2 đỏ; gọi `_analyze` → G4 đỏ; in "95%" trần → G6 đỏ.
 
 ## 12. Bốn BƯỚC, mỗi BƯỚC một lát cắt dọc (`Mốc: C1`)

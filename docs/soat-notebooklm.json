@@ -4478,6 +4478,119 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "Một lượt, hỏi thật, câu trả lời ÂM (lối thoát): sổ tay nói không có câu nào mâu thuẫn và kết luận 'có thể ghi BƯỚC 252'. Lượt hỏi 03/11/2026 sau khi xoá nhật ký chat (0 tin trước), 20/20 nguồn tươi so với 2cd47f2 (nhãn: scratchpad/hoi252/nhan_2cd47f2.txt, bắt tay sha256 KHỚP). Tự kiểm các vế DƯƠNG của câu trả lời, vì lối thoát chỉ chặn bịa, không chặn bỏ sót. (1) 'Quyết định này đã được người dùng phê duyệt ở BƯỚC 251' — NÓI RỘNG HƠN NGUỒN. `docs/STATE.md` BƯỚC 251, mục 'Quyết định của người dùng' (03/11/2026) ghi người dùng chọn *\"Sửa ĐO 34 trước khi đọc (Recommended)\"*, tức quyết định SỬA, không phải duyệt VĂN BẢN đã sửa; văn bản sửa ở BƯỚC 252 ghi 'CHỜ NGƯỜI DÙNG DUYỆT' và chưa có hiệu lực. Không dựa vào vế này. (2) 'Quy tắc dự án cấm chỉnh sửa đè/xoá bỏ chữ ký tiền đăng ký cũ, mà bắt buộc giữ nguyên văn bản gốc và thêm khối sửa đổi có ngày' — KHÔNG TÌM THẤY QUY TẮC NHƯ THẾ. `./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"Quy tắc dự án cấm chỉnh sửa đè/xoá bỏ chữ ký tiền đăng ký cũ, mà bắt buộc giữ nguyên văn bản gốc\"` -> LỆCH, khớp 8/96 ký tự đầu (ở CLAUDE.md). Thứ có thật: (a) đầu `docs/TIEU-CHI-DOC-TRUOC.md` (dòng 3–6): *\"viết tiêu chí ra, commit, rồi mới chạy — để nó không thể sửa sau. File này là hợp đồng, không phải ghi chú\"*; (b) `docs/STATE.md` dòng 6128–6137 (mục 'KHÔNG sửa tiêu chí', BƯỚC 20): *\"Sửa ngưỡng sau khi đã thấy dữ liệu nghiêng về một phía là đúng thứ bất biến 7 cấm, kể cả khi sửa theo hướng nghiêm khắc hơn\"*; (c) `docs/HANDOFF.md` dòng 11: STATE.md *\"chỉ THÊM, không sửa mục cũ\"*; (d) TIỀN LỆ, không phải luật: `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 8 ('SỬA MỘT KỲ VỌNG ĐÃ KHAI — số học tính tay bác nó, TRƯỚC khi chạy', dòng 1467), ĐO 24 (dòng 3954), ĐO 30 (dòng 4325), ĐO 33 (dòng 4569). Kết luận: giữ bản ký và thêm khối sửa có ngày là TIỀN LỆ + khuôn do chính BƯỚC 252 chọn, không phải quy tắc cấm/bắt buộc; PR của BƯỚC 252 ghi đúng như vậy. (3) 'nguyên tắc sửa đổi tiền đăng ký có kiểm soát … miễn là chưa đọc bất kỳ con số kết quả lợi nhuận thật nào' (nguồn trích: STATE phần 1, BƯỚC 2–40) — KHÔNG TÌM THẤY NGUYÊN TẮC NHƯ THẾ. `doi_chieu_trich_dan.py \"miễn là chưa đọc bất kỳ con số kết quả lợi nhuận thật nào\"` -> LỆCH, khớp 8/57 ký tự đầu (ở STATE.md). Phần 1 STATE có 'KHÔNG sửa tiêu chí' (đã trích ở (2b)), đi NGƯỢC ý ấy nếu đọc rộng. Điều BƯỚC 252 dựa là ranh giới nó tự đặt: văn bản sửa trước lượt chạy duy nhất, chưa đọc Δ nào của Dow, các số đã dùng đều là số của đối chứng. Đây cũng là chỗ gần nhất với (2b) và được nêu cho người dùng ở PR: hai khoản nới (ô 'nửa rào' của (iii) bỏ khỏi K0; ngưỡng lớn H -> 2H) được đề xuất SAU khi thấy số của đối chứng (không phải số của Dow). (4) 'Bất biến 5' (NGUYEN-TAC-DO-LUONG.md, mục 5, dòng 70–75: mọi con số phải kèm khoảng tin cậy) và 'Lỗi 99': CÓ THẬT. `references/loi-da-mac.md` dòng 1477 (lỗi 99: một phán quyết về LỰC phải là một TỶ LỆ, một lượt tiêm ở nhịp biên là đồng xu 70/30) và `SKILL.md` dòng 155–157; BƯỚC 252 dùng 100 lượt lặp mỗi ô kèm khoảng Wilson, nhất quán. Bất biến 5 chỉ gián tiếp liên quan (khoảng tin cậy của tỷ lệ bắt). (5) Tìm NGƯỢC, các câu có thể mâu thuẫn mà sổ tay không nêu: `grep -n \"Không thử tham số khác sau khi ký\" docs/TIEU-CHI-DOC-TRUOC.md` -> dòng 4751 (ĐO 34, 'Điều ĐO này KHÔNG làm'): nói về THAM SỐ của Dow, không phải đối chứng/ngưỡng kết cục; BƯỚC 252 không đổi tham số Dow (ATR (2,4), con sóng 3/8 VÀ 10). `grep -n -i \"đối chứng trượt\\|nới\\|hạ ngưỡng\" docs/TIEU-CHI-DOC-TRUOC.md docs/LO-TRINH.md NGUYEN-TAC-DO-LUONG.md SKILL.md references/bay.md` -> dòng 4198 (ĐO 27: 'M0 hoặc một đối chứng trượt ⇒ lượt ấy không kết luận') và 4728 (chính ĐO 34, ký 'không hạ ngưỡng 90%' của độ phủ KTC, một ngưỡng khác). Không có luật nào cấm thay định nghĩa một đối chứng SAU khi nó trượt và TRƯỚC khi lượt chạy diễn ra, nhưng cũng không có luật nào cho phép; đó là điều người dùng quyết. (6) Các vế khác sổ tay xác nhận (R8/R9 không chạy được, hai chọn lựa động cơ, A⁺ rỗng, 1/71) đều dẫn BƯỚC 251 và đúng: STATE BƯỚC 251 mục 'Khe của văn bản ký', 'Giới hạn nói ra' (d), (e), (f). Không có vế nào sổ tay đưa ra mà tự kiểm thấy SAI ngoài (1)–(3)."
+    },
+    "BƯỚC 254": {
+      "ngay": "2026-11-04",
+      "khong_bat_buoc_vi": "BƯỚC soát định kỳ lượt 16 (phần máy và phán của phiên con) cộng ghi lượt đọc 5 của ĐO 27: chỉ ghi lượt soát 2026-11-04 vào docs/soat-dinh-ky.json, ba ô ⚠️ có ngày (docs/HANDOFF.md mục 5, .claude/skills/dow-theory-analysis/SKILL.md, docs/thiet-ke-c1-san-dau.md), dòng Hạn kế và khối 🧭 ở docs/HANDOFF.md, mục BƯỚC 254 ở docs/STATE.md; không sửa file luật nào (tools/buoc_cham_luat.py 254 xác nhận), không đổi điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào. Đánh dấu SAI THEO THỜI GIAN là kết quả của một lượt soát, không phải một kết luận đo mới; kết cục CHƯA ĐỦ của ĐO 27 lượt 5 giữ y nguyên quy tắc đã ký ở docs/TIEU-CHI-DOC-TRUOC.md (quần thể có lịch 4 < 30, dương thật 0 < 3), không đổi tiêu chí. Câu hỏi về lệnh #128 TCB (mang nhãn nhưng không đọc được lịch) được chuyển cho người dùng, không phiên con nào tự quyết và không có kết luận đo nào đổi."
+    },
+    "BƯỚC 253": {
+      "ngay": "2026-11-04",
+      "nguon": [
+        "CLAUDE.md @a877ca6",
+        "HANDOFF.md @b023a4b",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @bbb516b",
+        "MO-XE-KIEN-TRUC.md @13c32a0",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @f27bc50",
+        "references/loi-da-mac.md @cced339",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @f27bc50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @b023a4b phan6/6 (BUOC 251-254)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "TIEU-CHI-DOC-TRUOC.md @cced339"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với b023a4b b023a4b): 20 nguồn, 20 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 253 into docs/STATE.md: docs/STATE.md BƯỚC 253 records the single run of ĐO 34 (Dow price-structure, read-only measurement signed 30/10/2026 and amended 03/11/2026 with user approval) under the amended text. Outcome A, form (a): the 95% CI of the difference versus the basket, Delta_(i), contains 0. It is worded exactly 'cannot tell an edge at or above MDE80 from zero', never 'Dow has no edge' and never 'Dow equals the basket'; MDE80 (upper bound, coarse grid) is at most 18.3 percentage points per year on invested capital while the CI half-width H is 8.7. All six controls (i)-(vi) passed in the same run, the cache hash was identical before and after and equal to the signed hash, and the run happened once. The lock constant CHO_PHEP_DOC_KET_QUA_THAT was opened in one commit and re-locked in the next. The Dow cells on the app stay display-only; their footer line now names ĐO 34 and outcome A. No tier-3 candidate is declared and the live trading path is unchanged. Secondary results never enter the outcome: a 10-cell parameter grid (nine cells contain 0, one fractal cell is negative, best cell is not a result), fee sensitivity at 0.76%, the zone after the clean-data marker reported separately, and H2 reported as descriptive only with no CI. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a rule or precedent that a null outcome of a pre-registered measurement must be worded as 'no edge' or 'no effect', or must NOT be worded that way, a rule that a single pre-registered run may be repeated, or that its inputs or thresholds may be changed after the result was seen, a rule that the data zone after the clean-data marker may not be read, or must be reported separately from the main outcome, a rule that a secondary cell, the best grid cell, or a descriptive sub-hypothesis can be used as a result or must never be, a rule about what text a display-only cell or app footer may or may not say about a measured result, a rule that outcome A of a measurement must or must not lead to a tier-3 candidate. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "c5303e12742cfe188346e81effc40104cf557e568f2b85e2848daad722a2b0c7",
+        "dai16": 2694,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 2,
+            "nguon": "lich-su/CLAUDE-md-2026-09-30.md @13c32a0"
+          },
+          {
+            "n": 3,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 3,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 4,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 4,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 2,
+            "nguon": "lich-su/CLAUDE-md-2026-09-30.md @13c32a0"
+          },
+          {
+            "n": 5,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 3,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 6,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 5,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 6,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, hỏi thật, câu trả lời ÂM (lối thoát): sổ tay nói không có vị trí nào mâu thuẫn. Lượt hỏi 04/11/2026 sau khi xoá nhật ký chat (0 tin trước), 20/20 nguồn tươi so với b023a4b (nhãn: scratchpad/hoi253/nhan_b023a4b.txt, bắt tay sha256 KHỚP c5303e12…). Tự kiểm lại bằng lệnh, vì lối thoát chỉ chặn bịa, không chặn bỏ sót. (1) Các đoạn trích nguyên văn của nó (Hệ quả cho cách đọc kết cục; S7 'Lượt chạy. MỘT lần…'; 'Vùng sau mốc báo RIÊNG…'; 'ô tốt nhất không phải một kết quả'; S5 'H2 chạy ở dạng MÔ TẢ…' và 'H2 không vào kết cục'; S3 dạng 5 'A — không phân biệt được…' và 'Đây vẫn là kết cục MẶC ĐỊNH…') chạy qua `tools/doi_chieu_trich_dan.py` thành 11 mảnh: cả 11 KHỚP `TIEU-CHI-DOC-TRUOC.md`, mã thoát 0 (hai chỗ nó viết dấu ba chấm là nối hai mảnh có thật). (2) 'Bất biến 7 trong NGUYEN-TAC-DO-LUONG.md' NÓI RỘNG HƠN NGUỒN: trích dẫn 2 của nó trỏ vào lich-su/CLAUDE-md-2026-09-30.md @13c32a0, không vào NGUYEN-TAC; bất biến 7 ở `NGUYEN-TAC-DO-LUONG.md` dòng 86 là 'Không chọn cực đại của N lần thử rồi gọi đó là kết quả' (đỡ vế 'ô tốt nhất không phải một kết quả'); vế 'không chạy lại, không chế điều kiện sau khi nhìn số' nằm ở `CLAUDE.md` ('Đừng chế điều kiện khác sau khi đã nhìn số (bất biến 7)') và S7 của TIEU-CHI, không ở NGUYEN-TAC. (3) '(chỉ có kết cục A⁺ mới mở quyền xem xét đề xuất ứng viên Tầng 3)' KHÔNG CÓ NGUỒN: S3 khoản A⁺ ghi 'Hành động: báo người dùng; KHÔNG tự khai ứng viên tầng 3' (bản ký dòng 4744 và bản sửa dòng 4779 của TIEU-CHI); không câu nào nói 'chỉ A⁺ mở quyền'. Đúng ý (kết cục A không khai ứng viên), sai chữ; BƯỚC 253 không dựa vào vế này. (4) Vế ÂM tự kiểm: `grep -n 'chưa chạy|chưa có kết cục|chưa có phép đo'` trên docs/thiet-ke-dow-cau-truc.md, docs/HANDOFF.md, cau_truc_gia.py, app.py, docs/LO-TRINH.md ra ba dòng, không dòng nào về ô Dow làm BƯỚC 253 thành sai (HANDOFF :327 là khối BƯỚC 251, bản ghi CÓ NGÀY 'ĐO 34 chưa chạy'; :73 và :604 nói chuyện khác); `grep -n -i 'dow|ĐO 34' docs/LO-TRINH.md CLAUDE.md` ra 0 dòng; câu 'chưa có phép đo nào cho thấy nó có lợi thế' của .claude/skills/dow-theory-analysis/SKILL.md vẫn đúng sau kết cục A (không phép đo nào cho thấy lợi thế). (5) Một chỗ TÔI sửa trong lúc kiểm, không phải sổ tay chỉ ra: chữ của chân khối, STATE và HANDOFF trong bản nháp viết 'MDE₈₀ với 0' (chép theo đề bài) trong khi văn bản sửa (S2, TIEU-CHI dòng 4759 và 4773) ghi 'MDE₈₀ khỏi 0'; đã đổi về 'khỏi 0' ở chân khối, STATE, HANDOFF, đặc tả và test."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

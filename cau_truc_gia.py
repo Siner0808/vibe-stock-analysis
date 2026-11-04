@@ -766,7 +766,7 @@ GHI_CHU_CON_SONG = ("Cách chọn con sóng chưa có đồng thuận giữa cá
 #: Chân khối (đặc tả 7.2, mục 3): số ĐO và kết cục. BƯỚC 253 (04/11/2026): ĐO 34 chạy MỘT lần, kết cục A, nói đúng chữ của
 #: văn bản ĐO đã sửa (S2) — không phải "cấu trúc này không có lợi thế". Con số 18,3 là cận TRÊN MDE₈₀ (lưới thô) trên vốn
 #: ĐANG đầu tư mỗi năm, đọc từ `docs/do34-lat4b-ket-qua.json` (test khoá hai bên với nhau).
-CHAN_KHOI = ("Đọc cấu trúc giá, không dự báo. ĐO 34 (04/11/2026), kết cục A: không phân biệt được lợi thế ≥ MDE₈₀ với 0 "
+CHAN_KHOI = ("Đọc cấu trúc giá, không dự báo. ĐO 34 (04/11/2026), kết cục A: không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0 "
              "(MDE₈₀ tối đa 18,3 điểm phần trăm mỗi năm trên vốn đang đầu tư) — đây không phải bằng chứng cấu trúc này "
              "không có lợi thế. Xem docs/STATE.md BƯỚC 253.")
 TEN_LOAI_SU_KIEN = {BOS: "BOS (phá mốc cùng chiều thiên hướng)", CHOCH: "CHoCH (phá mốc ngược chiều thiên hướng)",

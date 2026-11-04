@@ -205,7 +205,7 @@ def test_khoi_chi_tiet_co_pivot_hai_cap_moc_phu_dinh_su_kien_con_song_va_chan_kh
 
 
 def test_chan_khoi_mang_so_DO_ket_cuc_va_dung_chu_cua_van_ban_DO_34_da_sua():
-    """Chân khối (BƯỚC 253): số ĐO + kết cục A + câu "không phân biệt được lợi thế ≥ MDE₈₀ với 0" của S2; KHÔNG được nói
+    """Chân khối (BƯỚC 253): số ĐO + kết cục A + câu "không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0" của S2; KHÔNG được nói
     "Dow không có lợi thế" / "bằng rổ". Số MDE và nhãn đọc từ bản ghi thô của lượt chạy duy nhất, không gõ lại bằng tay."""
     import json
     from pathlib import Path
@@ -216,7 +216,7 @@ def test_chan_khoi_mang_so_DO_ket_cuc_va_dung_chu_cua_van_ban_DO_34_da_sua():
     chan = C.CHAN_KHOI
     assert chan.startswith("Đọc cấu trúc giá, không dự báo.")
     assert "ĐO 34" in chan and f"kết cục {nhan}:" in chan
-    assert "không phân biệt được lợi thế ≥ MDE₈₀ với 0" in chan
+    assert "không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0" in chan
     assert f"{mde:.1f}".replace(".", ",") + " điểm phần trăm mỗi năm trên vốn đang đầu tư" in chan
     assert "không phải bằng chứng cấu trúc này không có lợi thế" in chan
     assert "Dow không có lợi thế" not in chan and "bằng rổ" not in chan and "Chưa có phép đo" not in chan
