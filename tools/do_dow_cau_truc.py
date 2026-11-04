@@ -75,7 +75,7 @@ DUONG_BANG_DO_PHU = GOC / "docs" / "san-dau-do-phu.json"
 DUONG_MOC_SACH = GOC / "docs" / "moc_du_lieu_sach.json"
 
 #: Khoá lượt chạy trên dữ liệu THẬT. Lát 4a để False; Lát 4b (BƯỚC 252) lật nó trong một commit riêng.
-CHO_PHEP_DOC_KET_QUA_THAT = False
+CHO_PHEP_DOC_KET_QUA_THAT = True     # BUOC 253, commit MO KHOA rieng: chi de chay ket-qua MOT LAN; commit sau khoa lai
 CAU_XAC_NHAN_LAT_4B = "DOC KET QUA DO 34 MOT LAN"
 
 KET_CUC_K0, KET_CUC_A, KET_CUC_A_CONG, KET_CUC_B, KET_CUC_C = "K0", "A", "A+", "B", "C"

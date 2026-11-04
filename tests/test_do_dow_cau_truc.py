@@ -525,7 +525,7 @@ def test_CHAY_KET_QUA_K0_khi_doi_chung_truot():
 # ── khoá: lượt chạy dữ liệu thật bị khoá ở Lát 4a ─────────────────────────────────────────
 def test_KHOA_hang_so_cua_lat_4b():
     """Giá trị HIỆN TẠI của khoá: False ngoài đúng lượt chạy duy nhất của BƯỚC 253 (commit mở khoá riêng, commit khoá lại riêng)."""
-    assert D.CHO_PHEP_DOC_KET_QUA_THAT is False
+    assert D.CHO_PHEP_DOC_KET_QUA_THAT is True        # commit MO KHOA (BUOC 253); commit khoa lai dua ve False
 
 
 def test_KHOA_hai_khoa_doc_lap_khong_doc_ket_qua_that_khi_thieu_mot(monkeypatch, capsys):
