@@ -6,6 +6,8 @@ description: Đọc và giải thích Lý thuyết Dow (Charles Dow, Hamilton, R
 # Lý thuyết Dow — đọc đúng nguồn, nói đúng độ tin
 
 > **Nguồn gốc bản này.** Bản nháp do **người dùng soạn** (`SKILL-dow-theory-analysis.md`, 29/10/2026). Bản trong repo là bản đã **sửa theo báo cáo nghiên cứu 29/10/2026** (BƯỚC 244; đọc nguyên văn Nelson 1902 và Hamilton 1922, các nguồn thứ cấp được gắn nhãn). Đặc tả mô-đun đọc cấu trúc: `docs/thiet-ke-dow-cau-truc.md`. **Mô-đun ấy chưa có mã** — không nói với người dùng rằng app đang hiện thủy triều hay con sóng cho tới khi nó vào `main`.
+>
+> ⚠️ **HẾT ĐÚNG — soát định kỳ lượt 16, 04/11/2026 (BƯỚC 254).** Câu trên đúng tới 30/10/2026. Mô-đun `cau_truc_gia.py` vào `main` từ BƯỚC 247 (30/10); `app.py` hiện hai ô "Thủy triều (cấu trúc)" và "Chu kỳ 4 giai đoạn" từ BƯỚC 250 (PR #296, 03/11/2026). Câu cũ giữ nguyên làm sử liệu. Vẫn đúng: hai ô là CHỈ ĐỂ HIỆN, không vào điểm hay lệnh ảo; khi nói với người dùng về hai ô, nói theo `docs/thiet-ke-dow-cau-truc.md` và `docs/STATE.md` BƯỚC 250.
 
 ## 0. Thứ bậc khi trả lời
 

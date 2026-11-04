@@ -2682,6 +2682,565 @@
           "phan_quyet": "THẬT (khai phạm vi, không phán một câu) — KHÔNG đọc Google Sheets (tab hau_kiem, sổ lệnh) — mọi số '5/16 → 15/16', '7 lệnh 2 ĐẠT 5 BỊ BÁC', '9 trong 10 dòng' không kiểm; KHÔNG gọi vnstock (Listing: 'VNI là mã niêm yết thật' không đo lại; ĐO 27 là việc của leader); KHÔNG tính lại alpha/walk-forward (mỗi lượt 6–37 phút); KHÔNG chạy lại đục thử 45/45 của BƯỚC 234; KHÔNG mở trình duyệt (NotebookLM là phần leader); KHÔNG đo thời gian chạy (số của BƯỚC 230/231/232/233 trôi theo tải máy). Công cụ chính vẫn bỏ hàng bảng và không thấy câu 'không đọc'/'không chứng minh' — đã đọc tay phần BƯỚC 234 và HANDOFF +15 dòng."
         }
       ]
+    },
+    {
+      "ngay": "2026-11-04",
+      "pham_vi": "Lượt 16, làm đúng hạn 04/11/2026 (HANDOFF mục 5: nhịp 7 ngày kể từ NGÀY LÀM lượt 15, 28/10 — BƯỚC 235; người dùng 04/11: \"Song song, soát 16 merge trước (Recommended)\"). Phiên con của leader (BƯỚC 254); nhánh soat/16-254 từ origin/main cced339 (cây lượt 15 = a877ca6), worktree ngoài repo (vibe_wt_254); python = ../vibe_preview/.venv/Scripts/python.exe. Công cụ in 77 lời khai · 9 tài liệu, 6 CHƯA AI MỞ (sáu khối 🧭 BƯỚC 237–249 của HANDOFF.md), 4 dòng sổ mồ côi (y nguyên lượt 15). Cả 77 mở lại và phán bằng lệnh chạy hôm nay trên cây cced339 (`dong` là nguyên văn từ chính công cụ; số dòng trong ô là ở cced339, trước khi lượt này thêm dòng vào HANDOFF): 62 THẬT · 10 SAI (7 đã đánh dấu từ trước + 3 mới, nay đã đánh dấu bằng ô ⚠️ 04/11 ở HANDOFF) · 5 SAI MỘT PHẦN (3 đã đánh dấu + 2 mới, nay đã đánh dấu). Phần NGOÀI tầm công cụ chính chạy bằng tools/soat_ngoai_cong_cu.py (diff a877ca6 cced339 → 105 câu; state 235 252 --cay cced339 → 73 ứng viên · 67 chưa dấu; hang-bang --cay cced339 → 71 hàng · 49 chưa dấu): 90 THẬT · 5 KHÔNG KIỂM · 6 SAI · 4 SAI MỘT PHẦN (chi tiết ở các mục không có `dong` ở cuối). Không đọc Google Sheets ngoài phần ĐO 27 (việc của lượt đọc), không gọi vnstock ngoài phần ĐO 27, không mở trình duyệt.",
+      "duong_ngoai_repo": {
+        "chet": 0,
+        "su_lieu": 18,
+        "con": 72,
+        "ma_thoat": 0,
+        "sau_luot": {
+          "chet": 0,
+          "su_lieu": 18,
+          "con": 72,
+          "ma_thoat": 0
+        }
+      },
+      "phat_hien": [
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/SKILL.md:96 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -n \"^## BƯỚC 42 \" docs/STATE.md -> 8419; git grep -n \"file_upload(tabId, paths)\" -- docs/STATE.md -> 8441 (dòng lỗi `expected string, received undefined`)",
+          "phan_quyet": "THẬT về ngày đo 08/09 — SKILL.md dùng câu này làm VÍ DỤ HÌNH DẠNG của một lời khai nêu đường; phép đo gốc vẫn ở BƯỚC 42 (STATE :8419 · :8441). KHÔNG đo lại `file_upload` (cần Chrome + NotebookLM; người dùng cấm mở Chrome). Y nguyên lượt 15.",
+          "dong": "TIÊU**: \"`file_upload` không dùng được vì trang không có ô nhập file\" đúng"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/SKILL.md:230 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"def test_moi_luat_deu_khai_NGUON\" -- tests/test_cua_quy_trinh.py -> :834; git grep -n \"CHƯA CÓ SỰ CỐ\" -- tools/cua_bash_an_toan.py -> :396 :437 :501 :1013",
+          "phan_quyet": "THẬT — nhãn `CHƯA CÓ SỰ CỐ` có thật ở tools/cua_bash_an_toan.py (:396 :437 :501 :1013) và gác `test_moi_luat_deu_khai_NGUON` ở tests/test_cua_quy_trinh.py:834. Câu là tên nhãn + tên gác, không phải lời khai phủ định về một mảnh mã. Không đổi so với lượt 15.",
+          "dong": "`CHƯA CÓ SỰ CỐ` kèm tên file quy ước); gác:"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/SKILL.md:246 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/kiem_cua_song.py -> 'Hook trong BAN KHAI: 7 · toàn cục: 7 · OK', thoát 0; git grep -n -E \"return [012]\\b\" -- tools/kiem_cua_song.py -> :116 :140 :141 (đều `return 2`)",
+          "phan_quyet": "THẬT — `tools/kiem_cua_song.py` chạy hôm nay thoát 0 (7 hook khai / 7 hook toàn cục); mã 2 'chưa kiểm được' có ở :116 :140 :141; mã 1 (thiếu cửa) đi qua biến `ma` ở :146 (đọc mã, KHÔNG chạy tay ca thiếu cửa vì máy này đủ cửa). Phạm vi lệnh = một công cụ, đúng phạm vi câu.",
+          "dong": "tên từng cửa chưa được chép (mã thoát 0 đủ · 1 thiếu · 2 chưa kiểm được)."
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/SKILL.md:302 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"return [012]\\b\" -- tools/doi_chieu_trich_dan.py -> :127 :146 (mã 0) · :149 :150 (mã 1) · :139 :142 :163 (mã 2); ./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"Nó cũng nói lệch từ ký tự thứ mấy\" -> '15 tài liệu · 2513823 ký tự · KHỚP — SKILL.md', mã 0; cùng lệnh với \"zzqx chuoi khong ton tai trong tai lieu nao zzqx\" -> 'LỆCH — khớp 1/48 ký tự đầu', mã 1",
+          "phan_quyet": "THẬT — công cụ có đủ ba mã và hôm nay chạy thật cho 0 (câu có thật → KHỚP — SKILL.md) và 1 (câu bịa → LỆCH). Số tài liệu vẫn 15 (ký tự 2.513.823; lượt 15: 2.222.871 — STATE dài ra). Số '4/15 câu thật' (BƯỚC 119) là số đo cũ, KHÔNG đo lại.",
+          "dong": "(0 khớp · 1 lệch · 2 chưa kiểm được). Sổ tay lột dấu nhấn Markdown, dấu"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/SKILL.md:307 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -c \"không tìm thấy câu nào nói ngược\" -- docs/STATE.md -> 36; git grep -n \"không tìm thấy\" -- docs/STATE.md | grep -c -E \"sai|bỏ sót\" -> 14; git diff --numstat a877ca6 cced339 -- docs/STATE.md -> 950 thêm · 1 xoá (dòng xoá là câu BƯỚC 241 đánh dấu ⚠️ tại chỗ, câu cũ giữ nguyên)",
+          "phan_quyet": "THẬT — câu SKILL.md không ghim số ('đã sai nhiều lần'). Hôm nay 36 dòng STATE mang 'không tìm thấy câu nào nói ngược' (lượt 15: 35; +1 là mục sổ tay BƯỚC 252) và 14 dòng 'không tìm thấy' kèm sai|bỏ sót — số sau y nguyên lượt 15, nên không có vụ sổ tay trả câu âm sai nào MỚI ghi vào STATE từ lượt 15. Vế luật (grep từ khoá tiếng Việt sau MỌI câu âm) đúng; lượt hỏi 03/11 (BƯỚC 252) có ghi tự kiểm câu âm bằng lệnh.",
+          "dong": "- **Câu ÂM cũng phải kiểm** (*\"không tìm thấy\"* đã sai nhiều lần): `grep` từ"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/SKILL.md:339 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "(cd tools && ./.venv/Scripts/python.exe -c \"import soat_loi_khai_cu as s;print([bool(s.PHU_DINH.search(x)) for x in ('không nhập','không gọi','không dùng','không chạm','không đọc','không có','không còn')])\") -> [True, True, True, True, False, False, False]",
+          "phan_quyet": "THẬT — PHU_DINH có đủ bốn từ không nhập · gọi · dùng · chạm và KHÔNG có không đọc · có · còn, đúng như SKILL.md nói. Y nguyên lượt 15.",
+          "dong": "(quét theo họ từ `PHU_DINH` — *không nhập · gọi · dùng · chạm* nằm trong đó,"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:155 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -c '\"hooks\"' -- .claude/settings.json -> thoát 1 (không khớp); ls .claude -> launch.json · settings.json · skills; ./.venv/Scripts/python.exe tools/kiem_cua_song.py -> 7/7, thoát 0",
+          "phan_quyet": "THẬT về ngày (sử liệu lỗi 14) — 'tuyến chưa bao giờ chạy' mô tả `.claude/settings.json` của repo lúc viết; nay file ấy không có khoá \"hooks\" và cửa chỉ đăng ký ở ~/.claude/settings.json (kiem_cua_song 7/7).",
+          "dong": "`.claude/settings.json` **của repo** — tuyến chưa bao giờ chạy. Đây là **lần"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:190 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"old_string\" -- docs/STATE.md -> :8759 'Phép thử ấy dùng một `old_string` **không tồn tại trong file**'; git grep -n \"old_string\" -- docs/lich-su -> CLAUDE-md-2026-09-30.md:1944",
+          "phan_quyet": "THẬT — bản ghi sự kiện 09/09/2026 (STATE :8759, lich-su CLAUDE-md :1944): phép thử dùng `old_string` không tồn tại; bài học 'phép thử phải dùng thao tác HỢP LỆ' vẫn đúng.",
+          "dong": "Cả hai lần phép thử ấy dùng một `old_string` **không tồn tại trong file**."
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:304 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"mã thoát của một ống\" -- .claude/skills/quy-trinh-lam-viec/references/cong-thuc-chay.md -> :36 '**Và có lý do THỨ HAI, im lặng hơn (08/09/2026):** mã thoát của một ống là…'",
+          "phan_quyet": "SAI — đã đánh dấu: 'mặt thứ hai, chưa ai ghi' hết đúng ngay ngày viết (08/09); ô ⚠️ liền dưới (loi-da-mac.md :306) nói đúng điều đó và `cong-thuc-chay.md:36` chứa mặt thứ hai. Câu giữ làm sử liệu. Không đổi so với lượt 15.",
+          "dong": "hai, chưa ai ghi: `tail` **nuốt mã thoát**. Mặt này im lặng hơn."
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:306 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"mã thoát của ống là của\" -- .claude/skills/quy-trinh-lam-viec/SKILL.md -> :183 '(đệm hết output; và mã thoát của ống là của `tail`,'; git grep -n \"mã thoát của một ống\" -- …/cong-thuc-chay.md -> :36",
+          "phan_quyet": "THẬT — đây là chính ô ⚠️ của lượt 3 (21/09) và nó đúng: `cong-thuc-chay.md` :36 và SKILL.md :183 (Bước 4) đều ghi mặt thứ hai của `tail`. (SKILL.md :184 → :183 vì BƯỚC 246 nén bớt dòng; không đổi nghĩa.)",
+          "dong": "> ⚠️ **HAI CHỮ \"CHƯA AI GHI\" HẾT ĐÚNG NGAY TRONG NGÀY VIẾT RA CHÚNG — soát"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:313 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -n -B1 -A3 \"tự hết hạn ngay khi X được chép\" .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md -> :313-:314 '…tự hết hạn ngay khi X được chép sang chỗ khác**, và không gì kêu — `docs/STATE.md` BƯỚC 109.'",
+          "phan_quyet": "THẬT — nguyên tắc nằm đúng ở :313-:314 của chính ô ⚠️; không có gì đã đổi.",
+          "dong": "> lời khai dạng *\"chưa ai ghi X\"* **tự hết hạn ngay khi X được chép sang"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:333 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "sed -n '/^on:/,/^jobs:/p' .github/workflows/kiem-dinh.yml | head -8 -> 'on: push: pull_request: jobs:'; git grep -n \"chạy cả trên\" -- .claude docs/HANDOFF.md CLAUDE.md -> SKILL.md:201 · loi-da-mac.md:341 · CLAUDE.md:412 · HANDOFF.md:957",
+          "phan_quyet": "SAI — đã đánh dấu: 'một lý do chưa ai viết' hết đúng; lý do 'CI chạy cả trên push' nay có ở SKILL.md :201, CLAUDE.md :412, HANDOFF :957 (và ô ⚠️ liền dưới câu). Vế kỹ thuật THẬT: `kiem-dinh.yml` có `on: push: pull_request:`. Không đổi so với lượt 15.",
+          "dong": "Nhưng vế *\"không đẩy thẳng `main`\"* vẫn ĐÚNG, vì một lý do chưa ai viết:"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:338 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -rln 'chạy cả trên `push`' --include=*.md . | sort -> ./.claude/skills/quy-trinh-lam-viec/SKILL.md · ./CLAUDE.md · ./docs/HANDOFF.md",
+          "phan_quyet": "THẬT về số — ô ⚠️ nói lệnh soát ra '3 file'; hôm nay vẫn đúng 3 file (SKILL.md · CLAUDE.md · HANDOFF.md; loi-da-mac.md không khớp mẫu vì gõ thoát backtick). Y nguyên lượt 15.",
+          "dong": "> ⚠️ **\"CHƯA AI VIẾT\" HẾT ĐÚNG — soát định kỳ lượt 3, 21/09/2026.** Lý do"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:568 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"kiem_cua_song\" -- tools/cua_mo_phien.py -> :136 `from kiem_cua_song import bao_cao`; git grep -n \"CUA: \" -- tools/kiem_cua_song.py -> :140 :146 :147",
+          "phan_quyet": "THẬT — `tools/cua_mo_phien.py:136` nhập `bao_cao` từ kiem_cua_song và `tools/kiem_cua_song.py:146-147` trả dòng 'CUA: {song}/{tong} song'; cửa mở phiên in nó mỗi lần khởi động (số dòng trôi +10 ở cua_mo_phien.py vì BƯỚC 239–252 sửa file đó; không đổi nghĩa).",
+          "dong": "cửa mở phiên in nó ra mỗi lần khởi động, nên không ai còn phải suy."
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:669 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"import ast|import shlex|from shlex\" -- tools/cua_bash_an_toan.py; echo ma_thoat=$? -> ma_thoat=1",
+          "phan_quyet": "THẬT về nghĩa đen (sử liệu lỗi 30, 11/09) — `tools/cua_bash_an_toan.py` hôm nay vẫn không có `import ast` hay `shlex` (git grep thoát 1): luật 'đọc AST' chưa bao giờ áp cho cửa Bash.",
+          "dong": "cho test Python, **chưa bao giờ áp cho cửa Bash**."
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:754 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -n \"34 kỳ\" .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md -> :72 (hàng bảng) · :735 · :746 · :763",
+          "phan_quyet": "THẬT về ngày (lỗi 33, 11/09) — 'không ai thấy' là lúc viết; chính mục lỗi 33 (:735-:763 và hàng bảng :72) là dấu vết của việc đã thấy. Số kỳ của bảng `ratio` (15 kỳ, mỗi mã 2–4) là số đo cũ, KHÔNG đo lại (cần vnstock, không gọi).",
+          "dong": "**Ràng buộc đã ĐỔI CHỖ mà không ai thấy:** trước là cache giá, nay là"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:813 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doc_bang_loi.py | head -2 -> '182 lỗi · phân lớp đầy đủ'; grep -n -E \"^\\| (19[3-9]|20[0-3]) \\|\" loi-da-mac.md -> hàng 193…203 (:1558-:1568)",
+          "phan_quyet": "THẬT về ngày + ĐÃ VÁ — lỗi 'bảng đếm lỗi tự chứa một con số chưa ai đếm' đã sinh `tools/doc_bang_loi.py`; chạy hôm nay in '182 lỗi · phân lớp đầy đủ' (lượt 15: 172; +10 là lỗi 194–203, mười hàng :1559-:1568).",
+          "dong": "con số chưa ai đếm.**"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:1075 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"return 2\" -- tools/kiem_cu_phap_311.py -> :255 :266 :275 :282 :289 :303",
+          "phan_quyet": "THẬT — `tools/kiem_cu_phap_311.py` có sáu `return 2` ('chưa kiểm được').",
+          "dong": "`tools/kiem_cu_phap_311.py` phải có mã thoát 2 *\"chưa kiểm được\"* và"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:1076 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"CHUA_KIEM_DUOC\" -- vnstock_goi.py -> :32 :56 `CHUA_KIEM_DUOC = \"CHƯA KIỂM ĐƯỢC\"` :71 :89 :185",
+          "phan_quyet": "THẬT — `vnstock_goi.py:56` định nghĩa `CHUA_KIEM_DUOC = \"CHƯA KIỂM ĐƯỢC\"`, dùng ở :71 :89 :185.",
+          "dong": "`vnstock_goi.kiem_goi()` phải có `CHƯA KIỂM ĐƯỢC`:"
+        },
+        {
+          "noi_dung": ".claude/skills/quy-trinh-lam-viec/references/cong-thuc-chay.md:223 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"## Phiên đám mây\" -- .claude/skills/quy-trinh-lam-viec/references/soat-cheo-notebooklm.md -> :305",
+          "phan_quyet": "THẬT — cong-thuc-chay.md dùng 'mục sổ tay chưa có' làm VÍ DỤ loại đỏ CHỜ (không khẳng định một mục cụ thể); mục *Phiên đám mây* có ở soat-cheo-notebooklm.md:305 (lượt 15: :192 — BƯỚC 246 thêm 156 dòng vào file đó, không bỏ mục).",
+          "dong": "chưa có, `references/soat-cheo-notebooklm.md`, mục *Phiên đám mây*): cả hai đều đỏ ở cổng 1,"
+        },
+        {
+          "noi_dung": "CLAUDE.md:112 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "<AST toàn cây: scratchpad/ast_imp.py, 364 tệp .py git-tracked> ke_hoach_vao_lenh <- app.py · run_daily.py · tests · tools/do25_ke_hoach_vao_lenh.py; ban_tin <- app.py · tests · tools/ban_tin.py; suc_khoe <- app.py · tests · tools/suc_khoe.py; hau_kiem_loi <- app.py · ban_tin.py · sheets_store.py · tests · tools/chuong_bai_hoc.py · tools/hau_kiem_loi.py; không importer nào là paper_trading · paper_runner · paper_metrics · master_agent · analysis_agents · debate_agents · walkforward · backtest/; git grep -n \"import ke_hoach_vao_lenh\" -- run_daily.py -> :367; git grep -n \"import hau_kiem_loi\" -- sheets_store.py -> :55; git grep -n \"CHO_PHEP_NHAP *=\" -- tests/test_ke_hoach_vao_lenh.py -> :1063; git grep -c \"def test_\" -- tests/test_ghi_ke_hoach.py -> 16",
+          "phan_quyet": "THẬT — AST toàn cây (364 tệp; lượt 15: 339): lõi giao dịch không nhập module nào trong bốn; hai ngoại lệ ĐÚNG như câu: run_daily.py:367 (`ke_hoach_vao_lenh`, trong hàm ghi kế hoạch; gác `CHO_PHEP_NHAP` tests/test_ke_hoach_vao_lenh.py:1063 và 16 test ở tests/test_ghi_ke_hoach.py), sheets_store.py:55 (`hau_kiem_loi`, hằng cột; danh sách lõi có run_daily.py ở tests/test_hau_kiem_loi.py:708). Thêm hôm nay: tools/chuong_bai_hoc.py nhập hau_kiem_loi (dụng cụ, không phải lõi); mô-đun mới của Dow/C1 (`cau_truc_gia`, `san_dau`) không thuộc bốn tên của câu. Câu mô tả lõi vẫn khớp mã.",
+          "dong": "dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`; ngoại lệ"
+        },
+        {
+          "noi_dung": "CLAUDE.md:149 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"theo_ngay: bool = False\" -- walkforward.py -> :301 :429",
+          "phan_quyet": "THẬT về MÃ — `walkforward.chay` mặc định `theo_ngay=False` (:429), tức backtest chạy THEO MÃ nên trần vốn không áp. Các con số 145%/524%/1372% là số đo cũ, KHÔNG tái dựng. (Y nguyên lượt 15; walkforward.py không đổi từ a877ca6.)",
+          "dong": "báo cáo walk-forward là một danh mục máy chưa bao giờ nắm."
+        },
+        {
+          "noi_dung": "CLAUDE.md:163 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"che_do_hoc: str\" -- walkforward.py -> :299 :429 (`che_do_hoc: str = \"co_san\"`); git grep -n \"^CHE_DO_HOC\" -- walkforward.py -> :95 (\"tat\", \"co_san\", \"tich_luy\")",
+          "phan_quyet": "THẬT về MÃ — `walkforward.chay(che_do_hoc=\"co_san\")` mặc định (:429), `CHE_DO_HOC` có ba chế độ (:95). Vế '71/71 lượt quét ghi \"0 mẫu\"' (BƯỚC 140) là số đo trên nhật ký Actions, KHÔNG đo lại.",
+          "dong": "Backtest dùng 44 mẫu đứng yên (`co_san`, không ghi thêm); `run_daily` ở mã"
+        },
+        {
+          "noi_dung": "CLAUDE.md:243 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"^(KHOP|LECH|CHUA_KIEM_DUOC) =\" -- vnstock_goi.py -> :54 :55 :56; git grep -n \"_cached_tier *=\" -- '*.py' ':!tests'; ma_thoat=1",
+          "phan_quyet": "THẬT — `vnstock_goi.py:54-56` có KHỚP · LỆCH · CHƯA KIỂM ĐƯỢC; không mã sản phẩm nào gán `_cached_tier =` (git grep thoát 1).",
+          "dong": "`KHỚP` / `LỆCH` / `CHƯA KIỂM ĐƯỢC` (mất mạng không được trả \"khớp\"). **Không"
+        },
+        {
+          "noi_dung": "CLAUDE.md:249 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"^\\s*(import|from) vnstock_data\" -- '*.py' ':!tests' -> fetch_khoi_ngoai.py:78 · tools/do14_kha_thi_khoi_ngoai.py:392 · tools/do17_nang_goi_vnstock.py:266 · tools/kiem_duong_noi_bo.py:72 :159; AST toàn cây: vnstock_data <- [fetch_khoi_ngoai.py, do14, do17, kiem_duong_noi_bo]",
+          "phan_quyet": "THẬT — mã sản phẩm nhập `vnstock_data` chỉ ở `fetch_khoi_ngoai.py:78` (trong hàm, thụt vào) và ba dụng cụ đo ở tools/; câu 'KHÔNG đổi import vnstock sang vnstock_data mà chưa đo' là luật. Số đo ROE kèm câu là số cũ, KHÔNG đo lại.",
+          "dong": "- **KHÔNG đổi `import vnstock` sang `import vnstock_data` mà chưa đo:** ROE"
+        },
+        {
+          "noi_dung": "CLAUDE.md:285 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "AST: pyarrow <- []; ./.venv/Scripts/python.exe -c \"import pyarrow;print(pyarrow.__version__)\" -> 24.0.0; git grep -n -i pyarrow -- requirements.txt; ma_thoat=1; ./.venv/Scripts/python.exe tools/so_ban_goi.py | grep pyarrow -> 'máy 24.0.0 · CI 26.0.1 · <- repo KHONG nhap' (lượt CI 41751985048, 04/11 01:08Z; lần chạy đầu 08:1x thoát 2 vì lượt ấy còn in_progress, chạy lại khi nó xong → thoát 1)",
+          "phan_quyet": "THẬT — repo không nhập pyarrow (AST: []), không ghim ở requirements.txt, máy 24.0.0; CI hôm nay 26.0.1 (lượt 15: 26.0.0) — câu nói 'số hiệu CI trôi theo ngày' nên vẫn đúng.",
+          "dong": "ở BƯỚC 95–96, 106; còn `pyarrow` (repo KHÔNG nhập; số hiệu CI trôi theo ngày). Lớp lệch còn lại luôn phải đọc"
+        },
+        {
+          "noi_dung": "CLAUDE.md:368 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"RE_CAP\" -- tests/test_tai_lieu_khop_ten_ma.py -> :67 :141",
+          "phan_quyet": "THẬT — `RE_CAP` bắt `module.tên` ở tests/test_tai_lieu_khop_ten_ma.py:67 (dùng :141): mã tài liệu trỏ vào chỗ không tồn tại thì test đỏ.",
+          "dong": "`module.tên` trỏ vào chỗ không tồn tại (đã chết thì viết trần tên, không viết"
+        },
+        {
+          "noi_dung": "CLAUDE.md:376 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"\\\"R[1-6]\\\"\" -- tools/chan_bia_so_lieu.py -> R2 :259 True · R1 :267 True · R3 :332 True · R4 :281 False · R5 :350 False · R6 :368 False",
+          "phan_quyet": "THẬT — R1–R3 là cờ CHẶN (True), R4–R6 là cảnh báo (False) ở tools/chan_bia_so_lieu.py, đúng như câu.",
+          "dong": "R1 `getattr(o,\"tên\",<số>)`, R2 tên trường giống nhưng không tồn tại, R3"
+        },
+        {
+          "noi_dung": "CLAUDE.md:379 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"quet-repo\" -- .github/workflows/kiem-dinh.yml -> :134; ls tests/test_chatbot_khong_bia_va_khong_chet.py -> có",
+          "phan_quyet": "THẬT — CI quét toàn repo bằng `--quet-repo` (kiem-dinh.yml:134) và tests/test_chatbot_khong_bia_va_khong_chet.py có.",
+          "dong": "Claude Code (CI quét toàn repo bằng `--quet-repo`). **Cảnh báo không ai đọc là"
+        },
+        {
+          "noi_dung": "CLAUDE.md:397 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "ls tests/test_trong_so_that_su_duoc_dung.py tests/test_dau_hieu_tranh_luan.py -> cả hai có",
+          "phan_quyet": "THẬT — hai gác nêu tên đều có trong tests/. Phần 'gỡ __future__ annotations là CI 3.11 đỏ' là luật, không đo lại.",
+          "dong": "KHÔNG phải import thừa (gỡ là CI 3.11 đỏ); khoá cấu hình không ai đọc nguy"
+        },
+        {
+          "noi_dung": "CLAUDE.md:398 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "sed -n 1,3p tests/test_dau_hieu_tranh_luan.py -> '\"\"\"Quy ước DẤU của Debate Council — và một nhánh không thể chạm tới. `run_debate` cộng bull_total*0.4 + bear_total*0.4 + devil_adj*0.2…'",
+          "phan_quyet": "THẬT — tests/test_dau_hieu_tranh_luan.py có và khoá quy ước dấu Bull(+)/Bear(−) (docstring đầu file); test_trong_so_that_su_duoc_dung.py có.",
+          "dong": "hiểm hơn code không ai chạy (`tests/test_trong_so_that_su_duoc_dung.py`,"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:327 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại) (MỚI ở lượt 16: chưa ai mở ở lượt 15).",
+          "tu_kiem": "AST (scratchpad/ast_imp.py, 364 tệp .py git-tracked): cau_truc_gia <- app.py · tests · tools/do_dow_cau_truc.py · tools/mo_ta_cau_truc_gia.py; git log --oneline -3 -- pha_wyckoff.py -> 30f6a76 (cũ, không commit nào từ a877ca6); ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py kiem-cat --cache C:/Users/cuong/Vibe_Stock_Analysis/vibe_cache_goc_20260911 --o-luoi -> 'tổng 6586 phép so, 20587 dòng pivot, 14562 sự kiện, 4135 con sóng, 0 ca LỆCH', băm cache SAU KHỚP acf6dca1…; …tools/mo_ta_cau_truc_gia.py su-kien --cache <cùng> -> sự kiện nội bộ 2.945 (BOS 1856 · CHOCH 1018 · KHOI_DAU 71) + swing 1.097 (661 · 366 · 70) = 4.042, băm KHỚP; git log --merges a877ca6..HEAD -> PR #296 (BƯỚC 250) vào main 2026-11-03 13:03 +07",
+          "phan_quyet": "SAI MỘT PHẦN THEO THỜI GIAN — câu là của BƯỚC 249 (30/10): 'CHỈ ĐỂ ĐỌC: không vào điểm, sổ lệnh hay app'. 'Không vào điểm, sổ lệnh' THẬT hôm nay (không importer nào của `cau_truc_gia` là paper_* · master_agent · analysis_agents · run_daily · sheets_store). 'Hay app' HẾT ĐÚNG khi PR #296 (BƯỚC 250) vào main 03/11/2026 13:03 +07: `app.py` nhập `cau_truc_gia as _ctg` (hai ô; đã có 🧭 BƯỚC 250 ngay trên, :323). 'pha_wyckoff.py không đổi' THẬT (commit cuối 30f6a76). Mọi số của dòng TÁI LẬP hôm nay y nguyên: 6.586 phép so · 14.562 sự kiện · 4.135 con sóng · 0 lệch với băm cache trước = sau; 4.042 sự kiện = 2.945 + 1.097. KHÔNG chạy lại: 'đột biến 37/37 đỏ' (các gác `tests/test_cau_truc_gia*.py` chạy ở cổng 1). Đã thêm ô ⚠️ 04/11 ở HANDOFF.",
+          "dong": "> 🧭 **30/10/2026 — BƯỚC 249: Lát 2 của Dow — BOS / CHoCH / KHOI_DAU theo cấp, trạng thái Dow (thủy triều tăng/giảm/lẫn/chưa đủ, mốc phủ định, cảnh báo đảo chiều, con sóng 3/8 VÀ 10 phiên) và chu kỳ 4 giai đoạn `ghep_chu_ky` (trong vùng: `pha_wyckoff`; ngoài vùng: thủy triều, KHÔNG BAO GIỜ suy Tích luỹ / Phân phối từ nó; mâu thuẫn hiển thị, không ghi đè), trong `cau_truc_gia.py`; mỗi sự kiện / trạng thái mang `ngay_xay_ra` và `ngay_biet`. CHỈ ĐỂ ĐỌC: không vào điểm, sổ lệnh hay app; `pha_wyckoff.py` không đổi; không một con số lợi nhuận (bất biến 7). Bất biến khi cắt mở rộng xanh trên chuỗi tổng hợp (mọi `t`) và trên cache thật `acf6dca1…` (6.586 phép so, 14.562 sự kiện, 4.135 con sóng, 0 lệch, băm trước = sau); đối chiếu ĐỘC LẬP 4.042 sự kiện trên 71 mã, 0 vi phạm; 37/37 phát đột biến đỏ — riêng đột biến 4 của đặc tả TƯƠNG ĐƯƠNG trên đường pivot thật (gác bằng test hợp đồng). Mốc B5 (mượn). **PR PHẢI hợp nhất bằng `--merge`.** Việc kế: Lát 3 (ô trên app) · BƯỚC sửa KTC sân đấu (Lát 4 chờ nó). Ba câu hỏi cho người dùng, sáu chỗ khác đặc tả và các số mô tả: `docs/STATE.md` BƯỚC 249."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:337 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại) (MỚI ở lượt 16: chưa ai mở ở lượt 15).",
+          "tu_kiem": "ls docs/phuong-an-bong.json -> có (khoá _ghi_chu · _khuon · phuong_an); git grep -n \"def ktc_khoi_co_cap\" -- san_dau.py -> :847; docs/san-dau-do-phu.json -> khoá _ghi_chu · lenh · cau_hinh_khoa · … · do_phu (BƯỚC 248); KHÔNG chạy `tools/san_dau.py bang` (lượt soát không đọc kết quả sân đấu)",
+          "phan_quyet": "SAI MỘT PHẦN THEO THỜI GIAN — đúng ngày ghi (29/10) nhưng vế 'chưa có KTC' hết đúng: KTC có cặp dựng ở BƯỚC 243 và cách tính được SỬA + KHOÁ ở BƯỚC 248 (`docs/san-dau-do-phu.json`, `san_dau.ktc_khoi_co_cap` :847). Con số '+0,55 điểm%' và 'tránh hai lệnh cắt lỗ' là số đo trên sổ thật ngày 29/10, KHÔNG tính lại hôm nay (không chạy `bang`). Đã thêm ô ⚠️ 04/11.",
+          "dong": "> 🧭 **29/10/2026 — BƯỚC 242: Lát 3a của C1 — `docs/phuong-an-bong.json` (PB-001 nghỉ 7 ngày sau lỗ; PB-002 độ rộng 0,50 THAY cổng VN-INDEX, một cặp cờ) với luật git (a)–(f) ở `tests/test_phuong_an_bong_git.py`, nguồn độ rộng dựng từ CHÍNH khung giá của bản phát lại (ngày vẫn thiếu thì phiên bị loại khỏi cửa sổ của MỌI tài khoản và PB-002 không mở lệnh ở đó), đường vốn mỗi phiên + gác bảo toàn, rổ, hai thước ở dạng GIÁ TRỊ ĐIỂM, `tools/san_dau.py bang`. Người dùng: *\"Giữ tất cả, chỉ ghi nhận (Recommended)\"* (chín lệnh #119, #126–#133 ở lại mẫu điều kiện dừng), *\"Nhận Δgiá/giá vào (Recommended)\"* (lỗi 197: mục 8.1 của đặc tả tự mâu thuẫn, đã sửa), *\"Tính từ cùng nguồn giá của bản phát lại (Recommended)\"*. Trên sổ thật 28/09–28/10: PB-001 trùng đường thật (luật nghỉ chặn 0 tín hiệu), PB-002 hơn đường thật +0,55 điểm% nhờ tránh hai lệnh cắt lỗ — chưa có KTC. **PR PHẢI hợp nhất bằng `--merge`** (squash đổi mã băm và ngày khai, làm cổng đỏ). Việc kế: BƯỚC 243 (KTC có cặp + độ phủ). Chi tiết: `docs/STATE.md` BƯỚC 242.**"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:339 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại) (MỚI ở lượt 16: chưa ai mở ở lượt 15).",
+          "tu_kiem": "AST: cau_truc_gia <- app.py · tests · tools/do_dow_cau_truc.py · tools/mo_ta_cau_truc_gia.py; wc -l cau_truc_gia.py -> 938; git log --merges a877ca6..HEAD -> a619cbe (BƯỚC 247, Lát 1) 30/10 13:08 +07 · e24657e (249) · f27bc50 (250); git grep -n -i -E \"cấu trúc giá|Dow|BOS|CHoCH\" -- docs/LO-TRINH.md -> thoát 1 (không dòng nào); git log --all -i -E --oneline --grep \"swing|choch|dow theory|zigzag|market structure\" -> 5 commit (1071842 BƯỚC 244 · 9cb1d85 BƯỚC 173 · 05f3d65 · 19182fe · e24657e)",
+          "phan_quyet": "SAI THEO THỜI GIAN (câu 'KHÔNG có dòng mã mô-đun nào' / 'repo CHƯA có swing / internal / BOS / CHoCH / HH-HL') — đúng ngày ghi (29/10, BƯỚC 244 chỉ là đặc tả); hết đúng khi PR #293 (BƯỚC 247, Lát 1) vào main 30/10 13:08 +07: `cau_truc_gia.py` nay 938 dòng, `app.py` nhập nó từ BƯỚC 250. 'Kiểm kê' của đặc tả đúng lúc ấy (cùng lệnh `git log --grep` hôm nay ra 5 commit vì BƯỚC 245–249 tự nhắc từ khoá; commit của BƯỚC 244 là 1071842). Các vế khác THẬT: `docs/LO-TRINH.md` không có dòng nào cho cấu trúc giá (git grep thoát 1); `SKILL_PHU` + gác của `tests/test_skill_quy_trinh.py` có thật (cổng 1 hôm nay chạy chúng). Đã thêm ô ⚠️ 04/11.",
+          "dong": "> 🧭 **29/10/2026 — BƯỚC 244: đặc tả đọc cấu trúc giá theo Lý thuyết Dow (swing / internal, BOS / CHoCH, thủy triều – con sóng) và ghép chu kỳ Wyckoff 4 giai đoạn, cộng skill `dow-theory-analysis` viết lại từ bản nháp của người dùng. KHÔNG có dòng mã mô-đun nào.** Kiểm kê: repo CHƯA có swing / internal / BOS / CHoCH / HH-HL (chỉ có pha Wyckoff và pivot sàn cổ điển); đặc tả định nghĩa mô-đun thuần có hai thời điểm `ngày xảy ra` / `ngày biết` trên mọi pivot và sự kiện, bất biến khi cắt, ô cạnh \"Pha Wyckoff\" (chỉ để hiện), phép đo chỉ-đọc ký trước ở dạng BẢN NHÁP (chưa đưa vào `TIEU-CHI-DOC-TRUOC.md`: file luật, chờ người dùng duyệt), và để phần hai chỉ số lại. Người dùng chọn *\"Module + hiển thị + đo chỉ-đọc (Recommended)\"* · *\"Trong repo, .claude/skills (Recommended)\"* · *\"Ghép chu kỳ 4 giai đoạn, chưa thêm sự kiện (Recommended)\"*. Skill thứ hai buộc sửa `tools/cua_mo_phien.py` (danh sách `SKILL_PHU`) và một gác của `tests/test_skill_quy_trinh.py` — bản tin mở phiên sẽ gọi nhầm nó là quy trình bắt buộc nếu không. **Bảy câu ĐÃ CHỐT 29/10/2026** (ký ĐO ở BƯỚC riêng trước Lát 1 · mượn mốc B5, dòng riêng ở lần sửa `LO-TRINH.md` kế · ô chỉ swing + chu kỳ · phần hai chỉ số sau ĐO phần một · giữ ATR (2,4) · chỉ mua · `SKILL_PHU`). Việc kế: BƯỚC khai ĐO (sổ tay hỏi thật, commit riêng), rồi Lát 1. Chi tiết: `docs/thiet-ke-dow-cau-truc.md`, `docs/STATE.md` BƯỚC 244.**"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:345 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại) (MỚI ở lượt 16: chưa ai mở ở lượt 15).",
+          "tu_kiem": "git grep -n \"^class CauHinhVao\" -- paper_trading.py -> :513; git grep -n \"def tu_module\" -- paper_trading.py -> :543; wc -l san_dau.py -> 1294; git log --merges a877ca6..HEAD -> f6f4ebb (BƯỚC 239) 29/10 09:44 +07 rồi 9d04997 (BƯỚC 240) 29/10 13:10 +07; ./.venv/Scripts/python.exe tools/buoc_cham_luat.py 239 -> 'khong cham luat'",
+          "phan_quyet": "SAI THEO THỜI GIAN (câu 'Chưa có `san_dau.py`') — đúng ở Lát 1 (BƯỚC 239, vào main 29/10 09:44 +07: `CauHinhVao`, nguồn tiêm được, `buoc_phien` dùng chung, hành vi không đổi); hết đúng khi BƯỚC 240 (Lát 2) vào main 29/10 13:10 +07, `san_dau.py` nay 1.294 dòng. Các vế khác THẬT: `paper_trading.CauHinhVao` (:513) và `tu_module()` (:543) có thật; không chạm luật. Đã thêm ô ⚠️ 04/11.",
+          "dong": "> 🧭 **29/10/2026 — BƯỚC 239: Lát 1 của C1 (tái cấu trúc, HÀNH VI KHÔNG ĐỔI) — `CauHinhVao` gom mười hai cờ của bộ máy sổ lệnh, nguồn VN-INDEX và độ rộng tiêm được, `buoc_phien` giữ thứ tự bốn bước ở MỘT chỗ, `run_session` là vỏ mỏng. Bảng vàng sinh từ cây `09f7980` (14 kịch bản, 10 mã × 95 phiên) khớp từng ô; đổi mặc định của bất kỳ cờ nào → đỏ. Đặc tả đòi cả \"không sửa test cũ\" lẫn \"vỏ mỏng\" nhưng hai gác AST cũ đòi thân `run_session`: đã trỏ chúng sang `buoc_phien`, không đổi khẳng định nào. Chưa có `san_dau.py`. Việc kế: Lát 2. Chi tiết: `docs/STATE.md` BƯỚC 239.**"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:347 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại) (MỚI ở lượt 16: chưa ai mở ở lượt 15).",
+          "tu_kiem": "ls san_dau.py -> có (1294 dòng); git log --merges a877ca6..HEAD -> 09f7980 (BƯỚC 238) 29/10 08:01 +07 rồi f6f4ebb (BƯỚC 239) 29/10 09:44 +07; ./.venv/Scripts/python.exe tools/buoc_cham_luat.py 238 -> 'khong cham luat'",
+          "phan_quyet": "SAI THEO THỜI GIAN (câu 'chưa có dòng mã nào') — đúng ở BƯỚC 238 (chỉ đặc tả `docs/thiet-ke-c1-san-dau.md`, vào main 29/10 08:01 +07); hết đúng khi BƯỚC 239 vào main (09:44 cùng ngày). Các lựa chọn của người dùng (nguyên văn *\"Bắt đầu C ngay, C1 trước (Recommended)\"* …) là chữ của STATE BƯỚC 238, không tra lại. Đã thêm ô ⚠️ 04/11.",
+          "dong": "> 🧭 **28/10/2026 — BƯỚC 238: đặc tả C1 (sân đấu) ĐÃ CHỐT, chờ giao mã — người dùng chọn *\"Bắt đầu C ngay, C1 trước (Recommended)\"* và *\"Hoãn việc quy trình không chặn (Recommended)\"*. Ba phương án bóng THĂM DÒ (nghỉ sau lỗ 7 ngày, độ rộng thay cổng VN-INDEX, vào lệnh theo kế hoạch B6), phát lại thuần bằng bộ máy THẬT (cách A, gác đầu tiên là phép thử tương đương với sổ thật), KTC bootstrap khối có cặp với độ phủ đo trước khi in. Đã chốt cùng ngày: khối *\"10 phiên (Recommended)\"*, thước *\"Khớp mức giải ngân (Recommended)\"*, cửa sổ *\"28/09/2026, khi cổng mở (Recommended)\"*, bốn điểm còn lại *\"Duyệt cả bốn (Recommended)\"*; chưa có dòng mã nào. Việc kế: giao Lát 1. Chi tiết: `docs/thiet-ke-c1-san-dau.md`, `docs/STATE.md` BƯỚC 238.**"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:349 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại) (MỚI ở lượt 16: chưa ai mở ở lượt 15).",
+          "tu_kiem": "git grep -n \"luôn viết đủ tên\" -- hau_kiem_loi.py -> :350; git grep -n \"^VIET_TAT\" -- hau_kiem_loi.py -> :291 (frozenset không có VNI); git grep -n -E \"^def test_(LOI_DAN_ma_co_nguon_bao_model|VN_INDEX_o_ca_bon|VNI_vang)\" -- tests/test_hau_kiem_loi.py -> :381 :389 :397; git log --format='%h %aI' -S'luôn viết đủ tên' -- hau_kiem_loi.py -> 150bf43 2026-10-28T13:24 +07, PR #283 vào main 13:44 +07; gh run list --workflow hau-kiem-loi.yml --limit 15 -> sau mốc ấy có 5 lượt `success` (28/10 17:11Z · 29/10 17:27Z · 30/10 17:02Z · 02/11 20:48Z · 03/11 18:28Z); ./.venv/Scripts/python.exe tools/buoc_cham_luat.py 237 -> 'khong cham luat'",
+          "phan_quyet": "THẬT cho dòng — câu mới có thật ở hau_kiem_loi.py:350; máy kiểm không nhận VNI (`VIET_TAT` :291 không có), ba gác :381 :389 :397 có; không chạm luật. Ghi chú thời gian (KHÔNG sửa dòng này): STATE BƯỚC 237 viết 'chưa có lượt B1 nào chạy với lời dặn mới' — đúng lúc ghi, HẾT ĐÚNG hôm nay (5 lượt B1 `success` từ khi PR #283 vào main); việc đọc xem model còn viết 'VNI' không là đọc tab `hau_kiem` (Sheets) — lượt soát này KHÔNG làm. Ghi ở mục STATE (STATE chỉ-thêm, không đánh dấu tại chỗ).",
+          "dong": "> 🧭 **28/10/2026 — BƯỚC 237: lời dặn B1 nói thẳng tên chỉ số — câu của luật `ma-co-nguon` thêm *\"chỉ số thị trường luôn viết đủ tên VN-INDEX\"*; máy kiểm (`VIET_TAT`, `_MA`) KHÔNG đổi, \"VNI\" vắng khỏi dữ kiện vẫn bị bác (BƯỚC 234: VNI là mã niêm yết thật). Người dùng: *\"làm nốt\"*. Chỉ đổi `bam_loi_dan` của các dòng `hau_kiem` viết từ nay (chỉ được ghi vào dòng, không dùng để chọn lệnh nào viết lại — đã grep).** Chi tiết: `docs/STATE.md` BƯỚC 237."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:375 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -c \"BƯỚC 225, ĐO 32b\" -- docs/HANDOFF.md -> 1; grep -n -A22 \"^## BƯỚC 225 \" docs/STATE.md | grep \"A62.*345\" -> :24079 'A62: ngưỡng 62 · 345 lệnh · alpha −1,11% [−1,99 ; −0,16]… α62 − α(B) = +0,16; α62 − α(A) = +0,62'; git grep -n \"^NGUONG_GHIM_A62\" -- tools/do32_do_rong.py -> :46 = 62.0",
+          "phan_quyet": "THẬT về chữ — dòng HANDOFF khớp BƯỚC 225 (A62: 345 lệnh, −1,11% [−1,99 ; −0,16]; α62−α(B)=+0,16; α62−α(A)=+0,62; `NGUONG_GHIM_A62` = 62.0). Các con số alpha KHÔNG tính lại: mỗi lượt walk-forward chạy 6–37 phút và vnstock không được gọi. Y nguyên lượt 15.",
+          "dong": "> 🧭 **24/10/2026 — BƯỚC 225, ĐO 32b (chẩn đoán, khai sau kết quả ĐO 32): cổng VN-INDEX ở ngưỡng GHIM 62 −1,11% [−1,99 ; −0,16] — gần lượt B (−1,26), xa lượt A (−1,73).** Phần tốt lên của ĐO 32 đi với ngưỡng 62, không với cổng độ rộng. Kết cục A⁺ của ĐO 32 đứng nguyên; người dùng quyết ứng viên sau khi xong họ 3 phép. Không dùng để đổi ngưỡng (chọn ngưỡng bằng OOS là bất biến 7). Chi tiết: `docs/STATE.md` BƯỚC 225."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:451 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"ĐÃ KIỂM 09/10/2026 (BƯỚC 166)\" -- docs/HANDOFF.md -> :453; grep -n \"^## BƯỚC 166 \" docs/STATE.md -> :21502; git grep -n \"Streamlit Cloud cho KHỚP\" -- CLAUDE.md -> :286",
+          "phan_quyet": "THẬT — câu gạch ~~…~~ kèm '✅ ĐÃ KIỂM 09/10/2026 (BƯỚC 166)' ở :453; BƯỚC 166 ở STATE :21502; CLAUDE.md :286 ghi `kiem_goi()` trên Streamlit Cloud cho KHỚP (đo 09/10/2026).",
+          "dong": "> - ~~**Streamlit Cloud chưa kiểm:** BƯỚC 127 ghi *\"nó có đọc"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:512 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "gh workflow list --all -> Chuông cổng C5 · Chuông bài học · Chuông báo quét · Chuông nguồn đứng · Hậu kiểm bằng lời · kiem-dinh · Quét sổ lệnh · Soát tuần — cả tám `active`",
+          "phan_quyet": "SAI từ 28/09 — đã đánh dấu (🔴 BƯỚC 138 ngay dưới, :513): 'Chưa có dòng thật nào — ba workflow vẫn tắt' hết đúng. `gh workflow list --all` hôm nay: tám workflow đều `active` (kể cả 'Hậu kiểm bằng lời', bật 26/10).",
+          "dong": "> tạo ở lần `push()` kế tiếp. Chưa có dòng thật nào — ba workflow vẫn tắt."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:590 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git log -3 --format='%h %ad %s' --date=short -- tools/cham_xac_nhan.py keo_bang_gia.py -> b14d270 2026-10-07 (BƯỚC 162) · 88f1dd6 2026-10-07 (BƯỚC 161)",
+          "phan_quyet": "THẬT về ngày ghi (07/10) cho vế 🔴 'Giá của P3d hết đúng'. Vế 'chưa chạy trên dữ liệu thật' KHÔNG đo lại được hôm nay (cần vnstock; không gọi): chứng cứ gián tiếp — commit cuối chạm hai module vẫn là b14d270 (07/10, BƯỚC 162; không có commit nào thêm từ a877ca6).",
+          "dong": ">   🔴 **\"Giá của P3d (CHƯA làm)\" và \"biên phải ký trước\" HẾT ĐÚNG từ 07/10/2026 — BƯỚC 161 (P3d phần MÃ, chưa merge lúc viết):** `cham_xac_nhan.py` (module thuần) ghép dòng"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:598 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -n \"Rủi ro CHƯA đo, nêu ở\" docs/HANDOFF.md -> :598; grep -n \"tiền đề \\*mã đang giữ không có dòng quyết định\\*\" docs/HANDOFF.md -> :600",
+          "phan_quyet": "THẬT (đã đánh dấu) — 'rủi ro CHƯA đo' mang ⚠️ ngay dòng, và 🔴 dòng :600 nói tiền đề hết đúng; không đo lại số mã đủ (cần sổ thật, không đọc Sheets ngoài ĐO 27).",
+          "dong": ">   phiên có nhãn\"*. ⚠️ **Rủi ro CHƯA đo, nêu ở `docs/STATE.md` BƯỚC 162:** phép so chỉ giữ mã có điểm ở MỌI phiên của cửa sổ; trên 252 phiên mã có thời gian đang giữ lệnh"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:599 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"record_decision|LY_DO_DANG_GIU\" -- paper_runner.py -> :375 `nhat_ky.record_decision(ma, ngay, result, False,` :376 `pt.LY_DO_DANG_GIU)`",
+          "phan_quyet": "SAI MỘT PHẦN, đã đánh dấu — 'mã đang giữ không có dòng quyết định' hết đúng từ BƯỚC 146: `paper_runner.py:375-376` ghi dòng quyết định (acted = False) với lý do `LY_DO_DANG_GIU` cho mã còn vị thế (🔴 :600). Phần 'chưa đo trên dữ liệu thật' không đo lại. (Số dòng paper_runner.py :344 → :375 vì BƯỚC 239–241 sửa file; cùng lời gọi.)",
+          "dong": ">   (không có dòng quyết định) có thể làm số mã đủ rơi dưới `MIN_MA` — *chưa đo trên dữ liệu thật*; `tools/cham_xac_nhan.py` in số mã đủ trước mốc để theo dõi."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:600 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"record_decision|LY_DO_DANG_GIU\" -- paper_runner.py -> :375 :376",
+          "phan_quyet": "THẬT — 🔴 của leader 08/10 đúng: mã còn vị thế có dòng `acted = 0` qua `paper_runner.py:375-376`. Phần 'dữ liệu UV-001 từ 02/10' là mốc ngày, không đo lại.",
+          "dong": ">   🔴 **Leader 08/10: tiền đề *mã đang giữ không có dòng quyết định* HẾT ĐÚNG từ BƯỚC 146 (30/09)** — mã còn vị thế có dòng `acted = 0` (`paper_runner.py`, `LY_DO_DANG_GIU`); dữ liệu UV-001 từ 02/10. Nguồn thiếu ô còn lại (mã lỗi dữ liệu từng phiên, ra/vào rổ) chưa đo — một ĐO độ phủ ký trước."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:677 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"^MODEL *=|^MODEL_DU_PHONG *=|^NGAY_HAU_KIEM_LOI_BAT_DAU\" -- hau_kiem_loi.py -> :30 gemini-3.8-flash · :37 gemini-3.5-flash-lite · :97 \"2026-10-26\"; gh workflow list --all | grep Hậu -> active; gh secret list -> GEMINI_API_KEY · STREAMLIT_SECRETS_TOML; ./.venv/Scripts/python.exe -m pip list | grep -E \"anthropic|google-genai\" -> 1.15.0 · 2.33.0; ô ⚠️ ở :679 và :682",
+          "phan_quyet": "SAI MỘT PHẦN — đã đánh dấu (⚠️ :679 phủ model/gói/secret; ⚠️ :682 phủ workflow): đúng lúc ghi (BƯỚC 204), hết đúng 26/10 (BƯỚC 229): `hau_kiem_loi.py` MODEL = gemini-3.8-flash (+ MODEL_DU_PHONG = gemini-3.5-flash-lite từ BƯỚC 233), workflow `Hậu kiểm bằng lời` active, `gh secret list` chỉ còn GEMINI_API_KEY · STREAMLIT_SECRETS_TOML. 'máy đã cài 1.15.0' vẫn đúng với máy (pip list: anthropic 1.15.0 · google-genai 2.33.0). Câu cũ giữ nguyên.",
+          "dong": "> dữ kiện, không gọi API, không cần khoá), workflow `hau-kiem-loi.yml` merge rồi TẮT; gói `anthropic` ghim ở"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:681 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"^NGAY_HAU_KIEM_LOI_BAT_DAU\" -- hau_kiem_loi.py -> :97 `Optional[str] = \"2026-10-26\"`; ô ⚠️ HANDOFF :682 'HẾT ĐÚNG 26/10/2026 (BƯỚC 229; soát 14, BƯỚC 230)'",
+          "phan_quyet": "SAI — đã đánh dấu (ô ⚠️ :682): 'hằng … ở gốc = None nên chưa đo' hết đúng từ 26/10 — `hau_kiem_loi.py:97` nay \"2026-10-26\". Câu cũ giữ làm sử liệu BƯỚC 205.",
+          "dong": "> (hằng `NGAY_HAU_KIEM_LOI_BAT_DAU` của `hau_kiem_loi.py` ở gốc = None) nên chưa đo, chưa đổi mã thoát. Ngày bật: đặt hằng số ấy bằng một BƯỚC nhỏ."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:758 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "sed -n 1,3p pytest.ini -> '[pytest]' + chú thích; git grep -n \"def test_khong_test_nao_GHI_vao_thu_muc_streamlit_THAT\" -- tests -> tests/test_sheets_store.py:633",
+          "phan_quyet": "THẬT — `pytest.ini` có (`[pytest]`); gác 'test không chạm secrets.toml thật' có ở tests/test_sheets_store.py:633. Phần 'vào main 27/09 qua #169' là mốc cũ, không đo lại.",
+          "dong": "tự duyệt · bản tin mở phiên hiện mốc 29/09 · test không chạm"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:777 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"nen_cuoi_dang_do|iloc\\[:-1\\]\" -- run_daily.py -> :25 (nhập) · :559 `and nen_cuoi_dang_do(df[\"time\"].iloc[-1], now_time)):` · :560 `df = df.iloc[:-1]`",
+          "phan_quyet": "THẬT — `run_daily.py:559-560` bỏ nến cuối còn dở trước khi xử lý: sổ chỉ ghi trên nến đã đóng (số dòng +20 so lượt 15 vì BƯỚC 241 thêm `tra_nen_da_xu_ly`; cùng lời gọi).",
+          "dong": "trong phiên chỉ để cảnh báo, không ghi sổ\"*; `run_daily` nay chỉ ghi"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:785 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -l -E \"^\\s*(import|from) vnstock_data\" -- '*.py' ':!tests' -> fetch_khoi_ngoai.py · tools/do14_kha_thi_khoi_ngoai.py · tools/do17_nang_goi_vnstock.py · tools/kiem_duong_noi_bo.py; ./.venv/Scripts/python.exe -m pip list | grep -i -E \"^(vnstock|vnstock_data|vnai|vnii) \" -> vnstock 4.0.9 · vnstock_data 3.3.1 · vnai 2.6.2 · vnii 0.2.6; 🔴 HANDOFF :788",
+          "phan_quyet": "SAI từ 22/09 — đã đánh dấu: 'Repo không nhập vnstock_data ở đâu cả' hết đúng; 🔴 :788 nói thẳng. Hôm nay bốn file nhập nó (một mã sản phẩm, ba dụng cụ).",
+          "dong": "`~/.vnstock/api_key.json` và `vnii` tự đọc. Repo **không nhập"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:788 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"^\\s*import vnstock_data\" -- fetch_khoi_ngoai.py -> :78",
+          "phan_quyet": "THẬT — ô 🔴 chính dòng này nói 'HẾT ĐÚNG từ 22/09/2026' và đúng: `fetch_khoi_ngoai.py:78` nhập nó. Lượt nâng 3.3.1 qua ĐO 17 (BƯỚC 118) là lịch sử, không đo lại.",
+          "dong": "🔴 **Vế \"repo không nhập\" HẾT ĐÚNG từ 22/09/2026 (ĐO 14):**"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:795 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"disable_telemetry|vnii\" -- '*.py' ':!tests' -> app.py:1173 (chú thích) · vnstock_goi.py:15-21,42 (docstring) · tools/do17_nang_goi_vnstock.py · tools/do19_nang_vnstock_409.py; grep -n \"Người dùng chấp nhận 09/10/2026 (BƯỚC 166, Q6)\" docs/HANDOFF.md",
+          "phan_quyet": "THẬT cho vế 'chưa chặn' — không dòng mã sản phẩm nào chặn đường `vnii`: chỗ nhắc `vnii` ở mã sản phẩm là chú thích/docstring (app.py:1173, vnstock_goi.py), còn lại là dụng cụ đo nâng gói; đã có dòng ✅ chấp nhận 09/10 ngay dưới. Vế 'chưa đo' là của BƯỚC 118, không đo lại (cần mạng).",
+          "dong": "Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:802 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "./.venv/Scripts/python.exe -m pip list | grep -i \"^urllib3 \" -> 2.8.0; grep -n \"ĐÃ ĐO 18/09/2026 (ĐO 13): NÂNG ĐƯỢC\" docs/HANDOFF.md -> :803",
+          "phan_quyet": "THẬT — câu gạch ~~…CHƯA AI ĐO.~~ kèm 'ĐÃ ĐO 18/09/2026 (ĐO 13): NÂNG ĐƯỢC' (:803); máy hôm nay đúng urllib3 2.8.0.",
+          "dong": "- ~~**`urllib3` máy 1.26.20 · CI 2.8.0 — khoảng cách bản CHÍNH, CHƯA AI ĐO.**~~"
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:826 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/so_ban_goi.py -> 'LỆCH 45 / 95 gói · con lai (43)' có dòng 'pyarrow máy 24.0.0 CI 26.0.1 <- repo KHONG nhap'; git grep -n -i pyarrow -- requirements.txt; ma_thoat=1",
+          "phan_quyet": "THẬT cho câu — pyarrow nằm ở hạng `con lai` của công cụ chạy hôm nay (máy 24.0.0 · CI 26.0.1; hạng này 43 gói, lượt 15: 41; lượt 14: 39) và không ghim ở requirements.txt; quyết định để lại khoảng cách đứng. Số '25.0.1' ở đoạn trên đã có ô ⚠️ 21/10; hôm nay CI là 26.0.1 (ô vẫn đúng: số trôi theo ngày). Không cần ô mới. Quan sát (không phải lời khai): hạng 'NGUOI DUNG THAY' có `streamlit` máy 1.64.0 · CI 1.66.1 — CI lấy bản mới nhất theo sàn `>=`, đúng bất đối xứng mà CLAUDE.md mô tả.",
+          "dong": "`con lai` mỗi lượt chạy — nó không im, chỉ là không ai định đóng."
+        },
+        {
+          "noi_dung": "docs/HANDOFF.md:860 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"\\\"ratio\\\"|_ratio\\.csv\" -- '*.py' ':!tests' -> fetch_fundamentals.py:65 :84 :216 :222; git grep -n \"_income.csv\" -- experiment_fundamentals.py -> :141",
+          "phan_quyet": "THẬT — `fetch_fundamentals.py` ghi cả ba CSV (ratio · income · balance, :216) và chỉ kiểm tồn tại bảng ratio (:222), nhưng không mã sản phẩm nào ĐỌC bảng ratio; `experiment_fundamentals.py:141` đọc income + balance, `fundamental_agent` gọi KBS qua mạng.",
+          "dong": "**không ai đọc bảng đó** — phép đo IC dùng `_income`+`_balance`, còn"
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md:207 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "ls -d brain -> thoát 2 (không có); git log --all --oneline -- brain | wc -l -> 0; git ls-files brain | wc -l -> 0",
+          "phan_quyet": "THẬT về chữ — git không theo dõi `brain/` (0 commit ở mọi nhánh, 0 file trong index; `ls brain` thoát 2, thư mục không có ở gốc).",
+          "dong": "biến.** Thư mục `brain/` không được git theo dõi, không ai review, và là nơi"
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md:212 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "ls -la --time-style=full-iso /c/Users/cuong/.gemini/antigravity/brain/94db5080-33a8-473d-9aa7-24e6bc20d5a5/20loop_custom71_18m_optimization_report.md -> 3912 byte, 2026-08-12 23:35:53; ls -d brain -> thoát 2",
+          "phan_quyet": "SAI MỘT PHẦN — ĐÃ đánh dấu từ 14/10 (BƯỚC 190, ô ⚠️ :209-:216): nửa 'brain/ không còn ở gốc repo' THẬT; nửa 'bản báo cáo … không tìm thấy ở đâu' SAI vì tệp CÓ, ngoài repo, 3.912 byte, ghi 2026-08-12 23:35:53 (số khớp ô ⚠️).",
+          "dong": "> tức git chưa bao giờ theo dõi nó. Nhưng `brain/` cũng không còn ở gốc"
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md:214 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -c -E \"\\+636\\.11%|50\\.0\" /c/Users/cuong/.gemini/antigravity/brain/94db5080-33a8-473d-9aa7-24e6bc20d5a5/20loop_custom71_18m_optimization_report.md -> 4",
+          "phan_quyet": "SAI — ĐÃ đánh dấu (ô ⚠️ :209-:216, BƯỚC 190, lỗi 177): tệp CÓ ngoài repo, chứa `+636.11%` và ngưỡng `50.0` (4 dòng khớp). Câu 'không tìm thấy ở đâu' của lượt 18/09 sai vì chỉ tìm trong cây repo.",
+          "dong": "> đoạn trên dẫn thì không tìm thấy ở đâu."
+        },
+        {
+          "noi_dung": "NGUYEN-TAC-DO-LUONG.md:220 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git log --all --oneline -- brain | wc -l -> 0; git ls-files brain | wc -l -> 0",
+          "phan_quyet": "THẬT — câu của ô ⚠️ BƯỚC 190: lượt soát 18/09 chỉ tìm trong cây repo nên không thấy; vế 'git chưa bao giờ theo dõi brain/' đúng (0 commit, 0 file).",
+          "dong": "> 18/09 chỉ tìm trong cây repo nên không thấy. Vế *git chưa bao giờ theo dõi"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:498 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"::error::\" -- .github/workflows/kiem-dinh.yml -> :63 :72 :74 :75 (pytest) · :96 (cổng 2) · :123 (cổng 4) · :156 (cổng 5)",
+          "phan_quyet": "THẬT — kiem-dinh.yml đổi mã thoát 2 thành `::error::` cho cổng 2 (:96), cổng 4 (:123) và cổng 5 (:156).",
+          "dong": "`kiem_cu_phap_311.py`, và mã thoát 2 (chưa kiểm được) trên CI là LỖI."
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:614 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"^(KHOP|LECH|CHUA_KIEM_DUOC) =\" -- vnstock_goi.py -> :54 :55 :56",
+          "phan_quyet": "THẬT — như CLAUDE.md :243: `vnstock_goi.py:54-56` có ba trạng thái; mất mạng trả CHƯA KIỂM ĐƯỢC, không 'khớp'.",
+          "dong": "`KHỚP` / `LỆCH` / `CHƯA KIỂM ĐƯỢC`. Trạng thái thứ ba bắt buộc — mất mạng mà"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:670 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"_doc()\" -- fundamental_agent.py; ma_thoat=1; git log --all --oneline -S\"def _doc\" -- fundamental_agent.py | wc -l -> 0; git log --all --oneline -S\"_doc()\" -- fundamental_agent.py | wc -l -> 0",
+          "phan_quyet": "THẬT chỉ trong phạm vi câu ('trong module này' = fundamental_agent.py): 0 commit ở mọi nhánh từng thêm hoặc bỏ `_doc`/`_doc()` trong file đó. Nơi khác có hàm `_doc` ở tests/ và tools/ (như lượt 15) — vô hại cho câu.",
+          "dong": "> Bản trước trỏ tới một hàm `_doc()` **chưa bao giờ tồn tại** trong"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:765 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"return [012]\" -- tools/so_ban_goi.py -> :286 :292 (mã 2) · :304 :330 (mã 0) · :327 (mã 1); ./.venv/Scripts/python.exe tools/so_ban_goi.py -> lần đầu thoát 2 ('CHƯA KIỂM ĐƯỢC: không đọc được nhật ký lượt 41751985048' — lượt kiem-dinh trên main còn in_progress), chạy lại sau khi lượt xong thoát 1 ('CÓ chạm chỗ quyết định.')",
+          "phan_quyet": "THẬT về mã — `tools/so_ban_goi.py` có mã 0/1/2 và hôm nay CHẠY THẬT cả mã 2 (khi lượt CI chưa xong) lẫn mã 1 (khi xong). Chạm là `vnstock_ezchart` máy 1.0.2+vibe1 ≠ CI 1.0.2 ở hạng QUYET DINH SO (1) — bản vá cố ý ghi ở HANDOFF; không phải tín hiệu mới.",
+          "dong": "> chỗ quyết định · 1 có chạm · 2 chưa kiểm được. `docs/STATE.md` BƯỚC 95."
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:775 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -i mapbox -- '*.py' -> tests/test_soat_dinh_ky_co_tri_nho.py:299 (chuỗi trong test)",
+          "phan_quyet": "THẬT — `mapbox` chỉ xuất hiện trong một chuỗi test; dự án không dùng loại biểu đồ ấy.",
+          "dong": "> thuộc `scattermapbox` / `mapbox` — loại biểu đồ dự án **không dùng**."
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:805 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "./.venv/Scripts/python.exe -c \"import pyarrow;print(pyarrow.__version__)\" -> 24.0.0; git grep -n -i pyarrow -- requirements.txt; ma_thoat=1; grep -n \"^## BƯỚC\" docs/STATE.md | grep -i -c pyarrow -> 0",
+          "phan_quyet": "THẬT về máy (pyarrow 24.0.0, không ghim). Số '25.0.1' của câu đã trôi (CI hôm nay 26.0.1; đã có ô ⚠️ ở HANDOFF). Vế 'chưa đo' vẫn đứng: 0 tiêu đề BƯỚC có pyarrow, quyết định để lại khoảng cách giữ nguyên.",
+          "dong": "> CHÍNH cuối cùng, chưa đo. `docs/STATE.md` BƯỚC 106."
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:808 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "AST toàn cây (364 tệp): vnstock_ezchart <- [] · altair <- [] · matplotlib <- []",
+          "phan_quyet": "THẬT — 0 tệp nhập vnstock_ezchart · altair · matplotlib. Con số '3 trên 10 tên' của câu là số đếm cũ, không dựng lại. (altair vẫn nằm trong gói CI vì là phụ thuộc của streamlit; câu nói về import của repo.)",
+          "dong": "> hạng ồn ào mà repo **không nhập lần nào** — `vnstock_ezchart`,"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:847 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"VNSTOCK_TELEMETRY\" -- app.py run_daily.py -> app.py:25 · run_daily.py:15 `os.environ.setdefault(\"VNSTOCK_TELEMETRY\", \"off\")`; grep -n \"VẾ TELEMETRY CŨNG HẾT ĐÚNG\" docs/lich-su/CLAUDE-md-2026-09-30.md -> :849",
+          "phan_quyet": "SAI — đã đánh dấu: 'người dùng chưa được hỏi về telemetry' hết đúng từ 18/09; 🔴 :849 nói đúng điều đó. Nay app.py:25 và run_daily.py:15 đặt `VNSTOCK_TELEMETRY=off` trước mọi import (Q11, BƯỚC 172).",
+          "dong": "> và người dùng chưa được hỏi về chúng. `docs/STATE.md` BƯỚC 103."
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:1042 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"PENDING bị XOÁ|def dong_so_sach\" -- paper_trading.py -> :780 · :795",
+          "phan_quyet": "THẬT — `dong_so_sach` (paper_trading.py:780) và docstring :795 xoá PENDING vì chưa bao giờ khớp (số dòng +110 vì BƯỚC 239–241 thêm `CauHinhVao`; cùng hành vi).",
+          "dong": "(`HET_DU_LIEU`), PENDING **xoá** vì chưa bao giờ khớp."
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:1785 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"^STRIDE\" -- optimize_vn100_18m.py -> :45 `STRIDE = 2`",
+          "phan_quyet": "THẬT — `STRIDE = 2` cố định ở optimize_vn100_18m.py:45.",
+          "dong": "KHỚP — tác dụng phụ không ai chọn. `optimize_vn100_18m.py` đã ghi nửa"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:1842 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "<AST bao đóng gọi của fill_pending, scratchpad/ast_clo.py> -> ['_ghi_nua_vao', '_khoa_bien', '_khop_that', '_lay_cot', '_to_trade', 'fill_pending'] · gọi _analyze: False · hàm _analyze trong paper_trading.py: False; git grep -n \"def _analyze\" -- '*.py' -> paper_runner.py:173; git grep -n -E \"^\\s*(import|from) paper_runner\" -- paper_trading.py; ma_thoat=1",
+          "phan_quyet": "THẬT (phạm vi AST = paper_trading.py) — chạy lại SAU khi BƯỚC 239–241 thêm ~150 dòng vào paper_trading.py: bao đóng gọi của `fill_pending` vẫn y nguyên sáu hàm, không gọi `_analyze`; `_analyze` nằm ở paper_runner.py:173 và paper_trading.py không nhập paper_runner. Không dò bao đóng qua module khác.",
+          "dong": "> **RA QUYẾT ĐỊNH**. Làm được vì `fill_pending` không gọi `_analyze`,"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:1944 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"old_string\" -- docs/STATE.md | head -2 -> :8759",
+          "phan_quyet": "THẬT — bản ghi sự kiện 09/09 như mục `old_string` ở trên (STATE :8759).",
+          "dong": "> `Edit` với `old_string` không tồn tại đều \"không bị chặn\" và dẫn tới"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:2156 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n \"tv_recommendation\" -- backtest/engine.py paper_runner.py -> backtest/engine.py:86 `tv_recommendation=\"NEUTRAL\"` · paper_runner.py:191 `tv_recommendation=\"NEUTRAL\"`",
+          "phan_quyet": "THẬT về ngày ghi — `tv_recommendation` ghim \"NEUTRAL\" ở backtest/engine.py:86 và paper_runner.py:191 (tức không tái lập). Vế 'MSR đổi STRONG_BUY → NEUTRAL trong chưa tới một giờ' là số đo ngoài lúc viết, KHÔNG tái dựng (TradingView sống, đã gỡ MCP).",
+          "dong": "**Chưa đo:** `tv_recommendation` KHÔNG tái lập — MSR đổi `STRONG_BUY` →"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:2171 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "<AST hàm _compute_local_indicators, scratchpad/ast_clo.py> -> data_collectors.py:182, import trong thân: 0, 12 lời gọi khác nhau ['abs','clip','concat','diff','ewm','len','max','mean','min','rolling','shift','std']; git log -1 --format=%h -- data_collectors.py -> 38d27e1 (không đổi từ lượt 15)",
+          "phan_quyet": "THẬT — AST `_compute_local_indicators` (data_collectors.py:182): 12 lời gọi khác nhau, toàn phép pandas/numpy, 0 import trong thân, không lời gọi mạng hay IO.",
+          "dong": "> `_compute_local_indicators` — hàm thuần trên dataframe, không chạm"
+        },
+        {
+          "noi_dung": "docs/lich-su/CLAUDE-md-2026-09-30.md:2190 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -n \"Câu \\\"chưa bao giờ khớp\\\" ĐÚNG VÀO 01/09\" docs/lich-su/CLAUDE-md-2026-09-30.md -> :2193",
+          "phan_quyet": "THẬT về ngày 01/09/2026 (bản ghi lượt đọc sổ thật); SAI từ 03/09 và đã đánh dấu ⚠️ ngay dưới (lich-su :2193). Không đọc lại sổ thật.",
+          "dong": "`PENDING`, `entry_date` và `entry_price` đều là `None`. Chúng chưa bao giờ"
+        },
+        {
+          "noi_dung": "docs/lich-su/SKILL-md-2026-09-30.md:370 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -E \"ly_do|lich_su_giam\" -- tools/kiem_so_test_khong_giam.py | head -4 -> :130 `def cap_nhat(thuc_te, moc, ly_do, ngay)` · :132 `if thuc_te < moc[\"so_test\"] and not ly_do.strip():` · :140 :142 `lich_su_giam … \"ly_do\"`",
+          "phan_quyet": "THẬT — `kiem_so_test_khong_giam.py::cap_nhat` bắt lý do khi số test giảm (:132) và ghi `lich_su_giam[].ly_do` vào `docs/moc_so_test.json` (:140-:142).",
+          "dong": "> dần mà không ai thấy. Lý do khai vào `docs/moc_so_test.json` và nằm"
+        },
+        {
+          "noi_dung": "docs/lich-su/SKILL-md-2026-09-30.md:578 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "git grep -n -c '\"hooks\"' -- .claude/settings.json; ma_thoat=1",
+          "phan_quyet": "THẬT về ngày 16/09 — hai bản khai hook khác nhau ở cả ba trường nên chưa bao giờ 'cùng một handler'; nay `.claude/settings.json` của repo không khai hook (git grep thoát 1). Vế 'claude -p hết hạn OAuth' KHÔNG đo lại.",
+          "dong": "> `statusMessage`), nên chúng chưa bao giờ là *\"cùng một handler\"*. Hai"
+        },
+        {
+          "noi_dung": "docs/lich-su/SKILL-md-2026-09-30.md:618 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "grep -n \"HẾT ĐÚNG từ 22/09/2026\" docs/HANDOFF.md -> :788",
+          "phan_quyet": "THẬT về ngày 24/09 — câu gốc nay không còn trần: 🔴 'Vế \"repo không nhập\" HẾT ĐÚNG' đứng ở HANDOFF :788.",
+          "dong": ">    ấy gạch vế TIÊU ĐỀ của mục; câu *\"Repo không nhập `vnstock_data`\"*"
+        },
+        {
+          "noi_dung": "docs/lich-su/SKILL-md-2026-09-30.md:941 (số dòng ở cced339) — lời khai phủ định có nêu tên (lượt 16 mở lại).",
+          "tu_kiem": "(cd tools && ./.venv/Scripts/python.exe -c \"import soat_loi_khai_cu as s;print([bool(s.PHU_DINH.search(x)) for x in (…)])\") -> [True, True, True, True, False, False, False]",
+          "phan_quyet": "THẬT — như SKILL.md :339: PHU_DINH có đủ bốn từ, không có 'không đọc' · 'không có' · 'không còn'.",
+          "dong": "> `vnstock_data`\"* sai hai ngày mà không hiện ra. Nay thêm họ *không nhập ·"
+        },
+        {
+          "noi_dung": "Dòng sổ mồ côi 1: câu SKILL.md bản cũ ('từng sai hai lần'); BƯỚC 214 viết lại thành 'đã sai nhiều lần' nên dòng sổ không còn khớp lời khai nào.",
+          "tu_kiem": "git grep -n \"Câu ÂM cũng phải kiểm\" -- .claude/skills/quy-trinh-lam-viec/SKILL.md -> :307 '(*\"không tìm thấy\"* đã sai nhiều lần)'; ./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py | tail -12 -> '4 dòng trong sổ không còn khớp lời khai nào' (kể dòng này)",
+          "phan_quyet": "THẬT — dòng sổ là phán quyết lượt 5–15 cho câu cũ; câu đã sửa nên sổ chỉ-thêm không còn khớp (vô hại). Câu mới là lời khai SKILL.md :307, phán riêng ở trên.",
+          "dong": "- **Câu ÂM cũng phải kiểm** (*\"không tìm thấy\"* từng sai hai lần): `grep` từ"
+        },
+        {
+          "noi_dung": "Dòng sổ mồ côi 2: '- Commit body **ASCII**, không `Co-Authored-By`.' (câu SKILL.md bản cũ, lượt 4 ngày 23/09).",
+          "tu_kiem": "git grep -n \"Co-Authored-By\" -- .claude/skills/quy-trinh-lam-viec/SKILL.md -> :216 'Commit body **ASCII**, và **CÓ** `Co-Authored-By` (đo 23/09: 80/100 commit …'",
+          "phan_quyet": "THẬT — câu cũ đã sửa ở lượt 5 (24/09) nên dòng sổ không còn khớp lời khai nào; vô hại, sổ chỉ-thêm.",
+          "dong": "- Commit body **ASCII**, không `Co-Authored-By`."
+        },
+        {
+          "noi_dung": "Dòng sổ mồ côi 3: '(không nằm trong danh sách công cụ — đây là lớp công cụ KHÔNG thấy)' — một GHI CHÚ đặt vào ô `dong` của lượt 4 (23/09), không phải câu của tài liệu.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py | tail -12 -> '4 dòng trong sổ không còn khớp lời khai nào — câu đã sửa, hoặc `dong` ghi sai: (không nằm trong danh sách công cụ — …) · …'",
+          "phan_quyet": "THẬT — hằng số của sổ chỉ-thêm, không phải tín hiệu mới. Không sửa sổ.",
+          "dong": "(không nằm trong danh sách công cụ — đây là lớp công cụ KHÔNG thấy)"
+        },
+        {
+          "noi_dung": "Dòng sổ mồ côi 4: câu CLAUDE.md :112 bản cũ ('đường giao dịch, chấm điểm và đo KHÔNG nhập chúng') — BƯỚC 231 viết lại.",
+          "tu_kiem": "git grep -n \"lõi giao\" -- CLAUDE.md -> :111 '- Giai đoạn B: … — lõi giao'; ./.venv/Scripts/python.exe tools/soat_loi_khai_cu.py | tail -12 -> dòng cũ nằm trong '4 dòng trong sổ không còn khớp lời khai nào'",
+          "phan_quyet": "THẬT — dòng sổ là phán quyết SAI MỘT PHẦN của lượt 14 cho câu cũ; câu đã sửa ở file luật (BƯỚC 231) nên sổ chỉ-thêm không còn khớp (vô hại). Câu mới được phán ở mục CLAUDE.md :112 (k 20).",
+          "dong": "giao dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`)."
+        },
+        {
+          "noi_dung": "Công cụ tái lập (lỗi 191 / BƯỚC 232): chạy lại tools/soat_ngoai_cong_cu.py trên các ca THẬT của lượt 14 TRƯỚC khi tin các số của lượt này.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/soat_ngoai_cong_cu.py state 209 229 --cay 61221db -> '49 câu ứng viên, 44 chưa dấu'; state 186 208 --cay efa6a58 -> '64 · 53'; hang-bang --cay 61221db -> 'TỔNG 67 hàng · 46 chưa dấu'; diff efa6a58 61221db -> 'TỔNG ngoài tầm: 53 câu chưa dấu'; diff 61221db a877ca6 -> 'TỔNG ngoài tầm: 17 câu chưa dấu'; state 230 234 --cay a877ca6 -> '22 câu ứng viên, 14 chưa dấu'",
+          "phan_quyet": "THẬT — cả sáu khớp từng số với BƯỚC 230/232/235 (49 · 44; 64 · 53; 67 · 46; 53; 17; 22 · 14). Máy đo đi qua ca đã biết, nên các số 105 · 67 và 71 · 49 bên dưới đáng tin ở mức công cụ. Mọi lệnh bên dưới dùng `--cay cced339` hoặc hai băm tường minh (không để mặc định 'thư mục làm việc': nó đổi khi lượt này thêm chữ vào STATE — đúng hình dạng lỗi 191)."
+        },
+        {
+          "noi_dung": "Diff .md từ cây lượt 15 (a877ca6) tới cced339: 11 tệp .md đổi, 105 câu ứng viên chưa dấu NGOÀI tầm công cụ chính (gấp ~3,4 lần lượt 15: 31), vì 17 BƯỚC (236–252) thêm 950 dòng STATE và hai đặc tả mới.",
+          "tu_kiem": "git diff --name-only a877ca6 cced339 -- '*.md' -> 11 tệp; ./.venv/Scripts/python.exe tools/soat_ngoai_cong_cu.py diff a877ca6 cced339 -> dow-theory-analysis/SKILL.md +107 · 1 · quy-trinh SKILL.md +20 · 0 · cong-thuc-chay +29 · 0 · loi-da-mac +11 · 3 ứng viên · 2 chưa dấu · soat-cheo +156 · 0 · HANDOFF +42 · 6 · 6 (nhưng 0 ngoài tầm: sáu dòng ấy là 6 dòng 🧭 mà công cụ chính đã in là 'chưa ai mở') · STATE +950 · 73 · 67 · TIEU-CHI +118 · 5 · 4 · thiet-ke-b1 +1 · 0 · thiet-ke-c1 +345 · 19 · 19 · thiet-ke-dow +423 · 13 · 12 · 'TỔNG ngoài tầm: 105 câu chưa dấu'; ./.venv/Scripts/python.exe tools/soat_ngoai_cong_cu.py state 235 252 --cay cced339 -> '73 câu ứng viên, 67 chưa dấu'; hang-bang --cay cced339 -> 'TỔNG 71 hàng · 49 chưa dấu'",
+          "phan_quyet": "THẬT về số. Cả 105 câu được mở lại; phán từng nhóm ở năm mục dưới (STATE A–E) và ba mục kế (loi-da-mac + TIEU-CHI, hai đặc tả, skill Dow). Kết quả trên 105 câu: 90 THẬT (gồm THẬT-lúc-ghi) · 5 KHÔNG KIỂM · 6 SAI · 4 SAI MỘT PHẦN. Sáu SAI = bốn ở STATE (:24569 :24585 :24878 :24955) + đặc tả Dow :216 (đã đánh dấu từ BƯỚC 250) + skill Dow :8 (đánh dấu bây giờ). Bốn SAI MỘT PHẦN = ba ở STATE (:24545 :24592 :24628) + đặc tả C1 hàng G2 (đánh dấu bây giờ). Bảy câu STATE không đánh dấu tại chỗ vì STATE chỉ-thêm (xem STATE BƯỚC 254, Phát hiện 4). Năm KHÔNG KIỂM: STATE :24527 :24723 :24733 :24923 :25283. Hàng bảng: 71 · 49 chưa dấu (lượt 15: 68 · 47); +3 hàng là lỗi 194–203 khớp bộ lọc — hàng bảng lỗi là mô tả lỗi lịch sử, không phán từng hàng như lượt 14–15."
+        },
+        {
+          "noi_dung": "STATE A — BƯỚC 235–238 (13 câu): :24409 :24418 :24444 :24487 :24497 :24527 :24533 :24541 :24545 :24547 :24553 :24559 :24569.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/buoc_cham_luat.py 235 -> 'khong cham luat [commit 37d81fc]' (237: 9cb325e · 238: 09f7980 — cả ba 'khong cham luat'); git grep -n -E \"mot-tien-trinh|xdist|\\\"-n\\\"\" -- tools/nam_cong.py -> :25-:29 (mặc định `-n auto`, `--mot-tien-trinh` ép một tiến trình, `--song-song` lệnh trống), :66 `SONG_SONG_CONG1 = [\"-n\", \"auto\"]`; git grep -n -E \" -n |xdist\" -- .github/workflows/kiem-dinh.yml requirements.txt -> thoát 1; git grep -c \"^def test_\" -- tests/test_nam_cong.py -> 18; git grep -n \"^VIET_TAT\" -- hau_kiem_loi.py -> :291; git grep -n -E \"^def test_(LOI_DAN_ma_co_nguon_bao_model|VN_INDEX_o_ca_bon|VNI_vang)\" -- tests/test_hau_kiem_loi.py -> :381 :389 :397; gh run list --workflow hau-kiem-loi.yml --limit 15 -> 5 `success` sau 28/10 13:44 +07; git grep -n \"gemini-3.5-flash-lite\" -- docs/LO-TRINH.md -> thoát 1; git diff --name-only a877ca6 cced339 -- docs/LO-TRINH.md -> rỗng; git grep -n \"gemini-3.5-flash-lite\" -- docs/HANDOFF.md -> :351 (📌), :359",
+          "phan_quyet": "THẬT 10 · KHÔNG KIỂM 1 · SAI MỘT PHẦN 1 · SAI 1 (13 câu), từng câu: :24409 THẬT (BƯỚC 235 'không sửa file luật': buoc_cham_luat 235 xác nhận); :24418 THẬT lúc ghi (71 lời khai · 9 tài liệu · 1 chưa ai mở trên a877ca6; hôm nay 77 · 9 · 6 vì HANDOFF thêm sáu dòng 🧭); :24444 THẬT lúc ghi (17 câu — tái lập hôm nay ra 17); :24487 THẬT (`nam_cong.py` mặc định cổng 1 song song, cờ lui `--mot-tien-trinh`, `--song-song` còn nhận như lệnh trống; CI không `-n` và không xdist: git grep thoát 1); :24497 THẬT (test_nam_cong.py 18 hàm; số bộ 3680 → 3685 là số ngày ấy, hôm nay `pytest --collect-only` ra 4.411); :24527 KHÔNG KIỂM (kể quá trình PR; 'không ghi lỗi mới ở BƯỚC này' phù hợp bảng lỗi — hàng 194–203 không mang BƯỚC 236); :24533 THẬT (BƯỚC 237 chỉ chạm hau_kiem_loi.py, tests/test_hau_kiem_loi.py và tài liệu: git diff --name-only 9cb325e^1 9cb325e); :24541 THẬT (VNI không có trong `VIET_TAT`; ba gác có); :24545 SAI MỘT PHẦN THEO THỜI GIAN — 'chưa có lượt B1 nào chạy với lời dặn mới' đúng lúc ghi (28/10), hết đúng: 5 lượt `success` từ khi PR #283 vào main; vế 'chưa đo rằng câu mới làm model thôi viết \"VNI\"' còn đứng (đo = đọc tab hau_kiem trên Sheets, lượt này KHÔNG làm); :24547 THẬT (LO-TRINH.md không có gemini-3.5-flash-lite, không đổi từ a877ca6; ghi chép 📌 ở HANDOFF :351); :24553 THẬT (cùng lệnh); :24559 THẬT (BƯỚC 238 chỉ đặc tả: 09f7980 không chạm mã sản phẩm); :24569 SAI THEO THỜI GIAN — 'Chưa có dòng mã nào được viết theo các quyết định này' đúng ở BƯỚC 238, hết đúng khi BƯỚC 239 vào main (29/10 09:44 +07); STATE chỉ-thêm nên không đánh dấu tại chỗ, ô ⚠️ HANDOFF (mục HANDOFF k 35) là chỗ người đọc thấy."
+        },
+        {
+          "noi_dung": "STATE B — BƯỚC 239–242 (18 câu): :24585 :24592 :24611 :24619 :24628 :24629 :24633 :24652 :24667 :24675 :24706 :24708 :24721 :24723 :24733 :24754 :24763 :24773.",
+          "tu_kiem": "git grep -n \"luat_vao\" -- '*.py' ':!tests' -> paper_trading.py:536-540,559 · phuong_an_bong.py:70,84 · san_dau.py:295-296; git grep -n \"NotImplementedError\" -- san_dau.py -> :148 :296 :298; git grep -n -E \"add_parser\\(\" -- tools/san_dau.py -> kiem-mo-hinh :814 · bang :820 · do-phu :828 · tuong-duong :840; git grep -n -A6 \"^def phat_lai\" -- san_dau.py -> :341 (tham số nguon, không có ke_hoach); git log -1 05559a9 -> merge PR #191 2026-09-30 20:32:45 +0700; git grep -n -E \"nen_da_xu_ly\" -- '*.py' ':!tests' -> paper_trading.py:738 · run_daily.py (tra_nen_da_xu_ly :337, dùng :579); git grep -n nen_da_xu_ly -- walkforward.py san_dau.py -> thoát 1; sed -n 233,236p tests/test_moi_nen_xu_ly_mot_lan.py -> KICH_BAN có chín kịch bản; git grep -n -E \"add_parser|cat-lo|cong-vni\" -- tools/do_dau_chan_241.py -> :3 :4 :161; git grep -c \"UV-001\" -- san_dau.py tools/san_dau.py -> thoát 1; git grep -n -E \"class NguonDoRong|def co_tu_gia\" -- san_dau.py -> :151 :200; git grep -n -E \"độ lệch giữa hai tập\" -- docs/STATE.md -> :24773 :24874; git diff --name-only a877ca6 cced339 | grep -E \"sheets_store|google_sheets_sync|\\.db$\" -> thoát 1; git diff a877ca6 cced339 -U0 -- paper_trading.py run_daily.py paper_runner.py | grep -E \"^[-+]\" | grep -E \"CHO_PHEP_MO_LENH_MOI|BUY_THRESHOLD|TRAN_VON_CAM_KET\" -> chỉ các dòng truyền qua CauHinhVao; git grep -n -E \"^CHO_PHEP_MO_LENH_MOI|^BUY_THRESHOLD|^TRAN_VON_CAM_KET_PCT\" -- paper_trading.py -> True · 62 · 100.0",
+          "phan_quyet": "THẬT 13 · SAI MỘT PHẦN 2 · SAI 1 · KHÔNG KIỂM 2 (18 câu), từng câu: :24585 SAI THEO THỜI GIAN — 'chưa có san_dau.py và chưa có phương án nào' đúng ở Lát 1, hết đúng khi BƯỚC 240 vào main cùng ngày; :24592 SAI MỘT PHẦN THEO THỜI GIAN — '`luat_vao` … chưa ai đọc nó ở Lát 1': đúng Lát 1, nay san_dau.py:295 đọc `cau_hinh.luat_vao` (và phuong_an_bong.py:84 kiểm giá trị); vế 'chỉ nhận MO_CUA_SAU · KE_HOACH_B6' THẬT (paper_trading.py:536-540); :24611 THẬT (suy luận 'bảng vàng bỏ sót hai phát' vẫn là DỰ ĐOÁN — chưa ai gỡ hai test ra rồi chạy lại, lượt này cũng không làm); :24619 THẬT (kế hoạch Lát 2, đã làm ở BƯỚC 240); :24628 SAI MỘT PHẦN THEO THỜI GIAN — 'từ chối cấu hình Lát 2 chưa có đầu vào: độ rộng, …': độ rộng đã có đầu vào từ BƯỚC 242 (`NguonDoRong` :151), các từ chối còn lại vẫn nổ (san_dau.py:148 :296 :298); :24629 THẬT (ba lệnh con + `kiem-mo-hinh` thêm ở BƯỚC 248; cờ `--so-tam` `--nguon-gia` có; không lời gọi ghi trong san_dau.py/tools/san_dau.py: git grep thoát 1 ở tập hàm ghi — gác G1 `tests/test_san_dau.py:739`); :24633 THẬT (`phat_lai` nhận `nguon`, chữ ký :341 không có `ke_hoach`); :24652 THẬT (05559a9 = merge PR #191 30/09 20:32:45 +07); các số 64/63/62 mã và GEL 27.435/27.396 là đọc từ Sheets lúc ghi, KHÔNG kiểm; :24667 THẬT lúc ghi (số cổng ngày 29/10: 3.786; hôm nay 4.411); :24675 THẬT (BƯỚC 241 không đổi `CHO_PHEP_MO_LENH_MOI` = True, `BUY_THRESHOLD` = 62, `TRAN_VON_CAM_KET_PCT` = 100.0; không đụng sheets_store/google_sheets_sync/*.db: cả dải a877ca6..cced339 thoát 1); :24706 THẬT (`nen_da_xu_ly` chỉ ở paper_trading.py:738 và run_daily.py; walkforward.py và san_dau.py không gọi); :24708 THẬT (chín kịch bản ở KICH_BAN, test tham số hoá :239); :24721 THẬT cho dụng cụ (`do_dau_chan_241.py` có `cat-lo`, `cong-vni`); băm sổ `ae20e1604476a97e`, 133 lệnh, 21.613 quyết định đọc từ Sheets lúc ghi — KHÔNG kiểm (hôm nay DB tạm của ĐO 27 có 133 lệnh, 0 OPEN, nhưng không đối chiếu số quyết định); :24723 và :24733 KHÔNG kiểm (số đo trên sổ thật + mạng 29/10); :24754 THẬT (UV-001 không có trong san_dau.py, tools/san_dau.py; sheets_store không đổi); :24763 THẬT (`NguonDoRong`, `co_tu_gia` có); :24773 THẬT-còn — 'chưa đo độ lệch giữa hai tập' chưa ai đo (chỉ có :24773, câu hỏi :24874 và quyết định người dùng :24921 *\"71 mã, ghi rõ khác ĐO 32 (Recommended)\"*)."
+        },
+        {
+          "noi_dung": "STATE C — BƯỚC 244 và 243 (11 câu): :24878 :24882 :24884 :24887 :24892 :24893 :24909 :24919 :24923 :24930 :24955.",
+          "tu_kiem": "git grep -n -i -E \"cấu trúc giá|Dow|BOS|CHoCH\" -- docs/LO-TRINH.md -> thoát 1; git diff --name-only 05aae75^1 05aae75 -> dow-theory-analysis/SKILL.md · HANDOFF · STATE · moc_so_test.json · soat-notebooklm.json · thiet-ke-dow-cau-truc.md · tests/test_skill_quy_trinh.py · tools/cua_mo_phien.py (không file luật); ./.venv/Scripts/python.exe tools/buoc_cham_luat.py 244 -> 'khong cham luat'; wc -l docs/thiet-ke-dow-cau-truc.md -> 423 (git diff --numstat); git grep -n -E \"days_back *= *180|~124 phiên|~285 phiên\" -- app.py -> :1034 :1079 :1362 :1488; git check-ignore -v backtest/cache/AAA.csv -> .gitignore:25 backtest/cache*/; git grep -n \"CACHE_DIR *=\" -- backtest/data.py -> :43 (VIBE_CACHE_DIR hoặc mặc định); git grep -n -i cache -- .github/workflows/quet-so-lenh.yml -> chỉ `cache: pip` :60 và `dung_cache=False` :157 :160; git grep -n -E \"write_text|write_bytes|to_csv|\\.write\\(|json\\.dump\\(\" -- san_dau.py tools/san_dau.py -> rỗng; sed -n 828,839p tools/san_dau.py -> do-phu có --json --kiem --duong --so-lan --chon --hat --cau-hinh --phi; git diff --name-only 0ae93d5^1 0ae93d5 -> san_dau.py · tools/san_dau.py · docs/san-dau-do-phu.json · tests (không sheets_store); ./.venv/Scripts/python.exe tools/san_dau.py kiem-mo-hinh --cache C:/Users/cuong/Vibe_Stock_Analysis/vibe_cache_goc_20260911 --hop-garch -> mô hình CŨ (BƯỚC 243) ACF bậc 1 = 0,869–0,944 ở n = 252 và 0,878–0,944 ở n = 1000; mô hình MỚI (BƯỚC 248) ACF bậc 1 = −0,012…0,005; GARCH(1,1)-t chung 30 bản α 0,145 · β 0,800 · ν 7,44 (hằng 0,14 · 0,81 · 7,5); tương quan hai tài khoản độc lập 0,024; ./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem (đo lại 10.000 lần lặp/ô, hạt 0, bốn ứng viên + hạt 1, 2 + căng thẳng; chạy 08:18–08:45) -> 'KHOP: docs/san-dau-do-phu.json bang ket qua do lai', thoát 0: PW n=40/113/252 cap 91,2/93,2/94,3% · mot_chuoi 92,0/92,8/94,5% · tho 91,7/93,5/94,4%; ứng viên L42 0/9 ô đạt, L63 0/9, L21 3/9, PW 9/9 -> ĐẠT, CHỐT; kiểm lại hạt 1 và hạt 2: nhỏ nhất 91,40% (9 ô >= 90%); căng thẳng phi=0,15: nhỏ nhất 89,26%, 2 ô dưới 90% (báo cáo, không để chọn)",
+          "phan_quyet": "THẬT 8 · SAI 2 · KHÔNG KIỂM 1 (11 câu), từng câu: :24878 SAI THEO THỜI GIAN — tiêu đề 'CHƯA CÓ DÒNG MÃ MÔ-ĐUN NÀO' đúng ngày 29/10 (BƯỚC 244 chỉ đặc tả), hết đúng khi PR #293 (BƯỚC 247) vào main 30/10; ô ⚠️ HANDOFF (mục HANDOFF k 33) là chỗ người đọc thấy; :24882 THẬT (LO-TRINH.md không có dòng cho cấu trúc giá — git grep thoát 1; mốc B5 mượn); :24884 THẬT (BƯỚC 244 không đụng mã sản phẩm của giao dịch; nguyên văn người dùng không tra lại); :24887 THẬT (đặc tả 423 dòng); :24892 THẬT (skill phụ buộc sửa `tools/cua_mo_phien.py` + `tests/test_skill_quy_trinh.py`: git diff 05aae75; không file luật nào đổi; buoc_cham_luat 244 xác nhận); :24893 THẬT, số dòng trôi (app.py :1031 → :1034, chú thích :1076 → :1079; ngày lịch 180 ≈ 124 phiên vẫn đúng); :24909 THẬT (mô tả đột biến; chạy ở cổng 1 hôm nay); :24919 THẬT (BƯỚC 243 chỉ chạm san_dau.py, tools/san_dau.py, docs/san-dau-do-phu.json, tests; UV-001 vắng); :24923 KHÔNG KIỂM (kiểm trên Actions xem thư mục `backtest/cache` có dữ liệu: `backtest/cache*/` bị gitignore, quet-so-lenh.yml không nạp nó — đúng như câu 'chưa kiểm ở BƯỚC này', lượt soát này cũng không kiểm); :24930 THẬT (do-phu có đủ cờ; git grep ghi-file rỗng ở hai tệp — 'KHÔNG ghi file nào'); :24955 SAI THEO THỜI GIAN — 'MỌI ô đều dưới 90%' là kết quả của mô hình CŨ và đã bị BƯỚC 248 thay thế: hôm nay `kiem-mo-hinh` tái lập ACF mô hình cũ bậc 1 = 0,87–0,94 (đúng như STATE :25217 ghi) và mô hình mới ≈ 0; STATE :25217 đã nói thẳng 'không dùng để chọn cách tính'. Chỗ người đọc thấy: `docs/thiet-ke-c1-san-dau.md` mục 8.4b (:204-:225)."
+        },
+        {
+          "noi_dung": "STATE D — BƯỚC 245–248 (13 câu): :25011 :25026 :25028 :25030 :25054 :25061 :25071 :25113 :25117 :25121 :25217 :25243 :25245.",
+          "tu_kiem": "git diff --name-only 44f6c2c^1 44f6c2c -> HANDOFF · STATE · TIEU-CHI · soat-notebooklm.json · thiet-ke-dow (không mã, không *.db); git log --all -i -E --oneline --grep \"swing|choch|dow theory|zigzag|market structure\" -> 5 commit (STATE :25028 ghi 2 lúc ấy: 1071842 BƯỚC 244 · 9cb1d85 BƯỚC 173); ./.venv/Scripts/python.exe -c \"…soat-notebooklm.json…\" -> có 'BƯỚC 245' · 'ĐO 34' · 'BƯỚC 246' · 'BƯỚC 252'; git grep -n \"kiem-tra-loi\" -- tools/so_tay.py -> :37 :806; git grep -n \"def test_MOI_tra_loi_trong_so\" -- tests/test_soat_notebooklm.py -> :245; git grep -n -E \"TU_MOC_TRA_LOI|bắt buộc.*tra_loi\" -- tests tools -> rỗng; ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py mo-ta --cache <vibe_cache_goc_20260911> --ghi <json> -> chênh = 0: nội bộ 40 / swing 7 (tổng cặp 4.094 / 1.522); (0;0,5]: 10 / 1; (0,5;1): 51 / 5; [1;2]: 90 / 15; nhãn `bang` 50 / 8; tỷ lệ đóng cửa trên lưới theo năm 0,2183 · 0,3221 · 0,3408 · 0,3016 · 0,3798 · 0,6981; băm cache sau KHỚP acf6dca1…; git grep -n -A16 \"def tim_day_xoay\" -- ke_hoach_vao_lenh.py (đọc :223-:236) và `CUA_SO_DAY = 20` :106; git diff --numstat a877ca6 HEAD -> không có ke_hoach_vao_lenh.py;./.venv/Scripts/python.exe tools/buoc_cham_luat.py 248 -> 'khong cham luat'; grep -n -E \"^\\| 20[0-3] \\|\" loi-da-mac.md -> hàng 200 :1565 … 203 :1568",
+          "phan_quyet": "THẬT 13/13 (một số vế KHÔNG đo lại, kể rõ), từng câu: :25011 THẬT (BƯỚC 245 chỉ ký ĐO 34: không mã, không *.db — git diff --name-only 44f6c2c^1 44f6c2c); :25026 THẬT lúc ghi (so bản nháp với bản ký; nay văn bản ĐO 34 còn có khối sửa của BƯỚC 252, cũng đã có trong TIEU-CHI); :25028 THẬT lúc ghi — cùng lệnh hôm nay ra 5 commit (không còn là 2) vì BƯỚC 245–249 tự nhắc từ khoá; hai commit STATE nêu (1071842 BƯỚC 244 · 9cb1d85 BƯỚC 173) vẫn có; :25030 THẬT (hai mục sổ tay 'BƯỚC 245' và 'ĐO 34' có thật; chữ 'câu trả lời ÂM' của sổ tay đã được lượt ấy tự kiểm); :25054 THẬT (`kiem-tra-loi` ở so_tay.py:806, gác `test_MOI_tra_loi_trong_so_…` :245); :25061 THẬT (bài học lịch sử về lệnh JS; không chạy lại trình duyệt); :25071 THẬT cho (e): chưa có gác buộc mọi mục hỏi thật từ một mốc phải mang `tra_loi` (git grep rỗng) — phần (a) (b) (c) (d) không đo lại; :25113 THẬT — tái lập hôm nay từng số (40 / 7 · 10 / 1 · 51 / 5 · 90 / 15 · 4.094 / 1.522 · nhãn bang 50 / 8 · tỷ lệ trên lưới 21,8 → 69,8%), băm cache KHỚP; '19 mã / 74 dòng' và '66 mã / 706 dòng' (độ nhạy dung sai) KHÔNG chạy lại; :25117 THẬT (`tim_day_xoay` chỉ đọc `low`, một cấp, cửa sổ `CUA_SO_DAY` = 20, so `<=` trước và `<` sau; không nhãn, không ngày biết) ; :25121 THẬT (các giới hạn (a)–(g) là danh sách tự khai; (f) 'chưa có phép cắt thăng cấp đệ quy' — git grep không thấy tên); :25217 THẬT một phần — tái lập: mô hình CŨ ACF bậc 1 = 0,87–0,94 (n = 252 và 1.000), mô hình MỚI ≈ 0, GARCH chung α 0,145 · β 0,800 · ν 7,44; 'hệ số phương sai 8,5–16' KHÔNG đối chiếu; :25243 THẬT (buoc_cham_luat 248: không chạm luật nên bản đầu ghi khong_bat_buoc_vi; người dùng chọn hỏi thật — mục sổ tay BƯỚC 248 có `cau_hoi`); :25245 THẬT (hàng lỗi 200 ở :1565; lỗi 201 là của BƯỚC 250 ở :1566; 'lỗi kế 202' đúng lúc ghi, nay đã đến 203)."
+        },
+        {
+          "noi_dung": "STATE E — BƯỚC 249–252 (12 câu): :25136 :25174 :25187 :25193 :25201 :25260 :25265 :25283 :25293 :25306 :25314 :25339.",
+          "tu_kiem": "git grep -n -E \"^class SuKienPha|^def trang_thai_dow|^def trang_thai_tu_nhat_ky|^CUA_SO_PHIEN|^NGAY_LICH_CUA_SO|^TEN_NGUON|^def doc_hien_thi|^def khong_doc_duoc\" -- cau_truc_gia.py -> :385 :599 :560 :745 :747 :763 :861 :852; git grep -c \"^def test_\" -- tests/test_cau_truc_gia_lat3.py -> 29; ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py cua-so --cache <vibe_cache_goc_20260911> -> do_nhay 124 so với 784: thủy triều khác 59/71 · ngày biết khác 61/71 · chu kỳ khác 16/71; 285 so với 784: 6/71 · 18/71 · 1/71; ty_le_du ở 124 phiên = 0,1408 (app.py:1362 ghi '14,1%'); git grep -n \"^CHO_PHEP_DOC_KET_QUA_THAT\" -- tools/do_dow_cau_truc.py -> :78 = False; AST nhập của tools/do_dow_cau_truc.py (scratchpad/imp1.py) -> argparse · cau_truc_gia · data_quality · io · json · mo_ta_cau_truc_gia · numpy · pandas · paper_metrics · paper_trading · san_dau · san_giao_dich · truot_gia · vn100_symbols (không vnstock/requests/gspread/sheets_store); git grep -n -E \"write_text|write_bytes|to_csv|\\.write\\(|json\\.dump\\(\" -- tools/do_dow_cau_truc.py cau_truc_gia.py -> chỉ tools/do_dow_cau_truc.py:947 (`Path(a.ghi).write_text`, đường ra do cờ `--ghi` khai tường minh); AST importers của pha_wyckoff -> app.py · ke_hoach_vao_lenh.py · muc_fibonacci.py · tests · tools/mo_ta_cau_truc_gia.py (cau_truc_gia.py KHÔNG có); git grep -n -E \"def (ky_vong_dich_giai_tich|doi_chung_ii|doi_chung_iii|khoang_wilson|mde_80)|^HE_SO_K0\" -- tools/do_dow_cau_truc.py -> :503 :486 :609 :591 :602 · HE_SO_K0 = 20.0 :66; git log --merges a877ca6..HEAD -> #295 (BƯỚC 248) vào main 2026-11-03 14:23 +07 (663ef55) rồi #297 (BƯỚC 251) 18:59 +07; python soat-notebooklm.json['soat']['BƯỚC 252'] -> có cau_hoi 3.145 đơn vị UTF-16, _tu_kiem_cau_am, tra_loi; ./.venv/Scripts/python.exe tools/buoc_cham_luat.py 252 -> 'CHAM LUAT [docs/TIEU-CHI-DOC-TRUOC.md]'",
+          "phan_quyet": "THẬT 11 · KHÔNG KIỂM 1 (12 câu), từng câu: :25136 THẬT (`SuKienPha` :385, `trang_thai_dow` :599, `trang_thai_tu_nhat_ky` :560; sự kiện BOS · CHOCH · KHOI_DAU :362; số đếm tái lập bằng `su-kien`); :25174 THẬT (`doc_hien_thi` :861, `CUA_SO_PHIEN` = 784 :745, `NGAY_LICH_CUA_SO` = 1095 :747, `khong_doc_duoc` :852, `TEN_NGUON` :763; 'mô-đun vẫn không nhập pha_wyckoff' — AST: `cau_truc_gia.py` chỉ nhập data_quality · truot_gia · vong_doi_lenh · pandas · dataclasses); :25187 THẬT — tái lập từng số của độ nhạy cửa sổ; :25193 THẬT (đúng 29 hàm test; nội dung từng đáp số tính tay do cổng 1 hôm nay chạy); :25201 THẬT (giới hạn tự khai; (a) 'bảng cửa sổ đo trên cache tới 2026-09-03' khớp giá `gia: … 2026-09-03` in ra của kiem-mo-hinh); :25260 THẬT lúc ghi ('XẾP CHỒNG trên c1/ktc-248 (PR #295, chưa hợp nhất)' — #295 vào main 03/11 14:23 +07, trước #297); :25265 THẬT (`tools/do_dow_cau_truc.py` có, khoá `CHO_PHEP_DOC_KET_QUA_THAT = False` :78; 'không mạng, không ghi cache, không đọc sổ lệnh' — AST: không nhập trực tiếp vnstock/requests/gspread/sheets_store, lời gọi ghi duy nhất là `--ghi` :947 (đường ra tường minh), nên THẬT ở mức nhập/ghi — KHÔNG chạy lại đối chứng (i)–(vi): chúng là việc của Lát 4b, ngoài phạm vi lượt soát); :25283 (iv) KHÔNG đo lại — dụng cụ này chạy qua test `tests/test_do_dow_cau_truc.py` ở cổng 1; :25293 THẬT (danh sách giới hạn; (g) '10–20 phút' đã tự gọi là ƯỚC LƯỢNG); :25306 THẬT (BƯỚC 252 chỉ sửa văn bản ĐO 34 + xác nhận của người dùng); :25314 THẬT (`ky_vong_dich_giai_tich`, `doi_chung_ii`, `doi_chung_iii`, `khoang_wilson`, `mde_80`, `HE_SO_K0` = 20.0 có thật); :25339 THẬT (mục sổ tay BƯỚC 252 có `cau_hoi` 3.145 đơn vị UTF-16 — khớp STATE; sổ tay nói rộng hơn nguồn ở hai điểm là phát hiện của lượt ấy, không lặp lại)."
+        },
+        {
+          "noi_dung": "loi-da-mac.md :1561 :1562 và TIEU-CHI-DOC-TRUOC.md :4691 :4692 :4759 :4789 (6 câu).",
+          "tu_kiem": "sed -n 233,237p tests/test_moi_nen_xu_ly_mot_lan.py -> KICH_BAN có chín kịch bản; sed -n 1562p loi-da-mac.md (lỗi 197: đặc tả C1 mục 8.1); ./.venv/Scripts/python.exe tools/san_dau.py kiem-mo-hinh … (như STATE C); git log --format='%h %ad %s' --date=short -3 -- docs/TIEU-CHI-DOC-TRUOC.md -> ffe4ce0 2026-11-03 · 8fd2ff7 2026-11-03 · 05f3d65 2026-10-30; git grep -n \"R8/R9\" -- tools/do_dow_cau_truc.py -> :21 (báo kèm bỏ R8/R9); git grep -n \"CHO_PHEP_DOC_KET_QUA_THAT\" -- tools/do_dow_cau_truc.py -> :78 False",
+          "phan_quyet": "THẬT 6/6, từng câu: loi-da-mac :1561 THẬT (lỗi 196: chín đường ở `KICH_BAN`; 'chưa gác được đường thứ mười' đúng — gác chỉ liệt kê chín); :1562 THẬT (lỗi 197 là mô tả lỗi lịch sử của mục 8.1; đã sửa ở BƯỚC 242 theo STATE); TIEU-CHI :4691 THẬT về ngày ký (BƯỚC 243 đo mô hình cũ; 'cách sửa … chưa có số hiệu lúc ký' → BƯỚC 248 sửa, BƯỚC 252 khai lại; số 48,1–84,6% của BƯỚC 243 đã bị BƯỚC 248 thay như ở STATE C :24955); :4692 THẬT lịch sử (sổ tay hỏi thật BƯỚC 245, câu trả lời ÂM); :4759 THẬT (ghi nhận trung thực, giữ nguyên sau khi duyệt; 'đạt-sau-khi-đổi-luật không phải bằng chứng máy đo tốt hơn' là kỷ luật); :4789 THẬT (R8, R9 'BỎ' — `tools/do_dow_cau_truc.py:21`). Không câu nào trong hai file này hết đúng; không sửa file luật."
+        },
+        {
+          "noi_dung": "docs/thiet-ke-c1-san-dau.md (19 câu): :31 :35 :78 :79 :90 :97 :105 :133 :164 :182 :204 :225 :274 :282 :288 :289 :303 :320 :321.",
+          "tu_kiem": "git log --format='%h %ad' --date=short -S'TAB_KE_HOACH' -- sheets_store.py | tail -1 -> 45df2d7 2026-10-15 (BƯỚC 195); git grep -n \"^NGAY_TIEN_VE_TRUOC\" -- san_dau.py -> :39 = 2026-08-28; git grep -c \"UV-001\" -- san_dau.py tools/san_dau.py -> thoát 1; git grep -n -E \"_analyze|MasterConsensusAgent\" -- san_dau.py tools/san_dau.py -> thoát 1; git grep -n \"def _analyze\" -- paper_runner.py -> :173 (đặc tả ghi :168); git grep -n \"^def doc_quyet_dinh\" -- cham_bong.py -> :109; git grep -n \"analyses.*risk.*recommendations\" -- paper_trading.py -> :982 (đặc tả ghi :837–:862); git grep -n \"def tu_module\" -- paper_trading.py -> :543; AST: san_dau <- tests · tools/san_dau.py · tools/do_dow_cau_truc.py (paper_trading KHÔNG nhập); git grep -n -E \"^(GARCH_ALPHA|GARCH_BETA|GARCH_NU|TY_TRONG_CHUNG)\" -- san_dau.py -> 0.14 :924 · 0.81 :925 · 7.5 :926 · 0.5 :772; git grep -n \"Tải giá\" -- app.py -> :673; git grep -n \"san_dau\" -- app.py -> thoát 1; git grep -n \"def test_G1_khong_ghi\" -- tests -> tests/test_san_dau.py:739; sed -n 775,785p tests/test_san_dau.py (G2: cho_phep = {app.py, tools/san_dau.py, tools/do_dow_cau_truc.py}); git grep -c \"xac_nhan\" -- san_dau.py tools/san_dau.py -> thoát 1; git diff --name-only a877ca6 cced339 | grep -E \"ung-vien|sheets_store\" -> thoát 1; ./.venv/Scripts/python.exe tools/san_dau.py do-phu --kiem -> 'KHOP' (thoát 0): bảng độ phủ khớp docs/san-dau-do-phu.json — PW 91,2/92,0/91,7 · 93,2/92,8/93,5 · 94,3/94,5/94,4% ở n = 40/113/252 (ba dạng), L21 3/9 ô đạt, L42 và L63 0/9; hạt 1, hạt 2 nhỏ nhất 91,40%; căng thẳng 89,26% (2 ô dưới 90%)",
+          "phan_quyet": "THẬT 18 · SAI MỘT PHẦN 1 (19 câu), từng câu: :31 THẬT (tab `ke_hoach` từ 45df2d7, 15/10; mốc tiến-về-trước 2026-08-28 ở san_dau.py:39 và tools/doc_so_that.py:87); :35 THẬT (UV-001 vắng); :78 THẬT về nội dung (san_dau.py và tools/san_dau.py không gọi `_analyze`/`MasterConsensusAgent`; `cham_bong.doc_quyet_dinh` :109), số dòng `paper_runner._analyze` trôi :168 → :173; :79 THẬT về nội dung, số dòng trôi (`result[\"analyses\"][\"risk\"][\"recommendations\"]` nay paper_trading.py:982, đặc tả :837–:862); :90 THẬT (số đo hoãn sang BƯỚC 2 theo Quy tắc 2); :97 THẬT (`tu_module` :543); :105 THẬT (AST: paper_trading không nhập san_dau); :133 THẬT (`ke_hoach` từ BƯỚC 195; 'đo bằng lệnh ở BƯỚC 4' là việc Lát 4, chưa làm); :164 THẬT lịch sử (bảng nhạy cảm L ∈ {5, 10, 21} làm ở BƯỚC 243); :182 THẬT — hằng số khớp (α 0,14 · β 0,81 · ν 7,5 · 0,5), hợp lý cực đại hôm nay 0,145 · 0,800 · 7,44 nằm trong khoảng 0,137–0,149 · 0,794–0,809 · 7,43–7,54 mà câu nêu; ACF của |x_t| tái lập; :204 THẬT — bảng độ phủ (PW 91,22/92,0/91,7 … 94,29/94,48/94,42; L21 3/9 ô đạt; L42, L63 0/9) tái lập bằng `do-phu --kiem` ('KHOP', thoát 0); :225 THẬT-lúc-ghi, KHÔNG đo lại (cần `do-phu --chon --cau-hinh L10,L5`, chạy lâu; số '85,89 · 87,19 · 84,35%' không tái dựng hôm nay); :274 THẬT (nút '📥 Tải giá…' ở app.py:673, spec :670 trôi; tab sân đấu chưa có trong app.py — Lát 4 chưa làm); :282 THẬT (ba lệnh con + `kiem-mo-hinh` thêm ở BƯỚC 248; chỉ đọc); :288 THẬT (gác G1 `test_G1_khong_ghi` :739); :289 SAI MỘT PHẦN — danh sách người được nhập `san_dau` nay là app.py · tools/san_dau.py · tools/do_dow_cau_truc.py (BƯỚC 251; `tests/test_san_dau.py:779`), app.py CHƯA nhập (chỉ được phép); phần 'cấm' đúng — ĐÃ thêm ô ⚠️ 04/11 ngay dưới hàng G2; :303 THẬT là định nghĩa Lát 1 ('Chưa có san_dau.py' = điều kiện xong của Lát 1, hết áp dụng sau BƯỚC 240); :320 THẬT (không `push`, không thêm tab: sheets_store không đổi từ a877ca6); :321 THẬT (`xac_nhan` vắng, ung-vien.json không đổi)."
+        },
+        {
+          "noi_dung": "docs/thiet-ke-dow-cau-truc.md (12 câu): :3 :19 :110 :113 :130 :175 :189 :191 :216 :344 :352 :383.",
+          "tu_kiem": "git grep -n -i -E \"cấu trúc giá|Dow\" -- docs/LO-TRINH.md -> thoát 1; git grep -n \"^CHO_PHEP_DOC_KET_QUA_THAT\" -- tools/do_dow_cau_truc.py -> :78 False; ls docs | grep -i dow -> chỉ thiet-ke-dow-cau-truc.md (không file kết quả); ./.venv/Scripts/python.exe tools/mo_ta_cau_truc_gia.py mo-ta … -> 40 cặp nội bộ / 7 cặp swing chênh = 0 (STATE D); …cua-so … -> ty_le_du ở 124 phiên 0,1408, cua_so_phien 784; git grep -n -E \"^BOS, CHOCH, KHOI_DAU\" -- cau_truc_gia.py -> :362; git grep -n -E \"LPSY|\\bLPS\\b\" -- cau_truc_gia.py pha_wyckoff.py -> rỗng; git grep -n -i -E \"smartmoneyconcepts|PyIndicators|luxalgo\" -- requirements.txt '*.py' -> chỉ cau_truc_gia.py:42 (chú thích); AST: không importer nào của smartmoneyconcepts; git grep -n \"R8/R9\" -- tools/do_dow_cau_truc.py -> :21; (đọc ke_hoach_vao_lenh.py:223-:236)",
+          "phan_quyet": "THẬT 11 · SAI 1 (đã đánh dấu từ BƯỚC 250) (12 câu), từng câu: :3 THẬT (mốc B5 mượn; LO-TRINH.md không có dòng cho cấu trúc giá); :19 THẬT — 'chưa có kết quả đo nào đứng sau nó': khoá `CHO_PHEP_DOC_KET_QUA_THAT = False`, không file kết quả; 'KHÔNG chạy nó ở BƯỚC này' đúng cho BƯỚC 244 (BƯỚC 251 chỉ dựng dụng cụ + đối chứng, không đọc lợi nhuận); :110 THẬT một phần — vế 'Lát 1 đếm số ca bằng giá và gần-bằng-giá' đã làm ở BƯỚC 247 (tái lập hôm nay: 40 / 7 ca bằng chính xác), vế 'ước lượng sai số cỡ 1 − f, chưa đo' còn đứng; :113 THẬT (vế 'điều chưa kiểm: nguồn điều chỉnh có sửa lại các mốc cũ giữa hai lần kéo' chưa ai kiểm); :130 THẬT (KHOI_DAU thay BOS ở sự kiện đầu: hằng số :362, đếm KHOI_DAU = 71 nội bộ / 70 swing = một mỗi mã); :175 THẬT (`tim_day_xoay`: chỉ `low`, một cấp, 20 phiên, `<=` trước/`<` sau, không nhãn; nằm trên đường sinh kế hoạch, mô-đun mới thì không — AST); :189 THẬT (theo mô tả gác `tests/test_cau_truc_gia_lat3.py` — pha E hiện CẢ HAI không ghi đè; cổng 1 hôm nay chạy file đó); :191 THẬT (LPS · LPSY · ST chưa làm: git grep rỗng); :216 SAI THEO THỜI GIAN nhưng ĐÃ đánh dấu — 'độ dài cần thiết chưa đo; Lát 3 đếm …' đã đo ở BƯỚC 250 (cua-so tái lập: 124 phiên chỉ 14,08% mã đủ hai đỉnh hai đáy; ghim 784, `cau_truc_gia.py:745`); ghi chú thi công :218 ngay dưới nói 'Cửa sổ ĐÃ ĐO và GHIM: 784 phiên' (14,08% · 88,73% · 97,18%) — không cần ô mới; :344 THẬT là định nghĩa Lát 1 (chưa BOS/CHoCH/app = phạm vi Lát 1, đã đủ ở Lát 2–3); :352 THẬT (R8, R9 CHƯA làm: do_dow_cau_truc.py:21 'bỏ R8/R9'); :383 THẬT (không cài/nhập smartmoneyconcepts, PyIndicators, LuxAlgo; chỉ một chú thích :42)."
+        },
+        {
+          "noi_dung": ".claude/skills/dow-theory-analysis/SKILL.md :8 (1 câu): 'Mô-đun ấy chưa có mã — không nói với người dùng rằng app đang hiện thủy triều hay con sóng cho tới khi nó vào main.'",
+          "tu_kiem": "git grep -n \"chưa có mã\" -- .claude/skills/dow-theory-analysis/SKILL.md -> :8 (không ⚠️ nào trong file); AST: cau_truc_gia <- app.py (app.py:44 `import cau_truc_gia as _ctg`) · tests · tools; wc -l cau_truc_gia.py -> 938; git log --merges a877ca6..HEAD -> #293 (BƯỚC 247) 30/10 13:08 +07 · #296 (BƯỚC 250, hai ô trên app) 03/11 13:03 +07; ./.venv/Scripts/python.exe -m pytest tests/test_skill_quy_trinh.py -q -> xem mục Năm cổng",
+          "phan_quyet": "SAI THEO THỜI GIAN — câu chỉ đúng tới 30/10 (BƯỚC 244–246: đặc tả, chưa mã); mô-đun vào main 30/10 (BƯỚC 247) và app hiện hai ô từ 03/11 (BƯỚC 250). Đây là hình dạng nguy hiểm nhất của lời khai hết hạn: skill được nạp vào ngữ cảnh mỗi lần gọi, và câu ra LỆNH cho agent ('không nói với người dùng rằng app đang hiện thủy triều'). ĐÃ thêm ô ⚠️ 04/11 ngay dưới câu (`tools/va_an_toan.thay`), câu cũ giữ nguyên. Công cụ chính KHÔNG thấy file này (chín tài liệu của `TAI_LIEU` không gồm skill phụ) — chỉ `soat_ngoai_cong_cu diff` thấy nó; đề xuất lỗi ở mục STATE."
+        }
+      ]
     }
   ],
   "_vi_sao_moi_phat_hien_co_khoa_DONG": "Khoá để lượt sau biết dòng này ĐÃ được mở. `tools/soat_loi_khai_cu.py` đọc sổ này và xếp những dòng chưa ai mở lên trước. Khoá là NGUYÊN VĂN dòng chứ không phải số dòng: số dòng trôi mỗi lần tài liệu dài ra — hai mục lượt 16/09 đã trôi 1706→1873 và 1740→1907 chỉ trong hai ngày. Câu đổi chữ thì nó lại hiện ra như chưa ai mở, và đó là hành vi ĐÚNG: câu đã khác thì phán quyết cũ không còn nói về nó nữa. Thiếu `dong` thì hỏng về chiều AN TOÀN — dòng ấy hiện như chưa ai mở, tức được mở lại."
