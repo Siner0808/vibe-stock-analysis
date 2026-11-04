@@ -274,23 +274,103 @@ def test_NGAU_NHIEN_gia_tri_ky_vong_gan_0_khi_thoi_diem_doc_lap_voi_loi_nhuan():
         s[:, j] = (np.arange(T) + 40 * j) % 130 < 50
     kq = D.doi_chung_ii(M, s, PHI, so_luot=200)
     assert kq["dat"] and kq["so_sigma"] < 3
-    assert abs(kq["ky_vong_giai_tich_doc_lap"]) < 5 * kq["sai_so_chuan"] + 1e-4
+    assert abs(kq["ky_vong_giai_tich"]) < 5 * kq["sai_so_chuan"] + 1e-4
 
 
-def test_NGAU_NHIEN_bat_duoc_cau_truc_thoi_gian_trong_thi_truong_x_troi():
-    """Máy đo phải THẤY thứ nó được thiết kế để thấy: mã nào trôi lên thì có tỷ lệ-trong-thị-trường cao → x kỳ vọng > 0,
-    và `ky_vong_doc_lap` phải dương và gần giá trị đo của chính chuẩn đồng bộ thời gian."""
-    rng = np.random.default_rng(8)
-    T, N = 600, 6
+def _m_x_troi(seed=8, T=600, N=6):
+    """Mã nào trôi lên thì có tỷ lệ-trong-thị-trường cao: E[x̄] của chuẩn đồng bộ thời gian KHÁC 0 dù thời điểm vô nghĩa."""
+    rng = np.random.default_rng(seed)
     troi = np.linspace(-0.0005, 0.0015, N)
     M = _mt(rng.normal(0, 0.002, (T, N)) + troi, rng.normal(0, 0.008, (T, N)) + troi)
     p = np.linspace(0.1, 0.9, N)
     s = np.stack([(np.random.default_rng(j).random(T) < p[j]) for j in range(N)], axis=1).astype(float)
     s = np.stack([np.convolve(s[:, j], np.ones(15) / 15, mode="same") > 0.5 for j in range(N)], axis=1).astype(float)
+    return M, s
+
+
+def test_NGAU_NHIEN_cau_truc_thoi_gian_trong_thi_truong_x_troi_KHONG_con_lam_doi_chung_ii_truot():
+    """SỬA S1 (BƯỚC 252): chữ ký cũ đòi x̄ ≈ 0 và trượt ĐÚNG vì cấu trúc này; kỳ vọng GIẢI TÍCH tính cấu trúc ấy vào, nên đối chứng
+    ĐẠT dù x̄ > 0 rõ rệt (bản cũ trượt ở đúng dữ liệu này)."""
+    M, s = _m_x_troi()
     kq = D.doi_chung_ii(M, s, PHI, so_luot=200)
-    assert kq["ky_vong_giai_tich_doc_lap"] > 1e-5
-    assert kq["trung_binh_x_tho"] > 0 and not kq["dat"]            # trượt ĐÚNG CHỖ: chữ ký trước đòi ≈ 0
-    assert kq["hoan_vi"]["so_sigma"] < kq["so_sigma"]               # hoán vị mã cắt đúng thứ gây lệch
+    assert kq["ky_vong_giai_tich"] > 1e-5 and kq["trung_binh_x_tho"] > 1e-5      # x̄ ≠ 0 vì tương quan tỷ lệ × độ trôi
+    assert kq["dat"] and kq["so_sigma"] < 2.5
+
+
+def test_DOI_CHUNG_ii_BAT_loi_gai_he_thong_va_im_khi_dong_co_lanh():
+    """Đối chứng (ii) phải CÓ THỂ trượt (chỉ khi nó trượt được thì ĐẠT mới có nghĩa): gài một cộng-thêm cố định mỗi đơn-vị-đầu-tư-ngày
+    vào động cơ thì trượt; động cơ lành ĐẠT cùng hạt."""
+    M, s = _m_x_troi()
+    sach = D.doi_chung_ii(M, s, PHI, so_luot=200)
+    cay = D.doi_chung_ii(M, s, PHI, so_luot=200, dong_co=D.LOI_CAY["cong_1bp"])
+    assert sach["dat"] and not cay["dat"]
+    assert cay["lech"] - sach["lech"] == pytest.approx(1e-4 * 0.04, rel=0.5)                    # cỡ 1 bp × mức đầu tư trung bình (~0,04 ở dữ liệu này)
+    assert set(D.LOI_CAY) == {"cong_0.15bp", "cong_0.5bp", "cong_1bp", "nhan_1.01", "nhan_1.05"}
+
+
+def test_KY_VONG_GIAI_TICH_dap_so_dung_tay_mot_ma_mot_xung():
+    """Một mã, n = 6, chuỗi trạng thái [1,0,0,0,0,0], dịch k ∈ {1..5} đều (dich_toi_thieu = 1), qua đêm 0, trong phiên 1..6%:
+    w_sau(i) = 0,2 ở i = 2..5; w_trước(i) = 0,2 ở i = 3..5; e = (0,1 ; 0,2 ; 0,2 ; 0,2) ở i = 2..5. Σ lai = 0,2 × (0,03 + 0,04 +
+    0,05 + 0,06) − ... : x = Σ(lai − e × r_rổ)/71 = (0,036 − 0,033)/71 trên 6 ngày. Nửa ngày TẮT cho 0 (qua đêm 0 ⇒ cả ngày = trong phiên)."""
+    M = _mt(np.zeros((6, 1)), np.array([[0.01, 0.02, 0.03, 0.04, 0.05, 0.06]]).T)
+    s = np.array([[1, 0, 0, 0, 0, 0]], float).T
+    assert D.ky_vong_dich_giai_tich(M, s, dich_toi_thieu=1) == pytest.approx(0.003 / 6 / D.SO_MA)
+    assert D.ky_vong_dich_giai_tich(M, s, dich_toi_thieu=1, nua_ngay=False) == pytest.approx(0.0, abs=1e-15)
+
+
+def test_KY_VONG_GIAI_TICH_vung_dung_bang_dich_toi_thieu_van_dich_tu_1_den_n_tru_1():
+    """Biên của phân bố dịch (đúng `dich_vong`): n ≤ dich_toi_thieu → k ∈ [1, n−1]; n > dich_toi_thieu → k ∈ [dich_toi_thieu, n−1]."""
+    M = _mt(np.zeros((6, 1)), np.array([[0.01, 0.02, 0.03, 0.04, 0.05, 0.06]]).T)
+    s = np.array([[1, 0, 0, 0, 0, 0]], float).T
+    tay = 0.003 / 6 / D.SO_MA
+    assert D.ky_vong_dich_giai_tich(M, s, dich_toi_thieu=6) == pytest.approx(tay)               # n = 6 = ngưỡng: vẫn [1, 5]
+    assert D.ky_vong_dich_giai_tich(M, s, dich_toi_thieu=5) != pytest.approx(tay)               # n = 6 > 5: k ∈ [5, 5] một dịch chuyển
+
+
+def test_DOI_CHUNG_ii_chay_dong_co_TAT_khoa_bien_nen_khoa_day_dac_khong_lam_trượt():
+    """(ii) kiểm tính lợi nhuận và mức đầu tư, KHÔNG kiểm khoá biên (S1): đặt cờ kịch trần dày; động cơ tắt khoá vẫn khớp E_gt, trong khi
+    bản có khoá chặn nhiều lệnh mua nên lệch hẳn (báo kèm `khoa_truot_chenh_cap`)."""
+    M, s = _m_x_troi()
+    rng = np.random.default_rng(3)
+    M = D.MaTran(**{**M.__dict__, "khoa_tran": rng.random(M.vung.shape) < 0.4})
+    kq = D.doi_chung_ii(M, s, PHI, so_luot=200)
+    assert kq["dat"]
+    ch = kq["khoa_truot_chenh_cap"]
+    assert abs(ch["trung_binh"]) > 5 * ch["sai_so_chuan"]
+
+
+def test_KY_VONG_GIAI_TICH_bang_dong_co_khi_liet_ke_MOI_cap_dich_chuyen():
+    """Độc lập với động cơ: liệt kê mọi cặp dịch chuyển (hai mã, qua đêm và trong phiên khác 0 nên số hạng nén chéo CÓ MẶT) rồi cho
+    qua CHÍNH động cơ khớp; trung bình x̄ gộp trên mọi lượt phải bằng kỳ vọng giải tích tới sai số máy."""
+    rng = np.random.default_rng(31)
+    T, N = 14, 2
+    M = _mt(rng.normal(0.001, 0.02, (T, N)), rng.normal(-0.001, 0.02, (T, N)))
+    s = (rng.random((T, N)) > 0.5).astype(float)
+    ks = range(1, T)
+    muc = np.zeros((len(ks) ** 2, T, N))
+    for i, (k0, k1) in enumerate(itertools.product(ks, ks)):
+        muc[i, :, 0], muc[i, :, 1] = np.roll(s[:, 0], k0), np.roll(s[:, 1], k1)
+    kq = D.chay_dong_co(muc, M, PHI, khoa=False, truot=False)
+    ro = D.ro_trung_binh(M)
+    x_tho = (kq["ret"] - kq["phoi"] * ro[None, :]).mean(axis=1).mean()
+    assert D.ky_vong_dich_giai_tich(M, s, dich_toi_thieu=1) == pytest.approx(x_tho, abs=1e-12)
+    # bỏ số hạng nén chéo thì phải lệch (gác chính gác)
+    assert abs(D.ky_vong_dich_giai_tich(M, s, dich_toi_thieu=1, nua_ngay=False) - x_tho) > 1e-9
+
+
+def test_KHOANG_CACH_ii_xap_xi_cu_khong_phai_E_gt_khi_cua_so_khong_dong_deu():
+    """Hai yếu tố công thức BƯỚC 251 thiếu: mã có cửa sổ ngắn hơn T (trọng số số-ngày hiện diện) và dịch ≥ 252 (cửa sổ dài)."""
+    rng = np.random.default_rng(5)
+    T, N = 400, 3
+    vung = np.ones((T, N), bool)
+    vung[:150, 1] = False
+    vung[300:, 2] = False
+    M = _mt(rng.normal(0.0005, 0.01, (T, N)), rng.normal(0.0005, 0.01, (T, N)), vung=vung)
+    s = ((np.arange(T)[:, None] // 40 + np.arange(N)[None, :]) % 2 == 0).astype(float)
+    buoc = dict(D.phan_ra_khoang_cach_ii(M, s))
+    cu, co_trong_so, e_gt = buoc["xấp xỉ BƯỚC 251"], buoc["+ trọng số số-ngày hiện diện, r_rổ theo cửa sổ từng mã"], buoc["liệt kê, dịch ≥ 252, nửa ngày (= E_gt)"]
+    assert len({round(v, 12) for v in (cu, co_trong_so, e_gt)}) == 3 and len(buoc) == 5
+    assert e_gt == pytest.approx(D.ky_vong_dich_giai_tich(M, s))
 
 
 # ── kết cục ───────────────────────────────────────────────────────────────────────────────
@@ -299,72 +379,74 @@ def _kc(delta, nua=0.0010, ktc_i=None, ktc_ii=(-1, 1), ktc_iii=(-1, 1), thang=0.
     return D.ket_cuc(delta_i=delta, ktc_i=ktc_i, ktc_ii=ktc_ii, ktc_iii=ktc_iii, thang_iv=thang, doi_chung_dat=ok)
 
 
+A_CONG_OK = {"ktc_i": (0.0005, 0.0025), "ktc_ii": (0.0001, 0.0009), "thang": 0.97}      # Δ = 0,0015 ∈ (nhỏ 0,0005 ; lớn 0,002]
+
+
 def test_KET_CUC_K0_thang_moi_thu_khi_doi_chung_truot():
     assert _kc(0.005, ok=False)["ket_cuc"] == "K0"
 
 
-def test_KET_CUC_A_nho_hon_nguong_nho_hoac_KTC_chua_0_ca_ba():
-    assert _kc(0.0004)["ket_cuc"] == "A"                          # |Δ| ≤ nửa của nửa bề rộng (0,0005)
-    assert _kc(0.0008, ktc_i=(-0.0002, 0.0018))["ket_cuc"] == "A"  # KTC chứa 0 và cả ba KTC chứa 0
-    assert _kc(0.0008, ktc_i=(-0.0002, 0.0018), ktc_ii=(0.0001, 0.0009))["ket_cuc"] == D.KET_CUC_KHE
+def test_KET_CUC_A_la_mac_dinh_cho_moi_vung_con_lai_va_ghi_ly_do():
+    assert _kc(0.0004)["ket_cuc"] == "A" and _kc(0.0004)["ly_do_A"].startswith("a")            # KTC chứa 0
+    assert _kc(0.0008)["ly_do_A"].startswith("a")                                              # Δ > nhỏ nhưng KTC chứa 0
+    assert _kc(0.0004, ktc_i=(0.0001, 0.0021))["ly_do_A"].startswith("b")                      # KTC loại 0 nhưng |Δ| ≤ nhỏ
+    assert _kc(-0.0008)["ket_cuc"] == "A" and _kc(-0.0008)["ly_do_A"].startswith("a")           # Δ < −nhỏ mà KTC chứa 0 → A, KHÔNG còn khe
+    assert _kc(-0.0010, ktc_i=(0.0001, 0.0030))["ly_do_A"].startswith("d")                      # KTC lệch dấu với Δ
+    # vùng từng bị bỏ trống ở bản ký: Δ dương rõ, KTC loại 0, nhưng thiếu điều kiện của A⁺ → A kèm lý do c
+    for thieu in ({"thang": 0.94}, {"ktc_ii": (-1, 1)}):
+        kq = _kc(0.0015, **{**A_CONG_OK, **thieu})
+        assert kq["ket_cuc"] == "A" and kq["ly_do_A"].startswith("c")
 
 
-A_CONG_KTC_I = (0.0001, 0.0020)   # KTC LỆCH: Δ = 0,0008 trong (nhỏ, lớn] = (0,000475 ; 0,00095] mà cận dưới vẫn > 0
-
-
-def test_KET_CUC_A_cong_can_du_bon_dieu_kien():
-    d = 0.0008
-    ok = {"ktc_i": A_CONG_KTC_I, "ktc_ii": (0.0001, 0.0009), "thang": 0.97}
-    assert _kc(d, **ok)["ket_cuc"] == "A+"
-    assert _kc(d, **{**ok, "ktc_ii": (-1, 1), "ktc_iii": (0.0001, 0.0009)})["ket_cuc"] == "A+"
-    assert _kc(d, **{**ok, "thang": 0.94})["ket_cuc"] == D.KET_CUC_KHE                  # thắng < 95%
-    assert _kc(d, **{**ok, "thang": 0.95})["ket_cuc"] == "A+"                           # đúng 95% đủ
-    assert _kc(d, **{**ok, "ktc_ii": (-1, 1)})["ket_cuc"] == D.KET_CUC_KHE              # ii, iii đều chứa 0
-    assert _kc(d, **{**ok, "ktc_i": (-0.0001, 0.0018)})["ket_cuc"] == D.KET_CUC_KHE     # KTC của Δ_(i) chứa 0
-    assert _kc(0.00096, **{**ok, "ktc_i": (0.0001, 0.0020)})["ket_cuc"] == "B"          # vượt ngưỡng lớn (0,00095) → B
-    assert _kc(0.00047, **{**ok, "ktc_i": (0.0001, 0.0020)})["ket_cuc"] == "A"          # ≤ ngưỡng nhỏ (0,000475) → A
-
-
-def test_KET_CUC_A_cong_gan_nhu_khong_bao_gio_dat_khi_KTC_doi_xung():
-    """Khe của văn bản ký (khai trong STATE BƯỚC 251): ngưỡng lớn = nửa bề rộng KTC của Δ_(i). Với KTC đối xứng quanh Δ,
-    Δ ≤ nửa bề rộng ⇒ cận dưới ≤ 0 ⇒ KTC chứa 0 ⇒ A⁺ không thể khớp. A⁺ chỉ khớp khi KTC bootstrap LỆCH."""
+def test_KET_CUC_A_cong_can_du_bon_dieu_kien_va_VOI_TOI_DUOC_khi_KTC_doi_xung():
+    d = 0.0015
+    assert _kc(d, **A_CONG_OK)["ket_cuc"] == "A+"
+    assert _kc(d, **{**A_CONG_OK, "ktc_ii": (-1, 1), "ktc_iii": (0.0001, 0.0009)})["ket_cuc"] == "A+"
+    assert _kc(d, **{**A_CONG_OK, "thang": 0.95})["ket_cuc"] == "A+"                                 # đúng 95% đủ
+    assert _kc(d, **{**A_CONG_OK, "ktc_i": (-0.0001, 0.0031)})["ket_cuc"] == "A"                    # KTC của Δ_(i) chứa 0
+    assert _kc(d, **{**A_CONG_OK, "ktc_ii": (-0.002, -0.0001)})["ket_cuc"] == "A"                   # loại 0 phía ÂM không phải "hơn"
+    assert _kc(d, **{**A_CONG_OK, "ktc_i": (0.0, 0.0030)})["ket_cuc"] == "A"                         # cận dưới đúng 0: chưa "loại 0"
+    assert _kc(d, **{**A_CONG_OK, "ktc_ii": (0.0, 0.0009), "ktc_iii": (-1, 1)})["ket_cuc"] == "A"     # ii cận dưới đúng 0: chưa "hơn"
+    assert _kc(d, **{**A_CONG_OK, "ktc_ii": (-1, 1), "ktc_iii": (0.0, 0.0009)})["ket_cuc"] == "A"     # iii cận dưới đúng 0: chưa "hơn"
+    assert _kc(0.0021, **A_CONG_OK)["ket_cuc"] == "B"                                                # vượt lớn (2H = 0,002)
+    assert _kc(0.0020, **{**A_CONG_OK, "ktc_i": (0.0010, 0.0030)})["ket_cuc"] == "A+"               # đúng bằng lớn: biên đóng
+    # SỬA S3: bản ký (lớn = H) làm A⁺ rỗng khi KTC đối xứng; nay có Δ cho A⁺ ở mọi KTC đối xứng
     nua = 0.001
-    for d in np.linspace(0.0, 0.002, 41):
-        kq = D.ket_cuc(delta_i=d, ktc_i=(d - nua, d + nua), ktc_ii=(0.0002, 0.001), ktc_iii=(0.0002, 0.001), thang_iv=0.99,
-                       doi_chung_dat=True)
-        assert kq["ket_cuc"] != "A+"
+    nhan = {D.ket_cuc(delta_i=d, ktc_i=(d - nua, d + nua), ktc_ii=(0.0002, 0.001), ktc_iii=(0.0002, 0.001),
+                      thang_iv=0.99, doi_chung_dat=True)["ket_cuc"] for d in np.linspace(0.0, 0.003, 61)}
+    assert nhan == {"A", "A+", "B"}
 
 
 def test_KET_CUC_B_va_C_dung_dau_va_gioi_han():
-    assert _kc(0.0011)["ket_cuc"] == "B"
-    assert _kc(0.0010)["ket_cuc"] != "B"                          # đúng bằng ngưỡng lớn: không vượt
-    assert _kc(-0.0012)["ket_cuc"] == "C"                         # < −nhỏ và KTC loại 0 (đối xứng ⇒ Δ < −nửa bề rộng)
-    assert _kc(-0.0008)["ket_cuc"] == "A"                         # KTC chứa 0 và cả ba KTC chứa 0 → A
-    assert _kc(-0.0006, ktc_i=(-0.0016, 0.0004), ktc_ii=(0.0001, 0.0009))["ket_cuc"] == D.KET_CUC_KHE
-    assert _kc(-0.0005)["ket_cuc"] == "A"                         # đúng −nhỏ: |Δ| ≤ nhỏ → A (biên đóng)
+    assert _kc(0.0021)["ket_cuc"] == "B"
+    assert _kc(0.0020)["ket_cuc"] != "B"                          # đúng bằng lớn (2H): không vượt
+    assert _kc(-0.0012)["ket_cuc"] == "C"                         # < −nhỏ và KTC loại 0 phía âm
+    assert _kc(-0.0005)["ket_cuc"] == "A"                         # đúng −nhỏ: biên đóng của A
     assert _kc(-0.0006, ktc_i=(-0.0020, -0.0001))["ket_cuc"] == "C"          # KTC lệch loại 0 từ phía âm
+    assert _kc(-0.0006, ktc_i=(-0.0020, 0.0000))["ket_cuc"] == "A"           # cận trên đúng 0: chưa loại 0
 
 
 def test_KET_CUC_nguong_suy_ra_tu_nua_be_rong_khong_go_tay():
     kq = _kc(0.0, nua=0.004)
-    assert kq["nguong_nho"] == pytest.approx(0.002) and kq["nguong_lon"] == pytest.approx(0.004)
+    assert kq["nguong_nho"] == pytest.approx(0.002) and kq["nguong_lon"] == pytest.approx(0.008)
+    assert (D.HE_SO_NHO, D.HE_SO_LON) == (0.5, 2.0)
 
 
-def test_KET_CUC_khong_bao_gio_mau_thuan_tren_luoi_day_va_khe_duoc_dem():
-    """Quét lưới: hai nhãn không bao giờ cùng khớp; khe (không nhãn nào) tồn tại và chỉ nằm ở vùng đã khai."""
-    dem = {"khe": 0, "mau_thuan": 0, "tong": 0}
+def test_KET_CUC_toan_phan_mot_nhan_duy_nhat_va_ca_bon_nhan_deu_toi_duoc():
+    """SỬA S3: quét lưới — đúng MỘT nhãn trong {K0, A, A+, B, C}, không còn nhãn "không phân loại được"/"mâu thuẫn", và A, A⁺, B, C
+    đều tới được (không nhãn nào chết)."""
+    thay = set()
     nua = 0.001
-    for delta, li, lii, liii, th in itertools.product(
-            np.linspace(-0.003, 0.003, 25), (-1.5, -0.5, 0.0, 0.5, 1.5), (0, 1), (0, 1), (0.5, 0.96)):
-        ktc_i = (delta - nua, delta + nua)
-        ktc_ii = (-0.001, 0.001) if lii == 0 else (0.0002, 0.001)
-        ktc_iii = (-0.001, 0.001) if liii == 0 else (0.0002, 0.001)
-        kq = D.ket_cuc(delta_i=delta, ktc_i=ktc_i, ktc_ii=ktc_ii, ktc_iii=ktc_iii, thang_iv=th, doi_chung_dat=True)
-        dem["tong"] += 1
-        dem["khe"] += kq["ket_cuc"] == D.KET_CUC_KHE
-        dem["mau_thuan"] += kq["ket_cuc"] == D.KET_CUC_MAU_THUAN
-    assert dem["mau_thuan"] == 0
-    assert 0 < dem["khe"] < dem["tong"]
+    for delta, lo_lech, lii, liii, th in itertools.product(
+            np.linspace(-0.004, 0.004, 33), (-1.5, -0.5, 0.0, 0.5, 1.5), (0, 1, -1), (0, 1, -1), (0.5, 0.96)):
+        ktc_i = (delta - nua * (1 + 0.5 * lo_lech), delta + nua * (1 - 0.3 * lo_lech))
+        k = lambda c: (-0.001, 0.001) if c == 0 else ((0.0002, 0.001) if c == 1 else (-0.001, -0.0002))  # noqa: E731
+        kq = D.ket_cuc(delta_i=delta, ktc_i=ktc_i, ktc_ii=k(lii), ktc_iii=k(liii), thang_iv=th, doi_chung_dat=True)
+        assert kq["khop"] == [kq["ket_cuc"]] and kq["ket_cuc"] in ("A", "A+", "B", "C")
+        assert (kq["ly_do_A"] is not None) == (kq["ket_cuc"] == "A")
+        thay.add(kq["ket_cuc"])
+    assert thay == {"A", "A+", "B", "C"}
+    assert not hasattr(D, "KET_CUC_KHE") and not hasattr(D, "KET_CUC_MAU_THUAN")
 
 
 # ── KTC của sân đấu, cấu hình khoá ────────────────────────────────────────────────────────
@@ -424,9 +506,12 @@ def test_CHAY_KET_QUA_tong_hop_khong_loi_the_la_A_va_co_loi_the_manh_la_B(capsys
         cls[gai] = kq
         assert kq["lech_cau_hinh_ktc"] == [] and kq["delta"]["i"]["ktc"] is not None
         assert set(kq["delta"]) == {"i", "ii", "iii"} and "cot_tho_cong_don_diem_phan_tram" in kq
-    assert cls[0.0]["ket_cuc"]["ket_cuc"] in ("A", D.KET_CUC_KHE)
+        nam = kq["nua_h_quy_nam"]
+        assert nam["diem_pt_von_moi_nam"] == pytest.approx(nam["nua_be_rong_ktc_i"] * D.NGAY_NAM * 100)
+        assert nam["diem_pt_dang_dau_tu_moi_nam"] == pytest.approx(nam["diem_pt_von_moi_nam"] / nam["phoi_trung_binh"])
+    assert cls[0.0]["ket_cuc"]["ket_cuc"] == "A"
     assert cls[0.01]["delta"]["i"]["delta"] > cls[0.0]["delta"]["i"]["delta"] + 1e-4
-    assert cls[0.01]["ket_cuc"]["ket_cuc"] in ("B", "A+", D.KET_CUC_KHE)
+    assert cls[0.01]["ket_cuc"]["ket_cuc"] in ("B", "A+")
     assert cls[0.01]["delta"]["i"]["delta"] > cls[0.01]["ket_cuc"]["nguong_lon"]
 
 
@@ -565,12 +650,13 @@ def test_TSMOM_dau_lon_khac_chi_so_duong_khi_cua_so_ngan_len_dai_xuong():
 def test_KET_CUC_bien_chinh_xac_dung_so_nhi_phan():
     ii_loai = (0.1, 0.9)
     k = lambda **kw: D.ket_cuc(doi_chung_dat=True, ktc_iii=(-1.0, 1.0), thang_iv=0.99, **kw)["ket_cuc"]  # noqa: E731
-    # KTC của Δ_(i) = (−1, 1): nửa bề rộng 1 → nhỏ 0,5, lớn 1
+    # KTC của Δ_(i) = (−1, 1): nửa bề rộng 1 → nhỏ 0,5, lớn 2 (SỬA S3: bản ký lớn = 1)
     assert k(delta_i=0.5, ktc_i=(-1.0, 1.0), ktc_ii=ii_loai) == "A"                      # |Δ| = nhỏ: biên đóng của A
     assert k(delta_i=-0.5, ktc_i=(-1.0, 1.0), ktc_ii=ii_loai) == "A"
     assert k(delta_i=0.5, ktc_i=(0.5, 2.5), ktc_ii=ii_loai) == "A"                        # Δ = nhỏ, A+ mở (nhỏ, lớn]: KHÔNG A+
-    assert k(delta_i=1.0, ktc_i=(0.5, 2.5), ktc_ii=ii_loai) == "A+"                       # Δ = lớn: biên đóng của A+
-    assert k(delta_i=1.0001, ktc_i=(0.5, 2.5), ktc_ii=ii_loai) == "B"
+    assert k(delta_i=1.0, ktc_i=(0.5, 2.5), ktc_ii=ii_loai) == "A+"                       # trong (nhỏ, lớn]
+    assert k(delta_i=2.0, ktc_i=(0.5, 2.5), ktc_ii=ii_loai) == "A+"                       # Δ = lớn: biên đóng của A+
+    assert k(delta_i=2.0001, ktc_i=(0.5, 2.5), ktc_ii=ii_loai) == "B"
     assert k(delta_i=-0.125, ktc_i=(-1.0, -0.5), ktc_ii=ii_loai) == "A"                   # nhỏ = 0,125 = |Δ| → A, không C
     assert k(delta_i=-0.1251, ktc_i=(-1.0, -0.5), ktc_ii=ii_loai) == "C"
 
@@ -578,8 +664,19 @@ def test_KET_CUC_bien_chinh_xac_dung_so_nhi_phan():
 def test_PHAN_QUYET_TIEM_can_ca_hai_ve_va_dung_bien():
     assert D.phan_quyet_tiem(0.0, 0.8) and D.phan_quyet_tiem(0.10, 1.0)
     assert not D.phan_quyet_tiem(0.11, 1.0)                        # ô không tiêm KÊU
-    assert not D.phan_quyet_tiem(0.0, 0.79)                        # nửa rào không bắt đủ
+    assert not D.phan_quyet_tiem(0.0, 0.79)                        # ô K0 (20× rào) không bắt đủ
     assert not D.phan_quyet_tiem(1.0, 0.0)
+
+
+def test_KHOANG_WILSON_va_MDE_80_dung_bien():
+    lo, hi = D.khoang_wilson(0, 100)
+    assert lo == 0.0 and 0.03 < hi < 0.04                          # 0/100 → [0 ; ~3,7%]
+    lo, hi = D.khoang_wilson(50, 100)
+    assert lo == pytest.approx(0.4038, abs=1e-3) and hi == pytest.approx(0.5962, abs=1e-3) and (lo + hi) / 2 == pytest.approx(0.5)
+    assert D.khoang_wilson(1, 0) == (0.0, 1.0)
+    o = {str(h): {"he_so_rao": h, "ty_le": t} for h, t in ((0.0, 0.05), (5.0, 0.79), (10.0, 0.80), (20.0, 1.0))}
+    assert D.mde_80(o) == 10.0                                      # biên đóng: đúng 80% đủ; 79% chưa
+    assert D.mde_80({"0.0": {"he_so_rao": 0.0, "ty_le": 0.05}}) is None
 
 
 def test_THUY_TRIEU_CHUOI_khop_trang_thai_dow_o_MOI_nen_va_bool_dung_la_tang():
@@ -640,24 +737,46 @@ def _m_tiem(nhieu, gai=0.0, T=500, N=6, seed=9):
     return M, s
 
 
-def test_DOI_CHUNG_iii_bat_duoc_nua_rao_khi_nhieu_nho_va_im_o_he_so_0():
+LUOI_NHO = (0.0, 0.5, 20.0)
+
+
+def test_DOI_CHUNG_iii_bat_duoc_o_K0_khi_nhieu_nho_va_im_o_he_so_0_va_bao_MDE():
     M, s = _m_tiem(1e-6)
-    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=(0.0, 0.5, 1.0))
-    assert kq["rao_hoa_von"] > 0
-    assert kq["o"]["0.0"]["ty_le"] <= 0.10 and kq["o"]["0.5"]["ty_le"] >= 0.8 and kq["dat"]
+    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=LUOI_NHO)
+    assert kq["rao_hoa_von"] > 0 and kq["phoi_trung_binh"] > 0
+    assert kq["o"]["0.0"]["ty_le"] <= 0.10 and kq["o"][str(D.HE_SO_K0)]["ty_le"] >= 0.8 and kq["dat"]
+    m = kq["mde_80"]
+    assert m["he_so_rao"] <= D.HE_SO_K0 and m["tiem_moi_don_vi_ngay"] == pytest.approx(m["he_so_rao"] * kq["rao_hoa_von"])
+    assert m["diem_pt_dang_dau_tu_moi_nam"] == pytest.approx(m["tiem_moi_don_vi_ngay"] * D.NGAY_NAM * 100)
+    assert m["diem_pt_von_moi_nam"] == pytest.approx(m["diem_pt_dang_dau_tu_moi_nam"] * kq["phoi_trung_binh"])
+    assert all(0 <= v["wilson"][0] <= v["ty_le"] <= v["wilson"][1] <= 1 for v in kq["o"].values())
 
 
-def test_DOI_CHUNG_iii_truot_khi_nhieu_lon_khong_the_bat_nua_rao():
-    M, s = _m_tiem(0.03)
-    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=(0.0, 0.5, 1.0))
-    assert kq["o"]["0.5"]["ty_le"] < 0.8 and not kq["dat"]
+def test_DOI_CHUNG_iii_truot_khi_nhieu_rat_lon_khong_bat_noi_ngay_ca_20_lan_rao():
+    M, s = _m_tiem(0.3)
+    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=LUOI_NHO)
+    assert kq["o"][str(D.HE_SO_K0)]["ty_le"] < 0.8 and not kq["dat"] and kq["mde_80"] is None
+
+
+def test_DOI_CHUNG_iii_nua_rao_khong_con_la_dieu_kien_K0():
+    """SỬA S2: ở nhiễu vừa phải, nửa rào KHÔNG bắt được nhưng 20× rào bắt được ⇒ ĐẠT (câu hỏi sức mạnh chỉ BÁO, không làm K0)."""
+    M, s = _m_tiem(0.01)
+    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=LUOI_NHO)
+    assert kq["o"]["0.5"]["ty_le"] < 0.8 <= kq["o"][str(D.HE_SO_K0)]["ty_le"] and kq["dat"]
+
+
+def test_DOI_CHUNG_iii_luoi_thieu_o_0_hoac_o_K0_la_loi():
+    M, s = _m_tiem(1e-6)
+    for luoi in ((0.5, 20.0), (0.0, 0.5, 1.0)):
+        with pytest.raises(ValueError):
+            D.doi_chung_iii(M, s, PHI, so_lap=2, so_ngan_hang=10, he_so=luoi)
 
 
 def test_DOI_CHUNG_iii_nen_roi_khoi_nhan_loi_the_gan_voi_trang_thai_khong_duoc_goi_la_tiem():
     """Lỗi 94: nền phải RỜI khỏi nhãn. Ở đây lợi nhuận THẬT dính chặt trạng thái (gai); nếu nền không dịch vòng thì ô
     "không tiêm gì" sẽ kêu (đo lại chính nó). Dịch vòng ⇒ ô ấy im."""
     M, s = _m_tiem(1e-6, gai=4e-5)
-    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=(0.0, 0.5, 1.0))
+    kq = D.doi_chung_iii(M, s, PHI, so_lap=12, so_ngan_hang=60, he_so=LUOI_NHO)
     assert kq["o"]["0.0"]["ty_le"] <= 0.10 and kq["dat"]
 
 
@@ -666,13 +785,13 @@ def test_TRONG_KHOANG_SE_bien_dong_2_sai_so_chuan():
     assert D.trong_khoang_se(0.0, 0.0) and not D.trong_khoang_se(1e-9, 0.0)
 
 
-def test_KY_VONG_DOC_LAP_dap_so_dung_tay():
+def test_KY_VONG_XAP_XI_CU_dap_so_dung_tay():
     """Mã 0 luôn trong thị trường và trôi +1%/ngày; mã 1 luôn ngoài và trôi 0: p = (1, 0), m = (0,01 ; 0), r_rổ = 0,005.
     Kỳ vọng = (1×0,01 + 0×0)/71 − (1/71)×0,005 = 0,005/71. Quên trừ phần rổ cho 0,01/71."""
     T = 100
     M = _mt(np.zeros((T, 2)), np.stack([np.full(T, 0.01), np.zeros(T)], axis=1))
     s = np.stack([np.ones(T), np.zeros(T)], axis=1)
-    assert D.ky_vong_doc_lap(M, s) == pytest.approx(0.005 / D.SO_MA)
+    assert D.ky_vong_xap_xi_cu(M, s) == pytest.approx(0.005 / D.SO_MA)
 
 
 def test_DOI_CHUNG_iii_nen_la_ban_DICH_VONG_khong_phai_dat_ngau_nhien():
@@ -694,7 +813,7 @@ def test_CLI_cau_hinh_ktc_thoat_0_va_in_khop(capsys):
 def test_HANG_SO_khop_ky_ho_so_cache_va_ngay_khong_rong():
     assert D.BAM_CACHE_KY.startswith("acf6dca1") and len(D.BAM_CACHE_KY) == 64
     assert D.SO_MA == 71 == len(D.CUSTOM_WATCHLIST_SYMBOLS)
-    assert (D.SO_LUOT_NGAU_NHIEN, D.DICH_TOI_THIEU, D.SO_LAP_TIEM, D.NGUONG_BAT_TIEM) == (1000, 252, 30, 0.8)
+    assert (D.SO_LUOT_NGAU_NHIEN, D.DICH_TOI_THIEU, D.SO_LAP_TIEM, D.NGUONG_BAT_TIEM) == (1000, 252, 100, 0.8)
     assert D.CUA_SO_TSMOM == (21, 63, 252) and D.PHIEN_SMA == 200 and D.CUA_SO_SU_KIEN == 21
-    assert D.HE_SO_NUA_RAO == 0.5 and D.NGUONG_THANG_A_CONG == 0.95
+    assert D.HE_SO_K0 == 20.0 and D.HE_SO_LUOI_TIEM == (0.0, 0.5, 1.0, 2.0, 5.0, 7.0, 10.0, 14.0, 20.0) and D.NGUONG_THANG_A_CONG == 0.95
     assert D.phi_nua() == pytest.approx(0.0046 / 2)

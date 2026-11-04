@@ -4345,6 +4345,139 @@
     "BƯỚC 251": {
       "ngay": "2026-11-03",
       "khong_bat_buoc_vi": "BƯỚC thêm Lát 4a của Dow theo lựa chọn người dùng 30/10 \"Đến Lát 4, có số ĐO 34\": dụng cụ chỉ-đọc tools/do_dow_cau_truc.py (động cơ khớp, chuẩn (i)–(iv), hàm kết cục, đối chứng (i)–(vi), lệnh ket-qua bị KHOÁ), tests/test_do_dow_cau_truc.py, ghi chú thi công ở docs/thiet-ke-dow-cau-truc.md (không phải file luật), một dòng bảng lỗi (lỗi 202) cùng docs/loi-phan-lop.json, ghi STATE, HANDOFF, mốc số test, sổ này. Không sửa docs/TIEU-CHI-DOC-TRUOC.md (ĐO 34 giữ nguyên chữ ký; việc sửa nó là BƯỚC 252 riêng theo quyết định người dùng 03/11 \"Sửa ĐO 34 trước khi đọc\"), không sửa paper_trading.py, paper_runner.py, paper_metrics.py, pha_wyckoff.py, cau_truc_gia.py, app.py, điểm, ngưỡng, khớp lệnh, sổ lệnh hay kết luận đo nào; không đọc lợi nhuận của danh mục Dow (không có số Δ nào, ĐO 34 chưa chạy); không sửa file luật nào theo tools/buoc_cham_luat.py 251. Hai đối chứng của máy đo trượt đúng chữ ký ĐO 34 là kết quả của MÁY ĐO mới trên cache, không phải kết luận đo về hệ giao dịch. Không duyệt sổ tay."
+    },
+    "BƯỚC 252": {
+      "ngay": "2026-11-03",
+      "nguon": [
+        "CLAUDE.md @a877ca6",
+        "HANDOFF.md @2cd47f2",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @bbb516b",
+        "MO-XE-KIEN-TRUC.md @13c32a0",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @f27bc50",
+        "references/loi-da-mac.md @2cd47f2",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @f27bc50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "TIEU-CHI-DOC-TRUOC.md @f27bc50"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với 2cd47f2 2cd47f2): 20 nguồn, 20 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 252 into docs/STATE.md: docs/TIEU-CHI-DOC-TRUOC.md ĐO 34 (a read-only Dow price-structure measurement, signed 30/10/2026, never run on real data) gets a dated amendment block BEFORE its single run and before any Dow-versus-benchmark return is read; the signed text stays verbatim and the user must approve the amended text. Six rules change. (1) Control (ii): the signed expectation that a time-synchronised random benchmark has expectation about the market return is wrong, because each stock keeps its own time-in-market, which correlates with its drift; it is replaced by an exact analytic expectation computed independently of the engine, passed when the measured mean is within 2 standard errors. (2) Control (iii), planted-edge detection: the signed requirement to catch half the break-even barrier in at least 80% of 30 repeats is dropped as a question of power, not of a broken instrument; the new K0 conditions are only that the zero-edge cell stays quiet (at most 10%) and an edge of 20 times the barrier is caught at least 80% of the time (100 repeats per cell); the power curve and the minimum detectable edge are reported, and outcome A is worded 'no edge at or above the minimum detectable edge could be told apart from zero', never 'Dow has no edge'. (3) Outcome map: small threshold = H/2 and large = 2H, where H is the half-width of the CI of the difference versus the basket (signed large = H); order K0, B, C, A+, then A as the default for everything else, so no unclassified region exists and A+ is reachable. (4) Portfolio weights stay 1/71 although only 33 stocks have a clean zone. (5) Report-along items that cannot be run (volume cut R8, wick cut R9, per-trade alpha comparison) are dropped, and H2 becomes descriptive without a CI. (6) Two engine choices are written down: a buy cancelled at limit-up is retried next session if the state persists; fees are split half per side without separating the 0.1% sell tax, the total per closed round trip being unchanged. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a rule that a signed pre-registration may not be amended after any control result has been seen, or that an amendment must replace instead of keep the signed text, a rule that a control must pass with a fixed tolerance that may not be redefined, a rule that every outcome class must be decided independently or that an unclassified result must be reported as such instead of defaulting to a class, a rule on how a null outcome must be worded or a rule requiring power or a minimum detectable effect to be reported, a rule on K0 conditions or on counting repeated injection runs (error 99), a rule that weights must be 1 over the number of present stocks, a rule that every signed report-along item must be run. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "6ed5088238eb2d5b9572ce4f194829d6aed1f52afcd61ac522c39e176d8f4c63",
+        "dai16": 4539,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 4,
+            "nguon": "STATE.md @61221db phan4/5 (BUOC 169-211)"
+          },
+          {
+            "n": 7,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 9,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 5,
+            "nguon": "NGUYEN-TAC-DO-LUONG.md @ed9a9ab"
+          },
+          {
+            "n": 6,
+            "nguon": "SKILL.md @f27bc50"
+          },
+          {
+            "n": 11,
+            "nguon": "STATE.md @f27bc50 phan3/5 (BUOC 117-168)"
+          },
+          {
+            "n": 12,
+            "nguon": "references/loi-da-mac.md @2cd47f2"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 13,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @2cd47f2 phan6/6 (BUOC 251-251)"
+          },
+          {
+            "n": 13,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, hỏi thật, câu trả lời ÂM (lối thoát): sổ tay nói không có câu nào mâu thuẫn và kết luận 'có thể ghi BƯỚC 252'. Lượt hỏi 03/11/2026 sau khi xoá nhật ký chat (0 tin trước), 20/20 nguồn tươi so với 2cd47f2 (nhãn: scratchpad/hoi252/nhan_2cd47f2.txt, bắt tay sha256 KHỚP). Tự kiểm các vế DƯƠNG của câu trả lời, vì lối thoát chỉ chặn bịa, không chặn bỏ sót. (1) 'Quyết định này đã được người dùng phê duyệt ở BƯỚC 251' — NÓI RỘNG HƠN NGUỒN. `docs/STATE.md` BƯỚC 251, mục 'Quyết định của người dùng' (03/11/2026) ghi người dùng chọn *\"Sửa ĐO 34 trước khi đọc (Recommended)\"*, tức quyết định SỬA, không phải duyệt VĂN BẢN đã sửa; văn bản sửa ở BƯỚC 252 ghi 'CHỜ NGƯỜI DÙNG DUYỆT' và chưa có hiệu lực. Không dựa vào vế này. (2) 'Quy tắc dự án cấm chỉnh sửa đè/xoá bỏ chữ ký tiền đăng ký cũ, mà bắt buộc giữ nguyên văn bản gốc và thêm khối sửa đổi có ngày' — KHÔNG TÌM THẤY QUY TẮC NHƯ THẾ. `./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"Quy tắc dự án cấm chỉnh sửa đè/xoá bỏ chữ ký tiền đăng ký cũ, mà bắt buộc giữ nguyên văn bản gốc\"` -> LỆCH, khớp 8/96 ký tự đầu (ở CLAUDE.md). Thứ có thật: (a) đầu `docs/TIEU-CHI-DOC-TRUOC.md` (dòng 3–6): *\"viết tiêu chí ra, commit, rồi mới chạy — để nó không thể sửa sau. File này là hợp đồng, không phải ghi chú\"*; (b) `docs/STATE.md` dòng 6128–6137 (mục 'KHÔNG sửa tiêu chí', BƯỚC 20): *\"Sửa ngưỡng sau khi đã thấy dữ liệu nghiêng về một phía là đúng thứ bất biến 7 cấm, kể cả khi sửa theo hướng nghiêm khắc hơn\"*; (c) `docs/HANDOFF.md` dòng 11: STATE.md *\"chỉ THÊM, không sửa mục cũ\"*; (d) TIỀN LỆ, không phải luật: `docs/TIEU-CHI-DOC-TRUOC.md` ĐO 8 ('SỬA MỘT KỲ VỌNG ĐÃ KHAI — số học tính tay bác nó, TRƯỚC khi chạy', dòng 1467), ĐO 24 (dòng 3954), ĐO 30 (dòng 4325), ĐO 33 (dòng 4569). Kết luận: giữ bản ký và thêm khối sửa có ngày là TIỀN LỆ + khuôn do chính BƯỚC 252 chọn, không phải quy tắc cấm/bắt buộc; PR của BƯỚC 252 ghi đúng như vậy. (3) 'nguyên tắc sửa đổi tiền đăng ký có kiểm soát … miễn là chưa đọc bất kỳ con số kết quả lợi nhuận thật nào' (nguồn trích: STATE phần 1, BƯỚC 2–40) — KHÔNG TÌM THẤY NGUYÊN TẮC NHƯ THẾ. `doi_chieu_trich_dan.py \"miễn là chưa đọc bất kỳ con số kết quả lợi nhuận thật nào\"` -> LỆCH, khớp 8/57 ký tự đầu (ở STATE.md). Phần 1 STATE có 'KHÔNG sửa tiêu chí' (đã trích ở (2b)), đi NGƯỢC ý ấy nếu đọc rộng. Điều BƯỚC 252 dựa là ranh giới nó tự đặt: văn bản sửa trước lượt chạy duy nhất, chưa đọc Δ nào của Dow, các số đã dùng đều là số của đối chứng. Đây cũng là chỗ gần nhất với (2b) và được nêu cho người dùng ở PR: hai khoản nới (ô 'nửa rào' của (iii) bỏ khỏi K0; ngưỡng lớn H -> 2H) được đề xuất SAU khi thấy số của đối chứng (không phải số của Dow). (4) 'Bất biến 5' (NGUYEN-TAC-DO-LUONG.md, mục 5, dòng 70–75: mọi con số phải kèm khoảng tin cậy) và 'Lỗi 99': CÓ THẬT. `references/loi-da-mac.md` dòng 1477 (lỗi 99: một phán quyết về LỰC phải là một TỶ LỆ, một lượt tiêm ở nhịp biên là đồng xu 70/30) và `SKILL.md` dòng 155–157; BƯỚC 252 dùng 100 lượt lặp mỗi ô kèm khoảng Wilson, nhất quán. Bất biến 5 chỉ gián tiếp liên quan (khoảng tin cậy của tỷ lệ bắt). (5) Tìm NGƯỢC, các câu có thể mâu thuẫn mà sổ tay không nêu: `grep -n \"Không thử tham số khác sau khi ký\" docs/TIEU-CHI-DOC-TRUOC.md` -> dòng 4751 (ĐO 34, 'Điều ĐO này KHÔNG làm'): nói về THAM SỐ của Dow, không phải đối chứng/ngưỡng kết cục; BƯỚC 252 không đổi tham số Dow (ATR (2,4), con sóng 3/8 VÀ 10). `grep -n -i \"đối chứng trượt\\|nới\\|hạ ngưỡng\" docs/TIEU-CHI-DOC-TRUOC.md docs/LO-TRINH.md NGUYEN-TAC-DO-LUONG.md SKILL.md references/bay.md` -> dòng 4198 (ĐO 27: 'M0 hoặc một đối chứng trượt ⇒ lượt ấy không kết luận') và 4728 (chính ĐO 34, ký 'không hạ ngưỡng 90%' của độ phủ KTC, một ngưỡng khác). Không có luật nào cấm thay định nghĩa một đối chứng SAU khi nó trượt và TRƯỚC khi lượt chạy diễn ra, nhưng cũng không có luật nào cho phép; đó là điều người dùng quyết. (6) Các vế khác sổ tay xác nhận (R8/R9 không chạy được, hai chọn lựa động cơ, A⁺ rỗng, 1/71) đều dẫn BƯỚC 251 và đúng: STATE BƯỚC 251 mục 'Khe của văn bản ký', 'Giới hạn nói ra' (d), (e), (f). Không có vế nào sổ tay đưa ra mà tự kiểm thấy SAI ngoài (1)–(3)."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
