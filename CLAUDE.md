@@ -108,9 +108,8 @@ backtest sống lại nhưng không đo được).
   không có hàm tính trần. Không đọc được bảng giá → tụt xuống ba màu. Ô
   VN-Index ở topbar gọi `market_filter.chi_so_moi_nhat()` (ưu tiên MẠNG),
   KHÔNG phải `get_vni_df()` (ưu tiên cache) và luôn kèm ngày phiên.
-- `cau_truc_gia` (hai ô Dow trên app: *Thủy triều*, *Chu kỳ 4 giai đoạn*; BƯỚC 250) và `khung_thoi_gian`
-  (nến tuần/tháng D-W-M; BƯỚC 171) — hàm thuần, KHÔNG chấm điểm, không vào lệnh ảo hay backtest (gác AST ở
-  `tests/test_cau_truc_gia.py`, `tests/test_khung_thoi_gian.py`). ĐO 34 (BƯỚC 253) kết cục A: *không phân biệt
+- `cau_truc_gia` (hai ô Dow trên app; BƯỚC 250) và `khung_thoi_gian`
+  (nến tuần/tháng D-W-M) — hàm thuần, KHÔNG chấm điểm, không vào lệnh ảo hay backtest (gác AST ở `tests/`). ĐO 34 (BƯỚC 253) kết cục A: *không phân biệt
   được lợi thế ≥ MDE₈₀ khỏi 0*, không phải "không có lợi thế"; khoá `CHO_PHEP_DOC_KET_QUA_THAT` = `False`.
 - Giai đoạn B: `ke_hoach_vao_lenh`, `ban_tin`, `suc_khoe`, `hau_kiem_loi` — lõi giao
   dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`; ngoại lệ
@@ -258,6 +257,8 @@ dịch alpha +0,12–0,13, nhỏ hơn một phần sáu bề rộng KTC. **Đừ
 | Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo ở hạng này |
 | GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | 784 phiên (số đo cũ, lấy khi còn coi Actions là free) |
 
+🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
+
 Bất đối xứng KHÔNG CHỈ nằm ở BCTC và hạn mức ⚠️ (câu cũ khai đủ, thiếu vế này): nó còn ở **bản thư viện**.
 `requirements.txt` khai bản `vnstock`/`vnai` bằng ghim `==` (BƯỚC 127), nhưng
 các gói khác vẫn khai bằng **sàn** (`>=`) nên mỗi lượt CI lấy bản MỚI NHẤT
@@ -304,7 +305,7 @@ disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
   `quet_va_canh_gac()` nạp thử một mã, hỏi một **khoảng** 10 ngày.
 - Lượt quét sau đóng cửa là lượt quyết định (`evaluate_open()` chấm trên nến
   ngày).
-- **Tám workflow bật** (`gh workflow list --all`): bốn ở trên, `chuong-bai-hoc.yml`, `hau-kiem-loi.yml`
+- **Tám workflow bật**: bốn ở trên, `chuong-bai-hoc.yml`, `hau-kiem-loi.yml`
   (B1, tab `hau_kiem`), `soat-tuan.yml`, `kiem-dinh.yml`; cron/secret: HANDOFF mục 2.
 
 ## Sổ ngoài: `sheets_store.py`
@@ -407,7 +408,7 @@ Bull(+)/Bear(−)/Devil(−)); xoá trùng lặp, đừng xoá năng lực.
   xoá) và `kiem-dinh.yml` chạy cả trên `push`.
 - **Không ép hạng vnstock** trong mã. Không ghi tài liệu skill vnstock ra đĩa.
 - Sơ đồ kiến trúc: luồng chạy hằng ngày ở `docs/hinh/mot-ngay-cua-agent-sang.svg`;
-  `architecture_asbuilt.html` là bản chụp 13/08/2026 (phần "số nấc" hết đúng); v1/v2 là tham vọng.
+  `architecture_asbuilt.html` là bản chụp 13/08/2026; v1/v2 là tham vọng.
 
 ## Lệnh hay dùng
 
