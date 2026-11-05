@@ -214,6 +214,91 @@ def test_BAN_KINH_va_DANG_GIO_khong_duoc_thu_hep_am_tham():
         "đừng rút gọn cho test xanh")
 
 
+# ---------------------------------------------------------------------
+# LỊCH CỦA CHÍNH LƯỢT QUÉT (`quet-so-lenh.yml`)        (thêm 05/11/2026, BƯỚC 256)
+#
+# Trước BƯỚC 256 lượt quét khai 12 nhịp/ngày TRONG phiên (02:00–08:30 UTC) mà GitHub chỉ giao ~2 nhịp,
+# 13/40 lượt tạo trước 15:30 ICT — tức quét một nến NGÀY CÒN DỞ (`data_quality.nen_cuoi_dang_do` bỏ nó và
+# chấm lại phiên hôm qua). Lịch nay khai thẳng cái động cơ cần: sau giờ nến đã đóng. Ba gác dưới đây canh
+# đúng ba cách để nó trôi lại: cron sớm hơn giờ nến đóng, cron trễ qua nửa đêm UTC (chuông đếm theo ngày
+# UTC), và chú thích nêu sai giờ.
+# ---------------------------------------------------------------------
+
+RE_CRON_QUET = re.compile(r"^\s*-\s*cron:\s*'(\d+)\s+(\d+)\s+\*\s+\*\s+1-5'\s*$", re.MULTILINE)
+
+#: GitHub trễ nhịp lớn nhất đo được (giờ), `gh run list --event schedule` bốn chuông, 40 lượt mỗi chuông,
+#: 05/11/2026: 10,2. Làm tròn lên 10,5 để có biên.
+TRE_TOI_DA_DO_GIO = 10.5
+
+
+def _cron_quet(src: str) -> list:
+    """[(phút, giờ) UTC] của các dòng `- cron:` THẬT (chú thích bắt đầu bằng `#` không khớp)."""
+    return [(int(p), int(g)) for p, g in RE_CRON_QUET.findall(src)]
+
+
+def _gio_nen_dong_utc_phut() -> int:
+    sys.path.insert(0, str(GOC))
+    import data_quality as dq
+    gio, phut = dq.GIO_NEN_DA_DONG
+    return (gio * 60 + phut) - 7 * 60
+
+
+def test_quet_cron_KHONG_som_hon_gio_nen_da_dong():
+    """Cron sớm hơn 15:30 ICT thì lượt quét (GitHub chỉ trễ, không sớm) vẫn có thể rơi vào lúc nến dở."""
+    cron = _cron_quet(_doc("quet-so-lenh.yml"))
+    assert 1 <= len(cron) <= 2, f"lượt quét khai {len(cron)} nhịp, phải 1–2 (nhịp chính + dự phòng)"
+    moc = _gio_nen_dong_utc_phut()
+    assert moc == 8 * 60 + 30, f"giờ nến đóng đổi (nay {moc // 60:02d}:{moc % 60:02d} UTC) — duyệt lại lịch quét"
+    for p, g in cron:
+        assert g * 60 + p >= moc, (
+            f"cron {g:02d}:{p:02d} UTC sớm hơn giờ nến đã đóng {moc // 60:02d}:{moc % 60:02d} UTC "
+            f"(= `data_quality.GIO_NEN_DA_DONG` ICT): lượt quét sẽ bỏ nến hôm nay")
+        assert p not in (0, 30), f"cron :{p:02d} quay về mốc nghẽn"
+
+
+def test_quet_cron_CON_trong_ngay_UTC_khi_tre_toi_da():
+    """Chuông đếm lượt `success` theo NGÀY UTC; trễ qua 24:00 UTC thì lượt của thứ Sáu thành của thứ Bảy."""
+    for p, g in _cron_quet(_doc("quet-so-lenh.yml")):
+        tre_nhat = g * 60 + p + TRE_TOI_DA_DO_GIO * 60
+        assert tre_nhat < 24 * 60, f"cron {g:02d}:{p:02d} UTC + trễ {TRE_TOI_DA_DO_GIO} giờ qua nửa đêm UTC"
+
+
+def test_TRE_TOI_DA_khong_bi_ha_am_tham():
+    """Hạ hằng số này thì gác trên lỏng đi mà không sửa dòng logic nào; số đo là 10,2 giờ (05/11/2026)."""
+    assert TRE_TOI_DA_DO_GIO >= 10.2
+
+
+def test_quet_CHU_THICH_gio_khop_cron_theo_thu_tu():
+    """Mỗi dòng cron có đúng một chú thích `HH:MM UTC = HH:MM ICT` đứng trên nó, cùng thứ tự."""
+    src = _doc("quet-so-lenh.yml")
+    cron = _cron_quet(src)
+    khai = RE_TU_KHAI.findall(src)
+    assert len(khai) == len(cron), f"{len(khai)} chú thích tự khai giờ, {len(cron)} dòng cron"
+    for (p, g), (gu, pu, gi, pi) in zip(cron, khai):
+        assert (int(pu), int(gu)) == (p, g), f"chú thích {gu}:{pu} UTC lệch cron {g:02d}:{p:02d}"
+        assert (int(gi), int(pi)) == ((int(gu) + 7) % 24, int(pu)), "giờ ICT không phải UTC+7"
+
+
+def test_chuong_bao_quet_sau_nhip_chinh_cua_luot_quet_it_nhat_30_phut():
+    """Chuông soát cả HÔM NAY; nếu nó đứng sát (hoặc trước) lượt quét thì kêu oan khi lượt quét chưa xong."""
+    nhip_chinh = min(g * 60 + p for p, g in _cron_quet(_doc("quet-so-lenh.yml")))
+    p, g = _cron("chuong-bao-quet.yml")
+    assert g * 60 + p - nhip_chinh >= 30, (
+        f"chuong-bao-quet {g:02d}:{p:02d} UTC cách nhịp chính của lượt quét chưa tới 30 phút")
+
+
+def test_MAY_DO_cron_quet_phan_biet_cron_that_voi_chu_thich_va_sai_dang():
+    mau = chr(10).join([
+        "    # - cron: '0 2 * * 1-5'",
+        "    - cron: '35 8 * * 1-5'",
+        "    - cron: '5 10 * * 1-5'",
+        "    - cron: '0,30 2-4 * * 1-5'",       # dạng cũ nhiều giờ: không phải một nhịp cụ thể
+        "    - cron: '5 10 * * 0-6'",           # cuối tuần: không khớp 1-5
+    ])
+    assert _cron_quet(mau) == [(35, 8), (5, 10)], _cron_quet(mau)
+    assert _cron_quet("") == []
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     print("Chạy bằng: pytest tests/test_lich_cron_chuong.py -q")

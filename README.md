@@ -25,11 +25,12 @@ Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
   <img alt="Một lượt quét: kéo sổ từ Google Sheets, xét điều kiện dừng, quét 71 mã (khớp lệnh chờ ở giá mở cửa; đang giữ thì xét thoát; không giữ thì chấm điểm và qua 7 cổng thành lệnh chờ khớp ở phiên sau), điền nhật ký, đẩy sổ lên (quyết định và kế hoạch thêm dòng, lệnh và nhật ký soi gương); hậu kiểm bằng lời (B1) chạy ở workflow riêng và thêm dòng vào tab hau_kiem; app đọc sổ." src="docs/hinh/mot-ngay-cua-agent-sang.svg">
 </picture>
 
-Mỗi **lượt quét** chạy trên GitHub Actions trong ngày giao dịch. Giờ **cron khai** là 9:00–11:30 và
-13:00–15:30 giờ VN (nhịp 30 phút), nhưng GitHub gộp và trễ nhịp. **Giờ đo thật** (05/11/2026, 40 lượt
-`quet-so-lenh` theo lịch gần nhất, 08/10–04/11): 0 lượt được tạo trước 13:53 giờ VN, 10 lượt tạo
-13:53–14:59, 30 lượt tạo từ 15:00 — nên ca sáng không chạy trong mẫu ấy và phần lớn lượt quét là lượt sau
-đóng cửa. Lệnh: `gh run list --workflow quet-so-lenh.yml --limit 40 --event schedule --json createdAt`,
+Mỗi **lượt quét** chạy trên GitHub Actions trong ngày giao dịch, **sau đóng cửa** (từ BƯỚC 256, 05/11/2026,
+người dùng duyệt): giờ **cron khai** là 15:35 và 17:05 giờ VN (nhịp chính và nhịp dự phòng), vì động cơ chỉ
+ghi sổ trên nến ngày đã đóng (từ 15:30). GitHub vẫn gộp và trễ nhịp (4–10 giờ). Lịch cũ khai 12 nhịp trong
+phiên; **giờ đo thật của lịch cũ** (05/11/2026, 40 lượt `quet-so-lenh` theo lịch gần nhất, 08/10–04/11): 0
+lượt được tạo trước 13:53 giờ VN, 10 lượt tạo 13:53–14:59, 30 lượt tạo từ 15:00 — nên ca sáng không chạy
+trong mẫu ấy và phần lớn lượt quét đã là lượt sau đóng cửa. Lệnh: `gh run list --workflow quet-so-lenh.yml --limit 40 --event schedule --json createdAt`,
 đổi giờ UTC sang giờ VN. Lệnh mới **không bao giờ** khớp ở giá của phiên ra tín hiệu — nó chờ giá mở
 cửa phiên sau. Mỗi ngày làm việc có bốn chuông canh; **giờ cron** của chúng: không có lượt quét nào
 thành công (16:23), điều kiện dừng đã đạt mà cổng vẫn mở (16:43), lệnh đóng quá một phiên chưa có

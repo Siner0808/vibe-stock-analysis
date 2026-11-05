@@ -2,8 +2,8 @@
 
 VÌ SAO CÓ FILE NÀY
 ──────────────────
-Bước "Cảnh báo chạm SL/TP trong phiên" có hơn 70 dòng python nằm trong một
-heredoc của YAML. Đoạn đó chạy trên runner y hệt một file .py, nhưng:
+Bước "Cảnh báo chạm SL/TP trong phiên" (bỏ ở BƯỚC 256; ví dụ còn nguyên giá trị) có hơn 70 dòng
+python nằm trong một heredoc của YAML. Đoạn đó chạy trên runner y hệt một file .py, nhưng:
 
   · `rglob("*.py")` không thấy nó — nó không có đuôi .py
   · không test nào import nó — nó không phải module
@@ -120,7 +120,7 @@ def test_khong_co_thu_muc_workflows_thi_tra_rong(tmp_path):
 # 3. Trên FILE THẬT — chống báo xanh trên 0 đoạn
 # ─────────────────────────────────────────────────────────────────────
 
-def test_workflow_that_phai_trich_ra_duoc_doan_canh_bao():
+def test_workflow_that_phai_trich_ra_duoc_doan_nhung():
     """Test quan trọng nhất file này.
 
     Một bộ trích trả rỗng vẫn cho "✅ Mọi file nạp được bằng 3.11" — y hệt
@@ -130,16 +130,16 @@ def test_workflow_that_phai_trich_ra_duoc_doan_canh_bao():
     ra = kiem.doan_nhung(GOC)
     assert ra, "không trích được đoạn nhúng nào từ workflow thật"
 
-    canh_bao = [ma for nhan, ma in ra
-                if "quet-so-lenh.yml" in nhan and "canh_bao_noi_phien" in ma]
-    assert canh_bao, (
-        f"không thấy đoạn của bước cảnh báo nội phiên trong "
-        f"{[n for n, _ in ra]}")
+    # BƯỚC 256: bước cảnh báo đã bỏ; neo vào đoạn KÉO SỔ của chính workflow quét (còn nhúng ~20 dòng).
+    keo = [ma for nhan, ma in ra
+           if "quet-so-lenh.yml" in nhan and "keo_so_co_thu_lai" in ma]
+    assert keo, (
+        f"không thấy đoạn kéo sổ trong {[n for n, _ in ra]}")
 
-    ma = canh_bao[0]
-    assert "quet_va_canh_gac" in ma, "bước cảnh báo không gọi canh gác"
-    assert "tai_khoang" in ma, "thiếu hàm tải theo khoảng ngày"
-    print(f"PASS  workflow thật: {len(ra)} đoạn, bước cảnh báo có canh gác")
+    ma = keo[0]
+    assert "KeoSoThatBai" in ma, "đoạn kéo sổ không bắt KeoSoThatBai"
+    assert "sys.exit(1)" in ma, "đoạn kéo sổ không dừng khi kéo hỏng"
+    print(f"PASS  workflow thật: {len(ra)} đoạn, đoạn kéo sổ có thử lại")
 
 
 def test_moi_doan_nhung_that_deu_la_python_hop_le():

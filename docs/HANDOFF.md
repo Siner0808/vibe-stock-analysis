@@ -227,7 +227,7 @@ lực 82%. Hướng *chung* chưa bị bác — nhưng nó không còn một ứ
 
 | Workflow | Cron | Làm gì | Secret |
 |---|---|---|---|
-| `quet-so-lenh.yml` | `0,30 2-4` · `0,30 6-8` | kéo sổ → cảnh báo → quét 71 mã → đối chiếu | `STREAMLIT_SECRETS_TOML` |
+| `quet-so-lenh.yml` | `35 8` · `5 10` (sau đóng cửa; BƯỚC 256) | kéo sổ → quét 71 mã → đối chiếu | `STREAMLIT_SECRETS_TOML` |
 | `chuong-bao-quet.yml` | `23 9` | có lượt quét `success` trong ba ngày gần nhất? | `GITHUB_TOKEN` |
 | `canh-cong-c5.yml` | `43 9` | điều kiện dừng đạt mà cổng mở lệnh còn mở? | `STREAMLIT_SECRETS_TOML` |
 | `chuong-bai-hoc.yml` | `53 9` | lệnh đóng quá một phiên chưa có bài học? | `STREAMLIT_SECRETS_TOML` |

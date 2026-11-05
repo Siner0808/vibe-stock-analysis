@@ -1,5 +1,11 @@
 """Cảnh báo chạm stop-loss / take-profit TRONG PHIÊN.
 
+TRẠNG THÁI TỪ BƯỚC 256 (05/11/2026): workflow `quet-so-lenh.yml` KHÔNG còn gọi module này.
+Lượt quét nay chạy sau đóng cửa (nến ngày đã đóng, `run_daily` đóng lệnh thủng SL/TP), nên bước
+cảnh báo chỉ in `::warning::` vào nhật ký Actions, nơi không ai nhận. App vẫn dùng `kiem_mot` và
+`loc_dung_ngay` cho ô vị thế của mã đang xem. `quet`, `quet_va_canh_gac`, `canh_gac`, `vi_the_dang_mo`
+chưa có nơi gọi ngoài test: giữ làm năng lực (dựng lại cảnh báo thật nếu có đường thông báo riêng).
+
 VÌ SAO CẦN
 ──────────
 `evaluate_open()` chấm trên nến NGÀY, nên nó chỉ biết một vị thế đã chạm

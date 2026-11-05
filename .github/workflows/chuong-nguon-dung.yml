@@ -5,7 +5,7 @@
 # workflow quét để biết một ngày có được quét không. Làm đỏ workflow đó ở
 # đây sẽ sinh báo động giả "ngày này không có lượt quét nào", che mất
 # đúng thứ chuông kia sinh ra để canh. Cùng cái bẫy mà `canh-cong-c5.yml`
-# và bước cảnh báo nội phiên trong `quet-so-lenh.yml` đã ghi.
+# và bước cảnh báo nội phiên (BƯỚC 256 đã bỏ) trong `quet-so-lenh.yml` từng ghi.
 #
 # KHÔNG CẦN SECRET. Chuông chỉ đọc chuỗi giá VN-INDEX và bảng lịch trong
 # repo — không mở sổ lệnh, không cần credential Google Sheets. Nhờ thế nó
