@@ -223,6 +223,19 @@ lực 82%. Hướng *chung* chưa bị bác — nhưng nó không còn một ứ
 > viết vào file THẤP HƠN trong khi `HANDOFF` đứng đầu thứ tự ưu tiên.
 > Người đọc **đúng luật** sẽ dừng ở đây và không bao giờ tới chỗ đã ghi.
 
+**Tám workflow đang bật** (`gh workflow list --all`, đo 05/11/2026; BƯỚC 255 chuyển bảng này từ `CLAUDE.md` vì trần ký tự; cron UTC, thứ Hai–thứ Sáu trừ khi ghi khác):
+
+| Workflow | Cron | Làm gì | Secret |
+|---|---|---|---|
+| `quet-so-lenh.yml` | `0,30 2-4` · `0,30 6-8` | kéo sổ → cảnh báo → quét 71 mã → đối chiếu | `STREAMLIT_SECRETS_TOML` |
+| `chuong-bao-quet.yml` | `23 9` | có lượt quét `success` trong ba ngày gần nhất? | `GITHUB_TOKEN` |
+| `canh-cong-c5.yml` | `43 9` | điều kiện dừng đạt mà cổng mở lệnh còn mở? | `STREAMLIT_SECRETS_TOML` |
+| `chuong-bai-hoc.yml` | `53 9` | lệnh đóng quá một phiên chưa có bài học? | `STREAMLIT_SECRETS_TOML` |
+| `chuong-nguon-dung.yml` | `17 10` | có phiên giao dịch mà không có nến mới? | không |
+| `hau-kiem-loi.yml` | `17 11` | hậu kiểm bằng lời (B1): thêm dòng vào tab `hau_kiem` | `STREAMLIT_SECRETS_TOML` · `GEMINI_API_KEY` |
+| `soat-tuan.yml` | `41 2` thứ Hai | phần máy của soát định kỳ (`::warning::`) | không |
+| `kiem-dinh.yml` | trên `push` và `pull_request` | năm cổng gác | không |
+
 ---
 
 ## 3. NĂM RÀNG BUỘC KHI LÀM VIỆC

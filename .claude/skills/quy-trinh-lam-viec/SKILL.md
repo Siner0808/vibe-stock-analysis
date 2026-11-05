@@ -177,9 +177,7 @@ mất 40 phép kiểm trong khi cả bốn cổng XANH). Nó không cấm giảm
 trùng hợp lệ) mà buộc khai lý do: `--cap-nhat --ly-do "<vì sao>"`. **Thêm
 test cũng phải cập nhật mốc** (mốc trôi tụt lại là lỗ hổng tăng dần).
 
-- Khối lệnh trên là dạng CI (một tiến trình). `tools/nam_cong.py` chạy cổng 1 là `-m pytest tests/ -q
-  -p no:cacheprovider` và Ở MÁY mặc định thêm `-n auto` khi trình thông dịch có pytest-xdist
-  (`SONG_SONG_CONG1`); cổng 4 chạy nhiều file một lúc (`ThreadPoolExecutor`), mỗi file một tiến trình.
+- Khối trên là dạng CI; ở máy `tools/nam_cong.py` thêm `-n auto` cho cổng 1.
 - File tạm của test CHỈ ở `.tam_test/` (`tools/duyet_repo.py`, BƯỚC 201).
 - Mã thoát **2** của cổng 2 và 4 là *chưa kiểm được*, không phải sạch.
 - `PYTHONIOENCODING=utf-8` cho mọi lệnh có tiếng Việt. **Ghi ra file log,
@@ -216,8 +214,7 @@ test cũng phải cập nhật mốc** (mốc trôi tụt lại là lỗ hổng 
 
 - **Merge xong phải KIỂM, không tin mã thoát:** `pr view` cho `state=MERGED`
   và mã băm hợp nhất, rồi `git pull` + tìm nội dung vừa thêm trong `main`.
-- Commit body **ASCII**, và **CÓ** `Co-Authored-By` (đo 23/09: 80/100 commit
-  không merge từ 09/09, quy ước đổi từ 12/09). **Kiểm bản ĐÃ GHI** (lỗi 93):
+- Commit body **ASCII**, và **CÓ** `Co-Authored-By`. **Kiểm bản ĐÃ GHI** (lỗi 93):
   `git log -1 --format=%B` rồi tìm ký tự ngoài ASCII bằng Python; `grep`
   thành công khi TÌM THẤY, tức mã thoát 0 đúng lúc muốn dừng.
 - Ghi vào `docs/STATE.md` cả **kết quả lẫn giả thuyết bị bác** và **ước lượng
