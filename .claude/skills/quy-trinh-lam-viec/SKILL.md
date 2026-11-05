@@ -177,6 +177,9 @@ mất 40 phép kiểm trong khi cả bốn cổng XANH). Nó không cấm giảm
 trùng hợp lệ) mà buộc khai lý do: `--cap-nhat --ly-do "<vì sao>"`. **Thêm
 test cũng phải cập nhật mốc** (mốc trôi tụt lại là lỗ hổng tăng dần).
 
+- Khối lệnh trên là dạng CI (một tiến trình). `tools/nam_cong.py` chạy cổng 1 là `-m pytest tests/ -q
+  -p no:cacheprovider` và Ở MÁY mặc định thêm `-n auto` khi trình thông dịch có pytest-xdist
+  (`SONG_SONG_CONG1`); cổng 4 chạy nhiều file một lúc (`ThreadPoolExecutor`), mỗi file một tiến trình.
 - File tạm của test CHỈ ở `.tam_test/` (`tools/duyet_repo.py`, BƯỚC 201).
 - Mã thoát **2** của cổng 2 và 4 là *chưa kiểm được*, không phải sạch.
 - `PYTHONIOENCODING=utf-8` cho mọi lệnh có tiếng Việt. **Ghi ra file log,
@@ -251,7 +254,7 @@ tuyệt đối — bản trong repo khai cùng lúc thì mỗi hook chạy HAI L
 | Cửa | Khi nào | Làm gì |
 |---|---|---|
 | `tools/cua_mo_phien.py` | SessionStart | nhắc gọi skill · mốc ngày đang chặn · dòng `CUA: n/m song` |
-| `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
+| `tools/cua_doc_bat_buoc.py` | Pre · Read/Write/Edit/NotebookEdit | chưa đọc tài liệu bắt buộc thì chặn sửa file ảnh hưởng kết quả |
 | `tools/cua_bash_an_toan.py` | Pre · Bash\|PowerShell | chặn hình dạng lệnh đã cắn thật |
 | `tools/cua_ho_so.py` | Pre · Read/Edit | bơm hồ sơ `tools/ho_so.py` khi mở file đủ dày |
 | `tools/chan_bia_so_lieu.py` | Post · Write/Edit | quét mẫu bịa số liệu |

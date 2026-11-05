@@ -112,24 +112,32 @@ def ve(nen: str) -> str:
     a(_hop(20, 275, 150, 92, m, [("App Streamlit", True), ("sổ lệnh", False),
                                  ("bài học có nhãn", False), ("bản tin cuối ngày", False)]))
 
+    # ── Hậu kiểm bằng lời (B1): workflow RIÊNG, ngoài vòng quét, ghi tab `hau_kiem` ──
+    a(_hop(20, 410, 150, 110, m, [("Hậu kiểm bằng lời", True), ("B1 · workflow riêng", False),
+                                  ("lệnh ảo đã đóng", False), ("→ đoạn văn do Gemini viết", False),
+                                  ("thêm dòng vào tab hau_kiem", False)], net=1.2))
+    a(_duong([(20, 465), (8, 465), (8, 84), (18, 84)], m, net=True))
+
     # ── Hàng trên: năm chặng của MỘT lượt quét ──────────────────────
     hang = [
         (215, "Kéo sổ về", "hỏng → dừng cả lượt", None),
         (400, "Điều kiện dừng", "alpha khớp từng lệnh", m["nhan"]),
         (600, "Quét 71 mã", "từng mã, xem dưới", None),
         (785, "Nhật ký «vì sao»", "điền nửa ĐÓNG", None),
-        (970, "Đẩy sổ lên", "chỉ thêm dòng mới", None),
+        (964, "Đẩy sổ lên", "thêm: quyết định, kế hoạch\nsoi gương: lệnh, nhật ký", None),
     ]
     W = 140
     for so, (x, t, s, v) in enumerate(hang, 1):
-        a(_hop(x, 50, W + (10 if x == 400 else 0), 60, m, [(t, True), (s, False)],
-               vien=v, net=1.8 if v else 1.2))
+        # Chặng 5 rộng thêm 12 (tâm vẫn ở 1040) để chứa hai dòng nhãn; `s` nhiều dòng tách bằng \n.
+        rong = W + {400: 10, 964: 12}.get(x, 0)
+        dong = [(t, True)] + [(d, False) for d in s.split("\n")]
+        a(_hop(x, 50, rong, 60, m, dong, vien=v, net=1.8 if v else 1.2))
         a(_so(x + 4, 52, so, m, v))
     a(_ten(170, 80, 213, 80, m, "kéo", 191, 72))
-    for x1, x2 in ((355, 398), (550, 598), (740, 783), (925, 968)):
+    for x1, x2 in ((355, 398), (550, 598), (740, 783), (925, 962)):
         a(_ten(x1, 80, x2, 80, m))
     a(_duong([(1040, 48), (1040, 30), (95, 30), (95, 46)], m,
-             "đẩy: quyết định mới, lệnh, nhật ký", 560, 24))
+             "đẩy: quyết định + kế hoạch (thêm dòng) · lệnh + nhật ký (soi gương toàn phần)", 560, 24))
 
     # ── Khung dưới: MỘT mã trong vòng 71 mã ─────────────────────────
     a(f'<rect x="215" y="150" width="895" height="395" rx="10" fill="none" '
@@ -188,7 +196,7 @@ def ve(nen: str) -> str:
         f'aria-label="Một lượt quét: kéo sổ từ Google Sheets, xét điều kiện dừng, '
         f'quét 71 mã (khớp lệnh chờ ở giá mở cửa, xét thoát nếu đang giữ, nếu không '
         f'thì chấm điểm và qua 7 cổng thành lệnh chờ khớp ở phiên sau), điền nhật ký, '
-        f'đẩy sổ lên; app đọc sổ.">\n'
+        f'đẩy sổ lên (quyết định và kế hoạch thêm dòng, lệnh và nhật ký soi gương); hậu kiểm bằng lời (B1) chạy ở workflow riêng và thêm dòng vào tab hau_kiem; app đọc sổ.">\n'
         f'<defs><marker id="mui" viewBox="0 0 10 10" refX="9" refY="5" '
         f'markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
         f'<path d="M0,0 L10,5 L0,10 z" fill="{m["phu"]}"/></marker></defs>\n'

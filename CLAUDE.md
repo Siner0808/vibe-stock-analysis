@@ -84,7 +84,7 @@ Mâu thuẫn cốt lõi: *phần đo được thì không có tín hiệu, phầ
 hiệu thì không đo được* (trên app chạy trực tiếp các agent "chết" trong
 backtest sống lại nhưng không đo được).
 
-### Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá — CHỈ ĐỂ HIỆN
+### Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá, cấu trúc giá Dow, nến tuần/tháng — CHỈ ĐỂ HIỆN
 
 - `fundamental_agent.FundamentalAgent` đọc bảng `ratio` **theo năm** từ
   KBS. Cẩn thận: `total_assets`/`owners_equity` trong `ratio` là TĂNG
@@ -108,6 +108,14 @@ backtest sống lại nhưng không đo được).
   không có hàm tính trần. Không đọc được bảng giá → tụt xuống ba màu. Ô
   VN-Index ở topbar gọi `market_filter.chi_so_moi_nhat()` (ưu tiên MẠNG),
   KHÔNG phải `get_vni_df()` (ưu tiên cache) và luôn kèm ngày phiên.
+- `cau_truc_gia` (hai ô *Thủy triều* và *Chu kỳ 4 giai đoạn* sát ô Pha Wyckoff, cùng khối "Cấu trúc
+  giá" ở cột biểu đồ; BƯỚC 250) và `khung_thoi_gian` (nến tuần/tháng gộp từ nến ngày đã đóng, ba khung
+  D-W-M; BƯỚC 171) — hàm thuần, KHÔNG chấm điểm, không vào đường lệnh ảo hay backtest; chỉ `app.py` (và
+  công cụ đo/mô tả của Dow trong `tools/`) nhập chúng (gác AST ở `tests/test_cau_truc_gia.py`,
+  `tests/test_khung_thoi_gian.py`). ĐO 34 (04/11/2026, BƯỚC 253) kết cục A: *không phân biệt được lợi
+  thế ≥ MDE₈₀ khỏi 0* — KHÔNG phải bằng chứng cấu trúc này không có lợi thế (`cau_truc_gia.CHAN_KHOI`).
+  Khoá `CHO_PHEP_DOC_KET_QUA_THAT` của `tools/do_dow_cau_truc.py` đã khoá lại (`False`); chạy lại là MỘT
+  BƯỚC mới.
 - Giai đoạn B: `ke_hoach_vao_lenh`, `ban_tin`, `suc_khoe`, `hau_kiem_loi` — lõi giao
   dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`; ngoại lệ
   có gác: `run_daily`, `sheets_store`).
@@ -118,7 +126,7 @@ backtest sống lại nhưng không đo được).
 
 - **Không đặt lệnh thật.** Agent chuẩn bị → người xác nhận → người đặt lệnh.
 - **Sổ THẬT nằm trên Google Sheets**, không phải `paper_trades.db` ở máy
-  (file ấy đứng yên từ 20/08/2026). Đọc trạng thái bằng
+  (không đọc trạng thái từ file ấy). Đọc trạng thái bằng
   `./.venv/Scripts/python.exe tools/doc_so_that.py`; con số về sổ tự trôi,
   không gác được bằng test — **đừng chép nó vào tài liệu**.
 - Sổ 113 lệnh lịch sử là một lượt MÔ PHỎNG (`created_at` gom trong 258 giây,
@@ -295,14 +303,20 @@ Task Scheduler `VibeStock_QuetPhien` đã **Disabled** từ 21/08/2026. Quét ch
 disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
 
 - GitHub gộp và trễ nhịp: `quet-so-lenh` mỗi ngày làm việc chỉ chạy ~2/12
-  nhịp từ 27/08; ba chuông ở khung 09:00–10:00 UTC trễ trung vị **4–4,7
-  GIỜ**. Đổi cron sang lệch `:00/:30` **không có tác dụng** (BƯỚC 89, 101).
+  nhịp từ 27/08. **Đo 05/11/2026** (40 lượt `quet-so-lenh` theo lịch gần nhất, 08/10–04/11): 0 lượt
+  tạo trước 13:53 ICT, 10 lượt 13:53–14:59, 30 lượt từ 15:00 — ca sáng (cron 02:00–04:30 UTC) không
+  chạy trong mẫu ấy, phần lớn lượt quét là lượt SAU đóng cửa, nên bước cảnh báo nội phiên chỉ kêu
+  được ở các lượt rơi trong phiên. Bốn chuông (cron 09:23 · 09:43 · 09:53 · 10:17 UTC) trễ trung vị
+  **6,1–6,5 GIỜ** so với giờ cron (nhỏ nhất 4,1, lớn nhất 10,2; 40 lượt mỗi chuông, `chuong-bai-hoc`
+  mới có 19). Lệnh: `gh run list --workflow <tên>.yml --limit 40 --event schedule --json createdAt`;
+  trễ = `createdAt` − giờ cron cùng ngày UTC (hoặc ngày trước). Đổi cron sang lệch `:00/:30` **không có
+  tác dụng** (BƯỚC 89, 101).
 - Nên "né giờ nghỉ trưa" và "lệch giờ 10 phút để khỏi trùng" là bảo vệ tưởng
   tượng. An toàn thật là **kéo sổ từ Sheets TRƯỚC khi quét** (`run_daily`
   làm ngay đầu `execute_daily_scan()`; kéo hỏng thì dừng phiên) cộng chốt
   chặn trong `push()`. Không kéo trước → `seq` lệch, `push()` bỏ qua dòng
   mới lặng lẽ (14/08: 70 quyết định mất).
-- **Chuông** `chuong-bao-quet.yml` chạy 09:23 UTC (16:23 ICT) mỗi ngày làm
+- **Chuông** `chuong-bao-quet.yml` chạy 09:23 UTC (16:23 ICT, giờ cron) mỗi ngày làm
   việc, soát **ba** ngày gần nhất, đỏ nếu ngày nào không có lượt `success`.
   Chỉ đếm `conclusion == "success"` (kẹt `queued` không đỏ, không email).
 - **Cảnh báo nội phiên** đi bằng `::warning::` + `$GITHUB_STEP_SUMMARY`,
@@ -312,6 +326,19 @@ disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
   `quet_va_canh_gac()` nạp thử một mã, hỏi một **khoảng** 10 ngày.
 - Lượt quét sau đóng cửa là lượt quyết định (`evaluate_open()` chấm trên nến
   ngày).
+- **Tám workflow đang bật** (`gh workflow list --all`, đo 05/11/2026; cron UTC, thứ Hai–thứ Sáu
+  trừ khi ghi khác):
+
+| Workflow | Cron | Làm gì | Secret |
+|---|---|---|---|
+| `quet-so-lenh.yml` | `0,30 2-4` · `0,30 6-8` | kéo sổ → cảnh báo → quét 71 mã → đối chiếu | `STREAMLIT_SECRETS_TOML` |
+| `chuong-bao-quet.yml` | `23 9` | có lượt quét `success` trong ba ngày gần nhất? | `GITHUB_TOKEN` |
+| `canh-cong-c5.yml` | `43 9` | điều kiện dừng đạt mà cổng mở lệnh còn mở? | `STREAMLIT_SECRETS_TOML` |
+| `chuong-bai-hoc.yml` | `53 9` | lệnh đóng quá một phiên chưa có bài học? | `STREAMLIT_SECRETS_TOML` |
+| `chuong-nguon-dung.yml` | `17 10` | có phiên giao dịch mà không có nến mới? | không |
+| `hau-kiem-loi.yml` | `17 11` | hậu kiểm bằng lời (B1): thêm dòng vào tab `hau_kiem` | `STREAMLIT_SECRETS_TOML` · `GEMINI_API_KEY` |
+| `soat-tuan.yml` | `41 2` thứ Hai | phần máy của soát định kỳ (`::warning::`) | không |
+| `kiem-dinh.yml` | trên `push` và `pull_request` | năm cổng gác | không |
 
 ## Sổ ngoài: `sheets_store.py`
 
@@ -322,6 +349,7 @@ SQLite là máy chạy, Google Sheets là kho bền, **không đồng bộ hai c
 | `decisions` | chỉ thêm dòng có `seq` lớn hơn |
 | `trades`, `nhat_ky` | soi gương toàn phần (đổi trạng thái/stop được nâng) |
 | `ke_hoach` | chỉ thêm, khoá (mã, ngày nến) — kế hoạch vào lệnh ghi lúc quét (BƯỚC 195) |
+| `hau_kiem` | chỉ thêm, khoá (`trade_id`, `lan`) — hậu kiểm bằng lời của B1; ghi bởi `tools/hau_kiem_loi.py` (`sheets_store.them_hau_kiem`), KHÔNG qua `push` của `run_daily` |
 
 Bốn bất biến (`tests/test_sheets_store.py`, offline nhờ `InMemorySheet`):
 `pull()` **từ chối** ghi vào sổ đang có dữ liệu trừ `allow_overwrite=True`;
@@ -411,8 +439,10 @@ Bull(+)/Bear(−)/Devil(−)); xoá trùng lặp, đừng xoá năng lực.
   21/08/2026 (bắt PR, bắt `kiem-dinh` xanh ở chế độ strict, cấm force-push và
   xoá) và `kiem-dinh.yml` chạy cả trên `push`.
 - **Không ép hạng vnstock** trong mã. Không ghi tài liệu skill vnstock ra đĩa.
-- Sơ đồ kiến trúc: chỉ **`architecture_asbuilt.html`** nói thật về thứ
-  đang chạy; v1/v2 là tham vọng.
+- Sơ đồ kiến trúc: luồng chạy hằng ngày vẽ đúng ở **`docs/hinh/mot-ngay-cua-agent-sang.svg`** (sinh từ
+  mã bởi `tools/ve_so_do_mot_ngay.py`, gác `tests/test_so_do_mot_ngay.py`). `architecture_asbuilt.html`
+  là bản chụp 13/08/2026: phần "số nấc" và nút `paper_trades.db` đã hết đúng (khung đầu trang nói vậy;
+  `MO-XE-KIEN-TRUC.md` phần đầu); v1/v2 là tham vọng.
 
 ## Lệnh hay dùng
 
