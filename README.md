@@ -22,16 +22,23 @@ Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/hinh/mot-ngay-cua-agent-toi.svg">
-  <img alt="Một lượt quét: kéo sổ từ Google Sheets, xét điều kiện dừng, quét 71 mã (khớp lệnh chờ ở giá mở cửa; đang giữ thì xét thoát; không giữ thì chấm điểm và qua 7 cổng thành lệnh chờ khớp ở phiên sau), điền nhật ký, đẩy sổ lên; app đọc sổ." src="docs/hinh/mot-ngay-cua-agent-sang.svg">
+  <img alt="Một lượt quét: kéo sổ từ Google Sheets, xét điều kiện dừng, quét 71 mã (khớp lệnh chờ ở giá mở cửa; đang giữ thì xét thoát; không giữ thì chấm điểm và qua 7 cổng thành lệnh chờ khớp ở phiên sau), điền nhật ký, đẩy sổ lên (quyết định và kế hoạch thêm dòng, lệnh và nhật ký soi gương); hậu kiểm bằng lời (B1) chạy ở workflow riêng và thêm dòng vào tab hau_kiem; app đọc sổ." src="docs/hinh/mot-ngay-cua-agent-sang.svg">
 </picture>
 
-Mỗi **lượt quét** chạy trên GitHub Actions trong ngày giao dịch, 9:00–11:30 và 13:00–15:30 giờ
-VN (nhịp 30 phút; GitHub hay trễ hoặc gộp nhịp). Lệnh mới **không bao giờ** khớp ở giá của phiên ra
-tín hiệu — nó chờ giá mở cửa phiên sau. Buổi chiều có bốn chuông canh: không có lượt quét nào
+Mỗi **lượt quét** chạy trên GitHub Actions trong ngày giao dịch. Giờ **cron khai** là 9:00–11:30 và
+13:00–15:30 giờ VN (nhịp 30 phút), nhưng GitHub gộp và trễ nhịp. **Giờ đo thật** (05/11/2026, 40 lượt
+`quet-so-lenh` theo lịch gần nhất, 08/10–04/11): 0 lượt được tạo trước 13:53 giờ VN, 10 lượt tạo
+13:53–14:59, 30 lượt tạo từ 15:00 — nên ca sáng không chạy trong mẫu ấy và phần lớn lượt quét là lượt sau
+đóng cửa. Lệnh: `gh run list --workflow quet-so-lenh.yml --limit 40 --event schedule --json createdAt`,
+đổi giờ UTC sang giờ VN. Lệnh mới **không bao giờ** khớp ở giá của phiên ra tín hiệu — nó chờ giá mở
+cửa phiên sau. Mỗi ngày làm việc có bốn chuông canh; **giờ cron** của chúng: không có lượt quét nào
 thành công (16:23), điều kiện dừng đã đạt mà cổng vẫn mở (16:43), lệnh đóng quá một phiên chưa có
-bài học (16:53), có phiên mà không có nến mới (17:17). App chỉ ĐỌC sổ; ngoài vòng này nó còn các
+bài học (16:53), có phiên mà không có nến mới (17:17). **Giờ đo thật** (cùng ngày đo, 40 lượt mỗi
+chuông; `chuong-bai-hoc` mới có 19): bốn chuông trễ trung vị 6,1–6,5 giờ so với giờ cron, nhỏ nhất
+4,1, lớn nhất 10,2 giờ. Ngoài vòng quét, một workflow riêng (cron 18:17 giờ VN) viết hậu kiểm bằng
+lời cho lệnh đã đóng và thêm vào tab `hau_kiem` (B1). App chỉ ĐỌC sổ; ngoài vòng này nó còn các
 lớp **chỉ để xem** — phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào
-lệnh từng mã.
+lệnh từng mã, cấu trúc giá theo Lý thuyết Dow, nến tuần/tháng.
 
 ## Kết quả đo được
 
@@ -40,7 +47,7 @@ lệnh từng mã.
 | Câu hỏi | Kết quả | Nguồn |
 |---|---|---|
 | Điểm tổng hợp có dự báo lợi nhuận 20 phiên sau? | rho **−0,019**, KTC 95% [−0,100 ; +0,064] — **không** | 573 phiên / 10 mã, [`MO-XE-KIEN-TRUC.md`](MO-XE-KIEN-TRUC.md) |
-| Walk-forward ngoài mẫu, chi phí thực thi thật, danh mục theo ngày | 619 lệnh · alpha **−1,68%/lệnh**, KTC [−2,24 ; −1,08] — **thua rổ chuẩn** | ĐO 22, 30/09/2026 · bảng đầy đủ ở [`CLAUDE.md`](CLAUDE.md) |
+| Walk-forward ngoài mẫu, chi phí thực thi thật, danh mục theo ngày | 650 lệnh · alpha **−1,73%/lệnh**, KTC [−2,28 ; −1,17] — **thua rổ chuẩn** | ĐO 28 + 29, 20–21/10/2026 (máy đo hiện hành) · bảng đầy đủ ở [`CLAUDE.md`](CLAUDE.md) |
 | Kế hoạch vào lệnh (vùng chờ, cắt lỗ theo cấu trúc) có hơn mua mọi tín hiệu? | Δ alpha **+0,21** điểm %, KTC [−0,16 ; +0,57] — **chưa phân biệt được** | ĐO 25, 12/10/2026 · [`docs/STATE.md`](docs/STATE.md) BƯỚC 179 |
 
 Nguyên nhân gốc không nằm ở mã: cả sáu agent tính từ **cùng một chuỗi giá**. *Phần đo được
@@ -101,7 +108,9 @@ Lệnh cuối chạy toàn bộ test — offline, không cần mạng hay khoá.
 | [`docs/HANDOFF.md`](docs/HANDOFF.md) | hệ thống đang ở đâu, lệnh đầu tiên nên chạy |
 | [`docs/LO-TRINH.md`](docs/LO-TRINH.md) | đi tới đâu, theo mốc nào |
 | [`NGUYEN-TAC-DO-LUONG.md`](NGUYEN-TAC-DO-LUONG.md) | tám bất biến đo lường — đọc trước khi sửa bất cứ thứ gì chạm kết quả |
-| [`MO-XE-KIEN-TRUC.md`](MO-XE-KIEN-TRUC.md) · [`architecture_asbuilt.html`](architecture_asbuilt.html) | thành phần nào chạy thật, thành phần nào là trang trí |
+| [`MO-XE-KIEN-TRUC.md`](MO-XE-KIEN-TRUC.md) | thành phần nào chạy thật, thành phần nào là trang trí (phần "số nấc" đã hết đúng từ 31/08/2026, kết luận thì còn) |
+| [`docs/hinh/mot-ngay-cua-agent-sang.svg`](docs/hinh/mot-ngay-cua-agent-sang.svg) | luồng chạy hằng ngày, sinh từ mã bởi `tools/ve_so_do_mot_ngay.py` |
+| [`architecture_asbuilt.html`](architecture_asbuilt.html) | **bản chụp 13/08/2026**, không phải luồng đang chạy: phần "số nấc" và nút `paper_trades.db` đã hết đúng |
 | [`docs/STATE.md`](docs/STATE.md) | nhật ký từng bước |
 | [`CLAUDE.md`](CLAUDE.md) · [`.claude/skills/quy-trinh-lam-viec/`](.claude/skills/quy-trinh-lam-viec/SKILL.md) | luật hiện hành và quy trình bắt buộc cho người lẫn agent AI |
 

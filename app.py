@@ -1352,7 +1352,7 @@ ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date, san_gd)
 dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 
 # DOW-BAT-DAU
-# ── CẤU TRÚC GIÁ THEO LÝ THUYẾT DOW (BƯỚC 250, Dow Lát 3, mốc B5) — CHỈ ĐỂ HIỆN ──
+# ── CẤU TRÚC GIÁ THEO LÝ THUYẾT DOW (BƯỚC 250, Dow Lát 3, mốc B5 mượn; mã riêng B7 từ BƯỚC 255) — CHỈ ĐỂ HIỆN ──
 #
 # Hai ô cạnh "Pha Wyckoff" + một khối mở ở cột biểu đồ. KHÔNG đổi điểm, `dyn_rec`,
 # phán quyết kế hoạch hay `result`: biến `cau_truc` và `_ct_*` chỉ xuất hiện trong
@@ -2270,7 +2270,10 @@ with t_fund:
         "xem `experiment_fundamentals.py`.")
 
 with t_pipe:
-    # Sơ đồ này VẼ LUỒNG DỮ LIỆU, nên mỗi ô phải là một chặng có thật.
+    # Sơ đồ này VẼ LUỒNG PHÂN TÍCH MỘT MÃ trên app (có TradingView), nên mỗi ô phải là một chặng
+    # có thật VÀ chú thích bên dưới phải nói nó KHÔNG phải luồng quét hằng ngày: tranh luận bị vứt
+    # (`master_agent`: `post_debate_score = pre_debate_score`), app không ghi Google Sheets
+    # (BƯỚC 255, soát pipeline 05/11/2026). Luồng cron thật: README, mục "Một ngày của agent".
     #
     # Ô "Fundamental Agent" bị gỡ ngày 21/08/2026 vì lúc đó không lớp nào
     # như vậy tồn tại. Nay `fundamental_agent.FundamentalAgent` có thật và
@@ -2304,10 +2307,16 @@ with t_pipe:
         </div>
         <span>→</span>
         <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:9px;">kho sổ lệnh</small>
+            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:9px;">kho sổ lệnh · app chỉ ĐỌC</small>
         </div>
     </div>
     """, unsafe_allow_html=True)
+    st.caption(
+        "Đây là luồng phân tích MỘT mã khi bạn xem trên app (có TradingView), không phải luồng quét hằng "
+        "ngày. Điểm tranh luận của Debate Council KHÔNG vào điểm cuối (`master_agent` gán "
+        "`post_debate_score = pre_debate_score`). Lượt quét hằng ngày chạy ở GitHub Actions và đi đường "
+        "khác: giá vnstock → chấm điểm (không có TradingView) → 7 cổng → ghi sổ lên Google Sheets; app chỉ "
+        "ĐỌC sổ ấy, không ghi. Xem README, mục \"Một ngày của agent\".")
 
 with t_acct:
     # Mọi con số ở đây đi qua paper_metrics.compute(). Bản cũ là HTML tĩnh
@@ -2394,9 +2403,12 @@ with t_bong:
     # chúng không tồn tại trước mốc, và app không có đường nào tính chúng.
     st.markdown("##### 🔬 Kiểm định chiến lược trên phiên mới (forward test)")
     st.caption(
-        "Mỗi phương án là một cách chấm điểm cổ phiếu khác. Nó chạy song song với "
-        "cách đang dùng trên các phiên SAU ngày đăng ký, và chỉ thay cách đang dùng "
-        "khi tốt hơn rõ rệt về thống kê — việc này hiếm.")
+        "Mỗi phương án là một cách chấm điểm cổ phiếu khác. Nó được so với cách đang dùng "
+        "trên các phiên SAU ngày đăng ký; dữ liệu để so là điểm và quyết định đã ghi ở tab "
+        "`decisions` mỗi lượt quét. Việc chấm chỉ làm MỘT lần, ở mốc đọc, và hiện chưa có "
+        "workflow nào chạy lệnh chấm (chạy tay); tab này không tính gì, chỉ hiện sổ đăng ký "
+        "và tiến độ ước. Phương án chỉ thay cách đang dùng khi tốt hơn rõ rệt về thống kê — "
+        "việc này hiếm.")
     try:
         import cham_bong as _cb
         _so_uv = _cb.doc_so_ung_vien()

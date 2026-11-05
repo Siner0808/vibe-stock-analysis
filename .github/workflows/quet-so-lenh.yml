@@ -4,9 +4,13 @@
 # Task Scheduler chỉ chạy khi máy bật. Máy tắt hoặc ngủ là mất phiên đó,
 # và không có gì báo. GitHub Actions chạy độc lập máy.
 #
-# THỨ TỰ BA BƯỚC LÀ BẮT BUỘC — SAI THỨ TỰ LÀ MẤT SỔ LỆNH
+# THỨ TỰ BỐN BƯỚC LÀ BẮT BUỘC — SAI THỨ TỰ LÀ MẤT SỔ LỆNH
 #   1. KÉO sổ lệnh từ Google Sheets về runner
-#   2. QUÉT (run_daily.py tự đẩy lên Sheets ở cuối)
+#   2. CẢNH BÁO nội phiên (::warning::, không làm đỏ job)
+#   3. QUÉT (run_daily.py tự đẩy lên Sheets ở cuối)
+#   4. ĐỐI CHIẾU sổ local với kho ngoài (lệch thì job đỏ)
+# (bước thứ năm, lưu nhật ký chạy, không có ràng buộc thứ tự; BƯỚC 255 sửa chú thích này,
+# trước đó nó ghi "ba bước" và chỉ kể hai)
 #
 # Runner luôn sạch: không có paper_trades.db. Nếu bỏ bước 1, run_daily.py
 # sẽ tạo một sổ RỖNG, quét trên sổ rỗng đó rồi đẩy lên — mà bảng trades
@@ -25,7 +29,10 @@ on:
     # Giờ cron của GitHub là UTC. Việt Nam UTC+7.
     # Phiên sáng:  09:00–11:30 ICT = 02:00–04:30 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
     # Nghỉ trưa:  11:30–13:00 ICT = BỎ QUA HOÀN TOÀN (Không quét trong giờ nghỉ trưa)
-    # Phiên chiều: 13:00–15:00 ICT = 06:00–08:00 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
+    # Phiên chiều: 13:00–15:30 ICT = 06:00–08:30 UTC (Mỗi 30 phút, Thứ 2 -> Thứ 6)
+    # Đây là giờ CRON KHAI, không phải giờ chạy: đo 05/11/2026 trên 40 lượt theo lịch gần nhất
+    # (08/10–04/11), 0 lượt tạo trước 13:53 ICT, 10 lượt 13:53–14:59, 30 lượt từ 15:00 ICT
+    # (`gh run list --workflow quet-so-lenh.yml --limit 40 --event schedule --json createdAt`).
     - cron: '0,30 2-4 * * 1-5'
     - cron: '0,30 6-8 * * 1-5'
   workflow_dispatch:        # cho phép bấm chạy tay để kiểm tra

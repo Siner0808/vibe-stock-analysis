@@ -543,6 +543,14 @@
     </div>
   </header>
 
+  <div class="verdict-box" id="ban-chup-13-08" style="background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.45);">
+    <div class="principle-icon" style="color: var(--amber);">🕓</div>
+    <div class="principle-content">
+      <h3 style="color: var(--amber);">Bản chụp ngày 13/08/2026 — một phần đã HẾT ĐÚNG (ghi 05/11/2026)</h3>
+      <p>Trang này sửa lần cuối ngày 13/08/2026 (commit <code>46e3546</code>; đo bằng <code>git log -1 --format='%h %ad' --date=short -- architecture_asbuilt.html</code>). Từ đó <strong>phần "số nấc" không còn đúng</strong>: "2 agent là hằng số, 2 agent chỉ có 3 trạng thái" và "Điểm cuối = 34 → 72" đo trên cửa sổ dữ liệu ngắn; trên cửa sổ dài chỉ <code>news</code> là hằng số và điểm cuối có 61 nấc trải 23–83 (<code>MO-XE-KIEN-TRUC.md</code>, phần đầu file, đo lại 31/08/2026). Nút <code>paper_trades.db</code> ("113 lệnh thật · ACB đang mở") cũng không còn là sổ thật: sổ thật nằm trên Google Sheets (<code>CLAUDE.md</code>, mục "Sổ lệnh giấy"), và trang này không vẽ cron GitHub Actions, Google Sheets, bảy cổng mở lệnh hay hậu kiểm bằng lời (đo 05/11/2026 trước khi thêm khung này: <code>grep -ac</code> từng cụm đó trên tệp đều trả 0). <strong>Luồng chạy hằng ngày vẽ đúng ở <code>docs/hinh/mot-ngay-cua-agent-sang.svg</code></strong> (sinh từ mã bởi <code>tools/ve_so_do_mot_ngay.py</code>). Phần kết luận (điểm cuối không dự báo được lợi nhuận) vẫn là kết luận của <code>MO-XE-KIEN-TRUC.md</code>.</p>
+    </div>
+  </div>
+
   <div class="verdict-box">
     <div class="principle-icon" style="color: var(--red);">⚠️</div>
     <div class="principle-content">

@@ -40,11 +40,13 @@ nhiễu 0,0404. Đó là cận trên: không cách gộp nào tốt hơn tồn t
 | Nguồn | Trạng thái khi backtest/paper trading |
 |---|---|
 | OHLCV (vnstock) | ✅ hoạt động |
-| TradingView (`tv_indicators`) | ❌ **rỗng `{}`** — không có dữ liệu lịch sử |
+| TradingView (`tv_indicators`) | ❌ không có dữ liệu TradingView lịch sử (khoá `tv_indicators` KHÔNG rỗng: được đổ bằng chỉ báo tự tính từ OHLCV, xem mục *Điều này nghĩa là gì*) |
 | Tin tức (`news_packet`) | ❌ **`None`** — không có kho tin lịch sử |
 
 Đây là gốc rễ của mọi thứ bên dưới. `paper_runner._analyze()` tạo packet với
-`tv_recommendation="NEUTRAL"`, không có `tv_indicators`, `news_packet=None`.
+`tv_recommendation="NEUTRAL"`, `news_packet=None`, và không có `tv_indicators` TỪ TRADINGVIEW —
+khoá ấy được đổ bằng chỉ báo tự tính từ OHLCV (`paper_runner.py` đoạn "BẮT BUỘC: Tính toán indicator
+cho backtest"; kiểm lại 05/11/2026).
 Không phải lỗi — không tồn tại nguồn TradingView và tin tức theo thời gian
 lịch sử để backtest. Nhưng hệ quả thì rất lớn.
 
@@ -93,7 +95,8 @@ Tức là điểm momentum thực chất là một hàm của trend và volume.
 
 `TrendAnalysisAgent` có 5 luật chấm điểm, 4 luật dùng EMA20/SMA50/SMA200/ADX
 từ TradingView. Chỉ luật thứ 5 (Giá > MA10 > MA20) chạy được. Thang ±5 điểm
-thu về còn ±1,5 → chỉ ra được 35, 50, hoặc 65.
+thu về còn ±1,5 → chỉ ra được 35, 50, hoặc 65. ⚠️ Chỉ đúng với cửa sổ NGẮN của bảng đầu: trên cửa
+sổ dài `trend` có 10 nấc (bảng ở đầu mục Tầng 2).
 
 Tương tự với `SupportResistanceAgent`: mất Bollinger Bands, chỉ còn
 `pct_from_low`.
@@ -125,6 +128,8 @@ Cộng sáu con số phụ thuộc lẫn nhau lại không tạo ra thông tin m
 
 Trọng số động ba chế độ (breakout / tích luỹ / mặc định). Vì `momentum` và
 `news` là hằng số, hai nhánh trong công thức chỉ cộng thêm một số cố định.
+⚠️ Câu này đúng với cửa sổ NGẮN: trên cửa sổ dài chỉ `news` là hằng số (`momentum` có 17 nấc); và từ
+28/08/2026 `news_norm` chỉ để hiện, không vào `pre_debate_score` (`master_agent.py`, đọc lại 05/11/2026).
 Điểm cuối dao động 34–72, trung bình 49,9 — **thang 0–100 thực tế chỉ dùng
 khoảng 38 điểm ở giữa**.
 
@@ -153,7 +158,8 @@ tới 10 điểm nhưng chưa lần nào dùng đến.
 **Bỏ hẳn cả hai tầng: 572/573 phiên (99%) cho ra cùng một quyết định
 mua/không mua.** Đúng 1 phiên bị lật.
 
-Hai tầng này chiếm 470 dòng mã (`debate_agents.py`) và toàn bộ phần "tranh
+Hai tầng này chiếm 470 dòng mã (`debate_agents.py`; ⚠️ nay 486 dòng, `wc -l debate_agents.py` ngày
+05/11/2026) và toàn bộ phần "tranh
 luận đa chiều" trong sơ đồ kiến trúc. Về mặt chức năng, chúng gần như không
 tồn tại.
 
@@ -229,6 +235,13 @@ dụng chạy trực tiếp (có TradingView thật), 4 agent đó sẽ sống d
 phần có thể có tín hiệu thì không đo được.*
 
 ### Ba việc cụ thể
+
+> ⚠️ **Đọc lại 05/11/2026: hai trong ba việc này đã làm xong.** Việc 1, phần "bỏ khỏi công thức trọng
+> số": đã làm (`master_agent.py`: `news_norm` chỉ để hiện, không vào `pre_debate_score`; khoá `"news"` gỡ
+> khỏi ba bộ trọng số từ 28/08/2026). Việc 2: `tests/test_safety_harness.py` đã tồn tại (8 test dựng đúng
+> tình huống của luật R1–R3; vào repo 05/08/2026 — `git log --diff-filter=A --format='%h %ad' --date=short
+> -- tests/test_safety_harness.py`), nên vế "viết test" xong, vế "gỡ khỏi sơ đồ" không cần. Việc 3 không thuộc
+> lượt đọc lại này. Câu gốc giữ nguyên bên dưới làm sử liệu.
 
 **Cắt phần trang trí.** `news_score` là hằng số 50 — bỏ khỏi công thức trọng
 số, hoặc ghi rõ "chưa hoạt động" trên giao diện thay vì hiển thị 50/100 như

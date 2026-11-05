@@ -84,7 +84,7 @@ Mâu thuẫn cốt lõi: *phần đo được thì không có tín hiệu, phầ
 hiệu thì không đo được* (trên app chạy trực tiếp các agent "chết" trong
 backtest sống lại nhưng không đo được).
 
-### Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá — CHỈ ĐỂ HIỆN
+### Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá, Dow, nến tuần/tháng — CHỈ ĐỂ HIỆN
 
 - `fundamental_agent.FundamentalAgent` đọc bảng `ratio` **theo năm** từ
   KBS. Cẩn thận: `total_assets`/`owners_equity` trong `ratio` là TĂNG
@@ -108,6 +108,9 @@ backtest sống lại nhưng không đo được).
   không có hàm tính trần. Không đọc được bảng giá → tụt xuống ba màu. Ô
   VN-Index ở topbar gọi `market_filter.chi_so_moi_nhat()` (ưu tiên MẠNG),
   KHÔNG phải `get_vni_df()` (ưu tiên cache) và luôn kèm ngày phiên.
+- `cau_truc_gia` (hai ô Dow trên app; BƯỚC 250) và `khung_thoi_gian`
+  (nến tuần/tháng D-W-M) — hàm thuần, KHÔNG chấm điểm, không vào lệnh ảo hay backtest (gác AST ở `tests/`). ĐO 34 (BƯỚC 253) kết cục A: *không phân biệt
+  được lợi thế ≥ MDE₈₀ khỏi 0*, không phải "không có lợi thế"; khoá `CHO_PHEP_DOC_KET_QUA_THAT` = `False`.
 - Giai đoạn B: `ke_hoach_vao_lenh`, `ban_tin`, `suc_khoe`, `hau_kiem_loi` — lõi giao
   dịch, chấm điểm và đo KHÔNG nhập chúng (gác AST ở `tests/test_<tên>.py`; ngoại lệ
   có gác: `run_daily`, `sheets_store`).
@@ -118,13 +121,9 @@ backtest sống lại nhưng không đo được).
 
 - **Không đặt lệnh thật.** Agent chuẩn bị → người xác nhận → người đặt lệnh.
 - **Sổ THẬT nằm trên Google Sheets**, không phải `paper_trades.db` ở máy
-  (file ấy đứng yên từ 20/08/2026). Đọc trạng thái bằng
+  (không đọc trạng thái từ file ấy). Đọc trạng thái bằng
   `./.venv/Scripts/python.exe tools/doc_so_that.py`; con số về sổ tự trôi,
   không gác được bằng test — **đừng chép nó vào tài liệu**.
-- Sổ 113 lệnh lịch sử là một lượt MÔ PHỎNG (`created_at` gom trong 258 giây,
-  `signal_date` trải 903 ngày), không phải bản ghi tích luỹ. Mọi số về nó
-  (kỳ vọng, alpha, drawdown) đúng như phép tính nhưng nói về mô phỏng.
-  `paper_metrics.tom_tat_lo_ghi()` tự phát hiện điều này từ dữ liệu.
 - **Cổng mở lệnh MỞ** (`docs/STATE.md` BƯỚC 125; ĐANG chạy từ 28/09/2026,
   BƯỚC 138): `paper_trading.CHO_PHEP_MO_LENH_MOI = True`, ngưỡng mua
   `BUY_THRESHOLD` = 62, `TRAN_VON_CAM_KET_PCT` = 100. Lý do mở KHÔNG phải
@@ -151,8 +150,6 @@ backtest sống lại nhưng không đo được).
   `price_multiplier`** (quên → mọi lệnh mồ côi đóng ở −99,90%).
 - **Một ngưỡng mua, một chỗ:** `run_daily` NHẬP `BUY_THRESHOLD`, cấm khai
   báo lại kể cả khai đúng 62.
-- Chốt lời cứng đã gỡ (`CHOT_LOI_CUNG` mặc định False): kỳ vọng chênh +0,190%
-  có KTC chứa 0, alpha hai luật giống hệt; nó chỉ giảm phương sai 24%.
 - **Tín hiệu:** cửa sổ dữ liệu quét phải DÀI (~784 phiên; cửa sổ 44 phiên
   làm `trend_score` kẹt 35/50/65 và lệch ngưỡng 62). `run_daily` chỉ ghi sổ
   trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`). `tv_recommendation`
@@ -217,12 +214,6 @@ chỉ xét ở phiên chấm; ba dòng chưa chạy lại còn khớp được �
 - **Chỉ so 1↔3 và 2↔4** (cùng ngưỡng, khác mỗi công tắc). Ngưỡng do chính
   lượt chạy chọn trên IS, nên so theo mã với theo ngày là so cả chế độ lẫn
   ngưỡng. Độ trễ khớp đổi thì ngưỡng nhảy (62/50 → 62/45).
-- Kết luận **không phụ thuộc vốn 1 tỷ**: cái tốn tiền là bước giá, không
-  phải tác động thị trường (chỉ từ 5 tỷ mới cộng thêm một bước).
-- Cache lùi tới 2018 (ĐO 4, vùng ngoài mẫu 68 mã) cho cùng kết luận: kỳ vọng nhảy >1 điểm do thiên
-  lệch sống sót, alpha đứng yên; dòng theo mã có vốn đỉnh 422% — lợi nhuận
-  cộng dồn của nó là đúng hình dạng con số +636,11%.
-- Thời gian chạy walk-forward lệch tới 27% theo tải máy: nói ra là một khoảng.
 
 ### Backtest khớp T+1 (mặc định từ 10/09/2026)
 
@@ -266,7 +257,7 @@ dịch alpha +0,12–0,13, nhỏ hơn một phần sáu bề rộng KTC. **Đừ
 | Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo ở hạng này |
 | GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | 784 phiên (số đo cũ, lấy khi còn coi Actions là free) |
 
-🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN từ chỗ vắng gói tài trợ, chưa từng là số đo; Cloud bị bác (`docs/STATE.md` BƯỚC 166). Bản nguyên văn cũ: `docs/lich-su/CLAUDE-md-2026-09-30.md`.
+🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
 
 Bất đối xứng KHÔNG CHỈ nằm ở BCTC và hạn mức ⚠️ (câu cũ khai đủ, thiếu vế này): nó còn ở **bản thư viện**.
 `requirements.txt` khai bản `vnstock`/`vnai` bằng ghim `==` (BƯỚC 127), nhưng
@@ -294,15 +285,17 @@ Task Scheduler `VibeStock_QuetPhien` đã **Disabled** từ 21/08/2026. Quét ch
 · `chuong-nguon-dung` bật lại 28/09/2026, BƯỚC 138 — tắt lại: `gh workflow
 disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
 
-- GitHub gộp và trễ nhịp: `quet-so-lenh` mỗi ngày làm việc chỉ chạy ~2/12
-  nhịp từ 27/08; ba chuông ở khung 09:00–10:00 UTC trễ trung vị **4–4,7
-  GIỜ**. Đổi cron sang lệch `:00/:30` **không có tác dụng** (BƯỚC 89, 101).
+- GitHub gộp và trễ nhịp: `quet-so-lenh` chỉ chạy ~2/12 nhịp từ 27/08. **Đo 05/11/2026** (40 lượt theo lịch
+  gần nhất, 08/10–04/11): 0 lượt tạo trước 13:53 ICT, 10 lượt 13:53–14:59, 30 lượt từ 15:00 — ca sáng
+  không chạy trong mẫu, nên cảnh báo nội phiên chỉ kêu được ở lượt rơi trong phiên. Bốn chuông (cron
+  09:23 · 09:43 · 09:53 · 10:17 UTC) trễ trung vị **6,1–6,5 GIỜ** (4,1–10,2). Lệnh: `gh run list --workflow
+  <tên>.yml --limit 40 --event schedule --json createdAt`. Lệch cron `:00/:30` **không có tác dụng** (BƯỚC 89, 101).
 - Nên "né giờ nghỉ trưa" và "lệch giờ 10 phút để khỏi trùng" là bảo vệ tưởng
   tượng. An toàn thật là **kéo sổ từ Sheets TRƯỚC khi quét** (`run_daily`
   làm ngay đầu `execute_daily_scan()`; kéo hỏng thì dừng phiên) cộng chốt
   chặn trong `push()`. Không kéo trước → `seq` lệch, `push()` bỏ qua dòng
   mới lặng lẽ (14/08: 70 quyết định mất).
-- **Chuông** `chuong-bao-quet.yml` chạy 09:23 UTC (16:23 ICT) mỗi ngày làm
+- **Chuông** `chuong-bao-quet.yml` chạy 09:23 UTC (16:23 ICT, giờ cron) mỗi ngày làm
   việc, soát **ba** ngày gần nhất, đỏ nếu ngày nào không có lượt `success`.
   Chỉ đếm `conclusion == "success"` (kẹt `queued` không đỏ, không email).
 - **Cảnh báo nội phiên** đi bằng `::warning::` + `$GITHUB_STEP_SUMMARY`,
@@ -312,6 +305,8 @@ disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
   `quet_va_canh_gac()` nạp thử một mã, hỏi một **khoảng** 10 ngày.
 - Lượt quét sau đóng cửa là lượt quyết định (`evaluate_open()` chấm trên nến
   ngày).
+- **Tám workflow bật**: bốn ở trên, `chuong-bai-hoc.yml`, `hau-kiem-loi.yml`
+  (B1, tab `hau_kiem`), `soat-tuan.yml`, `kiem-dinh.yml`; cron/secret: HANDOFF mục 2.
 
 ## Sổ ngoài: `sheets_store.py`
 
@@ -322,6 +317,7 @@ SQLite là máy chạy, Google Sheets là kho bền, **không đồng bộ hai c
 | `decisions` | chỉ thêm dòng có `seq` lớn hơn |
 | `trades`, `nhat_ky` | soi gương toàn phần (đổi trạng thái/stop được nâng) |
 | `ke_hoach` | chỉ thêm, khoá (mã, ngày nến) — kế hoạch vào lệnh ghi lúc quét (BƯỚC 195) |
+| `hau_kiem` | chỉ thêm, khoá (`trade_id`, `lan`); ghi bởi `tools/hau_kiem_loi.py` |
 
 Bốn bất biến (`tests/test_sheets_store.py`, offline nhờ `InMemorySheet`):
 `pull()` **từ chối** ghi vào sổ đang có dữ liệu trừ `allow_overwrite=True`;
@@ -411,8 +407,8 @@ Bull(+)/Bear(−)/Devil(−)); xoá trùng lặp, đừng xoá năng lực.
   21/08/2026 (bắt PR, bắt `kiem-dinh` xanh ở chế độ strict, cấm force-push và
   xoá) và `kiem-dinh.yml` chạy cả trên `push`.
 - **Không ép hạng vnstock** trong mã. Không ghi tài liệu skill vnstock ra đĩa.
-- Sơ đồ kiến trúc: chỉ **`architecture_asbuilt.html`** nói thật về thứ
-  đang chạy; v1/v2 là tham vọng.
+- Sơ đồ kiến trúc: luồng chạy hằng ngày ở `docs/hinh/mot-ngay-cua-agent-sang.svg`;
+  `architecture_asbuilt.html` là bản chụp 13/08/2026; v1/v2 là tham vọng.
 
 ## Lệnh hay dùng
 

@@ -4591,6 +4591,168 @@
       "khong_tim_thay_gi": true,
       "phat_hien": [],
       "_tu_kiem_cau_am": "Một lượt, hỏi thật, câu trả lời ÂM (lối thoát): sổ tay nói không có vị trí nào mâu thuẫn. Lượt hỏi 04/11/2026 sau khi xoá nhật ký chat (0 tin trước), 20/20 nguồn tươi so với b023a4b (nhãn: scratchpad/hoi253/nhan_b023a4b.txt, bắt tay sha256 KHỚP c5303e12…). Tự kiểm lại bằng lệnh, vì lối thoát chỉ chặn bịa, không chặn bỏ sót. (1) Các đoạn trích nguyên văn của nó (Hệ quả cho cách đọc kết cục; S7 'Lượt chạy. MỘT lần…'; 'Vùng sau mốc báo RIÊNG…'; 'ô tốt nhất không phải một kết quả'; S5 'H2 chạy ở dạng MÔ TẢ…' và 'H2 không vào kết cục'; S3 dạng 5 'A — không phân biệt được…' và 'Đây vẫn là kết cục MẶC ĐỊNH…') chạy qua `tools/doi_chieu_trich_dan.py` thành 11 mảnh: cả 11 KHỚP `TIEU-CHI-DOC-TRUOC.md`, mã thoát 0 (hai chỗ nó viết dấu ba chấm là nối hai mảnh có thật). (2) 'Bất biến 7 trong NGUYEN-TAC-DO-LUONG.md' NÓI RỘNG HƠN NGUỒN: trích dẫn 2 của nó trỏ vào lich-su/CLAUDE-md-2026-09-30.md @13c32a0, không vào NGUYEN-TAC; bất biến 7 ở `NGUYEN-TAC-DO-LUONG.md` dòng 86 là 'Không chọn cực đại của N lần thử rồi gọi đó là kết quả' (đỡ vế 'ô tốt nhất không phải một kết quả'); vế 'không chạy lại, không chế điều kiện sau khi nhìn số' nằm ở `CLAUDE.md` ('Đừng chế điều kiện khác sau khi đã nhìn số (bất biến 7)') và S7 của TIEU-CHI, không ở NGUYEN-TAC. (3) '(chỉ có kết cục A⁺ mới mở quyền xem xét đề xuất ứng viên Tầng 3)' KHÔNG CÓ NGUỒN: S3 khoản A⁺ ghi 'Hành động: báo người dùng; KHÔNG tự khai ứng viên tầng 3' (bản ký dòng 4744 và bản sửa dòng 4779 của TIEU-CHI); không câu nào nói 'chỉ A⁺ mở quyền'. Đúng ý (kết cục A không khai ứng viên), sai chữ; BƯỚC 253 không dựa vào vế này. (4) Vế ÂM tự kiểm: `grep -n 'chưa chạy|chưa có kết cục|chưa có phép đo'` trên docs/thiet-ke-dow-cau-truc.md, docs/HANDOFF.md, cau_truc_gia.py, app.py, docs/LO-TRINH.md ra ba dòng, không dòng nào về ô Dow làm BƯỚC 253 thành sai (HANDOFF :327 là khối BƯỚC 251, bản ghi CÓ NGÀY 'ĐO 34 chưa chạy'; :73 và :604 nói chuyện khác); `grep -n -i 'dow|ĐO 34' docs/LO-TRINH.md CLAUDE.md` ra 0 dòng; câu 'chưa có phép đo nào cho thấy nó có lợi thế' của .claude/skills/dow-theory-analysis/SKILL.md vẫn đúng sau kết cục A (không phép đo nào cho thấy lợi thế). (5) Một chỗ TÔI sửa trong lúc kiểm, không phải sổ tay chỉ ra: chữ của chân khối, STATE và HANDOFF trong bản nháp viết 'MDE₈₀ với 0' (chép theo đề bài) trong khi văn bản sửa (S2, TIEU-CHI dòng 4759 và 4773) ghi 'MDE₈₀ khỏi 0'; đã đổi về 'khỏi 0' ở chân khối, STATE, HANDOFF, đặc tả và test."
+    },
+    "BƯỚC 255": {
+      "ngay": "2026-11-05",
+      "nguon": [
+        "CLAUDE.md @014da50",
+        "HANDOFF.md @014da50",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @014da50",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @64e3d3b",
+        "MO-XE-KIEN-TRUC.md @64e3d3b",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @f27bc50",
+        "references/loi-da-mac.md @cced339",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @014da50 phan6/6 (BUOC 251-255)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "TIEU-CHI-DOC-TRUOC.md @cced339"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với 014da50 014da50): 21 nguồn, 21 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 255 into docs/STATE.md: docs/STATE.md BƯỚC 255 records documentation-only corrections after a read-only pipeline review of 05/11/2026; no code, workflow or cron behaviour changes. (1) CLAUDE.md now says: the real ledger is on Google Sheets and paper_trades.db is not read for state; the daily scan's measured run times (05/11/2026, the last 40 scheduled quet-so-lenh runs: 0 created before 13:53 ICT, 10 between 13:53 and 14:59, 30 from 15:00; the four bells lag a median of 6.1-6.5 hours, min 4.1, max 10.2) are added next to the unchanged cron times and replace the older claim of a 4-4.7 hour median lag; eight workflows are active (chuong-bai-hoc, hau-kiem-loi and soat-tuan were missing); the Sheets ledger has a fifth tab hau_kiem, append-only, written by tools/hau_kiem_loi.py and not by the run_daily push; the daily-flow diagram is docs/hinh/mot-ngay-cua-agent-sang.svg while architecture_asbuilt.html is only a snapshot of 13/08/2026 whose per-level counts and paper_trades.db node are no longer true; the Dow cells (cau_truc_gia) and the D-W-M candles (khung_thoi_gian) are display-only, ĐO 34 outcome A. (2) LO-TRINH.md gets a new row B7 for Dow price structure (display-only, ĐO 34 outcome A at BƯỚC 253), C1 opened early on 28/10/2026 (BƯỚC 238), D2 and D3 opened early (D3 is only a borrowed code for ĐO 30-33), B1 lists the fallback model gemini-3.5-flash-lite, T3 is marked 'no delivery path yet', and the cloud-credit line records the user's report of 28/10/2026 that it ran out. (3) MO-XE-KIEN-TRUC.md and SKILL.md get dated corrections (tv_indicators is filled with self-computed indicators, debate_agents.py has 486 lines, news is no longer in the score formula, the Safety Harness has a test file, cua_doc_bat_buoc also matches NotebookEdit). (4) BƯỚC 244-253 keep their declared milestone B5, borrowed before B7 existed. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a source saying the real ledger is paper_trades.db, or that it has stood still since 20/08/2026, a source saying the bells' median delay is 4-4.7 hours, or that scans run at 09:00-11:30 and 13:00-15:30 Vietnam time as a measured fact, a source listing only four workflows or only four ledger tabs, a source saying architecture_asbuilt.html is the only diagram that tells the truth, a source saying Dow or D-W-M belongs to milestone B5 or has no row in the roadmap, a source saying the cloud credit expires on 05/11/2026, a source saying every push appends only new rows to every tab, or that B1 has no fallback model, a source saying momentum is constant in the long window or tv_indicators is empty. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "bbcc3c0210bab45d402683bf075dd407ab70e163db5c8cad4bbf9173217dc692",
+        "dai16": 3015,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 10,
+            "nguon": "CLAUDE.md @014da50"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 15,
+            "nguon": "LO-TRINH.md @64e3d3b"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 16,
+            "nguon": "LO-TRINH.md @64e3d3b"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 16,
+            "nguon": "LO-TRINH.md @64e3d3b"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 19,
+            "nguon": "LO-TRINH.md @64e3d3b"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 20,
+            "nguon": "LO-TRINH.md @64e3d3b"
+          },
+          {
+            "n": 21,
+            "nguon": "MO-XE-KIEN-TRUC.md @64e3d3b"
+          },
+          {
+            "n": 22,
+            "nguon": "MO-XE-KIEN-TRUC.md @64e3d3b"
+          },
+          {
+            "n": 23,
+            "nguon": "MO-XE-KIEN-TRUC.md @64e3d3b"
+          },
+          {
+            "n": 23,
+            "nguon": "MO-XE-KIEN-TRUC.md @64e3d3b"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          },
+          {
+            "n": 2,
+            "nguon": "STATE.md @014da50 phan6/6 (BUOC 251-255)"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, hỏi thật, câu trả lời ÂM (lối thoát): sổ tay nói không có chỗ nào mâu thuẫn hay bị biến thành sai. Lượt hỏi 05/11/2026 sau khi xoá nhật ký chat (0 trả lời trước), 21/21 nguồn tươi so với 014da50 (nhãn nhan_014da50.txt, bắt tay sha256 KHỚP bbcc3c02…). Câu trả lời KHÔNG có đoạn trích nguyên văn nào (31 chỉ số trích dẫn, 21 trỏ vào chính mục STATE BƯỚC 255 của tôi, nên phần lớn nó chép lại khẳng định của BƯỚC) — nên `tools/doi_chieu_trich_dan.py` không có gì để đối chiếu; tự kiểm từng khẳng định bằng lệnh, và tìm vế ÂM bằng grep vì lối thoát chỉ chặn bịa, không chặn bỏ sót. (1) 'trễ 4–4,7 giờ trong CLAUDE.md và STATE.md đều đã mang dấu HẾT ĐÚNG': ĐÚNG MỘT PHẦN. `grep -rnaE '4[–-]4,7|4,7 GIỜ'` trên CLAUDE.md README.md HANDOFF.md LO-TRINH.md skill MO-XE .github *.py tests: CLAUDE.md 0 chỗ (đã gỡ ở BƯỚC này); STATE.md dòng 899 có khối ⚠️ nhưng khối ấy nói về con số '5 → 90 phút', không đánh dấu HẾT ĐÚNG cho 4–4,7; bốn workflow `chuong-*`/`canh-cong-c5` còn câu 'trễ trung vị 4–4,7 GIỜ' KHÔNG dấu (BỎ SÓT của sổ tay: nó không đọc `.github/`) — ĐÃ sửa, thêm '(⚠️ đo lại 05/11/2026: 6,1–6,5 GIỜ, xem CLAUDE.md)'. Còn lại là sử liệu có ngày rõ (03/09 và 17/09/2026): HANDOFF.md:744, `do_tre_khop.py:14`, `tests/test_lich_cron_chuong.py:3`, STATE.md:899 — để nguyên. (2) '8 workflow ở CLAUDE.md và HANDOFF.md': ĐÚNG khi gộp — CLAUDE.md dòng 307 nêu tên đủ tám (bốn ở đoạn trên + bốn tên), bảng cron/secret chỉ ở HANDOFF.md mục 2 (`grep -n 'Tám workflow' CLAUDE.md docs/HANDOFF.md`); `gh workflow list --all` ra 8. (3) MO-XE: `packet.tv_indicators.update` ở `paper_runner.py:205` (không rỗng); `wc -l debate_agents.py` = 486; `news_norm` ở `master_agent.py:184` không nằm trong `pre_debate_score` (dòng 233–237); `tests/test_safety_harness.py` tồn tại (8 test); cửa `cua_doc_bat_buoc` khớp `Read|Write|Edit|NotebookEdit` (`docs/cua-du-an.json:48`) — cả năm khớp. (4) VẾ ÂM, grep các câu cũ còn sống không dấu: 'chỉ thêm dòng mới' chỉ còn docstring đúng của `sheets_store.push` (decisions) và test mới; 'architecture_asbuilt … nói thật' 0 chỗ; 'hết hạn 05/11' chỉ còn LO-TRINH.md:298 (đã đánh dấu HẾT ĐÚNG) và STATE; danh sách bốn workflow 0 chỗ (CLAUDE.md:283 'ba workflow … bật lại 28/09' là sử liệu có ngày); 'paper_trades.db đứng yên từ 20/08' CÒN ở comment/docstring mã: `app.py:480`, `paper_trading.py:190`, `so_lenh_app.py:3`, `tests/test_ban_tin.py:767`, `references/loi-da-mac.md:1517`, STATE.md:3315 — KHÔNG sửa (chuỗi này chỉ có chứng cứ mtime 29/09, không phải nội dung; ghi nhận ở STATE BƯỚC 255); Dow gắn 'mốc B5' như sự thật hiện hành còn ở `app.py:1355` và `cau_truc_gia.py:3` — ĐÃ thêm 'mượn; mã riêng B7 từ BƯỚC 255' (hai chỗ khác ghi 'mượn' hoặc là mốc của khung D-W-M thật sự thuộc B5). Kết luận: câu ÂM của sổ tay đúng ở phạm vi tài liệu nó thấy, nhưng bỏ sót 4 chú thích workflow và hai chú thích mã vì chúng nằm ngoài nguồn."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

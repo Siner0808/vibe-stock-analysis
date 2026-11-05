@@ -1,6 +1,6 @@
 """Đọc cấu trúc giá — đỉnh/đáy xoay chiều theo hai cấp (BƯỚC 247, Dow Lát 1) cùng BOS / CHoCH,
 trạng thái Dow và chu kỳ 4 giai đoạn (BƯỚC 249, Dow Lát 2), đọc để HIỆN trên app (BƯỚC 250, Dow Lát 3).
-Mốc B5 mượn.
+Mốc B5 mượn (mã riêng B7 từ BƯỚC 255).
 
 CHỈ ĐỂ ĐỌC, KHÔNG CHẤM ĐIỂM. Đặc tả: `docs/thiet-ke-dow-cau-truc.md` mục 5.1–5.9 và 6.
 Lát 1 = LÕI PIVOT; Lát 2 (cuối file) = sự kiện phá mốc theo cấp, thủy triều · mốc phủ định · con sóng,

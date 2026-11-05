@@ -49,8 +49,9 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
 # Kỳ vọng: 0 CHẶN. Số cảnh báo thì đổi, không phải tiêu chí.
 
 ./.venv/Scripts/python.exe tools/kiem_test_chay_rieng.py
-# MỌI file test phải xanh khi chạy MỘT MÌNH. ~200s, tuần tự (song song
-# cho đỏ giả). Mã thoát 2 = CHƯA KIỂM ĐƯỢC, không phải sạch.
+# MỌI file test phải xanh khi chạy MỘT MÌNH (mỗi file một tiến trình). Mặc định chạy nhiều file
+# cùng lúc (ba phần tư số nhân, `tools/kiem_test_chay_rieng.py`, BƯỚC 201); thời gian tuỳ máy.
+# Mã thoát 2 = CHƯA KIỂM ĐƯỢC, không phải sạch.
 # CI cũng chạy; chạy tay khi vừa sửa hoặc thêm test.
 
 ./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py
@@ -131,8 +132,9 @@ Hai file mâu thuẫn thì file mới hơn đúng: `HANDOFF` → `STATE` → `CL
    ảo chờ khớp (HHP · MSR · PVT · DCL · HDB · GEL, tín hiệu 25/09).
    *(Bản trước ghi "đang ĐÓNG, đóng bằng tay từ 29/08/2026" — đúng tới
    BƯỚC 125. Sổ tay soát BƯỚC 125 KHÔNG chỉ ra câu này; `grep` bắt được.)*
-2. **Sổ lệnh THẬT nằm trên Google Sheets.** File `.db` ở máy đứng yên từ
-   20/08/2026; đo trạng thái bằng nó là đo một bản sao chết. Đã sai đúng
+2. **Sổ lệnh THẬT nằm trên Google Sheets.** File `.db` ở máy không phải sổ thật
+   (⚠️ câu cũ "đứng yên từ 20/08/2026" SAI về ngày: `ls -l --time-style=long-iso paper_trades.db` cho
+   29/09/2026, đo 05/11/2026, chỉ đọc mtime); đo trạng thái bằng nó là đo một bản sao chết. Đã sai đúng
    như vậy một lần ngày 28/08.
 3. **Ngưỡng của điều kiện dừng được SUY RA, không gõ tay.** Muốn biết giá
    trị thì đọc mã, đừng đọc con số trong tài liệu — kể cả tài liệu này.
@@ -220,6 +222,19 @@ lực 82%. Hướng *chung* chưa bị bác — nhưng nó không còn một ứ
 > này** — đúng hình dạng **lỗi 57** mà ô đỏ ngay trên mô tả: phép sửa
 > viết vào file THẤP HƠN trong khi `HANDOFF` đứng đầu thứ tự ưu tiên.
 > Người đọc **đúng luật** sẽ dừng ở đây và không bao giờ tới chỗ đã ghi.
+
+**Tám workflow đang bật** (`gh workflow list --all`, đo 05/11/2026; BƯỚC 255 chuyển bảng này từ `CLAUDE.md` vì trần ký tự; cron UTC, thứ Hai–thứ Sáu trừ khi ghi khác):
+
+| Workflow | Cron | Làm gì | Secret |
+|---|---|---|---|
+| `quet-so-lenh.yml` | `0,30 2-4` · `0,30 6-8` | kéo sổ → cảnh báo → quét 71 mã → đối chiếu | `STREAMLIT_SECRETS_TOML` |
+| `chuong-bao-quet.yml` | `23 9` | có lượt quét `success` trong ba ngày gần nhất? | `GITHUB_TOKEN` |
+| `canh-cong-c5.yml` | `43 9` | điều kiện dừng đạt mà cổng mở lệnh còn mở? | `STREAMLIT_SECRETS_TOML` |
+| `chuong-bai-hoc.yml` | `53 9` | lệnh đóng quá một phiên chưa có bài học? | `STREAMLIT_SECRETS_TOML` |
+| `chuong-nguon-dung.yml` | `17 10` | có phiên giao dịch mà không có nến mới? | không |
+| `hau-kiem-loi.yml` | `17 11` | hậu kiểm bằng lời (B1): thêm dòng vào tab `hau_kiem` | `STREAMLIT_SECRETS_TOML` · `GEMINI_API_KEY` |
+| `soat-tuan.yml` | `41 2` thứ Hai | phần máy của soát định kỳ (`::warning::`) | không |
+| `kiem-dinh.yml` | trên `push` và `pull_request` | năm cổng gác | không |
 
 ---
 
@@ -316,6 +331,8 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 
 ## 5. VIỆC ĐANG TREO
 
+> 🧭 **05/11/2026 — BƯỚC 255: sửa lỗi tài liệu do soát pipeline chỉ đọc (4 SAI + 26 SAI MỘT PHẦN; một phát hiện, 2.33, BỊ BÁC khi đo lại) + `docs/LO-TRINH.md` (hàng mới B7 cho Dow, C1 mở sớm 28/10, D2 · D3 mở sớm, B1 thêm model dự phòng, T3 *"chưa có đường giao"*, tín dụng đám mây hết theo lời người dùng 28/10) + sơ đồ `docs/hinh/mot-ngay-cua-agent-*.svg` vẽ lại + `architecture_asbuilt.html` gắn nhãn bản chụp 13/08/2026.** Chỉ tài liệu, chú thích và dòng chú thích trên app; mã, workflow, cron, đường giao KHÔNG đổi. **Giờ ĐO thật (05/11/2026, `gh run list … --limit 40 --event schedule`): 0/40 lượt `quet-so-lenh` tạo trước 13:53 giờ VN, 10 lượt 13:53–14:59, 30 lượt từ 15:00; bốn chuông trễ trung vị 6,1–6,5 giờ.** Danh sách chờ (người dùng *"Ghi danh sách chờ, bàn sau (Recommended)"*): lượt quét chạy sau đóng cửa nên cảnh báo nội phiên hiếm kêu đúng phiên · bản tin B2 chưa có đường giao (T3) · chấm bóng và sân đấu không có cron. BƯỚC 244–253 khai mốc B5 khi hàng B7 chưa có (mượn mã; không viết lại mục cũ). **PR PHẢI hợp nhất bằng `--merge`.** Chi tiết, lệnh, giả thuyết bị bác: `docs/STATE.md` BƯỚC 255.
+>
 > 🧭 **04/11/2026 — BƯỚC 254: soát định kỳ 16 (phần máy và phán, đúng hạn) + ĐO 27 lượt đọc 5.** 77 lời khai mở lại và phán bằng lệnh chạy hôm nay: 62 THẬT · 10 SAI (7 đã đánh dấu từ trước, 3 mới và nay đã đánh dấu) · 5 SAI MỘT PHẦN (3 đã đánh dấu từ trước, 2 mới và nay đã đánh dấu); sáu lời khai mới là sáu khối 🧭 BƯỚC 237–249 của chính tệp này, năm trong sáu hết đúng theo thời gian (ô ⚠️ ngay dưới). Phần ngoài công cụ chính chạy bằng `tools/soat_ngoai_cong_cu.py` (lệnh ghi kèm cây): 105 câu từ diff 11 tệp `.md` a877ca6 → cced339, gồm 90 THẬT · 5 KHÔNG KIỂM · 6 SAI · 4 SAI MỘT PHẦN; ba chỗ sửa tại chỗ (skill `dow-theory-analysis` dòng 8, hàng G2 của `docs/thiet-ke-c1-san-dau.md`, ô ⚠️ dưới đây). Đường ngoài repo 0 chết · 18 sử liệu · 72 còn. **ĐO 27 lượt đọc 5: CHƯA ĐỦ** — quần thể 5 lệnh đóng sau 15/10 (#128 TCB · #130 AAA · #131 GIL · #132 ACV · #133 HCM, cả năm đóng STOP_LOSS); 4 lệnh có lịch VCI và 0 lệnh trong số đó mang nhãn; riêng #128 TCB MANG nhãn `SU_KIEN_TRONG_LUC_GIU` (cùng #122) nhưng lịch VCI của TCB hết giờ đọc (read timeout 30 s), nên lượt này không phân loại được nó là dương thật hay dương tính giả — việc của người dùng quyết có đọc bổ sung lịch TCB hay đợi lượt kế. Ba đối chứng (i) (ii) (iii) QUA. Không file luật nào cần sửa; một đề xuất lỗi ở STATE. Lượt 17: 11/11. Chi tiết: `docs/STATE.md` BƯỚC 254.**
 >
 > ⚠️ **04/11/2026 (BƯỚC 254, soát 16): năm chỗ ở các khối 🧭 BƯỚC 237–249 bên dưới hết đúng theo thời gian; câu cũ giữ nguyên.** (1) BƯỚC 238 (câu nói mã chưa viết) và BƯỚC 239 (câu nói `san_dau.py` chưa xuất hiện): mã vào `main` từ 29/10/2026 (BƯỚC 239 lúc 09:44, BƯỚC 240 lúc 13:10, giờ VN). (2) BƯỚC 244 (hai câu nói mô-đun còn là đặc tả và repo vắng swing / internal / BOS / CHoCH / HH-HL): `cau_truc_gia.py` vào `main` từ 30/10 (BƯỚC 247). (3) BƯỚC 249 (câu "CHỈ ĐỂ ĐỌC" loại trừ app): phần app hết đúng từ 03/11 (BƯỚC 250, PR #296, hai ô trên app); phần điểm và sổ lệnh vẫn đúng. (4) BƯỚC 242 (câu nói KTC vắng): KTC có cặp dựng ở BƯỚC 243, sửa và khoá ở BƯỚC 248. (5) BƯỚC 237 ở STATE (câu nói chưa lượt B1 nào chạy với lời dặn mới): đã có 5 lượt B1 `success` từ khi BƯỚC 237 vào `main`; việc đọc xem model còn viết "VNI" hay không nằm ở tab `hau_kiem` trên Sheets, lượt soát này không làm. Đo lại: `tools/soat_ngoai_cong_cu.py diff a877ca6 cced339`; chi tiết `docs/STATE.md` BƯỚC 254.
@@ -354,7 +371,7 @@ vì máy quét không phân biệt được *nhắc lại* với *trỏ tới*.
 >
 > 🧭 **28/10/2026 — BƯỚC 237: lời dặn B1 nói thẳng tên chỉ số — câu của luật `ma-co-nguon` thêm *"chỉ số thị trường luôn viết đủ tên VN-INDEX"*; máy kiểm (`VIET_TAT`, `_MA`) KHÔNG đổi, "VNI" vắng khỏi dữ kiện vẫn bị bác (BƯỚC 234: VNI là mã niêm yết thật). Người dùng: *"làm nốt"*. Chỉ đổi `bam_loi_dan` của các dòng `hau_kiem` viết từ nay (chỉ được ghi vào dòng, không dùng để chọn lệnh nào viết lại — đã grep).** Chi tiết: `docs/STATE.md` BƯỚC 237.
 >
-> 📌 **Ghi chép theo yêu cầu người dùng 28/10/2026 (*"note lại"*) — LẦN SỬA `docs/LO-TRINH.md` KẾ TIẾP phải làm gộp một việc:** thêm model dự phòng `gemini-3.5-flash-lite` (BƯỚC 233, `hau_kiem_loi.MODEL_DU_PHONG`: khi 3.8 Flash quá tải B1 gọi MỘT lần model này) vào dòng B1 (:195). `LO-TRINH.md` là file luật nên BƯỚC chạm nó phải hỏi sổ tay thật (Quy tắc 3) — vì thế không sửa riêng ở BƯỚC 237 mà đợi một lần chạm khác. Dòng B1 hiện chỉ nêu 3.8 Flash: không sai (model chính), chỉ thiếu model dự phòng.
+> 📌 **Ghi chép theo yêu cầu người dùng 28/10/2026 (*"note lại"*) — LẦN SỬA `docs/LO-TRINH.md` KẾ TIẾP phải làm gộp một việc:** thêm model dự phòng `gemini-3.5-flash-lite` (BƯỚC 233, `hau_kiem_loi.MODEL_DU_PHONG`: khi 3.8 Flash quá tải B1 gọi MỘT lần model này) vào dòng B1 (:195). `LO-TRINH.md` là file luật nên BƯỚC chạm nó phải hỏi sổ tay thật (Quy tắc 3) — vì thế không sửa riêng ở BƯỚC 237 mà đợi một lần chạm khác. Dòng B1 hiện chỉ nêu 3.8 Flash: không sai (model chính), chỉ thiếu model dự phòng. ✅ **LÀM Ở BƯỚC 255 (05/11/2026):** dòng B1 của `docs/LO-TRINH.md` đã nêu model dự phòng.
 
 > 🧭 **28/10/2026 — BƯỚC 235: soát định kỳ 15 (phần máy và phán), làm sớm 5 ngày. 71/71 lời khai mở lại và phán bằng lệnh hôm nay: 61 THẬT · 7 SAI đã đánh dấu · 3 SAI MỘT PHẦN đã đánh dấu · 0 chưa dấu; đường ngoài repo 0 chết · 18 sử liệu · 72 còn. Phần ngoài công cụ chạy bằng `tools/soat_ngoai_cong_cu.py` (lệnh ghi kèm cây): 17 câu diff, 14 câu STATE BƯỚC 230–233, hàng bảng 68 · 47 — không câu sai chưa xử lý, không lỗi mới, không file luật nào cần sửa (một dòng tuỳ chọn ở `docs/LO-TRINH.md` B1). ĐO 27 lượt đọc 4: CHƯA ĐỦ (quần thể 0 lệnh — sổ có lệnh mới MỞ 27/10, chưa lệnh nào đóng sau 15/10). Sổ tay NotebookLM tươi về `a877ca6` (19 nguồn, STATE tới BƯỚC 234). Lượt 16: 04/11 ✅ (làm đúng 04/11, BƯỚC 254).** Chi tiết: `docs/STATE.md` BƯỚC 235.
 >
