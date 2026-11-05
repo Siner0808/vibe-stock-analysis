@@ -28,7 +28,7 @@ on:
     # 10:17 UTC = 17:17 ICT — sau giờ đóng cửa và sau cả hai chuông kia
     # (báo quét 09:23, cổng C5 09:43) để ba chuông không lẫn trong hộp thư.
     # LỆCH KHỎI MỐC :00 VÀ :30 CÓ CHỦ ĐÍCH (03/09/2026)
-    # Đo được: nhịp ở 09:00 và 09:30 UTC trễ trung vị 4–4,7 GIỜ, trong khi
+    # Đo được: nhịp ở 09:00 và 09:30 UTC trễ trung vị 4–4,7 GIỜ (⚠️ đo lại 05/11/2026: 6,1–6,5 GIỜ, xem CLAUDE.md), trong khi
     # tài liệu dự án ghi "5 → 90 phút". Tài liệu GitHub khuyên tránh đầu
     # giờ vì đó là lúc nhiều workflow cùng xin chạy nhất.
     # Đây là GIẢ THUYẾT, chưa phải phép sửa đã chứng minh — tiêu chí phán

@@ -1352,7 +1352,7 @@ ke_hoach = _kh.lap_ke_hoach(df, mult, score, BUY_THRESHOLD, end_date, san_gd)
 dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 
 # DOW-BAT-DAU
-# ── CẤU TRÚC GIÁ THEO LÝ THUYẾT DOW (BƯỚC 250, Dow Lát 3, mốc B5) — CHỈ ĐỂ HIỆN ──
+# ── CẤU TRÚC GIÁ THEO LÝ THUYẾT DOW (BƯỚC 250, Dow Lát 3, mốc B5 mượn; mã riêng B7 từ BƯỚC 255) — CHỈ ĐỂ HIỆN ──
 #
 # Hai ô cạnh "Pha Wyckoff" + một khối mở ở cột biểu đồ. KHÔNG đổi điểm, `dyn_rec`,
 # phán quyết kế hoạch hay `result`: biến `cau_truc` và `_ct_*` chỉ xuất hiện trong
