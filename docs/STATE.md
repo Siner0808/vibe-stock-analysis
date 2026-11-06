@@ -25612,7 +25612,7 @@ Phiên con của leader, nhánh `c4/dac-ta-259` từ `origin/main` `3d87a20`, wo
 
 **Giả thuyết đã dựng rồi bỏ trong lúc viết.** (i) Ngưỡng "chance" của tiêu chí A0 ban đầu viết theo tỷ lệ gần đúng cho R = 400; R của NULL là 1.000 nên chốt bằng số nguyên 317/1000 (phân vị 99,9% của nhị thức). (ii) Ứng viên "xấu" ban đầu tên B, trùng chữ B của điểm đã ghi; đổi thành H (hại). Không phép đo nào chạy trên dữ liệu thật.
 
-**Lượt soát NotebookLM.** BƯỚC này sửa `docs/LO-TRINH.md` — file luật theo `tools/buoc_cham_luat.py` — nên phải hỏi thật (điền kết quả sau khi leader dán câu hỏi).
+**Lượt soát NotebookLM (hỏi thật).** BƯỚC này sửa `docs/LO-TRINH.md` — file luật theo `tools/buoc_cham_luat.py` (`CHAM LUAT ['docs/LO-TRINH.md']`) — nên hỏi thật, một lượt, 06/11/2026, sau khi xoá nhật ký chat (0 trả lời trước), 23/23 nguồn tươi so với `3d87a20`. Câu hỏi (1398 đơn vị UTF-16) nêu ba kết luận sắp viết: C4 mới là đặc tả không mã; "tìm ra" và "nâng cấp" không có mã, vòng xác nhận chạy tay; dòng C1 *"phương án thứ ba theo B6 chưa có trong sổ"* đã cũ. Trả lời ÂM (không mâu thuẫn), không có trích dẫn nguyên văn nên `tools/doi_chieu_trich_dan.py` không có gì để đối chiếu; tôi tự kiểm cả hai chiều bằng grep (chi tiết ở ô `_tu_kiem_cau_am` của `docs/soat-notebooklm.json`): 0 workflow gọi `cham_xac_nhan`/`san_dau`/`cham_bong`; vế âm bị sổ tay bỏ sót là `docs/HANDOFF.md` :793 và `docs/STATE.md` :17595 (*"tự lên phiên bản"*) — hướng người dùng chọn 25/09, không phải mã; một câu của chính đặc tả ("chưa workflow nào gọi" như lỗ hổng) được sửa vì LO-TRINH đã đóng nó là chủ ý. Lệnh: `./.venv/Scripts/python.exe tools/so_tay.py hoi --buoc "BƯỚC 259" --ket-luan … --vi-du … --js`.
 
 **Năm cổng ở máy.** (điền sau lượt cổng)
 
