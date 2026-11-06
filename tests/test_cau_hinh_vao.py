@@ -113,12 +113,17 @@ def test_buy_threshold_TUONG_MINH_thang_cau_hinh_va_cau_hinh_thang_module(monkey
     assert thu(_cfg(buy_threshold=62)) is None, "đọc cờ module dù đã có cau_hinh"
 
 
-def test_fill_pending_luat_khop_chua_co_thi_NO_khong_bo_qua_lang_le():
+def test_fill_pending_luat_khop_khong_bo_qua_lang_le_va_khong_dung_den_duong_that():
+    """BƯỚC 257 (Lát 4 của C1): `luat_khop` có thật. Một đối tượng KHÔNG đúng giao thức thì NỔ (không bị
+    bỏ qua), nhưng chỉ khi có lệnh chờ để xét; không truyền nó thì hành vi cũ."""
     so = pt.PaperTradingJournal(":memory:")
     try:
-        with pytest.raises(NotImplementedError):
+        assert so.fill_pending("FPT", "2026-09-04", 30_000.0, None, luat_khop=object()) == 0   # rỗng: không xét gì
+        so.db.execute("INSERT INTO trades (symbol, exchange, signal_date, size_pct, status, created_at)"
+                      " VALUES ('FPT', 'HOSE', '2026-09-03', 10.0, 'PENDING', 0)")
+        with pytest.raises(AttributeError):
             so.fill_pending("FPT", "2026-09-04", 30_000.0, None, luat_khop=object())
-        assert so.fill_pending("FPT", "2026-09-04", 30_000.0, None) == 0
+        assert so.fill_pending("FPT", "2026-09-04", 30_000.0, None) == 1
     finally:
         so.db.close()
 

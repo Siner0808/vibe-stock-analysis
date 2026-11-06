@@ -158,8 +158,8 @@ def test_sut_giam_toi_da_va_dem_lenh():
     assert sd.sut_giam_toi_da(r, list(r)) == pytest.approx(1.2)           # đỉnh 1,0 → đáy −0,2
     assert sd.sut_giam_toi_da({"a": -0.3, "b": -0.2}, ["a", "b"]) == pytest.approx(0.5)   # đỉnh khởi đầu 0
     assert sd.sut_giam_toi_da({}, []) == 0.0
-    ds = [{"status": s} for s in ("CLOSED", "CLOSED", "OPEN", "CLOSING", "PENDING", "HUY")]
-    assert sd.dem_lenh(ds) == {"dong": 2, "mo": 2, "cho": 1, "huy": 1}
+    ds = [{"status": s} for s in ("CLOSED", "CLOSED", "OPEN", "CLOSING", "PENDING", "HUY", "EXPIRED")]
+    assert sd.dem_lenh(ds) == {"dong": 2, "mo": 2, "cho": 1, "huy": 1, "het_han": 1}
     assert sd.dem_theo_nhan([{"signal_date": "2026-08-27"}, {"signal_date": "2026-09-01"},
                              {"signal_date": "2026-11-01"}], "2026-10-29") == {
         sd.NHAN_MO_PHONG: 1, sd.NHAN_DA_NHIN: 1, sd.NHAN_CHUA_NHIN: 1}
@@ -390,7 +390,7 @@ def test_phat_lai_chi_nhan_cong_do_rong_khi_nguon_tu_khai_co_do_rong(gia):
     tk.dong()
     # mọi cấu hình CHƯA có đầu vào vẫn bị từ chối, kể cả khi nguồn có độ rộng
     ok = sd.NguonDoRong(sd.co_tu_gia(_gia_tong_hop()))
-    for kw, loi in ((dict(luat_vao="KE_HOACH_B6"), NotImplementedError),
+    for kw, loi in ((dict(luat_vao="KE_HOACH_B6"), ValueError),     # BƯỚC 257: thiếu ke_hoach
                     (dict(loc_imom_phan_vi=0.2), ValueError), (dict(chot_sut_giam_nguong=0.15), ValueError)):
         with pytest.raises(loi):
             sd.phat_lai(_cfg(do_rong_nguong=0.5, cong_vni_bat=False, **kw), [], cho, ok)

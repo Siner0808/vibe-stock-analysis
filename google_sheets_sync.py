@@ -184,6 +184,17 @@ def load_hau_kiem_from_google_sheets(backend: Any = None) -> Optional[list[dict]
     return _ss.doc_hau_kiem(b)
 
 
+def load_quyet_dinh_san_dau_from_google_sheets(backend: Any = None) -> Optional[list[dict]]:
+    """Tab `decisions` đủ cột cho bộ phát lại của sân đấu, từ Sheets, CHỈ ĐỌC (BƯỚC 257).
+
+    None nghĩa là kho ngoài CHƯA cấu hình; `[]` nghĩa là đã cấu hình mà tab chưa có dòng nào.
+    """
+    b = get_backend(backend)
+    if b is None:
+        return None
+    return _ss.doc_quyet_dinh_san_dau(b)
+
+
 def load_ke_hoach_from_google_sheets(backend: Any = None) -> Optional[list[dict]]:
     """Tab `ke_hoach` từ Sheets, CHỈ ĐỌC — kế hoạch vào lệnh ĐÃ GHI lúc quét (BƯỚC 198).
 

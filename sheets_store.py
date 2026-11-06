@@ -307,6 +307,15 @@ COT_QUYET_DINH_BAN_TIN: tuple[str, ...] = (
 )
 
 
+#: Cột của tab `decisions` mà bộ phát lại của SÂN ĐẤU cần (BƯỚC 257): `chon_quyet_dinh` đọc `seq`, `at`, `symbol`,
+#: `signal_date`; `ket_qua_tu_dong` đọc `score`, `recommendation`, `data_quality`, `components`, `reasons`. Bản tin
+#: (`COT_QUYET_DINH_BAN_TIN`) bỏ ba cột cuối, nên KHÔNG đủ: thiếu `data_quality` thì cổng chất lượng dữ liệu chặn
+#: mọi tín hiệu.
+COT_QUYET_DINH_SAN_DAU: tuple[str, ...] = (
+    "seq", "at", "symbol", "signal_date", "score", "recommendation", "data_quality", "components", "reasons",
+)
+
+
 def _doc_tab(backend: SheetBackend, tab: str, cols: tuple[str, ...],
              giu: tuple[str, ...] | None = None) -> list[dict]:
     """Một tab -> list dict, qua `_from_cell`. Tab rỗng -> `[]`; header lệch thì NỔ."""
@@ -337,6 +346,14 @@ def doc_so_ban_tin(backend: SheetBackend) -> dict[str, list[dict]]:
         # B1 (BƯỚC 205): hậu kiểm bằng lời đã viết — bản tin hiện bản DAT mới nhất.
         "hau_kiem": _doc_tab(backend, TAB_HAU_KIEM, HAU_KIEM_COLS),
     }
+
+
+def doc_quyet_dinh_san_dau(backend: SheetBackend) -> list[dict]:
+    """CHỈ ĐỌC tab `decisions` với các cột mà bộ phát lại của sân đấu cần (BƯỚC 257, `COT_QUYET_DINH_SAN_DAU`).
+
+    Cho tab "🏟️ Sân đấu" của app, chạy khi người dùng bấm nút (không chạy lúc tải trang). Tab rỗng hay chưa có
+    thì `[]`; tiêu đề lệch thì NỔ. Chỉ gọi `read_rows`."""
+    return _doc_tab(backend, TAB_DECISIONS, DECISION_COLS, COT_QUYET_DINH_SAN_DAU)
 
 
 def doc_ke_hoach(backend: SheetBackend) -> list[dict]:

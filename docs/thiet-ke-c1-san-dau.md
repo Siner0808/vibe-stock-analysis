@@ -345,3 +345,15 @@ Bản đầu của đặc tả (28/10/2026) để bảy câu mở, mỗi câu k�
 Ghi chú: các câu 4a–4d được hỏi chung một hộp (bốn điểm của phiên con), người dùng trả lời một lần cho cả bốn; bảng ghi cùng một câu trả lời ở bốn hàng vì thế.
 
 Không còn câu mở nào. Việc tiếp theo là giao Lát 1 (mục 12).
+
+## 16. Ghi chú thi công Lát 4 (BƯỚC 257, 06/11/2026) — chỗ mã khác đặc tả, và vì sao
+
+Ghi sau khi viết mã, TRƯỚC khi có số nào của PB-003 trên dữ liệu cần khai trước. Mỗi điểm là một chỗ mà mục 7 hay mục 10.1 nói khác thứ làm được:
+
+1. **`khop_gioi_han.tim_khop` có thêm tham số `so_phien_cho`.** Mục 7 nói dụng cụ ĐO 25 "nhập lại và vẫn export tên cũ". `ke_hoach_vao_lenh` chỉ ba nơi được nhập (`tests/test_ke_hoach_vao_lenh.py`), nên module chung không đọc `SO_PHIEN_CHO`; dụng cụ ĐO 25 giữ tên và chữ ký cũ như một vỏ một dòng truyền `SO_PHIEN_CHO` (gác AST), `tests/test_do25_ke_hoach_vao_lenh.py` xanh không sửa. Sân đấu truyền cột `so_phien_cho` của dòng kế hoạch đã ghi.
+2. **Lệnh không bao giờ được đặt bị xoá NGAY** (`BO_QUA`, `CHUA_LAP_DUOC`, thiếu kế hoạch), không để tới phiên sau mới huỷ: dòng PENDING chiếm trần vốn và chặn mã khác cùng phiên. Chỉ `CHO_VUNG` hết hạn mới thành `EXPIRED` (mục 7 đúng ở vế này).
+3. **Đường đọc `decisions` đủ cột** (`sheets_store.doc_quyet_dinh_san_dau`). Mục 10.1 nói tab dùng "cùng lần đọc sổ lệnh của các tab khác"; lần đọc đó bỏ `components`, `reasons`, `data_quality`, mà bộ phát lại cần (thiếu `data_quality` thì cổng chất lượng dữ liệu chặn mọi tín hiệu).
+4. **Cửa sổ riêng của PB-003 = chạy lại CẢ đường thật lẫn PB-003 từ ngày có dòng kế hoạch đầu tiên**, cùng vị thế mang sang lấy từ sổ thật ở ngày ấy. Mục 7 nói "chỉ trên cửa sổ chung của cặp"; cắt theo ngày tín hiệu thôi là chưa đủ vì đường thật còn giữ vị thế mở từ trước ngày đó mà PB-003 không có kế hoạch để vào.
+5. **`LECH_THANG_GIA`.** Vùng chờ là giá tuyệt đối ở thang lúc quét; khung giá tải hôm nay có thể đã điều chỉnh quyền (đo 06/11/2026: 5 dòng TCB lệch 33,3%, 2 dòng MSR lệch 2,98%, 60/67 dòng lệch 0). `CHO_VUNG` lệch quá `san_dau.DUNG_SAI_THANG_GIA` thì không vào lệnh và được đếm riêng. Mục 7 không nhắc; thiếu nó, PB-003 "khớp" ở giá mở cửa đã điều chỉnh thấp hơn vùng cả một phần ba.
+6. **Chụp màn hình tab ở `http://localhost:8511/`** (mục 12) không làm được trong phiên con (app của người dùng chạy repo chính; phiên con không mở trình duyệt). Thay bằng chạy đúng mã `_khoi_san_dau` với `streamlit` giả trong test.
+7. **Giới hạn khai thẳng của luật vào:** cắt lỗ và cỡ vị thế vẫn tính từ giá đóng cửa ngày tín hiệu (bộ máy), nên một lệnh giới hạn khớp ở giá thấp có thể vào dưới cắt lỗ ban đầu; `tools/san_dau.py bang` đếm các lệnh ấy (`khop o gia <= cat lo`). Đây là hệ quả của "chỉ ĐỔI LUẬT VÀO" (mục 7), không phải lỗi phát lại.

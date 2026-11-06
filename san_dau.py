@@ -56,6 +56,24 @@ NHAN_DA_NHIN = "DA_NHIN"            # NGAY_TIEN_VE_TRUOC ≤ tín hiệu < khai_
 NHAN_CHUA_NHIN = "CHUA_NHIN"        # tín hiệu ≥ khai_ngay của phương án
 NHAN_TIEN_VE_TRUOC = "TIEN_VE_TRUOC"  # tài khoản không có khai_ngay (đường thật phát lại, rổ)
 
+#: Trạng thái RIÊNG của bộ phát lại (BƯỚC 257, đặc tả mục 7): lệnh giới hạn B6 hết hạn mà chưa khớp. KHÔNG
+#: thuộc `paper_trading.Status` — đường thật không bao giờ sinh nó; nó chỉ nằm trong sổ bộ nhớ của sân đấu.
+TRANG_THAI_HET_HAN = "EXPIRED"
+LY_DO_HET_HAN = "HET_HAN_CHO_VUNG"
+#: Tín hiệu đã qua mọi cổng khác mà tab `ke_hoach` không có dòng của nó: không vào lệnh, và được ĐẾM riêng.
+THIEU_KE_HOACH = "THIEU_KE_HOACH"
+#: Lệnh chờ vùng (`CHO_VUNG`) mà giá đóng cửa ngày tín hiệu của khung giá phát lại KHÁC `gia_dong` đã ghi lúc quét
+#: quá `DUNG_SAI_THANG_GIA`: vùng chờ là giá TUYỆT ĐỐI ở thang lúc quét, còn khung giá tải về hôm nay có thể đã được
+#: điều chỉnh sau một sự kiện quyền. So một vùng chưa điều chỉnh với giá đã điều chỉnh là khớp lệnh GIẢ (đo ngày
+#: 06/11/2026: 5 dòng TCB lệch đúng 33,3% — khớp ở giá mở cửa đã điều chỉnh thấp hơn vùng cả một phần ba — và 2 dòng
+#: MSR lệch 2,98%; 60/67 dòng kế hoạch lệch đúng 0). Không khớp được thì KHÔNG đoán: không vào lệnh, và đếm riêng.
+LECH_THANG_GIA = "LECH_THANG_GIA"
+#: Tỷ lệ lệch tối đa giữa `gia_dong` và đóng cửa khung giá, để coi hai bên cùng thang. Đặt SAU khi đo phân bố lệch
+#: (không nhìn lợi nhuận): mọi giá trị trong khoảng (0, 2,9%) phân loại GIỐNG HỆT trên dữ liệu đã đo.
+DUNG_SAI_THANG_GIA = 0.005
+#: Ngày lớn hơn mọi ngày thật: cửa sổ RIÊNG của PB-003 khi tab `ke_hoach` CHƯA có dòng nào (cửa sổ rỗng).
+NGAY_VO_CUC = "9999-12-31"
+
 
 def ngay10(x: Any) -> str:
     """Ngày phiên, mười ký tự đầu (nguồn trả `2026-09-25` hay `2026-09-25 00:00:00`)."""
@@ -277,6 +295,8 @@ class TaiKhoan:
     #: Từng phiên-mã bị đếm vào `dem["thieu_diem"]` / `dem["thieu_nen"]`, dạng `(mã, ngày)`.
     ds_thieu_diem: list = dataclasses.field(default_factory=list)
     ds_thieu_nen: list = dataclasses.field(default_factory=list)
+    #: `LuatKhopKeHoach` của lượt phát lại (BƯỚC 257), hay None khi luật vào là đường thật.
+    luat: Any = None
 
     def lenh(self) -> list[dict]:
         """Bảng `trades` của tài khoản (mười hai cột `COT_TUONG_DUONG`), theo thứ tự `id`."""
@@ -288,12 +308,118 @@ class TaiKhoan:
         self.nhat_ky.db.close()
 
 
+class LuatKhopKeHoach:
+    """`luat_khop` của PB-003 (`luat_vao = "KE_HOACH_B6"`, đặc tả mục 7) — dựng ở bộ phát lại từ các dòng
+    tab `ke_hoach` ĐÃ GHI lúc quét và các khung giá đã chuẩn hoá. Đổi DUY NHẤT luật VÀO: cắt lỗ, cỡ vị thế,
+    chốt, trailing, thoát theo điểm, trần giữ lệnh vẫn của bộ máy (SL từ phần rủi ro dựng lại, không phải `cat_lo`
+    của kế hoạch).
+
+    Hai chỗ bộ phát lại gọi nó:
+      · `xu_ly_lenh_moi` — NGAY SAU `buoc_phien` mở một lệnh PENDING: phán quyết `BO_QUA` · `CHUA_LAP_DUOC` · không
+        có dòng kế hoạch nghĩa là lệnh KHÔNG BAO GIỜ ĐƯỢC ĐẶT, nên dòng bị xoá ngay (không giữ vốn cho một lệnh
+        không tồn tại, điều sẽ chặn nhầm mã khác cùng phiên ở trần vốn) và tín hiệu được ĐẾM; `MUA_NGAY` và
+        `CHO_VUNG` ở lại PENDING;
+      · `xet` / `dong_het_han` — do `PaperTradingJournal.fill_pending(luat_khop=…)` gọi mỗi phiên có nến của mã.
+        `MUA_NGAY` khớp ở giá mở cửa của phiên đầu tiên sau tín hiệu (như đường thật). `CHO_VUNG` là lệnh giới hạn
+        mua ở `vung_tran`, hiệu lực `so_phien_cho` phiên có nến kể từ phiên SAU ngày tín hiệu, khớp nghiêm
+        (`khop_gioi_han.khop_mot_phien`); hết hạn mà chưa khớp thì đổi sang `TRANG_THAI_HET_HAN` bằng SQL ở ĐÂY.
+
+    Dòng trùng khoá (mã, ngày tín hiệu): giữ dòng `seq` NHỎ nhất — bản ghi đầu tiên là "lúc agent phán".
+    `ghi` = {(mã, ngày tín hiệu): phán quyết đã áp, hay `THIEU_KE_HOACH` / `LECH_THANG_GIA`} cho các lệnh mà bộ máy
+    đã mở.
+    """
+
+    def __init__(self, ke_hoach: Iterable[dict], khung: dict, san_cua: Callable[[str], str]):
+        import khop_gioi_han as kg
+        self._kg = kg
+        self.khung = khung
+        self.san_cua = san_cua
+        self.ke_hoach: dict = {}
+        for dong in sorted(ke_hoach, key=lambda d: float("-inf") if d.get("seq") is None else float(d["seq"])):
+            if dong["phan_quyet"] not in kg.PHAN_QUYET:
+                raise ValueError(f"ke_hoach {dong['symbol']} {dong['signal_date']}: phan_quyet "
+                                 f"{dong['phan_quyet']!r} không thuộc {kg.PHAN_QUYET}")
+            self.ke_hoach.setdefault((str(dong["symbol"]), ngay10(dong["signal_date"])), dong)
+        self.ghi: dict = {}
+        #: Lệnh `CHO_VUNG`/`MUA_NGAY` mà giá khớp cơ sở đã <= cắt lỗ BAN ĐẦU (vào là thủng SL; do bộ máy, không
+        #: do phát lại, nhưng PB-003 vào ở giá thấp nên phải ĐẾM, không để lặng lẽ).
+        self.khop_duoi_cat_lo: set = set()
+
+    def xu_ly_lenh_moi(self, nhat_ky: Any, ma: str, ngay: str) -> Optional[str]:
+        """Áp phán quyết của kế hoạch lên lệnh PENDING vừa mở cho (`ma`, `ngay`); trả phán quyết đã ghi, hay
+        None nếu phiên ấy không mở lệnh nào."""
+        import paper_trading as pt
+        ngay = ngay10(ngay)
+        r = nhat_ky.db.execute("SELECT id FROM trades WHERE symbol=? AND signal_date=? AND status=?",
+                               (ma, ngay, pt.Status.PENDING)).fetchone()
+        if r is None:
+            return None
+        dong = self.ke_hoach.get((ma, ngay))
+        loai = THIEU_KE_HOACH if dong is None else dong["phan_quyet"]
+        if loai == self._kg.CHO_VUNG:
+            if not (dong.get("vung_tran") and float(dong["vung_tran"]) > 0 and dong.get("so_phien_cho")
+                    and dong.get("gia_dong") and float(dong["gia_dong"]) > 0):
+                raise ValueError(f"{ma} {ngay}: CHO_VUNG mà không có vung_tran / so_phien_cho / gia_dong — "
+                                 f"dữ liệu hỏng, không đoán")
+            if not self._cung_thang_gia(ma, ngay, float(dong["gia_dong"])):
+                loai = LECH_THANG_GIA
+        self.ghi[(ma, ngay)] = loai
+        if loai not in (self._kg.MUA_NGAY, self._kg.CHO_VUNG):
+            nhat_ky.db.execute("DELETE FROM trades WHERE id=?", (int(r["id"]),))
+            nhat_ky.db.commit()
+        return loai
+
+    def _cung_thang_gia(self, ma: str, ngay: str, gia_dong: float) -> bool:
+        """Đóng cửa của khung giá phát lại ở ngày tín hiệu (quy về VNĐ) có cùng thang với `gia_dong` đã ghi không."""
+        from data_quality import price_multiplier
+        df, _, vi_tri = self.khung[ma]
+        i = vi_tri[ngay]
+        dong_cua = float(df["close"].iloc[i]) * price_multiplier(df.iloc[: i + 1])
+        return abs(dong_cua / gia_dong - 1.0) <= DUNG_SAI_THANG_GIA
+
+    def xet(self, lenh: dict, ngay: str, nen: dict) -> tuple:
+        """`(khớp, giá khớp cơ sở VNĐ, hết hạn)` của lệnh chờ `lenh` ở phiên `ngay` (`nen` có `open`, `low`)."""
+        ma, tin_hieu, ngay = str(lenh["symbol"]), ngay10(lenh["signal_date"]), ngay10(ngay)
+        loai = self.ghi.get((ma, tin_hieu))
+        if loai == self._kg.MUA_NGAY:
+            self._nho_neu_duoi_cat_lo(lenh, ma, tin_hieu, float(nen["open"]))
+            return True, float(nen["open"]), True
+        if loai != self._kg.CHO_VUNG:
+            raise ValueError(f"lệnh chờ {ma} {tin_hieu} không do luật B6 đặt (phán quyết {loai!r})")
+        dong = self.ke_hoach[(ma, tin_hieu)]
+        _, _, vi_tri = self.khung[ma]
+        if ngay not in vi_tri or tin_hieu not in vi_tri:
+            raise ValueError(f"{ma}: không tìm thấy {ngay} hay {tin_hieu} trong khung giá")
+        lech = vi_tri[ngay] - vi_tri[tin_hieu]
+        so_phien = int(dong["so_phien_cho"])
+        if lech < 1:
+            return False, None, False
+        if lech > so_phien:
+            return False, None, True
+        if nen.get("low") is None:
+            raise ValueError(f"{ma} {ngay}: nến khớp thiếu low — không đoán")
+        khop, gia = self._kg.khop_mot_phien(nen["open"], nen["low"], float(dong["vung_tran"]),
+                                            self.san_cua(ma))
+        if khop:
+            self._nho_neu_duoi_cat_lo(lenh, ma, tin_hieu, gia)
+        return khop, gia, lech >= so_phien
+
+    def _nho_neu_duoi_cat_lo(self, lenh: dict, ma: str, tin_hieu: str, gia: float) -> None:
+        sl = lenh.get("stop_loss")
+        if sl is not None and gia <= float(sl):
+            self.khop_duoi_cat_lo.add((ma, tin_hieu))
+
+    def dong_het_han(self, db: Any, trade_id: int, ngay: str) -> None:
+        db.execute("UPDATE trades SET status=?, exit_date=?, exit_reason=? WHERE id=? AND status=?",
+                   (TRANG_THAI_HET_HAN, ngay10(ngay), LY_DO_HET_HAN, trade_id, "PENDING"))
+
+
 def _kiem_cau_hinh_ho_tro(cau_hinh: Any, nguon: Any = None) -> None:
     """Từ chối cấu hình mà CHƯA có đầu vào cho: phát lại lặng lẽ bỏ qua là phát lại sai. Cổng độ rộng chỉ
     chạy được khi `nguon` tự khai có độ rộng (`co_do_rong`, như `NguonDoRong`)."""
     import paper_trading as pt
-    if cau_hinh.luat_vao != "MO_CUA_SAU":
-        raise NotImplementedError(f"luat_vao={cau_hinh.luat_vao!r}: chưa có — Lát 4 của C1")
+    if cau_hinh.luat_vao not in pt.LUAT_VAO:
+        raise ValueError(f"luat_vao={cau_hinh.luat_vao!r}: chỉ nhận {pt.LUAT_VAO}")
     if cau_hinh.do_rong_nguong > 0 and not getattr(nguon, "co_do_rong", False):
         raise NotImplementedError("cổng độ rộng: nguồn không có độ rộng (cần NguonDoRong)")
     if cau_hinh.loc_imom_phan_vi > 0 or cau_hinh.chot_sut_giam_nguong > 0:
@@ -341,7 +467,8 @@ def _gieo_mang_sang(nhat_ky: Any, vi_the: Iterable[dict], san_cua: Callable[[str
 def phat_lai(cau_hinh: Any, quyet_dinh: Iterable[dict], gia: dict, nguon: Any, *,
              san_cua: Optional[Callable[[str], str]] = None,
              ngay_bat_dau: Optional[str] = None, ngay_ket_thuc: Optional[str] = None,
-             vi_the_mang_sang: Iterable[dict] = ()) -> TaiKhoan:
+             vi_the_mang_sang: Iterable[dict] = (),
+             ke_hoach: Optional[Iterable[dict]] = None) -> TaiKhoan:
     """Phát lại `quyet_dinh` đã ghi trên `gia` với `cau_hinh`, qua `paper_runner.buoc_phien`.
 
     `gia` — {mã: khung OHLCV theo đơn vị của nguồn (nghìn đồng cũng được), cột `time` tăng dần}.
@@ -351,6 +478,10 @@ def phat_lai(cau_hinh: Any, quyet_dinh: Iterable[dict], gia: dict, nguon: Any, *
 
     Mỗi phiên, mỗi mã có quyết định: MỘT lần `buoc_phien` theo thứ tự `(at, seq)`; mỗi mã có nến mà không
     có quyết định: một lần chỉ-khớp, sau các mã có quyết định, theo tên mã.
+
+    `ke_hoach` — các dòng tab `ke_hoach` (BƯỚC 257, Lát 4): BẮT BUỘC khi `cau_hinh.luat_vao == "KE_HOACH_B6"`
+    (dựng `LuatKhopKeHoach`), CẤM khi luật vào là đường thật (một tham số không ai đọc là khoá chết).
+    `TaiKhoan.luat` giữ đối tượng ấy (hay None) để dụng cụ đếm phán quyết.
     """
     from paper_runner import buoc_phien
     from paper_trading import PaperTradingJournal
@@ -361,6 +492,14 @@ def phat_lai(cau_hinh: Any, quyet_dinh: Iterable[dict], gia: dict, nguon: Any, *
     san_cua = san_cua if san_cua is not None else _san_mac_dinh
     khung = _chuan_hoa_gia(gia)
     giu = chon_quyet_dinh(quyet_dinh)
+    if cau_hinh.luat_vao == "KE_HOACH_B6":
+        if ke_hoach is None:
+            raise ValueError("luat_vao=KE_HOACH_B6 cần ke_hoach: không có thì không đoán kế hoạch")
+        luat = LuatKhopKeHoach(ke_hoach, khung, san_cua)
+    elif ke_hoach is not None:
+        raise ValueError("ke_hoach chỉ dùng với luat_vao=KE_HOACH_B6")
+    else:
+        luat = None
 
     lich = sorted({n for _, ngay, _ in khung.values() for n in ngay})
     if not lich:
@@ -398,12 +537,14 @@ def phat_lai(cau_hinh: Any, quyet_dinh: Iterable[dict], gia: dict, nguon: Any, *
                 dem["thieu_diem"] += 1
                 ds_thieu_diem.append((ma, d))
             dem["buoc"] += 1
-            buoc_phien(nhat_ky, ma, lich_su, nen, d, san_cua(ma), cau_hinh,
-                       (lambda m=ma, q=dong_qd, h=lich_su: ket_qua_tu_dong(q, m, h,
-                                                                           cau_hinh.buy_threshold)),
-                       chi_khop=dong_qd is None, nguon=nguon)
+            kq = buoc_phien(nhat_ky, ma, lich_su, nen, d, san_cua(ma), cau_hinh,
+                            (lambda m=ma, q=dong_qd, h=lich_su: ket_qua_tu_dong(q, m, h,
+                                                                                cau_hinh.buy_threshold)),
+                            chi_khop=dong_qd is None, nguon=nguon, luat_khop=luat)
+            if luat is not None and kq["opened"]:
+                luat.xu_ly_lenh_moi(nhat_ky, ma, d)
     return TaiKhoan(nhat_ky=nhat_ky, ngay_bat_dau=bat_dau, ngay_ket_thuc=ket_thuc, dem=dem,
-                    ds_thieu_diem=ds_thieu_diem, ds_thieu_nen=ds_thieu_nen)
+                    ds_thieu_diem=ds_thieu_diem, ds_thieu_nen=ds_thieu_nen, luat=luat)
 
 
 # ── vị thế mang sang NGAY_MO_CONG ─────────────────────────────────────────────────────────────
@@ -704,9 +845,11 @@ def sut_giam_toi_da(r: dict, phien: list[str]) -> float:
 
 
 def dem_lenh(lenh: Iterable[dict]) -> dict:
-    """{`dong`, `mo` (OPEN + CLOSING), `cho` (PENDING), `huy`} — số lệnh theo trạng thái."""
-    ra = {"dong": 0, "mo": 0, "cho": 0, "huy": 0}
-    anh_xa = {"CLOSED": "dong", "OPEN": "mo", "CLOSING": "mo", "PENDING": "cho", "HUY": "huy"}
+    """{`dong`, `mo` (OPEN + CLOSING), `cho` (PENDING), `huy`, `het_han` (lệnh giới hạn B6 hết hạn mà chưa
+    khớp)} — số lệnh theo trạng thái."""
+    ra = {"dong": 0, "mo": 0, "cho": 0, "huy": 0, "het_han": 0}
+    anh_xa = {"CLOSED": "dong", "OPEN": "mo", "CLOSING": "mo", "PENDING": "cho", "HUY": "huy",
+              TRANG_THAI_HET_HAN: "het_han"}
     for t in lenh:
         ra[anh_xa[t["status"]]] += 1
     return ra
@@ -1292,3 +1435,106 @@ def ktc_co_nhan(a: Any, b: Any, dang: str, bang_do_phu: Optional[dict], *, do_da
     ktc = ktc_khoi_co_cap(a, b, do_dai=do_dai) if (bang_do_phu is not None and n_luoi_cua(n, luoi) is not None
                                                   and (isinstance(do_dai, str) or n >= do_dai)) else None
     return {"n": n, "dang": dang, "ktc": ktc, "dong": dinh_dang_ktc(n, dang, ktc, bang_do_phu, do_dai)}
+
+
+# ── BƯỚC 257 (Lát 4): HIỂN THỊ cho tab "🏟️ Sân đấu" (đặc tả mục 10.1) ───────────────────────────────────────
+#: Biểu ngữ trên cùng của tab: KHÔNG tắt được (một dòng `st.warning`, không nút đóng).
+BIEU_NGU = "THĂM DÒ — không bao giờ lên bản"
+
+
+def _so(x: Any, nd: int = 2, dau: bool = True) -> str:
+    return "—" if x is None else (f"{x:+.{nd}f}" if dau else f"{x:.{nd}f}")
+
+
+def _cong_chan(h: dict) -> str:
+    c = h["chan"]
+    return (f"VN-INDEX {c['vni'][0]} · nghỉ sau lỗ {c['nghi_sau_lo'][0]} · độ rộng {c['do_rong'][0]} "
+            f"(tín hiệu bị chặn)")
+
+
+def _do_phu_cong(h: dict) -> str:
+    """Độ phủ DỮ LIỆU của các cổng: phiên mà nguồn của cổng thiếu (khác 'độ phủ KTC')."""
+    ra = []
+    if h["vni_thieu"] is not None:
+        ra.append(f"VN-INDEX thiếu {len(h['vni_thieu'])}/{h['n_phien_cua_so']} phiên")
+    if h["rong_thieu"] is not None:
+        ra.append(f"độ rộng loại {len(h['rong_loai'])}/{h['n_phien_cua_so']} phiên")
+    return " · ".join(ra) if ra else "—"
+
+
+def bang_cho_tab(b: dict) -> dict:
+    """Bảng `tools/san_dau.py::dung_bang` -> các bảng HIỆN của tab (BƯỚC 257). KHÔNG tính lại số nào: mọi KTC lấy
+    nguyên chuỗi `dong` đã ghép ở `dinh_dang_ktc` (nơi DUY NHẤT ghép chuỗi KTC và nhãn độ phủ). Trả
+    `{tai_khoan, so_voi_duong_that, khoi, ghi_chu}`; mỗi bảng là list dict (một dict một hàng)."""
+    tai_khoan, so_voi, khoi, ghi_chu = [], [], [], []
+    for h in [b["that"], *b["phuong_an"]]:
+        n = h["lenh"]
+        a = h["alpha_lenh"]
+        t1 = h["thuoc1"]
+        ten = h["ten"] if h["id"] is None else h["id"]
+        tai_khoan.append({
+            "Tài khoản": ten,
+            "Lệnh đóng/mở/chờ/hết hạn": f"{n['dong']}/{n['mo']}/{n['cho']}/{n['het_han']}",
+            "Lãi/lỗ cộng dồn (điểm % vốn)": _so(h["cong_don"]),
+            "Thước 1: x TB mỗi phiên giữ": _so(t1["x_tb_giu"], 3),
+            "KTC thước 1": h["ktc"]["thuoc1"]["dong"],
+            "Alpha từng lệnh": "chưa đủ (n=%d)" % a["n"] if a["alpha"] is None else f"{a['alpha']:+.2f} (n={a['n']})",
+            "Sụt giảm tối đa": _so(h["sut_giam"], 2, False),
+            "Số phiên": len(h["phien_dung"]),
+            "Nhãn dữ liệu (lệnh)": ", ".join(f"{k}: {v}" for k, v in sorted(h["nhan"].items())) or "—",
+            "Độ phủ cổng": _do_phu_cong(h),
+            "Cổng chặn": _cong_chan(h),
+        })
+        if h["id"] is not None:
+            t2 = h["thuoc2"]
+            so_voi.append({
+                "Phương án": h["id"],
+                "Cửa sổ": ("chung" if not h.get("cua_so_rieng") else "RIÊNG: tab kế hoạch rỗng"
+                           if h["cua_so_rieng"] == NGAY_VO_CUC else f"RIÊNG từ {h['cua_so_rieng']}"),
+                "Số phiên": t2["n_phien"],
+                "Thước 2: TB mỗi phiên (PB − đường thật)": _so(t2["tb"], 3),
+                "Cộng dồn": _so(t2["cong_don"]),
+                "KTC thước 2": h["ktc"]["thuoc2"]["dong"],
+            })
+            for nhan, ten_nhan in ((NHAN_DA_NHIN, "đã nhìn"), (NHAN_CHUA_NHIN, "chưa nhìn")):
+                k = h["khoi"][nhan]
+                khoi.append({"Phương án": h["id"], "Khối": ten_nhan, "Số lệnh": k["n_lenh"],
+                             "Lãi/lỗ cộng dồn": _so(k["cong_don"]), "Thước 2 cộng dồn": _so(k["thuoc2"]["cong_don"])})
+        if "b6" in h:
+            c = h["b6"]
+            cv = c["cho_vung"]
+            ghi_chu.append(
+                f"{h['id']} — kế hoạch B6 (tín hiệu từ {c['tu']}): {c['ke_hoach_dong']} dòng kế hoạch; phán quyết áp lên "
+                f"lệnh đã qua các cổng khác: {c['dat'] or 'chưa có'}; lệnh giới hạn chờ vùng: khớp {cv['khop']}, hết hạn "
+                f"{cv['het_han']}, còn chờ {cv['cho']}, huỷ {cv['huy']}; khớp ở giá không cao hơn cắt lỗ ban đầu: "
+                f"{c['khop_duoi_cat_lo']}.")
+    ro = b["ro"]
+    tai_khoan.append({
+        "Tài khoản": "Rổ đều (mua–giữ, không phí)", "Lệnh đóng/mở/chờ/hết hạn": "—",
+        "Lãi/lỗ cộng dồn (điểm % vốn)": _so(ro["cong_don"]), "Thước 1: x TB mỗi phiên giữ": "—",
+        "KTC thước 1": "không có (rổ là thước đo, không phải một hiệu)", "Alpha từng lệnh": "—",
+        "Sụt giảm tối đa": _so(ro["sut_giam"], 2, False), "Số phiên": len(ro["phien"]),
+        "Nhãn dữ liệu (lệnh)": "—", "Độ phủ cổng": "—", "Cổng chặn": "—"})
+    if b["phien_loai"]:
+        ghi_chu.append(f"{len(b['phien_loai'])} phiên bị LOẠI khỏi cửa sổ của MỌI tài khoản vì độ rộng thị trường "
+                       f"vẫn thiếu: {b['phien_loai']}")
+    return {"tai_khoan": tai_khoan, "so_voi_duong_that": so_voi, "khoi": khoi, "ghi_chu": ghi_chu}
+
+
+def duong_von(b: dict) -> "pd.DataFrame":
+    """Đường vốn cộng dồn (điểm % vốn) của đường thật phát lại, mỗi phương án và rổ, trên các phiên của bảng.
+    Một tài khoản chỉ có giá trị ở các phiên trong CỬA SỔ của nó (PB-003: từ ngày có kế hoạch), chỗ khác để trống."""
+    phien = list(b["phien"])
+    cot = {}
+    for h in [b["that"], *b["phuong_an"]]:
+        cum, tong = {}, 0.0
+        for d in h["phien_dung"]:
+            tong += h["r"][d]
+            cum[d] = tong
+        cot[h["ten"] if h["id"] is None else h["id"]] = [cum.get(d) for d in phien]
+    ro, tong = {}, 0.0
+    for d in b["ro"]["phien"]:
+        tong += b["ro"]["r"][d]
+        ro[d] = tong
+    cot["Rổ đều"] = [ro.get(d) for d in phien]
+    return pd.DataFrame(cot, index=phien)

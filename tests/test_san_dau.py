@@ -378,7 +378,7 @@ def test_phien_ma_thieu_diem_chay_chi_khop_va_khong_xet_vao(gia):
 
 def test_phat_lai_TU_CHOI_cau_hinh_ma_lat_2_chua_co_dau_vao(gia):
     nguon = _NguonKichBan()
-    cho_qua = [(dict(luat_vao="KE_HOACH_B6"), NotImplementedError),
+    cho_qua = [(dict(luat_vao="KE_HOACH_B6"), ValueError),     # BƯỚC 257: có luật, nhưng thiếu ke_hoach
                (dict(do_rong_nguong=0.5), NotImplementedError),
                (dict(loc_imom_phan_vi=0.2), ValueError),
                (dict(chot_sut_giam_nguong=0.15), ValueError)]
@@ -611,8 +611,9 @@ def test_dung_cu_mo_so_tam_CHI_DOC(tmp_path, monkeypatch):
         return that(*a, **k)
 
     monkeypatch.setattr(cli.sqlite3, "connect", ghi_nho)
-    lenh, qd = cli.doc_so_tam(str(duong))
+    lenh, qd, kh = cli.doc_so_tam(str(duong))
     assert lenh == [{"id": 1, "symbol": "AAA"}] and qd == [{"seq": 1, "symbol": "AAA"}]
+    assert kh == [], "DB cu chua co bang ke_hoach thi la [] (khong phai loi)"
     (a, k), = thay_the
     assert a[0].endswith("?mode=ro") and k.get("uri") is True, thay_the
     assert duong.read_bytes() == truoc

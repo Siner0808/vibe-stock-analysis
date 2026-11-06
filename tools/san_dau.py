@@ -71,21 +71,31 @@ _COT_LENH = ("id", "symbol", "exchange", "signal_date", "entry_date", "entry_pri
 
 
 # ── đọc ───────────────────────────────────────────────────────────────────────────────────────
-def doc_so_tam(duong: str) -> tuple[list[dict], list[dict]]:
-    """(lệnh, quyết định) từ một DB tạm đã kéo sẵn — mở CHỈ ĐỌC (`mode=ro`)."""
+def _doc_ke_hoach(db) -> list[dict]:
+    """Các dòng tab `ke_hoach` của một DB đã mở; DB cũ chưa có bảng ấy thì `[]` (không phải lỗi: PB-003 khi đó
+    đếm mọi tín hiệu là THIẾU KẾ HOẠCH)."""
+    try:
+        return [dict(r) for r in db.execute("SELECT * FROM ke_hoach ORDER BY seq")]
+    except sqlite3.OperationalError:
+        return []
+
+
+def doc_so_tam(duong: str) -> tuple[list[dict], list[dict], list[dict]]:
+    """(lệnh, quyết định, kế hoạch) từ một DB tạm đã kéo sẵn — mở CHỈ ĐỌC (`mode=ro`)."""
     db = sqlite3.connect(f"file:{Path(duong).as_posix()}?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
     try:
         lenh = [dict(r) for r in db.execute("SELECT * FROM trades ORDER BY id")]
         qd = [dict(r) for r in db.execute("SELECT * FROM decisions ORDER BY seq")]
+        kh = _doc_ke_hoach(db)
     finally:
         db.close()
-    return lenh, qd
+    return lenh, qd, kh
 
 
-def keo_so_that() -> tuple[list[dict], list[dict]] | None:
+def keo_so_that() -> tuple[list[dict], list[dict], list[dict]] | None:
     """Kéo sổ thật từ Google Sheets vào DB TẠM (đường của `tools/doc_so_that.py`), đọc rồi đóng.
-    None khi kho ngoài chưa cấu hình."""
+    None khi kho ngoài chưa cấu hình. Trả (lệnh, quyết định, kế hoạch)."""
     sys.path.append(str(GOC / "tools"))
     import doc_so_that as dst
     ra = dst.keo_ve_so_tam()
@@ -95,9 +105,10 @@ def keo_so_that() -> tuple[list[dict], list[dict]] | None:
     try:
         lenh = [dict(r) for r in so.db.execute("SELECT * FROM trades ORDER BY id")]
         qd = [dict(r) for r in so.db.execute("SELECT * FROM decisions ORDER BY seq")]
+        kh = _doc_ke_hoach(so.db)
     finally:
         so.db.close()
-    return lenh, qd
+    return lenh, qd, kh
 
 
 def doc_gia_cache(ma_list: list[str]) -> dict:
@@ -311,6 +322,31 @@ def _dem_chan(tk, nguong_mua: float) -> dict:
     return ra
 
 
+NGAY_VO_CUC = sd.NGAY_VO_CUC
+
+
+def _dem_b6(tk, tu: str, loai: set) -> dict:
+    """Số đếm của lượt phát lại PB-003 cho các tín hiệu có ngày >= `tu` (cửa sổ riêng), bỏ ngày bị LOẠI:
+    `dat` = phán quyết đã áp lên mỗi tín hiệu đủ điểm mà bộ máy đã mở (kể cả `THIEU_KE_HOACH`); `cho_vung` = kết
+    cục của các lệnh giới hạn (`khop` · `het_han` · `cho` · `huy`); `khop_duoi_cat_lo` = lệnh có giá khớp cơ sở
+    <= cắt lỗ BAN ĐẦU (vào là đã thủng SL; `LuatKhopKeHoach.khop_duoi_cat_lo`); `ke_hoach_dong` = số dòng kế hoạch trong cửa sổ."""
+    luat = tk.luat
+    ghi = {k: v for k, v in luat.ghi.items() if k[1] >= tu and k[1] not in loai}
+    dat: dict = {}
+    for v in ghi.values():
+        dat[v] = dat.get(v, 0) + 1
+    theo_khoa = {(str(t["symbol"]), sd.ngay10(t["signal_date"])): t for t in tk.lenh()}
+    cho_vung = {"khop": 0, "het_han": 0, "cho": 0, "huy": 0}
+    anh_xa = {"OPEN": "khop", "CLOSING": "khop", "CLOSED": "khop", sd.TRANG_THAI_HET_HAN: "het_han",
+              "PENDING": "cho", "HUY": "huy"}
+    for k, v in ghi.items():
+        if v == "CHO_VUNG":
+            cho_vung[anh_xa[theo_khoa[k]["status"]]] += 1
+    duoi_sl = sum(1 for k in ghi if k in luat.khop_duoi_cat_lo)
+    return {"tu": tu, "ke_hoach_dong": sum(1 for k in luat.ke_hoach if k[1] >= tu and k[1] not in loai),
+            "dat": dat, "cho_vung": cho_vung, "khop_duoi_cat_lo": duoi_sl}
+
+
 def _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai_ngay) -> dict:
     """Số đo của MỘT khối nhãn dữ liệu (đã nhìn / chưa nhìn) của một phương án, và của đường thật CHỌN
     THEO CÙNG NHÃN (nhãn theo NGÀY TÍN HIỆU của từng lệnh, đặc tả mục 4 khoản 7, nên tách theo lệnh; hai
@@ -329,7 +365,7 @@ def _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai_ngay) -> dict:
 
 def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, phuong_an: dict, *,
               bang_co: dict | None = None, tu_ngay: str = sd.NGAY_MO_CONG, den_ngay: str | None = None,
-              cau_hinh=None, do_phu: dict | None = None) -> dict:
+              cau_hinh=None, do_phu: dict | None = None, ke_hoach: list[dict] | None = None) -> dict:
     """Dựng bảng sân đấu: đường thật phát lại, mỗi phương án bóng của `phuong_an`, và rổ. Không in, không
     đọc đĩa. Cửa sổ kế toán bắt đầu `tu_ngay` (mặc định `NGAY_MO_CONG`); vị thế mang sang chép vào MỌI tài
     khoản.
@@ -340,6 +376,12 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
     đường vốn, alpha từng lệnh); phương án có cổng độ rộng không mở lệnh nào ở phiên ấy (đặc tả mục 4
     khoản 4; quyết định của người dùng 29/10/2026).
 
+    `ke_hoach` (BƯỚC 257) = các dòng tab `ke_hoach` đã ghi; BẮT BUỘC khi một phương án có `luat_vao` = `KE_HOACH_B6`
+    (PB-003; `[]` hợp lệ: mọi tín hiệu khi ấy là THIẾU KẾ HOẠCH). Phương án ấy có CỬA SỔ RIÊNG bắt đầu ở ngày tín
+    hiệu đầu tiên của `ke_hoach` (đặc tả mục 7; quyết định 4b của người dùng): hàng của nó và phép trừ với đường thật
+    chỉ tính các lệnh CÓ ngày tín hiệu trong cửa sổ ấy và các phiên từ ngày đó, nên không lẫn "vì thiếu dữ liệu kế
+    hoạch" với "vì luật vào".
+
     `do_phu` = bảng độ phủ đã đo (`doc_bang_do_phu`); mỗi KTC của bảng mang nhãn độ phủ của nó, và KHÔNG có bảng
     thì KTC không được in (BƯỚC 243)."""
     import paper_trading as pt
@@ -349,9 +391,12 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
     mang = sd.vi_the_mang_sang(lenh_thuc, tu_ngay)
     tk_ds: list = []
 
-    def chay(cfg, nguon):
-        tk = sd.phat_lai(cfg, quyet_dinh, gia, nguon, ngay_bat_dau=tu_ngay, ngay_ket_thuc=den_ngay,
-                         vi_the_mang_sang=mang)
+    def chay(cfg, nguon, bat_dau=tu_ngay, mang_sang=None):
+        if cfg.luat_vao == "KE_HOACH_B6" and ke_hoach is None:
+            raise ValueError("phuong an luat_vao=KE_HOACH_B6 can ke_hoach (tab ke_hoach, [] neu chua co dong nao)")
+        tk = sd.phat_lai(cfg, quyet_dinh, gia, nguon, ngay_bat_dau=bat_dau, ngay_ket_thuc=den_ngay,
+                         vi_the_mang_sang=mang if mang_sang is None else mang_sang,
+                         ke_hoach=ke_hoach if cfg.luat_vao == "KE_HOACH_B6" else None)
         tk_ds.append(tk)
         return tk
 
@@ -369,7 +414,21 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
                 loai |= set(nguon.phien_thieu(phien))
             else:
                 nguon = vni
-            chay_pa.append((ma, pa, cfg, nguon, vni, chay(cfg, nguon)))
+            tu, tk_ref = None, None
+            if cfg.luat_vao == "KE_HOACH_B6" and ke_hoach:
+                # CỬA SỔ RIÊNG (quyết định 4b): cả đường thật phát lại lẫn PB-003 chạy lại TỪ ngày có dòng kế hoạch
+                # đầu tiên, cùng các vị thế mang sang lấy từ sổ THẬT ở ngày ấy (đặc tả mục 4 khoản 7, tổng quát
+                # hoá). Nếu không, đường thật còn giữ vị thế mở từ tín hiệu TRƯỚC ngày đó (PB-003 không có kế hoạch
+                # để vào chúng), và chênh lệch giữa hai tài khoản là "thiếu dữ liệu", không phải "luật vào".
+                tu = max(min(sd.ngay10(r["signal_date"]) for r in ke_hoach), tu_ngay)
+                mang_tu = sd.vi_the_mang_sang(lenh_thuc, tu)
+                tk_ref = chay(co_so, sd.NguonVni(vni_df), tu, mang_tu)
+                tk = chay(cfg, nguon, tu, mang_tu)
+            else:
+                tk = chay(cfg, nguon)
+                if cfg.luat_vao == "KE_HOACH_B6":      # tab kế hoạch RỖNG: cửa sổ rỗng, không số nào
+                    tu = NGAY_VO_CUC
+            chay_pa.append((ma, pa, cfg, nguon, vni, tk, tu, tk_ref))
         phien_dung = [d for d in phien if d not in loai]
         ro, ro_thieu = sd.loi_nhuan_ro(gia, phien)
         phien_ro = [d for d in phien_dung if d in ro]
@@ -379,16 +438,26 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
 
         lenh_that = trong_tong(tk_that)
 
-        def hang(ten, ma, tk, cfg_tk, nguon, vni, pa, that):
+        def hang(ten, ma, tk, cfg_tk, nguon, vni, pa, that, tu=None, lenh_ref=None):
             khai = pa["khai_ngay"] if pa is not None else None
             lenh = trong_tong(tk)
-            ch = sd.chuoi_tai_khoan(
-                lenh, gia, phien, loc=lambda t: sd.nhan_du_lieu(t["signal_date"], khai) != sd.NHAN_MO_PHONG)
+            lenh_that_h = lenh_that if lenh_ref is None else lenh_ref
+            phien_h = phien_dung
+            if tu is not None:      # cửa sổ RIÊNG (PB-003): chỉ các phiên từ ngày `tu`
+                phien_h = [d for d in phien_dung if d >= tu]
+                if tu == NGAY_VO_CUC:       # tab kế hoạch rỗng: không lệnh nào của cửa sổ rỗng
+                    lenh = []
+
+            def nhan_hop_le(t):
+                return sd.nhan_du_lieu(t["signal_date"], khai) != sd.NHAN_MO_PHONG
+
+            ch = sd.chuoi_tai_khoan(lenh, gia, phien, loc=nhan_hop_le)
             h = {"ten": ten, "id": ma, "khai_ngay": khai, "lenh": sd.dem_lenh(lenh),
-                 "nhan": sd.dem_theo_nhan(lenh, khai), "phien_dung": phien_dung, "n_phien_cua_so": len(phien),
-                 "thuoc1": sd.thuoc_1(ch.r, ch.e, ro, phien_dung), "cong_don": sum(ch.r[d] for d in phien_dung),
-                 "sut_giam": sd.sut_giam_toi_da(ch.r, phien_dung),
-                 "alpha_lenh": sd.alpha_tung_lenh(tk, gia, bo_tin_hieu=loai),
+                 "nhan": sd.dem_theo_nhan(lenh, khai), "phien_dung": phien_h, "n_phien_cua_so": len(phien),
+                 "thuoc1": sd.thuoc_1(ch.r, ch.e, ro, phien_h), "cong_don": sum(ch.r[d] for d in phien_h),
+                 "sut_giam": sd.sut_giam_toi_da(ch.r, phien_h),
+                 "alpha_lenh": ({"n": 0, "alpha": None, "bo_qua": 0} if tu == NGAY_VO_CUC
+                                else sd.alpha_tung_lenh(tk, gia, bo_tin_hieu=loai)),
                  "vni_thieu": [d for d in phien if vni.thieu(d)] if vni is not None else None,
                  "rong_thieu": sorted(nguon.ngay_thieu_rong) if hasattr(nguon, "ngay_thieu_rong") else None,
                  "rong_loai": sorted(loai),
@@ -397,12 +466,15 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
                  "chan": _dem_chan(tk, cfg_tk.buy_threshold),
                  "bao_toan": sd.kiem_bao_toan(tk.lenh(), gia, phien[0], phien[-1]),
                  "ds_thieu_diem": list(tk.ds_thieu_diem), "ds_thieu_nen": list(tk.ds_thieu_nen)}
+            if tu is not None and tk.luat is not None:
+                h["cua_so_rieng"] = tu
+                h["b6"] = _dem_b6(tk, tu, loai)
             if that is not None:
                 khoa_pa = {(str(t["symbol"]), sd.ngay10(t["signal_date"])) for t in lenh}
-                khoa_that = {(str(t["symbol"]), sd.ngay10(t["signal_date"])) for t in lenh_that}
+                khoa_that = {(str(t["symbol"]), sd.ngay10(t["signal_date"])) for t in lenh_that_h}
                 h["khac_lenh"] = {"chi_duong_that": sorted(khoa_that - khoa_pa), "chi_phuong_an": sorted(khoa_pa - khoa_that)}
-                h["thuoc2"] = sd.thuoc_2(ch.r, that["r"], phien_dung)
-                h["khoi"] = {nhan: _khoi(lenh, lenh_that, gia, phien, phien_dung, ro, nhan, khai)
+                h["thuoc2"] = sd.thuoc_2(ch.r, that["r"], phien_h)
+                h["khoi"] = {nhan: _khoi(lenh, lenh_that_h, gia, phien, phien_h, ro, nhan, khai)
                              for nhan in (sd.NHAN_DA_NHIN, sd.NHAN_CHUA_NHIN)}
             t1 = h["thuoc1"]
             h["ktc"] = {"thuoc1": sd.ktc_co_nhan(t1["x_chuoi"], None, "mot_chuoi", do_phu),
@@ -413,9 +485,20 @@ def dung_bang(lenh_thuc: list[dict], quyet_dinh: list[dict], gia: dict, vni_df, 
             return h
 
         that = hang("duong that phat lai", None, tk_that, co_so, vni_that, vni_that, None, None)
-        ra_pa = [hang(ma, ma, tk, cfg, nguon, vni, pa, that) for ma, pa, cfg, nguon, vni, tk in chay_pa]
+        ra_pa = []
+        for ma, pa, cfg, nguon, vni, tk, tu, tk_ref in chay_pa:
+            that_h, lenh_ref = that, None
+            if tk_ref is not None:
+                lenh_ref = trong_tong(tk_ref)
+                that_h = hang("duong that phat lai (cua so rieng cua " + ma + ")", None, tk_ref, co_so, None,
+                              None, None, None, tu)
+            h = hang(ma, ma, tk, cfg, nguon, vni, pa, that_h, tu, lenh_ref)
+            if tk_ref is not None:
+                h["that_cua_so"] = {"cong_don": that_h["cong_don"], "lenh": that_h["lenh"],
+                                    "thuoc1": that_h["thuoc1"]}
+            ra_pa.append(h)
         r_ro = {d: ro[d] for d in phien_ro}
-        ro_hang = {"ten": "ro deu (mua-giu, khong phi)", "n_ma": len(gia), "phien": phien_ro,
+        ro_hang = {"ten": "ro deu (mua-giu, khong phi)", "n_ma": len(gia), "phien": phien_ro, "r": r_ro,
                    "thieu": ro_thieu, "cong_don": sum(r_ro.values()),
                    "sut_giam": sd.sut_giam_toi_da(r_ro, phien_ro)}
         return {"tu_ngay": tu_ngay, "ngay_cuoi": tk_that.ngay_ket_thuc, "phien": phien,
@@ -459,9 +542,20 @@ def _in_ktc(h: dict, ghi) -> None:
 
 def _in_tai_khoan(h: dict, ghi) -> None:
     n = h["lenh"]
-    ghi(f"   lenh dong/mo/cho/huy : {n['dong']}/{n['mo']}/{n['cho']}/{n['huy']}   nhan: {h['nhan']}")
+    ghi(f"   lenh dong/mo/cho/huy/het han : {n['dong']}/{n['mo']}/{n['cho']}/{n['huy']}/{n['het_han']}   "
+        f"nhan: {h['nhan']}")
+    if h.get("cua_so_rieng"):
+        ghi(f"   CUA SO RIENG (dac ta muc 7): tin hieu va phien tu {h['cua_so_rieng']} (ngay tin hieu dau tien co dong "
+            f"ke_hoach); so voi duong that va ro CHI tren cua so nay; truoc do PB nay khong co ke hoach de theo")
     ghi(f"   lai/lo cong don      : {_s(h['cong_don'])} diem%   sut giam toi da = "
         f"{_s(h['sut_giam'], 2, False)}   so phien = {len(h['phien_dung'])}")
+    if "b6" in h:
+        b = h["b6"]
+        cv = b["cho_vung"]
+        ghi(f"   ke hoach B6 (tin hieu >= {b['tu']}): {b['ke_hoach_dong']} dong ke_hoach; phan quyet ap len lenh da qua "
+            f"cong khac: {b['dat']}")
+        ghi(f"   lenh gioi han CHO_VUNG: khop {cv['khop']}, het han {cv['het_han']}, con cho {cv['cho']}, huy {cv['huy']}; "
+            f"khop o gia <= cat lo: {b['khop_duoi_cat_lo']}")
     _in_thuoc1(h["thuoc1"], ghi)
     a = h["alpha_lenh"]
     if a["alpha"] is None:
@@ -548,7 +642,7 @@ def lenh_tuong_duong(a) -> int:
     if ra is None:
         print("CHUA DOC DUOC -- kho ngoai chua cau hinh. Khong doan gi ca.", file=sys.stderr)
         return MA_KHONG_DOC_DUOC
-    lenh, qd = ra
+    lenh, qd, _ = ra
     ma_list = sorted({str(r["symbol"]) for r in qd if sd.ngay10(r["signal_date"]) >= a.tu_ngay})
     if not ma_list:
         print(f"CHUA DOC DUOC -- khong co quyet dinh nao tu {a.tu_ngay}.", file=sys.stderr)
@@ -576,7 +670,7 @@ def lenh_bang(a) -> int:
     if ra is None:
         print("CHUA DOC DUOC -- kho ngoai chua cau hinh. Khong doan gi ca.", file=sys.stderr)
         return MA_KHONG_DOC_DUOC
-    lenh, qd = ra
+    lenh, qd, ke_hoach = ra
     phuong_an = doc_so_phuong_an(a.so_phuong_an)
     mang = sd.vi_the_mang_sang(lenh, a.tu_ngay)
     ma_list = sorted({str(r["symbol"]) for r in qd if sd.ngay10(r["signal_date"]) >= a.tu_ngay}
@@ -609,9 +703,46 @@ def lenh_bang(a) -> int:
     do_phu = doc_bang_do_phu(a.do_phu)
     if do_phu is None:
         print("CANH BAO: khong co bang do phu (docs/san-dau-do-phu.json) -> KHONG in KTC nao")
-    b = dung_bang(lenh, qd, gia, vni, phuong_an, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay, do_phu=do_phu)
+    b = dung_bang(lenh, qd, gia, vni, phuong_an, tu_ngay=a.tu_ngay, den_ngay=a.den_ngay, do_phu=do_phu,
+                  ke_hoach=ke_hoach)
     in_bang(b)
     return ma_thoat_bang(b)
+
+
+class KhongDocDuoc(Exception):
+    """Thiếu đầu vào để dựng bảng (không quyết định, không giá): nói thiếu gì, KHÔNG đoán."""
+
+
+def bang_cho_app(lenh: list[dict], qd: list[dict], ke_hoach: list[dict], *, tu_ngay: str = sd.NGAY_MO_CONG,
+                 ghi=lambda *_: None) -> dict:
+    """Bảng sân đấu cho tab "🏟️ Sân đấu" của app (BƯỚC 257; đặc tả mục 10.1 và quyết định 4d): CÙNG `dung_bang` với
+    lệnh `bang` — `tools/san_dau.py` là bản chuẩn để tái lập, app chỉ tính lại TRONG BỘ NHỚ khi người dùng bấm nút.
+    Đầu vào là các dòng đã đọc từ Sheets (`lenh` = tab trades, `qd` = tab decisions ĐỦ CỘT, `ke_hoach` = tab
+    ke_hoach); giá tải THẲNG (không ghi cache, không ghi file). Trả `{bang, cuoi_gia, cuoi_qd, ma_thieu_gia,
+    ghi_chu}`; thiếu đầu vào thì `KhongDocDuoc`."""
+    phuong_an = doc_so_phuong_an()
+    mang = sd.vi_the_mang_sang(lenh, tu_ngay)
+    ma_list = sorted({str(r["symbol"]) for r in qd if sd.ngay10(r["signal_date"]) >= tu_ngay}
+                     | {str(m["symbol"]) for m in mang})
+    if not ma_list:
+        raise KhongDocDuoc(f"khong co quyet dinh nao tu {tu_ngay}")
+    cuoi_qd = max(sd.ngay10(r["signal_date"]) for r in qd)
+    thong_bao: list = []
+    gia = tai_gia_mang(ma_list, cuoi_qd, ghi=lambda s: thong_bao.append(str(s).strip()))
+    if not gia:
+        raise KhongDocDuoc("khong tai duoc chuoi gia nao")
+    vni = tai_vni_mang(cuoi_qd)
+    cuoi_gia = max(sd.ngay10(df["time"].iloc[-1]) for df in gia.values())
+    do_phu = doc_bang_do_phu()
+    b = dung_bang(lenh, qd, gia, vni, phuong_an, tu_ngay=tu_ngay, do_phu=do_phu, ke_hoach=ke_hoach)
+    ghi_chu = [f"gia: {len(gia)}/{len(ma_list)} ma, nen cuoi {cuoi_gia}; quyet dinh toi {cuoi_qd}; "
+               f"VN-INDEX: {'co' if vni is not None else 'KHONG co'}"]
+    if cuoi_gia < cuoi_qd:
+        ghi_chu.append(f"gia dung truoc quyet dinh cuoi ({cuoi_gia} < {cuoi_qd}); quyet dinh sau do bi bo")
+    if do_phu is None:
+        ghi_chu.append("khong co bang do phu (docs/san-dau-do-phu.json) -> khong in KTC nao")
+    return {"bang": b, "cuoi_gia": cuoi_gia, "cuoi_qd": cuoi_qd,
+            "ma_thieu_gia": sorted(set(ma_list) - set(gia)), "ghi_chu": ghi_chu + thong_bao}
 
 
 def in_bang_do_phu(bang: dict, ghi=print) -> None:

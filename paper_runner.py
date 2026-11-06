@@ -285,7 +285,7 @@ def run_session(journal: PaperTradingJournal, symbol: str,
 
 def buoc_phien(nhat_ky: PaperTradingJournal, ma: str, lich_su: pd.DataFrame, nen: dict,
                ngay: str, san: str, cau_hinh: CauHinhVao, cham_diem,
-               chi_khop: bool = False, nguon=None) -> dict:
+               chi_khop: bool = False, nguon=None, luat_khop=None) -> dict:
     """MỘT bước tài khoản cho MỘT mã trong MỘT phiên: khớp vào → khớp ra → xét thoát → xét vào.
 
     CHỖ DUY NHẤT giữ thứ tự bốn bước (xem đầu file). `run_session` (đường thật, walk-forward)
@@ -293,7 +293,8 @@ def buoc_phien(nhat_ky: PaperTradingJournal, ma: str, lich_su: pd.DataFrame, nen
     `cham_diem` là hàm KHÔNG đối số trả `result` của phiên — gọi LƯỜI, đúng lúc cần và nhiều
     nhất hai lần (phiên chỉ-khớp không gọi), nên đường thật vẫn chỉ chấm khi phải chấm.
     `nen` là nến THÔ của nguồn; hàm quy về VNĐ. `nguon` — `NguonThiTruong` tiêm được cho hai
-    cổng thị trường (None = cache toàn cục, như đường thật).
+    cổng thị trường (None = cache toàn cục, như đường thật). `luat_khop` (BƯỚC 257) chuyển nguyên
+    cho `fill_pending`; None là đường thật, mọi chỗ gọi cũ không truyền nó.
 
     ĐƠN VỊ: mọi giá đưa vào sổ đều quy về VNĐ.
     Nguồn vnstock trả giá theo nghìn đồng (FPT = 71.2), trong khi
@@ -327,7 +328,10 @@ def buoc_phien(nhat_ky: PaperTradingJournal, ma: str, lich_su: pd.DataFrame, nen
         _nen = {"high": bar.get("high"), "low": bar.get("low"),
                 "volume": bar.get("volume"),
                 "tham_chieu": float(lich_su["close"].iloc[-2]) * mult}
-    stats["filled_in"] = nhat_ky.fill_pending(ma, ngay, bar["open"], _nen)
+    # Đường thật không truyền `luat_khop`: lời gọi giữ NGUYÊN HÌNH như trước BƯỚC 257 (một test thay
+    # `fill_pending` bằng hàm chỉ nhận bốn đối số; mọi thứ khác bắt chước nó cũng vậy).
+    _them = {} if luat_khop is None else {"luat_khop": luat_khop}
+    stats["filled_in"] = nhat_ky.fill_pending(ma, ngay, bar["open"], _nen, **_them)
     stats["filled_out"] = nhat_ky.fill_closing(ma, ngay, bar["open"], _nen)
 
     # Kèm giá tham chiếu: không có nó thì `khoa_bien` không phân được phiên
