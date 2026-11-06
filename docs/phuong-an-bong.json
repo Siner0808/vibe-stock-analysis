@@ -29,7 +29,7 @@
       "lop": "tham_do",
       "bo_co": {"luat_vao": "KE_HOACH_B6"},
       "khai_ngay": "2026-11-06",
-      "commit": null,
+      "commit": "36de236b2e146228f99e4c0f079c5413ad659321",
       "mo_ta": "Đường thật phát lại, đổi đúng MỘT thứ: luật VÀO theo kế hoạch B6 đã ghi ở tab ke_hoach lúc quét. MUA_NGAY vào như đường thật; CHO_VUNG là lệnh giới hạn mua ở vung_tran, hiệu lực so_phien_cho phiên kể từ phiên sau ngày tín hiệu, khớp nghiêm (low <= trần trừ một bước giá, giá khớp cơ sở min(mở cửa, trần)); BO_QUA, CHUA_LAP_DUOC và tín hiệu không có dòng kế hoạch thì không vào lệnh. Cắt lỗ, cỡ vị thế, chốt, trailing, thoát theo điểm, trần giữ lệnh vẫn của bộ máy.",
       "ly_do": "Mốc C7 của docs/LO-TRINH.md (phương án vào lệnh theo kế hoạch B6 chạy bóng cạnh đường thật); ĐO 25 (BƯỚC 178, 179) kết cục B nên không đủ để khai ứng viên tầng 3. Đặc tả docs/thiet-ke-c1-san-dau.md mục 3 và 7; người dùng duyệt 28/10/2026: Nghỉ sau lỗ + độ rộng + kế hoạch B6 (Recommended). Khai TRƯỚC khi chạy bộ phát lại cho PB-003 trên bất kỳ dữ liệu nào (BƯỚC 257, Lát 4). Cửa sổ riêng bắt đầu ở tín hiệu có dòng ke_hoach đầu tiên (quyết định 4b); so với đường thật và rổ chỉ trên cửa sổ chung."
     }
