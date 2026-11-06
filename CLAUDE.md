@@ -285,26 +285,24 @@ Task Scheduler `VibeStock_QuetPhien` đã **Disabled** từ 21/08/2026. Quét ch
 · `chuong-nguon-dung` bật lại 28/09/2026, BƯỚC 138 — tắt lại: `gh workflow
 disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
 
-- GitHub gộp và trễ nhịp: `quet-so-lenh` chỉ chạy ~2/12 nhịp từ 27/08. **Đo 05/11/2026** (40 lượt theo lịch
-  gần nhất, 08/10–04/11): 0 lượt tạo trước 13:53 ICT, 10 lượt 13:53–14:59, 30 lượt từ 15:00 — ca sáng
-  không chạy trong mẫu, nên cảnh báo nội phiên chỉ kêu được ở lượt rơi trong phiên. Bốn chuông (cron
-  09:23 · 09:43 · 09:53 · 10:17 UTC) trễ trung vị **6,1–6,5 GIỜ** (4,1–10,2). Lệnh: `gh run list --workflow
-  <tên>.yml --limit 40 --event schedule --json createdAt`. Lệch cron `:00/:30` **không có tác dụng** (BƯỚC 89, 101).
-- Nên "né giờ nghỉ trưa" và "lệch giờ 10 phút để khỏi trùng" là bảo vệ tưởng
-  tượng. An toàn thật là **kéo sổ từ Sheets TRƯỚC khi quét** (`run_daily`
+- GitHub gộp và trễ nhịp (4–10 giờ, không bao giờ sớm). **Đo 05/11/2026** (40 lượt theo lịch gần nhất,
+  08/10–04/11): 0 lượt tạo trước 13:53 ICT, 10 lượt 13:53–14:59, 30 lượt từ 15:00, 13/40 trước 15:30. Bốn
+  chuông (cron 09:23 · 09:43 · 09:53 · 10:17 UTC) trễ trung vị **6,1–6,5 GIỜ** (4,1–10,2). Lệnh: `gh run
+  list --workflow <tên>.yml --limit 40 --event schedule --json createdAt`. Lệch cron `:00/:30` **không có
+  tác dụng** (BƯỚC 89, 101).
+- **Lịch quét SAU đóng cửa** (BƯỚC 256; người dùng duyệt 05/11/2026): cron `35 8` và
+  `5 10` UTC (15:35 · 17:05 ICT), thứ Hai–Sáu. Động cơ chỉ ghi sổ trên nến ngày ĐÃ ĐÓNG
+  (`data_quality.GIO_NEN_DA_DONG` = 15:30 ICT) nên cron sớm hơn quét nến dở. Gác: `tests/test_lich_cron_chuong.py`.
+- "Lệch giờ 10 phút để khỏi trùng" là bảo vệ tưởng tượng. An toàn thật là **kéo sổ từ Sheets TRƯỚC khi quét** (`run_daily`
   làm ngay đầu `execute_daily_scan()`; kéo hỏng thì dừng phiên) cộng chốt
   chặn trong `push()`. Không kéo trước → `seq` lệch, `push()` bỏ qua dòng
   mới lặng lẽ (14/08: 70 quyết định mất).
 - **Chuông** `chuong-bao-quet.yml` chạy 09:23 UTC (16:23 ICT, giờ cron) mỗi ngày làm
   việc, soát **ba** ngày gần nhất, đỏ nếu ngày nào không có lượt `success`.
   Chỉ đếm `conclusion == "success"` (kẹt `queued` không đỏ, không email).
-- **Cảnh báo nội phiên** đi bằng `::warning::` + `$GITHUB_STEP_SUMMARY`,
-  KHÔNG bằng mã thoát (làm đỏ job quét sẽ sinh báo động giả cho chuông).
-  Thứ tự **bắt buộc**: `kéo sổ → cảnh báo → quét → đối chiếu` (đặt cảnh báo
-  sau quét thì lệnh đã đóng, không bao giờ kêu). Sổ rỗng thì
-  `quet_va_canh_gac()` nạp thử một mã, hỏi một **khoảng** 10 ngày.
-- Lượt quét sau đóng cửa là lượt quyết định (`evaluate_open()` chấm trên nến
-  ngày).
+- Bước `::warning::` nội phiên đã **bỏ** (BƯỚC 256; `run_daily` tự đóng lệnh thủng SL/TP, `canh_bao_noi_phien`
+  còn cho app). Luật còn: cảnh báo KHÔNG đi bằng mã thoát (làm đỏ job quét → báo động giả cho chuông). Thứ tự
+  bước **bắt buộc**: `kéo sổ → quét → đối chiếu`.
 - **Tám workflow bật**: bốn ở trên, `chuong-bai-hoc.yml`, `hau-kiem-loi.yml`
   (B1, tab `hau_kiem`), `soat-tuan.yml`, `kiem-dinh.yml`; cron/secret: HANDOFF mục 2.
 

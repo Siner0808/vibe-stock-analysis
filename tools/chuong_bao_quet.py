@@ -80,9 +80,12 @@ def cac_ngay_lam_viec(den_ngay: _dt.date, so_ngay: int = SO_NGAY_SOAT,
 def dem_luot_thanh_cong(runs: list[dict]) -> dict[str, int]:
     """Đếm lượt chạy THÀNH CÔNG theo ngày (UTC).
 
-    Dùng ngày UTC là đúng chứ không phải tiện: nhịp quét nằm trong
-    02:00–08:30 UTC, tức 09:00–15:30 giờ VN cùng một ngày dương lịch. Hai
-    múi giờ không lệch ngày ở khung giờ này.
+    Dùng ngày UTC là đúng chứ không phải tiện: cron khai bằng UTC, và lượt
+    được TẠO trễ nhất 10,2 giờ sau cron (đo 05/11/2026) nên nhịp quét
+    08:35 và 10:05 UTC (từ BƯỚC 256; trước đó 02:00–08:30 UTC) vẫn rơi
+    trong cùng ngày UTC. Giờ VN thì lượt trễ có thể sang ngày kế (sau
+    07:00 ICT) — đếm theo giờ VN mới là cách làm lệch ngày.
+    Gác: tests/test_lich_cron_chuong.py.
     """
     theo_ngay: dict[str, int] = {}
     for r in runs:

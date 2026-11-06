@@ -5,7 +5,7 @@
 # workflow quét để biết một ngày có được quét không. Làm đỏ workflow đó
 # vì cổng C5 sẽ sinh ra báo động giả "ngày này không có lượt quét nào",
 # che mất đúng thứ chuông kia sinh ra để canh. Cùng cái bẫy mà
-# `quet-so-lenh.yml` đã ghi cho bước cảnh báo nội phiên.
+# `quet-so-lenh.yml` từng ghi cho bước cảnh báo nội phiên (BƯỚC 256 đã bỏ bước ấy).
 #
 # Chuông kêu bằng cách để lượt chạy này ĐỎ. GitHub gửi email cho người
 # sửa cron gần nhất khi một workflow theo lịch thất bại — đó là đường
@@ -24,8 +24,8 @@ name: Chuông cổng C5
 
 on:
   schedule:
-    # 09:43 UTC = 16:43 ICT — sau giờ đóng cửa, sau lượt quét cuối cùng
-    # (đo được: 15:29–15:33 ICT), và sau chuông báo quét (09:23 UTC) để
+    # 09:43 UTC = 16:43 ICT — sau giờ đóng cửa, sau nhịp chính của lượt quét
+    # (08:35 UTC từ BƯỚC 256; ⚠️ "lượt cuối đo được 15:29–15:33 ICT" là lịch quét cũ), và sau chuông báo quét (09:23 UTC) để
     # hai chuông không lẫn vào nhau trong hộp thư.
     # LỆCH KHỎI MỐC :00 VÀ :30 CÓ CHỦ ĐÍCH (03/09/2026)
     # Đo được: nhịp ở 09:00 và 09:30 UTC trễ trung vị 4–4,7 GIỜ (⚠️ đo lại 05/11/2026: 6,1–6,5 GIỜ, xem CLAUDE.md), trong khi

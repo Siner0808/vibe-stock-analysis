@@ -54,6 +54,16 @@ Phiên quyết định sau soát pipeline chỉ đọc (BƯỚC 255, hộp hỏi
 | `architecture_asbuilt.html` | *"Gắn nhãn HẾT ĐÚNG + trỏ sang SVG (Recommended)"* |
 | Ba phát hiện về sản phẩm (quét chạy sau đóng cửa · bản tin không có đường giao · chấm bóng và sân đấu không có cron) | *"Ghi danh sách chờ, bàn sau (Recommended)"* — mục *Danh sách chờ* ở cuối |
 
+Cùng ngày, phiên quyết định kế (BƯỚC 256; ba hàng đầu đã xử lý, hàng bản tin còn MỞ):
+
+| Câu hỏi | Trả lời |
+|---|---|
+| Giờ quét | *"Chấp nhận, dọn cho khớp (Recommended)"* — chọn hơn việc dựng bộ hẹn giờ ngoài để có cảnh báo trong phiên thật |
+| Chấm bóng và sân đấu có cần cron | *"Kiểm trước, rồi quyết (Recommended)"* |
+| Phạm vi BƯỚC 256 | *"Giao ngay, đủ (i)+(ii)+(iii) (Recommended)"*, rồi *"Tách (ii) ra, giao (i)+(iii) trước (Recommended)"* |
+| Đường giao bản tin (T3) | *"GitHub Issue → email (Recommended)"* — leader nêu sau đó repo là CÔNG KHAI nên mục này tách ra và còn MỞ (xem *Danh sách chờ*) |
+| Dow phần 2 | *"Hoãn tới sau v1.0 (Recommended)"* |
+
 ---
 
 ## Hai đích
@@ -303,7 +313,19 @@ cho tới khi đã thành một đầu việc có mã ở trên.
   được bằng nguồn đang có"); thống kê tuần tự; danh mục có tính phí; vi cấu trúc
   HOSE (biên độ, lô chẵn, ATO/ATC, room ngoại); một đợt tra cứu ngoài (deep
   research) về các hiệu ứng có cơ sở kinh tế trên thị trường Việt Nam.
-- **Danh sách chờ** (ghi 05/11/2026; người dùng: *"Ghi danh sách chờ, bàn sau (Recommended)"*; mô tả đúng hiện trạng, chưa sửa gì): (1) quét chạy sau đóng cửa — phần lớn lượt quét tạo sau 15:00 giờ VN nên bước cảnh báo nội phiên hiếm kêu đúng phiên (số đo và lệnh ở `CLAUDE.md`, mục *Quét tự động*); (2) bản tin B2 chưa có đường giao tới người dùng (T3); (3) chấm bóng (`cham_xac_nhan`, `keo_bang_gia`) và sân đấu (`san_dau`) không có cron — chỉ chạy tay hoặc trong app.
+- **Danh sách chờ** (ghi 05/11/2026; người dùng: *"Ghi danh sách chờ, bàn sau (Recommended)"*; cập nhật cùng ngày ở BƯỚC 256):
+  (1) ~~quét chạy sau đóng cửa~~ **ĐÃ XONG (BƯỚC 256)**: `quet-so-lenh.yml` nay khai hai nhịp sau đóng cửa và bỏ bước
+  cảnh báo nội phiên (`CLAUDE.md`, mục *Quét tự động*); (2) bản tin B2 chưa có đường giao tới người dùng (T3) —
+  **VẪN MỞ**: người dùng đã chọn *"GitHub Issue → email (Recommended)"* nhưng repo là CÔNG KHAI, Issue ai cũng đọc
+  được, nên mục tách ra và người dùng còn phải chọn một kênh RIÊNG TƯ: email qua SMTP hoặc Telegram; chưa dựng gì;
+  (3) ~~chấm bóng (`cham_xac_nhan`, `keo_bang_gia`) và sân đấu (`san_dau`) không có cron~~ **ĐÓNG, không cần cron** —
+  kiểm 05/11/2026: các module là phát lại thuần, không giữ trạng thái giữa các lượt (`cham_bong.py` *"MODULE THUẦN:
+  không gọi mạng, không đọc Sheets, không ghi file"*; `tools/san_dau.py` *"CHỈ ĐỌC"*). Đầu vào là các tab `decisions` ·
+  `ke_hoach` · `trades` mà MỌI lượt quét đã ghi, cộng giá kéo lúc đọc (`keo_bang_gia` kéo MỘT bảng một lượt, cố ý
+  không nối nhiều lượt: `close` lệch ở 21,6% nến chung giữa hai lượt kéo), nên dữ liệu tự tích luỹ; chỉ cần chạy khi có
+  người đọc kết quả. UV-001 đọc MỘT lần, ở `cham_bong.MOC_DOC` = 252 phiên có nhãn. *Tuỳ chọn, CHƯA dựng:* một chuông
+  nhắc người dùng đúng mốc đọc ấy; (4) **Dow phần 2** (mức thị trường, nguyên lý hai chỉ số;
+  `docs/thiet-ke-dow-cau-truc.md` mục 10) — người dùng: *"Hoãn tới sau v1.0 (Recommended)"*; không làm trước v1.0.
 - Rủi ro: phụ thuộc `vnstock` (từng bị cách ly trên PyPI 25–26/09); GitHub Actions
   trễ ở khung chuông (`CLAUDE.md`, mục *Quét tự động*); tín hiệu thưa (nhịp vào
   lệnh chưa ổn định); một người vận hành, quyết định đọng lại thì cả dự án đứng;

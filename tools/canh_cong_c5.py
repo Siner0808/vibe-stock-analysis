@@ -6,8 +6,8 @@ VÌ SAO PHẢI LÀ MỘT WORKFLOW RIÊNG
 workflow "Quét sổ lệnh" để biết một ngày có được quét hay không. Làm đỏ
 workflow đó vì cổng C5 sẽ khiến chuông kia báo "ngày này không có lượt
 quét nào" — một báo động giả sinh ra từ một cảnh báo thật, và nó che mất
-đúng thứ chuông kia sinh ra để canh. `quet-so-lenh.yml` đã ghi nguyên
-văn cảnh báo này cho bước cảnh báo nội phiên; đây là cùng một cái bẫy.
+đúng thứ chuông kia sinh ra để canh. `quet-so-lenh.yml` từng ghi nguyên
+văn cảnh báo này cho bước cảnh báo nội phiên (BƯỚC 256 đã bỏ bước ấy); đây là cùng một cái bẫy.
 
 Nên: lượt quét vẫn xanh và vẫn TỰ TẮT mở vị thế mới trong lượt đó (xem
 `run_daily.thi_hanh_dieu_kien_dung`), còn chuông C5 đỏ riêng ở đây.

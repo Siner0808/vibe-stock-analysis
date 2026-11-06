@@ -63,8 +63,8 @@ BO_QUA = {".venv", ".git", "__pycache__", "scratch", "node_modules", "brain"}
 # .py, nhưng nó KHÔNG có đuôi .py nên `rglob("*.py")` không thấy nó, và
 # cũng không test nào chạm tới. Lỗi PEP 701 hôm 21/08 nằm trong một file
 # .py nên bắt được; lần sau nó nằm trong heredoc thì chỉ CI mới biết, và
-# biết bằng cách để cả lượt quét đỏ. Riêng bước cảnh báo nội phiên đã có
-# hơn 70 dòng python nằm đúng chỗ mù đó.
+# biết bằng cách để cả lượt quét đỏ. Riêng bước cảnh báo nội phiên (bỏ ở
+# BƯỚC 256) từng có hơn 70 dòng python nằm đúng chỗ mù đó.
 MO_HEREDOC = re.compile(r"^\s*python\s+-\s+<<'([A-Za-z_][A-Za-z0-9_]*)'")
 
 DUONG_DOAN = (

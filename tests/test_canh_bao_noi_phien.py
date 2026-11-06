@@ -246,13 +246,67 @@ def test_chi_quet_lenh_dang_MO():
 # 5. Workflow phải thật sự gọi
 # ─────────────────────────────────────────────────────────────────────
 
-def test_workflow_goi_dung_module():
+# BƯỚC 256 (05/11/2026): lượt quét chạy SAU đóng cửa nên bước "Cảnh báo chạm SL/TP trong phiên" bị BỎ khỏi
+# `quet-so-lenh.yml` (chính `run_daily` đã đóng lệnh thủng SL/TP trên nến ngày; bước ấy chỉ in `::warning::`).
+# Module vẫn sống vì APP gọi `kiem_mot` và `loc_dung_ngay`. Hai test dưới giữ cả hai nửa của quyết định.
+
+def _goc():
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _ten_buoc_workflow_quet() -> list:
+    """Tên các bước của `quet-so-lenh.yml`, đọc từ dòng `- name:` KHÔNG phải chú thích."""
     import io
-    goc = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    p = os.path.join(goc, ".github", "workflows", "quet-so-lenh.yml")
-    s = io.open(p, encoding="utf-8").read()
-    assert "canh_bao_noi_phien" in s, "workflow chưa gọi module cảnh báo"
-    print("PASS  workflow gọi đúng module")
+    import re
+    p = os.path.join(_goc(), ".github", "workflows", "quet-so-lenh.yml")
+    return [m.group(1).strip() for dong in io.open(p, encoding="utf-8").read().splitlines()
+            for m in [re.match(r"^\s*-\s*name:\s*(.+)$", dong)] if m]
+
+
+def _nhap_trong_ma(ma: str) -> set:
+    import ast
+    ten = set()
+    for n in ast.walk(ast.parse(ma)):
+        if isinstance(n, ast.Import):
+            ten.update(a.name for a in n.names)
+        elif isinstance(n, ast.ImportFrom) and n.module:
+            ten.add(n.module)
+    return ten
+
+
+def test_workflow_quet_KHONG_con_buoc_canh_bao_va_khong_nhap_module():
+    """Đọc bằng tên bước và AST của đoạn nhúng, không bằng `in` trên cả file (chú thích nhắc tên module)."""
+    import importlib.util
+    import pathlib
+    ten = _ten_buoc_workflow_quet()
+    assert ten, "không đọc được bước nào của quet-so-lenh.yml — gác đang canh file rỗng"
+    assert not [t for t in ten if "Cảnh báo" in t], f"bước cảnh báo quay lại workflow: {ten}"
+    spec = importlib.util.spec_from_file_location(
+        "kiem_cu_phap_311", pathlib.Path(_goc()) / "tools" / "kiem_cu_phap_311.py")
+    kiem = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kiem)
+    doan = [ma for nhan, ma in kiem.doan_nhung(pathlib.Path(_goc())) if "quet-so-lenh.yml" in nhan]
+    assert doan, "không trích được đoạn nhúng nào của quet-so-lenh.yml"
+    nhap = set().union(*[_nhap_trong_ma(ma) for ma in doan])
+    assert "canh_bao_noi_phien" not in nhap, "một đoạn nhúng lại nhập canh_bao_noi_phien"
+    assert "google_sheets_sync" in nhap, "gác không thấy bước kéo sổ — đang đọc nhầm đoạn"
+    print("PASS  workflow quét không còn bước cảnh báo nội phiên")
+
+
+def test_app_van_dung_module_canh_bao_noi_phien():
+    """Module KHÔNG chết khi workflow bỏ nó: ô vị thế trong app đọc `kiem_mot` và `loc_dung_ngay`."""
+    import ast
+    import io
+    src = io.open(os.path.join(_goc(), "app.py"), encoding="utf-8").read()
+    cay = ast.parse(src)
+    # Bí danh nào THẬT SỰ trỏ vào module này (không tin tên bí danh, chỉ tin dòng import).
+    bi_danh = {a.asname for n in ast.walk(cay) if isinstance(n, ast.Import)
+               for a in n.names if a.name == "canh_bao_noi_phien" and a.asname}
+    assert bi_danh, "app.py thôi nhập canh_bao_noi_phien — module thành mã chết"
+    goi = {n.attr for n in ast.walk(cay)
+           if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name) and n.value.id in bi_danh}
+    assert {"kiem_mot", "loc_dung_ngay"} <= goi, f"app gọi {sorted(goi)} qua bí danh {sorted(bi_danh)}"
+    print("PASS  app còn dùng kiem_mot và loc_dung_ngay")
 
 
 if __name__ == "__main__":
@@ -301,28 +355,15 @@ def test_loc_dung_ngay_giu_nguyen_khi_rong():
     print("PASS  lọc ngày trên bảng rỗng -> không nổ")
 
 
-def test_buoc_canh_bao_phai_dung_TRUOC_buoc_quet():
-    """Thứ tự này là bất biến, không phải sở thích sắp xếp.
+def test_thu_tu_ba_buoc_keo_quet_doi_chieu():
+    """Thứ tự này là bất biến, không phải sở thích sắp xếp (BƯỚC 256: còn BA bước, cảnh báo đã bỏ).
 
-    `run_session()` gọi `evaluate_open()` với nến NGÀY hôm nay, mà trong
-    phiên nến ngày đã phản ánh cái đáy vừa tạo. Một vị thế thủng stop-loss
-    lúc 10:30 bị chính nhịp quét kế tiếp đóng ngay.
-
-    Đặt cảnh báo SAU bước quét thì nó luôn thấy lệnh đã đóng và KHÔNG BAO
-    GIỜ kêu — bước vẫn xanh, vẫn in "0 vị thế đang mở", và trông y hệt một
-    ngày bình yên.
+    Bỏ bước KÉO hoặc đặt nó sau bước QUÉT thì runner sạch quét trên sổ RỖNG rồi đẩy lên — đúng cơ chế mất
+    96/113 lệnh ngày 12/08/2026. ĐỐI CHIẾU phải sau QUÉT, vì nó đo kết quả của cú đẩy.
     """
-    import io
-    goc = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    p = os.path.join(goc, ".github", "workflows", "quet-so-lenh.yml")
-    s = io.open(p, encoding="utf-8").read()
-
-    i_keo = s.index("Kéo sổ lệnh từ Google Sheets")
-    i_cb = s.index("Cảnh báo chạm SL/TP trong phiên")
-    i_quet = s.index("Quét thị trường và cập nhật sổ lệnh")
-
-    assert i_keo < i_cb, "cảnh báo chạy trước khi kéo sổ — sổ chưa cập nhật"
-    assert i_cb < i_quet, (
-        "bước cảnh báo đang nằm SAU bước quét, nên nó sẽ không bao giờ thấy "
-        "vị thế nào còn mở")
-    print("PASS  thứ tự: kéo sổ -> cảnh báo -> quét")
+    ten = _ten_buoc_workflow_quet()
+    i_keo = next(i for i, t in enumerate(ten) if t.startswith("Kéo sổ lệnh từ Google Sheets"))
+    i_quet = next(i for i, t in enumerate(ten) if t.startswith("Quét thị trường và cập nhật sổ lệnh"))
+    i_doi = next(i for i, t in enumerate(ten) if t.startswith("Đối chiếu sổ local với kho ngoài"))
+    assert i_keo < i_quet < i_doi, f"thứ tự bước đã đổi: {ten}"
+    print("PASS  thứ tự: kéo sổ -> quét -> đối chiếu")

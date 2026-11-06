@@ -333,7 +333,7 @@ Dow đòi hai chỉ số xác nhận nhau (mục 4.5). Với một chuỗi giá 
 3. Độ rộng thị trường (tỷ lệ mã trên MA) KHÔNG phải của Dow (NC §6.3); dự án đã có `do_rong.py` (ĐO 32) — nếu dùng thì gọi đúng tên.
 4. Luật hai chỉ số (NC §8 R5, R6) có cửa sổ lệch `w ∈ {0, 5, 10, 21, không giới hạn}` giữa hai lần phá mốc — lưới thêm; lực rất thấp (một tín hiệu mỗi 1–3 năm).
 
-Việc đầu của PHẦN 2 là lệnh kiểm mục 1 (không viết mã giao dịch, không đọc kết cục); nó chỉ được mở khi người dùng muốn (mục 14, câu 4).
+Việc đầu của PHẦN 2 là lệnh kiểm mục 1 (không viết mã giao dịch, không đọc kết cục); nó chỉ được mở khi người dùng muốn (mục 14, câu 4). **Quyết định 05/11/2026 (BƯỚC 256):** người dùng *"Hoãn tới sau v1.0 (Recommended)"* — không mở PHẦN 2 trước v1.0 (`docs/LO-TRINH.md`, *Danh sách chờ*).
 
 ## 11. Các lát cắt, mỗi lát một BƯỚC, `Mốc:` theo mục 14 câu 2 (thứ tự đã chốt: Lát 0b trước Lát 1)
 

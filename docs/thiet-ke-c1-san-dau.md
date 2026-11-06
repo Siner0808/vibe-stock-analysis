@@ -279,7 +279,7 @@ Thêm vào `st.tabs([...])` (`app.py` :1769, cạnh tab "bóng" của tầng 3 �
 
 ### 10.2 `tools/san_dau.py` (BƯỚC 2 trở đi)
 
-Lệnh con: `bang` (in bảng), `tuong-duong` (Tầng B, mục 6), `do-phu` (BƯỚC 3, ghi `docs/san-dau-do-phu.json`). CHỈ ĐỌC với sổ và Sheets: kéo vào DB TẠM bằng đường của `tools/doc_so_that.py`, không `push`, không `pull` vào sổ nào khác, không ghi `*.db` ở gốc repo. Mọi file có `__main__` và `print` gọi `sys.stdout.reconfigure(encoding="utf-8")`.
+Lệnh con: `bang` (in bảng), `tuong-duong` (Tầng B, mục 6), `do-phu` (BƯỚC 3; IN kết quả đo ra stdout bằng `--json`, không tự ghi file — người chạy ghi `docs/san-dau-do-phu.json` bằng `va_an_toan.ghi`, và `do-phu --kiem` đo lại rồi so với file đó; sửa 05/11/2026, BƯỚC 256). CHỈ ĐỌC với sổ và Sheets: kéo vào DB TẠM bằng đường của `tools/doc_so_that.py`, không `push`, không `pull` vào sổ nào khác, không ghi `*.db` ở gốc repo. Mọi file có `__main__` và `print` gọi `sys.stdout.reconfigure(encoding="utf-8")`.
 
 ## 11. Gác (AST, theo khuôn `tests/test_ke_hoach_vao_lenh.py` và `tests/test_doc_so_that.py`)
 
