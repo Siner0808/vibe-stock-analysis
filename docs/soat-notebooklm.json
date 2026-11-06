@@ -4796,6 +4796,114 @@
     "BƯỚC 257": {
       "ngay": "2026-11-06",
       "khong_bat_buoc_vi": "BƯỚC Lát 4 của C1 (sân đấu): thêm mã mới (khop_gioi_han.py thuần, LuatKhopKeHoach và phat_lai(ke_hoach=) ở san_dau.py, một đường đọc tab decisions đủ cột ở sheets_store.py, hàm bang_cho_app và cửa sổ riêng của PB-003 ở tools/san_dau.py, tab chỉ-đọc ở app.py), một hook tuỳ chọn ở PaperTradingJournal.fill_pending mà đường thật không truyền (bảng vàng BƯỚC 239 vẫn khớp từng ô), một dòng PB-003 ở docs/phuong-an-bong.json (lớp tham_do, không tính vào K), test, và một mục ghi chú thi công ở docs/thiet-ke-c1-san-dau.md; không sửa file luật nào (tools/buoc_cham_luat.py 257 xác nhận), không đổi điểm, ngưỡng, cổng, cỡ vị thế, khớp lệnh của đường thật, sổ lệnh hay kết luận đo nào. Các con số của lượt chạy trên sổ thật là số đếm của đường ống (5 tín hiệu qua cổng trong 15 phiên, mọi KTC là mẫu quá ngắn), được ghi rõ trong docs/STATE.md là KHÔNG phải kết luận đo; thiết kế do người dùng duyệt từ 28/10/2026 và Lát 4 do người dùng chọn 06/11/2026. Mã, app và .github nằm ngoài tầm sổ tay (chỉ đọc tài liệu) nên được tự kiểm bằng test và đột biến."
+    },
+    "BƯỚC 259": {
+      "ngay": "2026-11-06",
+      "nguon": [
+        "CLAUDE.md @aac135f",
+        "HANDOFF.md @3d87a20",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @aac135f",
+        "MO-XE-KIEN-TRUC.md @64e3d3b",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "README.md @aac135f",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @f27bc50",
+        "references/loi-da-mac.md @cced339",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3d87a20 phan6/6 (BUOC 251-257)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "TIEU-CHI-DOC-TRUOC.md @cced339"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với HEAD ee4139a): 23 nguồn, 21 tươi; không tươi: LO-TRINH.md @aac135f = CU; STATE.md @3d87a20 phan6/6 (BUOC 251-257) = CU — kết luận CU.",
+      "cau_hoi": "I am about to write BƯỚC 259 into docs/STATE.md: In docs/LO-TRINH.md I am about to write three things: (1) item C4 (a fake market with a planted edge, to prove the learning loop for criterion T6) is only a written specification dated 06/11/2026, with no code; (2) of the verbs of criterion T6 (finds, confirms, upgrades), the project has code for declaring and confirming a candidate, but NO code that finds a candidate and NO code that applies a confirmed (QUA) result to the live scoring, and the confirmation round is run by hand with no workflow calling it; (3) the earlier statement that the third bóng plan (PB-003, entry by the B6 plan) is not yet in the book is out of date, because PB-003 was declared in BƯỚC 257. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that an automatic upgrade mechanism or a candidate proposer already exists, or that the confirmation round runs on a schedule, or that PB-003 is still absent from the plan book, or that C4 has already been built or has a different definition. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "8e1f4aabb2bfaabedeb4bc944e3118050fdf30454b703d694057b95555cef6aa",
+        "dai16": 2698,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @3d87a20 phan6/6 (BUOC 251-257)"
+          },
+          {
+            "n": 4,
+            "nguon": "STATE.md @f27bc50 phan3/5 (BUOC 117-168)"
+          },
+          {
+            "n": 5,
+            "nguon": "HANDOFF.md @3d87a20"
+          },
+          {
+            "n": 6,
+            "nguon": "STATE.md @f27bc50 phan3/5 (BUOC 117-168)"
+          },
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 9,
+            "nguon": "STATE.md @3d87a20 phan6/6 (BUOC 251-257)"
+          },
+          {
+            "n": 10,
+            "nguon": "HANDOFF.md @3d87a20"
+          },
+          {
+            "n": 8,
+            "nguon": "HANDOFF.md @3d87a20"
+          },
+          {
+            "n": 11,
+            "nguon": "STATE.md @3d87a20 phan6/6 (BUOC 251-257)"
+          },
+          {
+            "n": 12,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 13,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @3d87a20 phan6/6 (BUOC 251-257)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @3d87a20 phan6/6 (BUOC 251-257)"
+          },
+          {
+            "n": 8,
+            "nguon": "HANDOFF.md @3d87a20"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Một lượt, hỏi thật, câu trả lời ÂM (lối thoát): sổ tay nói không có chỗ nào mâu thuẫn hay bị biến thành sai. Lượt hỏi 06/11/2026 sau khi xoá nhật ký chat (0 trả lời trước), 23/23 nguồn tươi so với 3d87a20 (nhan_3d87a20.txt, bắt tay sha256 KHỚP 8e1f4aab…). Câu trả lời KHÔNG có trích dẫn nguyên văn (chỉ chỉ số chân trang) nên tools/doi_chieu_trich_dan.py không có gì để đối chiếu; tôi tự kiểm cả hai chiều. (1) Vế phủ định về mã — grep -rn 'cham_xac_nhan|san_dau|cham_bong' .github/workflows/: 0 dòng, nên không workflow nào gọi chúng (docs/LO-TRINH.md danh sách chờ (3) ghi đó là chủ ý: 'ĐÓNG, không cần cron'); git log -S'nang_cap' và -S'phien_ban_diem' trên *.py: rỗng; chỉ app.py, cham_xac_nhan.py, keo_bang_gia.py và ba tool trong tools/ (cham_xac_nhan, keo_bang_gia, sang_ung_vien) nhập cham_bong/cham_xac_nhan, không module chấm điểm nào. (2) Tìm vế ÂM mà lối thoát chỉ chặn bịa không chặn bỏ sót: grep 'chưa có trong sổ|thứ ba theo B6' trên docs/*.md và CLAUDE.md: chỉ còn dòng LO-TRINH đã sửa (một dòng STATE.md nói chuyện khác); grep 'tự lên phiên bản|đã nâng cấp|tự nâng cấp' trên HANDOFF · LO-TRINH · CLAUDE · thiết kế C1 · app.py: MỘT dòng, docs/HANDOFF.md :793 ('học có kiểm soát qua hai vòng, tự lên phiên bản và báo người dùng') — là HƯỚNG người dùng chọn 25/09/2026 (và vế 'hai vòng' ngay sau đã mang dấu 🔴 THAY THẾ), không phải khẳng định mã đã có; sổ tay BỎ SÓT dòng này và dòng STATE.md :17595 cùng ý, nên đặc tả C4 mục 3 trích cả hai làm 'chữ vòng học' và ghi rõ chưa có mã. (3) Nó nói app có 'nút bấm' chạy xác nhận: SAI một phần — tab 'Kiểm định chiến lược' của app.py không tính gì, chỉ hiện sổ và tiến độ ước (app.py :2480–2488); nút bấm chỉ có ở tab sân đấu. Không ảnh hưởng kết luận. (4) Nó nói PB-003 vào sổ ở commit 36de236: THẬT (docs/phuong-an-bong.json). Việc đối chiếu cũng làm tôi sửa một câu của chính đặc tả: ghi 'chưa workflow nào gọi' ở vế xác nhận đọc như một lỗ hổng, trong khi LO-TRINH đã đóng nó là chủ ý — đã sửa trong mục 3."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
