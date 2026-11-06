@@ -1,7 +1,7 @@
 # Thiết kế C4 — Thị trường giả có lợi thế cài sẵn: chứng minh vòng học chạy đúng (T6)
 
 **Mốc:** C4 (`docs/LO-TRINH.md`, giai đoạn C). **Duyệt hướng:** người dùng, 06/11/2026, trong phiên leader (BƯỚC 259): *"C4 — thị trường giả (T6) (Recommended)"* — mở bằng MỘT đặc tả chỉ có chữ; người dùng duyệt đặc tả trước khi có dòng mã nào.
-**Trạng thái:** **BẢN THẢO — 7 câu mở ở mục 14 chưa có trả lời.** Chưa có dòng mã nào. Mọi chỗ mang nhãn *[chờ Qn]* phụ thuộc câu mở n; khi người dùng trả lời, bản này được sửa bằng một commit riêng và nhãn được thay bằng *ĐÃ CHỐT*.
+**Trạng thái:** đặc tả **ĐÃ CHỐT MỘT PHẦN** ngày 06/11/2026: người dùng đã trả lời bốn trên bảy câu (Q1, Q2, Q3, Q7 — mục 2). Ba câu còn lại (Q4, Q5, Q6) người dùng được hỏi nhưng CHƯA chọn; chúng chạy theo **mặc định theo đề xuất — người dùng CHƯA chọn, đổi được trước Lát 1** và nằm ở mục 14 "Câu mở còn lại". Chưa có dòng mã nào. Nhãn *[Qn: ĐÃ CHỐT]* và *[Qn: MẶC ĐỊNH, chưa chọn]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo; bảng lựa chọn gốc còn ở lịch sử git.
 
 Tài liệu này là đề bài cho các phiên làm mã. Luật chung (vá file, đột biến, năm cổng, giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó. Mọi `file:dòng` bên dưới được `grep` lại ở cây `3d87a20` ngày 06/11/2026; số dòng trôi theo mã, tên hàm thì không. Con số nào không kèm lệnh là **ước lượng** và được gọi là ước lượng (Quy tắc 2).
 
@@ -13,14 +13,18 @@ Tài liệu này là đề bài cho các phiên làm mã. Luật chung (vá file
 
 Lý do tồn tại, nói thẳng: trên thị trường thật vòng xác nhận chỉ phán MỘT lần cho mỗi ứng viên (`cham_bong.py` quy ước 5) và UV-001 là ứng viên duy nhất trong sổ. Nếu lần phán duy nhất ấy ra "đang chậm", không ai biết là *không có lợi thế* hay *vòng không bắt nổi lợi thế*. Thị trường giả trả lời nửa sau: ta tự cài một lợi thế biết trước độ lớn và đếm xem vòng có bắt được nó không, và có im lặng khi không có gì. Nó **không** nói gì về thị trường thật (mục 11).
 
-Điều C4 **không** là: không chạm sổ thật, không chạm UV-001, không đọc Sheets, không đổi điểm hay ngưỡng của đường thật, không phải agent soạn ứng viên (C3), không nối "nâng cấp" vào đường thật (mục 5.5, *[chờ Q3]*).
+Điều C4 **không** là: không chạm sổ thật, không chạm UV-001, không đọc Sheets, không đổi điểm hay ngưỡng của đường thật, không phải agent soạn ứng viên (C3), không nối "nâng cấp" vào đường thật (mục 5.5, *[Q3: ĐÃ CHỐT]*).
 
 ## 2. Quyết định của người dùng
 
 | Câu hỏi | Trả lời |
 |---|---|
 | Mở C4 như thế nào | *"C4 — thị trường giả (T6) (Recommended)"* (06/11/2026): bắt đầu bằng một BƯỚC đặc tả chỉ có chữ; người dùng duyệt trước khi viết mã |
-| Bảy câu mở (mục 14) | CHƯA hỏi — bản thảo này gửi leader kèm khuyến nghị |
+| Q1 — "tìm ra" khi C3 chưa tồn tại | *"Bộ đề xuất cơ sở (Recommended)"* (06/11/2026): bộ đề xuất cơ sở trong C4 (mục 5.1); C3 sau này chạy lại cùng tiêu chí A |
+| Q2 — độ trung thực | *"Hai tầng (Recommended)"* (06/11/2026): Tầng 1 quyết định trực tiếp + Tầng 2 qua đường ống thật (mục 4.1) |
+| Q3 — "nâng cấp" đi tới đâu | *"Chỉ trong thị trường giả (Recommended)"* (06/11/2026): không nối vào `master_agent`, ngưỡng mua đứng yên (mục 5.4–5.5) |
+| Q7 — số thế hệ | *"Một đời (Recommended)"* (06/11/2026): sau một nâng cấp thị trường dừng (mục 5.4 khoản 6) |
+| Q4 · Q5 · Q6 | được hỏi 06/11/2026, người dùng trả lời về việc khác, **CHƯA chọn**. Chạy theo mặc định theo đề xuất (mục 14), đánh nhãn là mặc định; người dùng đổi được bất cứ lúc nào TRƯỚC Lát 1 |
 
 ## 3. Bước 0 — bản đồ THẬT của "vòng học" (đọc từ mã, không từ trí nhớ)
 
@@ -60,7 +64,7 @@ Mảnh 1 thuộc C3. Mảnh 2–4 và 6 là ĐỔI LUẬT đường thật (cầ
 3. **Hai tầng**, vì một tầng không đủ:
    - **Tầng 1 — "quyết định trực tiếp".** Bộ sinh dựng thẳng các dòng đúng khuôn tab `decisions` (`symbol`, `signal_date`, `score` NGUYÊN như `paper_trading.py` :731, `components` là JSON năm thành phần, `at`, `seq`) và bảng giá `close`. Không chạy agent. Rẻ (ước lượng: dưới một giây một thị trường) nên chạy được hàng nghìn lần — cần cho các tỷ lệ. Nó kiểm VÒNG (khai → xác nhận → phiên bản), vốn chỉ nhìn thấy dòng quyết định và `close`.
    - **Tầng 2 — "qua đường ống thật".** Bộ sinh dựng khung OHLCV đầy đủ có nhân tố ẩn; chấm điểm bằng `paper_runner._analyze` THẬT (lịch sử cắt tới từng phiên, như walk-forward); phát lại bằng `san_dau.phat_lai` với `CauHinhVao` và nguồn tiêm (mục 4.9). Đắt (ước lượng ~5 phút một thị trường một lõi; mục 9) nên số lần ít. Nó kiểm rằng thứ Tầng 1 giả định — *agent thật truyền được lợi thế vào thành phần điểm, và ống dẫn không rò* — là đúng.
-   *[chờ Q2]*
+   *[Q2: ĐÃ CHỐT — hai tầng]*
 
 ### 4.2 Mô hình sinh (Tầng 1)
 
@@ -133,7 +137,7 @@ Sửa đặc tả sau khi đã nhìn một kết quả thì dòng hạt của b�
 
 Bốn bộ phận. **Bộ XÁC NHẬN dùng CHÍNH `cham_bong` và `cham_xac_nhan` (không bản sao)**; ba bộ phận còn lại là phần C4 phải dựng, và được gắn nhãn "chưa phải đường thật".
 
-### 5.1 Tìm ra — bộ đề xuất cơ sở *[chờ Q1]*
+### 5.1 Tìm ra — bộ đề xuất cơ sở *[Q1: ĐÃ CHỐT]*
 
 Hàm thuần `de_xuat(dong_quyet_dinh_da_nhin, gia_da_nhin) -> danh sách spec có thứ tự`. Cơ sở: với mỗi spec trong F (4.3), tính Δ = IC(spec) − IC(điểm đã ghi) trên MỌI phiên có nhãn của cửa sổ đã nhìn (126 phiên) bằng cùng `cham_bong.ma_tran_cap` + `E.rho_hang` (KHÔNG chạy `so_cap`: không có "phán" ở dữ liệu đã nhìn); xếp theo Δ giảm; khai **3 spec đầu**, mỗi spec một tháng (4.6), theo thứ hạng. Quy tắc cố định trước: ràng buộc hoà bằng thứ tự đặt tên spec; chỉ khai spec có Δ > 0 (nếu ít hơn 3 spec dương thì khai ít hơn — không ép đủ).
 Đây KHÔNG phải C3: không lập luận, không bản tiền đăng ký bằng lời, không cổng khả thi. Nó là một đối thủ rẻ mà vòng phải thắng, và là CHỖ CẮM (giao thức một hàm) để C3 chạy lại cùng tiêu chí sau này.
@@ -144,23 +148,25 @@ Dict cùng khuôn `docs/ung-vien.json`, mỗi lần khai đi qua `cham_bong.kiem
 
 ### 5.3 Xác nhận
 
-`cham_xac_nhan.cham` :348 trên dòng quyết định giả và một bảng giá giả đã `phan_tich_bang_gia` (`nguon` ∈ {vci, kbs}, một `keo_luc` — nhãn giả nhưng đúng khuôn). K = số ứng viên đã khai trong sổ giả **tại lúc đọc** (đúng `cham_bong.nguong`). Hạt hoán vị = `cham_xac_nhan.HAT_RNG` :63, 2000 hoán vị — mặc định thật, không đổi cho thế giới giả. *[K: câu Q5.]*
+`cham_xac_nhan.cham` :348 trên dòng quyết định giả và một bảng giá giả đã `phan_tich_bang_gia` (`nguon` ∈ {vci, kbs}, một `keo_luc` — nhãn giả nhưng đúng khuôn). K = số ứng viên đã khai trong sổ giả **tại lúc đọc** (đúng `cham_bong.nguong`) *[Q5: MẶC ĐỊNH theo đề xuất — người dùng CHƯA chọn; K = số đã KHAI, không phải số đã quét; đổi được trước Lát 1]*. Hạt hoán vị = `cham_xac_nhan.HAT_RNG` :63, 2000 hoán vị — mặc định thật, không đổi cho thế giới giả.
 
-### 5.4 Nâng cấp — phiên bản điểm trong thế giới giả *[chờ Q3, Q4, Q7]*
+### 5.4 Nâng cấp — phiên bản điểm trong thế giới giả *[Q3 và Q7: ĐÃ CHỐT; Q4: MẶC ĐỊNH, chưa chọn]*
 
 Hàm thuần `nang_cap(so_phien_ban, ket_qua_xac_nhan, ma_ung_vien, phien_doc) -> so_phien_ban_moi`. Luật:
 1. Chỉ `trang_thai == "QUA"` tạo phiên bản mới. `THUA`, `DANG CHAM`, `CHUA TOI MOC`, `CHUA DU DU LIEU` không.
 2. Phiên bản mới có `spec` bằng **đúng** spec đã khai (so sánh bằng, không làm tròn), kèm bằng chứng (mã ứng viên, p, Δ, n_phien, K, hạt).
 3. **Hiệu lực từ phiên SAU phiên đọc** (bất biến 1: điểm của phiên T chỉ dùng dữ liệu tới T; một phiên bản thông báo ở cuối T chưa chấm được T).
 4. Sau nâng cấp, `score` ghi từ phiên hiệu lực = `int(diem_ung_vien(spec, components))` — phiên bản mới là tổ hợp tuyến tính của thành phần, đúng nghĩa ứng viên.
-5. **Ứng viên đang chờ đọc khi có nâng cấp** *[chờ Q4]*: khuyến nghị — HUỶ, đánh dấu `bi_huy_vi_nang_cap`, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.
-6. Một thế hệ trong C4 *[chờ Q7]*: sau một nâng cấp thị trường không có nâng cấp thứ hai.
+5. **Ứng viên đang chờ đọc khi có nâng cấp** *[Q4: MẶC ĐỊNH theo đề xuất — người dùng CHƯA chọn, đổi được trước Lát 1]*: HUỶ, đánh dấu `bi_huy_vi_nang_cap`, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.
+6. Một thế hệ trong C4 *[Q7: ĐÃ CHỐT, "Một đời"]*: sau một nâng cấp thị trường không có nâng cấp thứ hai.
 
-### 5.5 Nâng cấp **không** nối vào đường thật *[chờ Q3]*
+### 5.5 Nâng cấp **không** nối vào đường thật *[Q3: ĐÃ CHỐT]*
 
 `nang_cap` làm việc trên sổ phiên bản trong bộ nhớ. Không dòng nào của `master_agent`, `paper_trading`, `run_daily` nhập nó. Sáu mảnh thiếu ở mục 3 (2) là việc của một BƯỚC khác — đổi luật đường thật, cần NotebookLM và người dùng duyệt. C4 chứng minh VÒNG; việc đặt vòng lên đường thật là bước kế, và C4 để lại hợp đồng của nó (đầu vào/đầu ra của `nang_cap`, bất biến 1–6 ở trên) làm đặc tả cho bước ấy.
 
 ## 6. Tiêu chí đạt/trượt — KHAI TRƯỚC khi chạy bất kỳ thị trường nào
+
+> **Các ngưỡng và số thị trường (R) dưới đây là MẶC ĐỊNH THEO ĐỀ XUẤT — người dùng CHƯA chọn (Q6), đổi được trước Lát 1.** Phần đã chốt (Q1, Q2, Q3, Q7) quyết định *loại* tiêu chí nào có mặt; Q6 chỉ quyết định các con số. Khi Q6 được trả lời, bảng này sửa bằng một commit riêng.
 
 Mọi con số dưới đây được chọn từ phép tính nhị thức KHÔNG phụ thuộc kết quả mô phỏng. Lệnh tái lập (06/11/2026):
 
@@ -255,40 +261,32 @@ Số BƯỚC do leader cấp. Mỗi BƯỚC qua năm cổng, đột biến mọi
 
 Mọi lệch giữa đặc tả này và mã thật được ghi thành mục "Ghi chú thi công" ở cuối file này (khuôn mục 16 của đặc tả C1), TRƯỚC khi có số nào của lượt chạy chính.
 
-## 14. Câu hỏi mở — bản thảo (chưa trả lời)
+## 14. Câu hỏi mở
 
-Mỗi câu: 2–3 lựa chọn, **(Recommended)** đánh dấu khuyến nghị.
+### 14.1 Đã chốt 06/11/2026
 
-**Q1 — "Tìm ra" nghĩa là gì, khi C3 chưa tồn tại?** (T6 viết *"nó tìm ra"*, nhưng không có bộ tìm.)
-- (a) **Bộ đề xuất cơ sở trong C4 (mục 5.1)**: quét họ 11 spec trên cửa sổ đã nhìn, khai ba spec đầu; C3 sau này chạy lại CÙNG tiêu chí A trên CÙNG thị trường. **(Recommended)**
-- (b) Chờ C3 có đặc tả rồi mới làm C4 (T6 đủ bốn vế nhưng C4 dời, phụ thuộc T5).
-- (c) Bỏ vế "tìm ra": T6 sửa thành *"xác nhận và nâng cấp đúng"*, ứng viên cài sẵn được khai bằng tay.
+| Câu | Quyết định (nguyên văn nhãn người dùng chọn) | Hiệu lực |
+|---|---|---|
+| Q1 | *"Bộ đề xuất cơ sở (Recommended)"* | mục 5.1; tiêu chí A, A0; C3 chạy lại sau |
+| Q2 | *"Hai tầng (Recommended)"* | mục 4.1; tiêu chí P, PT |
+| Q3 | *"Chỉ trong thị trường giả (Recommended)"* | mục 5.4–5.5; không nối `master_agent`; ngưỡng mua đứng yên |
+| Q7 | *"Một đời (Recommended)"* | mục 5.4 khoản 6 |
 
-**Q2 — Độ trung thực của thị trường giả.**
-- (a) **Hai tầng**: Tầng 1 quyết định trực tiếp (R lớn, tính tỷ lệ) + Tầng 2 qua đường ống thật (R = 100, kiểm ống dẫn và khớp tỷ lệ). **(Recommended)**
-- (b) Chỉ Tầng 2 (mọi thứ qua agent thật), R ≈ 100 mỗi mức — chân thực hơn nhưng nhị thức yếu (mục 6, hàng PT) và đắt.
-- (c) Chỉ Tầng 1 — rẻ và chính xác cho vòng, nhưng không chứng minh agent thật truyền được lợi thế; không dùng được `CauHinhVao`/`NguonThiTruong`/`san_dau` như yêu cầu cắm vào bộ máy thật.
+### 14.2 Câu mở còn lại — người dùng được hỏi, CHƯA chọn
 
-**Q3 — "Nâng cấp" đi tới đâu trong C4?**
-- (a) **Chỉ trong thế giới giả** (mục 5.4–5.5): sổ phiên bản trong bộ nhớ, hiệu lực từ phiên sau, kiểm IC tiến-về-trước; KHÔNG nối vào `master_agent`; ngưỡng mua đứng yên (báo số lệnh). Việc nối vào đường thật (sáu mảnh, mục 3) là BƯỚC riêng, cần NotebookLM và duyệt riêng. **(Recommended)**
-- (b) Làm luôn adapter đọc trọng số từ file cho `master_agent` (đổi luật đường thật ngay trong dự án C4; phải hỏi sổ tay và duyệt riêng cho riêng phần ấy).
-- (c) Hoãn nâng cấp: T6 chỉ chứng minh tìm + xác nhận, vế nâng cấp để sau.
+Ba câu dưới đây chạy theo **mặc định theo đề xuất — người dùng CHƯA chọn, đổi được trước Lát 1**. Không câu nào là quyết định của người dùng. Đổi một mặc định sau Lát 1 là sửa đặc tả bằng commit riêng và phải chạy lại trên dòng hạt mới (mục 6).
 
-**Q4 — Ứng viên đang chờ đọc khi một ứng viên khác được nâng cấp?**
-- (a) **Huỷ, đánh dấu, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.** **(Recommended)** — sạch nhất: không ứng viên nào bị đọc trên chuỗi đổi bản giữa chừng.
+**Q4 — Ứng viên đang chờ đọc khi một ứng viên khác được nâng cấp?** (Hệ quả của việc mỗi ứng viên đọc sau 252 phiên, trần 1 khai mỗi tháng: lúc nâng cấp luôn còn ứng viên chờ.)
+- (a) **Huỷ, đánh dấu, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.** **(Recommended — đang là mặc định)** Sạch nhất: không ứng viên nào bị đọc trên chuỗi đổi bản giữa chừng.
 - (b) Cho đọc tiếp, so với bản hiệu lực từng phiên, gắn nhãn *"đọc qua đổi phiên bản"* — giữ ứng viên nhưng phép so cặp không còn đúng nghĩa.
 - (c) Đọc theo LÔ: ứng viên khai trong cùng đợt đọc cùng ngày, nâng tối đa một người thắng mỗi đợt — đổi cả quy ước "mỗi ứng viên đọc sau 252 phiên của riêng nó" (đụng `cham_bong.py` quy ước 5).
 
 **Q5 — K tính theo gì khi bộ đề xuất quét 11 spec nhưng chỉ khai 3?**
-- (a) **K = số đã KHAI (đúng luật hiện hành `cham_bong.so_da_sang`)**; 11 spec được quét ở dữ liệu đã nhìn, phán ở dữ liệu chưa nhìn. **(Recommended)**
+- (a) **K = số đã KHAI (đúng luật hiện hành `cham_bong.so_da_sang`)**; 11 spec được quét ở dữ liệu đã nhìn, phán ở dữ liệu chưa nhìn. **(Recommended — đang là mặc định)**
 - (b) K = số đã QUÉT (11) — chặt hơn, theo tinh thần quy ước 4 ("sàng là chỗ đã nhìn nhiều lần"); lực của vòng giảm rõ (ngưỡng 0,05/11).
 - (c) Chạy cả hai và báo cáo, nhưng tiêu chí chính theo (a).
 
-**Q6 — Mức đạt và ba mức lợi thế (mục 6).** Người dùng duyệt các con số: NULL ≤ 7,5% báo động; 2× ≥ 90% bắt G; tìm ra ≥ 80%; ba mức 0,5× · 1× · 2× MDE₈₀; R = 1.000 (NULL) và 400 (mỗi mức có lợi thế).
-- (a) **Như bản thảo.** **(Recommended)**
+**Q6 — Mức đạt, ba mức lợi thế và số thị trường (mục 6).** Mặc định: NULL ≤ 7,5% báo động ở R = 1.000; 2× MDE₈₀: G bị bắt ≥ 90% và spec đúng được tìm ra ≥ 80% ở R = 400; ba mức 0,5× · 1× · 2× (MDE₈₀ là số ĐO ở Lát 2, không phải số khai).
+- (a) **Như mục 6.** **(Recommended — đang là mặc định)**
 - (b) Chặt hơn: NULL ≤ 6,5%, 2× ≥ 95%, R_NULL = 2.000 (lực phân biệt tốt hơn, chạy lâu gấp đôi).
 - (c) Nới: NULL ≤ 10%, 2× ≥ 80% — dễ đạt, nhưng 10% đã gấp đôi mức danh nghĩa.
-
-**Q7 — Một thế hệ hay hai?**
-- (a) **Một thế hệ**: sau một nâng cấp, thị trường dừng; K tiếp tục đếm nhưng không đọc thêm. **(Recommended)** — đủ cho "tìm ra, xác nhận, nâng cấp".
-- (b) Hai thế hệ: sau nâng cấp, vòng thứ hai chạy trên nền mới (K tích luỹ, ứng viên mới khai so với bản mới) — thấy được K lớn dần làm lực giảm, nhưng gần gấp đôi độ dài thị trường và số bộ phận cần đặc tả (Q4 trở thành bắt buộc).
