@@ -17,7 +17,7 @@
 # sẽ tạo một sổ RỖNG, quét trên sổ rỗng đó rồi đẩy lên — mà bảng trades
 # ghi đè toàn phần, nên cú đẩy đó XOÁ TRẮNG toàn bộ lệnh thật. Đúng cơ
 # chế đã làm mất 96/113 lệnh ngày 12/08/2026, chỉ khác là tự động và lặp
-# lại mỗi 30 phút.
+# lại ở mỗi lượt quét (lịch cũ: mỗi 30 phút; từ BƯỚC 256: hai lượt một ngày).
 #
 # sheets_store.push() có chốt chặn từ chối đẩy khi sổ local ít lệnh hơn
 # sheet, nên kể cả quên bước 1 thì cũng dừng chứ không xoá. Nhưng chốt đó
