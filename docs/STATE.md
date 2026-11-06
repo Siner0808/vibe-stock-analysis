@@ -25523,7 +25523,7 @@ Phiên con của leader, nhánh `docs/soat-pipeline-255` từ `origin/main` `3ae
 
 **Việc kế.** Leader đọc CI một lần rồi hợp nhất bằng `--merge`. Ba phát hiện sản phẩm ở *Danh sách chờ* của `docs/LO-TRINH.md`, chờ người dùng bàn. Một việc có thể làm sau nếu người dùng muốn: thống nhất câu *"đứng yên từ 20/08"* trong comment mã (danh sách ở đoạn Sổ tay). Lỗi kế vẫn là 204 (BƯỚC này không thêm dòng nào vào bảng lỗi).
 
-## BƯỚC 256 — LỊCH QUÉT SAU ĐÓNG CỬA (05/11/2026): HAI NHỊP 08:35 · 10:05 UTC, BỎ BƯỚC CẢNH BÁO NỘI PHIÊN, ĐÓNG MỤC CHỜ (3) CHẤM BÓNG · SÂN ĐẤU, GHI BẢN TIN CÒN MỞ VÀ DOW PHẦN 2 HOÃN
+## BƯỚC 256 — LỊCH QUÉT SAU ĐÓNG CỬA: HAI NHỊP 08:35 · 10:05 UTC, BỎ BƯỚC CẢNH BÁO NỘI PHIÊN, ĐÓNG MỤC CHỜ (3) CHẤM BÓNG · SÂN ĐẤU, GHI BẢN TIN CÒN MỞ VÀ DOW PHẦN 2 HOÃN (05/11/2026)
 
 **Mốc:** quy-trinh — giờ quét khớp động cơ (nến ngày đã đóng) và đóng mục chờ (3); không đổi lõi giao dịch, điểm, cổng hay khuôn sổ
 
