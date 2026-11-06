@@ -303,8 +303,8 @@ disable <tên>.yml`). Đặc tính đã đo, hãy tin hơn lịch cron:
 - Bước `::warning::` nội phiên đã **bỏ** (BƯỚC 256; `run_daily` tự đóng lệnh thủng SL/TP, `canh_bao_noi_phien`
   còn cho app). Luật còn: cảnh báo KHÔNG đi bằng mã thoát (làm đỏ job quét → báo động giả cho chuông). Thứ tự
   bước **bắt buộc**: `kéo sổ → quét → đối chiếu`.
-- **Tám workflow bật**: bốn ở trên, `chuong-bai-hoc.yml`, `hau-kiem-loi.yml`
-  (B1, tab `hau_kiem`), `soat-tuan.yml`, `kiem-dinh.yml`; cron/secret: HANDOFF mục 2.
+- **Chín workflow bật**, kể cả `gui-ban-tin-telegram.yml` (bản tin → Telegram sau mỗi lượt
+  quét thành công, BƯỚC 258); danh sách, cron, secret: HANDOFF mục 2.
 
 ## Sổ ngoài: `sheets_store.py`
 

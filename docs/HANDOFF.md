@@ -223,7 +223,7 @@ lực 82%. Hướng *chung* chưa bị bác — nhưng nó không còn một ứ
 > viết vào file THẤP HƠN trong khi `HANDOFF` đứng đầu thứ tự ưu tiên.
 > Người đọc **đúng luật** sẽ dừng ở đây và không bao giờ tới chỗ đã ghi.
 
-**Tám workflow đang bật** (`gh workflow list --all`, đo 05/11/2026; BƯỚC 255 chuyển bảng này từ `CLAUDE.md` vì trần ký tự; cron UTC, thứ Hai–thứ Sáu trừ khi ghi khác):
+**Chín workflow đang bật** (tám đầu đo bằng `gh workflow list --all` 05/11/2026, cái thứ chín là `gui-ban-tin-telegram.yml` của BƯỚC 258, chỉ chạy từ khi hợp nhất vào `main`; BƯỚC 255 chuyển bảng này từ `CLAUDE.md` vì trần ký tự; cron UTC, thứ Hai–thứ Sáu trừ khi ghi khác):
 
 | Workflow | Cron | Làm gì | Secret |
 |---|---|---|---|
@@ -233,6 +233,7 @@ lực 82%. Hướng *chung* chưa bị bác — nhưng nó không còn một ứ
 | `chuong-bai-hoc.yml` | `53 9` | lệnh đóng quá một phiên chưa có bài học? | `STREAMLIT_SECRETS_TOML` |
 | `chuong-nguon-dung.yml` | `17 10` | có phiên giao dịch mà không có nến mới? | không |
 | `hau-kiem-loi.yml` | `17 11` | hậu kiểm bằng lời (B1): thêm dòng vào tab `hau_kiem` | `STREAMLIT_SECRETS_TOML` · `GEMINI_API_KEY` |
+| `gui-ban-tin-telegram.yml` | không cron: chạy sau `quet-so-lenh.yml` thành công (`workflow_run`); một bản tin mỗi ngày phiên | bản tin cuối ngày → Telegram (T3); thiếu secret thì `::warning::` và bỏ qua | `STREAMLIT_SECRETS_TOML` · `TELEGRAM_BOT_TOKEN` · `TELEGRAM_CHAT_ID` |
 | `soat-tuan.yml` | `41 2` thứ Hai | phần máy của soát định kỳ (`::warning::`) | không |
 | `kiem-dinh.yml` | trên `push` và `pull_request` | năm cổng gác | không |
 

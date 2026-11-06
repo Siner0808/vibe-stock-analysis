@@ -1,0 +1,148 @@
+# Gửi bản tin cuối ngày tới Telegram (BƯỚC 258, mốc B2 / tiêu chí T3 của v1.0).
+#
+# Repo CÔNG KHAI nên GitHub Issue không phải kênh riêng tư; người dùng chọn Telegram (06/11/2026).
+# Việc làm nằm ở tools/gui_ban_tin_telegram.py (chuan-bi · gui · kiem-tra-kenh); file này chỉ nối.
+#
+# KÍCH HOẠT: ngay sau khi "Quét sổ lệnh" xong với kết quả success (workflow_run), KHÔNG tự đặt cron.
+#   Quét chạy cron 35 8 và 5 10 UTC, GitHub trễ 4–10 giờ, nên mọi giờ cron ở đây là đoán; chạy sau
+#   lượt quét thì dữ liệu ngày đó chắc chắn đã có (quét success = đã đẩy lên Sheets VÀ đối chiếu khớp).
+#   Hai lượt quét một ngày kích hoạt hai lần; lượt đầu gửi, lượt sau thấy dấu và bỏ qua. Nếu lượt đầu
+#   hỏng thì lượt sau là dự phòng — cùng lý do quét có hai nhịp.
+#
+# CHỐNG GỬI LẶP — MỘT bản tin mỗi ngày phiên:
+#   · NGÀY của bản tin lấy từ SỔ (ngày tín hiệu lớn nhất), không từ đồng hồ: lượt quét bị trễ có thể
+#     chạy qua nửa đêm giờ VN. tin_telegram.chon_ngay chặn ngày không phải phiên (lich_giao_dich),
+#     ngày ở tương lai và ngày cũ quá 3 ngày.
+#   · DẤU "đã gửi" là một mục cache của Actions, khoá ban-tin-telegram-da-gui-<ngày>. Chỉ ghi SAU
+#     khi Telegram trả ok. `concurrency` xếp hai lượt nối đuôi nên lượt sau luôn thấy dấu của lượt trước.
+#     Cache không phải kho bền tuyệt đối (GitHub xoá mục không đụng tới 7 ngày); xoá mất dấu thì tệ
+#     nhất là gửi lại MỘT bản tin cũ ≤ 3 ngày, không mất bản tin nào.
+#   · Gửi được tin 1 mà tin 2 hỏng thì job đỏ, KHÔNG ghi dấu, lượt sau gửi lại cả bản tin (thà đôi còn
+#     hơn thiếu). Bản tin thường chỉ một tin (≤ 4096 ký tự).
+#
+# SECRET (người dùng tự tạo bot và đặt, đúng hai tên này):
+#   TELEGRAM_BOT_TOKEN · TELEGRAM_CHAT_ID. Thiếu một trong hai -> ::warning:: và thoát 0 (chưa cấu
+#   hình không phải sự cố, không email). Telegram trả lỗi -> job ĐỎ (GitHub gửi email). Token được
+#   ::add-mask:: và chỉ nằm ở env của MỘT bước; công cụ che nó khỏi mọi dòng lỗi.
+#   STREAMLIT_SECRETS_TOML: đọc sổ (giống quet-so-lenh), CHỈ ĐỌC — workflow này không ghi Sheets.
+#
+# Thử kênh sau khi đặt secret: Actions -> "Gửi bản tin Telegram" -> Run workflow -> tích
+# kiem_tra_kenh. Tin thử không tính vào "một bản tin mỗi ngày".
+# Tắt: `gh workflow disable gui-ban-tin-telegram.yml` · bật: `gh workflow enable`.
+#
+# KHÔNG CHUNG `concurrency.group` VỚI quet-so-lenh: một nhóm giữ tối đa MỘT lượt chờ và lượt chờ
+# mới HUỶ lượt chờ cũ (xem hau-kiem-loi.yml).
+
+name: Gửi bản tin Telegram
+
+on:
+  workflow_run:
+    workflows: ["Quét sổ lệnh"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      kiem_tra_kenh:
+        description: "Chỉ gửi MỘT tin thử để kiểm secret Telegram (không gửi bản tin, không ghi dấu)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gui-ban-tin-telegram
+  cancel-in-progress: false
+
+jobs:
+  gui:
+    # Chỉ khi lượt quét xong và THÀNH CÔNG; bấm tay thì luôn chạy.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    # Tat telemetry vnstock (Q11, BUOC 172): chi chan vnai gui ten ham/thoi gian
+    # chay len hq.vnstocks.com/analytics; du lieu va kiem hang goi khong doi.
+    env:
+      VNSTOCK_TELEMETRY: "off"
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Kiểm secret Telegram
+        id: kenh
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "::add-mask::$TELEGRAM_BOT_TOKEN"
+          fi
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::warning::Chưa đặt secret TELEGRAM_BOT_TOKEN và/hoặc TELEGRAM_CHAT_ID — bỏ qua việc gửi bản tin (không phải sự cố)."
+            echo "co=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "co=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v7
+        if: steps.kenh.outputs.co == 'true'
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cài thư viện
+        if: steps.kenh.outputs.co == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Gửi tin thử
+        if: steps.kenh.outputs.co == 'true' && inputs.kiem_tra_kenh
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python tools/gui_ban_tin_telegram.py kiem-tra-kenh
+
+      - name: Nạp cấu hình bí mật
+        if: steps.kenh.outputs.co == 'true' && !inputs.kiem_tra_kenh
+        env:
+          NOI_DUNG: ${{ secrets.STREAMLIT_SECRETS_TOML }}
+        run: |
+          if [ -z "$NOI_DUNG" ]; then
+            echo "::error::Thiếu secret STREAMLIT_SECRETS_TOML."
+            exit 1
+          fi
+          mkdir -p .streamlit
+          printf '%s' "$NOI_DUNG" > .streamlit/secrets.toml
+
+      - name: Dựng bản tin từ sổ (chỉ đọc)
+        id: tin
+        if: steps.kenh.outputs.co == 'true' && !inputs.kiem_tra_kenh
+        run: python tools/gui_ban_tin_telegram.py chuan-bi
+
+      - name: Tra dấu "đã gửi"
+        id: dau
+        if: steps.tin.outputs.san_sang == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: .ban_tin_telegram/da_gui
+          key: ${{ steps.tin.outputs.khoa }}
+          lookup-only: true
+
+      - name: Đã gửi bản tin ngày này rồi
+        if: steps.dau.outputs.cache-hit == 'true'
+        run: echo "::notice::Bản tin ngày ${{ steps.tin.outputs.ngay }} đã gửi ở lượt trước — bỏ qua."
+
+      - name: Gửi Telegram
+        id: gui
+        if: steps.tin.outputs.san_sang == 'true' && steps.dau.outputs.cache-hit != 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NGAY_BAN_TIN: ${{ steps.tin.outputs.ngay }}
+        run: python tools/gui_ban_tin_telegram.py gui --ngay "$NGAY_BAN_TIN"
+
+      - name: Ghi dấu "đã gửi"
+        if: steps.gui.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: .ban_tin_telegram/da_gui
+          key: ${{ steps.tin.outputs.khoa }}
