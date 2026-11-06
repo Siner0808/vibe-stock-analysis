@@ -922,7 +922,7 @@ def _khoi_san_dau():
         st.warning(f"⚠️ {kq['loi']}")
         return
     b = kq["bang"]
-    hien = _sd.bang_hien_thi(b)
+    hien = _sd.bang_cho_tab(b)
     st.caption(f"Cửa sổ kế toán {b['tu_ngay']} → {b['ngay_cuoi']} ({len(b['phien'])} phiên); "
                f"{b['mang_sang']} vị thế mang sang chép từ sổ thật vào MỌI tài khoản. "
                + " · ".join(kq["ghi_chu"]))

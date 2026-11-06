@@ -5,7 +5,7 @@ Tab CHỈ ĐỌC và CHỈ IN: không nút ghi, không đẩy Sheets, không ghi
   · đường đọc Sheets MỚI (`sheets_store.doc_quyet_dinh_san_dau`): bản tin bỏ ba cột `components`, `reasons`,
     `data_quality` của tab `decisions`, mà bộ phát lại cần cả ba — thiếu `data_quality` thì cổng chất lượng dữ liệu
     chặn MỌI tín hiệu, nên phải có một đường đọc đủ cột, và nó cũng chỉ gọi `read_rows`;
-  · hàm hiển thị thuần (`bang_hien_thi`, `duong_von`) không tính lại số nào.
+  · hàm hiển thị thuần (`bang_cho_tab`, `duong_von`) không tính lại số nào.
 """
 from __future__ import annotations
 
@@ -110,9 +110,9 @@ def test_doc_quyet_dinh_san_dau_CHI_goi_read_rows_va_wrapper_tra_None_khi_chua_c
 
 
 # ── 2. hiển thị thuần ─────────────────────────────────────────────────────────────────────────
-def test_bang_hien_thi_co_mot_hang_moi_tai_khoan_va_KTC_la_nguyen_chuoi_cua_dinh_dang_ktc(bang):
+def test_bang_cho_tab_co_mot_hang_moi_tai_khoan_va_KTC_la_nguyen_chuoi_cua_dinh_dang_ktc(bang):
     cli, b, *_ = bang
-    hien = sd.bang_hien_thi(b)
+    hien = sd.bang_cho_tab(b)
     ten = [r["Tài khoản"] for r in hien["tai_khoan"]]
     assert ten[0].startswith("duong that") and ten[1:4] == ["PB-001", "PB-002", "PB-003"]
     assert ten[4].startswith("Rổ") and len(ten) == 5
@@ -128,17 +128,17 @@ def test_bang_hien_thi_co_mot_hang_moi_tai_khoan_va_KTC_la_nguyen_chuoi_cua_dinh
     assert any(g.startswith("PB-003") and "kế hoạch B6" in g for g in hien["ghi_chu"])
 
 
-def test_bang_hien_thi_cua_so_rieng_cua_PB003_hien_ra_o_bang_so_voi_duong_that(bang):
+def test_bang_cho_tab_cua_so_rieng_cua_PB003_hien_ra_o_bang_so_voi_duong_that(bang):
     _, b, *_ = bang
-    hien = sd.bang_hien_thi(b)
+    hien = sd.bang_cho_tab(b)
     cs = {r["Phương án"]: r["Cửa sổ"] for r in hien["so_voi_duong_that"]}
     assert cs["PB-001"] == "chung" and cs["PB-002"] == "chung"
     assert cs["PB-003"].startswith("RIÊNG từ 2026-")
 
 
-def test_bang_hien_thi_tab_ke_hoach_rong_noi_cua_so_rong(gia):
+def test_bang_cho_tab_tab_ke_hoach_rong_noi_cua_so_rong(gia):
     _, b, *_ = _bang(gia, lambda qd: [])
-    cs = {r["Phương án"]: r["Cửa sổ"] for r in sd.bang_hien_thi(b)["so_voi_duong_that"]}
+    cs = {r["Phương án"]: r["Cửa sổ"] for r in sd.bang_cho_tab(b)["so_voi_duong_that"]}
     assert cs["PB-003"] == "RIÊNG: tab kế hoạch rỗng"
 
 
@@ -225,9 +225,19 @@ def test_tab_chi_goi_dung_ba_duong_doc_va_bang_cho_app():
             "bang_cho_app"} <= goi
     assert "dung_bang" not in goi, "app KHÔNG tự dựng bảng: nó gọi bản chuẩn `bang_cho_app` của tools/san_dau.py"
     hien = _goi(_ham(cay, "_khoi_san_dau"))
-    assert {"bang_hien_thi", "duong_von"} <= hien and "ktc_co_nhan" not in hien and "dinh_dang_ktc" not in hien
+    assert {"bang_cho_tab", "duong_von"} <= hien and "ktc_co_nhan" not in hien and "dinh_dang_ktc" not in hien
     nho = [n for n in _ham(cay, "_chay_san_dau").decorator_list]
     assert any("cache_data" in ast.unparse(d) for d in nho), "phát lại tốn vài chục giây: phải có đệm"
+
+
+def test_duong_doc_decisions_du_cot_chi_duoc_goi_MOT_lan_va_o_trong_ham_co_dem():
+    cay = _cay("app.py")
+    ten = "load_quyet_dinh_san_dau_from_google_sheets"
+    cuoc = [n for n in ast.walk(cay) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+            and n.func.attr == ten]
+    assert len(cuoc) == 1
+    ham = _ham(cay, "_chay_san_dau")
+    assert any(n is cuoc[0] for n in ast.walk(ham)), "chỉ được gọi trong `_chay_san_dau` (có đệm, bấm nút mới chạy)"
 
 
 def test_tab_nam_trong_danh_sach_tab_cua_app_va_so_bien_bang_so_nhan():

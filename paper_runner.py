@@ -328,7 +328,10 @@ def buoc_phien(nhat_ky: PaperTradingJournal, ma: str, lich_su: pd.DataFrame, nen
         _nen = {"high": bar.get("high"), "low": bar.get("low"),
                 "volume": bar.get("volume"),
                 "tham_chieu": float(lich_su["close"].iloc[-2]) * mult}
-    stats["filled_in"] = nhat_ky.fill_pending(ma, ngay, bar["open"], _nen, luat_khop=luat_khop)
+    # Đường thật không truyền `luat_khop`: lời gọi giữ NGUYÊN HÌNH như trước BƯỚC 257 (một test thay
+    # `fill_pending` bằng hàm chỉ nhận bốn đối số; mọi thứ khác bắt chước nó cũng vậy).
+    _them = {} if luat_khop is None else {"luat_khop": luat_khop}
+    stats["filled_in"] = nhat_ky.fill_pending(ma, ngay, bar["open"], _nen, **_them)
     stats["filled_out"] = nhat_ky.fill_closing(ma, ngay, bar["open"], _nen)
 
     # Kèm giá tham chiếu: không có nó thì `khoa_bien` không phân được phiên

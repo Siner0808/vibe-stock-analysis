@@ -1462,7 +1462,7 @@ def _do_phu_cong(h: dict) -> str:
     return " · ".join(ra) if ra else "—"
 
 
-def bang_hien_thi(b: dict) -> dict:
+def bang_cho_tab(b: dict) -> dict:
     """Bảng `tools/san_dau.py::dung_bang` -> các bảng HIỆN của tab (BƯỚC 257). KHÔNG tính lại số nào: mọi KTC lấy
     nguyên chuỗi `dong` đã ghép ở `dinh_dang_ktc` (nơi DUY NHẤT ghép chuỗi KTC và nhãn độ phủ). Trả
     `{tai_khoan, so_voi_duong_that, khoi, ghi_chu}`; mỗi bảng là list dict (một dict một hàng)."""

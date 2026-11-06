@@ -207,12 +207,16 @@ def test_doc_so_ban_tin_la_ham_cache_va_la_NOI_DUY_NHAT_goi_loader_cua_sheets():
     # BƯỚC 198 thêm `load_ke_hoach_from_google_sheets`: đọc tab `ke_hoach` CHỈ ĐỌC cho
     # khối "Kế hoạch vào lệnh đã ghi", không đọc sổ lệnh; gác của nó ở
     # `tests/test_ke_hoach_da_ghi.py` (hàm có bộ nhớ đệm, không gọi đường ghi nào).
+    # BƯỚC 257 thêm `load_quyet_dinh_san_dau_from_google_sheets`: tab Sân đấu cần `decisions` ĐỦ CỘT (bản tin
+    # bỏ `data_quality`, `components`, `reasons`); chỉ gọi trong `_chay_san_dau` (có đệm, chạy khi bấm nút),
+    # chỉ-đọc; gác ở `tests/test_san_dau_tab.py`. KHÔNG dùng cho vị thế hay lịch sử giao dịch.
     ten_khac = {n.func.attr for n in ast.walk(cay) if isinstance(n, ast.Call)
                 and isinstance(n.func, ast.Attribute)
                 and n.func.attr.endswith("_google_sheets")} - {
                     "load_so_ban_tin_from_google_sheets",
                     "load_nhat_ky_from_google_sheets",
-                    "load_ke_hoach_from_google_sheets"}
+                    "load_ke_hoach_from_google_sheets",
+                    "load_quyet_dinh_san_dau_from_google_sheets"}
     assert not ten_khac, ten_khac
 
 
