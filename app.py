@@ -863,6 +863,83 @@ def _khoi_ke_hoach_da_ghi():
                + (f" Cột “Sổ ảo” chưa đọc được — {so_lenh_loi}" if so_lenh_loi else ""))
 
 
+def _nap_san_dau_cli():
+    """Nạp `tools/san_dau.py` theo ĐƯỜNG DẪN (tên `san_dau` là của module gốc). Nó là bản chuẩn để tái lập;
+    tab chỉ gọi `bang_cho_app` của nó, KHÔNG viết lại phép tính nào (BƯỚC 257, đặc tả mục 10.1 và quyết định 4d)."""
+    import importlib.util
+    duong = pathlib.Path(__file__).resolve().parent / "tools" / "san_dau.py"
+    spec = importlib.util.spec_from_file_location("san_dau_cli", duong)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def _chay_san_dau():
+    """Phát lại sân đấu TRONG BỘ NHỚ: sổ lệnh + kế hoạch + quyết định ĐỦ CỘT từ Google Sheets (chỉ đọc), giá tải
+    thẳng (không ghi cache, không ghi file). Chỉ chạy khi người dùng bấm nút; có đệm để lần rerun sau không tải lại.
+    Trả `{"loi": chữ}` khi thiếu đầu vào — nói thiếu gì, không hiện số."""
+    import google_sheets_sync as _gss
+    so = _doc_so_ban_tin()
+    qd = _gss.load_quyet_dinh_san_dau_from_google_sheets()
+    kh = _doc_ke_hoach()
+    if so is None or qd is None or kh is None:
+        return {"loi": "kho ngoài (Google Sheets) chưa cấu hình: không có sổ lệnh để phát lại"}
+    cli = _nap_san_dau_cli()
+    try:
+        return cli.bang_cho_app(so["lenh"], qd, kh)
+    except cli.KhongDocDuoc as e:
+        return {"loi": f"chưa dựng được bảng — thiếu đầu vào: {e}"}
+
+
+def _khoi_san_dau():
+    """Tab "🏟️ Sân đấu" (BƯỚC 257, Lát 4 của C1; `docs/thiet-ke-c1-san-dau.md` mục 10.1) — CHỈ ĐỌC, CHỈ IN.
+
+    Nhiều phương án bóng chạy song song, mỗi phương án một tài khoản ảo, so với rổ và với đường thật phát lại.
+    Không nút ghi, không đẩy Sheets, không ghi file; KTC luôn kèm độ phủ đo được (chuỗi do `san_dau` ghép, tab
+    không tự ghép). Không đọc sổ ứng viên của tầng 3: phương án bóng không có đường lên bản.
+    """
+    import san_dau as _sd
+    st.markdown("##### 🏟️ Sân đấu — các phương án bóng chạy song song")
+    st.warning(f"🏟️ {_sd.BIEU_NGU}")
+    st.caption(
+        "Mỗi phương án là một đường thật phát lại (bộ máy sổ lệnh THẬT trên các quyết định đã ghi) với ĐÚNG MỘT "
+        "luật khác, có tài khoản ảo riêng. Phương án không bao giờ lên bản và không tính vào K của tab Kiểm định "
+        "chiến lược. Bảng tính lại TRONG BỘ NHỚ khi bấm nút (đọc sổ lệnh, quyết định và kế hoạch từ Google Sheets, "
+        "tải giá trực tiếp); bản chuẩn để tái lập là `tools/san_dau.py bang`. Đơn vị: điểm phần trăm vốn.")
+    if st.button("📥 Tải giá và phát lại sân đấu", key="san_dau_chay"):
+        st.session_state["san_dau_da_bam"] = True
+    if not st.session_state.get("san_dau_da_bam"):
+        st.info("Chưa phát lại. Bấm nút trên (mất vài chục giây: tải giá của các mã có quyết định).")
+        return
+    try:
+        with st.spinner("Phát lại các tài khoản…"):
+            kq = _chay_san_dau()
+    except Exception as _e:
+        st.warning(f"⚠️ Chưa dựng được bảng sân đấu — {type(_e).__name__}: {_e}")
+        return
+    if "loi" in kq:
+        st.warning(f"⚠️ {kq['loi']}")
+        return
+    b = kq["bang"]
+    hien = _sd.bang_hien_thi(b)
+    st.caption(f"Cửa sổ kế toán {b['tu_ngay']} → {b['ngay_cuoi']} ({len(b['phien'])} phiên); "
+               f"{b['mang_sang']} vị thế mang sang chép từ sổ thật vào MỌI tài khoản. "
+               + " · ".join(kq["ghi_chu"]))
+    if kq["ma_thieu_gia"]:
+        st.caption(f"Không tải được giá {len(kq['ma_thieu_gia'])} mã: {', '.join(kq['ma_thieu_gia'])}.")
+    st.markdown("**Mỗi hàng một tài khoản**")
+    st.dataframe(pd.DataFrame(hien["tai_khoan"]), width="stretch", hide_index=True)
+    st.markdown("**Phương án so với đường thật phát lại (thước 2)**")
+    st.dataframe(pd.DataFrame(hien["so_voi_duong_that"]), width="stretch", hide_index=True)
+    st.markdown("**Hai khối nhãn dữ liệu — không cộng vào nhau**")
+    st.dataframe(pd.DataFrame(hien["khoi"]), width="stretch", hide_index=True)
+    for g in hien["ghi_chu"]:
+        st.caption(g)
+    st.markdown("**Đường vốn cộng dồn**")
+    st.line_chart(_sd.duong_von(b))
+
+
 def _tip(chuoi) -> str:
     """Chuỗi an toàn để nhét vào thuộc tính `title="..."`.
 
@@ -1822,7 +1899,7 @@ with col_debate:
 # 7. TAB BOX (Bên dưới)
 # ═══════════════════════════════════════════════════════════════════
 num_open_positions = len(real_open_trades)
-t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong, t_suc_khoe = st.tabs([
+t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong, t_san_dau, t_suc_khoe = st.tabs([
     f"📌 Vị thế Danh mục ({num_open_positions})",
     f"📜 Lịch sử giao dịch ({so_lenh_dong:,})" if so_lenh_perf else "📜 Lịch sử giao dịch",
     "📰 Bản tin",
@@ -1835,6 +1912,7 @@ t_pos, t_hist, t_tin, t_rep, t_fund, t_pipe, t_acct, t_bong, t_suc_khoe = st.tab
     "🛠️ Pipeline v2",
     "💰 Tài khoản Giả lập",
     "🔬 Kiểm định chiến lược",
+    "🏟️ Sân đấu",
     "🩺 Sức khoẻ",
 ])
 
@@ -2441,6 +2519,9 @@ with t_bong:
                        "để so sánh. Mọi phương án đều hiện, kể cả phương án cũ đã rớt "
                        "sàng, vì ngưỡng thống kê tính trên TỔNG số phương án đã đăng ký. "
                        "Nguồn dữ liệu: `docs/ung-vien.json`.")
+
+with t_san_dau:
+    _khoi_san_dau()
 
 with t_suc_khoe:
     # BƯỚC 177 (B4). CHỈ ĐỌC: gom mười phép kiểm rời rạc (chuông quét, nguồn đứng,

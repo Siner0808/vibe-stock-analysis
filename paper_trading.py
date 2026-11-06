@@ -1055,15 +1055,17 @@ class PaperTradingJournal:
         cần khi `MO_PHONG_TRUOT_GIA` bật; thiếu nó thì khớp như cũ, ở đúng
         giá mở cửa. Tham số tuỳ chọn để mọi chỗ gọi cũ không phải đổi.
 
-        `luat_khop` — chỗ móc của Lát 4 (C1, `docs/thiet-ke-c1-san-dau.md` mục 7): None là
-        hành vi hiện tại. KHÁC None thì nổ, vì Lát 1 chưa hiện thực nó — nhận mà lặng lẽ bỏ qua
-        sẽ khớp lệnh theo luật mở cửa trong khi người gọi tưởng đã đổi luật.
+        `luat_khop` — chỗ móc của C1 (`docs/thiet-ke-c1-san-dau.md` mục 7, BƯỚC 257): None là
+        hành vi hiện tại, từng bit (đường thật không bao giờ truyền nó). Khác None là một đối tượng có
+        `xet(lenh, ngay, nen) -> (khop, gia_co_so, het_han)` và `dong_het_han(db, trade_id, ngay)`:
+        `lenh` là dict `{id, symbol, signal_date, stop_loss}` (cắt lỗ BAN ĐẦU: phiên khớp chưa nâng nó),
+        `nen` là nến phiên khớp (VNĐ) cộng `open`.
+        Khớp thì lệnh vào ở `gia_co_so` (rồi qua `_khop_that` như mọi lệnh); chưa khớp mà chưa hết hạn
+        thì lệnh ở lại PENDING; chưa khớp mà hết hạn thì `dong_het_han` đóng nó (trạng thái do đối
+        tượng ấy chọn, KHÔNG thêm vào `Status`: đường thật không bao giờ sinh nó).
         """
-        if luat_khop is not None:
-            raise NotImplementedError(
-                "fill_pending(luat_khop=...) chưa có — Lát 4 của C1 (BƯỚC thiết kế 238, mục 7)")
         rows = self.db.execute(
-            "SELECT id, signal_date, size_pct FROM trades"
+            "SELECT id, symbol, signal_date, size_pct, stop_loss FROM trades"
             " WHERE symbol=? AND status=?",
             (symbol, Status.PENDING)).fetchall()
         filled = 0
@@ -1077,6 +1079,17 @@ class PaperTradingJournal:
 
             gia = float(open_price)
             size = float(r["size_pct"] or 0.0)
+
+            if luat_khop is not None:
+                khop, gia_co_so, het_han = luat_khop.xet(
+                    {"id": int(r["id"]), "symbol": r["symbol"], "signal_date": r["signal_date"],
+                     "stop_loss": r["stop_loss"]},
+                    session_date, dict(nen or {}, open=float(open_price)))
+                if not khop:
+                    if het_han:
+                        luat_khop.dong_het_han(self.db, int(r["id"]), session_date[:10])
+                    continue
+                gia = float(gia_co_so)
 
             if MO_PHONG_TRUOT_GIA and nen:
                 if self._khoa_bien(symbol, nen) == KICH_TRAN:

@@ -40,11 +40,11 @@ sys.path.insert(0, str(GOC))
 sys.path.insert(0, str(GOC / "tools"))
 
 import ke_hoach_vao_lenh as KH  # noqa: E402
+import khop_gioi_han as KG  # noqa: E402
 import paper_metrics as PM  # noqa: E402
 import paper_runner as PR  # noqa: E402
 import paper_trading as PT  # noqa: E402
 import san_giao_dich  # noqa: E402
-import truot_gia  # noqa: E402
 import walkforward as WF  # noqa: E402
 from data_quality import price_multiplier  # noqa: E402
 
@@ -183,13 +183,7 @@ def tim_khop(df: pd.DataFrame, t: int, tran_vnd: float, san: str, he_so: float,
     giá khớp = min(open(d), trần). Trả `(d, giá khớp VNĐ)` hoặc `None` (lỡ).
     Bước giá lấy ở MỨC GIÁ CỦA TRẦN vùng, `truot_gia.buoc_gia(trần, sàn)`.
     """
-    nguong = tran_vnd if cham else tran_vnd - truot_gia.buoc_gia(tran_vnd, san)
-    cuoi = min(t + KH.SO_PHIEN_CHO, len(df) - 1)
-    for d in range(t + 1, cuoi + 1):
-        if round(float(df["low"].iloc[d]) * he_so, 6) <= nguong:
-            mo = round(float(df["open"].iloc[d]) * he_so, 6)
-            return d, min(mo, float(tran_vnd))
-    return None
+    return KG.tim_khop(df, t, tran_vnd, san, he_so, so_phien_cho=KH.SO_PHIEN_CHO, cham=cham)
 
 
 def dung_lenh(ma: str, ngay_t: str, diem: float, ngay_vao: str, gia_vao: float,
