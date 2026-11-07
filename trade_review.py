@@ -29,12 +29,12 @@ import plotly.graph_objects as go
 
 from data_quality import price_multiplier
 
-COLOR_UP = "#00e676"
-COLOR_DOWN = "#ef5350"
-COLOR_ENTRY = "#29b6f6"
-COLOR_EXIT = "#ab47bc"
-COLOR_SL = "#ef5350"
-COLOR_TP = "#00e676"
+COLOR_UP = "#30d158"
+COLOR_DOWN = "#ff5a50"
+COLOR_ENTRY = "#2997ff"
+COLOR_EXIT = "#ff9f0a"
+COLOR_SL = "#ff5a50"
+COLOR_TP = "#30d158"
 
 
 def slice_around(df: pd.DataFrame, signal_date: str, exit_date: str | None,
@@ -59,9 +59,9 @@ def build_figure(df: pd.DataFrame, trade: Any, height: int = 520) -> go.Figure:
     fig = go.Figure()
     if window.empty:
         fig.add_annotation(text="Không tìm thấy dữ liệu giá cho lệnh này",
-                           showarrow=False, font=dict(color="#b0bec5"))
+                           showarrow=False, font=dict(color="#cccccc"))
         fig.update_layout(height=height, template="plotly_dark",
-                          paper_bgcolor="#0e1420", plot_bgcolor="#0e1420")
+                          paper_bgcolor="#000000", plot_bgcolor="#000000")
         return fig
 
     mult = price_multiplier(window)      # quy về VNĐ, khớp đơn vị của SL/TP
@@ -80,9 +80,9 @@ def build_figure(df: pd.DataFrame, trade: Any, height: int = 520) -> go.Figure:
             fillcolor="#ffffff", opacity=0.05, line_width=0, layer="below",
             annotation_text="agent chưa biết vùng này khi quyết định",
             annotation_position="top right",
-            annotation_font=dict(size=10, color="#78909c"))
+            annotation_font=dict(size=10, color="#7a7a7a"))
         fig.add_vline(x=trade.signal_date, line_width=1, line_dash="dot",
-                      line_color="#78909c")
+                      line_color="#7a7a7a")
 
     # ── Ngưỡng cắt lỗ / chốt lời ──────────────────────────────────────
     for price, color, label in ((trade.stop_loss, COLOR_SL, "Cắt lỗ"),
@@ -112,7 +112,7 @@ def build_figure(df: pd.DataFrame, trade: Any, height: int = 520) -> go.Figure:
 
     fig.update_layout(
         height=height, template="plotly_dark",
-        paper_bgcolor="#0e1420", plot_bgcolor="#0e1420",
+        paper_bgcolor="#000000", plot_bgcolor="#000000",
         margin=dict(l=10, r=90, t=30, b=10),
         xaxis_rangeslider_visible=False,
         legend=dict(orientation="h", y=1.08),

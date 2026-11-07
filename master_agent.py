@@ -128,7 +128,7 @@ class MasterConsensusAgent:
                 "pre_debate_score": 50.0,
                 "final_score": 50,
                 "recommendation": recommendation,
-                "action_color": "#757575",
+                "action_color": "#7a7a7a",
                 "key_reasons": [reason],
                 "score_breakdown": {
                     "trend_score": 50, "momentum_score": 50, "volume_score": 50,
@@ -252,15 +252,15 @@ class MasterConsensusAgent:
         final_score = max(5, min(95, int(safety["adjusted_score"])))
 
         if final_score >= 78:
-            recommendation = "MUA MẠNH 🚀"; action_color = "#00e676"
+            recommendation = "MUA MẠNH 🚀"; action_color = "#30d158"
         elif final_score >= 62:
-            recommendation = "MUA 📈";       action_color = "#29b6f6"
+            recommendation = "MUA 📈";       action_color = "#2997ff"
         elif final_score >= 45:
-            recommendation = "NẮM GIỮ 👀";   action_color = "#ffca28"
+            recommendation = "NẮM GIỮ 👀";   action_color = "#ffd60a"
         elif final_score >= 30:
-            recommendation = "BÁN 📉";        action_color = "#ff7043"
+            recommendation = "BÁN 📉";        action_color = "#ff9f0a"
         else:
-            recommendation = "BÁN MẠNH 🔴";  action_color = "#ef5350"
+            recommendation = "BÁN MẠNH 🔴";  action_color = "#ff5a50"
 
         # ── Luận điểm tổng hợp ────────────────────────────────────────
         key_reasons = [

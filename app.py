@@ -49,18 +49,18 @@ def get_animated_logo_html(size=44, uid="sb"):
         f'<div class="vibe-logo-wrap" style="width:{size}px;height:{size}px;">'
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 184" width="{size}" height="{size}" class="vibe-animated-logo">'
         f'<defs><clipPath id="core_{uid}"><circle cx="92" cy="92" r="84"></circle></clipPath></defs>'
-        f'<circle cx="92" cy="92" r="84" fill="#131a22"></circle>'
+        f'<circle cx="92" cy="92" r="84" fill="#272729"></circle>'
         f'<g clip-path="url(#core_{uid})">'
-        f'<rect class="vbar b1" x="33.5" y="86" width="17" height="58" fill="#319cfc" rx="4"></rect>'
-        f'<rect class="vbar b2" x="58.5" y="104" width="17" height="40" fill="#e24947" rx="4"></rect>'
-        f'<rect class="vbar b3" x="83.5" y="62" width="17" height="82" fill="#fcaa2b" rx="4"></rect>'
-        f'<rect class="vbar b4" x="108.5" y="32" width="17" height="112" fill="#61cc69" rx="4"></rect>'
-        f'<rect class="vbar b5" x="133.5" y="78" width="17" height="66" fill="#9964e5" rx="4"></rect>'
+        f'<rect class="vbar b1" x="33.5" y="86" width="17" height="58" fill="#64d2ff" rx="4"></rect>'
+        f'<rect class="vbar b2" x="58.5" y="104" width="17" height="40" fill="#ff5a50" rx="4"></rect>'
+        f'<rect class="vbar b3" x="83.5" y="62" width="17" height="82" fill="#ffd60a" rx="4"></rect>'
+        f'<rect class="vbar b4" x="108.5" y="32" width="17" height="112" fill="#30d158" rx="4"></rect>'
+        f'<rect class="vbar b5" x="133.5" y="78" width="17" height="66" fill="#c96cf6" rx="4"></rect>'
         f'</g>'
         f'<g class="orbit-group">'
-        f'<path d="M 135.250 17.089 A 86.5 86.5 0 0 1 139.111 164.545" fill="none" stroke="#41dca5" stroke-width="6" stroke-linecap="round"></path>'
-        f'<path d="M 131.270 169.072 A 86.5 86.5 0 0 1 5.619 96.527" fill="none" stroke="#00ccf9" stroke-width="6" stroke-linecap="round"></path>'
-        f'<path d="M 5.619 87.473 A 86.5 86.5 0 0 1 131.270 14.928" fill="none" stroke="#9c93ff" stroke-width="6" stroke-linecap="round"></path>'
+        f'<path d="M 135.250 17.089 A 86.5 86.5 0 0 1 139.111 164.545" fill="none" stroke="#2997ff" stroke-width="6" stroke-linecap="round"></path>'
+        f'<path d="M 131.270 169.072 A 86.5 86.5 0 0 1 5.619 96.527" fill="none" stroke="#64d2ff" stroke-width="6" stroke-linecap="round"></path>'
+        f'<path d="M 5.619 87.473 A 86.5 86.5 0 0 1 131.270 14.928" fill="none" stroke="#c96cf6" stroke-width="6" stroke-linecap="round"></path>'
         f'</g>'
         f'</svg>'
         f'</div>'
@@ -82,26 +82,30 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
     :root {
-        --c-bg: #06080f;
-        --c-s1: #0c111e;
-        --c-s2: #111827;
-        --c-s3: #1a2235;
-        --c-border: rgba(255, 255, 255, 0.06);
-        --c-border-h: rgba(255, 255, 255, 0.14);
-        --c-g: #00d97e;
-        --c-g-dim: rgba(0, 217, 126, 0.12);
-        --c-g-glow: rgba(0, 217, 126, 0.3);
-        --c-b: #3b82f6;
-        --c-b-dim: rgba(59, 130, 246, 0.12);
-        --c-p: #a78bfa;
-        --c-p-dim: rgba(167, 139, 250, 0.12);
-        --c-r: #f87171;
-        --c-r-dim: rgba(248, 113, 113, 0.12);
-        --c-a: #fbbf24;
-        --c-a-dim: rgba(251, 191, 36, 0.12);
-        --c-t1: #f1f5f9;
-        --c-t2: #94a3b8;
-        --c-t3: #475569;
+        --c-bg: #000000;
+        --c-s1: #272729;
+        --c-s2: #2a2a2c;
+        --c-s3: #333333;
+        --c-border: #333333;
+        --c-border-h: #7a7a7a;
+        --c-g: #30d158;
+        --c-g-dim: rgba(48, 209, 88, 0.12);
+        --c-acc: #2997ff;
+        --c-acc-dim: rgba(41, 151, 255, 0.12);
+        --c-focus: #0071e3;
+        --c-b: #2997ff;
+        --c-b-dim: rgba(41, 151, 255, 0.12);
+        --c-san: #64d2ff;
+        --c-p: #c96cf6;
+        --c-p-dim: rgba(201, 108, 246, 0.12);
+        --c-r: #ff5a50;
+        --c-r-dim: rgba(255, 90, 80, 0.12);
+        --c-a: #ffd60a;
+        --c-a-dim: rgba(255, 214, 10, 0.12);
+        --c-o: #ff9f0a;
+        --c-t1: #ffffff;
+        --c-t2: #cccccc;
+        --c-t3: #7a7a7a;
         --r-sm: 8px;
         --r-md: 14px;
         --r-lg: 20px;
@@ -122,23 +126,23 @@ st.markdown("""
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
-        background: #111827 !important;
-        border: 1px solid rgba(0, 217, 126, 0.5) !important;
+        background: #272729 !important;
+        border: 1px solid #333333 !important;
         border-radius: 8px !important;
-        color: #00d97e !important;
-        box-shadow: 0 0 12px rgba(0, 217, 126, 0.3) !important;
+        color: #2997ff !important;
+        box-shadow: none !important;
         cursor: pointer !important;
         z-index: 100000 !important;
     }
     div[data-testid="stSidebarCollapsedControl"] svg,
     button[data-testid="stSidebarCollapseButton"] svg {
-        fill: #00d97e !important;
-        stroke: #00d97e !important;
+        fill: #2997ff !important;
+        stroke: #2997ff !important;
     }
     div[data-testid="stSidebarCollapsedControl"]:hover,
     button[data-testid="stSidebarCollapseButton"]:hover {
-        border-color: #00d97e !important;
-        box-shadow: 0 0 16px rgba(0, 217, 126, 0.6) !important;
+        border-color: #2997ff !important;
+        box-shadow: none !important;
     }
     .block-container {
         padding-top: 0.5rem !important;
@@ -163,8 +167,6 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         position: relative;
-        filter: drop-shadow(0 0 12px rgba(0, 217, 126, 0.45));
-        animation: logoBreathing 3.5s ease-in-out infinite alternate;
     }
     .vibe-animated-logo {
         display: block;
@@ -176,11 +178,6 @@ st.markdown("""
     @keyframes orbitSpin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
-    }
-    @keyframes logoBreathing {
-        0% { filter: drop-shadow(0 0 10px rgba(0, 217, 126, 0.35)); }
-        50% { filter: drop-shadow(0 0 20px rgba(0, 217, 126, 0.85)) drop-shadow(0 0 26px rgba(59, 130, 246, 0.5)); }
-        100% { filter: drop-shadow(0 0 10px rgba(0, 217, 126, 0.35)); }
     }
     .vbar {
         transform-origin: center bottom;
@@ -221,7 +218,7 @@ st.markdown("""
         font-family: var(--ff);
     }
     .sb-brand-name span {
-        color: var(--c-g);
+        color: var(--c-acc);
     }
     .sb-brand-tag {
         font-size: 9px;
@@ -234,16 +231,16 @@ st.markdown("""
 
     /* ─── SEARCH INPUT & PILLS THEME ─────────────────────────── */
     [data-testid="stSidebar"] div[data-baseweb="input"] {
-        background: rgba(15, 23, 42, 0.85) !important;
-        border: 1px solid rgba(0, 217, 126, 0.3) !important;
+        background: #272729 !important;
+        border: 1px solid #333333 !important;
         border-radius: 10px !important;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4) !important;
+        box-shadow: none !important;
         transition: all 0.25s ease !important;
     }
     [data-testid="stSidebar"] div[data-baseweb="input"]:focus-within {
-        border-color: #00d97e !important;
-        box-shadow: 0 0 14px rgba(0, 217, 126, 0.4), inset 0 2px 4px rgba(0,0,0,0.4) !important;
-        background: rgba(15, 23, 42, 0.98) !important;
+        border-color: #2997ff !important;
+        box-shadow: 0 0 0 2px #0071e3 !important;
+        background: #272729 !important;
     }
     [data-testid="stSidebar"] div[data-baseweb="input"] input {
         color: #ffffff !important;
@@ -254,8 +251,8 @@ st.markdown("""
         text-transform: uppercase !important;
     }
     [data-testid="stSidebar"] div[data-testid="column"] button {
-        background: rgba(17, 24, 39, 0.65) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: #272729 !important;
+        border: 1px solid #333333 !important;
         color: var(--c-t2) !important;
         font-family: var(--fm) !important;
         font-size: 11px !important;
@@ -265,15 +262,15 @@ st.markdown("""
         transition: all 0.2s ease !important;
     }
     [data-testid="stSidebar"] div[data-testid="column"] button:hover {
-        border-color: rgba(0, 217, 126, 0.5) !important;
-        color: #00d97e !important;
-        background: rgba(0, 217, 126, 0.1) !important;
+        border-color: #2997ff !important;
+        color: #2997ff !important;
+        background: #2a2a2c !important;
         transform: translateY(-1px) !important;
     }
 
     /* ─── TOPBAR BANNER ──────────────────────────────────────── */
     .topbar {
-        background: rgba(12, 17, 30, 0.95);
+        background: var(--c-s1);
         border: 1px solid var(--c-border);
         border-radius: var(--r-md);
         height: 52px;
@@ -285,10 +282,10 @@ st.markdown("""
     }
     .tb-l { display: flex; align-items: center; gap: 12px; }
     .logo-t { font-size: 14px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
-    .logo-t span { color: var(--c-g); }
+    .logo-t span { color: var(--c-acc); }
     .badge {
-        font-size: 9.5px; font-weight: 700; color: var(--c-g);
-        background: var(--c-g-dim); border: 1px solid rgba(0,217,126,0.25);
+        font-size: 9.5px; font-weight: 700; color: var(--c-acc);
+        background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.25);
         padding: 2px 7px; border-radius: 12px; text-transform: uppercase;
     }
     .tb-r { display: flex; align-items: center; gap: 16px; font-family: var(--fm); font-size: 11.5px; }
@@ -299,14 +296,14 @@ st.markdown("""
     .ti-v.bl { color: var(--c-b); }
     .live-pill {
         display: flex; align-items: center; gap: 5px;
-        background: rgba(0,217,126,0.08); border: 1px solid rgba(0,217,126,0.2);
-        padding: 4px 9px; border-radius: 12px; font-size: 10.5px; font-weight: 600; color: var(--c-g);
+        background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.25);
+        padding: 4px 9px; border-radius: 12px; font-size: 10.5px; font-weight: 600; color: var(--c-acc);
     }
-    .dot { width: 5px; height: 5px; background: var(--c-g); border-radius: 50%; box-shadow: 0 0 6px var(--c-g); }
+    .dot { width: 5px; height: 5px; background: var(--c-acc); border-radius: 50%; }
 
     /* ─── SIDEBAR GLASS & ZERO TOP PADDING ─────────────────────── */
     section[data-testid="stSidebar"] {
-        background: var(--c-s1) !important;
+        background: var(--c-bg) !important;
         border-right: 1px solid var(--c-border) !important;
         padding-top: 0px !important;
     }
@@ -351,7 +348,7 @@ st.markdown("""
         transition: all 0.2s;
     }
     .md-cell:hover {
-        border-color: rgba(0, 217, 126, 0.3);
+        border-color: var(--c-border-h);
         background: var(--c-s2);
     }
     .md-label {
@@ -377,7 +374,7 @@ st.markdown("""
     .bg-tang { color: var(--c-g) !important; }   /* xanh lá  — tăng       */
     .bg-tc   { color: var(--c-a) !important; }   /* vàng cam — tham chiếu */
     .bg-giam { color: var(--c-r) !important; }   /* đỏ       — giảm       */
-    .bg-san  { color: var(--c-b) !important; }   /* xanh lam — giá SÀN    */
+    .bg-san  { color: var(--c-san) !important; }   /* xanh lam — giá SÀN    */
     .bg-kb   { color: var(--c-t3) !important; }  /* xám      — chưa biết  */
 
     /* ─── CARDS & HEADERS ────────────────────────────────────── */
@@ -395,9 +392,9 @@ st.markdown("""
     .cht { font-size: 12.5px; font-weight: 700; color: var(--c-t1); display: flex; align-items: center; gap: 6px; }
     .chs { font-size: 10.5px; color: var(--c-t3); font-family: var(--fm); }
     .sym-r { display: flex; align-items: center; gap: 8px; padding: 10px 16px 0 16px; }
-    .sym-n { font-family: var(--fm); font-size: 18px; font-weight: 800; color: var(--c-g); }
-    .ptag { font-size: 9.5px; font-weight: 700; background: var(--c-g-dim); border: 1px solid rgba(0,217,126,0.3); color: var(--c-g); padding: 2px 7px; border-radius: 12px; }
-    .stag { font-size: 9.5px; font-weight: 600; background: var(--c-r-dim); border: 1px solid rgba(248,113,113,0.25); color: var(--c-r); padding: 2px 7px; border-radius: 12px; font-family: var(--fm); }
+    .sym-n { font-family: var(--fm); font-size: 18px; font-weight: 800; color: var(--c-t1); }
+    .ptag { font-size: 9.5px; font-weight: 700; background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.3); color: var(--c-acc); padding: 2px 7px; border-radius: 12px; }
+    .stag { font-size: 9.5px; font-weight: 600; background: var(--c-r-dim); border: 1px solid rgba(255,90,80,0.25); color: var(--c-r); padding: 2px 7px; border-radius: 12px; font-family: var(--fm); }
 
     /* ─── DEBATE STREAM ──────────────────────────────────────── */
     .debate {
@@ -407,9 +404,9 @@ st.markdown("""
     .mb {
         border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5;
     }
-    .mb.bull { background: rgba(0,217,126,0.06); border: 1px solid rgba(0,217,126,0.14); border-left: 3px solid var(--c-g); }
-    .mb.bear { background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.14); border-left: 3px solid var(--c-r); }
-    .mb.mst { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.18); border-left: 3px solid var(--c-p); }
+    .mb.bull { background: rgba(48,209,88,0.06); border: 1px solid rgba(48,209,88,0.14); border-left: 3px solid var(--c-g); }
+    .mb.bear { background: rgba(255,90,80,0.06); border: 1px solid rgba(255,90,80,0.14); border-left: 3px solid var(--c-r); }
+    .mb.mst { background: rgba(201,108,246,0.06); border: 1px solid rgba(201,108,246,0.18); border-left: 3px solid var(--c-p); }
     .mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .mn { font-size: 10px; font-weight: 800; text-transform: uppercase; }
     .mn.bull { color: var(--c-g); } .mn.bear { color: var(--c-r); } .mn.mst { color: var(--c-p); }
@@ -420,7 +417,7 @@ st.markdown("""
     .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .sig-item { background: var(--c-s1); border: 1px solid var(--c-border); border-radius: 6px; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; }
     .sig-lbl { font-size: 8.5px; color: var(--c-t3); text-transform: uppercase; font-weight: 700; }
-    .sig-val { font-family: var(--fm); font-size: 11px; font-weight: 800; color: var(--c-g); }
+    .sig-val { font-family: var(--fm); font-size: 11px; font-weight: 800; color: var(--c-t1); }
     .sig-val.pos { color: var(--c-g); } .sig-val.neu { color: var(--c-b); } .sig-val.neg { color: var(--c-r); }
     .sig-sub { font-size: 9.5px; color: var(--c-t2); line-height: 1.3; }
 
@@ -428,7 +425,7 @@ st.markdown("""
     .a-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: var(--c-s1); border-radius: 6px; border: 1px solid var(--c-border); font-size: 10.5px; }
     .a-lbl { color: var(--c-t2); font-weight: 500; }
     .a-st { font-weight: 700; font-size: 9.5px; }
-    .a-st.ok { color: var(--c-g); } .a-st.ac { color: var(--c-p); } .a-st.wn { color: var(--c-a); }
+    .a-st.ok { color: var(--c-g); } .a-st.ac { color: var(--c-p); } .a-st.wn { color: var(--c-o); }
 
     /* ─── TABS ───────────────────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
@@ -440,16 +437,16 @@ st.markdown("""
         font-weight: 600; font-size: 0.78rem; padding: 0 10px;
     }
     .stTabs [aria-selected="true"] {
-        background: transparent !important; color: var(--c-g) !important;
-        border-bottom: 2px solid var(--c-g) !important; font-weight: 700 !important;
+        background: transparent !important; color: var(--c-acc) !important;
+        border-bottom: 2px solid var(--c-acc) !important; font-weight: 700 !important;
     }
 
     /* ─── ACTION BUTTON ──────────────────────────────────────── */
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #00d97e 0%, #059669 50%, #3b82f6 100%) !important;
-        color: #030a06 !important; font-weight: 800 !important; font-size: 0.85rem !important;
+        background: #2997ff !important;
+        color: #000000 !important; font-weight: 800 !important; font-size: 0.85rem !important;
         border: none !important; border-radius: var(--r-sm) !important; padding: 10px !important;
-        text-transform: uppercase; box-shadow: 0 4px 16px rgba(0,217,126,0.3) !important;
+        text-transform: uppercase; box-shadow: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -561,9 +558,9 @@ def _mau_dau(o):
     """Xanh = dương, đỏ = âm, theo DẤU của chuỗi đã định dạng; 0 và gạch để trơn."""
     s = str(o)
     if s.startswith("+") and s.strip("+0.,%R"):
-        return "color: #16a34a; font-weight: 600"
+        return "color: #30d158; font-weight: 600"
     if s.startswith("-"):
-        return "color: #dc2626; font-weight: 600"
+        return "color: #ff5a50; font-weight: 600"
     return ""
 
 
@@ -1132,7 +1129,7 @@ with st.sidebar:
 
     def _hang(nhan, chi_tiet, trang_thai, lop="wn"):
         return (f'<div class="a-row"><span class="a-lbl">{nhan}</span>'
-                f'<span style="font-size:9.5px;color:#475569;">{chi_tiet}</span>'
+                f'<span style="font-size:9.5px;color:#7a7a7a;">{chi_tiet}</span>'
                 f'<span class="a-st {lop}">{trang_thai}</span></div>')
 
     # MỌI dòng dưới đây ĐỌC trạng thái thật của lượt phân tích gần nhất.
@@ -1292,13 +1289,13 @@ with st.sidebar:
             + _row_tv
             + _row_goi
             + '</div>'
-            + (f'<div style="font-size:9px;color:#f59e0b;margin-top:6px;'
+            + (f'<div style="font-size:9px;color:#ff9f0a;margin-top:6px;'
                f'line-height:1.45;">⚠️ {_goi.dong_log()}</div>'
                if _goi is not None and not _goi.dat else '')
             # Ảnh hưởng bằng 0 phải được NÓI RA ngay cạnh dòng "● BẬT".
             # Một thành phần bật mà không tác động, nếu không ghi chú, đọc
             # y hệt một thành phần đang tham gia quyết định.
-            + '<div style="font-size:9px;color:#475569;margin-top:6px;'
+            + '<div style="font-size:9px;color:#7a7a7a;margin-top:6px;'
             'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất (vnstock). '
             '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — chưa CHẠY phép đo, '
             'không phải không đo được. Xem <code>fundamental_agent.py</code> '
@@ -1624,26 +1621,26 @@ def _ve_nen_khung(nen, he_so):
     fig.add_trace(go.Candlestick(
         x=d['time'], open=d['open'] * he_so, high=d['high'] * he_so,
         low=d['low'] * he_so, close=d['close'] * he_so, name="Giá nến",
-        increasing_line_color='#00d97e', increasing_fillcolor='#00d97e',
-        decreasing_line_color='#f87171', decreasing_fillcolor='#f87171'
+        increasing_line_color='#30d158', increasing_fillcolor='#30d158',
+        decreasing_line_color='#ff5a50', decreasing_fillcolor='#ff5a50'
     ), row=1, col=1)
-    for chu_ky, mau in ((_kt.CHU_KY_MA_NGAN, '#ff9800'),
-                        (_kt.CHU_KY_MA_DAI, '#3b82f6')):
+    for chu_ky, mau in ((_kt.CHU_KY_MA_NGAN, '#ff9f0a'),
+                        (_kt.CHU_KY_MA_DAI, '#2997ff')):
         if len(d) >= chu_ky:
             fig.add_trace(go.Scatter(
                 x=d['time'], y=d['close'].rolling(window=chu_ky).mean() * he_so,
                 mode='lines', line=dict(color=mau, width=1.2),
                 name=f"MA{chu_ky}"), row=1, col=1)
-    mau_kl = ['#00d97e' if c >= o else '#f87171'
+    mau_kl = ['#30d158' if c >= o else '#ff5a50'
               for o, c in zip(d['open'], d['close'])]
     fig.add_trace(go.Bar(x=d['time'], y=d['volume'], marker_color=mau_kl,
                          name="Khối lượng"), row=2, col=1)
     fig.update_layout(
-        height=330, template="plotly_dark", paper_bgcolor='#090d16',
-        plot_bgcolor='#090d16', xaxis_rangeslider_visible=False,
+        height=330, template="plotly_dark", paper_bgcolor='#000000',
+        plot_bgcolor='#000000', xaxis_rangeslider_visible=False,
         showlegend=False, margin=dict(l=5, r=5, t=5, b=5),
-        xaxis=dict(gridcolor='rgba(255,255,255,0.04)'),
-        yaxis=dict(gridcolor='rgba(255,255,255,0.04)'))
+        xaxis=dict(gridcolor='#272729'),
+        yaxis=dict(gridcolor='#272729'))
     return fig
 
 
@@ -1734,30 +1731,30 @@ with col_chart:
             low=df['low'] * mult,
             close=df['close'] * mult,
             name="Giá nến",
-            increasing_line_color='#00d97e',
-            increasing_fillcolor='#00d97e',
-            decreasing_line_color='#f87171',
-            decreasing_fillcolor='#f87171'
+            increasing_line_color='#30d158',
+            increasing_fillcolor='#30d158',
+            decreasing_line_color='#ff5a50',
+            decreasing_fillcolor='#ff5a50'
         ), row=1, col=1)
 
         fig_candlestick.add_trace(go.Scatter(
             x=df['time'], y=df['ma20'] * mult,
-            mode='lines', line=dict(color='#ff9800', width=1.2), name='MA20'
+            mode='lines', line=dict(color='#ff9f0a', width=1.2), name='MA20'
         ), row=1, col=1)
 
         fig_candlestick.add_trace(go.Scatter(
             x=df['time'], y=df['ma50'] * mult,
-            mode='lines', line=dict(color='#3b82f6', width=1.2), name='MA50'
+            mode='lines', line=dict(color='#2997ff', width=1.2), name='MA50'
         ), row=1, col=1)
 
         if est_stop_loss is not None:
             fig_candlestick.add_hline(
-                y=est_stop_loss, line_dash="dash", line_color="#00d97e",
+                y=est_stop_loss, line_dash="dash", line_color="#ff5a50",
                 annotation_text=f"SL: {est_stop_loss:,.0f}",
                 annotation_position="top left", row=1, col=1
             )
 
-        vol_colors = ['#00d97e' if df['close'].iloc[i] >= df['open'].iloc[i] else '#f87171' for i in range(len(df))]
+        vol_colors = ['#30d158' if df['close'].iloc[i] >= df['open'].iloc[i] else '#ff5a50' for i in range(len(df))]
         fig_candlestick.add_trace(go.Bar(
             x=df['time'], y=df['volume'],
             marker_color=vol_colors, name="Khối lượng"
@@ -1766,13 +1763,13 @@ with col_chart:
         fig_candlestick.update_layout(
             height=330,
             template="plotly_dark",
-            paper_bgcolor='#090d16',
-            plot_bgcolor='#090d16',
+            paper_bgcolor='#000000',
+            plot_bgcolor='#000000',
             xaxis_rangeslider_visible=False,
             showlegend=False,
             margin=dict(l=5, r=5, t=5, b=5),
-            xaxis=dict(gridcolor='rgba(255,255,255,0.04)'),
-            yaxis=dict(gridcolor='rgba(255,255,255,0.04)')
+            xaxis=dict(gridcolor='#272729'),
+            yaxis=dict(gridcolor='#272729')
         )
 
         # Đẩy nến sang trái, chừa trống bên phải. `update_xaxes` chứ không phải
@@ -1793,7 +1790,7 @@ with col_chart:
         # nhãn — nó là mốc đọc, không phải một kết luận.
         fig_candlestick.add_vline(
             x=_tg.iloc[-1], line_width=1, line_dash="dot",
-            line_color="rgba(255,255,255,0.18)")
+            line_color="#7a7a7a")
 
         st.plotly_chart(fig_candlestick, width="stretch")
     else:
@@ -1885,7 +1882,7 @@ with col_debate:
             </div>
             <div class="mb mst">
                 <div class="mh"><span class="mn mst">🏆 Master Strategy</span><span class="mt">10:47</span></div>
-                <div class="mb-b">{master_msg} Trạng thái: <strong style="color:var(--c-g)">{dyn_rec}</strong>.</div>
+                <div class="mb-b">{master_msg} Trạng thái: <strong style="color:var(--c-acc)">{dyn_rec}</strong>.</div>
             </div>
             <div class="mb bull">
                 <div class="mh"><span class="mn bull">🐂 Bull — Vòng 2</span><span class="mt">14:05</span></div>
@@ -2267,7 +2264,7 @@ with t_rep:
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
         <div style="{_o}">
             <div style="{_nhan}">Phân tích hôm nay</div>
-            <div style="font-family:var(--fm);font-size:15px;color:var(--c-g);font-weight:800;">{dyn_rec} {symbol}</div>
+            <div style="font-family:var(--fm);font-size:15px;color:var(--c-acc);font-weight:800;">{dyn_rec} {symbol}</div>
             <div style="{_phu}">Điểm {score:.1f} · {dyn_phase_short}</div>
         </div>
         <div style="{_o}">
@@ -2552,8 +2549,8 @@ with t_suc_khoe:
         st.info("Chưa chạy kiểm. Bấm “Chạy kiểm” — có phép đi mạng và kéo sổ Sheets nên "
                 "có thể mất vài phút.")
     else:
-        _SK_MAU = {_sk.XANH: ("#61cc69", "XANH"), _sk.VANG: ("#fcaa2b", "VÀNG"),
-                   _sk.DO: ("#e24947", "ĐỎ"), _sk.CHUA_KIEM_DUOC: ("#8b95a1", "CHƯA KIỂM ĐƯỢC")}
+        _SK_MAU = {_sk.XANH: ("#30d158", "XANH"), _sk.VANG: ("#ffd60a", "VÀNG"),
+                   _sk.DO: ("#ff5a50", "ĐỎ"), _sk.CHUA_KIEM_DUOC: ("#7a7a7a", "CHƯA KIỂM ĐƯỢC")}
         _sk_dong = []
         for _r in _sk.dong_hien_thi(_sk_kq):
             _mau, _nhan = _SK_MAU[_r["trang_thai"]]
@@ -2586,8 +2583,8 @@ st.markdown(f"""
 ">
     <div style="display: flex; gap: 14px;">
         <span>Cap nhat: <b style="color:var(--c-t1);">{now_vn().strftime('%H:%M:%S')} ICT</b></span>
-        <span>Nguong: <b style="color:var(--c-g);">{BUY_THRESHOLD:.1f} pts</b></span>
-        <span>Ma dang chon: <b style="color:var(--c-g);">{symbol} ({exchange})</b></span>
+        <span>Nguong: <b style="color:var(--c-acc);">{BUY_THRESHOLD:.1f} pts</b></span>
+        <span>Ma dang chon: <b style="color:var(--c-acc);">{symbol} ({exchange})</b></span>
     </div>
     <!-- Đã bỏ "Gemini" (21/08/2026): chữ đó xuất hiện ĐÚNG MỘT LẦN trong
          toàn bộ app, và là ở chính dòng này. `chatbot_agent.py` không được
