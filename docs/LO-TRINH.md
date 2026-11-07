@@ -54,14 +54,14 @@ Phiên quyết định sau soát pipeline chỉ đọc (BƯỚC 255, hộp hỏi
 | `architecture_asbuilt.html` | *"Gắn nhãn HẾT ĐÚNG + trỏ sang SVG (Recommended)"* |
 | Ba phát hiện về sản phẩm (quét chạy sau đóng cửa · bản tin không có đường giao · chấm bóng và sân đấu không có cron) | *"Ghi danh sách chờ, bàn sau (Recommended)"* — mục *Danh sách chờ* ở cuối |
 
-Cùng ngày, phiên quyết định kế (BƯỚC 256; ba hàng đầu đã xử lý, hàng bản tin còn MỞ):
+Cùng ngày, phiên quyết định kế (BƯỚC 256; ba hàng đầu đã xử lý; hàng bản tin chốt ở BƯỚC 258 bằng Telegram):
 
 | Câu hỏi | Trả lời |
 |---|---|
 | Giờ quét | *"Chấp nhận, dọn cho khớp (Recommended)"* — chọn hơn việc dựng bộ hẹn giờ ngoài để có cảnh báo trong phiên thật |
 | Chấm bóng và sân đấu có cần cron | *"Kiểm trước, rồi quyết (Recommended)"* |
 | Phạm vi BƯỚC 256 | *"Giao ngay, đủ (i)+(ii)+(iii) (Recommended)"*, rồi *"Tách (ii) ra, giao (i)+(iii) trước (Recommended)"* |
-| Đường giao bản tin (T3) | *"GitHub Issue → email (Recommended)"* — leader nêu sau đó repo là CÔNG KHAI nên mục này tách ra và còn MỞ (xem *Danh sách chờ*) |
+| Đường giao bản tin (T3) | *"GitHub Issue → email (Recommended)"* — leader nêu sau đó repo là CÔNG KHAI nên mục này tách ra; 06/11/2026 người dùng chọn lại *"Telegram (Recommended)"*, BƯỚC 258 dựng (xem *Danh sách chờ*) |
 | Dow phần 2 | *"Hoãn tới sau v1.0 (Recommended)"* |
 
 ---
@@ -78,9 +78,11 @@ Agent tự giao dịch ảo, tự rút bài học, minh bạch. Nghiệm thu b�
 
 - **T1** — Chạy tự động 20 phiên liền, không ai phải can thiệp.
 - **T2** — Mọi lệnh đóng có bài học bằng lời và nhãn nguyên nhân trong vòng 1 phiên.
-- **T3** — Bản tin cuối ngày của agent tới tay người dùng. ⚠️ Trạng thái 05/11/2026: **chưa có đường
-  giao** — bản tin chỉ nằm ở tab "📰 Bản tin" của app và CLI `tools/ban_tin.py`; không workflow nào
-  chạy nó (`grep -rn "ban_tin" .github` rỗng). Tiêu chí CHƯA đạt; xem *Danh sách chờ*.
+- **T3** — Bản tin cuối ngày của agent tới tay người dùng. 🔴 HẾT ĐÚNG 06/11/2026 (BƯỚC 258): câu cũ
+  *"chưa có đường giao … `grep -rn "ban_tin" .github` rỗng"* (05/11/2026). Nay có `gui-ban-tin-telegram.yml`
+  (sau mỗi lượt quét thành công, một bản tin mỗi ngày phiên, qua Telegram). ⚠️ Tiêu chí CHƯA đạt: chưa có lượt
+  chạy thật nào cho tới khi người dùng đặt hai secret (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`); đạt khi một lượt
+  `gui-ban-tin-telegram.yml` xanh VÀ người dùng báo đã nhận bản tin; xem *Danh sách chờ*.
 - **T4** — Sân đấu có ít nhất 3 phương án bóng so với rổ, kèm khoảng tin cậy.
 - **T5** — Agent tự soạn ít nhất 1 đề xuất ứng viên mỗi tháng; người dùng duyệt một chạm.
 - **T6** — Vòng học đã chứng minh trên thị trường giả có lợi thế cài sẵn: nó tìm ra, xác nhận và nâng cấp đúng.
@@ -315,9 +317,10 @@ cho tới khi đã thành một đầu việc có mã ở trên.
   research) về các hiệu ứng có cơ sở kinh tế trên thị trường Việt Nam.
 - **Danh sách chờ** (ghi 05/11/2026; người dùng: *"Ghi danh sách chờ, bàn sau (Recommended)"*; cập nhật cùng ngày ở BƯỚC 256):
   (1) ~~quét chạy sau đóng cửa~~ **ĐÃ XONG (BƯỚC 256)**: `quet-so-lenh.yml` nay khai hai nhịp sau đóng cửa và bỏ bước
-  cảnh báo nội phiên (`CLAUDE.md`, mục *Quét tự động*); (2) bản tin B2 chưa có đường giao tới người dùng (T3) —
-  **VẪN MỞ**: người dùng đã chọn *"GitHub Issue → email (Recommended)"* nhưng repo là CÔNG KHAI, Issue ai cũng đọc
-  được, nên mục tách ra và người dùng còn phải chọn một kênh RIÊNG TƯ: email qua SMTP hoặc Telegram; chưa dựng gì;
+  cảnh báo nội phiên (`CLAUDE.md`, mục *Quét tự động*); (2) ~~bản tin B2 chưa có đường giao tới người dùng (T3)~~ **ĐÃ DỰNG (BƯỚC 258, 06/11/2026), CHỜ NGƯỜI DÙNG ĐẶT
+  SECRET**: người dùng chọn *"GitHub Issue → email (Recommended)"* nhưng repo là CÔNG KHAI nên Issue không riêng tư;
+  hỏi lại, người dùng chọn *"Telegram (Recommended)"*. Workflow `gui-ban-tin-telegram.yml` chưa gửi gì cho tới khi
+  người dùng tạo bot và đặt hai secret (thiếu secret thì `::warning::` rồi bỏ qua, không email);
   (3) ~~chấm bóng (`cham_xac_nhan`, `keo_bang_gia`) và sân đấu (`san_dau`) không có cron~~ **ĐÓNG, không cần cron** —
   kiểm 05/11/2026: các module là phát lại thuần, không giữ trạng thái giữa các lượt (`cham_bong.py` *"MODULE THUẦN:
   không gọi mạng, không đọc Sheets, không ghi file"*; `tools/san_dau.py` *"CHỈ ĐỌC"*). Đầu vào là các tab `decisions` ·
