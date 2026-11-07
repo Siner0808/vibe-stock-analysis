@@ -25672,6 +25672,8 @@ Phiên con của leader, nhánh `giao-dien/mau-apple-262` từ `origin/main` `6c
 
 **Đột biến.** 29 phát chạy bằng `va_an_toan.dot_bien_bo`, nối lại nguyên văn lỗi thật ở phát đầu (`primaryColor` về `#00e676`): **29/29 ĐỎ, 0 sống sót** (config 5 · `app.py` 20 · `trade_review.py` 3 · `master_agent.py` 1). Gồm: đỏ/tím về mẫu Apple chuẩn (hỏng tương phản), màu chủ đạo = xanh lá/sàn, thay nền, chữ trắng trên nút xanh, gradient ở nút, vầng sáng ở ô tìm kiếm và logo, lớp `.bg-tang`/`.bg-san` nối sai biến, hex ngoài bảng ở bảng dữ liệu.
 
+**Năm cổng ở máy** (`tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_262`, 07/11 12:13–12:19, cả lượt 398 s, cây `174f01b` = `origin/main` `6cae4e8` + BƯỚC này; cổng 1 chạy song song `-n auto` ở máy): cổng 1 **4606 passed, 2 skipped** · cổng 2 sạch · cổng 3 0 CHẶN · 10 cảnh báo · cổng 4 mọi file xanh một mình · cổng 5 *OK — 4608 test, khớp mốc đã ghi* (mốc 4561 → 4608 bằng `kiem_so_test_khong_giam --cap-nhat --ly-do`, +47 đúng bằng số phép kiểm của `tests/test_bang_mau_apple.py`). Lượt soát NotebookLM: không hỏi — `khong_bat_buoc_vi` đã ghi, `tools/buoc_cham_luat.py 262` xác nhận BƯỚC không chạm file luật.
+
 **Grep sau sửa** (`git ls-files '*.py' '*.toml' | grep -v '^tests/\|^tools/' | xargs grep -nEi '00e676|00d97e|gradient|glow|drop-shadow'` → rỗng).
 
 **Không đụng.** `CLAUDE.md`, `SKILL.md`, `docs/HANDOFF.md`, `docs/LO-TRINH.md` không ghim giá trị hex nào. Duy nhất `docs/STATE.md` (mục "NĂM MÀU BẢNG GIÁ VÀ Ô VN-INDEX", 22/08/2026: một dòng mẫu đầu ra ghi `#a78bfa` cho trần) — là sử liệu, giữ nguyên.
