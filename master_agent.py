@@ -128,7 +128,7 @@ class MasterConsensusAgent:
                 "pre_debate_score": 50.0,
                 "final_score": 50,
                 "recommendation": recommendation,
-                "action_color": "#7a7a7a",
+                "action_color": "#919191",
                 "key_reasons": [reason],
                 "score_breakdown": {
                     "trend_score": 50, "momentum_score": 50, "volume_score": 50,
