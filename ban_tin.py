@@ -8,8 +8,8 @@ học được gì.
 CHỈ ĐỌC. Module THUẦN: nhận các dòng `decisions` / `trades` / `nhat_ky` đúng
 như sổ lưu và một bảng VN-INDEX, trả một `BanTin` đóng băng. Không mạng, không
 đồng hồ, không đĩa, không ghi sổ, không tải giá, không gọi `so_bai_hoc` (hàm đó
-cần giá). Không đổi điểm, ngưỡng, cổng hay cách khớp của sổ — chỉ app và
-`tools/ban_tin.py` nhập module này (gác AST: `tests/test_ban_tin.py`).
+cần giá). Không đổi điểm, ngưỡng, cổng hay cách khớp của sổ — chỉ app,
+`tools/ban_tin.py` và `tools/gui_ban_tin_telegram.py` (BƯỚC 258) nhập module này (gác AST: `tests/test_ban_tin.py`).
 
 BỐN LUẬT ĐỌC (mỗi cái từ một sự cố hoặc một bất biến)
 ─────────────────────────────────────────────────────

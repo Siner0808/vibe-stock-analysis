@@ -659,8 +659,10 @@ def test_CHI_app_py_va_cong_cu_CLI_duoc_nhap_ban_tin():
         nhap, _ = _nhap_va_goi(ast.parse(p.read_text(encoding="utf-8")))
         if "ban_tin" in nhap:
             nguoi_nhap.add(p.relative_to(GOC).as_posix())
-    assert nguoi_nhap == {"app.py", "tools/ban_tin.py"}, (
-        f"ban_tin CHỈ ĐỂ ĐỌC, chỉ app và CLI được nhập; đang có: {sorted(nguoi_nhap)}")
+    # + `tools/gui_ban_tin_telegram.py` (BƯỚC 258): công cụ gửi bản tin tới Telegram, cũng CHỈ ĐỌC sổ
+    # (gác riêng ở `tests/test_ban_tin_telegram.py`); đường giao dịch/chấm điểm vẫn không nhập.
+    assert nguoi_nhap == {"app.py", "tools/ban_tin.py", "tools/gui_ban_tin_telegram.py"}, (
+        f"ban_tin CHỈ ĐỂ ĐỌC, chỉ app và các CLI đọc được nhập; đang có: {sorted(nguoi_nhap)}")
 
 
 @pytest.mark.parametrize("ten", [
@@ -728,7 +730,7 @@ def _lenh_goi(cay, ten):
                  or (isinstance(n.func, ast.Name) and n.func.id == ten))]
 
 
-@pytest.mark.parametrize("duong", ["app.py", "tools/ban_tin.py"])
+@pytest.mark.parametrize("duong", ["app.py", "tools/ban_tin.py", "tools/gui_ban_tin_telegram.py"])
 def test_nguoi_goi_truyen_nguong_la_TEN_BUY_THRESHOLD(duong):
     goi = _lenh_goi(_cay(duong), "lap_ban_tin")
     assert len(goi) == 1, f"{duong}: phải lập bản tin ĐÚNG MỘT chỗ"

@@ -37,7 +37,8 @@ thành công (16:23), điều kiện dừng đã đạt mà cổng vẫn mở (1
 bài học (16:53), có phiên mà không có nến mới (17:17). **Giờ đo thật** (cùng ngày đo, 40 lượt mỗi
 chuông; `chuong-bai-hoc` mới có 19): bốn chuông trễ trung vị 6,1–6,5 giờ so với giờ cron, nhỏ nhất
 4,1, lớn nhất 10,2 giờ. Ngoài vòng quét, một workflow riêng (cron 18:17 giờ VN) viết hậu kiểm bằng
-lời cho lệnh đã đóng và thêm vào tab `hau_kiem` (B1). App chỉ ĐỌC sổ; ngoài vòng này nó còn các
+lời cho lệnh đã đóng và thêm vào tab `hau_kiem` (B1); sau mỗi lượt quét thành công, một workflow nữa gửi bản tin
+cuối ngày tới Telegram của người dùng, tối đa một lần mỗi ngày phiên (T3, BƯỚC 258). App chỉ ĐỌC sổ; ngoài vòng này nó còn các
 lớp **chỉ để xem** — phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào
 lệnh từng mã, cấu trúc giá theo Lý thuyết Dow, nến tuần/tháng.
 
