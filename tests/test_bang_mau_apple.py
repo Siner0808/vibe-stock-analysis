@@ -40,7 +40,8 @@ THE_PHU = "#2a2a2c"
 VIEN = "#333333"
 CHU_CHINH = "#ffffff"
 CHU_PHU = "#cccccc"
-CHU_BA = "#7a7a7a"
+CHU_BA = "#919191"           # chữ cấp ba; BƯỚC 263: #7a7a7a chỉ 3,47:1 trên thẻ
+VIEN_HOVER = "#7a7a7a"       # KHÔNG phải chữ: viền khi rê chuột, đường tham chiếu biểu đồ
 CHU_DAU = "#2997ff"          # màu tương tác DUY NHẤT
 VONG_FOCUS = "#0071e3"
 CANH_BAO = "#ff9f0a"
@@ -53,7 +54,7 @@ SAN = "#64d2ff"              # xanh lam (cyan, khác màu chủ đạo)
 NAM_MAU = {"tran": TRAN, "tang": TANG, "tham_chieu": THAM_CHIEU,
            "giam": GIAM, "san": SAN}
 
-BANG_MAU = {CANVAS, THE, THE_PHU, VIEN, CHU_CHINH, CHU_PHU, CHU_BA, CHU_DAU,
+BANG_MAU = {CANVAS, THE, THE_PHU, VIEN, VIEN_HOVER, CHU_CHINH, CHU_PHU, CHU_BA, CHU_DAU,
             VONG_FOCUS, CANH_BAO, *NAM_MAU.values()}
 
 MODUN_HIEN_THI = ("app.py", "trade_review.py", "master_agent.py")
@@ -135,6 +136,7 @@ def test_cac_lop_bang_gia_noi_dung_bien():
 # ── 3. Tương phản WCAG ───────────────────────────────────────────────────────
 @pytest.mark.parametrize("nen", [CANVAS, THE, THE_PHU])
 @pytest.mark.parametrize("ten, mau", [("chu_chinh", CHU_CHINH), ("chu_phu", CHU_PHU),
+                                       ("chu_ba", CHU_BA),
                                        ("chu_dao", CHU_DAU), ("canh_bao", CANH_BAO),
                                        *NAM_MAU.items()])
 def test_tuong_phan_toi_thieu_4_5(ten, mau, nen):
@@ -142,8 +144,29 @@ def test_tuong_phan_toi_thieu_4_5(ten, mau, nen):
     assert tp >= NGUONG_TUONG_PHAN, f"{ten} {mau} trên {nen}: {tp:.2f} < {NGUONG_TUONG_PHAN}"
 
 
-def test_chu_ba_doc_duoc_tren_canvas():
-    assert tuong_phan(CHU_BA, CANVAS) >= NGUONG_TUONG_PHAN
+def test_chu_ba_la_xam_trung_tinh_toi_nhat_dat_4_5_tren_ca_ba_nen():
+    """BƯỚC 263: `#7a7a7a` chỉ đạt 3,47:1 trên thẻ. Chữ cấp ba phải là mức xám
+    trung tính TỐI NHẤT mà cả ba nền (canvas, thẻ, thẻ phụ) còn ≥ 4,5:1 — tự dò,
+    không chép số. Tối hơn một nấc là trượt; sáng hơn là phí độ phân cấp chữ."""
+    nen = (CANVAS, THE, THE_PHU)
+
+    def dat(v: int) -> bool:
+        mau = f"#{v:02x}{v:02x}{v:02x}"
+        return all(tuong_phan(mau, n) >= NGUONG_TUONG_PHAN for n in nen)
+
+    toi_nhat = next(v for v in range(256) if dat(v))
+    assert CHU_BA == f"#{toi_nhat:02x}{toi_nhat:02x}{toi_nhat:02x}"
+    assert not dat(toi_nhat - 1)
+    # Cũ trượt đúng ở thẻ, không phải ở canvas:
+    assert tuong_phan("#7a7a7a", THE) < NGUONG_TUONG_PHAN
+    assert tuong_phan("#7a7a7a", CANVAS) >= NGUONG_TUONG_PHAN
+    # Mẫu Apple `#8e8e93` cũng trượt trên thẻ phụ — vì thế không dùng.
+    assert tuong_phan("#8e8e93", THE_PHU) < NGUONG_TUONG_PHAN
+
+
+def test_vien_hover_khong_phai_chu_va_chu_ba_khong_con_la_vien():
+    assert _bien_css("border-h") == VIEN_HOVER
+    assert _bien_css("t3") == CHU_BA != VIEN_HOVER
 
 
 def test_chu_tren_nut_chu_dao_doc_duoc():
@@ -240,3 +263,17 @@ def test_master_agent_mau_hanh_dong_trong_bang_mau():
     assert len(mau) == 6
     assert all(m.lower() in BANG_MAU for m in mau)
     assert "#30d158" in mau and GIAM in mau and CHU_BA in mau
+
+
+def test_xam_cu_chi_con_lam_vien_va_duong_ke_khong_con_lam_chu():
+    """BƯỚC 263: `#7a7a7a` (3,47:1 trên thẻ) chỉ được làm VIỀN hover hoặc đường
+    kẻ biểu đồ. Bất kỳ chỗ nào khác là chữ xám cũ chưa được thay."""
+    tong = 0
+    for ten in MODUN_HIEN_THI:
+        van = _doc(ten)
+        for m in re.finditer(r"#7a7a7a", van, flags=re.IGNORECASE):
+            tong += 1
+            truoc = van[max(0, m.start() - 20):m.start()]
+            assert truoc.endswith("--c-border-h: ") or truoc.endswith('line_color="'), \
+                f"{ten}: #7a7a7a ở ngữ cảnh {truoc!r} — chữ phải dùng {CHU_BA}"
+    assert tong == 3, f"quần thể #7a7a7a đổi bất thường: {tong}"

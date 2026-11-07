@@ -79,7 +79,7 @@ st.set_page_config(
 # ═══════════════════════════════════════════════════════════════════
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
     :root {
         --c-bg: #000000;
@@ -105,12 +105,14 @@ st.markdown("""
         --c-o: #ff9f0a;
         --c-t1: #ffffff;
         --c-t2: #cccccc;
-        --c-t3: #7a7a7a;
-        --r-sm: 8px;
-        --r-md: 14px;
-        --r-lg: 20px;
-        --ff: 'Inter', system-ui, sans-serif;
-        --fm: 'JetBrains Mono', monospace;
+        --c-t3: #919191;
+        --r-chip: 8px;
+        --r-input: 11px;
+        --r-card: 18px;
+        --r-pill: 9999px;
+        --ff: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+        --fd: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+        --fm: var(--ff);
     }
 
     /* Transparent Streamlit Header & Persistent Sidebar Reopen Button */
@@ -128,7 +130,7 @@ st.markdown("""
         opacity: 1 !important;
         background: #272729 !important;
         border: 1px solid #333333 !important;
-        border-radius: 8px !important;
+        border-radius: var(--r-pill) !important;
         color: #2997ff !important;
         box-shadow: none !important;
         cursor: pointer !important;
@@ -199,29 +201,29 @@ st.markdown("""
     .sb-brand-header {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 0 4px 10px 4px;
+        gap: 12px;
+        padding: 0 4px 12px 4px;
         margin-top: -32px !important;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         border-bottom: 1px solid var(--c-border);
     }
     .sb-brand-info {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
     }
     .sb-brand-name {
         font-size: 15px;
-        font-weight: 900;
+        font-weight: 600;
         letter-spacing: -0.3px;
         color: #ffffff;
-        font-family: var(--ff);
+        font-family: var(--fd);
     }
     .sb-brand-name span {
         color: var(--c-acc);
     }
     .sb-brand-tag {
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.6px;
         text-transform: uppercase;
@@ -233,7 +235,7 @@ st.markdown("""
     [data-testid="stSidebar"] div[data-baseweb="input"] {
         background: #272729 !important;
         border: 1px solid #333333 !important;
-        border-radius: 10px !important;
+        border-radius: var(--r-input) !important;
         box-shadow: none !important;
         transition: all 0.25s ease !important;
     }
@@ -257,8 +259,8 @@ st.markdown("""
         font-family: var(--fm) !important;
         font-size: 11px !important;
         font-weight: 600 !important;
-        padding: 5px 6px !important;
-        border-radius: 8px !important;
+        padding: 4px 8px !important;
+        border-radius: var(--r-pill) !important;
         transition: all 0.2s ease !important;
     }
     [data-testid="stSidebar"] div[data-testid="column"] button:hover {
@@ -272,32 +274,32 @@ st.markdown("""
     .topbar {
         background: var(--c-s1);
         border: 1px solid var(--c-border);
-        border-radius: var(--r-md);
+        border-radius: var(--r-card);
         height: 52px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 18px;
-        margin-bottom: 14px;
+        padding: 0 20px;
+        margin-bottom: 16px;
     }
     .tb-l { display: flex; align-items: center; gap: 12px; }
-    .logo-t { font-size: 14px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
+    .logo-t { font-family: var(--fd); font-size: 14px; font-weight: 600; letter-spacing: -0.3px; color: #fff; }
     .logo-t span { color: var(--c-acc); }
     .badge {
-        font-size: 9.5px; font-weight: 700; color: var(--c-acc);
+        font-size: 11px; font-weight: 700; color: var(--c-acc);
         background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.25);
-        padding: 2px 7px; border-radius: 12px; text-transform: uppercase;
+        padding: 4px 8px; border-radius: var(--r-chip); text-transform: uppercase;
     }
     .tb-r { display: flex; align-items: center; gap: 16px; font-family: var(--fm); font-size: 11.5px; }
     .ti-item { display: flex; flex-direction: column; align-items: flex-end; }
-    .ti-l { color: var(--c-t3); font-size: 9px; text-transform: uppercase; }
+    .ti-l { color: var(--c-t3); font-size: 11px; text-transform: uppercase; }
     .ti-v { font-weight: 700; font-size: 12px; }
     .ti-v.up { color: var(--c-g); }
     .ti-v.bl { color: var(--c-b); }
     .live-pill {
-        display: flex; align-items: center; gap: 5px;
+        display: flex; align-items: center; gap: 4px;
         background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.25);
-        padding: 4px 9px; border-radius: 12px; font-size: 10.5px; font-weight: 600; color: var(--c-acc);
+        padding: 4px 8px; border-radius: var(--r-chip); font-size: 11px; font-weight: 600; color: var(--c-acc);
     }
     .dot { width: 5px; height: 5px; background: var(--c-acc); border-radius: 50%; }
 
@@ -308,7 +310,7 @@ st.markdown("""
         padding-top: 0px !important;
     }
     div[data-testid="stSidebarHeader"] {
-        padding: 6px 12px 0 12px !important;
+        padding: 8px 12px 0 12px !important;
         height: auto !important;
         min-height: 0px !important;
         background: transparent !important;
@@ -321,30 +323,30 @@ st.markdown("""
     .sb-card {
         background: var(--c-s2);
         border: 1px solid var(--c-border);
-        border-radius: var(--r-md);
-        padding: 12px 14px;
-        margin-bottom: 10px;
+        border-radius: var(--r-card);
+        padding: 12px 16px;
+        margin-bottom: 12px;
         display: flex; flex-direction: column; gap: 8px;
     }
     .sb-card-title {
-        font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
         text-transform: uppercase; color: var(--c-t2);
-        display: flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; gap: 8px;
     }
 
     /* ─── MARKET DATA STRIP ──────────────────────────────────── */
     .mds {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 12px;
+        margin-bottom: 16px;
     }
     .md-cell {
         background: var(--c-s1);
         border: 1px solid var(--c-border);
-        border-radius: var(--r-md);
+        border-radius: var(--r-input);
         padding: 12px 16px;
-        display: flex; flex-direction: column; gap: 2px;
+        display: flex; flex-direction: column; gap: 4px;
         transition: all 0.2s;
     }
     .md-cell:hover {
@@ -352,14 +354,14 @@ st.markdown("""
         background: var(--c-s2);
     }
     .md-label {
-        font-size: 9.5px; font-weight: 700; letter-spacing: 0.8px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
         text-transform: uppercase; color: var(--c-t3);
     }
     .md-val {
         font-family: var(--fm); font-size: 20px; font-weight: 800; color: #fff;
     }
     .md-delta {
-        font-family: var(--fm); font-size: 10.5px; font-weight: 600;
+        font-family: var(--fm); font-size: 11px; font-weight: 600;
     }
     .md-delta.up { color: var(--c-g); }
     .md-delta.dn { color: var(--c-r); }
@@ -381,60 +383,60 @@ st.markdown("""
     .card {
         background: var(--c-s1);
         border: 1px solid var(--c-border);
-        border-radius: var(--r-md);
+        border-radius: var(--r-card);
         overflow: hidden;
         margin-bottom: 12px;
     }
     .ch {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 11px 16px; border-bottom: 1px solid var(--c-border);
+        padding: 12px 16px; border-bottom: 1px solid var(--c-border);
     }
-    .cht { font-size: 12.5px; font-weight: 700; color: var(--c-t1); display: flex; align-items: center; gap: 6px; }
-    .chs { font-size: 10.5px; color: var(--c-t3); font-family: var(--fm); }
-    .sym-r { display: flex; align-items: center; gap: 8px; padding: 10px 16px 0 16px; }
+    .cht { font-family: var(--fd); font-size: 12.5px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-t1); display: flex; align-items: center; gap: 8px; }
+    .chs { font-size: 11px; color: var(--c-t3); font-family: var(--fm); }
+    .sym-r { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0 16px; }
     .sym-n { font-family: var(--fm); font-size: 18px; font-weight: 800; color: var(--c-t1); }
-    .ptag { font-size: 9.5px; font-weight: 700; background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.3); color: var(--c-acc); padding: 2px 7px; border-radius: 12px; }
-    .stag { font-size: 9.5px; font-weight: 600; background: var(--c-r-dim); border: 1px solid rgba(255,90,80,0.25); color: var(--c-r); padding: 2px 7px; border-radius: 12px; font-family: var(--fm); }
+    .ptag { font-size: 11px; font-weight: 700; background: var(--c-acc-dim); border: 1px solid rgba(41,151,255,0.3); color: var(--c-acc); padding: 4px 8px; border-radius: var(--r-chip); }
+    .stag { font-size: 11px; font-weight: 600; background: var(--c-r-dim); border: 1px solid rgba(255,90,80,0.25); color: var(--c-r); padding: 4px 8px; border-radius: var(--r-chip); font-family: var(--fm); }
 
     /* ─── DEBATE STREAM ──────────────────────────────────────── */
     .debate {
-        height: 385px; overflow-y: auto; padding: 12px 14px;
+        height: 385px; overflow-y: auto; padding: 12px 16px;
         display: flex; flex-direction: column; gap: 8px;
     }
     .mb {
-        border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5;
+        border-radius: var(--r-input); padding: 12px 12px; font-size: 12px; line-height: 1.5;
     }
     .mb.bull { background: rgba(48,209,88,0.06); border: 1px solid rgba(48,209,88,0.14); border-left: 3px solid var(--c-g); }
     .mb.bear { background: rgba(255,90,80,0.06); border: 1px solid rgba(255,90,80,0.14); border-left: 3px solid var(--c-r); }
     .mb.mst { background: rgba(201,108,246,0.06); border: 1px solid rgba(201,108,246,0.18); border-left: 3px solid var(--c-p); }
     .mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    .mn { font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .mn { font-size: 11px; font-weight: 800; text-transform: uppercase; }
     .mn.bull { color: var(--c-g); } .mn.bear { color: var(--c-r); } .mn.mst { color: var(--c-p); }
-    .mt { font-size: 9.5px; color: var(--c-t3); font-family: var(--fm); }
+    .mt { font-size: 11px; color: var(--c-t3); font-family: var(--fm); }
     .mb-b { color: var(--c-t2); font-size: 11.5px; }
 
     /* ─── QUICK SIGNALS 2x2 ──────────────────────────────────── */
-    .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .sig-item { background: var(--c-s1); border: 1px solid var(--c-border); border-radius: 6px; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; }
-    .sig-lbl { font-size: 8.5px; color: var(--c-t3); text-transform: uppercase; font-weight: 700; }
+    .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sig-item { background: var(--c-s1); border: 1px solid var(--c-border); border-radius: var(--r-input); padding: 8px 8px; display: flex; flex-direction: column; gap: 4px; }
+    .sig-lbl { font-size: 11px; color: var(--c-t3); text-transform: uppercase; font-weight: 700; }
     .sig-val { font-family: var(--fm); font-size: 11px; font-weight: 800; color: var(--c-t1); }
     .sig-val.pos { color: var(--c-g); } .sig-val.neu { color: var(--c-b); } .sig-val.neg { color: var(--c-r); }
-    .sig-sub { font-size: 9.5px; color: var(--c-t2); line-height: 1.3; }
+    .sig-sub { font-size: 11px; color: var(--c-t2); line-height: 1.3; }
 
     /* ─── AGENT ROWS ─────────────────────────────────────────── */
-    .a-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: var(--c-s1); border-radius: 6px; border: 1px solid var(--c-border); font-size: 10.5px; }
+    .a-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: var(--c-s1); border-radius: var(--r-input); border: 1px solid var(--c-border); font-size: 11px; }
     .a-lbl { color: var(--c-t2); font-weight: 500; }
-    .a-st { font-weight: 700; font-size: 9.5px; }
+    .a-st { font-weight: 700; font-size: 11px; }
     .a-st.ok { color: var(--c-g); } .a-st.ac { color: var(--c-p); } .a-st.wn { color: var(--c-o); }
 
     /* ─── TABS ───────────────────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 2px; background: var(--c-s1); padding: 4px 8px;
-        border-radius: var(--r-md); border: 1px solid var(--c-border);
+        gap: 4px; background: var(--c-s1); padding: 4px 8px;
+        border-radius: var(--r-input); border: 1px solid var(--c-border);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 32px; border-radius: 6px; color: var(--c-t3);
-        font-weight: 600; font-size: 0.78rem; padding: 0 10px;
+        height: 32px; border-radius: var(--r-chip); color: var(--c-t3);
+        font-weight: 600; font-size: 0.78rem; padding: 0 12px;
     }
     .stTabs [aria-selected="true"] {
         background: transparent !important; color: var(--c-acc) !important;
@@ -445,8 +447,38 @@ st.markdown("""
     .stButton > button[kind="primary"] {
         background: #2997ff !important;
         color: #000000 !important; font-weight: 800 !important; font-size: 0.85rem !important;
-        border: none !important; border-radius: var(--r-sm) !important; padding: 10px !important;
+        border: none !important; border-radius: var(--r-pill) !important; padding: 12px !important;
         text-transform: uppercase; box-shadow: none !important;
+    }
+
+    /* ─── APPLE: CHỮ · BO GÓC · NÚT (BƯỚC 263) ───────────────── */
+    /* Tiêu đề: weight 600, chữ hơi khít. Số: cùng bộ chữ, chữ số đều
+       bề ngang (tabular-nums) để cột số thẳng hàng. */
+    h1, h2, h3, h4, h5, h6, [data-testid="stHeading"] {
+        font-family: var(--fd) !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.28px !important;
+    }
+    .tb-r, .ti-v, .md-val, .md-delta, .chs, .sym-n, .stag, .mt, .sig-val,
+    .sb-brand-tag, [style*="var(--fm)"], [data-testid="stMetricValue"],
+    [data-testid="stTable"] td, [data-testid="stSidebar"] div[data-baseweb="input"] input {
+        font-variant-numeric: tabular-nums;
+    }
+    div[data-baseweb="input"], div[data-baseweb="base-input"],
+    div[data-baseweb="textarea"], div[data-baseweb="select"] > div {
+        border-radius: var(--r-input) !important;
+    }
+    [data-testid="stExpander"], [data-testid="stExpander"] details {
+        border-radius: var(--r-card) !important;
+    }
+    .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button,
+    [data-testid="stSidebar"] div[data-testid="column"] button {
+        border-radius: var(--r-pill) !important;
+        transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease !important;
+    }
+    .stButton > button:active, .stDownloadButton > button:active, .stFormSubmitButton > button:active,
+    [data-testid="stSidebar"] div[data-testid="column"] button:active {
+        transform: scale(0.95) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -981,7 +1013,7 @@ else:
     _vni_nhan = f"VN-Index · {_vni_ngay[8:10]}/{_vni_ngay[5:7]}" if _vni_ngay else "VN-Index"
     _vni_lop = _vni_mau.lop_css
     _vni_val = (f"{_vni['dong_cua']:,.2f} "
-                f"<span style=\"font-size:10px;font-weight:600;\">"
+                f"<span style=\"font-size:11px;font-weight:600;\">"
                 f"{_vni_mau.mui_ten} {_so(_vni.get('phan_tram'), '{:+.2f}%')}"
                 f"</span>")
     _vni_tip = (f"VN-INDEX phiên {_vni_ngay} — nguồn: {_vni.get('nguon')}. "
@@ -1129,7 +1161,7 @@ with st.sidebar:
 
     def _hang(nhan, chi_tiet, trang_thai, lop="wn"):
         return (f'<div class="a-row"><span class="a-lbl">{nhan}</span>'
-                f'<span style="font-size:9.5px;color:#7a7a7a;">{chi_tiet}</span>'
+                f'<span style="font-size:11px;color:#919191;">{chi_tiet}</span>'
                 f'<span class="a-st {lop}">{trang_thai}</span></div>')
 
     # MỌI dòng dưới đây ĐỌC trạng thái thật của lượt phân tích gần nhất.
@@ -1278,7 +1310,7 @@ with st.sidebar:
                 "● BẬT" if _tv_ok else "● TẮT", "ac" if _tv_ok else "wn")
 
         st.markdown(
-            '<div class="sb-card-title" style="margin-top: 10px;">'
+            '<div class="sb-card-title" style="margin-top: 12px;">'
             '🛰️ Trạng thái hệ thống AI</div>'
             '<div style="display:flex;flex-direction:column;gap:4px;">'
             + _hang("🧠 Post-Mortem Mem", _pm_chi_tiet, _pm_trang_thai,
@@ -1289,13 +1321,13 @@ with st.sidebar:
             + _row_tv
             + _row_goi
             + '</div>'
-            + (f'<div style="font-size:9px;color:#ff9f0a;margin-top:6px;'
+            + (f'<div style="font-size:11px;color:#ff9f0a;margin-top:8px;'
                f'line-height:1.45;">⚠️ {_goi.dong_log()}</div>'
                if _goi is not None and not _goi.dat else '')
             # Ảnh hưởng bằng 0 phải được NÓI RA ngay cạnh dòng "● BẬT".
             # Một thành phần bật mà không tác động, nếu không ghi chú, đọc
             # y hệt một thành phần đang tham gia quyết định.
-            + '<div style="font-size:9px;color:#7a7a7a;margin-top:6px;'
+            + '<div style="font-size:11px;color:#919191;margin-top:8px;'
             'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất (vnstock). '
             '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — chưa CHẠY phép đo, '
             'không phải không đo được. Xem <code>fundamental_agent.py</code> '
@@ -1499,7 +1531,7 @@ tp_pct_txt = _so(_pct(est_tp), "{:+.1f}%")
 # Render DYNAMIC Quick Signals in Sidebar
 with sig_container:
     st.markdown(f"""
-    <div class="sb-card-title" style="margin-top: 10px;">📊 Tín hiệu nhanh [{symbol}]</div>
+    <div class="sb-card-title" style="margin-top: 12px;">📊 Tín hiệu nhanh [{symbol}]</div>
     <div class="sig-grid">
         <div class="sig-item">
             <span class="sig-lbl">Pha Wyckoff</span>
@@ -2255,10 +2287,10 @@ with t_rep:
             _vt_mau = "var(--c-b)"
 
     _o = ('background:var(--c-s2);border:1px solid var(--c-border);'
-          'border-radius:var(--r-md);padding:14px;')
-    _nhan = ('font-size:10px;color:var(--c-t3);text-transform:uppercase;'
-             'margin-bottom:5px;')
-    _phu = 'font-size:11px;color:var(--c-t3);margin-top:2px;'
+          'border-radius:var(--r-card);padding:16px;')
+    _nhan = ('font-size:11px;color:var(--c-t3);text-transform:uppercase;'
+             'margin-bottom:4px;')
+    _phu = 'font-size:11px;color:var(--c-t3);margin-top:4px;'
 
     st.markdown(f"""
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
@@ -2360,29 +2392,29 @@ with t_pipe:
     # 15 chỉ báo mỗi lượt, Google Sheets đang là kho sổ lệnh. "Chưa đo" ở
     # đây không phải khiêm tốn mà là sai.
     st.markdown("""
-    <div style="padding:16px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;">
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">📡</span><br><b style="font-size:11px;">TradingView</b><br><small style="color:var(--c-t3);font-size:9px;">RSI·MACD·ADX</small>
+    <div style="padding:16px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;">
+        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-input);padding:12px 16px;text-align:center;">
+            <span style="font-size:18px;">📡</span><br><b style="font-size:11px;">TradingView</b><br><small style="color:var(--c-t3);font-size:11px;">RSI·MACD·ADX</small>
         </div>
         <span>→</span>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">📊</span><br><b style="font-size:11px;">Technical Agent</b><br><small style="color:var(--c-t3);font-size:9px;">RSI · MACD</small>
+        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-input);padding:12px 16px;text-align:center;">
+            <span style="font-size:18px;">📊</span><br><b style="font-size:11px;">Technical Agent</b><br><small style="color:var(--c-t3);font-size:11px;">RSI · MACD</small>
         </div>
         <span>→</span>
-        <div style="background:var(--c-s2);border:1px dashed var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;opacity:.75;">
-            <span style="font-size:18px;">📑</span><br><b style="font-size:11px;">Fundamental Agent</b><br><small style="color:var(--c-t3);font-size:9px;">BCTC năm · trọng số 0</small>
+        <div style="background:var(--c-s2);border:1px dashed var(--c-border);border-radius:var(--r-input);padding:12px 16px;text-align:center;opacity:.75;">
+            <span style="font-size:18px;">📑</span><br><b style="font-size:11px;">Fundamental Agent</b><br><small style="color:var(--c-t3);font-size:11px;">BCTC năm · trọng số 0</small>
         </div>
         <span>→</span>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">⚔️</span><br><b style="font-size:11px;">Debate Council</b><br><small style="color:var(--c-p);font-size:9px;">Bull vs Bear</small>
+        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-input);padding:12px 16px;text-align:center;">
+            <span style="font-size:18px;">⚔️</span><br><b style="font-size:11px;">Debate Council</b><br><small style="color:var(--c-p);font-size:11px;">Bull vs Bear</small>
         </div>
         <span>→</span>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">🏆</span><br><b style="font-size:11px;">Master Strategy</b><br><small style="color:var(--c-t3);font-size:9px;">Final Decision</small>
+        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-input);padding:12px 16px;text-align:center;">
+            <span style="font-size:18px;">🏆</span><br><b style="font-size:11px;">Master Strategy</b><br><small style="color:var(--c-t3);font-size:11px;">Final Decision</small>
         </div>
         <span>→</span>
-        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:10px;padding:10px 14px;text-align:center;">
-            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:9px;">kho sổ lệnh · app chỉ ĐỌC</small>
+        <div style="background:var(--c-s2);border:1px solid var(--c-border);border-radius:var(--r-input);padding:12px 16px;text-align:center;">
+            <span style="font-size:18px;">☁️</span><br><b style="font-size:11px;">Google Sheets</b><br><small style="color:var(--c-t3);font-size:11px;">kho sổ lệnh · app chỉ ĐỌC</small>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2409,14 +2441,14 @@ with t_acct:
             _sig = None
 
         _o = ('<div style="background:var(--c-s2);border:1px solid var(--c-border);'
-              'border-radius:10px;padding:12px 14px;">')
-        _nhan = ('<div style="font-size:9.5px;color:var(--c-t3);'
+              'border-radius:var(--r-input);padding:12px 16px;">')
+        _nhan = ('<div style="font-size:11px;color:var(--c-t3);'
                  'text-transform:uppercase;font-weight:700;">')
         _to = '<div style="font-family:var(--fm);font-size:18px;font-weight:800;color:'
-        _nho = '<div style="font-size:10.5px;color:'
+        _nho = '<div style="font-size:11px;color:'
 
         st.markdown(f"""
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
         {_o}{_nhan}Loi nhuan cong don (net)</div>
             {_to}var(--c-t1);">{_p.total_net_pct:+.2f}%</div>
             {_nho}var(--c-t3);">{_p.n_trades} lenh da dong</div></div>
@@ -2550,7 +2582,7 @@ with t_suc_khoe:
                 "có thể mất vài phút.")
     else:
         _SK_MAU = {_sk.XANH: ("#30d158", "XANH"), _sk.VANG: ("#ffd60a", "VÀNG"),
-                   _sk.DO: ("#ff5a50", "ĐỎ"), _sk.CHUA_KIEM_DUOC: ("#7a7a7a", "CHƯA KIỂM ĐƯỢC")}
+                   _sk.DO: ("#ff5a50", "ĐỎ"), _sk.CHUA_KIEM_DUOC: ("#919191", "CHƯA KIỂM ĐƯỢC")}
         _sk_dong = []
         for _r in _sk.dong_hien_thi(_sk_kq):
             _mau, _nhan = _SK_MAU[_r["trang_thai"]]
@@ -2578,10 +2610,10 @@ with t_suc_khoe:
 st.markdown(f"""
 <div style="
     display: flex; justify-content: space-between; align-items: center;
-    border-top: 1px solid var(--c-border); padding: 12px 0 6px 0; margin-top: 14px;
-    font-size: 10px; color: var(--c-t3); font-family: var(--fm);
+    border-top: 1px solid var(--c-border); padding: 12px 0 8px 0; margin-top: 16px;
+    font-size: 11px; color: var(--c-t3); font-family: var(--fm);
 ">
-    <div style="display: flex; gap: 14px;">
+    <div style="display: flex; gap: 16px;">
         <span>Cap nhat: <b style="color:var(--c-t1);">{now_vn().strftime('%H:%M:%S')} ICT</b></span>
         <span>Nguong: <b style="color:var(--c-acc);">{BUY_THRESHOLD:.1f} pts</b></span>
         <span>Ma dang chon: <b style="color:var(--c-acc);">{symbol} ({exchange})</b></span>

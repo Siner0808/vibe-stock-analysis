@@ -80,7 +80,7 @@ def build_figure(df: pd.DataFrame, trade: Any, height: int = 520) -> go.Figure:
             fillcolor="#ffffff", opacity=0.05, line_width=0, layer="below",
             annotation_text="agent chưa biết vùng này khi quyết định",
             annotation_position="top right",
-            annotation_font=dict(size=10, color="#7a7a7a"))
+            annotation_font=dict(size=11, color="#919191"))
         fig.add_vline(x=trade.signal_date, line_width=1, line_dash="dot",
                       line_color="#7a7a7a")
 
@@ -92,7 +92,7 @@ def build_figure(df: pd.DataFrame, trade: Any, height: int = 520) -> go.Figure:
                           line_width=1,
                           annotation_text=f"{label} {float(price):,.0f}",
                           annotation_position="right",
-                          annotation_font=dict(size=10, color=color))
+                          annotation_font=dict(size=11, color=color))
 
     # ── Điểm vào / ra ─────────────────────────────────────────────────
     marks = []
@@ -108,7 +108,7 @@ def build_figure(df: pd.DataFrame, trade: Any, height: int = 520) -> go.Figure:
             marker=dict(symbol=sym, size=15, color=color,
                         line=dict(width=1, color="#ffffff")),
             text=[f" {label} {price:,.0f}"], textposition="middle right",
-            textfont=dict(size=10, color=color)))
+            textfont=dict(size=11, color=color)))
 
     fig.update_layout(
         height=height, template="plotly_dark",
