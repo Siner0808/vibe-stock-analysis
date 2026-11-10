@@ -38,7 +38,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from data_quality import price_multiplier
+from data_quality import chuan_hoa_thoi_gian, price_multiplier
 
 KHUNG_HOP_LE = ("1m", "5m", "15m", "30m", "1H")
 
@@ -61,7 +61,7 @@ def _trong_phien(ts: pd.Series) -> pd.Series:
     trong_gio = False
     for mo, dong in PHIEN:
         trong_gio = trong_gio | ((gio >= mo) & (gio <= dong))
-    return trong_gio & (ts.dt.dayofweek < 5)
+    return trong_gio & (ts.dt.day_of_week < 5)
 
 
 def loc_rac(df: pd.DataFrame) -> pd.DataFrame:
@@ -156,7 +156,9 @@ def tai(symbol: str, start: str, end: str, khung: str = "30m",
     if tho is None or tho.empty:
         raise IntradayError(f"{symbol}: nguồn trả bảng rỗng cho khung {khung}")
 
-    sach = _quy_ve_vnd(loc_rac(tho))
+    # vnstock thế hệ 5 trả `time` có múi giờ: cache đọc lại rồi so với `pd.Timestamp(start)`
+    # naive sẽ nổ TypeError (đo 06/11/2026). Cắt múi giờ (giữ giờ Việt Nam) trước khi lọc.
+    sach = _quy_ve_vnd(loc_rac(chuan_hoa_thoi_gian(tho)))
     if sach.empty:
         raise IntradayError(
             f"{symbol}: {len(tho)} dòng thô nhưng KHÔNG có nến giao dịch nào "

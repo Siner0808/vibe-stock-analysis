@@ -1,5 +1,6 @@
-# Liệt kê thứ cài được từ PyPI CÔNG KHAI — cộng HAI gói, `vnstock` và
-# `vnai`, lấy từ kho riêng của hãng (khối "KHO THỨ HAI" bên dưới).
+# Liệt kê thứ cài được từ PyPI CÔNG KHAI — cộng MỘT gói, `vnstock`, lấy từ kho
+# riêng của hãng (khối "KHO THỨ HAI" bên dưới). `vnai` KHÔNG còn: thế hệ 5 của
+# vnstock không phụ thuộc nó (BƯỚC 260).
 #
 # GitHub Actions và Streamlit Cloud đều chạy `pip install -r requirements.txt`.
 # Bốn gói tài trợ của vnstock — vnstock_data, vnstock_ta, vnstock_news,
@@ -22,21 +23,27 @@ streamlit
 pandas
 numpy
 plotly
-# KHO THỨ HAI — từ 26/09/2026 (docs/STATE.md BƯỚC 127). PyPI cách ly
-# `vnstock` và `vnai` từ tối 25/09; hãng phát hành trên kho riêng, và
-# người dùng chốt cài từ đó. Đo 26/09: kho ấy chỉ phục vụ bốn tên —
-# vnstock, vnstock-installer, vnai, vnii.
+# KHO THỨ HAI — từ 26/09/2026 (docs/STATE.md BƯỚC 127), đổi sang thế hệ 5 ở
+# BƯỚC 260 (10/11/2026). PyPI cách ly `vnstock` từ tối 25/09; hãng phát hành
+# trên kho riêng, và người dùng chốt cài từ đó.
+#
+# SỰ CỐ 09/11/2026 (BƯỚC 260): `vnstock==4.0.9` bắt buộc `vnstock_ezchart>=1.0.2`
+# mà gói ấy bị XOÁ khỏi PyPI (404) và không có ở kho hãng nên mọi
+# `pip install -r requirements.txt` hỏng — hai lượt `quet-so-lenh` chết ở bước cài.
+# Thế hệ 5 chỉ phụ thuộc `pandas>=2.0` (+ `tzdata` trên Windows), không `vnai`, không
+# `vnstock_ezchart`. Kho thế hệ 5 là `/api/packages` (kho `/api/simple` chỉ phục vụ 4.x).
+# Wheel có đủ `manylinux_2_17_x86_64` (runner CI, Streamlit Cloud) lẫn `win_amd64`.
 #
 # GHIM ĐÚNG BẢN, không khai sàn: pip chọn bản cao nhất trên CẢ HAI kho,
 # nên với một sàn thì kho nào có bản cao hơn quyết định CI chạy gì — và
-# sàn cũng là cách CI từng chạy trước máy (lỗi 79). Bản ghim là bản ĐO 19
-# đã đo ở máy; tests/test_requirements.py bắt hai bên khớp nhau.
+# sàn cũng là cách CI từng chạy trước máy (lỗi 79). tests/test_requirements.py
+# bắt bản ghim và bản đang chạy khớp nhau.
 #
-# Bản cũ ở đây là `vnstock>=4.0.6` · `vnai>=2.5.7` — mức tối thiểu tài
-# liệu Vibe Onboarding của vnstock yêu cầu (đọc 22/08/2026).
---extra-index-url https://vnstocks.com/api/simple
-vnstock==4.0.9
-vnai==2.6.2
+# Khoá API: thế hệ 5 ở HẠNG KHÁCH nếu không đăng nhập (10 lượt/phút, OHLCV cắt còn
+# ~1 năm). `vnstock_auth.ensure_api_key()` gọi `vnstock.login(khoá)`; trên Actions khoá
+# nằm trong secret STREAMLIT_SECRETS_TOML -> .streamlit/secrets.toml.
+--extra-index-url https://vnstocks.com/api/packages
+vnstock==5.2.1
 tradingview-ta
 feedparser
 beautifulsoup4

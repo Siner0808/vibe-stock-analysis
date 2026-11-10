@@ -1,5 +1,17 @@
 """vnstock_goi.py — hạng gói vnstock ĐANG CÓ HIỆU LỰC, không phải hạng đã mua.
 
+THẾ HỆ 5 (BƯỚC 260, 10/11/2026) — phần dưới đây tả thế hệ 4; đọc khối này trước
+─────────────────────────────────────────────────────────────────────────────
+`vnai`, `vnii` và máy chủ `license/verify` KHÔNG còn. Thế hệ 5 có hai hàm công khai:
+`vnstock.status()` (hạng do máy chủ cấp, `authenticated`, `active`, `expires_at`) và
+`vnstock.usage()` (hạng mà thư viện ĐANG ÁP vào luật quyền, hạn mức, `rule.periods`).
+Hai bên đọc cùng một gói nên bất đối xứng cũ — máy chủ nói silver, thư viện chạy như
+free vì `ImportError` của `vnii` bị nuốt — không còn đường xảy ra nguyên văn; còn
+lại hai cách lệch vẫn đáng bắt: (a) hạng `status()` khác hạng `usage()`; (b) gói
+không còn hiệu lực (`active` False). Có khoá mà chưa đăng nhập được thì là CHƯA KIỂM
+ĐƯỢC (lý do ghi rõ), và `vnstock_auth.bat_buoc_dang_nhap()` lo phần dừng lượt quét.
+Số kỳ BCTC và hạn mức đọc ĐỘNG từ `usage()`: `rule.periods` None = không giới hạn.
+
 VÌ SAO CÓ FILE NÀY
 ──────────────────
 Ngày 22/08/2026, tài khoản đã nâng lên Silver (còn hạn tới 22/11/2026) mà
@@ -47,19 +59,11 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-DUONG_DAN_XAC_MINH = "https://vnstocks.com/api/vnstock/license/verify"
 TTL_GIAY = 1800          # hạng gói đổi rất chậm; 30 phút là quá đủ
-CHO_TOI_DA = 10          # giây — chờ lâu hơn thì thà báo "chưa kiểm được"
 
 KHOP = "KHỚP"
 LECH = "LỆCH"
 CHUA_KIEM_DUOC = "CHƯA KIỂM ĐƯỢC"
-
-#: Số kỳ báo cáo tài chính mỗi hạng được lấy. Chép từ
-#: `vnai.beam.fundamental.PERIOD_LIMITS`; None nghĩa là không giới hạn.
-#: Đọc động khi có thể, bảng này chỉ là đường lui khi vnai đổi cấu trúc.
-KY_BCTC_THEO_HANG = {"guest": 4, "free": 8, "bronze": None,
-                     "silver": None, "golden": None, "diamond": None}
 
 _CACHE: dict[str, tuple[float, "TrangThaiGoi"]] = {}
 
@@ -69,16 +73,13 @@ class TrangThaiGoi:
     """Ảnh chụp hạng gói. `tinh_trang` là thứ đáng đọc nhất."""
 
     tinh_trang: str                       # KHOP | LECH | CHUA_KIEM_DUOC
-    hang_may_chu: str | None = None       # hạng thật, do máy chủ trả
-    hang_cuc_bo: str | None = None        # hạng vnai đang tự nhận
+    hang_may_chu: str | None = None       # hạng do máy chủ cấp (`vnstock.status()`)
+    hang_cuc_bo: str | None = None        # hạng thư viện ĐANG ÁP (`vnstock.usage()`)
     con_han: bool | None = None
     het_han: str | None = None            # YYYY-MM-DD
-    goi_duoc_dung: tuple[str, ...] = ()   # package thuê bao cho phép
-    goi_thieu: tuple[str, ...] = ()       # trong số đó, chưa cài cái nào
-    ky_bctc: int | None = None            # số kỳ BCTC đang thật sự lấy được
-    ky_bctc_neu_dung_hang: int | None = None
+    ky_bctc: int | None = None            # số kỳ BCTC được lấy; None = không giới hạn
     han_muc_phut: int | None = None
-    ly_do: str = ""                       # vì sao chưa kiểm được
+    ly_do: str = ""                       # vì sao chưa kiểm được / vì sao lệch
 
     @property
     def dat(self) -> bool:
@@ -92,141 +93,100 @@ class TrangThaiGoi:
             han = f", hết hạn {self.het_han}" if self.het_han else ""
             return (f"gói vnstock: {self.hang_may_chu}{han} — thư viện cục bộ "
                     f"nhận đúng hạng, {self._mo_ta_ky()}")
-        thieu = (f" Chưa cài: {', '.join(self.goi_thieu)}."
-                 if self.goi_thieu else "")
-        return (f"gói vnstock: máy chủ nói '{self.hang_may_chu}' nhưng thư "
-                f"viện cục bộ chạy như '{self.hang_cuc_bo}' — đang bị giới hạn "
-                f"như gói thấp hơn ({self._mo_ta_ky()}).{thieu}")
+        return (f"gói vnstock: LỆCH — {self.ly_do} "
+                f"(máy chủ '{self.hang_may_chu}', thư viện '{self.hang_cuc_bo}'; "
+                f"{self._mo_ta_ky()}).")
+
+    def mo_ta_lech(self) -> str:
+        """Câu ngắn cho giao diện khi LỆCH."""
+        if self.hang_may_chu != self.hang_cuc_bo:
+            return f"mua {self.hang_may_chu} · chạy như {self.hang_cuc_bo}"
+        return self.ly_do
 
     def _mo_ta_ky(self) -> str:
         if self.ky_bctc is None:
             return "BCTC không giới hạn số kỳ"
-        neu = self.ky_bctc_neu_dung_hang
-        if neu is None and self.tinh_trang == LECH:
-            return f"BCTC {self.ky_bctc} kỳ thay vì không giới hạn"
         return f"BCTC {self.ky_bctc} kỳ"
 
 
-def _hang_cuc_bo() -> tuple[str | None, int | None, int | None]:
-    """(hạng vnai tự nhận, số kỳ BCTC đang áp, hạn mức/phút). None nếu đọc hỏng.
-
-    Đọc ĐỘNG từ vnai chứ không chép cứng, vì con số đang có hiệu lực mới là
-    thứ cần biết — chép cứng thì bảng ở đây và hành vi thật có thể lệch nhau
-    mà không ai thấy.
-    """
-    hang = ky = phut = None
-    try:
-        from vnai.beam.auth import authenticator
-        hang = authenticator.get_tier()
-        phut = authenticator.get_limits(hang).get("min")
-    except Exception:
-        pass
-    try:
-        from vnai.beam import fundamental
-        ky = fundamental.get_max_periods()
-    except Exception:
-        if hang is not None:
-            ky = KY_BCTC_THEO_HANG.get(hang)
-    return hang, ky, phut
+def _doc_may_chu() -> tuple[dict, dict]:
+    """(`vnstock.status()`, `vnstock.usage()`). Ném nếu đọc hỏng — người gọi bắt."""
+    import vnstock
+    return vnstock.status(), vnstock.usage()
 
 
-def _goi_da_cai(ten: str) -> bool:
-    import importlib.util
-    try:
-        return importlib.util.find_spec(ten) is not None
-    except Exception:
-        return False
+def _dang_nhap() -> dict:
+    from vnstock_auth import ensure_api_key
+    return ensure_api_key()
 
 
-def _hoi_may_chu(khoa: str, ma_may: str, tai_ve) -> dict:
-    return tai_ve(DUONG_DAN_XAC_MINH,
-                  {"api_key": khoa, "device_id": ma_may}, CHO_TOI_DA)
+def kiem_goi(doc=None, dang_nhap=None, dung_cache: bool = True) -> TrangThaiGoi:
+    """So hạng máy chủ cấp (`status()`) với hạng thư viện đang áp (`usage()`).
 
-
-def _tai_ve_that(url: str, tham_so: dict, cho: int) -> dict:
-    import requests
-    r = requests.get(url, params=tham_so, timeout=cho)
-    r.raise_for_status()
-    return r.json()
-
-
-def _ma_may() -> str:
-    """Mã máy vnai đã đăng ký. Sai mã thì máy chủ báo 'chưa đăng ký' oan.
-
-    Đã bị chính cái bẫy này ngày 22/08/2026: truyền chuỗi ví dụ 'vibe-setup'
-    trong tài liệu làm mã máy, máy chủ trả `deviceRegistered: false`, suýt
-    kết luận nhầm là máy chưa đăng ký.
-    """
-    import json
-    import pathlib
-    p = pathlib.Path.home() / ".vnstock" / "id" / "hw_info.json"
-    try:
-        return str(json.loads(p.read_text(encoding="utf-8"))["device_id"])
-    except Exception:
-        return ""
-
-
-def kiem_goi(tai_ve=None, lay_khoa=None, dung_cache: bool = True) -> TrangThaiGoi:
-    """So hạng máy chủ với hạng thư viện cục bộ đang áp dụng.
-
-    `tai_ve` và `lay_khoa` tiêm được để test chạy offline. Test gọi mạng thì
-    đỏ khi mất mạng và xanh khi máy chủ trả rác — cả hai đều nói sai.
+    `doc` (trả `(status, usage)`) và `dang_nhap` (trả dict như
+    `vnstock_auth.ensure_api_key()`) tiêm được để test chạy offline. Test gọi mạng
+    thì đỏ khi mất mạng và xanh khi máy chủ trả rác — cả hai đều nói sai.
 
     KHÔNG BAO GIỜ ném, và KHÔNG BAO GIỜ in khoá.
     """
-    if dung_cache and tai_ve is None:
+    tiem = doc is not None or dang_nhap is not None
+    if dung_cache and not tiem:
         co = _CACHE.get("goi")
         if co and time.time() - co[0] < TTL_GIAY:
             return co[1]
 
-    hang_cb, ky, phut = _hang_cuc_bo()
-
-    def _chiu(ly_do: str) -> TrangThaiGoi:
-        tt = TrangThaiGoi(tinh_trang=CHUA_KIEM_DUOC, hang_cuc_bo=hang_cb,
-                          ky_bctc=ky, han_muc_phut=phut, ly_do=ly_do)
-        if dung_cache and tai_ve is None:
+    def _luu(tt: TrangThaiGoi) -> TrangThaiGoi:
+        if dung_cache and not tiem:
             _CACHE["goi"] = (time.time(), tt)
         return tt
 
-    try:
-        if lay_khoa is not None:
-            khoa = lay_khoa()
-        else:
-            from vnstock_auth import ensure_api_key
-            ensure_api_key()
-            import vnai
-            khoa = vnai.get_api_key()
-    except Exception as e:
-        return _chiu(f"không đọc được API key ({type(e).__name__})")
-    if not khoa:
-        return _chiu("chưa cấu hình API key")
+    def _chiu(ly_do: str, **kw) -> TrangThaiGoi:
+        return _luu(TrangThaiGoi(tinh_trang=CHUA_KIEM_DUOC, ly_do=ly_do, **kw))
 
     try:
-        d = _hoi_may_chu(khoa, _ma_may(), tai_ve or _tai_ve_that)
+        dn = (dang_nhap or _dang_nhap)()
+    except Exception as e:
+        return _chiu(f"không đăng nhập được vnstock ({type(e).__name__})")
+    if not isinstance(dn, dict):
+        return _chiu("không đọc được trạng thái đăng nhập")
+    if not dn.get("ok"):
+        loi = str(dn.get("error") or "")
+        if loi.startswith("chưa cấu hình"):
+            return _chiu("chưa cấu hình API key")
+        return _chiu(f"đăng nhập vnstock thất bại — {loi[:100]}")
+
+    try:
+        st, us = (doc or _doc_may_chu)()
     except Exception as e:
         return _chiu(f"{type(e).__name__}: {str(e)[:100]}")
-    if not isinstance(d, dict):
-        return _chiu("máy chủ trả về dữ liệu không đọc được")
+    if not isinstance(st, dict) or not isinstance(us, dict):
+        return _chiu("thư viện trả về dữ liệu không đọc được")
 
-    tb = d.get("subscription") or {}
-    hang_mc = tb.get("tier") or ("free" if d.get("userType") else None)
-    if not hang_mc:
-        return _chiu("máy chủ không trả về hạng gói — cấu trúc đã đổi")
+    hang_mc = st.get("tier")
+    hang_cb = us.get("tier")
+    if not hang_mc or not hang_cb:
+        return _chiu("không đọc được hạng gói — cấu trúc đã đổi")
+    if st.get("authenticated") is not True:
+        return _chiu("máy chủ chưa xác nhận khoá (đang ở hạng khách)",
+                     hang_may_chu=str(hang_mc), hang_cuc_bo=str(hang_cb))
 
-    duoc_dung = tuple(d.get("availablePackages") or ())
-    thieu = tuple(g for g in duoc_dung if not _goi_da_cai(g))
-    het_han = str(tb.get("endDate") or "")[:10] or None
+    het_han = str(st.get("expires_at") or "")[:10] or None
+    quy_tac = us.get("rule") if isinstance(us.get("rule"), dict) else {}
+    han_muc = us.get("limits") if isinstance(us.get("limits"), dict) else {}
+    con_han = bool(st.get("active"))
 
-    tt = TrangThaiGoi(
-        tinh_trang=KHOP if hang_mc == hang_cb else LECH,
-        hang_may_chu=hang_mc, hang_cuc_bo=hang_cb,
-        con_han=bool(tb.get("isActive")), het_han=het_han,
-        goi_duoc_dung=duoc_dung, goi_thieu=thieu,
-        ky_bctc=ky, ky_bctc_neu_dung_hang=KY_BCTC_THEO_HANG.get(hang_mc),
-        han_muc_phut=phut)
-    if dung_cache and tai_ve is None:
-        _CACHE["goi"] = (time.time(), tt)
-    return tt
+    ly_do = ""
+    if hang_mc != hang_cb:
+        ly_do = "hạng máy chủ cấp khác hạng thư viện đang áp"
+    elif not con_han:
+        ly_do = "máy chủ báo gói không còn hiệu lực"
+
+    return _luu(TrangThaiGoi(
+        tinh_trang=LECH if ly_do else KHOP,
+        hang_may_chu=str(hang_mc), hang_cuc_bo=str(hang_cb),
+        con_han=con_han, het_han=het_han,
+        ky_bctc=quy_tac.get("periods"), han_muc_phut=han_muc.get("per_minute"),
+        ly_do=ly_do))
 
 
 def xoa_cache() -> None:

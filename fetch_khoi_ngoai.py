@@ -63,7 +63,9 @@ def keo_mot_ma(mkt, ma: str):
     if thieu:
         print(f"  {ma:<5} THIEU COT {thieu} — bo, khong doan")
         return None
-    return df
+    # `time` thế hệ 5 mang múi giờ: cache CSV cũ là naive, đừng để `+07:00` lọt vào đĩa.
+    from data_quality import chuan_hoa_thoi_gian
+    return chuan_hoa_thoi_gian(df)
 
 
 def main(tham_so: list[str] | None = None) -> int:
@@ -74,10 +76,14 @@ def main(tham_so: list[str] | None = None) -> int:
     ap.add_argument("--so-ma", type=int, default=0)
     a = ap.parse_args(tham_so)
 
+    # Thế hệ 5 (BƯỚC 260): `vnstock_data` không còn trên máy; `vnstock.Market()` trả
+    # cùng bảy cột (đo 06/11/2026). Phải đăng nhập, nếu không là hạng khách (10 lượt/phút).
     try:
-        import vnstock_data as vd
+        import vnstock as vd
+        from vnstock_auth import bat_buoc_dang_nhap
+        bat_buoc_dang_nhap()
     except Exception as e:  # noqa: BLE001
-        print(f"CHUA KIEM DUOC — import vnstock_data no: {type(e).__name__}: {e}")
+        print(f"CHUA KIEM DUOC — vnstock/dang nhap no: {type(e).__name__}: {e}")
         return 2
 
     from vn100_symbols import VN100_SYMBOLS

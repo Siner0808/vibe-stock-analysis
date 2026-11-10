@@ -1,6 +1,6 @@
-"""Test phép kiểm hạng gói vnstock.
+"""Test phép kiểm hạng gói vnstock (thế hệ 5, BƯỚC 260).
 
-Chạy OFFLINE bằng cách tiêm hàm tải và hàm lấy khoá.
+Chạy OFFLINE bằng cách tiêm hàm đọc `(status, usage)` và hàm đăng nhập.
 
 TRỌNG TÂM: trạng thái thứ ba.
 
@@ -14,92 +14,78 @@ import pytest
 import vnstock_goi as vg
 
 
-def _tra(hang="silver", con_han=True, goi=("vnstock_data", "vnstock_ta"),
-         het_han="2026-11-22T02:49:13.000Z"):
-    """Hàm tải giả, trả đúng hình dạng máy chủ vnstocks.com trả về thật."""
-    def _f(url, tham_so, cho):
-        assert "api_key" in tham_so and "device_id" in tham_so
-        return {"deviceRegistered": True, "userType": "paid",
-                "hasActiveSubscription": con_han,
-                "subscription": {"tier": hang, "endDate": het_han,
-                                 "isActive": con_han},
-                "availablePackages": list(goi)}
+def _doc(hang="silver", hang_cb=None, xac_nhan=True, con_han=True,
+         het_han="2026-11-22T02:49:13Z", ky=None, phut=300):
+    """Hàm đọc giả, trả đúng HÌNH DẠNG `vnstock.status()` / `vnstock.usage()` đo 06/11/2026."""
+    def _f():
+        st = {"schema_version": 1, "authenticated": xac_nhan, "active": con_han,
+              "tier": hang, "expires_at": het_han}
+        us = {"tier": hang_cb or hang, "authenticated": xac_nhan,
+              "limits": {"per_minute": phut, "per_hour": 15000},
+              "rule": {"routes": "*", "periods": ky}}
+        return st, us
     return _f
 
 
-def _cuc_bo(monkeypatch, hang="free", ky=8, phut=60):
-    monkeypatch.setattr(vg, "_hang_cuc_bo", lambda: (hang, ky, phut))
+def _ok():
+    return {"ok": True, "source": "st.secrets", "error": "", "tier": "silver"}
 
 
-def _khoa():
-    return "vnstock_KHOA_GIA_KHONG_PHAI_KHOA_THAT"
-
-
-def _goi(monkeypatch, **kw):
+def _goi(doc=None, dang_nhap=_ok, **kw):
     vg.xoa_cache()
-    return vg.kiem_goi(tai_ve=kw.pop("tai_ve", _tra()), lay_khoa=_khoa, **kw)
+    return vg.kiem_goi(doc=doc or _doc(), dang_nhap=dang_nhap, **kw)
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 1. Bắt được đúng cái lệch đã xảy ra thật
+# 1. Bắt được hai kiểu lệch còn lại
 # ─────────────────────────────────────────────────────────────────────
 
-def test_may_chu_silver_ma_cuc_bo_free_thi_LECH(monkeypatch):
-    """Đúng tình huống đo được ngày 22/08/2026."""
-    _cuc_bo(monkeypatch, "free", 8, 60)
-    t = _goi(monkeypatch)
+def test_hang_may_chu_khac_hang_thu_vien_thi_LECH():
+    t = _goi(_doc(hang="silver", hang_cb="free", ky=8, phut=60))
     assert t.tinh_trang == vg.LECH
     assert t.dat is False
     assert t.hang_may_chu == "silver" and t.hang_cuc_bo == "free"
     assert "silver" in t.dong_log() and "free" in t.dong_log()
     assert "8 kỳ" in t.dong_log(), t.dong_log()
+    assert t.mo_ta_lech() == "mua silver · chạy như free"
     print(f"PASS  {t.dong_log()[:90]}…")
 
 
-def test_khop_thi_dat(monkeypatch):
-    _cuc_bo(monkeypatch, "silver", None, 300)
-    t = _goi(monkeypatch)
+def test_goi_het_hieu_luc_thi_LECH():
+    t = _goi(_doc(con_han=False))
+    assert t.tinh_trang == vg.LECH and t.dat is False
+    assert "không còn hiệu lực" in t.dong_log()
+    assert t.mo_ta_lech() == "máy chủ báo gói không còn hiệu lực"
+    print(f"PASS  {t.dong_log()[:90]}…")
+
+
+def test_khop_thi_dat():
+    t = _goi(_doc(hang="silver", ky=None, phut=300))
     assert t.tinh_trang == vg.KHOP and t.dat is True
     assert "hết hạn 2026-11-22" in t.dong_log()
+    assert t.han_muc_phut == 300 and t.ky_bctc is None
+    assert "không giới hạn số kỳ" in t.dong_log()
     print(f"PASS  {t.dong_log()[:90]}…")
 
 
-def test_liet_ke_dung_goi_con_thieu(monkeypatch):
-    """Tên gói ở đây phải là tên KHÔNG BAO GIỜ cài được.
-
-    Bản đầu dùng `vnstock_data` và `vnstock_news` làm ví dụ "chưa cài".
-    Ngày 22/08/2026 hai gói đó được cài thật và test đỏ — nó đang đo môi
-    trường chứ không đo logic lọc. Một test buộc vào trạng thái máy sẽ
-    đỏ đúng lúc mọi thứ đang chạy tốt.
-    """
-    _cuc_bo(monkeypatch)
-    t = _goi(monkeypatch,
-             tai_ve=_tra(goi=("goi_khong_ton_tai_a", "pytest",
-                              "goi_khong_ton_tai_b")))
-    assert "pytest" not in t.goi_thieu, "pytest có cài, không được coi là thiếu"
-    assert set(t.goi_thieu) == {"goi_khong_ton_tai_a", "goi_khong_ton_tai_b"}
-    print(f"PASS  thiếu đúng {t.goi_thieu}, bỏ qua gói đã cài")
-
-
-def test_khong_thieu_goi_nao_thi_khong_noi_thua(monkeypatch):
-    _cuc_bo(monkeypatch)
-    t = _goi(monkeypatch, tai_ve=_tra(goi=("pytest", "pandas")))
-    assert t.goi_thieu == ()
-    assert "Chưa cài" not in t.dong_log()
-    print("PASS  không thiếu gói -> không thêm câu thừa")
+def test_ky_bctc_va_han_muc_doc_DONG_tu_usage():
+    """Không chép bảng cứng: hạng nào thì `usage()` nói số đó."""
+    t = _goi(_doc(hang="free", ky=8, phut=60))
+    assert t.tinh_trang == vg.KHOP and t.ky_bctc == 8 and t.han_muc_phut == 60
+    assert "BCTC 8 kỳ" in t.dong_log()
+    print("PASS  số kỳ và hạn mức lấy từ usage()")
 
 
 # ─────────────────────────────────────────────────────────────────────
 # 2. Trạng thái thứ ba — quan trọng nhất file này
 # ─────────────────────────────────────────────────────────────────────
 
-def test_mat_mang_KHONG_duoc_bao_khop(monkeypatch):
+def test_mat_mang_KHONG_duoc_bao_khop():
     """Nếu đường hỏng cho ra "khớp" thì phép kiểm này vô dụng đúng lúc cần."""
-    def _no(url, tham_so, cho):
+    def _no():
         raise ConnectionError("mạng hỏng")
 
-    _cuc_bo(monkeypatch)
-    t = _goi(monkeypatch, tai_ve=_no)
+    t = _goi(_no)
     assert t.tinh_trang == vg.CHUA_KIEM_DUOC
     assert t.dat is False
     assert "ConnectionError" in t.ly_do
@@ -107,42 +93,53 @@ def test_mat_mang_KHONG_duoc_bao_khop(monkeypatch):
     print(f"PASS  mất mạng -> {t.tinh_trang}, không phải KHỚP")
 
 
-@pytest.mark.parametrize("rac", [None, [], "chuỗi", {}, {"userType": None},
-                                 {"subscription": {}}])
-def test_may_chu_tra_rac_thi_CHUA_KIEM_DUOC(monkeypatch, rac):
-    _cuc_bo(monkeypatch)
-    t = _goi(monkeypatch, tai_ve=lambda u, p, c: rac)
+@pytest.mark.parametrize("rac", [(None, None), ([], []), ("chuỗi", "chuỗi"), ({}, {}),
+                                 ({"tier": None}, {"tier": None}),
+                                 ({"tier": "silver"}, {})])
+def test_may_chu_tra_rac_thi_CHUA_KIEM_DUOC(rac):
+    t = _goi(lambda: rac)
     assert t.tinh_trang == vg.CHUA_KIEM_DUOC, f"{rac!r} -> {t.tinh_trang}"
     assert t.dat is False
-    print(f"PASS  máy chủ trả {str(rac)[:22]!r:<26} -> chưa kiểm được")
+    print(f"PASS  thư viện trả {str(rac)[:22]!r:<26} -> chưa kiểm được")
 
 
-def test_khong_co_khoa_thi_CHUA_KIEM_DUOC(monkeypatch):
-    _cuc_bo(monkeypatch)
-    vg.xoa_cache()
-    t = vg.kiem_goi(tai_ve=_tra(), lay_khoa=lambda: "")
+def test_khoa_chua_duoc_xac_nhan_thi_CHUA_KIEM_DUOC_khong_phai_KHOP():
+    """`authenticated` False (hạng khách) mà cả hai hàm cùng nói 'guest' trông NHƯ khớp.
+    Đúng cái bẫy của thế hệ 5: hai bên đọc cùng một nguồn nên phải đòi xác nhận khoá."""
+    t = _goi(_doc(hang="guest", xac_nhan=False, phut=10, ky=0))
+    assert t.tinh_trang == vg.CHUA_KIEM_DUOC and t.dat is False
+    assert "hạng khách" in t.ly_do
+    print("PASS  khách (chưa xác nhận khoá) -> chưa kiểm được, không KHỚP")
+
+
+def test_khong_co_khoa_thi_CHUA_KIEM_DUOC():
+    t = _goi(dang_nhap=lambda: {"ok": False, "error": "chưa cấu hình VNSTOCK_API_KEY"})
     assert t.tinh_trang == vg.CHUA_KIEM_DUOC
     assert "chưa cấu hình" in t.ly_do
     print("PASS  không có khoá -> chưa kiểm được, nói rõ vì sao")
 
 
-def test_lay_khoa_no_thi_khong_lam_do_ca_app(monkeypatch):
-    _cuc_bo(monkeypatch)
-    vg.xoa_cache()
+def test_dang_nhap_that_bai_thi_CHUA_KIEM_DUOC_va_noi_ly_do():
+    t = _goi(dang_nhap=lambda: {"ok": False,
+                                "error": "AuthError: khoá không hợp lệ"})
+    assert t.tinh_trang == vg.CHUA_KIEM_DUOC and t.dat is False
+    assert "đăng nhập vnstock thất bại" in t.ly_do and "AuthError" in t.ly_do
+    print("PASS  đăng nhập hỏng -> chưa kiểm được, lý do nằm trong ly_do")
+
+
+def test_dang_nhap_no_thi_khong_lam_do_ca_app():
     def _no():
         raise RuntimeError("kho khoá hỏng")
-    t = vg.kiem_goi(tai_ve=_tra(), lay_khoa=_no)
+    t = _goi(dang_nhap=_no)
     assert t.tinh_trang == vg.CHUA_KIEM_DUOC
-    print("PASS  kho khoá hỏng -> vẫn trả trạng thái, không ném")
+    print("PASS  đăng nhập nổ -> vẫn trả trạng thái, không ném")
 
 
-def test_dat_CHI_True_khi_khop(monkeypatch):
+def test_dat_CHI_True_khi_khop():
     """`dat` là thứ giao diện dùng để tô màu. Nó không được True ở đâu khác."""
-    _cuc_bo(monkeypatch, "free")
-    assert _goi(monkeypatch).dat is False                      # LỆCH
-    assert _goi(monkeypatch, tai_ve=lambda u, p, c: None).dat is False
-    _cuc_bo(monkeypatch, "silver")
-    assert _goi(monkeypatch).dat is True                       # KHỚP
+    assert _goi(_doc(hang="silver", hang_cb="free")).dat is False       # LỆCH
+    assert _goi(lambda: (None, None)).dat is False                     # CHƯA KIỂM
+    assert _goi(_doc(hang="silver")).dat is True                       # KHỚP
     print("PASS  dat=True chỉ ở đúng một nhánh")
 
 
@@ -150,63 +147,65 @@ def test_dat_CHI_True_khi_khop(monkeypatch):
 # 3. Không rò rỉ, không ném, không tự sửa hạng
 # ─────────────────────────────────────────────────────────────────────
 
-def test_khong_bao_gio_lo_khoa(monkeypatch):
-    _cuc_bo(monkeypatch)
-    t = _goi(monkeypatch)
+def test_khong_bao_gio_lo_khoa():
+    khoa = "vnstock_KHOA_GIA_KHONG_PHAI_KHOA_THAT"
+    t = _goi(dang_nhap=lambda: {"ok": False, "error": "AuthError: " + "<khoá>"})
     ca = " ".join([t.dong_log(), t.ly_do, repr(t)])
-    assert _khoa() not in ca and "KHOA_GIA" not in ca
+    assert khoa not in ca and "KHOA_GIA" not in ca
     print("PASS  khoá không lọt vào log, ly_do hay repr")
 
 
-def test_khong_ghi_de_hang_cua_vnai(monkeypatch):
-    """Module này CHỈ ĐỌC.
+def test_chi_DOC_khong_ghi_de_phep_kiem_giay_phep():
+    """Module này CHỈ ĐỌC: không gọi `vnstock.login` / `logout`, không đụng `vnai`.
 
-    Ép `authenticator._cached_tier = "silver"` sẽ làm app tiếp tục khẳng
-    định silver sau ngày hết hạn rồi cắt dữ liệu sai mà không ai biết —
-    đúng lời nói dối âm thầm mà file này sinh ra để phát hiện.
+    Đăng nhập là việc của `vnstock_auth`; ở đây chỉ hỏi `status()` và `usage()`. Ép hạng
+    sẽ làm app tiếp tục khẳng định silver sau ngày hết hạn — đúng lời nói dối âm thầm mà
+    file này sinh ra để phát hiện.
     """
+    import ast
     import os
     nguon = open(os.path.join(os.path.dirname(os.path.dirname(
         os.path.abspath(__file__))), "vnstock_goi.py"), encoding="utf-8").read()
-    ma = nguon.split('"""', 2)[2]          # bỏ docstring đầu file
-    for cam in ("_cached_tier =", "PERIOD_LIMITS[", "PERIOD_LIMITS =",
-                "get_max_periods =", "_detect_tier ="):
-        assert cam not in ma, f"module đang ghi đè phép kiểm giấy phép: {cam}"
-    print("PASS  chỉ đọc, không ghi đè phép kiểm giấy phép nào")
+    cay = ast.parse(nguon)
+    thuoc_tinh_goi = {n.attr for n in ast.walk(cay) if isinstance(n, ast.Attribute)}
+    for cam in ("login", "logout", "setup_api_key", "change_api_key", "_cached_tier"):
+        assert cam not in thuoc_tinh_goi, f"module đang gọi/ghi {cam}"
+    ten_nhap = set()
+    for n in ast.walk(cay):
+        if isinstance(n, ast.Import):
+            ten_nhap |= {a.name.split(".")[0] for a in n.names}
+        elif isinstance(n, ast.ImportFrom) and n.module:
+            ten_nhap.add(n.module.split(".")[0])
+    assert "vnai" not in ten_nhap, "thế hệ 5 không còn vnai"
+    print("PASS  chỉ đọc, không gọi login/logout và không nhập vnai")
 
 
-def test_ma_may_hong_thi_khong_nem(monkeypatch, tmp_path):
-    """Không đọc được hw_info.json thì trả chuỗi rỗng, không nổ."""
-    monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("HOME", str(tmp_path))
-    assert vg._ma_may() == ""
-    print("PASS  thiếu hw_info.json -> mã máy rỗng, không ném")
-
-
-def test_cache_khong_dinh_khi_tiem_ham(monkeypatch):
-    """Tiêm hàm tải thì phải bỏ qua cache, nếu không ca sau nhận kết quả ca trước."""
-    _cuc_bo(monkeypatch)
-    a = _goi(monkeypatch, tai_ve=_tra(hang="silver"))
-    b = _goi(monkeypatch, tai_ve=_tra(hang="golden"))
+def test_cache_khong_dinh_khi_tiem_ham():
+    """Tiêm hàm vào thì phải bỏ qua cache, nếu không ca sau nhận kết quả ca trước."""
+    a = _goi(_doc(hang="silver"))
+    b = _goi(_doc(hang="golden"))
     assert a.hang_may_chu == "silver" and b.hang_may_chu == "golden"
-    print("PASS  hàm tải tiêm vào không bị cache che")
+    print("PASS  hàm đọc tiêm vào không bị cache che")
 
 
-def test_bang_ky_bctc_khop_voi_vnai():
-    """Bảng chép ở đây phải khớp bảng thật của vnai.
-
-    Chép cứng một bảng rồi để nó trôi khỏi nguồn gốc là cách con số trên
-    giao diện âm thầm sai đi.
-    """
-    try:
-        from vnai.beam.fundamental import PERIOD_LIMITS
-    except Exception:
-        pytest.skip("vnai không có ở môi trường này")
-    for hang, ky in PERIOD_LIMITS.items():
-        assert vg.KY_BCTC_THEO_HANG.get(hang, "thiếu") == ky, (
-            f"hạng {hang}: vnai nói {ky}, bảng ở đây nói "
-            f"{vg.KY_BCTC_THEO_HANG.get(hang, 'thiếu')}")
-    print(f"PASS  bảng kỳ BCTC khớp vnai ({len(PERIOD_LIMITS)} hạng)")
+def test_doc_that_dung_status_va_usage_cua_vnstock(monkeypatch):
+    """Đường KHÔNG tiêm `doc` phải gọi đúng hai hàm công khai của thế hệ 5."""
+    import sys
+    import types
+    gia = types.ModuleType("vnstock")
+    goi = []
+    gia.status = lambda: (goi.append("status"),
+                          {"authenticated": True, "active": True, "tier": "silver",
+                           "expires_at": "2026-11-22T00:00:00Z"})[1]
+    gia.usage = lambda: (goi.append("usage"),
+                         {"tier": "silver", "limits": {"per_minute": 300},
+                          "rule": {"periods": None}})[1]
+    monkeypatch.setitem(sys.modules, "vnstock", gia)
+    vg.xoa_cache()
+    t = vg.kiem_goi(dang_nhap=_ok, dung_cache=False)
+    assert t.tinh_trang == vg.KHOP, t
+    assert goi == ["status", "usage"], goi
+    print("PASS  đường thật gọi vnstock.status() rồi vnstock.usage()")
 
 
 if __name__ == "__main__":

@@ -70,6 +70,15 @@ class VNStockCollectorAgent:
         from data_quality import normalize_ohlcv, validate_ohlcv
         from vnstock import Quote
 
+        # Thế hệ 5 không đăng nhập là HẠNG KHÁCH (10 lượt/phút, OHLCV ~1 năm): áp khoá TRƯỚC
+        # mọi lượt tải. Idempotent; lỗi đăng nhập nằm ở `ensure_api_key()`, và lượt quét
+        # dừng ở `run_daily` (`bat_buoc_dang_nhap`) — ở đây chỉ gọi, không nuốt kết quả.
+        try:
+            from vnstock_auth import ensure_api_key
+            ensure_api_key()
+        except Exception:
+            pass
+
         last_report = None
         for src in ['vci', 'kbs']:
             try:

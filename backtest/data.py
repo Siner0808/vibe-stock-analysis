@@ -19,7 +19,7 @@ import pandas as pd
 # nhau. Một cache mà extend_history() coi là "đã tươi" nhưng validate_ohlcv()
 # lại gắn STALE thì không công cụ nào sửa được nó — đúng tình trạng ngày
 # 20/08/2026: 69% rổ bị BLOCK vì STALE mà không có đường nào làm mới.
-from data_quality import STALE_WARN_DAYS, nen_cuoi_dang_do, now_vn
+from data_quality import STALE_WARN_DAYS, chuan_hoa_thoi_gian, nen_cuoi_dang_do, now_vn
 
 _CACHE_MAC_DINH = Path(__file__).parent / "cache"
 
@@ -165,6 +165,18 @@ def ghi_cache(df: pd.DataFrame, symbol: str) -> Path:
 
 NGUON_MAC_DINH = ("kbs", "tcbs", "vci", "dnse")
 
+#: Mã CHỈ SỐ thị trường. Thế hệ 5 của vnstock (BƯỚC 260) trả chúng qua `Quote` ở thang NGHÌN và
+#: LÀM TRÒN 2 chữ số: VN-Index 1737,66 điểm ra `1.74` (đo 10/11/2026, `Quote("VNINDEX","vci")`),
+#: tức mất độ phân giải 10 điểm (~0,6%) và đổi đơn vị 1000 lần so với cache `VNINDEX.csv`.
+#: Đường đúng là `Market().index(mã).ohlcv(...)`, cho điểm thật (1737,66). Chỉ VNINDEX được
+#: repo dùng; các mã còn lại liệt kê để một lời gọi mới không rơi vào đường hỏng.
+MA_CHI_SO = frozenset({"VNINDEX", "VN30", "VN100", "HNXINDEX", "HNX30", "UPCOMINDEX"})
+
+#: `ohlcv()` của chỉ số CẮT LẶNG LẼ còn 1000 dòng khi không truyền `limit` (đo 10/11/2026:
+#: xin từ 2020-01-01 ra 1000 dòng từ 2022-11-04; `limit=5000` ra 1710 dòng từ 2020-01-02).
+#: `Quote(...).history` của cổ phiếu không bị cắt. Trần này cao hơn mọi chuỗi ngày có thể có.
+GIOI_HAN_DONG_CHI_SO = 10_000
+
 
 def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4,
               nguon: str | tuple[str, ...] | None = None) -> pd.DataFrame | None:
@@ -204,6 +216,20 @@ def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4,
     except Exception:
         pass
 
+    if symbol.upper() in MA_CHI_SO:
+        # Không rơi xuống `Quote`: đường ấy cho số SAI thang (xem MA_CHI_SO). Thà trả None
+        # — người gọi đã xử lý "không lấy được" — còn hơn một chuỗi chỉ số chia 1000.
+        try:
+            from vnstock import Market
+            df = Market().index(symbol.upper()).ohlcv(start=start, end=end,
+                                                      limit=GIOI_HAN_DONG_CHI_SO)
+        except Exception:
+            return None
+        if df is not None and not df.empty:
+            time.sleep(1.0)
+            return chuan_hoa_thoi_gian(df)
+        return None
+
     if nguon is None:
         danh_sach = NGUON_MAC_DINH
     elif isinstance(nguon, str):
@@ -216,7 +242,8 @@ def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4,
             df = Quote(symbol=symbol, source=src).history(start=start, end=end)
             if df is not None and not df.empty:
                 time.sleep(1.0)          # lịch sự với API, tăng lên 1.0s để tránh block
-                return df
+                # vnstock thế hệ 5 trả `time` có múi giờ; cache và mọi phép so đều naive.
+                return chuan_hoa_thoi_gian(df)
         except Exception:
             continue
     return None

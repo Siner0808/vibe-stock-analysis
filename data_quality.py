@@ -308,13 +308,37 @@ def validate_ohlcv(df: pd.DataFrame | None, symbol: str = "",
     return rep
 
 
+def chuan_hoa_thoi_gian(df: pd.DataFrame) -> pd.DataFrame:
+    """Cột `time` có múi giờ (vnstock thế hệ 5) -> naive, GIỮ giờ treo tường Việt Nam.
+
+    Thế hệ 4 trả `datetime64[ns]` naive; thế hệ 5 trả `datetime64[ns, Asia/Ho_Chi_Minh]`
+    (đo 06/11/2026: `time` ra `2026-05-04 07:00:00+07:00`). Mọi chỗ so cột này với
+    `pd.Timestamp("2026-05-04")` naive sẽ nổ `TypeError` ("Cannot compare tz-naive and
+    tz-aware"), và CSV ghi ra mang đuôi `+07:00` — bộ đọc cache cũ nổ. Cắt múi giờ ngay
+    tại cửa vào, chỗ DUY NHẤT biết khác biệt này. HÀM THUẦN, idempotent: cột đã naive,
+    cột dạng chuỗi, hay bảng không có cột `time` đi qua nguyên vẹn (trả BẢN SAO).
+
+    Giữ giờ treo tường (không đổi sang UTC): nến ngày 07:00+07:00 thành 07:00 naive —
+    cùng ngày lịch, cùng giờ với cột `time` của KBS thế hệ 4; nến nội phiên giữ đúng
+    giờ giao dịch.
+    """
+    out = df.copy()
+    if "time" not in out.columns:
+        return out
+    cot = out["time"]
+    if isinstance(cot.dtype, pd.DatetimeTZDtype):
+        out["time"] = cot.dt.tz_localize(None)
+    return out
+
+
 def normalize_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
     """Chuẩn hoá: ép kiểu số, bỏ ngày trùng, sắp xếp tăng dần.
 
     Không lấp giá trị thiếu và không sửa giá — chỉ dọn những thứ chắc chắn
-    an toàn. Việc lấp dữ liệu sẽ tạo ra số không có thật.
+    an toàn. Việc lấp dữ liệu sẽ tạo ra số không có thật. Cột `time` có múi giờ
+    được cắt múi giờ trước (`chuan_hoa_thoi_gian`).
     """
-    out = df.copy()
+    out = chuan_hoa_thoi_gian(df)
     for col in ("open", "high", "low", "close", "volume"):
         if col in out:
             out[col] = pd.to_numeric(out[col], errors="coerce")

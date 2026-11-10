@@ -1287,7 +1287,7 @@ with st.sidebar:
                 "🎫 Gói vnstock",
                 (f"{_goi.hang_may_chu} · hết hạn {_goi.het_han}"
                  if _goi.dat else
-                 f"mua {_goi.hang_may_chu} · chạy như {_goi.hang_cuc_bo}"
+                 _goi.mo_ta_lech()[:38]
                  if _goi.tinh_trang == _vg.LECH else _goi.ly_do[:38]),
                 "● ĐÚNG" if _goi.dat
                 else "● LỆCH" if _goi.tinh_trang == _vg.LECH else "● ?",

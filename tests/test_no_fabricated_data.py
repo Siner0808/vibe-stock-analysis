@@ -327,7 +327,9 @@ def test_api_key_khong_bao_gio_lo_ra_ngoai():
 
     fake = types.ModuleType("vnstock")
     seen = {}
-    fake.change_api_key = lambda k: seen.setdefault("key", k) or True
+    # Thế hệ 5 (BƯỚC 260): `vnstock.login(khoá)` thay `change_api_key` (đã bị gỡ).
+    fake.login = lambda k: (seen.setdefault("key", k),
+                            {"authenticated": True, "tier": "silver"})[1]
     sys.modules["vnstock"] = fake
     os.environ["VNSTOCK_API_KEY"] = SECRET
 
@@ -353,7 +355,7 @@ def test_api_key_khong_bao_gio_lo_ra_ngoai():
         os.environ.pop("VNSTOCK_API_KEY", None)
         if saved_env is not None:
             os.environ["VNSTOCK_API_KEY"] = saved_env
-        vnstock_auth._STATE.update(done=False, ok=False, source="", error="")
+        vnstock_auth._STATE.update(done=False, ok=False, source="", error="", tier="")
 
     assert seen.get("key") == SECRET, "key chưa được chuyển tới vnstock"
     assert status["ok"] is True and status["configured"] is True
@@ -379,40 +381,29 @@ def test_thieu_key_van_chay_binh_thuong():
     st_gia.secrets = types.SimpleNamespace(get=lambda *a, **k: None)
     sys.modules["streamlit"] = st_gia
 
-    # Vá THUỘC TÍNH của vnai thật, không thay cả module. Module giả chỉ có
-    # get_api_key làm `import vnstock` nổ ImportError vì thiếu
-    # `optimize_execution` — và thông báo lỗi khi đó nói về ImportError chứ
-    # không nói về "chưa cấu hình", tức test đo nhầm thứ.
-    try:
-        import vnai as _vnai
-    except Exception:
-        _vnai = types.ModuleType("vnai")
-        sys.modules["vnai"] = _vnai
-    goc_get = getattr(_vnai, "get_api_key", None)
-    _vnai.get_api_key = lambda: None
+    # Thế hệ 5: khi không có khoá, `ensure_api_key` hỏi `vnstock.status()` xem máy này đã
+    # đăng nhập sẵn chưa. Máy phát triển CÓ thể đã đăng nhập (ok=True) và làm test đổi
+    # kết quả theo MÔI TRƯỜNG — nên thay cả module `vnstock` bằng bản giả trả "khách".
+    fake = types.ModuleType("vnstock")
+    fake.status = lambda: {"authenticated": False, "tier": "guest"}
+    sys.modules["vnstock"] = fake
     try:
         s = vnstock_auth.ensure_api_key(force=True)
         msg = vnstock_auth.status_message()
     finally:
-        if goc_get is not None:
-            _vnai.get_api_key = goc_get
-        else:
-            try:
-                del _vnai.get_api_key
-            except AttributeError:
-                pass
         sys.modules.pop("streamlit", None)
         if saved_st is not None:
             sys.modules["streamlit"] = saved_st
+        sys.modules.pop("vnstock", None)
         if saved_mod is not None:
             sys.modules["vnstock"] = saved_mod
         if saved_env is not None:
             os.environ["VNSTOCK_API_KEY"] = saved_env
-        vnstock_auth._STATE.update(done=False, ok=False, source="", error="")
+        vnstock_auth._STATE.update(done=False, ok=False, source="", error="", tier="")
 
     assert s["ok"] is False and "chưa cấu hình" in s["error"]
-    assert "Chưa cấu hình" in msg and "vẫn hoạt động" in msg
-    print("PASS  thiếu key vẫn chạy, thông báo rõ ràng")
+    assert "Chưa cấu hình" in msg and "HẠNG KHÁCH" in msg
+    print("PASS  thiếu key: báo rõ đang ở hạng khách, không nuốt")
 
 
 def test_khong_co_key_trong_ma_nguon():

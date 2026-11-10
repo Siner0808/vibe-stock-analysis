@@ -189,9 +189,11 @@ if __name__ == "__main__":
 # Gói tài trợ vnstock — KHÔNG được lọt vào requirements.txt
 # ─────────────────────────────────────────────────────────────────────
 
+#: `vnai` vào danh sách từ BƯỚC 260: thế hệ 5 của vnstock không còn phụ thuộc nó, nên nó
+#: không được nằm trong requirements.txt, và mã chỉ được nhập nó trong thân hàm (có đường lui).
 GOI_TAI_TRO = ("vnstock_data", "vnstock-data", "vnstock_ta", "vnstock-ta",
                "vnstock_news", "vnstock-news", "vnstock_pipeline",
-               "vnstock-pipeline", "vnii")
+               "vnstock-pipeline", "vnii", "vnai")
 
 
 #: `kiem-dinh.yml` chạy `pip install -r requirements.txt` RỒI `pip install
@@ -412,8 +414,9 @@ def test_khong_import_goi_tai_tro_o_muc_module():
 # gác dưới giữ đúng hai lời hứa của khối chú thích trong requirements.txt:
 # kho thứ hai chỉ THÊM vào PyPI, và hai gói từ kho ấy GHIM ĐÚNG bản máy đã đo.
 
-KHO_HANG = "https://vnstocks.com/api/simple"
-GOI_TU_KHO_HANG = ("vnstock", "vnai")
+KHO_HANG = "https://vnstocks.com/api/packages"
+#: Từ BƯỚC 260 chỉ còn `vnstock`: `vnai` là phụ thuộc của thế hệ 4, thế hệ 5 không dùng nó.
+GOI_TU_KHO_HANG = ("vnstock",)
 
 
 def test_kho_thu_hai_la_DUNG_kho_hang_va_chi_THEM_vao_PyPI():

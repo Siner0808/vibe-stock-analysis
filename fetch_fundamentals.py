@@ -123,10 +123,11 @@ def ghi_so_tay(so_tay: dict) -> None:
 
 
 def hang_hien_tai() -> str:
-    """Hạng vnai ĐANG áp dụng. Đây là thứ quyết định số kỳ lấy được."""
+    """Hạng vnstock ĐANG áp dụng (`vnstock.usage()`, thế hệ 5). Quyết định số kỳ lấy được."""
     try:
-        from vnai.beam.auth import authenticator
-        return str(authenticator.get_tier())
+        import vnstock
+        hang = vnstock.usage().get("tier")
+        return str(hang) if hang else "khong-biet"
     except Exception:
         return "khong-biet"
 

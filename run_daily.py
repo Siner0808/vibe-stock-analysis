@@ -882,6 +882,21 @@ def execute_daily_scan():
 
 if __name__ == "__main__":
     try:
+        # Thế hệ 5 của vnstock (BƯỚC 260): không đăng nhập được là chạy ở hạng KHÁCH
+        # (10 lượt/phút, OHLCV ~1 năm) — dừng và đỏ job còn hơn quét trên cửa sổ ngắn.
+        import vnstock_auth
+        try:
+            vnstock_auth.bat_buoc_dang_nhap()
+        except vnstock_auth.DangNhapLoi as e:
+            print()
+            print("=" * 78)
+            print("DUNG PHIEN QUET — KHONG DANG NHAP DUOC VNSTOCK")
+            print("=" * 78)
+            print(str(e))
+            print()
+            print("Khong quet tiep o hang khach: 10 luot/phut, OHLCV cat con ~1 nam.")
+            print("Kiem tra VNSTOCK_API_KEY trong STREAMLIT_SECRETS_TOML / secrets.toml.")
+            sys.exit(1)
         execute_daily_scan()
     except market_filter.CacheQuaHanError as e:
         print()
