@@ -777,9 +777,12 @@ def _importers_cua_san_dau() -> set[str]:
 def test_G2_duong_that_KHONG_nhap_san_dau():
     nguoi_nhap = _importers_cua_san_dau()
     # `tools/do_dow_cau_truc.py` (BƯỚC 251): ĐO 34 đòi dùng lại HÀM KTC của sân đấu, không viết bản sao thứ hai.
-    cho_phep = {"app.py", "tools/san_dau.py", "tools/do_dow_cau_truc.py"}
+    # `thi_truong_gia.py` (BƯỚC 261, C4 Lát 1): bộ sinh Tầng 1 dùng lại GARCH-t đã đo ở BƯỚC 248, không viết
+    # bản sao thứ hai — chiều nhập chủ ý của đặc tả C4 mục 7 (G2): thị trường giả nhập `san_dau`, không ngược lại.
+    cho_phep = {"app.py", "tools/san_dau.py", "tools/do_dow_cau_truc.py", "thi_truong_gia.py"}
     assert nguoi_nhap <= cho_phep, f"chỉ {sorted(cho_phep)} được nhập: {nguoi_nhap}"
     assert "tools/san_dau.py" in nguoi_nhap and "tools/do_dow_cau_truc.py" in nguoi_nhap
+    assert "thi_truong_gia.py" in nguoi_nhap
     for ten in ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "run_daily.py", "master_agent.py",
                 "analysis_agents.py", "walkforward.py", "sheets_store.py", "cham_bong.py", "hau_kiem_loi.py",
                 "ban_tin.py"):
