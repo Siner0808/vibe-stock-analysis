@@ -824,7 +824,13 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   `disable_telemetry()` bật 18/09 là của `vnai`, **không phủ** đường này.
   Chưa đo, chưa chặn. Người dùng quyết. `docs/STATE.md` BƯỚC 118.
   ✅ **Người dùng chấp nhận 09/10/2026 (BƯỚC 166, Q6)** — ranh giới: telemetry `vnai` tắt, đường `vnii` vẫn gửi tên hàm. ~~Telemetry `vnstock` trên Cloud và Actions còn BẬT (nhật ký Cloud in dòng số liệu đo lường tuỳ chọn) → hỏi ở Q11.~~ ✅ **09/10/2026 (BƯỚC 172, Q11):** Cloud và Actions đã TẮT telemetry `vnstock` bằng mã (`VNSTOCK_TELEMETRY=off`); đường `vnii` vẫn gửi tên hàm — biến này không phủ nó.
-- **`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).** Bản
+- 🔴 **HẾT ĐÚNG 10/11/2026 (BƯỚC 264) cho CI và Streamlit Cloud:** PyPI GỠ `vnstock_ezchart` ngày
+  09/11/2026 (`https://pypi.org/pypi/vnstock-ezchart/json` trả 404) mà `vnstock==4.0.9` khai bắt buộc
+  `vnstock_ezchart>=1.0.2`, nên hai lượt `quet-so-lenh` 09/11 chết ở bước cài. `requirements.txt` nay cài
+  gói từ kho công khai `github.com/vnstock-hq/vnstock_chart` (MIT) GHIM commit `23d5129` — vá TẠM, xoá khi
+  BƯỚC 260 (vnstock 5.x) xong; gác `tests/test_requirements.py`. CI và Cloud cài MÃ NGUỒN của hãng ở commit
+  ấy, KHÔNG phải bản vá `1.0.2+vibe1` dưới đây (bản vá chỉ còn ở máy local). `docs/STATE.md` BƯỚC 264.
+- ~~**`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).**~~ *(còn đúng ở máy local; HẾT ĐÚNG ở CI/Cloud, xem dòng trên)* Bản
   phát hành 1.0.2 của hãng thiếu gói con `static/` và khai hai phụ thuộc
   bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. 09/10/2026 (BƯỚC 166, Q8): lỗi chưa sửa (PyPI vẫn 1.0.2); báo lỗi soạn lại NGOÀI repo, người dùng gửi hãng. Hãng phát hành
   bản sửa thì cài bản chính thức thay — tới lúc ấy `tools/so_ban_goi.py`
