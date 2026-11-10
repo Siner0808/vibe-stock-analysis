@@ -108,9 +108,12 @@ def test_REQUIREMENTS_GHIM_va_muc_bat_doi_xung_NOI_DUNG_co_che_ay():
     tài liệu đang mô tả**: cùng họ `N_DAY_DU` 596/451.
     """
     van = REQ.read_text(encoding="utf-8")
+    # `vnstock_ezchart @ git+...@<băm>` (BƯỚC 264) cũng bắt đầu bằng "vnstock" nhưng là
+    # tham chiếu trực tiếp tới commit, không phải ghim `==`; gác riêng của nó nằm ở
+    # tests/test_requirements.py. Loại ĐÚNG tên ấy, không loại cả họ "vnstock_".
     dong = [d.strip() for d in van.splitlines()
             if d.strip().startswith(("vnstock", "vnai"))
-            and not d.strip().startswith("#")]
+            and not d.strip().startswith(("#", "vnstock_ezchart @ "))]
     assert dong, "khong tim thay dong vnstock/vnai trong requirements.txt"
     for d in dong:
         assert "==" in d, (

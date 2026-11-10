@@ -37,6 +37,17 @@ plotly
 --extra-index-url https://vnstocks.com/api/simple
 vnstock==4.0.9
 vnai==2.6.2
+# VÁ TẠM (BƯỚC 264, 10/11/2026) — `vnstock==4.0.9` KHAI BẮT BUỘC
+# `vnstock_ezchart>=1.0.2`, mà gói ấy bị gỡ khỏi PyPI ngày 09/11/2026
+# (`https://pypi.org/pypi/vnstock-ezchart/json` trả 404; kho của hãng cũng
+# không phục vụ nó) nên mọi `pip install -r requirements.txt` chết ở bước
+# cài. Nguồn: kho công khai `github.com/vnstock-hq/vnstock_chart` (trước
+# đây tên `vnstock_ezchart`), giấy phép MIT. GHIM đúng commit 23d5129
+# (17/05/2026) — là bản 1.0.2 ta vẫn chạy trước đó. Không ghim nhánh: một
+# nhánh trôi thì CI chạy bản khác máy (lỗi 79). Tạm thời, tới khi
+# BƯỚC 260 (nâng vnstock 5.x) xong; lúc đó xoá dòng này.
+# Khoá bởi tests/test_requirements.py.
+vnstock_ezchart @ git+https://github.com/vnstock-hq/vnstock_chart@23d5129758b18e26540d8d196568cb8d63815319
 tradingview-ta
 feedparser
 beautifulsoup4

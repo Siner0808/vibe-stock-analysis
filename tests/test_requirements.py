@@ -80,7 +80,7 @@ def _da_khai_bao() -> set:
     for dong in _dong_that():
         if dong.startswith("-"):
             continue                  # dong tuy chon cua pip, khong phai ten goi
-        for dau in (">=", "==", "<=", "~=", ">", "<", "["):
+        for dau in (" @", ">=", "==", "<=", "~=", ">", "<", "["):
             dong = dong.split(dau)[0]
         ten.add(dong.strip().lower())
     return ten
@@ -499,3 +499,47 @@ def test_GOI_RIENG_B1_GHIM_DUNG_ban_va_chi_HAI_workflow_cai():
     cai = {p.name for p in (GOC / ".github" / "workflows").glob("*.yml")
            if lenh.search(p.read_text(encoding="utf-8"))}
     assert cai == WORKFLOW_CAI_REQ_RIENG, cai
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Vá tạm `vnstock_ezchart` — BƯỚC 264 (10/11/2026)
+# ─────────────────────────────────────────────────────────────────────
+
+#: `vnstock==4.0.9` khai bắt buộc `vnstock_ezchart>=1.0.2`; PyPI gỡ gói ấy 09/11/2026
+#: (hai lượt `quet-so-lenh` 09/11 chết ở bước cài). Vá: cài từ kho công khai của hãng,
+#: ghim đúng commit. Xoá khi BƯỚC 260 (vnstock 5.x) xong — và sửa hằng này CÙNG LÚC.
+EZCHART_COMMIT = "23d5129"
+EZCHART_KHO = "https://github.com/vnstock-hq/vnstock_chart"
+
+
+def _dong_ezchart() -> list[str]:
+    return [d for d in _dong_that()
+            if d.lower().replace("-", "_").startswith("vnstock_ezchart")]
+
+
+def test_VA_TAM_ezchart_con_DONG_va_GHIM_dung_commit_tu_kho_cong_khai():
+    """Bỏ dòng ⇒ `pip install -r requirements.txt` chết (vnstock 4.0.9 đòi gói đã bị
+    gỡ khỏi PyPI). Đổi sang tên trần / nhánh / sàn `>=` ⇒ hoặc lại chết, hoặc CI chạy
+    một bản khác máy (lỗi 79). Chỉ đúng MỘT dòng, dạng tham chiếu trực tiếp tới
+    commit — hash đủ 40 ký tự bắt đầu bằng `EZCHART_COMMIT`."""
+    import re
+    dong = _dong_ezchart()
+    assert len(dong) == 1, (
+        f"requirements.txt phai co DUNG MOT dong vnstock_ezchart (va tam, BUOC 264), "
+        f"thay: {dong}")
+    mau = re.compile(r"vnstock_ezchart @ git\+" + re.escape(EZCHART_KHO) + r"@([0-9a-f]{40})")
+    kq = mau.fullmatch(dong[0])
+    assert kq, (
+        f"dong ezchart phai la tham chieu truc tiep toi commit cua {EZCHART_KHO} "
+        f"(khong ten tran, khong nhanh/tag, khong san `>=`): {dong[0]!r}")
+    assert kq.group(1).startswith(EZCHART_COMMIT), (
+        f"commit {kq.group(1)} khong phai {EZCHART_COMMIT} — doi commit la doi ban "
+        f"CI chay: do lai roi sua EZCHART_COMMIT")
+
+
+def test_VA_TAM_ezchart_bo_doc_requirements_van_thay_TEN_goi():
+    """Dòng `ten @ url` không được làm bộ đọc tên gói nuốt cả URL: các gác phủ
+    import dựa vào `_da_khai_bao()`."""
+    ten = _da_khai_bao()
+    assert "vnstock_ezchart" in ten, sorted(ten)
+    assert not [t for t in ten if "@" in t or "git+" in t], sorted(ten)
