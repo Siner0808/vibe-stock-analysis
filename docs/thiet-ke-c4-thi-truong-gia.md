@@ -1,7 +1,7 @@
 # Thiết kế C4 — Thị trường giả có lợi thế cài sẵn: chứng minh vòng học chạy đúng (T6)
 
 **Mốc:** C4 (`docs/LO-TRINH.md`, giai đoạn C). **Duyệt hướng:** người dùng, 06/11/2026, trong phiên leader (BƯỚC 259): *"C4 — thị trường giả (T6) (Recommended)"* — mở bằng MỘT đặc tả chỉ có chữ; người dùng duyệt đặc tả trước khi có dòng mã nào.
-**Trạng thái:** đặc tả **ĐÃ CHỐT MỘT PHẦN** ngày 06/11/2026: người dùng đã trả lời bốn trên bảy câu (Q1, Q2, Q3, Q7 — mục 2). Ba câu còn lại (Q4, Q5, Q6) người dùng được hỏi nhưng CHƯA chọn; chúng chạy theo **mặc định theo đề xuất — người dùng CHƯA chọn, đổi được trước Lát 1** và nằm ở mục 14 "Câu mở còn lại". Chưa có dòng mã nào. Nhãn *[Qn: ĐÃ CHỐT]* và *[Qn: MẶC ĐỊNH, chưa chọn]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo; bảng lựa chọn gốc còn ở lịch sử git.
+**Trạng thái:** đặc tả **ĐÃ CHỐT ĐỦ BẢY CÂU**: người dùng trả lời Q1, Q2, Q3, Q7 ngày 06/11/2026 và Q4, Q5, Q6 ngày 07/11/2026 (mục 2, mục 14). Không còn câu mở. Mã bắt đầu từ BƯỚC 261 (Lát 1, mục 8); Lát 2–5 chưa có mã. Nhãn *[Qn: ĐÃ CHỐT]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo, và bản trước ngày 07/11/2026 gọi Q4 · Q5 · Q6 là *mặc định, người dùng chưa chọn*; cả hai còn ở lịch sử git.
 
 Tài liệu này là đề bài cho các phiên làm mã. Luật chung (vá file, đột biến, năm cổng, giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó. Mọi `file:dòng` bên dưới được `grep` lại ở cây `3d87a20` ngày 06/11/2026; số dòng trôi theo mã, tên hàm thì không. Con số nào không kèm lệnh là **ước lượng** và được gọi là ước lượng (Quy tắc 2).
 
@@ -24,7 +24,9 @@ Lý do tồn tại, nói thẳng: trên thị trường thật vòng xác nhận
 | Q2 — độ trung thực | *"Hai tầng (Recommended)"* (06/11/2026): Tầng 1 quyết định trực tiếp + Tầng 2 qua đường ống thật (mục 4.1) |
 | Q3 — "nâng cấp" đi tới đâu | *"Chỉ trong thị trường giả (Recommended)"* (06/11/2026): không nối vào `master_agent`, ngưỡng mua đứng yên (mục 5.4–5.5) |
 | Q7 — số thế hệ | *"Một đời (Recommended)"* (06/11/2026): sau một nâng cấp thị trường dừng (mục 5.4 khoản 6) |
-| Q4 · Q5 · Q6 | được hỏi 06/11/2026, người dùng trả lời về việc khác, **CHƯA chọn**. Chạy theo mặc định theo đề xuất (mục 14), đánh nhãn là mặc định; người dùng đổi được bất cứ lúc nào TRƯỚC Lát 1 |
+| Q4 — ứng viên đang chờ đọc khi có nâng cấp | *"Huỷ, K vẫn tính (Recommended)"* (07/11/2026): huỷ, đánh dấu `bi_huy_vi_nang_cap`, K vẫn đếm (mục 5.4 khoản 5) |
+| Q5 — K khi bộ đề xuất quét 11 spec, khai 3 | *"K = số đã khai (Recommended)"* (07/11/2026): K là số ứng viên đã KHAI, không phải số đã quét (mục 5.3) |
+| Q6 — mức đạt, ba mức lợi thế, số thị trường | *"Như bản nháp (Recommended)"* (07/11/2026): các ngưỡng và R của mục 6 đúng như bản nháp |
 
 ## 3. Bước 0 — bản đồ THẬT của "vòng học" (đọc từ mã, không từ trí nhớ)
 
@@ -148,16 +150,16 @@ Dict cùng khuôn `docs/ung-vien.json`, mỗi lần khai đi qua `cham_bong.kiem
 
 ### 5.3 Xác nhận
 
-`cham_xac_nhan.cham` :348 trên dòng quyết định giả và một bảng giá giả đã `phan_tich_bang_gia` (`nguon` ∈ {vci, kbs}, một `keo_luc` — nhãn giả nhưng đúng khuôn). K = số ứng viên đã khai trong sổ giả **tại lúc đọc** (đúng `cham_bong.nguong`) *[Q5: MẶC ĐỊNH theo đề xuất — người dùng CHƯA chọn; K = số đã KHAI, không phải số đã quét; đổi được trước Lát 1]*. Hạt hoán vị = `cham_xac_nhan.HAT_RNG` :63, 2000 hoán vị — mặc định thật, không đổi cho thế giới giả.
+`cham_xac_nhan.cham` :348 trên dòng quyết định giả và một bảng giá giả đã `phan_tich_bang_gia` (`nguon` ∈ {vci, kbs}, một `keo_luc` — nhãn giả nhưng đúng khuôn). K = số ứng viên đã khai trong sổ giả **tại lúc đọc** (đúng `cham_bong.nguong`) *[Q5: ĐÃ CHỐT, "K = số đã khai"; K = số đã KHAI, không phải số đã quét]*. Hạt hoán vị = `cham_xac_nhan.HAT_RNG` :63, 2000 hoán vị — mặc định thật, không đổi cho thế giới giả.
 
-### 5.4 Nâng cấp — phiên bản điểm trong thế giới giả *[Q3 và Q7: ĐÃ CHỐT; Q4: MẶC ĐỊNH, chưa chọn]*
+### 5.4 Nâng cấp — phiên bản điểm trong thế giới giả *[Q3, Q4 và Q7: ĐÃ CHỐT]*
 
 Hàm thuần `nang_cap(so_phien_ban, ket_qua_xac_nhan, ma_ung_vien, phien_doc) -> so_phien_ban_moi`. Luật:
 1. Chỉ `trang_thai == "QUA"` tạo phiên bản mới. `THUA`, `DANG CHAM`, `CHUA TOI MOC`, `CHUA DU DU LIEU` không.
 2. Phiên bản mới có `spec` bằng **đúng** spec đã khai (so sánh bằng, không làm tròn), kèm bằng chứng (mã ứng viên, p, Δ, n_phien, K, hạt).
 3. **Hiệu lực từ phiên SAU phiên đọc** (bất biến 1: điểm của phiên T chỉ dùng dữ liệu tới T; một phiên bản thông báo ở cuối T chưa chấm được T).
 4. Sau nâng cấp, `score` ghi từ phiên hiệu lực = `int(diem_ung_vien(spec, components))` — phiên bản mới là tổ hợp tuyến tính của thành phần, đúng nghĩa ứng viên.
-5. **Ứng viên đang chờ đọc khi có nâng cấp** *[Q4: MẶC ĐỊNH theo đề xuất — người dùng CHƯA chọn, đổi được trước Lát 1]*: HUỶ, đánh dấu `bi_huy_vi_nang_cap`, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.
+5. **Ứng viên đang chờ đọc khi có nâng cấp** *[Q4: ĐÃ CHỐT, "Huỷ, K vẫn tính"]*: HUỶ, đánh dấu `bi_huy_vi_nang_cap`, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.
 6. Một thế hệ trong C4 *[Q7: ĐÃ CHỐT, "Một đời"]*: sau một nâng cấp thị trường không có nâng cấp thứ hai.
 
 ### 5.5 Nâng cấp **không** nối vào đường thật *[Q3: ĐÃ CHỐT]*
@@ -166,7 +168,7 @@ Hàm thuần `nang_cap(so_phien_ban, ket_qua_xac_nhan, ma_ung_vien, phien_doc) -
 
 ## 6. Tiêu chí đạt/trượt — KHAI TRƯỚC khi chạy bất kỳ thị trường nào
 
-> **Các ngưỡng và số thị trường (R) dưới đây là MẶC ĐỊNH THEO ĐỀ XUẤT — người dùng CHƯA chọn (Q6), đổi được trước Lát 1.** Phần đã chốt (Q1, Q2, Q3, Q7) quyết định *loại* tiêu chí nào có mặt; Q6 chỉ quyết định các con số. Khi Q6 được trả lời, bảng này sửa bằng một commit riêng.
+> **Các ngưỡng và số thị trường (R) dưới đây là QUYẾT ĐỊNH của người dùng (Q6, 07/11/2026: *"Như bản nháp (Recommended)"*).** Phần đã chốt trước (Q1, Q2, Q3, Q7) quyết định *loại* tiêu chí nào có mặt; Q6 chốt các con số. Sửa bảng này sau khi đã chạy một thị trường nào là sửa đặc tả bằng commit riêng và chạy lại trên dòng hạt mới (mục 4.8).
 
 Mọi con số dưới đây được chọn từ phép tính nhị thức KHÔNG phụ thuộc kết quả mô phỏng. Lệnh tái lập (06/11/2026):
 
@@ -272,21 +274,52 @@ Mọi lệch giữa đặc tả này và mã thật được ghi thành mục "G
 | Q3 | *"Chỉ trong thị trường giả (Recommended)"* | mục 5.4–5.5; không nối `master_agent`; ngưỡng mua đứng yên |
 | Q7 | *"Một đời (Recommended)"* | mục 5.4 khoản 6 |
 
-### 14.2 Câu mở còn lại — người dùng được hỏi, CHƯA chọn
+### 14.2 Đã chốt 07/11/2026
 
-Ba câu dưới đây chạy theo **mặc định theo đề xuất — người dùng CHƯA chọn, đổi được trước Lát 1**. Không câu nào là quyết định của người dùng. Đổi một mặc định sau Lát 1 là sửa đặc tả bằng commit riêng và phải chạy lại trên dòng hạt mới (mục 6).
+| Câu | Quyết định (nguyên văn nhãn người dùng chọn) | Hiệu lực |
+|---|---|---|
+| Q4 | *"Huỷ, K vẫn tính (Recommended)"* | mục 5.4 khoản 5: ứng viên đang chờ đọc bị huỷ khi có nâng cấp, đánh dấu `bi_huy_vi_nang_cap`, K vẫn đếm |
+| Q5 | *"K = số đã khai (Recommended)"* | mục 5.3: K = số đã KHAI, đúng `cham_bong.so_da_sang`; 11 spec chỉ được quét ở dữ liệu đã nhìn |
+| Q6 | *"Như bản nháp (Recommended)"* | mục 6: các ngưỡng và R như bản nháp (NULL ≤ 7,5% ở R = 1.000; 2× bắt G ≥ 90% và tìm ra ≥ 80% ở R = 400) |
+
+### 14.3 Câu mở còn lại
+
+Không có. Đổi một quyết định ở 14.1 hay 14.2 sau Lát 1 là sửa đặc tả bằng commit riêng và phải chạy lại trên dòng hạt mới (mục 6).
+
+### 14.4 Các lựa chọn Q4 · Q5 · Q6 đã được đưa ra (giữ làm lịch sử)
+
+Người dùng chọn phương án (a) ở cả ba câu. Hai phương án còn lại giữ lại để người sau hiểu cái gì đã bị bỏ.
 
 **Q4 — Ứng viên đang chờ đọc khi một ứng viên khác được nâng cấp?** (Hệ quả của việc mỗi ứng viên đọc sau 252 phiên, trần 1 khai mỗi tháng: lúc nâng cấp luôn còn ứng viên chờ.)
-- (a) **Huỷ, đánh dấu, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.** **(Recommended — đang là mặc định)** Sạch nhất: không ứng viên nào bị đọc trên chuỗi đổi bản giữa chừng.
+- (a) **Huỷ, đánh dấu, K vẫn đếm; muốn thử lại thì khai lại so với bản mới.** **(người dùng chọn 07/11/2026)** Sạch nhất: không ứng viên nào bị đọc trên chuỗi đổi bản giữa chừng.
 - (b) Cho đọc tiếp, so với bản hiệu lực từng phiên, gắn nhãn *"đọc qua đổi phiên bản"* — giữ ứng viên nhưng phép so cặp không còn đúng nghĩa.
 - (c) Đọc theo LÔ: ứng viên khai trong cùng đợt đọc cùng ngày, nâng tối đa một người thắng mỗi đợt — đổi cả quy ước "mỗi ứng viên đọc sau 252 phiên của riêng nó" (đụng `cham_bong.py` quy ước 5).
 
 **Q5 — K tính theo gì khi bộ đề xuất quét 11 spec nhưng chỉ khai 3?**
-- (a) **K = số đã KHAI (đúng luật hiện hành `cham_bong.so_da_sang`)**; 11 spec được quét ở dữ liệu đã nhìn, phán ở dữ liệu chưa nhìn. **(Recommended — đang là mặc định)**
+- (a) **K = số đã KHAI (đúng luật hiện hành `cham_bong.so_da_sang`)**; 11 spec được quét ở dữ liệu đã nhìn, phán ở dữ liệu chưa nhìn. **(người dùng chọn 07/11/2026)**
 - (b) K = số đã QUÉT (11) — chặt hơn, theo tinh thần quy ước 4 ("sàng là chỗ đã nhìn nhiều lần"); lực của vòng giảm rõ (ngưỡng 0,05/11).
 - (c) Chạy cả hai và báo cáo, nhưng tiêu chí chính theo (a).
 
-**Q6 — Mức đạt, ba mức lợi thế và số thị trường (mục 6).** Mặc định: NULL ≤ 7,5% báo động ở R = 1.000; 2× MDE₈₀: G bị bắt ≥ 90% và spec đúng được tìm ra ≥ 80% ở R = 400; ba mức 0,5× · 1× · 2× (MDE₈₀ là số ĐO ở Lát 2, không phải số khai).
-- (a) **Như mục 6.** **(Recommended — đang là mặc định)**
+**Q6 — Mức đạt, ba mức lợi thế và số thị trường (mục 6).** Bản nháp: NULL ≤ 7,5% báo động ở R = 1.000; 2× MDE₈₀: G bị bắt ≥ 90% và spec đúng được tìm ra ≥ 80% ở R = 400; ba mức 0,5× · 1× · 2× (MDE₈₀ là số ĐO ở Lát 2, không phải số khai).
+- (a) **Như mục 6.** **(người dùng chọn 07/11/2026)**
 - (b) Chặt hơn: NULL ≤ 6,5%, 2× ≥ 95%, R_NULL = 2.000 (lực phân biệt tốt hơn, chạy lâu gấp đôi).
 - (c) Nới: NULL ≤ 10%, 2× ≥ 80% — dễ đạt, nhưng 10% đã gấp đôi mức danh nghĩa.
+
+## 15. Ghi chú thi công Lát 1 (BƯỚC 261, 10/11/2026) — chỗ mã khác đặc tả, và vì sao
+
+Ghi sau khi viết mã, TRƯỚC khi có số nào của một lượt chạy chính (mục 13). Module `thi_truong_gia.py` (gốc repo), test `tests/test_thi_truong_gia.py`. Mỗi điểm là một chỗ mà mục 4 hay mục 8 nói khác thứ làm được, hoặc một hằng số mà mục 4.2 để "khai ở Lát 1":
+
+1. **"B < 0" của mục 8 Lát 1 đọc là H.** Mục 4.3 đã đổi tên ứng viên hại từ B thành H (trùng chữ B của điểm đã ghi); câu ở mục 8 còn chữ cũ. Test: ΔIC_true của H (`bo_volume_score`) < 0 ở mức có lợi thế.
+2. **Z là đổi chỗ trend ↔ sr, KHÔNG phải trend ↔ momentum.** Mục 4.3 nêu trend ↔ momentum, nhưng cả hai cùng trọng số 0,25 (`master_agent.py` nhánh `else`) nên đổi chỗ cho ĐÚNG bộ trọng số mặc định: Δ chỉ còn do `int()`, một đối chứng suy biến (hai điểm gần như trùng; ước đoán, CHƯA đo: null của phép so cặp hẹp nên một lệch hệ thống nhỏ do `int()` có thể thành p nhỏ). trend và sr có độ phân tán gần nhau (nấc 0–100 và 6,2–100) nên đổi chỗ gần như giữ độ lệch chuẩn của điểm. Chọn TRƯỚC khi nhìn ΔIC của nó. Họ F giữ nguyên 11 spec; oracle chấm 12 (F cộng Z).
+3. **Tổng số phiên Tầng 1 là 594, không phải ~570.** Mục 4.6 nói "ước chừng 570; Lát 1 chốt bằng cộng các đoạn". Cộng bằng `thi_truong_gia.dong_thoi_gian()`: S = 126; ba ngày khai ở phiên 128 · 150 · 172 (2100-07-01 · 2100-08-02 · 2100-09-01, đầu tháng dương lịch thứ 1–3 sau tháng chứa phiên 125); đọc ở khai + 251 + 22 = 401 · 423 · 445 (phiên có nhãn thứ 252 từ ngày khai cần giá tới +22); tổng = 445 + F + 22 + 1 = 594 (F = 126 phiên tiến-về-trước, mỗi phiên cần nhãn nên thêm 22 phiên giá). Ước 570 thiếu hai khoản 22 phiên. Test dựng lại bằng `pandas.bdate_range` và kiểm bằng nhãn THẬT `E.nhan_vuot_ro` (ứng viên i có đúng 252 phiên có nhãn từ ngày khai ở phiên đọc; F phiên cuối vừa khít).
+4. **Hằng số KHAI ở Lát 1** (mục 4.2 chỉ để ngỏ φ_z; phần còn lại là cái mã buộc phải có số). Tất cả CHƯA hiệu chuẩn vào giá thật, và `tests/test_thi_truong_gia.py::test_cac_hang_KHAI_ghim_dung_gia_tri_da_ghi_o_ghi_chu_thi_cong` ghim chúng: φ_z = 0,97 (AR(1) ngày của z); AR(1) ngày của nhiễu riêng từng thành phần 0,90 (chỉ báo bền theo ngày); phần của z trong tiềm ẩn của `volume_score` b = 0,5 (a = √(1 − b²), nhiễu riêng được phóng 1/a để tương quan QUAN SÁT được vẫn là bảng MO-XE); độ lệch chuẩn ngày 0,010 (thị trường, bước t ν = 7,5) · 0,007 (mỗi ngành, bước t) · 0,015 (riêng mã, GARCH-t của BƯỚC 248); mỗi ngành 10 mã liền nhau, hệ số 1; nhiễu tranh luận N(0 ; 0,45) kẹp ±0,9; giá đầu U(10 ; 50) nghìn đồng; mã `GIA01`…`GIA60`. Giá trị các nấc là chuỗi ĐỀU từ biên dưới tới biên trên của bảng MO-XE (bảng chỉ cho số nấc và hai biên), mỗi nấc xác suất bằng nhau; tương quan hạng sinh bằng copula chuẩn (Pearson = 2·sin(πρ/6)).
+5. **Chỗ sinh KHÁC thật, khai thẳng.** Điểm sinh có 85 giá trị khác nhau trong 7–91; điểm thật 61 nấc trong 23–83 (`MO-XE-KIEN-TRUC.md`, đo 31/08/2026). Mục 4.2 chỉ đòi khớp số nấc và tương quan của năm THÀNH PHẦN, không đòi khớp điểm cuối; nhưng điểm cuối sinh rộng hơn, nên mọi số liệu về số lệnh vượt ngưỡng của thị trường giả không nói gì về đường thật.
+6. **κ chưa hiệu chuẩn ở Lát 1.** `kappa` là tham số của `sinh_thi_truong`; test dùng 0,01 (giá trị thử, không phải mức 0,5× · 1× · 2× MDE₈₀ của Lát 2). Ở 0,01: ΔIC_true của G = 0,0418, sai số MC 0,0057; của H = −0,0129 ± 0,0014; của Z = −0,0012 ± 0,0019 (lệnh ở STATE BƯỚC 261).
+7. **Sai số MC của oracle một mẫu 5.000 phiên là ~14% ΔIC của G.** Mục 8 Lát 2 đòi κ khớp mục tiêu ±10% bằng oracle; với 0,0057/0,0418 = 14% ở κ = 0,01 thì một oracle 5.000 phiên không đủ (sai số tỷ lệ nghịch √số phiên: ước lượng cần ≥ 2 lần số phiên). Lát 2 phải chọn: tăng mẫu oracle, hoặc lấy trung bình nhiều oracle; mục 4.5 giữ nguyên ở BƯỚC này.
+8. **Tiêu chí "mọi |ΔIC_true| < 2 sai số MC ở NULL" (mục 4.5 (c), mục 6 "KHÔNG ĐỌC ĐƯỢC", mục 8 Lát 1) đọc theo từng thị trường thì báo nhầm cỡ 43%.** Đo (30 thị trường NULL, dòng thử 9001, 12 spec mỗi thị trường): 13/30 thị trường có ít nhất một spec ngoài 2 sai số, trong khi 91,1% số ô (thị trường × spec) nằm trong; sd(Δ/sai số) = 1,15. Nghĩa là sai số MC được ước lượng gần đúng (hơi thấp), nhưng 12 spec cùng lúc thì "mọi spec" trượt gần nửa số thị trường dù máy đo tốt. Test của Lát 1 vì thế khoá TỶ LỆ ô (≥ 85%, sd trong 0,7–1,5, |trung bình| < 0,5 trên 4 thị trường × 12 spec) và hàm `spec_ngoai_hai_se` đo từng thị trường; Lát 5 phải khai lại tiêu chí máy đo thành tỷ lệ TRƯỚC khi chạy, và đó là việc đổi đặc tả nên cần người dùng duyệt cùng lúc với việc chép bảng mục 6 vào `docs/TIEU-CHI-DOC-TRUOC.md`.
+9. **`sum()` của Python 3.12+ cộng số thực CÓ BÙ (Neumaier), 3.11 thì không**; máy chạy 3.13, CI 3.11. `cham_bong.diem_ung_vien` dùng `sum()` nên tự nó khác nhau giữa hai bản ở bit cuối (ví dụ 28,8 và 28,799999999999997 ở cùng một ô). `thi_truong_gia.diem_spec` cộng thẳng bằng vectơ; test đòi cùng điểm tới 1e-9, không đòi trùng bit. Hệ quả cho oracle: hoà hạng của một spec chỉ có thể lệch ở những cặp ô mà hai tổng bằng nhau về toán học nhưng khác ở bit cuối — hiếm và cùng chiều ở cả hai điểm.
+10. **Tầng 1 không có OHLC; phép thử `validate_ohlcv` năm 2100 (mục 4.1 khoản 2) dựng khung OHLCV từ `close`** (mở = đóng hôm trước, cao/thấp ± 0,2%, khối lượng hằng) và đòi mức OK, kèm phép thử ngược: bẻ một phiên (cao < thấp) thì mức lên cao hơn OK. Nó chỉ chứng minh `data_quality` không từ chối NGÀY 2100; bộ sinh OHLCV đầy đủ là việc của Lát 4.
+11. **Nhân tố ẩn z KHÔNG nằm trên `ThiTruongGia`** (chỉ `_sinh_loi` trả `z`, cho test); oracle thì nằm ở trường `su_that` của chính đối tượng ấy. Một vòng học nhận `ThiTruongGia` không có đường chạm tới z, nhưng `su_that` ở ngay cạnh: việc vòng học không đọc nó là gác G4 (không gọi oracle từ vòng học), việc của Lát 3 khi vòng học tồn tại.
+12. **Dòng hạt.** Oracle dùng `[luong, chi_so, 1]` (hạt RIÊNG, mục 4.5); test dùng dòng 9001, ngoài năm dòng chính và ngoài dãy 6, 7… Trong lúc dựng, MỘT lượt thăm dò chạy dòng 2 (chi_so 1) và dòng 5 (chi_so 1…30) CHỈ ở mức oracle (không bước xác nhận nào tồn tại để nhìn kết quả). Khi Lát 5 chạy dòng 2 và 5, các thị trường ấy đã bị oracle nhìn một lần; nêu ra để không ai tưởng chúng còn nguyên.
+13. **Không làm ở Lát 1 (thuộc Lát 2–5):** bước xác nhận, bộ đề xuất, sổ ứng viên giả, nâng cấp, hiệu chuẩn κ và MDE₈₀, Tầng 2, gác G2 · G4 · G6 · G7. Gác G2 (đường thật không nhập module thị trường giả) cũng ở Lát 3; trước đó chỉ có chiều ngược lại: `tests/test_san_dau.py::test_G2_duong_that_KHONG_nhap_san_dau` thêm `thi_truong_gia.py` vào danh sách được nhập `san_dau`.
+
