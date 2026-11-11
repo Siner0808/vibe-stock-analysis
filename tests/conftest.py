@@ -111,6 +111,34 @@ def gac_khong_doc_vnindex_that(request):
             market_filter.get_vni_df = goc
 
 
+#: nodeid -> thông điệp của lần chạm MẠNG GIÁ thật đầu tiên trong test ấy (BƯỚC 267).
+_VI_PHAM_MANG_GIA: dict[str, str] = {}
+
+
+@pytest.fixture(autouse=True)
+def gac_khong_cham_mang_gia_that(request, monkeypatch):
+    """GÁC THỨ BA (BƯỚC 267): KHÔNG test nào được gọi MẠNG giá thật.
+
+    Từ khi `backtest.data.fetch_one` và `VNStockCollectorAgent.collect` đi qua
+    `nguon_gia_cong_khai`, một test cũ từng vá `sys.modules["vnstock"]` để giả nguồn giá
+    giờ sẽ âm thầm gọi Entrade/VNDirect/VPS THẬT (đo 11/11/2026: `test_ghim_nguon_gia` xanh
+    mà không giả gì). Gác thay `_http_json` bằng hàm nổ; test muốn đường mạng giả thì tự
+    vá `_http_json` hoặc truyền `http=` (như `tests/test_nguon_gia_cong_khai.py`). Code nuốt
+    lỗi của gác vẫn bị `pytest_runtest_call` bên dưới làm đỏ test.
+    """
+    import nguon_gia_cong_khai as ngk
+    ten = request.node.nodeid
+
+    def cam(url, accept="*/*"):
+        thong_diep = (f"{ten} gọi MẠNG giá thật ({url[:70]}…). Test phải truyền `http=` giả "
+                      f"cho `nguon_gia_cong_khai.lay_ohlcv`, hoặc vá `nguon_gia_cong_khai._http_json`.")
+        _VI_PHAM_MANG_GIA.setdefault(ten, thong_diep)
+        raise AssertionError(thong_diep)
+
+    monkeypatch.setattr(ngk, "_http_json", cam)
+    yield
+
+
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_call(item):
     """Nếu code của test NUỐT lỗi của gác, test vẫn ĐỎ."""
@@ -118,8 +146,11 @@ def pytest_runtest_call(item):
         ket_qua = yield
     finally:
         thong_diep = _VI_PHAM_VNINDEX.pop(item.nodeid, None)
+        mang = _VI_PHAM_MANG_GIA.pop(item.nodeid, None)
     if thong_diep:
         pytest.fail(thong_diep, pytrace=False)
+    if mang:
+        pytest.fail(mang, pytrace=False)
     return ket_qua
 
 

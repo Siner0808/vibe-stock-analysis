@@ -44,32 +44,21 @@ def test_du_lieu_that_bai_khong_ra_khuyen_nghi():
     print(f"PASS  FAILED bị chặn -> {rec!r}")
 
 
-def test_fallback_generator_bao_dung_status():
+def _nguon_gia_chet(monkeypatch):
+    """Mọi nguồn giá công khai trả "không có dữ liệu" (BƯỚC 267: thay cho `vnstock` giả luôn trả rỗng)."""
+    import nguon_gia_cong_khai as ngk
+    monkeypatch.setattr(ngk, "_http_json", lambda url, accept="*/*": {"s": "no_data"})
+    monkeypatch.setattr(ngk, "NGHI_GIUA_LAN_GOI_GIAY", 0.0)
+
+
+def test_fallback_generator_bao_dung_status(monkeypatch):
     """Bộ sinh dữ liệu dự phòng phải tự khai báo là SYNTHETIC, không phải OK.
 
-    Ép nhánh fallback bằng cách thay `vnstock` bằng module giả luôn trả rỗng
-    — mô phỏng đúng tình huống nguồn dữ liệu chết. Không cần mạng.
+    Ép nhánh fallback bằng cách cho MỌI nguồn giá công khai trả rỗng — mô phỏng đúng tình
+    huống nguồn dữ liệu chết. Không cần mạng.
     """
-    import types
-
-    import pandas as pd
-
-    fake = types.ModuleType("vnstock")
-
-    class _EmptyQuote:
-        def __init__(self, *a, **kw): pass
-        def history(self, *a, **kw): return pd.DataFrame()
-
-    fake.Quote = _EmptyQuote
-    saved = sys.modules.get("vnstock")
-    sys.modules["vnstock"] = fake
-    try:
-        res = VNStockCollectorAgent().collect("FPT", "2026-01-01", "2026-03-01")
-    finally:
-        if saved is None:
-            sys.modules.pop("vnstock", None)
-        else:
-            sys.modules["vnstock"] = saved
+    _nguon_gia_chet(monkeypatch)
+    res = VNStockCollectorAgent().collect("FPT", "2026-01-01", "2026-03-01")
 
     assert res["status"] == "SYNTHETIC", (
         f"fallback phải báo SYNTHETIC, nhận {res['status']!r} — "
@@ -79,31 +68,13 @@ def test_fallback_generator_bao_dung_status():
     print(f"PASS  nguồn chết -> fallback tự khai báo status={res['status']!r}")
 
 
-def test_nguon_chet_thi_toan_pipeline_tu_choi_khuyen_nghi():
+def test_nguon_chet_thi_toan_pipeline_tu_choi_khuyen_nghi(monkeypatch):
     """Kiểm chứng đầu-cuối: nguồn giá chết => không có tín hiệu mua/bán nào thoát ra."""
-    import types
-
-    import pandas as pd
-
-    fake = types.ModuleType("vnstock")
-
-    class _EmptyQuote:
-        def __init__(self, *a, **kw): pass
-        def history(self, *a, **kw): return pd.DataFrame()
-
-    fake.Quote = _EmptyQuote
-    saved = sys.modules.get("vnstock")
-    sys.modules["vnstock"] = fake
-    try:
-        from data_collectors import DataOrchestrator
-        packet = DataOrchestrator("FPT", "2026-01-01", "2026-03-01",
-                                  collect_news=False).collect_and_handoff()
-        result = MasterConsensusAgent().run(packet)
-    finally:
-        if saved is None:
-            sys.modules.pop("vnstock", None)
-        else:
-            sys.modules["vnstock"] = saved
+    _nguon_gia_chet(monkeypatch)
+    from data_collectors import DataOrchestrator
+    packet = DataOrchestrator("FPT", "2026-01-01", "2026-03-01",
+                              collect_news=False).collect_and_handoff()
+    result = MasterConsensusAgent().run(packet)
 
     assert packet.data_quality == "SYNTHETIC", packet.data_quality
     for w in ACTION_WORDS:
@@ -188,8 +159,6 @@ def test_thieu_key_van_tra_loi_duoc_bang_engine_noi_bo():
 
 
 if __name__ == "__main__":
-    fns = [v for k, v in sorted(globals().items())
-           if k.startswith("test_") and callable(v)]
-    for fn in fns:
-        fn()
-    print(f"\n===== {len(fns)}/{len(fns)} test PASS =====")
+    # BƯỚC 267: hai test dùng `monkeypatch` (mạng giá giả), nên chạy qua pytest chứ không gọi trần.
+    import pytest
+    sys.exit(pytest.main([__file__, "-q"]))

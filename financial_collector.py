@@ -274,6 +274,9 @@ class FinancialDataCollector:
             from vnstock_auth import ensure_api_key
             ensure_api_key()          # idempotent, không cần key vẫn chạy tiếp
             from vnstock.api.financial import Finance
+        except ImportError:
+            from nguon_gia_cong_khai import ly_do_khong_co_nguon
+            return None, ly_do_khong_co_nguon("chỉ số định giá (P/E, EPS, beta, vốn hoá)")
         except Exception as e:
             return None, f"{type(e).__name__}: {str(e)[:160]}"
 
@@ -352,7 +355,11 @@ class FinancialDataCollector:
     # ───────────────────────── Báo cáo tài chính ────────────────────────
     def get_financial_statements(self, symbol: str) -> dict:
         """BCTC nhiều năm. available=False nếu không lấy được — không bịa."""
-        empty = {"available": False, "note": "Không lấy được báo cáo tài chính.",
+        from nguon_gia_cong_khai import ly_do_khong_co_nguon, vnstock_vang
+        empty = {"available": False,
+                 "note": ("Không lấy được báo cáo tài chính — "
+                          + ly_do_khong_co_nguon("báo cáo tài chính") if vnstock_vang()
+                          else "Không lấy được báo cáo tài chính."),
                  "years": [], "revenue": [], "net_profit": [],
                  "equity": [], "debt": [], "debt_to_equity": []}
         data = _cached(f"fs:{symbol}", lambda: self._fetch_statements(symbol))
@@ -425,8 +432,10 @@ class FinancialDataCollector:
         available=False để giao diện ẩn biểu đồ, thay vì vẽ số ngẫu nhiên
         như bản cũ.
         """
+        from nguon_gia_cong_khai import ly_do_khong_co_nguon, vnstock_vang
         empty = {"available": False,
-                 "note": ("Đường VCI qua vnstock không trả giao dịch khối ngoại. "
+                 "note": (ly_do_khong_co_nguon("giao dịch khối ngoại") if vnstock_vang() else
+                          "Đường VCI qua vnstock không trả giao dịch khối ngoại. "
                           "Đường khác CÓ dữ liệu: vnstock_data "
                           "Market().equity(ma).foreign_flow() — đo 22/09/2026, "
                           "2.923 phiên từ 2015, 71/71 mã (docs/STATE.md BƯỚC 112). "

@@ -265,7 +265,8 @@ def test_doc_bang_gia_khong_nem_khi_thu_vien_hong(monkeypatch):
 
     monkeypatch.setattr(builtins, "__import__", gia)
     r = mbg.doc_bang_gia("SSI")
-    assert r["loi"] is not None and "ImportError" in r["loi"]
+    # BƯỚC 267: vắng vnstock là "không có nguồn" nói thẳng, không phải một tên lỗi Python
+    assert r["loi"] is not None and r["loi"].startswith("không có nguồn")
     assert r["tran"] is None and r["tham_chieu"] is None
 
 

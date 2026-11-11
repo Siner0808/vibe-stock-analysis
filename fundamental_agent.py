@@ -236,6 +236,11 @@ def doc_chi_so(ma: str, tai_bang: Callable[[str], Any] | None = None) -> ChiSoCo
                           nhom=PHI_NGAN_HANG)
 
     if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        if tai_bang is None:
+            # Đường THẬT (không phải hàm tiêm): vnstock vắng thì nói thẳng "không có nguồn".
+            from nguon_gia_cong_khai import ly_do_khong_co_nguon, vnstock_vang
+            if vnstock_vang():
+                return _trong(ly_do_khong_co_nguon(f"bảng chỉ số cơ bản ({NGUON} `ratio`)"))
         return _trong(f"không lấy được bảng chỉ số từ {NGUON}")
     if "item_id" not in df.columns:
         return _trong("bảng nguồn không có cột item_id — cấu trúc đã đổi")

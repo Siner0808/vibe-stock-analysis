@@ -213,7 +213,14 @@ def doc_bang_gia(ma: str) -> dict:
         except Exception:
             pass
 
-        from vnstock import Trading
+        try:
+            from vnstock import Trading
+        except ImportError:
+            # BƯỚC 267: vnstock bị hãng gỡ 10/11/2026, không còn cài trên Cloud/Actions. Điểm cuối
+            # công khai không khoá chỉ có GIÁ NGÀY, không có trần/sàn/tham chiếu — nên nói thẳng
+            # "không có nguồn" và để giao diện tụt xuống ba màu. KHÔNG suy trần từ phần trăm.
+            from nguon_gia_cong_khai import ly_do_khong_co_nguon
+            return {**trong, "loi": ly_do_khong_co_nguon("bảng giá trần/sàn/tham chiếu")}
 
         bang = Trading(source="vci").price_board([ma.upper()])
         if bang is None or len(bang) == 0:

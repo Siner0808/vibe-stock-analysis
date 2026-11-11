@@ -55,11 +55,11 @@ class KeoLoi(ValueError):
 
 
 def lay_mac_dinh(ma: str, tu: str, den: str) -> dict:
-    """Kéo MỘT mã bằng `VNStockCollectorAgent.collect` (`vci` rồi `kbs`).
+    """Kéo MỘT mã bằng `VNStockCollectorAgent.collect` (từ BƯỚC 267: Entrade → VNDirect → VPS,
+    trước đó `vci` rồi `kbs`).
 
-    Nhập `data_collectors` ở đây chứ không ở đầu file: `collect` tự nhập `vnstock`, và
-    gói ấy chỉ có trên máy người dùng. Sàn truyền cho kiểm định lấy theo MÃ từ bảng chụp
-    (`san_giao_dich`), như `run_daily`.
+    Nhập `data_collectors` ở đây chứ không ở đầu file (nhẹ lúc nạp module). Sàn truyền cho
+    kiểm định lấy theo MÃ từ bảng chụp (`san_giao_dich`), như `run_daily`.
     """
     from data_collectors import VNStockCollectorAgent
     return VNStockCollectorAgent().collect(ma, tu, den, exchange=sg.san_cua(ma))
