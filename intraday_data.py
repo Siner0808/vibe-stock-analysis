@@ -147,9 +147,18 @@ def tai(symbol: str, start: str, end: str, khung: str = "30m",
     try:
         from vnstock_auth import ensure_api_key
         ensure_api_key()
-        from vnstock.api.quote import Quote
+        try:
+            from vnstock.api.quote import Quote
+        except ImportError as e:
+            # BƯỚC 267: vnstock bị hãng gỡ 10/11/2026. Điểm cuối công khai không khoá chỉ có nến
+            # NGÀY (`nguon_gia_cong_khai`), không có nến 30 phút/1 giờ.
+            from nguon_gia_cong_khai import ly_do_khong_co_nguon
+            raise IntradayError(
+                f"{symbol}: {ly_do_khong_co_nguon(f'nến nội phiên {khung}')}") from e
         tho = Quote(symbol=symbol.upper(), source="VCI").history(
             start=start, end=end, interval=khung)
+    except IntradayError:
+        raise
     except Exception as e:
         raise IntradayError(f"{symbol}: {type(e).__name__}: {str(e)[:140]}") from e
 

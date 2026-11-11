@@ -39,7 +39,7 @@ nhiễu 0,0404. Đó là cận trên: không cách gộp nào tốt hơn tồn t
 
 | Nguồn | Trạng thái khi backtest/paper trading |
 |---|---|
-| OHLCV (vnstock) | ✅ hoạt động |
+| OHLCV (`nguon_gia_cong_khai` từ BƯỚC 267; trước đó vnstock) | ✅ hoạt động |
 | TradingView (`tv_indicators`) | ❌ không có dữ liệu TradingView lịch sử (khoá `tv_indicators` KHÔNG rỗng: được đổ bằng chỉ báo tự tính từ OHLCV, xem mục *Điều này nghĩa là gì*) |
 | Tin tức (`news_packet`) | ❌ **`None`** — không có kho tin lịch sử |
 

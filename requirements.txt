@@ -1,5 +1,4 @@
-# Liệt kê thứ cài được từ PyPI CÔNG KHAI — cộng HAI gói, `vnstock` và
-# `vnai`, lấy từ kho riêng của hãng (khối "KHO THỨ HAI" bên dưới).
+# Liệt kê thứ cài được từ PyPI CÔNG KHAI — và CHỈ PyPI công khai.
 #
 # GitHub Actions và Streamlit Cloud đều chạy `pip install -r requirements.txt`.
 # Bốn gói tài trợ của vnstock — vnstock_data, vnstock_ta, vnstock_news,
@@ -7,7 +6,7 @@
 # API có xác thực bằng khoá. Thêm chúng vào đây sẽ làm CI và cloud hỏng ngay
 # ở bước cài, chứ không phải hỏng lúc chạy.
 #
-# Hệ quả phải biết: máy local có gói tài trợ nên chạy ở hạng silver (BCTC không
+# Hệ quả phải biết (số cũ, giữ để khỏi lặp lỗi): máy local có gói tài trợ nên chạy ở hạng silver (BCTC không
 # giới hạn số kỳ, 300 req/phút). Streamlit Cloud cũng không cài chúng, nhưng
 # ĐO ĐƯỢC hạng silver ngày 09/10/2026: bảng trạng thái của app in "● ĐÚNG" và
 # `vnstock_goi.kiem_goi()` trả KHỚP (docs/STATE.md BƯỚC 166). Câu cũ ở đây — CI và
@@ -16,38 +15,20 @@
 # GitHub Actions: hạng chưa đọc — đừng khẳng định free hay silver cho tới khi đo.
 # Gói tài trợ vẫn không khai ở đây vì chúng không có trên PyPI công khai.
 #
-# Vì vậy KHÔNG mã nào ở gốc dự án được `import vnstock_data` ở mức module.
+# BƯỚC 267 (11/11/2026): hãng gỡ `vnstock` và `vnai` khỏi mọi kho ngày 10/11/2026 (kho riêng
+# `vnstocks.com/api/simple` trả HTTP 410; PyPI đã cách ly chúng từ 25/09), nên các dòng
+# `vnstock==4.0.9`, `vnai==2.6.2`, `--extra-index-url …` (BƯỚC 127) và `vnstock_ezchart @ git+…`
+# (BƯỚC 264) đã BỎ. Giá ngày đi qua `nguon_gia_cong_khai` (chỉ cần `requests`, `pandas`);
+# chỗ cần vnstock nhập TRONG HÀM, bọc `try`, và nói "không có nguồn" khi vắng. Đường chính thức
+# quay lại là BƯỚC 265 (vnstock 6 + khoá SSI) — lúc ấy khai lại ở đây và sửa gác.
+# Máy local còn cài vnstock 4.0.9 từ trước: nó KHÔNG còn là đường giá của quét (đường giá không gọi nó).
+#
+# Vì vậy KHÔNG mã nào ở gốc dự án được `import vnstock_data` hay `import vnstock` ở mức module.
 # Khoá bởi tests/test_requirements.py.
 streamlit
 pandas
 numpy
 plotly
-# KHO THỨ HAI — từ 26/09/2026 (docs/STATE.md BƯỚC 127). PyPI cách ly
-# `vnstock` và `vnai` từ tối 25/09; hãng phát hành trên kho riêng, và
-# người dùng chốt cài từ đó. Đo 26/09: kho ấy chỉ phục vụ bốn tên —
-# vnstock, vnstock-installer, vnai, vnii.
-#
-# GHIM ĐÚNG BẢN, không khai sàn: pip chọn bản cao nhất trên CẢ HAI kho,
-# nên với một sàn thì kho nào có bản cao hơn quyết định CI chạy gì — và
-# sàn cũng là cách CI từng chạy trước máy (lỗi 79). Bản ghim là bản ĐO 19
-# đã đo ở máy; tests/test_requirements.py bắt hai bên khớp nhau.
-#
-# Bản cũ ở đây là `vnstock>=4.0.6` · `vnai>=2.5.7` — mức tối thiểu tài
-# liệu Vibe Onboarding của vnstock yêu cầu (đọc 22/08/2026).
---extra-index-url https://vnstocks.com/api/simple
-vnstock==4.0.9
-vnai==2.6.2
-# VÁ TẠM (BƯỚC 264, 10/11/2026) — `vnstock==4.0.9` KHAI BẮT BUỘC
-# `vnstock_ezchart>=1.0.2`, mà gói ấy bị gỡ khỏi PyPI ngày 09/11/2026
-# (`https://pypi.org/pypi/vnstock-ezchart/json` trả 404; kho của hãng cũng
-# không phục vụ nó) nên mọi `pip install -r requirements.txt` chết ở bước
-# cài. Nguồn: kho công khai `github.com/vnstock-hq/vnstock_chart` (trước
-# đây tên `vnstock_ezchart`), giấy phép MIT. GHIM đúng commit 23d5129
-# (17/05/2026) — là bản 1.0.2 ta vẫn chạy trước đó. Không ghim nhánh: một
-# nhánh trôi thì CI chạy bản khác máy (lỗi 79). Tạm thời, tới khi
-# BƯỚC 260 (nâng vnstock 5.x) xong; lúc đó xoá dòng này.
-# Khoá bởi tests/test_requirements.py.
-vnstock_ezchart @ git+https://github.com/vnstock-hq/vnstock_chart@23d5129758b18e26540d8d196568cb8d63815319
 tradingview-ta
 feedparser
 beautifulsoup4

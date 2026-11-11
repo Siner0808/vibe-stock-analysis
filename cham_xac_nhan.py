@@ -67,8 +67,10 @@ SO_HOAN_VI = 2000
 
 #: Cột bảng giá, đúng và đủ (thứ tự không quan trọng).
 COT_BANG_GIA = ("symbol", "date", "close", "nguon", "keo_luc")
-#: Họ nguồn của agent sống: `VNStockCollectorAgent` thử `vci` rồi `kbs`.
-NGUON_HOP_LE = ("vci", "kbs")
+#: Họ nguồn của agent sống: `VNStockCollectorAgent`. Bảng giá đã ghi trước BƯỚC 267 mang `vci`/`kbs`
+#: (thời `vnstock`); từ BƯỚC 267 (11/11/2026) agent đi qua `nguon_gia_cong_khai` nên thêm ba tên
+#: Entrade/VNDirect/VPS (cổ phiếu). Giữ hai tên cũ để đọc được bảng cũ.
+NGUON_HOP_LE = ("vci", "kbs", "entrade", "vndirect", "vps")
 _RE_NGAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 #: Danh sách (mã, phiên) thiếu in tối đa chừng này mục; tổng số luôn in đủ.
 TOI_DA_IN = 12

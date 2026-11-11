@@ -329,7 +329,7 @@ cho tới khi đã thành một đầu việc có mã ở trên.
   người đọc kết quả. UV-001 đọc MỘT lần, ở `cham_bong.MOC_DOC` = 252 phiên có nhãn. *Tuỳ chọn, CHƯA dựng:* một chuông
   nhắc người dùng đúng mốc đọc ấy; (4) **Dow phần 2** (mức thị trường, nguyên lý hai chỉ số;
   `docs/thiet-ke-dow-cau-truc.md` mục 10) — người dùng: *"Hoãn tới sau v1.0 (Recommended)"*; không làm trước v1.0.
-- Rủi ro: phụ thuộc `vnstock` (từng bị cách ly trên PyPI 25–26/09); GitHub Actions
+- Rủi ro: phụ thuộc nguồn giá bên ngoài (`vnstock` bị cách ly trên PyPI 25–26/09 rồi hãng gỡ 10/11/2026; đường tạm là điểm cuối công khai không khoá, BƯỚC 267, không có điều khoản công bố); GitHub Actions
   trễ ở khung chuông (`CLAUDE.md`, mục *Quét tự động*); tín hiệu thưa (nhịp vào
   lệnh chưa ổn định); một người vận hành, quyết định đọng lại thì cả dự án đứng;
   xác suất UV-001 qua là thấp ngay từ bản khai.

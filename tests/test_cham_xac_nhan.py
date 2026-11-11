@@ -333,7 +333,7 @@ def test_HANG_SO_bien_hat_so_luot_nguon_va_cot_ghim_bang_LITERAL():
     assert cx._LECH_NGAY == {">=": 0, ">": 1}
     assert cx.HAT_RNG == 20261007
     assert cx.SO_HOAN_VI == 2000
-    assert cx.NGUON_HOP_LE == ("vci", "kbs")
+    assert cx.NGUON_HOP_LE == ("vci", "kbs", "entrade", "vndirect", "vps")  # BƯỚC 267
     assert cx.COT_BANG_GIA == ("symbol", "date", "close", "nguon", "keo_luc")
 
 

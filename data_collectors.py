@@ -40,7 +40,9 @@ class MarketDataPacket:
 # LAYER 1: DATA COLLECTION AGENTS (Tầng Thu thập Dữ liệu)
 # =====================================================================
 class VNStockCollectorAgent:
-    """Agent thu thập dữ liệu OHLCV lịch sử từ VNStock (nguồn VCI / TCBS / DNSE)"""
+    """Agent thu thập dữ liệu OHLCV ngày. Từ BƯỚC 267 (11/11/2026) KHÔNG còn qua `vnstock`
+    (hãng gỡ 10/11/2026): nguồn là `nguon_gia_cong_khai` (Entrade -> VNDirect -> VPS),
+    MỘT chuỗi giá luôn từ MỘT nguồn. Tên lớp giữ nguyên để người gọi không đổi."""
     NAME = "VNStock Collector Agent"
 
     def _generate_fallback_df(self, symbol: str, start: str, end: str) -> pd.DataFrame:
@@ -68,28 +70,35 @@ class VNStockCollectorAgent:
         thử nguồn tiếp theo. Thà thiếu còn hơn sai.
         """
         from data_quality import normalize_ohlcv, validate_ohlcv
-        from vnstock import Quote
+        import nguon_gia_cong_khai as ngk
+
+        bao_cao = {}
+
+        def kiem_dinh(khung):
+            """Nguồn cho dữ liệu hỏng thì bỏ CẢ chuỗi ấy và thử nguồn kế (thà thiếu còn hơn sai)."""
+            r = validate_ohlcv(normalize_ohlcv(khung), symbol=symbol, exchange=exchange)
+            bao_cao["cuoi"] = r
+            return r.summary() if r.blocked else None
 
         last_report = None
-        for src in ['vci', 'kbs']:
-            try:
-                df = Quote(symbol=symbol, source=src).history(start=start, end=end)
-            except Exception:
-                continue
-            if df is None or df.empty:
-                continue
-
-            df = normalize_ohlcv(df)
+        ly_do_het = ""
+        # Cửa sổ giữ đúng luật đếm của đường VCI cũ (BƯỚC 267): `n_giu` nến CUỐI, xin lùi thêm đầu cửa sổ.
+        start_rong, n_giu = ngk.cua_so_vci_cu(start, end)
+        try:
+            kq = ngk.lay_ohlcv(symbol, start_rong, end, kiem_them=kiem_dinh)
+        except ngk.NguonGiaHetNguon as e:
+            ly_do_het = str(e)
+            last_report = bao_cao.get("cuoi")
+        else:
+            df = normalize_ohlcv(kq.df).tail(n_giu).reset_index(drop=True)
             report = validate_ohlcv(df, symbol=symbol, exchange=exchange)
-            last_report = report
-            if report.blocked:
-                continue          # nguồn này cho dữ liệu hỏng -> thử nguồn khác
-
-            note = f"Tải dữ liệu thành công ({len(df)} phiên từ {src.upper()})"
+            note = f"Tải dữ liệu thành công ({len(df)} phiên từ {kq.nguon.upper()})"
             if report.warnings:
                 note += " · " + report.summary()
+            if kq.da_thu:
+                note += " · đã bỏ: " + "; ".join(f"{t} ({ly})" for t, ly in kq.da_thu)
             return {"status": "OK", "df": df, "note": note,
-                    "quality": report, "source": src}
+                    "quality": report, "source": kq.nguon}
 
         if last_report is not None and last_report.blocked:
             return {"status": "FAILED", "df": None,
@@ -100,7 +109,8 @@ class VNStockCollectorAgent:
         # Dữ liệu này là random walk, không phải giá thật.
         fallback_df = self._generate_fallback_df(symbol, start, end)
         return {"status": "SYNTHETIC", "df": fallback_df,
-                "note": "⚠️ KHÔNG kết nối được nguồn thật — đang dùng dữ liệu MÔ PHỎNG NGẪU NHIÊN"}
+                "note": "⚠️ KHÔNG kết nối được nguồn thật — đang dùng dữ liệu MÔ PHỎNG NGẪU NHIÊN"
+                        + (f" · {ly_do_het}" if ly_do_het else "")}
 
 
 class TradingViewCollectorAgent:

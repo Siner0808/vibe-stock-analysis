@@ -22,7 +22,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
 
 import financial_collector as fc
-from bo_qua_khi_vang_vnstock_266 import can_vnstock_dang_cai  # ngoại lệ TẠM BƯỚC 266
 from financial_collector import FinancialDataCollector
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -216,42 +215,9 @@ def test_data_collectors_van_gan_nhan_synthetic():
     print("PASS  data_collectors vẫn gắn nhãn SYNTHETIC cho dữ liệu sinh")
 
 
-@can_vnstock_dang_cai
-def test_goi_vnstock_dung_chu_ky_ham():
-    """Bắt lỗi sai chữ ký hàm mà không cần mạng.
-
-    Bối cảnh: facade `vnstock.Finance` bắt buộc tham số `source`, còn lớp
-    explorer bên dưới thì không. Gọi thiếu `source` -> TypeError, và vì mọi
-    lỗi đều bị nuốt thành "không có dữ liệu", triệu chứng nhìn y hệt mất mạng.
-    Test này phân biệt hai thứ đó.
-
-    BƯỚC 266: trước đây thiếu vnstock thì in `SKIP` rồi `return` — test XANH mà không kiểm gì
-    (trên CI TẠM không có vnstock). Nay bỏ qua TƯỜNG MINH bằng dấu ở trên (có lý do, có hạn
-    gỡ khi BƯỚC 265 vào); có vnstock thì `import` phải thành công.
-    """
-    import vnstock
-
-    import inspect
-    checks = [
-        (vnstock.Finance, dict(source="VCI", symbol="FPT",
-                               period="year", show_log=False)),
-        (vnstock.Trading, dict(source="VCI", symbol="FPT", show_log=False)),
-    ]
-    for cls, kwargs in checks:
-        sig = inspect.signature(cls.__init__)
-        try:
-            sig.bind(None, **kwargs)          # None thay cho self
-        except TypeError as e:
-            raise AssertionError(
-                f"{cls.__name__} gọi sai chữ ký với {kwargs}: {e}") from None
-
-    # Đối chứng: thiếu `source` PHẢI hỏng — chứng minh test có tác dụng
-    try:
-        inspect.signature(vnstock.Finance.__init__).bind(None, symbol="FPT")
-        raise AssertionError("thiếu `source` mà vẫn hợp lệ — test vô dụng")
-    except TypeError:
-        pass
-    print("PASS  chữ ký gọi vnstock đúng (và test bắt được khi thiếu `source`)")
+# BƯỚC 267: `test_goi_vnstock_dung_chu_ky_ham` (chữ ký `vnstock.Finance`/`Trading`) đã BỎ — nó cần `vnstock`
+# đang cài, mà hãng gỡ gói ấy ngày 10/11/2026 và `requirements.txt` không còn dòng nào; đường sản xuất
+# không gọi `Finance`/`Trading` nữa ngoài chỗ bọc `try` (gác AST ở tests/test_nguon_gia_cong_khai.py).
 
 
 def test_doc_duoc_bang_xoay_ngang_cua_vnstock():

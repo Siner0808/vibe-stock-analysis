@@ -836,6 +836,13 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   vào"*); ở máy mọi test chạy đủ, trên CI ba test ấy KHÔNG chạy. Gác `tests/test_bo_qua_khi_vang_vnstock_266.py`
   ĐỎ khi BƯỚC 265 đổi ghim `vnstock==4.0.9` mà ngoại lệ còn — gỡ CÙNG LÚC (cách gỡ ở docstring của gác).
   `docs/STATE.md` BƯỚC 266.
+- 🔴 **HẾT ĐÚNG 11/11/2026 (BƯỚC 267) cho hai dòng trên và dòng 10/11:** `requirements.txt` KHÔNG còn `vnstock` ·
+  `vnai` · kho hãng · `vnstock_ezchart`; ngoại lệ BƯỚC 266 nay RỖNG (ba test cần vnstock đã xoá; gác của 266
+  xanh vì danh sách rỗng). Giá NGÀY đi qua `nguon_gia_cong_khai` (cổ phiếu Entrade → VNDirect → VPS, VN-Index
+  VNDirect → iBoard → VPS; iBoard KHÔNG vào chuỗi cổ phiếu vì sai giá UPCoM), `collect` giữ cửa sổ 784 nến của VCI
+  cũ. Bảng giá trần/sàn/tham chiếu, BCTC, khối ngoại, nến nội phiên: "không có nguồn" ở CI/Cloud. Đường chính thức
+  vẫn là BƯỚC 265 (vnstock 6 + khoá SSI, chưa có). Lệnh xem lượt quét chạy trên nguồn nào: dòng `NGUỒN GIÁ:` của
+  `run_daily`. `docs/STATE.md` BƯỚC 267.
 - ~~**`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).**~~ *(còn đúng ở máy local; HẾT ĐÚNG ở CI/Cloud, xem dòng trên)* Bản
   phát hành 1.0.2 của hãng thiếu gói con `static/` và khai hai phụ thuộc
   bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. 09/10/2026 (BƯỚC 166, Q8): lỗi chưa sửa (PyPI vẫn 1.0.2); báo lỗi soạn lại NGOÀI repo, người dùng gửi hãng. Hãng phát hành

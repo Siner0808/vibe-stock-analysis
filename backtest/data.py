@@ -20,6 +20,7 @@ import pandas as pd
 # lại gắn STALE thì không công cụ nào sửa được nó — đúng tình trạng ngày
 # 20/08/2026: 69% rổ bị BLOCK vì STALE mà không có đường nào làm mới.
 from data_quality import STALE_WARN_DAYS, nen_cuoi_dang_do, now_vn
+import nguon_gia_cong_khai as _ngk
 
 _CACHE_MAC_DINH = Path(__file__).parent / "cache"
 
@@ -163,63 +164,51 @@ def ghi_cache(df: pd.DataFrame, symbol: str) -> Path:
     return path
 
 
-NGUON_MAC_DINH = ("kbs", "tcbs", "vci", "dnse")
+#: Từ BƯỚC 267 (11/11/2026) `vnstock` bị hãng gỡ nên không còn `kbs/tcbs/vci/dnse`: nguồn
+#: là các điểm cuối công khai ở `nguon_gia_cong_khai` (cổ phiếu: Entrade → VNDirect → VPS;
+#: VN-Index: VNDirect → iBoard → VPS). Đổi thứ tự là đổi nguồn trả lời, tức đổi hệ số
+#: điều chỉnh và định nghĩa khối lượng — phải cố ý (gác `tests/test_ghim_nguon_gia.py`).
+NGUON_MAC_DINH_CO_PHIEU = tuple(n.ten for n in _ngk.CHUOI_CO_PHIEU)
+NGUON_MAC_DINH_CHI_SO = tuple(n.ten for n in _ngk.CHUOI_CHI_SO)
 
 
 def fetch_one(symbol: str, start: str, end: str, pause: float = 0.4,
               nguon: str | tuple[str, ...] | None = None) -> pd.DataFrame | None:
-    """Tải OHLCV từ vnstock. Trả None nếu không lấy được (KHÔNG sinh dữ liệu giả).
+    """Tải OHLCV ngày. Trả None nếu không lấy được (KHÔNG sinh dữ liệu giả).
 
-    `nguon` GHIM nguồn. Mặc định `None` giữ nguyên hành vi cũ: thử lần
-    lượt `kbs → tcbs → vci → dnse`, lấy cái đầu tiên có dữ liệu.
+    Nguồn: `nguon_gia_cong_khai` (không khoá). Một chuỗi giá luôn đến từ MỘT nguồn; tên
+    nguồn đã phục vụ nằm ở `df.attrs["nguon"]` (mất khi ghi CSV, nên người gọi muốn giữ
+    thì phải ghi riêng).
 
-    VÌ SAO CẦN GHIM ĐƯỢC (đo 11/09/2026)
-    ────────────────────────────────────
-    Cách rơi-sang-nguồn-khác **không ghi lại nguồn nào đã trả lời**, mà
-    hai nguồn là **hai hệ số điều chỉnh**. Lượt kéo `backtest/cache_2018/`
-    ngày 11/09 có 123 mã từ `kbs` và **2 mã từ `vci`** (HT1, TCH) —
-    không vì `kbs` thiếu dữ liệu, mà vì một lần hỏng tạm thời. Hỏi lại
-    sau đó: `kbs` trả đủ 1.995 phiên cho cả hai.
+    `nguon` GHIM nguồn. Mặc định `None`: thử lần lượt chuỗi mặc định (cổ phiếu hay VN-Index),
+    lấy nguồn đầu tiên cho được CẢ chuỗi qua kiểm lành mạnh.
 
-    Giá hai nguồn KHÔNG bằng nhau. Đo trên chính ba mã ấy:
-
-        TCH  1988/1995 dòng lệch · tỷ lệ vci/kbs TB 0,9971
-        HT1   116/1995 dòng lệch · TB 0,99998
-        FPT  1499/1995 dòng lệch · TB 0,99966
-
-    Phần lớn là một hệ số gần đều nên **triệt tiêu trong lợi nhuận**,
-    nhưng nó không đều tuyệt đối. Một rổ trộn hai nguồn là một rổ trộn
-    hai hệ số, và **không ai biết** vì hàm này im lặng.
-
-    Cùng họ với lỗi 30: thứ gây hại không phải việc rơi nguồn, mà việc
-    rơi nguồn KHÔNG ĐƯỢC HỎI.
+    VÌ SAO CẦN GHIM ĐƯỢC (đo 11/09/2026, thời `vnstock`)
+    ────────────────────────────────────────────────────
+    Cách rơi-sang-nguồn-khác **không ghi lại nguồn nào đã trả lời**, mà hai nguồn là **hai hệ
+    số điều chỉnh**: lượt kéo `backtest/cache_2018/` ngày 11/09 có 123 mã từ `kbs` và 2 mã từ
+    `vci`; giá hai nguồn lệch (TCH 1988/1995 dòng). Cùng họ với lỗi 30: thứ gây hại không phải
+    việc rơi nguồn, mà việc rơi nguồn KHÔNG ĐƯỢC HỎI. Nay thêm một lý do nữa (BƯỚC 267): các
+    nguồn công khai khác nhau cả ở KHỐI LƯỢNG (iBoard cộng khối lượng thoả thuận ở HNX/UPCoM).
     """
-    from vnstock import Quote
-
-    # Nạp API key từ cấu hình NGOÀI mã nguồn (biến môi trường hoặc
-    # .streamlit/secrets.toml). Idempotent, không in key ra đâu cả.
-    try:
-        from vnstock_auth import ensure_api_key
-        ensure_api_key()
-    except Exception:
-        pass
-
+    ngk = _ngk
     if nguon is None:
-        danh_sach = NGUON_MAC_DINH
-    elif isinstance(nguon, str):
-        danh_sach = (nguon,)
+        chuoi = None
     else:
-        danh_sach = tuple(nguon)
+        ten = (nguon,) if isinstance(nguon, str) else tuple(nguon)
+        theo_ten = {n.ten: n for n in (ngk.NGUON_ENTRADE, ngk.NGUON_VNDIRECT,
+                                      ngk.NGUON_VPS, ngk.NGUON_IBOARD)}
+        la = [t for t in ten if t not in theo_ten]
+        if la:
+            raise ValueError(f"nguồn không có trong nguon_gia_cong_khai: {la} "
+                             f"(có: {sorted(theo_ten)})")
+        chuoi = [theo_ten[t] for t in ten]
 
-    for src in danh_sach:
-        try:
-            df = Quote(symbol=symbol, source=src).history(start=start, end=end)
-            if df is not None and not df.empty:
-                time.sleep(1.0)          # lịch sự với API, tăng lên 1.0s để tránh block
-                return df
-        except Exception:
-            continue
-    return None
+    try:
+        return ngk.lay_ohlcv(symbol, start, end, chuoi=chuoi, nghi=pause).df
+    except ngk.NguonGiaHetNguon as e:
+        print(f"  ⚠️ {symbol}: {e}")
+        return None
 
 
 def bo_nen_dang_do(df: pd.DataFrame, bay_gio: datetime) -> pd.DataFrame:
