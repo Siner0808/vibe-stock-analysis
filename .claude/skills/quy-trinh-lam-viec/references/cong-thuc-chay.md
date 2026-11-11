@@ -208,7 +208,7 @@ cổng 4 ≈ 730s · cổng 5 ≈ 3s. Chúng đổi theo tải máy; nói ra là
 
 | test | trạng thái | vì sao |
 |---|---|---|
-| `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_DUNG_ban_va_KHOP_ban_dang_chay` | đỏ MÔI TRƯỜNG | không có `vnstock`/`vnai` để so bản ghim; không phải lỗi của thay đổi |
+| `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_KHOP_ban_dang_chay` · `tests/test_vnstock_goi.py::test_bang_ky_bctc_khop_voi_vnai` · `tests/test_no_fabricated_data.py::test_goi_vnstock_dung_chu_ky_ham` | skip CÓ LÝ DO khi không có `vnstock` (từ BƯỚC 266, 11/11/2026; trước đó test đầu ĐỎ môi trường) | ngoại lệ TẠM của CI `kiem-dinh` (kho hãng đóng); gỡ khi BƯỚC 265 vào, gác `tests/test_bo_qua_khi_vang_vnstock_266.py` ĐỎ khi ghim đổi mà danh sách còn |
 | `tests/test_tools_hau_kiem_loi.py::test_CLIENT_THAT_dung_HAN_CHO_va_SO_LAN_THU` · `::test_GENAI_THAT_loi_mang_ma_HTTP_va_phan_loai_dung` · `::test_GENAI_THAT_nhan_DUNG_config_cua_tham_so_goi` | đỏ MÔI TRƯỜNG (đo 28/10/2026, BƯỚC 236) | `ImportError: cannot import name 'genai' from 'google'`: gói `google-genai` không nằm trong `requirements.txt`, nên venv dựng theo mục 1 không có nó; đỏ y hệt trên `main` `a877ca6` |
 | `tests/test_cache_bctc_du_ky.py` | skip | dữ liệu BCTC chỉ nằm ở máy người dùng |
 | `tests/test_vnstock_goi.py` | skip | `vnai` không có ở môi trường này |

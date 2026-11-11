@@ -50,8 +50,16 @@ jobs:
         # loi, cai o day de test thay goi that; Streamlit Cloud khong cai no. Dung viet
         # duong dan cong cu vao chu thich o day: gac bo cong suy cong CI tu moi
         # duong dan cong cu xuat hien trong file nay (bai hoc 16/10).
+        #
+        # BƯỚC 266 (11/11/2026) — TẠM: kho hãng đóng ngày 10/11/2026 (HTTP 410 cho `vnstock` và
+        # `vnai`), nên cài thẳng file này chết ở `vnstock==4.0.9`. Bước này cài một BẢN LỌC dựng
+        # ngay trong job: bỏ các dòng bắt đầu bằng `vnstock` (gồm `vnstock_ezchart`, gói chỉ để
+        # vnstock chạy và đòi chính vnstock), `vnai`, và dòng kho riêng của hãng. `requirements.txt`
+        # giữ nguyên (Streamlit Cloud đọc nó). Test cần vnstock đang cài bỏ qua CÓ LÝ DO, có hạn gỡ
+        # khi BƯỚC 265 vào; khoá bởi gác `tests/test_bo_qua_khi_vang_vnstock_266.py`.
         run: |
-          pip install -r requirements.txt
+          grep -vE '^(vnstock|vnai|--extra-index-url)' requirements.txt > "$RUNNER_TEMP/requirements-ci.txt"
+          pip install -r "$RUNNER_TEMP/requirements-ci.txt"
           pip install -r requirements-hau-kiem.txt
           pip install pytest
 
