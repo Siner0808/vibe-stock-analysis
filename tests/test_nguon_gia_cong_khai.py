@@ -34,6 +34,14 @@ HOST = {"entrade": "services.entrade.com.vn", "vndirect": "dchart-api.vndirect.c
 NGUON = {n.ten: n for n in (ngk.NGUON_ENTRADE, ngk.NGUON_VNDIRECT, ngk.NGUON_VPS, ngk.NGUON_IBOARD)}
 
 
+@pytest.fixture(autouse=True)
+def _dong_ho_goi_mang_ve_0():
+    """`_lan_goi_cuoi` là trạng thái module (nghỉ giữa hai lần gọi): đặt lại trước và sau mỗi test."""
+    ngk._lan_goi_cuoi[0] = 0.0
+    yield
+    ngk._lan_goi_cuoi[0] = 0.0
+
+
 def _pr(ten):
     return copy.deepcopy(FIX[ten]["phan_hoi"])
 
@@ -106,6 +114,17 @@ def test_bon_nguon_cung_gia_dong_cua_FPT_nhung_ngay_chung():
         gia = {t: float(s.loc[ngay]) for t, s in khung.items()}
         assert len(set(gia.values())) == 1, (ngay, gia)
     assert float(khung["vndirect"].loc["2026-11-10"]) == 50.9       # đơn vị nghìn đồng, như VCI
+
+
+def test_ngay_phien_la_ngay_gio_VN_cho_moi_cach_dat_moc():
+    """Nguồn đặt mốc nến ở 00:00 UTC (iBoard/VPS), 02:00 UTC = 09:00 ICT (Entrade) hoặc 17:00 UTC hôm
+    trước = 00:00 ICT (kiểu TradingView): cả ba là CÙNG một ngày phiên theo giờ VN."""
+    nam = [dt.datetime(2026, 11, 10, 0, 0, tzinfo=dt.timezone.utc), dt.datetime(2026, 11, 10, 2, 0, tzinfo=dt.timezone.utc),
+           dt.datetime(2026, 11, 9, 17, 0, tzinfo=dt.timezone.utc)]
+    for gio in nam:
+        ra = {"t": [int(gio.timestamp())], "o": [1.0], "h": [1.0], "l": [1.0], "c": [1.0], "v": [1]}
+        df = ngk.dung_khung(ngk._doc_phang(ra), dt.date(2026, 11, 1), dt.date(2026, 11, 30))
+        assert str(df["time"].iloc[0].date()) == "2026-11-10", gio
 
 
 def test_cat_cua_so_hai_dau_tinh_ca_hai_dau():
@@ -384,9 +403,11 @@ def test_thu_lai_het_lan_thi_loi_va_loi_vinh_vien_KHONG_thu_lai():
         lan["n"] += 1
         raise ngk._LoiTam("HTTP 500")
 
+    ngu = []
     with pytest.raises(ngk.NguonGiaLoi, match="HTTP 500 sau 3 lần thử"):
-        ngk._goi_co_thu_lai("u", "*/*", tam, lambda s: None, lambda: 0.0, 0.0)
+        ngk._goi_co_thu_lai("u", "*/*", tam, ngu.append, lambda: 0.0, 0.0)
     assert lan["n"] == 3
+    assert ngu == [2.0, 5.0], ngu          # không nghỉ thêm SAU lần thất bại cuối trước khi báo lỗi
     lan["n"] = 0
 
     def vinh_vien(url, accept="*/*"):
@@ -483,6 +504,41 @@ def test_collect_OK_tra_ten_nguon_va_khung_dung_dang(monkeypatch, ngay_co_dinh):
     assert list(r["df"].columns) == list(ngk.COT) and r["quality"] is not None
 
 
+def test_cua_so_vci_cu_la_so_ngay_lam_viec_cong_mot_va_xin_lui_dau_cua_so():
+    """Luật đếm của `vnstock` 4.0.9/VCI (quote.py L234-262): countBack = len(bdate_range(start,end)) + 1."""
+    start_rong, n = ngk.cua_so_vci_cu("2023-11-12", "2026-11-11")
+    assert n == len(pd.bdate_range("2023-11-12", "2026-11-11")) + 1 == 784
+    assert start_rong == "2023-06-25"                     # 30 + ceil(1095 / 10) = 140 ngày lùi
+    assert start_rong < "2023-11-12"
+    assert ngk.cua_so_vci_cu("2026-11-02", "2026-11-11")[1] == 8 + 1 and ngk.cua_so_vci_cu("2026-11-11", "2026-11-01")[1] == 0
+
+
+def test_collect_GIU_cua_so_784_cua_VCI_cu_khong_phai_746_cua_start(monkeypatch, ngay_co_dinh):
+    """KHOÁ hành vi cố ý (BƯỚC 267): `collect` trả 784 nến CUỐI, đầu cửa sổ nằm TRƯỚC `start` như VCI cũ
+    (FPT 785 nến từ 2023-09-19 so với 746 nến từ 2023-11-13 khi tôn trọng `start`). "Sửa" về tôn trọng
+    `start` đổi điểm 184/1.420 cặp và 2 quyết định qua ngưỡng 62 — test này phải ĐỎ khi ai đó làm vậy."""
+    import data_collectors as dc
+    monkeypatch.setattr(ngk, "_http_json", _http_gia({"entrade": _chuoi_theo_url}))
+    monkeypatch.setattr(ngk, "NGHI_GIUA_LAN_GOI_GIAY", 0.0)
+    r = dc.VNStockCollectorAgent().collect("FPT", "2023-11-12", "2026-11-11")
+    assert r["status"] == "OK" and len(r["df"]) == 784, len(r["df"])
+    assert r["df"]["time"].iloc[0] < pd.Timestamp("2023-11-12"), r["df"]["time"].iloc[0]
+    assert str(r["df"]["time"].iloc[-1].date()) == "2026-11-11"
+    assert r["df"]["time"].is_monotonic_increasing and str(r["df"]["time"].dtype) == "datetime64[ns]"
+
+
+def test_collect_cua_so_ngan_va_ma_moi_niem_yet(monkeypatch, ngay_co_dinh):
+    import data_collectors as dc
+    monkeypatch.setattr(ngk, "_http_json", _http_gia({"entrade": _chuoi_theo_url}))
+    monkeypatch.setattr(ngk, "NGHI_GIUA_LAN_GOI_GIAY", 0.0)
+    r = dc.VNStockCollectorAgent().collect("FPT", "2026-10-01", "2026-11-11")
+    assert len(r["df"]) == len(pd.bdate_range("2026-10-01", "2026-11-11")) + 1
+    # mã niêm yết muộn: nguồn chỉ có 60 phiên thì trả 60, không bịa thêm
+    monkeypatch.setattr(ngk, "_http_json", _http_gia({"entrade": _chuoi_tong_hop(60)}))
+    r = dc.VNStockCollectorAgent().collect("GEL", "2023-11-12", "2026-11-11")
+    assert len(r["df"]) == 60
+
+
 def test_collect_nguon_dau_bi_kiem_dinh_chan_thi_nguon_ke_duoc_dung(monkeypatch, ngay_co_dinh):
     import data_collectors as dc
     hong = _chuoi_tong_hop(60)
@@ -549,6 +605,16 @@ def test_chi_so_moi_nhat_di_qua_chuoi_chi_so_ke_ca_cua_so_ngan(monkeypatch):
     r = mf.chi_so_moi_nhat()
     assert r["loi"] is None and r["nguon"] == "mạng" and r["dong_cua"] is not None and r["phan_tram"] is not None
     assert len(http.goi) == 1
+
+
+def test_ma_la_vao_URL_nen_chi_nhan_chu_hoa_va_so():
+    http = _http_gia({"entrade": _chuoi_tong_hop(30)})
+    for xau in ("FPT&x=1", "FPT/../x", "", "A" * 13, "FP T", "FPT?"):
+        with pytest.raises(ValueError, match="mã không hợp lệ"):
+            ngk.lay_ohlcv(xau, "2026-01-01", "2026-12-31", http=http, ngu=lambda s: None, dong_ho=lambda: 0.0)
+    assert http.goi == []
+    assert ngk.lay_ohlcv(" fpt ", "2026-01-01", "2026-12-31", http=http, ngu=lambda s: None,
+                         dong_ho=lambda: 0.0).df["time"].size == 30
 
 
 def test_toi_thieu_mac_dinh_theo_cua_so():
@@ -739,5 +805,5 @@ def test_AST_nguon_gia_cong_khai_khong_doc_dia_khong_doc_khoa():
     nhap = sorted({a.name.split(".")[0] for n in ast.walk(cay) if isinstance(n, ast.Import) for a in n.names}
                   | {(n.module or "").split(".")[0] for n in ast.walk(cay) if isinstance(n, ast.ImportFrom)})
     assert not thay, thay
-    assert set(nhap) <= {"__future__", "time", "dataclasses", "datetime", "typing", "pandas", "importlib",
+    assert set(nhap) <= {"__future__", "re", "time", "dataclasses", "datetime", "typing", "pandas", "importlib",
                          "requests"}, nhap

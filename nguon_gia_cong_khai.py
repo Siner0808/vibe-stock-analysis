@@ -41,9 +41,10 @@ KHÔNG tự cắt nó — người gọi phải dùng `data_quality.nen_cuoi_dan
 """
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from typing import Callable, Iterable
 
 import pandas as pd
@@ -56,7 +57,6 @@ SO_LAN_THU = 3                      # 1 lần đầu + 2 lần thử lại
 LUI_GIAY = (2.0, 5.0)               # nghỉ trước lần thử lại thứ 1 và thứ 2
 NGHI_GIUA_LAN_GOI_GIAY = 0.3        # tối thiểu giữa hai lần gọi mạng liên tiếp
 TOI_THIEU_PHIEN = 20                # = data_quality.SO_PHIEN_TOI_THIEU (test khoá bằng nhau)
-GIO_VN = timezone(timedelta(hours=7))
 
 CHI_SO_HO_TRO = ("VNINDEX",)
 COT = ("time", "open", "high", "low", "close", "volume")
@@ -295,6 +295,28 @@ def toi_thieu_mac_dinh(d_tu: date, d_den: date) -> int:
     return max(2, min(TOI_THIEU_PHIEN, ngay_lam_viec // 2))
 
 
+def cua_so_vci_cu(tu, den) -> tuple[str, int]:
+    """(ngày bắt đầu xin RỘNG HƠN, số phiên GIỮ LẠI) để tái hiện đúng cửa sổ của đường `vnstock`/VCI cũ.
+
+    VÌ SAO (đo 11/11/2026, BƯỚC 267). `vnstock` 4.0.9 nguồn VCI KHÔNG gửi `start`: nó gửi `to` và
+    `countBack = len(pd.bdate_range(start, end)) + 1` (`vnstock/explorer/vci/quote.py`), tức trả
+    (số ngày làm việc T2–T6 trong cửa sổ + 1) nến CUỐI, kể cả mấy tháng nằm trước `start` vì ngày
+    làm việc nhiều hơn phiên (lễ). Cửa sổ 1.095 ngày cho 783 ngày làm việc -> 784 nến, bắt đầu
+    2023-09-19 thay vì 2023-11-13; KBS và các điểm cuối công khai tôn trọng `start` nên chỉ cho
+    746. `run_daily` thử VCI trước, nên sổ thật từng được chấm trên ~784 nến. Trên 71 mã × 20 phiên
+    gần nhất (cache trên đĩa, `paper_runner._analyze`) cửa sổ 746 đổi điểm ở 184/1.420 cặp
+    (|Δ| trung bình 0,21, tối đa 4) và đẩy 2 quyết định qua ngưỡng 62 (60 -> 62, cả hai lên MUA):
+    đường mới KHÔNG được lặng lẽ đổi cửa sổ, nên giữ đúng luật đếm cũ.
+
+    Xin lùi thêm `30 + 10%` số ngày lịch của cửa sổ (ngày lễ ~4–5%/năm, Tết thêm) để đủ nến cho
+    `tail`; mã niêm yết muộn thì ít nến hơn, như VCI.
+    """
+    d_tu, d_den = _ngay(tu, "tu"), _ngay(den, "den")
+    n = len(pd.bdate_range(d_tu, d_den)) + 1 if d_den >= d_tu else 0
+    them = 30 + -(-(d_den - d_tu).days // 10) if d_den >= d_tu else 0
+    return (d_tu - pd.Timedelta(days=them)).isoformat()[:10], n
+
+
 def kiem_so_phien(df: pd.DataFrame, toi_thieu: int) -> None:
     if len(df) < toi_thieu:
         raise NguonGiaLoi(f"chỉ {len(df)} phiên < tối thiểu {toi_thieu}")
@@ -319,6 +341,8 @@ def lay_ohlcv(ma: str, tu, den, *,
     ngu = ngu or time.sleep
     dong_ho = dong_ho or time.monotonic
     ma_chuan = str(ma).strip().upper()
+    if not re.fullmatch(r"[A-Z0-9]{1,12}", ma_chuan):
+        raise ValueError(f"mã không hợp lệ (chỉ chữ hoa và số, ≤ 12 ký tự): {ma!r}")
     d_tu, d_den = _ngay(tu, "tu"), _ngay(den, "den")
     if toi_thieu is None:
         toi_thieu = toi_thieu_mac_dinh(d_tu, d_den)

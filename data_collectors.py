@@ -82,13 +82,15 @@ class VNStockCollectorAgent:
 
         last_report = None
         ly_do_het = ""
+        # Cửa sổ giữ đúng luật đếm của đường VCI cũ (BƯỚC 267): `n_giu` nến CUỐI, xin lùi thêm đầu cửa sổ.
+        start_rong, n_giu = ngk.cua_so_vci_cu(start, end)
         try:
-            kq = ngk.lay_ohlcv(symbol, start, end, kiem_them=kiem_dinh)
+            kq = ngk.lay_ohlcv(symbol, start_rong, end, kiem_them=kiem_dinh)
         except ngk.NguonGiaHetNguon as e:
             ly_do_het = str(e)
             last_report = bao_cao.get("cuoi")
         else:
-            df = normalize_ohlcv(kq.df)
+            df = normalize_ohlcv(kq.df).tail(n_giu).reset_index(drop=True)
             report = validate_ohlcv(df, symbol=symbol, exchange=exchange)
             note = f"Tải dữ liệu thành công ({len(df)} phiên từ {kq.nguon.upper()})"
             if report.warnings:
