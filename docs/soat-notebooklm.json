@@ -5036,6 +5036,180 @@
     "BƯỚC 266": {
       "ngay": "2026-11-11",
       "khong_bat_buoc_vi": "Chỉ đổi cấu hình CI và test, không đổi luật hay kết luận đo: .github/workflows/kiem-dinh.yml cài một bản lọc của requirements.txt (bỏ các dòng vnstock, vnai, vnstock_ezchart và kho riêng của hãng, vì kho ấy trả HTTP 410 từ 10/11/2026) thay vì cài thẳng; ba test cần vnstock đang cài (tests/test_requirements.py, tests/test_vnstock_goi.py, tests/test_no_fabricated_data.py) mang một dấu bỏ qua có lý do khi không import được vnstock; thêm tests/bo_qua_khi_vang_vnstock_266.py và tests/test_bo_qua_khi_vang_vnstock_266.py (gác tự hết hạn khi BƯỚC 265 đổi ghim vnstock); sửa mẫu nhận job trong tests/test_telemetry_vnstock_tat.py cho khỏi rời gác; một dòng ở bảng đỏ-skip đã biết của references/cong-thuc-chay.md; một ghi chú ở docs/HANDOFF.md. Không file nào trong tập file luật của tools/buoc_cham_luat.py bị chạm (CLAUDE.md, SKILL.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, docs/TIEU-CHI-DOC-TRUOC.md, docs/LO-TRINH.md), requirements.txt không đổi, không điểm, ngưỡng, cổng, lệnh hay sổ nào đổi, và docs/STATE.md chỉ ghi lại việc đã làm. Quyết định người dùng 11/11/2026 (Bỏ tạm vnstock khỏi CI) đã được chuyển nguyên văn trong STATE."
+    },
+    "BƯỚC 267": {
+      "ngay": "2026-11-11",
+      "nguon": [
+        "CLAUDE.md @aac135f",
+        "HANDOFF.md @3d87a20",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @aac135f",
+        "MO-XE-KIEN-TRUC.md @64e3d3b",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "README.md @aac135f",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @f27bc50",
+        "references/loi-da-mac.md @cced339",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3d87a20 phan6/6 (BUOC 251-257)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "TIEU-CHI-DOC-TRUOC.md @cced339"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với origin/main f750106): 23 nguồn, 17 tươi; không tươi: CLAUDE.md @aac135f = CU; HANDOFF.md @3d87a20 = CU; LO-TRINH.md @aac135f = CU; README.md @aac135f = CU; references/cong-thuc-chay.md @f27bc50 = CU; STATE.md @3d87a20 phan6/6 (BUOC 251-257) = CU — kết luận CU.",
+      "cau_hoi": "I am about to write BƯỚC 267 into docs/STATE.md: From 11/11/2026 (BƯỚC 267) the daily price path no longer uses vnstock. CLAUDE.md section 'Dữ liệu và gói vnstock' will say: prices come from nguon_gia_cong_khai (stocks Entrade then VNDirect then VPS; VN-Index VNDirect then iBoard then VPS), one series always from ONE source, SSI iBoard is excluded from the stock chain because it has wrong UPCoM prices and adds put-through volume at HNX/UPCoM, VNStockCollectorAgent.collect keeps the old VCI window of about 784 bars (countBack = weekdays + 1, ignoring start) and must not be changed to honour start (746 bars), requirements.txt no longer pins vnstock, vnai or vnstock_ezchart, and on CI/Cloud mau_bang_gia has only three colours with the reason 'không có nguồn' because no public source has ceiling/floor/reference. The local/CI table OHLCV cells will say about 784 sessions from a public source and that no real scan has run on Actions/Cloud yet. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that prices come from vnstock, or that vnstock==4.0.9 and vnai==2.6.2 are pinned in requirements.txt, or that SSI iBoard is the primary price source, or that the scan window is 746 sessions or honours the start date, or that the price board always has five colours or that ceiling/floor may be inferred from a percentage, or that Cloud/Actions OHLCV is measured at the silver tier. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "0e8008ed54ac65c711c8d39b9a41df0e2d221500cbf925def61b8c9c748cbd9b",
+        "dai16": 5638,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 2,
+            "nguon": "README.md @aac135f"
+          },
+          {
+            "n": 3,
+            "nguon": "MO-XE-KIEN-TRUC.md @64e3d3b"
+          },
+          {
+            "n": 4,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 5,
+            "nguon": "LO-TRINH.md @aac135f"
+          },
+          {
+            "n": 6,
+            "nguon": "README.md @aac135f"
+          },
+          {
+            "n": 7,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 8,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 9,
+            "nguon": "references/cong-thuc-chay.md @f27bc50"
+          },
+          {
+            "n": 9,
+            "nguon": "references/cong-thuc-chay.md @f27bc50"
+          },
+          {
+            "n": 10,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 11,
+            "nguon": "README.md @aac135f"
+          },
+          {
+            "n": 8,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 8,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 12,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 12,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 13,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 14,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          },
+          {
+            "n": 10,
+            "nguon": "CLAUDE.md @aac135f"
+          },
+          {
+            "n": 15,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @cced339"
+          }
+        ]
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "CLAUDE.md, dòng mở đầu: \"Streamlit + Python 3.11, dữ liệu từ vnstock\" thành sai khi giá ngày đi qua nguon_gia_cong_khai.",
+          "tu_kiem": "git show origin/main:CLAUDE.md | grep -n \"dữ liệu từ\" -> dòng 3 (có thật); sau sửa: grep -n \"giá ngày từ điểm cuối\" CLAUDE.md -> dòng 3.",
+          "phan_quyet": "THẬT. Câu có thật ở CLAUDE.md:3 @origin/main và đã sửa trong chính BƯỚC này."
+        },
+        {
+          "noi_dung": "README.md, đoạn mở đầu: \"dữ liệu vnstock\" thành sai.",
+          "tu_kiem": "git show origin/main:README.md | grep -c \"dữ liệu \\[vnstock\\]\" -> 1 (có thật, README.md:11); sau sửa: grep -n \"giá ngày từ điểm cuối công khai\" README.md -> dòng 11.",
+          "phan_quyet": "THẬT. Đã sửa: \"giá ngày từ điểm cuối công khai (đến 10/11/2026: vnstock)\"."
+        },
+        {
+          "noi_dung": "README.md, mục Giấy phép: \"tài liệu kỹ thuật của gói vnstock không được lưu trong repo này\" — sổ tay xếp vào nhóm sẽ sai.",
+          "tu_kiem": "grep -n \"tài liệu kỹ thuật của gói vnstock\" README.md -> dòng 122; grep -n \"Tài liệu skill của vnstock KHÔNG ghi ra đĩa\" CLAUDE.md -> còn nguyên.",
+          "phan_quyet": "SAI. Câu nói về giấy phép tài liệu của gói, không về nguồn giá; BƯỚC 267 không đổi việc đó, nên nó vẫn đúng và KHÔNG sửa."
+        },
+        {
+          "noi_dung": "README.md, mục Một ngày của agent: \"bảng giá năm màu\" thành sai ở CI/Cloud (chỉ ba màu, lý do \"không có nguồn\").",
+          "tu_kiem": "git show origin/main:README.md | grep -c \"bảng giá năm màu\" -> 1; sau sửa: grep -n \"ba màu ở CI/Cloud từ BƯỚC 267\" README.md -> dòng 42; tests/test_nguon_gia_cong_khai.py::test_bang_gia_vang_vnstock_la_khong_co_nguon_va_khong_suy_tran xanh.",
+          "phan_quyet": "THẬT. Đã thêm \"(ba màu ở CI/Cloud từ BƯỚC 267)\"; năm màu vẫn đúng ở máy cài được vnstock."
+        },
+        {
+          "noi_dung": "MO-XE-KIEN-TRUC.md, mục Tầng 1: \"| OHLCV (vnstock) | ✅ hoạt động |\" thành sai.",
+          "tu_kiem": "git show origin/main:MO-XE-KIEN-TRUC.md | grep -n \"OHLCV (vnstock)\" -> dòng 42; sau sửa: grep -n \"OHLCV (`nguon_gia_cong_khai`\" MO-XE-KIEN-TRUC.md -> dòng 42.",
+          "phan_quyet": "THẬT. Đã đổi nhãn nguồn; trạng thái ✅ vẫn đúng (smoke 71/71, BƯỚC 267 mục 8)."
+        },
+        {
+          "noi_dung": "docs/LO-TRINH.md, Rủi ro: \"phụ thuộc vnstock (từng bị cách ly trên PyPI 25–26/09)\" thành thiếu/sai.",
+          "tu_kiem": "git show origin/main:docs/LO-TRINH.md | grep -n \"phụ thuộc .vnstock\" -> dòng 332; sau sửa: grep -n \"phụ thuộc nguồn giá bên ngoài\" docs/LO-TRINH.md -> dòng 332.",
+          "phan_quyet": "THẬT. LO-TRINH là file luật nên phải sửa; đã nêu việc hãng gỡ gói 10/11/2026 và đường tạm không có điều khoản công bố."
+        },
+        {
+          "noi_dung": "CLAUDE.md, mục Dữ liệu và gói vnstock: bullet \"Ghim bản: từ BƯỚC 127 vnstock==4.0.9, vnai==2.6.2 …\" thành sai.",
+          "tu_kiem": "git show origin/main:CLAUDE.md | grep -n \"Ghim bản:\" -> có; sau sửa: grep -n \"Ghim bản\" CLAUDE.md -> chỉ còn trong dòng 🔴 HẾT ĐÚNG đến docs/lich-su/CLAUDE-md-2026-11-11.md; tests/test_requirements.py::test_requirements_khong_con_goi_cua_hang_hay_tham_chieu_git xanh.",
+          "phan_quyet": "THẬT. Bullet chuyển nguyên văn sang docs/lich-su/CLAUDE-md-2026-11-11.md; requirements.txt hết dòng vnstock/vnai/kho hãng/ezchart."
+        },
+        {
+          "noi_dung": "CLAUDE.md, bảng Bất đối xứng local/CI (ba ô OHLCV) và đoạn dưới bảng \"requirements.txt khai bản vnstock/vnai bằng ghim ==\" thành sai.",
+          "tu_kiem": "git show origin/main:CLAUDE.md | grep -n \"784 phiên / 1095 ngày\\|bằng ghim\" -> có; sau sửa: grep -n \"nguồn công khai (BƯỚC 267)\\|hết ghim\" CLAUDE.md -> ba ô và đoạn dưới đã đổi; tests/test_bat_doi_xung_ban_goi.py xanh (đã đổi phép kiểm ghim thành hết ghim).",
+          "phan_quyet": "THẬT. Đã đổi ba ô OHLCV (giữ ô hạng gói đã có dấu) và câu về ghim; phép kiểm cũ đòi chữ BƯỚC 127 nay đòi BƯỚC 267."
+        },
+        {
+          "noi_dung": "CLAUDE.md, mục màu bảng giá: \"module ĐỌC ceiling/floor/ref_price từ Trading.price_board … Không đọc được bảng giá → tụt xuống ba màu\" thiếu vế: ở CI/Cloud luôn ba màu.",
+          "tu_kiem": "grep -n \"LUÔN ba màu\" CLAUDE.md -> dòng 108-109; tests/test_mau_bang_gia.py::test_doc_bang_gia_khong_nem_khi_thu_vien_hong xanh (loi bắt đầu \"không có nguồn\").",
+          "phan_quyet": "THẬT. Đã thêm vế \"từ BƯỚC 267 ở CI/Cloud loi = không có nguồn và bảng giá LUÔN ba màu\"; luật không suy trần từ phần trăm giữ nguyên."
+        },
+        {
+          "noi_dung": "references/cong-thuc-chay.md mục 1: dòng grep bỏ ^vnstock · ^vnai và câu giải thích \"hai gói của kho hãng\".",
+          "tu_kiem": "python tools/doi_chieu_trich_dan.py \"grep -v -e '^#' -e '^--' -e '^vnstock' -e '^vnai' requirements.txt\" -> KHỚP cong-thuc-chay.md; sau sửa: grep -n \"HẾT ĐÚNG từ BƯỚC 267\" .claude/skills/quy-trinh-lam-viec/references/cong-thuc-chay.md.",
+          "phan_quyet": "THẬT một phần: lệnh grep còn chạy được (vô hại) nhưng lời giải thích hết đúng vì requirements.txt không còn các dòng ấy; đã đánh dấu 🔴 HẾT ĐÚNG, giữ lệnh."
+        },
+        {
+          "noi_dung": "Ba câu nghi ngờ mà sổ tay trả KHÔNG tìm thấy: iBoard là nguồn giá chính; cửa sổ quét là 746 phiên hoặc tôn trọng ngày bắt đầu; trần/sàn suy từ phần trăm.",
+          "tu_kiem": "grep -rniE \"iboard\" CLAUDE.md README.md MO-XE-KIEN-TRUC.md docs/HANDOFF.md docs/LO-TRINH.md docs/TIEU-CHI-DOC-TRUOC.md docs/QUYET-DINH-CHO.md -> chỉ ba dòng BƯỚC 267 (đều nói iBoard KHÔNG vào chuỗi cổ phiếu); grep -rnE \"746\" CLAUDE.md README.md docs/HANDOFF.md docs/LO-TRINH.md docs/TIEU-CHI-DOC-TRUOC.md -> một dòng BƯỚC 267 (nói đừng sửa về 746); grep -rnE \"suy (ra )?trần|ngưỡng phần trăm\" CLAUDE.md README.md docs/HANDOFF.md docs/LO-TRINH.md -> chỉ các câu CẤM suy trần.",
+          "phan_quyet": "THẬT. Cả ba câu âm đúng khi kiểm bằng grep trên tài liệu hiện hành (sổ tay chỉ thấy bản chụp cũ, nhưng grep trên cây hiện tại cũng không có câu nào ngược lại)."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",

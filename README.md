@@ -8,7 +8,7 @@
 **Một agent tự giao dịch ẢO cổ phiếu Việt Nam, tự ghi bài học sau mỗi lệnh — và một bộ
 dụng cụ đo được dựng để bắt chính nó nói dối.**
 
-71 mã thuộc 16 ngành · dữ liệu [vnstock](https://vnstocks.com) · quét tự động trên GitHub
+71 mã thuộc 16 ngành · giá ngày từ điểm cuối công khai (đến 10/11/2026: [vnstock](https://vnstocks.com)) · quét tự động trên GitHub
 Actions · sổ lệnh ảo trên Google Sheets · giao diện Streamlit.
 
 > [!WARNING]
@@ -39,7 +39,7 @@ chuông; `chuong-bai-hoc` mới có 19): bốn chuông trễ trung vị 6,1–6,
 4,1, lớn nhất 10,2 giờ. Ngoài vòng quét, một workflow riêng (cron 18:17 giờ VN) viết hậu kiểm bằng
 lời cho lệnh đã đóng và thêm vào tab `hau_kiem` (B1); sau mỗi lượt quét thành công, một workflow nữa gửi bản tin
 cuối ngày tới Telegram của người dùng, tối đa một lần mỗi ngày phiên (T3, BƯỚC 258). App chỉ ĐỌC sổ; ngoài vòng này nó còn các
-lớp **chỉ để xem** — phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu, kế hoạch vào
+lớp **chỉ để xem** — phân tích cơ bản, pha Wyckoff, mức Fibonacci, bảng giá năm màu (ba màu ở CI/Cloud từ BƯỚC 267), kế hoạch vào
 lệnh từng mã, cấu trúc giá theo Lý thuyết Dow, nến tuần/tháng.
 
 ## Kết quả đo được

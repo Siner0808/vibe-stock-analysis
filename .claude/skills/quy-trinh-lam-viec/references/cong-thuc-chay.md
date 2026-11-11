@@ -185,7 +185,8 @@ grep -v -e '^#' -e '^--' -e '^vnstock' -e '^vnai' requirements.txt > /tmp/req_da
 ```
 
 Dòng `grep` bỏ chú thích, dòng `--extra-index-url` và hai gói của kho hãng
-(`vnstock`, `vnai`); phần còn lại cài từ PyPI (đo: 12 gói, 43 giây).
+(`vnstock`, `vnai`); phần còn lại cài từ PyPI (đo: 12 gói, 43 giây). 🔴 HẾT ĐÚNG từ BƯỚC 267 (11/11/2026):
+`requirements.txt` không còn các dòng ấy nên `grep` không bỏ gì thêm ngoài chú thích — vô hại, có thể rút gọn.
 
 **2. Năm cổng**, log ra file — cùng lệnh như mục trên, thay python (hoặc một lệnh:
 `/tmp/venv_ci/bin/python tools/nam_cong.py --thu-muc-log /tmp/nc`, BƯỚC 201):
@@ -206,12 +207,13 @@ cổng 4 ≈ 730s · cổng 5 ≈ 3s. Chúng đổi theo tải máy; nói ra là
 
 **4. Đỏ và skip ĐÃ BIẾT ở môi trường này** (số đếm 12/10/2026, 3127 test: 3123 pass · 1 đỏ · 3 skip; dòng `test_tools_hau_kiem_loi` thêm 28/10/2026 khi bộ có 3685 test — đếm lại bằng `-rs`):
 
+🔴 BƯỚC 267 (11/11/2026): ba hàng về `vnstock`/`vnai` (skip CÓ LÝ DO của BƯỚC 266) đã BỎ — `requirements.txt` hết dòng
+vnstock/vnai, ba test cần chúng đã xoá, nên không còn test nào skip vì thiếu vnstock.
+
 | test | trạng thái | vì sao |
 |---|---|---|
-| `tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_KHOP_ban_dang_chay` · `tests/test_vnstock_goi.py::test_bang_ky_bctc_khop_voi_vnai` · `tests/test_no_fabricated_data.py::test_goi_vnstock_dung_chu_ky_ham` | skip CÓ LÝ DO khi không có `vnstock` (từ BƯỚC 266, 11/11/2026; trước đó test đầu ĐỎ môi trường) | ngoại lệ TẠM của CI `kiem-dinh` (kho hãng đóng); gỡ khi BƯỚC 265 vào, gác `tests/test_bo_qua_khi_vang_vnstock_266.py` ĐỎ khi ghim đổi mà danh sách còn |
 | `tests/test_tools_hau_kiem_loi.py::test_CLIENT_THAT_dung_HAN_CHO_va_SO_LAN_THU` · `::test_GENAI_THAT_loi_mang_ma_HTTP_va_phan_loai_dung` · `::test_GENAI_THAT_nhan_DUNG_config_cua_tham_so_goi` | đỏ MÔI TRƯỜNG (đo 28/10/2026, BƯỚC 236) | `ImportError: cannot import name 'genai' from 'google'`: gói `google-genai` không nằm trong `requirements.txt`, nên venv dựng theo mục 1 không có nó; đỏ y hệt trên `main` `a877ca6` |
 | `tests/test_cache_bctc_du_ky.py` | skip | dữ liệu BCTC chỉ nằm ở máy người dùng |
-| `tests/test_vnstock_goi.py` | skip | `vnai` không có ở môi trường này |
 | `tests/test_do_rong.py` · `tests/test_loc_imom.py` · `tests/test_kiem_duong_ngoai_repo.py` | skip (đo 28/10/2026) | không có bản chép cache gốc `acf6dca1…` cạnh repo (hai file đầu); đường dạng Windows (file cuối) |
 | `tests/test_tai_lieu_khop_hang_so.py` | skip | đoạn được canh đã gỡ hẳn |
 

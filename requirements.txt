@@ -6,6 +6,15 @@
 # API có xác thực bằng khoá. Thêm chúng vào đây sẽ làm CI và cloud hỏng ngay
 # ở bước cài, chứ không phải hỏng lúc chạy.
 #
+# Hệ quả phải biết (số cũ, giữ để khỏi lặp lỗi): máy local có gói tài trợ nên chạy ở hạng silver (BCTC không
+# giới hạn số kỳ, 300 req/phút). Streamlit Cloud cũng không cài chúng, nhưng
+# ĐO ĐƯỢC hạng silver ngày 09/10/2026: bảng trạng thái của app in "● ĐÚNG" và
+# `vnstock_goi.kiem_goi()` trả KHỚP (docs/STATE.md BƯỚC 166). Câu cũ ở đây — CI và
+# Cloud "chạy ở hạng free (8 kỳ, 60 req/phút)", `kiem_goi()` "báo LỆCH trên cloud,
+# đó là báo ĐÚNG" — HẾT ĐÚNG: nó suy từ chỗ vắng gói tài trợ, chưa từng là số đo.
+# GitHub Actions: hạng chưa đọc — đừng khẳng định free hay silver cho tới khi đo.
+# Gói tài trợ vẫn không khai ở đây vì chúng không có trên PyPI công khai.
+#
 # BƯỚC 267 (11/11/2026): hãng gỡ `vnstock` và `vnai` khỏi mọi kho ngày 10/11/2026 (kho riêng
 # `vnstocks.com/api/simple` trả HTTP 410; PyPI đã cách ly chúng từ 25/09), nên các dòng
 # `vnstock==4.0.9`, `vnai==2.6.2`, `--extra-index-url …` (BƯỚC 127) và `vnstock_ezchart @ git+…`
