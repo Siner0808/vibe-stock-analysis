@@ -830,6 +830,12 @@ gói, chạy dưới rào chặn nạp gói (cách dựng: BƯỚC 122).
   gói từ kho công khai `github.com/vnstock-hq/vnstock_chart` (MIT) GHIM commit `23d5129` — vá TẠM, xoá khi
   BƯỚC 260 (vnstock 5.x) xong; gác `tests/test_requirements.py`. CI và Cloud cài MÃ NGUỒN của hãng ở commit
   ấy, KHÔNG phải bản vá `1.0.2+vibe1` dưới đây (bản vá chỉ còn ở máy local). `docs/STATE.md` BƯỚC 264.
+- **NGOẠI LỆ TẠM của `kiem-dinh` từ 11/11/2026 (BƯỚC 266):** kho hãng đóng ngày 10/11/2026 (HTTP 410 cho
+  `vnstock` và `vnai`), nên `kiem-dinh.yml` cài BẢN LỌC của `requirements.txt` (bỏ `vnstock`, `vnai`,
+  `vnstock_ezchart` và dòng kho hãng) và ba test cần vnstock đang cài bỏ qua có lý do (*"gỡ khi BƯỚC 265
+  vào"*); ở máy mọi test chạy đủ, trên CI ba test ấy KHÔNG chạy. Gác `tests/test_bo_qua_khi_vang_vnstock_266.py`
+  ĐỎ khi BƯỚC 265 đổi ghim `vnstock==4.0.9` mà ngoại lệ còn — gỡ CÙNG LÚC (cách gỡ ở docstring của gác).
+  `docs/STATE.md` BƯỚC 266.
 - ~~**`vnstock_ezchart` chạy bằng BẢN VÁ tại máy (`1.0.2+vibe1`, 24/09).**~~ *(còn đúng ở máy local; HẾT ĐÚNG ở CI/Cloud, xem dòng trên)* Bản
   phát hành 1.0.2 của hãng thiếu gói con `static/` và khai hai phụ thuộc
   bắt buộc là tuỳ chọn. Báo lỗi đã soạn, **người dùng gửi**. 09/10/2026 (BƯỚC 166, Q8): lỗi chưa sửa (PyPI vẫn 1.0.2); báo lỗi soạn lại NGOÀI repo, người dùng gửi hãng. Hãng phát hành
