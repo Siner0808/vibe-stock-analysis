@@ -1,7 +1,7 @@
 # CLAUDE.md — Luật hiện hành của dự án
 
-Hệ thống phân tích cổ phiếu Việt Nam. Streamlit + Python 3.11, dữ liệu từ
-vnstock. Phát triển local → PR → `main` → Streamlit Cloud tự deploy.
+Hệ thống phân tích cổ phiếu Việt Nam. Streamlit + Python 3.11, giá ngày từ điểm cuối
+công khai (`nguon_gia_cong_khai`, BƯỚC 267; trước đó `vnstock`). Phát triển local → PR → `main` → Streamlit Cloud tự deploy.
 
 > **File này chỉ giữ LUẬT HIỆN HÀNH** (BƯỚC 145, 30/09/2026). Nó được nạp
 > vào ngữ cảnh mỗi phiên — mỗi KB ở đây là chi phí trả ở MỌI lượt gọi công
@@ -105,7 +105,9 @@ backtest sống lại nhưng không đo được).
   xanh lá, tham chiếu vàng, giảm đỏ, sàn xanh lam). **Không bao giờ suy
   trần bằng ngưỡng phần trăm** (SSI trần ở +6,96%, SHS +8,16% mà không
   trần): module ĐỌC `ceiling/floor/ref_price` từ `Trading.price_board`,
-  không có hàm tính trần. Không đọc được bảng giá → tụt xuống ba màu. Ô
+  không có hàm tính trần. Không đọc được bảng giá → tụt xuống ba màu; **từ BƯỚC 267
+  ở CI/Cloud (không vnstock) `loi` = *"không có nguồn: …"* và bảng giá LUÔN ba màu** (không điểm
+  cuối công khai nào có trần/sàn/tham chiếu; chờ BƯỚC 265). Ô
   VN-Index ở topbar gọi `market_filter.chi_so_moi_nhat()` (ưu tiên MẠNG),
   KHÔNG phải `get_vni_df()` (ưu tiên cache) và luôn kèm ngày phiên.
 - `cau_truc_gia` (hai ô Dow trên app; BƯỚC 250) và `khung_thoi_gian`
@@ -215,47 +217,36 @@ chỉ xét ở phiên chấm; ba dòng chưa chạy lại còn khớp được �
   lượt chạy chọn trên IS, nên so theo mã với theo ngày là so cả chế độ lẫn
   ngưỡng. Độ trễ khớp đổi thì ngưỡng nhảy (62/50 → 62/45).
 
-### Backtest khớp T+1 (mặc định từ 10/09/2026)
-
-`walkforward` mặc định `do_tre_khop=1`, khớp như đường chạy thật. Bản cũ
-khớp T+2 vì `stride` thưa hoá luôn phiên KHỚP; đo (ĐO 2): đổi sang T+1 chỉ
-dịch alpha +0,12–0,13, nhỏ hơn một phần sáu bề rộng KTC. **Đừng dùng
-`--stride 1`** để đo độ trễ (đổi cả số điểm quyết định lẫn độ trễ). Đường
-đúng: `--do-tre-khop 1`, ngưỡng ghim tay. `walkforward_vn100.py` đã đổi đuôi
-`.broken` — bản đúng là `walkforward.py`.
-
 ---
 
 ## Dữ liệu và gói vnstock
 
-- **Hạng gói:** đã mua silver, app từng chạy như free (`vnai/beam/auth.py`
-  nuốt `ImportError` của `vnii` rồi rơi xuống `"free"`; `PERIOD_LIMITS`
-  cắt BCTC còn 8 kỳ tại máy). `vnstock_goi.kiem_goi()` có ba trạng thái
-  `KHỚP` / `LỆCH` / `CHƯA KIỂM ĐƯỢC` (mất mạng không được trả "khớp"). **Không
-  bao giờ ép hạng trong mã** (`authenticator._cached_tier = "silver"`).
+- **Giá NGÀY (BƯỚC 267):** hãng gỡ `vnstock` 4.x/5.x ngày 10/11/2026 nên giá đi qua
+  `nguon_gia_cong_khai` — cổ phiếu Entrade → VNDirect → VPS, VN-Index VNDirect → iBoard → VPS; MỘT chuỗi
+  luôn từ MỘT nguồn, User-Agent là tên dự án. Thứ tự do ĐO so với cache
+  4.0.9: **iBoard KHÔNG được vào chuỗi cổ phiếu** (sai giá mã UPCoM, cộng khối lượng thoả thuận ở HNX/UPCoM).
+  `collect` giữ cửa sổ ~784 phiên của VCI cũ (countBack = ngày làm việc + 1, bỏ qua `start`): đừng "sửa" về
+  tôn trọng `start` — 746 phiên đổi điểm 184/1.420 cặp và 2 quyết định qua ngưỡng 62. Đường TẠM; chính thức
+  là BƯỚC 265 (vnstock 6 + khoá SSI). Bảng giá, BCTC, khối ngoại, nến nội phiên: không điểm cuối công
+  khai nào phục vụ — nói thẳng *"không có nguồn"*.
+- 🔴 **Hạng gói · `vnstock_data` · ghim bản — chỉ còn nghĩa ở máy cài được vnstock** (nguyên văn:
+  `docs/lich-su/CLAUDE-md-2026-11-11.md`). Luật còn: **không ép hạng trong mã**; không nhập gói của hãng
+  ngoài một `try` bắt `ImportError` ở đường sản xuất (gác AST `tests/test_nguon_gia_cong_khai.py`);
+  `requirements.txt` không còn dòng vnstock · vnai · kho hãng · `vnstock_ezchart` (BƯỚC 267).
 - **Không `import vnstock_data` ở mức module.** Bốn gói tài trợ không có
   trên PyPI công khai nên không nằm trong `requirements.txt`; dùng thì
   import trong hàm, bọc `try/except`, có đường lui. `vnstock_data` cần
   `~/.vnstock/user.json` (do `vnstock_installer.api.create_user_info()` tạo).
-- **KHÔNG đổi `import vnstock` sang `import vnstock_data` mà chưa đo:** ROE
-  lệch 100 lần (ROE FPT 2025 = 23.59 ↔ 0.2359 nhãn `%`), KBS mất chỉ tiêu
-  (10/60 ↔ 58/58), `RT_BANK_NIM = 0.0` khiến `fundamental_agent.doc_chi_so()`
-  xếp mã phi ngân hàng sang thước ngân hàng. Tài liệu migration `ratio` sai
-  33/60 mã — tệp ấy thuộc khu vực thành viên, **không đưa vào repo**.
 - **Tài liệu skill của vnstock KHÔNG ghi ra đĩa** (giấy phép cấm); nạp lúc
   chạy bằng `vnai.load_skill("<slug>")`.
-- **Ghim bản:** từ BƯỚC 127 `vnstock==4.0.9`, `vnai==2.6.2` lấy từ kho hãng
-  (`--extra-index-url https://vnstocks.com/api/simple`; PyPI cách ly cả hai).
-  `tests/test_requirements.py` đỏ khi bản đang chạy lệch bản ghim. Nâng bản
-  nghĩa là đo lại và sửa ghim.
 
 ## Bất đối xứng local / CI — chủ ý ở bản thư viện; hạng gói của Cloud và Actions phải ĐỌC, không suy
 
 | Nơi | Hạng | BCTC | Hạn mức | OHLCV |
 |---|---|---|---|---|
-| Máy local | silver | không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 300/phút | 784 phiên / 1095 ngày |
-| Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo ở hạng này |
-| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | 784 phiên (số đo cũ, lấy khi còn coi Actions là free) |
+| Máy local | silver | không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 300/phút | ~784 phiên / 1095 ngày, nguồn công khai (BƯỚC 267) |
+| Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo (nguồn công khai, chưa chạy ở đó) |
+| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | điểm cuối công khai trả 200 từ Actions (thăm dò 11/11/2026, chạy 42944667209); quét thật CHƯA chạy |
 
 🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
 

@@ -513,6 +513,9 @@ def execute_daily_scan():
     _da_nap_lich = False
     # Số phiên nến THẬT SỰ nhận được cho từng mã đã chấm được điểm.
     phien_nhan = []
+    # Nguồn giá đã phục vụ từng mã (BƯỚC 267): hai nguồn là hai hệ số điều chỉnh và hai định nghĩa
+    # khối lượng, nên mỗi lượt quét phải nói thẳng nó chạy trên nguồn nào.
+    nguon_gia_dem: Counter = Counter()
     collector = VNStockCollectorAgent()
     # Kế hoạch vào lệnh ghi lúc quét (BƯỚC 195): đếm theo kết quả, gom lỗi.
     ke_hoach_dem: Counter = Counter()
@@ -538,6 +541,7 @@ def execute_daily_scan():
                     break
                 
                 df = res["df"]
+                nguon_gia_dem[str(res.get("source") or "?")] += 1
                 # Nạp lịch phiên THẬT cho ô C1, một lần, từ mã đầu
                 # tiên tải được. Thị trường có phiên thì có nến — đó
                 # là lịch giao dịch duy nhất lấy được, vì `vnstock`
@@ -642,6 +646,10 @@ def execute_daily_scan():
     _dong_do, _dong_canh = bao_cua_so_du_lieu(phien_nhan, _ky_vong, _ngay_ro)
     print(f"📏 {_dong_do}")
     print(f"::notice::{_dong_do}")
+    _dong_nguon = ("NGUỒN GIÁ: " + " · ".join(f"{t} {n}" for t, n in nguon_gia_dem.most_common())
+                   if nguon_gia_dem else "NGUỒN GIÁ: không mã nào tải được")
+    print(f"📡 {_dong_nguon}")
+    print(f"::notice::{_dong_nguon}")
     if _dong_canh:
         print(f"⚠️ {_dong_canh}")
         # `::warning::` chứ KHÔNG phải mã thoát: làm đỏ lượt quét sẽ
