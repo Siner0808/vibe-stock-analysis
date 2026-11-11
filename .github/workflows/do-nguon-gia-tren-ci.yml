@@ -1,0 +1,51 @@
+# DÙNG MỘT LẦN — KHÔNG MERGE. Đo 11/11/2026: các nguồn giá công khai không khoá có trả lời
+# từ máy chủ GitHub (IP nước ngoài) không. Người dùng chọn: "Đo trên máy CI trước, rồi làm (Recommended)".
+# Không dùng secret. Mỗi nguồn gọi 2 lượt, cách nhau 5 giây, hạn chờ 30 giây.
+name: Đo nguồn giá trên CI (dùng một lần)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/do-nguon-gia-tren-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  do:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Quốc gia của IP máy chạy
+        run: curl -s -m 15 https://ipinfo.io/country || echo "không đọc được"
+      - name: Gọi từng nguồn
+        run: |
+          python3 - <<'PY'
+          import json, time, urllib.request, datetime
+          to = int(time.time()); fr = to - 1200 * 86400
+          NGUON = [
+              ("ssi_iboard FPT", f"https://iboard-api.ssi.com.vn/statistics/charts/history?symbol=FPT&resolution=1D&from={fr}&to={to}"),
+              ("ssi_iboard SHS", f"https://iboard-api.ssi.com.vn/statistics/charts/history?symbol=SHS&resolution=1D&from={fr}&to={to}"),
+              ("entrade FPT", f"https://services.entrade.com.vn/chart-api/v2/ohlcs/stock?symbol=FPT&resolution=1D&from={fr}&to={to}"),
+              ("entrade SHS", f"https://services.entrade.com.vn/chart-api/v2/ohlcs/stock?symbol=SHS&resolution=1D&from={fr}&to={to}"),
+              ("vps VNINDEX", f"https://histdatafeed.vps.com.vn/tradingview/history?symbol=VNINDEX&resolution=D&from={fr}&to={to}"),
+              ("vndirect ACV", f"https://dchart-api.vndirect.com.vn/dchart/history?symbol=ACV&resolution=D&from={fr}&to={to}"),
+          ]
+          for luot in (1, 2):
+              for ten, url in NGUON:
+                  t0 = time.time()
+                  try:
+                      req = urllib.request.Request(url, headers={"User-Agent": "vibe-preview-ci-probe/1.0"})
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          ma = r.status
+                          d = json.loads(r.read())
+                      d = d.get("data", d) if isinstance(d, dict) else d
+                      t = d.get("t") or []
+                      cuoi = datetime.datetime.utcfromtimestamp(int(t[-1])).date() if t else None
+                      dau = datetime.datetime.utcfromtimestamp(int(t[0])).date() if t else None
+                      print(f"lượt {luot} | {ten} | HTTP {ma} | {len(t)} nến | {dau}→{cuoi} | đóng cuối {(d.get('c') or [None])[-1]} | {time.time()-t0:.1f}s")
+                  except Exception as e:
+                      print(f"lượt {luot} | {ten} | LỖI {type(e).__name__}: {str(e)[:150]} | {time.time()-t0:.1f}s")
+              if luot == 1:
+                  time.sleep(5)
+          PY
