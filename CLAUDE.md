@@ -251,8 +251,8 @@ chỉ xét ở phiên chấm; ba dòng chưa chạy lại còn khớp được �
 🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
 
 Bất đối xứng KHÔNG CHỈ nằm ở BCTC và hạn mức ⚠️ (câu cũ khai đủ, thiếu vế này): nó còn ở **bản thư viện**.
-`requirements.txt` khai bản `vnstock`/`vnai` bằng ghim `==` (BƯỚC 127), nhưng
-các gói khác vẫn khai bằng **sàn** (`>=`) nên mỗi lượt CI lấy bản MỚI NHẤT
+`requirements.txt` khai MỌI gói bằng **sàn** (hết ghim `==` của vnstock/vnai từ BƯỚC 267;
+trước đó BƯỚC 127) nên mỗi lượt CI lấy bản MỚI NHẤT
 trong khi máy cài một lần rồi đứng yên. Khoảng lệch phải **đo, không suy**
 (chúng đổi theo ngày):
 

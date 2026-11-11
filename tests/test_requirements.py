@@ -33,7 +33,6 @@ GOC = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC / "tools"))
 
 import duyet_repo  # noqa: E402  — liệt kê một tầng bỏ tệp tạm của test khác (BƯỚC 211)
-from bo_qua_khi_vang_vnstock_266 import can_vnstock_dang_cai  # noqa: E402  — ngoại lệ TẠM BƯỚC 266
 
 # Tên module khi import khác tên gói khi cài.
 TEN_GOI = {
@@ -192,7 +191,10 @@ if __name__ == "__main__":
 
 GOI_TAI_TRO = ("vnstock_data", "vnstock-data", "vnstock_ta", "vnstock-ta",
                "vnstock_news", "vnstock-news", "vnstock_pipeline",
-               "vnstock-pipeline", "vnii")
+               "vnstock-pipeline", "vnii",
+               # BƯỚC 267 (11/11/2026): hãng gỡ `vnstock`/`vnai` khỏi mọi kho — chúng nhập vào hàm,
+               # bọc `try`, cùng họ gói tài trợ (gác AST `tests/test_nguon_gia_cong_khai.py`).
+               "vnstock", "vnai", "vnstock_ezchart", "vnstock-ezchart")
 
 
 #: `kiem-dinh.yml` chạy `pip install -r requirements.txt` RỒI `pip install
@@ -407,53 +409,33 @@ def test_khong_import_goi_tai_tro_o_muc_module():
           f"import goi tai tro o muc module")
 
 
-# ══ KHO THỨ HAI — BƯỚC 127 (26/09/2026) ═════════════════════════════════
+# ══ KHÔNG CÒN KHO THỨ HAI — BƯỚC 267 (11/11/2026) ═════════════════════════
 #
-# PyPI cách ly `vnstock` và `vnai`; hai gói lấy từ kho riêng của hãng. Hai
-# gác dưới giữ đúng hai lời hứa của khối chú thích trong requirements.txt:
-# kho thứ hai chỉ THÊM vào PyPI, và hai gói từ kho ấy GHIM ĐÚNG bản máy đã đo.
+# Từ BƯỚC 127 `vnstock==4.0.9` · `vnai==2.6.2` lấy từ kho riêng của hãng
+# (`--extra-index-url https://vnstocks.com/api/simple`), và từ BƯỚC 264 thêm `vnstock_ezchart`
+# từ GitHub. Hãng gỡ `vnstock`/`vnai` khỏi mọi kho ngày 10/11/2026 (kho trả HTTP 410), nên BƯỚC 267
+# bỏ cả ba dòng cùng dòng kho. Giá đi qua `nguon_gia_cong_khai`; chỗ cần vnstock nhập TRONG HÀM,
+# bọc `try`. Đường chính thức quay lại là BƯỚC 265 (vnstock 6 + khoá SSI) — lúc ấy sửa gác này.
 
-KHO_HANG = "https://vnstocks.com/api/simple"
-GOI_TU_KHO_HANG = ("vnstock", "vnai")
+GOI_CUA_HANG = ("vnstock", "vnai", "vnstock_ezchart", "vnii")
 
 
-def test_kho_thu_hai_la_DUNG_kho_hang_va_chi_THEM_vao_PyPI():
-    """`--index-url` thay hẳn PyPI; `--trusted-host` tắt kiểm TLS; một kho
-    `http://` thì ai đứng giữa cũng đổi được gói. Chỉ đúng MỘT dòng này."""
+def test_requirements_khong_con_kho_rieng_hay_dong_tuy_chon_nao():
+    """Không `--extra-index-url`/`--index-url`/`--trusted-host`: chỉ PyPI công khai."""
     tuy_chon = [d for d in _dong_that() if d.startswith("-")]
-    assert tuy_chon == [f"--extra-index-url {KHO_HANG}"], tuy_chon
+    assert tuy_chon == [], tuy_chon
+    assert "vnstocks.com" not in "\n".join(_dong_that())
 
 
-def _ghim_tu_kho_hang() -> dict:
-    """{gói: bản ghim} của `GOI_TU_KHO_HANG`, đọc từ `requirements.txt`; nổ nếu không đúng dạng `==`."""
-    import re
-    ra = {}
-    for g in GOI_TU_KHO_HANG:
-        dong = [d for d in _dong_that()
-                if re.split(r"[<>=!~\[ ;]", d)[0].strip().lower() == g]
-        assert len(dong) == 1, f"{g}: {dong}"
-        assert re.fullmatch(rf"{g}==[0-9][0-9.]*", dong[0]), (
-            f"{g} phai ghim bang `==`, khong phai {dong[0]!r}")
-        ra[g] = dong[0].split("==")[1]
-    return ra
-
-
-def test_goi_tu_kho_hang_GHIM_DUNG_dang_bang_ghi_khong_san():
-    """Sàn để kho nào có bản cao hơn quyết định CI chạy gì (lỗi 79). Ghim bằng `==`. Phần
-    này CHỈ ĐỌC VĂN BẢN `requirements.txt` nên chạy cả trên CI không có vnstock (BƯỚC 266 tách
-    nó khỏi phép so bản đang cài ngay dưới)."""
-    _ghim_tu_kho_hang()
-
-
-@can_vnstock_dang_cai
-def test_goi_tu_kho_hang_GHIM_KHOP_ban_dang_chay():
-    """Bản ghim phải là bản đang chạy ở đây — ở máy là bản ĐO 19 đã đo. Trên CI, TẠM, không có
-    vnstock/vnai (BƯỚC 266) nên bỏ qua CÓ LÝ DO; gỡ khi BƯỚC 265 vào."""
-    import importlib.metadata as md
-    for g, ghim in _ghim_tu_kho_hang().items():
-        assert md.version(g) == ghim, (
-            f"{g}: requirements ghim {ghim}, dang chay {md.version(g)} — may "
-            f"va CI se chay hai ban khac nhau (loi 79)")
+def test_requirements_khong_con_goi_cua_hang_hay_tham_chieu_git():
+    """`vnstock` · `vnai` · `vnstock_ezchart` · `vnii` không được lọt lại: hãng đã gỡ chúng, nên
+    `pip install -r requirements.txt` trên CI/Cloud/Actions chết ở bước cài nếu có một dòng."""
+    khai = _da_khai_bao()
+    lot = sorted(g for g in GOI_CUA_HANG if g in khai or g.replace("_", "-") in khai)
+    assert not lot, f"requirements.txt khai gói của hãng đã bị gỡ: {lot}"
+    git = [d for d in _dong_that() if "git+" in d or " @ " in d]
+    assert not git, f"tham chiếu trực tiếp (git+/URL) làm CI phụ thuộc github.com: {git}"
+    assert not [t for t in khai if "@" in t or "git+" in t], sorted(khai)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -516,45 +498,3 @@ def test_GOI_RIENG_B1_GHIM_DUNG_ban_va_chi_HAI_workflow_cai():
     assert cai == WORKFLOW_CAI_REQ_RIENG, cai
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Vá tạm `vnstock_ezchart` — BƯỚC 264 (10/11/2026)
-# ─────────────────────────────────────────────────────────────────────
-
-#: `vnstock==4.0.9` khai bắt buộc `vnstock_ezchart>=1.0.2`; PyPI gỡ gói ấy 09/11/2026
-#: (hai lượt `quet-so-lenh` 09/11 chết ở bước cài). Vá: cài từ kho công khai của hãng,
-#: ghim đúng commit. Xoá khi BƯỚC 260 (vnstock 5.x) xong — và sửa hằng này CÙNG LÚC.
-EZCHART_COMMIT = "23d5129"
-EZCHART_KHO = "https://github.com/vnstock-hq/vnstock_chart"
-
-
-def _dong_ezchart() -> list[str]:
-    return [d for d in _dong_that()
-            if d.lower().replace("-", "_").startswith("vnstock_ezchart")]
-
-
-def test_VA_TAM_ezchart_con_DONG_va_GHIM_dung_commit_tu_kho_cong_khai():
-    """Bỏ dòng ⇒ `pip install -r requirements.txt` chết (vnstock 4.0.9 đòi gói đã bị
-    gỡ khỏi PyPI). Đổi sang tên trần / nhánh / sàn `>=` ⇒ hoặc lại chết, hoặc CI chạy
-    một bản khác máy (lỗi 79). Chỉ đúng MỘT dòng, dạng tham chiếu trực tiếp tới
-    commit — hash đủ 40 ký tự bắt đầu bằng `EZCHART_COMMIT`."""
-    import re
-    dong = _dong_ezchart()
-    assert len(dong) == 1, (
-        f"requirements.txt phai co DUNG MOT dong vnstock_ezchart (va tam, BUOC 264), "
-        f"thay: {dong}")
-    mau = re.compile(r"vnstock_ezchart @ git\+" + re.escape(EZCHART_KHO) + r"@([0-9a-f]{40})")
-    kq = mau.fullmatch(dong[0])
-    assert kq, (
-        f"dong ezchart phai la tham chieu truc tiep toi commit cua {EZCHART_KHO} "
-        f"(khong ten tran, khong nhanh/tag, khong san `>=`): {dong[0]!r}")
-    assert kq.group(1).startswith(EZCHART_COMMIT), (
-        f"commit {kq.group(1)} khong phai {EZCHART_COMMIT} — doi commit la doi ban "
-        f"CI chay: do lai roi sua EZCHART_COMMIT")
-
-
-def test_VA_TAM_ezchart_bo_doc_requirements_van_thay_TEN_goi():
-    """Dòng `ten @ url` không được làm bộ đọc tên gói nuốt cả URL: các gác phủ
-    import dựa vào `_da_khai_bao()`."""
-    ten = _da_khai_bao()
-    assert "vnstock_ezchart" in ten, sorted(ten)
-    assert not [t for t in ten if "@" in t or "git+" in t], sorted(ten)

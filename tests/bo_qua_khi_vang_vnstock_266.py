@@ -32,10 +32,10 @@ GHIM_NGOAI_LE = "vnstock==4.0.9"
 
 #: Mọi test mang dấu bên dưới, dạng `tests/<file>::<hàm>`. Thêm dấu mà không khai ở đây
 #: (hoặc ngược lại) thì gác ĐỎ.
-DANH_SACH_BO_QUA = frozenset({
-    "tests/test_requirements.py::test_goi_tu_kho_hang_GHIM_KHOP_ban_dang_chay",
-    "tests/test_vnstock_goi.py::test_bang_ky_bctc_khop_voi_vnai",
-    "tests/test_no_fabricated_data.py::test_goi_vnstock_dung_chu_ky_ham",
-})
+#: BƯỚC 267 (11/11/2026): RỖNG. `requirements.txt` không còn `vnstock==4.0.9` (hãng gỡ gói), ba test cần
+#: vnstock/vnai đang cài đã bị XOÁ (một ở `test_requirements.py`, hai ở `test_no_fabricated_data.py` và
+#: `test_vnstock_goi.py`), nên không còn test nào mang dấu. Gác `test_bo_qua_khi_vang_vnstock_266.py` xanh vì
+#: danh sách rỗng VÀ không test nào mang dấu — không phải vì nó bị tắt. Dấu và gác giữ lại cho BƯỚC 265.
+DANH_SACH_BO_QUA = frozenset()
 
 can_vnstock_dang_cai = pytest.mark.skipif(importlib.util.find_spec("vnstock") is None, reason=LY_DO)

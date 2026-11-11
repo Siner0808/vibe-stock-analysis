@@ -96,33 +96,24 @@ def test_MUC_BAT_DOI_XUNG_phai_neu_LENH_doc_trang_thai():
     assert (GOC / "tools" / "so_ban_goi.py").exists()
 
 
-def test_REQUIREMENTS_GHIM_va_muc_bat_doi_xung_NOI_DUNG_co_che_ay():
-    """Từ BƯỚC 127 (26/09/2026) `vnstock` · `vnai` ghim `==`, lấy từ kho hãng.
+def test_REQUIREMENTS_HET_GHIM_va_muc_bat_doi_xung_NOI_DUNG_co_che_ay():
+    """Từ BƯỚC 267 (11/11/2026) `requirements.txt` KHÔNG còn dòng `vnstock`/`vnai` (hãng gỡ chúng
+    khỏi mọi kho); mọi gói khai bằng sàn.
 
-    Bản trước của phép kiểm này tên `..._van_khai_bang_SAN_chu_khong_phai_GHIM`
-    và mang đúng lời dặn: *"nếu một ngày nó thành `==` thì cả mục bất đối
-    xứng phải viết lại"*. Ngày ấy tới, và nó đỏ đúng lúc — ở lượt năm cổng
-    đầu tiên sau khi đổi `requirements.txt`.
-
-    Không đòi nó PHẢI là ghim — đó là quyết định. Đòi nó **khớp với thứ
-    tài liệu đang mô tả**: cùng họ `N_DAY_DU` 596/451.
+    Phép kiểm cũ đòi hai dòng ấy ghim `==` và mục bất đối xứng nhắc BƯỚC 127. Lời dặn của nó vẫn
+    đúng: không đòi requirements PHẢI theo một kiểu, mà đòi nó **khớp với thứ tài liệu đang mô tả**
+    — cùng họ `N_DAY_DU` 596/451. Nay: không dòng vnstock/vnai nào, và mục nói rõ BƯỚC 267 + sàn.
     """
     van = REQ.read_text(encoding="utf-8")
-    # `vnstock_ezchart @ git+...@<băm>` (BƯỚC 264) cũng bắt đầu bằng "vnstock" nhưng là
-    # tham chiếu trực tiếp tới commit, không phải ghim `==`; gác riêng của nó nằm ở
-    # tests/test_requirements.py. Loại ĐÚNG tên ấy, không loại cả họ "vnstock_".
     dong = [d.strip() for d in van.splitlines()
-            if d.strip().startswith(("vnstock", "vnai"))
-            and not d.strip().startswith(("#", "vnstock_ezchart @ "))]
-    assert dong, "khong tim thay dong vnstock/vnai trong requirements.txt"
-    for d in dong:
-        assert "==" in d, (
-            f"`{d}` khong con GHIM — muc bat doi xung o CLAUDE.md dang "
-            f"mo ta mot co che khong con dung")
+            if d.strip().startswith(("vnstock", "vnai")) and not d.strip().startswith("#")]
+    assert not dong, (
+        f"requirements.txt lai co dong {dong} — muc bat doi xung o CLAUDE.md dang mo ta mot "
+        f"co che khong con dung (BUOC 267 da bo chung)")
     khoi = _khoi_bat_doi_xung()
-    assert "BƯỚC 127" in khoi and "ghim" in khoi.lower(), (
-        "requirements.txt da ghim ma muc bat doi xung khong noi — nguoi doc "
-        "van tin CI lay ban MOI NHAT")
+    assert "BƯỚC 267" in khoi and "sàn" in khoi.lower(), (
+        "requirements.txt het ghim ma muc bat doi xung khong noi — nguoi doc van tin vnstock/vnai "
+        "dang ghim `==`")
 
 
 # ══ 2. Phép phán phải đạt tới CẢ BA ô ══════════════════════════════════
