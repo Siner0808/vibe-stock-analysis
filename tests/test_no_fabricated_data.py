@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
 
 import financial_collector as fc
+from bo_qua_khi_vang_vnstock_266 import can_vnstock_dang_cai  # ngoại lệ TẠM BƯỚC 266
 from financial_collector import FinancialDataCollector
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -215,6 +216,7 @@ def test_data_collectors_van_gan_nhan_synthetic():
     print("PASS  data_collectors vẫn gắn nhãn SYNTHETIC cho dữ liệu sinh")
 
 
+@can_vnstock_dang_cai
 def test_goi_vnstock_dung_chu_ky_ham():
     """Bắt lỗi sai chữ ký hàm mà không cần mạng.
 
@@ -222,12 +224,12 @@ def test_goi_vnstock_dung_chu_ky_ham():
     explorer bên dưới thì không. Gọi thiếu `source` -> TypeError, và vì mọi
     lỗi đều bị nuốt thành "không có dữ liệu", triệu chứng nhìn y hệt mất mạng.
     Test này phân biệt hai thứ đó.
+
+    BƯỚC 266: trước đây thiếu vnstock thì in `SKIP` rồi `return` — test XANH mà không kiểm gì
+    (trên CI TẠM không có vnstock). Nay bỏ qua TƯỜNG MINH bằng dấu ở trên (có lý do, có hạn
+    gỡ khi BƯỚC 265 vào); có vnstock thì `import` phải thành công.
     """
-    try:
-        import vnstock
-    except ImportError:
-        print("SKIP  vnstock chưa cài — bỏ qua kiểm tra chữ ký")
-        return
+    import vnstock
 
     import inspect
     checks = [

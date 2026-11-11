@@ -12,6 +12,7 @@ rơi vào `CHUA_KIEM_DUOC`, không rơi vào `KHOP`.
 import pytest
 
 import vnstock_goi as vg
+from bo_qua_khi_vang_vnstock_266 import can_vnstock_dang_cai  # ngoại lệ TẠM BƯỚC 266
 
 
 def _tra(hang="silver", con_han=True, goi=("vnstock_data", "vnstock_ta"),
@@ -192,8 +193,12 @@ def test_cache_khong_dinh_khi_tiem_ham(monkeypatch):
     print("PASS  hàm tải tiêm vào không bị cache che")
 
 
+@can_vnstock_dang_cai
 def test_bang_ky_bctc_khop_voi_vnai():
     """Bảng chép ở đây phải khớp bảng thật của vnai.
+
+    BƯỚC 266: trên CI TẠM không có vnstock/vnai nên test này bỏ qua CÓ LÝ DO (dấu ở trên;
+    trước đó nó skip lặng lẽ qua `pytest.skip` bên dưới); gỡ khi BƯỚC 265 vào.
 
     Chép cứng một bảng rồi để nó trôi khỏi nguồn gốc là cách con số trên
     giao diện âm thầm sai đi.

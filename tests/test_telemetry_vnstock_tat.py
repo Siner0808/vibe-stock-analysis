@@ -152,7 +152,8 @@ def _env_cap_job(dong_job: list[str]) -> dict[str, str]:
 
 
 def _cai_requirements(dong_job: list[str]) -> bool:
-    return any(re.search(r"pip\s+install\s+(-\S+\s+)*-r\s+requirements\.txt", d)
+    # `kiem-dinh.yml` cài BẢN LỌC `requirements-ci.txt` (BƯỚC 266) — vẫn thuộc quần thể.
+    return any(re.search(r"pip\s+install\s+(-\S+\s+)*-r\s+\"?\S*requirements(-ci)?\.txt", d)
                for d in dong_job)
 
 
