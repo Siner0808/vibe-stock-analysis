@@ -16,6 +16,7 @@ import ast
 import copy
 import datetime as dt
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -807,3 +808,23 @@ def test_AST_nguon_gia_cong_khai_khong_doc_dia_khong_doc_khoa():
     assert not thay, thay
     assert set(nhap) <= {"__future__", "re", "time", "dataclasses", "datetime", "typing", "pandas", "importlib",
                          "requests"}, nhap
+
+
+def _chuoi_trong_app() -> list[str]:
+    """MỌI hằng chuỗi của app.py (kể cả phần chữ của f-string và HTML), đọc bằng AST — không đọc chú thích `#`."""
+    cay = ast.parse((GOC / "app.py").read_text(encoding="utf-8"))
+    return [n.value for n in ast.walk(cay) if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+
+
+def test_AST_chu_tren_app_khong_noi_gia_ngay_den_tu_vnstock():
+    """BƯỚC 269: caption tab Pipeline v2 từng ghi "giá vnstock → chấm điểm" và chân trang "VNStock + TradingView"
+    tới 12/11/2026 — hết đúng từ BƯỚC 267. Caption phải gọi đúng chuỗi nguồn LẤY TỪ `CHUOI_CO_PHIEU`."""
+    cac = _chuoi_trong_app()
+    assert len(cac) > 200, f"chỉ thấy {len(cac)} hằng chuỗi — bộ duyệt hỏng?"
+    cam = (r"giá\s+vnstock", r"vnstock\s*\+\s*tradingview", r"vnstock\s+và\s+tradingview")
+    dinh = [(p, s[:70]) for s in cac for p in cam if re.search(p, s, re.IGNORECASE)]
+    assert not dinh, f"app.py lại nói giá ngày đến từ vnstock: {dinh}"
+    ten_hien = {"entrade": "Entrade", "vndirect": "VNDirect", "vps": "VPS"}
+    chuoi = " → ".join(ten_hien[n.ten] for n in ngk.CHUOI_CO_PHIEU)
+    assert any(f"giá ngày công khai ({chuoi})" in s for s in cac), \
+        f"caption Pipeline v2 không gọi đúng chuỗi nguồn thật ({chuoi})"
