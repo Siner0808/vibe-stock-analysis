@@ -246,7 +246,7 @@ chỉ xét ở phiên chấm; ba dòng chưa chạy lại còn khớp được �
 |---|---|---|---|---|
 | Máy local | silver | không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 300/phút | ~784 phiên / 1095 ngày, nguồn công khai (BƯỚC 267) |
 | Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo (nguồn công khai, chưa chạy ở đó) |
-| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | điểm cuối công khai trả 200 từ Actions (thăm dò 11/11/2026, chạy 42944667209); quét thật CHƯA chạy |
+| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | điểm cuối công khai trả 200 từ Actions (thăm dò 11/11/2026, chạy 42944667209); quét thật ĐÃ chạy trên nguồn này từ 11/11/2026 (`gh run list --workflow quet-so-lenh.yml`; nhật ký in `NGUỒN GIÁ: entrade 71`; BƯỚC 268) |
 
 🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
 
