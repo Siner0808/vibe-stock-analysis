@@ -3729,7 +3729,7 @@
         {
           "noi_dung": "CLAUDE.md (1 câu, ngoài tầm công cụ chính): :248.",
           "tu_kiem": "tools/soat_ngoai_cong_cu.py diff cced339 78705ff (cây lượt 16 → cây lượt 17); lệnh kiểm từng câu ghi ở phan_quyet; kịch bản ../vibe_logs_268/kiem_ngoai_tam.py · kiem_ngoai_tam2.py (đầu ra .out)",
-          "phan_quyet": "SAI MỘT PHẦN — 1 câu: 1 SAI MỘT PHẦN. Từng câu: :248 SAI MỘT PHẦN — ô Actions của bảng local/CI: 'quét thật CHƯA chạy' HẾT ĐÚNG từ 11/11 (gh run list --workflow quet-so-lenh.yml: 42991845872 workflow_dispatch 09:02Z · 43058746169 · 43072118953 schedule, cả ba success trên 78705ff; gh run view … --log | grep 'NGUỒN GIÁ' -> 'entrade 71'); vế 'điểm cuối công khai trả 200 từ Actions (chạy 42944667209)' THẬT: gh run view 42944667209 -> success. ĐÃ thêm ⚠️ 12/11 ngay dưới bảng, cùng BƯỚC"
+          "phan_quyet": "SAI MỘT PHẦN — 1 câu: 1 SAI MỘT PHẦN. Từng câu: :248 SAI MỘT PHẦN — ô Actions của bảng local/CI: 'quét thật CHƯA chạy' HẾT ĐÚNG từ 11/11 (gh run list --workflow quet-so-lenh.yml: 42991845872 workflow_dispatch 09:02Z · 43058746169 · 43072118953 schedule, cả ba success trên 78705ff; gh run view … --log | grep 'NGUỒN GIÁ' -> 'entrade 71'); vế 'điểm cuối công khai trả 200 từ Actions (chạy 42944667209)' THẬT: gh run view 42944667209 -> success. ĐÃ sửa ô ở BƯỚC này: 'quét thật CHƯA chạy' → 'quét thật ĐÃ chạy từ 11/11/2026' (ngắn vì CLAUDE.md sát trần 26.000 ký tự của tests/test_do_token_phien.py; bằng chứng ở STATE BƯỚC 268, Phát hiện 2)"
         },
         {
           "noi_dung": "docs/HANDOFF.md (1 câu, ngoài tầm công cụ chính): :233.",
