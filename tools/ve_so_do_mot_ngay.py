@@ -146,7 +146,8 @@ def ve(nen: str) -> str:
     a(_chu(250, 170, "với mỗi mã", m, 12, True, neo="start"))
     a(_ten(670, 110, 670, 148, m, "lần lượt", 700, 134))
 
-    a(_hop(235, 190, 150, 56, m, [("Giá ngày (vnstock)", True), ("bỏ nến đang dở", False)]))
+    a(_hop(235, 190, 150, 56, m, [("Giá ngày (công khai)", True), ("Entrade→VNDirect→VPS", False),
+                                  ("bỏ nến đang dở", False)]))
     a(_hop(425, 190, 175, 56, m, [("Khớp lệnh chờ", True), ("ở giá MỞ CỬA phiên này", False)]))
     a(_ten(385, 218, 423, 218, m))
     # Hình thoi "Đang giữ mã?"

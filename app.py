@@ -2422,7 +2422,8 @@ with t_pipe:
         "Đây là luồng phân tích MỘT mã khi bạn xem trên app (có TradingView), không phải luồng quét hằng "
         "ngày. Điểm tranh luận của Debate Council KHÔNG vào điểm cuối (`master_agent` gán "
         "`post_debate_score = pre_debate_score`). Lượt quét hằng ngày chạy ở GitHub Actions và đi đường "
-        "khác: giá vnstock → chấm điểm (không có TradingView) → 7 cổng → ghi sổ lên Google Sheets; app chỉ "
+        "khác: giá ngày công khai (Entrade → VNDirect → VPS) → chấm điểm (không có TradingView) → "
+        "7 cổng → ghi sổ lên Google Sheets; app chỉ "
         "ĐỌC sổ ấy, không ghi. Xem README, mục \"Một ngày của agent\".")
 
 with t_acct:
@@ -2621,8 +2622,9 @@ st.markdown(f"""
     <!-- Đã bỏ "Gemini" (21/08/2026): chữ đó xuất hiện ĐÚNG MỘT LẦN trong
          toàn bộ app, và là ở chính dòng này. `chatbot_agent.py` không được
          app import lần nào. Ghi tên một thành phần vào chân trang là khẳng
-         định nó đang chạy. VNStock và TradingView thì có thật — đã kiểm,
+         định nó đang chạy. Giá ngày công khai (`nguon_gia_cong_khai`, từ BƯỚC 267; trước đó vnstock)
+         và TradingView thì có thật — đã kiểm,
          TradingView trả 15 chỉ báo mỗi lượt phân tích. -->
-    <div>Vibe Stock Terminal · Multi-Agent AI · VNStock + TradingView</div>
+    <div>Vibe Stock Terminal · Multi-Agent AI · Giá ngày công khai + TradingView</div>
 </div>
 """, unsafe_allow_html=True)

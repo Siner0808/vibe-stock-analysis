@@ -110,3 +110,17 @@ def test_SO_DO_co_hop_hau_kiem_B1_ghi_dung_tab_va_do_workflow_rieng_ghi():
     assert not any(t == "TAB_HAU_KIEM" for t, _ in
                    _goi_tab(GOC / "sheets_store.py", "push", "write_all")
                    | _goi_tab(GOC / "sheets_store.py", "push", "append_rows"))
+
+
+def test_NHAN_gia_ngay_khop_chuoi_nguon_THAT_va_khong_noi_vnstock():
+    """BƯỚC 269: hộp "Giá ngày" từng ghi "(vnstock)" tới 12/11/2026 — hết đúng từ BƯỚC 267 (giá đi qua
+    `nguon_gia_cong_khai`). Thứ tự nguồn ở nhãn LẤY TỪ `CHUOI_CO_PHIEU`, không gõ tay, nên đổi chuỗi
+    mà quên nhãn thì đỏ."""
+    sys.path.append(str(GOC))
+    import nguon_gia_cong_khai as ngk
+    ten_hien = {"entrade": "Entrade", "vndirect": "VNDirect", "vps": "VPS"}
+    nhan = "→".join(ten_hien[n.ten] for n in ngk.CHUOI_CO_PHIEU)
+    for nen in vs.TEN:
+        van = vs.ve(nen)
+        assert nhan in van, f"nhãn Giá ngày không khớp chuỗi nguồn thật ({nhan})"
+        assert "vnstock" not in van.lower(), "sơ đồ lại nói giá ngày đến từ vnstock"
