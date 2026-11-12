@@ -294,7 +294,7 @@ st.markdown("""
     .ti-item { display: flex; flex-direction: column; align-items: flex-end; }
     .ti-l { color: var(--c-t3); font-size: 11px; text-transform: uppercase; }
     .ti-v { font-weight: 700; font-size: 12px; }
-    .ti-n { color: var(--c-t3); font-size: 10px; max-width: 220px; text-align: right; }
+    .ti-n { color: var(--c-t3); font-size: 11px; max-width: 220px; text-align: right; }
     .ti-v.up { color: var(--c-g); }
     .ti-v.bl { color: var(--c-b); }
     .live-pill {
