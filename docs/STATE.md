@@ -26132,7 +26132,7 @@ Tiêu chí ký trước cần có ít nhất: phát lại hai ca (#122 · #128) 
 
 ### Sổ tay NotebookLM
 
-`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 270` → *(điền sau khi #315 vào `main` và nhánh này gộp `main`: tới lúc ấy máy đếm cả thay đổi của #315 vào BƯỚC này)*. BƯỚC này không đổi luật (không sửa `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`) và không đổi kết luận đo nào (mục F: ĐO 27 giữ CHƯA ĐỦ, C5 giữ *chưa đủ*, #128 vẫn bị loại). Khai `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json`, mục `BƯỚC 270`. Điểm cho leader cân (như BƯỚC 269): nếu leader coi *"con số lọt vào app và B3"* là một KẾT LUẬN ĐO thì BƯỚC này cần hỏi thật — tôi đã khai là không, vì không có kết luận ghi sẵn nào dựa vào các con số ấy (mục F).
+`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 270` → `BƯỚC 270: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach c9757af]` (chạy trên cây đã commit `d79d22d`; điểm tách `c9757af` là `main` TRƯỚC #315 nên diff gồm cả #315 — vẫn không chạm file luật nào; chạy lại sau khi #315 vào `main` và nhánh này gộp `main`). BƯỚC này không đổi luật (không sửa `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`) và không đổi kết luận đo nào (mục F: ĐO 27 giữ CHƯA ĐỦ, C5 giữ *chưa đủ*, #128 vẫn bị loại). Khai `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json`, mục `BƯỚC 270`. Điểm cho leader cân (như BƯỚC 269): nếu leader coi *"con số lọt vào app và B3"* là một KẾT LUẬN ĐO thì BƯỚC này cần hỏi thật — tôi đã khai là không, vì không có kết luận ghi sẵn nào dựa vào các con số ấy (mục F).
 
 ### Năm cổng ở máy
 
