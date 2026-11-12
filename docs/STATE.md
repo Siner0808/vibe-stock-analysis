@@ -25951,6 +25951,6 @@ Chi tiết từng câu ở `docs/soat-dinh-ky.json` (lượt 2026-11-12, các m�
 
 ### Năm cổng ở máy
 
-@@CONG@@
+Cả năm cổng thoát 0 trên cây của nhánh `soat/soat-17-268` (`tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_268/cong2`, 12/11 09:08–09:15, cả lượt 414 s; cổng 1 chạy song song `-n auto` ở máy): cổng 1 4765 passed, 2 skipped · cổng 2 mọi file nạp được bằng 3.11 · cổng 3 0 CHẶN, 10 cảnh báo · cổng 4 mọi file test xanh khi chạy một mình · cổng 5 4767 test, khớp mốc (không thêm test, mốc `docs/moc_so_test.json` không đổi). Lượt cổng đầu (08:58–09:06, 490 s, `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_268/cong`) ĐỎ cổng 1 và cổng 4 vì MỘT test không liên quan tới lượt soát: `tests/test_do_token_phien.py::test_CLAUDE_md_va_SKILL_md_nam_trong_ngan_sach` — `CLAUDE.md` 26.102 ký tự, trần 26.000, vì ô GitHub Actions tôi viết dài làm file tăng 117 ký tự (bản gốc ở `78705ff` có 25.985); rút ô về *"quét thật ĐÃ chạy từ 11/11/2026"* (25.997) rồi chạy lại cả năm cổng. Dòng này điền SAU lượt cổng (chỉ chữ trong STATE); CI chạy lại trên cây cuối.
 
 **Việc kế.** (1) Leader đọc CI một lần rồi merge (PR này KHÔNG tự merge). (2) BƯỚC điều tra ngày ra #128 (ngày ra 28/10 so với cắt lỗ chạm 29/10) — người dùng 12/11: *"Giữ loại #128, điều tra ngày ra riêng (Recommended)"*. (3) Lượt soát 18 và lượt đọc 7 của ĐO 27: **19/11/2026** (nhịp 7 ngày kể từ ngày làm lượt 17, 12/11). (4) Sửa chữ "vnstock" ở `app.py` :2425 · :2626 và hai sơ đồ (mục 4 của *Phát hiện*). (5) Lỗi kế vẫn là 204 (không cấp số lỗi mới ở BƯỚC này). BƯỚC kế 269.
