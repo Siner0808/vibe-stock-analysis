@@ -26011,7 +26011,7 @@ Hai SVG sinh lại bằng `./.venv/Scripts/python.exe tools/ve_so_do_mot_ngay.py
 
 ### Sổ tay NotebookLM
 
-`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 269` → *KHONG CHAM LUAT* (dòng điền sau khi chạy lại trên cây commit). BƯỚC này không đổi luật: không sửa `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`; không đổi kết luận đo nào — kết cục ĐO 27 lượt 6 giữ CHƯA ĐỦ, phân loại B giữ nguyên, #128 vẫn bị loại; phần A chỉ nói NGUYÊN NHÂN của một ngày ghi sổ. Khai `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json` mục `BƯỚC 269`. *Một điểm cho leader cân:* nếu leader coi *"nguyên nhân gốc của ngày ra #128"* là một KẾT LUẬN ĐO (vì nó sắp đặt lại cách đọc phân loại B), BƯỚC này cần một lượt hỏi thật — tôi đã khai là không.
+`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 269` → `BƯỚC 269: khong cham luat` (chạy trên cây đã commit `ec0388a`, so với điểm tách `c9757af`; sau lượt cổng, cổng 1 chạy lại một lần trên cây ấy: 4767 passed, 2 skipped). BƯỚC này không đổi luật: không sửa `CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`; không đổi kết luận đo nào — kết cục ĐO 27 lượt 6 giữ CHƯA ĐỦ, phân loại B giữ nguyên, #128 vẫn bị loại; phần A chỉ nói NGUYÊN NHÂN của một ngày ghi sổ. Khai `khong_bat_buoc_vi` ở `docs/soat-notebooklm.json` mục `BƯỚC 269`. *Một điểm cho leader cân:* nếu leader coi *"nguyên nhân gốc của ngày ra #128"* là một KẾT LUẬN ĐO (vì nó sắp đặt lại cách đọc phân loại B), BƯỚC này cần một lượt hỏi thật — tôi đã khai là không.
 
 ### Câu hỏi chờ người dùng
 
