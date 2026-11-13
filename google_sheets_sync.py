@@ -32,6 +32,7 @@ Xem NGUYEN-TAC-DO-LUONG.md và sheets_store.py.
 from __future__ import annotations
 
 import sqlite3
+import threading
 import time
 from typing import Any, Optional
 
@@ -91,6 +92,108 @@ def trang_thai(backend: Any = None) -> dict:
         return _ss.trang_thai(get_backend(backend))
     except Exception as e:
         return {"bat": False, "ghi_chu": f"Kho ngoài LỖI: {type(e).__name__}: {e}"}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# BƯỚC 275 — đường ĐỌC dùng chung cho APP (chỉ đọc; đường quét không gọi)
+# ─────────────────────────────────────────────────────────────────────
+#: Giây app giữ sổ đã đọc trước khi đọc lại. Sổ chỉ đổi sau một lượt quét (hai lượt mỗi ngày
+#: làm việc, `quet-so-lenh.yml`), nên 30 phút (bản cũ: 5 phút) là lựa chọn của phiên BƯỚC 275, chờ
+#: người dùng xác nhận (STATE BƯỚC 275, mục câu hỏi); nút "Đọc lại sổ" ở app bỏ qua hạn này.
+TTL_DOC_APP = 30 * 60
+#: Năm tab mà ba bộ đọc của app (`nhat_ky`, bản tin, kế hoạch) cần: đọc MỘT lần, dùng chung.
+TAB_APP_DOC = (_ss.TAB_NHAT_KY, _ss.TAB_TRADES, _ss.TAB_DECISIONS, _ss.TAB_HAU_KIEM, _ss.TAB_KE_HOACH)
+#: Một ứng dụng ngủ dậy sau nhiều giờ: dựng lại kết nối sau chừng này giây cho chắc.
+TUOI_TOI_DA_KET_NOI = 6 * 3600
+
+
+class BackendDocChung:
+    """Bọc một backend để ba bộ đọc của app dùng CHUNG một kết nối và mỗi tab một lần đọc.
+
+    CHỈ ĐỌC: `write_all` / `append_rows` nổ `SheetError`. `read_rows` của tab trong `TAB_APP_DOC`
+    trả bản đã đọc nếu chưa quá `ttl`; quá hạn thì đọc LẠI CẢ NĂM TAB một lượt (backend thật có
+    `read_rows_nhieu` thì chỉ hỏi danh sách tab một lần). Một tab đọc lỗi KHÔNG được nhớ: `read_rows`
+    của nó đọc thẳng và nổ đúng như trước, các tab khác vẫn dùng bản đã đọc.
+    """
+
+    def __init__(self, goc: Any, ttl: float = TTL_DOC_APP, bay_gio=time.monotonic,
+                 tabs: tuple = TAB_APP_DOC) -> None:
+        self._goc, self._ttl, self._bay_gio, self._tabs = goc, ttl, bay_gio, tuple(tabs)
+        self._khoa = threading.RLock()
+        self._rows: dict[str, list] = {}
+        self._luc: Optional[float] = None
+        self.doc_luc = None            # datetime giờ VN của lượt đọc gần nhất
+        self.so_lan_doc = 0            # số lượt đọc cả bộ tab (đo, kiểm)
+
+    def lam_moi(self) -> None:
+        """Lần `read_rows` kế tiếp đọc lại từ Sheets."""
+        with self._khoa:
+            self._luc = None
+
+    def _nap_lai(self) -> None:
+        nhieu = getattr(self._goc, "read_rows_nhieu", None)
+        if callable(nhieu):
+            kq = nhieu(self._tabs)
+        else:
+            kq = {}
+            for t in self._tabs:
+                try:
+                    kq[t] = self._goc.read_rows(t)
+                except Exception as e:
+                    kq[t] = e
+        self._rows = {t: v for t, v in kq.items() if not isinstance(v, Exception)}
+        self._luc = self._bay_gio()
+        self.so_lan_doc += 1
+        from data_quality import now_vn
+        self.doc_luc = now_vn()
+
+    def read_rows(self, tab: str) -> list[list[str]]:
+        with self._khoa:
+            if tab in self._tabs:
+                if self._luc is None or self._bay_gio() - self._luc >= self._ttl:
+                    self._nap_lai()
+                if tab in self._rows:
+                    return [list(r) for r in self._rows[tab]]
+        return self._goc.read_rows(tab)
+
+    def write_all(self, tab: str, rows: list[list[str]]) -> None:
+        raise _ss.SheetError("đường đọc dùng chung của app KHÔNG ghi Sheets")
+
+    def append_rows(self, tab: str, rows: list[list[str]]) -> None:
+        raise _ss.SheetError("đường đọc dùng chung của app KHÔNG ghi Sheets")
+
+
+_KHOA_CHUNG = threading.Lock()
+_DUNG_CHUNG: Optional[tuple[float, BackendDocChung]] = None
+
+
+def backend_doc_chung() -> Optional[BackendDocChung]:
+    """MỘT backend đọc dùng chung cho cả tiến trình (mọi phiên người dùng, cả ba bộ đọc của app).
+
+    `None` = kho ngoài chưa cấu hình (như `get_backend()`). Lỗi xác thực thì nổ như `get_backend()`
+    và KHÔNG được nhớ — lượt sau thử lại. Bản cũ: mỗi bộ đọc tự xác thực (ba lần, 6 lượt gọi mạng).
+    """
+    global _DUNG_CHUNG
+    with _KHOA_CHUNG:
+        if _DUNG_CHUNG is None or time.monotonic() - _DUNG_CHUNG[0] > TUOI_TOI_DA_KET_NOI:
+            b = get_backend()
+            if b is None:
+                return None
+            _DUNG_CHUNG = (time.monotonic(), BackendDocChung(b))
+        return _DUNG_CHUNG[1]
+
+
+def lam_moi_doc() -> None:
+    """Nút "Đọc lại sổ": lần đọc kế tiếp đi tới Sheets (giữ kết nối đã xác thực)."""
+    with _KHOA_CHUNG:
+        if _DUNG_CHUNG is not None:
+            _DUNG_CHUNG[1].lam_moi()
+
+
+def doc_luc_gan_nhat():
+    """Giờ VN của lượt đọc Sheets gần nhất của app, hoặc `None` nếu chưa đọc lượt nào."""
+    with _KHOA_CHUNG:
+        return None if _DUNG_CHUNG is None else _DUNG_CHUNG[1].doc_luc
 
 
 def get_gspread_client(backend: Any = None):
