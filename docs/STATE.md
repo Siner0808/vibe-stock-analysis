@@ -26401,4 +26401,12 @@ Phần này được commit TRƯỚC mọi file trong `C:/Users/cuong/Vibe_Stock
 
 **Nhãn này KHÔNG quyết định:** luật cho quyền mua (chấp nhận / loại / chỉ báo — việc của người dùng) và không đổi kết cục A của ĐO 36.
 
+### A.1 Bổ sung luật đọc sau khi tra CÔNG THỨC (13/11/2026 16:0x; vẫn TRƯỚC khi tra `S`, `P` của BAF)
+
+Quy tắc của nguồn chính **KHÁC chữ** ở hai chỗ so với khai A; ghi ở đây, chữ A giữ nguyên (nguồn và băm: `vibe_logs_274/nguon_cong_thuc.md`, PDF ở `vibe_logs_274/nguon/`):
+
+1. **Quy tắc không viết công thức đóng.** HOSE, *Quy chế giao dịch chứng khoán* (Quyết định 352/QĐ-SGDHCM, 30/06/2021), Điều 10 khoản 3: *"giá tham chiếu tại ngày giao dịch không hưởng quyền được xác định theo nguyên tắc lấy giá đóng cửa của ngày giao dịch gần nhất điều chỉnh theo giá trị cổ tức được nhận hoặc giá trị các quyền kèm theo."* Dạng `(P + r·S)/(1 + r)` KHÔNG nằm trong văn bản quy tắc; nó là cách tính giá trị quyền kèm theo, và chỉ có nguồn PHỤ (CafeF, bài *"Giá cổ phiếu thay đổi như thế nào sau ngày giao dịch không hưởng quyền?"*: *"Giá tham chiếu mới = (Giá tham chiếu cũ × Số cổ phiếu cũ + Giá phát hành × Số cổ phiếu mới) / (Số cổ phiếu cũ + Số cổ phiếu mới)"*). Với `r` = số cổ phiếu mới ÷ cũ, hai dạng bằng nhau. Dạng đóng của A vẫn là công thức khai; nó là nguồn phụ, không phải nguồn chính — khai thẳng.
+2. **Điều kiện LOẠI điều chỉnh.** Cùng Điều, khoản 4 điểm a: *"SGDCK không thực hiện điều chỉnh giá tham chiếu trong các trường hợp sau: a) Phát hành thêm cổ phiếu, chứng chỉ quỹ đóng với giá phát hành lớn hơn hoặc bằng giá đóng cửa của cổ phiếu, chứng chỉ quỹ đóng trước ngày giao dịch không hưởng quyền sau khi đã điều chỉnh các quyền khác (nếu có)."* (bản HOSE 2025 cùng ý). Nên: **nếu `S ≥ P` thì `F_lt = 1` (không điều chỉnh)** và nhãn tính với `F_lt = 1`; nếu `S < P` thì dùng công thức A.
+3. **Làm tròn bước giá:** `P'` thật được sàn làm tròn theo bước giá; nhãn dùng `F_lt` KHÔNG làm tròn (đã khai ở A); báo kèm một dòng `F_lt` với `P'` làm tròn xuống bước giá HOSE (50đ ở dải 10–50 nghìn) để thấy độ rộng của làm tròn; nếu hai dòng cho hai nhãn khác nhau thì báo cả hai, không chọn.
+
 **Phạm vi:** chỉ đọc; `chinh_thang_gia.py` giữ blob `e8bdc1530593d98396fb7b79ca45c4109941fb65`; không chạm `run_daily`, `docs/TIEU-CHI-DOC-TRUOC.md`, sổ, điểm, ngưỡng; không C10. Phiên con của leader; nhánh `do/soat-quyen-mua-125-274` chồng lên `origin/do/chay-do36-273` (PR #319 còn OPEN lúc khai), worktree `../vibe_wt_274`, log ở `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_274/`.
