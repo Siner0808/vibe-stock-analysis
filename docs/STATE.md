@@ -26382,3 +26382,23 @@ Lượt cổng (`./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-mu
 1. Leader báo người dùng kết cục A (một dòng) và hỏi giao BƯỚC 274 — xem *Câu hỏi chờ người dùng* ở mục D.
 2. **BƯỚC 274 (không thuộc BƯỚC này):** đóng điểm MỞ #125 (mục D (d)) TRƯỚC khi nối bộ chỉnh vào `run_daily`; nối bộ chỉnh (L4) và sửa `test_duong_that_TAT_*` cùng hai danh sách cho phép nhập ở `tests/test_su_kien_quyen.py` cùng lúc; C10; báo người dùng một dòng.
 3. Soát định kỳ 18 và đọc 7 của ĐO 27: 19/11/2026. Lệnh `PENDING` ở danh sách chờ. **Lỗi kế là 205.** BƯỚC kế 274.
+
+## BƯỚC 274 — SOÁT CHỈ-ĐỌC ĐIỂM MỞ #125 BAF (QUYỀN MUA 11,1%): HỆ SỐ ĐO 1,0568 SO VỚI HỆ SỐ LÝ THUYẾT (13/11/2026)
+
+**Mốc:** D2 — điều chỉnh giá theo sự kiện quyền (mốc D2, *Điều chỉnh giá theo sự kiện quyền*): soát chỉ-đọc một điểm mở của kết cục A của ĐO 36 (STATE BƯỚC 273 mục C.1 và D (d)); không bật gì trên đường thật, không ĐO mới, không đổi luật
+
+### A. Luật đọc — KHAI TRƯỚC khi tra giá phát hành hay kéo giá mới (bất biến 7)
+
+Phần này được commit TRƯỚC mọi file trong `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_274/` (so giờ commit `git log --format=%cI -- docs/STATE.md` với `ls -l --time-style=full-iso` của từng file trong thư mục ấy). Thời điểm khai: 13/11/2026 15:58 giờ máy, chưa tra giá phát hành quyền mua BAF ở bất cứ nguồn nào.
+
+**Câu hỏi:** bộ chỉnh thang giá kích hoạt ở #125 BAF với f đo ở nến vào = 1,056761 (BƯỚC 273 mục C.1, `chay_do36.out` dòng 137–139) trong khi hệ số lý thuyết từ lịch VCI KHÔNG tính được (lịch chỉ có tỉ lệ thực hiện 0,11111111 và tiêu đề *"Quyền mua CP cho Cổ đông hiện hữu tỉ lệ 11.1%"*, không có giá phát hành). Hệ số đo có khớp hệ số lý thuyết không?
+
+**Hệ số lý thuyết (khai trước):** `F_lt = P / P'`, `P' = (P + r·S) / (1 + r)` (giá tham chiếu điều chỉnh của quyền mua), trong đó `P` = giá đóng cửa phiên cuối TRƯỚC ngày GDKHQ 27/10/2026 trên thang CHƯA điều chỉnh, `r` = 0,11111111 (`exerciseRatio` của dòng BAF trong `vibe_logs_272/lich_vci_272.json`), `S` = giá phát hành. **Công thức này PHẢI được xác nhận từ một nguồn chính (quy tắc HOSE/VSDC) và trích dẫn;** nếu quy tắc viết khác thì commit kế tiếp ghi công thức của quy tắc vào đây TRƯỚC khi tra `S` và trước khi tính, và công thức khai ở đây bị thay (không xoá chữ cũ).
+
+**Hệ số đo:** (m1) f ở nến vào mà ĐO 36 đã ghi = 1,056761 (KHÔNG đo lại). (m2) MỚI: với mỗi ngày quét d trước 27/10, `g_d` = giá lưu lúc quét ở các dòng `decisions`/`nhat_ky` của BAF ngày d ÷ giá của CÙNG nến ấy trên khung hôm nay — chỉ nếu các dòng ấy lưu giá nến; báo N, min, max. Nếu không lưu giá nến thì ghi *"không lưu"* và bỏ m2.
+
+**Nhãn (áp cho m1; m2 báo kèm với độ trải riêng, KHÔNG có nhãn riêng):** **KHỚP** nếu `|f_đo / F_lt − 1| ≤ 0,007` (0,006969 = max nhiễu f của quần thể (ii′) ở ĐO 36, STATE BƯỚC 273 mục C.2, làm tròn lên); **LỆCH** nếu lớn hơn; **KHÔNG KIỂM ĐƯỢC** nếu `S` hoặc `P` không xác lập được từ MỘT nguồn chính hoặc HAI nguồn phụ độc lập.
+
+**Nhãn này KHÔNG quyết định:** luật cho quyền mua (chấp nhận / loại / chỉ báo — việc của người dùng) và không đổi kết cục A của ĐO 36.
+
+**Phạm vi:** chỉ đọc; `chinh_thang_gia.py` giữ blob `e8bdc1530593d98396fb7b79ca45c4109941fb65`; không chạm `run_daily`, `docs/TIEU-CHI-DOC-TRUOC.md`, sổ, điểm, ngưỡng; không C10. Phiên con của leader; nhánh `do/soat-quyen-mua-125-274` chồng lên `origin/do/chay-do36-273` (PR #319 còn OPEN lúc khai), worktree `../vibe_wt_274`, log ở `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_274/`.
