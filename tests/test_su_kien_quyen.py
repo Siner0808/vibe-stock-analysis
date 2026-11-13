@@ -319,8 +319,12 @@ def test_CHI_app_va_CLI_duoc_nhap_su_kien_quyen():
     # nhập thẳng `su_kien_quyen`, chỉ nhập `nen_su_kien_quyen`.
     # BƯỚC 192: thêm dụng cụ ĐO 26 (chỉ đọc) — nó phải gắn nhãn bằng ĐÚNG hàm của sản
     # phẩm (`soi_so`) để đo nhãn ấy, như dụng cụ ĐO 25 nhập `ke_hoach_vao_lenh`.
+    # BƯỚC 272: thêm `chinh_thang_gia.py` — bộ chỉnh thang giá (ĐO 35) DÙNG LẠI `NGUONG_LECH`/`NOI_BIEN`/
+    # `dung_nen` của nhãn thay vì gõ lại hằng số; nó là bên thứ ba duy nhất, gác riêng ở
+    # `tests/test_chinh_thang_gia.py` (chỉ `run_daily` và dụng cụ ĐO 35 được nhập nó).
     assert ai == {"app.py", "tools/soi_su_kien_quyen.py", "nen_su_kien_quyen.py",
-                  "tools/do26_nguong_su_kien_quyen.py",
+                  "tools/do26_nguong_su_kien_quyen.py", "chinh_thang_gia.py",
+                  "tools/do35_chinh_thang_gia.py",
                   "tools/do27_su_kien_quyen_chieu_tien.py"}, (   # BƯỚC 194: ĐO 27
         f"su_kien_quyen chỉ được nhập ở app, CLI soi và đường nối; đang có: {sorted(ai)}")
 
