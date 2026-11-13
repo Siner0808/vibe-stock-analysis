@@ -294,6 +294,7 @@ st.markdown("""
     .ti-item { display: flex; flex-direction: column; align-items: flex-end; }
     .ti-l { color: var(--c-t3); font-size: 11px; text-transform: uppercase; }
     .ti-v { font-weight: 700; font-size: 12px; }
+    .ti-n { color: var(--c-t3); font-size: 11px; max-width: 220px; text-align: right; }
     .ti-v.up { color: var(--c-g); }
     .ti-v.bl { color: var(--c-b); }
     .live-pill {
@@ -538,6 +539,7 @@ def _doc_ke_hoach():
 # bộ nhớ đệm) với tab Bản tin, KHÔNG đường đọc Sheets thứ hai, KHÔNG rơi về
 # sổ ở máy. Kho chưa cấu hình -> `so_lenh_loi` nói thẳng, danh sách rỗng.
 from so_lenh_app import SoLenhApp as _SoLenhApp, dung_so_lenh as _dung_so_lenh
+import so_lenh_app as _sla
 try:
     _so_lenh = _dung_so_lenh(_doc_so_ban_tin())
     so_lenh_loi = _so_lenh.loi
@@ -1021,6 +1023,10 @@ else:
                 f"hôm nay.")
 
 # ── 1. COMPACT TOPBAR ──────────────────────────────────────────────
+# Chú thích cạnh ô "Sổ lệnh (net)" (BƯỚC 271): chỉ chữ, KHÔNG đổi số, KHÔNG in số "đã loại".
+_chu_thich_so_lenh = _sla.chu_thich_o_so_lenh(_so_lenh.lenh_dong)
+_chu_thich_so_lenh_html = (f'<span class="ti-n">{_chu_thich_so_lenh}</span>'
+                           if _chu_thich_so_lenh else '')
 topbar_logo_html = get_animated_logo_html(size=28, uid="tb")
 st.markdown(
     f'<div class="topbar">'
@@ -1034,7 +1040,8 @@ st.markdown(
     f'<span class="ti-l">{_vni_nhan}</span>'
     f'<span class="ti-v {_vni_lop}">{_vni_val}</span></div>'
     f'<div class="ti-item"><span class="ti-l">Sổ lệnh (net)</span>'
-    f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span></div>'
+    f'<span class="ti-v">{_so(so_lenh_perf.total_net_pct if so_lenh_perf else None, "{:+.2f}%")}</span>'
+    f'{_chu_thich_so_lenh_html}</div>'
     f'<div class="ti-item" title="Ngưỡng mua của đường giao dịch ảo '
     f'(paper_trading.BUY_THRESHOLD) — chỉ đọc, không chỉnh được trên app.">'
     f'<span class="ti-l">Ngưỡng mua (đường ảo)</span><span class="ti-v bl">'
@@ -2165,6 +2172,11 @@ with t_hist:
         # ── HẬU KIỂM BẰNG LỜI (B1, BƯỚC 205) — CHỈ ĐỌC tab `hau_kiem` ─────────
         # Đọc khoá `hau_kiem` của `_doc_so_ban_tin()`, không thêm loader thứ hai: app giữ MỘT
         # đường đọc Sheets. Chỉ hiện bản `DAT` mới nhất của lệnh; app không bao giờ gọi API.
+        # Chú thích lỗ GIẢ do sự kiện quyền (BƯỚC 271): chỉ chữ, cho #122 và #128 — đặt TRƯỚC
+        # lời B1 để người dùng đọc nó trước khi đọc lời "gap".
+        _ct_lo_gia = _sla.chu_thich_hau_kiem(_nk[_chon].get("trade_id"), _so_lenh.lenh_dong)
+        if _ct_lo_gia:
+            st.warning(_ct_lo_gia)
         import hau_kiem_loi as _hkl_mod
         try:
             _hk_tab = (_doc_so_ban_tin() or {}).get("hau_kiem") or []

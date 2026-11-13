@@ -69,3 +69,51 @@ def dung_so_lenh(du_lieu: Optional[dict[str, list[dict]]]) -> SoLenhApp:
     vi_the_mo = tuple(t for t in tat_ca if t.status in TRANG_THAI_MO)
     lenh_dong = tuple(t for t in tat_ca if t.status in TRANG_THAI_DONG)
     return SoLenhApp(tat_ca, vi_the_mo, lenh_dong, compute(list(lenh_dong)), None)
+
+
+# ── Chú thích lỗ GIẢ do sự kiện quyền (BƯỚC 271) ─────────────────────────────
+#: Hai lệnh đã đóng mà sổ ghi một cú cắt lỗ GIẢ vì lệch thang giá: sổ lưu giá vào và
+#: cắt lỗ ở thang CHƯA điều chỉnh, nguồn giá điều chỉnh lùi sau ngày giao dịch không
+#: hưởng quyền, nên `paper_trading._lenh_dat_san` so hai thang khác nhau (`low <= sl`).
+#: {id lệnh: mã}. Nguồn của danh sách: `docs/STATE.md` BƯỚC 269 (nguyên nhân) và 270
+#: (kiểm kê); ĐO 27 (BƯỚC 268) khai đúng hai lệnh này ở `tap_loai`. Người dùng chốt
+#: 12/11/2026 giữ nguyên sổ, nên đây là danh sách TĨNH của hai dòng đã đóng — KHÔNG phải
+#: nhãn tính lúc chạy (nhãn tính cần tải giá, app chỉ làm khi người dùng bấm nút).
+#: Khớp theo CẢ id, mã VÀ lý do thoát: sổ dựng lại hay đánh số lại thì chú thích
+#: không gắn nhầm sang một lệnh khác.
+LENH_LO_GIA_GDKHQ: dict[int, str] = {122: "HDB", 128: "TCB"}
+
+#: Mẫu câu cạnh ô "Sổ lệnh (net)" ở topbar. `{n}` là số lệnh THẬT SỰ có mặt trong sổ đang
+#: đọc. KHÔNG in một con số "đã loại hai lệnh": số ấy đẹp lên, nó không phải số đã sửa
+#: (giá trị đúng của hai lệnh trên thang đúng chưa ai chạy; `docs/STATE.md` BƯỚC 270 ô "Cách đọc").
+CHU_THICH_O_SO_LENH = "gồm {n} lệnh lỗ giả do sự kiện quyền"
+
+#: Câu cạnh lời hậu kiểm (máy và B1) của một trong hai lệnh. Nguyên nhân viết từ mã:
+#: `paper_trading._lenh_dat_san` (`low <= sl`) đọc nến thang MỚI với cắt lỗ thang CŨ.
+CHU_THICH_HAU_KIEM = (
+    "Lệnh này mang lỗ GIẢ do sự kiện quyền: sổ lưu giá vào và cắt lỗ ở thang chưa điều "
+    "chỉnh, nguồn giá đã điều chỉnh lùi, nên máy so hai thang khác nhau và ghi một cú "
+    "cắt lỗ không có thật (docs/STATE.md BƯỚC 269–270). Nhãn \"gap/trượt giá\", phần "
+    "\"riêng mã\" và lời B1 bên dưới đọc cú rơi cơ học ấy như biến động thị trường — "
+    "đừng theo dõi nó như một hiện tượng gap.")
+
+
+def lenh_lo_gia_trong_so(lenh_dong: "tuple[Trade, ...] | list[Trade]") -> tuple[Trade, ...]:
+    """Các lệnh ĐÃ ĐÓNG trong sổ đang đọc khớp `LENH_LO_GIA_GDKHQ` (id, mã VÀ cắt lỗ)."""
+    return tuple(t for t in lenh_dong
+                 if LENH_LO_GIA_GDKHQ.get(t.id) == t.symbol
+                 and t.exit_reason == "STOP_LOSS")
+
+
+def chu_thich_o_so_lenh(lenh_dong: "tuple[Trade, ...] | list[Trade]") -> Optional[str]:
+    """Câu một dòng cạnh ô "Sổ lệnh (net)", hoặc None khi sổ không có lệnh nào trong số đó."""
+    n = len(lenh_lo_gia_trong_so(lenh_dong))
+    return CHU_THICH_O_SO_LENH.format(n=n) if n else None
+
+
+def chu_thich_hau_kiem(trade_id: Any, lenh_dong: "tuple[Trade, ...] | list[Trade]") -> Optional[str]:
+    """Câu cạnh lời hậu kiểm của lệnh `trade_id`, hoặc None nếu không phải lệnh lỗ giả trong sổ."""
+    for t in lenh_lo_gia_trong_so(lenh_dong):
+        if str(t.id) == str(trade_id):
+            return CHU_THICH_HAU_KIEM
+    return None
