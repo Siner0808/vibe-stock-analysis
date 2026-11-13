@@ -26479,3 +26479,7 @@ Tách m2 làm đôi là việc phiên con làm SAU khi thấy dòng 26/10 (nên 
 - **Ứng viên lỗi còn treo từ BƯỚC 273, KHÔNG đánh số ở đây:** hàng *"nhóm sạch 18 lệnh"* của bản ký ĐO 35 đặt tên sai (nhóm ấy chứa #116 nên không sạch; STATE BƯỚC 273 mục C.2). Leader chưa quyết có mở lỗi hay không.
 - Lệnh `PENDING` ở danh sách chờ (người dùng 12/11/2026). Soát định kỳ 18 và đọc 7 của ĐO 27 hẹn **19/11/2026**.
 - **Điểm mở của chính phép soát này, nếu người dùng muốn nâng nhãn lên KHỚP/LỆCH mà không chờ ca mới:** cần một nguồn đọc được cho đóng cửa THANG CHƯA điều chỉnh 26/10/2026 của BAF (bảng giá lịch sử HOSE, hoặc `close` thô của VNDirect finfo khi điểm cuối ấy lên lại) — chưa có trong phiên này.
+
+### H. Năm cổng ở máy
+
+`./.venv/Scripts/python.exe tools/nam_cong.py --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_274/cong` (cây `bbe0226`, 16:13:52–16:19:33 giờ máy, 341 s; worktree, python của repo chính; tổng `vibe_logs_274/cong_chay.txt`): **cả năm cổng thoát 0** — cổng 1 `4912 passed, 2 skipped` · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình"* · cổng 5 *"OK — 4914 test, khop moc da ghi"* (BƯỚC này không thêm hay xoá test; mốc giữ 4914). Mục H này được thêm SAU lượt cổng (chỉ `docs/STATE.md`); CI đọc ở PR.
