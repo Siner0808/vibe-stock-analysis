@@ -6,6 +6,10 @@ Bao gồm tin tức vĩ mô, ngành, doanh nghiệp và cảm xúc thị trườ
 ──────────────────────────────────────────────────────────────────────
 """
 import feedparser
+import requests
+import threading
+import time
+from urllib.parse import urljoin
 from dataclasses import dataclass, field
 from bs4 import BeautifulSoup
 import concurrent.futures
@@ -18,6 +22,119 @@ HEADERS = {
     )
 }
 FETCH_TIMEOUT = 8
+
+# ── BƯỚC 275: tải RSS có giới hạn thời gian THẬT + bộ nhớ dùng chung ─────────
+#: Tổng giây tối đa cho MỘT nguồn (kết nối + tải). Chặn kiểu treo "nhỏ giọt": mỗi lần chờ
+#: socket đều ngắn nhưng cộng lại không có đáy. Trần xấu nhất của một nguồn ≈ HAN_MOT_NGUON +
+#: HAN_DOC giây (lần đọc cuối cùng có thể đang chờ). Treo ở bước tra DNS thì `requests` không
+#: cắt được — nhóm vẫn thoát ở HAN_NHOM, luồng treo bị bỏ lại chạy nền.
+HAN_MOT_NGUON = FETCH_TIMEOUT
+HAN_KET_NOI = 3.05
+HAN_DOC = 5
+HAN_NHOM = HAN_MOT_NGUON + HAN_DOC + 2   # nhóm nguồn đợi tối đa, rồi bỏ những nguồn chưa về
+TRAN_BYTE_MOT_NGUON = 5_000_000
+#: Bộ nhớ dùng chung cho nguồn KHÔNG phụ thuộc mã (trong nước, quốc tế, vĩ mô, ngành): 20 phút
+#: khi tải được bài, 5 phút khi hỏng hay rỗng (không tải lại nguồn chết ở mỗi lượt phân tích).
+#: Đây là lựa chọn của phiên làm BƯỚC 275, chờ người dùng xác nhận (STATE BƯỚC 275, mục câu hỏi).
+TTL_BO_NHO_TIN = 20 * 60
+TTL_BO_NHO_LOI = 5 * 60
+# Cùng dấu hiệu mà `feedparser.parse(url)` tự gửi, để máy chủ trả cùng thứ như trước.
+_HEADERS_RSS = {
+    "User-Agent": feedparser.USER_AGENT,
+    "Accept": ("application/atom+xml,application/rdf+xml,application/rss+xml,"
+               "application/x-netcdf,application/xml;q=0.9,text/xml;q=0.2,*/*;q=0.1"),
+    "A-IM": "feed",
+}
+#: Nguồn mà bản CŨ (`feedparser.parse(url)` qua urllib) luôn trả 0 bài, còn bản mới (`requests` + certifi)
+#: sẽ tải được. Giữ 0 bài để điểm tin không đổi trong BƯỚC 275 (đo 13/11/2026, STATE BƯỚC 275 mục B);
+#: cho chúng qua là đổi gói tin → có thể đổi điểm, thuộc quyết định của người dùng.
+NGUON_GIU_KET_QUA_CU: dict[str, str] = {
+    "https://www.ecb.europa.eu/rss/press.html":
+        "bản cũ trượt CERTIFICATE_VERIFY_FAILED (kho chứng chỉ của urllib) -> 0 bài; bản mới tải được 15 bài",
+}
+_BO_NHO_TIN: dict[str, tuple[float, list | None]] = {}
+_KHOA_CHUNG = threading.Lock()
+_KHOA_URL: dict[str, threading.Lock] = {}
+
+
+def xoa_bo_nho_tin() -> None:
+    """Xoá bộ nhớ nguồn tin (dụng cụ đo và nút làm mới)."""
+    with _KHOA_CHUNG:
+        _BO_NHO_TIN.clear()
+
+
+def _tai_noi_dung(url: str) -> tuple[bytes, dict]:
+    """Tải thô một nguồn RSS, có TỔNG hạn `HAN_MOT_NGUON`. Trả (byte, tiêu đề phản hồi viết thường)."""
+    # Bản cũ (urllib) nổ InvalidURL với địa chỉ còn khoảng trắng: hai câu hỏi tiếng Việt theo mã của
+    # `CompanyNewsAgent` chưa bao giờ trả bài. `requests` tự mã hoá nên sẽ tải được 53–56 bài mỗi câu;
+    # giữ nguyên kết quả cũ (0 bài) để điểm không đổi — cho qua là quyết định của người dùng.
+    if any(c.isspace() for c in url):
+        raise ValueError(f"địa chỉ còn khoảng trắng (bản cũ nổ InvalidURL, giữ nguyên): {url!r}")
+    bat_dau = time.monotonic()
+    with requests.get(url, headers=_HEADERS_RSS, timeout=(HAN_KET_NOI, HAN_DOC), stream=True) as r:
+        dem = bytearray()
+        for khuc in r.iter_content(16384):
+            dem += khuc
+            if time.monotonic() - bat_dau > HAN_MOT_NGUON:
+                raise TimeoutError(f"nguồn quá {HAN_MOT_NGUON}s: {url}")
+            if len(dem) > TRAN_BYTE_MOT_NGUON:
+                raise ValueError(f"nguồn quá {TRAN_BYTE_MOT_NGUON} byte: {url}")
+        tieu_de = {k.lower(): v for k, v in r.headers.items()}
+        # `feedparser.parse(url)` lấy nền tương đối từ địa chỉ CUỐI sau chuyển hướng; đưa nó vào đây.
+        tieu_de["content-location"] = urljoin(r.url, tieu_de.get("content-location", ""))
+        return bytes(dem), tieu_de
+
+
+def _tai_va_phan_tich(url: str) -> list:
+    noi_dung, tieu_de = _tai_noi_dung(url)
+    return list(feedparser.parse(noi_dung, response_headers=tieu_de).entries)
+
+
+def _khoa_cua(url: str) -> threading.Lock:
+    with _KHOA_CHUNG:
+        return _KHOA_URL.setdefault(url, threading.Lock())
+
+
+def _doc_feed(url: str, dung_bo_nho: bool = True) -> list:
+    """Các `entry` của một nguồn RSS. Hỏng hay quá hạn thì `[]` (như bản cũ nuốt lỗi).
+
+    `dung_bo_nho=False` cho nguồn phụ thuộc mã (Google News theo mã): luôn tải mới. Còn lại dùng
+    chung giữa các mã và các phiên; hai luồng cùng cần một địa chỉ thì MỘT tải, luồng kia đợi.
+    """
+    if url in NGUON_GIU_KET_QUA_CU:
+        return []
+    if not dung_bo_nho:
+        try:
+            return _tai_va_phan_tich(url)
+        except Exception:
+            return []
+    with _khoa_cua(url):
+        muc = _BO_NHO_TIN.get(url)
+        if muc is not None:
+            ttl = TTL_BO_NHO_TIN if muc[1] else TTL_BO_NHO_LOI
+            if time.monotonic() - muc[0] < ttl:
+                return muc[1] or []
+        try:
+            entries = _tai_va_phan_tich(url)
+        except Exception:
+            entries = []
+        _BO_NHO_TIN[url] = (time.monotonic(), entries)
+        return entries
+
+
+def _gom_song_song(viec: list, han: float = HAN_NHOM) -> list:
+    """Chạy song song `[(hàm, *đối số), ...]`; trả kết quả THEO THỨ TỰ KHAI, `None` cho việc hỏng
+    hoặc chưa xong sau `han` giây. KHÔNG chờ luồng chưa xong (`shutdown(wait=False)`): bản cũ dùng
+    `with ThreadPoolExecutor`, nên một nguồn treo giữ cả lượt phân tích."""
+    if not viec:
+        return []
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=len(viec))
+    try:
+        fs = [pool.submit(*v) for v in viec]
+        xong, _ = concurrent.futures.wait(fs, timeout=han)
+        return [f.result() if f in xong and f.exception() is None else None for f in fs]
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
 
 # ─────────────────────────────────────────────────────────────────────
 # DATA CONTRACT
@@ -75,12 +192,16 @@ def _sentiment(text: str) -> str:
     return "NEUTRAL"
 
 def _fetch_rss(url: str, source: str, category: str, region: str,
-               max_items: int = 6) -> list[NewsItem]:
-    """Parse một RSS feed và trả về danh sách NewsItem."""
+               max_items: int = 6, dung_bo_nho: bool = True) -> list[NewsItem]:
+    """Parse một RSS feed và trả về danh sách NewsItem.
+
+    BƯỚC 275: tải qua `_doc_feed` (hạn thời gian thật, bộ nhớ dùng chung). Cách dựng `NewsItem`
+    từ `entry` KHÔNG đổi so với bản dùng `feedparser.parse(url)` trực tiếp.
+    """
     items: list[NewsItem] = []
     try:
-        feed = feedparser.parse(url)
-        for entry in feed.entries[:max_items]:
+        entries = _doc_feed(url, dung_bo_nho)
+        for entry in entries[:max_items]:
             title   = getattr(entry, "title", "") or ""
             summary = getattr(entry, "summary", "") or getattr(entry, "description", "") or ""
             summary = BeautifulSoup(summary, "html.parser").get_text(" ", strip=True)[:300]
@@ -129,11 +250,9 @@ class DomesticNewsAgent:
 
     def collect(self) -> list[NewsItem]:
         results: list[NewsItem] = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-            futures = {pool.submit(_fetch_rss, url, src, cat, reg): (url, src)
-                       for url, src, cat, reg in self.FEEDS}
-            for fut in concurrent.futures.as_completed(futures):
-                results.extend(fut.result())
+        for kq in _gom_song_song([(_fetch_rss, url, src, cat, reg)
+                                  for url, src, cat, reg in self.FEEDS]):
+            results.extend(kq or [])
         return results
 
 
@@ -171,11 +290,9 @@ class InternationalNewsAgent:
 
     def collect(self) -> list[NewsItem]:
         results: list[NewsItem] = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-            futures = {pool.submit(_fetch_rss, url, src, cat, reg, 5): (src,)
-                       for url, src, cat, reg in self.FEEDS}
-            for fut in concurrent.futures.as_completed(futures):
-                results.extend(fut.result())
+        for kq in _gom_song_song([(_fetch_rss, url, src, cat, reg, 5)
+                                  for url, src, cat, reg in self.FEEDS]):
+            results.extend(kq or [])
         return results
 
 
@@ -199,11 +316,9 @@ class MacroDataAgent:
 
     def collect(self) -> list[NewsItem]:
         results: list[NewsItem] = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-            futures = {pool.submit(_fetch_rss, url, src, cat, reg, 4): (src,)
-                       for url, src, cat, reg in self.FEEDS}
-            for fut in concurrent.futures.as_completed(futures):
-                results.extend(fut.result())
+        for kq in _gom_song_song([(_fetch_rss, url, src, cat, reg, 4)
+                                  for url, src, cat, reg in self.FEEDS]):
+            results.extend(kq or [])
         return results
 
 
@@ -283,24 +398,17 @@ class SectorNewsAgent:
 
     def collect(self, symbol: str = "") -> dict[str, list[NewsItem]]:
         """Thu thập tin tức tất cả ngành song song."""
-        sector_results: dict[str, list[NewsItem]] = {}
+        sector_results: dict[str, list[NewsItem]] = {sec: [] for sec in self.SECTOR_FEEDS}
 
-        def fetch_sector(sector_name: str, feeds: list) -> tuple:
-            items: list[NewsItem] = []
-            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as inner:
-                futs = {inner.submit(_fetch_rss, url, src, sector_name, reg, 4): src
-                        for url, src, reg in feeds}
-                for f in concurrent.futures.as_completed(futs):
-                    items.extend(f.result())
-            return sector_name, items
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-            futures = {pool.submit(fetch_sector, sec, feeds): sec
-                       for sec, feeds in self.SECTOR_FEEDS.items()}
-            for fut in concurrent.futures.as_completed(futures):
-                sec_name, sec_items = fut.result()
-                sector_results[sec_name] = sec_items
-
+        # BƯỚC 275: MỘT bể phẳng cho mọi nguồn của mọi ngành (bản cũ: bể 8 ngành × bể 3 nguồn lồng
+        # nhau, mỗi tầng `with` đợi tới cùng). Cùng một địa chỉ ở nhiều ngành chỉ tải một lần.
+        viec, chu = [], []
+        for sec, feeds in self.SECTOR_FEEDS.items():
+            for url, src, reg in feeds:
+                viec.append((_fetch_rss, url, src, sec, reg, 4))
+                chu.append(sec)
+        for sec, kq in zip(chu, _gom_song_song(viec)):
+            sector_results[sec].extend(kq or [])
         return sector_results
 
 
@@ -317,14 +425,14 @@ class CompanyNewsAgent:
             f"{symbol} cổ phiếu lợi nhuận",
             f"{symbol} chứng khoán",
         ]
-        for q in queries:
-            url = f"https://news.google.com/rss/search?q={q}&hl=vi&gl=VN&ceid=VN:vi"
-            fetched = _fetch_rss(url, "GoogleNews", "corporate", "domestic", 5)
-            items.extend(fetched)
-
-        # English Google News
+        # BƯỚC 275: ba địa chỉ theo MÃ, tải song song và KHÔNG qua bộ nhớ dùng chung (`dung_bo_nho=False`);
+        # thứ tự kết quả vẫn là hai bản tiếng Việt rồi bản tiếng Anh như trước.
         url_en = f"https://news.google.com/rss/search?q={symbol}+Vietnam+stock&hl=en&gl=VN&ceid=VN:en"
-        items.extend(_fetch_rss(url_en, "GoogleNews-EN", "corporate", "international", 4))
+        viec = [(_fetch_rss, f"https://news.google.com/rss/search?q={q}&hl=vi&gl=VN&ceid=VN:vi",
+                 "GoogleNews", "corporate", "domestic", 5, False) for q in queries]
+        viec.append((_fetch_rss, url_en, "GoogleNews-EN", "corporate", "international", 4, False))
+        for kq in _gom_song_song(viec):
+            items.extend(kq or [])
 
         return items
 
