@@ -2475,8 +2475,10 @@ with t_acct:
     else:
         _p = so_lenh_perf
         try:
-            from paper_metrics import expectancy_significant
-            _sig = expectancy_significant(list(_so_lenh.lenh_dong))
+            # BƯỚC 275: bootstrap 5.000 lượt chỉ tính lại khi chuỗi lợi nhuận của sổ ĐỔI (bộ nhớ khoá
+            # theo nội dung); cùng kết quả từng chữ số với `paper_metrics.expectancy_significant`.
+            from bo_nho_do_app import expectancy_significant_nho
+            _sig = expectancy_significant_nho(list(_so_lenh.lenh_dong))
         except Exception:
             _sig = None
 
