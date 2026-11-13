@@ -26461,7 +26461,7 @@ Tách m2 làm đôi là việc phiên con làm SAU khi thấy dòng 26/10 (nên 
 
 ### E. Sổ tay NotebookLM và máy gác
 
-(Điền sau khi PR #319 vào `main` và `origin/main` đã được hợp nhất vào nhánh này.)
+**Không hỏi thật; khai `khong_bat_buoc_vi`** (`docs/soat-notebooklm.json`, mục `BƯỚC 274`). Viết SAU khi PR #319 vào `main` (`82ae6b5`) và `origin/main` đã được hợp nhất vào nhánh này (`95814a8`), để file của BƯỚC 273 không bị tính cho BƯỚC này. Máy xác nhận: `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 274` → *"BƯỚC 274: khong cham luat"* (kèm ghi chú *"CHUA vao origin/main: cay lam viec so voi diem tach 82ae6b5"*, tức tính trên cây làm việc). Điều máy KHÔNG thấy, khai thẳng: STATE này ghi một quan sát mới (hệ số nguồn giá HẰNG 50 ngày; độ nhạy hậu nghiệm), kèm nhãn KHÔNG KIỂM ĐƯỢC; nó không đổi luật hay kết luận đo đã ghi. Nếu người dùng chọn luật loại/chỉ báo ở mục F thì bước ấy đổi L2/L3 của ĐO 35 và PHẢI hỏi thật sổ tay.
 
 ### F. Câu hỏi chờ người dùng — luật cho sự kiện QUYỀN MUA ở bộ chỉnh thang giá
 
