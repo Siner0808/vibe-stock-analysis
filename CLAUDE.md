@@ -81,8 +81,7 @@ một chuỗi giá. Ba nguồn độc lập đã đo (không nguồn nào cứu 
 | giao dịch nội bộ | `insider_trading()` của `vnstock_data` trả 0/71 mã | 114 |
 
 Mâu thuẫn cốt lõi: *phần đo được thì không có tín hiệu, phần có thể có tín
-hiệu thì không đo được* (trên app chạy trực tiếp các agent "chết" trong
-backtest sống lại nhưng không đo được).
+hiệu thì không đo được*.
 
 ### Agent cơ bản, Wyckoff, Fibonacci, màu bảng giá, Dow, nến tuần/tháng — CHỈ ĐỂ HIỆN
 
@@ -156,17 +155,9 @@ backtest sống lại nhưng không đo được).
   làm `trend_score` kẹt 35/50/65 và lệch ngưỡng 62). `run_daily` chỉ ghi sổ
   trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`). `tv_recommendation`
   của đường giao dịch ghim `"NEUTRAL"` (`tests/test_duong_giao_dich_khong_doc_tradingview.py`).
-- **Chỉnh thang giá lệnh ĐANG MỞ — ĐANG chạy từ BƯỚC 276** (ĐO 35 · 36 kết cục A; `docs/STATE.md`
-  BƯỚC 271–276). Sổ lưu giá vào · cắt lỗ · chốt lời ở thang lúc khớp, nguồn giá điều chỉnh LÙI sau ngày
-  giao dịch không hưởng quyền; nên mỗi lượt quét `run_daily` gọi `chinh_thang_mot_ma` cho từng mã SAU khi
-  tải khung giá và TRƯỚC `run_session`. f = giá vào ÷ giá MỞ của nguồn ở nến vào; f vượt 1 quá
-  `NGUONG_LECH` (dùng lại của `su_kien_quyen`, không dò) và giá vào nằm ngoài thân nến thì chia ba cột
-  giá cho f và GHI NGƯỢC vào sổ — chỉ lệnh `OPEN`/`CLOSING`; dòng đã đóng, `decisions`, `PENDING` không
-  đổi. Quyền mua đi CÙNG đường với cổ phiếu thưởng (người dùng 13/11/2026: *"Chấp nhận như đã ký
-  (Recommended)"*; bằng chứng một ca, hệ số chưa đối chiếu độc lập); cổ tức tiền dưới 5% KHÔNG chỉnh
-  (sót có chủ ý). Không có cờ tắt: gỡ = bỏ lời gọi và sửa `tests/test_chinh_thang_gia.py` cùng lúc.
-  Lệnh đã đóng mang nhãn `SU_KIEN_TRONG_LUC_GIU` bị loại khỏi cả cổng C5 lẫn bộ nhớ học
-  (`tools/dung_lai_bo_nho.py`, C10).
+- **Chỉnh thang giá lệnh MỞ** (BƯỚC 276, ĐANG chạy): `run_daily` gọi `chinh_thang_mot_ma` mỗi mã trước
+  `run_session`, ghi ngược sổ; quyền mua đi cùng đường; lệnh nhãn lỗ giả loại khỏi C5 và
+  `tools/dung_lai_bo_nho.py`.
 
 ### Bộ nhớ hậu nghiệm
 
@@ -190,8 +181,7 @@ Sở + thuế bán, `paper_metrics.ROUND_TRIP_COST_PCT` = 0,46% một vòng mua�
 vòng đời lệnh), công tắc `paper_trading.MO_PHONG_TRUOT_GIA` = True,
 `VON_DANH_MUC_VND` = 1 tỷ. `volume` KHÔNG được nhân `price_multiplier`.
 Bước giá 50đ là sự thật của lưới giá HOSE ở dải 10–50 nghìn; HNX/UPCoM là
-100đ ở mọi mức. Mô hình từng áp nhầm thang HOSE cho 7 mã (4 HNX, 3 UPCoM);
-đã sửa ở BƯỚC 143 — `san_giao_dich.py` (bảng chụp 71 mã, tra sàn theo MÃ),
+100đ ở mọi mức. Thang đúng từ BƯỚC 143 — `san_giao_dich.py` (bảng chụp 71 mã, tra sàn theo MÃ),
 `tools/kiem_san_giao_dich.py` so lại với `Listing` hai nguồn.
 
 **Bảng hiện hành** — ĐO 18 (26/09/2026, sổ đã làm trung thực) cho hai dòng
@@ -274,8 +264,7 @@ trong khi máy cài một lần rồi đứng yên. Khoảng lệch phải **đo
 Nó chia ba hạng, in đủ tên và hai số hiệu của từng gói lệch, mã thoát
 0/1/2 (không chạm quyết định / có chạm / chưa kiểm được). Quần thể là **giao
 của hai bên đọc được** (lỗi 80: dụng cụ tự khai bảy tên gõ tay chỉ thấy 1 trong
-32 lệch). Lịch sử lệch bản chính (`streamlit`, `plotly`, `urllib3`) đã đóng
-ở BƯỚC 95–96, 106; còn `pyarrow` (repo KHÔNG nhập; số hiệu CI trôi theo ngày). Lớp lệch còn lại luôn phải đọc
+32 lệch). Còn `pyarrow` (repo KHÔNG nhập; số hiệu CI trôi theo ngày). Lớp lệch còn lại luôn phải đọc
 bằng lệnh trên, không đọc ở đây. `vnstock_goi.kiem_goi()` trên Streamlit Cloud cho KHỚP (đo 09/10/2026). 🔴 Câu cũ *"báo LỆCH trên cloud vĩnh viễn — đó là báo ĐÚNG"* HẾT ĐÚNG (nó suy Cloud là free). Trên Actions hạng chưa đọc: LỆCH ở đó chưa phải báo đúng hay sai cho tới khi đo.
 
 ---
