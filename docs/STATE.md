@@ -26722,7 +26722,13 @@ Không có câu mới. Đề xuất 2 đã được người dùng duyệt (*"đ
 
 **Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 277` mang `khong_bat_buoc_vi`; `tools/buoc_cham_luat.py 277` (xem dòng in ở báo cáo của PR) xác nhận BƯỚC không chạm file luật. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; kết luận đo mới (điểm tin nhích xuống) chỉ nằm ở mục C trên và là số của MỘT lượt chạy mạng.
 
-**Năm cổng:** ghi ở mục H (thêm sau lượt cổng).
+**Năm cổng** (cây `a6c8e25`; log ở `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_277/`):
+
+- Lượt 0 (`cong`, CÙNG LÚC, cây trước `a6c8e25`): cổng 1 và cổng 4 ĐỎ ở `tests/test_duyet_repo.py::test_SO_DANG_KY_moi_luot_duyet_de_quy_deu_qua_duyet_repo` — **lỗi của chính BƯỚC này**: gác phạm vi mới của tôi duyệt cây bằng `os.walk`, mà luật của dự án đòi mọi lượt duyệt đệ quy đi qua `duyet_repo.duyet`. Đã sửa (`tests/test_cho_ba_nguon_tin_277.py`, hàm `_file_ma_nguon`), chạy lại ba file test liên quan (59 passed) và lại toàn bộ đột biến: **19/19 đỏ** (`dot_bien_277_3.out`; `dot_bien_277_2.out` là lượt trước khi sửa). Cổng 2, 3, 5 thoát 0.
+- Lượt 1 (`cong2`, CÙNG LÚC, cây `a6c8e25`): cổng 1 và cổng 4 ĐỎ ở `tests/test_ho_so.py::test_CUA_khu_trung_trong_cung_mot_phien` (*"lần hai cùng phiên vẫn bơm"*) — **cùng test, cùng thông báo như lượt cùng lúc của BƯỚC 269 · 270 · 275**; cổng 2, 3, 5 thoát 0. Không mở lỗi, không sửa test ấy (giả thuyết hai cổng cùng chạy file ấy chung dấu vết phiên ở TEMP vẫn CHƯA kiểm).
+- Lượt 2 (`cong_tuan_tu`, `--tuan-tu`, cây `a6c8e25`, 524 s): **cả năm cổng thoát 0** — cổng 1 `4997 passed, 2 skipped` · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình"* · cổng 5 *"OK — 4999 test, khop moc da ghi"*. Mốc `docs/moc_so_test.json`: **4982 → 4999** (+17 = 17 test của file mới; BƯỚC này thay MỘT test cũ bằng MỘT test lật, không xoá test nào; `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do …` chạy TRƯỚC cổng 1).
+
+Mục này (và chỉ nó) được thêm SAU lượt cổng; không có dòng mã hay test nào đổi sau cây `a6c8e25`. Trên cây cuối chạy lại 86 file test có đọc STATE · HANDOFF · sổ tay · `CLAUDE.md` (2004 passed, 2 skipped; `test_doc_sau_gate.log`), cổng 3 (0 CHẶN) và cổng 5 (OK, 4999 test); không chạy lại cả năm cổng.
 
 ### H. Việc kế
 
