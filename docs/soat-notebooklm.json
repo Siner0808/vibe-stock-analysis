@@ -5907,6 +5907,178 @@
     "BƯỚC 275": {
       "ngay": "2026-11-13",
       "khong_bat_buoc_vi": "Chỉ sửa HIỆU NĂNG của app Streamlit theo yêu cầu người dùng 13/11/2026: tải RSS có hạn và bộ nhớ dùng chung trong news_collectors.py, một kết nối và mỗi tab một lần đọc Google Sheets (chỉ đọc) trong google_sheets_sync.py, sheets_store.py và app.py, bộ nhớ bootstrap theo nội dung ở bo_nho_do_app.py. Không sửa file luật nào (tools/buoc_cham_luat.py trên cây làm việc cho BƯỚC 275: không chạm luật), không đổi điểm, ngưỡng, sổ, máy đo, đường quét hay một kết luận đo; bộ nhớ bootstrap cùng từng byte với paper_metrics.expectancy_significant, và với cùng gói tin RSS thì mã mới ra đúng từng NewsItem và đầu ra NewsSentimentAgent của mã cũ (dữ liệu vàng sinh từ mã cũ). Hai chỗ mã mới tải được mà mã cũ luôn trả 0 bài (ECB, Google News tiếng Việt theo mã) được GIỮ 0 bài có tên và có gác để điểm tin không đổi; việc cho qua là câu hỏi chờ người dùng ở STATE BƯỚC 275 mục G, không phải kết luận mới. Chỗ máy mù khai thẳng: các số đo trước/sau trong STATE BƯỚC 275 là số máy local giả lập Cloud, chỉ nằm trong STATE (file) chứ không phải kết luận đo nào của sổ lệnh."
+    },
+    "BƯỚC 276": {
+      "ngay": "2026-11-14",
+      "nguon": [
+        "CLAUDE.md @e8ca9da",
+        "HANDOFF.md @f0b995a",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @e99c2e1",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @bbb516b",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @687449c",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "STATE.md @f0b995a phan7/7 (BUOC 275-275)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "TIEU-CHI-DOC-TRUOC.md @687449c"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với f0b995a f0b995a): 24 nguồn, 24 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 276 into docs/STATE.md: (1) The price-scale rescaler (chinh_thang_gia.py, DO 35 / DO 36, outcome A signed) is now ON in the live path: run_daily calls chinh_thang_mot_ma once per symbol inside the per-symbol scan loop, after that symbol's price frame is loaded and BEFORE run_session (which runs fill_closing and then evaluate_open), under no condition, with no on/off flag, no threshold changed (NGUONG_LECH and NOI_BIEN stay imported). Only OPEN and CLOSING trades are rescaled and written back to the ledger; closed rows, decisions, ke_hoach and PENDING orders are untouched; cash dividends below 5% are deliberately not rescaled. (2) A RIGHTS ISSUE (quyen mua) with measured factor above 5% is rescaled by the measured factor exactly like a stock dividend, with NO special rule: on 2026-11-13 the user chose 'Chap nhan nhu da ky (Recommended)' for this. The evidence is ONE case (trade 125 BAF, f 1.0568); the check of that case was labelled KHONG KIEM DUOC (missing old-scale close of 2026-10-26) although the data leaned to a match; the factor of a rights issue has no independent cross-check. (3) C10 of DO 35 is done: tools/dung_lai_bo_nho.py drops closed trades labelled SU_KIEN_TRONG_LUC_GIU using the same nen_su_kien_quyen.tap_loai as the stop condition, and its --ghi REFUSES (exit 1, writes nothing) when candles cannot be read, while --xem only warns; the display layer (the Gap flag of the lesson ledger and the 'gap/trượt giá' line of hau_kiem_may) reads the label and says 'lệch thang giá do sự kiện quyền' instead; the hau_kiem_may strings already written stay byte-identical. (4) CLAUDE.md gets ONE new bullet stating that open trades are rescaled in the live scan, that a rights issue goes the same way, and that labelled false losses are excluded from both the C5 stop condition and the learning memory. The one-line notice to the user is made in the final report, not in code. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a statement that a single rights-issue case whose check was KHONG KIEM DUOC must not be rescaled in the live path, or that an event with an unknown theoretical factor must be reported only, a statement that enabling the live path needs a further explicit user decision after outcome A, or that a sample of six trades is too small to authorize it, a sentence that says the ledger always keeps prices at the old (unadjusted) scale, or that open trades must never be rewritten by the scan, which would become FALSE, a statement that the learning memory or the Gap flag must be built from ALL stop-loss trades, or that a refusal to write the memory is not allowed, a rule limiting what CLAUDE.md may contain, or a rule that the live scan imports only a fixed list of modules. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "a566d743ca14b751c626b3d8cde95645bd29466c672340dfd02b5435810359fe",
+        "dai16": 5626,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "STATE.md @f0b995a phan6/7 (BUOC 251-274)"
+          },
+          {
+            "n": 2,
+            "nguon": "SKILL.md @014da50"
+          },
+          {
+            "n": 2,
+            "nguon": "SKILL.md @014da50"
+          },
+          {
+            "n": 3,
+            "nguon": "SKILL.md @014da50"
+          },
+          {
+            "n": 4,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @687449c"
+          },
+          {
+            "n": 4,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @687449c"
+          },
+          {
+            "n": 5,
+            "nguon": "STATE.md @f0b995a phan6/7 (BUOC 251-274)"
+          },
+          {
+            "n": 6,
+            "nguon": "CLAUDE.md @e8ca9da"
+          },
+          {
+            "n": 7,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 7,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 7,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 8,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 8,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 8,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 9,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 10,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 10,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 11,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 11,
+            "nguon": "HANDOFF.md @f0b995a"
+          },
+          {
+            "n": 1,
+            "nguon": "STATE.md @f0b995a phan6/7 (BUOC 251-274)"
+          },
+          {
+            "n": 12,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @687449c"
+          },
+          {
+            "n": 13,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @687449c"
+          },
+          {
+            "n": 14,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 6,
+            "nguon": "CLAUDE.md @e8ca9da"
+          },
+          {
+            "n": 15,
+            "nguon": "CLAUDE.md @e8ca9da"
+          },
+          {
+            "n": 16,
+            "nguon": "STATE.md @f27bc50 phan3/5 (BUOC 117-168)"
+          },
+          {
+            "n": 16,
+            "nguon": "STATE.md @f27bc50 phan3/5 (BUOC 117-168)"
+          },
+          {
+            "n": 20,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          }
+        ]
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "Quy tắc 3 / `.claude/skills/quy-trinh-lam-viec/SKILL.md`: BƯỚC sửa `CLAUDE.md` thì phải hỏi thật, không được khai `khong_bat_buoc_vi`; kết luận (1) \"không cần câu hỏi sổ tay riêng\" của lựa chọn (i) (STATE BƯỚC 274 mục D.3) đúng cho riêng việc nối bộ chỉnh, nhưng kết luận (4) sửa `CLAUDE.md` nên cả BƯỚC phải hỏi thật. Đây là điều BƯỚC 276 đang làm, không phải mâu thuẫn.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/buoc_cham_luat.py 276 -> `CHAM LUAT ['CLAUDE.md']` (chạy ở BƯỚC này, trước câu hỏi); đoạn SKILL.md: `grep -n \"thì phải hỏi thật\" .claude/skills/quy-trinh-lam-viec/SKILL.md` -> dòng 33.",
+          "phan_quyet": "THẬT, đã làm: lượt hỏi thật này là chính nó; không có `khong_bat_buoc_vi`."
+        },
+        {
+          "noi_dung": "`docs/TIEU-CHI-DOC-TRUOC.md`, ĐO 35, *Đã tra trùng*: ô ⚠️ của BƯỚC 272 nói *\"đường thật TẮT (không ai trong đường quét gọi nó: `…::test_duong_that_TAT_khong_co_nguoi_goi_bo_chinh_trong_duong_quet`)\"* và chưa có dấu hết-đúng nào sau nó; câu hết đúng khi `run_daily` gọi bộ chỉnh.",
+          "tu_kiem": "./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"đường thật TẮT (không ai trong đường quét gọi nó: tests/test_chinh_thang_gia.py::test_duong_that_TAT_khong_co_nguoi_goi_bo_chinh_trong_duong_quet)\" -> KHỚP TIEU-CHI-DOC-TRUOC.md (`../vibe_logs_276/doi_chieu_276.out`); `git show origin/main:docs/TIEU-CHI-DOC-TRUOC.md | grep -n \"đường thật TẮT\"` -> dòng 4822 chưa có dấu sau nó.",
+          "phan_quyet": "THẬT. Đã xử lý theo quy ước (giữ chữ đã ký, thêm ô ⚠️ có ngày ngay dưới, dòng ngay sau dòng 4822): ⚠️ 14/11/2026 (BƯỚC 276) trong `docs/TIEU-CHI-DOC-TRUOC.md`; chữ L1–L8, C1–C11, kết cục KHÔNG đổi."
+        },
+        {
+          "noi_dung": "`docs/HANDOFF.md` mục 5: bảy cụm câu hết đúng khi ghi (1)–(3) mà ⚠️ trước đó không phủ: (a) khối BƯỚC 274 *\"đường thật VẪN TẮT, không ĐO mới, không đổi luật\"* và *\"Câu hỏi chờ người dùng (mục F …): luật cho quyền mua — (i)… (ii)… (iii)…\"*; (b) khối BƯỚC 273 *\"(3) điểm MỞ cho BƯỚC 274: #125 BAF … đường thật có chấp nhận hay chỉ báo?\"* và *\"không lời gọi nào trong run_daily, không C10, test_duong_that_TAT_* không đụng\"*; (c) ⚠️ BƯỚC 273 *\"Vế đường thật TẮT vẫn đúng.\"*; (d) khối BƯỚC 272 *\"mã chỉnh thang đã vào repo nhưng ĐƯỜNG THẬT TẮT\"* và *\"không ai trong đường quét gọi chúng (gác AST)\"*; (e) khối BƯỚC 270 *\"tools/dung_lai_bo_nho.py --ghi sẽ ghi cả hai vào bộ nhớ vì không lọc\"* và *\"BƯỚC thiết kế chỉnh giá vào và cắt lỗ ngày GDKHQ (ký tiêu chí trước) là việc kế\"*; (f) ⚠️ BƯỚC 275 *\"vẫn chờ người dùng chọn luật cho quyền mua\"*.",
+          "tu_kiem": "Mười một câu trích đều: `./.venv/Scripts/python.exe tools/doi_chieu_trich_dan.py \"<câu>\"` -> KHỚP HANDOFF.md (`../vibe_logs_276/doi_chieu_276.out`, 11/11 KHỚP); và `grep -n -F` từng cụm ở bản `origin/main` của `docs/HANDOFF.md` tìm đúng các dòng (lệnh `git show origin/main:docs/HANDOFF.md | grep -n -F <cụm>`): khối BƯỚC 274 dòng 340, 273 dòng 343, 272 dòng 348, ⚠️ BƯỚC 273 dòng 350, 270 dòng 353, ⚠️ BƯỚC 275 dòng 337. Lưu ý: dụng cụ chạy trên cây làm việc, nên `grep -F` ở bản `origin/main` mới là bằng chứng các câu có TRƯỚC BƯỚC 276 (sổ tay lột dấu nhấn: *\"Vế *đường thật TẮT* vẫn đúng\"* khớp sau khi bỏ dấu `*`).",
+          "phan_quyet": "THẬT. Đã viết lại khối ⚠️ 14/11/2026 (BƯỚC 276) ở `docs/HANDOFF.md` mục 5 thành sáu mục (1)–(6) phủ từng câu trên; chữ cũ giữ nguyên."
+        },
+        {
+          "noi_dung": "Lưu ý chữ của kết luận (2): ngoài f > 1 + `NGUONG_LECH`, luật L2 của ĐO 35 còn đòi đồng thời `entry_price` > (1 + `NOI_BIEN`) × giá cao của nến vào.",
+          "tu_kiem": "`grep -n \"L2 — ngưỡng\" docs/TIEU-CHI-DOC-TRUOC.md` rồi đọc dòng ấy: *\"Kích hoạt khi CẢ HAI cùng đúng: (a) … (b) `entry_price` > (1 + `NOI_BIEN`) × giá CAO …\"*; và `chinh_thang_gia.do_he_so` (mã, dòng 97–107) có hai nhánh ấy. `awk '/^## BƯỚC 276/{f=1} f' docs/STATE.md | grep -n \"vượt\"` -> chỉ chữ của HỘP 1 (lời của leader); CLAUDE.md không nêu điều kiện kích hoạt.",
+          "phan_quyet": "THẬT (chữ, không phải mã). Chữ của hộp 1 là lời leader, giữ nguyên nguyên văn; thêm vào STATE BƯỚC 276 một chú thích của phiên con nêu L2 đòi cả hai điều kiện. Mã và `CLAUDE.md` không đổi."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
