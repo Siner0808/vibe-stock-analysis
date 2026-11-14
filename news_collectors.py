@@ -9,7 +9,7 @@ import feedparser
 import requests
 import threading
 import time
-from urllib.parse import urljoin
+from urllib.parse import quote_plus, urljoin
 from dataclasses import dataclass, field
 from bs4 import BeautifulSoup
 import concurrent.futures
@@ -45,13 +45,6 @@ _HEADERS_RSS = {
                "application/x-netcdf,application/xml;q=0.9,text/xml;q=0.2,*/*;q=0.1"),
     "A-IM": "feed",
 }
-#: Nguồn mà bản CŨ (`feedparser.parse(url)` qua urllib) luôn trả 0 bài, còn bản mới (`requests` + certifi)
-#: sẽ tải được. Giữ 0 bài để điểm tin không đổi trong BƯỚC 275 (đo 13/11/2026, STATE BƯỚC 275 mục B);
-#: cho chúng qua là đổi gói tin → có thể đổi điểm, thuộc quyết định của người dùng.
-NGUON_GIU_KET_QUA_CU: dict[str, str] = {
-    "https://www.ecb.europa.eu/rss/press.html":
-        "bản cũ trượt CERTIFICATE_VERIFY_FAILED (kho chứng chỉ của urllib) -> 0 bài; bản mới tải được 15 bài",
-}
 _BO_NHO_TIN: dict[str, tuple[float, list | None]] = {}
 _KHOA_CHUNG = threading.Lock()
 _KHOA_URL: dict[str, threading.Lock] = {}
@@ -65,11 +58,6 @@ def xoa_bo_nho_tin() -> None:
 
 def _tai_noi_dung(url: str) -> tuple[bytes, dict]:
     """Tải thô một nguồn RSS, có TỔNG hạn `HAN_MOT_NGUON`. Trả (byte, tiêu đề phản hồi viết thường)."""
-    # Bản cũ (urllib) nổ InvalidURL với địa chỉ còn khoảng trắng: hai câu hỏi tiếng Việt theo mã của
-    # `CompanyNewsAgent` chưa bao giờ trả bài. `requests` tự mã hoá nên sẽ tải được 53–56 bài mỗi câu;
-    # giữ nguyên kết quả cũ (0 bài) để điểm không đổi — cho qua là quyết định của người dùng.
-    if any(c.isspace() for c in url):
-        raise ValueError(f"địa chỉ còn khoảng trắng (bản cũ nổ InvalidURL, giữ nguyên): {url!r}")
     bat_dau = time.monotonic()
     with requests.get(url, headers=_HEADERS_RSS, timeout=(HAN_KET_NOI, HAN_DOC), stream=True) as r:
         dem = bytearray()
@@ -101,8 +89,6 @@ def _doc_feed(url: str, dung_bo_nho: bool = True) -> list:
     `dung_bo_nho=False` cho nguồn phụ thuộc mã (Google News theo mã): luôn tải mới. Còn lại dùng
     chung giữa các mã và các phiên; hai luồng cùng cần một địa chỉ thì MỘT tải, luồng kia đợi.
     """
-    if url in NGUON_GIU_KET_QUA_CU:
-        return []
     if not dung_bo_nho:
         try:
             return _tai_va_phan_tich(url)
@@ -428,7 +414,10 @@ class CompanyNewsAgent:
         # BƯỚC 275: ba địa chỉ theo MÃ, tải song song và KHÔNG qua bộ nhớ dùng chung (`dung_bo_nho=False`);
         # thứ tự kết quả vẫn là hai bản tiếng Việt rồi bản tiếng Anh như trước.
         url_en = f"https://news.google.com/rss/search?q={symbol}+Vietnam+stock&hl=en&gl=VN&ceid=VN:en"
-        viec = [(_fetch_rss, f"https://news.google.com/rss/search?q={q}&hl=vi&gl=VN&ceid=VN:vi",
+        # BƯỚC 277: câu hỏi tiếng Việt được mã hoá phần trăm (`quote_plus`) nên địa chỉ hợp lệ với mọi
+        # thư viện HTTP — bản trước BƯỚC 275 (urllib) nổ InvalidURL vì khoảng trắng nên hai câu này chưa
+        # bao giờ trả bài.
+        viec = [(_fetch_rss, f"https://news.google.com/rss/search?q={quote_plus(q)}&hl=vi&gl=VN&ceid=VN:vi",
                  "GoogleNews", "corporate", "domestic", 5, False) for q in queries]
         viec.append((_fetch_rss, url_en, "GoogleNews-EN", "corporate", "international", 4, False))
         for kq in _gom_song_song(viec):
