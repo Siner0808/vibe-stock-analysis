@@ -255,6 +255,14 @@ def _xep_hang_agent(diem: dict[str, float]) -> Optional[str]:
             f"thấp nhất: {ten(thap)} {d[thap]:g}")
 
 
+#: Đầu dòng nhãn gap của `hau_kiem_may` — MỘT chỗ định nghĩa: chỗ SINH (`hau_kiem_may`) và chỗ HIỆN
+#: (`hau_kiem_may_hien`) cùng dùng nó, nên đổi chữ ở một nơi không làm nơi kia lặng lẽ hết khớp.
+DAU_NHAN_GAP = "thoát DƯỚI cắt lỗ ban đầu"
+
+#: Chữ thay cho nhãn gap ở lớp HIỆN khi lệnh mang nhãn `SU_KIEN_TRONG_LUC_GIU` (BƯỚC 276, C10(b) của ĐO 35).
+NHAN_LECH_THANG_QUYEN = "lệch thang giá do sự kiện quyền"
+
+
 def thoat_duoi_cat_lo(sl_ban_dau: float, exit_price: float) -> bool:
     """Giá thoát nằm DƯỚI cắt lỗ ban đầu = gap/trượt giá (bất biến 3).
 
@@ -278,7 +286,7 @@ def hau_kiem_may(*, sl_ban_dau: float, exit_price: float, exit_reason: str,
         nhan.append(f"{'vượt' if alpha > 0 else 'thua'} rổ {alpha:+.2f} điểm")
     if thoat_duoi_cat_lo(sl_ban_dau, exit_price):
         duoi = (sl_ban_dau - exit_price) / sl_ban_dau * 100.0
-        nhan.append(f"thoát DƯỚI cắt lỗ ban đầu {duoi:.2f}% — gap/trượt giá "
+        nhan.append(f"{DAU_NHAN_GAP} {duoi:.2f}% — gap/trượt giá "
                     "(bất biến 3: gap qua SL khớp ở giá mở cửa)")
     elif exit_reason == ExitReason.STOP_LOSS and exit_price > sl_ban_dau:
         nhan.append("thoát bằng cắt lỗ ĐÃ NÂNG (trailing) — cao hơn cắt lỗ ban đầu")
@@ -288,6 +296,22 @@ def hau_kiem_may(*, sl_ban_dau: float, exit_price: float, exit_reason: str,
     if xh:
         nhan.append(xh)
     return nhan
+
+
+def hau_kiem_may_hien(hau_kiem_may: Any, co_nhan_su_kien_quyen: bool) -> list[str]:
+    """Các dòng của ô `hau_kiem_may` để HIỆN (lớp hiển thị; BƯỚC 276, C10(b) của ĐO 35).
+
+    Lệnh mang nhãn `SU_KIEN_TRONG_LUC_GIU` (giá sổ chưa điều chỉnh, nguồn đã điều chỉnh lùi) có giá thoát
+    "dưới cắt lỗ ban đầu" vì HAI THANG GIÁ khác nhau, không vì gap: dòng gap được đọc lại thành
+    `NHAN_LECH_THANG_QUYEN`. Chỉ đổi CHỮ HIỆN: chuỗi đã ghi ở sổ/Sheets không bị chạm (hàm thuần, trả
+    danh sách mới). Không nhãn thì trả đúng các dòng đã ghi.
+    """
+    dong = [d for d in str(hau_kiem_may or "").split(" | ") if d]
+    if not co_nhan_su_kien_quyen:
+        return dong
+    return [(f"{NHAN_LECH_THANG_QUYEN} (nhãn SU_KIEN_TRONG_LUC_GIU): giá thoát nằm dưới cắt lỗ ban đầu "
+             "vì hai thang giá khác nhau, không phải gap") if d.startswith(DAU_NHAN_GAP) else d
+            for d in dong]
 
 
 def dong_vao_lenh(trade: Trade, components: Any, reasons: Any,

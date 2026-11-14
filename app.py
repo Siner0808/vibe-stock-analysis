@@ -727,8 +727,14 @@ def _khoi_so_bai_hoc(nk, nk_loi):
             except Exception as _e:
                 gia = None
                 st.warning(f"⚠️ Chưa tải được giá — {type(_e).__name__}: {_e}")
+    nhan_quyen, nhan_quyen_loi = _nhan_quyen_cho_hien()
+    if nhan_quyen_loi:
+        st.warning(f"⚠️ Chưa đọc được nhãn sự kiện quyền — {nhan_quyen_loi}. Cờ Gap bên dưới CHƯA loại lệnh lệch thang giá.")
+    elif nhan_quyen is None:
+        st.caption("Cờ Gap chưa đọc nhãn sự kiện quyền: bấm “Tải giá để soát sự kiện quyền” ở khối soát bên dưới "
+                   "để lệnh lệch thang giá (SU_KIEN_TRONG_LUC_GIU) không bị đếm là gap.")
     try:
-        bh = _sbh.bai_hoc_cho_so(nk, gia)
+        bh = _sbh.bai_hoc_cho_so(nk, gia, nhan_su_kien=nhan_quyen)
     except Exception as _e:
         st.warning(f"⚠️ Chưa dựng được sổ bài học — {type(_e).__name__}: {_e}")
         return
@@ -793,6 +799,26 @@ def _nen_cho_su_kien_quyen(cac_ma, tu_ngay, den_ngay):
         nen[m] = _skq.dung_nen(_d["time"], _d["open"], _d["low"], _d["high"],
                                price_multiplier(_d))
     return nen, thieu
+
+
+def _nhan_quyen_cho_hien():
+    """({id: lý do} lệnh ĐÃ ĐÓNG mang nhãn `SU_KIEN_TRONG_LUC_GIU`, lỗi) cho lớp HIỆN (BƯỚC 276, C10(b)).
+
+    CHỈ đọc nhãn khi người dùng ĐÃ bấm nút tải giá của khối soát sự kiện quyền (cùng đệm
+    `_nen_cho_su_kien_quyen`, không tải thêm): chưa bấm thì (None, ""). Tải hỏng thì (None, lỗi) —
+    không bao giờ đoán nhãn. Chỉ ĐỔI CÁCH HIỆN cờ Gap và dòng "gap/trượt giá"; sổ không bị chạm.
+    """
+    if not st.session_state.get("su_kien_quyen_co_gia"):
+        return None, ""
+    import su_kien_quyen as _skq
+    try:
+        _ma, _tu = _skq.pham_vi_tai(_so_lenh.vi_the_mo, _so_lenh.lenh_dong)
+        if not _ma or _tu is None:
+            return {}, ""
+        _nen, _ = _nen_cho_su_kien_quyen(tuple(_ma), _tu, end_str)
+        return _skq.id_su_kien_trong_luc_giu(_so_lenh.lenh_dong, _nen), ""
+    except Exception as _e:
+        return None, f"{type(_e).__name__}: {_e}"
 
 
 def _khoi_su_kien_quyen():
@@ -2194,7 +2220,9 @@ with t_hist:
             _hk = _nk[_chon].get("hau_kiem_may")
             if _hk:
                 st.markdown("**Hậu kiểm máy**")
-                for _n in str(_hk).split(" | "):
+                _nhan_q, _ = _nhan_quyen_cho_hien()
+                _co_nhan = bool(_nhan_q) and str(_nk[_chon].get("trade_id")) in {str(k) for k in _nhan_q}
+                for _n in _nkv.hau_kiem_may_hien(_hk, _co_nhan):
                     st.markdown(f"- {_n}")
         # ── HẬU KIỂM BẰNG LỜI (B1, BƯỚC 205) — CHỈ ĐỌC tab `hau_kiem` ─────────
         # Đọc khoá `hau_kiem` của `_doc_so_ban_tin()`, không thêm loader thứ hai: app giữ MỘT

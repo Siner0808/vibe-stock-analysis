@@ -526,8 +526,10 @@ def test_ast_chi_ba_noi_duoc_nhap_duong_noi_va_duong_do_khong_bao_gio():
           if "nen_su_kien_quyen" in _nhap(ast.parse(p.read_text(encoding="utf-8")))}
     # BƯỚC 192: dụng cụ ĐO 26 (chỉ đọc) gọi `tai_nen` và `tap_loai` để đo ĐÚNG đường của
     # điều kiện dừng (đối chứng (iii) của bản ký); gác ghi riêng ở test_do26_*.
+    # BƯỚC 276 (C10 của ĐO 35): thêm `tools/dung_lai_bo_nho.py` — loại lệnh lỗ GIẢ khỏi bộ nhớ học bằng
+    # ĐÚNG `tap_loai` này; gác riêng ở `tests/test_c10_lenh_lo_gia.py`.
     assert ai == {"run_daily.py", "tools/canh_cong_c5.py", "tools/soi_su_kien_quyen.py",
-                  "tools/do26_nguong_su_kien_quyen.py",
+                  "tools/do26_nguong_su_kien_quyen.py", "tools/dung_lai_bo_nho.py",
                   "tools/do27_su_kien_quyen_chieu_tien.py"}, sorted(ai)   # BƯỚC 194: ĐO 27
     for ten in ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "master_agent.py",
                 "analysis_agents.py", "debate_agents.py", "walkforward.py", "sheets_store.py",
