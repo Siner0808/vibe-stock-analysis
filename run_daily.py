@@ -26,6 +26,7 @@ from data_quality import nen_cuoi_dang_do, now_vn
 import market_filter
 import do_tre_khop
 import nen_su_kien_quyen
+import chinh_thang_gia
 
 DB_PATH = "paper_trades.db"
 
@@ -568,7 +569,21 @@ def execute_daily_scan():
                     bo_qua["thiếu nến"] = bo_qua.get("thiếu nến", 0) + 1
                     print(f"  ⚠️ {sym}: bỏ qua — chỉ {n} nến, cần ≥20")
                     break
-                
+
+                # CHỈNH THANG GIÁ lệnh đang mở (L4 của ĐO 35; ĐO 36 kết cục A, BƯỚC 276): SAU khi
+                # khung giá của mã đã tải và qua cổng nến, TRƯỚC `run_session` — trong đó `fill_closing`
+                # (rồi `evaluate_open`) so nến thang MỚI của nguồn với cắt lỗ của sổ; sổ còn thang cũ
+                # thì nó ghi một cú cắt lỗ GIẢ (#122 · #128). Ghi ngược sổ nên lượt kế f' ≈ 1, không
+                # chia hai lần. Không chỉnh được thì lệnh GIỮ thang cũ, in cảnh báo, mã vẫn được xét:
+                # nuốt lỗi ở đây an toàn hơn bỏ qua cắt lỗ của cả mã (L6). Không truyền `nhan_f`.
+                try:
+                    chinh_thang_gia.chinh_thang_mot_ma(
+                        journal, sym, df, now_time.strftime("%Y-%m-%d"),
+                        nguon=str(res.get("source") or "?"), san=san_cua(sym))
+                except Exception as e:
+                    print(f"##[warning]chỉnh thang giá {sym}: không chạy được, lệnh giữ thang cũ — "
+                          f"{type(e).__name__}: {e}")
+
                 row = df.iloc[-1]
                 bar = {
                     "open": float(row["open"]),

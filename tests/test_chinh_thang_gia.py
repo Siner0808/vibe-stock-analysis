@@ -674,7 +674,8 @@ def _ma_nguon():
 def test_gac_chi_dung_cu_nhap_bo_chinh_walkforward_va_loi_giao_dich_KHONG():
     ai = {p.relative_to(GOC).as_posix() for p in _ma_nguon()
           if "chinh_thang_gia" in _nhap(ast.parse(p.read_text(encoding="utf-8")))}
-    assert ai == {"tools/do35_chinh_thang_gia.py"}, sorted(ai)    # BƯỚC 272: đường thật TẮT, chỉ dụng cụ đo nhập
+    # BƯỚC 276: đường thật BẬT (ĐO 36 kết cục A) — `run_daily.py` là nơi nhập thứ hai, cùng dụng cụ đo.
+    assert ai == {"run_daily.py", "tools/do35_chinh_thang_gia.py"}, sorted(ai)
     for ten in ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "walkforward.py", "sheets_store.py",
                 "google_sheets_sync.py", "master_agent.py", "san_dau.py", "nhat_ky_vi_sao.py"):
         assert "chinh_thang_gia" not in _nhap(ast.parse((GOC / ten).read_text(encoding="utf-8"))), ten
@@ -701,15 +702,63 @@ def test_gac_ham_chinh_khong_goi_mang_khong_doc_lich_su_kien_khong_import_nen_gi
                  "google_sheets_sync", "do26_nguong_su_kien_quyen", "nen_su_kien_quyen"} & nhap), nhap
 
 
-def test_duong_that_TAT_khong_co_nguoi_goi_bo_chinh_trong_duong_quet():
-    """ĐO 35 kết cục K0 (BƯỚC 272): bộ chỉnh vào repo nhưng KHÔNG chạy trên đường thật. "Tắt" = không ai gọi
-    `chinh_thang_mot_ma` ngoài dụng cụ đo và test; đổi dòng này là bật đường thật, có chủ đích, sau một ĐO kết cục A."""
+def _ten_goi(n):
+    return getattr(n.func, "attr", getattr(n.func, "id", ""))
+
+
+def _cha(cay):
+    return {con: cha for cha in ast.walk(cay) for con in ast.iter_child_nodes(cha)}
+
+
+def _vong_quet_run_daily():
+    """(cây, vòng `for sym in CUSTOM_WATCHLIST_SYMBOLS` của `execute_daily_scan`)."""
+    cay = ast.parse((GOC / "run_daily.py").read_text(encoding="utf-8"))
+    ham = next(n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef) and n.name == "execute_daily_scan")
+    vong = [n for n in ast.walk(ham) if isinstance(n, ast.For)
+            and isinstance(n.iter, ast.Call) and _ten_goi(n.iter) == "enumerate"
+            and any(isinstance(a, ast.Name) and a.id == "CUSTOM_WATCHLIST_SYMBOLS" for a in n.iter.args)]
+    assert len(vong) == 1, "run_daily phải có đúng một vòng quét theo CUSTOM_WATCHLIST_SYMBOLS"
+    return cay, vong[0]
+
+
+def test_duong_that_BAT_bo_chinh_goi_o_run_daily_trong_vong_tung_ma_truoc_run_session():
+    """ĐO 35 · 36 kết cục A (BƯỚC 276): đường thật BẬT, đúng chỗ L4 — HÌNH DẠNG AST, không giá trị lúc chạy.
+    Một lời gọi `chinh_thang_mot_ma` ở `run_daily`, TRONG vòng từng mã, SAU lời gọi tải khung giá của mã
+    (`collector.collect`) và TRƯỚC `run_session` (nơi `fill_closing` rồi `evaluate_open` chạy), và KHÔNG nằm
+    dưới một `if` nào (nhánh "nến đã xử lý" không được bỏ qua nó)."""
     goi = set()
     for p in _ma_nguon():
         cay = ast.parse(p.read_text(encoding="utf-8"))
-        if any(isinstance(n, ast.Call) and getattr(n.func, "attr", getattr(n.func, "id", "")) == "chinh_thang_mot_ma"
-               for n in ast.walk(cay)):
+        if any(isinstance(n, ast.Call) and _ten_goi(n) == "chinh_thang_mot_ma" for n in ast.walk(cay)):
             goi.add(p.relative_to(GOC).as_posix())
-    assert goi - {"chinh_thang_gia.py"} == {"tools/do35_chinh_thang_gia.py"}, sorted(goi)
-    assert "chinh_thang_gia" not in _nhap(ast.parse((GOC / "run_daily.py").read_text(encoding="utf-8")))
-    assert not hasattr(ct, "BAT_TRONG_DUONG_THAT")        # không có cờ chết
+    assert goi - {"chinh_thang_gia.py"} == {"run_daily.py", "tools/do35_chinh_thang_gia.py"}, sorted(goi)
+    cay, vong = _vong_quet_run_daily()
+    moi = [n for n in ast.walk(cay) if isinstance(n, ast.Call) and _ten_goi(n) == "chinh_thang_mot_ma"]
+    trong = [n for n in ast.walk(vong) if isinstance(n, ast.Call) and _ten_goi(n) == "chinh_thang_mot_ma"]
+    assert len(moi) == 1 and len(trong) == 1, "đúng MỘT lời gọi, và nó nằm TRONG vòng từng mã"
+    chinh = trong[0]
+    tai = [n for n in ast.walk(vong) if isinstance(n, ast.Call) and _ten_goi(n) == "collect"]
+    chay = [n for n in ast.walk(vong) if isinstance(n, ast.Call) and _ten_goi(n) == "run_session"]
+    assert len(tai) == 1 and len(chay) == 1
+    assert tai[0].lineno < chinh.lineno < chay[0].lineno, (tai[0].lineno, chinh.lineno, chay[0].lineno)
+    cha, nut = _cha(vong), chinh
+    while nut is not vong:
+        nut = cha[nut]
+        assert not isinstance(nut, ast.If), "lời gọi bộ chỉnh không được nằm dưới một `if`"
+    assert "nhan_f" not in {k.arg for k in chinh.keywords}
+    assert not hasattr(ct, "BAT_TRONG_DUONG_THAT")        # không có cờ chết: "bật" = CÓ người gọi
+
+
+def test_duong_that_BAT_run_session_con_chua_fill_closing_roi_evaluate_open():
+    """Vế "TRƯỚC `fill_closing` và `evaluate_open`" chỉ có nghĩa nếu hai hàm ấy nằm SAU `run_session` (vỏ
+    mỏng gọi `buoc_phien`, BƯỚC 239) chứ không ở chính `run_daily`: gác đọc `paper_runner` bằng AST."""
+    cay = ast.parse((GOC / "paper_runner.py").read_text(encoding="utf-8"))
+    vo = next(n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef) and n.name == "run_session")
+    assert any(isinstance(n, ast.Call) and _ten_goi(n) == "buoc_phien" for n in ast.walk(vo))
+    ham = next(n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef) and n.name == "buoc_phien")
+    dong = {t: min(n.lineno for n in ast.walk(ham) if isinstance(n, ast.Call) and _ten_goi(n) == t)
+            for t in ("fill_closing", "evaluate_open")}
+    assert dong["fill_closing"] < dong["evaluate_open"], dong
+    rd = ast.parse((GOC / "run_daily.py").read_text(encoding="utf-8"))
+    assert not [n for n in ast.walk(rd) if isinstance(n, ast.Call)
+                and _ten_goi(n) in ("fill_closing", "evaluate_open")]
