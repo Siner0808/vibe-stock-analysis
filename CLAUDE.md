@@ -156,6 +156,17 @@ backtest sống lại nhưng không đo được).
   làm `trend_score` kẹt 35/50/65 và lệch ngưỡng 62). `run_daily` chỉ ghi sổ
   trên nến ĐÃ ĐÓNG (`data_quality.nen_cuoi_dang_do`). `tv_recommendation`
   của đường giao dịch ghim `"NEUTRAL"` (`tests/test_duong_giao_dich_khong_doc_tradingview.py`).
+- **Chỉnh thang giá lệnh ĐANG MỞ — ĐANG chạy từ BƯỚC 276** (ĐO 35 · 36 kết cục A; `docs/STATE.md`
+  BƯỚC 271–276). Sổ lưu giá vào · cắt lỗ · chốt lời ở thang lúc khớp, nguồn giá điều chỉnh LÙI sau ngày
+  giao dịch không hưởng quyền; nên mỗi lượt quét `run_daily` gọi `chinh_thang_mot_ma` cho từng mã SAU khi
+  tải khung giá và TRƯỚC `run_session`. f = giá vào ÷ giá MỞ của nguồn ở nến vào; f vượt 1 quá
+  `NGUONG_LECH` (dùng lại của `su_kien_quyen`, không dò) và giá vào nằm ngoài thân nến thì chia ba cột
+  giá cho f và GHI NGƯỢC vào sổ — chỉ lệnh `OPEN`/`CLOSING`; dòng đã đóng, `decisions`, `PENDING` không
+  đổi. Quyền mua đi CÙNG đường với cổ phiếu thưởng (người dùng 13/11/2026: *"Chấp nhận như đã ký
+  (Recommended)"*; bằng chứng một ca, hệ số chưa đối chiếu độc lập); cổ tức tiền dưới 5% KHÔNG chỉnh
+  (sót có chủ ý). Không có cờ tắt: gỡ = bỏ lời gọi và sửa `tests/test_chinh_thang_gia.py` cùng lúc.
+  Lệnh đã đóng mang nhãn `SU_KIEN_TRONG_LUC_GIU` bị loại khỏi cả cổng C5 lẫn bộ nhớ học
+  (`tools/dung_lai_bo_nho.py`, C10).
 
 ### Bộ nhớ hậu nghiệm
 
