@@ -26563,7 +26563,7 @@ Bộ đo: `../vibe_logs_275/do_app_cham.py` (sao từ `vibe_logs_cham_app/do_app
 ### G. Câu hỏi chờ người dùng
 
 1. **Hạn của ba bộ nhớ (phiên con CHỌN, người dùng chưa duyệt):** tin 20 phút (nguồn hỏng/rỗng 5 phút); sổ Sheets 30 phút (bản cũ 5) kèm nút "Đọc lại sổ". Lý do: sổ chỉ đổi sau lượt quét (hai lượt mỗi ngày làm việc); tin cập nhật theo phút-giờ. Hạn dài hơn nhanh hơn nhưng số trên app cũ hơn; ngắn hơn ngược lại. Đây là chỗ đánh đổi sản phẩm: leader hỏi người dùng nếu cần.
-2. **Cho qua hai chỗ mã mới tải được mà mã cũ luôn trả 0 bài** (ECB; hai câu Google News tiếng Việt theo mã)? Cho qua đổi gói tin và có thể đổi điểm tin của app (`NewsSentimentAgent`); hiện giữ 0 bài. Đổi = sửa `NGUON_GIU_KET_QUA_CU`, quy tắc khoảng trắng ở `_tai_noi_dung` và gác (`test_phat_hanh_giu_nguyen_ket_qua_cu_…`) cùng lúc.
+2. 🔴 **ĐÃ TRẢ LỜI VÀ LÀM XONG 14/11/2026 (BƯỚC 277; người dùng *"đồng ý cả 3 đề xuất"*).** **Cho qua hai chỗ mã mới tải được mà mã cũ luôn trả 0 bài** (ECB; hai câu Google News tiếng Việt theo mã)? Cho qua đổi gói tin và có thể đổi điểm tin của app (`NewsSentimentAgent`); hiện giữ 0 bài. Đổi = sửa `NGUON_GIU_KET_QUA_CU`, quy tắc khoảng trắng ở `_tai_noi_dung` và gác (`test_phat_hanh_giu_nguyen_ket_qua_cu_…`) cùng lúc.
 3. **34/62 nguồn tin trả 0 bài ở cả hai bộ tải** — nếu người dùng muốn tin đầy hơn thì là một BƯỚC riêng (đổi dấu gửi đi, đo gói tin trước/sau, đổi điểm → có thể phải hỏi sổ tay thật). Phiên con không thử, không có số.
 
 ### H. Việc chờ (NGOÀI phạm vi, không bắt đầu)
@@ -26657,3 +26657,73 @@ BƯỚC này SỬA `CLAUDE.md` (file luật) nên HỎI THẬT: `./.venv/Scripts
 **Câu hỏi chờ người dùng:** không có câu mới. (Đoạn `CLAUDE.md` đã chuyển: mục G; người dùng 14/11 *"tiep di"*, diễn giải của leader.)
 
 **Việc kế.** (1) Leader đọc CI một lần rồi merge `--merge` (PR này KHÔNG tự merge). (2) **Lượt quét thật kế có lệnh mở:** xem log Actions tìm *"🔧 chỉnh thang giá"* hoặc `##[warning]chỉnh thang giá`; chưa lần chỉnh nào chạy thật. (3) Ca quyền mua kế tiếp: ghi giá đóng cửa THANG CŨ của phiên cuối còn quyền lúc quét để chạy lại phép thử của BƯỚC 274 (chưa có công cụ ghi). (4) Lệnh `PENDING` ở danh sách chờ. (5) Soát định kỳ 18 và đọc 7 của ĐO 27: 19/11/2026. (6) Lỗi kế là 205. BƯỚC kế 277.
+
+---
+
+## BƯỚC 277 — CHO BA NGUỒN TIN TỪNG BỊ GHIM 0 BÀI (ECB VÀ HAI CÂU GOOGLE NEWS TIẾNG VIỆT THEO MÃ) VÀO GÓI TIN; SO GÓI TIN TRƯỚC/SAU; ĐIỂM TIN TRÊN APP NHÍCH XUỐNG NHẸ (14/11/2026)
+
+**Mốc:** quy-trinh — sửa gói tin tức của app theo quyết định của người dùng 13/11/2026 (đề xuất 2 trong 3 của leader, đã duyệt); không mã mốc nào của `docs/LO-TRINH.md` nói về tin tức; tin tức không vào điểm cuối, ngưỡng, sổ ảo hay đường quét (mục B); không chạm file luật (`tools/buoc_cham_luat.py 277`, mục G)
+
+**Quyết định của người dùng (nguyên văn):** 13/11/2026 ~23:25, trả lời ba đề xuất của leader: *"đồng ý cả 3 đề xuất"*. Đề xuất 2 là **lời của LEADER**, không phải câu người dùng nói ra: *"Ba nguồn chưa từng trả bài vì lỗi kỹ thuật (ECB và hai câu Google News tiếng Việt theo mã): bản mới tải được chúng, nhưng agent đang ghim về 0 bài như cũ để điểm tin không đổi. Tôi đề xuất cho chúng vào ở một BƯỚC nhỏ riêng, có so gói tin trước/sau."* Nền: STATE BƯỚC 275 mục B (vì sao có ghim, số bài đo) và mục G.2 (câu hỏi này).
+
+**Đánh số:** BƯỚC 277 (lớn nhất trước đó là 276). Nhánh `sua/cho-ba-nguon-tin-277`, dựng chồng lên nhánh BƯỚC 276 (`6215389`); PR #322 vào `main` lúc 13:55 ICT (`ae1cb62`), rồi `git merge origin/main` (không rebase): `git diff 6215389 origin/main --stat` rỗng nên cây chồng vào đúng cây của 276. Lỗi kế vẫn 205 (BƯỚC này không mở lỗi nào).
+
+### A. Thay đổi (`news_collectors.py`, 5 dòng thêm · 16 dòng bớt; không đổi thời hạn, hạn bộ nhớ, danh sách nguồn hay giới hạn bài)
+
+1. Bỏ bảng ghim `NGUON_GIU_KET_QUA_CU` (chỉ có ECB) và dòng kiểm của nó ở đầu `_doc_feed` (`news_collectors.py:86`): ECB đi qua `_doc_feed` như mọi nguồn không theo mã, nên vào bộ nhớ dùng chung 20 phút.
+2. Bỏ việc từ chối địa chỉ còn khoảng trắng ở `_tai_noi_dung` (`news_collectors.py:59`).
+3. `CompanyNewsAgent.collect` (dòng 417–420) mã hoá hai câu tiếng Việt bằng `urllib.parse.quote_plus`: địa chỉ không còn khoảng trắng hay ký tự ngoài ASCII và giải mã lại ra đúng câu. Địa chỉ tiếng Anh (`{mã}+Vietnam+stock`) không đổi.
+
+### B. Phạm vi — đường sổ ảo KHÔNG đọc gói tin tức (AST, không phải trí nhớ)
+
+Lệnh (cwd = cây làm việc; ra `vibe_logs_277/ast_pham_vi_277.out`): `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_277/ast_pham_vi_277.py`. Quét mọi `*.py` trừ `tests/`, `.venv`, `docs/`:
+
+- Chỉ có **bốn lời gọi** tới `run_full_analysis` · `collect_and_handoff` · `NewsOrchestrator`: `app.py:1248` (`run_full_analysis`, có tin), `top_stocks_screener.py:24` (`run_full_analysis`, **`collect_news=False`**), `master_agent.py:365` (`collect_and_handoff` trong `run_full_analysis`), `data_collectors.py:260` (`NewsOrchestrator` trong `DataOrchestrator.collect_and_handoff`, dưới `if self.collect_news`). `run_daily.py`, `paper_trading.py`, `paper_runner.py`, `san_dau.py`, `backtest/*` không có lời gọi nào trong số đó; `paper_runner.py:203` và `san_dau.py:252` dựng `DataOrchestrator` chỉ để gọi `_compute_local_indicators`.
+- Bao đóng nhập (mọi mức, kể cả nhập trong hàm) của `run_daily · paper_trading · paper_runner · san_dau · sheets_store · backtest/*` gồm 40 mô-đun và **không chứa `app` hay `top_stocks_screener`** — hai file duy nhất gọi `run_full_analysis`. Nó có chứa `master_agent`, `data_collectors`, `news_collectors` (để nhập `NewsPacket`, `MasterConsensusAgent`), nhưng không có đường gọi từ đường quét tới `run_full_analysis`.
+- Điểm tin chỉ để HIỆN: `master_agent.py:184` `news_norm = normalize(news_res.get("score", 0.0), 5.0)` (ghi vào `score_breakdown["news_score"]` ở dòng 313) và KHÔNG nằm trong `pre_debate_score` (dòng 233–238); `post_debate_score = pre_debate_score` (dòng 244); `evaluate_safety` (`debate_agents.py:431`) không đọc tin. Thứ duy nhất trong tranh luận đọc số bài là Devil's Advocate (`debate_agents.py:252`, `total_articles < 10`) và tranh luận đã bị vô hiệu hoá khỏi điểm. Cùng kết luận với `MO-XE-KIEN-TRUC.md` Tầng 1–2: `news_packet=None` trên đường quét.
+- Gác: `tests/test_cho_ba_nguon_tin_277.py` — `test_chi_ba_cho_goi_gom_tin_va_dung_cho_da_khai` (danh sách có số lần, không phải tập hợp), `test_cho_goi_run_full_analysis_la_app_hoac_collect_news_False`, `test_duong_quet_khong_nhap_hai_goc_cua_chuoi_tin`, và `test_may_do_bao_dong_nhap_thay_mot_duong_that`; cộng gác cũ `tests/test_tin_nhanh_275.py::test_duong_quet_khong_nhap_tin_tuc_va_khong_goi_loader_sheets_cua_app`. Giới hạn nói thẳng: chứng minh này không thấy nhập động (`importlib`, `getattr` theo chuỗi); gác cũ ở `tests/test_san_dau.py` (`CAM_CHAM_DIEM`) chặn các tên chấm điểm theo chuỗi.
+
+### C. Gói tin trước/sau, mạng thật, chỉ đọc
+
+**Bộ đo:** `vibe_logs_277/do_goi_tin_277.py` (mỗi mã chạy `NewsOrchestrator(mã).collect_and_handoff()` rồi `NewsSentimentAgent().analyze`; `normalize` trích NGUYÊN VĂN từ `master_agent.py`, không gõ lại) và `so_goi_tin_277.py` (dựng bảng). Lệnh chạy xen kẽ: `bash ../vibe_logs_277/chay_xen_ke_277.sh` — **cũ, mới, cũ, mới**, mỗi lượt một tiến trình mới (bộ nhớ tin rỗng), 8 mã: HPG VCB FPT SSI VNM (HOSE), **PVS SHS (HNX)**, ACB. "Cũ" là mã `6215389` lấy bằng `git archive` (còn bảng ghim); "mới" là cây này. Thô: `goi_{cu,moi}_{1,2}.json`; bảng: `cd <cây> && ../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_277/so_goi_tin_277.py` → `so_goi_tin_277.out`. Chạy 13:38–13:40 ICT 14/11/2026.
+
+**Hai nhánh:** A THẬT = mã cũ chạy bằng mạng; A DẪN XUẤT = đúng các bài của lượt MỚI cùng vòng bỏ đi ba nguồn (`source == "ECB"` ở nhóm vĩ mô, `source == "GoogleNews"` ở nhóm trong nước). Không bước nào sau đó làm hai nhánh khác nhau: `collect_and_handoff` không dedupe, không cắt tổng, thứ tự không vào điểm (điểm là TRUNG BÌNH `(pos−neg)/n` mỗi nhóm; `news_sentiment_agent.py:46–53`), hạn bài là hạn MỖI nguồn nên bỏ nguồn khác không đổi nguồn còn lại. Kiểm bằng đo: **16/16 cặp** (8 mã × 2 vòng) A dẫn xuất = A THẬT về từng khoá nguồn, `total_articles` và điểm — **độ lệch 0**; vòng 1 và vòng 2 giống hệt nhau ở cả hai nhánh. Giới hạn: một khoảng ~45 giây của MỘT ngày, nên chưa nói được gì về độ trôi của tin theo giờ/ngày.
+
+| mã (sàn) | `total_articles` A → B | `sentiment_score` A → B | điểm tin app `news_score` A → B | chênh |
+|---|---|---|---|---|
+| HPG · VCB · FPT (HOSE) · PVS (HNX) | 146 → 160 | 5,18 → 3,90 | 52,6 → 52,0 | −0,6 |
+| SSI (HOSE) · SHS (HNX) | 146 → 160 | 5,18 → 4,44 | 52,6 → 52,2 | −0,4 |
+| VNM (HOSE) | 146 → 160 | 5,18 → 4,97 | 52,6 → 52,5 | −0,1 |
+| ACB (HOSE) | 146 → 160 | 5,83 → 4,44 | 52,9 → 52,2 | −0,7 |
+
+Cả hai vòng cho cùng từng số. Theo nhóm (cùng cho mọi mã): trong nước 46 → 56 (+10 = hai câu tiếng Việt × 5 bài), vĩ mô 8 → 12 (+4 bài ECB; nhóm vĩ mô có điểm 12,50 → 8,33), quốc tế 40 và ngành 52 không đổi. Ba nguồn ở nhánh B, mỗi mã: ECB 4 (hạn 4 của agent vĩ mô) · Google News tiếng Việt 10 (hạn 5 × 2 câu) · Google News tiếng Anh 4 (có sẵn từ trước). Điểm tin app = `normalize(score, 5.0)` với `score = overall_score / 20` (`news_sentiment_agent.py:164`), trọng số `dom 0,30 · intl 0,30 · macro 0,25 · ngành 0,15` (`:143–148`); kiểm: HPG 5,18 → 3,90 = −1,28 = 0,25 × (8,33 − 12,50) + 0,30 × (3,57 − 4,35) (làm tròn).
+
+**Vì sao điểm đi XUỐNG (và vì sao không nghi lỗi):** bài của ba nguồn gần như toàn nhãn `NEUTRAL` — ECB 4/4 `NEUTRAL` ở mọi mã; hai câu tiếng Việt 10/10 `NEUTRAL` ở HPG VCB FPT PVS ACB, 9/10 ở SSI SHS (1 `POSITIVE`), 8/10 ở VNM (2 `POSITIVE`) (`xem_ba_nguon_277.out`) — nên chúng chỉ pha loãng trung bình về phía 0. Bài là của đúng mã (tập tiêu đề tiếng Việt khác nhau ở các cặp HPG–VCB, HPG–SSI, VCB–FPT, `xem_ba_nguon_277.out`; ví dụ HPG: *"Cổ phiếu Hòa Phát (HPG) trở lại vùng định giá thấp hiếm thấy cách đây 17 năm"*; VCB: *"Mizuho có thể mua tới 526 triệu cổ phiếu Vietcombank nếu nâng sở hữu lên 20%"*). Quy tắc 1: điểm KHÔNG đẹp lên, nên không có dấu hiệu lỗi theo chiều đáng ngờ; chiều đi xuống là chiều an toàn, và cỡ −0,1 đến −0,7 trên thang 100 nhỏ so với chính độ chênh giữa các mã ở cùng nhánh A (52,6 · 52,9). **Hai điều tôi thấy nhưng KHÔNG sửa** (ngoài phạm vi, không có lệnh đổi): (a) Google News trả CÙNG một tiêu đề hai lần trong một câu (HPG, VCB, SSI, VNM đều có trùng) và `collect_and_handoff` không dedupe, nên trùng đếm đôi vào trung bình; (b) `top_positive`/`top_negative` sắp theo tiêu đề rồi lấy 5 (`news_sentiment_agent.py:122–129`), không phải theo độ mạnh.
+
+### ⚠️ Điểm tin tức trên app có thể đổi
+
+**Điểm tin tức trên app có thể đổi** — đo trên 8 mã, nó nhích **XUỐNG** 0,1–0,7 điểm trên thang 100 (52,6 → 52,0 với HPG, VCB, FPT, PVS; 52,9 → 52,2 với ACB). Số bài trong gói 146 → 160. Điểm cuối `final_score`, khuyến nghị, ngưỡng mua, sổ ảo, đường quét và backtest KHÔNG đổi (mục B). Dòng *"📰 Tin tức: … (n bài)"* ở `key_reasons` (`master_agent.py:273`) và các khối tin trên app đổi theo số bài.
+
+### D. Gác và đột biến
+
+`tests/test_cho_ba_nguon_tin_277.py` (offline, không mạng) và bản LẬT của test cũ ở `tests/test_tin_nhanh_275.py` (`test_ECB_va_dia_chi_co_khoang_trang_nay_tai_duoc_nhu_moi_nguon` thay `test_phat_hanh_giu_nguyen_ket_qua_cu_…`, trong cùng commit với mã). Điều khoá: ECB đi qua `_doc_feed` và vào bộ nhớ chung, `MacroDataAgent.FEEDS` vẫn khai ECB, không còn tên `NGUON_GIU_KET_QUA_CU` (AST); mọi địa chỉ Google News theo mã (HPG SHS VCB PVS và `A&B`) không khoảng trắng, toàn ASCII, giải mã lại ra đúng hai câu tiếng Việt, địa chỉ tiếng Anh đúng như cũ; hai câu tiếng Việt ra bài đúng nhãn/vùng/hạn 5; `_tai_noi_dung` không còn từ chối địa chỉ có khoảng trắng; tin theo mã vẫn không vào bộ nhớ chung; và bốn gác phạm vi của mục B.
+
+**Đột biến** (`../vibe_logs_277/dot_bien_277.py` → `dot_bien_277_2.out`): **19/19 đỏ** (12 ở `news_collectors.py`, 7 ở năm file khác: `top_stocks_screener.py` 2, `paper_runner.py` 1, `run_daily.py` 2, `san_dau.py` 1, `data_collectors.py` 1). Phát đầu dựng lại NGUYÊN VĂN hai lỗi của BƯỚC 275 (ghim ECB; từ chối khoảng trắng), thêm: ghim theo tên miền, ECB nổ ở lớp tải, bỏ `quote_plus`, chỉ mã hoá câu thứ nhất, `quote_plus(..., safe='&')`, chỉ mã hoá từ đầu, đổi `+` thành khoảng trắng, bỏ ECB khỏi danh sách agent, đổi nhãn ECB, đưa câu tiếng Việt vào bộ nhớ chung; phạm vi: `top_stocks_screener` đổi `collect_news` thành `True` hoặc bỏ nó, `paper_runner` gọi `collect_and_handoff`, `run_daily` nhập `top_stocks_screener` hoặc nhập `app` trong hàm, `san_dau` gọi `run_full_analysis`, `DataOrchestrator` dựng `NewsOrchestrator` lần thứ hai. Lượt đầu (`dot_bien_277_1.out`) dừng ở `NeoMoHo` vì hai neo của `run_daily` khớp hai lần, chưa phải phát sống sót; sửa neo rồi chạy lại. Hai lỗi gác thấy khi viết, trước đột biến: gác phạm vi dùng TẬP HỢP nên phát "thêm lời gọi thứ hai trong cùng hàm" sẽ sống — đã đổi sang danh sách; phát "bỏ ECB khỏi `MacroDataAgent.FEEDS`" cũng sẽ sống vì test agent vĩ mô giả danh sách — đã thêm `test_agent_vi_mo_that_van_khai_ECB`. Giới hạn: tôi không kiểm từng phát đỏ có đúng vì test định bắt (chạy `-x`, lấy mã thoát).
+
+### E. Phạm vi KHÔNG đổi
+
+`run_daily` · `paper_runner` · `san_dau` · backtest · điểm cuối · ngưỡng · sổ · `chinh_thang_gia` · các nguồn khác trong danh sách tin (34/62 nguồn trả 0 bài ở cả hai bộ tải vẫn đúng như BƯỚC 275 mục B — chẩn đoán là BƯỚC 278, không ở đây) · thời hạn và bộ nhớ của BƯỚC 275. `git diff origin/main --stat -- '*.py'`: `news_collectors.py`, `tests/test_tin_nhanh_275.py`, `tests/test_cho_ba_nguon_tin_277.py`. **`CLAUDE.md` không đổi:** BƯỚC này không đổi một luật nào; `CLAUDE.md` không nhắc ghim ECB hay hai câu Google News (`grep -rn "NGUON_GIU_KET_QUA_CU" --include=*.md .` chỉ ra `docs/STATE.md` và sổ tay), và số đo nằm ở file này.
+
+### F. Câu hỏi chờ người dùng
+
+Không có câu mới. Đề xuất 2 đã được người dùng duyệt (*"đồng ý cả 3 đề xuất"*, 13/11/2026). 🔴 Câu hỏi G.2 của BƯỚC 275 (cho qua ba nguồn?) **đã được trả lời và làm xong ở BƯỚC này**.
+
+### G. Sổ tay · năm cổng
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 277` mang `khong_bat_buoc_vi`; `tools/buoc_cham_luat.py 277` (xem dòng in ở báo cáo của PR) xác nhận BƯỚC không chạm file luật. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; kết luận đo mới (điểm tin nhích xuống) chỉ nằm ở mục C trên và là số của MỘT lượt chạy mạng.
+
+**Năm cổng:** ghi ở mục H (thêm sau lượt cổng).
+
+### H. Việc kế
+
+(1) Leader đọc CI một lần rồi merge `--merge` (PR này KHÔNG tự merge). (2) BƯỚC kế là **278**: chẩn đoán 34/62 nguồn tin trả 0 bài, KHÔNG đổi gói tin (người dùng đã duyệt, theo leader). (3) Lỗi kế là 205.

@@ -12,15 +12,19 @@ STATE BƯỚC 277, mục D; không có test nào dùng mạng):
    hay `top_stocks_screener` (hai chỗ gốc), và `top_stocks_screener` truyền `collect_news=False`.
 """
 import ast
-import os
 import pathlib
+import sys
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-import news_collectors as nc
-
 GOC = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(GOC / "tools"))
+sys.path.insert(0, str(GOC))
+
+import duyet_repo  # noqa: E402
+import news_collectors as nc  # noqa: E402
+
 ECB = "https://www.ecb.europa.eu/rss/press.html"
 
 def _rss(n=3):
@@ -155,7 +159,7 @@ def test_cong_ty_van_khong_vao_bo_nho_chung(monkeypatch):
 # ── 3. Phạm vi: gói tin tức không tới đường sổ ảo ────────────────────────────
 BO_QUA = {"tests", ".venv", ".tam_test", "__pycache__", "node_modules", "cache", "scratch", "docs"}
 TEN_TIN = {"collect_and_handoff", "run_full_analysis", "NewsOrchestrator"}
-#: Ba chỗ gọi duy nhất trong mã nguồn (không tính tests/): (file, hàm bao, tên gọi).
+#: Bốn chỗ gọi duy nhất trong mã nguồn (không tính tests/): (file, hàm bao, tên gọi).
 CHO_GOI_KHAI = {
     ("app.py", "<mức module>", "run_full_analysis"),
     ("data_collectors.py", "DataOrchestrator.collect_and_handoff", "NewsOrchestrator"),
@@ -166,11 +170,12 @@ DUONG_QUET = ["run_daily", "paper_trading", "paper_runner", "san_dau", "sheets_s
 
 
 def _file_ma_nguon():
-    for d, ds, fs in os.walk(GOC):
-        ds[:] = [x for x in ds if x not in BO_QUA and not x.startswith(".")]
-        for f in fs:
-            if f.endswith(".py"):
-                yield pathlib.Path(d) / f
+    # Duyệt đệ quy PHẢI qua `duyet_repo.duyet` (không `os.walk`): nó bỏ worktree lồng, `.tam_test/` và
+    # tệp tạm của test (gác `tests/test_duyet_repo.py`).
+    for p in duyet_repo.duyet(GOC, "*.py"):
+        phan = p.relative_to(GOC).parts
+        if not (set(phan[:-1]) & BO_QUA) and not any(x.startswith(".") for x in phan[:-1]):
+            yield p
 
 
 def _ten_goi(n):
