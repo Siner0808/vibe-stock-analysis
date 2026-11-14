@@ -239,17 +239,19 @@ def test_hai_luong_cung_dia_chi_chi_tai_mot_lan(monkeypatch, mau):
     assert len(dem) == 1 and kq[0] == kq[1] == kq[2] and len(kq[0]) == 6
 
 
-def test_phat_hanh_giu_nguyen_ket_qua_cu_cho_dia_chi_con_khoang_trang_va_ECB(monkeypatch, mau):
-    """Hai chỗ mã MỚI sẽ tải được mà mã CŨ luôn trả 0 bài (STATE BƯỚC 275 mục B). Giữ 0 bài cho
-    tới khi người dùng quyết định, và đừng gọi mạng vô ích."""
+def test_ECB_va_dia_chi_co_khoang_trang_nay_tai_duoc_nhu_moi_nguon(monkeypatch, mau):
+    """BƯỚC 277 LẬT test cũ của BƯỚC 275 (nó khoá hai chỗ ở 0 bài vì mã CŨ luôn trả 0, STATE BƯỚC 275
+    mục B): người dùng 13/11/2026 *"đồng ý cả 3 đề xuất"* nên cả hai nay đi qua mạng và ra bài.
+    Chi tiết: `tests/test_cho_ba_nguon_tin_277.py`."""
     dem = []
     _gia_mang(monkeypatch, mau, dem)
-    ecb = next(iter(nc.NGUON_GIU_KET_QUA_CU))
-    assert ecb == "https://www.ecb.europa.eu/rss/press.html"
-    assert nc._fetch_rss(ecb, "ECB", "interest_rate", "international", 4) == []
+    ecb = "https://www.ecb.europa.eu/rss/press.html"
+    mau["mau"][ecb] = mau["mau"][mau["viec"][0][0]]
     goc = "https://news.google.com/rss/search?q=HPG cổ phiếu lợi nhuận&hl=vi&gl=VN&ceid=VN:vi"
-    assert nc._fetch_rss(goc, "GoogleNews", "corporate", "domestic", 5, False) == []
-    assert dem == []
+    mau["mau"][goc] = mau["mau"][mau["viec"][0][0]]
+    assert len(nc._fetch_rss(ecb, "ECB", "interest_rate", "international", 4)) == 4
+    assert len(nc._fetch_rss(goc, "GoogleNews", "corporate", "domestic", 5, False)) == 5
+    assert dem == [ecb, goc]
 
 
 # ── 3. hạn thời gian thật ────────────────────────────────────────────────────
