@@ -816,8 +816,10 @@ class _Ctx:
 
 def _chay_app(st, nk_rows, nk_loi=None, gia_ham=None, loi_gia=None):
     """Nạp các hàm sổ bài học TỪ app.py thật vào một không gian tên có `st` giả."""
+    # BƯỚC 276 (C10(b)): `_khoi_so_bai_hoc` gọi `_nhan_quyen_cho_hien` (chưa bấm nút soát sự kiện quyền
+    # thì nó trả (None, "") mà không chạm gì) — nạp nó cùng các hàm khác.
     ten = ("_so", "_mau_dau", "_gia_cho_so_bai_hoc", "_bang_bai_hoc", "_bang_dong_gop",
-           "_khoi_so_bai_hoc")
+           "_nhan_quyen_cho_hien", "_khoi_so_bai_hoc")
     mod = ast.Module(body=[_ham_app(t) for t in ten], type_ignores=[])
     ns = {"st": st, "pd": pd, "end_str": _END_STR_TEST, "price_multiplier": lambda d: 1.0,
           "start_str_phan_tich": _MOC_PHAN_TICH,

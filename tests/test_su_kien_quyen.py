@@ -381,15 +381,22 @@ def test_APP_chi_tai_gia_khi_bam_nut_va_trong_tab_lich_su():
     assert len(nut) == 1
     assert any(k.arg == "key" and ast.literal_eval(k.value) == "su_kien_quyen_tai_gia"
                for k in nut[0].keywords)
-    # (2) hàm tải giá chỉ được gọi từ hàm khối (không ở mức module, không trong vòng khác)
+    # (2) hàm tải giá chỉ được gọi từ hàm khối và (BƯỚC 276, C10(b)) từ `_nhan_quyen_cho_hien` — chỗ thứ
+    # hai chỉ ĐỌC nhãn để đổi cách hiện cờ Gap, cùng bản đệm, và chỉ chạy sau CÙNG chốt ở (3). Không ở mức
+    # module, không trong vòng khác, không từ hàm nào khác.
     goi = [n for n in ast.walk(cay) if isinstance(n, ast.Call)
            and isinstance(n.func, ast.Name) and n.func.id == "_nen_cho_su_kien_quyen"]
+    nhan = _ham(cay, "_nhan_quyen_cho_hien")
     trong = {id(n) for n in ast.walk(khoi)}
-    assert len(goi) == 1 and id(goi[0]) in trong
-    # (3) lời gọi tải giá đứng SAU chốt `st.session_state.get("su_kien_quyen_co_gia")`
-    chot = [n for n in ast.walk(khoi) if isinstance(n, ast.Constant)
-            and n.value == "su_kien_quyen_co_gia"]
-    assert chot and min(c.lineno for c in chot) < goi[0].lineno
+    trong_nhan = {id(n) for n in ast.walk(nhan)}
+    assert len(goi) == 2
+    assert sum(id(g) in trong for g in goi) == 1 and sum(id(g) in trong_nhan for g in goi) == 1
+    # (3) MỖI lời gọi tải giá đứng SAU chốt `st.session_state.get("su_kien_quyen_co_gia")` của hàm chứa nó
+    for ham, g in ((khoi, [g for g in goi if id(g) in trong][0]),
+                   (nhan, [g for g in goi if id(g) in trong_nhan][0])):
+        chot = [n for n in ast.walk(ham) if isinstance(n, ast.Constant)
+                and n.value == "su_kien_quyen_co_gia"]
+        assert chot and min(c.lineno for c in chot) < g.lineno, ham.name
     # (4) khối được gọi đúng một chỗ, bên trong `with t_hist:`
     cac_goi = [n for n in ast.walk(cay) if isinstance(n, ast.Call)
                and isinstance(n.func, ast.Name) and n.func.id == "_khoi_su_kien_quyen"]

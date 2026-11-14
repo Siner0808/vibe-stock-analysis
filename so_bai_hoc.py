@@ -74,7 +74,7 @@ from typing import Any, Mapping, Optional, Sequence
 
 import lich_giao_dich
 import paper_metrics
-from nhat_ky_vi_sao import thoat_duoi_cat_lo
+from nhat_ky_vi_sao import NHAN_LECH_THANG_QUYEN, thoat_duoi_cat_lo
 from paper_trading import ExitReason, Status
 from vn100_symbols import SECTOR_WATCHLIST
 
@@ -295,8 +295,13 @@ def lap_bai_hoc(dong: Mapping[str, Any], *,
                 ly_do_thieu_nganh: Optional[str] = None,
                 ten_nganh: Optional[str] = None,
                 n_ma_nganh: Optional[int] = None,
-                gia_dong_sau_thoat: Optional[Sequence[float]] = None) -> dict:
+                gia_dong_sau_thoat: Optional[Sequence[float]] = None,
+                su_kien_quyen: Optional[str] = None) -> dict:
     """Một dòng nhật ký ĐÃ ĐÓNG -> bản ghi bài học. TẤT ĐỊNH.
+
+    `su_kien_quyen` (BƯỚC 276, C10(b)) — lý do của nhãn `SU_KIEN_TRONG_LUC_GIU` nếu lệnh mang nhãn ấy
+    (người gọi tính nhãn; file này không nhập `su_kien_quyen`): cờ Gap KHÔNG xét (None, không đếm là
+    gap) vì giá thoát "dưới cắt lỗ" của lệnh ấy là lệch thang giá, và dòng "Còn thiếu" nói vậy.
 
     Chỉ ĐỌC dòng nhật ký (lãi ròng, rổ chuẩn, giá, lý do thoát đều là số nhật
     ký đã ghi). `loi_nhuan_nganh_pct` và `gia_dong_sau_thoat` là thứ nhật ký
@@ -325,7 +330,9 @@ def lap_bai_hoc(dong: Mapping[str, Any], *,
 
     gap = None
     sl, gia_ra = dong.get("stop_loss_ban_dau"), dong.get("exit_price")
-    if _la_so(sl) and _la_so(gia_ra):
+    if su_kien_quyen:
+        thieu.append(f"{NHAN_LECH_THANG_QUYEN} — không đếm là gap")
+    elif _la_so(sl) and _la_so(gia_ra):
         gap = thoat_duoi_cat_lo(sl, gia_ra)
     else:
         thieu.append("thiếu cắt lỗ ban đầu hoặc giá thoát — không xét được gap")
@@ -456,7 +463,8 @@ def tu_ngay_tai_gia(dong_nk: Sequence[Mapping[str, Any]],
 
 
 def bai_hoc_cho_so(dong_nk: Sequence[Mapping[str, Any]],
-                   gia_theo_ma: Optional[Mapping[str, Mapping[str, float]]] = None) -> dict:
+                   gia_theo_ma: Optional[Mapping[str, Mapping[str, float]]] = None,
+                   nhan_su_kien: Optional[Mapping[Any, str]] = None) -> dict:
     """Mọi dòng nhật ký -> bài học cho lệnh đã đóng + bảng tổng hợp.
 
     `gia_theo_ma` {mã: {ngày: đóng cửa VNĐ}} có hoặc không; không có thì ngành
@@ -464,7 +472,11 @@ def bai_hoc_cho_so(dong_nk: Sequence[Mapping[str, Any]],
     `n_dong_cho_nua_dong` đếm lệnh sổ đã đóng mà nhật ký chưa điền nửa ĐÓNG
     (điền ở lượt `hoan_tat_nhat_ky` kế tiếp) — tiêu chí ra khỏi giai đoạn B
     là 0 ở đây trong vòng một phiên.
+
+    `nhan_su_kien` {id lệnh: lý do} (BƯỚC 276, C10(b)) — lệnh mang nhãn `SU_KIEN_TRONG_LUC_GIU`; khoá so
+    theo CHUỖI vì id trong nhật ký đọc từ Sheets có thể là số hoặc chuỗi. None = chưa có nhãn nào.
     """
+    nhan = {str(k): v for k, v in (nhan_su_kien or {}).items()}
     cac: list[dict] = []
     cho = 0
     for d in dong_nk:
@@ -477,7 +489,8 @@ def bai_hoc_cho_so(dong_nk: Sequence[Mapping[str, Any]],
         sau = gia_sau_thoat((gia_theo_ma or {}).get(sym), d.get("exit_date"))
         cac.append(lap_bai_hoc(
             d, loi_nhuan_nganh_pct=ng["gia_tri"], ly_do_thieu_nganh=ng["ly_do"],
-            ten_nganh=ng["nganh"], n_ma_nganh=ng["n_ma"], gia_dong_sau_thoat=sau))
+            ten_nganh=ng["nganh"], n_ma_nganh=ng["n_ma"], gia_dong_sau_thoat=sau,
+            su_kien_quyen=nhan.get(str(d.get("trade_id")))))
     return {"bai_hoc": cac, "n_dong_cho_nua_dong": cho, "tong_hop": tong_hop(cac)}
 
 
