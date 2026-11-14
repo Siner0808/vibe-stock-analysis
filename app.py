@@ -501,7 +501,13 @@ def _so(gia_tri, dinh_dang="{:,.2f}"):
     return "—" if gia_tri is None else dinh_dang.format(gia_tri)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+# BƯỚC 275: ba bộ đọc dưới đây dùng CHUNG một kết nối đã xác thực và mỗi tab MỘT lần đọc
+# (`google_sheets_sync.backend_doc_chung`), hạn đệm 30 phút thay cho 5 phút, và nút "Đọc lại sổ" ở
+# thanh bên (`_lam_moi_so`) bỏ qua hạn ấy. Chỉ ĐỌC: backend dùng chung nổ khi bị gọi ghi.
+import google_sheets_sync as _gss_doc
+
+
+@st.cache_data(ttl=_gss_doc.TTL_DOC_APP, show_spinner=False)
 def _doc_nhat_ky():
     """Nhật ký "vì sao" từ Google Sheets — CHỈ ĐỌC (BƯỚC 141).
 
@@ -510,10 +516,10 @@ def _doc_nhat_ky():
     Sổ `.db` ở máy đứng yên từ 20/08 nên KHÔNG phải nguồn của nhật ký.
     """
     import google_sheets_sync as _gss
-    return _gss.load_nhat_ky_from_google_sheets()
+    return _gss.load_nhat_ky_from_google_sheets(_gss.backend_doc_chung())
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=_gss_doc.TTL_DOC_APP, show_spinner=False)
 def _doc_so_ban_tin():
     """`decisions` + `trades` + `nhat_ky` (+ `hau_kiem`, BƯỚC 205) từ Google Sheets — CHỈ ĐỌC (BƯỚC 174).
 
@@ -521,10 +527,10 @@ def _doc_so_ban_tin():
     từ 20/08 nên KHÔNG phải nguồn của bản tin.
     """
     import google_sheets_sync as _gss
-    return _gss.load_so_ban_tin_from_google_sheets()
+    return _gss.load_so_ban_tin_from_google_sheets(_gss.backend_doc_chung())
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=_gss_doc.TTL_DOC_APP, show_spinner=False)
 def _doc_ke_hoach():
     """Kế hoạch vào lệnh agent ĐÃ GHI lúc quét, tab `ke_hoach` — CHỈ ĐỌC (BƯỚC 198).
 
@@ -532,7 +538,15 @@ def _doc_ke_hoach():
     mã đang xem (tab Vị thế) là bản tính TRỰC TIẾP; bảng này là bản GHI tại ngày nến.
     """
     import google_sheets_sync as _gss
-    return _gss.load_ke_hoach_from_google_sheets()
+    return _gss.load_ke_hoach_from_google_sheets(_gss.backend_doc_chung())
+
+
+def _lam_moi_so():
+    """Nút "Đọc lại sổ": xoá ba bản đệm của app VÀ bản đã đọc dùng chung, lượt vẽ kế đọc lại Sheets."""
+    _gss_doc.lam_moi_doc()
+    _doc_nhat_ky.clear()
+    _doc_so_ban_tin.clear()
+    _doc_ke_hoach.clear()
 
 
 # Sổ lệnh cho tab "Vị thế" và "Lịch sử giao dịch" (BƯỚC 175): CÙNG lần đọc (cùng
@@ -1213,6 +1227,19 @@ if run_btn or search_btn or "result" not in st.session_state or st.session_state
             st.stop()
 
 result = st.session_state.get("result")
+
+# ── Tuổi của sổ đọc từ Google Sheets + nút đọc lại (BƯỚC 275) ──────
+# Giờ lấy từ lượt đọc thật gần nhất (`google_sheets_sync.doc_luc_gan_nhat`); hạn tự đọc lại là
+# hằng số `TTL_DOC_APP` của cùng bộ đọc. Kho ngoài chưa cấu hình thì không vẽ gì (không có gì để đọc).
+with st.sidebar:
+    _gio_doc_so = _gss_doc.doc_luc_gan_nhat()
+    if _gio_doc_so is not None:
+        st.caption(f"📒 Sổ lệnh, nhật ký, kế hoạch và bản tin đọc từ Google Sheets lúc "
+                   f"{_gio_doc_so:%H:%M} (giờ VN). Tự đọc lại sau {_gss_doc.TTL_DOC_APP // 60} phút; "
+                   f"sổ chỉ đổi khi một lượt quét ghi vào.")
+        if st.button("↻ Đọc lại sổ", key="doc_lai_so", width="stretch"):
+            _lam_moi_so()
+            st.rerun()
 
 # ── Bảng trạng thái hệ thống: vẽ SAU khi đã có kết quả ────────────
 #
@@ -2448,8 +2475,10 @@ with t_acct:
     else:
         _p = so_lenh_perf
         try:
-            from paper_metrics import expectancy_significant
-            _sig = expectancy_significant(list(_so_lenh.lenh_dong))
+            # BƯỚC 275: bootstrap 5.000 lượt chỉ tính lại khi chuỗi lợi nhuận của sổ ĐỔI (bộ nhớ khoá
+            # theo nội dung); cùng kết quả từng chữ số với `paper_metrics.expectancy_significant`.
+            from bo_nho_do_app import expectancy_significant_nho
+            _sig = expectancy_significant_nho(list(_so_lenh.lenh_dong))
         except Exception:
             _sig = None
 

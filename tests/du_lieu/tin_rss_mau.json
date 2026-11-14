@@ -1,0 +1,46 @@
+{
+ "mau": {
+  "https://mau.vn/rss/vn.rss": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss version=\"2.0\"><channel><title>Mau VN</title>\n<item><title>VN-Index tăng mạnh, thanh khoản kỷ lục</title><link>https://mau.vn/a1</link>\n<description>&lt;p&gt;Thị trường &lt;b&gt;phục hồi&lt;/b&gt; tích cực, dẫn đầu là nhóm ngân hàng. &lt;a href=\"x\"&gt;Xem thêm&lt;/a&gt;&lt;/p&gt;</description>\n<pubDate>Fri, 13 Nov 2026 08:00:00 +0700</pubDate></item>\n<item><title>Nợ xấu tăng, cảnh báo rủi ro lạm phát</title><link>https://mau.vn/a2</link>\n<description>Giảm điểm sâu, bán tháo diện rộng, nhà đầu tư thận trọng.</description>\n<pubDate>Fri, 13 Nov 2026 09:00:00 +0700</pubDate></item>\n<item><title>Tin trung tính về lịch họp cổ đông</title><link>https://mau.vn/a3</link>\n<description>Công ty thông báo lịch họp.</description></item>\n<item><link>https://mau.vn/a4</link><description>Bài không có tiêu đề</description></item>\n<item><title>Bài thứ năm</title><link>https://mau.vn/a5</link><description>x</description></item>\n<item><title>Bài thứ sáu</title><link>https://mau.vn/a6</link><description>y</description></item>\n<item><title>Bài thứ bảy bị cắt bởi max_items</title><link>https://mau.vn/a7</link><description>z</description></item>\n</channel></rss>",
+  "https://mau.com/atom.xml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\"><title>Sample Atom</title>\n<entry><title>Markets rally as growth surges, record upgrade</title><link href=\"https://mau.com/e1\"/>\n<summary type=\"html\">&lt;div&gt;Strong recovery and bullish outlook, analysts expand targets.&lt;/div&gt;</summary>\n<updated>2026-11-13T01:00:00Z</updated></entry>\n<entry><title>Recession risk, inflation and default fears; sell-off deepens</title><link href=\"https://mau.com/e2\"/>\n<summary>Weak data, bearish tone, decline continues.</summary><updated>2026-11-13T02:00:00Z</updated></entry>\n<entry><title>Flat session</title><link href=\"https://mau.com/e3\"/><summary>Nothing happened.</summary></entry>\n</feed>",
+  "https://mau2.vn/rss.rss": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss version=\"2.0\"><channel><title>Mau VN 2</title>\n<item><title>VN-Index tăng mạnh, thanh khoản kỷ lục</title><link>https://mau2.vn/b1</link>\n<description>&lt;p&gt;Thị trường &lt;b&gt;phục hồi&lt;/b&gt; tích cực, dẫn đầu là nhóm ngân hàng. &lt;a href=\"x\"&gt;Xem thêm&lt;/a&gt;&lt;/p&gt;</description>\n<pubDate>Fri, 13 Nov 2026 08:00:00 +0700</pubDate></item>\n<item><title>Nợ xấu tăng, cảnh báo rủi ro lạm phát</title><link>https://mau2.vn/b2</link>\n<description>Giảm điểm sâu, bán tháo diện rộng, nhà đầu tư thận trọng.</description>\n<pubDate>Fri, 13 Nov 2026 09:00:00 +0700</pubDate></item>\n<item><title>Tin trung tính về lịch họp cổ đông</title><link>https://mau2.vn/b3</link>\n<description>Công ty thông báo lịch họp.</description></item>\n<item><link>https://mau2.vn/b4</link><description>Bài không có tiêu đề</description></item>\n<item><title>Bài thứ năm</title><link>https://mau2.vn/b5</link><description>x</description></item>\n<item><title>Bài thứ sáu</title><link>https://mau2.vn/b6</link><description>y</description></item>\n<item><title>Bài thứ bảy bị cắt bởi max_items</title><link>https://mau2.vn/b7</link><description>z</description></item>\n</channel></rss>",
+  "https://mau.vn/rss/rong.rss": "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel><title>Rong</title></channel></rss>",
+  "https://mau.vn/rss/rac.rss": "<html><body>404 not found, khong phai RSS</body></html>"
+ },
+ "viec": [
+  [
+   "https://mau.vn/rss/vn.rss",
+   "MauVN",
+   "macro",
+   "domestic",
+   6
+  ],
+  [
+   "https://mau.com/atom.xml",
+   "MauEN",
+   "stock_market",
+   "international",
+   5
+  ],
+  [
+   "https://mau2.vn/rss.rss",
+   "MauVN2",
+   "banking",
+   "domestic",
+   4
+  ],
+  [
+   "https://mau.vn/rss/rong.rss",
+   "Rong",
+   "policy",
+   "domestic",
+   4
+  ],
+  [
+   "https://mau.vn/rss/rac.rss",
+   "Rac",
+   "macro",
+   "domestic",
+   4
+  ]
+ ]
+}

@@ -190,6 +190,28 @@ class GoogleSheet:
             return []
         return ws.get_all_values()
 
+    def read_rows_nhieu(self, tabs) -> dict:
+        """ĐỌC nhiều tab, hỏi danh sách tab MỘT lần (BƯỚC 275, chỉ cho app; đường quét không gọi).
+
+        `read_rows` hỏi lại siêu dữ liệu của sheet ở MỖI tab (`worksheet()`); với năm tab đó là
+        năm lần hỏi thừa. Ở đây `worksheets()` một lần rồi mỗi tab một `get_all_values()`.
+        Trả `{tab: [dòng…]}`; tab chưa có → `[]` (như `read_rows`); lỗi đọc MỘT tab → chính ngoại
+        lệ ấy làm giá trị của tab đó (người gọi tự nổ khi cần tab ấy, các tab khác vẫn dùng được).
+        Không tạo gì, không ghi gì.
+        """
+        theo_ten = {w.title: w for w in self._sh.worksheets()}
+        ra: dict = {}
+        for tab in tabs:
+            ws = theo_ten.get(tab)
+            if ws is None:
+                ra[tab] = []
+                continue
+            try:
+                ra[tab] = ws.get_all_values()
+            except Exception as e:
+                ra[tab] = e
+        return ra
+
     def write_all(self, tab: str, rows: list[list[str]]) -> None:
         """Ghi đè bảng bằng MỘT lệnh gọi duy nhất.
 

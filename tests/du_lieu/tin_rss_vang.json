@@ -1,0 +1,258 @@
+{
+ "nguon": "ma CU tai dbd38af: feedparser.parse(url) truc tiep trong _fetch_rss",
+ "tung_nguon": {
+  "https://mau.vn/rss/vn.rss|MauVN|macro|domestic|6": [
+   {
+    "title": "VN-Index tăng mạnh, thanh khoản kỷ lục",
+    "summary": "Thị trường phục hồi tích cực, dẫn đầu là nhóm ngân hàng. Xem thêm",
+    "source": "MauVN",
+    "category": "macro",
+    "region": "domestic",
+    "published": "Fri, 13 Nov 2026 08:00:00 +0700",
+    "url": "https://mau.vn/a1",
+    "sentiment_hint": "POSITIVE"
+   },
+   {
+    "title": "Nợ xấu tăng, cảnh báo rủi ro lạm phát",
+    "summary": "Giảm điểm sâu, bán tháo diện rộng, nhà đầu tư thận trọng.",
+    "source": "MauVN",
+    "category": "macro",
+    "region": "domestic",
+    "published": "Fri, 13 Nov 2026 09:00:00 +0700",
+    "url": "https://mau.vn/a2",
+    "sentiment_hint": "NEGATIVE"
+   },
+   {
+    "title": "Tin trung tính về lịch họp cổ đông",
+    "summary": "Công ty thông báo lịch họp.",
+    "source": "MauVN",
+    "category": "macro",
+    "region": "domestic",
+    "published": "",
+    "url": "https://mau.vn/a3",
+    "sentiment_hint": "NEUTRAL"
+   },
+   {
+    "title": "",
+    "summary": "Bài không có tiêu đề",
+    "source": "MauVN",
+    "category": "macro",
+    "region": "domestic",
+    "published": "",
+    "url": "https://mau.vn/a4",
+    "sentiment_hint": "NEUTRAL"
+   },
+   {
+    "title": "Bài thứ năm",
+    "summary": "x",
+    "source": "MauVN",
+    "category": "macro",
+    "region": "domestic",
+    "published": "",
+    "url": "https://mau.vn/a5",
+    "sentiment_hint": "NEUTRAL"
+   },
+   {
+    "title": "Bài thứ sáu",
+    "summary": "y",
+    "source": "MauVN",
+    "category": "macro",
+    "region": "domestic",
+    "published": "",
+    "url": "https://mau.vn/a6",
+    "sentiment_hint": "NEUTRAL"
+   }
+  ],
+  "https://mau.com/atom.xml|MauEN|stock_market|international|5": [
+   {
+    "title": "Markets rally as growth surges, record upgrade",
+    "summary": "Strong recovery and bullish outlook, analysts expand targets.",
+    "source": "MauEN",
+    "category": "stock_market",
+    "region": "international",
+    "published": "2026-11-13T01:00:00Z",
+    "url": "https://mau.com/e1",
+    "sentiment_hint": "POSITIVE"
+   },
+   {
+    "title": "Recession risk, inflation and default fears; sell-off deepens",
+    "summary": "Weak data, bearish tone, decline continues.",
+    "source": "MauEN",
+    "category": "stock_market",
+    "region": "international",
+    "published": "2026-11-13T02:00:00Z",
+    "url": "https://mau.com/e2",
+    "sentiment_hint": "NEGATIVE"
+   },
+   {
+    "title": "Flat session",
+    "summary": "Nothing happened.",
+    "source": "MauEN",
+    "category": "stock_market",
+    "region": "international",
+    "published": "",
+    "url": "https://mau.com/e3",
+    "sentiment_hint": "NEUTRAL"
+   }
+  ],
+  "https://mau2.vn/rss.rss|MauVN2|banking|domestic|4": [
+   {
+    "title": "VN-Index tăng mạnh, thanh khoản kỷ lục",
+    "summary": "Thị trường phục hồi tích cực, dẫn đầu là nhóm ngân hàng. Xem thêm",
+    "source": "MauVN2",
+    "category": "banking",
+    "region": "domestic",
+    "published": "Fri, 13 Nov 2026 08:00:00 +0700",
+    "url": "https://mau2.vn/b1",
+    "sentiment_hint": "POSITIVE"
+   },
+   {
+    "title": "Nợ xấu tăng, cảnh báo rủi ro lạm phát",
+    "summary": "Giảm điểm sâu, bán tháo diện rộng, nhà đầu tư thận trọng.",
+    "source": "MauVN2",
+    "category": "banking",
+    "region": "domestic",
+    "published": "Fri, 13 Nov 2026 09:00:00 +0700",
+    "url": "https://mau2.vn/b2",
+    "sentiment_hint": "NEGATIVE"
+   },
+   {
+    "title": "Tin trung tính về lịch họp cổ đông",
+    "summary": "Công ty thông báo lịch họp.",
+    "source": "MauVN2",
+    "category": "banking",
+    "region": "domestic",
+    "published": "",
+    "url": "https://mau2.vn/b3",
+    "sentiment_hint": "NEUTRAL"
+   },
+   {
+    "title": "",
+    "summary": "Bài không có tiêu đề",
+    "source": "MauVN2",
+    "category": "banking",
+    "region": "domestic",
+    "published": "",
+    "url": "https://mau2.vn/b4",
+    "sentiment_hint": "NEUTRAL"
+   }
+  ],
+  "https://mau.vn/rss/rong.rss|Rong|policy|domestic|4": [],
+  "https://mau.vn/rss/rac.rss|Rac|macro|domestic|4": []
+ },
+ "dau_ra_sentiment": {
+  "agent": "News Sentiment Agent 📰",
+  "overall_sentiment": "NEUTRAL 📰⚪",
+  "sentiment_score": 0.0,
+  "score": 0.0,
+  "signals": [
+   "🇻🇳 Tin trong nước trung tính (score +0)",
+   "🌏 Tin quốc tế trung tính (score +0)",
+   "📊 Vĩ mô trung tính (score +0)",
+   "📰 Tổng hợp 18 bài từ 6 trong nước + 3 quốc tế + 7 ngành"
+  ],
+  "breakdown": {
+   "domestic": {
+    "positive": 1,
+    "negative": 1,
+    "neutral": 4,
+    "score": 0.0
+   },
+   "international": {
+    "positive": 1,
+    "negative": 1,
+    "neutral": 1,
+    "score": 0.0
+   },
+   "macro": {
+    "positive": 1,
+    "negative": 1,
+    "neutral": 0,
+    "score": 0.0
+   }
+  },
+  "top_positive": [
+   {
+    "title": "VN-Index tăng mạnh, thanh khoản kỷ lục",
+    "source": "MauVN",
+    "category": "📊 Kinh tế vĩ mô",
+    "url": "https://mau.vn/a1"
+   },
+   {
+    "title": "VN-Index tăng mạnh, thanh khoản kỷ lục",
+    "source": "MauVN",
+    "category": "📊 Kinh tế vĩ mô",
+    "url": "https://mau.vn/a1"
+   },
+   {
+    "title": "VN-Index tăng mạnh, thanh khoản kỷ lục",
+    "source": "MauVN2",
+    "category": "🏦 Ngân hàng",
+    "url": "https://mau2.vn/b1"
+   },
+   {
+    "title": "Markets rally as growth surges, record upgrade",
+    "source": "MauEN",
+    "category": "📉 Thị trường chứng khoán",
+    "url": "https://mau.com/e1"
+   },
+   {
+    "title": "Markets rally as growth surges, record upgrade",
+    "source": "MauEN",
+    "category": "📉 Thị trường chứng khoán",
+    "url": "https://mau.com/e1"
+   }
+  ],
+  "top_negative": [
+   {
+    "title": "Recession risk, inflation and default fears; sell-off deepens",
+    "source": "MauEN",
+    "category": "📉 Thị trường chứng khoán",
+    "url": "https://mau.com/e2"
+   },
+   {
+    "title": "Recession risk, inflation and default fears; sell-off deepens",
+    "source": "MauEN",
+    "category": "📉 Thị trường chứng khoán",
+    "url": "https://mau.com/e2"
+   },
+   {
+    "title": "Nợ xấu tăng, cảnh báo rủi ro lạm phát",
+    "source": "MauVN",
+    "category": "📊 Kinh tế vĩ mô",
+    "url": "https://mau.vn/a2"
+   },
+   {
+    "title": "Nợ xấu tăng, cảnh báo rủi ro lạm phát",
+    "source": "MauVN",
+    "category": "📊 Kinh tế vĩ mô",
+    "url": "https://mau.vn/a2"
+   },
+   {
+    "title": "Nợ xấu tăng, cảnh báo rủi ro lạm phát",
+    "source": "MauVN2",
+    "category": "🏦 Ngân hàng",
+    "url": "https://mau2.vn/b2"
+   }
+  ],
+  "sector_sentiment": {
+   "banking": {
+    "label": "🏦 Ngân hàng",
+    "positive": 1,
+    "negative": 1,
+    "neutral": 2,
+    "score": 0.0,
+    "total": 4
+   },
+   "global_macro": {
+    "label": "🌏 Kinh tế vĩ mô toàn cầu",
+    "positive": 1,
+    "negative": 1,
+    "neutral": 1,
+    "score": 0.0,
+    "total": 3
+   }
+  },
+  "total_articles": 18
+ }
+}
