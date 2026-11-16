@@ -1146,6 +1146,8 @@ def load_stock_data_nguon(ticker, start, end, exch="HOSE"):
         res = VNStockCollectorAgent().collect(ticker, start, end, exchange=exch)
         quality = res.get("quality")
         warns = [i.message for i in quality.warnings] if quality is not None else []
+        # bia-ok: bản sao NGUYÊN VĂN mặc định của `load_stock_data` ngay trên (cùng lý do, Phase 2C): hai hàm phải
+        # nói cùng một chuyện về cùng một phiên, nên không đổi mặc định ở MỘT trong hai chỗ.
         return res.get("df"), res.get("status", "OK"), warns, res.get("source", "")
     except Exception:
         return None, "FAILED", [], ""

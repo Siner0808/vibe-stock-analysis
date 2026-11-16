@@ -26962,3 +26962,132 @@ Lệnh (cwd = cây làm việc; kết quả ở `vibe_logs_279/ast_pham_vi_279.o
 ### I. Việc kế
 
 (1) Leader đọc CI một lần (PR này KHÔNG tự merge). (2) Việc có thể làm sau, không ở đây: tìm nguồn tin cho nhóm ngành Hàng không & Logistics (hiện 0 bài, kể cả trước BƯỚC này); đo lại danh sách nguồn từ IP của Actions (chưa ai đo); `chung-khoan.rss` của vnexpress và các mục cafef không có thay thế vẫn có thể có RSS ở đường dẫn khác chưa tra. (3) Lỗi kế là 205.
+
+## BƯỚC 280 — TĂNG TỐC APP ĐỢT 2: ĐỌC SHEETS MỘT LỆNH, `decisions` CHỈ 8 CỘT ĐẦU, BIỂU ĐỒ NGÀY VÀ Ô DOW CHUNG MỘT LƯỢT TẢI GIÁ, BỎ investing.com; KHÔNG ĐỔI ĐIỂM, SỔ HAY ĐƯỜNG QUÉT (16/11/2026)
+
+**Mốc:** quy-trinh — hạ tầng hiệu năng của app theo yêu cầu người dùng, tiếp BƯỚC 275 (cùng mốc: không mã mốc nào của `docs/LO-TRINH.md` nói về tốc độ app); không chạm điểm cuối, ngưỡng, sổ, máy đo, đường quét hay file luật (`tools/buoc_cham_luat.py 280`, mục J); điểm tin trên app có thể đổi rất nhẹ (mục D)
+
+**Quyết định của người dùng (nguyên văn):** 16/11/2026 ~11:20, hai hộp hỏi (AskUserQuestion) do LEADER soạn. **Câu hỏi và chữ dưới nhãn là lời của LEADER**; chỉ phần *in nghiêng sau "Người dùng:"* là lời người dùng chọn.
+
+1. Câu hỏi (leader): *"Tăng tốc app đợt 2 — theo số đo (mở lần đầu 14,9 s; bấm lại đã 0,4 s), chọn những việc sẽ làm (chọn được nhiều). Không việc nào đổi điểm, sổ hay đường quét; sẽ đo trước/sau."* Người dùng chọn: *"Gộp đọc Sheets 1 lệnh,Chỉ đọc phần gần đây của decisions,Mỗi mã tải giá một lần"*. KHÔNG chọn: *"Tin tức tải sau giá"*. Chữ dưới ba nhãn đã chọn (lời của leader): *"Đọc 5 tab bằng một lệnh gọi: 3,4 s → 1,7 s (đo). An toàn, dữ liệu y hệt. (Recommended)"* · *"Thêm ~1,2 s nữa (đo phần đọc). Cần kiểm trước app dùng tab decisions vào đâu; nếu chỗ nào cần toàn bộ thì giữ đọc đủ ở chỗ đó. (Recommended)"* · *"Thay 4 lần tải cùng mã bằng 1 lần rồi cắt khung: ước 0,7–1,3 s cả lúc mở lẫn lúc đổi mã. Phải chứng minh biểu đồ và điểm không đổi. (Recommended)"*.
+2. Câu hỏi (leader): *"Sáng nay bạn chọn GIỮ investing.com (thuộc 4 nguồn 'chưa rõ'). Lượt đo chiều nay: investing.com hết thời gian chờ 16/16 lần (~4,2 s mỗi lần) và chính nó kìm thời gian tải tin; bỏ nó ước nhanh ~2 s lúc mở đầu. Chẩn đoán 14/11 và 16/11 cũng thấy timeout (trừ một lần news.rss tải được). Giữ hay bỏ?"* Người dùng: *"Bỏ investing.com (Recommended)"*. Chữ dưới nhãn (lời của leader): *"Xoá 2 địa chỉ investing.com trong cùng BƯỚC tăng tốc; điểm tin có thể đổi rất nhẹ (nó gần như luôn 0 bài)."*
+
+3. **Phần B, sau khi phiên con đã làm theo mặc định và báo câu hỏi** (người dùng chọn SAU khi BƯỚC này đã cài mặc định "đọc đủ dòng, chỉ 8 cột"; chỗ này ghi sau, theo lời leader 16/11/2026 ~13:45). Câu hỏi (leader): *"BƯỚC 280 phần B (đọc nhẹ tab decisions): phiên con kiểm và thấy 'chỉ đọc phần gần đây' KHÔNG an toàn. Ô chọn ngày của bản tin cho chọn mọi ngày về tới 25/12/2023; cột 'Sổ ảo' của tab kế hoạch cần quyết định từ 14/10; và các dòng trong tab không xếp theo ngày (có dòng bù số liệu cũ), nên '1000 dòng cuối' không phải '1000 phiên gần nhất'. Thay vào đó app chỉ dùng 8/11 cột của tab. Đo: đọc đủ mọi dòng nhưng chỉ 8 cột = 4,35 MB thay vì 29,8 MB, một lệnh gọi ~1,0 s. Chọn cách nào?"* Người dùng: *"Đọc đủ dòng, chỉ 8 cột (Recommended)"*. Chữ dưới nhãn (lời của leader): *"Dữ liệu app thấy giữ y hệt (đủ lịch sử, đúng 8 cột đang dùng); ước tiết kiệm ~0,7 s trong ~1,2 s mà cách 'đọc đuôi' hứa. Tab Sân đấu (chỉ khi bấm nút) vẫn đọc đủ cột như cũ."* Việc làm khớp đúng lựa chọn này; câu hỏi về "đuôi" ĐÃ ĐƯỢC QUYẾT, không còn chờ.
+
+**Quyết định 2 ĐẢO MỘT PHẦN quyết định 4 của BƯỚC 279** (*"Xoá chết hẳn, giữ 4 nguồn chưa rõ (Recommended)"*): hai địa chỉ investing.com từng được giữ nay bị xoá; ba nguồn "chưa rõ" còn lại (baodautu · agweb · fiercepharma) vẫn nguyên.
+
+**Hai điều người dùng chọn mà BƯỚC này KHÔNG làm đúng chữ, nói trước (chi tiết ở mục B, C và I):** (a) *"Chỉ đọc phần gần đây của decisions"* — đọc MỌI dòng nhưng chỉ 8 cột đầu, vì app cần lịch sử đủ ở cả ba chỗ dùng và thứ tự dòng không phải thứ tự ngày; người dùng đã duyệt cách này (quyết định 3 ở trên); (b) *"Mỗi mã tải giá một lần"* — chỉ gộp được HAI trong BA lượt tải của mã, vì cửa sổ thứ ba do một NGUỒN GIÁ KHÁC phục vụ (giá làm tròn khác; mục C, và mục I câu 1).
+
+**Đánh số:** BƯỚC 280 (lớn nhất trước đó là 279, đọc lại ở `docs/STATE.md` lúc viết). Nhánh `sua/tang-toc-dot-2-280` từ `origin/main` `485e8ed` (PR #325 của BƯỚC 279 đã vào `main`). Lỗi kế vẫn 205; BƯỚC này không mở lỗi nào (bài học ở mục H).
+
+### A. Đọc năm tab Google Sheets bằng MỘT lệnh `values_batch_get` (`sheets_store.py`, `read_rows_nhieu` của `GoogleSheet`)
+
+Đường đọc dùng chung của app (BƯỚC 275, `BackendDocChung`) gọi `read_rows_nhieu`; BƯỚC 275 làm nó bằng một lần `worksheets()` cộng năm lần `get_all_values()` (6 lượt hỏi). Nay: MỘT `values_batch_get` cả năm vùng (1 lượt hỏi). Dòng trả về đi qua `_nhu_get_all_values`, làm đúng thứ `Worksheet.get_all_values()` của gspread 6.2.1 làm (`values = response.get("values", [[]])` rồi `fill_gaps`: đệm chuỗi rỗng cho đều cột vì API cắt ô rỗng ở CUỐI dòng; tab rỗng là `[[]]`), nên tiêu đề, NULL ≠ chuỗi rỗng và kiểu do `_doc_tab` / `_from_cell` giữ nguyên. Tab chưa có: API từ chối cả lượt (lỗi 400) → rơi về đường cũ từng-tab (`_doc_tung_tab`: tab chưa có → `[]`, như `read_rows`). Lỗi khác (mạng, hạn mức): chính ngoại lệ ấy là giá trị của MỌI tab (người gọi tự nổ khi cần). Chỉ đọc: không `add_worksheet`, không `update`; `InMemorySheet` và mọi backend giả không đổi.
+
+**Đo trên Google Sheets thật (chỉ đọc, kết nối mới mỗi mẫu, nghỉ 20 giây giữa mẫu vì hạn mức 60 lệnh đọc/phút, 3 lượt xoay vòng):** `cd ../vibe_wt_280 && ../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_280/do_sheets_280.py` → `docs/do-toc-do-app-280/sheets_doc_truoc_sau.md`.
+
+| cách đọc năm tab của app | trung vị | các lượt | lượt HTTP (không kể kết nối) |
+|---|---|---|---|
+| BƯỚC 275 (`worksheets()` + 5 `get_all_values()`) | **3,51 s** | 3,60 · 3,51 · 3,39 | 6 |
+| A: một `values_batch_get`, cả tab | **1,59 s** | 1,64 · 1,59 · 1,44 | 1 |
+| A + B: một `values_batch_get`, `decisions` chỉ tiêu đề + cột A:H | **0,92 s** | 0,87 · 0,92 · 0,93 | 1 |
+
+**Đối chiếu dữ liệu trên sổ thật (cùng lượt đo, mẫu đầu của mỗi cách):** `doc_so_ban_tin` · `doc_nhat_ky` · `doc_ke_hoach` · `doc_hau_kiem` cho danh sách dict **BẰNG NHAU** giữa đường cũ và cả hai đường mới (22.465 dòng quyết định, 16 dòng nhật ký, 96 kế hoạch, 27 hậu kiểm). Sổ đổi giữa hai mẫu thì phép so sẽ lệch; không đổi (không có lượt quét trong cửa sổ đo).
+
+### B. `decisions`: ai dùng, và vì sao KHÔNG làm "chỉ phần gần đây"
+
+**1. Những nơi app dùng dòng `decisions`** (số dòng của `app.py` ở `485e8ed`, trước khi BƯỚC này chèn thêm dòng; `quyet_dinh` của `_doc_so_ban_tin()` chỉ giữ 8 cột `COT_QUYET_DINH_BAN_TIN`):
+
+| nơi | cần gì | ghi chú |
+|---|---|---|
+| `app.py:909` (`_khoi_ke_hoach_da_ghi`) → `so_ke_hoach.noi_quyet_dinh` | dòng `seq` lớn nhất của TỪNG (mã, ngày nến) của MỌI kế hoạch đang hiện (96 kế hoạch, ngày nến 2026-10-14 … 2026-11-13; hộp "Ngày nến" có mục *Tất cả*) → cột "Sổ ảo" | cần mọi ngày có kế hoạch |
+| `app.py:2278` → `ban_tin.ngay_gan_nhat` | `signal_date` LỚN nhất trên mọi dòng | cần toàn sổ |
+| `app.py:2285` → `ban_tin.lap_ban_tin` (`_khu_trung`, `ban_tin.py:250`) | mọi dòng của NGÀY người dùng chọn ở `st.date_input("Ngày")` — hộp **không có mốc dưới** | cần lịch sử đủ: người dùng chọn được mọi ngày tới 2023-12-25 |
+| `app.py:955` (`_chay_san_dau`, chỉ chạy khi bấm nút) | ĐỦ cột kể cả ba cột JSON, đọc bằng backend riêng `load_quyet_dinh_san_dau_from_google_sheets` | KHÔNG đi qua đường dùng chung; BƯỚC này không đụng |
+
+**2. Vì sao "đuôi" (N dòng cuối, hay một cửa sổ ngày) làm đổi số trên màn hình** (đo 16/11/2026, `../vibe_logs_280/probe_dec.py`, mạng thật, chỉ đọc): tab có 22.465 dòng dữ liệu, `seq` tăng ngặt nhưng `signal_date` KHÔNG (76 bước lùi ngày: có dòng ngày cũ ghi sau), 392 ngày khác nhau từ 2023-12-25 tới 2026-11-13, 71 dòng mỗi ngày. Để phủ đúng các ngày của 96 kế hoạch phải đọc 2.343 dòng (10,4%) và phải xác định ranh bằng NGÀY (không bằng số dòng); bản tin của ngày cũ hơn thì đổi số. Người dùng chọn việc này kèm chữ *"nếu chỗ nào cần toàn bộ thì giữ đọc đủ ở chỗ đó"* (lời leader); cả ba chỗ dùng đều cần toàn bộ, nên "đuôi" chỉ còn một chỗ không cần toàn bộ: không có.
+
+**3. Cái làm thay, và quy tắc:** đọc MỌI dòng, chỉ **8 cột đầu** (A:H = `COT_QUYET_DINH_BAN_TIN`, suy từ danh sách cột chứ không gõ số: `COT_HEP_APP` trong `google_sheets_sync.py`), kèm dòng tiêu đề ĐỦ 11 cột ở vùng riêng `1:1` để lệch tên một cột nặng vẫn NỔ. Ba cột JSON ở cuối (`components`, `reasons`, `data_quality`) là phần nặng và bản tin không đọc chúng. Cách định vị: không cần định vị (đọc cả cột dọc theo mọi dòng). Mọi con số trên app giữ nguyên (cùng dòng, cùng 8 cột).
+
+**Đo (một lượt thăm dò `probe_dec.py`):** cột A:H của cả 22.465 dòng = **4,35 MB** JSON, so với 29,8 MB cả tab; một lệnh `values_batch_get` (tiêu đề + A:H + `ke_hoach`) **1,0 s**; trong bảng mục A, cách "A + B" cả năm tab **0,92 s** so với 1,59 s khi đọc cả tab. Tiết kiệm thêm 0,67 s so với chỉ làm A; một "đuôi 1.000 dòng" đo ở lượt trước là 0,53 s cả bốn tab nhỏ và đuôi (không đủ cho ba chỗ dùng ở trên).
+
+**Gác chống đọc nhầm:** bộ đọc nào cần cột nằm NGOÀI vùng (sân đấu cần `components`, `reasons`, `data_quality`) mà hỏi backend hẹp thì `_doc_tab` nổ `SheetError`, không đệm chuỗi rỗng lặng lẽ (`tests/test_decisions_cot_hep_280.py::test_san_dau_can_cot_nang_ma_hoi_duong_hep_thi_NO`).
+
+**Điều không kiểm được:** một dòng mà A:H trống hết nhưng I:K có chữ sẽ bị bỏ (`_co_du_lieu`). Trên sổ thật không có dòng nào như vậy (22.465 dòng đều có `seq`); nếu có, các nơi dùng cũng bỏ qua chúng vì `signal_date` rỗng.
+
+### C. Biểu đồ ngày và ô Dow chung MỘT lượt tải giá (`gia_mot_lan.py`, `app.py`)
+
+**1. Các lượt tải giá của cùng một mã** (`app.py` ở `485e8ed`): `1400` biểu đồ và mọi thứ tính từ nó (180 ngày lịch); `1534` ô cấu trúc Dow (`NGAY_LICH_CUA_SO` = 1.095 ngày); `1679` (`_nen_ba_khung`: nến tuần/tháng, `NGAY_LICH_CHO_KHUNG_THANG` = 1.583 ngày, và VN-INDEX bằng cùng hàm); thứ tư là `run_full_analysis` (420 ngày) **bên trong `DataOrchestrator.collect_and_handoff`**, chạy song song với tin tức; hai lượt VN-INDEX: `1043` (ô topbar, `market_filter.chi_so_moi_nhat` → `fetch_one`, 36 ngày, không qua `collect`) và `_nen_ba_khung("VNINDEX", …)`.
+
+**2. Phát hiện làm đổi thiết kế (đo, không suy):** chuỗi nguồn giá của cổ phiếu là Entrade → VNDirect → VPS. **Entrade BỊ BỎ ở cửa sổ 1.583 ngày** (lỗi *"hai nến rơi vào cùng một ngày phiên"* trong lịch sử cũ), nên cửa sổ ấy do VNDirect phục vụ; các cửa sổ 180 · 420 · 800 · 1.095 ngày do Entrade (10/10 mã thử, `../vibe_logs_280/dbg_C3.py` → `docs/do-toc-do-app-280/nguon_theo_cua_so_C.md`). Hai nguồn cho giá LÀM TRÒN KHÁC (chênh tới 0,005 trên giá nghìn đồng; khối lượng lệch tới 56.194 ở PVS, ACB lệch 6/156 ngày): cắt cửa sổ 1.583 ngày thành cửa sổ ngắn sẽ ĐỔI số trên biểu đồ. Một golden "phát lại cùng bộ giá" không thấy được điều này (nó cho mọi cửa sổ cùng một nguồn); đối chiếu **mạng thật** (ba lượt tải thật so với một lượt + cắt) mới thấy.
+
+**3. Cái làm:** `gia_mot_lan.tai_mot_lan` tải MỘT lần cửa sổ rộng hơn trong hai cửa sổ được gộp (biểu đồ 180 ngày và ô Dow 1.095 ngày → tải 1.095 ngày), rồi cắt `n` nến cuối cho cửa sổ hẹp với `n` suy từ ĐÚNG hàm của đường tải (`nguon_gia_cong_khai.cua_so_vci_cu`, vì `collect` trả `n` nến cuối và bỏ qua `start`: `CLAUDE.md`, mục Dữ liệu); chạy lại `validate_ohlcv` trên phần cắt để lấy cùng danh sách cảnh báo theo SÀN của mã. **Chỉ cắt khi lượt tải rộng do nguồn ĐẦU chuỗi phục vụ** (kiểm tên nguồn); sai nguồn, trạng thái khác `OK`, bảng rộng ngắn hơn `n` (mã niêm yết muộn), hoặc kiểm định chặn phần cắt → trả đúng thứ đường cũ trả (một lượt tải riêng). Nến tuần/tháng (1.583 ngày) và VN-INDEX KHÔNG gộp. **Không đổi `VNStockCollectorAgent.collect`, `nguon_gia_cong_khai`, `run_daily` hay thứ chúng dùng** (gác AST: `test_duong_quet_va_collect_khong_nhac_ten_moi`); cửa sổ ~784 phiên của `collect` giữ nguyên.
+
+**4. Bằng chứng số không đổi (golden, `docs/do-toc-do-app-280/golden_gia_C.md`):**
+- **Phát lại cùng bộ giá** (`golden_C.py`, 11 mã gồm HOSE ACB FPT HPG BSR VGI, HNX PVS SHS, UPCoM ACV MSR OIL, và VN-INDEX): với MỖI mã, ba cửa sổ (180 · 1.095 · 1.583) của đường cũ (ba lần `collect` thật trên nguồn phát lại) và đường mới: **khung giá BẰNG NHAU (`check_exact`)**, trạng thái và danh sách cảnh báo bằng nhau, và các thứ app dựng từ đó **bằng nhau**: pha Wyckoff, kế hoạch vào lệnh (`lap_ke_hoach`), hai ô Dow (`doc_hien_thi`), nến D/W/M. Điểm cuối và khuyến nghị (`run_full_analysis`, đường 420 ngày KHÔNG đổi, chạy hai lần): bằng nhau — **câu này yếu, nói thẳng: đường ấy không đổi nên nó trùng nhau là điều hiển nhiên**; nó chỉ chứng minh không có gì rò vào phân tích. Số lượt tải: 3 → 2 ở mọi mã. Kết quả: 11/11 `DAT`.
+- **Mạng thật, hai lượt tải cách nhau** (`golden_C_that.py`, kết thúc ở phiên đã đóng 2026-11-13 để nến đang chạy không làm nhiễu; 7 mã gồm ACB FPT, PVS SHS, ACV MSR, VN-INDEX): cả ba cửa sổ, khung **BẰNG NHAU**, trạng thái `OK/OK`, cảnh báo bằng nhau; lượt gọi nguồn thật 3 → 2.
+- Trước khi sửa thiết kế (gộp cả ba), đối chiếu mạng thật lượt đầu báo **L và P LỆCH** ở cổ phiếu (ACB, PVS, ACV). Một phần là nến ngày 16/11 xuất hiện giữa hai lượt tải; phần còn lại tách ra bằng `dbg_C2.py` (cùng ngày kết thúc): cửa sổ hẹp do Entrade, cửa sổ rộng do VNDirect phục vụ, giá và khối lượng khác (ACB, PVS; VN-INDEX không lệch vì cả hai cửa sổ đều VNDirect). Chính phép so ấy buộc phải đổi thiết kế (mục 2).
+
+**5. Kết quả đo (mục E):** chỉ **gộp được một lượt** (biểu đồ ngày vào lượt của ô Dow): cấu trúc P 0,70 → 0,06 s, L 0,30 → 0,39 s; tiết kiệm khoảng **0,55 s** mỗi lần mở và mỗi lần đổi mã, thấp hơn ước 0,7–1,3 s của leader (ước ấy tính cả ba lượt).
+
+**6. Không làm, và vì sao:** (i) nến tuần/tháng 1.583 ngày — đổi số (mục 2); sửa tận gốc (cho Entrade qua lỗi hai-nến-một-ngày, hoặc khử trùng trong `nguon_gia_cong_khai`) đụng đường dữ liệu của `run_daily`, là một BƯỚC có ĐO riêng và cần người dùng (mục I). (ii) Lượt 420 ngày của `run_full_analysis`: nằm trong `DataOrchestrator` dùng chung và chạy SONG SONG với tin tức (không ở đường găng). (iii) Ô VN-INDEX ở topbar: đường dữ liệu khác (`fetch_one`, không qua `collect`, 36 ngày), gộp sẽ đổi nguồn của ô; tiết kiệm tối đa 0,33 s lúc mở đầu (đo ở baseline, mục F "VN-Index topbar fetch").
+
+### D. Bỏ hai địa chỉ investing.com (`news_collectors.py`)
+
+Xoá cả hai dòng (International; `news.rss` và `market_overview.rss`). Gác BƯỚC 279 đổi đúng chỗ liên quan: `GIU` 5 → 3 địa chỉ (bỏ hai dòng investing), `MIEN_GIU` 4 → 3 tên miền, thêm `BO_280` (hai địa chỉ) và `test_hai_dia_chi_investing_com_deu_VANG_buoc_280` thay `test_hai_dia_chi_investing_com_deu_con`, danh sách International (10 → 8) và tổng 43 → 41 dòng khai; không danh sách nào khác đổi.
+
+**Gói tin trước/sau, 3 mã × 2 vòng xen kẽ cũ-mới (mạng thật, chỉ đọc; `docs/do-toc-do-app-280/goi_tin_280.md`):** HPG ACB PVS; "cũ" = cây `main` `485e8ed` (sha `news_collectors.py` `b6edd0f3e09b`), "mới" = nhánh (`d5b243bcf1f1`); mỗi lượt một tiến trình mới. `total_articles` **192 → 192** ở cả 6 cặp; `news_score` app **49,8 · 50,1 · 49,8 → giống hệt** (HPG · ACB · PVS); `sentiment_score` −0,31 · 0,13 · −0,31 → giống hệt; Investing.com trả **0 bài ở cả 12 lượt** (hết thời gian chờ). Không nguồn nào khác đổi số bài. Thời gian tải tin LẠNH (HPG, mã đầu của tiến trình): cũ 4,8 · 5,45 s → mới 3,01 · 3,08 s, tiết kiệm khoảng 2 s như ước. **Điểm không đẹp lên (Quy tắc 1): không đổi.** Cảnh báo cho công bằng: ở BƯỚC 279 Investing.com đôi lúc tải được 5 bài và nhích điểm 0,1–0,3; lượt đo này nó không tải được lần nào, nên điểm app có thể nhích rất nhẹ ở lượt khác (đã nêu ở quyết định 2: *"điểm tin có thể đổi rất nhẹ"*).
+
+### E. Bảng trước/sau của app (AppTest, 3 lượt xen kẽ, trung vị; `docs/do-toc-do-app-280/bang_truoc_sau.md`)
+
+Lệnh: `bash ../vibe_logs_280/chay_do_280.sh` (xen kẽ trước, sau × 3; mỗi lượt MỘT tiến trình mới, không `vnstock`, nghỉ 25 giây), rồi `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_280/aggregate_280.py`. Bộ đo y hệt baseline `vibe_logs_tang_toc_2` (`make_app_280.py` đặt mốc theo NỘI DUNG dòng thay vì số dòng; cho cây `main` nó dựng đúng file của baseline). Đo trên MÁY NÀY, giả lập Cloud, KHÔNG phải Cloud. Không ngoại lệ ở lượt nào.
+
+| kịch bản | trước (trung vị; các lượt) | sau (trung vị; các lượt) | đổi |
+|---|---|---|---|
+| S1 mở lần đầu (lạnh) | **15,74 s** (14,91 · 15,74 · 15,99) | **10,95 s** (13,00 · 10,95 · 10,48) | −4,78 s |
+| S2 chạy lại (ấm) | 0,51 s | 0,54 s | +0,03 s |
+| S3 đổi mã ACB → FPT | **4,03 s** (4,18 · 3,82 · 4,03) | **3,41 s** (3,32 · 3,41 · 3,42) | −0,62 s |
+| S4 chạy lại sau đổi mã | 0,54 s | 0,54 s | +0,01 s |
+| S5 radio khung D → W | 0,48 s | 0,49 s | +0,01 s |
+| S6 selectbox trong tab | 0,51 s | 0,51 s | +0,00 s |
+
+Theo mục, lúc mở lần đầu (trung vị giây; lượt gọi HTTP): đọc Sheets 4,56 (9) → **2,33 (4)**; `run_full_analysis` (tin tức) 4,51 (42) → **2,74 (40)**; biểu đồ 3 khung 2,56 → 2,36 (cùng 3 lượt: nó vẫn tải cửa sổ 1.583 ngày của mã và VN-INDEX); `cau_truc` 0,70 (1) → **0,06 (0)**; L (tải giá của biểu đồ) 0,30 → 0,39. Tổng lượt gọi HTTP lúc mở: 57 → 49. Lúc đổi mã: biểu đồ 3 khung 1,81 → 1,75; `cau_truc` 0,71 (1) → **0,06 (0)**; L 0,36 → 0,48; tổng HTTP 9 → 8.
+
+Mức nhiễu của máy đo: ba lượt "trước" cho 14,9–16,0 s (baseline sáng nay 14,89 s); các lượt chạy lại ấm 0,48–0,60 s. Chênh S1 và S3 lớn hơn nhiễu đó; chênh ở S2 · S4 · S5 · S6 (+0,00 … +0,03 s) nằm trong nhiễu.
+
+**Đọc: S1 −4,8 s đến từ ba chỗ** — đọc Sheets (−2,2 s: mục A và B), tin tức (−1,8 s: bỏ investing.com, mục D) và một lượt tải giá (−0,55 s ròng: mục C). Đổi mã giảm 0,6 s (chỉ phần tải giá, vì tin đã nằm trong bộ nhớ). Lúc chạy lại ấm, không đổi (đã 0,4–0,5 s).
+
+### F. Gác và đột biến
+
+Ba file test mới (51 test, offline, không mạng): `tests/test_doc_mot_lenh_280.py` (12: A), `tests/test_decisions_cot_hep_280.py` (14: B), `tests/test_gia_mot_lan_280.py` (25: C). Sửa hai test cũ vì cấu trúc đổi có chủ ý: `tests/test_doc_so_dung_chung_275.py` (đường từng-tab cũ thành `_doc_tung_tab`; bản giả nhận `hep`; AST ba hàm đọc), `tests/test_so_bai_hoc.py` (số lời gọi `load_stock_data` trực tiếp 5 → 3 vì hai chỗ đi qua `load_stock_data_cat`) và `tests/test_sua_nguon_tin_279.py` (mục D).
+
+Đột biến (`../vibe_logs_280/dot_A.py` · `dot_B.py` · `dot_C.py` · `dot_C2.py` · `dot_D.py`; `docs/do-toc-do-app-280/dot_bien_280.md`): **A 10/11 đỏ** (phát sống sót: `values` mặc định `[[]]` → `[]`, **tương đương** vì `fill_gaps([])` đã trả `[[]]`); **B 11/11 đỏ**; **C 21/22 đỏ** lượt đầu và 3 phát sống sót đều được vá gác rồi chạy lại 3/3 đỏ (kiểm trạng thái `SYNTHETIC`, điểm đầu cửa sổ rộng, kiểm định theo sàn của MÃ), còn MỘT phát **tương đương** (`or df_rong.empty` thừa vì `n > len` đã chặn bảng rỗng); **D 4/4 đỏ**. Phát đầu của mỗi nhóm dựng lại nguyên văn lỗi thật (tiêu đề chỉ 8 cột; bỏ kiểm nguồn đầu chuỗi; địa chỉ investing trở lại).
+
+### G. Phạm vi KHÔNG đổi
+
+`VNStockCollectorAgent.collect` · `nguon_gia_cong_khai` · `run_daily` · `paper_trading` · `paper_runner` · `san_dau` · backtest · điểm cuối · ngưỡng · sổ · máy đo (gác AST `test_duong_quet_va_collect_khong_nhac_ten_moi`, và hiệu git so với `main` chỉ có `app.py` · `gia_mot_lan.py` · `sheets_store.py` · `google_sheets_sync.py` · `news_collectors.py` cùng test và `docs/`). Điểm cuối, khuyến nghị, kế hoạch vào lệnh, Wyckoff, hai ô Dow, nến D/W/M, mọi con số của sổ lệnh/bản tin: **không đổi** (mục A đối chiếu sổ thật; mục C golden). Điểm tin trên app: có thể nhích rất nhẹ (mục D). **Không đọc dữ liệu đang bị chặn theo ngày** (`docs/HANDOFF.md` mục 5). Không ghi Google Sheets, không chạy `run_daily`, không kéo sổ thật vào một db, không chạm Streamlit cổng 8511 (các lượt AppTest chạy tiến trình riêng, `cwd` = repo chính chỉ để đọc `st.secrets`), không đụng `.venv`.
+
+### H. Lời khai thật thà · điều CHƯA ĐO
+
+- **Cloud thật, và phía trình duyệt:** chưa đo. Mọi số trên là máy này, một buổi (16/11/2026 ~11:55–12:05), một IP nhà; Cloud có thể chậm hơn. Payload websocket, dựng DOM của 10 tab, JSON của Plotly và HTML của Styler không nằm trong AppTest.
+- **Hành vi nguồn giá từ IP của Cloud/Actions:** chưa đo. Việc "Entrade bị bỏ ở cửa sổ 1.583 ngày" đo từ MỘT IP nhà; nếu Entrade cho qua từ nơi khác thì lượt tải rộng vẫn đúng (gác kiểm nguồn đầu chuỗi chỉ cắt khi cùng nguồn) nhưng cửa sổ 1.583 ngày có thể gộp được — chưa kiểm.
+- **Hạn mức Sheets 429:** các lượt đo nghỉ 20–25 giây; không lượt nào gặp 429 lần này. Một lượt đọc `values_batch_get` gần như đếm là MỘT lượt hỏi (6 → 1) nên giảm áp lực hạn mức; chưa đo ở tải nhiều người dùng.
+- **Điểm tin:** hai vòng × ba mã, Investing.com không tải được lần nào; không đo được "điểm tin khi Investing.com tải được".
+- **Bài học thao tác (không mở số lỗi, vì leader cấp số):** một phép golden dựng bằng cách PHÁT LẠI cùng một khung giá cho mọi cửa sổ (đúng thiết kế ban đầu) báo `DAT` 11/11 trong khi đối chiếu mạng thật báo LỆCH ở cổ phiếu: bộ phát lại đã xoá đúng thứ phải kiểm (nguồn phục vụ phụ thuộc cửa sổ). Luật cho ĐO kế: golden của một phép "gộp lượt tải" phải có một lượt mạng thật, không chỉ phát lại.
+
+### I. Câu hỏi cho người dùng
+
+(Câu hỏi về `decisions` / "đuôi" ĐÃ ĐƯỢC QUYẾT: *"Đọc đủ dòng, chỉ 8 cột (Recommended)"*, quyết định 3 ở đầu mục; không còn chờ.)
+
+1. **Nến tuần/tháng (1.583 ngày):** hai nguồn giá cho giá làm tròn khác nhau nên không gộp được; còn ~2,4 s lúc mở lần đầu ở biểu đồ 3 khung (một lượt thử Entrade thất bại rồi VNDirect, cộng VN-INDEX). Gộp triệt để cần sửa chuỗi nguồn (cho Entrade qua lỗi hai-nến-một-ngày hoặc khử trùng) — đổi đường dữ liệu của `run_daily`, nên cần **một BƯỚC có ĐO riêng và quyết định của bạn**. Làm hay để?
+2. **Ô VN-INDEX ở topbar** (0,33 s lúc mở): gộp với lượt VN-INDEX của biểu đồ sẽ đổi nguồn của ô (không còn đi `fetch_one`). Làm hay để?
+
+### J. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 280` mang `khong_bat_buoc_vi`. `tools/buoc_cham_luat.py 280` xác nhận BƯỚC không chạm file luật (dòng in nguyên văn ở cuối mục này). Chỗ máy mù: máy chỉ thấy FILE; kết luận đo mới (nguồn nào phục vụ cửa sổ nào; thời gian trước/sau) chỉ nằm ở STATE và là số của MỘT máy, MỘT IP.
+
+**Số test:** mốc `docs/moc_so_test.json` **5118 → 5167** (+51 test mới; −2 ca tham số hoá của `test_bon_nguon_chua_ro_con_nguyen_o_dung_nhom` vì hai địa chỉ investing.com bị bỏ CÓ CHỦ Ý ở mục D; ròng +49, không test nào khác bị bớt). Trước khi cập nhật: `tools/kiem_so_test_khong_giam.py` in *"CHAN — so test TANG 5118 -> 5167, moc chua cap nhat."*; lượt cổng đầu cũng đỏ vì `app.py` nhân bản mặc định `"OK"` mà không mang `# bia-ok` (cổng 3, 1 CHẶN: sửa bằng chú thích có lý do rồi chạy lại toàn bộ).
+
+**Dòng in của `tools/buoc_cham_luat.py 280`** (cây làm việc, trước khi PR vào `main`): *"BƯỚC 280: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach 485e8ed]"*.
+
+**Năm cổng** (cây = `0711710` cộng các thay đổi chưa commit lúc chạy; lệnh `tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_280/cong`, 551 s, 16/11/2026 13:46–13:55 ICT; log ở thư mục ấy và `cong_tong.log` cạnh nó): **cả năm cổng thoát 0** — cổng 1 `5165 passed, 2 skipped` (chạy `-n auto`) · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình"* · cổng 5 *"OK — 5167 test, khop moc da ghi."* Lượt `--tuan-tu` ĐẦU (12:05) đỏ bốn cổng (cổng 1 ba test, cổng 3 một CHẶN, cổng 4, cổng 5) vì hai lý do đã sửa: mốc số test chưa cập nhật, và `app.py` nhân bản mặc định `"OK"` thiếu `# bia-ok` (làm đỏ hai test của `tests/test_chan_bia_so_lieu.py` và cổng 3); sau đó chạy lại TOÀN BỘ. Sau lượt xanh chỉ điền dòng kết quả này vào STATE (chỉ chữ) rồi chạy lại các test tài liệu.
