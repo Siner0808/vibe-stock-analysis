@@ -26841,3 +26841,124 @@ Mỗi câu trả lời được là **dùng ứng viên / bỏ nguồn / giữ n
 ### I. Việc kế
 
 (1) Leader đọc CI một lần (PR này KHÔNG tự merge) và mang mục C, D cho người dùng. (2) **BƯỚC 279**: áp những ứng viên người dùng duyệt ở mục D vào `news_collectors.py`, có so gói tin trước/sau như BƯỚC 277 (điểm tin trên app có thể đổi). (3) Lỗi kế là 205.
+
+
+## BƯỚC 279 — SỬA DANH SÁCH NGUỒN TIN THEO BỐN QUYẾT ĐỊNH CỦA NGƯỜI DÙNG: ĐỔI 5 ĐỊA CHỈ, BỎ 22 ĐỊA CHỈ CHẾT HẲN, GIỮ NGUYÊN NGUỒN CHƯA RÕ; ĐIỂM TIN TRÊN APP NHÍCH XUỐNG NHẸ (16/11/2026)
+
+**Mốc:** quy-trinh — sửa danh sách nguồn tin theo quyết định của người dùng 16/11/2026, sau chẩn đoán của BƯỚC 278; không mã mốc nào của `docs/LO-TRINH.md` nói về nguồn tin; điểm tin chỉ để HIỆN, không vào điểm cuối, ngưỡng, sổ ảo hay đường quét (mục D, F); không chạm file luật (`tools/buoc_cham_luat.py 279`, mục H)
+
+**Quyết định của người dùng (nguyên văn):** 16/11/2026 ~08:48, bốn hộp hỏi do LEADER soạn (AskUserQuestion). **Câu hỏi và chữ dưới nhãn là lời của LEADER**; chỉ phần *in nghiêng sau "Người dùng:"* là lời người dùng chọn.
+
+1. Câu hỏi (leader): *"BƯỚC 279, nhóm địa chỉ thay thế rõ ràng (một đổi một, cùng chủ đề, đã tải ra bài thật hai ngày 14 và 16/11): cafef ngan-hang → tai-chinh-ngan-hang.rss (50 bài); vietstock chung-khoan → /144/chung-khoan.rss (30 bài); vietstock ngan-hang → /757/tai-chinh/ngan-hang.rss (20 bài); just-style → /feed/ (10 bài). Thay không?"* Người dùng: *"Thay cả 4 (Recommended)"*.
+2. Câu hỏi (leader): *"Nguồn cafef cong-nghe.rss (nhóm ngành công nghệ) đã chết; địa chỉ gần nhất còn sống là kinh-te-so.rss (Kinh tế số, 50 bài) — chủ đề gần, không trùng. Làm gì?"* Người dùng: *"Dùng kinh-te-so (Recommended)"*.
+3. Câu hỏi (leader): *"Nguồn cafef chung-khoan.rss trong nhóm ngành chứng khoán đã chết; địa chỉ thay là thi-truong-chung-khoan.rss — nhưng địa chỉ này ĐÃ có sẵn trong nhóm tin trong nước, nên thay thì cùng một bài bị đếm hai lần. Làm gì?"* Người dùng: *"Bỏ dòng trùng (Recommended)"*.
+4. Câu hỏi (leader): *"Còn 26 địa chỉ không tìm được chỗ thay: đa số chết hẳn (404 hoặc máy chủ không còn: Reuters ×4, ndh, yahoo, imf, worldbank, steelorbis, 7 mục ngành cafef…); 4 nguồn thuộc nhóm 'chưa tìm ra' (baodautu, agweb, fiercepharma, investing.com — investing news.rss hôm nay lại tải được). Nguồn chết vẫn tốn thời gian tải mỗi lần mở app. Làm gì?"* Người dùng: *"Xoá chết hẳn, giữ 4 nguồn chưa rõ (Recommended)"*.
+
+Nền: STATE BƯỚC 278 mục C (bảng sáu ứng viên) và mục D (các câu hỏi); bảng đầy đủ `docs/do-nguon-tin-278/bang_ung_vien.md`.
+
+**Đánh số:** BƯỚC 279 (lớn nhất trước đó là 278). Nhánh `sua/sua-nguon-tin-279`, dựng chồng lên nhánh BƯỚC 278 (`6093a24`). PR #324 (BƯỚC 278) vào `main` lúc 09:36 ICT (`03ad72e`, cả hai lượt `kiem-dinh` xanh); sau đó `git fetch origin` rồi `git merge origin/main` (không rebase, không đẩy ép); `git diff 6093a24 origin/main --stat` rỗng. Lỗi kế vẫn 205 (BƯỚC này không mở lỗi nào).
+
+### A. Thay đổi (`news_collectors.py`, 7 dòng thêm · 35 dòng bớt; 68 → 43 dòng khai; chỉ các danh sách nguồn)
+
+Áp bằng `tools/va_an_toan.thay` (kịch bản `sua_ma_279.py` trong `vibe_logs_279/`; mỗi neo khớp đúng một lần). **Không đổi** thời hạn, hạn bộ nhớ, giới hạn bài, tiêu đề, phần Google News, nhãn nguồn/thể loại/vùng của dòng còn lại, hay thứ tự các dòng còn lại.
+
+**Đổi một-đổi-một (quyết định 1 và 2; cùng nhóm, cùng nhãn, chỉ ĐỊA CHỈ đổi):**
+
+| địa chỉ cũ (chết) | địa chỉ mới | nơi khai (đổi ở MỌI nơi cũ khai) | lớp của địa chỉ cũ sáng 16/11 |
+|---|---|---|---|
+| `https://cafef.vn/ngan-hang.rss` | `https://cafef.vn/tai-chinh-ngan-hang.rss` | Domestic · Sector:banking | `dead_url` 404 |
+| `https://vietstock.vn/rss/830/chung-khoan.rss` | `https://vietstock.vn/144/chung-khoan.rss` | Domestic · Sector:securities_finance | `html_not_feed` 200 |
+| `https://vietstock.vn/rss/830/ngan-hang.rss` | `https://vietstock.vn/757/tai-chinh/ngan-hang.rss` | Sector:banking | `html_not_feed` 200 |
+| `https://www.just-style.com/rss.ashx` | `https://www.just-style.com/feed/` | Sector:textiles_apparel | `dead_url` 404 |
+| `https://cafef.vn/cong-nghe.rss` | `https://cafef.vn/kinh-te-so.rss` | Sector:technology | `dead_url` 404 |
+
+**Bỏ dòng trùng (quyết định 3):** dòng `https://cafef.vn/chung-khoan.rss` của Sector:securities_finance (`dead_url` 404) bị xoá; **không** thêm `thi-truong-chung-khoan.rss` vào nhóm ấy (nó vẫn khai ĐÚNG MỘT lần, ở Domestic).
+
+**Xoá nguồn chết hẳn (quyết định 4) — 21 địa chỉ ngoài dòng ở trên, 25 dòng khai** (ba địa chỉ reuters khai hai lần: businessNews · companyNews · economicNews). Ghi theo nơi khai:
+
+- Domestic: `vnexpress.net/rss/chung-khoan.rss` (`moved_to_html`) · `ndh.vn/thi-truong/chung-khoan.rss` (`dead_url`).
+- International: `feeds.reuters.com/reuters/businessNews` · `…/companyNews` (cả hai `dead_host`) · `finance.yahoo.com/news/rss/` (`dead_url`).
+- Macro: `sbv.gov.vn/webcenter/rss?…catId=559` (`dead_url`) · `mof.gov.vn/webcenter/rss?catId=439&lang=vi` (`moved_to_html`) · `feeds.reuters.com/reuters/economicNews` (`dead_host`) · `imf.org/en/News/rss?type=pressRelease` · `worldbank.org/en/news/rss` (cả hai `dead_url`).
+- Sector: banking — `feeds.reuters.com/reuters/financialServicesAndRealEstateNews` (`dead_host`); real_estate — `batdongsan.com.vn/tin-tuc-nha-dat.rss`; steel_materials — `steelorbis.com/rss/news`; oil_gas — `cafef.vn/dau-khi.rss` và reuters companyNews; agriculture — `cafef.vn/nong-nghiep.rss`; consumer_retail — `cafef.vn/hang-tieu-dung.rss`; healthcare_pharma — `cafef.vn/duoc-pham.rss`; aviation_logistics — `cafef.vn/giao-thong.rss` và `simpleflying.com/feed/` (`dead_host`); electricity_energy — `cafef.vn/dien-luc.rss`; securities_finance — reuters businessNews; textiles_apparel — `cafef.vn/det-may.rss`; global_macro — reuters economicNews. (Các `dead_url` còn lại đều 404.)
+
+**Giữ nguyên (quyết định 4, bốn nguồn "chưa rõ" = 5 địa chỉ):** `baodautu.vn/sitemap/rss` (Domestic, `parse_error`) · `investing.com/rss/news.rss` và `investing.com/rss/market_overview.rss` (International; cả hai `timeout` sáng nay) · `agweb.com/rss.xml` (Sector:agriculture, `blocked` 403) · `fiercepharma.com/rss/xml` (Sector:healthcare_pharma, `blocked` 403).
+
+**Hệ quả của quyết định 4 cần nói thẳng:** nhóm ngành `aviation_logistics` mất CẢ HAI nguồn (cả hai đã chết hẳn), nên **nhóm ngành ấy từ nay không có tin ngành nào** — vốn trước đó cũng 0 bài, nên số bài không đổi. Khoá ngành vẫn còn với danh sách rỗng (leader duyệt 16/11/2026: giữ khoá), nên nhãn *"✈️ Hàng không & Logistics"* và chữ *"/ n ngành"* ở ghi chú gói tin giữ nguyên. Tìm một nguồn thay cho ngành này là một BƯỚC sau, không làm ở đây.
+
+Kết quả theo nhóm (đếm bằng gác): Domestic 12 → 10 · International 13 → 10 · Macro 8 → 3 · Sector 35 → 20; tổng 68 → 43.
+
+### B. Chạy lại chẩn đoán sáng 16/11/2026 (theo brief: địa chỉ định xoá mà `ok` ngày ấy thì GIỮ và báo)
+
+Lệnh (cwd = cây làm việc, 08:47 ICT, mạng thật, chỉ đọc): `../vibe_preview/.venv/Scripts/python.exe -X utf8 tools/chan_doan_nguon_tin.py chay --ghi-thu-muc ../vibe_logs_279/chay_sang`; bảng chép vào `docs/do-nguon-tin-279/bang_tung_nguon_16_11_sang.csv` và `bang_tung_nguon_dem_lop_16_11_sang.md`. Đếm theo dòng khai (77): `ok` 40 · `dead_url` 19 · `dead_host` 8 · `html_not_feed` 3 · `moved_to_html` 2 · `timeout` 2 · `blocked` 2 · `parse_error` 1 — **giống hệt lượt 14/11** (BƯỚC 278 mục B), kể cả hai địa chỉ investing.com đều `timeout` sáng nay.
+
+Phân lớp từng dòng sắp xoá (`vibe_logs_279/lop_xoa_279.py` → `docs/do-nguon-tin-279/lop_xoa_279.md`): **22 địa chỉ (21 + dòng cafef chung-khoan), cả 22 thuộc `dead_url`, `dead_host` hoặc `moved_to_html`, 0 địa chỉ `ok` sáng nay, 0 dòng lớp lạ.** Không có dòng nào mơ hồ so với lời *"chết hẳn (404 hoặc máy chủ không còn)"* nên không phải dừng hỏi leader. Hai địa chỉ `moved_to_html` (`vnexpress.net/rss/chung-khoan.rss`, `mof.gov.vn/…`) trả 200 nhưng là trang HTML, không phải RSS: brief tính lớp này là chết hẳn.
+
+Bảng 278 mục C đọc bằng máy ở gác (`test_bang_278_doc_ra_dung_so_dong`): 32 dòng, trong đó 6 có ứng viên và 26 ghi "bỏ".
+
+### C. Gói tin trước/sau, mạng thật, chỉ đọc
+
+**Bộ đo:** `vibe_logs_279/do_goi_tin_279.py` (chép nguyên từ `do_goi_tin_277.py` của BƯỚC 277: mỗi mã chạy `NewsOrchestrator(mã).collect_and_handoff()` rồi `NewsSentimentAgent().analyze`; `normalize` trích NGUYÊN VĂN từ `master_agent.py`, không gõ lại). **Lệnh xen kẽ:** `bash ../vibe_logs_279/chay_xen_ke_279.sh` — **cũ, mới, cũ, mới, cũ, mới**, mỗi lượt là MỘT tiến trình mới (bộ nhớ tin rỗng), 8 mã như BƯỚC 277: HPG VCB FPT SSI VNM (HOSE) · PVS SHS (HNX) · ACB. "Cũ" là cây `6093a24` (`git worktree add --detach … 6093a24`, băm `news_collectors.py` `5795f1169c8e…`); "mới" là cây này (`b6edd0f3e09b…`). Chạy 08:54:35–08:55:36 ICT 16/11/2026. Thô: `vibe_logs_279/goi_{cu,moi}_{1,2,3}.json`. Bảng: `cd <cây mới> && ../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_279/so_goi_tin_279.py` → `docs/do-nguon-tin-279/so_goi_tin_279.md`. Bảng loại Investing.com khỏi cả hai nhánh, và nhãn của bài từ nguồn mới: `../vibe_logs_279/xem_nguon_moi_279.py` → `docs/do-nguon-tin-279/xem_nguon_moi_279.md`.
+
+**Bảng (cả 8 mã; năm mã HPG · VCB · FPT · PVS · SHS cho CÙNG một số, ba mã SSI · VNM · ACB cho cùng một số khác):**
+
+| vòng | mã | `total_articles` cũ → mới | trong nước | quốc tế | vĩ mô | ngành | `sentiment_score` | điểm tin app `news_score` | chênh |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | HPG VCB FPT PVS SHS | 160 → 197 | 56 → 68 | 40 → 45 | 12 → 12 | 52 → 72 | −1,90 → −2,50 | 49,0 → 48,8 | −0,2 |
+| 1 | SSI VNM ACB | 160 → 197 | 56 → 68 | 40 → 45 | 12 → 12 | 52 → 72 | −1,37 → −2,06 | 49,3 → 49,0 | −0,3 |
+| 2 · 3 | HPG VCB FPT PVS SHS | 165 → 192 | 56 → 68 | 45 → 40 | 12 → 12 | 52 → 72 | −1,73 → −2,00 | 49,1 → 49,0 | −0,1 |
+| 2 · 3 | SSI VNM ACB | 165 → 192 | 56 → 68 | 45 → 40 | 12 → 12 | 52 → 72 | −1,20 → −1,56 | 49,4 → 49,2 | −0,2 |
+
+Trung bình 8 mã: vòng 1 **49,11 → 48,88** (−0,24); vòng 2 và 3 **49,21 → 49,08** (−0,14); cả 24 cặp mã–vòng đều XUỐNG, từ −0,1 đến −0,3 (trung bình −0,17).
+
+**Theo nguồn (HPG, cùng cho mọi mã; chỉ những nguồn đổi số bài):** trong nước CafeF 18 → 24 · Vietstock 0 → 6; ngành CafeF 8 → 16 · Vietstock 0 → 8 · JustStyle 0 → 4; (quốc tế Investing.com đổi theo vòng, xem dưới). Mọi nguồn khác giữ nguyên. **Không nguồn nào trong 22 địa chỉ đã xoá từng có bài** (không có Reuters · Yahoo · NDH · IMF · WorldBank · SteelOrbis… trong bảng nguồn của nhánh cũ), nên MỌI thay đổi của gói tin đến từ năm địa chỉ đã đổi, không từ việc xoá.
+
+**Nhiễu và một yếu tố gây nhiễu, nói thẳng:**
+- **Investing.com tải được ở nhánh này và timeout ở nhánh kia, theo vòng** (vòng 1: mới 5 bài, cũ 0; vòng 2 và 3: cũ 5, mới 0). Đây là nhiễu mạng, không phải do danh sách (cả hai nhánh khai đúng hai địa chỉ investing.com). Nó gây ra cặp 40 ↔ 45 ở cột quốc tế và là lý do hai vòng cho số khác nhau. **Loại Investing.com khỏi cả hai nhánh** (xem_nguon_moi_279.md mục 2): total 160 → 192 ở mọi vòng, điểm app **0,0** ở HPG VCB FPT PVS SHS và **−0,1** ở SSI VNM ACB, trung bình −0,04 trên 24 cặp.
+- Nền nhiễu cùng nhánh giữa hai vòng: điểm app đổi +0,1 (cũ) hoặc +0,2 (mới), total ±5 — cùng cỡ với độ chênh −0,1…−0,3 đang đo. **Kết luận về chiều đi xuống chắc hơn kết luận về độ lớn.**
+- Hai giờ đo khác nhau vài chục giây giữa nhánh cũ và mới; tin nguồn sống đổi theo giờ, nhưng hai nhánh cùng vòng cho cùng số bài ở mọi nguồn không đổi danh sách (bảng theo nguồn).
+
+**Vì sao điểm đi XUỐNG, và vì sao không nghi lỗi (Quy tắc 1):** điểm KHÔNG đẹp lên, là chiều an toàn. Bài của các nguồn mới gần như toàn nhãn `NEUTRAL` (HPG, nhánh mới, vòng 1: CafeF ngân hàng 6/6 trong nước và 4/4 ngành, Vietstock 6/6 · 4/4 · 4/4, CafeF kinh tế số 4/4, JustStyle 4/4 `NEUTRAL`; Investing.com 4 `NEUTRAL` + 1 `NEGATIVE`) nên chỉ pha loãng trung bình về 0 (điểm mỗi nhóm là TRUNG BÌNH `(pos−neg)/n`, như BƯỚC 277). Tiêu đề đúng chủ đề tờ báo (ví dụ Vietstock: *"Top cổ phiếu đáng chú ý đầu phiên 16/11"*; CafeF: *"BIDV Private Banking kết nối nghệ thuật với chiến lược quản trị gia sản"*; JustStyle: *"PVH Corp to cut 4% of global workforce in cost-reduction drive"*). **Hai thứ thấy nhưng KHÔNG sửa** (ngoài phạm vi): (a) `tai-chinh-ngan-hang.rss` và `/144/chung-khoan.rss` vẫn khai ở hai nhóm (trong nước và ngành), nên cùng một nguồn được đếm ở cả hai nhóm với trọng số khác nhau — thiết kế có từ trước (cafef bat-dong-san khai ba nhóm), trước đây chỉ vô hình vì địa chỉ chết; (b) nhóm ngành `steel_materials` vẫn đọc `cafef.vn/bat-dong-san.rss` (khai từ trước, không thuộc quyết định nào).
+
+**Thời gian `collect_and_handoff` (giây), bỏ các nguồn chết khỏi lượt tải:** mã đầu tiên của mỗi tiến trình (HPG) là lượt LẠNH; bảy mã sau dùng chung bộ nhớ tin 20 phút của các nguồn không theo mã (cả hai nhánh). Lạnh (HPG), ba vòng: cũ 5,49 · 5,60 · 6,67 (trung vị **5,60**), mới 4,76 · 4,81 · 4,72 (trung vị **4,76**); tổng tám mã: cũ 12,1 · 9,6 · 10,4 (trung vị **10,4**), mới 8,6 · 8,5 · 8,6 (trung vị **8,6**). Tiết kiệm khoảng 0,8–1,9 giây lạnh, không phải hàng chục giây: nguồn chết trả lỗi nhanh (404 hoặc tên máy chủ không tra được); chỗ chậm còn lại là các nguồn sống và Google News. Một khoảng ~1 phút của MỘT ngày từ MỘT IP nhà.
+
+### ⚠️ Điểm tin tức trên app có thể đổi
+
+**Điểm tin tức trên app có thể đổi** — đo trên 8 mã, nó nhích **XUỐNG** 0,1–0,3 điểm trên thang 100 (trung bình 49,11 → 48,88 ở vòng 1; 49,21 → 49,08 ở vòng 2 và 3; khoảng 0,0–0,1 nếu loại nguồn Investing.com chập chờn khỏi cả hai nhánh). Số bài trong gói 160/165 → 197/192. Điểm cuối `final_score`, khuyến nghị, ngưỡng mua, sổ ảo, đường quét và backtest KHÔNG đổi (mục D). Dòng *"📰 Tin tức: … (n bài)"* ở `key_reasons` (`master_agent.py:273`) và các khối tin trên app đổi theo số bài; nhóm ngành Hàng không & Logistics tiếp tục 0 bài.
+
+### D. Phạm vi — đường sổ ảo KHÔNG đọc gói tin (chạy lại AST của BƯỚC 277, không phải trí nhớ)
+
+Lệnh (cwd = cây làm việc; kết quả ở `vibe_logs_279/ast_pham_vi_279.out`, ngoài repo): `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_279/ast_pham_vi_279.py` (chép nguyên `ast_pham_vi_277.py`). Kết quả **y hệt BƯỚC 277 mục B**: chỉ **bốn lời gọi** tới `run_full_analysis` · `collect_and_handoff` · `NewsOrchestrator` (`app.py:1248`; `top_stocks_screener.py:24` với `collect_news=False`; `master_agent.py:365`; `data_collectors.py:260`); bao đóng nhập của `run_daily · paper_trading · paper_runner · san_dau · sheets_store · backtest/*` gồm 40 mô-đun, **không chứa `app` hay `top_stocks_screener`**; chứa `news_collectors` chỉ để nhập `NewsPacket`. Điểm tin vẫn chỉ để HIỆN: `master_agent.py:184` `news_norm = normalize(news_res.get("score", 0.0), 5.0)` (đã đọc lại dòng), không nằm trong `pre_debate_score` (từ dòng 233); điểm tin app là `score = overall_score / 20` (`news_sentiment_agent.py:164`: dòng `agent_score = overall_score / 20.0`). Chạy lại `tests/test_cho_ba_nguon_tin_277.py` và `tests/test_tin_nhanh_275.py`: 37 passed (`vibe_logs_279/test_pham_vi_277_chay_lai.log`). Giới hạn y như BƯỚC 277: chứng minh này không thấy nhập động.
+
+### E. Gác và đột biến
+
+`tests/test_sua_nguon_tin_279.py` (28 test, offline, không mạng; viết và chạy ĐỎ trên mã cũ TRƯỚC khi sửa mã: 19 đỏ · 9 xanh, `test_truoc_sua.log`): địa chỉ mới có mặt đúng nhóm và nhãn (5 địa chỉ, tham số hoá); địa chỉ cũ biến mất ở mọi nhóm; nhãn/thể loại/vùng của dòng đã đổi giữ nguyên; `thi-truong-chung-khoan` khai ĐÚNG MỘT lần (ở Domestic) và nhóm chứng khoán chỉ còn `/144/chung-khoan.rss` (quyết định 3); mọi địa chỉ xoá suy từ bảng 278 (cột "bỏ" trừ bốn nguồn giữ: **21 địa chỉ**, đọc bằng máy từ `docs/do-nguon-tin-278/bang_ung_vien.md`, không gõ hai lần) đã hết; tên miền chết hẳn không còn dòng nào kể cả đổi đường dẫn; bốn nguồn giữ (5 địa chỉ, đúng nhóm) còn nguyên, cả hai địa chỉ investing.com; số dòng theo nhóm 10/10/3/20 = 43; khoá `aviation_logistics` còn, danh sách rỗng, và `SectorNewsAgent.collect` vẫn chạy với nhóm rỗng; bản chụp CÓ THỨ TỰ của mọi dòng còn lại.
+
+**Gác "không khai lặp" của brief được THAY, vì sao:** brief đòi *"không địa chỉ khai nào xuất hiện hai lần giữa các nhóm"*. Điều đó không giữ được: quyết định 1 đổi CẢ HAI nơi khai của `ngan-hang` (Domestic và Sector:banking) và của `chung-khoan` của vietstock (Domestic và Sector:securities_finance), nên hai địa chỉ mới cũng khai hai lần, y như hai địa chỉ cũ; và đã có sẵn khai lặp khác (cafef `bat-dong-san` ba nhóm; bloomberg markets và cnbc 100003114 hai nhóm). Gác thay: một **bảng có SỐ LẦN** của đúng năm địa chỉ khai lặp (`TRUNG_DUOC_PHEP`), so bằng `==` với bộ đếm thật — địa chỉ nào khai thêm lần nữa, hay có địa chỉ lặp mới, thì ĐỎ; cộng điều quyết định 3 thật sự cần (`thi-truong-chung-khoan` đúng một lần). Leader đã chấp nhận thay đổi này (16/11/2026).
+
+**Đột biến** (`vibe_logs_279/dot_bien_279.py` → `docs/do-nguon-tin-279/dot_bien_279.md`; viết TRƯỚC khi chạy gác lần đầu): **35/35 đỏ**, `SONG: []`, ngay lượt đầu. Phát đầu (R1–R7) dựng lại NGUYÊN VĂN từng dòng cũ trước BƯỚC 279, theo từng quyết định (địa chỉ chết trở lại, thay nhầm, thêm lại dòng cafef chung-khoan, thêm `thi-truong-chung-khoan` vào nhóm ngành); rồi lệch MỘT NỬA (H1–H5: chỉ đổi một trong hai nơi khai, gõ nhầm địa chỉ mới, đổi nhãn, đổi vùng); xoá nhầm từng nguồn phải giữ (K1–K5); quên xoá một nguồn chết (X1–X13: reuters, simpleflying, cafef giao-thong, ndh, yahoo, vnexpress chung-khoan, imf, sbv, batdongsan.com.vn ở đường dẫn khác, cafef dau-khi, det-may, bỏ khoá ngành rỗng); và không thêm lặp mới/không đụng thứ khác (L1–L5: thêm cnbc vào global_macro, thêm cafef doanh-nghiep vào steel_materials, xoá dòng FT, đổi chỗ hai dòng, xoá dòng vietstock 144 ở nhóm ngành). Lượt chạy lại 8 phát không `-x` (`dot_bien_279_ten_do.md`) cho biết TÊN test đỏ: mỗi phát đỏ ở đúng test định bắt (ví dụ H5 chỉ test nhãn/vùng; L4 chỉ bản chụp thứ tự). Giới hạn: chỉ tám trong 35 phát được kiểm tên test đỏ; 27 phát còn lại chỉ biết đỏ (mã thoát khác 0 của `pytest -x`), không biết đỏ vì test nào.
+
+### F. Phạm vi KHÔNG đổi
+
+`app.py` · `master_agent.py` · `news_sentiment_agent.py` · `run_daily` · `paper_trading` · backtest · điểm cuối · ngưỡng · sổ · máy đo · thời hạn và bộ nhớ của BƯỚC 275 · phần Google News và ECB của BƯỚC 277. `git diff origin/main --stat -- '*.py'` chỉ có `news_collectors.py` và `tests/test_sua_nguon_tin_279.py`. **`CLAUDE.md` không đổi:** BƯỚC này không đổi một luật nào, và `CLAUDE.md` không nhắc địa chỉ nguồn tin nào (`grep -n "cafef\|vietstock\|reuters" CLAUDE.md` không ra dòng nào). Không chạy `run_daily`, không ghi Google Sheets, không kéo sổ thật; yêu cầu mạng chỉ từ chẩn đoán và đo gói tin, mang tiêu đề sản xuất (`feedparser.USER_AGENT` ở lớp tải của chẩn đoán; `news_collectors.HEADERS` của mã sản xuất ở đo gói tin).
+
+### G. Lời khai thật thà
+
+- **MỘT địa chỉ IP (nhà), một buổi sáng.** Lượt chẩn đoán 08:47, lượt đo gói tin 08:54–08:56 ngày 16/11/2026. *Chết hẳn* ở đây là chết từ máy này trong ba lượt (14/11 ~14:37, 16/11 08:22 của BƯỚC 278 và 16/11 08:47 của BƯỚC này): `dead_host`/`dead_url` nhất quán qua hai ngày, nhưng **IP của GitHub Actions và Streamlit Cloud CHƯA đo**. Một nguồn chỉ chặn IP nhà thì đã bị xoá nhầm; ngược lại nguồn chỉ chặn IP trung tâm dữ liệu (agweb, fiercepharma, investing.com — nên được giữ) vẫn ở đó.
+- Chiều của điểm (xuống) lặp lại ở 24/24 cặp, nhưng độ lớn (−0,1…−0,3) cùng cỡ nền nhiễu cùng nhánh (+0,1…+0,2) và đổi theo việc Investing.com tải được hay không; đừng đọc 0,2 điểm là hằng số.
+- Số bài của nguồn sống (CafeF 24 · Vietstock 6 · …) là của một lượt; hạn 6 bài mỗi nguồn ở nhóm trong nước và 4 ở nhóm ngành và vĩ mô vẫn cắt số bài ở mã (không đổi ở BƯỚC này).
+- "Cùng chủ đề" của ba cặp (cafef ngân hàng, vietstock chứng khoán, vietstock ngân hàng) và của kinh-te-so là phán đoán theo tên mục từ BƯỚC 278 (công cụ không đọc nội dung bài); người dùng đã duyệt chúng, và cả 8 mã cho bài đúng chủ đề tờ báo ở mẫu tiêu đề kể trên, nhưng **bài của nguồn mới không theo từng mã** (khác hai câu Google News của BƯỚC 277): mọi mã nhận cùng các bài ngành/tờ báo ấy.
+- Đếm cho khỏi nhầm: *"26 địa chỉ không tìm được chỗ thay"* của câu hỏi 4 gồm CẢ năm địa chỉ của bốn nguồn giữ (baodautu · agweb · fiercepharma · investing.com ×2), nên xoá theo bảng là 21 địa chỉ; cộng dòng cafef chung-khoan của quyết định 3 (nó thuộc sáu ứng viên, không thuộc 26) là 22 địa chỉ.
+
+### H. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 279` mang `khong_bat_buoc_vi`. `tools/buoc_cham_luat.py 279` (dòng in nguyên văn ở cuối mục này) xác nhận BƯỚC không chạm file luật. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; kết luận đo mới (điểm tin nhích xuống, mục C) chỉ nằm ở STATE và là số của MỘT buổi sáng từ MỘT IP.
+
+**Số test:** mốc `docs/moc_so_test.json` **5090 → 5118** (+28 = 28 test của `tests/test_sua_nguon_tin_279.py`; không test nào bị bớt). Trước khi cập nhật: `tools/kiem_so_test_khong_giam.py` in *"CHAN — so test TANG 5090 -> 5118, moc chua cap nhat."* (mã thoát 1; `so_test_truoc.log`).
+
+**Dòng in của `tools/buoc_cham_luat.py 279`** (cây làm việc, sau khi PR #324 đã vào `main`): *"BƯỚC 279: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach 03ad72e]"*.
+
+**Năm cổng** (cây = `a098caa` cộng các thay đổi của BƯỚC này chưa commit lúc chạy; lệnh `tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_279/cong`, 522 s, 16/11/2026 09:40–09:49 ICT; log ở thư mục ấy và `cong_tong.log` cạnh nó): **cả năm cổng thoát 0** — cổng 1 `5116 passed, 2 skipped` (chạy `-n auto`) · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình"* · cổng 5 *"OK — 5118 test, khop moc da ghi"*. Chỉ chạy MỘT lượt `--tuan-tu`. Mục này (và chỉ nó) được thêm SAU lượt cổng; không có dòng mã hay test nào đổi sau lượt ấy; các file test đọc STATE · HANDOFF · sổ tay được chạy lại sau khi thêm mục này (xem PR).
+
+### I. Việc kế
+
+(1) Leader đọc CI một lần (PR này KHÔNG tự merge). (2) Việc có thể làm sau, không ở đây: tìm nguồn tin cho nhóm ngành Hàng không & Logistics (hiện 0 bài, kể cả trước BƯỚC này); đo lại danh sách nguồn từ IP của Actions (chưa ai đo); `chung-khoan.rss` của vnexpress và các mục cafef không có thay thế vẫn có thể có RSS ở đường dẫn khác chưa tra. (3) Lỗi kế là 205.

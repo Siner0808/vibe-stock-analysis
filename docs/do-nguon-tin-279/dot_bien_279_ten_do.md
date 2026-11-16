@@ -1,0 +1,8 @@
+R7 thay dong cafef chung-khoan bang thi-truong-chung-khoan o -> 6 do: ['test_thi_truong_chung_khoan_chi_o_nhom_trong_nuoc_dung_mot_l', 'test_nhom_nganh_chung_khoan_chi_con_vietstock_144', 'test_khai_lap_dung_danh_sach_da_biet_va_khong_them_cai_moi']
+H5 doi vung cua dong kinh-te-so (domestic -> international) -> 1 do: ['test_nhan_the_loai_va_vung_cua_dong_doi_giu_nguyen']
+K3 xoa investing market_overview -> 4 do: ['test_bon_nguon_chua_ro_con_nguyen_o_dung_nhom[https://www.in', 'test_hai_dia_chi_investing_com_deu_con', 'test_tong_so_dong_khai_theo_nhom']
+X5 bo khoa aviation_logistics (nhom nganh mat khoa) -> 3 do: ['test_nhom_nganh_hang_khong_logistics_van_con_khoa_voi_danh_s', 'test_nhom_nganh_rong_van_thu_gom_khong_no', 'test_thu_tu_cac_dong_con_lai_nhu_truoc_khi_sua']
+X11 dua lai batdongsan.com.vn (cung may chu, doi duong dan) -> 4 do: ['test_ten_mien_chet_hang_khong_con_dong_nao', 'test_tong_so_dong_khai_theo_nhom', 'test_nhom_nganh_rong_van_thu_gom_khong_no']
+X13 dua lai cafef det-may -> 5 do: ['test_moi_dia_chi_xoa_theo_bang_da_het_o_moi_nhom', 'test_ten_mien_chet_hang_khong_con_dong_nao', 'test_tong_so_dong_khai_theo_nhom']
+L2 them lap moi: cafef doanh-nghiep vao steel_materials -> 4 do: ['test_khai_lap_dung_danh_sach_da_biet_va_khong_them_cai_moi', 'test_tong_so_dong_khai_theo_nhom', 'test_nhom_nganh_rong_van_thu_gom_khong_no']
+L4 doi cho hai dong (CafeF bat-dong-san va tai-chinh-ngan-ha -> 1 do: ['test_thu_tu_cac_dong_con_lai_nhu_truoc_khi_sua']
