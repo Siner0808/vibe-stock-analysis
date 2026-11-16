@@ -124,6 +124,21 @@ class SheetSchemaError(SheetError):
 # ─────────────────────────────────────────────────────────────────────
 # Backend
 # ─────────────────────────────────────────────────────────────────────
+def _nhu_get_all_values(vung: dict) -> list[list[str]]:
+    """Một phần tử `valueRanges` của `values_batch_get` → ĐÚNG thứ `Worksheet.get_all_values()` trả.
+
+    gspread 6: `values = response.get("values", [[]])` rồi `fill_gaps(values)` (đệm mỗi dòng bằng
+    chuỗi rỗng tới độ dài dòng dài nhất, vì API cắt ô rỗng ở CUỐI dòng); `KeyError` → `[[]]`.
+    Làm y hệt để `_doc_tab` và `_co_du_lieu` thấy cùng hình dạng như đường từng-tab.
+    """
+    from gspread.utils import fill_gaps
+    gia_tri = vung.get("values", [[]])
+    try:
+        return fill_gaps(gia_tri)
+    except KeyError:
+        return [[]]
+
+
 class SheetBackend(Protocol):
     """Tối giản có chủ ý: đủ để đẩy/kéo, và đủ để dựng bản giả cho test.
 
@@ -191,13 +206,34 @@ class GoogleSheet:
         return ws.get_all_values()
 
     def read_rows_nhieu(self, tabs) -> dict:
-        """ĐỌC nhiều tab, hỏi danh sách tab MỘT lần (BƯỚC 275, chỉ cho app; đường quét không gọi).
+        """ĐỌC nhiều tab bằng MỘT lệnh gọi `values_batch_get` (BƯỚC 280; chỉ cho app, đường quét không gọi).
 
-        `read_rows` hỏi lại siêu dữ liệu của sheet ở MỖI tab (`worksheet()`); với năm tab đó là
-        năm lần hỏi thừa. Ở đây `worksheets()` một lần rồi mỗi tab một `get_all_values()`.
-        Trả `{tab: [dòng…]}`; tab chưa có → `[]` (như `read_rows`); lỗi đọc MỘT tab → chính ngoại
-        lệ ấy làm giá trị của tab đó (người gọi tự nổ khi cần tab ấy, các tab khác vẫn dùng được).
-        Không tạo gì, không ghi gì.
+        BƯỚC 275 đọc năm tab bằng 1 lần `worksheets()` + 5 lần `get_all_values()` (đo 16/11/2026:
+        3,36 giây, 6 lượt hỏi). Một `values_batch_get` cả năm vùng là MỘT lượt hỏi (đo: 1,70 giây).
+        Từng tab đi qua `_nhu_get_all_values` nên dòng trả về GIỐNG HỆT `get_all_values()` (cùng
+        `fill_gaps`: dòng được đệm chuỗi rỗng cho đều cột; tab rỗng là `[[]]`).
+        Trả `{tab: [dòng…]}`. Tab chưa có: API từ chối cả lượt (lỗi 400 "Unable to parse range"),
+        nên rơi về đường cũ từng-tab (`_doc_tung_tab`, tab chưa có → `[]` như `read_rows`).
+        Lỗi khác (mạng, hạn mức): chính ngoại lệ ấy là giá trị của MỌI tab (người gọi tự nổ khi
+        cần tab nào). Không tạo gì, không ghi gì.
+        """
+        tabs = list(tabs)
+        vung = ["'" + t.replace("'", "''") + "'" for t in tabs]
+        try:
+            kq = self._sh.values_batch_get(vung)
+        except Exception as e:
+            if getattr(e, "code", None) == 400:
+                return self._doc_tung_tab(tabs)
+            return {t: e for t in tabs}
+        gia_tri = kq.get("valueRanges", [])
+        if len(gia_tri) != len(tabs):
+            raise SheetError(f"values_batch_get trả {len(gia_tri)} vùng cho {len(tabs)} tab")
+        return {t: _nhu_get_all_values(v) for t, v in zip(tabs, gia_tri)}
+
+    def _doc_tung_tab(self, tabs) -> dict:
+        """Đường cũ của BƯỚC 275: `worksheets()` một lần rồi mỗi tab một `get_all_values()`.
+
+        Lỗi đọc MỘT tab → chính ngoại lệ ấy làm giá trị của tab đó. Tab chưa có → `[]`.
         """
         theo_ten = {w.title: w for w in self._sh.worksheets()}
         ra: dict = {}

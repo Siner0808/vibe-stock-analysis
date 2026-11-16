@@ -166,10 +166,11 @@ def _google_gia(ws):
     return g
 
 
-def test_GoogleSheet_read_rows_nhieu_mot_lan_hoi_danh_sach_tab_khong_tao_khong_ghi():
+def test_GoogleSheet_doc_tung_tab_mot_lan_hoi_danh_sach_tab_khong_tao_khong_ghi():
+    """Đường CŨ của BƯỚC 275, nay là đường lui của `read_rows_nhieu` (BƯỚC 280) khi có tab chưa tồn tại."""
     loi = RuntimeError("429 quota")
     g = _google_gia([("trades", [["a"]], None), ("nhat_ky", [["b"]], None), ("decisions", None, loi)])
-    ra = g.read_rows_nhieu(["trades", "nhat_ky", "decisions", "hau_kiem"])
+    ra = g._doc_tung_tab(["trades", "nhat_ky", "decisions", "hau_kiem"])
     assert g._sh.hoi_ds == 1
     assert ra["trades"] == [["a"]] and ra["nhat_ky"] == [["b"]]
     assert ra["decisions"] is loi                 # lỗi của MỘT tab là giá trị của tab ấy
@@ -291,8 +292,13 @@ def test_AST_doc_chung_khong_goi_ham_ghi_nao():
     for pt in (n for n in lop.body if isinstance(n, ast.FunctionDef) and n.name in ("write_all", "append_rows")):
         assert isinstance(pt.body[-1], ast.Raise) and not _ten_goi(pt) - {"SheetError"}
     scay = ast.parse((GOC / "sheets_store.py").read_text(encoding="utf-8"))
-    nh = _ten_goi(_ham(scay, "read_rows_nhieu"))
-    assert not nh & TEN_GHI and nh <= {"worksheets", "get_all_values", "get"}, nh
+    # BƯỚC 280: ba hàm đọc (một lệnh, đường lui từng-tab, đổi dạng) — không hàm ghi nào, không lệnh lạ
+    nh = set()
+    for ten in ("read_rows_nhieu", "_doc_tung_tab", "_nhu_get_all_values"):
+        nh |= _ten_goi(_ham(scay, ten))
+    cho_phep = {"worksheets", "get_all_values", "get", "values_batch_get", "fill_gaps", "list", "replace",
+                "getattr", "len", "zip", "SheetError", "_doc_tung_tab", "_nhu_get_all_values"}
+    assert not nh & TEN_GHI and nh <= cho_phep, nh
 
 
 def test_AST_app_ba_bo_doc_di_qua_backend_chung_va_giu_dem_va_han():
