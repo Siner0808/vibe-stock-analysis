@@ -26733,3 +26733,107 @@ Mục này (và chỉ nó) được thêm SAU lượt cổng; không có dòng m
 ### H. Việc kế
 
 (1) Leader đọc CI một lần rồi merge `--merge` (PR này KHÔNG tự merge). (2) BƯỚC kế là **278**: chẩn đoán 34/62 nguồn tin trả 0 bài, KHÔNG đổi gói tin (người dùng đã duyệt, theo leader). (3) Lỗi kế là 205.
+
+
+## BƯỚC 278 — CHẨN ĐOÁN VÌ SAO NHIỀU NGUỒN TIN TRẢ 0 BÀI: PHÂN LỚP TỪNG NGUỒN VÀ BẢNG ỨNG VIÊN THAY THẾ; GÓI TIN, ĐIỂM VÀ MÃ SẢN XUẤT KHÔNG ĐỔI (16/11/2026)
+
+**Mốc:** quy-trinh — công cụ chẩn đoán chỉ-đọc theo lựa chọn của người dùng 14/11/2026; không mã mốc nào của `docs/LO-TRINH.md` nói về nguồn tin; BƯỚC không đổi gói tin, điểm, ngưỡng, sổ hay đường quét (mục F) và không chạm file luật (`tools/buoc_cham_luat.py 278`, mục H)
+
+**Quyết định của người dùng (nguyên văn):**
+
+- 13/11/2026, đề xuất 3 của LEADER: *"34/62 nguồn tin trả 0 bài ở cả cách tải cũ lẫn mới: có mở một BƯỚC riêng để tìm nguyên nhân không? Tôi đề xuất có, sau khi agent tìm repo báo về."* Người dùng: *"đồng ý cả 3 đề xuất"*.
+- 14/11/2026, sau phiên tìm repo tham khảo: người dùng chọn *"Chẩn đoán trước, sửa sau (Recommended)"*. Chữ dưới nhãn là lời của **LEADER**, không phải của người dùng: *"278 chỉ thêm hàm phân loại và một công cụ chạy qua cả 62 nguồn, ra bảng từng nguồn; gói tin và điểm không đổi. Tôi mang bảng + danh sách URL đề xuất sửa về cho bạn duyệt, rồi sửa ở BƯỚC 279 có so gói tin trước/sau như 277."*
+- Phiên con làm BƯỚC này **bị người dùng dừng ngày 14/11/2026 khi đang ở checkpoint CP4** (sổ cái và cổng; CP1–CP3 đã xong và đẩy lên nhánh). **16/11/2026** người dùng chọn *"Làm luôn (Recommended)"* để làm nốt BƯỚC 278 (câu hỏi và chữ dưới nhãn do LEADER soạn). Phiên tiếp tục này làm CP4.
+- Số "34/62" là số của BƯỚC 275; **không dùng lại** ở đây. Số đo lại là của mục B.
+
+**Đánh số:** BƯỚC 278 (lớn nhất trước đó là 277). Nhánh `do/chan-doan-nguon-tin-278`, dựng chồng lên nhánh BƯỚC 277; trong lúc dừng PR #323 (BƯỚC 277) đã vào `main` (`2a061cc`), nên đã `git merge origin/main` (không rebase, không đẩy ép). Lỗi kế vẫn 205 (BƯỚC này không mở lỗi nào; xem ⚠️ cuối mục G về một lỗi thao tác lặp lại).
+
+### A. Cái đã thêm (chỉ `tools/` và `tests/`; không dòng nào trong đường tin thật)
+
+1. `tools/phan_loai_nguon_tin.py` — hàm thuần `phan_loai(QuanSat)` → đúng MỘT lớp trong 13 lớp; không mạng, không đồng hồ, không đọc file. Thứ tự lớp mượn từ miniflux (Apache-2.0) theo báo cáo T2 của phiên tìm repo (`vibe_logs_tim_repo_tang_toc/bao_cao_t2_t3.md`; phiên này KHÔNG đọc lại mã miniflux). **Lệch so với thứ tự leader giao** (`dead_host, dead_url, blocked, moved_to_html, html_not_feed, xml_not_feed, parse_error, empty_feed, ok`), mỗi chỗ một lý do, nguyên văn ở docstring đầu file: thêm `timeout` (lỗi tạm, không phải máy chủ chết), `server_error` (HTTP ≥ 500), `empty_body` (thân 0 byte, xét trước các phép đoán nội dung), `loi_khac` (lỗi truyền tải chưa biết tên — không để rơi vào `dead_host` vì gán nhãn sai là cách làm bảng nói dối); lỗi TLS gộp vào `dead_host`; lỗi mang chữ "timed out" là `timeout` (`requests.iter_content` đổi `ReadTimeoutError` thành `ConnectionError` nên TÊN lớp một mình nói dối); công thức "403 và thân < ~1.000 byte" của báo cáo T2 bị gộp (mọi 403 là `blocked`); `ok` kể cả khi `bozo` = 1 mà có bài.
+2. `tools/chan_doan_nguon_tin.py` — ba lệnh con: `chay` (đọc danh sách nguồn TỪ MÃ — `FEEDS` của Domestic · International · Macro, `SECTOR_FEEDS`, và địa chỉ Google News của từng mã bằng cách chặn `_gom_song_song` trong `CompanyNewsAgent.collect`, không gõ lại URL nào; tải MỖI địa chỉ MỘT lần với tiêu đề và hạn của sản xuất `_HEADERS_RSS` · `HAN_KET_NOI` · `HAN_DOC` · `HAN_MOT_NGUON` · `TRAN_BYTE_MOT_NGUON`; chỉ lớp `blocked`/`dead_url` được thử THÊM một lần với User-Agent trình duyệt — cột ấy là CHẨN ĐOÁN, không phải điều app làm; ghi CSV từng nguồn + bảng đếm lớp), `thu <url>…` (ứng viên thay thế, chỉ tính khi tải được và ≥ 1 bài), `chi-muc <url>` (liệt kê liên kết `.rss`/`.xml` trên trang mục RSS của chính nhà báo).
+3. `tests/test_phan_loai_nguon_tin_278.py` (60 test) và `tests/test_chan_doan_nguon_tin_278.py` (31 test); không test nào dùng mạng.
+
+### B. Số đo (mạng thật, chỉ đọc; MỘT địa chỉ IP nhà, hai ngày)
+
+**Lệnh:** (cwd = cây làm việc `vibe_wt_278`) `../vibe_preview/.venv/Scripts/python.exe -X utf8 tools/chan_doan_nguon_tin.py chay --ghi-thu-muc <thư mục>` (mã mặc định VCB FPT HPG → 9 địa chỉ Google News). Bảng chính ở `docs/do-nguon-tin-278/`; đếm lại từ CSV bằng `csv.DictReader` (hai lượt, cùng quần thể).
+
+| | lượt 1 — 14/11/2026 ~14:37–14:41 ICT | lượt 2 — 16/11/2026 08:22–08:24 ICT |
+|---|---:|---:|
+| dòng khai (cố định 68 + Google News 9) | 77 | 77 |
+| địa chỉ duy nhất | 68 | 68 |
+| dòng cố định lớp ≠ `ok` (cũng là đúng số có 0 bài) | **37/68** | 36/68 |
+| địa chỉ cố định duy nhất lớp ≠ `ok` | **32/59** | 31/59 |
+| Google News (9 địa chỉ, 3 mã) lớp ≠ `ok` | 0/9 | 0/9 |
+
+Đếm theo lớp, lượt 1 (số lần khai · địa chỉ duy nhất; file `docs/do-nguon-tin-278/bang_tung_nguon_dem_lop.md`): `ok` 40 · 36, `dead_url` 19 · 18, `dead_host` 8 · 5, `html_not_feed` 3 · 2, `moved_to_html` 2 · 2, `blocked` 2 · 2, `timeout` 2 · 2, `parse_error` 1 · 1; các lớp còn lại (`server_error`, `empty_body`, `xml_not_feed`, `empty_feed`, `loi_khac`) 0. Lượt 2 (`bang_tung_nguon_dem_lop_16_11.md`) khác đúng MỘT chỗ: `https://www.investing.com/rss/news.rss` từ `timeout` (14/11) sang `ok` 10 bài (16/11) → `ok` 41 · 37, `timeout` 1 · 1; so từng địa chỉ: `docs/do-nguon-tin-278/so_hai_lan_chay.log` (lệnh: `so_hai_lan_chay.py` ở `vibe_logs_278/`; 68/68 địa chỉ chung, 1 đổi lớp, 9 nguồn `ok` đổi số bài như mọi nguồn tin sống).
+
+Đọc bảng:
+
+- **Gần như không có nguồn "trả 0 bài" do lỗi phân tích:** 32 địa chỉ cố định hỏng chia ra `dead_url` 18 (đa số 404: chuyên mục cafef.vn cũ, Yahoo, IMF, World Bank, SBV, batdongsan, steelorbis…), `dead_host` 5 (feeds.reuters.com ×3, simpleflying.com …), `blocked` 2 (agweb, fiercepharma: 403), `html_not_feed` 2, `moved_to_html` 2, `timeout` 2 (investing.com), `parse_error` 1 (baodautu). Nghĩa là phần lớn là **địa chỉ đã chết/đổi chỗ**, không phải tải sai cách.
+- **User-Agent trình duyệt không cứu nguồn nào:** 20 địa chỉ duy nhất (18 `dead_url` + 2 `blocked`) được thử lại bằng `news_collectors.HEADERS`; không địa chỉ nào thành `ok` (cột `lop_ua_trinh_duyet`); 2 địa chỉ (imf.org, just-style) đổi 404 → `blocked`. Giả thuyết "app bị chặn vì User-Agent" **bị bác** cho các nguồn đã đo.
+- **Không có hai địa chỉ KHÁC NHAU nào về cùng một địa chỉ cuối** (cột `khoa_trung` rỗng ở cả hai lượt). Khai lặp (cùng một địa chỉ khai nhiều lần ở các nhóm khác nhau) có 8 địa chỉ → 9 dòng thừa (77 dòng − 68 duy nhất): `cafef.vn/bat-dong-san.rss` khai 3 lần (2 thừa), và 7 địa chỉ khai 2 lần (1 thừa mỗi cái): `cafef.vn/ngan-hang.rss`, `feeds.reuters.com` (businessNews · companyNews · economicNews), `vietstock.vn/rss/830/chung-khoan.rss`, `feeds.bloomberg.com/markets/news.rss`, `www.cnbc.com/id/100003114/device/rss/rss.html`.
+- Số của BƯỚC 275 (34/62) và số này (37/68 dòng; 32/59 địa chỉ) khác danh sách và khác ngày; **không đối chiếu từng nguồn** ở đây.
+
+### C. Bảng ứng viên sửa — CHƯA áp dụng (đưa người dùng duyệt; BƯỚC 279 làm)
+
+Quy tắc đếm: ứng viên chỉ tính khi công cụ `thu` tải được VÀ phân tích ra ≥ 1 bài. Tải lần đầu 14/11 (`thu_ung_vien.log`), **tải lại 16/11** (`thu_ung_vien_16_11.log`) và cả sáu vẫn `ok` với CÙNG số bài (cafef 50 · 50 · 50, vietstock 20 · 30 · 20, just-style 10). Bảng đầy đủ 32 địa chỉ (feed → lớp → ứng viên hoặc "bỏ" → bằng chứng): `docs/do-nguon-tin-278/bang_ung_vien.md`.
+
+| # | feed đang khai (nơi khai) | lớp | ứng viên | bằng chứng |
+|---|---|---|---|---|
+| 1 | `https://cafef.vn/ngan-hang.rss` (Domestic **và** Sector:banking — khai hai lần) | `dead_url` 404 | `https://cafef.vn/tai-chinh-ngan-hang.rss` | `ok`, 50 bài (14/11) · 50 (16/11); có trên trang mục `cafef.vn/rss.chn` |
+| 2 | `https://vietstock.vn/rss/830/chung-khoan.rss` (Domestic **và** Sector:securities_finance) | `html_not_feed` 200 | `https://vietstock.vn/144/chung-khoan.rss` | `ok`, 30 bài (14/11) · 30 (16/11); phương án phụ `https://vietstock.vn/830/chung-khoan/co-phieu.rss`, 20 bài |
+| 3 | `https://vietstock.vn/rss/830/ngan-hang.rss` (Sector:banking) | `html_not_feed` 200 | `https://vietstock.vn/757/tai-chinh/ngan-hang.rss` | `ok`, 20 bài (14/11) · 20 (16/11) |
+| 4 | `https://cafef.vn/cong-nghe.rss` (Sector:technology) | `dead_url` 404 | `https://cafef.vn/kinh-te-so.rss` | `ok`, 50 bài (cả hai ngày); **chủ đề gần nhất, không phải cùng chủ đề** (trang mục không có mục công nghệ) — cần người duyệt |
+| 5 | `https://cafef.vn/chung-khoan.rss` (Sector:securities_finance) | `dead_url` 404 | `https://cafef.vn/thi-truong-chung-khoan.rss` | `ok`, 50 bài; **TRÙNG với nguồn Domestic đã khai** (`thi-truong-chung-khoan.rss` đang `ok` ở nhóm Domestic) → đổi thì khai lặp |
+| 6 | `https://www.just-style.com/rss.ashx` (Sector:textiles_apparel) | `dead_url` 404 | `https://www.just-style.com/feed/` | `ok`, 10 bài (cả hai ngày); trang mục `just-style.com/rss/` chuyển hướng sang `/feed/` |
+
+Sáu ứng viên phủ **8 dòng khai** (#1 và #2 khai hai lần). Hai địa chỉ `investing.com`: `news.rss` **tự lành** (xem mục B), `market_overview.rss` `timeout` cả hai ngày. **26 địa chỉ duy nhất còn lại: "bỏ" hoặc chưa tìm được** — hai loại khác nhau, đừng đọc "bỏ" là "nhà báo không có RSS":
+
+- *Đã tra trang mục, không có thay thế:* các chuyên mục `cafef.vn` còn lại (dầu khí, nông nghiệp, tiêu dùng, dược, giao thông, điện, dệt may; trang `cafef.vn/rss.chn` có 25 liên kết, không có các mục này), `vnexpress.net/rss/chung-khoan.rss` (trang mục không còn mục chứng khoán; `kinh-doanh.rss` đã khai và `ok`), `ndh.vn`, `finance.yahoo.com`, `imf.org`, `worldbank.org`, `sbv.gov.vn`, `mof.gov.vn`, `batdongsan.com.vn` (trang mục trả 403), `steelorbis.com`; `feeds.reuters.com` ×4 địa chỉ (tên máy chủ không tra được — nhà báo đã gỡ dịch vụ RSS cũ) và `simpleflying.com` (máy chủ đóng kết nối).
+- *CHƯA tìm được, không kết luận "không có":* `baodautu.vn/sitemap/rss` (trang `baodautu.vn/rss.html` trả 200 nhưng bộ lọc `.rss`/`.xml` của công cụ không thấy liên kết nào), `agweb.com` và `fiercepharma.com` (403 với cả hai User-Agent; chưa tìm trang mục), `investing.com` (bắt tay TLS quá hạn khi vào trang mục).
+
+Nhật ký `chi_muc_1.log` (quét các trang mục) **không** được commit: nó có traceback chứa đường dẫn thư mục nhà của máy; bảng ứng viên trích kết quả của nó. Lệnh tái lập: `bash vibe_logs_278/chi_muc_1.sh` (ngoài repo).
+
+### D. Câu hỏi chờ người dùng — để BƯỚC 279 áp dụng (sáu ứng viên, mỗi ứng viên một câu)
+
+Mỗi câu trả lời được là **dùng ứng viên / bỏ nguồn / giữ nguyên (chết)**. Khuyến nghị là của phiên con, không phải quyết định: 1, 2, 3, 6 dùng (cùng chủ đề, đã tải được hai ngày); 4 cần người quyết vì đổi chủ đề; 5 bỏ nguồn (đã có bản Domestic; đổi thì đếm một bài hai lần ở nhóm ngành).
+
+1. Thay `cafef.vn/ngan-hang.rss` (khai ở Domestic và Sector:banking) bằng `cafef.vn/tai-chinh-ngan-hang.rss`?
+2. Thay `vietstock.vn/rss/830/chung-khoan.rss` (Domestic và Sector:securities_finance) bằng `vietstock.vn/144/chung-khoan.rss` (hay phương án phụ `…/830/chung-khoan/co-phieu.rss`)?
+3. Thay `vietstock.vn/rss/830/ngan-hang.rss` bằng `vietstock.vn/757/tai-chinh/ngan-hang.rss`?
+4. Thay `cafef.vn/cong-nghe.rss` bằng `cafef.vn/kinh-te-so.rss` (kinh tế số, không phải công nghệ) hay bỏ ngành `technology` khỏi nguồn cafef?
+5. `cafef.vn/chung-khoan.rss` của ngành securities_finance: đổi sang `cafef.vn/thi-truong-chung-khoan.rss` (trùng Domestic) hay bỏ?
+6. Thay `just-style.com/rss.ashx` bằng `just-style.com/feed/`?
+
+*Câu thêm, ngoài sáu câu:* BƯỚC 279 làm gì với 26 địa chỉ "bỏ" — để nguyên (còn tốn một lượt tải có hạn thời gian mỗi lần quét tin) hay xoá khỏi danh sách? Bất kỳ lựa chọn nào đổi gói tin → BƯỚC 279 phải so gói tin trước/sau như BƯỚC 277 (điểm tin trên app có thể đổi).
+
+### E. Gác và đột biến (viết đột biến, chạy, sửa gác, chạy lại cho tới khi MỌI phát đỏ)
+
+- **Bộ phân loại** (`tools/phan_loai_nguon_tin.py`): script `vibe_logs_278/dot_bien_278.py`. **Lượt 1: 38/44 đỏ, 6 sống sót** — bỏ nhánh 4xx (`M11`), bỏ `urlset` (`M23`), bỏ `SSLError` · `NameResolutionError` · `gaierror` · `ConnectError` (`M34`–`M37`): gác chưa canh từng tên lỗi mạng và hai chỗ ấy. Bổ sung ca thử rồi chạy lại: **lượt 2: 45/45 đỏ**, `SONG: []` (thêm `M11b`; `docs/do-nguon-tin-278/dot_bien_278_lan1.log`, `dot_bien_278_lan2.log`). Phát đầu (`M0`) dựng lại ca "Content-Type nói HTML, thân không đoán được" bị bỏ qua (theo ghi chú trong script).
+- **Công cụ** (`tools/chan_doan_nguon_tin.py`): script `vibe_logs_278/dot_bien_278_cong_cu.py`, 26 phát (nhóm thử thêm UA, tải một lần, đánh dấu trùng, hạn và tiêu đề sản xuất, `cf_chan`, chuỗi chuyển hướng, khôi phục `_gom_song_song`, trần byte và thời gian, danh sách nguồn, liên kết RSS, đếm và ghi bảng). **Lượt 1 (phiên này): 22/26 đỏ, 4 sống sót** — khoá trùng nhận nhầm 3xx (`T7`) và 1xx (`T8`) (gác chưa thử ở biên [200, 300)), trần byte nhân 10 (`T16`) và bỏ trần thời gian (`T17`) (test cũ dùng trần 10 byte, quá xa biên, và chưa có test nào đặt `HAN_MOT_NGUON` âm). Thêm 7 test (`test_khoa_trung_chi_tinh_o_bien_2xx` ×5 giá trị, `test_tran_byte_dung_o_bien_…`, `test_tran_thoi_gian_mot_nguon_co_tac_dung`), **lượt 2: 26/26 đỏ**, `SONG: []` (`dot_bien_278_cong_cu_lan1.log`, `dot_bien_278_cong_cu_lan2.log`). Ở lượt thử đầu một test mới tự sai (`chuoi_loi` của `TimeoutError` còn có `OSError` trong MRO) — sửa gác, không sửa mã.
+- Bộ của công cụ KHÔNG có phát nào dựng lại một lỗi đã từng gây hại (công cụ mới, chưa có sự cố); mỗi phát là một cách làm hỏng điều gác cam kết. Điều ấy yếu hơn "phát đầu dựng lại lỗi thật" của Bước 3 trong quy trình; khai thẳng.
+
+### F. Phạm vi KHÔNG đổi
+
+`news_collectors.py` · `app.py` · gói tin · điểm tin · điểm cuối · ngưỡng · sổ · `run_daily` · backtest. Bằng chứng: `git diff origin/main --stat -- news_collectors.py app.py` rỗng; `tests/test_phan_loai_nguon_tin_278.py::test_san_xuat_khong_nhap_ham_phan_loai` đọc AST năm file (`news_collectors.py`, `app.py`, `master_agent.py`, `run_daily.py`, `data_collectors.py`) và đòi không file nào nhập hai file mới. Công cụ chỉ ghi vào thư mục `--ghi-thu-muc`. Không chạy `run_daily`, không ghi Google Sheets, không kéo sổ thật; yêu cầu mạng chỉ từ ba lệnh con và mang tiêu đề của sản xuất (`User-Agent` là `feedparser.USER_AGENT` của thư viện, không có tên người dùng, thư điện tử hay tên dự án); lượt thử thêm dùng `news_collectors.HEADERS` (User-Agent trình duyệt), chỉ cho `blocked`/`dead_url`.
+
+### G. Lời khai thật thà
+
+- **MỘT địa chỉ IP (nhà, Việt Nam), hai ngày** (14/11 và 16/11/2026). **IP của GitHub Actions và Streamlit Cloud CHƯA đo**; chặn theo IP trung tâm dữ liệu có thể có và KHÔNG được đo ở đây. Bảng này nói "nguồn nào hỏng từ máy này", chưa nói "nguồn nào hỏng ở nơi quét thật chạy".
+- Lớp `timeout` là TẠM: `investing.com/rss/news.rss` timeout 14/11 và `ok` 10 bài 16/11; `market_overview.rss` timeout cả hai ngày. Một lượt đo không đủ kết luận nguồn ấy chết.
+- Chỉ ba mã (VCB, FPT, HPG) cho Google News (9 địa chỉ, cả 9 `ok` cả hai ngày); mã khác không đo.
+- Số bài của nguồn `ok` đổi theo ngày; số trong bảng là của lượt đo, không phải hằng.
+- "Chủ đề tương đương" của ứng viên #4 và #2/#3 là phán đoán dựa trên tên mục, công cụ không đọc nội dung bài để kiểm.
+- `chi-muc` không bắt lỗi mạng (một địa chỉ timeout in cả traceback). Công cụ chẩn đoán, không nằm trên đường sản xuất; không sửa trong BƯỚC này.
+- ⚠️ **Lỗi thao tác lặp lại, khai thẳng:** lượt đẩy đầu của BƯỚC này (`aedc244`) làm đỏ `tests/test_duyet_repo.py::test_SO_DANG_KY_moi_luot_duyet_de_quy_deu_qua_duyet_repo` trên CI, vì một test mới duyệt thư mục bằng `rglob` thay vì đi qua `duyet_repo.duyet` — **cùng cửa mà BƯỚC 277 đã làm đỏ bằng `os.walk`** (mục G của BƯỚC 277). Sửa: liệt kê MỘT tầng bằng `iterdir()` hai lần; đã quét bốn file mới tìm `rglob`, `os.walk`, `glob("**")` — không còn chỗ nào. Cửa này chỉ kêu ở cổng, không ở lúc viết test: hai BƯỚC liên tiếp mắc cùng một bẫy. Không mở số lỗi mới (lỗi kế vẫn 205); đề xuất cho leader xét (không làm trong BƯỚC này): một dòng trong `tools/cua_bash_an_toan.LUAT` hoặc ghi chú ở `references/bay.md` về "duyệt cây trong test phải qua `duyet_repo.duyet`".
+
+### H. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 278` mang `khong_bat_buoc_vi`. `tools/buoc_cham_luat.py 278` xác nhận BƯỚC không chạm file luật (dòng in nguyên văn ở báo cáo của PR và ở mục này sau lượt cổng). Chỗ máy mù khai thẳng: máy chỉ thấy FILE; kết luận đo mới (mục B, C) chỉ nằm ở STATE và là số của hai lượt chạy mạng từ một IP.
+
+**Số test:** mốc `docs/moc_so_test.json` **4999 → 5090** (+91 = 60 test phân lớp + 31 test công cụ; không test nào bị bớt). Lệnh: `tools/kiem_so_test_khong_giam.py` (trước khi cập nhật: *"so test TANG 4999 -> 5090, moc chua cap nhat"*, mã thoát 1), rồi `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do "BUOC 278: them 91 test …"` (mã thoát 0, *"Da ghi moc: 5090 test"*) trước cổng 1; đếm từng file bằng `pytest <file> --collect-only -q` (60 và 31).
+
+### I. Việc kế
+
+(1) Leader đọc CI một lần (PR này KHÔNG tự merge) và mang mục C, D cho người dùng. (2) **BƯỚC 279**: áp những ứng viên người dùng duyệt ở mục D vào `news_collectors.py`, có so gói tin trước/sau như BƯỚC 277 (điểm tin trên app có thể đổi). (3) Lỗi kế là 205.

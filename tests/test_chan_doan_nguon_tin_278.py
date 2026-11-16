@@ -160,6 +160,29 @@ def test_tai_mot_qua_tran_byte_la_loi_khac(monkeypatch):
     assert q.chuoi_loi == ("ValueError",)
 
 
+def test_tran_byte_dung_o_bien_khong_rong_hon_khong_hep_hon(monkeypatch):
+    """Đúng `TRAN_BYTE_MOT_NGUON` byte thì qua; hơn một byte thì `ValueError` (cùng phép so của sản xuất)."""
+    _gia(monkeypatch, lambda u, k: _Lich())
+    monkeypatch.setattr(nc, "TRAN_BYTE_MOT_NGUON", len(RSS))
+    q, them = cd.tai_mot("https://m.vn/a.rss")
+    assert q.chuoi_loi == () and q.n_bai == 2 and them["loi"] == ""
+    monkeypatch.setattr(nc, "TRAN_BYTE_MOT_NGUON", len(RSS) - 1)
+    q, them = cd.tai_mot("https://m.vn/a.rss")
+    assert q.chuoi_loi == ("ValueError",) and them["loi"] == "ValueError"
+
+
+def test_tran_thoi_gian_mot_nguon_co_tac_dung(monkeypatch):
+    """Quá `HAN_MOT_NGUON` giây thì `TimeoutError` (lớp `timeout`); trần rộng thì tải bình thường."""
+    _gia(monkeypatch, lambda u, k: _Lich())
+    monkeypatch.setattr(nc, "HAN_MOT_NGUON", -1)
+    q, them = cd.tai_mot("https://m.vn/a.rss")
+    assert q.chuoi_loi[0] == "TimeoutError" and them["loi"] == "TimeoutError"
+    assert cd.phan_loai(q) == "timeout"
+    monkeypatch.setattr(nc, "HAN_MOT_NGUON", 3600)
+    q, them = cd.tai_mot("https://m.vn/a.rss")
+    assert q.chuoi_loi == () and q.n_bai == 2
+
+
 def test_tai_mot_cf_mitigated_va_dau_than(monkeypatch):
     _gia(monkeypatch, lambda u, k: _Lich(status=403, than=b"<html>chan", headers={"Content-Type": "text/html", "cf-mitigated": "challenge"}))
     q, _ = cd.tai_mot("https://m.vn/a.rss")
@@ -232,6 +255,14 @@ def test_trung_chi_tinh_khi_tai_duoc_2xx(monkeypatch):
     _gia(monkeypatch, lambda u, k: _Lich(status=404, url="https://m.vn/loi"))
     dong = cd.chay_het(_nguon("https://m.vn/a.rss", "https://m.vn/b.rss"), nghi=0, thu_ua=False)
     assert [d["khoa_trung"] for d in dong] == ["", ""]
+
+
+@pytest.mark.parametrize("status,co_trung", [(199, False), (200, True), (299, True), (300, False), (301, False)])
+def test_khoa_trung_chi_tinh_o_bien_2xx(monkeypatch, status, co_trung):
+    """Hai địa chỉ khác nhau về cùng một địa chỉ cuối: chỉ là "trùng" khi mã trạng thái nằm trong [200, 300)."""
+    _gia(monkeypatch, lambda u, k: _Lich(status=status, url="https://m.vn/chung"))
+    dong = cd.chay_het(_nguon("https://m.vn/a.rss", "https://m.vn/b.rss"), nghi=0, thu_ua=False)
+    assert [d["khoa_trung"] for d in dong] == (["https://m.vn/chung"] * 2 if co_trung else ["", ""])
 
 
 def test_dem_lop_theo_khai_va_theo_duy_nhat():
