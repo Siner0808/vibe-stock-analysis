@@ -27243,3 +27243,7 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/doc_so_that.py` → `doc_so_th
 ### K. Câu hỏi chờ · việc kế
 
 **Câu hỏi chờ người dùng:** không có. **Việc kế:** (1) leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge). (2) Lượt quét thật kế có lệnh chờ lúc nguồn đã điều chỉnh: xem log Actions tìm *"🔧 chỉnh lệnh chờ"* hoặc `##[warning]chỉnh lệnh chờ`; chưa lần nào chạy thật. (3) Ca quyền mua kế tiếp (BƯỚC 276 mục E). (4) Soát định kỳ 18 và đọc 7 của ĐO 27: 19/11/2026. Lỗi kế vẫn **205**. BƯỚC kế 283.
+
+### L. Năm cổng ở máy
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_282/cong` (worktree, python của repo chính; 17:31:34–17:40:04 giờ máy, 509 s; cây `9d31e8a`; log `vibe_logs_282/cong/cong1.log` … `cong5.log` và `cong_tong.log` cạnh nó): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5208 passed, 2 skipped` · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (222 file) · cổng 5 *"OK — 5210 test, khop moc da ghi."* Mục L (chỉ chữ, chỉ `docs/STATE.md`) được thêm SAU lượt cổng; các file test đọc STATE chạy lại sau khi thêm.
