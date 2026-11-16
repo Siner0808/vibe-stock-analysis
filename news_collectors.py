@@ -255,9 +255,7 @@ class InternationalNewsAgent:
         # CNBC
         ("https://www.cnbc.com/id/100003114/device/rss/rss.html",   "CNBC",          "macro",       "international"),
         ("https://www.cnbc.com/id/10001147/device/rss/rss.html",    "CNBC",          "stock_market","international"),
-        # Investing.com
-        ("https://www.investing.com/rss/news.rss",                  "Investing.com", "macro",       "international"),
-        ("https://www.investing.com/rss/market_overview.rss",       "Investing.com", "stock_market","international"),
+        # Investing.com: BỎ ở BƯỚC 280 (người dùng 16/11/2026: "Bỏ investing.com (Recommended)"; hết thời gian chờ 16/16 lượt đo)
         # FT
         ("https://www.ft.com/?format=rss",                          "FinancialTimes","macro",       "international"),
         # WSJ
