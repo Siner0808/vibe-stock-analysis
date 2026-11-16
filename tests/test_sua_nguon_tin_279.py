@@ -9,6 +9,8 @@ Bốn quyết định, mỗi quyết định một điều khoá ở đây (đ�
    (*"Bỏ dòng trùng (Recommended)"*): địa chỉ thay đã có ở nhóm trong nước, thêm thì một bài bị đếm hai lần.
 4. **Xoá nguồn chết hẳn, giữ bốn nguồn chưa rõ** (*"Xoá chết hẳn, giữ 4 nguồn chưa rõ (Recommended)"*): baodautu ·
    agweb · fiercepharma · investing.com (cả hai địa chỉ) còn nguyên.
+   **BƯỚC 280 ĐẢO MỘT PHẦN quyết định 4** (người dùng 16/11/2026: *"Bỏ investing.com (Recommended)"*): hai địa chỉ
+   investing.com nay phải VẮNG (`BO_280`); ba nguồn còn lại (`MIEN_GIU`) vẫn nguyên. Không danh sách nào khác đổi.
 
 Danh sách "xoá" ở đây suy từ `docs/do-nguon-tin-278/bang_ung_vien.md` (cột ứng viên = "bỏ", trừ bốn nguồn giữ),
 không gõ tay hai lần; cộng một dòng ở quyết định 3.
@@ -49,12 +51,12 @@ THAY_CAFEF_CK = "https://cafef.vn/thi-truong-chung-khoan.rss"
 # quyết định 4: bốn nguồn giữ (tên miền) và nhóm khai của chúng
 GIU = {
     "https://baodautu.vn/sitemap/rss": "Domestic",
-    "https://www.investing.com/rss/news.rss": "International",
-    "https://www.investing.com/rss/market_overview.rss": "International",
     "https://www.agweb.com/rss.xml": "Sector:agriculture",
     "https://www.fiercepharma.com/rss/xml": "Sector:healthcare_pharma",
 }
-MIEN_GIU = ("baodautu.vn", "agweb.com", "fiercepharma.com", "investing.com")
+MIEN_GIU = ("baodautu.vn", "agweb.com", "fiercepharma.com")
+# BƯỚC 280: nguồn người dùng cho BỎ sau khi BƯỚC 279 giữ nó (hai địa chỉ; hết thời gian chờ 16/16 lượt đo 16/11/2026)
+BO_280 = ("https://www.investing.com/rss/news.rss", "https://www.investing.com/rss/market_overview.rss")
 
 
 def _khai():
@@ -80,8 +82,8 @@ def _bang_278():
 
 
 def _xoa_theo_bang():
-    """Địa chỉ phải biến mất: cột "bỏ" của bảng 278 trừ bốn nguồn giữ, cộng dòng cafef chung-khoan (quyết định 3)."""
-    return [u for u, _, ut in _bang_278() if ut is None and not any(h in u for h in MIEN_GIU)]
+    """Địa chỉ BƯỚC 279 phải xoá: cột "bỏ" của bảng 278 trừ ba nguồn còn giữ và trừ hai địa chỉ BƯỚC 280 bỏ thêm."""
+    return [u for u, _, ut in _bang_278() if ut is None and not any(h in u for h in MIEN_GIU) and u not in BO_280]
 
 
 # ── đọc bảng 278 đúng (máy đo không được rỗng) ───────────────────────────────────────────────────────────────────────
@@ -156,10 +158,12 @@ def test_bon_nguon_chua_ro_con_nguyen_o_dung_nhom(u, nhom):
     assert [g for g, x, _ in _khai() if x == u] == [nhom]
 
 
-def test_hai_dia_chi_investing_com_deu_con():
-    """*"giữ 4 nguồn chưa rõ"* — nguồn investing.com có HAI địa chỉ; giữ một mất một là chưa đủ."""
-    assert sorted(u for _, u, _ in _khai() if "investing.com" in u) == [
-        "https://www.investing.com/rss/market_overview.rss", "https://www.investing.com/rss/news.rss"]
+def test_hai_dia_chi_investing_com_deu_VANG_buoc_280():
+    """BƯỚC 280 đảo quyết định 4 của BƯỚC 279 cho nguồn này: cả HAI địa chỉ phải vắng ở mọi nhóm (bỏ một giữ một là
+    chưa đủ), và đó đúng là hai địa chỉ của bảng 278 chưa nằm trong danh sách xoá của BƯỚC 279."""
+    assert [(g, u) for g, u, _ in _khai() if "investing.com" in u] == []
+    assert sorted(u for u, _, ut in _bang_278() if "investing.com" in u and ut is None) == sorted(BO_280)
+    assert not [u for u in _xoa_theo_bang() if "investing" in u]       # bốn quyết định của 279 không đụng nó
 
 
 # ── không khai lặp ngoài những chỗ đã có từ trước ─────────────────────────────────────────────────────────────────────
@@ -183,10 +187,11 @@ def test_khai_lap_dung_danh_sach_da_biet_va_khong_them_cai_moi():
 
 
 def test_tong_so_dong_khai_theo_nhom():
-    """68 dòng → 43: 25 dòng đã xoá (22 địa chỉ + ba địa chỉ reuters khai hai lần)."""
+    """68 dòng → 43: 25 dòng đã xoá (22 địa chỉ + ba địa chỉ reuters khai hai lần). BƯỚC 280: → 41 (hai địa chỉ
+    investing.com của nhóm quốc tế, 10 → 8)."""
     dem = collections.Counter(g.split(":")[0] for g, _, _ in _khai())
-    assert dem == {"Domestic": 10, "International": 10, "Macro": 3, "Sector": 20}
-    assert sum(dem.values()) == 43
+    assert dem == {"Domestic": 10, "International": 8, "Macro": 3, "Sector": 20}
+    assert sum(dem.values()) == 41           # 43 của BƯỚC 279 trừ hai địa chỉ investing.com của BƯỚC 280
 
 
 def test_nhom_nganh_hang_khong_logistics_van_con_khoa_voi_danh_sach_rong():
@@ -230,8 +235,7 @@ def test_thu_tu_cac_dong_con_lai_nhu_truoc_khi_sua():
     assert nhom["International"] == [
         "https://seekingalpha.com/feed.xml", "https://feeds.bloomberg.com/markets/news.rss",
         "https://feeds.bloomberg.com/economics/news.rss", "https://www.cnbc.com/id/100003114/device/rss/rss.html",
-        "https://www.cnbc.com/id/10001147/device/rss/rss.html", "https://www.investing.com/rss/news.rss",
-        "https://www.investing.com/rss/market_overview.rss", "https://www.ft.com/?format=rss",
+        "https://www.cnbc.com/id/10001147/device/rss/rss.html", "https://www.ft.com/?format=rss",
         "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml", "https://feeds.content.dowjones.io/public/rss/mw_marketpulse"]
     assert nhom["Macro"] == [
         "https://cafef.vn/vi-mo-dau-tu.rss", "https://www.federalreserve.gov/feeds/press_monetary.xml",
