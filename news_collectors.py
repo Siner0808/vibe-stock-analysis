@@ -216,7 +216,6 @@ class DomesticNewsAgent:
         # VnExpress
         ("https://vnexpress.net/rss/kinh-doanh.rss",         "VnExpress", "macro",       "domestic"),
         ("https://vnexpress.net/rss/doanh-nghiep.rss",        "VnExpress", "corporate",   "domestic"),
-        ("https://vnexpress.net/rss/chung-khoan.rss",         "VnExpress", "stock_market","domestic"),
         # Tuổi Trẻ
         ("https://tuoitre.vn/rss/kinh-doanh.rss",             "TuoiTre",   "macro",       "domestic"),
         # Thanh Niên
@@ -226,12 +225,10 @@ class DomesticNewsAgent:
         # CafeF
         ("https://cafef.vn/thi-truong-chung-khoan.rss",       "CafeF",     "stock_market","domestic"),
         ("https://cafef.vn/bat-dong-san.rss",                 "CafeF",     "real_estate", "domestic"),
-        ("https://cafef.vn/ngan-hang.rss",                    "CafeF",     "banking",     "domestic"),
+        ("https://cafef.vn/tai-chinh-ngan-hang.rss",          "CafeF",     "banking",     "domestic"),
         ("https://cafef.vn/doanh-nghiep.rss",                 "CafeF",     "corporate",   "domestic"),
         # Vietstock
-        ("https://vietstock.vn/rss/830/chung-khoan.rss",      "Vietstock", "stock_market","domestic"),
-        # NDH Money
-        ("https://ndh.vn/thi-truong/chung-khoan.rss",         "NDHMoney",  "stock_market","domestic"),
+        ("https://vietstock.vn/144/chung-khoan.rss",          "Vietstock", "stock_market","domestic"),
     ]
 
     def collect(self) -> list[NewsItem]:
@@ -250,16 +247,11 @@ class InternationalNewsAgent:
     NAME = "International News Agent 🌏"
 
     FEEDS = [
-        # Reuters
-        ("https://feeds.reuters.com/reuters/businessNews",          "Reuters",       "macro",       "international"),
-        ("https://feeds.reuters.com/reuters/companyNews",           "Reuters",       "corporate",   "international"),
         # Seeking Alpha
         ("https://seekingalpha.com/feed.xml",                       "SeekingAlpha",  "stock_market","international"),
         # Bloomberg (open RSS)
         ("https://feeds.bloomberg.com/markets/news.rss",            "Bloomberg",     "macro",       "international"),
         ("https://feeds.bloomberg.com/economics/news.rss",          "Bloomberg",     "macro",       "international"),
-        # Yahoo Finance
-        ("https://finance.yahoo.com/news/rss/",                     "YahooFinance",  "macro",       "international"),
         # CNBC
         ("https://www.cnbc.com/id/100003114/device/rss/rss.html",   "CNBC",          "macro",       "international"),
         ("https://www.cnbc.com/id/10001147/device/rss/rss.html",    "CNBC",          "stock_market","international"),
@@ -290,14 +282,9 @@ class MacroDataAgent:
     NAME = "Macro Data Agent 📊"
 
     FEEDS = [
-        ("https://www.sbv.gov.vn/webcenter/rss?_afrLoop=0&lang=vi&catId=559", "NHNN Vietnam", "interest_rate", "domestic"),
-        ("https://mof.gov.vn/webcenter/rss?catId=439&lang=vi",                  "Bo Tai Chinh",  "policy",        "domestic"),
         ("https://cafef.vn/vi-mo-dau-tu.rss",                                   "CafeF Macro",   "macro",         "domestic"),
-        ("https://feeds.reuters.com/reuters/economicNews",                       "Reuters Macro", "macro",         "international"),
         ("https://www.federalreserve.gov/feeds/press_monetary.xml",             "US FED",        "interest_rate", "international"),
         ("https://www.ecb.europa.eu/rss/press.html",                            "ECB",           "interest_rate", "international"),
-        ("https://www.imf.org/en/News/rss?type=pressRelease",                   "IMF",           "macro",         "international"),
-        ("https://www.worldbank.org/en/news/rss",                               "WorldBank",     "macro",         "international"),
     ]
 
     def collect(self) -> list[NewsItem]:
@@ -318,65 +305,50 @@ class SectorNewsAgent:
 
     SECTOR_FEEDS = {
         "banking": [
-            ("https://cafef.vn/ngan-hang.rss",         "CafeF",    "domestic"),
-            ("https://vietstock.vn/rss/830/ngan-hang.rss","Vietstock","domestic"),
-            ("https://feeds.reuters.com/reuters/financialServicesAndRealEstateNews", "Reuters", "international"),
+            ("https://cafef.vn/tai-chinh-ngan-hang.rss","CafeF",    "domestic"),
+            ("https://vietstock.vn/757/tai-chinh/ngan-hang.rss","Vietstock","domestic"),
         ],
         "real_estate": [
             ("https://cafef.vn/bat-dong-san.rss",      "CafeF",    "domestic"),
-            ("https://batdongsan.com.vn/tin-tuc-nha-dat.rss", "BDS.com.vn", "domestic"),
             ("https://vnexpress.net/rss/bat-dong-san.rss","VnExpress","domestic"),
         ],
         "technology": [
-            ("https://cafef.vn/cong-nghe.rss",         "CafeF",    "domestic"),
+            ("https://cafef.vn/kinh-te-so.rss",        "CafeF",    "domestic"),
             ("https://techcrunch.com/feed/",            "TechCrunch","international"),
             ("https://feeds.feedburner.com/venturebeat/SZYF","VentureBeat","international"),
         ],
         "steel_materials": [
             ("https://cafef.vn/bat-dong-san.rss",      "CafeF",    "domestic"),
-            ("https://www.steelorbis.com/rss/news",    "SteelOrbis","international"),
         ],
         "oil_gas": [
-            ("https://cafef.vn/dau-khi.rss",           "CafeF",    "domestic"),
             ("https://oilprice.com/rss/main",          "OilPrice", "international"),
-            ("https://feeds.reuters.com/reuters/companyNews", "Reuters","international"),
         ],
         "agriculture": [
-            ("https://cafef.vn/nong-nghiep.rss",       "CafeF",    "domestic"),
             ("https://www.agweb.com/rss.xml",          "AgWeb",    "international"),
         ],
         "consumer_retail": [
-            ("https://cafef.vn/hang-tieu-dung.rss",    "CafeF",    "domestic"),
             ("https://www.retaildive.com/feeds/news/", "RetailDive","international"),
         ],
         "healthcare_pharma": [
-            ("https://cafef.vn/duoc-pham.rss",         "CafeF",    "domestic"),
             ("https://www.fiercepharma.com/rss/xml",   "FiercePharma","international"),
             ("https://www.biopharmadive.com/feeds/news/","BiopharmaDive","international"),
         ],
         "aviation_logistics": [
-            ("https://cafef.vn/giao-thong.rss",        "CafeF",    "domestic"),
-            ("https://simpleflying.com/feed/",         "SimpleFlying","international"),
         ],
         "electricity_energy": [
-            ("https://cafef.vn/dien-luc.rss",          "CafeF",    "domestic"),
             ("https://www.energymonitor.ai/feed",      "EnergyMonitor","international"),
         ],
         "securities_finance": [
-            ("https://cafef.vn/chung-khoan.rss",       "CafeF",    "domestic"),
-            ("https://vietstock.vn/rss/830/chung-khoan.rss","Vietstock","domestic"),
-            ("https://feeds.reuters.com/reuters/businessNews","Reuters","international"),
+            ("https://vietstock.vn/144/chung-khoan.rss","Vietstock","domestic"),
         ],
         "textiles_apparel": [
-            ("https://cafef.vn/det-may.rss",           "CafeF",    "domestic"),
-            ("https://www.just-style.com/rss.ashx",    "JustStyle", "international"),
+            ("https://www.just-style.com/feed/",       "JustStyle", "international"),
         ],
         "crypto_blockchain": [
             ("https://feeds.feedburner.com/CoinDesk",  "CoinDesk", "international"),
             ("https://cointelegraph.com/rss",           "CoinTelegraph","international"),
         ],
         "global_macro": [
-            ("https://feeds.reuters.com/reuters/economicNews",    "Reuters","international"),
             ("https://feeds.bloomberg.com/markets/news.rss",      "Bloomberg","international"),
             ("https://www.cnbc.com/id/100003114/device/rss/rss.html","CNBC","international"),
         ],
