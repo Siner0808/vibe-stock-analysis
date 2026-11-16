@@ -26834,6 +26834,10 @@ Mỗi câu trả lời được là **dùng ứng viên / bỏ nguồn / giữ n
 
 **Số test:** mốc `docs/moc_so_test.json` **4999 → 5090** (+91 = 60 test phân lớp + 31 test công cụ; không test nào bị bớt). Lệnh: `tools/kiem_so_test_khong_giam.py` (trước khi cập nhật: *"so test TANG 4999 -> 5090, moc chua cap nhat"*, mã thoát 1), rồi `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do "BUOC 278: them 91 test …"` (mã thoát 0, *"Da ghi moc: 5090 test"*) trước cổng 1; đếm từng file bằng `pytest <file> --collect-only -q` (60 và 31).
 
+**Dòng in của `tools/buoc_cham_luat.py 278`** (cây làm việc, sau khi PR #323 đã vào `main`): *"BƯỚC 278: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach 2a061cc]"*.
+
+**Năm cổng** (cây `9f7c222`, lệnh `tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_278/cong`, 514 s, 16/11/2026 08:31–08:39 ICT; log ở thư mục ấy): **cả năm cổng thoát 0** — cổng 1 `5088 passed, 2 skipped` (cổng 1 chạy `-n auto`) · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình"* · cổng 5 *"OK — 5090 test, khop moc da ghi"*. Chỉ chạy MỘT lượt `--tuan-tu`; không chạy lượt "cùng lúc" để đối chiếu. Mục này (và chỉ nó) được thêm SAU lượt cổng; không có dòng mã hay test nào đổi sau cây `9f7c222`; chạy lại các file test đọc STATE · HANDOFF · sổ tay sau khi thêm mục này (xem PR).
+
 ### I. Việc kế
 
 (1) Leader đọc CI một lần (PR này KHÔNG tự merge) và mang mục C, D cho người dùng. (2) **BƯỚC 279**: áp những ứng viên người dùng duyệt ở mục D vào `news_collectors.py`, có so gói tin trước/sau như BƯỚC 277 (điểm tin trên app có thể đổi). (3) Lỗi kế là 205.
