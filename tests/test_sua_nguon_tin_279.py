@@ -11,6 +11,9 @@ Bốn quyết định, mỗi quyết định một điều khoá ở đây (đ�
    agweb · fiercepharma · investing.com (cả hai địa chỉ) còn nguyên.
    **BƯỚC 280 ĐẢO MỘT PHẦN quyết định 4** (người dùng 16/11/2026: *"Bỏ investing.com (Recommended)"*): hai địa chỉ
    investing.com nay phải VẮNG (`BO_280`); ba nguồn còn lại (`MIEN_GIU`) vẫn nguyên. Không danh sách nào khác đổi.
+   **BƯỚC 281 THÊM hai địa chỉ vào nhóm `aviation_logistics`** (người dùng 16/11/2026: *"Thêm 1 và 2 (Recommended)"*;
+   `THEM_281`): nhóm ngành ấy không còn rỗng, tổng dòng khai 41 → 43, thứ tự nhóm có thêm một mục. Không danh sách
+   nào khác đổi; điều khoá riêng của BƯỚC 281 ở `tests/test_nguon_hang_khong_281.py`.
 
 Danh sách "xoá" ở đây suy từ `docs/do-nguon-tin-278/bang_ung_vien.md` (cột ứng viên = "bỏ", trừ bốn nguồn giữ),
 không gõ tay hai lần; cộng một dòng ở quyết định 3.
@@ -57,6 +60,9 @@ GIU = {
 MIEN_GIU = ("baodautu.vn", "agweb.com", "fiercepharma.com")
 # BƯỚC 280: nguồn người dùng cho BỎ sau khi BƯỚC 279 giữ nó (hai địa chỉ; hết thời gian chờ 16/16 lượt đo 16/11/2026)
 BO_280 = ("https://www.investing.com/rss/news.rss", "https://www.investing.com/rss/market_overview.rss")
+# BƯỚC 281: hai địa chỉ THÊM vào nhóm ngành `aviation_logistics` (đúng thứ tự khai; nhãn nguồn, vùng)
+THEM_281 = [("https://baoxaydung.vn/rss/giao-thong/hang-khong.rss", "BaoXayDung", "domestic"),
+            ("https://baoxaydung.vn/rss/giao-thong/hang-hai.rss", "BaoXayDung", "domestic")]
 
 
 def _khai():
@@ -188,16 +194,16 @@ def test_khai_lap_dung_danh_sach_da_biet_va_khong_them_cai_moi():
 
 def test_tong_so_dong_khai_theo_nhom():
     """68 dòng → 43: 25 dòng đã xoá (22 địa chỉ + ba địa chỉ reuters khai hai lần). BƯỚC 280: → 41 (hai địa chỉ
-    investing.com của nhóm quốc tế, 10 → 8)."""
+    investing.com của nhóm quốc tế, 10 → 8). BƯỚC 281: → 43 (hai địa chỉ baoxaydung.vn của nhóm ngành, 20 → 22)."""
     dem = collections.Counter(g.split(":")[0] for g, _, _ in _khai())
-    assert dem == {"Domestic": 10, "International": 8, "Macro": 3, "Sector": 20}
-    assert sum(dem.values()) == 41           # 43 của BƯỚC 279 trừ hai địa chỉ investing.com của BƯỚC 280
+    assert dem == {"Domestic": 10, "International": 8, "Macro": 3, "Sector": 22}
+    assert sum(dem.values()) == 43           # 41 của BƯỚC 280 cộng hai địa chỉ baoxaydung.vn của BƯỚC 281
 
 
-def test_nhom_nganh_hang_khong_logistics_van_con_khoa_voi_danh_sach_rong():
-    """Cả hai nguồn của `aviation_logistics` đều chết hẳn nên nhóm hết dòng; khoá ngành vẫn còn (nhãn ngành và
-    "n ngành" ở ghi chú gói tin giữ như cũ; không đổi gì ngoài điều người dùng đã chọn)."""
-    assert NHOM_NGANH["aviation_logistics"] == []
+def test_nhom_nganh_hang_khong_logistics_co_dung_hai_nguon_cua_buoc_281():
+    """BƯỚC 279 để nhóm rỗng (cả hai nguồn chết hẳn); BƯỚC 281 thêm đúng hai địa chỉ của người dùng chọn, theo thứ
+    tự khai. Khoá ngành và số nhóm không đổi (nhãn ngành và "n ngành" ở ghi chú gói tin giữ như cũ)."""
+    assert [tuple(f) for f in NHOM_NGANH["aviation_logistics"]] == THEM_281
     assert len(NHOM_NGANH) == 14
 
 
@@ -211,19 +217,21 @@ def test_nhom_nganh_rong_van_thu_gom_khong_no(monkeypatch):
     monkeypatch.setattr(nc, "_gom_song_song", gia)
     kq = nc.SectorNewsAgent().collect()
     assert set(kq) == set(NHOM_NGANH) and kq["aviation_logistics"] == []
-    assert len(gap) == 20
+    assert len(gap) == 22          # 20 của BƯỚC 280 cộng hai địa chỉ baoxaydung.vn của BƯỚC 281
 
 
 # ── thứ tự các dòng còn lại giữ như cũ (chụp đủ danh sách, theo nhóm) ──────────────────────────────────────────────────
 def test_thu_tu_cac_dong_con_lai_nhu_truoc_khi_sua():
-    """Bản chụp có thứ tự của 43 dòng sau BƯỚC 279: dòng nào còn thì đứng đúng chỗ cũ (không xếp lại, không chèn)."""
+    """Bản chụp có thứ tự của các dòng sau BƯỚC 279 (và hai dòng của nhóm hàng không do BƯỚC 281 thêm): dòng nào còn
+    thì đứng đúng chỗ cũ (không xếp lại, không chèn)."""
     nhom = collections.defaultdict(list)
     for g, u, _ in _khai():
         nhom[g].append(u)
-    # aviation_logistics không có dòng nào nên không hiện ở đây
+    # aviation_logistics rỗng ở BƯỚC 279 nên không hiện ở đó; BƯỚC 281 thêm nó, đứng giữa healthcare_pharma và electricity_energy
     assert list(nhom) == ["Domestic", "International", "Macro", "Sector:banking", "Sector:real_estate",
                           "Sector:technology", "Sector:steel_materials", "Sector:oil_gas", "Sector:agriculture",
-                          "Sector:consumer_retail", "Sector:healthcare_pharma", "Sector:electricity_energy",
+                          "Sector:consumer_retail", "Sector:healthcare_pharma", "Sector:aviation_logistics",
+                          "Sector:electricity_energy",
                           "Sector:securities_finance", "Sector:textiles_apparel", "Sector:crypto_blockchain",
                           "Sector:global_macro"]
     assert nhom["Domestic"] == [
@@ -252,6 +260,7 @@ def test_thu_tu_cac_dong_con_lai_nhu_truoc_khi_sua():
     assert nhom["Sector:consumer_retail"] == ["https://www.retaildive.com/feeds/news/"]
     assert nhom["Sector:healthcare_pharma"] == ["https://www.fiercepharma.com/rss/xml",
                                                 "https://www.biopharmadive.com/feeds/news/"]
+    assert nhom["Sector:aviation_logistics"] == [u for u, _, _ in THEM_281]
     assert nhom["Sector:electricity_energy"] == ["https://www.energymonitor.ai/feed"]
     assert nhom["Sector:securities_finance"] == ["https://vietstock.vn/144/chung-khoan.rss"]
     assert nhom["Sector:textiles_apparel"] == ["https://www.just-style.com/feed/"]
