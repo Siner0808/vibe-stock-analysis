@@ -191,7 +191,7 @@ def test_tong_so_dong_khai_theo_nhom():
     investing.com của nhóm quốc tế, 10 → 8)."""
     dem = collections.Counter(g.split(":")[0] for g, _, _ in _khai())
     assert dem == {"Domestic": 10, "International": 8, "Macro": 3, "Sector": 20}
-    assert sum(dem.values()) == 43
+    assert sum(dem.values()) == 41           # 43 của BƯỚC 279 trừ hai địa chỉ investing.com của BƯỚC 280
 
 
 def test_nhom_nganh_hang_khong_logistics_van_con_khoa_voi_danh_sach_rong():
