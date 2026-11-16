@@ -103,6 +103,9 @@ def trang_thai(backend: Any = None) -> dict:
 TTL_DOC_APP = 30 * 60
 #: Năm tab mà ba bộ đọc của app (`nhat_ky`, bản tin, kế hoạch) cần: đọc MỘT lần, dùng chung.
 TAB_APP_DOC = (_ss.TAB_NHAT_KY, _ss.TAB_TRADES, _ss.TAB_DECISIONS, _ss.TAB_HAU_KIEM, _ss.TAB_KE_HOACH)
+#: Tab chỉ đọc N cột đầu qua đường dùng chung của app (BƯỚC 280): `decisions` — bản tin chỉ cần
+#: `COT_QUYET_DINH_BAN_TIN`, ba cột JSON nặng nằm cuối. N suy từ chính danh sách cột ấy (không gõ số).
+COT_HEP_APP = {_ss.TAB_DECISIONS: 1 + max(_ss.DECISION_COLS.index(c) for c in _ss.COT_QUYET_DINH_BAN_TIN)}
 #: Một ứng dụng ngủ dậy sau nhiều giờ: dựng lại kết nối sau chừng này giây cho chắc.
 TUOI_TOI_DA_KET_NOI = 6 * 3600
 
@@ -117,8 +120,10 @@ class BackendDocChung:
     """
 
     def __init__(self, goc: Any, ttl: float = TTL_DOC_APP, bay_gio=time.monotonic,
-                 tabs: tuple = TAB_APP_DOC) -> None:
+                 tabs: tuple = TAB_APP_DOC, hep: Optional[dict] = None) -> None:
         self._goc, self._ttl, self._bay_gio, self._tabs = goc, ttl, bay_gio, tuple(tabs)
+        #: `{tab: N}` — tab ấy chỉ có N cột đầu trong bản đã đọc (`sheets_store._doc_tab` đọc thuộc tính này).
+        self.cot_hep: dict = dict(hep or {})
         self._khoa = threading.RLock()
         self._rows: dict[str, list] = {}
         self._luc: Optional[float] = None
@@ -133,7 +138,7 @@ class BackendDocChung:
     def _nap_lai(self) -> None:
         nhieu = getattr(self._goc, "read_rows_nhieu", None)
         if callable(nhieu):
-            kq = nhieu(self._tabs)
+            kq = nhieu(self._tabs, hep=self.cot_hep) if self.cot_hep else nhieu(self._tabs)
         else:
             kq = {}
             for t in self._tabs:
@@ -179,7 +184,7 @@ def backend_doc_chung() -> Optional[BackendDocChung]:
             b = get_backend()
             if b is None:
                 return None
-            _DUNG_CHUNG = (time.monotonic(), BackendDocChung(b))
+            _DUNG_CHUNG = (time.monotonic(), BackendDocChung(b, hep=COT_HEP_APP))
         return _DUNG_CHUNG[1]
 
 

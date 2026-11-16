@@ -120,13 +120,15 @@ def test_backend_that_di_qua_read_rows_nhieu_mot_lan(monkeypatch):
             super().__init__(goc)
             self.nhieu = []
 
-        def read_rows_nhieu(self, tabs):
+        def read_rows_nhieu(self, tabs, hep=None):
             self.nhieu.append(tuple(tabs))
+            self.hep = hep                      # BƯỚC 280: đường dùng chung khai tab nào chỉ đọc cột đầu
             return {t: ss.InMemorySheet.read_rows(self, t) for t in tabs}
     b = That(_so_mau())
     _gan_backend(monkeypatch, b)
     _ba_bo_doc(gss.backend_doc_chung())
     assert b.nhieu == [gss.TAB_APP_DOC] and b.doc == []
+    assert b.hep == gss.COT_HEP_APP
 
 
 class _Ws:
@@ -297,7 +299,8 @@ def test_AST_doc_chung_khong_goi_ham_ghi_nao():
     for ten in ("read_rows_nhieu", "_doc_tung_tab", "_nhu_get_all_values"):
         nh |= _ten_goi(_ham(scay, ten))
     cho_phep = {"worksheets", "get_all_values", "get", "values_batch_get", "fill_gaps", "list", "replace",
-                "getattr", "len", "zip", "SheetError", "_doc_tung_tab", "_nhu_get_all_values"}
+                "getattr", "len", "zip", "SheetError", "_doc_tung_tab", "_nhu_get_all_values", "append", "dict",
+                "_chu_cot"}
     assert not nh & TEN_GHI and nh <= cho_phep, nh
 
 

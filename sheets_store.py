@@ -124,6 +124,13 @@ class SheetSchemaError(SheetError):
 # ─────────────────────────────────────────────────────────────────────
 # Backend
 # ─────────────────────────────────────────────────────────────────────
+def _chu_cot(n: int) -> str:
+    """Số cột (1 = A) → chữ cột A1. Chỉ tới Z: lược đồ ở đây chưa bao giờ rộng hơn."""
+    if not 1 <= n <= 26:
+        raise ValueError(f"số cột ngoài A..Z: {n}")
+    return chr(64 + n)
+
+
 def _nhu_get_all_values(vung: dict) -> list[list[str]]:
     """Một phần tử `valueRanges` của `values_batch_get` → ĐÚNG thứ `Worksheet.get_all_values()` trả.
 
@@ -205,7 +212,7 @@ class GoogleSheet:
             return []
         return ws.get_all_values()
 
-    def read_rows_nhieu(self, tabs) -> dict:
+    def read_rows_nhieu(self, tabs, hep=None) -> dict:
         """ĐỌC nhiều tab bằng MỘT lệnh gọi `values_batch_get` (BƯỚC 280; chỉ cho app, đường quét không gọi).
 
         BƯỚC 275 đọc năm tab bằng 1 lần `worksheets()` + 5 lần `get_all_values()` (đo 16/11/2026:
@@ -216,9 +223,24 @@ class GoogleSheet:
         nên rơi về đường cũ từng-tab (`_doc_tung_tab`, tab chưa có → `[]` như `read_rows`).
         Lỗi khác (mạng, hạn mức): chính ngoại lệ ấy là giá trị của MỌI tab (người gọi tự nổ khi
         cần tab nào). Không tạo gì, không ghi gì.
+
+        `hep` = `{tab: số cột đầu}`: tab ấy chỉ đọc N CỘT ĐẦU của các dòng dữ liệu, kèm dòng tiêu đề ĐỦ cột (vùng
+        riêng `1:1`) để tiêu đề vẫn được kiểm trọn. Tab `decisions` là 99% số byte của sổ (22.466 dòng, 29,8 MB đo
+        16/11/2026), mà ba cột JSON nặng nằm ở cuối: bản tin chỉ đọc 8 cột đầu (4,35 MB). Dòng trả về: tiêu đề đủ
+        cột rồi các dòng dữ liệu ĐỆM tới độ rộng của chính chúng (≤ N); `_doc_tab` đệm tiếp tới độ rộng lược đồ.
+        Người cần cột ngoài N phải KHÔNG đi qua đường này (`_doc_tab` nổ `SheetError` nếu bị hỏi — xem `cot_hep`).
         """
         tabs = list(tabs)
-        vung = ["'" + t.replace("'", "''") + "'" for t in tabs]
+        hep = dict(hep or {})
+        vung, so_vung = [], {}
+        for t in tabs:
+            ten = "'" + t.replace("'", "''") + "'"
+            if t in hep:
+                vung += [f"{ten}!1:1", f"{ten}!A2:{_chu_cot(hep[t])}"]
+                so_vung[t] = 2
+            else:
+                vung.append(ten)
+                so_vung[t] = 1
         try:
             kq = self._sh.values_batch_get(vung)
         except Exception as e:
@@ -226,9 +248,19 @@ class GoogleSheet:
                 return self._doc_tung_tab(tabs)
             return {t: e for t in tabs}
         gia_tri = kq.get("valueRanges", [])
-        if len(gia_tri) != len(tabs):
-            raise SheetError(f"values_batch_get trả {len(gia_tri)} vùng cho {len(tabs)} tab")
-        return {t: _nhu_get_all_values(v) for t, v in zip(tabs, gia_tri)}
+        if len(gia_tri) != len(vung):
+            raise SheetError(f"values_batch_get trả {len(gia_tri)} vùng cho {len(vung)} vùng đã hỏi")
+        ra: dict = {}
+        i = 0
+        for t in tabs:
+            if so_vung[t] == 1:
+                ra[t] = _nhu_get_all_values(gia_tri[i])
+            else:
+                tieu_de = _nhu_get_all_values(gia_tri[i])
+                du_lieu = _nhu_get_all_values(gia_tri[i + 1])
+                ra[t] = tieu_de + ([] if du_lieu == [[]] else du_lieu)
+            i += so_vung[t]
+        return ra
 
     def _doc_tung_tab(self, tabs) -> dict:
         """Đường cũ của BƯỚC 275: `worksheets()` một lần rồi mỗi tab một `get_all_values()`.
@@ -376,12 +408,22 @@ COT_QUYET_DINH_SAN_DAU: tuple[str, ...] = (
 
 def _doc_tab(backend: SheetBackend, tab: str, cols: tuple[str, ...],
              giu: tuple[str, ...] | None = None) -> list[dict]:
-    """Một tab -> list dict, qua `_from_cell`. Tab rỗng -> `[]`; header lệch thì NỔ."""
+    """Một tab -> list dict, qua `_from_cell`. Tab rỗng -> `[]`; header lệch thì NỔ.
+
+    Backend đọc HẸP (`cot_hep`, BƯỚC 280) chỉ có N cột đầu của tab: hỏi cột ngoài N thì NỔ `SheetError` — nếu đệm
+    chuỗi rỗng thì mọi ô JSON của `decisions` thành rỗng một cách lặng lẽ.
+    """
+    giu = cols if giu is None else giu
+    hep = getattr(backend, "cot_hep", None) or {}
+    if tab in hep:
+        ngoai = [c for c in giu if cols.index(c) >= hep[tab]]
+        if ngoai:
+            raise SheetError(f"Tab '{tab}': backend này chỉ đọc {hep[tab]} cột đầu, không có {ngoai}. "
+                             "Dùng một backend đọc đủ cột.")
     rows = _co_du_lieu(backend.read_rows(tab))
     if not rows:
         return []
     _kiem_tra_header(tab, rows[0], cols)
-    giu = cols if giu is None else giu
     ra = []
     for r in rows[1:]:
         r = list(r) + [""] * (len(cols) - len(r))
