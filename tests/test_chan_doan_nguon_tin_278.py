@@ -248,7 +248,9 @@ def test_viet_bang_ghi_csv_va_dem_lop_du_cot_va_dung_thu_muc(tmp_path, monkeypat
     assert csv_[0].split(",") == cd.COT and len(csv_) == 3
     md = (tmp_path / "ra" / "bang_tung_nguon_dem_lop.md").read_text(encoding="utf-8")
     assert "| ok | 2 | 1 |" in md and "| **tổng** | 2 | 1 |" in md
-    assert sorted(p.name for p in tmp_path.rglob("*") if p.is_file()) == [
+    # Hai tầng, liệt kê MỘT tầng (`iterdir`), không duyệt đệ quy (gác `tests/test_duyet_repo.py`).
+    assert [p.name for p in tmp_path.iterdir()] == ["ra"]
+    assert sorted(p.name for p in (tmp_path / "ra").iterdir()) == [
         "bang_tung_nguon.csv", "bang_tung_nguon_dem_lop.md"]
 
 
