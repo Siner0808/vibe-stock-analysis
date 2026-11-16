@@ -332,6 +332,8 @@ class SectorNewsAgent:
             ("https://www.biopharmadive.com/feeds/news/","BiopharmaDive","international"),
         ],
         "aviation_logistics": [
+            ("https://baoxaydung.vn/rss/giao-thong/hang-khong.rss", "BaoXayDung", "domestic"),
+            ("https://baoxaydung.vn/rss/giao-thong/hang-hai.rss",   "BaoXayDung", "domestic"),
         ],
         "electricity_energy": [
             ("https://www.energymonitor.ai/feed",      "EnergyMonitor","international"),
