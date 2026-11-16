@@ -27091,3 +27091,80 @@ Ba file test mới (51 test, offline, không mạng): `tests/test_doc_mot_lenh_2
 **Dòng in của `tools/buoc_cham_luat.py 280`** (cây làm việc, trước khi PR vào `main`): *"BƯỚC 280: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach 485e8ed]"*.
 
 **Năm cổng** (cây = `0711710` cộng các thay đổi chưa commit lúc chạy; lệnh `tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_280/cong`, 551 s, 16/11/2026 13:46–13:55 ICT; log ở thư mục ấy và `cong_tong.log` cạnh nó): **cả năm cổng thoát 0** — cổng 1 `5165 passed, 2 skipped` (chạy `-n auto`) · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình"* · cổng 5 *"OK — 5167 test, khop moc da ghi."* Lượt `--tuan-tu` ĐẦU (12:05) đỏ bốn cổng (cổng 1 ba test, cổng 3 một CHẶN, cổng 4, cổng 5) vì hai lý do đã sửa: mốc số test chưa cập nhật, và `app.py` nhân bản mặc định `"OK"` thiếu `# bia-ok` (làm đỏ hai test của `tests/test_chan_bia_so_lieu.py` và cổng 3); sau đó chạy lại TOÀN BỘ. Sau lượt xanh chỉ điền dòng kết quả này vào STATE (chỉ chữ) rồi chạy lại các test tài liệu.
+
+## BƯỚC 281 — THÊM HAI NGUỒN BÁO XÂY DỰNG (HÀNG KHÔNG, HÀNG HẢI) VÀO NHÓM NGÀNH `aviation_logistics`; TIN CỦA NHÓM CHỈ HIỆN, KHÔNG VÀO ĐIỂM (16/11/2026)
+
+**Mốc:** quy-trinh — nguồn tin của một nhóm ngành đang rỗng theo yêu cầu người dùng, tiếp BƯỚC 279 (cùng mốc: không mã mốc nào của `docs/LO-TRINH.md` nói về danh sách nguồn tin); không chạm điểm cuối, ngưỡng, sổ, máy đo, đường quét hay file luật (`tools/buoc_cham_luat.py 281`, mục H); điểm tin trên app KHÔNG đổi vì nguồn mới (mục D)
+
+**Quyết định của người dùng (nguyên văn):** 16/11/2026, một hộp hỏi do LEADER soạn. **Câu hỏi và chữ dưới nhãn là lời của leader**; chỉ phần *in nghiêng sau "Người dùng:"* là lời người dùng chọn.
+
+Câu hỏi (leader): *"Nhóm tin Hàng không & Logistics đang trống. Phiên con thử khoảng 60 nguồn và còn lại 4 nguồn sống, đúng chủ đề: (1) Báo Xây dựng – Hàng không, 7/10 tin đầu đúng chủ đề, có tin sáng nay; (2) Báo Xây dựng – Hàng hải, 6/10, tin mới nhất 13/11; (3) Seatrade Maritime, cảng và vận tải biển quốc tế; (4) Air Cargo News, hàng không vận tải quốc tế. Lưu ý: tin của nhóm ngành này chỉ hiện ở phần tin tức. Nó không vào điểm chấm mã (điểm chỉ tính tin vĩ mô, chứng khoán và ngân hàng), nên thêm nguồn sẽ không đổi quyết định mua bán của sổ ảo. Bạn muốn thêm nguồn nào?"* Người dùng: *"Thêm 1 và 2 (Recommended)"*.
+
+**Chỗ cần nói thẳng về nguồn gốc việc này:** BƯỚC 279 (PR 325) xoá cả hai nguồn của nhóm vì cả hai đã chết (cafef `giao-thong.rss`, simpleflying), giữ khoá với danh sách RỖNG; STATE BƯỚC 279 ghi "tìm một nguồn thay là một BƯỚC sau". Leader đề xuất tìm nguồn; người dùng trả lời *"tiếp đi"* cho tin nhắn của leader có câu *"Theo tôi, nên làm 1 trước vì đó là việc sản phẩm."* (mục 1 là *"Tìm nguồn tin cho nhóm ngành Hàng không & Logistics."*). **Việc coi *"tiếp đi"* là chấp thuận là DIỄN GIẢI của leader, không phải câu người dùng nêu rõ**; chọn nguồn nào thì người dùng nói bằng câu trên.
+
+**Hai điều khác với câu hỏi của leader, nói trước:** (a) leader viết *"thử khoảng 60 nguồn"*; phiên này đếm **107 địa chỉ khác nhau** đã tải được một lần (mục B), chưa kể trang mục. (b) Câu *"có tin sáng nay"* ở nhãn (1): nguồn có bài ngày 16/11 09:48, đúng (mục B).
+
+**Đánh số:** BƯỚC 281 (lớn nhất trước đó là 280, đọc lại ở `docs/STATE.md` lúc viết). Nhánh `sua/nguon-tin-hang-khong-281` từ `origin/main` `2f925ea` (PR 326 của BƯỚC 280). Lỗi kế vẫn 205; BƯỚC này không mở lỗi nào.
+
+### A. Việc làm (`news_collectors.py`)
+
+Thêm đúng hai dòng vào `SectorNewsAgent.SECTOR_FEEDS["aviation_logistics"]` (nhóm trước đó rỗng):
+`("https://baoxaydung.vn/rss/giao-thong/hang-khong.rss", "BaoXayDung", "domestic")` và `("https://baoxaydung.vn/rss/giao-thong/hang-hai.rss", "BaoXayDung", "domestic")`. Nhãn nguồn `BaoXayDung` (không dấu, như `CafeF`, `Vietstock`); vùng `domestic` như các nguồn trong nước khác của nhóm ngành. Không địa chỉ nào khác đổi; không xoá gì. Tổng dòng khai 41 → 43 (nhóm ngành 20 → 22). Gác BƯỚC 279 đổi đúng chỗ liên quan (`THEM_281`, bốn test: tổng dòng, nhóm không còn rỗng, đếm khi gom, thứ tự nhóm).
+
+### B. Tìm nguồn: cách làm và vì sao chỉ còn hai nguồn Việt Nam
+
+Lệnh: `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_281/thu_ung_vien.py <danh sách> <ra.csv>` (gọi `tools/chan_doan_nguon_tin.tai_mot` với User-Agent SẢN XUẤT; thô: `../vibe_logs_281/ket_qua_{1,2,3}.{log,csv}`; mỗi địa chỉ tải MỘT lần; trang mục bằng `tools/chan_doan_nguon_tin.py chi-muc`). **107 địa chỉ khác nhau**: 70 phân tích được (`ok`), 17 `dead_url`, 6 `parse_error`, 5 `dead_host`, 3 `empty_feed`, 2 `moved_to_html`, 2 `empty_body`, 1 `html_not_feed`, 1 `blocked`. Khớp chủ đề = số tiêu đề trong 10 tiêu đề đầu có từ khoá (hàng không, sân bay, cảng, logistics, vận tải, hàng hải, airline, cargo, port, shipping ...): 10 nguồn phân tích được có ≥ 5/10.
+
+**Trang mục của 12 tờ báo** (cafef, vneconomy, vnexpress, vietnamplus, vietstock, baodautu, tuoitre, thanhnien, cafebiz, vtv, baotintuc, vietnamnews) **không có mục hàng không / cảng / logistics riêng.** Hai mục tìm được là của Báo Xây dựng (`baogiaothong.vn` chuyển hướng sang `baoxaydung.vn`), tìm bằng thử đường dẫn `giao-thong/<mục>.rss` (trang `baoxaydung.vn/rss` trả 404, không có trang mục).
+
+| địa chỉ | bài | khớp 10 đầu / cả feed | bài mới nhất | ghi chú |
+|---|---|---|---|---|
+| `https://baoxaydung.vn/rss/giao-thong/hang-khong.rss` | 50 | 7/10 · 43/50 | 16/11 09:48 (cũ nhất 31/10) | **THÊM**; bốn bài đầu: Vietnam Airlines, Vietjet, gián đoạn hoạt động bay, Sun PhuQuoc Airways |
+| `https://baoxaydung.vn/rss/giao-thong/hang-hai.rss` | 50 | 6/10 · 26/50 | 13/11 15:15 (cũ nhất 11/10) | **THÊM**; bốn bài đầu ở lượt đo gói tin: nạo vét luồng hàng hải, tàu hàng mắc cạn, cảng xanh, một bài ngư dân (lạc chủ đề) |
+| `https://www.seatrade-maritime.com/rss.xml` | 50 | 6/10 · 20/50 | 16/11 07:24 | không chọn (người dùng chọn 1 và 2) |
+| `https://www.aircargonews.net/feed` | 10 | 9/10 · 9/10 | 13/11 16:36 | không chọn |
+
+Loại, có lý do (đầy đủ ở `../vibe_logs_281/ung_vien_281.md`): vietnamplus `giaothong-358` (bốn tiêu đề đầu là tai nạn, sụt lún đường); `baoxaydung giao-thong.rss` (mục cha, đường sắt tốc độ cao); `duong-thuy` và `duong-sat` (ngoại vi); `van-tai` (bài mới nhất 05/09/2026, mục không còn đăng); vneconomy `dau-tu-ha-tang` (bài mới nhất 17/10/2026); vietnamnews `bizhub` (bài mới nhất 06/10/2026, 14 bài); The Loadstar, aerotime, aviation24, aircargoweek, hellenicshippingnews, gcaptain (nước ngoài, không hơn hai nguồn đã đề xuất); baodautu (`parse_error`, thân 1.136 byte); aviationbusinessnews (403); simpleflying và tapchigiaothong (`dead_host`).
+
+**Điều chưa kiểm:** các địa chỉ này đo từ MỘT IP nhà trong MỘT buổi (16/11/2026 ~14:40–15:00); chưa đo từ IP của Cloud hay Actions (chặn theo IP trung tâm dữ liệu có thể có). "Đúng chủ đề" là phép đếm từ khoá trong tiêu đề + đọc bốn tiêu đề đầu, không phải đánh giá nội dung. Hai nguồn là của MỘT báo; nếu báo đó đổi cấu trúc RSS cả hai chết cùng lúc.
+
+### C. Gác mới và đột biến
+
+`tests/test_nguon_hang_khong_281.py` (15 test, offline, không mạng; bản giả của `_doc_feed`): đúng hai địa chỉ, đúng nhóm, nhãn, vùng, mỗi địa chỉ MỘT dòng; không địa chỉ `baoxaydung.vn` nào khác ở bất kỳ nhóm nào; nhóm nhận tối đa 4 bài mỗi nguồn và gắn đúng thể loại/nguồn/vùng; không bài nào lọt sang nhóm khác; `total_articles` cộng đủ tám bài; điểm tổng và điểm agent KHÔNG đổi khi nhóm có tám bài TÍCH CỰC (và máy đo có khả năng thấy thay đổi: cùng tám bài đặt vào `banking` làm điểm nhích); danh sách bốn nhóm của điểm tổng đọc bằng AST; đường quét (`run_daily` · `paper_runner` · `paper_trading` · `san_dau`) không nhập `news_collectors`.
+
+Đột biến (`../vibe_logs_281/dot_281.py`; `docs/do-nguon-hang-khong-281/dot_bien_281.md`): gác mới **11/11 đỏ** (phát đầu M0 dựng lại lỗi thật của BƯỚC 279: nhóm lại rỗng); gác cũ đã cập nhật **7/7 đỏ**; `news_sentiment_agent.py` 1/1 đỏ; `run_daily.py` 1/1 đỏ. Nhật ký có một dòng `SONG M10` ở khối gác cũ: **lỗi lọc của script** (bộ lọc theo tiền tố `M1` kéo cả `M10` vào; `M10` thuộc gác mới và đã đỏ ở đó), không phải một phát sống sót.
+
+### D. Gói tin trước/sau (mạng thật, chỉ đọc; `docs/do-nguon-hang-khong-281/goi_tin_281.md`)
+
+HVN ACV VSC ACB × 3 vòng xen kẽ cũ/mới (cũ = `main` `2f925ea`, mới = nhánh; `news_collectors.py` sha256 `d5b243bcf1f1` → `8fe9b0be1ba4`; `../vibe_logs_281/do_goi_tin_281.py`, bản chép nguyên văn của bộ đo BƯỚC 280):
+
+- **Bài của nhóm `aviation_logistics`: 0 → 8 ở cả 12 cặp** (2 nguồn × 4 bài); `total_articles` 192 → 200 ở 8/12 cặp (ở vòng 2, ThanhNien trả 0 bài ở lượt mới nên 194). Bốn mã nhận CÙNG tám bài: gói tin ngành không phụ thuộc mã (`SectorNewsAgent.collect` nhận `symbol` rồi bỏ qua).
+- **`news_score` KHÔNG đổi vì nguồn mới**, và đó là điều ĐÃ BIẾT trước khi đo: `news_sentiment_agent.py:138` chỉ lấy `global_macro`, `securities_finance`, `banking`, `macro` vào điểm tổng; `master_agent.py:178-184` ghi `news_norm` chỉ để hiển thị, không nằm trong `pre_debate_score`. Ở vòng 1 (nội dung các nguồn khác không đổi) điểm tin và `sentiment_score` **bằng nhau từng chữ số ở cả bốn mã** (50,8 · 51,4 · 50,8 · 51,0).
+- **Điểm có nhích ở vòng 2 và 3 (0,1–0,4), nguyên nhân KHÔNG phải nhóm hàng không** (Quy tắc 1: số đổi thì tìm lý do): so từng bài, vòng 2 ThanhNien mất sáu bài ở lượt mới (nguồn tải hỏng một lượt); vòng 3 là đổi tiêu đề Bloomberg và CNBC giữa hai lượt, và **chính cây CŨ cũng nhích giữa vòng 1 và vòng 3** (5 bài khác nhau; `news_score` HVN 50,8 → 51,1). Bảng đầy đủ và dữ liệu thô: `goi_tin_281.md`.
+- **Thời gian: kết quả KHÔNG khớp nhau, nói cả hai.** Ba cặp đầu, mã đầu của tiến trình (lạnh): mới chậm hơn cũ 2,5–2,8 s (cũ 2,82 · 4,0 · 2,93 → mới 5,28 · 6,58 · 5,7). Đo lại sau đó: mới chậm hơn cũ +0,1…+0,2 s ở ba cặp có bọc giờ từng nguồn, và hết chênh ở hai cặp nữa; hai nguồn baoxaydung.vn tải 1,05–1,59 s trong bể và KHÔNG phải nguồn chậm nhất. Nguyên nhân ba cặp đầu **chưa rõ** (không bọc giờ từng nguồn lúc ấy; vòng 2 còn ThanhNien hỏng, dấu hiệu mạng chập chờn). Nếu nguồn mới chậm ở Cloud, nó làm lượt mở đầu chậm hơn: ngược chiều một phần tăng tốc của BƯỚC 280.
+
+### E. Phạm vi KHÔNG đổi
+
+`VNStockCollectorAgent.collect` · `nguon_gia_cong_khai` · `run_daily` · `paper_trading` · `paper_runner` · `san_dau` · backtest · điểm cuối · ngưỡng · sổ · máy đo · `news_sentiment_agent.py` · `master_agent.py` (gác AST: `test_duong_quet_khong_nhap_news_collectors` và các gác BƯỚC 275/277/279; hiệu git so với `main` chỉ có `news_collectors.py` cùng test và `docs/`). **Không đọc dữ liệu đang bị chặn theo ngày** (`docs/HANDOFF.md` mục 5). Không ghi Google Sheets, không chạy `run_daily`, không kéo sổ thật, không chạm Streamlit cổng 8511, không đụng `.venv`. Yêu cầu ra ngoài chỉ mang User-Agent sản xuất của gói tin (mặc định của thư viện feedparser), không tên người dùng hay tên dự án.
+
+### F. Lời khai thật thà · điều CHƯA ĐO
+
+- **Cloud và Actions:** chưa đo nguồn mới từ IP ở đó; số bài và thời gian là của máy này, một buổi, một IP.
+- **Chất lượng tin:** `sentiment_hint` của tám bài (một bài POSITIVE, bảy NEUTRAL ở vòng 1) do bộ từ khoá của `news_collectors.py` (`POS_KEYWORDS`, `NEG_KEYWORDS`) gán; chưa đánh giá nó có hợp tin hàng không / cảng không (không ảnh hưởng điểm, chỉ ảnh hưởng chữ "tích cực/tiêu cực" hiện ở nhóm).
+- **Bài lạc chủ đề:** bốn bài đầu của `hang-hai.rss` có một bài ngư dân Cửa Lò; sản xuất lấy bốn bài ĐẦU nên tin thế nào hiện thế ấy. Chưa lọc theo từ khoá (không thêm lọc, vì sẽ là hành vi mới ngoài điều người dùng chọn).
+- **Thời gian lạnh:** ba cặp đầu chậm hơn 2,5–2,8 s, không tái hiện ở các cặp sau; nguyên nhân chưa rõ (mục D).
+- **Hai nguồn một báo:** nếu `baoxaydung.vn` đổi đường dẫn RSS, cả hai chết một lúc; `tools/chan_doan_nguon_tin.py chay` (BƯỚC 278) sẽ thấy.
+
+### G. Câu hỏi cho người dùng
+
+Không có câu nào chờ. (Hai nguồn nước ngoài, Seatrade Maritime và Air Cargo News, người dùng không chọn; thêm sau là một quyết định riêng.)
+
+### H. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 281` mang `khong_bat_buoc_vi`. `tools/buoc_cham_luat.py 281` xác nhận BƯỚC không chạm file luật (dòng in nguyên văn ở cuối mục này). Chỗ máy mù: máy chỉ thấy FILE; các con số đo mới (số bài, thời gian) chỉ nằm ở STATE và `docs/do-nguon-hang-khong-281`, là số của MỘT máy, MỘT IP.
+
+**Số test:** mốc `docs/moc_so_test.json` **5167 → 5182** (+15 test mới ở `tests/test_nguon_hang_khong_281.py`; `tests/test_sua_nguon_tin_279.py` đổi tên một test và sửa bốn khẳng định nhưng không thêm hay bớt test nào; ròng +15, không test nào bị bớt). Trước khi cập nhật: `tools/kiem_so_test_khong_giam.py` in *"CHAN — so test TANG 5167 -> 5182, moc chua cap nhat."*
+
+**Dòng in của `tools/buoc_cham_luat.py 281`** (cây làm việc, trước khi PR vào `main`): *"BƯỚC 281: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach 2f925ea]"*.
+
+**Năm cổng** (cây = `8a618ab` cộng các thay đổi chưa commit lúc chạy: STATE, HANDOFF, `docs/moc_so_test.json`, `docs/soat-notebooklm.json`, `docs/do-nguon-hang-khong-281`; lệnh `tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_281/cong`, 443 s, 16/11/2026 16:25–16:33 ICT; log ở thư mục ấy và `cong_tong.log` cạnh nó): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5180 passed, 2 skipped` (chạy `-n auto`; 5182 test) · cổng 2 xanh · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* · cổng 5 *"OK — 5182 test, khop moc da ghi."* Sau lượt xanh chỉ điền dòng kết quả này vào STATE (chỉ chữ) rồi chạy lại các test tài liệu.
