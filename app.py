@@ -42,6 +42,7 @@ from data_collectors import VNStockCollectorAgent
 import mau_bang_gia as _mbg
 import do_tre_khop as _dtk
 import cau_truc_gia as _ctg
+from cau_truc_gia import NGAY_LICH_CUA_SO as _NGAY_LICH_DOW  # chỉ là SỐ NGÀY của cửa sổ Dow (BƯỚC 280: chung lượt tải với biểu đồ)
 
 # ── Animated Brand Logo Generator ─────────────────────────────────
 def get_animated_logo_html(size=44, uid="sb"):
@@ -1132,6 +1133,32 @@ def load_stock_data(ticker, start, end, exch="HOSE"):
     except Exception:
         return None, "FAILED", []
 
+
+# BƯỚC 280 (phần C): biểu đồ ngày (180 ngày) và ô cấu trúc Dow (1.095 ngày) từng là hai lượt tải riêng của
+# CÙNG một mã. Nay tải MỘT lần cửa sổ 1.095 ngày rồi cắt `n` nến cuối cho biểu đồ (`gia_mot_lan`, cùng phép đếm
+# của `collect`), CHỈ khi lượt tải do nguồn đầu chuỗi phục vụ; không thì tải theo đường cũ. Nến tuần/tháng (1.583
+# ngày) KHÔNG gộp được: nguồn đầu bị bỏ ở cửa sổ ấy nên giá làm tròn khác (docstring `gia_mot_lan`). Không đổi
+# `collect` hay thứ `run_daily` dùng.
+@st.cache_data(ttl=300)
+def load_stock_data_nguon(ticker, start, end, exch="HOSE"):
+    """Như `load_stock_data` nhưng trả thêm TÊN NGUỒN đã phục vụ chuỗi giá (bộ thứ tư)."""
+    try:
+        res = VNStockCollectorAgent().collect(ticker, start, end, exchange=exch)
+        quality = res.get("quality")
+        warns = [i.message for i in quality.warnings] if quality is not None else []
+        return res.get("df"), res.get("status", "OK"), warns, res.get("source", "")
+    except Exception:
+        return None, "FAILED", [], ""
+
+
+@st.cache_data(ttl=300)
+def load_stock_data_cat(ticker, start, end, exch="HOSE"):
+    """Như `load_stock_data(ticker, start, end, exch)` — cùng ba giá trị trả về — nhưng biểu đồ ngày và ô Dow
+    chung MỘT lượt tải cửa sổ rộng hơn trong hai (`NGAY_LICH_CUA_SO`; có đệm 300 giây)."""
+    import gia_mot_lan as _g1l
+    ngay_rong = max(days_back, _NGAY_LICH_DOW)
+    return _g1l.tai_mot_lan(load_stock_data_nguon, load_stock_data, ticker, start, end, exch, ngay_rong)
+
 # Calculate RSI Helper
 def calculate_rsi(series, period=14):
     # Thiếu dữ liệu thì trả None. Trả 50.0 là bịa một chỉ báo trung tính
@@ -1397,7 +1424,7 @@ if not result:
     st.info("👈 Nhấn nút **KÍCH HOẠT MULTI-AGENT SCAN** để bắt đầu.")
     st.stop()
 
-df, _price_status, _quality_warnings = load_stock_data(symbol, start_str, end_str, exchange)
+df, _price_status, _quality_warnings = load_stock_data_cat(symbol, start_str, end_str, exchange)
 if _price_status != "OK" or df is None or df.empty:
     st.error(f"⚠️ **Không thể kết nối dữ liệu giá cho mã {symbol}.** Vui lòng kiểm tra lại mã hoặc thử lại sau.")
     st.stop()
@@ -1531,7 +1558,7 @@ dyn_rec, dyn_rec_cls = _kh.HIEN_THI[ke_hoach.phan_quyet]
 # ở trên, nên hai ô chu kỳ và ô Pha Wyckoff đọc cùng một lần `doc_pha`.
 #
 # Dữ liệu không nạp được thì ô NÓI "Không đọc được", không đoán một nhãn.
-_ct_df, _ct_tt, _ct_canh_bao = load_stock_data(
+_ct_df, _ct_tt, _ct_canh_bao = load_stock_data_cat(
     symbol, (end_date - timedelta(days=_ctg.NGAY_LICH_CUA_SO)).strftime("%Y-%m-%d"),
     end_str, exchange)
 if _ct_tt != "OK" or _ct_df is None or _ct_df.empty:
