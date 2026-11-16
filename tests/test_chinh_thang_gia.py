@@ -675,7 +675,8 @@ def test_gac_chi_dung_cu_nhap_bo_chinh_walkforward_va_loi_giao_dich_KHONG():
     ai = {p.relative_to(GOC).as_posix() for p in _ma_nguon()
           if "chinh_thang_gia" in _nhap(ast.parse(p.read_text(encoding="utf-8")))}
     # BƯỚC 276: đường thật BẬT (ĐO 36 kết cục A) — `run_daily.py` là nơi nhập thứ hai, cùng dụng cụ đo.
-    assert ai == {"run_daily.py", "tools/do35_chinh_thang_gia.py"}, sorted(ai)
+    # BƯỚC 282: `chinh_lenh_cho.py` (lệnh CHỜ KHỚP) DÙNG LẠI hằng số `NGUONG_LECH` · `KHOA_NHAT_KY` bằng import.
+    assert ai == {"run_daily.py", "tools/do35_chinh_thang_gia.py", "chinh_lenh_cho.py"}, sorted(ai)
     for ten in ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "walkforward.py", "sheets_store.py",
                 "google_sheets_sync.py", "master_agent.py", "san_dau.py", "nhat_ky_vi_sao.py"):
         assert "chinh_thang_gia" not in _nhap(ast.parse((GOC / ten).read_text(encoding="utf-8"))), ten
