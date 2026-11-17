@@ -26,6 +26,7 @@ from data_quality import nen_cuoi_dang_do, now_vn
 import market_filter
 import do_tre_khop
 import nen_su_kien_quyen
+import chinh_lenh_cho
 import chinh_thang_gia
 
 DB_PATH = "paper_trades.db"
@@ -582,6 +583,19 @@ def execute_daily_scan():
                         nguon=str(res.get("source") or "?"), san=san_cua(sym))
                 except Exception as e:
                     print(f"##[warning]chỉnh thang giá {sym}: không chạy được, lệnh giữ thang cũ — "
+                          f"{type(e).__name__}: {e}")
+
+                # CHỈNH THANG GIÁ lệnh CHỜ KHỚP (BƯỚC 282): `fill_pending` chạy trong `run_session`, SAU
+                # lời gọi ở trên, và khớp lệnh chờ ở giá mở của nến thang MỚI trong khi cắt lỗ · chốt lời
+                # của lệnh còn thang CŨ lúc quét ngày tín hiệu — một cú cắt lỗ GIẢ ở phiên kế. Hệ số đo bằng
+                # `ke_hoach.gia_dong` ÷ giá đóng cửa đã điều chỉnh; thiếu dữ liệu thì lệnh giữ NGUYÊN và in
+                # cảnh báo. Không `if` bao quanh, cùng lý do với lời gọi trên.
+                try:
+                    chinh_lenh_cho.chinh_lenh_cho_mot_ma(
+                        journal, sym, df, now_time.strftime("%Y-%m-%d"),
+                        nguon=str(res.get("source") or "?"))
+                except Exception as e:
+                    print(f"##[warning]chỉnh lệnh chờ {sym}: không chạy được, lệnh giữ thang cũ — "
                           f"{type(e).__name__}: {e}")
 
                 row = df.iloc[-1]
