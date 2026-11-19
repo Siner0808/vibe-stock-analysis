@@ -27329,3 +27329,67 @@ Không cần hỏi thật cho BƯỚC này (không chạm file luật): câu h�
 ### Năm cổng
 
 `./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_283/cong` (worktree, python của repo chính; 08:49:09–08:57:24 giờ máy, 495 s; cây `c97d4d7`; log `vibe_logs_283/cong/cong1.log` … `cong5.log` và `nam_cong.out` cạnh nó): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5208 passed, 2 skipped` (247 s) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (235 s) · cổng 5 *"OK — 5210 test, khop moc da ghi."* BƯỚC này không thêm test (mốc `docs/moc_so_test.json` giữ 5210; `kiem_so_test_khong_giam.py` không phải cập nhật) và không có đột biến (không thêm gác). Đoạn sổ tay ở trên và mục này được viết SAU lượt cổng (chỉ chữ trong `docs/STATE.md` và `docs/HANDOFF.md`); sau đó chạy lại: chín file test đọc tài liệu (`tests/test_soat_dinh_ky_co_tri_nho.py` · `test_soat_notebooklm.py` · `test_soat_ngoai_cong_cu.py` · `test_moc_lo_trinh.py` · `test_tai_lieu_khop_ten_ma.py` · `test_tai_lieu_khop_hang_so.py` · `test_do_token_phien.py` · `test_soat_tuan.py` · `test_soat_cau_nhieu_dong.py`) → `201 passed, 1 skipped`, cổng 3 → `0 CHẶN · 10 cảnh báo`, cổng 5 → *"OK — 5210 test, khop moc da ghi."*
+
+
+## BƯỚC 284 — SỬA SÁU CHỖ APP HIỆN SAI ĐIỀU NÓ ĐANG LÀM (Ô CHỌN VỐN KHÔNG AI ĐỌC · GIỜ VÀ SỐ VÒNG GIẢ Ở KHUNG TRANH LUẬN · KL TRUNG BÌNH SAI CỬA SỔ · "MỖI 5 PHÚT" · CHÚ THÍCH HTML Ở CHÂN TRANG · ĐỊA CHỈ TIN KHÔNG MÃ HOÁ MÃ); CHỈ HIỂN THỊ (19/11/2026)
+
+**Mốc:** quy-trinh — sửa chữ và ô hiển thị của app theo bản kiểm kê chỉ-đọc `KE-MAN-HINH.md` mục 0.1; không mã mốc nào của `docs/LO-TRINH.md` nói về lỗi hiển thị; BƯỚC không đổi điểm, phân tích, sổ, lượt quét hay gói tin của một mã thường (chỉ địa chỉ tiếng Anh của mã có ký tự đặc biệt)
+
+Phiên con của leader. **Việc này do LEADER chọn**, không phải người dùng chọn thẳng: sáng 19/11/2026 leader nêu *"Sửa lỗi hiển thị app Streamlit"* trong các lựa chọn của ngày, người dùng chọn soát 18 trước; sau việc ấy leader hỏi *"Bạn muốn làm tiếp việc gì?"* và người dùng trả lời *"tiếp đi"* — leader hiểu đó là cho phép làm tiếp và chọn mục này (diễn giải của leader). Nguồn các lỗi: bản kiểm kê chỉ-đọc ngày 17/11 `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_rust/KE-MAN-HINH.md`, mục 0.1 các điểm 4 · 5 · 8 và dòng 355 (số dòng của bản ấy là ở `fe269f2`; ở đây định vị lại trên `c1f0ad8`). Nhánh `sua/hien-thi-app-284` từ `origin/main` `c1f0ad8`, worktree `vibe_wt_284`; python = `../vibe_preview/.venv/Scripts/python.exe`; kịch bản và nhật ký ở `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_284/`. Không chạm `master_agent`, chấm điểm, `paper_*`, `run_daily`, `sheets_store`, `nguon_gia_cong_khai`; không `run_daily`, không ghi Sheets, không đụng `.venv` hay app của người dùng ở cổng 8511.
+
+### Sáu chỗ — trước · sau
+
+| # | trước (`c1f0ad8`) | sau |
+|---|---|---|
+| 1 | thanh bên có ô chọn *"Chế độ phân bổ vốn:"* (30% / vị thế · Kelly Dynamic · 1% Risk); biến `capital_mode` không ai đọc (`grep -n "capital_mode" app.py` → 1 dòng, chính dòng khai) | ô và biến đã gỡ; `grep -rn capital_mode --include=*.py .` chỉ còn tên trong gác |
+| 2a | khung tranh luận mang bốn giờ gõ tay `10:45` · `10:46` · `10:47` · `14:05` | bốn ô giờ gỡ: kết quả tranh luận (`DebateVerdict`, `DebateArgument`) không mang giờ phát biểu nên không có giờ thật để hiện |
+| 2b | tiêu đề *"Bull vs Bear · 3 Vong"* gõ tay (hiện cả khi tầng tranh luận không trả gì) | `Bull vs Bear · {len(rounds)} vòng` khi có vòng, `Bull vs Bear` khi không |
+| 2c | tiêu đề biểu đồ *"Khung D1 — 15:00 ICT"* gõ tay; hằng số thật `data_quality.GIO_NEN_DA_DONG` = (15, 30) | *"Khung D1 — nến chốt từ 15:30 ICT"*, giờ suy từ chính hằng số |
+| 3 | ô *"KL Trung Binh"* hiện `int(df['volume'].mean())` trên cả khung giá, nhãn *"20 phien gan nhat"* | `avg_vol_20 = int(df['volume'].tail(SO_PHIEN_KL_TB).mean())`, `SO_PHIEN_KL_TB = 20`; nhãn điền cùng hằng số |
+| 4 | ba chú thích *"làm mới mỗi 5 phút"* (kế hoạch đã ghi · nhật ký "vì sao" · bản tin), hạn đệm thật `google_sheets_sync.TTL_DOC_APP` = 30 × 60 giây | cả ba điền `{_gss_doc.TTL_DOC_APP // 60}`; hằng số và giá trị của nó KHÔNG đổi |
+| 5 | chân trang gửi tới trình duyệt một chú thích HTML `<!-- Đã bỏ "Gemini" … -->` | cùng chữ nằm ở chú thích Python `#` ngay trên lời gọi; chuỗi gửi đi không còn `<!--` |
+| 6 | `news_collectors.py` dựng `…search?q={symbol}+Vietnam+stock…` không mã hoá (hai địa chỉ tiếng Việt cùng hàm đã dùng `quote_plus`) | `quote_plus(symbol)` |
+
+### Điều đã kiểm trước khi sửa (đọc mã, đo bằng lệnh)
+
+- **Mục 1.** `grep -n "capital_mode" app.py` và `grep -rn "capital_mode" --include=*.py .` (trước khi thêm gác) → đúng một dòng, dòng khai. Không có người đọc ở đâu, không khoá `key=` hay `st.session_state` nào đi cùng. Brief đòi dừng nếu có người đọc: không có.
+- **Mục 3.** `avg_vol` (`int(df['volume'].mean())`, cả khung giá) KHÔNG chỉ cấp ô *"KL Trung Binh"*: nó còn là mẫu số của `vol_flow_ratio = (last_vol / avg_vol − 1) × 100`, rồi `vol_flow_str` · `vol_flow_cls` và chỉ dừng ở ô *"Dòng tiền lớn"* của dải tín hiệu (`app.py`, một chỗ dùng). Cả hai đều chỉ HIỆN (không biến nào vào `result`, điểm hay sổ), nên chưa tới mức dừng-và-báo của brief; **nhưng đổi `avg_vol` sang 20 phiên sẽ đổi luôn ô "Dòng tiền lớn"** mà brief không nói tới. Quyết (của phiên con, nêu rõ): thêm biến MỚI `avg_vol_20` chỉ cho ô nhãn *"20 phien gan nhat"*, giữ nguyên `avg_vol` và ô "Dòng tiền lớn". Một gác ghim chỗ này (`vol_flow_ratio` vẫn dùng `avg_vol`).
+- **Mục 2b.** `debate_agents.DebateModerator.run_debate` luôn dựng 3 vòng nên khi tầng tranh luận có chạy thì `len(rounds)` = 3 — con số đúng, chỉ là nay lấy từ kết quả. Khác biệt thật nằm ở nhánh tầng tranh luận không trả gì (`"debate": None` ở `master_agent.py`): bản cũ vẫn ghi "3 Vong", bản mới không ghi số.
+- **Mục 2c.** `GIO_NEN_DA_DONG` là QUY ƯỚC (docstring `data_quality.py`: sàn đóng 14:45, thoả thuận tới 15:00, thêm 30 phút cho nguồn chốt nến; *"chưa đo được thời điểm nguồn chốt nến"*), không phải giờ đóng cửa thị trường — nên chữ mới là *"nến chốt từ 15:30"*, không *"đóng 15:30"*. Chữ cũ 15:00 lệch hằng số 30 phút.
+- **Mục 4.** `TTL_DOC_APP` đã là hằng số có tên (`google_sheets_sync.py`, BƯỚC 275); không thêm hằng số. Còn một chữ *"TTL 5 phút"* ở chú thích mã quanh `app.py` :1031 — nói về một bộ đệm khác (nến nội phiên), KHÔNG sửa.
+- **Mục 6.** Bằng chứng trước/sau bằng chính hàm `CompanyNewsAgent.collect` (kịch bản `vibe_logs_284/in_url.py` bắt danh sách địa chỉ truyền cho `_gom_song_song`, không gọi mạng): `diff vibe_logs_284/url_truoc.txt vibe_logs_284/url_sau.txt` → chỉ khác đúng dòng mã thử `A&B` (`q=A&B+Vietnam+stock` → `q=A%26B+Vietnam+stock`); ba dòng FPT · VNM · HPG giống từng byte, và `BRK.X` cũng giống. Gói tin của mã thường không đổi.
+
+### Gác và đột biến
+
+`tests/test_sua_hien_thi_app_284.py` — 9 test, đọc AST của `app.py` và `news_collectors.py` (không `"x" in src`): ô chọn vốn đã gỡ · không giờ gõ tay và không ô `mt` ở khung tranh luận · số vòng là `len(rounds)` · giờ chốt nến suy từ `GIO_NEN_DA_DONG` (nhập từ `data_quality`, biến giờ gán từ nó) · nhãn và giá trị KL Trung Binh cùng một hằng số `SO_PHIEN_KL_TB = 20` (hình dạng `int(<volume>.tail(SO_PHIEN_KL_TB).mean())`, chạy đúng biểu thức của app trên một khung dựng sẵn 160 phiên 1000 + 20 phiên 5 → 5) · `vol_flow_ratio` vẫn dùng `avg_vol` · ba chú thích đọc `TTL_DOC_APP // 60` (hình dạng `FloorDiv` với 60) · không chuỗi nào chứa `<!--` và lịch sử "Gemini" còn ở chú thích Python (`tokenize`) · mọi địa chỉ Google News điền câu hỏi qua `quote_plus`, và với `FPT` · `VNM` · `HPG` địa chỉ tiếng Anh bằng đúng chuỗi cũ, với `A&B` thì `parse_qs` ra `A&B Vietnam stock`.
+
+- **Chạy trước khi sửa** (cây `c1f0ad8` + gác): `9 failed` (`vibe_logs_284/do_truoc.log`) — mỗi gác đỏ.
+- **Đột biến: 23 phát, 23 ĐỎ, 0 sống** (`vibe_logs_284/dot_bien.log`, kịch bản `dot_bien284.py`, `va_an_toan.dot_bien` hoàn trả từng byte): hồi sinh ô chọn vốn · hồi sinh giờ 10:46 và 14:05 · số vòng gõ tay và `len(debate)` · giờ gõ tay `"15:30"` và `15:00` ở tiêu đề · bỏ nhập `GIO_NEN_DA_DONG` · giá trị trở lại `avg_vol` · nhãn gõ tay 20 · cửa sổ gõ tay 60 · `head` thay `tail` · hằng số 30 · ô "Dòng tiền lớn" đổi sang `avg_vol_20` · ba chú thích gõ tay 5 phút · `// 6` thay `// 60` · chú thích gõ tay 30 phút · hồi sinh `<!-- x -->` · mất lịch sử "Gemini" · bỏ `quote_plus` · `quote_plus(symbol.lower())`. Vòng đầu để sống sót một chỗ (`// 6` thay `// 60`: gác chỉ đòi có tên `TTL_DOC_APP`); thêm kiểm HÌNH DẠNG `FloorDiv` với 60 rồi chạy lại cả bộ.
+- Số test: **5210 → 5219** (cổng 5, `python tools/kiem_so_test_khong_giam.py` trước `--cap-nhat` in *"so test TANG 5210 -> 5219"*; mốc `docs/moc_so_test.json` đã cập nhật).
+
+### Điều CHƯA làm và điều chưa kiểm
+
+- **Không dựng app lên để nhìn.** Cả sáu chỗ được kiểm bằng AST và bằng chạy từng biểu thức; chưa mở Streamlit và chưa chụp màn hình các ô đã đổi (cổng 8511 của người dùng không đụng). Cú pháp 3.11 do cổng 2 kiểm.
+- **Số phiên của khung giá** (`df`) ở ô KL Trung Binh chưa được đếm trong phiên này (brief ghi ~180 ngày); khác biệt trước/sau của ô ấy vì vậy là một khẳng định về HÌNH DẠNG phép tính, chưa phải một con số.
+- **Phát hiện phụ, KHÔNG sửa (ngoài sáu việc của brief):** ô *"🐂 Bull — Vòng 2"* ở khung tranh luận nhận phát biểu của vòng CUỐI chứ không của vòng 2: vòng lặp ở `app.py` (`for r_idx, rnd in enumerate(rounds)`) gán `bull2_msg` cho MỌI `r_idx > 0` nên vòng 3 ghi đè vòng 2 — và `bear_msg` cũng là phát biểu `BEAR` cuối cùng (vòng 3), không phải vòng 1. Chỉ ĐỌC MÃ, chưa chạy với một kết quả thật. Để người dùng quyết có sửa nhãn hay vòng lặp.
+- Không sửa `CLAUDE.md` · `SKILL.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `docs/LO-TRINH.md` · `docs/TIEU-CHI-DOC-TRUOC.md`; không ĐO mới; không đổi kết luận đo.
+
+### Sổ tay NotebookLM
+
+`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 284` → xem dòng ở mục *Năm cổng* bên dưới (chạy trên cây đã commit). BƯỚC không đổi luật và không đổi kết luận đo; mục `BƯỚC 284` của `docs/soat-notebooklm.json` khai `khong_bat_buoc_vi`. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; các kết luận của BƯỚC này (điều đã kiểm ở trên) chỉ nằm ở STATE, nên đây là kỷ luật, không phải cơ chế.
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Giả thuyết bị bác:** *"`avg_vol` chỉ phục vụ ô KL Trung Binh nên đổi thẳng sang 20 phiên là xong"* (cách đặt vấn đề của brief) — nó còn là mẫu số của ô "Dòng tiền lớn"; đổi thẳng sẽ lặng lẽ đổi một ô thứ hai. Đã tách biến.
+- **Ước lượng sai của chính phiên này:** tôi đã tin tiêu đề *"Khung D1 — 15:00 ICT"* sẽ khớp `GIO_NEN_DA_DONG` (cả hai nghe như "đóng phiên"); hằng số là 15:30 và là quy ước, không phải giờ thị trường đóng.
+- **KHÔNG nói:** *"app hết chữ giả"* — brief và bản kiểm kê chỉ nêu sáu chỗ; các mục khác của `KE-MAN-HINH.md` (mọi điểm ngoài 4 · 5 · 8 và dòng 355) và ô "Bull — Vòng 2" ở trên chưa được xử lý.
+
+### Việc kế
+
+1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
+2. Người dùng quyết: có sửa ô "Bull — Vòng 2" (nhãn hay vòng lặp) không; có muốn đổi cả ô "Dòng tiền lớn" sang cửa sổ 20 phiên (đang giữ cả khung) không.
+3. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).
+
+### Năm cổng
+
+(điền sau lượt cổng)
