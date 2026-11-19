@@ -27393,3 +27393,68 @@ Phiên con của leader. **Việc này do LEADER chọn**, không phải ngườ
 ### Năm cổng
 
 `./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_284/cong` (worktree, python của repo chính; 13:18:12–13:26:49 giờ máy, 517 s; cây `sua/hien-thi-app-284` sau commit sổ; log `vibe_logs_284/cong/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5217 passed, 2 skipped` (252 s; 5.219 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (251 s) · cổng 5 *"OK — 5219 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 284` (sau commit sổ) → *"khong cham luat"* (`vibe_logs_284/cham_luat2.txt`). Mục này và đoạn sổ ở trên viết SAU lượt cổng (chỉ chữ trong `docs/STATE.md`); sau đó chạy lại chín file test đọc tài liệu (cùng danh sách như BƯỚC 283) → `201 passed, 1 skipped` (`vibe_logs_284/doc_tests2.log`), cổng 3 → `0 CHẶN · 10 cảnh báo`, cổng 5 → *"OK — 5219 test, khop moc da ghi."*
+
+## BƯỚC 285 — KHUNG TRANH LUẬN TRÊN APP HIỆN ĐÚNG TỪNG VÒNG (VÒNG 3 KHÔNG CÒN GHI ĐÈ VÒNG 2); CHỈ HIỂN THỊ (19/11/2026)
+
+**Mốc:** quy-trinh — sửa ô hiển thị sai của app theo quyết định của người dùng ngày 19/11/2026; không mã mốc nào của `docs/LO-TRINH.md` nói về lỗi hiển thị; BƯỚC không đổi điểm, phân tích, cách tranh luận, sổ hay lượt quét
+
+Phiên con của leader. **Người dùng chọn việc này**: leader hỏi *"Khung tranh luận trên app hiện sai vòng: ô "🐂 Bull — Vòng 2" thực ra hiện lời của vòng cuối (vòng 3 ghi đè vòng 2), ô Bear cũng vậy. Phiên con mới đọc mã, chưa chạy trên kết quả thật. Có sửa không?"* và người dùng trả lời *"Sửa: hiện đúng từng vòng (Recommended)"* (chữ dưới nhãn là lời của leader: *"Một BƯỚC nhỏ chỉ đổi hiển thị: mỗi vòng một ô với đúng lời của vòng đó. Không đổi cách tranh luận hay điểm."*). Câu hỏi thứ hai của leader — ô *"Dòng tiền lớn"* có đổi sang so với trung bình 20 phiên hay không — người dùng trả lời *"Giữ nguyên (Recommended)"*: **BƯỚC này KHÔNG chạm ô "Dòng tiền lớn"** (`avg_vol` cả khung vẫn là mẫu số của nó; gác của BƯỚC 284 `test_3_…` còn giữ chỗ ấy). Nhánh `sua/vong-tranh-luan-285` xếp chồng từ `origin/sua/hien-thi-app-284` `99a9655` (PR #330 chưa merge lúc bắt đầu; leader báo đã merge vào `main` `7416a4e` rồi mới viết sổ, nhánh đã hợp nhất `origin/main`). Worktree `vibe_wt_285`; python = `../vibe_preview/.venv/Scripts/python.exe`; kịch bản và nhật ký ở `C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_285/`. Không chạm `debate_agents.py` (logic), `master_agent`, điểm, ngưỡng, `paper_*`, `run_daily`, `sheets_store`; không `run_daily`, không ghi Sheets, không đụng `.venv` hay app của người dùng ở cổng 8511.
+
+### Xác nhận lỗi bằng CHẠY (BƯỚC 284 chỉ đọc mã)
+
+`DebateModerator().run_debate(<phân tích dựng>, 60.0)` (không mạng, không sổ; `vibe_logs_285/do_truoc.py` → `do_truoc.log`) cho **3 vòng**: vòng 1 = Bull + Bear; vòng 2 = Bull + Bear + NEUTRAL (Devil's Advocate); vòng 3 = Bull + Bear. Vòng lặp CŨ của `app.py` (chép nguyên văn vào kịch bản) trên đúng kết quả ấy:
+
+| ô trên app (trước) | hiện phát biểu của | so với lời đúng |
+|---|---|---|
+| 🐂 Bull Agent (không số vòng) | Bull vòng 1 | đúng (vòng đầu) |
+| 🐻 Bear Agent (Phản biện) (không số vòng) | Bear **vòng 3** | `bear == Bear vòng 3` True, `== Bear vòng 1` False |
+| 🐂 Bull — Vòng 2 | Bull **vòng 3** | `bull2 == Bull vòng 3` True, `== Bull vòng 2` False |
+| (không ô nào) | Bear vòng 1 · Bear vòng 2 · Bull vòng 2 | mất hẳn |
+
+Giả thuyết của BƯỚC 284 **đúng cả hai nửa** (ô Bull Vòng 2 và ô Bear). Ghi trung thực: kịch bản chạy bản SAO của vòng lặp cũ, không chạy `app.py` (Streamlit); chứng cứ trên mã thật của `app.py` là gác mới đỏ 9/9 trên bản `app.py` cũ (dưới).
+
+### Sửa (chỉ `app.py`)
+
+| trước | sau |
+|---|---|
+| ba biến `bull_msg` · `bear_msg` · `bull2_msg` (vòng sau ghi đè vòng trước), ba ô cố định, ô thứ ba gõ tay nhãn *"🐂 Bull — Vòng 2"* | biểu thức `o_vong_tranh_luan`: MỘT ô cho MỖI phát biểu BULL hoặc BEAR của mỗi vòng, nhãn *"🐂 Bull Agent — Vòng n"* · *"🐻 Bear Agent (Phản biện) — Vòng n"*, n = chỉ số trong `enumerate(rounds, start=1)` (kết quả `master_agent` không mang `round_num`) |
+| ô Master Strategy nằm giữa | ô Master Strategy giữ nguyên chữ và biến (`master_msg`, `dyn_rec`), nay đứng SAU các ô vòng (ô Vòng 2 cũ từng đứng sau nó) |
+| không vòng nào: ba ô cùng câu *"— tầng tranh luận không trả về phát biểu nào…"* | một ô Bull với câu ấy, không số vòng |
+
+Sau sửa, cùng kết quả dựng (`do_sau.py` → `do_sau.log`, chạy đúng biểu thức của `app.py`): sáu ô — Bull · Bear vòng 1, Bull · Bear vòng 2, Bull · Bear vòng 3, mỗi ô đúng lời của vòng ấy. Phát biểu của Devil's Advocate (vòng 2, NEUTRAL) KHÔNG có ô: khung cũ cũng không hiện nó và người dùng không đòi (câu chờ người dùng bên dưới). Tiêu đề *"Bull vs Bear · {len(rounds)} vòng"* của BƯỚC 284 giữ nguyên.
+
+### Gác và đột biến
+
+`tests/test_vong_tranh_luan_285.py` — 9 test: chạy ĐÚNG biểu thức dựng ô của `app.py` (biên dịch từ nút AST, không dựng lại công thức) trên kết quả của `DebateModerator` thật (hình dạng `master_agent`) và trên kết quả dựng — ba vòng ba lời khác nhau, 1 · 2 · 4 vòng, một vòng thiếu một phe, không vòng — rồi đọc HTML ra từng ô (màu, nhãn, lời) và so lời với nhãn "Vòng n" của đúng vòng; không chuỗi nào trong `app.py` mang *"Vòng <số>"* (gác nhãn gõ tay); hình dạng AST `"".join(<genexp>) or <ô báo lỗi>` với `enumerate(rounds, start=1)`, vòng trong đi qua `rnd` (không `rounds[-1]`), `{so_vong}` đứng liền chữ *"Vòng"*, bộ lọc chỉ theo phe, không theo chỉ số vòng; bảng phe chỉ BULL · BEAR; ô Master giữ nguyên, ba biến gom cũ đã gỡ, tiêu đề số vòng còn.
+
+- **Chạy trên `app.py` CŨ** (`git checkout app.py` tạm, rồi trả lại): `9 failed` (`vibe_logs_285/test_tren_ma_cu.log`).
+- **Đột biến: 21 phát, 21 ĐỎ, 0 sống** (`vibe_logs_285/dot_bien.log`, kịch bản `dot_bien285.py`, `va_an_toan.dot_bien`). Phát đầu dựng lại nguyên văn lỗi thật (mỗi ô hiện lời vòng cuối dưới nhãn vòng của nó, `for arg in rounds[-1]`); còn lại: chỉ vòng cuối · chỉ vòng đầu · đếm từ 0 · đếm từ 2 · số vòng gõ tay 2 · số vòng = `len(rnd)` · bỏ Bear khỏi bảng phe · đổi màu Bull · lời lấy từ trường khác · lời bị cắt · hiện cả Devil · hồi sinh `bull2_msg` · đổi chữ ô Master · Master không điền `master_msg` · khung không điền `o_vong_tranh_luan` · mất ô báo lỗi khi rỗng · hồi sinh nhãn *"Vòng 2"* gõ tay · lọc theo `so_vong < 3` · số vòng ở tiêu đề gõ tay 3 · vòng trong lặp qua `sum(rounds, [])`. Lượt đầu chạy xong 21/21 đỏ, không vòng sửa gác.
+- Số test: **5219 → 5228** (cổng 5 trước `--cap-nhat`: *"so test TANG 5219 -> 5228"*; `vibe_logs_285/cong5_truoc.log`).
+
+### Điều CHƯA làm và điều chưa kiểm
+
+- **Không dựng app lên để nhìn** (cổng 8511 của người dùng không đụng). Chứng cứ là HTML dựng bởi chính biểu thức của `app.py` chạy ngoài Streamlit; chưa kiểm cách trình duyệt/Streamlit hiển thị sáu ô (cao, cuộn) so với ba ô cũ. Cú pháp 3.11 do cổng 2 kiểm.
+- Lời của mỗi phát biểu vẫn được dán vào HTML như trước (không thoát ký tự `<`, `&`): hành vi cũ, không đổi, không đo xem có phát biểu nào chứa ký tự đó.
+- Kết quả dựng là MỘT bộ phân tích (xu hướng tăng mạnh, RSI 75); các nhánh khác của Bull/Bear cho lời khác nhưng cùng hình dạng (một phát biểu mỗi phe mỗi vòng, gác dùng đúng hình dạng ấy).
+- Không sửa `CLAUDE.md` · `SKILL.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `docs/LO-TRINH.md` · `docs/TIEU-CHI-DOC-TRUOC.md`; không ĐO mới; không đổi kết luận đo.
+- Câu cuối của mục *Điều CHƯA làm* ở BƯỚC 284 (*"Phát hiện phụ, KHÔNG sửa … ô Bull — Vòng 2"*) và câu *"người dùng quyết có sửa ô "Vòng 2""* ở HANDOFF BƯỚC 284 hết đúng theo thời gian từ BƯỚC này; câu cũ giữ nguyên.
+
+### Sổ tay NotebookLM
+
+`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 285` → xem mục *Năm cổng* bên dưới (chạy trên cây đã commit). BƯỚC không đổi luật và không đổi kết luận đo; mục `BƯỚC 285` của `docs/soat-notebooklm.json` khai `khong_bat_buoc_vi`. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; các kết luận của BƯỚC này (lỗi xác nhận bằng chạy, bảng trước · sau) chỉ nằm ở STATE, nên đây là kỷ luật, không phải cơ chế.
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Giả thuyết bị bác:** không có giả thuyết nào của BƯỚC 284 bị bác; cả hai nửa (ô Bull Vòng 2 và ô Bear) đúng khi chạy.
+- **Ước lượng của chính phiên này, chưa sai nhưng nêu để người đọc biết:** tôi chọn đặt ô Master Strategy SAU các ô vòng (ô Vòng 2 cũ đứng sau nó); brief nói *"Keep the Master Strategy box as is"* và tôi hiểu là giữ nội dung, không giữ vị trí giữa khung. Nếu người dùng muốn nó ở giữa, đổi chỗ một dòng.
+- **KHÔNG nói:** *"khung tranh luận hết sai"* — chưa nhìn app; chưa hiện lời Devil's Advocate.
+
+### Câu chờ người dùng
+
+Phát biểu của Devil's Advocate (vòng 2, NEUTRAL) hiện không có ô nào trên app (từ trước BƯỚC 284). Có muốn thêm một ô cho nó không? Người dùng chưa đòi; không làm.
+
+### Việc kế
+
+1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
+2. Người dùng quyết có thêm ô Devil's Advocate không.
+3. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).
