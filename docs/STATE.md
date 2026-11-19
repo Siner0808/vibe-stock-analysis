@@ -27458,3 +27458,7 @@ Phát biểu của Devil's Advocate (vòng 2, NEUTRAL) hiện không có ô nào
 1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
 2. Người dùng quyết có thêm ô Devil's Advocate không.
 3. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).
+
+### Năm cổng
+
+`./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_285/cong` (worktree, python của repo chính; 15:26:30–15:35:13 giờ máy, 523 s; cây `sua/vong-tranh-luan-285` sau khi hợp nhất `origin/main` `7416a4e` và commit sổ; log `vibe_logs_285/cong/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5226 passed, 2 skipped` (261 s; 5.228 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (249 s) · cổng 5 *"OK — 5228 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 285` (sau hợp nhất và commit sổ) → *"khong cham luat"* (`vibe_logs_285/cham_luat2.txt`). Mục này viết SAU lượt cổng (chỉ chữ trong `docs/STATE.md`); sau đó chạy lại chín file test đọc tài liệu (cùng danh sách như BƯỚC 283) và cổng 3 và 5: chín file → `201 passed, 1 skipped` (`vibe_logs_285/doc_tests.log`), cổng 3 → `0 CHẶN · 10 cảnh báo`, cổng 5 → *"OK — 5228 test, khop moc da ghi."*
