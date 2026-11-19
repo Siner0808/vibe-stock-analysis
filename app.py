@@ -1971,22 +1971,25 @@ with col_debate:
     # diện lại hiện một khuyến nghị MUA tự tin mà không agent nào nói ra.
     # Chỗ dự phòng là chỗ dễ bịa nhất, vì nó chỉ lộ ra khi có sự cố.
     _chua = "— tầng tranh luận không trả về phát biểu nào cho lượt này."
-    bull_msg = _chua
-    bear_msg = _chua
     master_msg = _chua
-    bull2_msg = _chua
 
-    if rounds:
-        for r_idx, rnd in enumerate(rounds):
-            for arg in rnd:
-                stn = arg.get("stance", "")
-                txt = arg.get("statement", "")
-                if stn == "BULL" and r_idx == 0:
-                    bull_msg = txt
-                elif stn == "BEAR":
-                    bear_msg = txt
-                elif stn == "BULL" and r_idx > 0:
-                    bull2_msg = txt
+    # BƯỚC 285: MỘT ô cho MỖI phát biểu của Bull và Bear, đúng vòng của nó. Bản cũ gom vào ba biến
+    # (`bull_msg`, `bear_msg`, `bull2_msg`) nên vòng 3 ghi đè vòng 2 và ô "Bull — Vòng 2" hiện lời vòng cuối,
+    # còn ô Bear hiện lời vòng cuối dưới nhãn không số vòng. Số vòng là chỉ số trong `rounds` (kết quả không
+    # mang trường `round_num`), không gõ tay. Phát biểu của Devil's Advocate (NEUTRAL) không có ô ở đây.
+    _PHE_TRANH_LUAN = {"BULL": ("bull", "🐂 Bull Agent"), "BEAR": ("bear", "🐻 Bear Agent (Phản biện)")}
+    o_vong_tranh_luan = "".join(
+        f'''<div class="mb {_PHE_TRANH_LUAN[arg["stance"]][0]}">
+                <div class="mh"><span class="mn {_PHE_TRANH_LUAN[arg["stance"]][0]}">{_PHE_TRANH_LUAN[arg["stance"]][1]} — Vòng {so_vong}</span></div>
+                <div class="mb-b">{arg.get("statement", "")}</div>
+            </div>'''
+        for so_vong, rnd in enumerate(rounds, start=1)
+        for arg in rnd
+        if arg.get("stance") in _PHE_TRANH_LUAN
+    ) or f'''<div class="mb bull">
+                <div class="mh"><span class="mn bull">🐂 Bull Agent ({symbol})</span></div>
+                <div class="mb-b">{_chua}</div>
+            </div>'''
 
     if result.get("key_reasons"):
         master_msg = f"Đồng thuận: {result['key_reasons'][0]}. Điểm AI: {score:.1f}/100."
@@ -2001,21 +2004,10 @@ with col_debate:
             <span class="chs">{_tieu_de_tranh_luan}</span>
         </div>
         <div class="debate">
-            <div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull Agent ({symbol})</span></div>
-                <div class="mb-b">{bull_msg}</div>
-            </div>
-            <div class="mb bear">
-                <div class="mh"><span class="mn bear">🐻 Bear Agent (Phản biện)</span></div>
-                <div class="mb-b">{bear_msg}</div>
-            </div>
+            {o_vong_tranh_luan}
             <div class="mb mst">
                 <div class="mh"><span class="mn mst">🏆 Master Strategy</span></div>
                 <div class="mb-b">{master_msg} Trạng thái: <strong style="color:var(--c-acc)">{dyn_rec}</strong>.</div>
-            </div>
-            <div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull — Vòng 2</span></div>
-                <div class="mb-b">{bull2_msg}</div>
             </div>
         </div>
     </div>
