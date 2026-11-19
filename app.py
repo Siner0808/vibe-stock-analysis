@@ -34,7 +34,7 @@ from datetime import timedelta
 from master_agent import run_full_analysis
 from pha_wyckoff import doc_pha
 from paper_trading import BUY_THRESHOLD
-from data_quality import nen_cuoi_dang_do, now_vn, price_multiplier
+from data_quality import GIO_NEN_DA_DONG, nen_cuoi_dang_do, now_vn, price_multiplier
 import khung_thoi_gian as _kt
 import ke_hoach_vao_lenh as _kh
 import san_giao_dich as _sgd
@@ -885,7 +885,7 @@ def _khoi_ke_hoach_da_ghi():
         "đang xem ở tab Vị thế thì tính trực tiếp. Phán quyết CHỈ ĐỂ HIỆN (ĐO 25): sổ lệnh "
         "ảo không làm theo nó. Cột “Sổ ảo” là lệnh sổ ảo mở cho cùng tín hiệu, hoặc lý do "
         "sổ KHÔNG mở lệnh (nguyên văn bảng quyết định); dấu gạch là không tìm thấy cả hai. "
-        "Đọc từ Google Sheets, làm mới mỗi 5 phút.")
+        f"Đọc từ Google Sheets, làm mới mỗi {_gss_doc.TTL_DOC_APP // 60} phút.")
     try:
         _ds, _loi = _doc_ke_hoach(), None
     except Exception as _e:
@@ -1211,7 +1211,6 @@ with st.sidebar:
     st.markdown('<div style="height: 6px;"></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sb-card-title">🎯 Tham số AI & Quản trị</div>', unsafe_allow_html=True)
-    capital_mode = st.radio("Chế độ phân bổ vốn:", ["30% / vị thế", "Kelly Dynamic", "1% Risk"], index=0)
     exchange = st.selectbox("Sàn giao dịch:", ["HOSE", "HNX", "UPCOM"], index=0)
     days_back = 180
 
@@ -1440,6 +1439,10 @@ pct_change = (change / prev_close) * 100 if prev_close else 0
 high_p = df['high'].max()
 low_p = df['low'].min()
 avg_vol = int(df['volume'].mean())
+# BƯỚC 284: ô "KL Trung Binh" ghi nhãn và tính giá trị theo CÙNG một cửa sổ; `avg_vol` (cả khung ~180
+# phiên) vẫn là mẫu số của ô "Dòng tiền lớn" và không đổi.
+SO_PHIEN_KL_TB = 20
+avg_vol_20 = int(df['volume'].tail(SO_PHIEN_KL_TB).mean())
 
 latest_close_fmt = latest_close * mult
 change_fmt = change * mult
@@ -1665,8 +1668,8 @@ st.markdown(f"""
     </div>
     <div class="md-cell">
         <span class="md-label">KL Trung Binh</span>
-        <span class="md-val">{avg_vol:,.0f}</span>
-        <span class="md-delta nt">20 phien gan nhat</span>
+        <span class="md-val">{avg_vol_20:,.0f}</span>
+        <span class="md-delta nt">{SO_PHIEN_KL_TB} phien gan nhat</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1811,11 +1814,13 @@ def _ve_vnindex_khung(khung, bay_gio):
 col_chart, col_debate = st.columns([1.55, 1.0])
 
 with col_chart:
+    # BƯỚC 284: giờ chốt nến ngày suy từ hằng số thật (`data_quality.GIO_NEN_DA_DONG`, một QUY ƯỚC, không gõ tay).
+    _gio_nen_dong = f"{GIO_NEN_DA_DONG[0]:02d}:{GIO_NEN_DA_DONG[1]:02d}"
     st.markdown(f"""
     <div class="card">
         <div class="ch">
             <div class="cht">📈 Bieu Do Gia — Phan Tich Ky Thuat</div>
-            <span class="chs">Khung D1 — 15:00 ICT</span>
+            <span class="chs">Khung D1 — nến chốt từ {_gio_nen_dong} ICT</span>
         </div>
         <div class="sym-r">
             <span class="sym-n">{symbol}.VN</span>
@@ -1986,27 +1991,30 @@ with col_debate:
     if result.get("key_reasons"):
         master_msg = f"Đồng thuận: {result['key_reasons'][0]}. Điểm AI: {score:.1f}/100."
 
+    # BƯỚC 284: số vòng là số vòng THẬT của kết quả tranh luận; không có vòng nào thì không hiện số.
+    # Kết quả tranh luận không mang giờ phát biểu nên các ô giờ gõ tay (10:45 · 10:46 · 10:47 · 14:05) đã bỏ.
+    _tieu_de_tranh_luan = f"Bull vs Bear · {len(rounds)} vòng" if rounds else "Bull vs Bear"
     st.markdown(f"""
     <div class="card">
         <div class="ch">
             <div class="cht">💬 Debate Council ({symbol})</div>
-            <span class="chs">Bull vs Bear · 3 Vong</span>
+            <span class="chs">{_tieu_de_tranh_luan}</span>
         </div>
         <div class="debate">
             <div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull Agent ({symbol})</span><span class="mt">10:45</span></div>
+                <div class="mh"><span class="mn bull">🐂 Bull Agent ({symbol})</span></div>
                 <div class="mb-b">{bull_msg}</div>
             </div>
             <div class="mb bear">
-                <div class="mh"><span class="mn bear">🐻 Bear Agent (Phản biện)</span><span class="mt">10:46</span></div>
+                <div class="mh"><span class="mn bear">🐻 Bear Agent (Phản biện)</span></div>
                 <div class="mb-b">{bear_msg}</div>
             </div>
             <div class="mb mst">
-                <div class="mh"><span class="mn mst">🏆 Master Strategy</span><span class="mt">10:47</span></div>
+                <div class="mh"><span class="mn mst">🏆 Master Strategy</span></div>
                 <div class="mb-b">{master_msg} Trạng thái: <strong style="color:var(--c-acc)">{dyn_rec}</strong>.</div>
             </div>
             <div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull — Vòng 2</span><span class="mt">14:05</span></div>
+                <div class="mh"><span class="mn bull">🐂 Bull — Vòng 2</span></div>
                 <div class="mb-b">{bull2_msg}</div>
             </div>
         </div>
@@ -2194,7 +2202,7 @@ with t_hist:
         "Mỗi lệnh ảo một dòng: mở lúc có tín hiệu, điền phần VÀO lúc khớp, phần "
         "ĐÓNG khi lệnh đóng. **R** tính trên cắt lỗ BAN ĐẦU; **Alpha** = lãi ròng "
         "trừ % đổi của VN-INDEX trong cùng khoảng giữ lệnh. Đọc từ Google Sheets, "
-        "làm mới mỗi 5 phút.")
+        f"làm mới mỗi {_gss_doc.TTL_DOC_APP // 60} phút.")
     try:
         _nk, _nk_loi = _doc_nhat_ky(), None
     except Exception as _e:
@@ -2291,7 +2299,7 @@ with t_tin:
     # paper_trades.db ở máy; mọi phép tính nằm ở `ban_tin` (hàm thuần).
     st.markdown("##### 📰 Bản tin cuối ngày")
     st.caption("Thị trường, việc agent đã làm trong ngày, vì sao, và bài học từ lệnh vừa "
-               "đóng — đọc từ sổ lệnh ẢO trên Google Sheets, làm mới mỗi 5 phút.")
+               f"đóng — đọc từ sổ lệnh ẢO trên Google Sheets, làm mới mỗi {_gss_doc.TTL_DOC_APP // 60} phút.")
     try:
         _sbt, _sbt_loi = _doc_so_ban_tin(), None
     except Exception as _e:
@@ -2706,6 +2714,13 @@ with t_suc_khoe:
             "`python tools/suc_khoe.py`.")
 
 # ── 8. FOOTER BAR ──────────────────────────────────────────────────
+# Đã bỏ "Gemini" (21/08/2026): chữ đó xuất hiện ĐÚNG MỘT LẦN trong
+# toàn bộ app, và là ở chính dòng chân trang này. `chatbot_agent.py` không được
+# app import lần nào. Ghi tên một thành phần vào chân trang là khẳng
+# định nó đang chạy. Giá ngày công khai (`nguon_gia_cong_khai`, từ BƯỚC 267; trước đó vnstock)
+# và TradingView thì có thật — đã kiểm,
+# TradingView trả 15 chỉ báo mỗi lượt phân tích.
+# (BƯỚC 284: đây từng là chú thích HTML `<!-- -->` trong chuỗi gửi ra trình duyệt; nay là chú thích Python.)
 st.markdown(f"""
 <div style="
     display: flex; justify-content: space-between; align-items: center;
@@ -2717,12 +2732,6 @@ st.markdown(f"""
         <span>Nguong: <b style="color:var(--c-acc);">{BUY_THRESHOLD:.1f} pts</b></span>
         <span>Ma dang chon: <b style="color:var(--c-acc);">{symbol} ({exchange})</b></span>
     </div>
-    <!-- Đã bỏ "Gemini" (21/08/2026): chữ đó xuất hiện ĐÚNG MỘT LẦN trong
-         toàn bộ app, và là ở chính dòng này. `chatbot_agent.py` không được
-         app import lần nào. Ghi tên một thành phần vào chân trang là khẳng
-         định nó đang chạy. Giá ngày công khai (`nguon_gia_cong_khai`, từ BƯỚC 267; trước đó vnstock)
-         và TradingView thì có thật — đã kiểm,
-         TradingView trả 15 chỉ báo mỗi lượt phân tích. -->
     <div>Vibe Stock Terminal · Multi-Agent AI · Giá ngày công khai + TradingView</div>
 </div>
 """, unsafe_allow_html=True)

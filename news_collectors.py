@@ -385,7 +385,7 @@ class CompanyNewsAgent:
         ]
         # BƯỚC 275: ba địa chỉ theo MÃ, tải song song và KHÔNG qua bộ nhớ dùng chung (`dung_bo_nho=False`);
         # thứ tự kết quả vẫn là hai bản tiếng Việt rồi bản tiếng Anh như trước.
-        url_en = f"https://news.google.com/rss/search?q={symbol}+Vietnam+stock&hl=en&gl=VN&ceid=VN:en"
+        url_en = f"https://news.google.com/rss/search?q={quote_plus(symbol)}+Vietnam+stock&hl=en&gl=VN&ceid=VN:en"
         # BƯỚC 277: câu hỏi tiếng Việt được mã hoá phần trăm (`quote_plus`) nên địa chỉ hợp lệ với mọi
         # thư viện HTTP — bản trước BƯỚC 275 (urllib) nổ InvalidURL vì khoảng trắng nên hai câu này chưa
         # bao giờ trả bài.
