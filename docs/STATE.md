@@ -27392,4 +27392,4 @@ Phiên con của leader. **Việc này do LEADER chọn**, không phải ngườ
 
 ### Năm cổng
 
-(điền sau lượt cổng)
+`./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_284/cong` (worktree, python của repo chính; 13:18:12–13:26:49 giờ máy, 517 s; cây `sua/hien-thi-app-284` sau commit sổ; log `vibe_logs_284/cong/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5217 passed, 2 skipped` (252 s; 5.219 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (251 s) · cổng 5 *"OK — 5219 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 284` (sau commit sổ) → *"khong cham luat"* (`vibe_logs_284/cham_luat2.txt`). Mục này và đoạn sổ ở trên viết SAU lượt cổng (chỉ chữ trong `docs/STATE.md`); sau đó chạy lại chín file test đọc tài liệu (cùng danh sách như BƯỚC 283) → `201 passed, 1 skipped` (`vibe_logs_284/doc_tests2.log`), cổng 3 → `0 CHẶN · 10 cảnh báo`, cổng 5 → *"OK — 5219 test, khop moc da ghi."*
