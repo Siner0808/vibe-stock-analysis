@@ -11,6 +11,11 @@ giá nghìn đồng, khối lượng lệch tới 56.194 ở PVS), nên cửa s�
 số trên biểu đồ sẽ đổi. Vì vậy chỉ gộp các cửa sổ cùng do NGUỒN ĐẦU CỦA CHUỖI phục vụ (`tai_mot_lan` kiểm
 tên nguồn của lượt tải rộng), và app chỉ gộp biểu đồ ngày (180) với ô cấu trúc Dow (1.095).
 
+BƯỚC 288 (người dùng chọn *"C: một lượt Entrade (Recommended)"*) GỠ giới hạn ấy cho cổ phiếu: ở cửa sổ 1.583 ngày app
+dùng `nguon_gia_cong_khai.chuoi_cho_app` — Entrade KHỬ TRÙNG đứng đầu chuỗi — nên nguồn đầu của chuỗi vẫn phục vụ cửa sổ rộng
+và nến tuần/tháng cũng chung lượt tải. Nến ngày/Dow giữ y nguyên (71/71 mã từng byte), nến tuần/tháng đổi sang Entrade
+(`docs/do-toc-do-app-288/`). Đoạn trên giữ làm sử liệu của BƯỚC 280.
+
 CÁCH CẮT ĐÚNG. `VNStockCollectorAgent.collect(mã, start, end)` luôn trả `n` nến CUỐI của chuỗi
 đã chuẩn hoá, `n` suy từ cặp (start, end) bởi `nguon_gia_cong_khai.cua_so_vci_cu` — nó KHÔNG đọc
 `start` theo nghĩa "từ ngày ấy" (`CLAUDE.md`, mục Dữ liệu: đừng "sửa" về tôn trọng `start`). Hai cửa

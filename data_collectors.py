@@ -63,11 +63,15 @@ class VNStockCollectorAgent:
         return df
 
     def collect(self, symbol: str, start: str, end: str,
-                exchange: str = "HOSE") -> dict:
+                exchange: str = "HOSE", chuoi=None) -> dict:
         """Tải OHLCV và KIỂM ĐỊNH trước khi bàn giao.
 
         Dữ liệu không qua được kiểm định thì bị coi như không lấy được —
         thử nguồn tiếp theo. Thà thiếu còn hơn sai.
+
+        `chuoi` (BƯỚC 288): chuỗi nguồn thay cho chuỗi mặc định; CHỈ đường biểu đồ của `app.py` truyền nó
+        (`nguon_gia_cong_khai.chuoi_cho_app`). Mặc định `None` = `chuoi_nguon(mã)`, đúng như trước. `run_daily`,
+        `paper_runner` và backtest không truyền (gác AST `tests/test_gop_cua_so_288.py`).
         """
         from data_quality import normalize_ohlcv, validate_ohlcv
         import nguon_gia_cong_khai as ngk
@@ -85,7 +89,7 @@ class VNStockCollectorAgent:
         # Cửa sổ giữ đúng luật đếm của đường VCI cũ (BƯỚC 267): `n_giu` nến CUỐI, xin lùi thêm đầu cửa sổ.
         start_rong, n_giu = ngk.cua_so_vci_cu(start, end)
         try:
-            kq = ngk.lay_ohlcv(symbol, start_rong, end, kiem_them=kiem_dinh)
+            kq = ngk.lay_ohlcv(symbol, start_rong, end, kiem_them=kiem_dinh, chuoi=chuoi)
         except ngk.NguonGiaHetNguon as e:
             ly_do_het = str(e)
             last_report = bao_cao.get("cuoi")
