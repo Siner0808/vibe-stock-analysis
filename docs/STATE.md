@@ -27649,7 +27649,7 @@ Không chỗ nào dán tiêu đề tin (`app.py` không đọc `top_positive` ·
 
 ### Năm cổng
 
-CHO_GHI_SAU_LUOT_CONG
+`./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_287/cong` (worktree, python của repo chính; 10:47:34–10:56:41 giờ máy, 547 s; cây `sua/tin-trung-va-escape-287` tại `89bac89`; log `vibe_logs_287/cong/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0** — cổng 1 `5265 passed, 2 skipped` (270 s; 5.267 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (226 file, 261 s) · cổng 5 *"OK — 5267 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 287` → *"khong cham luat"* (`vibe_logs_287/cham_luat.txt`). Lượt cổng đầu xanh cả năm (không phải sửa gác lần nào). Mục này được ghi bằng một commit chỉ-tài-liệu sau lượt cổng; năm cổng được chạy LẠI trên commit cuối đó (kết quả ở báo cáo của phiên con và ở PR).
 
 ### Việc kế
 
