@@ -27736,3 +27736,102 @@ Lệnh: `bash ../vibe_logs_288/chay_app_288_sau.sh` rồi `../vibe_preview/.venv
 2. Câu hỏi cho người dùng (chưa làm): gộp ô VN-INDEX ở topbar với lượt VN-INDEX 1.583 ngày của biểu đồ (đổi nguồn của ô; còn ~0,4 s) — câu hỏi 2 của BƯỚC 280, vẫn mở.
 3. Lỗi kế vẫn 205.
 
+## BƯỚC 289 — C4 LÁT 2: HIỆU CHUẨN MDE₈₀ VÀ ĐƯỜNG CONG LỰC TRÊN THỊ TRƯỜNG GIẢ (DÒNG HẠT 1): MDE₈₀ = ΔIC_true 0,0756 (κ = 0,01982); NULL SMOKE 24/500 (20/11/2026)
+
+**Mốc:** C4 (`docs/LO-TRINH.md`, giai đoạn C; Lát 2 của `docs/thiet-ke-c4-thi-truong-gia.md` mục 8, ghi chú thi công ở mục 16 của chính file ấy). Không chạm điểm, ngưỡng, sổ, máy đo của đường thật, `thi_truong_gia.py` hay file luật (`tools/buoc_cham_luat.py 289`, mục J).
+
+**Quyết định của người dùng (nguyên văn):** *"tiếp đi"* (20/11/2026). Việc chọn Lát 2 là của LEADER, diễn giải: Lát kế trên đường v1.0 (T6) cần KHÔNG câu hỏi mới của người dùng, vì cả bảy câu Q1–Q7 đã chốt 06–07/11/2026 (đặc tả mục 2 và 14). Không có quyết định nào của người dùng trong BƯỚC này.
+
+**Đánh số:** BƯỚC 289 (lớn nhất trước đó là 288); mở **lỗi 205** (một lượt đục báo "37/37 đỏ" trên baseline ĐỎ, mục E); lỗi kế 206. Nhánh `c4/lat2-hieu-chuan-289` từ `origin/main` `a63e33f`.
+
+### A. Việc làm
+
+1. `tools/hieu_chuan_thi_truong_gia.py` (dụng cụ, đặc tả mục 8 Lát 2): `--chay` ghi `docs/thi-truong-gia-hieu-chuan.json`; `--kiem` chạy lại theo `cau_hinh` trong file và so; `--in-bang` in lại bảng đã ghi (không chạy thị trường nào); `--tham-do` thăm dò nhỏ không ghi file. Mỗi thị trường chạy BỘ BA G · Z · H khai tay ở ba tháng liên tiếp qua `cham_xac_nhan.cham` thật (K = 3, W = 252, M = 60, ngưỡng 0,05/3, 2.000 hoán vị, hạt hoán vị mặc định); oracle là trung bình 24 mẫu 5.000 phiên của `thi_truong_gia.tinh_su_that`; MDE₈₀ là điểm 80% của đường probit khớp trên 8 điểm lưới; bốn mức 0× · 0,5× · 1× · 2× dò nhị phân κ trên mẫu oracle thứ nhất rồi đối chiếu ±10% trên mẫu thứ hai độc lập; NULL smoke κ = 0.
+2. **Chỉ dòng hạt 1**, bằng máy: không đối số dòng hạt; mọi đường vào bộ sinh đi qua `kiem_luong` (nổ với 2, 3, 4, 5, 6… và với file kết quả bị sửa sang dòng khác). Dòng 2–4 KHÔNG được sinh, chạy hay đọc ở BƯỚC này (bất biến 7).
+3. `tests/test_hieu_chuan_thi_truong_gia.py` (90 test) và `docs/thi-truong-gia-hieu-chuan.json` (kết quả lượt chạy duy nhất, mục B).
+4. Đặc tả `docs/thiet-ke-c4-thi-truong-gia.md`: mục 16 "Ghi chú thi công Lát 2" (mười điểm mã khác đặc tả, và vì sao) và một dòng trạng thái ở đầu file.
+5. Không đổi: `thi_truong_gia.py` · `cham_bong.py` · `cham_xac_nhan.py` · `san_dau.py` · `paper_*` · `run_daily` · `master_agent` · `sheets_store` · sổ · điểm · ngưỡng · máy đo · mọi file luật.
+
+### B. Kết quả — chỉ ở dòng hạt 1 (hiệu chuẩn máy đo, KHÔNG phải kết quả T6)
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_thi_truong_gia.py --in-bang` (đọc file đã ghi; số lượt chạy gốc: mục D).
+
+**MDE₈₀(K = 3, W = 252, M = 60) = ΔIC_true(G) 0,0756** (κ = 0,01982); bootstrap tham số (500 lần, 0 lần hỏng) sai số 0,0007, khoảng 95% 0,0742…0,0770. Sai số ấy chỉ do R hữu hạn; cộng nhiễu oracle (~1,3% = 0,0010) và chênh giữa hai tập oracle (mục B3), nói MDE₈₀ đúng tới ~2–3% là trung thực.
+
+**B1. Bảng "ΔIC_true → tỷ lệ bắt" (G bị `QUA`, bước xác nhận thật, 11 điểm, theo ΔIC_true tăng):**
+
+| ΔIC_true (± sai số oracle) | κ | R | bắt G | tỷ lệ | Wilson 95% | nguồn |
+|---|---|---|---|---|---|---|
+| 0,0358 ± 0,0012 | 0,00960 | 400 | 87 | 21,8% | 18,0 – 26,1% | mức 0,5× |
+| 0,0393 ± 0,0010 | 0,01000 | 500 | 115 | 23,0% | 19,5 – 26,9% | lưới |
+| 0,0469 ± 0,0010 | 0,01200 | 500 | 177 | 35,4% | 31,3 – 39,7% | lưới |
+| 0,0544 ± 0,0010 | 0,01400 | 500 | 233 | 46,6% | 42,3 – 51,0% | lưới |
+| 0,0618 ± 0,0010 | 0,01600 | 500 | 292 | 58,4% | 54,0 – 62,6% | lưới |
+| 0,0691 ± 0,0010 | 0,01800 | 500 | 357 | 71,4% | 67,3 – 75,2% | lưới |
+| 0,0733 ± 0,0011 | 0,01982 | 400 | 316 | 79,0% | 74,7 – 82,7% | mức 1× |
+| 0,0762 ± 0,0010 | 0,02000 | 500 | 412 | 82,4% | 78,8 – 85,5% | lưới |
+| 0,0832 ± 0,0010 | 0,02200 | 500 | 445 | 89,0% | 86,0 – 91,5% | lưới |
+| 0,0900 ± 0,0010 | 0,02400 | 500 | 456 | 91,2% | 88,4 – 93,4% | lưới |
+| 0,1474 ± 0,0011 | 0,04459 | 400 | 400 | 100,0% | 99,0 – 100,0% | mức 2× |
+
+Điểm của lưới dùng ΔIC_true của mẫu oracle thứ nhất (`or_tim`); điểm của ba mức dùng mẫu thứ hai (`or_kiem`). Pearson χ² của 11 điểm so với đường probit = 6,91 trên ~9 bậc tự do (phân vị 99,9% của χ²(9) = 27,88).
+
+**B2. Bốn mức và độ lệch ±10% (mẫu kiểm độc lập với việc dò κ):**
+
+| mức | κ | mục tiêu ΔIC_true | mẫu kiểm | lệch | lực đo (R) |
+|---|---|---|---|---|---|
+| 0× (NULL) | 0 | 0 | −0,0014 ± 0,0012 (< 2 sai số) | — | G `QUA` 6/500 = 1,2% |
+| 0,5× | 0,00960 | 0,0378 | 0,0358 ± 0,0012 | −5,3% | 87/400 = 21,8% |
+| 1× | 0,01982 | 0,0756 | 0,0733 ± 0,0011 | −3,1% | 316/400 = 79,0% |
+| 2× | 0,04459 | 0,1513 | 0,1474 ± 0,0011 | −2,5% | 400/400 |
+
+**Cả bốn mức trong ±10%.** Dải 99% quanh 80% của mục 6 ("Báo cáo, không phán") cho R = 400 là [299 ; 340]; mức 1× bắt 316 → **trong dải**. Κ của ba mức dương được CỐ ĐỊNH ở file (0,00960 · 0,01982 · 0,04459): Lát 5 đọc ở đó, không dò lại.
+
+**B3. Ba điều đáng đọc kỹ.** (1) Độ lệch của ba mức dương đều ÂM vì mẫu kiểm cho ΔIC thấp hơn mẫu tìm cùng κ (0,0733 so với 0,0756 ở 1×; chênh 1,5 lần sai số của hiệu). Cùng một tập hạt oracle dùng cho mọi κ nên đó là MỘT lần rút, không phải ba bằng chứng. (2) Δ đo trung bình trên các thị trường khớp ΔIC_true của oracle trong 3% ở cả 8 điểm lưới (tỷ số 0,970–1,011; lệnh ở mục D, cột `delta_do_G` của file): máy đo và oracle đo cùng một thứ. (3) MDE₈₀ = 0,0756 KHÔNG nhỏ: ΔIC giữa hai điểm của một ứng viên là cỡ 0,076 mới bắt được 80%. Mục 4.4 đã báo trước *"MDE₈₀ của thị trường giả sẽ không nhỏ"* (ĐO 21); đây là con số.
+
+### C. NULL smoke — kiểm MÁY, không phải B1 của T6
+
+500 thị trường κ = 0 (dòng hạt 1, vai trò `null`): **24 có ≥ 1 báo động** (báo động = một ứng viên có p < 0,05/3, cả `QUA` lẫn `THUA`) = 4,8%; ngưỡng B1 7,5% → tối đa 37 → **ĐẠT**. Nếu mỗi thị trường báo động đúng ở mức danh nghĩa (1 − (1 − 0,05/3)³ = 4,92%) thì kỳ vọng 24,6 và P(≥ 24) = 58%; xác suất trượt ngưỡng ~0,6%. Chi tiết: G `QUA` 6 · G `THUA` 6 · H `QUA` 7 · H `THUA` 2 · Z 7 (chồng nhau). Hai quan sát cho Lát 5 (ở mọi thị trường CÓ lợi thế, 5.200 thị trường): **H không bao giờ `QUA` (0/5.200, B4)**; **Z báo động 114/5.200 = 2,19%** (danh nghĩa 1,67% mỗi ứng viên; ngưỡng B3 5%).
+
+### D. Thời gian chạy và lệnh (Quy tắc 2; máy 16 lõi, Python 3.13.14, `numpy` 2.2.6; các tiến trình khác của người dùng chạy song song)
+
+- **Ước lượng chốt TRƯỚC lượt chính (checkpoint 45 phút của đề bài):** `./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_thi_truong_gia.py --tham-do --kappa 0.016 --so-thi-truong 224 --tien-trinh 14` → 224 thị trường + 4 oracle trong **33,5 s** (119/224 bắt, ΔIC_true 0,0620 ± 0,0013) ⇒ ~0,15 s mỗi thị trường nhờ 14 tiến trình (một thị trường trên một lõi 0,96–1,08 s: bốn thị trường ở κ 0 · 0,005 · 0,01 · 0,02, một script tạm ngoài repo, nên là số đo một lần, không lệnh tái lập trong repo). Cấu hình chính có 5.700 thị trường và ~1.600 mẫu oracle (~1,3 s mỗi mẫu): ước lượng ~14–17 phút. Dưới 45 phút nên chạy tiếp; không dừng.
+- **Đo thật:** `./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_thi_truong_gia.py --chay --tien-trinh 14` → **954,5 s (15,9 phút)**, mã thoát 0. Lưới 8 điểm 601 s (~75 s mỗi điểm: 500 thị trường + 24 mẫu oracle) · bốn mức (dò nhị phân κ, đối chiếu, 3 × 400 thị trường) 285 s · NULL 500 thị trường 68 s.
+- **Tái lập:** `./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_thi_truong_gia.py --kiem --tien-trinh 8` → **OK, mã thoát 0 — chạy lại cho đúng bảng đã ghi: 1259.6 s, 8 tiến trình** (lượt gốc 14 tiến trình; số tiến trình KHÁC cho cùng bảng, nên kết quả không phụ thuộc cách chia việc). So sánh: số nguyên, chuỗi, bool BẰNG; số thực trong 1e-6
+- **Thăm dò nhỏ để chọn lưới κ** (vai trò `tham_do`, 32 thị trường mỗi κ, không vào bảng): `… --tham-do --kappa 0.0 0.01 0.02 0.03 --so-thi-truong 32 --tien-trinh 14` → lực 0/32 · 9/32 · 30/32 · 32/32. Lưới chính [0,010 … 0,024] chọn từ đó, TRƯỚC lượt chạy.
+- Khớp probit, sai số bootstrap, Pearson χ², Z và H: `… --in-bang` và `tong_hop_Z_H` trong chính dụng cụ.
+
+### E. Ước lượng đã sai, giả thuyết bị bác, và hai lỗi của chính tôi
+
+- **Một oracle 5.000 phiên là đủ (mục 4.5)?** BÁC ở mục 15 khoản 7 (sai số 14% ΔIC); nay trung bình 24 mẫu: 2,5% ở κ = 0,010 và 1,3% ở κ = 0,020, đúng cỡ 14%/√24 = 2,9%.
+- **Dải ngày giả "ở năm 2100" (mục 4.1 khoản 2)?** SAI: 594 phiên từ 2100-01-04 tới **2102-04-13**. Giờ kéo giá viết cứng "2101-01-01" bị `phan_tich_bang_gia` từ chối. Lộ ra bằng một test tôi viết để chứng minh việc BỎ bước CSV không đổi kết quả; sửa bằng `keo_luc_gia` (suy từ nến cuối). Không đổi con số nào đã ghi (`cham` chỉ in lại giờ kéo).
+- **Bước CSV tròn–đi–về từng bit?** BÁC: `pd.read_csv` đọc số thực bằng bộ đọc nhanh, lệch ~1 ULP; nhưng trạng thái bằng nhau và Δ, p bằng nhau tới 1e-9 / 1e-6 (test).
+- **Lỗi 205 (của chính tôi):** lượt đục đầu báo `37/37 do` vì một test đỏ TRƯỚC khi đục (`NHAP_DUOC` thiếu `datetime` sau khi tôi thêm `import datetime`); `va_an_toan.dot_bien_bo` chỉ hỏi "lệnh có thất bại không". Lộ ra vì một phát đột biến TƯƠNG ĐƯƠNG cũng "chết". Chạy lại trên baseline xanh. Dòng 205 ở `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md`; máy chặn: chưa (đề xuất: `dot_bien_bo` tự chạy lệnh MỘT lần trên mã chưa đục — đổi công cụ dùng chung, ngoài phạm vi).
+- **Một lần chạy `--kiem` đầu bị tôi dừng** (sau khi lộ lỗi giờ kéo, để chạy lại trên mã cuối); không có kết quả nào bị bỏ.
+
+### F. Gác và đột biến
+
+90 test: gác hạt (nổ với dòng 0, 2–9, 9001, −1, bool, số thực, chuỗi, None; mọi cửa vào bộ sinh; AST: hàm gọi bộ sinh phải gọi `kiem_luong` TRƯỚC; không đối số dòng hạt); chỉ số thị trường chia khối không giao nhau; sổ ứng viên giả đúng khuôn K = 3; một lượt THẬT (ca lớn: G `QUA`, H `THUA`; NULL: không `QUA`; tái lập từng bit; chạy qua pool bằng tuần tự; Δ đo khớp oracle); toán thuần (Wilson, nhị thức khớp các số mục 6, dải [299 ; 340], probit tìm lại a, b không nhiễu và có nhiễu, bootstrap, dò nhị phân, `so_sanh`, Pearson χ²); toàn quy trình trên bộ ước lượng GIẢ có đáp án biết (MDE, κ của ba mức, lực, bảng, mỗi thị trường dùng một lần, NULL smoke biên 59/60/61, độ lệch 15% trượt và 9% đạt, mức 0× biên 2 sai số, tái lập, `--kiem` 0 và 1, mã thoát `--chay`); file đã ghi (cấu hình, probit tái lập từ số đếm, bốn mức, bảng, NULL, χ²); gác G1 (đúng MỘT chỗ ghi, chỉ `va_an_toan.ghi`; không để dấu vết trên đĩa) và G3 (không thế giới thật, nhập trong danh sách, nạp không kéo `sheets_store`…).
+**Đột biến: 42 phát; 41 đỏ, 1 sống sót là TƯƠNG ĐƯƠNG** (`int(luong) not in …` → `luong not in …` sau một kiểm kiểu đã loại mọi giá trị khác). Lượt đầu trên baseline đỏ KHÔNG tính (lỗi 205). Bộ đục (ngoài repo, `vibe_logs_289/dot_bien.py`) tự kiểm baseline xanh trước.
+
+### H. Điều chưa kiểm
+
+- **Chưa chạy Tầng 2**: mọi con số trên là của Tầng 1 (lợi thế ở thành phần điểm); chưa biết agent thật truyền được lợi thế (Lát 4).
+- **Cùng 2.000 hoán vị mã ở mọi thị trường** (hạt mặc định thật): chưa đo xem tỷ lệ bắt giữa các thị trường có tương quan do nó (mục 16 điểm 7).
+- **MDE₈₀ phụ thuộc mô hình sinh** (mục 11 của đặc tả); đường probit khớp tốt ở 11 điểm nhưng ngoại suy ngoài [0,036 ; 0,147] chưa kiểm.
+- ``--kiem` so số nguyên, chuỗi, bool BẰNG và số thực trong dung sai 1e-6, không đòi trùng từng bit (`sum()` của Python 3.12+ cộng có bù còn 3.11 thì không, đặc tả mục 15 khoản 9). Lượt gốc và lượt `--kiem` đều chạy ở Python 3.13.14; chưa chạy `--kiem` trên 3.11.`
+- Chưa đọc CI; chưa merge (PR này KHÔNG tự merge).
+
+### J. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 289` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 289` → xem báo cáo; BƯỚC không đổi luật và không đổi kết luận đo của một BƯỚC trước (nó THÊM một phép đo hiệu chuẩn cho thị trường giả, sống ở file riêng, và không chạm `docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md` hay file luật nào). Chỗ máy mù khai thẳng: máy chỉ thấy FILE; các con số hiệu chuẩn chỉ nằm ở STATE này và `docs/thi-truong-gia-hieu-chuan.json`, nên đây là kỷ luật, không phải cơ chế.
+
+**Số test:** mốc `docs/moc_so_test.json` **5296 → 5386** (+90 test mới, đều ở `tests/test_hieu_chuan_thi_truong_gia.py`; không test nào bị bớt; `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat`).
+
+**Năm cổng:** chạy trên commit CUỐI của nhánh; kết quả ở báo cáo của phiên con và ở PR (ghi vào đây sẽ buộc một commit tài liệu mới, rồi phải chạy lại cả năm cổng).
+
+### K. Việc kế
+
+1. Leader đọc CI rồi quyết định merge (PR này KHÔNG tự merge).
+2. Lát 3 (vòng học khép kín trên Tầng 1: `de_xuat`, sổ giả, `nang_cap`, G2 · G4 · G6 · G7) — không cần câu hỏi mới của người dùng.
+3. Lỗi kế 206.
