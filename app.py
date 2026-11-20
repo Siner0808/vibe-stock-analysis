@@ -1975,11 +1975,14 @@ with col_debate:
     # (`bull_msg`, `bear_msg`, `bull2_msg`) nên vòng 3 ghi đè vòng 2 và ô "Bull — Vòng 2" hiện lời vòng cuối,
     # còn ô Bear hiện lời vòng cuối dưới nhãn không số vòng. Số vòng là chỉ số trong `rounds` (kết quả không
     # mang trường `round_num`), không gõ tay. Phát biểu của Devil's Advocate (NEUTRAL) không có ô ở đây.
+    # BƯỚC 287: phát biểu qua `html.escape` trước khi dán vào HTML (`unsafe_allow_html`). Đo 20/11/2026: chữ ngoài
+    # (tiêu đề tin) KHÔNG tới được phát biểu hôm nay, nhưng 40/560 phát biểu đã mang `&` từ chuỗi viết cứng
+    # ("macro & ngành"), và đường dán thô sẽ phát hành bất kỳ `<` nào mà một trường tương lai đưa vào.
     _PHE_TRANH_LUAN = {"BULL": ("bull", "🐂 Bull Agent"), "BEAR": ("bear", "🐻 Bear Agent (Phản biện)")}
     o_vong_tranh_luan = "".join(
         f'''<div class="mb {_PHE_TRANH_LUAN[arg["stance"]][0]}">
                 <div class="mh"><span class="mn {_PHE_TRANH_LUAN[arg["stance"]][0]}">{_PHE_TRANH_LUAN[arg["stance"]][1]} — Vòng {so_vong}</span></div>
-                <div class="mb-b">{arg.get("statement", "")}</div>
+                <div class="mb-b">{_html.escape(arg.get("statement") or "")}</div>
             </div>'''
         for so_vong, rnd in enumerate(rounds, start=1)
         for arg in rnd

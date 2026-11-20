@@ -27564,3 +27564,96 @@ Lệnh (của chính phiên này): `gh run list --workflow quet-so-lenh.yml --cr
 1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
 2. Sau 22/11/2026 hộp "Gói vnstock" vẫn xám và đúng (gói vắng); nếu người dùng sau này muốn bỏ hẳn ô — đổi một lời gọi trong `app.py`; nếu dùng vnstock 6 (BƯỚC 265) thì `kiem_goi` đo lại hạng như cũ.
 3. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).
+
+---
+
+## BƯỚC 287 — BỎ TIN TRÙNG TRONG MỘT NHÓM CỦA GÓI TIN; THOÁT HTML Ở Ô PHÁT BIỂU TRANH LUẬN (20/11/2026)
+
+**Mốc:** quy-trinh — hai lỗi nhỏ của sản phẩm trong danh sách chờ của leader (tin trùng ở `collect_and_handoff`; phát biểu tranh luận dán thô vào HTML); không mã mốc nào của `docs/LO-TRINH.md` nói về việc này; BƯỚC không đổi điểm, ngưỡng, sổ, máy đo, đường quét hay file luật
+
+Phiên con của leader, nhánh `sua/tin-trung-va-escape-287` từ `origin/main` `17a395b`, worktree ngoài repo (`vibe_wt_287`); python = `../vibe_preview/.venv/Scripts/python.exe -X utf8`; log và script đo ngoài repo `vibe_logs_287`.
+
+**Vì sao làm.** Người dùng nói *"tiếp đi"* (20/11/2026) và leader chọn hai việc trong danh sách chờ: (1) phiên con báo 17/11 rằng Google News trả cùng một tiêu đề nhiều lần và `collect_and_handoff` không bỏ trùng (nửa mã hoá địa chỉ đã sửa ở BƯỚC 284); (2) BƯỚC 285 dán `arg.get("statement")` vào `st.markdown(..., unsafe_allow_html=True)` không thoát, mà chưa đo xem phát biểu có chứa `<` `>` `&` không. Lời người dùng là *"tiếp đi"*; việc chọn hai mục này là của leader.
+
+### A. ĐO trước khi sửa (mạng thật, 20/11/2026, `news_collectors.NewsOrchestrator(<mã>).collect_and_handoff()`)
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 ../vibe_logs_287/do_a_tin_trung.py` (sáu mã VCB ACB HPG FPT SSI TNG: ngân hàng lớn, ngân hàng, thép, công nghệ, chứng khoán, dệt may vốn nhỏ; mỗi mã MỘT gói). Log THÔ trước: `vibe_logs_287/do_a_truoc.log`; sau: `do_a_sau.log`.
+
+| mã | bài (trước → sau) | bản THỪA trong cả gói (trước → sau) | trong CÙNG một nhóm (trước → sau) | giữa NHÓM KHÁC NHAU (trước → sau) |
+|---|---|---|---|---|
+| VCB | 200 → 197 | 27 → 24 | 3 → 0 | 24 → 24 |
+| ACB | 200 → 198 | 26 → 24 | 2 → 0 | 24 → 24 |
+| HPG | 200 → 199 | 25 → 24 | 1 → 0 | 24 → 24 |
+| FPT | 200 → 199 | 25 → 24 | 1 → 0 | 24 → 24 |
+| SSI | 200 → 200 | 24 → 24 | 0 → 0 | 24 → 24 |
+| TNG | 200 → 198 | 26 → 24 | 2 → 0 | 24 → 24 |
+
+(Hai cột trước/sau là HAI lượt tải mạng khác nhau, cách nhau vài phút; Google News đổi nhẹ giữa hai lượt, nhưng số trùng trong nhóm ở cột "trước" khớp đúng số bài bị bỏ ở cột "sau".)
+
+Đọc bảng:
+- **Cách tin lặp lại:** mọi cặp trùng CÙNG tiêu đề, CÙNG đường dẫn, CÙNG nguồn. Đếm riêng: cùng tiêu đề khác nguồn = 0; cùng tiêu đề khác đường dẫn = 0 (cả sáu mã). Chuẩn hoá khoảng trắng và hoa thường không thêm cặp nào (số y hệt).
+- **Trùng của Google News nằm GIỮA các câu hỏi, không trong một câu:** `../vibe_logs_287/do_a3_trung_o_dau.py` tải riêng từng địa chỉ — 0 bài trùng trong mỗi câu (5 · 5 · 4 bài), nhưng 3 · 2 · 1 · 1 · 0 · 2 đường dẫn xuất hiện ở từ hai câu trở lên (đúng số bài bị bỏ ở bảng). Lời báo 17/11 *"cùng tiêu đề nhiều lần cho một truy vấn"* đúng ở mức *một MÃ* (hai câu tiếng Việt và câu tiếng Anh của cùng mã), không đúng ở mức *một câu hỏi*.
+- **Phần lớn lặp lại nằm ở chỗ khác:** 24 bài mỗi mã xuất hiện ở hai nhóm trở lên (bài của CafeF/Vietstock/Bloomberg/CNBC ở nhóm "trong nước" hay "quốc tế" VÀ ở nhóm ngành, vì một địa chỉ RSS được gắn cho nhiều ngành). Con số này gấp 8–24 lần số trùng của Google News và **không đổi** sau sửa — xem mục D.
+
+**Điểm tin có đổi không?** `../vibe_logs_287/do_a2_diem_tin.py`: chấm cùng một gói bằng `NewsSentimentAgent` (không sửa nó) trước/sau khi bỏ trùng: `sentiment_score` −1,63 → −1,67 (VCB), −1,63 → −1,66 (ACB), −1,63 → −1,65 (HPG, FPT), −1,63 → −1,63 (SSI), −0,75 → −0,75 (TNG); nhãn `NEUTRAL` ở cả sáu. Tin không vào `pre_debate_score` (`master_agent.py` :178–185: `news_norm` chỉ để hiển thị), nên điểm giao dịch không đổi.
+
+### B. ĐO trước khi sửa: chữ NGOÀI có tới được phát biểu tranh luận không
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 ../vibe_logs_287/do_b_tranh_luan_html.py` (log `do_b_truoc.log`). Chạy `MasterConsensusAgent().run` THẬT trên 40 chuỗi giá dựng (hạt giống 0–39) × hai gói tin dựng (toàn tin tích cực, toàn tin tiêu cực), MỌI tiêu đề, tóm tắt, nguồn của tin mang `<b>BOOM</b> & "so" <script>x</script> A&B` → 80 lượt, 560 phát biểu.
+
+- **Chữ ngoài tới phát biểu: KHÔNG** (0/560 mang BOOM, `<script>` hay dấu nháy của tiêu đề). Đường: tiêu đề tin có vào `analyses["news"]` (`top_positive` · `top_negative`, xác nhận), nhưng `debate_agents` chỉ đọc từ đó `overall_sentiment` (nhãn đóng: `POSITIVE 📰🟢` · `NEGATIVE 📰🔴` · …) và `total_articles` (số). Sáu trường chuỗi dán vào phát biểu (`trend` · `trend_strength` · `momentum_signal` · `volume_signal` · `position` · `overall_sentiment`) qua 80 lượt nhận tổng cộng 3 · 1 · 1 · 4 · 2 · 2 giá trị khác nhau, đều là nhãn viết cứng của các agent; không giá trị nào chứa `<` `>` `"`. Mục 2 của log liệt kê MỌI chỗ ô `{…}` trong chuỗi f của `debate_agents.py` (đọc AST).
+- **Nhưng `&` đã có sẵn:** 40/560 phát biểu mang `&` — toàn bộ của Bull, từ chuỗi viết cứng *"macro & ngành hỗ trợ tâm lý mua"*. Trình duyệt chịu được `& ` đứng riêng; vẫn là HTML không hợp lệ.
+- **Đường dán là thô:** nạp `DebateModerator` các trường nhiễm (mục 3 của log) → 2 phát biểu mang chuỗi nhiễm nguyên văn; chạy đúng biểu thức dựng ô của `app.py` (lấy từ cây AST) trên chúng cho `<b>BOOM</b>` và `<script>x()</script>` NGUYÊN VĂN trong HTML (mục 4). Vậy hôm nay không có đường chữ-ngoài, nhưng nếu một trường của `analyses` sau này mang chữ ngoài (tên nguồn, tiêu đề), nó sẽ đi thẳng vào trang.
+
+### C. Sửa
+
+1. **`news_collectors.py`** — hàm mới `khoa_trung` và `bo_tin_trung`; `NewsOrchestrator.collect_and_handoff` gọi `bo_tin_trung` trên từng nhóm (`domestic_news` sau khi nhập tin theo mã, `international_news`, `macro_news`, từng ngành của `sector_news`) TRƯỚC khi đếm `total_articles`, thêm ghi chú `[Trùng] đã bỏ n bài trùng trong cùng một nhóm tin` khi n > 0. Điểm hẹp nhất phủ mọi người gọi: `NewsOrchestrator` là lớp duy nhất ghép các agent thu tin thành gói (`data_collectors.py` :260 và `master_agent.py` :365 chỉ gọi lớp này).
+   **Luật "trùng" (rút từ đo ở mục A):** có đường dẫn → cùng đường dẫn (cắt khoảng trắng hai đầu); không có đường dẫn → cùng tiêu đề (gộp khoảng trắng, không phân biệt hoa thường) VÀ cùng nguồn; không có cả hai → không so, giữ. Giữ bài ĐẦU, đúng thứ tự cũ. Cùng tiêu đề khác đường dẫn hay khác nguồn KHÔNG trùng (đo ra 0 ca; hai bài báo khác nhau thì giữ cả hai). **Chỉ so TRONG MỘT nhóm.**
+2. **`app.py`** — ô Bull/Bear của khung tranh luận: `{arg.get("statement", "")}` → `{_html.escape(arg.get("statement") or "")}` (`_html` là `import html as _html` đã có ở đầu tệp). `arg.get("statement") or ""` để thiếu hay `None` thì ô RỖNG (bản cũ in chữ `None`; `html.escape(None)` sẽ nổ).
+3. **`tests/test_vong_tranh_luan_285.py`** — chỉ hai chỗ: môi trường chạy biểu thức dựng ô thêm `_html`, và hàm đọc ô bỏ thoát (`html.unescape`) trước khi so lời, vì gác 285 kiểm LỜI HIỆN RA (phát biểu có `&` nay nằm trong HTML dưới dạng `&amp;`). Không đổi ý nghĩa gác nào.
+
+**KHÔNG đổi:** `debate_agents.py` (logic, điểm, ngưỡng), `master_agent`, ô "Dòng tiền lớn", `paper_*`, `run_daily`, `sheets_store`, `news_sentiment_agent.py` (cách chấm), danh sách nguồn thu (BƯỚC 279/281), `CLAUDE.md` và mọi file luật.
+
+### D. Cái KHÔNG làm, khai thẳng
+
+- **Không gộp bài lặp giữa các NHÓM** (24 bài mỗi mã): mỗi nhóm được chấm điểm riêng (`NewsSentimentAgent._score_items` theo từng danh sách) nên gộp là đổi cách chấm điểm tin, mà đề bài cấm. Hệ quả còn thấy trong sản phẩm: `top_positive` · `top_negative` của `NewsSentimentAgent` (tin nổi bật) gom cả bốn nhóm vào một danh sách rồi sắp theo tiêu đề nên có thể hiện CÙNG một bài hai ba lần; `total_articles` cũng đếm lặp. Đây là việc cho leader/người dùng quyết (xem Việc kế).
+- **Không đổi nguồn thu** (BƯỚC 279/281).
+
+### E. Các chỗ khác của `app.py` dán chữ vào HTML không thoát (`unsafe_allow_html=True`: 17 chỗ; đã đọc các chỗ có chữ động, KHÔNG sửa — danh sách cho leader)
+
+Không chỗ nào dán tiêu đề tin (`app.py` không đọc `top_positive` · `top_negative` · `title` của tin ở đâu cả) nên không chỗ nào chịu dữ liệu kiểu ĐO B. Ba hạng:
+
+1. **Có chữ NGOÀI vào được:** `_np_phu = f"nến nội phiên: {_loi_np}"` ở ô "Trong phiên" của thẻ 📊 Hôm nay: `_loi_np` = `type(e).__name__: str(e)[:90]` của một lỗi mạng/thư viện (`nen_noi_phien`). Chuỗi thật hôm nay (nhánh không có vnstock) không có `<>&"` (`../vibe_logs_287/do_b2_loi_np.py`, mẫu 1); mẫu 2 trong cùng script là câu DỰNG chứ không phải lỗi bắt được, chỉ cho thấy `&`/`<` trong 90 ký tự đầu của một lỗi mạng sẽ đi thẳng vào HTML. **Chưa bắt được ca thật.**
+2. **Chữ NGƯỜI DÙNG gõ:** `{symbol}` từ `st.text_input("Mã CK")` được dán vào nhiều ô (tiêu đề `Debate Council ({symbol})` và ô dự phòng "Bull Agent ({symbol})" của chính khung tranh luận; `{symbol}.VN` ở đầu biểu đồ; ô "Phân tích hôm nay"; `_vt_phu` …). Tới được HTML chỉ khi bước tải giá thành công (`st.stop()` ở *"Không thể kết nối dữ liệu giá cho mã"* chặn mã sai), nên cần một chuỗi vừa có giá vừa chứa `<`; chỉ tự tấn công chính phiên mình.
+3. **Chữ nội bộ, nhãn đóng (KHÔNG lần ngược từng biến tới nguồn ngoài):** `master_msg` trong chính khung tranh luận (= `key_reasons[0]` = dòng "Xu hướng: …" của trend agent; đo ở B: `DOWNTREND`/`UPTREND`/`SIDEWAYS` và độ mạnh `YẾU`); `dyn_rec`, `dyn_phase_short` · `dyn_phase_full`, `vol_flow_str`, `_goi_canh_bao`, ba dòng `_hang(...)` (`_fa["signals"][0]`, số vòng, tên lớp lỗi), `_chu_thich_so_lenh_html`, `_vt_chinh`/`_vt_phu` (ngày vào lệnh từ sổ), `{_tip(...)}`. Chỗ ĐÃ thoát sẵn (ngoài danh sách): ô tín hiệu nhanh (`_html.escape` ở :1581–1584) và bảng sức khoẻ (:2686–2692).
+
+### F. Gác (`tests/test_tin_trung_va_escape_287.py`, 13 test, không dùng mạng; mốc 5254 → 5267)
+
+1. Luật bỏ trùng (hàm thuần): cùng đường dẫn (cắt khoảng trắng); không đường dẫn thì cùng tiêu đề chuẩn hoá và cùng nguồn; cùng tiêu đề khác nguồn không trùng; cùng tiêu đề khác đường dẫn không trùng; bài rỗng giữ nguyên; không sửa danh sách vào (6 test).
+2. `collect_and_handoff` trên mạng giả (Google News: bài A ở cả ba câu, B và C mỗi bài một câu; mọi nguồn khác lặp bài đầu ngay trong nguồn): mọi nhóm hết trùng, đúng ba bài Google, `total_articles` đếm SAU bỏ trùng, có ghi chú `[Trùng]`; bài chung giữa nhóm trong nước và nhóm ngành VẪN còn ở cả hai (khoá "chỉ so trong nhóm"); không trùng thì không ghi chú (3 test).
+3. Ô tranh luận: chạy ĐÚNG biểu thức `o_vong_tranh_luan` của `app.py` (biên dịch từ cây AST) với phát biểu `<b>BOOM</b> & "so" <script>x()</script> A&B` → trình đọc HTML chỉ thấy thẻ `div` và `span`, chữ hiện nguyên văn; `&` của chuỗi viết cứng thành `&amp;` mà vẫn hiện `&`; thiếu hay `None` thì không in "None"; gác AST: trong khuôn ô, giá trị chứa khoá `statement` là lời gọi `escape` của module `html` (4 test).
+
+**Đột biến** (`va_an_toan.dot_bien_bo`; script `../vibe_logs_287/dot_bien_287.py`, log `dot_bien_1.log`): **17/17 đỏ ngay lượt đầu** — M1 (dựng lại lỗi thật: không bỏ trùng) · M2 bỏ nguồn khỏi khoá tiêu đề · M3 luôn so theo tiêu đề · M4 phân biệt hoa thường · M5 không gộp khoảng trắng · M6 không cắt khoảng trắng đường dẫn · M7–M10 bỏ lời gọi ở từng nhóm (trong nước · quốc tế · vĩ mô · ngành) · M11 gộp chéo nhóm · M12 ghi chú luôn thêm · M13 `total_articles` lệch · A1 (dựng lại lỗi thật: dán thô) · A2 `unescape` · A3 bỏ `or ""` · A4 thay `escape` bằng `str`. Lượt đầu đỏ hết là chỗ để nghi gác quá khớp chứ không để tự mãn: M7–M10 đỏ được là nhờ mạng giả cố ý cho MỌI nhóm một bản trùng; trên mạng thật chỉ nhóm "trong nước" có bản trùng (mục A), nên M8–M10 chỉ chứng minh gác canh được lời gọi chứ không chứng minh các nhóm ấy từng sai.
+
+### G. Giả thuyết/ước lượng bị bác hoặc điều chưa kiểm
+
+- **Bác:** *"Google News trả cùng tiêu đề nhiều lần cho một truy vấn"* — đo ra trùng nằm giữa các câu của cùng mã, không trong một câu (mục A).
+- **Bác:** nghi vấn "chữ ngoài (tiêu đề tin) có thể tới ô tranh luận" — không có đường hôm nay (mục B).
+- **Ước lượng, chưa đo:** chỗ (E.1) có thể xảy ra trên Cloud khi lỗi mạng chứa `&` — chưa ai bắt được một ca.
+- **Chưa dựng app lên nhìn:** ô tranh luận kiểm bằng chạy biểu thức AST của `app.py` và đọc HTML bằng `html.parser`, không bằng mắt. Chưa đo trên Cloud/Actions, chỉ từ một IP nhà.
+- **Tác dụng phụ ngoài ý muốn:** lần đầu dò `_loi_np` bằng `intraday_data.tai` thật, nó gọi `vnstock_auth.ensure_api_key()` và in "API key đã được lưu" — tức chạm cấu hình `~/.vnstock` của người dùng (chính việc app vẫn làm khi chạy); không ghi gì vào repo. Script cuối không gọi nó nữa.
+
+### Sổ tay NotebookLM
+
+`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 287` — kết quả ở mục *Năm cổng* bên dưới (chạy trên cây đã commit). BƯỚC không đổi luật và không đổi kết luận đo; mục `BƯỚC 287` của `docs/soat-notebooklm.json` khai `khong_bat_buoc_vi`. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; các bảng đo ở mục A và B chỉ nằm ở STATE nên đây là kỷ luật, không phải cơ chế.
+
+### Năm cổng
+
+`./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_287/cong` (worktree, python của repo chính; 10:47:34–10:56:41 giờ máy, 547 s; cây `sua/tin-trung-va-escape-287` tại `89bac89`; log `vibe_logs_287/cong/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0** — cổng 1 `5265 passed, 2 skipped` (270 s; 5.267 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (226 file, 261 s) · cổng 5 *"OK — 5267 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 287` → *"khong cham luat"* (`vibe_logs_287/cham_luat.txt`). Lượt cổng đầu xanh cả năm (không phải sửa gác lần nào). Mục này được ghi bằng một commit chỉ-tài-liệu sau lượt cổng; năm cổng được chạy LẠI trên commit cuối đó (kết quả ở báo cáo của phiên con và ở PR).
+
+### Việc kế
+
+1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
+2. Câu hỏi cho người dùng (cần quyết, phiên này không tự làm): có muốn bỏ bài lặp GIỮA các nhóm (24 bài mỗi mã) không — đổi cách chấm điểm tin (chỉ hiển thị, không vào `pre_debate_score`) và danh sách "tin nổi bật" hết lặp; cần một BƯỚC có ĐO riêng.
+3. Danh sách mục E cho leader: nếu muốn thoát hết, hai chỗ đáng làm trước là `_loi_np` (chữ ngoài) và `master_msg` (cùng khung tranh luận).
+4. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).

@@ -205,6 +205,44 @@ def _fetch_rss(url: str, source: str, category: str, region: str,
     return items
 
 
+# ── BƯỚC 287: bỏ bản trùng TRONG MỘT NHÓM tin ────────────────────────────────
+def khoa_trung(item: "NewsItem") -> tuple | None:
+    """Khoá nhận ra MỘT bài tin, hoặc `None` nếu bài không đủ chữ để so (giữ nguyên, không đoán).
+
+    Luật (rút từ đo thật 20/11/2026, `vibe_logs_287/do_a_truoc.log`: 6 mã × 200 bài, mọi cặp trùng đều
+    CÙNG tiêu đề, CÙNG đường dẫn, CÙNG nguồn; 0 cặp cùng tiêu đề khác nguồn hay khác đường dẫn):
+      * có đường dẫn  -> hai bài trùng khi CÙNG đường dẫn (đã bỏ khoảng trắng hai đầu);
+      * không có      -> trùng khi CÙNG tiêu đề (gộp khoảng trắng, không phân biệt hoa thường) VÀ CÙNG nguồn;
+      * không có cả hai -> không so.
+    Cùng tiêu đề nhưng KHÁC đường dẫn thì KHÔNG trùng: đó là hai bài báo khác nhau.
+    """
+    lien_ket = (item.url or "").strip()
+    if lien_ket:
+        return ("lien_ket", lien_ket)
+    tieu_de = " ".join((item.title or "").split()).casefold()
+    if tieu_de:
+        return ("tieu_de", tieu_de, (item.source or "").strip().casefold())
+    return None
+
+
+def bo_tin_trung(items: list["NewsItem"]) -> tuple[list["NewsItem"], int]:
+    """Giữ bài ĐẦU của mỗi khoá `khoa_trung`, đúng thứ tự cũ. Trả (danh sách mới, số bài đã bỏ).
+
+    Chỉ so TRONG MỘT danh sách. Cùng một bài nằm ở hai nhóm (trong nước và ngành ngân hàng...) là
+    chuyện khác — mỗi nhóm được chấm điểm riêng nên không gộp ở đây.
+    """
+    da_thay: set = set()
+    giu: list = []
+    for it in items:
+        k = khoa_trung(it)
+        if k is not None:
+            if k in da_thay:
+                continue
+            da_thay.add(k)
+        giu.append(it)
+    return giu, len(items) - len(giu)
+
+
 # ─────────────────────────────────────────────────────────────────────
 # LAYER 1a: DOMESTIC NEWS AGENT  (Tin tức trong nước)
 # ─────────────────────────────────────────────────────────────────────
@@ -457,6 +495,17 @@ class NewsOrchestrator:
                 packet.notes.append(f"[Company-{self.symbol}] {len(company_items)} bài viết")
             except Exception as e:
                 packet.notes.append(f"[Company] Lỗi: {e}")
+
+        # BƯỚC 287: Google News trả cùng một bài cho hai câu hỏi theo mã (cùng tiêu đề, cùng đường dẫn);
+        # gom bài đã bỏ TRONG từng nhóm trước khi đếm. Không đụng nhóm nào khác, không đổi nguồn thu.
+        da_bo = 0
+        packet.domestic_news, n = bo_tin_trung(packet.domestic_news); da_bo += n
+        packet.international_news, n = bo_tin_trung(packet.international_news); da_bo += n
+        packet.macro_news, n = bo_tin_trung(packet.macro_news); da_bo += n
+        for sec in list(packet.sector_news):
+            packet.sector_news[sec], n = bo_tin_trung(packet.sector_news[sec]); da_bo += n
+        if da_bo:
+            packet.notes.append(f"[Trùng] đã bỏ {da_bo} bài trùng trong cùng một nhóm tin")
 
         packet.total_articles = (
             len(packet.domestic_news) +

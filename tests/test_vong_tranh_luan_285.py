@@ -17,6 +17,7 @@ Ba gác:
 Gác dạng `"x" in src` khớp cả chú thích nên không dùng (CLAUDE.md, "Gác phải đọc AST").
 """
 import ast
+import html as _html_chuan
 import pathlib
 import re
 import sys
@@ -47,12 +48,13 @@ def _dung_o(rounds, symbol="FPT"):
     """Chạy biểu thức `o_vong_tranh_luan` CỦA app.py (biên dịch từ chính nút AST) trên `rounds`."""
     cay = _cay()
     phe = eval(compile(ast.Expression(_gan(cay, "_PHE_TRANH_LUAN").value), "app.py", "eval"), {})
-    env = {"rounds": rounds, "_PHE_TRANH_LUAN": phe, "symbol": symbol, "_chua": "CHUA-CO-LOI"}
+    env = {"rounds": rounds, "_PHE_TRANH_LUAN": phe, "symbol": symbol, "_chua": "CHUA-CO-LOI", "_html": _html_chuan}
     return eval(compile(ast.Expression(_gan(cay, "o_vong_tranh_luan").value), "app.py", "eval"), env)
 
 
 def _doc_o(html):
-    return [(m.group(1), " ".join(m.group(2).split()), m.group(3).strip()) for m in _O.finditer(html)]
+    # BƯỚC 287: lời trong ô đã qua `html.escape` (`&` -> `&amp;`); gác này kiểm LỜI hiện ra nên bỏ thoát trước khi so.
+    return [(m.group(1), " ".join(m.group(2).split()), _html_chuan.unescape(m.group(3).strip())) for m in _O.finditer(html)]
 
 
 def _kq_tranh_luan_that():
