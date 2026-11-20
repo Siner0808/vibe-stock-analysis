@@ -430,6 +430,7 @@ st.markdown("""
     .a-lbl { color: var(--c-t2); font-weight: 500; }
     .a-st { font-weight: 700; font-size: 11px; }
     .a-st.ok { color: var(--c-g); } .a-st.ac { color: var(--c-p); } .a-st.wn { color: var(--c-o); }
+    .a-st.xam { color: #919191; }
 
     /* ─── TABS ───────────────────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
@@ -1371,17 +1372,13 @@ with st.sidebar:
         try:
             import vnstock_goi as _vg
             _goi = _vg.kiem_goi()
-            _row_goi = _hang(
-                "🎫 Gói vnstock",
-                (f"{_goi.hang_may_chu} · hết hạn {_goi.het_han}"
-                 if _goi.dat else
-                 f"mua {_goi.hang_may_chu} · chạy như {_goi.hang_cuc_bo}"
-                 if _goi.tinh_trang == _vg.LECH else _goi.ly_do[:38]),
-                "● ĐÚNG" if _goi.dat
-                else "● LỆCH" if _goi.tinh_trang == _vg.LECH else "● ?",
-                "ac" if _goi.dat else "wn")
+            # BƯỚC 286: chữ, nhãn, MÀU và dòng cảnh báo cam do `vnstock_goi.hang_hop_app` quyết
+            # định (test được không cần Streamlit). Gói vắng -> ô XÁM `xam`, không `?`, không cam.
+            _goi_chu, _goi_nhan, _goi_lop, _goi_canh_bao = _vg.hang_hop_app(_goi)
+            _row_goi = _hang("🎫 Gói vnstock", _goi_chu, _goi_nhan, _goi_lop)
         except Exception as _e:
             _goi = None
+            _goi_canh_bao = ""
             _row_goi = _hang("🎫 Gói vnstock",
                              f"không kiểm được ({type(_e).__name__})",
                              "● ?", "wn")
@@ -1410,13 +1407,14 @@ with st.sidebar:
             + _row_goi
             + '</div>'
             + (f'<div style="font-size:11px;color:#ff9f0a;margin-top:8px;'
-               f'line-height:1.45;">⚠️ {_goi.dong_log()}</div>'
-               if _goi is not None and not _goi.dat else '')
+               f'line-height:1.45;">⚠️ {_goi_canh_bao}</div>'
+               if _goi_canh_bao else '')
             # Ảnh hưởng bằng 0 phải được NÓI RA ngay cạnh dòng "● BẬT".
             # Một thành phần bật mà không tác động, nếu không ghi chú, đọc
             # y hệt một thành phần đang tham gia quyết định.
             + '<div style="font-size:11px;color:#919191;margin-top:8px;'
-            'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất (vnstock). '
+            'line-height:1.45;">Agent Cơ Bản đọc BCTC năm gần nhất khi có nguồn '
+            '(hiện KHÔNG có: vnstock đã bị hãng gỡ 10/11/2026, chờ BƯỚC 265). '
             '<b>Ảnh hưởng lên điểm giao dịch: 0</b> — chưa CHẠY phép đo, '
             'không phải không đo được. Xem <code>fundamental_agent.py</code> '
             'và <code>experiment_fundamentals.py</code>.</div>',

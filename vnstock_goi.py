@@ -55,6 +55,13 @@ KHOP = "KHỚP"
 LECH = "LỆCH"
 CHUA_KIEM_DUOC = "CHƯA KIỂM ĐƯỢC"
 
+#: BƯỚC 286 — `vnstock` không còn cài (hãng gỡ 10/11/2026): hạng gói không còn nghĩa. Một câu RIÊNG,
+#: để người đọc không đi tìm khoá API khi nguyên nhân là gói vắng. `CHU_O_VANG` là chữ trong ô
+#: "Gói vnstock" của app (người dùng 20/11/2026: *"Đổi chữ, giữ ô (Recommended)"*).
+CHU_O_VANG = "vnstock không còn cài ở đây"
+LY_DO_VANG = (f"{CHU_O_VANG} (hãng gỡ 10/11/2026) — hạng gói không còn nghĩa; "
+              "dùng lại được nếu BƯỚC 265 đưa vnstock 6 vào")
+
 #: Số kỳ báo cáo tài chính mỗi hạng được lấy. Chép từ
 #: `vnai.beam.fundamental.PERIOD_LIMITS`; None nghĩa là không giới hạn.
 #: Đọc động khi có thể, bảng này chỉ là đường lui khi vnai đổi cấu trúc.
@@ -79,6 +86,7 @@ class TrangThaiGoi:
     ky_bctc_neu_dung_hang: int | None = None
     han_muc_phut: int | None = None
     ly_do: str = ""                       # vì sao chưa kiểm được
+    goi_vang: bool = False                # True: `vnstock`/`vnai` không nạp được ở đây (BƯỚC 286)
 
     @property
     def dat(self) -> bool:
@@ -181,6 +189,12 @@ def kiem_goi(tai_ve=None, lay_khoa=None, dung_cache: bool = True) -> TrangThaiGo
 
     hang_cb, ky, phut = _hang_cuc_bo()
 
+    def _vang() -> TrangThaiGoi:
+        tt = TrangThaiGoi(tinh_trang=CHUA_KIEM_DUOC, ly_do=LY_DO_VANG, goi_vang=True)
+        if dung_cache and tai_ve is None:
+            _CACHE["goi"] = (time.time(), tt)
+        return tt
+
     def _chiu(ly_do: str) -> TrangThaiGoi:
         tt = TrangThaiGoi(tinh_trang=CHUA_KIEM_DUOC, hang_cuc_bo=hang_cb,
                           ky_bctc=ky, han_muc_phut=phut, ly_do=ly_do)
@@ -196,6 +210,12 @@ def kiem_goi(tai_ve=None, lay_khoa=None, dung_cache: bool = True) -> TrangThaiGo
             ensure_api_key()
             import vnai
             khoa = vnai.get_api_key()
+    except ModuleNotFoundError as e:
+        # BƯỚC 286: gói của hãng VẮNG (không phải thiếu khoá, không phải lỗi mạng). Chỉ đường THẬT
+        # (không tiêm `lay_khoa`) tới đây; test tiêm hàm giả không đi qua nhánh này.
+        if getattr(e, "name", None) in ("vnai", "vnstock"):
+            return _vang()
+        return _chiu(f"không đọc được API key ({type(e).__name__})")
     except Exception as e:
         return _chiu(f"không đọc được API key ({type(e).__name__})")
     if not khoa:
@@ -227,6 +247,23 @@ def kiem_goi(tai_ve=None, lay_khoa=None, dung_cache: bool = True) -> TrangThaiGo
     if dung_cache and tai_ve is None:
         _CACHE["goi"] = (time.time(), tt)
     return tt
+
+
+def hang_hop_app(tt: TrangThaiGoi) -> tuple[str, str, str, str]:
+    """Bốn thứ hộp "🎫 Gói vnstock" của app cần: (chữ chi tiết, nhãn, lớp CSS, dòng cảnh báo).
+
+    Tách khỏi `app.py` để test được MÀU mà không dựng Streamlit (BƯỚC 286): gói vắng thì ô XÁM
+    (`xam`), chữ `CHU_O_VANG`, KHÔNG nhãn `?`, KHÔNG dòng cảnh báo cam. Lớp: `ac` đúng · `wn` lệch/
+    chưa kiểm được · `xam` vắng. Dòng cảnh báo rỗng nghĩa là không hiện.
+    """
+    if tt.goi_vang:
+        return CHU_O_VANG, "● —", "xam", ""
+    if tt.dat:
+        return f"{tt.hang_may_chu} · hết hạn {tt.het_han}", "● ĐÚNG", "ac", ""
+    if tt.tinh_trang == LECH:
+        return (f"mua {tt.hang_may_chu} · chạy như {tt.hang_cuc_bo}", "● LỆCH", "wn",
+                tt.dong_log())
+    return tt.ly_do[:38], "● ?", "wn", tt.dong_log()
 
 
 def xoa_cache() -> None:
