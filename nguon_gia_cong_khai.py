@@ -149,12 +149,82 @@ CHUOI_CO_PHIEU = (NGUON_ENTRADE, NGUON_VNDIRECT, NGUON_VPS)
 CHUOI_CHI_SO = (NGUON_VNDIRECT, NGUON_IBOARD, NGUON_VPS)
 
 
+# ──────────────────── Nguồn Entrade có KHỬ TRÙNG — CHỈ cho đường biểu đồ của app (BƯỚC 288) ────────────────────
+#
+# VÌ SAO. Entrade trả HAI nến cùng một ngày phiên ở lịch sử cũ nên `dung_khung` loại cả chuỗi ("hai nến rơi vào
+# cùng một ngày phiên") và cửa sổ 1.583 ngày của nến tuần/tháng rơi sang VNDirect: thêm một lượt mạng hỏng và một
+# lượt tải riêng so với cửa sổ 1.095 ngày (đo 20/11/2026, `docs/do-toc-do-app-288/`: mở lần đầu 2,81 s -> 1,33 s).
+#
+# ĐO (20/11/2026, 71 mã, JSON thô 1.583 ngày): 67/71 mã có ngày trùng trong cửa sổ 1.583 ngày, 0/71 trong cửa sổ
+# quét (từ 04/07/2023). Chỉ BA ngày: 27/12/2022 (67 mã), 07/04/2023 (DHG, MSR), 10/04/2023 (AAA) — 70 cặp (mã, ngày);
+# hai nến khác nhau ở mốc giờ (00:00 và 02:00 UTC) và ở cả năm cột, không cặp nào giống hệt.
+#
+# QUY TẮC KHỬ TRÙNG LÀ PHỎNG ĐOÁN: giữ nến CÓ KHỐI LƯỢNG LỚN HƠN trong ngày (bằng nhau thì nến muộn hơn).
+#   - Đúng ở 67 cặp 27/12/2022: nến giữ khớp VNDirect (khối lượng lệch <= 0,1%; |Δclose| trung vị 0,003 nghìn đồng);
+#     nến bị bỏ lệch khối lượng trung vị 65%.
+#   - SAI ở ba cặp tháng 04/2023, nơi KHÔNG nến nào khớp VNDirect (hai mảnh dở): AAA 10/04/2023 (khối lượng lệch 11%),
+#     DHG 07/04/2023 (52%), MSR 07/04/2023 (73%). Ba nến tuần/tháng của ba mã thanh khoản thấp có thể lệch; nến NGÀY
+#     của app không lệch vì cửa sổ 1.095 ngày không chứa các ngày ấy.
+# Phép khử chỉ chạy khi MỌI ngày trùng <= `NGAY_TRUNG_CUOI_DA_BIET`; ngày trùng nào muộn hơn thì nổ như cũ để chuỗi rơi
+# sang nguồn kế — nên nến nằm trong cửa sổ quét (từ 04/07/2023) không bao giờ đi qua phép khử.
+#
+# NGUON_ENTRADE_KHU_TRUNG KHÔNG nằm trong `CHUOI_CO_PHIEU`/`CHUOI_CHI_SO`: `collect` mặc định, `run_daily`, `fetch_one`
+# và backtest KHÔNG đổi một byte. Chỉ `chuoi_cho_app` (và `app.py`) nhắc tới nó; gác `tests/test_gop_cua_so_288.py`.
+NGAY_TRUNG_CUOI_DA_BIET = date(2023, 4, 10)
+
+
+def khu_trung_entrade(cot: tuple) -> tuple:
+    """(t,o,h,l,c,v) thô của Entrade -> bản đã bỏ nến TRÙNG ngày phiên (giữ nến khối lượng lớn hơn). Hàm thuần.
+
+    Không có ngày trùng thì trả NGUYÊN `cot` (cùng đối tượng). Có ngày trùng muộn hơn `NGAY_TRUNG_CUOI_DA_BIET`, hay
+    khối lượng không đọc được ở nến trùng, thì ném `NguonGiaLoi` (nguồn bị bỏ như trước BƯỚC 288).
+    """
+    t, o, h, l, c, v = cot
+    if not (len(t) == len(o) == len(h) == len(l) == len(c) == len(v)):
+        raise NguonGiaLoi("các mảng t/o/h/l/c/v khác độ dài")
+    if len(t) == 0:
+        return cot
+    ts = pd.to_numeric(pd.Series(t), errors="coerce")
+    if ts.isna().any():
+        raise NguonGiaLoi("có mốc thời gian không đọc được")
+    ngay = (pd.to_datetime(ts.astype("int64"), unit="s") + pd.Timedelta(hours=7)).dt.normalize()
+    trung = ngay.duplicated(keep=False)
+    if not trung.any():
+        return cot
+    muon = sorted({d for d in ngay[trung].dt.date if d > NGAY_TRUNG_CUOI_DA_BIET})
+    if muon:
+        raise NguonGiaLoi("hai nến rơi vào cùng một ngày phiên (ngày trùng "
+                          f"{muon[0].isoformat()} nằm ngoài các ngày đã biết, tới {NGAY_TRUNG_CUOI_DA_BIET.isoformat()})")
+    khoi = pd.to_numeric(pd.Series(v), errors="coerce")
+    if khoi[trung].isna().any():
+        raise NguonGiaLoi("khối lượng không đọc được ở nến trùng ngày")
+    bang = pd.DataFrame({"ngay": ngay, "khoi": khoi, "ts": ts, "vi_tri": range(len(t))})
+    giu = (bang.sort_values(["ngay", "khoi", "ts"]).drop_duplicates("ngay", keep="last")["vi_tri"]
+           .sort_values().tolist())
+    return tuple([mang[i] for i in giu] for mang in (t, o, h, l, c, v))
+
+
+def _doc_entrade_khu_trung(j: dict) -> tuple:
+    return khu_trung_entrade(_doc_phang(j))
+
+
+NGUON_ENTRADE_KHU_TRUNG = Nguon("entrade", _url_entrade, _doc_entrade_khu_trung)
+
+
 def loai_ma(ma: str) -> str:
     return "chi_so" if str(ma).upper() in CHI_SO_HO_TRO else "co_phieu"
 
 
 def chuoi_nguon(ma: str) -> tuple[Nguon, ...]:
     return CHUOI_CHI_SO if loai_ma(ma) == "chi_so" else CHUOI_CO_PHIEU
+
+
+def chuoi_cho_app(ma: str) -> tuple[Nguon, ...]:
+    """Chuỗi nguồn của ĐƯỜNG BIỂU ĐỒ trên app (BƯỚC 288): như `chuoi_nguon` nhưng Entrade đứng đầu chuỗi cổ phiếu là
+    bản KHỬ TRÙNG. Chỉ `app.py` gọi; `collect` mặc định, `run_daily` và backtest vẫn đi `chuoi_nguon`. Chỉ số: nguyên chuỗi."""
+    if loai_ma(ma) == "chi_so":
+        return CHUOI_CHI_SO
+    return (NGUON_ENTRADE_KHU_TRUNG,) + tuple(n for n in CHUOI_CO_PHIEU if n is not NGUON_ENTRADE)
 
 
 def ten_cac_nguon(ma: str) -> tuple[str, ...]:

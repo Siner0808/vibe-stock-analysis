@@ -1136,15 +1136,20 @@ def load_stock_data(ticker, start, end, exch="HOSE"):
 
 
 # BƯỚC 280 (phần C): biểu đồ ngày (180 ngày) và ô cấu trúc Dow (1.095 ngày) từng là hai lượt tải riêng của
-# CÙNG một mã. Nay tải MỘT lần cửa sổ 1.095 ngày rồi cắt `n` nến cuối cho biểu đồ (`gia_mot_lan`, cùng phép đếm
-# của `collect`), CHỈ khi lượt tải do nguồn đầu chuỗi phục vụ; không thì tải theo đường cũ. Nến tuần/tháng (1.583
-# ngày) KHÔNG gộp được: nguồn đầu bị bỏ ở cửa sổ ấy nên giá làm tròn khác (docstring `gia_mot_lan`). Không đổi
-# `collect` hay thứ `run_daily` dùng.
+# CÙNG một mã. Nay tải MỘT lần cửa sổ rộng rồi cắt `n` nến cuối cho biểu đồ (`gia_mot_lan`, cùng phép đếm
+# của `collect`), CHỈ khi lượt tải do nguồn đầu chuỗi phục vụ; không thì tải theo đường cũ.
+# BƯỚC 288 (người dùng chọn *"C: một lượt Entrade (Recommended)"*): cửa sổ rộng là 1.583 ngày của nến tuần/tháng và
+# đi chuỗi `chuoi_cho_app` — Entrade có KHỬ TRÙNG (hai nến một ngày ở lịch sử cũ, `nguon_gia_cong_khai`) — nên biểu
+# đồ ngày, ô Dow VÀ nến tuần/tháng chung MỘT lượt tải. Nến ngày/Dow giữ y nguyên nến `run_daily` chấm (đo 71/71 mã
+# giống từng byte); nến tuần/tháng của cổ phiếu chuyển từ VNDirect sang Entrade (chỉ để hiện). `collect` mặc định,
+# `run_daily` và backtest không đổi.
 @st.cache_data(ttl=300)
 def load_stock_data_nguon(ticker, start, end, exch="HOSE"):
-    """Như `load_stock_data` nhưng trả thêm TÊN NGUỒN đã phục vụ chuỗi giá (bộ thứ tư)."""
+    """Như `load_stock_data` nhưng đi chuỗi `chuoi_cho_app` và trả thêm TÊN NGUỒN đã phục vụ (bộ thứ tư)."""
     try:
-        res = VNStockCollectorAgent().collect(ticker, start, end, exchange=exch)
+        import nguon_gia_cong_khai as _ngk_app
+        res = VNStockCollectorAgent().collect(ticker, start, end, exchange=exch,
+                                              chuoi=_ngk_app.chuoi_cho_app(ticker))
         quality = res.get("quality")
         warns = [i.message for i in quality.warnings] if quality is not None else []
         # bia-ok: bản sao NGUYÊN VĂN mặc định của `load_stock_data` ngay trên (cùng lý do, Phase 2C): hai hàm phải
@@ -1156,10 +1161,10 @@ def load_stock_data_nguon(ticker, start, end, exch="HOSE"):
 
 @st.cache_data(ttl=300)
 def load_stock_data_cat(ticker, start, end, exch="HOSE"):
-    """Như `load_stock_data(ticker, start, end, exch)` — cùng ba giá trị trả về — nhưng biểu đồ ngày và ô Dow
-    chung MỘT lượt tải cửa sổ rộng hơn trong hai (`NGAY_LICH_CUA_SO`; có đệm 300 giây)."""
+    """Như `load_stock_data(ticker, start, end, exch)` — cùng ba giá trị trả về — nhưng biểu đồ ngày, ô Dow và nến
+    tuần/tháng chung MỘT lượt tải cửa sổ rộng nhất trong ba (BƯỚC 288; có đệm 300 giây)."""
     import gia_mot_lan as _g1l
-    ngay_rong = max(days_back, _NGAY_LICH_DOW)
+    ngay_rong = max(days_back, _NGAY_LICH_DOW, _kt.NGAY_LICH_CHO_KHUNG_THANG)
     return _g1l.tai_mot_lan(load_stock_data_nguon, load_stock_data, ticker, start, end, exch, ngay_rong)
 
 # Calculate RSI Helper
@@ -1698,15 +1703,16 @@ _CHU_KY_RSI = calculate_rsi.__defaults__[0]
 def _nen_ba_khung(ma, san, bay_gio):
     """(nến D·W·M đã đóng, hệ số đơn vị giá, lỗi) của một mã hay VN-INDEX.
 
-    Tải qua `load_stock_data` — CÙNG cổng kiểm định với chart ngày, có đệm,
-    không đường tải thứ hai. Cửa sổ xin là `NGAY_LICH_CHO_KHUNG_THANG`, suy từ
+    Tải qua `load_stock_data_cat` (BƯỚC 288) — CÙNG cổng kiểm định với chart ngày, có đệm; cổ phiếu chung MỘT
+    lượt tải với biểu đồ ngày và ô Dow (cửa sổ này là cửa sổ rộng nhất của ba). VN-INDEX: chuỗi cũ, cùng cửa sổ, nên
+    `load_stock_data_cat` cho đúng thứ `load_stock_data` từng cho. Cửa sổ xin là `NGAY_LICH_CHO_KHUNG_THANG`, suy từ
     chu kỳ chỉ báo dài nhất (MA50) chứ không gõ số ngày. Nguồn có thể cắt
     ngắn hơn (hạn mức gói); `tu_ngay` lấy từ NGÀY ĐẦU THẬT CỦA BẢNG nhận về,
     không từ ngày đã xin, nên kỳ đầu bị cắt ngang luôn bị bỏ.
     """
     tu = (bay_gio - timedelta(days=_kt.NGAY_LICH_CHO_KHUNG_THANG)
           ).strftime("%Y-%m-%d")
-    d, trang_thai, _ = load_stock_data(
+    d, trang_thai, _ = load_stock_data_cat(
         ma, tu, bay_gio.strftime("%Y-%m-%d"), san)
     if trang_thai != "OK" or d is None or d.empty:
         return None, 1.0, f"không tải được nến cho {ma} (trạng thái {trang_thai})"
@@ -1766,7 +1772,17 @@ def _ve_nen_khung(nen, he_so):
     return fig
 
 
-def _chu_thich_khung(nen):
+# BƯỚC 288: nến tuần/tháng của CỔ PHIẾU đổi nguồn từ VNDirect sang Entrade (một lượt tải chung với biểu đồ ngày) — nói
+# thẳng dưới chart, không giấu (số 26% và 1.300 đồng: `docs/do-toc-do-app-288/`, 71 mã, 20/11/2026; người dùng đã
+# đọc đúng các con số này khi chọn phương án).
+_GHI_CHU_NGUON_KHUNG_GOP = (
+    "Nến tuần/tháng của cổ phiếu từ BƯỚC 288 lấy từ nguồn Entrade (trước đó VNDirect): giá làm tròn khác, khoảng 26% "
+    "số nến lệch giá đóng cửa trên 5 đồng, lớn nhất khoảng 1.300 đồng. Lịch sử trước 04/2023 có nến Entrade trùng "
+    "ngày, đã khử bằng phép giữ nến khối lượng lớn hơn; ba cặp (AAA 10/04/2023, DHG và MSR 07/04/2023) bị khử "
+    "sai nên nến tuần/tháng của ba mã ấy có thể lệch.")
+
+
+def _chu_thich_khung(nen, ghi_chu_nguon=""):
     thieu = [f"MA{c} chưa đủ {c} nến (có {len(nen)})"
              for c in (_kt.CHU_KY_MA_NGAN, _kt.CHU_KY_MA_DAI) if len(nen) < c]
     return (
@@ -1774,10 +1790,11 @@ def _chu_thich_khung(nen):
         "thật của nó. Nguồn giá điều chỉnh LÙI cả lịch sử theo sự kiện quyền "
         "tính tới lúc tải (BƯỚC 176, 193) — giá quá khứ trên chart có thể thấp "
         "hơn giá đã khớp lúc ấy và giá ghi trong sổ lệnh."
-        + (" " + " · ".join(thieu) + "." if thieu else ""))
+        + (" " + " · ".join(thieu) + "." if thieu else "")
+        + (" " + ghi_chu_nguon if ghi_chu_nguon else ""))
 
 
-def _ve_khung_gop(nen_ck, khung, he_so, loi):
+def _ve_khung_gop(nen_ck, khung, he_so, loi, ghi_chu_nguon=""):
     """Chart nến tuần (W) hoặc tháng (M) của mã đang xem."""
     if nen_ck is None:
         st.warning(f"Không có nến khung {khung}: {loi}.")
@@ -1787,7 +1804,7 @@ def _ve_khung_gop(nen_ck, khung, he_so, loi):
         st.info(f"Chưa có nến {khung} nào đã đóng trong dữ liệu tải được.")
         return
     st.plotly_chart(_ve_nen_khung(nen, he_so), width="stretch")
-    st.caption(_chu_thich_khung(nen))
+    st.caption(_chu_thich_khung(nen, ghi_chu_nguon))
 
 
 def _ve_vnindex_khung(khung, bay_gio):
@@ -1918,7 +1935,7 @@ with col_chart:
 
         st.plotly_chart(fig_candlestick, width="stretch")
     else:
-        _ve_khung_gop(_nen_ck, _khung_chon, _he_so_ck, _loi_ck)
+        _ve_khung_gop(_nen_ck, _khung_chon, _he_so_ck, _loi_ck, _GHI_CHU_NGUON_KHUNG_GOP)
 
     _ve_vnindex_khung(_khung_chon, end_date)
 

@@ -8,8 +8,10 @@ Khoá bốn điều (đột biến ở `docs/STATE.md` BƯỚC 280):
    đi VNDirect, các cửa sổ ngắn đi Entrade, giá làm tròn khác) thì KHÔNG cắt, trả đúng đường cũ.
 3. **Mọi nhánh không chắc đều về đường cũ**: tải rộng hỏng, trạng thái khác OK, bảng rộng ngắn hơn cửa sổ hẹp,
    kiểm định chặn phần cắt.
-4. **App nối đúng**: hai chỗ gọi (biểu đồ ngày, ô Dow) đi qua `load_stock_data_cat`; nến tuần/tháng (1.583 ngày) và
-   VN-INDEX KHÔNG; `collect` và `run_daily` không được nhắc tên mới (đường quét không đổi).
+4. **App nối đúng**: các chỗ gọi (biểu đồ ngày, ô Dow; từ BƯỚC 288 cả nến tuần/tháng 1.583 ngày) đi qua
+   `load_stock_data_cat`; `collect` và `run_daily` không được nhắc tên mới (đường quét không đổi).
+   (BƯỚC 280 khoá nến tuần/tháng và VN-INDEX KHÔNG đi qua cat vì nguồn đầu bị bỏ ở cửa sổ ấy; BƯỚC 288 thêm nguồn
+   Entrade khử trùng nên đảo phép khoá đó — `tests/test_gop_cua_so_288.py`.)
 """
 import ast
 import pathlib
@@ -256,18 +258,20 @@ def _goi_trong(cay, ten_ham):
     return {getattr(n.func, "attr", getattr(n.func, "id", "")) for n in ast.walk(ham) if isinstance(n, ast.Call)}
 
 
-def test_AST_nen_tuan_thang_va_vnindex_KHONG_di_qua_cat():
-    """`_nen_ba_khung` (1.583 ngày, và VN-INDEX) phải tải thẳng: nguồn đầu bị bỏ ở cửa sổ ấy, giá làm tròn khác."""
+def test_AST_nen_tuan_thang_va_vnindex_DI_qua_cat_tu_BUOC_288():
+    """BƯỚC 288 ĐẢO phép khoá của BƯỚC 280: `_nen_ba_khung` (cửa sổ 1.583 ngày) tải qua `load_stock_data_cat` nên cổ
+    phiếu chung MỘT lượt tải với biểu đồ ngày và ô Dow; không còn lời gọi `load_stock_data` trực tiếp ở đó."""
     goi = _goi_trong(_app(), "_nen_ba_khung")
-    assert "load_stock_data" in goi and "load_stock_data_cat" not in goi
+    assert "load_stock_data_cat" in goi and "load_stock_data" not in goi
 
 
-def test_AST_bieu_do_ngay_va_o_dow_di_qua_cat():
+def test_AST_bieu_do_ngay_o_Dow_va_nen_tuan_thang_di_qua_cat():
     cay = _app()
     dung = [n for n in ast.walk(cay) if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call)
             and getattr(n.value.func, "id", "") == "load_stock_data_cat"]
     muc_tieu = {ast.unparse(n.targets[0]).strip("()") for n in dung}
-    assert muc_tieu == {"df, _price_status, _quality_warnings", "_ct_df, _ct_tt, _ct_canh_bao"}
+    assert muc_tieu == {"df, _price_status, _quality_warnings", "_ct_df, _ct_tt, _ct_canh_bao",
+                        "d, trang_thai, _"}
 
 
 def test_AST_load_stock_data_cat_chi_goi_tai_mot_lan_voi_hai_ham_tai():
@@ -278,9 +282,9 @@ def test_AST_load_stock_data_cat_chi_goi_tai_mot_lan_voi_hai_ham_tai():
     ten = [ast.unparse(a) for a in goi[0].args[:2]]
     assert ten == ["load_stock_data_nguon", "load_stock_data"]
     assert [ast.unparse(d) for d in ham.decorator_list] == ["st.cache_data(ttl=300)"]
-    # cửa sổ rộng = hai cửa sổ ĐƯỢC gộp, không có cửa sổ nến tuần/tháng trong đó
+    # cửa sổ rộng = ba cửa sổ ĐƯỢC gộp (BƯỚC 288 thêm cửa sổ nến tuần/tháng: người dùng chọn phương án C)
     nguon = ast.unparse(ham)
-    assert "_NGAY_LICH_DOW" in nguon and "NGAY_LICH_CHO_KHUNG_THANG" not in nguon
+    assert "_NGAY_LICH_DOW" in nguon and "NGAY_LICH_CHO_KHUNG_THANG" in nguon and "days_back" in nguon
 
 
 def test_NGAY_LICH_DOW_cua_app_la_chinh_so_ngay_cua_o_Dow():
