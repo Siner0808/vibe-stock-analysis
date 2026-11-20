@@ -158,8 +158,15 @@ def test_hang_hop_app_ba_trang_thai_cu_giu_nguyen(tt, lop, nhan):
     assert bool(canh_bao) == (tt != "khop")        # ĐÚNG thì không cảnh báo; hai cái kia thì có
 
 
-def test_suc_khoe_kiem_goi_noi_vang_va_van_xam(vang):
+def test_suc_khoe_kiem_goi_noi_vang_va_van_xam(vang, monkeypatch):
+    # `tools/suc_khoe.py` trùng tên module gốc; test khác có thể đã đẩy `tools/` lên đầu sys.path
+    # hoặc để bản `tools/` trong sys.modules: ghim GOC lên đầu và nạp lại bản gốc.
+    monkeypatch.syspath_prepend(str(GOC))
+    mod = sys.modules.get("suc_khoe")
+    if mod is not None and Path(getattr(mod, "__file__", "")).resolve() != GOC / "suc_khoe.py":
+        monkeypatch.delitem(sys.modules, "suc_khoe")
     import suc_khoe as sk
+    assert Path(sk.__file__).resolve() == GOC / "suc_khoe.py"
     trang_thai, ly_do, _ = sk._chay_kiem_goi()
     assert trang_thai == sk.CHUA_KIEM_DUOC
     assert "vnstock không còn cài ở đây" in ly_do, ly_do
