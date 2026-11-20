@@ -27657,3 +27657,82 @@ Không chỗ nào dán tiêu đề tin (`app.py` không đọc `top_positive` ·
 2. Câu hỏi cho người dùng (cần quyết, phiên này không tự làm): có muốn bỏ bài lặp GIỮA các nhóm (24 bài mỗi mã) không — đổi cách chấm điểm tin (chỉ hiển thị, không vào `pre_debate_score`) và danh sách "tin nổi bật" hết lặp; cần một BƯỚC có ĐO riêng.
 3. Danh sách mục E cho leader: nếu muốn thoát hết, hai chỗ đáng làm trước là `_loi_np` (chữ ngoài) và `master_msg` (cùng khung tranh luận).
 4. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).
+
+## BƯỚC 288 — MỘT LƯỢT TẢI GIÁ 1.583 NGÀY CHO BIỂU ĐỒ NGÀY, Ô DOW VÀ NẾN TUẦN/THÁNG (ENTRADE CÓ KHỬ TRÙNG, CHỈ Ở ĐƯỜNG BIỂU ĐỒ CỦA APP); NẾN NGÀY/DOW CỦA APP GIỐNG HỆT NẾN `run_daily` CHẤM (20/11/2026)
+
+**Mốc:** quy-trinh — hạ tầng hiệu năng của app theo yêu cầu người dùng, tiếp BƯỚC 280 (cùng mốc: không mã mốc nào của `docs/LO-TRINH.md` nói về tốc độ app); không chạm điểm cuối, ngưỡng, sổ, máy đo, đường quét (`run_daily`, `collect` mặc định, `backtest/data.py::fetch_one`) hay file luật (`tools/buoc_cham_luat.py 288`, mục J)
+
+**Quyết định của người dùng (nguyên văn):** hai bước. (1) Leader đề xuất BƯỚC này: *"tăng tốc app bằng cách gộp lượt tải giá 1583 ngày. Ước tính mỗi lần mở app nhanh thêm khoảng 2,4 giây. Việc này chạm đường lấy dữ liệu của lượt quét hằng ngày, nên phải đo trước và sau."* Người dùng: *"tiếp id"* (gõ nhầm của *"tiếp đi"*; việc coi đó là chấp thuận là diễn giải của leader). Con số *"2,4 giây"* là ƯỚC LƯỢNG và đã SAI (mục H). (2) Sau pha đo (mục B), một hộp hỏi do LEADER soạn; **chữ dưới nhãn là lời của leader**, chỉ phần *in nghiêng sau "Người dùng:"* là lời người dùng chọn. Chữ người dùng đã thấy dưới nhãn: *"Nhanh thêm 1,48 s. Nến ngày và ô Dow giữ y nguyên. Nến tuần/tháng chuyển sang nguồn Entrade (chỉ để xem): khoảng 26% số nến lệch giá đóng cửa trên 5 đồng, lớn nhất 1.300 đồng; ba cặp nến tháng 4/2023 bị bỏ trùng sai."* Người dùng: *"C: một lượt Entrade (Recommended)"*.
+
+**Đánh số:** BƯỚC 288 (lớn nhất trước đó là 287); lỗi kế vẫn 205 — BƯỚC này không mở lỗi nào. Nhánh `tang-toc/gop-cua-so-288` từ `origin/main` `9bd6831`.
+
+### A. Việc làm
+
+1. `nguon_gia_cong_khai.py`: hàm thuần `khu_trung_entrade` (một cột thô `(t, o, h, l, c, v)` → bỏ nến TRÙNG ngày phiên, giữ nến **khối lượng lớn hơn**, bằng nhau thì nến muộn; không trùng thì trả NGUYÊN đối tượng), `NGAY_TRUNG_CUOI_DA_BIET` = 10/04/2023 (ngày trùng muộn hơn thì nổ `NguonGiaLoi` như trước), `NGUON_ENTRADE_KHU_TRUNG` (cùng tên `entrade`, cùng địa chỉ, chỉ khác hàm đọc) và `chuoi_cho_app(mã)` = chuỗi cổ phiếu có nguồn ấy đứng đầu; chỉ số: nguyên `CHUOI_CHI_SO`. **`CHUOI_CO_PHIEU` và `CHUOI_CHI_SO` KHÔNG đổi một byte** (gác AST).
+2. `data_collectors.py`: `VNStockCollectorAgent.collect(…, exchange="HOSE", chuoi=None)` chuyển `chuoi` cho `lay_ohlcv`. Mặc định `None` = hành vi cũ.
+3. `app.py`: `load_stock_data_nguon` đi `chuoi_cho_app(mã)`; cửa sổ rộng của `load_stock_data_cat` là `max(days_back, cửa sổ Dow, NGAY_LICH_CHO_KHUNG_THANG)` = 1.583 ngày; `_nen_ba_khung` tải qua `load_stock_data_cat` (cổ phiếu chung MỘT lượt với biểu đồ ngày và ô Dow; VN-INDEX: chuỗi cũ, cùng cửa sổ, nên nhận đúng thứ nó nhận trước). Dưới chart tuần/tháng của cổ phiếu có ghi chú (`_GHI_CHU_NGUON_KHUNG_GOP`): nến tuần/tháng từ BƯỚC 288 lấy từ Entrade (trước đó VNDirect), khoảng 26% nến lệch giá đóng cửa trên 5 đồng, lớn nhất khoảng 1.300 đồng, ba cặp khử sai. VN-INDEX không mang ghi chú (vẫn VNDirect). Không giấu thay đổi.
+4. `tools/doi_chieu_gop_cua_so_288.py` (công cụ ĐỌC, chạy mạng thật được; mục C) và `tests/du_lieu/entrade_khu_trung_288.json.gz` (JSON thô thật của 4 mã, 79 KB).
+5. Không đổi: `run_daily.py` · `paper_runner.py` · `paper_trading.py` · `backtest/` · `master_agent` · `keo_bang_gia.py` · `nen_su_kien_quyen.py` · mã của `gia_mot_lan.py` (chỉ docstring) · `khung_thoi_gian.py` · điểm cuối · ngưỡng · sổ · máy đo · điểm cuối công khai.
+
+### B. Đo thiết kế TRƯỚC khi cài (pha 1; chi tiết, lệnh và bảng: `docs/do-toc-do-app-288/thiet_ke_truoc_khi_cai.md`)
+
+Một IP nhà, 20/11/2026 11:35–12:40 ICT, trong phiên giao dịch.
+- **Thời gian (7 mã × 3 vòng, `collect` thật, mở lần đầu = L 1.095 + cổ phiếu 1.583 + VNINDEX 1.583):** hiện tại 2,81 s · A (bỏ lượt thử Entrade) 2,12 s · B (một lượt VNDirect) 1,44 s · **C 1,33 s (−1,48 s)**.
+- **Lỗi Entrade:** 67/71 mã trùng ngày trong cửa sổ 1.583 ngày, **0/71** trong cửa sổ quét (từ 04/07/2023, 785 nến); chỉ ba ngày — 27/12/2022 (67 mã), 07/04/2023 (DHG, MSR), 10/04/2023 (AAA) — 70 cặp (mã, ngày); hai nến khác nhau ở mốc giờ và ở cả năm cột, không cặp nào giống hệt.
+- **Làm tròn (cửa sổ quét, 58.183 hàng chung):** Entrade ≠ VNDirect ở 80,95% hàng nếu so chính xác (Entrade 2 chữ số thập phân, VNDirect 3), 40,12% nếu dung sai giá 0,0051 và khối lượng 1%, 12,14% ở dung sai 0,0101/5%; HNX 66,7% · UPCoM 72,8% · HOSE 36,8% (dung sai đầu).
+- **Bất biến của nến quét (71 mã):** cắt từ lượt Entrade khử trùng bằng nến `collect` mặc định **71/71 từng byte (0/54.187 hàng khác)**; cắt từ lượt VNDirect **0/71** giống (80% hàng khác; lệch cửa sổ một ngày ở 68/71 mã).
+
+### C. Lượt mạng THẬT (golden cần một lượt mạng thật, BƯỚC 280 mục H) — `docs/do-toc-do-app-288/mang_that_71_ma.md`
+
+Lệnh (từ gốc repo, 20/11/2026): `./.venv/Scripts/python.exe -X utf8 tools/doi_chieu_gop_cua_so_288.py`. Với MỖI mã: `collect` mặc định (đúng thứ `run_daily` chấm) cho cửa sổ 1.095 và 180 ngày so với nến app (một lượt tải rộng 1.583 ngày đi `chuoi_cho_app`, cắt bằng `gia_mot_lan.tai_mot_lan`), từng byte, bỏ nến của ngày đang giao dịch. Kết quả: ***71 giống · 0 lệch · 0 chưa kiểm được / 71*** (nến quét 785, nến biểu đồ 131, mã niêm yết muộn ít hơn; nguồn cửa sổ rộng = `entrade` ở cả 71 mã). Đầu ra nguyên văn: `docs/do-toc-do-app-288/mang_that_71_ma_out.md`. Cùng hàm `doi_chieu_mot_ma` chạy NGOẠI TUYẾN trong CI trên JSON thô đã chụp (ACB · DHG · AAA · SHS): `tests/test_gop_cua_so_288.py` mục 4.
+
+### D. Quy tắc khử trùng là PHỎNG ĐOÁN — danh sách điều đã biết sai (cũng nằm ở bình luận của `nguon_gia_cong_khai.py` và ở ghi chú dưới chart)
+
+"Giữ nến có khối lượng lớn hơn" (`docs/do-toc-do-app-288/khu_trung_ba_cap_sai_out.md`, 70 cặp, so với VNDirect):
+- **Đúng ở 67 cặp ngày 27/12/2022:** nến giữ lệch khối lượng so với VNDirect ≤ 0,1%, |Δclose| trung vị 0,003 nghìn đồng; nến bị bỏ lệch khối lượng trung vị 65% và |Δclose| trung vị 0,370. Ví dụ ACB: nến 00:00 UTC khối lượng 418.000, nến 02:00 UTC khối lượng 2.040.100, VNDirect 2.040.100.
+- **SAI ở ba cặp tháng 04/2023, nơi KHÔNG nến nào khớp VNDirect (hai mảnh dở):** AAA 10/04/2023 (giữ nến khối lượng 2.844.900, VNDirect 3.198.200: lệch 11%), DHG 07/04/2023 (giữ 1.000, VNDirect 2.100: lệch 52%), MSR 07/04/2023 (giữ 24.900, VNDirect 92.951: lệch 73%). Hậu quả: ba nến tuần/tháng của ba mã thanh khoản thấp có thể lệch. **Nến NGÀY của app không bị ảnh hưởng** vì cửa sổ 1.095 ngày không chứa các ngày ấy (đo: 0/71).
+- Phép khử chỉ chạy khi MỌI ngày trùng ≤ 10/04/2023; ngày trùng muộn hơn thì `NguonGiaLoi` như trước và chuỗi rơi sang nguồn kế — nên nến trong cửa sổ quét (từ 04/07/2023) không bao giờ đi qua phép khử (gác `test_GOLDEN_nguon_dau_hong_vi_trung_muon…`: một ngày trùng chèn vào cửa sổ quét thì app về đường cũ và vẫn giống nến quét từng byte).
+
+### E. Nến tuần/tháng không vào điểm, khuyến nghị hay sổ — lệnh tái lập
+
+Lệnh (từ gốc repo, 20/11/2026): `grep -rn "khung_thoi_gian\|NGAY_LICH_CHO_KHUNG_THANG\|gop_nen\|nen_ngay_da_dong\|_nen_ba_khung" --include=*.py . | grep -v "^./tests/\|^./.venv\|^./khung_thoi_gian.py"` (đầu ra nguyên văn: `docs/do-toc-do-app-288/lenh_wm_khong_vao_diem_out.md`). Kết quả: chỉ `app.py` (nhập `khung_thoi_gian as _kt`; `_nen_ba_khung` và hai chỗ gọi), công cụ đối chiếu của BƯỚC này (đọc hằng số cửa sổ) và MỘT dòng chú thích ở `ke_hoach_vao_lenh.py:103`; không có `master_agent`, `run_daily`, `paper_*`, `ke_hoach_vao_lenh` (mã), `sheets_store` nào nhập chúng. Trong `app.py`, kết quả `_nen_ba_khung` chỉ đi vào `_hien_dong_pha` (một dòng chữ đồng pha + RSI, "chưa đo, không vào điểm hay lệnh ảo") và `_ve_khung_gop` (vẽ). Khoá bằng AST: `test_nen_tuan_thang_khong_vao_diem_khuyen_nghi_hay_so…`, và gác cũ `tests/test_khung_thoi_gian.py` (chỉ `app.py` nhập module).
+
+### F. Gác và đột biến
+
+`tests/test_gop_cua_so_288.py` (**29 test**, không dùng mạng): (1) chuỗi mặc định bất biến theo AST và nguồn khử trùng không nằm trong chuỗi nào, (2) tên mới chỉ ở `nguon_gia_cong_khai.py` · `app.py` (chỉ `chuoi_cho_app`) · công cụ đối chiếu, `collect` mặc định `chuoi=None`, MỌI lời gọi `.collect(` của `run_daily` · `paper_runner` · `keo_bang_gia` · `nen_su_kien_quyen` không truyền `chuoi`, `app.py` đúng MỘT lời gọi truyền, nằm trong `load_stock_data_nguon`, `backtest/data.py` không nhắc tên mới, (3) phép khử (không trùng thì nguyên đối tượng; khối lượng lớn thắng, kể cả khi nến ĐẦU thắng; bằng nhau lấy nến muộn; ngày trùng muộn thì nổ; khối lượng NaN thì nổ; `dung_khung` vẫn chặn chuỗi trùng với nguồn mặc định), (4) golden ngoại tuyến trên JSON thô thật (4 mã: nến Dow 785 và nến biểu đồ ≥ 120 từng byte; cửa sổ 1.583 có đúng một nến mỗi ngày trùng và khối lượng nến giữ đúng; nguồn đầu hỏng thì vẫn bằng; **máy đo có khả năng báo LỆCH**: thay bằng thiết kế B thì nến Dow lệch), (5) hằng số của công cụ bằng hằng số thật của `run_daily` và `app.py`, ghi chú dưới chart nêu Entrade và ba cặp khử sai, cổ phiếu truyền ghi chú còn VN-INDEX thì không, nến tuần/tháng không vào điểm. Sửa `tests/test_gia_mot_lan_280.py` (ba test) vì cấu trúc đổi CÓ CHỦ Ý: nến tuần/tháng nay ĐI qua `load_stock_data_cat` (BƯỚC 280 khoá ngược lại vì nguồn đầu từng bị bỏ ở cửa sổ ấy).
+
+**Đột biến** (`va_an_toan.dot_bien_bo`; script `../vibe_logs_288/dot_288.py`; `docs/do-toc-do-app-288/dot_bien_288_out.md`): **29/29 đỏ ngay lượt đầu** — `nguon_gia_cong_khai.py` 15/15 (P1 dựng lại lỗi thật: giữ nến ĐẦU/mảnh dở thay vì nến khối lượng lớn · bỏ tiêu chí khối lượng · giữ nến khối lượng NHỎ · không bao giờ nổ vì ngày trùng muộn · mốc ngày lùi/tới một ngày · không trả nguyên đối tượng · `chuoi_cho_app` không khử trùng/không nhận chỉ số/mất VNDirect, VPS · hai chuỗi mặc định đổi thứ tự · `chuoi_nguon` mặc định đi qua `chuoi_cho_app` · đọc không qua `_doc_phang` · khối lượng NaN không nổ), `data_collectors.py` 2/2, `app.py` 8/8 (bỏ `chuoi_cho_app` · cửa sổ rộng không gồm 1.583 · nến tuần/tháng tải thẳng · mất ba cặp khử sai/mất 26% khỏi ghi chú · VN-INDEX nhận ghi chú · cổ phiếu không truyền ghi chú · chú thích không nhận ghi chú), công cụ 4/4. Lượt đầu đỏ hết là chỗ để nghi gác quá khớp chứ không để tự mãn: các phát hiện hình dạng (AST) đỏ chắc chắn khi đổi tên; phát lấy nguồn thật là P1 và phát "máy đo luôn báo GIỐNG", cả hai đỏ ở test hành vi.
+
+### G. Giả thuyết/ước lượng bị bác, và bài học thao tác
+
+- **Bác (ước lượng sai):** *"mỗi lần mở app nhanh thêm khoảng 2,4 giây"*. 2,4–2,5 s là TỔNG mục `S col_chart` (đo AppTest: 2,51 s). Gộp vẫn cần một lượt tải cổ phiếu và lượt VN-INDEX; mức tiết kiệm đo được trên đường dữ liệu là 1,48 s (thiết kế) và 1,51 s ở mục `S col_chart` (mục H).
+- **Bác:** *"khử trùng bằng cách giữ nến MUỘN (mốc 02:00)"* — đúng ở 27/12/2022 nhưng sai ở DHG 07/04/2023 (nến đầu có khối lượng gấp đôi); phải so khối lượng.
+- **Bài học thao tác (máy đo tự tạo kết luận sai):** lượt đầu của bộ phát lại cho đo mục B trả nguyên JSON 1.583 ngày cho mọi cửa sổ, nên kiểm "trùng ngày" của `dung_khung` — chạy TRƯỚC khi cắt vào cửa sổ — nổ ở cả cửa sổ 1.095 ngày: máy đo báo *"Entrade hỏng ở 67/71 mã"* trong khi đường thật không hỏng. Sửa bằng cách lọc theo `from`/`to` như máy chủ rồi kiểm lại 71/71 bằng chính R0 THẬT. Đây đúng là chỗ BƯỚC 280 mục H dặn (golden của phép gộp phải có lượt mạng thật): mục C và gác `_phat_lai` của test đều lọc như máy chủ.
+- Bản đầu của bộ phát lại cũng không bỏ nến NGÀY ĐANG GIAO DỊCH: JSON thô tải sớm hơn R0 ~20 phút nên nến cuối khác — mọi phép so sánh bỏ nến ngày `den` và nói thẳng điều đó.
+
+### H. Thời gian trước/sau (`docs/do-toc-do-app-288/bang_truoc_sau.md`)
+
+Lệnh: `bash ../vibe_logs_288/chay_app_288_sau.sh` rồi `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_288/aggregate_288_ts.py`; AppTest, xen kẽ trước/sau × 3, tiến trình mới mỗi lượt, 20/11/2026 12:33–12:38. Mở lần đầu: **11,60 s → 9,53 s (−2,07 s)**, trong đó `S col_chart` **2,51 s → 1,00 s** (3 lượt mạng → 1); đổi mã ACB→FPT: **3,55 s → 1,95 s (−1,60 s)**, `S col_chart` 1,78 s → 0,33 s (2 lượt mạng → 0). Tổng số lượt mạng lúc mở lần đầu 51 → 49 (trung vị). Các kịch bản ấm: chênh trong nhiễu (≤ 0,08 s). Giới hạn: một IP nhà, ba lượt, AppTest không dựng DOM/Plotly/websocket; Cloud chưa đo.
+
+### I. Điều CHƯA đo · câu hỏi mở
+
+- **Cloud và Actions:** chưa đo hành vi nguồn giá từ IP của chúng. Nếu Entrade cho qua cửa sổ 1.583 ngày từ nơi khác (không còn ngày trùng) thì phép khử không chạy, nguồn vẫn là `entrade`, vẫn đúng.
+- **Ngày trùng mới:** nếu Entrade sinh ngày trùng mới SAU 10/04/2023 thì phép khử nổ và app về đường cũ (ba lượt tải, VNDirect cho cửa sổ 1.583): chậm hơn nhưng đúng. Chưa có cách biết trước.
+- **Nến tuần/tháng trước 04/2023** của cổ phiếu nay đi Entrade; nếu về sau người dùng muốn nhìn lại bằng VNDirect thì phải đổi `chuoi_cho_app` (một dòng) — không còn lượt tải chung.
+- **Ô VN-INDEX ở topbar** (câu hỏi 2 của BƯỚC 280, ~0,33–0,4 s): VẪN còn nguyên một lượt riêng; chưa làm (đổi nguồn của ô).
+- **Ảnh hưởng lên ĐIỂM của thiết kế B (bị bác):** chưa đo; chỉ nói nến đổi thì điểm có thể đổi.
+
+### J. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 288` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 288` — kết quả: xem *Năm cổng* bên dưới (chạy trên cây đã commit). BƯỚC không đổi luật và không đổi kết luận đo của một BƯỚC trước (nó THÊM một nguồn riêng cho đường biểu đồ và sửa MỘT ước lượng thời gian); chỗ máy mù khai thẳng: máy chỉ thấy FILE; các bảng đo chỉ nằm ở STATE và `docs/do-toc-do-app-288/`, nên đây là kỷ luật, không phải cơ chế.
+
+**Số test:** mốc `docs/moc_so_test.json` **5267 → 5296** (+29 test mới; không test nào bị bớt; ba test của `tests/test_gia_mot_lan_280.py` đổi nội dung nhưng giữ số lượng).
+
+**Năm cổng:** (điền sau lượt chạy trên cây đã commit — mục này được ghi bằng một commit chỉ-tài-liệu; năm cổng được chạy LẠI trên commit cuối đó, kết quả ở báo cáo của phiên con và ở PR).
+
+### K. Việc kế
+
+1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
+2. Câu hỏi cho người dùng (chưa làm): gộp ô VN-INDEX ở topbar với lượt VN-INDEX 1.583 ngày của biểu đồ (đổi nguồn của ô; còn ~0,4 s) — câu hỏi 2 của BƯỚC 280, vẫn mở.
+3. Lỗi kế vẫn 205.
+

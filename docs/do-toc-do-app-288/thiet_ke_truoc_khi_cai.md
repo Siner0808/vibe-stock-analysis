@@ -21,7 +21,7 @@ tiết kiệm: gộp xong vẫn còn một lượt tải cổ phiếu và lượ
 
 ## 2. Lỗi "hai nến một ngày" của Entrade (`an_loi_entrade.py`, `an_loi_entrade2.py`, `an_gio.py`, `an_gio2.py`, `an_khu_trung.py`)
 
-Đầu ra: `loi_entrade_70_cap_out.txt` (cạnh file này), `khu_trung_ba_cap_sai_out.txt`.
+Đầu ra: `loi_entrade_70_cap_out.md` (cạnh file này), `khu_trung_ba_cap_sai_out.md`.
 - 67/71 mã có ngày trùng trong cửa sổ 1.583 ngày (xin từ 13/01/2022); **0/71** trong cửa sổ quét (1.095 ngày, từ 04/07/2023, 785 nến). Không dính: BAF, GEL, VCK, VPL.
 - Chỉ **ba ngày**: 27/12/2022 (67 mã), 07/04/2023 (DHG, MSR), 10/04/2023 (AAA) = **70 cặp** (mã, ngày). Hai nến khác nhau ở mốc giờ (00:00 / 02:00 UTC) và ở cả năm cột (open 60 cặp, high 63, low 64, close 66, volume 70; không cặp nào giống hệt).
 - Phép khử "giữ nến khối lượng lớn hơn": đúng ở 67 cặp 27/12/2022 (khớp VNDirect, khối lượng lệch ≤ 0,1%; |Δclose| trung vị 0,003 nghìn đồng; nến bị bỏ lệch khối lượng trung vị 65%);

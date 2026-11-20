@@ -10,7 +10,7 @@ Với mỗi mã công cụ gọi `VNStockCollectorAgent().collect` mặc định
 `gia_mot_lan.tai_mot_lan` với lượt tải rộng 1.583 ngày đi chuỗi `chuoi_cho_app` (bản sao hai hàm tải của `app.py`), và so TỪNG BYTE (`DataFrame.equals` + dtype từng cột),
 bỏ nến của ngày `den` (nến đang giao dịch đổi theo giờ).
 
-Kết quả (đầu ra nguyên văn: `mang_that_71_ma_out.txt`): **71 giống · 0 lệch · 0 chưa kiểm được / 71**. Mọi mã: nến quét 785 (BAF có 785; GEL 194 vì niêm yết muộn) giống từng byte, hàng lệch 0;
+Kết quả (đầu ra nguyên văn: `mang_that_71_ma_out.md`): **71 giống · 0 lệch · 0 chưa kiểm được / 71**. Mọi mã: nến quét giống từng byte, hàng lệch 0 (785 nến; mã niêm yết muộn ít hơn, ví dụ GEL 194);
 nến biểu đồ 131 giống từng byte; nguồn cửa sổ rộng = `entrade` ở cả 71 mã (nghĩa là phép khử trùng chạy và Entrade qua kiểm).
 
 Cùng hàm `doi_chieu_mot_ma` chạy ngoại tuyến trong CI trên JSON thô đã chụp (`tests/du_lieu/entrade_khu_trung_288.json.gz`: ACB, DHG, AAA, SHS; `tests/test_gop_cua_so_288.py`).
