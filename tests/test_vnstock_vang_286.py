@@ -37,6 +37,8 @@ GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC / "tools"))
 sys.path.insert(0, str(GOC))
 
+from duyet_repo import duyet  # noqa: E402
+
 CHAN = ("vnstock", "vnstock_data", "vnai", "vnstock_ta", "vnstock_news", "vnstock_pipeline",
         "vnstock_ezchart", "vnii")
 GOI_HANG = frozenset(CHAN)
@@ -300,7 +302,7 @@ _BO_QUA = ("tests/", ".venv/", ".tam_test/", "backtest/cache/", ".git/", "node_m
 
 def _tep_nguon() -> list[Path]:
     ra = []
-    for p in sorted(GOC.rglob("*.py")):
+    for p in sorted(duyet(GOC, "*.py")):   # không đi xuống worktree lồng (BƯỚC 147)
         r = p.relative_to(GOC).as_posix()
         if r.startswith(_BO_QUA) or "/.venv/" in r or "/site-packages/" in r:
             continue

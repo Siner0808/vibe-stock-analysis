@@ -69,7 +69,7 @@ def ensure_api_key(force: bool = False) -> dict:
         vnstock.change_api_key(key)
         _STATE.update(ok=True, source=source, error="")
     except ModuleNotFoundError as e:
-        if getattr(e, "name", None) == "vnstock":
+        if e.name == "vnstock":
             _STATE.update(ok=False, source=source, error=LOI_VANG)
         else:
             _STATE.update(ok=False, source=source,

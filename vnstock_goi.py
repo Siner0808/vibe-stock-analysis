@@ -213,7 +213,7 @@ def kiem_goi(tai_ve=None, lay_khoa=None, dung_cache: bool = True) -> TrangThaiGo
     except ModuleNotFoundError as e:
         # BƯỚC 286: gói của hãng VẮNG (không phải thiếu khoá, không phải lỗi mạng). Chỉ đường THẬT
         # (không tiêm `lay_khoa`) tới đây; test tiêm hàm giả không đi qua nhánh này.
-        if getattr(e, "name", None) in ("vnai", "vnstock"):
+        if e.name in ("vnai", "vnstock"):
             return _vang()
         return _chiu(f"không đọc được API key ({type(e).__name__})")
     except Exception as e:
