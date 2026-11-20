@@ -71,13 +71,26 @@ BANG = ("ratio", "income", "balance")
 SO_LAN_THU = 3
 
 
+class VangVnstock(RuntimeError):
+    """`vnstock` không nạp được ở đây (BƯỚC 286): không có gì để tải."""
+
+
+LY_DO_VANG = ("CHƯA KIỂM ĐƯỢC — vnstock không còn cài ở đây (hãng gỡ 10/11/2026): BCTC theo quý "
+              "chỉ đọc được từ vnstock, nguồn công khai không có. Chờ BƯỚC 265 (vnstock 6).")
+
+
 def fetch_symbol(symbol: str) -> dict[str, pd.DataFrame]:
     """Tải các bảng theo quý. Trả dict RỖNG hoặc THIẾU bảng nếu hỏng.
 
     Người gọi PHẢI kiểm `len(...) == len(BANG)`. Một dict thiếu bảng
     trông y hệt một dict đủ bảng ở mọi chỗ khác trong mã.
     """
-    from vnstock import Finance
+    try:
+        from vnstock import Finance
+    except ImportError as e:
+        # BƯỚC 286: vnstock bị hãng gỡ 10/11/2026. Nổ bằng một lỗi có TÊN để `main` nói một lần và
+        # thoát mã 2, thay vì traceback (và thay vì 71 dòng "không tải được").
+        raise VangVnstock(LY_DO_VANG) from e
 
     fin = Finance(source="VCI", symbol=symbol, period="quarter", show_log=False)
     out = {}
@@ -196,7 +209,11 @@ def main() -> int:
         sym = syms[0]
         print(f"\nCẤU TRÚC DỮ LIỆU THEO QUÝ — {sym}")
         print("=" * 70)
-        tables = fetch_symbol(sym)
+        try:
+            tables = fetch_symbol(sym)
+        except VangVnstock as e:
+            print(e)
+            return 2
         if not tables:
             print("❌ Không tải được bảng nào.")
             return 1
@@ -221,7 +238,11 @@ def main() -> int:
             continue
         if paths["ratio"].exists():
             print(f"[{i}/{len(syms)}] {sym}: {vi_sao} — tải lại")
-        tables = fetch_symbol(sym)
+        try:
+            tables = fetch_symbol(sym)
+        except VangVnstock as e:
+            print(e)
+            return 2
         if not tables:
             print(f"[{i}/{len(syms)}] {sym}: ❌ không tải được")
             continue

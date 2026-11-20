@@ -18,6 +18,10 @@ from __future__ import annotations
 
 import os
 
+#: BƯỚC 286: `import vnstock` hỏng vì gói VẮNG (hãng gỡ 10/11/2026) — nói đúng nguyên nhân thay vì
+#: đổ cho khoá API.
+LOI_VANG = "vnstock không còn cài ở đây (hãng gỡ 10/11/2026)"
+
 _STATE: dict[str, object] = {"done": False, "ok": False, "source": "", "error": ""}
 
 
@@ -64,6 +68,12 @@ def ensure_api_key(force: bool = False) -> dict:
         import vnstock
         vnstock.change_api_key(key)
         _STATE.update(ok=True, source=source, error="")
+    except ModuleNotFoundError as e:
+        if e.name == "vnstock":
+            _STATE.update(ok=False, source=source, error=LOI_VANG)
+        else:
+            _STATE.update(ok=False, source=source,
+                          error=f"{type(e).__name__}: {str(e)[:120]}")
     except Exception as e:
         _STATE.update(ok=False, source=source,
                       error=f"{type(e).__name__}: {str(e)[:120]}")
@@ -81,6 +91,9 @@ def status_message() -> str:
     s = ensure_api_key()
     if s["ok"]:
         return f"✅ Đã nạp API key vnstock (nguồn: {s['source']})"
+    if s["error"] == LOI_VANG:
+        return (f"ℹ️ {LOI_VANG}: không có gì để nạp khoá. Giá ngày đi qua nguồn công khai; "
+                "bảng giá, BCTC, khối ngoại, nến nội phiên: không có nguồn.")
     if s["error"].startswith("chưa cấu hình"):
         return ("ℹ️ Chưa cấu hình API key vnstock. Dữ liệu giá vẫn hoạt động; "
                 "một số chỉ số nâng cao có thể không khả dụng. "

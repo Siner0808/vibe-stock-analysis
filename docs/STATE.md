@@ -27462,3 +27462,105 @@ Phát biểu của Devil's Advocate (vòng 2, NEUTRAL) hiện không có ô nào
 ### Năm cổng
 
 `./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_285/cong` (worktree, python của repo chính; 15:26:30–15:35:13 giờ máy, 523 s; cây `sua/vong-tranh-luan-285` sau khi hợp nhất `origin/main` `7416a4e` và commit sổ; log `vibe_logs_285/cong/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0 ngay lượt đầu** — cổng 1 `5226 passed, 2 skipped` (261 s; 5.228 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (249 s) · cổng 5 *"OK — 5228 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 285` (sau hợp nhất và commit sổ) → *"khong cham luat"* (`vibe_logs_285/cham_luat2.txt`). Mục này viết SAU lượt cổng (chỉ chữ trong `docs/STATE.md`); sau đó chạy lại chín file test đọc tài liệu (cùng danh sách như BƯỚC 283) và cổng 3 và 5: chín file → `201 passed, 1 skipped` (`vibe_logs_285/doc_tests.log`), cổng 3 → `0 CHẶN · 10 cảnh báo`, cổng 5 → *"OK — 5228 test, khop moc da ghi."*
+
+
+## BƯỚC 286 — RÀ MỌI ĐƯỜNG CÒN NHẮC TỚI `vnstock` KHI NÓ VẮNG (CLOUD/ACTIONS): KHÔNG ĐƯỜNG SẢN XUẤT NÀO SẬP; SỬA BA CHỖ NÓI SAI NGUYÊN NHÂN VÀ MỘT SCRIPT TAY; HỘP "GÓI VNSTOCK" Ở APP XÁM (20/11/2026)
+
+**Mốc:** quy-trinh — dọn đường còn nhắc tới `vnstock` sau BƯỚC 267 theo quyết định của người dùng ngày 20/11/2026; BƯỚC 265 (vnstock 6, `vibe_wt_265`) vẫn TẠM ĐỖ, không huỷ: không mã mốc nào của `docs/LO-TRINH.md` nói về việc này; BƯỚC không đổi điểm, ngưỡng, sổ, máy đo, đường quét hay file luật
+
+Phiên con của leader, nhánh `sua/vnstock-con-goi-286` từ `origin/main` `ee49373`, worktree ngoài repo (`vibe_wt_286`); python = `../vibe_preview/.venv/Scripts/python.exe -X utf8`; log ngoài repo `vibe_logs_286`.
+
+**Quyết định của người dùng, 20/11/2026, nguyên văn (leader chuyển).**
+1. Câu của leader *"Việc sản phẩm kế tiếp (BƯỚC 286) làm gì? … vnstock đã bị bỏ khỏi requirements.txt từ 11/11, mà mã vẫn còn 34 dòng import vnstock ở 19 tệp … Đường nào còn gọi thì sẽ hỏng trên Cloud/Actions."* → *"Rà chỗ còn gọi vnstock (Recommended)"*. Chữ của leader dưới nhãn: *"Phiên con đo trước xem đường nào còn chạy tới vnstock và hỏng, rồi chuyển sang nguồn giá công khai hoặc gỡ. Không đụng sổ lệnh thật."*
+2. Gói Silver của hãng (hết hạn 22/11/2026): *"Không gia hạn nữa"*. Hệ quả: các câu *"Cloud chạy hạng silver"* ở `docs/HANDOFF.md` (khối Q3 của BƯỚC 166 và dòng ✅ ĐÃ KIỂM 09/10/2026) đã được đánh dấu hết hạn 22/11/2026; `CLAUDE.md` mục *Bất đối xứng local / CI* còn hàng Cloud ghi *silver* — KHÔNG sửa ở đây vì sửa nó là chạm file luật (phải hỏi thật sổ tay); `HANDOFF` đứng trước `CLAUDE.md` khi mâu thuẫn.
+3. Sau phép đo (pha 1), hộp "🎫 Gói vnstock" ở thanh bên của app: *"Đổi chữ, giữ ô (Recommended)"*. Chữ của leader dưới nhãn: *"Ô chuyển sang màu xám, ghi "vnstock không còn cài ở đây". Tab Sức khoẻ đổi theo. Nếu sau này dùng vnstock 6 (BƯỚC 265) thì ô dùng lại được."*
+4. `financial_collector.py` (không ai gọi lúc chạy; muốn gỡ hay giữ): *"Giữ nguyên (Recommended)"* → KHÔNG đụng. Các script đo lịch sử `tools/do10`, `do13`, `do22`, `do26` (và hai hàm trợ giúp nêu dưới): leader báo người dùng rằng chúng ở nguyên; đứng trong danh sách cho phép TƯỜNG MINH của gác AST.
+
+### Phép đo (pha 1): CHẠY dưới bộ chặn, không chỉ đọc mã
+
+Bộ chặn là một `sys.meta_path` đứng đầu, ném `ModuleNotFoundError` cho `vnstock`, `vnstock_data`, `vnai` (cả `vnstock_ta/news/pipeline`); socket bị vá để ném và ĐẾM (0 lần chạm mạng ở mọi đường); không gỡ gì khỏi `.venv`; không sổ, không Sheets, không cổng 8511; dữ liệu ra thư mục tạm khi script ghi đĩa. Lệnh tái lập, từ gốc worktree: `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_286/do_pha1_chay.py` (và `do_pha1_chay2.py`, `do_pha1_ast.py` cùng thư mục). **Đối chứng:** không bộ chặn thì `.venv` CÓ `vnstock`, `vnstock_data`, `vnai` và `nguon_gia_cong_khai.vnstock_vang()` là `False` — chạy ở máy local che đúng chỗ hỏng này.
+
+**Số đếm.** 34 dòng grep của leader = **13 dòng nhập module của chính repo** (`vnstock_goi`, `vnstock_auth`; tiền tố `import vnstock` khớp cả chúng) + **21 dòng nhập gói hãng**; AST (bộ duyệt của gác BƯỚC 267) thêm 5 dòng `vnai` → **26 chỗ nhập gói hãng, tất cả trong hàm (0 ở mức module); 17 đã bọc `try`, 9 chưa — cả 9 NẰM NGOÀI đường sản xuất** (bao đóng nhập của `app.py` + `run_daily.py`, đã có gác `tests/test_nguon_gia_cong_khai.py` từ BƯỚC 267). Nhập thử mọi module quét và điểm vào của mọi workflow chạy Python dưới bộ chặn → nhập được, **0 lần thử nạp vnstock\***. Tám workflow nhắc `vnstock`: sáu là chú thích + tên biến `VNSTOCK_TELEMETRY: "off"`, `soat-tuan.yml` là chú thích, `kiem-dinh.yml` còn bước lọc requirements của BƯỚC 266 (nay không làm gì vì `requirements.txt` không còn dòng vnstock/vnai ngoài chú thích; gác `tests/test_bo_qua_khi_vang_vnstock_266.py` khoá nó; leader chỉ thị: để nguyên).
+
+| # | tệp:dòng | ai chạm tới lúc chạy | khi vnstock VẮNG (đo) | việc làm |
+|---|---|---|---|---|
+| 1 | `vnstock_auth.py:54,64` | mọi đường "tụt" bên dưới | `ensure_api_key` trả `ok False`, lỗi *"ModuleNotFoundError: No module named 'vnstock'"* (đổ cho khoá) | (b) lỗi gọi đúng tên: `LOI_VANG` *"vnstock không còn cài ở đây (hãng gỡ 10/11/2026)"* |
+| 2 | `vnstock_goi.py:119,125,197` | hộp app, tab Sức khoẻ, script tay | `kiem_goi()` → CHƯA KIỂM ĐƯỢC *"không đọc được API key (ModuleNotFoundError)"* (có khoá hay không đều vậy) | (b) cờ `goi_vang`, chữ `CHU_O_VANG`, câu `LY_DO_VANG`; chỉ đường THẬT (không tiêm `lay_khoa`) |
+| 3 | `app.py:1372` (module repo) | thanh bên, hộp "🎫 Gói vnstock" | hộp hiện `● ?` + chữ cắt *"không đọc được API key (ModuleNotFound"* + dòng cam ⚠️ | (b) **người dùng thấy**: hộp XÁM, chữ *"vnstock không còn cài ở đây"*, nhãn `● —`, KHÔNG dòng cam |
+| 4 | `app.py:1419` (chữ) | thanh bên, dưới thẻ | chú thích còn nói *"Agent Cơ Bản đọc BCTC năm gần nhất (vnstock)"* trong khi hàng Fundamental ngay trên đó là TẮT *"không có nguồn"* | (b) **người dùng thấy**: chữ nói đúng *"khi có nguồn (hiện KHÔNG có…)"* |
+| 5 | `suc_khoe.py:252,343` (module repo) | tab 🩺 Sức khoẻ | xám CHƯA KIỂM ĐƯỢC, cùng câu của #2 | (b) theo #2, không sửa `suc_khoe.py` |
+| 6 | `mau_bang_gia.py:211,217` | thanh trên, màu bảng giá | `loi` = *"không có nguồn: …"*, ba màu (BƯỚC 267 đã làm) | (d) giữ; khoá lại bằng bộ chặn thật |
+| 7 | `intraday_data.py:148,151` | cảnh báo nội phiên của app | `IntradayError` *"không có nguồn: nến nội phiên 30m…"* (BƯỚC 267) | (d) giữ; khoá lại |
+| 8 | `fundamental_agent.py:207,209` | tab Sức khoẻ tài chính + thanh bên | `co_du_lieu False`, *"không có nguồn: bảng chỉ số cơ bản…"* (BƯỚC 267) | (d) giữ; khoá lại |
+| 9 | `financial_collector.py:274,276,370,373,451` | KHÔNG ai gọi (chỉ test) | cả ba hàm `available False`, *"không có nguồn…"* | (d) giữ — người dùng *"Giữ nguyên (Recommended)"* |
+| 10 | `fetch_fundamentals.py:80,128,176,184` | chỉ chạy tay | `fetch_symbol` KHÔNG bọc: ném `ModuleNotFoundError`, traceback; `main` in dòng trạng thái sai trước đó | (b) `VangVnstock` + một dòng *"CHƯA KIỂM ĐƯỢC — vnstock không còn cài ở đây…"*, mã thoát 2, không ghi đĩa |
+| 11 | `extend_history.py:111` (module repo) | chỉ chạy tay | in *"⚠️ Không nạp được API key vnstock: ModuleNotFoundError…"* rồi bảng độ phủ (đường giá đi qua nguồn công khai, không hỏng) | (b) khỏi theo #1 (`status_message` nói *"ℹ️ vnstock không còn cài ở đây…"*) |
+| 12 | `fetch_khoi_ngoai.py:78` | chỉ chạy tay | in *"CHUA KIEM DUOC — import vnstock_data no…"*, mã thoát 2 | (d) |
+| 13 | `tools/kiem_san_giao_dich.py:63` | chỉ chạy tay; test nhập hàm thuần | `main()` → *"CHƯA KIỂM ĐƯỢC — ModuleNotFoundError…"*, mã 2 | (d) |
+| 14 | `tools/kiem_duong_noi_bo.py:72,159` | chỉ chạy tay | `main()` → *"CHUA KIEM DUOC…"*, mã 2 (`goi` không bao giờ tới được khi vắng) | (d) |
+| 15 | `tools/do14_kha_thi_khoi_ngoai.py:392`, `tools/do17_nang_goi_vnstock.py:266` | script đo lịch sử | mã 2 / `{"loi": …}` sạch | (d) |
+| 16 | `tools/do10_nang_vnstock.py:88,102,113,127`, `do13_nang_urllib3.py:128,139`, `do22_buoc_gia_theo_san.py:52`, `do26_nguong_su_kien_quyen.py:319` | script đo lịch sử, không workflow/test nào chạy | traceback `ModuleNotFoundError` ở hàm không bọc; không chạy lại được dù có bộ chặn hay không (vnstock đã mất) | (d) — vào danh sách cho phép của gác AST |
+
+Số hành động trên 16 dòng: **(a) 0 · (b) 7 · (c) 0 · (d) 9.** (a) = 0 vì điểm cuối công khai chỉ có GIÁ NGÀY; bảng giá, BCTC, khối ngoại, nến nội phiên là *"không có nguồn"* (`CLAUDE.md`). (c) = 0 vì chỉ có `financial_collector.py` là ứng viên mã chết và người dùng giữ nó.
+
+### Việc làm (mã)
+
+- `vnstock_goi.py`: hằng `CHU_O_VANG` · `LY_DO_VANG`; trường `goi_vang` của `TrangThaiGoi`; `kiem_goi` bắt `ModuleNotFoundError` của `vnai`/`vnstock` (chỉ đường thật) và trả CHƯA KIỂM ĐƯỢC với `goi_vang=True`; hàm `hang_hop_app` trả (chữ, nhãn, lớp CSS, dòng cảnh báo) cho hộp của app — để test được MÀU không cần Streamlit.
+- `app.py`: hộp "🎫 Gói vnstock" dùng `hang_hop_app`; lớp CSS mới `.a-st.xam { color: #919191; }`; dòng cảnh báo cam đi theo `_goi_canh_bao` (rỗng khi gói vắng) thay vì `not _goi.dat`; chú thích Agent Cơ Bản đổi chữ. Ba trạng thái cũ (ĐÚNG · LỆCH · chưa kiểm được vì lý do khác) giữ nguyên chữ, nhãn và màu.
+- `vnstock_auth.py`: `LOI_VANG`; nhánh `ModuleNotFoundError` của `import vnstock`; `status_message` nói đúng.
+- `fetch_fundamentals.py`: `VangVnstock`, `LY_DO_VANG`, `fetch_symbol` bọc nhập, `main` bắt ở cả hai lần gọi (một dòng, mã 2). Test cũ gọi `main` với `fetch_symbol` giả vẫn xanh (nhánh vắng không nằm ở `main` mà ở `fetch_symbol`).
+- KHÔNG đổi: `financial_collector.py`, `tools/do*`, `kiem-dinh.yml`, `requirements.txt`, `CLAUDE.md`, điểm, ngưỡng, sổ, đường quét, đường giá.
+
+### Gác (`tests/test_vnstock_vang_286.py`, 26 test; mốc 5228 → 5254)
+
+1. Bộ chặn thật, mọi đường đã duyệt: `vnstock_auth` (có khoá/không khoá), `kiem_goi` (đường thật; bản tiêm không đi qua nhánh vắng; thiếu module KHÁC không bị gắn nhãn "vắng"), `suc_khoe`, `fetch_fundamentals` (một dòng, mã 2, không ghi đĩa), `fetch_khoi_ngoai`, hai script `kiem_*`, và ba đường BƯỚC 267 đã hạ (`mau_bang_gia`, `intraday_data`, `fundamental_agent`) cùng `financial_collector` — khoá lại để không ai "sửa" quay về gọi vnstock.
+2. Hộp "Gói vnstock" XÁM **trong chính biểu thức của `app.py`**: gác trích đúng hàm `_hang` và khối `try` gán `_row_goi` từ cây AST của `app.py` và CHẠY chúng dưới bộ chặn → HTML mang `class="a-st xam"`, chữ *"vnstock không còn cài ở đây"*, nhãn `● —`, không `● ?`, không lớp `wn`, `_goi_canh_bao == ""`; lỗi bất ngờ vẫn cam và không đổ cả app; dòng cam đi theo `_goi_canh_bao` (AST); CSS có `.a-st.xam` màu `#919191` (regex trên chuỗi CSS).
+3. **Gác AST toàn repo** (ngoài `tests/`): mọi nhập gói hãng (kể cả `importlib.import_module("vnstock…")` và `__import__`) phải nằm trong thân `try` bắt `ImportError`/`Exception`, TRỪ một danh sách cho phép TƯỜNG MINH, khớp hai chiều (mục thừa cũng đỏ): `tools/do10_nang_vnstock.py` (`do_A`, `do_B`, `do_C`), `tools/do13_nang_urllib3.py` (`_keo_mot_luot`), `tools/do22_buoc_gia_theo_san.py` (`san_theo_nguon`), `tools/do26_nguong_su_kien_quyen.py` (`tai_lich_that`), `tools/kiem_duong_noi_bo.py` (`goi`), `tools/kiem_san_giao_dich.py` (`_tai_nguon`); không nhập gói hãng ở MỨC MODULE ở đâu cả; bộ duyệt tự kiểm trên mã mẫu (thấy cả nhập trần và nhập trong `try`); không workflow nào `pip install vnstock|vnai`.
+
+**Giới hạn khai thẳng của gác AST:** một `try … except Exception` BAO NGOÀI vẫn tính là che (cùng định nghĩa với gác BƯỚC 267), nên nó không bắt được "nhánh `except ImportError` bên trong bị vô hiệu"; chuyện ấy do gác chạy dưới bộ chặn (mục 1) bắt (đột biến M13, M14 bên dưới).
+
+### Đột biến (`va_an_toan.dot_bien`; script ngoài repo `scratchpad/dot1.py`, `dot2.py`; log `vibe_logs_286/dot_bien_1.log`, `dot_bien_2.log`)
+
+18 phát khác nhau, MỌI phát đỏ sau khi sửa gác: M1 `kiem_goi` quay về câu *"không đọc được API key"* (đúng lỗi thật) · M2 hộp vắng thành lớp `wn` (cam) · M3 nhãn `?` · M4 kèm dòng cảnh báo · M5 `app.py` ghim cứng lớp `wn` · M6 CSS mất `.a-st.xam` · M7 dòng cam quay về `not _goi.dat` · M8 `vnstock_auth` nhánh vắng không khớp · M9 `fetch_symbol` ném lại `ModuleNotFoundError` · M10 `--schema` thoát mã 1 · M11 chú thích quay về *"(vnstock)"* · M12 nhập `vnstock` ở mức module (`cau_truc_gia.py`) · M13 nhánh `except ImportError` của `mau_bang_gia` thành `except KeyError` · M14 cùng ở `intraday_data` · M15 nhập trần trong `fetch_symbol` · M16 danh sách cho phép thừa một mục · M17 thiếu một mục · M18 nhánh vắng của `kiem_goi` nuốt cả module KHÁC (`if True`).
+**Lượt đầu 16/18; HAI phát sống sót, và là lỗi của GÁC, không của mã:** (M6) gác CSS kiểm `".a-st.xam" in …`, mà `.a-st.xamx` cũng chứa chuỗi ấy → đổi sang regex neo đủ `\.a-st\.xam\s*\{\s*color:\s*#919191\s*;`; (M18) không test nào cho `kiem_goi` đi qua một `ModuleNotFoundError` của module khác → thêm `test_kiem_goi_thieu_module_KHAC_khong_bi_gan_nhan_vang`. Chạy lại cả hai: đỏ. Chạy cả file sau sửa: `26 passed`.
+
+### Đọc lịch quét sau 10 ngày làm việc (đề xuất của BƯỚC 256 mục *Giả thuyết/ước lượng*, đọc 20/11/2026)
+
+Lệnh (của chính phiên này): `gh run list --workflow quet-so-lenh.yml --created '2026-11-06..2026-11-19' --limit 100 --json createdAt,conclusion,event,databaseId,updatedAt,status` và cùng lệnh với `chuong-bao-quet.yml` (đầu ra: `vibe_logs_286/lich_quet_286.txt`, `lich_chuong_286.txt`; log đỏ: `chuong_do_log_failed.txt`, `quet_do_log_failed.txt`). Quần thể: 10 ngày làm việc (06, 09–13, 16–19/11; ngày theo giờ UTC của `createdAt`), 26 lượt `quet-so-lenh` (20 `schedule` · 6 `workflow_dispatch`), 10 lượt `chuong-bao-quet` (đều `schedule`).
+
+| số đo | kết quả |
+|---|---|
+| ngày KHÔNG có lượt `schedule` thành công | **2** — 09/11 và 10/11 |
+| cùng số đó, tính cả `workflow_dispatch` | **1** — chỉ 09/11 (10/11 có một lượt `workflow_dispatch` xanh lúc 07:34 UTC) |
+| lượt `schedule` tạo trước 08:35 UTC | **0** (sớm nhất 16:08 UTC); tính cả `workflow_dispatch`: 1 (07:34 UTC ngày 10/11, tay) |
+| số lượt `schedule` mỗi ngày | đúng **2** ở cả 10 ngày (20 lượt) — dự đoán *"vẫn nhận hai lượt mỗi ngày"* của BƯỚC 256 ĐÚNG ở cỡ mẫu này |
+| độ trễ so với cron | ghép theo thứ tự trong ngày (lượt đầu ↔ `35 8`, lượt sau ↔ `5 10`; **giả định của phiên này**): **7,35 – 10,58 giờ**, trung vị 8,57 (n = 20); các lượt tạo 16:08–20:39 UTC = 23:08–03:39 ICT. Chuông `chuong-bao-quet` (cron 09:23 UTC): 7,43 – 10,51 giờ (n = 10) |
+| lượt `schedule` đỏ | 4/20, tất cả ngày 09 và 10/11 |
+| lượt `chuong-bao-quet` đỏ | 3/10: 42687669472 (09/11), 42861572949 (10/11), 43066215692 (11/11) |
+
+**Vì sao đỏ** (`gh run view <id> --log-failed`, đọc cả 4 lượt quét và 3 lượt chuông): cả 4 lượt quét đỏ chết ở bước `pip install`, trước khi chạm mã: ngày 09/11 *"Could not find a version that satisfies the requirement vnstock_ezchart>=1.0.2 (from vnstock)"* (2 lượt), ngày 10/11 *"No matching distribution found for vnstock==4.0.9"* (2 lượt) — kho của hãng đóng (BƯỚC 266/267). Cả 3 lượt chuông đỏ báo CÙNG MỘT ngày thiếu, **2026-11-09** ("0 lượt quét thành công <-- TRỐNG"), vì cửa sổ ba ngày của chuông còn nhìn thấy 09/11 ở các lượt 09, 10 và 11/11; chuông xanh từ 12/11. Từ 11/11 (BƯỚC 267) tới 19/11: 14/14 lượt `schedule` xanh, 7/7 ngày có ít nhất một lượt (cộng 6 lượt `workflow_dispatch`, đều xanh).
+
+**Chưa đọc được (khai thẳng):** 09/11 là một ngày làm việc mà sổ KHÔNG có lượt quét thành công trong ngày; phiên này không kiểm xem lượt `workflow_dispatch` hay lượt sau đó có quét bù nến 09/11 (nến ngày đóng, `run_daily` ghi trên nến đã đóng) — việc ấy cần đọc sổ thật, ngoài phạm vi. **Kết luận ở mức đo được:** nhịp hai lượt/ngày cho hai lượt/ngày; GitHub không bao giờ tạo lượt trước 08:35 UTC (0/20), trễ trung vị ~8,6 giờ; ba lượt chuông đỏ là một sự cố (kho hãng đóng), đã hết.
+
+### Giả thuyết bị bác · ước lượng đã sai
+
+- **Giả thuyết bị bác (của leader/brief):** *"Đường nào còn gọi thì sẽ hỏng trên Cloud/Actions"* — ĐO: không đường sản xuất nào sập; 13/34 dòng grep là module của repo; bảy dòng cần sửa chỉ vì câu chữ gây hiểu sai (đổ cho khoá API) và một script tay chưa bọc.
+- **Phát hiện phụ:** máy này có khoá vnstock sẵn trong `st.secrets` (nguồn *"st.secrets"* dù biến môi trường không đặt), nên trường hợp "không khoá" chỉ đo được bằng cách vá `_read_key`; kết quả hai trường hợp giống nhau.
+- **Gác sai lần đầu:** hai phát đột biến sống sót (xem trên); cả hai do gác của chính phiên này viết lỏng.
+- **KHÔNG nói:** *"app không còn sai gì ở Cloud"* — chưa dựng app lên nhìn; hộp xám được xác nhận bằng chạy khối AST của `app.py`, không bằng mắt.
+
+### Sổ tay NotebookLM
+
+`./.venv/Scripts/python.exe tools/buoc_cham_luat.py 286` — xem mục *Năm cổng* bên dưới (chạy trên cây đã commit). BƯỚC không đổi luật và không đổi kết luận đo; mục `BƯỚC 286` của `docs/soat-notebooklm.json` khai `khong_bat_buoc_vi`. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; bảng đo trên và đọc lịch quét chỉ nằm ở STATE, nên đây là kỷ luật, không phải cơ chế.
+
+### Năm cổng
+
+`./.venv/Scripts/python.exe tools/nam_cong.py --tuan-tu --thu-muc-log C:/Users/cuong/Vibe_Stock_Analysis/vibe_logs_286/cong2` (worktree, python của repo chính; 09:14:39–09:23:34 giờ máy, 536 s; cây `sua/vnstock-con-goi-286` tại `5e30592`; log `vibe_logs_286/cong2/cong1.log` … `cong5.log` và `nam_cong.out`): **cả năm cổng thoát 0** — cổng 1 `5252 passed, 2 skipped` (260 s; 5.254 test, khớp mốc) · cổng 2 *"Mọi file nạp được bằng 3.11."* · cổng 3 `0 CHẶN · 10 cảnh báo` · cổng 4 *"Mọi file test xanh khi chạy một mình."* (259 s) · cổng 5 *"OK — 5254 test, khop moc da ghi."* `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 286` → *"khong cham luat"* (`vibe_logs_286/cham_luat.txt`).
+
+**Lượt cổng ĐẦU (cây `5e78b79`, `vibe_logs_286/cong`) ĐỎ ở ba cổng, và là lỗi của GÁC MỚI, không của mã cũ:** cổng 3 chặn hai chỗ `getattr(e, "name", None)` (R2: `getattr` đọc trường "name", hai tệp `vnstock_auth.py:72` · `vnstock_goi.py:216`; `ModuleNotFoundError` luôn có `.name` nên đổi sang `e.name`) → hai test của `tests/test_chan_bia_so_lieu.py` đỏ (cổng 1 và 4); và `tests/test_duyet_repo.py::test_SO_DANG_KY_moi_luot_duyet_de_quy_deu_qua_duyet_repo` đỏ vì file test mới duyệt repo bằng `rglob` thay vì `duyet_repo.duyet` (cổng 1 và 4). Cả hai đã sửa (`5e30592`), chạy lại cả năm cổng: xanh. Ba file ấy chạy riêng xanh trước lượt cổng thứ hai (37 · 22 · 26 test). Đột biến chạy lại sau sửa: 18/18 đỏ (`vibe_logs_286/dot_bien_3.log`). Đây là chỗ cổng làm đúng việc của nó: phiên này chạy riêng file test mới và chưa chạy cổng 3 trước khi vào lượt cổng. **Sau lượt cổng thứ hai** (sau khi viết mục này), chạy lại 14 file test đọc tài liệu cùng file test mới trong MỘT tiến trình, `test_suc_khoe_kiem_goi_noi_vang_va_van_xam` đỏ MỘT lần: `tools/suc_khoe.py` trùng tên module gốc `suc_khoe.py` và một test chạy trước đã đẩy `tools/` lên đầu `sys.path`, nên `import suc_khoe` ra bản của `tools/` (cổng 1 và 4 không thấy vì thứ tự và tiến trình khác). Sửa trong chính test (ghim gốc repo lên đầu bằng `monkeypatch.syspath_prepend`, nạp lại bản gốc nếu `sys.modules` đang giữ bản `tools/`, và khẳng định `sk.__file__`): chạy lại cùng 14 file → `291 passed, 1 skipped` (`vibe_logs_286/doc_tests2.log`), cổng 3 `0 CHẶN · 10 cảnh báo`, cổng 5 *"OK — 5254 test, khop moc da ghi."*; số test không đổi (5254).
+
+### Việc kế
+
+1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge).
+2. Sau 22/11/2026 hộp "Gói vnstock" vẫn xám và đúng (gói vắng); nếu người dùng sau này muốn bỏ hẳn ô — đổi một lời gọi trong `app.py`; nếu dùng vnstock 6 (BƯỚC 265) thì `kiem_goi` đo lại hạng như cũ.
+3. Lỗi kế vẫn 205 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới).
