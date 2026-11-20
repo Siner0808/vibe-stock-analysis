@@ -729,7 +729,9 @@ def test_app_gia_tai_qua_MOT_ham_CO_DEM_va_khong_goi_load_trong_vong_lap_lenh():
     # BƯỚC 280: phân tích mã (180 ngày) và khối DOW (1095 ngày) nay đi qua `load_stock_data_cat` (chung MỘT lượt tải, cắt
     # khung; gác ở tests/test_gia_mot_lan_280.py) nên chỉ còn 3 lời gọi trực tiếp: hàm có đệm này, `_nen_ba_khung`
     # (1583 ngày, KHÔNG gộp được) và `_nen_cho_su_kien_quyen`.
-    assert len(trong_ham) == 1 and len(cho_goi) == 3
+    # BƯỚC 288: `_nen_ba_khung` (1583 ngày) cũng đi qua `load_stock_data_cat` nên còn 2 lời gọi trực tiếp: hàm có đệm này
+    # và `_nen_cho_su_kien_quyen`.
+    assert len(trong_ham) == 1 and len(cho_goi) == 2
     for ten in ("_khoi_so_bai_hoc", "_bang_bai_hoc", "_bang_dong_gop"):
         assert "load_stock_data" not in {getattr(c.func, "id", "") for c in ast.walk(_ham_app(ten))
                                          if isinstance(c, ast.Call)}, ten

@@ -29,8 +29,9 @@ import pytest
 import nguon_gia_cong_khai as ngk
 
 GOC = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(GOC / "tools"))
+sys.path.append(str(GOC / "tools"))        # append: tools/ không được che mặt các module cùng tên ở gốc repo
 import doi_chieu_gop_cua_so_288 as dc288  # noqa: E402
+import duyet_repo  # noqa: E402
 
 TEN_MOI = {"NGUON_ENTRADE_KHU_TRUNG", "chuoi_cho_app", "khu_trung_entrade", "_doc_entrade_khu_trung",
            "NGAY_TRUNG_CUOI_DA_BIET"}
@@ -42,7 +43,7 @@ def _cay(p):
 
 def _file_mot_ma():
     """Mọi file .py của repo (không .venv, không thư mục ẩn, không tests)."""
-    for p in sorted(GOC.rglob("*.py")):
+    for p in sorted(duyet_repo.duyet(GOC, "*.py")):
         r = p.relative_to(GOC)
         if any(x.startswith(".") or x in ("tests", "__pycache__", "node_modules") for x in r.parts):
             continue
@@ -229,7 +230,8 @@ def test_doc_entrade_khu_trung_nhan_no_data_va_loi_nhu_doc_phang():
 # ── 4. golden ngoại tuyến trên JSON thô thật ─────────────────────────────────
 @pytest.fixture(scope="module")
 def chup():
-    with gzip.open(GOC / "tests" / "du_lieu" / "entrade_khu_trung_288.json.gz", "rt", encoding="utf-8") as f:
+    with gzip.open(pathlib.Path(__file__).resolve().parent / "du_lieu" / "entrade_khu_trung_288.json.gz", "rt",
+                   encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -317,6 +319,8 @@ def test_GOLDEN_may_do_bat_duoc_khac_biet_that(monkeypatch, chup):
 
 
 def test_hang_so_cua_cong_cu_doi_chieu_bang_hang_so_that_cua_run_daily_va_app():
+    import khung_thoi_gian as kt         # tool KHÔNG nhập module này (gác "chỉ app.py nhập"), nên khoá số ở đây
+    assert dc288.NGAY_RONG == kt.NGAY_LICH_CHO_KHUNG_THANG
     rd = next(n for n in _cay("run_daily.py").body if isinstance(n, ast.Assign)
               and any(getattr(t, "id", "") == "NGAY_LICH_SU" for t in n.targets))
     assert ast.literal_eval(rd.value) == dc288.NGAY_QUET
@@ -353,7 +357,7 @@ def test_nen_tuan_thang_khong_vao_diem_khuyen_nghi_hay_so_ten_chi_o_app_va_khung
                  else n.name if isinstance(n, ast.alias) else n.name if isinstance(n, ast.FunctionDef) else None)
             if t in ten:
                 thay.setdefault(r.as_posix(), set()).add(t)
-    assert set(thay) <= {"app.py", "khung_thoi_gian.py", "tools/doi_chieu_gop_cua_so_288.py"}, thay   # công cụ chỉ ĐỌC cửa sổ
+    assert set(thay) <= {"app.py", "khung_thoi_gian.py"}, thay
     # trong app.py, kết quả `_nen_ba_khung` chỉ đi vào hai hàm VẼ/CHÚ THÍCH, không vào `master`/`ke_hoach`/sổ
     cay = _cay("app.py")
     dung = {ast.unparse(g.func) for g in ast.walk(cay) if isinstance(g, ast.Call) and any(

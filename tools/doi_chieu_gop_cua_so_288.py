@@ -29,6 +29,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 #: = `run_daily.NGAY_LICH_SU` (không nhập `run_daily` ở đây: nó kéo cả sổ lệnh; test khoá hai số bằng nhau).
 NGAY_QUET = 1095
 NGAY_BIEU_DO = 180                 # = `days_back` của app.py (test khoá)
+#: = `khung_thoi_gian.NGAY_LICH_CHO_KHUNG_THANG`; không nhập module ấy ở đây vì `tests/test_khung_thoi_gian.py` đòi
+#: CHỈ `app.py` nhập nó (test của BƯỚC 288 khoá hai số bằng nhau).
+NGAY_RONG = 1583
 
 
 @dataclass
@@ -62,7 +65,6 @@ def _giong_tung_byte(a: pd.DataFrame, b: pd.DataFrame) -> tuple[bool, int]:
 def doi_chieu_mot_ma(ma: str, den: str) -> KetQuaMotMa:
     """Đối chiếu MỘT mã tới ngày `den` (chuỗi YYYY-MM-DD). Gọi mạng qua `nguon_gia_cong_khai` (thay được khi test)."""
     import gia_mot_lan as g1l
-    import khung_thoi_gian as kt
     import nguon_gia_cong_khai as ngk
     import san_giao_dich as sgd
     from data_collectors import VNStockCollectorAgent
@@ -88,7 +90,7 @@ def doi_chieu_mot_ma(ma: str, den: str) -> KetQuaMotMa:
                             [i.message for i in q.warnings] if q is not None else [], r.get("source", ""))
         return bo_nho[khoa]
 
-    ngay_rong = max(NGAY_BIEU_DO, NGAY_QUET, kt.NGAY_LICH_CHO_KHUNG_THANG)
+    ngay_rong = max(NGAY_BIEU_DO, NGAY_QUET, NGAY_RONG)
     kq = KetQuaMotMa(ma=ma)
     # nến `run_daily` chấm: chuỗi MẶC ĐỊNH, cửa sổ 1.095 ngày
     quet = tai(ma, tu(NGAY_QUET), den, san)
