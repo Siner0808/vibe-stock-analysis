@@ -27738,7 +27738,9 @@ Lệnh: `bash ../vibe_logs_288/chay_app_288_sau.sh` rồi `../vibe_preview/.venv
 
 ## BƯỚC 289 — C4 LÁT 2: HIỆU CHUẨN MDE₈₀ VÀ ĐƯỜNG CONG LỰC TRÊN THỊ TRƯỜNG GIẢ (DÒNG HẠT 1): MDE₈₀ = ΔIC_true 0,0756 (κ = 0,01982); NULL SMOKE 24/500 (20/11/2026)
 
-**Mốc:** C4 (`docs/LO-TRINH.md`, giai đoạn C; Lát 2 của `docs/thiet-ke-c4-thi-truong-gia.md` mục 8, ghi chú thi công ở mục 16 của chính file ấy). Không chạm điểm, ngưỡng, sổ, máy đo của đường thật, `thi_truong_gia.py` hay file luật (`tools/buoc_cham_luat.py 289`, mục J).
+**Mốc:** C4
+
+Lát 2 của `docs/thiet-ke-c4-thi-truong-gia.md` mục 8 (`docs/LO-TRINH.md`, giai đoạn C); ghi chú thi công ở mục 16 của chính file ấy. Không chạm điểm, ngưỡng, sổ, máy đo của đường thật, `thi_truong_gia.py` hay file luật (`tools/buoc_cham_luat.py 289`, mục J).
 
 **Quyết định của người dùng (nguyên văn):** *"tiếp đi"* (20/11/2026). Việc chọn Lát 2 là của LEADER, diễn giải: Lát kế trên đường v1.0 (T6) cần KHÔNG câu hỏi mới của người dùng, vì cả bảy câu Q1–Q7 đã chốt 06–07/11/2026 (đặc tả mục 2 và 14). Không có quyết định nào của người dùng trong BƯỚC này.
 
