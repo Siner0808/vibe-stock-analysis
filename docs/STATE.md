@@ -27853,8 +27853,9 @@ Lát 3 của `docs/thiet-ke-c4-thi-truong-gia.md` mục 8 (`docs/LO-TRINH.md`, g
 1. `vong_hoc_gia.py` (gốc repo, module thuần): `de_xuat` (11 spec của họ F xếp theo Δ = IC(spec) − IC(điểm đã ghi) trên cửa sổ đã nhìn, dùng đúng `cham_bong.ma_tran_cap` và `E.rho_hang`, KHÔNG chạy `so_cap`), `chon_khai` (≤ 3 spec có Δ > 0, hoà theo thứ tự tên), lịch khai/đọc suy từ lịch của dữ liệu, sổ ứng viên giả trong bộ nhớ (`khai_ung_vien` qua `cham_bong.kiem_so_ung_vien`), `nang_cap` (hàm thuần, mục 5.4 khoản 1–3 và 6), `ap_phien_ban` (khoản 4), `huy_ung_vien_cho_doc` (khoản 5), `kiem_tien_ve_truoc`, và `chay_vong` ghép tất cả trên MỘT thị trường. Bước xác nhận là `cham_xac_nhan.cham` THẬT, một lời gọi duy nhất. Module nhận `dong` và `gia`, KHÔNG nhận `ThiTruongGia` (nó mang oracle) và không gọi bộ sinh.
 2. `tools/chay_vong_thi_truong_gia.py` (dụng cụ `chay-vong`): sinh một thị trường (qua `kiem_luong`), chạy vòng, RỒI đọc oracle, in sáu bước; `--ghi` ghi biên bản vào đúng MỘT file. Dòng hạt: chỉ **1 và 9001**; 2 · 3 · 4 · 5 nổ (mã thoát 2) trước khi bộ sinh chạy.
 3. `tests/test_vong_hoc_thi_truong_gia.py` (mục C), `docs/vong-hoc-thi-truong-gia-mau.md` (biên bản mẫu, mục B).
-4. Đặc tả: mục 17 "Ghi chú thi công Lát 3" (mười một điểm) và dòng "Trạng thái" ở đầu file.
-5. Không đổi: `thi_truong_gia.py` · `cham_bong.py` · `cham_xac_nhan.py` · `san_dau.py` · `paper_*` · `run_daily` · `master_agent` · `sheets_store` · sổ · điểm · ngưỡng · máy đo · mọi file luật. Không dòng hạt 2–5; không mạng; không `*.db`; không Sheets.
+4. Đặc tả: mục 17 "Ghi chú thi công Lát 3" (mười hai điểm) và dòng "Trạng thái" ở đầu file.
+5. `tests/test_moc_doc.py`: gác `test_ma_tran_cap_chi_goi_voi_phien_toi_da_bang_MOC_DOC_ngoai_vong_sang_cu` được nới ĐÚNG hai hàm (`vong_hoc_gia.de_xuat`, `vong_hoc_gia.kiem_tien_ve_truoc`), vì mục 5.1 của đặc tả đòi bộ đề xuất dùng `ma_tran_cap` không cắt 252 (mục 17 khoản 11). Đây là sửa một test không thuộc lát này; lượt năm cổng ĐẦU báo nó đỏ (mục D).
+6. Không đổi: `thi_truong_gia.py` · `cham_bong.py` · `cham_xac_nhan.py` · `san_dau.py` · `paper_*` · `run_daily` · `master_agent` · `sheets_store` · sổ · điểm · ngưỡng · máy đo · mọi file luật. Không dòng hạt 2–5; không mạng; không `*.db`; không Sheets.
 
 ### B. Thị trường mẫu — MỘT biên bản, KHÔNG phải kết quả (Lát 3 không có tỷ lệ)
 
@@ -27896,6 +27897,7 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_thi_truong_gia.py --
 - **Cách đọc cửa sổ của bộ đề xuất** (104 hay 106 phiên có nhãn): đặc tả mơ hồ, báo leader trước khi viết `de_xuat`; leader chọn (a) chặt, 104 (mục 17 khoản 1).
 - **Chữ ký `nang_cap`** thiếu đường lấy spec: thêm tham số `so_ung_vien` (mục 17 khoản 2).
 - **Phép thử "cửa sổ F vừa khít phiên cuối"** tôi viết sai lần đầu (đúng cho ứng viên khai SAU CÙNG, không cho ứng viên đọc đầu tiên: hiệu lực 402, F + 22 phiên tới 549 < 594). Test mới kiểm cả hai.
+- **Lượt năm cổng đầu (commit `bf41862`) ĐỎ ở cổng 1 và cổng 4, hai lý do khác nhau.** (a) THẬT: `tests/test_moc_doc.py::test_ma_tran_cap_chi_goi_voi_phien_toi_da_bang_MOC_DOC_ngoai_vong_sang_cu` thấy ba lời gọi `ma_tran_cap` mới ở `vong_hoc_gia.py` (cả cổng 1 lẫn cổng 4 báo đúng test ấy). Tôi đã đọc đặc tả mục 5.1 (dùng `ma_tran_cap`) nhưng KHÔNG tìm gác sẵn có nào đếm lời gọi của nó trước khi viết (`grep` `ma_tran_cap` trong `tests/` lúc bắt đầu sẽ thấy). Sửa: nới đúng hai hàm, đột biến 5/5 đỏ (mục 17 khoản 11). (b) NHIỄU: `tests/test_bo_dot_bien.py::test_HOAN_TRA_nguyen_trang_sau_ca_bo` đỏ ở cổng 1 với `RacSauDotBien: ... ['.tam_test']` — một worktree MỚI chưa có `.tam_test` ở gốc, cổng 1 chạy song song (`-n auto`) nên một test khác tạo thư mục ấy ĐÚNG lúc test này chụp danh sách gốc. Cổng 4 (mỗi file một mình) không đỏ ở file đó, và `.tam_test` nay đã có. Không đổi gì; ghi để leader biết: lần đầu chạy cổng 1 ở một worktree mới có thể đỏ giả ở đúng test này.
 - **Biên bản mẫu đặt tên `*.txt` bị `.gitignore` của repo nuốt** (`git status` không thấy; test `is_file` vẫn xanh ở máy nên CI sẽ đỏ). Bắt ở `git status` trước commit; đổi sang `*.md` và thêm test `test_bien_ban_mau_duoc_git_theo_doi_khong_bi_gitignore`.
 
 ### E. Đột biến
@@ -27905,6 +27907,8 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_thi_truong_gia.py --
 **Sống sót TƯƠNG ĐƯƠNG: V23** (`ngay[hl - 1]` thay `ngay[hl]` ở bộ lọc DÒNG của kiểm tiến-về-trước): phiên hiệu lực − 1 không có nhãn vì bảng giá đưa vào máy đo nhãn đã cắt từ phiên hiệu lực (`gia.iloc[hl:]`) — hai lớp bảo vệ chồng nhau, bỏ riêng lớp dòng không đổi hành vi. Lớp giá được ghim riêng (phát V41, đỏ, và test dùng máy ghi lời gọi `nhan_vuot_ro`).
 
 **Hai điều lộ ra khi đục.** (1) Lượt đầu dừng ở V38 vì chính phát đột biến ấy (mở `x.txt` để ghi) để lại `x.txt` ở gốc repo — `kiem_khong_de_rac` gọi tên, tôi xoá tay và viết lại phát thành `open("NUL")`; mọi phát trước V38 đã có kết quả. (2) **T08 sống sót THẬT lúc đầu**: test biên bản chỉ dùng bộ đề xuất cắm sẵn (3 hàng, cả ba đều khai) nên dòng `← khai` luôn đủ ba dù đánh dấu sai; thêm `test_bien_ban_voi_bo_de_xuat_co_so_in_du_11_hang_va_chi_3_dong_danh_dau_khai` (11 hàng, đúng ba hàng đầu có dấu), rồi T08 đỏ.
+
+**Đột biến gác `test_moc_doc` được nới** (baseline xanh trước: 2 passed): thêm lời gọi `ma_tran_cap` ở `chon_khai` · thêm ở `nang_cap` · `phan_quyet` bỏ cắt `MOC_DOC` · bỏ miễn trừ `kiem_tien_ve_truoc` · thêm miễn trừ lạ `chon_khai` — **5/5 đỏ**. Bộ đục: `vibe_logs_290/dot_bien_moc.py` (ngoài repo).
 
 ### H. Điều chưa kiểm
 
