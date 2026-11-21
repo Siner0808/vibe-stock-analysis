@@ -1,7 +1,7 @@
 # Thiết kế C4 — Thị trường giả có lợi thế cài sẵn: chứng minh vòng học chạy đúng (T6)
 
 **Mốc:** C4 (`docs/LO-TRINH.md`, giai đoạn C). **Duyệt hướng:** người dùng, 06/11/2026, trong phiên leader (BƯỚC 259): *"C4 — thị trường giả (T6) (Recommended)"* — mở bằng MỘT đặc tả chỉ có chữ; người dùng duyệt đặc tả trước khi có dòng mã nào.
-**Trạng thái:** đặc tả **ĐÃ CHỐT ĐỦ BẢY CÂU**: người dùng trả lời Q1, Q2, Q3, Q7 ngày 06/11/2026 và Q4, Q5, Q6 ngày 07/11/2026 (mục 2, mục 14). Không còn câu mở trong Q1–Q7 (một câu MỚI, về bộ ba của Tầng 2, mở ở mục 19.5). Mã bắt đầu từ BƯỚC 261 (Lát 1, mục 8); Lát 2 xong ở BƯỚC 289 (mục 16); **Lát 3 xong ở BƯỚC 290 (mục 17)**; **Lát 4 xong ở BƯỚC 292 (mục 18)**; **BƯỚC chuẩn bị Lát 5 xong ở BƯỚC 293 (mục 19): độ lệch lịch · bảng sự thật Tầng 2 · chi phí của vòng trên Tầng 2 đã làm, còn bộ ba G · Z · H của Tầng 2 CHỜ NGƯỜI DÙNG QUYẾT (mục 19.5)**; Lát 5 chưa có mã. Nhãn *[Qn: ĐÃ CHỐT]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo, và bản trước ngày 07/11/2026 gọi Q4 · Q5 · Q6 là *mặc định, người dùng chưa chọn*; cả hai còn ở lịch sử git.
+**Trạng thái:** đặc tả **ĐÃ CHỐT ĐỦ BẢY CÂU**: người dùng trả lời Q1, Q2, Q3, Q7 ngày 06/11/2026 và Q4, Q5, Q6 ngày 07/11/2026 (mục 2, mục 14). Không còn câu mở trong Q1–Q7 (một câu MỚI, về bộ ba của Tầng 2, mở ở mục 19.5 và ĐÃ ĐÓNG ngày 21/11/2026, BƯỚC 294: mục 19.8). Mã bắt đầu từ BƯỚC 261 (Lát 1, mục 8); Lát 2 xong ở BƯỚC 289 (mục 16); **Lát 3 xong ở BƯỚC 290 (mục 17)**; **Lát 4 xong ở BƯỚC 292 (mục 18)**; **BƯỚC chuẩn bị Lát 5 xong ở BƯỚC 293 (mục 19): độ lệch lịch · bảng sự thật Tầng 2 · chi phí của vòng trên Tầng 2 đã làm, còn bộ ba G · Z · H của Tầng 2 CHỜ NGƯỜI DÙNG QUYẾT (mục 19.5)** — 🔴 HẾT ĐÚNG ngày 21/11/2026: người dùng đã quyết phương án 2 và **BƯỚC 294 đã đóng câu ấy** (G′ = `bo_momentum_score`, dải PT đo ở dòng hạt 1, mục 19.8–19.9; hàng PT của mục 6 đã viết lại); Lát 5 chưa có mã. Nhãn *[Qn: ĐÃ CHỐT]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo, và bản trước ngày 07/11/2026 gọi Q4 · Q5 · Q6 là *mặc định, người dùng chưa chọn*; cả hai còn ở lịch sử git.
 
 Tài liệu này là đề bài cho các phiên làm mã. Luật chung (vá file, đột biến, năm cổng, giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó. Mọi `file:dòng` bên dưới được `grep` lại ở cây `3d87a20` ngày 06/11/2026; số dòng trôi theo mã, tên hàm thì không. Con số nào không kèm lệnh là **ước lượng** và được gọi là ước lượng (Quy tắc 2).
 
@@ -89,6 +89,8 @@ Mọi ứng viên có dạng `trong_so` trên năm thành phần (`cham_bong.kie
 | **H** (hại) | bỏ thành phần mang (mọi thành phần trừ volume, chuẩn hoá) | âm |
 
 **Họ F = 11 spec** cho bộ đề xuất (mục 5.1): 5 mono (`{c: 1,0}` cho từng thành phần), 5 bỏ-một (bộ mặc định 0,25 · 0,25 · 0,20 · 0,15 · 0,15 bỏ thành phần c, chuẩn hoá về tổng 1 — chính dạng của UV-001), và 1 đều (0,2 mỗi thành phần). G, Z, H đều là phần tử của F hoặc tổ hợp xác định được từ F; Lát 1 chốt danh sách tường minh.
+
+*Ghi chú BƯỚC 294 (người dùng, 21/11/2026, mục 19.8):* ở **Tầng 2** tham chiếu của hàng PT ở mục 6 là **G′ = `bo_momentum_score`**, không phải G (ở Tầng 2 G chỉ +0,0066 ± 0,0047, mục 19.4); bộ ba G · Z · H và ba loại ở bảng trên vẫn là của Tầng 1, không viết lại ở đây.
 
 ### 4.4 Độ lớn lợi thế so với MDE của bước xác nhận
 
@@ -192,7 +194,9 @@ Mọi con số dưới đây được chọn từ phép tính nhị thức KHÔN
 | **C2** | **Nâng cấp có ích** — ΔIC thực hiện của phiên bản mới so với bản cũ trên `F` = 126 phiên tiến-về-trước, trung bình qua các thị trường có nâng cấp | 2× | mọi thị trường có nâng cấp | cận dưới KTC 95% (bootstrap qua thị trường, 5000 lần, hạt 0) > 0 | lợi thế thật dương → phải thấy dương |
 | **C3** | **Không nâng cấp ma** — thị trường có ≥ 1 `QUA` | NULL | 1.000 | ≤ 50 (5%) | danh nghĩa một phía ≈ 2,5%; nếu đúng → sai-trượt ≈ 0; nếu thật 5% → qua 54% |
 | **P** | **Tầng 2: ống dẫn** — (P1) dòng quyết định do `_analyze` thật sinh đúng khuôn và `data_quality` = OK; (P2) phép thử tương đương của 4.9 bằng nhau từng cột; (P3) IC của thành phần mang với nhãn > 0 (lợi thế *đã đi qua* agent thật); (P4) gác G1–G5 xanh | NULL và 2× | 100 mỗi loại | P1, P2, P4: 0 vi phạm. P3: thấy ở ≥ 90/100 thị trường 2× | P1, P2, P4 tất định; P3 là tỷ lệ, 90% chọn thấp hơn B2 vì chuỗi qua agent thật nhiễu hơn (ước lượng, chưa đo) |
-| **PT** | **Tầng 2: nhất quán tỷ lệ** — báo động ở NULL ≤ 12/100; G `QUA` ở 2× ≥ 85/100 | NULL, 2× | 100 | như vế trái | chỉ là kiểm khớp Tầng 1, KHÔNG phải chứng cứ riêng (R = 100: nếu thật 5% → sai-trượt 0,15%; nếu thật 10% vẫn qua 80% — lực yếu, khai thẳng) |
+| **PT** | **Tầng 2: nhất quán tỷ lệ** — báo động ở NULL ≤ 12/100; G′ = `bo_momentum_score` `QUA` ở 2× nằm trong dải 99% [7 ; 26]/100 (mục 19.8–19.9) | NULL, 2× | 100 | như vế trái | chỉ là kiểm khớp Tầng 1, KHÔNG phải chứng cứ riêng (R = 100: nếu thật 5% → sai-trượt 0,15%; nếu thật 10% vẫn qua 80% — lực yếu, khai thẳng) |
+
+> **Hàng PT, vế G (BƯỚC 294, 21/11/2026):** người dùng quyết phương án 2 của mục 19.5, nguyên văn *"làm theo đề xuất của bạn đi, phương án nào tốt nhất thì làm"* (mục 19.8). Vế "G `QUA` ở 2× ≥ 85/100" được thay bằng G′ và dải 99% ở trên; dải tính từ ΔIC_true(G′) đo ở dòng hạt 1 (mục 19.9, `docs/thi-truong-gia-g-phay.json`). Vế NULL "≤ 12/100", R = 100 và mọi hàng khác của bảng KHÔNG đổi.
 
 **Báo cáo, không phán:** đường cong 0,5× · 1× (tỷ lệ bắt G, tìm ra, nâng cấp); với 1×, tỷ lệ bắt G phải nằm trong dải 99% quanh 80% = [299 ; 340]/400 (khớp hiệu chuẩn; ra ngoài thì máy đo hiệu chuẩn có vấn đề → kết cục "không đọc được"); mức độ bảo thủ của B1 (nếu < 2,5% thì nói vòng thiếu nhạy); ΔIC thực hiện sau nâng cấp ở NULL.
 
@@ -286,7 +290,7 @@ Mọi lệch giữa đặc tả này và mã thật được ghi thành mục "G
 
 ### 14.3 Câu mở còn lại
 
-Không có trong Q1–Q7 (câu mới về bộ ba G · Z · H của Tầng 2 mở ở mục 19.5, BƯỚC 293). Đổi một quyết định ở 14.1 hay 14.2 sau Lát 1 là sửa đặc tả bằng commit riêng và phải chạy lại trên dòng hạt mới (mục 6).
+Không có trong Q1–Q7. Câu mới về bộ ba G · Z · H của Tầng 2 (mở ở mục 19.5, BƯỚC 293) **ĐÃ ĐÓNG ngày 21/11/2026** (BƯỚC 294): người dùng *"làm theo đề xuất của bạn đi, phương án nào tốt nhất thì làm"* = phương án 2 (mục 19.8). Còn ngỏ cho Lát 5, không phải câu của người dùng: Z′ · H′ nếu Tầng 2 chạy bộ ba K = 3 (mục 19.8 khoản 7). Đổi một quyết định ở 14.1 hay 14.2 sau Lát 1 là sửa đặc tả bằng commit riêng và phải chạy lại trên dòng hạt mới (mục 6).
 
 ### 14.4 Các lựa chọn Q4 · Q5 · Q6 đã được đưa ra (giữ làm lịch sử)
 
@@ -384,9 +388,9 @@ Ghi sau khi viết mã, TRƯỚC khi có số nào của lượt chạy chính (
 12. **ĐIỀU KIỆN TRƯỚC LÁT 5 (việc của một BƯỚC chuẩn bị riêng, leader quyết định ngày 21/11/2026; KHÔNG làm ở Lát 4).** (a) ✅ **ĐÃ LÀM ở BƯỚC 293 (mục 19.1).** *Lệch dòng thời gian.* `thi_truong_gia.dong_thoi_gian()` tính ngày khai (đầu tháng dương lịch) trên lịch bắt đầu từ 2100-01-04; ở Tầng 2 phiên có quyết định thứ k nằm ở ngày thứ 250 + k của lịch, nên đầu tháng rơi vào phiên khác: đo (`vibe_logs_292/lech_lich.py`) ba ngày khai ở phiên **128 · 150 · 172** (Tầng 1) thành **139 · 160 · 183** (Tầng 2), ba lần đọc 401 · 423 · 445 thành 412 · 433 · 456, tổng phiên 594 thành **605**; dùng 594 làm số phiên có quyết định của Tầng 2 thì cửa sổ tiến-về-trước của ứng viên khai sau cùng không đủ. Cần tính lại dòng thời gian với độ lệch khởi động (không sửa `thi_truong_gia.py` ở Lát 4). (b) ✅ **ĐÃ ĐO ở BƯỚC 293 (mục 19.7).** *Chi phí của vòng trên Tầng 2*: bộ đề xuất, ba lần `cham_xac_nhan.cham` (2.000 hoán vị), kiểm tiến-về-trước — chưa đo; khoản 4 chỉ là chấm điểm. (c) ✅ **ĐÃ ĐO ở BƯỚC 293 (mục 19.2 – 19.5); bộ ba của Tầng 2 CHỜ NGƯỜI DÙNG QUYẾT.** *Cách đọc P3 và bộ ba G · Z · H sau phát hiện ở khoản 10*: lợi thế đi vào cả `trend`, `sr` lẫn `volume`; Lát 5 phải khai trước G · Z · H nào của Tầng 2 và ΔIC_true nào làm chuẩn (oracle Tầng 1 không chấm bằng agent thật). (d) *Phép tiêm độ rộng ở đường thật* (khoản 6) nếu Lát 5 muốn thử cổng độ rộng. (e) Số tiến trình và thời gian: ~2,5 giờ ở 12 tiến trình (khoản 4), dòng hạt 4.
 13. **Không làm ở Lát 4 (thuộc Lát 5 hoặc BƯỚC chuẩn bị):** tỷ lệ PT, tỷ lệ P3 trên 100 thị trường, bộ đề xuất · xác nhận · nâng cấp trên dữ liệu Tầng 2, tiêu chí mục 6 chép vào `docs/TIEU-CHI-DOC-TRUOC.md`, sửa `thi_truong_gia.py`, `paper_runner`, `post_mortem_learning`, `master_agent` hay bất kỳ thứ gì của đường thật.
 
-## 19. Chuẩn bị Lát 5 (BƯỚC 293, 21/11/2026) — bảng sự thật của Tầng 2 và bộ ba G · Z · H: CHỜ NGƯỜI DÙNG QUYẾT
+## 19. Chuẩn bị Lát 5 (BƯỚC 293, 21/11/2026) — bảng sự thật của Tầng 2 và bộ ba G · Z · H: ĐÃ QUYẾT 21/11/2026 (PHƯƠNG ÁN 2, mục 19.8–19.9)
 
-**Trạng thái: chờ người dùng quyết.** Mục này đo và nêu phương án; nó KHÔNG sửa mục 4 hay mục 6 và KHÔNG đổi ngưỡng nào. Sửa một dòng của mục 6 là sửa đặc tả bằng commit riêng (mục 6, "Quy tắc đọc"). Đây là việc (c) của mục 18 khoản 12; việc (a) (độ lệch lịch) ở mục 19.1 và việc (b) (chi phí của vòng trên Tầng 2) ở mục 19.7, cả hai đã làm.
+**Trạng thái: ĐÃ QUYẾT ngày 21/11/2026 (BƯỚC 294) — phương án 2; xem 19.8 (quyết định và lời khai trước) và 19.9 (số đo ở dòng hạt 1).** Các mục 19.1–19.7 dưới đây là bản BƯỚC 293, giữ nguyên làm lịch sử; câu "chờ người dùng quyết" ngay dưới đây hết đúng. Câu gốc: mục này đo và nêu phương án; nó KHÔNG sửa mục 4 hay mục 6 và KHÔNG đổi ngưỡng nào. Sửa một dòng của mục 6 là sửa đặc tả bằng commit riêng (mục 6, "Quy tắc đọc"). Đây là việc (c) của mục 18 khoản 12; việc (a) (độ lệch lịch) ở mục 19.1 và việc (b) (chi phí của vòng trên Tầng 2) ở mục 19.7, cả hai đã làm.
 
 **Số ở mục này là số THIẾT KẾ, đo ở dòng hạt 9001 (dòng thử), không phải kết quả T6.** Muốn dùng một ΔIC_true làm chuẩn tham chiếu cho Lát 5 thì phải đo lại trên dòng hạt khác 9001 (bất biến 7); xem 19.6.
 
@@ -555,3 +559,29 @@ Mọi điều dưới đây được KHAI trong một commit riêng, TRƯỚC kh
    Dừng thì không sửa ngưỡng, không đổi G′, không chạy thêm cho tới khi đạt: ghi kết quả nguyên văn, và người dùng quyết.
 6. **Việc làm tiếp nếu không dừng:** ghi số đo vào `docs/thi-truong-gia-g-phay.json`; tính dải bằng lệnh của khoản 4 với ΔIC_true đo được; viết lại MỘT vế của hàng PT ở mục 6 (G → G′, "≥ 85/100" → dải). Vế NULL "≤ 12/100", R = 100, và mọi hàng khác của mục 6 giữ nguyên.
 7. **Không làm ở BƯỚC này:** Lát 5 (không tỷ lệ PT hay P3 nào trên 100 thị trường, không dòng 2–5), κ, tiêu chí A · B · C, `docs/TIEU-CHI-DOC-TRUOC.md` (việc của Lát 5, kèm một câu hỏi thật tới sổ tay), đường thật. **Còn để ngỏ cho Lát 5:** nếu Tầng 2 chạy bộ ba K = 3 thì Z′ · H′ khai thế nào (mục 19.5, hai việc đi kèm); đường probit của dải đã tính ở K = 3 nên dải chỉ đúng khi thị trường Tầng 2 cũng khai đủ ba ứng viên.
+
+### 19.9 Số đo ở dòng hạt 1 và dải của PT (BƯỚC 294, 21/11/2026) — không điều kiện DỪNG nào bị chạm
+
+Hai lượt chạy ĐÚNG hai lệnh của 19.8 khoản 3, mỗi lượt MỘT lần, sau commit khai trước `981aa25` (`git log -1 --format='%H %cI' 981aa25`: 2026-11-21T14:53:58+07:00; lượt 2× bắt đầu 14:54:10). Bản ghi đầy đủ (12 spec, IC đứng riêng, số liệu NULL, thời gian, môi trường): `docs/thi-truong-gia-g-phay.json`; test: `tests/test_pt_g_phay_tang2.py`. Máy 16 lõi logic, 12 tiến trình, Python 3.13.14.
+
+| | dòng 1, mức 2× (chỉ số 600001 · 600002) | dòng 1, NULL (chỉ số 600101 · 600102) | tham chiếu dòng 9001, 2× (mục 19.3) |
+|---|---|---|---|
+| `bo_momentum_score` (G′) | **+0,0331 ± 0,0029** | +0,0008 ± 0,0020 | +0,0304 ± 0,0030 |
+| thời gian một lượt (hai mẫu, 600.000 lần `_analyze`) | 542 s | 545 s | 581 s |
+| dòng `data_quality` ≠ OK | 1.697 | 0 | 2.261 |
+
+**Đối chiếu từng điều kiện DỪNG của 19.8 khoản 5:**
+* (S1) ΔIC_true(G′) = +0,0331 ± 0,0029: z = 11,3 so với 0 (> 2) → không chạm.
+* (S2) lệch so với dòng 9001 = +0,0027; sai số gộp √(0,0029² + 0,0030²) = 0,0042; = 0,63 sai số gộp (≤ 3) → không chạm.
+* (S3) dải tính ra 7–26, cận dưới 7 ≠ 0 → không chạm.
+* (S4) NULL: cả 12 spec |ΔIC_true| < 2 sai số (|z| lớn nhất 1,52, ở `bo_volume_score`; công cụ in `spec có |ΔIC_true| ≥ 2 sai số (mẫu gộp): không có`); `data_quality` = OK ở 600.000/600.000 dòng → không chạm.
+* (S5) chỉ dùng dòng 1 và đọc số của dòng 9001 đã có; không dòng hạt nào khác → không chạm.
+
+**Dải của PT.** Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/dai_pt_tang2_thi_truong_gia.py --delta 0.033073041827246956 --se 0.0029307104631540676` → `p = Φ(−2,421383 + 43,144698 × 0,033073) = 0,1600`; dải 99% của 100 thị trường **7–26**. Hàng PT của mục 6 đọc: *G′ `QUA` ở 2× nằm trong [7 ; 26]/100*. Tham khảo, KHÔNG phải tiêu chí (sai số của ΔIC_true không đi vào dải): ở ΔIC − 1 sai số P = 13,1%, dải 5–22; ở ΔIC + 1 sai số P = 19,3%, dải 10–30. Dải dựng bằng ΔIC của dòng 9001 sẽ là 5–23 (mục 19.5); hai dải gối nhau gần hết.
+
+**Điều đọc ra, và điều chưa kiểm:**
+1. **G′ mang lợi thế ở dòng khác** (z = 11,3), cùng cỡ dòng 9001. Giá trị ở dòng 1 hơi LỚN hơn (+0,0331 so với +0,0304), tức không có dấu hiệu "lời nguyền người thắng": G′ được chọn là cực đại của 11 spec trên dòng 9001, và ở một mẫu độc lập nó không co lại.
+2. **Hai spec khác đo ở dòng 1 (không dùng, không đổi G′):** `bo_sr_score` +0,0347 ± 0,0030 (ở dòng 9001 +0,0281), lớn hơn G′ 0,0016 — trong phạm vi một sai số, đúng như mục 19.4 điều 6 đã nói về hai spec này; G′ đã được cố định trước (19.8 khoản 1) nên KHÔNG đổi. `mono_volume_score` (G cũ) +0,0199 ± 0,0033 ở dòng 1 so với +0,0066 ± 0,0047 ở dòng 9001 (chênh 2,3 sai số gộp): vẫn chỉ bằng 13% đích 0,1513 của Tầng 1, nên kết luận của mục 19.4 điều 2 (G cũ không đạt "≥ 85/100" ở Tầng 2) không đổi, nhưng ΔIC_true(G) ở Tầng 2 không chắc ở mức +0,0066.
+3. **Z và H ở dòng 1:** `doi_cho_trend_sr` −0,0647 ± 0,0029 (dòng 9001: −0,0635); `bo_volume_score` −0,0234 ± 0,0021 (−0,0215). IC đứng riêng ở 2×: trend +0,1236 · volume +0,1177 · sr −0,1118 · momentum −0,0204 · risk +0,0350 · điểm đã ghi +0,0978. Cơ chế của mục 19.4 điều 3 (điểm đã ghi đã đọc lợi thế qua giá) lặp lại ở dòng thứ hai.
+4. **Dải chỉ dựa trên một điểm ước.** PT ở Lát 5 chỉ kiểm được rằng số `QUA` không lệch khỏi 16% đến mức vượt dải; ΔIC_true(G′) có bất định ±0,0029 (P từ 13% tới 19%), và dự đoán P(`QUA`) từ đường probit Tầng 1 vẫn là GIẢ ĐỊNH về nhiễu của phép so cặp qua agent thật (19.6) — đó chính là cái PT đo.
+5. **Chưa đổi gì khác:** κ, hiệu chuẩn Lát 2, tiêu chí A · B · C, `docs/TIEU-CHI-DOC-TRUOC.md`, đường thật, và mọi hàng khác của mục 6. Ghi sổ tay: `docs/soat-notebooklm.json` mục BƯỚC 294. Chưa chạy một tỷ lệ PT hay P3 nào (Lát 5).
