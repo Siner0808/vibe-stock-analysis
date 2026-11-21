@@ -27931,3 +27931,68 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_thi_truong_gia.py --
 1. Leader đọc CI rồi quyết định merge (PR này KHÔNG tự merge).
 2. Lát 4 (Tầng 2: bộ sinh OHLCV có `z`, chấm bằng `paper_runner._analyze`, `san_dau.phat_lai`) — không cần câu hỏi mới của người dùng; Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
 3. Lỗi kế 206.
+
+## BƯỚC 291 — NỚI TRẦN THỜI GIAN CỦA JOB `kiem-dinh` TỪ 30 LÊN 45 PHÚT (21/11/2026)
+
+**Mốc:** quy-trinh — CI chạm trần 30 phút làm huỷ lượt kiểm của PR #336 (chặn merge C4)
+
+BƯỚC quy trình, làm ngay vì nó chặn việc sản phẩm (merge C4 Lát 3). Nhánh `ci/noi-tran-45-291` xếp chồng trên `origin/c4/lat3-vong-hoc-290` @ `64623c2` (đầu của PR #336), PR đáy `main`; hai BƯỚC cùng ghi `docs/STATE.md` và `docs/soat-notebooklm.json` nên xếp chồng để khỏi xung đột chắc chắn.
+
+**Quyết định của người dùng (nguyên văn):** *"Nới trần lên 45 phút (Recommended)"* (21/11/2026).
+
+**Đánh số:** BƯỚC 291 (lớn nhất trước đó là 290); không mở lỗi mới (lỗi kế vẫn 206).
+
+### A. Sự cố
+
+Lượt `pull_request` của PR #336 (run 44853923747, lượt 1) bị GitHub HUỶ ở đúng trần 30 phút, giữa bước "Số test không được giảm âm thầm"; không test nào đỏ. Lượt `push` cùng commit `64623c2` xanh sau 28,7 phút.
+
+Lệnh đọc lượt bị huỷ (lượt 1 còn đọc được dù lượt 2 đang chạy lại): `gh api repos/Siner0808/vibe-stock-analysis/actions/runs/44853923747/attempts/1/jobs`. Kết quả: job bắt đầu 02:05:33Z, bị huỷ 02:35:36Z = **30,05 phút**; "Bộ test" 02:06:14Z → 02:25:35Z = **19,35 phút**; "Mỗi file test phải xanh khi CHẠY MỘT MÌNH" 02:25:36Z → 02:35:28Z = **9,87 phút**; "Số test không được giảm âm thầm" bắt đầu 02:35:31Z và bị cắt sau 3 giây.
+
+### B. Số đo thời gian (đo lại trong phiên này)
+
+Lệnh: `gh run list -R Siner0808/vibe-stock-analysis --workflow kiem-dinh.yml --limit 25 --json databaseId,event,conclusion,headSha,createdAt`, rồi mỗi lượt `gh run view <id> -R Siner0808/vibe-stock-analysis --json jobs` (tính `completedAt − startedAt` của job và của từng bước). Script: `vibe_logs_291/do_thoi_gian.py`, bản in `vibe_logs_291/do_thoi_gian.log` (25 lượt, 24/25 đã xong; chỉ tính lượt `success`):
+
+| ngày | số lượt xanh | cả job (phút) | bước "Bộ test" (phút) |
+|---|---|---|---|
+| 19/11 | 8 | 15,8 – 25,6 | 10,1 – 16,5 |
+| 20/11 | 12 | 16,8 – 26,0 | 10,7 – 16,7 |
+| 21/11 | 2 | 26,6 – 28,7 | 17,2 – 18,4 |
+
+Cộng lượt bị huỷ 21/11: cả job 30,05, "Bộ test" 19,35.
+
+**Đọc đúng, và chỗ lệch với bản đọc ban đầu của leader.** Brief ghi "Bộ test" 10,7–13,9 phút ngày 20/11; đo lại cho 10,7 – 16,7: khoảng ấy gần với nhóm lượt `pull_request` ngày 20/11 (10,8 – 14,0, bốn lượt), còn các lượt `push` ngày 20/11 có bốn lượt 16,1 – 16,7 và cả job tới 26,0. Nghĩa là: (1) cùng một commit, hai lượt chạy song song (`push` và `pull_request`) có thể chênh nhau 6 phút ở "Bộ test" (ví dụ 1af9393: 16,7 `push` / 10,8 `pull_request`) — chưa có phép đo nói vì sao; (2) 21/11 là ngày chậm nhất trong 25 lượt, và lượt xanh `push` 28,7 phút cách trần 30 chỉ 1,3 phút, nên trần 30 không còn chỗ cho một lượt chậm thêm một chút. Chưa đo: runner có chậm hơn thật hay không (chỉ thấy thời gian đồng hồ của cùng một bộ test); đọc "runner chậm" là giả thuyết, không phải kết luận. Cũng chưa tách phần Lát 3 thêm vào (112 test mới, `docs/moc_so_test.json` 5386 → 5498) khỏi phần máy chậm; ngày 21/11 hai lượt `push` xanh cho "Bộ test" 17,2 phút ở `1b02935` (nền `main` của BƯỚC 290, trước Lát 3) và 18,4 phút ở `64623c2` (sau Lát 3): chênh 1,2 phút, cùng cỡ với chênh giữa hai lượt cùng commit.
+
+### C. Việc làm
+
+1. `.github/workflows/kiem-dinh.yml`: `timeout-minutes: 30` → `45` ở job `kiem-dinh`; viết lại chú thích phía trên, giữ lịch sử 20 → 30 ngày 07/09/2026 và thêm 30 → 45 kèm số đo, lệnh đo và lời người dùng. Không đổi bước, trigger, hay thứ tự. Đề xuất "chỉ chạy trên push" còn là quyết định MỞ của người dùng; BƯỚC này không chạm nó.
+2. Có ai đọc trần này không? `grep -rn "timeout-minutes" tests/ tools/`: `tests/test_cua_so_du_lieu_quet.py` (`_timeout_phut`, chỉ gọi cho `quet-so-lenh.yml`), `tests/test_tools_hau_kiem_loi.py` (đọc workflow hậu kiểm) và hai dòng chú thích trong `tools/hau_kiem_loi.py`. Không gác nào đọc trần của `kiem-dinh.yml`, nên hạ nó về 30 sẽ im lặng.
+3. `tests/test_bo_cong_khop_CI.py`: thêm `timeout_cua_job` (hàm thuần, không PyYAML — `kiem-dinh.yml` chỉ cài `requirements.txt`), hằng số `TRAN_KIEM_DINH_TOI_THIEU = 45`, `test_TRAN_job_kiem_dinh_khong_duoc_ha_duoi_45_phut` và `test_timeout_cua_job_la_ham_THUAN_va_bo_qua_chu_thich_va_job_khac`. Đặt ở file này vì nó đã đọc `kiem-dinh.yml` (`CI_YML`).
+
+### D. Đột biến (baseline xanh trước: 8 passed, `tests/test_bo_cong_khop_CI.py`)
+
+Script `vibe_logs_291/dot_bien_291.py` và `dot_bien_291b.py` (bản in cạnh nó), qua `va_an_toan.dot_bien`:
+
+- `timeout-minutes` 45 → **30** đỏ · → **44** đỏ · → **0** đỏ; → 46 xanh (đúng: ≥ 45).
+- Ngưỡng của gác 45 → 46 (yml 45 < 46) đỏ; 45 → 30 (yml 45) xanh (đúng: gác chỉ ghi nhận số).
+- Hàm đọc: bỏ điểm dừng ở job kế bên đỏ · "không tìm thấy thì đoán 45" đỏ.
+- **Một phát sống sót là phát thiết kế sai, đã bỏ:** "bỏ qua dòng chú thích" trong hàm đọc — dòng chú thích không bao giờ khớp `startswith("timeout-minutes:")` vì nó bắt đầu bằng `#`, nên mã ấy là mã thừa và đột biến không đổi hành vi. Đã xoá chính mã thừa đó (và câu docstring nhắc nó), chạy lại cả bộ đột biến trên bản đã gọn.
+- Phát "làm yếu phép so sánh (`tm > 0`) rồi để yml 30" xanh: đúng, vì phát ấy xoá đúng dòng đang canh; ba phát đỏ ở dòng đầu mới là bằng chứng gác canh con số.
+
+### E. Điều chưa kiểm
+
+- Chưa biết 45 có đủ mãi: nếu "Bộ test" chậm thêm nữa thì lại chạm. Đây là một đệm, không phải một sửa tận gốc; sửa tận gốc (giảm thời gian bộ test, hoặc bỏ lượt song song trùng nhau) là việc khác, kể cả đề xuất "chỉ chạy trên push" đang chờ người dùng.
+- Chưa đọc CI của PR này; chưa merge (PR này KHÔNG tự merge).
+
+### F. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 291` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 291` → *"BƯỚC 291: khong cham luat"* (mã thoát 0; máy ghi thêm *"CHUA vao origin/main"* vì nhánh xếp chồng trên #336); `kiem-dinh.yml` không nằm trong `FILE_LUAT`.
+
+**Số test:** mốc `docs/moc_so_test.json` **5498 → 5500** (+2, cả hai ở `tests/test_bo_cong_khop_CI.py`) (`./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat`; không test nào bị bớt).
+
+**Năm cổng:** chạy trên commit CUỐI của nhánh; kết quả ở báo cáo của phiên con và ở PR.
+
+### G. Việc kế
+
+1. Leader đọc CI rồi quyết định merge. Khi #336 đã merge: `git merge origin/main` vào nhánh này (xếp chồng nên sạch), chạy lại cổng bị lần merge làm mất giá trị.
+2. Quyết định MỞ của người dùng: đề xuất "chỉ chạy trên push" cho `kiem-dinh.yml`.
+3. Lỗi kế 206.
