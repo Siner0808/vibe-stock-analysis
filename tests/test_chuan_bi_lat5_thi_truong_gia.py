@@ -388,3 +388,158 @@ def test_main_chay_xong_mau_nho_in_json_voi_chi_so_tang_dan_va_ma_thoat_0(capsys
     j = json.loads(next(d for d in ra.splitlines() if d.startswith("KET_QUA_JSON "))[len("KET_QUA_JSON "):])
     assert j["chi_so"] == [201, 202] and [m["hat"] for m in j["tung_mau"]] == [[9001, 201, 2], [9001, 202, 2]]
     assert j["so_ma"] == 1 and j["so_lan_cham"] == 200 and j["cua_so"] is None
+
+
+# ══ (b) CHI PHÍ CỦA VÒNG TRÊN TẦNG 2 — bộ nối và dụng cụ đo ════════════════════════════════════════════════
+
+DUONG_VONG = GOC / "tools" / "chay_vong_tang2_thi_truong_gia.py"
+_spec2 = importlib.util.spec_from_file_location("chay_vong_tang2_thi_truong_gia", DUONG_VONG)
+VT = importlib.util.module_from_spec(_spec2)
+sys.modules["chay_vong_tang2_thi_truong_gia"] = VT
+_spec2.loader.exec_module(VT)
+
+
+def _cham_gia_lap(monkeypatch):
+    """`paper_runner._analyze` giả, tất định theo (mã, ngày): điểm và năm thành phần có biến thiên để phép so cặp có hạng."""
+    import zlib
+
+    import paper_runner as pr
+
+    def gia_lap(ma, df, san, ngay):
+        r = np.random.default_rng(zlib.crc32(f"{ma}|{ngay}".encode()))
+        tp = {k: float(r.integers(0, 101)) for k in cb.THANH_PHAN}
+        return {"final_score": int(r.integers(20, 80)), "recommendation": "x", "key_reasons": [],
+                "data_quality": "OK", "score_breakdown": tp}
+    monkeypatch.setattr(pr, "_analyze", gia_lap)
+
+
+@pytest.fixture(scope="module")
+def thi_truong_2_gia_lap():
+    """MỘT thị trường Tầng 2 đủ cỡ (60 mã × 605 phiên có quyết định), chấm bằng `_analyze` giả: chỉ để thử bộ nối và lịch."""
+    mp = pytest.MonkeyPatch()
+    try:
+        _cham_gia_lap(mp)
+        tt = G.sinh_thi_truong_2(LUONG_TEST, 1, KAPPA_2X)
+        theo_ma = VT.cham_ba_muoi(tt)
+        dong, gia = VT.noi_dong_va_gia(tt, theo_ma)
+    finally:
+        mp.undo()
+    return tt, dong, gia
+
+
+def test_bo_noi_dong_va_gia_dung_khuon_va_bo_khoi_dong(thi_truong_2_gia_lap):
+    tt, dong, gia = thi_truong_2_gia_lap
+    assert len(dong) == 60 * 605 and tt.so_phien == 605
+    assert list(gia.index) == list(tt.ngay_quyet_dinh) and list(gia.columns) == list(tt.ma) and gia.shape == (605, 60)
+    assert gia.index[0] == tt.ngay[250] and gia.index[0] > tt.ngay[0]
+    np.testing.assert_array_equal(gia["GIA03"].to_numpy(), tt.gia["GIA03"]["close"].to_numpy()[250:])
+    assert {d["signal_date"] for d in dong} == set(tt.ngay_quyet_dinh)
+    b = cb.doc_quyet_dinh(dong, tu_ngay=min(d["signal_date"] for d in dong))
+    assert len(b) == len(dong) and b.attrs.get("bo") == 0
+
+
+def test_vong_chay_NGUYEN_tren_du_lieu_Tang2_khai_va_doc_dung_lich_139_160_183_412_433_456(thi_truong_2_gia_lap):
+    _, dong, gia = thi_truong_2_gia_lap
+    v = V.chay_vong(dong, gia, de_xuat_fn=VT.bo_ba_ep, so_hoan_vi=20)
+    d = G.dong_thoi_gian_2()
+    assert v["so_phien"] == 605 == d["tong"]
+    assert [r["khai_phien"] for r in v["lich"]] == d["khai"] == [139, 160, 183]
+    assert [r["doc_phien"] for r in v["lich"]] == d["doc"] == [412, 433, 456]
+    assert [r["khai_ngay"] for r in v["lich"]] == d["khai_ngay"]
+    assert len(v["doc"]) in (1, 2, 3) and v["K"] == 3
+
+
+def test_do_vong_dem_dung_ba_lan_cham_bo_ba_ep_va_tra_lai_ham_goc(thi_truong_2_gia_lap):
+    import cham_xac_nhan as cx
+    _, dong, gia = thi_truong_2_gia_lap
+    goc = (cx.cham, V.de_xuat, V.kiem_tien_ve_truoc)
+    r = VT.do_vong(dong, gia, VT.bo_ba_ep, so_hoan_vi=20)
+    assert (cx.cham, V.de_xuat, V.kiem_tien_ve_truoc) == goc
+    assert r["khai"] == ["mono_volume_score", "bo_volume_score", "deu"]
+    assert r["so_lan_cham"] == len(r["giay_cham"]) == len(r["phien_doc"]) - (3 - r["so_lan_cham"]) and r["so_lan_cham"] <= 3
+    assert r["giay_tong"] >= sum(r["giay_cham"]) > 0 and r["giay_tong"] >= r["giay_tien_ve_truoc"]
+    assert r["giay_de_xuat"] == 0.0                         # bộ đề xuất cắm vào không đi qua `V.de_xuat`
+
+
+def test_viec_song_song_chay_vong_ep_ba_khi_ep_True_va_bo_de_xuat_co_so_khi_False(thi_truong_2_gia_lap):
+    _, dong, gia = thi_truong_2_gia_lap          # 2.000 hoán vị thật (mặc định của `do_vong`): vài giây
+    ep = VT._viec_vong((dong, gia, True))
+    assert ep["khai"] == ["mono_volume_score", "bo_volume_score", "deu"] and ep["so_lan_cham"] <= 3
+    co_so = VT._viec_vong((dong, gia, False))
+    assert co_so["khai"] != ep["khai"] and co_so["giay_de_xuat"] > 0
+
+
+def test_chay_voi_song_song_chay_N_ban_vong_ep_ba_trong_tien_trinh_con(monkeypatch):
+    """Cả đường `chay` (sinh → chấm → bộ nối → hai lượt vòng → N bản song song), điểm bằng `_analyze` GIẢ ở tiến trình cha;
+    các tiến trình con chỉ chạy vòng (không chấm). Mỗi bản con phải chạy ba ứng viên ép sẵn."""
+    _cham_gia_lap(monkeypatch)
+    r = VT.chay(LUONG_TEST, 1, KAPPA_2X, so_tien_trinh=1, song_song=2)
+    ba = ["mono_volume_score", "bo_volume_score", "deu"]
+    assert r["vong_ep_ba"]["khai"] == ba and r["thi_truong"]["so_phien"] == 605 and r["so_dong"] == 60 * 605
+    s = r["song_song"]
+    assert s["n"] == 2 and s["khai_moi_ban"] == [ba, ba] and len(s["giay_tong_moi_ban"]) == 2 and s["giay_tuong"] > 0
+
+
+def test_do_vong_tra_lai_ham_goc_ke_ca_khi_vong_no(monkeypatch):
+    import cham_xac_nhan as cx
+    goc = (cx.cham, V.de_xuat, V.kiem_tien_ve_truoc)
+
+    def no(*a, **k):
+        raise RuntimeError("vong no")
+    monkeypatch.setattr(V, "chay_vong", no)
+    with pytest.raises(RuntimeError):
+        VT.do_vong([], pd.DataFrame())
+    assert (cx.cham, V.de_xuat, V.kiem_tien_ve_truoc) == goc
+
+
+def test_do_vong_chuyen_dung_so_hoan_vi_va_bo_de_xuat_cho_chay_vong(monkeypatch):
+    thay_vao = {}
+
+    def gia_lap(dong, gia, de_xuat_fn=None, so_hoan_vi=None, **k):
+        thay_vao.update(de_xuat_fn=de_xuat_fn, so_hoan_vi=so_hoan_vi)
+        return {"ket_cuc": "X", "lich": [], "trang_thai": {}, "so_phien": 7}
+    monkeypatch.setattr(V, "chay_vong", gia_lap)
+    r = VT.do_vong([], None, VT.bo_ba_ep, so_hoan_vi=123)
+    assert thay_vao == {"de_xuat_fn": VT.bo_ba_ep, "so_hoan_vi": 123} and r["so_lan_cham"] == 0 and r["so_phien"] == 7
+    VT.do_vong([], None)
+    assert thay_vao["so_hoan_vi"] == 2000 and thay_vao["de_xuat_fn"] is None
+
+
+def test_bo_ba_ep_la_ba_spec_cua_ho_F_theo_thu_tu_va_qua_chon_khai():
+    ba = VT.bo_ba_ep([], None)
+    assert [x["ten"] for x in ba] == ["mono_volume_score", "bo_volume_score", "deu"]
+    assert [x["ten"] for x in V.chon_khai(ba)] == [x["ten"] for x in ba]
+    for x in ba:
+        assert x["spec"] == T.ho_spec_f()[x["ten"]]
+
+
+@pytest.mark.parametrize("luong", [2, 3, 4, 5, 6, 0, -1])
+def test_dung_cu_vong_tang2_no_voi_dong_hat_bi_chan(luong):
+    assert VT.main(["--luong", str(luong), "--so-ma", "2"]) == 2
+    with pytest.raises(ValueError):
+        VT.chay(luong, 1, 0.0)
+
+
+def test_G1_G3_G4_G5_dung_cu_vong_tang2_khong_ghi_khong_the_gioi_that_khong_oracle():
+    cay = ast.parse(DUONG_VONG.read_text(encoding="utf-8"))
+    assert not (_goi(cay) & TEN_GHI), sorted(_goi(cay) & TEN_GHI)
+    ten = set()
+    for n in ast.walk(cay):
+        if isinstance(n, ast.Name):
+            ten.add(n.id)
+        elif isinstance(n, ast.Attribute):
+            ten.add(n.attr)
+    cam = {"tinh_su_that", "su_that", "spec_ngoai_hai_se", "ho_spec_oracle", "HAT_SU_THAT", "SO_PHIEN_SU_THAT", "se_mc",
+           "TEN_SPEC_Z", "TEN_SPEC_H", "TEN_SPEC_G", "spec_z", "sheets_store", "keo_bang_gia", "doc_so_that", "oracle"}
+    assert not (ten & cam), sorted(ten & cam)
+    nhap = set()
+    for n in ast.walk(cay):
+        if isinstance(n, ast.Import):
+            nhap |= {a.name.split(".")[0] for a in n.names}
+        elif isinstance(n, ast.ImportFrom):
+            nhap.add((n.module or "").split(".")[0])
+    assert not (nhap & {"sheets_store", "keo_bang_gia", "doc_so_that", "socket", "requests", "urllib", "sqlite3",
+                        "paper_trading", "paper_runner"}), nhap
+    assert _ham_goi_sinh_thieu_cua(DUONG_VONG.read_text(encoding="utf-8")) == []
+    assert "chay" in {f.name for f in ast.walk(cay) if isinstance(f, ast.FunctionDef)
+                      and any(isinstance(n, ast.Call) and getattr(n.func, "attr", "") == "sinh_thi_truong_2" for n in ast.walk(f))}
