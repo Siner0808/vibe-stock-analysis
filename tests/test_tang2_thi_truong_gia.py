@@ -391,8 +391,14 @@ def test_khong_file_chung_khong_mo_cache_bo_nho_so_hay_vnstock(tt, monkeypatch, 
 # ══ DỤNG CỤ ═══════════════════════════════════════════════════════════════════════════════════════════════
 
 def test_dung_cu_dung_lai_cua_kiem_luong_cua_chay_vong():
-    import chay_vong_thi_truong_gia as CV
-    assert CT.kiem_luong is CV.kiem_luong and CT.LUONG_TEST == LUONG_TEST
+    """So theo NGUỒN, không theo đối tượng hàm: `tests/test_vong_hoc_thi_truong_gia.py` nạp dụng cụ `chay-vong` dưới cùng tên
+    trong `sys.modules`, nên chạy cả bộ thì hai lần nạp cho HAI đối tượng hàm khác nhau (cổng 1 đỏ ở lượt đầu, BƯỚC 292)."""
+    cay = ast.parse(DUONG_TOOL.read_text(encoding="utf-8"))
+    nhap = [n for n in ast.walk(cay) if isinstance(n, ast.ImportFrom) and n.module == "chay_vong_thi_truong_gia"]
+    assert nhap and {"kiem_luong", "LUONG_TEST", "doc_kappa_muc"} <= {a.name for n in nhap for a in n.names}
+    assert not [n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef) and n.name == "kiem_luong"], "bản sao của cửa"
+    assert Path(CT.kiem_luong.__code__.co_filename).resolve() == (GOC / "tools" / "chay_vong_thi_truong_gia.py").resolve()
+    assert CT.kiem_luong.__name__ == "kiem_luong" and CT.LUONG_TEST == LUONG_TEST
 
 
 @pytest.mark.parametrize("luong", [2, 3, 4, 5, 6, 0, -1, True, 1.0, "1"])
