@@ -27985,9 +27985,9 @@ Script `vibe_logs_291/dot_bien_291.py` và `dot_bien_291b.py` (bản in cạnh n
 
 ### F. Sổ tay · năm cổng · số test
 
-**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 291` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 291` → xem PR (chạy sau khi có tiêu đề này); `kiem-dinh.yml` không nằm trong `FILE_LUAT`.
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 291` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 291` → *"BƯỚC 291: khong cham luat"* (mã thoát 0; máy ghi thêm *"CHUA vao origin/main"* vì nhánh xếp chồng trên #336); `kiem-dinh.yml` không nằm trong `FILE_LUAT`.
 
-**Số test:** `docs/moc_so_test.json` cập nhật bằng `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat` (thêm test, không bớt test nào).
+**Số test:** mốc `docs/moc_so_test.json` **5498 → 5500** (+2, cả hai ở `tests/test_bo_cong_khop_CI.py`) (`./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat`; không test nào bị bớt).
 
 **Năm cổng:** chạy trên commit CUỐI của nhánh; kết quả ở báo cáo của phiên con và ở PR.
 
