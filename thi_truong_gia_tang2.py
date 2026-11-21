@@ -23,6 +23,11 @@ Hai bẫy đã đo khi dựng (BƯỚC 292), nói ở đây vì chúng nằm đ�
   `sl_pattern_memory.json` nếu file có ở thư mục hiện hành (kể cả khi engine tắt). Nên lượt chấm đặt một engine TẮT trỏ vào
   đường không có file, rồi trả engine cũ.
 
+Phần P2 (BƯỚC 292, phase 2): `chay_that_va_phat_lai` chạy CÙNG một thị trường hai cách — `paper_runner.run_session`
+(đường thật, chấm điểm bằng `_analyze` ngay lúc chạy) và `san_dau.phat_lai` (điểm đã ghi từ `cham_diem`) — rồi so bảng
+`trades` từng ô của `san_dau.COT_TUONG_DUONG`. Phần P3: `ic_thanh_phan` đo IC (tương quan hạng gộp, cùng `E.rho_hang`) của từng
+thành phần điểm với nhãn `E.nhan_vuot_ro`: lợi thế có ĐI QUA agent thật hay không. Nó chỉ dùng nhãn, KHÔNG dùng `z` hay oracle.
+
 Module KHÔNG sửa, KHÔNG nhập ngược từ đường thật (gác G2), không đồng hồ, không mạng, không file, không sổ khác `:memory:`.
 """
 from __future__ import annotations
@@ -35,6 +40,7 @@ import numpy as np
 import pandas as pd
 
 import cham_bong as cb
+import experiment_tran_dac_trung as E
 import thi_truong_gia as T
 
 # ── dòng thời gian (mục 4.6) ─────────────────────────────────────────────────
@@ -264,3 +270,139 @@ def kiem_p1(tt: ThiTruongGia2, dong: list[dict], so_ma: int, so_phien: int) -> l
         if len(b) != len(dong) or b.attrs.get("bo") != 0:
             sai.append(f"doc_quyet_dinh doc {len(b)}/{len(dong)} dong, bo {b.attrs.get('bo')}")
     return sai
+
+
+# ── P2 (mục 4.9, hàng P): phép thử tương đương của thế giới giả ───────────────────────────────────────────
+
+def vni_gia(tt: ThiTruongGia2) -> pd.DataFrame:
+    """VN-INDEX GIẢ: chỉ số bình quân đều của 60 mã, `1000 · TB(giá / giá đầu)`, đủ mọi ngày (cả khởi động, để có MA50
+    từ phiên đầu có quyết định). Mục 4.9 nói "chính nhân tố thị trường, cộng dồn"; `_sinh_loi` không trả nhân tố ấy ra
+    ngoài và Lát này không sửa `thi_truong_gia.py`, nên dùng chỉ số bình quân đều — cùng hướng đi theo nhân tố thị
+    trường nhưng KHÔNG phải nó (ghi chú thi công)."""
+    gia = pd.DataFrame({m: df["close"].to_numpy() for m, df in tt.gia.items()})
+    chi_so = 1000.0 * (gia / gia.iloc[0]).mean(axis=1)
+    return pd.DataFrame({"time": list(tt.ngay), "close": chi_so.to_numpy()})
+
+
+@contextlib.contextmanager
+def vni_tiem_cho_duong_that(khung: pd.DataFrame):
+    """Cho ĐƯỜNG THẬT (`run_session` không nhận nguồn) đọc VN-INDEX giả mà không chạm cache toàn cục: nạp MỘT BẢN SAO
+    RIÊNG của `market_filter` (mã thật; một test khác có thể đã ghim `market_filter.is_vni_bullish` thành hàm hằng ở mức
+    module), trỏ `get_vni_df` của bản sao vào `khung`, rồi đặt `market_filter.is_vni_bullish` = hàm của bản sao trong lúc
+    chạy. Trả lại cả hai khi ra."""
+    import importlib.util
+
+    import market_filter as mf
+
+    k = khung.copy()
+    k["time"] = k["time"].astype(str)
+    ban_sao_spec = importlib.util.spec_from_file_location("market_filter_ban_sao_tang2", mf.__file__)
+    ban_sao = importlib.util.module_from_spec(ban_sao_spec)
+    ban_sao_spec.loader.exec_module(ban_sao)
+    k["vni_ma50"] = k["close"].rolling(ban_sao.MA_WINDOW).mean()
+    ban_sao.get_vni_df = lambda: k
+    cu = (mf.get_vni_df, mf.is_vni_bullish)
+    mf.get_vni_df, mf.is_vni_bullish = (lambda: k), ban_sao.is_vni_bullish
+    try:
+        yield
+    finally:
+        mf.get_vni_df, mf.is_vni_bullish = cu
+
+
+@contextlib.contextmanager
+def cam_cache_toan_cuc():
+    """Trong lúc phát lại, hai cửa đọc VN-INDEX toàn cục của `market_filter` NỔ nếu bị hỏi: phát lại chỉ được dùng nguồn
+    TIÊM VÀO (khuôn `tests/test_san_dau.py`)."""
+    import market_filter as mf
+
+    def no(*a, **k):
+        raise AssertionError("phát lại đã hỏi VN-INDEX toàn cục của market_filter")
+    cu = (mf.is_vni_bullish, mf.get_vni_df)
+    mf.is_vni_bullish, mf.get_vni_df = no, no
+    try:
+        yield
+    finally:
+        mf.is_vni_bullish, mf.get_vni_df = cu
+
+
+def cau_hinh_mac_dinh():
+    """Cấu hình của tài khoản giả: `CauHinhVao.tu_module()` làm cơ sở, ghi đè bằng `dataclasses.replace` (mục 4.9);
+    KHÔNG cờ module nào bị gán. Ở Tầng 2 chưa ghi đè gì: ngưỡng, trần vốn, cổng VN-INDEX là của đường thật."""
+    import dataclasses
+
+    from paper_trading import CauHinhVao
+    return dataclasses.replace(CauHinhVao.tu_module())
+
+
+def chay_that_va_phat_lai(tt: ThiTruongGia2, ma=None, so_phien: int | None = None, cau_hinh=None,
+                          dong_quyet_dinh_san=None) -> dict:
+    """Phép thử tương đương MỘT thị trường (mục 4.9): `ma` (mặc định 60 mã) × `so_phien` phiên có quyết định đầu tiên.
+
+    1. Dòng quyết định: `cham_diem` (hay `dong_quyet_dinh_san` nếu người gọi đã chấm) — các dòng mà Tầng 2 sinh.
+    2. ĐƯỜNG THẬT: `paper_runner.run_session` từng (phiên, mã) trên lịch sử cắt tới phiên, chấm bằng `_analyze` THẬT ngay lúc
+       chạy, sổ `:memory:`; cổng VN-INDEX đọc khung giả qua `vni_tiem_cho_duong_that`.
+    3. PHÁT LẠI: `san_dau.phat_lai` từ dòng ở (1), nguồn tiêm `NguonDoRong(co_tu_gia(khung giá), vni=NguonVni(VN-INDEX giả))`,
+       trong lúc `cam_cache_toan_cuc`.
+    4. So bảng `trades` từng ô của `san_dau.COT_TUONG_DUONG`; kèm: điểm ở sổ `decisions` của đường thật bằng điểm của (1).
+    Trả `{"thuc", "phat", "khac", "dem", "quyet_dinh", "diem_lech", "so_diem_so_duoc", "bi_chan_vni"}`; `khac` rỗng nghĩa là
+    bằng nhau từng ô; `bi_chan_vni` là số quyết định đủ điểm mua mà cổng VN-INDEX chặn (0 nghĩa là phép thử không canh gì)."""
+    import paper_runner as pr
+    import san_dau as sd
+    from paper_trading import PaperTradingJournal
+
+    ds = tt.ma if ma is None else tuple(ma)
+    n = tt.so_phien if so_phien is None else int(so_phien)
+    cfg = cau_hinh_mac_dinh() if cau_hinh is None else cau_hinh
+    phien = tuple(range(n))
+    qd = cham_diem(tt, ma=ds, phien=phien) if dong_quyet_dinh_san is None else list(dong_quyet_dinh_san)
+    vni = vni_gia(tt)
+    gia = {m: tt.gia[m] for m in ds}
+
+    so = PaperTradingJournal(":memory:")
+    with moi_truong_cham(), vni_tiem_cho_duong_that(vni):
+        for k in phien:
+            t = tt.so_khoi_dong + k
+            for m in ds:
+                df = tt.gia[m]
+                nen = {c: float(df[c].iloc[t]) for c in ("open", "high", "low", "close", "volume")}
+                pr.run_session(so, m, df.iloc[: t + 1], nen, tt.ngay[t], SAN_GIAO_DICH, cau_hinh=cfg)
+    cot = ", ".join(sd.COT_TUONG_DUONG)
+    thuc = [dict(r) for r in so.db.execute(f"SELECT {cot} FROM trades ORDER BY id").fetchall()]
+    ds_that = so.decisions()
+    diem_that = {(d["symbol"], str(d["signal_date"])[:10]): d["score"] for d in ds_that}
+    bi_chan = sum(1 for d in ds_that if str(d["skip_reason"]).startswith("VN-INDEX") and d["score"] >= cfg.buy_threshold)
+    so.db.close()
+
+    nguon = sd.NguonDoRong(sd.co_tu_gia(gia), vni=sd.NguonVni(vni))
+    with cam_cache_toan_cuc():
+        tk = sd.phat_lai(cfg, qd, gia, nguon, san_cua=lambda _m: SAN_GIAO_DICH,
+                         ngay_bat_dau=tt.ngay_quyet_dinh[0], ngay_ket_thuc=tt.ngay_quyet_dinh[n - 1])
+    phat, dem = tk.lenh(), tk.dem
+    tk.dong()
+    diem_ghi = {(d["symbol"], d["signal_date"]): d["score"] for d in qd}
+    lech = sorted(k for k, v in diem_that.items() if diem_ghi.get(k) != v)
+    return {"thuc": thuc, "phat": phat, "khac": sd.so_sanh_lenh(thuc, phat), "dem": dem, "quyet_dinh": qd,
+            "diem_lech": lech, "so_diem_so_duoc": len(diem_that), "bi_chan_vni": bi_chan}
+
+
+# ── P3 (mục 6, hàng P): lợi thế có ĐI QUA agent thật không ────────────────────────────────────────────────
+
+def ic_thanh_phan(tt: ThiTruongGia2, dong: list[dict]) -> dict:
+    """IC (tương quan hạng GỘP qua mọi cặp (phiên, mã) có nhãn, cùng `E.rho_hang` của máy đo) của từng thành phần điểm
+    và của điểm cuối với nhãn `E.nhan_vuot_ro` (log lợi nhuận 21 phiên vượt rổ đều, vào ở đóng cửa T+1 — mục 3 "Nhãn khai
+    thẳng"). Nhãn tính trên giá của MỌI mã của thị trường (rổ = cả 60), dù `dong` chỉ có một phần số mã.
+    Trả `{"so_cap": n, "so_cap_khong_nhan": m, "ic": {tên: IC}}` với tên ∈ `cb.THANH_PHAN` ∪ {"score"}. KHÔNG dùng `z`,
+    oracle hay `kappa`."""
+    if not dong:
+        raise ValueError("khong co dong quyet dinh")
+    b = cb.doc_quyet_dinh(dong, tu_ngay=min(d["signal_date"] for d in dong))
+    kh = {m: pd.DataFrame({"close": df["close"].to_numpy()}) for m, df in tt.gia.items()}
+    nhan = E.nhan_vuot_ro(kh, cb.NHIP)
+    vi_tri = {d: i for i, d in enumerate(tt.ngay)}
+    hang = b["ngay"].map(vi_tri).to_numpy()
+    y = np.array([nhan.iloc[h][s] for h, s in zip(hang, b["symbol"])], dtype=float)
+    co = ~np.isnan(y)
+    if not co.any():
+        raise ValueError("khong cap nao co nhan")
+    ic = {ten: E.rho_hang(b[ten].to_numpy(float)[co], y[co]) for ten in (*cb.THANH_PHAN, "score")}
+    return {"so_cap": int(co.sum()), "so_cap_khong_nhan": int((~co).sum()), "ic": ic}

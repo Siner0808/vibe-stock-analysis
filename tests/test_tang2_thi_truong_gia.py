@@ -12,6 +12,10 @@
 
 Dòng hạt thử: 9001 (dòng thử, ngoài năm dòng chính của mục 4.8). KHÔNG test nào sinh dòng 2, 3, 4, 5. Thị trường NHỎ
 (60 mã sinh, chỉ chấm vài mã × vài phiên): lượt chạy cả 60 mã × 594 phiên nằm ở dụng cụ, không ở pytest.
+
+PHASE 2 (BƯỚC 292) thêm: P2 (phép thử tương đương của thế giới giả, từng ô của `san_dau.COT_TUONG_DUONG`), P3 (phép đo IC của
+thành phần mang: máy đo có đáp án biết trước, kể cả đáp án ÂM — KHÔNG đo tỷ lệ nào, đó là dụng cụ + Lát 5), P4 (gác G1–G5 gom
+một chỗ cho module và dụng cụ Tầng 2).
 """
 import ast
 import builtins
@@ -400,15 +404,18 @@ def test_dung_cu_no_voi_dong_hat_bi_chan_va_main_tra_2(luong):
 
 
 def test_dung_cu_chay_xong_thi_truong_nho_ma_thoat_0_va_in_chi_phi_va_P1(capsys):
-    assert CT.main(["--luong", "9001", "--chi-so", "1", "--muc", "2", "--so-ma-cham", "2", "--so-phien", "4",
-                    "--so-khoi-dong", "40"]) == 0
+    assert CT.main(["--luong", "9001", "--chi-so", "1", "--muc", "2", "--so-ma-cham", "2", "--so-phien", "26",
+                    "--so-khoi-dong", "40", "--json"]) == 0
     ra = capsys.readouterr().out
     assert "CHI PHÍ" in ra and "ms một lần" in ra and "ĐẠT, 0 vi phạm" in ra and "PHÂN PHỐI" in ra
+    assert "P3 — IC" in ra and "volume_score" in ra
+    dong_json = [x for x in ra.splitlines() if x.startswith("KET_QUA_JSON ")]
+    assert len(dong_json) == 1 and set(json.loads(dong_json[0][13:])["ic"]["ic"]) == {*cb.THANH_PHAN, "score"}
 
 
 def test_dung_cu_tra_1_khi_P1_co_vi_pham(monkeypatch, capsys):
     monkeypatch.setattr(G, "kiem_p1", lambda *a, **k: ["vi pham gia"])
-    assert CT.main(["--luong", "9001", "--chi-so", "1", "--kappa", "0.01", "--so-ma-cham", "1", "--so-phien", "3",
+    assert CT.main(["--luong", "9001", "--chi-so", "1", "--kappa", "0.01", "--so-ma-cham", "1", "--so-phien", "26",
                     "--so-khoi-dong", "30"]) == 1
     assert "VI PHẠM" in capsys.readouterr().out
 
@@ -431,7 +438,8 @@ CAM_CHUOI = ("ung-vien", "phuong-an-bong", "UV-", "backtest", "cache", "vnstock"
 TEN_DONG_HO_MANG = {"now", "today", "now_vn", "today_vn", "sleep", "perf_counter", "monotonic", "time", "urlopen",
                     "request", "connect", "create_connection", "read_csv"}
 NHAP_DUOC = {"__future__", "contextlib", "json", "dataclasses", "datetime", "numpy", "pandas", "cham_bong",
-             "thi_truong_gia", "paper_runner", "post_mortem_learning", "paper_trading"}
+             "thi_truong_gia", "paper_runner", "post_mortem_learning", "paper_trading", "experiment_tran_dac_trung",
+             "san_dau", "market_filter", "importlib"}
 
 
 def _cay(duong):
@@ -534,7 +542,7 @@ def test_G3_module_khong_cham_the_gioi_that_khong_dong_ho_khong_mang_khong_oracl
     assert not (_ten_dung(cay) & CAM_TEN_THAT), sorted(_ten_dung(cay) & CAM_TEN_THAT)
     assert not (_goi(cay) & TEN_DONG_HO_MANG), sorted(_goi(cay) & TEN_DONG_HO_MANG)
     assert _nhap(cay) <= NHAP_DUOC, sorted(_nhap(cay) - NHAP_DUOC)
-    assert not ({"socket", "requests", "urllib", "time", "os", "sys", "san_dau"} & _nhap(cay))
+    assert not ({"socket", "requests", "urllib", "time", "os", "sys"} & _nhap(cay))
 
 
 def test_G3_mau_xau_va_tot_cua_chinh_phep_do():
@@ -605,3 +613,170 @@ def test_AST_phep_do_bat_dung_mau_xau_cua_cua_kiem_luong():
     assert _ham_goi_bo_sinh_thieu_cua(xau) == ["f"] and _ham_goi_bo_sinh_thieu_cua(xau2) == ["f"]
     assert _ham_goi_bo_sinh_thieu_cua(xau3) == ["f"] and _ham_goi_bo_sinh_thieu_cua(tot) == []
     assert _ham_goi_bo_sinh_thieu_cua("def f(l):\n    return 1\n") == []
+
+# ══ P2 — PHÉP THỬ TƯƠNG ĐƯƠNG CỦA THẾ GIỚI GIẢ (mục 4.9) ═════════════════════════════════════════════════
+
+def _cfg_p2():
+    """Cấu hình dựng TƯỜNG MINH (không đọc cờ module: một test khác có thể đã gán chúng) — cùng giá trị `tu_module()` hôm nay."""
+    import paper_trading as pt
+    return pt.CauHinhVao(cho_phep_mo_lenh_moi=True, buy_threshold=62, tran_von_cam_ket_pct=100.0, cong_vni_bat=True,
+                         do_rong_nguong=0, nghi_sau_lo_ngay=0, loc_imom_phan_vi=0, chot_sut_giam_nguong=0,
+                         chot_sut_giam_phien=20, exit_signal_threshold=45, max_hold_sessions=60, chot_loi_cung=False,
+                         luat_vao="MO_CUA_SAU")
+
+
+@pytest.fixture(scope="module")
+def p2():
+    """MỘT thị trường Tầng 2 (8 mã × 80 phiên có quyết định, 120 khởi động), chạy đường thật và phát lại MỘT lần."""
+    tt = G.sinh_thi_truong_2(LUONG_TEST, 1, KAPPA_2X, so_phien=80, so_khoi_dong=120)
+    return tt, G.chay_that_va_phat_lai(tt, ma=tt.ma[:8], cau_hinh=_cfg_p2())
+
+
+def test_P2_phat_lai_ra_DUNG_cac_lenh_cua_duong_that_tung_o_cua_COT_TUONG_DUONG(p2):
+    import san_dau as sd
+    tt, r = p2
+    assert r["khac"] == [], f"{len(r['khac'])} khác biệt, đầu tiên: {r['khac'][:3]}"
+    assert len(r["thuc"]) == len(r["phat"]) >= 8, "thị trường quá ít lệnh để canh gì"
+    assert all(set(x) == set(sd.COT_TUONG_DUONG) for x in r["thuc"] + r["phat"]) and len(sd.COT_TUONG_DUONG) == 12
+    assert r["dem"]["thieu_diem"] == 0 and r["dem"]["thieu_nen"] == 0 and r["dem"]["quyet_dinh_ngoai_cua_so"] == 0
+    assert r["dem"]["phien"] == 80 and r["dem"]["buoc"] == 80 * 8
+
+
+def test_P2_phep_thu_CANH_cac_nhanh_va_diem_cua_duong_that_bang_diem_da_ghi_cua_Tang_2(p2):
+    """Không rỗng ở chỗ nó định canh: cổng VN-INDEX chặn ít nhất một tín hiệu đủ điểm, có lệnh cắt lỗ, đóng và còn mở; và
+    điểm mà `run_session` chấm ngay lúc chạy bằng điểm `cham_diem` đã ghi ở MỌI dòng quyết định của sổ."""
+    tt, r = p2
+    assert r["bi_chan_vni"] >= 1, "cổng VN-INDEX không chặn gì: phép thử không canh cổng"
+    ly_do = {x["exit_reason"] for x in r["thuc"]}
+    assert "STOP_LOSS" in ly_do and {x["status"] for x in r["thuc"]} >= {"CLOSED", "OPEN"}, ly_do
+    assert r["diem_lech"] == [] and r["so_diem_so_duoc"] >= 400
+
+
+def test_P2_phep_so_bat_duoc_mot_o_lech_va_mot_lenh_thieu(p2):
+    import san_dau as sd
+    tt, r = p2
+    sua = [dict(x) for x in r["phat"]]
+    sua[0]["entry_price"] = float(sua[0]["entry_price"]) + 1.0
+    kq = sd.so_sanh_lenh(r["thuc"], sua)
+    assert [k["loai"] for k in kq] == ["khac_o"] and kq[0]["cot"] == "entry_price"
+    assert [k["loai"] for k in sd.so_sanh_lenh(r["thuc"], r["phat"][:-1])] == ["chi_co_o_thuc"]
+
+
+def test_P2_phat_lai_khong_hoi_cache_toan_cuc_va_duong_that_khong_de_lai_gi(p2):
+    """`cam_cache_toan_cuc` nổ nếu hỏi; ra khỏi lượt chạy hai cửa của `market_filter` được TRẢ LẠI nguyên vẹn."""
+    import market_filter as mf
+    cu = (mf.get_vni_df, mf.is_vni_bullish)
+    with G.cam_cache_toan_cuc():
+        with pytest.raises(AssertionError):
+            mf.is_vni_bullish("2100-12-20")
+        with pytest.raises(AssertionError):
+            mf.get_vni_df()
+    assert (mf.get_vni_df, mf.is_vni_bullish) == cu
+    tt, _ = p2
+    with G.vni_tiem_cho_duong_that(G.vni_gia(tt)):
+        assert mf.is_vni_bullish.__module__ == "market_filter_ban_sao_tang2"
+    assert (mf.get_vni_df, mf.is_vni_bullish) == cu
+
+
+def test_P2_vni_gia_khop_ngay_va_cat_MA50_trong_cua_so_co_quyet_dinh(p2):
+    tt, _ = p2
+    v = G.vni_gia(tt)
+    assert list(v["time"]) == list(tt.ngay) and (v["close"] > 0).all()
+    ma50 = v["close"].rolling(50).mean()
+    tren = (v["close"] >= ma50)[tt.so_khoi_dong:]
+    assert tren.any() and (~tren).any(), "VN-INDEX giả không cắt MA50 trong cửa sổ: cổng không bị thử"
+
+
+def test_P2_cau_hinh_mac_dinh_la_tu_module_khong_gan_co_nao():
+    import paper_trading as pt
+    truoc = (pt.CHO_PHEP_MO_LENH_MOI, pt.BUY_THRESHOLD, pt.TRAN_VON_CAM_KET_PCT, pt.CONG_VNI_BAT, pt.DO_RONG_NGUONG)
+    cfg = G.cau_hinh_mac_dinh()
+    assert cfg == pt.CauHinhVao.tu_module() and cfg is not pt.CauHinhVao.tu_module()
+    assert (pt.CHO_PHEP_MO_LENH_MOI, pt.BUY_THRESHOLD, pt.TRAN_VON_CAM_KET_PCT, pt.CONG_VNI_BAT,
+            pt.DO_RONG_NGUONG) == truoc
+
+
+# ══ P3 — PHÉP ĐO IC CỦA THÀNH PHẦN MANG (máy đo có đáp án biết trước) ═══════════════════════════════════════
+
+def _dong_voi_diem_theo(tt, ten, ham_y):
+    """Dòng quyết định cho 6 mã × mọi phiên, trong đó thành phần `ten` là `ham_y(nhãn)` còn bốn thành phần kia là nhiễu hạt cố định."""
+    import experiment_tran_dac_trung as E
+    kh = {m: pd.DataFrame({"close": df["close"].to_numpy()}) for m, df in tt.gia.items()}
+    nhan = E.nhan_vuot_ro(kh, cb.NHIP)
+    rng = np.random.default_rng(LUONG_TEST)
+    ra, seq = [], 0
+    for k in range(tt.so_phien):
+        t = tt.so_khoi_dong + k
+        for m in tt.ma[:6]:
+            seq += 1
+            y = nhan.iloc[t][m]
+            tp = {c: float(rng.uniform(0, 100)) for c in cb.THANH_PHAN}
+            tp[ten] = float(ham_y(y if not np.isnan(y) else 0.0))
+            ra.append({"seq": seq, "at": float(k), "symbol": m, "signal_date": tt.ngay[t], "score": 50, "recommendation": "",
+                       "acted": 0, "skip_reason": "", "components": json.dumps(tp), "reasons": "[]", "data_quality": "OK"})
+    return ra
+
+
+@pytest.fixture(scope="module")
+def tt_p3():
+    return G.sinh_thi_truong_2(LUONG_TEST, 3, KAPPA_2X, so_phien=60, so_khoi_dong=60)
+
+
+def test_P3_IC_do_duoc_dap_an_biet_truoc_duong_am_khong_va_duong(tt_p3):
+    tang = G.ic_thanh_phan(tt_p3, _dong_voi_diem_theo(tt_p3, "volume_score", lambda y: 50 + 10 * y))["ic"]
+    giam = G.ic_thanh_phan(tt_p3, _dong_voi_diem_theo(tt_p3, "volume_score", lambda y: 50 - 10 * y))["ic"]
+    nhieu = G.ic_thanh_phan(tt_p3, _dong_voi_diem_theo(tt_p3, "volume_score", lambda y: 50.0))["ic"]
+    assert tang["volume_score"] > 0.95 and giam["volume_score"] < -0.95, (tang, giam)   # máy đo có thể cho kết quả ÂM
+    assert abs(nhieu["volume_score"]) < 0.1                                            # và ≈ 0 khi không có tín hiệu
+    assert set(tang) == {*cb.THANH_PHAN, "score"} and abs(tang["trend_score"]) < 0.1   # chỉ thành phần mang chạy theo nhãn
+
+
+def test_P3_dem_cap_co_nhan_dung_22_phien_cuoi_khong_co_nhan(tt_p3):
+    kq = G.ic_thanh_phan(tt_p3, _dong_voi_diem_theo(tt_p3, "volume_score", lambda y: y))
+    assert kq["so_cap_khong_nhan"] == (cb.NHIP + 1) * 6 and kq["so_cap"] == (60 - (cb.NHIP + 1)) * 6
+
+
+def test_P3_IC_la_ham_cua_nhan_va_dong_chu_khong_cua_z_hay_kappa(tt_p3):
+    """Cùng khung giá, cùng dòng, `kappa` ghi trên đối tượng đổi → IC không đổi: phép đo không đọc nó."""
+    dong = _dong_voi_diem_theo(tt_p3, "volume_score", lambda y: 50 + 10 * y)
+    a = G.ic_thanh_phan(tt_p3, dong)
+    sua = G.ThiTruongGia2(luong=tt_p3.luong, chi_so=tt_p3.chi_so, kappa=123.0, so_khoi_dong=tt_p3.so_khoi_dong,
+                          so_phien=tt_p3.so_phien, ngay=tt_p3.ngay, ma=tt_p3.ma, gia=tt_p3.gia)
+    assert G.ic_thanh_phan(sua, dong) == a
+    with pytest.raises(ValueError):
+        G.ic_thanh_phan(tt_p3, [])
+
+
+def test_P3_IC_chay_duoc_tren_dong_do_analyze_that_sinh_ra(tt_p3):
+    kq = G.ic_thanh_phan(tt_p3, G.cham_diem(tt_p3, ma=("GIA01", "GIA02", "GIA03"), phien=range(0, 30)))
+    assert kq["so_cap"] > 0 and all(np.isfinite(v) and -1.0 <= v <= 1.0 for v in kq["ic"].values())
+
+
+# ══ P4 — G1…G5 GOM MỘT CHỖ cho module và dụng cụ Tầng 2 (G2 ở test_san_dau + test_vong_hoc; G6, G7 là của vòng) ═══════
+
+def test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2():
+    tang2 = {"thi_truong_gia_tang2.py": DUONG, "tools/chay_tang2_thi_truong_gia.py": DUONG_TOOL}
+    for ten, duong in tang2.items():
+        cay = _cay(duong)
+        assert not (_goi(cay) & TEN_GHI) and not _mo_ghi(cay) and not _so_nhat_ky_sai(cay), f"G1 {ten}"
+        assert not [s for s in _chuoi_ma(cay) if any(c in s for c in CAM_CHUOI)], f"G3 chuỗi {ten}"
+        assert not (_ten_dung(cay) & CAM_TEN_THAT), f"G3/G4 tên {ten}: {sorted(_ten_dung(cay) & CAM_TEN_THAT)}"
+        ngay = [n.value for n in ast.walk(cay) if isinstance(n, ast.Constant) and isinstance(n.value, str)
+                and len(n.value) == 10 and n.value[4] == "-" and n.value[7] == "-" and n.value[:4].isdigit()]
+        assert all(g >= "2100-01-04" for g in ngay), f"G5 {ten}"
+    # G4: oracle chỉ do bộ sinh Tầng 1 và dụng cụ chấm đọc — module và dụng cụ Tầng 2 không nhắc tên nào của nó
+    cam = {"tinh_su_that", "su_that", "spec_ngoai_hai_se", "ho_spec_oracle", "HAT_SU_THAT", "SO_PHIEN_SU_THAT", "se_mc",
+           "TEN_SPEC_Z", "TEN_SPEC_H", "TEN_SPEC_G", "spec_z", "delta_ic"}
+    for duong in (DUONG, DUONG_TOOL):
+        assert not (_ten_dung(_cay(duong)) & cam) and not (set(_chuoi_ma(_cay(duong))) & cam)
+    # G2: ngoài dụng cụ của nó, không file nào ngoài tests/ nhập module Tầng 2 (kiểm đủ, kể cả nhập gián tiếp, ở
+    # tests/test_vong_hoc_thi_truong_gia.py::test_G2_*)
+    import duyet_repo
+    nguoi = []
+    for p in duyet_repo.duyet(GOC, "*.py"):
+        rel = p.relative_to(GOC).as_posix()
+        if rel.split("/")[0] in {"tests", ".venv", ".git"}:
+            continue
+        if "thi_truong_gia_tang2" in _nhap(ast.parse(p.read_text(encoding="utf-8"))):
+            nguoi.append(rel)
+    assert nguoi == ["tools/chay_tang2_thi_truong_gia.py"], nguoi

@@ -24,6 +24,7 @@ Mã thoát: 0 chạy xong và P1 đạt · 1 P1 có vi phạm · 2 lỗi cấu h
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import platform
 import statistics
@@ -68,12 +69,13 @@ def chay_mot_thi_truong(luong: int, chi_so: int, kappa: float, so_ma_cham: int |
     cpu_cham = time.process_time() - cpu0
     dong = G.dong_quyet_dinh(tt, theo_ma)
     sai_p1 = G.kiem_p1(tt, dong, len(ma), tt.so_phien)
+    ic = G.ic_thanh_phan(tt, dong)          # P3: chỉ nhãn và dòng quyết định, không z, không oracle
     so_lan = len(dong)
     return {"thi_truong": {"luong": int(luong), "chi_so": int(chi_so), "kappa": float(kappa), "so_ma": len(ma),
                            "so_phien": tt.so_phien, "so_khoi_dong": tt.so_khoi_dong, "ngay_dau": tt.ngay[0],
                            "ngay_dau_quyet_dinh": tt.ngay_quyet_dinh[0], "ngay_cuoi": tt.ngay[-1]},
             "so_lan_cham": so_lan, "giay_sinh": giay_sinh, "giay_cham": giay_cham, "giay_cpu_cham": cpu_cham,
-            "giay_moi_ma": giay_ma, "p1": sai_p1, "dong": dong}
+            "giay_moi_ma": giay_ma, "p1": sai_p1, "ic": ic, "dong": dong}
 
 
 def mo_ta_phan_phoi(dong: list[dict]) -> dict:
@@ -121,6 +123,11 @@ def bien_ban(kq: dict, pp: dict | None = None) -> list[str]:
                f"tỷ lệ ≥ ngưỡng mua {pp['nguong_mua']}: {pp['ty_le_tren_nguong_mua']:.3f}"]
         for k, v in pp["thanh_phan"].items():
             ra.append(f"  {k:<15}: {v['khac_nhau']:>3} giá trị khác nhau, {v['min']}…{v['max']}")
+    ic = kq["ic"]
+    ra += ["", f"P3 — IC (tương quan hạng gộp) của từng thành phần với nhãn, {ic['so_cap']} cặp (phiên, mã) có nhãn "
+               f"(mô tả MỘT thị trường, không phán; tiêu chí ≥ 90/100 là của Lát 5):"]
+    for k, v in ic["ic"].items():
+        ra.append(f"  {k:<15}: {v:+.4f}")
     return ra
 
 
@@ -136,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="số phiên CÓ quyết định (mặc định: dòng thời gian của đặc tả)")
     ap.add_argument("--so-khoi-dong", type=int, default=G.SO_PHIEN_KHOI_DONG)
     ap.add_argument("--tien-do", action="store_true", help="in một dòng sau mỗi mã (ra stderr)")
+    ap.add_argument("--json", action="store_true", help="in thêm MỘT dòng `KET_QUA_JSON {...}` (thị trường, thời gian, P1, IC)")
     a = ap.parse_args(argv)
     try:
         kiem_luong(a.luong)
@@ -146,6 +154,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"LỖI: {e}", file=sys.stderr)
         return 2
     print("\n".join(bien_ban(kq, mo_ta_phan_phoi(kq["dong"]))))
+    if a.json:
+        print("KET_QUA_JSON " + json.dumps({k: kq[k] for k in ("thi_truong", "so_lan_cham", "giay_sinh", "giay_cham",
+                                                                  "giay_cpu_cham", "p1", "ic")}, ensure_ascii=False))
     return 1 if kq["p1"] else 0
 
 

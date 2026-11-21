@@ -1,7 +1,7 @@
 # Thiết kế C4 — Thị trường giả có lợi thế cài sẵn: chứng minh vòng học chạy đúng (T6)
 
 **Mốc:** C4 (`docs/LO-TRINH.md`, giai đoạn C). **Duyệt hướng:** người dùng, 06/11/2026, trong phiên leader (BƯỚC 259): *"C4 — thị trường giả (T6) (Recommended)"* — mở bằng MỘT đặc tả chỉ có chữ; người dùng duyệt đặc tả trước khi có dòng mã nào.
-**Trạng thái:** đặc tả **ĐÃ CHỐT ĐỦ BẢY CÂU**: người dùng trả lời Q1, Q2, Q3, Q7 ngày 06/11/2026 và Q4, Q5, Q6 ngày 07/11/2026 (mục 2, mục 14). Không còn câu mở. Mã bắt đầu từ BƯỚC 261 (Lát 1, mục 8); Lát 2 xong ở BƯỚC 289 (mục 16); **Lát 3 xong ở BƯỚC 290 (mục 17)**; Lát 4–5 chưa có mã. Nhãn *[Qn: ĐÃ CHỐT]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo, và bản trước ngày 07/11/2026 gọi Q4 · Q5 · Q6 là *mặc định, người dùng chưa chọn*; cả hai còn ở lịch sử git.
+**Trạng thái:** đặc tả **ĐÃ CHỐT ĐỦ BẢY CÂU**: người dùng trả lời Q1, Q2, Q3, Q7 ngày 06/11/2026 và Q4, Q5, Q6 ngày 07/11/2026 (mục 2, mục 14). Không còn câu mở. Mã bắt đầu từ BƯỚC 261 (Lát 1, mục 8); Lát 2 xong ở BƯỚC 289 (mục 16); **Lát 3 xong ở BƯỚC 290 (mục 17)**; **Lát 4 xong ở BƯỚC 292 (mục 18)**; Lát 5 chưa có mã. Nhãn *[Qn: ĐÃ CHỐT]* trong văn bản trỏ về mục 2 và mục 14. Bản đầu của đặc tả (commit `2c4c5c6`) để cả bảy câu ở dạng bản thảo, và bản trước ngày 07/11/2026 gọi Q4 · Q5 · Q6 là *mặc định, người dùng chưa chọn*; cả hai còn ở lịch sử git.
 
 Tài liệu này là đề bài cho các phiên làm mã. Luật chung (vá file, đột biến, năm cổng, giao PR) nằm ở skill `quy-trinh-lam-viec` — đi theo nó. Mọi `file:dòng` bên dưới được `grep` lại ở cây `3d87a20` ngày 06/11/2026; số dòng trôi theo mã, tên hàm thì không. Con số nào không kèm lệnh là **ước lượng** và được gọi là ước lượng (Quy tắc 2).
 
@@ -232,6 +232,8 @@ Số BƯỚC do leader cấp. Mỗi BƯỚC qua năm cổng, đột biến mọi
 **Lát 5 — khai tiêu chí + lượt chạy chính thức.** (a) Chép bảng mục 6 vào `docs/TIEU-CHI-DOC-TRUOC.md` thành một ĐO mới, ở **commit riêng đẩy TRƯỚC khi lượt chạy tồn tại** — chạm file luật nên BƯỚC này hỏi sổ tay thật. (b) Chạy dòng hạt 2, 3, 4 một lần; ghi `docs/thi-truong-gia-ket-qua.json`; đọc kết cục theo bảng đã ký. (c) STATE và `docs/LO-TRINH.md`: T6 ghi ĐÃ/CHƯA chứng minh theo kết cục, không viết lại tiêu chí. *Xong khi:* kết cục ghi nguyên văn, kể cả TRƯỢT.
 
 ## 9. Chi phí — ƯỚC LƯỢNG, chưa có lệnh trong repo
+
+> 🔴 **HẾT ĐÚNG ở các con số: Lát 4 (BƯỚC 292) ĐÃ ĐO, thay ước lượng này; số đo và lệnh ở mục 18 khoản 4.** Tóm tắt: một thị trường 5,1 phút một lõi (đúng ước lượng 4–5 phút), nhưng 200 thị trường trên 12 tiến trình ≈ 2,5 giờ chỉ riêng chấm điểm, gấp đôi ước lượng 1–1,5 giờ dưới đây. Đoạn dưới giữ nguyên làm sử liệu.
 
 - Một lần `paper_runner._analyze` trên lịch sử giả 300–330 phiên: 7,5–8,3 ms (hai lượt chạy tạm 06/11/2026, 30 lần mỗi lượt, một lõi; máy 16 lõi). Đây là số đo của một script tạm không nằm trong repo — Lát 4 thay bằng lệnh có trong repo.
 - Tầng 2, một thị trường: ~ 60 mã × ~570 phiên có quyết định ≈ 34.000 lần chấm ≈ 4–5 phút một lõi. 100 thị trường NULL + 100 thị trường 2× trên 16 lõi ≈ 1–1,5 giờ (ước lượng). Tầng 1: ước lượng dưới một giây một thị trường, nên R = 1.000 + 3 × 400 chạy trong vài chục phút.
