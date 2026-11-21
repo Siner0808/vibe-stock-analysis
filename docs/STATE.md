@@ -27837,3 +27837,93 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_thi_truong_gia.py -
 1. Leader đọc CI rồi quyết định merge (PR này KHÔNG tự merge).
 2. Lát 3 (vòng học khép kín trên Tầng 1: `de_xuat`, sổ giả, `nang_cap`, G2 · G4 · G6 · G7) — không cần câu hỏi mới của người dùng.
 3. Lỗi kế 206.
+
+## BƯỚC 290 — C4 LÁT 3: VÒNG HỌC KHÉP KÍN TRÊN TẦNG 1 (BỘ ĐỀ XUẤT CƠ SỞ → KHAI → XÁC NHẬN THẬT → NÂNG CẤP MỘT ĐỜI → KIỂM TIẾN-VỀ-TRƯỚC); MỘT THỊ TRƯỜNG MẪU, KHÔNG CÓ TỶ LỆ (21/11/2026)
+
+**Mốc:** C4
+
+Lát 3 của `docs/thiet-ke-c4-thi-truong-gia.md` mục 8 (`docs/LO-TRINH.md`, giai đoạn C); ghi chú thi công ở mục 17 của chính file ấy. Không chạm điểm, ngưỡng, sổ, máy đo của đường thật, `master_agent`, `thi_truong_gia.py`, `cham_bong.py`, `cham_xac_nhan.py`, UV-001 hay file luật (`tools/buoc_cham_luat.py 290`, mục J).
+
+**Quyết định của người dùng (nguyên văn):** *"C4 Lát 3 (Recommended)"* (21/11/2026) — chọn Lát kế của C4. Một điều KHÔNG phải của người dùng: cách đọc cửa sổ của bộ đề xuất (mục 17 khoản 1) do leader chọn ngày 21/11/2026 khi tôi báo đặc tả mơ hồ.
+
+**Đánh số:** BƯỚC 290 (lớn nhất trước đó là 289); không mở lỗi mới (lỗi kế vẫn 206). Nhánh `c4/lat3-vong-hoc-290` từ `origin/main` `1b02935`.
+
+### A. Việc làm
+
+1. `vong_hoc_gia.py` (gốc repo, module thuần): `de_xuat` (11 spec của họ F xếp theo Δ = IC(spec) − IC(điểm đã ghi) trên cửa sổ đã nhìn, dùng đúng `cham_bong.ma_tran_cap` và `E.rho_hang`, KHÔNG chạy `so_cap`), `chon_khai` (≤ 3 spec có Δ > 0, hoà theo thứ tự tên), lịch khai/đọc suy từ lịch của dữ liệu, sổ ứng viên giả trong bộ nhớ (`khai_ung_vien` qua `cham_bong.kiem_so_ung_vien`), `nang_cap` (hàm thuần, mục 5.4 khoản 1–3 và 6), `ap_phien_ban` (khoản 4), `huy_ung_vien_cho_doc` (khoản 5), `kiem_tien_ve_truoc`, và `chay_vong` ghép tất cả trên MỘT thị trường. Bước xác nhận là `cham_xac_nhan.cham` THẬT, một lời gọi duy nhất. Module nhận `dong` và `gia`, KHÔNG nhận `ThiTruongGia` (nó mang oracle) và không gọi bộ sinh.
+2. `tools/chay_vong_thi_truong_gia.py` (dụng cụ `chay-vong`): sinh một thị trường (qua `kiem_luong`), chạy vòng, RỒI đọc oracle, in sáu bước; `--ghi` ghi biên bản vào đúng MỘT file. Dòng hạt: chỉ **1 và 9001**; 2 · 3 · 4 · 5 nổ (mã thoát 2) trước khi bộ sinh chạy.
+3. `tests/test_vong_hoc_thi_truong_gia.py` (mục C), `docs/vong-hoc-thi-truong-gia-mau.md` (biên bản mẫu, mục B).
+4. Đặc tả: mục 17 "Ghi chú thi công Lát 3" (mười một điểm) và dòng "Trạng thái" ở đầu file.
+5. Không đổi: `thi_truong_gia.py` · `cham_bong.py` · `cham_xac_nhan.py` · `san_dau.py` · `paper_*` · `run_daily` · `master_agent` · `sheets_store` · sổ · điểm · ngưỡng · máy đo · mọi file luật. Không dòng hạt 2–5; không mạng; không `*.db`; không Sheets.
+
+### B. Thị trường mẫu — MỘT biên bản, KHÔNG phải kết quả (Lát 3 không có tỷ lệ)
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_thi_truong_gia.py --luong 9001 --chi-so 1 --muc 2 --ghi` (3,5 s cả oracle, một lần chạy). Thị trường: dòng hạt **9001**, chỉ số **1**, κ = 0,044587 (mức 2× MDE₈₀ của `docs/thi-truong-gia-hieu-chuan.json`), 594 phiên 2100-01-04 → 2102-04-13, 60 mã. Chỉ số 1 là thị trường ĐẦU TIÊN thử, không chọn trong nhiều thị trường cho đẹp.
+
+- **Đề xuất** (chỉ thấy phiên 0…125, 104 phiên có nhãn): xếp `mono_volume_score` Δ +0,1593 · `bo_trend_score` +0,0564 · `bo_momentum_score` +0,0399 · `deu` +0,0224 · `mono_sr_score` +0,0041; sáu spec còn lại Δ < 0. Khai ba spec đầu (DX1 · DX2 · DX3) ở phiên 128 · 150 · 172 (2100-07-01 · 2100-08-02 · 2100-09-01).
+- **Xác nhận** (`cham_xac_nhan.cham`, K = 3, ngưỡng 0,05/3): DX1 đọc phiên 401 (2101-07-19): 252 phiên × 60 mã → **QUA**, Δ +0,1630, p = 5,14e-11.
+- **Nâng cấp:** phiên bản 1 = `{volume_score: 1.0}` từ DX1, hiệu lực từ **phiên 402** (2101-07-20), phiên SAU phiên đọc. **DX2 và DX3 bị huỷ** (`bi_huy_vi_nang_cap`), K vẫn 3.
+- **Tiến-về-trước** (126 phiên từ 2101-07-20, đủ cửa sổ): IC điểm đã ghi +0,0268 → IC phiên bản mới +0,1803, ΔIC thực hiện **+0,1535** (một thị trường, không KTC).
+- **Sự thật (oracle, đọc SAU khi vòng đã quyết):** ΔIC_true `mono_volume_score` +0,1423 ± 0,0041 · `bo_trend_score` +0,0220 ± 0,0022 · `bo_momentum_score` +0,0243 ± 0,0019 · `doi_cho_trend_sr` +0,0013 · `bo_volume_score` −0,0463. Vòng chọn đúng spec mang lợi thế ở thị trường này.
+- **Điều đáng đọc:** hai spec khai sau Δ +0,056 và +0,040 trên cửa sổ đã nhìn nhưng chỉ +0,022 và +0,024 theo oracle (mục 17 khoản 9); chúng bị huỷ nên bước xác nhận CHƯA bị thử với chúng ở thị trường này.
+- **Chạy lại:** cùng lệnh; `git diff docs/vong-hoc-thi-truong-gia-mau.md` phải rỗng ở máy Python 3.13 (mục 17 khoản 10). Test `test_bien_ban_mau_khop_lan_chay_lai_o_phan_cau_truc_khong_o_chu_so_cuoi` so CẤU TRÚC (spec đã khai, trạng thái, phiên hiệu lực), không so chữ số.
+
+### C. Gác và test — bất biến 5.4 và G2 · G4 · G6 · G7
+
+`tests/test_vong_hoc_thi_truong_gia.py` có 112 test (dòng hạt thử 9001; không test nào sinh dòng 2–5). Bản đồ:
+
+| Điều | Test |
+|---|---|
+| 5.4 khoản 1, QUA → nâng | `test_5_4_khoan1_QUA_tao_phien_ban_moi_va_cac_ung_vien_cho_bi_huy` (ca THẬT) · `test_nang_cap_QUA_tao_dung_mot_phien_ban_khong_sua_dau_vao` |
+| khoản 1, THUA / DANG CHAM → không | `test_5_4_khoan1_THUA_khong_nang_cap_va_DANG_CHAM_khong_nang_cap` (ca THẬT: THUA, DANG CHAM, THUA) · `test_5_4_THUA_roi_DANG_CHAM_roi_QUA_chi_lan_doc_thu_ba_nang_cap_va_khong_con_ai_de_huy` · `test_nang_cap_khong_tao_phien_ban_khi_khong_phai_QUA` (4 trạng thái: THUA, DANG CHAM, CHUA TOI MOC, CHUA DU DU LIEU) |
+| khoản 2, spec BẰNG spec đã khai + bằng chứng | `test_5_4_khoan2_phien_ban_moi_co_spec_BANG_DUNG_spec_da_khai_kem_bang_chung` · `test_nang_cap_spec_BANG_khong_lam_tron_va_la_ban_sao_khong_la_cung_doi_tuong` |
+| khoản 3, hiệu lực từ phiên SAU | `test_5_4_khoan3_hieu_luc_tu_phien_SAU_phien_doc` · `test_nang_cap_hieu_luc_dung_phien_doc_cong_mot` · `test_G7_hieu_luc_tu_phien_sau_o_dong_quyet_dinh_sau_nang_cap` |
+| khoản 4, `int(diem_ung_vien)` từ phiên hiệu lực | `test_5_4_khoan4_diem_ghi_tu_phien_hieu_luc_la_int_cua_diem_ung_vien` · `test_5_4_khoan4_int_la_cat_cut_khong_lam_tron` |
+| khoản 5, đang chờ → huỷ, K vẫn đếm | `test_5_4_khoan5_ung_vien_cho_bi_huy_nhung_K_va_nguong_VAN_DEM` · `test_5_4_khoan5_huy_chi_cham_ung_vien_chua_doc_va_khong_sua_dau_vao` |
+| khoản 6, một đời | `test_5_4_khoan6_mot_doi_khong_co_nang_cap_thu_hai_o_ca_vong_va_o_ham_thuan` |
+| G2 đường thật không nhập nó | `test_G2_duong_that_KHONG_nhap_module_thi_truong_gia_hay_vong_hoc_gia` · `test_G2_phep_do_bat_duoc_importer_la_ca_dang_chuoi` · `test_G2_nap_duong_that_khong_keo_theo_module_thi_truong_gia` |
+| G4 oracle cách ly | `test_G4_vong_khong_nhac_ten_oracle_hay_bo_sinh_va_chi_dung_vai_hang_cua_T` · `test_G4_chay_vong_chay_tron_khi_oracle_va_bo_sinh_bi_buoc_day` · `test_G4_vong_khong_nhan_ThiTruongGia_vi_no_mang_oracle_theo` · `test_G4_dung_cu_doc_oracle_SAU_khi_vong_da_quyet` · `test_G4_AST_trong_dung_cu_loi_goi_vong_dung_TRUOC_loi_goi_oracle` · `test_G4_phep_do_AST_bat_duoc_mau_xau` |
+| G6 không chấm lại | `test_G6_vong_khong_goi_so_cap_phan_quyet_hay_viet_lai_IC_va_hoan_vi` · `test_G6_ca_so_cap_chi_duoc_goi_tu_ben_trong_phan_quyet_va_moi_lan_doc_di_qua_phan_quyet` · `test_G6_phep_do_AST_bat_duoc_mau_xau` |
+| G7 bất biến thời gian | `test_G7_bo_de_xuat_chi_thay_phien_0_toi_S_tru_1_ca_dong_lan_gia` · `test_G7_moi_sau_cua_so_khong_doi_dau_ra_cua_bo_de_xuat_gia_tai_chi_so_S_tro_di` (mồi từ phiên S) · `test_G7_xep_hang_that_cua_vong_khong_doi_khi_moi_sau_cua_so` · `test_G7_cua_so_nhin_la_hang_S_khong_phai_ngay_khai_tru_mot` · `test_G7_moi_lan_doc_chi_thay_du_lieu_toi_phien_doc_cua_no` · `test_G7_moi_sau_phien_doc_khong_doi_phan_quyet_cua_lan_doc_do` |
+| Tiến-về-trước | `test_tien_ve_truoc_cua_so_F_phien_dau_tu_phien_hieu_luc_dung_phien_co_nhan` · `test_tien_ve_truoc_chi_dung_du_lieu_tu_phien_hieu_luc_tro_di` · `test_tien_ve_truoc_bang_gia_dua_vao_may_do_nhan_bat_dau_dung_o_phien_hieu_luc` · `…_khong_nang_cap_thi_None_va_cua_so_thieu_thi_khai_thang` |
+| Cửa dòng hạt của `chay-vong` | `test_kiem_luong_no_voi_moi_dong_ngoai_1_va_9001` (17 giá trị) · `test_moi_duong_vao_chay_vong_no_voi_dong_bi_chan_va_khong_de_bo_sinh_chay` (2–6, kể cả `main` → mã thoát 2) · `test_AST_moi_ham_cua_dung_cu_goi_bo_sinh_hay_vong_phai_goi_kiem_luong_truoc` · `test_AST_dung_cu_khong_co_doi_so_dong_hat_ngoai_luong_va_hat_khong_viet_tay` |
+| Máy đo (bộ đề xuất) | `test_de_xuat_tim_dung_spec_tot_nhat_tren_ca_co_dap_an_biet_truoc` (chuỗi giá mà nhãn xếp đúng theo `volume_score`) · `test_xep_hoa_theo_thu_tu_ten_spec_va_chon_khai_chi_lay_delta_duong_toi_da_3` · `test_phien_doc_la_phien_dau_tien_ma_may_do_khong_con_CHUA_TOI_MOC` (hai phía, bằng `cham_mot`) |
+| G1, G3, G5 | như Lát 1–2 cho `vong_hoc_gia.py` và dụng cụ: không ghi, đúng MỘT chỗ ghi, không thế giới thật, nạp không kéo `sheets_store`; `kiem_ngay_gia` từ chối ngày trước 2100-01-04 |
+
+### D. Ước lượng đã sai và điều lộ ra khi làm
+
+- **Một thị trường tốn nhiều giây?** Không: vòng đầy đủ (đề xuất + ba lần đọc có `cham` chấm lại mọi ứng viên) 1,2 s; cả dụng cụ kèm oracle 3,5 s (một lượt chạy, máy có tiến trình khác của người dùng).
+- **Cách đọc cửa sổ của bộ đề xuất** (104 hay 106 phiên có nhãn): đặc tả mơ hồ, báo leader trước khi viết `de_xuat`; leader chọn (a) chặt, 104 (mục 17 khoản 1).
+- **Chữ ký `nang_cap`** thiếu đường lấy spec: thêm tham số `so_ung_vien` (mục 17 khoản 2).
+- **Phép thử "cửa sổ F vừa khít phiên cuối"** tôi viết sai lần đầu (đúng cho ứng viên khai SAU CÙNG, không cho ứng viên đọc đầu tiên: hiệu lực 402, F + 22 phiên tới 549 < 594). Test mới kiểm cả hai.
+- **Biên bản mẫu đặt tên `*.txt` bị `.gitignore` của repo nuốt** (`git status` không thấy; test `is_file` vẫn xanh ở máy nên CI sẽ đỏ). Bắt ở `git status` trước commit; đổi sang `*.md` và thêm test `test_bien_ban_mau_duoc_git_theo_doi_khong_bi_gitignore`.
+
+### E. Đột biến
+
+**53 phát (bộ đục ngoài repo `vibe_logs_290/dot_bien_290.py`; nó chạy CÙNG lệnh `pytest tests/test_vong_hoc_thi_truong_gia.py -q -x` một lần trên mã CHƯA đục và dừng nếu đỏ, lỗi 205); 52 đỏ, 1 sống sót là TƯƠNG ĐƯƠNG.** Baseline xanh ở cả ba lượt (110, 111, 112 passed; test thêm giữa các lượt chỉ làm gác chặt hơn). Phủ: `nang_cap` (THUA cùng nâng, hằng QUA đổi nhãn, hiệu lực tại phiên đọc, nâng cấp lần hai, spec làm tròn); huỷ (huỷ cả ứng viên đã đọc, không huỷ, huỷ bằng cách xoá khỏi sổ làm K giảm); bộ đề xuất (xếp tăng dần, hoà không theo tên, khai Δ = 0, khai 4, đảo dấu Δ, IC ứng viên = IC đã ghi, cửa sổ rỗng không nổ); lịch (tháng khai lệch một, phiên đọc lệch một); thời gian (cửa sổ tới ngày khai − 1, không cắt ở lần đọc, không cắt ở bộ đề xuất, phiên đọc truyền lệch, không dừng sau nâng cấp, không ghi `da_doc`, cửa sổ F + 1, `du_cua_so` luôn đúng, kiểm tiến-về-trước khi không nâng cấp, bảng giá cả phiên trước hiệu lực vào máy đo nhãn); `ap_phien_ban` (`round` thay `int`, bản 0 cũng đổi điểm); `phien_ban_hieu_luc` dùng `<`; K = 1; hạt hoán vị khác; ngày giả (mốc 2000 thay 2100, bỏ ngày đầu); giờ kéo cùng ngày; gác G1 (mở file ghi), G3 (chuỗi `docs/ung-vien.json`), G4 (chạm oracle), G6 (nhắc `so_cap`), G2 (`master_agent` nhập `vong_hoc_gia`); dụng cụ (cho phép dòng 2 hoặc 5, bỏ `kiem_luong`, oracle trước vòng, cửa nhận cả dòng bị chặn, bool lọt cửa, `doc_kappa_muc` nhận mục trùng, luôn đánh dấu khai, ghi file khác, bỏ bước 6, biên bản in %).
+
+**Sống sót TƯƠNG ĐƯƠNG: V23** (`ngay[hl - 1]` thay `ngay[hl]` ở bộ lọc DÒNG của kiểm tiến-về-trước): phiên hiệu lực − 1 không có nhãn vì bảng giá đưa vào máy đo nhãn đã cắt từ phiên hiệu lực (`gia.iloc[hl:]`) — hai lớp bảo vệ chồng nhau, bỏ riêng lớp dòng không đổi hành vi. Lớp giá được ghim riêng (phát V41, đỏ, và test dùng máy ghi lời gọi `nhan_vuot_ro`).
+
+**Hai điều lộ ra khi đục.** (1) Lượt đầu dừng ở V38 vì chính phát đột biến ấy (mở `x.txt` để ghi) để lại `x.txt` ở gốc repo — `kiem_khong_de_rac` gọi tên, tôi xoá tay và viết lại phát thành `open("NUL")`; mọi phát trước V38 đã có kết quả. (2) **T08 sống sót THẬT lúc đầu**: test biên bản chỉ dùng bộ đề xuất cắm sẵn (3 hàng, cả ba đều khai) nên dòng `← khai` luôn đủ ba dù đánh dấu sai; thêm `test_bien_ban_voi_bo_de_xuat_co_so_in_du_11_hang_va_chi_3_dong_danh_dau_khai` (11 hàng, đúng ba hàng đầu có dấu), rồi T08 đỏ.
+
+### H. Điều chưa kiểm
+
+- **Chưa có tỷ lệ nào** (Lát 5): bộ đề xuất có "tìm ra" ở ≥ 80% thị trường 2× hay không, xác nhận có chặn hai spec bị đọc quá cao ở mục B hay không, nâng cấp có ích ở C2: chưa ai đo.
+- **Chỉ Tầng 1.** Lợi thế nằm thẳng ở `volume_score`; chưa biết agent thật truyền được nó (Lát 4).
+- **Một thị trường mẫu, một dòng hạt thử (9001), chạy ở Python 3.13** (mục 17 khoản 10; chưa chạy ở 3.11).
+- **Cách đọc (a) của cửa sổ đề xuất là của leader, không phải của người dùng**; đổi sang (b) chưa thử (số phiên có nhãn 104 → 106).
+- Chưa đọc CI; chưa merge (PR này KHÔNG tự merge).
+
+### J. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 290` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 290` → *"BƯỚC 290: khong cham luat"* (mã thoát 0; chạy trên cây làm việc chưa commit nên máy ghi thêm *"CHUA vao origin/main"*). BƯỚC chỉ THÊM module, dụng cụ, test, biên bản mẫu và tài liệu của một thị trường GIẢ; không đổi luật, không đổi kết luận đo của một BƯỚC trước. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; các con số của thị trường mẫu chỉ nằm ở STATE này và `docs/vong-hoc-thi-truong-gia-mau.md`, nên đây là kỷ luật, không phải cơ chế.
+
+**Số test:** mốc `docs/moc_so_test.json` **5386 → 5498** (+112 test mới, đều ở `tests/test_vong_hoc_thi_truong_gia.py`) (`./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat`; không test nào bị bớt).
+
+**Năm cổng:** chạy trên commit CUỐI của nhánh; kết quả ở báo cáo của phiên con và ở PR (ghi vào đây sẽ buộc một commit tài liệu mới, rồi phải chạy lại cả năm cổng).
+
+### K. Việc kế
+
+1. Leader đọc CI rồi quyết định merge (PR này KHÔNG tự merge).
+2. Lát 4 (Tầng 2: bộ sinh OHLCV có `z`, chấm bằng `paper_runner._analyze`, `san_dau.phat_lai`) — không cần câu hỏi mới của người dùng; Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
+3. Lỗi kế 206.
