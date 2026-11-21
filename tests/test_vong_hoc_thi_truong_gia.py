@@ -733,8 +733,9 @@ def test_G6_ca_so_cap_chi_duoc_goi_tu_ben_trong_phan_quyet_va_moi_lan_doc_di_qua
 
 # ══ G2 — đường thật không nhập module thị trường giả ═════════════════════════════════════════════
 
-MODULE_GIA = ("thi_truong_gia", "vong_hoc_gia")
-DUOC_NHAP = {"vong_hoc_gia.py", "tools/hieu_chuan_thi_truong_gia.py", "tools/chay_vong_thi_truong_gia.py"}
+MODULE_GIA = ("thi_truong_gia", "vong_hoc_gia", "thi_truong_gia_tang2")      # BƯỚC 292: thêm Tầng 2
+DUOC_NHAP = {"vong_hoc_gia.py", "tools/hieu_chuan_thi_truong_gia.py", "tools/chay_vong_thi_truong_gia.py",
+             "thi_truong_gia_tang2.py", "tools/chay_tang2_thi_truong_gia.py"}
 DUONG_THAT = ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "run_daily.py", "master_agent.py",
               "analysis_agents.py", "walkforward.py", "sheets_store.py", "cham_bong.py", "cham_xac_nhan.py",
               "hau_kiem_loi.py", "ban_tin.py", "san_dau.py", "tools/san_dau.py")
@@ -769,7 +770,8 @@ def _nguoi_nhap_module_gia() -> dict:
 def test_G2_duong_that_KHONG_nhap_module_thi_truong_gia_hay_vong_hoc_gia():
     nguoi = _nguoi_nhap_module_gia()
     assert set(nguoi) <= DUOC_NHAP, f"chỉ {sorted(DUOC_NHAP)} được nhập: {nguoi}"
-    assert {"vong_hoc_gia.py", "tools/chay_vong_thi_truong_gia.py", "tools/hieu_chuan_thi_truong_gia.py"} <= set(nguoi)
+    assert {"vong_hoc_gia.py", "tools/chay_vong_thi_truong_gia.py", "tools/hieu_chuan_thi_truong_gia.py",
+            "thi_truong_gia_tang2.py", "tools/chay_tang2_thi_truong_gia.py"} <= set(nguoi)
     for ten in DUONG_THAT:
         assert ten not in nguoi, ten
     assert not [x for x in nguoi if x.startswith("backtest/") or x == "app.py"]
@@ -788,7 +790,7 @@ def test_G2_nap_duong_that_khong_keo_theo_module_thi_truong_gia():
     ma = ("import sys, json; sys.path.insert(0, %r); "
           "import paper_trading, paper_runner, paper_metrics, master_agent, analysis_agents, cham_bong, "
           "cham_xac_nhan, hau_kiem_loi, ban_tin, san_dau; "
-          "print(json.dumps([m for m in ('thi_truong_gia', 'vong_hoc_gia') if m in sys.modules]))" % str(GOC))
+          "print(json.dumps([m for m in ('thi_truong_gia', 'vong_hoc_gia', 'thi_truong_gia_tang2') if m in sys.modules]))" % str(GOC))
     r = subprocess.run([sys.executable, "-I", "-c", ma], capture_output=True, text=True, cwd=str(GOC),
                        timeout=300, env={**os.environ, "PYTHONIOENCODING": "utf-8"})
     assert r.returncode == 0, r.stderr[-800:]

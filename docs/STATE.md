@@ -27996,3 +27996,77 @@ Script `vibe_logs_291/dot_bien_291.py` và `dot_bien_291b.py` (bản in cạnh n
 1. Leader đọc CI rồi quyết định merge. Khi #336 đã merge: `git merge origin/main` vào nhánh này (xếp chồng nên sạch), chạy lại cổng bị lần merge làm mất giá trị.
 2. Quyết định MỞ của người dùng: đề xuất "chỉ chạy trên push" cho `kiem-dinh.yml`.
 3. Lỗi kế 206.
+
+## BƯỚC 292 — C4 LÁT 4: TẦNG 2 QUA ĐƯỜNG ỐNG THẬT (BỘ SINH OHLCV MANG `z` BẰNG KHỐI LƯỢNG → `paper_runner._analyze` → `san_dau.phat_lai`); P1 · P2 · P4 XANH TRÊN MỘT THỊ TRƯỜNG, P3 THỬ NHỎ, CHI PHÍ ĐÃ ĐO (21/11/2026)
+
+**Mốc:** C4
+
+Lát 4 của `docs/thiet-ke-c4-thi-truong-gia.md` mục 8 (`docs/LO-TRINH.md`, giai đoạn C); ghi chú thi công ở mục 18 của chính file ấy. Không chạm điểm, ngưỡng, sổ, máy đo của đường thật, `paper_runner`, `san_dau`, `master_agent`, `thi_truong_gia.py`, `cham_bong.py`, `cham_xac_nhan.py`, UV-001 hay file luật (`tools/buoc_cham_luat.py 292`, mục H).
+
+**Quyết định của người dùng (nguyên văn):** *"TIẾP ĐI"* (21/11/2026) — sau khi leader nêu Lát 4 là Lát kế của C4. Ba điều KHÔNG phải của người dùng, đều của leader ngày 21/11/2026 và ghi ở mục 18: hai hằng KHAI `HE_SO_Z_KHOI_LUONG` = 0,4 và `SIGMA_KHOI_LUONG` = 0,3 (khoản 1); việc dời lệch lịch sang một BƯỚC chuẩn bị riêng (khoản 12); không chỉnh `risk_score` (khoản 9).
+
+**Đánh số:** BƯỚC 292 (lớn nhất trước đó là 291); không mở lỗi mới (lỗi kế vẫn 206). Nhánh `c4/lat4-tang2-292` XẾP CHỒNG trên `origin/ci/noi-tran-45-291` @ `1ba02ee` (đầu PR #337, trần CI 45 phút); khi #337 merge thì `git merge origin/main`.
+
+### A. Việc làm
+
+1. `thi_truong_gia_tang2.py` (gốc repo): `sinh_thi_truong_2` (khung OHLCV 60 mã, khối lượng mang `z`; lợi nhuận, `z` và hạt là chính `_sinh_loi` của Tầng 1), `cham_diem_theo_ma` / `cham_diem` (MỖI dòng là MỘT lần `paper_runner._analyze` thật trên lịch sử cắt tới phiên, dòng đúng khuôn `decisions`), `kiem_p1`, `chay_that_va_phat_lai` (P2) và `ic_thanh_phan` (P3). Môi trường chấm (`moi_truong_cham`): engine bộ nhớ hậu nghiệm TẮT trỏ vào đường không có file, `_ANALYZE_CACHE` rỗng, trả lại cả hai khi ra.
+2. `tools/chay_tang2_thi_truong_gia.py` (`chay-tang2`): sinh, chấm, P1, thời gian, phân phối điểm, P3 của MỘT thị trường; `--json` in một dòng máy đọc. Dòng hạt: dùng lại `kiem_luong` của `chay_vong_thi_truong_gia` (chỉ 1 và 9001; 2 · 3 · 4 · 5 nổ).
+3. `tests/test_tang2_thi_truong_gia.py` (69 test, mục C); hai test sẵn có được mở danh sách ĐÚNG một chỗ: `tests/test_vong_hoc_thi_truong_gia.py` (G2 phủ thêm module và dụng cụ Tầng 2) và `tests/test_san_dau.py` (`thi_truong_gia_tang2.py` được nhập `san_dau`: chiều nhập chủ ý của mục 7 G2).
+4. Đặc tả: mục 18 "Ghi chú thi công Lát 4" (mười ba khoản), dòng "Trạng thái" ở đầu file, và một ô 🔴 đầu mục 9 trỏ về mục 18 khoản 4.
+5. Không đổi: `paper_runner` · `paper_trading` · `san_dau` · `post_mortem_learning` · `master_agent` · `analysis_agents` · `thi_truong_gia.py` · `vong_hoc_gia.py` · `cham_*` · `run_daily` · `sheets_store` · sổ · điểm · ngưỡng · máy đo · mọi file luật. Không dòng hạt 1–5 (chỉ 9001), không mạng, không `*.db`, không Sheets.
+
+### B. CHI PHÍ ĐÃ ĐO (thay ước lượng của mục 9) — lệnh và số
+
+- **Một thị trường, một tiến trình:** `./.venv/Scripts/python.exe -X utf8 tools/chay_tang2_thi_truong_gia.py --luong 9001 --chi-so 1 --muc 2 --tien-do` → **306,6 s tường · 304,7 s CPU** · **35.640** lần `_analyze` (60 mã × 594 phiên) · **8,60 ms một lần** · mỗi mã min 4,5 / trung vị 5,1 / max 6,6 s · sinh khung 0,04 s. Cùng lệnh trên mã TRƯỚC khi sửa lỗi bộ sinh (mục D): 285,8 s (8,02 ms). Ước lượng cũ: 4–5 phút, 7,5–8,3 ms → ĐÚNG ở cỡ một thị trường.
+- **Theo số tiến trình** (N tiến trình song song, mỗi tiến trình một thị trường khác nhau, 8 mã đầu: `for i in $(seq 1 N); do ./.venv/Scripts/python.exe -X utf8 tools/chay_tang2_thi_truong_gia.py --luong 9001 --chi-so $i --muc 2 --so-ma-cham 8 & done; wait`): N = 1 → 8,5 ms/lần · N = 8 → 12,6 · N = 12 → 14,9 · N = 16 → 16,5.
+- **Lượt chạy Tầng 2 của Lát 5** (100 NULL + 100 ở 2× = 200 thị trường = 7.128.000 lần chấm): ~17 giờ ở 1 tiến trình · ~3,1 giờ ở 8 · **~2,5 giờ ở 12** · ~2,0 giờ ở 16 — CHỈ phần chấm điểm. Ước lượng cũ 1–1,5 giờ → thấp đi một nửa: máy có **8 lõi vật lý** (16 logic; `psutil.cpu_count(logical=False)` = 8), nên "16 lõi" của mục 9 tính thừa.
+- Bộ nhớ ~120 MB một tiến trình (`vibe_logs_292/mem.py`). **Chưa đo:** chi phí bước xác nhận (`cham_xac_nhan.cham`) và bộ đề xuất trên dữ liệu Tầng 2.
+
+### C. P1 · P2 · P4 (một thị trường, dòng 9001) — kết quả
+
+- **P1:** chỉ số 1, mức 2×, đủ 60 × 594 → **ĐẠT, 0 vi phạm / 35.640 dòng** (cùng lệnh khoản B; mã thoát 0). Lượt chạy ĐẦU **trượt** với 3.451 dòng `data_quality = WARN` — lỗi của bộ sinh, mục D.
+- **P2:** `tests/test_tang2_thi_truong_gia.py::test_P2_phat_lai_ra_DUNG_cac_lenh_cua_duong_that_tung_o_cua_COT_TUONG_DUONG` (8 mã × 80 phiên, 120 khởi động). Tái lập: `./.venv/Scripts/python.exe -X utf8 -c "import thi_truong_gia_tang2 as G; tt=G.sinh_thi_truong_2(9001,1,0.04458670117751986,so_phien=80,so_khoi_dong=120); r=G.chay_that_va_phat_lai(tt, ma=tt.ma[:8], cau_hinh=G.cau_hinh_mac_dinh()); print(len(r['thuc']), len(r['phat']), len(r['khac']), r['bi_chan_vni'], r['so_diem_so_duoc'], len(r['diem_lech']))"` → `15 15 0 9 524 0`: 15 lệnh thật, 15 lệnh phát lại, **0 khác biệt ở mười hai cột `san_dau.COT_TUONG_DUONG`**, cổng VN-INDEX chặn 9 tín hiệu đủ điểm, điểm `run_session` chấm lúc chạy bằng điểm đã ghi ở 524/524 dòng sổ. Phạm vi và giới hạn (VN-INDEX giả là chỉ số bình quân đều; cổng độ rộng không được hỏi): mục 18 khoản 5–6.
+- **P4:** `test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2` (G1 không ghi, G3 không thế giới thật, G4 oracle cách ly, G5 ngày giả) + `test_G3_nap_module_khong_keo_theo_the_gioi_that` + G2 ở `tests/test_vong_hoc_thi_truong_gia.py::test_G2_duong_that_KHONG_nhap_module_thi_truong_gia_hay_vong_hoc_gia` và `tests/test_san_dau.py::test_G2_duong_that_KHONG_nhap_san_dau`. Không mạng: `test_khong_mang_tao_socket_la_no_trong_luc_cham_diem_mot_thi_truong` (tạo socket NỔ trong lúc chấm điểm; chấm vẫn xong); không file chung: `test_khong_file_chung_khong_mo_cache_bo_nho_so_hay_vnstock` (spy `open`, `sqlite3.connect`, `os.path.exists`).
+
+### D. Ước lượng đã sai và điều lộ ra khi làm
+
+- **Bộ sinh của chính tôi cho `data_quality = WARN`** (P1 bắt ở lượt chạy đầu, 3.451 dòng, 5/60 mã): lợi nhuận kẹp ở đúng ±7% làm `close/ref` vượt biên 1e-16; `np.clip` khi cận dưới > cận trên trả cận trên (< đóng cửa); `validate_ohlcv` so chặt → OHLC_INCONSISTENT. Phép thử đầu của tôi dung sai 1e-9 nên xanh. Một mẫu nhỏ không có ca chạm biên (lỗi 66): test mới dùng mẫu dài và đòi mẫu CÓ ca chạm biên, so chặt. Sửa, chạy lại cả thị trường → P1 đạt.
+- **Ước lượng 1–1,5 giờ cho 200 thị trường SAI một nửa** (mục B): đo thật 2,5 giờ ở 12 tiến trình.
+- **Hai quan sát về đường thật, KHÔNG sửa** (leader đưa vế đường thật vào danh sách chờ): (a) `paper_runner._ANALYZE_CACHE` va chạm giữa hai thị trường cùng tên mã và lịch; (b) `post_mortem_learning.get_learning_engine` dựng engine mặc định đọc `sl_pattern_memory.json` từ thư mục hiện hành kể cả khi engine tắt. Chi tiết, test: mục 18 khoản 8. Phụ: urllib3 thăm dò IPv6 lúc nhập (socket loopback).
+- **Lượt năm cổng ĐẦU (commit `9b9d028`) ĐỎ ở cổng 1: một test của tôi xanh một mình, đỏ khi chạy cả bộ** (`test_dung_cu_dung_lai_cua_kiem_luong_cua_chay_vong`: `CT.kiem_luong is CV.kiem_luong`). Nguyên nhân: `tests/test_vong_hoc_thi_truong_gia.py` nạp dụng cụ `chay-vong` bằng `spec_from_file_location` và đặt vào `sys.modules` dưới cùng tên, nên khi hai file chạy chung một tiến trình có HAI đối tượng hàm `kiem_luong`; cổng 4 (mỗi file một mình) không thấy. Sửa: so theo NGUỒN (AST của lời nhập, không có bản sao của cửa, `__code__.co_filename`) thay vì so đối tượng; kiểm cả hai thứ tự chạy hai file (181 passed mỗi chiều). Ghi để người sau: test so danh tính ĐỐI TƯỢNG giữa hai module được nạp bằng `spec_from_file_location` không bền khi chạy chung tiến trình.
+- **Điểm `_analyze` trên dữ liệu giả** (mục 18 khoản 9): 58 giá trị 24…83, 20,2% ≥ 62; `risk_score` 10 nấc 15…70 (thật 8 nấc 10…45) — không chỉnh.
+- **Lệch dòng thời gian khi có 250 phiên khởi động** (mục 18 khoản 12a): khai 128 · 150 · 172 → 139 · 160 · 183, tổng 594 → 605. Việc của BƯỚC chuẩn bị trước Lát 5.
+
+### E. P3 thử nhỏ — ĐẾM, không tỷ lệ
+
+Dòng 9001, 6 thị trường mức 2× (chỉ số 1–6) và 6 NULL đối chứng (chỉ số 11–16), chỉ số chọn TRƯỚC; 12 tiến trình song song, 564–570 s mỗi thị trường, cả lượt ~10 phút (`./.venv/Scripts/python.exe -X utf8 tools/chay_tang2_thi_truong_gia.py --luong 9001 --chi-so <i> --muc 2 --json`; NULL `--muc 0`). Mỗi thị trường 34.320 cặp có nhãn; P1 đạt cả 12.
+
+- IC của `volume_score` với nhãn DƯƠNG ở **6/6** thị trường 2× (+0,114 · +0,094 · +0,090 · +0,113 · +0,105 · +0,113) và ở **4/6** thị trường NULL (+0,010 · +0,004 · +0,009 · −0,000 · −0,012 · +0,011).
+- **Điều không lường:** ở 2×, `trend_score` +0,097 … +0,169 và `sr_score` −0,103 … −0,163 có IC CÙNG cỡ hay LỚN HƠN `volume_score`; `momentum` ≈ 0; ở NULL cả hai trong ±0,03. Chẩn đoán SAU P3 (khối lượng không mang `z`, dòng 9001 chỉ số 21–23, 2×; hằng đặt bằng 0 chỉ trong tiến trình, KHÔNG sửa file): `trend` +0,143 · +0,114 · +0,120 và `sr` −0,143 · −0,109 · −0,102 giữ nguyên, `volume_score` +0,050 · +0,045 · +0,052 (từ ~+0,10). Đọc: lợi thế cài vào GIÁ (qua κ) nên các chỉ báo thuần giá của agent thật đọc được nó; ở Tầng 2 "chỉ một thành phần mang" của mục 4.1 khoản 1 KHÔNG còn đúng. Hệ quả với G · Z · H và việc đọc P3: mục 18 khoản 10 và 12c. Không phán P3 (tiêu chí ≥ 90/100 là của Lát 5).
+
+### F. Đột biến
+
+**24 phát** (bộ đục ngoài repo `vibe_logs_292/mut_p2.py`; nó chạy CÙNG lệnh `pytest tests/test_tang2_thi_truong_gia.py -q -x` một lần trên mã CHƯA đục (69 passed) và dừng nếu đỏ, lỗi 205); **23 đỏ, 1 sống sót TƯƠNG ĐƯƠNG:** đổi sàn của phát lại sang HNX — cột `exchange` không thuộc mười hai cột `COT_TUONG_DUONG`, và bước giá của mã giả tra theo tên mã nên mười hai cột không đổi (mục 18 khoản 11). Phase 1 có thêm 7 phát (6 đỏ + 1 đối chứng tương đương), trong đó phát "bỏ bảo đảm cao ≥ thân nến" sống sót khi test còn dung sai 1e-9 và đỏ sau khi so chặt.
+
+### G. Điều chưa kiểm
+
+- **Một thị trường cho P1/P2, một dòng hạt thử (9001), Python 3.13 (chưa 3.11 ở thị trường đầy đủ; cổng cú pháp 3.11 xanh).** Không tỷ lệ nào của Lát 5.
+- P2 chưa phủ cổng độ rộng (khoản 6 mục 18) và chạy ở cỡ 8 mã × 80 phiên, không phải 60 × 594 (đủ 60 mã chỉ ở P1).
+- P3 sáu thị trường mỗi loại: đếm, không nói gì về tỷ lệ ≥ 90/100; cách đọc P3 sau phát hiện ở mục E chưa được người dùng duyệt (mục 18 khoản 12c).
+- Hai hằng KHAI do leader khai, không phải người dùng.
+- Chưa đọc CI; chưa merge (PR này KHÔNG tự merge, xếp chồng trên #337).
+
+### H. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 292` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 292` → xem kết quả ở báo cáo của phiên con và ở PR (chạy trên cây đã commit). BƯỚC chỉ THÊM module, dụng cụ, test và tài liệu của một thị trường GIẢ; các quan sát về đường thật (khoản D) chỉ ghi, không đổi luật hay kết luận đo của đường thật. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; con số ở STATE này và mục 18 là kỷ luật, không phải cơ chế.
+
+**Số test:** mốc `docs/moc_so_test.json` **5500 → 5569** (+69 test mới, đều ở `tests/test_tang2_thi_truong_gia.py`) (`./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat`; không test nào bị bớt). Thời gian: file test mới ~17 s chạy một mình (fixture P2 11,5 s); số đo thời gian cả bộ ở báo cáo của phiên con.
+
+**Năm cổng:** chạy `--tuan-tu` trên commit CUỐI của nhánh; kết quả ở báo cáo của phiên con và ở PR (ghi vào đây sẽ buộc một commit tài liệu mới rồi phải chạy lại cả năm cổng).
+
+### I. Việc kế
+
+1. Leader đọc CI của #337 rồi PR này; PR này KHÔNG tự merge.
+2. **BƯỚC chuẩn bị trước Lát 5** (leader quyết định): tính lại dòng thời gian cho 250 phiên khởi động, đo chi phí của vòng trên Tầng 2, khai G · Z · H của Tầng 2 và cách đọc P3 (mục 18 khoản 12).
+3. Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
+4. Lỗi kế 206.
