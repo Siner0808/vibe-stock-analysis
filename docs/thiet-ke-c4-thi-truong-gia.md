@@ -527,3 +527,31 @@ Hai lượt đo cùng lệnh (số thứ nhất / số thứ hai; chênh nhau do
 * Vòng: ≤ 4,4 s mỗi thị trường khi 12 bản chạy cùng lúc → 200 × 4,4 / 12 ≈ 73 s; kể cả sinh và bộ nối khoảng 1–2 phút.
 * Chấm điểm: 200 × 36.300 = 7.260.000 lần `_analyze` (khoản 4 mục 18 tính 7.128.000 ở 594 phiên). Ở 805 lần/giây của khoản 4: 2,5 giờ; ở 770–1.120 lần/giây của hai lượt đo này: 1,8–2,6 giờ.
 * **Tổng ≈ 2,6 giờ (cận trên; khoản 4 nói 2,5 giờ chỉ riêng chấm điểm).** Chi phí của vòng cộng thêm khoảng một phút và không đổi ước lượng. Không gồm oracle tham chiếu của 19.6 (≈ 5–7 phút mỗi mẫu 5.000 phiên ở 12 tiến trình).
+
+### 19.8 Quyết định của người dùng (21/11/2026) và LỜI KHAI TRƯỚC cho lượt đo G′ (BƯỚC 294)
+
+**Quyết định.** Người dùng đã được nêu ba phương án của mục 19.5, kèm khuyến nghị phương án 2, và trả lời nguyên văn: *"làm theo đề xuất của bạn đi, phương án nào tốt nhất thì làm"* (21/11/2026). **Hiệu lực = phương án 2**: ở Tầng 2, thay G bằng G′ = `bo_momentum_score`; vế G của hàng PT đọc là *"số thị trường `QUA` nằm trong dải 99% nhị thức quanh dự đoán của đường cong Tầng 1"*; κ và hiệu chuẩn Lát 2 KHÔNG đổi; ΔIC_true tham chiếu của G′ phải đo lại ở dòng hạt khác 9001.
+
+Mọi điều dưới đây được KHAI trong một commit riêng, TRƯỚC khi dòng hạt 1 sinh một mẫu Tầng 2 nào. Thời điểm commit là bằng chứng thứ tự; sửa một điều dưới đây sau khi đã nhìn số là sửa đặc tả bằng commit riêng và (mục 6, "Quy tắc đọc") đổi dòng hạt.
+
+1. **G′ = `bo_momentum_score`, cố định.** Nó được chọn ở dòng 9001 (ΔIC_true +0,0304 ± 0,0030 ở 2×, mục 19.3). KHÔNG đổi sang `bo_sr_score` hay spec nào khác dù số mới ra thế nào (đổi sau khi nhìn là chọn cực đại, bất biến 7).
+2. **Dòng tham chiếu = dòng hạt 1** (dòng hiệu chuẩn; mục 4.8 giao cho dòng 1 việc hiệu chuẩn, và ΔIC_true tham chiếu là một đại lượng hiệu chuẩn). Dòng 1 qua cửa `kiem_luong` sẵn có; cửa ấy KHÔNG đổi. **Hạt `[1, chi_so, 2]`** (hạt thứ ba 2 = `HAT_ORACLE_2`), chỉ số: **600001 · 600002 ở mức 2×; 600101 · 600102 ở NULL.** Vì sao các số ấy mới: Lát 2 chia chỉ số dòng 1 thành các khối 0, 100.000, 200.000, 300.000, 400.000 và 900.000 (`CHI_SO_GOC` trong `tools/hieu_chuan_thi_truong_gia.py`); khối 500.000–899.999 chưa có vai trò nào; oracle Tầng 2 của BƯỚC 293 chỉ chạy ở dòng 9001; và `git grep -n "600001\|600002\|600101\|600102"` ở cây trước commit này không trả dòng nào. Các chỉ số này KHÔNG dùng lại cho thứ gì khác ở dòng 1.
+3. **Lệnh (cùng công cụ và cùng thiết lập với mục 19.2):**
+
+```bash
+./.venv/Scripts/python.exe -X utf8 tools/oracle_tang2_thi_truong_gia.py --luong 1 --muc 2 --so-phien 5000 --so-mau 2 --chi-so-dau 600001 --so-tien-trinh 12 --json
+./.venv/Scripts/python.exe -X utf8 tools/oracle_tang2_thi_truong_gia.py --luong 1 --muc 0 --so-phien 5000 --so-mau 2 --chi-so-dau 600101 --so-tien-trinh 12 --json
+```
+
+   Hai mẫu 5.000 phiên × 60 mã, cửa sổ trượt 855 dòng mặc định của công cụ. Ngân sách ước lượng cỡ 20 phút tường (hai lượt 2 × 5.000 × 60 ở 581–596 s của mục 19.2). Mỗi lượt chạy MỘT lần, không chạy lại cho "đẹp hơn".
+4. **Công thức dải** (cài trong `tools/dai_pt_tang2_thi_truong_gia.py`, đã có test và đột biến, commit cùng lời khai này): `p = Φ(a + b · ΔIC_true(G′))` với `a`, `b` là `mde80.probit` của `docs/thi-truong-gia-hieu-chuan.json` (Tầng 1), ΔIC_true(G′) là **điểm ước ở 2× đo ở dòng 1**; dải 99% hai phía của Nhị thức(100, p): `thấp` = k NHỎ NHẤT có P(X ≤ k) ≥ 0,005, `cao` = k NHỎ NHẤT có P(X ≤ k) ≥ 0,995. Dụng cụ tái lập đúng ba số của mục 19.5 cho dòng 9001 (`--delta 0.0304` → 13,4%, 5–23; `--delta 0.0281` → 11,3%, 4–20; `--delta 0.0066` → 1,6%, 0–6). Sai số Monte Carlo của ΔIC_true KHÔNG đi vào dải; dải hẹp hơn độ bất định thật, nên PT chỉ bắt được lệch lớn (đã nói ở 19.5). Dải ở ΔIC ± 1 sai số chỉ được in để tham khảo.
+5. **Điều kiện DỪNG (báo cáo, không đi vòng):**
+   * (S1) ΔIC_true(G′) ở 2×, dòng 1, không lớn hơn 0 quá 2 sai số Monte Carlo (z ≤ 2): G′ không mang lợi thế đo được.
+   * (S2) ΔIC_true(G′) ở 2×, dòng 1, lệch khỏi +0,0304 (dòng 9001, sai số 0,0030) quá 3 sai số gộp √(se₁² + 0,0030²).
+   * (S3) cận dưới của dải bằng 0.
+   * (S4) phép thử NULL của mục 4.5 (c) rớt: ở κ = 0, MỘT spec trong 12 có |ΔIC_true| ≥ 2 sai số (mẫu gộp hai mẫu, đúng cách đọc của mục 19.4 điều 1; công cụ in dòng `spec có |ΔIC_true| ≥ 2 sai số (mẫu gộp)`), hoặc `data_quality` ≠ OK ở bất kỳ dòng nào.
+   * (S5) bất kỳ bước nào cần một dòng hạt ngoài {1, 9001}.
+
+   Dừng thì không sửa ngưỡng, không đổi G′, không chạy thêm cho tới khi đạt: ghi kết quả nguyên văn, và người dùng quyết.
+6. **Việc làm tiếp nếu không dừng:** ghi số đo vào `docs/thi-truong-gia-g-phay.json`; tính dải bằng lệnh của khoản 4 với ΔIC_true đo được; viết lại MỘT vế của hàng PT ở mục 6 (G → G′, "≥ 85/100" → dải). Vế NULL "≤ 12/100", R = 100, và mọi hàng khác của mục 6 giữ nguyên.
+7. **Không làm ở BƯỚC này:** Lát 5 (không tỷ lệ PT hay P3 nào trên 100 thị trường, không dòng 2–5), κ, tiêu chí A · B · C, `docs/TIEU-CHI-DOC-TRUOC.md` (việc của Lát 5, kèm một câu hỏi thật tới sổ tay), đường thật. **Còn để ngỏ cho Lát 5:** nếu Tầng 2 chạy bộ ba K = 3 thì Z′ · H′ khai thế nào (mục 19.5, hai việc đi kèm); đường probit của dải đã tính ở K = 3 nên dải chỉ đúng khi thị trường Tầng 2 cũng khai đủ ba ứng viên.
