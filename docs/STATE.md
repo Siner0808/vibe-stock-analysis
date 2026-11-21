@@ -28159,3 +28159,64 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 2. Khi người dùng đã chọn: một BƯỚC riêng ghi lựa chọn nguyên văn vào mục 19, đo lại ΔIC_true tham chiếu trên dòng hạt khác 9001 (nếu phương án đòi G′ hay κ mới), viết lại hàng PT của mục 6 bằng commit riêng (sửa đặc tả; đổi dòng hạt của lượt chạy chính theo mục 6 "Quy tắc đọc").
 3. Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
 4. Lỗi kế 207 (206 đã dùng cho CI đỏ ở mục E).
+
+## BƯỚC 294 — C4: ÁP DỤNG LỰA CHỌN CỦA NGƯỜI DÙNG CHO TẦNG 2 (PHƯƠNG ÁN 2): G′ = `bo_momentum_score`, ΔIC_true(G′) ĐO LẠI Ở DÒNG HẠT 1 = +0,0331 ± 0,0029; DẢI PT = [7 ; 26]/100 (21/11/2026)
+
+**Mốc:** C4
+
+**Quyết định của người dùng (nguyên văn):** *"làm theo đề xuất của bạn đi, phương án nào tốt nhất thì làm"* (21/11/2026) — sau khi leader nêu ba phương án của `docs/thiet-ke-c4-thi-truong-gia.md` mục 19.5 và khuyến nghị phương án 2. **Hiệu lực = phương án 2:** ở Tầng 2 thay G bằng G′ = `bo_momentum_score`; vế G của hàng PT đọc là *"số thị trường `QUA` nằm trong dải 99% nhị thức quanh dự đoán của đường cong Tầng 1"*; κ và hiệu chuẩn Lát 2 giữ nguyên; ΔIC_true tham chiếu của G′ đo lại ở dòng hạt khác 9001.
+
+**Đánh số:** BƯỚC 294; không mở lỗi mới (lỗi kế 207; 206 đã dùng ở BƯỚC 293 cho CI đỏ). Nhánh `c4/g-phay-tang2-294` xếp chồng trên `origin/c4/chuan-bi-lat5-293` @ `8a13da3` (PR #339 chưa merge lúc làm).
+
+### A. Thứ tự việc (khai trước, rồi đo)
+
+1. **Commit khai trước `981aa25`** (2026-11-21T14:53:58+07:00; lệnh: `git log -1 --format='%H %cI' 981aa25`): mục 19.8 của đặc tả (quyết định nguyên văn; G′ cố định, KHÔNG đổi sang `bo_sr_score` hay spec khác dù số mới ra thế nào; dòng hạt 1, hạt `[1, chi_so, 2]`, chỉ số 600001·600002 (2×) và 600101·600102 (NULL); hai lệnh đo; công thức dải; năm điều kiện DỪNG) cùng dụng cụ dải `tools/dai_pt_tang2_thi_truong_gia.py` và `tests/test_dai_pt_tang2.py` (6 test; đột biến 8/8 đỏ). Lượt 2× bắt đầu 14:54:10, SAU commit.
+2. **Chỉ số mới, kiểm bằng lệnh:** Lát 2 dùng các khối chỉ số 0 · 100.000 · 200.000 · 300.000 · 400.000 · 900.000 trên dòng 1 (`CHI_SO_GOC`, `tools/hieu_chuan_thi_truong_gia.py`); khối 500.000–899.999 chưa có vai trò; oracle Tầng 2 của BƯỚC 293 chỉ ở dòng 9001; `git grep -n "600001\|600002\|600101\|600102"` ở cây trước commit khai trước: 0 dòng.
+3. **Đo** (mỗi lệnh MỘT lần, tuần tự; 12 tiến trình; Python 3.13.14; máy 16 lõi logic; chạy từ worktree, python là của `.venv` ở thư mục repo chính):
+
+```bash
+./.venv/Scripts/python.exe -X utf8 tools/oracle_tang2_thi_truong_gia.py --luong 1 --muc 2 --so-phien 5000 --so-mau 2 --chi-so-dau 600001 --so-tien-trinh 12 --json   # 14:54:10 → 15:03:13, 542 s trong công cụ
+./.venv/Scripts/python.exe -X utf8 tools/oracle_tang2_thi_truong_gia.py --luong 1 --muc 0 --so-phien 5000 --so-mau 2 --chi-so-dau 600101 --so-tien-trinh 12 --json   # 15:03:13 → 15:12:18, 545 s
+./.venv/Scripts/python.exe -X utf8 tools/dai_pt_tang2_thi_truong_gia.py --delta 0.033073041827246956 --se 0.0029307104631540676
+```
+
+   Cả hai lượt thoát mã 0, stderr rỗng. Tổng ≈ 18 phút tường (ngân sách khai 20).
+4. **Ghi bản đo** `docs/thi-truong-gia-g-phay.json` (12 spec, IC đứng riêng, NULL, thời gian, mã commit khai trước); viết lại MỘT vế của hàng PT ở mục 6; thêm một dòng trích quyết định dưới bảng; ghi chú ngắn ở mục 4.3; đóng câu mở ở dòng "Trạng thái" · mục 14.3 · đầu mục 19; mục 19.9 mới.
+
+### B. Số đo — không điều kiện DỪNG nào bị chạm
+
+| | dòng 1, 2× | dòng 1, NULL | dòng 9001, 2× (BƯỚC 293) |
+|---|---|---|---|
+| ΔIC_true(`bo_momentum_score`) | **+0,0331 ± 0,0029** (z = 11,3) | +0,0008 ± 0,0020 | +0,0304 ± 0,0030 |
+| dòng `data_quality` ≠ OK / 600.000 | 1.697 | 0 | 2.261 |
+
+- **(S1)** z = 11,3 > 2. **(S2)** lệch +0,0027 so với dòng 9001 = 0,63 sai số gộp √(0,0029² + 0,0030²) = 0,0042 (≤ 3). **(S3)** cận dưới dải = 7 ≠ 0. **(S4)** NULL: cả 12 spec |ΔIC_true| < 2 sai số (|z| lớn nhất 1,52 ở `bo_volume_score`; công cụ in *"spec có |ΔIC_true| ≥ 2 sai số (mẫu gộp): không có"*), `data_quality` OK ở 600.000/600.000. **(S5)** chỉ dòng 1 (và số cũ của 9001).
+- **Dải của PT:** p = Φ(−2,421383 + 43,144698 × 0,033073) = **0,1600**; dải 99% của 100 thị trường **[7 ; 26]**. Hàng PT của mục 6 nay: *báo động ở NULL ≤ 12/100; G′ = `bo_momentum_score` `QUA` ở 2× nằm trong dải 99% [7 ; 26]/100*. Tham khảo, KHÔNG phải tiêu chí: ở ΔIC ± 1 sai số, P = 13,1% (dải 5–22) · 19,3% (dải 10–30); dựng bằng ΔIC của dòng 9001 sẽ là 5–23.
+- Ba số của mục 19.5 (13,4% 5–23 · 11,3% 4–20 · 1,6% 0–6) tái lập bằng chính dụng cụ: `./.venv/Scripts/python.exe -X utf8 tools/dai_pt_tang2_thi_truong_gia.py --delta 0.0304` (và `0.0281`, `0.0066`), `tests/test_dai_pt_tang2.py`.
+
+### C. Điều đọc ra, và giả thuyết không xảy ra
+
+- **Dự đoán "lời nguyền người thắng" không thấy:** G′ là cực đại của 11 spec trên dòng 9001; nếu số ấy chỉ là may thì mẫu độc lập sẽ thấp hơn. Dòng 1 cho +0,0331, không thấp hơn. (Một mẫu độc lập, nên chỉ nói được "không co lại", không nói được "ổn định".)
+- **`bo_sr_score` ở dòng 1 = +0,0347 ± 0,0030, lớn hơn G′ 0,0016** (trong một sai số; mục 19.4 điều 6 đã nêu hai spec này khác nhau 0,0023). G′ đã được cố định trước nên KHÔNG đổi; nếu đổi theo số mới thì dải sẽ là P = 17,8%, 9–28 (`--delta 0.0347`) — lời khai trước chặn đường ấy.
+- **G cũ (`mono_volume_score`) ở dòng 1 = +0,0199 ± 0,0033** so với +0,0066 ± 0,0047 ở dòng 9001 (chênh 2,3 sai số gộp). Vẫn chỉ 13% đích Tầng 1 0,1513, nên kết luận "G cũ không đạt ≥ 85/100 ở Tầng 2" không đổi; nhưng ΔIC_true(G) ở Tầng 2 không chắc ở mức +0,0066.
+- Z = −0,0647 ± 0,0029 (dòng 9001: −0,0635), H = −0,0234 ± 0,0021 (−0,0215); IC đứng riêng ở 2×: trend +0,1236 · volume +0,1177 · sr −0,1118 · momentum −0,0204 · risk +0,0350 · điểm đã ghi +0,0978 — cơ chế "điểm đã ghi đã đọc lợi thế qua giá" lặp lại ở dòng thứ hai.
+- **Kiểm nhỏ (khoản 4 của đề bài): mục 4.3 nói Z đổi chỗ trend ↔ momentum, mã `doi_cho_trend_sr` đổi trend ↔ sr.** Đã có ghi chú: mục 15 khoản 2 (BƯỚC 261) ghi *"Z là đổi chỗ trend ↔ sr, KHÔNG phải trend ↔ momentum"* kèm lý do (cả hai cùng trọng số 0,25). Lệnh: `grep -n "trend ↔ sr" docs/thiet-ke-c4-thi-truong-gia.md`. Nên KHÔNG thêm ghi chú; chữ cũ trong bảng mục 4.3 còn đó, mục 15 là chỗ đính chính.
+
+### D. Điều chưa kiểm
+
+- **Dải dựa trên một điểm ước** (ΔIC_true(G′) ± 0,0029 ⇒ P từ 13% tới 19%); PT ở Lát 5 chỉ phát hiện lệch lớn. Dự đoán P(`QUA`) từ đường probit Tầng 1 vẫn là GIẢ ĐỊNH (nhiễu của phép so cặp qua agent thật bằng Tầng 1); đó là cái PT kiểm.
+- Mẫu: hai mẫu 5.000 phiên mỗi mức; sai số là sai số khối (ước lượng). Cửa sổ trượt 855 dòng chưa so với lịch sử mở rộng.
+- **Z′ · H′** (nếu Tầng 2 chạy bộ ba K = 3) CHƯA khai; dải đã tính ở K = 3 nên chỉ đúng khi Tầng 2 cũng khai đủ ba ứng viên (mục 19.8 khoản 7). Việc của Lát 5.
+- Không làm: Lát 5 (không tỷ lệ PT hay P3, không dòng 2–5), κ, tiêu chí A · B · C, `docs/TIEU-CHI-DOC-TRUOC.md`, đường thật.
+
+### E. Đột biến · sổ tay · năm cổng · số test
+
+- **Đột biến:** dụng cụ dải 8/8 đỏ (bộ đục ngoài repo `vibe_logs_294/dotbien_dai.py`); `tests/test_pt_g_phay_tang2.py` 19 phát (7 trên đặc tả, 12 trên bản ghi; `dotbien_pt.py`, `dotbien_pt2.py`) — lượt đầu 1 phát SỐNG SÓT: đổi chữ câu trích dẫn người dùng ở mục 19.8 mà gác vẫn xanh vì cùng câu còn ở mục 14.3; sửa gác để tìm câu NGAY TRONG mục 19.8, rồi 2/2 đỏ. Mỗi bộ chạy trước cùng lệnh pytest trên mã CHƯA đục (lỗi 205): xanh.
+- **Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 294` mang `khong_bat_buoc_vi`; `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 294` xác nhận (lượt chạy ở báo cáo/PR). BƯỚC chỉ ghi quyết định đã có của người dùng vào đặc tả của thị trường GIẢ, đo một số mới ở thị trường GIẢ và viết lại một vế của hàng PT (Tầng 2, chưa chạy lượt chính); không đổi file luật, không đổi kết luận đo của đường thật.
+- **Số test:** `docs/moc_so_test.json` 5624 → 5637 (+6 `tests/test_dai_pt_tang2.py`, +7 `tests/test_pt_g_phay_tang2.py`).
+- **Năm cổng** `--tuan-tu` trên commit CUỐI của nhánh: kết quả ở báo cáo của phiên con và ở PR.
+
+### F. Việc kế
+
+1. Lát 5 (chạm `docs/TIEU-CHI-DOC-TRUOC.md`, nên hỏi sổ tay thật): chép bảng mục 6 đã sửa, khai tiêu chí máy đo thành TỶ LỆ (mục 15 khoản 8), khai Z′ · H′ cho K = 3 nếu Tầng 2 chạy bộ ba; chạy dòng hạt 2–4.
+2. Lỗi kế 207.
