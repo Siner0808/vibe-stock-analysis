@@ -787,5 +787,7 @@ def test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2():
             continue
         if "thi_truong_gia_tang2" in _nhap(ast.parse(p.read_text(encoding="utf-8"))):
             nguoi.append(rel)
-    assert nguoi == ["tools/chay_tang2_thi_truong_gia.py", "tools/chay_vong_tang2_thi_truong_gia.py",
-                     "tools/oracle_tang2_thi_truong_gia.py"], nguoi
+    # SO SÁNH KHÔNG PHỤ THUỘC THỨ TỰ DUYỆT CÂY (BƯỚC 293, lỗi 206): `duyet_repo.duyet` trả theo bảng chữ cái trên NTFS nhưng
+    # theo thứ tự của hệ tệp trên Linux (CI), nên `nguoi` đúng TẬP nhưng khác thứ tự ở runner. `sorted` giữ ý "ĐÚNG những file này".
+    assert sorted(nguoi) == ["tools/chay_tang2_thi_truong_gia.py", "tools/chay_vong_tang2_thi_truong_gia.py",
+                             "tools/oracle_tang2_thi_truong_gia.py"], nguoi

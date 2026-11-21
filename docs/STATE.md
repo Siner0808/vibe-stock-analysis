@@ -28079,7 +28079,7 @@ BƯỚC chuẩn bị đứng giữa Lát 4 và Lát 5 của `docs/thiet-ke-c4-th
 
 **Quyết định của người dùng (nguyên văn):** *"Tiếp đi"* (21/11/2026) — sau khi leader đề xuất BƯỚC chuẩn bị này: sửa lệch lịch, đo chi phí của vòng trên Tầng 2, ĐO tác động thật của G · Z · H lên Tầng 2 và đưa phương án cho người dùng. **Bộ ba mới của Tầng 2 là quyết định của NGƯỜI DÙNG; BƯỚC này KHÔNG quyết và KHÔNG làm theo bất kỳ phương án nào.** Leader đưa ba phương án (mục 19.5) cho người dùng; vào lúc ghi chưa có trả lời. Mục 19 giữ nhãn *"chờ người dùng quyết"*.
 
-**Đánh số:** BƯỚC 293 (lớn nhất trước đó là 292); không mở lỗi mới (lỗi kế vẫn 206). Nhánh `c4/chuan-bi-lat5-293` từ `origin/main` @ `62c36ea`.
+**Đánh số:** BƯỚC 293 (lớn nhất trước đó là 292); mở MỘT lỗi mới: **206** (CI đỏ, mục E; lỗi kế 207). Nhánh `c4/chuan-bi-lat5-293` từ `origin/main` @ `62c36ea`.
 
 ### A. Việc làm
 
@@ -28130,10 +28130,11 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 - **Lượt đột biến đầu: 2/23 phát SỐNG SÓT**, cả hai là gác thiếu: chỉ số mẫu của `main` không tăng (không test nào chạy `main` nhiều mẫu) và `round` thay `int` ở điểm ghi (mẫu thật cho điểm nguyên nên không phân biệt được). Thêm test, rồi đủ đỏ. Ở nhóm (b): phát đầu cho `--song-song` truyền sai cờ ép sống sót vì chưa có test chạm nhánh `song_song` của `chay`; thêm test, rồi đủ đỏ.
 - **`data_quality` ≠ OK ở κ cao:** 0 dòng ở NULL · 0,5×; 1.902 (1×, một mẫu) · 2.261 (2×, hai mẫu) · 3.541 · 16.205 · 32.657 trên 300.000–600.000 dòng ở các mức cao hơn. Đo trên 42.900 cửa sổ của mẫu 401: 324 cửa sổ WARN, tất cả `UNIT_INCONSISTENT` (giá một mã trôi qua 1.000 nghìn đồng trong 5.000 phiên). Điểm không đổi theo ĐỌC MÃ (`master_agent.NO_VERDICT_QUALITY` chỉ chặn `FAILED`, `SYNTHETIC`; hệ số đơn vị chỉ nhân vào giá cắt lỗ/chốt lời); KHÔNG chạy lại để kiểm.
 - **Chỗ đặt mã oracle bị gác của Lát 4 quyết định:** gác G3/G4 của Lát 4 cấm tên oracle trong `thi_truong_gia_tang2.py` và `tools/chay_tang2_thi_truong_gia.py`, nên mã oracle Tầng 2 nằm ở một dụng cụ riêng (`tools/oracle_tang2_thi_truong_gia.py`); module Tầng 2 chỉ có hai tham số trung tính (`cua_so`, `hat_them`).
+- **Lỗi 206 — CI ĐỎ sau khi năm cổng ở máy xanh (run 44881245658, `pull_request`, 1 failed / 5618 passed):** `tests/test_tang2_thi_truong_gia.py::test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2` so `nguoi == [ba file]` bằng một danh sách CÓ THỨ TỰ lấy từ `duyet_repo.duyet`; NTFS trả theo bảng chữ cái, runner Linux thì không, nên ở CI dụng cụ oracle đứng đầu. Ở BƯỚC 292 danh sách chỉ một phần tử; BƯỚC 293 thêm hai file và không đổi phép so — lỗi của chính tôi. Sửa: `sorted(nguoi) == [...]`. Đục (baseline xanh trước, `vibe_logs_293/dotbien6.py`, cùng lệnh `pytest tests/test_tang2_thi_truong_gia.py::test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2 -q -x`): test CŨ + thứ tự thật của Windows XANH (vì sao máy không thấy); test CŨ + duyệt đảo ngược ĐỎ; test MỚI + duyệt đảo ngược XANH; test MỚI bỏ một file mong đợi · thêm một file lạ · đổi `==` thành `!=` đều ĐỎ (6/6 đúng kỳ vọng). Quét lớp: AST trên 33 file test dùng `duyet_repo` cho 16 phép `Tên == [chuỗi…]` ở 11 file; các phép nhiều phần tử đã `sorted` hoặc là thứ tự gọi/ghi, các danh sách người-nhập ở `tests/test_vong_hoc_thi_truong_gia.py` và `tests/test_san_dau.py` là TẬP; không chỗ nào khác phải sửa. Dòng mới ở `references/loi-da-mac.md` (⚠️ một phần: không máy chung nào chặn lớp này), kèm phân lớp `docs/loi-phan-lop.json` (`gac-hong`, `co-che`, 0 ngày) và dòng tự khai cuối bảng 184 → 185 (lượt năm cổng ĐẦU sau khi thêm dòng đỏ ở cổng 1 và cổng 4 vì thiếu hai thứ ấy — `tests/test_bang_loi_do_duoc.py`; thêm xong thì xanh).
 
 ### F. Đột biến
 
-**33 phát, 33 đỏ** (bộ đục ngoài repo `vibe_logs_293/dotbien1.py` · `dotbien4.py` · `dotbien5.py`; mỗi bộ chạy CÙNG lệnh `pytest tests/test_chuan_bi_lat5_thi_truong_gia.py ... -q -x` một lần trên mã CHƯA đục và dừng nếu đỏ, lỗi 205: baseline 38 · 40 · 53 · 54 · 55 passed theo số test lúc ấy). Nhóm: `thi_truong_gia.dong_thoi_gian` (6: bỏ lệch ở mốc cửa sổ · ở chỉ số khai · ở ngày khai · ở độ dài lịch · mặc định 250 · bỏ kiểm lệch âm), `thi_truong_gia_tang2` (5: lệch 0 · số phiên mặc định của Tầng 1 · bỏ `hat_them` · cửa sổ lệch một dòng · bỏ cửa sổ), dụng cụ oracle (12: hạt 1 · nhãn không cắt khởi động · cộng `ic_b` · không chia k · `>` thay `>=` · bỏ `kiem_luong` · `ddof=0` · cửa sổ 844 · chỉ số mẫu không tăng · `round` thay `int` · lấy sai khoá thành phần · ghép ngược thứ tự mã), dụng cụ vòng Tầng 2 (10: giữ khởi động · chỉ mục giá sai · đổi thứ tự bộ ba ép · không trả hàm gốc · thời gian `cham` bằng 0 · bỏ `so_hoan_vi` · bỏ `kiem_luong` · Δ ép âm · hai phát cho `--song-song` không ép). Hai phát đầu của nhóm oracle và một của nhóm vòng sống sót trong lượt ĐẦU (mục E) và đã chết sau khi thêm test.
+**33 phát, 33 đỏ** (bộ đục ngoài repo `vibe_logs_293/dotbien1.py` · `dotbien4.py` · `dotbien5.py`; mỗi bộ chạy CÙNG lệnh `pytest tests/test_chuan_bi_lat5_thi_truong_gia.py ... -q -x` một lần trên mã CHƯA đục và dừng nếu đỏ, lỗi 205: baseline 38 · 40 · 53 · 54 · 55 passed theo số test lúc ấy). Nhóm: `thi_truong_gia.dong_thoi_gian` (6: bỏ lệch ở mốc cửa sổ · ở chỉ số khai · ở ngày khai · ở độ dài lịch · mặc định 250 · bỏ kiểm lệch âm), `thi_truong_gia_tang2` (5: lệch 0 · số phiên mặc định của Tầng 1 · bỏ `hat_them` · cửa sổ lệch một dòng · bỏ cửa sổ), dụng cụ oracle (12: hạt 1 · nhãn không cắt khởi động · cộng `ic_b` · không chia k · `>` thay `>=` · bỏ `kiem_luong` · `ddof=0` · cửa sổ 844 · chỉ số mẫu không tăng · `round` thay `int` · lấy sai khoá thành phần · ghép ngược thứ tự mã), dụng cụ vòng Tầng 2 (10: giữ khởi động · chỉ mục giá sai · đổi thứ tự bộ ba ép · không trả hàm gốc · thời gian `cham` bằng 0 · bỏ `so_hoan_vi` · bỏ `kiem_luong` · Δ ép âm · hai phát cho `--song-song` không ép). Hai phát đầu của nhóm oracle và một của nhóm vòng sống sót trong lượt ĐẦU (mục E) và đã chết sau khi thêm test. Sau CI đỏ (lỗi 206): thêm sáu phép đục cho test của người nhập module Tầng 2 (mục E), tất cả đúng kỳ vọng — không tính vào 33.
 
 ### G. Điều chưa kiểm
 
@@ -28157,7 +28158,7 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 1. Leader đưa ba phương án ở mục 19.5 cho người dùng; BƯỚC này KHÔNG làm theo phương án nào.
 2. Khi người dùng đã chọn: một BƯỚC riêng ghi lựa chọn nguyên văn vào mục 19, đo lại ΔIC_true tham chiếu trên dòng hạt khác 9001 (nếu phương án đòi G′ hay κ mới), viết lại hàng PT của mục 6 bằng commit riêng (sửa đặc tả; đổi dòng hạt của lượt chạy chính theo mục 6 "Quy tắc đọc").
 3. Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
-4. Lỗi kế 206.
+4. Lỗi kế 207 (206 đã dùng cho CI đỏ ở mục E).
 
 ## BƯỚC 294 — C4: ÁP DỤNG LỰA CHỌN CỦA NGƯỜI DÙNG CHO TẦNG 2 (PHƯƠNG ÁN 2): G′ = `bo_momentum_score`, ΔIC_true(G′) ĐO LẠI Ở DÒNG HẠT 1 = +0,0331 ± 0,0029; DẢI PT = [7 ; 26]/100 (21/11/2026)
 
@@ -28165,7 +28166,7 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 
 **Quyết định của người dùng (nguyên văn):** *"làm theo đề xuất của bạn đi, phương án nào tốt nhất thì làm"* (21/11/2026) — sau khi leader nêu ba phương án của `docs/thiet-ke-c4-thi-truong-gia.md` mục 19.5 và khuyến nghị phương án 2. **Hiệu lực = phương án 2:** ở Tầng 2 thay G bằng G′ = `bo_momentum_score`; vế G của hàng PT đọc là *"số thị trường `QUA` nằm trong dải 99% nhị thức quanh dự đoán của đường cong Tầng 1"*; κ và hiệu chuẩn Lát 2 giữ nguyên; ΔIC_true tham chiếu của G′ đo lại ở dòng hạt khác 9001.
 
-**Đánh số:** BƯỚC 294; không mở lỗi mới (lỗi kế vẫn 206). Nhánh `c4/g-phay-tang2-294` xếp chồng trên `origin/c4/chuan-bi-lat5-293` @ `8a13da3` (PR #339 chưa merge lúc làm).
+**Đánh số:** BƯỚC 294; không mở lỗi mới (lỗi kế 207; 206 đã dùng ở BƯỚC 293 cho CI đỏ). Nhánh `c4/g-phay-tang2-294` xếp chồng trên `origin/c4/chuan-bi-lat5-293` @ `8a13da3` (PR #339 chưa merge lúc làm).
 
 ### A. Thứ tự việc (khai trước, rồi đo)
 
@@ -28218,4 +28219,4 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 ### F. Việc kế
 
 1. Lát 5 (chạm `docs/TIEU-CHI-DOC-TRUOC.md`, nên hỏi sổ tay thật): chép bảng mục 6 đã sửa, khai tiêu chí máy đo thành TỶ LỆ (mục 15 khoản 8), khai Z′ · H′ cho K = 3 nếu Tầng 2 chạy bộ ba; chạy dòng hạt 2–4.
-2. Lỗi kế 206.
+2. Lỗi kế 207.
