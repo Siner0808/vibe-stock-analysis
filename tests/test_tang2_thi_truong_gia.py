@@ -85,7 +85,9 @@ def test_khung_dung_cot_dung_cuoc_so_phien_va_ngay_giai_doan_G5(tt):
 def test_so_phien_mac_dinh_la_dong_thoi_gian_cua_dac_ta_cong_250_khoi_dong():
     t = G.sinh_thi_truong_2(LUONG_TEST, 2, 0.0)
     assert G.SO_PHIEN_KHOI_DONG == 250
-    assert t.so_phien == T.dong_thoi_gian()["tong"] == 594 and len(t.ngay) == 250 + 594
+    # BƯỚC 293 (mục 18 khoản 12a): dòng thời gian Tầng 2 tính với độ lệch khởi động, nên 605 chứ không phải 594 của Tầng 1
+    assert t.so_phien == G.dong_thoi_gian_2()["tong"] == 605 != T.dong_thoi_gian()["tong"] == 594
+    assert len(t.ngay) == 250 + 605
 
 
 def test_OHLC_nhat_quan_trong_bien_7_phan_tram_va_validate_ohlcv_muc_OK(tt):
@@ -785,4 +787,7 @@ def test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2():
             continue
         if "thi_truong_gia_tang2" in _nhap(ast.parse(p.read_text(encoding="utf-8"))):
             nguoi.append(rel)
-    assert nguoi == ["tools/chay_tang2_thi_truong_gia.py"], nguoi
+    # SO SÁNH KHÔNG PHỤ THUỘC THỨ TỰ DUYỆT CÂY (BƯỚC 293, lỗi 206): `duyet_repo.duyet` trả theo bảng chữ cái trên NTFS nhưng
+    # theo thứ tự của hệ tệp trên Linux (CI), nên `nguoi` đúng TẬP nhưng khác thứ tự ở runner. `sorted` giữ ý "ĐÚNG những file này".
+    assert sorted(nguoi) == ["tools/chay_tang2_thi_truong_gia.py", "tools/chay_vong_tang2_thi_truong_gia.py",
+                             "tools/oracle_tang2_thi_truong_gia.py"], nguoi

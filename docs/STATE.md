@@ -28070,3 +28070,92 @@ Dòng 9001, 6 thị trường mức 2× (chỉ số 1–6) và 6 NULL đối ch�
 2. **BƯỚC chuẩn bị trước Lát 5** (leader quyết định): tính lại dòng thời gian cho 250 phiên khởi động, đo chi phí của vòng trên Tầng 2, khai G · Z · H của Tầng 2 và cách đọc P3 (mục 18 khoản 12).
 3. Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
 4. Lỗi kế 206.
+
+## BƯỚC 293 — C4: BƯỚC CHUẨN BỊ TRƯỚC LÁT 5 — LỆCH LỊCH TẦNG 2 SỬA, BẢNG SỰ THẬT TẦNG 2 ĐO, CHI PHÍ CỦA VÒNG TRÊN TẦNG 2 ĐO; BỘ BA G · Z · H CỦA TẦNG 2 CHỜ NGƯỜI DÙNG QUYẾT (21/11/2026)
+
+**Mốc:** C4
+
+BƯỚC chuẩn bị đứng giữa Lát 4 và Lát 5 của `docs/thiet-ke-c4-thi-truong-gia.md`: làm các việc (a)·(b)·(c) của mục 18 khoản 12. Kết quả và phương án nằm ở mục 19 của chính file ấy. Chỉ trong thị trường GIẢ; không chạm điểm, ngưỡng, sổ, máy đo của đường thật, `paper_runner`, `san_dau`, `master_agent`, `post_mortem_learning`, `cham_bong.py`, `cham_xac_nhan.py`, `vong_hoc_gia.py`, UV-001 hay file luật (`tools/buoc_cham_luat.py 293`, mục H).
+
+**Quyết định của người dùng (nguyên văn):** *"Tiếp đi"* (21/11/2026) — sau khi leader đề xuất BƯỚC chuẩn bị này: sửa lệch lịch, đo chi phí của vòng trên Tầng 2, ĐO tác động thật của G · Z · H lên Tầng 2 và đưa phương án cho người dùng. **Bộ ba mới của Tầng 2 là quyết định của NGƯỜI DÙNG; BƯỚC này KHÔNG quyết và KHÔNG làm theo bất kỳ phương án nào.** Leader đưa ba phương án (mục 19.5) cho người dùng; vào lúc ghi chưa có trả lời. Mục 19 giữ nhãn *"chờ người dùng quyết"*.
+
+**Đánh số:** BƯỚC 293 (lớn nhất trước đó là 292); mở MỘT lỗi mới: **206** (CI đỏ, mục E; lỗi kế 207). Nhánh `c4/chuan-bi-lat5-293` từ `origin/main` @ `62c36ea`.
+
+### A. Việc làm
+
+1. **(a) Độ lệch lịch.** `thi_truong_gia.dong_thoi_gian(lech=0)`: tham số mới, mặc định 0 cho ĐÚNG đầu ra cũ của Tầng 1 (đây là thay đổi DUY NHẤT ở `thi_truong_gia.py`). `thi_truong_gia_tang2.dong_thoi_gian_2()` gọi nó với `lech` = 250 khởi động; `sinh_thi_truong_2` mặc định 605 phiên có quyết định.
+2. **(c) Bảng sự thật Tầng 2.** `tools/oracle_tang2_thi_truong_gia.py` (`oracle-tang2`): mẫu dài cùng tham số qua chính `sinh_thi_truong_2` (hạt riêng `[luong, chi_so, 2]`), chấm bằng chính `cham_diem_theo_ma` (`paper_runner._analyze` thật) với cửa sổ trượt 855 dòng, rồi ΔIC_true của 12 spec (họ F cộng Z) và IC đứng riêng của từng thành phần, cùng sai số Monte Carlo (cùng công thức `thi_truong_gia.tinh_su_that`). Hai thêm nhỏ ở `thi_truong_gia_tang2.py`: tham số `cua_so` của `cham_diem_theo_ma` và `hat_them` của `sinh_thi_truong_2` (mặc định giữ đầu ra cũ).
+3. **(b) Chi phí của vòng trên Tầng 2.** `tools/chay_vong_tang2_thi_truong_gia.py` (`chay-vong-tang2`): sinh, chấm, bộ nối (hai dòng, không đổi nghĩa nào của `vong_hoc_gia.chay_vong`), vòng, đo thời gian từng phần, `--song-song N` đo độ co giãn.
+4. **Test:** `tests/test_chuan_bi_lat5_thi_truong_gia.py` (55 test). Ba test sẵn có được sửa: `tests/test_tang2_thi_truong_gia.py` (mặc định 594 → 605 và danh sách người nhập module Tầng 2, ĐÚNG hai chỗ) và `tests/test_vong_hoc_thi_truong_gia.py` (G2: hai dụng cụ mới được nhập module giả).
+5. **Đặc tả:** mục 19 mới ("chờ người dùng quyết"); khoản 12 của mục 18 đánh dấu (a)·(b)·(c) đã làm và trỏ về mục 19; dòng "Trạng thái" và mục 14.3 nói còn MỘT câu mở mới. KHÔNG sửa mục 4 hay mục 6, KHÔNG đổi ngưỡng nào.
+6. **Không đổi:** `paper_runner` · `paper_trading` · `san_dau` · `post_mortem_learning` · `master_agent` · `analysis_agents` · `vong_hoc_gia.py` · `cham_*` · `run_daily` · `sheets_store` · sổ · điểm · ngưỡng · máy đo · mọi file luật (CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md, LO-TRINH.md). Không dòng hạt 2·3·4·5 (chỉ 9001), không mạng, không `*.db`, không Sheets.
+
+### B. (a) Độ lệch lịch — số đo
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 -c "import thi_truong_gia as T, thi_truong_gia_tang2 as G; print(T.dong_thoi_gian()); print(G.dong_thoi_gian_2())"`.
+
+- Tầng 1 (`lech` = 0): khai **128 · 150 · 172**, đọc **401 · 423 · 445**, tổng **594** — ĐÚNG đầu ra cũ (test dán nguyên văn hàm cũ ở `origin/main` @ `62c36ea`, so bằng, và ghim các số).
+- Tầng 2 (`lech` = 250): khai **139 · 160 · 183** (2101-07-01 · 2101-08-01 · 2101-09-01), đọc **412 · 433 · 456**, tổng **605**. TRƯỚC khi viết mã tôi suy lại bằng một script tạm cho đúng các số ấy; trùng khoản 12a của mục 18 nên không dừng-và-báo. Test viết lại ĐỘC LẬP bằng `pandas.bdate_range` ở bốn độ lệch (0 · 17 · 250 · 400), và đưa lịch phiên có quyết định Tầng 2 cho `vong_hoc_gia.phien_khai` thì ra đúng 139 · 160 · 183.
+- Vòng vốn đã suy lịch từ dữ liệu nó nhận, nên chỗ sai là SỐ PHIÊN cần sinh (594 thiếu 11 phiên ở Tầng 2), không phải lịch của vòng.
+- Biên bản mẫu của Lát 3 tái lập: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_thi_truong_gia.py --luong 9001 --chi-so 1 --muc 2` ra 43/43 dòng giống khối mã của `docs/vong-hoc-thi-truong-gia-mau.md` (so bằng script tạm; chưa chạy ở Python 3.11, xem mục 17 khoản 10).
+
+### C. (c) Bảng sự thật Tầng 2 — số đo (dòng 9001; số THIẾT KẾ, không phải kết quả T6)
+
+Lệnh mẫu: `./.venv/Scripts/python.exe -X utf8 tools/oracle_tang2_thi_truong_gia.py --luong 9001 --muc 2 --so-phien 5000 --so-mau 2 --chi-so-dau 401 --so-tien-trinh 12 --json` (các mức khác: `--muc 0`/`0.5`/`1` hoặc `--kappa`). Chỉ số mẫu: NULL 301–302 · 0,5× 601 · 1× 501 · 2× 401–402 · κ 0,0892 → 701 · κ 0,125 → 901 · κ 0,1783 → 801. Máy 8 lõi vật lý / 16 lõi logic, 12 tiến trình, Python 3.13.14. Bảng đầy đủ (12 spec × 7 mức, IC đứng riêng, số dòng `data_quality` ≠ OK) ở mục 19.3 của đặc tả; ở đây chỉ số chính:
+
+- **Chi phí:** NULL và 2× hai mẫu mỗi mức (600.000 lần `_analyze`, 596 s và 581 s), 0,5× · 1× · ba mức κ cao một mẫu (300.000 lần, 332–421 s); **cộng 3.057 s ≈ 51 phút tường** (ngân sách 60), cỡ 700–1.050 lần `_analyze` mỗi giây. Chi phí một lần chấm theo độ dài lịch sử (một mã, 30 lần mỗi mốc): 5,8 ms ở 600 dòng · 6,2 ở 850 · 7,1 ở 1.500 · 7,8 ở 2.500 · 9,0 ở 4.000, so với 6,1 ở cửa sổ 844 — nên mẫu dùng cửa sổ trượt 855 dòng.
+- **NULL qua phép kiểm máy đo (mục 4.5 (c)):** cả 12 spec |ΔIC_true| < 2 sai số (|z| lớn nhất 1,6); `data_quality` = OK ở 600.000/600.000 dòng.
+- **ΔIC_true(G) ở 2× = +0,0066 ± 0,0047** (z = 1,4; hai mẫu +0,0136 và −0,0005), so với đích Tầng 1 2 × MDE₈₀ = 0,1513 (`docs/thi-truong-gia-hieu-chuan.json`, `muc[he_so = 2]`): **4,4%**; Tầng 1 đo được +0,1474. G cũng ≈ 0 ở 0,5× (+0,0028) và 1× (+0,0098).
+- **Z = −0,0635 ± 0,0031** ở 2× (Tầng 1: +0,0028); **H = −0,0215 ± 0,0017** (Tầng 1: −0,0482).
+- **IC đứng riêng ở 2×:** trend +0,1253 · volume +0,1103 · sr −0,1038 · momentum −0,0134 · risk +0,0230 · điểm đã ghi +0,1038.
+- **Spec hơn điểm đã ghi ở 2×:** `bo_momentum_score` +0,0304 ± 0,0030 · `bo_sr_score` +0,0281 ± 0,0027 · `mono_trend_score` +0,0215 ± 0,0044; mọi spec khác ≤ +0,0077.
+- **Theo κ (`bo_momentum_score`):** +0,0007 (0,5×) · +0,0081 (1×) · +0,0304 (2×) · +0,0688 (κ 0,0892) · +0,0889 (κ 0,125) · +0,1020 (κ 0,1783); 2 × MDE₈₀ chưa đạt ở κ lớn nhất đã đo.
+- **Dự đoán từ đường probit Tầng 1 (GIẢ ĐỊNH, chưa đo ở Tầng 2):** P(`QUA`) của G ở 2× ≈ 1,6% (dải 99% của 100 thị trường: 0–6); của G′ = `bo_momentum_score` ≈ 13,4% (5–23); P(`THUA`) của Z ≈ 62%.
+- **Hệ quả:** vế "G `QUA` ở 2× ≥ 85/100" của PT KHÔNG đạt được nguyên văn ở κ của Tầng 1 — vì G không còn mang lợi thế (điểm đã ghi đã đọc nó qua giá), không phải vì vòng sai. Chỉ vế ấy bị chạm: P1 · P2 · P4, P3 (IC `volume_score` +0,1103 ± 0,0024), vế NULL của PT và mọi tiêu chí Tầng 1 giữ nguyên. **Ba phương án và khuyến nghị (phương án 2) ở mục 19.5; chờ người dùng.**
+
+### D. (b) Chi phí của vòng trên Tầng 2 — số đo
+
+Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia.py --luong 9001 --chi-so 1 --muc 2 --so-tien-trinh 12 --song-song 12 --json` (hai lượt, số thứ nhất / thứ hai):
+
+- Chấm điểm 36.300 lần `_analyze`: 47,0 / 32,4 s (12 tiến trình); bộ nối 0,73 / 0,36 s; sinh 0,04 / 0,03 s.
+- Vòng như Lát 3: 0,56 / 0,35 s và KHÔNG khai ứng viên nào ở thị trường này (không spec nào có Δ > 0 trên 104 phiên có nhãn đã nhìn) — một thị trường, không phải tỷ lệ.
+- Vòng ép ba ứng viên G · H · `deu` (cận trên, cả ba lần `cham` 2.000 hoán vị chạy; `DANG CHAM` · `THUA` · `THUA`, không nâng cấp): **2,85 / 1,74 s**, mỗi lần `cham` 0,48–1,03 s; 12 bản cùng lúc 8,44 / 4,41 s tường, mỗi bản 4,07–4,36 / 2,21–2,56 s. Kiểm tiến-về-trước chưa đo ở Tầng 2 (chỉ chạy khi có nâng cấp; ƯỚC LƯỢNG nhỏ hơn một lần `cham`).
+- **Lát 5 Tầng 2 (200 thị trường):** vòng ≈ 73 s cận trên (≤ 4,4 s × 200 / 12); chấm điểm 7.260.000 lần ≈ 2,5 giờ ở 805 lần/giây của BƯỚC 292 (1,8–2,6 giờ ở 770–1.120 lần/giây của lượt này). **Tổng ≈ 2,6 giờ**; chi phí của vòng không đổi ước lượng 2,5 giờ. Chi tiết: mục 19.7.
+- Vòng chạy NGUYÊN trên dữ liệu Tầng 2: không đổi nghĩa nào, nên không dừng-và-báo.
+
+### E. Ước lượng đã sai và điều lộ ra khi làm
+
+- **Giả thuyết bị bác: "ΔIC_true(G) ở 2× của Tầng 2 gần đích 0,1513 của Tầng 1".** Đo ra 4,4% đích. Mục 4.1 khoản 1 ("chỉ một thành phần đọc z") và mục 4.3 (G tăng trọng số `volume_score`) đúng ở Tầng 1 nhưng không còn đúng khi điểm do agent thật chấm từ giá có trôi giá.
+- **Z "≈ 0" cũng bị bác ở Tầng 2** (−0,0635), vì `trend` và `sr` mang lợi thế ngược dấu.
+- **Lượt đột biến đầu: 2/23 phát SỐNG SÓT**, cả hai là gác thiếu: chỉ số mẫu của `main` không tăng (không test nào chạy `main` nhiều mẫu) và `round` thay `int` ở điểm ghi (mẫu thật cho điểm nguyên nên không phân biệt được). Thêm test, rồi đủ đỏ. Ở nhóm (b): phát đầu cho `--song-song` truyền sai cờ ép sống sót vì chưa có test chạm nhánh `song_song` của `chay`; thêm test, rồi đủ đỏ.
+- **`data_quality` ≠ OK ở κ cao:** 0 dòng ở NULL · 0,5×; 1.902 (1×, một mẫu) · 2.261 (2×, hai mẫu) · 3.541 · 16.205 · 32.657 trên 300.000–600.000 dòng ở các mức cao hơn. Đo trên 42.900 cửa sổ của mẫu 401: 324 cửa sổ WARN, tất cả `UNIT_INCONSISTENT` (giá một mã trôi qua 1.000 nghìn đồng trong 5.000 phiên). Điểm không đổi theo ĐỌC MÃ (`master_agent.NO_VERDICT_QUALITY` chỉ chặn `FAILED`, `SYNTHETIC`; hệ số đơn vị chỉ nhân vào giá cắt lỗ/chốt lời); KHÔNG chạy lại để kiểm.
+- **Chỗ đặt mã oracle bị gác của Lát 4 quyết định:** gác G3/G4 của Lát 4 cấm tên oracle trong `thi_truong_gia_tang2.py` và `tools/chay_tang2_thi_truong_gia.py`, nên mã oracle Tầng 2 nằm ở một dụng cụ riêng (`tools/oracle_tang2_thi_truong_gia.py`); module Tầng 2 chỉ có hai tham số trung tính (`cua_so`, `hat_them`).
+- **Lỗi 206 — CI ĐỎ sau khi năm cổng ở máy xanh (run 44881245658, `pull_request`, 1 failed / 5618 passed):** `tests/test_tang2_thi_truong_gia.py::test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2` so `nguoi == [ba file]` bằng một danh sách CÓ THỨ TỰ lấy từ `duyet_repo.duyet`; NTFS trả theo bảng chữ cái, runner Linux thì không, nên ở CI dụng cụ oracle đứng đầu. Ở BƯỚC 292 danh sách chỉ một phần tử; BƯỚC 293 thêm hai file và không đổi phép so — lỗi của chính tôi. Sửa: `sorted(nguoi) == [...]`. Đục (baseline xanh trước, `vibe_logs_293/dotbien6.py`, cùng lệnh `pytest tests/test_tang2_thi_truong_gia.py::test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2 -q -x`): test CŨ + thứ tự thật của Windows XANH (vì sao máy không thấy); test CŨ + duyệt đảo ngược ĐỎ; test MỚI + duyệt đảo ngược XANH; test MỚI bỏ một file mong đợi · thêm một file lạ · đổi `==` thành `!=` đều ĐỎ (6/6 đúng kỳ vọng). Quét lớp: AST trên 33 file test dùng `duyet_repo` cho 16 phép `Tên == [chuỗi…]` ở 11 file; các phép nhiều phần tử đã `sorted` hoặc là thứ tự gọi/ghi, các danh sách người-nhập ở `tests/test_vong_hoc_thi_truong_gia.py` và `tests/test_san_dau.py` là TẬP; không chỗ nào khác phải sửa. Dòng mới ở `references/loi-da-mac.md` (⚠️ một phần: không máy chung nào chặn lớp này), kèm phân lớp `docs/loi-phan-lop.json` (`gac-hong`, `co-che`, 0 ngày) và dòng tự khai cuối bảng 184 → 185 (lượt năm cổng ĐẦU sau khi thêm dòng đỏ ở cổng 1 và cổng 4 vì thiếu hai thứ ấy — `tests/test_bang_loi_do_duoc.py`; thêm xong thì xanh).
+
+### F. Đột biến
+
+**33 phát, 33 đỏ** (bộ đục ngoài repo `vibe_logs_293/dotbien1.py` · `dotbien4.py` · `dotbien5.py`; mỗi bộ chạy CÙNG lệnh `pytest tests/test_chuan_bi_lat5_thi_truong_gia.py ... -q -x` một lần trên mã CHƯA đục và dừng nếu đỏ, lỗi 205: baseline 38 · 40 · 53 · 54 · 55 passed theo số test lúc ấy). Nhóm: `thi_truong_gia.dong_thoi_gian` (6: bỏ lệch ở mốc cửa sổ · ở chỉ số khai · ở ngày khai · ở độ dài lịch · mặc định 250 · bỏ kiểm lệch âm), `thi_truong_gia_tang2` (5: lệch 0 · số phiên mặc định của Tầng 1 · bỏ `hat_them` · cửa sổ lệch một dòng · bỏ cửa sổ), dụng cụ oracle (12: hạt 1 · nhãn không cắt khởi động · cộng `ic_b` · không chia k · `>` thay `>=` · bỏ `kiem_luong` · `ddof=0` · cửa sổ 844 · chỉ số mẫu không tăng · `round` thay `int` · lấy sai khoá thành phần · ghép ngược thứ tự mã), dụng cụ vòng Tầng 2 (10: giữ khởi động · chỉ mục giá sai · đổi thứ tự bộ ba ép · không trả hàm gốc · thời gian `cham` bằng 0 · bỏ `so_hoan_vi` · bỏ `kiem_luong` · Δ ép âm · hai phát cho `--song-song` không ép). Hai phát đầu của nhóm oracle và một của nhóm vòng sống sót trong lượt ĐẦU (mục E) và đã chết sau khi thêm test. Sau CI đỏ (lỗi 206): thêm sáu phép đục cho test của người nhập module Tầng 2 (mục E), tất cả đúng kỳ vọng — không tính vào 33.
+
+### G. Điều chưa kiểm
+
+- **Dòng hạt 9001 là dòng thử:** G′ chọn từ cực đại của 11 spec trên dữ liệu đã nhìn; ΔIC_true tham chiếu cho Lát 5 phải đo lại ở dòng khác (mục 19.6). Mẫu nhỏ ở các mức giữa (một mẫu); dự đoán P(`QUA`) từ đường probit Tầng 1 là GIẢ ĐỊNH chưa đo ở Tầng 2.
+- Cửa sổ trượt 855 dòng chưa so với lịch sử mở rộng về độ lớn ΔIC_true.
+- Python 3.11: các số đo chạy ở 3.13 (mục 15 khoản 9 và mục 17 khoản 10 vẫn đúng: `sum()` có bù ở 3.12+).
+- Kiểm tiến-về-trước chưa đo ở Tầng 2; thị trường đo vòng chỉ có MỘT, và bộ đề xuất cơ sở không khai gì ở đó.
+- Cảnh báo `data_quality` ở κ cao: đọc mã, chưa chạy lại (mục E).
+- Không số nào của Lát 5 (không PT, không tỷ lệ trên 100 thị trường); (d) cổng độ rộng và (e) vẫn ngoài phạm vi như mục 18 khoản 12.
+
+### H. Sổ tay · năm cổng · số test
+
+**Sổ tay (Quy tắc 3):** `docs/soat-notebooklm.json` mục `BƯỚC 293` mang `khong_bat_buoc_vi`. `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 293` chạy trên cây đã commit: kết quả ở báo cáo của phiên con và ở PR. BƯỚC chỉ THÊM dụng cụ, test và tài liệu của thị trường GIẢ và một tham số mặc định 0; không phải kết luận đo về thị trường thật hay về một luật. Chỗ máy mù khai thẳng: kết luận "G ≈ 0 ở Tầng 2" chỉ nằm ở STATE và đặc tả mục 19 (máy chỉ thấy FILE), nên đây là kỷ luật, không phải cơ chế.
+
+**Số test:** mốc `docs/moc_so_test.json` **5569 → 5624** (+55 test mới, đều ở `tests/test_chuan_bi_lat5_thi_truong_gia.py`; `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py --cap-nhat`; không test nào bị bớt). Thời gian: file test mới ~21 s chạy một mình (phần lớn ở ba test chạm vòng 2.000 hoán vị và một test sinh tiến trình con); số đo thời gian cả bộ ở báo cáo của phiên con.
+
+**Năm cổng:** chạy `--tuan-tu` trên commit CUỐI của nhánh; kết quả ở báo cáo của phiên con và ở PR (ghi vào đây sẽ buộc một commit tài liệu mới rồi phải chạy lại cả năm cổng).
+
+### I. Việc kế
+
+1. Leader đưa ba phương án ở mục 19.5 cho người dùng; BƯỚC này KHÔNG làm theo phương án nào.
+2. Khi người dùng đã chọn: một BƯỚC riêng ghi lựa chọn nguyên văn vào mục 19, đo lại ΔIC_true tham chiếu trên dòng hạt khác 9001 (nếu phương án đòi G′ hay κ mới), viết lại hàng PT của mục 6 bằng commit riêng (sửa đặc tả; đổi dòng hạt của lượt chạy chính theo mục 6 "Quy tắc đọc").
+3. Lát 5 chạm file luật (`docs/TIEU-CHI-DOC-TRUOC.md`) nên phải hỏi sổ tay thật.
+4. Lỗi kế 207 (206 đã dùng cho CI đỏ ở mục E).
