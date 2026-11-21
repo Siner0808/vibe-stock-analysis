@@ -184,6 +184,64 @@ def test_CUA_THOAT_can_mot_LY_DO_THAT():
         cong_ci) == []
 
 
+# ══ TRẦN THỜI GIAN CỦA JOB `kiem-dinh` (BƯỚC 291) ═════════════════════════
+#
+# 21/11/2026: lượt `pull_request` của PR #336 bị GitHub HUỶ ở đúng trần 30 phút
+# (bước cuối "Số test không được giảm âm thầm"), không test nào đỏ; lượt `push`
+# cùng commit xanh sau 28,7 phút. Người dùng chọn: "Nới trần lên 45 phút
+# (Recommended)". Không gác nào đọc trần này (`test_cua_so_du_lieu_quet.py` chỉ
+# đọc trần của `quet-so-lenh.yml`), nên hạ nó về 30 sẽ im lặng.
+TRAN_KIEM_DINH_TOI_THIEU = 45
+
+
+def timeout_cua_job(yml: str, job: str) -> int:
+    """`timeout-minutes` của MỘT job, đọc bằng tay (KHÔNG PyYAML: `kiem-dinh.yml`
+    chỉ cài `requirements.txt`). Dòng chú thích không khớp (nó bắt đầu bằng `#`,
+    không bằng `timeout-minutes:`); job kết thúc khi gặp job khác thụt lề đúng
+    2 dấu cách. Hàm THUẦN."""
+    trong_job = False
+    for d in yml.splitlines():
+        if d.startswith(f"  {job}:"):
+            trong_job = True
+            continue
+        if not trong_job:
+            continue
+        if d.strip() and d.startswith("  ") and not d.startswith("   "):
+            break
+        if d.strip().startswith("timeout-minutes:"):
+            return int(d.split(":", 1)[1].strip())
+    raise AssertionError(f"khong thay timeout-minutes cua job {job}")
+
+
+def test_TRAN_job_kiem_dinh_khong_duoc_ha_duoi_45_phut():
+    """Canh CON SỐ trong `kiem-dinh.yml`: 30 (trần cũ) và 44 đều phải đỏ."""
+    tm = timeout_cua_job(CI_YML.read_text(encoding="utf-8"), "kiem-dinh")
+    assert tm >= TRAN_KIEM_DINH_TOI_THIEU, (
+        f"job kiem-dinh co timeout-minutes {tm} < {TRAN_KIEM_DINH_TOI_THIEU}: "
+        f"PR #336 bi huy o tran 30 phut ngay 21/11/2026 (BUOC 291). "
+        f"Ha tran thi sua ca hang so nay va STATE trong CUNG mot PR.")
+
+
+def test_timeout_cua_job_la_ham_THUAN_va_bo_qua_chu_thich_va_job_khac():
+    """Đọc đúng job, không bị chú thích hay job kế bên đánh lừa."""
+    yml = ("jobs:\n"
+           "  kiem-dinh:\n"
+           "    runs-on: x\n"
+           "    # timeout-minutes: 99\n"
+           "    timeout-minutes: 45\n"
+           "  khac:\n"
+           "    timeout-minutes: 7\n")
+    assert timeout_cua_job(yml, "kiem-dinh") == 45
+    assert timeout_cua_job(yml, "khac") == 7
+    try:
+        timeout_cua_job(yml.replace("    timeout-minutes: 45\n", ""),
+                        "kiem-dinh")
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("job khong co timeout phai NO, khong doan")
+
+
 def test_khoi_lenh_va_bo_cong_trong_la_ham_THUAN():
     """Tách phần đọc khỏi phần phán để thử được bằng mẫu dựng tay."""
     md = ("van xuoi\n\n```bash\ntools/kiem_cu_phap_311.py\n```\n\n"

@@ -27,7 +27,19 @@ jobs:
     # (65 tiến trình pytest tuần tự — song song cho đỏ giả), và runner chậm
     # hơn. Không phải nới vì bước nào đang chạm trần. Từ BƯỚC 201 bước ấy
     # chạy ¾ số nhân cùng lúc (đỏ giả đã dọn tận gốc: file tạm ở .tam_test/).
-    timeout-minutes: 30
+    # 30 -> 45 ngày 21/11/2026 (BƯỚC 291): lượt `pull_request` của PR #336 (run
+    # 44853923747, lượt 1) bị GitHub HUỶ ở đúng trần 30 phút, giữa bước "Số test
+    # không được giảm âm thầm"; không test nào đỏ. Cùng commit 64623c2, lượt `push`
+    # xanh sau 28,7 phút. Runner chậm đi, không phải một bước nào phình ra:
+    # "Bộ test" 10,1-16,5 phút ngày 19/11, 10,7-16,7 ngày 20/11, 17,2-18,4 (và 19,4
+    # ở lượt bị huỷ) ngày 21/11; cả job 15,8-26,0 phút ngày 19-20/11 rồi 26,6-30,1
+    # ngày 21/11. Đo lại bằng: `gh run list -R Siner0808/vibe-stock-analysis
+    # --workflow kiem-dinh.yml --limit 25` rồi `gh run view <id> --json jobs`
+    # (lượt bị huỷ: `gh api repos/Siner0808/vibe-stock-analysis/actions/runs/
+    # 44853923747/attempts/1/jobs`). Người dùng chọn 21/11/2026: "Nới trần lên 45
+    # phút (Recommended)". Gác: `tests/test_bo_cong_khop_CI.py` (trần không được
+    # hạ dưới 45 một cách im lặng).
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v7
