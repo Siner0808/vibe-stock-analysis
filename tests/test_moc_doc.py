@@ -375,12 +375,22 @@ def test_phan_quyet_la_DUONG_DUY_NHAT_toi_so_cap_cua_vong_xac_nhan():
     assert {h for f, h in vi_tri if f == "cham_bong.py"} == {"phan_quyet"}
 
 
+#: Hai chỗ KHÔNG PHÁN của thị trường giả (C4 Lát 3, BƯỚC 290; `docs/thiet-ke-c4-thi-truong-gia.md` mục 5.1 và 17):
+#: `de_xuat` xếp 11 spec trên cửa sổ ĐÃ NHÌN ("KHÔNG chạy `so_cap`: không có phán ở dữ liệu đã nhìn") và
+#: `kiem_tien_ve_truoc` đo ΔIC thực hiện sau nâng cấp. Cả hai gọi `ma_tran_cap` không cắt `MOC_DOC` có chủ ý; chúng
+#: không đi tới `so_cap` (gác G6 ở `tests/test_vong_hoc_thi_truong_gia.py`) và không có `trang_thai` nào.
+MA_TRAN_CAP_KHONG_PHAN = {("vong_hoc_gia.py", "de_xuat"), ("vong_hoc_gia.py", "kiem_tien_ve_truoc")}
+
+
 def test_ma_tran_cap_chi_goi_voi_phien_toi_da_bang_MOC_DOC_ngoai_vong_sang_cu():
     goi = _goi("ma_tran_cap")
     trong = [(f, h, n) for f, h, n in goi if f != "tools/sang_ung_vien.py"]
-    assert [(f, h) for f, h, _ in trong] == [("cham_bong.py", "phan_quyet")], trong
-    kw = {k.arg: k.value for k in trong[0][2].keywords}
+    phan_quyet = [(f, h, n) for f, h, n in trong if (f, h) not in MA_TRAN_CAP_KHONG_PHAN]
+    assert [(f, h) for f, h, _ in phan_quyet] == [("cham_bong.py", "phan_quyet")], trong
+    kw = {k.arg: k.value for k in phan_quyet[0][2].keywords}
     assert isinstance(kw.get("phien_toi_da"), ast.Name) and kw["phien_toi_da"].id == "MOC_DOC"
+    # chỗ miễn trừ có thật (không phải một danh sách nằm chơi) và không chỗ nào khác ngoài hai hàm đã khai
+    assert {(f, h) for f, h, _ in trong if (f, h) in MA_TRAN_CAP_KHONG_PHAN} == MA_TRAN_CAP_KHONG_PHAN
 
 
 def test_cham_xac_nhan_khong_tu_goi_so_cap_ma_tran_cap_hay_trang_thai():
