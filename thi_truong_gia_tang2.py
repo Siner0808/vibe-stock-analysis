@@ -110,21 +110,32 @@ def _sinh_ohlcv_loi(rng, so_tong: int, kappa: float) -> dict:
     return {"open": mo, "high": cao, "low": thap, "close": close, "volume": khoi_luong.astype(np.int64), "z": z}
 
 
+def dong_thoi_gian_2(so_khoi_dong: int = SO_PHIEN_KHOI_DONG) -> dict:
+    """Dòng thời gian Tầng 2 (mục 4.6; BƯỚC 293, mục 18 khoản 12a): `T.dong_thoi_gian` với độ lệch lịch bằng số phiên
+    khởi động, vì khởi động chiếm `so_khoi_dong` ngày ĐẦU của lịch giả nên đầu tháng dương lịch rơi vào phiên có
+    quyết định khác Tầng 1. Mọi chỉ số (`khai`, `doc`, `tong`) là chỉ số PHIÊN CÓ QUYẾT ĐỊNH; không gõ tay."""
+    return {**T.dong_thoi_gian(lech=int(so_khoi_dong)), "lech": int(so_khoi_dong)}
+
+
 def sinh_thi_truong_2(luong: int, chi_so: int, kappa: float, so_phien: int | None = None,
-                      so_khoi_dong: int = SO_PHIEN_KHOI_DONG) -> ThiTruongGia2:
-    """Sinh MỘT thị trường Tầng 2. `so_phien` mặc định = `T.dong_thoi_gian()["tong"]` (phiên có quyết định);
+                      so_khoi_dong: int = SO_PHIEN_KHOI_DONG, hat_them: int | None = None) -> ThiTruongGia2:
+    """Sinh MỘT thị trường Tầng 2. `so_phien` mặc định = `dong_thoi_gian_2(so_khoi_dong)["tong"]` (phiên có quyết định);
     `so_khoi_dong` phiên khởi động đứng TRƯỚC chúng. Hạt `default_rng([luong, chi_so])` như Tầng 1 (mục 4.8).
 
     Ngày giả liền một mạch từ `T.NGAY_DAU` (gác G5): khởi động chiếm `so_khoi_dong` phiên đầu, nên phiên có quyết định
-    đầu tiên rơi vào ngày thứ `so_khoi_dong + 1` của lịch, không phải ngày `T.NGAY_DAU`."""
+    đầu tiên rơi vào ngày thứ `so_khoi_dong + 1` của lịch, không phải ngày `T.NGAY_DAU`.
+
+    `hat_them` (BƯỚC 293): `None` = hạt `[luong, chi_so]` như Tầng 1; một số nguyên thì hạt là `[luong, chi_so, hat_them]`
+    — cùng cách dựng hạt của mẫu bảng sự thật Tầng 1, để mẫu bảng sự thật Tầng 2 có hạt RIÊNG mà vẫn qua đúng bộ sinh này."""
     T._kiem_hat(luong, chi_so)
     if kappa < 0:
         raise ValueError("kappa phai >= 0")
     if so_khoi_dong < 0:
         raise ValueError("so_khoi_dong phai >= 0")
-    n_qd = T.dong_thoi_gian()["tong"] if so_phien is None else int(so_phien)
+    n_qd = dong_thoi_gian_2(so_khoi_dong)["tong"] if so_phien is None else int(so_phien)
     n = so_khoi_dong + n_qd
-    mau = _sinh_ohlcv_loi(np.random.default_rng([luong, chi_so]), n, float(kappa))
+    hat = [luong, chi_so] if hat_them is None else [luong, chi_so, int(hat_them)]
+    mau = _sinh_ohlcv_loi(np.random.default_rng(hat), n, float(kappa))
     ngay, ma = T.lich_phien(n), T._ma_gia()
     gia = {}
     for j, m in enumerate(ma):
@@ -164,10 +175,12 @@ def _gio_phien(ngay: str) -> float:
                  + 15 * 3600 + 35 * 60)
 
 
-def cham_diem_theo_ma(tt: ThiTruongGia2, ma: str, phien=None) -> list[dict]:
+def cham_diem_theo_ma(tt: ThiTruongGia2, ma: str, phien=None, cua_so: int | None = None) -> list[dict]:
     """Chấm MỘT mã ở các phiên có quyết định: mỗi phiên là MỘT lần `paper_runner._analyze` THẬT trên lịch sử cắt
     tới hết phiên ấy (`df.iloc[:t+1]`, gồm cả khởi động). `phien` = chỉ số phiên CÓ quyết định (0 = phiên đầu sau khởi
-    động); mặc định mọi phiên. Trả `[(chỉ số phiên, kết quả `_analyze`)]` đã rút thành dict ghi được:
+    động); mặc định mọi phiên. `cua_so` (BƯỚC 293): `None` = lịch sử MỞ RỘNG từ phiên đầu (như cũ); một số nguyên = chỉ
+    `cua_so` dòng cuối của lịch sử (cửa sổ trượt), cho mẫu dài mà mỗi lần chấm không thấy nhiều dòng hơn một thị trường
+    thật (đường quét thật cũng chỉ giữ ~784 phiên). Trả `[(chỉ số phiên, kết quả `_analyze`)]` đã rút thành dict ghi được:
     `{"phien", "ngay", "final_score", "recommendation", "score_breakdown", "key_reasons", "data_quality"}`."""
     import paper_runner as pr
 
@@ -179,7 +192,8 @@ def cham_diem_theo_ma(tt: ThiTruongGia2, ma: str, phien=None) -> list[dict]:
             if not 0 <= k < tt.so_phien:
                 raise ValueError(f"phien {k} ngoai 0..{tt.so_phien - 1}")
             t = tt.so_khoi_dong + k
-            res = pr._analyze(ma, df.iloc[: t + 1], SAN_GIAO_DICH, tt.ngay[t])
+            dau = 0 if cua_so is None else max(0, t + 1 - int(cua_so))
+            res = pr._analyze(ma, df.iloc[dau: t + 1], SAN_GIAO_DICH, tt.ngay[t])
             ra.append({"phien": k, "ngay": tt.ngay[t], "final_score": res["final_score"],
                        "recommendation": res["recommendation"], "score_breakdown": res["score_breakdown"],
                        "key_reasons": res["key_reasons"], "data_quality": res["data_quality"]})

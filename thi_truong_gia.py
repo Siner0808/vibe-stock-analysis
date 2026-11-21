@@ -100,8 +100,8 @@ def lich_phien(so_phien: int) -> tuple[str, ...]:
     return tuple(ra)
 
 
-def dong_thoi_gian() -> dict:
-    """Dòng thời gian Tầng 1, SUY RA từ lịch và các hằng số — không gõ tay (mục 4.6).
+def dong_thoi_gian(lech: int = 0) -> dict:
+    """Dòng thời gian, SUY RA từ lịch và các hằng số — không gõ tay (mục 4.6). `lech` = 0 là Tầng 1.
 
     * Cửa sổ đã nhìn: phiên 0…S−1.
     * Ngày khai thứ i: phiên đầu tiên của tháng dương lịch thứ i kể từ tháng chứa phiên S−1.
@@ -110,19 +110,26 @@ def dong_thoi_gian() -> dict:
     * Nâng cấp hiệu lực từ phiên sau phiên đọc; cửa sổ tiến-về-trước F phiên sau đó, mỗi phiên
       cần nhãn nên cần thêm 22 phiên giá. Tổng số phiên tính trên ứng viên khai SAU CÙNG
       (trường hợp dài nhất).
+
+    `lech` (BƯỚC 293, mục 18 khoản 12a): số ngày lịch đứng TRƯỚC phiên có quyết định đầu tiên — Tầng 2 có
+    `thi_truong_gia_tang2.SO_PHIEN_KHOI_DONG` phiên khởi động chiếm đầu lịch, nên đầu tháng dương lịch rơi vào
+    phiên có quyết định khác. Mọi chỉ số trả về (`khai`, `doc`, `tong`) vẫn là chỉ số PHIÊN CÓ QUYẾT ĐỊNH
+    (0 = phiên đầu có dòng), `khai_ngay` là ngày lịch của chúng. Mặc định 0 cho ĐÚNG đầu ra cũ của Tầng 1.
     """
-    lich = lich_phien(12 * 21 + SO_PHIEN_DA_NHIN)  # dư xa: ba tháng khai nằm trong 5 tháng đầu sau cửa sổ
+    if isinstance(lech, bool) or not isinstance(lech, int) or lech < 0:
+        raise ValueError(f"lech phai la so nguyen >= 0, nhan {lech!r}")
+    lich = lich_phien(12 * 21 + SO_PHIEN_DA_NHIN + lech)  # dư xa: ba tháng khai nằm trong 5 tháng đầu sau cửa sổ
     thang = [(_dt.date.fromisoformat(d).year, _dt.date.fromisoformat(d).month) for d in lich]
-    nam, th = thang[SO_PHIEN_DA_NHIN - 1]
+    nam, th = thang[lech + SO_PHIEN_DA_NHIN - 1]
     khai = []
     for i in range(1, SO_UNG_VIEN_KHAI + 1):
         m0 = th - 1 + i
         muc = (nam + m0 // 12, m0 % 12 + 1)
-        khai.append(thang.index(muc))
+        khai.append(thang.index(muc) - lech)
     doc = [k + (cb.MOC_DOC - 1) + DO_TRE_NHAN for k in khai]
     tong = doc[-1] + SO_PHIEN_TIEN_VE_TRUOC + DO_TRE_NHAN + 1
     return {"S": SO_PHIEN_DA_NHIN, "F": SO_PHIEN_TIEN_VE_TRUOC, "khai": khai,
-            "khai_ngay": [lich[k] for k in khai], "doc": doc, "tong": tong}
+            "khai_ngay": [lich[lech + k] for k in khai], "doc": doc, "tong": tong}
 
 
 # ── họ ứng viên đối chứng (mục 4.3) ──────────────────────────────────────────

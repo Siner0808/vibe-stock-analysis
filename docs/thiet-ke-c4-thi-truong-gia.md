@@ -383,3 +383,117 @@ Ghi sau khi viết mã, TRƯỚC khi có số nào của lượt chạy chính (
 11. **Đột biến (24 phát, bộ đục ngoài repo `vibe_logs_292/mut_p2.py`; baseline 69 passed một lần trên mã chưa đục trước, lỗi 205): 23 đỏ, 1 sống sót TƯƠNG ĐƯƠNG.** P2 (12 phát: sàn HNX · ngưỡng 58 · bắt đầu lệch 1 phiên · kết thúc sớm 1 phiên · VN-INDEX đảo ngược · điểm ghi +1 · cổng cache toàn cục không cấm · đếm chặn VN luôn 0 · đường thật không tiêm VN-INDEX · `vni_gia` bỏ khởi động · đường thật bỏ một phiên · không trả lại `market_filter`), P3 (5 phát: nhãn lệch 1 phiên · đảo dấu IC · nhãn 20 phiên · IC của thành phần lấy cột điểm · đếm cặp không nhãn), P4 và cách ly (7 phát: mở file ghi · chuỗi `backtest` · dụng cụ nhắc oracle · ngày 2026 · sổ không phải `:memory:` · nhập `socket` · dụng cụ bỏ `kiem_luong`). Sống sót: **đổi sàn của phát lại sang HNX** — cột `exchange` không nằm trong mười hai cột `COT_TUONG_DUONG` và bước giá của mã giả `GIA01`… tra theo tên mã, không theo đối số sàn, nên mười hai cột không đổi trên thị trường này; tương đương với phép so đã khai. Lượt đầu của phase 1 (7 phát, 6 đỏ + 1 đối chứng tương đương) và phát "bỏ bảo đảm cao ≥ thân nến" (sống sót lúc test còn dung sai, đỏ sau khi so chặt) nằm trong cùng bộ.
 12. **ĐIỀU KIỆN TRƯỚC LÁT 5 (việc của một BƯỚC chuẩn bị riêng, leader quyết định ngày 21/11/2026; KHÔNG làm ở Lát 4).** (a) *Lệch dòng thời gian.* `thi_truong_gia.dong_thoi_gian()` tính ngày khai (đầu tháng dương lịch) trên lịch bắt đầu từ 2100-01-04; ở Tầng 2 phiên có quyết định thứ k nằm ở ngày thứ 250 + k của lịch, nên đầu tháng rơi vào phiên khác: đo (`vibe_logs_292/lech_lich.py`) ba ngày khai ở phiên **128 · 150 · 172** (Tầng 1) thành **139 · 160 · 183** (Tầng 2), ba lần đọc 401 · 423 · 445 thành 412 · 433 · 456, tổng phiên 594 thành **605**; dùng 594 làm số phiên có quyết định của Tầng 2 thì cửa sổ tiến-về-trước của ứng viên khai sau cùng không đủ. Cần tính lại dòng thời gian với độ lệch khởi động (không sửa `thi_truong_gia.py` ở Lát 4). (b) *Chi phí của vòng trên Tầng 2*: bộ đề xuất, ba lần `cham_xac_nhan.cham` (2.000 hoán vị), kiểm tiến-về-trước — chưa đo; khoản 4 chỉ là chấm điểm. (c) *Cách đọc P3 và bộ ba G · Z · H sau phát hiện ở khoản 10*: lợi thế đi vào cả `trend`, `sr` lẫn `volume`; Lát 5 phải khai trước G · Z · H nào của Tầng 2 và ΔIC_true nào làm chuẩn (oracle Tầng 1 không chấm bằng agent thật). (d) *Phép tiêm độ rộng ở đường thật* (khoản 6) nếu Lát 5 muốn thử cổng độ rộng. (e) Số tiến trình và thời gian: ~2,5 giờ ở 12 tiến trình (khoản 4), dòng hạt 4.
 13. **Không làm ở Lát 4 (thuộc Lát 5 hoặc BƯỚC chuẩn bị):** tỷ lệ PT, tỷ lệ P3 trên 100 thị trường, bộ đề xuất · xác nhận · nâng cấp trên dữ liệu Tầng 2, tiêu chí mục 6 chép vào `docs/TIEU-CHI-DOC-TRUOC.md`, sửa `thi_truong_gia.py`, `paper_runner`, `post_mortem_learning`, `master_agent` hay bất kỳ thứ gì của đường thật.
+
+## 19. Chuẩn bị Lát 5 (BƯỚC 293, 21/11/2026) — bảng sự thật của Tầng 2 và bộ ba G · Z · H: CHỜ NGƯỜI DÙNG QUYẾT
+
+**Trạng thái: chờ người dùng quyết.** Mục này đo và nêu phương án; nó KHÔNG sửa mục 4 hay mục 6 và KHÔNG đổi ngưỡng nào. Sửa một dòng của mục 6 là sửa đặc tả bằng commit riêng (mục 6, "Quy tắc đọc"). Đây là việc (c) của mục 18 khoản 12; việc (a) (độ lệch lịch) đã làm và ở mục 19.1.
+
+**Số ở mục này là số THIẾT KẾ, đo ở dòng hạt 9001 (dòng thử), không phải kết quả T6.** Muốn dùng một ΔIC_true làm chuẩn tham chiếu cho Lát 5 thì phải đo lại trên dòng hạt khác 9001 (bất biến 7); xem 19.6.
+
+### 19.1 Độ lệch lịch (việc (a)) — làm xong
+
+`thi_truong_gia.dong_thoi_gian(lech)` có thêm tham số `lech` (mặc định 0; Tầng 1 ra ĐÚNG đầu ra cũ, có test so với bản cũ dán nguyên văn và ghim 128 · 150 · 172 / 401 · 423 · 445 / 594). `thi_truong_gia_tang2.dong_thoi_gian_2()` gọi nó với `lech` = 250 phiên khởi động. Đo lại bằng mã: ngày khai ở phiên **139 · 160 · 183** (2101-07-01 · 2101-08-01 · 2101-09-01), ba lần đọc ở **412 · 433 · 456**, tổng **605** phiên có quyết định — ĐÚNG ba bộ số đo ở mục 18 khoản 12a. Viết lại độc lập bằng `pandas.bdate_range` cho ra cùng số, và `vong_hoc_gia.phien_khai` đọc trên lịch của phiên có quyết định Tầng 2 cho ra cùng ba phiên khai (vòng vốn đã suy lịch từ dữ liệu nó nhận, nên phần sửa là SỐ PHIÊN cần sinh: 605, không phải 594). `sinh_thi_truong_2` nay mặc định 605. Biên bản mẫu của Lát 3 (`docs/vong-hoc-thi-truong-gia-mau.md`) tái lập từng dòng: 43/43 dòng giống nhau khi chạy lại `tools/chay_vong_thi_truong_gia.py --luong 9001 --chi-so 1 --muc 2`.
+
+### 19.2 Đo gì, bằng gì
+
+Oracle Tầng 2 (`tools/oracle_tang2_thi_truong_gia.py`) là bản Tầng 2 của oracle ở mục 4.5, cùng phép tính, khác nơi lấy điểm và thành phần:
+
+* **Mẫu**: một mẫu dài CÙNG tham số, qua CHÍNH `thi_truong_gia_tang2.sinh_thi_truong_2` (cùng bộ sinh khung OHLCV, khối lượng mang `z`), hạt riêng `[luong, chi_so, 2]` (oracle Tầng 1 dùng `[luong, chi_so, 1]`), dòng hạt 9001 (dòng 1 hay 9001 qua cửa `kiem_luong`; dòng 2 · 3 · 4 · 5 chưa đụng). 5.000 phiên có quyết định mỗi mẫu, 60 mã, 250 khởi động.
+* **Chấm**: bằng CHÍNH `thi_truong_gia_tang2.cham_diem_theo_ma` (đường của `cham_diem`: `paper_runner._analyze` thật, lịch sử cắt tới từng phiên), kèm **cửa sổ trượt 855 dòng** (= 250 khởi động + 605, lịch sử dài nhất một thị trường Tầng 2 từng đưa cho `_analyze`; đường quét thật cũng chỉ giữ ~784 phiên). Lý do cửa sổ: chi phí một lần chấm tăng theo độ dài lịch sử — đo một mã, 30 lần mỗi mốc: 5,8 ms ở 600 dòng, 6,2 ms ở 850, 7,1 ms ở 1.500, 7,8 ms ở 2.500, 9,0 ms ở 4.000 (mở rộng) so với 6,1 ms ở cửa sổ 844. Test chứng minh cửa sổ cắt đúng số dòng và `None` là mở rộng như cũ.
+* **Điểm đã ghi** = `int(final_score)` (đúng cột `score` của `dong_quyet_dinh`); thành phần = `score_breakdown`.
+* **ΔIC_true** của 12 spec (họ F cộng Z; G · Z · H là `mono_volume_score` · `doi_cho_trend_sr` · `bo_volume_score`) so với điểm đã ghi, bằng `E.rho_hang` trên nhãn `E.nhan_vuot_ro`; **sai số Monte Carlo** = độ lệch chuẩn giữa 10 khối phiên liền nhau / √10, ĐÚNG công thức của `thi_truong_gia.tinh_su_that` (có test so từng số với nó trên cùng một mẫu Tầng 1), gộp k mẫu độc lập bằng √(Σ se²)/k. Là ước lượng (mục 15 khoản 8 đã nêu giới hạn của nó).
+* **IC đứng riêng** của từng thành phần và của điểm cuối với nhãn, cùng sai số khối.
+
+Lệnh (cùng khuôn mọi mức; ở thư mục gốc repo, 12 tiến trình trên máy 8 lõi vật lý / 16 lõi logic, Python 3.13.14):
+
+```bash
+./.venv/Scripts/python.exe -X utf8 tools/oracle_tang2_thi_truong_gia.py --luong 9001 --muc 2 --so-phien 5000 --so-mau 2 --chi-so-dau 401 --so-tien-trinh 12 --json
+```
+
+`--muc 0` · `0.5` · `1` · `2` lấy κ từ `docs/thi-truong-gia-hieu-chuan.json`; `--kappa` đặt thẳng (κ gấp đôi mức 2× = 0,0892, κ = 0,125, κ gấp bốn = 0,1783). Chi phí đo được (cả sáu lượt cộng lại **3.057 s ≈ 51 phút** tường, trong ngân sách 60 phút; mức NULL và 2× hai mẫu mỗi mức, còn lại một mẫu; ở 12 tiến trình cỡ 700–1.050 lần `_analyze` mỗi giây, tức 11–17 ms mỗi lần trên mỗi tiến trình; lượt chạy chậm hơn ở κ cao và có chạy cả test song song):
+
+| mức | số mẫu × phiên × mã | lần `_analyze` | giây | dòng `data_quality` ≠ OK | chỉ số mẫu |
+|---|---|---|---|---|---|
+| NULL (κ = 0) | 2 × 5.000 × 60 | 600.000 | 596 | 0 | 301, 302 |
+| 0,5× (κ = 0,0096) | 1 × 5.000 × 60 | 300.000 | 340 | 0 | 601 |
+| 1× (κ = 0,0198) | 1 × 5.000 × 60 | 300.000 | 332 | 1.902 | 501 |
+| 2× (κ = 0,0446) | 2 × 5.000 × 60 | 600.000 | 581 | 2.261 | 401, 402 |
+| κ gấp 2 của 2× (0,0892) | 1 × 5.000 × 60 | 300.000 | 395 | 3.541 | 701 |
+| κ = 0,125 | 1 × 5.000 × 60 | 300.000 | 393 | 16.205 | 901 |
+| κ gấp 4 của 2× (0,1783) | 1 × 5.000 × 60 | 300.000 | 421 | 32.657 | 801 |
+
+(Các mức 0,5× · 1× · 2× dùng κ của Lát 2, đã hiệu chuẩn ở Tầng 1; ba mức κ cao hơn là để xem đường cong, không phải mức nào của mục 4.4.)
+
+### 19.3 Kết quả
+
+ΔIC_true so với điểm đã ghi (± sai số Monte Carlo). G · Z · H in đậm:
+
+| spec | NULL | 0,5× | 1× | 2× | κ gấp 2 | κ 0,125 | κ gấp 4 |
+|---|---|---|---|---|---|---|---|
+| `mono_trend_score` | +0,0014 ± 0,0032 | −0,0071 ± 0,0042 | −0,0033 ± 0,0038 | +0,0215 ± 0,0044 | +0,0646 ± 0,0054 | +0,0870 ± 0,0061 | +0,1044 ± 0,0045 |
+| `mono_momentum_score` | +0,0017 ± 0,0054 | −0,0082 ± 0,0052 | −0,0413 ± 0,0075 | −0,1172 ± 0,0055 | −0,2816 ± 0,0104 | −0,3861 ± 0,0111 | −0,4997 ± 0,0123 |
+| `mono_volume_score` **G** | +0,0025 ± 0,0047 | +0,0028 ± 0,0042 | +0,0098 ± 0,0065 | +0,0066 ± 0,0047 | +0,0199 ± 0,0045 | +0,0355 ± 0,0074 | +0,0662 ± 0,0072 |
+| `mono_sr_score` | −0,0024 ± 0,0076 | −0,0196 ± 0,0085 | −0,0681 ± 0,0067 | −0,2076 ± 0,0074 | −0,4399 ± 0,0063 | −0,5726 ± 0,0157 | −0,6791 ± 0,0062 |
+| `mono_risk_score` | −0,0100 ± 0,0064 | −0,0080 ± 0,0071 | −0,0309 ± 0,0113 | −0,0808 ± 0,0064 | −0,1393 ± 0,0094 | −0,1655 ± 0,0075 | −0,2063 ± 0,0156 |
+| `bo_trend_score` | −0,0022 ± 0,0054 | −0,0028 ± 0,0059 | −0,0329 ± 0,0070 | −0,1242 ± 0,0068 | −0,2920 ± 0,0054 | −0,3919 ± 0,0119 | −0,4914 ± 0,0105 |
+| `bo_momentum_score` | −0,0002 ± 0,0017 | +0,0007 ± 0,0026 | +0,0081 ± 0,0030 | +0,0304 ± 0,0030 | +0,0688 ± 0,0047 | +0,0889 ± 0,0049 | +0,1020 ± 0,0039 |
+| `bo_volume_score` **H** | −0,0008 ± 0,0017 | −0,0039 ± 0,0025 | −0,0135 ± 0,0017 | −0,0215 ± 0,0017 | −0,0446 ± 0,0027 | −0,0601 ± 0,0031 | −0,0916 ± 0,0031 |
+| `bo_sr_score` | +0,0014 ± 0,0028 | +0,0009 ± 0,0040 | +0,0048 ± 0,0041 | +0,0281 ± 0,0027 | +0,0636 ± 0,0032 | +0,0864 ± 0,0034 | +0,0958 ± 0,0034 |
+| `bo_risk_score` | +0,0015 ± 0,0012 | +0,0006 ± 0,0016 | +0,0019 ± 0,0022 | +0,0077 ± 0,0014 | +0,0085 ± 0,0015 | +0,0079 ± 0,0014 | −0,0020 ± 0,0022 |
+| `deu` | −0,0011 ± 0,0012 | +0,0027 ± 0,0013 | −0,0005 ± 0,0017 | −0,0097 ± 0,0008 | −0,0314 ± 0,0018 | −0,0443 ± 0,0023 | −0,0675 ± 0,0029 |
+| `doi_cho_trend_sr` **Z** | −0,0019 ± 0,0026 | −0,0002 ± 0,0029 | −0,0143 ± 0,0027 | −0,0635 ± 0,0031 | −0,1626 ± 0,0034 | −0,2257 ± 0,0074 | −0,2976 ± 0,0051 |
+
+IC của từng thành phần đứng riêng với nhãn, và của điểm đã ghi:
+
+| thành phần | NULL | 0,5× | 1× | 2× | κ gấp 2 | κ 0,125 | κ gấp 4 |
+|---|---|---|---|---|---|---|---|
+| `trend_score` | +0,0015 ± 0,0055 | +0,0080 ± 0,0061 | +0,0380 ± 0,0065 | +0,1253 ± 0,0055 | +0,2660 ± 0,0040 | +0,3408 ± 0,0094 | +0,3967 ± 0,0067 |
+| `momentum_score` | +0,0017 ± 0,0029 | +0,0070 ± 0,0042 | +0,0000 ± 0,0047 | −0,0134 ± 0,0055 | −0,0801 ± 0,0123 | −0,1324 ± 0,0109 | −0,2073 ± 0,0101 |
+| `volume_score` | +0,0025 ± 0,0028 | +0,0180 ± 0,0032 | +0,0511 ± 0,0038 | +0,1103 ± 0,0024 | +0,2213 ± 0,0025 | +0,2892 ± 0,0023 | +0,3585 ± 0,0029 |
+| `sr_score` | −0,0024 ± 0,0051 | −0,0044 ± 0,0063 | −0,0268 ± 0,0047 | −0,1038 ± 0,0049 | −0,2385 ± 0,0054 | −0,3189 ± 0,0098 | −0,3868 ± 0,0025 |
+| `risk_score` | −0,0100 ± 0,0052 | +0,0072 ± 0,0071 | +0,0104 ± 0,0082 | +0,0230 ± 0,0067 | +0,0621 ± 0,0065 | +0,0882 ± 0,0102 | +0,0861 ± 0,0109 |
+| điểm đã ghi | +0,0000 ± 0,0053 | +0,0152 ± 0,0045 | +0,0413 ± 0,0060 | +0,1038 ± 0,0045 | +0,2014 ± 0,0048 | +0,2537 ± 0,0076 | +0,2923 ± 0,0067 |
+
+Đối chiếu với Tầng 1 (`docs/thi-truong-gia-hieu-chuan.json`, `oracle_kiem`, trung bình 24 mẫu; cùng κ):
+
+| | NULL | 0,5× | 1× | 2× |
+|---|---|---|---|---|
+| G, Tầng 1 | −0,0014 ± 0,0012 | +0,0358 ± 0,0012 | +0,0733 ± 0,0011 | +0,1474 ± 0,0011 |
+| G, Tầng 2 (bảng trên) | +0,0025 ± 0,0047 | +0,0028 ± 0,0042 | +0,0098 ± 0,0065 | +0,0066 ± 0,0047 |
+| Z, Tầng 1 | +0,0004 ± 0,0003 | +0,0010 ± 0,0002 | +0,0016 ± 0,0002 | +0,0028 ± 0,0002 |
+| Z, Tầng 2 | −0,0019 ± 0,0026 | −0,0002 ± 0,0029 | −0,0143 ± 0,0027 | −0,0635 ± 0,0031 |
+| H, Tầng 1 | +0,0002 ± 0,0003 | −0,0119 ± 0,0003 | −0,0241 ± 0,0003 | −0,0482 ± 0,0003 |
+| H, Tầng 2 | −0,0008 ± 0,0017 | −0,0039 ± 0,0025 | −0,0135 ± 0,0017 | −0,0215 ± 0,0017 |
+
+### 19.4 Điều đọc ra
+
+1. **Máy đo qua phép thử NULL (mục 4.5 (c)).** Ở κ = 0, cả 12 spec có |ΔIC_true| < 2 sai số (|z| lớn nhất 1,6, ở `mono_risk_score`; hai mẫu 5.000 phiên); `data_quality` = OK ở 600.000/600.000 dòng. Phép thử này đọc theo mẫu gộp, không theo từng thị trường (mục 15 khoản 8).
+2. **ΔIC_true(G) ở 2× là +0,0066 ± 0,0047 — không khác 0 (z = 1,4) — so với đích Tầng 1 là 2 × MDE₈₀ = 0,1513: bằng 4,4% đích.** Hai mẫu cho +0,0136 và −0,0005. G cũng ≈ 0 ở 0,5× (+0,0028) và 1× (+0,0098), và chỉ lên +0,0355 ở κ = 0,125, +0,0662 ở κ gấp bốn của 2×. Hàng PT của mục 6 đòi "G `QUA` ở 2× ≥ 85/100"; từ đường probit của Tầng 1 (a = −2,4214; b = 43,1447, `mde80.probit`) một ΔIC_true bằng +0,0066 cho P(`QUA`) ≈ 1,6% (dải 99% của 100 thị trường: 0–6). **Đọc nguyên văn thì vế G của PT không thể đạt ở κ của Tầng 1; và nó không đạt vì G không còn mang lợi thế, không phải vì vòng sai.** Chú ý dự đoán này giả định nhiễu của phép so cặp ở Tầng 2 bằng ở Tầng 1: chưa đo — đó chính là cái PT sẽ kiểm.
+3. **Vì sao (đã đo, cơ chế là suy luận):** điểm đã ghi ĐÃ đọc lợi thế. Ở 2× IC của điểm đã ghi là +0,1038, sát IC của `volume_score` (+0,1103) và của `trend_score` (+0,1253): cộng `volume_score` đứng một mình chỉ hơn điểm đã ghi 0,0066. `sr_score` mang lợi thế NGƯỢC dấu (−0,1038) và `momentum_score` ≈ 0 (−0,0134). Hợp với mục 18 khoản 10: kỳ vọng cài sẵn `κ·z/21` nằm trong giá và `z` bền (φ_z = 0,97), nên chỉ báo thuần giá đọc được nó. Chưa đo nguyên nhân của dấu âm ở `sr_score`.
+4. **Z KHÔNG còn ≈ 0: −0,0635 ± 0,0031 ở 2× (Tầng 1: +0,0028).** `trend_score` và `sr_score` mang lợi thế ngược dấu (+0,1253 và −0,1038) nên đổi chỗ hai trọng số làm hỏng điểm. Từ đường probit Tầng 1, P(`THUA`) của Z ở 2× ≈ 62%, so với B3 ≤ 5% (B3 là tiêu chí Tầng 1, không phải PT; nhưng nếu Tầng 2 đo Z thì nó sẽ báo động).
+5. **H vẫn âm nhưng nhỏ hơn một nửa Tầng 1:** −0,0215 ± 0,0017 (Tầng 1: −0,0482). B4 (H không bao giờ `QUA`) còn đứng; P(`THUA`) của H ≈ 6,8%.
+6. **Trong họ F chỉ ba spec hơn điểm đã ghi ở 2×, và đều nhỏ:** `bo_momentum_score` +0,0304 ± 0,0030 · `bo_sr_score` +0,0281 ± 0,0027 · `mono_trend_score` +0,0215 ± 0,0044 (mỗi spec bỏ bớt một thành phần ngược dấu hay nhiễu); phần còn lại ≤ +0,0077. Lớn nhất = 0,40 × MDE₈₀ của Tầng 1 (0,0756). Chọn spec lớn nhất trong 11 sau khi nhìn kết quả có độ thiên lệch của cực đại (bất biến 7): `bo_momentum_score` và `bo_sr_score` khác nhau 0,0023, trong phạm vi một sai số.
+7. **Đường cong theo κ của `bo_momentum_score`:** +0,0007 (0,5×) · +0,0081 (1×) · +0,0304 (2×) · +0,0688 (κ gấp 2) · +0,0889 (κ = 0,125) · +0,1020 (κ gấp 4). Nội suy tuyến tính giữa hai điểm kề: ΔIC_true = 0,0801 (mức mà đường probit Tầng 1 cho P(`QUA`) = 85%) ở κ ≈ 0,109; 2 × MDE₈₀ = 0,1513 chưa đạt ở κ lớn nhất đã đo (0,1783 → 0,1020 = 1,35 × MDE₈₀) và đường đang cong xuống.
+8. **Phụ — cảnh báo đơn vị ở κ cao.** Số dòng `data_quality` ≠ OK tăng theo κ (bảng 19.2): giá một mã trôi qua 1.000 nghìn đồng trong mẫu 5.000 phiên thì `data_quality.detect_unit_multiplier` báo `UNIT_INCONSISTENT` (đo trên 42.900 cửa sổ của mẫu 401: 324 cửa sổ WARN, tất cả mã này). Điểm không đổi vì `master_agent.NO_VERDICT_QUALITY` chỉ chặn `FAILED` và `SYNTHETIC`, còn hệ số đơn vị chỉ đi vào giá cắt lỗ/chốt lời bằng VNĐ (`analysis_agents`) — đọc mã, KHÔNG chạy lại để kiểm. Ở mức NULL và 0,5× không có dòng nào.
+
+### 19.5 Hệ quả cho mục 6 nếu không đổi gì, và các phương án
+
+**Hàng nào chạm.** Chỉ hai mệnh đề ở Tầng 2: vế "G `QUA` ở 2× ≥ 85/100" của PT. Vế "báo động ở NULL ≤ 12/100" của PT không chạm (cả 12 spec có ΔIC_true = 0 ở NULL theo 19.4 điều 1). P1 · P2 · P4 không chạm. P3 (IC của `volume_score` với nhãn > 0 ở ≥ 90/100 thị trường 2×) không chạm: IC ở 2× là +0,1103 ± 0,0024 và Lát 4 đếm 6/6 thị trường dương. Các hàng A · A0 · B1–B4 · C1–C3 là Tầng 1; bộ ba G · Z · H của Tầng 1 vẫn đúng như đã hiệu chuẩn (Z ≈ 0, H < 0).
+
+Ba phương án cho vế G của PT (cả ba đều chỉ đổi cách đọc ở Tầng 2, không đổi bộ sinh của Tầng 1 và không làm lại hiệu chuẩn Lát 2):
+
+* **Phương án 1 — Bỏ vế G của PT.** PT chỉ còn "báo động ở NULL ≤ 12/100". Chứng cứ "vòng bắt được lợi thế" chỉ nằm ở Tầng 1 (tiêu chí A · B · C); Tầng 2 chỉ chứng minh ống dẫn (P1–P4) và máy báo động giả. Chi phí thêm: 0. Hệ quả: PT không còn chứng minh gì về lực ở Tầng 2.
+* **Phương án 2 — Thay G bằng G′ lấy từ oracle Tầng 2, đọc theo đường cong.** G′ = `bo_momentum_score` (hoặc `bo_sr_score`, cùng cỡ). Vế PT đổi thành: số thị trường 2× mà G′ `QUA` nằm trong dải 99% nhị thức quanh P(`QUA` | ΔIC_true Tầng 2 của G′) đọc từ đường probit Tầng 1 — với +0,0304 là P ≈ 13,4%, dải 99% của 100 thị trường **5–23** (với `bo_sr_score`, 11,3%: 4–20). Không đổi κ. PT thành phép kiểm thật rằng nhiễu của phép so cặp ở Tầng 2 bằng Tầng 1 (cái dự đoán ở điều 2 giả định). Chi phí thêm: đo lại ΔIC_true(G′) trên dòng hạt khác 9001 (xem 19.6; cỡ 4–6 mẫu 5.000 phiên ≈ 25–35 phút ở 12 tiến trình). Mặt yếu: ở P ≈ 13% lực để phát hiện lệch nhỏ chỉ ở mức dải 5–23; và ngưỡng "≥ 85/100" được viết lại, cần người dùng ký.
+* **Phương án 3 — Hiệu chuẩn lại κ riêng cho Tầng 2 để G′ đạt mức tương đương.** Giữ nguyên chữ "≥ 85/100" nhưng với G′ = `bo_momentum_score` ở κ ≈ 0,125 (ΔIC_true +0,0889 = 1,18 × MDE₈₀ của Tầng 1; đường probit cho P(`QUA`) ≈ 92%, dải 99% 85–98). Hoặc κ ≈ 0,109 cho P = 85% (sát ngưỡng, dải 99% rộng 75–93). **Không đạt được "2 × MDE₈₀ = 0,1513"** nếu giữ mô hình sinh hiện tại: κ gấp bốn của 2× mới cho 1,35 × MDE₈₀. Chi phí thêm: một mức κ mới ở Tầng 2 chưa từng được hiệu chuẩn (cần đo ΔIC_true bằng nhiều mẫu hơn), κ cỡ 2,8 lần mức 2× của Tầng 1 (kỳ vọng cài sẵn 2,8 lần; IC của `trend_score` +0,34 so với +0,125), 5,4% dòng `data_quality` ≠ OK (19.4 điều 8), và điều chủ yếu: ở P ≈ 92% đường cong gần bão hoà nên PT kiểm khớp tệ nhất ở đúng chỗ ấy.
+
+(Phương án "không làm gì": vế G của PT chắc chắn trượt, cỡ 2/100 so với ≥ 85/100, và T6 ghi *TRƯỢT ở PT* dù vòng không sai — không nên.)
+
+**Khuyến nghị: Phương án 2.** Lý do: (1) chỉ đổi cách đọc ở Tầng 2; mọi con số của Tầng 1 và hiệu chuẩn Lát 2 giữ nguyên hiệu lực; (2) giữ cho PT một nội dung thật — nó kiểm đúng giả định chưa ai đo (nhiễu của phép so cặp qua agent thật bằng Tầng 1) — thay vì bỏ nó (phương án 1) hay đẩy κ tới vùng chưa hiệu chuẩn và gần bão hoà (phương án 3); (3) vế NULL của PT giữ nguyên, nên tỷ lệ báo động giả ở Tầng 2 vẫn được đo; (4) đúng tinh thần mục 6 ("PT chỉ là kiểm khớp Tầng 1, KHÔNG phải chứng cứ riêng"): nó nhắc Lát 5 rằng kết luận T6 nằm ở Tầng 1. Nếu người dùng muốn rẻ nhất và chấp nhận Tầng 2 không chứng minh lực thì phương án 1. Hai việc đi kèm mọi phương án: chọn G′ (nếu có) TRƯỚC khi chạy Lát 5 và đo lại ΔIC_true của nó trên dòng hạt khác 9001; và khai Z′ · H′ (nếu Tầng 2 muốn đo báo động của chúng) từ bảng 19.3: Z′ ≈ 0 là `mono_volume_score` (+0,0066 ± 0,0047) hoặc `bo_risk_score` (+0,0077 ± 0,0014, nhỏ nhưng khác 0); H′ < 0 là `bo_volume_score` (−0,0215) hoặc `bo_trend_score` (−0,1242, hại mạnh).
+
+### 19.6 Giới hạn của số đo
+
+* **Dòng hạt 9001 là dòng thử.** Chọn G′ sau khi nhìn bảng này là chọn cực đại của 11 spec trên chính dữ liệu đã nhìn; ΔIC_true tham chiếu dùng cho Lát 5 phải đo lại ở dòng khác (đề nghị dòng 1, khối chỉ số mới ngoài sáu khối của Lát 2; dòng 2 · 3 · 4 · 5 vẫn chặn).
+* **Mẫu nhỏ ở các mức giữa:** 0,5× · 1× · κ gấp 2 · κ 0,125 · κ gấp 4 chỉ một mẫu 5.000 phiên, nên sai số Monte Carlo của chúng là sai số khối (ước lượng); hai mức có hai mẫu (NULL · 2×) cho độ lệch giữa các mẫu cùng cỡ với sai số khối (ví dụ G ở 2×: sai số khối 0,0047, độ lệch giữa hai mẫu / √2 = 0,0071) — chỉ hai mẫu nên không kết luận được hơn.
+* **Dự đoán P(`QUA`) từ đường probit Tầng 1 là giả định, không phải số đo Tầng 2.** MDE₈₀ = 0,0756 đo ở Tầng 1 (điểm sinh thẳng); nhiễu của phép so cặp qua điểm của agent thật có thể khác.
+* **Cửa sổ trượt 855 dòng** là lựa chọn của BƯỚC này (lý do ở 19.2); chưa đo nó đổi ΔIC_true bao nhiêu so với lịch sử mở rộng.
+* **Một họ spec** (F cộng Z, trọng số mặc định 0,25 · 0,25 · 0,20 · 0,15 · 0,15): điểm thật của `master_agent` dùng trọng số động theo chế độ và đè momentum, nên "điểm đã ghi" không phải tổ hợp tuyến tính mặc định; spec trong F chỉ là một họ ứng viên, không phải điểm tốt nhất có thể.
