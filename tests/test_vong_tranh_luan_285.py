@@ -94,7 +94,9 @@ def test_1b_ba_vong_cho_ba_loi_khac_nhau_khong_vong_nao_bi_de():
         ("bull", "Vòng 1", "BULL-V1"), ("bear", "Vòng 1", "BEAR-V1"),
         ("bull", "Vòng 2", "BULL-V2"), ("bear", "Vòng 2", "BEAR-V2"),
         ("bull", "Vòng 3", "BULL-V3"), ("bear", "Vòng 3", "BEAR-V3")]
-    assert "DEVIL-V2" not in html, "phát biểu của Devil's Advocate không có ô ở khung này"
+    # BƯỚC 297: phát biểu của Devil's Advocate nay CÓ ô riêng (xem `tests/test_devil_va_escape_297.py`); ô Bull/Bear của
+    # cùng ba vòng ở trên không đổi, nên lọc theo lớp `bull`/`bear` mà `_O` đã bắt.
+    assert "DEVIL-V2" in html
 
 
 def test_1c_so_vong_theo_ket_qua_hai_vong_thi_hai_nhan_bon_vong_thi_bon_nhan():
@@ -160,11 +162,12 @@ def test_2b_so_vong_dien_tu_enumerate_rounds_bat_dau_tu_1():
     assert not any(isinstance(n, ast.Name) and n.id == "so_vong" for c in g2.ifs for n in ast.walk(c))
 
 
-def test_2c_bang_phe_chi_co_Bull_va_Bear_va_moi_phe_mot_mau_rieng():
+def test_2c_bang_phe_co_Bull_Bear_va_Devil_moi_phe_mot_mau_rieng():
+    # BƯỚC 297 thêm khoá NEUTRAL (Devil's Advocate); Bull và Bear giữ nguyên.
     phe = eval(compile(ast.Expression(_gan(_cay(), "_PHE_TRANH_LUAN").value), "app.py", "eval"), {})
-    assert set(phe) == {"BULL", "BEAR"}
-    assert phe["BULL"][0] == "bull" and phe["BEAR"][0] == "bear"
-    assert "Bull" in phe["BULL"][1] and "Bear" in phe["BEAR"][1]
+    assert set(phe) == {"BULL", "BEAR", "NEUTRAL"}
+    assert phe["BULL"][0] == "bull" and phe["BEAR"][0] == "bear" and phe["NEUTRAL"][0] == "devil"
+    assert "Bull" in phe["BULL"][1] and "Bear" in phe["BEAR"][1] and "Devil" in phe["NEUTRAL"][1]
 
 
 # ── 3. ô Master giữ nguyên, biến gom cũ đã gỡ ──────────────────────────────

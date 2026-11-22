@@ -410,10 +410,11 @@ st.markdown("""
     }
     .mb.bull { background: rgba(48,209,88,0.06); border: 1px solid rgba(48,209,88,0.14); border-left: 3px solid var(--c-g); }
     .mb.bear { background: rgba(255,90,80,0.06); border: 1px solid rgba(255,90,80,0.14); border-left: 3px solid var(--c-r); }
+    .mb.devil { background: rgba(255,159,10,0.06); border: 1px solid rgba(255,159,10,0.16); border-left: 3px solid var(--c-o); }
     .mb.mst { background: rgba(201,108,246,0.06); border: 1px solid rgba(201,108,246,0.18); border-left: 3px solid var(--c-p); }
     .mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .mn { font-size: 11px; font-weight: 800; text-transform: uppercase; }
-    .mn.bull { color: var(--c-g); } .mn.bear { color: var(--c-r); } .mn.mst { color: var(--c-p); }
+    .mn.bull { color: var(--c-g); } .mn.bear { color: var(--c-r); } .mn.mst { color: var(--c-p); } .mn.devil { color: var(--c-o); }
     .mt { font-size: 11px; color: var(--c-t3); font-family: var(--fm); }
     .mb-b { color: var(--c-t2); font-size: 11.5px; }
 
@@ -1626,7 +1627,7 @@ tp_pct_txt = _so(_pct(est_tp), "{:+.1f}%")
 # Render DYNAMIC Quick Signals in Sidebar
 with sig_container:
     st.markdown(f"""
-    <div class="sb-card-title" style="margin-top: 12px;">📊 Tín hiệu nhanh [{symbol}]</div>
+    <div class="sb-card-title" style="margin-top: 12px;">📊 Tín hiệu nhanh [{_html.escape(symbol)}]</div>
     <div class="sig-grid">
         <div class="sig-item">
             <span class="sig-lbl">Pha Wyckoff</span>
@@ -1655,7 +1656,7 @@ with sig_container:
 st.markdown(f"""
 <div class="mds">
     <div class="md-cell" title="{_tip(_mau_tip)}">
-        <span class="md-label">Gia Dong Cua ({symbol})</span>
+        <span class="md-label">Gia Dong Cua ({_html.escape(symbol)})</span>
         <span class="md-val {delta_cls}">{latest_close_fmt:,.0f}</span>
         <span class="md-delta {delta_cls}">{delta_str}</span>
     </div>
@@ -1838,7 +1839,7 @@ with col_chart:
             <span class="chs">Khung D1 — nến chốt từ {_gio_nen_dong} ICT</span>
         </div>
         <div class="sym-r">
-            <span class="sym-n">{symbol}.VN</span>
+            <span class="sym-n">{_html.escape(symbol)}.VN</span>
             <span class="ptag">{dyn_phase_full}</span>
             <span class="stag">SL: {sl_txt} VND</span>
         </div>
@@ -1991,11 +1992,15 @@ with col_debate:
     # BƯỚC 285: MỘT ô cho MỖI phát biểu của Bull và Bear, đúng vòng của nó. Bản cũ gom vào ba biến
     # (`bull_msg`, `bear_msg`, `bull2_msg`) nên vòng 3 ghi đè vòng 2 và ô "Bull — Vòng 2" hiện lời vòng cuối,
     # còn ô Bear hiện lời vòng cuối dưới nhãn không số vòng. Số vòng là chỉ số trong `rounds` (kết quả không
-    # mang trường `round_num`), không gõ tay. Phát biểu của Devil's Advocate (NEUTRAL) không có ô ở đây.
+    # mang trường `round_num`), không gõ tay.
+    # BƯỚC 297: phát biểu của Devil's Advocate (`DevilsAdvocateAgent`, stance NEUTRAL, thách thức cả hai phe; chỉ có ở vòng 2)
+    # có ô riêng, đúng vòng của nó, sau ô Bull và Bear của vòng ấy (thứ tự trong `rounds` do `DebateModerator` quyết định).
+    # Chỉ HIỂN THỊ: điểm và logic tranh luận không đổi. Quyết định của leader dưới lời người dùng 22/11/2026, không phải lựa chọn riêng của người dùng.
     # BƯỚC 287: phát biểu qua `html.escape` trước khi dán vào HTML (`unsafe_allow_html`). Đo 20/11/2026: chữ ngoài
     # (tiêu đề tin) KHÔNG tới được phát biểu hôm nay, nhưng 40/560 phát biểu đã mang `&` từ chuỗi viết cứng
     # ("macro & ngành"), và đường dán thô sẽ phát hành bất kỳ `<` nào mà một trường tương lai đưa vào.
-    _PHE_TRANH_LUAN = {"BULL": ("bull", "🐂 Bull Agent"), "BEAR": ("bear", "🐻 Bear Agent (Phản biện)")}
+    _PHE_TRANH_LUAN = {"BULL": ("bull", "🐂 Bull Agent"), "BEAR": ("bear", "🐻 Bear Agent (Phản biện)"),
+                       "NEUTRAL": ("devil", "😈 Devil's Advocate Agent (Thách thức)")}
     o_vong_tranh_luan = "".join(
         f'''<div class="mb {_PHE_TRANH_LUAN[arg["stance"]][0]}">
                 <div class="mh"><span class="mn {_PHE_TRANH_LUAN[arg["stance"]][0]}">{_PHE_TRANH_LUAN[arg["stance"]][1]} — Vòng {so_vong}</span></div>
@@ -2005,7 +2010,7 @@ with col_debate:
         for arg in rnd
         if arg.get("stance") in _PHE_TRANH_LUAN
     ) or f'''<div class="mb bull">
-                <div class="mh"><span class="mn bull">🐂 Bull Agent ({symbol})</span></div>
+                <div class="mh"><span class="mn bull">🐂 Bull Agent ({_html.escape(symbol)})</span></div>
                 <div class="mb-b">{_chua}</div>
             </div>'''
 
@@ -2018,7 +2023,7 @@ with col_debate:
     st.markdown(f"""
     <div class="card">
         <div class="ch">
-            <div class="cht">💬 Debate Council ({symbol})</div>
+            <div class="cht">💬 Debate Council ({_html.escape(symbol)})</div>
             <span class="chs">{_tieu_de_tranh_luan}</span>
         </div>
         <div class="debate">
@@ -2364,7 +2369,7 @@ with t_rep:
         _np_mau = "var(--c-g)" if _bien >= 0 else "var(--c-r)"
     elif _loi_np:
         _np_chinh = "chưa lấy được"
-        _np_phu = f"nến nội phiên: {_loi_np}"
+        _np_phu = f"nến nội phiên: {_html.escape(str(_loi_np))}"
         _np_mau = "var(--c-t3)"
     else:
         _np_chinh = "chưa có nến"
@@ -2375,7 +2380,7 @@ with t_rep:
     _vt = next((t for t in real_open_trades if t.symbol == symbol), None)
     if _vt is None:
         _vt_chinh = "không có vị thế"
-        _vt_phu = f"{symbol} không nằm trong sổ lệnh đang mở"
+        _vt_phu = f"{_html.escape(symbol)} không nằm trong sổ lệnh đang mở"
         _vt_mau = "var(--c-t3)"
     else:
         _cham = None
@@ -2410,7 +2415,7 @@ with t_rep:
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
         <div style="{_o}">
             <div style="{_nhan}">Phân tích hôm nay</div>
-            <div style="font-family:var(--fm);font-size:15px;color:var(--c-acc);font-weight:800;">{dyn_rec} {symbol}</div>
+            <div style="font-family:var(--fm);font-size:15px;color:var(--c-acc);font-weight:800;">{dyn_rec} {_html.escape(symbol)}</div>
             <div style="{_phu}">Điểm {score:.1f} · {dyn_phase_short}</div>
         </div>
         <div style="{_o}">
@@ -2419,7 +2424,7 @@ with t_rep:
             <div style="{_phu}">{_np_phu}</div>
         </div>
         <div style="{_o}">
-            <div style="{_nhan}">Vị thế {symbol}</div>
+            <div style="{_nhan}">Vị thế {_html.escape(symbol)}</div>
             <div style="font-family:var(--fm);font-size:15px;color:{_vt_mau};font-weight:800;">{_vt_chinh}</div>
             <div style="{_phu}">{_vt_phu}</div>
         </div>
@@ -2740,7 +2745,7 @@ st.markdown(f"""
     <div style="display: flex; gap: 16px;">
         <span>Cap nhat: <b style="color:var(--c-t1);">{now_vn().strftime('%H:%M:%S')} ICT</b></span>
         <span>Nguong: <b style="color:var(--c-acc);">{BUY_THRESHOLD:.1f} pts</b></span>
-        <span>Ma dang chon: <b style="color:var(--c-acc);">{symbol} ({exchange})</b></span>
+        <span>Ma dang chon: <b style="color:var(--c-acc);">{_html.escape(symbol)} ({exchange})</b></span>
     </div>
     <div>Vibe Stock Terminal · Multi-Agent AI · Giá ngày công khai + TradingView</div>
 </div>
