@@ -245,9 +245,9 @@ chỉ xét ở phiên chấm; ba dòng chưa chạy lại còn khớp được �
 
 | Nơi | Hạng | BCTC | Hạn mức | OHLCV |
 |---|---|---|---|---|
-| Máy local | silver | không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 300/phút | ~784 phiên / 1095 ngày, nguồn công khai (BƯỚC 267) |
-| Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo (nguồn công khai, chưa chạy ở đó) |
-| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | điểm cuối công khai trả 200 từ Actions (thăm dò 11/11/2026, chạy 42944667209); quét thật ĐÃ chạy từ 11/11/2026 |
+| Máy local | 🔴 *silver, HẾT ĐÚNG từ 22/11/2026:* gói hết hạn, người dùng 20/11/2026 *"Không gia hạn nữa"* (BƯỚC 286); `vnstock` 4.0.9 còn cài từ trước nhưng KHÔNG phải đường giá | 🔴 số cũ khi còn Silver: không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 🔴 số cũ: 300/phút | ~784 phiên / 1095 ngày, `nguon_gia_cong_khai` (BƯỚC 267) |
+| Streamlit Cloud | 🔴 *silver (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP), HẾT ĐÚNG từ 11/11/2026:* `requirements.txt` không còn `vnstock`/`vnai` (BƯỚC 267) nên Cloud không cài gói của hãng và không có hạng để đọc; Silver cũng hết hạn 22/11/2026 | không có nguồn (`ly_do_khong_co_nguon`) | không áp dụng (không gọi vnstock) | giá ngày từ `nguon_gia_cong_khai`, không khoá (cổ phiếu Entrade → VNDirect → VPS; VN-Index VNDirect → iBoard → VPS); chưa đo chạy ở Cloud |
+| GitHub Actions | CHƯA đọc (từ 11/11/2026 không cài `vnstock` nên không còn hạng để đọc, BƯỚC 267) | không có nguồn (`ly_do_khong_co_nguon`) | không áp dụng (không gọi vnstock) | giá ngày từ `nguon_gia_cong_khai` (cùng chuỗi như Cloud); điểm cuối công khai trả 200 từ Actions (thăm dò 11/11/2026, chạy 42944667209); quét thật ĐÃ chạy từ 11/11/2026 |
 
 🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
 
