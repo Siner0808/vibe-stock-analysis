@@ -89,7 +89,7 @@ Cách đọc nhanh: `./.venv/Scripts/python.exe tools/quyet_dinh_cho.py`.
 
 **Trả lời nguyên văn (09/10/2026):** người dùng đưa URL và nói *"địa chỉ app streamlit tôi đã mở thành công trong trình duyệt của bạn"* — tức phương án (a). **URL KHÔNG ghi vào repo** (repo công khai; app dùng khoá API trả phí của người dùng: `VNSTOCK_API_KEY` hạng silver, `GEMINI_API_KEY`): [URL do người dùng đưa, cố ý không lưu trong repo công khai].
 
-**Hệ quả / việc kế:** việc treo từ BƯỚC 127 KHÉP: dòng `--extra-index-url` CÓ hiệu lực trên Cloud, và Cloud chạy hạng **silver**, không phải free (giả thuyết cũ bị bác, `CLAUDE.md` mục "Bất đối xứng" đã sửa). Còn chưa đo: BCTC và hạn mức trên Cloud; hạng trên GitHub Actions. Telemetry `vnstock` trên Cloud còn bật → Q11.
+**Hệ quả / việc kế:** việc treo từ BƯỚC 127 KHÉP: dòng `--extra-index-url` CÓ hiệu lực trên Cloud, và Cloud chạy hạng **silver**, không phải free (giả thuyết cũ bị bác, `CLAUDE.md` mục "Bất đối xứng" đã sửa). 🔴 **HẾT ĐÚNG từ 22/11/2026 (BƯỚC 295, soát chéo):** gói Silver hết hạn ngày ấy và người dùng 20/11/2026 *"Không gia hạn nữa"* (BƯỚC 286); `requirements.txt` không còn `vnstock` từ BƯỚC 267 nên Cloud không còn hạng để đọc. Còn chưa đo: BCTC và hạn mức trên Cloud; hạng trên GitHub Actions. Telemetry `vnstock` trên Cloud còn bật → Q11.
 
 **Dữ kiện đã kiểm (09/10/2026):**
 - Leader đo, trình duyệt: app chạy, khởi động lại 01:35:49 UTC từ `main` (sau merge #211). Nhật ký "Manage app": `Using uv pip install.` · ` + vnai==2.6.2` · ` + vnstock==4.0.9` · ` + vnstock-ezchart==1.0.2` · `Python dependencies were installed from /mount/src/vibe-stock-analysis/requirements.txt using uv.`; cũng in `✓ API key đã được lưu thành công!`.

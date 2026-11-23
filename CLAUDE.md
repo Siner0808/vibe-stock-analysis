@@ -245,13 +245,13 @@ chỉ xét ở phiên chấm; ba dòng chưa chạy lại còn khớp được �
 
 | Nơi | Hạng | BCTC | Hạn mức | OHLCV |
 |---|---|---|---|---|
-| Máy local | silver | không giới hạn (`balance`/`income` 34 kỳ; `ratio` chỉ 2–4 kỳ mỗi mã) | 300/phút | ~784 phiên / 1095 ngày, nguồn công khai (BƯỚC 267) |
-| Streamlit Cloud | **silver** (đo 09/10/2026: bảng trạng thái của app in `● ĐÚNG`, `kiem_goi()` KHỚP) | CHƯA đo | CHƯA đo | CHƯA đo (nguồn công khai, chưa chạy ở đó) |
-| GitHub Actions | CHƯA đọc | CHƯA đo | CHƯA đo | điểm cuối công khai trả 200 từ Actions (thăm dò 11/11/2026, chạy 42944667209); quét thật ĐÃ chạy từ 11/11/2026 |
+| Máy local | 🔴 *silver, HẾT ĐÚNG từ 22/11/2026* (*"Không gia hạn nữa"*); `vnstock` còn cài, KHÔNG phải đường giá | 🔴 cũ: không giới hạn | 🔴 cũ: 300/phút | ~784 phiên / 1095 ngày, `nguon_gia_cong_khai` |
+| Streamlit Cloud | 🔴 *silver (đo 09/10/2026), HẾT ĐÚNG từ 11/11/2026:* không cài `vnstock` | không có nguồn | không áp dụng | `nguon_gia_cong_khai`; chưa đo chạy |
+| GitHub Actions | CHƯA đọc (không cài `vnstock`) | không có nguồn | không áp dụng | `nguon_gia_cong_khai`; công khai trả 200; quét thật ĐÃ chạy từ 11/11/2026 |
 
 🔴 **HẾT ĐÚNG 09/10/2026:** hàng cũ *"GitHub Actions · Streamlit Cloud: free · 8 kỳ · 60/phút"* là SUY LUẬN, chưa từng đo (`docs/STATE.md` BƯỚC 166).
 
-Bất đối xứng KHÔNG CHỈ nằm ở BCTC và hạn mức ⚠️ (câu cũ khai đủ, thiếu vế này): nó còn ở **bản thư viện**.
+Bất đối xứng KHÔNG CHỈ nằm ở BCTC và hạn mức ⚠️: còn ở **bản thư viện**.
 `requirements.txt` khai MỌI gói bằng **sàn** (hết ghim `==` của vnstock/vnai từ BƯỚC 267;
 trước đó BƯỚC 127) nên mỗi lượt CI lấy bản MỚI NHẤT
 trong khi máy cài một lần rồi đứng yên. Khoảng lệch phải **đo, không suy**

@@ -737,7 +737,8 @@ MODULE_GIA = ("thi_truong_gia", "vong_hoc_gia", "thi_truong_gia_tang2")      # B
 DUOC_NHAP = {"vong_hoc_gia.py", "tools/hieu_chuan_thi_truong_gia.py", "tools/chay_vong_thi_truong_gia.py",
              "thi_truong_gia_tang2.py", "tools/chay_tang2_thi_truong_gia.py",
              "tools/oracle_tang2_thi_truong_gia.py",      # BƯỚC 293: bảng sự thật Tầng 2
-             "tools/chay_vong_tang2_thi_truong_gia.py"}   # BƯỚC 293: chi phí của vòng trên Tầng 2
+             "tools/chay_vong_tang2_thi_truong_gia.py",   # BƯỚC 293: chi phí của vòng trên Tầng 2
+             "tools/chay_chinh_thuc_thi_truong_gia.py"}   # BƯỚC 295: dụng cụ chạy chính thức dòng hạt 2 · 3 · 4
 DUONG_THAT = ("paper_trading.py", "paper_runner.py", "paper_metrics.py", "run_daily.py", "master_agent.py",
               "analysis_agents.py", "walkforward.py", "sheets_store.py", "cham_bong.py", "cham_xac_nhan.py",
               "hau_kiem_loi.py", "ban_tin.py", "san_dau.py", "tools/san_dau.py")
@@ -774,7 +775,8 @@ def test_G2_duong_that_KHONG_nhap_module_thi_truong_gia_hay_vong_hoc_gia():
     assert set(nguoi) <= DUOC_NHAP, f"chỉ {sorted(DUOC_NHAP)} được nhập: {nguoi}"
     assert {"vong_hoc_gia.py", "tools/chay_vong_thi_truong_gia.py", "tools/hieu_chuan_thi_truong_gia.py",
             "thi_truong_gia_tang2.py", "tools/chay_tang2_thi_truong_gia.py",
-            "tools/oracle_tang2_thi_truong_gia.py", "tools/chay_vong_tang2_thi_truong_gia.py"} <= set(nguoi)
+            "tools/oracle_tang2_thi_truong_gia.py", "tools/chay_vong_tang2_thi_truong_gia.py",
+            "tools/chay_chinh_thuc_thi_truong_gia.py"} <= set(nguoi)
     for ten in DUONG_THAT:
         assert ten not in nguoi, ten
     assert not [x for x in nguoi if x.startswith("backtest/") or x == "app.py"]

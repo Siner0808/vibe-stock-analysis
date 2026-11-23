@@ -349,6 +349,12 @@ def test_BANG_tach_Streamlit_Cloud_khoi_GitHub_Actions_va_khong_khai_free_cho_Ac
     assert "silver" in cloud[0] and "09/10/2026" in cloud[0] and "free" not in cloud[0].lower()
     assert "CHƯA đọc" in actions[0] and "| free |" not in actions[0]
     assert not any(d.startswith("| GitHub Actions · Streamlit Cloud") for d in hang)
+    # BƯỚC 295 (22/11/2026): Silver hết hạn 22/11 và `requirements.txt` không còn vnstock từ BƯỚC 267 → hạng "silver" chỉ còn là
+    # số cũ có dấu; Cloud và Actions nói đúng thứ chúng DÙNG (giá ngày công khai), không nói "silver" như một sự thật hiện tại
+    local = [d for d in hang if d.startswith("| Máy local")]
+    assert len(local) == 1 and "HẾT ĐÚNG từ 22/11/2026" in local[0] and "🔴" in local[0]
+    assert "HẾT ĐÚNG từ 11/11/2026" in cloud[0] and "🔴" in cloud[0] and "nguon_gia_cong_khai" in cloud[0]
+    assert "nguon_gia_cong_khai" in actions[0] and "không có nguồn" in cloud[0] and "không có nguồn" in actions[0]
 
 
 def test_CAU_CU_free_tren_Cloud_chi_con_duoi_dau_HET_DUNG():
