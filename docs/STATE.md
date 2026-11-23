@@ -28220,3 +28220,82 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 
 1. Lát 5 (chạm `docs/TIEU-CHI-DOC-TRUOC.md`, nên hỏi sổ tay thật): chép bảng mục 6 đã sửa, khai tiêu chí máy đo thành TỶ LỆ (mục 15 khoản 8), khai Z′ · H′ cho K = 3 nếu Tầng 2 chạy bộ ba; chạy dòng hạt 2–4.
 2. Lỗi kế 207.
+
+
+## BƯỚC 297 — APP: Ô DEVIL'S ADVOCATE TRONG KHUNG TRANH LUẬN, VÀ `html.escape` CHO HAI CHỮ TỪ NGOÀI MÃ (`_loi_np`, `symbol`); CHỈ HIỂN THỊ (22/11/2026)
+
+**Mốc:** quy-trinh — sửa ô hiển thị và thoát HTML của app, hai mục chờ của leader từ BƯỚC 285 và BƯỚC 287; không mã mốc nào của `docs/LO-TRINH.md` nói về lỗi hiển thị; BƯỚC không đổi điểm, phân tích, cách tranh luận (`debate_agents.py`), `master_agent`, sổ, lượt quét hay file luật
+
+**Lời người dùng (nguyên văn, 22/11/2026):** *"tiếp đi. việc nào có thể quyết thay tôi thì làm nốt luôn đi"*. Dưới lời ấy, leader quyết hai mục dưới đây. **Đó là quyết định của LEADER, không phải lựa chọn riêng của người dùng cho từng mục** (người dùng chưa được hỏi từng câu; muốn đảo thì nói, mỗi mục là một thay đổi nhỏ chỉ ở `app.py`).
+
+**Đánh số:** BƯỚC 297; không mở lỗi mới (lỗi kế 207; BƯỚC 295 chạy song song cùng `main` @ `64ec66b` và có thể lấy 207 trước, đọc số lớn nhất khi ghi). Nhánh `app/devil-va-escape-297` từ `origin/main` @ `64ec66b`.
+
+### A. Quyết định của leader (hai mục làm, một mục KHÔNG làm)
+
+1. **LÀM — ô Devil's Advocate.** Câu hỏi mở của BƯỚC 285 (*"ô Devil's Advocate (vòng 2) chưa có trên app, có muốn thêm không"*): leader quyết hiện nó. Một ô cho MỖI phát biểu NEUTRAL, đúng vòng của nó, sau ô Bull và ô Bear của vòng ấy, cùng khuôn và cùng `html.escape` như ô vòng của BƯỚC 285/287.
+2. **LÀM — thoát HTML lớp E1 và E2** của `docs/STATE.md` BƯỚC 287 mục E (hai lớp có thể mang ký tự ngoài mã). **Lớp E3 (nhãn đóng nội bộ: `dyn_rec`, `dyn_phase_short` · `dyn_phase_full`, `master_msg`, `vol_flow_str`, `_goi_canh_bao`, `_hang(...)`, `_chu_thich_so_lenh_html`, `_vt_chinh`, `{_tip(...)}`, ngày vào lệnh từ sổ) KHÔNG sửa** ở BƯỚC này, khai thẳng: không lần ngược từng biến tới nguồn ngoài, và BƯỚC 287 đã đo chữ ngoài không tới được chúng.
+3. **KHÔNG LÀM — ô VN-INDEX ở topbar (BƯỚC 280 mục I.2).** Leader quyết KHÔNG làm: lợi 0,33 giây, và nó đổi một nguồn mà `CLAUDE.md` đang mô tả (ô VN-Index gọi `market_filter.chi_so_moi_nhat()`, ưu tiên MẠNG, kèm ngày phiên). Câu hỏi ấy coi như ĐÓNG theo hướng giữ nguyên; muốn mở lại thì là một BƯỚC mới có ĐO.
+
+### B. Ô Devil's Advocate
+
+Vai và nhãn đọc từ mã, không từ đề bài (`debate_agents.py`): `DevilsAdvocateAgent`, `NAME = "😈 Devil's Advocate Agent"`, `STANCE = "NEUTRAL"`; `DebateModerator.run_debate` đặt nó MỘT lần, ở vòng 2 (`all_rounds.append([r2_bull, r2_bear, r2_devil])`), sau Bull và Bear của vòng ấy; phát biểu là các câu "❓ …" nối bằng " | ", nhiệm vụ trong mã: *"Thách thức cả 2 phe, đặt câu hỏi sắc bén về các điểm mù"*. Trước đây `o_vong_tranh_luan` lọc `arg.get("stance") in _PHE_TRANH_LUAN` mà bảng chỉ có BULL và BEAR nên phát biểu này không hiện ở đâu.
+
+| trước | sau |
+|---|---|
+| `_PHE_TRANH_LUAN` = BULL · BEAR | thêm khoá `"NEUTRAL": ("devil", "😈 Devil's Advocate Agent (Thách thức)")`; biểu thức `o_vong_tranh_luan` KHÔNG đổi một ký tự (lọc theo khoá của bảng, số vòng từ `enumerate(rounds, start=1)`, lời qua `_html.escape`) |
+| không có kiểu cho ô thứ ba | CSS `.mb.devil` · `.mn.devil` (cam `--c-o`, cùng khuôn `.mb.bull`/`.mb.bear`) |
+
+Hệ quả hiển thị: vòng 2 có ba ô (Bull · Bear · Devil), vòng 1 và 3 giữ hai ô; vòng nào không có phát biểu NEUTRAL thì không có ô và không có chữ "None" (gác 1d, 1f). Thứ tự ô trong một vòng là thứ tự `rounds` do `DebateModerator` quyết, không do `app.py` sắp lại. Điểm, `debate_adjustment`, trọng số Devil 20% và `final_adjustment`: không đổi (không chạm `debate_agents.py` hay `master_agent.py`).
+
+### C. `html.escape` cho `_loi_np` và `symbol` — các chỗ đã sửa
+
+Cách tìm (AST, tái lập): `./.venv/Scripts/python.exe -X utf8 vibe_logs_297/quet_symbol.py app.py symbol _loi_np` (liệt kê từng `FormattedValue` của `app.py` mang một trong hai tên, kèm có qua `escape` hay không) — chạy trên `app.py` của `main` @ `64ec66b` cho **16 chỗ** (15 `symbol` + 1 `_loi_np`). Phân loại theo ngữ cảnh nhận:
+
+**Sửa — 10 chỗ vào HTML (`unsafe_allow_html=True`, trực tiếp hay qua biến rồi dán vào HTML)**, mỗi chỗ nay là `_html.escape(...)`:
+
+| # | dòng cũ | vị trí | ghi chú |
+|---|---|---|---|
+| 1 | 1629 | tiêu đề *"📊 Tín hiệu nhanh [{symbol}]"* ở thanh bên | |
+| 2 | 1658 | ô *"Gia Dong Cua ({symbol})"* của dải thị trường | |
+| 3 | 1841 | `<span class="sym-n">{symbol}.VN</span>` đầu biểu đồ | |
+| 4 | 2008 | ô dự phòng *"🐂 Bull Agent ({symbol})"* của khung tranh luận | qua biến `o_vong_tranh_luan` |
+| 5 | 2021 | *"💬 Debate Council ({symbol})"* | |
+| 6 | 2378 | `_vt_phu = f"{symbol} không nằm trong sổ lệnh đang mở"` | qua biến, dán vào ô "Vị thế" |
+| 7 | 2413 | ô "Phân tích hôm nay": `{dyn_rec} {symbol}` | |
+| 8 | 2422 | ô *"Vị thế {symbol}"* | |
+| 9 | 2743 | chân trang *"Ma dang chon: {symbol} ({exchange})"* | |
+| 10 | 2367 | **E1:** `_np_phu = f"nến nội phiên: {_loi_np}"` → `{_html.escape(str(_loi_np))}` | `str()` giữ nguyên cách hiện của ngoại lệ; dán vào ô "Trong phiên" |
+
+**KHÔNG sửa — 6 chỗ là markdown thường (không `unsafe_allow_html`; Streamlit không dựng thẻ HTML từ chuỗi này):** `st.spinner` (1280), `st.error` *"Không thể kết nối dữ liệu giá cho mã"* (1433), `_hien_dong_pha(..., f"{symbol}.VN")` → `st.caption` (1858), `st.markdown("##### 🎯 Kế hoạch vào lệnh … [{symbol}]")` (2102), `st.warning` (2197), `st.markdown("##### 📑 Sức khoẻ tài chính — {symbol}")` (2436). Chỉ markdown, không HTML; khai ra đây để người đọc sau biết đã thấy và cố ý để, không phải bỏ sót. Gác AST bên dưới nhận đúng nhóm này làm ngoại lệ tường minh.
+
+Mã hợp lệ (chữ và số) hiện **y hệt từng byte** trước và sau: `html.escape` chỉ đổi `& < > " '`; gác 3b chạy chính các biểu thức của `app.py` với `FPT · ACB · VN30F1M · E1VFVN30 · BSR` và đòi kết quả bằng chính mã. Dấu nháy đơn trong `_loi_np` thành `&#x27;` (khác byte, trình duyệt hiện lại đúng dấu nháy; gác 2b).
+
+### D. Gác (`tests/test_devil_va_escape_297.py`, 21 test, không dùng mạng, không bật Streamlit; mốc 5637 → 5658)
+
+1. Devil (7 test): khoá NEUTRAL của bảng lấy từ `DevilsAdvocateAgent.STANCE` của mã; kết quả của `DebateModerator` thật cho thứ tự Bull · Bear (vòng 1), Bull · Bear (vòng 2), Devil (vòng 2), Bull · Bear (vòng 3), lời đúng nguyên văn; chữ hiểm (`<b>`, `<script>`, `&`, `"`, `'`) hiện là chữ; không Devil → không ô, không "None"; Devil ở vòng khác và nhiều Devil → mỗi phát biểu một ô đúng vòng; thiếu hay `None` → ô rỗng không in "None"; chỉ có Devil vẫn hiện, không rơi về câu báo lỗi.
+2. `_loi_np` (3 test): chạy đúng phép gán `_np_phu` của nhánh lỗi (lấy từ cây AST) — chữ hiểm hiện là chữ, không sinh thẻ; lỗi thường giống hệt; ngoại lệ (`ValueError("a<b")`) hiện như `str`.
+3. `symbol` (3 test): đếm bằng AST đúng 7 chỗ trong lời gọi `st.markdown(..., unsafe_allow_html=True)` và mọi chỗ qua `escape`; chạy từng biểu thức ấy (và `_vt_phu`) với mã thường (byte-identical) và với chuỗi hiểm; ô dự phòng của khung tranh luận chạy cả biểu thức.
+4. Gác AST (`_vi_pham`, 8 test gồm 5 tham số): mọi `FormattedValue` mang `symbol` hoặc `_loi_np` phải là `<tên module html>.escape(...)`, TRỪ khi f-string là đối số của một lời gọi markdown thường (`st.error · warning · spinner · caption · markdown`/`_hien_dong_pha` không bật `unsafe_allow_html`); thêm ba hình dạng khác: nối chuỗi `+`/`%`, `.format(...)`, và bí danh `m = symbol` (đích là tên trần; `st.session_state[k] = symbol` là kho trạng thái, được phép). Mặc định là CẤM: một ngữ cảnh lạ phải qua `escape`. `escape` phải của module `html` thật (bí danh lấy từ `import html as ...`).
+5. Hai gác cũ của BƯỚC 285 đã đổi vì đúng ý của BƯỚC này: `test_1b` (từng khẳng định *"phát biểu của Devil's Advocate không có ô ở khung này"*) nay khẳng định ô CÓ; `test_2c` (khoá bảng `{BULL, BEAR}`) nay `{BULL, BEAR, NEUTRAL}`. Hai gác của BƯỚC 287 (`test_3a`–`3d`) và `test_no_fabricated_data.py` giữ nguyên và vẫn xanh.
+
+**Cơ sở xanh trước khi đục (lỗi 205):** trước mọi sửa, `pytest tests/test_tin_trung_va_escape_287.py tests/test_vong_tranh_luan_285.py tests/test_no_fabricated_data.py -q` → `47 passed` (`vibe_logs_297/co_so_xanh.log`); sau sửa, bốn file → `68 passed` (`vibe_logs_297/t2.log`).
+
+**Đột biến (`vibe_logs_297/dot_bien_297.py` → `dot_bien_297.log`, bản in tên test đỏ `dot_bien_ten_297.py` → `dot_bien_ten_297.log`; `va_an_toan.dot_bien_bo`, hoàn trả từng byte): 20 phát, 20 ĐỎ, 0 sống.** Gồm: dựng lại NGUYÊN VĂN từng dạng thô gốc (9 chỗ `symbol`, `_loi_np` dán thô, `_loi_np` chỉ `str()`); `escape(..., quote=False)` (đỏ ở 3b: còn `"`); thay `escape` bằng `unescape` và bằng `str` (đỏ ở 3a, 3b, gác AST); sáu phát cho Devil (bỏ khoá NEUTRAL, khoá sai chữ, dùng lớp `bear`, bỏ `escape` ở ô lời, thay `or ""` bằng `str(...)` → in "None", bỏ CSS). Mỗi phát đỏ vì ĐÚNG test của nó (bản in tên test). Chỗ thật thà: phát *"bỏ `escape` ở ô lời"* (ô Bull/Bear/Devil dùng chung một khuôn) cũng đã đỏ ở `tests/test_tin_trung_va_escape_287.py::test_3d` của BƯỚC 287.
+
+### E. Điều CHƯA làm và điều chưa kiểm
+
+- **Chưa dựng app lên nhìn** (không mở Streamlit, không chụp màn hình, không `AppTest` toàn app): app tải giá qua mạng khi chạy và brief cấm mạng. Ô Devil và các chỗ escape được kiểm bằng cây AST và bằng chạy từng biểu thức của `app.py` trên kết quả `DebateModerator` thật. Màu cam của ô Devil chưa được nhìn bằng mắt. Khung `.debate` cao cố định 385 px cuộn dọc nên ô thêm không đẩy bố cục, nhưng chưa nhìn.
+- Lớp E3 giữ nguyên (mục A.2). Sáu chỗ markdown thường giữ nguyên (mục C). Một mã gõ vào mà chứa ký tự markdown (`*`, `` ` ``, `[`) vẫn có thể làm hỏng định dạng ở sáu chỗ markdown ấy; không đo, không sửa.
+- Không đo hiệu năng; không đổi dòng nào của `debate_agents.py`, `master_agent.py`, điểm, ngưỡng, `paper_*`, `run_daily`, `sheets_store` hay file luật.
+
+### F. Sổ tay NotebookLM · số test · năm cổng
+
+- **Sổ tay:** `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 297` trên cây đã commit (kết quả ở báo cáo/PR); mục `BƯỚC 297` của `docs/soat-notebooklm.json` mang `khong_bat_buoc_vi`. BƯỚC không đổi luật, không đổi kết luận đo.
+- **Số test:** `docs/moc_so_test.json` 5637 → 5658 (+21 `tests/test_devil_va_escape_297.py`; hai test sửa của BƯỚC 285 giữ số lượng; lệnh `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py` trước `--cap-nhat` in *"so test TANG 5637 -> 5658"*).
+- **Năm cổng** `--tuan-tu` trên commit CUỐI của nhánh: kết quả ở báo cáo của phiên con và ở PR.
+
+### G. Việc kế
+
+1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge). BƯỚC 295 song song ghi cùng sổ (STATE, HANDOFF, `docs/moc_so_test.json`, `docs/soat-notebooklm.json`): PR nào merge SAU phải `git merge origin/main`, dựng lại hai file JSON từ dict (không gộp văn bản, lỗi 170) và chạy lại các cổng.
+2. Nhìn app thật (cổng khác 8511) để xem màu và độ cao ô Devil khi nào có người xem; đến lúc ấy mới đóng dòng *"chưa dựng app lên nhìn"* của BƯỚC 285 · 287 · 297.
+3. Lỗi kế 207 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới; hai chỗ lượt chạy đầu của test mới đỏ vì CHÍNH test sai, không phải app: gác bí danh coi `st.session_state[k] = symbol` là vi phạm, và số chỗ tôi đoán 8 thật là 7; sửa test ngay, trước đột biến và trước cổng).
