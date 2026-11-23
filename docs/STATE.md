@@ -28222,6 +28222,64 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 2. Lỗi kế 207.
 
 
+## BƯỚC 295 — C4 LÁT 5 (a): KÝ BẢNG TIÊU CHÍ (ĐO 37), DỤNG CỤ CHẠY CHÍNH THỨC VÀ CỬA CỦA NÓ, CHI PHÍ TẦNG 1 · TẦNG 2 ĐO Ở DÒNG THỬ 9001; KHÔNG CHẠY dòng hạt 2 · 3 · 4 (22–23/11/2026)
+
+**Mốc:** C4
+
+**Quyết định (ghi rõ AI quyết).**
+- **(a) NGƯỜI DÙNG, 23/11/2026.** Câu hỏi (leader chuyển, hỏi 22–23/11/2026) *"BƯỚC 295: đồng ý đọc gộp phép kiểm máy đo ở thị trường NULL không? Ngưỡng: ít nhất 85% số ô trong 2 lần sai số, độ lệch chuẩn z trong 0,7–1,5, trị tuyệt đối trung bình z dưới 0,5."*; người dùng trả lời *"đồng ý"*. Hiệu lực: mục từng ghi CHỜ NGƯỜI DÙNG DUYỆT ở ĐO 37 (Đ9 khoản 1) thành mục ĐÃ KÝ; phạm vi MỌI ô (thị trường NULL của dòng 3 × 12 spec); ba ngưỡng là ba ngưỡng của `tests/test_thi_truong_gia.py::test_oracle_NULL_sai_so_MC_duoc_hieu_chuan` (viết ở BƯỚC 261).
+- **(b)–(g) LÀ QUYẾT ĐỊNH CỦA LEADER, không phải của người dùng** (22–23/11/2026; ĐO 37 mang nhãn từng điều): (b) P2 của Tầng 2 chạy trên cả 200 thị trường, đúng chữ của tiêu chí; (c) bắt G ở 1× ngoài [299 ; 340]/400 là KHÔNG ĐỌC ĐƯỢC; (d) "ΔIC_true(G) ±10%" đọc GỘP: trung bình trên 400 thị trường của một mức so với `muc_tieu_delta_ic`, ở NULL |trung bình| < 2 sai số chuẩn của trung bình; (e) bộ ba Tầng 2 G′ = `bo_momentum_score` · Z = `doi_cho_trend_sr` · H = `bo_volume_score`, Z và H chỉ BÁO CÁO, báo động ở NULL của PT đếm của bất kỳ ứng viên nào trong ba; (f) định nghĩa A · A0 · C2 · C3 · P4; (g) ba hàng Máy local · Streamlit Cloud · GitHub Actions của `CLAUDE.md`. Người dùng chưa được hỏi từng điều (b)–(g); muốn đảo thì nói, và vì lượt chạy (BƯỚC 296) chưa có, đảo còn kịp.
+
+**Đánh số:** BƯỚC 295; không mở lỗi mới (lỗi kế 207). Nhánh `c4/lat5a-ky-tieu-chi-295` từ `origin/main` @ `64ec66b`; pha 2 đã `git merge origin/main` (@ `58c1d2f`, mang BƯỚC 297 / PR #341): ledger văn bản hợp nhất không xung đột, `docs/soat-notebooklm.json` ghi lại bằng công cụ từ dict và `docs/moc_so_test.json` cập nhật bằng công cụ, không hợp nhất văn bản (lỗi 170). Phiên con pha 1 chết khi máy khởi động lại; pha 2 là phiên con mới đọc `vibe_logs_295/de_bai_295_pha2.md`.
+
+### A. Việc đã làm (ba commit pha 1 và ba commit pha 2)
+
+1. **ĐO 37** ở `docs/TIEU-CHI-DOC-TRUOC.md` (bản nháp riêng ở `0f6424d`, ký ở pha 2): bảng mục 6 chép NGUYÊN VĂN (kể cả hàng PT do BƯỚC 294 viết lại) · quy tắc đọc · dòng hạt R · lệnh chạy BƯỚC 296 từng dòng hạt với chỉ số · bộ ba Tầng 2 · số tham chiếu dòng 1 kèm sha · cửa · chi phí (ƯỚC LƯỢNG) · điều đã thấy trước khi ký.
+2. **Dụng cụ** `tools/chay_chinh_thuc_thi_truong_gia.py` + `tests/test_chay_chinh_thuc_thi_truong_gia.py` (pha 1, `030124e`; pha 2 thêm một ca P2). Cửa `kiem_cong` (đọc bằng git lúc chạy; thiếu một điều thì không sinh thị trường nào, mã thoát 3, in hết các điều thiếu): `origin/main` nạp được · có `## ĐO 37 —` · thân ĐO nêu nguyên văn lệnh và dòng kế hoạch của dòng hạt ấy · thân ở cây làm việc BẰNG thân ở `origin/main` và 11 file ghim bằng `origin/main` · `origin/main` là tổ tiên của `HEAD` · dòng hạt chưa `XONG`. Dòng 2 · 3 · 4 chỉ mở bằng `PhepChay`, token chỉ dựng được trong `kiem_cong`; dòng 5 không bao giờ mở; 9001 là dòng thử; `kiem_luong` của năm dụng cụ Lát 2–4 không đổi (có test).
+3. **`CLAUDE.md`** (pha 1, `f8f9076`, quyết định (g)): ba hàng của bảng *Bất đối xứng local / CI* không còn nói Silver là sự thật hiện tại; số cũ giữ kèm 🔴.
+4. **Pha 2:** ĐO 37 ký (`a98d77e`), mục thật của `docs/soat-notebooklm.json`, đánh dấu 🔴 HẾT ĐÚNG ở `docs/QUYET-DINH-CHO.md` (bản ghi Q3: câu *"Cloud chạy hạng silver"* chưa có dấu; do tự kiểm tìm ra, sổ tay bỏ sót), gác ĐO 37 siết lại và ca P2 mới (commit thứ hai của pha 2), ledger (commit thứ ba).
+
+### B. Chi phí — ƯỚC LƯỢNG (dòng thử 9001; số và lệnh nằm trong ĐO 37, mục *Chi phí*)
+
+Tầng 1: 2.200 thị trường ≈ 21 phút ở 12 tiến trình (0,58 s mỗi thị trường, đo trên 144). Tầng 2: ≈ 6,4 giờ cho 200 thị trường (≈ 2,8 giờ chấm điểm + bộ ba + chuỗi, cùng cỡ 2,6 giờ của mục 19.7; ≈ 3,5 giờ cho P2, mà mục 19.7 không tính). **Tổng ≈ 6,8 giờ**; bỏ P2 thì ≈ 3,2 giờ Tầng 2. Máy 8 lõi vật lý; các lượt đo chạy lúc một phiên khác chạy cổng CÙNG MÁY nên có thể thiên cao. ĐÂY LÀ ƯỚC LƯỢNG, không phải kết quả của T6.
+
+### C. Sổ tay NotebookLM (hỏi thật; Quy tắc 3)
+
+- Leader làm tươi nguồn rồi hỏi một lượt (`do-tuoi` 25/25 TUOI so với `64ec66b`; nhãn ở `vibe_logs_295/nhan_2211_sau.md`), câu hỏi nguyên văn ở `vibe_logs_295/hoi_295_text.txt` (2.186 đơn vị UTF-16). Trả lời lưu nguyên văn `vibe_logs_295/tra_loi_295.md`, 5.738 đơn vị UTF-16, sha256 `80d8615c1f51234c0141fb020e2c568704bb40a272d5d238756d621af839bccb` (`so_tay.py kiem-tra-loi`: KHỚP), 34 trích dẫn ở `trich_dan_295.json`. Mục `BƯỚC 295` của `docs/soat-notebooklm.json` ghi bằng `so_tay.py ghi` với `nhan_nguon_so_voi` = `64ec66b` (tươi so với đúng cây sổ tay đã đọc; so với `HEAD` nó báo CU vì chính BƯỚC này sửa `CLAUDE.md` và `docs/TIEU-CHI-DOC-TRUOC.md`).
+- **Kết quả: ÂM — sổ tay nói không có chỗ nào mâu thuẫn** (điểm 1–4 và (d)), trích mục 8 Lát 5, mục 4.8, mục 15 khoản 8 và 12, mục 19, BƯỚC 286, hàng Silver cũ của `CLAUDE.md`.
+- **Tự kiểm (lệnh trong `_tu_kiem_cau_am` của mục sổ):** `tools/doi_chieu_trich_dan.py` cho các trích dẫn ở `CLAUDE.md` · STATE · HANDOFF · TIEU-CHI: KHỚP. Dụng cụ ấy KHÔNG nạp `docs/thiet-ke-c4-thi-truong-gia.md`, nên bảy trích dẫn của đặc tả đối chiếu bằng `chuan_hoa` của chính nó trên tệp đặc tả: cả bảy KHỚP (một câu chỉ sau khi đổi nháy đơn của sổ tay thành nháy kép của đặc tả). Câu ÂM grep lại: **một câu bị sổ tay bỏ sót** — `docs/QUYET-DINH-CHO.md` dòng 92 *"Cloud chạy hạng silver"* (bản ghi Q3, 09/10/2026) chưa mang dấu hết đúng; đã đánh dấu 🔴 ở BƯỚC này. Các câu Silver ở `CLAUDE.md` và `docs/HANDOFF.md` đều đã có dấu. Không câu nào nói dòng hạt 2 · 3 · 4 đã chạy hay dành cho việc khác; mục 15 khoản 12 nói MỘT lượt thăm dò oracle ở dòng 2 (chỉ số 1) và dòng 5 (chỉ số 1…30), ĐO 37 đã né (dòng 2 bắt đầu từ chỉ số 1001, dòng 5 không mở). `docs/HANDOFF.md` khối BƯỚC 293 còn ghi bộ ba *CHỜ NGƯỜI DÙNG QUYẾT*, nhưng khối BƯỚC 294 ngay trên ghi *ĐÃ ĐÓNG*: bản ghi theo ngày, không phải mâu thuẫn. Sổ tay không thấy mã; nó không bắt được chỗ dụng cụ lệch test (mục F).
+- `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 295` → CHẠM LUẬT (`CLAUDE.md` · `docs/TIEU-CHI-DOC-TRUOC.md`), được phủ bởi MỤC HỎI THẬT, không dùng `khong_bat_buoc_vi`.
+
+### D. Đột biến (lỗi 205: cơ sở xanh cùng lệnh trước khi đục)
+
+Bộ đục ngoài repo `vibe_logs_295/dot_bien_295.py` (dụng cụ, 50 phát) và `dot_bien_295_do.py` (văn bản ĐO 37, 6 phát); `va_an_toan.dot_bien`, hoàn trả từng byte.
+- **Dụng cụ, lượt 1:** cơ sở `101 passed` (xanh, cùng lệnh); 48/50 ĐỎ, **1 SỐNG SÓT** (`P2 None không trượt`: `p2 in (0, None)` — một thị trường chưa chạy P2 được đọc là 0 vi phạm; gác thiếu ca ấy), **1 neo hỏng** (`A: >= thành >`: neo của bộ đục không khớp dòng thật; sửa neo, không phải gác thiếu). Sửa: thêm ca `P2_chua_chay` vào bảng một-đơn-vị-qua-biên (101 → 102 test); chạy lại cơ sở (`102 passed`) rồi hai phát: **cả hai ĐỎ**.
+- **Văn bản ĐO 37, 6 phát:** lượt 1 có **2 SỐNG SÓT** (`|trung bình z| < 0,5` → `0,9` và `MỌI ô` → `MỘT ô`: gác chỉ đòi số có MẶT ở đâu đó trong ĐO, mà 0,5 và cụm "MỌI ô…" còn ở chỗ khác). Siết gác: ba ngưỡng dựng từ `MAY_DO_NULL` và khớp ĐÚNG câu đậm của Đ9 khoản 1; cụm phạm vi đòi đúng hai lần và đòi câu nguyên của Đ9. Cơ sở `7 passed`, cả 6 phát ĐỎ.
+- Hai phát sống sót là THẬT (đổi hành vi ở chỗ gác canh), không phải phát thiết kế sai.
+
+### E. Điều chưa làm và điều chưa kiểm
+
+- **KHÔNG chạy dòng hạt 2 · 3 · 4, không một thị trường** (có test chứng minh dụng cụ từ chối ở nhánh này); BƯỚC 296 chạy sau khi PR này merge. Dòng 9001 đã chạy qua cả hai tầng chỉ để thử máy và đo chi phí (khai ở ĐO 37).
+- Các số chi phí là ƯỚC LƯỢNG từ dòng thử, không phải kết quả; Tầng 2 thật có thể lệch (đo lúc máy bận).
+- **Chưa thử cửa trên một `origin/main` thật có ĐO 37** (test dùng git giả; cửa thật chỉ mở được ở BƯỚC 296 sau merge).
+- Mã đọc kết cục (`--ket-cuc`) chỉ chạy trên bản ghi giả ở test.
+
+### F. Độ lệch khai thẳng (so với lời của đề bài và của test)
+
+- Dụng cụ tính sd(z) theo mẫu (`ddof=1`) với biên đóng; test của Lát 1 dùng `ddof=0` với biên mở. Ở 12.000 ô chênh hệ số 1,00004; ĐO 37 nêu chỗ này. Không sửa mã vì ngưỡng của người dùng nói *"0,7–1,5"* và test hiện khoá giá trị `MAY_DO_NULL`.
+- Độ tươi của mục sổ so với `64ec66b`, không so với `HEAD` (xem mục C).
+- Bộ đục có 50 phát, không phải 49 như đề bài ước.
+
+### G. Số test · năm cổng
+
+- **Số test:** `docs/moc_so_test.json` 5658 → 5760 (+102 `tests/test_chay_chinh_thuc_thi_truong_gia.py`; `tests/test_bat_doi_xung_ban_goi.py` thêm khẳng định, giữ số lượng); lệnh `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py` trước `--cap-nhat` in *"so test TANG 5658 -> 5760"*. Thời gian thêm: file mới chạy ≈ 50–60 giây nối tiếp (`101 passed in 48,28 s` · `63,16 s` · `102 passed in 51,93 s` ở ba lượt đo trên máy này).
+- **Năm cổng** `--tuan-tu` trên commit CUỐI của nhánh: kết quả ở báo cáo của phiên con và ở PR.
+
+### H. Việc kế
+
+1. Leader soát PR của BƯỚC 295 (PR đổi luật: `CLAUDE.md` và `docs/TIEU-CHI-DOC-TRUOC.md`; KHÔNG tự merge). Sau merge, mở **BƯỚC 296**: chạy MỘT lần dòng hạt 2, rồi 3, rồi 4 bằng đúng ba lệnh của ĐO 37 (≈ 6,8 giờ ƯỚC LƯỢNG), rồi `--ket-cuc`; kết cục ghi nguyên văn vào STATE và `docs/LO-TRINH.md` (hàng C4 / T6), kể cả TRƯỢT.
+2. Lỗi kế 207.
+
 ## BƯỚC 297 — APP: Ô DEVIL'S ADVOCATE TRONG KHUNG TRANH LUẬN, VÀ `html.escape` CHO HAI CHỮ TỪ NGOÀI MÃ (`_loi_np`, `symbol`); CHỈ HIỂN THỊ (22/11/2026)
 
 **Mốc:** quy-trinh — sửa ô hiển thị và thoát HTML của app, hai mục chờ của leader từ BƯỚC 285 và BƯỚC 287; không mã mốc nào của `docs/LO-TRINH.md` nói về lỗi hiển thị; BƯỚC không đổi điểm, phân tích, cách tranh luận (`debate_agents.py`), `master_agent`, sổ, lượt quét hay file luật
