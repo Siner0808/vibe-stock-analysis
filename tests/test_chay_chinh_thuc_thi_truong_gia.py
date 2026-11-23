@@ -469,6 +469,12 @@ def test_NGUONG_khop_bang_muc_6_cua_dac_ta_tung_dong():
     assert "400" in hang["A"] and "1.000" in hang["A0"] and "100" in hang["P"]
 
 
+def _p2_none(ra, i):
+    """Một thị trường chưa chạy P2 (`p2` = None): P2 không được đọc là 0 vi phạm (đột biến `p2 in (0, None)` sống sót ở BƯỚC 295)."""
+    ra[i]["p2"] = None
+    return ra
+
+
 # (tên, tham số `_ket_dat`/ghi đè, tiêu chí phải TRƯỢT) — đều là MỘT đơn vị qua biên
 def _truot_mot_don_vi():
     n = CT.NGUONG
@@ -487,6 +493,7 @@ def _truot_mot_don_vi():
         ("P3", {"x4": _o2(100, g_qua=G_PHAY["dai_thap"], p3=n["P3"] - 1)}, "P3"),
         ("P1", {"n4": _o2(100, null_alarm=n["PT_NULL"], p1=1)}, "P1"),
         ("P2", {"n4": _o2(100, null_alarm=n["PT_NULL"], p2=1)}, "P2"),
+        ("P2_chua_chay", {"n4": _p2_none(_o2(100, null_alarm=n["PT_NULL"]), 7)}, "P2"),
         ("C1_tang2", {"x4": _o2(100, g_qua=G_PHAY["dai_thap"], p3=n["P3"], c1=1)}, "C1"),
     ]
 
@@ -1116,12 +1123,25 @@ def test_ĐO_37_khai_bo_ba_tang_2_la_quyet_dinh_cua_leader_va_Z_H_chi_bao_cao():
     assert "BÁO CÁO, KHÔNG PHÁN" in DO37
 
 
-def test_ĐO_37_neu_dieu_cho_nguoi_dung_duyet_la_tieu_chi_may_do_NULL_theo_ty_le():
+def test_ĐO_37_tieu_chi_may_do_NULL_theo_ty_le_da_ky_voi_loi_NGUOI_DUNG_nguyen_van_va_ba_nguong_cua_dung_cu():
+    """BƯỚC 295 pha 2: mục từng ghi CHỜ NGƯỜI DÙNG DUYỆT nay đã ký; lời người dùng (23/11/2026) và câu hỏi nguyên văn nằm trong ĐO."""
     for k, v in (("ty_le_o_trong_2se_toi_thieu", CT.MAY_DO_NULL["ty_le_o_trong_2se_toi_thieu"]), ("trung_binh_z_toi_da", CT.MAY_DO_NULL["trung_binh_z_toi_da"])):
         assert str(v).replace(".", ",") in DO37, k
     lo, hi = CT.MAY_DO_NULL["sd_z"]
     assert f"{lo}".replace(".", ",") in DO37 and f"{hi}".replace(".", ",") in DO37
-    assert "mục 15 khoản 8" in DO37 and "CHỜ NGƯỜI DÙNG" in DO37 or "NGƯỜI DÙNG ĐÃ DUYỆT" in DO37
+    assert "mục 15 khoản 8" in DO37
+    assert 'NGƯỜI DÙNG ĐÃ DUYỆT 23/11/2026, nguyên văn *"đồng ý"*' in DO37
+    assert ("*\"BƯỚC 295: đồng ý đọc gộp phép kiểm máy đo ở thị trường NULL không? Ngưỡng: ít nhất 85% số ô trong 2 lần sai số, "
+            "độ lệch chuẩn z trong 0,7–1,5, trị tuyệt đối trung bình z dưới 0,5.\"*") in DO37
+    assert "CHỜ NGƯỜI DÙNG" not in DO37 and "KHÔNG được coi là đã ký" not in DO37
+    assert DO37.count("MỌI ô (thị trường NULL của dòng 3 × 12 spec)") == 2     # ở mục Gốc và ở khoản 1 của Đ9
+    assert "MỌI ô (thị trường NULL của dòng 3 × 12 spec), z = ΔIC_true / sai số MC" in DO37
+    # ba ngưỡng ĐÚNG CHỖ chữ đậm của khoản 1 của Đ9 (sinh từ hằng số của dụng cụ, không gõ số), không chỉ "số có đâu đó trong ĐO"
+    v = lambda x: str(x).replace(".", ",")   # noqa: E731
+    for cau in (f"**tỷ lệ ô có |z| < 2 ≥ {v(CT.MAY_DO_NULL['ty_le_o_trong_2se_toi_thieu'])}**",
+                f"**{v(lo)} < sd(z) < {v(hi)}**",
+                f"**|trung bình z| < {v(CT.MAY_DO_NULL['trung_binh_z_toi_da'])}**"):
+        assert cau in DO37, cau
 
 
 def test_ba_nguong_may_do_NULL_la_ba_nguong_da_khoa_o_test_cua_Lat_1_truoc_khi_chay():
