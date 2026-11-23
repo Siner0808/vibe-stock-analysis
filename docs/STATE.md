@@ -28222,7 +28222,7 @@ Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_vong_tang2_thi_truong_gia
 2. Lỗi kế 207.
 
 
-## BƯỚC 295 — C4 LÁT 5 (a): KÝ BẢNG TIÊU CHÍ (ĐO 37), DỤNG CỤ CHẠY CHÍNH THỨC VÀ CỬA CỦA NÓ, CHI PHÍ TẦNG 1 · TẦNG 2 ĐO Ở DÒNG THỬ 9001; KHÔNG CHẠY dòng hạt 2 · 3 · 4 (22–23/11/2026)
+## BƯỚC 295 — C4 LÁT 5 (a): KÝ BẢNG TIÊU CHÍ (ĐO 37), DỤNG CỤ CHẠY CHÍNH THỨC VÀ CỬA CỦA NÓ, CHI PHÍ TẦNG 1 · TẦNG 2 ĐO Ở DÒNG THỬ 9001; KHÔNG CHẠY dòng hạt 2 · 3 · 4 (23/11/2026)
 
 **Mốc:** C4
 
@@ -28273,7 +28273,7 @@ Bộ đục ngoài repo `vibe_logs_295/dot_bien_295.py` (dụng cụ, 50 phát) 
 ### G. Số test · năm cổng
 
 - **Số test:** `docs/moc_so_test.json` 5658 → 5760 (+102 `tests/test_chay_chinh_thuc_thi_truong_gia.py`; `tests/test_bat_doi_xung_ban_goi.py` thêm khẳng định, giữ số lượng); lệnh `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py` trước `--cap-nhat` in *"so test TANG 5658 -> 5760"*. Thời gian thêm: file mới chạy ≈ 50–60 giây nối tiếp (`101 passed in 48,28 s` · `63,16 s` · `102 passed in 51,93 s` ở ba lượt đo trên máy này).
-- **Năm cổng** `--tuan-tu` trên commit CUỐI của nhánh: kết quả ở báo cáo của phiên con và ở PR.
+- **Cổng 1 trên CẢ bộ ở lượt đầu của pha 2 ĐỎ 6 test** (cổng 4 đỏ đúng ba trong sáu khi chạy một mình): pha 1 chỉ chạy các file liên quan nên không thấy. Sáu chỗ, đều là hệ quả của BƯỚC này, đều đã sửa: (1) `CLAUDE.md` dài 26.703 ký tự, trần 26.000 (`main` đang 25.993: còn 7 ký tự dư) — nén ba hàng bảng *Bất đối xứng* và một vế câu, còn 25.999 (không nâng trần; số cũ và dấu 🔴 giữ, bớt chi tiết thứ yếu đã có ở STATE); (2) tiêu đề BƯỚC 295 thiếu ngày `dd/mm/yyyy` ở cuối (nay `(23/11/2026)`); (3) thiếu dòng `ĐO 37` trong `docs/soat-notebooklm.json` (mỗi ĐO đã ký phải có một dòng; dòng ghi bằng `so_tay.py ghi`, trỏ về mục BƯỚC 295 như ĐO 35 · 36); (4) `tests/test_chay_chinh_thuc_thi_truong_gia.py` liệt kê `tests/` bằng `glob` trần, không qua `duyet_repo.liet_ke` (luật 4 của BƯỚC 201); (5) và (6) hai gác *"ai được nhập module thị trường giả"* (`tests/test_tang2_thi_truong_gia.py`, `tests/test_vong_hoc_thi_truong_gia.py`) chưa kể dụng cụ chạy chính thức vào danh sách được nhập — thêm tên nó, KHÔNG nới gì khác.- **Năm cổng** `--tuan-tu` trên commit CUỐI của nhánh: kết quả ở báo cáo của phiên con và ở PR.
 
 ### H. Việc kế
 

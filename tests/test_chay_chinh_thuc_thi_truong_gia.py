@@ -295,6 +295,7 @@ def test_main_ket_cuc_khong_co_file_tra_2_va_khong_sinh_gi(monkeypatch):
 
 
 def test_cac_dung_cu_khac_van_chan_dong_2_3_4_5_va_khong_dung_cu_nao_nhap_dung_cu_chinh_thuc():
+    import duyet_repo
     cu = {"chay_vong_thi_truong_gia", "hieu_chuan_thi_truong_gia", "oracle_tang2_thi_truong_gia", "chay_tang2_thi_truong_gia",
           "chay_vong_tang2_thi_truong_gia"}
     for ten in sorted(cu):
@@ -307,7 +308,7 @@ def test_cac_dung_cu_khac_van_chan_dong_2_3_4_5_va_khong_dung_cu_nao_nhap_dung_c
             with pytest.raises(ValueError):
                 m.kiem_luong(l)
         assert "chay_chinh_thuc" not in duong.read_text(encoding="utf-8")
-    for duong in list(GOC.glob("*.py")) + list((GOC / "tools").glob("*.py")) + list((GOC / "tests").glob("*.py")):
+    for duong in list(GOC.glob("*.py")) + list((GOC / "tools").glob("*.py")) + duyet_repo.liet_ke(GOC, "tests", "*.py"):
         if duong.name in ("chay_chinh_thuc_thi_truong_gia.py", "test_chay_chinh_thuc_thi_truong_gia.py"):
             continue
         cay = ast.parse(duong.read_text(encoding="utf-8"))
