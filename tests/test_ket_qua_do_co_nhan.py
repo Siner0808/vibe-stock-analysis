@@ -60,7 +60,7 @@ STATE = GOC / "docs" / "STATE.md"
 
 TU_DO = 38
 DAI_LY_DO = 30        # lý do ≥ 30 ký tự: cùng ngưỡng `test_do_phai_khai_da_tra.py`
-DAI_DIEM_SO_SANH = 20  # `- **M1** (leader)` không phải một điểm so sánh
+DAI_DIEM_SO_SANH = 20  # `- **M1** (người dùng)` không phải một điểm so sánh
 HUONG = ("nới", "siết", "trung tính")
 CAU_NOI = "đạt-sau-khi-đổi-luật không phải bằng chứng máy đo tốt hơn"
 CAU_KET_CUC = "dưới văn bản đã sửa"
@@ -107,7 +107,9 @@ def bo_khoi_ma_va_trich(van: str) -> str:
 RE_TEN_MUC = re.compile(r"ĐO\s+(\d+)([a-z]?)$")
 RE_DONG_M = re.compile(r"^\s*-\s+\*\*M(\d+)\*\*(.*)$", re.M)
 RE_DONG_B = re.compile(r"^\s*-\s+\*\*B(\d+)\*\*(.*)$", re.M)
-RE_NGUOI_CHOT = re.compile(r"\((người dùng|leader)\)\s*$")
+# Quyết định của leader 25/11/2026: `(leader)` TRƠ TRỤI không hợp lệ; chỉ `(leader — người dùng giao:
+# *"<lời người dùng, >= 10 ký tự>"*)`. Dòng 8 đầu tệp (người dùng chốt mọi mục) vẫn là luật.
+RE_NGUOI_CHOT = re.compile(r'\((người dùng|leader — người dùng giao: \*"[^"]{10,}"\*)\)\s*$')
 RE_NHAN_YEU = re.compile(r"^\s*\*\*Nhãn:\*\*\s*Sau khi nhìn\s*$", re.M)
 RE_THANG = re.compile(
     r"\(thăng từ ĐO\s+(\d+)\s+(B\d+|Báo kèm|Sau khi nhìn);\s*"
@@ -181,7 +183,7 @@ def kiem_muc(ten: str, n: int, hau_to: str, than: str) -> list[str]:
             loi.append(f"{ten}: phần ký không có dòng `- **M1** … (người dùng|leader)`")
         for so, phan_con in dong_m:
             if not RE_NGUOI_CHOT.search(phan_con):
-                loi.append(f"{ten}: dòng M{so} thiếu `(người dùng)` hay `(leader)` ở cuối")
+                loi.append(f"{ten}: dòng M{so} thiếu `(người dùng)` hay `(leader — người dùng giao: *\"…\"*)` ở cuối")
             elif len(RE_NGUOI_CHOT.sub("", phan_con).strip()) < DAI_DIEM_SO_SANH:
                 loi.append(f"{ten}: dòng M{so} không nêu điểm so sánh (< {DAI_DIEM_SO_SANH} ký tự)")
         ma = [so for so, _ in dong_m]
@@ -460,12 +462,28 @@ def test_xau_M_thieu_nguoi_chot():
     assert any("thiếu `(người dùng)`" in x for x in kiem_tieu_chi(van))
     van = tieu_chi(muc_do().replace("(người dùng)", "(trợ lý)"))
     assert any("thiếu `(người dùng)`" in x for x in kiem_tieu_chi(van))
-    # (leader) cũng hợp lệ
-    assert kiem_tieu_chi(tieu_chi(muc_do().replace("(người dùng)", "(leader)"))) == []
+    # (leader) chỉ hợp lệ khi người dùng giao, kèm lời họ (xem test kế)
+    assert kiem_tieu_chi(tieu_chi(muc_do().replace("(người dùng)", GIAO))) == []
+
+
+GIAO = '(leader — người dùng giao: *"cứ chọn ngưỡng theo bạn"*)'
+
+
+def test_leader_phai_mang_loi_nguoi_dung_giao_khong_duoc_tran_trui():
+    """Quyết định của leader 25/11/2026 (thu hẹp, không phải câu hỏi mới): dòng 8 đầu tệp
+    vẫn là luật — mọi M# là `(người dùng)`; `(leader)` chỉ ở chỗ người dùng đã giao quyết
+    định ấy và dòng phải mang lời họ."""
+    tran = tieu_chi(muc_do().replace("(người dùng)", "(leader)"))
+    assert any("người dùng giao" in x for x in kiem_tieu_chi(tran)), kiem_tieu_chi(tran)
+    for xau in ('(leader — người dùng giao: *""*)', '(leader — người dùng giao: *"ok"*)',
+                '(leader — người dùng giao)', '(leader — người dùng giao: cứ chọn ngưỡng theo bạn)'):
+        van = tieu_chi(muc_do().replace("(người dùng)", xau))
+        assert any("thiếu" in x for x in kiem_tieu_chi(van)), xau
+    assert kiem_tieu_chi(tieu_chi(muc_do().replace("(người dùng)", GIAO))) == []
 
 
 def test_xau_M_khong_neu_diem_so_sanh():
-    van = tieu_chi("## ĐO 38 — x\n\n- **M1** (leader)\n")
+    van = tieu_chi("## ĐO 38 — x\n\n- **M1** (người dùng)\n")
     assert any("không nêu điểm so sánh" in x for x in kiem_tieu_chi(van))
 
 
@@ -520,10 +538,10 @@ def test_sua_khong_co_dieu_khoan_va_sai_so():
 
 def test_thang_nhan_tot_va_xau():
     goc = muc_do("38")
-    m2 = ("## ĐO 39 — x\n\n- **M1** " + DIEM + " (thăng từ ĐO 38 B1; dữ liệu mới: dòng hạt 7 chưa dùng) (leader)\n")
+    m2 = ("## ĐO 39 — x\n\n- **M1** " + DIEM + " (thăng từ ĐO 38 B1; dữ liệu mới: dòng hạt 7 chưa dùng) " + GIAO + "\n")
     assert kiem_tieu_chi(tieu_chi(goc, m2)) == []
     # trong CHÍNH ĐO sinh ra con số
-    cung = ("## ĐO 38 — x\n\n- **M1** " + DIEM + " (thăng từ ĐO 38 B1; dữ liệu mới: dòng hạt 7 chưa dùng) (leader)\n"
+    cung = ("## ĐO 38 — x\n\n- **M1** " + DIEM + " (thăng từ ĐO 38 B1; dữ liệu mới: dòng hạt 7 chưa dùng) (người dùng)\n"
             "- **B1** phụ\n")
     assert any("chỉ được từ một ĐO TRƯỚC" in x for x in kiem_tieu_chi(tieu_chi(cung)))
     # thiếu `dữ liệu mới`
@@ -571,9 +589,9 @@ def test_ten_M0_den_M9_cua_ĐO_24_va_tieu_de_M_khong_lam_do():
 
 def test_khoi_ma_va_dong_trich_khong_tinh():
     # ĐO 38 chỉ có dòng M trong khối mã hoặc dòng `> `: không có phần ký
-    trong_rao = "## ĐO 38 — x\n\n```markdown\n- **M1** " + DIEM + " (leader)\n```\n"
+    trong_rao = "## ĐO 38 — x\n\n```markdown\n- **M1** " + DIEM + " (người dùng)\n```\n"
     assert any("không có dòng" in x for x in kiem_tieu_chi(tieu_chi(trong_rao)))
-    trong_trich = "## ĐO 38 — x\n\n> - **M1** " + DIEM + " (leader)\n"
+    trong_trich = "## ĐO 38 — x\n\n> - **M1** " + DIEM + " (người dùng)\n"
     assert any("không có dòng" in x for x in kiem_tieu_chi(tieu_chi(trong_trich)))
     # tiêu đề ĐO 38 nằm TRONG khối mã không là mục
     van = tieu_chi("```\n## ĐO 38 — mẫu trong rào\n```\n")
@@ -846,7 +864,8 @@ def test_khoi_luat_nam_o_phan_mo_dau_va_cung_chu_voi_gac():
     khoi = van[vt: van.index("## Đính chính trước tiên")]
     cua_gac = [
         "Đã khai M#", "Báo kèm", "Sau khi nhìn", "`- **M1** <điểm so sánh> (người dùng)`",
-        "`(leader)`", "`- **B1** …`", "git merge-base --is-ancestor", "bằng chứng yếu",
+        "`(leader)`", "`(leader — người dùng giao: *\"…\"*)`", "`(leader)` trơ trụi bị gác từ chối",
+        "con đường DUY NHẤT được phép sửa", "chỉ có một ĐO mới", "`- **B1** …`", "git merge-base --is-ancestor", "bằng chứng yếu",
         "**Kết quả ĐO <n>:**", "### Đã khai (M1, …)", "### Báo kèm (B1, …)", "### Sau khi nhìn",
         "**Khai ở commit:**", "**Chạy trên origin/main:**",
         "**Khai trước bằng:** commit cục bộ — vì <lý do ≥ 30 ký tự>",
