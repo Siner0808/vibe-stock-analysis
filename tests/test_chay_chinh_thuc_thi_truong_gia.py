@@ -14,10 +14,18 @@ Bốn nhóm phép thử:
 * GÁC — AST: mọi hàm gọi bộ sinh gọi cửa TRƯỚC, `PhepChay` chỉ dựng ở `kiem_cong`, một chỗ ghi file, không chuỗi của thế giới thật,
   và các dụng cụ KHÁC vẫn chặn dòng 2–5.
 
+* BẢN GHI THẬT (BƯỚC 296) — `docs/thi-truong-gia-ket-qua.json` đã commit: ba dòng hạt `XONG` và cửa từ chối từng dòng, `sha_do` khớp
+  thân ĐO 37 ở cây, kết cục đọc ra TRƯỢT đúng ở {A0, PT}. Các phép thử này đọc FILE THẬT, không qua fixture ở dưới.
+
+CÁCH LY (lỗi 208): mọi phép thử CÒN LẠI mô tả trạng thái TRƯỚC khi có lượt chạy, nên fixture tự động `_khong_doc_ban_ghi_chinh_thuc_that`
+thay `doc_ket_qua_hien_co` bằng một hàm trả `None` cho đường mặc định (file chính thức) và giữ nguyên cho mọi đường khác. Khi file chính thức
+chưa tồn tại, test cũ xanh nhờ nó vắng; khi nó tồn tại (BƯỚC 296), 19 test đỏ — nay chúng không còn phụ thuộc nó.
+
 Tests pin giá trị của ĐO 37 đọc chúng từ bản ghi JSON của dòng 1, không gõ số.
 """
 import ast
 import copy
+import hashlib
 import importlib.util
 import json
 import os
@@ -52,6 +60,22 @@ LUONG_TEST = 9001
 TEN_F = sorted(T.ho_spec_f())
 TEN_12 = sorted(T.ho_spec_oracle())
 KAPPA_2X = CT.doc_kappa_muc(2.0)
+DUONG_KET_QUA_THAT = GOC / "docs" / "thi-truong-gia-ket-qua.json"
+_DOC_KET_QUA_GOC = CT.doc_ket_qua_hien_co        # hàm GỐC, bắt trước mọi fixture
+
+
+@pytest.fixture(autouse=True)
+def _khong_doc_ban_ghi_chinh_thuc_that(monkeypatch):
+    """Lỗi 208: test mô tả trạng thái TRƯỚC khi có lượt chạy không được đọc file kết quả chính thức THẬT. `kiem_cong` rơi về
+    `doc_ket_qua_hien_co()` khi không được tiêm `ket_qua_hien_co`; ở đường mặc định (file chính thức) hàm này nay trả `None`, còn mọi
+    đường khác (file tạm của test) vẫn đọc thật. Test nào cần bản ghi thật phải tự đọc `DUONG_KET_QUA_THAT` và TIÊM nó."""
+    that = CT.DUONG_KET_QUA.resolve()
+
+    def doc(duong=None):
+        if duong is None or Path(duong).resolve() == that:
+            return None
+        return _DOC_KET_QUA_GOC(duong)
+    monkeypatch.setattr(CT, "doc_ket_qua_hien_co", doc)
 
 
 # ══ CỬA ═══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1150,3 +1174,49 @@ def test_ba_nguong_may_do_NULL_la_ba_nguong_da_khoa_o_test_cua_Lat_1_truoc_khi_c
     for dong in ("assert 0.7 < z.std() < 1.5", "assert float(np.mean(np.abs(z) < 2)) >= 0.85", "assert abs(float(z.mean())) < 0.5"):
         assert dong in nguon, dong
     assert CT.MAY_DO_NULL == {"ty_le_o_trong_2se_toi_thieu": 0.85, "sd_z": (0.7, 1.5), "trung_binh_z_toi_da": 0.5}
+
+
+# ══ BẢN GHI THẬT ĐÃ COMMIT (BƯỚC 296) — đọc FILE THẬT, tiêm vào cửa, không qua fixture cách ly ══════════════════════════════
+
+KET_CUC_THAT = {   # `--ket-cuc` ngày 25/11/2026: giá trị từng tiêu chí (vibe_logs_296/ket_cuc.log); C2 là số thực nên so xấp xỉ
+    "A": 400, "A0": 421, "B1": 39, "B2": 400, "B3": 7, "B4": 0, "C1": 0, "C2": 0.14406093328118874, "C3": 12,
+    "P1": 0, "P2": 0, "P3": 100, "P4": 0, "PT": {"bao_dong_NULL": 7, "Gp_QUA_2x": 41}}
+
+
+@pytest.fixture(scope="module")
+def ket_qua_that():
+    return json.loads(DUONG_KET_QUA_THAT.read_text(encoding="utf-8"))
+
+
+def test_ban_ghi_that_ba_dong_hat_XONG_va_cua_tu_choi_tung_dong_co_va_khong_co_tiep_tuc(ket_qua_that):
+    """Sau lượt chạy chính thức, `kiem_cong` chỉ còn MỘT lý do từ chối mỗi dòng: đã chạy xong. `--tiep-tuc` không cứu được."""
+    van = _van_ban_do37()
+    for l in CT.LUONG_CHINH_THUC:
+        assert ket_qua_that["cac_luong"][str(l)]["trang_thai"] == "XONG", l
+        for tiep in (False, True):
+            with pytest.raises(CT.CongTu) as e:
+                CT.kiem_cong(l, git=_git_gia(van), ket_qua_hien_co=ket_qua_that, van_ban_cay=van, tiep_tuc=tiep)
+            assert e.value.ly_do == [f"dong hat {l} DA chay xong (mot lan, khong chay lai)"], (l, tiep, e.value.ly_do)
+
+
+def test_ban_ghi_that_sha_do_la_bam_cua_than_DO37_o_cay_nen_khong_ai_sua_tieu_chi_sau_khi_ky(ket_qua_that):
+    do_cay = CT.cat_muc_do((GOC / CT.DUONG_TIEU_CHI).read_text(encoding="utf-8"))
+    assert do_cay is not None
+    mong = hashlib.sha256(CT.chuan_hoa(do_cay).encode("utf-8")).hexdigest()
+    for l in CT.LUONG_CHINH_THUC:
+        g = ket_qua_that["cac_luong"][str(l)]["git"]
+        assert g["sha_do"] == mong, f"dong {l}: bam than ĐO 37 luc chay khac than ĐO 37 o cay hien nay"
+        assert re.fullmatch(r"[0-9a-f]{64}", g["sha_do"]) and re.fullmatch(r"[0-9a-f]{40}", g["head"]) and g["head"] == g["origin_main"]
+
+
+def test_ban_ghi_that_ket_cuc_la_TRUOT_dung_o_A0_va_PT_va_moi_gia_tri_khop_ban_in_ngay_25_11(ket_qua_that):
+    kc = CT.tong_hop(ket_qua_that, HIEU_CHUAN, G_PHAY)
+    assert kc["ket_cuc"] == "TRUOT" and kc["thieu"] == [] and kc["khong_doc"] == []
+    assert set(kc["truot"]) == {"A0", "PT"} and len(kc["truot"]) == 2
+    assert set(kc["tieu_chi"]) == set(KET_CUC_THAT)
+    for ma, mong in KET_CUC_THAT.items():
+        got = kc["tieu_chi"][ma]["gia_tri"]
+        assert got == pytest.approx(mong) if isinstance(mong, float) else got == mong, (ma, got, mong)
+        assert kc["tieu_chi"][ma]["dat"] is (ma not in ("A0", "PT")), ma
+    ra = CT.in_ket_cuc(kc)
+    assert ra[0] == "KẾT CỤC: TRUOT" and "  TRƯỢT ở: A0, PT" in ra and "  BÁO CÁO (không phán):" in ra
