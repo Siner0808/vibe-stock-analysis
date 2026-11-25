@@ -4,8 +4,9 @@
 (ghi chú thi công của lát này). Đặc tả là nguồn duy nhất; đừng chép nó vào đây.
 
 BỐN BỘ PHẬN, và cái nào là cái nào
-  * `de_xuat`  — bộ đề xuất cơ sở (5.1). Hàm thuần: nhận dòng quyết định + bảng giá của CỬA SỔ ĐÃ NHÌN,
-                 xếp 11 spec của họ F theo Δ = IC(spec) − IC(điểm đã ghi). CHƯA PHẢI đường thật, chưa phải C3.
+  * `de_xuat`  — bộ đề xuất cơ sở (5.1; từ BƯỚC 300 xếp theo z, mục 21 của thiết kế). Hàm thuần: nhận dòng
+                 quyết định + bảng giá của CỬA SỔ ĐÃ NHÌN, xếp 11 spec của họ F theo z = (Δ − μ)/σ với
+                 Δ = IC(spec) − IC(điểm đã ghi). CHƯA PHẢI đường thật, chưa phải C3.
   * khai       — sổ ứng viên giả là MỘT dict trong bộ nhớ, mỗi lần khai đi qua `cham_bong.kiem_so_ung_vien`.
   * xác nhận   — `cham_xac_nhan.cham` THẬT (không bản sao): chỉ phán ở đúng `cham_bong.MOC_DOC` phiên có nhãn.
   * `nang_cap` — sổ phiên bản trong bộ nhớ (5.4). KHÔNG đường thật nào nhập module này (gác G2).
@@ -24,6 +25,7 @@ import copy
 import datetime as _dt
 import json
 
+import numpy as np
 import pandas as pd
 
 import cham_bong as cb
@@ -76,18 +78,50 @@ def cat_den_phien(dong: list[dict], gia: pd.DataFrame, phien_cuoi: int) -> tuple
 
 # ── bộ đề xuất cơ sở (5.1) ───────────────────────────────────────────────────
 
+#: Số chữ số thập phân của z khi xếp hạng: hai z khác nhau dưới mức này (sai số dấu chấm động) coi là HOÀ.
+SO_CHU_SO_Z = 12
+#: sd null nhỏ hơn mức này (tương đối so với phần tử lớn nhất của A) coi là 0: phương sai 0, z = 0.
+NGUONG_SD_TUONG_DOI = 1e-12
+
+
 def _khoa_xep(x: dict) -> tuple:
-    """Xếp Δ giảm dần; hoà thì theo THỨ TỰ TÊN spec (mục 5.1: "ràng buộc hoà bằng thứ tự đặt tên spec")."""
-    return (-x["delta"], x["ten"])
+    """Xếp z (đã làm tròn `SO_CHU_SO_Z` chữ số) giảm dần; hoà thì theo THỨ TỰ TÊN spec (mục 21.1: "hoà theo tên
+    spec", mục 5.1: "ràng buộc hoà bằng thứ tự đặt tên spec"). Δ thô KHÔNG tham gia xếp hạng."""
+    return (-round(x["z"], SO_CHU_SO_Z), x["ten"])
+
+
+def thong_ke_null(B: np.ndarray, C: np.ndarray, Y: np.ndarray) -> tuple[float, float]:
+    """(μ, σ) CHÍNH XÁC của thống kê hoán vị mã mà `cham_bong.so_cap` dùng: null(π) = Σⱼ Aⱼ,π(j),
+    A = (RCᵀRY)/m_c − (RBᵀRY)/m_b (hạng giữa RB, RC, RY và m_b, m_c đúng như `so_cap`). Dạng đóng (Hoeffding 1951):
+    μ = ΣA/M và σ² = Σᵢⱼ(Aᵢⱼ − Āᵢ· − Ā·ⱼ + Ā··)²/(M − 1). Không RNG, không hạt. Phương sai 0
+    (m_b·m_c = 0, M < 2, hay σ ≈ 0) trả (0, 0): `so_cap` trả z = 0 ở đúng các ca ấy."""
+    RB, RC, RY = cb._hang_giua(B), cb._hang_giua(C), cb._hang_giua(Y)
+    ny = float((RY * RY).sum())
+    mb = float(np.sqrt((RB * RB).sum() * ny))
+    mc = float(np.sqrt((RC * RC).sum() * ny))
+    if not mb or not mc:
+        return 0.0, 0.0
+    A = (RC.T @ RY) / mc - (RB.T @ RY) / mb
+    M = A.shape[0]
+    if M < 2:
+        return 0.0, 0.0
+    mu = float(A.sum() / M)
+    D = A - A.mean(axis=0, keepdims=True) - A.mean(axis=1, keepdims=True) + A.mean()
+    sd = float(np.sqrt((D * D).sum() / (M - 1)))
+    if not sd > NGUONG_SD_TUONG_DOI * float(np.abs(A).max()):
+        return mu, 0.0
+    return mu, sd
 
 
 def de_xuat(dong: list[dict], gia: pd.DataFrame) -> list[dict]:
-    """Xếp 11 spec của họ F theo Δ = IC(spec) − IC(điểm đã ghi) trên MỌI phiên có nhãn của dữ liệu đưa vào.
+    """Xếp 11 spec của họ F theo z = (Δ − μ)/σ, Δ = IC(spec) − IC(điểm đã ghi) trên MỌI phiên có nhãn của dữ liệu
+    đưa vào; μ, σ là trung bình và độ lệch chuẩn đóng của thống kê hoán vị mã của `so_cap` (`thong_ke_null`).
 
     Dùng đúng `cham_bong.ma_tran_cap` và `E.rho_hang` (không bản sao); KHÔNG chạy `cham_bong.so_cap`: dữ liệu
-    đã nhìn không có "phán". Hàm này tin đầu vào: việc cắt theo thời gian là của bên gọi (`cat_den_phien`).
-    Trả danh sách dict `{ten, spec, delta, ic_spec, ic_da_ghi, n_phien, n_ma}` đã xếp; KHÔNG lọc Δ > 0
-    (việc ấy là của `chon_khai`) để biên bản thấy cả phần đã quét mà không khai."""
+    đã nhìn không có "phán", và không có RNG nào ở đây. Hàm này tin đầu vào: việc cắt theo thời gian là của bên
+    gọi (`cat_den_phien`). Trả danh sách dict `{ten, spec, delta, z, sd_null, ic_spec, ic_da_ghi, n_phien,
+    n_ma}` đã xếp; KHÔNG lọc z, Δ (việc ấy là của `chon_khai`) để biên bản thấy cả phần đã quét mà không khai.
+    Spec phương sai 0 có z = 0 và sd_null = 0."""
     bang = cb.doc_quyet_dinh(dong, "")
     nhan = E.nhan_vuot_ro({m: pd.DataFrame({"close": gia[m]}) for m in gia.columns}, cb.NHIP)
     ra = []
@@ -97,14 +131,18 @@ def de_xuat(dong: list[dict], gia: pd.DataFrame) -> list[dict]:
             raise ValueError("cua so da nhin khong co phien co nhan nao: khong de xuat duoc")
         ic_cu = E.rho_hang(B.ravel(), Y.ravel())
         ic_moi = E.rho_hang(C.ravel(), Y.ravel())
-        ra.append({"ten": ten, "spec": spec, "delta": float(ic_moi - ic_cu), "ic_spec": float(ic_moi),
-                   "ic_da_ghi": float(ic_cu), "n_phien": len(phien), "n_ma": len(cot)})
+        delta = float(ic_moi - ic_cu)
+        mu, sd = thong_ke_null(B, C, Y)
+        ra.append({"ten": ten, "spec": spec, "delta": delta, "z": float((delta - mu) / sd) if sd else 0.0,
+                   "sd_null": sd, "ic_spec": float(ic_moi), "ic_da_ghi": float(ic_cu),
+                   "n_phien": len(phien), "n_ma": len(cot)})
     return sorted(ra, key=_khoa_xep)
 
 
 def chon_khai(xep: list[dict], so: int = T.SO_UNG_VIEN_KHAI) -> list[dict]:
-    """`so` spec đầu theo thứ hạng, CHỈ spec có Δ > 0 (ít hơn `so` spec dương thì khai ít hơn, không ép đủ)."""
-    return [x for x in sorted(xep, key=_khoa_xep) if x["delta"] > 0][:so]
+    """`so` spec đầu theo thứ hạng z, CHỈ spec có z > 0 VÀ Δ > 0 (ít hơn `so` spec như vậy thì khai ít hơn, không
+    ép đủ). Spec phương sai 0 có z = 0 nên không bao giờ được khai, dù Δ = −IC(điểm đã ghi) có thể > 0."""
+    return [x for x in sorted(xep, key=_khoa_xep) if x["z"] > 0 and x["delta"] > 0][:so]
 
 
 # ── lịch ─────────────────────────────────────────────────────────────────────
@@ -260,7 +298,7 @@ def chay_vong(dong: list[dict], gia: pd.DataFrame, de_xuat_fn=None, so_hoan_vi: 
     """MỘT thị trường, từ đầu tới cuối: đề xuất → khai (mỗi tháng một) → xác nhận bằng `cham_xac_nhan.cham` ở
     phiên đọc của từng ứng viên → nâng cấp (một đời) → huỷ ứng viên đang chờ → kiểm tiến-về-trước.
 
-    `de_xuat_fn` mặc định là `de_xuat`; nó là CHỖ CẮM (một hàm `(dong, gia) -> [{ten, spec, delta}]`) để C3 chạy
+    `de_xuat_fn` mặc định là `de_xuat`; nó là CHỖ CẮM (một hàm `(dong, gia) -> [{ten, spec, delta, z}]`) để C3 chạy
     lại cùng tiêu chí, và để test dựng ca (G, Z, H) mà không phụ thuộc vào cái bộ đề xuất chọn.
     Mọi lượt đọc chỉ thấy dữ liệu tới phiên của nó (`cat_den_phien`); bộ đề xuất chỉ thấy tới
     min(cửa sổ đã nhìn, ngày khai đầu − 1). Trả biên bản (dict thuần) — không in, không ghi."""
