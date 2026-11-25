@@ -353,3 +353,130 @@ def sinh_thi_truong(luong: int, chi_so: int, kappa: float, so_phien: int | None 
 def sinh_null(luong: int, chi_so: int, so_phien: int | None = None, co_su_that: bool = True) -> ThiTruongGia:
     """Thị trường NULL (mục 4.7): cùng bộ sinh, cùng mọi thông số, κ = 0."""
     return sinh_thi_truong(luong, chi_so, 0.0, so_phien, co_su_that)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# NULL CÓ NHỚ (NULL-M) — BƯỚC 301, ĐO 38 (sửa C4 sau ĐO 37). Chỉ HÀM MỚI: `_sinh_loi` và mọi thị
+# trường cũ giữ nguyên từng bit (gác: tests/test_thi_truong_gia_nho.py băm thị trường cũ).
+# Đặc tả: vibe_logs_c4sua/DAC-TA-SUA-C4.md mục 4 (đặc tả là nguồn; đừng chép nó vào đây).
+# ═════════════════════════════════════════════════════════════════════════════
+
+PHI_D = 0.97     # hệ số ngày AR(1) của nhân tố ngành d — cùng đời với z (đặc tả mục 4) — KHAI, chưa đo trên giá thật
+#: b_d: hệ số của d trong tiềm ẩn của CẢ NĂM thành phần. Chọn = HE_SO_Z (đã khai, 0,5): KHÔNG một số mới để
+#: chọn theo kết quả; 25% phương sai tiềm ẩn của mỗi thành phần là nhân tố ngành. KHAI TRƯỚC mọi lượt đo.
+HE_SO_D = HE_SO_Z
+HAT_IC_DA_GHI = 301   # phần tử thứ ba của hạt mẫu dài đo IC(điểm đã ghi) để đặt κ_d: [luong, chi_so, HAT_IC_DA_GHI]
+
+
+def _sinh_loi_m(rng, so_phien: int, kappa_d: float, he_so_d: float = HE_SO_D) -> dict:
+    """Lõi sinh NULL-M. Cùng thứ tự rút số của `_sinh_loi` rồi MỘT lần rút thêm cho `d` (sau cùng, để `he_so_d = 0`
+    và `kappa_d = 0` cho ĐÚNG từng bit mẫu `_sinh_loi(kappa = 0)`; có test).
+
+    `d[s, t]` là nhân tố ngành (AR(1), φ = `PHI_D`), CHUNG cho mọi mã cùng ngành (`ma_nganh`). Nó vào:
+      (i)  lợi nhuận: `kappa_d · d(s−2) / 21` đúng kiểu `z` (nhãn của phiên T có kỳ vọng ≈ κ_d · TB(d quanh T));
+      (ii) CẢ NĂM tiềm ẩn thành phần, cùng hệ số `he_so_d`: tiềm ẩn mới = √(1−b_d²) · tiềm ẩn cũ + b_d · d(t)
+           (phương sai vẫn 1 nên các nấc vẫn đều xác suất).
+    `z` vẫn chảy vào `volume_score` như cũ nhưng κ của z = 0: nó KHÔNG vào lợi nhuận."""
+    if not 0.0 <= he_so_d < 1.0:
+        raise ValueError(f"he_so_d phai trong [0, 1), nhan {he_so_d!r}")
+    n, m = so_phien, SO_MA
+    heso_t = float(np.sqrt(NU_BUOC_T / (NU_BUOC_T - 2.0)))
+    thi_truong = rng.standard_t(NU_BUOC_T, size=n) / heso_t * SIGMA_THI_TRUONG
+    nganh = rng.standard_t(NU_BUOC_T, size=(SO_NGANH, n)) / heso_t * SIGMA_NGANH
+    rieng = (sd._nhieu_garch(rng, m, n) * SIGMA_RIENG).T
+    z_ngoai = _ar1(rng, (m,), PHI_Z, n + 2)
+    nhieu = _ar1(rng, (len(cb.THANH_PHAN), m), PHI_THANH_PHAN, n)
+    gia_dau = rng.uniform(*GIA_DAU, size=m)
+    tranh_luan = np.clip(rng.normal(0.0, SIGMA_TRANH_LUAN, size=(n, m)), -TRAN_TRANH_LUAN, TRAN_TRANH_LUAN)
+    d_ngoai = _ar1(rng, (SO_NGANH,), PHI_D, n + 2)                    # RÚT THÊM, sau mọi thứ cũ: SO_NGANH × (n+2)
+
+    ma_nganh = np.arange(m) * SO_NGANH // m
+    d_ma = d_ngoai[ma_nganh]                                           # m × (n+2): d CỦA NGÀNH mã ấy (chung trong ngành)
+    ky_vong_d = kappa_d * d_ma[:, :n].T / cb.NHIP                      # d ở phiên s−2, chia 21
+    ln = thi_truong[:, None] + nganh[ma_nganh].T + rieng + ky_vong_d
+    ln = np.clip(ln, -BIEN_NGAY, BIEN_NGAY)
+    close = gia_dau[None, :] * np.cumprod(1.0 + ln, axis=0)
+
+    chung = np.einsum("kl,lmt->kmt", _cholesky_tiem_an(), nhieu)
+    a = float(np.sqrt(1.0 - HE_SO_Z ** 2))
+    giu = float(np.sqrt(1.0 - he_so_d ** 2))
+    thanh_phan = {}
+    for k, ten in enumerate(cb.THANH_PHAN):
+        tiem_an = chung[k].T
+        if ten == THANH_PHAN_MANG:
+            tiem_an = a * tiem_an + HE_SO_Z * z_ngoai[:, 2:].T
+        tiem_an = giu * tiem_an + he_so_d * d_ma[:, 2:].T              # d ở CHÍNH phiên t, CÙNG hệ số cho mọi thành phần
+        thanh_phan[ten] = _roi_rac(tiem_an, ten)
+    tho = np.zeros((n, m))
+    for ten in cb.THANH_PHAN:
+        tho = tho + TRONG_SO_MAC_DINH[ten] * thanh_phan[ten]
+    diem = np.trunc(np.clip(tho + tranh_luan, DIEM_SAN, DIEM_TRAN)).astype(np.int64)
+    return {"close": close, "thanh_phan": thanh_phan, "diem": diem, "z": z_ngoai[:, 2:].T, "d": d_ma[:, 2:].T}
+
+
+def _su_that_tu_mau(mau: dict, so_khoi: int) -> tuple[dict, float, int]:
+    """ΔIC_true của từng spec oracle và IC(điểm đã ghi) trên MỘT mẫu dài đã sinh. Cùng phép tính với `tinh_su_that`
+    (cùng `E.nhan_vuot_ro`, `E.rho_hang`, `diem_spec`); trả `(spec → {delta_ic, se_mc}, ic_da_ghi, số phiên có nhãn)`."""
+    ma = _ma_gia()
+    kh = {m: pd.DataFrame({"close": mau["close"][:, i]}) for i, m in enumerate(ma)}
+    nhan = E.nhan_vuot_ro(kh, cb.NHIP).to_numpy()
+    co = ~np.isnan(nhan).any(axis=1)
+    so_co = int(co.sum())
+    assert co[:so_co].all() and not co[so_co:].any(), "nhãn phải có ở đoạn đầu và chỉ thiếu ở đuôi"
+    nhan = nhan[:so_co]
+    b = mau["diem"][:so_co].astype(float)
+    cat = np.array_split(np.arange(so_co), so_khoi)
+    ic_b = E.rho_hang(b.ravel(), nhan.ravel())
+    ic_b_khoi = [E.rho_hang(b[i].ravel(), nhan[i].ravel()) for i in cat]
+    ra = {}
+    for ten, spec in ho_spec_oracle().items():
+        c = diem_spec(spec, {k: v[:so_co] for k, v in mau["thanh_phan"].items()})
+        theo_khoi = np.array([E.rho_hang(c[i].ravel(), nhan[i].ravel()) - ic_b_khoi[j] for j, i in enumerate(cat)])
+        ra[ten] = {"delta_ic": E.rho_hang(c.ravel(), nhan.ravel()) - ic_b,
+                   "se_mc": float(theo_khoi.std(ddof=1) / np.sqrt(so_khoi))}
+    return ra, float(ic_b), so_co
+
+
+def tinh_su_that_m(luong: int, chi_so: int, kappa_d: float, so_phien: int = SO_PHIEN_SU_THAT,
+                   so_khoi: int = SO_KHOI_SU_THAT, he_so_d: float = HE_SO_D) -> dict:
+    """ORACLE của NULL-M. `tinh_su_that` KHÔNG dùng được ở đây (nó rút mẫu dài bằng `_sinh_loi`, không có nhân tố ngành):
+    đây là nhánh MỚI, cùng phép tính, mẫu dài rút bằng `_sinh_loi_m` với hạt `[luong, chi_so, HAT_SU_THAT]`.
+    ΔIC_true là giá trị TỔNG THỂ (mẫu dài nên gần độc lập với d của thị trường cụ thể); ở NULL-M nó KHÁC 0 với nhiều spec dù
+    không spec nào "biết" hơn: spec cộng nhiều thành phần giảm nhiễu riêng nên IC cao hơn mono. Tiêu chí M1 đọc đúng
+    dấu của nó (xác nhận nhầm = QUA mà ΔIC_true ≤ 0). Thêm `ic_da_ghi` = IC(điểm đã ghi) trên cùng mẫu."""
+    _kiem_hat(luong, chi_so)
+    mau = _sinh_loi_m(np.random.default_rng([luong, chi_so, HAT_SU_THAT]), so_phien, float(kappa_d), he_so_d)
+    ra, ic_b, so_co = _su_that_tu_mau(mau, so_khoi)
+    return {"kappa_d": float(kappa_d), "he_so_d": float(he_so_d), "so_phien": so_phien, "so_phien_co_nhan": so_co,
+            "so_khoi": so_khoi, "hat": [luong, chi_so, HAT_SU_THAT], "ic_da_ghi": ic_b, "spec": ra}
+
+
+def ic_da_ghi_m(luong: int, chi_so: int, kappa_d: float, so_phien: int = SO_PHIEN_SU_THAT,
+                he_so_d: float = HE_SO_D) -> float:
+    """IC(điểm đã ghi) trên MỘT mẫu dài NULL-M (hạt `[luong, chi_so, HAT_IC_DA_GHI]`, KHÁC hạt oracle): đại lượng để đặt
+    κ_d sao cho IC ≈ 0,10 (cỡ đo ở Tầng 2, `docs/thi-truong-gia-g-phay.json`). Cùng cách đo với oracle: hạng, gộp mọi
+    phiên có nhãn × mọi mã, nhãn là `E.nhan_vuot_ro`. Rẻ hơn `tinh_su_that_m` (không chấm 12 spec)."""
+    _kiem_hat(luong, chi_so)
+    mau = _sinh_loi_m(np.random.default_rng([luong, chi_so, HAT_IC_DA_GHI]), so_phien, float(kappa_d), he_so_d)
+    ma = _ma_gia()
+    kh = {m: pd.DataFrame({"close": mau["close"][:, i]}) for i, m in enumerate(ma)}
+    nhan = E.nhan_vuot_ro(kh, cb.NHIP).to_numpy()
+    so_co = int((~np.isnan(nhan).any(axis=1)).sum())
+    return float(E.rho_hang(mau["diem"][:so_co].astype(float).ravel(), nhan[:so_co].ravel()))
+
+
+def sinh_thi_truong_m(luong: int, chi_so: int, kappa_d: float, so_phien: int | None = None,
+                      co_su_that: bool = True, he_so_d: float = HE_SO_D) -> ThiTruongGia:
+    """Sinh MỘT thị trường NULL-M (Tầng 1): hạt `default_rng([luong, chi_so])` như `sinh_thi_truong`. Trường `kappa` của
+    `ThiTruongGia` giữ `kappa_d` (κ của z là 0 theo thiết kế). `su_that` là của `tinh_su_that_m`."""
+    _kiem_hat(luong, chi_so)
+    if kappa_d < 0:
+        raise ValueError("kappa_d phai >= 0")
+    n = dong_thoi_gian()["tong"] if so_phien is None else int(so_phien)
+    mau = _sinh_loi_m(np.random.default_rng([luong, chi_so]), n, float(kappa_d), he_so_d)
+    ngay, ma = lich_phien(n), _ma_gia()
+    return ThiTruongGia(
+        luong=luong, chi_so=chi_so, kappa=float(kappa_d), ngay=ngay, ma=ma,
+        gia=pd.DataFrame(mau["close"], index=list(ngay), columns=list(ma)),
+        thanh_phan=mau["thanh_phan"], diem=mau["diem"],
+        su_that=tinh_su_that_m(luong, chi_so, float(kappa_d), he_so_d=he_so_d) if co_su_that else None)
