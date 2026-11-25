@@ -296,3 +296,110 @@ def test_chuong_keo_tu_MANG_chu_khong_doc_CACHE():
     assert "get_vni_df" not in goi, (
         "chuông đang đọc cache qua get_vni_df — nó sẽ canh bản sao")
     assert hasattr(ch, "nen_moi_nhat_tu_mang")
+
+
+# ── 9. 24/11/2026 — Ngày Văn hóa Việt Nam (BƯỚC 298, lỗi 207) ─────────
+#
+# Bảng dừng ở 02/09/2026 và được kiểm bằng nến chỉ tới 28/08. Ngày 24/11
+# HOSE (thông báo 11/11) và HNX (10/11) nghỉ giao dịch vì Nghị quyết
+# 28/2026/QH16 lập "Ngày Văn hóa Việt Nam"; bảng không biết, và chuông
+# `chuong-nguon-dung` kêu oan lúc 03:38 ICT 25/11 ("nến mới nhất 2026-11-23,
+# 2 phiên kể từ đó"). Test dưới đây ghim PHÉP ĐO, không ghim bài báo.
+
+#: Các phiên VN-INDEX CÓ nến thật sau lần kiểm cũ (28/08): 58 phiên, từ
+#: 03/09 tới 23/11/2026. Đo 25/11/2026 bằng
+#:   nguon_gia_cong_khai.lay_ohlcv("VNINDEX", "2026-08-24", "2026-11-25").df["time"]
+#: (VNDirect; nến cuối là 23/11, KHÔNG có nến 24/11 — cổ phiếu FPT và SSI,
+#: nguồn Entrade, cũng không có). Ngày nghỉ Quốc khánh 31/08–02/09 nằm
+#: trong cửa sổ đối chiếu nên không có nến là điều bảng phải khớp.
+_PHIEN_THAT_SAU_28_08 = {
+    "2026-09": "03 04 07 08 09 10 11 14 15 16 17 18 21 22 23 24 25 28 29 30",
+    "2026-10": "01 02 05 06 07 08 09 12 13 14 15 16 19 20 21 22 23 26 27 28 29 30",
+    "2026-11": "02 03 04 05 06 09 10 11 12 13 16 17 18 19 20 23",
+}
+_PHIEN_THAT = sorted(f"{thang}-{ngay}" for thang, ds in
+                     _PHIEN_THAT_SAU_28_08.items() for ngay in ds.split())
+
+
+def _bang_du_kien(tu: str, den: str) -> list[str]:
+    """Mọi ngày `co_phien` trong [tu, den], cả hai đầu — đếm TỪNG NGÀY,
+    không qua `cac_phien` (nửa mở) để không lặp lại lỗi cửa sổ ở mục 1."""
+    n, het, ra = dt.date.fromisoformat(tu), dt.date.fromisoformat(den), []
+    while n <= het:
+        if lg.co_phien(n.isoformat()):
+            ra.append(n.isoformat())
+        n += dt.timedelta(days=1)
+    return ra
+
+
+def test_24_11_la_ngay_nghi_Ngay_Van_hoa_Viet_Nam():
+    assert "2026-11-24" in lg.NGAY_NGHI
+    assert dt.date(2026, 11, 24).weekday() == 1      # thứ Ba, ngày trong tuần
+    assert lg.co_phien("2026-11-24") is False
+    assert lg.co_phien("2026-11-23") is True
+    assert lg.co_phien("2026-11-25") is True
+
+
+def test_ca_that_nen_23_11_hom_nay_25_11_la_OK_khong_phai_NGUON_DUNG():
+    """Đúng đầu vào của lượt chuông 45482977642 (24/11 20:38 UTC): nến cuối
+    23/11, hôm nay 25/11. Bảng cũ đếm 2 phiên (24/11, 25/11) và kêu; thật ra
+    chỉ có MỘT phiên (25/11, chưa đóng) vì 24/11 nghỉ."""
+    tt, td = lg.chan_doan("2026-11-23", "2026-11-25")
+    assert tt == lg.OK, td
+    assert lg.so_phien_giua("2026-11-23", "2026-11-25") == 1
+    assert lg.cac_phien("2026-11-23", "2026-11-25") == ["2026-11-25"]
+
+
+def test_nen_23_11_toi_26_11_van_keu_khi_that_su_thieu():
+    """Chiều ngược: sửa bảng không được làm chuông mù. Tới 26/11 mà vẫn
+    chưa có nến 25/11 thì đã đủ 2 phiên (25/11, 26/11) — kêu thật."""
+    tt, td = lg.chan_doan("2026-11-23", "2026-11-26")
+    assert tt == lg.NGUON_DUNG, td
+
+
+def test_bang_khop_cac_phien_VN_INDEX_that_sau_28_08_CA_HAI_CHIEU():
+    """Bảng phải khớp nến thật từ 29/08 tới 24/11/2026 (bao cả Quốc khánh
+    và 24/11), ở hai chiều: (1) bảng nói CÓ phiên mà không có nến; (2) có
+    nến mà bảng nói NGHỈ. Bảng cũ (không có 24/11) rơi ở chiều (1) đúng 1
+    ngày: 2026-11-24."""
+    assert len(_PHIEN_THAT) == 58, len(_PHIEN_THAT)
+    assert _PHIEN_THAT[0] == "2026-09-03" and _PHIEN_THAT[-1] == "2026-11-23"
+    bang = _bang_du_kien("2026-08-29", "2026-11-24")
+    thua = sorted(set(bang) - set(_PHIEN_THAT))
+    thieu = sorted(set(_PHIEN_THAT) - set(bang))
+    assert not thua, f"bảng nói CÓ phiên mà không có nến: {thua}"
+    assert not thieu, f"có nến mà bảng nói NGHỈ: {thieu}"
+    assert len(bang) == 58
+
+
+def test_ghim_nen_that_khong_chua_ngay_nghi_da_biet_va_cuoi_tuan():
+    """Danh sách ghim tự nó phải sạch: không cuối tuần, không ngày bảng
+    gọi là nghỉ từ trước (Quốc khánh), không 24/11."""
+    for d in _PHIEN_THAT:
+        assert dt.date.fromisoformat(d).weekday() < 5, d
+    assert not set(_PHIEN_THAT) & {"2026-08-31", "2026-09-01", "2026-09-02",
+                                   "2026-11-24"}
+
+
+def test_loi_nhan_NGUON_DUNG_noi_ro_do_la_BANG_LICH_va_goi_ten_cach_giai_thich_khac():
+    """Câu cũ *"Thị trường KHÔNG nghỉ những ngày này."* khẳng định như sự thật
+    điều bảng KHÔNG THỂ biết (Sở nghỉ thêm sau khi bảng được viết, như
+    24/11/2026). Câu mới phải: (a) nói kết luận đến từ BẢNG trong repo;
+    (b) gọi tên cách giải thích thứ hai để người đọc kiểm; (c) không còn
+    khẳng định cụt."""
+    tt, td = lg.chan_doan("2026-06-01", "2026-06-05")
+    assert tt == lg.NGUON_DUNG
+    assert "Thị trường KHÔNG nghỉ những ngày này" not in td
+    assert "bảng lịch trong repo" in td and "`lich_giao_dich.NGAY_NGHI`" in td
+    assert "Sở thêm ngày nghỉ sau khi bảng được viết" in td
+    assert "thông báo nghỉ giao dịch" in td
+    # nội dung cũ vẫn còn: ngày nến, số phiên, danh sách phiên, mốc
+    assert "2026-06-01" in td and "2026-06-02" in td and "2026-06-04" in td
+    assert "4 phiên" in td
+
+
+def test_chuong_van_thoat_1_khi_NGUON_DUNG_va_giu_ba_trang_thai_keu():
+    """Đổi chữ không được đổi mã thoát hay tập trạng thái (BƯỚC 298)."""
+    ch = _nap_chuong()
+    assert ch.ma_thoat(lg.NGUON_DUNG) == 1
+    assert ch.TRANG_THAI_KEU == (lg.NGUON_DUNG, lg.BANG_SAI, lg.CHUA_BIET)

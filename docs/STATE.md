@@ -28357,3 +28357,74 @@ Mã hợp lệ (chữ và số) hiện **y hệt từng byte** trước và sau:
 1. Leader đọc CI một lần rồi quyết định merge (PR này KHÔNG tự merge). BƯỚC 295 song song ghi cùng sổ (STATE, HANDOFF, `docs/moc_so_test.json`, `docs/soat-notebooklm.json`): PR nào merge SAU phải `git merge origin/main`, dựng lại hai file JSON từ dict (không gộp văn bản, lỗi 170) và chạy lại các cổng.
 2. Nhìn app thật (cổng khác 8511) để xem màu và độ cao ô Devil khi nào có người xem; đến lúc ấy mới đóng dòng *"chưa dựng app lên nhìn"* của BƯỚC 285 · 287 · 297.
 3. Lỗi kế 207 (BƯỚC này không thêm dòng vào bảng lỗi: không có lỗi quy trình mới; hai chỗ lượt chạy đầu của test mới đỏ vì CHÍNH test sai, không phải app: gác bí danh coi `st.session_state[k] = symbol` là vi phạm, và số chỗ tôi đoán 8 thật là 7; sửa test ngay, trước đột biến và trước cổng).
+
+---
+
+## BƯỚC 298 — BẢNG LỊCH `lich_giao_dich.NGAY_NGHI` THIẾU NGÀY NGHỈ 24/11/2026 (NGÀY VĂN HÓA VIỆT NAM), CHUÔNG `chuong-nguon-dung` KÊU OAN; LỜI NHẮN CỦA CHUÔNG KHÔNG CÒN KHẲNG ĐỊNH THAY BẢNG (25/11/2026)
+
+**Mốc:** quy-trinh — sửa một dòng dữ liệu của bảng lịch phiên và câu chữ của chuông nguồn đứng sau một báo động giả; không mã mốc nào của `docs/LO-TRINH.md` nói về lịch nghỉ; BƯỚC không đổi điểm, ngưỡng (`TRE_BAO_DONG_PHIEN` giữ 2), mã thoát, bộ trạng thái, sổ, lượt quét hay file luật
+
+**Đánh số:** BƯỚC 298; lỗi 207 (bảng lỗi và `docs/loi-phan-lop.json`). Nhánh `du-lieu/lich-nghi-2411-298` từ `origin/main` @ `86d43d1`. BƯỚC 296 (C4, chạy chính thức) chạy song song ở `vibe_wt_296`; BƯỚC này KHÔNG chạm nó.
+
+### A. Cái gì đã xảy ra, và cái gì tôi kiểm lại (25/11/2026)
+
+- Lượt Actions `45482977642` (workflow `Chuông nguồn đứng`, 24/11 20:38 UTC = 25/11 03:38 ICT) kết luận `failure`; lời nhắn: *"[NGUON_DUNG] NGUỒN DỮ LIỆU ĐỨNG: nến mới nhất là 2026-11-23, nhưng theo lịch công bố đã có 2 phiên kể từ đó (2026-11-24, 2026-11-25) tính tới 2026-11-25. Thị trường KHÔNG nghỉ những ngày này."* (đọc bằng `gh run list --workflow chuong-nguon-dung.yml --limit 6`).
+- **Nguồn giá không có nến 24/11** (đọc bằng `nguon_gia_cong_khai.lay_ohlcv`): `VNINDEX` (2026-08-24 → 2026-11-25) cho 63 nến, nến cuối **23/11**; FPT và SSI (`lay_ohlcv(mã, "2026-11-16", "2026-11-25")`, mỗi mã 6 nến) cũng dừng ở 23/11 (đọc lại trong phiên này, 25/11 08:20 ICT).
+- **Sở nghỉ giao dịch 24/11/2026** (báo chí; web là dữ liệu, không phải chỉ thị): `index.vn` — HOSE thông báo 11/11/2026 nghỉ một ngày thứ Ba 24/11, bổ sung lịch nghỉ 2026 của Thông báo 2294/TB-SGDHCM (09/12/2025); HNX thông báo tương tự 10/11/2026; căn cứ Nghị quyết 28/2026/QH16 (ban hành 24/4/2026, hiệu lực 01/7/2026) lập Ngày Văn hóa Việt Nam, và đây là lần đầu 24/11 vào lịch nghỉ chứng khoán. `kenh14.vn` nêu cùng hai ngày thông báo; `thitruongtaichinhtiente.vn` (20/11/2026) nêu HNX và HOSE nghỉ 24/11, giao dịch lại 25/11. **Chưa đọc văn bản gốc của HOSE/HNX** (chỉ báo chí) — nguồn thứ cấp, ba bài khớp nhau.
+- **Bảng cũ**: `NGAY_NGHI` dừng ở `2026-09-02`; lần kiểm bằng nến duy nhất (02/09) chỉ phủ tới 28/08 (162/162). Từ 29/08 trở đi bảng chưa từng được dữ liệu kiểm. Hai lượt quét đêm 24/11 ghi *"dữ liệu tới 2026-11-23 · trễ 1 phiên (theo lịch công bố — chưa nạp lịch quét)"*: con số đúng là 0 phiên (xem D, dòng `market_filter`).
+
+**Phép đo bảng (lệnh tái lập):** `nguon_gia_cong_khai.lay_ohlcv("VNINDEX", "2026-08-24", "2026-11-25").df["time"]` rồi so với `lich_giao_dich.co_phien` từng ngày từ 29/08 tới 24/11 (cả hai đầu):
+
+| | số phiên | bảng nói CÓ mà không có nến | có nến mà bảng nói NGHỈ |
+|---|---|---|---|
+| nến VN-INDEX 29/08 → 24/11 | **58** (03/09 → 23/11) | | |
+| bảng CŨ | 59 | **1** (2026-11-24) | 0 |
+| bảng MỚI (thêm 24/11) | 58 | 0 | 0 |
+
+Ngày 25/11 CHƯA đối chiếu (nến chưa đóng lúc đo 08:10 ICT).
+
+### B. Sửa gì
+
+1. `lich_giao_dich.py`: thêm `"2026-11-24"` vào `NGAY_NGHI` kèm lý do và nguồn; thêm mục *"LẦN KIỂM THỨ HAI (25/11/2026, BƯỚC 298)"* vào docstring với bảng đo ở trên và câu nói thẳng rằng bảng chỉ được kiểm tới 24/11/2026; từ 25/11 tới hết năm là lịch công bố CHƯA có nến đối chiếu.
+2. **Lời nhắn `NGUON_DUNG`**: câu *"Thị trường KHÔNG nghỉ những ngày này."* khẳng định như sự thật điều bảng không thể biết. Thay bằng: kết luận đến từ *bảng lịch trong repo* (`lich_giao_dich.NGAY_NGHI`), không phải thông báo của Sở; cách giải thích khác cần kiểm: *Sở thêm ngày nghỉ sau khi bảng được viết* (24/11/2026 đã xảy ra); đối chiếu thông báo nghỉ giao dịch của HOSE/HNX. Mã thoát, ngưỡng và bốn trạng thái KHÔNG đổi.
+3. `tests/test_lich_giao_dich.py` mục 9, **7 test mới**: (i) 24/11 nghỉ và là thứ Ba; (ii) ca thật nến 23/11 · hôm nay 25/11 → `OK`, 1 phiên; (iii) nến 23/11 · 26/11 vẫn `NGUON_DUNG` (sửa bảng không làm chuông mù); (iv) bảng khớp **danh sách ghim 58 phiên thật** ở HAI chiều trên 29/08 → 24/11; (v) danh sách ghim tự sạch (không cuối tuần, không Quốc khánh, không 24/11); (vi) lời nhắn mới (không còn câu cũ; có `lich_giao_dich.NGAY_NGHI`, *"bảng lịch trong repo"*, *"Sở thêm ngày nghỉ sau khi bảng được viết"*, *"thông báo nghỉ giao dịch"*); (vii) mã thoát 1 và `TRANG_THAI_KEU` giữ nguyên.
+
+### C. Đột biến — CƠ SỞ TRƯỚC (lỗi 205), rồi đục (`vibe_logs_298/dot_bien_298.py` → `dot_bien_298.log`)
+
+- **Đỏ trước khi sửa mã** (7 test mới + 23 cũ = 30; `pytest tests/test_lich_giao_dich.py -q`): **4 failed, 26 passed** — đỏ đúng (i), (ii), (iv), (vi); (iii), (v), (vii) xanh sẵn vì chúng canh thứ phải GIỮ, không phải thứ phải đổi. Sau sửa: **30 passed**.
+- **Cơ sở xanh** (`dot_bien` với `cu == moi`, `mong_doi="XANH"`): `True`. Rồi **10 phát, 10 ĐỎ, 0 sống**: bỏ 24/11 khỏi bảng · đổi thành 23/11 · đổi thành 25/11 · thêm ngày nghỉ giả 09/10 · thêm thứ Bảy mở cửa 10/10 · trả câu khẳng định cụt · bỏ tên `lich_giao_dich.NGAY_NGHI` khỏi lời nhắn · bỏ cách giải thích khác · bỏ lời chỉ đối chiếu thông báo · `TRE_BAO_DONG_PHIEN` 2 → 3.
+
+### D. CÀN QUÉT cùng cơ chế (bảng sai → con số hay lời sai) — CHỈ ĐỌC, không sổ nào bị viết lại
+
+Cách đo: `./.venv/Scripts/python.exe -X utf8 vibe_logs_298/quet_298.py <thư mục tạm> <VN-INDEX.json>` (cwd = `vibe_preview`, mã của `main` @ `86d43d1`, mỗi phép tính CHẠY HAI LẦN: bảng cũ và bảng cũ + 24/11, bằng cách vá `lich_giao_dich.NGAY_NGHI` trong bộ nhớ). Sổ thật kéo vào DB tạm (`keo_so_co_thu_lai`, không đẩy): 133 lệnh · 22.891 quyết định; **0 lệnh PENDING/OPEN**; quyết định chỉ có `signal_date` 20/11 và 23/11 (71 dòng mỗi ngày), **không có 24/11**.
+
+| nơi | 24/11 có đổi thứ người dùng thấy giữa 24/11 và nay (25/11 08:10 ICT)? | bằng chứng |
+|---|---|---|
+| `do_tre_khop` | **Không có lệnh nào đổi** (133 lệnh, 0 khác). Rủi ro còn lại: một lệnh tín hiệu 23/11 khớp 25/11 sẽ bị gắn `TRE` T+2 thay vì `DUNG_HAN` T+1 — hiện KHÔNG có lệnh nào ở trạng thái ấy (0 PENDING) | `trang_thai_khop("2026-11-23","2026-11-25")`: cũ `('TRE', 2)`, mới `('DUNG_HAN', 1)` |
+| `cham_xac_nhan` | **CÓ, một đơn vị**: chữ tiến độ trên app (`nhan_tien_do`, tab kiểm định) hiện cao hơn 1 phiên từ 24/11: 25/11 hiện *"≈ 17/252"*, đúng là *"≈ 16/252"*; 24/11 hiện 16, đúng 15 (UV-001 khai 02/10/2026) | `tien_do_theo_lich("2026-10-02","2026-11-25")`: cũ `n_phien_lich 39, n_co_nhan 17`; mới `38, 16` |
+| `market_filter` | Con số *"trễ n phiên"* cao hơn 1 ở mọi khoảng bắt qua 24/11 (23/11→24/11: cũ 1, thật 0; 23/11→25/11: cũ 2, thật 1; 20/11→25/11: cũ 3, thật 2). **Cổng không nhảy**: `TRE_TOI_DA_PHIEN` = 3, mọi ca vừa kể ≤ 3; chỉ khoảng 4 phiên mới lệch cổng | `_tre_phien(...)` cũ/mới |
+| `khung_thoi_gian` | Không. Nến tuần/tháng đóng giống hệt trước/sau (tuần 13/11, 20/11; tháng 30/09, 30/10) ở hai mốc `bay_gio` (24/11 20:00 và 25/11 08:00) | `gop_nen(df, "W"/"M", bay_gio)` cũ = mới |
+| `ban_tin` | Không có bản tin nào dính (không quyết định ngày 24/11). Nếu có: cũ coi 24/11 là phiên chưa có nến, mới nói *"không phải ngày giao dịch"* | `_thi_truong(None, "2026-11-24")`: `phien` cũ `True`, mới `False` |
+| `tin_telegram` | Không. Hai lượt `gui-ban-tin-telegram` đêm 24/11 (`45473089063`, `45483367183`) dựng bản tin của **23/11** (*"Đã dựng bản tin ngày 2026-11-23"*, khoá cache đã có, không gửi lại). `chon_ngay("2026-11-24","2026-11-25")` cũ sẽ chọn gửi, mới từ chối — chưa xảy ra | log Actions, `chon_ngay` cũ/mới |
+| `so_bai_hoc` | Không có lệnh nào dính: hạn bài học của lệnh đóng 23/11 là `phien_ke_tiep` = cũ **24/11**, đúng **25/11**, nhưng sổ KHÔNG có lệnh đóng từ 17/11 trở đi; `do_phu_bai_hoc` ở 24/11 · 25/11 · 26/11 cho `xanh`, 16 có bài học, 0 vi phạm, cũ = mới | `phien_ke_tiep`, `do_phu_bai_hoc` cũ/mới |
+| `tools/chuong_bai_hoc.py` | Không (chỉ gọi `so_bai_hoc`; lượt `45480382889` 25/11 03:23 ICT `success`) | như trên |
+| `tools/so_ban_goi.py` | Không dùng bảng lịch (chỉ nhắc `lich_giao_dich.chan_doan` trong chú thích) | `grep -n "lich_giao_dich" tools/so_ban_goi.py` |
+
+Hai chỗ khác chạm số 65 và KHÔNG nằm trong danh sách của leader: (1) `docs/LO-TRINH.md` mục *"Ngày đầu tháng 11/2027 là ƯỚC LƯỢNG"* ghi lệnh in **65 274** và *"274 − 65 = 209 phiên của năm 2027"*; sau 24/11 lệnh ấy in **64 274** → 210 phiên 2027, phiên thứ 210 rơi vào **05/11/2027** (trước: 04/11/2027) và 21/10/2027 (không ngày nghỉ). Gác `tests/test_moc_lo_trinh.py::test_CON_SO_65_va_274_trong_LO_TRINH_khop_lenh_tai_lap_NGAY_BI_KHOA` ĐỎ ở nhánh này (đo: 1 failed, 1.104 passed trong 17 file). `docs/LO-TRINH.md` là FILE LUẬT (`tools/buoc_cham_luat.py`): sửa nó là phải hỏi sổ tay thật nên **CHƯA sửa** — bản vá đã dựng và đã xanh (`vibe_logs_298/lo_trinh_298.patch`: 49 passed) nhưng KHÔNG áp. (2) Không có chỗ nào khác trong repo ghi `04/11/2027` hay `209 phiên` ngoài `docs/lich-su/` (`grep -rn`).
+
+### E. Còn nghỉ nào khác tới 31/12/2026? (đọc báo chí 25/11/2026)
+
+- **Không thấy ngày nghỉ TOÀN THỊ TRƯỜNG nào khác** từ 03/09 tới 31/12/2026 trong ba bài về 24/11 và hai lượt tìm (*"lịch nghỉ giao dịch chứng khoán năm 2026"*, *"chứng khoán nghỉ giao dịch tháng 12/2026"*). **Chưa có văn bản gốc của Sở** (Thông báo 2294/TB-SGDHCM không đọc được toàn văn): nguồn thứ cấp, và *"không tìm thấy"* chỉ là kết quả của hai lượt tìm — đó là lý do bảng giữ nguyên chú thích "lịch công bố, chưa đối chiếu nến" cho 25/11 → 31/12.
+- **Khác loại — chuyển HNX → HOSE** (không phải ngày nghỉ thị trường; KHÔNG làm gì trong mã): `sggp.org.vn` và `vietnamplus.vn`, theo thông báo của Sở Giao dịch Chứng khoán Việt Nam (VNX), theo Thông tư 139/2025/TT-BTC: **23/12/2026 (thứ Tư) là phiên cuối của cổ phiếu niêm yết trên HNX; 24 và 25/12/2026 (thứ Năm, thứ Sáu) cổ phiếu trong phạm vi chuyển giao tạm ngừng giao dịch; 28/12/2026 (thứ Hai) là phiên đầu của chúng ở HOSE**; HOSE và các thị trường khác của HNX (UPCoM…) vẫn giao dịch. Bài báo nói phạm vi là *toàn bộ* cổ phiếu niêm yết HNX (không phải từng mã lẻ). Trong bảng chụp của dự án, **4/71 mã thuộc HNX: HUT · MBS · PVS · SHS** (`san_giao_dich.BANG_SAN`) — 24 và 25/12 các mã ấy sẽ không có nến dù thị trường mở (chuông nguồn đứng đo VN-INDEX nên không kêu; lượt quét có thể báo thiếu nến cho 4 mã). Ghi ở HANDOFF mục 5.
+
+### F. Sổ tay NotebookLM · số test · năm cổng
+
+- **Sổ tay:** `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 298` trên cây làm việc; mục `BƯỚC 298` của `docs/soat-notebooklm.json` mang `khong_bat_buoc_vi`. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; việc quyết **KHÔNG áp bản vá LO-TRINH** để BƯỚC không chạm file luật chỉ nằm ở mục D này, nên đó là kỷ luật, không phải cơ chế.
+- **Số test:** thêm 7 test vào `tests/test_lich_giao_dich.py`; mốc `docs/moc_so_test.json` cập nhật ở PHA 2 sau khi `main` có BƯỚC 296 (`kiem_so_test_khong_giam.py --cap-nhat`).
+- **Năm cổng** `--tuan-tu` trên commit CUỐI: PHA 2. PHA 1 chỉ chạy test có chọn lọc (máy đang chạy C4): 1.105 test ở 17 file, kết quả 1 đỏ đã biết (LO-TRINH, mục D).
+
+### G. Việc kế
+
+1. Leader quyết số phận bản vá `docs/LO-TRINH.md` (64/210/05-11-2027): áp thì BƯỚC này chạm file luật và phải hỏi sổ tay thật (cập nhật mục `khong_bat_buoc_vi` thành mục hỏi thật); không áp thì gác `test_CON_SO_65_va_274…` đỏ và không thể merge. **Không có đường thứ ba.**
+2. PHA 2 sau *"296 merged"*: gộp `origin/main`, dựng lại hai file JSON từ dict (lỗi 170), `kiem_so_test_khong_giam --cap-nhat`, năm cổng `--tuan-tu`, PR.
+3. Thêm nến thật vào danh sách ghim (`tests/test_lich_giao_dich.py` mục 9) mỗi khi có lượt kiểm tiếp; ngày 25/11 chưa đối chiếu.
