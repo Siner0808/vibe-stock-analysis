@@ -146,6 +146,8 @@ Bốn bộ phận. **Bộ XÁC NHẬN dùng CHÍNH `cham_bong` và `cham_xac_nha
 Hàm thuần `de_xuat(dong_quyet_dinh_da_nhin, gia_da_nhin) -> danh sách spec có thứ tự`. Cơ sở: với mỗi spec trong F (4.3), tính Δ = IC(spec) − IC(điểm đã ghi) trên MỌI phiên có nhãn của cửa sổ đã nhìn (126 phiên) bằng cùng `cham_bong.ma_tran_cap` + `E.rho_hang` (KHÔNG chạy `so_cap`: không có "phán" ở dữ liệu đã nhìn); xếp theo Δ giảm; khai **3 spec đầu**, mỗi spec một tháng (4.6), theo thứ hạng. Quy tắc cố định trước: ràng buộc hoà bằng thứ tự đặt tên spec; chỉ khai spec có Δ > 0 (nếu ít hơn 3 spec dương thì khai ít hơn — không ép đủ).
 Đây KHÔNG phải C3: không lập luận, không bản tiền đăng ký bằng lời, không cổng khả thi. Nó là một đối thủ rẻ mà vòng phải thắng, và là CHỖ CẮM (giao thức một hàm) để C3 chạy lại cùng tiêu chí sau này.
 
+> 🔴 **HẾT ĐÚNG cho ĐO 38 (khai trước ở BƯỚC 300, mục 21):** luật xếp "Δ giảm" và "3 spec đầu có Δ > 0" ở trên là luật của ĐO 37 (đã chạy, TRƯỢT ở A0, mục 20); bản sửa xếp theo z = (Δ − μ)/σ chuẩn hoá và khai spec có z > 0 VÀ Δ > 0 — công thức và luật khai ở mục 21.1. Đoạn trên giữ nguyên làm sử liệu.
+
 ### 5.2 Khai — sổ ứng viên giả
 
 Dict cùng khuôn `docs/ung-vien.json`, mỗi lần khai đi qua `cham_bong.kiem_so_ung_vien` (nên trần 1/tháng và `qua_sang: null` tự áp). Sổ KHÔNG ghi ra đĩa. Cổng tiền đăng ký bằng git (`tests/test_tien_dang_ky_git.py`) không áp (không có git trong thế giới giả); thay bằng bất biến thời gian có test: bộ đề xuất chỉ thấy dữ liệu ≤ ngày khai − 1, mọi phán chỉ dùng dòng ≥ `tu_ngay_doc(khai_ngay)` (:266).
@@ -591,3 +593,49 @@ Hai lượt chạy ĐÚNG hai lệnh của 19.8 khoản 3, mỗi lượt MỘT l
 Dòng hạt 2 · 3 · 4 chạy MỘT lần bằng đúng lệnh của ĐO 37 (`docs/TIEU-CHI-DOC-TRUOC.md`); `--ket-cuc` in **KẾT CỤC: TRƯỢT ở A0, PT**. **A0 = 421/1000 (ngưỡng ≤ 317)** và **PT: G′ `QUA` 41/100, ngoài dải [7 ; 26]** (báo động NULL 7 ≤ 12 ĐẠT). A · B1–B4 · C1–C3 · P1–P4 ĐẠT. Không hạ ngưỡng, không đổi bộ sinh, không đổi mục 6 (mục 6, *Kết cục*): theo ĐO 37, sửa bộ phận sai rồi chạy lại trên dòng hạt MỚI. Bảng nguyên văn, ba khối kết quả (*Đã khai* · *Báo kèm* · *Sau khi nhìn*), thời gian từng dòng, lần ngắt và chạy tiếp của dòng 4: `docs/STATE.md` BƯỚC 296. Bản ghi: `docs/thi-truong-gia-ket-qua.json`.
 
 Giả thuyết SAU KHI NHÌN (chưa kiểm trên dòng hạt mới): sd của ΔIC quan sát phụ thuộc spec và tầng, mà A0 (mức ngẫu nhiên 3/11) và dải PT (đường probit của G = `mono_volume_score` ở Tầng 1, áp cho G′ = `bo_momentum_score` ở Tầng 2) đều coi nó như nhau. Số đo ở `docs/STATE.md` BƯỚC 296 mục D; mục 19.6 và 19.9 khoản 4 đã khai trước chỗ giả định này.
+
+## 21. Đặc tả sửa C4 — khai trước (ĐO 38 sẽ ký ở BƯỚC 302)
+
+**Trạng thái:** KHAI TRƯỚC, BƯỚC 300 (25/11/2026), commit docs-only đứng TRƯỚC mọi lượt hiệu chuẩn và mọi mã của bản sửa. Nguồn: đặc tả nháp `DAC-TA-SUA-C4.md` của phiên con `c4sua` (ngoài repo), người dùng 25/11/2026: *"ok tiếp tục làm theo đề xuất của bạn"* (hướng sửa) và *"duyệt cả 4"* (bốn câu của đặc tả: A0 đo ở dòng hiệu chuẩn · PT vẫn PHÁN · M1 PHÁN ở ≤ 50/1.000 · P2 giữ cả 200 thị trường). Đánh số (quyết định của leader, không phải của người dùng): **ĐO 38 = sửa C4**, ĐO 39 = Dow phần 2; ý 3A không mang số ĐO.
+
+Mục này KHÔNG viết lại mục 5.1, mục 6 hay mục 20 (lịch sử giữ nguyên: ĐO 37 chạy bằng chúng). Nhãn của từng con số: **Đã khai** = quy tắc/ngưỡng đặt trước khi có số đo của bản sửa; **Báo kèm** = in ra, không phán; **Sau khi nhìn** = số tính SAU khi đã nhìn dữ liệu của lỗi, chỉ để hiểu, không hiệu chuẩn; **ƯỚC LƯỢNG** = chưa có lệnh chạy trong repo.
+
+### 21.1 Bộ đề xuất chuẩn hoá (thay mục 5.1 cho ĐO 38; mã: BƯỚC 300)
+
+**Công thức (Đã khai).** Với mỗi spec s của họ F (11 spec) trên cửa sổ đã nhìn (104 phiên có nhãn, như mục 17 khoản 1): Δₛ = IC(C) − IC(B) như hôm nay, và **zₛ = (Δₛ − μₛ) / σₛ**, trong đó μₛ, σₛ là trung bình và độ lệch chuẩn CHÍNH XÁC của thống kê hoán vị mã mà `cham_bong.so_cap` dùng: null(π) = Σⱼ Aⱼ,π(j), với A = (RCᵀRY)/m_c − (RBᵀRY)/m_b (RB, RC, RY là hạng giữa của B, C, Y; m_b, m_c là chuẩn hoá của `so_cap`). Dạng đóng (Hoeffding 1951): **μ = ΣA / M** và **σ² = Σᵢⱼ(Aᵢⱼ − Āᵢ· − Ā·ⱼ + Ā··)² / (M − 1)** (M = số mã; mẫu số M − 1, như độ lệch chuẩn của một phân phối hoán vị đều, KHÔNG phải M). Không RNG, không hạt. Dữ liệu duy nhất là B, C, Y của cửa sổ đã nhìn: G7 giữ nguyên.
+
+**Luật khai (Đã khai).** Xếp z GIẢM; hoà (sau làm tròn z đến **12 chữ số thập phân**, để khác biệt dấu chấm động không quyết định thứ hạng) theo tên spec; khai tối đa 3 spec có **z > 0 VÀ Δ > 0**. Spec phương sai 0 (m_b·m_c = 0 hoặc σ = 0; `so_cap` trả z = 0, p = 1) có z = 0 và KHÔNG bao giờ được khai, dù Δ = −IC(B) có thể > 0 (kẽ hở của luật thô). Đầu ra giữ khoá cũ và thêm `z`, `sd_null`.
+
+**Số đã thấy (Sau khi nhìn; dòng thử 9001, chỉ số 1.000.001–1.008.000, 8.000 thị trường NULL Tầng 1; lệnh của phiên `c4sua`: `mp_a0.py --so 8000 --tien-trinh 3 --dau 1000001`):** bộ THÔ chọn G (`mono_volume_score`) ở 40,51%; bộ chuẩn hoá chọn G ở **26,77%** (SE 0,50), so với 3/11 = 27,27%. BƯỚC 300 tái lập con số 26,77% bằng MÃ THẬT trên cùng dòng thử; kết quả ghi ở `docs/STATE.md` BƯỚC 300, vẫn mang nhãn Sau khi nhìn.
+
+### 21.2 A0 — mức ngẫu nhiên đo ở dòng hiệu chuẩn (phương án (B); Đã khai)
+
+Ngưỡng A0 = `binom.ppf(0,999; 1000; p̂)`, trong đó p̂ là tỷ lệ G được bộ đề xuất chuẩn hoá chọn ở thị trường NULL Tầng 1 của **dòng 1, chỉ số ≥ 1.100.001** (khối chưa dùng: `CHI_SO_GOC` của dụng cụ hiệu chuẩn Lát 2 dừng ở 900.000; oracle Tầng 2 của G′ dùng 600.001–2 và 600.101–2), **N ≥ 20.000** thị trường, SE(p̂) = √(p̂(1 − p̂)/N). Luật ngưỡng ("phân vị 99,9% của nhị thức quanh mức ngẫu nhiên") đứng nguyên; chỉ mức ngẫu nhiên, vốn là giả định sai của ĐO 37 (đều 3/11), được thay bằng giá trị ĐO ở dòng tách khỏi dòng chấm. **p̂ đọc MỘT lần, không lặp để chọn.**
+
+**Điều kiện DỪNG (Đã khai):** nếu **p̂ + 3·SE ≥ 0,3** thì DỪNG và báo người dùng: một bộ đề xuất xa 3/11 đến mức ấy nghĩa là bộ sinh hay luật khai đã lệch, không phải chỗ chỉnh ngưỡng. Không hạ, không nới tay.
+
+Ví dụ minh hoạ (ƯỚC LƯỢNG, KHÔNG phải ngưỡng; lệnh: `./.venv/Scripts/python.exe -X utf8 -c "from scipy.stats import binom; print(binom.ppf(.999,1000,.2677), binom.ppf(.999,1000,3/11))"` → `312.0 317.0`): với p̂ = 0,2677 thì ngưỡng 312 (so với 317 của ĐO 37); chiều ra cho thấy bản sửa không thiên về dễ đạt.
+
+### 21.3 PT — dải đo ở chính Tầng 2 (Đã khai)
+
+Vế G′ của PT: G′ = `bo_momentum_score` (KHÔNG đổi sang `bo_sr_score`), κ mức 2×, Tầng 2, **dòng 1, chỉ số 1.200.001–1.200.200 (n_cal = 200)**. **k = số thị trường QUA theo đúng luật `trang_thai` (p < 0,05/3 và Δ > 0).** p ~ Beta(k + ½, n_cal − k + ½); số QUA của R = 100 thị trường chính thức ~ **Beta-nhị thức(100; k + ½; n_cal − k + ½)**; **dải 99% = [k nhỏ nhất có P(X ≤ k) ≥ 0,005 ; k nhỏ nhất có P(X ≤ k) ≥ 0,995]**. Vế NULL "báo động ≤ 12/100" GIỮ NGUYÊN. PT vẫn được PHÁN. Đo MỘT lần.
+
+**Điều kiện DỪNG (Đã khai):** k / n_cal ngoài [0,2 ; 0,7], hoặc `data_quality` ≠ OK ở bất kỳ dòng nào → báo, không chạy lại cho đẹp. Dòng 4 (đã nhìn) KHÔNG dùng để hiệu chuẩn (tuần hoàn).
+
+Ví dụ (ƯỚC LƯỢNG; số giả định, không phải đo; lệnh dùng `scipy.stats.betabinom(100, k + .5, n_cal − k + .5)` với k = 84, n_cal = 200): dải [27 ; 58]. Dạng giải tích (m, s, σ̄) chỉ để ĐỌC, không phán.
+
+**Báo kèm (không phán):** Δ và p của G (`mono_volume_score`) ở cùng các thị trường Tầng 2; bảng 2×2 {G, G′} × {Tầng 1, Tầng 2} của (m, s, σ̄, P) với 1.000 thị trường Tầng 1 mức 2× ở dòng 1, chỉ số ≥ 1.300.001; sd của z NULL ở Tầng 2 (so [0,8 ; 1,25]); tỷ lệ chọn từng spec của bộ chuẩn hoá và χ² so với đều.
+
+**Thật thà về sức PT:** hiệu chuẩn ở CÙNG spec, tầng và κ làm PT thành phép kiểm lặp lại và hiệu chuẩn p-value của bước xác nhận ở Tầng 2 (hai dòng hạt khác nhau cho cùng tỷ lệ QUA, và tỷ lệ ấy đúng cái p-value danh nghĩa ngụ ý). Nó bắt lỗi cấp-dòng-hạt hay không tất định; KHÔNG bắt lỗi hệ thống của chính Tầng 2.
+
+### 21.4 NULL có nhớ (NULL-M) và tiêu chí M1 (Đã khai)
+
+Thị trường NULL-M (Tầng 1, bộ sinh MỚI do L2 dựng; `_sinh_loi` giữ nguyên từng bit): thêm nhân tố ẩn NGÀNH dₛ(t) AR(1) với **φ_d = 0,97**, vào lợi nhuận qua κ_d·d/21 (kiểu `z`) và vào cả năm thành phần điểm với cùng hệ số; κ_d chọn sao cho IC(điểm đã ghi) ≈ 0,10 (cỡ đo ở Tầng 2 mức 2×). φ_d 0,97 là KHAI, chưa đo trên giá thật.
+
+**M1 (PHÁN):** trên **1.000** thị trường NULL-M, Tầng 1, bộ ba G · Z · H (K = 3) và oracle tính ΔIC_true: *xác nhận nhầm* = ứng viên bị `QUA` mà ΔIC_true ≤ 0. ĐẠT nếu số thị trường có ≥ 1 xác nhận nhầm **≤ 50/1.000** (danh nghĩa một phía ≈ 2,5%; lệnh: `./.venv/Scripts/python.exe -X utf8 -c "from scipy.stats import binom; print(1-binom.cdf(50,1000,.025), binom.cdf(50,1000,.05))"` → 2,37e-06 và 0,5375: sai-trượt ≈ 0 nếu đúng; nếu thật 5% thì qua 54%). M1 là tiêu chí MỚI ngoài văn bản T6. **Báo kèm:** tỷ lệ báo động hai phía ở bộ ba (so B1 ≤ 75), sd và trung bình của z, tỷ lệ chuỗi nâng cấp ma (so C3). Trượt M1 nghĩa là bước xác nhận (hoán vị MÃ, không tách theo ngành) vỡ khi điểm và nhãn cùng đọc một nhân tố ngành bền: sửa PHÉP KIỂM, không hạ 50.
+
+### 21.5 Dòng hạt và chỉ số (Đã khai)
+
+Giữ NGUYÊN mọi tiêu chí còn lại của bảng ĐO 37 (A, B1–B4, C1–C3, P1–P4, vế NULL của PT, ba tiêu chí KHÔNG ĐỌC ĐƯỢC, G′ = `bo_momentum_score`, R mỗi ô). Dòng hạt MỚI: **6** Tầng 1 có lợi thế 0,5× · 1× · 2×, mỗi ô 400; **7** Tầng 1 NULL 1.000; **8** Tầng 2 NULL 100 + 2× 100 (P2 trên cả 200); **9** Tầng 1 NULL-M 1.000; **10** chẩn đoán SAU khi nhìn, chặn vĩnh viễn (như dòng 5). Hiệu chuẩn ở dòng 1: A0 chỉ số ≥ 1.100.001 (N ≥ 20.000), PT chỉ số 1.200.001–1.200.200, bảng 2×2 chỉ số ≥ 1.300.001. Dòng 2 · 3 · 4 · 5 và dòng 9001 ngoài các chỉ số đã nêu ở 21.1 KHÔNG dùng để hiệu chuẩn. **Mỗi phép đọc là MỘT LẦN** (p̂, k, kết cục dòng 6–9): không đọc lại để chọn.
+
+Nhãn từ ĐO 38: A0 · PT · M1 = Đã khai; bảng 2×2, χ² của spec, sd z NULL = Báo kèm; mọi con số phiên 296 và phiên `c4sua` đã nói = Sau khi nhìn. Chi phí lượt chạy ≈ 10 giờ máy (ƯỚC LƯỢNG từ thời gian thật của BƯỚC 296: dòng 8 chiếm ≈ 6,2 giờ). Lát cắt: L1 (BƯỚC 300, bộ đề xuất) · L2 (BƯỚC 301, NULL-M và dụng cụ hiệu chuẩn) · ký ĐO 38 ở BƯỚC 302 · lượt chạy sau đó.
