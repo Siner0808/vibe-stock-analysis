@@ -28280,6 +28280,128 @@ Bộ đục ngoài repo `vibe_logs_295/dot_bien_295.py` (dụng cụ, 50 phát) 
 1. Leader soát PR của BƯỚC 295 (PR đổi luật: `CLAUDE.md` và `docs/TIEU-CHI-DOC-TRUOC.md`; KHÔNG tự merge). Sau merge, mở **BƯỚC 296**: chạy MỘT lần dòng hạt 2, rồi 3, rồi 4 bằng đúng ba lệnh của ĐO 37 (≈ 6,8 giờ ƯỚC LƯỢNG), rồi `--ket-cuc`; kết cục ghi nguyên văn vào STATE và `docs/LO-TRINH.md` (hàng C4 / T6), kể cả TRƯỢT.
 2. Lỗi kế 207.
 
+## BƯỚC 296 — C4 LÁT 5 (b): LƯỢT CHẠY CHÍNH THỨC CỦA ĐO 37 (DÒNG HẠT 2 · 3 · 4); KẾT CỤC TRƯỢT Ở A0 VÀ PT; T6 CHƯA CHỨNG MINH (25/11/2026)
+
+**Mốc:** C4
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG, 25/11/2026 — bước kế.** Leader đề xuất, nguyên văn: *"1. Bộ đề xuất xếp hạng theo điểm đã chia cho độ dao động. 2. Tính lại dải PT từ độ dao động của chính ứng viên ấy. 3. Ký tiêu chí mới rồi chạy lại cả bảng trên dữ liệu giả mới (khoảng 7 giờ máy, ước lượng), gộp luôn ý 1."* Người dùng trả lời, nguyên văn: *"ok tiếp tục làm theo đề xuất của bạn"*. Ghi làm **BƯỚC KẾ**: một BƯỚC MỚI, một ĐO MỚI, dòng hạt 6 trở đi. **BƯỚC 296 KHÔNG làm điều nào trong ba ý ấy**: không đổi bộ đề xuất, không tính lại dải, không ký tiêu chí mới, không sinh một thị trường nào.
+- **LEADER, 25/11/2026 (không phải người dùng; ĐO 37 không đòi):** kết quả ghi thành BA KHỐI có nhãn: *Đã khai* (đúng bảng ĐO 37), *Báo kèm* (phần "không phán"), *Sau khi nhìn* (chẩn đoán, là GIẢ THUYẾT chưa kiểm trên dòng hạt mới).
+- **LEADER, 25/11/2026, quyết định (c) (không phải người dùng):** giữ `docs/thi-truong-gia-ket-qua.json` trong PR như tool đã ghi và CHỈ sửa `tests/test_chay_chinh_thuc_thi_truong_gia.py`; KHÔNG chạm dụng cụ ghim. Lý do: 19 test mô tả trạng thái TRƯỚC lượt chạy nhưng đọc file kết quả THẬT (lỗi cách ly test, mục H).
+- **Theo chữ của ĐO 37, không phải quyết định mới:** kết cục TRƯỢT ghi nguyên văn; KHÔNG hạ ngưỡng, KHÔNG đổi bộ sinh, R KHÔNG tăng; sửa bộ phận sai rồi chạy lại trên dòng hạt MỚI (bất biến 7). Dòng hạt 2 · 3 · 4 đã `XONG`, không mở lại.
+
+**Đánh số:** BƯỚC 296; **mở lỗi 208** (số 207 thuộc BƯỚC 298, chưa merge; lỗi kế 209). Nhánh `c4/lat5b-luot-chinh-296` từ `origin/main` @ `86d43d1b06f99ea3f7d807d61f0f67c6b3e29b61` (sau merge PR của BƯỚC 295). `docs/TIEU-CHI-DOC-TRUOC.md` KHÔNG đổi.
+
+### A. Lệnh, thời gian, lần ngắt
+
+Mọi dòng chạy bằng đúng lệnh của ĐO 37 (ở worktree viết `../vibe_preview/.venv/Scripts/python.exe` thay cho `./.venv/Scripts/python.exe`), 12 tiến trình, Python 3.13.14, `git.head` = `git.origin_main` = `86d43d1…` ở cả ba dòng. Bản ghi: `docs/thi-truong-gia-ket-qua.json` (do dụng cụ ghi, không sửa tay; `tai_lap` = `KHOP` ở cả sáu ô: băm SHA-256 của thị trường đầu mỗi ô sinh lại bằng bit).
+
+| dòng hạt | ô × số thị trường | thời gian tường (`giay` của dụng cụ) | thoát |
+|---|---|---|---|
+| 2 · Tầng 1 | 0,5× 400 · 1× 400 · 2× 400 | 796,5 s (13,3 phút) | 0 |
+| 3 · Tầng 1 | NULL 1.000 | 754,3 s (12,6 phút) | 0 |
+| 4 · Tầng 2 | NULL 100 · 2× 100 | 22.423,1 s (6,23 giờ), gồm hai lần chạy dưới đây | 0 |
+
+- **Dòng 4 bị ngắt một lần.** Lần 1 chạy 23/11/2026 tới 14:53, mốc *100/200* (NULL 100/100 xong, 2× 0/100), **13.800,2 s**; leader dừng tiến trình vì người dùng tắt máy (mã thoát 255 của lần ấy, log `vibe_logs_296/luong4.log`). **Chạy tiếp ngày 25/11/2026** bằng đúng lệnh cố định kèm `--tiep-tuc` (ĐO 37 cho phép với dòng hạt dở: mỗi thị trường là hàm THUẦN của `(dòng hạt, chỉ số, mức)`, nên chạy tiếp không chọn lại gì), **8.622,4 s**, mã thoát 0, xong ~10:28 (log `vibe_logs_296/luong4_tiep.log`); `giay` cộng dồn qua hai lần = 22.423,1 s. `origin/main` đứng yên ở `86d43d1` suốt hai quãng (`git fetch origin main` lại ngày 25/11: vẫn `86d43d1…`).
+- **P4 chạy MỘT lần**, 23/11/2026 ở đầu dòng 4, lưu trong bản ghi: `ma_thoat` 0, `53 passed, 465 deselected in 15.63s`; `--tiep-tuc` KHÔNG chạy lại (đã có `p4`).
+- **Dòng 2 và 3 chạy 23/11/2026** (`vibe_logs_296/luong2.log`, `luong3.log`; xong 10:50 và 11:03).
+- **So với ƯỚC LƯỢNG của ĐO 37** (≈ 6,8 giờ; Tầng 1 ≈ 21 phút, Tầng 2 ≈ 6,4 giờ): thật là Tầng 1 1.550,7 s ≈ 25,8 phút (cao hơn ước 21 phút) và Tầng 2 6,23 giờ (thấp hơn 6,4); tổng 23.973,8 s ≈ 6,66 giờ. Ước lượng không phải điều kiện của ĐO.
+- **`--ket-cuc`**: leader chạy MỘT lần (mã thoát 1; bản in nguyên văn ở `vibe_logs_296/ket_cuc.log`); phiên này chạy lại MỘT lần chỉ để kiểm, `diff` với bản đầu: **giống từng byte**, mã thoát 1. Lệnh: `./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --ket-cuc`.
+
+### B. ĐÃ KHAI — mười bốn tiêu chí của ĐO 37, giá trị so với ngưỡng (NGUYÊN VĂN `--ket-cuc`)
+
+```
+KẾT CỤC: TRUOT
+  A   ĐẠT    giá trị 400 (ngưỡng >= 320)
+  A0  TRƯỢT  giá trị 421 (ngưỡng <= 317)
+  B1  ĐẠT    giá trị 39 (ngưỡng <= 75)
+  B2  ĐẠT    giá trị 400 (ngưỡng >= 360)
+  B3  ĐẠT    giá trị 7 (ngưỡng <= 20)
+  B4  ĐẠT    giá trị 0 (ngưỡng == 0)
+  C1  ĐẠT    giá trị 0 (ngưỡng == 0)
+  C2  ĐẠT    giá trị 0.14406093328118874 (ngưỡng can duoi KTC 95% > 0)
+  C3  ĐẠT    giá trị 12 (ngưỡng <= 50)
+  P1  ĐẠT    giá trị 0 (ngưỡng == 0)
+  P2  ĐẠT    giá trị 0 (ngưỡng == 0)
+  P3  ĐẠT    giá trị 100 (ngưỡng >= 90)
+  P4  ĐẠT    giá trị 0 (ngưỡng gac G1-G5 xanh (ma thoat 0))
+  PT  TRƯỢT  giá trị {'bao_dong_NULL': 7, 'Gp_QUA_2x': 41} (ngưỡng NULL <= 12 va Gp QUA trong [7 ; 26])
+  TRƯỢT ở: A0, PT
+```
+
+**KẾT CỤC: TRƯỢT ở A0, PT.** (Mười hai tiêu chí còn lại ĐẠT. Không điều KHÔNG ĐỌC ĐƯỢC nào bị chạm: kết cục ra TRƯỢT chứ không phải KHÔNG ĐỌC ĐƯỢC mà Đ9 xếp THẮNG nó; `tai_lap` KHỚP ở cả sáu ô; dòng `may_do_null` bên dưới có 92,5% ô trong 2 sai số, sd(z) = 1,132, |trung bình z| = 0,0097, đều trong ba ngưỡng của Đ9 khoản 1; `bat_G_1x` 305 nằm trong [299 ; 340].) Không hạ ngưỡng, không đổi bộ sinh (mục 6 của đặc tả; ĐO 37, *Kết cục*).
+
+### C. BÁO KÈM — phần "BÁO CÁO (không phán)" của `--ket-cuc`, nguyên văn
+
+```
+  BÁO CÁO (không phán):
+    may_do_null: {"so_o": 12000, "ty_le_trong_2se": 0.92475, "sd_z": 1.1321811541624418, "trung_binh_z": -0.00970916924208391}
+    delta_G_0.5x: {"trung_binh": 0.03701224454616949, "muc_tieu": 0.03781465759097114, "lech": -0.021219630056712173}
+    delta_G_1x: {"trung_binh": 0.07454512796365219, "muc_tieu": 0.07562931518194228, "lech": -0.014335541921566438}
+    delta_G_2x: {"trung_binh": 0.1486643565844058, "muc_tieu": 0.15125863036388457, "lech": -0.017151244680965932}
+    delta_G_NULL: {"trung_binh": -0.00014200622567026922, "se_tb": 0.00016460457675750175}
+    bat_G_1x: {"n_QUA": 305, "R": 400, "dai_99": [299, 340]}
+    duong_cong_0.5x: {"G_QUA": 102, "tim_ra": 319, "nang_cap": 87, "R": 400}
+    duong_cong_1x: {"G_QUA": 305, "tim_ra": 391, "nang_cap": 310, "R": 400}
+    duong_cong_2x: {"G_QUA": 400, "tim_ra": 400, "nang_cap": 400, "R": 400}
+    B1_ty_le: 0.039
+    B1_thieu_nhay: false
+    delta_ic_thuc_hien_NULL: {"n": 12, "trung_binh": -0.023758207008911087}
+    tang2_Z_H_2x: {"Z_bao_dong": 91, "H_QUA": 0, "H_bao_dong": 35, "R": 100}
+```
+
+Đọc theo ĐO 37 Đ8 (báo cáo, không phán): `B1_ty_le` 0,039 ≥ 2,5% và `B1_thieu_nhay` false (vòng không bị coi là thiếu nhạy); lệch của ΔIC_true(G) so với mục tiêu −2,1% · −1,4% · −1,7% ở 0,5× · 1× · 2× (trong ±10%); bắt G ở 1× 305/400. Đường cong nâng cấp: 87/400 ở 0,5×, 310/400 ở 1×, 400/400 ở 2×. Ở Tầng 2, Z báo động 91/100 và H báo động 35/100 (H `QUA` 0) ở 2× — chỉ báo cáo, không phán (Đ7).
+
+### D. SAU KHI NHÌN — GIẢ THUYẾT của leader (25/11/2026), đã kiểm lại; KHÔNG phải tiêu chí đã khai, CHƯA kiểm trên dòng hạt mới
+
+**Giả thuyết (của leader).** Cả hai tiêu chí trượt đều coi độ dao động (sd) của ΔIC quan sát là như nhau giữa các spec; thật ra nó phụ thuộc spec (khoảng cách tới bản đang chạy). (1) **A0 = 421:** bộ đề xuất (`vong_hoc_gia.de_xuat`) xếp hạng ΔIC THÔ nên spec `mono_*`, xa bản đang chạy, dao động rộng hơn và hay đứng đầu khi không có gì; mức "ngẫu nhiên 3/11 = 27,3%" của A0 giả định mọi spec đứng đầu như nhau. (2) **PT = 41:** dải [7 ; 26] suy từ đường probit của spec G = `mono_volume_score` ở Tầng 1 (σ ngầm = 1/b ≈ 0,0232) áp cho G′ = `bo_momentum_score` ở Tầng 2, nơi sd thật nhỏ hơn (0,0126–0,0150), nên lực cao hơn dự đoán.
+
+**Đếm lại bằng lệnh của phiên này (không chép).** `vibe_logs_296/chan_doan_sau_nhin.py` và `vibe_logs_296/chan_doan_pt.py` (ngoài repo, chỉ đọc bản ghi) cho CÙNG con số: số lần mỗi spec được khai ở NULL (1.000 thị trường) — `mono_risk` 422 · `mono_volume` 421 · `mono_sr` 420 · `mono_trend` 367 · `mono_momentum` 278 · `bo_trend` 270 · `bo_sr` 217 · `bo_volume` 204 · `bo_momentum` 202 · `deu` 91 · `bo_risk` 84 (tổng 2.976); Tầng 2 G′ ở 2×: `QUA` 41/100, trung bình Δ 0,0299 (sd 0,0150); NULL: G′ 0/3 (`QUA`/`THUA`), Z 4/1, H 0/1.
+
+**Kiểm Quy tắc 1 — PT trượt về phía "quá TỐT" (41 > 26), nên giả định đầu tiên là có LỖI (rò nhãn hay lỗi mã).** Lệnh: `../vibe_preview/.venv/Scripts/python.exe -X utf8 ../vibe_logs_296/kiem_quy_tac_1_296.py` (đọc `docs/thi-truong-gia-ket-qua.json`; bản in `vibe_logs_296/kiem_quy_tac_1_296.log`; script và bản in nằm ngoài repo). Đã kiểm:
+1. **Rò nhãn?** Một rò vào G′ làm Δ dương ở NULL. Thật: Δ(G′) ở NULL trung bình −0,0010 (sd 0,0126; sai số chuẩn 0,0013), `QUA` 0, `THUA` 3 trên 100. Không dấu hiệu. B4 = 0 và H không bao giờ `QUA` ở Tầng 2 (NULL lẫn 2×).
+2. **Kích cỡ ở NULL phồng?** Báo động của bộ ba G′ · Z · H có ≥ 1 ở 7/100 thị trường NULL (ngưỡng ≤ 12). Hợp ba ứng viên ở mức danh nghĩa 0,05/3 cho 4,92%; P(≥ 7/100) = 0,222. Không phồng. Riêng Z có 5 báo động trên 100 (4 `QUA`, 1 `THUA`): P(≥ 5/100 | 1,67%) = 0,026 — hơi cao, KHÔNG được phán (Z ở Tầng 2 chỉ báo cáo), ghi lại.
+3. **Hiệu ứng lớn hơn hiệu chuẩn?** KHÔNG: Δ trung bình của G′ ở 2× = 0,0299, THẤP hơn ΔIC_true đo ở dòng hạt 1 (0,0331 ± 0,0029; chênh −0,0032, cỡ một sai số gộp). Z và H cũng khớp oracle: −0,0647 so với −0,0635 và −0,0228 so với −0,0215 (BƯỚC 293, dòng 9001). Nên "41 quá tốt" KHÔNG đến từ hiệu ứng lớn hơn dự kiến.
+4. **Đường probit Tầng 1 có sai cho chính spec nó đo không?** Không: G (`mono_volume_score`) ở Tầng 1, 1× bắt 305/400 (dải [299 ; 340]); Δ trung bình 0,0738 (sd 0,0243); sd ở NULL 0,0225, sát σ ngầm 1/b = 0,0232; ngưỡng ngầm của đường probit tính theo đơn vị Δ là −a/b = 0,0561.
+5. **Cơ chế của leader có số đỡ không?** Có. (i) sd của Δ ở NULL phụ thuộc spec: Tầng 1, cùng 252 phiên × 60 mã, G = `mono_volume` 0,0225, Z 0,0061, H = `bo_volume` 0,0062 (gấp khoảng 3,6 lần). (ii) Ở Tầng 2, G′ ở 2× có ngưỡng `QUA` thật theo đơn vị Δ nằm giữa 0,0298 (`QUA` nhỏ nhất) và 0,0362 (không-`QUA` lớn nhất), thấp hơn 0,0561 (ngưỡng mà dải [7 ; 26] ngầm giả định) từ 1,5 tới 1,9 lần. (iii) Mô hình chuẩn N(0,0299 ; 0,0150) với hai ngưỡng ấy cho 50 và 34 trên 100; quan sát 41 nằm giữa. Nên 41 là hợp với sd nhỏ của G′, KHÔNG cần giả thiết lỗi.
+6. **A0 — bộ đề xuất đúng là xếp ΔIC thô?** Đọc mã: `vong_hoc_gia._khoa_xep` = `(-x["delta"], x["ten"])`, `chon_khai` lấy 3 đầu có `delta > 0` (đúng như leader nói). G không đặc biệt: 421 so với 422 (`mono_risk`) và 420 (`mono_sr`), nên không có dấu hiệu rò theo RIÊNG G. Mô phỏng của phiên này (200.000 lượt, hạt 0): 11 spec cùng sd cho 26,8%; một spec sd 0,0225 giữa mười spec sd 0,0062 cho 42,8% (quan sát G: 42,1%); năm `mono_*` cùng 0,0225 cho 38,4% mỗi spec.
+
+**Kết luận của phiên này: giả thuyết của leader KHÔNG bị bác; nó có số đỡ (mục 5 và 6) và không có dấu hiệu rò hay lỗi mã ở mục 1–4.** Ba chỗ phải nói rõ để người đọc không đọc quá:
+- **Câu của leader "ΔIC quan sát KHÔNG cao hơn số hiệu chuẩn" ĐÚNG (mục 3), nên chỗ lệch nằm hoàn toàn ở sd và ngưỡng, không ở hiệu ứng.** Ở đặc tả `docs/thiet-ke-c4-thi-truong-gia.md`, mục 19.6 (*Dự đoán P(`QUA`) từ đường probit Tầng 1 là giả định, không phải số đo Tầng 2*) và 19.9 khoản 4 (*Dải chỉ dựa trên một điểm ước*) đã khai TRƯỚC đúng giả định này là rủi ro của dải; bản khai ấy nói *nhiễu của phép so cặp qua điểm của agent thật có thể khác*, tức nhiễu theo TẦNG, chưa nói nhiễu theo SPEC (G ≠ G′). Số đo này nêu thêm chiều thứ hai.
+- **Chưa tách được SPEC khỏi TẦNG.** Cùng spec `bo_volume` (H), sd ở NULL là 0,0062 ở Tầng 1 nhưng 0,0107 ở Tầng 2 (gấp 1,7 lần): tầng cũng đổi sd. G′ không tồn tại ở Tầng 1 nên không có phép so cùng-spec cho nó. "σ nhỏ hơn" là sự thật đo được ở Tầng 2 (0,0126 ở NULL, 0,0150 ở 2×); NGUYÊN NHÂN (spec hay tầng hay cả hai) CHƯA đo.
+- Mô phỏng ở mục 6 dùng sd của G cho mọi spec `mono_*` và sd của H cho mọi spec khác; **sd của chín spec còn lại (`mono_risk`, `mono_sr`, `mono_trend`, `mono_momentum`, `bo_*` trừ `bo_volume`, `deu`) CHƯA đo**, nên nó đỡ cho chiều và cỡ của G, không giải thích được vì sao `mono_momentum` chỉ 278 (thấp hơn ba `mono_*` kia: sd của spec ấy có lẽ nhỏ hơn). Đây là giả thuyết có số đỡ, không phải kết luận.
+
+### E. Sổ tay NotebookLM (hỏi thật; Quy tắc 3)
+
+- **Chạm file luật:** `docs/LO-TRINH.md` (dòng T6 và hàng C4 nay ghi CHƯA chứng minh) nên BƯỚC này phải hỏi THẬT. Leader hỏi MỘT câu hẹp với cụm chữ đúng (T6 *CHƯA chứng minh*; *"KẾT CỤC: TRƯỢT ở A0, PT"*; A0 = 421 ≤ 317; PT = 41 trong [7 ; 26]), hai ví dụ nghi ngờ (một câu nói T6 ĐÃ chứng minh; một câu nói vòng học đã được chứng minh trên thị trường giả). Nguồn làm tươi trước khi hỏi: nhãn ở `vibe_logs_298/nhan_2511_sau.md`, 25 nguồn, `do-tuoi` 25/25 TUOI so với `86d43d1` (đọc từ git, không hỏi mô hình). Câu hỏi nguyên văn ở `vibe_logs_296/hoi_296_text.txt` (880 đơn vị UTF-16, một `o_thoat`); lệnh JS ở `vibe_logs_296/hoi_296.js` (`so_tay.py hoi … --js`).
+- **Trả lời lưu:** `vibe_logs_296/tra_loi_296.md`, 2.722 đơn vị UTF-16, sha256 `2fc3172526c9e28f51c63e2c517f7e1bcd3fdfd0aca616b46ce4e610426eb5e2`, 22 trích dẫn ở `trich_dan_296.json`. **Khai thẳng: văn bản trong tệp được GÕ LẠI từ chuỗi `text` của chính trang (không sao chép bằng máy); lượt đầu thiếu một khoảng trắng đầu dòng 29 nên `so_tay.py kiem-tra-loi` TỪ CHỐI (3.441 byte, 2.721 đơn vị so với 2.722); sau khi sửa nó in `KHOP · … · 2722 don vi UTF-16`. Tệp chỉ được nhận vì sha256 của TRANG khớp, không vì ai nói nó đúng.**
+- **Kết quả: ÂM — sổ tay nói không có chỗ nào mâu thuẫn hay thành sai** khi LO-TRINH ghi T6 CHƯA chứng minh; nó trích dòng T6 và hàng C4 của `LO-TRINH.md`, hai câu *Kết cục* và *Lượt chạy (BƯỚC 296)* của ĐO 37 (ĐO 37 đã trù liệu nhánh CHƯA chứng minh), dòng Trạng thái của đặc tả, HANDOFF và STATE BƯỚC 295.
+- **Tự kiểm (lệnh trong `_tu_kiem_cau_am` của mục sổ):** `tools/doi_chieu_trich_dan.py` cho năm trích dẫn: bốn KHỚP (dòng T6 và câu *"Năm lát, mốc đích của T6 vẫn là 28/02/2027."* ở `LO-TRINH.md`; hai câu của ĐO 37); câu thứ năm, dòng Trạng thái của đặc tả *"Lát 5 (b), lượt chạy chính thức dòng hạt 2 · 3 · 4, CHƯA làm (BƯỚC 296)."*, LỆCH ở bản làm việc vì chính BƯỚC này đã gạch nó và đánh dấu 🔴 HẾT ĐÚNG 25/11/2026 (ở `86d43d1` nó có đúng một lần). Câu ÂM grep lại: chỉ có hai chỗ nói *ĐÃ chứng minh* gần T6, ở `docs/thiet-ke-c4-thi-truong-gia.md` dòng 204 và `docs/TIEU-CHI-DOC-TRUOC.md` dòng 4972, cùng một câu CÓ ĐIỀU KIỆN của nhánh ĐẠT (*"mọi tiêu chí trên đạt. T6 được ghi ĐÃ chứng minh"*) nên vẫn đúng khi kết cục là TRƯỢT. Không câu nào bị sổ tay bỏ sót.
+- `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 296` → CHẠM LUẬT (`docs/LO-TRINH.md`; cây làm việc so với điểm tách `86d43d1`), được phủ bởi MỤC HỎI THẬT ở trên, không dùng `khong_bat_buoc_vi`. Số test: `./.venv/Scripts/python.exe tools/kiem_so_test_khong_giam.py` → *OK — 5760 test, khớp mốc đã ghi* (lần chạy đầu, trước mục H); sau mục H số test là 5763 (xem mục H).
+
+### H. Sửa test sau khi cổng 1 · 4 đỏ (lỗi 208; quyết định (c) của leader)
+
+- **Cổng đỏ lần đầu** (`--tuan-tu` trên commit `fe53711`): cổng 1 `19 failed, 5739 passed, 2 skipped`, cổng 4 đỏ ở đúng MỘT file `tests/test_chay_chinh_thuc_thi_truong_gia.py` (19 failed, 83 passed), cổng 2 · 3 · 5 xanh. Nguyên nhân: 19 test dựng `kiem_cong` bằng git giả nhưng để `ket_qua_hien_co=None`, nên cửa rơi về `doc_ket_qua_hien_co()` và đọc `docs/thi-truong-gia-ket-qua.json` THẬT (ba dòng `XONG` từ BƯỚC 296): `dong hat 2 DA chay xong`, và các phép đếm số điều thiếu lệch một. Dụng cụ KHÔNG sai; test mô tả đúng trạng thái trước lượt chạy nhưng không cách ly khỏi file mà lượt chạy tạo ra. Nhật ký: `vibe_logs_296/cong/cong1.log`, `cong4.log`.
+- **Sửa (chỉ file test):** (1) fixture tự động `_khong_doc_ban_ghi_chinh_thuc_that` thay `doc_ket_qua_hien_co` bằng hàm trả `None` cho đường mặc định (file chính thức) và giữ nguyên cho mọi đường khác (file tạm của test); (2) ba test mới đọc FILE THẬT và tiêm vào cửa, không qua fixture: ba dòng hạt `XONG` và `kiem_cong` từ chối từng dòng với đúng MỘT lý do `dong hat N DA chay xong`, cả có lẫn không `--tiep-tuc`; `git.sha_do` đã lưu bằng sha256 của thân ĐO 37 ở cây (không ai sửa tiêu chí sau khi ký); `tong_hop` trên file thật ra TRUOT đúng ở {A0, PT} với đủ mười bốn giá trị. Dụng cụ `tools/chay_chinh_thuc_thi_truong_gia.py` và mọi file ghim: KHÔNG đổi (`git diff origin/main -- tools/chay_chinh_thuc_thi_truong_gia.py` rỗng). Không test nào phải đổi dụng cụ.
+- **Đột biến (lỗi 205: cơ sở xanh TRƯỚC khi đục):** cơ sở `105 passed in 56,7 s` (102 + 3) cùng lệnh. Bộ đục ngoài repo `vibe_logs_296/mut_296.py`, `vibe_logs_296/mut_296.log`; hoàn trả từng byte (kể cả `docs/thi-truong-gia-ket-qua.json`). **10/10 ĐỎ, 0 sống sót:** (A) mã dụng cụ, bản sao hoàn trả từng byte, ba test mới đỏ — bỏ điều kiện `XONG` của cửa · `chuan_hoa` đổi kết quả · A0 luôn đạt; (B) file test — bỏ `autouse` (`vibe_logs_296/mut_296_conta.py`: **đúng 19 failed, 86 passed**, tức đúng 19 test cũ đỏ trở lại) · fixture trả bản thật cho đường mặc định; (C) một giá trị đã lưu bị lật — `trang_thai` dòng 2, một `Gp` thành `QUA` (PT 41 → 42), `sha_do` dòng 3, một thị trường NULL thêm `mono_volume_score` (A0 421 → 422), một `G` 2× từ `QUA` thành `DANG CHAM` (B2 400 → 399).
+- **Số test:** `tools/kiem_so_test_khong_giam.py` báo *so test TANG 5760 -> 5763*; `--cap-nhat --ly-do "BUOC 296: them 3 test doc ban ghi ket qua THAT …"` ghi mốc 5763 (`docs/moc_so_test.json`).
+- **Lỗi 208** ở `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md` (✅ đã chặn cho dụng cụ này; lớp lỗi chưa có máy chặn chung — kỷ luật cho dụng cụ có trạng thái chính thức kế tiếp), phân lớp ở `docs/loi-phan-lop.json` (`gac-hong`, `song_ngay` 3: file test thêm 22/11/2026 ở `030124e`, đỏ lần đầu 25/11/2026; nguồn `git`) và dòng tự khai cuối bảng đếm lại bằng `tools/doc_bang_loi.py`: *một trăm linh sáu trên một trăm tám mươi sáu máy chặn được*.
+- **Lượt cổng thứ hai** (`--tuan-tu` trên commit `8aed6b9`): 19 test cũ XANH, cổng 2 · 3 · 5 xanh (5763 test khớp mốc), nhưng cổng 1 · 4 đỏ 7 test của `tests/test_bang_loi_do_duoc.py`: thêm dòng 208 vào bảng mà chưa thêm phân lớp và chưa đếm lại dòng tự khai (`1 lỗi trong bảng chưa có phân lớp: ['208']`; `105/185` so với `106/186`). Lỗi của CHÍNH tôi: tập thử nhanh trước khi commit không có `tests/test_bang_loi_do_duoc.py`; máy đã bắt đúng (`tests/test_bang_loi_do_duoc.py::test_moi_dong_bang_deu_co_PHAN_LOP_hop_le` và `test_DONG_TU_KHAI_cuoi_bang_khop_so_DEM_DUOC`); nhớ chạy file ấy mỗi khi thêm một dòng vào bảng lỗi. Sửa ở commit kế tiếp, chạy lại năm cổng.
+
+### F. Điều CHƯA kiểm
+
+- Mọi điều trong mục D là phân tích SAU KHI NHÌN trên CÙNG bản ghi; chưa kiểm trên một dòng hạt mới (việc của BƯỚC kế: dòng hạt 6 trở đi).
+- sd của ΔIC của chín trong mười một spec và của G′ ở Tầng 1; spec hay tầng gây sd nhỏ của G′.
+- Chưa đọc lại mã bộ sinh · bộ đề xuất · `cham_xac_nhan` từng dòng để tìm rò (mục D chỉ đọc mẫu dữ liệu và `vong_hoc_gia._khoa_xep`, `chon_khai`); các tiêu chí tất định (P1 · P2 · P4 · B4 · C1) đều ĐẠT và `tai_lap` KHỚP ở cả sáu ô.
+- Z báo động 91/100 ở Tầng 2 (2×): khớp oracle 9001 (−0,0635) nên Z ở Tầng 2 KHÔNG là ứng viên ΔIC_true = 0 (BƯỚC 293); không đo lại ở dòng này.
+- Không nói gì về thị trường thật (mục 11 của đặc tả).
+
+### G. Việc kế
+
+1. **BƯỚC kế, đã được người dùng duyệt 25/11/2026** (*"ok tiếp tục làm theo đề xuất của bạn"*): một BƯỚC MỚI, một ĐO MỚI ký TRƯỚC khi chạy, dòng hạt 6 trở đi: (1) bộ đề xuất xếp hạng theo ΔIC chia cho sai số; (2) dải PT tính từ sd của chính G′ ở Tầng 2; (3) chạy lại cả bảng (≈ 7 giờ máy, ƯỚC LƯỢNG), gộp cả ý NULL nhiễu tự tương quan. Không hạ ngưỡng A0, không sửa bộ sinh.
+2. Leader soát PR của BƯỚC 296 (PR đổi luật: `docs/LO-TRINH.md`; KHÔNG tự merge).
+3. Lỗi kế 209 (BƯỚC này mở lỗi 208; 207 thuộc BƯỚC 298).
+
 ## BƯỚC 297 — APP: Ô DEVIL'S ADVOCATE TRONG KHUNG TRANH LUẬN, VÀ `html.escape` CHO HAI CHỮ TỪ NGOÀI MÃ (`_loi_np`, `symbol`); CHỈ HIỂN THỊ (22/11/2026)
 
 **Mốc:** quy-trinh — sửa ô hiển thị và thoát HTML của app, hai mục chờ của leader từ BƯỚC 285 và BƯỚC 287; không mã mốc nào của `docs/LO-TRINH.md` nói về lỗi hiển thị; BƯỚC không đổi điểm, phân tích, cách tranh luận (`debate_agents.py`), `master_agent`, sổ, lượt quét hay file luật
