@@ -40,6 +40,30 @@ Phép đối chiếu (02/09/2026), toàn bộ vùng có dữ liệu:
 `tests/test_lich_giao_dich.py` ghim đúng con số 162 đó, nên bảng không
 trôi đi được mà không ai biết.
 
+LẦN KIỂM THỨ HAI (25/11/2026, BƯỚC 298) — LẦN KIỂM CŨ CHỈ TỚI 28/08
+────────────────────────────────────────────────────────────────────
+Lần kiểm ở trên dừng ở nến 28/08/2026; từ 29/08 trở đi bảng KHÔNG được
+dữ liệu kiểm lần nào, và có một ngày sai: 24/11/2026 (thứ Ba) HOSE (thông
+báo 11/11) và HNX (thông báo 10/11) nghỉ giao dịch, "Ngày Văn hóa Việt
+Nam" (Nghị quyết 28/2026/QH16, hiệu lực 01/7/2026). Bảng chưa có ngày đó
+nên chuông `chuong-nguon-dung` kêu oan lúc 03:38 ICT 25/11. Đo lại, cùng
+phương pháp, tới hôm nay:
+
+    nguon_gia_cong_khai.lay_ohlcv("VNINDEX", "2026-08-24", "2026-11-25")
+    nến VN-INDEX 2026-08-29 → 2026-11-24 : 58 phiên (03/09 → 23/11)
+    bảng CŨ dự kiến                       : 59 phiên
+    bảng nói CÓ mà không có nến           : 1   (2026-11-24)
+    có nến mà bảng nói NGHỈ               : 0
+    bảng MỚI (có 24/11) dự kiến           : 58 phiên, lệch 0 ở cả hai chiều
+
+Cổ phiếu FPT và SSI (Entrade) cũng không có nến 24/11. Ngày 25/11 chưa
+được đối chiếu (nến chưa đóng lúc đo). `tests/test_lich_giao_dich.py` ghim
+danh sách 58 phiên thật đó (mục 9). Bảng này chỉ được coi là kiểm tới
+24/11/2026; từ 25/11 tới hết năm nó là LỊCH CÔNG BỐ chưa có nến đối chiếu.
+Báo chí chưa thấy thông báo nghỉ toàn thị trường nào khác tới 31/12/2026
+(đợt chuyển cổ phiếu HNX sang HOSE tạm ngừng 24–25/12 là chuyện TỪNG MÃ,
+không phải ngày nghỉ của thị trường, nên không vào bảng này).
+
 NGÀY LÀM BÙ KHÔNG GIAO DỊCH
 ───────────────────────────
 Năm 2026 có hai ngày làm bù rơi vào thứ Bảy: 10/01 (bù cho 02/01) và 22/08
@@ -56,9 +80,9 @@ from __future__ import annotations
 import datetime as _dt
 
 #: Ngày TRONG TUẦN mà Sở công bố KHÔNG giao dịch.
-#: Nguồn: thông báo HOSE/HNX, đối chiếu qua báo chí tài chính 02/09/2026.
-#: Mỗi kỳ nghỉ ghi kèm lý do — một ngày không có lý do là một ngày không
-#: kiểm lại được.
+#: Nguồn: thông báo HOSE/HNX, đối chiếu qua báo chí tài chính 02/09/2026
+#: (các ngày tới 02/09) và 25/11/2026 (ngày 24/11). Mỗi kỳ nghỉ ghi kèm lý
+#: do — một ngày không có lý do là một ngày không kiểm lại được.
 NGAY_NGHI: frozenset[str] = frozenset({
     "2026-01-01", "2026-01-02",                 # Tết Dương lịch (02/01 hoán đổi)
     "2026-02-16", "2026-02-17", "2026-02-18",   # Tết Nguyên đán
@@ -66,6 +90,10 @@ NGAY_NGHI: frozenset[str] = frozenset({
     "2026-04-27",                               # Giỗ tổ Hùng Vương
     "2026-04-30", "2026-05-01",                 # Thống nhất · Quốc tế Lao động
     "2026-08-31", "2026-09-01", "2026-09-02",   # Quốc khánh
+    # Ngày Văn hóa Việt Nam, thứ Ba. Nguồn: HOSE thông báo 11/11/2026 (bổ
+    # sung lịch nghỉ 2026 của 2294/TB-SGDHCM), HNX thông báo 10/11/2026;
+    # căn cứ Nghị quyết 28/2026/QH16. Không có nến VN-INDEX ngày này.
+    "2026-11-24",
 })
 
 #: Ngoại lệ NGƯỢC: thứ Bảy/Chủ nhật mà Sở VẪN mở cửa. Năm 2026 không có.
@@ -187,7 +215,12 @@ def chan_doan(nen_moi_nhat, hom_nay) -> tuple[str, str]:
         return NGUON_DUNG, (
             f"NGUỒN DỮ LIỆU ĐỨNG: nến mới nhất là {nen}, nhưng theo lịch "
             f"công bố đã có {tre} phiên kể từ đó ({', '.join(bo_qua)}) tính "
-            f"tới {moc}. Thị trường KHÔNG nghỉ những ngày này.")
+            f"tới {moc}. Kết luận này đến từ bảng lịch trong repo "
+            f"(`lich_giao_dich.NGAY_NGHI`), không phải từ thông báo của Sở. "
+            f"Cách giải thích khác cần kiểm trước khi kết luận nguồn hỏng: Sở "
+            f"thêm ngày nghỉ sau khi bảng được viết (24/11/2026 đã xảy ra) — "
+            f"đối chiếu thông báo nghỉ giao dịch của HOSE/HNX cho các ngày "
+            f"trên.")
 
     return OK, (f"Nến mới nhất {nen}, trễ {tre} phiên so với {moc} "
                 f"(ngưỡng {TRE_BAO_DONG_PHIEN}). Khớp lịch công bố.")

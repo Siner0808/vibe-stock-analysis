@@ -95,16 +95,16 @@ def test_LO_TRINH_goi_dung_ten_uoc_luong_cua_ngay_phan_quyet():
 
 
 def test_CON_SO_65_va_274_trong_LO_TRINH_khop_lenh_tai_lap_NGAY_BI_KHOA():
-    """Quy tắc 2: văn bản nói lệnh in `65 274`; chạy chính nó và so. Lịch 2026
+    """Quy tắc 2: văn bản nói lệnh in `64 274`; chạy chính nó và so. Lịch 2026
     đã công bố (không trôi), còn `MOC_DOC`/`NHIP` đổi thì tài liệu phải đổi theo."""
     import cham_bong as cb
     import lich_giao_dich as lich
     van = _lo_trinh()
     ra = (len(lich.cac_phien("2026-10-01", "2026-12-31")),
           cb.MOC_DOC + cb.NHIP + 1)
-    assert ra == (65, 274), ra
-    assert "In **65 274**" in van, "LO-TRINH.md khong con khop ket qua lenh"
-    assert f"{ra[1]} − {ra[0]} = **209" in van
+    assert ra == (64, 274), ra
+    assert "In **64 274**" in van, "LO-TRINH.md khong con khop ket qua lenh"
+    assert f"{ra[1]} − {ra[0]} = **210" in van
 
 
 # ── phép phán `loi_moc` ──────────────────────────────────────────────────────

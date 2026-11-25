@@ -90,7 +90,7 @@ Agent tự giao dịch ảo, tự rút bài học, minh bạch. Nghiệm thu b�
 
 ### Đích 2 — "có lợi thế thật", phán quyết đầu tiên **≈ đầu tháng 11/2027** (ƯỚC LƯỢNG)
 
-Trang đã duyệt ghi **03/11/2027**; cách đếm của mã cho **04/11/2027** (mục dưới).
+Trang đã duyệt ghi **03/11/2027**; cách đếm của mã cho **05/11/2027** (mục dưới; trước BƯỚC 298 là 04/11/2027).
 Một phiên chênh nằm trong sai số của một ước lượng dựa vào lịch nghỉ chưa công
 bố. Dữ liệu quyết nhịp; đẩy nhanh hơn thì phá kỷ luật đo. Hai đồng hồ dữ liệu:
 
@@ -111,10 +111,11 @@ kết quả hợp lệ, và là lý do Đích 1 phải đứng được độc l
 ./.venv/Scripts/python.exe -c "import lich_giao_dich as l, cham_bong as cb; print(len(l.cac_phien('2026-10-01','2026-12-31')), cb.MOC_DOC + cb.NHIP + 1)"
 ```
 
-In **65 274**: 65 phiên từ 02/10 tới hết 2026 (`cac_phien` loại ngày đầu nên mốc
-là `2026-10-01`), và 274 = 252 + 21 + 1 phiên cần. Còn 274 − 65 = **209 phiên của
-năm 2027**. Hàm của app, `cham_xac_nhan.tien_do_theo_lich("2026-10-02", "2026-12-31")`,
-cho cùng 65 phiên lịch và 43 phiên có nhãn (= 65 − 22), khớp con số 274.
+In **64 274**: 64 phiên từ 02/10 tới hết 2026 (`cac_phien` loại ngày đầu nên mốc
+là `2026-10-01`), và 274 = 252 + 21 + 1 phiên cần. Còn 274 − 64 = **210 phiên của
+năm 2027**. (Lúc đo 08/10/2026 lệnh in `65 274`; 24/11/2026 là ngày Sở nghỉ — BƯỚC 298
+thêm nó vào `lich_giao_dich.NGAY_NGHI` — nên số phiên lịch còn 64 và số phiên 2027 thành 210.) Hàm của app, `cham_xac_nhan.tien_do_theo_lich("2026-10-02", "2026-12-31")`,
+cho cùng 64 phiên lịch và 42 phiên có nhãn (= 64 − 22), khớp con số 274.
 
 **Chỗ lệch với trang đã duyệt:** trang ghi 273 phiên ("252 phiên có nhãn + 21 phiên
 nhãn") và 208 phiên của 2027, tức đếm NHIP mà quên cộng 1 (nhãn dùng giá T+1 tới
@@ -124,9 +125,9 @@ lại để không ai tính lại từ 273.
 Lịch nghỉ 2027 CHƯA công bố (`lich_giao_dich.PHU_TOI` là `2026-12-31`). Giả định
 của leader để ra ngày: **11 ngày nghỉ trong tuần** (1/1; năm ngày Tết Nguyên đán
 04–05/02 và 08–10/02; Giỗ Tổ 16/04; 30/04; 03/05 bù 01/05; 02–03/09) — SUY ĐOÁN,
-không phải lịch của Sở. Với giả định ấy, phiên thứ 209 của 2027 rơi vào
-**04/11/2027** (phiên thứ 208, ngày trang đã duyệt: 03/11/2027). Không có ngày nghỉ
-nào thì rơi vào 20/10/2027. Khi Sở công bố lịch 2027 (thường cuối 2026): thêm ngày
+không phải lịch của Sở. Với giả định ấy, phiên thứ 210 của 2027 rơi vào
+**05/11/2027** (phiên thứ 208, ngày trang đã duyệt: 03/11/2027). Không có ngày nghỉ
+nào thì rơi vào 21/10/2027. Khi Sở công bố lịch 2027 (thường cuối 2026): thêm ngày
 nghỉ vào `lich_giao_dich.NGAY_NGHI`, nới `PHU_TOI`, rồi đếm lại bằng chính hàm trên.
 Tab *Kiểm định chiến lược* của app sẽ hiện "chưa tính được" từ 01/01/2027 nếu không
 làm (`docs/STATE.md` BƯỚC 162).
