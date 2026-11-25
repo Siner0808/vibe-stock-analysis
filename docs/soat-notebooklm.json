@@ -6372,7 +6372,123 @@
     },
     "BƯỚC 298": {
       "ngay": "2026-11-25",
-      "khong_bat_buoc_vi": "Chỉ thêm MỘT ngày nghỉ vào bảng dữ liệu lich_giao_dich.NGAY_NGHI (24/11/2026, Ngày Văn hóa Việt Nam; HOSE thông báo 11/11, HNX 10/11), đổi câu chữ của lời nhắn NGUON_DUNG trong lich_giao_dich.chan_doan (bỏ câu khẳng định cụt, nêu rõ kết luận đến từ bảng lịch trong repo và gọi tên cách giải thích khác), thêm 7 test vào tests/test_lich_giao_dich.py, và ba dòng tài liệu (STATE, HANDOFF, sổ này) cộng dòng 207 của bảng lỗi và docs/loi-phan-lop.json. Không đổi ngưỡng TRE_BAO_DONG_PHIEN, mã thoát, bốn trạng thái, điểm, sổ, đường quét, kết luận đo nào; không sửa CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md hay LO-TRINH.md. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; việc cố ý KHÔNG áp bản vá docs/LO-TRINH.md (con số 65 274 thành 64 274, file luật nên phải hỏi sổ tay thật, quyết định thuộc leader/người dùng) chỉ nằm ở docs/STATE.md BƯỚC 298 mục D và G, nên đó là kỷ luật, không phải cơ chế; nếu bản vá được áp thì mục này phải đổi thành mục hỏi thật."
+      "nguon": [
+        "CLAUDE.md @86d43d1",
+        "HANDOFF.md @86d43d1",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @e99c2e1",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @86d43d1",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @64ec66b",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @86d43d1 phan7/7 (BUOC 275-297)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "STATE.md @f27bc50 phan3/5 (BUOC 117-168)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "thiet-ke-c4-thi-truong-gia.md @86d43d1",
+        "TIEU-CHI-DOC-TRUOC.md @86d43d1"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với 86d43d1 86d43d1): 25 nguồn, 25 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 298 into docs/STATE.md: BƯỚC 298 adds 2026-11-24 (Ngày Văn hóa Việt Nam; HOSE and HNX closed that Tuesday) to lich_giao_dich.NGAY_NGHI, so the command in LO-TRINH.md counting sessions from 2026-10-01 to 2026-12-31 now prints 64 274 instead of 65 274, 2027 needs 210 sessions instead of 209, and the estimated verdict date moves from 04/11/2027 to 05/11/2027 (and from 20/10/2027 to 21/10/2027 when 2027 has no holidays); BƯỚC 298 edits LO-TRINH.md to these numbers. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a sentence saying 24/11/2026 is a normal trading day, or that the market has no closed day between 03/09/2026 and 31/12/2026, ANY sentence in ANY source that states 65 sessions, 274 sessions, 209 sessions of 2027, the date 04/11/2027 or the date 20/10/2027 as a current fact (list EVERY such place, with file and heading, even if you think it is only history), a sentence saying the lich_giao_dich table was checked against real VN-INDEX candles and covers all of 2026. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "d7a1d0fc6f6a5ef90a6dc9ca553f13052fa7c6fd5012cb46efc926a691affd81",
+        "dai16": 5782,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @61221db phan1/5 (BUOC 2-40)"
+          },
+          {
+            "n": 4,
+            "nguon": "STATE.md @61221db phan4/5 (BUOC 169-211)"
+          },
+          {
+            "n": 5,
+            "nguon": "STATE.md @61221db phan4/5 (BUOC 169-211)"
+          },
+          {
+            "n": 6,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 7,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 7,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 7,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 8,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 9,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @e99c2e1"
+          }
+        ]
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay kết luận KHÔNG có chỗ nào mâu thuẫn, nhưng liệt kê đúng các câu của `docs/LO-TRINH.md` mục Đích 2 sẽ hết đúng khi BƯỚC 298 thêm 24/11/2026 vào `lich_giao_dich.NGAY_NGHI`: *\"Trang đã duyệt ghi 03/11/2027; cách đếm của mã cho 04/11/2027 (mục dưới).\"*; *\"In 65 274: 65 phiên từ 02/10 tới hết 2026 …\"*; *\"Còn 274 − 65 = 209 phiên của năm 2027.\"*; *\"… cho cùng 65 phiên lịch và 43 phiên có nhãn (= 65 − 22), khớp con số 274.\"*; *\"… phiên thứ 209 của 2027 rơi vào 04/11/2027 … Không có ngày nghỉ nào thì rơi vào 20/10/2027.\"*. Đó chính là các câu BƯỚC 298 sửa (64 274 · 210 · 42 · 05/11/2027 · 21/10/2027), không phải mâu thuẫn ngoài ý muốn; sổ tay nói đúng rằng 274 (252 + 21 + 1) không đổi và hai câu khác của LO-TRINH (\"274 phiên ÷ ~21 phiên/tháng\", \"mẫu số đúng là 274\") vẫn đúng.",
+          "tu_kiem": "./.venv/Scripts/python.exe vibe_logs_298/doi_chieu_298.py (chạy ở gốc worktree; dùng `tools/doi_chieu_trich_dan.py` trên LO-TRINH.md và STATE.md của `86d43d1`) -> 24 chuỗi trong dấu nháy của câu trả lời: 22 KHỚP, 2 LỆCH và cả hai KHÔNG phải trích dẫn một phát hiện (một câu diễn đạt lại trong nháy về `cham_xac_nhan.py:178` \"lịch công bố trước, chỉ 2026\"; một đường dẫn tiêu đề `BƯỚC 164 > Giả thuyết bị bác, ước lượng đã sai` bị phép ghép nháy của tôi cắt sai, tiêu đề có thật ở STATE.md dòng 21400); và git grep -n -E \"04/11/2027|20/10/2027|209 phiên|65 phiên|65 274|= \\*\\*209\" 86d43d1 -- . ':!docs/lich-su' -> docs/LO-TRINH.md:93,114,115,117,128,129 · docs/STATE.md:21260,21402 · tests/test_moc_lo_trinh.py:98,106,107 · .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:1509 · docs/soat-notebooklm.json:2501 (STATE.md:20688 và TIEU-CHI-DOC-TRUOC.md:3683,3847 là \"965 phiên\", không liên quan)",
+          "phan_quyet": "THẬT, đã làm: `docs/LO-TRINH.md` đã sửa ở commit riêng (leader quyết 25/11/2026), gác `tests/test_moc_lo_trinh.py` đổi theo (68 passed cùng `tests/test_lich_giao_dich.py`)."
+        },
+        {
+          "noi_dung": "Hai bản ghi nhật ký của `docs/STATE.md` mang con số cũ: BƯỚC 162 mục Rủi ro 2 (*\"… 65 phiên còn lại của 2026 … 208 phiên của 2027 cho 273 phiên … → 65\"*) và BƯỚC 164 mục Giả thuyết bị bác (*\"274 (65 phiên đến hết 2026 + 209 phiên 2027). Ngày đọc ước lượng 04/11/2027 …\"*). Sổ tay coi chúng là bản ghi lịch sử đúng lúc viết, không phải mâu thuẫn.",
+          "tu_kiem": "sed -n 21260p docs/STATE.md · sed -n 21402p docs/STATE.md (trên `86d43d1`: `git show 86d43d1:docs/STATE.md | sed -n 21260p`) -> hai câu có thật; ở nhánh này cả hai nay kết thúc bằng `🔴 **HẾT ĐÚNG từ 25/11/2026 (BƯỚC 298)`, bản gốc giữ nguyên (`git grep -n \"HẾT ĐÚNG từ 25/11/2026\" docs/STATE.md`).",
+          "phan_quyet": "THẬT, đã làm: hai dòng đã đánh dấu 🔴 HẾT ĐÚNG, không sửa chữ cũ."
+        },
+        {
+          "noi_dung": "Sổ tay BỎ SÓT chỗ thứ ba mà phép `git grep` của tôi tìm ra: `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md` dòng 1509 (lỗi 131) nhắc tên gác `test_CON_SO_65_va_274_trong_LO_TRINH_…` và \"65 274\" như lịch sử một lỗi cũ (BƯỚC 164, 08/10/2026), cùng `docs/soat-notebooklm.json` ~dòng 2501 (bốn ví dụ âm của một lượt hỏi cũ). Cả hai là bản ghi có ngày, không phải khẳng định hiện hành về lịch.",
+          "tu_kiem": "git grep -n -E \"04/11/2027|20/10/2027|209 phiên|65 phiên|65 274|= \\*\\*209\" 86d43d1 -- . ':!docs/lich-su' -> docs/LO-TRINH.md:93,114,115,117,128,129 · docs/STATE.md:21260,21402 · tests/test_moc_lo_trinh.py:98,106,107 · .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md:1509 · docs/soat-notebooklm.json:2501 (STATE.md:20688 và TIEU-CHI-DOC-TRUOC.md:3683,3847 là \"965 phiên\", không liên quan)",
+          "phan_quyet": "THẬT, sổ tay bỏ sót; KHÔNG sửa vì là lịch sử (cùng cách xử lý như STATE BƯỚC 162/164 nhưng không có câu nào ở đó nói con số như sự thật hiện hành)."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
