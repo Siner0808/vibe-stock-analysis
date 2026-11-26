@@ -70,9 +70,10 @@ def noi_dong_va_gia(tt, theo_ma: dict) -> tuple[list[dict], pd.DataFrame]:
 
 
 def bo_ba_ep(dong, gia) -> list[dict]:
-    """Ba ứng viên ép sẵn (G, H, `deu`) để cả ba lần `cham` đều chạy: cận trên chi phí. Δ giả = 1 (chỉ để qua `chon_khai`)."""
+    """Ba ứng viên ép sẵn (G, H, `deu`) để cả ba lần `cham` đều chạy: cận trên chi phí. Δ giả = 1 và z giả = 5 (chỉ để qua `chon_khai`, BƯỚC 300: đọc z)."""
     ho = T.ho_spec_f()
-    return [{"ten": t, "spec": ho[t], "delta": 1.0 - 0.1 * i} for i, t in enumerate(("mono_volume_score", "bo_volume_score", "deu"))]
+    return [{"ten": t, "spec": ho[t], "delta": 1.0 - 0.1 * i, "z": 5.0 - 0.5 * i}
+            for i, t in enumerate(("mono_volume_score", "bo_volume_score", "deu"))]
 
 
 def do_vong(dong, gia, de_xuat_fn=None, so_hoan_vi: int = cx.SO_HOAN_VI) -> dict:
