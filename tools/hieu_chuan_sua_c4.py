@@ -327,6 +327,7 @@ def de_xuat_va_chon(dong: list[dict], gia) -> tuple[list[dict], list[dict]]:
     cuoi_nhin = min(T.SO_PHIEN_DA_NHIN - 1, khai0 - 1)
     dong_nhin, gia_nhin = V.cat_den_phien(dong, gia, cuoi_nhin)
     xep = V.de_xuat(dong_nhin, gia_nhin)
+    kiem_co_z(xep)          # TRƯỚC `chon_khai`: bộ chuẩn hoá đọc `z`; thiếu thì nói rõ, không để KeyError
     return xep, V.chon_khai(xep)
 
 
