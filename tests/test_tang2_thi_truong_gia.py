@@ -790,4 +790,5 @@ def test_P4_G1_den_G5_cung_xanh_cho_module_va_dung_cu_tang2():
     # SO SÁNH KHÔNG PHỤ THUỘC THỨ TỰ DUYỆT CÂY (BƯỚC 293, lỗi 206): `duyet_repo.duyet` trả theo bảng chữ cái trên NTFS nhưng
     # theo thứ tự của hệ tệp trên Linux (CI), nên `nguoi` đúng TẬP nhưng khác thứ tự ở runner. `sorted` giữ ý "ĐÚNG những file này".
     assert sorted(nguoi) == ["tools/chay_chinh_thuc_thi_truong_gia.py", "tools/chay_tang2_thi_truong_gia.py",
-                             "tools/chay_vong_tang2_thi_truong_gia.py", "tools/oracle_tang2_thi_truong_gia.py"], nguoi   # BƯỚC 295: dụng cụ chạy chính thức
+                             "tools/chay_vong_tang2_thi_truong_gia.py", "tools/hieu_chuan_sua_c4.py",
+                             "tools/oracle_tang2_thi_truong_gia.py"], nguoi   # BƯỚC 295: dụng cụ chạy chính thức; BƯỚC 301: hiệu chuẩn sửa C4 (pt)
