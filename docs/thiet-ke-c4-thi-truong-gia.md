@@ -594,7 +594,7 @@ Dòng hạt 2 · 3 · 4 chạy MỘT lần bằng đúng lệnh của ĐO 37 (`d
 
 Giả thuyết SAU KHI NHÌN (chưa kiểm trên dòng hạt mới): sd của ΔIC quan sát phụ thuộc spec và tầng, mà A0 (mức ngẫu nhiên 3/11) và dải PT (đường probit của G = `mono_volume_score` ở Tầng 1, áp cho G′ = `bo_momentum_score` ở Tầng 2) đều coi nó như nhau. Số đo ở `docs/STATE.md` BƯỚC 296 mục D; mục 19.6 và 19.9 khoản 4 đã khai trước chỗ giả định này.
 
-## 21. Đặc tả sửa C4 — khai trước (ĐO 38 sẽ ký ở BƯỚC 302)
+## 21. Đặc tả sửa C4 — khai trước (ĐO 38 sẽ ký ở BƯỚC 303)
 
 **Trạng thái:** KHAI TRƯỚC, BƯỚC 300 (25/11/2026), commit docs-only đứng TRƯỚC mọi lượt hiệu chuẩn và mọi mã của bản sửa. Nguồn: đặc tả nháp `DAC-TA-SUA-C4.md` của phiên con `c4sua` (ngoài repo), người dùng 25/11/2026: *"ok tiếp tục làm theo đề xuất của bạn"* (hướng sửa) và *"duyệt cả 4"* (bốn câu của đặc tả: A0 đo ở dòng hiệu chuẩn · PT vẫn PHÁN · M1 PHÁN ở ≤ 50/1.000 · P2 giữ cả 200 thị trường). Đánh số (quyết định của leader, không phải của người dùng): **ĐO 38 = sửa C4**, ĐO 39 = Dow phần 2; ý 3A không mang số ĐO.
 
@@ -638,4 +638,4 @@ Thị trường NULL-M (Tầng 1, bộ sinh MỚI do L2 dựng; `_sinh_loi` gi�
 
 Giữ NGUYÊN mọi tiêu chí còn lại của bảng ĐO 37 (A, B1–B4, C1–C3, P1–P4, vế NULL của PT, ba tiêu chí KHÔNG ĐỌC ĐƯỢC, G′ = `bo_momentum_score`, R mỗi ô). Dòng hạt MỚI: **6** Tầng 1 có lợi thế 0,5× · 1× · 2×, mỗi ô 400; **7** Tầng 1 NULL 1.000; **8** Tầng 2 NULL 100 + 2× 100 (P2 trên cả 200); **9** Tầng 1 NULL-M 1.000; **10** chẩn đoán SAU khi nhìn, chặn vĩnh viễn (như dòng 5). Hiệu chuẩn ở dòng 1: A0 chỉ số ≥ 1.100.001 (N ≥ 20.000), PT chỉ số 1.200.001–1.200.200, bảng 2×2 chỉ số ≥ 1.300.001. Dòng 2 · 3 · 4 · 5 và dòng 9001 ngoài các chỉ số đã nêu ở 21.1 KHÔNG dùng để hiệu chuẩn. **Mỗi phép đọc là MỘT LẦN** (p̂, k, kết cục dòng 6–9): không đọc lại để chọn.
 
-Nhãn từ ĐO 38: A0 · PT · M1 = Đã khai; bảng 2×2, χ² của spec, sd z NULL = Báo kèm; mọi con số phiên 296 và phiên `c4sua` đã nói = Sau khi nhìn. Chi phí lượt chạy ≈ 10 giờ máy (ƯỚC LƯỢNG từ thời gian thật của BƯỚC 296: dòng 8 chiếm ≈ 6,2 giờ). Lát cắt: L1 (BƯỚC 300, bộ đề xuất) · L2 (BƯỚC 301, NULL-M và dụng cụ hiệu chuẩn) · ký ĐO 38 ở BƯỚC 302 · lượt chạy sau đó.
+Nhãn từ ĐO 38: A0 · PT · M1 = Đã khai; bảng 2×2, χ² của spec, sd z NULL = Báo kèm; mọi con số phiên 296 và phiên `c4sua` đã nói = Sau khi nhìn. Chi phí lượt chạy ≈ 10 giờ máy (ƯỚC LƯỢNG từ thời gian thật của BƯỚC 296: dòng 8 chiếm ≈ 6,2 giờ). Lát cắt: L1 (BƯỚC 300, bộ đề xuất) · L2 (BƯỚC 301, NULL-M và dụng cụ hiệu chuẩn) · ký ĐO 38 ở BƯỚC 303 (BƯỚC 302 là lượt soát định kỳ 19, việc khác) · lượt chạy ở BƯỚC 304.
