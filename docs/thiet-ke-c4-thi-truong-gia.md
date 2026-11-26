@@ -677,3 +677,34 @@ Chạy tiếp: đúng lệnh ấy thêm `--tiep-tuc`. Đọc kết quả đã gh
 
 1. **M1 và M2.** Một lượt thử trên dòng 9001 (nhãn THỬ; κ_d = 0,018; 200 thị trường NULL-M, bộ ba G · Z · H qua `cx.cham` và oracle `tinh_su_that_m` của chính từng thị trường; script ngoài repo `vibe_logs_301/nhap/m1_thu.py` và `m1_tam.py`, Sau khi nhìn) cho thấy M1 viết nguyên văn gần như qua miễn phí: ΔIC_true trung bình của G = −0,0189 (mọi spec mono từ −0,019 đến −0,021), của Z = +0,0027, của H = −0,0026, nên xác nhận nhầm theo "QUA mà ΔIC_true ≤ 0" chỉ 1/200 thị trường. Cũng trên 200 thị trường ấy, z′ = (Δ − ΔIC_true) / σ_hoán-vị có sd ≈ 1,08 (G) · 1,17 (Z) · 1,10 (H) (σ suy ra từ p và Δ, thô). Người dùng chọn: *"Giữ M1 + phán thêm z′ (Recommended)"*, tức là: **GIỮ M1** (≤ 50/1.000, như 21.4) **và THÊM M2, PHÁN:** trên 1.000 thị trường NULL-M của dòng 9, độ lệch chuẩn GỘP của z′ = (Δ − ΔIC_true) / σ_hoán-vị qua bộ ba G · Z · H phải nằm trong **[0,8 ; 1,25]** (khoảng đã khai ở mục 3 và mục 8 của đặc tả nháp, KHÔNG chọn từ số thử ở trên). Tỷ lệ đuôi P(z′ > z_c) là **Báo kèm**. M2 là tiêu chí MỚI, đứng cạnh M1; BƯỚC 303 viết nó vào ĐO 38 nguyên văn.
 2. **ĐO 27.** Người dùng chọn: *"Sổ không đổi thì chỉ ghi băm (Recommended)"*. Áp dụng ở BƯỚC 303, không thuộc BƯỚC 301.
+
+## 22. Kết quả hiệu chuẩn của bản sửa C4 (BƯỚC 301, 26/11/2026; dòng hạt 1, MỖI VIỆC MỘT LẦN)
+
+**Trạng thái:** số ĐO, không còn là khai trước. Leader chạy bốn việc của 21.6 từ cây `vibe_wt_301` ở mã băm **`b9779b55f0`** (cây SẠCH khi chạy; mọi khối của file ghi cùng mã băm ấy), mỗi việc bằng đúng lệnh ở 21.6 (`./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_sua_c4.py --viec <kd|a0|t1|pt> --luong 1 --so-tien-trinh 12`), theo thứ tự kd → a0 → t1 → pt; log ngoài repo `vibe_logs_301/hieu_chuan/{kd,a0,t1,pt}.log`; bản ghi `docs/thi-truong-gia-hieu-chuan-do38.json` (đọc lại: `./.venv/Scripts/python.exe -X utf8 tools/hieu_chuan_sua_c4.py --doc`, số in khớp log từng chữ). KHÔNG việc nào chạy lại; KHÔNG điều kiện DỪNG nào bị chạm. Thời gian thật (12 tiến trình): kd 27 s · a0 1.540 s · t1 201 s · pt 8.825 s.
+
+**Nhãn.** *Đã khai* = quy tắc đặt ở 21.2 · 21.3 · 21.6 trước khi có số; *Báo kèm* = in ra, không phán; *Sau khi nhìn* = đọc của BƯỚC này sau khi đã thấy số, không hiệu chuẩn.
+
+| việc | kết quả | nhãn |
+|---|---|---|
+| **kd** (dòng 1, chỉ số 1.400.001–1.409.100) | **κ_d = 0,018**, không thất bại (a–e đều không chạm). IC(điểm đã ghi) theo lưới 0,012 → 0,028: 0,0643 · 0,0763 · 0,0877 · **0,0960** · 0,1067 · 0,1191 · 0,1280 · 0,1353 · 0,1432 (đơn điệu). Khối KIỂM n = 100 tại κ_d = 0,018: IC **0,0965 ± 0,0010**, trong [0,090 ; 0,110]. | Đã khai (κ_d); IC lưới Báo kèm |
+| **a0** (dòng 1, chỉ số 1.100.001–1.120.000, N = 20.000) | p̂ = **5.263/20.000 = 0,2631**, SE 0,0031, p̂ + 3·SE = 0,2724 < 0,3 (không dừng). **Ngưỡng A0 = binom.ppf(0,999 ; 1000 ; p̂) = 307** (ĐO 37: 317). | Đã khai |
+| a0, báo kèm | trung bình 2,969 spec khai mỗi thị trường; tỷ lệ chọn từng spec từ 0,2351 (`mono_sr_score`) đến 0,2968 (`bo_sr_score`), G (`mono_volume_score`) = 0,2631; χ² của số lần chọn so với đều = 280,2 (10 bậc tự do). Lệnh: đọc `ket_qua.ty_le_theo_spec` trong bản ghi, χ² = Σ(o − e)²/e với o = tỷ lệ · N, e = tổng/11. | Báo kèm |
+| **pt** (dòng 1, Tầng 2 mức 2×, chỉ số 1.200.001–1.200.200, n_cal = 200) | **k = 92** (92/200 = 0,46, trong [0,2 ; 0,7]), `data_quality` ≠ OK: 0 dòng; Beta(92,5 ; 108,5); **dải 99% của R = 100: [31 ; 62]**. | Đã khai |
+| **t1** (dòng 1, Tầng 1 mức 2×, chỉ số 1.300.001–1.301.000, n = 1.000) | bảng 2×2 dưới đây; không dừng. | Báo kèm |
+
+**Bảng 2×2** {G, G′} × {Tầng 1, Tầng 2} của (m = Δ trung bình, s = độ lệch chuẩn của Δ, σ̄ = σ hoán vị trung bình, P = tỷ lệ `QUA`); G′ = `bo_momentum_score`, G = `mono_volume_score`; hai tầng ở cùng κ 2× (Báo kèm):
+
+| | Tầng 1 (n = 1.000) | Tầng 2 (n = 200) |
+|---|---|---|
+| G′ | m +0,0246 · s 0,0062 · σ̄ 0,0065 · QUA 930/1000 (P 0,930) | m +0,0325 · s 0,0158 · σ̄ 0,0140 · QUA 92/200 (P 0,460) |
+| G | m +0,1486 · s 0,0247 · σ̄ 0,0248 · QUA 1000/1000 (P 1,000) | m +0,0106 · s 0,0274 · σ̄ 0,0276 · QUA 7/200 (P 0,035) |
+
+Hai hàng còn lại của cùng bản ghi, cùng nhãn: Z (`doi_cho_trend_sr`) Tầng 1 m +0,0029 · s 0,0064 · σ̄ 0,0065 · QUA 26/1000; Tầng 2 m −0,0663 · s 0,0191 · σ̄ 0,0189 · QUA 0/200 (báo động hai phía 183/200). H (`bo_volume_score`) Tầng 1 m −0,0482 · s 0,0069 · σ̄ 0,0068 · QUA 0/1000; Tầng 2 m −0,0235 · s 0,0119 · σ̄ 0,0122 · QUA 0/200 (báo động 63/200).
+
+**Đọc (Sau khi nhìn; không hiệu chuẩn, không phán):**
+1. s/σ̄ (độ lệch chuẩn thực của Δ so với σ của hoán vị mà chính bước xác nhận chia cho) gần 1 ở mọi ô: Tầng 1 G′ 0,95 · G 1,00; Tầng 2 G′ 1,13 · G 0,99 (s, σ̄ đọc từ bản ghi; các ô s đo ở mức 2×, nơi Δ thay đổi theo thị trường nên s gồm cả dao động của Δ thật). Riêng G′ ở Tầng 2 s lớn hơn σ̄ 13%.
+2. Cùng một κ cho cùng một G thì ở Tầng 2 G chỉ còn m = +0,0106 (Tầng 1: +0,1486) và QUA 3,5% (Tầng 1: 100%): tín hiệu của `volume_score` đi qua đường ống thật (chấm điểm bằng `_analyze`) yếu hơn nhiều so với tầng điểm sinh trực tiếp. Điều này đã là lý do G′ = `bo_momentum_score` được chọn ở Tầng 2 (19.8 khoản 1); bảng 2×2 là số đo đầu tiên đặt hai tầng cạnh nhau ở cùng κ và cùng luật `trang_thai`.
+3. P(QUA) của G′ ở Tầng 2 = 0,46 so với 41/100 ở dòng 4 của ĐO 37 (BƯỚC 296, dòng hạt khác): cùng chiều, không mâu thuẫn (SE nhị thức 200 mẫu ≈ 3,5 điểm phần trăm).
+4. p̂ = 0,2631 thấp hơn 3/11 = 0,2727 gần một điểm phần trăm (≈ 3 SE); chiều ra cho thấy bản sửa không thiên về dễ đạt: ngưỡng 307 thấp hơn 317 của ĐO 37.
+
+**Điều CHƯA làm.** Chưa ký ĐO 38 (BƯỚC 303: sổ tay thật, TIEU-CHI-DOC-TRUOC, đổi dòng `max(ĐO) == 37` của `tests/test_chay_chinh_thuc_thi_truong_gia.py`, tổng quát hoá cửa, M2 ở mã); chưa chạy dòng 6–9 (BƯỚC 304); M1/M2 chưa có số ở dòng 9. Mọi con số 9001 ở 21.6–21.7 vẫn là số THỬ và KHÔNG được dùng thay các số trên.

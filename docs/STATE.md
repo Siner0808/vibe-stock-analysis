@@ -28754,3 +28754,53 @@ thi truong ma luat that khac bien the cua dac ta: 26
 4. **Dụng cụ in biên bản không in z** (mục B khoản 5); biên bản mẫu có một dòng chèn tay.
 5. **`tests/test_chay_chinh_thuc_thi_truong_gia.py` dòng `max(số ĐO) == 37`** sẽ đỏ khi ĐO 38 có mặt (mục F khoản 2 của BƯỚC 299): việc của BƯỚC 303.
 6. **Việc kế:** leader soát PR (đây là BƯỚC đổi mã đo và bộ đề xuất của thế giới giả, không đổi file luật); sau khi gộp, BƯỚC 301 (L2) và BƯỚC 303 (ký ĐO 38). Lỗi kế **209**.
+
+## BƯỚC 301 — C4 SỬA, LÁT L2: NULL CÓ NHỚ (NULL-M), DỤNG CỤ HIỆU CHUẨN, VÀ KẾT QUẢ HIỆU CHUẨN CỦA A0 · PT · κ_d · BẢNG 2×2 Ở DÒNG HẠT 1 (CHỈ TRONG THỊ TRƯỜNG GIẢ) (26/11/2026)
+
+**Mốc:** C4
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG, 23/11/2026:** *"làm ý 1 và 2"* (ý 1: NULL có nhớ). **25/11/2026:** *"ok tiếp tục làm theo đề xuất của bạn"* (hướng sửa) và *"duyệt cả 4"* (đặc tả `vibe_logs_c4sua/DAC-TA-SUA-C4.md`: A0 đo ở dữ liệu hiệu chuẩn; PT vẫn phán; M1 phán ở ≤ 50/1.000; P2 giữ 200 thị trường). Đặc tả là hợp đồng; BƯỚC này làm **L2** của mục 7 (NULL-M và dụng cụ hiệu chuẩn) và chạy các phép hiệu chuẩn.
+- **NGƯỜI DÙNG, 26/11/2026 (đã khai trước ở `thiet-ke` 21.7, cho BƯỚC 303 ký, KHÔNG làm ở BƯỚC này):** *"Giữ M1 + phán thêm z′ (Recommended)"* (giữ M1 ≤ 50/1.000 và thêm M2 PHÁN: sd GỘP của z′ = (Δ − ΔIC_true)/σ_hoán-vị qua bộ ba G · Z · H ở dòng 9 trong [0,8 ; 1,25]; tỷ lệ đuôi P(z′ > z_c) Báo kèm) và *"Sổ không đổi thì chỉ ghi băm (Recommended)"* (ĐO 27).
+- **LEADER (không phải người dùng):** đánh số (ĐO 38 = sửa C4; BƯỚC 302 là soát định kỳ 19; **ký ĐO 38 ở BƯỚC 303, lượt chạy ở BƯỚC 304**); chấp nhận thủ tục κ_d (b_d = 0,5 cố định, lưới 9 điểm, luật chọn, thất bại a–e, mã thoát 4) 25/11/2026; chạy bốn việc hiệu chuẩn 26/11/2026.
+
+**Đánh số:** BƯỚC 301; **không mở lỗi mới** (lỗi kế **209**). Nhánh `c4/null-co-nho-301` từ đầu PR #345 (`8020ea8`), nay gộp `c81b987` (BƯỚC 300) rồi `origin/main` @ `c2c6959` (PR #347 đã gộp). Số hiệu do leader cấp.
+
+### A. Cái gì đã làm
+
+1. **Bộ sinh NULL-M** (`thi_truong_gia.py`, CHỈ HÀM MỚI; `_sinh_loi` và mọi thị trường cũ giữ nguyên từng bit, gác băm ở `tests/test_thi_truong_gia_nho.py` tính ở commit cơ sở `8020ea8` TRƯỚC khi đổi): `_sinh_loi_m` (nhân tố ngành d AR(1) φ_d = 0,97, chung trong ngành, vào lợi nhuận qua κ_d·d(s−2)/21 kiểu `z` và vào CẢ NĂM thành phần cùng hệ số b_d = `HE_SO_D` = `HE_SO_Z` = 0,5; z có κ = 0; `d` rút SAU mọi thứ cũ nên `he_so_d = 0` + `kappa_d = 0` cho ĐÚNG từng bit mẫu cũ), `tinh_su_that_m` (oracle riêng: oracle cũ không dùng được vì mẫu dài của nó không có d), `ic_da_ghi_m` (IC của điểm đã ghi để đặt κ_d), `sinh_thi_truong_m`.
+2. **Dụng cụ `tools/hieu_chuan_sua_c4.py`** (`--viec {kd, a0, pt, t1}`, `--luong` chỉ 1 và 9001 qua `kiem_luong`; mỗi việc MỘT khối của `docs/thi-truong-gia-hieu-chuan-do38.json`, đọc MỘT lần; ghi nguyên tử bằng `va_an_toan.ghi` mỗi 12 đơn vị; `--tiep-tuc` chỉ cùng mã băm git; từ chối cây bẩn ở dòng 1; `a0` TỪ CHỐI nếu `vong_hoc_gia.de_xuat` thiếu `z`; thống kê Beta-nhị thức và nhị thức tự viết, KHÔNG scipy vì `requirements.txt` không có). Thủ tục κ_d và bốn lệnh: `thiet-ke` 21.6.
+3. **Khai trước (docs-only, TRƯỚC lượt chạy dòng 1):** `docs/thiet-ke-c4-thi-truong-gia.md` mục 21.6 (thủ tục κ_d, bốn lệnh, khối chỉ số) và 21.7 (hai quyết định 26/11), commit `b9779b5`. **Kết quả:** mục 22 cùng file.
+4. **Hai test sẵn có sửa:** `tests/test_vong_hoc_thi_truong_gia.py::DUOC_NHAP` và `tests/test_tang2_thi_truong_gia.py` (danh sách `sorted(nguoi)`) thêm `tools/hieu_chuan_sua_c4.py` (dụng cụ nhập mô-đun Tầng 2 cho `pt`). CI của lượt WIP đỏ đúng hai chỗ ấy.
+
+### B. Kết quả hiệu chuẩn (leader chạy ở git `b9779b55f0`, dòng 1, MỘT lần; chi tiết, lệnh, log: `thiet-ke` mục 22)
+
+- **kd:** κ_d = **0,018**, không thất bại; IC(điểm đã ghi) lưới 0,064 → 0,143 đơn điệu; KIỂM n = 100: IC 0,0965 ± 0,0010 trong [0,090 ; 0,110]. (27 s)
+- **a0:** p̂ = 5.263/20.000 = **0,2631**, SE 0,0031, p̂ + 3·SE = 0,2724 < 0,3; **ngưỡng A0 = 307** (ĐO 37: 317); trung bình 2,969 spec khai; χ² so với đều 280,2 (10 bậc). (1.540 s)
+- **pt:** k = **92/200** (0,46); Beta(92,5 ; 108,5); **dải 99% [31 ; 62]** (R = 100); `data_quality` ≠ OK: 0. (8.825 s)
+- **t1 (2×2, Báo kèm):** Tầng 1 G′ QUA 930/1000, G 1000/1000, Z 26/1000, H 0/1000; Tầng 2 G′ 92/200, G 7/200, Z 0/200, H 0/200. (201 s)
+- Khớp bản ghi ↔ log: `tools/hieu_chuan_sua_c4.py --doc` in đúng số của `vibe_logs_301/hieu_chuan/*.log`; mọi khối ghi git `b9779b55f0`, `sach: true`.
+
+### C. Số THỬ ở dòng 9001 (Sau khi nhìn; KHÔNG phải số hiệu chuẩn) và một phát hiện về M1
+
+Dòng thử 9001, κ_d = 0,018, 200 thị trường NULL-M, bộ ba G · Z · H qua `cx.cham` và oracle `tinh_su_that_m` của chính từng thị trường (script ngoài repo `vibe_logs_301/nhap/m1_thu.py`, `m1_tam.py`): ΔIC_true trung bình của G = −0,0189 (cả năm spec mono từ −0,019 đến −0,021), của Z = +0,0027, của H = −0,0026; xác nhận nhầm theo M1 nguyên văn ("QUA mà ΔIC_true ≤ 0") **1/200** thị trường: M1 qua gần như miễn phí vì các spec nằm xa 0. z′ = (Δ − ΔIC_true)/σ_hoán-vị có sd ≈ 1,08 (G) · 1,17 (Z) · 1,10 (H). Đó là cơ sở của quyết định 26/11 (M2) ở 21.7; **số này không được dùng để chọn khoảng của M2** ([0,8 ; 1,25] đã khai ở đặc tả mục 3 và 8).
+
+### D. Kiểm máy đo, đột biến, sự cố
+
+- **Cơ sở xanh** TRƯỚC mọi sửa: 419 test của năm file C4 cũ (`-n 4`). Test mới: `tests/test_thi_truong_gia_nho.py` (băm cũ từng bit ở 4 mẫu · oracle cũ · thị trường cũ; `he_so_d = 0` ≡ mẫu cũ từng bit; d chung trong ngành; d vào cả năm thành phần; lag d(s−2) chia 21 qua hiệu lợi nhuận; oracle ở κ_d = 0 trong 2 SE theo ba tiêu chí `MAY_DO_NULL`; AST không dòng 2–10) và `tests/test_hieu_chuan_sua_c4.py` (cửa dòng hạt, Beta-nhị thức khớp số scipy đã tính, ngưỡng A0 từ p̂, các luật DỪNG, luật chọn κ_d và thất bại a–e, cửa git, ghi nguyên tử, chạy tiếp sau gián đoạn cho đúng kết quả chạy một mạch, `--doc`).
+- **Đột biến TRÊN BẢN SAO** (`git archive` rồi `va_an_toan.dot_bien_bo`; không bao giờ trên cây làm việc): **tool 31/31 ĐỎ, bộ sinh 11/11 ĐỎ**, gồm: `a, b` của Beta đổi chỗ · dải 0,005 → 0,05 · đọc dòng 4 · ngưỡng từ 3/11 thay p̂ · bỏ luật dừng · luật dừng 2 SE · κ_d không vào lợi nhuận · b_d chỉ ở một thành phần · d không chung trong ngành · d ở phiên s thay s−2 · chia 20 thay 21 · không giữ phương sai 1 · oracle dùng mẫu cũ. Vòng đầu để lọt BA phát (luật dừng 2 SE; cửa sổ đã nhìn của a0; lag d) — sửa bằng test, chạy lại 100% đỏ.
+- **Sự cố thật, nêu thẳng:** (1) vòng đột biến thứ hai chạy TẠI CHỖ trên cây làm việc bị cắt bởi việc tắt máy 25/11 18:37; commit WIP của leader (`9c5370f`) bắt một đột biến đang bay (`cuoi_nhin`), `625e77a` trả lại; xác minh bằng cách đếm mọi neo gốc đúng một lần trong hai file; từ nay đột biến trên bản sao. (2) Một đột biến ("cửa chấp nhận dòng thử ghi ra file chính thức") đã GHI `docs/thi-truong-gia-hieu-chuan-do38.json` thật từ một test; gỡ file, và test nay đổi `DUONG_KET_QUA` sang file tạm. (3) Lượt thử `pt` ở 9001 nổ sau 5 phút ở bước IN (`s` = None khi n = 1), sau khi đã ghi khối; sửa và có test. (4) Sau khi gộp BƯỚC 300, một test của tôi nổ vì `chon_khai` đọc `z`: `de_xuat_va_chon` nay kiểm `z` TRƯỚC `chon_khai`.
+
+### E. Số test · năm cổng
+
+- **Số test 5822 → 5921** (+99; `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do …`).
+- **Năm cổng** `tools/nam_cong.py --tuan-tu` trên commit CUỐI: kết quả ở thân PR.
+- **Sổ tay:** `tools/buoc_cham_luat.py 301` — kết quả ở thân PR; mục `BƯỚC 301` của `docs/soat-notebooklm.json` là `khong_bat_buoc_vi` nếu máy xác nhận BƯỚC không chạm file nào của `FILE_LUAT`. KHÔNG sửa `docs/TIEU-CHI-DOC-TRUOC.md` hay `NGUYEN-TAC-DO-LUONG.md` (ký ĐO 38 là BƯỚC 303).
+
+### F. Điều CHƯA làm / chưa kiểm
+
+1. **Chưa ký ĐO 38** (BƯỚC 303: sổ tay thật, tiêu chí vào TIEU-CHI-DOC-TRUOC, M2, tổng quát hoá cửa, dòng `max(số ĐO) == 37`, ĐO 27 "chỉ ghi băm") và **chưa chạy dòng 6–9** (BƯỚC 304). Dòng 9 (NULL-M, M1 · M2) chưa có số thật.
+2. **`a0` chưa được thử bằng mã thật ở 9001 trước dòng 1** ngoài phép kiểm cửa và đo giờ với `z` giả (lúc đó BƯỚC 300 chưa nằm trong cây); dòng 1 chạy sau khi gộp 300.
+3. **φ_d = 0,97 và b_d = 0,5 là KHAI**, chưa đo trên giá thật; IC(điểm đã ghi) ≈ 0,10 là cỡ đo của Tầng 2, đặt cho Tầng 1.
+4. **Bảng 2×2 mới đặt G, G′ cạnh nhau; chưa tách được "spec" khỏi "tầng"** thêm nữa (cả hai thay đổi giữa các ô theo hàng và cột nhưng chỉ ở một κ).
+5. **Việc kế:** leader soát PR (BƯỚC đổi mã đo của thế giới giả, không đổi file luật); BƯỚC 303 (ký ĐO 38). Lỗi kế **209**.
