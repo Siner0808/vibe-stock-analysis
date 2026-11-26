@@ -6800,6 +6800,137 @@
     "BƯỚC 301": {
       "ngay": "2026-11-26",
       "khong_bat_buoc_vi": "Chỉ THÊM hàm mới vào `thi_truong_gia.py` (bộ sinh NULL-M, oracle riêng, hàm đo IC; thị trường cũ giữ từng bit, gác băm tính ở commit cơ sở), `tools/hieu_chuan_sua_c4.py` (dụng cụ hiệu chuẩn mới: chỉ dòng hạt 1 và 9001, mỗi việc đọc MỘT lần), hai file test mới, ba dòng ở hai test sẵn có (`DUOC_NHAP` và danh sách người nhập mô-đun Tầng 2) cùng mục 21.6–21.7 và 22 của `docs/thiet-ke-c4-thi-truong-gia.md`, bản ghi `docs/thi-truong-gia-hieu-chuan-do38.json`, STATE, HANDOFF, sổ này và mốc số test. `tools/buoc_cham_luat.py 301` xác nhận BƯỚC không chạm file nào của `FILE_LUAT` (CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md, LO-TRINH.md). Các số mới (κ_d = 0,018; ngưỡng A0 = 307; dải PT [31 ; 62]; bảng 2×2) là số HIỆU CHUẨN ở thị trường GIẢ cho một ĐO chưa ký, không phải luật của dự án và không phải kết luận đo về thị trường thật; chúng thành tiêu chí chỉ khi ĐO 38 được ký ở BƯỚC 303, nơi chép tiêu chí vào TIEU-CHI-DOC-TRUOC.md và hỏi sổ tay THẬT. Không đổi `cham_bong.py`, `cham_xac_nhan.py`, `vong_hoc_gia.py`, thân ĐO 37, kết quả ĐO 37, điểm, ngưỡng, sổ, đường quét. Chỗ máy mù khai thẳng: máy chỉ thấy FILE; việc các số của mục 22 chưa phải tiêu chí là kỷ luật, không phải cơ chế, và nằm ở `docs/STATE.md` BƯỚC 301 mục B và F. Lời người dùng 25/11/2026: *\"ok tiếp tục làm theo đề xuất của bạn\"* và *\"duyệt cả 4\"*."
+    },
+    "BƯỚC 303": {
+      "ngay": "2026-11-26",
+      "nguon": [
+        "CLAUDE.md @86d43d1",
+        "HANDOFF.md @58aa394",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @3ceb248",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @86d43d1",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @3ceb248",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3ceb248 phan3/8 (BUOC 117-168)",
+        "STATE.md @3ceb248 phan7/8 (BUOC 275-297)",
+        "STATE.md @58aa394 phan8/8 (BUOC 298-302)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "thiet-ke-c4-thi-truong-gia.md @58aa394",
+        "TIEU-CHI-DOC-TRUOC.md @3ceb248"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với 58aa3942a2380648e77438bc94d451ce0346bfba 58aa394): 26 nguồn, 26 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 303 into docs/STATE.md: BƯỚC 303 signs a new measurement, ĐO 38, in docs/TIEU-CHI-DOC-TRUOC.md after ĐO 37 FAILED at criteria A0 and PT (STATE BƯỚC 296): the new A0 threshold (307) and the new PT band ([31 ; 62]) are measured on calibration stream 1 (chỉ số >= 1.100.001) AFTER the failure was seen, then the whole table is rerun on NEW seed streams 6, 7, 8, 9 (never used), thresholds are not lowered and the generator is not changed; and it amends the ĐO 27 rule in docs/TIEU-CHI-DOC-TRUOC.md so that a weekly read whose ledger hash is unchanged records only the hash after ONE read-only Sheets pull and keeps the previous outcome, skipping the rest of the read (events calendar, full checks). Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a written rule that forbids setting or recalibrating a threshold or a band after the numbers of a failed run were seen, or that says a signed ĐO table may never change, or that requires NEW data (not stream 1) for any recalibration, a written rule that requires a FULL weekly read of the real order ledger (Sheets pull and event calendar) even when the ledger has no new closed order, or that forbids amending the ĐO 27 criteria text after signing. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "8e56b81fdc25fa8d2a851ff060187a23d78ad98c36e0959a91acc75614a46061",
+        "dai16": 3848,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "STATE.md @3ceb248 phan7/8 (BUOC 275-297)"
+          },
+          {
+            "n": 4,
+            "nguon": "STATE.md @3ceb248 phan7/8 (BUOC 275-297)"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @3ceb248"
+          },
+          {
+            "n": 8,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 9,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @3ceb248"
+          },
+          {
+            "n": 5,
+            "nguon": "STATE.md @58aa394 phan8/8 (BUOC 298-302)"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @58aa394 phan8/8 (BUOC 298-302)"
+          },
+          {
+            "n": 11,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 12,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 12,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 6,
+            "nguon": "HANDOFF.md @58aa394"
+          },
+          {
+            "n": 15,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 16,
+            "nguon": "HANDOFF.md @58aa394"
+          },
+          {
+            "n": 17,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 4,
+            "nguon": "STATE.md @3ceb248 phan7/8 (BUOC 275-297)"
+          },
+          {
+            "n": 18,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @3ceb248"
+          },
+          {
+            "n": 18,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @3ceb248"
+          },
+          {
+            "n": 19,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @3ceb248"
+          },
+          {
+            "n": 20,
+            "nguon": "STATE.md @58aa394 phan8/8 (BUOC 298-302)"
+          },
+          {
+            "n": 6,
+            "nguon": "HANDOFF.md @58aa394"
+          },
+          {
+            "n": 21,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 22,
+            "nguon": "SKILL.md @014da50"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Hỏi thật một lượt, trả lời ÂM (lối thoát): sổ tay nói không có chỗ nào mâu thuẫn hay thành SAI khi BƯỚC 303 ký ĐO 38 (A0 và dải PT đo ở dòng hạt 1 SAU khi ĐO 37 trượt) và sửa ĐO 27 thành 'chỉ ghi băm'. Tự kiểm 26/11/2026, từ gốc worktree c4/ky-do38-303, nguồn của sổ tay phản chiếu origin/main 58aa394: (1) tệp trả lời dựng từ chuỗi text của chính trang (vibe_logs_303/dung_tep_tra_loi.py), `tools/so_tay.py kiem-tra-loi` KHOP sha256 8e56b81f…6061, 3848 đơn vị UTF-16, 22 trích dẫn, một ký tự U+200B ở vị trí 2209. (2) Trích dẫn đối chiếu bằng `tools/doi_chieu_trich_dan.py`: KHỚP sáu câu (ba câu của TIEU-CHI-DOC-TRUOC.md: 'TRƯỢT ở tiêu chí X — …', 'Số chính đã đọc rồi thì mọi thay đổi là một ĐO mới, …', 'khối ### SỬA ĐO <n> là con đường DUY NHẤT được phép sửa, …'; câu ĐO 27 'Đổi ngưỡng sau khi nhìn số = vi phạm bất biến 7; …'; hai câu của STATE BƯỚC 302 'Lượt 8 đọc lại một sổ KHÔNG đổi' và 'Việc hạ nhịp đọc …'); bốn câu LỆCH chỉ vì công cụ quét 15 tài liệu KHÔNG gồm docs/thiet-ke-c4-thi-truong-gia.md, và `grep -n` ở tệp ấy cho: dòng 130 (câu 'Sửa đặc tả sau khi đã nhìn một kết quả thì dòng hạt của bản sửa là 6, 7… Dòng 5 không bao giờ được dùng để chọn lại.') và dòng 679 (mục 21.7: 'Người dùng chọn: *\"Sổ không đổi thì chỉ ghi băm (Recommended)\"*. Áp dụng ở BƯỚC 303, không thuộc BƯỚC 301.') đúng nguyên văn. (3) Câu ÂM: `git grep -n -i -E` ở 58aa394 với mẫu '(không được|cấm|đóng).{0,60}(hiệu chuẩn lại|hiệu chuẩn sau|đo lại ngưỡng)' và mẫu đảo, trên docs/TIEU-CHI-DOC-TRUOC.md · docs/thiet-ke-c4-thi-truong-gia.md · NGUYEN-TAC-DO-LUONG.md · CLAUDE.md · docs/LO-TRINH.md → 0 dòng, tức không có luật viết nào cấm hiệu chuẩn A0/PT ở dòng 1 sau khi ĐO 37 trượt; bất biến 7 (NGUYEN-TAC-DO-LUONG.md, mục 7) đòi tham số chọn trên một khoảng và đo trên một khoảng KHÁC, đúng cách ĐO 38 chọn ở dòng 1 và đo ở dòng 6–9. (4) SÓT của sổ tay, phiên tự tìm bằng `git grep -n -E 'đọc đầy đủ mỗi tuần|mỗi lượt đọc (phải|kéo)' 58aa394 -- docs/TIEU-CHI-DOC-TRUOC.md docs/HANDOFF.md docs/STATE.md CLAUDE.md`: docs/TIEU-CHI-DOC-TRUOC.md :4195 (mục Dữ liệu của ĐO 27) có câu 'Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0).' không còn đúng cho lượt băm-không-đổi, mà sổ tay chỉ nêu mục Nhịp đọc; BƯỚC 303 đã thêm câu ấy vào `### SỬA ĐO 27` (Hướng: trung tính) và vào dòng trỏ ở đầu mục. Ba dòng STATE (25400 · 25414 · 25416 ở 58aa394) nhắc câu cũ là bản ghi có ngày của các lượt đọc trước, không sửa."
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
