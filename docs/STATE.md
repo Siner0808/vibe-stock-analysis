@@ -28685,3 +28685,72 @@ Chi tiết từng câu ở `docs/soat-dinh-ky.json` (lượt 2026-11-26, các m�
 - **Giả thuyết bị bác 1:** *"mọi câu *PR này KHÔNG tự merge* ở khối 🧭 cũ đều SAI MỘT PHẦN như nhau"* (cách gộp khi gần như cả mười bốn khối cùng mang câu ấy) — mỗi khối còn một hay hai chỗ hết đúng RIÊNG (khối 293 *CHỜ NGƯỜI DÙNG chọn*, 298 *CHỜ SỔ TAY*, 288 *câu hỏi 2 vẫn mở*, 287 *`_loi_np` không thoát*) và phần còn lại ĐÚNG (số test, `--in-bang`, `--ket-cuc`); phán quyết từng khối nêu cả hai nửa, đo bằng `pytest` và `gh pr view`.
 - **Ước lượng sai của chính phiên này:** (a) tôi định dùng `tools/so_ban_goi.py` không đối số như lượt 18; lượt `kiem-dinh` gần nhất của `main` đang chạy nên mã 2 (mục 7) — số hiệu pyarrow của CI đọc từ lượt xanh trước; (b) tôi đặt tên kịch bản đọc 8 sai (`chay_luot7.py`) và chạy trước khi đổi tên — thoát ngay, không kéo gì (đã nêu ở *Dụng cụ*). Chưa có số nào vào tài liệu từ hai ước lượng ấy.
 - **KHÔNG nói:** *"0 câu sai chưa xử lý"* là cho chín tài liệu của công cụ chính + 95 câu diff + hàng bảng; không phủ số đọc từ Sheets (số lệnh, B1), không phủ dòng nào của STATE trước BƯỚC 283 (lượt 14–18 đã mở), không phủ `tests/` và `app.py` ngoài các lệnh `git grep` được nêu; câu chữ của file luật không sửa nên hai chỗ hết đúng ở mục Phát hiện 2 vẫn còn.
+
+## BƯỚC 300 — C4 SỬA, LÁT L1: BỘ ĐỀ XUẤT XẾP THEO z = (Δ − μ)/σ CHUẨN HOÁ, VÀ KHAI TRƯỚC ĐẶC TẢ ĐO 38 (CHỈ TRONG THỊ TRƯỜNG GIẢ) (26/11/2026)
+
+**Mốc:** C4
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG, 25/11/2026 — hướng sửa.** *"ok tiếp tục làm theo đề xuất của bạn"* (xếp hạng theo điểm chia cho độ dao động; dải PT từ độ dao động của chính ứng viên; ký tiêu chí mới, chạy lại cả bảng trên dòng hạt mới, kèm ý 1).
+- **NGƯỜI DÙNG, 25/11/2026 — đặc tả.** *"duyệt cả 4"* cho bốn câu của `vibe_logs_c4sua/DAC-TA-SUA-C4.md`: mức ngẫu nhiên A0 ĐO ở dữ liệu hiệu chuẩn (phương án B); PT vẫn PHÁN; M1 PHÁN ở ≤ 50/1.000; P2 giữ cả 200 thị trường. BƯỚC này chỉ làm **L1** của mục 7 đặc tả (bộ đề xuất) và khai trước; không đo p̂, không đo PT, không dựng NULL-M.
+- **LEADER, 25/11/2026 (không phải người dùng): đánh số.** Ý 3A không mang số ĐO; **ĐO 38 = sửa C4**, ĐO 39 = Dow phần 2. Chỗ đặc tả viết "ĐO 39" cho bản sửa C4, bản này viết ĐO 38. **LEADER, 26/11/2026:** BƯỚC 302 là lượt soát định kỳ 19 (phiên khác), nên ký ĐO 38 ở **BƯỚC 303** và lượt chạy ở **BƯỚC 304**; L2 (NULL-M, dụng cụ hiệu chuẩn) là BƯỚC 301.
+
+**Đánh số:** BƯỚC 300; **không mở lỗi mới** (lỗi kế **209**). Nhánh `c4/de-xuat-chuan-hoa-300` từ đầu PR #345 (`8020ea8`), nay gộp `origin/main` @ `3ceb248` (PR #345 đã gộp) và XẾP CHỒNG trên đầu PR #346 (BƯỚC 302, soát định kỳ 19, `32231e264cee0a81a7f26c5d63900cc52de24998`; #346 gộp trước, rồi leader gộp `main` vào nhánh này; STATE, HANDOFF và sổ tay giải theo văn bản: 302 trước, 300 sau; `docs/soat-notebooklm.json` dựng lại từ dict, lỗi 170; `docs/soat-dinh-ky.json` của 302 giữ nguyên). Số hiệu do leader cấp.
+
+### A. Cái gì đã làm (bốn commit riêng + gộp, rồi sổ)
+
+1. **Khai trước (docs-only, TRƯỚC mọi mã và mọi lượt hiệu chuẩn):** `docs/thiet-ke-c4-thi-truong-gia.md` mục **21** (công thức z và luật khai; A0 phương án (B) và điều kiện DỪNG `p̂ + 3·SE ≥ 0,3`; dải PT Beta-nhị thức và điều kiện DỪNG; NULL-M và M1; dòng hạt 6 · 7 · 8 · 9 · 10 và chỉ số hiệu chuẩn ≥ 1.100.001 / 1.200.001–1.200.200 / ≥ 1.300.001; "đọc MỘT lần"), mỗi số mang nhãn *Đã khai* / *Báo kèm* / *Sau khi nhìn* / *ƯỚC LƯỢNG*; mục 5.1 chỉ thêm MỘT khối trỏ sang mục 21 (không viết lại lịch sử). Commit `910cd01`, sau đó một commit sửa số BƯỚC 302 → 303 · 304.
+2. **Mã + test:** `vong_hoc_gia.py`: `thong_ke_null(B, C, Y)` (μ, σ đóng, Hoeffding, mẫu số M − 1, dùng `cham_bong._hang_giua` của `so_cap`; phương sai 0 → (0, 0)); `de_xuat` trả thêm `z` và `sd_null`; `_khoa_xep` xếp `round(z, 12)` GIẢM rồi theo tên; `chon_khai` đòi **z > 0 VÀ Δ > 0**. Không RNG, không hạt, không gọi oracle, không bản sao của hạng/IC. Commit `139d4b0`.
+3. **Biên bản mẫu** `docs/vong-hoc-thi-truong-gia-mau.md` sinh lại CÓ CHỦ Ý (test tái lập của nó là test đỏ ở commit 2), kèm một dòng giải thích. Cùng lệnh `tools/chay_vong_thi_truong_gia.py` (không `--ghi`) đã tái lập bản CŨ **từng byte** TRƯỚC khi đổi mã (`mau_cu_tai_lap.txt`), rồi mới `--ghi`; Δ từng spec không đổi, chỉ thứ tự 11 hàng và ba spec khai đổi (DX2 `bo_trend_score` → `deu`, DX3 `bo_momentum_score` → `bo_trend_score`). Commit `5f64a9f`.
+4. **Sổ:** mục này, khối 🧭 ở HANDOFF, mục sổ tay `BƯỚC 300`, mốc số test 5810 → 5822.
+
+### B. Chỗ mã/test khác đề bài hay đặc tả — nêu thẳng
+
+1. **Gác G6 sửa (test sẵn có, đặc tả không nêu).** `CAM_TU_CHAM` cấm `_hang_giua` trong `vong_hoc_gia.py`, mà đặc tả đòi bộ đề xuất dùng ĐÚNG hạng giữa của `so_cap` (không bản sao). Đặc tả viết khi chưa đọc gác này (mục 8 của đặc tả: "chưa đọc `tests/*` ngoài dòng nêu"). Nay `_hang_giua` rời danh sách cấm và một gác riêng `test_G6_hang_giua_chi_duoc_goi_ba_lan_o_dung_mot_ham_va_la_cua_cham_bong` đòi đúng **ba lần gọi `cb._hang_giua`, trong đúng một hàm `thong_ke_null`**; mọi tên khác (`so_cap`, `rank`, `permutation`, `default_rng`…) vẫn cấm. Cùng kiểu nới có tiền lệ ở mục 17 khoản 11.
+2. **Gác G3 thêm `numpy`** vào danh sách module `vong_hoc_gia.py` được nhập (`pandas` đã có; `tools/chay_vong_thi_truong_gia.py` đã có `numpy`).
+3. **Một khẳng định cũ của `test_de_xuat_tim_dung_spec_tot_nhat_tren_ca_co_dap_an_biet_truoc` đổi:** "danh sách xếp Δ giảm" thành "xếp z giảm" (đó chính là thay đổi xếp hạng). Các dict `{ten, spec, delta}` trong test nay mang `z` (đặc tả mục 2 nêu).
+4. **`tools/chay_vong_tang2_thi_truong_gia.py::bo_ba_ep` thêm `z` giả** (một dòng): file thuộc `FILE_GHIM` của ĐO 37, nhưng `chon_khai` nay đọc `z`, và `tests/test_chuan_bi_lat5_thi_truong_gia.py` đưa bộ ba ép sẵn qua `chon_khai`. Không đổi gì khác ở dụng cụ.
+5. **Biên bản mẫu không in z.** `tools/chay_vong_thi_truong_gia.py` (file ghim, không thuộc phần việc) vẫn in cột Δ và IC; các hàng nay xếp theo z nên cột Δ không còn giảm dần (mẫu: hàng 2 `deu` Δ +0,0224 đứng TRÊN hàng 3 `bo_trend_score` Δ +0,0564, và hàng 11 `bo_volume_score` Δ −0,0583 đứng DƯỚI hàng 10 `mono_trend_score` Δ −0,1050). Dòng giải thích thêm ở đầu biên bản nói rõ điều này; nó được chèn TAY sau khi sinh, nên một lần `--ghi` về sau sẽ làm mất dòng ấy (đầu file là chuỗi cứng của `noi_dung_tep` trong dụng cụ ghim).
+6. **Luật khai THẬT khác một chút so với biến thể `mp_a0.py` của đặc tả** (mục C): đặc tả đo *"ba spec đầu theo z, chỉ cần Δ > 0"*; luật đã khai (§21.1) đòi thêm **z > 0**.
+
+### C. Con số A0 trên MÃ THẬT (dòng thử 9001) — *Sau khi nhìn* (không phải *Đã khai*, không hiệu chuẩn)
+
+Dòng thử 9001, chỉ số 1.000.001–1.008.000 (8.000 thị trường NULL Tầng 1, κ = 0, không oracle; không dòng 2–5, 6–10). Mã: `vong_hoc_gia.de_xuat` / `chon_khai` THẬT trên bản chụp `git archive 5f64a9f`, qua cửa sổ đúng như `chay_vong` đưa (`cat_den_phien(…, S − 1)`). Lệnh (script ngoài repo, bản chụp ở thư mục cạnh): `VIBE_GOC=<bản chụp 5f64a9f> ../../vibe_preview/.venv/Scripts/python.exe -u -X utf8 -B ../a0_9001_that.py --so 8000 --dau 1000001 --tien-trinh 3 --ra ../a0_9001_that.json` (1.316,2 s, 3 tiến trình). Đầu ra:
+
+```
+G duoc chon [luat that: z > 0 va delta > 0 (chon_khai)]: 2141/8000 = 26.76%  SE 0.49  so spec TB 2.970
+G duoc chon [bien the cua mp_a0.py: ba spec dau theo z, chi delta > 0]: 2142/8000 = 26.77%  SE 0.50  so spec TB 2.973
+G duoc chon [luat cu: ba spec dau theo delta tho (de_xuat cu)]: 3241/8000 = 40.51%  SE 0.55  so spec TB 2.973
+thi truong ma luat that khac bien the cua dac ta: 26
+```
+
+**Đọc:** mã thật tái lập đúng hai số của đặc tả (26,77% theo biến thể của `mp_a0.py`; 40,51% theo luật cũ). Luật đã khai (có thêm z > 0) cho **2.141/8.000 = 26,76%**, thấp hơn đúng MỘT thị trường; 26 thị trường khác nhau giữa hai luật (spec có Δ > 0 nhưng z ≤ 0 lọt vào ba spec đầu của biến thể). Chênh 0,01 điểm phần trăm nằm trong 0,03 SE. **Đề bài nói "nếu khác thì DỪNG"; số khác ở chữ số cuối và nguyên nhân đã đếm được (một điều kiện của luật đã khai mà biến thể đo của đặc tả bỏ), nên không dừng nhưng nêu ở đây và báo leader.** p̂ hiệu chuẩn của A0 KHÔNG đọc ở đây (đó là phép đo ở dòng 1, chỉ số ≥ 1.100.001, của BƯỚC sau).
+
+**Quy tắc 1 — kiểm bên cạnh A0** (bản sửa không được làm "tìm ra" đẹp lên oan): cùng mã thật ở mức 2× (κ = 0,04458670117751986), dòng thử 9001, chỉ số 2.000.001–2.002.000 (2.000 thị trường; lệnh như trên thêm `--kappa 0.04458670117751986 --dau 2000001 --so 2000`, 374,0 s): **G được khai ở 1.996/2.000 = 99,80%** (luật cũ 2.000/2.000 = 100%), cùng số với mô phỏng của đặc tả. Không có gì đẹp lên: chiều của thay đổi là "tìm ra" nhỉnh kém đi 4 thị trường, an toàn. **KHÔNG đo A, B2, C2 trên cả bảng** (việc của lượt chạy ĐO 38); biên bản mẫu 2× một thị trường vẫn đưa `mono_volume_score` lên đầu, DX1 vẫn `QUA`.
+
+### D. Kiểm máy đo, đột biến
+
+- **Công thức đóng** khớp: (1) liệt kê TẤT CẢ 720 hoán vị ở M = 6 (hai ca, có hoà hạng; σ quần thể, μ ≠ 0) khớp `rel` 1e-9; (2) `cham_bong.so_cap` với 20.000 hoán vị trên một thị trường 2× (ba spec): σ trong 2%, μ trong 0,05σ, z trong 3%; (3) phương sai 0 (C hằng · B hằng · Y hằng · một mã · nhãn chỉ phụ thuộc phiên) trả (0, 0).
+- **Test mới (12; `tests/test_vong_hoc_thi_truong_gia.py` 112 → 124 cùng test cũ sửa):** ba test của `thong_ke_null`; `z` và `sd_null` đúng `(Δ − μ)/σ` ở cả 11 spec của một thị trường dựng (μ ≠ 0 ở mọi spec); **ca Δ lớn nhất nhưng z nhỏ hơn** (hạt 38: `mono_trend_score` Δ lớn hơn `mono_volume_score` hơn 0,05 nhưng z thấp hơn hơn 1, σ_null gấp hơn hai lần; bộ cũ chọn `trend`, bộ mới chọn `volume`, spec mang tín hiệu thật); spec phương sai 0 (`risk_score` hằng, điểm đã ghi NGƯỢC nhãn, Δ > 0,1) có z = 0, `sd_null` = 0 và không được khai ở `so = 11`; `chon_khai` đòi cả z > 0 và Δ > 0; hoà theo tên với 12 chữ số (hai z cách 2e-13 là hoà, cách 2e-12 thì z quyết định); không dùng Δ thô; G7 cho cả `z` và `sd_null`; G4 chạy trần với oracle/bộ sinh bị buộc đẩy nổ; G6 mới.
+- **Đỏ trước:** 11 test mới ĐỎ trên `vong_hoc_gia.py` CŨ (`do_cu.log`), xanh trên mới. **Cơ sở xanh** (124 passed) TRƯỚC mọi phát (`co_so.log`, lỗi 205). **Đột biến `dot_bien_300.py` (`dot_bien.log`): 20/20 ĐỎ, mỗi phát đỏ đúng chỗ** — bỏ trừ μ (ở `de_xuat` và ở `thong_ke_null`) · M − 1 → M · không căn giữa · bỏ căn giữa theo hàng · bỏ cộng lại trung bình chung · xếp theo Δ thô (6 test đỏ, gồm ca dựng) · bỏ `z > 0` · bỏ `Δ > 0` (chỉ test dict bắt; ca thị trường dựng không) · 12 chữ số → 11 · → 13 · → 6 · bỏ làm tròn · ngưỡng σ ≈ 0 → 0 · σ = 0 vẫn chia · không chặn m_b·m_c = 0 · không chặn M < 2 · đổi dấu của A · m_c dùng m_b · thêm một lần gọi `_hang_giua` ở `de_xuat` (gác G6). Một lần chạy đầu của script đục bị tôi **dừng nhầm** giữa chừng (nhìn thấy hai tiến trình, thật ra một chuỗi `timeout` → `python`) làm `vong_hoc_gia.py` ở lại trạng thái đột biến; phát hiện bằng `fc`, trả lại từ bản chụp, kiểm `cmp` rồi chạy lại cả bộ từ đầu. Không có gì lọt vào commit.
+
+### E. ĐO 37 không bị chạm; cửa ghim
+
+- Thân ĐO 37 (`docs/TIEU-CHI-DOC-TRUOC.md`), `docs/thi-truong-gia-ket-qua.json`, `docs/thi-truong-gia-hieu-chuan.json`, `docs/thi-truong-gia-g-phay.json`, `tools/chay_chinh_thuc_thi_truong_gia.py`, `tests/test_chay_chinh_thuc_thi_truong_gia.py`: `git diff 8020ea8 --stat -- <các file ấy>` ra RỖNG (đo ở đầu nhánh trước khi gộp).
+- `tools/chay_chinh_thuc_thi_truong_gia.py --ket-cuc` in **"KẾT CỤC: TRUOT"** (A0, PT), mã thoát 1, và **giống từng byte** `vibe_logs_296/ket_cuc.log` (`cmp` im lặng; sha256 cùng `4d0e6b18…aaca58`).
+- Cửa `kiem_cong(2)` (gọi trực tiếp, bỏ `git fetch`): TỪ CHỐI, vì `vong_hoc_gia.py` VÀ `tools/chay_vong_tang2_thi_truong_gia.py` khác `origin/main` (và vì dòng 2 đã chạy xong); `kiem_cong(6)` từ chối vì dòng 6 không thuộc (2, 3, 4). Đúng như `FILE_GHIM` được viết: dòng 2 · 3 · 4 không được chạy lại bằng mã đã đổi. ĐO 38 phải đi qua một tổng quát hoá cửa (L3, BƯỚC 303).
+
+### F. Sổ tay · số test · năm cổng
+
+- **Sổ tay:** `tools/buoc_cham_luat.py 300` — kết quả ghi ở thân PR (nó đọc lịch sử git sau khi mục này nằm trong một commit); mục `BƯỚC 300` của `docs/soat-notebooklm.json` là `khong_bat_buoc_vi`, vì BƯỚC không chạm file nào của `FILE_LUAT`.
+- **Số test 5810 → 5822** (+12, đúng số test mới; `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do …` ghi mốc 5822).
+- **Năm cổng** `--tuan-tu` trên commit CUỐI: kết quả ở thân PR. **Lượt đầu (cây `92cf827`) đỏ ở cổng 1 và cổng 4, hai test, CẢ HAI do BƯỚC này:** (1) `tests/test_dem_moc_tuan.py::test_STATE_that_moi_BUOC_tu_164_deu_doc_duoc_ngay` — tiêu đề mục này ghi khoảng ngày `25–26/11/2026`, gác đòi MỘT ngày dd/mm/yyyy ở cuối; (2) `tests/test_requirements.py::test_requirements_phu_het_import_o_tests_va_tools` — test mới của tôi nhập `scipy`, không khai ở `requirements.txt` (CI không có). Sửa: tiêu đề một ngày; hạng độc lập của test dựng bằng `np.searchsorted` thay `scipy.stats.rankdata`. Đột biến chạy lại sau sửa: 20/20 đỏ (`dot_bien2.log`). Vì sao lọt: các lượt chạy tập con của tôi không gồm hai file ấy; chỉ cả bộ mới bắt.
+
+### G. Điều CHƯA làm / chưa kiểm
+
+1. **Không đo p̂ của A0, không đo dải PT, không dựng NULL-M, không ký ĐO 38** (L2 = BƯỚC 301; ký = BƯỚC 303; chạy = BƯỚC 304). Mọi con số của mục này là số THỬ ở dòng 9001, không phải số hiệu chuẩn.
+2. **Chưa chạy bộ đề xuất chuẩn hoá ở Tầng 2** (σ ở Tầng 2 chưa đo bằng công thức đóng).
+3. **Công thức đóng so với `so_cap` chỉ ở MỘT thị trường 60 mã × 3 spec** (và M = 6 chính xác); ở mã khác (nhiều hoà hạng, ít mã) chỉ có phép thử M = 6 có hoà.
+4. **Dụng cụ in biên bản không in z** (mục B khoản 5); biên bản mẫu có một dòng chèn tay.
+5. **`tests/test_chay_chinh_thuc_thi_truong_gia.py` dòng `max(số ĐO) == 37`** sẽ đỏ khi ĐO 38 có mặt (mục F khoản 2 của BƯỚC 299): việc của BƯỚC 303.
+6. **Việc kế:** leader soát PR (đây là BƯỚC đổi mã đo và bộ đề xuất của thế giới giả, không đổi file luật); sau khi gộp, BƯỚC 301 (L2) và BƯỚC 303 (ký ĐO 38). Lỗi kế **209**.

@@ -55,7 +55,7 @@ S = T.SO_PHIEN_DA_NHIN
 def de_xuat_gia(*ten):
     """Chỗ cắm: bộ đề xuất cho trước (test dựng ca G, Z, H mà không phụ thuộc cái bộ đề xuất cơ sở chọn)."""
     def f(dong, gia):
-        return [{"ten": t, "spec": HO[t], "delta": 1.0 - 0.1 * i} for i, t in enumerate(ten)]
+        return [{"ten": t, "spec": HO[t], "delta": 1.0 - 0.1 * i, "z": 5.0 - 0.5 * i} for i, t in enumerate(ten)]
     return f
 
 
@@ -395,7 +395,7 @@ def test_de_xuat_tim_dung_spec_tot_nhat_tren_ca_co_dap_an_biet_truoc():
     assert sorted(x["ten"] for x in xep) == sorted(T.ho_spec_f()) and len(xep) == 11
     assert xep[0]["ten"] == "mono_volume_score" and xep[0]["delta"] > 0.8
     assert xep[0]["ic_spec"] == pytest.approx(1.0, abs=1e-2) and abs(xep[0]["ic_da_ghi"]) < 0.2
-    assert [x["delta"] for x in xep] == sorted((x["delta"] for x in xep), reverse=True)
+    assert [x["z"] for x in xep] == sorted((x["z"] for x in xep), reverse=True)     # BƯỚC 300: xếp theo z, không theo Δ
     assert all(x["n_phien"] == 60 - T.DO_TRE_NHAN and x["n_ma"] == 60 for x in xep)
     # spec chỉ gồm thành phần nhiễu thì không thể hơn một spec chứa volume
     assert all(x["delta"] < xep[0]["delta"] for x in xep[1:])
@@ -417,20 +417,203 @@ def test_de_xuat_cua_so_khong_co_phien_co_nhan_thi_no():
         V.de_xuat(dong, gia)
 
 
-def test_xep_hoa_theo_thu_tu_ten_spec_va_chon_khai_chi_lay_delta_duong_toi_da_3():
-    x = [{"ten": "b", "delta": 0.1}, {"ten": "a", "delta": 0.1}, {"ten": "c", "delta": 0.3},
-         {"ten": "z", "delta": 0.0}, {"ten": "y", "delta": -0.2}, {"ten": "d", "delta": 0.05}]
+def test_xep_hoa_theo_thu_tu_ten_spec_va_chon_khai_chi_lay_z_duong_va_delta_duong_toi_da_3():
+    x = [{"ten": "b", "delta": 0.1, "z": 1.0}, {"ten": "a", "delta": 0.1, "z": 1.0},
+         {"ten": "c", "delta": 0.3, "z": 3.0}, {"ten": "z", "delta": 0.0, "z": 0.0},
+         {"ten": "y", "delta": -0.2, "z": -2.0}, {"ten": "d", "delta": 0.05, "z": 0.5}]
     assert [t["ten"] for t in sorted(x, key=V._khoa_xep)] == ["c", "a", "b", "d", "z", "y"]
     assert [t["ten"] for t in V.chon_khai(x)] == ["c", "a", "b"]                   # tối đa 3, hoà theo tên
-    assert [t["ten"] for t in V.chon_khai(x, so=10)] == ["c", "a", "b", "d"]       # Δ = 0 và Δ < 0 không khai
-    assert V.chon_khai([{"ten": "q", "delta": 0.0}, {"ten": "r", "delta": -1.0}]) == []
+    assert [t["ten"] for t in V.chon_khai(x, so=10)] == ["c", "a", "b", "d"]       # z = 0 và z < 0 không khai
+    assert V.chon_khai([{"ten": "q", "delta": 0.0, "z": 0.0}, {"ten": "r", "delta": -1.0, "z": -1.0}]) == []
     assert [t["ten"] for t in V.chon_khai(list(reversed(x)))] == ["c", "a", "b"]   # không phụ thuộc thứ tự vào
 
 
 def test_so_khai_toi_da_la_hang_SO_UNG_VIEN_KHAI():
     assert T.SO_UNG_VIEN_KHAI == 3
-    x = [{"ten": f"s{i}", "delta": 1.0 - i / 100} for i in range(8)]
+    x = [{"ten": f"s{i}", "delta": 1.0 - i / 100, "z": 5.0 - i / 10} for i in range(8)]
     assert len(V.chon_khai(x)) == T.SO_UNG_VIEN_KHAI
+
+
+# ══ bộ đề xuất CHUẨN HOÁ (BƯỚC 300; `docs/thiet-ke-c4-thi-truong-gia.md` mục 21.1) ═══════════════════════════════
+
+def _hang_giua_doc_lap(A):
+    """Hạng trung bình (hoà chia đều) bằng `np.searchsorted` trên mảng đã sắp: KHÔNG đi qua `cham_bong._hang_giua`
+    (test không kiểm mã bằng chính mã) và không cần scipy (CI không khai nó ở requirements.txt)."""
+    x = A.ravel()
+    s = np.sort(x)
+    r = (np.searchsorted(s, x, side="left") + np.searchsorted(s, x, side="right") + 1) / 2.0
+    return (r - r.mean()).reshape(A.shape)
+
+
+def _ma_tran_A_doc_lap(B, C, Y):
+    RB, RC, RY = _hang_giua_doc_lap(B), _hang_giua_doc_lap(C), _hang_giua_doc_lap(Y)
+    ny = float((RY * RY).sum())
+    mb, mc = np.sqrt((RB * RB).sum() * ny), np.sqrt((RC * RC).sum() * ny)
+    return (RC.T @ RY) / mc - (RB.T @ RY) / mb
+
+
+def test_thong_ke_null_khop_LIET_KE_TAT_CA_hoan_vi_o_M_6_ca_mu_lan_sd():
+    """M = 6 mã → 720 hoán vị: liệt kê hết, độ lệch chuẩn QUẦN THỂ (chia 720). Dạng đóng chia (M − 1) phải khớp
+    đúng; chia M, bỏ μ, hay không căn giữa theo hàng/cột đều lệch xa hơn dung sai."""
+    from itertools import permutations
+    rng = np.random.default_rng(2026)
+    for so_phien in (8, 11):
+        B = rng.integers(0, 5, (so_phien, 6)).astype(float)       # có hoà: hạng trung bình
+        C = rng.integers(0, 9, (so_phien, 6)).astype(float) + 0.5 * B
+        Y = rng.normal(size=(so_phien, 6)) + 0.4 * C
+        A = _ma_tran_A_doc_lap(B, C, Y)
+        null = np.array([sum(A[j, p[j]] for j in range(6)) for p in permutations(range(6))])
+        mu, sd = V.thong_ke_null(B, C, Y)
+        assert len(null) == 720
+        assert mu == pytest.approx(float(null.mean()), rel=1e-9, abs=1e-12)
+        assert sd == pytest.approx(float(null.std()), rel=1e-9)
+        assert abs(mu) > 1e-3 * sd, "ca dựng phải có μ ≠ 0 để phép thử bắt được 'bỏ trừ μ'"
+
+
+def test_thong_ke_null_khop_so_cap_20000_hoan_vi_trong_2_phan_tram_o_mot_thi_truong():
+    tt, dong = thi_truong(1, KAPPA_2X)
+    dong_n, gia_n = V.cat_den_phien(dong, tt.gia, S - 1)
+    bang = cb.doc_quyet_dinh(dong_n, "")
+    nhan = E.nhan_vuot_ro({m: pd.DataFrame({"close": gia_n[m]}) for m in gia_n.columns}, cb.NHIP)
+    for ten in (T.TEN_SPEC_G, "deu", "mono_momentum_score"):
+        B, C, Y, _, _ = cb.ma_tran_cap(bang, T.ho_spec_f()[ten], nhan)
+        mu, sd = V.thong_ke_null(B, C, Y)
+        ket = cb.so_cap(B, C, Y, np.random.default_rng(11), so=20000)
+        assert sd == pytest.approx(float(ket["null"].std()), rel=0.02), ten
+        assert abs(mu - float(ket["null"].mean())) < 0.05 * sd, ten
+        z = (ket["delta"] - mu) / sd
+        assert z == pytest.approx(ket["z"], abs=0.03 * max(1.0, abs(z))), ten
+
+
+def test_thong_ke_null_phuong_sai_0_tra_0_0_o_ba_ca():
+    rng = np.random.default_rng(5)
+    B = rng.normal(size=(9, 6))
+    C = rng.normal(size=(9, 6))
+    Y = rng.normal(size=(9, 6))
+    assert V.thong_ke_null(B, np.full((9, 6), 3.0), Y) == (0.0, 0.0)           # C hằng: m_c = 0
+    assert V.thong_ke_null(np.full((9, 6), 3.0), C, Y) == (0.0, 0.0)           # B hằng: m_b = 0
+    assert V.thong_ke_null(B, C, np.full((9, 6), 1.0)) == (0.0, 0.0)           # Y hằng
+    assert V.thong_ke_null(B[:, :1], C[:, :1], Y[:, :1]) == (0.0, 0.0)         # một mã: không có hoán vị
+    # nhãn chỉ phụ thuộc phiên (mọi mã cùng nhãn): mọi hoán vị cho CÙNG tổng → σ = 0, dù m_b·m_c ≠ 0
+    Yp = np.tile(rng.normal(size=(9, 1)), (1, 6))
+    mu, sd = V.thong_ke_null(B, C, Yp)
+    assert sd == 0.0 and np.isfinite(mu)
+
+
+def _thi_truong_z_khac_delta(seed=38, so_phien=90, so_ma=30, risk_hang=False):
+    """Mã j có xu hướng thật `troi[j]`. `volume_score` đo xu hướng ấy kèm nhiễu MỚI mỗi phiên (σ_null nhỏ); `trend_score`
+    là hằng số riêng của mã (không liên quan xu hướng thật, σ_null lớn vì chỉ có `so_ma` giá trị khác nhau): IC của nó là
+    may rủi. Hạt 38: Δ(trend) > Δ(volume) nhưng z(trend) << z(volume). `risk_hang`: `risk_score` = 50 ở MỌI dòng (spec
+    mono_risk phương sai 0) và điểm đã ghi NGƯỢC nhãn, nên Δ(mono_risk) = −IC(B) > 0."""
+    rng = np.random.default_rng(seed)
+    ngay = list(T.lich_phien(so_phien))
+    ma = [f"GIA{j + 1:02d}" for j in range(so_ma)]
+    troi = rng.normal(0, 0.003, so_ma)
+    loi = troi + rng.normal(0, 0.01, (so_phien, so_ma))
+    gia = pd.DataFrame(10.0 * np.cumprod(1.0 + loi, axis=0), index=ngay, columns=ma)
+    ben = rng.uniform(20, 80, so_ma)
+    dong, seq = [], 0
+    for n in ngay:
+        for j, m in enumerate(ma):
+            seq += 1
+            tp = {k: float(rng.uniform(0, 100)) for k in cb.THANH_PHAN}
+            if risk_hang:
+                tp["risk_score"] = 50.0
+                tp["volume_score"] = float(50 + 1500.0 * troi[j] + rng.normal(0, 12))
+                diem = int(np.clip(50 - 1500.0 * troi[j] + rng.normal(0, 12), 5, 95))
+            else:
+                tp["trend_score"] = float(ben[j] + rng.normal(0, 3))
+                tp["volume_score"] = float(50 + 1500.0 * troi[j] + rng.normal(0, 12))
+                diem = int(rng.integers(5, 95))
+            dong.append({"symbol": m, "signal_date": n, "score": diem,
+                         "components": json.dumps(tp), "at": float(seq), "seq": seq})
+    return dong, gia
+
+
+def test_de_xuat_tra_them_z_va_sd_null_va_z_la_delta_tru_mu_chia_sd_cua_thong_ke_null():
+    dong, gia = _thi_truong_z_khac_delta()
+    xep = V.de_xuat(dong, gia)
+    assert {"ten", "spec", "delta", "z", "sd_null", "ic_spec", "ic_da_ghi", "n_phien", "n_ma"} <= set(xep[0])
+    bang = cb.doc_quyet_dinh(dong, "")
+    nhan = E.nhan_vuot_ro({m: pd.DataFrame({"close": gia[m]}) for m in gia.columns}, cb.NHIP)
+    lech_mu = []
+    for x in xep:
+        B, C, Y, _, _ = cb.ma_tran_cap(bang, x["spec"], nhan)
+        mu, sd = V.thong_ke_null(B, C, Y)
+        assert x["sd_null"] == sd and sd > 0
+        assert x["z"] == pytest.approx((x["delta"] - mu) / sd, rel=1e-12, abs=1e-12)
+        lech_mu.append(abs(mu) / sd)
+    assert min(lech_mu) > 1e-4, "μ phải khác 0 ở MỌI spec, nếu không phép thử không bắt được 'bỏ trừ μ'"
+    assert [x["z"] for x in xep] == sorted((x["z"] for x in xep), reverse=True)
+
+
+def test_ca_dung_delta_lon_nhat_nhung_z_nho_hon_bo_cu_chon_sai_bo_moi_chon_dung():
+    dong, gia = _thi_truong_z_khac_delta()
+    xep = V.de_xuat(dong, gia)
+    d = {x["ten"]: x for x in xep}
+    cu = max(xep, key=lambda x: x["delta"])                       # bộ đề xuất cũ: Δ thô lớn nhất
+    assert cu["ten"] == "mono_trend_score" and cu["delta"] > d["mono_volume_score"]["delta"] + 0.05
+    assert d["mono_trend_score"]["z"] < d["mono_volume_score"]["z"] - 1.0           # nhưng z nhỏ hơn hẳn
+    assert d["mono_trend_score"]["sd_null"] > 2 * d["mono_volume_score"]["sd_null"]
+    assert xep[0]["ten"] == "mono_volume_score"                    # bộ mới: z lớn nhất = spec có tín hiệu THẬT
+    assert V.chon_khai(xep)[0]["ten"] == "mono_volume_score"
+    assert [x["ten"] for x in V.chon_khai(xep)] != [x["ten"] for x in sorted(xep, key=lambda y: -y["delta"])[:3]]
+
+
+def test_spec_phuong_sai_0_khong_duoc_khai_du_delta_duong():
+    dong, gia = _thi_truong_z_khac_delta(risk_hang=True)
+    xep = V.de_xuat(dong, gia)
+    r = next(x for x in xep if x["ten"] == "mono_risk_score")
+    assert r["delta"] > 0.1 and r["ic_da_ghi"] < -0.1 and r["ic_spec"] == 0.0     # Δ = −IC(B) > 0 vì C hằng
+    assert r["z"] == 0.0 and r["sd_null"] == 0.0
+    khai = [x["ten"] for x in V.chon_khai(xep, so=11)]
+    assert "mono_risk_score" not in khai and len(khai) == 10, khai
+    assert all(x["z"] > 0 for x in xep if x["ten"] != "mono_risk_score")
+
+
+def test_chon_khai_doi_hoi_ca_z_duong_va_delta_duong():
+    x = [{"ten": "a", "delta": 0.2, "z": -0.3}, {"ten": "b", "delta": -0.05, "z": 2.0},
+         {"ten": "c", "delta": 0.0, "z": 3.0}, {"ten": "d", "delta": 0.1, "z": 0.0},
+         {"ten": "e", "delta": 0.01, "z": 0.01}]
+    assert [t["ten"] for t in V.chon_khai(x, so=10)] == ["e"]
+
+
+def test_xep_hoa_lam_tron_z_12_chu_so_khong_hon_khong_kem():
+    """z hơn kém dưới 5e-13 là sai số dấu chấm động → HOÀ → theo tên; hơn kém 2e-12 thì z quyết định."""
+    hoa = [{"ten": "b", "delta": 0.1, "z": 0.5 + 2e-13}, {"ten": "a", "delta": 0.1, "z": 0.5}]
+    assert [t["ten"] for t in sorted(hoa, key=V._khoa_xep)] == ["a", "b"]
+    khac = [{"ten": "a", "delta": 0.1, "z": 0.25}, {"ten": "b", "delta": 0.1, "z": 0.25 + 2e-12}]
+    assert [t["ten"] for t in sorted(khac, key=V._khoa_xep)] == ["b", "a"]
+    ro = [{"ten": "a", "delta": 0.1, "z": 0.25}, {"ten": "b", "delta": 0.1, "z": 0.75}]
+    assert [t["ten"] for t in sorted(ro, key=V._khoa_xep)] == ["b", "a"]
+
+
+def test_xep_hang_khong_dung_delta_tho_ca_khi_delta_trai_chieu_voi_z():
+    x = [{"ten": "a", "delta": 0.9, "z": 1.0}, {"ten": "b", "delta": 0.1, "z": 5.0}]
+    assert [t["ten"] for t in V.chon_khai(x)] == ["b", "a"]
+
+
+def test_G7_z_va_sd_null_cung_khong_doi_khi_moi_sau_cua_so_con_moi_thi_THAY_doi_chung():
+    tt, dong = thi_truong(1, KAPPA_2X)
+    dong_m, gia_m = _mo_sau(dong, tt.gia, S)
+    g0, g1 = _bat_dau_vao_de_xuat(dong, tt.gia), _bat_dau_vao_de_xuat(dong_m, gia_m)
+    r0, r1 = V.de_xuat(g0["dong"], g0["gia"]), V.de_xuat(g1["dong"], g1["gia"])
+    assert [(x["ten"], x["z"], x["sd_null"]) for x in r0] == [(x["ten"], x["z"], x["sd_null"]) for x in r1]
+    thay = V.de_xuat(dong_m, gia_m)                                # đối chứng: nếu THẤY phần mồi thì z phải khác
+    assert [x["z"] for x in thay] != [x["z"] for x in r0]
+
+
+def test_G4_de_xuat_chay_tron_khi_oracle_va_bo_sinh_bi_buoc_day(monkeypatch):
+    tt, dong = thi_truong(1, KAPPA_2X)
+    dong_n, gia_n = V.cat_den_phien(dong, tt.gia, S - 1)
+    truoc = V.de_xuat(dong_n, gia_n)
+
+    def bay(*a, **k):
+        raise AssertionError("bộ đề xuất đã chạm oracle hay bộ sinh")
+    for ten in ("tinh_su_that", "sinh_thi_truong", "sinh_null", "_sinh_loi", "spec_ngoai_hai_se", "ho_spec_oracle",
+                "dong_thoi_gian", "lich_phien"):
+        monkeypatch.setattr(T, ten, bay)
+    assert V.de_xuat(dong_n, gia_n) == truoc
 
 
 # ══ lịch và sổ ═══════════════════════════════════════════════════════════════════════════════════
@@ -512,7 +695,7 @@ def test_thi_truong_ngan_hon_phien_doc_thi_khai_roi_dung_khong_doc_khong_nang(mo
 
 def test_bo_de_xuat_khong_co_spec_duong_thi_khong_khai_gi():
     tt, dong = thi_truong(1, KAPPA_2X)
-    v = V.chay_vong(dong, tt.gia, lambda d, g: [{"ten": "x", "spec": HO[T.TEN_SPEC_G], "delta": -0.1}])
+    v = V.chay_vong(dong, tt.gia, lambda d, g: [{"ten": "x", "spec": HO[T.TEN_SPEC_G], "delta": -0.1, "z": -0.1}])
     assert v["lich"] == [] and v["so_ung_vien"] == {"ung_vien": {}} and v["doc"] == [] and v["K"] == 0
     assert v["ket_cuc"] == V.KET_CUC_KHONG_NANG_CAP
 
@@ -645,7 +828,10 @@ def test_G7_hieu_luc_tu_phien_sau_o_dong_quyet_dinh_sau_nang_cap():
 # ══ G6 — không chấm lại ══════════════════════════════════════════════════════════════════════════
 
 CAM_TU_CHAM = {"so_cap", "phan_quyet", "cham_mot", "permutation", "permuted", "shuffle", "rank", "rankdata", "argsort",
-               "corrcoef", "spearmanr", "_hang_giua", "default_rng", "RandomState"}
+               "corrcoef", "spearmanr", "default_rng", "RandomState"}
+#: BƯỚC 300: bộ đề xuất chuẩn hoá cần hạng giữa của CHÍNH `so_cap` (không bản sao): `cb._hang_giua`, ba lần gọi,
+#: đúng một hàm. Mọi chỗ khác trong `vong_hoc_gia.py` vẫn cấm nó.
+HAM_DUOC_GOI_HANG_GIUA = "thong_ke_null"
 
 
 def _cay(duong):
@@ -707,6 +893,38 @@ def test_G6_phep_do_AST_bat_duoc_mau_xau():
         assert (_goi(c) & CAM_TU_CHAM) or (set(_chuoi(c)) & CAM_TU_CHAM), m
     for m in ("cx.cham(a, b, c)", "E.rho_hang(x, y)", "cb.ma_tran_cap(a, b, c)"):
         assert not (_goi(ast.parse(m)) & CAM_TU_CHAM), m
+
+
+def _cho_hang_giua(cay) -> list[tuple[str, bool]]:
+    """Mọi chỗ nhắc `_hang_giua` (tên trần, thuộc tính, hay chuỗi): (tên hàm bao ngoài, có phải `cb._hang_giua(...)`)."""
+    ra = []
+    for f in [n for n in ast.walk(cay) if isinstance(n, ast.FunctionDef)]:
+        goi = {id(n.func) for n in ast.walk(f) if isinstance(n, ast.Call)}
+        for n in ast.walk(f):
+            if isinstance(n, ast.Attribute) and n.attr == "_hang_giua":
+                ra.append((f.name, id(n) in goi and isinstance(n.value, ast.Name) and n.value.id == "cb"))
+            elif isinstance(n, ast.Name) and n.id == "_hang_giua":
+                ra.append((f.name, False))
+            elif isinstance(n, ast.Constant) and n.value == "_hang_giua":
+                ra.append((f.name, False))
+    return ra
+
+
+def test_G6_hang_giua_chi_duoc_goi_ba_lan_o_dung_mot_ham_va_la_cua_cham_bong():
+    cay = _cay(DUONG_V)
+    cho = _cho_hang_giua(cay)
+    assert cho == [(HAM_DUOC_GOI_HANG_GIUA, True)] * 3, cho
+    # không nhắc nó ở mức module (import, gán, chuỗi) mà hàm nào cũng không bao ngoài
+    mo_dau = [n for n in ast.walk(cay) if (isinstance(n, ast.Name) and n.id == "_hang_giua")
+              or (isinstance(n, ast.Attribute) and n.attr == "_hang_giua")
+              or (isinstance(n, ast.Constant) and n.value == "_hang_giua")]
+    assert len(mo_dau) == 3
+    mau_xau = {"mot_ham_khac": "def khac(a):\n    return cb._hang_giua(a)\n",
+               "ban_sao": "def thong_ke_null(a):\n    return _hang_giua(a)\n",
+               "chuoi": "def thong_ke_null(a):\n    return getattr(cb, '_hang_giua')(a)\n"}
+    for ten, m in mau_xau.items():
+        c = _cho_hang_giua(ast.parse(m))
+        assert c != [(HAM_DUOC_GOI_HANG_GIUA, True)], ten
 
 
 def test_G6_ca_so_cap_chi_duoc_goi_tu_ben_trong_phan_quyet_va_moi_lan_doc_di_qua_phan_quyet(monkeypatch):
@@ -1096,8 +1314,8 @@ def test_G1_vong_khong_ghi_gi_va_dung_cu_chi_ghi_mot_file_bang_va_an_toan_ghi():
 
 
 def test_G3_khong_thay_the_gioi_that_o_vong_va_dung_cu():
-    for duong, nhap_duoc in ((DUONG_V, {"__future__", "copy", "datetime", "json", "pandas", "cham_bong", "cham_xac_nhan",
-                                       "experiment_tran_dac_trung", "thi_truong_gia"}),
+    for duong, nhap_duoc in ((DUONG_V, {"__future__", "copy", "datetime", "json", "numpy", "pandas", "cham_bong",
+                                       "cham_xac_nhan", "experiment_tran_dac_trung", "thi_truong_gia"}),
                              (DUONG_TOOL, {"__future__", "argparse", "importlib", "json", "sys", "pathlib", "numpy",
                                            "cham_bong", "cham_xac_nhan", "thi_truong_gia", "vong_hoc_gia"})):
         cay = _cay(duong)
