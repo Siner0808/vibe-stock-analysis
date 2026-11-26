@@ -841,7 +841,8 @@ def test_file_that_hom_nay_khong_co_muc_nao_ge_38_va_ĐO_le_37_duoc_dem():
     `grep -cE "^## ĐO [0-9]+[a-z]? —" docs/TIEU-CHI-DOC-TRUOC.md` ra 42)."""
     muc, bo = doc_tieu_chi(TIEU_CHI.read_text(encoding="utf-8"))
     ten = sorted({t for t in bo}, key=lambda t: (int(re.search(r"\d+", t).group()), t))
-    assert [t for t, *_ in muc] == [], "đã có ĐO >= 38: gác phải canh nó (xem test mẫu)"
+    # BƯỚC 303 ký ĐO 38 (mục ≥ 38 ĐẦU TIÊN): gác cấu trúc nay canh nó thật (`test_file_that_sach_theo_luat`); ĐO ≤ 37 vẫn 42 mục.
+    assert [t for t, *_ in muc] == ["ĐO 38"], "mục >= 38 duy nhất hôm nay phải là ĐO 38 (BƯỚC 303); thêm mục nữa thì sửa dòng này có chủ đích"
     assert len(bo) == 42 and len(ten) == 40, (len(bo), len(ten))
     assert bo == sorted(bo)
 

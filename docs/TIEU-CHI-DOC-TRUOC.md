@@ -4909,6 +4909,7 @@ Không sửa dòng sổ cũ (kể cả #122 và #128) hay Google Sheets; không 
 
 **Đã tra trùng:** BƯỚC 176 · BƯỚC 193 · BƯỚC 268 · BƯỚC 269 · BƯỚC 270 · BƯỚC 271 — và ĐO 35 (kết cục K0):
 - Chưa ai đo "đối chứng của phát lại trên khung hôm nay" vì chưa có phát lại nào: ĐO 27 gắn nhãn bằng GIÁ, không phát lại `evaluate_open` từng nến (BƯỚC 268); BƯỚC 269 phát lại MỘT nến của #128 bằng tay (`vibe_logs_269/tai_lap_128.py`).
+- ⚠️ **HẾT ĐÚNG 26/11/2026 (BƯỚC 303, soát định kỳ 19, Phát hiện 2; văn bản ký giữ nguyên):** câu *"Chưa ai đo đối chứng của phát lại … vì chưa có phát lại nào"* ở dòng trên không còn đúng: chính dòng ấy kể tiếp rằng BƯỚC 269 đã phát lại MỘT nến của #128 bằng tay, và BƯỚC 272 · 273 đã đo đối chứng (ĐO 35 kết cục K0; ĐO 36 kết cục A).
 - BƯỚC 270 mục E kiểm sự kiện quyền trong cửa sổ ĐO 27 và cửa sổ XỬ LÝ của từng lệnh, KHÔNG kiểm sự kiện rơi SAU lượt xử lý nhưng TRƯỚC hôm nay: đó là chỗ ĐO 35 trượt (nguyên nhân (a) dưới đây).
 
 ### Điều ĐO 35 đã làm trượt, và vì sao (đo ở BƯỚC 272, KHÔNG phải ước lượng)
