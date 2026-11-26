@@ -781,6 +781,29 @@ def test_viec_dua_o_NULL_M_den_ham_NULL_M_va_chay_luong_ghi_kappa_d_va_tai_lap_N
     assert sorted(g[2] for g in goi if g[0] == "m") == [4, 10, 11, 12]
 
 
+def test_chay_luong_do38_chay_P4_dung_mot_lan_o_dong_Tang_2_la_dong_8_va_khong_o_dong_khac(monkeypatch, tmp_path):
+    monkeypatch.setattr(CT, "chay_mot_thi_truong_tang2", lambda luong, phep, ten, muc, chi_so, so_hoan_vi=0, co_p2=True: {"chi_so": chi_so, "dg": "d", "dg_sinh": "d", "giay": {}})
+    monkeypatch.setattr(CT, "chay_mot_thi_truong_tang1", lambda luong, phep, ten, muc, chi_so, so_hoan_vi=0: {"chi_so": chi_so, "dg": "d", "giay": {}})
+    monkeypatch.setattr(CT, "tai_lap_sinh", lambda luong, phep, tang, muc, chi_so: "d")
+    monkeypatch.setattr(CT, "kiem_luong_chinh_thuc", lambda luong, phep=None: None)      # chỉ để đi qua `chay_luong` với giấy phép giả
+    dem = []
+    p4 = lambda: dem.append(1) or {"lenh": "x", "ma_thoat": 0, "dong_cuoi": "ok"}      # noqa: E731
+    ghi = lambda k, d: Path(d).write_text(json.dumps(k), encoding="utf-8")             # noqa: E731
+    kh2 = {"tang": 2, "o": (("2x", 2.0, 10, 2),)}
+    CT.chay_luong(8, None, 1, False, 1, tmp_path / "k8.json", kh2, 50, True, p4, "x", False, ghi, do=38)
+    assert dem == [1]
+    do = json.loads((tmp_path / "k8.json").read_text(encoding="utf-8"))
+    do["cac_luong"]["8"]["trang_thai"] = "DANG CHAY"
+    (tmp_path / "k8.json").write_text(json.dumps(do), encoding="utf-8")
+    CT.chay_luong(8, None, 1, True, 1, tmp_path / "k8.json", kh2, 50, True, p4, "x", False, lambda k, d: None, do=38)
+    assert dem == [1]                                   # P4 đã ghi ở bản dở: không chạy lại
+    for l, kh in ((6, {"tang": 1, "o": (("2x", 2.0, 10, 2),)}), (7, {"tang": 1, "o": (("NULL", 0.0, 10, 2),)}), (9, {"tang": 2, "o": (("2x", 2.0, 10, 2),)})):
+        CT.chay_luong(l, None, 1, False, 1, tmp_path / f"k{l}.json", kh, 50, True, p4, "x", False, ghi, do=38)
+    assert dem == [1]                                   # dòng 6 · 7 · 9 KHÔNG chạy P4; dòng 4 của ĐO 37 cũng không phải dòng Tầng 2 của ĐO 38
+    CT.chay_luong(4, None, 1, False, 1, tmp_path / "k4.json", kh2, 50, True, p4, "x", False, ghi, do=38)
+    assert dem == [1]
+
+
 def test_chay_luong_do37_giu_nguyen_buoc_295_va_do_37_cua_ban_ghi_dau(monkeypatch, tmp_path):
     monkeypatch.setattr(CT, "chay_mot_thi_truong_tang1", lambda luong, phep, ten, muc, chi_so, so_hoan_vi=0: {"chi_so": chi_so, "dg": f"d{chi_so}", "giay": {}})
     monkeypatch.setattr(CT, "tai_lap_sinh", lambda luong, phep, tang, muc, chi_so: f"d{chi_so}")
