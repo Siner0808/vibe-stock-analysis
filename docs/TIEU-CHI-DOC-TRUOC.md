@@ -10,6 +10,26 @@
 
 ---
 
+## Nhãn của con số — áp dụng từ ĐO 38 (ĐO 1–37 giữ nguyên, không viết lại)
+
+*Điểm so sánh* = (đại lượng, chuẩn, vùng dữ liệu, ngưỡng đọc). Mọi con số một ĐO báo ra mang đúng MỘT nhãn:
+
+- **Đã khai M#** — điểm so sánh nằm ở phần KÝ, dòng `- **M1** <điểm so sánh> (người dùng)` hoặc `(leader)`, trong một commit đã là tổ tiên của `origin/main` ghi lúc lượt chạy bắt đầu. Chỉ nhãn này được đứng ở dòng kết cục. Dòng 8 đầu tệp vẫn là luật (*"Mỗi mục dưới đây phải được người dùng chốt trước khi lượt chạy tương ứng bắt đầu"*): mọi `M#` là `(người dùng)`; `(leader)` chỉ ở chỗ người dùng đã giao quyết định ấy, và dòng phải mang lời họ nguyên văn: `(leader — người dùng giao: *"…"*)`; `(leader)` trơ trụi bị gác từ chối.
+- **Báo kèm** — khai trước là báo kèm: dòng `- **B1** …` ở phần ký, cùng điều kiện commit. Không quyết định kết cục, không dùng để đổi tiêu chí.
+- **Sau khi nhìn** — mọi số còn lại: không mã ở phần ký, hay điểm so sánh sinh ra sau khi đã thấy số của chính ĐO này. Là đầu mối cho một ĐO SAU, không phải kết luận.
+
+**Bằng chứng khai trước là tổ tiên, không phải giờ.** Lời khai ở phần ký chỉ tính khi `git merge-base --is-ancestor <commit khai> <origin/main ghi lúc chạy>` ra 0; giờ commit cục bộ KHÔNG phải bằng chứng (một commit có thể mang giờ cũ mà tới `main` sau lượt chạy). Phụ thuộc: PR gộp bằng `--merge` (SKILL.md Bước 5); squash làm phép thử ra 1 oan. Lời khai chỉ nằm ở một commit cục bộ vẫn được dùng, nhưng phải gắn nhãn bằng chứng yếu (dòng `**Khai trước bằng:**` bên dưới).
+
+**Kết quả.** Ở `docs/STATE.md`, mục BƯỚC của lượt chạy, mở bằng dòng `**Kết quả ĐO <n>:**` rồi ba khối đúng thứ tự `### Đã khai (M1, …)` · `### Báo kèm (B1, …)` · `### Sau khi nhìn` (khối trống ghi *Không có*), kèm `**Khai ở commit:** <sha>` và `**Chạy trên origin/main:** <sha>` (`git fetch origin main` rồi `git rev-parse origin/main`, ghi TRƯỚC lệnh chạy). Mọi M# của phần ký phải có mặt: ở khối Đã khai, hoặc ở dòng `M# — không báo được vì <lý do ≥ 30 ký tự>`. Không chứng minh được tổ tiên thì khai `**Khai trước bằng:** commit cục bộ — vì <lý do ≥ 30 ký tự>` và tiêu đề khối Đã khai thêm *(bằng chứng yếu)*.
+
+**Thăng nhãn.** Một số Báo kèm hay Sau khi nhìn chỉ thành Đã khai ở một ĐO SAU: `- **M2** … (thăng từ ĐO <n> B1; dữ liệu mới: <…>) (người dùng)` (số Sau khi nhìn không có mã: `thăng từ ĐO <n> Sau khi nhìn`). Dữ liệu mới = dòng hạt chưa từng dùng, hoặc phiên có ngày SAU ngày commit đầu tiên in con số ấy; cache đã nhìn KHÔNG phải dữ liệu mới. Không thăng nhãn trong chính ĐO sinh ra con số.
+
+**Sửa sau khi thấy số đối chứng.** Chỉ khi số CHÍNH chưa ai đọc. Khối `### SỬA ĐO <n>` ở cuối mục ĐO (không tạo tiêu đề `## ĐO` thứ hai) có: mỗi điều khoản đổi một dòng `- <điều>: <chữ cũ> → <chữ mới> — **Hướng:** nới | siết | trung tính`; `**Người chốt:**` (lời người dùng nguyên văn, hay `leader`); `**Đã thấy:**` các số đối chứng đã thấy; `**Chưa đọc gì:**` số chính; `**Commit tới origin/main:**` commit của bản khai gốc, đã tới `origin/main` trước lượt chạy. Mỗi điều "nới" kèm câu *"đạt-sau-khi-đổi-luật không phải bằng chứng máy đo tốt hơn"*, kết cục ghi *"dưới văn bản đã sửa"*. Không được đổi: câu hỏi, vùng dữ liệu hay dòng hạt của số chính, chuẩn chính. Số chính đã đọc rồi thì mọi thay đổi là một ĐO mới, dữ liệu mới, và số cũ thành Sau khi nhìn. Câu đầu tệp (*"để nó không thể sửa sau"*, *"File này là hợp đồng"*) vẫn là luật: khối `### SỬA ĐO <n>` là con đường DUY NHẤT được phép sửa, chỉ trước khi số chính được đọc (tiền lệ `### SỬA ĐO 34`); đọc số chính rồi thì không có sửa, chỉ có một ĐO mới.
+
+**Mục hậu tố chữ** (ví dụ `ĐO 38b`, chẩn đoán SAU một ĐO) mang dòng `**Nhãn:** Sau khi nhìn` và không có dòng `- **M#**`: nó không đổi kết cục. Gác cấu trúc: `tests/test_ket_qua_do_co_nhan.py` (chỉ đọc ĐO ≥ 38; ĐO 1–37 và mọi `Kết quả ĐO` cũ bị bỏ qua).
+
+---
+
 ## Đính chính trước tiên: "~2,5 giờ mỗi lượt" là con số CHƯA AI ĐO
 
 Ngày 08/09/2026 tôi nhắc con số ấy nhiều lần như một sự thật. Đo lại:
