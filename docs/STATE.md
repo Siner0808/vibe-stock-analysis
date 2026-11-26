@@ -28686,7 +28686,7 @@ Chi tiết từng câu ở `docs/soat-dinh-ky.json` (lượt 2026-11-26, các m�
 - **Ước lượng sai của chính phiên này:** (a) tôi định dùng `tools/so_ban_goi.py` không đối số như lượt 18; lượt `kiem-dinh` gần nhất của `main` đang chạy nên mã 2 (mục 7) — số hiệu pyarrow của CI đọc từ lượt xanh trước; (b) tôi đặt tên kịch bản đọc 8 sai (`chay_luot7.py`) và chạy trước khi đổi tên — thoát ngay, không kéo gì (đã nêu ở *Dụng cụ*). Chưa có số nào vào tài liệu từ hai ước lượng ấy.
 - **KHÔNG nói:** *"0 câu sai chưa xử lý"* là cho chín tài liệu của công cụ chính + 95 câu diff + hàng bảng; không phủ số đọc từ Sheets (số lệnh, B1), không phủ dòng nào của STATE trước BƯỚC 283 (lượt 14–18 đã mở), không phủ `tests/` và `app.py` ngoài các lệnh `git grep` được nêu; câu chữ của file luật không sửa nên hai chỗ hết đúng ở mục Phát hiện 2 vẫn còn.
 
-## BƯỚC 300 — C4 SỬA, LÁT L1: BỘ ĐỀ XUẤT XẾP THEO z = (Δ − μ)/σ CHUẨN HOÁ, VÀ KHAI TRƯỚC ĐẶC TẢ ĐO 38 (CHỈ TRONG THỊ TRƯỜNG GIẢ) (25–26/11/2026)
+## BƯỚC 300 — C4 SỬA, LÁT L1: BỘ ĐỀ XUẤT XẾP THEO z = (Δ − μ)/σ CHUẨN HOÁ, VÀ KHAI TRƯỚC ĐẶC TẢ ĐO 38 (CHỈ TRONG THỊ TRƯỜNG GIẢ) (26/11/2026)
 
 **Mốc:** C4
 
@@ -28744,7 +28744,7 @@ thi truong ma luat that khac bien the cua dac ta: 26
 
 - **Sổ tay:** `tools/buoc_cham_luat.py 300` — kết quả ghi ở thân PR (nó đọc lịch sử git sau khi mục này nằm trong một commit); mục `BƯỚC 300` của `docs/soat-notebooklm.json` là `khong_bat_buoc_vi`, vì BƯỚC không chạm file nào của `FILE_LUAT`.
 - **Số test 5810 → 5822** (+12, đúng số test mới; `tools/kiem_so_test_khong_giam.py --cap-nhat --ly-do …` ghi mốc 5822).
-- **Năm cổng** `--tuan-tu` trên commit CUỐI: kết quả ở thân PR.
+- **Năm cổng** `--tuan-tu` trên commit CUỐI: kết quả ở thân PR. **Lượt đầu (cây `92cf827`) đỏ ở cổng 1 và cổng 4, hai test, CẢ HAI do BƯỚC này:** (1) `tests/test_dem_moc_tuan.py::test_STATE_that_moi_BUOC_tu_164_deu_doc_duoc_ngay` — tiêu đề mục này ghi khoảng ngày `25–26/11/2026`, gác đòi MỘT ngày dd/mm/yyyy ở cuối; (2) `tests/test_requirements.py::test_requirements_phu_het_import_o_tests_va_tools` — test mới của tôi nhập `scipy`, không khai ở `requirements.txt` (CI không có). Sửa: tiêu đề một ngày; hạng độc lập của test dựng bằng `np.searchsorted` thay `scipy.stats.rankdata`. Đột biến chạy lại sau sửa: 20/20 đỏ (`dot_bien2.log`). Vì sao lọt: các lượt chạy tập con của tôi không gồm hai file ấy; chỉ cả bộ mới bắt.
 
 ### G. Điều CHƯA làm / chưa kiểm
 

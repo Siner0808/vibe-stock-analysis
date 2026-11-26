@@ -437,9 +437,11 @@ def test_so_khai_toi_da_la_hang_SO_UNG_VIEN_KHAI():
 # ══ bộ đề xuất CHUẨN HOÁ (BƯỚC 300; `docs/thiet-ke-c4-thi-truong-gia.md` mục 21.1) ═══════════════════════════════
 
 def _hang_giua_doc_lap(A):
-    """Hạng giữa tính bằng `scipy.stats.rankdata`: KHÔNG đi qua `cham_bong._hang_giua` (test không kiểm mã bằng chính mã)."""
-    from scipy.stats import rankdata
-    r = rankdata(A.ravel())
+    """Hạng trung bình (hoà chia đều) bằng `np.searchsorted` trên mảng đã sắp: KHÔNG đi qua `cham_bong._hang_giua`
+    (test không kiểm mã bằng chính mã) và không cần scipy (CI không khai nó ở requirements.txt)."""
+    x = A.ravel()
+    s = np.sort(x)
+    r = (np.searchsorted(s, x, side="left") + np.searchsorted(s, x, side="right") + 1) / 2.0
     return (r - r.mean()).reshape(A.shape)
 
 
