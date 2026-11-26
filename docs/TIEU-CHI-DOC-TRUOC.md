@@ -4175,6 +4175,7 @@ Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sh
 > - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 15/10/2026.
 > - Sổ tay hỏi thật ở BƯỚC 194.
 > - Thay ĐO 26 (kết cục K0, BƯỚC 193). Cũng như ĐO 26, đây là phép đo **kiểm một cái máy gắn nhãn**, không đo lợi thế: không tính vào K, không chạm điểm, ngưỡng mua hay đường lệnh.
+> - **SỬA 26/11/2026 (BƯỚC 303, người dùng ĐÃ DUYỆT 26/11/2026, không đổi tiêu chí):** đọc khối `### SỬA ĐO 27` ở CUỐI mục này TRƯỚC khi đọc mục *Nhịp đọc*; khối ấy (đã duyệt) THAY câu nó nêu tên, chỉ cho lượt đọc mà băm sổ không đổi. Văn bản ký ở trên giữ nguyên.
 
 **Đã tra trùng:** BƯỚC 192 · BƯỚC 193 · BƯỚC 182 — ba mục đã tra, và hai điều phải khai:
 - BƯỚC 192–193 (ĐO 26): kết cục K0, vì giá trong sổ của lệnh mô phỏng là giá đã điều chỉnh tới NGÀY GHI SỔ, không phải giá khớp chưa điều chỉnh (lỗi 178). Lệnh tiến-về-trước thì ghi lúc khớp, nên tiền đề của nhãn đúng cho nhóm ấy.
@@ -4225,6 +4226,21 @@ Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0
 
 ### Điều ĐO này KHÔNG làm
 Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sheets. Không dùng lịch sự kiện trong đường chạy thật (đó là mốc D1). Không đọc lại lệnh đóng trước ngày ký.
+
+### SỬA ĐO 27 — BƯỚC 303 (26/11/2026): LƯỢT ĐỌC KHI BĂM SỔ KHÔNG ĐỔI CHỈ GHI BĂM (NGƯỜI DÙNG ĐÃ DUYỆT 26/11/2026; KHÔNG ĐỔI TIÊU CHÍ)
+
+> **Văn bản ký 15/10/2026 ở trên GIỮ NGUYÊN từng chữ.** Khối này THAY mục *Nhịp đọc* và CHỈ cho lượt đọc mà sổ không đổi; câu hỏi, quần thể, khoảng sự kiện, thống kê chính, ba đối chứng, kết cục và mọi ngưỡng KHÔNG đổi. Khuôn là khuôn của `### SỬA ĐO 34` (giữ bản ký, thêm khối có ngày, nói vì sao, nói rõ chưa đọc gì). **Trạng thái: NGƯỜI DÙNG ĐÃ DUYỆT, 26/11/2026.** Câu hỏi người dùng nhận, nguyên văn: *"ĐO 27 (đọc sổ lệnh thật mỗi tuần): sổ không có lệnh mới từ 12/11 nên ba lượt gần đây ra cùng kết quả CHƯA ĐỦ. Khi băm sổ không đổi, có cần chạy đủ lượt đọc (kéo Sheets, đọc lịch sự kiện) không?"* Trả lời, nguyên văn: *"Sổ không đổi thì chỉ ghi băm (Recommended)"*, với nội dung lựa chọn *"Lượt đọc chỉ ghi 'băm sổ không đổi → kết cục giữ nguyên'; chạy đủ khi sổ có lệnh mới đóng. Sửa luật ĐO 27 trong bước 303 (đằng nào cũng hỏi sổ tay)."*
+> - **Gốc.** Từ 12/11/2026 sổ không có lệnh mới đóng; ba lượt đọc liền (lượt 6, 7, 8) cùng băm sổ và cùng kết cục CHƯA ĐỦ, mỗi lượt vẫn kéo giá, đọc lịch sự kiện và chạy ba đối chứng trên cùng quần thể. Quần thể của ĐO 27 là lệnh tiến-về-trước ĐÓNG sau ngày ký: khi băm sổ không đổi thì quần thể không đổi.
+> - **Chưa đọc gì.** Kết cục CUỐI (A hoặc A′) chưa có: mọi lượt đã đọc đều CHƯA ĐỦ (lượt 8: quần thể 6 lệnh, 5 có lịch, 0 DƯƠNG THẬT; `docs/STATE.md` BƯỚC 302). Khối này không thêm một lần đọc nào và không đổi cách đếm.
+
+- Nhịp đọc, lượt đọc khi sổ không đổi: *"Mỗi lượt đọc ghi MỘT dòng vào `docs/STATE.md` gồm M0, ba đối chứng, các số đếm và kết cục của lượt."* → *"Mỗi lượt đọc kéo sổ MỘT lần chỉ-đọc từ Sheets và tính băm sổ. Nếu băm sổ BẰNG băm sổ của lượt đọc ĐẦY ĐỦ gần nhất thì ghi MỘT dòng `băm sổ không đổi → kết cục giữ nguyên` kèm băm và kết cục của lượt ấy; KHÔNG kéo giá, KHÔNG đọc lịch sự kiện, KHÔNG chạy ba đối chứng. Nếu băm khác (sổ có lệnh mới đóng, hay một lệnh đổi) thì chạy ĐỦ như bản ký: M0, ba đối chứng, các số đếm và kết cục."* — **Hướng:** trung tính
+- Kết cục (xét ở từng lượt đọc): không đổi chữ nào; lượt `băm sổ không đổi` mang đúng kết cục của lượt đầy đủ gần nhất (từ nay tới khi có lệnh mới đóng: CHƯA ĐỦ), và KHÔNG được đếm thêm vào bất kỳ số đếm nào (không tăng quần thể, không thêm dương thật). — **Hướng:** trung tính
+
+**Người chốt:** người dùng, 26/11/2026, *"Sổ không đổi thì chỉ ghi băm (Recommended)"* (lời nguyên văn ở khối trên).
+**Đã thấy:** kết cục CHƯA ĐỦ của lượt 6, 7, 8 (cùng băm sổ, không lệnh mới từ 12/11/2026; `docs/STATE.md` BƯỚC 302). Chỉ có vậy: không số đối chứng nào quyết định chữ sửa.
+**Chưa đọc gì:** kết cục A · A′ · B · C (số chính) chưa có; khối này không đổi một ngưỡng nào.
+**Commit tới origin/main:** `19a7950` (BƯỚC 194, ký ĐO 27 ngày 15/10/2026).
+**Điều chưa kiểm (khai thẳng):** băm sổ bằng nhau KHÔNG bảo đảm giá và lịch sự kiện của quần thể bằng nhau: nguồn giá có thể hiệu chỉnh hồi tố hay lịch VCI có thể bổ sung một sự kiện cho lệnh đã đóng mà băm sổ không thấy. Trong các tuần sổ đứng yên, chữ sửa này chấp nhận không bắt được loại lệch ấy; nó bắt lại ở lượt đầy đủ kế (khi sổ có lệnh mới đóng) và không đổi kết cục CUỐI của ĐO 27 (đọc ở lượt đầy đủ).
 
 ## ĐO 28 — mô hình khớp ở phiên KỊCH TRẦN/SÀN MỘT GIÁ: lệnh mua không khớp ở phiên kịch trần, lệnh bán chờ qua phiên kịch sàn; đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 20/10/2026)
 
