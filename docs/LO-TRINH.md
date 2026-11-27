@@ -62,7 +62,19 @@ Cùng ngày, phiên quyết định kế (BƯỚC 256; ba hàng đầu đã xử
 | Chấm bóng và sân đấu có cần cron | *"Kiểm trước, rồi quyết (Recommended)"* |
 | Phạm vi BƯỚC 256 | *"Giao ngay, đủ (i)+(ii)+(iii) (Recommended)"*, rồi *"Tách (ii) ra, giao (i)+(iii) trước (Recommended)"* |
 | Đường giao bản tin (T3) | *"GitHub Issue → email (Recommended)"* — leader nêu sau đó repo là CÔNG KHAI nên mục này tách ra; 06/11/2026 người dùng chọn lại *"Telegram (Recommended)"*, BƯỚC 258 dựng (xem *Danh sách chờ*) |
-| Dow phần 2 | *"Hoãn tới sau v1.0 (Recommended)"* |
+| Dow phần 2 | *"Hoãn tới sau v1.0 (Recommended)"* — 🔴 HẾT ĐÚNG 23/11/2026: quyết định mới hơn ở mục ngay dưới (BƯỚC 306) |
+
+## Quyết định (nguyên văn trả lời của người dùng, 23–27/11/2026): Dow phần 2
+
+Thay quyết định 05/11/2026 *"Hoãn tới sau v1.0 (Recommended)"* ở hàng trên. Ba lần, mỗi lần mới hơn lần trước; đặc tả `DAC-TA-DOW2.md` (25/11/2026, ngoài repo) và bản tự đủ của nó nằm ở `docs/TIEU-CHI-DOC-TRUOC.md` mục ĐO 39.
+
+| Ngày | Câu hỏi | Trả lời |
+|---|---|---|
+| 23/11/2026 | chuỗi thứ hai cho Dow phần 2 | *"làm phương án A"* (VN30 + VNMidcap) và *"đồng ý"* với hướng: ô trạng thái MÔ TẢ (đã xác nhận / không xác nhận / đang chờ) VN30–VNMidcap trên app, KHÔNG phải tín hiệu, KHÔNG vào bộ lọc vào lệnh; mã viết mới trên nhật ký sự kiện phần 1; đo mô tả khai trước |
+| 25/11/2026 | Dow phần 2 *"đồng ý cả 5"* (năm khuyến nghị của đặc tả) | *"duyệt"* |
+| 27/11/2026 | bắt đầu Dow phần 2 ngay, khi lượt chạy chính thức ĐO 38 đang chiếm máy | *"Bắt đầu ngay (Recommended)"*: giao một phiên con làm Lát 0 (ký ĐO 39); merge vẫn chờ sau kết cục C4 |
+
+**Việc này KHÔNG làm chậm các mốc sản phẩm A/B/C** của lộ trình (đặc tả mục 7 câu 3): nó là hàng **B7**, ngoài lịch 30/11/2026 của giai đoạn B, chạy bằng các lát nhỏ ở các BƯỚC riêng, và không đổi ngày nào của v1.0 (28/02/2027). Ngoài Lát 0 (văn bản), mỗi lát còn lại phải qua năm cổng như mọi BƯỚC.
 
 ---
 
@@ -224,7 +236,7 @@ lệnh trên; bản ghi đầu ở `docs/STATE.md` BƯỚC 218.
 - **B4** — Bảng sức khoẻ hệ thống thay cho phần lớn soát tay. *(ĐÃ DỰNG 10/10/2026: BƯỚC 177 — `suc_khoe.py`, `tools/suc_khoe.py`, tab "🩺 Sức khoẻ"; mười phép kiểm chạy tuần tự, bốn trạng thái, chỉ đọc.)*
 - **B5** — Chart đa khung D-W-M (ngày · tuần · tháng) CHỈ ĐỂ HIỆN, cho mã đang xem và VN-INDEX: nến tuần/tháng gộp từ nến ngày đã qua cổng kiểm định, chỉ nến ĐÃ ĐÓNG, mỗi nến mang ngày phiên cuối có thật của nó; không vào chấm điểm, đường lệnh ảo hay backtest. Dùng xu hướng tuần/tháng làm bộ lọc lệnh ảo là một ứng viên tầng 3 riêng, phải khai trước — không thuộc B5. *(người dùng đề xuất và duyệt 09/10/2026: "đồng ý, làm phần 1 trước"; BƯỚC 171)* *(Hai ô cấu trúc giá Dow trên app KHÔNG thuộc B5: chúng là **B7**. BƯỚC 244–253 khai `**Mốc:** B5` khi B7 chưa tồn tại — mã mượn; BƯỚC 255 ghi lại điều này.)*
 - **B6** — Kế hoạch vào lệnh CHỈ ĐỂ HIỆN: với mỗi mã đủ điểm, agent lập vùng vào, cắt lỗ theo cấu trúc, rủi ro mỗi lệnh, độ kéo giãn so với MA20 và một phán quyết (mua ngay · đặt chờ ở vùng trong K phiên · bỏ qua) kèm lý do; app hiện, nhật ký ghi; KHÔNG đổi cách khớp lệnh của sổ ảo. *(người dùng 09/10/2026, Q12: "Hãy giao việc phán quyết cho Agent, không phải cứ điểm cao là mua"; duyệt "Duyệt cả lộ trình (Recommended)"; BƯỚC 172)* *(PHẦN 1 ĐÃ DỰNG 10/10/2026: BƯỚC 173 — `ke_hoach_vao_lenh.py` và bảng kế hoạch trên app; vế "nhật ký ghi" CHƯA làm ⚠️ HẾT ĐÚNG 15/10/2026, xem PHẦN 2. ĐO 25 — khai ở BƯỚC 178, chạy ở BƯỚC 179 ngày 12/10/2026 — ra kết cục B: chưa phân biệt được với mua mọi tín hiệu ở giá mở cửa phiên sau; B6 giữ CHỈ ĐỂ HIỆN.)* *(PHẦN 2 ĐÃ DỰNG 15/10/2026: BƯỚC 195 — `run_daily` ghi kế hoạch của MỌI mã có điểm ≥ ngưỡng (kể cả mã bị cổng của sổ chặn) vào tab MỚI `ke_hoach` trên Google Sheets lúc quét, SAU `run_session`, mỗi tín hiệu MỘT lần; không đổi cách khớp lệnh. Bản ghi này là dữ liệu tiến về phía trước cho C7. App hiện kế hoạch đã ghi: để sau. ⚠️ HẾT ĐÚNG cùng ngày 15/10/2026: hỏi lại sau khi tab có dữ liệu thật, người dùng chọn làm — BƯỚC 198 hiện chúng ở tab "📜 Lịch sử giao dịch", chỉ đọc, không tính lại, kèm việc sổ ảo đã làm với từng tín hiệu. Người dùng duyệt thiết kế 15/10/2026.)*
-- **B7** — Đọc cấu trúc giá theo Lý thuyết Dow CHỈ ĐỂ HIỆN: đỉnh/đáy xoay chiều theo hai cấp, BOS / CHoCH, thủy triều tăng/giảm, chu kỳ 4 giai đoạn ghép với pha Wyckoff; hai ô *Thủy triều* và *Chu kỳ 4 giai đoạn* cùng khối "Cấu trúc giá" trên app; KHÔNG vào chấm điểm, đường lệnh ảo hay backtest. Ngoài lịch 30/11/2026 của giai đoạn B. *(người dùng 29/10/2026: *"Module + hiển thị + đo chỉ-đọc (Recommended)"*; BƯỚC 244 đặc tả · 245 ký ĐO 34 · 247 Lát 1 · 249 Lát 2 · 250 Lát 3 (hai ô trên app) · 251 Lát 4a (dụng cụ ĐO 34) · 252 sửa văn bản ĐO 34 · 253 Lát 4b.)* *(**ĐO 34 chạy MỘT lần ngày 04/11/2026, BƯỚC 253: kết cục A** — "không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0", KHÔNG phải "Dow không có lợi thế"; không ứng viên tầng 3; khoá `CHO_PHEP_DOC_KET_QUA_THAT` của `tools/do_dow_cau_truc.py` đã khoá lại (`False`).)*
+- **B7** — Đọc cấu trúc giá theo Lý thuyết Dow CHỈ ĐỂ HIỆN: đỉnh/đáy xoay chiều theo hai cấp, BOS / CHoCH, thủy triều tăng/giảm, chu kỳ 4 giai đoạn ghép với pha Wyckoff; hai ô *Thủy triều* và *Chu kỳ 4 giai đoạn* cùng khối "Cấu trúc giá" trên app; KHÔNG vào chấm điểm, đường lệnh ảo hay backtest. Ngoài lịch 30/11/2026 của giai đoạn B. *(người dùng 29/10/2026: *"Module + hiển thị + đo chỉ-đọc (Recommended)"*; BƯỚC 244 đặc tả · 245 ký ĐO 34 · 247 Lát 1 · 249 Lát 2 · 250 Lát 3 (hai ô trên app) · 251 Lát 4a (dụng cụ ĐO 34) · 252 sửa văn bản ĐO 34 · 253 Lát 4b.)* *(**ĐO 34 chạy MỘT lần ngày 04/11/2026, BƯỚC 253: kết cục A** — "không phân biệt được lợi thế ≥ MDE₈₀ khỏi 0", KHÔNG phải "Dow không có lợi thế"; không ứng viên tầng 3; khoá `CHO_PHEP_DOC_KET_QUA_THAT` của `tools/do_dow_cau_truc.py` đã khoá lại (`False`).)* *(**Phần 2, hai chuỗi chỉ số, MỞ 23/11/2026 (BƯỚC 306):** người dùng *"làm phương án A"* (23/11), *"duyệt"* (25/11), *"Bắt đầu ngay (Recommended)"* (27/11), thay *"Hoãn tới sau v1.0"* (05/11). Ô trạng thái MÔ TẢ VN30–VNMidcap (đã xác nhận / không xác nhận / đang chờ), KHÔNG tín hiệu, KHÔNG bộ lọc, KHÔNG vào điểm hay lệnh; BƯỚC 306 ký **ĐO 39** (đo mô tả, không lợi nhuận) trước khi phần 1 đọc hai chuỗi ấy; Lát 1 dữ liệu và chế độ chỉ số · Lát 2 `dow_hai_chi_so.py` · Lát 3 dụng cụ và MỘT lượt chạy · Lát 4 ô trên app, mỗi lát một BƯỚC. **Không làm chậm mốc A/B/C.**)*
 
 **Ra khi:** 100% lệnh đóng có bài học trong vòng 1 phiên. *(Đo hằng ngày từ BƯỚC 169: `tools/chuong_bai_hoc.py`, workflow `chuong-bai-hoc.yml`, đỏ = email. Quần thể là lệnh tiến-về-trước đã đóng, mở từ `so_bai_hoc.NGAY_NHAT_KY_BAT_DAU`; lệnh mở trước nhật ký không tính và không điền bù — Q13 ở `docs/QUYET-DINH-CHO.md`, chờ người dùng. Hạn tính theo PHIÊN giao dịch. "Có bài học" của chuông hiện là nửa ĐÓNG của nhật ký + phân rã được, tức phần NHÃN; vế "bằng lời" mà T2 đòi cần B1 và chuông CHƯA đo.)* ⚠️ HẾT ĐÚNG 26/10/2026 (BƯỚC 229): B1 bật, chuông đo vế "có lời" cho lệnh đóng từ 2026-10-26 (`hau_kiem_loi.NGAY_HAU_KIEM_LOI_BAT_DAU`).
 
@@ -329,7 +341,11 @@ cho tới khi đã thành một đầu việc có mã ở trên.
   không nối nhiều lượt: `close` lệch ở 21,6% nến chung giữa hai lượt kéo), nên dữ liệu tự tích luỹ; chỉ cần chạy khi có
   người đọc kết quả. UV-001 đọc MỘT lần, ở `cham_bong.MOC_DOC` = 252 phiên có nhãn. *Tuỳ chọn, CHƯA dựng:* một chuông
   nhắc người dùng đúng mốc đọc ấy; (4) **Dow phần 2** (mức thị trường, nguyên lý hai chỉ số;
-  `docs/thiet-ke-dow-cau-truc.md` mục 10) — người dùng: *"Hoãn tới sau v1.0 (Recommended)"*; không làm trước v1.0.
+  `docs/thiet-ke-dow-cau-truc.md` mục 10) — ~~người dùng: *"Hoãn tới sau v1.0 (Recommended)"*; không làm trước v1.0~~
+  🔴 **HẾT ĐÚNG 23/11/2026 (BƯỚC 306):** người dùng *"làm phương án A"* (23/11), *"duyệt"* (25/11), *"Bắt đầu ngay
+  (Recommended)"* (27/11); xem mục *Quyết định … 23–27/11/2026* ở đầu tệp. Nay là hàng **B7** (VN30 + VNMidcap, ô MÔ TẢ,
+  không tín hiệu, không bộ lọc), BƯỚC 306 ký ĐO 39 ở `docs/TIEU-CHI-DOC-TRUOC.md`, năm lát (0–4) ở các BƯỚC riêng, và
+  **không làm chậm các mốc A/B/C**.
 - Rủi ro: phụ thuộc nguồn giá bên ngoài (`vnstock` bị cách ly trên PyPI 25–26/09 rồi hãng gỡ 10/11/2026; đường tạm là điểm cuối công khai không khoá, BƯỚC 267, không có điều khoản công bố); GitHub Actions
   trễ ở khung chuông (`CLAUDE.md`, mục *Quét tự động*); tín hiệu thưa (nhịp vào
   lệnh chưa ổn định); một người vận hành, quyết định đọng lại thì cả dự án đứng;

@@ -911,11 +911,12 @@ DO37 = CT.cat_muc_do(TIEU_CHI, 37)
 DO38 = CT.cat_muc_do(TIEU_CHI, 38)
 
 
-def test_ĐO_38_co_trong_tieu_chi_ngay_sau_ĐO_37_la_muc_cuoi_va_duy_nhat_va_ĐO_37_khong_bi_sua():
+def test_ĐO_38_co_trong_tieu_chi_ngay_sau_ĐO_37_va_duy_nhat_va_ĐO_37_khong_bi_sua():
     assert DO38 is not None and DO37 is not None
     assert len(re.findall(r"^##\s+ĐO\s+38\s*—", TIEU_CHI, re.M)) == 1
     so = [int(m.group(1)) for m in re.finditer(r"^##\s+ĐO\s+(\d+)[a-z]?\s*—", TIEU_CHI, re.M)]
-    assert so[-2:] == [37, 38] and so.count(37) == 1
+    # BƯỚC 306 ký ĐO 39 SAU ĐO 38 (append-only): ĐO 38 vẫn đứng NGAY SAU ĐO 37, nhưng không còn là mục cuối.
+    assert so[so.index(37): so.index(37) + 2] == [37, 38] and so.count(37) == 1 and so.count(38) == 1
     assert TIEU_CHI.index("## ĐO 37 —") < TIEU_CHI.index("## ĐO 38 —")
     assert "**Đã tra trùng:** BƯỚC" in DO38 and f"`{CT.TEN_DUNG_CU}`" in DO38
     # thân ĐO 37 không đổi một chữ so với lúc chạy (BƯỚC 296 ghi băm vào bản ghi thật)
