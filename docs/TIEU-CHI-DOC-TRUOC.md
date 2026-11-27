@@ -4175,6 +4175,7 @@ Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sh
 > - Người dùng duyệt nguyên văn: *"Duyệt cả bản nháp (Recommended)"* cho bản nháp leader 15/10/2026.
 > - Sổ tay hỏi thật ở BƯỚC 194.
 > - Thay ĐO 26 (kết cục K0, BƯỚC 193). Cũng như ĐO 26, đây là phép đo **kiểm một cái máy gắn nhãn**, không đo lợi thế: không tính vào K, không chạm điểm, ngưỡng mua hay đường lệnh.
+> - **SỬA 26/11/2026 (BƯỚC 303, người dùng ĐÃ DUYỆT 26/11/2026, không đổi tiêu chí):** đọc khối `### SỬA ĐO 27` ở CUỐI mục này TRƯỚC khi đọc mục *Dữ liệu* (câu *"Mỗi lượt đọc kéo mỗi nguồn MỘT lần"*) và mục *Nhịp đọc*; khối ấy (đã duyệt) THAY các câu nó nêu tên, chỉ cho lượt đọc mà băm sổ không đổi. Văn bản ký ở trên giữ nguyên.
 
 **Đã tra trùng:** BƯỚC 192 · BƯỚC 193 · BƯỚC 182 — ba mục đã tra, và hai điều phải khai:
 - BƯỚC 192–193 (ĐO 26): kết cục K0, vì giá trong sổ của lệnh mô phỏng là giá đã điều chỉnh tới NGÀY GHI SỔ, không phải giá khớp chưa điều chỉnh (lỗi 178). Lệnh tiến-về-trước thì ghi lúc khớp, nên tiền đề của nhãn đúng cho nhóm ấy.
@@ -4225,6 +4226,22 @@ Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0
 
 ### Điều ĐO này KHÔNG làm
 Không đổi ngưỡng, nhãn, tập loại, điều kiện dừng, sổ hay Sheets. Không dùng lịch sự kiện trong đường chạy thật (đó là mốc D1). Không đọc lại lệnh đóng trước ngày ký.
+
+### SỬA ĐO 27 — BƯỚC 303 (26/11/2026): LƯỢT ĐỌC KHI BĂM SỔ KHÔNG ĐỔI CHỈ GHI BĂM (NGƯỜI DÙNG ĐÃ DUYỆT 26/11/2026; KHÔNG ĐỔI TIÊU CHÍ)
+
+> **Văn bản ký 15/10/2026 ở trên GIỮ NGUYÊN từng chữ.** Khối này THAY một câu của mục *Dữ liệu* và một câu của mục *Nhịp đọc*, và CHỈ cho lượt đọc mà sổ không đổi; câu hỏi, quần thể, khoảng sự kiện, thống kê chính, ba đối chứng, kết cục và mọi ngưỡng KHÔNG đổi. Khuôn là khuôn của `### SỬA ĐO 34` (giữ bản ký, thêm khối có ngày, nói vì sao, nói rõ chưa đọc gì). **Trạng thái: NGƯỜI DÙNG ĐÃ DUYỆT, 26/11/2026.** Câu hỏi người dùng nhận, nguyên văn: *"ĐO 27 (đọc sổ lệnh thật mỗi tuần): sổ không có lệnh mới từ 12/11 nên ba lượt gần đây ra cùng kết quả CHƯA ĐỦ. Khi băm sổ không đổi, có cần chạy đủ lượt đọc (kéo Sheets, đọc lịch sự kiện) không?"* Trả lời, nguyên văn: *"Sổ không đổi thì chỉ ghi băm (Recommended)"*, với nội dung lựa chọn *"Lượt đọc chỉ ghi 'băm sổ không đổi → kết cục giữ nguyên'; chạy đủ khi sổ có lệnh mới đóng. Sửa luật ĐO 27 trong bước 303 (đằng nào cũng hỏi sổ tay)."*
+> - **Gốc.** Từ 12/11/2026 sổ không có lệnh mới đóng; ba lượt đọc liền (lượt 6, 7, 8) cùng băm sổ và cùng kết cục CHƯA ĐỦ, mỗi lượt vẫn kéo giá, đọc lịch sự kiện và chạy ba đối chứng trên cùng quần thể. Quần thể của ĐO 27 là lệnh tiến-về-trước ĐÓNG sau ngày ký: khi băm sổ không đổi thì quần thể không đổi.
+> - **Chưa đọc gì.** Kết cục CUỐI (A hoặc A′) chưa có: mọi lượt đã đọc đều CHƯA ĐỦ (lượt 8: quần thể 6 lệnh, 5 có lịch, 0 DƯƠNG THẬT; `docs/STATE.md` BƯỚC 302). Khối này không thêm một lần đọc nào và không đổi cách đếm.
+
+- Nhịp đọc, lượt đọc khi sổ không đổi: *"Mỗi lượt đọc ghi MỘT dòng vào `docs/STATE.md` gồm M0, ba đối chứng, các số đếm và kết cục của lượt."* → *"Mỗi lượt đọc kéo sổ MỘT lần chỉ-đọc từ Sheets và tính băm sổ. Nếu băm sổ BẰNG băm sổ của lượt đọc ĐẦY ĐỦ gần nhất thì ghi MỘT dòng `băm sổ không đổi → kết cục giữ nguyên` kèm băm và kết cục của lượt ấy; KHÔNG kéo giá, KHÔNG đọc lịch sự kiện, KHÔNG chạy ba đối chứng. Nếu băm khác (sổ có lệnh mới đóng, hay một lệnh đổi) thì chạy ĐỦ như bản ký: M0, ba đối chứng, các số đếm và kết cục."* — **Hướng:** trung tính
+- Dữ liệu, lượt đọc khi sổ không đổi: *"Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0)."* → *"Mỗi lượt đọc kéo SỔ MỘT lần (chỉ-đọc), ghi giờ kéo và băm sổ (M0). Chỉ khi băm sổ KHÁC băm của lượt đọc đầy đủ gần nhất thì kéo thêm giá và lịch VCI, mỗi nguồn MỘT lần, như bản ký."* — **Hướng:** trung tính (câu cũ nằm ở mục *Dữ liệu*, cùng một nhịp đọc; sổ tay thật của BƯỚC 303 không chỉ ra nó, phiên tự tìm ra khi kiểm câu âm)
+- Kết cục (xét ở từng lượt đọc): không đổi chữ nào; lượt `băm sổ không đổi` mang đúng kết cục của lượt đầy đủ gần nhất (từ nay tới khi có lệnh mới đóng: CHƯA ĐỦ), và KHÔNG được đếm thêm vào bất kỳ số đếm nào (không tăng quần thể, không thêm dương thật). — **Hướng:** trung tính
+
+**Người chốt:** người dùng, 26/11/2026, *"Sổ không đổi thì chỉ ghi băm (Recommended)"* (lời nguyên văn ở khối trên).
+**Đã thấy:** kết cục CHƯA ĐỦ của lượt 6, 7, 8 (cùng băm sổ, không lệnh mới từ 12/11/2026; `docs/STATE.md` BƯỚC 302). Chỉ có vậy: không số đối chứng nào quyết định chữ sửa.
+**Chưa đọc gì:** kết cục A · A′ · B · C (số chính) chưa có; khối này không đổi một ngưỡng nào.
+**Commit tới origin/main:** `19a7950` (BƯỚC 194, ký ĐO 27 ngày 15/10/2026).
+**Điều chưa kiểm (khai thẳng):** băm sổ bằng nhau KHÔNG bảo đảm giá và lịch sự kiện của quần thể bằng nhau: nguồn giá có thể hiệu chỉnh hồi tố hay lịch VCI có thể bổ sung một sự kiện cho lệnh đã đóng mà băm sổ không thấy. Trong các tuần sổ đứng yên, chữ sửa này chấp nhận không bắt được loại lệch ấy; nó bắt lại ở lượt đầy đủ kế (khi sổ có lệnh mới đóng) và không đổi kết cục CUỐI của ĐO 27 (đọc ở lượt đầy đủ).
 
 ## ĐO 28 — mô hình khớp ở phiên KỊCH TRẦN/SÀN MỘT GIÁ: lệnh mua không khớp ở phiên kịch trần, lệnh bán chờ qua phiên kịch sàn; đo lại dòng "BẬT · theo ngày" trên cache `acf6dca1…` (khai 20/10/2026)
 
@@ -4909,6 +4926,7 @@ Không sửa dòng sổ cũ (kể cả #122 và #128) hay Google Sheets; không 
 
 **Đã tra trùng:** BƯỚC 176 · BƯỚC 193 · BƯỚC 268 · BƯỚC 269 · BƯỚC 270 · BƯỚC 271 — và ĐO 35 (kết cục K0):
 - Chưa ai đo "đối chứng của phát lại trên khung hôm nay" vì chưa có phát lại nào: ĐO 27 gắn nhãn bằng GIÁ, không phát lại `evaluate_open` từng nến (BƯỚC 268); BƯỚC 269 phát lại MỘT nến của #128 bằng tay (`vibe_logs_269/tai_lap_128.py`).
+- ⚠️ **HẾT ĐÚNG 26/11/2026 (BƯỚC 303, soát định kỳ 19, Phát hiện 2; văn bản ký giữ nguyên):** câu *"Chưa ai đo đối chứng của phát lại … vì chưa có phát lại nào"* ở dòng trên không còn đúng: chính dòng ấy kể tiếp rằng BƯỚC 269 đã phát lại MỘT nến của #128 bằng tay, và BƯỚC 272 · 273 đã đo đối chứng (ĐO 35 kết cục K0; ĐO 36 kết cục A).
 - BƯỚC 270 mục E kiểm sự kiện quyền trong cửa sổ ĐO 27 và cửa sổ XỬ LÝ của từng lệnh, KHÔNG kiểm sự kiện rơi SAU lượt xử lý nhưng TRƯỚC hôm nay: đó là chỗ ĐO 35 trượt (nguyên nhân (a) dưới đây).
 
 ### Điều ĐO 35 đã làm trượt, và vì sao (đo ở BƯỚC 272, KHÔNG phải ước lượng)
@@ -5087,3 +5105,202 @@ Không chạy dòng 2 · 3 · 4 và không đọc kết cục; không đổi m�
 
 ### Lượt chạy (BƯỚC 296)
 MỘT lần cho mỗi dòng hạt, bằng ĐÚNG các lệnh ở trên, trên cây làm việc bằng `origin/main` sau khi PR của BƯỚC 295 đã merge. Kết cục ghi vào `docs/STATE.md` và `docs/LO-TRINH.md` (hàng C4 / T6: ĐÃ hay CHƯA chứng minh theo kết cục; mục 8 Lát 5 (c)), không viết lại tiêu chí.
+
+## ĐO 38 — T6 / C4, SỬA SAU ĐO 37 (TRƯỢT Ở A0 VÀ PT): KÝ BẢNG TIÊU CHÍ MỚI (A0 theo mức ngẫu nhiên đo ở dòng 1 · dải PT đo ở chính G′ ở Tầng 2 · NULL có nhớ M1 · độ chuẩn z′ M2) TRƯỚC KHI lượt chạy chính thức tồn tại; dòng hạt 6 · 7 · 8 · 9 chỉ mở qua `tools/chay_chinh_thuc_thi_truong_gia.py --do 38` (khai 26/11/2026)
+
+
+> **Khai 26/11/2026, TRƯỚC mọi lượt chạy của dòng hạt 6, 7, 8, 9, ở một commit RIÊNG (BƯỚC 303; lượt chạy chính thức là BƯỚC 304).** Không một thị trường nào của dòng 6 · 7 · 8 · 9 được sinh, chạy hay đọc ở BƯỚC 303: dụng cụ chạy chính thức chỉ mở chúng khi ĐO này đã có ở `origin/main` và nêu nguyên văn lệnh, dòng kế hoạch và MỘT câu số đã ký khớp bản ghi hiệu chuẩn (mục *Cửa*), và test của BƯỚC 303 (`tests/test_chay_chinh_thuc_do38.py`) bọc các hàm sinh của bộ sinh để NỔ nếu một test của file ấy chạm dòng 6…10, đồng thời quét AST mọi file nguồn và file test tìm lời gọi bộ sinh với dòng hạt viết trần 6…10. ĐO này giữ nguyên bảng ĐO 37 trừ hai hàng đổi (A0 · PT) và hai hàng thêm (M1 · M2). ĐO 37 KHÔNG bị sửa một chữ (nó đã chạy: TRƯỢT ở A0 và PT, `docs/STATE.md` BƯỚC 296).
+
+
+**Đã tra trùng:** BƯỚC 295 · BƯỚC 296 · BƯỚC 299 · BƯỚC 300 — bảng mục 6 do ĐO 37 ký (BƯỚC 295) và chạy một lần (BƯỚC 296: TRƯỢT ở A0 = 421/1.000 và PT = 41/100); BƯỚC 299 đặt ba nhãn cho con số một ĐO (áp từ ĐO này); BƯỚC 300 viết bộ đề xuất chuẩn hoá (L1) và khai trước đặc tả mục 21. Kiểm bằng lệnh (26/11/2026): `git log --oneline -S"## ĐO 38" -- docs/TIEU-CHI-DOC-TRUOC.md` rỗng (chưa từng có ĐO 38 ở lượt nào); `kiem_luong` của sáu dụng cụ khác chặn dòng 6 · 7 · 8 · 9 · 10 (có test ở `tests/test_chay_chinh_thuc_do38.py`), nên chưa lượt chạy nào sinh được dòng 6…10.
+
+
+**Dụng cụ:** `tools/chay_chinh_thuc_thi_truong_gia.py` (nay phục vụ hai ĐO: `DO_37` mặc định và `DO_38`; chạy dòng hạt 6 · 7 · 8 · 9 và đọc kết cục), test `tests/test_chay_chinh_thuc_thi_truong_gia.py` (ĐO 37, chạy không đổi) và `tests/test_chay_chinh_thuc_do38.py` (ĐO 38); bản ghi hiệu chuẩn mà nó ĐỌC (không gõ số nào): `docs/thi-truong-gia-hieu-chuan-do38.json` (BƯỚC 301; bốn lượt `kd` · `a0` · `t1` · `pt` chạy ở git `b9779b55f0`) và `docs/thi-truong-gia-hieu-chuan.json` (dòng 1, κ và MDE₈₀ của Lát 2). `docs/thi-truong-gia-g-phay.json` KHÔNG còn được đọc: dải PT của ĐO 38 là bản ghi `pt` của BƯỚC 301.
+
+
+### Câu hỏi
+Tiêu chí v1.0 T6 (`docs/LO-TRINH.md`): *"Vòng học đã chứng minh trên thị trường giả có lợi thế cài sẵn: nó tìm ra, xác nhận và nâng cấp đúng."* ĐO 37 trượt ở hai tiêu chí; ĐO 38 KÝ, trước khi chạy, bảng đã sửa (đổi đúng bộ phận sai, thêm phép đo mà ĐO 37 chưa có) để một lượt chạy duy nhất (BƯỚC 304) được đọc bằng đúng bảng ấy, không bằng bảng viết sau khi thấy số (bất biến 7). ĐO này KHÔNG chạy gì.
+
+
+### Gốc và quyết định
+- **Người dùng, 07/11/2026 (Q6):** *"Như bản nháp (Recommended)"* — các ngưỡng và số thị trường R của mục 6 đúng như bản nháp (nay áp cho các hàng giữ nguyên).
+- **Người dùng, 23/11/2026 (quyết định (a) của ĐO 37) — máy đo ở NULL đọc theo tỷ lệ:** câu hỏi *"BƯỚC 295: đồng ý đọc gộp phép kiểm máy đo ở thị trường NULL không? Ngưỡng: ít nhất 85% số ô trong 2 lần sai số, độ lệch chuẩn z trong 0,7–1,5, trị tuyệt đối trung bình z dưới 0,5."*; trả lời *"đồng ý"*. Giữ nguyên ở khoản 1 của Đ9.
+- **Người dùng, 25/11/2026 — hướng sửa và bốn câu của đặc tả:** *"ok tiếp tục làm theo đề xuất của bạn"* (bộ đề xuất chuẩn hoá · dải PT đo ở chính G′ · ký tiêu chí mới chạy lại cả bảng trên dòng hạt mới, gộp NULL có nhớ) và *"duyệt cả 4"* (A0 theo phương án (B): mức ngẫu nhiên đo ở dòng hiệu chuẩn · PT vẫn PHÁN, sd z NULL Tầng 2 chỉ Báo kèm · M1 PHÁN ở ≤ 50/1.000 · P2 chạy trên cả 200 thị trường của dòng 8). Đặc tả: `docs/thiet-ke-c4-thi-truong-gia.md` mục 21 (khai trước ở BƯỚC 300, 301).
+- **Người dùng, 26/11/2026 — M2:** câu hỏi *"ĐO 38 (chạy lại C4): tiêu chí M1 bạn duyệt hôm qua là 'thị trường nhiễu có nhớ: ≤ 50/1.000 thị trường xác nhận nhầm'. Chạy thử 200 thị trường cho thấy nó đậu quá dễ (1/200), vì các ứng viên nằm xa ranh giới nên phép thử gần như không kiểm gì. Thêm phép đo độ chuẩn của bước xác nhận ngay tại ranh giới (độ lệch chuẩn của z′; chạy thử 1,08–1,17, lý tưởng là 1) thì sao?"*; trả lời *"Giữ M1 + phán thêm z′ (Recommended)"*, với nội dung lựa chọn *"Giữ M1 như đã duyệt; thêm M2 PHÁN: độ lệch chuẩn z′ gộp nằm trong [0,8 ; 1,25] (khoảng có sẵn trong đặc tả, không chọn theo số chạy thử); tỷ lệ đuôi z′ chỉ Báo kèm."* Mục 21.7 của đặc tả.
+- **Người dùng, 21/11/2026 (hàng PT, vế G, ở ĐO 37):** *"làm theo đề xuất của bạn đi, phương án nào tốt nhất thì làm"* chọn G′ = `bo_momentum_score` ở Tầng 2. Chọn G′ GIỮ NGUYÊN; chỉ cách đặt dải thay (hàng PT dưới đây).
+- **Quyết định của leader, KHÔNG phải của người dùng (22–23/11/2026, ĐO 37), sáu điều (b)–(g), GIỮ NGUYÊN:** (b) P2 của Tầng 2 chạy trên CẢ 200 thị trường, đúng chữ của tiêu chí (*Đ5*); (c) bắt G ở 1× ngoài [299 ; 340]/400 là KHÔNG ĐỌC ĐƯỢC (*Đ9 khoản 5*); (d) "ΔIC_true(G) ±10%" đọc GỘP theo mức (*Đ9 khoản 2*); (e) bộ ba Tầng 2 G′ · Z · H, Z và H chỉ báo cáo, PT đếm báo động của BẤT KỲ ứng viên nào trong ba (*Đ6*, *Đ7*); (f) định nghĩa của A · A0 · C2 · C3 · P4 (*Đ2*, *Đ4*, *Đ5*); (g) ba hàng Máy local · Streamlit Cloud · GitHub Actions của `CLAUDE.md`.
+- **Quyết định của leader, KHÔNG phải của người dùng (26/11/2026), chi tiết thi hành mà ĐO này viết ra:** (h) số của ĐO = 38 cho bản sửa C4 (ý 3A mang ba nhãn ở BƯỚC 299 không mang số ĐO; ĐO 39 dành cho Dow phần 2); (i) **định nghĩa của z′ và cách gộp của M2** (*Đ10*): σ_hoán-vị là độ lệch chuẩn của chính 2.000 giá trị hoán vị mã mà phép so cặp dùng để tính z; gộp bằng `ddof=1`; cặp σ = 0 hay chưa phán bị loại và đếm (quá 1% của 3.000 cặp thì M2 KHÔNG ĐỌC ĐƯỢC); (j) tái lập hạt bằng bit áp cả cho ô NULL-M của dòng 9; (k) lệnh của ĐO 38 mang `--do 38` (xem *Lệnh chạy*) để lệnh `--luong 6` của ĐO 37 vẫn là lỗi đối số.
+
+
+### Bảng đã ký (bảng mục 6 của ĐO 37, giữ nguyên chữ và số trừ A0 và PT; thêm M1 và M2)
+
+**Định nghĩa.** *Báo động* = một ứng viên có `p < 0,05 / K` (QUA hoặc THUA). *Tìm ra* = spec đứng đầu họ F theo oracle nằm trong 3 spec bộ đề xuất đã khai. Mỗi thị trường chạy HAI thủ tục trên CÙNG dữ liệu: (i) **bộ ba** G · Z · H khai tay ở ba tháng liên tiếp, K = 3 (đo nhóm B); (ii) **chuỗi** bộ đề xuất → xác nhận → nâng cấp (đo nhóm A, C).
+
+
+| # | Tiêu chí | Thị trường | R | Ngưỡng ĐẠT | Vì sao ngưỡng ấy (nhị thức) |
+|---|---|---|---|---|---|
+
+| **A** | **Tìm ra** — spec tốt nhất theo oracle nằm trong ba spec được khai | 2× | 400 | ≥ 320 (80%) | nếu tỷ lệ thật 85% → qua 99,7%; nếu 75% → qua 1,1% |
+| **A0** | đối chứng *chance*: spec G được bộ đề xuất khai ở NULL không quá mức ngẫu nhiên | NULL | 1.000 | ≤ 307 (30,7%) | mức ngẫu nhiên là p̂ = 5.263/20.000 = 0,2631 (SE 0,0031) của bộ đề xuất CHUẨN HOÁ ở thị trường NULL của dòng 1 (không còn là 3/11); 307 là phân vị 99,9% của nhị thức(1.000 ; p̂); quá ngưỡng → lỗi bộ sinh hoặc bộ đề xuất rò, không phải "tìm ra" |
+| **B1** | **Im khi không có gì** — thị trường có ≥ 1 báo động ở bộ ba | NULL | 1.000 | ≤ 75 (7,5%) | danh nghĩa 5%: nếu đúng 5% → sai-trượt 0,03%; nếu thật 10% → qua 0,4% |
+| **B2** | **Bắt cái có** — ứng viên G của bộ ba bị `QUA` | 2× | 400 | ≥ 360 (90%) | nếu thật 95% → qua ≈ 100%; 90% → 54%; 85% → 0,2% |
+| **B3** | **Chọn lọc** — ứng viên Z (ΔIC_true = 0) bị báo động | 2× | 400 | ≤ 20 (5%) | mức danh nghĩa mỗi ứng viên 1,67%; 20/400 là 3 lần mức ấy |
+| **B4** | **Không khen cái hại** — ứng viên H của bộ ba bị `QUA` | 0,5× · 1× · 2× | tất cả | **0** | bất biến, không phải tỷ lệ: H có ΔIC_true < 0 nên `QUA` (Δ > 0) chỉ xảy ra nếu dấu bị đảo hoặc nhãn rò; ở NULL một `QUA` của H là báo động giả, đã tính ở B1 |
+| **C1** | **Nâng cấp đúng luật** — mọi bất biến 5.4 khoản 1–4 | mọi thị trường, cả hai tầng | tất cả | **0 vi phạm** | tất định; một vi phạm là lỗi mã |
+| **C2** | **Nâng cấp có ích** — ΔIC thực hiện của phiên bản mới so với bản cũ trên `F` = 126 phiên tiến-về-trước, trung bình qua các thị trường có nâng cấp | 2× | mọi thị trường có nâng cấp | cận dưới KTC 95% (bootstrap qua thị trường, 5000 lần, hạt 0) > 0 | lợi thế thật dương → phải thấy dương |
+| **C3** | **Không nâng cấp ma** — thị trường có ≥ 1 `QUA` | NULL | 1.000 | ≤ 50 (5%) | danh nghĩa một phía ≈ 2,5%; nếu đúng → sai-trượt ≈ 0; nếu thật 5% → qua 54% |
+| **P** | **Tầng 2: ống dẫn** — (P1) dòng quyết định do `_analyze` thật sinh đúng khuôn và `data_quality` = OK; (P2) phép thử tương đương của 4.9 bằng nhau từng cột; (P3) IC của thành phần mang với nhãn > 0 (lợi thế *đã đi qua* agent thật); (P4) gác G1–G5 xanh | NULL và 2× | 100 mỗi loại | P1, P2, P4: 0 vi phạm. P3: thấy ở ≥ 90/100 thị trường 2× | P1, P2, P4 tất định; P3 là tỷ lệ, 90% chọn thấp hơn B2 vì chuỗi qua agent thật nhiễu hơn (ước lượng, chưa đo) |
+| **PT** | **Tầng 2: nhất quán tỷ lệ** — báo động ở NULL ≤ 12/100; G′ = `bo_momentum_score` `QUA` ở 2× nằm trong dải 99% [31 ; 62]/100 (đo ở CHÍNH G′, CHÍNH Tầng 2, dòng 1: k = 92/200, Beta-nhị thức) | NULL, 2× | 100 | như vế trái | phép kiểm LẶP LẠI và hiệu chuẩn p-value của bước xác nhận ở Tầng 2; KHÔNG còn là phép "Tầng 1 dự đoán đúng Tầng 2" của ĐO 37 (phần ấy chuyển sang bảng 2×2 báo kèm); lực yếu, khai thẳng (mục 21.3 của đặc tả) |
+| **M1** | **NULL có nhớ — không xác nhận nhầm:** thị trường NULL-M (nhân tố ngành bền) có ≥ 1 ứng viên của bộ ba G · Z · H bị `QUA` mà ΔIC_true ≤ 0 (ΔIC_true là của oracle `tinh_su_that_m` của CHÍNH thị trường ấy) | NULL-M | 1.000 | ≤ 50 (5%) | danh nghĩa một phía ≈ 2,5%: nếu đúng → sai-trượt 2,4e-06; nếu thật 5% → qua 54% (lệnh ở mục *Cách đọc*, Đ10) |
+| **M2** | **NULL có nhớ — bước xác nhận đúng độ chuẩn:** độ lệch chuẩn GỘP của z′ = (Δ − ΔIC_true) / σ_hoán-vị trên mọi cặp (thị trường × ứng viên G · Z · H) | NULL-M | 1.000 (3.000 cặp) | trong [0,8 ; 1,25] | khoảng KHAI sẵn ở mục 3 và 8 của đặc tả nháp, KHÔNG chọn theo số của lượt thử; lý tưởng là 1 |
+
+
+> **Hàng A0 và hàng PT đổi (Đã khai, người dùng 25/11/2026: *"ok tiếp tục làm theo đề xuất của bạn"* và *"duyệt cả 4"*):** ngưỡng của A0 vẫn là phân vị 99,9% của nhị thức(1.000 ; mức ngẫu nhiên); chỉ MỨC NGẪU NHIÊN đổi, từ 3/11 (giả định sai của ĐO 37) sang p̂ đo ở thị trường NULL của dòng 1 (phương án (B)). Vế G′ của PT: dải 99% đo ở chính G′ · Tầng 2 · mức 2× · dòng 1 (k = số thị trường `QUA` theo đúng luật `trang_thai`, p ~ Beta(k + ½ ; n_cal − k + ½), số `QUA` của R = 100 ~ Beta-nhị thức). Vế NULL "≤ 12/100", R = 100 và mọi hàng khác KHÔNG đổi. Hai số ấy được ĐỌC từ bản ghi hiệu chuẩn, không gõ ở dụng cụ (mục *Số tham chiếu* và *Cửa*).
+
+**Báo cáo, không phán:** đường cong 0,5× · 1× (tỷ lệ bắt G, tìm ra, nâng cấp); với 1×, tỷ lệ bắt G phải nằm trong dải 99% quanh 80% = [299 ; 340]/400 (khớp hiệu chuẩn; ra ngoài thì máy đo hiệu chuẩn có vấn đề → kết cục "không đọc được"); mức độ bảo thủ của B1 (nếu < 2,5% thì nói vòng thiếu nhạy); ΔIC thực hiện sau nâng cấp ở NULL.
+
+
+**Kết cục (khai trước, cùng kiểu các ĐO khác):**
+- **ĐẠT** — mọi tiêu chí trên đạt (A · A0 · B1–B4 · C1–C3 · P1–P4 · PT · M1 · M2). T6 được ghi *ĐÃ chứng minh*, kèm giới hạn mục 11.
+- **TRƯỢT ở tiêu chí X** — vòng có lỗi hoặc thiếu lực ở đúng bộ phận X (A: bộ đề xuất; B: xác nhận; C: nâng cấp; P: ống dẫn; M: bước xác nhận khi nhiễu có nhớ). Ghi nguyên văn. **KHÔNG hạ ngưỡng, KHÔNG đổi bộ sinh cho đẹp; sửa bộ phận sai rồi chạy lại trên dòng hạt MỚI (bất biến 7)** — lần này cũng vậy: nếu ĐO 38 trượt, bản sửa kế tiếp ký ở một ĐO mới trên dòng hạt chưa từng dùng.
+- **KHÔNG ĐỌC ĐƯỢC** — máy đo hỏng (Đ9 và Đ10). Sửa máy, chạy lại cả bảng.
+
+
+Số thị trường (R) và dòng hạt được CỐ ĐỊNH ở đây vì lý do kép: đủ để tách nhị thức nêu trên, và chạy được. R KHÔNG được tăng sau khi nhìn kết quả "trượt sát ngưỡng" (đó là cách chọn cực đại, bất biến 7). Mỗi phép đọc (p̂ · k · kết cục dòng 6–9) là MỘT LẦN: không đọc lại để chọn.
+
+
+### Dòng hạt và chỉ số (mục 21.5 của đặc tả; đặc tả nháp mục 5)
+
+| `luong` | Việc | Số thị trường (R) |
+|---|---|---|
+| 1 | hiệu chuẩn (chỉ dụng cụ hiệu chuẩn của BƯỚC 301; chỉ số ≥ 1.100.001: `kd` 1.400.001–1.409.100 · `a0` 1.100.001–1.120.000 · `pt` 1.200.001–1.200.200 · `t1` 1.300.001–1.301.000) — XONG, không chạy lại | theo bản ghi |
+| 6 | lượt chính, có lợi thế (0,5× · 1× · 2×), Tầng 1 | 400 mỗi mức |
+| 7 | lượt chính, NULL, Tầng 1 | 1.000 |
+| 8 | Tầng 2 (NULL và 2×), P2 trên cả 200 thị trường | 100 mỗi loại |
+| 9 | NULL CÓ NHỚ (NULL-M), Tầng 1: M1 và M2 | 1.000 |
+| 10 | chẩn đoán SAU khi đã nhìn kết quả: **chặn vĩnh viễn** như dòng 5 | — |
+| 9001 | dòng thử của dụng cụ và test (không bao giờ ra file chính thức) | nhỏ |
+
+Dòng 1 dùng cho hiệu chuẩn; dòng 2 · 3 · 4 là dòng của ĐO 37 và 5 là chẩn đoán của nó: KHÔNG dòng nào trong số ấy được dùng ở ĐO 38. Dòng 5 và 10 không bao giờ mở ở dụng cụ chạy chính thức; dòng 1 và 5 và 10 bị chặn ở dụng cụ ấy kể cả khi có giấy phép của dòng khác.
+
+
+### Cách đọc từng tiêu chí (khai trước; chép từ ĐO 37, đổi dòng 2 · 3 · 4 thành 6 · 7 · 8 và nguồn của A0 · dải PT; thêm Đ10)
+Hai thủ tục trên CÙNG dữ liệu của mỗi thị trường (mục 6, *Định nghĩa*): (i) **bộ ba** G · Z · H = `mono_volume_score` · `doi_cho_trend_sr` · `bo_volume_score` khai ở ba tháng liên tiếp của `thi_truong_gia.dong_thoi_gian`, K = 3, qua `cham_xac_nhan.cham` (hạt hoán vị là mặc định thật `cham_xac_nhan.HAT_RNG`, 2.000 hoán vị) — đúng sổ ứng viên của `hieu_chuan_thi_truong_gia.so_ung_vien_bo_ba`; (ii) **chuỗi** `vong_hoc_gia.chay_vong` (bộ đề xuất cơ sở — từ ĐO 38 là bộ CHUẨN HOÁ xếp theo z = (Δ − μ)/σ (mục 21.1 của đặc tả, BƯỚC 300), ĐO 37 xếp ΔIC thô — → khai mỗi tháng một → xác nhận → nâng cấp một đời → kiểm tiến-về-trước). Oracle (`thi_truong_gia.tinh_su_that`) chỉ đọc SAU khi cả hai đã xong (gác G4). Mọi số đếm dưới đây là *số thị trường*, tính trong dụng cụ bằng `tong_hop`, đọc từ `docs/thi-truong-gia-ket-qua-do38.json`. **Định nghĩa của A · A0 · C2 · C3 · P4 dưới đây là quyết định (f) của leader (23/11/2026), giữ nguyên**: cách đọc chữ của mục 6 thành phép đếm cụ thể, không đổi ngưỡng.
+- **Đ1 — báo động.** Ứng viên có `p` < ngưỡng `cham_xac_nhan.cham` trả về (= 0,05/K, K = 3), trạng thái `QUA` hay `THUA` (mục 6, *Định nghĩa*).
+- **Đ2 — A (tìm ra, 2×, R = 400, ≥ 320).** Số thị trường mà spec có ΔIC_true lớn nhất trong 11 spec của họ F theo oracle của chính thị trường ấy (hoà thì theo thứ tự tên) nằm trong các spec chuỗi ĐÃ KHAI. **A0 (NULL, R = 1.000, ≤ 307):** số thị trường mà `mono_volume_score` nằm trong các spec chuỗi đã khai.
+- **Đ3 — B1 (NULL, ≤ 75):** số thị trường mà bộ ba có ≥ 1 báo động (G, Z hoặc H). **B2 (2×, ≥ 360):** G `QUA`. **B3 (2×, ≤ 20):** Z báo động. **B4 (0,5× · 1× · 2×, tất cả 1.200 thị trường, = 0):** H `QUA`.
+- **Đ4 — C1 (0 vi phạm; MỌI thị trường của cả bốn ô Tầng 1 và hai ô Tầng 2).** Hàm `kiem_c1` kiểm bất biến 5.4 khoản 1–4 trên chuỗi: (1) mọi nâng cấp ứng với một lần đọc `QUA`, và `QUA` thì có phiên bản mới; (2) spec của phiên bản mới BẰNG spec đã khai; (3) hiệu lực từ phiên SAU phiên đọc và phiên đọc khớp lần đọc; (4) từ phiên hiệu lực `score` = `int` của tổ hợp tuyến tính thành phần (cộng bằng `math.fsum`; một ô nằm đúng trên biên nguyên được lệch 1 đơn vị, mục 15 khoản 9), trước đó giữ nguyên. **C2:** các thị trường 2× (dòng 6) có nâng cấp và cửa sổ tiến-về-trước đủ (`du_cua_so`); ΔIC thực hiện = `tien_ve_truoc.delta_ic`; KTC bootstrap qua thị trường, 5000 lần, hạt 0, `numpy.random.default_rng(0)`, cận dưới = phân vị 2,5% của trung bình; đạt khi cận dưới > 0 (không đủ 2 thị trường thì TRƯỢT). **C3 (NULL, ≤ 50):** số thị trường mà chuỗi nâng cấp (chuỗi dừng sau lần nâng đầu nên ≥ 1 `QUA` ⇔ có nâng cấp).
+- **Đ5 — Tầng 2, ống dẫn.** **P1:** `thi_truong_gia_tang2.kiem_p1` trên dòng của từng thị trường: 0 vi phạm (riêng dòng `data_quality` ≠ OK là điều kiện KHÔNG ĐỌC ĐƯỢC, *Đ9*). **P2:** `chay_that_va_phat_lai` trên CẢ 60 mã × 605 phiên của MỖI thị trường (đường thật `run_session` chấm lại bằng `_analyze`, so từng ô `san_dau.COT_TUONG_DUONG`, và điểm đã ghi): 0 ô khác và 0 điểm lệch trên 200 thị trường (**quyết định (b) của leader, 23/11/2026**: P2 chạy trên cả 200 thị trường, đúng chữ của tiêu chí; người dùng 25/11/2026 *"duyệt cả 4"* giữ nguyên). **P3 (2×, R = 100, ≥ 90):** IC (tương quan hạng gộp) của `volume_score` với nhãn > 0. **P4:** các test `test_G1_` … `test_G5_` (`pytest -k`, danh sách file ở `chay_p4`) xanh, chạy MỘT lần ngay trước dòng hạt 8, mã thoát 0.
+- **Đ6 — PT (quyết định (e) của leader).** (a) Số thị trường NULL (dòng 8) mà bộ ba Tầng 2 có ≥ 1 báo động ≤ 12/100 (cả ba ứng viên G′ · Z · H đều có ΔIC_true = 0 ở NULL, mục 19.4 điều 1, nên báo động của bất kỳ ứng viên nào ở NULL là báo động giả). (b) Số thị trường 2× mà G′ `QUA` nằm trong [31 ; 62]/100 (đọc từ bản ghi `pt` của `docs/thi-truong-gia-hieu-chuan-do38.json`: `dai_99`).
+
+**Đ7 — Bộ ba của Tầng 2 (K = 3): quyết định (e) của leader, 22–23/11/2026, KHÔNG phải quyết định của người dùng.** G′ = `bo_momentum_score` (đã chốt, mục 19.8 khoản 1); Z = `doi_cho_trend_sr` và H = `bo_volume_score` — đúng tên trong mã (`thi_truong_gia.spec_z`, `ho_spec_f`), khai ở ba tháng liên tiếp của `thi_truong_gia_tang2.dong_thoi_gian_2` (ngày 2101-07-01 · 2101-08-01 · 2101-09-01 ở BƯỚC 293). PT phán CHỈ G′ ở 2× (hàng PT, vế G) và báo động ở NULL (*Đ6*). Z và H ở Tầng 2 ở 2× **chỉ BÁO CÁO, KHÔNG PHÁN**: mục 19.4 điều 4–5 đo rằng ý nghĩa Tầng 1 của chúng không còn ở Tầng 2 (Z = −0,0635 · H = −0,0215 ở 2×), nên không ngưỡng nào của Tầng 1 (B3 · B4) được đặt lên chúng.
+
+- **Đ8 — báo cáo, không phán (mục 6).** Đường cong 0,5× · 1× · 2× (G `QUA`, tìm ra, nâng cấp); tỷ lệ báo động B1 (dưới 2,5% thì nói vòng thiếu nhạy); ΔIC thực hiện sau nâng cấp ở NULL; Z · H ở 2× Tầng 2; cả mọi dòng dữ liệu thô.
+
+- **Đ9 — KHÔNG ĐỌC ĐƯỢC (máy đo hỏng).** Kết cục thắng TRƯỢT khi bất kỳ điều nào dưới đây xảy ra (các số lấy từ bản ghi dòng 1 và dụng cụ, không gõ tay):
+  1. **Oracle ở NULL ngoài tiêu chí tỷ lệ — NGƯỜI DÙNG ĐÃ DUYỆT 23/11/2026, nguyên văn *"đồng ý"*** (quyết định (a); câu hỏi nguyên văn ở mục *Gốc và quyết định*). Gốc: mục 15 khoản 8 của `docs/thiet-ke-c4-thi-truong-gia.md`: tiêu chí *"mọi |ΔIC_true| < 2 sai số Monte Carlo ở NULL"* đọc theo từng thị trường báo nhầm cỡ 43%, và Lát 5 phải khai lại nó thành tỷ lệ TRƯỚC khi chạy. Phạm vi: MỌI ô (thị trường NULL của dòng 7 × 12 spec), z = ΔIC_true / sai số MC; ba ngưỡng là đúng ba ngưỡng đã khoá ở `tests/test_thi_truong_gia.py::test_oracle_NULL_sai_so_MC_duoc_hieu_chuan` (viết ở BƯỚC 261, trước mọi lượt chạy): **tỷ lệ ô có |z| < 2 ≥ 0,85**, **0,7 < sd(z) < 1,5**, **|trung bình z| < 0,5** (hằng số `MAY_DO_NULL` của dụng cụ). Hai chỗ dụng cụ lệch nhỏ so với test, nêu thẳng: sd(z) tính theo mẫu (`ddof=1`; test dùng `ddof=0`, hệ số √(n/(n−1)) = 1,00004 ở n = 12.000 ô) và hai biên 0,7 · 1,5 đọc là đóng (test: mở); chỉ đổi phán quyết nếu sd rơi sát biên tới cỡ 5 chữ số.
+  2. **ΔIC_true của G ngoài ±10% mục tiêu** (mục 6, *KHÔNG ĐỌC ĐƯỢC*): **quyết định (d) của leader, 23/11/2026** — đọc GỘP: trung bình của ΔIC_true(G) trên 400 thị trường của một mức, so với `muc_tieu_delta_ic` của file hiệu chuẩn; ngoài khi |trung bình − mục tiêu| / mục tiêu > 10% (`DUNG_SAI_MUC`): 0,5× 0.0378 · 1× 0.0756 · 2× 0.1513 (một oracle một thị trường có sai số cỡ 14%, nên một thị trường không tự nó nói gì). Ở NULL: |trung bình| < 2 sai số chuẩn của trung bình trên các thị trường của dòng 7.
+  3. **Tái lập hạt không bằng bit:** sau khi chạy xong mỗi ô, dụng cụ sinh LẠI thị trường đầu tiên của ô và so băm SHA-256 (Tầng 1: dòng quyết định VÀ ma trận giá, vì `κ` chỉ đổi giá; Tầng 2: khung OHLCV) với băm đã ghi lúc chạy; lệch ở một ô là KHÔNG ĐỌC ĐƯỢC.
+  4. **Bộ sinh Tầng 2 không qua `validate_ohlcv` mức OK:** bất kỳ dòng `data_quality` ≠ OK ở 200 thị trường Tầng 2. (Tầng 1 không có khung OHLC, mục 15 khoản 10.)
+  5. **Bắt G ở 1× ngoài dải 99% quanh 80%: [299 ; 340]/400 (quyết định (c) của leader, 23/11/2026)** (`kiem_1x_trong_dai_99` của bản ghi hiệu chuẩn). Mục 6 xếp câu này ở *Báo cáo, không phán* nhưng nối nó với *"máy đo hiệu chuẩn có vấn đề → kết cục không đọc được"*; ĐO này đọc vế sau (số 1× là kiểm máy, không phải tiêu chí).
+  6. **Tái lập hạt không bằng bit ở ô NULL-M của dòng 9 (quyết định (j) của leader, 26/11/2026):** dụng cụ sinh LẠI thị trường đầu tiên của ô NULL-M (chỉ số 1, κ_d đọc từ bản ghi hiệu chuẩn) và so băm SHA-256 (dòng quyết định VÀ ma trận giá) với băm đã ghi lúc chạy; lệch là KHÔNG ĐỌC ĐƯỢC. Cùng khoản 3, thêm một ô.
+
+
+**Đ10 — M1 và M2 (NULL có nhớ, dòng 9; quyết định của người dùng 25/11 và 26/11/2026; chi tiết thi hành là quyết định (i) của leader).** Mỗi thị trường của dòng 9 (Tầng 1, bộ sinh `thi_truong_gia.sinh_thi_truong_m` với κ_d của bản ghi hiệu chuẩn) chạy bộ ba G · Z · H (K = 3, hạt hoán vị mặc định thật, 2.000 hoán vị) VÀ chuỗi (như thị trường của dòng 7), RỒI oracle `tinh_su_that_m` của CHÍNH thị trường ấy (gác G4: oracle sau cả hai thủ tục).
+- **M1 (≤ 50/1.000).** *Xác nhận nhầm* = ứng viên G, Z hoặc H có trạng thái `QUA` mà ΔIC_true (oracle của chính thị trường) ≤ 0 (một phía, vì `QUA` đòi Δ > 0); M1 là số thị trường có ≥ 1 xác nhận nhầm. `THUA` và `DANG CHAM` không phải xác nhận. Lệnh tái lập mức ngưỡng: `./.venv/Scripts/python.exe -X utf8 -c "from scipy.stats import binom; print(1-binom.cdf(50,1000,.025), binom.cdf(50,1000,.05))"` → `2.3677918433717693e-06 0.5375290408014273`.
+- **z′ và M2 ([0,8 ; 1,25]).** z′ = (Δ − ΔIC_true) / σ_hoán-vị, với Δ = IC(C) − IC(B) của `cham_bong.so_cap` trên 252 phiên có nhãn, ΔIC_true là của oracle `tinh_su_that_m` của chính thị trường, và σ_hoán-vị là độ lệch chuẩn (`numpy.std`, `ddof=0`) của 2.000 giá trị hoán vị mã mà `so_cap` trả — đúng σ mà z chia cho (z = (Δ − μ) / σ_hoán-vị). M2 = độ lệch chuẩn (`ddof=1`) của z′ GỘP trên 3 × 1.000 = 3.000 cặp (thị trường × ứng viên); ĐẠT khi nằm trong [0,8 ; 1,25] (hai đầu đóng). Cặp có σ_hoán-vị = 0 hay chưa phán (không có Δ) bị LOẠI khỏi phép gộp và đếm; số cặp loại quá 1% của 3.000 thì M2 là KHÔNG ĐỌC ĐƯỢC (không phán).
+- **Báo kèm của M (không phán):** tỷ lệ đuôi P(z′ > z_c) với z_c = Φ⁻¹(1 − 0,05/(2·3)) (= 2,3940: `./.venv/Scripts/python.exe -X utf8 -c "from statistics import NormalDist; print(NormalDist().inv_cdf(1-0.05/6))"` → `2.3939797998185104`; dụng cụ tự tính bằng `phi_nghich`); và ba khối về M1: (a) tỷ lệ thị trường có ≥ 1 báo động hai phía ở bộ ba (so B1 ≤ 75), (b) độ lệch chuẩn và trung bình của z, (c) tỷ lệ thị trường có chuỗi nâng cấp (so C3 ≤ 50).
+
+
+### Số tham chiếu (đọc từ bản ghi, không gõ tay)
+- **Dòng 1, Lát 2 — `docs/thi-truong-gia-hieu-chuan.json`, commit `939a6a114225cab8d50f9ad4e2575af11de4571b` (BƯỚC 289):** MDE₈₀ ΔIC_true = 0.0756; κ và mục tiêu ΔIC_true(G) của từng mức, GIỮ NGUYÊN so với ĐO 37: 0.5× κ = 0.009599 (mục tiêu 0.0378) · 1× κ = 0.019816 (0.0756) · 2× κ = 0.044587 (0.1513); 1×: bắt G 316/400 ở dòng 1, dải 99% quanh 80% là [299 ; 340].
+- **Dòng 1, BƯỚC 301 — `docs/thi-truong-gia-hieu-chuan-do38.json` (bốn lượt `kd` · `a0` · `t1` · `pt` ở git `b9779b55f0`; mỗi lượt MỘT lần, không lặp để chọn):** κ_d = 0,018 (lưới cố định 0,012…0,028; IC(điểm đã ghi) trung bình 0,0960 ở κ_d = 0,018; khối kiểm 100 mẫu 0,0965 trong [0,090 ; 0,110]); A0: p̂ = 5.263/20.000 = 0,2631 (SE 0,0031), ngưỡng = `binom.ppf(0,999; 1000; p̂)` = **307** (`./.venv/Scripts/python.exe -X utf8 -c "from scipy.stats import binom; print(binom.ppf(.999,1000,5263/20000))"` → `307.0`); PT: k = 92/200, Beta(92,5 ; 108,5), dải 99% của R = 100 là **[31 ; 62]** (`./.venv/Scripts/python.exe -X utf8 -c "from scipy.stats import betabinom; b=betabinom(100,92.5,108.5); print(next(k for k in range(101) if b.cdf(k)>=.005), next(k for k in range(101) if b.cdf(k)>=.995))"` → `31 62`). Nhãn: **Đã khai** (khai trước ở mục 21 của đặc tả; đo ở dòng 1, tách khỏi mọi dòng chấm).
+- **MỘT câu số đã ký, mà cửa so với bản ghi:** **A0 ≤ 307 · PT dải 99% [31 ; 62] · κ_d = 0,018**.
+
+
+### Lệnh chạy (BƯỚC 304) và cửa
+Dòng hạt 6, 7, 9, 8 MỞ ĐÚNG MỘT LẦN, chỉ bằng các lệnh dưới đây, theo thứ tự này, ở thư mục gốc repo, trên cây làm việc bằng `origin/main`. Chỉ số thị trường của mỗi ô liền nhau (mỗi thị trường dùng đúng một hạt `[dòng, chỉ số]`; các ô không dùng chung chỉ số):
+
+```
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 6 --so-tien-trinh 12
+```
+dòng 6 · Tầng 1: ô 0.5x (mức 0.5× MDE80) chỉ số 1001–1400; ô 1x (mức 1× MDE80) chỉ số 2001–2400; ô 2x (mức 2× MDE80) chỉ số 3001–3400
+
+```
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 7 --so-tien-trinh 12
+```
+dòng 7 · Tầng 1: ô NULL (mức 0× MDE80) chỉ số 1–1000
+
+```
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 9 --so-tien-trinh 12
+```
+dòng 9 · Tầng 1: ô NULL-M (mức 0× MDE80) chỉ số 1–1000
+
+```
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 8 --so-tien-trinh 12
+```
+dòng 8 · Tầng 2: ô NULL (mức 0× MDE80) chỉ số 1–100; ô 2x (mức 2× MDE80) chỉ số 1001–1100
+
+Rồi đọc kết cục (không sinh thị trường nào):
+
+```
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --ket-cuc --do 38
+```
+
+Bản ghi: `docs/thi-truong-gia-ket-qua-do38.json` (file RIÊNG của ĐO 38; file của ĐO 37 `docs/thi-truong-gia-ket-qua.json` không bao giờ bị ghi đè), ghi bằng `va_an_toan.ghi` từng đợt 25 thị trường — riêng dòng 8 từng đợt 12 thị trường (`luu_moi = 12`, để một lần mất điện chỉ mất ≤ một đợt, ≈ 21 phút), trạng thái `DANG CHAY`, đổi thành `XONG` khi hết ô. Một dòng hạt đã `XONG` thì không chạy lại; đang dở thì chỉ chạy tiếp bằng `--tiep-tuc` (mỗi thị trường là hàm THUẦN của `(dòng hạt, chỉ số, mức)`; số tiến trình KHÔNG đổi kết quả). Kết cục ghi vào STATE nguyên văn, kể cả TRƯỢT; không hạ ngưỡng, không đổi bộ sinh cho đẹp. P2 chạy trên cả 200 thị trường của dòng 8.
+
+**Cửa (`kiem_cong`) — dòng 6 · 7 · 8 · 9 chỉ chạy khi TẤT CẢ đúng, đọc bằng git lúc chạy; thiếu một điều thì không sinh thị trường nào, mã thoát 3, in HẾT các điều thiếu:**
+1. `git fetch origin main` thành công (không kiểm được = không chạy).
+2. `docs/TIEU-CHI-DOC-TRUOC.md` ở `origin/main` CÓ mục `## ĐO 38 —` (ĐO 37 ở đó không đủ: nó không mở được dòng 6…9).
+3. Thân ĐO 38 ở `origin/main` NÊU nguyên văn phần lệnh cố định của dòng hạt ấy và dòng kế hoạch của nó (các khối mã/dòng ở trên), VÀ nêu nguyên văn câu số đã ký ở mục *Số tham chiếu* — câu ấy dụng cụ DỰNG từ bản ghi hiệu chuẩn (A0 · dải PT · κ_d): bản ghi mang số khác số đã ký thì cửa đóng, không tính lại rồi chạy tiếp.
+4. Bản ghi hiệu chuẩn ở cây làm việc có đủ bốn việc `kd · a0 · t1 · pt` ở trạng thái `XONG`, KHÔNG việc nào báo luật DỪNG hay THẤT BẠI, ngưỡng A0 là số nguyên và dải PT là hai số nguyên.
+5. Thân ĐO 38 ở cây làm việc BẰNG thân ở `origin/main` (không ai sửa tiêu chí sau khi ký), và mọi file của `FILE_GHIM` của ĐO 38 (như ĐO 37, thêm bản ghi hiệu chuẩn `docs/thi-truong-gia-hieu-chuan-do38.json`) ở cây làm việc BẰNG `origin/main`.
+6. `origin/main` là tổ tiên của `HEAD`.
+7. Dòng hạt ấy chưa `XONG` trong `docs/thi-truong-gia-ket-qua-do38.json` (không đọc file của ĐO 37).
+Dòng 1 · 5 · 10 KHÔNG BAO GIỜ mở ở dụng cụ này (chặn vĩnh viễn, kể cả khi nhắc trong ĐO); dòng 2 · 3 · 4 vẫn thuộc ĐO 37 (lệnh `--luong 2` không cần `--do`, mặc định 37) và `--luong 6` mà không có `--do 38` là lỗi đối số; dòng 6…10 vẫn bị chặn ở MỌI dụng cụ khác (`kiem_luong` của chúng không đổi). Dòng 9001 là dòng thử (kích thước nhỏ, kết quả ra file người gọi chỉ định, không bao giờ ra file chính thức của ĐO nào).
+
+
+### Chi phí — ƯỚC LƯỢNG (không phải kết quả của T6; không phải điều kiện của ĐO)
+Thời gian THẬT của BƯỚC 296 cho dòng 2 · 3 · 4 (`docs/STATE.md` BƯỚC 296): 796,5 s · 754,3 s · 22.423,1 s; dòng 9 ước bằng dòng 3 (760 s: cùng cỡ, thêm vòng AR); tổng 24.733,9 s ≈ 6,87 giờ (`./.venv/Scripts/python.exe -X utf8 -c "print(796.5+754.3+760+22423.1)"` → `24733.899999999998`; chia 3.600 = 6,87). Hiệu chuẩn đã xong (BƯỚC 301: `kd` 27 s · `a0` 1.540 s · `t1` 201 s · `pt` 8.825 s). Không chạy khi `nam_cong.py` hay một oracle khác chiếm máy.
+
+
+### Nhãn của con số (BƯỚC 299, từ ĐO 38) và phần KÝ
+Cách đọc nhãn: mục *Nhãn của con số* ở phần mở đầu tệp. Mã nhãn `M1` · `M2` của các dòng dưới TRÙNG với tên tiêu chí M1 · M2; `M3` là A0, `M4` là PT, `M5` là mười hai tiêu chí giữ nguyên. Mã `B#` ở khối *Báo kèm* KHÔNG phải tiêu chí B1–B4 của bảng.
+
+**Đã khai (phần KÝ):**
+- **M1** NULL có nhớ, xác nhận nhầm: số thị trường NULL-M (dòng 9, R = 1.000) có ≥ 1 ứng viên G · Z · H bị `QUA` mà ΔIC_true ≤ 0, ĐẠT nếu ≤ 50 (người dùng)
+- **M2** NULL có nhớ, độ chuẩn: độ lệch chuẩn gộp (`ddof=1`) của z′ = (Δ − ΔIC_true) / σ_hoán-vị trên 3.000 cặp của dòng 9, ĐẠT nếu trong [0,8 ; 1,25] (người dùng)
+- **M3** A0: số thị trường NULL (dòng 7, R = 1.000) mà `mono_volume_score` nằm trong các spec chuỗi đã khai, ĐẠT nếu ≤ 307 (p̂ đo ở dòng 1 = 5.263/20.000) (người dùng)
+- **M4** PT: báo động của bộ ba G′ · Z · H ở NULL Tầng 2 (dòng 8, R = 100) ≤ 12, và G′ `QUA` ở 2× Tầng 2 nằm trong dải 99% [31 ; 62] (k = 92/200 ở dòng 1) (người dùng)
+- **M5** mười hai tiêu chí giữ nguyên chữ và số của ĐO 37 (A · B1–B4 · C1–C3 · P1–P4, ba điều KHÔNG ĐỌC ĐƯỢC và hai bên biên của chúng), đọc trên dòng 6 · 7 · 8 (người dùng)
+
+**Báo kèm (khai trước là báo kèm; không quyết định kết cục, không dùng để đổi tiêu chí):**
+- **B1** bảng 2×2 {G, G′} × {Tầng 1, Tầng 2} của (m, s, σ̄, P), từ các lượt `t1` và `pt` của bản ghi hiệu chuẩn (dòng 1)
+- **B2** χ² của tỷ lệ chọn từng spec của bộ đề xuất chuẩn hoá so với đều (10 bậc tự do), từ lượt `a0` của bản ghi hiệu chuẩn (dòng 1)
+- **B3** độ lệch chuẩn của z ở NULL Tầng 2 (dòng 8), so [0,8 ; 1,25]
+- **B4** tỷ lệ đuôi P(z′ > z_c) của dòng 9, z_c = Φ⁻¹(1 − 0,05/(2·3))
+- **B5** M1 khối (a): tỷ lệ thị trường NULL-M có ≥ 1 báo động hai phía ở bộ ba (so B1 ≤ 75 của bảng)
+- **B6** M1 khối (b): độ lệch chuẩn và trung bình của z ở dòng 9
+- **B7** M1 khối (c): tỷ lệ thị trường NULL-M có chuỗi nâng cấp (so C3 ≤ 50 của bảng)
+- **B8** các số "Báo cáo, không phán" của ĐO 37 (Đ8) đọc trên dòng 6 · 7 · 8
+
+**Sau khi nhìn (không mã):** mọi con số của chẩn đoán BƯỚC 296 (`docs/STATE.md`, mục D: số lần mỗi spec được khai ở NULL, sd của ΔIC theo spec và theo tầng, mô phỏng 200.000 lượt), của phiên `c4sua` (chọn G 40,51% so với 26,77% ở dòng thử; mô hình chuẩn dự đoán P(`QUA`) = 43%) và của lượt thử M1 ở dòng 9001 (1/200 thị trường xác nhận nhầm; sd z′ 1,08 · 1,17 · 1,10) là SAU KHI NHÌN: chỉ để hiểu LÝ DO bản sửa, không hiệu chuẩn một ngưỡng nào, không đổi một tiêu chí nào; khoảng [0,8 ; 1,25] của M2 là khoảng khai sẵn của đặc tả, không rút từ chúng.
+
+
+### Điều đã thấy trước khi ký (khai thẳng)
+- **Dòng thử 9001** đã chạy qua đường ống Tầng 1 và Tầng 2 (BƯỚC 292–295) và thử NULL-M (BƯỚC 301, lượt thử `kd` và M1); không dòng hạt chính thức nào được sinh.
+- **Dòng 2 · 3 · 4 và dòng 5** đã được sinh (ĐO 37 và chẩn đoán của nó) và KHÔNG được dùng lại ở đây: ĐO 38 dùng dòng hạt 6 trở đi (mục 4.8: *"bản sửa là 6, 7…"*).
+- **Số của dòng 1 đã thấy:** các bản ghi hiệu chuẩn của BƯỚC 289, 294 và 301 (kể cả bốn lượt `kd · a0 · t1 · pt`). A0 ≤ 307, dải [31 ; 62] và κ_d = 0,018 nằm ở đây là ĐÃ thấy; không số nào của dòng 6 · 7 · 8 · 9 đã thấy.
+- **Người dùng đã thấy** con số 1/200 của lượt thử M1 trước khi chọn M2 (26/11/2026): đó là lý do của M2, ghi ở mục *Gốc và quyết định*.
+
+
+### Sổ tay NotebookLM
+BƯỚC 303 đổi luật (`docs/TIEU-CHI-DOC-TRUOC.md`, `docs/LO-TRINH.md`) nên hỏi THẬT: mục BƯỚC 303 của `docs/soat-notebooklm.json` ghi `cau_hinh` nguyên văn, kết quả và cách tự kiểm; kết quả cũng ở `docs/STATE.md` BƯỚC 303. ĐO này không nêu kết quả của câu hỏi ấy.
+
+
+### Điều ĐO này KHÔNG làm
+Không chạy dòng 6 · 7 · 8 · 9 và không đọc kết cục; không đổi bảng mục 6 ngoài A0 · PT · M1 · M2; không đổi κ, MDE₈₀, bộ sinh Tầng 1 và Tầng 2, vòng học hay bộ ba; không nối `nang_cap` vào đường thật (mục 5.5); không nói gì về thị trường thật (mục 11); không sửa ĐO 37 (đã chạy) và không đụng `NGUYEN-TAC-DO-LUONG.md`.
+
+
+### Lượt chạy (BƯỚC 304)
+MỘT lần cho mỗi dòng hạt, bằng ĐÚNG các lệnh ở trên (6, 7, 9 rồi 8), trên cây làm việc bằng `origin/main` sau khi PR của BƯỚC 303 đã merge. Kết cục ghi vào `docs/STATE.md` (ba khối *Đã khai · Báo kèm · Sau khi nhìn* theo BƯỚC 299) và `docs/LO-TRINH.md` (hàng C4 / T6: ĐÃ hay CHƯA chứng minh theo kết cục), không viết lại tiêu chí.

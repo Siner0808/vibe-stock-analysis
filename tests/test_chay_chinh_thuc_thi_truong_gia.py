@@ -1104,7 +1104,8 @@ def test_ĐO_37_co_trong_tieu_chi_la_muc_ke_tiep_va_duy_nhat():
     assert DO37 is not None
     assert len(re.findall(r"^##\s+ĐO\s+37\s*—", TIEU_CHI, re.M)) == 1
     so = [int(m.group(1)) for m in re.finditer(r"^##\s+ĐO\s+(\d+)[a-z]?\s*—", TIEU_CHI, re.M)]
-    assert max(so) == 37 and "**Đã tra trùng:** BƯỚC" in DO37 and f"`{CT.TEN_DUNG_CU}`" in DO37
+    # BƯỚC 303 (ĐO 38 ký ngay sau ĐO 37): `max(so) == 37` hết đúng. ĐO 37 vẫn duy nhất và vẫn đứng NGAY TRƯỚC ĐO 38; thân của nó (đã chạy ở BƯỚC 296) không đổi.
+    assert so.count(37) == 1 and so[so.index(37) + 1] == 38 and "**Đã tra trùng:** BƯỚC" in DO37 and f"`{CT.TEN_DUNG_CU}`" in DO37
 
 
 def test_ĐO_37_nêu_nguyen_van_lenh_va_dong_ke_hoach_cua_ca_ba_dong_hat_va_lenh_doc_ket_cuc():
