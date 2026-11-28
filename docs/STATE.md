@@ -28875,6 +28875,66 @@ Cơ sở xanh trước khi đục (71 passed). **33 đột biến; lượt đầ
 4. **z′ ở các cặp σ = 0 hay chưa phán** bị loại (ngưỡng 1%): chưa biết có xảy ra ở dòng 9 không.
 5. **Việc kế:** leader soát PR (BƯỚC đổi luật: `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`; KHÔNG tự merge); sau khi PR vào `main`, BƯỚC 304 chạy dòng 6 · 7 · 9 rồi 8. Lỗi kế 209.
 
+## BƯỚC 305 — Ý 2: BẢNG KIỂM XÁC ĐỊNH CHO ỨNG VIÊN DO MÁY SOẠN (`kiem_de_xuat.py` + `tools/kiem_phieu_de_xuat.py`); CHỈ THÊM FILE MỚI, CHỈ IN, KHÔNG CHẶN (27/11/2026)
+
+**Mốc:** C3
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG, 23/11/2026:** *"làm ý 1 và 2. Làm rõ điểm nghẽn của ý 3 và tìm hướng khắc phục"* (ý 2 = bảng kiểm này).
+- **NGƯỜI DÙNG, 25/11/2026:** leader hỏi *"Đồng ý ý 2 và 3A"*?, người dùng trả *"duyệt"*. Duyệt đặc tả `vibe_logs_y23/DAC-TA-Y2.md` (nháp 25/11, đọc ở `86d43d1`) CÙNG ba khuyến nghị mục 5: (1) KHÔNG lưu phiếu thành file commit, chỉ in kết quả vào mô tả PR; (2) bảng ngưỡng (3/4 tham số, bội 0,05, L1 0,10, "cùng họ ≥ 2") giữ nguyên, là ƯỚC LƯỢNG; (3) chạy bảng kiểm cho cả đề xuất TAY của leader (UV-002), chỉ in, không chặn.
+- **LEADER (không phải người dùng):** đánh số BƯỚC 305, xác nhận mã mốc C3 (đặc tả đề xuất C3/T5), lệnh làm trong lúc ĐO 38 (BƯỚC 304) đang chạy: chỉ test có chọn lọc, không bộ test đầy đủ, không `tools/nam_cong.py`, không merge vào `main` trước khi bốn dòng hạt XONG.
+
+**Đánh số:** BƯỚC 305; **không mở lỗi mới** (lỗi kế **209**: số lớn nhất ở `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md` đọc lại hôm nay là 208; lệnh: `grep -oE "^\| (20[0-9]|21[0-9]) " .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md | sort | tail -3`). Nhánh `y2/kiem-de-xuat-305` từ `origin/main` = `f46a9102e3f444b5eef769374a8e40c76bf637ee`.
+
+### A. Cái gì được xây (đúng đặc tả mục 2 · 3 · 4; chỉ FILE MỚI)
+
+- `kiem_de_xuat.py`: hàm thuần `kiem_phieu(phieu, so)` trả `{"ket_luan", "muc"}`. Năm mục — `THAM_SO_TU_DO` (phiếu khai nhãn mono · bo_mot · deu · doi_cho thì dựng lại từ bộ mặc định, khớp ≤ 1e-4 từng trọng số = 0 tự do, không khớp = REJECT "khai sai nhãn"; `tay` thì số trọng số > 0 trừ 1: 3 → REVISE, ≥ 4 → REJECT) · `DO_CHINH_XAC` (`tay` có trọng số không là bội của 0,05 → REVISE) · `QUA_GAN_BAN_CHAY` (L1 tới bộ mặc định: = 0 → REJECT, < 0,10 → REVISE) · `TRUNG_LAP` (mọi |Δw| ≤ 1e-4 với một dòng khác của sổ → REJECT; cùng tập thành phần dương với ≥ 2 dòng → REVISE) · `KHAI_BAT_BUOC` (thiếu `dan_xuat` hay `da_doc_ket_qua_som` → REVISE; `da_doc_ket_qua_som` = true → REJECT). `ket_luan` = mục NẶNG NHẤT, không có điểm tổng.
+- `tools/kiem_phieu_de_xuat.py`: đọc một JSON phiếu và sổ (mặc định `docs/ung-vien.json`), CHỈ IN từng mục kèm số liệu thô và dòng `KET LUAN`; mã thoát 0 PASS · 1 REVISE · 3 REJECT · 2 chưa kiểm được. Không ghi file.
+- `tests/test_kiem_de_xuat.py`: 59 test (xem B).
+- **Ngưỡng là ƯỚC LƯỢNG** do đặc tả chọn trước khi nhìn ứng viên nào, người dùng duyệt đúng bảng; không chỉnh theo kết quả ứng viên (bất biến 7). Không file luật nào chạm (xem F).
+- **Bảng kiểm KHÔNG làm** (đặc tả mục 3, gác bằng AST ở `tests/test_kiem_de_xuat.py` mục 10): không đổi điểm/trọng số/ngưỡng của sổ; không mở khoá ứng viên (PASS không phải được duyệt, `qua_sang` luôn null, không vào K); không gọi phép chấm; không nhập `cham_bong` · `cham_xac_nhan` · `vong_hoc_gia` · `paper_*` · `master_agent` · `run_daily` · `sheets_store` · `thi_truong_gia`; không ghi file; không module nào ngoài công cụ dòng lệnh và test nhập nó.
+
+### B. Số tính lại TRONG PHIÊN NÀY (Quy tắc 2; lệnh ở gốc worktree, `./.venv/Scripts/python.exe` = `../vibe_preview/.venv/Scripts/python.exe -X utf8`)
+
+- **59 test, xanh:** `-m pytest tests/test_kiem_de_xuat.py -q -p no:cacheprovider` → `59 passed`; đếm: `-m pytest tests/test_kiem_de_xuat.py --collect-only -q` → `59 tests collected`. Lần đầu (trước khi có module) đỏ ở khâu thu thập (`ModuleNotFoundError: kiem_de_xuat`).
+- **Số dòng:** `wc -l kiem_de_xuat.py tools/kiem_phieu_de_xuat.py tests/test_kiem_de_xuat.py` → 210 · 57 · 508. **Ước lượng của đặc tả (~120–150 · ~50 · ~250–300) THẤP hơn thật** cho module và test: module mang docstring dài và kiểm đầu vào hỏng (ValueError), test thử đủ hai chiều cho mọi mục, nhãn và AST.
+- **Cổng chọn lọc (không phải năm cổng):** `tools/chan_bia_so_lieu.py --quet-repo` → *0 CHẶN · 10 cảnh báo* (cả mười ở file có sẵn, không file mới); `tools/kiem_cu_phap_311.py` → *Mọi file nạp được bằng 3.11*; `-m pytest tests/test_script_chay_duoc_tren_windows.py tests/test_gac_khong_phu_thuoc_thu_tu.py tests/test_ho_so.py tests/test_duyet_repo.py tests/test_trong_so_that_su_duoc_dung.py tests/test_no_fabricated_data.py -q` → `72 passed`.
+- **Số test 5993 → 6052 (+59):** `tools/kiem_so_test_khong_giam.py` (trước khi cập nhật) báo *so test TANG 5993 -> 6052, moc chua cap nhat*; `--cap-nhat --ly-do "BUOC 305: …"` ghi mốc 6052 (`docs/moc_so_test.json`). Chỉ đếm thu thập, không chạy bộ test.
+
+### C. Đối chứng THẬT: UV-001 trên sổ thật, và một phiếu VÍ DỤ (đặc tả mục 2, khuyến nghị 3)
+
+- **UV-001:** phiếu `bo_mot [risk_score]`, `da_doc_ket_qua_som` false, `ma` UV-001 (`vibe_logs_305/phieu_uv001.json`). Lệnh: `tools/kiem_phieu_de_xuat.py vibe_logs_305/phieu_uv001.json` → **cả năm mục PASS, mã thoát 0**; mục 1: 0 tham số tự do, mục 3: L1 = 0,3, mục 4: không trùng dòng nào. `sha256sum docs/ung-vien.json` TRƯỚC = SAU = `2a2c37980ef0a540261f4b97acea675a3b01e1ff393e383fc9cb267b6cc8e713`; test `test_DOI_CHUNG_THAT_UV_001_tren_so_that_PASS_cac_muc_1_2_3_5_va_FILE_SO_khong_doi_mot_byte` ghim điều ấy.
+- **Phiếu VÍ DỤ do tay dựng (KHÔNG phải ứng viên, không có trong sổ):** `tay` với `{trend 0,3127 · momentum 0,1873 · volume 0,3412 · sr 0,1588}` (`vibe_logs_305/phieu_vi_du_tay.json`) → **REVISE, mã thoát 1**: mục 1 REVISE (3 tham số tự do), mục 2 REVISE (không bội 0,05), mục 3 PASS (L1 = 0,4254), mục 4 PASS, mục 5 PASS. Một ví dụ thứ hai, `doi_cho` trend ↔ sr: **PASS, mã thoát 0** (L1 = 0,2). Kết quả in đầy đủ: `vibe_logs_305/kq_uv001.txt`, `kq_vi_du_tay.txt`, `kq_vi_du_doi_cho.txt`.
+- Bảng kiểm ĐÃ chạy trên đề xuất tay của leader là việc của PR kế (`docs/ung-vien.json` hôm nay chỉ có UV-001); công cụ nhận phiếu tay như trên.
+
+### D. Đột biến (TRÊN BẢN SAO `git archive`, không bao giờ trên cây làm việc; `vibe_logs_305/mut305.py`, `mut305.log`, `mut305b.log`)
+
+Cơ sở xanh (59 passed) rồi **35 đột biến; lượt đầu 34/35 ĐỎ, một phát SỐNG SÓT; sau khi thêm một khẳng định, nay 35/35 ĐỎ.** Gồm mọi phát của đặc tả mục 4 (`>= 4` → `>= 5` · `== 3` → `== 4` · sàn 0,10 → 0,01 · bỏ bội 0,05 · dung sai dựng lại 1e-4 → 1e-1 · dung sai trùng 1e-4 → 1e-1 · `max` → `min` · thiếu khai → PASS · `da_doc_ket_qua_som` true không còn REJECT · thêm `import cham_xac_nhan` · thêm `open(…, "w")`) cùng 24 phát thêm: biên L1 = 0,10, L1 = 0 → `< 0`, cùng họ `>= 2` → `> 2` và 2 → 1, bỏ loại chính dòng khỏi phép so, mục 2 áp cho mọi loại, nhãn sai không REJECT, `deu` 0,25, hằng `CO_SO` volume 0,21, đếm tự do cả trọng số 0, đếm cùng họ cả thành phần 0, bỏ kiểm kiểu bool, đảo thứ tự hạng, L1 bỏ risk, thêm `import paper_trading` trong hàm, và ba phát ở công cụ dòng lệnh (mã thoát REVISE → 0, "chưa kiểm được" → 1, không bắt ValueError). **Phát sống sót lượt đầu: "công cụ không in số liệu thô"** — không test nào đòi dòng số liệu thô (SKILL Bước 3 điều 4: in dữ liệu thô ngay dưới con số); thêm khẳng định `ra.count("số liệu thô:") == 5` vào `test_CLI_ma_thoat_0_PASS_1_REVISE_3_REJECT_va_in_tung_muc`, chạy lại đúng phát ấy (`vibe_logs_305/mut305_one.py`) → ĐỎ.
+
+### E. Tám chỗ khác hay sửa đặc tả (đặc tả còn ghi *"Chưa kiểm"* ở vài chỗ)
+
+1. **Thiếu `dan_xuat`:** mục 1 và 2 trả REVISE ("chưa kiểm được"), không PASS im lặng (đặc tả chỉ nói mục 5 hạ PASS xuống REVISE).
+2. **Phiếu hỏng thì NỔ, không đoán:** `da_doc_ket_qua_som` không phải bool (kể cả chuỗi `"false"`, vốn truthy) · `dan_xuat` hỏng (loại lạ, số `tham_so` sai, tên thành phần lạ) · spec hỏng → `ValueError`; công cụ dòng lệnh đổi nó thành mã thoát 2, *"chưa kiểm được"*. Luật spec chép của `cham_bong.kiem_spec` và test so hai bên trên 6 ca xấu và 3 ca tốt.
+3. **Mục 5 gộp hai lời khai và lấy cái nặng nhất:** `da_doc_ket_qua_som` = true thắng "bỏ ngỏ".
+4. **Thêm trường tuỳ chọn `ma` vào phiếu** (đặc tả chỉ nói "trừ chính nó"): bỏ dòng sổ cùng mã khỏi phép so ở mục 4. Không có `ma` thì MỌI dòng sổ đều là "khác" (khai lại UV-001 mà không đặt mã → REJECT trùng).
+5. **Module không nhập `cham_bong` hay `thi_truong_gia`** (gác G2 và đặc tả mục 3 khoản 4), nên `THANH_PHAN`, `LOAI_SPEC`, `CO_SO` là bản chép; test khoá chúng bằng nguồn thật (`cham_bong.THANH_PHAN`, `cham_bong.LOAI_SPEC`, `thi_truong_gia.TRONG_SO_MAC_DINH`).
+6. **Đặc tả ghi chưa kiểm "`paper_*` / `run_daily` nhập gì":** gác đảo chiều (test mục 10) quét CẢ repo (`tools/duyet_repo.py`) và đòi tập người nhập `kiem_de_xuat` đúng bằng `{tools/kiem_phieu_de_xuat.py, tests/test_kiem_de_xuat.py}`; một phép đo bắt-được-người-nhập-lạ chạy trên đoạn mã mẫu.
+7. **Đặc tả ghi chưa đọc `tests/test_moc_doc.py` đến cùng:** đọc các gác AST mục 7 (dòng 337–420): chúng chỉ quét `cham_bong.py`, `cham_xac_nhan.py`, `keo_bang_gia.py`, `app.py` và gọi `so_cap` · `ma_tran_cap`; không chạm file mới (không hằng 252, không gọi `so_cap`).
+8. **Đối chứng thật không phụ thuộc dòng khai SAU:** nếu sau này có UV-002 trùng họ, mục 4 của UV-001 trên sổ đầy đủ có thể đổi; test sổ thật chỉ đòi mục 1 · 2 · 3 · 5 PASS, còn "cả năm PASS" thử trên sổ chỉ có dòng THẬT của UV-001.
+
+### F. Sổ tay NotebookLM
+
+- Đặc tả mục 4: KHÔNG chạm file luật. Máy xác nhận: `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 305` → *BƯỚC 305: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach f46a910]* (mã thoát 0); mục `BƯỚC 305` của `docs/soat-notebooklm.json` khai `khong_bat_buoc_vi`. Chỉ THÊM file mới (`kiem_de_xuat.py`, `tools/kiem_phieu_de_xuat.py`, `tests/test_kiem_de_xuat.py`) cùng STATE, HANDOFF, sổ này và mốc số test; mốc C3 đã có sẵn ở `docs/LO-TRINH.md`, không thêm dòng nào.
+- Mục sổ dựng từ dict bằng `so_tay.ghi` (không gộp văn bản; lỗi 170). BƯỚC 304 cũng sẽ ghi STATE, HANDOFF, `docs/moc_so_test.json` và `docs/soat-notebooklm.json`: BƯỚC nào gộp sau phải `git merge origin/main` rồi dựng lại hai file JSON từ dict.
+
+### G. Điều CHƯA làm / chưa kiểm
+
+1. **Năm cổng `tools/nam_cong.py --tuan-tu` CHƯA chạy** (máy đang chạy ĐO 38 dòng hạt 7 · 9 · 8 của BƯỚC 304, ~6 giờ ƯỚC LƯỢNG; cổng 4 hết giờ dưới tải). Lượt cổng CUỐI trên commit cuối và kết quả ở thân PR (không ghi vào STATE).
+2. **Chưa chạy trên phiếu C3 thật nào của máy** (C3 chưa có mã): các ca chặn là mẫu dựng tay. Ngưỡng 3/4 · 0,05 · 0,10 · "≥ 2" là ƯỚC LƯỢNG và chưa thấy chúng cắn thế nào trên ứng viên máy soạn thật.
+3. **Luật 1 thô:** phiếu `tay` đều 0,2 × 5 tính là 4 tự do (REJECT) dù chỉ là "đều"; đường đúng là khai `deu` (đặc tả mục 2).
+4. **Bảng kiểm chỉ in:** không chặn ai, không nối vào `vong_hoc_gia` hay một cổng git; nối cổng là việc của C3 khi có mã (khuyến nghị 1).
+5. **Việc kế:** khi máy rảnh (leader báo): chạy năm cổng, gộp `origin/main` (sau BƯỚC 304), mở PR (không tự merge); mô tả PR dán kết quả in của UV-001 và phiếu ví dụ (ghi rõ là ví dụ). Lỗi kế 209.
+
 ## BƯỚC 304 — C4 CHẠY CHÍNH THỨC ĐO 38: dòng hạt 6 · 7 · 9 · 8 MỘT LẦN, KẾT CỤC ĐẠT Ở CẢ 16 TIÊU CHÍ; T6 ĐÃ CHỨNG MINH TRONG THỊ TRƯỜNG GIẢ (CHỈ TRONG THỊ TRƯỜNG GIẢ) (27/11/2026)
 
 **Mốc:** C4
