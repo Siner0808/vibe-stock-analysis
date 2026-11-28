@@ -29178,3 +29178,63 @@ Sáu điểm phiên con tự quyết hoặc thấy thêm (đặc tả không nê
 5. Cờ `lich_su_ngan_hon` dùng dung sai 7 ngày lịch (`DUNG_SAI_NGAY_DAU`) do phiên con chọn; không số đo nào dựa vào.
 6. Dòng `CHO_PHEP_NHAP` chưa có đột biến canh (mục B).
 7. **Việc kế:** leader soát PR (BƯỚC này KHÔNG đổi luật: không merge-chờ như BƯỚC 306); Lát 2 (`dow_hai_chi_so.py`: `ghep_cap`, `trang_thai_cap_tai`; chưa dữ liệu thật; bảng 16 hàng của đặc tả §3.5 chép vào test) rồi Lát 3 (dụng cụ M, MỘT lượt chạy ĐO 39, thông báo HOSE cho ngày rà soát rổ), Lát 4 (ô trên `app.py`). Lỗi kế 209.
+
+## BƯỚC 308 — DOW PHẦN 2, LÁT 2: GHÉP LẬT CỦA HAI CHUỖI (`dow_hai_chi_so.py`: `ghep_cap`, `trang_thai_cap_tai`, lời hiển thị); CHƯA DỮ LIỆU THẬT; PHẦN 1 VẪN CHƯA CHẠY TRÊN BA CHUỖI ẤY (28/11/2026)
+
+**Mốc:** B7
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG** (đã ghi ở BƯỚC 306 và 307, nhắc lại vì Lát 2 dựa vào chúng): 23/11/2026 *"làm phương án A"* (VN30 + VNMidcap); 25/11/2026 *"duyệt"* cho cả năm khuyến nghị của đặc tả; 27/11/2026 *"Bắt đầu ngay (Recommended)"*; 28/11/2026 *"Giao Lát 2 sau 307 (Recommended)"*.
+- **NGƯỜI DÙNG, 28/11/2026, trả lời *"duyệt"* cho ba khuyến nghị leader chuyển (hai chỗ luật ghép đoạn mà chữ ký của ĐO 39 chưa nói, thấy ở BƯỚC này):**
+  1. *"Chọn U2"*: một lật chỉ "đã dùng" khi đoạn của nó còn mở hoặc `xac_nhan`; một lật có đoạn đóng `khong_xac_nhan` (mọi `ly_do`) là "rảnh" lại cho bước 5.
+  2. *"Ghi một đoạn 'không xác nhận — trái chiều', trễ 0, đóng ngay, không mở đoạn chờ"*: hai chuỗi lật NGƯỢC chiều nhau cùng một hàng, không còn đoạn mở sau bước 1–4.
+  3. *"Bước 308 ghi vào STATE, mã và test. Đầu bước 309 thêm đoạn 'Làm rõ 28/11' vào ĐO 39, commit riêng và trước lượt chạy."*
+- **LEADER, KHÔNG PHẢI NGƯỜI DÙNG (28/11/2026):** (a) theo Q1 = U2, cả hai lật của đoạn trái chiều đều RẢNH sau đó ("lật kế tiếp bắt đầu mới" nghĩa là *không có đoạn mở*, không phải *lật bị bỏ*); (b) `ngay` là tham số từ khoá BẮT BUỘC của `ghep_cap`: `len(ngay)` là số hàng của bảng đã căn; đoạn còn mở sau hàng cuối giữ `dang_cho` với `k_ket` và `ngay_ket` là None, `het_han` chỉ ghi khi hàng `k_mo + w + 1` CÓ trong bảng (lý do: M2 đếm `dang_cho`; một đoạn chưa hết hạn mà đếm là `khong_xac_nhan` thì sai); (c) chân khối của ô (câu *"không dự báo …"*, số ĐO 39) KHÔNG nằm trong mô-đun mà ở Lát 4: chữ ký của ĐO 39 cấm cụm "dự báo" trong chuỗi hiển thị của mô-đun, và chân khối của đặc tả §5 có câu *"Mô tả hai chuỗi chỉ số, không dự báo, …"*; (d) mô-đun nhập `cau_truc_gia` (hằng số `CAP_SWING`, `CHOCH`, `TANG`, `GIAM`), nên dòng `CHO_PHEP_NHAP` của BƯỚC 307 được canh thật.
+- **PHIÊN CON, để leader soát:** (1) "đoạn mới nhất" của `trang_thai_cap_tai` là đoạn được TẠO sau cùng (`k_tao`), không phải đoạn có `k_mo` lớn nhất như chữ của đặc tả §3.3 (lý do ở mục B, điểm 2); (2) đoạn `xac_nhan` tạo ngay ở bước 5 với lật rảnh cũ mang `k_mo` = hàng của lật cũ ấy và `tre` = `k − k_mo` (đặc tả không nói `k_mo` của ca này; chọn thế để `tre` vẫn là "độ trễ giữa hai lần phá" của M2); (3) bước 5 lấy lật rảnh GẦN NHẤT cùng chiều của chuỗi kia trong `w` hàng (đọc đúng chữ *"lật CHƯA dùng gần nhất của chuỗi kia cùng chiều"*, không phải "lật cùng chiều gần nhất rồi kiểm có rảnh không"); (4) hai lật của MỘT chuỗi cùng hàng, hay hai lật liền nhau cùng chiều, làm `ghep_cap` nổ `ValueError` (phần 1 không sinh được chúng); (5) ngày hiển thị là `dd/mm/yyyy` (đặc tả ví dụ `dd/mm`; mẫu 9,24 năm nên có năm); (6) `hien_thi` từ chối hai lý do kết (`lead_dao_chieu`, `ben_kia_nguoc` có chiều) bằng `ValueError` vì trạng thái đọc được không bao giờ mang chúng (mục B, điểm 1).
+
+**Đánh số:** BƯỚC 308; **không có ĐO mới** (`grep -o '^## ĐO [0-9]*' docs/TIEU-CHI-DOC-TRUOC.md | sed 's/## ĐO //' | sort -n | tail -1` → 39); **không mở lỗi mới** (lỗi kế **209**: `grep -oE "^\| *[0-9]+ " .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md | tr -d '| ' | sort -n | tail -1` → 208). Nhánh `dow2/lat2-ghep-cap-308` từ `origin/main` @ `040492aa700a689b82c2bc3b8badbf61b61c5061` (PR #353, BƯỚC 307).
+
+### A. Luật đã cài (đúng chữ ký của ĐO 39 *Luật trạng thái ghim*, cộng ba điều đã duyệt)
+
+`dow_hai_chi_so.py` (264 dòng mã; ƯỚC LƯỢNG của đặc tả: 250): hàm THUẦN, chỉ nhập `__future__`, `dataclasses`, `cau_truc_gia`; không dữ liệu thật, không mạng, không đồng hồ.
+- `lat_tu_cau_truc(cau_truc)`: lật = `SuKienPha` cấp **swing** loại **CHOCH** (không `KHOI_DAU`, không `BOS`, không cấp nội bộ); `k` = `chi_so_biet` (hàng của bảng đã căn mà `chuoi_chi_so.can_theo_giao` dựng; không viết bảng căn thứ hai), `ngay` = `ngay_biet`.
+- `ghep_cap(lat_a, lat_b, w, *, ngay)`: năm bước theo ĐÚNG thứ tự (1 hết hạn `k − k_mo > w`; 2 lead lật lại; 3 chuỗi kia lật ngược; 4 chuỗi kia lật cùng chiều và `k − k_mo ≤ w` -> `ngay_ket` = ngày MUỘN hơn; 5 lật chưa đặt: xác nhận ngay với lật rảnh gần nhất của chuỗi kia trong `w` hàng, hay mở đoạn chờ). Lật đóng đoạn ở bước 2 hay 3 KHÔNG bị tính là đã dùng (bảng 3.5, hàng p14). Cùng hàng cùng chiều: một đoạn `xac_nhan`, `tre` 0, `lead` `dong_thoi`. Cùng hàng ngược chiều: một đoạn trái chiều (quyết định 2).
+- `trang_thai_cap_tai(doan, t)`: bốn giá trị `xac_nhan` · `khong_xac_nhan` · `dang_cho` · `chua_du`; đoạn có `k_ket` là None hay `k_ket > t` đọc như `dang_cho`.
+- `hien_thi(trang_thai, ten_a, ten_b)`: tiêu đề và một dòng mô tả cho bốn trạng thái ("Đã xác nhận · giảm", "Đang chờ · tăng", "Không xác nhận · tăng", "Không xác nhận · trái chiều", "Chưa đủ bằng chứng").
+
+### B. Điều thấy khi dựng (không có trong đặc tả)
+
+1. **Trạng thái "không xác nhận" chỉ còn hai dạng nhìn thấy được:** `het_han` (có chiều) và trái chiều (chiều None). Đoạn đóng vì `lead_dao_chieu` hay `ben_kia_nguoc` luôn đi kèm một đoạn MỚI ở cùng hàng (lật đóng đoạn đi tiếp sang bước 5, và bước 5 luôn tạo hay mở một đoạn), nên "đoạn mới nhất" không bao giờ là đoạn đóng bằng hai lý do ấy. Đo: `test_khong_xac_nhan_chi_con_hai_dang_nhin_thay_duoc_het_han_va_trai_chieu` (80 hạt × 6 ô `w` × mọi hàng; kết quả đúng hai cặp `{("het_han", chiều có), ("ben_kia_nguoc", chiều None)}`). Hệ quả cho Lát 4: ô không cần câu cho hai lý do kia; hai lý do ấy vẫn nằm trong bảng từng đoạn (M2).
+2. **"Đoạn mới nhất" theo `k_mo` sẽ sai:** ca `w = 5`, `A↓2 · B↑3 · B↓4` cho đoạn `xac_nhan` tạo ở hàng 4 với `k_mo` = 2, trong khi đoạn `lead_dao_chieu` đóng cùng hàng có `k_mo` = 3; đọc theo `k_mo` lớn nhất thì trạng thái hàng 4 là `khong_xac_nhan` dù một đoạn `xac_nhan` đã tồn tại (đột biến X1 bắt). Nên `Doan` có thêm `k_tao`.
+3. **Đột biến "U1 cho lật của đoạn HẾT HẠN" là TƯƠNG ĐƯƠNG:** lật của đoạn hết hạn luôn xa hơn `w` hàng so với mọi lật sau, nên bước 5 không bao giờ chọn nó dù rảnh hay không. Dòng trả rảnh tương ứng là mã chết, đã xoá (lượt đột biến đầu: sống sót; xem mục D).
+4. **`CHO_PHEP_DOC_KET_QUA_THAT` nằm ở `tools/do_dow_cau_truc.py`, không ở `cau_truc_gia.py`** (đề bài và ĐO 39 nói *"giữ False"* mà không nêu file). Gác đọc nó bằng AST (`test_khoa_doc_ket_qua_that_van_False`): giá trị `[False]`; BƯỚC này không đổi nó.
+
+### C. Đáp số tính tay, và hai chuỗi giá đi qua phần 1 (KHÔNG dữ liệu thật)
+
+- **Bảng 3.5, từng hàng** (16 hàng × `w = 3` và `w = None`), cộng `w = 0`, `4`, `5` (và `10`, `21` bằng `5`), các số tính tay TRƯỚC khi viết mã và khớp ngay lượt chạy đầu: `tests/test_dow_hai_chi_so.py::test_BANG_3_5_*` (43 ca). Ví dụ: `w = 3` -> bốn đoạn (E1 `xac_nhan` trễ 2; E2 `het_han` ở hàng 10; E3 `lead_dao_chieu`; E4 `xac_nhan` trễ 1); `w = None` -> ba đoạn (E2 `xac_nhan` trễ 5, E3 không mở).
+- **Hai chuỗi giá dựng tay** (`LEGS_A`, `LEGS_B` ở đầu mục 6 của file test; bước giá nguyên, `high = low = close`, 170 hàng) chạy qua `cau_truc_gia.doc_cau_truc(..., la_chi_so=True)`: lật tính tay từ hình học (A: ↓71 ↑116 ↓146; B: ↓67 ↑121 ↓161; `KHOI_DAU` ở hàng 41 của cả hai KHÔNG là lật) KHỚP kết quả của phần 1. Từ đó: ba đoạn `xac_nhan` ở `w ∈ {21, None}`; ở `w = 10` đoạn cuối `het_han` rồi một đoạn `dang_cho` còn mở ở cuối bảng (hàng hết hạn 172 không có); `w = 5` hai đoạn cuối `het_han`; `w = 0` sáu đoạn đều `het_han`.
+- **Bất biến khi cắt (§3.4), KHÔNG dung sai:** với MỌI hàng `t` của 170 hàng, cắt cả hai BẢNG GIÁ ở `t`, chạy lại phần 1, rồi `ghep_cap`, ra `TrangThaiCap` bằng nhau (mọi trường) với chạy đủ rồi đọc ở `t`, ở cả 6 ô `w`; thêm bản trên 60 cặp chuỗi lật ngẫu nhiên (hạt cố định) kể cả ca hai chuỗi lật cùng hàng. Phép thử có kèm khẳng định số lật cắt được > 0 (không so hai danh sách rỗng).
+- Đối xứng A↔B (60 hạt ngẫu nhiên × 6 ô `w`, bảng 3.5, hai chuỗi dựng tay); một-đối-một (ca tay + tính chất trên 60 hạt); tự ghép VN30–VN30 (đối chứng (i) của ĐO 39 ở mức hàm: mọi đoạn `xac_nhan`, `tre` 0, ở mọi ô `w`).
+- **Bức tường ĐO 39 giữ nguyên:** không test nào đọc dữ liệu thật của VN30, VNMidcap hay VN100; không nơi nào chạy `doc_cau_truc` hay `ghep_cap` trên dữ liệu thật (BƯỚC này không kéo mạng).
+
+### D. Đột biến: **66/66 đỏ** (+ 1 phát tương đương đã gỡ cùng dòng mã chết)
+
+Chạy trên BẢN SAO của cây làm việc (`robocopy` bỏ `.git`), `PY docs/do-308/dot_bien_308.py tat_ca` → `TONG: 66/66 do` (63 phát lên `dow_hai_chi_so.py` với hai file test làm gác, hai phát lên `tests/test_cau_truc_gia.py`, một phát thêm file lạ nhập mô-đun). Gồm đủ chín phát của đặc tả §6 hàng 2 (`ngay_ket` = ngày sớm hơn · `≤ w` -> `< w` · bỏ một-đối-một · bỏ bước 2 · `KHOI_DAU` làm lật · đọc `k_ket > t` ngược · chỉ A được làm lead · `import paper_trading` · chuỗi hiển thị chứa "dự báo"), bốn phát leader đòi (U1; Q2 theo thứ tự A rồi B; đoạn còn mở ở cuối bảng ghi `het_han`; lật đóng đoạn ở bước 3 bị đánh dấu đã dùng), và phát cho dòng `CHO_PHEP_NHAP` (bỏ dòng · thay tên sai · thêm file lạ nhập mô-đun). **Lượt đầu: 61/64 ở nhóm mô-đun; ba phát sống sót:** (1) U1 cho lật hết hạn (tương đương, gỡ dòng chết, mục B.3); (2) bước 5 chọn lật XA nhất thay vì GẦN nhất (thiếu ca có hai lật rảnh cùng chiều: thêm `test_buoc_5_chon_lat_ranh_GAN_NHAT_khong_phai_xa_nhat`); (3) kiểm `k` ngoài bảng bỏ biên `k = số hàng` (thêm ca `k = 6` trên bảng 6 hàng). Quy tắc 1 chạy trước: mọi test xanh trên cơ sở không đột biến (277 rồi 278).
+
+### E. Sổ tay NotebookLM (Quy tắc 3)
+
+`PY tools/buoc_cham_luat.py 308` xác nhận BƯỚC không chạm file nào của `FILE_LUAT`. Mục `BƯỚC 308` của `docs/soat-notebooklm.json` là `khong_bat_buoc_vi` (có lý do cụ thể). **`docs/TIEU-CHI-DOC-TRUOC.md` KHÔNG bị sửa ở BƯỚC này** (theo quyết định 3 ở trên): đoạn *"Làm rõ 28/11"* của ĐO 39 (ba điều: U2, trái chiều, `ngay` bắt buộc và đoạn mở ở cuối bảng) do **BƯỚC 309 thêm ở commit riêng, TRƯỚC lượt chạy ĐO 39**; BƯỚC 309 là bước chạm file luật nên nó hỏi thật sổ tay.
+
+### F. Số test · cổng
+
+- **Số test mới: 278** = 266 `tests/test_dow_hai_chi_so.py` + 12 `tests/test_dow_hai_chi_so_buc_tuong.py` (`PY -m pytest tests/test_dow_hai_chi_so.py tests/test_dow_hai_chi_so_buc_tuong.py -q` → `278 passed`).
+- Năm cổng `tools/nam_cong.py --tuan-tu` trên commit CUỐI: kết quả ở thân PR.
+
+### G. Điều CHƯA làm / chưa kiểm
+
+1. **Chưa chạy phần 1 hay `ghep_cap` trên VN30 · VNMidcap · VN100** (bức tường ĐO 39; một lượt chạy duy nhất ở Lát 3).
+2. **Chưa có chữ khai ở `docs/TIEU-CHI-DOC-TRUOC.md` cho ba điều đã duyệt** (BƯỚC 309, trước lượt chạy). Cho tới lúc đó chữ ký đọc được của ĐO 39 và hành vi của mã lệch nhau ở ba chỗ ấy; chỗ nói thật là docstring của `dow_hai_chi_so.py`, mục A ở trên và test.
+3. **Lát 3 phải tự đếm theo nhãn đã chọn:** `Doan.ket_qua` của đoạn còn mở ở cuối bảng là `dang_cho` (không phải `khong_xac_nhan`); `tre` của đoạn `xac_nhan` tạo ở bước 5 là `k − k_mo` với `k_mo` = hàng của lật cũ (mục "PHIÊN CON" ở đầu); đoạn trái chiều có `chieu` None, `lead` `dong_thoi`, và vào M2 như một đoạn `khong_xac_nhan`/`ben_kia_nguoc` trễ 0. Tên "trái chiều" chưa có trong bảng M2 đã ký: Lát 3 cần nói thẳng cách báo nó.
+4. **Lát 4:** chân khối ngoài mô-đun (câu có "dự báo" bị gác lời cấm nếu nằm trong `dow_hai_chi_so.py`); khối `DOW2-BAT-DAU … DOW2-KET-THUC` ở `app.py` và gác (c) của đặc tả chưa có (`app.py` chưa nhập mô-đun); ngày hiển thị `dd/mm/yyyy`.
+5. **Đột biến tương đương:** phát U1-cho-lật-hết-hạn được chứng minh tương đương bằng lập luận (khoảng cách), không bằng phép đo; nếu phiên sau đổi cửa sổ của bước 5 thì dòng trả rảnh ấy phải được viết lại.
+6. **Việc kế:** leader soát PR (BƯỚC này KHÔNG đổi luật: không file luật nào bị chạm); BƯỚC 309 thêm *"Làm rõ 28/11"* vào ĐO 39 ở commit riêng; Lát 3 (dụng cụ `tools/mo_ta_dow_hai_chi_so.py`, MỘT lượt chạy, thông báo HOSE cho ngày rà soát rổ); Lát 4 (ô trên `app.py`). Lỗi kế 209.
