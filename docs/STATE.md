@@ -28875,6 +28875,151 @@ Cơ sở xanh trước khi đục (71 passed). **33 đột biến; lượt đầ
 4. **z′ ở các cặp σ = 0 hay chưa phán** bị loại (ngưỡng 1%): chưa biết có xảy ra ở dòng 9 không.
 5. **Việc kế:** leader soát PR (BƯỚC đổi luật: `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`; KHÔNG tự merge); sau khi PR vào `main`, BƯỚC 304 chạy dòng 6 · 7 · 9 rồi 8. Lỗi kế 209.
 
+## BƯỚC 305 — Ý 2: BẢNG KIỂM XÁC ĐỊNH CHO ỨNG VIÊN DO MÁY SOẠN (`kiem_de_xuat.py` + `tools/kiem_phieu_de_xuat.py`); CHỈ THÊM FILE MỚI, CHỈ IN, KHÔNG CHẶN (27/11/2026)
+
+**Mốc:** C3
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG, 23/11/2026:** *"làm ý 1 và 2. Làm rõ điểm nghẽn của ý 3 và tìm hướng khắc phục"* (ý 2 = bảng kiểm này).
+- **NGƯỜI DÙNG, 25/11/2026:** leader hỏi *"Đồng ý ý 2 và 3A"*?, người dùng trả *"duyệt"*. Duyệt đặc tả `vibe_logs_y23/DAC-TA-Y2.md` (nháp 25/11, đọc ở `86d43d1`) CÙNG ba khuyến nghị mục 5: (1) KHÔNG lưu phiếu thành file commit, chỉ in kết quả vào mô tả PR; (2) bảng ngưỡng (3/4 tham số, bội 0,05, L1 0,10, "cùng họ ≥ 2") giữ nguyên, là ƯỚC LƯỢNG; (3) chạy bảng kiểm cho cả đề xuất TAY của leader (UV-002), chỉ in, không chặn.
+- **LEADER (không phải người dùng):** đánh số BƯỚC 305, xác nhận mã mốc C3 (đặc tả đề xuất C3/T5), lệnh làm trong lúc ĐO 38 (BƯỚC 304) đang chạy: chỉ test có chọn lọc, không bộ test đầy đủ, không `tools/nam_cong.py`, không merge vào `main` trước khi bốn dòng hạt XONG.
+
+**Đánh số:** BƯỚC 305; **không mở lỗi mới** (lỗi kế **209**: số lớn nhất ở `.claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md` đọc lại hôm nay là 208; lệnh: `grep -oE "^\| (20[0-9]|21[0-9]) " .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md | sort | tail -3`). Nhánh `y2/kiem-de-xuat-305` từ `origin/main` = `f46a9102e3f444b5eef769374a8e40c76bf637ee`.
+
+### A. Cái gì được xây (đúng đặc tả mục 2 · 3 · 4; chỉ FILE MỚI)
+
+- `kiem_de_xuat.py`: hàm thuần `kiem_phieu(phieu, so)` trả `{"ket_luan", "muc"}`. Năm mục — `THAM_SO_TU_DO` (phiếu khai nhãn mono · bo_mot · deu · doi_cho thì dựng lại từ bộ mặc định, khớp ≤ 1e-4 từng trọng số = 0 tự do, không khớp = REJECT "khai sai nhãn"; `tay` thì số trọng số > 0 trừ 1: 3 → REVISE, ≥ 4 → REJECT) · `DO_CHINH_XAC` (`tay` có trọng số không là bội của 0,05 → REVISE) · `QUA_GAN_BAN_CHAY` (L1 tới bộ mặc định: = 0 → REJECT, < 0,10 → REVISE) · `TRUNG_LAP` (mọi |Δw| ≤ 1e-4 với một dòng khác của sổ → REJECT; cùng tập thành phần dương với ≥ 2 dòng → REVISE) · `KHAI_BAT_BUOC` (thiếu `dan_xuat` hay `da_doc_ket_qua_som` → REVISE; `da_doc_ket_qua_som` = true → REJECT). `ket_luan` = mục NẶNG NHẤT, không có điểm tổng.
+- `tools/kiem_phieu_de_xuat.py`: đọc một JSON phiếu và sổ (mặc định `docs/ung-vien.json`), CHỈ IN từng mục kèm số liệu thô và dòng `KET LUAN`; mã thoát 0 PASS · 1 REVISE · 3 REJECT · 2 chưa kiểm được. Không ghi file.
+- `tests/test_kiem_de_xuat.py`: 59 test (xem B).
+- **Ngưỡng là ƯỚC LƯỢNG** do đặc tả chọn trước khi nhìn ứng viên nào, người dùng duyệt đúng bảng; không chỉnh theo kết quả ứng viên (bất biến 7). Không file luật nào chạm (xem F).
+- **Bảng kiểm KHÔNG làm** (đặc tả mục 3, gác bằng AST ở `tests/test_kiem_de_xuat.py` mục 10): không đổi điểm/trọng số/ngưỡng của sổ; không mở khoá ứng viên (PASS không phải được duyệt, `qua_sang` luôn null, không vào K); không gọi phép chấm; không nhập `cham_bong` · `cham_xac_nhan` · `vong_hoc_gia` · `paper_*` · `master_agent` · `run_daily` · `sheets_store` · `thi_truong_gia`; không ghi file; không module nào ngoài công cụ dòng lệnh và test nhập nó.
+
+### B. Số tính lại TRONG PHIÊN NÀY (Quy tắc 2; lệnh ở gốc worktree, `./.venv/Scripts/python.exe` = `../vibe_preview/.venv/Scripts/python.exe -X utf8`)
+
+- **59 test, xanh:** `-m pytest tests/test_kiem_de_xuat.py -q -p no:cacheprovider` → `59 passed`; đếm: `-m pytest tests/test_kiem_de_xuat.py --collect-only -q` → `59 tests collected`. Lần đầu (trước khi có module) đỏ ở khâu thu thập (`ModuleNotFoundError: kiem_de_xuat`).
+- **Số dòng:** `wc -l kiem_de_xuat.py tools/kiem_phieu_de_xuat.py tests/test_kiem_de_xuat.py` → 210 · 57 · 508. **Ước lượng của đặc tả (~120–150 · ~50 · ~250–300) THẤP hơn thật** cho module và test: module mang docstring dài và kiểm đầu vào hỏng (ValueError), test thử đủ hai chiều cho mọi mục, nhãn và AST.
+- **Cổng chọn lọc (không phải năm cổng):** `tools/chan_bia_so_lieu.py --quet-repo` → *0 CHẶN · 10 cảnh báo* (cả mười ở file có sẵn, không file mới); `tools/kiem_cu_phap_311.py` → *Mọi file nạp được bằng 3.11*; `-m pytest tests/test_script_chay_duoc_tren_windows.py tests/test_gac_khong_phu_thuoc_thu_tu.py tests/test_ho_so.py tests/test_duyet_repo.py tests/test_trong_so_that_su_duoc_dung.py tests/test_no_fabricated_data.py -q` → `72 passed`.
+- **Số test 5993 → 6052 (+59):** `tools/kiem_so_test_khong_giam.py` (trước khi cập nhật) báo *so test TANG 5993 -> 6052, moc chua cap nhat*; `--cap-nhat --ly-do "BUOC 305: …"` ghi mốc 6052 (`docs/moc_so_test.json`). Chỉ đếm thu thập, không chạy bộ test.
+
+### C. Đối chứng THẬT: UV-001 trên sổ thật, và một phiếu VÍ DỤ (đặc tả mục 2, khuyến nghị 3)
+
+- **UV-001:** phiếu `bo_mot [risk_score]`, `da_doc_ket_qua_som` false, `ma` UV-001 (`vibe_logs_305/phieu_uv001.json`). Lệnh: `tools/kiem_phieu_de_xuat.py vibe_logs_305/phieu_uv001.json` → **cả năm mục PASS, mã thoát 0**; mục 1: 0 tham số tự do, mục 3: L1 = 0,3, mục 4: không trùng dòng nào. `sha256sum docs/ung-vien.json` TRƯỚC = SAU = `2a2c37980ef0a540261f4b97acea675a3b01e1ff393e383fc9cb267b6cc8e713`; test `test_DOI_CHUNG_THAT_UV_001_tren_so_that_PASS_cac_muc_1_2_3_5_va_FILE_SO_khong_doi_mot_byte` ghim điều ấy.
+- **Phiếu VÍ DỤ do tay dựng (KHÔNG phải ứng viên, không có trong sổ):** `tay` với `{trend 0,3127 · momentum 0,1873 · volume 0,3412 · sr 0,1588}` (`vibe_logs_305/phieu_vi_du_tay.json`) → **REVISE, mã thoát 1**: mục 1 REVISE (3 tham số tự do), mục 2 REVISE (không bội 0,05), mục 3 PASS (L1 = 0,4254), mục 4 PASS, mục 5 PASS. Một ví dụ thứ hai, `doi_cho` trend ↔ sr: **PASS, mã thoát 0** (L1 = 0,2). Kết quả in đầy đủ: `vibe_logs_305/kq_uv001.txt`, `kq_vi_du_tay.txt`, `kq_vi_du_doi_cho.txt`.
+- Bảng kiểm ĐÃ chạy trên đề xuất tay của leader là việc của PR kế (`docs/ung-vien.json` hôm nay chỉ có UV-001); công cụ nhận phiếu tay như trên.
+
+### D. Đột biến (TRÊN BẢN SAO `git archive`, không bao giờ trên cây làm việc; `vibe_logs_305/mut305.py`, `mut305.log`, `mut305b.log`)
+
+Cơ sở xanh (59 passed) rồi **35 đột biến; lượt đầu 34/35 ĐỎ, một phát SỐNG SÓT; sau khi thêm một khẳng định, nay 35/35 ĐỎ.** Gồm mọi phát của đặc tả mục 4 (`>= 4` → `>= 5` · `== 3` → `== 4` · sàn 0,10 → 0,01 · bỏ bội 0,05 · dung sai dựng lại 1e-4 → 1e-1 · dung sai trùng 1e-4 → 1e-1 · `max` → `min` · thiếu khai → PASS · `da_doc_ket_qua_som` true không còn REJECT · thêm `import cham_xac_nhan` · thêm `open(…, "w")`) cùng 24 phát thêm: biên L1 = 0,10, L1 = 0 → `< 0`, cùng họ `>= 2` → `> 2` và 2 → 1, bỏ loại chính dòng khỏi phép so, mục 2 áp cho mọi loại, nhãn sai không REJECT, `deu` 0,25, hằng `CO_SO` volume 0,21, đếm tự do cả trọng số 0, đếm cùng họ cả thành phần 0, bỏ kiểm kiểu bool, đảo thứ tự hạng, L1 bỏ risk, thêm `import paper_trading` trong hàm, và ba phát ở công cụ dòng lệnh (mã thoát REVISE → 0, "chưa kiểm được" → 1, không bắt ValueError). **Phát sống sót lượt đầu: "công cụ không in số liệu thô"** — không test nào đòi dòng số liệu thô (SKILL Bước 3 điều 4: in dữ liệu thô ngay dưới con số); thêm khẳng định `ra.count("số liệu thô:") == 5` vào `test_CLI_ma_thoat_0_PASS_1_REVISE_3_REJECT_va_in_tung_muc`, chạy lại đúng phát ấy (`vibe_logs_305/mut305_one.py`) → ĐỎ.
+
+### E. Tám chỗ khác hay sửa đặc tả (đặc tả còn ghi *"Chưa kiểm"* ở vài chỗ)
+
+1. **Thiếu `dan_xuat`:** mục 1 và 2 trả REVISE ("chưa kiểm được"), không PASS im lặng (đặc tả chỉ nói mục 5 hạ PASS xuống REVISE).
+2. **Phiếu hỏng thì NỔ, không đoán:** `da_doc_ket_qua_som` không phải bool (kể cả chuỗi `"false"`, vốn truthy) · `dan_xuat` hỏng (loại lạ, số `tham_so` sai, tên thành phần lạ) · spec hỏng → `ValueError`; công cụ dòng lệnh đổi nó thành mã thoát 2, *"chưa kiểm được"*. Luật spec chép của `cham_bong.kiem_spec` và test so hai bên trên 6 ca xấu và 3 ca tốt.
+3. **Mục 5 gộp hai lời khai và lấy cái nặng nhất:** `da_doc_ket_qua_som` = true thắng "bỏ ngỏ".
+4. **Thêm trường tuỳ chọn `ma` vào phiếu** (đặc tả chỉ nói "trừ chính nó"): bỏ dòng sổ cùng mã khỏi phép so ở mục 4. Không có `ma` thì MỌI dòng sổ đều là "khác" (khai lại UV-001 mà không đặt mã → REJECT trùng).
+5. **Module không nhập `cham_bong` hay `thi_truong_gia`** (gác G2 và đặc tả mục 3 khoản 4), nên `THANH_PHAN`, `LOAI_SPEC`, `CO_SO` là bản chép; test khoá chúng bằng nguồn thật (`cham_bong.THANH_PHAN`, `cham_bong.LOAI_SPEC`, `thi_truong_gia.TRONG_SO_MAC_DINH`).
+6. **Đặc tả ghi chưa kiểm "`paper_*` / `run_daily` nhập gì":** gác đảo chiều (test mục 10) quét CẢ repo (`tools/duyet_repo.py`) và đòi tập người nhập `kiem_de_xuat` đúng bằng `{tools/kiem_phieu_de_xuat.py, tests/test_kiem_de_xuat.py}`; một phép đo bắt-được-người-nhập-lạ chạy trên đoạn mã mẫu.
+7. **Đặc tả ghi chưa đọc `tests/test_moc_doc.py` đến cùng:** đọc các gác AST mục 7 (dòng 337–420): chúng chỉ quét `cham_bong.py`, `cham_xac_nhan.py`, `keo_bang_gia.py`, `app.py` và gọi `so_cap` · `ma_tran_cap`; không chạm file mới (không hằng 252, không gọi `so_cap`).
+8. **Đối chứng thật không phụ thuộc dòng khai SAU:** nếu sau này có UV-002 trùng họ, mục 4 của UV-001 trên sổ đầy đủ có thể đổi; test sổ thật chỉ đòi mục 1 · 2 · 3 · 5 PASS, còn "cả năm PASS" thử trên sổ chỉ có dòng THẬT của UV-001.
+
+### F. Sổ tay NotebookLM
+
+- Đặc tả mục 4: KHÔNG chạm file luật. Máy xác nhận: `./.venv/Scripts/python.exe tools/buoc_cham_luat.py 305` → *BƯỚC 305: khong cham luat  [CHUA vao origin/main: cay lam viec so voi diem tach f46a910]* (mã thoát 0); mục `BƯỚC 305` của `docs/soat-notebooklm.json` khai `khong_bat_buoc_vi`. Chỉ THÊM file mới (`kiem_de_xuat.py`, `tools/kiem_phieu_de_xuat.py`, `tests/test_kiem_de_xuat.py`) cùng STATE, HANDOFF, sổ này và mốc số test; mốc C3 đã có sẵn ở `docs/LO-TRINH.md`, không thêm dòng nào.
+- Mục sổ dựng từ dict bằng `so_tay.ghi` (không gộp văn bản; lỗi 170). BƯỚC 304 cũng sẽ ghi STATE, HANDOFF, `docs/moc_so_test.json` và `docs/soat-notebooklm.json`: BƯỚC nào gộp sau phải `git merge origin/main` rồi dựng lại hai file JSON từ dict.
+
+### G. Điều CHƯA làm / chưa kiểm
+
+1. **Năm cổng `tools/nam_cong.py --tuan-tu` CHƯA chạy** (máy đang chạy ĐO 38 dòng hạt 7 · 9 · 8 của BƯỚC 304, ~6 giờ ƯỚC LƯỢNG; cổng 4 hết giờ dưới tải). Lượt cổng CUỐI trên commit cuối và kết quả ở thân PR (không ghi vào STATE).
+2. **Chưa chạy trên phiếu C3 thật nào của máy** (C3 chưa có mã): các ca chặn là mẫu dựng tay. Ngưỡng 3/4 · 0,05 · 0,10 · "≥ 2" là ƯỚC LƯỢNG và chưa thấy chúng cắn thế nào trên ứng viên máy soạn thật.
+3. **Luật 1 thô:** phiếu `tay` đều 0,2 × 5 tính là 4 tự do (REJECT) dù chỉ là "đều"; đường đúng là khai `deu` (đặc tả mục 2).
+4. **Bảng kiểm chỉ in:** không chặn ai, không nối vào `vong_hoc_gia` hay một cổng git; nối cổng là việc của C3 khi có mã (khuyến nghị 1).
+5. **Việc kế:** khi máy rảnh (leader báo): chạy năm cổng, gộp `origin/main` (sau BƯỚC 304), mở PR (không tự merge); mô tả PR dán kết quả in của UV-001 và phiếu ví dụ (ghi rõ là ví dụ). Lỗi kế 209.
+
+## BƯỚC 304 — C4 CHẠY CHÍNH THỨC ĐO 38: dòng hạt 6 · 7 · 9 · 8 MỘT LẦN, KẾT CỤC ĐẠT Ở CẢ 16 TIÊU CHÍ; T6 ĐÃ CHỨNG MINH TRONG THỊ TRƯỜNG GIẢ (CHỈ TRONG THỊ TRƯỜNG GIẢ) (27/11/2026)
+
+**Mốc:** C4
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG:** bảng đã ký ở ĐO 38 (25/11 và 26/11/2026: *"ok tiếp tục làm theo đề xuất của bạn"*, *"duyệt cả 4"*, *"Giữ M1 + phán thêm z′ (Recommended)"*); lượt chạy này KHÔNG đổi một chữ của bảng, của ngưỡng hay của bộ sinh.
+- **LEADER (không phải người dùng):** chạy bốn dòng hạt bằng đúng lệnh của ĐO 38, theo thứ tự 6 · 7 · 9 · 8, và đọc kết cục MỘT lần (`--ket-cuc --do 38`); không chạy lại, không đọc lại để chọn.
+- **PHIÊN CON (BƯỚC này, không chạy thị trường nào):** soát Quy tắc 1 trên bản ghi (khối *Sau khi nhìn* bên dưới), ghi kết cục vào STATE và LO-TRINH, hỏi sổ tay.
+
+**Đánh số:** BƯỚC 304; **không mở lỗi mới** (lỗi kế **209**: số lớn nhất ở `references/loi-da-mac.md` đọc lại hôm nay là 208). Nhánh `c4/chay-do38-304` từ `origin/main` @ `f46a9102e3f444b5eef769374a8e40c76bf637ee` (PR #349, BƯỚC 303). Số hiệu do leader cấp.
+
+### A. Lệnh chạy và lệnh đọc (đúng lệnh của ĐO 38, ở thư mục gốc repo, trên cây bằng `origin/main`)
+
+```
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 6 --so-tien-trinh 12
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 7 --so-tien-trinh 12
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 9 --so-tien-trinh 12
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --do 38 --luong 8 --so-tien-trinh 12
+./.venv/Scripts/python.exe -X utf8 tools/chay_chinh_thuc_thi_truong_gia.py --ket-cuc --do 38
+```
+
+- **Giờ chạy (ngày 27/11/2026, nối tiếp nhau, mã thoát 0 cả bốn; nhật ký `vibe_logs_304/chuoi.log`):** dòng 6 08:30:40–08:41:56 · dòng 7 08:41:56–08:53:05 · dòng 9 08:53:05–09:03:10 · dòng 8 09:03:10–14:26:35. Thời gian ghi trong bản ghi: 670 · 666 · 604 · 19.388 giây, tổng **21.327 s ≈ 5,92 giờ** (ĐO 38 ước 6,87 giờ: ước lượng, thực tế ngắn hơn). Cả bốn dòng `XONG`, cùng `head` = `origin_main` = `f46a9102e3f444b5eef769374a8e40c76bf637ee`, cùng `sha_do` `0f7c4b7b378527a9782036a278446d5894c7d0209034ea732ccb82f1119efbad` (băm thân ĐO 38; tính lại ở `f46a910` và ở cây làm việc ra cùng số). Python 3.13.14, 12 tiến trình.
+- **Bản ghi:** `docs/thi-truong-gia-ket-qua-do38.json`, sha256 `b51e955ce2083427ddac4501fe229918647d19c20b319ab9777edd2f365d991c` (`sha256sum docs/thi-truong-gia-ket-qua-do38.json`), commit nguyên từng byte. Lệnh đọc chạy MỘT lần; nhật ký `vibe_logs_304/ket_cuc.log`, sha256 `8e1a0d7be975da8342630c6fb177f8bcd2204febc2071b0195a2180b3fbb68c7`.
+- Dòng `Khai ở commit` phía dưới là `9012887074aed0ead6e9a18196ffc1b6bf8b489e` (commit RIÊNG ký ĐO 38 ở BƯỚC 303); `git merge-base --is-ancestor 9012887074aed0ead6e9a18196ffc1b6bf8b489e f46a9102e3f444b5eef769374a8e40c76bf637ee` ra mã 0 (đo hôm nay, kho đầy đủ).
+
+**Kết quả ĐO 38:**
+
+**Khai ở commit:** `9012887074aed0ead6e9a18196ffc1b6bf8b489e`
+**Chạy trên origin/main:** `f46a9102e3f444b5eef769374a8e40c76bf637ee`
+
+### Đã khai (M1, M2, M3, M4, M5)
+
+Nguyên văn dòng đầu của lệnh đọc: **`KẾT CỤC: DAT`** (mọi hàng ĐẠT, không hàng TRƯỢT, không điều KHÔNG ĐỌC ĐƯỢC). Ngưỡng là ngưỡng đã ký, không đổi sau khi thấy số.
+
+- **M1** NULL có nhớ, xác nhận nhầm (dòng 9, R = 1.000): **3** thị trường có ≥ 1 ứng viên G · Z · H `QUA` mà ΔIC_true ≤ 0, ngưỡng ≤ 50 — ĐẠT.
+- **M2** NULL có nhớ, độ chuẩn: sd gộp (`ddof=1`) của z′ trên 3.000 cặp = **1,0408973397394878**, ngưỡng trong [0,8 ; 1,25] — ĐẠT; cặp bị loại 0/3.000.
+- **M3** A0 (dòng 7, R = 1.000): **281**, ngưỡng ≤ 307 (p̂ = 5.263/20.000 đo ở dòng 1) — ĐẠT.
+- **M4** PT (dòng 8, R = 100): báo động NULL **7** ≤ 12 và G′ `QUA` ở 2× **41** trong dải 99% [31 ; 62] — ĐẠT.
+- **M5** mười hai tiêu chí giữ nguyên chữ và số của ĐO 37 — ĐẠT cả mười hai: A **400** (≥ 320) · B1 **42** (≤ 75) · B2 **400** (≥ 360) · B3 **13** (≤ 20) · B4 **0** (= 0) · C1 **0** (= 0) · C2 cận dưới KTC 95% **0,13502225412565394** (> 0) · C3 **22** (≤ 50) · P1 **0** · P2 **0** · P3 **100** (≥ 90) · P4 mã thoát **0** (55 passed, 550 deselected); ba điều KHÔNG ĐỌC ĐƯỢC của Đ9 và hai điều thêm (khoản 5, 6) đều sạch.
+
+### Báo kèm (B1, B2, B3, B4, B5, B6, B7, B8)
+
+- **B1** bảng 2×2 {G, G′} × {Tầng 1, Tầng 2}, từ các lượt `t1` và `pt` của bản ghi hiệu chuẩn (dòng 1, BƯỚC 301; đọc lại hôm nay từ `docs/thi-truong-gia-hieu-chuan-do38.json`): Tầng 1 G′ `QUA` 930/1000 · G 1000/1000 · Z 26/1000 · H 0/1000; Tầng 2 G′ 92/200 · G 7/200 · Z 0/200 · H 0/200. KHÔNG phải số của lượt chạy này.
+- **B2** χ² của tỷ lệ chọn từng spec so với đều, lượt `a0` của bản ghi hiệu chuẩn: **280,2223718995739** (10 bậc tự do; tính lại từ `ty_le_theo_spec` × N = 20.000). KHÔNG phải số của lượt chạy này.
+- **B3** sd của z ở NULL Tầng 2 (dòng 8) so [0,8 ; 1,25]: **KHÔNG tính được** — bản ghi của dòng 8 chỉ lưu `p` và `delta` của bộ ba Tầng 2, không lưu `z` hay `sd_null`; lệnh đọc không in số này. Ghi thẳng, không bù bằng số khác.
+- **B4** tỷ lệ đuôi P(z′ > z_c) của dòng 9: z_c = 2,3939797998185073, **30/3.000 = 0,01**.
+- **B5** M1 khối (a): thị trường NULL-M có ≥ 1 báo động hai phía ở bộ ba **134/1.000 = 0,134** (so B1 ≤ 75 của bảng: số này lớn hơn 75 nhưng B1 đo ở dòng 7, không phải dòng 9 — hai quần thể khác nhau).
+- **B6** M1 khối (b): z ở dòng 9 — gộp trung bình −0,3081, sd 1,1881; G −0,9624 / 1,0315; Z +0,5417 / 1,0196; H −0,5036 / 0,9718.
+- **B7** M1 khối (c): thị trường NULL-M có chuỗi nâng cấp **160/1.000 = 0,16**.
+- **B8** các số "Báo cáo, không phán" của ĐO 37 (Đ8) đọc trên dòng 6 · 7 · 8: đường cong G `QUA` / tìm ra / nâng cấp ở 0,5× = 93 / 263 / 79 (R = 400), ở 1× = 314 / 373 / 317, ở 2× = 400 / 400 / 400; bắt G ở 1× 314 trong dải 99% [299 ; 340]; B1 = 42/1.000 = 0,042 (không dưới 2,5%: vòng KHÔNG thiếu nhạy); ΔIC thực hiện sau nâng cấp ở NULL: n = 22, trung bình 0,000243; máy đo NULL: 12.000 ô, tỷ lệ |z| < 2 = 0,9232, sd z 1,1271, trung bình z 0,0174; ΔIC_true(G) trung bình 0,03740 (mục tiêu 0,03781, lệch −1,10%) · 0,07470 (0,07563, −1,22%) · 0,14863 (0,15126, −1,74%), ở NULL 0,0000487 (sai số chuẩn 0,000170); Tầng 2 ở 2×: Z báo động 88/100, H `QUA` 0/100, H báo động 23/100.
+
+### Sau khi nhìn
+
+Mọi dòng dưới đây là SAU KHI NHÌN: đầu mối cho một ĐO sau, không phải kết luận, không dùng để đổi tiêu chí. Soát Quy tắc 1 (số đẹp lên thì giả định có lỗi) trên bản ghi, chỉ đọc JSON và nhật ký, không chạy lại lệnh đọc kết cục: `vibe_logs_304/quy_tac_1.md` (lệnh và đầu ra nguyên văn; script ở `vibe_logs_304/kiem/`).
+
+1. **A0 giảm 421 → 281 là do bộ đề xuất chuẩn hoá của BƯỚC 300, không phải lỗi.** Số lần mỗi spec `mono_*` được khai ở 1.000 thị trường NULL tụt từ 420–422 (ĐO 37, dòng 3) xuống 227–285 (ĐO 38, dòng 7), mọi spec gần đều (χ² 17,2 / 10 bậc). 281 cách kỳ vọng 263,1 (p̂ = 5.263/20.000) +1,28 độ lệch chuẩn nhị thức; ba mẫu độc lập cho tỷ lệ G được khai 26,8% (dòng thử 9001, BƯỚC 300) · 26,3% (dòng 1) · 28,1% (dòng 7). Đếm trên đủ 1.000 thị trường (chỉ số 1…1.000, liền mạch). Lệnh: `./.venv/Scripts/python.exe -X utf8 -c "import json; d=json.load(open('docs/thi-truong-gia-ket-qua-do38.json',encoding='utf-8')); print(sum('mono_volume_score' in t['chuoi']['khai'] for t in d['cac_luong']['7']['o']['NULL']['thi_truong']))"` → `281`. 24 thị trường có dưới ba spec được khai (một thị trường rỗng): đúng luật `chon_khai` đòi z > 0 VÀ Δ > 0; trung bình 2,972 spec (BƯỚC 300 đo 2,970).
+2. **Hai con số lặp lại ĐO 37 CHÍNH XÁC, trên các thị trường RỜI nhau:** G′ `QUA` ở 2× Tầng 2 = 41 = 41, và báo động NULL Tầng 2 = 7 = 7 (0 chỉ số chung). Chứng cứ KHÔNG tái dùng thị trường: 400 băm sinh `dg_sinh` (hai ĐO × hai ô × 100) khác nhau đôi một; sinh LẠI bằng bộ sinh Tầng 2 với dòng 8 khớp bản ghi ĐO 38 và với dòng 4 khớp bản ghi ĐO 37 (chỉ số 1001 và 1050); hạt `default_rng([dòng, chỉ số])` đi từ `chay_mot_thi_truong_tang2` tới bộ sinh; tương quan Δ của G′ cùng chỉ số 0,03; 54/100 cùng trạng thái (kỳ vọng do ngẫu nhiên 51,6). Ngưỡng `nguong` = 0,016667 cố định ở MỖI thị trường của cả hai ĐO, và ở 100 hàng 2× mỗi bên `QUA` ⇔ (`p` < `nguong` và `delta` > 0), 0 hàng vi phạm: số đếm là tổng các quyết định độc lập từng thị trường, không phải một phân vị ép. Xác suất trùng đúng 41 giữa hai mẫu độc lập ≈ 5,7%, trùng đúng 7 ≈ 11,1% (với p = 0,07), chung ≈ 0,6% (ƯỚC LƯỢNG, giả định độc lập; lệnh: `./.venv/Scripts/python.exe -X utf8 -c "from scipy.stats import binom; print(sum(binom.pmf(k,100,.41)**2 for k in range(101)), sum(binom.pmf(k,100,.07)**2 for k in range(101)))"` → `0.05728894424520518 0.11123883974355057`). Thấp nhưng không bằng chứng của tái dùng; bằng chứng KHÔNG tái dùng là băm rời nhau và ngưỡng cố định ở từng thị trường.
+3. **Ba giới hạn của kết cục (nói thẳng, không đổi kết cục):** (i) A0 ĐẠT với biên 26 (281 so 307, cỡ 1,9 độ lệch chuẩn nhị thức): A0 là phép thử "ngẫu nhiên" của chính bộ đề xuất mới, không dư địa lớn. (ii) M1 = 3/1.000 qua gần như miễn phí: ở NULL-M cả năm spec `mono_*` có ΔIC_true âm (−0,019 … −0,021), nên bộ đề xuất khai G chỉ 130/1.000 ở dòng 9 (so 281 ở dòng 7); M1 hầu như không kiểm gì, M2 (sd z′ = 1,0409) mới là phép đo có lực (điều BƯỚC 301 đã thấy ở dòng thử 9001: 1/200). (iii) PT chỉ phán THEO TỶ LỆ trên 100 thị trường với dải 99% rộng [31 ; 62]; 41 nằm giữa dải, không sát biên.
+4. **Hằng số `NGUONG["A0"]` = 317 trong dụng cụ là của ĐO 37**; ĐO 38 ghi đè bằng `hc38["nguong_A0"]` = 307 ở `tong_hop` (đọc từ bản ghi hiệu chuẩn); nhật ký in 307. Không lệch, nêu để người đọc mã không tưởng ĐO 38 dùng 317.
+5. **Bão hoà KHÔNG phải trần cứng:** A = B2 = 400/400 ở 2× và đường cong 2× = 400/400/400 là số thật (ở 0,5× tìm ra 263/400 và G `QUA` 93/400, ở 1× 373 và 314); ĐO 37 cũng 400/400 ở 2× (cùng κ, cùng bộ sinh). B4 = 0 mà H có thể `QUA` (5/1.000 ở NULL, 2/1.000 ở NULL-M); C1 = 0 trên 2.400 hàng với 869 chuỗi có nâng cấp; P1 = P2 = 0 trên 200 thị trường (7.260.000 dòng, 178–407 lệnh thật mỗi thị trường, phát lại bằng đường thật khớp 200/200); P3 = 100 trong khi NULL chỉ 50/100 dương. Mọi trường đếm có mặt ở mọi hàng (thiếu khoá 0, `None` 0).
+6. **ĐO 37 → ĐO 38 ở mười hai tiêu chí giữ nguyên:** B1 39 → 42, B3 7 → 13, C3 12 → 22, C2 0,1441 → 0,1350 (đều đổi theo chiều XẤU đi hay ngang, không đẹp lên); A, B2, B4, C1, P1–P4 giữ như cũ.
+7. **Việc chưa làm sau kết cục này:** ĐO 38 chỉ nói về thị trường GIẢ có lợi thế cài sẵn (mục 11 của `docs/thiet-ke-c4-thi-truong-gia.md`): không nói thị trường thật có lợi thế; không nói vòng bắt được mọi loại lợi thế (khuôn ứng viên là tổ hợp tuyến tính năm thành phần giá); không đo lợi nhuận; không chứng minh đường thật nâng cấp được (mục 5.5); mô hình sinh là một họ.
+
+### B. Kết cục ghi vào LO-TRINH, không viết lại tiêu chí
+
+`docs/LO-TRINH.md`: dòng T6 (:88), câu :233 và hàng C4 (:238): câu cũ *"CHƯA chứng minh"* (BƯỚC 296) và *"lượt chạy là BƯỚC 304 … T6 vẫn CHƯA chứng minh cho tới khi lượt chạy ấy có kết cục"* nay mang dấu 🔴 **HẾT ĐÚNG 27/11/2026**, giữ nguyên chữ; thêm câu mới **T6 ĐÃ chứng minh trong thị trường giả** (*"KẾT CỤC: DAT"*, mười sáu tiêu chí ĐẠT) kèm giới hạn mục 11 và ba giới hạn ở khối *Sau khi nhìn*. Thân mục `## ĐO 38` và mọi ĐO khác của `docs/TIEU-CHI-DOC-TRUOC.md` KHÔNG đổi một byte (`git log f46a910..HEAD -- docs/TIEU-CHI-DOC-TRUOC.md` rỗng trước khi viết; sau đó `git diff origin/main -- docs/TIEU-CHI-DOC-TRUOC.md` rỗng).
+
+### C. Điều CHƯA làm / chưa kiểm
+
+1. **B3 KHÔNG tính được** (mục Báo kèm): bản ghi dòng 8 thiếu `z` và `sd_null`; muốn có phải sửa dụng cụ ghi thêm hai trường và chạy lại dòng 8 trên dòng hạt mới (một ĐO mới).
+2. **Chưa chạy lại để tái lập kết cục** — ĐO 38 đọc MỘT lần; tái lập bằng bit chỉ ở mức thị trường đầu của mỗi ô (`tai_lap` = `KHOP` ở 7/7 ô) cộng sáu thị trường tôi sinh lại bằng tay (hai Tầng 2, bốn Tầng 1 gồm một NULL-M), đều khớp băm.
+3. **Chưa đo trên dữ liệu thật** và không có ý nói gì về nó: T6 là bằng chứng nội thất của vòng học, không phải bằng chứng lợi thế thật; đích 2 vẫn do UV-001 và C5 quyết.
+4. **Việc kế:** leader soát PR (đổi luật vì chạm `docs/LO-TRINH.md`; KHÔNG tự merge); bước kế của C4 là mã C còn lại của giai đoạn C (xem `docs/LO-TRINH.md`). Lỗi kế 209.
+
+### D. Sổ tay NotebookLM (hỏi thật; Quy tắc 3) · số test · năm cổng
+
+- **Chạm file luật:** BƯỚC này sửa `docs/LO-TRINH.md` (file luật theo `SKILL.md` Quy tắc 3) và ghi một kết luận đo (T6 ĐÃ chứng minh trong thị trường giả), nên mục `BƯỚC 304` của `docs/soat-notebooklm.json` là HỎI THẬT, không `khong_bat_buoc_vi`. Mục `ĐO 38` đã có từ BƯỚC 303 (bản sao của mục `BƯỚC 303`) nên không thêm mục mới cho ĐO.
+- **Câu hỏi** (một dòng, tiếng Anh, đòi trả lời tiếng Việt, một `o_thoat` là chuỗi con của chính câu; 2.017 đơn vị UTF-16; nguyên văn ở `cau_hoi` của mục sổ và `vibe_logs_304/hoi_304_text.txt`; JS `vibe_logs_304/hoi_304.js` dựng bằng `so_tay.py hoi … --js`): có chỗ nào của tài liệu nói ngược hay thành SAI khi ghi T6 *ĐÃ chứng minh* (chỉ trong thị trường giả) sau kết cục ĐẠT của ĐO 38 — ví dụ luật đòi một lượt thứ hai, một quyết định người dùng, dữ liệu thật, hay cấm ghi khi biên sát ngưỡng / một tiêu chí qua gần như miễn phí / dụng cụ có giới hạn đã khai; hay cấm sửa LO-TRINH mà không có ĐO mới. Leader chạy trong trình duyệt của leader (phiên con không mở trình duyệt), trên nhật ký chat đã xoá về 0, sau khi đo độ tươi.
+- **Độ tươi (đo bằng nhãn, không hỏi mô hình):** `./.venv/Scripts/python.exe tools/so_tay.py do-tuoi vibe_logs_306/nhan_306_sau_lam_moi.md --so-voi origin/main` → *26 nguồn, 26 tươi* so với `f46a9102e3f444b5eef769374a8e40c76bf637ee`; không thay nguồn nào. Chính dòng ấy nằm ở `_do_tuoi` của mục sổ (máy sinh). Chữ `docs/STATE.md`, `docs/HANDOFF.md` và `docs/LO-TRINH.md` của BƯỚC NÀY chưa được nạp (câu hỏi hỏi về chữ sắp ghi, trên chữ cũ).
+- **Trả lời lưu CÓ BẮT TAY:** 4.779 đơn vị UTF-16, sha256 `48a2cc9908dd90c40842476592b487be4a50f527801fc572222195b37403e11f`, 30 trích dẫn, 16 ký tự vô hình (tám cặp TAB + U+200B trong phần toán M1, M2, A0, p̂). Tệp dựng từ chuỗi `text` của chính trang (`vibe_logs_304/dung_tep_tra_loi.py`) và `./.venv/Scripts/python.exe tools/so_tay.py kiem-tra-loi vibe_logs_304/tra_loi_304.txt --sha256 48a2cc99…e11f` → *KHOP · 4779 don vi UTF-16*.
+- **Kết quả: ÂM — sổ tay nói không tìm thấy câu nào mâu thuẫn hay thành SAI** (mục `BƯỚC 304`: `khong_tim_thay_gi: true`, không phát hiện). Nó trích luật ĐO 38 (*"T6 được ghi ĐÃ chứng minh, kèm giới hạn mục 11"*), luật TRƯỢT của ĐO 37/38, câu *"R KHÔNG được tăng sau khi nhìn kết quả …"*, câu dặn của chính BƯỚC 304 (*"Kết cục ghi vào `docs/STATE.md` … và `docs/LO-TRINH.md` … không viết lại tiêu chí"*), câu cũ của LO-TRINH và hai lời người dùng (25/11 và 26/11/2026).
+- **Tự kiểm (lệnh đầy đủ ở `_tu_kiem_cau_am` của mục sổ):** (1) bảy chuỗi trong dấu nháy → `tools/doi_chieu_trich_dan.py`: KHỚP cả bảy, và một chuỗi đối chứng tự bịa ra LỆCH (công cụ phân biệt được); (2) **câu ÂM:** `git grep -n -i -E` ở `f46a910` trên tám file luật với bảy mẫu tìm điều kiện thêm cho T6 (chỉ khi / phải có / sau khi, lượt thứ hai, chạy lại ĐO 38, thị trường thật, người dùng duyệt, cấm ghi, biên sát) → 0 dòng chạm T6; các dòng trúng nằm ở ĐO khác (`docs/TIEU-CHI-DOC-TRUOC.md` :179 bốn phép kiểm của ĐO walk-forward, :1823, :2250, :4158, :4224); câu luật duy nhất về T6 là *"T6 được ghi ĐÃ chứng minh, kèm giới hạn mục 11"* (:5010 ĐO 37, :5164 ĐO 38, `thiet-ke` :206). Sổ tay không bỏ sót điều gì mà phiên tìm được. Giới hạn: sổ tay chỉ đọc tài liệu, không đọc mã; nó không thay được Quy tắc 2.
+- **Ghi sổ:** mục `BƯỚC 304` do `so_tay.py ghi` dựng từ dict và ghi bằng `json.dumps` (lỗi 170; `vibe_logs_304/dung_muc_304.py`); khi gộp `origin/main` (BƯỚC 305 cùng ghi file này) dựng lại từ dict, không gộp văn bản.
+- **Số test:** BƯỚC này không thêm test; mốc `docs/moc_so_test.json` KHÔNG đổi ở nhánh này (chỉ đổi khi gộp BƯỚC 305, cập nhật bằng `tools/kiem_so_test_khong_giam.py --cap-nhat`). **Năm cổng** `tools/nam_cong.py --tuan-tu` trên commit CUỐI: kết quả ở thân PR (số liệu của một cổng không nằm được trong commit mà nó chạy).
+
 ## BƯỚC 306 — DOW PHẦN 2, LÁT 0: KÝ ĐO 39 (ĐO MÔ TẢ HAI CHUỖI CHỈ SỐ VN30 – VNMidcap, KHÔNG LỢI NHUẬN, KHÔNG MÃ) VÀ SỬA `docs/LO-TRINH.md` THEO QUYẾT ĐỊNH 23–27/11/2026; PHẦN 1 CHƯA CHẠY TRÊN HAI CHUỖI ẤY (27/11/2026)
 
 **Mốc:** B7
@@ -28928,7 +29073,7 @@ Hàng 05/11 *"Hoãn tới sau v1.0 (Recommended)"* mang 🔴 HẾT ĐÚNG; mục
 
 ### G. Số test · cổng
 
-- **Số test KHÔNG đổi: 5993** (`PY tools/kiem_so_test_khong_giam.py` → *OK — 5993 test, khop moc da ghi*, 27/11/2026); `docs/moc_so_test.json` không phải cập nhật. BƯỚC 304 và 305 cũng chạm `docs/STATE.md` · `docs/HANDOFF.md` · `docs/soat-notebooklm.json` · có thể `docs/moc_so_test.json`: BƯỚC nào gộp sau gộp `origin/main` vào và dựng lại các tệp ấy từ dict, mốc lấy lại bằng lệnh trên.
+- **BƯỚC NÀY không đổi số test** (không test thêm hay bớt): 5993 ở `f46a910` (`PY tools/kiem_so_test_khong_giam.py` → *OK — 5993 test, khop moc da ghi*, 27/11/2026); sau khi gộp `origin/main` `f2daca292c72bc0dacd5fcb398010c6d71676c38` (PR #351, BƯỚC 304 · 305) là **6052 = mốc của `main`** (28/11/2026, cùng lệnh, *OK — 6052 test, khop moc da ghi*), nên `docs/moc_so_test.json` không phải cập nhật. `docs/soat-notebooklm.json` dựng lại từ dict: bản của `main` tái hiện đúng từng byte (786.306) rồi thêm hai khoá `BƯỚC 306` · `ĐO 39`; STATE · HANDOFF gộp văn bản (khối BƯỚC 305 · 304 của `main` trước, khối 306 sau). BƯỚC 304 và 305 cũng chạm `docs/STATE.md` · `docs/HANDOFF.md` · `docs/soat-notebooklm.json` · có thể `docs/moc_so_test.json`: BƯỚC nào gộp sau gộp `origin/main` vào và dựng lại các tệp ấy từ dict, mốc lấy lại bằng lệnh trên.
 - **Test nhắm trúng (máy đang chạy ĐO 38 chính thức nên KHÔNG chạy toàn bộ, không `nam_cong.py`):** 18 tệp, hai lượt (`test_ket_qua_do_co_nhan` · `test_do_phai_khai_da_tra` · `test_phep_do_neu_dung_cu` · `test_tai_lieu_khop_ten_ma` · `test_tai_lieu_khop_hang_so` · `test_bang_loi_do_duoc` · `test_moc_lo_trinh` · `test_chay_chinh_thuc_thi_truong_gia` · `test_chay_chinh_thuc_do38` · `test_buoc_cham_luat` · `test_cau_truc_gia_lat2` · `test_cau_truc_gia_lat3` · `test_cua_mo_phien_quy_tac3` · `test_dem_moc_tuan` · `test_doi_chieu_trich_dan` · `test_quyet_dinh_cho` · `test_so_tay` · `test_soat_notebooklm`). Lượt đầu (trước mục sổ tay): đỏ đúng hai test của mục E (đã sửa có chủ đích) và `test_MOI_PHEP_DO_da_ky_deu_co_mot_dong_trong_so` (chưa có dòng `ĐO 39`, đã thêm ở mục F); 470 passed. Lượt sau khi có mục sổ tay, STATE và HANDOFF: 33 tệp test đọc tài liệu (thêm `test_lenh_trong_tai_lieu` · `test_soat_ngoai_cong_cu` · `test_kiem_duong_ngoai_repo` · `test_so_trung_thuc` · `test_ho_so*` · `test_soat_dinh_ky_co_tri_nho` · `test_soat_tuan` · `test_hang_rao_quy_trinh` · `test_cua_quy_trinh` · `test_skill_quy_trinh` · `test_do_dow_cau_truc` · `test_cau_truc_gia` …), **1109 passed, 1 skipped in 779,39 s** (`vibe_logs_306/t4.log`, 27/11/2026, máy đang chạy ĐO 38). **Năm cổng đầy đủ trên commit CUỐI: chưa chạy** (chờ leader báo máy rảnh), kết quả ở thân PR.
 
 ### H. Điều CHƯA làm / chưa kiểm

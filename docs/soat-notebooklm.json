@@ -7063,6 +7063,173 @@
       "phat_hien": [],
       "_tu_kiem_cau_am": "Hỏi thật một lượt, trả lời ÂM (lối thoát): sổ tay nói không có chỗ nào mâu thuẫn hay thành SAI khi BƯỚC 303 ký ĐO 38 (A0 và dải PT đo ở dòng hạt 1 SAU khi ĐO 37 trượt) và sửa ĐO 27 thành 'chỉ ghi băm'. Tự kiểm 26/11/2026, từ gốc worktree c4/ky-do38-303, nguồn của sổ tay phản chiếu origin/main 58aa394: (1) tệp trả lời dựng từ chuỗi text của chính trang (vibe_logs_303/dung_tep_tra_loi.py), `tools/so_tay.py kiem-tra-loi` KHOP sha256 8e56b81f…6061, 3848 đơn vị UTF-16, 22 trích dẫn, một ký tự U+200B ở vị trí 2209. (2) Trích dẫn đối chiếu bằng `tools/doi_chieu_trich_dan.py`: KHỚP sáu câu (ba câu của TIEU-CHI-DOC-TRUOC.md: 'TRƯỢT ở tiêu chí X — …', 'Số chính đã đọc rồi thì mọi thay đổi là một ĐO mới, …', 'khối ### SỬA ĐO <n> là con đường DUY NHẤT được phép sửa, …'; câu ĐO 27 'Đổi ngưỡng sau khi nhìn số = vi phạm bất biến 7; …'; hai câu của STATE BƯỚC 302 'Lượt 8 đọc lại một sổ KHÔNG đổi' và 'Việc hạ nhịp đọc …'); bốn câu LỆCH chỉ vì công cụ quét 15 tài liệu KHÔNG gồm docs/thiet-ke-c4-thi-truong-gia.md, và `grep -n` ở tệp ấy cho: dòng 130 (câu 'Sửa đặc tả sau khi đã nhìn một kết quả thì dòng hạt của bản sửa là 6, 7… Dòng 5 không bao giờ được dùng để chọn lại.') và dòng 679 (mục 21.7: 'Người dùng chọn: *\"Sổ không đổi thì chỉ ghi băm (Recommended)\"*. Áp dụng ở BƯỚC 303, không thuộc BƯỚC 301.') đúng nguyên văn. (3) Câu ÂM: `git grep -n -i -E` ở 58aa394 với mẫu '(không được|cấm|đóng).{0,60}(hiệu chuẩn lại|hiệu chuẩn sau|đo lại ngưỡng)' và mẫu đảo, trên docs/TIEU-CHI-DOC-TRUOC.md · docs/thiet-ke-c4-thi-truong-gia.md · NGUYEN-TAC-DO-LUONG.md · CLAUDE.md · docs/LO-TRINH.md → 0 dòng, tức không có luật viết nào cấm hiệu chuẩn A0/PT ở dòng 1 sau khi ĐO 37 trượt; bất biến 7 (NGUYEN-TAC-DO-LUONG.md, mục 7) đòi tham số chọn trên một khoảng và đo trên một khoảng KHÁC, đúng cách ĐO 38 chọn ở dòng 1 và đo ở dòng 6–9. (4) SÓT của sổ tay, phiên tự tìm bằng `git grep -n -E 'đọc đầy đủ mỗi tuần|mỗi lượt đọc (phải|kéo)' 58aa394 -- docs/TIEU-CHI-DOC-TRUOC.md docs/HANDOFF.md docs/STATE.md CLAUDE.md`: docs/TIEU-CHI-DOC-TRUOC.md :4195 (mục Dữ liệu của ĐO 27) có câu 'Mỗi lượt đọc kéo mỗi nguồn MỘT lần, ghi giờ kéo và băm (M0).' không còn đúng cho lượt băm-không-đổi, mà sổ tay chỉ nêu mục Nhịp đọc; BƯỚC 303 đã thêm câu ấy vào `### SỬA ĐO 27` (Hướng: trung tính) và vào dòng trỏ ở đầu mục. Ba dòng STATE (25400 · 25414 · 25416 ở 58aa394) nhắc câu cũ là bản ghi có ngày của các lượt đọc trước, không sửa."
     },
+    "BƯỚC 305": {
+      "ngay": "2026-11-27",
+      "khong_bat_buoc_vi": "Chỉ THÊM ba file mới: `kiem_de_xuat.py` (hàm thuần `kiem_phieu`: bảng kiểm xác định PASS · REVISE · REJECT cho ứng viên do máy soạn, chỉ đọc hai dict, không đổi điểm, trọng số hay ngưỡng nào của sổ, không mở khoá ứng viên, không gọi phép chấm), `tools/kiem_phieu_de_xuat.py` (công cụ chỉ đọc, chỉ in) và `tests/test_kiem_de_xuat.py` (59 test), cùng STATE, HANDOFF, sổ này và mốc số test; không sửa `cham_bong.py`, `vong_hoc_gia.py` hay file có sẵn nào. `tools/buoc_cham_luat.py 305` xác nhận BƯỚC không chạm file nào của `FILE_LUAT` (CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md, LO-TRINH.md); mã mốc C3 đã có ở LO-TRINH.md và BƯỚC không thêm dòng nào. Các ngưỡng của bảng (3/4 tham số, bội 0,05, L1 0,10, cùng họ ≥ 2) là ƯỚC LƯỢNG do người dùng duyệt 25/11/2026, không phải luật của dự án hay kết luận đo: chưa có phiếu C3 thật nào để đo chúng. Đặc tả mục 4 và 5 đã khai điều này trước khi có mã."
+    },
+    "BƯỚC 304": {
+      "ngay": "2026-11-28",
+      "nguon": [
+        "CLAUDE.md @86d43d1",
+        "HANDOFF.md @f46a910",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @f46a910",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @86d43d1",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @3ceb248",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3ceb248 phan3/8 (BUOC 117-168)",
+        "STATE.md @3ceb248 phan7/8 (BUOC 275-297)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "STATE.md @f46a910 phan8/8 (BUOC 298-303)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "thiet-ke-c4-thi-truong-gia.md @58aa394",
+        "TIEU-CHI-DOC-TRUOC.md @f46a910"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với f46a9102e3f444b5eef769374a8e40c76bf637ee f46a910): 26 nguồn, 26 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 304 into docs/STATE.md: BƯỚC 304 records into docs/STATE.md and docs/LO-TRINH.md that the official run of ĐO 38 (signed in docs/TIEU-CHI-DOC-TRUOC.md at BƯỚC 303 after ĐO 37 FAILED at A0 and PT) came out \"KẾT CỤC: DAT\": all 16 criteria passed (A0 = 281 against the signed threshold 307, PT: G' QUA = 41 inside the signed band [31 ; 62], M1 = 3, M2 = 1.0409, A = 400, B2 = 400, and so on), on NEW seed streams 6, 7, 8, 9 each run once, the outcome read once, no threshold lowered and the generator unchanged. So docs/LO-TRINH.md row T6 and row C4 will say T6 is proven (ĐÃ chứng minh) IN THE FAKE MARKET ONLY, with the limits of section 11 of docs/thiet-ke-c4-thi-truong-gia.md (nothing about the real market, not every kind of edge, no profit measured, the real path is not shown to upgrade itself) and with the old sentences marked HẾT ĐÚNG, not deleted. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a written rule that says T6 may be recorded as proven only after something this run did not do (a second independent run, a user decision, a real-market result, a different data set), or that a pass of a table that was re-signed after a failed run cannot count as proof, a written rule that forbids marking a result as proven when its margin to a threshold is small, when one criterion (M1) is almost free to pass, or when the measuring instrument has a documented limit (the NULL Tầng 2 z standard deviation was not stored), a written rule that forbids touching docs/LO-TRINH.md or the T6 sentence without a new signed ĐO, or that says the result of an ĐO must be written in a form that this record does not follow. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "48a2cc9908dd90c40842476592b487be4a50f527801fc572222195b37403e11f",
+        "dai16": 4779,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 4,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 5,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 6,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 11,
+            "nguon": "HANDOFF.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 12,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 12,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 3,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 14,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Hỏi thật một lượt, trả lời ÂM (lối thoát): sổ tay nói không tìm thấy câu nào mâu thuẫn hay thành SAI khi BƯỚC 304 ghi T6 'ĐÃ chứng minh' (chỉ trong thị trường giả) sau kết cục ĐẠT của ĐO 38. Tự kiểm 27/11/2026, từ gốc worktree c4/chay-do38-304, nguồn của sổ tay phản chiếu origin/main f46a910 (26/26 nguồn tươi, đo bằng nhãn): (1) tệp trả lời dựng từ chuỗi text của chính trang (vibe_logs_304/dung_tep_tra_loi.py), `tools/so_tay.py kiem-tra-loi` KHOP sha256 48a2cc99…e11f, 4.779 đơn vị UTF-16, 30 trích dẫn, 16 ký tự vô hình (tám cặp TAB + U+200B trong phần toán M1, M2, A0, p̂). (2) Bảy chuỗi trong dấu nháy của câu trả lời đối chiếu bằng `tools/doi_chieu_trich_dan.py`: KHỚP cả bảy (câu kết cục ĐẠT 'T6 được ghi ĐÃ chứng minh, kèm giới hạn mục 11'; câu 'KHÔNG hạ ngưỡng, KHÔNG đổi bộ sinh cho đẹp; sửa bộ phận sai rồi chạy lại trên dòng hạt MỚI'; câu 'R KHÔNG được tăng sau khi nhìn kết quả … không đọc lại để chọn'; lời người dùng 26/11 'Giữ M1 + phán thêm z′ (Recommended)'; lời người dùng 25/11 'PT vẫn PHÁN, sd z NULL Tầng 2 chỉ Báo kèm'; câu 'Kết cục ghi vào docs/STATE.md … không viết lại tiêu chí'; câu cũ của LO-TRINH 'T6 vẫn CHƯA chứng minh cho tới khi lượt chạy ấy có kết cục'), và một chuỗi đối chứng tự bịa 'không có kết cục nào ngoài ĐẠT, TRƯỢT và KHÔNG ĐỌC ĐƯỢC' ra LỆCH (công cụ phân biệt được). Số dòng: kết cục ĐẠT ở docs/TIEU-CHI-DOC-TRUOC.md :5164 (ĐO 38), 'Số thị trường (R) … MỘT LẦN' :5169, 'Lượt chạy (BƯỚC 304)' :5306. (3) Câu ÂM, tự tìm: `git grep -n -i -E` ở f46a910 trên CLAUDE.md · NGUYEN-TAC-DO-LUONG.md · MO-XE-KIEN-TRUC.md · docs/LO-TRINH.md · docs/TIEU-CHI-DOC-TRUOC.md · docs/thiet-ke-c4-thi-truong-gia.md · SKILL.md · docs/QUYET-DINH-CHO.md với bảy mẫu (T6 kèm 'chỉ khi / phải có / sau khi / trừ khi / yêu cầu'; 'lượt thứ hai'; 'chạy lại ĐO 38'; 'chứng minh' kèm 'thị trường thật / người dùng duyệt'; 'không được ghi đã chứng minh'; 'sát ngưỡng' kèm 'không / cấm / phải'; 'biên mỏng') → bảy mẫu: 0 dòng chạm T6; các dòng trúng là TIEU-CHI :179 (bốn phép kiểm của ĐO walk-forward kết cục C, không phải T6), :1823 và :2250 (ĐO khác) và :4158, :4224 ('A′ — giữ, biên mỏng', ĐO khác). `git grep -n -i 'đã chứng minh'` cùng bộ tệp: câu luật duy nhất về T6 là 'T6 được ghi ĐÃ chứng minh, kèm giới hạn mục 11' (TIEU-CHI :5010 của ĐO 37 và :5164 của ĐO 38; thiet-ke-c4 :206), tức không có luật viết nào đòi lượt chạy thứ hai, dữ liệu thật hay quyết định người dùng mới cho T6, và không luật nào cấm ghi ĐÃ chứng minh vì biên mỏng. (4) Phiên không tìm thấy chỗ sổ tay bỏ sót. Giới hạn: sổ tay chỉ đọc tài liệu, không đọc mã; ba giới hạn của chính ĐO 38 (A0 biên 26/307; M1 qua gần như miễn phí; B3 không tính được) đã được ghi vào STATE và LO-TRINH, và sổ tay nêu M1 và sd z NULL Tầng 2 đúng như chúng được ghi."
+    },
     "BƯỚC 306": {
       "ngay": "2026-11-27",
       "nguon": [
