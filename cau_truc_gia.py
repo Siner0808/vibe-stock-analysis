@@ -50,6 +50,12 @@ cắt đuôi — phá bất biến khi cắt. Người gọi tính MỘT lần r
 Cờ nến: `khoa_bien` (`KICH_TRAN`/`KICH_SAN` qua `vong_doi_lenh.khoa_bien`, không tự suy trần từ
 phần trăm) và `khong_giao_dich` (`volume == 0`) gắn lên MỌI pivot, lấy từ nến mang cực trị.
 Không bỏ nến, không sửa giá, không điều chỉnh giá.
+
+Chế độ CHỈ SỐ (`la_chi_so=True`, BƯỚC 307, Dow phần 2 Lát 1; mặc định `False` = cổ phiếu đúng từng byte như trước):
+một chỉ số 1.788 điểm không nằm trên lưới bước giá của cổ phiếu, nên (1) "bằng nhau" là chênh <= `NUA_BUOC_CHI_SO`
+= 0,005 điểm (nửa của hai chữ số thập phân nguồn trả) thay cho nửa bước giá HOSE (5 điểm), (2) KHÔNG có cờ `khoa_bien`
+(chỉ số không có trần/sàn của mã), (3) KHÔNG có cờ `khong_giao_dich` và true range không bị đặt 0 khi `volume` = 0
+(`volume` = 0 ở chỉ số là thiếu dữ liệu). Chỉ số không điều chỉnh quyền: `he_so_gia` = 1.
 """
 from __future__ import annotations
 
@@ -70,6 +76,8 @@ LUOI = {
 }
 #: Mặc định hiển thị, chốt TRƯỚC khi có số đo (đặc tả mục 5.3).
 MAC_DINH = ("atr", (2, 4))
+#: Dung sai "bằng nhau" của chế độ chỉ số (điểm): nửa của 0,01 — nguồn trả hai chữ số thập phân (đặc tả Dow phần 2 §2.5).
+NUA_BUOC_CHI_SO = 0.005
 
 CAP_NOI_BO = "noi_bo"
 CAP_SWING = "swing"
@@ -130,6 +138,7 @@ class TrangThai:
     he_so_gia: float
     caps: tuple
     dem: tuple = ()       # bộ đệm các nến gần nhất, chỉ họ fractal dùng
+    la_chi_so: bool = False   # BƯỚC 307: chế độ chỉ số (dung sai 0,005 điểm, không cờ nến)
 
 
 @dataclass(frozen=True)
@@ -147,7 +156,7 @@ class CauTruc:
 
 
 # ── chuẩn bị nến ──────────────────────────────────────────────────────────────────────────
-def chuan_bi_nen(df: pd.DataFrame, san: str = "HOSE") -> list[Nen]:
+def chuan_bi_nen(df: pd.DataFrame, san: str = "HOSE", la_chi_so: bool = False) -> list[Nen]:
     """Bảng nến -> danh sách `Nen`. Nến thứ i chỉ dùng các hàng <= i (so `shift(1)`, trung
     bình lăn 14 phía sau), nên cắt đuôi bảng không đổi các nến còn lại."""
     san_u = str(san).upper()
@@ -167,7 +176,7 @@ def chuan_bi_nen(df: pd.DataFrame, san: str = "HOSE") -> list[Nen]:
     gio = pd.to_datetime(df["time"]).reset_index(drop=True)
     if not gio.is_monotonic_increasing or gio.duplicated().any():
         raise ValueError("`time` phải tăng nghiêm ngặt")
-    if "volume" in df.columns:
+    if "volume" in df.columns and not la_chi_so:
         kl = pd.to_numeric(df["volume"], errors="coerce").reset_index(drop=True)
         khong_gd = (kl == 0)
     else:
@@ -180,7 +189,7 @@ def chuan_bi_nen(df: pd.DataFrame, san: str = "HOSE") -> list[Nen]:
     ngay = gio.dt.strftime("%Y-%m-%d")
     nen = []
     for i in range(len(dong)):
-        kb = _khoa_bien({"high": cao[i], "low": thap[i], "tham_chieu": tham_chieu[i]}, bien_do)
+        kb = None if la_chi_so else _khoa_bien({"high": cao[i], "low": thap[i], "tham_chieu": tham_chieu[i]}, bien_do)
         a = atr[i]
         nen.append(Nen(chi_so=i, ngay=str(ngay[i]), cao=float(cao[i]), thap=float(thap[i]),
                        dong=float(dong[i]), atr=None if pd.isna(a) else float(a),
@@ -194,23 +203,30 @@ def nua_buoc(gia: float, he_so_gia: float, san: str) -> float:
     return buoc_gia(gia * he_so_gia, san) / 2.0 / he_so_gia
 
 
-def _nhan(loai: str, gia: float, truoc: Pivot | None, he_so_gia: float, san: str) -> str:
+def _nua(gia: float, he_so_gia: float, san: str, la_chi_so: bool) -> float:
+    """Dung sai "bằng nhau" đang dùng: chỉ số -> `NUA_BUOC_CHI_SO`; cổ phiếu -> `nua_buoc` (y hệt trước BƯỚC 307)."""
+    if la_chi_so:
+        return NUA_BUOC_CHI_SO
+    return nua_buoc(gia, he_so_gia, san)
+
+
+def _nhan(loai: str, gia: float, truoc: Pivot | None, he_so_gia: float, san: str, la_chi_so: bool = False) -> str:
     if truoc is None:
         return CHUA_CO
     d = gia - truoc.gia
-    if abs(d) <= nua_buoc(gia, he_so_gia, san):
+    if abs(d) <= _nua(gia, he_so_gia, san, la_chi_so):
         return BANG
     if loai == DINH:
         return HH if d > 0 else LH
     return HL if d > 0 else LL
 
 
-def _cuc_tri(dong: tuple, loai: str, he_so_gia: float, san: str) -> Nen:
+def _cuc_tri(dong: tuple, loai: str, he_so_gia: float, san: str, la_chi_so: bool = False) -> Nen:
     """Cực trị CHỜ của một đoạn nến. Duyệt tuần tự: nến sau chỉ thay khi vượt NGHIÊM NGẶT qua
     nửa bước giá, nên cực trị bằng nhau giữ nến SỚM nhất."""
     tot = dong[0]
     for n in dong[1:]:
-        nua = nua_buoc(tot.dong, he_so_gia, san)
+        nua = _nua(tot.dong, he_so_gia, san, la_chi_so)
         if loai == DINH:
             if n.dong - tot.dong > nua:
                 tot = n
@@ -224,14 +240,14 @@ def _pivot(cap: str, loai: str, c: Nen, nen: Nen, cuoi: tuple, tt: TrangThai,
     truoc = next((p for p in reversed(cuoi) if p.loai == loai), None)
     return Pivot(cap=cap, loai=loai, su_kien=su_kien, ngay_xay_ra=c.ngay, chi_so_xay_ra=c.chi_so,
                  ngay_biet=nen.ngay, chi_so_biet=nen.chi_so, gia=c.dong,
-                 nhan=_nhan(loai, c.dong, truoc, tt.he_so_gia, tt.san),
+                 nhan=_nhan(loai, c.dong, truoc, tt.he_so_gia, tt.san, tt.la_chi_so),
                  khoa_bien=c.khoa_bien, khong_giao_dich=c.khong_giao_dich,
                  thay_the_chi_so=thay_the)
 
 
 # ── động cơ chạy tăng dần ─────────────────────────────────────────────────────────────────
 def khoi_tao(ho: str = MAC_DINH[0], tham_so: tuple | None = None, san: str = "HOSE",
-             he_so_gia: float = 1.0) -> TrangThai:
+             he_so_gia: float = 1.0, la_chi_so: bool = False) -> TrangThai:
     if ho not in LUOI:
         raise ValueError(f"họ {ho!r} không có trong {sorted(LUOI)}")
     if tham_so is None:
@@ -246,7 +262,7 @@ def khoi_tao(ho: str = MAC_DINH[0], tham_so: tuple | None = None, san: str = "HO
     if str(san).upper() not in EXCHANGE_LIMITS:
         raise ValueError(f"sàn {san!r} không có trong EXCHANGE_LIMITS {sorted(EXCHANGE_LIMITS)}")
     return TrangThai(ho=ho, tham_so=tham_so, san=str(san).upper(), he_so_gia=float(he_so_gia),
-                     caps=(_Cap(), _Cap()))
+                     caps=(_Cap(), _Cap()), la_chi_so=bool(la_chi_so))
 
 
 def _buoc_may(tt: TrangThai, cap_ten: str, k: float, cap: _Cap, nen: Nen):
@@ -257,7 +273,7 @@ def _buoc_may(tt: TrangThai, cap_ten: str, k: float, cap: _Cap, nen: Nen):
         for loai in (DINH, DAY):
             if (loai == DINH and chieu == _TIM_DAY) or (loai == DAY and chieu == _TIM_DINH):
                 continue
-            c = _cuc_tri(dong, loai, tt.he_so_gia, tt.san)
+            c = _cuc_tri(dong, loai, tt.he_so_gia, tt.san, tt.la_chi_so)
             if c.chi_so == 0 or c.chi_so >= nen.chi_so:
                 continue                     # nến đầu bảng, hoặc cực trị chính là nến này
             if tt.ho == "atr":
@@ -288,7 +304,7 @@ def _buoc_fractal(tt: TrangThai, cap_ten: str, n_nen: int, cap: _Cap, nen: Nen):
         return cap, []
     cua_so = tt.dem[-(2 * n_nen + 1):]
     tam = cua_so[n_nen]
-    nua = nua_buoc(tam.dong, tt.he_so_gia, tt.san)
+    nua = _nua(tam.dong, tt.he_so_gia, tt.san, tt.la_chi_so)
     khac = cua_so[:n_nen] + cua_so[n_nen + 1:]
     if all(tam.dong - x.dong > nua for x in khac):
         loai = DINH
@@ -326,10 +342,10 @@ def cap_nhat(tt: TrangThai, nen: Nen) -> tuple[TrangThai, list[Pivot]]:
 
 
 def doc_cau_truc(df: pd.DataFrame, he_so_gia: float = 1.0, san: str = "HOSE",
-                 ho: str = MAC_DINH[0], tham_so: tuple | None = None) -> CauTruc:
-    """Đọc cả bảng: vòng lặp trên `cap_nhat`. Giống hệt chạy từng nến."""
-    nens = chuan_bi_nen(df, san)
-    tt = khoi_tao(ho, tham_so, san, he_so_gia)
+                 ho: str = MAC_DINH[0], tham_so: tuple | None = None, la_chi_so: bool = False) -> CauTruc:
+    """Đọc cả bảng: vòng lặp trên `cap_nhat`. Giống hệt chạy từng nến. `la_chi_so=True`: chế độ chỉ số (đầu file)."""
+    nens = chuan_bi_nen(df, san, la_chi_so)
+    tt = khoi_tao(ho, tham_so, san, he_so_gia, la_chi_so)
     tsk = khoi_tao_su_kien(tt)
     nhat_ky, su_kien = [], []
     for nen in nens:
@@ -409,6 +425,7 @@ class TrangThaiSuKien:
     san: str
     he_so_gia: float
     caps: tuple
+    la_chi_so: bool = False
 
 
 @dataclass(frozen=True)
@@ -469,12 +486,12 @@ class ChuKy4:
 
 # ── sự kiện phá mốc theo cấp ──────────────────────────────────────────────────────────────
 def khoi_tao_su_kien(tt: TrangThai) -> TrangThaiSuKien:
-    return TrangThaiSuKien(san=tt.san, he_so_gia=tt.he_so_gia, caps=(_CapSK(), _CapSK()))
+    return TrangThaiSuKien(san=tt.san, he_so_gia=tt.he_so_gia, caps=(_CapSK(), _CapSK()), la_chi_so=tt.la_chi_so)
 
 
 def _vuot_moc(tsk: TrangThaiSuKien, loai: str, dong: float, gia: float) -> bool:
     """Đóng cửa vượt mốc QUÁ nửa bước giá (nghiêm ngặt): đóng bằng mốc hay trong nửa bước là chưa phá."""
-    nua = nua_buoc(gia, tsk.he_so_gia, tsk.san)
+    nua = _nua(gia, tsk.he_so_gia, tsk.san, tsk.la_chi_so)
     if loai == DINH:
         return dong - gia > nua
     return gia - dong > nua

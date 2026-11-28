@@ -520,7 +520,9 @@ def _file_ma_nguon():
 
 #: Người được nhập: đặc tả 8.3 (`app.py` ở Lát 3, `tools/do_dow_cau_truc.py` ở Lát 4) và dụng cụ MÔ TẢ
 #: của Lát 1. Danh sách ĐÓNG: file mới nào nhập mô-đun đều đỏ.
-CHO_PHEP_NHAP = {"app.py", "tools/do_dow_cau_truc.py", "tools/mo_ta_cau_truc_gia.py"}
+#: BƯỚC 307 (Dow phần 2, Lát 1; người dùng "duyệt" 25/11/2026, khuyến nghị 5): thêm đúng MỘT dòng, tên mô-đun
+#: của Lát 2. Chưa file nào nhập nó ở Lát 1, nên dòng này chưa có phát đột biến nào canh được.
+CHO_PHEP_NHAP = {"app.py", "tools/do_dow_cau_truc.py", "tools/mo_ta_cau_truc_gia.py", "dow_hai_chi_so.py"}
 #: Đường chấm điểm, sổ lệnh và đo: CẤM nhập (đặc tả 8.3).
 CAM_NHAP = ["paper_trading.py", "paper_runner.py", "paper_metrics.py", "master_agent.py",
             "analysis_agents.py", "debate_agents.py", "news_sentiment_agent.py", "fundamental_agent.py",
@@ -556,3 +558,202 @@ def test_mo_dun_chi_nhap_thu_trung_tinh_va_khong_dong_ho_khong_mang():
     assert not ({"now", "today", "now_vn", "today_vn", "utcnow", "time", "read_csv", "get", "request",
                  "urlopen", "open", "to_csv", "to_json", "write_text", "read_text"} & goi), goi
     assert "khoa_bien" in " ".join(goi) or "_khoa_bien" in goi
+
+
+# ══ BƯỚC 307 (Dow phần 2, Lát 1): chế độ chỉ số `la_chi_so` ═══════════════════════════════════════════════
+# Đặc tả `vibe_logs_dow2/DAC-TA-DOW2.md` mục 2 khoản 5: phần 1 đọc giá như cổ phiếu, nên với một chỉ số 1.788 điểm
+# "bằng nhau" là chênh <= 5 điểm (nửa bước giá HOSE 10 của mức giá ấy) — vô nghĩa. `la_chi_so=True` đặt dung sai
+# 0,005 điểm (nửa của hai chữ số thập phân nguồn trả), bỏ cờ `khoa_bien`, bỏ cờ `khong_giao_dich`.
+# `la_chi_so=False` (mặc định) PHẢI cho cổ phiếu đúng từng byte như trước BƯỚC 307.
+import hashlib  # noqa: E402
+
+
+def _bang_vang():
+    """Bảng cổ phiếu dựng TAY (số hữu hạn, không `np.exp`: hàm siêu việt có thể lệch bit giữa hệ điều hành)."""
+    t1 = _df(_TAY)
+    t1.loc[20, "volume"] = 0                                       # phiên không giao dịch ở đỉnh
+    t4 = _df([30000.0 + 500 * i for i in range(21)] + [40010.0, 38900.0])
+    hai = ([30000 + 500 * i for i in range(21)] + [40000 - 500 * j for j in range(1, 17)]
+           + [32000 + 500 * j for j in range(1, 16)] + [40010.0, 39010.0, 38010.0, 37010.0])
+    return [(t1, {}), (_df(_khoa(1)), {}), (_df(_khoa(-1)), {}), (t4, {"tham_so": (2, 4)}),
+            (_df(hai), {}), (_df(_TAY), {"ho": "fractal", "tham_so": (3, 8)})]
+
+
+def _dau_van_tay(cac_bang, **them):
+    """sha256 của nhật ký + sự kiện + con sóng (KHÔNG gồm `trang_thai`: nó có thêm trường `la_chi_so`)."""
+    h, so_dong = hashlib.sha256(), 0
+    for df, kw in cac_bang:
+        r = C.doc_cau_truc(df, he_so_gia=1.0, **kw, **them)
+        h.update(repr((r.nhat_ky, r.su_kien, r.con_song)).encode("utf-8"))
+        so_dong += len(r.nhat_ky) + len(r.su_kien) + len(r.con_song)
+    return h.hexdigest(), so_dong
+
+
+#: Tính trên bản `main` TRƯỚC khi sửa `cau_truc_gia.py` (9dc7672), lệnh ở `docs/STATE.md` BƯỚC 307.
+DAU_VAN_TAY_CO_PHIEU = "85ac9f4135b9c93e0ce836cdb70ff404e4a200311c4ad528e292f5a54bd50f69"
+
+
+def test_CO_PHIEU_la_chi_so_False_dung_tung_byte_nhu_truoc_BUOC_307():
+    """Mặc định và `la_chi_so=False` cho cùng nhật ký/sự kiện/con sóng, và cả hai khớp dấu vân tay tính trên mã
+    TRƯỚC khi sửa. Sáu bảng có phiên volume=0, nến khoá trần/sàn, đỉnh gần bằng nhau, họ fractal."""
+    mac_dinh = _dau_van_tay(_bang_vang())
+    ro_rang = _dau_van_tay(_bang_vang(), la_chi_so=False)
+    assert mac_dinh == ro_rang
+    assert mac_dinh[1] >= 25, "bảng thử phải có nhiều dòng, nếu không dấu vân tay gác không được gì (lỗi 66)"
+    assert mac_dinh[0] == DAU_VAN_TAY_CO_PHIEU
+
+
+def test_CO_PHIEU_van_mang_co_nen_khi_la_chi_so_False():
+    r = C.doc_cau_truc(_df(_khoa(1)), he_so_gia=1.0, san="HOSE", la_chi_so=False)
+    assert any(p.khoa_bien == "KICH_TRAN" for p in r.nhat_ky)
+    df = _df(_TAY)
+    df.loc[20, "volume"] = 0
+    assert any(p.khong_giao_dich for p in C.doc_cau_truc(df, la_chi_so=False).nhat_ky)
+
+
+# Chuỗi CHỈ SỐ dựng tay: bước ±20 điểm (ATR14 = 20 từ nến thứ 15), cùng hình dạng `_TAY`, giá 1.500–1.960.
+_CS = ([1500.0 + 20 * i for i in range(21)] + [1900.0 - 20 * j for j in range(1, 13)]
+       + [1660.0 + 20 * j for j in range(1, 16)] + [1960.0 - 20 * j for j in range(1, 10)])
+
+
+def test_CHI_SO_dung_sai_la_0_005_diem_va_hang_so_co_ten():
+    assert C.NUA_BUOC_CHI_SO == 0.005
+    # `nua_buoc` (cổ phiếu) KHÔNG đổi: một chỉ số 1.788 điểm có nửa bước giá HOSE = 5 điểm
+    assert C.nua_buoc(1788.51, 1.0, "HOSE") == 5.0
+    assert C.khoi_tao(la_chi_so=True).la_chi_so is True
+    assert C.khoi_tao().la_chi_so is False
+    assert C.doc_cau_truc(_df(_CS), la_chi_so=True).trang_thai.la_chi_so is True
+    assert C.khoi_tao_su_kien(C.khoi_tao(la_chi_so=True)).la_chi_so is True
+    assert C.khoi_tao_su_kien(C.khoi_tao()).la_chi_so is False
+
+
+def _hai_dinh(gia_dinh_2, **kw):
+    """Đỉnh 1 = 1.900 (nến 20); đỉnh 2 = `gia_dinh_2`. Trả `nhan` các đỉnh nội bộ (đường `_nhan`)."""
+    gia = ([1500.0 + 20 * i for i in range(21)] + [1900.0 - 20 * j for j in range(1, 17)]
+           + [1580.0 + 20 * j for j in range(1, 15)] + [gia_dinh_2, gia_dinh_2 - 40, gia_dinh_2 - 80,
+                                                         gia_dinh_2 - 120])
+    r = C.doc_cau_truc(_df(gia), he_so_gia=1.0, san="HOSE", **kw)
+    return [p.nhan for p in r.nhat_ky if p.cap == "noi_bo" and p.loai == "dinh"]
+
+
+def test_CHI_SO_buoc_4_diem_KHONG_bi_coi_la_bang_o_nhan_dinh():
+    """Đỉnh 2 hơn đỉnh 1 đúng 4 điểm. Cổ phiếu (nửa bước 5): "bang". Chỉ số: "HH". Và 0,004 điểm vẫn là bằng,
+    0,006 điểm thì không (dung sai 0,005): bắt cả `0.005`→`5`/`0.5`/`0.05` lẫn `0.005`→`0.001`/`0`."""
+    assert _hai_dinh(1904.0) == ["chua_co", "bang"]
+    assert _hai_dinh(1904.0, la_chi_so=False) == ["chua_co", "bang"]
+    assert _hai_dinh(1904.0, la_chi_so=True) == ["chua_co", "HH"]
+    assert _hai_dinh(1896.0, la_chi_so=True) == ["chua_co", "LH"]
+    assert _hai_dinh(1900.004, la_chi_so=True) == ["chua_co", "bang"]
+    assert _hai_dinh(1899.996, la_chi_so=True) == ["chua_co", "bang"]
+    assert _hai_dinh(1900.006, la_chi_so=True) == ["chua_co", "HH"]
+    assert _hai_dinh(1899.994, la_chi_so=True) == ["chua_co", "LH"]
+    assert _hai_dinh(1900.006) == ["chua_co", "bang"]                    # cổ phiếu: vẫn bằng
+
+
+def _dinh_chi_so(gia_21, **kw):
+    gia = [1500.0 + 20 * i for i in range(21)] + [gia_21, 1840.0]       # đỉnh 1.900 ở nến 20, nến 21 = `gia_21`
+    return C.doc_cau_truc(_df(gia), he_so_gia=1.0, san="HOSE", tham_so=(2, 4), **kw).nhat_ky[0]
+
+
+def test_CHI_SO_cuc_tri_cho_thay_khi_vuot_0_005_diem_chu_khong_phai_nua_buoc_gia():
+    """Đường `_cuc_tri`: nến 21 cao hơn đỉnh chờ 4 điểm. Cổ phiếu giữ nến 20; chỉ số chuyển sang nến 21."""
+    p = _dinh_chi_so(1904.0)
+    assert (p.chi_so_xay_ra, p.gia) == (20, 1900.0)
+    p = _dinh_chi_so(1904.0, la_chi_so=True)
+    assert (p.chi_so_xay_ra, p.gia) == (21, 1904.0)
+    assert _dinh_chi_so(1900.004, la_chi_so=True).chi_so_xay_ra == 20
+    assert _dinh_chi_so(1900.006, la_chi_so=True).chi_so_xay_ra == 21
+    assert _dinh_chi_so(1900.0, la_chi_so=True).chi_so_xay_ra == 20      # bằng hệt: giữ nến SỚM
+
+
+def test_CHI_SO_cuc_tri_day_doi_xung():
+    def day(gia_20, **kw):
+        gia = [2400.0 - 20 * i for i in range(20)] + [gia_20, 2080.0]         # đáy 2.020 ở nến 19
+        return C.doc_cau_truc(_df(gia), he_so_gia=1.0, san="HOSE", tham_so=(2, 4), **kw).nhat_ky[0]
+    assert day(2016.0).chi_so_xay_ra == 19
+    assert day(2016.0, la_chi_so=True).chi_so_xay_ra == 20
+    assert day(2019.996, la_chi_so=True).chi_so_xay_ra == 19
+    assert day(2019.994, la_chi_so=True).chi_so_xay_ra == 20
+
+
+def test_CHI_SO_fractal_dinh_cao_hon_4_diem_la_dinh():
+    def fractal(gia, **kw):
+        return [(p.loai, p.chi_so_xay_ra) for p in C.doc_cau_truc(
+            _df(gia), he_so_gia=1.0, ho="fractal", tham_so=(3, 8), **kw).nhat_ky]
+    dinh = [1700, 1720, 1740, 1900, 1904, 1740, 1720, 1700, 1680, 1660]
+    day = [2100, 2080, 2060, 1900, 1896, 2060, 2080, 2100, 2120, 2140]
+    assert fractal(dinh) == [] and fractal(day) == []                           # cổ phiếu: 4 điểm < nửa bước 5
+    assert fractal(dinh, la_chi_so=True) == [("dinh", 4)]
+    assert fractal(day, la_chi_so=True) == [("day", 4)]
+    near_d = [1700, 1720, 1740, 1900, 1900.004, 1740, 1720, 1700, 1680, 1660]
+    assert fractal(near_d, la_chi_so=True) == []
+    xa_d = [1700, 1720, 1740, 1900, 1900.006, 1740, 1720, 1700, 1680, 1660]
+    assert fractal(xa_d, la_chi_so=True) == [("dinh", 4)]
+
+
+def _pivot_tay(loai, gia):
+    return C.Pivot(cap="noi_bo", loai=loai, su_kien=C.XAC_NHAN, ngay_xay_ra="2024-01-04", chi_so_xay_ra=3,
+                   ngay_biet="2024-01-08", chi_so_biet=5, gia=float(gia), nhan=C.CHUA_CO, khoa_bien=None,
+                   khong_giao_dich=False)
+
+
+def _nen_tay(i, dong):
+    return C.Nen(chi_so=i, ngay=f"2024-02-{i + 1:02d}", cao=float(dong), thap=float(dong), dong=float(dong),
+                 atr=None, khoa_bien=None, khong_giao_dich=False)
+
+
+def _su_kien_tay(loai, moc, dong, **kw):
+    tsk = C.khoi_tao_su_kien(C.khoi_tao(he_so_gia=1.0, san="HOSE", **kw))
+    ra = []
+    for i, d in enumerate([moc] * 6 + [dong]):
+        tsk, sk = C.cap_nhat_su_kien(tsk, _nen_tay(i, d), [_pivot_tay(loai, moc)] if i == 5 else [])
+        ra.extend(sk)
+    return ra
+
+
+def test_CHI_SO_phep_pha_moc_dung_dung_sai_0_005_diem():
+    """Đường `_vuot_moc`: đóng cửa vượt mốc 1.900 đúng 4 điểm. Cổ phiếu chưa phá (nửa bước 5); chỉ số phá."""
+    for loai, vuot, bang in (("dinh", 1904.0, 1900.004), ("day", 1896.0, 1899.996)):
+        assert _su_kien_tay(loai, 1900.0, vuot) == []
+        assert len(_su_kien_tay(loai, 1900.0, vuot, la_chi_so=True)) == 1
+        assert _su_kien_tay(loai, 1900.0, bang, la_chi_so=True) == []
+    assert len(_su_kien_tay("dinh", 1900.0, 1900.006, la_chi_so=True)) == 1
+    assert len(_su_kien_tay("day", 1900.0, 1899.994, la_chi_so=True)) == 1
+
+
+def test_CHI_SO_khong_co_co_khoa_bien_khong_giao_dich_o_pivot_va_su_kien():
+    """Hai cờ nến của cổ phiếu (khoá biên, volume=0) KHÔNG áp cho chỉ số: chỉ số không có trần/sàn của mã và
+    `volume` = 0 ở chỉ số là thiếu dữ liệu, không phải phiên đứng giá."""
+    df = _df(_khoa(1))
+    r = C.doc_cau_truc(df, he_so_gia=1.0, san="HOSE")
+    assert any(p.khoa_bien == "KICH_TRAN" for p in r.nhat_ky)                 # đối chứng: cùng bảng, cổ phiếu CÓ cờ
+    r = C.doc_cau_truc(df, he_so_gia=1.0, san="HOSE", la_chi_so=True)
+    assert r.nhat_ky and all(p.khoa_bien is None for p in r.nhat_ky)
+    assert all(e.khoa_bien is None for e in r.su_kien)
+    df = _df(_CS)
+    df.loc[20, "volume"] = 0
+    assert any(p.khong_giao_dich for p in C.doc_cau_truc(df).nhat_ky)         # đối chứng
+    r = C.doc_cau_truc(df, la_chi_so=True)
+    assert r.nhat_ky and all(not p.khong_giao_dich for p in r.nhat_ky)
+    assert r.su_kien and all(not e.khong_giao_dich for e in r.su_kien)
+
+
+def test_CHI_SO_volume_0_khong_dua_true_range_ve_0():
+    """Cổ phiếu: nến volume=0 có true range 0 (ATR thấp hơn). Chỉ số: bỏ quy tắc ấy, ATR y hệt khi không có
+    cột `volume` (chuỗi chỉ số của Lát 1 không mang cột này)."""
+    gia = list(_CS)
+    df2 = _df(gia)
+    df2["high"] = [g + 30 for g in gia]
+    df2.loc[30, "volume"] = 0
+    co_phieu = C.chuan_bi_nen(df2)[33].atr
+    chi_so = C.chuan_bi_nen(df2, la_chi_so=True)[33].atr
+    khong_cot = C.chuan_bi_nen(df2.drop(columns=["volume"]), la_chi_so=True)[33].atr
+    assert co_phieu < chi_so == khong_cot
+
+
+def test_CHI_SO_bat_bien_khi_cat_va_bang_khong_cot_volume_van_doc_duoc():
+    df = _df(_CS).drop(columns=["volume"])
+    day_du = _kiem_cat(df, la_chi_so=True)
+    assert len(day_du.nhat_ky) >= 4, "bảng thử phải có pivot, nếu không gác này trống rỗng (lỗi 66)"
+    assert [(p.cap, p.loai, p.chi_so_xay_ra, p.gia) for p in day_du.nhat_ky][:2] == [
+        ("noi_bo", "dinh", 20, 1900.0), ("swing", "dinh", 20, 1900.0)]

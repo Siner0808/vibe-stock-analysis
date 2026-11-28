@@ -29085,3 +29085,96 @@ Hàng 05/11 *"Hoãn tới sau v1.0 (Recommended)"* mang 🔴 HẾT ĐÚNG; mục
 5. Lịch 2027 chưa có (`PHU_TOI` 2026-12-31); ngày kỳ rà soát trước 03/2025 chưa tra; thời gian mở app với hai lượt kéo mạng thêm chưa đo.
 6. **PR chưa mở:** chờ (a) máy rảnh để chạy năm cổng trên commit cuối, (b) gộp `origin/main`, (c) lượt chạy ĐO 38 (BƯỚC 304) xong và C4 được đọc; sau đó merge.
 7. **Việc kế:** leader soát PR (BƯỚC đổi luật: `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`; KHÔNG tự merge trước kết cục C4); rồi Lát 1 (dữ liệu sạch, `la_chi_so`, kiểm `high`/`low`). Lỗi kế 209.
+
+## BƯỚC 307 — DOW PHẦN 2, LÁT 1: DỮ LIỆU SẠCH CHO VN30 · VNMidcap · VN100 (`chuoi_chi_so.py`) VÀ CHẾ ĐỘ CHỈ SỐ `la_chi_so` CỦA `cau_truc_gia.py`; PHẦN 1 VẪN CHƯA CHẠY TRÊN BA CHUỖI ẤY (28/11/2026)
+
+**Mốc:** B7
+
+**Quyết định (ghi rõ AI quyết).**
+- **NGƯỜI DÙNG** (đã ghi ở BƯỚC 306, nhắc lại vì Lát 1 dựa vào chúng): 23/11/2026 *"làm phương án A"* (VN30 + VNMidcap); 25/11/2026 *"duyệt"* cho cả năm khuyến nghị của đặc tả, trong đó khuyến nghị 5 cho phép Lát 1 thêm `la_chi_so=False` vào `cau_truc_gia.py` và một dòng vào `CHO_PHEP_NHAP`; 27/11/2026 *"Bắt đầu ngay (Recommended)"*.
+- **⚠️ LEADER, KHÔNG PHẢI NGƯỜI DÙNG (28/11/2026):** *quy tắc dữ liệu bổ sung sau khi ký ĐO 39 (chỉ đường dự phòng)*: một nguồn có tỷ lệ nến `high == low == close` **> 0,5%** thì bị loại cho chuỗi ấy (hằng `chuoi_chi_so.NGUONG_NEN_MOT_GIA = 0.005`, so bằng `>` không phải `>=`). **Ngưỡng 0,5% được chọn SAU KHI đã thấy dữ liệu** (mục A: VNDirect 0/2.311 hàng, iBoard VNMidcap 94/1.983 = 4,74%), nên nó là ngưỡng LÀM SẠCH dữ liệu, không phải ngưỡng đo và không phải kết luận đo; người dùng chưa thấy nó. Căn cứ leader nêu: ĐO 39 đã ký (BƯỚC 306) ghim PHÉP ĐO vào VNDirect cho cả ba chuỗi (`VN30` · `VNMID` · `VN100`), nên quy tắc này chỉ chạm đường dự phòng của ô trên app; nó áp dụng đúng nguyên tắc đã duyệt "thà thiếu còn hơn sai" mà quy tắc 2 dùng cho VPS. Đánh số: ĐO 39 đã liệt kê tới quy tắc dữ liệu 8 (*Thiếu nguồn, lệch ngày cuối*), nên đây KHÔNG được gọi là "quy tắc 7"; thân ĐO 39 (đã ký, ở `main`) KHÔNG được sửa chữ nào. **Hệ quả nói thẳng:** câu *"VNMidcap thực tế chỉ còn hai nguồn (VNDirect, iBoard × 1000)"* của quy tắc dữ liệu 2 trong ĐO 39 nay hết đúng ở đường dự phòng: VNMidcap chỉ còn MỘT nguồn dùng được (VNDirect).
+- **PHIÊN CON, để leader soát:** cách đọc cổng độ lớn (mục C, điểm 2), cách xử lý khi VN30 không đọc được (C, điểm 3), tên mô-đun của dòng `CHO_PHEP_NHAP` (C, điểm 6).
+
+**Đánh số:** BƯỚC 307; **không có ĐO mới** (số ĐO lớn nhất `grep -o '^## ĐO [0-9]*' docs/TIEU-CHI-DOC-TRUOC.md | sed 's/## ĐO //' | sort -n | tail -1` → 39); **không mở lỗi mới** (lỗi kế **209**: `grep -oE "^\| *[0-9]+ " .claude/skills/quy-trinh-lam-viec/references/loi-da-mac.md | tr -d '| ' | sort -n | tail -1` → 208). Nhánh `dow2/lat1-du-lieu-307` từ `origin/main` @ `9dc76722a30ddf3a1381ef13d0836ef125473f04`, mã ở commit `5367570`, sau đó gộp `origin/main` @ `5a96c97a257f11c8ac425c8335995d95f52ad8ce` (PR #352, BƯỚC 306; `git log origin/main --oneline -1`).
+
+### A. Kiểm `high`/`low` THẬT của chuỗi chỉ số (điểm CHƯA kiểm của BƯỚC 306 mục C — nay đã kiểm TRÊN CẢ CỬA SỔ)
+
+Lệnh (từ gốc repo, `PY` = `./.venv/Scripts/python.exe -X utf8`; kéo mạng thật, 28/11/2026; nhật ký `docs/do-307/kiem_cao_thap.log`): `PY docs/do-307/kiem_cao_thap.py`. Chỉ in dữ kiện dữ liệu (hàng, ngày đầu/cuối, ngày trùng, tỷ lệ), KHÔNG nạp `cau_truc_gia` (bức tường ĐO 39; dòng cuối in `cau_truc_gia da nap: False`). Cửa sổ `TU_NGAY` = 2017-08-24 tới 2026-11-28:
+
+| chuỗi | nguồn · mã | hàng | đầu → cuối | ngày trùng | `h==l==c` | `h`/`l` ngoài [open, close] |
+|---|---|---|---|---|---|---|
+| VN30 | vndirect · VN30 | 2.311 | 2017-08-24 → 2026-11-27 | 0 | 0,0000 | 0 |
+| VN30 | iboard · VN30 | 2.311 | cùng | 0 | 0,0000 | 0 |
+| VN30 | vps · VN30 | 2.311 | cùng | 0 | 0,0000 | 1 |
+| VNMidcap | vndirect · VNMID | 2.311 | cùng | 0 | 0,0000 | 1 |
+| VNMidcap | **iboard · VNMIDCAP** | **1.983** | **2018-12-11** → 2026-11-27 | 0 | **0,0474** | 0 |
+| VNMidcap | vps · VNMID | 1.717 | 2020-03-03 → 2026-11-27 | 34 | 0,0023 | 0 |
+| VN100 | vndirect · VN100 | 2.311 | 2017-08-24 → 2026-11-27 | 0 | 0,0000 | 0 |
+| VN100 | iboard · VN100 | 1.984 | 2018-12-11 → 2026-11-27 | 1 | 0,0000 | 0 |
+| VN100 | vps · VN100 | 1.717 | 2020-03-03 → 2026-11-27 | 34 | 0,0000 | 0 |
+
+- **Kết luận:** VNDirect, nguồn ĐO 39 ghim, cho `high`/`low` THẬT trên cả 2.311 hàng của cả ba chuỗi (0 hàng `h == l == c`, 0 hàng `h < l`); điểm cảnh báo của BƯỚC 306 mục C hết. Nguồn dự phòng iBoard VNMidcap thì KHÔNG: 4,74% hàng (0,0474 × 1.983 ≈ 94) không có `high`/`low` thật, và lịch sử bắt đầu 2018-12-11, không phải 2017-08-24 → quyết định của leader ở trên. Nhãn "lịch sử ngắn hơn" (`KetQuaChuoi.lich_su_ngan_hon`) gắn khi nguồn bắt đầu muộn hơn `TU_NGAY` quá 7 ngày lịch.
+- **VPS VNMidcap** `h == l == c` 0,0023 (≈ 4 hàng) khớp con số 4 nến `close` = 0 của đặc tả; tôi CHƯA đối chiếu từng hàng. Nguồn ấy đã bị quy tắc dữ liệu 2 loại cả chuỗi (34 ngày trùng).
+- **Ghi nhận dữ kiện, KHÔNG sửa:** VNDirect `VNMID` ngày **2021-07-05** có `open` 1704,68, `high` 1704,06, `low` 1668,26, `close` 1685,02: `high` thấp hơn `open` 0,62 điểm (cột `h`/`l` ngoài [open, close] = 1 ở bảng trên). `cau_truc_gia.chuan_bi_nen` chỉ đọc `high`, `low`, `close` và không kiểm `open`, nên hàng này không làm nổ phần 1 và không đổi ATR theo cách `open` đi vào. VPS VN30 cũng có 1 hàng `high`/`low` nằm ngoài [open, close] (chưa xem ngày nào). Không vá (không điền, không sửa giá).
+- **Cửa sổ nay là 2.311 hàng tới 27/11/2026** (đặc tả nói 2.307 tới 20/11/2026): bốn phiên mới; cả ba chuỗi cùng 2.311 ngày chung (`docs/do-307/du_kien_vndirect.log`).
+
+### B. `la_chi_so` ở `cau_truc_gia.py` (khuyến nghị 5, người dùng *"duyệt"*)
+
+- `doc_cau_truc(df, ..., la_chi_so=False)`; `chuan_bi_nen(df, san, la_chi_so=False)`; `khoi_tao(..., la_chi_so=False)`; trường `la_chi_so` ở `TrangThai` và `TrangThaiSuKien`. `True`: dung sai "bằng nhau" = `NUA_BUOC_CHI_SO = 0.005` điểm (nửa của hai chữ số thập phân nguồn trả) ở BỐN chỗ dùng nửa bước (`_nhan`, `_cuc_tri`, họ fractal, `_vuot_moc`) qua MỘT hàm `_nua`; KHÔNG cờ `khoa_bien`; KHÔNG cờ `khong_giao_dich` và true range không bị đặt 0 khi `volume` = 0. `False`: `_nua` gọi đúng `nua_buoc` như trước (`nua_buoc` không đổi một chữ; `tools/mo_ta_cau_truc_gia.py` vẫn thay được `C.nua_buoc` vì `_nua` tra tên toàn cục lúc chạy).
+- **Cổ phiếu đúng từng byte:** `tests/test_cau_truc_gia.py::test_CO_PHIEU_la_chi_so_False_dung_tung_byte_nhu_truoc_BUOC_307`, dấu vân tay sha256 `85ac9f4135b9c93e0ce836cdb70ff404e4a200311c4ad528e292f5a54bd50f69` (27 dòng nhật ký + sự kiện + con sóng của sáu bảng dựng tay) TÍNH TRÊN `cau_truc_gia.py` CHƯA SỬA ở `9dc7672` (`git diff --stat -- cau_truc_gia.py` rỗng lúc tính). Tái lập: `PY docs/do-307/van_tay_co_phieu.py` → `('85ac9f41…0f69', 27)` trên nhánh này; cách tính lại trên cơ sở `9dc7672` (worktree riêng, chép hai file vào) ở docstring của file ấy. Bảng chỉ dùng số hữu hạn, không `np.exp`, để dấu vân tay không lệch giữa hệ điều hành.
+- **Dòng `CHO_PHEP_NHAP`:** thêm `"dow_hai_chi_so.py"` (tên mô-đun của Lát 2, đặc tả mục 1). CHƯA phát đột biến nào canh được dòng này vì chưa file nào nhập mô-đun ấy; Lát 2 sẽ canh nó (`import` thật của `dow_hai_chi_so.py`). Nếu leader muốn tên khác thì sửa một dòng.
+
+### C. `chuoi_chi_so.py` — mô-đun mới, thuần, `http` truyền vào (bắt buộc, không giá trị mặc định)
+
+237 dòng mã (ƯỚC LƯỢNG của đặc tả: 200). Nguồn và thứ tự = `nguon_gia_cong_khai.CHUOI_CHI_SO` (VNDirect → iBoard → VPS), qua `lay_ohlcv(..., chuoi=(nguon,), kiem_them=…)` nên VPS ngày trùng / `close` = 0 bị loại bởi `dung_khung` sẵn có. Không nhập `cau_truc_gia` (gác AST: không có đường tới đếm swing). Bảng đặc tả §2 → test (`tests/test_chuoi_chi_so.py`, 38 test):
+
+| quy tắc | test chính |
+|---|---|
+| 1 thang ×1000 + cổng độ lớn | `test_QUY_TAC_1_*`, `test_kiem_do_lon_*` (dải [0,2 ; 5] đóng hai đầu) |
+| 2 VPS trùng / `close` = 0 → loại cả chuỗi | `test_QUY_TAC_2_*` |
+| 3 tên mã theo nguồn | `test_QUY_TAC_3_ten_ma_theo_nguon_*` |
+| 4 không cột `volume` (kể cả nguồn trả `volume` = 0) | `test_QUY_TAC_4_*` |
+| 5 `la_chi_so` | mục B (11 test ở `tests/test_cau_truc_gia.py`) |
+| 6 không `he_so_gia` | `test_hang_so_ghim_theo_dac_ta` (`HE_SO_GIA == 1.0`), `KetQuaChuoi.he_so_gia` |
+| bổ sung: nến một giá | `test_NGUONG_nen_mot_gia_*` (1/200 = 0,500% ĐÚNG ngưỡng thì giữ; 2/200 thì loại), `test_THONG_BAO_goi_ten_ly_do_*` |
+| lịch căn theo GIAO · ngày cuối lệch · nến cuối chưa đóng | `test_can_theo_GIAO_*`, `test_ngay_cuoi_lech_*`, `test_nen_cuoi_dang_do_*` |
+
+Sáu điểm phiên con tự quyết hoặc thấy thêm (đặc tả không nêu rõ):
+1. **Cổng độ lớn chạy cho MỌI nguồn của mọi chuỗi** (đặc tả: *"một cổng cho mọi nguồn"*), không chỉ nguồn có hệ số.
+2. **`close_B` của cổng là VN30**: chuỗi cần kiểm (sau khi nhân hệ số) chia cho `close` của VN30 từ nguồn đầu tiên dùng được, trung vị trên ngày chung. Đặc tả nêu tỷ số VNMID/VN30 (0,949–1,572 trên VNDirect) và iBoard×1000/VNDirect (0,9913–1,0098) làm bằng chứng dải [0,2 ; 5] đủ rộng; nó không gọi tên B. VN30 là chuỗi GỐC, không có thứ để so, nên một thang sai ở VN30 làm VN100 và VNMidcap bị loại chứ không âm thầm sai.
+3. **VN30 không đọc được thì VNMidcap và VN100 cũng "Không đọc được"** (`ly_do_chung`: *"không đọc được VN30, nên không kiểm được độ lớn"*) — thà thiếu còn hơn sai; chưa gặp trên dữ liệu thật.
+4. `lay_ba_chuoi` thêm: iBoard VN100 cũng bị loại bởi quy tắc 2 (1 ngày trùng, `dung_khung` nổ *"mốc thời gian không tăng ngặt"*), nên **chỉ iBoard VN30 là nguồn dự phòng dùng được** ở iBoard, không phải VN100 (kiểm trên dữ liệu thật: mục D).
+5. `lay_chuoi` / `can_theo_giao` / `dong_du_kien` là bề mặt cho Lát 2 và Lát 4; `KetQuaChuoi.thong_bao()` dựng câu *"Không đọc được: VNMidcap — đã thử VNDirect (…), iBoard (…), VPS (…)"* của đặc tả §2 khoản 8(a), kèm lý do cụ thể của từng nguồn.
+6. Dòng `CHO_PHEP_NHAP`: xem mục B.
+
+### D. Số đo dữ kiện thật (KHÔNG trạng thái; "Xong khi" của đặc tả §6 hàng 1), 28/11/2026
+
+- Lệnh: `PY -c "import datetime as d, chuoi_chi_so as CC, nguon_gia_cong_khai as ng; kq = CC.lay_ba_chuoi(d.date.today(), d.datetime.now(), http=ng._http_json); print('\n'.join(CC.dong_du_kien(kq)))"` (nhật ký `docs/do-307/du_kien_vndirect.log`):
+  `VN30: nguồn vndirect, mã VN30, 2311 hàng, 2017-08-24 đến 2026-11-27` · `VNMidcap: nguồn vndirect, mã VNMID, 2311 hàng, …` · `VN100: nguồn vndirect, mã VN100, 2311 hàng, …` · `VNMidcap/VN30: trung vị close 1,1738 trên 2311 ngày chung` · `VN100/VN30: trung vị close 0,9642 trên 2311 ngày chung`. (Đặc tả: trung vị VNMID/VN30 = 1,17.)
+- Khi CHỈ còn iBoard (`ng.CHUOI_CHI_SO = (ng.NGUON_IBOARD,)` đặt trước lệnh trên; `docs/do-307/du_kien_iboard.log`): `VN30: nguồn iboard, mã VN30, 2311 hàng, …`; `Không đọc được: VNMidcap — đã thử iBoard (4,74% nến có high = low = close, vượt ngưỡng 0,50% — nguồn không trả high/low thật)`; `Không đọc được: VN100 — đã thử iBoard (mốc thời gian không tăng ngặt (trùng hoặc đảo thứ tự))`.
+- **Chưa kiểm ở dữ liệu thật:** nhân ×1000 trên iBoard VNMidcap qua cổng độ lớn (iBoard VNMidcap bị loại TRƯỚC bước nhân bởi quy tắc nến một giá, nên đường ×1000 chỉ chạy trong test tổng hợp); tỷ số iBoard×1000/VNDirect = 0,9913–1,0098 là số của đặc tả, không tính lại ở đây.
+
+### E. Đột biến: **50/50 đỏ**
+
+`PY docs/do-307/dot_bien_307.py chuoi` → 29/29 (`docs/do-307/dot_bien_chuoi.log`); `PY docs/do-307/dot_bien_307.py cau_truc` → 21/21 (`docs/do-307/dot_bien_cau_truc.log`). Gồm toàn bộ danh sách của đặc tả §6 hàng 1 (`1000`→`1`; bỏ cổng độ lớn; hoán `VNMID`↔`VNMIDCAP` ba chỗ; căn bằng HỢP thay GIAO; giữ nến cuối dở; `la_chi_so` bị lờ; tắt xoá `volume`), thêm các phát leader đòi (ngưỡng nến một giá bị lờ; `>` thành `>=` ở biên; 0,005 → 0,05 / 0,001) và phát cho từng chỗ truyền cờ (mỗi trong bốn chỗ dùng nửa bước, `khoi_tao`, `khoi_tao_su_kien`, `chuan_bi_nen`, mặc định `True`). **Một phát sống sót ở lượt đầu:** `ty_le_nen_mot_gia` chỉ đếm `low == close` (bảng thử không có hàng `low == close` mà `high` khác); đã thêm hàng thử, 29/29 đỏ ở lượt sau. Quy tắc 1 chạy trước: tất cả test xanh trên cơ sở không đột biến (84 + 38).
+
+### F. Sổ tay NotebookLM (Quy tắc 3)
+
+- `PY tools/buoc_cham_luat.py 307` xác nhận BƯỚC không chạm file nào của `FILE_LUAT` (`CLAUDE.md` · `NGUYEN-TAC-DO-LUONG.md` · `MO-XE-KIEN-TRUC.md` · `SKILL.md` · `docs/TIEU-CHI-DOC-TRUOC.md` · `docs/LO-TRINH.md`); đặc tả §6 đã nêu trước *"Lát 1–4 không chạm …"*. Mục `BƯỚC 307` của `docs/soat-notebooklm.json` là `khong_bat_buoc_vi` (có lý do cụ thể), dựng từ dict: bản của `main` tái hiện đúng từng byte (`json.dumps(d, ensure_ascii=False, indent=2) + "\n"` sau khi chuẩn hoá xuống dòng) rồi thêm MỘT khoá.
+- Quy tắc dữ liệu bổ sung của leader (mục trên) là quy tắc LÀM SẠCH DỮ LIỆU ở đường dự phòng của một mô-đun mới, không phải luật của dự án hay kết luận đo, nên không phải câu hỏi thật cho sổ tay; ĐO 39 không bị sửa.
+
+### G. Số test · cổng
+
+- **Số test: 6052 → 6101 (+49 = 38 `tests/test_chuoi_chi_so.py` + 11 thêm vào `tests/test_cau_truc_gia.py`)**: `PY tools/kiem_so_test_khong_giam.py` → *CHAN — so test TANG 6052 -> 6101* trước khi cập nhật; sau `--cap-nhat --ly-do` (thêm 49 test của BƯỚC 307) mốc `docs/moc_so_test.json` = 6101. Hai test mới nằm trong file đã có (`tests/test_cau_truc_gia.py`: 73 → 84).
+- Test nhắm trúng (28/11/2026, trước khi gộp `origin/main`): `tests/test_cau_truc_gia*.py` (ba file) · `test_chuoi_chi_so` · `test_do_dow_cau_truc` · `test_no_fabricated_data` · `test_tai_lieu_khop_ten_ma` · `test_script_chay_duoc_tren_windows` · `test_gac_khong_phu_thuoc_thu_tu` · `test_nguon_gia_cong_khai` → **465 passed**; `PY tools/chan_bia_so_lieu.py --quet-repo` → 0 CHẶN, 10 cảnh báo (không file nào của BƯỚC này); `PY tools/kiem_cu_phap_311.py` → 436 file nạp được bằng 3.11.
+- **Năm cổng `tools/nam_cong.py --tuan-tu` trên commit CUỐI:** kết quả ở thân PR (số liệu của một cổng không nằm được trong commit mà nó chạy).
+
+### H. Điều CHƯA làm / chưa kiểm
+
+1. **Phần 1 CHƯA chạy trên VN30 · VNMidcap · VN100** (cố ý, bức tường ĐO 39): không số lật, đoạn, trạng thái hay độ trễ nào đã được thấy; mọi test của `la_chi_so` dùng bảng TỔNG HỢP.
+2. **Đặc tả §2 khoản 8(c) hoãn sang Lát 4 (ô trên app):** *"chuỗi trễ ≥ 2 phiên so với lịch (`lich_giao_dich.NGUON_DUNG`) → ô nói nguồn đứng, không đọc"* KHÔNG làm ở Lát 1 (hàng 1 của đặc tả §6 không liệt kê; cần `lich_giao_dich`, chỉ phủ tới 2026-12-31). `chuoi_chi_so` hiện chỉ có (a) hết nguồn, (b) ngày cuối lệch, (d) bỏ nến cuối chưa đóng.
+3. **`high < open` ở VNDirect VNMID 2021-07-05** (mục A): ghi nhận, không vá; chưa kiểm vì sao (có thể là cách VNDirect dựng nến chỉ số).
+4. **Chưa kiểm** nhân ×1000 trên dữ liệu thật qua cổng độ lớn (mục D); chưa kiểm hành vi khi iBoard sửa thang (chỉ test tổng hợp).
+5. Cờ `lich_su_ngan_hon` dùng dung sai 7 ngày lịch (`DUNG_SAI_NGAY_DAU`) do phiên con chọn; không số đo nào dựa vào.
+6. Dòng `CHO_PHEP_NHAP` chưa có đột biến canh (mục B).
+7. **Việc kế:** leader soát PR (BƯỚC này KHÔNG đổi luật: không merge-chờ như BƯỚC 306); Lát 2 (`dow_hai_chi_so.py`: `ghep_cap`, `trang_thai_cap_tai`; chưa dữ liệu thật; bảng 16 hàng của đặc tả §3.5 chép vào test) rồi Lát 3 (dụng cụ M, MỘT lượt chạy ĐO 39, thông báo HOSE cho ngày rà soát rổ), Lát 4 (ô trên `app.py`). Lỗi kế 209.
