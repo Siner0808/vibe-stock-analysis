@@ -7066,6 +7066,541 @@
     "BƯỚC 305": {
       "ngay": "2026-11-27",
       "khong_bat_buoc_vi": "Chỉ THÊM ba file mới: `kiem_de_xuat.py` (hàm thuần `kiem_phieu`: bảng kiểm xác định PASS · REVISE · REJECT cho ứng viên do máy soạn, chỉ đọc hai dict, không đổi điểm, trọng số hay ngưỡng nào của sổ, không mở khoá ứng viên, không gọi phép chấm), `tools/kiem_phieu_de_xuat.py` (công cụ chỉ đọc, chỉ in) và `tests/test_kiem_de_xuat.py` (59 test), cùng STATE, HANDOFF, sổ này và mốc số test; không sửa `cham_bong.py`, `vong_hoc_gia.py` hay file có sẵn nào. `tools/buoc_cham_luat.py 305` xác nhận BƯỚC không chạm file nào của `FILE_LUAT` (CLAUDE.md, NGUYEN-TAC-DO-LUONG.md, MO-XE-KIEN-TRUC.md, SKILL.md, TIEU-CHI-DOC-TRUOC.md, LO-TRINH.md); mã mốc C3 đã có ở LO-TRINH.md và BƯỚC không thêm dòng nào. Các ngưỡng của bảng (3/4 tham số, bội 0,05, L1 0,10, cùng họ ≥ 2) là ƯỚC LƯỢNG do người dùng duyệt 25/11/2026, không phải luật của dự án hay kết luận đo: chưa có phiếu C3 thật nào để đo chúng. Đặc tả mục 4 và 5 đã khai điều này trước khi có mã."
+    },
+    "BƯỚC 304": {
+      "ngay": "2026-11-28",
+      "nguon": [
+        "CLAUDE.md @86d43d1",
+        "HANDOFF.md @f46a910",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @f46a910",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @86d43d1",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @3ceb248",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3ceb248 phan3/8 (BUOC 117-168)",
+        "STATE.md @3ceb248 phan7/8 (BUOC 275-297)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "STATE.md @f46a910 phan8/8 (BUOC 298-303)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "thiet-ke-c4-thi-truong-gia.md @58aa394",
+        "TIEU-CHI-DOC-TRUOC.md @f46a910"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với f46a9102e3f444b5eef769374a8e40c76bf637ee f46a910): 26 nguồn, 26 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 304 into docs/STATE.md: BƯỚC 304 records into docs/STATE.md and docs/LO-TRINH.md that the official run of ĐO 38 (signed in docs/TIEU-CHI-DOC-TRUOC.md at BƯỚC 303 after ĐO 37 FAILED at A0 and PT) came out \"KẾT CỤC: DAT\": all 16 criteria passed (A0 = 281 against the signed threshold 307, PT: G' QUA = 41 inside the signed band [31 ; 62], M1 = 3, M2 = 1.0409, A = 400, B2 = 400, and so on), on NEW seed streams 6, 7, 8, 9 each run once, the outcome read once, no threshold lowered and the generator unchanged. So docs/LO-TRINH.md row T6 and row C4 will say T6 is proven (ĐÃ chứng minh) IN THE FAKE MARKET ONLY, with the limits of section 11 of docs/thiet-ke-c4-thi-truong-gia.md (nothing about the real market, not every kind of edge, no profit measured, the real path is not shown to upgrade itself) and with the old sentences marked HẾT ĐÚNG, not deleted. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a written rule that says T6 may be recorded as proven only after something this run did not do (a second independent run, a user decision, a real-market result, a different data set), or that a pass of a table that was re-signed after a failed run cannot count as proof, a written rule that forbids marking a result as proven when its margin to a threshold is small, when one criterion (M1) is almost free to pass, or when the measuring instrument has a documented limit (the NULL Tầng 2 z standard deviation was not stored), a written rule that forbids touching docs/LO-TRINH.md or the T6 sentence without a new signed ĐO, or that says the result of an ĐO must be written in a form that this record does not follow. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "48a2cc9908dd90c40842476592b487be4a50f527801fc572222195b37403e11f",
+        "dai16": 4779,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 4,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 5,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 6,
+            "nguon": "thiet-ke-c4-thi-truong-gia.md @58aa394"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 7,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 11,
+            "nguon": "HANDOFF.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 12,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 12,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 3,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 14,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 1,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          }
+        ]
+      },
+      "khong_tim_thay_gi": true,
+      "phat_hien": [],
+      "_tu_kiem_cau_am": "Hỏi thật một lượt, trả lời ÂM (lối thoát): sổ tay nói không tìm thấy câu nào mâu thuẫn hay thành SAI khi BƯỚC 304 ghi T6 'ĐÃ chứng minh' (chỉ trong thị trường giả) sau kết cục ĐẠT của ĐO 38. Tự kiểm 27/11/2026, từ gốc worktree c4/chay-do38-304, nguồn của sổ tay phản chiếu origin/main f46a910 (26/26 nguồn tươi, đo bằng nhãn): (1) tệp trả lời dựng từ chuỗi text của chính trang (vibe_logs_304/dung_tep_tra_loi.py), `tools/so_tay.py kiem-tra-loi` KHOP sha256 48a2cc99…e11f, 4.779 đơn vị UTF-16, 30 trích dẫn, 16 ký tự vô hình (tám cặp TAB + U+200B trong phần toán M1, M2, A0, p̂). (2) Bảy chuỗi trong dấu nháy của câu trả lời đối chiếu bằng `tools/doi_chieu_trich_dan.py`: KHỚP cả bảy (câu kết cục ĐẠT 'T6 được ghi ĐÃ chứng minh, kèm giới hạn mục 11'; câu 'KHÔNG hạ ngưỡng, KHÔNG đổi bộ sinh cho đẹp; sửa bộ phận sai rồi chạy lại trên dòng hạt MỚI'; câu 'R KHÔNG được tăng sau khi nhìn kết quả … không đọc lại để chọn'; lời người dùng 26/11 'Giữ M1 + phán thêm z′ (Recommended)'; lời người dùng 25/11 'PT vẫn PHÁN, sd z NULL Tầng 2 chỉ Báo kèm'; câu 'Kết cục ghi vào docs/STATE.md … không viết lại tiêu chí'; câu cũ của LO-TRINH 'T6 vẫn CHƯA chứng minh cho tới khi lượt chạy ấy có kết cục'), và một chuỗi đối chứng tự bịa 'không có kết cục nào ngoài ĐẠT, TRƯỢT và KHÔNG ĐỌC ĐƯỢC' ra LỆCH (công cụ phân biệt được). Số dòng: kết cục ĐẠT ở docs/TIEU-CHI-DOC-TRUOC.md :5164 (ĐO 38), 'Số thị trường (R) … MỘT LẦN' :5169, 'Lượt chạy (BƯỚC 304)' :5306. (3) Câu ÂM, tự tìm: `git grep -n -i -E` ở f46a910 trên CLAUDE.md · NGUYEN-TAC-DO-LUONG.md · MO-XE-KIEN-TRUC.md · docs/LO-TRINH.md · docs/TIEU-CHI-DOC-TRUOC.md · docs/thiet-ke-c4-thi-truong-gia.md · SKILL.md · docs/QUYET-DINH-CHO.md với bảy mẫu (T6 kèm 'chỉ khi / phải có / sau khi / trừ khi / yêu cầu'; 'lượt thứ hai'; 'chạy lại ĐO 38'; 'chứng minh' kèm 'thị trường thật / người dùng duyệt'; 'không được ghi đã chứng minh'; 'sát ngưỡng' kèm 'không / cấm / phải'; 'biên mỏng') → bảy mẫu: 0 dòng chạm T6; các dòng trúng là TIEU-CHI :179 (bốn phép kiểm của ĐO walk-forward kết cục C, không phải T6), :1823 và :2250 (ĐO khác) và :4158, :4224 ('A′ — giữ, biên mỏng', ĐO khác). `git grep -n -i 'đã chứng minh'` cùng bộ tệp: câu luật duy nhất về T6 là 'T6 được ghi ĐÃ chứng minh, kèm giới hạn mục 11' (TIEU-CHI :5010 của ĐO 37 và :5164 của ĐO 38; thiet-ke-c4 :206), tức không có luật viết nào đòi lượt chạy thứ hai, dữ liệu thật hay quyết định người dùng mới cho T6, và không luật nào cấm ghi ĐÃ chứng minh vì biên mỏng. (4) Phiên không tìm thấy chỗ sổ tay bỏ sót. Giới hạn: sổ tay chỉ đọc tài liệu, không đọc mã; ba giới hạn của chính ĐO 38 (A0 biên 26/307; M1 qua gần như miễn phí; B3 không tính được) đã được ghi vào STATE và LO-TRINH, và sổ tay nêu M1 và sd z NULL Tầng 2 đúng như chúng được ghi."
+    },
+    "BƯỚC 306": {
+      "ngay": "2026-11-27",
+      "nguon": [
+        "CLAUDE.md @86d43d1",
+        "HANDOFF.md @f46a910",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @f46a910",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @86d43d1",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @3ceb248",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3ceb248 phan3/8 (BUOC 117-168)",
+        "STATE.md @3ceb248 phan7/8 (BUOC 275-297)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "STATE.md @f46a910 phan8/8 (BUOC 298-303)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "thiet-ke-c4-thi-truong-gia.md @58aa394",
+        "TIEU-CHI-DOC-TRUOC.md @f46a910"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với f46a9102e3f444b5eef769374a8e40c76bf637ee f46a910): 26 nguồn, 26 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 306 into docs/STATE.md: BƯỚC 306 signs a new DESCRIPTIVE measurement, ĐO 39 (Dow part 2), in docs/TIEU-CHI-DOC-TRUOC.md after ĐO 38: how often the daily index series VN30 and VNMidcap reverse at swing level within a short window, the lag between the two breaks, how long the pair sits in each state, clustering around index basket review dates, and a VN30-VN100 control. It is signed BEFORE the Dow part 1 module has ever been run on those index series, reads no profit, has no K0/A/B/C outcome (tables only), says that fewer than 5 reversals per series means list only and no ratios, bars the result from scoring, orders and filters, and keeps CHO_PHEP_DOC_KET_QUA_THAT False. BƯỚC 306 also edits docs/LO-TRINH.md (waiting-list item 4 and line B7) so that Dow part 2, which the user postponed on 05/11/2026 with the answer 'Hoãn tới sau v1.0 (Recommended)', is opened now on newer user decisions: 23/11/2026 'làm phương án A', 25/11/2026 'duyệt', 27/11/2026 'Bắt đầu ngay (Recommended)'. The work is merged into main only after the ĐO 38 official run (BƯỚC 304) is finished and read. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a written rule that forbids opening Dow part 2 before v1.0, or that makes Dow part 2 wait for a condition the newer user decisions do not meet, a written rule that forbids signing a new ĐO while another ĐO official run is still running or not yet read, or that requires every signed ĐO to have a K0/A/B/C outcome or a profit read, or that forbids a measurement made only of descriptive tables, a written rule that forbids calling a state of two index series a 'confirmation', or that requires the Dow reading to stay a single-series reading. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "43211e623bb70510109161a094bb516b38fcdfbdf395ffb9a9cc62f01b31eb78",
+        "dai16": 4732,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 6,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 7,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 8,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 9,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 11,
+            "nguon": "HANDOFF.md @f46a910"
+          },
+          {
+            "n": 4,
+            "nguon": "SKILL.md @014da50"
+          },
+          {
+            "n": 5,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 12,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 13,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 14,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 15,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 16,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 17,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 22,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 23,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 24,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 25,
+            "nguon": "STATE.md @f0b995a phan6/7 (BUOC 251-274)"
+          },
+          {
+            "n": 15,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 26,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 27,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 28,
+            "nguon": "CLAUDE.md @86d43d1"
+          },
+          {
+            "n": 26,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 29,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 30,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 31,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          }
+        ]
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay mở bằng *\"Không tìm thấy BẤT KỲ vị trí nào trong các nguồn mâu thuẫn …\"* nhưng TRÍCH câu cũ của LO-TRINH *\"Hoãn tới sau v1.0 (Recommended); không làm trước v1.0\"* (mục *Quyết định 05/11/2026* và, theo sổ tay, *Ý tưởng — ĐỀ XUẤT CHƯA ĐO* gạch đầu dòng 4) và phán rằng quyết định mới hơn của người dùng (23/11, 25/11, 27/11/2026) thay nó. Đây là câu sẽ thành SAI khi BƯỚC 306 được viết: nó nằm ở đúng chỗ BƯỚC này sửa.",
+          "tu_kiem": "`./.venv/Scripts/python.exe -X utf8 tools/doi_chieu_trich_dan.py 'Hoãn tới sau v1.0 (Recommended)\"*; không làm trước v1.0'` → KHỚP — LO-TRINH.md; `git grep -n \"Hoãn tới sau v1.0\" f46a910 -- . ':!docs/STATE.md' ':!docs/lich-su'` → docs/LO-TRINH.md:65 (bảng *Quyết định 05/11/2026*), docs/LO-TRINH.md:332 (mục *Tài nguyên, kiến thức, rủi ro*, *Danh sách chờ* khoản 4) và docs/thiet-ke-dow-cau-truc.md:336. BƯỚC 306 gắn 🔴 HẾT ĐÚNG và dẫn quyết định mới ở CẢ BA chỗ.",
+          "phan_quyet": "THẬT. Câu có thật, đúng chữ. Sổ tay sai CHỖ: nó gọi dòng :332 là *Ý tưởng — ĐỀ XUẤT CHƯA ĐO* gạch đầu dòng 4; mục ấy (:277–:298) có năm ý tưởng và gạch thứ tư là *\"Chi phí trước, thị trường sau\"*, không nhắc Dow. Chữ nằm ở *Danh sách chờ* khoản 4 và ở bảng 05/11 (tên tệp đúng, tên mục sai; SKILL.md: sổ tay có thể trích đúng chữ nhưng sai chỗ). Đã xử lý, không phải mâu thuẫn còn lại: hàng 65 và khoản 4 mang 🔴 HẾT ĐÚNG, thiet-ke :336 cũng vậy."
+        },
+        {
+          "noi_dung": "Sổ tay trích, từ LO-TRINH (*Ý tưởng — ĐỀ XUẤT CHƯA ĐO*, gạch đầu dòng 4), câu *\"Hai chỉ số xác nhận theo Lý thuyết Dow (VN30 và VNMidcap, hoặc VN-Index và VN30...)\"* và dựa vào nó để nói khái niệm xác nhận giữa hai chỉ số đã được định hình từ đầu trong tài liệu dự án.",
+          "tu_kiem": "`git grep -n -i \"Hai chỉ số xác nhận\" f46a910 -- .` → MỘT dòng, docs/thiet-ke-dow-cau-truc.md:329 *\"Dow đòi hai chỉ số xác nhận nhau (mục 4.5).\"*; `git grep -n \"VN-Index và VN30\" f46a910 -- .` → 0 dòng; `git show f46a910:docs/LO-TRINH.md | grep -n -i \"VNMidcap\\|hai chỉ số\"` → MỘT dòng (:331, khoản 4 của Danh sách chờ, \"nguyên lý hai chỉ số\"), không có VNMidcap; `./.venv/Scripts/python.exe -X utf8 tools/doi_chieu_trich_dan.py 'Hai chỉ số xác nhận theo Lý thuyết Dow'` → LỆCH, khớp 6/38 ký tự đầu.",
+          "phan_quyet": "SAI. Câu CHẾ: không có ở LO-TRINH hay ở tệp nào khác, và mục *Ý tưởng* không nhắc VNMidcap hay Dow. Nó không đổi kết luận (nguyên lý hai chỉ số CÓ ở docs/thiet-ke-dow-cau-truc.md :329 và mục 10), nhưng là một trích dẫn bịa, và BƯỚC 306 không dựa vào nó."
+        },
+        {
+          "noi_dung": "Các câu còn lại sổ tay trích và BƯỚC 306 dựa vào: điều kiện BƯỚC 244 cho Dow phần 2 (*\"phần hai chỉ số bao giờ — sau kết cục ĐO phần một\"*), tiền lệ BƯỚC 270 (*\"Đây KHÔNG phải một ĐO có phán quyết. Nó là kiểm kê: không giả thuyết, không ngưỡng, không kết cục A/B/C\"*), ĐO 38 (*\"ĐO 39 dành cho Dow phần 2\"*), CLAUDE.md (*\"hàm thuần, KHÔNG chấm điểm, không vào lệnh ảo hay backtest\"*), các tiền lệ mở sớm (C1, D2, D3), và khối nhãn (*\"Số chính đã đọc rồi thì mọi thay đổi là một ĐO mới\"*).",
+          "tu_kiem": "`tools/doi_chieu_trich_dan.py` cho bốn câu: KHỚP — STATE.md (BƯỚC 270), KHỚP — TIEU-CHI-DOC-TRUOC.md (ĐO 39 dành cho Dow phần 2), KHỚP — CLAUDE.md, KHỚP — STATE.md · TIEU-CHI-DOC-TRUOC.md (số chính đã đọc); câu BƯỚC 244 LỆCH 19/27 vì sổ tay nén: nguyên văn `git grep -n \"Sau khi có kết cục ĐO phần một\" f46a910 -- docs` → docs/thiet-ke-dow-cau-truc.md:411 *\"4. **PHẦN 2 (hai chỉ số) bao giờ?** (a) Sau khi có kết cục ĐO phần một; …\"* (ý đúng, chữ nén; và `docs/HANDOFF.md` :464: *\"phần hai chỉ số sau ĐO phần một\"*, quyết định 29/10 đã được ĐO 34 (BƯỚC 253, kết cục A) đáp ứng); `git grep -n -i \"mở sớm\" f46a910 -- docs/LO-TRINH.md` → :233 (C1 MỞ SỚM từ 28/10/2026) và :246 (D2 và D3 đã mở sớm từ 10/2026); `grep -n \"N_TOI_THIEU_TIEN_LE =\" tien_le.py` → 10 (khớp lời sổ tay về n < 10 và docs/STATE.md :23822 \"chỉ khi n ≥ 10\").",
+          "phan_quyet": "THẬT. Mọi trích dẫn nêu trên đúng nội dung, đồng chiều với BƯỚC 306; một câu nén chữ (BƯỚC 244), ý đúng."
+        },
+        {
+          "noi_dung": "Câu ÂM của sổ tay: không có luật viết nào CẤM mở Dow phần 2 trước v1.0 (ngoài câu 05/11 đã xử lý), CẤM ký một ĐO khi lượt chạy chính thức của ĐO khác còn chạy hay chưa đọc, BẮT BUỘC mọi ĐO có kết cục K0/A/B/C hay đọc lợi nhuận, hay CẤM gọi trạng thái hai chuỗi là 'xác nhận'.",
+          "tu_kiem": "Tự tìm bằng từ khoá tiếng Việt của dự án, ở f46a910 (lệnh chạy 27/11/2026 từ worktree dow2/ky-do39-306): `git grep -n -i 'dow phần 2|PHẦN 2 (hai|phần hai chỉ số|Dow phần hai' f46a910 -- CLAUDE.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md SKILL.md docs/LO-TRINH.md docs/HANDOFF.md` → 3 dòng: docs/HANDOFF.md:464 (khối 🧭 ngày 29/10, 'phần hai chỉ số sau ĐO phần một', bản ghi có ngày, điều kiện ĐÃ đáp ứng bởi ĐO 34), docs/LO-TRINH.md:65 và :331 (hai chỗ BƯỚC 306 sửa); ba mẫu `git grep -n -i -E` cho (cấm|không được|không ký) + ĐO + (đang chạy|chưa đọc|chiếm máy), cho mọi ĐO phải có (kết cục|K0), và cho cấm gọi 'xác nhận' trên CLAUDE.md · NGUYEN-TAC-DO-LUONG.md · SKILL.md · TIEU-CHI-DOC-TRUOC.md · LO-TRINH.md · thiet-ke-dow-cau-truc.md → 0 dòng cả ba; chính khối nhãn của TIEU-CHI-DOC-TRUOC.md không đòi K0/A/B/C ('Mọi con số một ĐO báo ra mang đúng MỘT nhãn'). Lối thoát chặn BỊA, không chặn BỎ SÓT, nên mẫu tìm là của phiên, không của sổ tay.",
+          "phan_quyet": "THẬT. Không tìm ra luật viết nào mâu thuẫn ngoài hai câu 05/11 đã nêu ở phát hiện đầu (đã xử lý bằng 🔴 HẾT ĐÚNG)."
+        }
+      ]
+    },
+    "ĐO 39": {
+      "ngay": "2026-11-27",
+      "nguon": [
+        "CLAUDE.md @86d43d1",
+        "HANDOFF.md @f46a910",
+        "lich-su/CLAUDE-md-2026-09-30.md @13c32a0",
+        "lich-su/CLAUDE-md-2026-11-05.md @aac135f",
+        "lich-su/SKILL-md-2026-09-30.md @13c32a0",
+        "LO-TRINH.md @f46a910",
+        "MO-XE-KIEN-TRUC.md @e99c2e1",
+        "NGUYEN-TAC-DO-LUONG.md @ed9a9ab",
+        "QUYET-DINH-CHO.md @86d43d1",
+        "README.md @e99c2e1",
+        "references/bay.md @13c32a0",
+        "references/cong-thuc-chay.md @e99c2e1",
+        "references/loi-da-mac.md @3ceb248",
+        "references/soat-cheo-notebooklm.md @f27bc50",
+        "SKILL.md @014da50",
+        "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)",
+        "STATE.md @3ceb248 phan3/8 (BUOC 117-168)",
+        "STATE.md @3ceb248 phan7/8 (BUOC 275-297)",
+        "STATE.md @61221db phan1/5 (BUOC 2-40)",
+        "STATE.md @61221db phan2/5 (BUOC 41-116)",
+        "STATE.md @61221db phan4/5 (BUOC 169-211)",
+        "STATE.md @f0b995a phan6/7 (BUOC 251-274)",
+        "STATE.md @f46a910 phan8/8 (BUOC 298-303)",
+        "thiet-ke-c1-san-dau.md @3d87a20",
+        "thiet-ke-c4-thi-truong-gia.md @58aa394",
+        "TIEU-CHI-DOC-TRUOC.md @f46a910"
+      ],
+      "_do_tuoi": "ĐO BẰNG NHÃN, không hỏi mô hình (`tools/so_tay.py do-tuoi`, so với f46a9102e3f444b5eef769374a8e40c76bf637ee f46a910): 26 nguồn, 26 tươi — kết luận TUOI.",
+      "cau_hoi": "I am about to write BƯỚC 306 into docs/STATE.md: BƯỚC 306 signs a new DESCRIPTIVE measurement, ĐO 39 (Dow part 2), in docs/TIEU-CHI-DOC-TRUOC.md after ĐO 38: how often the daily index series VN30 and VNMidcap reverse at swing level within a short window, the lag between the two breaks, how long the pair sits in each state, clustering around index basket review dates, and a VN30-VN100 control. It is signed BEFORE the Dow part 1 module has ever been run on those index series, reads no profit, has no K0/A/B/C outcome (tables only), says that fewer than 5 reversals per series means list only and no ratios, bars the result from scoring, orders and filters, and keeps CHO_PHEP_DOC_KET_QUA_THAT False. BƯỚC 306 also edits docs/LO-TRINH.md (waiting-list item 4 and line B7) so that Dow part 2, which the user postponed on 05/11/2026 with the answer 'Hoãn tới sau v1.0 (Recommended)', is opened now on newer user decisions: 23/11/2026 'làm phương án A', 25/11/2026 'duyệt', 27/11/2026 'Bắt đầu ngay (Recommended)'. The work is merged into main only after the ĐO 38 official run (BƯỚC 304) is finished and read. Is there ANY place in your sources that CONTRADICTS these conclusions or would become FALSE once they are written? For example: a written rule that forbids opening Dow part 2 before v1.0, or that makes Dow part 2 wait for a condition the newer user decisions do not meet, a written rule that forbids signing a new ĐO while another ĐO official run is still running or not yet read, or that requires every signed ĐO to have a K0/A/B/C outcome or a profit read, or that forbids a measurement made only of descriptive tables, a written rule that forbids calling a state of two index series a 'confirmation', or that requires the Dow reading to stay a single-series reading. Quote each such sentence exactly and name the file and heading. A dated record that already carries a later marker such as a red circle or 'HẾT ĐÚNG' is not a contradiction. If you find nothing in the sources that contradicts it, say exactly that and do not invent one. Answer in Vietnamese.",
+      "o_thoat": "If you find nothing in the sources that contradicts it, say exactly that and do not invent one.",
+      "tra_loi": {
+        "sha256": "43211e623bb70510109161a094bb516b38fcdfbdf395ffb9a9cc62f01b31eb78",
+        "dai16": 4732,
+        "trich_dan": [
+          {
+            "n": 1,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 3,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 6,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 7,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 8,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 9,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 10,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 11,
+            "nguon": "HANDOFF.md @f46a910"
+          },
+          {
+            "n": 4,
+            "nguon": "SKILL.md @014da50"
+          },
+          {
+            "n": 5,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 12,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 13,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 14,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 15,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 16,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 17,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 22,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 23,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 24,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 25,
+            "nguon": "STATE.md @f0b995a phan6/7 (BUOC 251-274)"
+          },
+          {
+            "n": 15,
+            "nguon": "STATE.md @f46a910 phan8/8 (BUOC 298-303)"
+          },
+          {
+            "n": 26,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 27,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          },
+          {
+            "n": 28,
+            "nguon": "CLAUDE.md @86d43d1"
+          },
+          {
+            "n": 26,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 29,
+            "nguon": "TIEU-CHI-DOC-TRUOC.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 30,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 2,
+            "nguon": "LO-TRINH.md @f46a910"
+          },
+          {
+            "n": 31,
+            "nguon": "STATE.md @2cd47f2 phan5/6 (BUOC 212-250)"
+          }
+        ]
+      },
+      "phat_hien": [
+        {
+          "noi_dung": "Sổ tay mở bằng *\"Không tìm thấy BẤT KỲ vị trí nào trong các nguồn mâu thuẫn …\"* nhưng TRÍCH câu cũ của LO-TRINH *\"Hoãn tới sau v1.0 (Recommended); không làm trước v1.0\"* (mục *Quyết định 05/11/2026* và, theo sổ tay, *Ý tưởng — ĐỀ XUẤT CHƯA ĐO* gạch đầu dòng 4) và phán rằng quyết định mới hơn của người dùng (23/11, 25/11, 27/11/2026) thay nó. Đây là câu sẽ thành SAI khi BƯỚC 306 được viết: nó nằm ở đúng chỗ BƯỚC này sửa.",
+          "tu_kiem": "`./.venv/Scripts/python.exe -X utf8 tools/doi_chieu_trich_dan.py 'Hoãn tới sau v1.0 (Recommended)\"*; không làm trước v1.0'` → KHỚP — LO-TRINH.md; `git grep -n \"Hoãn tới sau v1.0\" f46a910 -- . ':!docs/STATE.md' ':!docs/lich-su'` → docs/LO-TRINH.md:65 (bảng *Quyết định 05/11/2026*), docs/LO-TRINH.md:332 (mục *Tài nguyên, kiến thức, rủi ro*, *Danh sách chờ* khoản 4) và docs/thiet-ke-dow-cau-truc.md:336. BƯỚC 306 gắn 🔴 HẾT ĐÚNG và dẫn quyết định mới ở CẢ BA chỗ.",
+          "phan_quyet": "THẬT. Câu có thật, đúng chữ. Sổ tay sai CHỖ: nó gọi dòng :332 là *Ý tưởng — ĐỀ XUẤT CHƯA ĐO* gạch đầu dòng 4; mục ấy (:277–:298) có năm ý tưởng và gạch thứ tư là *\"Chi phí trước, thị trường sau\"*, không nhắc Dow. Chữ nằm ở *Danh sách chờ* khoản 4 và ở bảng 05/11 (tên tệp đúng, tên mục sai; SKILL.md: sổ tay có thể trích đúng chữ nhưng sai chỗ). Đã xử lý, không phải mâu thuẫn còn lại: hàng 65 và khoản 4 mang 🔴 HẾT ĐÚNG, thiet-ke :336 cũng vậy."
+        },
+        {
+          "noi_dung": "Sổ tay trích, từ LO-TRINH (*Ý tưởng — ĐỀ XUẤT CHƯA ĐO*, gạch đầu dòng 4), câu *\"Hai chỉ số xác nhận theo Lý thuyết Dow (VN30 và VNMidcap, hoặc VN-Index và VN30...)\"* và dựa vào nó để nói khái niệm xác nhận giữa hai chỉ số đã được định hình từ đầu trong tài liệu dự án.",
+          "tu_kiem": "`git grep -n -i \"Hai chỉ số xác nhận\" f46a910 -- .` → MỘT dòng, docs/thiet-ke-dow-cau-truc.md:329 *\"Dow đòi hai chỉ số xác nhận nhau (mục 4.5).\"*; `git grep -n \"VN-Index và VN30\" f46a910 -- .` → 0 dòng; `git show f46a910:docs/LO-TRINH.md | grep -n -i \"VNMidcap\\|hai chỉ số\"` → MỘT dòng (:331, khoản 4 của Danh sách chờ, \"nguyên lý hai chỉ số\"), không có VNMidcap; `./.venv/Scripts/python.exe -X utf8 tools/doi_chieu_trich_dan.py 'Hai chỉ số xác nhận theo Lý thuyết Dow'` → LỆCH, khớp 6/38 ký tự đầu.",
+          "phan_quyet": "SAI. Câu CHẾ: không có ở LO-TRINH hay ở tệp nào khác, và mục *Ý tưởng* không nhắc VNMidcap hay Dow. Nó không đổi kết luận (nguyên lý hai chỉ số CÓ ở docs/thiet-ke-dow-cau-truc.md :329 và mục 10), nhưng là một trích dẫn bịa, và BƯỚC 306 không dựa vào nó."
+        },
+        {
+          "noi_dung": "Các câu còn lại sổ tay trích và BƯỚC 306 dựa vào: điều kiện BƯỚC 244 cho Dow phần 2 (*\"phần hai chỉ số bao giờ — sau kết cục ĐO phần một\"*), tiền lệ BƯỚC 270 (*\"Đây KHÔNG phải một ĐO có phán quyết. Nó là kiểm kê: không giả thuyết, không ngưỡng, không kết cục A/B/C\"*), ĐO 38 (*\"ĐO 39 dành cho Dow phần 2\"*), CLAUDE.md (*\"hàm thuần, KHÔNG chấm điểm, không vào lệnh ảo hay backtest\"*), các tiền lệ mở sớm (C1, D2, D3), và khối nhãn (*\"Số chính đã đọc rồi thì mọi thay đổi là một ĐO mới\"*).",
+          "tu_kiem": "`tools/doi_chieu_trich_dan.py` cho bốn câu: KHỚP — STATE.md (BƯỚC 270), KHỚP — TIEU-CHI-DOC-TRUOC.md (ĐO 39 dành cho Dow phần 2), KHỚP — CLAUDE.md, KHỚP — STATE.md · TIEU-CHI-DOC-TRUOC.md (số chính đã đọc); câu BƯỚC 244 LỆCH 19/27 vì sổ tay nén: nguyên văn `git grep -n \"Sau khi có kết cục ĐO phần một\" f46a910 -- docs` → docs/thiet-ke-dow-cau-truc.md:411 *\"4. **PHẦN 2 (hai chỉ số) bao giờ?** (a) Sau khi có kết cục ĐO phần một; …\"* (ý đúng, chữ nén; và `docs/HANDOFF.md` :464: *\"phần hai chỉ số sau ĐO phần một\"*, quyết định 29/10 đã được ĐO 34 (BƯỚC 253, kết cục A) đáp ứng); `git grep -n -i \"mở sớm\" f46a910 -- docs/LO-TRINH.md` → :233 (C1 MỞ SỚM từ 28/10/2026) và :246 (D2 và D3 đã mở sớm từ 10/2026); `grep -n \"N_TOI_THIEU_TIEN_LE =\" tien_le.py` → 10 (khớp lời sổ tay về n < 10 và docs/STATE.md :23822 \"chỉ khi n ≥ 10\").",
+          "phan_quyet": "THẬT. Mọi trích dẫn nêu trên đúng nội dung, đồng chiều với BƯỚC 306; một câu nén chữ (BƯỚC 244), ý đúng."
+        },
+        {
+          "noi_dung": "Câu ÂM của sổ tay: không có luật viết nào CẤM mở Dow phần 2 trước v1.0 (ngoài câu 05/11 đã xử lý), CẤM ký một ĐO khi lượt chạy chính thức của ĐO khác còn chạy hay chưa đọc, BẮT BUỘC mọi ĐO có kết cục K0/A/B/C hay đọc lợi nhuận, hay CẤM gọi trạng thái hai chuỗi là 'xác nhận'.",
+          "tu_kiem": "Tự tìm bằng từ khoá tiếng Việt của dự án, ở f46a910 (lệnh chạy 27/11/2026 từ worktree dow2/ky-do39-306): `git grep -n -i 'dow phần 2|PHẦN 2 (hai|phần hai chỉ số|Dow phần hai' f46a910 -- CLAUDE.md NGUYEN-TAC-DO-LUONG.md MO-XE-KIEN-TRUC.md SKILL.md docs/LO-TRINH.md docs/HANDOFF.md` → 3 dòng: docs/HANDOFF.md:464 (khối 🧭 ngày 29/10, 'phần hai chỉ số sau ĐO phần một', bản ghi có ngày, điều kiện ĐÃ đáp ứng bởi ĐO 34), docs/LO-TRINH.md:65 và :331 (hai chỗ BƯỚC 306 sửa); ba mẫu `git grep -n -i -E` cho (cấm|không được|không ký) + ĐO + (đang chạy|chưa đọc|chiếm máy), cho mọi ĐO phải có (kết cục|K0), và cho cấm gọi 'xác nhận' trên CLAUDE.md · NGUYEN-TAC-DO-LUONG.md · SKILL.md · TIEU-CHI-DOC-TRUOC.md · LO-TRINH.md · thiet-ke-dow-cau-truc.md → 0 dòng cả ba; chính khối nhãn của TIEU-CHI-DOC-TRUOC.md không đòi K0/A/B/C ('Mọi con số một ĐO báo ra mang đúng MỘT nhãn'). Lối thoát chặn BỊA, không chặn BỎ SÓT, nên mẫu tìm là của phiên, không của sổ tay.",
+          "phan_quyet": "THẬT. Không tìm ra luật viết nào mâu thuẫn ngoài hai câu 05/11 đã nêu ở phát hiện đầu (đã xử lý bằng 🔴 HẾT ĐÚNG)."
+        }
+      ]
     }
   },
   "_gioi_han_NGUON_LA_BAN_CHUP": "NGUON CUA SO TAY LA MOT BAN CHUP, khong phai file dang song trong repo — va mot bản chụp thi cu di trong im lang. Đo 14/09/2026: sổ tay đang đọc một `STATE.md` dừng ở BƯỚC 41 (08/09/2026). Lúc ấy repo đã có 72 mục, cao nhất là BƯỚC 73 — tức 32 mục và 147.821/497.902 ký tự (30%) NẰM NGOÀI tầm nhìn của nó, suốt sáu ngày, và không lượt soát nào ghi điều đó. Ba lượt ĐO 5, ĐO 6, ĐO 8 đều chạy trên bản thiếu ấy; chúng không sai, vì câu trả lời của chúng trỏ vào BƯỚC 8 và BƯỚC 25 — nằm trong phần thấy được — nhưng chúng KHÔNG THỂ phát hiện một phép đo trùng với BƯỚC 42-69. ĐÃ SỬA cùng ngày: nguồn chuyển sang URL thô của nhánh `main` (`https://raw.githubusercontent.com/Siner0808/vibe-stock-analysis/main/...`), nên mỗi lượt nạp lại lấy bản đã merge. LUẬT TỪ NAY: trước khi tin một lượt soát, HỎI sổ tay mục BƯỚC lớn nhất nó đọc được và đối chiếu với `grep -c '^## BƯỚC' docs/STATE.md`. — ĐO LẠI 16/09/2026: sổ tay thấy tới BƯỚC 73, repo ở BƯỚC 85, lệch 12 BƯỚC. Và phép BỎ CHỌN nguồn không sống qua phiên: 15/09 để lại 5 nguồn, 16/09 cả 9 được tích lại. Nên độ tươi phải ĐO LẠI mỗi lượt soát, không được nhớ từ lượt trước. — CÁCH SỬA tìm ra 16/09/2026 (BƯỚC 88): không có nút làm mới, phải XOÁ rồi THÊM LẠI; hộp thêm nguồn nhận nhiều URL ngăn cách bằng dấu cách. Sau lượt ấy sổ tay đi từ BƯỚC 73 lên 87, đúng bằng repo. Nhưng nguồn URL vẫn là ảnh chụp, nên nó sẽ cũ lại từ BƯỚC kế tiếp — đo độ tươi vẫn là việc bắt buộc mỗi lượt soát. — LÀM TƯƠI LẠI 21/09/2026 (BƯỚC 110): 15 nguồn / 5 cặp trùng / chụp ở BƯỚC 106 → 10 nguồn / 0 trùng / cả 10 lấy về hôm nay, sổ tay khai đúng BƯỚC 109. Năm cặp trùng GỌI ĐƯỢC TÊN bằng `aria-label` của từng hàng, không cần nhìn nhãn cắt cụt. Và `git diff --name-only <commit nạp nguồn> HEAD` cho biết tài liệu nào thật sự cũ — bảy trên mười giống hệt từng byte nên xoá bản nào cũng như nhau; chỉ ba file phải xoá hết rồi dán lại.",
